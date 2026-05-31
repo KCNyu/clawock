@@ -115,15 +115,11 @@ def validate_markdown(path, context=None):
     if 'USDHKD' not in text and 'FX' not in text and '汇率' not in text:
         issues.append('pre-open.md 未提及 FX rate / 汇率')
 
-    # 字节硬约束 (2026-05-31): WeChat 单条 16KB。让 mimo 把超长 brief 作为最终消息吐出
-    # 会退化成复读死循环（实测 17.9KB → 投递一屏复读垃圾）。落盘版 ≤14KB 留足 TL;DR 头+余量。
-    # >16KB = critical fail（逼 agent 按 Step 6 裁剪优先级裁后重发）；14-16KB = warn 提醒。
+    # 体量卫生 (2026-05-31): WeChat 只发紧凑结论卡（Step 6），pre-open.md 仅作 dashboard
+    # 全文，不再受 16KB 微信上限约束 → 不 fail。但过长 briefs 页难读，>24KB 给个 warn 提醒精简。
     nbytes = len(text.encode('utf-8'))
-    if nbytes > 16000:
-        issues.append(f'pre-open.md 超限 {nbytes} bytes > 16000（WeChat 会截断且 mimo 易复读死循环，'
-                      f'必须按 Step 6 裁剪优先级裁到 ≤14KB）')
-    elif nbytes > 14000:
-        issues.append(f'pre-open.md 偏长 {nbytes} bytes（目标 ≤14000，建议按 Step 6 裁剪优先级精简留余量）')
+    if nbytes > 24000:
+        issues.append(f'pre-open.md 偏长 {nbytes} bytes（dashboard 全文，建议精简到 ≤24KB 便于阅读）')
 
     # Markdown table column consistency — Pages renderer breaks if header/sep/data
     # rows diverge in pipe-segment count (same class of bug as the WeChat one
@@ -163,7 +159,7 @@ def validate_markdown(path, context=None):
     return issues
 
 
-CRITICAL_KEYWORDS = ['缺失', '解析失败', '表格 #', '超限']  # 表格列不一致 / 超 16KB 都 critical
+CRITICAL_KEYWORDS = ['缺失', '解析失败', '表格 #']  # table column-mismatch is critical
 
 
 def categorize(issues):

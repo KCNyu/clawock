@@ -578,36 +578,40 @@ python3 /root/.openclaw/workspace/scripts/harness/brief_postflight.py
 - `warn` — 有非 critical 问题（≤4 个），已 commit 但标 `(validation warnings)`
 - `fail` — 缺文件/JSON 解析错/critical 字段缺失，**不 commit**
 
-### Step 6: 发 WeChat（完整 brief，**硬收敛到 ≤14KB**）
+### Step 6: 发 WeChat —— 只发紧凑结论卡（完整 brief 在 dashboard，**不要贴全文**）
 
-> **投递机制 = announce**：把消息**作为本轮最终回复文本直接输出**即发到 WeChat。**不调用任何 message/send 工具，不反复确认"怎么发"，输出完立即结束本轮、不再追加思考。**
+> **投递机制 = announce**：把这张卡片**作为本轮最终回复文本直接输出**即发到 WeChat。**不调用任何 message/send 工具，不反复确认"怎么发"，输出完立即结束本轮、不再追加任何思考。**
 >
-> **⚠️ 一次性吐出，禁止"边想边发"**：2026-05-31 两次实测，mimo 在准备吐长消息时会退化成**复读死循环**（反复念"Now let me output the WeChat message…"几十遍被当最终回复发出 → kcn 收到一屏垃圾）。**对策：先把完整微信文本在脑中定稿，然后一次性整段输出，中途不要再插入"让我构造/让我输出"这类元叙述。**
+> **🔒 铁律：WeChat 只发下面这张紧凑卡（目标 ≤1.5KB），绝不输出完整 markdown brief。**
+> 完整 brief 已在 Step 4/5 写进 `pre-open.md` 并 commit，dashboard / briefs 页能看；微信只给 kcn 手机第一屏要的"结论 + 动作 + 去哪看全文"。
+>
+> **为什么（2026-05-31 实测 bug，必须遵守）**：让 mimo 把 ~14KB 完整 brief 作为最终消息吐出时会退化成**复读死循环**（反复念"Now let me output the WeChat message…"几十遍被当回复发出 → kcn 收到一屏垃圾）。**短卡片 = 模型一次吐得出、不会 loop**，顺带解决 16KB 超限 + 手机好读。
 
-**🔒 长度硬约束 ≤14KB（postflight 会按字节卡，超了直接 fail 逼你裁）：**
-`pre-open.md` 落盘版**和**微信版都要 ≤14000 bytes（UTF-8，留足 16KB 余量 + TL;DR 头）。**超了按下面优先级裁，不要靠尾部截断**：
-
-1. **先砍 Tier 1 大表的注释/形容词**：每格只留 `数字 + 1 个 emoji 信号`，删"显著/大幅/值得注意"这类废话
-2. **Bull/Bear 各压到 ≤80 字**，只留分歧点 + 各 1 个数据
-3. **Tier 3 三声各 ≤1 句**，Judge 保留 5 bucket 结论但删复述
-4. **板块全景每板块只留 Top 2 涨幅 + 1 句归因**
-5. **▎社交舆情/名人异动**无强信号的票直接删行
-6. 仍超 → 把 Tier 1 四类分析合并成一张表的精简版
-
-裁剪后保证段标记齐全（postflight 仍校验 Header/Tier1/Tier2/Tier3/Judge/Confidence/Next-Session/同行扫描）。
-
-把 postflight 的 `wechat_prefix`（warn/fail 是警告 banner，pass 是空串）拼到完整 brief 前，第一段是 ≤150 字 TL;DR，作为最终回复**一次性输出**：
+把 postflight 的 `wechat_prefix`（warn/fail 是警告 banner，pass 是空串）拼到卡前，**一次性整段输出这张卡就结束**（数字全来自 `plan.json` + context.json，不现编）：
 
 ```
 {wechat_prefix}📊 盘前深度简报｜{日期 周X} 08:00 HKT  (USDHKD={rate})
 
-▎TL;DR
-Book: USD${total} ({pct}%) | HK leg {hk}HKD | US leg {us}USD
-今日 3 个动作：1. {ticker} {action} {trigger}(conf{%})  2. …  3. …
-↓ 完整报告 ↓
+▎核心结论（≤2 句）
+{regime + 今日最关键的一句判断，如 "risk_on 默认 HOLD，AI/高beta 单因子敞口偏高，主动操作克制"}
 
-{完整 markdown brief（已裁到 ≤14KB）}
+▎Book
+USD${total} ({pct}%) | HK leg {hk}HKD | US leg {us}USD
+
+▎今日动作（≤3 条，来自 plan.json）
+1. {ticker} {bucket} {trigger}(conf{%})
+2. …
+3. …
+
+▎触发位（≤2 条最近的）
+{watch_levels 关键 1-2 条}
+
+📈 完整深度报告（Tier1/2/3 辩论 + 板块全景 + 复盘 + 唱反调）见 dashboard：
+https://kcnyu.github.io/clawock/
 ```
+
+- **整张卡 ≤1.5KB**，远低于 16KB；模型一次吐得出、不会 loop。
+- 输出这张卡 = 本轮结束，**不要再追加任何思考或内容、不要把 pre-open.md 全文贴上来**。
 
 ## Style rules
 
