@@ -13,6 +13,7 @@ import json
 import os
 import re
 import sys
+import time
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -360,6 +361,35 @@ def load_sector_scan():
         return data
     except Exception as e:
         print(f'  warn: load_sector_scan failed: {e}', file=sys.stderr)
+        return {}
+
+
+def load_tmp_sidecar(prefix, max_age_days=None):
+    """Freshest memory/.tmp/{prefix}-*.json by mtime, stamped with _source + _stale.
+
+    Used for LLM-narrative sidecars the cron AGENT writes during Step 3 (behavioral
+    review / bear cases / status banner / movers attribution). The LLM runs inside
+    the gateway/GHA where API keys live — those keys NEVER touch these files or
+    dashboard.json (published to public Pages), only the narrative text does.
+    Non-fatal on any error (returns {}). If max_age_days is set, marks _stale=True
+    when the file's mtime is older, so the frontend can grey it out instead of
+    showing day-old critique as if it were current.
+    """
+    try:
+        paths = glob.glob(str(WS_ROOT / 'memory' / '.tmp' / f'{prefix}-*.json'))
+        if not paths:
+            return {}
+        latest = max(paths, key=os.path.getmtime)
+        data = load_json(latest)
+        if not isinstance(data, dict):
+            return {}
+        data.setdefault('_source', os.path.basename(latest))
+        if max_age_days is not None:
+            age_days = (time.time() - os.path.getmtime(latest)) / 86400.0
+            data['_stale'] = age_days > max_age_days
+        return data
+    except Exception as e:
+        print(f'  warn: load_tmp_sidecar({prefix}) failed: {e}', file=sys.stderr)
         return {}
 
 
@@ -733,6 +763,7 @@ def recent_actions_from_csv(limit=20):
                 'outcome': outcome,
                 'pnl_5d': _to_float(r.get('pnl_5d')),
                 'followed': (r.get('followed') or 'unknown').strip().lower(),
+                'driven_by': (r.get('driven_by') or '').strip().lower(),
             })
         return out
     except Exception as e:
@@ -1440,6 +1471,33 @@ def main():
     out['delta'] = compute_delta(snapshots)
     out['today_movers'] = compute_today_movers(us_h, hk_h)
     out['anomalies'] = extract_anomalies(brief_ctx, us_h, hk_h)
+
+    # ── LLM narrative sidecars (agent-written in Step 3; text-only, no keys) ──
+    # daily insights (brief): behavioral_review / bear_cases / hidden_concentration.
+    # 7d stale guard so a missed brief doesn't show week-old critique as current.
+    _insights = load_tmp_sidecar('insights', max_age_days=7)
+    out['behavioral_review'] = _insights.get('behavioral_review')
+    out['bear_cases'] = _insights.get('bear_cases') or []
+    out['hidden_concentration'] = _insights.get('hidden_concentration')
+    out['insights_meta'] = {
+        'source': _insights.get('_source'),
+        'stale': _insights.get('_stale', True if not _insights else False),
+    }
+    # intraday insights (every 30min): status_banner + per-mover attribution.
+    _intra = load_tmp_sidecar('intraday-insights', max_age_days=1)
+    out['status_banner'] = None if _intra.get('_stale') else _intra.get('status_banner')
+    out['status_banner_meta'] = {
+        'source': _intra.get('_source'),
+        'generated_at': _intra.get('generated_at'),
+        'stale': _intra.get('_stale', True if not _intra else False),
+    }
+    # Merge LLM mover attribution onto the deterministic movers list (by ticker).
+    _mv_notes = _intra.get('movers') or {}
+    if isinstance(_mv_notes, dict):
+        for _m in out['today_movers']:
+            _note = _mv_notes.get(_m.get('ticker'))
+            if _note:
+                _m['note'] = _note
     out['peer_divergence'] = {
         'as_of': (brief_ctx or {}).get('date')
                  or ((brief_ctx or {}).get('generated_at') or '')[:10],

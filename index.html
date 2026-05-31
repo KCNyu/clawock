@@ -725,6 +725,107 @@ layout: null
   .bucket-wr.wr-ok  { background: rgba(52,211,153,.15); color: var(--green); }
   .bucket-wr.wr-lown { opacity: .6; }
 
+  /* driven_by chip — which data source drove the call (color encodes edge) */
+  .drv-chip {
+    display: inline-block; margin-left: 6px; padding: 1px 6px;
+    border-radius: 6px; font-size: 10px; font-weight: 600;
+    vertical-align: middle; white-space: nowrap;
+  }
+  .drv-chip.drv-catalyst   { background: rgba(52,211,153,.15); color: var(--green); }
+  .drv-chip.drv-technical  { background: rgba(148,163,184,.18); color: var(--muted); }
+  .drv-chip.drv-sentiment  { background: rgba(251,191,36,.15); color: var(--amber); }
+  .drv-chip.drv-influencer { background: rgba(167,139,250,.18); color: #a78bfa; }
+  .drv-chip.drv-macro      { background: rgba(96,165,250,.15); color: #60a5fa; }
+  .drv-chip.drv-peer       { background: rgba(45,212,191,.15); color: #2dd4bf; }
+  @media (max-width: 600px) {
+    .drv-chip { font-size: 9px; padding: 1px 5px; margin-left: 4px; }
+  }
+
+  /* ── LLM narrative cards (behavioral review / bear cases / hidden concentration) ── */
+  .llm-card { border-left: 3px solid rgba(167,139,250,.55); }
+  .llm-tag {
+    text-transform: none; letter-spacing: 0; font-weight: 500; font-size: 11px;
+    color: #a78bfa;
+  }
+  .llm-src { margin-top: 10px; font-size: 10px; color: var(--text-faint); font-family: var(--mono); }
+  /* behavioral review */
+  .br-verdict {
+    font-size: 15px; font-weight: 700; line-height: 1.45; margin: 2px 0 12px;
+    color: var(--text);
+  }
+  .br-point {
+    display: flex; gap: 8px; align-items: flex-start; padding: 8px 10px;
+    margin-bottom: 6px; border-radius: var(--radius-sm); background: var(--card-2);
+    font-size: 13px; line-height: 1.5;
+  }
+  .br-point .br-icon { flex: 0 0 auto; font-size: 12px; margin-top: 1px; }
+  .br-point.br-edge { border-left: 3px solid var(--green); }
+  .br-point.br-bias { border-left: 3px solid var(--amber); }
+  .br-point.br-warn { border-left: 3px solid var(--red); }
+  /* bear cases (pre-mortem) */
+  .bear-case {
+    padding: 10px 12px; margin-bottom: 8px; border-radius: var(--radius-sm);
+    background: var(--card-2); border-left: 3px solid rgba(248,113,113,.5);
+  }
+  .bear-tk { font-weight: 700; font-family: var(--mono); font-size: 14px; margin-bottom: 4px; }
+  .bear-thesis { font-size: 13px; line-height: 1.5; margin-bottom: 8px; color: var(--text); }
+  .bear-meta { font-size: 12px; line-height: 1.45; color: var(--text-dim); margin-top: 4px; }
+  .bear-lbl {
+    display: inline-block; font-size: 10px; font-weight: 700; padding: 1px 6px;
+    border-radius: 5px; margin-right: 6px; vertical-align: middle;
+  }
+  .bear-lbl.bl-fal   { background: rgba(52,211,153,.15); color: var(--green); }
+  .bear-lbl.bl-watch { background: rgba(96,165,250,.15); color: #60a5fa; }
+  /* hidden concentration */
+  .hc-headline { font-size: 14px; font-weight: 600; line-height: 1.45; margin-bottom: 12px; }
+  .hc-bar-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .hc-factor { flex: 0 0 auto; font-size: 12px; font-weight: 600; color: #a78bfa; max-width: 40%; }
+  .hc-bar { flex: 1 1 auto; height: 10px; background: var(--card-2); border-radius: 5px; overflow: hidden; }
+  .hc-bar-fill {
+    height: 100%; border-radius: 5px;
+    background: linear-gradient(90deg, rgba(167,139,250,.7), rgba(248,113,113,.8));
+  }
+  .hc-pct { flex: 0 0 auto; font-family: var(--mono); font-weight: 700; font-size: 14px; }
+  .hc-detail { font-size: 12px; line-height: 1.55; color: var(--text-dim); }
+  @media (max-width: 600px) {
+    .br-verdict { font-size: 14px; }
+    .br-point, .bear-thesis { font-size: 12.5px; }
+    .hc-factor { max-width: 36%; font-size: 11px; }
+  }
+
+  /* LLM status banner — intraday one-liner, sticky top across tabs */
+  .status-banner {
+    display: flex; align-items: center; gap: 10px;
+    margin: 0 0 14px; padding: 11px 14px;
+    background: linear-gradient(90deg, rgba(167,139,250,.12), rgba(96,165,250,.06));
+    border: 1px solid rgba(167,139,250,.28); border-radius: var(--radius-sm);
+    font-size: 13.5px; line-height: 1.45;
+  }
+  .status-banner .sb-pulse {
+    flex: 0 0 auto; width: 8px; height: 8px; border-radius: 50%;
+    background: #a78bfa; box-shadow: 0 0 0 0 rgba(167,139,250,.6);
+    animation: sb-pulse 2.2s infinite;
+  }
+  @keyframes sb-pulse {
+    0%   { box-shadow: 0 0 0 0 rgba(167,139,250,.5); }
+    70%  { box-shadow: 0 0 0 7px rgba(167,139,250,0); }
+    100% { box-shadow: 0 0 0 0 rgba(167,139,250,0); }
+  }
+  .status-banner .sb-text { flex: 1 1 auto; font-weight: 500; color: var(--text); }
+  .status-banner .sb-time { flex: 0 0 auto; font-size: 10px; color: var(--text-faint); font-family: var(--mono); white-space: nowrap; }
+  /* mover attribution note */
+  .mover-card.has-note { min-height: auto; }
+  .mover-note {
+    margin-top: 6px; padding-top: 6px; border-top: 1px solid var(--border);
+    font-size: 10.5px; line-height: 1.4; color: var(--text-dim);
+    white-space: normal; max-width: 220px;
+  }
+  @media (max-width: 600px) {
+    .status-banner { font-size: 12.5px; padding: 9px 11px; gap: 8px; }
+    .status-banner .sb-time { display: none; }
+    .mover-note { max-width: 160px; font-size: 10px; }
+  }
+
   /* Plan timeline (Reflect) — fuller decision cards: plan + rationale + outcome */
   .plan-timeline { display: flex; flex-direction: column; gap: 10px; }
   .pt-row {
@@ -1021,6 +1122,13 @@ layout: null
 </header>
 
 <main>
+
+  <!-- LLM 状态横幅 — intraday 每 30min 刷新；跨 tab 常驻顶部 -->
+  <div class="status-banner" id="status-banner" style="display:none">
+    <span class="sb-pulse" aria-hidden="true"></span>
+    <span class="sb-text" id="sb-text"></span>
+    <span class="sb-time" id="sb-time"></span>
+  </div>
 
   <!-- ============================================
        HERO — 我的状态 + 今日异动 + 风险 (9 张速读卡)
@@ -1353,6 +1461,20 @@ layout: null
       </div>
     </div>
 
+    <div class="card llm-card" id="bear-cases-card" style="display:none">
+      <h3>唱反调 · 持仓 Pre-mortem <span class="muted llm-tag">🐻 LLM · 重仓空头论点</span></h3>
+      <p class="chart-hint">对最重仓 / 最高杠杆持仓的反方观点 + 证伪条件 —— 结构性对冲过度自信，不是看空建议。</p>
+      <div id="bear-cases-body"></div>
+      <div class="llm-src" id="bear-src"></div>
+    </div>
+
+    <div class="card llm-card" id="hidden-conc-card" style="display:none">
+      <h3>隐藏集中度 <span class="muted llm-tag">🎯 LLM · 因子穿透</span></h3>
+      <p class="chart-hint">HHI 按 ticker 看着分散，但实际可能押在同一因子上 —— 这张卡揭穿名义分散下的真实敞口。</p>
+      <div id="hidden-conc-body"></div>
+      <div class="llm-src" id="hidden-conc-src"></div>
+    </div>
+
     <div class="card">
       <h3>Plan Timeline <span class="muted" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:11px">(last 15 actions · 包含 rationale)</span></h3>
       <p class="chart-hint">每条卡片 = 一次具体计划：写的时候置信度 / 当初理由 / 现在结果。绿色边 = win，红色边 = loss，灰色边 = 待结算。<b>followed=true</b> 才记入命中率。</p>
@@ -1420,6 +1542,14 @@ layout: null
        ============================================ -->
   <section class="panel" data-panel="reflect">
     <h2>Reflect</h2>
+
+    <div class="card llm-card" id="behavioral-review-card" style="display:none">
+      <h3>行为复盘 <span class="muted llm-tag">🧠 LLM · 每日 brief 刷新</span></h3>
+      <p class="chart-hint">基于 calibration 战绩的复盘 —— 直接点出最近的决策偏差，数字来源见下方 Plan Review / Calibration 卡。</p>
+      <div class="br-verdict" id="br-verdict"></div>
+      <div id="br-points"></div>
+      <div class="llm-src" id="br-src"></div>
+    </div>
 
     <div class="card">
       <h3>Track Record <span class="muted" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:11px">(USD-eq · 全期)</span></h3>
@@ -1901,6 +2031,7 @@ layout: null
   function render() {
     if (!DATA) return;
     renderHeader();
+    renderStatusBanner();
     renderTodayHighlights();
     renderMarketSnapshot();
     renderHoldingsTrend();
@@ -1924,6 +2055,9 @@ layout: null
     renderTodayRange();
     renderExtremes();
     renderPlanActions();
+    renderBehavioralReview();
+    renderBearCases();
+    renderHiddenConcentration();
     render8dHeatmap();
     renderWeightConfidence();
     renderReflectKpi();
@@ -2285,12 +2419,14 @@ layout: null
       const p = m.today_change_pct;
       const dir = p > 0 ? "up" : p < 0 ? "down" : "";
       const ccy = m.region === "hk" ? "HKD" : "USD";
+      const note = m.note ? `<div class="mover-note">${escLLM(m.note)}</div>` : "";
       return `
-        <div class="mover-card ${dir}">
+        <div class="mover-card ${dir}${m.note ? ' has-note' : ''}">
           <div class="tk">${m.ticker || DASH}</div>
           <div class="nm">${m.name || ""}</div>
           <div class="pct ${pnlClass(p)}">${fmtPct(p, 2)}</div>
           <div class="px">${fmtMoney(m.current_price, ccy)}</div>
+          ${note}
         </div>
       `;
     }).join("");
@@ -2819,6 +2955,23 @@ layout: null
     return `<span class="bucket-wr ${cls}${lowN}" title="${tip}">${icon}${wr.toFixed(0)}%<span class="wr-n">n${pb.n}</span></span>`;
   }
 
+  // driven_by → which data source drove the call. Color encodes edge (catalyst has
+  // edge ~62%, technical ~47% none). Mirrors calibration_by_driver card semantics.
+  const DRIVER_META = {
+    technical:  { label: "技术",   cls: "drv-technical"  },
+    catalyst:   { label: "催化",   cls: "drv-catalyst"   },
+    sentiment:  { label: "情绪",   cls: "drv-sentiment"  },
+    influencer: { label: "影响力", cls: "drv-influencer" },
+    macro:      { label: "宏观",   cls: "drv-macro"      },
+    peer:       { label: "同行",   cls: "drv-peer"       },
+  };
+  function driverChip(driven_by) {
+    const d = (driven_by || "").trim().toLowerCase();
+    const m = DRIVER_META[d];
+    if (!m) return "";
+    return `<span class="drv-chip ${m.cls}" title="driven_by=${d}（该信号源的 30d edge 见 Calibration·By Driver 卡）">${m.label}</span>`;
+  }
+
   function renderPlanActions() {
     const list = (safe(DATA, "recent_plan_actions") || []).slice(0, 8);
     const wrap = document.getElementById("plan-actions");
@@ -2837,13 +2990,97 @@ layout: null
             <div class="date">${a.date || ""}</div>
           </div>
           <div>
-            <div>${a.bucket || DASH}${bucketWinBadge(a.bucket)}</div>
+            <div>${a.bucket || DASH}${bucketWinBadge(a.bucket)}${driverChip(a.driven_by)}</div>
             <div class="meta">conf ${conf} · ${a.trigger_type || DASH} · 次日遵循 ${pnl}</div>
           </div>
           <div class="outcome ${oc}">${oc}</div>
         </div>
       `;
     }).join("");
+  }
+
+  // =========================================================
+  // LLM narrative cards (text-only; keys never reach the client)
+  // =========================================================
+  const escLLM = s => String(s == null ? "" : s).replace(/[<>&"]/g,
+    c => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;", "\"": "&quot;" }[c]));
+
+  function renderBehavioralReview() {
+    const br = safe(DATA, "behavioral_review");
+    const card = document.getElementById("behavioral-review-card");
+    if (!card) return;
+    if (!br || !br.verdict) { card.style.display = "none"; return; }
+    card.style.display = "";
+    document.getElementById("br-verdict").textContent = br.verdict;
+    const tagMeta = {
+      edge:    { cls: "br-edge", icon: "✓" },
+      bias:    { cls: "br-bias", icon: "⚠" },
+      warning: { cls: "br-warn", icon: "🚩" },
+    };
+    document.getElementById("br-points").innerHTML = (br.points || []).map(p => {
+      const tm = tagMeta[(p.tag || "").toLowerCase()] || { cls: "br-bias", icon: "·" };
+      return `<div class="br-point ${tm.cls}"><span class="br-icon">${tm.icon}</span>`
+           + `<span>${escLLM(p.text)}</span></div>`;
+    }).join("");
+    const meta = safe(DATA, "insights_meta") || {};
+    document.getElementById("br-src").textContent = meta.source ? `源 ${meta.source}` : "";
+  }
+
+  function renderBearCases() {
+    const cases = safe(DATA, "bear_cases") || [];
+    const card = document.getElementById("bear-cases-card");
+    if (!card) return;
+    if (!cases.length) { card.style.display = "none"; return; }
+    card.style.display = "";
+    document.getElementById("bear-cases-body").innerHTML = cases.map(c => `
+      <div class="bear-case">
+        <div class="bear-tk">${escLLM(c.ticker)}</div>
+        <div class="bear-thesis">${escLLM(c.thesis)}</div>
+        <div class="bear-meta"><span class="bear-lbl bl-fal">证伪</span>${escLLM(c.falsifier)}</div>
+        <div class="bear-meta"><span class="bear-lbl bl-watch">盯</span>${escLLM(c.watch)}</div>
+      </div>
+    `).join("");
+    const meta = safe(DATA, "insights_meta") || {};
+    document.getElementById("bear-src").textContent = meta.source ? `源 ${meta.source}` : "";
+  }
+
+  function renderHiddenConcentration() {
+    const hc = safe(DATA, "hidden_concentration");
+    const card = document.getElementById("hidden-conc-card");
+    if (!card) return;
+    if (!hc || !hc.headline) { card.style.display = "none"; return; }
+    card.style.display = "";
+    const pct = hc.exposure_pct != null ? hc.exposure_pct : null;
+    const barW = pct != null ? Math.max(0, Math.min(100, pct)) : 0;
+    document.getElementById("hidden-conc-body").innerHTML = `
+      <div class="hc-headline">${escLLM(hc.headline)}</div>
+      <div class="hc-bar-row">
+        <div class="hc-factor">${escLLM(hc.factor)}</div>
+        <div class="hc-bar"><div class="hc-bar-fill" style="width:${barW}%"></div></div>
+        <div class="hc-pct">${pct != null ? pct + "%" : DASH}</div>
+      </div>
+      <div class="hc-detail">${escLLM(hc.detail)}</div>
+    `;
+    const meta = safe(DATA, "insights_meta") || {};
+    document.getElementById("hidden-conc-src").textContent = meta.source ? `源 ${meta.source}` : "";
+  }
+
+  function renderStatusBanner() {
+    const txt = safe(DATA, "status_banner");
+    const banner = document.getElementById("status-banner");
+    if (!banner) return;
+    if (!txt) { banner.style.display = "none"; return; }
+    banner.style.display = "";
+    document.getElementById("sb-text").textContent = txt;
+    const meta = safe(DATA, "status_banner_meta") || {};
+    let t = "";
+    if (meta.generated_at) {
+      const d = new Date(meta.generated_at);
+      if (!isNaN(d)) t = d.toLocaleTimeString("en-GB", {
+        hour: "2-digit", minute: "2-digit", timeZone: "Asia/Hong_Kong",
+      }) + " HKT";
+    }
+    document.getElementById("sb-time").textContent = t;
   }
 
   // =========================================================

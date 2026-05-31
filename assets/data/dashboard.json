@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-05-30T16:26:58.877370Z",
+  "generated_at": "2026-05-31T05:25:55.371607Z",
   "last_updated": "2026/05/30 04:00 HKT",
   "fx": {
     "usdhkd": 7.8356,
@@ -1532,35 +1532,40 @@
       "name": "二倍做多HOOD ETF-T-Rex",
       "region": "us",
       "today_change_pct": 22.14,
-      "current_price": 28.25
+      "current_price": 28.25,
+      "note": "2xHOOD放大噪音，HOOD单日无明确催化，+22%属纯杠杆beta，不追"
     },
     {
       "ticker": "PLTU",
       "name": "二倍做多PLTR ETF-Direxion",
       "region": "us",
       "today_change_pct": 18.45,
-      "current_price": 47.58
+      "current_price": 47.58,
+      "note": "2xPLTR放大，PLTR无明确个股催化纯beta，+18%杠杆膨胀，观望"
     },
     {
       "ticker": "MSFU",
       "name": "二倍做多微软ETF-Direxion",
       "region": "us",
       "today_change_pct": 10.89,
-      "current_price": 33.1797
+      "current_price": 33.1797,
+      "note": "2xMSFT放大，MSFT无明确催化，+11%杠杆放大，不追"
     },
     {
       "ticker": "CRCL",
       "name": "Circle Internet Group Inc-A",
       "region": "us",
       "today_change_pct": 4.4,
-      "current_price": 113.0
+      "current_price": 113.0,
+      "note": "独立标的+4.4%，无明确个股催化，幅度温和，持有观察"
     },
     {
       "ticker": "RKLB",
       "name": "Rocket Lab Corp",
       "region": "us",
       "today_change_pct": -3.07,
-      "current_price": 143.48
+      "current_price": 143.48,
+      "note": "大盘平盘环境下-3.1%，走独立回调，非beta，关注是否破位"
     }
   ],
   "anomalies": [
@@ -1571,6 +1576,67 @@
       "severity": "medium"
     }
   ],
+  "behavioral_review": {
+    "verdict": "持仓不动才是你的 alpha，主动操作在亏钱。",
+    "points": [
+      {
+        "text": "catalyst 驱动 win_rate 62.5%（n=24）远超 technical 的 46.67%（n=30），技术面信号在拖后腿。",
+        "tag": "edge"
+      },
+      {
+        "text": "hold_and_watch win_rate 76%（n=25）是唯一跑赢 hold baseline 58.21% 的 bucket；cut/trim/add 全部低于 43%。",
+        "tag": "bias"
+      },
+      {
+        "text": "LLM 整体 win_rate 52.24% 输给 hold baseline 58.21%，alpha -6.0pp——你的判断在亏 alpha。",
+        "tag": "warning"
+      },
+      {
+        "text": "price_below trigger win_rate 83.33%（n=18）极强，但 open trigger 仅 25%（n=12）且 confidence 反而最高 0.699，典型的过度自信。",
+        "tag": "bias"
+      },
+      {
+        "text": "peer driver win_rate 仅 33.33%（n=9）却 confidence 0.707 全场最高；index_breakdown 0%（n=3）也是高信低效。",
+        "tag": "warning"
+      }
+    ]
+  },
+  "bear_cases": [
+    {
+      "ticker": "00100",
+      "thesis": "HK 权重 59.33% 集中单一标的，AI/大模型板块因子暴露；pnl% 仅 +2.09%，一旦 catalyst 转负无缓冲。",
+      "falsifier": "catalyst win_rate 连续两期 >60% 且 HK HHI 降至 0.35 以下。",
+      "watch": "南向资金流向 + 恒科指数关键支撑位"
+    },
+    {
+      "ticker": "07226",
+      "thesis": "杠杆 ETF（leveraged_etf.tickers），pnl% -13.82% 全场最深；trim_on_rebound bucket win_rate 仅 40%（n=15），反弹减仓策略失效中。",
+      "falsifier": "恒科趋势反转 + trim bucket 连续 3 次 win。",
+      "watch": "恒科指数方向 + 07226 日均成交量"
+    },
+    {
+      "ticker": "PLTU",
+      "thesis": "杠杆 ETF（leveraged_etf.tickers），US AI/Defense 板块 19.57% 权重；pnl% +16.17% 但 cut bucket win_rate 38.46%，砍仓时点判断差。",
+      "falsifier": "cut bucket win_rate 回升至 50% 以上。",
+      "watch": "AI/Defense 板块资金流 + 纳指方向"
+    }
+  ],
+  "hidden_concentration": {
+    "headline": "杠杆 ETF 同因子暴露占总仓位 38.15%，一个方向反转四票齐跌。",
+    "factor": "杠杆/倍数产品",
+    "exposure_pct": 38,
+    "detail": "US: MSFU（Tech Mega-cap 19.5%, pnl% +13.9%）、PLTU（AI/Defense 19.57%, pnl% +16.17%）、ROBN（Fintech 33.2%, pnl% +19.79%）；HK: 07226（恒科ETF, pnl% -13.82%）。US 杠杆占比 72.28%，HK 27.44%。"
+  },
+  "insights_meta": {
+    "source": "insights-2026-05-31.json",
+    "stale": false
+  },
+  "status_banner": "Risk-on｜美股+360 / 港股-76｜VIX 15低位，F&G 60偏贪，杠杆ETF拉美股浮盈；盯07226高仓位亏损扩大",
+  "status_banner_meta": {
+    "source": "intraday-insights-2026-05-31.json",
+    "generated_at": "2026-05-31T05:25:44.332992Z",
+    "stale": false
+  },
   "peer_divergence": {
     "as_of": "2026-05-29",
     "items": []
@@ -1735,7 +1801,8 @@
       "trigger_type": "price_below",
       "outcome": "pending",
       "pnl_5d": null,
-      "followed": "true"
+      "followed": "true",
+      "driven_by": "catalyst"
     },
     {
       "date": "2026-05-29",
@@ -1745,7 +1812,8 @@
       "trigger_type": "price_above",
       "outcome": "pending",
       "pnl_5d": null,
-      "followed": "unknown"
+      "followed": "unknown",
+      "driven_by": "technical"
     },
     {
       "date": "2026-05-29",
@@ -1755,7 +1823,8 @@
       "trigger_type": "open",
       "outcome": "pending",
       "pnl_5d": null,
-      "followed": "unknown"
+      "followed": "unknown",
+      "driven_by": "catalyst"
     },
     {
       "date": "2026-05-29",
@@ -1765,7 +1834,8 @@
       "trigger_type": "open",
       "outcome": "pending",
       "pnl_5d": null,
-      "followed": "unknown"
+      "followed": "unknown",
+      "driven_by": "technical"
     },
     {
       "date": "2026-05-29",
@@ -1775,7 +1845,8 @@
       "trigger_type": "price_below",
       "outcome": "pending",
       "pnl_5d": null,
-      "followed": "true"
+      "followed": "true",
+      "driven_by": "catalyst"
     },
     {
       "date": "2026-05-29",
@@ -1785,7 +1856,8 @@
       "trigger_type": "price_below",
       "outcome": "pending",
       "pnl_5d": null,
-      "followed": "unknown"
+      "followed": "unknown",
+      "driven_by": "catalyst"
     },
     {
       "date": "2026-05-29",
@@ -1795,7 +1867,8 @@
       "trigger_type": "price_below",
       "outcome": "pending",
       "pnl_5d": null,
-      "followed": "true"
+      "followed": "true",
+      "driven_by": "catalyst"
     },
     {
       "date": "2026-05-29",
@@ -1805,7 +1878,8 @@
       "trigger_type": "price_below",
       "outcome": "pending",
       "pnl_5d": null,
-      "followed": "true"
+      "followed": "true",
+      "driven_by": "catalyst"
     },
     {
       "date": "2026-05-28",
@@ -1815,7 +1889,8 @@
       "trigger_type": "open",
       "outcome": "loss",
       "pnl_5d": -49.63,
-      "followed": "false"
+      "followed": "false",
+      "driven_by": "technical"
     },
     {
       "date": "2026-05-28",
@@ -1825,7 +1900,8 @@
       "trigger_type": "open",
       "outcome": "loss",
       "pnl_5d": -37.2,
-      "followed": "false"
+      "followed": "false",
+      "driven_by": "catalyst"
     },
     {
       "date": "2026-05-28",
@@ -1835,7 +1911,8 @@
       "trigger_type": "price_above",
       "outcome": "win",
       "pnl_5d": 6.0,
-      "followed": "false"
+      "followed": "false",
+      "driven_by": "technical"
     },
     {
       "date": "2026-05-28",
@@ -1845,7 +1922,8 @@
       "trigger_type": "price_below",
       "outcome": "win",
       "pnl_5d": 12.0,
-      "followed": "true"
+      "followed": "true",
+      "driven_by": "catalyst"
     },
     {
       "date": "2026-05-28",
@@ -1855,7 +1933,8 @@
       "trigger_type": "price_below",
       "outcome": "win",
       "pnl_5d": 10.37,
-      "followed": "true"
+      "followed": "true",
+      "driven_by": "catalyst"
     },
     {
       "date": "2026-05-28",
@@ -1865,7 +1944,8 @@
       "trigger_type": "price_below",
       "outcome": "win",
       "pnl_5d": 18.95,
-      "followed": "false"
+      "followed": "false",
+      "driven_by": "catalyst"
     },
     {
       "date": "2026-05-28",
@@ -1875,7 +1955,8 @@
       "trigger_type": "price_below",
       "outcome": "win",
       "pnl_5d": 27.61,
-      "followed": "true"
+      "followed": "true",
+      "driven_by": "catalyst"
     },
     {
       "date": "2026-05-27",
@@ -1885,7 +1966,8 @@
       "trigger_type": "open",
       "outcome": "loss",
       "pnl_5d": -15.84,
-      "followed": "false"
+      "followed": "false",
+      "driven_by": "technical"
     },
     {
       "date": "2026-05-27",
@@ -1895,7 +1977,8 @@
       "trigger_type": "open",
       "outcome": "loss",
       "pnl_5d": -3.43,
-      "followed": "false"
+      "followed": "false",
+      "driven_by": "technical"
     },
     {
       "date": "2026-05-27",
@@ -1905,7 +1988,8 @@
       "trigger_type": "price_above",
       "outcome": "win",
       "pnl_5d": 7.8,
-      "followed": "false"
+      "followed": "false",
+      "driven_by": "technical"
     },
     {
       "date": "2026-05-27",
@@ -1915,7 +1999,8 @@
       "trigger_type": "price_above",
       "outcome": "win",
       "pnl_5d": 13.13,
-      "followed": "true"
+      "followed": "true",
+      "driven_by": "macro"
     },
     {
       "date": "2026-05-27",
@@ -1925,7 +2010,8 @@
       "trigger_type": "price_below",
       "outcome": "win",
       "pnl_5d": 19.57,
-      "followed": "true"
+      "followed": "true",
+      "driven_by": "catalyst"
     }
   ],
   "plan_timeline": [

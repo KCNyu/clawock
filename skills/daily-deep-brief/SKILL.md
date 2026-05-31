@@ -495,6 +495,7 @@ postflight 严格 schema 校验：
       "trigger_price": null,
       "trigger_condition": "周一开盘任意价",
       "confidence": 0.82,
+      "driven_by": "catalyst",
       "rationale": "HOOD Q1 26 earnings miss + crypto rev -47%"
     }
   ],
@@ -509,6 +510,7 @@ postflight 严格 schema 校验：
 合法 enum：
 - `bucket` ∈ {`cut`, `trim_on_rebound`, `hold_and_watch`, `t_only`, `add_only_on_trigger`}
 - `trigger_type` ∈ {`open`, `price_above`, `price_below`, `index_breakdown`, `event`, `manual`}
+- `driven_by` ∈ {`technical`, `catalyst`, `sentiment`, `influencer`, `macro`, `peer`}（**每个 action 必填**，见"消息面权重铁律"段的归因表；postflight 校验，软情绪不得单独翻 bucket）
 - `confidence` ∈ [0.0, 1.0]
 
 **trigger_type 详解**（决定 retrospective 怎么算触发）：
@@ -521,6 +523,39 @@ postflight 严格 schema 校验：
 | `index_breakdown` | 指数破位 | trigger_condition 字段说明哪个指数 + 哪个值 |
 | `event` | 事件型（财报/公告） | 手动判断，不进 calibration 统计 |
 | `manual` | 完全靠人判断 | 不参与 calibration |
+
+#### C. LLM 复盘 sidecar → `memory/.tmp/insights-{YYYY-MM-DD}.json`
+
+build_dashboard 会读它，让 dashboard 上 **行为复盘 / 唱反调 Pre-mortem / 隐藏集中度** 三张卡同步刷新（缺失/解析失败容错，卡自动隐藏，不影响 brief 投递）。这是 dashboard 上唯一由你（LLM）写的"对决策本身的反思"层 —— 数字算不出来、只有你能写。
+
+**铁律（accuracy）**：所有数字只能引 `brief-context-{date}.json` 里**真实出现过的** win_rate / Brier / 仓位权重 / HHI / pnl%。**绝不编造 context 里没有的具体美元金额或未发生的交易**。宁可不写一条，也不要编数字。
+
+```json
+{
+  "generated_at": "{ISO8601}",
+  "behavioral_review": {
+    "verdict": "一句话总评 ≤40字，点出最核心的行为问题",
+    "points": [
+      {"text": "具体行为偏差，必引 context 里的真实数字，≤55字", "tag": "edge|bias|warning"}
+    ]
+  },
+  "bear_cases": [
+    {"ticker": "代码", "thesis": "空头论点 ≤55字", "falsifier": "什么数据/价位证明这空头错 ≤35字", "watch": "盯哪个位/事件 ≤25字"}
+  ],
+  "hidden_concentration": {
+    "headline": "一句话点穿名义分散下的真实集中 ≤40字",
+    "factor": "主导因子名（如 AI/半导体高 beta）",
+    "exposure_pct": 88,
+    "detail": "哪些持仓同因子联动 + 风险 ≤70字"
+  }
+}
+```
+
+内容要求：
+- **behavioral_review.points 4-5 条**，覆盖：① `calibration_by_driver` 各源 edge 差（哪个该多信/降权）；② active 操作 alpha vs hold baseline（过度操作问题）；③ `calibration_by_trigger` 哪类 trigger 最该信/最该改；④ 任何过度自信信号（高 confidence 低 win_rate）。`tag`：edge=正面发现 / bias=认知偏差 / warning=要警惕。
+- **bear_cases 2-3 个**，选**最重仓或最高杠杆**的持仓（看 context 仓位权重 + leveraged_etf）。
+- **hidden_concentration**：看 sector_exposure + leveraged_etf + 持仓权重，识别表面分散实际同因子；`exposure_pct` 给该因子占组合的估算整数。
+- 全部中文，口吻直接、像私人交易教练，指出问题不安慰。
 
 ### Step 5: 跑 postflight（验证 + commit）
 
