@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-05-31T22:39:31.050131Z",
+  "generated_at": "2026-05-31T22:40:46.302188Z",
   "last_updated": "2026/05/31 14:41 HKT",
   "fx": {
     "usdhkd": null,
@@ -3390,7 +3390,7 @@
     ]
   },
   "macro": {
-    "generated_at": "2026-05-30T01:30:17.641911+00:00",
+    "generated_at": "2026-05-31T22:40:40.934082+00:00",
     "vix": {
       "symbol": "^VIX",
       "price": 15.32,
@@ -3410,10 +3410,10 @@
     },
     "dxy": {
       "symbol": "DX-Y.NYB",
-      "price": 98.942,
-      "prev": 99.02,
-      "change_pct": -0.08,
-      "as_of": 1780088399,
+      "price": 98.998,
+      "prev": 98.908,
+      "change_pct": 0.09,
+      "as_of": 1780266638,
       "source": "yahoo"
     },
     "fear_greed": {
