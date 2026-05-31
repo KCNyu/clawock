@@ -578,34 +578,36 @@ python3 /root/.openclaw/workspace/scripts/harness/brief_postflight.py
 - `warn` — 有非 critical 问题（≤4 个），已 commit 但标 `(validation warnings)`
 - `fail` — 缺文件/JSON 解析错/critical 字段缺失，**不 commit**
 
-### Step 6: 发 WeChat
+### Step 6: 发 WeChat（完整 brief，**硬收敛到 ≤14KB**）
 
-> ⚠️ **投递机制 = announce（务必照做，否则会空转死循环）**：这个 cron 是 announce 模式 —— 你**把消息作为本轮的最终回复文本直接输出，就等于发到了 WeChat**。
-> - **不要调用任何 message / send 工具**；**不要在思考里反复确认"我该用 message 工具还是直接回复"** —— 没有工具这一步，直接输出文本即投递。
-> - 写完最终文本**立即结束本轮**，不要再追加思考。
-> - 2026-05-31 实测教训：agent 在"用工具 vs 直接回复"上反复纠结 → 模型陷入复读死循环、16 分钟没发出任何东西。指令明确就不会卡。
-> - **长度**：WeChat 单条上限 16KB。完整 brief 目标 ≤14KB；若内容偏长，**精简 Tier 1 大表的注释/重复语句**压到 14KB 内，不要靠截断。
+> **投递机制 = announce**：把消息**作为本轮最终回复文本直接输出**即发到 WeChat。**不调用任何 message/send 工具，不反复确认"怎么发"，输出完立即结束本轮、不再追加思考。**
+>
+> **⚠️ 一次性吐出，禁止"边想边发"**：2026-05-31 两次实测，mimo 在准备吐长消息时会退化成**复读死循环**（反复念"Now let me output the WeChat message…"几十遍被当最终回复发出 → kcn 收到一屏垃圾）。**对策：先把完整微信文本在脑中定稿，然后一次性整段输出，中途不要再插入"让我构造/让我输出"这类元叙述。**
 
-把 postflight 输出的 `wechat_prefix`（warn/fail 时是警告 banner，pass 时是空串）拼到完整 brief 前面，作为最终回复输出。
+**🔒 长度硬约束 ≤14KB（postflight 会按字节卡，超了直接 fail 逼你裁）：**
+`pre-open.md` 落盘版**和**微信版都要 ≤14000 bytes（UTF-8，留足 16KB 余量 + TL;DR 头）。**超了按下面优先级裁，不要靠尾部截断**：
+
+1. **先砍 Tier 1 大表的注释/形容词**：每格只留 `数字 + 1 个 emoji 信号`，删"显著/大幅/值得注意"这类废话
+2. **Bull/Bear 各压到 ≤80 字**，只留分歧点 + 各 1 个数据
+3. **Tier 3 三声各 ≤1 句**，Judge 保留 5 bucket 结论但删复述
+4. **板块全景每板块只留 Top 2 涨幅 + 1 句归因**
+5. **▎社交舆情/名人异动**无强信号的票直接删行
+6. 仍超 → 把 Tier 1 四类分析合并成一张表的精简版
+
+裁剪后保证段标记齐全（postflight 仍校验 Header/Tier1/Tier2/Tier3/Judge/Confidence/Next-Session/同行扫描）。
+
+把 postflight 的 `wechat_prefix`（warn/fail 是警告 banner，pass 是空串）拼到完整 brief 前，第一段是 ≤150 字 TL;DR，作为最终回复**一次性输出**：
 
 ```
-{wechat_prefix}{完整 markdown，第一段是 ≤150 字 TL;DR}
-```
-
-**TL;DR 段格式**（手机第一屏 actionable，仅 WeChat 版有，落盘版没有）：
-
-```
-📊 盘前深度简报｜{日期 周X} 08:00 HKT  (USDHKD={rate})
+{wechat_prefix}📊 盘前深度简报｜{日期 周X} 08:00 HKT  (USDHKD={rate})
 
 ▎TL;DR
 Book: USD${total} ({pct}%) | HK leg {hk}HKD | US leg {us}USD
-今日 3 个动作：
-1. {ticker} {action} {trigger} (conf {%})
-2. ...
+今日 3 个动作：1. {ticker} {action} {trigger}(conf{%})  2. …  3. …
 ↓ 完整报告 ↓
-```
 
-WeChat plugin (`@tencent-weixin/openclaw-weixin`) 单 chunk 16,384 bytes (16KB)；完整 brief ~12KB **一次发完整版完全够装**，不需要 compact 压缩。
+{完整 markdown brief（已裁到 ≤14KB）}
+```
 
 ## Style rules
 
