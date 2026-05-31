@@ -32,14 +32,14 @@ plan_date,ticker,bucket,trigger_type,driven_by,trigger_price,confidence,sim_entr
 2026-05-22,CRCL,add_only_on_trigger,price_above,catalyst,120,0.68,120,loss,-5.73,-5.83,false,2026-05-25T08:02:50.561284 (auto),2026-05-30T18:24:12.059692
 2026-05-22,00100,hold_and_watch,manual,catalyst,,0.62,663.0,win,15.91,26.7,true,2026-05-25T08:02:50.572847 (auto),2026-05-30T18:24:12.060220
 2026-05-22,07226,hold_and_watch,index_breakdown,technical,4800,0.58,4800,loss,-99.92,-99.92,true,2026-05-25T08:02:50.584585 (auto),2026-05-30T18:24:12.060683
-2026-05-25,ROBN,cut,open,peer,,0.78,17.64,loss,-1.81,,false,2026-05-27T08:00:56.575807 (auto),2026-05-30T15:12:43.721692
-2026-05-25,SOXL,trim_on_rebound,price_above,technical,200,0.65,200,loss,-12.89,,false,2026-05-27T08:00:56.587258 (auto),2026-05-30T15:12:43.722221
-2026-05-25,00100,hold_and_watch,manual,catalyst,,0.6,749.0,win,2.67,,true,2026-05-26T08:03:58.933678 (auto),2026-05-30T15:12:43.722778
-2026-05-25,07226,hold_and_watch,index_breakdown,technical,4800,0.55,4800,loss,-99.92,,true,2026-05-26T08:03:58.944389 (auto),2026-05-30T15:12:43.723320
-2026-05-25,RKLB,hold_and_watch,price_below,catalyst,120,0.68,120,win,19.69,,true,2026-05-26T08:03:58.955349 (auto),2026-05-30T15:12:43.723844
-2026-05-25,PLTU,t_only,price_above,technical,38.5,0.5,38.5,loss,-6.65,,true,2026-05-26T08:03:58.965947 (auto),2026-05-30T15:12:43.724355
-2026-05-25,CRCL,add_only_on_trigger,price_above,catalyst,120,0.62,120,loss,-10.68,,false,2026-05-27T08:00:56.598116 (auto),2026-05-30T15:12:43.724878
-2026-05-25,MSFU,hold_and_watch,price_below,technical,26,0.65,26,win,10.19,,true,2026-05-26T08:03:58.976743 (auto),2026-05-30T15:12:43.725468
+2026-05-25,ROBN,cut,open,peer,,0.78,17.64,loss,-1.81,-60.15,false,2026-05-27T08:00:56.575807 (auto),2026-05-31T13:45:21.918956
+2026-05-25,SOXL,trim_on_rebound,price_above,technical,200,0.65,200,loss,-12.89,-8.58,false,2026-05-27T08:00:56.587258 (auto),2026-05-31T13:45:21.918980
+2026-05-25,00100,hold_and_watch,manual,catalyst,,0.6,749.0,win,2.67,12.15,true,2026-05-26T08:03:58.933678 (auto),2026-05-31T13:45:21.918988
+2026-05-25,07226,hold_and_watch,index_breakdown,technical,4800,0.55,4800,loss,-99.92,-99.92,true,2026-05-26T08:03:58.944389 (auto),2026-05-31T13:45:21.918994
+2026-05-25,RKLB,hold_and_watch,price_below,catalyst,120,0.68,120,win,19.69,19.57,true,2026-05-26T08:03:58.955349 (auto),2026-05-31T13:45:21.919000
+2026-05-25,PLTU,t_only,price_above,technical,38.5,0.5,38.5,loss,-6.65,23.61,true,2026-05-26T08:03:58.965947 (auto),2026-05-31T13:45:21.919006
+2026-05-25,CRCL,add_only_on_trigger,price_above,catalyst,120,0.62,120,loss,-10.68,-5.83,false,2026-05-27T08:00:56.598116 (auto),2026-05-31T13:45:21.919011
+2026-05-25,MSFU,hold_and_watch,price_below,technical,26,0.65,26,win,10.19,27.27,true,2026-05-26T08:03:58.976743 (auto),2026-05-31T13:45:21.919017
 2026-05-26,ROBN,cut,open,technical,,0.75,17.65,loss,-4.65,,false,2026-05-28T01:28:52.382916 (auto),2026-05-30T15:12:43.726591
 2026-05-26,07226,trim_on_rebound,price_above,technical,3.85,0.7,3.85,win,1.25,,false,2026-05-28T01:28:52.394585 (auto),2026-05-30T15:12:43.729023
 2026-05-26,SOXL,trim_on_rebound,open,technical,,0.65,190.56,loss,-13.96,,true,2026-05-28T01:28:52.406505 (auto),2026-05-30T15:12:43.729594
@@ -66,11 +66,19 @@ plan_date,ticker,bucket,trigger_type,driven_by,trigger_price,confidence,sim_entr
 2026-05-28,RKLB,hold_and_watch,price_below,catalyst,130,0.75,130,win,10.37,,true,2026-05-29T08:02:30.089013 (auto),2026-05-30T15:12:44.072320
 2026-05-28,CRCL,add_only_on_trigger,price_below,catalyst,95,0.5,95,win,18.95,,false,2026-05-30T15:12:44.092887 (auto),2026-05-30T15:12:44.092899
 2026-05-28,MSFU,hold_and_watch,price_below,catalyst,26,0.65,26,win,27.61,,true,2026-05-29T08:02:30.101405 (auto),2026-05-30T15:12:44.093448
-2026-05-29,00100,hold_and_watch,price_below,catalyst,780,0.65,780,pending,,,true,2026-05-30T18:17:37.400133 (auto),2026-05-30T18:17:37.400149
-2026-05-29,07226,trim_on_rebound,price_above,technical,4.0,0.6,4.0,pending,,,unknown,,2026-05-29T08:06:40.789393
-2026-05-29,PLTU,cut,open,catalyst,,0.7,34.58,pending,,,unknown,,2026-05-29T08:06:40.789890
-2026-05-29,ROBN,cut,open,technical,,0.65,23.1,pending,,,unknown,,2026-05-29T08:06:40.790422
-2026-05-29,RKLB,hold_and_watch,price_below,catalyst,130,0.75,130,pending,,,true,2026-05-30T18:17:37.421286 (auto),2026-05-30T18:17:37.421302
-2026-05-29,CRCL,add_only_on_trigger,price_below,catalyst,95,0.5,95,pending,,,unknown,,2026-05-29T08:06:40.790439
-2026-05-29,MSFU,hold_and_watch,price_below,catalyst,26,0.6,26,pending,,,true,2026-05-30T18:17:37.449738 (auto),2026-05-30T18:17:37.449757
-2026-05-29,02208,hold_and_watch,price_below,catalyst,12.5,0.7,12.5,pending,,,true,2026-05-30T18:17:37.474486 (auto),2026-05-30T18:17:37.474501
+2026-05-29,00100,hold_and_watch,price_below,catalyst,780,0.65,780,win,7.69,,true,2026-05-30T18:17:37.400133 (auto),2026-05-31T13:45:21.919057
+2026-05-29,07226,trim_on_rebound,price_above,technical,4.0,0.6,4.0,win,6.0,,false,2026-05-31T13:45:21.854699 (auto),2026-05-31T13:45:21.919064
+2026-05-29,PLTU,cut,open,catalyst,,0.7,34.58,loss,-37.62,,false,2026-05-31T13:45:21.873810 (auto),2026-05-31T13:45:21.919070
+2026-05-29,ROBN,cut,open,technical,,0.65,23.1,loss,-22.29,,false,2026-05-31T13:45:21.894495 (auto),2026-05-31T13:45:21.919076
+2026-05-29,RKLB,hold_and_watch,price_below,catalyst,130,0.75,130,win,10.37,,true,2026-05-30T18:17:37.421286 (auto),2026-05-31T13:45:21.919081
+2026-05-29,CRCL,add_only_on_trigger,price_below,catalyst,95,0.5,95,win,18.95,,false,2026-05-31T13:45:21.916292 (auto),2026-05-31T13:45:21.919086
+2026-05-29,MSFU,hold_and_watch,price_below,catalyst,26,0.6,26,win,27.27,,true,2026-05-30T18:17:37.449738 (auto),2026-05-31T13:45:21.919091
+2026-05-29,02208,hold_and_watch,price_below,catalyst,12.5,0.7,12.5,win,9.68,,true,2026-05-30T18:17:37.474486 (auto),2026-05-31T13:45:21.919096
+2026-05-31,PLTU,cut,open,technical,,0.5,47.59,pending,,,unknown,,2026-05-31T13:52:12.068629
+2026-05-31,07226,trim_on_rebound,price_above,macro,3.9,0.45,3.9,pending,,,unknown,,2026-05-31T13:52:12.068646
+2026-05-31,00100,hold_and_watch,price_below,catalyst,800,0.55,800,pending,,,unknown,,2026-05-31T13:52:12.068651
+2026-05-31,RKLB,hold_and_watch,price_below,catalyst,130,0.55,130,pending,,,unknown,,2026-05-31T13:52:12.068654
+2026-05-31,CRCL,add_only_on_trigger,price_below,catalyst,95,0.45,95,pending,,,unknown,,2026-05-31T13:52:12.068657
+2026-05-31,ROBN,hold_and_watch,price_below,technical,22,0.5,22,pending,,,unknown,,2026-05-31T13:52:12.068659
+2026-05-31,MSFU,hold_and_watch,price_below,catalyst,28,0.55,28,pending,,,unknown,,2026-05-31T13:52:12.068662
+2026-05-31,02208,hold_and_watch,price_below,technical,12.5,0.5,12.5,pending,,,unknown,,2026-05-31T13:52:12.068664

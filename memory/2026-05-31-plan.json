@@ -1,0 +1,120 @@
+{
+  "date": "2026-05-31",
+  "fx_rate_usdhkd": 7.8356,
+  "fx_source": "Frankfurter",
+  "regime": {
+    "us": "risk_on",
+    "hk": "range-bound"
+  },
+  "book": {
+    "usd_total_pnl": 349.27,
+    "hkd_total_pnl": 2736.73,
+    "hk_leg_hkd": -3321.44,
+    "us_leg_usd": 773.16
+  },
+  "actions": [
+    {
+      "ticker": "PLTU",
+      "bucket": "cut",
+      "size_pct": 50,
+      "size_shares": 7,
+      "trigger_type": "open",
+      "trigger_price": null,
+      "trigger_condition": "US 开盘任意价",
+      "confidence": 0.50,
+      "driven_by": "technical",
+      "rationale": "连续三期 cut 计划未执行 — 执行断层是最大行为风险；PLTR +9% on S&P 纳入但 2x decay -15.6% 近一月持续侵蚀；risk_on regime 下持有杠杆 decay 品是浪费仓位"
+    },
+    {
+      "ticker": "07226",
+      "bucket": "trim_on_rebound",
+      "size_pct": 16,
+      "size_shares": 1000,
+      "trigger_type": "price_above",
+      "trigger_price": 3.90,
+      "trigger_condition": "日内高点 >= 3.90",
+      "confidence": 0.45,
+      "driven_by": "macro",
+      "rationale": "HHI 0.435 危险集中强制降仓；trigger 从 4.00 下调至 3.90（连续三天 high 3.914 未触发说明 trigger 过紧）；历史 trim 胜率 33% 但 HHI 优先于胜率"
+    },
+    {
+      "ticker": "00100",
+      "bucket": "hold_and_watch",
+      "size_pct": 0,
+      "size_shares": 0,
+      "trigger_type": "price_below",
+      "trigger_price": 800,
+      "trigger_condition": "日内低点 <= 800 时评估是否减仓",
+      "confidence": 0.55,
+      "driven_by": "catalyst",
+      "rationale": "恒科纳入 6/8 硬催化在即 + rev +159% + 83% hold 历史胜率；stop 从 780 上调至 800（催化前保护更紧）；HHI 集中但催化前不减"
+    },
+    {
+      "ticker": "RKLB",
+      "bucket": "hold_and_watch",
+      "size_pct": 0,
+      "size_shares": 0,
+      "trigger_type": "price_below",
+      "trigger_price": 130,
+      "trigger_condition": "跌破 130 评估减仓",
+      "confidence": 0.55,
+      "driven_by": "catalyst",
+      "rationale": "+102% 浮盈 + Q1 rev $200M +63% + $90M Space Force 合同硬催化 + 52wk high 附近整理；趋势完好，hold"
+    },
+    {
+      "ticker": "CRCL",
+      "bucket": "add_only_on_trigger",
+      "size_pct": 0,
+      "size_shares": 1,
+      "trigger_type": "price_below",
+      "trigger_price": 95,
+      "trigger_condition": "回调至 95 以下加仓 1 股",
+      "confidence": 0.45,
+      "driven_by": "catalyst",
+      "rationale": "Q1 首次盈利 $55M + USDC $77B +28% = 基本面拐点确认；但 insider sell + BTC ETF 连续 6 日 $1.26B 流出 + crypto 整体冷淡 → 等回调再加"
+    },
+    {
+      "ticker": "ROBN",
+      "bucket": "hold_and_watch",
+      "size_pct": 0,
+      "size_shares": 0,
+      "trigger_type": "price_below",
+      "trigger_price": 22,
+      "trigger_condition": "跌破 22 评估减仓",
+      "confidence": 0.50,
+      "driven_by": "technical",
+      "rationale": "连续四期 cut 计划未执行 → 执行断层说明行为偏差，降级 hold 不再发 cut 信号；HOOD thesis 中性但 +19.8% 浮盈可承受"
+    },
+    {
+      "ticker": "MSFU",
+      "bucket": "hold_and_watch",
+      "size_pct": 0,
+      "size_shares": 0,
+      "trigger_type": "price_below",
+      "trigger_price": 28,
+      "trigger_condition": "跌破 28 评估减仓",
+      "confidence": 0.55,
+      "driven_by": "catalyst",
+      "rationale": "MSFT Q3 rev $82.9B +18% Azure +29% 硬催化确认；2x 杠杆温和放大蓝筹收益；hold"
+    },
+    {
+      "ticker": "02208",
+      "bucket": "hold_and_watch",
+      "size_pct": 0,
+      "size_shares": 0,
+      "trigger_type": "price_below",
+      "trigger_price": 12.5,
+      "trigger_condition": "跌破 12.5 评估减仓",
+      "confidence": 0.50,
+      "driven_by": "technical",
+      "rationale": "月跌 -20.7% 但 Q1 利润 +40% YoY + JPM Overweight；400 股小仓可承受波动；风电板块长期逻辑未破"
+    }
+  ],
+  "watch_levels": {
+    "hstech_breakdown": 4800,
+    "00100_stop": 800,
+    "07226_trim_trigger": 3.90,
+    "crcl_add_trigger": 95,
+    "book_force_derisk_usd": -300
+  }
+}
