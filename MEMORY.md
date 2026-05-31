@@ -82,6 +82,14 @@
   - 查 gateway → `curl http://127.0.0.1:18789/health`
   - 查 dreaming → `jobs.json` 里找 `managed-by=memory-core`
 
+### ⚠️ brief 投递铁律 — WeChat 只发紧凑卡 + 链接，**绝不贴完整 brief 全文**
+- **brief cron Step 6：只输出 ≤1.5KB 紧凑卡**（核心结论 + Book + ≤3 动作 + 触发位 + 当日全文链接 `https://kcnyu.github.io/clawock/memory/{date}-pre-open.html`），**一次性整段输出即结束**，不调 message 工具、不中途插"让我构造/输出"元叙述。
+- **绝不把 pre-open.md 全文(~14-17KB)糊进微信。** 完整 brief 照常写进 pre-open.md → commit → dashboard/briefs 页看（深度不变，全文不裁）。
+- **教训：2026-05-31** 让 mimo 把完整 brief 作为最终消息吐出 → **复读死循环**（"Now let me output the WeChat message…"复读几十遍被当回复发出，kcn 收到一屏垃圾），2 次实测都犯。**根因=mimo 在长输出上 commit 不下来**，不是 size 也不是措辞；**短卡片 = 物理上不会 loop**（已验证干净投递）。`delivered=true` 对 brief 不可信（同 report stub 坑）。
+- **兜底**：`scripts/harness/brief_watchdog.py`（系统 crontab 08:30 HKT 工作日）——run summary 无 `盘前深度简报`/`▎核心结论`/`▎今日动作` marker 即判未投递，补发**紧凑卡**(plan.json 的 book+动作)+全文链接（LLM-free，dedupe）。
+- WeChat 通道正常（手动 `openclaw message send` 即时送达）；冷会话静默丢弃见 cold-session 坑（本次不是）。
+- briefs 页 7 列表格在 mobile 横向滚动（`_layouts/default.html` @media≤600px：table display:block+overflow-x:auto），不撑破布局。
+
 ---
 
 ## 持仓数据
@@ -150,3 +158,14 @@
 - | 市场 | Regime | 关键信号 | |---|---|---| | US | **Volatile / Mixed** | SOXL +6.74% 🔥 / RKLB +8.22% 🔥 / ROBN -6.32% 🔴；β=4.77 🔴 / Vol 72% 🔴 / Sharpe +4.96（SOXL/RKLB 拉高）；SPX +0.41% / NDX +0.41% | [score=0.877 recalls=0 avg=0.620 source=memory/2026-05-25-pre-open.md:12-14]
 <!-- openclaw-memory-promotion:memory:memory/2026-05-25-pre-open.md:17:17 -->
 - **FX**: USDHKD = 7.8（HARDCODED_FALLBACK，无实时源，stale） [score=0.877 recalls=0 avg=0.620 source=memory/2026-05-25-pre-open.md:17-17]
+
+## Promoted From Short-Term Memory (2026-05-31)
+
+<!-- openclaw-memory-promotion:memory:memory/2026-05-25-pre-open.md:19:19 -->
+- **Book 总览**: [score=0.876 recalls=0 avg=0.620 source=memory/2026-05-25-pre-open.md:19-19]
+<!-- openclaw-memory-promotion:memory:memory/2026-05-22-pre-open.md:10:10 -->
+- > ⚠️ **数据状态**：US/HK refresh failed（价格用 snapshot），FX hardcoded 7.8（stale），SEC EDGAR RKLB/CRCL failed。所有数字仅从 `brief-context-2026-05-22.json` 取。 [score=0.856 recalls=0 avg=0.620 source=memory/2026-05-22-pre-open.md:10-10]
+<!-- openclaw-memory-promotion:memory:memory/2026-05-22-pre-open.md:16:19 -->
+- | 市场 | Regime | 关键信号 | |---|---|---| | US | **Volatile / Trending Down** | RKLB -6.43% 🔴 / SOXL +2.66% / ROBN -0.32%；β=4.78 🔴 / Vol 54.6% 🔴 / Sharpe -0.88 🔴；NDX/SPX 隔夜微跌 | [score=0.856 recalls=0 avg=0.620 source=memory/2026-05-22-pre-open.md:16-18]
+<!-- openclaw-memory-promotion:memory:memory/2026-05-22-pre-open.md:2:3 -->
+- layout: default title: 盘前深度简报 · 2026-05-22 [score=0.856 recalls=0 avg=0.620 source=memory/2026-05-22-pre-open.md:2-3]
