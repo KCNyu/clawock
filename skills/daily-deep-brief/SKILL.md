@@ -606,10 +606,11 @@ USD${total} ({pct}%) | HK leg {hk}HKD | US leg {us}USD
 ▎触发位（≤2 条最近的）
 {watch_levels 关键 1-2 条}
 
-📈 完整深度报告（Tier1/2/3 辩论 + 板块全景 + 复盘 + 唱反调）见 dashboard：
-https://kcnyu.github.io/clawock/
+📈 完整深度报告（Tier1/2/3 辩论 + 板块全景 + 复盘 + 唱反调）：
+https://kcnyu.github.io/clawock/memory/{date}-pre-open.html
 ```
 
+- 链接里 `{date}` 换成今天 `YYYY-MM-DD`（落盘文件名同款），直接打开今天这篇完整 brief MD 页（不是 dashboard 首页）。
 - **整张卡 ≤1.5KB**，远低于 16KB；模型一次吐得出、不会 loop。
 - 输出这张卡 = 本轮结束，**不要再追加任何思考或内容、不要把 pre-open.md 全文贴上来**。
 

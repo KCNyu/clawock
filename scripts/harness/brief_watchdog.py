@@ -48,10 +48,9 @@ HKT = timezone(timedelta(hours=8))
 OPENCLAW_BIN = '/root/.local/share/pnpm/openclaw'
 
 JOB_NAME = '盘前深度简报'
-# Markers that only appear when the actual brief (not deliberation) was delivered.
-DELIVERED_MARKERS = ('盘前深度简报', '▎TL;DR')
-WECHAT_LIMIT = 15600  # leave headroom under the 16384-byte single-chunk cap
-DASH_URL = 'https://kcnyu.github.io/clawock/'
+# Markers that appear in the delivered compact card (not in a deliberation loop).
+DELIVERED_MARKERS = ('盘前深度简报', '▎核心结论', '▎今日动作')
+BRIEF_URL_TMPL = 'https://kcnyu.github.io/clawock/memory/{date}-pre-open.html'
 
 
 def log(event):
@@ -108,19 +107,6 @@ def resolve_target(runs):
     return None, None, None
 
 
-def fit_wechat(body, banner):
-    """banner + body, trimmed to WECHAT_LIMIT at a section/line boundary with a
-    dashboard pointer instead of a hard mid-sentence cut."""
-    msg = banner + body
-    if len(msg.encode('utf-8')) <= WECHAT_LIMIT:
-        return msg
-    clipped = msg.encode('utf-8')[:WECHAT_LIMIT].decode('utf-8', 'ignore')
-    cut = clipped.rfind('\n## ')
-    if cut < len(clipped) - 2500:  # no nearby heading → fall back to last newline
-        cut = clipped.rfind('\n')
-    return clipped[:cut].rstrip() + f'\n\n…（完整版见 dashboard：{DASH_URL}）'
-
-
 def send_wechat(channel, to, account, message, dry_run):
     cmd = [OPENCLAW_BIN, 'message', 'send',
            '--channel', channel, '--target', to, '-m', message, '--json']
@@ -130,6 +116,35 @@ def send_wechat(channel, to, account, message, dry_run):
         cmd.append('--dry-run')
     r = subprocess.run(cmd, capture_output=True, text=True, timeout=60)
     return r.returncode == 0, (r.stdout + r.stderr)[-400:]
+
+
+def build_compact_fallback(today):
+    """Deterministic compact card (no LLM) = banner + book + ≤3 actions from
+    plan.json + link to the full brief MD page. Mirrors the normal Step 6 card so
+    the resend matches kcn's expected format (short + link), not a 16KB dump.
+    Degrades to a link-only message if plan.json is missing/unparseable."""
+    url = BRIEF_URL_TMPL.format(date=today)
+    lines = ['📨 自动补发：今日盘前简报模型投递中断，已生成完整版↓', '',
+             f'📊 盘前深度简报｜{today}']
+    try:
+        plan = json.loads((WS / 'memory' / f'{today}-plan.json').read_text())
+        bk = plan.get('book') or {}
+        if bk:
+            lines.append(f"Book: USD${bk.get('usd_total_pnl','?')} | "
+                         f"HK leg {bk.get('hk_leg_hkd','?')}HKD | US leg {bk.get('us_leg_usd','?')}USD")
+        acts = [a for a in (plan.get('actions') or []) if isinstance(a, dict)][:3]
+        if acts:
+            lines.append('今日动作：')
+            for i, a in enumerate(acts, 1):
+                trig = a.get('trigger_price')
+                trig = f"@{trig}" if trig is not None else (a.get('trigger_type') or '')
+                conf = a.get('confidence')
+                conf = f" conf{round(float(conf)*100)}%" if conf is not None else ''
+                lines.append(f"{i}. {a.get('ticker','?')} {a.get('bucket','')} {trig}{conf}")
+    except Exception:
+        pass  # link-only fallback
+    lines += ['', f'📈 完整报告：{url}']
+    return '\n'.join(lines)
 
 
 def main():
@@ -174,8 +189,7 @@ def main():
         log({'tag': tag, 'action': 'fail', 'reason': 'no delivery target resolved from run history'})
         return 0
 
-    banner = ('📨 自动补发（盘前简报模型在投递步中断，以下为已生成的完整 brief 直送）\n\n')
-    message = fit_wechat(preopen.read_text(), banner)
+    message = build_compact_fallback(today)
 
     sent_ok, out = send_wechat(channel, to, account, message, args.dry_run)
     log({'tag': tag, 'action': 'resend', 'dry_run': args.dry_run, 'sent_ok': sent_ok,

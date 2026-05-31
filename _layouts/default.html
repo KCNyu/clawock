@@ -126,6 +126,15 @@
   article table th { font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-dim); }
   article hr { border: 0; border-top: 1px solid var(--border); margin: 20px 0; }
 
+  /* Mobile: 宽表(如 7 列持仓表)横向滚动而非溢出撑破布局 */
+  @media (max-width: 600px) {
+    article table {
+      display: block; width: 100%; overflow-x: auto;
+      -webkit-overflow-scrolling: touch; white-space: nowrap; font-size: 12px;
+    }
+    article table th, article table td { padding: 6px 8px; }
+  }
+
   /* Brief-list (for briefs.html index) */
   .brief-list { list-style: none; padding: 0; margin: 8px 0; }
   .brief-list li {
