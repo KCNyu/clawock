@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-05-31T05:53:35.877570Z",
-  "last_updated": "2026/05/31 13:44 HKT",
+  "generated_at": "2026-05-31T06:23:04.563718Z",
+  "last_updated": "2026/05/31 14:16 HKT",
   "fx": {
     "usdhkd": 7.8356,
     "source": "Frankfurter",
@@ -1125,35 +1125,35 @@
       "price": 7580.06,
       "prev_close": 7563.63,
       "change_pct": 0.217,
-      "source": "Tencent usINX index @ 2026-05-31 01:44 ET"
+      "source": "Tencent usINX index @ 2026-05-31 02:16 ET"
     },
     "NDX": {
       "name": "Nasdaq 100",
       "price": 30333.18,
       "prev_close": 30223.89,
       "change_pct": 0.362,
-      "source": "Tencent usNDX index @ 2026-05-31 01:44 ET"
+      "source": "Tencent usNDX index @ 2026-05-31 02:16 ET"
     },
     "DJI": {
       "name": "Dow Jones",
       "price": 51032.46,
       "prev_close": 50668.97,
       "change_pct": 0.717,
-      "source": "Tencent usDJI index @ 2026-05-31 01:44 ET"
+      "source": "Tencent usDJI index @ 2026-05-31 02:16 ET"
     },
     "HSI": {
       "name": "恒生指数",
       "price": 25182.39,
       "prev_close": 25006.16,
       "change_pct": 0.7,
-      "source": "Tencent qt.gtimg.cn 2026/05/31 13:44 HKT"
+      "source": "Tencent qt.gtimg.cn 2026/05/31 14:16 HKT"
     },
     "HSTECH": {
       "name": "恒生科技",
       "price": 4884.23,
       "prev_close": 4888.58,
       "change_pct": -0.09,
-      "source": "Tencent qt.gtimg.cn 2026/05/31 13:44 HKT"
+      "source": "Tencent qt.gtimg.cn 2026/05/31 14:16 HKT"
     }
   },
   "market_context": {
@@ -2417,7 +2417,7 @@
     ]
   },
   "risk": {
-    "generated_at": "2026-05-31T05:45:29.262234+00:00",
+    "generated_at": "2026-05-31T06:17:14.550863+00:00",
     "as_of": "2026-05-31",
     "us": {
       "beta_spx": 3.9465,
@@ -2529,7 +2529,7 @@
     }
   },
   "benchmark": {
-    "generated_at": "2026-05-31T05:45:31.383465Z",
+    "generated_at": "2026-05-31T06:17:16.670504Z",
     "window_days": 60,
     "series": {
       "SPY": [
