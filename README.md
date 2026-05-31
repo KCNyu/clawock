@@ -160,7 +160,7 @@ clawock/
 │     ├─ dashboard.json        v2.x schema (CSS/JS inlined in index.html since v2)
 │     ├─ risk.json             β/Vol/DD/Sharpe (portfolio_risk_metrics.py)
 │     ├─ catalysts.json        14d earnings + FOMC + macro (fetch_catalysts.py)
-│     ├─ us_news_digest.json   xiaomi LLM 提炼 (news-digest.yml)
+│     ├─ us_news_digest.json   Xiaomi-distilled (news-digest.yml)
 │     ├─ macro.json            VIX / DXY / Fed RSS (macro-scan.yml)
 │     ├─ sentiment.json        Reddit + Google News (sentiment-scan.yml)
 │     ├─ influencer_feed.json  Trump / Musk market-movers, LLM-filtered (influencer-scan.yml)
@@ -245,7 +245,7 @@ For each leg separately:
 
 ### 🎲 Leverage ETF heuristic
 
-Preflight skips SEC EDGAR for tickers whose name contains `倍 / Direxion / T-Rex / Defiance / ProShares / 2X Long / 3X Long / Daily Target`.
+Preflight skips SEC EDGAR for tickers whose name contains a leverage marker — `倍` (Chinese "×", as in 三倍做多 = "3× long"), `Direxion`, `T-Rex`, `Defiance`, `ProShares`, `2X Long`, `3X Long`, `Daily Target`.
 For leveraged ETFs, fundamentals are noise — look at the underlying instead.
 
 ### 💵 Return basis — peak net principal

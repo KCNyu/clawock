@@ -155,7 +155,7 @@ clawock/
 │     ├─ dashboard.json        v2.x schema(CSS/JS 自 v2 起内联进 index.html)
 │     ├─ risk.json             β/Vol/DD/Sharpe(portfolio_risk_metrics.py)
 │     ├─ catalysts.json        14天财报 + FOMC + macro(fetch_catalysts.py)
-│     ├─ us_news_digest.json   xiaomi LLM 提炼(news-digest.yml)
+│     ├─ us_news_digest.json   Xiaomi 提炼(news-digest.yml)
 │     ├─ macro.json            VIX / DXY / Fed RSS(macro-scan.yml)
 │     ├─ sentiment.json        Reddit + Google News(sentiment-scan.yml)
 │     ├─ influencer_feed.json  Trump / Musk 异动源,LLM 过滤(influencer-scan.yml)
@@ -240,8 +240,8 @@ Total P&L: USD${X}  ≈  HKD${Y}      (USDHKD = 7.83, source Frankfurter, 2026-0
 
 ### 🎲 杠杆 ETF 启发式
 
-preflight 对名称含 `倍 / Direxion / T-Rex / Defiance / ProShares / 2X Long / 3X Long / Daily Target`
-的标的跳过 SEC EDGAR。杠杆 ETF 的基本面是噪声 —— 看底层标的。
+preflight 对名称含杠杆标记的标的跳过 SEC EDGAR —— `倍`、`Direxion`、`T-Rex`、`Defiance`、`ProShares`、`2X Long`、`3X Long`、`Daily Target`。
+杠杆 ETF 的基本面是噪声 —— 看底层标的。
 
 ### 💵 回报率分母 —— 峰值净投入
 
