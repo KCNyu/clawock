@@ -97,19 +97,10 @@ python3 /root/.openclaw/workspace/scripts/harness/intraday_preflight.py --market
   - 禁止"无异动，观望"这种敷衍 1 句话
 - ≤ 1200 字软上限 / ≤ 1500 字硬上限
 
-#### Step 2.5: 写 dashboard 状态横幅 sidecar → `memory/.tmp/intraday-insights-{YYYY-MM-DD}.json`
+#### Step 2.5: 写 dashboard 状态横幅 sidecar
 
-build_dashboard 读它刷新 dashboard **顶部状态横幅** + **Today's Movers 每条归因**（缺失容错，横幅自动隐藏）。只输出文本，**绝不写任何 key**。schema：
-```json
-{
-  "generated_at": "{ISO8601}",
-  "status_banner": "一句话 ≤50字：regime + 今日盈亏主来源 + 最该盯的一件事（盯盘提醒口吻）",
-  "movers": {"代码": "一行归因 ≤40字：催化 / 板块beta / 纯杠杆放大噪音 + 操作含义（追/不追/观望）"}
-}
-```
-- `movers` 覆盖 context 里 `anomalies` / today_movers 的**每个**票；杠杆 ETF 要点明"杠杆放大"、区分标的真涨还是纯 beta。
-- **只用 context.json 的真实数字**；不确定催化就写"无明确个股催化，纯 beta"，**不编造财报/新闻**。
-- HKT 时间戳用 UTC ISO8601。HK / US 两个 intraday 共写这一个 per-date 文件，build_dashboard 取最新 mtime（当前在盘的市场覆盖横幅）。
+**规范见 `skills/_shared/intraday-status-sidecar.md`**（hk/us 共用单一来源）—— 写 `memory/.tmp/intraday-insights-{date}.json`（status_banner + 每个异动票 movers 归因，只文本无 key）。
+- 本市场杠杆 ETF：**07226**（恒科 2x）等，归因要点明"杠杆放大"。
 
 #### Step 3: 跑 postflight
 ```bash
