@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-05-31T06:41:05.721567Z",
-  "last_updated": "2026/05/31 14:16 HKT",
+  "generated_at": "2026-05-31T06:51:52.306557Z",
+  "last_updated": "2026/05/31 14:41 HKT",
   "fx": {
     "usdhkd": 7.8356,
     "source": "Frankfurter",
@@ -1002,7 +1002,7 @@
         "fx_source": "Frankfurter",
         "regime": {
           "us": "risk_on",
-          "hk": "range-bound"
+          "hk": "neutral"
         },
         "book": {
           "usd_total_pnl": 349.27,
@@ -1012,40 +1012,64 @@
         },
         "actions": [
           {
-            "ticker": "PLTU",
-            "bucket": "cut",
-            "size_pct": 50,
-            "size_shares": 7,
-            "trigger_type": "open",
-            "trigger_price": null,
-            "trigger_condition": "US 开盘任意价",
-            "confidence": 0.5,
-            "driven_by": "technical",
-            "rationale": "连续三期 cut 计划未执行 — 执行断层是最大行为风险；PLTR +9% on S&P 纳入但 2x decay -15.6% 近一月持续侵蚀；risk_on regime 下持有杠杆 decay 品是浪费仓位"
-          },
-          {
-            "ticker": "07226",
-            "bucket": "trim_on_rebound",
-            "size_pct": 16,
-            "size_shares": 1000,
-            "trigger_type": "price_above",
-            "trigger_price": 3.9,
-            "trigger_condition": "日内高点 >= 3.90",
-            "confidence": 0.45,
-            "driven_by": "macro",
-            "rationale": "HHI 0.435 危险集中强制降仓；trigger 从 4.00 下调至 3.90（连续三天 high 3.914 未触发说明 trigger 过紧）；历史 trim 胜率 33% 但 HHI 优先于胜率"
-          },
-          {
             "ticker": "00100",
             "bucket": "hold_and_watch",
             "size_pct": 0,
             "size_shares": 0,
             "trigger_type": "price_below",
-            "trigger_price": 800,
-            "trigger_condition": "日内低点 <= 800 时评估是否减仓",
+            "trigger_price": 780,
+            "trigger_condition": "跌破780止损",
             "confidence": 0.55,
             "driven_by": "catalyst",
-            "rationale": "恒科纳入 6/8 硬催化在即 + rev +159% + 83% hold 历史胜率；stop 从 780 上调至 800（催化前保护更紧）；HHI 集中但催化前不减"
+            "rationale": "83%历史胜率+恒科纳入6/8催化+UBS目标1000+risk_on cap。但HHI 59%集中+近5日落后同行6.3pp"
+          },
+          {
+            "ticker": "07226",
+            "bucket": "hold_and_watch",
+            "size_pct": 0,
+            "size_shares": 0,
+            "trigger_type": "price_below",
+            "trigger_price": 3.5,
+            "trigger_condition": "跌破3.50考虑减仓1000股",
+            "confidence": 0.5,
+            "driven_by": "technical",
+            "rationale": "HSTECH 4900下方+2x杠杆decay+HHI危险集中。trigger 4.0未触发但下调stop至3.50。40%历史胜率，谨慎持有"
+          },
+          {
+            "ticker": "02208",
+            "bucket": "hold_and_watch",
+            "size_pct": 0,
+            "size_shares": 0,
+            "trigger_type": "price_below",
+            "trigger_price": 13.0,
+            "trigger_condition": "跌破13.0止损",
+            "confidence": 0.55,
+            "driven_by": "technical",
+            "rationale": "Q1利润+40% YoY+JPM Overweight；400股小仓hold。Trump能源政策地缘风险需关注"
+          },
+          {
+            "ticker": "03032",
+            "bucket": "hold_and_watch",
+            "size_pct": 0,
+            "size_shares": 0,
+            "trigger_type": "manual",
+            "trigger_price": null,
+            "trigger_condition": "纯HSTECH beta，跟随指数",
+            "confidence": 0.55,
+            "driven_by": "macro",
+            "rationale": "1x恒科ETF，无额外杠杆decay，跟随HSTECH方向"
+          },
+          {
+            "ticker": "03033",
+            "bucket": "hold_and_watch",
+            "size_pct": 0,
+            "size_shares": 0,
+            "trigger_type": "manual",
+            "trigger_price": null,
+            "trigger_condition": "纯HSTECH beta，跟随指数",
+            "confidence": 0.55,
+            "driven_by": "macro",
+            "rationale": "1x恒科ETF，无额外杠杆decay，跟随HSTECH方向"
           },
           {
             "ticker": "RKLB",
@@ -1054,10 +1078,10 @@
             "size_shares": 0,
             "trigger_type": "price_below",
             "trigger_price": 130,
-            "trigger_condition": "跌破 130 评估减仓",
+            "trigger_condition": "跌破130止损",
             "confidence": 0.55,
             "driven_by": "catalyst",
-            "rationale": "+102% 浮盈 + Q1 rev $200M +63% + $90M Space Force 合同硬催化 + 52wk high 附近整理；趋势完好，hold"
+            "rationale": "+102%浮盈+Q1 rev $200M+63%+backlog $2.2B+Neutron首飞在即。SpaceX IPO降温是软情绪，不驱动action"
           },
           {
             "ticker": "CRCL",
@@ -1066,22 +1090,34 @@
             "size_shares": 1,
             "trigger_type": "price_below",
             "trigger_price": 95,
-            "trigger_condition": "回调至 95 以下加仓 1 股",
-            "confidence": 0.45,
+            "trigger_condition": "回调至95加仓1股",
+            "confidence": 0.5,
+            "driven_by": "technical",
+            "rationale": "USDC $77B>Tether+GENIUS Act推进；但立法利好已在价(+18%)，等回调。insider sell+空头文章是软情绪"
+          },
+          {
+            "ticker": "PLTU",
+            "bucket": "trim_on_rebound",
+            "size_pct": 50,
+            "size_shares": 7,
+            "trigger_type": "price_above",
+            "trigger_price": 50,
+            "trigger_condition": "反弹至50减7股",
+            "confidence": 0.5,
             "driven_by": "catalyst",
-            "rationale": "Q1 首次盈利 $55M + USDC $77B +28% = 基本面拐点确认；但 insider sell + BTC ETF 连续 6 日 $1.26B 流出 + crypto 整体冷淡 → 等回调再加"
+            "rationale": "PLTR insider sell $43M是硬催化+92x fwd PE+近5日+28.9%反弹。纪律减仓锁利，非信号驱动"
           },
           {
             "ticker": "ROBN",
-            "bucket": "hold_and_watch",
-            "size_pct": 0,
-            "size_shares": 0,
-            "trigger_type": "price_below",
-            "trigger_price": 22,
-            "trigger_condition": "跌破 22 评估减仓",
+            "bucket": "cut",
+            "size_pct": 50,
+            "size_shares": 20,
+            "trigger_type": "open",
+            "trigger_price": null,
+            "trigger_condition": "周一开盘任意价减20股",
             "confidence": 0.5,
             "driven_by": "technical",
-            "rationale": "连续四期 cut 计划未执行 → 执行断层说明行为偏差，降级 hold 不再发 cut 信号；HOOD thesis 中性但 +19.8% 浮盈可承受"
+            "rationale": "连续四期cut计划未执行—执行断层是最大风险。HOOD thesis中性+2x杠杆decay。纪律驱动而非信号驱动"
           },
           {
             "ticker": "MSFU",
@@ -1089,31 +1125,24 @@
             "size_pct": 0,
             "size_shares": 0,
             "trigger_type": "price_below",
-            "trigger_price": 28,
-            "trigger_condition": "跌破 28 评估减仓",
+            "trigger_price": 26,
+            "trigger_condition": "跌破26止损",
             "confidence": 0.55,
             "driven_by": "catalyst",
-            "rationale": "MSFT Q3 rev $82.9B +18% Azure +29% 硬催化确认；2x 杠杆温和放大蓝筹收益；hold"
-          },
-          {
-            "ticker": "02208",
-            "bucket": "hold_and_watch",
-            "size_pct": 0,
-            "size_shares": 0,
-            "trigger_type": "price_below",
-            "trigger_price": 12.5,
-            "trigger_condition": "跌破 12.5 评估减仓",
-            "confidence": 0.5,
-            "driven_by": "technical",
-            "rationale": "月跌 -20.7% 但 Q1 利润 +40% YoY + JPM Overweight；400 股小仓可承受波动；风电板块长期逻辑未破"
+            "rationale": "MSFT Q3 beat rev $82.9B+18% Azure+29%。20股小仓hold"
           }
         ],
         "watch_levels": {
-          "hstech_breakdown": 4800,
-          "00100_stop": 800,
-          "07226_trim_trigger": 3.9,
-          "crcl_add_trigger": 95,
-          "book_force_derisk_usd": -300
+          "00100_stop": 780,
+          "07226_stop": 3.5,
+          "02208_stop": 13.0,
+          "RKLB_stop": 130,
+          "CRCL_add": 95,
+          "PLTU_trim": 50,
+          "hstech_support": 4800,
+          "book_force_derisk_usd": -300,
+          "nfp_date": "2026-06-05",
+          "cpi_date": "2026-06-11"
         }
       }
     }
@@ -1125,39 +1154,39 @@
       "price": 7580.06,
       "prev_close": 7563.63,
       "change_pct": 0.217,
-      "source": "Tencent usINX index @ 2026-05-31 02:16 ET"
+      "source": "Tencent usINX index @ 2026-05-31 02:41 ET"
     },
     "NDX": {
       "name": "Nasdaq 100",
       "price": 30333.18,
       "prev_close": 30223.89,
       "change_pct": 0.362,
-      "source": "Tencent usNDX index @ 2026-05-31 02:16 ET"
+      "source": "Tencent usNDX index @ 2026-05-31 02:41 ET"
     },
     "DJI": {
       "name": "Dow Jones",
       "price": 51032.46,
       "prev_close": 50668.97,
       "change_pct": 0.717,
-      "source": "Tencent usDJI index @ 2026-05-31 02:16 ET"
+      "source": "Tencent usDJI index @ 2026-05-31 02:41 ET"
     },
     "HSI": {
       "name": "恒生指数",
       "price": 25182.39,
       "prev_close": 25006.16,
       "change_pct": 0.7,
-      "source": "Tencent qt.gtimg.cn 2026/05/31 14:16 HKT"
+      "source": "Tencent qt.gtimg.cn 2026/05/31 14:41 HKT"
     },
     "HSTECH": {
       "name": "恒生科技",
       "price": 4884.23,
       "prev_close": 4888.58,
       "change_pct": -0.09,
-      "source": "Tencent qt.gtimg.cn 2026/05/31 14:16 HKT"
+      "source": "Tencent qt.gtimg.cn 2026/05/31 14:41 HKT"
     }
   },
   "market_context": {
-    "generated_at": "2026-05-31T08:00:00+08:00",
+    "generated_at": "2026-05-31T14:42:00+08:00",
     "date": "2026-05-31",
     "sectors": [
       {
@@ -1166,18 +1195,6 @@
           "00100"
         ],
         "top_movers": [
-          {
-            "ticker": "02723",
-            "name": "深演智能",
-            "pct": 265.0,
-            "catalyst": "IPO 企业决策 AI"
-          },
-          {
-            "ticker": "02513",
-            "name": "智谱",
-            "pct": 47.7,
-            "catalyst": "通用大模型龙头 + IPO"
-          },
           {
             "ticker": "02469",
             "name": "速腾聚创",
@@ -1194,7 +1211,7 @@
             "ticker": "06682",
             "name": "第四范式",
             "pct": 4.04,
-            "catalyst": "企业 AI 决策"
+            "catalyst": "企业AI决策平台"
           }
         ],
         "self": [
@@ -1202,7 +1219,7 @@
             "ticker": "00100",
             "pct": 0.36,
             "rank_text": "落后",
-            "attribution": "智谱 IPO 虹吸 AI 板块资金 + Token Pay 催化盘后才公布"
+            "attribution": "前期涨幅消化(5/13+18%)，恒科纳入6/8催化尚未price in"
           }
         ]
       },
@@ -1213,30 +1230,30 @@
         ],
         "top_movers": [
           {
-            "ticker": "09999",
-            "name": "网易",
-            "pct": 0.73,
-            "catalyst": "HSTECH 权重"
+            "ticker": "00700",
+            "name": "腾讯控股",
+            "pct": 0.52,
+            "catalyst": "HSTECH权重"
           },
           {
-            "ticker": "00700",
-            "name": "腾讯",
-            "pct": 0.52,
-            "catalyst": "HSTECH 权重"
+            "ticker": "09999",
+            "name": "网易-S",
+            "pct": 0.73,
+            "catalyst": "HSTECH权重"
           },
           {
             "ticker": "03690",
-            "name": "美团",
+            "name": "美团-W",
             "pct": 0.2,
-            "catalyst": "HSTECH 权重"
+            "catalyst": "HSTECH权重"
           }
         ],
         "self": [
           {
             "ticker": "07226",
             "pct": -0.53,
-            "rank_text": "落后",
-            "attribution": "β 错配 — 杠杆 decay 在 HSTECH 横盘中持续侵蚀"
+            "rank_text": "中位",
+            "attribution": "2x杠杆放大underlying弱势，HSTECH 4900下方承压"
           }
         ]
       },
@@ -1247,24 +1264,24 @@
         ],
         "top_movers": [
           {
-            "ticker": "RKLB",
-            "name": "Rocket Lab",
-            "pct": 22.03,
-            "catalyst": "$90M Space Force 合同 + Blue Origin 爆炸"
+            "ticker": "LUNR",
+            "name": "Intuitive Machines",
+            "pct": 9.0,
+            "catalyst": "异动"
           },
           {
             "ticker": "ASTS",
             "name": "AST SpaceMobile",
-            "pct": 0,
+            "pct": 2.69,
             "catalyst": "卫星通信"
           }
         ],
         "self": [
           {
             "ticker": "RKLB",
-            "pct": 0,
-            "rank_text": "领涨",
-            "attribution": "板块领跑者，$90M 合同硬催化 + Blue Origin 事故竞争利好"
+            "pct": 0.0,
+            "rank_text": "中位",
+            "attribution": "Q1 beat后52wk high整理，SpaceX IPO降温是软情绪不影响基本面"
           }
         ]
       },
@@ -1273,31 +1290,18 @@
         "tickers_in_book": [
           "CRCL"
         ],
-        "top_movers": [
-          {
-            "ticker": "CRCL",
-            "name": "Circle",
-            "pct": 19.4,
-            "catalyst": "USDC $77B +28% + 首次盈利"
-          },
-          {
-            "ticker": "COIN",
-            "name": "Coinbase",
-            "pct": 0,
-            "catalyst": "USDC 合作方"
-          }
-        ],
+        "top_movers": [],
         "self": [
           {
             "ticker": "CRCL",
-            "pct": 0,
+            "pct": 0.0,
             "rank_text": "中位",
-            "attribution": "USDC 增长确认但 BTC ETF 连续 6 日 $1.26B 流出拖累 crypto 情绪"
+            "attribution": "CLARITY Act +18%已消化，横盘等待下一催化"
           }
         ]
       }
     ],
-    "narrative": "港股 AI 板块全面活跃，主角是智谱（月涨47%）和深演智能（IPO 涨8倍），MINIMAX +0.36% 落后。HSTECH 横盘中 07226 杠杆 decay 持续侵蚀。商业航天 RKLB 是唯一领涨持仓（$90M 合同 + Blue Origin 爆炸）。稳定币 CRCL 基本面拐点确认但 crypto 整体冷淡。",
+    "narrative": "港股AI板块5月领涨(智谱+47%，MINIMAX 5/13+18%)但00100今日仅+0.36%落后同行6pp，前期涨幅消化中；HSTECH横盘但07226杠杆放大弱势；RKLB在SpaceX IPO降温下仍hold，基本面驱动强于板块情绪",
     "_source": "sector-scan-2026-05-31.json"
   },
   "holdings_history": {
@@ -1564,26 +1568,26 @@
     }
   ],
   "behavioral_review": {
-    "verdict": "模型主动信号 40% 胜率跑输持有 71%，alpha -7pp — 当前应少动多看",
+    "verdict": "主动信号40%胜率vs被动71%— 模型当前应少动多看",
     "points": [
       {
-        "text": "主动信号(cut/trim/add)近 40 次仅 40% 胜率，而被动 hold 35 次 71% — 模型在主动 call 上没有 edge",
-        "tag": "warning"
-      },
-      {
-        "text": "60-70% 信心档实际胜率 80% 校准良好，但高信心(≥0.75)仅 46% 过度自信 +31pp — 别再报高信心",
+        "text": "主动信号(win rate 40%, conf 67%, overconfidence +27pp)远逊被动hold(71%, conf 63%)— 此刻应信任hold判断、抑制出手冲动",
         "tag": "bias"
       },
       {
-        "text": "PLTU/ROBN 连续三期 cut 信号触发但未执行 = 行为断层累积，信号本身正确但执行力为零",
+        "text": "trim_on_rebound bucket仅33%胜率且overconfidence +34pp — 07226 trigger连续未触发说明trigger设过紧",
         "tag": "warning"
       },
       {
-        "text": "hold_and_watch 是唯一正 edge 的 bucket（28 次 79% 胜率），t_only 完全失败（4 次 0%）",
+        "text": "t_only bucket 0%胜率(n=4) — 完全失败，fade极值策略在此book不适用",
+        "tag": "warning"
+      },
+      {
+        "text": "hold_and_watch 79%胜率是唯一可靠bucket — 00100/RKLB的hold判断高度可信",
         "tag": "edge"
       },
       {
-        "text": "07226 trim 历史 6 次胜 4 次但整体 bucket 胜率仅 33% — trim 信号在杠杆 ETF 上 edge 最弱",
+        "text": "ROBN/PLTU连续四期cut断层 — 执行纪律问题已从心理障碍升级为系统风险",
         "tag": "bias"
       }
     ]
@@ -1591,28 +1595,28 @@
   "bear_cases": [
     {
       "ticker": "00100",
-      "thesis": "HHI 59% 单仓集中 + 恒科纳入若延迟或不及预期 → HK book 单日 -8.9% 到 -12.9%",
-      "falsifier": "6/8 恒科纳入确认且 00100 突破 900",
-      "watch": "6/8 纳入公告 + 智谱 IPO 进展"
+      "thesis": "59%仓位集中+HK AI板块5月涨幅已大(智谱+47%)；若恒科纳入6/8不及预期或AI监管收紧，单日-15%可炸HK book -8.9%",
+      "falsifier": "恒科纳入确认+rev持续增长>100%",
+      "watch": "6/8恒科纳入结果; 800支撑位"
     },
     {
       "ticker": "07226",
-      "thesis": "2x 杠杆 decay 在 HSTECH 横盘中持续侵蚀本金，-13.8% 浮亏已不可逆；若 HSTECH 跌破 4800 杠杆放大亏损加速",
-      "falsifier": "HSTECH 站稳 5000 且 07226 回到 4.00 以上",
-      "watch": "HSTECH 4800 支撑 + 南向资金方向"
+      "thesis": "2x杠杆decay不可逆+HSTECH 4900下方持续承压+浮亏-14%；若HSTECH跌破4600，浮亏扩至-20%+",
+      "falsifier": "HSTECH站上5000+MA20金叉",
+      "watch": "HSTECH 4800支撑; 3.50止损位"
     },
     {
-      "ticker": "PLTU",
-      "thesis": "2x decay -15.6% 近一月 + 连续三期 cut 未执行 = 行为偏差在累积；PLTR 92x fwd PE 估值过高",
-      "falsifier": "PLTR 持续创新高且 PLTU 跟涨",
-      "watch": "PLTR 下一季财报 + S&P 纳入后资金流"
+      "ticker": "ROBN",
+      "thesis": "连续四期cut未执行=杠杆decay累积+HOOD thesis中性；2x ETF时间价值持续侵蚀",
+      "falsifier": "HOOD突破90+crypto rev恢复增长",
+      "watch": "周一开盘强制执行cut 20股"
     }
   ],
   "hidden_concentration": {
-    "headline": "表面 10 只持仓实际 86.8% 集中于 00100+07226 两票，且同因子联动",
-    "factor": "HSTECH / 港股 AI 高 beta",
-    "exposure_pct": 87,
-    "detail": "00100(MINIMAX AI)+07226(2x 恒科)+03032+03033 四只全部暴露于 HSTECH 方向。名义上 5 只 HK 持仓，实际 02208 风电仅 6.5% 对冲效果为零。HSTECH 单日 -5% → HK book 立即 -4.3%+ 杠杆放大。"
+    "headline": "名义10仓实际AI/高beta单因子敞口超80%",
+    "factor": "AI+杠杆ETF高beta",
+    "exposure_pct": 82,
+    "detail": "00100(AI大模型59%)+07226(HSTECH 2x 27%)+RKLB(航天+102%浮盈)+ROBN/PLTU/MSFU(均为2x杠杆) — 全组合对AI叙事和利率环境高度敏感，单一regime切换可引发级联止损"
   },
   "insights_meta": {
     "source": "insights-2026-05-31.json",
@@ -1707,35 +1711,35 @@
   "calibration_by_trigger": {
     "price_above": {
       "n_resolved": 28,
-      "n_pending": 1,
+      "n_pending": 2,
       "wins": 14,
       "losses": 14,
       "win_rate": 0.5,
-      "avg_confidence": 0.637
+      "avg_confidence": 0.632
     },
     "price_below": {
       "n_resolved": 23,
-      "n_pending": 6,
+      "n_pending": 7,
       "wins": 20,
       "losses": 3,
       "win_rate": 0.8696,
-      "avg_confidence": 0.624
+      "avg_confidence": 0.62
     },
     "open": {
       "n_resolved": 14,
-      "n_pending": 1,
+      "n_pending": 2,
       "wins": 3,
       "losses": 11,
       "win_rate": 0.2143,
-      "avg_confidence": 0.686
+      "avg_confidence": 0.674
     },
     "manual": {
       "n_resolved": 7,
-      "n_pending": 0,
+      "n_pending": 2,
       "wins": 4,
       "losses": 3,
       "win_rate": 0.5714,
-      "avg_confidence": 0.596
+      "avg_confidence": 0.586
     },
     "index_breakdown": {
       "n_resolved": 3,
@@ -1749,19 +1753,19 @@
   "calibration_by_driver": {
     "technical": {
       "n_resolved": 32,
-      "n_pending": 3,
+      "n_pending": 5,
       "wins": 15,
       "losses": 17,
       "win_rate": 0.4688,
-      "avg_confidence": 0.623
+      "avg_confidence": 0.617
     },
     "catalyst": {
       "n_resolved": 30,
-      "n_pending": 4,
+      "n_pending": 5,
       "wins": 20,
       "losses": 10,
       "win_rate": 0.6667,
-      "avg_confidence": 0.635
+      "avg_confidence": 0.631
     },
     "sentiment": {
       "n_resolved": 0,
@@ -1781,7 +1785,7 @@
     },
     "macro": {
       "n_resolved": 1,
-      "n_pending": 1,
+      "n_pending": 3,
       "wins": 1,
       "losses": 0,
       "win_rate": 1.0,
@@ -1886,6 +1890,61 @@
       "driven_by": "technical"
     },
     {
+      "date": "2026-05-31",
+      "ticker": "07226",
+      "bucket": "hold_and_watch",
+      "confidence": 0.5,
+      "trigger_type": "price_below",
+      "outcome": "pending",
+      "pnl_5d": null,
+      "followed": "unknown",
+      "driven_by": "technical"
+    },
+    {
+      "date": "2026-05-31",
+      "ticker": "03032",
+      "bucket": "hold_and_watch",
+      "confidence": 0.55,
+      "trigger_type": "manual",
+      "outcome": "pending",
+      "pnl_5d": null,
+      "followed": "unknown",
+      "driven_by": "macro"
+    },
+    {
+      "date": "2026-05-31",
+      "ticker": "03033",
+      "bucket": "hold_and_watch",
+      "confidence": 0.55,
+      "trigger_type": "manual",
+      "outcome": "pending",
+      "pnl_5d": null,
+      "followed": "unknown",
+      "driven_by": "macro"
+    },
+    {
+      "date": "2026-05-31",
+      "ticker": "PLTU",
+      "bucket": "trim_on_rebound",
+      "confidence": 0.5,
+      "trigger_type": "price_above",
+      "outcome": "pending",
+      "pnl_5d": null,
+      "followed": "unknown",
+      "driven_by": "catalyst"
+    },
+    {
+      "date": "2026-05-31",
+      "ticker": "ROBN",
+      "bucket": "cut",
+      "confidence": 0.5,
+      "trigger_type": "open",
+      "outcome": "pending",
+      "pnl_5d": null,
+      "followed": "unknown",
+      "driven_by": "technical"
+    },
+    {
       "date": "2026-05-29",
       "ticker": "00100",
       "bucket": "hold_and_watch",
@@ -1961,75 +2020,20 @@
       "pnl_5d": 27.27,
       "followed": "true",
       "driven_by": "catalyst"
-    },
-    {
-      "date": "2026-05-29",
-      "ticker": "02208",
-      "bucket": "hold_and_watch",
-      "confidence": 0.7,
-      "trigger_type": "price_below",
-      "outcome": "win",
-      "pnl_5d": 9.68,
-      "followed": "true",
-      "driven_by": "catalyst"
-    },
-    {
-      "date": "2026-05-28",
-      "ticker": "ROBN",
-      "bucket": "cut",
-      "confidence": 0.55,
-      "trigger_type": "open",
-      "outcome": "loss",
-      "pnl_5d": -49.63,
-      "followed": "false",
-      "driven_by": "technical"
-    },
-    {
-      "date": "2026-05-28",
-      "ticker": "PLTU",
-      "bucket": "cut",
-      "confidence": 0.55,
-      "trigger_type": "open",
-      "outcome": "loss",
-      "pnl_5d": -37.2,
-      "followed": "false",
-      "driven_by": "catalyst"
-    },
-    {
-      "date": "2026-05-28",
-      "ticker": "07226",
-      "bucket": "trim_on_rebound",
-      "confidence": 0.6,
-      "trigger_type": "price_above",
-      "outcome": "win",
-      "pnl_5d": 6.0,
-      "followed": "false",
-      "driven_by": "technical"
-    },
-    {
-      "date": "2026-05-28",
-      "ticker": "00100",
-      "bucket": "hold_and_watch",
-      "confidence": 0.7,
-      "trigger_type": "price_below",
-      "outcome": "win",
-      "pnl_5d": 12.0,
-      "followed": "true",
-      "driven_by": "catalyst"
     }
   ],
   "plan_timeline": [
     {
       "date": "2026-05-31",
-      "ticker": "PLTU",
-      "bucket": "cut",
-      "trigger_type": "open",
-      "trigger_price": null,
-      "trigger_condition": "US 开盘任意价",
-      "size_pct": 50,
-      "size_shares": 7,
-      "confidence": 0.5,
-      "rationale": "连续三期 cut 计划未执行 — 执行断层是最大行为风险；PLTR +9% on S&P 纳入但 2x decay -15.6% 近一月持续侵蚀；risk_on regime 下持有杠杆 decay 品是浪费仓位",
+      "ticker": "00100",
+      "bucket": "hold_and_watch",
+      "trigger_type": "price_below",
+      "trigger_price": 780,
+      "trigger_condition": "跌破780止损",
+      "size_pct": 0,
+      "size_shares": 0,
+      "confidence": 0.55,
+      "rationale": "83%历史胜率+恒科纳入6/8催化+UBS目标1000+risk_on cap。但HHI 59%集中+近5日落后同行6.3pp",
       "outcome": "pending",
       "pnl_5d": null,
       "followed": "unknown"
@@ -2037,29 +2041,59 @@
     {
       "date": "2026-05-31",
       "ticker": "07226",
-      "bucket": "trim_on_rebound",
-      "trigger_type": "price_above",
-      "trigger_price": 3.9,
-      "trigger_condition": "日内高点 >= 3.90",
-      "size_pct": 16,
-      "size_shares": 1000,
-      "confidence": 0.45,
-      "rationale": "HHI 0.435 危险集中强制降仓；trigger 从 4.00 下调至 3.90（连续三天 high 3.914 未触发说明 trigger 过紧）；历史 trim 胜率 33% 但 HHI 优先于胜率",
+      "bucket": "hold_and_watch",
+      "trigger_type": "price_below",
+      "trigger_price": 3.5,
+      "trigger_condition": "跌破3.50考虑减仓1000股",
+      "size_pct": 0,
+      "size_shares": 0,
+      "confidence": 0.5,
+      "rationale": "HSTECH 4900下方+2x杠杆decay+HHI危险集中。trigger 4.0未触发但下调stop至3.50。40%历史胜率，谨慎持有",
       "outcome": "pending",
       "pnl_5d": null,
       "followed": "unknown"
     },
     {
       "date": "2026-05-31",
-      "ticker": "00100",
+      "ticker": "02208",
       "bucket": "hold_and_watch",
       "trigger_type": "price_below",
-      "trigger_price": 800,
-      "trigger_condition": "日内低点 <= 800 时评估是否减仓",
+      "trigger_price": 13.0,
+      "trigger_condition": "跌破13.0止损",
       "size_pct": 0,
       "size_shares": 0,
       "confidence": 0.55,
-      "rationale": "恒科纳入 6/8 硬催化在即 + rev +159% + 83% hold 历史胜率；stop 从 780 上调至 800（催化前保护更紧）；HHI 集中但催化前不减",
+      "rationale": "Q1利润+40% YoY+JPM Overweight；400股小仓hold。Trump能源政策地缘风险需关注",
+      "outcome": "pending",
+      "pnl_5d": null,
+      "followed": "unknown"
+    },
+    {
+      "date": "2026-05-31",
+      "ticker": "03032",
+      "bucket": "hold_and_watch",
+      "trigger_type": "manual",
+      "trigger_price": null,
+      "trigger_condition": "纯HSTECH beta，跟随指数",
+      "size_pct": 0,
+      "size_shares": 0,
+      "confidence": 0.55,
+      "rationale": "1x恒科ETF，无额外杠杆decay，跟随HSTECH方向",
+      "outcome": "pending",
+      "pnl_5d": null,
+      "followed": "unknown"
+    },
+    {
+      "date": "2026-05-31",
+      "ticker": "03033",
+      "bucket": "hold_and_watch",
+      "trigger_type": "manual",
+      "trigger_price": null,
+      "trigger_condition": "纯HSTECH beta，跟随指数",
+      "size_pct": 0,
+      "size_shares": 0,
+      "confidence": 0.55,
+      "rationale": "1x恒科ETF，无额外杠杆decay，跟随HSTECH方向",
       "outcome": "pending",
       "pnl_5d": null,
       "followed": "unknown"
@@ -2070,11 +2104,11 @@
       "bucket": "hold_and_watch",
       "trigger_type": "price_below",
       "trigger_price": 130,
-      "trigger_condition": "跌破 130 评估减仓",
+      "trigger_condition": "跌破130止损",
       "size_pct": 0,
       "size_shares": 0,
       "confidence": 0.55,
-      "rationale": "+102% 浮盈 + Q1 rev $200M +63% + $90M Space Force 合同硬催化 + 52wk high 附近整理；趋势完好，hold",
+      "rationale": "+102%浮盈+Q1 rev $200M+63%+backlog $2.2B+Neutron首飞在即。SpaceX IPO降温是软情绪，不驱动action",
       "outcome": "pending",
       "pnl_5d": null,
       "followed": "unknown"
@@ -2085,11 +2119,26 @@
       "bucket": "add_only_on_trigger",
       "trigger_type": "price_below",
       "trigger_price": 95,
-      "trigger_condition": "回调至 95 以下加仓 1 股",
+      "trigger_condition": "回调至95加仓1股",
       "size_pct": 0,
       "size_shares": 1,
-      "confidence": 0.45,
-      "rationale": "Q1 首次盈利 $55M + USDC $77B +28% = 基本面拐点确认；但 insider sell + BTC ETF 连续 6 日 $1.26B 流出 + crypto 整体冷淡 → 等回调再加",
+      "confidence": 0.5,
+      "rationale": "USDC $77B>Tether+GENIUS Act推进；但立法利好已在价(+18%)，等回调。insider sell+空头文章是软情绪",
+      "outcome": "pending",
+      "pnl_5d": null,
+      "followed": "unknown"
+    },
+    {
+      "date": "2026-05-31",
+      "ticker": "PLTU",
+      "bucket": "trim_on_rebound",
+      "trigger_type": "price_above",
+      "trigger_price": 50,
+      "trigger_condition": "反弹至50减7股",
+      "size_pct": 50,
+      "size_shares": 7,
+      "confidence": 0.5,
+      "rationale": "PLTR insider sell $43M是硬催化+92x fwd PE+近5日+28.9%反弹。纪律减仓锁利，非信号驱动",
       "outcome": "pending",
       "pnl_5d": null,
       "followed": "unknown"
@@ -2097,14 +2146,14 @@
     {
       "date": "2026-05-31",
       "ticker": "ROBN",
-      "bucket": "hold_and_watch",
-      "trigger_type": "price_below",
-      "trigger_price": 22,
-      "trigger_condition": "跌破 22 评估减仓",
-      "size_pct": 0,
-      "size_shares": 0,
+      "bucket": "cut",
+      "trigger_type": "open",
+      "trigger_price": null,
+      "trigger_condition": "周一开盘任意价减20股",
+      "size_pct": 50,
+      "size_shares": 20,
       "confidence": 0.5,
-      "rationale": "连续四期 cut 计划未执行 → 执行断层说明行为偏差，降级 hold 不再发 cut 信号；HOOD thesis 中性但 +19.8% 浮盈可承受",
+      "rationale": "连续四期cut计划未执行—执行断层是最大风险。HOOD thesis中性+2x杠杆decay。纪律驱动而非信号驱动",
       "outcome": "pending",
       "pnl_5d": null,
       "followed": "unknown"
@@ -2114,27 +2163,12 @@
       "ticker": "MSFU",
       "bucket": "hold_and_watch",
       "trigger_type": "price_below",
-      "trigger_price": 28,
-      "trigger_condition": "跌破 28 评估减仓",
+      "trigger_price": 26,
+      "trigger_condition": "跌破26止损",
       "size_pct": 0,
       "size_shares": 0,
       "confidence": 0.55,
-      "rationale": "MSFT Q3 rev $82.9B +18% Azure +29% 硬催化确认；2x 杠杆温和放大蓝筹收益；hold",
-      "outcome": "pending",
-      "pnl_5d": null,
-      "followed": "unknown"
-    },
-    {
-      "date": "2026-05-31",
-      "ticker": "02208",
-      "bucket": "hold_and_watch",
-      "trigger_type": "price_below",
-      "trigger_price": 12.5,
-      "trigger_condition": "跌破 12.5 评估减仓",
-      "size_pct": 0,
-      "size_shares": 0,
-      "confidence": 0.5,
-      "rationale": "月跌 -20.7% 但 Q1 利润 +40% YoY + JPM Overweight；400 股小仓可承受波动；风电板块长期逻辑未破",
+      "rationale": "MSFT Q3 beat rev $82.9B+18% Azure+29%。20股小仓hold",
       "outcome": "pending",
       "pnl_5d": null,
       "followed": "unknown"
@@ -2213,36 +2247,6 @@
       "outcome": "win",
       "pnl_5d": 10.37,
       "followed": "true"
-    },
-    {
-      "date": "2026-05-29",
-      "ticker": "CRCL",
-      "bucket": "add_only_on_trigger",
-      "trigger_type": "price_below",
-      "trigger_price": 95,
-      "trigger_condition": "跌破 95 加 1 股",
-      "size_pct": 0,
-      "size_shares": 1,
-      "confidence": 0.5,
-      "rationale": "首次盈利 + USDC $77B 首超 Tether；但 insider sell + crypto 冷淡 + 利率敏感 — signal 分裂",
-      "outcome": "win",
-      "pnl_5d": 18.95,
-      "followed": "false"
-    },
-    {
-      "date": "2026-05-29",
-      "ticker": "MSFU",
-      "bucket": "hold_and_watch",
-      "trigger_type": "price_below",
-      "trigger_price": 26,
-      "trigger_condition": "跌破 26 砍仓",
-      "size_pct": 0,
-      "size_shares": 0,
-      "confidence": 0.6,
-      "rationale": "MSFT Q3 beat rev $82.9B +18% Azure +29%；但 2x 杠杆在弱市放大 + MSFT +0% vs self -6.4% divergence",
-      "outcome": "win",
-      "pnl_5d": 27.27,
-      "followed": "true"
     }
   ],
   "weight_confidence": [
@@ -2258,16 +2262,16 @@
       "ticker": "07226",
       "region": "hk",
       "weight_pct": 27.44,
-      "avg_confidence": 0.616,
-      "n_actions": 11,
+      "avg_confidence": 0.607,
+      "n_actions": 12,
       "quadrant": "high_risk"
     },
     {
       "ticker": "ROBN",
       "region": "us",
       "weight_pct": 33.22,
-      "avg_confidence": 0.705,
-      "n_actions": 11,
+      "avg_confidence": 0.688,
+      "n_actions": 12,
       "quadrant": "conviction"
     },
     {
@@ -2282,8 +2286,8 @@
       "ticker": "PLTU",
       "region": "us",
       "weight_pct": 19.59,
-      "avg_confidence": 0.584,
-      "n_actions": 8,
+      "avg_confidence": 0.574,
+      "n_actions": 9,
       "quadrant": "low_conv_small"
     },
     {
@@ -2315,7 +2319,7 @@
       "region": "hk",
       "weight_pct": 5.63,
       "avg_confidence": 0.55,
-      "n_actions": 1,
+      "n_actions": 2,
       "quadrant": "low_conv_small"
     },
     {
@@ -2323,7 +2327,7 @@
       "region": "hk",
       "weight_pct": 1.15,
       "avg_confidence": 0.55,
-      "n_actions": 1,
+      "n_actions": 2,
       "quadrant": "low_conv_small"
     }
   ],
@@ -2417,7 +2421,7 @@
     ]
   },
   "risk": {
-    "generated_at": "2026-05-31T06:17:14.550863+00:00",
+    "generated_at": "2026-05-31T06:42:38.263238+00:00",
     "as_of": "2026-05-31",
     "us": {
       "beta_spx": 3.9465,
@@ -2529,7 +2533,7 @@
     }
   },
   "benchmark": {
-    "generated_at": "2026-05-31T06:17:16.670504Z",
+    "generated_at": "2026-05-31T06:42:40.369543Z",
     "window_days": 60,
     "series": {
       "SPY": [

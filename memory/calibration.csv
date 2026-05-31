@@ -82,3 +82,8 @@ plan_date,ticker,bucket,trigger_type,driven_by,trigger_price,confidence,sim_entr
 2026-05-31,ROBN,hold_and_watch,price_below,technical,22,0.5,22,pending,,,unknown,,2026-05-31T13:52:12.068659
 2026-05-31,MSFU,hold_and_watch,price_below,catalyst,28,0.55,28,pending,,,unknown,,2026-05-31T13:52:12.068662
 2026-05-31,02208,hold_and_watch,price_below,technical,12.5,0.5,12.5,pending,,,unknown,,2026-05-31T13:52:12.068664
+2026-05-31,07226,hold_and_watch,price_below,technical,3.5,0.5,3.5,pending,,,unknown,,2026-05-31T14:51:51.491849
+2026-05-31,03032,hold_and_watch,manual,macro,,0.55,4.874,pending,,,unknown,,2026-05-31T14:51:51.492300
+2026-05-31,03033,hold_and_watch,manual,macro,,0.55,4.784,pending,,,unknown,,2026-05-31T14:51:51.492676
+2026-05-31,PLTU,trim_on_rebound,price_above,catalyst,50,0.5,50,pending,,,unknown,,2026-05-31T14:51:51.492685
+2026-05-31,ROBN,cut,open,technical,,0.5,28.25,pending,,,unknown,,2026-05-31T14:51:51.493057
