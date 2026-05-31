@@ -96,38 +96,6 @@
 - **单一来源：`portfolio.json`**，不在此维护副本
 - ticker 列表：`memory/current-portfolio-summary.md`（提高检索命中）
 
-## Promoted From Short-Term Memory (2026-05-20)
-
-<!-- openclaw-memory-promotion:memory:memory/2026-05-12.md:10:13 -->
-- | 代码 | 名称 | 收盘价 | 今日涨跌 | 浮动盈亏 | |------|------|--------|----------|----------| | 00100 | MINIMAX-W | 690.0 | -6.38% | -7,969.8 HKD | | 02208 | 金风科技 | 16.78 | -0.83% | +1,078.4 HKD | [score=0.873 recalls=0 avg=0.620 source=memory/2026-05-12.md:10-13]
-<!-- openclaw-memory-promotion:memory:memory/2026-05-12.md:14:16 -->
-- | 03032 | 恒生科技ETF | 5.060 | -0.59% | -69 HKD | | 07226 | XL二南方恒科 | 4.104 | -1.11% | -1,606.9 HKD | | 03033 | 南方恒生科技 | 4.970 | -0.56% | -170 HKD | [score=0.873 recalls=0 avg=0.620 source=memory/2026-05-12.md:14-16]
-
-## Promoted From Short-Term Memory (2026-05-21)
-
-<!-- openclaw-memory-promotion:memory:memory/2026-05-14.md:8:11 -->
-- | 代码 | 名称 | 现价 | 涨跌 | 浮盈 | |---|---|---|---|---| | 00100 | MINIMAX | 855.0 | ▲4.5% | +3.9% | | 02208 | 金风科技 | 15.85 | ▼9.4% | +12.5% | [score=0.889 recalls=0 avg=0.620 source=memory/2026-05-14.md:8-11]
-<!-- openclaw-memory-promotion:memory:memory/2026-05-14.md:12:14 -->
-- | 03032 | 恒生科技E | 5.09 | ▲0.3% | -5.8% | | 07226 | XL二南方 | 4.152 | ▲0.5% | -4.8% | | 03033 | 南方恒生科 | 5.0 | ▲0.2% | -2.7% | [score=0.889 recalls=0 avg=0.620 source=memory/2026-05-14.md:12-14]
-<!-- openclaw-memory-promotion:memory:memory/2026-05-14.md:16:16 -->
-- **总市值** HK$89,400 | **浮盈** +1,124 (+1.3%) | **今日** +1,703 [score=0.889 recalls=0 avg=0.620 source=memory/2026-05-14.md:16-16]
-<!-- openclaw-memory-promotion:memory:memory/2026-05-14.md:19:19 -->
-- ⚠️ 02208 金风科技：今日 -9.4%，需关注是否消息面异动 [score=0.889 recalls=0 avg=0.620 source=memory/2026-05-14.md:19-19]
-
-## Promoted From Short-Term Memory (2026-05-22)
-
-<!-- openclaw-memory-promotion:memory:memory/2026-05-14.md:5:5 -->
-- **恒指** 26,452 ▲0.24% | **恒科** 5,110 ▲0.33% [score=0.889 recalls=0 avg=0.620 source=memory/2026-05-14.md:5-5]
-
-## Promoted From Short-Term Memory (2026-05-28)
-
-<!-- openclaw-memory-promotion:memory:memory/2026-05-22-0239.md:15:17 -->
-- "chat_id": "o9cq80-hGTruM-OSs8kNmDOtLVZI@im.wechat", "message_id": "openclaw-weixin:1779387377128-998d269b", "timestamp": "Fri 2026-05-22 02:15 GMT+8" [score=0.883 recalls=0 avg=0.620 source=memory/2026-05-22-0239.md:15-17]
-<!-- openclaw-memory-promotion:memory:memory/2026-05-22-0239.md:21:22 -->
-- 你去github看看openclaw5.19 cron有没有人反馈 assistant: 找到了！今天刚提交的 bug： [score=0.883 recalls=0 avg=0.620 source=memory/2026-05-22-0239.md:21-22]
-<!-- openclaw-memory-promotion:memory:memory/2026-05-22-0239.md:24:24 -->
-- **#85052 — Gateway heap OOM: cron runtime contexts retain sessions.json and skillsSnapshot.prompt** [score=0.883 recalls=0 avg=0.620 source=memory/2026-05-22-0239.md:24-24]
-
 ## Promoted From Short-Term Memory (2026-05-29)
 
 <!-- openclaw-memory-promotion:memory:memory/2026-05-23-0218.md:9:9 -->
@@ -169,3 +137,22 @@
 - | 市场 | Regime | 关键信号 | |---|---|---| | US | **Volatile / Trending Down** | RKLB -6.43% 🔴 / SOXL +2.66% / ROBN -0.32%；β=4.78 🔴 / Vol 54.6% 🔴 / Sharpe -0.88 🔴；NDX/SPX 隔夜微跌 | [score=0.856 recalls=0 avg=0.620 source=memory/2026-05-22-pre-open.md:16-18]
 <!-- openclaw-memory-promotion:memory:memory/2026-05-22-pre-open.md:2:3 -->
 - layout: default title: 盘前深度简报 · 2026-05-22 [score=0.856 recalls=0 avg=0.620 source=memory/2026-05-22-pre-open.md:2-3]
+
+## Promoted From Short-Term Memory (2026-06-01)
+
+<!-- openclaw-memory-promotion:memory:memory/2026-05-26-0946.md:12:14 -->
+- "chat_id": "o9cq80-hGTruM-OSs8kNmDOtLVZI@im.wechat", "message_id": "openclaw-weixin:1779757609834-01d44ddd", "timestamp": "Tue 2026-05-26 09:06 GMT+8" [score=0.871 recalls=0 avg=0.620 source=memory/2026-05-26-0946.md:12-14]
+<!-- openclaw-memory-promotion:memory:memory/2026-05-26-0946.md:19:20 -->
+- assistant: NO_REPLY user: Conversation info (untrusted metadata): [score=0.871 recalls=0 avg=0.620 source=memory/2026-05-26-0946.md:19-20]
+<!-- openclaw-memory-promotion:memory:memory/2026-05-26-0946.md:23:25 -->
+- "chat_id": "o9cq80-hGTruM-OSs8kNmDOtLVZI@im.wechat", "message_id": "openclaw-weixin:1779758667235-4782601e", "timestamp": "Tue 2026-05-26 09:24 GMT+8" [score=0.871 recalls=0 avg=0.620 source=memory/2026-05-26-0946.md:23-25]
+<!-- openclaw-memory-promotion:memory:memory/2026-05-26-0946.md:30:33 -->
+- assistant: Hi kcn, 早~ assistant: 📊 港股开盘快报｜2026-05-26 09:30 🇭🇰 港股盯盘 | 05/26 09:34 HKT 恒指 25,505 ▼0.39% 恒科 4,925 ▲1.13% [score=0.871 recalls=0 avg=0.620 source=memory/2026-05-26-0946.md:30-33]
+<!-- openclaw-memory-promotion:memory:memory/2026-05-26-0946.md:9:9 -->
+- user: Conversation info (untrusted metadata): [score=0.871 recalls=0 avg=0.620 source=memory/2026-05-26-0946.md:9-9]
+<!-- openclaw-memory-promotion:memory:memory/2026-05-26-pre-open.md:10:10 -->
+- > ⚠️ **数据状态**：US/HK refresh failed（价格为 5/22-26 Nasdaq API 抓取），FX hardcoded 7.8（stale，无实时源）。SEC EDGAR RKLB/CRCL failed。板块全景来自 web search 实时数据。 [score=0.871 recalls=0 avg=0.620 source=memory/2026-05-26-pre-open.md:10-10]
+<!-- openclaw-memory-promotion:memory:memory/2026-05-26-pre-open.md:12:15 -->
+- | 市场 | Regime | 关键信号 | |---|---|---| | US | **Volatile / Mixed** | SOXL **+18.48%** 🔥 / RKLB +5.79% 🔥 / CRCL -5.24% 🔴；β=4.79 🔴 / Vol 70.9% 🔴 / Sharpe +4.90（SOXL/RKLB 拉高）；GDP 5/28 核心催化 | [score=0.871 recalls=0 avg=0.620 source=memory/2026-05-26-pre-open.md:12-14]
+<!-- openclaw-memory-promotion:memory:memory/2026-05-26-pre-open.md:17:17 -->
+- **FX**: USDHKD = 7.8（HARDCODED_FALLBACK，无实时源，⚠️ stale） [score=0.871 recalls=0 avg=0.620 source=memory/2026-05-26-pre-open.md:17-17]
