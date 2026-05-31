@@ -580,7 +580,13 @@ python3 /root/.openclaw/workspace/scripts/harness/brief_postflight.py
 
 ### Step 6: 发 WeChat
 
-把 postflight 输出的 `wechat_prefix`（warn/fail 时是警告 banner，pass 时是空串）拼到完整 brief 前面，发到 WeChat。
+> ⚠️ **投递机制 = announce（务必照做，否则会空转死循环）**：这个 cron 是 announce 模式 —— 你**把消息作为本轮的最终回复文本直接输出，就等于发到了 WeChat**。
+> - **不要调用任何 message / send 工具**；**不要在思考里反复确认"我该用 message 工具还是直接回复"** —— 没有工具这一步，直接输出文本即投递。
+> - 写完最终文本**立即结束本轮**，不要再追加思考。
+> - 2026-05-31 实测教训：agent 在"用工具 vs 直接回复"上反复纠结 → 模型陷入复读死循环、16 分钟没发出任何东西。指令明确就不会卡。
+> - **长度**：WeChat 单条上限 16KB。完整 brief 目标 ≤14KB；若内容偏长，**精简 Tier 1 大表的注释/重复语句**压到 14KB 内，不要靠截断。
+
+把 postflight 输出的 `wechat_prefix`（warn/fail 时是警告 banner，pass 时是空串）拼到完整 brief 前面，作为最终回复输出。
 
 ```
 {wechat_prefix}{完整 markdown，第一段是 ≤150 字 TL;DR}
