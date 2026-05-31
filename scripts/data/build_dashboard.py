@@ -393,6 +393,105 @@ def load_tmp_sidecar(prefix, max_age_days=None):
         return {}
 
 
+_REVIEW_TAGS = {'edge', 'bias', 'warning'}
+_SUSPECT_DOLLAR = re.compile(r'[\$＄]\s?\d')  # raw $amount
+
+
+def _clean_str(v, maxlen):
+    """Return a trimmed, length-capped non-empty str, else None."""
+    if not isinstance(v, str):
+        return None
+    s = v.strip()
+    return s[:maxlen] if s else None
+
+
+def validate_insights(data, known_tickers):
+    """Schema + sanity gate for the agent-written daily insights sidecar.
+
+    The sidecar is LLM-authored, so anything malformed or hallucinated must be
+    DROPPED here (→ card hides) rather than published to the public dashboard.json.
+    Bad entries are dropped individually; a field only survives if its core content
+    is present and sane. `known_tickers` (live holdings) blocks bear_cases on names
+    that aren't even in the book. Returns the cleaned, render-ready dict.
+    """
+    out = {'behavioral_review': None, 'bear_cases': [], 'hidden_concentration': None}
+    if not isinstance(data, dict):
+        return out
+    # behavioral_review — verdict + tagged points; calibration is %-based, so a raw
+    # $amount in a review point is a hallucination → drop that point.
+    br = data.get('behavioral_review')
+    if isinstance(br, dict):
+        verdict = _clean_str(br.get('verdict'), 120)
+        pts = []
+        for p in (br.get('points') or [])[:8]:
+            if not isinstance(p, dict):
+                continue
+            txt = _clean_str(p.get('text'), 220)
+            if not txt:
+                continue
+            if _SUSPECT_DOLLAR.search(txt):
+                print(f'  warn: insights dropped review point w/ suspect $amount: {txt[:42]}', file=sys.stderr)
+                continue
+            tag = (p.get('tag') or '').strip().lower()
+            pts.append({'text': txt, 'tag': tag if tag in _REVIEW_TAGS else 'bias'})
+        if verdict and pts:
+            out['behavioral_review'] = {'verdict': verdict, 'points': pts}
+    # bear_cases — ticker must be a real holding
+    for c in (data.get('bear_cases') or [])[:5]:
+        if not isinstance(c, dict):
+            continue
+        tk = _clean_str(c.get('ticker'), 12)
+        thesis = _clean_str(c.get('thesis'), 220)
+        if not tk or not thesis:
+            continue
+        if known_tickers and tk not in known_tickers:
+            print(f'  warn: insights dropped bear_case for unknown ticker {tk}', file=sys.stderr)
+            continue
+        out['bear_cases'].append({
+            'ticker': tk,
+            'thesis': thesis,
+            'falsifier': _clean_str(c.get('falsifier'), 160) or '',
+            'watch': _clean_str(c.get('watch'), 120) or '',
+        })
+    # hidden_concentration — needs headline + a plausible 0-100 exposure_pct
+    hc = data.get('hidden_concentration')
+    if isinstance(hc, dict):
+        headline = _clean_str(hc.get('headline'), 120)
+        try:
+            pct = float(hc.get('exposure_pct'))
+        except (TypeError, ValueError):
+            pct = None
+        if headline and pct is not None and 0 <= pct <= 100:
+            out['hidden_concentration'] = {
+                'headline': headline,
+                'factor': _clean_str(hc.get('factor'), 40) or '',
+                'exposure_pct': round(pct),
+                'detail': _clean_str(hc.get('detail'), 220) or '',
+            }
+    return out
+
+
+def validate_intraday_insights(data, known_tickers):
+    """Schema + sanity gate for the intraday sidecar (status_banner + per-mover
+    attribution). Mover notes only survive for tickers that actually exist in the
+    book. Returns {status_banner, movers}."""
+    out = {'status_banner': None, 'movers': {}}
+    if not isinstance(data, dict):
+        return out
+    out['status_banner'] = _clean_str(data.get('status_banner'), 160)
+    mv = data.get('movers')
+    if isinstance(mv, dict):
+        for tk, note in mv.items():
+            tkc = _clean_str(tk, 12)
+            notec = _clean_str(note, 120)
+            if not tkc or not notec:
+                continue
+            if known_tickers and tkc not in known_tickers:
+                continue
+            out['movers'][tkc] = notec
+    return out
+
+
 # Tickers we treat as leveraged ETFs even when context doesn't tag them.
 _LEVERAGED_TICKERS = {'SOXL', 'TQQQ', 'MSFU', 'PLTU', 'ROBN', 'RKLX', '07226'}
 
@@ -1473,31 +1572,36 @@ def main():
     out['anomalies'] = extract_anomalies(brief_ctx, us_h, hk_h)
 
     # ── LLM narrative sidecars (agent-written in Step 3; text-only, no keys) ──
+    # Each sidecar is validated (validate_insights / validate_intraday_insights)
+    # before it reaches dashboard.json: malformed / hallucinated content is dropped
+    # so the card hides instead of publishing bad data. Anti-hallucination cross-check
+    # is against the live book's tickers.
+    known_tickers = {h.get('ticker') for h in (us_h + hk_h) if h.get('ticker')}
     # daily insights (brief): behavioral_review / bear_cases / hidden_concentration.
     # 7d stale guard so a missed brief doesn't show week-old critique as current.
     _insights = load_tmp_sidecar('insights', max_age_days=7)
-    out['behavioral_review'] = _insights.get('behavioral_review')
-    out['bear_cases'] = _insights.get('bear_cases') or []
-    out['hidden_concentration'] = _insights.get('hidden_concentration')
+    _ins = validate_insights({} if _insights.get('_stale') else _insights, known_tickers)
+    out['behavioral_review'] = _ins['behavioral_review']
+    out['bear_cases'] = _ins['bear_cases']
+    out['hidden_concentration'] = _ins['hidden_concentration']
     out['insights_meta'] = {
         'source': _insights.get('_source'),
         'stale': _insights.get('_stale', True if not _insights else False),
     }
     # intraday insights (every 30min): status_banner + per-mover attribution.
     _intra = load_tmp_sidecar('intraday-insights', max_age_days=1)
-    out['status_banner'] = None if _intra.get('_stale') else _intra.get('status_banner')
+    _intra_v = validate_intraday_insights({} if _intra.get('_stale') else _intra, known_tickers)
+    out['status_banner'] = _intra_v['status_banner']
     out['status_banner_meta'] = {
         'source': _intra.get('_source'),
         'generated_at': _intra.get('generated_at'),
         'stale': _intra.get('_stale', True if not _intra else False),
     }
-    # Merge LLM mover attribution onto the deterministic movers list (by ticker).
-    _mv_notes = _intra.get('movers') or {}
-    if isinstance(_mv_notes, dict):
-        for _m in out['today_movers']:
-            _note = _mv_notes.get(_m.get('ticker'))
-            if _note:
-                _m['note'] = _note
+    # Merge validated mover attribution onto the deterministic movers list (by ticker).
+    for _m in out['today_movers']:
+        _note = _intra_v['movers'].get(_m.get('ticker'))
+        if _note:
+            _m['note'] = _note
     out['peer_divergence'] = {
         'as_of': (brief_ctx or {}).get('date')
                  or ((brief_ctx or {}).get('generated_at') or '')[:10],
