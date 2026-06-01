@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-01T07:02:50.892287Z",
+  "generated_at": "2026-06-01T07:06:14.176399Z",
   "last_updated": "2026/06/01 13:30 HKT",
   "fx": {
     "usdhkd": null,
@@ -3359,7 +3359,7 @@
     ]
   },
   "influencer_feed": {
-    "generated_at": "2026-06-01T07:02:50.793392+00:00",
+    "generated_at": "2026-06-01T07:06:14.074345+00:00",
     "lookback_hours": 48,
     "sources": {
       "trump": "trumpstruth.org/feed (primary)",
@@ -3373,58 +3373,6 @@
       "sector_hits": 4
     },
     "items": [
-      {
-        "author": "Musk",
-        "text": "Elon Musk wants to merge SpaceX and Tesla into a $3.4 trillion giant. The problem: it would lose money from day one",
-        "url": "",
-        "published": "Sun, 31 May 2026 07:00:00 GMT",
-        "origin": "gnews-rss",
-        "source": "Fortune",
-        "tickers": [
-          "TSLA"
-        ],
-        "held": [],
-        "new_ideas": [
-          "TSLA"
-        ],
-        "sectors": [
-          "航天",
-          "电动车",
-          "并购"
-        ],
-        "sector_holdings": [
-          "RKLB"
-        ],
-        "stance": "neutral",
-        "relevance": 65,
-        "summary_cn": "马斯克考虑合并SpaceX与特斯拉，但报道指出该交易从第一天起就会亏损，涉及特斯拉(TSLA)。"
-      },
-      {
-        "author": "Musk",
-        "text": "Turns Out, Tesla's Best Cybertruck Customer Is SpaceX",
-        "url": "",
-        "published": "Sun, 31 May 2026 19:21:00 GMT",
-        "origin": "gnews-rss",
-        "source": "Barron's",
-        "tickers": [
-          "TSLA"
-        ],
-        "held": [],
-        "new_ideas": [
-          "TSLA"
-        ],
-        "sectors": [
-          "电动车",
-          "航天",
-          "供应链"
-        ],
-        "sector_holdings": [
-          "RKLB"
-        ],
-        "stance": "neutral",
-        "relevance": 60,
-        "summary_cn": "报道指出特斯拉Cybertruck的最佳客户是SpaceX，涉及特斯拉(TSLA)与航天板块的供应链关系。"
-      },
       {
         "author": "Musk",
         "text": "A SpaceX/Tesla merger could trigger Musk’s $1T pay package automatically",
@@ -3449,29 +3397,60 @@
           "RKLB"
         ],
         "stance": "neutral",
-        "relevance": 60,
-        "summary_cn": "SpaceX与特斯拉合并可能自动触发马斯克1万亿美元薪酬方案，涉及特斯拉(TSLA)。"
+        "relevance": 65,
+        "summary_cn": "SpaceX与特斯拉合并可能自动触发马斯克1万亿美元薪酬方案。"
       },
       {
         "author": "Musk",
-        "text": "SpaceX’s IPO Forces Wall Street to Reorganize Around It",
+        "text": "Elon Musk wants to merge SpaceX and Tesla into a $3.4 trillion giant. The problem: it would lose money from day one",
         "url": "",
-        "published": "Mon, 01 Jun 2026 02:53:00 GMT",
+        "published": "Sun, 31 May 2026 07:00:00 GMT",
         "origin": "gnews-rss",
-        "source": "Bloomberg.com",
-        "tickers": [],
+        "source": "Fortune",
+        "tickers": [
+          "TSLA"
+        ],
         "held": [],
-        "new_ideas": [],
+        "new_ideas": [
+          "TSLA"
+        ],
         "sectors": [
           "航天",
-          "IPO"
+          "电动车",
+          "并购"
         ],
         "sector_holdings": [
           "RKLB"
         ],
         "stance": "neutral",
+        "relevance": 65,
+        "summary_cn": "马斯克考虑将SpaceX与特斯拉合并为3.4万亿美元巨头，但分析称从第一天起就会亏损。"
+      },
+      {
+        "author": "Musk",
+        "text": "Turns Out, Tesla's Best Cybertruck Customer Is SpaceX",
+        "url": "",
+        "published": "Sun, 31 May 2026 19:21:00 GMT",
+        "origin": "gnews-rss",
+        "source": "Barron's",
+        "tickers": [
+          "TSLA"
+        ],
+        "held": [],
+        "new_ideas": [
+          "TSLA"
+        ],
+        "sectors": [
+          "电动车",
+          "航天",
+          "供应链"
+        ],
+        "sector_holdings": [
+          "RKLB"
+        ],
+        "stance": "endorse",
         "relevance": 60,
-        "summary_cn": "报道称SpaceX IPO迫使华尔街重组，涉及航天板块，但SpaceX未上市，无直接可交易标的。"
+        "summary_cn": "SpaceX成为特斯拉Cybertruck最佳客户，显示特斯拉与SpaceX业务协同。"
       },
       {
         "author": "Musk",
@@ -3496,11 +3475,11 @@
       },
       {
         "author": "Musk",
-        "text": "As SpaceX IPO nears, traders think it's a near-certainty Musk becomes the first trillionaire",
+        "text": "SpaceX’s IPO Forces Wall Street to Reorganize Around It",
         "url": "",
-        "published": "Fri, 29 May 2026 16:32:29 GMT",
+        "published": "Mon, 01 Jun 2026 02:53:00 GMT",
         "origin": "gnews-rss",
-        "source": "CNBC",
+        "source": "Bloomberg.com",
         "tickers": [],
         "held": [],
         "new_ideas": [],
@@ -3512,8 +3491,30 @@
           "RKLB"
         ],
         "stance": "neutral",
-        "relevance": 55,
-        "summary_cn": "随着SpaceX IPO临近，交易员认为马斯克成为首位万亿富翁几乎板上钉钉，涉及航天板块。"
+        "relevance": 50,
+        "summary_cn": "SpaceX IPO传闻迫使华尔街重组，涉及航天板块但SpaceX未上市。"
+      },
+      {
+        "author": "Musk",
+        "text": "As SpaceX IPO nears, traders think it's a near-certainty Musk becomes the first trillionaire",
+        "url": "",
+        "published": "Fri, 29 May 2026 16:32:29 GMT",
+        "origin": "gnews-rss",
+        "source": "CNBC",
+        "tickers": [],
+        "held": [],
+        "new_ideas": [],
+        "sectors": [
+          "航天",
+          "IPO",
+          "财富"
+        ],
+        "sector_holdings": [
+          "RKLB"
+        ],
+        "stance": "neutral",
+        "relevance": 50,
+        "summary_cn": "SpaceX IPO临近，交易员认为马斯克成为首位万亿富翁几乎确定，涉及航天板块。"
       },
       {
         "author": "Musk",
@@ -3533,8 +3534,8 @@
           "RKLB"
         ],
         "stance": "neutral",
-        "relevance": 50,
-        "summary_cn": "报道分析SpaceX的股权结构如何有利于马斯克，涉及航天板块公司治理。"
+        "relevance": 45,
+        "summary_cn": "SpaceX公司结构被分析为有利于马斯克，涉及航天板块公司治理讨论。"
       },
       {
         "author": "Musk",
@@ -3551,65 +3552,13 @@
           "经济政策"
         ],
         "sector_holdings": [],
-        "stance": "neutral",
+        "stance": "attack",
         "relevance": 55,
-        "summary_cn": "马斯克批评社会主义中央计划，强调价格对经济运行的必要性，涉及宏观经济政策讨论。"
+        "summary_cn": "马斯克批评社会主义中央计划，认为经济离不开价格机制，涉及宏观经济政策讨论。"
       }
     ],
     "held_hits": [],
     "new_ideas": [
-      {
-        "author": "Musk",
-        "text": "Elon Musk wants to merge SpaceX and Tesla into a $3.4 trillion giant. The problem: it would lose money from day one",
-        "url": "",
-        "published": "Sun, 31 May 2026 07:00:00 GMT",
-        "origin": "gnews-rss",
-        "source": "Fortune",
-        "tickers": [
-          "TSLA"
-        ],
-        "held": [],
-        "new_ideas": [
-          "TSLA"
-        ],
-        "sectors": [
-          "航天",
-          "电动车",
-          "并购"
-        ],
-        "sector_holdings": [
-          "RKLB"
-        ],
-        "stance": "neutral",
-        "relevance": 65,
-        "summary_cn": "马斯克考虑合并SpaceX与特斯拉，但报道指出该交易从第一天起就会亏损，涉及特斯拉(TSLA)。"
-      },
-      {
-        "author": "Musk",
-        "text": "Turns Out, Tesla's Best Cybertruck Customer Is SpaceX",
-        "url": "",
-        "published": "Sun, 31 May 2026 19:21:00 GMT",
-        "origin": "gnews-rss",
-        "source": "Barron's",
-        "tickers": [
-          "TSLA"
-        ],
-        "held": [],
-        "new_ideas": [
-          "TSLA"
-        ],
-        "sectors": [
-          "电动车",
-          "航天",
-          "供应链"
-        ],
-        "sector_holdings": [
-          "RKLB"
-        ],
-        "stance": "neutral",
-        "relevance": 60,
-        "summary_cn": "报道指出特斯拉Cybertruck的最佳客户是SpaceX，涉及特斯拉(TSLA)与航天板块的供应链关系。"
-      },
       {
         "author": "Musk",
         "text": "A SpaceX/Tesla merger could trigger Musk’s $1T pay package automatically",
@@ -3634,32 +3583,63 @@
           "RKLB"
         ],
         "stance": "neutral",
-        "relevance": 60,
-        "summary_cn": "SpaceX与特斯拉合并可能自动触发马斯克1万亿美元薪酬方案，涉及特斯拉(TSLA)。"
-      }
-    ],
-    "sector_hits": [
+        "relevance": 65,
+        "summary_cn": "SpaceX与特斯拉合并可能自动触发马斯克1万亿美元薪酬方案。"
+      },
       {
         "author": "Musk",
-        "text": "SpaceX’s IPO Forces Wall Street to Reorganize Around It",
+        "text": "Elon Musk wants to merge SpaceX and Tesla into a $3.4 trillion giant. The problem: it would lose money from day one",
         "url": "",
-        "published": "Mon, 01 Jun 2026 02:53:00 GMT",
+        "published": "Sun, 31 May 2026 07:00:00 GMT",
         "origin": "gnews-rss",
-        "source": "Bloomberg.com",
-        "tickers": [],
+        "source": "Fortune",
+        "tickers": [
+          "TSLA"
+        ],
         "held": [],
-        "new_ideas": [],
+        "new_ideas": [
+          "TSLA"
+        ],
         "sectors": [
           "航天",
-          "IPO"
+          "电动车",
+          "并购"
         ],
         "sector_holdings": [
           "RKLB"
         ],
         "stance": "neutral",
-        "relevance": 60,
-        "summary_cn": "报道称SpaceX IPO迫使华尔街重组，涉及航天板块，但SpaceX未上市，无直接可交易标的。"
+        "relevance": 65,
+        "summary_cn": "马斯克考虑将SpaceX与特斯拉合并为3.4万亿美元巨头，但分析称从第一天起就会亏损。"
       },
+      {
+        "author": "Musk",
+        "text": "Turns Out, Tesla's Best Cybertruck Customer Is SpaceX",
+        "url": "",
+        "published": "Sun, 31 May 2026 19:21:00 GMT",
+        "origin": "gnews-rss",
+        "source": "Barron's",
+        "tickers": [
+          "TSLA"
+        ],
+        "held": [],
+        "new_ideas": [
+          "TSLA"
+        ],
+        "sectors": [
+          "电动车",
+          "航天",
+          "供应链"
+        ],
+        "sector_holdings": [
+          "RKLB"
+        ],
+        "stance": "endorse",
+        "relevance": 60,
+        "summary_cn": "SpaceX成为特斯拉Cybertruck最佳客户，显示特斯拉与SpaceX业务协同。"
+      }
+    ],
+    "sector_hits": [
       {
         "author": "Musk",
         "text": "Elon Musk strikes down reports on SpaceX IPO rumors",
@@ -3683,11 +3663,11 @@
       },
       {
         "author": "Musk",
-        "text": "As SpaceX IPO nears, traders think it's a near-certainty Musk becomes the first trillionaire",
+        "text": "SpaceX’s IPO Forces Wall Street to Reorganize Around It",
         "url": "",
-        "published": "Fri, 29 May 2026 16:32:29 GMT",
+        "published": "Mon, 01 Jun 2026 02:53:00 GMT",
         "origin": "gnews-rss",
-        "source": "CNBC",
+        "source": "Bloomberg.com",
         "tickers": [],
         "held": [],
         "new_ideas": [],
@@ -3699,8 +3679,30 @@
           "RKLB"
         ],
         "stance": "neutral",
-        "relevance": 55,
-        "summary_cn": "随着SpaceX IPO临近，交易员认为马斯克成为首位万亿富翁几乎板上钉钉，涉及航天板块。"
+        "relevance": 50,
+        "summary_cn": "SpaceX IPO传闻迫使华尔街重组，涉及航天板块但SpaceX未上市。"
+      },
+      {
+        "author": "Musk",
+        "text": "As SpaceX IPO nears, traders think it's a near-certainty Musk becomes the first trillionaire",
+        "url": "",
+        "published": "Fri, 29 May 2026 16:32:29 GMT",
+        "origin": "gnews-rss",
+        "source": "CNBC",
+        "tickers": [],
+        "held": [],
+        "new_ideas": [],
+        "sectors": [
+          "航天",
+          "IPO",
+          "财富"
+        ],
+        "sector_holdings": [
+          "RKLB"
+        ],
+        "stance": "neutral",
+        "relevance": 50,
+        "summary_cn": "SpaceX IPO临近，交易员认为马斯克成为首位万亿富翁几乎确定，涉及航天板块。"
       },
       {
         "author": "Musk",
@@ -3720,8 +3722,8 @@
           "RKLB"
         ],
         "stance": "neutral",
-        "relevance": 50,
-        "summary_cn": "报道分析SpaceX的股权结构如何有利于马斯克，涉及航天板块公司治理。"
+        "relevance": 45,
+        "summary_cn": "SpaceX公司结构被分析为有利于马斯克，涉及航天板块公司治理讨论。"
       }
     ]
   },
