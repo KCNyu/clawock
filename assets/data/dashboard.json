@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-01T23:15:48.186011Z",
+  "generated_at": "2026-06-01T23:16:31.183156Z",
   "last_updated": "2026/06/02 04:01 HKT",
   "fx": {
     "usdhkd": null,
@@ -3303,65 +3303,65 @@
     ]
   },
   "macro": {
-    "generated_at": "2026-05-31T22:40:40.934082+00:00",
+    "generated_at": "2026-06-01T23:16:27.138172+00:00",
     "vix": {
       "symbol": "^VIX",
-      "price": 15.32,
-      "prev": 15.74,
-      "change_pct": -2.67,
-      "as_of": 1780085701,
+      "price": 16.05,
+      "prev": 15.32,
+      "change_pct": 4.77,
+      "as_of": 1780344901,
       "source": "yahoo"
     },
     "treasury_10y": {
       "symbol": "^TNX",
-      "price": 4.453,
-      "prev": 4.455,
-      "change_pct": -0.04,
-      "as_of": 1780081195,
+      "price": 4.475,
+      "prev": 4.453,
+      "change_pct": 0.49,
+      "as_of": 1780340393,
       "source": "yahoo",
-      "yield_pct": 4.453
+      "yield_pct": 4.475
     },
     "dxy": {
       "symbol": "DX-Y.NYB",
-      "price": 98.998,
-      "prev": 98.908,
-      "change_pct": 0.09,
-      "as_of": 1780266638,
+      "price": 99.181,
+      "prev": 99.201,
+      "change_pct": -0.02,
+      "as_of": 1780351497,
       "source": "yahoo"
     },
     "fear_greed": {
-      "score": 60.2,
+      "score": 59.1,
       "rating": "greed",
       "prev_close": 60.2,
       "prev_1_week": 59.0,
-      "as_of": "2026-05-29T23:59:54+00:00"
+      "as_of": "2026-06-01T23:00:21+00:00"
     },
     "hsi": {
       "symbol": "^HSI",
-      "price": 25182.39,
-      "prev": 25006.16,
-      "change_pct": 0.7,
+      "price": 25398.18,
+      "prev": 25182.39,
+      "change_pct": 0.86,
       "source": "stooq"
     },
     "hstech": {
       "symbol": "^HSTECH",
-      "price": 4884.23,
-      "prev": 4888.58,
-      "change_pct": -0.09,
+      "price": 4964.92,
+      "prev": 4884.23,
+      "change_pct": 1.65,
       "source": "tencent"
     },
     "spx": {
       "symbol": "^GSPC",
-      "price": 7580.1,
-      "prev": 7579.3,
-      "change_pct": 0.01,
+      "price": 7600.0,
+      "prev": 7582.3,
+      "change_pct": 0.23,
       "source": "stooq"
     },
     "nasdaq": {
       "symbol": "^IXIC",
-      "price": 30333.18,
-      "prev": 30333.86,
-      "change_pct": -0.0,
+      "price": 30513.86,
+      "prev": 30295.25,
+      "change_pct": 0.72,
       "source": "stooq"
     },
     "fed_press": [
@@ -3581,8 +3581,8 @@
     "label": "risk_on",
     "score": 2,
     "reasons": [
-      "F&G 60 greed",
-      "VIX 15 calm"
+      "VIX 16 calm",
+      "SPX+NDX 同向上行"
     ]
   },
   "all_time_extremes": {
