@@ -96,26 +96,6 @@
 - **单一来源：`portfolio.json`**，不在此维护副本
 - ticker 列表：`memory/current-portfolio-summary.md`（提高检索命中）
 
-## Promoted From Short-Term Memory (2026-05-29)
-
-<!-- openclaw-memory-promotion:memory:memory/2026-05-23-0218.md:9:9 -->
-- assistant: Postflight 给了 warn（长度超软上限），但内容完整。直接发。 [score=0.891 recalls=0 avg=0.620 source=memory/2026-05-23-0218.md:9-9]
-<!-- openclaw-memory-promotion:memory:memory/2026-05-23-0218.md:11:11 -->
-- ⚠️ Validation warnings (1): 报告长度 1423 字 > 1200 软上限 (warn) [score=0.891 recalls=0 avg=0.620 source=memory/2026-05-23-0218.md:11-11]
-<!-- openclaw-memory-promotion:memory:memory/2026-05-23-0218.md:15:15 -->
-- 📊 市值 $3,126 | 浮盈 +$314 (+11.2%) | 今日 +$59 | ✅ 已实现 +$1,031 [score=0.891 recalls=0 avg=0.620 source=memory/2026-05-23-0218.md:15-15]
-<!-- openclaw-memory-promotion:memory:memory/2026-05-23-0218.md:17:20 -->
-- | 代码 | 股 | 成本 | 现价 | 今日 | 浮% | 浮$ | |:------|------:|-------:|-------:|-------:|-------:|--------:| | RKLB | 5 | 71.00 | 135.63 | +8.1% | +91.0% | +323 | | CRCL | 2 | 87.00 | 115.72 | +0.7% | +33.0% | +57 | [score=0.891 recalls=0 avg=0.620 source=memory/2026-05-23-0218.md:17-20]
-
-## Promoted From Short-Term Memory (2026-05-30)
-
-<!-- openclaw-memory-promotion:memory:memory/2026-05-22-0043.md:17:17 -->
-- **美股有暗盘吗？** [score=0.883 recalls=0 avg=0.620 source=memory/2026-05-22-0043.md:17-17]
-<!-- openclaw-memory-promotion:memory:memory/2026-05-23-0218.md:13:13 -->
-- 🇺🇸 美股盯盘 | 05/22 10:04 ET [score=0.881 recalls=0 avg=0.620 source=memory/2026-05-23-0218.md:13-13]
-<!-- openclaw-memory-promotion:memory:memory/2026-05-21-pre-open.md:2:3 -->
-- layout: default title: 盘前深度简报 · 2026-05-21 [score=0.875 recalls=0 avg=0.620 source=memory/2026-05-21-pre-open.md:2-3]
-
 ## Promoted From Short-Term Memory (2026-05-31)
 
 <!-- openclaw-memory-promotion:memory:memory/2026-05-25-pre-open.md:2:3 -->
@@ -156,3 +136,18 @@
 - | 市场 | Regime | 关键信号 | |---|---|---| | US | **Volatile / Mixed** | SOXL **+18.48%** 🔥 / RKLB +5.79% 🔥 / CRCL -5.24% 🔴；β=4.79 🔴 / Vol 70.9% 🔴 / Sharpe +4.90（SOXL/RKLB 拉高）；GDP 5/28 核心催化 | [score=0.871 recalls=0 avg=0.620 source=memory/2026-05-26-pre-open.md:12-14]
 <!-- openclaw-memory-promotion:memory:memory/2026-05-26-pre-open.md:17:17 -->
 - **FX**: USDHKD = 7.8（HARDCODED_FALLBACK，无实时源，⚠️ stale） [score=0.871 recalls=0 avg=0.620 source=memory/2026-05-26-pre-open.md:17-17]
+
+## Promoted From Short-Term Memory (2026-06-01)
+
+<!-- openclaw-memory-promotion:memory:memory/2026-05-26-pre-open.md:19:19 -->
+- **Book 总览**: [score=0.868 recalls=0 avg=0.620 source=memory/2026-05-26-pre-open.md:19-19]
+<!-- openclaw-memory-promotion:memory:memory/2026-05-26-pre-open.md:2:3 -->
+- layout: default title: 盘前深度简报 · 2026-05-26 [score=0.868 recalls=0 avg=0.620 source=memory/2026-05-26-pre-open.md:2-3]
+<!-- openclaw-memory-promotion:memory:memory/2026-05-29-0036.md:39:39 -->
+- **AI 赛道内部：极度分化** [score=0.847 recalls=0 avg=0.620 source=memory/2026-05-29-0036.md:39-39]
+<!-- openclaw-memory-promotion:memory:memory/2026-05-27-pre-open.md:10:10 -->
+- > ⚠️ **数据状态**：US/HK refresh failed（价格来自 5/26 Nasdaq API 收盘/Tencent 收盘），FX hardcoded 7.8（无实时源，stale）。SEC EDGAR RKLB/CRCL failed。板块全景来自 web search 实时数据。 [score=0.843 recalls=0 avg=0.620 source=memory/2026-05-27-pre-open.md:10-10]
+<!-- openclaw-memory-promotion:memory:memory/2026-05-27-pre-open.md:12:15 -->
+- | 市场 | Regime | 关键信号 | |---|---|---| | US | **Volatile / Mixed** | SOXL **+18.13%** 🔥 / RKLB +5.24% 🔥 / CRCL **-7.97%** 🔴；β=4.81 🔴 / Vol 61.6% 🔴 / 30d DD -14.5% ⚠️；**GDP 5/28 明日核心催化** | [score=0.843 recalls=0 avg=0.620 source=memory/2026-05-27-pre-open.md:12-14]
+<!-- openclaw-memory-promotion:memory:memory/2026-05-27-pre-open.md:17:17 -->
+- **FX**: USDHKD = 7.8（HARDCODED_FALLBACK，无实时源，⚠️ stale） [score=0.843 recalls=0 avg=0.620 source=memory/2026-05-27-pre-open.md:17-17]
