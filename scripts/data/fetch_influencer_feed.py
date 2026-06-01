@@ -166,6 +166,26 @@ def fetch_musk():
     return out
 
 
+def _dedup_sig(text):
+    """Normalized signature for exact/near-exact dedup: drop a leading `RT @handle`,
+    lowercase, keep only alnum + CJK. Trump's feed re-lists the same post (and
+    retweets) verbatim, so identical text must collapse to one item."""
+    t = re.sub(r'^\s*rt\s+@\w+', '', (text or '').lower().strip())
+    return re.sub(r'[^a-z0-9一-鿿]+', '', t)[:120]
+
+
+def dedup_items(items):
+    """Collapse items sharing a normalized text signature, keeping the first."""
+    seen, out = set(), []
+    for it in items:
+        sig = _dedup_sig(it.get('text', ''))
+        if sig and sig in seen:
+            continue
+        seen.add(sig)
+        out.append(it)
+    return out
+
+
 def load_holdings():
     """Held tickers + names (+ leveraged-ETF underlying hint) for LLM matching."""
     p = json.load(open(os.path.join(WS_ROOT, 'portfolio.json'), encoding='utf-8'))
@@ -224,17 +244,26 @@ def llm_filter(candidates, held):
         f"kcn 持仓清单：\n{held_lines}\n\n"
         f"待筛选言论(共 {len(candidates)} 条)：\n{cand_lines}"
     )
-    try:
-        # Structured extraction — disable thinking (deterministic, avoids the
-        # reasoning budget eating the output cap → truncated JSON) and give
-        # headroom for ~40 items of JSON.
-        raw = chat(system=LLM_SYSTEM, user=user, max_tokens=8000,
-                   temperature=0.3, json_response=True, thinking_disabled=True)
-        data = json.loads(raw)
-        return {int(it['idx']): it for it in data.get('items', []) if 'idx' in it}
-    except Exception as e:
-        print(f'  ⚠️ LLM filter failed: {e}', file=sys.stderr)
-        return {}
+    # Structured extraction — disable thinking (deterministic, avoids the
+    # reasoning budget eating the output cap → truncated JSON) and give
+    # headroom for ~40 items of JSON. mimo intermittently bails on a large
+    # batch (returns an empty `{"items":[]}`, ~6 output tokens) — likely CN
+    # endpoint moderation choking on Trump's political posts. An empty result
+    # parses fine so it never raised; we now treat "empty despite candidates"
+    # as a failure and retry, so the feed isn't silently dumped as raw English.
+    for attempt in (1, 2):
+        try:
+            raw = chat(system=LLM_SYSTEM, user=user, max_tokens=8000,
+                       temperature=0.3, json_response=True, thinking_disabled=True)
+            data = json.loads(raw)
+            scored = {int(it['idx']): it for it in data.get('items', []) if 'idx' in it}
+            if scored:
+                return scored
+            print(f'  ⚠️ LLM returned 0 scored items for {len(candidates)} candidates '
+                  f'(attempt {attempt}/2)', file=sys.stderr)
+        except Exception as e:
+            print(f'  ⚠️ LLM filter failed (attempt {attempt}/2): {e}', file=sys.stderr)
+    return {}
 
 
 def main():
@@ -253,7 +282,7 @@ def main():
             prev = {}
     prev_items = prev.get('items', [])
 
-    candidates = (trump + musk)[:MAX_CANDIDATES]
+    candidates = dedup_items(trump + musk)[:MAX_CANDIDATES]
     held = load_holdings()
     held_tickers = {h['ticker'] for h in held}
     scored = llm_filter(candidates, held)
@@ -305,6 +334,9 @@ def main():
                 print(f'  ↻ {author} fetch empty — retaining {len(retained)} prior items',
                       file=sys.stderr)
                 items.extend(retained)
+
+    # Final guard: prior-item merge can re-introduce a post already in this run.
+    items = dedup_items(items)
 
     # Rank by signal value, not recency: held-hit > new-idea > sector > general,
     # then by relevance, then recency. Keeps the valuable stuff on top instead of
