@@ -1,45 +1,42 @@
 {
-  "generated_at": "2026-05-31T22:39:30.951715+00:00",
+  "generated_at": "2026-06-01T06:09:01.094475+00:00",
   "lookback_hours": 48,
   "sources": {
     "trump": "trumpstruth.org/feed (primary)",
     "musk": "google-news-rss (proxy)"
   },
-  "llm_filtered": false,
+  "llm_filtered": true,
   "counts": {
-    "total": 34,
+    "total": 6,
     "held_hits": 0,
-    "new_ideas": 0,
-    "sector_hits": 0
+    "new_ideas": 3,
+    "sector_hits": 2
   },
   "items": [
     {
       "author": "Musk",
-      "text": "How SpaceX Is Structured to Favor Elon Musk",
+      "text": "Elon Musk wants to merge SpaceX and Tesla into a $3.4 trillion giant. The problem: it would lose money from day one",
       "url": "",
-      "published": "Tue, 26 May 2026 14:47:56 GMT",
+      "published": "Sun, 31 May 2026 07:00:00 GMT",
       "origin": "gnews-rss",
-      "source": "The New York Times",
-      "tickers": [],
+      "source": "Fortune",
+      "tickers": [
+        "TSLA"
+      ],
       "held": [],
-      "new_ideas": [],
+      "new_ideas": [
+        "TSLA"
+      ],
+      "sectors": [
+        "航天",
+        "电动车"
+      ],
+      "sector_holdings": [
+        "RKLB"
+      ],
       "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
-    },
-    {
-      "author": "Musk",
-      "text": "SpaceX’s IPO Forces Wall Street to Reorganize Around It",
-      "url": "",
-      "published": "Sun, 31 May 2026 21:00:09 GMT",
-      "origin": "gnews-rss",
-      "source": "Bloomberg.com",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
+      "relevance": 65,
+      "summary_cn": "马斯克考虑将SpaceX与特斯拉合并成3.4万亿美元巨头，但分析指出该交易从第一天起就会亏损。"
     },
     {
       "author": "Musk",
@@ -48,12 +45,23 @@
       "published": "Sun, 31 May 2026 19:21:00 GMT",
       "origin": "gnews-rss",
       "source": "Barron's",
-      "tickers": [],
+      "tickers": [
+        "TSLA"
+      ],
       "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
+      "new_ideas": [
+        "TSLA"
+      ],
+      "sectors": [
+        "电动车",
+        "航天"
+      ],
+      "sector_holdings": [
+        "RKLB"
+      ],
+      "stance": "endorse",
+      "relevance": 60,
+      "summary_cn": "SpaceX是特斯拉Cybertruck的最佳客户，显示特斯拉与SpaceX业务协同。"
     },
     {
       "author": "Musk",
@@ -62,54 +70,43 @@
       "published": "Sun, 31 May 2026 15:00:00 GMT",
       "origin": "gnews-rss",
       "source": "Electrek",
-      "tickers": [],
+      "tickers": [
+        "TSLA"
+      ],
       "held": [],
-      "new_ideas": [],
+      "new_ideas": [
+        "TSLA"
+      ],
+      "sectors": [
+        "电动车",
+        "航天"
+      ],
+      "sector_holdings": [
+        "RKLB"
+      ],
       "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
+      "relevance": 60,
+      "summary_cn": "SpaceX与特斯拉合并可能自动触发马斯克的1万亿美元薪酬方案。"
     },
     {
       "author": "Musk",
-      "text": "Elon Musk Says Economy Cannot Function Without Prices: Tesla And SpaceX CEO Shares Stinging Critique Of Socialist Central Planning",
+      "text": "SpaceX’s IPO Forces Wall Street to Reorganize Around It",
       "url": "",
-      "published": "Sun, 31 May 2026 13:32:28 GMT",
+      "published": "Mon, 01 Jun 2026 02:53:00 GMT",
       "origin": "gnews-rss",
-      "source": "Yahoo Finance",
+      "source": "Bloomberg.com",
       "tickers": [],
       "held": [],
       "new_ideas": [],
+      "sectors": [
+        "航天"
+      ],
+      "sector_holdings": [
+        "RKLB"
+      ],
       "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk wants to merge SpaceX and Tesla into a $3.4 trillion giant. The problem: it would lose money from day one",
-      "url": "",
-      "published": "Sun, 31 May 2026 07:00:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Fortune",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk strikes down reports on SpaceX IPO rumors",
-      "url": "",
-      "published": "Sat, 30 May 2026 00:46:24 GMT",
-      "origin": "gnews-rss",
-      "source": "Teslarati",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
+      "relevance": 55,
+      "summary_cn": "SpaceX IPO迫使华尔街围绕其重组，但SpaceX未上市，不直接涉及可交易标的。"
     },
     {
       "author": "Musk",
@@ -121,298 +118,153 @@
       "tickers": [],
       "held": [],
       "new_ideas": [],
+      "sectors": [
+        "航天"
+      ],
+      "sector_holdings": [
+        "RKLB"
+      ],
       "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
+      "relevance": 55,
+      "summary_cn": "随着SpaceX IPO临近，交易员认为马斯克成为首位万亿富翁几乎已成定局，但SpaceX未上市。"
     },
     {
-      "author": "Trump",
-      "text": "The DronePort at the White House Ballroom will be, perhaps, the most sophisticated anywhere in the World! It will safeguard our Nation’s Capital, Washington, D.C., long into the future. Judge Richard Leon should stop playing games with America’s Security! If anything happens, he will be held responsible for the Death and Destruction caused to our Country. He has already created enough problems by allowing “Top Secret” information to be released and exposed based on a ridiculous lawsuit started by a highly litigious woman (serial plaintiff!) whose “strolling,” in her opinion, will be disturbed ",
-      "url": "https://trumpstruth.org/statuses/38965",
-      "published": "2026-05-31T15:34:34+00:00",
-      "origin": "truthsocial",
+      "author": "Musk",
+      "text": "Elon Musk Says Economy Cannot Function Without Prices: Tesla And SpaceX CEO Shares Stinging Critique Of Socialist Central Planning",
+      "url": "",
+      "published": "Sun, 31 May 2026 13:32:28 GMT",
+      "origin": "gnews-rss",
+      "source": "Yahoo Finance",
       "tickers": [],
       "held": [],
       "new_ideas": [],
+      "sectors": [
+        "宏观经济"
+      ],
+      "sector_holdings": [],
       "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
-    },
-    {
-      "author": "Trump",
-      "text": "RT @realDonaldTrumpI am pleased to announce that United States Ambassador to Türkiye, Tom Barrack, who has done an outstanding job, will be named Special Presidential Envoy to Syria and, likewise, Special Presidential Envoy to Iraq, as we advance our strategic cooperation with the Governments of Syria and Iraq, our relationship with them continues to grow! Tom will remain Ambassador to Türkiye, and operate with the full backing of the United States Department of State. We greatly appreciate the work that Tom Barrack has done, and his continued willingness to serve our Country. Thank you for yo",
-      "url": "https://trumpstruth.org/statuses/38964",
-      "published": "2026-05-31T14:39:25+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
-    },
-    {
-      "author": "Trump",
-      "text": "RT @NewtGingrichAfter spending this week reviewing the Iranian war I am now convinced President Trump is on the edge of an historic victory. The real breakthrough for me came as I reviewed President Trump’s decisions and maneuvers not from the standpoint of American unilateralism but from the standpoint of the leader of a remarkable historic coalition, the largest coalition ever put together in the modern Middle East. Everyone understands that Israel is an important ally. What is little discussed is the depth of support from the United Arab Emirates, Qatar, Bahrain, Saudi Arabia and other coun",
-      "url": "https://trumpstruth.org/statuses/38961",
-      "published": "2026-05-31T14:34:10+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
-    },
-    {
-      "author": "Trump",
-      "text": "RT @NewtGingrichAfter spending this week reviewing the Iranian war I am now convinced President Trump is on the edge of an historic victory. The real breakthrough for me came as I reviewed President Trump’s decisions and maneuvers not from the standpoint of American unilateralism but from the standpoint of the leader of a remarkable historic coalition, the largest coalition ever put together in the modern Middle East. Everyone understands that Israel is an important ally. What is little discussed is the depth of support from the United Arab Emirates, Qatar, Bahrain, Saudi Arabia and other coun",
-      "url": "https://trumpstruth.org/statuses/38959",
-      "published": "2026-05-31T14:13:18+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
-    },
-    {
-      "author": "Trump",
-      "text": "I am pleased to announce that United States Ambassador to Türkiye, Tom Barrack, who has done an outstanding job, will be named Special Presidential Envoy to Syria and, likewise, Special Presidential Envoy to Iraq, as we advance our strategic cooperation with the Governments of Syria and Iraq, our relationship with them continues to grow! Tom will remain Ambassador to Türkiye, and operate with the full backing of the United States Department of State. We greatly appreciate the work that Tom Barrack has done, and his continued willingness to serve our Country. Thank you for your attention to thi",
-      "url": "https://trumpstruth.org/statuses/38958",
-      "published": "2026-05-31T14:09:32+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
-    },
-    {
-      "author": "Trump",
-      "text": "The results of my Physical Examination, taken at Walter Reed Military Medical Center, and just released, were extremely good. Unlike other U.S. Presidents, none of whom have ever taken an approved, high difficulty, Cognitive Test, I scored a perfect 30 out of 30, considered “extreme intelligence.” Are the Dumocrats really surprised? In fact, this is my fourth such test, all PERFECT or, 120 correct answers out of 120 questions asked! It is very rare that anyone gets a Perfect Score, especially when achieved four times in a row. All people running for President and Vice President should be force",
-      "url": "https://trumpstruth.org/statuses/38955",
-      "published": "2026-05-31T04:35:28+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
-    },
-    {
-      "author": "Trump",
-      "text": "Watch my interview with my fantastic daughter-in-law, Lara Trump, tonight at 9:00 - FoxNews. President DJT",
-      "url": "https://trumpstruth.org/statuses/38948",
-      "published": "2026-05-30T23:59:44+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
-    },
-    {
-      "author": "Trump",
-      "text": "We should have a giant MAKE AMERICA GREAT AGAIN RALLY, for 250, instead of having overpriced singers, who nobody wants to hear, whose music is boring, and yet who do nothing but complain. Cancel it, just like I canceled my involvement with the failing and unsafe to be in Kennedy Center, because a Highly Conflicted, Crooked Federal Judge, said that I should not be allowed to spend my time and money in order to MAKE THE CENTER GREAT AGAIN, actually, far greater than it ever was before! It would have also been nice to see a Republican/Democrat union bring it back to life. The Kennedy Center is br",
-      "url": "https://trumpstruth.org/statuses/38947",
-      "published": "2026-05-30T23:03:32+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
-    },
-    {
-      "author": "Trump",
-      "text": "RT @realDonaldTrumpSee, they have a Ballroom — It’s called The Great Hall of China! It’s very large and beautiful. Why do people fight me for having something even better? The Dumocrats are CRAZY! President DONALD J. TRUMP",
-      "url": "https://trumpstruth.org/statuses/38946",
-      "published": "2026-05-30T22:50:16+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
-    },
-    {
-      "author": "Trump",
-      "text": "RT @realDonaldTrumpThank you Jaxson! It was great being with you. I know you’re taking some heat from the Radical Left Lunatics who are jealous of you, me, and everyone who surrounds us but, I also know that your Jersey also went to Number One, and you’re making Millions of Dollars so, YOU ARE A WINNER — THEY ARE ALL LOSERS. I’ll see you in the White House! President DJT",
-      "url": "https://trumpstruth.org/statuses/38941",
-      "published": "2026-05-30T22:49:29+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
-    },
-    {
-      "author": "Trump",
-      "text": "RT @realDonaldTrumpThe Reflecting Pool, built between The Lincoln Memorial and The Washington Monument, which was destroyed by Barack Hussein Obama and Sleepy Joe Biden after spending Hundreds of Millions of Dollars trying to fix it (It only got worse!), is moving along nicely, and we should easily make the July 4th date. It will be SPECTACULAR, and good, without leaks, for 100 years, at a fraction of the cost! President DONALD J. TRUMP",
-      "url": "https://trumpstruth.org/statuses/38942",
-      "published": "2026-05-30T22:49:21+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
-    },
-    {
-      "author": "Trump",
-      "text": "RT @realDonaldTrumpI understand Artists are getting “the yips” having to do with their performance on Wednesday, so I am thinking about bringing the Number One Attraction anywhere in the World, the man who gets much larger audiences than Elvis in his prime, and he does so without a guitar, the man who loves our Country more than anyone else, and the man who some say is the Greatest President in History (THE GOAT!), DONALD J. TRUMP, to take the place of these highly paid, Third Rate “Artists,” and give a major speech, rallying the Country forward like I have done ever since being President! Two",
-      "url": "https://trumpstruth.org/statuses/38943",
-      "published": "2026-05-30T22:49:08+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
-    },
-    {
-      "author": "Trump",
-      "text": "RT @realDonaldTrumpCan you imagine? A Barack Hussein Obama Judge named Christopher Cooper has stopped a magnificent structural and aesthetic rebuilding of The Trump Kennedy Center where Millions of Dollars of material, marble, furniture, steel, air conditioning, heating, and so much else was ordered, or soon to be ordered, with the end result being a structure that would no longer be in a potential state of collapse, rusted, rotted, and rat and bug infested, to one that would be the Finest anywhere in the World. It was necessary to close the Center in order to get this work done. It is not pos",
-      "url": "https://trumpstruth.org/statuses/38944",
-      "published": "2026-05-30T22:48:58+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
-    },
-    {
-      "author": "Trump",
-      "text": "See, they have a Ballroom — It’s called The Great Hall of China! It’s very large and beautiful. Why do people fight me for having something even better? The Dumocrats are CRAZY! President DONALD J. TRUMP",
-      "url": "https://trumpstruth.org/statuses/38945",
-      "published": "2026-05-30T22:48:14+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
-    },
-    {
-      "author": "Trump",
-      "text": "Watch Lara Trump tonight on FoxNews at 9 P.M. EST. She interviews me for the entire Show! President DJT",
-      "url": "https://trumpstruth.org/statuses/38910",
-      "published": "2026-05-30T19:17:36+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
-    },
-    {
-      "author": "Trump",
-      "text": "Tom Brady is a great player, and great guy!President DJT",
-      "url": "https://trumpstruth.org/statuses/38903",
-      "published": "2026-05-30T16:56:00+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
-    },
-    {
-      "author": "Trump",
-      "text": "PRESIDENT DONALD J. TRUMP vs. Kathy Hochul, New York’s failed Governor who, if people are smart, will vote for Bruce Blakeman — He will, MAKE NEW YORK GREAT AGAIN! President DJT",
-      "url": "https://trumpstruth.org/statuses/38902",
-      "published": "2026-05-30T16:45:56+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
-    },
-    {
-      "author": "Trump",
-      "text": "RT @realDonaldTrumpThank you Jaxson! It was great being with you. I know you’re taking some heat from the Radical Left Lunatics who are jealous of you, me, and everyone who surrounds us but, I also know that your Jersey also went to Number One, and you’re making Millions of Dollars so, YOU ARE A WINNER — THEY ARE ALL LOSERS. I’ll see you in the White House! President DJT",
-      "url": "https://trumpstruth.org/statuses/38897",
-      "published": "2026-05-30T16:16:42+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
-    },
-    {
-      "author": "Trump",
-      "text": "RT @realDonaldTrumpThe Reflecting Pool, built between The Lincoln Memorial and The Washington Monument, which was destroyed by Barack Hussein Obama and Sleepy Joe Biden after spending Hundreds of Millions of Dollars trying to fix it (It only got worse!), is moving along nicely, and we should easily make the July 4th date. It will be SPECTACULAR, and good, without leaks, for 100 years, at a fraction of the cost! President DONALD J. TRUMP",
-      "url": "https://trumpstruth.org/statuses/38899",
-      "published": "2026-05-30T16:16:35+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
-    },
-    {
-      "author": "Trump",
-      "text": "RT @realDonaldTrumpI understand Artists are getting “the yips” having to do with their performance on Wednesday, so I am thinking about bringing the Number One Attraction anywhere in the World, the man who gets much larger audiences than Elvis in his prime, and he does so without a guitar, the man who loves our Country more than anyone else, and the man who some say is the Greatest President in History (THE GOAT!), DONALD J. TRUMP, to take the place of these highly paid, Third Rate “Artists,” and give a major speech, rallying the Country forward like I have done ever since being President! Two",
-      "url": "https://trumpstruth.org/statuses/38900",
-      "published": "2026-05-30T16:16:20+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
-    },
-    {
-      "author": "Trump",
-      "text": "RT @realDonaldTrumpCan you imagine? A Barack Hussein Obama Judge named Christopher Cooper has stopped a magnificent structural and aesthetic rebuilding of The Trump Kennedy Center where Millions of Dollars of material, marble, furniture, steel, air conditioning, heating, and so much else was ordered, or soon to be ordered, with the end result being a structure that would no longer be in a potential state of collapse, rusted, rotted, and rat and bug infested, to one that would be the Finest anywhere in the World. It was necessary to close the Center in order to get this work done. It is not pos",
-      "url": "https://trumpstruth.org/statuses/38901",
-      "published": "2026-05-30T16:16:17+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
-    },
-    {
-      "author": "Trump",
-      "text": "Thank you Jaxson! It was great being with you. I know you’re taking some heat from the Radical Left Lunatics who are jealous of you, me, and everyone who surrounds us but, I also know that your Jersey also went to Number One, and you’re making Millions of Dollars so, YOU ARE A WINNER — THEY ARE ALL LOSERS. I’ll see you in the White House! President DJT",
-      "url": "https://trumpstruth.org/statuses/38898",
-      "published": "2026-05-30T16:15:59+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
+      "relevance": 50,
+      "summary_cn": "马斯克批评社会主义中央计划，强调价格机制对经济运行的必要性。"
     }
   ],
   "held_hits": [],
-  "new_ideas": [],
-  "sector_hits": []
+  "new_ideas": [
+    {
+      "author": "Musk",
+      "text": "Elon Musk wants to merge SpaceX and Tesla into a $3.4 trillion giant. The problem: it would lose money from day one",
+      "url": "",
+      "published": "Sun, 31 May 2026 07:00:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Fortune",
+      "tickers": [
+        "TSLA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "TSLA"
+      ],
+      "sectors": [
+        "航天",
+        "电动车"
+      ],
+      "sector_holdings": [
+        "RKLB"
+      ],
+      "stance": "neutral",
+      "relevance": 65,
+      "summary_cn": "马斯克考虑将SpaceX与特斯拉合并成3.4万亿美元巨头，但分析指出该交易从第一天起就会亏损。"
+    },
+    {
+      "author": "Musk",
+      "text": "Turns Out, Tesla's Best Cybertruck Customer Is SpaceX",
+      "url": "",
+      "published": "Sun, 31 May 2026 19:21:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Barron's",
+      "tickers": [
+        "TSLA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "TSLA"
+      ],
+      "sectors": [
+        "电动车",
+        "航天"
+      ],
+      "sector_holdings": [
+        "RKLB"
+      ],
+      "stance": "endorse",
+      "relevance": 60,
+      "summary_cn": "SpaceX是特斯拉Cybertruck的最佳客户，显示特斯拉与SpaceX业务协同。"
+    },
+    {
+      "author": "Musk",
+      "text": "A SpaceX/Tesla merger could trigger Musk’s $1T pay package automatically",
+      "url": "",
+      "published": "Sun, 31 May 2026 15:00:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Electrek",
+      "tickers": [
+        "TSLA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "TSLA"
+      ],
+      "sectors": [
+        "电动车",
+        "航天"
+      ],
+      "sector_holdings": [
+        "RKLB"
+      ],
+      "stance": "neutral",
+      "relevance": 60,
+      "summary_cn": "SpaceX与特斯拉合并可能自动触发马斯克的1万亿美元薪酬方案。"
+    }
+  ],
+  "sector_hits": [
+    {
+      "author": "Musk",
+      "text": "SpaceX’s IPO Forces Wall Street to Reorganize Around It",
+      "url": "",
+      "published": "Mon, 01 Jun 2026 02:53:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Bloomberg.com",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天"
+      ],
+      "sector_holdings": [
+        "RKLB"
+      ],
+      "stance": "neutral",
+      "relevance": 55,
+      "summary_cn": "SpaceX IPO迫使华尔街围绕其重组，但SpaceX未上市，不直接涉及可交易标的。"
+    },
+    {
+      "author": "Musk",
+      "text": "As SpaceX IPO nears, traders think it's a near-certainty Musk becomes the first trillionaire",
+      "url": "",
+      "published": "Fri, 29 May 2026 16:32:29 GMT",
+      "origin": "gnews-rss",
+      "source": "CNBC",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天"
+      ],
+      "sector_holdings": [
+        "RKLB"
+      ],
+      "stance": "neutral",
+      "relevance": 55,
+      "summary_cn": "随着SpaceX IPO临近，交易员认为马斯克成为首位万亿富翁几乎已成定局，但SpaceX未上市。"
+    }
+  ]
 }
