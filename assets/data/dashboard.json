@@ -1,10 +1,10 @@
 {
-  "generated_at": "2026-05-31T22:40:46.302188Z",
-  "last_updated": "2026/05/31 14:41 HKT",
+  "generated_at": "2026-06-01T00:06:13.375479Z",
+  "last_updated": "2026/06/01 08:00 HKT",
   "fx": {
-    "usdhkd": null,
-    "source": null,
-    "fetched_at": null
+    "usdhkd": 7.8356,
+    "source": "Frankfurter",
+    "fetched_at": "2026-06-01T00:00:45.681559+00:00"
   },
   "totals": {
     "us": {
@@ -494,162 +494,28 @@
       "hk_today_change": -76.4,
       "hk_realized": 7259.16,
       "hk_equity": 92213.96
+    },
+    {
+      "date": "2026-06-01",
+      "file": "2026-06-01.json",
+      "us_total_value": 3401.46,
+      "us_total_cost": 2628.3,
+      "us_total_pnl": 773.16,
+      "us_today_change": 0.0,
+      "us_realized": 1372.88,
+      "us_equity": 4774.34,
+      "hk_total_value": 84954.8,
+      "hk_total_cost": 88276.24,
+      "hk_total_pnl": -3321.44,
+      "hk_today_change": -76.4,
+      "hk_realized": 7259.16,
+      "hk_equity": 92213.96
     }
   ],
-  "snapshots_total": 13,
+  "snapshots_total": 14,
   "snapshots_embedded_cap": 90,
-  "plans_count": 12,
+  "plans_count": 13,
   "recent_plans": [
-    {
-      "date": "2026-05-26",
-      "file": "2026-05-26-plan.json",
-      "plan": {
-        "date": "2026-05-26",
-        "fx_rate_usdhkd": 7.8,
-        "fx_source": "HARDCODED_FALLBACK",
-        "regime": {
-          "us": "volatile",
-          "hk": "trending-down"
-        },
-        "book": {
-          "usd_total_pnl": -672.93,
-          "hkd_total_pnl": -5248.88,
-          "hk_leg_hkd": -7379.84,
-          "us_leg_usd": 273.2
-        },
-        "actions": [
-          {
-            "ticker": "ROBN",
-            "bucket": "cut",
-            "size_pct": 50,
-            "size_shares": 20,
-            "trigger_type": "open",
-            "trigger_price": null,
-            "trigger_condition": "US 开盘 market order 清仓 20 股（volume=0 流动性枯竭，不等 trigger）",
-            "confidence": 0.75,
-            "rationale": "HOOD thesis 证伪；-25.2% 浮亏；volume=0 流动性枯竭；连续两期 cut 未执行"
-          },
-          {
-            "ticker": "07226",
-            "bucket": "trim_on_rebound",
-            "size_pct": 32,
-            "size_shares": 2000,
-            "trigger_type": "price_above",
-            "trigger_price": 3.85,
-            "trigger_condition": "反弹至 3.85 减 2000 股（28.7% → ~20%，降低 HHI）",
-            "confidence": 0.7,
-            "rationale": "HHI 0.416 🔴 危险集中；杠杆 decay 不可逆；-14.15% 浮亏需止血"
-          },
-          {
-            "ticker": "SOXL",
-            "bucket": "trim_on_rebound",
-            "size_pct": 50,
-            "size_shares": 1,
-            "trigger_type": "open",
-            "trigger_price": null,
-            "trigger_condition": "US 开盘减 1 股锁利（+107.4% 浮盈）",
-            "confidence": 0.65,
-            "rationale": "+107.4% 极端浮盈应锁利一半；半导体 upcycle 延续但 leverage 放大回撤风险"
-          },
-          {
-            "ticker": "00100",
-            "bucket": "hold_and_watch",
-            "size_pct": 0,
-            "size_shares": 0,
-            "trigger_type": "price_below",
-            "trigger_price": 700,
-            "trigger_condition": "跌破 700 触发 stop",
-            "confidence": 0.6,
-            "rationale": "两日连涨 +28% 验证 AI 题材（06682 +11.23% 同涨）；但 -6.6% 浮亏仍在；700 是 cost basis 下方支撑"
-          },
-          {
-            "ticker": "RKLB",
-            "bucket": "hold_and_watch",
-            "size_pct": 0,
-            "size_shares": 0,
-            "trigger_type": "price_below",
-            "trigger_price": 120,
-            "trigger_condition": "跌破 $120 触发 stop",
-            "confidence": 0.68,
-            "rationale": "+91.2% 浮盈 + Neutron 催化；β=4.77 高波动需 stop 保护"
-          },
-          {
-            "ticker": "CRCL",
-            "bucket": "add_only_on_trigger",
-            "size_pct": 50,
-            "size_shares": 1,
-            "trigger_type": "price_above",
-            "trigger_price": 120,
-            "trigger_condition": "涨破 $120 加 1 股（GENIUS Act 催化确认）",
-            "confidence": 0.62,
-            "rationale": "GENIUS Act 6 月国会催化；USDC 稳定币赛道；+30% 安全垫足够"
-          },
-          {
-            "ticker": "PLTU",
-            "bucket": "t_only",
-            "size_pct": 50,
-            "size_shares": 7,
-            "trigger_type": "price_above",
-            "trigger_price": 37.5,
-            "trigger_condition": "反弹至 $37.5 减 7 股（下调自 $38.5，连续两期未触发）",
-            "confidence": 0.5,
-            "rationale": "-9.9% 浮亏；连续窄幅震荡 36-37；$38.5 trigger 过紧，下调至 $37.5"
-          },
-          {
-            "ticker": "MSFU",
-            "bucket": "hold_and_watch",
-            "size_pct": 0,
-            "size_shares": 0,
-            "trigger_type": "price_below",
-            "trigger_price": 26,
-            "trigger_condition": "跌破 $26 触发 stop",
-            "confidence": 0.65,
-            "rationale": "MSFT 基本面稳；Azure + Copilot 增长；-1.1% 平盘中性"
-          },
-          {
-            "ticker": "02208",
-            "bucket": "hold_and_watch",
-            "size_pct": 0,
-            "size_shares": 0,
-            "trigger_type": "manual",
-            "trigger_price": null,
-            "trigger_condition": "风电板块政策面无变化则持有",
-            "confidence": 0.6,
-            "rationale": "+3.59% 浮盈；风电板块稳；小仓位不操作"
-          },
-          {
-            "ticker": "03032",
-            "bucket": "hold_and_watch",
-            "size_pct": 0,
-            "size_shares": 0,
-            "trigger_type": "manual",
-            "trigger_price": null,
-            "trigger_condition": "1x 被动跟踪 HSTECH；小仓位持有",
-            "confidence": 0.55,
-            "rationale": "与 07226 同源但无杠杆 decay；-10.34% 浮亏但小仓位"
-          },
-          {
-            "ticker": "03033",
-            "bucket": "hold_and_watch",
-            "size_pct": 0,
-            "size_shares": 0,
-            "trigger_type": "manual",
-            "trigger_price": null,
-            "trigger_condition": "1x 被动跟踪 HSTECH；小仓位持有",
-            "confidence": 0.55,
-            "rationale": "与 07226 同源但无杠杆 decay；-7.47% 浮亏但小仓位"
-          }
-        ],
-        "watch_levels": {
-          "hstech_breakdown": 4800,
-          "hhi_hk_critical": 0.4,
-          "00100_stop": 700,
-          "rklb_stop": 120,
-          "msfu_stop": 26,
-          "book_force_derisk_hkd": 68762
-        }
-      }
-    },
     {
       "date": "2026-05-27",
       "file": "2026-05-27-plan.json",
@@ -1145,6 +1011,19 @@
           "cpi_date": "2026-06-11"
         }
       }
+    },
+    {
+      "date": "2026-06-01",
+      "file": "2026-06-01-plan.json",
+      "plan": {
+        "date": "2026-06-02",
+        "actions_count": 10,
+        "tldr": "",
+        "has_retrospective": false,
+        "context": {},
+        "truncated": true,
+        "original_bytes": 3539
+      }
     }
   ],
   "recent_plans_cap": 5,
@@ -1154,38 +1033,188 @@
       "price": 7580.06,
       "prev_close": 7563.63,
       "change_pct": 0.217,
-      "source": "Tencent usINX index @ 2026-05-31 02:41 ET"
+      "source": "Tencent usINX index @ 2026-05-31 20:00 ET"
     },
     "NDX": {
       "name": "Nasdaq 100",
       "price": 30333.18,
       "prev_close": 30223.89,
       "change_pct": 0.362,
-      "source": "Tencent usNDX index @ 2026-05-31 02:41 ET"
+      "source": "Tencent usNDX index @ 2026-05-31 20:00 ET"
     },
     "DJI": {
       "name": "Dow Jones",
       "price": 51032.46,
       "prev_close": 50668.97,
       "change_pct": 0.717,
-      "source": "Tencent usDJI index @ 2026-05-31 02:41 ET"
+      "source": "Tencent usDJI index @ 2026-05-31 20:00 ET"
     },
     "HSI": {
       "name": "恒生指数",
       "price": 25182.39,
       "prev_close": 25006.16,
       "change_pct": 0.7,
-      "source": "Tencent qt.gtimg.cn 2026/05/31 14:41 HKT"
+      "source": "Tencent qt.gtimg.cn 2026/06/01 08:00 HKT"
     },
     "HSTECH": {
       "name": "恒生科技",
       "price": 4884.23,
       "prev_close": 4888.58,
       "change_pct": -0.09,
-      "source": "Tencent qt.gtimg.cn 2026/05/31 14:41 HKT"
+      "source": "Tencent qt.gtimg.cn 2026/06/01 08:00 HKT"
     }
   },
-  "market_context": {},
+  "market_context": {
+    "generated_at": "2026-06-01T08:15:00+08:00",
+    "date": "2026-06-02",
+    "sectors": [
+      {
+        "theme": "HK AI 大模型",
+        "tickers_in_book": [
+          "00100"
+        ],
+        "top_movers": [
+          {
+            "ticker": "02469",
+            "name": "速腾聚创",
+            "pct": 6.67,
+            "catalyst": "AI+车载"
+          },
+          {
+            "ticker": "02273",
+            "name": "智云健康",
+            "pct": 5.28,
+            "catalyst": "AI+医疗"
+          },
+          {
+            "ticker": "06682",
+            "name": "第四范式",
+            "pct": 4.04,
+            "catalyst": "企业AI决策平台"
+          }
+        ],
+        "self": [
+          {
+            "ticker": "00100",
+            "pct": 0.36,
+            "rank_text": "落后",
+            "attribution": "MINIMAX近5日无独立催化，恒科纳入6/8催化尚未吸引资金提前布局"
+          }
+        ]
+      },
+      {
+        "theme": "HK 科技指数 2x leveraged (HSTECH 标的)",
+        "tickers_in_book": [
+          "07226"
+        ],
+        "top_movers": [
+          {
+            "ticker": "09999",
+            "name": "网易-S",
+            "pct": 0.73,
+            "catalyst": "HSTECH权重股领涨"
+          }
+        ],
+        "self": [
+          {
+            "ticker": "07226",
+            "pct": -0.53,
+            "rank_text": "落后",
+            "attribution": "2x杠杆在HSTECH横盘(-0.09%)时放大微弱负面"
+          }
+        ]
+      },
+      {
+        "theme": "商业航天",
+        "tickers_in_book": [
+          "RKLB"
+        ],
+        "top_movers": [
+          {
+            "ticker": "RKLB",
+            "name": "Rocket Lab",
+            "pct": 0.0,
+            "catalyst": "Q1 rev +63%+backlog $2.2B+Blue Origin事故利好"
+          },
+          {
+            "ticker": "ASTS",
+            "name": "AST SpaceMobile",
+            "pct": -14.79,
+            "catalyst": "Blue Origin爆炸+德银降级"
+          }
+        ],
+        "self": [
+          {
+            "ticker": "RKLB",
+            "pct": 0.0,
+            "rank_text": "领涨",
+            "attribution": "Blue Origin事故强化竞对地位，RKLB独善其身"
+          }
+        ]
+      },
+      {
+        "theme": "稳定币 + agent 支付",
+        "tickers_in_book": [
+          "CRCL"
+        ],
+        "top_movers": [],
+        "self": [
+          {
+            "ticker": "CRCL",
+            "pct": 0.0,
+            "rank_text": "领涨",
+            "attribution": "GENIUS Act 6/9评论截止+首次盈利，立法催化进行中"
+          }
+        ]
+      },
+      {
+        "theme": "PLTR 2x leveraged",
+        "tickers_in_book": [
+          "PLTU"
+        ],
+        "top_movers": [
+          {
+            "ticker": "PLTR",
+            "name": "Palantir",
+            "pct": 9.21,
+            "catalyst": "Maven五角大楼全面采用+Dell AI利好+USDA $300M合同"
+          }
+        ],
+        "self": [
+          {
+            "ticker": "PLTU",
+            "pct": 0.0,
+            "rank_text": "领涨",
+            "attribution": "PLTR +9.2%带动PLTU 2x跟随；Maven全面采用是硬催化"
+          }
+        ]
+      },
+      {
+        "theme": "HOOD 2x leveraged",
+        "tickers_in_book": [
+          "ROBN"
+        ],
+        "top_movers": [
+          {
+            "ticker": "HOOD",
+            "name": "Robinhood",
+            "pct": 0.0,
+            "catalyst": "Agentic Trading发布+Mizuho目标$115+散户extremely bullish"
+          }
+        ],
+        "self": [
+          {
+            "ticker": "ROBN",
+            "pct": 0.0,
+            "rank_text": "领涨",
+            "attribution": "HOOD AI产品发布驱动；但Q1 EPS miss+2026盈利预计-10.7% YoY是隐忧"
+          }
+        ]
+      }
+    ],
+    "narrative": "周一开盘前板块全景：HK AI板块温和上涨(速腾+6.7%/智云+5.3%/四范式+4.0%)，但MINIMAX仅+0.4%——alpha在掉，需关注6/8恒科纳入催化是否能扭转。US侧PLTR +9.2%领涨(五角大楼Maven+Dell AI)，RKLB因Blue Origin事故独善其身。CRCL GENIUS Act评论期本周截止，立法催化进行中。风险点：HK HHI 0.435🔴双仓集中+US β=3.95高杠杆暴露。",
+    "_source": "sector-scan-2026-06-01.json"
+  },
   "holdings_history": {
     "NVDA": [
       213.0,
@@ -1200,7 +1229,6 @@
       213.0
     ],
     "RKLB": [
-      119.15,
       127.31,
       134.28,
       135.76,
@@ -1209,10 +1237,10 @@
       142.57,
       146.555,
       143.48,
+      143.48,
       143.48
     ],
     "CRCL": [
-      111.335,
       110.87,
       111.62,
       113.05,
@@ -1220,6 +1248,7 @@
       107.19,
       104.415,
       106.055,
+      113.0,
       113.0,
       113.0
     ],
@@ -1273,7 +1302,7 @@
     ],
     "HOOD": [
       76.09,
-      76.09,
+      75.4,
       75.4,
       75.4,
       75.4,
@@ -1284,7 +1313,6 @@
       75.4
     ],
     "PLTU": [
-      35.94,
       35.959,
       37.12,
       36.9,
@@ -1293,10 +1321,10 @@
       35.28,
       37.9999,
       47.58,
+      47.59,
       47.59
     ],
     "SOXL": [
-      143.32,
       151.89,
       172.8,
       190.41,
@@ -1305,11 +1333,12 @@
       217.17,
       217.17,
       217.17,
+      217.17,
       217.17
     ],
     "RKLX": [
-      72.6751,
       83.01,
+      90.415,
       90.415,
       90.415,
       90.415,
@@ -1320,7 +1349,6 @@
       90.415
     ],
     "ROBN": [
-      17.67,
       17.99,
       18.5,
       17.64,
@@ -1329,10 +1357,10 @@
       18.47,
       20.7001,
       28.25,
+      28.25,
       28.25
     ],
     "MSFU": [
-      29.315,
       28.61,
       29.06,
       28.81,
@@ -1341,10 +1369,10 @@
       28.01,
       29.63,
       33.1797,
+      33.09,
       33.09
     ],
     "00100": [
-      741.5,
       742.5,
       687.0,
       749.0,
@@ -1353,10 +1381,10 @@
       848.5,
       837.0,
       840.0,
+      840.0,
       840.0
     ],
     "02208": [
-      15.02,
       15.03,
       14.62,
       14.56,
@@ -1365,10 +1393,10 @@
       13.92,
       14.05,
       13.71,
+      13.71,
       13.71
     ],
     "03032": [
-      4.846,
       4.846,
       4.85,
       4.85,
@@ -1377,10 +1405,10 @@
       4.886,
       4.866,
       4.874,
+      4.874,
       4.874
     ],
     "07226": [
-      3.75,
       3.752,
       3.768,
       3.752,
@@ -1389,10 +1417,10 @@
       3.802,
       3.78,
       3.76,
+      3.76,
       3.76
     ],
     "03033": [
-      4.76,
       4.76,
       4.77,
       4.764,
@@ -1400,6 +1428,7 @@
       4.84,
       4.8,
       4.782,
+      4.784,
       4.784,
       4.784
     ],
@@ -1430,55 +1459,120 @@
   },
   "delta": {
     "us": {
-      "today_pct": -0.03,
-      "7d_pct": 29.97,
+      "today_pct": 0.0,
+      "7d_pct": 16.02,
       "30d_pct": null
     },
     "hk": {
       "today_pct": 0.0,
-      "7d_pct": 10.53,
+      "7d_pct": 5.97,
       "30d_pct": null
     }
   },
   "today_movers": [],
   "anomalies": [
     {
-      "type": "no_context",
-      "ticker": "",
-      "detail": "no brief-context-*.json found in memory/.tmp/",
-      "severity": "low"
+      "type": "high_weight_loss",
+      "ticker": "07226",
+      "detail": "weight 27.4% + pnl -13.8%",
+      "severity": "medium"
     }
   ],
-  "behavioral_review": null,
-  "bear_cases": [],
-  "hidden_concentration": null,
-  "insights_meta": {
-    "source": null,
-    "stale": true
+  "behavioral_review": {
+    "verdict": "主动信号42%胜率跑输持有72%——模型在risk-on下最该做的就是不动",
+    "points": [
+      {
+        "text": "主动信号(cut/trim/add)胜率42%，被动hold胜率72%——差距30pp，主动操作在risk-on下是负期望",
+        "tag": "edge"
+      },
+      {
+        "text": "高信心(≥0.75)实际仅46%胜率，overconfidence gap +0.31——你报80%信心时实际只赢46%，系统性过度自信",
+        "tag": "bias"
+      },
+      {
+        "text": "ROBN连续四期cut断层——不是信号问题是执行纪律问题，行为偏差比选股错误更致命",
+        "tag": "warning"
+      },
+      {
+        "text": "07226 trim类信号0%历史胜率+trigger设过宽(3.50 vs实际low 3.742)——要么收紧stop要么承认不该动",
+        "tag": "bias"
+      },
+      {
+        "text": "LLM vs hold baseline alpha -3pp——单一regime(risk_on)，待熊市确认；但当前模型主动决策没有edge",
+        "tag": "warning"
+      }
+    ]
   },
-  "status_banner": null,
+  "bear_cases": [
+    {
+      "ticker": "00100",
+      "thesis": "HHI 59%集中+近5日落后同行6.3pp——alpha在掉。恒科纳入6/8可能是buy rumor sell news。MiniMax无独立催化，靠板块β撑着",
+      "falsifier": "6/8纳入后5日内00100涨幅>同行均值",
+      "watch": "6/8纳入生效日+00100 vs 02469相对强弱"
+    },
+    {
+      "ticker": "07226",
+      "thesis": "2x杠杆decay在HSTECH横盘时持续侵蚀。-13.8%浮亏已深。HSTECH若跌破4800→2x放大下行。HHI 27.4%集中+流动性风险",
+      "falsifier": "HSTECH站上5000+连续3日收阳",
+      "watch": "HSTECH 4800支撑+南向资金流向"
+    },
+    {
+      "ticker": "ROBN",
+      "thesis": "HOOD Q1 EPS miss+2026盈利预计-10.7% YoY。2x杠杆decay+散户情绪extremely bullish=典型顶部信号。连续四期cut断层=纪律崩溃",
+      "falsifier": "HOOD站上$100+Q2 EPS beat",
+      "watch": "HOOD $80支撑+6/4 Piper Sandler会议"
+    }
+  ],
+  "hidden_concentration": {
+    "headline": "HK book 86.8%双仓集中+US β=3.95=一次-5%回撤炸book-20%",
+    "factor": "AI/科技高beta",
+    "exposure_pct": 88,
+    "detail": "00100(MINIMAX)+07226(2x恒科)+03032/03033(1x恒科)全部暴露于HSTECH/AI因子。US侧RKLB/PLTU/ROBN/MSFU全为2x杠杆ETF，β=3.95。名义10仓分散，实际88%暴露于同一因子(科技/AI高beta)。一次HSTECH -5%→HK book -13%；同时US -5%→US book -20%。"
+  },
+  "insights_meta": {
+    "source": "insights-2026-06-01.json",
+    "stale": false
+  },
+  "status_banner": "Risk-on｜美股+360 / 港股-76｜VIX 15低位，F&G 60偏贪，杠杆ETF拉美股浮盈；盯07226高仓位亏损扩大",
   "status_banner_meta": {
-    "source": null,
-    "generated_at": null,
-    "stale": true
+    "source": "intraday-insights-2026-05-31.json",
+    "generated_at": "2026-05-31T05:25:44.332992Z",
+    "stale": false
   },
   "peer_divergence": {
-    "as_of": "",
-    "items": []
+    "as_of": "2026-06-01",
+    "items": [
+      {
+        "ticker": "00100",
+        "self_pct_1d": 0.36,
+        "best_peer": "02469",
+        "best_peer_name": "速腾聚创",
+        "peer_pct_1d": 6.67,
+        "divergence_pp": 6.31
+      },
+      {
+        "ticker": "02208",
+        "self_pct_1d": -2.42,
+        "best_peer": "00916",
+        "best_peer_name": "龙源电力",
+        "peer_pct_1d": 4.64,
+        "divergence_pp": 7.06
+      }
+    ]
   },
   "calibration": {
-    "brier_30d": 0.2636,
-    "samples": 75,
+    "brier_30d": 0.2623,
+    "samples": 88,
     "bands": [
       {
         "band": "0-50%",
-        "n": 0,
-        "actual_win_rate": 0.0
+        "n": 2,
+        "actual_win_rate": 1.0
       },
       {
         "band": "50-60%",
-        "n": 14,
-        "actual_win_rate": 0.4286
+        "n": 25,
+        "actual_win_rate": 0.52
       },
       {
         "band": "60-70%",
@@ -1498,65 +1592,65 @@
     ],
     "per_bucket": {
       "cut": {
-        "n": 15,
-        "win_rate": 0.3333
+        "n": 17,
+        "win_rate": 0.2941
       },
       "trim_on_rebound": {
-        "n": 16,
-        "win_rate": 0.4375
+        "n": 18,
+        "win_rate": 0.5
       },
       "hold_and_watch": {
-        "n": 29,
-        "win_rate": 0.7931
+        "n": 37,
+        "win_rate": 0.7838
       },
       "t_only": {
         "n": 4,
         "win_rate": 0.0
       },
       "add_only_on_trigger": {
-        "n": 8,
-        "win_rate": 0.5
+        "n": 9,
+        "win_rate": 0.5556
       }
     },
     "vs_baseline": {
-      "n": 75,
-      "llm_win_rate": 0.5467,
-      "hold_baseline_win_rate": 0.6133,
-      "alpha_pp": -6.7
+      "n": 88,
+      "llm_win_rate": 0.5682,
+      "hold_baseline_win_rate": 0.6023,
+      "alpha_pp": -3.4
     }
   },
   "calibration_by_trigger": {
     "price_above": {
-      "n_resolved": 28,
-      "n_pending": 2,
-      "wins": 14,
+      "n_resolved": 30,
+      "n_pending": 1,
+      "wins": 16,
       "losses": 14,
-      "win_rate": 0.5,
-      "avg_confidence": 0.632
+      "win_rate": 0.5333,
+      "avg_confidence": 0.628
     },
     "price_below": {
-      "n_resolved": 23,
-      "n_pending": 7,
-      "wins": 20,
+      "n_resolved": 30,
+      "n_pending": 6,
+      "wins": 27,
       "losses": 3,
-      "win_rate": 0.8696,
-      "avg_confidence": 0.62
+      "win_rate": 0.9,
+      "avg_confidence": 0.607
     },
     "open": {
-      "n_resolved": 14,
-      "n_pending": 2,
+      "n_resolved": 16,
+      "n_pending": 1,
       "wins": 3,
-      "losses": 11,
-      "win_rate": 0.2143,
-      "avg_confidence": 0.674
+      "losses": 13,
+      "win_rate": 0.1875,
+      "avg_confidence": 0.664
     },
     "manual": {
-      "n_resolved": 7,
+      "n_resolved": 9,
       "n_pending": 2,
       "wins": 4,
-      "losses": 3,
-      "win_rate": 0.5714,
-      "avg_confidence": 0.586
+      "losses": 5,
+      "win_rate": 0.4444,
+      "avg_confidence": 0.579
     },
     "index_breakdown": {
       "n_resolved": 3,
@@ -1569,20 +1663,20 @@
   },
   "calibration_by_driver": {
     "technical": {
-      "n_resolved": 32,
-      "n_pending": 5,
-      "wins": 15,
-      "losses": 17,
-      "win_rate": 0.4688,
-      "avg_confidence": 0.617
+      "n_resolved": 37,
+      "n_pending": 3,
+      "wins": 18,
+      "losses": 19,
+      "win_rate": 0.4865,
+      "avg_confidence": 0.608
     },
     "catalyst": {
-      "n_resolved": 30,
+      "n_resolved": 35,
       "n_pending": 5,
-      "wins": 20,
+      "wins": 25,
       "losses": 10,
-      "win_rate": 0.6667,
-      "avg_confidence": 0.631
+      "win_rate": 0.7143,
+      "avg_confidence": 0.621
     },
     "sentiment": {
       "n_resolved": 0,
@@ -1601,11 +1695,11 @@
       "avg_confidence": null
     },
     "macro": {
-      "n_resolved": 1,
-      "n_pending": 3,
-      "wins": 1,
-      "losses": 0,
-      "win_rate": 1.0,
+      "n_resolved": 4,
+      "n_pending": 2,
+      "wins": 2,
+      "losses": 2,
+      "win_rate": 0.5,
       "avg_confidence": 0.55
     },
     "peer": {
@@ -1619,29 +1713,7 @@
   },
   "recent_plan_actions": [
     {
-      "date": "2026-05-31",
-      "ticker": "PLTU",
-      "bucket": "cut",
-      "confidence": 0.5,
-      "trigger_type": "open",
-      "outcome": "pending",
-      "pnl_5d": null,
-      "followed": "unknown",
-      "driven_by": "technical"
-    },
-    {
-      "date": "2026-05-31",
-      "ticker": "07226",
-      "bucket": "trim_on_rebound",
-      "confidence": 0.45,
-      "trigger_type": "price_above",
-      "outcome": "pending",
-      "pnl_5d": null,
-      "followed": "unknown",
-      "driven_by": "macro"
-    },
-    {
-      "date": "2026-05-31",
+      "date": "2026-06-01",
       "ticker": "00100",
       "bucket": "hold_and_watch",
       "confidence": 0.55,
@@ -1652,73 +1724,29 @@
       "driven_by": "catalyst"
     },
     {
-      "date": "2026-05-31",
-      "ticker": "RKLB",
+      "date": "2026-06-01",
+      "ticker": "07226",
       "bucket": "hold_and_watch",
-      "confidence": 0.55,
-      "trigger_type": "price_below",
-      "outcome": "pending",
-      "pnl_5d": null,
-      "followed": "unknown",
-      "driven_by": "catalyst"
-    },
-    {
-      "date": "2026-05-31",
-      "ticker": "CRCL",
-      "bucket": "add_only_on_trigger",
       "confidence": 0.45,
       "trigger_type": "price_below",
       "outcome": "pending",
       "pnl_5d": null,
       "followed": "unknown",
-      "driven_by": "catalyst"
-    },
-    {
-      "date": "2026-05-31",
-      "ticker": "ROBN",
-      "bucket": "hold_and_watch",
-      "confidence": 0.5,
-      "trigger_type": "price_below",
-      "outcome": "pending",
-      "pnl_5d": null,
-      "followed": "unknown",
       "driven_by": "technical"
     },
     {
-      "date": "2026-05-31",
-      "ticker": "MSFU",
+      "date": "2026-06-01",
+      "ticker": "02208",
       "bucket": "hold_and_watch",
       "confidence": 0.55,
       "trigger_type": "price_below",
       "outcome": "pending",
       "pnl_5d": null,
       "followed": "unknown",
-      "driven_by": "catalyst"
-    },
-    {
-      "date": "2026-05-31",
-      "ticker": "02208",
-      "bucket": "hold_and_watch",
-      "confidence": 0.5,
-      "trigger_type": "price_below",
-      "outcome": "pending",
-      "pnl_5d": null,
-      "followed": "unknown",
       "driven_by": "technical"
     },
     {
-      "date": "2026-05-31",
-      "ticker": "07226",
-      "bucket": "hold_and_watch",
-      "confidence": 0.5,
-      "trigger_type": "price_below",
-      "outcome": "pending",
-      "pnl_5d": null,
-      "followed": "unknown",
-      "driven_by": "technical"
-    },
-    {
-      "date": "2026-05-31",
+      "date": "2026-06-01",
       "ticker": "03032",
       "bucket": "hold_and_watch",
       "confidence": 0.55,
@@ -1729,7 +1757,7 @@
       "driven_by": "macro"
     },
     {
-      "date": "2026-05-31",
+      "date": "2026-06-01",
       "ticker": "03033",
       "bucket": "hold_and_watch",
       "confidence": 0.55,
@@ -1740,7 +1768,29 @@
       "driven_by": "macro"
     },
     {
-      "date": "2026-05-31",
+      "date": "2026-06-01",
+      "ticker": "RKLB",
+      "bucket": "hold_and_watch",
+      "confidence": 0.6,
+      "trigger_type": "price_below",
+      "outcome": "pending",
+      "pnl_5d": null,
+      "followed": "unknown",
+      "driven_by": "catalyst"
+    },
+    {
+      "date": "2026-06-01",
+      "ticker": "CRCL",
+      "bucket": "add_only_on_trigger",
+      "confidence": 0.55,
+      "trigger_type": "price_below",
+      "outcome": "pending",
+      "pnl_5d": null,
+      "followed": "unknown",
+      "driven_by": "catalyst"
+    },
+    {
+      "date": "2026-06-01",
       "ticker": "PLTU",
       "bucket": "trim_on_rebound",
       "confidence": 0.5,
@@ -1751,7 +1801,7 @@
       "driven_by": "catalyst"
     },
     {
-      "date": "2026-05-31",
+      "date": "2026-06-01",
       "ticker": "ROBN",
       "bucket": "cut",
       "confidence": 0.5,
@@ -1762,54 +1812,54 @@
       "driven_by": "technical"
     },
     {
-      "date": "2026-05-29",
+      "date": "2026-06-01",
+      "ticker": "MSFU",
+      "bucket": "hold_and_watch",
+      "confidence": 0.55,
+      "trigger_type": "price_below",
+      "outcome": "pending",
+      "pnl_5d": null,
+      "followed": "unknown",
+      "driven_by": "catalyst"
+    },
+    {
+      "date": "2026-05-31",
+      "ticker": "PLTU",
+      "bucket": "cut",
+      "confidence": 0.5,
+      "trigger_type": "open",
+      "outcome": "loss",
+      "pnl_5d": -0.0,
+      "followed": "unknown",
+      "driven_by": "technical"
+    },
+    {
+      "date": "2026-05-31",
+      "ticker": "07226",
+      "bucket": "trim_on_rebound",
+      "confidence": 0.45,
+      "trigger_type": "price_above",
+      "outcome": "win",
+      "pnl_5d": 3.59,
+      "followed": "unknown",
+      "driven_by": "macro"
+    },
+    {
+      "date": "2026-05-31",
       "ticker": "00100",
       "bucket": "hold_and_watch",
-      "confidence": 0.65,
+      "confidence": 0.55,
       "trigger_type": "price_below",
       "outcome": "win",
-      "pnl_5d": 7.69,
+      "pnl_5d": 5.0,
       "followed": "true",
       "driven_by": "catalyst"
     },
     {
-      "date": "2026-05-29",
-      "ticker": "07226",
-      "bucket": "trim_on_rebound",
-      "confidence": 0.6,
-      "trigger_type": "price_above",
-      "outcome": "win",
-      "pnl_5d": 6.0,
-      "followed": "false",
-      "driven_by": "technical"
-    },
-    {
-      "date": "2026-05-29",
-      "ticker": "PLTU",
-      "bucket": "cut",
-      "confidence": 0.7,
-      "trigger_type": "open",
-      "outcome": "loss",
-      "pnl_5d": -37.62,
-      "followed": "false",
-      "driven_by": "catalyst"
-    },
-    {
-      "date": "2026-05-29",
-      "ticker": "ROBN",
-      "bucket": "cut",
-      "confidence": 0.65,
-      "trigger_type": "open",
-      "outcome": "loss",
-      "pnl_5d": -22.29,
-      "followed": "false",
-      "driven_by": "technical"
-    },
-    {
-      "date": "2026-05-29",
+      "date": "2026-05-31",
       "ticker": "RKLB",
       "bucket": "hold_and_watch",
-      "confidence": 0.75,
+      "confidence": 0.55,
       "trigger_type": "price_below",
       "outcome": "win",
       "pnl_5d": 10.37,
@@ -1817,26 +1867,70 @@
       "driven_by": "catalyst"
     },
     {
-      "date": "2026-05-29",
+      "date": "2026-05-31",
       "ticker": "CRCL",
       "bucket": "add_only_on_trigger",
-      "confidence": 0.5,
+      "confidence": 0.45,
       "trigger_type": "price_below",
       "outcome": "win",
       "pnl_5d": 18.95,
-      "followed": "false",
+      "followed": "unknown",
       "driven_by": "catalyst"
     },
     {
-      "date": "2026-05-29",
-      "ticker": "MSFU",
+      "date": "2026-05-31",
+      "ticker": "ROBN",
       "bucket": "hold_and_watch",
-      "confidence": 0.6,
+      "confidence": 0.5,
       "trigger_type": "price_below",
       "outcome": "win",
-      "pnl_5d": 27.27,
+      "pnl_5d": 28.41,
+      "followed": "true",
+      "driven_by": "technical"
+    },
+    {
+      "date": "2026-05-31",
+      "ticker": "MSFU",
+      "bucket": "hold_and_watch",
+      "confidence": 0.55,
+      "trigger_type": "price_below",
+      "outcome": "win",
+      "pnl_5d": 18.18,
       "followed": "true",
       "driven_by": "catalyst"
+    },
+    {
+      "date": "2026-05-31",
+      "ticker": "02208",
+      "bucket": "hold_and_watch",
+      "confidence": 0.5,
+      "trigger_type": "price_below",
+      "outcome": "win",
+      "pnl_5d": 9.68,
+      "followed": "true",
+      "driven_by": "technical"
+    },
+    {
+      "date": "2026-05-31",
+      "ticker": "07226",
+      "bucket": "hold_and_watch",
+      "confidence": 0.5,
+      "trigger_type": "price_below",
+      "outcome": "win",
+      "pnl_5d": 7.43,
+      "followed": "true",
+      "driven_by": "technical"
+    },
+    {
+      "date": "2026-05-31",
+      "ticker": "03032",
+      "bucket": "hold_and_watch",
+      "confidence": 0.55,
+      "trigger_type": "manual",
+      "outcome": "loss",
+      "pnl_5d": 0.0,
+      "followed": "true",
+      "driven_by": "macro"
     }
   ],
   "plan_timeline": [
@@ -1851,9 +1945,9 @@
       "size_shares": 0,
       "confidence": 0.55,
       "rationale": "83%历史胜率+恒科纳入6/8催化+UBS目标1000+risk_on cap。但HHI 59%集中+近5日落后同行6.3pp",
-      "outcome": "pending",
-      "pnl_5d": null,
-      "followed": "unknown"
+      "outcome": "win",
+      "pnl_5d": 5.0,
+      "followed": "true"
     },
     {
       "date": "2026-05-31",
@@ -1866,9 +1960,9 @@
       "size_shares": 0,
       "confidence": 0.5,
       "rationale": "HSTECH 4900下方+2x杠杆decay+HHI危险集中。trigger 4.0未触发但下调stop至3.50。40%历史胜率，谨慎持有",
-      "outcome": "pending",
-      "pnl_5d": null,
-      "followed": "unknown"
+      "outcome": "win",
+      "pnl_5d": 7.43,
+      "followed": "true"
     },
     {
       "date": "2026-05-31",
@@ -1881,9 +1975,9 @@
       "size_shares": 0,
       "confidence": 0.55,
       "rationale": "Q1利润+40% YoY+JPM Overweight；400股小仓hold。Trump能源政策地缘风险需关注",
-      "outcome": "pending",
-      "pnl_5d": null,
-      "followed": "unknown"
+      "outcome": "win",
+      "pnl_5d": 9.68,
+      "followed": "true"
     },
     {
       "date": "2026-05-31",
@@ -1896,9 +1990,9 @@
       "size_shares": 0,
       "confidence": 0.55,
       "rationale": "1x恒科ETF，无额外杠杆decay，跟随HSTECH方向",
-      "outcome": "pending",
-      "pnl_5d": null,
-      "followed": "unknown"
+      "outcome": "loss",
+      "pnl_5d": 0.0,
+      "followed": "true"
     },
     {
       "date": "2026-05-31",
@@ -1911,9 +2005,9 @@
       "size_shares": 0,
       "confidence": 0.55,
       "rationale": "1x恒科ETF，无额外杠杆decay，跟随HSTECH方向",
-      "outcome": "pending",
-      "pnl_5d": null,
-      "followed": "unknown"
+      "outcome": "loss",
+      "pnl_5d": 0.0,
+      "followed": "true"
     },
     {
       "date": "2026-05-31",
@@ -1926,9 +2020,9 @@
       "size_shares": 0,
       "confidence": 0.55,
       "rationale": "+102%浮盈+Q1 rev $200M+63%+backlog $2.2B+Neutron首飞在即。SpaceX IPO降温是软情绪，不驱动action",
-      "outcome": "pending",
-      "pnl_5d": null,
-      "followed": "unknown"
+      "outcome": "win",
+      "pnl_5d": 10.37,
+      "followed": "true"
     },
     {
       "date": "2026-05-31",
@@ -1941,8 +2035,8 @@
       "size_shares": 1,
       "confidence": 0.5,
       "rationale": "USDC $77B>Tether+GENIUS Act推进；但立法利好已在价(+18%)，等回调。insider sell+空头文章是软情绪",
-      "outcome": "pending",
-      "pnl_5d": null,
+      "outcome": "win",
+      "pnl_5d": 18.95,
       "followed": "unknown"
     },
     {
@@ -1956,8 +2050,8 @@
       "size_shares": 7,
       "confidence": 0.5,
       "rationale": "PLTR insider sell $43M是硬催化+92x fwd PE+近5日+28.9%反弹。纪律减仓锁利，非信号驱动",
-      "outcome": "pending",
-      "pnl_5d": null,
+      "outcome": "win",
+      "pnl_5d": 4.82,
       "followed": "unknown"
     },
     {
@@ -1971,8 +2065,8 @@
       "size_shares": 20,
       "confidence": 0.5,
       "rationale": "连续四期cut计划未执行—执行断层是最大风险。HOOD thesis中性+2x杠杆decay。纪律驱动而非信号驱动",
-      "outcome": "pending",
-      "pnl_5d": null,
+      "outcome": "loss",
+      "pnl_5d": -0.0,
       "followed": "unknown"
     },
     {
@@ -1986,9 +2080,9 @@
       "size_shares": 0,
       "confidence": 0.55,
       "rationale": "MSFT Q3 beat rev $82.9B+18% Azure+29%。20股小仓hold",
-      "outcome": "pending",
-      "pnl_5d": null,
-      "followed": "unknown"
+      "outcome": "win",
+      "pnl_5d": 18.18,
+      "followed": "true"
     },
     {
       "date": "2026-05-29",
@@ -2071,64 +2165,64 @@
       "ticker": "00100",
       "region": "hk",
       "weight_pct": 59.33,
-      "avg_confidence": 0.636,
-      "n_actions": 13,
+      "avg_confidence": 0.63,
+      "n_actions": 14,
       "quadrant": "high_risk"
     },
     {
       "ticker": "07226",
       "region": "hk",
       "weight_pct": 27.44,
-      "avg_confidence": 0.607,
-      "n_actions": 12,
+      "avg_confidence": 0.595,
+      "n_actions": 13,
       "quadrant": "high_risk"
     },
     {
       "ticker": "ROBN",
       "region": "us",
       "weight_pct": 33.22,
-      "avg_confidence": 0.688,
-      "n_actions": 12,
+      "avg_confidence": 0.674,
+      "n_actions": 13,
       "quadrant": "conviction"
     },
     {
       "ticker": "RKLB",
       "region": "us",
       "weight_pct": 21.09,
-      "avg_confidence": 0.673,
-      "n_actions": 9,
+      "avg_confidence": 0.666,
+      "n_actions": 10,
       "quadrant": "conviction"
     },
     {
       "ticker": "PLTU",
       "region": "us",
       "weight_pct": 19.59,
-      "avg_confidence": 0.574,
-      "n_actions": 9,
+      "avg_confidence": 0.567,
+      "n_actions": 10,
       "quadrant": "low_conv_small"
     },
     {
       "ticker": "MSFU",
       "region": "us",
       "weight_pct": 19.46,
-      "avg_confidence": 0.648,
-      "n_actions": 9,
+      "avg_confidence": 0.638,
+      "n_actions": 10,
       "quadrant": "low_conv_small"
     },
     {
       "ticker": "CRCL",
       "region": "us",
       "weight_pct": 6.64,
-      "avg_confidence": 0.553,
-      "n_actions": 7,
+      "avg_confidence": 0.552,
+      "n_actions": 8,
       "quadrant": "low_conv_small"
     },
     {
       "ticker": "02208",
       "region": "hk",
       "weight_pct": 6.46,
-      "avg_confidence": 0.6,
-      "n_actions": 3,
+      "avg_confidence": 0.587,
+      "n_actions": 4,
       "quadrant": "low_conv_small"
     },
     {
@@ -2136,7 +2230,7 @@
       "region": "hk",
       "weight_pct": 5.63,
       "avg_confidence": 0.55,
-      "n_actions": 2,
+      "n_actions": 3,
       "quadrant": "low_conv_small"
     },
     {
@@ -2144,7 +2238,7 @@
       "region": "hk",
       "weight_pct": 1.15,
       "avg_confidence": 0.55,
-      "n_actions": 2,
+      "n_actions": 3,
       "quadrant": "low_conv_small"
     }
   ],
@@ -2229,7 +2323,7 @@
   "leveraged_etf": {
     "us_pct": 72.26,
     "hk_pct": 27.44,
-    "combined_pct": null,
+    "combined_pct": 38.14,
     "tickers": [
       "07226",
       "MSFU",
@@ -2238,48 +2332,48 @@
     ]
   },
   "risk": {
-    "generated_at": "2026-05-29T00:02:37.348762+00:00",
-    "as_of": "2026-05-29",
+    "generated_at": "2026-06-01T00:01:09.661621+00:00",
+    "as_of": "2026-06-01",
     "us": {
-      "beta_spx": 4.0603,
-      "vol_30d_annualized": 0.7596,
-      "max_dd_30d": -0.2011,
-      "sharpe_30d": 2.3607,
-      "current_value_usd": 2919.45
+      "beta_spx": 3.9465,
+      "vol_30d_annualized": 0.839,
+      "max_dd_30d": -0.2063,
+      "sharpe_30d": 2.7609,
+      "current_value_usd": 3401.46
     },
     "hk": {
-      "beta_hsi": 2.4849,
-      "vol_30d_annualized": 0.7805,
-      "max_dd_30d": -0.2033,
-      "sharpe_30d": -0.357,
-      "current_value_hkd": 85031.2
+      "beta_hsi": 2.519,
+      "vol_30d_annualized": 0.7642,
+      "max_dd_30d": -0.2036,
+      "sharpe_30d": 0.2561,
+      "current_value_hkd": 84954.8
     },
     "combined": {
-      "vol_30d_annualized": 0.656,
-      "max_dd_30d": -0.1686,
-      "sharpe_30d": 0.7897
+      "vol_30d_annualized": 0.6294,
+      "max_dd_30d": -0.1707,
+      "sharpe_30d": 0.4229
     },
     "leveraged_exposure": {
-      "us_leverage_factor_avg": 1.6742,
-      "hk_leverage_factor_avg": 1.2756,
-      "combined_avg": 1.3598,
-      "margin_at_risk_pct": 13.5981
+      "us_leverage_factor_avg": 1.7226,
+      "hk_leverage_factor_avg": 1.2744,
+      "combined_avg": 1.3811,
+      "margin_at_risk_pct": 13.8108
     },
     "alerts": [
       {
         "type": "high_beta",
         "severity": "high",
-        "detail": "US β vs S&P 500 = 4.0603 (> 3.0)"
+        "detail": "US β vs S&P 500 = 3.9465 (> 3.0)"
       },
       {
         "type": "high_vol",
         "severity": "high",
-        "detail": "Combined 30d annualised vol = 65.6% (> 50%)"
+        "detail": "Combined 30d annualised vol = 62.9% (> 50%)"
       },
       {
         "type": "deep_dd",
         "severity": "medium",
-        "detail": "Combined 30d max DD = -16.9% (< -10%)"
+        "detail": "Combined 30d max DD = -17.1% (< -10%)"
       }
     ],
     "meta": {
@@ -2301,8 +2395,8 @@
         ],
         "failed": [],
         "n_returns": 30,
-        "dates_first": "2026-04-15",
-        "dates_last": "2026-05-28"
+        "dates_first": "2026-04-16",
+        "dates_last": "2026-05-29"
       },
       "hk_fetch": {
         "fetched": [
@@ -2314,8 +2408,8 @@
         ],
         "failed": [],
         "n_returns": 30,
-        "dates_first": "2026-04-14",
-        "dates_last": "2026-05-28"
+        "dates_first": "2026-04-15",
+        "dates_last": "2026-05-29"
       }
     }
   },
@@ -2350,22 +2444,10 @@
     }
   },
   "benchmark": {
-    "generated_at": "2026-05-29T04:57:49.107615Z",
+    "generated_at": "2026-06-01T00:01:12.024603Z",
     "window_days": 60,
     "series": {
       "SPY": [
-        {
-          "date": "2026-03-30",
-          "close": 631.97
-        },
-        {
-          "date": "2026-03-31",
-          "close": 650.34
-        },
-        {
-          "date": "2026-04-01",
-          "close": 655.24
-        },
         {
           "date": "2026-04-02",
           "close": 655.83
@@ -2521,21 +2603,13 @@
         {
           "date": "2026-05-28",
           "close": 754.6
+        },
+        {
+          "date": "2026-05-29",
+          "close": 756.48
         }
       ],
       "HSI": [
-        {
-          "date": "2026-03-30",
-          "close": 24750.79
-        },
-        {
-          "date": "2026-03-31",
-          "close": 24788.14
-        },
-        {
-          "date": "2026-04-01",
-          "close": 25294.03
-        },
         {
           "date": "2026-04-02",
           "close": 25116.53
@@ -2682,22 +2756,10 @@
         },
         {
           "date": "2026-05-29",
-          "close": 25281.43
+          "close": 25182.39
         }
       ],
       "HSTECH": [
-        {
-          "date": "2026-03-30",
-          "close": 4690.08
-        },
-        {
-          "date": "2026-03-31",
-          "close": 4649.82
-        },
-        {
-          "date": "2026-04-01",
-          "close": 4756.45
-        },
         {
           "date": "2026-04-02",
           "close": 4679.1
@@ -2844,7 +2906,7 @@
         },
         {
           "date": "2026-05-29",
-          "close": 4969.8
+          "close": 4884.23
         }
       ]
     }
@@ -3465,20 +3527,83 @@
     ]
   },
   "influencer_feed": {
-    "generated_at": "2026-05-31T22:39:30.951715+00:00",
+    "generated_at": "2026-05-30T01:30:06.666134+00:00",
     "lookback_hours": 48,
     "sources": {
       "trump": "trumpstruth.org/feed (primary)",
       "musk": "google-news-rss (proxy)"
     },
-    "llm_filtered": false,
+    "llm_filtered": true,
     "counts": {
-      "total": 34,
+      "total": 10,
       "held_hits": 0,
-      "new_ideas": 0,
-      "sector_hits": 0
+      "new_ideas": 1,
+      "sector_hits": 8
     },
     "items": [
+      {
+        "author": "Musk",
+        "text": "Why a merger with SpaceX could be bad for Tesla shareholders",
+        "url": "",
+        "published": "Fri, 29 May 2026 13:44:17 GMT",
+        "origin": "gnews-rss",
+        "source": "Yahoo Finance",
+        "tickers": [
+          "TSLA"
+        ],
+        "held": [],
+        "new_ideas": [
+          "TSLA"
+        ],
+        "sectors": [
+          "电动车",
+          "航天"
+        ],
+        "sector_holdings": [],
+        "stance": "attack",
+        "relevance": 75,
+        "summary_cn": "报道分析SpaceX与特斯拉合并可能对特斯拉股东不利，直接点名TSLA。"
+      },
+      {
+        "author": "Trump",
+        "text": "Iran must agree that they will never have a Nuclear Weapon or Bomb. The Hormuz Strait must be immediately open, no tolls, for unrestricted shipping traffic, in both directions. All water mines (bombs), if any, will be terminated (we have removed, through detonation, numerous such mines with our great underwater mine sweepers. Iran will complete the immediate removal and/or detonation of any mines that are left, which will not be many!). Ships caught in the Strait due to our amazing and unprecedented Naval Blockade, which will now be lifted, may start the process of “heading home!” Say HELLO to",
+        "url": "https://trumpstruth.org/statuses/38852",
+        "published": "2026-05-29T14:51:24+00:00",
+        "origin": "truthsocial",
+        "tickers": [],
+        "held": [],
+        "new_ideas": [],
+        "sectors": [
+          "能源",
+          "地缘政治"
+        ],
+        "sector_holdings": [
+          "02208"
+        ],
+        "stance": "neutral",
+        "relevance": 60,
+        "summary_cn": "特朗普就伊朗核问题及霍尔木兹海峡通航发表强硬声明，涉及能源运输和地缘政治风险。"
+      },
+      {
+        "author": "Musk",
+        "text": "Massive Blue Origin rocket explosion gives edge to Elon Musk in space race",
+        "url": "",
+        "published": "Sat, 30 May 2026 01:12:41 GMT",
+        "origin": "gnews-rss",
+        "source": "The Washington Post",
+        "tickers": [],
+        "held": [],
+        "new_ideas": [],
+        "sectors": [
+          "航天"
+        ],
+        "sector_holdings": [
+          "RKLB"
+        ],
+        "stance": "neutral",
+        "relevance": 55,
+        "summary_cn": "报道指蓝色起源火箭爆炸给马斯克在太空竞赛中带来优势，但未直接提及上市公司。"
+      },
       {
         "author": "Musk",
         "text": "How SpaceX Is Structured to Favor Elon Musk",
@@ -3489,398 +3614,325 @@
         "tickers": [],
         "held": [],
         "new_ideas": [],
+        "sectors": [
+          "航天"
+        ],
+        "sector_holdings": [
+          "RKLB"
+        ],
         "stance": "neutral",
-        "relevance": null,
-        "summary_cn": ""
+        "relevance": 50,
+        "summary_cn": "报道分析SpaceX的股权结构如何有利于马斯克，但SpaceX未上市。"
       },
       {
         "author": "Musk",
-        "text": "SpaceX’s IPO Forces Wall Street to Reorganize Around It",
+        "text": "SpaceX’s IPO Is a Bet Gravity Doesn’t Apply to Elon Musk",
         "url": "",
-        "published": "Sun, 31 May 2026 21:00:09 GMT",
+        "published": "Mon, 25 May 2026 21:13:00 GMT",
         "origin": "gnews-rss",
-        "source": "Bloomberg.com",
+        "source": "WSJ",
         "tickers": [],
         "held": [],
         "new_ideas": [],
+        "sectors": [
+          "航天"
+        ],
+        "sector_holdings": [
+          "RKLB"
+        ],
         "stance": "neutral",
-        "relevance": null,
-        "summary_cn": ""
-      },
-      {
-        "author": "Musk",
-        "text": "Turns Out, Tesla's Best Cybertruck Customer Is SpaceX",
-        "url": "",
-        "published": "Sun, 31 May 2026 19:21:00 GMT",
-        "origin": "gnews-rss",
-        "source": "Barron's",
-        "tickers": [],
-        "held": [],
-        "new_ideas": [],
-        "stance": "neutral",
-        "relevance": null,
-        "summary_cn": ""
-      },
-      {
-        "author": "Musk",
-        "text": "A SpaceX/Tesla merger could trigger Musk’s $1T pay package automatically",
-        "url": "",
-        "published": "Sun, 31 May 2026 15:00:00 GMT",
-        "origin": "gnews-rss",
-        "source": "Electrek",
-        "tickers": [],
-        "held": [],
-        "new_ideas": [],
-        "stance": "neutral",
-        "relevance": null,
-        "summary_cn": ""
-      },
-      {
-        "author": "Musk",
-        "text": "Elon Musk Says Economy Cannot Function Without Prices: Tesla And SpaceX CEO Shares Stinging Critique Of Socialist Central Planning",
-        "url": "",
-        "published": "Sun, 31 May 2026 13:32:28 GMT",
-        "origin": "gnews-rss",
-        "source": "Yahoo Finance",
-        "tickers": [],
-        "held": [],
-        "new_ideas": [],
-        "stance": "neutral",
-        "relevance": null,
-        "summary_cn": ""
-      },
-      {
-        "author": "Musk",
-        "text": "Elon Musk wants to merge SpaceX and Tesla into a $3.4 trillion giant. The problem: it would lose money from day one",
-        "url": "",
-        "published": "Sun, 31 May 2026 07:00:00 GMT",
-        "origin": "gnews-rss",
-        "source": "Fortune",
-        "tickers": [],
-        "held": [],
-        "new_ideas": [],
-        "stance": "neutral",
-        "relevance": null,
-        "summary_cn": ""
+        "relevance": 50,
+        "summary_cn": "报道评论SpaceX IPO是对马斯克能否持续成功的赌注，但SpaceX未上市。"
       },
       {
         "author": "Musk",
         "text": "Elon Musk strikes down reports on SpaceX IPO rumors",
         "url": "",
-        "published": "Sat, 30 May 2026 00:46:24 GMT",
+        "published": "Fri, 29 May 2026 19:46:28 GMT",
         "origin": "gnews-rss",
         "source": "Teslarati",
         "tickers": [],
         "held": [],
         "new_ideas": [],
+        "sectors": [
+          "航天"
+        ],
+        "sector_holdings": [
+          "RKLB"
+        ],
         "stance": "neutral",
-        "relevance": null,
-        "summary_cn": ""
+        "relevance": 50,
+        "summary_cn": "马斯克否认SpaceX IPO传闻，但SpaceX未上市。"
       },
       {
         "author": "Musk",
-        "text": "As SpaceX IPO nears, traders think it's a near-certainty Musk becomes the first trillionaire",
+        "text": "Elon Musk’s SpaceX IPO could quickly launch into your retirement plan",
         "url": "",
-        "published": "Fri, 29 May 2026 16:32:29 GMT",
+        "published": "Fri, 29 May 2026 15:43:00 GMT",
+        "origin": "gnews-rss",
+        "source": "MarketWatch",
+        "tickers": [],
+        "held": [],
+        "new_ideas": [],
+        "sectors": [
+          "航天",
+          "退休基金"
+        ],
+        "sector_holdings": [
+          "RKLB"
+        ],
+        "stance": "neutral",
+        "relevance": 50,
+        "summary_cn": "报道探讨SpaceX IPO可能很快进入退休计划，但SpaceX未上市。"
+      },
+      {
+        "author": "Musk",
+        "text": "SpaceX Said to Cut IPO Valuation Goal to at Least $1.8 Trillion",
+        "url": "",
+        "published": "Fri, 29 May 2026 13:47:45 GMT",
+        "origin": "gnews-rss",
+        "source": "Bloomberg.com",
+        "tickers": [],
+        "held": [],
+        "new_ideas": [],
+        "sectors": [
+          "航天"
+        ],
+        "sector_holdings": [
+          "RKLB"
+        ],
+        "stance": "neutral",
+        "relevance": 50,
+        "summary_cn": "报道称SpaceX将IPO估值目标下调至至少1.8万亿美元，但SpaceX未上市。"
+      },
+      {
+        "author": "Musk",
+        "text": "SpaceX skeptics have added reason for concern after Musk comments diverge from IPO filing",
+        "url": "",
+        "published": "Fri, 29 May 2026 12:00:01 GMT",
         "origin": "gnews-rss",
         "source": "CNBC",
         "tickers": [],
         "held": [],
         "new_ideas": [],
+        "sectors": [
+          "航天"
+        ],
+        "sector_holdings": [
+          "RKLB"
+        ],
         "stance": "neutral",
-        "relevance": null,
-        "summary_cn": ""
+        "relevance": 50,
+        "summary_cn": "报道指出SpaceX的言论与IPO文件存在分歧，引发市场疑虑，但SpaceX未上市。"
       },
       {
         "author": "Trump",
-        "text": "The DronePort at the White House Ballroom will be, perhaps, the most sophisticated anywhere in the World! It will safeguard our Nation’s Capital, Washington, D.C., long into the future. Judge Richard Leon should stop playing games with America’s Security! If anything happens, he will be held responsible for the Death and Destruction caused to our Country. He has already created enough problems by allowing “Top Secret” information to be released and exposed based on a ridiculous lawsuit started by a highly litigious woman (serial plaintiff!) whose “strolling,” in her opinion, will be disturbed ",
-        "url": "https://trumpstruth.org/statuses/38965",
-        "published": "2026-05-31T15:34:34+00:00",
+        "text": "US ambassador: EU must honor its trade deal with Trump: https://www.politico.eu/article/us-ambassador-andrew-puzder-eu-honor-trade-deal-donald-trump/",
+        "url": "https://trumpstruth.org/statuses/38858",
+        "published": "2026-05-29T18:02:13+00:00",
         "origin": "truthsocial",
         "tickers": [],
         "held": [],
         "new_ideas": [],
+        "sectors": [
+          "贸易",
+          "关税"
+        ],
+        "sector_holdings": [],
         "stance": "neutral",
-        "relevance": null,
-        "summary_cn": ""
-      },
-      {
-        "author": "Trump",
-        "text": "RT @realDonaldTrumpI am pleased to announce that United States Ambassador to Türkiye, Tom Barrack, who has done an outstanding job, will be named Special Presidential Envoy to Syria and, likewise, Special Presidential Envoy to Iraq, as we advance our strategic cooperation with the Governments of Syria and Iraq, our relationship with them continues to grow! Tom will remain Ambassador to Türkiye, and operate with the full backing of the United States Department of State. We greatly appreciate the work that Tom Barrack has done, and his continued willingness to serve our Country. Thank you for yo",
-        "url": "https://trumpstruth.org/statuses/38964",
-        "published": "2026-05-31T14:39:25+00:00",
-        "origin": "truthsocial",
-        "tickers": [],
-        "held": [],
-        "new_ideas": [],
-        "stance": "neutral",
-        "relevance": null,
-        "summary_cn": ""
-      },
-      {
-        "author": "Trump",
-        "text": "RT @NewtGingrichAfter spending this week reviewing the Iranian war I am now convinced President Trump is on the edge of an historic victory. The real breakthrough for me came as I reviewed President Trump’s decisions and maneuvers not from the standpoint of American unilateralism but from the standpoint of the leader of a remarkable historic coalition, the largest coalition ever put together in the modern Middle East. Everyone understands that Israel is an important ally. What is little discussed is the depth of support from the United Arab Emirates, Qatar, Bahrain, Saudi Arabia and other coun",
-        "url": "https://trumpstruth.org/statuses/38961",
-        "published": "2026-05-31T14:34:10+00:00",
-        "origin": "truthsocial",
-        "tickers": [],
-        "held": [],
-        "new_ideas": [],
-        "stance": "neutral",
-        "relevance": null,
-        "summary_cn": ""
-      },
-      {
-        "author": "Trump",
-        "text": "RT @NewtGingrichAfter spending this week reviewing the Iranian war I am now convinced President Trump is on the edge of an historic victory. The real breakthrough for me came as I reviewed President Trump’s decisions and maneuvers not from the standpoint of American unilateralism but from the standpoint of the leader of a remarkable historic coalition, the largest coalition ever put together in the modern Middle East. Everyone understands that Israel is an important ally. What is little discussed is the depth of support from the United Arab Emirates, Qatar, Bahrain, Saudi Arabia and other coun",
-        "url": "https://trumpstruth.org/statuses/38959",
-        "published": "2026-05-31T14:13:18+00:00",
-        "origin": "truthsocial",
-        "tickers": [],
-        "held": [],
-        "new_ideas": [],
-        "stance": "neutral",
-        "relevance": null,
-        "summary_cn": ""
-      },
-      {
-        "author": "Trump",
-        "text": "I am pleased to announce that United States Ambassador to Türkiye, Tom Barrack, who has done an outstanding job, will be named Special Presidential Envoy to Syria and, likewise, Special Presidential Envoy to Iraq, as we advance our strategic cooperation with the Governments of Syria and Iraq, our relationship with them continues to grow! Tom will remain Ambassador to Türkiye, and operate with the full backing of the United States Department of State. We greatly appreciate the work that Tom Barrack has done, and his continued willingness to serve our Country. Thank you for your attention to thi",
-        "url": "https://trumpstruth.org/statuses/38958",
-        "published": "2026-05-31T14:09:32+00:00",
-        "origin": "truthsocial",
-        "tickers": [],
-        "held": [],
-        "new_ideas": [],
-        "stance": "neutral",
-        "relevance": null,
-        "summary_cn": ""
-      },
-      {
-        "author": "Trump",
-        "text": "The results of my Physical Examination, taken at Walter Reed Military Medical Center, and just released, were extremely good. Unlike other U.S. Presidents, none of whom have ever taken an approved, high difficulty, Cognitive Test, I scored a perfect 30 out of 30, considered “extreme intelligence.” Are the Dumocrats really surprised? In fact, this is my fourth such test, all PERFECT or, 120 correct answers out of 120 questions asked! It is very rare that anyone gets a Perfect Score, especially when achieved four times in a row. All people running for President and Vice President should be force",
-        "url": "https://trumpstruth.org/statuses/38955",
-        "published": "2026-05-31T04:35:28+00:00",
-        "origin": "truthsocial",
-        "tickers": [],
-        "held": [],
-        "new_ideas": [],
-        "stance": "neutral",
-        "relevance": null,
-        "summary_cn": ""
-      },
-      {
-        "author": "Trump",
-        "text": "Watch my interview with my fantastic daughter-in-law, Lara Trump, tonight at 9:00 - FoxNews. President DJT",
-        "url": "https://trumpstruth.org/statuses/38948",
-        "published": "2026-05-30T23:59:44+00:00",
-        "origin": "truthsocial",
-        "tickers": [],
-        "held": [],
-        "new_ideas": [],
-        "stance": "neutral",
-        "relevance": null,
-        "summary_cn": ""
-      },
-      {
-        "author": "Trump",
-        "text": "We should have a giant MAKE AMERICA GREAT AGAIN RALLY, for 250, instead of having overpriced singers, who nobody wants to hear, whose music is boring, and yet who do nothing but complain. Cancel it, just like I canceled my involvement with the failing and unsafe to be in Kennedy Center, because a Highly Conflicted, Crooked Federal Judge, said that I should not be allowed to spend my time and money in order to MAKE THE CENTER GREAT AGAIN, actually, far greater than it ever was before! It would have also been nice to see a Republican/Democrat union bring it back to life. The Kennedy Center is br",
-        "url": "https://trumpstruth.org/statuses/38947",
-        "published": "2026-05-30T23:03:32+00:00",
-        "origin": "truthsocial",
-        "tickers": [],
-        "held": [],
-        "new_ideas": [],
-        "stance": "neutral",
-        "relevance": null,
-        "summary_cn": ""
-      },
-      {
-        "author": "Trump",
-        "text": "RT @realDonaldTrumpSee, they have a Ballroom — It’s called The Great Hall of China! It’s very large and beautiful. Why do people fight me for having something even better? The Dumocrats are CRAZY! President DONALD J. TRUMP",
-        "url": "https://trumpstruth.org/statuses/38946",
-        "published": "2026-05-30T22:50:16+00:00",
-        "origin": "truthsocial",
-        "tickers": [],
-        "held": [],
-        "new_ideas": [],
-        "stance": "neutral",
-        "relevance": null,
-        "summary_cn": ""
-      },
-      {
-        "author": "Trump",
-        "text": "RT @realDonaldTrumpThank you Jaxson! It was great being with you. I know you’re taking some heat from the Radical Left Lunatics who are jealous of you, me, and everyone who surrounds us but, I also know that your Jersey also went to Number One, and you’re making Millions of Dollars so, YOU ARE A WINNER — THEY ARE ALL LOSERS. I’ll see you in the White House! President DJT",
-        "url": "https://trumpstruth.org/statuses/38941",
-        "published": "2026-05-30T22:49:29+00:00",
-        "origin": "truthsocial",
-        "tickers": [],
-        "held": [],
-        "new_ideas": [],
-        "stance": "neutral",
-        "relevance": null,
-        "summary_cn": ""
-      },
-      {
-        "author": "Trump",
-        "text": "RT @realDonaldTrumpThe Reflecting Pool, built between The Lincoln Memorial and The Washington Monument, which was destroyed by Barack Hussein Obama and Sleepy Joe Biden after spending Hundreds of Millions of Dollars trying to fix it (It only got worse!), is moving along nicely, and we should easily make the July 4th date. It will be SPECTACULAR, and good, without leaks, for 100 years, at a fraction of the cost! President DONALD J. TRUMP",
-        "url": "https://trumpstruth.org/statuses/38942",
-        "published": "2026-05-30T22:49:21+00:00",
-        "origin": "truthsocial",
-        "tickers": [],
-        "held": [],
-        "new_ideas": [],
-        "stance": "neutral",
-        "relevance": null,
-        "summary_cn": ""
-      },
-      {
-        "author": "Trump",
-        "text": "RT @realDonaldTrumpI understand Artists are getting “the yips” having to do with their performance on Wednesday, so I am thinking about bringing the Number One Attraction anywhere in the World, the man who gets much larger audiences than Elvis in his prime, and he does so without a guitar, the man who loves our Country more than anyone else, and the man who some say is the Greatest President in History (THE GOAT!), DONALD J. TRUMP, to take the place of these highly paid, Third Rate “Artists,” and give a major speech, rallying the Country forward like I have done ever since being President! Two",
-        "url": "https://trumpstruth.org/statuses/38943",
-        "published": "2026-05-30T22:49:08+00:00",
-        "origin": "truthsocial",
-        "tickers": [],
-        "held": [],
-        "new_ideas": [],
-        "stance": "neutral",
-        "relevance": null,
-        "summary_cn": ""
-      },
-      {
-        "author": "Trump",
-        "text": "RT @realDonaldTrumpCan you imagine? A Barack Hussein Obama Judge named Christopher Cooper has stopped a magnificent structural and aesthetic rebuilding of The Trump Kennedy Center where Millions of Dollars of material, marble, furniture, steel, air conditioning, heating, and so much else was ordered, or soon to be ordered, with the end result being a structure that would no longer be in a potential state of collapse, rusted, rotted, and rat and bug infested, to one that would be the Finest anywhere in the World. It was necessary to close the Center in order to get this work done. It is not pos",
-        "url": "https://trumpstruth.org/statuses/38944",
-        "published": "2026-05-30T22:48:58+00:00",
-        "origin": "truthsocial",
-        "tickers": [],
-        "held": [],
-        "new_ideas": [],
-        "stance": "neutral",
-        "relevance": null,
-        "summary_cn": ""
-      },
-      {
-        "author": "Trump",
-        "text": "See, they have a Ballroom — It’s called The Great Hall of China! It’s very large and beautiful. Why do people fight me for having something even better? The Dumocrats are CRAZY! President DONALD J. TRUMP",
-        "url": "https://trumpstruth.org/statuses/38945",
-        "published": "2026-05-30T22:48:14+00:00",
-        "origin": "truthsocial",
-        "tickers": [],
-        "held": [],
-        "new_ideas": [],
-        "stance": "neutral",
-        "relevance": null,
-        "summary_cn": ""
-      },
-      {
-        "author": "Trump",
-        "text": "Watch Lara Trump tonight on FoxNews at 9 P.M. EST. She interviews me for the entire Show! President DJT",
-        "url": "https://trumpstruth.org/statuses/38910",
-        "published": "2026-05-30T19:17:36+00:00",
-        "origin": "truthsocial",
-        "tickers": [],
-        "held": [],
-        "new_ideas": [],
-        "stance": "neutral",
-        "relevance": null,
-        "summary_cn": ""
-      },
-      {
-        "author": "Trump",
-        "text": "Tom Brady is a great player, and great guy!President DJT",
-        "url": "https://trumpstruth.org/statuses/38903",
-        "published": "2026-05-30T16:56:00+00:00",
-        "origin": "truthsocial",
-        "tickers": [],
-        "held": [],
-        "new_ideas": [],
-        "stance": "neutral",
-        "relevance": null,
-        "summary_cn": ""
-      },
-      {
-        "author": "Trump",
-        "text": "PRESIDENT DONALD J. TRUMP vs. Kathy Hochul, New York’s failed Governor who, if people are smart, will vote for Bruce Blakeman — He will, MAKE NEW YORK GREAT AGAIN! President DJT",
-        "url": "https://trumpstruth.org/statuses/38902",
-        "published": "2026-05-30T16:45:56+00:00",
-        "origin": "truthsocial",
-        "tickers": [],
-        "held": [],
-        "new_ideas": [],
-        "stance": "neutral",
-        "relevance": null,
-        "summary_cn": ""
-      },
-      {
-        "author": "Trump",
-        "text": "RT @realDonaldTrumpThank you Jaxson! It was great being with you. I know you’re taking some heat from the Radical Left Lunatics who are jealous of you, me, and everyone who surrounds us but, I also know that your Jersey also went to Number One, and you’re making Millions of Dollars so, YOU ARE A WINNER — THEY ARE ALL LOSERS. I’ll see you in the White House! President DJT",
-        "url": "https://trumpstruth.org/statuses/38897",
-        "published": "2026-05-30T16:16:42+00:00",
-        "origin": "truthsocial",
-        "tickers": [],
-        "held": [],
-        "new_ideas": [],
-        "stance": "neutral",
-        "relevance": null,
-        "summary_cn": ""
-      },
-      {
-        "author": "Trump",
-        "text": "RT @realDonaldTrumpThe Reflecting Pool, built between The Lincoln Memorial and The Washington Monument, which was destroyed by Barack Hussein Obama and Sleepy Joe Biden after spending Hundreds of Millions of Dollars trying to fix it (It only got worse!), is moving along nicely, and we should easily make the July 4th date. It will be SPECTACULAR, and good, without leaks, for 100 years, at a fraction of the cost! President DONALD J. TRUMP",
-        "url": "https://trumpstruth.org/statuses/38899",
-        "published": "2026-05-30T16:16:35+00:00",
-        "origin": "truthsocial",
-        "tickers": [],
-        "held": [],
-        "new_ideas": [],
-        "stance": "neutral",
-        "relevance": null,
-        "summary_cn": ""
-      },
-      {
-        "author": "Trump",
-        "text": "RT @realDonaldTrumpI understand Artists are getting “the yips” having to do with their performance on Wednesday, so I am thinking about bringing the Number One Attraction anywhere in the World, the man who gets much larger audiences than Elvis in his prime, and he does so without a guitar, the man who loves our Country more than anyone else, and the man who some say is the Greatest President in History (THE GOAT!), DONALD J. TRUMP, to take the place of these highly paid, Third Rate “Artists,” and give a major speech, rallying the Country forward like I have done ever since being President! Two",
-        "url": "https://trumpstruth.org/statuses/38900",
-        "published": "2026-05-30T16:16:20+00:00",
-        "origin": "truthsocial",
-        "tickers": [],
-        "held": [],
-        "new_ideas": [],
-        "stance": "neutral",
-        "relevance": null,
-        "summary_cn": ""
-      },
-      {
-        "author": "Trump",
-        "text": "RT @realDonaldTrumpCan you imagine? A Barack Hussein Obama Judge named Christopher Cooper has stopped a magnificent structural and aesthetic rebuilding of The Trump Kennedy Center where Millions of Dollars of material, marble, furniture, steel, air conditioning, heating, and so much else was ordered, or soon to be ordered, with the end result being a structure that would no longer be in a potential state of collapse, rusted, rotted, and rat and bug infested, to one that would be the Finest anywhere in the World. It was necessary to close the Center in order to get this work done. It is not pos",
-        "url": "https://trumpstruth.org/statuses/38901",
-        "published": "2026-05-30T16:16:17+00:00",
-        "origin": "truthsocial",
-        "tickers": [],
-        "held": [],
-        "new_ideas": [],
-        "stance": "neutral",
-        "relevance": null,
-        "summary_cn": ""
-      },
-      {
-        "author": "Trump",
-        "text": "Thank you Jaxson! It was great being with you. I know you’re taking some heat from the Radical Left Lunatics who are jealous of you, me, and everyone who surrounds us but, I also know that your Jersey also went to Number One, and you’re making Millions of Dollars so, YOU ARE A WINNER — THEY ARE ALL LOSERS. I’ll see you in the White House! President DJT",
-        "url": "https://trumpstruth.org/statuses/38898",
-        "published": "2026-05-30T16:15:59+00:00",
-        "origin": "truthsocial",
-        "tickers": [],
-        "held": [],
-        "new_ideas": [],
-        "stance": "neutral",
-        "relevance": null,
-        "summary_cn": ""
+        "relevance": 55,
+        "summary_cn": "特朗普转发美国驻欧盟大使文章，要求欧盟遵守与美国的贸易协议，涉及贸易政策。"
       }
     ],
     "held_hits": [],
-    "new_ideas": [],
-    "sector_hits": []
+    "new_ideas": [
+      {
+        "author": "Musk",
+        "text": "Why a merger with SpaceX could be bad for Tesla shareholders",
+        "url": "",
+        "published": "Fri, 29 May 2026 13:44:17 GMT",
+        "origin": "gnews-rss",
+        "source": "Yahoo Finance",
+        "tickers": [
+          "TSLA"
+        ],
+        "held": [],
+        "new_ideas": [
+          "TSLA"
+        ],
+        "sectors": [
+          "电动车",
+          "航天"
+        ],
+        "sector_holdings": [],
+        "stance": "attack",
+        "relevance": 75,
+        "summary_cn": "报道分析SpaceX与特斯拉合并可能对特斯拉股东不利，直接点名TSLA。"
+      }
+    ],
+    "sector_hits": [
+      {
+        "author": "Trump",
+        "text": "Iran must agree that they will never have a Nuclear Weapon or Bomb. The Hormuz Strait must be immediately open, no tolls, for unrestricted shipping traffic, in both directions. All water mines (bombs), if any, will be terminated (we have removed, through detonation, numerous such mines with our great underwater mine sweepers. Iran will complete the immediate removal and/or detonation of any mines that are left, which will not be many!). Ships caught in the Strait due to our amazing and unprecedented Naval Blockade, which will now be lifted, may start the process of “heading home!” Say HELLO to",
+        "url": "https://trumpstruth.org/statuses/38852",
+        "published": "2026-05-29T14:51:24+00:00",
+        "origin": "truthsocial",
+        "tickers": [],
+        "held": [],
+        "new_ideas": [],
+        "sectors": [
+          "能源",
+          "地缘政治"
+        ],
+        "sector_holdings": [
+          "02208"
+        ],
+        "stance": "neutral",
+        "relevance": 60,
+        "summary_cn": "特朗普就伊朗核问题及霍尔木兹海峡通航发表强硬声明，涉及能源运输和地缘政治风险。"
+      },
+      {
+        "author": "Musk",
+        "text": "Massive Blue Origin rocket explosion gives edge to Elon Musk in space race",
+        "url": "",
+        "published": "Sat, 30 May 2026 01:12:41 GMT",
+        "origin": "gnews-rss",
+        "source": "The Washington Post",
+        "tickers": [],
+        "held": [],
+        "new_ideas": [],
+        "sectors": [
+          "航天"
+        ],
+        "sector_holdings": [
+          "RKLB"
+        ],
+        "stance": "neutral",
+        "relevance": 55,
+        "summary_cn": "报道指蓝色起源火箭爆炸给马斯克在太空竞赛中带来优势，但未直接提及上市公司。"
+      },
+      {
+        "author": "Musk",
+        "text": "How SpaceX Is Structured to Favor Elon Musk",
+        "url": "",
+        "published": "Tue, 26 May 2026 14:47:56 GMT",
+        "origin": "gnews-rss",
+        "source": "The New York Times",
+        "tickers": [],
+        "held": [],
+        "new_ideas": [],
+        "sectors": [
+          "航天"
+        ],
+        "sector_holdings": [
+          "RKLB"
+        ],
+        "stance": "neutral",
+        "relevance": 50,
+        "summary_cn": "报道分析SpaceX的股权结构如何有利于马斯克，但SpaceX未上市。"
+      },
+      {
+        "author": "Musk",
+        "text": "SpaceX’s IPO Is a Bet Gravity Doesn’t Apply to Elon Musk",
+        "url": "",
+        "published": "Mon, 25 May 2026 21:13:00 GMT",
+        "origin": "gnews-rss",
+        "source": "WSJ",
+        "tickers": [],
+        "held": [],
+        "new_ideas": [],
+        "sectors": [
+          "航天"
+        ],
+        "sector_holdings": [
+          "RKLB"
+        ],
+        "stance": "neutral",
+        "relevance": 50,
+        "summary_cn": "报道评论SpaceX IPO是对马斯克能否持续成功的赌注，但SpaceX未上市。"
+      },
+      {
+        "author": "Musk",
+        "text": "Elon Musk strikes down reports on SpaceX IPO rumors",
+        "url": "",
+        "published": "Fri, 29 May 2026 19:46:28 GMT",
+        "origin": "gnews-rss",
+        "source": "Teslarati",
+        "tickers": [],
+        "held": [],
+        "new_ideas": [],
+        "sectors": [
+          "航天"
+        ],
+        "sector_holdings": [
+          "RKLB"
+        ],
+        "stance": "neutral",
+        "relevance": 50,
+        "summary_cn": "马斯克否认SpaceX IPO传闻，但SpaceX未上市。"
+      },
+      {
+        "author": "Musk",
+        "text": "Elon Musk’s SpaceX IPO could quickly launch into your retirement plan",
+        "url": "",
+        "published": "Fri, 29 May 2026 15:43:00 GMT",
+        "origin": "gnews-rss",
+        "source": "MarketWatch",
+        "tickers": [],
+        "held": [],
+        "new_ideas": [],
+        "sectors": [
+          "航天",
+          "退休基金"
+        ],
+        "sector_holdings": [
+          "RKLB"
+        ],
+        "stance": "neutral",
+        "relevance": 50,
+        "summary_cn": "报道探讨SpaceX IPO可能很快进入退休计划，但SpaceX未上市。"
+      },
+      {
+        "author": "Musk",
+        "text": "SpaceX Said to Cut IPO Valuation Goal to at Least $1.8 Trillion",
+        "url": "",
+        "published": "Fri, 29 May 2026 13:47:45 GMT",
+        "origin": "gnews-rss",
+        "source": "Bloomberg.com",
+        "tickers": [],
+        "held": [],
+        "new_ideas": [],
+        "sectors": [
+          "航天"
+        ],
+        "sector_holdings": [
+          "RKLB"
+        ],
+        "stance": "neutral",
+        "relevance": 50,
+        "summary_cn": "报道称SpaceX将IPO估值目标下调至至少1.8万亿美元，但SpaceX未上市。"
+      },
+      {
+        "author": "Musk",
+        "text": "SpaceX skeptics have added reason for concern after Musk comments diverge from IPO filing",
+        "url": "",
+        "published": "Fri, 29 May 2026 12:00:01 GMT",
+        "origin": "gnews-rss",
+        "source": "CNBC",
+        "tickers": [],
+        "held": [],
+        "new_ideas": [],
+        "sectors": [
+          "航天"
+        ],
+        "sector_holdings": [
+          "RKLB"
+        ],
+        "stance": "neutral",
+        "relevance": 50,
+        "summary_cn": "报道指出SpaceX的言论与IPO文件存在分歧，引发市场疑虑，但SpaceX未上市。"
+      }
+    ]
   },
   "regime": {
     "label": "risk_on",
@@ -3996,8 +4048,8 @@
       "unrealized": -3321.44
     },
     "combined_usd": {
-      "realized": null,
-      "unrealized": null
+      "realized": 2299.31,
+      "unrealized": 349.27
     }
   },
   "capital_deployed": {
@@ -4007,9 +4059,9 @@
     },
     "hk": {
       "native": 95535.4,
-      "usd": null
+      "usd": 12192.48
     },
-    "combined_usd": null
+    "combined_usd": 16193.66
   },
   "net_principal_return": {
     "us": {
@@ -4026,9 +4078,9 @@
       "return_basis": "net_principal"
     },
     "combined_usd": {
-      "net_principal": null,
-      "total_profit": null,
-      "return_pct": null
+      "net_principal": 12810.73,
+      "total_profit": 2648.58,
+      "return_pct": 20.67
     },
     "formula": "回报率 = (浮动 + 已实现) ÷ 本金；本金优先用 true_principal（峰值净投入），否则用 净投入本金=累计成本−已实现"
   }
