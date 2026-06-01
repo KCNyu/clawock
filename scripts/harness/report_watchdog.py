@@ -84,7 +84,17 @@ def main():
     #      garbage even though the block may technically appear (loop check —
     #      see brief_watchdog; 2026-06-01 intraday stall scored 49 vs threshold 5).
     loop_score, blob = transcript_loop_score(last.get('sessionId'))
-    delivered = first_line in last_summary
+    # Delivery signal — authoritative first, brittle string-match as fallback.
+    # 2026-06-01 false-positive: a healthy run where the model called the send
+    # tool fine but its run-record `summary` was meta-prose ("Report sent
+    # successfully. Let me provide a summary…") with no block first-line → the
+    # old `first_line in last_summary` check fired `not-delivered` and resent a
+    # duplicate stub. The run-record's `delivery.messageToolSentTo` records that
+    # the model actually invoked the send tool (empty in the 2026-05-29 stall,
+    # where core auto-delivered partial prose), so trust that; fall back to the
+    # summary match only when telemetry is absent.
+    sent_via_tool = bool((last.get('delivery') or {}).get('messageToolSentTo'))
+    delivered = sent_via_tool or (first_line in last_summary)
     looped = loop_score >= LOOP_THRESHOLD
     if delivered and not looped:
         log({'tag': tag, 'action': 'ok',
