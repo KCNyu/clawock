@@ -9,10 +9,15 @@ instead of the close briefing, even though preflight had produced a perfectly go
 postflight). So this runs OUT OF BAND (system crontab, a few min after the report
 cron's expected completion) and asks: did the report actually deliver?
 
-Detection: reports deliver preflight's `raw_wechat_block` verbatim, so we check
-whether the target job's latest run summary contains that block's first line. If
-not, the LLM stalled/failed → resend the `raw_wechat_block` directly (data only,
-banner-flagged auto-resend; no LLM). Dedupe flag prevents double-sends.
+Detection (two independent failure signatures): reports deliver preflight's
+`raw_wechat_block` verbatim, so we (a) check whether the target job's latest run
+summary contains that block's first line — if not, the LLM stalled/failed; and
+(b) score the session transcript for a mimo repeat-loop (transcript_loop_score) —
+a high score means the delivery turn degenerated into a repeated sentence and
+burned the maxTokens budget on garbage even if the block technically appears
+(2026-06-01: an intraday delivery loop scored 49 vs threshold 5). Either signature
+→ resend the `raw_wechat_block` directly (data only, banner-flagged auto-resend;
+no LLM). Dedupe flag prevents double-sends.
 
 (Shared run-record / target / send / log helpers live in _watchdog_common.py.)
 
@@ -31,7 +36,10 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from _watchdog_common import (  # noqa: E402
     WS, HKT, log, find_job_id, read_runs, today_runs, resolve_target, send_wechat,
+    transcript_loop_score,
 )
+
+LOOP_THRESHOLD = 5  # transcript loop_score ≥ this ⇒ mimo repeat-loop ⇒ garbage delivery
 
 
 def main():
@@ -65,13 +73,26 @@ def main():
 
     runs = read_runs(job_id)
     runs_today = today_runs(job_id)
-    last_summary = runs_today[-1].get('summary', '') if runs_today else ''
+    last = runs_today[-1] if runs_today else {}
+    last_summary = last.get('summary', '')
 
-    if first_line in last_summary:
-        log({'tag': tag, 'action': 'ok', 'reason': 'report delivered normally'})
+    # Two independent failure signatures:
+    #  (a) the report block's first line never made it into the summary → LLM
+    #      stalled/failed, or the cron never produced a run (delivery check);
+    #  (b) the delivery turn was a mimo repeat-loop (transcript_loop_score high)
+    #      that burned the maxTokens budget on one repeated sentence and shipped
+    #      garbage even though the block may technically appear (loop check —
+    #      see brief_watchdog; 2026-06-01 intraday stall scored 49 vs threshold 5).
+    loop_score, blob = transcript_loop_score(last.get('sessionId'))
+    delivered = first_line in last_summary
+    looped = loop_score >= LOOP_THRESHOLD
+    if delivered and not looped:
+        log({'tag': tag, 'action': 'ok',
+             'reason': f'report delivered normally (loop_score={loop_score})'})
         return 0
+    fail_kind = 'not-delivered' if not delivered else f'repeat-loop(score={loop_score})'
 
-    # LLM stalled/failed (or cron never produced a run). Resend the data block.
+    # Resend the clean data block (data only, no LLM).
     flag = WS / 'memory' / '.tmp' / f'watchdog-{tag}-{today}.done'
     if flag.exists():
         log({'tag': tag, 'action': 'skip', 'reason': 'already resent (dedupe flag present)'})
@@ -89,11 +110,13 @@ def main():
 
     sent_ok, out = send_wechat(channel, to, account, message, args.dry_run)
     log({'tag': tag, 'action': 'resend', 'dry_run': args.dry_run, 'sent_ok': sent_ok,
-         'job_id': job_id, 'last_summary_head': last_summary[:80], 'out': out})
+         'job_id': job_id, 'fail_kind': fail_kind, 'loop_score': loop_score,
+         'last_summary_head': last_summary[:80], 'out': out})
     if sent_ok and not args.dry_run:
         flag.write_text(datetime.now(HKT).isoformat())
 
-    print(json.dumps({'tag': tag, 'resent': sent_ok, 'dry_run': args.dry_run}, ensure_ascii=False))
+    print(json.dumps({'tag': tag, 'fail_kind': fail_kind, 'loop_score': loop_score,
+                      'resent': sent_ok, 'dry_run': args.dry_run}, ensure_ascii=False))
     return 0
 
 
