@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-01T18:30:43.359761+00:00",
+  "generated_at": "2026-06-01T23:15:48.083562+00:00",
   "lookback_hours": 48,
   "sources": {
     "trump": "trumpstruth.org/feed (primary)",
@@ -7,10 +7,10 @@
   },
   "llm_filtered": true,
   "counts": {
-    "total": 8,
+    "total": 4,
     "held_hits": 0,
-    "new_ideas": 2,
-    "sector_hits": 6
+    "new_ideas": 3,
+    "sector_hits": 1
   },
   "items": [
     {
@@ -28,22 +28,21 @@
         "TSLA"
       ],
       "sectors": [
-        "航天",
         "电动车",
-        "AI"
+        "航天"
       ],
       "sector_holdings": [],
       "stance": "attack",
-      "relevance": 75,
-      "summary_cn": "报道马斯克想合并SpaceX和特斯拉，但分析称该交易从第一天起就会亏损，对特斯拉构成潜在利空。"
+      "relevance": 70,
+      "summary_cn": "分析指出马斯克想合并SpaceX与特斯拉，但该交易从第一天起就会亏损，对特斯拉构成利空。"
     },
     {
       "author": "Musk",
-      "text": "Tesla Optimus & Musk face a new threat — OpenAI Robotics",
+      "text": "Elon Musk Saw the Domino’s App and Couldn’t Believe Tesla Needed 64 Clicks to Sell a Car",
       "url": "",
-      "published": "Mon, 01 Jun 2026 16:02:02 GMT",
+      "published": "Mon, 01 Jun 2026 19:00:00 GMT",
       "origin": "gnews-rss",
-      "source": "Yahoo Finance",
+      "source": "Texas Border Business",
       "tickers": [
         "TSLA"
       ],
@@ -52,47 +51,48 @@
         "TSLA"
       ],
       "sectors": [
-        "AI",
-        "机器人",
         "电动车"
       ],
       "sector_holdings": [],
       "stance": "attack",
-      "relevance": 70,
-      "summary_cn": "报道OpenAI机器人对特斯拉Optimus和马斯克构成新威胁，暗示竞争压力。"
+      "relevance": 65,
+      "summary_cn": "Musk 批评特斯拉购车流程繁琐（需64次点击），暗示公司运营效率问题。"
     },
     {
       "author": "Musk",
-      "text": "SpaceX’s IPO Forces Wall Street to Reorganize Around It",
+      "text": "The Odds SpaceX Merges With Tesla Are Higher Than You Think",
       "url": "",
-      "published": "Mon, 01 Jun 2026 13:56:05 GMT",
+      "published": "Mon, 01 Jun 2026 20:46:00 GMT",
       "origin": "gnews-rss",
-      "source": "Bloomberg.com",
-      "tickers": [],
+      "source": "Barron's",
+      "tickers": [
+        "TSLA"
+      ],
       "held": [],
-      "new_ideas": [],
+      "new_ideas": [
+        "TSLA"
+      ],
       "sectors": [
-        "航天",
-        "IPO"
+        "电动车",
+        "航天"
       ],
-      "sector_holdings": [
-        "RKLB"
-      ],
+      "sector_holdings": [],
       "stance": "neutral",
       "relevance": 60,
-      "summary_cn": "报道SpaceX IPO迫使华尔街重组，涉及航天板块，但SpaceX未上市，无直接可交易标的。"
+      "summary_cn": "分析认为SpaceX与特斯拉合并的可能性高于预期，涉及特斯拉与航天板块。"
     },
     {
       "author": "Musk",
-      "text": "Elon Musk strikes down reports on SpaceX IPO rumors",
+      "text": "Trump Shovels $4 Billion Directly to Elon Musk, Who Spent a Fortune Getting Him Elected",
       "url": "",
-      "published": "Sat, 30 May 2026 00:46:24 GMT",
+      "published": "Mon, 01 Jun 2026 21:32:58 GMT",
       "origin": "gnews-rss",
-      "source": "Teslarati",
+      "source": "Futurism",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
+        "政府合同",
         "航天"
       ],
       "sector_holdings": [
@@ -100,89 +100,7 @@
       ],
       "stance": "neutral",
       "relevance": 55,
-      "summary_cn": "马斯克否认SpaceX IPO传闻，涉及航天板块，但SpaceX未上市。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk, SpaceX and the illusion of wealth",
-      "url": "",
-      "published": "Mon, 01 Jun 2026 17:00:09 GMT",
-      "origin": "gnews-rss",
-      "source": "Le Monde.fr",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天"
-      ],
-      "sector_holdings": [
-        "RKLB"
-      ],
-      "stance": "neutral",
-      "relevance": 55,
-      "summary_cn": "新闻讨论SpaceX的财富结构，涉及航天板块，但未直接点名可交易标的。"
-    },
-    {
-      "author": "Musk",
-      "text": "SpaceX says it will reserve 5% of its IPO shares for staff, friends and family",
-      "url": "",
-      "published": "Mon, 01 Jun 2026 15:15:00 GMT",
-      "origin": "gnews-rss",
-      "source": "MarketWatch",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "IPO"
-      ],
-      "sector_holdings": [
-        "RKLB"
-      ],
-      "stance": "neutral",
-      "relevance": 55,
-      "summary_cn": "SpaceX宣布将为员工、朋友和家人预留5%的IPO股份，涉及航天板块，但SpaceX未上市。"
-    },
-    {
-      "author": "Musk",
-      "text": "For SpaceX IPO Investors, a Long List of Unfriendly Shareholder Policies",
-      "url": "",
-      "published": "Mon, 01 Jun 2026 08:54:29 GMT",
-      "origin": "gnews-rss",
-      "source": "Morningstar",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "IPO"
-      ],
-      "sector_holdings": [
-        "RKLB"
-      ],
-      "stance": "neutral",
-      "relevance": 55,
-      "summary_cn": "讨论SpaceX IPO投资者面临的不友好股东政策，涉及航天板块，但SpaceX未上市。"
-    },
-    {
-      "author": "Musk",
-      "text": "How SpaceX Is Structured to Favor Elon Musk",
-      "url": "",
-      "published": "Tue, 26 May 2026 14:47:56 GMT",
-      "origin": "gnews-rss",
-      "source": "The New York Times",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天"
-      ],
-      "sector_holdings": [
-        "RKLB"
-      ],
-      "stance": "neutral",
-      "relevance": 50,
-      "summary_cn": "分析SpaceX的股权结构如何偏向马斯克，涉及航天板块，但无直接可交易标的。"
+      "summary_cn": "新闻称特朗普政府向马斯克旗下公司（如SpaceX）提供巨额资金，涉及政府合同与航天板块。"
     }
   ],
   "held_hits": [],
@@ -202,22 +120,21 @@
         "TSLA"
       ],
       "sectors": [
-        "航天",
         "电动车",
-        "AI"
+        "航天"
       ],
       "sector_holdings": [],
       "stance": "attack",
-      "relevance": 75,
-      "summary_cn": "报道马斯克想合并SpaceX和特斯拉，但分析称该交易从第一天起就会亏损，对特斯拉构成潜在利空。"
+      "relevance": 70,
+      "summary_cn": "分析指出马斯克想合并SpaceX与特斯拉，但该交易从第一天起就会亏损，对特斯拉构成利空。"
     },
     {
       "author": "Musk",
-      "text": "Tesla Optimus & Musk face a new threat — OpenAI Robotics",
+      "text": "Elon Musk Saw the Domino’s App and Couldn’t Believe Tesla Needed 64 Clicks to Sell a Car",
       "url": "",
-      "published": "Mon, 01 Jun 2026 16:02:02 GMT",
+      "published": "Mon, 01 Jun 2026 19:00:00 GMT",
       "origin": "gnews-rss",
-      "source": "Yahoo Finance",
+      "source": "Texas Border Business",
       "tickers": [
         "TSLA"
       ],
@@ -226,49 +143,50 @@
         "TSLA"
       ],
       "sectors": [
-        "AI",
-        "机器人",
         "电动车"
       ],
       "sector_holdings": [],
       "stance": "attack",
-      "relevance": 70,
-      "summary_cn": "报道OpenAI机器人对特斯拉Optimus和马斯克构成新威胁，暗示竞争压力。"
+      "relevance": 65,
+      "summary_cn": "Musk 批评特斯拉购车流程繁琐（需64次点击），暗示公司运营效率问题。"
+    },
+    {
+      "author": "Musk",
+      "text": "The Odds SpaceX Merges With Tesla Are Higher Than You Think",
+      "url": "",
+      "published": "Mon, 01 Jun 2026 20:46:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Barron's",
+      "tickers": [
+        "TSLA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "TSLA"
+      ],
+      "sectors": [
+        "电动车",
+        "航天"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 60,
+      "summary_cn": "分析认为SpaceX与特斯拉合并的可能性高于预期，涉及特斯拉与航天板块。"
     }
   ],
   "sector_hits": [
     {
       "author": "Musk",
-      "text": "SpaceX’s IPO Forces Wall Street to Reorganize Around It",
+      "text": "Trump Shovels $4 Billion Directly to Elon Musk, Who Spent a Fortune Getting Him Elected",
       "url": "",
-      "published": "Mon, 01 Jun 2026 13:56:05 GMT",
+      "published": "Mon, 01 Jun 2026 21:32:58 GMT",
       "origin": "gnews-rss",
-      "source": "Bloomberg.com",
+      "source": "Futurism",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "航天",
-        "IPO"
-      ],
-      "sector_holdings": [
-        "RKLB"
-      ],
-      "stance": "neutral",
-      "relevance": 60,
-      "summary_cn": "报道SpaceX IPO迫使华尔街重组，涉及航天板块，但SpaceX未上市，无直接可交易标的。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk strikes down reports on SpaceX IPO rumors",
-      "url": "",
-      "published": "Sat, 30 May 2026 00:46:24 GMT",
-      "origin": "gnews-rss",
-      "source": "Teslarati",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
+        "政府合同",
         "航天"
       ],
       "sector_holdings": [
@@ -276,89 +194,7 @@
       ],
       "stance": "neutral",
       "relevance": 55,
-      "summary_cn": "马斯克否认SpaceX IPO传闻，涉及航天板块，但SpaceX未上市。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk, SpaceX and the illusion of wealth",
-      "url": "",
-      "published": "Mon, 01 Jun 2026 17:00:09 GMT",
-      "origin": "gnews-rss",
-      "source": "Le Monde.fr",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天"
-      ],
-      "sector_holdings": [
-        "RKLB"
-      ],
-      "stance": "neutral",
-      "relevance": 55,
-      "summary_cn": "新闻讨论SpaceX的财富结构，涉及航天板块，但未直接点名可交易标的。"
-    },
-    {
-      "author": "Musk",
-      "text": "SpaceX says it will reserve 5% of its IPO shares for staff, friends and family",
-      "url": "",
-      "published": "Mon, 01 Jun 2026 15:15:00 GMT",
-      "origin": "gnews-rss",
-      "source": "MarketWatch",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "IPO"
-      ],
-      "sector_holdings": [
-        "RKLB"
-      ],
-      "stance": "neutral",
-      "relevance": 55,
-      "summary_cn": "SpaceX宣布将为员工、朋友和家人预留5%的IPO股份，涉及航天板块，但SpaceX未上市。"
-    },
-    {
-      "author": "Musk",
-      "text": "For SpaceX IPO Investors, a Long List of Unfriendly Shareholder Policies",
-      "url": "",
-      "published": "Mon, 01 Jun 2026 08:54:29 GMT",
-      "origin": "gnews-rss",
-      "source": "Morningstar",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "IPO"
-      ],
-      "sector_holdings": [
-        "RKLB"
-      ],
-      "stance": "neutral",
-      "relevance": 55,
-      "summary_cn": "讨论SpaceX IPO投资者面临的不友好股东政策，涉及航天板块，但SpaceX未上市。"
-    },
-    {
-      "author": "Musk",
-      "text": "How SpaceX Is Structured to Favor Elon Musk",
-      "url": "",
-      "published": "Tue, 26 May 2026 14:47:56 GMT",
-      "origin": "gnews-rss",
-      "source": "The New York Times",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天"
-      ],
-      "sector_holdings": [
-        "RKLB"
-      ],
-      "stance": "neutral",
-      "relevance": 50,
-      "summary_cn": "分析SpaceX的股权结构如何偏向马斯克，涉及航天板块，但无直接可交易标的。"
+      "summary_cn": "新闻称特朗普政府向马斯克旗下公司（如SpaceX）提供巨额资金，涉及政府合同与航天板块。"
     }
   ]
 }
