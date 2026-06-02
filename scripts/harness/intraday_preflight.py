@@ -73,7 +73,7 @@ def parse_signals(stdout):
 def parse_anomalies(stdout):
     """Parse markdown holdings table rows (--md-table form) and flag ≥3% moves.
 
-    Row shape (7 cols, both markets, since 2026-05-21):
+    Row shape (8 cols, both markets; 今日$ added 2026-06-02):
       HK: `| 00100 | 60 | 822.83 | 722.00 | +5.1% | -12.2% | -6,050 |`
       US: `| RKLB |  5 |  71.00 | 134.28 | +0.0% | +89.1% |   +316 |`
     Cell[0]=ticker, [4]=today%, [5]=pnl%, [6]=pnl_abs ($).

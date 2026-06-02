@@ -362,7 +362,7 @@ def print_wechat_report(data: Dict, analyses: List[Dict], md_table: bool = False
     # Holdings
     lines.append('')
     if md_table:
-        # 7-col visual-width-aligned markdown table — see _wechat_table.py.
+        # 8-col visual-width-aligned markdown table — see _wechat_table.py.
         # Stays consistent line-width on mobile WeChat (no md render there).
         from _wechat_table import render_holdings_table
         rows = [{
@@ -371,6 +371,7 @@ def print_wechat_report(data: Dict, analyses: List[Dict], md_table: bool = False
             'cost':      a['holding'].get('cost_basis'),
             'price':     a['holding'].get('current_price', 0),
             'today_pct': a['holding'].get('today_change_pct', 0),
+            'today_abs': a['holding'].get('today_change', 0),
             'pnl_pct':   a['holding'].get('pnl_percent', 0),
             'pnl_abs':   a['holding'].get('pnl_abs', 0),
         } for a in analyses]

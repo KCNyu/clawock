@@ -614,7 +614,7 @@ def print_wechat_report(data: Dict, news_map: Optional[Dict[str, List]] = None, 
     # Holdings list
     lines.append('')
     if md_table:
-        # 7-col visual-width-aligned markdown table — works on raw monospace
+        # 8-col visual-width-aligned markdown table — works on raw monospace
         # WeChat mobile (no md table render) and desktop. See _wechat_table.py
         # for the why (CJK chars = 2 visual width, fixed widths per col).
         from _wechat_table import render_holdings_table
@@ -624,6 +624,7 @@ def print_wechat_report(data: Dict, news_map: Optional[Dict[str, List]] = None, 
             'cost':      h.get('cost_basis'),
             'price':     h.get('current_price', 0),
             'today_pct': h.get('today_change_pct', 0),
+            'today_abs': h.get('today_change', 0),
             'pnl_pct':   h.get('pnl_percent', 0),
             'pnl_abs':   h.get('pnl_abs', 0),
         } for h in active]
