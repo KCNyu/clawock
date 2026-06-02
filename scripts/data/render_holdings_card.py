@@ -22,6 +22,7 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from matplotlib import font_manager as fm
+from matplotlib.patches import Rectangle
 
 for _cand in ("Noto Sans CJK SC", "Noto Sans CJK HK", "Noto Sans CJK JP"):
     try:
@@ -119,15 +120,17 @@ def render(d, out):
     for j, c in enumerate(cols):
         ha = "left" if aligns[j] == "l" else "right"
         T(xs[j], y, c, color=MUTED, fontsize=16, ha=ha, fontweight="bold")
-    ax.plot([2.5, 99], [y - 0.5, y - 0.5], color="#30363d", lw=1.4)
+    ax.plot([1.5, 98.5], [y - 0.55, y - 0.55], color="#30363d", lw=1.5)
     y -= U_HEAD
-    for r in rows:
+    for idx, r in enumerate(rows):
+        if idx % 2 == 1:  # zebra stripe — subtle alt-row band for a tidy table
+            ax.add_patch(Rectangle((1.5, y - U_ROW + 0.55), 97.0, U_ROW,
+                                   facecolor="#161b22", edgecolor="none", zorder=0))
         for j, cell in enumerate(r):
             ha = "left" if aligns[j] == "l" else "right"
             color = FG if j == 0 else (_sign_color(cell) if j in signed else FG)
             T(xs[j], y, str(cell), color=color, fontsize=18, ha=ha,
-              fontweight="bold" if j == 0 else "normal")
-        ax.plot([2.5, 99], [y - U_ROW + 0.45, y - U_ROW + 0.45], color="#21262d", lw=0.8)
+              fontweight="bold" if j == 0 else "normal", zorder=3)
         y -= U_ROW
 
     if narr_lines:
@@ -176,7 +179,25 @@ def build_card_from_report(report_text):
     index = _clean(next((l for l in pre[1:] if l != summary_raw and "市值" not in l), ""))
     narrative = "\n".join(_clean(l) for l in lines[tbl_idx[-1] + 1:]).strip()
 
-    xs = [2.5] + [29 + (99 - 29) * k / (ncol - 2) for k in range(ncol - 1)]
+    # Content-aware column layout: each column gets width ∝ its widest cell
+    # (header or data), packed left→right with a fixed gap, so numbers line up in
+    # tight neat columns instead of floating at evenly-spaced anchors. 代码 left-
+    # aligned at the left edge; every numeric column right-aligned at its right
+    # edge (so decimals/signs stack). Rightmost column lands exactly at RIGHT.
+    def _vw(s):
+        return sum(2 if ord(c) > 127 else 1 for c in str(s))
+    colw = [max([_vw(header[j])] + [_vw(r[j]) for r in rows]) for j in range(ncol)]
+    GAPC, LEFT, RIGHT = 2.6, 2.5, 98.5
+    total = sum(colw) + GAPC * (ncol - 1)
+    scale = (RIGHT - LEFT) / total
+    xs, aligns, cur = [], [], LEFT
+    for j in range(ncol):
+        wpx = colw[j] * scale
+        if j == 0:
+            xs.append(cur); aligns.append("l")          # left edge, left-aligned
+        else:
+            xs.append(cur + wpx); aligns.append("r")     # right edge, right-aligned
+        cur += wpx + GAPC * scale
     return {
         "title":         title.strip(),
         "index":         index,
@@ -184,7 +205,7 @@ def build_card_from_report(report_text):
         "summary":       summary,
         "summary_color": LOSS if ("浮盈 -" in summary or "浮盈 −" in summary) else GAIN,
         "cols":          header,
-        "aligns":        ["l"] + ["r"] * (ncol - 1),
+        "aligns":        aligns,
         "xs":            xs,
         "signed_cols":   [i for i, h in enumerate(header) if "%" in h or "$" in h],
         "rows":          rows,
