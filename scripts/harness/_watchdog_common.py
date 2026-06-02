@@ -106,22 +106,17 @@ def send_wechat(channel, to, account, message, dry_run):
     return r.returncode == 0, (r.stdout + r.stderr)[-400:]
 
 
-def send_telegram(target, message, dry_run, media=None):
+def send_telegram(target, message, dry_run):
     """openclaw message send to Telegram. Returns (ok, tail_of_output).
 
     Telegram is the cold-session-proof backup channel: unlike WeChat it has no
     idle-session silent-drop (the #81096/#81316 wontfix), so when the intraday
-    watchdog judges a WeChat push probably dropped it mirrors here instead.
-
-    media: optional local PNG path — sent as a photo with `message` as caption
-    (Telegram renders an image table far better than monospace pipes on mobile)."""
-    cmd = [OPENCLAW_BIN, 'message', 'send', '--channel', 'telegram',
-           '--target', str(target), '-m', message, '--json']
-    if media:
-        cmd[7:7] = ['--media', str(media)]  # before -m: `--target X --media P -m ...`
+    watchdog judges a WeChat push probably dropped it mirrors here instead."""
+    cmd = [OPENCLAW_BIN, 'message', 'send',
+           '--channel', 'telegram', '--target', str(target), '-m', message, '--json']
     if dry_run:
         cmd.append('--dry-run')
-    r = subprocess.run(cmd, capture_output=True, text=True, timeout=90)
+    r = subprocess.run(cmd, capture_output=True, text=True, timeout=60)
     return r.returncode == 0, (r.stdout + r.stderr)[-400:]
 
 

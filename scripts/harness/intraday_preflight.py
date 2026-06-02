@@ -36,7 +36,7 @@ def run_analyze(market):
     script = DATA_DIR / f'analyze_{market}_stocks.py'
     try:
         r = subprocess.run(
-            ['python3', str(script), '--wechat', '--md-table', '--today-abs'],
+            ['python3', str(script), '--wechat', '--md-table'],
             capture_output=True, text=True, timeout=120,
         )
         return r.returncode, r.stdout, r.stderr
@@ -73,31 +73,25 @@ def parse_signals(stdout):
 def parse_anomalies(stdout):
     """Parse markdown holdings table rows (--md-table form) and flag ≥3% moves.
 
-    Row shape (7 cols, both markets; 成本 dropped + 今日$ added 2026-06-02):
-      `| 00100 | 60 | 674.00 | -4.8% | -2,040 | -18.1% | -8,930 |`
-    Columns are located by HEADER (代码 → ticker, 今日%/今日 → today move) rather
-    than fixed index, so future column reorders don't silently break this.
-    Header / separator rows are filtered.
+    Row shape (7 cols, both markets, since 2026-05-21):
+      HK: `| 00100 | 60 | 822.83 | 722.00 | +5.1% | -12.2% | -6,050 |`
+      US: `| RKLB |  5 |  71.00 | 134.28 | +0.0% | +89.1% |   +316 |`
+    Cell[0]=ticker, [4]=today%, [5]=pnl%, [6]=pnl_abs ($).
+    Header / separator rows are filtered (代码 / `:---`).
     """
     anomalies = []
     pct_re = re.compile(r'([+\-])([\d\.]+)%')
-    ticker_col, today_col = 0, None
     for line in stdout.splitlines():
         s = line.strip()
         if not s.startswith('|') or not s.endswith('|'):
             continue
         cells = [c.strip() for c in s.strip('|').split('|')]
-        if '代码' in cells:  # header row → learn column positions
-            ticker_col = cells.index('代码')
-            today_col = next((i for i, h in enumerate(cells)
-                              if h.startswith('今日') and '$' not in h), None)
+        if len(cells) < 7:
             continue
-        if today_col is None or len(cells) <= max(ticker_col, today_col):
+        ticker = cells[0]
+        if ticker == '代码' or ticker.startswith(':'):  # header / separator
             continue
-        ticker = cells[ticker_col]
-        if ticker.startswith(':') or set(ticker) <= set('-: '):  # separator
-            continue
-        today = cells[today_col]
+        today = cells[4]
         m = pct_re.search(today)
         if not m:
             continue

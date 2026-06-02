@@ -46,71 +46,67 @@ W_SHARES = 5
 W_COST   = 6
 W_PRICE  = 6
 W_TODAY  = 6
-W_TODAY_A = 7
 W_PNL_P  = 6
 W_PNL_A  = 7
 
 
-def _money(x) -> str:
-    return f'{x:+,.0f}'
-
-
-def render_holdings_table(rows: List[Dict], currency: str = '',
-                          today_abs: bool = False) -> List[str]:
+def render_holdings_table(rows: List[Dict], currency: str = '') -> List[str]:
     """Render a 7-col WeChat-friendly markdown holdings table.
 
-    Two layouts (both 7-col, fit mobile WeChat without wrapping):
-      default  → `代码|股|成本|现价|今日|浮%|浮$`  (63 vw, the 2026-05-21 canonical)
-                 used by brief + staged reports (开/午/午后/收盘).
-      today_abs=True → `代码|股|现价|今日%|今日$|浮%|浮$`  (64 vw)
-                 used ONLY by intraday 盯盘 — it wants the per-holding absolute
-                 今日$. Adding 今日$ on TOP of the original 7 cols → 73 vw which
-                 wrapped/broke on mobile WeChat (kcn 2026-06-02), so the intraday
-                 variant drops the static 成本 column (kcn knows his basis; 浮%
-                 already encodes cost-relative P&L) to stay narrow. The Telegram
-                 backup renders this same intraday table as a mobile-nice image.
+    Returns list of strings (no trailing newline). Caller joins with '\\n'.
 
-    rows: each dict has code, shares, cost, price, today_pct, today_abs,
-          pnl_pct, pnl_abs (unused keys per layout are simply ignored).
-    currency: kept for backward-compat. We do NOT emit a unit-note line — WeChat
-              不渲染 markdown italic and the currency is implicit in the 市值 line.
+    rows: each dict has keys code, shares, cost, price, today_pct, pnl_pct, pnl_abs.
+    currency: kept for backward-compat / future use. We do NOT emit a unit-note
+              line because: (1) WeChat 不渲染 markdown italic, the raw `_...._`
+              looked ugly and LLM verbatim-trimmed it; (2) the currency is already
+              implicit via the 市值 line above the table (HK$xxx / $xxx).
     """
     _ = currency  # intentionally unused
-    # Column spec: (header, visual_width, align 'l'|'r', value-fn-from-row).
-    if today_abs:
-        spec = [
-            ('代码',  W_CODE,    'l', lambda r: str(r['code'])),
-            ('股',    W_SHARES,  'r', lambda r: str(r['shares'])),
-            ('现价',  W_PRICE,   'r', lambda r: f"{r['price']:,.2f}"),
-            ('今日%', W_TODAY,   'r', lambda r: f"{r.get('today_pct', 0.0):+.1f}%"),
-            ('今日$', W_TODAY_A, 'r', lambda r: _money(r.get('today_abs', 0.0))),
-            ('浮%',   W_PNL_P,   'r', lambda r: f"{r.get('pnl_pct', 0.0):+.1f}%"),
-            ('浮$',   W_PNL_A,   'r', lambda r: _money(r.get('pnl_abs', 0.0))),
-        ]
-    else:
-        spec = [
-            ('代码', W_CODE,   'l', lambda r: str(r['code'])),
-            ('股',   W_SHARES, 'r', lambda r: str(r['shares'])),
-            ('成本', W_COST,   'r', lambda r: f"{r['cost']:,.2f}" if r.get('cost') else '—'),
-            ('现价', W_PRICE,  'r', lambda r: f"{r['price']:,.2f}"),
-            ('今日', W_TODAY,  'r', lambda r: f"{r.get('today_pct', 0.0):+.1f}%"),
-            ('浮%',  W_PNL_P,  'r', lambda r: f"{r.get('pnl_pct', 0.0):+.1f}%"),
-            ('浮$',  W_PNL_A,  'r', lambda r: _money(r.get('pnl_abs', 0.0))),
-        ]
-
-    def _pad(text, w, a):
-        return pad_left(text, w) if a == 'l' else pad_right(text, w)
-
     out: List[str] = []
-    out.append('| ' + ' | '.join(_pad(h, w, a) for h, w, a, _ in spec) + ' |')
-    # Separator — dashes per cell width + alignment colon (':' before for left
-    # cols, after for right) — matches the original byte-for-byte.
-    sep = [(':' + '-' * (w + 1)) if a == 'l' else ('-' * (w + 1) + ':')
-           for _, w, a, _ in spec]
-    out.append('|' + '|'.join(sep) + '|')
+    # Header — left-align code, right-align rest. All widths in visual chars.
+    out.append(
+        '| ' + pad_left('代码', W_CODE) +
+        ' | ' + pad_right('股',   W_SHARES) +
+        ' | ' + pad_right('成本', W_COST) +
+        ' | ' + pad_right('现价', W_PRICE) +
+        ' | ' + pad_right('今日', W_TODAY) +
+        ' | ' + pad_right('浮%',  W_PNL_P) +
+        ' | ' + pad_right('浮$',  W_PNL_A) + ' |'
+    )
+    # Separator — dashes per cell width + alignment colon.
+    out.append(
+        '|:'  + '-' * (W_CODE   + 1) +
+        '|'   + '-' * (W_SHARES + 1) + ':' +
+        '|'   + '-' * (W_COST   + 1) + ':' +
+        '|'   + '-' * (W_PRICE  + 1) + ':' +
+        '|'   + '-' * (W_TODAY  + 1) + ':' +
+        '|'   + '-' * (W_PNL_P  + 1) + ':' +
+        '|'   + '-' * (W_PNL_A  + 1) + ':|'
+    )
     for r in rows:
-        out.append('| ' + ' | '.join(_pad(fn(r), w, a) for _, w, a, fn in spec) + ' |')
+        code      = str(r['code'])
+        shares    = r['shares']
+        cost      = r.get('cost')
+        price     = r['price']
+        today_pct = r.get('today_pct', 0.0)
+        pnl_pct   = r.get('pnl_pct', 0.0)
+        pnl_abs   = r.get('pnl_abs', 0.0)
 
+        cost_s  = f'{cost:,.2f}'   if cost  else '—'
+        price_s = f'{price:,.2f}'
+        today_s = f'{today_pct:+.1f}%'
+        pnlp_s  = f'{pnl_pct:+.1f}%'
+        pnla_s  = f'{pnl_abs:+,.0f}'
+
+        out.append(
+            '| ' + pad_left(code,        W_CODE) +
+            ' | ' + pad_right(str(shares), W_SHARES) +
+            ' | ' + pad_right(cost_s,    W_COST) +
+            ' | ' + pad_right(price_s,   W_PRICE) +
+            ' | ' + pad_right(today_s,   W_TODAY) +
+            ' | ' + pad_right(pnlp_s,    W_PNL_P) +
+            ' | ' + pad_right(pnla_s,    W_PNL_A) + ' |'
+        )
     # Self-check: header / separator / each data row must split to the same
     # number of pipe segments. Catches regressions in this builder itself.
     seg_counts = {line.count('|') for line in out}

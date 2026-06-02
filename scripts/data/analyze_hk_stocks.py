@@ -567,7 +567,7 @@ def print_report(data: Dict, news_map: Optional[Dict[str, List]] = None):
 
 # ── WeChat-friendly report (mobile/chat format) ───────────────────────────────
 
-def print_wechat_report(data: Dict, news_map: Optional[Dict[str, List]] = None, md_table: bool = False, today_abs: bool = False):
+def print_wechat_report(data: Dict, news_map: Optional[Dict[str, List]] = None, md_table: bool = False):
     """Compact mobile-friendly format for WeChat/Telegram delivery.
 
     md_table=True: holdings rendered as markdown table (intraday cron via
@@ -614,7 +614,7 @@ def print_wechat_report(data: Dict, news_map: Optional[Dict[str, List]] = None, 
     # Holdings list
     lines.append('')
     if md_table:
-        # 7-col visual-width-aligned markdown table (--today-abs → 去成本+今日$ 变体) — raw monospace
+        # 7-col visual-width-aligned markdown table — works on raw monospace
         # WeChat mobile (no md table render) and desktop. See _wechat_table.py
         # for the why (CJK chars = 2 visual width, fixed widths per col).
         from _wechat_table import render_holdings_table
@@ -624,11 +624,10 @@ def print_wechat_report(data: Dict, news_map: Optional[Dict[str, List]] = None, 
             'cost':      h.get('cost_basis'),
             'price':     h.get('current_price', 0),
             'today_pct': h.get('today_change_pct', 0),
-            'today_abs': h.get('today_change', 0),
             'pnl_pct':   h.get('pnl_percent', 0),
             'pnl_abs':   h.get('pnl_abs', 0),
         } for h in active]
-        lines.extend(render_holdings_table(rows, currency='HKD', today_abs=today_abs))
+        lines.extend(render_holdings_table(rows, currency='HKD'))
     else:
         for h in active:
             code  = h['ticker']
@@ -690,7 +689,6 @@ if __name__ == '__main__':
     no_news  = '--no-news'  in sys.argv
     wechat   = '--wechat'   in sys.argv
     md_table = '--md-table' in sys.argv
-    today_abs = '--today-abs' in sys.argv  # intraday 盯盘 variant: 去成本+今日$
 
     if no_fetch:
         with open(PORTFOLIO_PATH, encoding='utf-8') as f:
@@ -726,6 +724,6 @@ if __name__ == '__main__':
             print("  [新闻] 未找到 FINNHUB_API_KEY，跳过新闻")
 
     if wechat:
-        print_wechat_report(data, news_map, md_table=md_table, today_abs=today_abs)
+        print_wechat_report(data, news_map, md_table=md_table)
     else:
         print_report(data, news_map)
