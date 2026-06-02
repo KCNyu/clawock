@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-06-02T17:11:42.294511Z",
-  "last_updated": "2026/06/03 01:09 HKT",
+  "generated_at": "2026-06-02T17:31:19.269857Z",
+  "last_updated": "2026/06/03 01:30 HKT",
   "fx": {
     "usdhkd": 7.8371,
     "source": "Frankfurter",
@@ -8,11 +8,11 @@
   },
   "totals": {
     "us": {
-      "value_usd": 3080.66,
+      "value_usd": 3111.49,
       "cost_usd": 2628.3,
-      "pnl_usd": 452.36,
-      "pnl_pct": 17.2111,
-      "today_change_usd": -179.74,
+      "pnl_usd": 483.19,
+      "pnl_pct": 18.3841,
+      "today_change_usd": -148.91,
       "realized_usd": 1372.88
     },
     "hk": {
@@ -26,41 +26,41 @@
   },
   "concentration": {
     "us": {
-      "hhi": 0.2327,
-      "top2": 0.5298,
+      "hhi": 0.2328,
+      "top2": 0.5292,
       "positions": [
         {
           "ticker": "ROBN",
           "name": "二倍做多HOOD ETF-T-Rex",
-          "value": 989.2,
-          "weight": 0.3211
+          "value": 1001.6,
+          "weight": 0.3219
         },
         {
           "ticker": "MSFU",
           "name": "二倍做多微软ETF-Direxion",
-          "value": 642.8,
-          "weight": 0.2087
+          "value": 645.0,
+          "weight": 0.2073
         },
         {
           "ticker": "PLTU",
           "name": "二倍做多PLTR ETF-Direxion",
-          "value": 630.02,
-          "weight": 0.2045
+          "value": 638.4,
+          "weight": 0.2052
         },
         {
           "ticker": "RKLB",
           "name": "Rocket Lab Corp",
-          "value": 614.23,
-          "weight": 0.1994
+          "value": 619.88,
+          "weight": 0.1992
         },
         {
           "ticker": "CRCL",
           "name": "Circle Internet Group Inc-A",
-          "value": 204.41,
+          "value": 206.61,
           "weight": 0.0664
         }
       ],
-      "total": 3080.66,
+      "total": 3111.49,
       "verdict": {
         "level": "moderate",
         "label": "偏集中",
@@ -118,14 +118,14 @@
         "currency": "USD",
         "shares": 5,
         "cost_basis": 71,
-        "current_price": 122.845,
-        "current_value": 614.23,
-        "today_change": 2.27,
-        "today_change_pct": 0.37,
-        "day_high": 122.845,
-        "day_low": 122.845,
-        "pnl_abs": 259.23,
-        "pnl_percent": 73.02,
+        "current_price": 123.975,
+        "current_value": 619.88,
+        "today_change": 7.92,
+        "today_change_pct": 1.29,
+        "day_high": 123.975,
+        "day_low": 123.975,
+        "pnl_abs": 264.88,
+        "pnl_percent": 74.61,
         "is_active": true,
         "trades_count": 0
       },
@@ -135,14 +135,14 @@
         "currency": "USD",
         "shares": 2,
         "cost_basis": 87,
-        "current_price": 102.205,
-        "current_value": 204.41,
-        "today_change": -5.53,
-        "today_change_pct": -2.63,
-        "day_high": 102.205,
-        "day_low": 102.205,
-        "pnl_abs": 30.41,
-        "pnl_percent": 17.48,
+        "current_price": 103.305,
+        "current_value": 206.61,
+        "today_change": -3.33,
+        "today_change_pct": -1.59,
+        "day_high": 103.305,
+        "day_low": 103.305,
+        "pnl_abs": 32.61,
+        "pnl_percent": 18.74,
         "is_active": true,
         "trades_count": 5
       },
@@ -152,14 +152,14 @@
         "currency": "USD",
         "shares": 14,
         "cost_basis": 40.9571,
-        "current_price": 45.0015,
-        "current_value": 630.02,
-        "today_change": -70.68,
-        "today_change_pct": -10.09,
-        "day_high": 45.0015,
-        "day_low": 45.0015,
-        "pnl_abs": 56.62,
-        "pnl_percent": 9.87,
+        "current_price": 45.6,
+        "current_value": 638.4,
+        "today_change": -62.3,
+        "today_change_pct": -8.89,
+        "day_high": 45.6,
+        "day_low": 45.6,
+        "pnl_abs": 65.0,
+        "pnl_percent": 11.34,
         "is_active": true,
         "trades_count": 2
       },
@@ -169,14 +169,14 @@
         "currency": "USD",
         "shares": 40,
         "cost_basis": 23.5825,
-        "current_price": 24.73,
-        "current_value": 989.2,
-        "today_change": -54.8,
-        "today_change_pct": -5.25,
-        "day_high": 24.73,
-        "day_low": 24.73,
-        "pnl_abs": 45.9,
-        "pnl_percent": 4.87,
+        "current_price": 25.04,
+        "current_value": 1001.6,
+        "today_change": -42.4,
+        "today_change_pct": -4.06,
+        "day_high": 25.04,
+        "day_low": 25.04,
+        "pnl_abs": 58.3,
+        "pnl_percent": 6.18,
         "is_active": true,
         "trades_count": 3
       },
@@ -186,14 +186,14 @@
         "currency": "USD",
         "shares": 20,
         "cost_basis": 29.13,
-        "current_price": 32.14,
-        "current_value": 642.8,
-        "today_change": -51.0,
-        "today_change_pct": -7.35,
-        "day_high": 32.14,
-        "day_low": 32.14,
-        "pnl_abs": 60.2,
-        "pnl_percent": 10.33,
+        "current_price": 32.25,
+        "current_value": 645.0,
+        "today_change": -48.8,
+        "today_change_pct": -7.03,
+        "day_high": 32.25,
+        "day_low": 32.25,
+        "pnl_abs": 62.4,
+        "pnl_percent": 10.71,
         "is_active": true,
         "trades_count": 1
       }
@@ -530,12 +530,12 @@
     {
       "date": "2026-06-03",
       "file": "2026-06-03.json",
-      "us_total_value": 3080.66,
+      "us_total_value": 3111.49,
       "us_total_cost": 2628.3,
-      "us_total_pnl": 452.36,
-      "us_today_change": -179.74,
+      "us_total_pnl": 483.19,
+      "us_today_change": -148.91,
       "us_realized": 1372.88,
-      "us_equity": 4453.54,
+      "us_equity": 4484.37,
       "hk_total_value": 78026.6,
       "hk_total_cost": 88276.24,
       "hk_total_pnl": -10249.64,
@@ -958,24 +958,24 @@
   "indices": {
     "SPX": {
       "name": "S&P 500",
-      "price": 7614.73,
+      "price": 7606.28,
       "prev_close": 7599.96,
-      "change_pct": 0.194,
-      "source": "Tencent usINX index @ 2026-06-02 13:01 ET"
+      "change_pct": 0.083,
+      "source": "Tencent usINX index @ 2026-06-02 13:30 ET"
     },
     "NDX": {
       "name": "Nasdaq 100",
-      "price": 30635.94,
+      "price": 30589.56,
       "prev_close": 30513.86,
-      "change_pct": 0.4,
-      "source": "Tencent usNDX index @ 2026-06-02 13:01 ET"
+      "change_pct": 0.248,
+      "source": "Tencent usNDX index @ 2026-06-02 13:30 ET"
     },
     "DJI": {
       "name": "Dow Jones",
-      "price": 51228.19,
+      "price": 51198.02,
       "prev_close": 51078.88,
-      "change_pct": 0.292,
-      "source": "Tencent usDJI index @ 2026-06-02 13:01 ET"
+      "change_pct": 0.233,
+      "source": "Tencent usDJI index @ 2026-06-02 13:30 ET"
     },
     "HSI": {
       "name": "恒生指数",
@@ -1127,7 +1127,7 @@
       143.48,
       124.025,
       124.365,
-      122.845
+      123.975
     ],
     "CRCL": [
       113.05,
@@ -1139,7 +1139,7 @@
       113.0,
       105.87,
       99.23,
-      102.205
+      103.305
     ],
     "OKLO": [
       72.39,
@@ -1211,7 +1211,7 @@
       47.59,
       48.89,
       43.8404,
-      45.0015
+      45.6
     ],
     "SOXL": [
       190.41,
@@ -1247,7 +1247,7 @@
       28.25,
       25.1192,
       24.1,
-      24.73
+      25.04
     ],
     "MSFU": [
       28.81,
@@ -1259,7 +1259,7 @@
       33.09,
       35.0418,
       32.1202,
-      32.14
+      32.25
     ],
     "00100": [
       749.0,
@@ -1348,8 +1348,8 @@
   },
   "delta": {
     "us": {
-      "today_pct": 0.91,
-      "7d_pct": 5.8,
+      "today_pct": 1.61,
+      "7d_pct": 6.53,
       "30d_pct": null
     },
     "hk": {
@@ -1360,13 +1360,6 @@
   },
   "today_movers": [
     {
-      "ticker": "PLTU",
-      "name": "二倍做多PLTR ETF-Direxion",
-      "region": "us",
-      "today_change_pct": -10.09,
-      "current_price": 45.0015
-    },
-    {
       "ticker": "07226",
       "name": "XL二南方恒科",
       "region": "hk",
@@ -1374,11 +1367,18 @@
       "current_price": 4.268
     },
     {
+      "ticker": "PLTU",
+      "name": "二倍做多PLTR ETF-Direxion",
+      "region": "us",
+      "today_change_pct": -8.89,
+      "current_price": 45.6
+    },
+    {
       "ticker": "MSFU",
       "name": "二倍做多微软ETF-Direxion",
       "region": "us",
-      "today_change_pct": -7.35,
-      "current_price": 32.14
+      "today_change_pct": -7.03,
+      "current_price": 32.25
     },
     {
       "ticker": "00100",
@@ -1386,13 +1386,6 @@
       "region": "hk",
       "today_change_pct": -5.72,
       "current_price": 667.5
-    },
-    {
-      "ticker": "ROBN",
-      "name": "二倍做多HOOD ETF-T-Rex",
-      "region": "us",
-      "today_change_pct": -5.25,
-      "current_price": 24.73
     },
     {
       "ticker": "03033",
@@ -1407,6 +1400,13 @@
       "region": "hk",
       "today_change_pct": 4.65,
       "current_price": 5.18
+    },
+    {
+      "ticker": "ROBN",
+      "name": "二倍做多HOOD ETF-T-Rex",
+      "region": "us",
+      "today_change_pct": -4.06,
+      "current_price": 25.04
     }
   ],
   "anomalies": [
@@ -1419,7 +1419,7 @@
     {
       "type": "leveraged_etf_stop",
       "ticker": "PLTU",
-      "detail": "leveraged ETF: today -10.1%",
+      "detail": "leveraged ETF: today -8.9%",
       "severity": "medium"
     }
   ],
@@ -2125,7 +2125,7 @@
     {
       "ticker": "MSFU",
       "region": "us",
-      "weight_pct": 20.87,
+      "weight_pct": 20.73,
       "avg_confidence": 0.63,
       "n_actions": 11,
       "quadrant": "high_risk"
@@ -2133,7 +2133,7 @@
     {
       "ticker": "PLTU",
       "region": "us",
-      "weight_pct": 20.45,
+      "weight_pct": 20.52,
       "avg_confidence": 0.561,
       "n_actions": 11,
       "quadrant": "high_risk"
@@ -2141,7 +2141,7 @@
     {
       "ticker": "ROBN",
       "region": "us",
-      "weight_pct": 32.11,
+      "weight_pct": 32.19,
       "avg_confidence": 0.658,
       "n_actions": 14,
       "quadrant": "conviction"
@@ -2181,7 +2181,7 @@
     {
       "ticker": "RKLB",
       "region": "us",
-      "weight_pct": 19.94,
+      "weight_pct": 19.92,
       "avg_confidence": 0.651,
       "n_actions": 11,
       "quadrant": "comfort"
@@ -2191,45 +2191,45 @@
     "max_pct_30d_hk": -8.43,
     "max_pct_30d_us": -14.3,
     "current_pct_hk": -5.87,
-    "current_pct_us": 3.9
+    "current_pct_us": 4.62
   },
   "sector_exposure": {
     "us": [
       {
         "sector": "Fintech",
-        "value": 989.2,
-        "pct": 32.11,
+        "value": 1001.6,
+        "pct": 32.19,
         "tickers": [
           "ROBN"
         ]
       },
       {
         "sector": "Tech Mega-cap",
-        "value": 642.8,
-        "pct": 20.87,
+        "value": 645.0,
+        "pct": 20.73,
         "tickers": [
           "MSFU"
         ]
       },
       {
         "sector": "AI / Defense",
-        "value": 630.02,
-        "pct": 20.45,
+        "value": 638.4,
+        "pct": 20.52,
         "tickers": [
           "PLTU"
         ]
       },
       {
         "sector": "Aerospace",
-        "value": 614.23,
-        "pct": 19.94,
+        "value": 619.88,
+        "pct": 19.92,
         "tickers": [
           "RKLB"
         ]
       },
       {
         "sector": "Crypto / Stablecoin",
-        "value": 204.41,
+        "value": 206.61,
         "pct": 6.64,
         "tickers": [
           "CRCL"
@@ -2266,9 +2266,9 @@
     ]
   },
   "leveraged_etf": {
-    "us_pct": 73.43,
+    "us_pct": 73.44,
     "hk_pct": 33.91,
-    "combined_pct": 43.25,
+    "combined_pct": 43.32,
     "tickers": [
       "07226",
       "MSFU",
@@ -2858,7 +2858,7 @@
     }
   },
   "us_news_digest": {
-    "generated_at": "2026-06-01T18:33:55.246491",
+    "generated_at": "2026-06-02T17:15:18.659350",
     "lookback_hours": 48,
     "tickers": [
       "RKLB",
@@ -2867,9 +2867,9 @@
       "ROBN",
       "MSFU"
     ],
-    "digest_markdown": "### Top 3-5 移动信号 (跨 ticker 排序)\n- **RKLB**: 受益于SpaceX IPO前的ETF资金流入和行业动能，作为小型运载火箭领导者股价获支撑。 -> `kcn持仓` 可延续看涨逻辑，但需注意宏观（油价飙升）对成长股情绪的压制。\n- **CRCL**: 分析师指其为稳定币革命明确赢家，USDC采用率飙升，新伙伴关系拓展用例。 -> `kcn持仓` 基本面催化明确，稳定币市场增长预期是核心驱动。\n- **PLTU (杠杆ETF)**: Palantir财报临近，市场关注其是否会成为股价催化剂。 -> `kcn持仓` 财报是短期关键事件，杠杆ETF会放大波动，需做好风险管理。\n\n### Per-ticker 简报 (有新闻才列)\n- **RKLB**: 股价受益于航天板块ETF流入及SpaceX IPO预期，行业领先地位被强调。\n- **CRCL**: 除分析师看好外，Binance宣布进军美股交易，或为USDC等稳定币创造新的应用场景。\n- **PLTU**: 多个标题指向Palantir即将公布的财报将成为股价关键驱动，ETF交易活跃。\n- **ROBN**: 股价盘后下跌，但分析显示市场情绪并未转向悲观；Ron Baron新ETF大举押注SpaceX。\n- **MSFU**: 期权交易量异常高，显示市场对微软股价短期看涨情绪升温。\n\n### 风险 watch\n- 当前新闻流未涉及具体公司的财务指引下调、监管行动、大股东减持或合约失败等负面信号。主要关注点集中于市场宏观风险（如地缘局势推高油价）对成长股的潜在影响。",
+    "digest_markdown": "### Top 3-5 移动信号\n- **CRCL**: Ripple CEO 预测稳定币市场2031年将达3万亿美元，指向行业巨大增长潜力；Binance 计划为海外客户开放美股交易。 - *Implication*: 验证稳定币（如USDC）在整合传统与加密金融中的核心地位，对Circle（CRCL）构成中长期结构性利好。\n- **PLTU**: 标题“Palantir Rally Renews This ETF’s Shine”及多条提及ETF交易量活跃。 - *Implication*: 显示市场对Palantir（PLTR）的短期乐观情绪通过杠杆ETF放大，预示高波动性，适合战术性而非长期配置。\n- **MSFU**: 标题“Sees Unusually High Options Volume”及“Get Ready To Pull The Trigger”等。 - *Implication*: 高期权活动暗示交易者对微软（MSFT）短期看涨，杠杆ETF（MSFU）可能成为捕捉该情绪的工具。\n- **RKLB**: 多篇分析文章将SpaceX IPO前的“空间股”作为投资主题。 - *Implication*: 板块关注度提升，作为该领域的纯粹标的，Rocket Lab (RKLB) 可能获得资金轮动关注。\n\n### Per-ticker 简报\n- **CRCL**: Ripple CEO给出$3T稳定币市场预测 + Binance扩展美股代币化交易 - 强化USDC等稳定币的支付与交易层价值主张。\n- **PLTU**: PLTR反弹驱动杠杆ETF重获关注，且出现大额交易单 - 显示散户与交易员利用杠杆产品进行方向性押注。\n- **MSFU**: 看涨期权活动异常高，ETF分析师发声提示机会 - 反映市场对MSFT短期走势的杠杆化看涨情绪升温。\n- **RKLB**: 空间股主题文章在SpaceX IPO前夕涌现 - 板块主题投资情绪升温，可能带来短期交易性机会。\n\n### 风险 watch\n- **Firefly Aerospace (FFLY, 非持仓)**：股价因48美元增发价格及股份稀释下跌。虽非持仓，但作为同行案例，提示空间领域公司仍面临二级市场融资导致的股价压力。",
     "raw_news_counts": {
-      "RKLB": 4,
+      "RKLB": 5,
       "CRCL": 2,
       "PLTU": 5,
       "ROBN": 5,
@@ -3900,25 +3900,25 @@
         "ticker": "RKLB",
         "name": "Rocket Lab Corp",
         "region": "us",
-        "pnl_percent": 73.02,
-        "pnl_abs": 259.23,
-        "current_value": 614.23
+        "pnl_percent": 74.61,
+        "pnl_abs": 264.88,
+        "current_value": 619.88
       },
       {
         "ticker": "CRCL",
         "name": "Circle Internet Group Inc-A",
         "region": "us",
-        "pnl_percent": 17.48,
-        "pnl_abs": 30.41,
-        "current_value": 204.41
+        "pnl_percent": 18.74,
+        "pnl_abs": 32.61,
+        "current_value": 206.61
       },
       {
-        "ticker": "MSFU",
-        "name": "二倍做多微软ETF-Direxion",
+        "ticker": "PLTU",
+        "name": "二倍做多PLTR ETF-Direxion",
         "region": "us",
-        "pnl_percent": 10.33,
-        "pnl_abs": 60.2,
-        "current_value": 642.8
+        "pnl_percent": 11.34,
+        "pnl_abs": 65.0,
+        "current_value": 638.4
       }
     ],
     "losers": [
@@ -3993,7 +3993,7 @@
   "realized_vs_unrealized": {
     "us": {
       "realized": 1372.88,
-      "unrealized": 452.36
+      "unrealized": 483.19
     },
     "hk": {
       "realized": 7259.16,
@@ -4001,7 +4001,7 @@
     },
     "combined_usd": {
       "realized": 2299.14,
-      "unrealized": -855.48
+      "unrealized": -824.65
     }
   },
   "capital_deployed": {
@@ -4018,8 +4018,8 @@
   "net_principal_return": {
     "us": {
       "net_principal": 1255.42,
-      "total_profit": 1825.24,
-      "return_pct": 73.86,
+      "total_profit": 1856.07,
+      "return_pct": 75.11,
       "return_basis": "true_principal",
       "true_principal": 2471.12
     },
@@ -4031,8 +4031,8 @@
     },
     "combined_usd": {
       "net_principal": 12808.76,
-      "total_profit": 1443.66,
-      "return_pct": 11.27
+      "total_profit": 1474.49,
+      "return_pct": 11.51
     },
     "formula": "回报率 = (浮动 + 已实现) ÷ 本金；本金优先用 true_principal（峰值净投入），否则用 净投入本金=累计成本−已实现"
   }
