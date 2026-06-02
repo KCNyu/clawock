@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-01T18:33:55.246491",
+  "generated_at": "2026-06-02T17:15:18.659350",
   "lookback_hours": 48,
   "tickers": [
     "RKLB",
@@ -8,9 +8,9 @@
     "ROBN",
     "MSFU"
   ],
-  "digest_markdown": "### Top 3-5 移动信号 (跨 ticker 排序)\n- **RKLB**: 受益于SpaceX IPO前的ETF资金流入和行业动能，作为小型运载火箭领导者股价获支撑。 -> `kcn持仓` 可延续看涨逻辑，但需注意宏观（油价飙升）对成长股情绪的压制。\n- **CRCL**: 分析师指其为稳定币革命明确赢家，USDC采用率飙升，新伙伴关系拓展用例。 -> `kcn持仓` 基本面催化明确，稳定币市场增长预期是核心驱动。\n- **PLTU (杠杆ETF)**: Palantir财报临近，市场关注其是否会成为股价催化剂。 -> `kcn持仓` 财报是短期关键事件，杠杆ETF会放大波动，需做好风险管理。\n\n### Per-ticker 简报 (有新闻才列)\n- **RKLB**: 股价受益于航天板块ETF流入及SpaceX IPO预期，行业领先地位被强调。\n- **CRCL**: 除分析师看好外，Binance宣布进军美股交易，或为USDC等稳定币创造新的应用场景。\n- **PLTU**: 多个标题指向Palantir即将公布的财报将成为股价关键驱动，ETF交易活跃。\n- **ROBN**: 股价盘后下跌，但分析显示市场情绪并未转向悲观；Ron Baron新ETF大举押注SpaceX。\n- **MSFU**: 期权交易量异常高，显示市场对微软股价短期看涨情绪升温。\n\n### 风险 watch\n- 当前新闻流未涉及具体公司的财务指引下调、监管行动、大股东减持或合约失败等负面信号。主要关注点集中于市场宏观风险（如地缘局势推高油价）对成长股的潜在影响。",
+  "digest_markdown": "### Top 3-5 移动信号\n- **CRCL**: Ripple CEO 预测稳定币市场2031年将达3万亿美元，指向行业巨大增长潜力；Binance 计划为海外客户开放美股交易。 - *Implication*: 验证稳定币（如USDC）在整合传统与加密金融中的核心地位，对Circle（CRCL）构成中长期结构性利好。\n- **PLTU**: 标题“Palantir Rally Renews This ETF’s Shine”及多条提及ETF交易量活跃。 - *Implication*: 显示市场对Palantir（PLTR）的短期乐观情绪通过杠杆ETF放大，预示高波动性，适合战术性而非长期配置。\n- **MSFU**: 标题“Sees Unusually High Options Volume”及“Get Ready To Pull The Trigger”等。 - *Implication*: 高期权活动暗示交易者对微软（MSFT）短期看涨，杠杆ETF（MSFU）可能成为捕捉该情绪的工具。\n- **RKLB**: 多篇分析文章将SpaceX IPO前的“空间股”作为投资主题。 - *Implication*: 板块关注度提升，作为该领域的纯粹标的，Rocket Lab (RKLB) 可能获得资金轮动关注。\n\n### Per-ticker 简报\n- **CRCL**: Ripple CEO给出$3T稳定币市场预测 + Binance扩展美股代币化交易 - 强化USDC等稳定币的支付与交易层价值主张。\n- **PLTU**: PLTR反弹驱动杠杆ETF重获关注，且出现大额交易单 - 显示散户与交易员利用杠杆产品进行方向性押注。\n- **MSFU**: 看涨期权活动异常高，ETF分析师发声提示机会 - 反映市场对MSFT短期走势的杠杆化看涨情绪升温。\n- **RKLB**: 空间股主题文章在SpaceX IPO前夕涌现 - 板块主题投资情绪升温，可能带来短期交易性机会。\n\n### 风险 watch\n- **Firefly Aerospace (FFLY, 非持仓)**：股价因48美元增发价格及股份稀释下跌。虽非持仓，但作为同行案例，提示空间领域公司仍面临二级市场融资导致的股价压力。",
   "raw_news_counts": {
-    "RKLB": 4,
+    "RKLB": 5,
     "CRCL": 2,
     "PLTU": 5,
     "ROBN": 5,
