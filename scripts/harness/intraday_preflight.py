@@ -36,7 +36,7 @@ def run_analyze(market):
     script = DATA_DIR / f'analyze_{market}_stocks.py'
     try:
         r = subprocess.run(
-            ['python3', str(script), '--wechat', '--md-table'],
+            ['python3', str(script), '--wechat', '--md-table', '--today-abs'],
             capture_output=True, text=True, timeout=120,
         )
         return r.returncode, r.stdout, r.stderr

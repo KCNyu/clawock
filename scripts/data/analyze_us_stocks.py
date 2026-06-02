@@ -327,7 +327,7 @@ def print_report(data: Dict, analyses: List[Dict]):
 
 # ── WeChat-friendly report ───────────────────────────────────────────────────
 
-def print_wechat_report(data: Dict, analyses: List[Dict], md_table: bool = False):
+def print_wechat_report(data: Dict, analyses: List[Dict], md_table: bool = False, today_abs: bool = False):
     """Compact mobile-friendly US report for WeChat/Telegram delivery.
 
     When md_table=True, the holdings block is emitted as a markdown table
@@ -362,7 +362,7 @@ def print_wechat_report(data: Dict, analyses: List[Dict], md_table: bool = False
     # Holdings
     lines.append('')
     if md_table:
-        # 8-col visual-width-aligned markdown table — see _wechat_table.py.
+        # 7-col visual-width-aligned markdown table (--today-abs → 去成本+今日$ 变体) — see _wechat_table.py.
         # Stays consistent line-width on mobile WeChat (no md render there).
         from _wechat_table import render_holdings_table
         rows = [{
@@ -375,7 +375,7 @@ def print_wechat_report(data: Dict, analyses: List[Dict], md_table: bool = False
             'pnl_pct':   a['holding'].get('pnl_percent', 0),
             'pnl_abs':   a['holding'].get('pnl_abs', 0),
         } for a in analyses]
-        lines.extend(render_holdings_table(rows, currency='USD'))
+        lines.extend(render_holdings_table(rows, currency='USD', today_abs=today_abs))
     else:
         for a in analyses:
             h     = a['holding']
@@ -439,6 +439,7 @@ def run_analysis(fetch: bool = True, include_news: bool = True):
     no_news  = '--no-news'  in sys.argv
     wechat   = '--wechat'   in sys.argv
     md_table = '--md-table' in sys.argv
+    today_abs = '--today-abs' in sys.argv  # intraday 盯盘 variant: 去成本+今日$
     if not fetch:   no_fetch = True
     if not include_news: no_news = True
 
@@ -500,7 +501,7 @@ def run_analysis(fetch: bool = True, include_news: bool = True):
         print()
 
     if wechat:
-        print_wechat_report(data, analyses, md_table=md_table)
+        print_wechat_report(data, analyses, md_table=md_table, today_abs=today_abs)
     else:
         print_report(data, analyses)
     return analyses
