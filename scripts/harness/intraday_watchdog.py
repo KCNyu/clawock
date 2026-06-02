@@ -39,6 +39,7 @@ from datetime import datetime
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'data'))  # render_holdings_card
 from _watchdog_common import (  # noqa: E402
     WS, HKT, log, find_job_id, read_runs, today_runs,
     transcript_loop_score, last_human_inbound_ms, last_report_text, send_telegram,
@@ -47,6 +48,55 @@ from _watchdog_common import (  # noqa: E402
 LOOP_THRESHOLD = 5       # transcript loop_score ≥ this ⇒ mimo repeat-loop ⇒ garbage
 DEFAULT_COLD_MIN = 40    # WeChat session idle ≥ this at send-time ⇒ likely dropped
 KCN_TELEGRAM_TARGET = 2033937852  # Shengyu Li's Telegram DM (chat_id == user id)
+GAIN, LOSS, NEUTRAL = '#3fb950', '#f85149', '#c9d1d9'
+
+
+def build_card(report_text):
+    """Parse the announced report (8-col holdings block + index/summary/narrative)
+    into (card_data, caption_tail) for the matplotlib card renderer. The image
+    shows title+index+summary+table; the caption carries everything AFTER the
+    table (signals + ▎我的看法). Returns None if the canonical 8-col table isn't
+    found → caller falls back to a plain-text mirror."""
+    lines = report_text.splitlines()
+    tbl = [l for l in lines if l.strip().startswith('|')]
+    if len(tbl) < 3:
+        return None
+    header = [c.strip() for c in tbl[0].strip().strip('|').split('|')]
+    if len(header) != 8:
+        return None
+    rows = []
+    for l in tbl[1:]:
+        cells = [c.strip() for c in l.strip().strip('|').split('|')]
+        if len(cells) != 8:
+            continue
+        if cells[0] == '代码' or set(cells[0]) <= set('-: '):  # header / separator
+            continue
+        rows.append(cells)
+    if not rows:
+        return None
+    first_tbl = next(i for i, l in enumerate(lines) if l.strip().startswith('|'))
+    last_tbl = max(i for i, l in enumerate(lines) if l.strip().startswith('|'))
+    pre = [l.strip() for l in lines[:first_tbl] if l.strip()]
+    title = pre[0] if pre else '持仓盯盘'
+    for ch in ('🇭🇰', '🇺🇸', '📊', '📉'):
+        title = title.replace(ch, '')
+    summary = next((l for l in pre if '市值' in l), '')
+    summary = summary.replace('📊', '').strip()
+    index = next((l for l in pre[1:] if l != summary and '市值' not in l), '')
+    card = {
+        'title':         title.strip(),
+        'index':         index,
+        'index_color':   GAIN if '▲' in index else (LOSS if '▼' in index else NEUTRAL),
+        'summary':       summary,
+        'summary_color': LOSS if ('浮盈 -' in summary or '浮盈 −' in summary) else GAIN,
+        'cols':          header,
+        'aligns':        ['l'] + ['r'] * 7,
+        'xs':            [2.5, 29, 41, 53, 65, 78, 89, 99],
+        'signed_cols':   [i for i, h in enumerate(header) if '%' in h or '$' in h],
+        'rows':          rows,
+    }
+    tail = '\n'.join(lines[last_tbl + 1:]).strip()
+    return card, tail
 
 
 def main():
@@ -123,17 +173,37 @@ def main():
     if not report:
         report = summary  # fallback: run-record summary (usually holds the full block)
     banner = (f'📲 微信备投（盘中盯盘 {datetime.now(HKT):%H:%M} HKT 发出时微信会话已冷 '
-              f'{idle_min}min，大概率被腾讯静默吞了，故 Telegram 补一份）\n\n')
-    message = banner + report.strip()
+              f'{idle_min}min，大概率被腾讯静默吞了，故 Telegram 补一份）')
 
-    sent_ok, out = send_telegram(args.telegram_target, message, args.dry_run)
-    log({'tag': tag, 'action': 'mirror-telegram', 'dry_run': args.dry_run, 'sent_ok': sent_ok,
-         'job_id': job_id, 'idle_min': idle_min, 'cold_min': args.cold_min,
+    # Preferred: render the holdings table as a broker-style PNG (mobile WeChat
+    # users hate monospace pipes) and send it as a photo with signals+看法 as
+    # the caption. Any failure (bad table parse, render error) falls back to the
+    # plain-text mirror so kcn never gets nothing.
+    mode, png = 'text', None
+    try:
+        from render_holdings_card import render as render_card  # noqa: E402
+        built = build_card(report)
+        if built:
+            card_data, tail = built
+            png = WS / 'memory' / '.tmp' / f'tg-card-{tag}-{run_at}.png'
+            render_card(card_data, str(png))
+            caption = (banner + '\n\n' + tail).strip()[:1000]
+            sent_ok, out = send_telegram(args.telegram_target, caption, args.dry_run, media=str(png))
+            mode = 'photo'
+        else:
+            raise ValueError('canonical 8-col table not found in report')
+    except Exception as e:
+        out_note = f'card render fell back to text: {e}'
+        sent_ok, out = send_telegram(args.telegram_target, banner + '\n\n' + report.strip(), args.dry_run)
+        out = f'[{out_note}] {out}'
+
+    log({'tag': tag, 'action': 'mirror-telegram', 'mode': mode, 'dry_run': args.dry_run,
+         'sent_ok': sent_ok, 'job_id': job_id, 'idle_min': idle_min, 'cold_min': args.cold_min,
          'loop_score': loop_score, 'run_at': run_at, 'out': out})
     if sent_ok and not args.dry_run:
         flag.write_text(datetime.now(HKT).isoformat())
 
-    print(json.dumps({'tag': tag, 'idle_min': idle_min, 'cold': cold,
+    print(json.dumps({'tag': tag, 'idle_min': idle_min, 'cold': cold, 'mode': mode,
                       'mirrored': sent_ok, 'dry_run': args.dry_run}, ensure_ascii=False))
     return 0
 
