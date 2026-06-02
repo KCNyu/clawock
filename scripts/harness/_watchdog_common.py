@@ -106,6 +106,153 @@ def send_wechat(channel, to, account, message, dry_run):
     return r.returncode == 0, (r.stdout + r.stderr)[-400:]
 
 
+def send_telegram(target, message, dry_run):
+    """openclaw message send to Telegram. Returns (ok, tail_of_output).
+
+    Telegram is the cold-session-proof backup channel: unlike WeChat it has no
+    idle-session silent-drop (the #81096/#81316 wontfix), so when the intraday
+    watchdog judges a WeChat push probably dropped it mirrors here instead."""
+    cmd = [OPENCLAW_BIN, 'message', 'send',
+           '--channel', 'telegram', '--target', str(target), '-m', message, '--json']
+    if dry_run:
+        cmd.append('--dry-run')
+    r = subprocess.run(cmd, capture_output=True, text=True, timeout=60)
+    return r.returncode == 0, (r.stdout + r.stderr)[-400:]
+
+
+def cron_session_ids():
+    """Set of every cron run's sessionId (across all cron/runs/*.jsonl). Used to
+    EXCLUDE cron sessions when looking for kcn's last human inbound — cron runs
+    live in the same agents/main/sessions/ dir and their 'user' turn is the
+    harness prompt (every 30min), which would otherwise look like fresh human
+    activity and keep the session perpetually 'warm'."""
+    ids = set()
+    if not RUNS_DIR.exists():
+        return ids
+    for p in RUNS_DIR.glob('*.jsonl'):
+        try:
+            for line in p.read_text().splitlines():
+                line = line.strip()
+                if not line:
+                    continue
+                sid = json.loads(line).get('sessionId')
+                if sid:
+                    ids.add(sid)
+        except Exception:
+            continue
+    return ids
+
+
+def last_human_inbound_ms(before_ms=None, lookback_hours=24):
+    """Timestamp (ms) of kcn's most recent inbound message to the bot, optionally
+    only counting messages at/before `before_ms`. Scans non-cron main-agent
+    session transcripts (mtime within lookback_hours) for role=user entries.
+
+    This is our session-warmth proxy: the WeChat cold-session drop has NO read
+    receipt and `delivered` is poisoned (always true), so the only honest signal
+    of 'did kcn actually get it' is how long since kcn last talked to the bot.
+    Returns None if no human inbound found in the window.
+
+    Synthetic role=user turns are excluded: cron harness prompts (via cron
+    sessions) and — critically — the `[OpenClaw heartbeat poll]` injected every
+    hour, which would otherwise masquerade as a fresh human message and keep the
+    session perpetually 'warm' (2026-06-02: a 10:50 heartbeat made an 11:30 cold
+    session read as idle=39m and suppressed the Telegram backup)."""
+    if not SESSIONS_DIR.exists():
+        return None
+    cron_ids = cron_session_ids()
+    now_ms = datetime.now(timezone.utc).timestamp() * 1000
+    floor_ms = now_ms - lookback_hours * 3600 * 1000
+    best = None
+    for p in SESSIONS_DIR.glob('*.jsonl'):
+        if p.name.endswith('.trajectory.jsonl'):
+            continue
+        if p.stem in cron_ids:
+            continue
+        try:
+            if p.stat().st_mtime * 1000 < floor_ms:
+                continue
+        except OSError:
+            continue
+        try:
+            for line in p.read_text().splitlines():
+                line = line.strip()
+                if not line:
+                    continue
+                try:
+                    e = json.loads(line)
+                except Exception:
+                    continue
+                m = e.get('message', e)
+                if m.get('role') != 'user':
+                    continue
+                ts = m.get('timestamp')
+                if not isinstance(ts, (int, float)):
+                    continue
+                if before_ms is not None and ts > before_ms:
+                    continue
+                if _is_synthetic_user(m.get('content')):
+                    continue
+                if best is None or ts > best:
+                    best = ts
+        except Exception:
+            continue
+    return best
+
+
+def _is_synthetic_user(content):
+    """True if a role=user turn is machine-injected (heartbeat poll, system tag)
+    rather than a real kcn message — must not count as session warmth."""
+    if isinstance(content, list):
+        text = ' '.join(b.get('text', '') for b in content
+                        if isinstance(b, dict) and b.get('type') == 'text')
+    elif isinstance(content, str):
+        text = content
+    else:
+        return True
+    t = text.strip()
+    if not t:
+        return True
+    return t.startswith('[OpenClaw') or 'heartbeat poll' in t
+
+
+def last_report_text(session_id, first_line):
+    """The actual announced intraday report — the last assistant text block in
+    the cron session transcript that contains the data block's first line. We
+    mirror THIS verbatim to Telegram (not the run-record `summary`, which is
+    truncated meta-prose). Returns the text, or None if not found."""
+    if not session_id:
+        return None
+    p = SESSIONS_DIR / f'{session_id}.jsonl'
+    if not p.exists():
+        return None
+    found = None
+    try:
+        for line in p.read_text().splitlines():
+            try:
+                e = json.loads(line)
+            except Exception:
+                continue
+            m = e.get('message', e)
+            if m.get('role') != 'assistant':
+                continue
+            c = m.get('content')
+            texts = []
+            if isinstance(c, list):
+                texts = [b.get('text', '') for b in c
+                         if isinstance(b, dict) and b.get('type') == 'text']
+            elif isinstance(c, str):
+                texts = [c]
+            for t in texts:
+                if first_line and first_line in t:
+                    # trim any leading model meta-prose ("Postflight passed…")
+                    # so the mirror starts clean at the report's first line.
+                    found = t[t.index(first_line):]  # keep LAST match = delivered report
+    except Exception as e:
+        print(f'(report extract failed: {e})', file=sys.stderr)
+    return found
+
+
 def transcript_loop_score(session_id):
     """Max repeat-count of any 50-char window across all assistant text in the
     session transcript. A clean run scores ~1-2; the mimo repeat-loop failure
