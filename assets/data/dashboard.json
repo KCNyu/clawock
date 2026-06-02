@@ -1,66 +1,66 @@
 {
-  "generated_at": "2026-06-02T17:10:44.849467Z",
-  "last_updated": "2026/06/02 21:30 HKT",
+  "generated_at": "2026-06-02T17:11:42.294511Z",
+  "last_updated": "2026/06/03 01:09 HKT",
   "fx": {
-    "usdhkd": null,
-    "source": null,
-    "fetched_at": null
+    "usdhkd": 7.8371,
+    "source": "Frankfurter",
+    "fetched_at": "2026-06-02T00:00:52.861689+00:00"
   },
   "totals": {
     "us": {
-      "value_usd": 3156.69,
+      "value_usd": 3080.66,
       "cost_usd": 2628.3,
-      "pnl_usd": 528.39,
-      "pnl_pct": 20.1039,
-      "today_change_usd": -103.69,
+      "pnl_usd": 452.36,
+      "pnl_pct": 17.2111,
+      "today_change_usd": -179.74,
       "realized_usd": 1372.88
     },
     "hk": {
-      "value_hkd": 78040.0,
+      "value_hkd": 78026.6,
       "cost_hkd": 88276.24,
-      "pnl_hkd": -10236.24,
-      "pnl_pct": -11.6,
-      "today_change_hkd": 8.0,
+      "pnl_hkd": -10249.64,
+      "pnl_pct": -11.61,
+      "today_change_hkd": -5.4,
       "realized_hkd": 7259.16
     }
   },
   "concentration": {
     "us": {
-      "hhi": 0.2315,
-      "top2": 0.528,
+      "hhi": 0.2327,
+      "top2": 0.5298,
       "positions": [
         {
           "ticker": "ROBN",
           "name": "二倍做多HOOD ETF-T-Rex",
           "value": 989.2,
-          "weight": 0.3134
-        },
-        {
-          "ticker": "PLTU",
-          "name": "二倍做多PLTR ETF-Direxion",
-          "value": 677.53,
-          "weight": 0.2146
+          "weight": 0.3211
         },
         {
           "ticker": "MSFU",
           "name": "二倍做多微软ETF-Direxion",
-          "value": 660.2,
-          "weight": 0.2091
+          "value": 642.8,
+          "weight": 0.2087
+        },
+        {
+          "ticker": "PLTU",
+          "name": "二倍做多PLTR ETF-Direxion",
+          "value": 630.02,
+          "weight": 0.2045
         },
         {
           "ticker": "RKLB",
           "name": "Rocket Lab Corp",
-          "value": 626.4,
-          "weight": 0.1984
+          "value": 614.23,
+          "weight": 0.1994
         },
         {
           "ticker": "CRCL",
           "name": "Circle Internet Group Inc-A",
-          "value": 203.36,
-          "weight": 0.0644
+          "value": 204.41,
+          "weight": 0.0664
         }
       ],
-      "total": 3156.69,
+      "total": 3080.66,
       "verdict": {
         "level": "moderate",
         "label": "偏集中",
@@ -68,20 +68,20 @@
       }
     },
     "hk": {
-      "hhi": 0.3876,
+      "hhi": 0.3877,
       "top2": 0.8524,
       "positions": [
         {
           "ticker": "00100",
           "name": "MINIMAX-W",
           "value": 40050.0,
-          "weight": 0.5132
+          "weight": 0.5133
         },
         {
           "ticker": "07226",
           "name": "XL二南方恒科",
-          "value": 26474.0,
-          "weight": 0.3392
+          "value": 26461.6,
+          "weight": 0.3391
         },
         {
           "ticker": "02208",
@@ -98,11 +98,11 @@
         {
           "ticker": "03032",
           "name": "恒生科技ETF",
-          "value": 1037.0,
+          "value": 1036.0,
           "weight": 0.0133
         }
       ],
-      "total": 78040.0,
+      "total": 78026.6,
       "verdict": {
         "level": "danger",
         "label": "危险集中",
@@ -118,14 +118,14 @@
         "currency": "USD",
         "shares": 5,
         "cost_basis": 71,
-        "current_price": 125.281,
-        "current_value": 626.4,
-        "today_change": 14.46,
-        "today_change_pct": 2.36,
-        "day_high": 125.281,
-        "day_low": 125.281,
-        "pnl_abs": 271.41,
-        "pnl_percent": 76.45,
+        "current_price": 122.845,
+        "current_value": 614.23,
+        "today_change": 2.27,
+        "today_change_pct": 0.37,
+        "day_high": 122.845,
+        "day_low": 122.845,
+        "pnl_abs": 259.23,
+        "pnl_percent": 73.02,
         "is_active": true,
         "trades_count": 0
       },
@@ -135,14 +135,14 @@
         "currency": "USD",
         "shares": 2,
         "cost_basis": 87,
-        "current_price": 101.6801,
-        "current_value": 203.36,
-        "today_change": -6.58,
-        "today_change_pct": -3.13,
-        "day_high": 101.6801,
-        "day_low": 101.6801,
-        "pnl_abs": 29.36,
-        "pnl_percent": 16.87,
+        "current_price": 102.205,
+        "current_value": 204.41,
+        "today_change": -5.53,
+        "today_change_pct": -2.63,
+        "day_high": 102.205,
+        "day_low": 102.205,
+        "pnl_abs": 30.41,
+        "pnl_percent": 17.48,
         "is_active": true,
         "trades_count": 5
       },
@@ -152,14 +152,14 @@
         "currency": "USD",
         "shares": 14,
         "cost_basis": 40.9571,
-        "current_price": 48.395,
-        "current_value": 677.53,
-        "today_change": -23.17,
-        "today_change_pct": -3.31,
-        "day_high": 48.395,
-        "day_low": 48.395,
-        "pnl_abs": 104.13,
-        "pnl_percent": 18.16,
+        "current_price": 45.0015,
+        "current_value": 630.02,
+        "today_change": -70.68,
+        "today_change_pct": -10.09,
+        "day_high": 45.0015,
+        "day_low": 45.0015,
+        "pnl_abs": 56.62,
+        "pnl_percent": 9.87,
         "is_active": true,
         "trades_count": 2
       },
@@ -186,14 +186,14 @@
         "currency": "USD",
         "shares": 20,
         "cost_basis": 29.13,
-        "current_price": 33.01,
-        "current_value": 660.2,
-        "today_change": -33.6,
-        "today_change_pct": -4.84,
-        "day_high": 33.01,
-        "day_low": 33.01,
-        "pnl_abs": 77.6,
-        "pnl_percent": 13.32,
+        "current_price": 32.14,
+        "current_value": 642.8,
+        "today_change": -51.0,
+        "today_change_pct": -7.35,
+        "day_high": 32.14,
+        "day_low": 32.14,
+        "pnl_abs": 60.2,
+        "pnl_percent": 10.33,
         "is_active": true,
         "trades_count": 1
       }
@@ -239,14 +239,14 @@
         "currency": "HKD",
         "shares": 200,
         "cost_basis": 5.405,
-        "current_price": 5.185,
-        "current_value": 1037.0,
-        "today_change": 47.0,
-        "today_change_pct": 4.75,
+        "current_price": 5.18,
+        "current_value": 1036.0,
+        "today_change": 46.0,
+        "today_change_pct": 4.65,
         "day_high": 5.185,
         "day_low": 4.97,
-        "pnl_abs": -44.0,
-        "pnl_percent": -4.07,
+        "pnl_abs": -45.0,
+        "pnl_percent": -4.16,
         "is_active": true,
         "trades_count": 0
       },
@@ -256,14 +256,14 @@
         "currency": "HKD",
         "shares": 6200,
         "cost_basis": 4.3632,
-        "current_price": 4.27,
-        "current_value": 26474.0,
-        "today_change": 2294.0,
-        "today_change_pct": 9.49,
+        "current_price": 4.268,
+        "current_value": 26461.6,
+        "today_change": 2281.6,
+        "today_change_pct": 9.44,
         "day_high": 4.272,
         "day_low": 3.916,
-        "pnl_abs": -577.84,
-        "pnl_percent": -2.14,
+        "pnl_abs": -590.24,
+        "pnl_percent": -2.18,
         "is_active": true,
         "trades_count": 1
       },
@@ -958,41 +958,152 @@
   "indices": {
     "SPX": {
       "name": "S&P 500",
-      "price": 7584.9,
+      "price": 7614.73,
       "prev_close": 7599.96,
-      "change_pct": -0.198,
-      "source": "Tencent usINX index @ 2026-06-02 09:30 ET"
+      "change_pct": 0.194,
+      "source": "Tencent usINX index @ 2026-06-02 13:01 ET"
     },
     "NDX": {
       "name": "Nasdaq 100",
-      "price": 30513.86,
+      "price": 30635.94,
       "prev_close": 30513.86,
-      "change_pct": 0,
-      "source": "Tencent usNDX index @ 2026-06-02 09:30 ET"
+      "change_pct": 0.4,
+      "source": "Tencent usNDX index @ 2026-06-02 13:01 ET"
     },
     "DJI": {
       "name": "Dow Jones",
-      "price": 50845.48,
+      "price": 51228.19,
       "prev_close": 51078.88,
-      "change_pct": -0.457,
-      "source": "Tencent usDJI index @ 2026-06-02 09:30 ET"
+      "change_pct": 0.292,
+      "source": "Tencent usDJI index @ 2026-06-02 13:01 ET"
     },
     "HSI": {
       "name": "恒生指数",
-      "price": 26032.76,
+      "price": 26038.32,
       "prev_close": 25398.18,
-      "change_pct": 2.5,
-      "source": "Tencent qt.gtimg.cn 2026/06/02 16:00 HKT"
+      "change_pct": 2.52,
+      "source": "Tencent qt.gtimg.cn 2026/06/03 01:09 HKT"
     },
     "HSTECH": {
       "name": "恒生科技",
-      "price": 5200.77,
+      "price": 5199.28,
       "prev_close": 4964.92,
-      "change_pct": 4.75,
-      "source": "Tencent qt.gtimg.cn 2026/06/02 16:00 HKT"
+      "change_pct": 4.72,
+      "source": "Tencent qt.gtimg.cn 2026/06/03 01:09 HKT"
     }
   },
-  "market_context": {},
+  "market_context": {
+    "generated_at": "2026-06-02T08:05:00+08:00",
+    "date": "2026-06-02",
+    "sectors": [
+      {
+        "theme": "HK AI 大模型",
+        "tickers_in_book": [
+          "00100"
+        ],
+        "top_movers": [
+          {
+            "ticker": "02469",
+            "name": "速腾聚创",
+            "pct": 7.81,
+            "catalyst": "AI+车载板块轮动"
+          },
+          {
+            "ticker": "00020",
+            "name": "商汤-W",
+            "pct": 6.02,
+            "catalyst": "AI微短剧产业基地+板块轮动"
+          },
+          {
+            "ticker": "06682",
+            "name": "第四范式",
+            "pct": 5.28,
+            "catalyst": "企业AI决策平台板块轮动"
+          },
+          {
+            "ticker": "02273",
+            "name": "智云健康",
+            "pct": -3.58,
+            "catalyst": "AI+医疗板块分化"
+          }
+        ],
+        "self": [
+          {
+            "ticker": "00100",
+            "pct": -15.71,
+            "rank_text": "落后",
+            "attribution": "M3模型发布+科创板上市评估利好出尽，sell-the-news抛压，同行普涨说明板块资金未撤"
+          }
+        ]
+      },
+      {
+        "theme": "HK 科技指数 2x leveraged (HSTECH 标的)",
+        "tickers_in_book": [
+          "07226"
+        ],
+        "top_movers": [
+          {
+            "ticker": "09988",
+            "name": "阿里巴巴-W",
+            "pct": null,
+            "catalyst": "HSTECH权重股"
+          },
+          {
+            "ticker": "00700",
+            "name": "腾讯控股",
+            "pct": null,
+            "catalyst": "HSTECH权重股"
+          },
+          {
+            "ticker": "03690",
+            "name": "美团-W",
+            "pct": null,
+            "catalyst": "HSTECH权重股"
+          }
+        ],
+        "self": [
+          {
+            "ticker": "07226",
+            "pct": 3.72,
+            "rank_text": "中位",
+            "attribution": "HSTECH +1.65%，2x杠杆正常放大，南向资金13.3B净流入支撑"
+          }
+        ]
+      },
+      {
+        "theme": "商业航天",
+        "tickers_in_book": [
+          "RKLB"
+        ],
+        "top_movers": [],
+        "self": [
+          {
+            "ticker": "RKLB",
+            "pct": -14.85,
+            "rank_text": "落后",
+            "attribution": "SpaceX IPO $1.5-1.75T估值资金分流+技术面overbought回调，但$90M Space Force合同+Q1 rev +63%基本面未变"
+          }
+        ]
+      },
+      {
+        "theme": "稳定币/加密",
+        "tickers_in_book": [
+          "CRCL"
+        ],
+        "top_movers": [],
+        "self": [
+          {
+            "ticker": "CRCL",
+            "pct": -7.37,
+            "rank_text": "落后",
+            "attribution": "crypto-linked stocks cooling+insider sale信号+看空标题压制，但Q1首次盈利是基本面转折"
+          }
+        ]
+      }
+    ],
+    "narrative": "今日港股AI板块全面爆发（商汤+6%、第四范式+5.3%、速腾+7.8%），但MINIMAX独跌-15.7%——典型的sell-the-news，M3模型发布+科创板上市评估双重利好出尽。板块资金未撤是00100个股问题而非板块问题。美股方面RKLB受SpaceX IPO竞争压力-14.9%，PLTR/MSFT 2x杠杆ETF继续正向放大。组合核心风险：HK leg HHI 0.401危险集中+全组合62.2%年化波动率。",
+    "_source": "sector-scan-2026-06-02.json"
+  },
   "holdings_history": {
     "NVDA": [
       213.0,
@@ -1249,11 +1360,25 @@
   },
   "today_movers": [
     {
+      "ticker": "PLTU",
+      "name": "二倍做多PLTR ETF-Direxion",
+      "region": "us",
+      "today_change_pct": -10.09,
+      "current_price": 45.0015
+    },
+    {
       "ticker": "07226",
       "name": "XL二南方恒科",
       "region": "hk",
-      "today_change_pct": 9.49,
-      "current_price": 4.27
+      "today_change_pct": 9.44,
+      "current_price": 4.268
+    },
+    {
+      "ticker": "MSFU",
+      "name": "二倍做多微软ETF-Direxion",
+      "region": "us",
+      "today_change_pct": -7.35,
+      "current_price": 32.14
     },
     {
       "ticker": "00100",
@@ -1270,20 +1395,6 @@
       "current_price": 24.73
     },
     {
-      "ticker": "MSFU",
-      "name": "二倍做多微软ETF-Direxion",
-      "region": "us",
-      "today_change_pct": -4.84,
-      "current_price": 33.01
-    },
-    {
-      "ticker": "03032",
-      "name": "恒生科技ETF",
-      "region": "hk",
-      "today_change_pct": 4.75,
-      "current_price": 5.185
-    },
-    {
       "ticker": "03033",
       "name": "南方恒生科技",
       "region": "hk",
@@ -1291,44 +1402,108 @@
       "current_price": 5.095
     },
     {
-      "ticker": "PLTU",
-      "name": "二倍做多PLTR ETF-Direxion",
-      "region": "us",
-      "today_change_pct": -3.31,
-      "current_price": 48.395
-    },
-    {
-      "ticker": "CRCL",
-      "name": "Circle Internet Group Inc-A",
-      "region": "us",
-      "today_change_pct": -3.13,
-      "current_price": 101.6801
+      "ticker": "03032",
+      "name": "恒生科技ETF",
+      "region": "hk",
+      "today_change_pct": 4.65,
+      "current_price": 5.18
     }
   ],
   "anomalies": [
     {
-      "type": "no_context",
-      "ticker": "",
-      "detail": "no brief-context-*.json found in memory/.tmp/",
-      "severity": "low"
+      "type": "high_weight_loss",
+      "ticker": "00100",
+      "detail": "weight 54.4% + pnl -18.9%",
+      "severity": "high"
+    },
+    {
+      "type": "leveraged_etf_stop",
+      "ticker": "PLTU",
+      "detail": "leveraged ETF: today -10.1%",
+      "severity": "medium"
     }
   ],
-  "behavioral_review": null,
-  "bear_cases": [],
-  "hidden_concentration": null,
+  "behavioral_review": {
+    "verdict": "主动信号44%胜率vs持有72%，模型在做负贡献 — 纪律执行是唯一该做的事",
+    "points": [
+      {
+        "text": "cut bucket 18次仅33%胜率、overconfidence +35pp — 历史上砍仓多半砍错，但ROBN四期未执行断层本身比错砍更危险",
+        "tag": "bias"
+      },
+      {
+        "text": "主动信号win rate 44% vs 被动hold 72%，差距28pp — 今天唯一主动call(PLTU trim/ROBN cut)是纪律驱动非信号驱动",
+        "tag": "warning"
+      },
+      {
+        "text": "hold_and_watch 77%胜率+校准差距-17pp — hold类决策实际比报的信心更准，这是好消息",
+        "tag": "edge"
+      },
+      {
+        "text": "高信心(≥0.75)档win rate仅46%、overconfidence +31pp — 报高信心时系统性过信，本次主动call压到≤0.50",
+        "tag": "bias"
+      },
+      {
+        "text": "00100 stop 780已穿未执行、RKLB stop 130已穿未执行 — stop设了不跟等于没设，今天必须对已触发stop做动作",
+        "tag": "warning"
+      }
+    ]
+  },
+  "bear_cases": [
+    {
+      "ticker": "00100",
+      "thesis": "M3利好出尽+单日-15.71%穿780 stop+alpha落后同行23.5pp，HHI 54%集中度意味着HK book被单一票绑架",
+      "falsifier": "HSTECH纳入6/8确认+股价企稳750以上",
+      "watch": "6/8 HSTECH纳入决定"
+    },
+    {
+      "ticker": "07226",
+      "thesis": "2x杠杆decay+HSTECH若跌破4800将放大亏损，HHI 31%+浮亏-10.6%，NFP/CPI周波动风险",
+      "falsifier": "HSTECH站稳5000+南向资金持续流入",
+      "watch": "HSTECH 4800支撑位"
+    },
+    {
+      "ticker": "RKLB",
+      "thesis": "SpaceX IPO后散户唯一航天标的溢价将消退，-14.9%已穿130 stop，技术面overbought",
+      "falsifier": "Q2 backlog增长+Neutron进度超预期",
+      "watch": "$115新stop位"
+    }
+  ],
+  "hidden_concentration": {
+    "headline": "表面5+5持仓实际高度集中于AI+杠杆β单因子",
+    "factor": "美股科技杠杆β + 港股AI单票",
+    "exposure_pct": 85,
+    "detail": "HK leg: 00100(54%)+07226(31%)=85%暴露于港股AI/科技单因子。US leg: 5票全是2x杠杆ETF，因子暴露集中于美股科技β。组合62.2%年化波动率+-0.33 Sharpe=风险调整后负回报。单一事件(00100财报雷/HSTECH破位)可直接炸book。"
+  },
   "insights_meta": {
-    "source": null,
-    "stale": true
+    "source": "insights-2026-06-02.json",
+    "stale": false
   },
   "status_banner": null,
   "status_banner_meta": {
-    "source": null,
-    "generated_at": null,
+    "source": "intraday-insights-2026-05-31.json",
+    "generated_at": "2026-05-31T05:25:44.332992Z",
     "stale": true
   },
   "peer_divergence": {
-    "as_of": "",
-    "items": []
+    "as_of": "2026-06-02",
+    "items": [
+      {
+        "ticker": "00100",
+        "self_pct_1d": -15.71,
+        "best_peer": "02469",
+        "best_peer_name": "速腾聚创",
+        "peer_pct_1d": 7.81,
+        "divergence_pp": 23.52
+      },
+      {
+        "ticker": "02208",
+        "self_pct_1d": 0.58,
+        "best_peer": "01072",
+        "best_peer_name": "东方电气",
+        "peer_pct_1d": 4.17,
+        "divergence_pp": 3.59
+      }
+    ]
   },
   "calibration": {
     "brier_30d": 0.2608,
@@ -1934,7 +2109,7 @@
     {
       "ticker": "00100",
       "region": "hk",
-      "weight_pct": 51.32,
+      "weight_pct": 51.33,
       "avg_confidence": 0.621,
       "n_actions": 15,
       "quadrant": "high_risk"
@@ -1942,31 +2117,31 @@
     {
       "ticker": "07226",
       "region": "hk",
-      "weight_pct": 33.92,
+      "weight_pct": 33.91,
       "avg_confidence": 0.584,
       "n_actions": 14,
       "quadrant": "high_risk"
     },
     {
-      "ticker": "PLTU",
+      "ticker": "MSFU",
       "region": "us",
-      "weight_pct": 21.46,
-      "avg_confidence": 0.561,
+      "weight_pct": 20.87,
+      "avg_confidence": 0.63,
       "n_actions": 11,
       "quadrant": "high_risk"
     },
     {
-      "ticker": "MSFU",
+      "ticker": "PLTU",
       "region": "us",
-      "weight_pct": 20.91,
-      "avg_confidence": 0.63,
+      "weight_pct": 20.45,
+      "avg_confidence": 0.561,
       "n_actions": 11,
       "quadrant": "high_risk"
     },
     {
       "ticker": "ROBN",
       "region": "us",
-      "weight_pct": 31.34,
+      "weight_pct": 32.11,
       "avg_confidence": 0.658,
       "n_actions": 14,
       "quadrant": "conviction"
@@ -1980,19 +2155,19 @@
       "quadrant": "low_conv_small"
     },
     {
+      "ticker": "CRCL",
+      "region": "us",
+      "weight_pct": 6.64,
+      "avg_confidence": 0.547,
+      "n_actions": 9,
+      "quadrant": "low_conv_small"
+    },
+    {
       "ticker": "03033",
       "region": "hk",
       "weight_pct": 6.53,
       "avg_confidence": 0.55,
       "n_actions": 4,
-      "quadrant": "low_conv_small"
-    },
-    {
-      "ticker": "CRCL",
-      "region": "us",
-      "weight_pct": 6.44,
-      "avg_confidence": 0.547,
-      "n_actions": 9,
       "quadrant": "low_conv_small"
     },
     {
@@ -2006,7 +2181,7 @@
     {
       "ticker": "RKLB",
       "region": "us",
-      "weight_pct": 19.84,
+      "weight_pct": 19.94,
       "avg_confidence": 0.651,
       "n_actions": 11,
       "quadrant": "comfort"
@@ -2023,39 +2198,39 @@
       {
         "sector": "Fintech",
         "value": 989.2,
-        "pct": 31.34,
+        "pct": 32.11,
         "tickers": [
           "ROBN"
         ]
       },
       {
-        "sector": "AI / Defense",
-        "value": 677.53,
-        "pct": 21.46,
-        "tickers": [
-          "PLTU"
-        ]
-      },
-      {
         "sector": "Tech Mega-cap",
-        "value": 660.2,
-        "pct": 20.91,
+        "value": 642.8,
+        "pct": 20.87,
         "tickers": [
           "MSFU"
         ]
       },
       {
+        "sector": "AI / Defense",
+        "value": 630.02,
+        "pct": 20.45,
+        "tickers": [
+          "PLTU"
+        ]
+      },
+      {
         "sector": "Aerospace",
-        "value": 626.4,
-        "pct": 19.84,
+        "value": 614.23,
+        "pct": 19.94,
         "tickers": [
           "RKLB"
         ]
       },
       {
         "sector": "Crypto / Stablecoin",
-        "value": 203.36,
-        "pct": 6.44,
+        "value": 204.41,
+        "pct": 6.64,
         "tickers": [
           "CRCL"
         ]
@@ -2065,15 +2240,15 @@
       {
         "sector": "AI / 大模型",
         "value": 40050.0,
-        "pct": 51.32,
+        "pct": 51.33,
         "tickers": [
           "00100"
         ]
       },
       {
         "sector": "恒生科技 ETF",
-        "value": 32606.0,
-        "pct": 41.78,
+        "value": 32592.6,
+        "pct": 41.77,
         "tickers": [
           "03032",
           "07226",
@@ -2091,9 +2266,9 @@
     ]
   },
   "leveraged_etf": {
-    "us_pct": 73.71,
-    "hk_pct": 33.92,
-    "combined_pct": null,
+    "us_pct": 73.43,
+    "hk_pct": 33.91,
+    "combined_pct": 43.25,
     "tickers": [
       "07226",
       "MSFU",
@@ -2102,48 +2277,53 @@
     ]
   },
   "risk": {
-    "generated_at": "2026-06-01T00:01:09.661621+00:00",
-    "as_of": "2026-06-01",
+    "generated_at": "2026-06-02T00:01:16.037469+00:00",
+    "as_of": "2026-06-02",
     "us": {
-      "beta_spx": 3.9465,
-      "vol_30d_annualized": 0.839,
-      "max_dd_30d": -0.2063,
-      "sharpe_30d": 2.7609,
-      "current_value_usd": 3401.46
+      "beta_spx": 3.7335,
+      "vol_30d_annualized": 0.8332,
+      "max_dd_30d": -0.2029,
+      "sharpe_30d": 1.8554,
+      "current_value_usd": 3258.69
     },
     "hk": {
-      "beta_hsi": 2.519,
-      "vol_30d_annualized": 0.7642,
-      "max_dd_30d": -0.2036,
-      "sharpe_30d": 0.2561,
-      "current_value_hkd": 84954.8
+      "beta_hsi": 2.0341,
+      "vol_30d_annualized": 0.7301,
+      "max_dd_30d": -0.1957,
+      "sharpe_30d": -1.3187,
+      "current_value_hkd": 78032.0
     },
     "combined": {
-      "vol_30d_annualized": 0.6294,
-      "max_dd_30d": -0.1707,
-      "sharpe_30d": 0.4229
+      "vol_30d_annualized": 0.6218,
+      "max_dd_30d": -0.1657,
+      "sharpe_30d": -0.3316
     },
     "leveraged_exposure": {
-      "us_leverage_factor_avg": 1.7226,
-      "hk_leverage_factor_avg": 1.2744,
-      "combined_avg": 1.3811,
-      "margin_at_risk_pct": 13.8108
+      "us_leverage_factor_avg": 1.7483,
+      "hk_leverage_factor_avg": 1.3099,
+      "combined_avg": 1.4176,
+      "margin_at_risk_pct": 14.176
     },
     "alerts": [
       {
         "type": "high_beta",
         "severity": "high",
-        "detail": "US β vs S&P 500 = 3.9465 (> 3.0)"
+        "detail": "US β vs S&P 500 = 3.7335 (> 3.0)"
       },
       {
         "type": "high_vol",
         "severity": "high",
-        "detail": "Combined 30d annualised vol = 62.9% (> 50%)"
+        "detail": "Combined 30d annualised vol = 62.2% (> 50%)"
       },
       {
         "type": "deep_dd",
         "severity": "medium",
-        "detail": "Combined 30d max DD = -17.1% (< -10%)"
+        "detail": "Combined 30d max DD = -16.6% (< -10%)"
+      },
+      {
+        "type": "negative_sharpe",
+        "severity": "medium",
+        "detail": "Combined 30d Sharpe = -0.3316 (< 0)"
       }
     ],
     "meta": {
@@ -2165,8 +2345,8 @@
         ],
         "failed": [],
         "n_returns": 30,
-        "dates_first": "2026-04-16",
-        "dates_last": "2026-05-29"
+        "dates_first": "2026-04-17",
+        "dates_last": "2026-06-01"
       },
       "hk_fetch": {
         "fetched": [
@@ -2178,8 +2358,8 @@
         ],
         "failed": [],
         "n_returns": 30,
-        "dates_first": "2026-04-15",
-        "dates_last": "2026-05-29"
+        "dates_first": "2026-04-16",
+        "dates_last": "2026-06-01"
       }
     }
   },
@@ -2214,14 +2394,10 @@
     }
   },
   "benchmark": {
-    "generated_at": "2026-06-01T00:01:12.024603Z",
+    "generated_at": "2026-06-02T00:01:18.153351Z",
     "window_days": 60,
     "series": {
       "SPY": [
-        {
-          "date": "2026-04-02",
-          "close": 655.83
-        },
         {
           "date": "2026-04-06",
           "close": 658.93
@@ -2381,10 +2557,6 @@
       ],
       "HSI": [
         {
-          "date": "2026-04-02",
-          "close": 25116.53
-        },
-        {
           "date": "2026-04-08",
           "close": 25893.02
         },
@@ -2527,13 +2699,13 @@
         {
           "date": "2026-05-29",
           "close": 25182.39
+        },
+        {
+          "date": "2026-06-01",
+          "close": 25398.18
         }
       ],
       "HSTECH": [
-        {
-          "date": "2026-04-02",
-          "close": 4679.1
-        },
         {
           "date": "2026-04-08",
           "close": 4923.25
@@ -2677,6 +2849,10 @@
         {
           "date": "2026-05-29",
           "close": 4884.23
+        },
+        {
+          "date": "2026-06-01",
+          "close": 4964.92
         }
       ]
     }
@@ -3297,149 +3473,20 @@
     ]
   },
   "influencer_feed": {
-    "generated_at": "2026-06-02T17:10:44.742322+00:00",
+    "generated_at": "2026-06-02T15:42:53.362002+00:00",
     "lookback_hours": 48,
     "sources": {
       "trump": "trumpstruth.org/feed (primary)",
       "musk": "google-news-rss (proxy)"
     },
-    "llm_filtered": true,
+    "llm_filtered": false,
     "counts": {
-      "total": 11,
+      "total": 40,
       "held_hits": 0,
       "new_ideas": 0,
       "sector_hits": 0
     },
     "items": [
-      {
-        "author": "Trump",
-        "text": "I had a conversation with Bibi Netanyahu today, asking him not to go into a major raid of Beirut, Lebanon. He turned his Troops around. Thank you Bibi! I also had a conversation with Representatives of the Leaders of Hezbollah, and they agreed to stop shooting at Israel, and its soldiers. Likewise, Israel agreed to stop shooting at them. Let’s see how long that lasts — Hopefully it will be for ETERNITY! President DONALD J. TRUMP",
-        "url": "https://trumpstruth.org/statuses/38979",
-        "published": "2026-06-01T21:47:56+00:00",
-        "origin": "truthsocial",
-        "tickers": [],
-        "held": [],
-        "new_ideas": [],
-        "sectors": [
-          "地缘政治",
-          "国防"
-        ],
-        "sector_holdings": [],
-        "stance": "neutral",
-        "relevance": 75,
-        "summary_cn": "特朗普称与内塔尼亚胡及真主党代表通话，促成双方停火，直接影响中东地缘政治与国防板块。"
-      },
-      {
-        "author": "Trump",
-        "text": "RT @NewtGingrichAfter spending this week reviewing the Iranian war I am now convinced President Trump is on the edge of an historic victory. The real breakthrough for me came as I reviewed President Trump’s decisions and maneuvers not from the standpoint of American unilateralism but from the standpoint of the leader of a remarkable historic coalition, the largest coalition ever put together in the modern Middle East. Everyone understands that Israel is an important ally. What is little discussed is the depth of support from the United Arab Emirates, Qatar, Bahrain, Saudi Arabia and other coun",
-        "url": "https://trumpstruth.org/statuses/38981",
-        "published": "2026-06-02T01:18:21+00:00",
-        "origin": "truthsocial",
-        "tickers": [],
-        "held": [],
-        "new_ideas": [],
-        "sectors": [
-          "地缘政治",
-          "国防"
-        ],
-        "sector_holdings": [],
-        "stance": "endorse",
-        "relevance": 70,
-        "summary_cn": "特朗普转发纽特·金里奇观点，称其在伊朗问题上即将取得历史性胜利，涉及中东地缘政治。"
-      },
-      {
-        "author": "Trump",
-        "text": "If Iran surrenders, admits their Navy is gone and resting at the bottom of the sea, and their Air Force is no longer with us, and if their entire Military walks out of Tehran, weapons dropped and hands held high, each shouting “I surrender, I surrender” while wildly waving the representative White Flag, and if their entire remaining Leadership signs all necessary “Documents of Surrender,” and admit their defeat to the great power and force of the magnificent U.S.A., The Failing New York Times, The China Street Journal (WSJ!), Corrupt and now Irrelevant CNN, and all other members of the Fake Ne",
-        "url": "https://trumpstruth.org/statuses/38993",
-        "published": "2026-06-02T01:29:51+00:00",
-        "origin": "truthsocial",
-        "tickers": [],
-        "held": [],
-        "new_ideas": [],
-        "sectors": [
-          "地缘政治",
-          "国防",
-          "能源"
-        ],
-        "sector_holdings": [],
-        "stance": "neutral",
-        "relevance": 65,
-        "summary_cn": "特朗普以讽刺口吻描述伊朗投降场景，暗示对伊强硬立场，影响地缘政治与能源市场。"
-      },
-      {
-        "author": "Trump",
-        "text": "EPA boss made criminal referrals alleging Democrats ‘self-dealing’ in lucrative green energy grants: https://justthenews.com/accountability/waste-fraud-and-abuse/epa-boss-made-criminal-referrals-alleging-democrat-self",
-        "url": "https://trumpstruth.org/statuses/39031",
-        "published": "2026-06-02T03:11:08+00:00",
-        "origin": "truthsocial",
-        "tickers": [],
-        "held": [],
-        "new_ideas": [],
-        "sectors": [
-          "绿色能源",
-          "监管"
-        ],
-        "sector_holdings": [],
-        "stance": "attack",
-        "relevance": 60,
-        "summary_cn": "特朗普称EPA局长就民主党在绿色能源拨款中的'自利'行为提出刑事指控，涉及绿色能源板块监管风险。"
-      },
-      {
-        "author": "Trump",
-        "text": "Iran really wants to make a deal, and it will be a good one for the U.S.A. and those that are with us. But don’t the Dumocrats, and various seemingly unpatriotic Republicans,  understand that it is MUCH tougher for me to properly do my job and negotiate, when political hacks keep negatively “chirping,” at levels never seen before, over and over again, that I should move faster, or move slower, or go to war, or not go to war, or whatever. Just sit back and relax, it will all work out well in the end - It always does! President DJT",
-        "url": "https://trumpstruth.org/statuses/38975",
-        "published": "2026-06-01T05:02:12+00:00",
-        "origin": "truthsocial",
-        "tickers": [],
-        "held": [],
-        "new_ideas": [],
-        "sectors": [
-          "地缘政治",
-          "能源"
-        ],
-        "sector_holdings": [],
-        "stance": "neutral",
-        "relevance": 60,
-        "summary_cn": "特朗普称伊朗想达成协议，但抱怨政治干扰影响谈判，涉及地缘政治与能源市场。"
-      },
-      {
-        "author": "Trump",
-        "text": "Fake News Reports that the Islamic Republic of Iran, and the U.S.A., stopped speaking a few days ago are false and erroneous. The conversations between us have been going on continuously, including four days ago, three days ago, two days ago, one day ago, and today. Where they lead, one never knows, but as I told Iran, “It’s time, one way or another, for you to make a Deal. You’ve been doing this for 47 years, and it cannot be allowed to go on any longer!” President DONALD J. TRUMP",
-        "url": "https://trumpstruth.org/statuses/39040",
-        "published": "2026-06-02T17:00:37+00:00",
-        "origin": "truthsocial",
-        "tickers": [],
-        "held": [],
-        "new_ideas": [],
-        "sectors": [
-          "地缘政治",
-          "能源",
-          "国防"
-        ],
-        "sector_holdings": [],
-        "stance": "neutral",
-        "relevance": 55,
-        "summary_cn": "特朗普称与伊朗持续对话，暗示可能达成协议，影响地缘政治与能源市场预期。"
-      },
-      {
-        "author": "Trump",
-        "text": "Fake News CNN said today, routinely, that my Iran Nuclear Deal doesn’t talk about Nuclear, when actually it states, very clearly, that Iran will not have a Nuclear Weapon. It then goes on, in very strong and lengthy detail, to discuss various other aspects of Nuclear. In fact, that’s what most of the agreement is about. CNN, and so many others in the Fake News Media, is a Low Ratings disaster. Even with new ownership, it is unlikely to ever get better!!! President DJT",
-        "url": "https://trumpstruth.org/statuses/38972",
-        "published": "2026-05-31T23:27:46+00:00",
-        "origin": "truthsocial",
-        "tickers": [],
-        "held": [],
-        "new_ideas": [],
-        "sectors": [
-          "地缘政治",
-          "核能",
-          "媒体"
-        ],
-        "sector_holdings": [],
-        "stance": "attack",
-        "relevance": 55,
-        "summary_cn": "特朗普抨击CNN对其伊朗核协议报道不实，涉及核能政策与媒体板块。"
-      },
       {
         "author": "Musk",
         "text": "Is Elon Musk Selling 'Hopium' With the $1.8 Trillion SpaceX IPO?",
@@ -3450,14 +3497,23 @@
         "tickers": [],
         "held": [],
         "new_ideas": [],
-        "sectors": [
-          "航天",
-          "IPO"
-        ],
-        "sector_holdings": [],
         "stance": "neutral",
-        "relevance": 50,
-        "summary_cn": "文章质疑马斯克是否在兜售SpaceX 1.8万亿美元IPO的'希望'，涉及航天板块IPO预期。"
+        "relevance": null,
+        "summary_cn": ""
+      },
+      {
+        "author": "Musk",
+        "text": "Musk-Linked Firm’s Texas Land Buy Hints at Home for Chip Plant",
+        "url": "",
+        "published": "Tue, 02 Jun 2026 13:43:48 GMT",
+        "origin": "gnews-rss",
+        "source": "Bloomberg.com",
+        "tickers": [],
+        "held": [],
+        "new_ideas": [],
+        "stance": "neutral",
+        "relevance": null,
+        "summary_cn": ""
       },
       {
         "author": "Musk",
@@ -3469,33 +3525,9 @@
         "tickers": [],
         "held": [],
         "new_ideas": [],
-        "sectors": [
-          "航天",
-          "电动车",
-          "并购"
-        ],
-        "sector_holdings": [],
         "stance": "neutral",
-        "relevance": 50,
-        "summary_cn": "报道称SpaceX与特斯拉合并可能触发马斯克万亿美元薪酬方案，涉及航天与电动车板块。"
-      },
-      {
-        "author": "Trump",
-        "text": "I am appointing the Director of the Federal Housing Finance Agency, and Chairman of Fannie Mae/Freddie Mac, William J. Pulte, to serve as Acting Director of National Intelligence. William has deep experience managing the most sensitive matters in America, the safety and soundness of the Markets, and over 10 Trillion Dollars at Fannie Mae/Freddie Mac, a substantial increase from where it was just 12 months ago. During this period, he will remain Director of the Federal Housing Finance Agency, and Chairman of Fannie Mae/Freddie Mac. Congratulations to Director Pulte! President DONALD J. TRUMP",
-        "url": "https://trumpstruth.org/statuses/39039",
-        "published": "2026-06-02T13:06:14+00:00",
-        "origin": "truthsocial",
-        "tickers": [],
-        "held": [],
-        "new_ideas": [],
-        "sectors": [
-          "金融",
-          "房地产"
-        ],
-        "sector_holdings": [],
-        "stance": "neutral",
-        "relevance": 50,
-        "summary_cn": "特朗普任命联邦住房金融局局长兼任国家情报总监，涉及金融市场敏感职位变动。"
+        "relevance": null,
+        "summary_cn": ""
       },
       {
         "author": "Musk",
@@ -3507,14 +3539,347 @@
         "tickers": [],
         "held": [],
         "new_ideas": [],
-        "sectors": [
-          "航天",
-          "财富"
-        ],
-        "sector_holdings": [],
         "stance": "neutral",
-        "relevance": 45,
-        "summary_cn": "文章讨论马斯克、SpaceX及财富幻觉，涉及航天板块估值话题。"
+        "relevance": null,
+        "summary_cn": ""
+      },
+      {
+        "author": "Trump",
+        "text": "I am appointing the Director of the Federal Housing Finance Agency, and Chairman of Fannie Mae/Freddie Mac, William J. Pulte, to serve as Acting Director of National Intelligence. William has deep experience managing the most sensitive matters in America, the safety and soundness of the Markets, and over 10 Trillion Dollars at Fannie Mae/Freddie Mac, a substantial increase from where it was just 12 months ago. During this period, he will remain Director of the Federal Housing Finance Agency, and Chairman of Fannie Mae/Freddie Mac. Congratulations to Director Pulte! President DONALD J. TRUMP",
+        "url": "https://trumpstruth.org/statuses/39039",
+        "published": "2026-06-02T13:06:14+00:00",
+        "origin": "truthsocial",
+        "tickers": [],
+        "held": [],
+        "new_ideas": [],
+        "stance": "neutral",
+        "relevance": null,
+        "summary_cn": ""
+      },
+      {
+        "author": "Trump",
+        "text": "CALIFORNIA: Vote today for Steve Hilton for Governor. He will work with me and the Federal Government, the money will flow because I have confidence in him (but not any of the others!), and we will MAKE CALIFORNIA GREAT AGAIN. Steve Hilton will NEVER let you down. VOTE NOW!",
+        "url": "https://trumpstruth.org/statuses/39038",
+        "published": "2026-06-02T12:40:21+00:00",
+        "origin": "truthsocial",
+        "tickers": [],
+        "held": [],
+        "new_ideas": [],
+        "stance": "neutral",
+        "relevance": null,
+        "summary_cn": ""
+      },
+      {
+        "author": "Trump",
+        "text": "Great job by highly decorated Navy Seal Officer, Mike Sarraille, on Jesse Watters. Mike has seen it all, and really gets it. A “tough cookie.” President DJT",
+        "url": "https://trumpstruth.org/statuses/39037",
+        "published": "2026-06-02T12:32:37+00:00",
+        "origin": "truthsocial",
+        "tickers": [],
+        "held": [],
+        "new_ideas": [],
+        "stance": "neutral",
+        "relevance": null,
+        "summary_cn": ""
+      },
+      {
+        "author": "Trump",
+        "text": "Cuban-American congresswoman calls for Democrats aiding Cuba to be investigated for treason: https://justthenews.com/government/security/cuban-american-congresswoman-calls-democrats-aiding-cuba-be-investigated",
+        "url": "https://trumpstruth.org/statuses/39032",
+        "published": "2026-06-02T03:41:08+00:00",
+        "origin": "truthsocial",
+        "tickers": [],
+        "held": [],
+        "new_ideas": [],
+        "stance": "neutral",
+        "relevance": null,
+        "summary_cn": ""
+      },
+      {
+        "author": "Trump",
+        "text": "Ex-intel official reported Hunter Biden laptop letter was ‘deception operation,’ DOJ asked to probe: https://justthenews.com/accountability/political-ethics/ex-obama-intel-official-referred-hunter-biden-letter-over-concerns",
+        "url": "https://trumpstruth.org/statuses/39030",
+        "published": "2026-06-02T03:11:31+00:00",
+        "origin": "truthsocial",
+        "tickers": [],
+        "held": [],
+        "new_ideas": [],
+        "stance": "neutral",
+        "relevance": null,
+        "summary_cn": ""
+      },
+      {
+        "author": "Trump",
+        "text": "EPA boss made criminal referrals alleging Democrats ‘self-dealing’ in lucrative green energy grants: https://justthenews.com/accountability/waste-fraud-and-abuse/epa-boss-made-criminal-referrals-alleging-democrat-self",
+        "url": "https://trumpstruth.org/statuses/39031",
+        "published": "2026-06-02T03:11:08+00:00",
+        "origin": "truthsocial",
+        "tickers": [],
+        "held": [],
+        "new_ideas": [],
+        "stance": "neutral",
+        "relevance": null,
+        "summary_cn": ""
+      },
+      {
+        "author": "Trump",
+        "text": "Congresswoman Ashley Hinson is running for the United States Senate in Iowa, a State I love and WON BIG, THREE TIMES, in 2016, 2020, and 2024.   I know Ashley well, and she is a WINNER! A Loving Wife and Proud Mother of two sons, Ashley is a wonderful person, has ALWAYS delivered for Iowa, and will continue doing so in the United States Senate. She is working hard to Create Jobs, Cut Taxes, Promote Products and Services MADE IN AMERICA by our incredible Iowa Workers, Support our Great Farmers and American Agriculture, Champion Innovation, Keep our Border SECURE, Stop Migrant Crime, Murderers, ",
+        "url": "https://trumpstruth.org/statuses/39027",
+        "published": "2026-06-02T02:46:39+00:00",
+        "origin": "truthsocial",
+        "tickers": [],
+        "held": [],
+        "new_ideas": [],
+        "stance": "neutral",
+        "relevance": null,
+        "summary_cn": ""
+      },
+      {
+        "author": "Trump",
+        "text": "Marty Jackley has been a tremendous Attorney General of South Dakota, a place I love and WON BIG, six times, including Primaries, in 2016, 2020, and 2024!   An America First Patriot, and true friend of MAGA, Marty is now running for Congress, where I know he will continue to do a fantastic job! As your next Congressman, Marty will work tirelessly to Grow the Economy, Cut Taxes and Regulations, Support our Amazing Farmers and Ranchers, Promote MADE IN THE U.S.A., Champion American Energy DOMINANCE, Keep our Border SECURE, Stop Migrant Crime, Strengthen our Military/Veterans, Advance Election In",
+        "url": "https://trumpstruth.org/statuses/39021",
+        "published": "2026-06-02T01:41:52+00:00",
+        "origin": "truthsocial",
+        "tickers": [],
+        "held": [],
+        "new_ideas": [],
+        "stance": "neutral",
+        "relevance": null,
+        "summary_cn": ""
+      },
+      {
+        "author": "Trump",
+        "text": "Senator Mike Rounds is an incredibly strong advocate for the wonderful people of South Dakota, a State I love, and WON BIG, in 2016, 2020, and 2024!   An America First Patriot, Mike is fighting tirelessly to Advance the Great Values of the Mount Rushmore State, Champion our Farmers and Ranchers, Strengthen the Economy, Cut Taxes and Regulations, Promote MADE IN THE U.S.A., Ensure American Energy DOMINANCE, Keep our Border SECURE, Support our Brave Military, Veterans, and Law Enforcement, and Protect our always under siege Second Amendment.   Mike Rounds has my Complete and Total Endorsement fo",
+        "url": "https://trumpstruth.org/statuses/39022",
+        "published": "2026-06-02T01:41:12+00:00",
+        "origin": "truthsocial",
+        "tickers": [],
+        "held": [],
+        "new_ideas": [],
+        "stance": "neutral",
+        "relevance": null,
+        "summary_cn": ""
+      },
+      {
+        "author": "Trump",
+        "text": "It is my Great Honor to endorse U.S. Marine Corps Veteran and former Albuquerque Police Detective, Greg Cunningham, who is running to represent the wonderful people of New Mexico’s 2nd Congressional District.   Greg is running against a Radical Left Democrat named Gabe Vasquez, who tried to raise Taxes by over $4 Trillion Dollars, and voted against all of our Tax Cuts, including NO TAX ON TIPS, NO TAX ON SOCIAL SECURITY, and NO TAX ON OVERTIME. Gabe Vasquez wants to abolish our Borders, stop deporting Criminal Illegal Aliens, and supports dangerous “Soft on Crime” Policies like cashless bail t",
+        "url": "https://trumpstruth.org/statuses/39023",
+        "published": "2026-06-02T01:40:54+00:00",
+        "origin": "truthsocial",
+        "tickers": [],
+        "held": [],
+        "new_ideas": [],
+        "stance": "neutral",
+        "relevance": null,
+        "summary_cn": ""
+      },
+      {
+        "author": "Trump",
+        "text": "Congressman Tom Kean is a Great Representative for the People of New Jersey’s 7th Congressional District!   A Tremendous Advocate of our America First Agenda, Tom is working tirelessly to Keep our Border SECURE, Stop Migrant Crime, Grow our Economy, Cut Taxes and Regulations, Champion Small Business, Unleash American Energy DOMINANCE, Support our Brave Military and Veterans, and Protect our always under siege Second Amendment.   Tom Kean has my Complete and Total Endorsement for Re-Election. Election Day is Tuesday, June 2nd. GET OUT AND VOTE FOR TOM — HE WILL NEVER LET YOU DOWN!   Find your V",
+        "url": "https://trumpstruth.org/statuses/39024",
+        "published": "2026-06-02T01:40:32+00:00",
+        "origin": "truthsocial",
+        "tickers": [],
+        "held": [],
+        "new_ideas": [],
+        "stance": "neutral",
+        "relevance": null,
+        "summary_cn": ""
+      },
+      {
+        "author": "Trump",
+        "text": "Congressman Chris Smith is a fantastic Representative for the wonderful people of New Jersey’s 4th Congressional District!   As a Senior Member of the House Committee on Foreign Affairs, Chris is fighting tirelessly to advance our America First Agenda. He is working hard to Grow our Economy, Create GREAT Jobs, Promote MADE IN THE U.S.A., Champion American Energy DOMINANCE, Keep our Border SECURE, Strengthen our Military/Veterans, Defend our always under siege Second Amendment, and Ensure PEACE THROUGH STRENGTH.   Chris Smith has my Complete and Total Endorsement for Re-Election. Election Day i",
+        "url": "https://trumpstruth.org/statuses/39025",
+        "published": "2026-06-02T01:40:12+00:00",
+        "origin": "truthsocial",
+        "tickers": [],
+        "held": [],
+        "new_ideas": [],
+        "stance": "neutral",
+        "relevance": null,
+        "summary_cn": ""
+      },
+      {
+        "author": "Trump",
+        "text": "Congressman Jeff Van Drew is a “MAGA” Warrior for the incredible people of New Jersey’s 2nd Congressional District!   As the Chairman of the House Judiciary Subcommittee on Oversight, Jeff is doing a tremendous job advancing our America First Agenda. He is working tirelessly to Grow our Economy, Cut Taxes and Regulations, Keep our Border SECURE, Stop Migrant Crime, Murderers, and other Criminals from illegally entering our Country, Strengthen our Military/Veterans, Champion American Energy DOMINANCE, and Defend our always under siege Second Amendment.   Jeff Van Drew is a very good friend, fig",
+        "url": "https://trumpstruth.org/statuses/39011",
+        "published": "2026-06-02T01:39:59+00:00",
+        "origin": "truthsocial",
+        "tickers": [],
+        "held": [],
+        "new_ideas": [],
+        "stance": "neutral",
+        "relevance": null,
+        "summary_cn": ""
+      },
+      {
+        "author": "Trump",
+        "text": "Congressman Troy Downing is doing a truly fantastic job representing the incredible people of Montana’s 2nd Congressional District!   Troy bravely served our Great Country in the U.S. Air Force as a Combat Veteran and, in Congress, he is fighting tirelessly to Support our Farmers and Ranchers, Champion American Energy DOMINANCE, Keep our Border SECURE, Strengthen our Military/Veterans, Defend our always under siege Second Amendment, and Ensure PEACE THROUGH STRENGTH.   Troy Downing has my Complete and Total Endorsement for Re-Election. Election Day is Tuesday, June 2nd. GET OUT AND VOTE FOR TR",
+        "url": "https://trumpstruth.org/statuses/39012",
+        "published": "2026-06-02T01:39:33+00:00",
+        "origin": "truthsocial",
+        "tickers": [],
+        "held": [],
+        "new_ideas": [],
+        "stance": "neutral",
+        "relevance": null,
+        "summary_cn": ""
+      },
+      {
+        "author": "Trump",
+        "text": "It is my Great Honor to endorse Aaron Flint, who is running to represent the tremendous people of Montana’s 1st Congressional District. Aaron is a MAGA Warrior, who is strongly supported by many of the Greatest America First Patriots in Montana, including Senator Tim Sheehy, Congressmen Ryan Zinke and Troy Downing, and Governor Greg Gianforte, among others!   A Fifth Generation Montanan, and distinguished Combat Veteran, Aaron has dedicated his life to serving his Great State and Country. Lieutenant Colonel Flint served our Nation with Honor in Iraq and Afghanistan, and was awarded two Bronze ",
+        "url": "https://trumpstruth.org/statuses/39013",
+        "published": "2026-06-02T01:39:03+00:00",
+        "origin": "truthsocial",
+        "tickers": [],
+        "held": [],
+        "new_ideas": [],
+        "stance": "neutral",
+        "relevance": null,
+        "summary_cn": ""
+      },
+      {
+        "author": "Trump",
+        "text": "It is my Great Honor to endorse Kurt Alme, a fantastic Candidate running to be the next U.S. Senator from the Great State of Montana, a place I love and WON BIG in 2016, 2020, and 2024!   A Highly Respected Criminal Prosecutor in my Administration, and distinguished Harvard Law School Graduate, Kurt knows the Wisdom and Courage it takes to ensure LAW AND ORDER, advocate for our Heroes in Law Enforcement, and strongly support our Military and Veterans. As your next Senator, Kurt will fight tirelessly to Grow our Economy, Cut Taxes and Regulations, Champion our Farmers and Ranchers, Promote MADE",
+        "url": "https://trumpstruth.org/statuses/39014",
+        "published": "2026-06-02T01:38:38+00:00",
+        "origin": "truthsocial",
+        "tickers": [],
+        "held": [],
+        "new_ideas": [],
+        "stance": "neutral",
+        "relevance": null,
+        "summary_cn": ""
+      },
+      {
+        "author": "Trump",
+        "text": "It is my Great Honor to endorse Chris McGowan, a fantastic Candidate running to be the next Congressman from Iowa’s 4th Congressional District!   A Brave Iowa Air National Guard Veteran, successful Attorney, and now, as President of the Siouxland Chamber of Commerce, Chris has a Proven Record of Success — He is a WINNER! In Congress, Chris will fight hard to Grow the Economy, Promote our Amazing Farmers and Ranchers, Cut Taxes and Regulations, Advocate for MADE IN THE U.S.A., Champion American Energy DOMINANCE, Keep our Border SECURE, Strengthen our Military/Veterans, Ensure LAW AND ORDER, Saf",
+        "url": "https://trumpstruth.org/statuses/39015",
+        "published": "2026-06-02T01:37:41+00:00",
+        "origin": "truthsocial",
+        "tickers": [],
+        "held": [],
+        "new_ideas": [],
+        "stance": "neutral",
+        "relevance": null,
+        "summary_cn": ""
+      },
+      {
+        "author": "Trump",
+        "text": "Congressman Zach Nunn is a fantastic Representative for the Great People of Iowa’s 3rd Congressional District!   A Brave Combat Veteran, Zach is fighting hard to Grow our Economy, Cut Taxes and Regulations, Support our Amazing Farmers and Ranchers, Keep our Border SECURE, Strengthen our Military, Deliver Quality Care to our Veterans, Ensure PEACE THROUGH STRENGTH, and Defend our always under siege Second Amendment.   Zach Nunn has my Complete and Total Endorsement for Re-Election. Election Day is Tuesday, June 2nd. GET OUT AND VOTE FOR ZACH — HE WILL NEVER LET YOU DOWN!   Find your Voting Loca",
+        "url": "https://trumpstruth.org/statuses/39016",
+        "published": "2026-06-02T01:37:19+00:00",
+        "origin": "truthsocial",
+        "tickers": [],
+        "held": [],
+        "new_ideas": [],
+        "stance": "neutral",
+        "relevance": null,
+        "summary_cn": ""
+      },
+      {
+        "author": "Trump",
+        "text": "It is my Great Honor to endorse MAGA Patriot, Joe Mitchell, who is running to represent the fantastic people of Iowa’s 2nd Congressional District.   As a former Appointee in my Administration at the U.S. Department of Housing and Urban Development and, as the youngest State Legislator in Iowa’s History, Joe has proven he has the Courage and Wisdom to deliver strong results for the incredible people of his wonderful State and Nation. As your next Congressman, Joe will fight tirelessly to Grow our Economy, Cut Taxes and Regulations, Champion our Farmers, Promote MADE IN THE U.S.A., Advance Ameri",
+        "url": "https://trumpstruth.org/statuses/39017",
+        "published": "2026-06-02T01:37:03+00:00",
+        "origin": "truthsocial",
+        "tickers": [],
+        "held": [],
+        "new_ideas": [],
+        "stance": "neutral",
+        "relevance": null,
+        "summary_cn": ""
+      },
+      {
+        "author": "Trump",
+        "text": "Congresswoman Mariannette Miller-Meeks is an incredibly strong advocate for the Great People of Iowa’s 1st Congressional District!   A distinguished Medical Doctor and U.S. Army Veteran, Mariannette knows the America First Policies required to Defend our Country, Support our Brave Military/Veterans, and Ensure PEACE THROUGH STRENGTH. In Congress, Mariannette is working hard to Grow our Economy, Cut Taxes and Regulations, Advocate for our Amazing Farmers and Ranchers, Promote MADE IN THE U.S.A., Champion American Energy DOMINANCE, Keep our Border SECURE, Stop Migrant Crime, and Defend our alway",
+        "url": "https://trumpstruth.org/statuses/39018",
+        "published": "2026-06-02T01:36:44+00:00",
+        "origin": "truthsocial",
+        "tickers": [],
+        "held": [],
+        "new_ideas": [],
+        "stance": "neutral",
+        "relevance": null,
+        "summary_cn": ""
+      },
+      {
+        "author": "Trump",
+        "text": "Highly Respected American First Congressman, Randy Feenstra, is running for Governor of Iowa, a place I love and WON BIG in 2016, 2020, and 2024, getting the highest Vote in the History of Iowa. Randy is MAGA all the way!   A Fourth Generation Iowan, successful Businessman, former Treasurer of Sioux County, State Senator, and now, as a distinguished U.S. Congressman, Randy has delivered strong results for the Hawkeye State. As your next Governor, Randy will fight tirelessly to Grow the Economy, Cut Taxes and Regulations, Promote MADE IN THE U.S.A., Unleash American Energy DOMINANCE, Champion o",
+        "url": "https://trumpstruth.org/statuses/39019",
+        "published": "2026-06-02T01:35:55+00:00",
+        "origin": "truthsocial",
+        "tickers": [],
+        "held": [],
+        "new_ideas": [],
+        "stance": "neutral",
+        "relevance": null,
+        "summary_cn": ""
+      },
+      {
+        "author": "Trump",
+        "text": "It is my Great Honor to endorse Highly Respected San Diego County Supervisor, Jim Desmond, who is running to represent the tremendous people of California’s 48th Congressional District.   A Brave U.S. Navy Veteran, Jim knows the Wisdom and Courage required to Defend our Country, Support our incredible Military/Veterans, and Ensure PEACE THROUGH STRENGTH. A Successful Businessman, Pilot, and Highly Respected Mayor of San Marcos, prior to becoming a distinguished San Diego County Supervisor, Jim has dedicated his life to serving his Community. As your next Congressman, Jim will fight hard to Gro",
+        "url": "https://trumpstruth.org/statuses/39020",
+        "published": "2026-06-02T01:35:13+00:00",
+        "origin": "truthsocial",
+        "tickers": [],
+        "held": [],
+        "new_ideas": [],
+        "stance": "neutral",
+        "relevance": null,
+        "summary_cn": ""
+      },
+      {
+        "author": "Trump",
+        "text": "Congressman Jay Obernolte is doing a terrific job representing the wonderful people of California’s 23rd Congressional District!   A Successful Entrepreneur, Civic Leader, and Highly Respected State Legislator, before he ran for Congress, Jay is a Proven Leader who has dedicated his life to serving his Community. In Congress, he is working hard to Grow the Economy, Cut Taxes and Regulations, Promote MADE IN THE U.S.A., Champion American Energy DOMINANCE, Keep our Border SECURE, Stop Migrant Crime, Ensure LAW AND ORDER, Strengthen our Military/Veterans, and Defend our always under siege Second ",
+        "url": "https://trumpstruth.org/statuses/39004",
+        "published": "2026-06-02T01:34:51+00:00",
+        "origin": "truthsocial",
+        "tickers": [],
+        "held": [],
+        "new_ideas": [],
+        "stance": "neutral",
+        "relevance": null,
+        "summary_cn": ""
+      },
+      {
+        "author": "Trump",
+        "text": "Congressman Vince Fong is a terrific Representative for the incredible people of California’s 20th Congressional District!   Vince has a strong Record of SUCCESS, and compelling support from his Community. In Congress, he is fighting tirelessly to Deliver Sustainable Water Solutions, Champion our Amazing Farmers and Ranchers, Grow our Economy, Cut Taxes and Regulations, Keep our Border SECURE, Advocate for our Great Military/Veterans, and Defend our always under siege Second Amendment.   Vince Fong has my Complete and Total Endorsement for Re-Election. Election Day is Tuesday, June 2nd. GET OU",
+        "url": "https://trumpstruth.org/statuses/39005",
+        "published": "2026-06-02T01:34:27+00:00",
+        "origin": "truthsocial",
+        "tickers": [],
+        "held": [],
+        "new_ideas": [],
+        "stance": "neutral",
+        "relevance": null,
+        "summary_cn": ""
+      },
+      {
+        "author": "Trump",
+        "text": "It is my Great Honor to endorse Kevin Lincoln, who is running to represent the incredible people of California’s 13th Congressional District.   From bravely fighting for the U.S. Marine Corps, to leading his City as Mayor of Stockton, Kevin has served our Nation with distinction, and will bring that same Fighting Spirit to the U.S. Congress. As your next Congressman, Kevin will work tirelessly to Grow our Economy, Cut Taxes and Regulations, Promote MADE IN THE U.S.A., Champion American Energy DOMINANCE, Keep our Border SECURE, Stop Migrant Crime, Strengthen our Great Military/Veterans, and Pro",
+        "url": "https://trumpstruth.org/statuses/39006",
+        "published": "2026-06-02T01:34:05+00:00",
+        "origin": "truthsocial",
+        "tickers": [],
+        "held": [],
+        "new_ideas": [],
+        "stance": "neutral",
+        "relevance": null,
+        "summary_cn": ""
+      },
+      {
+        "author": "Trump",
+        "text": "Congressman Tom McClintock is doing a fantastic job representing California’s 5th Congressional District!   As an Outspoken Member of the House Budget Committee, Tom knows the America First Policies required to Create GREAT Jobs, Cut Taxes and Regulations, Promote MADE IN THE U.S.A., Advance American Energy DOMINANCE, and Champion our Nation’s Golden Age. He is also working tirelessly to Keep our Border SECURE, Stop Migrant Crime, Strengthen our Brave Military/Veterans, Ensure LAW AND ORDER, and Protect our always under siege Second Amendment.   Tom McClintock has my Complete and Total Endorse",
+        "url": "https://trumpstruth.org/statuses/39007",
+        "published": "2026-06-02T01:33:40+00:00",
+        "origin": "truthsocial",
+        "tickers": [],
+        "held": [],
+        "new_ideas": [],
+        "stance": "neutral",
+        "relevance": null,
+        "summary_cn": ""
       }
     ],
     "held_hits": [],
@@ -3535,25 +3900,25 @@
         "ticker": "RKLB",
         "name": "Rocket Lab Corp",
         "region": "us",
-        "pnl_percent": 76.45,
-        "pnl_abs": 271.41,
-        "current_value": 626.4
-      },
-      {
-        "ticker": "PLTU",
-        "name": "二倍做多PLTR ETF-Direxion",
-        "region": "us",
-        "pnl_percent": 18.16,
-        "pnl_abs": 104.13,
-        "current_value": 677.53
+        "pnl_percent": 73.02,
+        "pnl_abs": 259.23,
+        "current_value": 614.23
       },
       {
         "ticker": "CRCL",
         "name": "Circle Internet Group Inc-A",
         "region": "us",
-        "pnl_percent": 16.87,
-        "pnl_abs": 29.36,
-        "current_value": 203.36
+        "pnl_percent": 17.48,
+        "pnl_abs": 30.41,
+        "current_value": 204.41
+      },
+      {
+        "ticker": "MSFU",
+        "name": "二倍做多微软ETF-Direxion",
+        "region": "us",
+        "pnl_percent": 10.33,
+        "pnl_abs": 60.2,
+        "current_value": 642.8
       }
     ],
     "losers": [
@@ -3577,9 +3942,9 @@
         "ticker": "03032",
         "name": "恒生科技ETF",
         "region": "hk",
-        "pnl_percent": -4.07,
-        "pnl_abs": -44.0,
-        "current_value": 1037.0
+        "pnl_percent": -4.16,
+        "pnl_abs": -45.0,
+        "current_value": 1036.0
       }
     ]
   },
@@ -3597,7 +3962,7 @@
       "region": "hk",
       "high": 4.272,
       "low": 3.916,
-      "current": 4.27,
+      "current": 4.268,
       "range_pct": 8.34
     },
     {
@@ -3621,22 +3986,22 @@
       "region": "hk",
       "high": 5.185,
       "low": 4.97,
-      "current": 5.185,
+      "current": 5.18,
       "range_pct": 4.15
     }
   ],
   "realized_vs_unrealized": {
     "us": {
       "realized": 1372.88,
-      "unrealized": 528.39
+      "unrealized": 452.36
     },
     "hk": {
       "realized": 7259.16,
-      "unrealized": -10236.24
+      "unrealized": -10249.64
     },
     "combined_usd": {
-      "realized": null,
-      "unrealized": null
+      "realized": 2299.14,
+      "unrealized": -855.48
     }
   },
   "capital_deployed": {
@@ -3646,28 +4011,28 @@
     },
     "hk": {
       "native": 95535.4,
-      "usd": null
+      "usd": 12190.15
     },
-    "combined_usd": null
+    "combined_usd": 16191.33
   },
   "net_principal_return": {
     "us": {
       "net_principal": 1255.42,
-      "total_profit": 1901.27,
-      "return_pct": 76.94,
+      "total_profit": 1825.24,
+      "return_pct": 73.86,
       "return_basis": "true_principal",
       "true_principal": 2471.12
     },
     "hk": {
       "net_principal": 81017.08,
-      "total_profit": -2977.08,
-      "return_pct": -3.67,
+      "total_profit": -2990.48,
+      "return_pct": -3.69,
       "return_basis": "net_principal"
     },
     "combined_usd": {
-      "net_principal": null,
-      "total_profit": null,
-      "return_pct": null
+      "net_principal": 12808.76,
+      "total_profit": 1443.66,
+      "return_pct": 11.27
     },
     "formula": "回报率 = (浮动 + 已实现) ÷ 本金；本金优先用 true_principal（峰值净投入），否则用 净投入本金=累计成本−已实现"
   }
