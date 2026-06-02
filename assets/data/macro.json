@@ -1,75 +1,75 @@
 {
-  "generated_at": "2026-06-01T23:16:27.138172+00:00",
+  "generated_at": "2026-06-02T23:21:22.289112+00:00",
   "vix": {
     "symbol": "^VIX",
-    "price": 16.05,
-    "prev": 15.32,
-    "change_pct": 4.77,
-    "as_of": 1780344901,
+    "price": 15.77,
+    "prev": 16.05,
+    "change_pct": -1.74,
+    "as_of": 1780431301,
     "source": "yahoo"
   },
   "treasury_10y": {
     "symbol": "^TNX",
-    "price": 4.475,
-    "prev": 4.453,
-    "change_pct": 0.49,
-    "as_of": 1780340393,
+    "price": 4.455,
+    "prev": 4.475,
+    "change_pct": -0.45,
+    "as_of": 1780426794,
     "source": "yahoo",
-    "yield_pct": 4.475
+    "yield_pct": 4.455
   },
   "dxy": {
     "symbol": "DX-Y.NYB",
-    "price": 99.181,
-    "prev": 99.201,
-    "change_pct": -0.02,
-    "as_of": 1780351497,
+    "price": 99.224,
+    "prev": 99.219,
+    "change_pct": 0.01,
+    "as_of": 1780437899,
     "source": "yahoo"
   },
   "fear_greed": {
-    "score": 59.1,
+    "score": 57.0,
     "rating": "greed",
-    "prev_close": 60.2,
-    "prev_1_week": 59.0,
-    "as_of": "2026-06-01T23:00:21+00:00"
+    "prev_close": 59.1,
+    "prev_1_week": 60.9,
+    "as_of": "2026-06-02T23:02:29+00:00"
   },
   "hsi": {
     "symbol": "^HSI",
-    "price": 25398.18,
-    "prev": 25182.39,
-    "change_pct": 0.86,
+    "price": 26038.32,
+    "prev": 25398.18,
+    "change_pct": 2.52,
     "source": "stooq"
   },
   "hstech": {
     "symbol": "^HSTECH",
-    "price": 4964.92,
-    "prev": 4884.23,
-    "change_pct": 1.65,
+    "price": 5199.28,
+    "prev": 4964.92,
+    "change_pct": 4.72,
     "source": "tencent"
   },
   "spx": {
     "symbol": "^GSPC",
-    "price": 7600.0,
-    "prev": 7582.3,
-    "change_pct": 0.23,
+    "price": 7609.8,
+    "prev": 7595.4,
+    "change_pct": 0.19,
     "source": "stooq"
   },
   "nasdaq": {
     "symbol": "^IXIC",
-    "price": 30513.86,
-    "prev": 30295.25,
-    "change_pct": 0.72,
+    "price": 30660.6,
+    "prev": 30471.61,
+    "change_pct": 0.62,
     "source": "stooq"
   },
   "fed_press": [
     {
+      "date": "2026-06-02",
+      "title": "Agencies remove additional references to reputation risk",
+      "url": "https://www.federalreserve.gov/newsevents/pressreleases/bcreg20260602a.htm"
+    },
+    {
       "date": "2026-05-28",
       "title": "Federal Reserve Board issues enforcement actions with former employee of Atlantic Union Bank and former employee of Frost Bank",
       "url": "https://www.federalreserve.gov/newsevents/pressreleases/enforcement20260528a.htm"
-    },
-    {
-      "date": "2026-05-26",
-      "title": "Minutes of the Board's discount rate meeting on April 20 and 29, 2026",
-      "url": "https://www.federalreserve.gov/newsevents/pressreleases/monetary20260526a.htm"
     }
   ]
 }
