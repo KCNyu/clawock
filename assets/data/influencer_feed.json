@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-01T23:15:48.083562+00:00",
+  "generated_at": "2026-06-02T17:10:44.742322+00:00",
   "lookback_hours": 48,
   "sources": {
     "trump": "trumpstruth.org/feed (primary)",
@@ -7,194 +7,219 @@
   },
   "llm_filtered": true,
   "counts": {
-    "total": 4,
+    "total": 11,
     "held_hits": 0,
-    "new_ideas": 3,
-    "sector_hits": 1
+    "new_ideas": 0,
+    "sector_hits": 0
   },
   "items": [
     {
-      "author": "Musk",
-      "text": "Elon Musk wants to merge SpaceX and Tesla into a $3.4 trillion giant. The problem: it would lose money from day one",
-      "url": "",
-      "published": "Sun, 31 May 2026 07:00:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Fortune",
-      "tickers": [
-        "TSLA"
-      ],
-      "held": [],
-      "new_ideas": [
-        "TSLA"
-      ],
-      "sectors": [
-        "电动车",
-        "航天"
-      ],
-      "sector_holdings": [],
-      "stance": "attack",
-      "relevance": 70,
-      "summary_cn": "分析指出马斯克想合并SpaceX与特斯拉，但该交易从第一天起就会亏损，对特斯拉构成利空。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk Saw the Domino’s App and Couldn’t Believe Tesla Needed 64 Clicks to Sell a Car",
-      "url": "",
-      "published": "Mon, 01 Jun 2026 19:00:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Texas Border Business",
-      "tickers": [
-        "TSLA"
-      ],
-      "held": [],
-      "new_ideas": [
-        "TSLA"
-      ],
-      "sectors": [
-        "电动车"
-      ],
-      "sector_holdings": [],
-      "stance": "attack",
-      "relevance": 65,
-      "summary_cn": "Musk 批评特斯拉购车流程繁琐（需64次点击），暗示公司运营效率问题。"
-    },
-    {
-      "author": "Musk",
-      "text": "The Odds SpaceX Merges With Tesla Are Higher Than You Think",
-      "url": "",
-      "published": "Mon, 01 Jun 2026 20:46:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Barron's",
-      "tickers": [
-        "TSLA"
-      ],
-      "held": [],
-      "new_ideas": [
-        "TSLA"
-      ],
-      "sectors": [
-        "电动车",
-        "航天"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 60,
-      "summary_cn": "分析认为SpaceX与特斯拉合并的可能性高于预期，涉及特斯拉与航天板块。"
-    },
-    {
-      "author": "Musk",
-      "text": "Trump Shovels $4 Billion Directly to Elon Musk, Who Spent a Fortune Getting Him Elected",
-      "url": "",
-      "published": "Mon, 01 Jun 2026 21:32:58 GMT",
-      "origin": "gnews-rss",
-      "source": "Futurism",
+      "author": "Trump",
+      "text": "I had a conversation with Bibi Netanyahu today, asking him not to go into a major raid of Beirut, Lebanon. He turned his Troops around. Thank you Bibi! I also had a conversation with Representatives of the Leaders of Hezbollah, and they agreed to stop shooting at Israel, and its soldiers. Likewise, Israel agreed to stop shooting at them. Let’s see how long that lasts — Hopefully it will be for ETERNITY! President DONALD J. TRUMP",
+      "url": "https://trumpstruth.org/statuses/38979",
+      "published": "2026-06-01T21:47:56+00:00",
+      "origin": "truthsocial",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "政府合同",
-        "航天"
+        "地缘政治",
+        "国防"
       ],
-      "sector_holdings": [
-        "RKLB"
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 75,
+      "summary_cn": "特朗普称与内塔尼亚胡及真主党代表通话，促成双方停火，直接影响中东地缘政治与国防板块。"
+    },
+    {
+      "author": "Trump",
+      "text": "RT @NewtGingrichAfter spending this week reviewing the Iranian war I am now convinced President Trump is on the edge of an historic victory. The real breakthrough for me came as I reviewed President Trump’s decisions and maneuvers not from the standpoint of American unilateralism but from the standpoint of the leader of a remarkable historic coalition, the largest coalition ever put together in the modern Middle East. Everyone understands that Israel is an important ally. What is little discussed is the depth of support from the United Arab Emirates, Qatar, Bahrain, Saudi Arabia and other coun",
+      "url": "https://trumpstruth.org/statuses/38981",
+      "published": "2026-06-02T01:18:21+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "地缘政治",
+        "国防"
       ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 70,
+      "summary_cn": "特朗普转发纽特·金里奇观点，称其在伊朗问题上即将取得历史性胜利，涉及中东地缘政治。"
+    },
+    {
+      "author": "Trump",
+      "text": "If Iran surrenders, admits their Navy is gone and resting at the bottom of the sea, and their Air Force is no longer with us, and if their entire Military walks out of Tehran, weapons dropped and hands held high, each shouting “I surrender, I surrender” while wildly waving the representative White Flag, and if their entire remaining Leadership signs all necessary “Documents of Surrender,” and admit their defeat to the great power and force of the magnificent U.S.A., The Failing New York Times, The China Street Journal (WSJ!), Corrupt and now Irrelevant CNN, and all other members of the Fake Ne",
+      "url": "https://trumpstruth.org/statuses/38993",
+      "published": "2026-06-02T01:29:51+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "地缘政治",
+        "国防",
+        "能源"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 65,
+      "summary_cn": "特朗普以讽刺口吻描述伊朗投降场景，暗示对伊强硬立场，影响地缘政治与能源市场。"
+    },
+    {
+      "author": "Trump",
+      "text": "EPA boss made criminal referrals alleging Democrats ‘self-dealing’ in lucrative green energy grants: https://justthenews.com/accountability/waste-fraud-and-abuse/epa-boss-made-criminal-referrals-alleging-democrat-self",
+      "url": "https://trumpstruth.org/statuses/39031",
+      "published": "2026-06-02T03:11:08+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "绿色能源",
+        "监管"
+      ],
+      "sector_holdings": [],
+      "stance": "attack",
+      "relevance": 60,
+      "summary_cn": "特朗普称EPA局长就民主党在绿色能源拨款中的'自利'行为提出刑事指控，涉及绿色能源板块监管风险。"
+    },
+    {
+      "author": "Trump",
+      "text": "Iran really wants to make a deal, and it will be a good one for the U.S.A. and those that are with us. But don’t the Dumocrats, and various seemingly unpatriotic Republicans,  understand that it is MUCH tougher for me to properly do my job and negotiate, when political hacks keep negatively “chirping,” at levels never seen before, over and over again, that I should move faster, or move slower, or go to war, or not go to war, or whatever. Just sit back and relax, it will all work out well in the end - It always does! President DJT",
+      "url": "https://trumpstruth.org/statuses/38975",
+      "published": "2026-06-01T05:02:12+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "地缘政治",
+        "能源"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 60,
+      "summary_cn": "特朗普称伊朗想达成协议，但抱怨政治干扰影响谈判，涉及地缘政治与能源市场。"
+    },
+    {
+      "author": "Trump",
+      "text": "Fake News Reports that the Islamic Republic of Iran, and the U.S.A., stopped speaking a few days ago are false and erroneous. The conversations between us have been going on continuously, including four days ago, three days ago, two days ago, one day ago, and today. Where they lead, one never knows, but as I told Iran, “It’s time, one way or another, for you to make a Deal. You’ve been doing this for 47 years, and it cannot be allowed to go on any longer!” President DONALD J. TRUMP",
+      "url": "https://trumpstruth.org/statuses/39040",
+      "published": "2026-06-02T17:00:37+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "地缘政治",
+        "能源",
+        "国防"
+      ],
+      "sector_holdings": [],
       "stance": "neutral",
       "relevance": 55,
-      "summary_cn": "新闻称特朗普政府向马斯克旗下公司（如SpaceX）提供巨额资金，涉及政府合同与航天板块。"
+      "summary_cn": "特朗普称与伊朗持续对话，暗示可能达成协议，影响地缘政治与能源市场预期。"
+    },
+    {
+      "author": "Trump",
+      "text": "Fake News CNN said today, routinely, that my Iran Nuclear Deal doesn’t talk about Nuclear, when actually it states, very clearly, that Iran will not have a Nuclear Weapon. It then goes on, in very strong and lengthy detail, to discuss various other aspects of Nuclear. In fact, that’s what most of the agreement is about. CNN, and so many others in the Fake News Media, is a Low Ratings disaster. Even with new ownership, it is unlikely to ever get better!!! President DJT",
+      "url": "https://trumpstruth.org/statuses/38972",
+      "published": "2026-05-31T23:27:46+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "地缘政治",
+        "核能",
+        "媒体"
+      ],
+      "sector_holdings": [],
+      "stance": "attack",
+      "relevance": 55,
+      "summary_cn": "特朗普抨击CNN对其伊朗核协议报道不实，涉及核能政策与媒体板块。"
+    },
+    {
+      "author": "Musk",
+      "text": "Is Elon Musk Selling 'Hopium' With the $1.8 Trillion SpaceX IPO?",
+      "url": "",
+      "published": "Tue, 02 Jun 2026 15:01:00 GMT",
+      "origin": "gnews-rss",
+      "source": "The Motley Fool",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "IPO"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 50,
+      "summary_cn": "文章质疑马斯克是否在兜售SpaceX 1.8万亿美元IPO的'希望'，涉及航天板块IPO预期。"
+    },
+    {
+      "author": "Musk",
+      "text": "SpaceX-Tesla Merger Could Trigger Elon Musk's $1 Trillion Pay Package: Report",
+      "url": "",
+      "published": "Tue, 02 Jun 2026 12:31:06 GMT",
+      "origin": "gnews-rss",
+      "source": "Yahoo Finance",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "电动车",
+        "并购"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 50,
+      "summary_cn": "报道称SpaceX与特斯拉合并可能触发马斯克万亿美元薪酬方案，涉及航天与电动车板块。"
+    },
+    {
+      "author": "Trump",
+      "text": "I am appointing the Director of the Federal Housing Finance Agency, and Chairman of Fannie Mae/Freddie Mac, William J. Pulte, to serve as Acting Director of National Intelligence. William has deep experience managing the most sensitive matters in America, the safety and soundness of the Markets, and over 10 Trillion Dollars at Fannie Mae/Freddie Mac, a substantial increase from where it was just 12 months ago. During this period, he will remain Director of the Federal Housing Finance Agency, and Chairman of Fannie Mae/Freddie Mac. Congratulations to Director Pulte! President DONALD J. TRUMP",
+      "url": "https://trumpstruth.org/statuses/39039",
+      "published": "2026-06-02T13:06:14+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "金融",
+        "房地产"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 50,
+      "summary_cn": "特朗普任命联邦住房金融局局长兼任国家情报总监，涉及金融市场敏感职位变动。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk, SpaceX and the illusion of wealth",
+      "url": "",
+      "published": "Mon, 01 Jun 2026 17:00:03 GMT",
+      "origin": "gnews-rss",
+      "source": "Le Monde.fr",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "财富"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 45,
+      "summary_cn": "文章讨论马斯克、SpaceX及财富幻觉，涉及航天板块估值话题。"
     }
   ],
   "held_hits": [],
-  "new_ideas": [
-    {
-      "author": "Musk",
-      "text": "Elon Musk wants to merge SpaceX and Tesla into a $3.4 trillion giant. The problem: it would lose money from day one",
-      "url": "",
-      "published": "Sun, 31 May 2026 07:00:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Fortune",
-      "tickers": [
-        "TSLA"
-      ],
-      "held": [],
-      "new_ideas": [
-        "TSLA"
-      ],
-      "sectors": [
-        "电动车",
-        "航天"
-      ],
-      "sector_holdings": [],
-      "stance": "attack",
-      "relevance": 70,
-      "summary_cn": "分析指出马斯克想合并SpaceX与特斯拉，但该交易从第一天起就会亏损，对特斯拉构成利空。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk Saw the Domino’s App and Couldn’t Believe Tesla Needed 64 Clicks to Sell a Car",
-      "url": "",
-      "published": "Mon, 01 Jun 2026 19:00:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Texas Border Business",
-      "tickers": [
-        "TSLA"
-      ],
-      "held": [],
-      "new_ideas": [
-        "TSLA"
-      ],
-      "sectors": [
-        "电动车"
-      ],
-      "sector_holdings": [],
-      "stance": "attack",
-      "relevance": 65,
-      "summary_cn": "Musk 批评特斯拉购车流程繁琐（需64次点击），暗示公司运营效率问题。"
-    },
-    {
-      "author": "Musk",
-      "text": "The Odds SpaceX Merges With Tesla Are Higher Than You Think",
-      "url": "",
-      "published": "Mon, 01 Jun 2026 20:46:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Barron's",
-      "tickers": [
-        "TSLA"
-      ],
-      "held": [],
-      "new_ideas": [
-        "TSLA"
-      ],
-      "sectors": [
-        "电动车",
-        "航天"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 60,
-      "summary_cn": "分析认为SpaceX与特斯拉合并的可能性高于预期，涉及特斯拉与航天板块。"
-    }
-  ],
-  "sector_hits": [
-    {
-      "author": "Musk",
-      "text": "Trump Shovels $4 Billion Directly to Elon Musk, Who Spent a Fortune Getting Him Elected",
-      "url": "",
-      "published": "Mon, 01 Jun 2026 21:32:58 GMT",
-      "origin": "gnews-rss",
-      "source": "Futurism",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "政府合同",
-        "航天"
-      ],
-      "sector_holdings": [
-        "RKLB"
-      ],
-      "stance": "neutral",
-      "relevance": 55,
-      "summary_cn": "新闻称特朗普政府向马斯克旗下公司（如SpaceX）提供巨额资金，涉及政府合同与航天板块。"
-    }
-  ]
+  "new_ideas": [],
+  "sector_hits": []
 }
