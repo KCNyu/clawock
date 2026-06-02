@@ -62,18 +62,21 @@ def build_card(report_text):
     if len(tbl) < 3:
         return None
     header = [c.strip() for c in tbl[0].strip().strip('|').split('|')]
-    if len(header) != 8:
+    n = len(header)
+    if not 5 <= n <= 9:  # sane holdings-table width; lay columns out for whatever n is
         return None
     rows = []
     for l in tbl[1:]:
         cells = [c.strip() for c in l.strip().strip('|').split('|')]
-        if len(cells) != 8:
+        if len(cells) != n:
             continue
         if cells[0] == '代码' or set(cells[0]) <= set('-: '):  # header / separator
             continue
         rows.append(cells)
     if not rows:
         return None
+    # x anchors: code left at 2.5, the n-1 numeric cols right-aligned evenly to 99.
+    xs = [2.5] + [30 + (99 - 30) * k / (n - 2) for k in range(n - 1)]
     first_tbl = next(i for i, l in enumerate(lines) if l.strip().startswith('|'))
     last_tbl = max(i for i, l in enumerate(lines) if l.strip().startswith('|'))
     pre = [l.strip() for l in lines[:first_tbl] if l.strip()]
@@ -90,8 +93,8 @@ def build_card(report_text):
         'summary':       summary,
         'summary_color': LOSS if ('浮盈 -' in summary or '浮盈 −' in summary) else GAIN,
         'cols':          header,
-        'aligns':        ['l'] + ['r'] * 7,
-        'xs':            [2.5, 29, 41, 53, 65, 78, 89, 99],
+        'aligns':        ['l'] + ['r'] * (n - 1),
+        'xs':            xs,
         'signed_cols':   [i for i, h in enumerate(header) if '%' in h or '$' in h],
         'rows':          rows,
     }

@@ -52,14 +52,19 @@ W_PNL_A  = 7
 
 
 def render_holdings_table(rows: List[Dict], currency: str = '') -> List[str]:
-    """Render an 8-col WeChat-friendly markdown holdings table.
+    """Render a 7-col WeChat-friendly markdown holdings table.
+
+    代码 | 股 | 现价 | 今日% | 今日$ | 浮% | 浮$  (64 visual width)
 
     Returns list of strings (no trailing newline). Caller joins with '\\n'.
 
-    rows: each dict has keys code, shares, cost, price, today_pct, today_abs,
-          pnl_pct, pnl_abs. (今日$ = today_abs, the per-holding absolute change
-          today, added 2026-06-02 alongside 今日% per kcn — same number the
-          Telegram backup card shows.)
+    rows: each dict has keys code, shares, price, today_pct, today_abs,
+          pnl_pct, pnl_abs. (今日$ = today_abs, per-holding absolute change today.)
+    2026-06-02: dropped 成本 to make room for 今日$ — adding 今日$ on top of the
+    old 7 cols pushed rows to 73 vw which wrapped/broke on mobile WeChat (kcn).
+    成本 is static (kcn knows his basis); 浮% already encodes cost-relative P&L.
+    The Telegram backup renders this same 7-col table as an image (mobile-nice).
+
     currency: kept for backward-compat / future use. We do NOT emit a unit-note
               line because: (1) WeChat 不渲染 markdown italic, the raw `_...._`
               looked ugly and LLM verbatim-trimmed it; (2) the currency is already
@@ -71,7 +76,6 @@ def render_holdings_table(rows: List[Dict], currency: str = '') -> List[str]:
     out.append(
         '| ' + pad_left('代码', W_CODE) +
         ' | ' + pad_right('股',    W_SHARES) +
-        ' | ' + pad_right('成本',  W_COST) +
         ' | ' + pad_right('现价',  W_PRICE) +
         ' | ' + pad_right('今日%', W_TODAY) +
         ' | ' + pad_right('今日$', W_TODAY_A) +
@@ -82,7 +86,6 @@ def render_holdings_table(rows: List[Dict], currency: str = '') -> List[str]:
     out.append(
         '|:'  + '-' * (W_CODE    + 1) +
         '|'   + '-' * (W_SHARES  + 1) + ':' +
-        '|'   + '-' * (W_COST    + 1) + ':' +
         '|'   + '-' * (W_PRICE   + 1) + ':' +
         '|'   + '-' * (W_TODAY   + 1) + ':' +
         '|'   + '-' * (W_TODAY_A + 1) + ':' +
@@ -92,14 +95,12 @@ def render_holdings_table(rows: List[Dict], currency: str = '') -> List[str]:
     for r in rows:
         code      = str(r['code'])
         shares    = r['shares']
-        cost      = r.get('cost')
         price     = r['price']
         today_pct = r.get('today_pct', 0.0)
         today_abs = r.get('today_abs', 0.0)
         pnl_pct   = r.get('pnl_pct', 0.0)
         pnl_abs   = r.get('pnl_abs', 0.0)
 
-        cost_s   = f'{cost:,.2f}'   if cost  else '—'
         price_s  = f'{price:,.2f}'
         today_s  = f'{today_pct:+.1f}%'
         todaya_s = f'{today_abs:+,.0f}'
@@ -109,7 +110,6 @@ def render_holdings_table(rows: List[Dict], currency: str = '') -> List[str]:
         out.append(
             '| ' + pad_left(code,         W_CODE) +
             ' | ' + pad_right(str(shares), W_SHARES) +
-            ' | ' + pad_right(cost_s,    W_COST) +
             ' | ' + pad_right(price_s,   W_PRICE) +
             ' | ' + pad_right(today_s,   W_TODAY) +
             ' | ' + pad_right(todaya_s,  W_TODAY_A) +

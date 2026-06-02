@@ -92,25 +92,30 @@ def parse_signals(stdout):
 def parse_anomalies(stdout):
     """Find tickers with ≥3% intraday move from md-table holdings rows.
 
-    Row shape (8 cols, both markets; 今日$ added 2026-06-02):
-      HK: `| 00100 | 60 | 822.83 | 722.00 | +5.1% | -12.2% | -6,050 |`
-      US: `| RKLB |  5 |  71.00 | 134.28 | +0.0% | +89.1% |   +316 |`
-    Cell[0]=ticker, [1]=shares, [2]=cost, [3]=price, [4]=today%,
-    [5]=pnl%, [6]=pnl_abs ($).
+    Row shape (7 cols, both markets; 成本 dropped + 今日$ added 2026-06-02):
+      `| 00100 | 60 | 674.00 | -4.8% | -2,040 | -18.1% | -8,930 |`
+    Columns located by HEADER (代码 → ticker, 今日%/今日 → today move) rather than
+    fixed index, so future column reorders don't silently break this.
     """
     anomalies = []
     pct_re = re.compile(r'([+\-])([\d\.]+)%')
+    ticker_col, today_col = 0, None
     for line in stdout.splitlines():
         s = line.strip()
         if not s.startswith('|') or not s.endswith('|'):
             continue
         cells = [c.strip() for c in s.strip('|').split('|')]
-        if len(cells) < 7:
+        if '代码' in cells:  # header row → learn column positions
+            ticker_col = cells.index('代码')
+            today_col = next((i for i, h in enumerate(cells)
+                              if h.startswith('今日') and '$' not in h), None)
             continue
-        ticker = cells[0]
-        if ticker == '代码' or ticker.startswith(':'):  # header / separator
+        if today_col is None or len(cells) <= max(ticker_col, today_col):
             continue
-        today = cells[4]
+        ticker = cells[ticker_col]
+        if ticker.startswith(':') or set(ticker) <= set('-: '):  # separator
+            continue
+        today = cells[today_col]
         m = pct_re.search(today)
         if not m:
             continue
