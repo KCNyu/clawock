@@ -1,19 +1,10 @@
 {
-<<<<<<< HEAD
-  "generated_at": "2026-06-02T23:21:26.332801Z",
-  "last_updated": "2026/06/03 04:00 HKT",
-  "fx": {
-    "usdhkd": null,
-    "source": null,
-    "fetched_at": null
-=======
-  "generated_at": "2026-06-03T00:05:21.341649Z",
+  "generated_at": "2026-06-03T01:22:29.413865Z",
   "last_updated": "2026/06/03 08:00 HKT",
   "fx": {
     "usdhkd": 7.8374,
     "source": "Frankfurter",
     "fetched_at": "2026-06-03T00:00:19.969350+00:00"
->>>>>>> 2df4495 (memory: daily deep brief 2026-06-03)
   },
   "totals": {
     "us": {
@@ -907,9 +898,6 @@
       "source": "Tencent qt.gtimg.cn 2026/06/03 08:00 HKT"
     }
   },
-<<<<<<< HEAD
-  "market_context": {},
-=======
   "market_context": {
     "generated_at": "2026-06-03T08:00:00+08:00",
     "date": "2026-06-03",
@@ -1052,7 +1040,6 @@
     "narrative": "今天港股 AI 板块分化严重：HSTECH +4.72% 带动恒科 ETF 全线上涨，但 MINIMAX 逆势 -5.72%。商汤 +2.84%、速腾 +1.45% 表明板块资金未撤，00100 的下跌是公司层面 M3 sell-the-news。美股全线承压，PLTR -5.74% insider sell、MSFT 回调、HOOD 弱势，杠杆 ETF 放大 underlying 跌幅。",
     "_source": "sector-scan-2026-06-03.json"
   },
->>>>>>> 2df4495 (memory: daily deep brief 2026-06-03)
   "holdings_history": {
     "NVDA": [
       213.0,
@@ -1367,20 +1354,6 @@
   ],
   "anomalies": [
     {
-<<<<<<< HEAD
-      "type": "no_context",
-      "ticker": "",
-      "detail": "no brief-context-*.json found in memory/.tmp/",
-      "severity": "low"
-    }
-  ],
-  "behavioral_review": null,
-  "bear_cases": [],
-  "hidden_concentration": null,
-  "insights_meta": {
-    "source": null,
-    "stale": true
-=======
       "type": "high_weight_loss",
       "ticker": "00100",
       "detail": "weight 51.3% + pnl -18.9%",
@@ -1447,19 +1420,14 @@
   "insights_meta": {
     "source": "insights-2026-06-03.json",
     "stale": false
->>>>>>> 2df4495 (memory: daily deep brief 2026-06-03)
   },
   "status_banner": null,
   "status_banner_meta": {
-    "source": null,
-    "generated_at": null,
+    "source": "intraday-insights-2026-05-31.json",
+    "generated_at": "2026-05-31T05:25:44.332992Z",
     "stale": true
   },
   "peer_divergence": {
-<<<<<<< HEAD
-    "as_of": "",
-    "items": []
-=======
     "as_of": "2026-06-03",
     "items": [
       {
@@ -1479,7 +1447,6 @@
         "divergence_pp": 4.68
       }
     ]
->>>>>>> 2df4495 (memory: daily deep brief 2026-06-03)
   },
   "calibration": {
     "brier_30d": 0.259,
@@ -2244,11 +2211,7 @@
   "leveraged_etf": {
     "us_pct": 73.29,
     "hk_pct": 33.91,
-<<<<<<< HEAD
-    "combined_pct": null,
-=======
     "combined_pct": 43.18,
->>>>>>> 2df4495 (memory: daily deep brief 2026-06-03)
     "tickers": [
       "07226",
       "MSFU",
@@ -2257,7 +2220,6 @@
     ]
   },
   "risk": {
-<<<<<<< HEAD
     "generated_at": "2026-06-01T00:01:09.661621+00:00",
     "as_of": "2026-06-01",
     "us": {
@@ -2284,67 +2246,22 @@
       "hk_leverage_factor_avg": 1.2744,
       "combined_avg": 1.3811,
       "margin_at_risk_pct": 13.8108
-=======
-    "generated_at": "2026-06-03T00:00:43.293419+00:00",
-    "as_of": "2026-06-03",
-    "us": {
-      "beta_spx": 3.9498,
-      "vol_30d_annualized": 0.8535,
-      "max_dd_30d": -0.2029,
-      "sharpe_30d": 1.1746,
-      "current_value_usd": 3063.54
-    },
-    "hk": {
-      "beta_hsi": 1.6584,
-      "vol_30d_annualized": 0.6954,
-      "max_dd_30d": -0.1906,
-      "sharpe_30d": -0.9092,
-      "current_value_hkd": 78026.6
-    },
-    "combined": {
-      "vol_30d_annualized": 0.5953,
-      "max_dd_30d": -0.1589,
-      "sharpe_30d": -0.9737
-    },
-    "leveraged_exposure": {
-      "us_leverage_factor_avg": 1.7329,
-      "hk_leverage_factor_avg": 1.3391,
-      "combined_avg": 1.4315,
-      "margin_at_risk_pct": 14.3145
->>>>>>> 2df4495 (memory: daily deep brief 2026-06-03)
     },
     "alerts": [
       {
         "type": "high_beta",
         "severity": "high",
-<<<<<<< HEAD
         "detail": "US β vs S&P 500 = 3.9465 (> 3.0)"
-=======
-        "detail": "US β vs S&P 500 = 3.9498 (> 3.0)"
->>>>>>> 2df4495 (memory: daily deep brief 2026-06-03)
       },
       {
         "type": "high_vol",
         "severity": "high",
-<<<<<<< HEAD
         "detail": "Combined 30d annualised vol = 62.9% (> 50%)"
-=======
-        "detail": "Combined 30d annualised vol = 59.5% (> 50%)"
->>>>>>> 2df4495 (memory: daily deep brief 2026-06-03)
       },
       {
         "type": "deep_dd",
         "severity": "medium",
-<<<<<<< HEAD
         "detail": "Combined 30d max DD = -17.1% (< -10%)"
-=======
-        "detail": "Combined 30d max DD = -15.9% (< -10%)"
-      },
-      {
-        "type": "negative_sharpe",
-        "severity": "medium",
-        "detail": "Combined 30d Sharpe = -0.9737 (< 0)"
->>>>>>> 2df4495 (memory: daily deep brief 2026-06-03)
       }
     ],
     "meta": {
@@ -2366,13 +2283,8 @@
         ],
         "failed": [],
         "n_returns": 30,
-<<<<<<< HEAD
         "dates_first": "2026-04-16",
         "dates_last": "2026-05-29"
-=======
-        "dates_first": "2026-04-20",
-        "dates_last": "2026-06-02"
->>>>>>> 2df4495 (memory: daily deep brief 2026-06-03)
       },
       "hk_fetch": {
         "fetched": [
@@ -2384,13 +2296,8 @@
         ],
         "failed": [],
         "n_returns": 30,
-<<<<<<< HEAD
         "dates_first": "2026-04-15",
         "dates_last": "2026-05-29"
-=======
-        "dates_first": "2026-04-17",
-        "dates_last": "2026-06-02"
->>>>>>> 2df4495 (memory: daily deep brief 2026-06-03)
       }
     }
   },
@@ -2425,11 +2332,7 @@
     }
   },
   "benchmark": {
-<<<<<<< HEAD
     "generated_at": "2026-06-01T00:01:12.024603Z",
-=======
-    "generated_at": "2026-06-03T00:00:45.386754Z",
->>>>>>> 2df4495 (memory: daily deep brief 2026-06-03)
     "window_days": 60,
     "series": {
       "SPY": [
@@ -2742,17 +2645,6 @@
         {
           "date": "2026-05-29",
           "close": 25182.39
-<<<<<<< HEAD
-=======
-        },
-        {
-          "date": "2026-06-01",
-          "close": 25398.18
-        },
-        {
-          "date": "2026-06-02",
-          "close": 26038.32
->>>>>>> 2df4495 (memory: daily deep brief 2026-06-03)
         }
       ],
       "HSTECH": [
@@ -2903,17 +2795,6 @@
         {
           "date": "2026-05-29",
           "close": 4884.23
-<<<<<<< HEAD
-=======
-        },
-        {
-          "date": "2026-06-01",
-          "close": 4964.92
-        },
-        {
-          "date": "2026-06-02",
-          "close": 5199.28
->>>>>>> 2df4495 (memory: daily deep brief 2026-06-03)
         }
       ]
     }
@@ -3534,11 +3415,7 @@
     ]
   },
   "influencer_feed": {
-<<<<<<< HEAD
     "generated_at": "2026-06-02T23:21:04.398955+00:00",
-=======
-    "generated_at": "2026-06-02T17:10:44.742322+00:00",
->>>>>>> 2df4495 (memory: daily deep brief 2026-06-03)
     "lookback_hours": 48,
     "sources": {
       "trump": "trumpstruth.org/feed (primary)",
@@ -3546,145 +3423,12 @@
     },
     "llm_filtered": true,
     "counts": {
-<<<<<<< HEAD
       "total": 9,
-=======
-      "total": 11,
->>>>>>> 2df4495 (memory: daily deep brief 2026-06-03)
       "held_hits": 0,
       "new_ideas": 0,
       "sector_hits": 3
     },
     "items": [
-      {
-        "author": "Trump",
-        "text": "I had a conversation with Bibi Netanyahu today, asking him not to go into a major raid of Beirut, Lebanon. He turned his Troops around. Thank you Bibi! I also had a conversation with Representatives of the Leaders of Hezbollah, and they agreed to stop shooting at Israel, and its soldiers. Likewise, Israel agreed to stop shooting at them. Let’s see how long that lasts — Hopefully it will be for ETERNITY! President DONALD J. TRUMP",
-        "url": "https://trumpstruth.org/statuses/38979",
-        "published": "2026-06-01T21:47:56+00:00",
-        "origin": "truthsocial",
-        "tickers": [],
-        "held": [],
-        "new_ideas": [],
-        "sectors": [
-          "地缘政治",
-          "国防"
-        ],
-        "sector_holdings": [],
-        "stance": "neutral",
-        "relevance": 75,
-        "summary_cn": "特朗普称与内塔尼亚胡及真主党代表通话，促成双方停火，直接影响中东地缘政治与国防板块。"
-      },
-      {
-        "author": "Trump",
-        "text": "RT @NewtGingrichAfter spending this week reviewing the Iranian war I am now convinced President Trump is on the edge of an historic victory. The real breakthrough for me came as I reviewed President Trump’s decisions and maneuvers not from the standpoint of American unilateralism but from the standpoint of the leader of a remarkable historic coalition, the largest coalition ever put together in the modern Middle East. Everyone understands that Israel is an important ally. What is little discussed is the depth of support from the United Arab Emirates, Qatar, Bahrain, Saudi Arabia and other coun",
-        "url": "https://trumpstruth.org/statuses/38981",
-        "published": "2026-06-02T01:18:21+00:00",
-        "origin": "truthsocial",
-        "tickers": [],
-        "held": [],
-        "new_ideas": [],
-        "sectors": [
-          "地缘政治",
-          "国防"
-        ],
-        "sector_holdings": [],
-        "stance": "endorse",
-        "relevance": 70,
-        "summary_cn": "特朗普转发纽特·金里奇观点，称其在伊朗问题上即将取得历史性胜利，涉及中东地缘政治。"
-      },
-      {
-        "author": "Trump",
-        "text": "If Iran surrenders, admits their Navy is gone and resting at the bottom of the sea, and their Air Force is no longer with us, and if their entire Military walks out of Tehran, weapons dropped and hands held high, each shouting “I surrender, I surrender” while wildly waving the representative White Flag, and if their entire remaining Leadership signs all necessary “Documents of Surrender,” and admit their defeat to the great power and force of the magnificent U.S.A., The Failing New York Times, The China Street Journal (WSJ!), Corrupt and now Irrelevant CNN, and all other members of the Fake Ne",
-        "url": "https://trumpstruth.org/statuses/38993",
-        "published": "2026-06-02T01:29:51+00:00",
-        "origin": "truthsocial",
-        "tickers": [],
-        "held": [],
-        "new_ideas": [],
-        "sectors": [
-          "地缘政治",
-          "国防",
-          "能源"
-        ],
-        "sector_holdings": [],
-        "stance": "neutral",
-        "relevance": 65,
-        "summary_cn": "特朗普以讽刺口吻描述伊朗投降场景，暗示对伊强硬立场，影响地缘政治与能源市场。"
-      },
-      {
-        "author": "Trump",
-        "text": "EPA boss made criminal referrals alleging Democrats ‘self-dealing’ in lucrative green energy grants: https://justthenews.com/accountability/waste-fraud-and-abuse/epa-boss-made-criminal-referrals-alleging-democrat-self",
-        "url": "https://trumpstruth.org/statuses/39031",
-        "published": "2026-06-02T03:11:08+00:00",
-        "origin": "truthsocial",
-        "tickers": [],
-        "held": [],
-        "new_ideas": [],
-        "sectors": [
-          "绿色能源",
-          "监管"
-        ],
-        "sector_holdings": [],
-        "stance": "attack",
-        "relevance": 60,
-        "summary_cn": "特朗普称EPA局长就民主党在绿色能源拨款中的'自利'行为提出刑事指控，涉及绿色能源板块监管风险。"
-      },
-      {
-        "author": "Trump",
-        "text": "Iran really wants to make a deal, and it will be a good one for the U.S.A. and those that are with us. But don’t the Dumocrats, and various seemingly unpatriotic Republicans,  understand that it is MUCH tougher for me to properly do my job and negotiate, when political hacks keep negatively “chirping,” at levels never seen before, over and over again, that I should move faster, or move slower, or go to war, or not go to war, or whatever. Just sit back and relax, it will all work out well in the end - It always does! President DJT",
-        "url": "https://trumpstruth.org/statuses/38975",
-        "published": "2026-06-01T05:02:12+00:00",
-        "origin": "truthsocial",
-        "tickers": [],
-        "held": [],
-        "new_ideas": [],
-        "sectors": [
-          "地缘政治",
-          "能源"
-        ],
-        "sector_holdings": [],
-        "stance": "neutral",
-        "relevance": 60,
-        "summary_cn": "特朗普称伊朗想达成协议，但抱怨政治干扰影响谈判，涉及地缘政治与能源市场。"
-      },
-      {
-        "author": "Trump",
-        "text": "Fake News Reports that the Islamic Republic of Iran, and the U.S.A., stopped speaking a few days ago are false and erroneous. The conversations between us have been going on continuously, including four days ago, three days ago, two days ago, one day ago, and today. Where they lead, one never knows, but as I told Iran, “It’s time, one way or another, for you to make a Deal. You’ve been doing this for 47 years, and it cannot be allowed to go on any longer!” President DONALD J. TRUMP",
-        "url": "https://trumpstruth.org/statuses/39040",
-        "published": "2026-06-02T17:00:37+00:00",
-        "origin": "truthsocial",
-        "tickers": [],
-        "held": [],
-        "new_ideas": [],
-        "sectors": [
-          "地缘政治",
-          "能源",
-          "国防"
-        ],
-        "sector_holdings": [],
-        "stance": "neutral",
-        "relevance": 55,
-        "summary_cn": "特朗普称与伊朗持续对话，暗示可能达成协议，影响地缘政治与能源市场预期。"
-      },
-      {
-        "author": "Trump",
-        "text": "Fake News CNN said today, routinely, that my Iran Nuclear Deal doesn’t talk about Nuclear, when actually it states, very clearly, that Iran will not have a Nuclear Weapon. It then goes on, in very strong and lengthy detail, to discuss various other aspects of Nuclear. In fact, that’s what most of the agreement is about. CNN, and so many others in the Fake News Media, is a Low Ratings disaster. Even with new ownership, it is unlikely to ever get better!!! President DJT",
-        "url": "https://trumpstruth.org/statuses/38972",
-        "published": "2026-05-31T23:27:46+00:00",
-        "origin": "truthsocial",
-        "tickers": [],
-        "held": [],
-        "new_ideas": [],
-        "sectors": [
-          "地缘政治",
-          "核能",
-          "媒体"
-        ],
-        "sector_holdings": [],
-        "stance": "attack",
-        "relevance": 55,
-        "summary_cn": "特朗普抨击CNN对其伊朗核协议报道不实，涉及核能政策与媒体板块。"
-      },
       {
         "author": "Musk",
         "text": "SpaceX IPO is coming. Could it push Elon Musk past $1 trillion?",
@@ -3699,7 +3443,6 @@
           "航天",
           "IPO"
         ],
-<<<<<<< HEAD
         "sector_holdings": [
           "RKLB"
         ],
@@ -3754,25 +3497,10 @@
         "url": "https://trumpstruth.org/statuses/38979",
         "published": "2026-06-01T21:47:56+00:00",
         "origin": "truthsocial",
-=======
-        "sector_holdings": [],
-        "stance": "neutral",
-        "relevance": 50,
-        "summary_cn": "文章质疑马斯克是否在兜售SpaceX 1.8万亿美元IPO的'希望'，涉及航天板块IPO预期。"
-      },
-      {
-        "author": "Musk",
-        "text": "SpaceX-Tesla Merger Could Trigger Elon Musk's $1 Trillion Pay Package: Report",
-        "url": "",
-        "published": "Tue, 02 Jun 2026 12:31:06 GMT",
-        "origin": "gnews-rss",
-        "source": "Yahoo Finance",
->>>>>>> 2df4495 (memory: daily deep brief 2026-06-03)
         "tickers": [],
         "held": [],
         "new_ideas": [],
         "sectors": [
-<<<<<<< HEAD
           "地缘政治",
           "中东",
           "军事"
@@ -3800,16 +3528,6 @@
         "stance": "neutral",
         "relevance": 55,
         "summary_cn": "特朗普称伊朗想达成协议，但批评政治干扰影响谈判，涉及伊朗外交和地缘政治不确定性。"
-=======
-          "航天",
-          "电动车",
-          "并购"
-        ],
-        "sector_holdings": [],
-        "stance": "neutral",
-        "relevance": 50,
-        "summary_cn": "报道称SpaceX与特斯拉合并可能触发马斯克万亿美元薪酬方案，涉及航天与电动车板块。"
->>>>>>> 2df4495 (memory: daily deep brief 2026-06-03)
       },
       {
         "author": "Trump",
@@ -3821,18 +3539,12 @@
         "held": [],
         "new_ideas": [],
         "sectors": [
-<<<<<<< HEAD
           "房地产",
           "情报机构"
-=======
-          "金融",
-          "房地产"
->>>>>>> 2df4495 (memory: daily deep brief 2026-06-03)
         ],
         "sector_holdings": [],
         "stance": "neutral",
         "relevance": 50,
-<<<<<<< HEAD
         "summary_cn": "特朗普任命联邦住房金融局局长William Pulte兼任代理国家情报总监，涉及人事变动和房地产金融监管。"
       },
       {
@@ -3841,22 +3553,10 @@
         "url": "https://trumpstruth.org/statuses/38993",
         "published": "2026-06-02T01:29:51+00:00",
         "origin": "truthsocial",
-=======
-        "summary_cn": "特朗普任命联邦住房金融局局长兼任国家情报总监，涉及金融市场敏感职位变动。"
-      },
-      {
-        "author": "Musk",
-        "text": "Elon Musk, SpaceX and the illusion of wealth",
-        "url": "",
-        "published": "Mon, 01 Jun 2026 17:00:03 GMT",
-        "origin": "gnews-rss",
-        "source": "Le Monde.fr",
->>>>>>> 2df4495 (memory: daily deep brief 2026-06-03)
         "tickers": [],
         "held": [],
         "new_ideas": [],
         "sectors": [
-<<<<<<< HEAD
           "地缘政治",
           "中东",
           "军事"
@@ -3903,15 +3603,6 @@
         "stance": "neutral",
         "relevance": 50,
         "summary_cn": "特朗普反驳CNN对其伊朗核协议的报道，涉及伊朗核协议细节和媒体关系。"
-=======
-          "航天",
-          "财富"
-        ],
-        "sector_holdings": [],
-        "stance": "neutral",
-        "relevance": 45,
-        "summary_cn": "文章讨论马斯克、SpaceX及财富幻觉，涉及航天板块估值话题。"
->>>>>>> 2df4495 (memory: daily deep brief 2026-06-03)
       }
     ],
     "held_hits": [],
@@ -4095,13 +3786,8 @@
       "unrealized": -10249.64
     },
     "combined_usd": {
-<<<<<<< HEAD
-      "realized": null,
-      "unrealized": null
-=======
       "realized": 2299.1,
       "unrealized": -872.55
->>>>>>> 2df4495 (memory: daily deep brief 2026-06-03)
     }
   },
   "capital_deployed": {
@@ -4111,15 +3797,9 @@
     },
     "hk": {
       "native": 95535.4,
-<<<<<<< HEAD
-      "usd": null
-    },
-    "combined_usd": null
-=======
       "usd": 12189.68
     },
     "combined_usd": 16190.86
->>>>>>> 2df4495 (memory: daily deep brief 2026-06-03)
   },
   "net_principal_return": {
     "us": {
@@ -4136,15 +3816,9 @@
       "return_basis": "net_principal"
     },
     "combined_usd": {
-<<<<<<< HEAD
-      "net_principal": null,
-      "total_profit": null,
-      "return_pct": null
-=======
       "net_principal": 12808.36,
       "total_profit": 1426.55,
       "return_pct": 11.14
->>>>>>> 2df4495 (memory: daily deep brief 2026-06-03)
     },
     "formula": "回报率 = (浮动 + 已实现) ÷ 本金；本金优先用 true_principal（峰值净投入），否则用 净投入本金=累计成本−已实现"
   }
