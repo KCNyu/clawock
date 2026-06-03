@@ -110,8 +110,9 @@ python3 /root/.openclaw/workspace/scripts/harness/intraday_postflight.py --marke
 ```
 **不 git commit**（高频触发避免 commit log 刷屏）。
 
-#### Step 4: 发 WeChat
-拼 `wechat_prefix` + 报告，**无标题**。
+#### Step 4: 输出报告（cron 自动投递，禁用 message 工具）
+拼 `wechat_prefix` + 报告，**无标题**，作为**本回合最终文本回复**直接输出。
+- ❌ **禁止调用 `message`/send 工具** — cron 已配 announce 自动投递你的回复文本，手动再调 message 会**重复投递**（见 Mode 6 Step 4 的 2026-06-03 事故）。整轮只输出一次，发完即停。
 
 **和 Mode 6 的区别**：单段 `▎我的看法` 取代三段；无 ▎风险提示；无 git commit；holdings 用 markdown 表格（Mode 6 briefing 仍 ASCII）。
 
@@ -156,7 +157,9 @@ python3 /root/.openclaw/workspace/scripts/harness/report_postflight.py --market 
 ```
 pass/warn 自动 `git commit portfolio.json`。
 
-#### Step 4: 发 WeChat（拼 wechat_prefix + 报告）
+#### Step 4: 输出报告（cron 自动投递，禁用 message 工具）
+
+拼 `wechat_prefix` + 报告，作为**本回合最终文本回复**直接输出即可 — cron 已配 announce 自动投递，**不要自己调 `message`/send 工具**。
 
 **Title template**（preflight 已生成）：
 - 开盘 09:30 ET：`🌅 美股开盘快报｜{date} 21:30 CST`
@@ -164,7 +167,7 @@ pass/warn 自动 `git commit portfolio.json`。
 
 **Hard rules:**
 - ⚠️ data gaps must be stated explicitly, never fabricate (postflight 扫敷衍词)
-- Do not use `message` tool; reply text directly (cron delivery wraps it)
+- ❌ **禁止调用 `message`/send 工具发报告** — cron 已配 announce 自动投递你的最终回复文本，手动再调 message 会**重复投递**（2026-06-03 美股开盘连发两次的根因：模型在"已完成"叙述的同一 turn 又调了一次 send）。整轮只输出一次，发完即停，别因"不确定送达没"而重发
 - No simple number recitation — model must add interpretation
 - 异动票 (anomalies) **必须在报告里提到** (postflight 强制)
 - 报告长度 ≤ 1200 字软上限 / ≤ 1500 字硬上限
