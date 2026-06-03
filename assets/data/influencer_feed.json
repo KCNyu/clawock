@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-02T23:21:04.398955+00:00",
+  "generated_at": "2026-06-03T17:53:39.423061+00:00",
   "lookback_hours": 48,
   "sources": {
     "trump": "trumpstruth.org/feed (primary)",
@@ -9,36 +9,64 @@
   "counts": {
     "total": 9,
     "held_hits": 0,
-    "new_ideas": 0,
+    "new_ideas": 2,
     "sector_hits": 3
   },
   "items": [
     {
-      "author": "Musk",
-      "text": "SpaceX IPO is coming. Could it push Elon Musk past $1 trillion?",
-      "url": "",
-      "published": "Tue, 02 Jun 2026 20:29:00 GMT",
-      "origin": "gnews-rss",
-      "source": "The Commercial Appeal",
-      "tickers": [],
+      "author": "Trump",
+      "text": "I am appointing the Director of the Federal Housing Finance Agency, and Chairman of Fannie Mae/Freddie Mac, William J. Pulte, to serve as Acting Director of National Intelligence. William has deep experience managing the most sensitive matters in America, the safety and soundness of the Markets, and over 10 Trillion Dollars at Fannie Mae/Freddie Mac, a substantial increase from where it was just 12 months ago. During this period, he will remain Director of the Federal Housing Finance Agency, and Chairman of Fannie Mae/Freddie Mac. Congratulations to Director Pulte! President DONALD J. TRUMP",
+      "url": "https://trumpstruth.org/statuses/39039",
+      "published": "2026-06-02T13:06:14+00:00",
+      "origin": "truthsocial",
+      "tickers": [
+        "FNMA",
+        "FMCC"
+      ],
       "held": [],
-      "new_ideas": [],
+      "new_ideas": [
+        "FMCC",
+        "FNMA"
+      ],
       "sectors": [
-        "航天",
-        "IPO"
+        "金融",
+        "房地产",
+        "政府机构"
       ],
-      "sector_holdings": [
-        "RKLB"
-      ],
+      "sector_holdings": [],
       "stance": "endorse",
+      "relevance": 75,
+      "summary_cn": "特朗普任命房利美/房地美主席William Pulte兼任代理国家情报总监，强调其管理10万亿美元资产的经验，利好两房股票。"
+    },
+    {
+      "author": "Musk",
+      "text": "Here Are The Latest Odds That Elon Musk Will Merge Tesla And SpaceX",
+      "url": "",
+      "published": "Wed, 03 Jun 2026 14:37:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Investor's Business Daily",
+      "tickers": [
+        "TSLA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "TSLA"
+      ],
+      "sectors": [
+        "电动车",
+        "航天",
+        "并购"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
       "relevance": 70,
-      "summary_cn": "马斯克称SpaceX即将IPO，可能推动其个人资产突破1万亿美元，涉及航天板块和IPO预期。"
+      "summary_cn": "马斯克被讨论可能合并特斯拉和SpaceX的可能性，涉及特斯拉股票和航天/电动车行业整合。"
     },
     {
       "author": "Trump",
       "text": "EPA boss made criminal referrals alleging Democrats ‘self-dealing’ in lucrative green energy grants: https://justthenews.com/accountability/waste-fraud-and-abuse/epa-boss-made-criminal-referrals-alleging-democrat-self",
-      "url": "https://trumpstruth.org/statuses/39031",
-      "published": "2026-06-02T03:11:08+00:00",
+      "url": "https://trumpstruth.org/statuses/39062",
+      "published": "2026-06-03T02:54:57+00:00",
       "origin": "truthsocial",
       "tickers": [],
       "held": [],
@@ -52,7 +80,28 @@
       ],
       "stance": "attack",
       "relevance": 60,
-      "summary_cn": "EPA局长对民主党在绿色能源拨款中的'自利行为'提出刑事指控，涉及绿色能源板块监管风险。"
+      "summary_cn": "EPA局长指控民主党在绿色能源拨款中存在'自我交易'犯罪行为，暗示对绿色能源行业的监管审查加强。"
+    },
+    {
+      "author": "Musk",
+      "text": "Exclusive: SpaceX plans to set IPO price at $135 per share, targeting record $75 billion raise, source says",
+      "url": "",
+      "published": "Wed, 03 Jun 2026 00:26:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Reuters",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "IPO"
+      ],
+      "sector_holdings": [
+        "RKLB"
+      ],
+      "stance": "endorse",
+      "relevance": 55,
+      "summary_cn": "马斯克旗下SpaceX计划以每股135美元IPO，目标融资750亿美元创纪录，但SpaceX未上市不计入tickers。"
     },
     {
       "author": "Trump",
@@ -64,16 +113,17 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "金融监管",
-        "银行",
-        "支付"
+        "金融",
+        "监管",
+        "移民"
       ],
       "sector_holdings": [
-        "CRCL"
+        "CRCL",
+        "ROBN"
       ],
       "stance": "neutral",
       "relevance": 55,
-      "summary_cn": "特朗普签署行政令，要求财政部限制银行、信用卡和金融机构被用于协助非法移民和犯罪活动，涉及金融监管政策。"
+      "summary_cn": "特朗普签署行政令，要求财政部阻止银行、信用卡和金融机构被用于协助人口走私、毒品贩运和非法移民，涉及金融监管。"
     },
     {
       "author": "Trump",
@@ -86,69 +136,31 @@
       "new_ideas": [],
       "sectors": [
         "地缘政治",
-        "中东",
-        "军事"
+        "军事",
+        "中东"
       ],
       "sector_holdings": [],
       "stance": "neutral",
-      "relevance": 55,
-      "summary_cn": "特朗普称与内塔尼亚胡和真主党代表通话，促成以色列与真主党停火，涉及中东地缘政治缓和。"
+      "relevance": 70,
+      "summary_cn": "特朗普称与内塔尼亚胡通话后以色列停止对贝鲁特突袭，同时与真主党代表达成停火协议，影响中东局势。"
     },
     {
       "author": "Trump",
-      "text": "Iran really wants to make a deal, and it will be a good one for the U.S.A. and those that are with us. But don’t the Dumocrats, and various seemingly unpatriotic Republicans,  understand that it is MUCH tougher for me to properly do my job and negotiate, when political hacks keep negatively “chirping,” at levels never seen before, over and over again, that I should move faster, or move slower, or go to war, or not go to war, or whatever. Just sit back and relax, it will all work out well in the end - It always does! President DJT",
-      "url": "https://trumpstruth.org/statuses/38975",
-      "published": "2026-06-01T05:02:12+00:00",
+      "text": "Fake News Reports that the Islamic Republic of Iran, and the U.S.A., stopped speaking a few days ago are false and erroneous. The conversations between us have been going on continuously, including four days ago, three days ago, two days ago, one day ago, and today. Where they lead, one never knows, but as I told Iran, “It’s time, one way or another, for you to make a Deal. You’ve been doing this for 47 years, and it cannot be allowed to go on any longer!” President DONALD J. TRUMP",
+      "url": "https://trumpstruth.org/statuses/39040",
+      "published": "2026-06-02T17:00:37+00:00",
       "origin": "truthsocial",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
         "地缘政治",
-        "伊朗",
-        "外交"
+        "能源"
       ],
       "sector_holdings": [],
       "stance": "neutral",
-      "relevance": 55,
-      "summary_cn": "特朗普称伊朗想达成协议，但批评政治干扰影响谈判，涉及伊朗外交和地缘政治不确定性。"
-    },
-    {
-      "author": "Trump",
-      "text": "I am appointing the Director of the Federal Housing Finance Agency, and Chairman of Fannie Mae/Freddie Mac, William J. Pulte, to serve as Acting Director of National Intelligence. William has deep experience managing the most sensitive matters in America, the safety and soundness of the Markets, and over 10 Trillion Dollars at Fannie Mae/Freddie Mac, a substantial increase from where it was just 12 months ago. During this period, he will remain Director of the Federal Housing Finance Agency, and Chairman of Fannie Mae/Freddie Mac. Congratulations to Director Pulte! President DONALD J. TRUMP",
-      "url": "https://trumpstruth.org/statuses/39039",
-      "published": "2026-06-02T13:06:14+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "房地产",
-        "情报机构"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 50,
-      "summary_cn": "特朗普任命联邦住房金融局局长William Pulte兼任代理国家情报总监，涉及人事变动和房地产金融监管。"
-    },
-    {
-      "author": "Trump",
-      "text": "If Iran surrenders, admits their Navy is gone and resting at the bottom of the sea, and their Air Force is no longer with us, and if their entire Military walks out of Tehran, weapons dropped and hands held high, each shouting “I surrender, I surrender” while wildly waving the representative White Flag, and if their entire remaining Leadership signs all necessary “Documents of Surrender,” and admit their defeat to the great power and force of the magnificent U.S.A., The Failing New York Times, The China Street Journal (WSJ!), Corrupt and now Irrelevant CNN, and all other members of the Fake Ne",
-      "url": "https://trumpstruth.org/statuses/38993",
-      "published": "2026-06-02T01:29:51+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "地缘政治",
-        "中东",
-        "军事"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 50,
-      "summary_cn": "特朗普就伊朗局势发表强硬言论，涉及中东地缘政治风险，可能影响能源和国防板块。"
+      "relevance": 65,
+      "summary_cn": "特朗普否认与伊朗停止沟通，表示谈判持续进行，要求伊朗达成协议，涉及中东地缘政治和能源市场。"
     },
     {
       "author": "Trump",
@@ -161,63 +173,92 @@
       "new_ideas": [],
       "sectors": [
         "地缘政治",
-        "中东",
-        "军事"
+        "军事",
+        "中东"
       ],
       "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 50,
-      "summary_cn": "特朗普转发纽特·金里奇文章，称其在伊朗问题上接近历史性胜利，涉及中东地缘政治。"
+      "stance": "endorse",
+      "relevance": 65,
+      "summary_cn": "特朗普转发纽特·金里奇文章，称其在伊朗问题上接近历史性胜利，组建了现代中东最大联盟。"
     },
     {
       "author": "Trump",
-      "text": "Fake News CNN said today, routinely, that my Iran Nuclear Deal doesn’t talk about Nuclear, when actually it states, very clearly, that Iran will not have a Nuclear Weapon. It then goes on, in very strong and lengthy detail, to discuss various other aspects of Nuclear. In fact, that’s what most of the agreement is about. CNN, and so many others in the Fake News Media, is a Low Ratings disaster. Even with new ownership, it is unlikely to ever get better!!! President DJT",
-      "url": "https://trumpstruth.org/statuses/38972",
-      "published": "2026-05-31T23:27:46+00:00",
+      "text": "If Iran surrenders, admits their Navy is gone and resting at the bottom of the sea, and their Air Force is no longer with us, and if their entire Military walks out of Tehran, weapons dropped and hands held high, each shouting “I surrender, I surrender” while wildly waving the representative White Flag, and if their entire remaining Leadership signs all necessary “Documents of Surrender,” and admit their defeat to the great power and force of the magnificent U.S.A., The Failing New York Times, The China Street Journal (WSJ!), Corrupt and now Irrelevant CNN, and all other members of the Fake Ne",
+      "url": "https://trumpstruth.org/statuses/38993",
+      "published": "2026-06-02T01:29:51+00:00",
       "origin": "truthsocial",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
         "地缘政治",
-        "伊朗",
-        "核协议"
+        "军事",
+        "能源"
       ],
       "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 50,
-      "summary_cn": "特朗普反驳CNN对其伊朗核协议的报道，涉及伊朗核协议细节和媒体关系。"
+      "stance": "attack",
+      "relevance": 60,
+      "summary_cn": "特朗普以讽刺口吻描述伊朗投降场景，暗示对伊朗的强硬立场，可能影响中东地缘政治和能源市场。"
     }
   ],
   "held_hits": [],
-  "new_ideas": [],
-  "sector_hits": [
+  "new_ideas": [
+    {
+      "author": "Trump",
+      "text": "I am appointing the Director of the Federal Housing Finance Agency, and Chairman of Fannie Mae/Freddie Mac, William J. Pulte, to serve as Acting Director of National Intelligence. William has deep experience managing the most sensitive matters in America, the safety and soundness of the Markets, and over 10 Trillion Dollars at Fannie Mae/Freddie Mac, a substantial increase from where it was just 12 months ago. During this period, he will remain Director of the Federal Housing Finance Agency, and Chairman of Fannie Mae/Freddie Mac. Congratulations to Director Pulte! President DONALD J. TRUMP",
+      "url": "https://trumpstruth.org/statuses/39039",
+      "published": "2026-06-02T13:06:14+00:00",
+      "origin": "truthsocial",
+      "tickers": [
+        "FNMA",
+        "FMCC"
+      ],
+      "held": [],
+      "new_ideas": [
+        "FMCC",
+        "FNMA"
+      ],
+      "sectors": [
+        "金融",
+        "房地产",
+        "政府机构"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 75,
+      "summary_cn": "特朗普任命房利美/房地美主席William Pulte兼任代理国家情报总监，强调其管理10万亿美元资产的经验，利好两房股票。"
+    },
     {
       "author": "Musk",
-      "text": "SpaceX IPO is coming. Could it push Elon Musk past $1 trillion?",
+      "text": "Here Are The Latest Odds That Elon Musk Will Merge Tesla And SpaceX",
       "url": "",
-      "published": "Tue, 02 Jun 2026 20:29:00 GMT",
+      "published": "Wed, 03 Jun 2026 14:37:00 GMT",
       "origin": "gnews-rss",
-      "source": "The Commercial Appeal",
-      "tickers": [],
+      "source": "Investor's Business Daily",
+      "tickers": [
+        "TSLA"
+      ],
       "held": [],
-      "new_ideas": [],
+      "new_ideas": [
+        "TSLA"
+      ],
       "sectors": [
+        "电动车",
         "航天",
-        "IPO"
+        "并购"
       ],
-      "sector_holdings": [
-        "RKLB"
-      ],
-      "stance": "endorse",
+      "sector_holdings": [],
+      "stance": "neutral",
       "relevance": 70,
-      "summary_cn": "马斯克称SpaceX即将IPO，可能推动其个人资产突破1万亿美元，涉及航天板块和IPO预期。"
-    },
+      "summary_cn": "马斯克被讨论可能合并特斯拉和SpaceX的可能性，涉及特斯拉股票和航天/电动车行业整合。"
+    }
+  ],
+  "sector_hits": [
     {
       "author": "Trump",
       "text": "EPA boss made criminal referrals alleging Democrats ‘self-dealing’ in lucrative green energy grants: https://justthenews.com/accountability/waste-fraud-and-abuse/epa-boss-made-criminal-referrals-alleging-democrat-self",
-      "url": "https://trumpstruth.org/statuses/39031",
-      "published": "2026-06-02T03:11:08+00:00",
+      "url": "https://trumpstruth.org/statuses/39062",
+      "published": "2026-06-03T02:54:57+00:00",
       "origin": "truthsocial",
       "tickers": [],
       "held": [],
@@ -231,7 +272,28 @@
       ],
       "stance": "attack",
       "relevance": 60,
-      "summary_cn": "EPA局长对民主党在绿色能源拨款中的'自利行为'提出刑事指控，涉及绿色能源板块监管风险。"
+      "summary_cn": "EPA局长指控民主党在绿色能源拨款中存在'自我交易'犯罪行为，暗示对绿色能源行业的监管审查加强。"
+    },
+    {
+      "author": "Musk",
+      "text": "Exclusive: SpaceX plans to set IPO price at $135 per share, targeting record $75 billion raise, source says",
+      "url": "",
+      "published": "Wed, 03 Jun 2026 00:26:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Reuters",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "IPO"
+      ],
+      "sector_holdings": [
+        "RKLB"
+      ],
+      "stance": "endorse",
+      "relevance": 55,
+      "summary_cn": "马斯克旗下SpaceX计划以每股135美元IPO，目标融资750亿美元创纪录，但SpaceX未上市不计入tickers。"
     },
     {
       "author": "Trump",
@@ -243,16 +305,17 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "金融监管",
-        "银行",
-        "支付"
+        "金融",
+        "监管",
+        "移民"
       ],
       "sector_holdings": [
-        "CRCL"
+        "CRCL",
+        "ROBN"
       ],
       "stance": "neutral",
       "relevance": 55,
-      "summary_cn": "特朗普签署行政令，要求财政部限制银行、信用卡和金融机构被用于协助非法移民和犯罪活动，涉及金融监管政策。"
+      "summary_cn": "特朗普签署行政令，要求财政部阻止银行、信用卡和金融机构被用于协助人口走私、毒品贩运和非法移民，涉及金融监管。"
     }
   ]
 }
