@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-04T16:14:03.544146+00:00",
+  "generated_at": "2026-06-04T22:56:03.335467+00:00",
   "lookback_hours": 48,
   "sources": {
     "trump": "trumpstruth.org/feed (primary)",
@@ -9,41 +9,15 @@
   "counts": {
     "total": 7,
     "held_hits": 0,
-    "new_ideas": 1,
-    "sector_hits": 3
+    "new_ideas": 0,
+    "sector_hits": 5
   },
   "items": [
     {
       "author": "Musk",
-      "text": "Coinbase Launches Pre-IPO Perps, Starting with Elon Musk's SpaceX",
-      "url": "",
-      "published": "Thu, 04 Jun 2026 11:13:12 GMT",
-      "origin": "gnews-rss",
-      "source": "Yahoo Finance",
-      "tickers": [
-        "COIN"
-      ],
-      "held": [],
-      "new_ideas": [
-        "COIN"
-      ],
-      "sectors": [
-        "加密货币",
-        "航天",
-        "IPO"
-      ],
-      "sector_holdings": [
-        "CRCL"
-      ],
-      "stance": "neutral",
-      "relevance": 65,
-      "summary_cn": "Coinbase推出Pre-IPO永续合约产品，首个标的为马斯克的SpaceX，为投资者提供参与未上市公司IPO前交易的新渠道。"
-    },
-    {
-      "author": "Musk",
       "text": "Elon Musk's SpaceX aiming to raise $75bn in record IPO",
       "url": "",
-      "published": "Thu, 04 Jun 2026 10:26:47 GMT",
+      "published": "Thu, 04 Jun 2026 11:38:59 GMT",
       "origin": "gnews-rss",
       "source": "DW",
       "tickers": [],
@@ -56,9 +30,9 @@
       "sector_holdings": [
         "RKLB"
       ],
-      "stance": "endorse",
+      "stance": "neutral",
       "relevance": 70,
-      "summary_cn": "马斯克旗下SpaceX计划通过创纪录的IPO筹集750亿美元资金。"
+      "summary_cn": "新闻报道马斯克旗下SpaceX计划通过创纪录的IPO筹集750亿美元。"
     },
     {
       "author": "Musk",
@@ -77,9 +51,9 @@
       "sector_holdings": [
         "RKLB"
       ],
-      "stance": "endorse",
+      "stance": "neutral",
       "relevance": 70,
-      "summary_cn": "马斯克旗下SpaceX计划进行史上最大规模的IPO，估值可能使其成为世界首位万亿富翁。"
+      "summary_cn": "新闻报道SpaceX计划进行史上最大规模的IPO，此举可能使马斯克成为全球首位万亿富翁。"
     },
     {
       "author": "Musk",
@@ -98,9 +72,51 @@
       "sector_holdings": [
         "RKLB"
       ],
-      "stance": "endorse",
+      "stance": "neutral",
       "relevance": 70,
-      "summary_cn": "马斯克旗下SpaceX在重磅IPO前寻求高达1.77万亿美元的估值。"
+      "summary_cn": "新闻报道马斯克旗下SpaceX在重磅IPO前，目标估值高达1.77万亿美元。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk's net worth poised to sail past $1 trillion in SpaceX IPO",
+      "url": "",
+      "published": "Wed, 03 Jun 2026 22:58:33 GMT",
+      "origin": "gnews-rss",
+      "source": "CNBC",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "IPO"
+      ],
+      "sector_holdings": [
+        "RKLB"
+      ],
+      "stance": "neutral",
+      "relevance": 65,
+      "summary_cn": "新闻报道随着SpaceX IPO的推进，马斯克的净资产有望突破1万亿美元。"
+    },
+    {
+      "author": "Musk",
+      "text": "Musk's SpaceX share sale: Four things you need to know",
+      "url": "",
+      "published": "Thu, 04 Jun 2026 16:18:37 GMT",
+      "origin": "gnews-rss",
+      "source": "BBC",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "IPO"
+      ],
+      "sector_holdings": [
+        "RKLB"
+      ],
+      "stance": "neutral",
+      "relevance": 55,
+      "summary_cn": "新闻报道马斯克旗下SpaceX正在进行股份出售，涉及四点关键信息。"
     },
     {
       "author": "Trump",
@@ -112,33 +128,14 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "税收政策",
-        "监管政策",
+        "税收",
+        "监管",
         "宏观经济"
       ],
       "sector_holdings": [],
       "stance": "endorse",
       "relevance": 65,
-      "summary_cn": "特朗普宣称其历史性的减税和放松监管政策将为美国家庭带来5000至10000美元的收益，并降低物价，从而在'可负担性战争'中获胜。"
-    },
-    {
-      "author": "Trump",
-      "text": "Illegal Immigrants and Foreign Fraudsters steal BILLIONS every year from the American Taxpayer. As part of my Administration’s Historic effort to end FRAUD and reverse MASS ILLEGAL IMMIGRATION, I recently signed a powerful new Executive Order, which will be led by the Treasury Department, to stop Banks, Credit Cards, and Financial Institutions from being used to facilitate Human Smuggling, Drug Trafficking, Illegal Immigration, and the Criminal Cartels who orchestrate these activities. Access to our Nation’s Financial Systems must be limited to those who have a Legal Right to be here, and who ",
-      "url": "https://trumpstruth.org/statuses/39044",
-      "published": "2026-06-02T18:20:36+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "金融监管",
-        "银行",
-        "移民政策"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 60,
-      "summary_cn": "特朗普签署行政命令，指示财政部阻止银行、信用卡和金融机构被用于协助人口走私、贩毒和非法移民等犯罪活动。"
+      "summary_cn": "特朗普宣称其税收和监管削减政策将为美国家庭带来5000至10000美元收益，并压低物价，以此作为共和党在'可负担性战争'中的核心优势。"
     },
     {
       "author": "Trump",
@@ -151,50 +148,23 @@
       "new_ideas": [],
       "sectors": [
         "绿色能源",
-        "监管政策",
-        "政治风险"
+        "监管",
+        "欺诈"
       ],
       "sector_holdings": [],
       "stance": "attack",
-      "relevance": 55,
-      "summary_cn": "特朗普转发新闻，指控EPA局长已就民主党在利润丰厚的绿色能源拨款中的'自我交易'行为提出刑事指控。"
+      "relevance": 60,
+      "summary_cn": "特朗普转发报道，称EPA局长已就民主党在'利润丰厚的绿色能源拨款'中的'自我交易'行为提出刑事指控。"
     }
   ],
   "held_hits": [],
-  "new_ideas": [
-    {
-      "author": "Musk",
-      "text": "Coinbase Launches Pre-IPO Perps, Starting with Elon Musk's SpaceX",
-      "url": "",
-      "published": "Thu, 04 Jun 2026 11:13:12 GMT",
-      "origin": "gnews-rss",
-      "source": "Yahoo Finance",
-      "tickers": [
-        "COIN"
-      ],
-      "held": [],
-      "new_ideas": [
-        "COIN"
-      ],
-      "sectors": [
-        "加密货币",
-        "航天",
-        "IPO"
-      ],
-      "sector_holdings": [
-        "CRCL"
-      ],
-      "stance": "neutral",
-      "relevance": 65,
-      "summary_cn": "Coinbase推出Pre-IPO永续合约产品，首个标的为马斯克的SpaceX，为投资者提供参与未上市公司IPO前交易的新渠道。"
-    }
-  ],
+  "new_ideas": [],
   "sector_hits": [
     {
       "author": "Musk",
       "text": "Elon Musk's SpaceX aiming to raise $75bn in record IPO",
       "url": "",
-      "published": "Thu, 04 Jun 2026 10:26:47 GMT",
+      "published": "Thu, 04 Jun 2026 11:38:59 GMT",
       "origin": "gnews-rss",
       "source": "DW",
       "tickers": [],
@@ -207,9 +177,9 @@
       "sector_holdings": [
         "RKLB"
       ],
-      "stance": "endorse",
+      "stance": "neutral",
       "relevance": 70,
-      "summary_cn": "马斯克旗下SpaceX计划通过创纪录的IPO筹集750亿美元资金。"
+      "summary_cn": "新闻报道马斯克旗下SpaceX计划通过创纪录的IPO筹集750亿美元。"
     },
     {
       "author": "Musk",
@@ -228,9 +198,9 @@
       "sector_holdings": [
         "RKLB"
       ],
-      "stance": "endorse",
+      "stance": "neutral",
       "relevance": 70,
-      "summary_cn": "马斯克旗下SpaceX计划进行史上最大规模的IPO，估值可能使其成为世界首位万亿富翁。"
+      "summary_cn": "新闻报道SpaceX计划进行史上最大规模的IPO，此举可能使马斯克成为全球首位万亿富翁。"
     },
     {
       "author": "Musk",
@@ -249,9 +219,51 @@
       "sector_holdings": [
         "RKLB"
       ],
-      "stance": "endorse",
+      "stance": "neutral",
       "relevance": 70,
-      "summary_cn": "马斯克旗下SpaceX在重磅IPO前寻求高达1.77万亿美元的估值。"
+      "summary_cn": "新闻报道马斯克旗下SpaceX在重磅IPO前，目标估值高达1.77万亿美元。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk's net worth poised to sail past $1 trillion in SpaceX IPO",
+      "url": "",
+      "published": "Wed, 03 Jun 2026 22:58:33 GMT",
+      "origin": "gnews-rss",
+      "source": "CNBC",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "IPO"
+      ],
+      "sector_holdings": [
+        "RKLB"
+      ],
+      "stance": "neutral",
+      "relevance": 65,
+      "summary_cn": "新闻报道随着SpaceX IPO的推进，马斯克的净资产有望突破1万亿美元。"
+    },
+    {
+      "author": "Musk",
+      "text": "Musk's SpaceX share sale: Four things you need to know",
+      "url": "",
+      "published": "Thu, 04 Jun 2026 16:18:37 GMT",
+      "origin": "gnews-rss",
+      "source": "BBC",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "IPO"
+      ],
+      "sector_holdings": [
+        "RKLB"
+      ],
+      "stance": "neutral",
+      "relevance": 55,
+      "summary_cn": "新闻报道马斯克旗下SpaceX正在进行股份出售，涉及四点关键信息。"
     }
   ]
 }
