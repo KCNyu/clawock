@@ -12,18 +12,21 @@ into ONE timed agent turn; long turns run 200-1000s, so the `announce` delivery
 that fires at turn END uses a token that died mid-turn → silent drop, delivered
 still returns true (the onError is only logged). Short turns (<160s) deliver fine.
 
-THE FIX (live-validated 2026-06-04): a fresh `openclaw message send` runs as a
-short-lived op (<1s), captures a CURRENT token, and lands reliably — kcn confirmed
-receipt of a re-sent report that the long-turn announce had dropped. So this
-watchdog runs OUT OF BAND (system crontab, a few min after each intraday slot) and,
-when the run's agent turn exceeded the token-expiry threshold (durationMs >
-LONG_TURN_MS), RE-SENDS the report to WeChat via fast-send. WeChat stays the only
-channel (Telegram is dead — do not route here). Short turns are left alone (their
-announce already landed) so we don't double-send.
+THE FIX (2026-06-04, evolved): the run-record `delivered` is USELESS — a dropped
+run and a landed run are byte-identical, and duration is a bad predictor (214s
+landed, 282s dropped). So we stopped guessing. intraday_postflight is now the
+PRIMARY WeChat sender: it delivers each report via a fresh-token `openclaw message
+send` (the path kcn confirmed lands) and the 3 intraday crons run --no-deliver (no
+announce) → exactly one send, no long-turn drop, no double. postflight records the
+REAL send result to memory/.tmp/intraday-sent-{market}.json.
 
-Healthy-report gate: only re-send a report that was actually produced cleanly
-(block first-line present AND not a mimo repeat-loop) — never re-send a stall.
-Dedupe per slot so a given run is re-sent at most once.
+This watchdog is now a pure BACKSTOP: it reads that marker and re-sends ONLY when
+the postflight send is confirmed failed / never happened (marker missing, sent_ok
+false, or stale/mismatched) — so it never doubles a report that already went out.
+WeChat is the only channel (Telegram is dead — do not route here).
+
+Healthy-report gate: only re-send a report produced cleanly (block first-line
+present AND not a mimo repeat-loop) — never re-send a stall. Dedupe per slot.
 
 (Shared run-record / send helpers live in _watchdog_common.py.)
 
@@ -43,20 +46,17 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from _watchdog_common import (  # noqa: E402
     WS, HKT, log, find_job_id, today_runs,
-    transcript_loop_score, last_report_text, send_wechat,
+    transcript_loop_score, last_report_text, send_wechat, resolve_wechat_target,
 )
 
 LOOP_THRESHOLD = 5         # transcript loop_score ≥ this ⇒ mimo repeat-loop ⇒ garbage
-DEFAULT_LONG_TURN_MS = 160000  # agent turn ≥ this ⇒ WeChat contextToken expired mid-turn
-                               #   (#61174 ~160s; observed: 142s landed, ≥217s dropped)
+MARKER_FRESH_MS = 25 * 60 * 1000  # postflight send-marker older than this ⇒ treat as not-this-slot
 
 
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--job-name', required=True, help='intraday cron job name')
     ap.add_argument('--market', choices=['hk', 'us'], required=True)
-    ap.add_argument('--long-turn-ms', type=int, default=DEFAULT_LONG_TURN_MS,
-                    help='agent-turn ms above which the WeChat token likely expired mid-turn')
     ap.add_argument('--dry-run', action='store_true')
     args = ap.parse_args()
 
@@ -74,7 +74,6 @@ def main():
     last = runs_today[-1]
     run_at = last.get('runAtMs')
     session_id = last.get('sessionId')
-    duration_ms = last.get('durationMs') or 0
 
     # Dedupe per slot (one re-send per intraday run, keyed by runAtMs).
     flag = WS / 'memory' / '.tmp' / f'watchdog-{tag}-{run_at}.done'
@@ -104,43 +103,55 @@ def main():
              'delivered_clean': delivered_clean, 'loop_score': loop_score, 'run_at': run_at})
         return 0
 
-    # --- Long-turn judgment (the part that does NOT trust `delivered`) ---------
-    # Short turns: the announce fired with a still-valid token → it landed. Leave
-    # them alone so we never double-send a report kcn already has.
-    if duration_ms < args.long_turn_ms:
+    # --- Decision: did intraday_postflight already send this report? -----------
+    # postflight is now the PRIMARY sender (fresh token, see its docstring) and
+    # records the REAL send result to intraday-sent-{market}.json. We trust that
+    # marker instead of the poisoned run-record `delivered` (which is byte-identical
+    # for a dropped vs a landed run). Only re-send on a CONFIRMED failure / missing
+    # marker — never double a report the postflight send already landed. This
+    # replaces the old duration heuristic that false-doubled every long-but-delivered
+    # run (214s landed, 282s dropped — duration can't tell them apart).
+    marker_path = WS / 'memory' / '.tmp' / f'intraday-sent-{args.market}.json'
+    marker = None
+    if marker_path.exists():
+        try:
+            marker = json.loads(marker_path.read_text())
+        except Exception:
+            marker = None
+    now_ms = int(datetime.now(HKT).timestamp() * 1000)
+    fresh   = bool(marker) and (now_ms - marker.get('ts', 0)) < MARKER_FRESH_MS
+    # first_line guards against a stale marker from a previous slot; if we can't read
+    # the block, trust recency alone (avoid false-double).
+    matches = bool(marker) and (not raw_block_first or marker.get('first_line') == raw_block_first)
+    if marker and marker.get('sent_ok') and fresh and matches:
         log({'tag': tag, 'action': 'ok',
-             'reason': f'turn {duration_ms}ms < {args.long_turn_ms}ms — token alive, announce landed',
-             'run_at': run_at, 'loop_score': loop_score})
+             'reason': 'postflight already sent (marker sent_ok, fresh, matches) — no resend',
+             'run_at': run_at})
         return 0
 
-    # --- Long turn ⇒ contextToken expired mid-turn ⇒ announce dropped ⇒ fast re-send to WeChat
+    # postflight send failed / never ran / marker mismatch ⇒ re-send via fresh token
     report = last_report_text(session_id, raw_block_first) if raw_block_first else None
     if not report:
         report = summary  # fallback: run-record summary (usually holds the full block)
-    deliv = last.get('delivery') or {}
-    target = deliv.get('intended') or deliv.get('resolved') or {}
-    channel = target.get('channel')
-    to = target.get('to')
-    account = target.get('accountId')
+    channel, to, account = resolve_wechat_target(args.market)
     if not (channel and to):
-        log({'tag': tag, 'action': 'skip', 'reason': 'no delivery target in run record',
-             'run_at': run_at, 'delivery': deliv})
+        log({'tag': tag, 'action': 'skip', 'reason': 'no wechat target resolved', 'run_at': run_at})
         return 0
 
-    secs = round(duration_ms / 1000)
-    banner = (f'📲 补投（盘中盯盘本次 turn 跑了 {secs}s > 160s，微信 token 已在 turn 中过期、'
-              f'原投递大概率被静默吞，故用 fresh-token 补一份）\n\n')
+    reason = ('postflight marker missing' if not marker
+              else 'postflight send failed' if not marker.get('sent_ok')
+              else 'marker stale/mismatch')
+    banner = f'📲 补投（{reason}，盘中盯盘用 fresh-token 补一份）\n\n'
     message = banner + report.strip()
 
     sent_ok, out = send_wechat(channel, to, account, message, args.dry_run)
     log({'tag': tag, 'action': 'resend-wechat', 'dry_run': args.dry_run, 'sent_ok': sent_ok,
-         'job_id': job_id, 'duration_ms': duration_ms, 'long_turn_ms': args.long_turn_ms,
-         'loop_score': loop_score, 'run_at': run_at, 'channel': channel, 'out': out})
+         'job_id': job_id, 'reason': reason, 'loop_score': loop_score,
+         'run_at': run_at, 'channel': channel, 'out': out})
     if sent_ok and not args.dry_run:
         flag.write_text(datetime.now(HKT).isoformat())
 
-    print(json.dumps({'tag': tag, 'duration_ms': duration_ms,
-                      'long_turn': True, 'resent': sent_ok, 'dry_run': args.dry_run},
+    print(json.dumps({'tag': tag, 'resent': sent_ok, 'reason': reason, 'dry_run': args.dry_run},
                      ensure_ascii=False))
     return 0
 

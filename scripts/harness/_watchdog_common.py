@@ -128,6 +128,25 @@ def resolve_target(runs):
     return None, None, None
 
 
+# kcn's WeChat conversation — last-resort fallback if cron config can't be read.
+KCN_WECHAT = ('openclaw-weixin', 'o9cq80-hGTruM-OSs8kNmDOtLVZI@im.wechat', '61bf112daf0d-im-bot')
+
+
+def resolve_wechat_target(market=None):
+    """(channel, to, accountId) for kcn's WeChat conversation, read from cron
+    config (`cron list --json`, storage-agnostic, doesn't rot if the bot is
+    re-paired). All cron jobs target the same conversation, so any job's WeChat
+    delivery target works; `market` is accepted for API symmetry. Falls back to
+    the known constant. Used by intraday_postflight (primary sender) + watchdog."""
+    d = _cron_cli_json(['list', '--json'])
+    if isinstance(d, dict):
+        for j in d.get('jobs', []):
+            dl = j.get('delivery') or {}
+            if dl.get('channel') == 'openclaw-weixin' and dl.get('to'):
+                return dl.get('channel'), dl.get('to'), dl.get('accountId')
+    return KCN_WECHAT
+
+
 def send_wechat(channel, to, account, message, dry_run):
     """openclaw message send. Returns (ok, tail_of_output)."""
     cmd = [OPENCLAW_BIN, 'message', 'send',

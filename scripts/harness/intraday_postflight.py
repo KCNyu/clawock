@@ -34,6 +34,7 @@ from _harness_common import (  # noqa: E402
     snapshot_date_for_now,
     validate_forbidden_phrases,
 )
+from _watchdog_common import resolve_wechat_target, send_wechat  # noqa: E402
 
 # Workspace root, resolved from this file's location (location-independent;
 # matches the old hardcoded /root path locally, robust if run elsewhere).
@@ -134,6 +135,38 @@ def main():
                          + '\n'.join('- ' + i for i in issues[:4])
                          + '\n\n')
 
+    # ── WeChat delivery (decoupled from the cron's announce) ──────────────────
+    # The cron's announce fires at the END of a long agent turn using a token
+    # captured at turn START → expires mid-turn (#61174) → silent drop. We instead
+    # send here, in a short-lived `openclaw message send` that grabs a FRESH token
+    # (the path kcn confirmed lands when announce didn't). The 3 intraday crons run
+    # --no-deliver so this is the SOLE send → no double, no long-turn drop. We
+    # record the real send result to a marker so intraday_watchdog only re-sends on
+    # a CONFIRMED failure (never doubles a report that went out here).
+    wechat_sent = None
+    if status in ('pass', 'warn'):
+        block_first = (ctx.get('raw_wechat_block', '') or '').strip().splitlines()
+        block_first = block_first[0] if block_first else ''
+        message = (wechat_prefix + text).strip()
+        try:
+            channel, to, account = resolve_wechat_target(args.market)
+            wechat_sent, send_out = send_wechat(channel, to, account, message, dry_run=False)
+        except Exception as e:
+            wechat_sent, send_out = False, str(e)[:300]
+        marker = TMP / f'intraday-sent-{args.market}.json'
+        try:
+            marker.write_text(json.dumps({
+                'ts': int(datetime.now().timestamp() * 1000),
+                'sent_ok': bool(wechat_sent),
+                'first_line': block_first,
+                'market': args.market,
+                'out': (send_out or '')[-200:],
+            }, ensure_ascii=False))
+        except Exception as e:
+            print(f'warn: marker write failed: {e}', file=sys.stderr)
+        if not wechat_sent:
+            print(f'warn: WeChat send failed (watchdog will retry): {send_out[:200]}', file=sys.stderr)
+
     dashboard_published = False
     if status in ('pass', 'warn'):
         try:
@@ -162,6 +195,7 @@ def main():
         'issues':        issues,
         'wechat_prefix': wechat_prefix,
         'n_chars':       len(text),
+        'wechat_sent':   wechat_sent,
         'dashboard_published': dashboard_published,
     }
     print(json.dumps(result, ensure_ascii=False, indent=2))
