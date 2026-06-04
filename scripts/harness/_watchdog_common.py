@@ -44,9 +44,35 @@ def log(event):
         print(f'(watchdog log failed: {e})', file=sys.stderr)
 
 
+def _cron_cli_json(cli_args):
+    """Run `openclaw cron <args>` and parse the JSON object it prints (after any
+    leading 'Config warnings:' noise). Returns the dict, or None on any failure.
+    This is the storage-agnostic path — 6.1 migrated cron from jobs.json/runs/*.jsonl
+    into state/openclaw.sqlite, so direct file reads silently return nothing."""
+    try:
+        r = subprocess.run([OPENCLAW_BIN, 'cron', *cli_args],
+                           capture_output=True, text=True, timeout=30)
+        txt = r.stdout
+        i = txt.find('{')
+        if i < 0:
+            return None
+        return json.loads(txt[i:])
+    except Exception:
+        return None
+
+
 def load_jobs():
-    data = json.loads(JOBS_JSON.read_text())
-    return data if isinstance(data, list) else data.get('jobs', data.get('items', []))
+    # Primary: CLI (works on 6.1 SQLite). Fallback: pre-migration jobs.json[.migrated].
+    d = _cron_cli_json(['list', '--json'])
+    if isinstance(d, dict) and isinstance(d.get('jobs'), list):
+        return d['jobs']
+    for p in (JOBS_JSON, JOBS_JSON.with_suffix('.json.migrated')):
+        try:
+            data = json.loads(p.read_text())
+            return data if isinstance(data, list) else data.get('jobs', data.get('items', []))
+        except Exception:
+            continue
+    return []
 
 
 def find_job_id(job_name):
@@ -57,19 +83,27 @@ def find_job_id(job_name):
 
 
 def read_runs(job_id):
-    """Return list of finished-run records for a job (one per JSONL line)."""
-    path = RUNS_DIR / f'{job_id}.jsonl'
-    if not path.exists():
-        return []
+    """Finished-run records for a job, OLDEST→NEWEST (so callers' [-1] = newest).
+    Primary: `openclaw cron runs` CLI (SQLite-backed on 6.1). Fallback: the old
+    per-job JSONL (now *.jsonl.migrated after the 6.1 migration)."""
+    d = _cron_cli_json(['runs', '--id', job_id])
+    if isinstance(d, dict) and isinstance(d.get('entries'), list):
+        finished = [e for e in d['entries'] if e.get('action') in (None, 'finished')]
+        # CLI returns newest-first; reverse to match the old append-order contract.
+        return list(reversed(finished))
     out = []
-    for line in path.read_text().splitlines():
-        line = line.strip()
-        if not line:
+    for cand in (RUNS_DIR / f'{job_id}.jsonl', RUNS_DIR / f'{job_id}.jsonl.migrated'):
+        if not cand.exists():
             continue
-        try:
-            out.append(json.loads(line))
-        except Exception:
-            continue
+        for line in cand.read_text().splitlines():
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                out.append(json.loads(line))
+            except Exception:
+                continue
+        break
     return out
 
 

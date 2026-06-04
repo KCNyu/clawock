@@ -1,33 +1,35 @@
 #!/usr/bin/env python3
 """
-intraday_watchdog.py — cold-session-drop safety net for Mode 7 (盘中盯盘) crons.
+intraday_watchdog.py — long-turn-drop safety net for Mode 7 (盘中盯盘) crons.
 
-WHY (2026-06-02 incident): the 11:00 + 11:30 盘中盯盘 reports "没出来" on kcn's
-WeChat, yet every run finished status=ok with delivered=true and a perfectly
-good report. Root cause is the known Tencent cold-session silent drop
-(openclaw-wechat-cold-session-drop.md, upstream wontfix #81096/#81316): once the
-WeChat session has been idle ~30-60min, Tencent silently stops delivering but
-the API still returns delivered=true. So `delivered` is POISONED — the existing
-report_watchdog (which trusts delivery telemetry) can't catch this, and 盘中盯盘
-had no watchdog at all.
+ROOT CAUSE (2026-06-04, re-diagnosed + live-confirmed): intraday reports "没出来"
+on kcn's WeChat even though every run finished status=ok with delivered=true. The
+real mechanism is NOT idle "cold session" — it's the WeChat contextToken expiry
+(upstream openclaw/openclaw#61174, closed wontfix): the token is captured from the
+inbound poll and held in memory, and Tencent expires it server-side after ~160s.
+The intraday cron packs preflight + LLM synthesis + postflight + dashboard build
+into ONE timed agent turn; long turns run 200-1000s, so the `announce` delivery
+that fires at turn END uses a token that died mid-turn → silent drop, delivered
+still returns true (the onError is only logged). Short turns (<160s) deliver fine.
 
-This runs OUT OF BAND (system crontab, a few min after each intraday slot) and,
-crucially, does NOT trust `delivered`. Instead it judges drop probability from
-session WARMTH — how long since kcn last messaged the bot (the only honest
-receipt signal we have). If the WeChat session was cold at send-time
-(idle ≥ --cold-min), the push very likely dropped, so we MIRROR the report to
-Telegram — the one channel with no cold-session drop. WeChat stays primary;
-Telegram only lights up on a suspected miss (no 刷屏).
+THE FIX (live-validated 2026-06-04): a fresh `openclaw message send` runs as a
+short-lived op (<1s), captures a CURRENT token, and lands reliably — kcn confirmed
+receipt of a re-sent report that the long-turn announce had dropped. So this
+watchdog runs OUT OF BAND (system crontab, a few min after each intraday slot) and,
+when the run's agent turn exceeded the token-expiry threshold (durationMs >
+LONG_TURN_MS), RE-SENDS the report to WeChat via fast-send. WeChat stays the only
+channel (Telegram is dead — do not route here). Short turns are left alone (their
+announce already landed) so we don't double-send.
 
-Healthy-report gate: we only mirror a report that actually got produced and
-delivered cleanly (block first-line present AND not a mimo repeat-loop) — never
-mirror a stall/garbage turn.
+Healthy-report gate: only re-send a report that was actually produced cleanly
+(block first-line present AND not a mimo repeat-loop) — never re-send a stall.
+Dedupe per slot so a given run is re-sent at most once.
 
-(Shared run-record / warmth / send helpers live in _watchdog_common.py.)
+(Shared run-record / send helpers live in _watchdog_common.py.)
 
 Usage:
     intraday_watchdog.py --job-name "盘中盯盘"   --market hk
-    intraday_watchdog.py --job-name "美股盘中盯盘" --market us --cold-min 40
+    intraday_watchdog.py --job-name "美股盘中盯盘" --market us
     intraday_watchdog.py --job-name "盘中盯盘"   --market hk --dry-run
 
 Exit 0 always (non-fatal cron); actions logged to logs/watchdog.jsonl.
@@ -40,26 +42,24 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from _watchdog_common import (  # noqa: E402
-    WS, HKT, log, find_job_id, read_runs, today_runs,
-    transcript_loop_score, last_human_inbound_ms, last_report_text, send_telegram,
+    WS, HKT, log, find_job_id, today_runs,
+    transcript_loop_score, last_report_text, send_wechat,
 )
 
-LOOP_THRESHOLD = 5       # transcript loop_score ≥ this ⇒ mimo repeat-loop ⇒ garbage
-DEFAULT_COLD_MIN = 40    # WeChat session idle ≥ this at send-time ⇒ likely dropped
-KCN_TELEGRAM_TARGET = 2033937852  # Shengyu Li's Telegram DM (chat_id == user id)
+LOOP_THRESHOLD = 5         # transcript loop_score ≥ this ⇒ mimo repeat-loop ⇒ garbage
+DEFAULT_LONG_TURN_MS = 160000  # agent turn ≥ this ⇒ WeChat contextToken expired mid-turn
+                               #   (#61174 ~160s; observed: 142s landed, ≥217s dropped)
 
 
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--job-name', required=True, help='intraday cron job name')
     ap.add_argument('--market', choices=['hk', 'us'], required=True)
-    ap.add_argument('--cold-min', type=int, default=DEFAULT_COLD_MIN,
-                    help='WeChat idle minutes at send-time to treat as cold/dropped')
-    ap.add_argument('--telegram-target', default=str(KCN_TELEGRAM_TARGET))
+    ap.add_argument('--long-turn-ms', type=int, default=DEFAULT_LONG_TURN_MS,
+                    help='agent-turn ms above which the WeChat token likely expired mid-turn')
     ap.add_argument('--dry-run', action='store_true')
     args = ap.parse_args()
 
-    today = datetime.now(HKT).strftime('%Y-%m-%d')
     tag = f'intraday-{args.market}'
 
     job_id = find_job_id(args.job_name)
@@ -74,14 +74,15 @@ def main():
     last = runs_today[-1]
     run_at = last.get('runAtMs')
     session_id = last.get('sessionId')
+    duration_ms = last.get('durationMs') or 0
 
-    # Dedupe per slot (one mirror per intraday run, keyed by runAtMs).
+    # Dedupe per slot (one re-send per intraday run, keyed by runAtMs).
     flag = WS / 'memory' / '.tmp' / f'watchdog-{tag}-{run_at}.done'
     if flag.exists():
         log({'tag': tag, 'action': 'skip', 'reason': 'already handled this slot (dedupe flag)'})
         return 0
 
-    # --- Healthy-report gate: never mirror a stall/garbage turn ---------------
+    # --- Healthy-report gate: never re-send a stall/garbage turn --------------
     summary = last.get('summary', '')
     raw_block_first = None
     ctx_path = WS / 'memory' / '.tmp' / f'intraday-context-{args.market}-latest.json'
@@ -98,43 +99,49 @@ def main():
     looped = loop_score >= LOOP_THRESHOLD
     if not delivered_clean or looped:
         # Report itself failed/looped — that's report_watchdog's territory, not a
-        # cold-drop. Don't mirror garbage; just record it.
-        log({'tag': tag, 'action': 'skip', 'reason': 'run unhealthy (stall/loop) — not a cold-drop',
-             'delivered_clean': delivered_clean, 'loop_score': loop_score,
-             'run_at': run_at})
+        # long-turn drop. Don't re-send garbage; just record it.
+        log({'tag': tag, 'action': 'skip', 'reason': 'run unhealthy (stall/loop) — not a long-turn drop',
+             'delivered_clean': delivered_clean, 'loop_score': loop_score, 'run_at': run_at})
         return 0
 
-    # --- Warmth judgment (the part that does NOT trust `delivered`) -----------
-    inbound_ms = last_human_inbound_ms(before_ms=run_at)
-    if inbound_ms is None:
-        idle_min = 99999  # no human inbound in 24h ⇒ definitely cold
-    else:
-        idle_min = int((run_at - inbound_ms) / 60000)
-    cold = idle_min >= args.cold_min
-
-    if not cold:
+    # --- Long-turn judgment (the part that does NOT trust `delivered`) ---------
+    # Short turns: the announce fired with a still-valid token → it landed. Leave
+    # them alone so we never double-send a report kcn already has.
+    if duration_ms < args.long_turn_ms:
         log({'tag': tag, 'action': 'ok',
-             'reason': f'session warm (idle={idle_min}m < {args.cold_min}m) — WeChat likely landed',
+             'reason': f'turn {duration_ms}ms < {args.long_turn_ms}ms — token alive, announce landed',
              'run_at': run_at, 'loop_score': loop_score})
         return 0
 
-    # --- Cold ⇒ WeChat push probably dropped ⇒ mirror to Telegram ------------
+    # --- Long turn ⇒ contextToken expired mid-turn ⇒ announce dropped ⇒ fast re-send to WeChat
     report = last_report_text(session_id, raw_block_first) if raw_block_first else None
     if not report:
         report = summary  # fallback: run-record summary (usually holds the full block)
-    banner = (f'📲 微信备投（盘中盯盘 {datetime.now(HKT):%H:%M} HKT 发出时微信会话已冷 '
-              f'{idle_min}min，大概率被腾讯静默吞了，故 Telegram 补一份）\n\n')
+    deliv = last.get('delivery') or {}
+    target = deliv.get('intended') or deliv.get('resolved') or {}
+    channel = target.get('channel')
+    to = target.get('to')
+    account = target.get('accountId')
+    if not (channel and to):
+        log({'tag': tag, 'action': 'skip', 'reason': 'no delivery target in run record',
+             'run_at': run_at, 'delivery': deliv})
+        return 0
+
+    secs = round(duration_ms / 1000)
+    banner = (f'📲 补投（盘中盯盘本次 turn 跑了 {secs}s > 160s，微信 token 已在 turn 中过期、'
+              f'原投递大概率被静默吞，故用 fresh-token 补一份）\n\n')
     message = banner + report.strip()
 
-    sent_ok, out = send_telegram(args.telegram_target, message, args.dry_run)
-    log({'tag': tag, 'action': 'mirror-telegram', 'dry_run': args.dry_run, 'sent_ok': sent_ok,
-         'job_id': job_id, 'idle_min': idle_min, 'cold_min': args.cold_min,
-         'loop_score': loop_score, 'run_at': run_at, 'out': out})
+    sent_ok, out = send_wechat(channel, to, account, message, args.dry_run)
+    log({'tag': tag, 'action': 'resend-wechat', 'dry_run': args.dry_run, 'sent_ok': sent_ok,
+         'job_id': job_id, 'duration_ms': duration_ms, 'long_turn_ms': args.long_turn_ms,
+         'loop_score': loop_score, 'run_at': run_at, 'channel': channel, 'out': out})
     if sent_ok and not args.dry_run:
         flag.write_text(datetime.now(HKT).isoformat())
 
-    print(json.dumps({'tag': tag, 'idle_min': idle_min, 'cold': cold,
-                      'mirrored': sent_ok, 'dry_run': args.dry_run}, ensure_ascii=False))
+    print(json.dumps({'tag': tag, 'duration_ms': duration_ms,
+                      'long_turn': True, 'resent': sent_ok, 'dry_run': args.dry_run},
+                     ensure_ascii=False))
     return 0
 
 
