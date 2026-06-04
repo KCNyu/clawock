@@ -96,28 +96,6 @@
 - **单一来源：`portfolio.json`**，不在此维护副本
 - ticker 列表：`memory/current-portfolio-summary.md`（提高检索命中）
 
-## Promoted From Short-Term Memory (2026-05-31)
-
-<!-- openclaw-memory-promotion:memory:memory/2026-05-25-pre-open.md:2:3 -->
-- layout: default title: 盘前深度简报 · 2026-05-25 [score=0.877 recalls=0 avg=0.620 source=memory/2026-05-25-pre-open.md:2-3]
-<!-- openclaw-memory-promotion:memory:memory/2026-05-25-pre-open.md:10:10 -->
-- > ⚠️ **数据状态**：US/HK refresh failed（价格为 5/22-23 收盘），FX hardcoded 7.8（stale）。SEC EDGAR RKLB/CRCL failed。所有数字仅从 `brief-context-2026-05-25.json` 取。 [score=0.877 recalls=0 avg=0.620 source=memory/2026-05-25-pre-open.md:10-10]
-<!-- openclaw-memory-promotion:memory:memory/2026-05-25-pre-open.md:12:15 -->
-- | 市场 | Regime | 关键信号 | |---|---|---| | US | **Volatile / Mixed** | SOXL +6.74% 🔥 / RKLB +8.22% 🔥 / ROBN -6.32% 🔴；β=4.77 🔴 / Vol 72% 🔴 / Sharpe +4.96（SOXL/RKLB 拉高）；SPX +0.41% / NDX +0.41% | [score=0.877 recalls=0 avg=0.620 source=memory/2026-05-25-pre-open.md:12-14]
-<!-- openclaw-memory-promotion:memory:memory/2026-05-25-pre-open.md:17:17 -->
-- **FX**: USDHKD = 7.8（HARDCODED_FALLBACK，无实时源，stale） [score=0.877 recalls=0 avg=0.620 source=memory/2026-05-25-pre-open.md:17-17]
-
-## Promoted From Short-Term Memory (2026-05-31)
-
-<!-- openclaw-memory-promotion:memory:memory/2026-05-25-pre-open.md:19:19 -->
-- **Book 总览**: [score=0.876 recalls=0 avg=0.620 source=memory/2026-05-25-pre-open.md:19-19]
-<!-- openclaw-memory-promotion:memory:memory/2026-05-22-pre-open.md:10:10 -->
-- > ⚠️ **数据状态**：US/HK refresh failed（价格用 snapshot），FX hardcoded 7.8（stale），SEC EDGAR RKLB/CRCL failed。所有数字仅从 `brief-context-2026-05-22.json` 取。 [score=0.856 recalls=0 avg=0.620 source=memory/2026-05-22-pre-open.md:10-10]
-<!-- openclaw-memory-promotion:memory:memory/2026-05-22-pre-open.md:16:19 -->
-- | 市场 | Regime | 关键信号 | |---|---|---| | US | **Volatile / Trending Down** | RKLB -6.43% 🔴 / SOXL +2.66% / ROBN -0.32%；β=4.78 🔴 / Vol 54.6% 🔴 / Sharpe -0.88 🔴；NDX/SPX 隔夜微跌 | [score=0.856 recalls=0 avg=0.620 source=memory/2026-05-22-pre-open.md:16-18]
-<!-- openclaw-memory-promotion:memory:memory/2026-05-22-pre-open.md:2:3 -->
-- layout: default title: 盘前深度简报 · 2026-05-22 [score=0.856 recalls=0 avg=0.620 source=memory/2026-05-22-pre-open.md:2-3]
-
 ## Promoted From Short-Term Memory (2026-06-01)
 
 <!-- openclaw-memory-promotion:memory:memory/2026-05-26-0946.md:12:14 -->
@@ -151,3 +129,18 @@
 - | 市场 | Regime | 关键信号 | |---|---|---| | US | **Volatile / Mixed** | SOXL **+18.13%** 🔥 / RKLB +5.24% 🔥 / CRCL **-7.97%** 🔴；β=4.81 🔴 / Vol 61.6% 🔴 / 30d DD -14.5% ⚠️；**GDP 5/28 明日核心催化** | [score=0.843 recalls=0 avg=0.620 source=memory/2026-05-27-pre-open.md:12-14]
 <!-- openclaw-memory-promotion:memory:memory/2026-05-27-pre-open.md:17:17 -->
 - **FX**: USDHKD = 7.8（HARDCODED_FALLBACK，无实时源，⚠️ stale） [score=0.843 recalls=0 avg=0.620 source=memory/2026-05-27-pre-open.md:17-17]
+
+## Promoted From Short-Term Memory (2026-06-05)
+
+<!-- openclaw-memory-promotion:memory:memory/2026-06-01-pre-open.md:10:11 -->
+- Header: 🧭 **Regime**: US risk_on (SPX +0.2%, NDX +0.4%, DJI +0.7% — 美股连续收涨) | HK neutral (HSTECH -0.09% — 恒科横盘震荡) **FX**: USDHKD = 7.8356 (Frankurter, 2026-06-01 00:00 UTC) [score=0.806 recalls=0 avg=0.620 source=memory/2026-06-01-pre-open.md:10-11]
+<!-- openclaw-memory-promotion:memory:memory/2026-06-01-pre-open.md:13:13 -->
+- Header: **Book 总览**: [score=0.806 recalls=0 avg=0.620 source=memory/2026-06-01-pre-open.md:13-13]
+<!-- openclaw-memory-promotion:memory:memory/2026-06-01-pre-open.md:15:18 -->
+- Header: 真实总浮盈亏: USD$349.27 ≈ HKD$2,736.73 (USDHKD = 7.8356, 来源 Frankurter, 抓取于 2026-06-01 00:00 UTC) ├─ HK 段：HKD$-3,321.44 ≈ USD$-423.89 └─ US 段：USD$773.16 ≈ HKD$6,060.62 [score=0.806 recalls=0 avg=0.620 source=memory/2026-06-01-pre-open.md:15-18]
+<!-- openclaw-memory-promotion:memory:memory/2026-06-01-pre-open.md:2:3 -->
+- layout: default title: 盘前深度简报 · 2026-06-01 [score=0.806 recalls=0 avg=0.620 source=memory/2026-06-01-pre-open.md:2-3]
+<!-- openclaw-memory-promotion:memory:memory/2026-06-01-pre-open.md:21:21 -->
+- Header: ⚠️ **宏观/情绪/名人数据 stale ~43h**（周末抓取，周五收盘快照）— 以下引用均标注 stale。 [score=0.806 recalls=0 avg=0.620 source=memory/2026-06-01-pre-open.md:21-21]
+<!-- openclaw-memory-promotion:memory:memory/2026-06-01-pre-open.md:29:32 -->
+- HK 持仓: | 代码 | 股 | 成本 | 现价 | 今日 | 浮% | 浮$ | |---|---|---|---|---|---|---| | 00100 MINIMAX | 60 | 822.83 | 840.0 | +0.36% | +2.09% | +HK$1,030 | | 07226 2x恒科 | 6200 | 4.363 | 3.76 | -0.53% | -13.82% | -HK$3,740 | [score=0.806 recalls=0 avg=0.620 source=memory/2026-06-01-pre-open.md:29-32]
