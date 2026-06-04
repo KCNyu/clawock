@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-03T17:56:54.030641",
+  "generated_at": "2026-06-04T16:17:35.506478",
   "lookback_hours": 48,
   "tickers": [
     "RKLB",
@@ -8,19 +8,19 @@
     "ROBN",
     "MSFU"
   ],
-  "digest_markdown": "### Top 3-5 移动信号 (跨 ticker 排序)\n- **RKLB**: Q1 营收达 200.3 美元，订单积压超过 22 亿美元，显示增长势头强劲。这对 KCN 的持股是直接利好，核心业务增长数据支撑估值。\n- **PLTU**: 作为 PLTR 2倍杠杆ETF，价格与“Palantir 涨势重燃”的新闻高度相关。持仓需高度关注 PLTR 基本面及技术动向，波动性极高。\n- **ROBN**: 作为 HOOD (Robinhood) 2倍杠杆ETF，交易情绪直接受 HOOD 盘后股价波动影响。持仓需紧密跟踪 HOOD 个股新闻及零售交易情绪。\n\n### Per-ticker 简报 (有新闻才列)\n- **RKLB**: 最大机会仍在前方；SpaceX IPO 是近期催化剂，但公司自身 Q1 业绩和巨额订单积压是更强信号。\n- **CRCL**: Ripple CEO 预测稳定币市场 2031 年达 3 万亿，Binance 计划代币化美股交易——利好稳定币发行商及基础设施。\n- **PLTU**: 杠杆ETF波动剧烈，有用户报告显示单日盈亏从亏损15k翻转至盈利13k，适合短期交易而非长期持有。\n- **ROBN**: 被归类为“持续涌现”的另类ETF之一；Ron Baron 的新 ETF 因大额押注 SpaceX 而创新高，显示资本对航天领域的兴趣。\n- **MSFU**: 作为 MSFT 2倍杠杆ETF，出现异常高的期权交易量，暗示市场对微软短期走势存在较大博弈和预期。\n\n### 风险 watch\n- 无明确财务指引下调、监管行动或大股东减持的报道。\n- **PLTU, ROBN, MSFU** 本身为杠杆产品，存在因标的股（PLTR, HOOD, MSFT）日内波动导致放大损失的固有风险，需严格风控。",
+  "digest_markdown": "### Top 3-5 移动信号\n- **RKLB**: 财报显示收入激增63.5%，运营利润转正，商业订单积压达$2.2B；但Sector因SpaceX IPO相关情绪受挫。核心业务强劲增长与行业短期抛压形成反差，为持仓提供基本面支撑，但需留意板块情绪对股价的压制。\n- **CRCL**: Mastercard宣布将Circle的USDC纳入其全球稳定币结算网络。这直接将Circle的USDC接入主流支付巨头的基础设施，是提升采用率和实用性的重大催化，对持仓构成明确利好。\n\n### Per-ticker 简报\n- **RKLB**: SeekningAlpha两篇分析均强调公司基本面加速增长（需求、积压订单），但一篇指出Neutron火箭研发存在延迟可能。**影响**：长期增长故事稳固，但新火箭进度是需要监控的执行风险。\n- **CRCL**: 除Mastercard整合外，Coinbase Ventures投资DeFi协议Ethena等新闻显示行业生态活跃。**影响**：情绪利好，但直接催化仅为与Mastercard的合作。\n- **PLTU**: 底层股票Palantir (PLTR) 股价大涨，带动该杠杆ETF大幅波动。新闻多为ETF表现和产品介绍。**影响**：波动性风险高，收益/亏损完全依赖于PLTR短期股价方向。\n- **ROBN**: 底层股票Robinhood (HOOD) 盘后股价下跌。新闻提及分析师与散户忽略此跌势，以及新产品ETF推出。**影响**：杠杆ETF放大波动，HOOD股价的短期疲软会直接影响该持仓。\n\n### 风险 watch\n- 当前新闻中未明确提及财务指引下调、监管行动、大股东减持或重大合约失败等风险关键词。",
   "raw_news_counts": {
     "RKLB": 5,
     "CRCL": 4,
     "PLTU": 5,
     "ROBN": 5,
-    "MSFU": 5
+    "MSFU": 1
   },
   "news_source_per_ticker": {
     "RKLB": "finnhub",
     "CRCL": "finnhub",
     "PLTU": "gnews-rss",
     "ROBN": "gnews-rss",
-    "MSFU": "gnews-rss"
+    "MSFU": "finnhub"
   }
 }
