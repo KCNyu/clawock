@@ -28,6 +28,18 @@ from fetch_us_stocks import (
 ET_TZ  = timezone(timedelta(hours=-4))
 HKT_TZ = timezone(timedelta(hours=8))
 
+# Leveraged-ETF name keywords — must match brief_preflight._LEVERAGED_KEYWORDS.
+# The old ('2X','3X','Bull','Target') list was English-only and missed the
+# Chinese "二倍做多…" names (ROBN/MSFU/PLTU) → reported 杠杆ETF敞口 0% while the
+# dashboard showed 72.9%. '倍' catches the Chinese 2x/3x ETFs.
+LEV_NAME_KEYWORDS = ('倍', 'Direxion', 'T-Rex', 'Defiance', 'ProShares',
+                     '2X Long', '3X Long', '2x Long', '3x Long', 'Daily Target',
+                     '2X', '3X', 'Bull', 'Target')
+
+
+def _is_lev_name(name):
+    return any(kw in (name or '') for kw in LEV_NAME_KEYWORDS)
+
 
 # ── technical indicators ─────────────────────────────────────────────────────
 
@@ -165,8 +177,8 @@ def generate_signal(holding: Dict, tech: Dict, news_items: List[Dict]) -> Tuple[
     ma20      = tech.get('ma20')
     ma50      = tech.get('ma50')
     name      = holding.get('name', holding['ticker'])
-    is_lev    = any(x in name for x in ('2X', '3X', 'Bull', 'Bear', 'Daily Target', 'Leveraged'))
-    lev_mult  = 3 if '3X' in name else 2 if '2X' in name else 1
+    is_lev    = _is_lev_name(name) or any(x in name for x in ('Bear', 'Leveraged', '反向', '做空'))
+    lev_mult  = 3 if ('3X' in name or '三倍' in name) else 2 if ('2X' in name or '二倍' in name) else 1
 
     # RSI signals
     if rsi is not None:
@@ -309,7 +321,7 @@ def print_report(data: Dict, analyses: List[Dict]):
     print(f"  风险摘要")
     active = [h for h in us['holdings'] if h.get('shares', 0) > 0]
     lev_val   = sum(h.get('current_value', 0) for h in active
-                    if any(x in h.get('name', '') for x in ('2X', '3X', 'Bull', 'Target')))
+                    if _is_lev_name(h.get('name', '')))
     lev_pct   = lev_val / tv * 100 if tv else 0
     losing    = [h for h in active if h.get('pnl_percent', 0) < 0]
     lose_val  = sum(abs(h.get('pnl_abs', 0)) for h in losing)
@@ -406,7 +418,7 @@ def print_wechat_report(data: Dict, analyses: List[Dict], md_table: bool = False
     # Risk
     active = [h for h in us['holdings'] if h.get('shares', 0) > 0]
     lev_val = sum(h.get('current_value', 0) for h in active
-                  if any(x in h.get('name', '') for x in ('2X', '3X', 'Bull', 'Target')))
+                  if _is_lev_name(h.get('name', '')))
     lev_pct = lev_val / tv * 100 if tv else 0
     losing  = sum(1 for h in active if h.get('pnl_percent', 0) < 0)
     lines.append('')

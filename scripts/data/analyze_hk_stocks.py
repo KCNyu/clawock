@@ -322,7 +322,9 @@ def signal(holding: Dict) -> str:
     dp    = holding.get('today_change_pct', 0)
     pnl_p = holding.get('pnl_percent', 0)
     code  = holding.get('ticker', '')
-    is_lev = any(x in code for x in ('07226', '03033', '03032'))
+    # Only 07226 (XL二南方恒科, 2x) is leveraged; 03032/03033 are plain 1x HSTECH
+    # ETFs and must NOT be flagged 2x. Use the canonical LEVERAGED set.
+    is_lev = code in LEVERAGED
 
     if dp <= -8:
         return '⚠️ ALERT'
@@ -540,7 +542,7 @@ def print_report(data: Dict, news_map: Optional[Dict[str, List]] = None):
             notes.append(f"浮盈 {pnl:.0f}%，可考虑减仓")
         if pnl <= -15:
             notes.append(f"浮亏 {pnl:.0f}%，关注止损")
-        if '07226' in code or '03032' in code:
+        if code in LEVERAGED:
             notes.append("2x 杠杆 ETF，波动放大")
         for n in notes:
             print(f"     · {n}")
@@ -554,7 +556,7 @@ def print_report(data: Dict, news_map: Optional[Dict[str, List]] = None):
 
     # Risk summary
     lev_value = sum(h.get('current_value', 0) for h in active
-                    if any(x in h['ticker'] for x in ('07226',)))
+                    if h['ticker'] in LEVERAGED)
     lev_pct = lev_value / total_value * 100 if total_value else 0
     loss_count = sum(1 for h in active if h.get('pnl_percent', 0) < 0)
 
@@ -656,7 +658,7 @@ def print_wechat_report(data: Dict, news_map: Optional[Dict[str, List]] = None, 
 
     # Risk
     lev_value = sum(h.get('current_value', 0) for h in active
-                    if any(x in h['ticker'] for x in ('07226',)))
+                    if h['ticker'] in LEVERAGED)
     lev_pct = lev_value / total_value * 100 if total_value else 0
     loss_count = sum(1 for h in active if h.get('pnl_percent', 0) < 0)
     lines.append('')
