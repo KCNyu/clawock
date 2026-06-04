@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-04T14:04:17.738758Z",
+  "generated_at": "2026-06-04T14:15:36.014648Z",
   "last_updated": "2026/06/04 22:02 HKT",
   "fx": {
     "usdhkd": 7.8364,
@@ -2265,6 +2265,52 @@
         "dates_last": "2026-06-03"
       }
     }
+  },
+  "risk_guardrail": {
+    "caps": {
+      "single_name_pct": 35,
+      "top2_factor_pct": 70,
+      "lev_etf_leg_pct": 50,
+      "us_beta_max": 3.0,
+      "lev_etf_stop_pct": -18
+    },
+    "breaches": [
+      {
+        "type": "single_name",
+        "leg": "HK",
+        "ticker": "00100",
+        "severity": "high",
+        "detail": "00100 = 53.0% of HK (cap 35%)",
+        "action": "纪律性 trim 00100 → ≤35% (减约 13519.96 HKD)"
+      },
+      {
+        "type": "factor_concentration",
+        "leg": "HK",
+        "ticker": null,
+        "severity": "high",
+        "detail": "HK Top2 = 85.4% (cap 70%) — 名义多只实为单因子",
+        "action": "把 HK Top2 降到 ≤70%：借强减最大那只，别在同因子内换票"
+      },
+      {
+        "type": "leveraged_exposure",
+        "leg": "US",
+        "ticker": null,
+        "severity": "high",
+        "detail": "US 杠杆 ETF = 72.9% (cap 50%) — 2x 日内重置，下杀崩/震荡衰减",
+        "action": "把 US 杠杆 ETF 敞口降到 ≤50% (减约 651.59 USD)"
+      },
+      {
+        "type": "beta",
+        "leg": "US",
+        "ticker": null,
+        "severity": "high",
+        "detail": "US β vs S&P = 4.3922 (cap 3.0) — 大盘 −1% 本子约 −4.4%",
+        "action": "降 US β：优先削杠杆 ETF(β 主要来源)，不是砍单票 thesis"
+      }
+    ],
+    "hard_stop_watch": [],
+    "breach_count": 4,
+    "directive": "⛔ 4 仓位硬闸 + 0 杠杆止损触发。每条必须在 Judge 段出一个对应动作(driven_by=technical,纪律性再平衡,不算听消息、不受 risk_on HOLD 默认约束)；其余主动 call 仍按 regime guard。"
   },
   "catalysts": {
     "generated_at": "2026-05-30T01:32:39.692845+08:00",

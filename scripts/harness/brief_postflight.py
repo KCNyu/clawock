@@ -51,7 +51,7 @@ HKD_USD_BUG_PATTERNS = [
 ]
 
 
-def validate_plan_json(path):
+def validate_plan_json(path, context=None):
     if not path.exists():
         return ['plan.json 缺失（critical）']
     try:
@@ -89,6 +89,27 @@ def validate_plan_json(path):
         conf = a.get('confidence')
         if conf is not None and not (0.0 <= float(conf) <= 1.0):
             issues.append(f'{tag}: confidence {conf} 不在 [0, 1]')
+
+    # 仓位/杠杆硬闸闭环 (warn): context.risk_guardrail 的每条 breach / hard_stop
+    # 必须在 plan 里有对应的减仓动作，否则 LLM 忽略了硬闸。见 SKILL「🚦 仓位/杠杆硬闸」。
+    gr = (context or {}).get('risk_guardrail') or {}
+    if gr.get('breach_count'):
+        TRIM = {'trim_on_rebound', 'cut'}
+        def _leg(t): return 'HK' if str(t).isdigit() else 'US'
+        trims = [a for a in actions if a.get('bucket') in TRIM]
+        trim_tickers = {a.get('ticker') for a in trims}
+        trim_legs = {_leg(a.get('ticker')) for a in trims}
+        for b in gr.get('breaches', []):
+            tk, leg = b.get('ticker'), b.get('leg')
+            if tk and tk not in trim_tickers:
+                issues.append(f'仓位硬闸未处理: {b["type"]} {tk} ({b["detail"]}) — '
+                              f'plan 里 {tk} 没有 trim/cut 动作（SKILL 要求每条 breach 出对应动作）')
+            elif not tk and leg and leg not in trim_legs:
+                issues.append(f'仓位硬闸未处理: {b["type"]}/{leg} ({b["detail"]}) — '
+                              f'plan 里 {leg} leg 没有任何 trim/cut 动作')
+        for s in gr.get('hard_stop_watch', []):
+            if s.get('ticker') not in {a.get('ticker') for a in actions if a.get('bucket') == 'cut'}:
+                issues.append(f'杠杆硬止损未处理: {s["ticker"]} ({s["detail"]}) — plan 里没有对应 cut')
     return issues
 
 
@@ -331,7 +352,7 @@ def main():
 
     issues = []
     issues += validate_markdown(md_path, context=context)
-    issues += validate_plan_json(plan_path)
+    issues += validate_plan_json(plan_path, context=context)
 
     status = categorize(issues)
 

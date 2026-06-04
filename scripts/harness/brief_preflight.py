@@ -136,6 +136,106 @@ def compute_concentration(holdings):
     }
 
 
+# ── Risk guardrails: position-sizing / leverage HARD CAPS ───────────────────
+# Backing: the 2026-06 drawdown was a *construction* problem (US β≈4.4, 73%
+# leveraged ETFs, HK 85% one factor), not a signal problem — no driven_by face
+# called it ahead. These caps turn risk.json + concentration from read-only
+# dashboard cards into actionable, capped trim/cut directives the brief MUST act
+# on. The trims are driven_by=technical (disciplinary rebalancing), which the
+# 证伪 rule explicitly exempts from the risk_on HOLD default.
+GUARDRAIL_CAPS = {
+    'single_name_pct':   35,    # any one name within a leg
+    'top2_factor_pct':   70,    # Top2 as single-factor proxy
+    'lev_etf_leg_pct':   50,    # leveraged ETFs as % of a leg
+    'us_beta_max':       3.0,   # US β vs S&P 500
+    'lev_etf_stop_pct': -18,    # hard-stop line for one leveraged ETF (vs cost)
+}
+
+
+def _holding_pnl_pct(h):
+    cost = h.get('cost_basis', 0) * h.get('shares', 0)
+    cur  = h.get('current_value', cost)
+    return None if not cost else round((cur - cost) / cost * 100, 1)
+
+
+def compute_risk_guardrail(hk_holdings, us_holdings, hk_conc, us_conc, risk):
+    """Pure function of current state → concrete, capped trim/cut directives.
+    The brief LLM must emit a disciplinary action for EVERY breach (not optional)."""
+    caps = GUARDRAIL_CAPS
+    breaches, hard_stops = [], []
+
+    for leg, conc, hold in (('HK', hk_conc, hk_holdings), ('US', us_conc, us_holdings)):
+        if not conc or not conc.get('weights'):
+            continue
+        total = conc['leg_total'] or 0
+        ccy   = 'HKD' if leg == 'HK' else 'USD'
+        ws    = conc['weights']
+
+        # single-name cap
+        for w in ws:
+            if w['weight_pct'] > caps['single_name_pct'] and total:
+                trim_val = round(w['value'] - caps['single_name_pct'] / 100 * total, 2)
+                breaches.append({
+                    'type': 'single_name', 'leg': leg, 'ticker': w['ticker'],
+                    'severity': 'high' if w['weight_pct'] > caps['single_name_pct'] + 15 else 'medium',
+                    'detail': f"{w['ticker']} = {w['weight_pct']}% of {leg} (cap {caps['single_name_pct']}%)",
+                    'action': f"纪律性 trim {w['ticker']} → ≤{caps['single_name_pct']}% (减约 {trim_val} {ccy})",
+                })
+
+        # single-factor proxy = Top2
+        if conc.get('top2_pct', 0) > caps['top2_factor_pct']:
+            breaches.append({
+                'type': 'factor_concentration', 'leg': leg, 'ticker': None, 'severity': 'high',
+                'detail': f"{leg} Top2 = {conc['top2_pct']}% (cap {caps['top2_factor_pct']}%) — 名义多只实为单因子",
+                'action': f"把 {leg} Top2 降到 ≤{caps['top2_factor_pct']}%：借强减最大那只，别在同因子内换票",
+            })
+
+        # leveraged-ETF leg exposure — use the name heuristic, not the unreliable
+        # is_leveraged_etf flag (which concentration weights mirror and is often unset)
+        lev_val = sum(h.get('current_value', h.get('cost_basis', 0) * h.get('shares', 0))
+                      for h in hold if h.get('shares', 0) > 0 and _is_leveraged_etf(h))
+        lev_pct = round(lev_val / total * 100, 1) if total else 0
+        if lev_pct > caps['lev_etf_leg_pct'] and total:
+            trim_val = round(lev_val - caps['lev_etf_leg_pct'] / 100 * total, 2)
+            breaches.append({
+                'type': 'leveraged_exposure', 'leg': leg, 'ticker': None, 'severity': 'high',
+                'detail': f"{leg} 杠杆 ETF = {lev_pct}% (cap {caps['lev_etf_leg_pct']}%) — 2x 日内重置，下杀崩/震荡衰减",
+                'action': f"把 {leg} 杠杆 ETF 敞口降到 ≤{caps['lev_etf_leg_pct']}% (减约 {trim_val} {ccy})",
+            })
+
+        # hard-stop watch on individual leveraged ETFs
+        for h in hold:
+            if h.get('shares', 0) <= 0 or not _is_leveraged_etf(h):
+                continue
+            pnl = _holding_pnl_pct(h)
+            if pnl is not None and pnl <= caps['lev_etf_stop_pct']:
+                hard_stops.append({
+                    'ticker': h['ticker'], 'leg': leg, 'pnl_pct': pnl,
+                    'detail': f"{h['ticker']} 浮亏 {pnl}% ≤ 硬止损线 {caps['lev_etf_stop_pct']}%",
+                    'action': f"{h['ticker']} 触发杠杆 ETF 硬止损 → 下一个可接受 bid cut (规则非择时)",
+                })
+
+    # portfolio-level β from risk.json
+    us_beta = (risk.get('us') or {}).get('beta_spx')
+    if isinstance(us_beta, (int, float)) and us_beta > caps['us_beta_max']:
+        breaches.append({
+            'type': 'beta', 'leg': 'US', 'ticker': None, 'severity': 'high',
+            'detail': f"US β vs S&P = {us_beta} (cap {caps['us_beta_max']}) — 大盘 −1% 本子约 −{us_beta:.1f}%",
+            'action': "降 US β：优先削杠杆 ETF(β 主要来源)，不是砍单票 thesis",
+        })
+
+    n = len(breaches) + len(hard_stops)
+    if n:
+        directive = (f"⛔ {len(breaches)} 仓位硬闸 + {len(hard_stops)} 杠杆止损触发。"
+                     "每条必须在 Judge 段出一个对应动作(driven_by=technical,纪律性再平衡,"
+                     "不算听消息、不受 risk_on HOLD 默认约束)；其余主动 call 仍按 regime guard。")
+    else:
+        directive = "✅ 无仓位/杠杆硬闸触发，按常规决策。"
+
+    return {'caps': caps, 'breaches': breaches, 'hard_stop_watch': hard_stops,
+            'breach_count': n, 'directive': directive}
+
+
 def find_prior_plan(today_iso):
     """Most recent memory/*-plan.json with filename date < today."""
     candidates = sorted((WS / 'memory').glob('*-plan.json'))
@@ -1220,6 +1320,17 @@ def main():
     except Exception as e:
         print(f'   ⚠ risk metrics failed: {e}')
 
+    # [10b] Risk guardrails — position-sizing / leverage hard caps → trim/cut directives
+    guardrail = compute_risk_guardrail(
+        portfolio['portfolios']['hk_stocks']['holdings'],
+        portfolio['portfolios']['us_stocks']['holdings'],
+        hk_conc, us_conc, risk)
+    print(f'   guardrail: {guardrail["breach_count"]} breaches/stops — {guardrail["directive"][:64]}')
+    for b in guardrail['breaches']:
+        print(f'   ⛔ {b["type"]:20s} ({b["severity"]:6s}) {b["detail"][:78]}')
+    for s in guardrail['hard_stop_watch']:
+        print(f'   🛑 {s["detail"][:78]}')
+
     # [11] Catalyst calendar — next 14d earnings + FOMC + macro
     print('[11/11] Fetch catalysts')
     catalysts = {}
@@ -1276,6 +1387,7 @@ def main():
         'portfolio':     portfolio,
         'book_totals':   book,
         'concentration': {'hk': hk_conc, 'us': us_conc},
+        'risk_guardrail': guardrail,
         'us_fundamentals': us_fund,
         'retrospective': retro,
         'peer_scan':     peer_scan,

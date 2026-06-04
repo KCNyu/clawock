@@ -1629,6 +1629,21 @@ def main():
     else:
         out['risk'] = None
 
+    # Risk guardrail card — recompute from the LIVE portfolio via the canonical
+    # brief_preflight.compute_risk_guardrail (single source of truth) so the dashboard
+    # always shows current breaches, not whatever the last brief-context captured.
+    try:
+        sys.path.insert(0, str(WS_ROOT / 'scripts' / 'harness'))
+        from brief_preflight import compute_risk_guardrail, compute_concentration
+        _gr_hk = portfolio['portfolios']['hk_stocks']['holdings']
+        _gr_us = portfolio['portfolios']['us_stocks']['holdings']
+        out['risk_guardrail'] = compute_risk_guardrail(
+            _gr_hk, _gr_us, compute_concentration(_gr_hk), compute_concentration(_gr_us),
+            out.get('risk') or {})
+    except Exception as e:
+        print(f'  warn: risk_guardrail compute fail: {e}', file=sys.stderr)
+        out['risk_guardrail'] = None
+
     # Embed GH Action outputs into dashboard.json so the static page can render them
     def _embed(key, fname):
         path = WS_ROOT / 'assets' / 'data' / fname

@@ -180,6 +180,38 @@ context.json 关键字段：
 
 规则：**只填主导那一个**(不是把所有沾边的都列上)。若是技术面为主、消息面只是佐证 → 填 `technical`。这个字段决定我们能不能回答"消息面值不值得听",所以要诚实归因,别把图表驱动的 call 贴成 catalyst 来给自己加分。
 
+#### 📊 driven_by 实测 edge 三档(REQUIRED 据此加权 — 2026-06-04 用 118 条 calibration 回填)
+
+5/30 立 `driven_by` 时 edge "待几周填充",现已填出。**按动作方向校准**(cut/trim 看标的随后跌才算对、add 看涨才算对)的主动信号方向正确率:
+
+| 面 | 主动方向正确率 | 定性 | 加权规则 |
+|---|---|---|---|
+| **catalyst(消息/硬事件)** | **58%** (n=19) | 唯一站上掷硬币线、最有信息量;回撤里真正踩中 PLTU 利空崩盘的就是它 | **唯一可加权的方向源**;catalyst 驱动的 cut/trim/add 可正常下,confidence 不强制封顶(仍受 regime guard) |
+| peer(同业轮动) | 56% (n=9) | 样本太小,暂等同 catalyst 看待但别重仓押 | 可佐证,不单独重仓 |
+| **technical(纯图表)** | **39%** (n=23) | **比硬币还差**;回撤窗口里 ROBN/SOXL 那批"天天喊 cut"的坏钟就是它——没预判回撤,只是一直空、碰上崩盘蒙对 | **纯 technical 触发的 cut/trim 必须抬门槛**:要么有 catalyst 联署,要么 confidence ≤0.5 且 rationale 写明"纯技术、历史 39%、降级观察";不准用纯 technical 单独翻成 cut |
+| macro | 0/2 主动 | 几乎只配 hold,对个股择时无贡献 | 只用作 regime/段落背景,不驱动个股 bucket |
+| **sentiment / influencer(软情绪)** | **从未驱动过任何信号(n=0)** | 进了 brief 段落但从没转化成 bucket = 落地贡献 0 | **永不单独驱动方向**(已有铁律,见下节);只动 confidence ±10pp |
+
+**核心教训(写进每次决策心智)**:这次大回撤主因是**港股 beta**,三个面都没提前叫出来(港股全程 hold/macro);能被预判的只有杠杆 ETF 那段,而**只有 catalyst 真出过力、technical 是噪声、sentiment 根本没上场**。所以:**消息面(硬催化)是唯一值得听的方向信号,技术面降权当过滤器而非触发器,情绪面只调温不掌舵。** catalyst 的 58% 也只是相对最好(样本 19、区间宽),不是稳定 edge——继续积累、每月回填这张表。
+
+#### 🚦 仓位/杠杆硬闸(REQUIRED — 优先级高于 driven_by 与 regime guard)
+
+**回撤复盘的最大教训:亏不是因为"没听 LLM",是因为组合构造**(US β≈4.4、73% 杠杆 ETF、HK 85% 单因子)。任何一个 driven_by 面都没提前叫出来——这不是信号问题,是**风控纪律层缺失**。所以在所有 driven_by/regime 逻辑之上,先过一道仓位硬闸。
+
+preflight 已算好,直接读 `context.risk_guardrail`:
+- `breaches[]` — 每条 = 一个超限的硬闸(single_name / factor_concentration / leveraged_exposure / beta),带 `detail` + 现成 `action`(含具体减仓金额)。
+- `hard_stop_watch[]` — 杠杆 ETF 浮亏跌破 −18% 的硬止损触发。
+- `directive` — 本次总指令;`caps` — 当前阈值(单名 35% / Top2 70% / 杠杆 ETF 50% / US β 3.0 / 杠杆止损 −18%)。
+
+硬性规则:
+- **每一条 breach 和 hard_stop 必须在 Judge 段落出一个对应的具体动作**(trim 到 ≤cap / cut),不准忽略、不准"观望"。直接采用 `action` 文案或给等价方案。
+- 这些减仓 **driven_by 一律填 `technical`**(纪律性再平衡,与新闻无关),并在 rationale 注明"仓位硬闸,非消息驱动"。
+- **这是 risk_on HOLD 默认的唯一豁免**:证伪铁律已写明纪律性再平衡正常走;别因为 regime=risk_on 就把降杠杆/降集中也按住。牛市里恰恰要借强减杠杆,不是等回调后。
+- **降 β/降杠杆优先削杠杆 ETF**(β 的主要来源),不要去砍高信念单票的 thesis。
+- 若 `breach_count=0` → 本段写"✅ 仓位硬闸无触发",照常决策。
+
+> 心智:driven_by 三档管"该信哪个信号",仓位硬闸管"不管信号多强,单名/单因子/杠杆都不许超过这条线"。后者是回撤的真正解药。
+
 #### ⚖️ 消息面权重铁律(硬催化 vs 软情绪 — REQUIRED 遵守)
 
 不是所有消息面都等价。**硬催化是真信号,软情绪是高噪声、均值回归。** 两者对决策的权限不同:

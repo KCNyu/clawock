@@ -133,6 +133,34 @@ Output buckets per ticker:
 
 Each item: ticker + concrete reason + concrete trigger/level if applicable.
 
+### Signal-source weighting (driven_by edge — REQUIRED)
+
+Not every signal source has earned the right to flip a bucket. Empirical edge from 118 calibration rows (2026-06-04, scored by *action direction*: a cut/trim is "right" only if the name then fell; an add only if it rose):
+
+| Source | Active direction-correct | How the Judge must weight it |
+|---|---|---|
+| **catalyst** (hard event) | **58%** (n=19) — only source above coin-flip; the one that actually caught the PLTU selloff in the drawdown | **The only source allowed to drive a directional call on its own.** A catalyst-driven cut/trim/add is fine. |
+| peer (rotation) | 56% (n=9) — small sample | Corroborates; don't size up on it alone. |
+| **technical** (pure chart) | **39%** (n=23) — worse than a coin; this is the ROBN/SOXL "cut every day" broken clock that never predicted the drawdown, just stayed short and got lucky on the crash | **A pure-technical cut/trim must be gated:** require a catalyst co-sign, or cap confidence ≤0.5 and label it "pure-technical, 39% hist, watch-only". Never flip to `cut` on chart alone. |
+| macro | 0/2 active — only ever justified holds | Regime/context backdrop only; does not drive a single-name bucket. |
+| **sentiment / influencer** (soft) | **never drove a signal (n=0)** — shows up in the brief but never became a bucket | **Never steers direction.** Confidence nudge ±10pp only (see the brief's 硬催化 vs 软情绪 rule). |
+
+**Core lesson the Judge must carry:** the recent large drawdown was mostly **HK beta** — *none* of the three faces called it ahead of time (HK was hold/macro throughout). The only predictable slice was the leveraged-ETF leg, and there **only catalyst did real work, technical was noise, sentiment never showed up.** So: **news/hard-catalyst steers, technical is a filter not a trigger, sentiment only adjusts temperature.** catalyst's 58% is still a small sample (n=19, wide interval) — keep accumulating, refill this table monthly. Mirror of the canonical rule in `skills/daily-deep-brief/SKILL.md` → 「📊 driven_by 实测 edge 三档」; keep both in sync.
+
+### Position / leverage hard caps (REQUIRED — overrides signal logic AND regime)
+
+The drawdown was a **construction** problem (US β≈4.4, 73% leveraged ETFs, HK 85% one factor), not a signal problem. Before signal-source weighting even applies, the Judge must check these hard caps against the live book and emit a disciplinary trim/cut for any breach:
+
+| Cap | Threshold | If breached |
+|---|---|---|
+| Single name (within a leg) | **≤35%** | Trim the name back to ≤35% |
+| Single factor (Top2 proxy) | **≤70%** | Cut the largest into strength; don't swap within the same factor |
+| Leveraged ETFs (per leg) | **≤50%** | Trim leverage to ≤50% |
+| US β vs S&P | **≤3.0** | De-lever (cut leveraged ETFs first, not the high-conviction single) |
+| Single leveraged ETF stop | **−18% vs cost** | Hard stop → cut on next acceptable bid |
+
+Rules: every breach **must** produce a concrete action in Judge synthesis (no "watch"). Tag these `driven_by=technical` (disciplinary rebalancing, not news). This is the **one exemption from a trending-up/risk-on HOLD default** — in a melt-up you trim leverage *into* strength, not after the drawdown. De-lever by cutting leveraged ETFs (the β source), never by gutting a high-conviction single's thesis. These caps mirror `brief_preflight.compute_risk_guardrail` / the brief's 「🚦 仓位/杠杆硬闸」 — keep thresholds in sync.
+
 ## Confidence scoring
 
 End the report with a confidence score per major call, 0-100%:
