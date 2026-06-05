@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-06-05T00:07:33.892232Z",
-  "last_updated": "2026/06/05 08:00 HKT",
+  "generated_at": "2026-06-05T01:30:54.355726Z",
+  "last_updated": "2026/06/05 09:30 HKT",
   "fx": {
     "usdhkd": 7.8338,
     "source": "Frankfurter",
@@ -16,11 +16,11 @@
       "realized_usd": 1372.88
     },
     "hk": {
-      "value_hkd": 75032.0,
+      "value_hkd": 74750.4,
       "cost_hkd": 88276.24,
-      "pnl_hkd": -13244.24,
-      "pnl_pct": -15.0,
-      "today_change_hkd": -1712.2,
+      "pnl_hkd": -13525.84,
+      "pnl_pct": -15.32,
+      "today_change_hkd": -281.6,
       "realized_hkd": 7259.16
     }
   },
@@ -68,41 +68,41 @@
       }
     },
     "hk": {
-      "hhi": 0.3949,
-      "top2": 0.8535,
+      "hhi": 0.3938,
+      "top2": 0.8521,
       "positions": [
         {
           "ticker": "00100",
           "name": "MINIMAX-W",
-          "value": 39810.0,
-          "weight": 0.5306
+          "value": 39600.0,
+          "weight": 0.5298
         },
         {
           "ticker": "07226",
           "name": "XL二南方恒科",
-          "value": 24229.6,
-          "weight": 0.3229
+          "value": 24093.2,
+          "weight": 0.3223
         },
         {
           "ticker": "02208",
           "name": "金风科技",
-          "value": 5128.0,
-          "weight": 0.0683
+          "value": 5204.0,
+          "weight": 0.0696
         },
         {
           "ticker": "03033",
           "name": "南方恒生科技",
-          "value": 4870.0,
-          "weight": 0.0649
+          "value": 4862.0,
+          "weight": 0.065
         },
         {
           "ticker": "03032",
           "name": "恒生科技ETF",
-          "value": 994.4,
+          "value": 991.2,
           "weight": 0.0133
         }
       ],
-      "total": 75032.0,
+      "total": 74750.4,
       "verdict": {
         "level": "danger",
         "label": "危险集中",
@@ -205,14 +205,14 @@
         "currency": "HKD",
         "shares": 60,
         "cost_basis": 822.83,
-        "current_price": 663.5,
-        "current_value": 39810.0,
-        "today_change": -690.0,
-        "today_change_pct": -1.7,
-        "day_high": 682.0,
-        "day_low": 661.0,
-        "pnl_abs": -9559.8,
-        "pnl_percent": -19.36,
+        "current_price": 660.0,
+        "current_value": 39600.0,
+        "today_change": -210.0,
+        "today_change_pct": -0.53,
+        "day_high": 663.0,
+        "day_low": 656.5,
+        "pnl_abs": -9769.8,
+        "pnl_percent": -19.79,
         "is_active": true,
         "trades_count": 3
       },
@@ -222,14 +222,14 @@
         "currency": "HKD",
         "shares": 400,
         "cost_basis": 14.084,
-        "current_price": 12.82,
-        "current_value": 5128.0,
-        "today_change": -132.0,
-        "today_change_pct": -2.51,
-        "day_high": 13.3,
-        "day_low": 12.73,
-        "pnl_abs": -505.6,
-        "pnl_percent": -8.97,
+        "current_price": 13.01,
+        "current_value": 5204.0,
+        "today_change": 76.0,
+        "today_change_pct": 1.48,
+        "day_high": 13.01,
+        "day_low": 12.9,
+        "pnl_abs": -429.6,
+        "pnl_percent": -7.63,
         "is_active": true,
         "trades_count": 1
       },
@@ -239,14 +239,14 @@
         "currency": "HKD",
         "shares": 200,
         "cost_basis": 5.405,
-        "current_price": 4.972,
-        "current_value": 994.4,
-        "today_change": -16.6,
-        "today_change_pct": -1.64,
-        "day_high": 5.035,
-        "day_low": 4.946,
-        "pnl_abs": -86.6,
-        "pnl_percent": -8.01,
+        "current_price": 4.956,
+        "current_value": 991.2,
+        "today_change": -3.2,
+        "today_change_pct": -0.32,
+        "day_high": 4.97,
+        "day_low": 4.95,
+        "pnl_abs": -89.8,
+        "pnl_percent": -8.31,
         "is_active": true,
         "trades_count": 0
       },
@@ -256,14 +256,14 @@
         "currency": "HKD",
         "shares": 6200,
         "cost_basis": 4.3632,
-        "current_price": 3.908,
-        "current_value": 24229.6,
-        "today_change": -793.6,
-        "today_change_pct": -3.17,
-        "day_high": 3.964,
-        "day_low": 3.88,
-        "pnl_abs": -2822.24,
-        "pnl_percent": -10.43,
+        "current_price": 3.886,
+        "current_value": 24093.2,
+        "today_change": -136.4,
+        "today_change_pct": -0.56,
+        "day_high": 3.898,
+        "day_low": 3.878,
+        "pnl_abs": -2958.64,
+        "pnl_percent": -10.94,
         "is_active": true,
         "trades_count": 1
       },
@@ -273,14 +273,14 @@
         "currency": "HKD",
         "shares": 1000,
         "cost_basis": 5.14,
-        "current_price": 4.87,
-        "current_value": 4870.0,
-        "today_change": -80.0,
-        "today_change_pct": -1.62,
-        "day_high": 4.91,
-        "day_low": 4.856,
-        "pnl_abs": -270.0,
-        "pnl_percent": -5.25,
+        "current_price": 4.862,
+        "current_value": 4862.0,
+        "today_change": -8.0,
+        "today_change_pct": -0.16,
+        "day_high": 4.866,
+        "day_low": 4.854,
+        "pnl_abs": -278.0,
+        "pnl_percent": -5.41,
         "is_active": true,
         "trades_count": 0
       }
@@ -568,12 +568,12 @@
       "us_today_change": 136.89,
       "us_realized": 1372.88,
       "us_equity": 4268.75,
-      "hk_total_value": 75032.0,
+      "hk_total_value": 74750.4,
       "hk_total_cost": 88276.24,
-      "hk_total_pnl": -13244.24,
-      "hk_today_change": -1712.2,
+      "hk_total_pnl": -13525.84,
+      "hk_today_change": -281.6,
       "hk_realized": 7259.16,
-      "hk_equity": 82291.16
+      "hk_equity": 82009.56
     }
   ],
   "snapshots_total": 18,
@@ -811,17 +811,17 @@
     },
     "HSI": {
       "name": "恒生指数",
-      "price": 25253.4,
-      "prev_close": 25633.21,
-      "change_pct": -1.48,
-      "source": "Tencent qt.gtimg.cn 2026/06/05 08:00 HKT"
+      "price": 25184.7,
+      "prev_close": 25253.4,
+      "change_pct": -0.27,
+      "source": "Tencent qt.gtimg.cn 2026/06/05 09:30 HKT"
     },
     "HSTECH": {
       "name": "恒生科技",
-      "price": 4975.36,
-      "prev_close": 5056.97,
-      "change_pct": -1.61,
-      "source": "Tencent qt.gtimg.cn 2026/06/05 08:00 HKT"
+      "price": 4962.04,
+      "prev_close": 4975.36,
+      "change_pct": -0.27,
+      "source": "Tencent qt.gtimg.cn 2026/06/05 09:30 HKT"
     }
   },
   "market_context": {
@@ -1141,7 +1141,7 @@
       667.5,
       677.0,
       663.5,
-      663.5
+      660.0
     ],
     "02208": [
       14.28,
@@ -1153,7 +1153,7 @@
       13.46,
       13.15,
       12.81,
-      12.82
+      13.01
     ],
     "03032": [
       4.932,
@@ -1165,7 +1165,7 @@
       5.185,
       5.05,
       4.972,
-      4.972
+      4.956
     ],
     "07226": [
       3.874,
@@ -1177,7 +1177,7 @@
       4.27,
       4.044,
       3.92,
-      3.908
+      3.886
     ],
     "03033": [
       4.84,
@@ -1189,7 +1189,7 @@
       5.095,
       4.958,
       4.882,
-      4.87
+      4.862
     ],
     "07709": [
       null,
@@ -1223,8 +1223,8 @@
       "30d_pct": null
     },
     "hk": {
-      "today_pct": -0.1,
-      "7d_pct": -10.83,
+      "today_pct": -0.44,
+      "7d_pct": -11.14,
       "30d_pct": null
     }
   },
@@ -1242,27 +1242,19 @@
       "region": "us",
       "today_change_pct": 4.58,
       "current_price": 119.95
-    },
-    {
-      "ticker": "07226",
-      "name": "XL二南方恒科",
-      "region": "hk",
-      "today_change_pct": -3.17,
-      "current_price": 3.908,
-      "note": "恒科2x杠杆ETF，午后跌幅-3.6%超出恒科-1.68%约2倍，纯杠杆放大beta，无个股催化"
     }
   ],
   "anomalies": [
     {
       "type": "high_weight_loss",
       "ticker": "00100",
-      "detail": "weight 53.1% + pnl -19.4%",
+      "detail": "weight 53.1% + pnl -19.8%",
       "severity": "high"
     },
     {
       "type": "high_weight_loss",
       "ticker": "07226",
-      "detail": "weight 32.3% + pnl -10.4%",
+      "detail": "weight 32.3% + pnl -10.9%",
       "severity": "medium"
     }
   ],
@@ -1863,7 +1855,7 @@
     {
       "ticker": "00100",
       "region": "hk",
-      "weight_pct": 53.06,
+      "weight_pct": 52.98,
       "avg_confidence": 0.598,
       "n_actions": 17,
       "quadrant": "high_risk"
@@ -1879,7 +1871,7 @@
     {
       "ticker": "07226",
       "region": "hk",
-      "weight_pct": 32.29,
+      "weight_pct": 32.23,
       "avg_confidence": 0.577,
       "n_actions": 16,
       "quadrant": "high_risk"
@@ -1911,7 +1903,7 @@
     {
       "ticker": "02208",
       "region": "hk",
-      "weight_pct": 6.83,
+      "weight_pct": 6.96,
       "avg_confidence": 0.571,
       "n_actions": 7,
       "quadrant": "low_conv_small"
@@ -1919,7 +1911,7 @@
     {
       "ticker": "03033",
       "region": "hk",
-      "weight_pct": 6.49,
+      "weight_pct": 6.5,
       "avg_confidence": 0.55,
       "n_actions": 6,
       "quadrant": "low_conv_small"
@@ -1942,9 +1934,9 @@
     }
   ],
   "drawdown": {
-    "max_pct_30d_hk": -11.6,
+    "max_pct_30d_hk": -11.9,
     "max_pct_30d_us": -14.3,
-    "current_pct_hk": -9.17,
+    "current_pct_hk": -9.48,
     "current_pct_us": -0.41
   },
   "sector_exposure": {
@@ -1993,16 +1985,16 @@
     "hk": [
       {
         "sector": "AI / 大模型",
-        "value": 39810.0,
-        "pct": 53.06,
+        "value": 39600.0,
+        "pct": 52.98,
         "tickers": [
           "00100"
         ]
       },
       {
         "sector": "恒生科技 ETF",
-        "value": 30094.0,
-        "pct": 40.11,
+        "value": 29946.4,
+        "pct": 40.06,
         "tickers": [
           "03032",
           "07226",
@@ -2011,8 +2003,8 @@
       },
       {
         "sector": "新能源",
-        "value": 5128.0,
-        "pct": 6.83,
+        "value": 5204.0,
+        "pct": 6.96,
         "tickers": [
           "02208"
         ]
@@ -2021,8 +2013,8 @@
   },
   "leveraged_etf": {
     "us_pct": 73.03,
-    "hk_pct": 32.29,
-    "combined_pct": 41.75,
+    "hk_pct": 32.23,
+    "combined_pct": 41.73,
     "tickers": [
       "07226",
       "MSFU",
@@ -2131,15 +2123,15 @@
         "leg": "HK",
         "ticker": "00100",
         "severity": "high",
-        "detail": "00100 = 53.06% of HK (cap 35%)",
-        "action": "纪律性 trim 00100 → ≤35% (减约 13548.8 HKD)"
+        "detail": "00100 = 52.98% of HK (cap 35%)",
+        "action": "纪律性 trim 00100 → ≤35% (减约 13437.36 HKD)"
       },
       {
         "type": "factor_concentration",
         "leg": "HK",
         "ticker": null,
         "severity": "high",
-        "detail": "HK Top2 = 85.3% (cap 70%) — 名义多只实为单因子",
+        "detail": "HK Top2 = 85.2% (cap 70%) — 名义多只实为单因子",
         "action": "把 HK Top2 降到 ≤70%：借强减最大那只，别在同因子内换票"
       },
       {
@@ -3304,7 +3296,7 @@
     ]
   },
   "influencer_feed": {
-    "generated_at": "2026-06-04T16:14:03.544146+00:00",
+    "generated_at": "2026-06-04T22:56:03.335467+00:00",
     "lookback_hours": 48,
     "sources": {
       "trump": "trumpstruth.org/feed (primary)",
@@ -3314,41 +3306,15 @@
     "counts": {
       "total": 7,
       "held_hits": 0,
-      "new_ideas": 1,
-      "sector_hits": 3
+      "new_ideas": 0,
+      "sector_hits": 5
     },
     "items": [
       {
         "author": "Musk",
-        "text": "Coinbase Launches Pre-IPO Perps, Starting with Elon Musk's SpaceX",
-        "url": "",
-        "published": "Thu, 04 Jun 2026 11:13:12 GMT",
-        "origin": "gnews-rss",
-        "source": "Yahoo Finance",
-        "tickers": [
-          "COIN"
-        ],
-        "held": [],
-        "new_ideas": [
-          "COIN"
-        ],
-        "sectors": [
-          "加密货币",
-          "航天",
-          "IPO"
-        ],
-        "sector_holdings": [
-          "CRCL"
-        ],
-        "stance": "neutral",
-        "relevance": 65,
-        "summary_cn": "Coinbase推出Pre-IPO永续合约产品，首个标的为马斯克的SpaceX，为投资者提供参与未上市公司IPO前交易的新渠道。"
-      },
-      {
-        "author": "Musk",
         "text": "Elon Musk's SpaceX aiming to raise $75bn in record IPO",
         "url": "",
-        "published": "Thu, 04 Jun 2026 10:26:47 GMT",
+        "published": "Thu, 04 Jun 2026 11:38:59 GMT",
         "origin": "gnews-rss",
         "source": "DW",
         "tickers": [],
@@ -3361,9 +3327,9 @@
         "sector_holdings": [
           "RKLB"
         ],
-        "stance": "endorse",
+        "stance": "neutral",
         "relevance": 70,
-        "summary_cn": "马斯克旗下SpaceX计划通过创纪录的IPO筹集750亿美元资金。"
+        "summary_cn": "新闻报道马斯克旗下SpaceX计划通过创纪录的IPO筹集750亿美元。"
       },
       {
         "author": "Musk",
@@ -3382,9 +3348,9 @@
         "sector_holdings": [
           "RKLB"
         ],
-        "stance": "endorse",
+        "stance": "neutral",
         "relevance": 70,
-        "summary_cn": "马斯克旗下SpaceX计划进行史上最大规模的IPO，估值可能使其成为世界首位万亿富翁。"
+        "summary_cn": "新闻报道SpaceX计划进行史上最大规模的IPO，此举可能使马斯克成为全球首位万亿富翁。"
       },
       {
         "author": "Musk",
@@ -3403,9 +3369,51 @@
         "sector_holdings": [
           "RKLB"
         ],
-        "stance": "endorse",
+        "stance": "neutral",
         "relevance": 70,
-        "summary_cn": "马斯克旗下SpaceX在重磅IPO前寻求高达1.77万亿美元的估值。"
+        "summary_cn": "新闻报道马斯克旗下SpaceX在重磅IPO前，目标估值高达1.77万亿美元。"
+      },
+      {
+        "author": "Musk",
+        "text": "Elon Musk's net worth poised to sail past $1 trillion in SpaceX IPO",
+        "url": "",
+        "published": "Wed, 03 Jun 2026 22:58:33 GMT",
+        "origin": "gnews-rss",
+        "source": "CNBC",
+        "tickers": [],
+        "held": [],
+        "new_ideas": [],
+        "sectors": [
+          "航天",
+          "IPO"
+        ],
+        "sector_holdings": [
+          "RKLB"
+        ],
+        "stance": "neutral",
+        "relevance": 65,
+        "summary_cn": "新闻报道随着SpaceX IPO的推进，马斯克的净资产有望突破1万亿美元。"
+      },
+      {
+        "author": "Musk",
+        "text": "Musk's SpaceX share sale: Four things you need to know",
+        "url": "",
+        "published": "Thu, 04 Jun 2026 16:18:37 GMT",
+        "origin": "gnews-rss",
+        "source": "BBC",
+        "tickers": [],
+        "held": [],
+        "new_ideas": [],
+        "sectors": [
+          "航天",
+          "IPO"
+        ],
+        "sector_holdings": [
+          "RKLB"
+        ],
+        "stance": "neutral",
+        "relevance": 55,
+        "summary_cn": "新闻报道马斯克旗下SpaceX正在进行股份出售，涉及四点关键信息。"
       },
       {
         "author": "Trump",
@@ -3417,33 +3425,14 @@
         "held": [],
         "new_ideas": [],
         "sectors": [
-          "税收政策",
-          "监管政策",
+          "税收",
+          "监管",
           "宏观经济"
         ],
         "sector_holdings": [],
         "stance": "endorse",
         "relevance": 65,
-        "summary_cn": "特朗普宣称其历史性的减税和放松监管政策将为美国家庭带来5000至10000美元的收益，并降低物价，从而在'可负担性战争'中获胜。"
-      },
-      {
-        "author": "Trump",
-        "text": "Illegal Immigrants and Foreign Fraudsters steal BILLIONS every year from the American Taxpayer. As part of my Administration’s Historic effort to end FRAUD and reverse MASS ILLEGAL IMMIGRATION, I recently signed a powerful new Executive Order, which will be led by the Treasury Department, to stop Banks, Credit Cards, and Financial Institutions from being used to facilitate Human Smuggling, Drug Trafficking, Illegal Immigration, and the Criminal Cartels who orchestrate these activities. Access to our Nation’s Financial Systems must be limited to those who have a Legal Right to be here, and who ",
-        "url": "https://trumpstruth.org/statuses/39044",
-        "published": "2026-06-02T18:20:36+00:00",
-        "origin": "truthsocial",
-        "tickers": [],
-        "held": [],
-        "new_ideas": [],
-        "sectors": [
-          "金融监管",
-          "银行",
-          "移民政策"
-        ],
-        "sector_holdings": [],
-        "stance": "neutral",
-        "relevance": 60,
-        "summary_cn": "特朗普签署行政命令，指示财政部阻止银行、信用卡和金融机构被用于协助人口走私、贩毒和非法移民等犯罪活动。"
+        "summary_cn": "特朗普宣称其税收和监管削减政策将为美国家庭带来5000至10000美元收益，并压低物价，以此作为共和党在'可负担性战争'中的核心优势。"
       },
       {
         "author": "Trump",
@@ -3456,50 +3445,23 @@
         "new_ideas": [],
         "sectors": [
           "绿色能源",
-          "监管政策",
-          "政治风险"
+          "监管",
+          "欺诈"
         ],
         "sector_holdings": [],
         "stance": "attack",
-        "relevance": 55,
-        "summary_cn": "特朗普转发新闻，指控EPA局长已就民主党在利润丰厚的绿色能源拨款中的'自我交易'行为提出刑事指控。"
+        "relevance": 60,
+        "summary_cn": "特朗普转发报道，称EPA局长已就民主党在'利润丰厚的绿色能源拨款'中的'自我交易'行为提出刑事指控。"
       }
     ],
     "held_hits": [],
-    "new_ideas": [
-      {
-        "author": "Musk",
-        "text": "Coinbase Launches Pre-IPO Perps, Starting with Elon Musk's SpaceX",
-        "url": "",
-        "published": "Thu, 04 Jun 2026 11:13:12 GMT",
-        "origin": "gnews-rss",
-        "source": "Yahoo Finance",
-        "tickers": [
-          "COIN"
-        ],
-        "held": [],
-        "new_ideas": [
-          "COIN"
-        ],
-        "sectors": [
-          "加密货币",
-          "航天",
-          "IPO"
-        ],
-        "sector_holdings": [
-          "CRCL"
-        ],
-        "stance": "neutral",
-        "relevance": 65,
-        "summary_cn": "Coinbase推出Pre-IPO永续合约产品，首个标的为马斯克的SpaceX，为投资者提供参与未上市公司IPO前交易的新渠道。"
-      }
-    ],
+    "new_ideas": [],
     "sector_hits": [
       {
         "author": "Musk",
         "text": "Elon Musk's SpaceX aiming to raise $75bn in record IPO",
         "url": "",
-        "published": "Thu, 04 Jun 2026 10:26:47 GMT",
+        "published": "Thu, 04 Jun 2026 11:38:59 GMT",
         "origin": "gnews-rss",
         "source": "DW",
         "tickers": [],
@@ -3512,9 +3474,9 @@
         "sector_holdings": [
           "RKLB"
         ],
-        "stance": "endorse",
+        "stance": "neutral",
         "relevance": 70,
-        "summary_cn": "马斯克旗下SpaceX计划通过创纪录的IPO筹集750亿美元资金。"
+        "summary_cn": "新闻报道马斯克旗下SpaceX计划通过创纪录的IPO筹集750亿美元。"
       },
       {
         "author": "Musk",
@@ -3533,9 +3495,9 @@
         "sector_holdings": [
           "RKLB"
         ],
-        "stance": "endorse",
+        "stance": "neutral",
         "relevance": 70,
-        "summary_cn": "马斯克旗下SpaceX计划进行史上最大规模的IPO，估值可能使其成为世界首位万亿富翁。"
+        "summary_cn": "新闻报道SpaceX计划进行史上最大规模的IPO，此举可能使马斯克成为全球首位万亿富翁。"
       },
       {
         "author": "Musk",
@@ -3554,9 +3516,51 @@
         "sector_holdings": [
           "RKLB"
         ],
-        "stance": "endorse",
+        "stance": "neutral",
         "relevance": 70,
-        "summary_cn": "马斯克旗下SpaceX在重磅IPO前寻求高达1.77万亿美元的估值。"
+        "summary_cn": "新闻报道马斯克旗下SpaceX在重磅IPO前，目标估值高达1.77万亿美元。"
+      },
+      {
+        "author": "Musk",
+        "text": "Elon Musk's net worth poised to sail past $1 trillion in SpaceX IPO",
+        "url": "",
+        "published": "Wed, 03 Jun 2026 22:58:33 GMT",
+        "origin": "gnews-rss",
+        "source": "CNBC",
+        "tickers": [],
+        "held": [],
+        "new_ideas": [],
+        "sectors": [
+          "航天",
+          "IPO"
+        ],
+        "sector_holdings": [
+          "RKLB"
+        ],
+        "stance": "neutral",
+        "relevance": 65,
+        "summary_cn": "新闻报道随着SpaceX IPO的推进，马斯克的净资产有望突破1万亿美元。"
+      },
+      {
+        "author": "Musk",
+        "text": "Musk's SpaceX share sale: Four things you need to know",
+        "url": "",
+        "published": "Thu, 04 Jun 2026 16:18:37 GMT",
+        "origin": "gnews-rss",
+        "source": "BBC",
+        "tickers": [],
+        "held": [],
+        "new_ideas": [],
+        "sectors": [
+          "航天",
+          "IPO"
+        ],
+        "sector_holdings": [
+          "RKLB"
+        ],
+        "stance": "neutral",
+        "relevance": 55,
+        "summary_cn": "新闻报道马斯克旗下SpaceX正在进行股份出售，涉及四点关键信息。"
       }
     ]
   },
@@ -3600,68 +3604,68 @@
         "ticker": "00100",
         "name": "MINIMAX-W",
         "region": "hk",
-        "pnl_percent": -19.36,
-        "pnl_abs": -9559.8,
-        "current_value": 39810.0
+        "pnl_percent": -19.79,
+        "pnl_abs": -9769.8,
+        "current_value": 39600.0
       },
       {
         "ticker": "07226",
         "name": "XL二南方恒科",
         "region": "hk",
-        "pnl_percent": -10.43,
-        "pnl_abs": -2822.24,
-        "current_value": 24229.6
+        "pnl_percent": -10.94,
+        "pnl_abs": -2958.64,
+        "current_value": 24093.2
       },
       {
-        "ticker": "02208",
-        "name": "金风科技",
+        "ticker": "03032",
+        "name": "恒生科技ETF",
         "region": "hk",
-        "pnl_percent": -8.97,
-        "pnl_abs": -505.6,
-        "current_value": 5128.0
+        "pnl_percent": -8.31,
+        "pnl_abs": -89.8,
+        "current_value": 991.2
       }
     ]
   },
   "today_ranges": [
     {
-      "ticker": "02208",
-      "region": "hk",
-      "high": 13.3,
-      "low": 12.73,
-      "current": 12.82,
-      "range_pct": 4.45
-    },
-    {
       "ticker": "00100",
       "region": "hk",
-      "high": 682.0,
-      "low": 661.0,
-      "current": 663.5,
-      "range_pct": 3.17
+      "high": 663.0,
+      "low": 656.5,
+      "current": 660.0,
+      "range_pct": 0.98
+    },
+    {
+      "ticker": "02208",
+      "region": "hk",
+      "high": 13.01,
+      "low": 12.9,
+      "current": 13.01,
+      "range_pct": 0.85
     },
     {
       "ticker": "07226",
       "region": "hk",
-      "high": 3.964,
-      "low": 3.88,
-      "current": 3.908,
-      "range_pct": 2.15
+      "high": 3.898,
+      "low": 3.878,
+      "current": 3.886,
+      "range_pct": 0.51
     },
     {
       "ticker": "03032",
       "region": "hk",
-      "high": 5.035,
-      "low": 4.946,
-      "current": 4.972,
-      "range_pct": 1.79
+      "high": 4.97,
+      "low": 4.95,
+      "current": 4.956,
+      "range_pct": 0.4
     },
     {
       "ticker": "03033",
       "region": "hk",
-      "high": 4.91,
-      "low": 4.856,
-      "current": 4.87,
-      "range_pct": 1.11
+      "high": 4.866,
+      "low": 4.854,
+      "current": 4.862,
+      "range_pct": 0.25
     }
   ],
   "realized_vs_unrealized": {
@@ -3671,11 +3675,11 @@
     },
     "hk": {
       "realized": 7259.16,
-      "unrealized": -13244.24
+      "unrealized": -13525.84
     },
     "combined_usd": {
       "realized": 2299.53,
-      "unrealized": -1423.08
+      "unrealized": -1459.03
     }
   },
   "capital_deployed": {
@@ -3699,14 +3703,14 @@
     },
     "hk": {
       "net_principal": 81017.08,
-      "total_profit": -5985.08,
-      "return_pct": -7.39,
+      "total_profit": -6266.68,
+      "return_pct": -7.74,
       "return_basis": "net_principal"
     },
     "combined_usd": {
       "net_principal": 12813.11,
-      "total_profit": 876.44,
-      "return_pct": 6.84
+      "total_profit": 840.5,
+      "return_pct": 6.56
     },
     "formula": "回报率 = (浮动 + 已实现) ÷ 本金；本金优先用 true_principal（峰值净投入），否则用 净投入本金=累计成本−已实现"
   }
