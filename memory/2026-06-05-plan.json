@@ -1,0 +1,146 @@
+{
+  "date": "2026-06-05",
+  "fx_rate_usdhkd": 7.8338,
+  "fx_source": "Frankfurter",
+  "regime": {
+    "us": "range-bound",
+    "hk": "volatile"
+  },
+  "book": {
+    "usd_total_pnl": -1423.08,
+    "hkd_total_pnl": -11148.15,
+    "hk_leg_hkd": -13244.24,
+    "us_leg_usd": 267.57
+  },
+  "actions": [
+    {
+      "ticker": "00100",
+      "bucket": "trim_on_rebound",
+      "size_pct": 33,
+      "size_shares": 20,
+      "trigger_type": "price_above",
+      "trigger_price": 680,
+      "trigger_condition": "00100 反弹至 680 以上",
+      "confidence": 0.45,
+      "driven_by": "technical",
+      "rationale": "仓位硬闸：00100=53%超限(35%cap)。纪律性减仓。HSTECH 6/8纳入催化在前但M3 sell-the-news alpha崩塌-21% 5d。risk_on cap 0.55。"
+    },
+    {
+      "ticker": "07226",
+      "bucket": "hold_and_watch",
+      "size_pct": 0,
+      "size_shares": 0,
+      "trigger_type": "price_above",
+      "trigger_price": 4.0,
+      "trigger_condition": "07226 反弹至 4.0 以上时 trim 1000 股降 HK Top2",
+      "confidence": 0.5,
+      "driven_by": "catalyst",
+      "rationale": "6/8 HSTECH纳入催化3天后生效，470亿被动资金。等event后再评估减仓。仓位硬闸Top2 85.3%>70% cap → 借纳入反弹减。"
+    },
+    {
+      "ticker": "02208",
+      "bucket": "hold_and_watch",
+      "size_pct": 0,
+      "size_shares": 0,
+      "trigger_type": "price_below",
+      "trigger_price": 12.0,
+      "trigger_condition": "02208 跌破 12.0 止损",
+      "confidence": 0.55,
+      "driven_by": "technical",
+      "rationale": "Q1利润+40% YoY + JPM Overweight + 公司回购193万股。小仓400股。83%历史hold胜率。风电2026景气但港股板块低迷。"
+    },
+    {
+      "ticker": "03032",
+      "bucket": "hold_and_watch",
+      "size_pct": 0,
+      "size_shares": 0,
+      "trigger_type": "manual",
+      "trigger_price": null,
+      "trigger_condition": "HSTECH 破 4800 时评估",
+      "confidence": 0.55,
+      "driven_by": "technical",
+      "rationale": "1x HSTECH ETF，无杠杆decay。跟踪指数。60%历史胜率。"
+    },
+    {
+      "ticker": "03033",
+      "bucket": "hold_and_watch",
+      "size_pct": 0,
+      "size_shares": 0,
+      "trigger_type": "manual",
+      "trigger_price": null,
+      "trigger_condition": "HSTECH 破 4800 时评估",
+      "confidence": 0.55,
+      "driven_by": "technical",
+      "rationale": "1x HSTECH ETF，无杠杆decay。60%历史胜率。"
+    },
+    {
+      "ticker": "RKLB",
+      "bucket": "hold_and_watch",
+      "size_pct": 0,
+      "size_shares": 0,
+      "trigger_type": "price_below",
+      "trigger_price": 115,
+      "trigger_condition": "RKLB 跌破 115 止损",
+      "confidence": 0.55,
+      "driven_by": "catalyst",
+      "rationale": "SpaceX IPO 6/12催化 + Q1 rev $200M +63% + backlog $2.2B + $90M Space Force。浮盈+69%。75%历史hold胜率。SpaceX $1.75T估值是行业认可+竞争双刃剑。risk_on cap。"
+    },
+    {
+      "ticker": "CRCL",
+      "bucket": "hold_and_watch",
+      "size_pct": 0,
+      "size_shares": 0,
+      "trigger_type": "price_below",
+      "trigger_price": 85,
+      "trigger_condition": "CRCL 跌破 85 止损（接 cost $87）",
+      "confidence": 0.45,
+      "driven_by": "catalyst",
+      "rationale": "Q1首次盈利 EPS $0.23 + USDC $77B + GENIUS Act 已落地 = confirming。但 insider selling + SoftBank selling = disconfirming 硬催化。5d -19.8% 已部分消化。守$85止损。60%历史加仓胜率。"
+    },
+    {
+      "ticker": "PLTU",
+      "bucket": "trim_on_rebound",
+      "size_pct": 50,
+      "size_shares": 7,
+      "trigger_type": "price_above",
+      "trigger_price": 42,
+      "trigger_condition": "PLTU 反弹至 42 以上",
+      "confidence": 0.4,
+      "driven_by": "technical",
+      "rationale": "仓位硬闸：US杠杆ETF 73%>50% cap。PLTR 92x fwd PE过热 + insider sell $43M。纪律减仓。33%历史trim胜率但trim胜率80%(5次胜4次)。risk_on cap。"
+    },
+    {
+      "ticker": "ROBN",
+      "bucket": "trim_on_rebound",
+      "size_pct": 50,
+      "size_shares": 20,
+      "trigger_type": "price_above",
+      "trigger_price": 25,
+      "trigger_condition": "ROBN 反弹至 25 以上（今日+13.19%已接近）",
+      "confidence": 0.45,
+      "driven_by": "technical",
+      "rationale": "仓位硬闸：US杠杆ETF 73%>50% cap + β 4.48>3.0 cap。HOOD Q1 miss + crypto rev -47%。今日+13.19%给窗口。清仓历史38%胜率→trim而非cut。risk_on cap。"
+    },
+    {
+      "ticker": "MSFU",
+      "bucket": "hold_and_watch",
+      "size_pct": 0,
+      "size_shares": 0,
+      "trigger_type": "price_below",
+      "trigger_price": 26,
+      "trigger_condition": "MSFU 跌破 26 止损",
+      "confidence": 0.55,
+      "driven_by": "technical",
+      "rationale": "MSFT Q3 beat rev $82.9B + Azure +29%。underlying 最强。83%历史hold胜率。2x杠杆但underlying撑得住。"
+    }
+  ],
+  "watch_levels": {
+    "hstech_support": 4800,
+    "hstechn_inclusion_date": "2026-06-08",
+    "spacex_ipo_date": "2026-06-12",
+    "cpi_date": "2026-06-11",
+    "book_force_derisk_usd": -3000,
+    "00100_trim_target_shares": 40,
+    "us_lev_etf_target_pct": 50
+  }
+}
