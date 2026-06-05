@@ -96,40 +96,6 @@
 - **单一来源：`portfolio.json`**，不在此维护副本
 - ticker 列表：`memory/current-portfolio-summary.md`（提高检索命中）
 
-## Promoted From Short-Term Memory (2026-06-01)
-
-<!-- openclaw-memory-promotion:memory:memory/2026-05-26-0946.md:12:14 -->
-- "chat_id": "o9cq80-hGTruM-OSs8kNmDOtLVZI@im.wechat", "message_id": "openclaw-weixin:1779757609834-01d44ddd", "timestamp": "Tue 2026-05-26 09:06 GMT+8" [score=0.871 recalls=0 avg=0.620 source=memory/2026-05-26-0946.md:12-14]
-<!-- openclaw-memory-promotion:memory:memory/2026-05-26-0946.md:19:20 -->
-- assistant: NO_REPLY user: Conversation info (untrusted metadata): [score=0.871 recalls=0 avg=0.620 source=memory/2026-05-26-0946.md:19-20]
-<!-- openclaw-memory-promotion:memory:memory/2026-05-26-0946.md:23:25 -->
-- "chat_id": "o9cq80-hGTruM-OSs8kNmDOtLVZI@im.wechat", "message_id": "openclaw-weixin:1779758667235-4782601e", "timestamp": "Tue 2026-05-26 09:24 GMT+8" [score=0.871 recalls=0 avg=0.620 source=memory/2026-05-26-0946.md:23-25]
-<!-- openclaw-memory-promotion:memory:memory/2026-05-26-0946.md:30:33 -->
-- assistant: Hi kcn, 早~ assistant: 📊 港股开盘快报｜2026-05-26 09:30 🇭🇰 港股盯盘 | 05/26 09:34 HKT 恒指 25,505 ▼0.39% 恒科 4,925 ▲1.13% [score=0.871 recalls=0 avg=0.620 source=memory/2026-05-26-0946.md:30-33]
-<!-- openclaw-memory-promotion:memory:memory/2026-05-26-0946.md:9:9 -->
-- user: Conversation info (untrusted metadata): [score=0.871 recalls=0 avg=0.620 source=memory/2026-05-26-0946.md:9-9]
-<!-- openclaw-memory-promotion:memory:memory/2026-05-26-pre-open.md:10:10 -->
-- > ⚠️ **数据状态**：US/HK refresh failed（价格为 5/22-26 Nasdaq API 抓取），FX hardcoded 7.8（stale，无实时源）。SEC EDGAR RKLB/CRCL failed。板块全景来自 web search 实时数据。 [score=0.871 recalls=0 avg=0.620 source=memory/2026-05-26-pre-open.md:10-10]
-<!-- openclaw-memory-promotion:memory:memory/2026-05-26-pre-open.md:12:15 -->
-- | 市场 | Regime | 关键信号 | |---|---|---| | US | **Volatile / Mixed** | SOXL **+18.48%** 🔥 / RKLB +5.79% 🔥 / CRCL -5.24% 🔴；β=4.79 🔴 / Vol 70.9% 🔴 / Sharpe +4.90（SOXL/RKLB 拉高）；GDP 5/28 核心催化 | [score=0.871 recalls=0 avg=0.620 source=memory/2026-05-26-pre-open.md:12-14]
-<!-- openclaw-memory-promotion:memory:memory/2026-05-26-pre-open.md:17:17 -->
-- **FX**: USDHKD = 7.8（HARDCODED_FALLBACK，无实时源，⚠️ stale） [score=0.871 recalls=0 avg=0.620 source=memory/2026-05-26-pre-open.md:17-17]
-
-## Promoted From Short-Term Memory (2026-06-01)
-
-<!-- openclaw-memory-promotion:memory:memory/2026-05-26-pre-open.md:19:19 -->
-- **Book 总览**: [score=0.868 recalls=0 avg=0.620 source=memory/2026-05-26-pre-open.md:19-19]
-<!-- openclaw-memory-promotion:memory:memory/2026-05-26-pre-open.md:2:3 -->
-- layout: default title: 盘前深度简报 · 2026-05-26 [score=0.868 recalls=0 avg=0.620 source=memory/2026-05-26-pre-open.md:2-3]
-<!-- openclaw-memory-promotion:memory:memory/2026-05-29-0036.md:39:39 -->
-- **AI 赛道内部：极度分化** [score=0.847 recalls=0 avg=0.620 source=memory/2026-05-29-0036.md:39-39]
-<!-- openclaw-memory-promotion:memory:memory/2026-05-27-pre-open.md:10:10 -->
-- > ⚠️ **数据状态**：US/HK refresh failed（价格来自 5/26 Nasdaq API 收盘/Tencent 收盘），FX hardcoded 7.8（无实时源，stale）。SEC EDGAR RKLB/CRCL failed。板块全景来自 web search 实时数据。 [score=0.843 recalls=0 avg=0.620 source=memory/2026-05-27-pre-open.md:10-10]
-<!-- openclaw-memory-promotion:memory:memory/2026-05-27-pre-open.md:12:15 -->
-- | 市场 | Regime | 关键信号 | |---|---|---| | US | **Volatile / Mixed** | SOXL **+18.13%** 🔥 / RKLB +5.24% 🔥 / CRCL **-7.97%** 🔴；β=4.81 🔴 / Vol 61.6% 🔴 / 30d DD -14.5% ⚠️；**GDP 5/28 明日核心催化** | [score=0.843 recalls=0 avg=0.620 source=memory/2026-05-27-pre-open.md:12-14]
-<!-- openclaw-memory-promotion:memory:memory/2026-05-27-pre-open.md:17:17 -->
-- **FX**: USDHKD = 7.8（HARDCODED_FALLBACK，无实时源，⚠️ stale） [score=0.843 recalls=0 avg=0.620 source=memory/2026-05-27-pre-open.md:17-17]
-
 ## Promoted From Short-Term Memory (2026-06-05)
 
 <!-- openclaw-memory-promotion:memory:memory/2026-06-01-pre-open.md:10:11 -->
@@ -144,3 +110,26 @@
 - Header: ⚠️ **宏观/情绪/名人数据 stale ~43h**（周末抓取，周五收盘快照）— 以下引用均标注 stale。 [score=0.806 recalls=0 avg=0.620 source=memory/2026-06-01-pre-open.md:21-21]
 <!-- openclaw-memory-promotion:memory:memory/2026-06-01-pre-open.md:29:32 -->
 - HK 持仓: | 代码 | 股 | 成本 | 现价 | 今日 | 浮% | 浮$ | |---|---|---|---|---|---|---| | 00100 MINIMAX | 60 | 822.83 | 840.0 | +0.36% | +2.09% | +HK$1,030 | | 07226 2x恒科 | 6200 | 4.363 | 3.76 | -0.53% | -13.82% | -HK$3,740 | [score=0.806 recalls=0 avg=0.620 source=memory/2026-06-01-pre-open.md:29-32]
+
+## Promoted From Short-Term Memory (2026-06-06)
+
+<!-- openclaw-memory-promotion:memory:memory/2026-05-31-1239.md:13:13 -->
+- Conversation Summary: **几个关键数字：** [score=0.812 recalls=0 avg=0.620 source=memory/2026-05-31-1239.md:13-13]
+<!-- openclaw-memory-promotion:memory:memory/2026-05-31-1239.md:14:17 -->
+- Conversation Summary: 港股 1月 IPO 发行价 165 HKD → 现在 840 HKD，涨了 **409%**; 市值 2634 亿 HKD（≈2275 亿 RMB）; ARR 超 3 亿美元，全球用户 ~3 亿; 2025 年收入 7903 万美元，70%+ 来自海外，毛利率 25.4% [score=0.812 recalls=0 avg=0.620 source=memory/2026-05-31-1239.md:14-17]
+<!-- openclaw-memory-promotion:memory:memory/2026-05-31-1239.md:3:5 -->
+- Session: 2026-05-31 12:39:08 GMT+8: **Session Key**: agent:main:openclaw-weixin:direct:o9cq80-hgtrum-oss8knmdotlvzi@im.wechat; **Session ID**: 9b8e11d1-86c9-4b72-b99d-d0c521af8821; **Source**: openclaw-weixin [score=0.812 recalls=0 avg=0.620 source=memory/2026-05-31-1239.md:3-5]
+<!-- openclaw-memory-promotion:memory:memory/2026-05-31-1239.md:9:11 -->
+- Conversation Summary: user: 你看看minimax要a股IPO消息 你觉得怎么样 assistant: Let me check the latest news on this. assistant: 消息确认了。5月29日 MiniMax 已经和中信证券签辅导协议，向上交所提交辅导备案。 [score=0.812 recalls=0 avg=0.620 source=memory/2026-05-31-1239.md:9-11]
+<!-- openclaw-memory-promotion:memory:memory/2026-05-31-pre-open.md:10:11 -->
+- 盘前深度简报｜2026-05-31 周日 08:00 HKT: **Regime:** US risk_on（F&G 60.2 greed, VIX 15.3 calm） · HK neutral（HSTECH 4884 横盘, HSI 25182 小涨） **USDHKD = 7.8356** (Frankfurter, 2026-05-31 05:45 UTC) [score=0.812 recalls=0 avg=0.620 source=memory/2026-05-31-pre-open.md:10-11]
+<!-- openclaw-memory-promotion:memory:memory/2026-06-01-1220.md:12:12 -->
+- Conversation Summary: 智谱 (Zhipu AI / Zhipu Qingyan) - this is a Chinese AI company. Let me check if it's publicly listed. [score=0.812 recalls=0 avg=0.620 source=memory/2026-06-01-1220.md:12-12]
+<!-- openclaw-memory-promotion:memory:memory/2026-06-01-1220.md:14:14 -->
+- Conversation Summary: Actually, 智谱 is not publicly listed. It's a private company. But the user might be asking about it in the context of AI stocks or comparing it to MiniMax. [score=0.812 recalls=0 avg=0.620 source=memory/2026-06-01-1220.md:14-14]
+<!-- openclaw-memory-promotion:memory:memory/2026-06-01-1220.md:16:16 -->
+- Conversation Summary: Wait, the user just asked "定时任务呢？" - they're asking about scheduled tasks/cron jobs. Let me re-read the conversation flow. [score=0.812 recalls=0 avg=0.620 source=memory/2026-06-01-1220.md:16-16]
+<!-- openclaw-memory-promotion:memory:memory/2026-06-01-1220.md:3:5 -->
+- Session: 2026-06-01 12:20:44 GMT+8: **Session Key**: agent:main:openclaw-weixin:direct:o9cq80-hgtrum-oss8knmdotlvzi@im.wechat; **Session ID**: d9a86404-5a2d-46c6-abdf-1d66ae8f9468; **Source**: openclaw-weixin [score=0.812 recalls=0 avg=0.620 source=memory/2026-06-01-1220.md:3-5]
+<!-- openclaw-memory-promotion:memory:memory/2026-06-01-1220.md:9:10 -->
+- Conversation Summary: user: 定时任务呢？ assistant: The user is asking about 智谱 (Zhipu AI) - whether it's publicly traded. Let me think about this: [score=0.812 recalls=0 avg=0.620 source=memory/2026-06-01-1220.md:9-10]

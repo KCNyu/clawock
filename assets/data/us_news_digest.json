@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-04T16:17:35.506478",
+  "generated_at": "2026-06-05T15:49:14.568530",
   "lookback_hours": 48,
   "tickers": [
     "RKLB",
@@ -8,10 +8,10 @@
     "ROBN",
     "MSFU"
   ],
-  "digest_markdown": "### Top 3-5 移动信号\n- **RKLB**: 财报显示收入激增63.5%，运营利润转正，商业订单积压达$2.2B；但Sector因SpaceX IPO相关情绪受挫。核心业务强劲增长与行业短期抛压形成反差，为持仓提供基本面支撑，但需留意板块情绪对股价的压制。\n- **CRCL**: Mastercard宣布将Circle的USDC纳入其全球稳定币结算网络。这直接将Circle的USDC接入主流支付巨头的基础设施，是提升采用率和实用性的重大催化，对持仓构成明确利好。\n\n### Per-ticker 简报\n- **RKLB**: SeekningAlpha两篇分析均强调公司基本面加速增长（需求、积压订单），但一篇指出Neutron火箭研发存在延迟可能。**影响**：长期增长故事稳固，但新火箭进度是需要监控的执行风险。\n- **CRCL**: 除Mastercard整合外，Coinbase Ventures投资DeFi协议Ethena等新闻显示行业生态活跃。**影响**：情绪利好，但直接催化仅为与Mastercard的合作。\n- **PLTU**: 底层股票Palantir (PLTR) 股价大涨，带动该杠杆ETF大幅波动。新闻多为ETF表现和产品介绍。**影响**：波动性风险高，收益/亏损完全依赖于PLTR短期股价方向。\n- **ROBN**: 底层股票Robinhood (HOOD) 盘后股价下跌。新闻提及分析师与散户忽略此跌势，以及新产品ETF推出。**影响**：杠杆ETF放大波动，HOOD股价的短期疲软会直接影响该持仓。\n\n### 风险 watch\n- 当前新闻中未明确提及财务指引下调、监管行动、大股东减持或重大合约失败等风险关键词。",
+  "digest_markdown": "### Top 移动信号 (跨 ticker 排序)\n- **RKLB**: 核心运营数据强劲，Q2营收同比增63.5%，毛利率提升，积压订单达22亿美元（商业客户需求旺盛）。`Implication`: 基本面改善是股价核心驱动，对冲了短期航天板块（如Redwire、Momentus）因SpaceX相关情绪波动而下跌的压力。\n- **CRCL**: Mastercard宣布将支持包括Circle的USDC在内的稳定币进行结算。`Implication`: 这是Circle (CRCL) 获得主流金融基础设施（卡组织）集成的关键里程碑，直接巩固其在稳定币支付领域的实用性和合法性。\n- **RKLB**: 沉浸于航天板块普跌行情，起因为“SpaceX IPO疲劳”及此前空头挤压效应消退。`Implication`: 市场情绪带来的板块性抛售，为具备独立增长故事的RKLB提供了潜在错杀机会，需区分行业beta与个股alpha。\n\n### Per-ticker 简报\n- **RKLB**: 基本面报告（营收增、利润改善、backlog扩大）被行业负面情绪暂时压制，形成短期分化。\n- **CRCL**: Mastercard的集成新闻是比通用加密货币监管讨论更直接、更具商业实质的催化剂。\n- **PLTU / ROBN / MSFU**: 新闻多为ETF产品介绍、价格波动讨论或通用市场观察，无影响底层持仓（PLTR、HOOD、MSFT）的具体公司事件，忽略。\n\n### 风险 watch\n- **CRCL**: Mastercard新闻同时提及支持Ripple的RLUSD，表明竞争格局开放；Circle的IPO进程与估值将是后续关键监管与市场情绪风险点。",
   "raw_news_counts": {
     "RKLB": 5,
-    "CRCL": 4,
+    "CRCL": 2,
     "PLTU": 5,
     "ROBN": 5,
     "MSFU": 1
