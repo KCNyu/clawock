@@ -153,46 +153,67 @@ layout: null
   /* =========================================================
      Layout — mobile single column, desktop 3-column
      ========================================================= */
-  main { padding: 14px; max-width: 1600px; margin: 0 auto; overflow-x: hidden; }
-  .panel { display: none; }
-  .panel.active { display: block; }
+  main { padding: 14px; max-width: 1600px; margin: 0 auto; }
+  .pager { display: contents; }   /* desktop: transparent — panels join the grid */
+  .panel { display: block; }
 
-  /* Silky tab transition (mobile only — desktop shows all panels in a grid).
-     Direction set by swipe/arrow: forward → slide in from right, back → from left. */
-  @keyframes panel-in-right {
-    from { transform: translateX(7%);  opacity: 0; }
-    to   { transform: translateX(0);   opacity: 1; }
-  }
-  @keyframes panel-in-left {
-    from { transform: translateX(-7%); opacity: 0; }
-    to   { transform: translateX(0);   opacity: 1; }
-  }
-  .panel.slide-right { animation: panel-in-right .28s cubic-bezier(.22,.61,.36,1); }
-  .panel.slide-left  { animation: panel-in-left  .28s cubic-bezier(.22,.61,.36,1); }
-  /* finger-follow drag: panel tracks the touch in real time, no transition lag */
-  .panel.dragging { transition: none; will-change: transform; }
-  @media (prefers-reduced-motion: reduce) {
-    .panel.slide-right, .panel.slide-left { animation: none; }
+  /* ── Mobile (<1024px): iOS-native paged tabs ──
+     Fixed chrome (header + footer), the content area is a horizontal
+     scroll-snap pager. Each tab is its own page that scrolls vertically.
+     Native scrolling = buttery preview / momentum / snap, zero JS gesture code. */
+  @media (max-width: 1023px) {
+    html, body { height: 100%; }
+    body {
+      display: flex; flex-direction: column;
+      height: 100dvh; min-height: 100dvh; overflow: hidden;
+    }
+    .topbar { flex: 0 0 auto; }
+    footer  { flex: 0 0 auto; }
+    main {
+      flex: 1 1 auto; min-height: 0; min-width: 0; max-width: 100%;
+      padding: 0;
+      display: flex; flex-direction: column;   /* banner (auto) + pager (flex) */
+    }
+    .status-banner { flex: 0 0 auto; margin: 8px 14px 0; }
+    .pager {
+      display: flex; flex: 1 1 auto;
+      min-height: 0; min-width: 0;              /* don't let wide content expand the pager */
+      overflow-x: auto; overflow-y: hidden;
+      scroll-snap-type: x mandatory;
+      overscroll-behavior-x: contain;          /* don't trigger browser back-swipe */
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+    .pager::-webkit-scrollbar { display: none; }
+    .panel {
+      flex: 0 0 100%; width: 100%; height: 100%;
+      min-width: 0;                            /* clamp page to viewport, not content width */
+      overflow-x: hidden; overflow-y: auto; overscroll-behavior-y: contain;
+      scroll-snap-align: start; scroll-snap-stop: always;
+      padding: 14px;
+      -webkit-overflow-scrolling: touch;
+    }
+    .panel > h2 { display: none; }
+    /* inner horizontal scrollers must NOT page the tabs — overscroll-x:contain stops
+       their horizontal scroll from chaining to the pager (touch-action stays auto so
+       vertical swipes still scroll the page). */
+    .movers-scroll, .table-wrap { overscroll-behavior-x: contain; }
   }
 
   @media (min-width: 1024px) {
-    .tabs { display: none; }
+    .tabs, .swipe-hint { display: none; }
     main {
       display: grid;
       grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr);
       gap: 20px;
       padding: 20px;
     }
-    .panel { display: block; }
     .panel > h2 {
       margin: 0 0 12px;
       font-size: 13px; font-weight: 600;
       color: var(--text-dim); text-transform: uppercase;
       letter-spacing: 0.08em;
     }
-  }
-  @media (max-width: 1023px) {
-    .panel > h2 { display: none; }
   }
 
   /* =========================================================
@@ -1188,6 +1209,8 @@ layout: null
        HERO — 我的状态 + 今日异动 + 风险 (9 张速读卡)
        外部情报已拆到『Market』tab
        ============================================ -->
+  <div class="pager" id="pager">
+
   <section class="panel active" data-panel="hero">
     <h2>Hero</h2>
 
@@ -1722,6 +1745,8 @@ layout: null
 
   </section>
 
+  </div><!-- /.pager -->
+
 </main>
 
 <footer>
@@ -1804,11 +1829,13 @@ layout: null
   // Tab order follows the button order in the tablist (hero/drill/market/plan/reflect).
   const TAB_ORDER = Array.from(document.querySelectorAll(".tab-btn")).map(b => b.dataset.tab);
 
-  const prefersReducedMotion = () =>
-    window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const pager = document.getElementById("pager");
+  const pagerLive = () =>                       // pager is a real scroller only on mobile
+    pager && getComputedStyle(pager).display === "flex";
 
-  // dir: +1 forward (new panel slides in from right), -1 back (from left), 0 none.
-  function activateTab(t, dir = 0) {
+  // Reflect the active tab in the button bar + a11y + desktop CSS. Does NOT move
+  // the pager (the scroll position is the source of truth on mobile).
+  function setActiveButton(t) {
     if (!TAB_ORDER.includes(t)) return;
     document.querySelectorAll(".tab-btn").forEach(b => {
       const on = b.dataset.tab === t;
@@ -1816,122 +1843,83 @@ layout: null
       b.setAttribute("aria-selected", on);
     });
     document.querySelectorAll(".panel").forEach(p => {
-      const on = p.dataset.panel === t;
-      // clear any leftover drag transform/transition from the gesture
-      p.style.transform = ""; p.style.transition = "";
-      p.classList.remove("slide-left", "slide-right", "dragging");
-      p.classList.toggle("active", on);
-      if (on && dir !== 0 && !prefersReducedMotion()) {
-        // reflow so the animation restarts even on repeat direction
-        void p.offsetWidth;
-        p.classList.add(dir > 0 ? "slide-right" : "slide-left");
-        p.addEventListener("animationend", function done() {
-          p.classList.remove("slide-right", "slide-left");
-          p.removeEventListener("animationend", done);
-        });
-      }
+      p.classList.toggle("active", p.dataset.panel === t);
     });
-    // resize charts when shown
-    window.dispatchEvent(new Event("resize"));
+    const btn = document.querySelector(`.tab-btn[data-tab="${t}"]`);
+    if (btn) btn.scrollIntoView({ block: "nearest", inline: "center", behavior: "smooth" });
   }
 
   function currentTab() {
+    if (pagerLive()) {
+      const i = Math.round(pager.scrollLeft / (pager.clientWidth || 1));
+      return TAB_ORDER[Math.max(0, Math.min(TAB_ORDER.length - 1, i))];
+    }
     const active = document.querySelector(".tab-btn.active");
     return active ? active.dataset.tab : TAB_ORDER[0];
   }
-  function activePanelEl() {
-    return document.querySelector(".panel.active");
-  }
 
-  // step = +1 next / -1 prev. Returns true if it actually moved.
+  // Native scroll-snap does the gesture, preview, momentum & easing for free.
+  // We just drive scrollLeft for button/keyboard nav and read it back for the indicator.
+  function goToTab(t, smooth = true) {
+    if (!TAB_ORDER.includes(t)) return false;
+    const idx = TAB_ORDER.indexOf(t);
+    if (pagerLive()) {
+      pager.scrollTo({ left: idx * pager.clientWidth, behavior: smooth ? "smooth" : "auto" });
+    }
+    setActiveButton(t);          // desktop / immediate highlight; scroll listener re-confirms
+    return true;
+  }
   function shiftTab(step) {
     const idx = TAB_ORDER.indexOf(currentTab());
     const next = idx + step;
-    if (next < 0 || next >= TAB_ORDER.length) return false;  // no wrap-around
-    activateTab(TAB_ORDER[next], step > 0 ? 1 : -1);
-    const btn = document.querySelector(`.tab-btn[data-tab="${TAB_ORDER[next]}"]`);
-    if (btn) btn.scrollIntoView({ block: "nearest", inline: "center", behavior: "smooth" });
-    return true;
+    if (next < 0 || next >= TAB_ORDER.length) return false;
+    return goToTab(TAB_ORDER[next]);
   }
 
   document.querySelectorAll(".tab-btn").forEach(btn => {
-    btn.addEventListener("click", () => {
-      const dir = TAB_ORDER.indexOf(btn.dataset.tab) - TAB_ORDER.indexOf(currentTab());
-      activateTab(btn.dataset.tab, dir === 0 ? 0 : (dir > 0 ? 1 : -1));
-    });
+    btn.addEventListener("click", () => goToTab(btn.dataset.tab));
   });
 
-  // ── Mobile: finger-following horizontal swipe to switch tabs ──
-  // The active panel tracks the finger in real time (with edge resistance); on
-  // release it either commits to the neighbouring tab (which slides in) or springs
-  // back. Direction lock keeps vertical scrolling untouched.
-  (function enableSwipeTabs() {
-    const main = document.querySelector("main");
-    if (!main) return;
-    const COMMIT_FRAC = 0.22;   // travel ≥ 22% of width → commit to next tab
-    const COMMIT_MIN  = 55;     // …but at least this many px
-    const LOCK = 10;            // px before we lock horizontal vs vertical intent
-    let x0 = 0, y0 = 0, panel = null, axis = null, w = 1;
-
-    const damp = dx => {
-      // resistance when dragging past the first / last tab (rubber-band feel)
-      const idx = TAB_ORDER.indexOf(currentTab());
-      const atEdge = (dx > 0 && idx === 0) || (dx < 0 && idx === TAB_ORDER.length - 1);
-      return atEdge ? dx * 0.32 : dx;
-    };
-
-    main.addEventListener("touchstart", e => {
-      if (e.touches.length !== 1) { panel = null; return; }
-      panel = activePanelEl(); axis = null;
-      if (!panel) return;
-      x0 = e.touches[0].clientX; y0 = e.touches[0].clientY;
-      w = panel.offsetWidth || window.innerWidth || 1;
+  // Sync the active-tab indicator to the live scroll position (rAF-throttled).
+  // On settle, nudge ECharts in the now-visible page to resize.
+  if (pager) {
+    let raf = 0, settleTimer = 0, lastIdx = -1;
+    pager.addEventListener("scroll", () => {
+      if (raf) return;
+      raf = requestAnimationFrame(() => {
+        raf = 0;
+        const idx = Math.round(pager.scrollLeft / (pager.clientWidth || 1));
+        if (idx !== lastIdx) {
+          lastIdx = idx;
+          const t = TAB_ORDER[Math.max(0, Math.min(TAB_ORDER.length - 1, idx))];
+          setActiveButton(t);
+        }
+        clearTimeout(settleTimer);
+        settleTimer = setTimeout(() => window.dispatchEvent(new Event("resize")), 120);
+      });
     }, { passive: true });
 
-    main.addEventListener("touchmove", e => {
-      if (!panel || e.touches.length !== 1) return;
-      const dx = e.touches[0].clientX - x0;
-      const dy = e.touches[0].clientY - y0;
-      if (axis === null) {
-        if (Math.abs(dx) < LOCK && Math.abs(dy) < LOCK) return;
-        axis = Math.abs(dx) > Math.abs(dy) ? "x" : "y";
-        if (axis === "x") panel.classList.add("dragging");
-      }
-      if (axis !== "x") return;
-      e.preventDefault();                  // we own this horizontal gesture now
-      panel.style.transform = `translateX(${damp(dx)}px)`;
-      panel.style.opacity = String(Math.max(0.55, 1 - Math.abs(dx) / w));
-    }, { passive: false });
+    // Keep the current page aligned across orientation / viewport changes.
+    let rzTimer = 0;
+    window.addEventListener("resize", () => {
+      if (!pagerLive()) return;
+      clearTimeout(rzTimer);
+      rzTimer = setTimeout(() => {
+        const idx = TAB_ORDER.indexOf(currentTab());
+        pager.scrollTo({ left: idx * pager.clientWidth, behavior: "auto" });
+      }, 150);
+    });
+  }
 
-    const end = e => {
-      if (!panel) return;
-      const p = panel; panel = null;
-      p.style.opacity = "";
-      if (axis !== "x") { p.classList.remove("dragging"); return; }
-      const dx = (e.changedTouches[0] || {}).clientX - x0;
-      const threshold = Math.max(COMMIT_MIN, w * COMMIT_FRAC);
-      p.classList.remove("dragging");
-      if (Math.abs(dx) >= threshold && shiftTab(dx < 0 ? 1 : -1)) {
-        return;  // committed — activateTab cleared transform and runs slide-in
-      }
-      // spring back to centre
-      p.style.transition = "transform .2s cubic-bezier(.22,.61,.36,1)";
-      p.style.transform = "translateX(0)";
-      p.addEventListener("transitionend", function back() {
-        p.style.transition = ""; p.style.transform = "";
-        p.removeEventListener("transitionend", back);
-      });
-    };
-    main.addEventListener("touchend", end, { passive: true });
-    main.addEventListener("touchcancel", end, { passive: true });
-  })();
-
-  // Keyboard arrows mirror the swipe (handy on desktop too).
+  // Keyboard arrows mirror the swipe.
   document.addEventListener("keydown", e => {
     if (e.target && /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)) return;
     if (e.key === "ArrowLeft") shiftTab(-1);
     else if (e.key === "ArrowRight") shiftTab(1);
   });
+
+  // back-compat alias (older call sites used activateTab)
+  function activateTab(t) { return goToTab(t); }
 
   // =========================================================
   // Theme detection — for ECharts dark/light
