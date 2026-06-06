@@ -96,40 +96,25 @@
 - **单一来源：`portfolio.json`**，不在此维护副本
 - ticker 列表：`memory/current-portfolio-summary.md`（提高检索命中）
 
-## Promoted From Short-Term Memory (2026-06-05)
+## Promoted From Short-Term Memory (2026-06-07)
 
-<!-- openclaw-memory-promotion:memory:memory/2026-06-01-pre-open.md:10:11 -->
-- Header: 🧭 **Regime**: US risk_on (SPX +0.2%, NDX +0.4%, DJI +0.7% — 美股连续收涨) | HK neutral (HSTECH -0.09% — 恒科横盘震荡) **FX**: USDHKD = 7.8356 (Frankurter, 2026-06-01 00:00 UTC) [score=0.806 recalls=0 avg=0.620 source=memory/2026-06-01-pre-open.md:10-11]
-<!-- openclaw-memory-promotion:memory:memory/2026-06-01-pre-open.md:13:13 -->
-- Header: **Book 总览**: [score=0.806 recalls=0 avg=0.620 source=memory/2026-06-01-pre-open.md:13-13]
-<!-- openclaw-memory-promotion:memory:memory/2026-06-01-pre-open.md:15:18 -->
-- Header: 真实总浮盈亏: USD$349.27 ≈ HKD$2,736.73 (USDHKD = 7.8356, 来源 Frankurter, 抓取于 2026-06-01 00:00 UTC) ├─ HK 段：HKD$-3,321.44 ≈ USD$-423.89 └─ US 段：USD$773.16 ≈ HKD$6,060.62 [score=0.806 recalls=0 avg=0.620 source=memory/2026-06-01-pre-open.md:15-18]
-<!-- openclaw-memory-promotion:memory:memory/2026-06-01-pre-open.md:2:3 -->
-- layout: default title: 盘前深度简报 · 2026-06-01 [score=0.806 recalls=0 avg=0.620 source=memory/2026-06-01-pre-open.md:2-3]
-<!-- openclaw-memory-promotion:memory:memory/2026-06-01-pre-open.md:21:21 -->
-- Header: ⚠️ **宏观/情绪/名人数据 stale ~43h**（周末抓取，周五收盘快照）— 以下引用均标注 stale。 [score=0.806 recalls=0 avg=0.620 source=memory/2026-06-01-pre-open.md:21-21]
-<!-- openclaw-memory-promotion:memory:memory/2026-06-01-pre-open.md:29:32 -->
-- HK 持仓: | 代码 | 股 | 成本 | 现价 | 今日 | 浮% | 浮$ | |---|---|---|---|---|---|---| | 00100 MINIMAX | 60 | 822.83 | 840.0 | +0.36% | +2.09% | +HK$1,030 | | 07226 2x恒科 | 6200 | 4.363 | 3.76 | -0.53% | -13.82% | -HK$3,740 | [score=0.806 recalls=0 avg=0.620 source=memory/2026-06-01-pre-open.md:29-32]
-
-## Promoted From Short-Term Memory (2026-06-06)
-
-<!-- openclaw-memory-promotion:memory:memory/2026-05-31-1239.md:13:13 -->
-- Conversation Summary: **几个关键数字：** [score=0.812 recalls=0 avg=0.620 source=memory/2026-05-31-1239.md:13-13]
-<!-- openclaw-memory-promotion:memory:memory/2026-05-31-1239.md:14:17 -->
-- Conversation Summary: 港股 1月 IPO 发行价 165 HKD → 现在 840 HKD，涨了 **409%**; 市值 2634 亿 HKD（≈2275 亿 RMB）; ARR 超 3 亿美元，全球用户 ~3 亿; 2025 年收入 7903 万美元，70%+ 来自海外，毛利率 25.4% [score=0.812 recalls=0 avg=0.620 source=memory/2026-05-31-1239.md:14-17]
-<!-- openclaw-memory-promotion:memory:memory/2026-05-31-1239.md:3:5 -->
-- Session: 2026-05-31 12:39:08 GMT+8: **Session Key**: agent:main:openclaw-weixin:direct:o9cq80-hgtrum-oss8knmdotlvzi@im.wechat; **Session ID**: 9b8e11d1-86c9-4b72-b99d-d0c521af8821; **Source**: openclaw-weixin [score=0.812 recalls=0 avg=0.620 source=memory/2026-05-31-1239.md:3-5]
-<!-- openclaw-memory-promotion:memory:memory/2026-05-31-1239.md:9:11 -->
-- Conversation Summary: user: 你看看minimax要a股IPO消息 你觉得怎么样 assistant: Let me check the latest news on this. assistant: 消息确认了。5月29日 MiniMax 已经和中信证券签辅导协议，向上交所提交辅导备案。 [score=0.812 recalls=0 avg=0.620 source=memory/2026-05-31-1239.md:9-11]
-<!-- openclaw-memory-promotion:memory:memory/2026-05-31-pre-open.md:10:11 -->
-- 盘前深度简报｜2026-05-31 周日 08:00 HKT: **Regime:** US risk_on（F&G 60.2 greed, VIX 15.3 calm） · HK neutral（HSTECH 4884 横盘, HSI 25182 小涨） **USDHKD = 7.8356** (Frankfurter, 2026-05-31 05:45 UTC) [score=0.812 recalls=0 avg=0.620 source=memory/2026-05-31-pre-open.md:10-11]
-<!-- openclaw-memory-promotion:memory:memory/2026-06-01-1220.md:12:12 -->
-- Conversation Summary: 智谱 (Zhipu AI / Zhipu Qingyan) - this is a Chinese AI company. Let me check if it's publicly listed. [score=0.812 recalls=0 avg=0.620 source=memory/2026-06-01-1220.md:12-12]
-<!-- openclaw-memory-promotion:memory:memory/2026-06-01-1220.md:14:14 -->
-- Conversation Summary: Actually, 智谱 is not publicly listed. It's a private company. But the user might be asking about it in the context of AI stocks or comparing it to MiniMax. [score=0.812 recalls=0 avg=0.620 source=memory/2026-06-01-1220.md:14-14]
-<!-- openclaw-memory-promotion:memory:memory/2026-06-01-1220.md:16:16 -->
-- Conversation Summary: Wait, the user just asked "定时任务呢？" - they're asking about scheduled tasks/cron jobs. Let me re-read the conversation flow. [score=0.812 recalls=0 avg=0.620 source=memory/2026-06-01-1220.md:16-16]
-<!-- openclaw-memory-promotion:memory:memory/2026-06-01-1220.md:3:5 -->
-- Session: 2026-06-01 12:20:44 GMT+8: **Session Key**: agent:main:openclaw-weixin:direct:o9cq80-hgtrum-oss8knmdotlvzi@im.wechat; **Session ID**: d9a86404-5a2d-46c6-abdf-1d66ae8f9468; **Source**: openclaw-weixin [score=0.812 recalls=0 avg=0.620 source=memory/2026-06-01-1220.md:3-5]
-<!-- openclaw-memory-promotion:memory:memory/2026-06-01-1220.md:9:10 -->
-- Conversation Summary: user: 定时任务呢？ assistant: The user is asking about 智谱 (Zhipu AI) - whether it's publicly traded. Let me think about this: [score=0.812 recalls=0 avg=0.620 source=memory/2026-06-01-1220.md:9-10]
+<!-- openclaw-memory-promotion:memory:memory/2026-05-31-1239.md:19:19 -->
+- Conversation Summary: **我的看法：** [score=0.824 recalls=0 avg=0.620 source=memory/2026-05-31-1239.md:19-19]
+<!-- openclaw-memory-promotion:memory:memory/2026-05-31-1239.md:21:21 -->
+- Conversation Summary: **利好逻辑：** [score=0.814 recalls=0 avg=0.620 source=memory/2026-05-31-1239.md:21-21]
+<!-- openclaw-memory-promotion:memory:memory/2026-06-01-1220.md:18:18 -->
+- Conversation Summary: Looking at the conversation: [score=0.814 recalls=0 avg=0.620 source=memory/2026-06-01-1220.md:18-18]
+<!-- openclaw-memory-promotion:memory:memory/2026-06-02-pre-open.md:10:11 -->
+- Header: 🧭 **Regime**: US risk_on (F&G 60.2 greed, VIX 15.3 calm) | HK neutral (HSTECH +1.65%, 4965 支撑确认) **FX**: USDHKD = 7.8371 (Frankfurter, 2026-06-02 00:00 UTC) [score=0.812 recalls=0 avg=0.620 source=memory/2026-06-02-pre-open.md:10-11]
+<!-- openclaw-memory-promotion:memory:memory/2026-06-02-pre-open.md:13:13 -->
+- Header: **Book 总览**: [score=0.812 recalls=0 avg=0.620 source=memory/2026-06-02-pre-open.md:13-13]
+<!-- openclaw-memory-promotion:memory:memory/2026-06-02-pre-open.md:15:18 -->
+- Header: 真实总浮盈亏: USD$-676.76 ≈ HKD$-5,303.81 (USDHKD = 7.8371, 来源 Frankfurter, 抓取于 2026-06-02 00:00 UTC) ├─ HK 段：HKD$-10,244.24 ≈ USD$-1,307.16 └─ US 段：USD$630.39 ≈ HKD$4,940.83 [score=0.812 recalls=0 avg=0.620 source=memory/2026-06-02-pre-open.md:15-18]
+<!-- openclaw-memory-promotion:memory:memory/2026-06-02-pre-open.md:2:3 -->
+- layout: default title: 盘前深度简报 · 2026-06-02 [score=0.812 recalls=0 avg=0.620 source=memory/2026-06-02-pre-open.md:2-3]
+<!-- openclaw-memory-promotion:memory:memory/2026-06-02-pre-open.md:27:30 -->
+- HK 持仓: | 代码 | 股 | 成本 | 现价 | 今日 | 浮% | 浮$ | |---|---|---|---|---|---|---| | 00100 MINIMAX | 60 | 822.83 | 708.0 | -15.71% | -13.96% | -HK$6,890 | | 07226 2x恒科 | 6200 | 4.363 | 3.90 | +3.72% | -10.62% | -HK$2,872 | [score=0.812 recalls=0 avg=0.620 source=memory/2026-06-02-pre-open.md:27-30]
+<!-- openclaw-memory-promotion:memory:memory/2026-06-02-pre-open.md:31:33 -->
+- HK 持仓: | 02208 金风科技 | 400 | 14.084 | 13.79 | +0.58% | -2.09% | -HK$118 | | 03033 南方恒科 | 1000 | 5.14 | 4.866 | +1.71% | -5.33% | -HK$274 | | 03032 恒科ETF | 200 | 5.405 | 4.95 | +1.56% | -8.42% | -HK$91 | [score=0.812 recalls=0 avg=0.620 source=memory/2026-06-02-pre-open.md:31-33]
+<!-- openclaw-memory-promotion:memory:memory/2026-06-02.md:10:13 -->
+- 关键发现: 00100 MINIMAX 单日 -15.71%，穿 780 stop — M3模型发布+科创板上市评估 sell-the-news; 同行商汤+6%、第四范式+5.3%、速腾+7.8% — 板块资金未撤，00100 个股 alpha 在掉; RKLB -14.85%，穿 130 stop — SpaceX IPO 压力; PLTU trim trigger 50 已触发 [score=0.812 recalls=0 avg=0.620 source=memory/2026-06-02.md:10-13]
