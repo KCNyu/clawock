@@ -141,6 +141,15 @@ layout: null
   }
   .tab-btn.active { color: var(--text); border-bottom-color: var(--accent); }
 
+  /* Swipe affordance — only shown on coarse-pointer (touch) devices */
+  .swipe-hint { display: none; }
+  @media (pointer: coarse) {
+    .swipe-hint {
+      display: block; text-align: center; font-size: 10px; letter-spacing: .12em;
+      color: var(--text-faint); padding: 2px 0 4px; user-select: none;
+    }
+  }
+
   /* =========================================================
      Layout — mobile single column, desktop 3-column
      ========================================================= */
@@ -1145,6 +1154,7 @@ layout: null
     <button class="tab-btn" data-tab="plan" role="tab">Plan</button>
     <button class="tab-btn" data-tab="reflect" role="tab">Reflect</button>
   </nav>
+  <div class="swipe-hint">‹ 左右滑动切换 ›</div>
 </header>
 
 <main>
@@ -1625,7 +1635,7 @@ layout: null
         <div class="kpi-cell">
           <div class="lbl">峰值回撤</div>
           <div class="val" id="kpi-maxdd">—</div>
-          <div class="sub muted">all-time from peak</div>
+          <div class="sub" id="kpi-maxdd-sub">all-time from peak</div>
         </div>
       </div>
 
@@ -1773,19 +1783,77 @@ layout: null
   // =========================================================
   // Tab switching (mobile only — desktop shows all panels as columns)
   // =========================================================
-  document.querySelectorAll(".tab-btn").forEach(btn => {
-    btn.addEventListener("click", () => {
-      const t = btn.dataset.tab;
-      document.querySelectorAll(".tab-btn").forEach(b => {
-        b.classList.toggle("active", b === btn);
-        b.setAttribute("aria-selected", b === btn);
-      });
-      document.querySelectorAll(".panel").forEach(p => {
-        p.classList.toggle("active", p.dataset.panel === t);
-      });
-      // resize charts when shown
-      window.dispatchEvent(new Event("resize"));
+  // Tab order follows the button order in the tablist (hero/drill/market/plan/reflect).
+  const TAB_ORDER = Array.from(document.querySelectorAll(".tab-btn")).map(b => b.dataset.tab);
+
+  function activateTab(t) {
+    if (!TAB_ORDER.includes(t)) return;
+    document.querySelectorAll(".tab-btn").forEach(b => {
+      const on = b.dataset.tab === t;
+      b.classList.toggle("active", on);
+      b.setAttribute("aria-selected", on);
     });
+    document.querySelectorAll(".panel").forEach(p => {
+      p.classList.toggle("active", p.dataset.panel === t);
+    });
+    // resize charts when shown
+    window.dispatchEvent(new Event("resize"));
+  }
+
+  function currentTab() {
+    const active = document.querySelector(".tab-btn.active");
+    return active ? active.dataset.tab : TAB_ORDER[0];
+  }
+
+  // step = +1 next / -1 prev; flashes the destination tab button so the swipe
+  // gives visual feedback even when the panel content above the fold looks similar.
+  function shiftTab(step) {
+    const idx = TAB_ORDER.indexOf(currentTab());
+    const next = idx + step;
+    if (next < 0 || next >= TAB_ORDER.length) return;  // no wrap-around at the ends
+    activateTab(TAB_ORDER[next]);
+    const btn = document.querySelector(`.tab-btn[data-tab="${TAB_ORDER[next]}"]`);
+    if (btn) btn.scrollIntoView({ block: "nearest", inline: "center", behavior: "smooth" });
+  }
+
+  document.querySelectorAll(".tab-btn").forEach(btn => {
+    btn.addEventListener("click", () => activateTab(btn.dataset.tab));
+  });
+
+  // ── Mobile: horizontal swipe to switch tabs ──
+  // Only treat as a tab swipe when the gesture is dominantly horizontal (so it
+  // doesn't fight vertical scrolling) and long enough to be intentional.
+  (function enableSwipeTabs() {
+    const main = document.querySelector("main");
+    if (!main) return;
+    let x0 = null, y0 = null, t0 = 0, tracking = false;
+    const H_MIN = 60;     // min px horizontal travel
+    const V_MAX = 50;     // max px vertical travel to still count as horizontal
+    const T_MAX = 800;    // ms — ignore slow drags (likely text selection / scroll)
+
+    main.addEventListener("touchstart", e => {
+      if (e.touches.length !== 1) { tracking = false; return; }
+      const t = e.touches[0];
+      x0 = t.clientX; y0 = t.clientY; t0 = Date.now(); tracking = true;
+    }, { passive: true });
+
+    main.addEventListener("touchend", e => {
+      if (!tracking || x0 == null) return;
+      tracking = false;
+      const t = e.changedTouches[0];
+      const dx = t.clientX - x0, dy = t.clientY - y0, dt = Date.now() - t0;
+      if (dt > T_MAX) return;
+      if (Math.abs(dx) < H_MIN || Math.abs(dy) > V_MAX) return;
+      if (Math.abs(dx) < Math.abs(dy) * 1.5) return;  // must be clearly horizontal
+      shiftTab(dx < 0 ? 1 : -1);   // swipe left → next, swipe right → prev
+    }, { passive: true });
+  })();
+
+  // Keyboard arrows mirror the swipe (handy on desktop too).
+  document.addEventListener("keydown", e => {
+    if (e.target && /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)) return;
+    if (e.key === "ArrowLeft") shiftTab(-1);
+    else if (e.key === "ArrowRight") shiftTab(1);
   });
 
   // =========================================================
@@ -3209,17 +3277,24 @@ layout: null
       if (worst == null || d.pnl < worst.pnl) worst = d;
     });
 
-    // All-time drawdown from running peak (USD-eq book series)
+    // All-time drawdown from running peak (USD-eq book series).
+    // Also capture concrete $ amounts: all-time peak equity + the peak→trough $ drop
+    // that produced the worst drawdown.
     let peak = -Infinity;
     let maxDd = 0;
+    let peakAllTime = -Infinity;   // highest equity ever (USD-eq)
+    let peakAtWorst = null, troughAtWorst = null;  // bracket the deepest DD
     bookUsd.forEach(v => {
       if (v == null) return;
       if (v > peak) peak = v;
+      if (v > peakAllTime) peakAllTime = v;
       if (peak > 0) {
         const dd = (v - peak) / peak * 100;
-        if (dd < maxDd) maxDd = dd;
+        if (dd < maxDd) { maxDd = dd; peakAtWorst = peak; troughAtWorst = v; }
       }
     });
+    const maxDdAbsUsd = (peakAtWorst != null && troughAtWorst != null)
+      ? (peakAtWorst - troughAtWorst) : null;
 
     const setVal = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
     const setClass = (id, c) => {
@@ -3270,6 +3345,12 @@ layout: null
 
     setVal("kpi-maxdd", maxDd < 0 ? fmtPct(maxDd, 1) : (bookUsd.length ? "0.0%" : DASH));
     setClass("kpi-maxdd", maxDd < 0 ? "neg" : "neutral");
+    // sub: concrete $ — peak→trough drop + all-time peak equity
+    if (maxDd < 0 && maxDdAbsUsd != null) {
+      setVal("kpi-maxdd-sub", `−${fmtMoney(maxDdAbsUsd, "USD")} · 峰值 ${fmtMoney(peakAllTime, "USD")}`);
+    } else if (isFinite(peakAllTime)) {
+      setVal("kpi-maxdd-sub", `峰值 ${fmtMoney(peakAllTime, "USD")}`);
+    }
 
     // ── 分市场拆解卡：US / HK 各一张（净本金口径 + 已落袋/浮动构成）──
     const mktCards = document.getElementById("mkt-cards");
