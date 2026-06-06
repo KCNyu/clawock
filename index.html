@@ -3698,6 +3698,8 @@ layout: null
           type: "value", name: isMobile ? "" : "USD",
           nameTextStyle: { color: chartTextColor(), fontSize: 9 },
           scale: true,
+          // 恒科200线触发位 ≈ 基准组合 ×1.13，高于总资产顶 → 不抬高轴上限会被裁掉看不见。
+          max: (triggerUsd != null) ? (v) => Math.max(v.max, triggerUsd) * 1.03 : undefined,
           axisLine: { lineStyle: { color: chartGridColor() } },
           splitLine: { lineStyle: { color: chartGridColor() } },
           axisLabel: { color: chartTextColor(), fontSize: 9,
