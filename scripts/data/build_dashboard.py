@@ -1123,18 +1123,74 @@ def compute_plan_timeline(plans, limit=15):
         return []
 
 
-def compute_drawdown(snapshots):
-    """30-day rolling drawdown per region.
+def _series_extremes(series):
+    """series = list of (date, value). Returns all-time peak / trough and the
+    worst peak-to-trough drawdown (with the dates that bracket it).
 
-    `max_pct_30d_*` = most negative ((value_i - peak_so_far) / peak_so_far) across
-    the last min(len, 30) snapshots — i.e. worst peak-to-trough retracement in window.
-    `current_pct_*` = (today - 30d-ago) / 30d-ago * 100  (uses min(29, len-1) offset).
+    `current` is the last point; `current_dd_pct` is its retracement from the
+    running peak; `at_low` flags that today IS the lowest point in the series.
+    """
+    pts = [(d, float(v)) for d, v in series if v is not None]
+    if not pts:
+        return None
+    peak = pts[0][1]
+    peak_date = pts[0][0]
+    dd_peak_date = peak_date          # peak that precedes the worst trough
+    worst = 0.0
+    worst_trough_date = pts[0][0]
+    worst_peak_date = pts[0][0]
+    for d, v in pts:
+        if v > peak:
+            peak = v
+            peak_date = d
+        if peak > 0:
+            dd = (v - peak) / peak * 100
+            if dd < worst:
+                worst = dd
+                worst_trough_date = d
+                worst_peak_date = peak_date
+    hi = max(pts, key=lambda x: x[1])
+    lo = min(pts, key=lambda x: x[1])
+    cur_date, cur = pts[-1]
+    cur_dd = round((cur - peak) / peak * 100, 2) if peak > 0 else None
+    peak_at_worst = next((v for d, v in pts if d == worst_peak_date), None)
+    trough_at_worst = next((v for d, v in pts if d == worst_trough_date), None)
+    max_dd_abs = (round(peak_at_worst - trough_at_worst, 2)
+                  if peak_at_worst is not None and trough_at_worst is not None else None)
+    return {
+        'peak': {'value': round(hi[1], 2), 'date': hi[0]},
+        'trough': {'value': round(lo[1], 2), 'date': lo[0]},
+        'current': {'value': round(cur, 2), 'date': cur_date},
+        'current_dd_pct': cur_dd,           # retracement of today from running peak
+        'max_dd_pct': round(worst, 2),
+        'max_dd_abs': max_dd_abs,
+        'max_dd_peak_date': worst_peak_date,
+        'max_dd_trough_date': worst_trough_date,
+        'at_low': abs(cur - lo[1]) < 1e-6,  # today == all-time low in window
+    }
+
+
+def compute_drawdown(snapshots, fx_rate=None):
+    """All-time peak / trough / max-drawdown per region AND combined.
+
+    Basis = equity (market value + cumulative realized) so selling a position
+    doesn't masquerade as a drawdown. Combined series folds US→HKD at the
+    current fx_rate (HKD peg barely moves, so a constant rate is fine).
+
+    Legacy keys kept for back-compat:
+      `max_pct_30d_*` = worst peak-to-trough retracement over the window.
+      `current_pct_*` = (today - 30d-ago) / 30d-ago * 100.
+    New keys: `us` / `hk` / `combined` → see `_series_extremes`.
     """
     empty = {
         'max_pct_30d_hk': None,
         'max_pct_30d_us': None,
         'current_pct_hk': None,
         'current_pct_us': None,
+        'us': None,
+        'hk': None,
+        'combined': None,
+        'basis': 'equity (market value + realized)',
     }
     try:
         if not snapshots:
@@ -1180,11 +1236,38 @@ def compute_drawdown(snapshots):
                 return None
             return round((t - b) / abs(b) * 100, 2)
 
+        # All-time extremes (over every embedded snapshot, not just the 30d window).
+        us_series = [(s.get('date'), s.get('us_equity')) for s in snapshots]
+        hk_series = [(s.get('date'), s.get('hk_equity')) for s in snapshots]
+        combined = None
+        if fx_rate and fx_rate > 0:
+            comb_series = []
+            for s in snapshots:
+                ue, he = s.get('us_equity'), s.get('hk_equity')
+                if ue is None or he is None:
+                    continue
+                comb_series.append((s.get('date'), ue * fx_rate + he))
+            combined = _series_extremes(comb_series)
+            if combined:
+                combined['currency'] = 'HKD'
+                combined['fx_usdhkd'] = round(fx_rate, 4)
+
+        us_ext = _series_extremes(us_series)
+        if us_ext:
+            us_ext['currency'] = 'USD'
+        hk_ext = _series_extremes(hk_series)
+        if hk_ext:
+            hk_ext['currency'] = 'HKD'
+
         return {
             'max_pct_30d_hk': max_drawdown_pct('hk_equity'),
             'max_pct_30d_us': max_drawdown_pct('us_equity'),
             'current_pct_hk': current_pct('hk_equity'),
             'current_pct_us': current_pct('us_equity'),
+            'us': us_ext,
+            'hk': hk_ext,
+            'combined': combined,
+            'basis': 'equity (market value + realized)',
         }
     except Exception as e:
         print(f'  warn: compute_drawdown failed: {e}', file=sys.stderr)
@@ -1613,9 +1696,9 @@ def main():
     out['recent_plan_actions'] = recent_actions_from_csv(limit=20)
     out['plan_timeline'] = compute_plan_timeline(plans, limit=15)
     out['weight_confidence'] = compute_weight_confidence(portfolio)
-    out['drawdown'] = compute_drawdown(snapshots)
     # v2.1: broker-style analytics
     fx_rate = (out.get('fx') or {}).get('usdhkd')
+    out['drawdown'] = compute_drawdown(snapshots, fx_rate)
     out['sector_exposure'] = compute_sector_exposure(portfolio)
     out['leveraged_etf'] = compute_leveraged_etf_exposure(portfolio, fx_rate)
     # Tier 2: pull pre-computed risk metrics (from portfolio_risk_metrics.py)

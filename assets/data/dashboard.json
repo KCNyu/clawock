@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-05T20:02:13.362952Z",
+  "generated_at": "2026-06-06T05:02:34.008874Z",
   "last_updated": "2026/06/06 04:00 HKT",
   "fx": {
     "usdhkd": 7.8338,
@@ -1991,7 +1991,72 @@
     "max_pct_30d_hk": -19.59,
     "max_pct_30d_us": -16.38,
     "current_pct_hk": -17.38,
-    "current_pct_us": -6.83
+    "current_pct_us": -6.83,
+    "us": {
+      "peak": {
+        "value": 4775.99,
+        "date": "2026-05-29"
+      },
+      "trough": {
+        "value": 3673.3,
+        "date": "2026-05-21"
+      },
+      "current": {
+        "value": 3993.64,
+        "date": "2026-06-05"
+      },
+      "current_dd_pct": -16.38,
+      "max_dd_pct": -16.38,
+      "max_dd_abs": 782.35,
+      "max_dd_peak_date": "2026-05-29",
+      "max_dd_trough_date": "2026-06-05",
+      "at_low": false,
+      "currency": "USD"
+    },
+    "hk": {
+      "peak": {
+        "value": 93086.76,
+        "date": "2026-05-27"
+      },
+      "trough": {
+        "value": 74853.56,
+        "date": "2026-06-05"
+      },
+      "current": {
+        "value": 74853.56,
+        "date": "2026-06-05"
+      },
+      "current_dd_pct": -19.59,
+      "max_dd_pct": -19.59,
+      "max_dd_abs": 18233.2,
+      "max_dd_peak_date": "2026-05-27",
+      "max_dd_trough_date": "2026-06-05",
+      "at_low": true,
+      "currency": "HKD"
+    },
+    "combined": {
+      "peak": {
+        "value": 129628.11,
+        "date": "2026-05-29"
+      },
+      "trough": {
+        "value": 106138.94,
+        "date": "2026-06-05"
+      },
+      "current": {
+        "value": 106138.94,
+        "date": "2026-06-05"
+      },
+      "current_dd_pct": -18.12,
+      "max_dd_pct": -18.12,
+      "max_dd_abs": 23489.17,
+      "max_dd_peak_date": "2026-05-29",
+      "max_dd_trough_date": "2026-06-05",
+      "at_low": true,
+      "currency": "HKD",
+      "fx_usdhkd": 7.8338
+    },
+    "basis": "equity (market value + realized)"
   },
   "sector_exposure": {
     "us": [

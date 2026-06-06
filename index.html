@@ -944,6 +944,32 @@ layout: null
     margin-top: 6px; font-size: 11px; color: var(--text-dim);
   }
 
+  /* 历史净值极值 (peak / trough / max drawdown) */
+  .ext-grid { display: grid; grid-template-columns: minmax(0,1fr); gap: 14px; }
+  @media (min-width: 720px) { .ext-grid { grid-template-columns: repeat(3, minmax(0,1fr)); } }
+  .ext-region {
+    background: var(--card-2, var(--card)); border: 1px solid var(--border);
+    border-left: 3px solid var(--border); border-radius: 8px; padding: 12px 14px;
+  }
+  .ext-region.is-low { border-left-color: var(--red); }
+  .ext-region .ext-head {
+    display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 10px;
+  }
+  .ext-region .ext-name { font-size: 13px; font-weight: 700; letter-spacing: .04em; }
+  .ext-region .ext-flag { font-size: 10px; font-weight: 700; padding: 1px 7px; border-radius: 10px; }
+  .ext-region .ext-flag.low { background: rgba(229,72,77,.16); color: var(--red); }
+  .ext-region .ext-flag.ok  { background: rgba(48,164,108,.16); color: var(--green); }
+  .ext-row { display: flex; justify-content: space-between; align-items: baseline; padding: 4px 0; }
+  .ext-row .k { font-size: 11px; color: var(--text-faint); }
+  .ext-row .v { font-size: 15px; font-weight: 700; font-family: var(--mono); }
+  .ext-row .v.neg { color: var(--red); }
+  .ext-row .v small { font-size: 10px; color: var(--text-faint); font-weight: 500; margin-left: 5px; font-family: inherit; }
+  .ext-region .ext-dd {
+    margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--border);
+  }
+  .ext-region .ext-dd .v { font-size: 20px; color: var(--red); }
+  .ext-region .ext-dd .span { font-size: 10px; color: var(--text-dim); margin-top: 3px; }
+
   /* 8d Return Heatmap (Drill) */
   .ret-heatmap {
     display: grid; gap: 6px;
@@ -1639,6 +1665,16 @@ layout: null
     </div>
 
     <div class="card">
+      <h3>历史净值极值 <span class="muted" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:11px">(峰值 / 谷底 / 最大回撤)</span></h3>
+      <p class="chart-hint">口径 = <b>equity（持仓市值 + 累计已实现）</b>，卖出不再造成假回撤。<b>历史最高/最低</b> = 有快照以来的净值峰值与谷底；<b>最大回撤</b> = 从某个峰值到其后最深谷底的跌幅（含发生区间与金额）。<span id="extremes-window" class="muted"></span></p>
+      <div class="ext-grid" id="ext-grid">
+        <div class="ext-region" id="ext-region-combined"></div>
+        <div class="ext-region" id="ext-region-us"></div>
+        <div class="ext-region" id="ext-region-hk"></div>
+      </div>
+    </div>
+
+    <div class="card">
       <h3>Equity Curve · USD-eq</h3>
       <p class="chart-hint">蓝实线 = 日终总资产 USD-eq（持仓市值 + 已实现现金）；灰虚线 = 累计成本基础；<b>紫线 = SPY 等值</b>（"当初同等美元 all-in SPY 到今天的账面"，非美股交易日延用前值）；红色填充 = 历史峰值回撤（按总资产口径，卖出不再造成假回撤）。<br>读法：蓝线在紫线上方 = 跑赢大盘；红色越深 = 回撤越大。</p>
       <div id="chart-equity" class="chart-box"></div>
@@ -2069,6 +2105,7 @@ layout: null
     renderWeightConfidence();
     renderReflectKpi();
     renderDrawdownRecovery();
+    renderHistoricalExtremes();
     renderSectorChart();
     renderPlanTimeline();
     renderEquityChart();
@@ -4120,6 +4157,53 @@ layout: null
         card.classList.add(`recovery-${tier}`);
       }
       setT("status", statusTxt);
+    });
+  }
+
+  // =========================================================
+  // 历史净值极值 — peak / trough / max drawdown (equity basis)
+  // =========================================================
+  function renderHistoricalExtremes() {
+    const dd = safe(DATA, "drawdown") || {};
+    const regions = [
+      { key: "combined", name: "合计 (HKD)", data: dd.combined },
+      { key: "us", name: "美股 (USD)", data: dd.us },
+      { key: "hk", name: "港股 (HKD)", data: dd.hk },
+    ];
+    // window hint: span of the embedded snapshot series
+    const snaps = safe(DATA, "snapshots") || [];
+    const hintEl = document.getElementById("extremes-window");
+    if (hintEl && snaps.length) {
+      hintEl.textContent = `样本窗口 ${snaps[0].date} → ${snaps[snaps.length-1].date}（共 ${snaps.length} 个交易日快照）。`;
+    }
+
+    const money = (v, cur) => {
+      if (v == null || !isFinite(v)) return DASH;
+      const sym = cur === "USD" ? "$" : "HK$";
+      return sym + Math.round(v).toLocaleString("en-US");
+    };
+    const dstr = d => d ? d.slice(5) : "";  // MM-DD
+
+    regions.forEach(r => {
+      const el = document.getElementById(`ext-region-${r.key}`);
+      if (!el) return;
+      const e = r.data;
+      if (!e) { el.innerHTML = `<div class="ext-name">${r.name}</div><div class="muted" style="margin-top:8px">无数据</div>`; return; }
+      const cur = e.currency;
+      const atLow = !!e.at_low;
+      el.classList.toggle("is-low", atLow);
+      el.innerHTML = `
+        <div class="ext-head">
+          <span class="ext-name">${r.name}</span>
+          <span class="ext-flag ${atLow ? "low" : "ok"}">${atLow ? "● 现处历史最低" : "未创新低"}</span>
+        </div>
+        <div class="ext-row"><span class="k">历史最高</span><span class="v">${money(e.peak && e.peak.value, cur)}<small>${dstr(e.peak && e.peak.date)}</small></span></div>
+        <div class="ext-row"><span class="k">历史最低</span><span class="v">${money(e.trough && e.trough.value, cur)}<small>${dstr(e.trough && e.trough.date)}</small></span></div>
+        <div class="ext-row"><span class="k">当前</span><span class="v ${atLow ? "neg" : ""}">${money(e.current && e.current.value, cur)}<small>${dstr(e.current && e.current.date)}</small></span></div>
+        <div class="ext-dd">
+          <div class="ext-row"><span class="k">最大回撤</span><span class="v">${e.max_dd_pct != null ? e.max_dd_pct.toFixed(1) + "%" : DASH}<small>${money(e.max_dd_abs, cur)}</small></span></div>
+          <div class="span">峰值 ${dstr(e.max_dd_peak_date)} → 谷底 ${dstr(e.max_dd_trough_date)}</div>
+        </div>`;
     });
   }
 
