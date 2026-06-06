@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-06T08:16:46.427230Z",
+  "generated_at": "2026-06-06T08:37:34.580069Z",
   "last_updated": "2026/06/06 04:00 HKT",
   "fx": {
     "usdhkd": 7.8338,
@@ -2229,7 +2229,7 @@
     }
   },
   "lev_regime": {
-    "generated_at": "2026-06-06T08:15:32.895991+00:00",
+    "generated_at": "2026-06-06T08:35:39.142714+00:00",
     "as_of": "2026-06-05",
     "index": "HSTECH",
     "source": "tencent",
@@ -2246,7 +2246,66 @@
     "tier": "amber",
     "lev_cap_mult": 0.5,
     "label": "趋势OFF：杠杆敞口上限砍半",
-    "rationale": "HSTECH 4888 低于 200日线 5494 (-11.0%)；20日波动 29% < 50% 上限。→ 杠杆ETF腿上限 ×0.5（amber）"
+    "rationale": "HSTECH 4888 低于 200日线 5494 (-11.0%)；20日波动 29% < 50% 上限。→ HK 杠杆ETF腿上限 ×0.5（amber）",
+    "hk": {
+      "tier": "amber",
+      "lev_cap_mult": 0.5,
+      "label": "趋势OFF：杠杆敞口上限砍半",
+      "close": 4888.39,
+      "ma": 5494.17,
+      "dist_ma_pct": -11.0,
+      "vol_annualized": 0.2859,
+      "trend_on": false,
+      "vol_ok": true
+    },
+    "us": {
+      "names": [
+        {
+          "etf": "PLTU",
+          "underlying": "PLTR",
+          "close": 135.53,
+          "ma": 161.07,
+          "ma_window": 200,
+          "dist_ma_pct": -15.9,
+          "vol_annualized": 0.6187,
+          "vol_hot_cap": 0.7,
+          "trend_on": false,
+          "vol_hot": false,
+          "state": "watch"
+        },
+        {
+          "etf": "ROBN",
+          "underlying": "HOOD",
+          "close": 82.47,
+          "ma": 103.29,
+          "ma_window": 200,
+          "dist_ma_pct": -20.2,
+          "vol_annualized": 0.826,
+          "vol_hot_cap": 0.7,
+          "trend_on": false,
+          "vol_hot": true,
+          "state": "cut"
+        },
+        {
+          "etf": "MSFU",
+          "underlying": "MSFT",
+          "close": 416.67,
+          "ma": 456.38,
+          "ma_window": 200,
+          "dist_ma_pct": -8.7,
+          "vol_annualized": 0.3642,
+          "vol_hot_cap": 0.7,
+          "trend_on": false,
+          "vol_hot": false,
+          "state": "watch"
+        }
+      ],
+      "tier": "red",
+      "label": "1 只趋势off+波动过热 → 该名降杠杆",
+      "vol_hot_cap": 0.7,
+      "cut_count": 1,
+      "watch_count": 2
+    }
   },
   "risk_guardrail": {
     "caps": {
@@ -2278,7 +2337,7 @@
         "leg": "HK",
         "ticker": null,
         "severity": "high",
-        "detail": "HK 杠杆 ETF = 34.6% (cap 25%) — 2x 日内重置，下杀崩/震荡衰减（🧭制度 amber：基准 50% ×0.5 → 25%，趋势OFF：杠杆敞口上限砍半）",
+        "detail": "HK 杠杆 ETF = 34.6% (cap 25%) — 2x 日内重置，下杀崩/震荡衰减（🧭HK制度 amber：基准 50% ×0.5 → 25%，趋势OFF：杠杆敞口上限砍半）",
         "action": "把 HK 杠杆 ETF 敞口降到 ≤25% (减约 6463.0 HKD)"
       },
       {
@@ -2286,8 +2345,16 @@
         "leg": "US",
         "ticker": null,
         "severity": "high",
-        "detail": "US 杠杆 ETF = 72.9% (cap 25%) — 2x 日内重置，下杀崩/震荡衰减（🧭制度 amber：基准 50% ×0.5 → 25%，趋势OFF：杠杆敞口上限砍半）",
-        "action": "把 US 杠杆 ETF 敞口降到 ≤25% (减约 1254.51 USD)"
+        "detail": "US 杠杆 ETF = 72.9% (cap 50%) — 2x 日内重置，下杀崩/震荡衰减",
+        "action": "把 US 杠杆 ETF 敞口降到 ≤50% (减约 599.32 USD)"
+      },
+      {
+        "type": "regime_delever",
+        "leg": "US",
+        "ticker": "ROBN",
+        "severity": "high",
+        "detail": "🧭 ROBN=2xHOOD 标的破200线 (-20.2%)+波动 83% 过热 → 杠杆制度 red",
+        "action": "ROBN 降杠杆/减仓(driven_by=technical,规则非择时)：标的趋势off 且波动>70%，2x 日内重置在下杀里放大衰减"
       },
       {
         "type": "beta",
@@ -2299,10 +2366,10 @@
       }
     ],
     "hard_stop_watch": [],
-    "breach_count": 5,
-    "directive": "⛔ 5 仓位硬闸 + 0 杠杆止损触发。每条必须在 Judge 段出一个对应动作(driven_by=technical,纪律性再平衡,不算听消息、不受 risk_on HOLD 默认约束)；其余主动 call 仍按 regime guard。",
+    "breach_count": 6,
+    "directive": "⛔ 6 仓位硬闸 + 0 杠杆止损触发。每条必须在 Judge 段出一个对应动作(driven_by=technical,纪律性再平衡,不算听消息、不受 risk_on HOLD 默认约束)；其余主动 call 仍按 regime guard。",
     "lev_regime": {
-      "generated_at": "2026-06-06T08:15:32.895991+00:00",
+      "generated_at": "2026-06-06T08:35:39.142714+00:00",
       "as_of": "2026-06-05",
       "index": "HSTECH",
       "source": "tencent",
@@ -2319,9 +2386,71 @@
       "tier": "amber",
       "lev_cap_mult": 0.5,
       "label": "趋势OFF：杠杆敞口上限砍半",
-      "rationale": "HSTECH 4888 低于 200日线 5494 (-11.0%)；20日波动 29% < 50% 上限。→ 杠杆ETF腿上限 ×0.5（amber）"
+      "rationale": "HSTECH 4888 低于 200日线 5494 (-11.0%)；20日波动 29% < 50% 上限。→ HK 杠杆ETF腿上限 ×0.5（amber）",
+      "hk": {
+        "tier": "amber",
+        "lev_cap_mult": 0.5,
+        "label": "趋势OFF：杠杆敞口上限砍半",
+        "close": 4888.39,
+        "ma": 5494.17,
+        "dist_ma_pct": -11.0,
+        "vol_annualized": 0.2859,
+        "trend_on": false,
+        "vol_ok": true
+      },
+      "us": {
+        "names": [
+          {
+            "etf": "PLTU",
+            "underlying": "PLTR",
+            "close": 135.53,
+            "ma": 161.07,
+            "ma_window": 200,
+            "dist_ma_pct": -15.9,
+            "vol_annualized": 0.6187,
+            "vol_hot_cap": 0.7,
+            "trend_on": false,
+            "vol_hot": false,
+            "state": "watch"
+          },
+          {
+            "etf": "ROBN",
+            "underlying": "HOOD",
+            "close": 82.47,
+            "ma": 103.29,
+            "ma_window": 200,
+            "dist_ma_pct": -20.2,
+            "vol_annualized": 0.826,
+            "vol_hot_cap": 0.7,
+            "trend_on": false,
+            "vol_hot": true,
+            "state": "cut"
+          },
+          {
+            "etf": "MSFU",
+            "underlying": "MSFT",
+            "close": 416.67,
+            "ma": 456.38,
+            "ma_window": 200,
+            "dist_ma_pct": -8.7,
+            "vol_annualized": 0.3642,
+            "vol_hot_cap": 0.7,
+            "trend_on": false,
+            "vol_hot": false,
+            "state": "watch"
+          }
+        ],
+        "tier": "red",
+        "label": "1 只趋势off+波动过热 → 该名降杠杆",
+        "vol_hot_cap": 0.7,
+        "cut_count": 1,
+        "watch_count": 2
+      }
     },
-    "eff_lev_cap": 25
+    "eff_lev_caps": {
+      "HK": 25,
+      "US": 50
+    }
   },
   "catalysts": {
     "generated_at": "2026-05-30T01:32:39.692845+08:00",

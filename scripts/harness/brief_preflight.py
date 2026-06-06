@@ -170,11 +170,12 @@ def compute_risk_guardrail(hk_holdings, us_holdings, hk_conc, us_conc, risk, lev
     that mattered in the 2021-22 crash was leverage (2x→1x→cash), not timing."""
     caps = GUARDRAIL_CAPS
     breaches, hard_stops = [], []
-    # Effective leveraged-ETF leg cap = base × regime multiplier (1.0 if no regime).
-    lev_mult = 1.0
+    # Leveraged-ETF leg cap is tightened PER LEG: the HK leg by the HSTECH dial
+    # (lev_regime top-level / hk), the US leg by its own per-name dial (not HSTECH).
+    hk_mult = 1.0
     if isinstance(lev_regime, dict) and isinstance(lev_regime.get('lev_cap_mult'), (int, float)):
-        lev_mult = lev_regime['lev_cap_mult']
-    eff_lev_cap = round(caps['lev_etf_leg_pct'] * lev_mult)
+        hk_mult = lev_regime['lev_cap_mult']
+    eff_caps = {}
 
     for leg, conc, hold in (('HK', hk_conc, hk_holdings), ('US', us_conc, us_holdings)):
         if not conc or not conc.get('weights'):
@@ -206,13 +207,19 @@ def compute_risk_guardrail(hk_holdings, us_holdings, hk_conc, us_conc, risk, lev
         # is_leveraged_etf flag (which concentration weights mirror and is often unset)
         lev_val = sum(h.get('current_value', h.get('cost_basis', 0) * h.get('shares', 0))
                       for h in hold if h.get('shares', 0) > 0 and _is_leveraged_etf(h))
+        # HK leg cap tightened by HSTECH dial; US leg stays at base (its risk is handled
+        # per-name below — verified: a single US index mult over-cuts calm names like MSFT).
+        leg_mult = hk_mult if leg == 'HK' else 1.0
+        eff_lev_cap = round(caps['lev_etf_leg_pct'] * leg_mult)
+        eff_caps[leg] = eff_lev_cap
         lev_pct = round(lev_val / total * 100, 1) if total else 0
         if lev_pct > eff_lev_cap and total:
             trim_val = round(lev_val - eff_lev_cap / 100 * total, 2)
             tightened = eff_lev_cap < caps['lev_etf_leg_pct']
-            regime_note = (f"（🧭制度 {lev_regime.get('tier')}：基准 {caps['lev_etf_leg_pct']}% ×"
-                           f"{lev_mult:g} → {eff_lev_cap}%，{lev_regime.get('label','')}）"
-                           if tightened and isinstance(lev_regime, dict) else '')
+            hk_tier = (lev_regime.get('hk') or lev_regime).get('tier') if isinstance(lev_regime, dict) else None
+            regime_note = (f"（🧭HK制度 {hk_tier}：基准 {caps['lev_etf_leg_pct']}% ×"
+                           f"{leg_mult:g} → {eff_lev_cap}%，{(lev_regime.get('hk') or lev_regime).get('label','')}）"
+                           if tightened and leg == 'HK' and isinstance(lev_regime, dict) else '')
             breaches.append({
                 'type': 'leveraged_exposure', 'leg': leg, 'ticker': None, 'severity': 'high',
                 'detail': f"{leg} 杠杆 ETF = {lev_pct}% (cap {eff_lev_cap}%) — 2x 日内重置，下杀崩/震荡衰减{regime_note}",
@@ -229,6 +236,22 @@ def compute_risk_guardrail(hk_holdings, us_holdings, hk_conc, us_conc, risk, lev
                     'ticker': h['ticker'], 'leg': leg, 'pnl_pct': pnl,
                     'detail': f"{h['ticker']} 浮亏 {pnl}% ≤ 硬止损线 {caps['lev_etf_stop_pct']}%",
                     'action': f"{h['ticker']} 触发杠杆 ETF 硬止损 → 下一个可接受 bid cut (规则非择时)",
+                })
+
+    # US per-name leverage dial (lev_regime['us']) — only the 'cut' state (underlying
+    # trend-off AND vol hot) becomes a forced directive; 'watch' (calm) stays advisory.
+    us_reg = (lev_regime or {}).get('us') if isinstance(lev_regime, dict) else None
+    if isinstance(us_reg, dict):
+        held_us = {h.get('ticker') for h in us_holdings if h.get('shares', 0) > 0}
+        for nm in us_reg.get('names', []):
+            if nm.get('state') == 'cut' and nm.get('etf') in held_us:
+                vol_pct = (nm.get('vol_annualized') or 0) * 100
+                breaches.append({
+                    'type': 'regime_delever', 'leg': 'US', 'ticker': nm['etf'], 'severity': 'high',
+                    'detail': (f"🧭 {nm['etf']}=2x{nm['underlying']} 标的破200线 "
+                               f"({nm.get('dist_ma_pct')}%)+波动 {vol_pct:.0f}% 过热 → 杠杆制度 red"),
+                    'action': (f"{nm['etf']} 降杠杆/减仓(driven_by=technical,规则非择时)：标的趋势off "
+                               f"且波动>{int(nm.get('vol_hot_cap',0.7)*100)}%，2x 日内重置在下杀里放大衰减"),
                 })
 
     # portfolio-level β from risk.json
@@ -250,7 +273,7 @@ def compute_risk_guardrail(hk_holdings, us_holdings, hk_conc, us_conc, risk, lev
 
     return {'caps': caps, 'breaches': breaches, 'hard_stop_watch': hard_stops,
             'breach_count': n, 'directive': directive,
-            'lev_regime': lev_regime, 'eff_lev_cap': eff_lev_cap}
+            'lev_regime': lev_regime, 'eff_lev_caps': eff_caps}
 
 
 def find_prior_plan(today_iso):

@@ -1392,12 +1392,15 @@ layout: null
     </div>
 
     <div class="card" id="lev-regime-card" style="display:none">
-      <h3>🧭 杠杆刻度盘 <span class="muted" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:11px">HSTECH 趋势 + 波动 → 杠杆ETF上限</span></h3>
-      <div class="regime-badge" id="lev-regime-badge" style="margin-bottom:8px">
+      <h3>🧭 杠杆刻度盘 <span class="muted" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:11px">趋势 + 波动 → 杠杆ETF上限</span></h3>
+      <div class="muted" style="font-size:10px;margin-bottom:3px;opacity:0.8">HK · HSTECH 指数级</div>
+      <div class="regime-badge" id="lev-regime-badge" style="margin-bottom:6px">
         <span class="rg-dot"></span><span class="rg-label" id="lev-regime-label"></span>
         <span class="rg-reasons" id="lev-regime-cap"></span>
       </div>
       <div class="muted" id="lev-regime-rationale" style="font-size:12px;line-height:1.5"></div>
+      <div class="muted" style="font-size:10px;margin:8px 0 3px;opacity:0.8">US · 2x 单股 per-name（趋势off且波动过热才砍）</div>
+      <div class="risk-alerts" id="lev-regime-us"></div>
       <div class="muted" id="lev-regime-asof" style="font-size:10px;margin-top:6px;opacity:0.7"></div>
     </div>
 
@@ -3093,7 +3096,7 @@ layout: null
     countEl.textContent = n ? `${n} 触发` : '✅ 无';
     countEl.style.color = n ? 'var(--neg, #ef4444)' : 'var(--pos, #22c55e)';
     if (dirEl) dirEl.textContent = g.directive || '';
-    const ICON = { single_name: '🎯', factor_concentration: '🧬', leveraged_exposure: '⚡', beta: '📈' };
+    const ICON = { single_name: '🎯', factor_concentration: '🧬', leveraged_exposure: '⚡', beta: '📈', regime_delever: '🧭' };
     const row = (icon, sev, detail, action) =>
       `<div class="risk-alert ${sev || 'high'}">
          <span class="icon">${icon}</span>
@@ -3111,14 +3114,28 @@ layout: null
     if (!r || !r.tier) { card.style.display = 'none'; return; }
     card.style.display = '';
     const TIER = { green: '满杠杆制度', amber: '半杠杆制度', red: '清杠杆制度' };
+    const hk = r.hk || r;   // top-level mirrors HK for backward compat
     const badge = document.getElementById('lev-regime-badge');
-    badge.className = 'regime-badge ' + r.tier;
-    document.getElementById('lev-regime-label').textContent = TIER[r.tier] || r.tier;
-    const mult = (r.lev_cap_mult == null) ? '' : `杠杆ETF腿上限 ×${r.lev_cap_mult}`;
-    document.getElementById('lev-regime-cap').textContent = mult;
-    document.getElementById('lev-regime-rationale').textContent = r.rationale || r.label || '';
+    badge.className = 'regime-badge ' + hk.tier;
+    document.getElementById('lev-regime-label').textContent = TIER[hk.tier] || hk.tier;
+    document.getElementById('lev-regime-cap').textContent =
+      (hk.lev_cap_mult == null) ? '' : `杠杆ETF腿上限 ×${hk.lev_cap_mult}`;
+    document.getElementById('lev-regime-rationale').textContent = r.rationale || hk.label || '';
+    // US per-name rows
+    const STATE = { cut: ['red', '⛔ 砍杠杆'], watch: ['warn-text', '👀 观察'], ok: ['neutral', '✅ 趋势ON'], unknown: ['neutral', '—'] };
+    const us = r.us || {};
+    const usEl = document.getElementById('lev-regime-us');
+    const rows = (us.names || []).map(n => {
+      const [cls, tag] = STATE[n.state] || STATE.unknown;
+      const sev = n.state === 'cut' ? 'high' : (n.state === 'watch' ? 'medium' : 'low');
+      const vol = n.vol_annualized != null ? (n.vol_annualized*100).toFixed(0)+'%' : '—';
+      return `<div class="risk-alert ${sev}"><span class="icon">🧭</span>
+        <div><strong>${n.etf}=2x ${n.underlying} <span class="${cls}">${tag}</span></strong>
+        <div class="muted" style="font-size:11px;margin-top:2px">距200线 ${n.dist_ma_pct ?? '—'}% · 20日波动 ${vol}${n.vol_hot ? ' 🔥' : ''}</div></div></div>`;
+    }).join('');
+    usEl.innerHTML = rows || '<div class="muted" style="font-size:12px">无持仓 2x 单股 ETF</div>';
     document.getElementById('lev-regime-asof').textContent =
-      `HSTECH ${r.as_of || ''} · ${r.bars || '?'} 日线 · 200日线 ${r.ma ?? '?'} · 20日波动 ${r.vol_annualized != null ? (r.vol_annualized*100).toFixed(0)+'%' : '?'}`;
+      `HSTECH ${r.as_of || ''} · 200日线 ${hk.ma ?? '?'} · HK波动 ${hk.vol_annualized != null ? (hk.vol_annualized*100).toFixed(0)+'%' : '?'} · US砍线 ${us.vol_hot_cap != null ? (us.vol_hot_cap*100).toFixed(0)+'%' : '?'}`;
   }
 
   function renderLeveragedETF() {
