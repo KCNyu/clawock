@@ -1755,7 +1755,7 @@ layout: null
 
     <div class="card">
       <h3>Equity Curve · USD-eq</h3>
-      <p class="chart-hint">蓝实线 = 日终总资产 USD-eq（持仓市值 + 已实现现金）；灰虚线 = 累计成本基础；<b>紫线 = SPY 等值</b>（"当初同等美元 all-in SPY 到今天的账面"，非美股交易日延用前值）；红色填充 = 历史峰值回撤（按总资产口径，卖出不再造成假回撤）。<br>读法：蓝线在紫线上方 = 跑赢大盘；红色越深 = 回撤越大。</p>
+      <p class="chart-hint">蓝实线 = 日终总资产 USD-eq（持仓市值 + 已实现现金）；灰虚线 = 累计成本基础；<b>紫线 = SPY 等值</b>（"当初同等美元 all-in SPY 到今天的账面"，非美股交易日延用前值）；<b style="color:#f59e0b">橙线 = 恒科等值</b> + <b style="color:#f59e0b">橙虚线 = 恒科200日线触发位</b>（橙线涨到虚线 = 恒科站回200线 → 杠杆刻度盘放回杠杆）；红色填充 = 历史峰值回撤。<br>读法：蓝线在紫线上方 = 跑赢大盘；橙线离橙虚线还差多少 = 距离重新加杠杆还差多少。</p>
       <div id="chart-equity" class="chart-box"></div>
     </div>
 
@@ -3609,11 +3609,38 @@ layout: null
       return Math.round(bookUsd[baselineIdx] * (lastBenchClose / baselineBenchClose) * 100) / 100;
     });
 
+    // 恒科等值 overlay — same "all-in on day0" normalization as SPY, so HSTECH's
+    // 200日线触发 can be drawn IN the portfolio's USD axis. The trigger $ level =
+    // where the 恒科等值 line lands when HSTECH reclaims its 200DMA → re-leverage cue.
+    const benchH = safe(DATA, "benchmark", "series", "HSTECH") || [];
+    const benchHByDate = new Map(benchH.map(b => [b.date, b.close]));
+    let baseIdxH = -1, baseHClose = null;
+    for (let i = 0; i < dates.length; i++) {
+      if (bookUsd[i] == null) continue;
+      const c = benchHByDate.get(dates[i]);
+      if (c != null) { baseIdxH = i; baseHClose = c; break; }
+    }
+    let lastH = null;
+    const benchHUsd = dates.map((d, i) => {
+      if (baseIdxH < 0 || i < baseIdxH || !baseHClose) return null;
+      const c = benchHByDate.get(d);
+      if (c != null) lastH = c;
+      if (lastH == null) return null;
+      return Math.round(bookUsd[baseIdxH] * (lastH / baseHClose) * 100) / 100;
+    });
+    const lr = safe(DATA, "lev_regime") || {};
+    const hstech200 = lr.ma ?? safe(DATA, "lev_regime", "hk", "ma");
+    const hstechClose = lr.close ?? safe(DATA, "lev_regime", "hk", "close");
+    const triggerUsd = (hstech200 && baseHClose && baseIdxH >= 0)
+      ? Math.round(bookUsd[baseIdxH] * (hstech200 / baseHClose) * 100) / 100 : null;
+    const reclaimPct = (hstech200 && hstechClose) ? (hstech200 / hstechClose - 1) * 100 : null;
+
     const accent = getCSS("--accent") || "#5b8def";
     const red = getCSS("--red") || "#f87171";
     const green = getCSS("--green") || "#34d399";
     const dim = getCSS("--text-dim") || "#9aa4b8";
     const benchColor = getCSS("--accent-2") || "#a78bfa";
+    const hkColor = "#f59e0b";
 
     const isMobile = window.innerWidth < 1024;
     // 天数 >30 后启用底部缩放滑块，默认显示最近 ~30 天，可拖动看全程。
@@ -3622,7 +3649,8 @@ layout: null
     const opt = {
       ...baseChartOpts(),
       grid: { left: isMobile ? 48 : 72, right: isMobile ? 40 : 68, top: isMobile ? 56 : 38, bottom: manyPts ? 58 : 36 },
-      legend: { data: ["总资产", "成本基础", "SPY 等值", "回撤"],
+      legend: { data: ["总资产", "成本基础", "SPY 等值", "恒科等值", "回撤"],
+        selected: { "恒科等值": true },
         textStyle: { color: chartTextColor(), fontSize: isMobile ? 9 : 10 },
         top: 4, itemGap: isMobile ? 8 : 10, itemWidth: isMobile ? 16 : 25, itemHeight: isMobile ? 8 : 14,
         padding: [0, 4] },
@@ -3695,6 +3723,20 @@ layout: null
           itemStyle: { color: benchColor },
           lineStyle: { width: 1.4, color: benchColor, opacity: 0.85 },
           symbol: "none", smooth: true, z: 2, connectNulls: true },
+        { name: "恒科等值", type: "line", data: benchHUsd, yAxisIndex: 0,
+          itemStyle: { color: hkColor },
+          lineStyle: { width: 1.4, color: hkColor, opacity: 0.85 },
+          symbol: "none", smooth: true, z: 2, connectNulls: true,
+          // 恒科 200日线触发位（站回则放回杠杆）画成水平虚线，标在组合美元轴上
+          markLine: (triggerUsd == null) ? undefined : {
+            symbol: "none", silent: true,
+            lineStyle: { color: hkColor, type: "dashed", width: 1.2, opacity: 0.9 },
+            label: { color: hkColor, fontSize: 9, position: "insideEndTop",
+              formatter: () => `恒科200线触发 ${Math.round(hstech200)}` +
+                (reclaimPct != null ? `（需${reclaimPct >= 0 ? "+" : ""}${reclaimPct.toFixed(0)}%）` : "") },
+            data: [{ yAxis: triggerUsd }],
+          },
+        },
         { name: "回撤", type: "line", data: ddPct, yAxisIndex: 1,
           areaStyle: { color: red, opacity: 0.14 }, lineStyle: { color: red, opacity: 0.55, width: 1 },
           symbol: "none", smooth: true, z: 1 },
