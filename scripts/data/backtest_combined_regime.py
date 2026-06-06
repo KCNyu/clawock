@@ -1,0 +1,222 @@
+#!/usr/bin/env python3
+"""
+backtest_combined_regime.py — the WHOLE book (HK+US, current USD weights) with the
+lev_regime dial applied, vs buy-and-hold, vs an all-1x (never-leveraged) reference.
+
+Each holding is mapped to a factor proxy we have multi-year history for (young names
+like 00100 MINIMAX-W and CRCL are proxied to HSTECH / RKLB). The portfolio is modelled
+fixed-weight daily-rebalanced — which makes the daily-rebalance == the leveraged ETFs'
+daily reset, so volatility decay is captured at the book level. Multi-market days are
+handled on a UNION calendar (a market closed that day → 0 return for its sleeves).
+
+Dial (matches production compute_regime):
+  • HK 2x sleeve (07226): 2x when HSTECH > 200DMA, else de-levered to 1x.
+  • US 2x names (PLTU/ROBN/MSFU): 2x when underlying > 200DMA; cut to 1x ONLY when
+    trend-off AND 20d vol ≥ 70% (hot); trend-off-but-calm keeps 2x (light on low-vol).
+  • 1x sleeves untouched.
+
+Outputs: results table + memory/.tmp/combined_*.png
+Run: python3 scripts/data/backtest_combined_regime.py
+"""
+import json
+import math
+from datetime import date
+from pathlib import Path
+
+import requests
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import matplotlib.dates as mdates
+from matplotlib import font_manager
+
+for _fp in ('/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc',):
+    if Path(_fp).exists():
+        font_manager.fontManager.addfont(_fp)
+        plt.rcParams['font.family'] = font_manager.FontProperties(fname=_fp).get_name()
+plt.rcParams['axes.unicode_minus'] = False
+
+WS = Path(__file__).resolve().parent.parent.parent
+OUT = WS / 'memory' / '.tmp'
+OUT.mkdir(parents=True, exist_ok=True)
+UA = ('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 '
+      '(KHTML, like Gecko) Chrome/121.0 Safari/537.36')
+MA_WIN, VOL_WIN, VOL_HOT = 200, 20, 0.70
+
+# proxy_key → fetch spec. 'hk' uses kline (index/HK), 'us' uses fqkline.
+PROXIES = {
+    'HSTECH': ('hk', 'hkHSTECH'),
+    'GF':     ('hk', 'hk02208'),     # 金风科技
+    'RKLB':   ('us', 'usRKLB.OQ'),
+    'PLTR':   ('us', 'usPLTR.OQ'),
+    'HOOD':   ('us', 'usHOOD.OQ'),
+    'MSFT':   ('us', 'usMSFT.OQ'),
+}
+
+# holding ticker → (proxy_key, native_leverage, dial)  dial ∈ {None,'hk2x','us2x'}
+HOLDING_MAP = {
+    '00100': ('HSTECH', 1, None),   # MINIMAX-W (young) → HSTECH 1x proxy
+    '07226': ('HSTECH', 2, 'hk2x'),
+    '03032': ('HSTECH', 1, None),
+    '03033': ('HSTECH', 1, None),
+    '02208': ('GF',     1, None),
+    'RKLB':  ('RKLB',   1, None),
+    'CRCL':  ('RKLB',   1, None),   # young → RKLB high-beta proxy
+    'PLTU':  ('PLTR',   2, 'us2x'),
+    'ROBN':  ('HOOD',   2, 'us2x'),
+    'MSFU':  ('MSFT',   2, 'us2x'),
+}
+
+
+def fetch(kind, sym, cnt=1800):
+    if kind == 'hk':
+        url = f'https://web.ifzq.gtimg.cn/appstock/app/kline/kline?param={sym},day,2020-01-01,2026-06-06,{cnt}'
+    else:
+        url = f'https://web.ifzq.gtimg.cn/appstock/app/fqkline/get?param={sym},day,,,{cnt},qfq'
+    d = requests.get(url, headers={'User-Agent': UA}, timeout=20).json()
+    node = (d.get('data') or {}).get(sym, {})
+    rows = node.get('qfqday') or node.get('day') or []
+    return {r[0]: float(r[2]) for r in rows if len(r) >= 3}
+
+
+def sma(v, n):
+    out = [None] * len(v); s = 0.0
+    for i, x in enumerate(v):
+        s += x
+        if i >= n: s -= v[i - n]
+        if i >= n - 1: out[i] = s / n
+    return out
+
+
+def rvol(rets, n, i):
+    if i < n: return None
+    w = rets[i - n + 1:i + 1]; m = sum(w) / n
+    return math.sqrt(sum((x - m) ** 2 for x in w) / (n - 1)) * math.sqrt(252)
+
+
+def mdd(nav):
+    peak = -1e9; m = 0.0
+    for v in nav:
+        peak = max(peak, v); m = min(m, v / peak - 1)
+    return m
+
+
+def underwater(nav):
+    peak = -1e9; o = []
+    for v in nav:
+        peak = max(peak, v); o.append((v / peak - 1) * 100)
+    return o
+
+
+def cagr(nav, dts):
+    yrs = (date.fromisoformat(dts[-1]) - date.fromisoformat(dts[0])).days / 365.25
+    return (nav[-1] / nav[0]) ** (1 / yrs) - 1 if yrs > 0 else 0.0
+
+
+def ann_vol(rets):
+    if len(rets) < 2: return 0.0
+    m = sum(rets) / len(rets)
+    return math.sqrt(sum((x - m) ** 2 for x in rets) / (len(rets) - 1)) * math.sqrt(252)
+
+
+def weights_usd():
+    port = json.loads((WS / 'portfolio.json').read_text())
+    fx = 0.128205  # HKD→USD (matches risk.json meta)
+    w = {}
+    for leg, ccy in (('hk_stocks', fx), ('us_stocks', 1.0)):
+        for h in port['portfolios'][leg]['holdings']:
+            if h.get('shares', 0) > 0 and h.get('ticker') in HOLDING_MAP:
+                w[h['ticker']] = h.get('current_value', 0) * ccy
+    tot = sum(w.values())
+    return {k: v / tot for k, v in w.items()}, tot
+
+
+def main():
+    plt.rcParams.update({'figure.facecolor': '#0f172a', 'axes.facecolor': '#0f172a',
+                         'axes.edgecolor': '#334155', 'text.color': '#e2e8f0',
+                         'axes.labelcolor': '#94a3b8', 'xtick.color': '#94a3b8',
+                         'ytick.color': '#94a3b8', 'grid.color': '#1e293b', 'font.size': 9})
+    raw = {k: fetch(kind, sym) for k, (kind, sym) in PROXIES.items()}
+    # union calendar from common start (bound by youngest proxy: HOOD IPO)
+    start = max(min(s) for s in raw.values())
+    alldates = sorted(set().union(*[set(s) for s in raw.values()]))
+    dates = [d for d in alldates if d >= start]
+
+    # forward-filled close per proxy on the union calendar
+    ff = {}
+    for k, s in raw.items():
+        out, last = [], None
+        for d in dates:
+            if d in s: last = s[d]
+            out.append(last)
+        ff[k] = out
+    n = len(dates)
+
+    # per-proxy daily returns (a market closed that day carries its price → 0 ret), 200DMA, 20d vol
+    ret = {k: [0.0] + [ff[k][i] / ff[k][i-1] - 1 if ff[k][i-1] else 0.0 for i in range(1, n)] for k in raw}
+    ma = {k: sma(ff[k], MA_WIN) for k in raw}
+    vol = {k: [rvol(ret[k], VOL_WIN, i) for i in range(n)] for k in raw}
+
+    w, tot_usd = weights_usd()
+    print(f'Combined book ≈ ${tot_usd:,.0f}  · 共 {len(w)} 持仓 · 窗口 {dates[0]} → {dates[-1]} ({n} 交易日)')
+    print('权重(USD):', ', '.join(f'{t} {w[t]*100:.0f}%' for t in sorted(w, key=lambda x:-w[x])))
+    print()
+
+    def eff_lev(tk, i, mode):
+        proxy, native, dial = HOLDING_MAP[tk]
+        if mode == 'all1x':
+            return 1.0
+        if mode == 'bh' or dial is None:
+            return float(native)
+        # regime mode, leveraged sleeve
+        trend_on = ma[proxy][i-1] is not None and ff[proxy][i-1] > ma[proxy][i-1]
+        if dial == 'hk2x':
+            return 2.0 if trend_on else 1.0
+        if dial == 'us2x':
+            if trend_on:
+                return 2.0
+            hot = vol[proxy][i-1] is not None and vol[proxy][i-1] >= VOL_HOT
+            return 1.0 if hot else 2.0   # cut only if hot; watch keeps 2x
+        return float(native)
+
+    navs, rets_book = {}, {}
+    for mode in ('bh', 'regime', 'all1x'):
+        nav = [1.0]; rb = []
+        for i in range(1, n):
+            r = sum(w[tk] * eff_lev(tk, i, mode) * ret[HOLDING_MAP[tk][0]][i] for tk in w)
+            rb.append(r); nav.append(nav[-1] * (1 + r))
+        navs[mode] = nav; rets_book[mode] = rb
+
+    crash0, crash1 = '2021-08-01', '2022-10-31'
+    LBL = {'bh': '死扛(原杠杆)', 'regime': '刻度盘(降杠杆)', 'all1x': '全1x(从不加杠杆)'}
+    CLR = {'bh': '#ef4444', 'regime': '#22c55e', 'all1x': '#64748b'}
+    print(f'{"strategy":<22}{"totRet":>9}{"CAGR":>8}{"ann.vol":>9}{"maxDD":>9}{"21-22DD":>9}')
+    print('-' * 66)
+    for mode in ('bh', 'regime', 'all1x'):
+        nav = navs[mode]
+        cdd = mdd([v for v, d in zip(nav, dates) if crash0 <= d <= crash1])
+        print(f'{LBL[mode]:<22}{ (nav[-1]-1)*100:>8.0f}%{cagr(nav,dates)*100:>7.1f}%'
+              f'{ann_vol(rets_book[mode])*100:>8.0f}%{mdd(nav)*100:>8.1f}%{cdd*100:>8.1f}%')
+
+    # ---- charts: equity (log) + underwater
+    dts = [date.fromisoformat(d) for d in dates]
+    fig, (ax, axd) = plt.subplots(2, 1, figsize=(12, 8), gridspec_kw={'height_ratios': [3, 2]})
+    for mode in ('bh', 'regime', 'all1x'):
+        ax.plot(dts, navs[mode], color=CLR[mode], lw=1.7, label=f'{LBL[mode]}  ({(navs[mode][-1]-1)*100:+.0f}%, maxDD {mdd(navs[mode])*100:.0f}%)')
+    ax.set_yscale('log'); ax.grid(True, alpha=0.3); ax.legend(loc='upper left', framealpha=0.25, fontsize=9)
+    ax.set_title(f'合并组合净值(对数) — HK+US 当前权重 ${tot_usd:,.0f} · {dates[0]}→{dates[-1]}', fontsize=12)
+    ax.xaxis.set_major_formatter(mdates.DateFormatter('%y-%m'))
+    for mode in ('bh', 'regime', 'all1x'):
+        uw = underwater(navs[mode])
+        axd.fill_between(dts, uw, 0, color=CLR[mode], alpha=0.3)
+        axd.plot(dts, uw, color=CLR[mode], lw=1.1, label=f'{LBL[mode]} maxDD {min(uw):.0f}%')
+    axd.grid(True, alpha=0.3); axd.legend(loc='lower left', framealpha=0.25, fontsize=8)
+    axd.set_title('水下回撤 %'); axd.set_ylim(-100, 3)
+    axd.xaxis.set_major_formatter(mdates.DateFormatter('%y-%m'))
+    fig.tight_layout()
+    p = OUT / 'combined_regime.png'; fig.savefig(p, dpi=110); plt.close(fig)
+    print(f'\n chart → {p}')
+
+
+if __name__ == '__main__':
+    main()
