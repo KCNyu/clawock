@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-06T05:02:34.008874Z",
+  "generated_at": "2026-06-06T08:16:46.427230Z",
   "last_updated": "2026/06/06 04:00 HKT",
   "fx": {
     "usdhkd": 7.8338,
@@ -2228,6 +2228,26 @@
       }
     }
   },
+  "lev_regime": {
+    "generated_at": "2026-06-06T08:15:32.895991+00:00",
+    "as_of": "2026-06-05",
+    "index": "HSTECH",
+    "source": "tencent",
+    "bars": 1332,
+    "close": 4888.39,
+    "ma_window": 200,
+    "ma": 5494.17,
+    "dist_ma_pct": -11.0,
+    "vol_window": 20,
+    "vol_annualized": 0.2859,
+    "vol_cap": 0.5,
+    "trend_on": false,
+    "vol_ok": true,
+    "tier": "amber",
+    "lev_cap_mult": 0.5,
+    "label": "趋势OFF：杠杆敞口上限砍半",
+    "rationale": "HSTECH 4888 低于 200日线 5494 (-11.0%)；20日波动 29% < 50% 上限。→ 杠杆ETF腿上限 ×0.5（amber）"
+  },
   "risk_guardrail": {
     "caps": {
       "single_name_pct": 35,
@@ -2255,11 +2275,19 @@
       },
       {
         "type": "leveraged_exposure",
+        "leg": "HK",
+        "ticker": null,
+        "severity": "high",
+        "detail": "HK 杠杆 ETF = 34.6% (cap 25%) — 2x 日内重置，下杀崩/震荡衰减（🧭制度 amber：基准 50% ×0.5 → 25%，趋势OFF：杠杆敞口上限砍半）",
+        "action": "把 HK 杠杆 ETF 敞口降到 ≤25% (减约 6463.0 HKD)"
+      },
+      {
+        "type": "leveraged_exposure",
         "leg": "US",
         "ticker": null,
         "severity": "high",
-        "detail": "US 杠杆 ETF = 72.9% (cap 50%) — 2x 日内重置，下杀崩/震荡衰减",
-        "action": "把 US 杠杆 ETF 敞口降到 ≤50% (减约 599.32 USD)"
+        "detail": "US 杠杆 ETF = 72.9% (cap 25%) — 2x 日内重置，下杀崩/震荡衰减（🧭制度 amber：基准 50% ×0.5 → 25%，趋势OFF：杠杆敞口上限砍半）",
+        "action": "把 US 杠杆 ETF 敞口降到 ≤25% (减约 1254.51 USD)"
       },
       {
         "type": "beta",
@@ -2271,8 +2299,29 @@
       }
     ],
     "hard_stop_watch": [],
-    "breach_count": 4,
-    "directive": "⛔ 4 仓位硬闸 + 0 杠杆止损触发。每条必须在 Judge 段出一个对应动作(driven_by=technical,纪律性再平衡,不算听消息、不受 risk_on HOLD 默认约束)；其余主动 call 仍按 regime guard。"
+    "breach_count": 5,
+    "directive": "⛔ 5 仓位硬闸 + 0 杠杆止损触发。每条必须在 Judge 段出一个对应动作(driven_by=technical,纪律性再平衡,不算听消息、不受 risk_on HOLD 默认约束)；其余主动 call 仍按 regime guard。",
+    "lev_regime": {
+      "generated_at": "2026-06-06T08:15:32.895991+00:00",
+      "as_of": "2026-06-05",
+      "index": "HSTECH",
+      "source": "tencent",
+      "bars": 1332,
+      "close": 4888.39,
+      "ma_window": 200,
+      "ma": 5494.17,
+      "dist_ma_pct": -11.0,
+      "vol_window": 20,
+      "vol_annualized": 0.2859,
+      "vol_cap": 0.5,
+      "trend_on": false,
+      "vol_ok": true,
+      "tier": "amber",
+      "lev_cap_mult": 0.5,
+      "label": "趋势OFF：杠杆敞口上限砍半",
+      "rationale": "HSTECH 4888 低于 200日线 5494 (-11.0%)；20日波动 29% < 50% 上限。→ 杠杆ETF腿上限 ×0.5（amber）"
+    },
+    "eff_lev_cap": 25
   },
   "catalysts": {
     "generated_at": "2026-05-30T01:32:39.692845+08:00",

@@ -65,7 +65,9 @@ def fetch_fx_rate():
 
 
 _LEVERAGED_KEYWORDS = ('倍', 'Direxion', 'T-Rex', 'Defiance', 'ProShares',
-                       '2X Long', '3X Long', '2x Long', '3x Long', 'Daily Target')
+                       '2X Long', '3X Long', '2x Long', '3x Long', 'Daily Target',
+                       # HK leveraged/inverse products: 「XL二/XL三」= L×2/×3, 「两倍」
+                       'XL二', 'XL三', 'XL两', '两倍')
 
 
 def _is_leveraged_etf(holding):
@@ -158,11 +160,21 @@ def _holding_pnl_pct(h):
     return None if not cost else round((cur - cost) / cost * 100, 1)
 
 
-def compute_risk_guardrail(hk_holdings, us_holdings, hk_conc, us_conc, risk):
+def compute_risk_guardrail(hk_holdings, us_holdings, hk_conc, us_conc, risk, lev_regime=None):
     """Pure function of current state → concrete, capped trim/cut directives.
-    The brief LLM must emit a disciplinary action for EVERY breach (not optional)."""
+    The brief LLM must emit a disciplinary action for EVERY breach (not optional).
+
+    lev_regime (lev_regime.json, optional): the HSTECH trend+vol leverage dial.
+    When present and hostile (amber/red), it TIGHTENS the leveraged-ETF leg cap by
+    its multiplier (green 1.0 / amber 0.5 / red 0.0). Backtest-verified: the lever
+    that mattered in the 2021-22 crash was leverage (2x→1x→cash), not timing."""
     caps = GUARDRAIL_CAPS
     breaches, hard_stops = [], []
+    # Effective leveraged-ETF leg cap = base × regime multiplier (1.0 if no regime).
+    lev_mult = 1.0
+    if isinstance(lev_regime, dict) and isinstance(lev_regime.get('lev_cap_mult'), (int, float)):
+        lev_mult = lev_regime['lev_cap_mult']
+    eff_lev_cap = round(caps['lev_etf_leg_pct'] * lev_mult)
 
     for leg, conc, hold in (('HK', hk_conc, hk_holdings), ('US', us_conc, us_holdings)):
         if not conc or not conc.get('weights'):
@@ -195,12 +207,16 @@ def compute_risk_guardrail(hk_holdings, us_holdings, hk_conc, us_conc, risk):
         lev_val = sum(h.get('current_value', h.get('cost_basis', 0) * h.get('shares', 0))
                       for h in hold if h.get('shares', 0) > 0 and _is_leveraged_etf(h))
         lev_pct = round(lev_val / total * 100, 1) if total else 0
-        if lev_pct > caps['lev_etf_leg_pct'] and total:
-            trim_val = round(lev_val - caps['lev_etf_leg_pct'] / 100 * total, 2)
+        if lev_pct > eff_lev_cap and total:
+            trim_val = round(lev_val - eff_lev_cap / 100 * total, 2)
+            tightened = eff_lev_cap < caps['lev_etf_leg_pct']
+            regime_note = (f"（🧭制度 {lev_regime.get('tier')}：基准 {caps['lev_etf_leg_pct']}% ×"
+                           f"{lev_mult:g} → {eff_lev_cap}%，{lev_regime.get('label','')}）"
+                           if tightened and isinstance(lev_regime, dict) else '')
             breaches.append({
                 'type': 'leveraged_exposure', 'leg': leg, 'ticker': None, 'severity': 'high',
-                'detail': f"{leg} 杠杆 ETF = {lev_pct}% (cap {caps['lev_etf_leg_pct']}%) — 2x 日内重置，下杀崩/震荡衰减",
-                'action': f"把 {leg} 杠杆 ETF 敞口降到 ≤{caps['lev_etf_leg_pct']}% (减约 {trim_val} {ccy})",
+                'detail': f"{leg} 杠杆 ETF = {lev_pct}% (cap {eff_lev_cap}%) — 2x 日内重置，下杀崩/震荡衰减{regime_note}",
+                'action': f"把 {leg} 杠杆 ETF 敞口降到 ≤{eff_lev_cap}% (减约 {trim_val} {ccy})",
             })
 
         # hard-stop watch on individual leveraged ETFs
@@ -233,7 +249,8 @@ def compute_risk_guardrail(hk_holdings, us_holdings, hk_conc, us_conc, risk):
         directive = "✅ 无仓位/杠杆硬闸触发，按常规决策。"
 
     return {'caps': caps, 'breaches': breaches, 'hard_stop_watch': hard_stops,
-            'breach_count': n, 'directive': directive}
+            'breach_count': n, 'directive': directive,
+            'lev_regime': lev_regime, 'eff_lev_cap': eff_lev_cap}
 
 
 def find_prior_plan(today_iso):
@@ -1320,11 +1337,23 @@ def main():
     except Exception as e:
         print(f'   ⚠ risk metrics failed: {e}')
 
-    # [10b] Risk guardrails — position-sizing / leverage hard caps → trim/cut directives
+    # [10b] Leverage dial — HSTECH 200DMA trend + 20d vol → leveraged-ETF cap multiplier
+    lev_regime = None
+    try:
+        subprocess.run(['python3', str(WS / 'scripts' / 'data' / 'compute_regime.py')],
+                       capture_output=True, text=True, timeout=60, check=False)
+        lr_path = WS / 'assets' / 'data' / 'lev_regime.json'
+        if lr_path.exists():
+            lev_regime = json.loads(lr_path.read_text())
+            print(f'   🧭 lev_regime: {lev_regime.get("tier")} (×{lev_regime.get("lev_cap_mult")}) — {lev_regime.get("label","")}')
+    except Exception as e:
+        print(f'   ⚠ lev_regime compute failed: {e}')
+
+    # [10c] Risk guardrails — position-sizing / leverage hard caps → trim/cut directives
     guardrail = compute_risk_guardrail(
         portfolio['portfolios']['hk_stocks']['holdings'],
         portfolio['portfolios']['us_stocks']['holdings'],
-        hk_conc, us_conc, risk)
+        hk_conc, us_conc, risk, lev_regime=lev_regime)
     print(f'   guardrail: {guardrail["breach_count"]} breaches/stops — {guardrail["directive"][:64]}')
     for b in guardrail['breaches']:
         print(f'   ⛔ {b["type"]:20s} ({b["severity"]:6s}) {b["detail"][:78]}')

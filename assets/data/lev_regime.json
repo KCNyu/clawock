@@ -1,0 +1,20 @@
+{
+  "generated_at": "2026-06-06T08:15:32.895991+00:00",
+  "as_of": "2026-06-05",
+  "index": "HSTECH",
+  "source": "tencent",
+  "bars": 1332,
+  "close": 4888.39,
+  "ma_window": 200,
+  "ma": 5494.17,
+  "dist_ma_pct": -11.0,
+  "vol_window": 20,
+  "vol_annualized": 0.2859,
+  "vol_cap": 0.5,
+  "trend_on": false,
+  "vol_ok": true,
+  "tier": "amber",
+  "lev_cap_mult": 0.5,
+  "label": "趋势OFF：杠杆敞口上限砍半",
+  "rationale": "HSTECH 4888 低于 200日线 5494 (-11.0%)；20日波动 29% < 50% 上限。→ 杠杆ETF腿上限 ×0.5（amber）"
+}

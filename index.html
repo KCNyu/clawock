@@ -381,6 +381,12 @@ layout: null
   .regime-badge.neutral  .rg-dot { background:#94a3b8; } .regime-badge.neutral  .rg-label { color:#94a3b8; }
   .regime-badge.risk_off { background: rgba(220,38,38,0.10);  border-color: rgba(220,38,38,0.35); }
   .regime-badge.risk_off .rg-dot { background:#dc2626; } .regime-badge.risk_off .rg-label { color:#dc2626; }
+  .regime-badge.green { background: rgba(22,163,74,0.10);  border-color: rgba(22,163,74,0.35); }
+  .regime-badge.green .rg-dot { background:#16a34a; } .regime-badge.green .rg-label { color:#16a34a; }
+  .regime-badge.amber { background: rgba(217,119,6,0.12);  border-color: rgba(217,119,6,0.40); }
+  .regime-badge.amber .rg-dot { background:#d97706; } .regime-badge.amber .rg-label { color:#d97706; }
+  .regime-badge.red   { background: rgba(220,38,38,0.10);  border-color: rgba(220,38,38,0.35); }
+  .regime-badge.red   .rg-dot { background:#dc2626; } .regime-badge.red   .rg-label { color:#dc2626; }
 
   /* Risk keyword banner (top of macro card; hidden when no hits) */
   .risk-banner {
@@ -1385,6 +1391,16 @@ layout: null
       <div class="risk-alerts" id="guardrail-list"></div>
     </div>
 
+    <div class="card" id="lev-regime-card" style="display:none">
+      <h3>🧭 杠杆刻度盘 <span class="muted" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:11px">HSTECH 趋势 + 波动 → 杠杆ETF上限</span></h3>
+      <div class="regime-badge" id="lev-regime-badge" style="margin-bottom:8px">
+        <span class="rg-dot"></span><span class="rg-label" id="lev-regime-label"></span>
+        <span class="rg-reasons" id="lev-regime-cap"></span>
+      </div>
+      <div class="muted" id="lev-regime-rationale" style="font-size:12px;line-height:1.5"></div>
+      <div class="muted" id="lev-regime-asof" style="font-size:10px;margin-top:6px;opacity:0.7"></div>
+    </div>
+
   </section>
 
   <!-- ============================================
@@ -2225,6 +2241,7 @@ layout: null
     renderLeveragedETF();
     renderRiskMetrics();
     renderRiskGuardrail();
+    renderLevRegime();
     renderWatchLevels();
     renderAnomalies();
     renderMovers();
@@ -3085,6 +3102,23 @@ layout: null
     let html = breaches.map(b => row(ICON[b.type] || '⚠️', b.severity, b.detail, b.action)).join('');
     html += stops.map(s => row('🛑', 'high', s.detail, s.action)).join('');
     listEl.innerHTML = html || '<div class="muted" style="font-size:12px">仓位/单因子/杠杆均在阈值内 ✅</div>';
+  }
+
+  function renderLevRegime() {
+    const r = safe(DATA, "lev_regime");
+    const card = document.getElementById('lev-regime-card');
+    if (!card) return;
+    if (!r || !r.tier) { card.style.display = 'none'; return; }
+    card.style.display = '';
+    const TIER = { green: '满杠杆制度', amber: '半杠杆制度', red: '清杠杆制度' };
+    const badge = document.getElementById('lev-regime-badge');
+    badge.className = 'regime-badge ' + r.tier;
+    document.getElementById('lev-regime-label').textContent = TIER[r.tier] || r.tier;
+    const mult = (r.lev_cap_mult == null) ? '' : `杠杆ETF腿上限 ×${r.lev_cap_mult}`;
+    document.getElementById('lev-regime-cap').textContent = mult;
+    document.getElementById('lev-regime-rationale').textContent = r.rationale || r.label || '';
+    document.getElementById('lev-regime-asof').textContent =
+      `HSTECH ${r.as_of || ''} · ${r.bars || '?'} 日线 · 200日线 ${r.ma ?? '?'} · 20日波动 ${r.vol_annualized != null ? (r.vol_annualized*100).toFixed(0)+'%' : '?'}`;
   }
 
   function renderLeveragedETF() {

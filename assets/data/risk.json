@@ -1,51 +1,51 @@
 {
-  "generated_at": "2026-06-04T00:00:43.068413+00:00",
-  "as_of": "2026-06-04",
+  "generated_at": "2026-06-05T00:00:51.028301+00:00",
+  "as_of": "2026-06-05",
   "us": {
-    "beta_spx": 4.3922,
-    "vol_30d_annualized": 0.8855,
-    "max_dd_30d": -0.2001,
-    "sharpe_30d": 0.6165,
-    "current_value_usd": 2758.98
+    "beta_spx": 4.4822,
+    "vol_30d_annualized": 0.9036,
+    "max_dd_30d": -0.1858,
+    "sharpe_30d": 0.5771,
+    "current_value_usd": 2895.87
   },
   "hk": {
-    "beta_hsi": 1.5022,
-    "vol_30d_annualized": 0.6974,
-    "max_dd_30d": -0.187,
-    "sharpe_30d": -1.6306,
-    "current_value_hkd": 76744.2
+    "beta_hsi": 1.508,
+    "vol_30d_annualized": 0.7018,
+    "max_dd_30d": -0.1875,
+    "sharpe_30d": -1.7866,
+    "current_value_hkd": 75032.0
   },
   "combined": {
-    "vol_30d_annualized": 0.6153,
-    "max_dd_30d": -0.1616,
-    "sharpe_30d": -1.2702
+    "vol_30d_annualized": 0.6143,
+    "max_dd_30d": -0.1363,
+    "sharpe_30d": -1.5188
   },
   "leveraged_exposure": {
-    "us_leverage_factor_avg": 1.7268,
-    "hk_leverage_factor_avg": 1.3261,
-    "combined_avg": 1.4138,
-    "margin_at_risk_pct": 14.1382
+    "us_leverage_factor_avg": 1.7303,
+    "hk_leverage_factor_avg": 1.3229,
+    "combined_avg": 1.4172,
+    "margin_at_risk_pct": 14.1719
   },
   "alerts": [
     {
       "type": "high_beta",
       "severity": "high",
-      "detail": "US β vs S&P 500 = 4.3922 (> 3.0)"
+      "detail": "US β vs S&P 500 = 4.4822 (> 3.0)"
     },
     {
       "type": "high_vol",
       "severity": "high",
-      "detail": "Combined 30d annualised vol = 61.5% (> 50%)"
+      "detail": "Combined 30d annualised vol = 61.4% (> 50%)"
     },
     {
       "type": "deep_dd",
       "severity": "medium",
-      "detail": "Combined 30d max DD = -16.2% (< -10%)"
+      "detail": "Combined 30d max DD = -13.6% (< -10%)"
     },
     {
       "type": "negative_sharpe",
       "severity": "medium",
-      "detail": "Combined 30d Sharpe = -1.2702 (< 0)"
+      "detail": "Combined 30d Sharpe = -1.5188 (< 0)"
     }
   ],
   "meta": {
@@ -67,8 +67,8 @@
       ],
       "failed": [],
       "n_returns": 30,
-      "dates_first": "2026-04-21",
-      "dates_last": "2026-06-03"
+      "dates_first": "2026-04-22",
+      "dates_last": "2026-06-04"
     },
     "hk_fetch": {
       "fetched": [
@@ -80,8 +80,8 @@
       ],
       "failed": [],
       "n_returns": 30,
-      "dates_first": "2026-04-20",
-      "dates_last": "2026-06-03"
+      "dates_first": "2026-04-21",
+      "dates_last": "2026-06-04"
     }
   }
 }

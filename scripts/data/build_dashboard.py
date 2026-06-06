@@ -1715,6 +1715,17 @@ def main():
     # Risk guardrail card — recompute from the LIVE portfolio via the canonical
     # brief_preflight.compute_risk_guardrail (single source of truth) so the dashboard
     # always shows current breaches, not whatever the last brief-context captured.
+    # Leverage dial (lev_regime.json) — embed for the 🧭 card AND feed the guardrail
+    # recompute so the dashboard's leveraged-ETF cap matches the tightened regime cap.
+    lev_regime = None
+    lr_path = WS_ROOT / 'assets' / 'data' / 'lev_regime.json'
+    if lr_path.exists():
+        try:
+            lev_regime = json.loads(lr_path.read_text())
+        except Exception as e:
+            print(f'  warn: lev_regime.json parse fail: {e}', file=sys.stderr)
+    out['lev_regime'] = lev_regime
+
     try:
         sys.path.insert(0, str(WS_ROOT / 'scripts' / 'harness'))
         from brief_preflight import compute_risk_guardrail, compute_concentration
@@ -1722,7 +1733,7 @@ def main():
         _gr_us = portfolio['portfolios']['us_stocks']['holdings']
         out['risk_guardrail'] = compute_risk_guardrail(
             _gr_hk, _gr_us, compute_concentration(_gr_hk), compute_concentration(_gr_us),
-            out.get('risk') or {})
+            out.get('risk') or {}, lev_regime=lev_regime)
     except Exception as e:
         print(f'  warn: risk_guardrail compute fail: {e}', file=sys.stderr)
         out['risk_guardrail'] = None
