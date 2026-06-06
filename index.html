@@ -1399,6 +1399,7 @@ layout: null
         <span class="rg-reasons" id="lev-regime-cap"></span>
       </div>
       <div class="muted" id="lev-regime-rationale" style="font-size:12px;line-height:1.5"></div>
+      <div id="lev-regime-trigger" style="font-size:11px;margin-top:5px;line-height:1.5"></div>
       <div class="muted" style="font-size:10px;margin:8px 0 3px;opacity:0.8">US · 2x 单股 per-name（趋势off且波动过热才砍）</div>
       <div class="risk-alerts" id="lev-regime-us"></div>
       <div class="muted" id="lev-regime-asof" style="font-size:10px;margin-top:6px;opacity:0.7"></div>
@@ -3121,6 +3122,16 @@ layout: null
     document.getElementById('lev-regime-cap').textContent =
       (hk.lev_cap_mult == null) ? '' : `杠杆ETF腿上限 ×${hk.lev_cap_mult}`;
     document.getElementById('lev-regime-rationale').textContent = r.rationale || hk.label || '';
+    // re-entry trigger: % the close must rise to reclaim its 200DMA (unlocks re-leveraging)
+    const reclaim = (close, ma) => (close && ma) ? (ma / close - 1) * 100 : null;
+    const trigEl = document.getElementById('lev-regime-trigger');
+    const hkRe = reclaim(hk.close, hk.ma);
+    if (hk.ma == null) { trigEl.innerHTML = ''; }
+    else if (hk.trend_on) {
+      trigEl.innerHTML = `<span class="neutral">📍 HK 触发线 200线 ${Math.round(hk.ma)} · 已在线上 +${(-hkRe).toFixed(0)}% 缓冲（杠杆解锁中）</span>`;
+    } else {
+      trigEl.innerHTML = `<span class="warn-text">📍 HK 触发线：恒科站回 200线 <strong>${Math.round(hk.ma)}</strong>（需 +${hkRe.toFixed(0)}%）→ 杠杆腿上限放回 50%</span>`;
+    }
     // US per-name rows
     const STATE = { cut: ['red', '⛔ 砍杠杆'], watch: ['warn-text', '👀 观察'], ok: ['neutral', '✅ 趋势ON'], unknown: ['neutral', '—'] };
     const us = r.us || {};
@@ -3129,9 +3140,11 @@ layout: null
       const [cls, tag] = STATE[n.state] || STATE.unknown;
       const sev = n.state === 'cut' ? 'high' : (n.state === 'watch' ? 'medium' : 'low');
       const vol = n.vol_annualized != null ? (n.vol_annualized*100).toFixed(0)+'%' : '—';
+      const re = reclaim(n.close, n.ma);
+      const trig = (n.trend_on || re == null) ? '' : ` · <span class="warn-text">站回 ${Math.round(n.ma)}（+${re.toFixed(0)}%）解锁2x</span>`;
       return `<div class="risk-alert ${sev}"><span class="icon">🧭</span>
         <div><strong>${n.etf}=2x ${n.underlying} <span class="${cls}">${tag}</span></strong>
-        <div class="muted" style="font-size:11px;margin-top:2px">距200线 ${n.dist_ma_pct ?? '—'}% · 20日波动 ${vol}${n.vol_hot ? ' 🔥' : ''}</div></div></div>`;
+        <div class="muted" style="font-size:11px;margin-top:2px">距200线 ${n.dist_ma_pct ?? '—'}% · 20日波动 ${vol}${n.vol_hot ? ' 🔥' : ''}${trig}</div></div></div>`;
     }).join('');
     usEl.innerHTML = rows || '<div class="muted" style="font-size:12px">无持仓 2x 单股 ETF</div>';
     document.getElementById('lev-regime-asof').textContent =
