@@ -168,7 +168,15 @@ layout: null
       height: 100dvh; min-height: 100dvh; overflow: hidden;
     }
     .topbar { flex: 0 0 auto; }
-    footer  { flex: 0 0 auto; }
+    /* No pinned footer on mobile — it stole ~127px from every tab. Its links live
+       in the header (Briefs/GitHub); the disclaimer rides each page's scroll end. */
+    footer { display: none; }
+    .panel::after {
+      content: "Not investment advice · point-in-time · past performance ≠ future results";
+      display: block; margin-top: 14px; padding: 12px 0 4px;
+      border-top: 1px solid var(--border);
+      font-size: 10px; color: var(--text-faint); text-align: center; line-height: 1.5;
+    }
     main {
       flex: 1 1 auto; min-height: 0; min-width: 0; max-width: 100%;
       padding: 0;
