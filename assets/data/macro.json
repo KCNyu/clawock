@@ -1,75 +1,71 @@
 {
-  "generated_at": "2026-06-02T23:21:22.289112+00:00",
+  "generated_at": "2026-06-07T22:45:52.696666+00:00",
   "vix": {
     "symbol": "^VIX",
-    "price": 15.77,
-    "prev": 16.05,
-    "change_pct": -1.74,
-    "as_of": 1780431301,
+    "price": 21.51,
+    "prev": 15.4,
+    "change_pct": 39.68,
+    "as_of": 1780690501,
     "source": "yahoo"
   },
   "treasury_10y": {
     "symbol": "^TNX",
-    "price": 4.455,
-    "prev": 4.475,
-    "change_pct": -0.45,
-    "as_of": 1780426794,
+    "price": 4.536,
+    "prev": 4.477,
+    "change_pct": 1.32,
+    "as_of": 1780685994,
     "source": "yahoo",
-    "yield_pct": 4.455
+    "yield_pct": 4.536
   },
   "dxy": {
     "symbol": "DX-Y.NYB",
-    "price": 99.224,
-    "prev": 99.219,
-    "change_pct": 0.01,
-    "as_of": 1780437899,
+    "price": 100.143,
+    "prev": 100.069,
+    "change_pct": 0.07,
+    "as_of": 1780871751,
     "source": "yahoo"
   },
   "fear_greed": {
-    "score": 57.0,
-    "rating": "greed",
-    "prev_close": 59.1,
-    "prev_1_week": 60.9,
-    "as_of": "2026-06-02T23:02:29+00:00"
+    "score": 42.1,
+    "rating": "fear",
+    "prev_close": 54.7,
+    "prev_1_week": 59.5,
+    "as_of": "2026-06-05T23:59:52+00:00"
   },
   "hsi": {
     "symbol": "^HSI",
-    "price": 26038.32,
-    "prev": 25398.18,
-    "change_pct": 2.52,
-    "source": "stooq"
+    "price": 24961.95,
+    "prev": 25253.4,
+    "change_pct": -1.15,
+    "source": "tencent"
   },
   "hstech": {
     "symbol": "^HSTECH",
-    "price": 5199.28,
-    "prev": 4964.92,
-    "change_pct": 4.72,
+    "price": 4888.39,
+    "prev": 4975.36,
+    "change_pct": -1.75,
     "source": "tencent"
   },
   "spx": {
     "symbol": "^GSPC",
-    "price": 7609.8,
-    "prev": 7595.4,
-    "change_pct": 0.19,
-    "source": "stooq"
+    "price": 7383.74,
+    "prev": 7584.31,
+    "change_pct": -2.64,
+    "as_of": 1780693236,
+    "source": "yahoo"
   },
   "nasdaq": {
     "symbol": "^IXIC",
-    "price": 30660.6,
-    "prev": 30471.61,
-    "change_pct": 0.62,
-    "source": "stooq"
+    "price": 25709.43,
+    "prev": 26830.96,
+    "change_pct": -4.18,
+    "source": "tencent"
   },
   "fed_press": [
     {
       "date": "2026-06-02",
       "title": "Agencies remove additional references to reputation risk",
       "url": "https://www.federalreserve.gov/newsevents/pressreleases/bcreg20260602a.htm"
-    },
-    {
-      "date": "2026-05-28",
-      "title": "Federal Reserve Board issues enforcement actions with former employee of Atlantic Union Bank and former employee of Frost Bank",
-      "url": "https://www.federalreserve.gov/newsevents/pressreleases/enforcement20260528a.htm"
     }
   ]
 }
