@@ -118,3 +118,26 @@
 - HK 持仓: | 02208 金风科技 | 400 | 14.084 | 13.79 | +0.58% | -2.09% | -HK$118 | | 03033 南方恒科 | 1000 | 5.14 | 4.866 | +1.71% | -5.33% | -HK$274 | | 03032 恒科ETF | 200 | 5.405 | 4.95 | +1.56% | -8.42% | -HK$91 | [score=0.812 recalls=0 avg=0.620 source=memory/2026-06-02-pre-open.md:31-33]
 <!-- openclaw-memory-promotion:memory:memory/2026-06-02.md:10:13 -->
 - 关键发现: 00100 MINIMAX 单日 -15.71%，穿 780 stop — M3模型发布+科创板上市评估 sell-the-news; 同行商汤+6%、第四范式+5.3%、速腾+7.8% — 板块资金未撤，00100 个股 alpha 在掉; RKLB -14.85%，穿 130 stop — SpaceX IPO 压力; PLTU trim trigger 50 已触发 [score=0.812 recalls=0 avg=0.620 source=memory/2026-06-02.md:10-13]
+
+## Promoted From Short-Term Memory (2026-06-08)
+
+<!-- openclaw-memory-promotion:memory:memory/2026-06-02.md:14:15 -->
+- 关键发现: ROBN cut 计划待今日 US 开盘执行; HK HHI 0.401 🔴 危险集中 [score=0.834 recalls=0 avg=0.620 source=memory/2026-06-02.md:14-15]
+<!-- openclaw-memory-promotion:memory:memory/2026-06-02.md:18:21 -->
+- 今日动作: PLTU: trim 7 股 @open ≥50; ROBN: cut 20 股 @open; 其余 8 票 hold_and_watch; 00100 新 stop 650 / RKLB 新 stop 115 [score=0.834 recalls=0 avg=0.620 source=memory/2026-06-02.md:18-21]
+<!-- openclaw-memory-promotion:memory:memory/2026-06-02.md:24:27 -->
+- 待办: 09:00 HKT 查 00100 开盘价; 21:30 HKT 执行 PLTU trim + ROBN cut; 6/5 NFP 事件; 6/8 HSTECH 纳入催化 [score=0.834 recalls=0 avg=0.620 source=memory/2026-06-02.md:24-27]
+<!-- openclaw-memory-promotion:memory:memory/2026-06-02.md:3:6 -->
+- 08:00 — 盘前深度简报 2026-06-02 已完成; preflight: 0 issues; postflight: pass, committed; push: 成功 (rebase 冲突已解决) [score=0.834 recalls=0 avg=0.620 source=memory/2026-06-02.md:3-6]
+<!-- openclaw-memory-promotion:memory:memory/2026-06-01.md:3:3 -->
+- 11:26 — embedding 测试 [score=0.826 recalls=0 avg=0.620 source=memory/2026-06-01.md:3-3]
+<!-- openclaw-memory-promotion:memory:memory/2026-05-31-pre-open.md:19:22 -->
+- HK 段 (HKD): | 代码 | 股 | 成本 | 现价 | 今日 | 浮% | 浮$ | |---|---|---|---|---|---|---| | 00100 MINIMAX-W | 60 | 822.83 | 840.0 | +0.36% | +2.09% | +1,030 | | 07226 XL二南方恒科 | 6200 | 4.363 | 3.76 | -0.53% | -13.82% | -3,740 | [score=0.812 recalls=0 avg=0.620 source=memory/2026-05-31-pre-open.md:19-22]
+<!-- openclaw-memory-promotion:memory:memory/2026-05-31-pre-open.md:2:3 -->
+- layout: default title: 盘前深度简报 · 2026-05-31 [score=0.812 recalls=0 avg=0.620 source=memory/2026-05-31-pre-open.md:2-3]
+<!-- openclaw-memory-promotion:memory:memory/2026-06-03-pre-open.md:10:11 -->
+- Header: 🧭 **Regime**: US risk_on (F&G 59.1 greed, VIX 16.05 calm) | HK neutral→risk_on (HSTECH +4.72%, 5199 突破) **FX**: USDHKD = 7.8374 (Frankfurter, 2026-06-03 00:00 UTC) [score=0.812 recalls=0 avg=0.620 source=memory/2026-06-03-pre-open.md:10-11]
+<!-- openclaw-memory-promotion:memory:memory/2026-06-03-pre-open.md:13:13 -->
+- Header: **Book 总览**: [score=0.812 recalls=0 avg=0.620 source=memory/2026-06-03-pre-open.md:13-13]
+<!-- openclaw-memory-promotion:memory:memory/2026-06-03-pre-open.md:15:18 -->
+- Header: 真实总浮盈亏: USD$-872.55 ≈ HKD$-6,838.49 (USDHKD = 7.8374, 来源 Frankfurter, 抓取于 2026-06-03 00:00 UTC) ├─ HK 段：HKD$-10,249.64 ≈ USD$-1,307.82 └─ US 段：USD$435.24 ≈ HKD$3,411.15 [score=0.812 recalls=0 avg=0.620 source=memory/2026-06-03-pre-open.md:15-18]
