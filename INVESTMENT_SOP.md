@@ -27,6 +27,7 @@
    - 港股个股 → `hk-stock-analysis` Mode 1-5
    - 持仓快速 → `portfolio-risk-review`
    - 持仓深度 → `portfolio-swarm-review`
+   - 供应链卡点深挖 / AI半导体瓶颈选股 / "用 Serenity 的方式看 X" / thesis 压力测试 → `serenity-skill`（重、手动深挖，不进 cron）
    - cron 简报 → 对应 skill 的 Mode 6/7
 6. **跑脚本取最新价**（**绝不直接用 portfolio.json 缓存价**）：
    - 美股：`python3 scripts/data/analyze_us_stocks.py [TICKER]`（7 路 fallback + RSI/MA/news/signal）
