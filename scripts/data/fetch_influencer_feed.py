@@ -176,6 +176,16 @@ def fetch_musk():
 # surfaces only when she drops a fresh public idea. Pure-finance source, so unlike
 # Trump we skip the market-keyword gate (every post is a candidate).
 SERENITY_FEED = 'https://aleabitoreddit.substack.com/feed'
+# Substack/Cloudflare 403s the default clawock UA from datacenter IPs (GHA runners).
+# A real browser UA + RSS Accept header clears the common UA-based block. If Substack
+# ever IP-blocks GHA regardless of UA, fetch_serenity just returns [] (she drops off
+# the radar) — it never breaks the Trump/Musk pipeline.
+SERENITY_HEADERS = {
+    'User-Agent': ('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 '
+                   '(KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36'),
+    'Accept': 'application/rss+xml, application/xml, text/xml;q=0.9, */*;q=0.8',
+    'Accept-Language': 'en-US,en;q=0.9',
+}
 
 
 def fetch_serenity(cutoff):
@@ -188,7 +198,7 @@ def fetch_serenity(cutoff):
     not an outage (see the Trump/Musk retention note in main)."""
     out = []
     try:
-        r = requests.get(SERENITY_FEED, headers=HEADERS, timeout=TIMEOUT)
+        r = requests.get(SERENITY_FEED, headers=SERENITY_HEADERS, timeout=TIMEOUT)
         if r.status_code != 200:
             print(f'  ⚠️ serenity feed HTTP {r.status_code}', file=sys.stderr)
             return out
