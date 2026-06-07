@@ -1,60 +1,62 @@
 {
-  "generated_at": "2026-06-07T07:29:10.993419+00:00",
+  "generated_at": "2026-06-07T07:57:33.902404+00:00",
   "lookback_hours": 48,
   "sources": {
     "trump": "trumpstruth.org/feed (primary)",
     "musk": "google-news-rss (proxy)",
     "serenity": "aleabitoreddit.substack.com/feed (public posts)"
   },
-  "llm_filtered": false,
+  "llm_filtered": true,
   "counts": {
-    "total": 17,
+    "total": 11,
     "held_hits": 0,
     "new_ideas": 0,
-    "sector_hits": 0
+    "sector_hits": 8
   },
   "items": [
     {
       "author": "Musk",
-      "text": "Elon Musk's net worth poised to sail past $1 trillion in SpaceX IPO",
+      "text": "S&P’s SpaceX Snub Shows Elon Musk the Power of Index Gatekeepers",
       "url": "",
-      "published": "Wed, 03 Jun 2026 22:58:33 GMT",
+      "published": "Fri, 05 Jun 2026 18:46:18 GMT",
       "origin": "gnews-rss",
-      "source": "CNBC",
+      "source": "Bloomberg.com",
       "tickers": [],
       "held": [],
       "new_ideas": [],
+      "sectors": [
+        "航天",
+        "指数",
+        "公司治理"
+      ],
+      "sector_holdings": [
+        "RKLB"
+      ],
       "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
+      "relevance": 65,
+      "summary_cn": "报道指出标普指数将SpaceX拒之门外，显示了指数编制机构的把关权力。"
     },
     {
       "author": "Musk",
-      "text": "AZ Democrat critical of Elon Musk profited from his company’s stock",
+      "text": "Elon Musk’s SpaceX eyes $1.77tn valuation ahead of blockbuster IPO",
       "url": "",
-      "published": "Sun, 07 Jun 2026 00:23:00 GMT",
+      "published": "Thu, 04 Jun 2026 05:57:55 GMT",
       "origin": "gnews-rss",
-      "source": "AZ Family",
+      "source": "Al Jazeera",
       "tickers": [],
       "held": [],
       "new_ideas": [],
+      "sectors": [
+        "航天",
+        "IPO",
+        "估值"
+      ],
+      "sector_holdings": [
+        "RKLB"
+      ],
       "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk’s $1.8 Trillion SpaceX IPO Is Too Big to Succeed",
-      "url": "",
-      "published": "Sat, 06 Jun 2026 20:40:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Barron's",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
+      "relevance": 60,
+      "summary_cn": "报道SpaceX在重磅IPO前寻求1.77万亿美元的估值。"
     },
     {
       "author": "Musk",
@@ -66,51 +68,38 @@
       "tickers": [],
       "held": [],
       "new_ideas": [],
+      "sectors": [
+        "航天",
+        "IPO",
+        "定价"
+      ],
+      "sector_holdings": [
+        "RKLB"
+      ],
       "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
+      "relevance": 60,
+      "summary_cn": "马斯克以直白信息向华尔街设定SpaceX的IPO价格。"
     },
     {
       "author": "Musk",
-      "text": "Elon Musk bullet-proofed his $1 trillion ‘Mars-shot’ pay at SpaceX after the pay brawl at Tesla",
+      "text": "Elon Musk’s $1.8 Trillion SpaceX IPO Is Too Big to Succeed",
       "url": "",
-      "published": "Sat, 06 Jun 2026 10:26:00 GMT",
+      "published": "Sat, 06 Jun 2026 20:40:00 GMT",
       "origin": "gnews-rss",
-      "source": "Fortune",
+      "source": "Barron's",
       "tickers": [],
       "held": [],
       "new_ideas": [],
+      "sectors": [
+        "航天",
+        "IPO"
+      ],
+      "sector_holdings": [
+        "RKLB"
+      ],
       "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk reveals SpaceX's goals to Jamie Dimon, from vacationing on the moon to living on Mars",
-      "url": "",
-      "published": "Fri, 05 Jun 2026 22:05:45 GMT",
-      "origin": "gnews-rss",
-      "source": "Yahoo Finance",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
-    },
-    {
-      "author": "Musk",
-      "text": "S&P’s SpaceX Snub Shows Elon Musk the Power of Index Gatekeepers",
-      "url": "",
-      "published": "Fri, 05 Jun 2026 18:46:18 GMT",
-      "origin": "gnews-rss",
-      "source": "Bloomberg",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
+      "relevance": 55,
+      "summary_cn": "新闻标题讨论SpaceX 1.8万亿美元IPO规模过大可能难以成功。"
     },
     {
       "author": "Musk",
@@ -122,100 +111,80 @@
       "tickers": [],
       "held": [],
       "new_ideas": [],
+      "sectors": [
+        "航天",
+        "IPO",
+        "投资"
+      ],
+      "sector_holdings": [
+        "RKLB"
+      ],
       "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
+      "relevance": 55,
+      "summary_cn": "文章探讨谁有资格购买马斯克SpaceX的股份。"
     },
     {
-      "author": "Trump",
-      "text": "All work is complete! Great American Patriots, primarily from the Great State of Oklahoma, plus Doug Burgum, Secretary of the Interior, inspecting the very complex, but powerful, Dark Blue surface of the Reflecting Pool, prior to submerging it in CLEAN, BEAUTIFUL WATER. It was originally opened in 1922, but never functioned properly — now it does! Thank you President Trump, thank you Department of the Interior — AND THE BEST IS YET TO COME with The Trump Promenade at The Lincoln Memorial, and The Triumphal Arch, which will be, along with the White House Ballroom, when completed, the Greatest S",
-      "url": "https://trumpstruth.org/statuses/39129",
-      "published": "2026-06-06T17:48:56+00:00",
-      "origin": "truthsocial",
+      "author": "Musk",
+      "text": "Elon Musk's net worth poised to sail past $1 trillion in SpaceX IPO",
+      "url": "",
+      "published": "Wed, 03 Jun 2026 22:58:33 GMT",
+      "origin": "gnews-rss",
+      "source": "CNBC",
       "tickers": [],
       "held": [],
       "new_ideas": [],
+      "sectors": [
+        "航天",
+        "财富"
+      ],
+      "sector_holdings": [
+        "RKLB"
+      ],
       "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
+      "relevance": 50,
+      "summary_cn": "报道预测随着SpaceX IPO，马斯克的净资产将突破1万亿美元。"
     },
     {
-      "author": "Trump",
-      "text": "The Governor of the Great State of Maryland, Wes Moore, has put a halt to all work being done at Joint Base Andrews Air Force Base, concerning the renovation and restoration of their two old and dilapidated Golf Courses, into two, World Class, Jack Nicklaus Designed Courses, plus nine additional holes, also designed by Jack, specially adapted for our Wounded Warriors. By doing this, the Governor is attacking the United States Air Force, and our Military, not a smart thing to do. These Courses exist, they are terrible, Jack Nicklaus will make them GREAT. Why should the Air Force and other Milit",
-      "url": "https://trumpstruth.org/statuses/39122",
-      "published": "2026-06-06T00:25:21+00:00",
-      "origin": "truthsocial",
+      "author": "Musk",
+      "text": "Elon Musk bullet-proofed his $1 trillion ‘Mars-shot’ pay at SpaceX after the pay brawl at Tesla",
+      "url": "",
+      "published": "Sat, 06 Jun 2026 10:26:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Fortune",
       "tickers": [],
       "held": [],
       "new_ideas": [],
+      "sectors": [
+        "航天",
+        "公司治理"
+      ],
+      "sector_holdings": [
+        "RKLB"
+      ],
       "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
+      "relevance": 50,
+      "summary_cn": "报道指出马斯克在特斯拉薪酬争议后，为其在SpaceX的1万亿美元薪酬方案设置了保障。"
     },
     {
-      "author": "Trump",
-      "text": "Congressman Barry Moore, an America First Patriot, and friend, who has been with me from the very beginning (he was the first Elected Official in the Country to Endorse me!), is running for the United States Senate in Alabama, a place I love and WON BIG in 2016, 2020, and 2024, getting the highest vote in that great State’s history.   A very successful Businessman, Civic Leader, and Highly Respected State Legislator prior to becoming a distinguished Congressman, Barry has dedicated his life to serving his Community. As your next Senator, Barry will continue to fight tirelessly to Grow our Econ",
-      "url": "https://trumpstruth.org/statuses/39120",
-      "published": "2026-06-05T23:38:49+00:00",
-      "origin": "truthsocial",
+      "author": "Musk",
+      "text": "Elon Musk reveals SpaceX's goals to Jamie Dimon, from vacationing on the moon to living on Mars",
+      "url": "",
+      "published": "Fri, 05 Jun 2026 22:05:45 GMT",
+      "origin": "gnews-rss",
+      "source": "Yahoo Finance",
       "tickers": [],
       "held": [],
       "new_ideas": [],
+      "sectors": [
+        "航天",
+        "愿景"
+      ],
+      "sector_holdings": [
+        "RKLB"
+      ],
       "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
-    },
-    {
-      "author": "Trump",
-      "text": "Despite the best efforts of the America Hating Dumocrat Party, which did its very best to DESTROY the U.S.A. during the four long years of the Autopen Administration, over 172,000 AMERICANS found Jobs in the month of May alone! As usual, 100 PERCENT of Bloomberg Economists (who appear to be entering the \"Terminal\" stages of Trump Derangement Syndrome) underestimated our Economy. UNLIKE the phony California Election results, these numbers don't take months and months to \"trickle in\" (PASS THE SAVE AMERICA ACT!). They always say \"April showers bring May flowers.\" Well, here in the “HOTTEST” Coun",
-      "url": "https://trumpstruth.org/statuses/39121",
-      "published": "2026-06-05T23:37:44+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
-    },
-    {
-      "author": "Trump",
-      "text": "Eric Metaxas, a great guy, has written an incredible new book, “Revolution: The Birth of the Greatest Nation in the History of the World.” As we celebrate our Nation’s 250th Birthday, Eric honors the Faith, Wisdom, and Courage of the Great Patriots who sacrificed so much to secure our Independence. These stories of our shared past inspire us to build a future bigger, greater, and stronger than ever before. THE BEST IS YET TO COME!   Get your copy today: https://www.amazon.com/Revolution-Birth-Greatest-Nation-History/dp/1631440888",
-      "url": "https://trumpstruth.org/statuses/39119",
-      "published": "2026-06-05T23:32:44+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
-    },
-    {
-      "author": "Trump",
-      "text": "I am pleased to announce that TrumpRx.gov is adding another 160 Prescription Drugs, at highly discounted prices, for a new total of over 800 of the most commonly-used Prescription Drugs. TrumpRx.gov will now provide clear, transparent, and DISCOUNTED offerings for FOUR OUT OF FIVE of every prescription filled by Americans. I was proud to make History during my First Term when we lowered Drug Prices, even if by a tiny percentage, because this amounted to a HUGE change compared to other presidents only raising Drug Prices, endlessly and significantly, every year. Then, during my Second Term, I d",
-      "url": "https://trumpstruth.org/statuses/39118",
-      "published": "2026-06-05T23:28:26+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
-    },
-    {
-      "author": "Trump",
-      "text": "RT: https://truthsocial.com/users/realDonaldTrump/statuses/116698624343659358Very impressive. Proud of you! President DJT",
-      "url": "https://trumpstruth.org/statuses/39109",
-      "published": "2026-06-05T17:15:07+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
+      "relevance": 50,
+      "summary_cn": "马斯克向摩根大通CEO杰米·戴蒙透露SpaceX的目标，包括月球度假和火星居住。"
     },
     {
       "author": "Trump",
@@ -226,25 +195,227 @@
       "tickers": [],
       "held": [],
       "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
+      "sectors": [
+        "宏观经济",
+        "股市"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 70,
+      "summary_cn": "特朗普评论强劲的就业报告应推高股市而非下跌，并强调增长不等于通胀。"
     },
     {
       "author": "Trump",
-      "text": "A great new book by fabulous Ainsley Earhardt, “America, I’m  So Glad You Were Born,” is out now. What a great title! Get it now. Make it number ONE!!! President DJT",
-      "url": "https://trumpstruth.org/statuses/39105",
-      "published": "2026-06-05T13:51:07+00:00",
+      "text": "Despite the best efforts of the America Hating Dumocrat Party, which did its very best to DESTROY the U.S.A. during the four long years of the Autopen Administration, over 172,000 AMERICANS found Jobs in the month of May alone! As usual, 100 PERCENT of Bloomberg Economists (who appear to be entering the \"Terminal\" stages of Trump Derangement Syndrome) underestimated our Economy. UNLIKE the phony California Election results, these numbers don't take months and months to \"trickle in\" (PASS THE SAVE AMERICA ACT!). They always say \"April showers bring May flowers.\" Well, here in the “HOTTEST” Coun",
+      "url": "https://trumpstruth.org/statuses/39121",
+      "published": "2026-06-05T23:37:44+00:00",
       "origin": "truthsocial",
       "tickers": [],
       "held": [],
       "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
+      "sectors": [
+        "宏观经济",
+        "就业"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 65,
+      "summary_cn": "特朗普宣称5月新增17.2万个就业岗位，批评彭博经济学家低估经济，并暗示其经济政策成功。"
+    },
+    {
+      "author": "Trump",
+      "text": "I am pleased to announce that TrumpRx.gov is adding another 160 Prescription Drugs, at highly discounted prices, for a new total of over 800 of the most commonly-used Prescription Drugs. TrumpRx.gov will now provide clear, transparent, and DISCOUNTED offerings for FOUR OUT OF FIVE of every prescription filled by Americans. I was proud to make History during my First Term when we lowered Drug Prices, even if by a tiny percentage, because this amounted to a HUGE change compared to other presidents only raising Drug Prices, endlessly and significantly, every year. Then, during my Second Term, I d",
+      "url": "https://trumpstruth.org/statuses/39118",
+      "published": "2026-06-05T23:28:26+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "医药",
+        "医疗保健",
+        "政策"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 60,
+      "summary_cn": "特朗普宣布其药品折扣网站TrumpRx.gov新增160种药品，总数超800种，宣传其降低药价的政策成果。"
     }
   ],
   "held_hits": [],
   "new_ideas": [],
-  "sector_hits": []
+  "sector_hits": [
+    {
+      "author": "Musk",
+      "text": "S&P’s SpaceX Snub Shows Elon Musk the Power of Index Gatekeepers",
+      "url": "",
+      "published": "Fri, 05 Jun 2026 18:46:18 GMT",
+      "origin": "gnews-rss",
+      "source": "Bloomberg.com",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "指数",
+        "公司治理"
+      ],
+      "sector_holdings": [
+        "RKLB"
+      ],
+      "stance": "neutral",
+      "relevance": 65,
+      "summary_cn": "报道指出标普指数将SpaceX拒之门外，显示了指数编制机构的把关权力。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk’s SpaceX eyes $1.77tn valuation ahead of blockbuster IPO",
+      "url": "",
+      "published": "Thu, 04 Jun 2026 05:57:55 GMT",
+      "origin": "gnews-rss",
+      "source": "Al Jazeera",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "IPO",
+        "估值"
+      ],
+      "sector_holdings": [
+        "RKLB"
+      ],
+      "stance": "neutral",
+      "relevance": 60,
+      "summary_cn": "报道SpaceX在重磅IPO前寻求1.77万亿美元的估值。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk sets SpaceX IPO price in blunt message to Wall Street",
+      "url": "",
+      "published": "Sat, 06 Jun 2026 12:55:35 GMT",
+      "origin": "gnews-rss",
+      "source": "thestreet.com",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "IPO",
+        "定价"
+      ],
+      "sector_holdings": [
+        "RKLB"
+      ],
+      "stance": "neutral",
+      "relevance": 60,
+      "summary_cn": "马斯克以直白信息向华尔街设定SpaceX的IPO价格。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk’s $1.8 Trillion SpaceX IPO Is Too Big to Succeed",
+      "url": "",
+      "published": "Sat, 06 Jun 2026 20:40:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Barron's",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "IPO"
+      ],
+      "sector_holdings": [
+        "RKLB"
+      ],
+      "stance": "neutral",
+      "relevance": 55,
+      "summary_cn": "新闻标题讨论SpaceX 1.8万亿美元IPO规模过大可能难以成功。"
+    },
+    {
+      "author": "Musk",
+      "text": "Who can buy shares in Elon Musk’s SpaceX?",
+      "url": "",
+      "published": "Fri, 05 Jun 2026 09:51:36 GMT",
+      "origin": "gnews-rss",
+      "source": "BBC",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "IPO",
+        "投资"
+      ],
+      "sector_holdings": [
+        "RKLB"
+      ],
+      "stance": "neutral",
+      "relevance": 55,
+      "summary_cn": "文章探讨谁有资格购买马斯克SpaceX的股份。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk's net worth poised to sail past $1 trillion in SpaceX IPO",
+      "url": "",
+      "published": "Wed, 03 Jun 2026 22:58:33 GMT",
+      "origin": "gnews-rss",
+      "source": "CNBC",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "财富"
+      ],
+      "sector_holdings": [
+        "RKLB"
+      ],
+      "stance": "neutral",
+      "relevance": 50,
+      "summary_cn": "报道预测随着SpaceX IPO，马斯克的净资产将突破1万亿美元。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk bullet-proofed his $1 trillion ‘Mars-shot’ pay at SpaceX after the pay brawl at Tesla",
+      "url": "",
+      "published": "Sat, 06 Jun 2026 10:26:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Fortune",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "公司治理"
+      ],
+      "sector_holdings": [
+        "RKLB"
+      ],
+      "stance": "neutral",
+      "relevance": 50,
+      "summary_cn": "报道指出马斯克在特斯拉薪酬争议后，为其在SpaceX的1万亿美元薪酬方案设置了保障。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk reveals SpaceX's goals to Jamie Dimon, from vacationing on the moon to living on Mars",
+      "url": "",
+      "published": "Fri, 05 Jun 2026 22:05:45 GMT",
+      "origin": "gnews-rss",
+      "source": "Yahoo Finance",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "愿景"
+      ],
+      "sector_holdings": [
+        "RKLB"
+      ],
+      "stance": "neutral",
+      "relevance": 50,
+      "summary_cn": "马斯克向摩根大通CEO杰米·戴蒙透露SpaceX的目标，包括月球度假和火星居住。"
+    }
+  ]
 }
