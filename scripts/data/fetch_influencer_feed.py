@@ -176,10 +176,14 @@ def fetch_musk():
 # surfaces only when she drops a fresh public idea. Pure-finance source, so unlike
 # Trump we skip the market-keyword gate (every post is a candidate).
 SERENITY_FEED = 'https://aleabitoreddit.substack.com/feed'
-# Substack/Cloudflare 403s the default clawock UA from datacenter IPs (GHA runners).
-# A real browser UA + RSS Accept header clears the common UA-based block. If Substack
-# ever IP-blocks GHA regardless of UA, fetch_serenity just returns [] (she drops off
-# the radar) — it never breaks the Trump/Musk pipeline.
+# DORMANT ON GHA BY DESIGN (confirmed 2026-06-07): Substack/Cloudflare IP-blocks the
+# GitHub-Actions datacenter ranges → 403 regardless of UA (browser UA tested, still 403;
+# free proxies allorigins/corsproxy/jina all failed too). Same wall as the X-RSS dead-end.
+# So in the GHA influencer-scan this fetch returns [] and Serenity never appears — kcn
+# accepted this (the serenity-skill methodology is the kept deliverable, not this feed).
+# The code stays because it WORKS from a non-blocked IP (e.g. the local host returns 200),
+# so it self-activates if ever run off-GHA. Browser UA + RSS Accept kept for that path.
+# Don't re-debug the 403 — it's the IP, not the code.
 SERENITY_HEADERS = {
     'User-Agent': ('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 '
                    '(KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36'),
