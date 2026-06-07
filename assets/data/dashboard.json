@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-06-06T08:37:34.580069Z",
-  "last_updated": "2026/06/06 04:00 HKT",
+  "generated_at": "2026-06-07T07:55:52.531762Z",
+  "last_updated": "2026/06/06 18:23 HKT",
   "fx": {
     "usdhkd": 7.8338,
     "source": "Frankfurter",
@@ -8,11 +8,11 @@
   },
   "totals": {
     "us": {
-      "value_usd": 2620.76,
+      "value_usd": 2619.16,
       "cost_usd": 2628.3,
-      "pnl_usd": -7.54,
-      "pnl_pct": -0.2869,
-      "today_change_usd": -276.35,
+      "pnl_usd": -9.14,
+      "pnl_pct": -0.3478,
+      "today_change_usd": -149.15,
       "realized_usd": 1372.88
     },
     "hk": {
@@ -26,32 +26,32 @@
   },
   "concentration": {
     "us": {
-      "hhi": 0.2353,
-      "top2": 0.5404,
+      "hhi": 0.2352,
+      "top2": 0.5401,
       "positions": [
         {
           "ticker": "ROBN",
           "name": "二倍做多HOOD ETF-T-Rex",
-          "value": 851.2,
-          "weight": 0.3248
+          "value": 849.6,
+          "weight": 0.3244
         },
         {
           "ticker": "MSFU",
           "name": "二倍做多微软ETF-Direxion",
           "value": 565.0,
-          "weight": 0.2156
+          "weight": 0.2157
         },
         {
           "ticker": "RKLB",
           "name": "Rocket Lab Corp",
           "value": 550.5,
-          "weight": 0.2101
+          "weight": 0.2102
         },
         {
           "ticker": "PLTU",
           "name": "二倍做多PLTR ETF-Direxion",
           "value": 493.5,
-          "weight": 0.1883
+          "weight": 0.1884
         },
         {
           "ticker": "CRCL",
@@ -60,7 +60,7 @@
           "weight": 0.0613
         }
       ],
-      "total": 2620.76,
+      "total": 2619.16,
       "verdict": {
         "level": "moderate",
         "label": "偏集中",
@@ -169,14 +169,14 @@
         "currency": "USD",
         "shares": 40,
         "cost_basis": 23.5825,
-        "current_price": 21.28,
-        "current_value": 851.2,
-        "today_change": -127.2,
-        "today_change_pct": -13.0,
-        "day_high": 21.28,
-        "day_low": 21.28,
-        "pnl_abs": -92.1,
-        "pnl_percent": -9.76,
+        "current_price": 21.24,
+        "current_value": 849.6,
+        "today_change": 0,
+        "today_change_pct": 0,
+        "day_high": 21.24,
+        "day_low": 21.24,
+        "pnl_abs": -93.7,
+        "pnl_percent": -9.93,
         "is_active": true,
         "trades_count": 3
       },
@@ -790,24 +790,24 @@
   "indices": {
     "SPX": {
       "name": "S&P 500",
-      "price": 7390.61,
+      "price": 7383.74,
       "prev_close": 7584.31,
-      "change_pct": -2.554,
-      "source": "Tencent usINX index @ 2026-06-05 16:00 ET"
+      "change_pct": -2.644,
+      "source": "Tencent usINX index @ 2026-06-06 06:23 ET"
     },
     "NDX": {
       "name": "Nasdaq 100",
-      "price": 29007.05,
+      "price": 28957.6,
       "prev_close": 30407.81,
-      "change_pct": -4.607,
-      "source": "Tencent usNDX index @ 2026-06-05 16:00 ET"
+      "change_pct": -4.769,
+      "source": "Tencent usNDX index @ 2026-06-06 06:23 ET"
     },
     "DJI": {
       "name": "Dow Jones",
-      "price": 50894.4,
+      "price": 50866.78,
       "prev_close": 51561.93,
-      "change_pct": -1.295,
-      "source": "Tencent usDJI index @ 2026-06-05 16:00 ET"
+      "change_pct": -1.348,
+      "source": "Tencent usDJI index @ 2026-06-06 06:23 ET"
     },
     "HSI": {
       "name": "恒生指数",
@@ -1237,13 +1237,6 @@
       "current_price": 559.5
     },
     {
-      "ticker": "ROBN",
-      "name": "二倍做多HOOD ETF-T-Rex",
-      "region": "us",
-      "today_change_pct": -13.0,
-      "current_price": 21.28
-    },
-    {
       "ticker": "CRCL",
       "name": "Circle Internet Group Inc-A",
       "region": "us",
@@ -1297,12 +1290,6 @@
       "type": "high_weight_loss",
       "ticker": "07226",
       "detail": "weight 32.3% + pnl -13.6%",
-      "severity": "medium"
-    },
-    {
-      "type": "leveraged_etf_stop",
-      "ticker": "ROBN",
-      "detail": "leveraged ETF: today -13.0%",
       "severity": "medium"
     },
     {
@@ -1925,7 +1912,7 @@
     {
       "ticker": "ROBN",
       "region": "us",
-      "weight_pct": 32.48,
+      "weight_pct": 32.44,
       "avg_confidence": 0.632,
       "n_actions": 16,
       "quadrant": "high_risk"
@@ -1933,7 +1920,7 @@
     {
       "ticker": "MSFU",
       "region": "us",
-      "weight_pct": 21.56,
+      "weight_pct": 21.57,
       "avg_confidence": 0.618,
       "n_actions": 13,
       "quadrant": "high_risk"
@@ -1941,7 +1928,7 @@
     {
       "ticker": "RKLB",
       "region": "us",
-      "weight_pct": 21.01,
+      "weight_pct": 21.02,
       "avg_confidence": 0.632,
       "n_actions": 13,
       "quadrant": "high_risk"
@@ -1949,7 +1936,7 @@
     {
       "ticker": "PLTU",
       "region": "us",
-      "weight_pct": 18.83,
+      "weight_pct": 18.84,
       "avg_confidence": 0.544,
       "n_actions": 13,
       "quadrant": "low_conv_small"
@@ -2062,8 +2049,8 @@
     "us": [
       {
         "sector": "Fintech",
-        "value": 851.2,
-        "pct": 32.48,
+        "value": 849.6,
+        "pct": 32.44,
         "tickers": [
           "ROBN"
         ]
@@ -2071,7 +2058,7 @@
       {
         "sector": "Tech Mega-cap",
         "value": 565.0,
-        "pct": 21.56,
+        "pct": 21.57,
         "tickers": [
           "MSFU"
         ]
@@ -2079,7 +2066,7 @@
       {
         "sector": "Aerospace",
         "value": 550.5,
-        "pct": 21.01,
+        "pct": 21.02,
         "tickers": [
           "RKLB"
         ]
@@ -2087,7 +2074,7 @@
       {
         "sector": "AI / Defense",
         "value": 493.5,
-        "pct": 18.83,
+        "pct": 18.84,
         "tickers": [
           "PLTU"
         ]
@@ -2131,9 +2118,9 @@
     ]
   },
   "leveraged_etf": {
-    "us_pct": 72.87,
+    "us_pct": 72.85,
     "hk_pct": 34.56,
-    "combined_pct": 43.49,
+    "combined_pct": 43.48,
     "tickers": [
       "07226",
       "MSFU",
@@ -2346,7 +2333,7 @@
         "ticker": null,
         "severity": "high",
         "detail": "US 杠杆 ETF = 72.9% (cap 50%) — 2x 日内重置，下杀崩/震荡衰减",
-        "action": "把 US 杠杆 ETF 敞口降到 ≤50% (减约 599.32 USD)"
+        "action": "把 US 杠杆 ETF 敞口降到 ≤50% (减约 598.52 USD)"
       },
       {
         "type": "regime_delever",
@@ -3593,85 +3580,23 @@
     ]
   },
   "influencer_feed": {
-    "generated_at": "2026-06-04T22:56:03.335467+00:00",
+    "generated_at": "2026-06-07T07:29:10.993419+00:00",
     "lookback_hours": 48,
     "sources": {
       "trump": "trumpstruth.org/feed (primary)",
-      "musk": "google-news-rss (proxy)"
+      "musk": "google-news-rss (proxy)",
+      "serenity": "aleabitoreddit.substack.com/feed (public posts)"
     },
-    "llm_filtered": true,
+    "llm_filtered": false,
     "counts": {
-      "total": 7,
+      "total": 17,
       "held_hits": 0,
       "new_ideas": 0,
-      "sector_hits": 5
+      "sector_hits": 0
     },
     "items": [
       {
         "author": "Musk",
-        "text": "Elon Musk's SpaceX aiming to raise $75bn in record IPO",
-        "url": "",
-        "published": "Thu, 04 Jun 2026 11:38:59 GMT",
-        "origin": "gnews-rss",
-        "source": "DW",
-        "tickers": [],
-        "held": [],
-        "new_ideas": [],
-        "sectors": [
-          "航天",
-          "IPO"
-        ],
-        "sector_holdings": [
-          "RKLB"
-        ],
-        "stance": "neutral",
-        "relevance": 70,
-        "summary_cn": "新闻报道马斯克旗下SpaceX计划通过创纪录的IPO筹集750亿美元。"
-      },
-      {
-        "author": "Musk",
-        "text": "SpaceX plans biggest stock market debut ever — and it could make Elon Musk world's first trillionaire",
-        "url": "",
-        "published": "Thu, 04 Jun 2026 09:53:00 GMT",
-        "origin": "gnews-rss",
-        "source": "CBS News",
-        "tickers": [],
-        "held": [],
-        "new_ideas": [],
-        "sectors": [
-          "航天",
-          "IPO"
-        ],
-        "sector_holdings": [
-          "RKLB"
-        ],
-        "stance": "neutral",
-        "relevance": 70,
-        "summary_cn": "新闻报道SpaceX计划进行史上最大规模的IPO，此举可能使马斯克成为全球首位万亿富翁。"
-      },
-      {
-        "author": "Musk",
-        "text": "Elon Musk’s SpaceX eyes $1.77tn valuation ahead of blockbuster IPO",
-        "url": "",
-        "published": "Thu, 04 Jun 2026 05:57:55 GMT",
-        "origin": "gnews-rss",
-        "source": "Al Jazeera",
-        "tickers": [],
-        "held": [],
-        "new_ideas": [],
-        "sectors": [
-          "航天",
-          "IPO"
-        ],
-        "sector_holdings": [
-          "RKLB"
-        ],
-        "stance": "neutral",
-        "relevance": 70,
-        "summary_cn": "新闻报道马斯克旗下SpaceX在重磅IPO前，目标估值高达1.77万亿美元。"
-      },
-      {
-        "author": "Musk",
         "text": "Elon Musk's net worth poised to sail past $1 trillion in SpaceX IPO",
         "url": "",
         "published": "Wed, 03 Jun 2026 22:58:33 GMT",
@@ -3680,186 +3605,229 @@
         "tickers": [],
         "held": [],
         "new_ideas": [],
-        "sectors": [
-          "航天",
-          "IPO"
-        ],
-        "sector_holdings": [
-          "RKLB"
-        ],
         "stance": "neutral",
-        "relevance": 65,
-        "summary_cn": "新闻报道随着SpaceX IPO的推进，马斯克的净资产有望突破1万亿美元。"
+        "relevance": null,
+        "summary_cn": ""
       },
       {
         "author": "Musk",
-        "text": "Musk's SpaceX share sale: Four things you need to know",
+        "text": "AZ Democrat critical of Elon Musk profited from his company’s stock",
         "url": "",
-        "published": "Thu, 04 Jun 2026 16:18:37 GMT",
+        "published": "Sun, 07 Jun 2026 00:23:00 GMT",
+        "origin": "gnews-rss",
+        "source": "AZ Family",
+        "tickers": [],
+        "held": [],
+        "new_ideas": [],
+        "stance": "neutral",
+        "relevance": null,
+        "summary_cn": ""
+      },
+      {
+        "author": "Musk",
+        "text": "Elon Musk’s $1.8 Trillion SpaceX IPO Is Too Big to Succeed",
+        "url": "",
+        "published": "Sat, 06 Jun 2026 20:40:00 GMT",
+        "origin": "gnews-rss",
+        "source": "Barron's",
+        "tickers": [],
+        "held": [],
+        "new_ideas": [],
+        "stance": "neutral",
+        "relevance": null,
+        "summary_cn": ""
+      },
+      {
+        "author": "Musk",
+        "text": "Elon Musk sets SpaceX IPO price in blunt message to Wall Street",
+        "url": "",
+        "published": "Sat, 06 Jun 2026 12:55:35 GMT",
+        "origin": "gnews-rss",
+        "source": "thestreet.com",
+        "tickers": [],
+        "held": [],
+        "new_ideas": [],
+        "stance": "neutral",
+        "relevance": null,
+        "summary_cn": ""
+      },
+      {
+        "author": "Musk",
+        "text": "Elon Musk bullet-proofed his $1 trillion ‘Mars-shot’ pay at SpaceX after the pay brawl at Tesla",
+        "url": "",
+        "published": "Sat, 06 Jun 2026 10:26:00 GMT",
+        "origin": "gnews-rss",
+        "source": "Fortune",
+        "tickers": [],
+        "held": [],
+        "new_ideas": [],
+        "stance": "neutral",
+        "relevance": null,
+        "summary_cn": ""
+      },
+      {
+        "author": "Musk",
+        "text": "Elon Musk reveals SpaceX's goals to Jamie Dimon, from vacationing on the moon to living on Mars",
+        "url": "",
+        "published": "Fri, 05 Jun 2026 22:05:45 GMT",
+        "origin": "gnews-rss",
+        "source": "Yahoo Finance",
+        "tickers": [],
+        "held": [],
+        "new_ideas": [],
+        "stance": "neutral",
+        "relevance": null,
+        "summary_cn": ""
+      },
+      {
+        "author": "Musk",
+        "text": "S&P’s SpaceX Snub Shows Elon Musk the Power of Index Gatekeepers",
+        "url": "",
+        "published": "Fri, 05 Jun 2026 18:46:18 GMT",
+        "origin": "gnews-rss",
+        "source": "Bloomberg",
+        "tickers": [],
+        "held": [],
+        "new_ideas": [],
+        "stance": "neutral",
+        "relevance": null,
+        "summary_cn": ""
+      },
+      {
+        "author": "Musk",
+        "text": "Who can buy shares in Elon Musk’s SpaceX?",
+        "url": "",
+        "published": "Fri, 05 Jun 2026 09:51:36 GMT",
         "origin": "gnews-rss",
         "source": "BBC",
         "tickers": [],
         "held": [],
         "new_ideas": [],
-        "sectors": [
-          "航天",
-          "IPO"
-        ],
-        "sector_holdings": [
-          "RKLB"
-        ],
         "stance": "neutral",
-        "relevance": 55,
-        "summary_cn": "新闻报道马斯克旗下SpaceX正在进行股份出售，涉及四点关键信息。"
+        "relevance": null,
+        "summary_cn": ""
       },
       {
         "author": "Trump",
-        "text": "If you add the largest Tax and Regulation Cuts in U.S. History, $5000 to $10,000 per family, coupled with falling prices across the board from the Sleepy Joe Biden years, “TRUMP” & THE REPUBLICANS WIN THE AFFORDABILITY WARS by record numbers!",
-        "url": "https://trumpstruth.org/statuses/39074",
-        "published": "2026-06-04T04:38:39+00:00",
+        "text": "All work is complete! Great American Patriots, primarily from the Great State of Oklahoma, plus Doug Burgum, Secretary of the Interior, inspecting the very complex, but powerful, Dark Blue surface of the Reflecting Pool, prior to submerging it in CLEAN, BEAUTIFUL WATER. It was originally opened in 1922, but never functioned properly — now it does! Thank you President Trump, thank you Department of the Interior — AND THE BEST IS YET TO COME with The Trump Promenade at The Lincoln Memorial, and The Triumphal Arch, which will be, along with the White House Ballroom, when completed, the Greatest S",
+        "url": "https://trumpstruth.org/statuses/39129",
+        "published": "2026-06-06T17:48:56+00:00",
         "origin": "truthsocial",
         "tickers": [],
         "held": [],
         "new_ideas": [],
-        "sectors": [
-          "税收",
-          "监管",
-          "宏观经济"
-        ],
-        "sector_holdings": [],
-        "stance": "endorse",
-        "relevance": 65,
-        "summary_cn": "特朗普宣称其税收和监管削减政策将为美国家庭带来5000至10000美元收益，并压低物价，以此作为共和党在'可负担性战争'中的核心优势。"
+        "stance": "neutral",
+        "relevance": null,
+        "summary_cn": ""
       },
       {
         "author": "Trump",
-        "text": "EPA boss made criminal referrals alleging Democrats ‘self-dealing’ in lucrative green energy grants: https://justthenews.com/accountability/waste-fraud-and-abuse/epa-boss-made-criminal-referrals-alleging-democrat-self",
-        "url": "https://trumpstruth.org/statuses/39062",
-        "published": "2026-06-03T02:54:57+00:00",
+        "text": "The Governor of the Great State of Maryland, Wes Moore, has put a halt to all work being done at Joint Base Andrews Air Force Base, concerning the renovation and restoration of their two old and dilapidated Golf Courses, into two, World Class, Jack Nicklaus Designed Courses, plus nine additional holes, also designed by Jack, specially adapted for our Wounded Warriors. By doing this, the Governor is attacking the United States Air Force, and our Military, not a smart thing to do. These Courses exist, they are terrible, Jack Nicklaus will make them GREAT. Why should the Air Force and other Milit",
+        "url": "https://trumpstruth.org/statuses/39122",
+        "published": "2026-06-06T00:25:21+00:00",
         "origin": "truthsocial",
         "tickers": [],
         "held": [],
         "new_ideas": [],
-        "sectors": [
-          "绿色能源",
-          "监管",
-          "欺诈"
-        ],
-        "sector_holdings": [],
-        "stance": "attack",
-        "relevance": 60,
-        "summary_cn": "特朗普转发报道，称EPA局长已就民主党在'利润丰厚的绿色能源拨款'中的'自我交易'行为提出刑事指控。"
+        "stance": "neutral",
+        "relevance": null,
+        "summary_cn": ""
+      },
+      {
+        "author": "Trump",
+        "text": "Congressman Barry Moore, an America First Patriot, and friend, who has been with me from the very beginning (he was the first Elected Official in the Country to Endorse me!), is running for the United States Senate in Alabama, a place I love and WON BIG in 2016, 2020, and 2024, getting the highest vote in that great State’s history.   A very successful Businessman, Civic Leader, and Highly Respected State Legislator prior to becoming a distinguished Congressman, Barry has dedicated his life to serving his Community. As your next Senator, Barry will continue to fight tirelessly to Grow our Econ",
+        "url": "https://trumpstruth.org/statuses/39120",
+        "published": "2026-06-05T23:38:49+00:00",
+        "origin": "truthsocial",
+        "tickers": [],
+        "held": [],
+        "new_ideas": [],
+        "stance": "neutral",
+        "relevance": null,
+        "summary_cn": ""
+      },
+      {
+        "author": "Trump",
+        "text": "Despite the best efforts of the America Hating Dumocrat Party, which did its very best to DESTROY the U.S.A. during the four long years of the Autopen Administration, over 172,000 AMERICANS found Jobs in the month of May alone! As usual, 100 PERCENT of Bloomberg Economists (who appear to be entering the \"Terminal\" stages of Trump Derangement Syndrome) underestimated our Economy. UNLIKE the phony California Election results, these numbers don't take months and months to \"trickle in\" (PASS THE SAVE AMERICA ACT!). They always say \"April showers bring May flowers.\" Well, here in the “HOTTEST” Coun",
+        "url": "https://trumpstruth.org/statuses/39121",
+        "published": "2026-06-05T23:37:44+00:00",
+        "origin": "truthsocial",
+        "tickers": [],
+        "held": [],
+        "new_ideas": [],
+        "stance": "neutral",
+        "relevance": null,
+        "summary_cn": ""
+      },
+      {
+        "author": "Trump",
+        "text": "Eric Metaxas, a great guy, has written an incredible new book, “Revolution: The Birth of the Greatest Nation in the History of the World.” As we celebrate our Nation’s 250th Birthday, Eric honors the Faith, Wisdom, and Courage of the Great Patriots who sacrificed so much to secure our Independence. These stories of our shared past inspire us to build a future bigger, greater, and stronger than ever before. THE BEST IS YET TO COME!   Get your copy today: https://www.amazon.com/Revolution-Birth-Greatest-Nation-History/dp/1631440888",
+        "url": "https://trumpstruth.org/statuses/39119",
+        "published": "2026-06-05T23:32:44+00:00",
+        "origin": "truthsocial",
+        "tickers": [],
+        "held": [],
+        "new_ideas": [],
+        "stance": "neutral",
+        "relevance": null,
+        "summary_cn": ""
+      },
+      {
+        "author": "Trump",
+        "text": "I am pleased to announce that TrumpRx.gov is adding another 160 Prescription Drugs, at highly discounted prices, for a new total of over 800 of the most commonly-used Prescription Drugs. TrumpRx.gov will now provide clear, transparent, and DISCOUNTED offerings for FOUR OUT OF FIVE of every prescription filled by Americans. I was proud to make History during my First Term when we lowered Drug Prices, even if by a tiny percentage, because this amounted to a HUGE change compared to other presidents only raising Drug Prices, endlessly and significantly, every year. Then, during my Second Term, I d",
+        "url": "https://trumpstruth.org/statuses/39118",
+        "published": "2026-06-05T23:28:26+00:00",
+        "origin": "truthsocial",
+        "tickers": [],
+        "held": [],
+        "new_ideas": [],
+        "stance": "neutral",
+        "relevance": null,
+        "summary_cn": ""
+      },
+      {
+        "author": "Trump",
+        "text": "RT: https://truthsocial.com/users/realDonaldTrump/statuses/116698624343659358Very impressive. Proud of you! President DJT",
+        "url": "https://trumpstruth.org/statuses/39109",
+        "published": "2026-06-05T17:15:07+00:00",
+        "origin": "truthsocial",
+        "tickers": [],
+        "held": [],
+        "new_ideas": [],
+        "stance": "neutral",
+        "relevance": null,
+        "summary_cn": ""
+      },
+      {
+        "author": "Trump",
+        "text": "With a great Jobs Report, like just announced, stocks should go up, not down. That’s the way it was for 200 years. Growth does not mean inflation! How else can a Country attain GREATNESS??? President DJT",
+        "url": "https://trumpstruth.org/statuses/39106",
+        "published": "2026-06-05T14:33:09+00:00",
+        "origin": "truthsocial",
+        "tickers": [],
+        "held": [],
+        "new_ideas": [],
+        "stance": "neutral",
+        "relevance": null,
+        "summary_cn": ""
+      },
+      {
+        "author": "Trump",
+        "text": "A great new book by fabulous Ainsley Earhardt, “America, I’m  So Glad You Were Born,” is out now. What a great title! Get it now. Make it number ONE!!! President DJT",
+        "url": "https://trumpstruth.org/statuses/39105",
+        "published": "2026-06-05T13:51:07+00:00",
+        "origin": "truthsocial",
+        "tickers": [],
+        "held": [],
+        "new_ideas": [],
+        "stance": "neutral",
+        "relevance": null,
+        "summary_cn": ""
       }
     ],
     "held_hits": [],
     "new_ideas": [],
-    "sector_hits": [
-      {
-        "author": "Musk",
-        "text": "Elon Musk's SpaceX aiming to raise $75bn in record IPO",
-        "url": "",
-        "published": "Thu, 04 Jun 2026 11:38:59 GMT",
-        "origin": "gnews-rss",
-        "source": "DW",
-        "tickers": [],
-        "held": [],
-        "new_ideas": [],
-        "sectors": [
-          "航天",
-          "IPO"
-        ],
-        "sector_holdings": [
-          "RKLB"
-        ],
-        "stance": "neutral",
-        "relevance": 70,
-        "summary_cn": "新闻报道马斯克旗下SpaceX计划通过创纪录的IPO筹集750亿美元。"
-      },
-      {
-        "author": "Musk",
-        "text": "SpaceX plans biggest stock market debut ever — and it could make Elon Musk world's first trillionaire",
-        "url": "",
-        "published": "Thu, 04 Jun 2026 09:53:00 GMT",
-        "origin": "gnews-rss",
-        "source": "CBS News",
-        "tickers": [],
-        "held": [],
-        "new_ideas": [],
-        "sectors": [
-          "航天",
-          "IPO"
-        ],
-        "sector_holdings": [
-          "RKLB"
-        ],
-        "stance": "neutral",
-        "relevance": 70,
-        "summary_cn": "新闻报道SpaceX计划进行史上最大规模的IPO，此举可能使马斯克成为全球首位万亿富翁。"
-      },
-      {
-        "author": "Musk",
-        "text": "Elon Musk’s SpaceX eyes $1.77tn valuation ahead of blockbuster IPO",
-        "url": "",
-        "published": "Thu, 04 Jun 2026 05:57:55 GMT",
-        "origin": "gnews-rss",
-        "source": "Al Jazeera",
-        "tickers": [],
-        "held": [],
-        "new_ideas": [],
-        "sectors": [
-          "航天",
-          "IPO"
-        ],
-        "sector_holdings": [
-          "RKLB"
-        ],
-        "stance": "neutral",
-        "relevance": 70,
-        "summary_cn": "新闻报道马斯克旗下SpaceX在重磅IPO前，目标估值高达1.77万亿美元。"
-      },
-      {
-        "author": "Musk",
-        "text": "Elon Musk's net worth poised to sail past $1 trillion in SpaceX IPO",
-        "url": "",
-        "published": "Wed, 03 Jun 2026 22:58:33 GMT",
-        "origin": "gnews-rss",
-        "source": "CNBC",
-        "tickers": [],
-        "held": [],
-        "new_ideas": [],
-        "sectors": [
-          "航天",
-          "IPO"
-        ],
-        "sector_holdings": [
-          "RKLB"
-        ],
-        "stance": "neutral",
-        "relevance": 65,
-        "summary_cn": "新闻报道随着SpaceX IPO的推进，马斯克的净资产有望突破1万亿美元。"
-      },
-      {
-        "author": "Musk",
-        "text": "Musk's SpaceX share sale: Four things you need to know",
-        "url": "",
-        "published": "Thu, 04 Jun 2026 16:18:37 GMT",
-        "origin": "gnews-rss",
-        "source": "BBC",
-        "tickers": [],
-        "held": [],
-        "new_ideas": [],
-        "sectors": [
-          "航天",
-          "IPO"
-        ],
-        "sector_holdings": [
-          "RKLB"
-        ],
-        "stance": "neutral",
-        "relevance": 55,
-        "summary_cn": "新闻报道马斯克旗下SpaceX正在进行股份出售，涉及四点关键信息。"
-      }
-    ]
+    "sector_hits": []
   },
   "regime": {
     "label": "risk_on",
@@ -3968,7 +3936,7 @@
   "realized_vs_unrealized": {
     "us": {
       "realized": 1372.88,
-      "unrealized": -7.54
+      "unrealized": -9.14
     },
     "hk": {
       "realized": 7259.16,
@@ -3976,7 +3944,7 @@
     },
     "combined_usd": {
       "realized": 2299.53,
-      "unrealized": -2647.62
+      "unrealized": -2649.22
     }
   },
   "capital_deployed": {
@@ -3993,8 +3961,8 @@
   "net_principal_return": {
     "us": {
       "net_principal": 1255.42,
-      "total_profit": 1365.34,
-      "return_pct": 55.25,
+      "total_profit": 1363.74,
+      "return_pct": 55.19,
       "return_basis": "true_principal",
       "true_principal": 2471.12
     },
@@ -4006,8 +3974,8 @@
     },
     "combined_usd": {
       "net_principal": 12813.11,
-      "total_profit": -348.09,
-      "return_pct": -2.72
+      "total_profit": -349.69,
+      "return_pct": -2.73
     },
     "formula": "回报率 = (浮动 + 已实现) ÷ 本金；本金优先用 true_principal（峰值净投入），否则用 净投入本金=累计成本−已实现"
   }

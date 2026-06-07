@@ -423,7 +423,7 @@ layout: null
   .sd-body li { margin: 1px 0; color: var(--text); }
   .sd-body .sd-empty { color: var(--text-dim); font-style: italic; font-size: 11px; }
 
-  /* Influence radar (Trump / Musk feed) */
+  /* Influence radar (Trump / Musk / Serenity feed) */
   .infl-feed { display: flex; flex-direction: column; gap: 7px; max-height: 420px; overflow-y: auto; }
   .infl-summary { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 4px; font-size: 11px; }
   .infl-chip { padding: 2px 8px; border-radius: 10px; font-weight: 700; }
@@ -1415,7 +1415,7 @@ layout: null
 
 
     <div class="card">
-      <h3>影响力雷达 <span class="muted" id="infl-asof" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:11px">Trump · Musk · LLM筛</span></h3>
+      <h3>影响力雷达 <span class="muted" id="infl-asof" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:11px">Trump · Musk · Serenity · LLM筛</span></h3>
       <div class="infl-summary" id="infl-summary"></div>
       <div class="infl-feed" id="infl-feed">
         <div class="empty-state">No influence signals.</div>
@@ -2696,7 +2696,7 @@ layout: null
     }
     if (asOf && d.generated_at) {
       const ago = Math.round((Date.now() - new Date(d.generated_at).getTime()) / 3.6e6);
-      asOf.textContent = `Trump · Musk · ${ago}h前${d.llm_filtered ? ' · LLM筛' : ''}`;
+      asOf.textContent = `Trump · Musk · Serenity · ${ago}h前${d.llm_filtered ? ' · LLM筛' : ''}`;
     }
     const stanceCls = (s) => ({endorse:'up', buy:'up', attack:'down', sell:'down'}[s] || 'flat');
     const stanceTxt = (s) => ({endorse:'看多', buy:'买入', attack:'看空', sell:'卖出', neutral:'中性'}[s] || s || '');
@@ -2710,7 +2710,7 @@ layout: null
         ...(it.sectors || []).map(s => `<span class="infl-tag sect">${escapeHtml(s)}</span>`),
       ].join('');
       const rel = (it.relevance != null) ? `rel ${it.relevance}` : '';
-      const src = it.author === 'Musk' ? '新闻代理' : '原帖';
+      const src = it.author === 'Musk' ? '新闻代理' : (it.author === 'Serenity' ? 'Substack' : '原帖');
       const link = it.url ? `<a href="${escapeHtml(it.url)}" target="_blank" rel="noopener" style="color:var(--text-dim)">↗</a>` : '';
       return `<div class="infl-row ${rowCls}">
         <div class="infl-hdr">

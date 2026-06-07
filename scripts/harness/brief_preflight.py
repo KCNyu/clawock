@@ -1161,7 +1161,7 @@ def load_macro_and_sentiment(today, issues):
 
 
 def load_influencer_feed(issues):
-    """Read GH-Action-produced influencer_feed.json (Trump/Musk radar).
+    """Read GH-Action-produced influencer_feed.json (Trump/Musk/Serenity radar).
 
     Written by influencer-scan.yml before the brief. Stale (>36h)/missing → warn,
     brief still runs without the 名人异动 section. Returns trimmed dict or {}.

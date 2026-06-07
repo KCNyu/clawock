@@ -8,11 +8,15 @@ the per-ticker news digest. kcn wants two things surfaced:
   2. 选股 idea  — a figure recommends/buys something he does NOT hold → watchlist
 
 Sources:
-  • Trump  — trumpstruth.org/feed   (RSS 2.0, FULL post text, ~mins fresh,
-             primary source = his actual words, not second-hand coverage)
-  • Musk   — Google News RSS proxy  (no reliable free X RSS in 2026; Nitter dead,
-             xcancel needs per-reader email whitelist → unusable in GH Action.
-             So we proxy via news coverage of his market-relevant statements.)
+  • Trump    — trumpstruth.org/feed   (RSS 2.0, FULL post text, ~mins fresh,
+               primary source = his actual words, not second-hand coverage)
+  • Musk     — Google News RSS proxy  (no reliable free X RSS in 2026; Nitter dead,
+               xcancel needs per-reader email whitelist → unusable in GH Action.
+               So we proxy via news coverage of his market-relevant statements.)
+  • Serenity — aleabitoreddit.substack.com/feed  (AI/semi supply-chain "chokepoint"
+               stock picker, huge on X. Her X firehose has no free RSS — same Musk
+               dead-end, and paid X-scrapers need a funded account — so we take only
+               her FREE public Substack posts. Low-frequency but primary-source.)
 
 Pipeline:
   fetch → cheap keyword pre-filter (drop obvious noise) → ONE xiaomi LLM call
@@ -166,6 +170,58 @@ def fetch_musk():
     return out
 
 
+# Serenity (@aleabitoreddit) — her X firehose has no free RSS (same Musk dead-end)
+# and her depth is largely paywalled, so only her FREE public posts hit this feed →
+# low-frequency (often nothing in a 48h window). That's correct for a radar: she
+# surfaces only when she drops a fresh public idea. Pure-finance source, so unlike
+# Trump we skip the market-keyword gate (every post is a candidate).
+SERENITY_FEED = 'https://aleabitoreddit.substack.com/feed'
+
+
+def fetch_serenity(cutoff):
+    """Serenity's Substack RSS — title + teaser (carries the thesis + cashtags).
+
+    We use <description> (a compact teaser, e.g. "...among $LITE, $COHR, $MTSI...")
+    not <content:encoded> (a 60KB+ full-text HTML body that would blow the LLM token
+    budget). Returns [] on both fetch failure AND no-recent-post — and main() does
+    NOT retain her prior items on an empty fetch, because empty is her normal state,
+    not an outage (see the Trump/Musk retention note in main)."""
+    out = []
+    try:
+        r = requests.get(SERENITY_FEED, headers=HEADERS, timeout=TIMEOUT)
+        if r.status_code != 200:
+            print(f'  ⚠️ serenity feed HTTP {r.status_code}', file=sys.stderr)
+            return out
+        root = ET.fromstring(r.text)
+        for it in root.findall('.//item'):
+            title = (it.findtext('title') or '').strip()
+            desc = _strip_html(it.findtext('description') or '')
+            link = (it.findtext('link') or '').strip()
+            pub_raw = (it.findtext('pubDate') or '').strip()
+            try:
+                pub = parsedate_to_datetime(pub_raw) if pub_raw else None
+                if pub and pub.tzinfo is None:
+                    pub = pub.replace(tzinfo=timezone.utc)
+            except Exception:
+                pub = None
+            if not _within_lookback(pub, cutoff):
+                continue
+            # Lead with the title (the thesis headline), then the teaser body.
+            text = f'{title}. {desc}'.strip('. ') if title else desc
+            if not text:
+                continue
+            out.append({
+                'author':    'Serenity',
+                'text':      text[:600],
+                'url':       link,
+                'published': pub.isoformat() if pub else pub_raw,
+                'origin':    'substack',
+            })
+    except Exception as e:
+        print(f'  ⚠️ serenity feed: {e}', file=sys.stderr)
+    return out
+
+
 def _dedup_sig(text):
     """Normalized signature for exact/near-exact dedup: drop a leading `RT @handle`,
     lowercase, keep only alnum + CJK. Trump's feed re-lists the same post (and
@@ -202,8 +258,10 @@ def load_holdings():
 
 
 LLM_SYSTEM = (
-    "你是 kcn 的市场情报分析师。给你一批 Trump / Musk 的言论(或对其言论的新闻报道)，"
-    "以及 kcn 当前的持仓清单。任务：挑出有市场含义的条目，提取结构化信息。\n"
+    "你是 kcn 的市场情报分析师。给你一批 Trump / Musk / Serenity 的言论(或对其言论的新闻报道)，"
+    "以及 kcn 当前的持仓清单。其中 Serenity(@aleabitoreddit)是 AI/半导体供应链'卡点'选股博主，"
+    "她直接点名的多是小众半导体/光通信标的(常带 $cashtag)，几乎都属于'选股 idea'(new_ideas)。"
+    "任务：挑出有市场含义的条目，提取结构化信息。\n"
     "判定要点：\n"
     "- **倾向多列、宁滥勿缺**：这是一个'雷达'，凡涉及具体公司/股票/资产，或买卖/看多看空/"
     "背书/抨击，或宏观政策(关税/Fed/利率/中国/能源/税/监管/加密等会动板块的)，都列出来，"
@@ -271,7 +329,9 @@ def main():
 
     trump = fetch_trump(cutoff)
     musk = fetch_musk()
-    print(f'  raw: trump={len(trump)} musk={len(musk)} (after keyword pre-filter)')
+    serenity = fetch_serenity(cutoff)
+    print(f'  raw: trump={len(trump)} musk={len(musk)} serenity={len(serenity)} '
+          f'(after keyword pre-filter)')
 
     # Load previous run for merge-not-overwrite per source.
     prev = {}
@@ -282,7 +342,7 @@ def main():
             prev = {}
     prev_items = prev.get('items', [])
 
-    candidates = dedup_items(trump + musk)[:MAX_CANDIDATES]
+    candidates = dedup_items(trump + musk + serenity)[:MAX_CANDIDATES]
     held = load_holdings()
     held_tickers = {h['ticker'] for h in held}
     scored = llm_filter(candidates, held)
@@ -326,6 +386,9 @@ def main():
     # retain a source's prior items. A source legitimately producing zero items
     # because the LLM judged everything irrelevant is NOT an outage — don't
     # resurrect stale (possibly unfiltered) posts in that case.
+    # Serenity is deliberately NOT retained here: she posts publicly so rarely that
+    # an empty fetch is her normal state, not an outage — retaining would pin a
+    # weeks-old idea on the radar forever. She simply drops off until she posts again.
     raw_empty = {'Trump': not trump, 'Musk': not musk}
     for author in ('Trump', 'Musk'):
         if raw_empty[author]:
@@ -357,8 +420,9 @@ def main():
         'generated_at':  datetime.now(timezone.utc).isoformat(),
         'lookback_hours': LOOKBACK_HOURS,
         'sources': {
-            'trump': 'trumpstruth.org/feed (primary)',
-            'musk':  'google-news-rss (proxy)',
+            'trump':    'trumpstruth.org/feed (primary)',
+            'musk':     'google-news-rss (proxy)',
+            'serenity': 'aleabitoreddit.substack.com/feed (public posts)',
         },
         'llm_filtered':  bool(scored),
         'counts': {

@@ -33,10 +33,20 @@ def pct(c, pc):
 
 
 def git_cmd(*args, cwd=None):
-    """Run git command in workspace. Returns (success_bool, combined_output)."""
+    """Run git command in workspace. Returns (success_bool, combined_output).
+
+    Harness postflight commits are automated, so they're attributed to the bot via
+    per-invocation `-c` (NOT persistent `git config`): this shows github-actions[bot]
+    as author WITHOUT clobbering the local git identity that interactive Claude-Code
+    sessions commit under (kcn wants those under his own name, automated under bot).
+    """
     cwd = cwd or WS
+    base = ['git', '-C', str(cwd)]
+    if args and args[0] == 'commit':
+        base += ['-c', 'user.name=github-actions[bot]',
+                 '-c', 'user.email=41898282+github-actions[bot]@users.noreply.github.com']
     try:
-        r = subprocess.run(['git', '-C', str(cwd)] + list(args),
+        r = subprocess.run(base + list(args),
                            capture_output=True, text=True, timeout=30)
         return r.returncode == 0, (r.stdout + r.stderr).strip()
     except Exception as e:

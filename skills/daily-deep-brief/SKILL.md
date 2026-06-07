@@ -174,7 +174,7 @@ context.json 关键字段：
 | `technical` | 价格/MA/RSI/缺口/量价(默认值；纯图表驱动归这里) |
 | `catalyst` | 硬事件：财报/指引/SEC/EDGAR/M&A/产品发布(catalysts + 新闻里的硬催化) |
 | `sentiment` | 软情绪：Reddit 热度 / Google News 情绪 / 散户温度 |
-| `influencer` | Trump 原帖 / Musk 言论 |
+| `influencer` | Trump 原帖 / Musk 言论 / Serenity(AI半导体供应链选股) |
 | `macro` | VIX/利率/DXY/指数 regime |
 | `peer` | 相对强弱 / 板块轮动(同行扫描驱动) |
 
@@ -224,7 +224,7 @@ preflight 已算好,直接读 `context.risk_guardrail`:
 硬性规则:
 - **软情绪单独存在时,bucket 必须维持技术面/基本面给出的那个**;软情绪只允许把该 action 的 confidence 上下微调最多 ±10pp,且要在 rationale 写明"软情绪佐证/背离,confidence ±X"。
 - **只有硬催化能驱动一次 bucket 翻转**(尤其翻成 cut/trim/add)。若你想下主动 call 但手里只有软情绪 → 降级为 `hold_and_watch` + 设触发价观察,别直接动手。
-- influencer(Trump/Musk)默认归 **软情绪**;仅当其言论对应**已落地的政策/行政令/具体合同**才升级为硬催化。
+- influencer(Trump/Musk/Serenity)默认归 **软情绪**;仅当其言论对应**已落地的政策/行政令/具体合同**才升级为硬催化。Serenity 是 KOL 选股(常为微盘/光通信小票),按 [[serenity-skill]] 的证据阶梯属"弱证据线索",只动 confidence、需一手来源(财报/合同/公告)证实后才可加权。
 - 自检:若某 action 的 `driven_by` 是 `sentiment` 或 `influencer` 且 bucket ∈ {cut,trim_on_rebound,add_only_on_trigger} → **这违反铁律,改回 hold_and_watch 或换硬证据**。
 
 #### 🛡️ 消息面证伪不证实(牛市最关键 — REQUIRED)
@@ -394,7 +394,7 @@ preflight 已算好,直接读 `context.risk_guardrail`:
 
 #### ▎名人异动/政策风向 (REQUIRED if `context.influencer.counts.total > 0` 且 age_hours ≤ 36)
 
-从 `context.influencer` 抓数。这是 Trump 原帖 + Musk 言论(新闻代理)，LLM 已筛市场相关性并交叉匹配过持仓。三档优先级：**撞持仓 > 新机会 > 板块相关**。
+从 `context.influencer` 抓数。这是 Trump 原帖 + Musk 言论(新闻代理) + Serenity(AI/半导体供应链选股，Substack 公开帖)，LLM 已筛市场相关性并交叉匹配过持仓。三档优先级：**撞持仓 > 新机会 > 板块相关**。
 
 格式：
 
@@ -418,6 +418,7 @@ preflight 已算好,直接读 `context.risk_guardrail`:
 - **板块相关**(`sector_hits`)只在前两档为空或想补充主题背景时写，1-2 条即可，别灌水
 - stance=attack/sell 的"新机会"是**规避/做空**信号，不是买入信号，措辞要分清
 - Musk 条目标注是"新闻代理"(二手)，可信度低于 Trump 原帖，措辞留余地
+- Serenity 条目来自 Substack(一手但低频，几周才一篇)，多为微盘/小票选股 idea：当"新机会"线索看，**别当买入指令**，措辞强调需自查基本面/一手证据(见 [[serenity-skill]])
 - influencer 数据 age_hours > 36 或 counts.total=0 整段写"⚠️ 名人异动数据 stale/无信号, 跳过本段"；postflight 不 fail
 
 #### ▎Confidence 自校准 (REQUIRED if `self_calibration.samples >= 5`)
@@ -491,7 +492,7 @@ kcn 标记方式：`python3 scripts/data/mark_followed.py YYYY-MM-DD TICKER BUCK
 - `## ▎同行扫描` peer rotation matrix (uses `peer_scan` from context)
 - `## ▎大盘速读` macro 一句话 5 行内 (uses `macro` from context; 数据 stale > 36h 时跳过)
 - `## ▎社交舆情速读` per-ticker Reddit + news (uses `sentiment` from context; 无信号票自动剔)
-- `## ▎名人异动/政策风向` Trump/Musk radar (uses `influencer` from context; 撞持仓>新机会>板块相关, total=0 或 stale>36h 跳过)
+- `## ▎名人异动/政策风向` Trump/Musk/Serenity radar (uses `influencer` from context; 撞持仓>新机会>板块相关, total=0 或 stale>36h 跳过)
 - `## Confidence` 表
 - `## ▎Confidence 校准` self-calibration (uses `self_calibration` from context, if samples ≥ 5)
 - `## Next-Session` plan

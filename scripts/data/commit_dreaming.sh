@@ -14,8 +14,11 @@ set -uo pipefail
 WS=/root/.openclaw/workspace
 cd "$WS" || exit 1
 
-git config user.name  "github-actions[bot]" 2>/dev/null || true
-git config user.email "41898282+github-actions[bot]@users.noreply.github.com" 2>/dev/null || true
+# Automated job → commit as the bot, but with `git -c` (per-invocation) NOT
+# `git config` (persistent): writing local config here would pollute the identity
+# that interactive Claude-Code sessions commit under (kcn wants those = KCNyu).
+BOT_NAME="github-actions[bot]"
+BOT_EMAIL="41898282+github-actions[bot]@users.noreply.github.com"
 
 git add MEMORY.md DREAMS.md
 if git diff --cached --quiet; then
@@ -23,7 +26,8 @@ if git diff --cached --quiet; then
   exit 0
 fi
 
-git commit -q -m "memory: dreaming 促进自动提交 $(TZ=Asia/Hong_Kong date +%Y-%m-%d)" || { echo "$(date -Is) commit 失败"; exit 1; }
+git -c user.name="$BOT_NAME" -c user.email="$BOT_EMAIL" \
+  commit -q -m "memory: dreaming 促进自动提交 $(TZ=Asia/Hong_Kong date +%Y-%m-%d)" || { echo "$(date -Is) commit 失败"; exit 1; }
 echo "$(date -Is) dreaming-commit: 已提交 $(git rev-parse --short HEAD)"
 
 # 走统一的 safe_push.sh(已带 rebase.autoStash,自己绕开宿主脏工作区);真冲突它 exit 2 留本地。

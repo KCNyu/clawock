@@ -1754,7 +1754,7 @@ def main():
     _embed('us_news_digest', 'us_news_digest.json')    # GH Action news-digest.yml (xiaomi)
     _embed('sentiment', 'sentiment.json')              # GH Action sentiment-scan.yml
     _embed('macro', 'macro.json')                      # GH Action macro-scan.yml
-    _embed('influencer_feed', 'influencer_feed.json')  # GH Action influencer-scan.yml (Trump/Musk)
+    _embed('influencer_feed', 'influencer_feed.json')  # GH Action influencer-scan.yml (Trump/Musk/Serenity)
 
     # Regime badge: reuse the brief's classifier on the embedded macro so the dashboard
     # shows the same risk_on/neutral/risk_off the brief acts on (2026-05-30). Defensive
