@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-07T07:57:33.902404+00:00",
+  "generated_at": "2026-06-07T07:59:55.402535+00:00",
   "lookback_hours": 48,
   "sources": {
     "trump": "trumpstruth.org/feed (primary)",
@@ -16,28 +16,6 @@
   "items": [
     {
       "author": "Musk",
-      "text": "S&P’s SpaceX Snub Shows Elon Musk the Power of Index Gatekeepers",
-      "url": "",
-      "published": "Fri, 05 Jun 2026 18:46:18 GMT",
-      "origin": "gnews-rss",
-      "source": "Bloomberg.com",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "指数",
-        "公司治理"
-      ],
-      "sector_holdings": [
-        "RKLB"
-      ],
-      "stance": "neutral",
-      "relevance": 65,
-      "summary_cn": "报道指出标普指数将SpaceX拒之门外，显示了指数编制机构的把关权力。"
-    },
-    {
-      "author": "Musk",
       "text": "Elon Musk’s SpaceX eyes $1.77tn valuation ahead of blockbuster IPO",
       "url": "",
       "published": "Thu, 04 Jun 2026 05:57:55 GMT",
@@ -48,15 +26,14 @@
       "new_ideas": [],
       "sectors": [
         "航天",
-        "IPO",
-        "估值"
+        "IPO"
       ],
       "sector_holdings": [
         "RKLB"
       ],
       "stance": "neutral",
-      "relevance": 60,
-      "summary_cn": "报道SpaceX在重磅IPO前寻求1.77万亿美元的估值。"
+      "relevance": 55,
+      "summary_cn": "报道称SpaceX瞄准1.77万亿美元估值，准备进行重磅IPO。"
     },
     {
       "author": "Musk",
@@ -70,15 +47,57 @@
       "new_ideas": [],
       "sectors": [
         "航天",
-        "IPO",
-        "定价"
+        "IPO"
       ],
       "sector_holdings": [
         "RKLB"
       ],
       "stance": "neutral",
-      "relevance": 60,
-      "summary_cn": "马斯克以直白信息向华尔街设定SpaceX的IPO价格。"
+      "relevance": 55,
+      "summary_cn": "报道称马斯克直接向华尔街设定SpaceX IPO价格。"
+    },
+    {
+      "author": "Musk",
+      "text": "S&P’s SpaceX Snub Shows Elon Musk the Power of Index Gatekeepers",
+      "url": "",
+      "published": "Fri, 05 Jun 2026 18:46:18 GMT",
+      "origin": "gnews-rss",
+      "source": "Bloomberg.com",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "指数纳入"
+      ],
+      "sector_holdings": [
+        "RKLB"
+      ],
+      "stance": "neutral",
+      "relevance": 55,
+      "summary_cn": "报道称标普指数将SpaceX排除在外，显示指数编制者的把关权力。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk's net worth poised to sail past $1 trillion in SpaceX IPO",
+      "url": "",
+      "published": "Wed, 03 Jun 2026 22:58:33 GMT",
+      "origin": "gnews-rss",
+      "source": "CNBC",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "IPO",
+        "财富"
+      ],
+      "sector_holdings": [
+        "RKLB"
+      ],
+      "stance": "neutral",
+      "relevance": 50,
+      "summary_cn": "报道称马斯克净资产有望在SpaceX IPO后突破1万亿美元。"
     },
     {
       "author": "Musk",
@@ -98,51 +117,8 @@
         "RKLB"
       ],
       "stance": "neutral",
-      "relevance": 55,
-      "summary_cn": "新闻标题讨论SpaceX 1.8万亿美元IPO规模过大可能难以成功。"
-    },
-    {
-      "author": "Musk",
-      "text": "Who can buy shares in Elon Musk’s SpaceX?",
-      "url": "",
-      "published": "Fri, 05 Jun 2026 09:51:36 GMT",
-      "origin": "gnews-rss",
-      "source": "BBC",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "IPO",
-        "投资"
-      ],
-      "sector_holdings": [
-        "RKLB"
-      ],
-      "stance": "neutral",
-      "relevance": 55,
-      "summary_cn": "文章探讨谁有资格购买马斯克SpaceX的股份。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk's net worth poised to sail past $1 trillion in SpaceX IPO",
-      "url": "",
-      "published": "Wed, 03 Jun 2026 22:58:33 GMT",
-      "origin": "gnews-rss",
-      "source": "CNBC",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "财富"
-      ],
-      "sector_holdings": [
-        "RKLB"
-      ],
-      "stance": "neutral",
       "relevance": 50,
-      "summary_cn": "报道预测随着SpaceX IPO，马斯克的净资产将突破1万亿美元。"
+      "summary_cn": "报道称SpaceX 1.8万亿美元IPO规模太大可能难以成功。"
     },
     {
       "author": "Musk",
@@ -163,7 +139,28 @@
       ],
       "stance": "neutral",
       "relevance": 50,
-      "summary_cn": "报道指出马斯克在特斯拉薪酬争议后，为其在SpaceX的1万亿美元薪酬方案设置了保障。"
+      "summary_cn": "报道称马斯克在特斯拉薪酬争议后，为其SpaceX万亿美元薪酬方案加了防护。"
+    },
+    {
+      "author": "Musk",
+      "text": "Who can buy shares in Elon Musk’s SpaceX?",
+      "url": "",
+      "published": "Fri, 05 Jun 2026 09:51:36 GMT",
+      "origin": "gnews-rss",
+      "source": "BBC",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "IPO"
+      ],
+      "sector_holdings": [
+        "RKLB"
+      ],
+      "stance": "neutral",
+      "relevance": 50,
+      "summary_cn": "报道探讨谁能在SpaceX IPO中购买其股份。"
     },
     {
       "author": "Musk",
@@ -176,15 +173,14 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "航天",
-        "愿景"
+        "航天"
       ],
       "sector_holdings": [
         "RKLB"
       ],
       "stance": "neutral",
-      "relevance": 50,
-      "summary_cn": "马斯克向摩根大通CEO杰米·戴蒙透露SpaceX的目标，包括月球度假和火星居住。"
+      "relevance": 45,
+      "summary_cn": "报道称马斯克向摩根大通CEO透露SpaceX目标，包括月球度假和火星居住。"
     },
     {
       "author": "Trump",
@@ -196,13 +192,13 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "宏观经济",
-        "股市"
+        "股市",
+        "宏观经济"
       ],
       "sector_holdings": [],
       "stance": "endorse",
-      "relevance": 70,
-      "summary_cn": "特朗普评论强劲的就业报告应推高股市而非下跌，并强调增长不等于通胀。"
+      "relevance": 65,
+      "summary_cn": "特朗普称就业报告强劲，股市应上涨而非下跌，增长不等于通胀。"
     },
     {
       "author": "Trump",
@@ -219,8 +215,8 @@
       ],
       "sector_holdings": [],
       "stance": "endorse",
-      "relevance": 65,
-      "summary_cn": "特朗普宣称5月新增17.2万个就业岗位，批评彭博经济学家低估经济，并暗示其经济政策成功。"
+      "relevance": 60,
+      "summary_cn": "特朗普称5月就业数据超预期，反驳经济学家唱衰，暗示经济强劲。"
     },
     {
       "author": "Trump",
@@ -233,40 +229,17 @@
       "new_ideas": [],
       "sectors": [
         "医药",
-        "医疗保健",
         "政策"
       ],
       "sector_holdings": [],
       "stance": "endorse",
-      "relevance": 60,
-      "summary_cn": "特朗普宣布其药品折扣网站TrumpRx.gov新增160种药品，总数超800种，宣传其降低药价的政策成果。"
+      "relevance": 55,
+      "summary_cn": "特朗普宣布TrumpRx.gov新增160种折扣处方药，总数超800种，宣传其降低药价政策。"
     }
   ],
   "held_hits": [],
   "new_ideas": [],
   "sector_hits": [
-    {
-      "author": "Musk",
-      "text": "S&P’s SpaceX Snub Shows Elon Musk the Power of Index Gatekeepers",
-      "url": "",
-      "published": "Fri, 05 Jun 2026 18:46:18 GMT",
-      "origin": "gnews-rss",
-      "source": "Bloomberg.com",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "指数",
-        "公司治理"
-      ],
-      "sector_holdings": [
-        "RKLB"
-      ],
-      "stance": "neutral",
-      "relevance": 65,
-      "summary_cn": "报道指出标普指数将SpaceX拒之门外，显示了指数编制机构的把关权力。"
-    },
     {
       "author": "Musk",
       "text": "Elon Musk’s SpaceX eyes $1.77tn valuation ahead of blockbuster IPO",
@@ -279,15 +252,14 @@
       "new_ideas": [],
       "sectors": [
         "航天",
-        "IPO",
-        "估值"
+        "IPO"
       ],
       "sector_holdings": [
         "RKLB"
       ],
       "stance": "neutral",
-      "relevance": 60,
-      "summary_cn": "报道SpaceX在重磅IPO前寻求1.77万亿美元的估值。"
+      "relevance": 55,
+      "summary_cn": "报道称SpaceX瞄准1.77万亿美元估值，准备进行重磅IPO。"
     },
     {
       "author": "Musk",
@@ -301,15 +273,57 @@
       "new_ideas": [],
       "sectors": [
         "航天",
-        "IPO",
-        "定价"
+        "IPO"
       ],
       "sector_holdings": [
         "RKLB"
       ],
       "stance": "neutral",
-      "relevance": 60,
-      "summary_cn": "马斯克以直白信息向华尔街设定SpaceX的IPO价格。"
+      "relevance": 55,
+      "summary_cn": "报道称马斯克直接向华尔街设定SpaceX IPO价格。"
+    },
+    {
+      "author": "Musk",
+      "text": "S&P’s SpaceX Snub Shows Elon Musk the Power of Index Gatekeepers",
+      "url": "",
+      "published": "Fri, 05 Jun 2026 18:46:18 GMT",
+      "origin": "gnews-rss",
+      "source": "Bloomberg.com",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "指数纳入"
+      ],
+      "sector_holdings": [
+        "RKLB"
+      ],
+      "stance": "neutral",
+      "relevance": 55,
+      "summary_cn": "报道称标普指数将SpaceX排除在外，显示指数编制者的把关权力。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk's net worth poised to sail past $1 trillion in SpaceX IPO",
+      "url": "",
+      "published": "Wed, 03 Jun 2026 22:58:33 GMT",
+      "origin": "gnews-rss",
+      "source": "CNBC",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "IPO",
+        "财富"
+      ],
+      "sector_holdings": [
+        "RKLB"
+      ],
+      "stance": "neutral",
+      "relevance": 50,
+      "summary_cn": "报道称马斯克净资产有望在SpaceX IPO后突破1万亿美元。"
     },
     {
       "author": "Musk",
@@ -329,51 +343,8 @@
         "RKLB"
       ],
       "stance": "neutral",
-      "relevance": 55,
-      "summary_cn": "新闻标题讨论SpaceX 1.8万亿美元IPO规模过大可能难以成功。"
-    },
-    {
-      "author": "Musk",
-      "text": "Who can buy shares in Elon Musk’s SpaceX?",
-      "url": "",
-      "published": "Fri, 05 Jun 2026 09:51:36 GMT",
-      "origin": "gnews-rss",
-      "source": "BBC",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "IPO",
-        "投资"
-      ],
-      "sector_holdings": [
-        "RKLB"
-      ],
-      "stance": "neutral",
-      "relevance": 55,
-      "summary_cn": "文章探讨谁有资格购买马斯克SpaceX的股份。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk's net worth poised to sail past $1 trillion in SpaceX IPO",
-      "url": "",
-      "published": "Wed, 03 Jun 2026 22:58:33 GMT",
-      "origin": "gnews-rss",
-      "source": "CNBC",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "财富"
-      ],
-      "sector_holdings": [
-        "RKLB"
-      ],
-      "stance": "neutral",
       "relevance": 50,
-      "summary_cn": "报道预测随着SpaceX IPO，马斯克的净资产将突破1万亿美元。"
+      "summary_cn": "报道称SpaceX 1.8万亿美元IPO规模太大可能难以成功。"
     },
     {
       "author": "Musk",
@@ -394,7 +365,28 @@
       ],
       "stance": "neutral",
       "relevance": 50,
-      "summary_cn": "报道指出马斯克在特斯拉薪酬争议后，为其在SpaceX的1万亿美元薪酬方案设置了保障。"
+      "summary_cn": "报道称马斯克在特斯拉薪酬争议后，为其SpaceX万亿美元薪酬方案加了防护。"
+    },
+    {
+      "author": "Musk",
+      "text": "Who can buy shares in Elon Musk’s SpaceX?",
+      "url": "",
+      "published": "Fri, 05 Jun 2026 09:51:36 GMT",
+      "origin": "gnews-rss",
+      "source": "BBC",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "IPO"
+      ],
+      "sector_holdings": [
+        "RKLB"
+      ],
+      "stance": "neutral",
+      "relevance": 50,
+      "summary_cn": "报道探讨谁能在SpaceX IPO中购买其股份。"
     },
     {
       "author": "Musk",
@@ -407,15 +399,14 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "航天",
-        "愿景"
+        "航天"
       ],
       "sector_holdings": [
         "RKLB"
       ],
       "stance": "neutral",
-      "relevance": 50,
-      "summary_cn": "马斯克向摩根大通CEO杰米·戴蒙透露SpaceX的目标，包括月球度假和火星居住。"
+      "relevance": 45,
+      "summary_cn": "报道称马斯克向摩根大通CEO透露SpaceX目标，包括月球度假和火星居住。"
     }
   ]
 }
