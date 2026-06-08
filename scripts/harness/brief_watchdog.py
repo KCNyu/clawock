@@ -35,6 +35,14 @@ from _watchdog_common import (  # noqa: E402
 JOB_NAME = '盘前深度简报'
 BRIEF_URL_TMPL = 'https://kcnyu.github.io/clawock/memory/{date}-pre-open.html'
 LOOP_THRESHOLD = 5  # transcript loop_score ≥ this ⇒ mimo repeat-loop ⇒ failed delivery
+# WeChat contextToken expires server-side at ~160s. If the brief run packs analysis +
+# file writes + commit/push into ONE long agent turn (>160s), the final announce uses a
+# dead token → Tencent silently drops it while openclaw still reports delivered=true
+# (see memory: openclaw-wechat-longturn-token-expiry). This failure has NO repeat-loop
+# signature (the turn is doing real, slow work), so loop_score stays ~1 and the old
+# detector missed it. durationMs comes from the run record, so this fires even when the
+# transcript was GC'd (blob==0).
+TOKEN_EXPIRY_MS = 160_000
 
 
 def build_compact_fallback(today):
@@ -91,12 +99,21 @@ def main():
         return 0
     last = runs_today[-1]
     score, blob = transcript_loop_score(last.get('sessionId'))
+    dur_ms = last.get('durationMs') or 0
 
-    # No transcript (e.g. GC'd) ⇒ can't confirm a loop ⇒ assume delivered (don't
-    # risk a duplicate). Only resend on a clear repeat-loop signature.
-    if blob == 0 or score < LOOP_THRESHOLD:
-        log({'tag': tag, 'action': 'ok', 'reason': f'delivered (loop_score={score}, blob={blob})'})
+    # Two independent failure modes the watchdog must catch:
+    #   • repeat-loop  — mimo stalls on the delivery turn; only visible in the transcript
+    #     (score ≥ LOOP_THRESHOLD, needs blob>0). assume delivered if no transcript.
+    #   • long-turn    — run > ~160s in one turn ⇒ WeChat token already expired at announce
+    #     ⇒ silent drop despite delivered=true. read straight off durationMs (no transcript
+    #     needed), so it fires even when blob==0.
+    looped = blob > 0 and score >= LOOP_THRESHOLD
+    long_turn = dur_ms > TOKEN_EXPIRY_MS
+    if not (looped or long_turn):
+        log({'tag': tag, 'action': 'ok',
+             'reason': f'delivered (loop_score={score}, blob={blob}, dur_ms={dur_ms})'})
         return 0
+    fail_reason = 'long_turn' if long_turn else 'repeat_loop'
 
     flag = WS / 'memory' / '.tmp' / f'watchdog-brief-{today}.done'
     if flag.exists():
@@ -111,7 +128,8 @@ def main():
     message = build_compact_fallback(today)
     sent_ok, out = send_wechat(channel, to, account, message, args.dry_run)
     log({'tag': tag, 'action': 'resend', 'dry_run': args.dry_run, 'sent_ok': sent_ok,
-         'job_id': job_id, 'loop_score': score, 'blob': blob, 'out': out})
+         'job_id': job_id, 'fail_reason': fail_reason, 'loop_score': score, 'blob': blob,
+         'dur_ms': dur_ms, 'out': out})
     if sent_ok and not args.dry_run:
         flag.parent.mkdir(parents=True, exist_ok=True)
         flag.write_text(datetime.now(HKT).isoformat())

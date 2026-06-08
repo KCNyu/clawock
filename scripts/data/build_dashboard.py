@@ -340,6 +340,18 @@ def _latest_brief_context():
         return None, None
 
 
+def _load_existing_dashboard():
+    """Return the currently-published dashboard.json as a dict (or None). Used to
+    preserve brief-derived fields across a fresh-checkout rebuild where memory/.tmp
+    is absent — see the merge-not-overwrite guard at the anomalies assignment."""
+    try:
+        if OUT_FILE.exists():
+            return load_json(str(OUT_FILE))
+    except Exception as e:
+        print(f'  warn: _load_existing_dashboard failed: {e}', file=sys.stderr)
+    return None
+
+
 def load_sector_scan():
     """Read the freshest sector-scan-*.json written by daily-deep-brief LLM.
 
@@ -1653,6 +1665,17 @@ def main():
     out['delta'] = compute_delta(snapshots)
     out['today_movers'] = compute_today_movers(us_h, hk_h)
     out['anomalies'] = extract_anomalies(brief_ctx, us_h, hk_h)
+    # GHA fresh-checkout has no memory/.tmp (gitignored) → brief_ctx is None → the
+    # 'no_context' fallback would OVERWRITE the real anomalies the last local build
+    # published, surfacing a false "no brief-context found" card on Pages. The file's
+    # absence here means "not in this checkout", NOT "no brief today". So when context
+    # is missing, preserve the previous anomalies from the on-disk dashboard.json
+    # instead of clobbering them (merge-not-overwrite, same pattern as the sidecar
+    # fields — see memory: openclaw-gha-sidecar-strip-and-prepush-seterr).
+    if not brief_ctx:
+        prev_anom = (_load_existing_dashboard() or {}).get('anomalies')
+        if isinstance(prev_anom, list) and prev_anom:
+            out['anomalies'] = prev_anom
 
     # ── LLM narrative sidecars (agent-written in Step 3; text-only, no keys) ──
     # Each sidecar is validated (validate_insights / validate_intraday_insights)
