@@ -96,29 +96,6 @@
 - **单一来源：`portfolio.json`**，不在此维护副本
 - ticker 列表：`memory/current-portfolio-summary.md`（提高检索命中）
 
-## Promoted From Short-Term Memory (2026-06-07)
-
-<!-- openclaw-memory-promotion:memory:memory/2026-05-31-1239.md:19:19 -->
-- Conversation Summary: **我的看法：** [score=0.824 recalls=0 avg=0.620 source=memory/2026-05-31-1239.md:19-19]
-<!-- openclaw-memory-promotion:memory:memory/2026-05-31-1239.md:21:21 -->
-- Conversation Summary: **利好逻辑：** [score=0.814 recalls=0 avg=0.620 source=memory/2026-05-31-1239.md:21-21]
-<!-- openclaw-memory-promotion:memory:memory/2026-06-01-1220.md:18:18 -->
-- Conversation Summary: Looking at the conversation: [score=0.814 recalls=0 avg=0.620 source=memory/2026-06-01-1220.md:18-18]
-<!-- openclaw-memory-promotion:memory:memory/2026-06-02-pre-open.md:10:11 -->
-- Header: 🧭 **Regime**: US risk_on (F&G 60.2 greed, VIX 15.3 calm) | HK neutral (HSTECH +1.65%, 4965 支撑确认) **FX**: USDHKD = 7.8371 (Frankfurter, 2026-06-02 00:00 UTC) [score=0.812 recalls=0 avg=0.620 source=memory/2026-06-02-pre-open.md:10-11]
-<!-- openclaw-memory-promotion:memory:memory/2026-06-02-pre-open.md:13:13 -->
-- Header: **Book 总览**: [score=0.812 recalls=0 avg=0.620 source=memory/2026-06-02-pre-open.md:13-13]
-<!-- openclaw-memory-promotion:memory:memory/2026-06-02-pre-open.md:15:18 -->
-- Header: 真实总浮盈亏: USD$-676.76 ≈ HKD$-5,303.81 (USDHKD = 7.8371, 来源 Frankfurter, 抓取于 2026-06-02 00:00 UTC) ├─ HK 段：HKD$-10,244.24 ≈ USD$-1,307.16 └─ US 段：USD$630.39 ≈ HKD$4,940.83 [score=0.812 recalls=0 avg=0.620 source=memory/2026-06-02-pre-open.md:15-18]
-<!-- openclaw-memory-promotion:memory:memory/2026-06-02-pre-open.md:2:3 -->
-- layout: default title: 盘前深度简报 · 2026-06-02 [score=0.812 recalls=0 avg=0.620 source=memory/2026-06-02-pre-open.md:2-3]
-<!-- openclaw-memory-promotion:memory:memory/2026-06-02-pre-open.md:27:30 -->
-- HK 持仓: | 代码 | 股 | 成本 | 现价 | 今日 | 浮% | 浮$ | |---|---|---|---|---|---|---| | 00100 MINIMAX | 60 | 822.83 | 708.0 | -15.71% | -13.96% | -HK$6,890 | | 07226 2x恒科 | 6200 | 4.363 | 3.90 | +3.72% | -10.62% | -HK$2,872 | [score=0.812 recalls=0 avg=0.620 source=memory/2026-06-02-pre-open.md:27-30]
-<!-- openclaw-memory-promotion:memory:memory/2026-06-02-pre-open.md:31:33 -->
-- HK 持仓: | 02208 金风科技 | 400 | 14.084 | 13.79 | +0.58% | -2.09% | -HK$118 | | 03033 南方恒科 | 1000 | 5.14 | 4.866 | +1.71% | -5.33% | -HK$274 | | 03032 恒科ETF | 200 | 5.405 | 4.95 | +1.56% | -8.42% | -HK$91 | [score=0.812 recalls=0 avg=0.620 source=memory/2026-06-02-pre-open.md:31-33]
-<!-- openclaw-memory-promotion:memory:memory/2026-06-02.md:10:13 -->
-- 关键发现: 00100 MINIMAX 单日 -15.71%，穿 780 stop — M3模型发布+科创板上市评估 sell-the-news; 同行商汤+6%、第四范式+5.3%、速腾+7.8% — 板块资金未撤，00100 个股 alpha 在掉; RKLB -14.85%，穿 130 stop — SpaceX IPO 压力; PLTU trim trigger 50 已触发 [score=0.812 recalls=0 avg=0.620 source=memory/2026-06-02.md:10-13]
-
 ## Promoted From Short-Term Memory (2026-06-08)
 
 <!-- openclaw-memory-promotion:memory:memory/2026-06-02.md:14:15 -->
@@ -141,3 +118,26 @@
 - Header: **Book 总览**: [score=0.812 recalls=0 avg=0.620 source=memory/2026-06-03-pre-open.md:13-13]
 <!-- openclaw-memory-promotion:memory:memory/2026-06-03-pre-open.md:15:18 -->
 - Header: 真实总浮盈亏: USD$-872.55 ≈ HKD$-6,838.49 (USDHKD = 7.8374, 来源 Frankfurter, 抓取于 2026-06-03 00:00 UTC) ├─ HK 段：HKD$-10,249.64 ≈ USD$-1,307.82 └─ US 段：USD$435.24 ≈ HKD$3,411.15 [score=0.812 recalls=0 avg=0.620 source=memory/2026-06-03-pre-open.md:15-18]
+
+## Promoted From Short-Term Memory (2026-06-09)
+
+<!-- openclaw-memory-promotion:memory:memory/2026-06-03-pre-open.md:2:3 -->
+- layout: default title: 盘前深度简报 · 2026-06-03 [score=0.834 recalls=0 avg=0.620 source=memory/2026-06-03-pre-open.md:2-3]
+<!-- openclaw-memory-promotion:memory:memory/2026-06-03-pre-open.md:21:21 -->
+- Header: **⚠️ 风险仪表盘** (4 alerts): [score=0.834 recalls=0 avg=0.620 source=memory/2026-06-03-pre-open.md:21-21]
+<!-- openclaw-memory-promotion:memory:memory/2026-06-03-pre-open.md:22:25 -->
+- Header: 🔴 US β vs S&P 500 = 3.95 (> 3.0); 🔴 Combined 30d annualised vol = 59.5% (> 50%); 🟡 Combined 30d max DD = -15.9% (< -10%); 🟡 Combined 30d Sharpe = -0.97 (< 0) [score=0.834 recalls=0 avg=0.620 source=memory/2026-06-03-pre-open.md:22-25]
+<!-- openclaw-memory-promotion:memory:memory/2026-06-05-pre-open.md:11:11 -->
+- 📊 盘前深度简报｜2026-06-05 周五 08:00 HKT: **USDHKD = 7.8338**（Frankfurter, 2026-06-05 00:00 UTC） [score=0.820 recalls=0 avg=0.620 source=memory/2026-06-05-pre-open.md:11-11]
+<!-- openclaw-memory-promotion:memory:memory/2026-06-05-pre-open.md:19:22 -->
+- HK 段（HKD）: | 代码 | 股 | 成本 | 现价 | 今日 | 浮% | 浮$ | |---|---|---|---|---|---|---| | 00100 MINIMAX | 60 | 822.83 | 663.5 | -1.70% | -19.36% | -9,560 | | 07226 2x恒科 | 6200 | 4.3632 | 3.908 | -3.17% | -10.43% | -2,822 | [score=0.820 recalls=0 avg=0.620 source=memory/2026-06-05-pre-open.md:19-22]
+<!-- openclaw-memory-promotion:memory:memory/2026-06-05-pre-open.md:2:3 -->
+- layout: default title: 盘前深度简报 · 2026-06-05 [score=0.820 recalls=0 avg=0.620 source=memory/2026-06-05-pre-open.md:2-3]
+<!-- openclaw-memory-promotion:memory:memory/2026-06-05-pre-open.md:23:25 -->
+- HK 段（HKD）: | 02208 金风科技 | 400 | 14.084 | 12.82 | -2.51% | -8.97% | -506 | | 03033 南方恒科 | 1000 | 5.14 | 4.87 | -1.62% | -5.25% | -270 | | 03032 恒科ETF | 200 | 5.405 | 4.972 | -1.64% | -8.01% | -87 | [score=0.820 recalls=0 avg=0.620 source=memory/2026-06-05-pre-open.md:23-25]
+<!-- openclaw-memory-promotion:memory:memory/2026-06-05-pre-open.md:27:27 -->
+- HK 段（HKD）: HK 段合计：HKD 75,032 | 浮亏 HKD -13,244 [score=0.820 recalls=0 avg=0.620 source=memory/2026-06-05-pre-open.md:27-27]
+<!-- openclaw-memory-promotion:memory:memory/2026-06-02.md:7:7 -->
+- WeChat: 已发送 [score=0.814 recalls=0 avg=0.620 source=memory/2026-06-02.md:7-7]
+<!-- openclaw-memory-promotion:memory:memory/2026-06-05-pre-open.md:9:9 -->
+- 📊 盘前深度简报｜2026-06-05 周五 08:00 HKT: 🧭 **Regime**: US = range-bound（SPX +0.41% / NDX -0.54% 混合，macro stale 48h）| HK = volatile/regime-change（HSTECH -1.61%，00100 5日 -21%，6/8 纳入催化 3 天后） [score=0.808 recalls=0 avg=0.620 source=memory/2026-06-05-pre-open.md:9-9]
