@@ -3839,19 +3839,28 @@ layout: null
     const byDate = new Map();
     snaps.forEach(s => byDate.set(s.date, s));
     let series = Array.from(byDate.values()).sort((a, b) => a.date.localeCompare(b.date));
-    // Dedup consecutive snapshots carrying the SAME today_change — weekend/holiday
-    // snapshots copy the prior trading day's value (e.g. Sat+Sun+Mon all = Fri's move),
-    // which would triple-count one day and drag the cumulative spuriously negative.
-    // Drop an entry if it's identical to the NEXT one → keep the last date of each run.
+    // Collapse consecutive snapshots that belong to the SAME trading session, keeping
+    // the last (most-settled) one. Two reasons a session repeats across snapshots:
+    //  1) weekend/holiday copies (Sat+Sun+Mon all carry Fri's move);
+    //  2) a US session straddles HK midnight → lands in two HK-dated snapshots
+    //     (the 2026-06-08/09 bug: US Jun-8 counted at both 6/8 and 6/9).
+    // Key on session date (us_asof/hk_asof) per the active view so US sessions collapse
+    // by US calendar, HK by HK calendar; fall back to today_change value if asof absent.
+    const sameSession = (a, b) => {
+      if (view === "us") return !!a.us_asof && a.us_asof === b.us_asof;
+      if (view === "hk") return !!a.hk_asof && a.hk_asof === b.hk_asof;
+      return !!a.us_asof && a.us_asof === b.us_asof && a.hk_asof === b.hk_asof;
+    };
     series = series.filter((s, i) => {
       const next = series[i + 1];
-      const sameAsNext = next
-        && s.us_today_change === next.us_today_change
-        && s.hk_today_change === next.hk_today_change;
-      return !sameAsNext;
+      if (!next) return true;
+      if (s.us_asof && s.hk_asof && next.us_asof && next.hk_asof) return !sameSession(s, next);
+      return !(s.us_today_change === next.us_today_change && s.hk_today_change === next.hk_today_change);
     });
 
-    const dates = series.map(s => s.date);
+    // Per-market views label the x-axis by the true session date (≠ filename date).
+    const dates = series.map(s =>
+      view === "us" ? (s.us_asof || s.date) : view === "hk" ? (s.hk_asof || s.date) : s.date);
     const dailyPnl = series.map(s => Math.round(pnlOf(s) * 100) / 100);
     // Cumulative running sum
     let running = 0;

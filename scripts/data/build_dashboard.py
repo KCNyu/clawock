@@ -155,6 +155,29 @@ def _aggregate_indices(us_pf, hk_pf):
     return out
 
 
+_MONTHS = {m: i for i, m in enumerate(
+    ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'], 1)}
+_ASOF_RE = re.compile(r'\b(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+(\d{1,2})(?:,\s*(\d{4}))?')
+
+
+def _session_asof(region_pf, fallback_year):
+    """The market-session date (YYYY-MM-DD) a snapshot's prices belong to, parsed
+    from an ACTIVE holding's data_source (exited names carry stale dates).
+
+    Why: US trades during HK night, so one US session (e.g. Jun 8 ET) lands in BOTH
+    the HK-6/8 and HK-6/9 snapshots. Keying daily P&L by this session date — not the
+    HK filename date — stops the same session being counted twice (2026-06-08/09 bug).
+    Formats seen: 'Nasdaq API (stocks) Jun 08, 2026 13:23 ET', 'Tencent Jun 08 16:00 HKT'."""
+    for h in (region_pf.get('holdings', []) or []):
+        if (h.get('shares', 0) or 0) <= 0:
+            continue
+        m = _ASOF_RE.search(h.get('data_source') or '')
+        if m:
+            mon, day, yr = _MONTHS[m.group(1)], int(m.group(2)), int(m.group(3) or fallback_year)
+            return f'{yr:04d}-{mon:02d}-{day:02d}'
+    return None
+
+
 _LEDGER_CACHE = None
 
 
@@ -239,6 +262,10 @@ def load_snapshots():
             'hk_today_change': hk.get('today_total_change', 0),
             'hk_realized': hk_real,
             'hk_equity': round(hk_val + hk_real, 2),
+            # Market-session dates (≠ filename date) so daily P&L can collapse a US
+            # session that straddles two HK-dated snapshots instead of double-counting.
+            'us_asof': _session_asof(us, date[:4]),
+            'hk_asof': _session_asof(hk, date[:4]),
         })
     return results
 
