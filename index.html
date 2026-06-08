@@ -141,6 +141,19 @@ layout: null
   }
   .tab-btn.active { color: var(--text); border-bottom-color: var(--accent); }
 
+  /* Per-market segmented control (broker-app style) for Equity / Daily P&L */
+  .card-head { display: flex; align-items: center; justify-content: space-between;
+    gap: 10px; flex-wrap: wrap; }
+  .card-head h3 { margin: 0; }
+  .mkt-seg { display: inline-flex; gap: 2px; background: var(--bg-2);
+    border: 1px solid var(--border); border-radius: 9px; padding: 2px; }
+  .mkt-seg-btn { appearance: none; background: transparent; color: var(--text-dim);
+    border: none; border-radius: 7px; padding: 5px 11px; min-height: 30px;
+    font-size: 12px; font-weight: 600; cursor: pointer; white-space: nowrap;
+    transition: background .12s, color .12s; }
+  .mkt-seg-btn.active { background: var(--accent); color: #fff; }
+  .mkt-seg-btn:not(.active):hover { color: var(--text); }
+
   /* Swipe affordance — only shown on coarse-pointer (touch) devices */
   .swipe-hint { display: none; }
   @media (pointer: coarse) {
@@ -1754,14 +1767,28 @@ layout: null
     </div>
 
     <div class="card">
-      <h3>Equity Curve · USD-eq</h3>
-      <p class="chart-hint">蓝实线 = 日终总资产 USD-eq（持仓市值 + 已实现现金）；灰虚线 = 累计成本基础；<b>紫线 = SPY 等值</b>（"当初同等美元 all-in SPY 到今天的账面"，非美股交易日延用前值）；<b style="color:#f59e0b">橙线 = 恒科等值</b> + <b style="color:#f59e0b">橙虚线 = 恒科200日线触发位</b>（橙线涨到虚线 = 恒科站回200线 → 杠杆刻度盘放回杠杆）；红色填充 = 历史峰值回撤。<br>读法：蓝线在紫线上方 = 跑赢大盘；橙线离橙虚线还差多少 = 距离重新加杠杆还差多少。</p>
+      <div class="card-head">
+        <h3 id="equity-title">Equity Curve · USD-eq</h3>
+        <div class="mkt-seg" role="group" aria-label="市场切换">
+          <button class="mkt-seg-btn active" data-mkt="combined">总览</button>
+          <button class="mkt-seg-btn" data-mkt="us">🇺🇸 美股</button>
+          <button class="mkt-seg-btn" data-mkt="hk">🇭🇰 港股</button>
+        </div>
+      </div>
+      <p class="chart-hint">实线 = 日终净值（持仓市值 + 已实现现金）；灰虚线 = 累计成本基础；<b>紫线 = SPY 等值</b>（"当初同等美元 all-in SPY 到今天的账面"，非美股交易日延用前值）；<b style="color:#f59e0b">橙线 = 恒科等值</b> + <b style="color:#f59e0b">橙虚线 = 恒科200日线触发位</b>（橙线涨到虚线 = 恒科站回200线 → 杠杆刻度盘放回杠杆）；红色填充 = 历史峰值回撤。<br><b>切换上方〔总览 / 美股 / 港股〕看分市场曲线</b>：总览=USD-eq 合并（HK 按现汇折美元）；美股=$ 计、对标 SPY；港股=HK$ 计、对标恒科。</p>
       <div id="chart-equity" class="chart-box"></div>
     </div>
 
     <div class="card">
-      <h3>Daily P&amp;L + Cumulative</h3>
-      <p class="chart-hint">每日净盈亏柱状（绿涨红跌，USD-eq）+ 累计盈亏曲线。柱在零下方 = 当日亏损；曲线走势看长期方向。</p>
+      <div class="card-head">
+        <h3 id="dailypnl-title">Daily P&amp;L + Cumulative · USD-eq</h3>
+        <div class="mkt-seg" role="group" aria-label="市场切换">
+          <button class="mkt-seg-btn active" data-mkt="combined">总览</button>
+          <button class="mkt-seg-btn" data-mkt="us">🇺🇸 美股</button>
+          <button class="mkt-seg-btn" data-mkt="hk">🇭🇰 港股</button>
+        </div>
+      </div>
+      <p class="chart-hint">每日净盈亏柱状（绿涨红跌）+ 累计盈亏曲线。柱在零下方 = 当日亏损；曲线走势看长期方向。<b>跟随上方市场切换</b>：总览=USD-eq，美股=$，港股=HK$。</p>
       <div id="chart-daily-pnl" class="chart-box"></div>
     </div>
 
@@ -1963,6 +1990,30 @@ layout: null
   let DATA = null;
   let holdingsSort = { key: "current_value", dir: "desc" };
   const charts = { equity: null, dailyPnl: null, realized: null, sector: null, weightConf: null };
+
+  // Per-market view shared by Equity Curve + Daily P&L: 'combined' | 'us' | 'hk'.
+  let MARKET_VIEW = "combined";
+  function setMarketView(v) {
+    if (v === MARKET_VIEW) return;
+    MARKET_VIEW = v;
+    document.querySelectorAll(".mkt-seg-btn").forEach(b =>
+      b.classList.toggle("active", b.dataset.mkt === v));
+    const sfx = v === "us" ? "· 美股 USD" : v === "hk" ? "· 港股 HKD" : "· USD-eq";
+    const et = document.getElementById("equity-title");
+    const dt = document.getElementById("dailypnl-title");
+    if (et) et.textContent = `Equity Curve ${sfx}`;
+    if (dt) dt.textContent = `Daily P&L + Cumulative ${sfx}`;
+    renderEquityChart();
+    renderDailyPnlChart();
+    requestAnimationFrame(() => {
+      charts.equity && charts.equity.resize();
+      charts.dailyPnl && charts.dailyPnl.resize();
+    });
+  }
+  document.addEventListener("click", (e) => {
+    const b = e.target.closest(".mkt-seg-btn");
+    if (b && b.dataset.mkt) setMarketView(b.dataset.mkt);
+  });
 
   // =========================================================
   // Data load
@@ -3546,93 +3597,84 @@ layout: null
     if (!el || !window.echarts) return;
     if (!charts.equity) charts.equity = echarts.init(el, null, { renderer: "canvas" });
 
+    const view = MARKET_VIEW;                       // 'combined' | 'us' | 'hk'
     const fx = safe(DATA, "fx", "usdhkd") || 7.83;
     const snaps = (safe(DATA, "snapshots") || [])
       .filter(s => s.us_total_value != null || s.hk_total_value != null);
     const byDate = new Map();
     snaps.forEach(s => byDate.set(s.date, s));
     const series = Array.from(byDate.values()).sort((a, b) => a.date.localeCompare(b.date));
-
     const dates = series.map(s => s.date);
-    // Combined equity in USD-eq = 持仓市值 + 已实现现金 (HK converted at current FX).
-    // equity not raw holdings value, so sells (holdings→cash) don't drop the curve.
-    const bookUsd = series.map(s => {
-      const u = s.us_equity != null ? s.us_equity : 0;
-      const h = s.hk_equity != null ? s.hk_equity / fx : 0;
-      return Math.round((u + h) * 100) / 100;
+    const r2 = v => Math.round(v * 100) / 100;
+
+    // ── Per-market basis ──────────────────────────────────────────────────
+    // equity = 持仓市值 + 累计已实现 (so sells, holdings→cash, don't drop the curve).
+    // US/combined in USD ($); HK in native HKD (HK$); combined folds HK→USD at FX.
+    const cur = view === "hk" ? "HK$" : "$";
+    const showSPY = view !== "hk";              // SPY overlay only where USD makes sense
+    const showHSTECH = view !== "us";           // 恒科 overlay only where HK is in play
+    const eqName = view === "us" ? "美股净值" : view === "hk" ? "港股净值" : "总资产";
+    const eq = series.map(s => {
+      if (view === "us") return s.us_equity != null ? r2(s.us_equity) : null;
+      if (view === "hk") return s.hk_equity != null ? r2(s.hk_equity) : null;
+      return r2((s.us_equity ?? 0) + ((s.hk_equity ?? 0) / fx));
     });
-    // Combined cost basis in USD-eq (baseline reference line)
-    const costUsd = series.map(s => {
-      const u = s.us_total_cost != null ? s.us_total_cost : 0;
-      const h = s.hk_total_cost != null ? s.hk_total_cost / fx : 0;
-      const t = u + h;
-      return t > 0 ? Math.round(t * 100) / 100 : null;
+    const cost = series.map(s => {
+      let t;
+      if (view === "us") t = s.us_total_cost;
+      else if (view === "hk") t = s.hk_total_cost;
+      else t = (s.us_total_cost ?? 0) + ((s.hk_total_cost ?? 0) / fx);
+      return (t != null && t > 0) ? r2(t) : null;
     });
-    // Drawdown from running peak
+
+    // Drawdown from running peak (this view's equity)
     let peak = -Infinity;
-    const ddPct = bookUsd.map(v => {
+    const ddPct = eq.map(v => {
       if (v == null) return null;
       if (v > peak) peak = v;
       return peak > 0 ? Math.round(((v - peak) / peak) * 10000) / 100 : 0;
     });
-    // Day-over-day equity change (USD + %) — shown in tooltip separately from 回撤,
-    // so consecutive new highs (回撤 0%) don't look like a stuck/duplicate value.
-    const chgUsd = bookUsd.map((v, i) =>
-      (i > 0 && v != null && bookUsd[i - 1] != null)
-        ? Math.round((v - bookUsd[i - 1]) * 100) / 100 : null);
-    const chgPct = bookUsd.map((v, i) =>
-      (i > 0 && v != null && bookUsd[i - 1] != null && bookUsd[i - 1] !== 0)
-        ? Math.round(((v - bookUsd[i - 1]) / bookUsd[i - 1]) * 10000) / 100 : null);
+    // Day-over-day equity change — shown in tooltip separately from 回撤 so
+    // consecutive new highs (回撤 0%) don't look like a stuck/duplicate value.
+    const chg = eq.map((v, i) =>
+      (i > 0 && v != null && eq[i - 1] != null) ? r2(v - eq[i - 1]) : null);
+    const chgPct = eq.map((v, i) =>
+      (i > 0 && v != null && eq[i - 1] != null && eq[i - 1] !== 0)
+        ? Math.round(((v - eq[i - 1]) / eq[i - 1]) * 10000) / 100 : null);
 
-    // Benchmark overlay — "what if I bought SPY at the same dollar amount on day 0?"
-    // Normalize so benchmark[0] === bookUsd[0], then scale by bench_close[i] / bench_close[0].
-    // This puts the benchmark line in the same USD axis as the portfolio so the visual gap
-    // IS the cumulative alpha (or beta drag).
-    const bench = safe(DATA, "benchmark", "series", "SPY") || [];
-    const benchByDate = new Map(bench.map(b => [b.date, b.close]));
-    // Find first portfolio date that also has a benchmark close (skip leading nulls)
-    let baselineIdx = -1, baselineBenchClose = null;
-    for (let i = 0; i < dates.length; i++) {
-      if (bookUsd[i] == null) continue;
-      const c = benchByDate.get(dates[i]);
-      if (c != null) { baselineIdx = i; baselineBenchClose = c; break; }
+    // Benchmark overlay — "what if I bought N at the same amount on day 0?" Normalized
+    // so bench[base] === eq[base], then scaled by close[i]/close[base], so it lands in
+    // the SAME currency axis as the portfolio and the visual gap IS cumulative alpha.
+    // Forward-fills across non-trading days so the line stays continuous.
+    function benchLine(key) {
+      const bm = safe(DATA, "benchmark", "series", key) || [];
+      const bd = new Map(bm.map(b => [b.date, b.close]));
+      let bIdx = -1, bClose = null;
+      for (let i = 0; i < dates.length; i++) {
+        if (eq[i] == null) continue;
+        const c = bd.get(dates[i]);
+        if (c != null) { bIdx = i; bClose = c; break; }
+      }
+      let last = null;
+      const line = dates.map((d, i) => {
+        if (bIdx < 0 || i < bIdx || !bClose) return null;
+        const c = bd.get(d);
+        if (c != null) last = c;
+        if (last == null) return null;
+        return r2(eq[bIdx] * (last / bClose));
+      });
+      return { line, bIdx, bClose };
     }
-    // Forward-fill: SPY only trades on US business days; portfolio snapshots include
-    // weekends/holidays. Carry the last known close forward so the overlay stays
-    // continuous instead of dropping out on Sat/Sun/holiday/today-pre-close.
-    let lastBenchClose = null;
-    const benchUsd = dates.map((d, i) => {
-      if (baselineIdx < 0 || i < baselineIdx || !baselineBenchClose) return null;
-      const c = benchByDate.get(d);
-      if (c != null) lastBenchClose = c;
-      if (lastBenchClose == null) return null;
-      return Math.round(bookUsd[baselineIdx] * (lastBenchClose / baselineBenchClose) * 100) / 100;
-    });
+    const spy = showSPY ? benchLine("SPY") : { line: [], bIdx: -1, bClose: null };
+    const hst = showHSTECH ? benchLine("HSTECH") : { line: [], bIdx: -1, bClose: null };
 
-    // 恒科等值 overlay — same "all-in on day0" normalization as SPY, so HSTECH's
-    // 200日线触发 can be drawn IN the portfolio's USD axis. The trigger $ level =
-    // where the 恒科等值 line lands when HSTECH reclaims its 200DMA → re-leverage cue.
-    const benchH = safe(DATA, "benchmark", "series", "HSTECH") || [];
-    const benchHByDate = new Map(benchH.map(b => [b.date, b.close]));
-    let baseIdxH = -1, baseHClose = null;
-    for (let i = 0; i < dates.length; i++) {
-      if (bookUsd[i] == null) continue;
-      const c = benchHByDate.get(dates[i]);
-      if (c != null) { baseIdxH = i; baseHClose = c; break; }
-    }
-    let lastH = null;
-    const benchHUsd = dates.map((d, i) => {
-      if (baseIdxH < 0 || i < baseIdxH || !baseHClose) return null;
-      const c = benchHByDate.get(d);
-      if (c != null) lastH = c;
-      if (lastH == null) return null;
-      return Math.round(bookUsd[baseIdxH] * (lastH / baseHClose) * 100) / 100;
-    });
     const lr = safe(DATA, "lev_regime") || {};
     const hstech200 = lr.ma ?? safe(DATA, "lev_regime", "hk", "ma");
     const hstechClose = lr.close ?? safe(DATA, "lev_regime", "hk", "close");
-    const triggerUsd = (hstech200 && baseHClose && baseIdxH >= 0)
-      ? Math.round(bookUsd[baseIdxH] * (hstech200 / baseHClose) * 100) / 100 : null;
+    // 恒科200日线触发位 in the chart's currency (where the 恒科等值 line lands if HSTECH
+    // reclaims its 200DMA → re-leverage cue).
+    const triggerLvl = (showHSTECH && hstech200 && hst.bClose && hst.bIdx >= 0)
+      ? r2(eq[hst.bIdx] * (hstech200 / hst.bClose)) : null;
     const reclaimPct = (hstech200 && hstechClose) ? (hstech200 / hstechClose - 1) * 100 : null;
 
     const accent = getCSS("--accent") || "#5b8def";
@@ -3642,15 +3684,56 @@ layout: null
     const benchColor = getCSS("--accent-2") || "#a78bfa";
     const hkColor = "#f59e0b";
 
+    const axisMoney = v => cur + (Math.abs(v) >= 1000 ? (v / 1000).toFixed(1) + "k" : v);
+    const tipMoney = v => cur + v.toLocaleString("en-US", { maximumFractionDigits: 0 });
+
     const isMobile = window.innerWidth < 1024;
     // 天数 >30 后启用底部缩放滑块，默认显示最近 ~30 天，可拖动看全程。
     const manyPts = dates.length > 30;
     const zoomStart = manyPts ? Math.max(0, (1 - 30 / dates.length) * 100) : 0;
+
+    const legendData = [eqName, "成本基础"];
+    if (showSPY) legendData.push("SPY 等值");
+    if (showHSTECH) legendData.push("恒科等值");
+    legendData.push("回撤");
+
+    const seriesArr = [
+      { name: eqName, type: "line", data: eq, yAxisIndex: 0,
+        itemStyle: { color: accent }, lineStyle: { width: 2.5 }, smooth: true,
+        symbol: dates.length > 45 ? "none" : "circle", symbolSize: 5,
+        areaStyle: { color: accent, opacity: 0.08 }, z: 3, connectNulls: true },
+      { name: "成本基础", type: "line", data: cost, yAxisIndex: 0,
+        itemStyle: { color: dim }, lineStyle: { width: 1, type: "dashed", color: dim },
+        symbol: "none", z: 2, connectNulls: true },
+    ];
+    if (showSPY) seriesArr.push(
+      { name: "SPY 等值", type: "line", data: spy.line, yAxisIndex: 0,
+        itemStyle: { color: benchColor }, lineStyle: { width: 1.4, color: benchColor, opacity: 0.85 },
+        symbol: "none", smooth: true, z: 2, connectNulls: true });
+    if (showHSTECH) seriesArr.push(
+      { name: "恒科等值", type: "line", data: hst.line, yAxisIndex: 0,
+        itemStyle: { color: hkColor }, lineStyle: { width: 1.4, color: hkColor, opacity: 0.85 },
+        symbol: "none", smooth: true, z: 2, connectNulls: true,
+        markLine: (triggerLvl == null) ? undefined : {
+          symbol: "none", silent: true,
+          lineStyle: { color: hkColor, type: "dashed", width: 1.2, opacity: 0.9 },
+          label: { color: hkColor, fontSize: 9, position: "insideEndTop",
+            formatter: () => `恒科200线触发 ${Math.round(hstech200)}` +
+              (reclaimPct != null ? `（需${reclaimPct >= 0 ? "+" : ""}${reclaimPct.toFixed(0)}%）` : "") },
+          data: [{ yAxis: triggerLvl }],
+        },
+      });
+    seriesArr.push(
+      { name: "回撤", type: "line", data: ddPct, yAxisIndex: 1,
+        areaStyle: { color: red, opacity: 0.14 }, lineStyle: { color: red, opacity: 0.55, width: 1 },
+        symbol: "none", smooth: true, z: 1 });
+
     const opt = {
       ...baseChartOpts(),
       grid: { left: isMobile ? 48 : 72, right: isMobile ? 40 : 68, top: isMobile ? 56 : 38, bottom: manyPts ? 58 : 36 },
-      legend: { data: ["总资产", "成本基础", "SPY 等值", "恒科等值", "回撤"],
-        selected: { "恒科等值": true },
+      legend: { data: legendData,
+        // 总览默认展开恒科等值；分市场视图全部默认显示
+        selected: (view === "combined" && showHSTECH) ? { "恒科等值": true } : {},
         textStyle: { color: chartTextColor(), fontSize: isMobile ? 9 : 10 },
         top: 4, itemGap: isMobile ? 8 : 10, itemWidth: isMobile ? 16 : 25, itemHeight: isMobile ? 8 : 14,
         padding: [0, 4] },
@@ -3664,20 +3747,20 @@ layout: null
             const isPct = p.seriesName === "回撤";
             const fmt = isPct
               ? (v != null ? `${v.toFixed(2)}%` : "—")
-              : (v != null ? "$" + v.toLocaleString("en-US", { maximumFractionDigits: 0 }) : "—");
+              : (v != null ? tipMoney(v) : "—");
             return `${p.marker} ${p.seriesName}: <b>${fmt}</b>`;
           });
-          // 总资产较昨日 = 本曲线两点之差(含隔夜/取数时点)，与"回撤"分列。
+          // 净值较昨日 = 本曲线两点之差(含隔夜/取数时点)，与"回撤"分列。
           // 注意：这≠"每日P&L图"的 today_change(今日盘中相对昨收)，两者口径不同。
-          if (i != null && chgUsd[i] != null) {
-            const c = chgUsd[i];
+          if (i != null && chg[i] != null) {
+            const c = chg[i];
             const col = c > 0 ? green : c < 0 ? red : dim;
             const s = c >= 0 ? "+" : "-";
             const pctStr = chgPct[i] != null ? ` (${s}${Math.abs(chgPct[i]).toFixed(2)}%)` : "";
             const abs = Math.abs(c).toLocaleString("en-US", { maximumFractionDigits: 0 });
-            lines.push(`<span style="color:${col}">总资产较昨日: <b>${s}$${abs}</b>${pctStr}</span>`);
+            lines.push(`<span style="color:${col}">${eqName}较昨日: <b>${s}${cur}${abs}</b>${pctStr}</span>`);
           } else if (i === 0) {
-            lines.push(`<span style="color:${dim}">总资产较昨日: <b>首日</b></span>`);
+            lines.push(`<span style="color:${dim}">${eqName}较昨日: <b>首日</b></span>`);
           }
           return [date, ...lines].join("<br>");
         },
@@ -3695,15 +3778,14 @@ layout: null
       ] : undefined,
       yAxis: [
         {
-          type: "value", name: isMobile ? "" : "USD",
+          type: "value", name: isMobile ? "" : (view === "hk" ? "HKD" : "USD"),
           nameTextStyle: { color: chartTextColor(), fontSize: 9 },
           scale: true,
-          // 恒科200线触发位 ≈ 基准组合 ×1.13，高于总资产顶 → 不抬高轴上限会被裁掉看不见。
-          max: (triggerUsd != null) ? (v) => Math.max(v.max, triggerUsd) * 1.03 : undefined,
+          // 恒科200线触发位高于净值顶 → 不抬高轴上限会被裁掉看不见。
+          max: (triggerLvl != null) ? (v) => Math.max(v.max, triggerLvl) * 1.03 : undefined,
           axisLine: { lineStyle: { color: chartGridColor() } },
           splitLine: { lineStyle: { color: chartGridColor() } },
-          axisLabel: { color: chartTextColor(), fontSize: 9,
-            formatter: (v) => "$" + (Math.abs(v) >= 1000 ? (v / 1000).toFixed(1) + "k" : v) },
+          axisLabel: { color: chartTextColor(), fontSize: 9, formatter: axisMoney },
         },
         {
           type: "value", name: isMobile ? "" : "DD %", max: 0, position: "right",
@@ -3713,36 +3795,7 @@ layout: null
           axisLabel: { color: chartTextColor(), fontSize: 9, formatter: "{value}%" },
         },
       ],
-      series: [
-        { name: "总资产", type: "line", data: bookUsd, yAxisIndex: 0,
-          itemStyle: { color: accent }, lineStyle: { width: 2.5 }, smooth: true,
-          symbol: dates.length > 45 ? "none" : "circle", symbolSize: 5,
-          areaStyle: { color: accent, opacity: 0.08 }, z: 3 },
-        { name: "成本基础", type: "line", data: costUsd, yAxisIndex: 0,
-          itemStyle: { color: dim }, lineStyle: { width: 1, type: "dashed", color: dim },
-          symbol: "none", z: 2 },
-        { name: "SPY 等值", type: "line", data: benchUsd, yAxisIndex: 0,
-          itemStyle: { color: benchColor },
-          lineStyle: { width: 1.4, color: benchColor, opacity: 0.85 },
-          symbol: "none", smooth: true, z: 2, connectNulls: true },
-        { name: "恒科等值", type: "line", data: benchHUsd, yAxisIndex: 0,
-          itemStyle: { color: hkColor },
-          lineStyle: { width: 1.4, color: hkColor, opacity: 0.85 },
-          symbol: "none", smooth: true, z: 2, connectNulls: true,
-          // 恒科 200日线触发位（站回则放回杠杆）画成水平虚线，标在组合美元轴上
-          markLine: (triggerUsd == null) ? undefined : {
-            symbol: "none", silent: true,
-            lineStyle: { color: hkColor, type: "dashed", width: 1.2, opacity: 0.9 },
-            label: { color: hkColor, fontSize: 9, position: "insideEndTop",
-              formatter: () => `恒科200线触发 ${Math.round(hstech200)}` +
-                (reclaimPct != null ? `（需${reclaimPct >= 0 ? "+" : ""}${reclaimPct.toFixed(0)}%）` : "") },
-            data: [{ yAxis: triggerUsd }],
-          },
-        },
-        { name: "回撤", type: "line", data: ddPct, yAxisIndex: 1,
-          areaStyle: { color: red, opacity: 0.14 }, lineStyle: { color: red, opacity: 0.55, width: 1 },
-          symbol: "none", smooth: true, z: 1 },
-      ],
+      series: seriesArr,
     };
     if (!dates.length) {
       opt.graphic = [{
@@ -3758,6 +3811,15 @@ layout: null
     if (!el || !window.echarts) return;
     if (!charts.dailyPnl) charts.dailyPnl = echarts.init(el, null, { renderer: "canvas" });
 
+    const view = MARKET_VIEW;                       // 'combined' | 'us' | 'hk'
+    const fx = safe(DATA, "fx", "usdhkd") || 7.83;
+    const cur = view === "hk" ? "HK$" : "$";
+    // Per-market daily change: US/combined in USD, HK in native HKD.
+    const pnlOf = s => {
+      if (view === "us") return s.us_today_change != null ? s.us_today_change : 0;
+      if (view === "hk") return s.hk_today_change != null ? s.hk_today_change : 0;
+      return (s.us_today_change ?? 0) + ((s.hk_today_change ?? 0) / fx);
+    };
     const snaps = (safe(DATA, "snapshots") || [])
       .filter(s => s.us_today_change != null || s.hk_today_change != null);
     const byDate = new Map();
@@ -3775,17 +3837,11 @@ layout: null
       return !sameAsNext;
     });
 
-    const fx = safe(DATA, "fx", "usdhkd") || 7.83;
     const dates = series.map(s => s.date);
-    // Combined daily P&L in USD-eq (HK changes converted at current FX)
-    const combinedPnl = series.map(s => {
-      const u = s.us_today_change != null ? s.us_today_change : 0;
-      const h = s.hk_today_change != null ? s.hk_today_change / fx : 0;
-      return Math.round((u + h) * 100) / 100;
-    });
+    const dailyPnl = series.map(s => Math.round(pnlOf(s) * 100) / 100);
     // Cumulative running sum
     let running = 0;
-    const cumulative = combinedPnl.map(v => {
+    const cumulative = dailyPnl.map(v => {
       running += (v || 0);
       return Math.round(running * 100) / 100;
     });
@@ -3794,10 +3850,12 @@ layout: null
     const green = getCSS("--green") || "#34d399";
     const red = getCSS("--red") || "#f87171";
 
-    const bars = combinedPnl.map(v => ({
+    const bars = dailyPnl.map(v => ({
       value: v,
       itemStyle: { color: v == null ? accent : (v >= 0 ? green : red), opacity: 0.85 },
     }));
+    const axisMoney = v => cur + (Math.abs(v) >= 1000 ? (v / 1000).toFixed(1) + "k" : v);
+    const tipMoney = v => cur + v.toLocaleString("en-US", { maximumFractionDigits: 0 });
 
     const isMobile = window.innerWidth < 1024;
     // 天数 >30 后启用底部缩放滑块，默认显示最近 ~30 天，可拖动看全程。
@@ -3813,7 +3871,7 @@ layout: null
           const date = params[0]?.axisValue || "";
           const lines = params.map(p => {
             const v = p.value;
-            return `${p.marker} ${p.seriesName}: <b>${v != null ? "$" + v.toLocaleString("en-US", { maximumFractionDigits: 0 }) : "—"}</b>`;
+            return `${p.marker} ${p.seriesName}: <b>${v != null ? tipMoney(v) : "—"}</b>`;
           });
           return [date, ...lines].join("<br>");
         },
@@ -3831,20 +3889,18 @@ layout: null
       ] : undefined,
       yAxis: [
         {
-          type: "value", name: "每日 $",
+          type: "value", name: `每日 ${cur}`,
           nameTextStyle: { color: chartTextColor(), fontSize: 9 },
           axisLine: { lineStyle: { color: chartGridColor() } },
           splitLine: { lineStyle: { color: chartGridColor() } },
-          axisLabel: { color: chartTextColor(), fontSize: 9,
-            formatter: (v) => "$" + (Math.abs(v) >= 1000 ? (v / 1000).toFixed(1) + "k" : v) },
+          axisLabel: { color: chartTextColor(), fontSize: 9, formatter: axisMoney },
         },
         {
-          type: "value", name: "累计 $", position: "right",
+          type: "value", name: `累计 ${cur}`, position: "right",
           nameTextStyle: { color: chartTextColor(), fontSize: 9 },
           axisLine: { lineStyle: { color: chartGridColor() } },
           splitLine: { show: false },
-          axisLabel: { color: chartTextColor(), fontSize: 9,
-            formatter: (v) => "$" + (Math.abs(v) >= 1000 ? (v / 1000).toFixed(1) + "k" : v) },
+          axisLabel: { color: chartTextColor(), fontSize: 9, formatter: axisMoney },
         },
       ],
       series: [
