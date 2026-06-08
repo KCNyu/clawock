@@ -143,16 +143,30 @@ layout: null
 
   /* Per-market segmented control (broker-app style) for Equity / Daily P&L */
   .card-head { display: flex; align-items: center; justify-content: space-between;
-    gap: 10px; flex-wrap: wrap; }
+    gap: 8px 12px; flex-wrap: wrap; }
   .card-head h3 { margin: 0; }
   .mkt-seg { display: inline-flex; gap: 2px; background: var(--bg-2);
     border: 1px solid var(--border); border-radius: 9px; padding: 2px; }
-  .mkt-seg-btn { appearance: none; background: transparent; color: var(--text-dim);
+  .mkt-seg-btn { display: inline-flex; align-items: center; justify-content: center;
+    gap: 5px; appearance: none; background: transparent; color: var(--text-dim);
     border: none; border-radius: 7px; padding: 5px 11px; min-height: 30px;
-    font-size: 12px; font-weight: 600; cursor: pointer; white-space: nowrap;
-    transition: background .12s, color .12s; }
-  .mkt-seg-btn.active { background: var(--accent); color: #fff; }
+    font-size: 12px; font-weight: 600; line-height: 1; cursor: pointer;
+    white-space: nowrap; transition: background .12s, color .12s; }
+  /* iOS-style raised pill for the active segment → colored dots stay visible */
+  .mkt-seg-btn.active { background: var(--card); color: var(--text);
+    box-shadow: 0 1px 3px rgba(0,0,0,.25); }
   .mkt-seg-btn:not(.active):hover { color: var(--text); }
+  /* Market dots replace flag emoji (regional-indicator glyphs misrender on mobile) */
+  .seg-dot { width: 7px; height: 7px; border-radius: 50%; flex: none;
+    background: var(--text-dim); }
+  .seg-dot.us { background: var(--accent); }
+  .seg-dot.hk { background: var(--accent-2); }
+  /* Mobile: stack heading + full-width equal segments so labels never misalign */
+  @media (max-width: 560px) {
+    .card-head { flex-direction: column; align-items: stretch; gap: 8px; }
+    .mkt-seg { width: 100%; }
+    .mkt-seg-btn { flex: 1; padding: 7px 4px; }
+  }
 
   /* Swipe affordance — only shown on coarse-pointer (touch) devices */
   .swipe-hint { display: none; }
@@ -1770,9 +1784,9 @@ layout: null
       <div class="card-head">
         <h3 id="equity-title">Equity Curve · USD-eq</h3>
         <div class="mkt-seg" role="group" aria-label="市场切换">
-          <button class="mkt-seg-btn active" data-mkt="combined">总览</button>
-          <button class="mkt-seg-btn" data-mkt="us">🇺🇸 美股</button>
-          <button class="mkt-seg-btn" data-mkt="hk">🇭🇰 港股</button>
+          <button class="mkt-seg-btn active" data-mkt="combined"><span class="seg-dot"></span>总览</button>
+          <button class="mkt-seg-btn" data-mkt="us"><span class="seg-dot us"></span>美股</button>
+          <button class="mkt-seg-btn" data-mkt="hk"><span class="seg-dot hk"></span>港股</button>
         </div>
       </div>
       <p class="chart-hint">实线 = 日终净值（持仓市值 + 已实现现金）；灰虚线 = 累计成本基础；<b>紫线 = SPY 等值</b>（"当初同等美元 all-in SPY 到今天的账面"，非美股交易日延用前值）；<b style="color:#f59e0b">橙线 = 恒科等值</b> + <b style="color:#f59e0b">橙虚线 = 恒科200日线触发位</b>（橙线涨到虚线 = 恒科站回200线 → 杠杆刻度盘放回杠杆）；红色填充 = 历史峰值回撤。<br><b>切换上方〔总览 / 美股 / 港股〕看分市场曲线</b>：总览=USD-eq 合并（HK 按现汇折美元）；美股=$ 计、对标 SPY；港股=HK$ 计、对标恒科。</p>
@@ -1783,9 +1797,9 @@ layout: null
       <div class="card-head">
         <h3 id="dailypnl-title">Daily P&amp;L + Cumulative · USD-eq</h3>
         <div class="mkt-seg" role="group" aria-label="市场切换">
-          <button class="mkt-seg-btn active" data-mkt="combined">总览</button>
-          <button class="mkt-seg-btn" data-mkt="us">🇺🇸 美股</button>
-          <button class="mkt-seg-btn" data-mkt="hk">🇭🇰 港股</button>
+          <button class="mkt-seg-btn active" data-mkt="combined"><span class="seg-dot"></span>总览</button>
+          <button class="mkt-seg-btn" data-mkt="us"><span class="seg-dot us"></span>美股</button>
+          <button class="mkt-seg-btn" data-mkt="hk"><span class="seg-dot hk"></span>港股</button>
         </div>
       </div>
       <p class="chart-hint">每日净盈亏柱状（绿涨红跌）+ 累计盈亏曲线。柱在零下方 = 当日亏损；曲线走势看长期方向。<b>跟随上方市场切换</b>：总览=USD-eq，美股=$，港股=HK$。</p>
