@@ -108,8 +108,8 @@ python3 /root/.openclaw/workspace/scripts/harness/intraday_postflight.py --marke
 ```
 校验段标记 + 长度 + 异动票提及。**不 git commit**（高频触发，避免 commit log 刷屏）。
 
-#### Step 4: 发 WeChat
-拼 `wechat_prefix` + 报告，**无标题**（高频推送避免刷屏）。
+#### Step 4: 输出报告（仅存档；微信已由 postflight 主发，禁用 message 工具）
+微信投递已在 **Step 3 的 `intraday_postflight` 用 fresh-token 短连接发出**（cron `--no-deliver`，不 announce）——唯一路径。拼 `wechat_prefix` + 报告，**无标题**（高频推送避免刷屏），作为**本回合最终文本回复**输出（仅存档）。**不要调 `message`/send 工具**（postflight 已发，再调会双发）；真漏由 `intraday_watchdog` 兜底。
 
 **和 Mode 6 的区别**：单段 `▎我的看法` 取代三段；无 ▎风险提示；无 git commit；holdings 用 markdown 表格（Mode 6 briefing 仍 ASCII）。
 
@@ -158,8 +158,8 @@ python3 /root/.openclaw/workspace/scripts/harness/report_postflight.py --market 
 ```
 返回 JSON 含 `status` (pass/warn/fail) + `wechat_prefix`。pass/warn 自动 `git commit portfolio.json`。
 
-#### Step 4: 发 WeChat
-把 `wechat_prefix` 拼到完整报告前面发送。
+#### Step 4: 输出报告（仅存档；微信已由 postflight 主发，禁用 message 工具）
+微信投递已在 **Step 3 的 `report_postflight` 用 fresh-token 短连接发出**——这是**唯一**路径（cron 设 `--no-deliver`，不再 announce）。把 `wechat_prefix` 拼到完整报告前面作为**本回合最终文本回复**输出即可（**仅供留痕/存档**，不会被投递）。**不要调 `message`/send 工具**（postflight 已发，再调会双发）；真漏由 `report_watchdog` 读 marker 兜底。
 
 **标题模板**（preflight 已生成在 context.json，直接用）：
 - 开盘 09:30 HKT：`📊 港股开盘快报｜{date} 09:30`
@@ -170,7 +170,7 @@ python3 /root/.openclaw/workspace/scripts/harness/report_postflight.py --market 
 **硬性规则**：
 - ⚠️ 数据缺口必须明说，禁止编造（postflight 会扫敷衍词）
 - **00100 MINIMAX 只有 Tencent 一个源**，失败必须明说"实时价获取失败"
-- 不用 `message` 工具，直接回复文本（cron delivery 包装）
+- 不用 `message` 工具 — 微信由 Step 3 的 `report_postflight` fresh-token 主发（cron `--no-deliver`），手动再调会和 postflight 双发；本回合回复文本仅存档
 - 不简单复述数字，必须做模型自己的解读
 - 异动票（anomalies 字段）**必须在报告里被提到**（postflight 强制）
 - 报告长度 ≤ 1200 字软上限 / ≤ 1500 字硬上限

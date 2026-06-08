@@ -110,9 +110,9 @@ python3 /root/.openclaw/workspace/scripts/harness/intraday_postflight.py --marke
 ```
 **不 git commit**（高频触发避免 commit log 刷屏）。
 
-#### Step 4: 输出报告（cron 自动投递，禁用 message 工具）
-拼 `wechat_prefix` + 报告，**无标题**，作为**本回合最终文本回复**直接输出。
-- ❌ **禁止调用 `message`/send 工具** — cron 已配 announce 自动投递你的回复文本，手动再调 message 会**重复投递**（见 Mode 6 Step 4 的 2026-06-03 事故）。整轮只输出一次，发完即停。
+#### Step 4: 输出报告（仅存档；微信已由 postflight 主发，禁用 message 工具）
+微信投递已在 **Step 3 的 `intraday_postflight` 用 fresh-token 短连接发出**（cron `--no-deliver`，不 announce）——唯一路径。拼 `wechat_prefix` + 报告，**无标题**，作为**本回合最终文本回复**直接输出（仅存档）。
+- ❌ **禁止调用 `message`/send 工具** — postflight 已发，手动再调会**双发**；真漏由 `intraday_watchdog` 读 marker 兜底。整轮只输出一次，发完即停。
 
 **和 Mode 6 的区别**：单段 `▎我的看法` 取代三段；无 ▎风险提示；无 git commit；holdings 用 markdown 表格（Mode 6 briefing 仍 ASCII）。
 
@@ -157,9 +157,9 @@ python3 /root/.openclaw/workspace/scripts/harness/report_postflight.py --market 
 ```
 pass/warn 自动 `git commit portfolio.json`。
 
-#### Step 4: 输出报告（cron 自动投递，禁用 message 工具）
+#### Step 4: 输出报告（仅存档；微信已由 postflight 主发，禁用 message 工具）
 
-拼 `wechat_prefix` + 报告，作为**本回合最终文本回复**直接输出即可 — cron 已配 announce 自动投递，**不要自己调 `message`/send 工具**。
+微信投递已在 **Step 3 的 `report_postflight` 用 fresh-token 短连接发出**——这是**唯一**发送路径（cron 设 `--no-deliver`，不再 announce）。拼 `wechat_prefix` + 报告作为**本回合最终文本回复**直接输出即可（**仅供留痕/存档**，不会被投递）。**不要自己调 `message`/send 工具**（postflight 已发，再调会双发）；真没送到由 `report_watchdog` 读 marker 兜底。
 
 **Title template**（preflight 已生成）：
 - 开盘 09:30 ET：`🌅 美股开盘快报｜{date} 21:30 CST`
@@ -167,7 +167,7 @@ pass/warn 自动 `git commit portfolio.json`。
 
 **Hard rules:**
 - ⚠️ data gaps must be stated explicitly, never fabricate (postflight 扫敷衍词)
-- ❌ **禁止调用 `message`/send 工具发报告** — cron 已配 announce 自动投递你的最终回复文本，手动再调 message 会**重复投递**（2026-06-03 美股开盘连发两次的根因：模型在"已完成"叙述的同一 turn 又调了一次 send）。整轮只输出一次，发完即停，别因"不确定送达没"而重发
+- ❌ **禁止调用 `message`/send 工具发报告** — 微信由 Step 3 的 `report_postflight` 用 fresh-token 主发（cron `--no-deliver`，不 announce），手动再调 message 会**和 postflight 撞成双发**（2026-06-03 美股开盘连发两次的根因：模型在"已完成"叙述的同一 turn 又调了一次 send）。整轮只输出一次，发完即停，别因"不确定送达没"而重发（真漏由 report_watchdog 兜底）
 - No simple number recitation — model must add interpretation
 - 异动票 (anomalies) **必须在报告里提到** (postflight 强制)
 - 报告长度 ≤ 1200 字软上限 / ≤ 1500 字硬上限
