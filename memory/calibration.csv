@@ -137,3 +137,5 @@ plan_date,ticker,bucket,trigger_type,driven_by,trigger_price,confidence,sim_entr
 2026-06-08,02208,hold_and_watch,price_below,technical,11.5,0.55,11.5,pending,,,unknown,,2026-06-08T08:08:52.173611
 2026-06-08,03032,hold_and_watch,manual,technical,,0.55,4.874,pending,,,unknown,,2026-06-08T08:08:52.177027
 2026-06-08,03033,hold_and_watch,manual,technical,,0.55,4.786,pending,,,unknown,,2026-06-08T08:08:52.177447
+2026-06-08,07226,hold_and_watch,manual,catalyst,,0.5,3.7,pending,,,unknown,,2026-06-08T09:16:42.417116
+2026-06-08,PLTU,hold_and_watch,manual,technical,,0.45,35.26,pending,,,unknown,,2026-06-08T09:16:42.419980
