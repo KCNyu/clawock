@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-08T00:00:46.444567+00:00",
+  "generated_at": "2026-06-08T01:07:43.141034+00:00",
   "as_of": "2026-06-08",
   "us": {
     "beta_spx": 3.7623,
@@ -9,22 +9,22 @@
     "current_value_usd": 2619.2
   },
   "hk": {
-    "beta_hsi": 1.8594,
-    "vol_30d_annualized": 0.7227,
-    "max_dd_30d": -0.2171,
-    "sharpe_30d": -2.8143,
-    "current_value_hkd": 67190.0
+    "beta_hsi": 1.8527,
+    "vol_30d_annualized": 0.7249,
+    "max_dd_30d": -0.2179,
+    "sharpe_30d": -2.8204,
+    "current_value_hkd": 66752.8
   },
   "combined": {
-    "vol_30d_annualized": 0.6263,
-    "max_dd_30d": -0.1922,
-    "sharpe_30d": -1.8645
+    "vol_30d_annualized": 0.6278,
+    "max_dd_30d": -0.193,
+    "sharpe_30d": -1.8694
   },
   "leveraged_exposure": {
     "us_leverage_factor_avg": 1.7286,
-    "hk_leverage_factor_avg": 1.3475,
-    "combined_avg": 1.4364,
-    "margin_at_risk_pct": 14.3636
+    "hk_leverage_factor_avg": 1.3437,
+    "combined_avg": 1.4339,
+    "margin_at_risk_pct": 14.3385
   },
   "alerts": [
     {
@@ -35,17 +35,17 @@
     {
       "type": "high_vol",
       "severity": "high",
-      "detail": "Combined 30d annualised vol = 62.6% (> 50%)"
+      "detail": "Combined 30d annualised vol = 62.8% (> 50%)"
     },
     {
       "type": "deep_dd",
       "severity": "medium",
-      "detail": "Combined 30d max DD = -19.2% (< -10%)"
+      "detail": "Combined 30d max DD = -19.3% (< -10%)"
     },
     {
       "type": "negative_sharpe",
       "severity": "medium",
-      "detail": "Combined 30d Sharpe = -1.8645 (< 0)"
+      "detail": "Combined 30d Sharpe = -1.8694 (< 0)"
     }
   ],
   "meta": {

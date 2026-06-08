@@ -155,8 +155,37 @@ def _aggregate_indices(us_pf, hk_pf):
     return out
 
 
+_LEDGER_CACHE = None
+
+
+def _canonical_ledger():
+    """portfolio.json holdings per region — the realized-P&L source of truth.
+    Cached for the lifetime of the process. Returns {} on any failure."""
+    global _LEDGER_CACHE
+    if _LEDGER_CACHE is None:
+        try:
+            d = load_json(str(WS_ROOT / 'portfolio.json')) or {}
+            pf = d.get('portfolios', {})
+            _LEDGER_CACHE = {
+                'us_stocks': pf.get('us_stocks', {}).get('holdings', []) or [],
+                'hk_stocks': pf.get('hk_stocks', {}).get('holdings', []) or [],
+            }
+        except Exception:
+            _LEDGER_CACHE = {}
+    return _LEDGER_CACHE
+
+
 def load_snapshots():
-    """Returns recent-N snapshot summaries (NOT full holdings). Capped at MAX_SNAPSHOTS_EMBEDDED."""
+    """Returns recent-N snapshot summaries (NOT full holdings). Capped at MAX_SNAPSHOTS_EMBEDDED.
+
+    Self-heals realized P&L: a snapshot's stored realized_pnl can lag the
+    canonical trades[] ledger (the 2026-05-21 phantom-drawdown bug, where
+    holdings were debited a day before realized caught up). We recompute the
+    point-in-time realized reflected in each snapshot's own holdings and prefer
+    it, so the equity curve / drawdown can never be poisoned by a stale aggregate
+    even if a future writer regresses. Read-only on the snapshot files."""
+    from snapshot_realized import realized_as_of, snapshot_shares
+    ledger = _canonical_ledger()
     paths = sorted(
         p for p in glob.glob(str(WS_ROOT / 'memory' / 'snapshots' / '*.json'))
         if SNAPSHOT_FNAME_RE.match(os.path.basename(p))
@@ -179,6 +208,22 @@ def load_snapshots():
         hk_val = hk.get('total_current_value', 0) or 0
         us_real = us.get('realized_pnl', 0) or 0
         hk_real = hk.get('realized_pnl', 0) or 0
+        # Prefer point-in-time realized derived from the canonical ledger; only
+        # override when it diverges from the stored value (stale/lagging snapshot).
+        if SNAPSHOT_FNAME_RE.match(fname) and ledger:
+            for region_holdings, region_pf, cur in (
+                (ledger.get('us_stocks', []), us, 'us'),
+                (ledger.get('hk_stocks', []), hk, 'hk'),
+            ):
+                if not region_pf:
+                    continue
+                true_real, _ = realized_as_of(region_holdings, date, snapshot_shares(region_pf))
+                stored = (us_real if cur == 'us' else hk_real)
+                if abs(true_real - (stored or 0)) > 0.005:
+                    if cur == 'us':
+                        us_real = true_real
+                    else:
+                        hk_real = true_real
         results.append({
             'date': date,
             'file': fname,

@@ -472,8 +472,8 @@
       "total_pnl": 273.2,
       "total_pnl_percent": 9.7154,
       "today_total_change": -2.02,
-      "realized_pnl": 1030.83,
-      "realized_note": "CRCL 5股@120(+165) + CRCL 3股@127(+120) + NVDA 3股@199.41(+37.23) + QQQ 1股@631.3(+9.3) + TQQQ 8股@54.45(+69.76) + HOOD 5股@88.36(+74.3) + OKLO 2股@68(+10.34) + TCOM 5股@53.86(+5.6) + SOXL 5股@112(+100.65) + RKLX 4股@75(+113.2) + RKLX 2股@91.03(+88.66) + SOXL 3股@170.8(+236.79)",
+      "realized_pnl": 1122.28,
+      "realized_note": "NVDA 3股@197.5(+29.19) + CRCL 4股@103.21(+64.84) + CRCL 5股@120(+165) + CRCL 3股@127(+120) + NVDA 3股@199.41(+34.92) + QQQ 1股@631.3(+9.03) + TQQQ 8股@54.45(+69.76) + HOOD 5股@88.36(+74.3) + OKLO 2股@68(+10.34) + TCOM 5股@53.86(+5.6) + SOXL 5股@112(+100.65) + RKLX 4股@75(+113.2) + RKLX 2股@91.03(+88.66) + SOXL 3股@170.8(+236.79)",
       "last_updated": "May 8, 2026 16:00 ET close",
       "open_fetch_status": {
         "attempted_all_holdings": [
