@@ -194,6 +194,9 @@ from _harness_common import (  # noqa: E402
     push_with_rebase_retry,
     rebuild_dashboard,
 )
+from _watchdog_common import (  # noqa: E402
+    resolve_wechat_target, send_wechat, build_brief_card,
+)
 
 
 def _current_price_for(ticker):
@@ -334,6 +337,13 @@ def _ensure_jekyll_front_matter(md_path, date):
 
 
 def main():
+    import argparse
+    ap = argparse.ArgumentParser()
+    ap.add_argument('--dry-run', action='store_true',
+                    help='validate + commit as usual, but do NOT actually send WeChat '
+                         '(message send runs with --dry-run). For testing / GH fallback.')
+    args = ap.parse_args()
+
     today = datetime.now().strftime('%Y-%m-%d')
     md_path   = WS / 'memory' / f'{today}-pre-open.md'
     plan_path = WS / 'memory' / f'{today}-plan.json'
@@ -371,11 +381,47 @@ def main():
 
     commit_ok, commit_msg = maybe_commit(status, today)
 
+    # ── WeChat delivery (decoupled from the cron's announce) ──────────────────
+    # The cron now runs delivery=none. The announce used to fire at the END of a
+    # long agent turn with a token captured at turn START → expired mid-turn
+    # (#61174) → silent drop while delivered=true (see memory:
+    # openclaw-wechat-longturn-token-expiry; brief turns run 173–975s, ALWAYS
+    # >160s). We instead send HERE in a short-lived `openclaw message send` that
+    # grabs a FRESH token — the SOLE send, so no double, no long-turn drop. Mirrors
+    # intraday_postflight. The real result goes to a marker so brief_watchdog only
+    # re-sends on a CONFIRMED miss. Card = LLM's brief-card-{date}.txt, else a
+    # deterministic compact card from plan.json (build_brief_card).
+    wechat_sent = None
+    if status in ('pass', 'warn'):
+        card = build_brief_card(today)
+        message = (wechat_prefix + card).strip()
+        first_line = card.strip().splitlines()[0] if card.strip() else ''
+        try:
+            channel, to, account = resolve_wechat_target()
+            wechat_sent, send_out = send_wechat(channel, to, account, message, dry_run=args.dry_run)
+        except Exception as e:
+            wechat_sent, send_out = False, str(e)[:300]
+        marker = WS / 'memory' / '.tmp' / f'brief-sent-{today}.json'
+        try:
+            marker.parent.mkdir(parents=True, exist_ok=True)
+            marker.write_text(json.dumps({
+                'ts': int(datetime.now().timestamp() * 1000),
+                'sent_ok': bool(wechat_sent),
+                'first_line': first_line,
+                'out': (send_out or '')[-200:],
+            }, ensure_ascii=False))
+        except Exception as e:
+            print(f'warn: brief-sent marker write failed: {e}', file=sys.stderr)
+        if not wechat_sent:
+            print(f'warn: WeChat send failed (watchdog will retry): {str(send_out)[:200]}',
+                  file=sys.stderr)
+
     result = {
         'status':        status,
         'date':          today,
         'issues':        issues,
         'wechat_prefix': wechat_prefix,
+        'wechat_sent':   wechat_sent,
         'commit_ok':     commit_ok,
         'commit_msg':    commit_msg,
         'files_checked': {

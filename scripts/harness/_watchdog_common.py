@@ -131,6 +131,50 @@ def resolve_target(runs):
 # kcn's WeChat conversation — last-resort fallback if cron config can't be read.
 KCN_WECHAT = ('openclaw-weixin', 'o9cq80-hGTruM-OSs8kNmDOtLVZI@im.wechat', '61bf112daf0d-im-bot')
 
+# Public full-brief link (rendered from memory/{date}-pre-open.md by GH Pages).
+BRIEF_URL_TMPL = 'https://kcnyu.github.io/clawock/memory/{date}-pre-open.html'
+
+
+def build_brief_card(today):
+    """The WeChat card for the 08:00 盘前深度简报 — single source of truth shared by
+    brief_postflight (primary send) and brief_watchdog (backstop).
+
+    Preference order:
+      1. LLM-written card at memory/.tmp/brief-card-{date}.txt — the rich TL;DR
+         (核心结论 narrative) the model composes in the SKILL's Step 5. Sent verbatim.
+      2. Deterministic fallback from memory/{date}-plan.json (book + ≤4 actions +
+         full-brief link) if the model didn't write the card file — never silent.
+    """
+    url = BRIEF_URL_TMPL.format(date=today)
+    card_file = WS / 'memory' / '.tmp' / f'brief-card-{today}.txt'
+    try:
+        if card_file.exists():
+            txt = card_file.read_text().strip()
+            if txt:
+                return txt
+    except Exception:
+        pass  # fall through to deterministic build
+    lines = [f'📊 盘前深度简报｜{today} 08:00 HKT']
+    try:
+        plan = json.loads((WS / 'memory' / f'{today}-plan.json').read_text())
+        bk = plan.get('book') or {}
+        if bk:
+            lines.append(f"Book: USD${bk.get('usd_total_pnl', '?')} | "
+                         f"HK leg {bk.get('hk_leg_hkd', '?')}HKD | US leg {bk.get('us_leg_usd', '?')}USD")
+        acts = [a for a in (plan.get('actions') or []) if isinstance(a, dict)][:4]
+        if acts:
+            lines.append('今日动作：')
+            for i, a in enumerate(acts, 1):
+                trig = a.get('trigger_price')
+                trig = f"@{trig}" if trig is not None else (a.get('trigger_type') or '')
+                conf = a.get('confidence')
+                conf = f" conf{round(float(conf) * 100)}%" if conf is not None else ''
+                lines.append(f"{i}. {a.get('ticker', '?')} {a.get('bucket', '')} {trig}{conf}")
+    except Exception:
+        pass  # link-only fallback
+    lines += ['', f'📈 完整报告：{url}']
+    return '\n'.join(lines)
+
 
 def resolve_wechat_target(market=None):
     """(channel, to, accountId) for kcn's WeChat conversation, read from cron

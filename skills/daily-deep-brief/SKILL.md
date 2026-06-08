@@ -1,6 +1,6 @@
 ---
 name: daily-deep-brief
-description: kcn 每个工作日 08:00 HKT 跑一次的盘前全 swarm 深度分析。harness 化：`scripts/harness/brief_preflight.py` 跑所有确定性步骤（刷价 / FX / snapshot / HHI / SEC EDGAR / retrospective），LLM 只做 swarm 创造性（Tier 1/2/3/Judge），`scripts/harness/brief_postflight.py` 验证 + commit。**输出**：完整 markdown 落盘 `memory/{date}-pre-open.md` + 结构化 `memory/{date}-plan.json` + 完整版发 WeChat（plugin 16KB 单 chunk 够装；顶部 ≤150 字 TL;DR 给手机第一屏）。**只在每日 8 点 cron 触发时使用；手动深度分析仍走 portfolio-swarm-review。**
+description: kcn 每个工作日 08:00 HKT 跑一次的盘前全 swarm 深度分析。harness 化：`scripts/harness/brief_preflight.py` 跑所有确定性步骤（刷价 / FX / snapshot / HHI / SEC EDGAR / retrospective），LLM 只做 swarm 创造性（Tier 1/2/3/Judge），`scripts/harness/brief_postflight.py` 验证 + commit + 自动投递微信。**输出**：完整 markdown 落盘 `memory/{date}-pre-open.md` + 结构化 `memory/{date}-plan.json` + 紧凑微信卡 `memory/.tmp/brief-card-{date}.txt`（postflight 用 fresh token 自动投递，cron 设 delivery=none，LLM 不手动发）。**只在每日 8 点 cron 触发时使用；手动深度分析仍走 portfolio-swarm-review。**
 ---
 
 # Daily Deep Brief (08:00 HKT, weekday)
@@ -13,11 +13,11 @@ description: kcn 每个工作日 08:00 HKT 跑一次的盘前全 swarm 深度分
 ```
 ┌────────────────────┐     ┌───────────────┐     ┌────────────────────┐
 │ scripts/harness/brief_preflight.py │ ──► │ LLM (你 / Rick)│ ──► │ brief_postflight.py│
-│  (确定性 + 幂等)   │     │  (Tier 1/2/3) │     │   (验证 + commit)  │
+│  (确定性 + 幂等)   │     │  (Tier 1/2/3) │     │ 验证+commit+投递微信│
 └────────────────────┘     └───────────────┘     └────────────────────┘
-   刷价/FX/snapshot/         读 context.json        校验 markdown +
-   HHI/EDGAR/retro           写 markdown +          plan.json schema
-                             plan.json
+   刷价/FX/snapshot/         读 context.json        校验 md+plan schema，
+   HHI/EDGAR/retro           写 md+plan+            fresh-token 发 brief-card
+                             brief-card 微信卡       (唯一投递, 见 Step 6)
 ```
 
 **为什么这样分**：之前完全交给 LLM，模型可能漏快照、漏 HHI、漏 FX、漏 retrospective。
@@ -477,7 +477,7 @@ kcn 标记方式：`python3 scripts/data/mark_followed.py YYYY-MM-DD TICKER BUCK
 - US 开盘后 21:30 HKT 关注什么
 - Book-level metric 红线（例：港股浮亏到 X% 触发 forced derisk）
 
-### Step 4: 写两份输出文件
+### Step 4: 写输出文件（A 报告 / B plan / C insights sidecar / D 微信卡）
 
 #### A. Markdown 报告 → `memory/{YYYY-MM-DD}-pre-open.md`
 
@@ -590,7 +590,35 @@ build_dashboard 会读它，让 dashboard 上 **行为复盘 / 唱反调 Pre-mor
 - **hidden_concentration**：看 sector_exposure + leveraged_etf + 持仓权重，识别表面分散实际同因子；`exposure_pct` 给该因子占组合的估算整数。
 - 全部中文，口吻直接、像私人交易教练，指出问题不安慰。
 
-### Step 5: 跑 postflight（验证 + commit）
+#### D. 微信卡 → `memory/.tmp/brief-card-{YYYY-MM-DD}.txt`
+
+**这是真正发到 kcn 微信的内容**（投递由 Step 5 的 postflight 自动完成，原样发这个文件），所以必须自洽完整、≤1.5KB。数字全来自 `plan.json` + context.json，不现编：
+
+```
+📊 盘前深度简报｜{日期 周X} 08:00 HKT  (USDHKD={rate})
+
+▎核心结论（≤2 句）
+{regime + 今日最关键的一句判断，如 "risk_on 默认 HOLD，AI/高beta 单因子敞口偏高，主动操作克制"}
+
+▎Book
+USD${total} ({pct}%) | HK leg {hk}HKD | US leg {us}USD
+
+▎今日动作（≤4 条，来自 plan.json，标 driven_by）
+1. {ticker} {bucket} {trigger}(conf{%})
+2. …
+
+▎触发位（≤2 条最近的）
+{watch_levels 关键 1-2 条}
+
+📈 完整深度报告（Tier1/2/3 辩论 + 板块全景 + 复盘 + 唱反调）：
+https://kcnyu.github.io/clawock/memory/{date}-pre-open.html
+```
+
+- 链接里 `{date}` 换成今天 `YYYY-MM-DD`（落盘文件名同款），直接打开今天这篇完整 brief MD 页（不是 dashboard 首页）。
+- **🔒 只把紧凑卡写进这个文件**，绝不把完整 markdown brief 塞进来（完整版已在 `pre-open.md` + dashboard）。短卡 = 手机第一屏好读 + 远低于 16KB。
+- 万一漏写这个文件，postflight 会从 `plan.json` 兜底生成一张（信息更少、无"核心结论"叙事），所以别漏。
+
+### Step 5: 跑 postflight（验证 + commit + 自动投递微信）
 
 ```bash
 python3 /root/.openclaw/workspace/scripts/harness/brief_postflight.py
@@ -602,6 +630,7 @@ python3 /root/.openclaw/workspace/scripts/harness/brief_postflight.py
   "status": "pass|warn|fail",
   "issues": [...],
   "wechat_prefix": "...",
+  "wechat_sent": true,
   "commit_ok": true,
   "commit_msg": "committed"
 }
@@ -609,43 +638,18 @@ python3 /root/.openclaw/workspace/scripts/harness/brief_postflight.py
 
 - `pass` — 全部 OK，已 `git commit`
 - `warn` — 有非 critical 问题（≤4 个），已 commit 但标 `(validation warnings)`
-- `fail` — 缺文件/JSON 解析错/critical 字段缺失，**不 commit**
+- `fail` — 缺文件/JSON 解析错/critical 字段缺失，**不 commit**、**不投递**
+- `wechat_sent` — postflight 自动投递结果（见下）
 
-### Step 6: 发 WeChat —— 只发紧凑结论卡（完整 brief 在 dashboard，**不要贴全文**）
+### Step 6: 投递（已自动化，你什么都不用做）
 
-> **投递机制 = announce**：把这张卡片**作为本轮最终回复文本直接输出**即发到 WeChat。**不调用任何 message/send 工具，不反复确认"怎么发"，输出完立即结束本轮、不再追加任何思考。**
+> **🔒 投递已解耦——你绝不要手动发微信、绝不调任何 message/send 工具、也不要把卡片当回复文本贴出来。**
 >
-> **🔒 铁律：WeChat 只发下面这张紧凑卡（目标 ≤1.5KB），绝不输出完整 markdown brief。**
-> 完整 brief 已在 Step 4/5 写进 `pre-open.md` 并 commit，dashboard / briefs 页能看；微信只给 kcn 手机第一屏要的"结论 + 动作 + 去哪看全文"。
+> pass/warn 时 **`brief_postflight` 自己**会用一个 **fresh token 的短命 `openclaw message send`** 把 Step 4-D 的 `brief-card-{date}.txt` 投到 kcn 微信（cron 已设 `delivery=none`，这是**唯一**投递路径），并把真实结果记到 `memory/.tmp/brief-sent-{date}.json`。`brief_watchdog`（08:30）读这个 marker，只在 postflight 投递确认失败/缺失时才补发一次（绝不重复）。
 >
-> **为什么（2026-05-31 实测 bug，必须遵守）**：让 mimo 把 ~14KB 完整 brief 作为最终消息吐出时会退化成**复读死循环**（反复念"Now let me output the WeChat message…"几十遍被当回复发出 → kcn 收到一屏垃圾）。**短卡片 = 模型一次吐得出、不会 loop**，顺带解决 16KB 超限 + 手机好读。
-
-把 postflight 的 `wechat_prefix`（warn/fail 是警告 banner，pass 是空串）拼到卡前，**一次性整段输出这张卡就结束**（数字全来自 `plan.json` + context.json，不现编）：
-
-```
-{wechat_prefix}📊 盘前深度简报｜{日期 周X} 08:00 HKT  (USDHKD={rate})
-
-▎核心结论（≤2 句）
-{regime + 今日最关键的一句判断，如 "risk_on 默认 HOLD，AI/高beta 单因子敞口偏高，主动操作克制"}
-
-▎Book
-USD${total} ({pct}%) | HK leg {hk}HKD | US leg {us}USD
-
-▎今日动作（≤3 条，来自 plan.json）
-1. {ticker} {bucket} {trigger}(conf{%})
-2. …
-3. …
-
-▎触发位（≤2 条最近的）
-{watch_levels 关键 1-2 条}
-
-📈 完整深度报告（Tier1/2/3 辩论 + 板块全景 + 复盘 + 唱反调）：
-https://kcnyu.github.io/clawock/memory/{date}-pre-open.html
-```
-
-- 链接里 `{date}` 换成今天 `YYYY-MM-DD`（落盘文件名同款），直接打开今天这篇完整 brief MD 页（不是 dashboard 首页）。
-- **整张卡 ≤1.5KB**，远低于 16KB；模型一次吐得出、不会 loop。
-- 输出这张卡 = 本轮结束，**不要再追加任何思考或内容、不要把 pre-open.md 全文贴上来**。
+> **为什么这样改（2026-06-08）**：旧的 `delivery=announce` 在长 turn 末尾用 turn 起点抓的 token 投递，brief turn 恒 >160s（173–975s）→ token 必过期 → 静默丢、`delivered=true` 是假信号（见 memory: openclaw-wechat-longturn-token-expiry）。短命 message send 每次抓新 token，且独立于 turn 时长，kcn 实测可靠（同 intraday 架构）。
+>
+> **你的职责到 Step 5 跑完 postflight 为止**：产出 A/B/C/D 四个文件 + 跑 postflight。看到 `wechat_sent: true` 即大功告成，**立即结束本轮，不要再追加任何思考或内容**。
 
 ## Style rules
 
