@@ -1,0 +1,24 @@
+{
+  "generated_at": "2026-06-08T08:00:00+08:00",
+  "behavioral_review": {
+    "verdict": "6个仓位硬闸全亮, 主动信号51%胜率vs被动69%, 仓位构造问题远大于信号问题",
+    "points": [
+      {"text": "cut bucket 37%胜率+67%avg conf=过度自信+30pp。本次ROBN cut是纪律性(仓位硬闸)而非信号判断, 仍压conf到0.55", "tag": "bias"},
+      {"text": "主动信号T+1 51% vs T+5 40% — 对了一天看错thesis。本次主动call全压到≤0.55", "tag": "warning"},
+      {"text": "trim_on_rebound历史60%胜率是主动信号里最好的。00100/07226/PLTU用trim而非cut合理", "tag": "edge"},
+      {"text": "被动hold 69%胜率>主动51% — 模型主动决策当前跑输持有, 本次倾向少动", "tag": "warning"},
+      {"text": "00100 trim @680上次没触发(high 663) → trigger设太高。本次降到@600更实际", "tag": "bias"}
+    ]
+  },
+  "bear_cases": [
+    {"ticker": "00100", "thesis": "单名49%+单日-16.65%+'大户派货'+HSTECH<200MA。纳入已price in, 聪明钱在跑", "falsifier": "纳入后5日内回升到700+", "watch": "今日HSTECH纳入后00100资金流"},
+    {"ticker": "ROBN", "thesis": "HOOD<200MA -20%+vol 83%+红色regime。2x日内重置在下杀里放大衰减", "falsifier": "HOOD回到$100以上(200MA)", "watch": "US开盘后HOOD走势"},
+    {"ticker": "07226", "thesis": "HSTECH<200MA -11%+2x杠杆decay。港股科技sell-off可能持续", "falsifier": "HSTECH回到5494以上(200MA)", "watch": "HSTECH今日纳入后走势"}
+  ],
+  "hidden_concentration": {
+    "headline": "名义9只持仓, 实际HK 84%押恒科+US 73%押杠杆ETF, 单因子暴露88%",
+    "factor": "港股科技+美股杠杆ETF",
+    "exposure_pct": 88,
+    "detail": "HK: 00100(49%)+07226(35%)+03032(1.5%)+03033(7%)=92.5%恒科方向。US: ROBN(32%)+PLTU(19%)+MSFU(22%)=73%杠杆ETF。任一方向-15%=book-10%+。"
+  }
+}
