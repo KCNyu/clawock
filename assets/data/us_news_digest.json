@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-05T15:49:14.568530",
+  "generated_at": "2026-06-08T16:44:06.698345",
   "lookback_hours": 48,
   "tickers": [
     "RKLB",
@@ -8,19 +8,19 @@
     "ROBN",
     "MSFU"
   ],
-  "digest_markdown": "### Top 移动信号 (跨 ticker 排序)\n- **RKLB**: 核心运营数据强劲，Q2营收同比增63.5%，毛利率提升，积压订单达22亿美元（商业客户需求旺盛）。`Implication`: 基本面改善是股价核心驱动，对冲了短期航天板块（如Redwire、Momentus）因SpaceX相关情绪波动而下跌的压力。\n- **CRCL**: Mastercard宣布将支持包括Circle的USDC在内的稳定币进行结算。`Implication`: 这是Circle (CRCL) 获得主流金融基础设施（卡组织）集成的关键里程碑，直接巩固其在稳定币支付领域的实用性和合法性。\n- **RKLB**: 沉浸于航天板块普跌行情，起因为“SpaceX IPO疲劳”及此前空头挤压效应消退。`Implication`: 市场情绪带来的板块性抛售，为具备独立增长故事的RKLB提供了潜在错杀机会，需区分行业beta与个股alpha。\n\n### Per-ticker 简报\n- **RKLB**: 基本面报告（营收增、利润改善、backlog扩大）被行业负面情绪暂时压制，形成短期分化。\n- **CRCL**: Mastercard的集成新闻是比通用加密货币监管讨论更直接、更具商业实质的催化剂。\n- **PLTU / ROBN / MSFU**: 新闻多为ETF产品介绍、价格波动讨论或通用市场观察，无影响底层持仓（PLTR、HOOD、MSFT）的具体公司事件，忽略。\n\n### 风险 watch\n- **CRCL**: Mastercard新闻同时提及支持Ripple的RLUSD，表明竞争格局开放；Circle的IPO进程与估值将是后续关键监管与市场情绪风险点。",
+  "digest_markdown": "### Top 3-5 移动信号 (跨 ticker 排序)\n- **RKLB**: 竞争对手Blue Origin发射失败及SpaceX IPO估值目标更新，推动股价周一反弹。**Implication**: 短期情绪提振，但需警惕SpaceX IPO可能引发的整个航天板块资金轮动风险。\n- **PLTU (2x PLTR ETF)**: Palantir财报后，相关杠杆ETF交易量激增。**Implication**: 表明市场对PLTR业绩反响强烈，PLTU波动性放大，为短线交易者提供机会，但杠杆产品风险极高。\n- **MSFU (2x MSFT ETF)**: 期权交易量异常高，ETF提供商发布“准备好扣动扳机”的看涨文章。**Implication**: 市场对微软短期走势分歧加剧，MSFU作为杠杆工具热度上升，预示微软股价可能出现方向性选择。\n- **CRCL**: 内部人士 (Rajeev Date) 申报股份处置，同时机构Travelers Companies披露买入。**Implication**: 内部人抛售是明确风险信号，但机构买入构成支撑，股价在消息面多空交织下波动加剧。\n\n### Per-ticker 简报\n- **RKLB**: 股价受SpaceX竞争格局变化消息驱动波动，短期走势与行业新闻高度相关。\n- **CRCL**: 内部人减持 Form 144 披露构成直接抛压，但机构增持消息部分抵消，股价短期承压。\n- **PLTU**: 作为Palantir杠杆ETF，其交易活跃度完全由标的公司财报与股价走势驱动。\n- **ROBN (2x HOOD ETF)**: Robinhood股价盘后下跌，但分析师和散户情绪似乎未过度悲观，ETF跟随标的波动。\n- **MSFU**: 市场热议微软潜在反弹，推动该杠杆ETF期权活动异常，显示高风险偏好资金入场。\n\n### 风险 watch\n- **CRCL**: 大股东/内部人减持（Rajeev Date）是明确的风险事件。\n- **PLTU / MSFU**: 作为2倍杠杆ETF，存在因标的短期波动导致大幅亏损的天然风险。\n- **RKLB**: 航天板块整体在SpaceX IPO前出现下跌（如Benzinga报道），存在板块性资金流出风险。",
   "raw_news_counts": {
-    "RKLB": 5,
-    "CRCL": 2,
+    "RKLB": 4,
+    "CRCL": 5,
     "PLTU": 5,
     "ROBN": 5,
-    "MSFU": 1
+    "MSFU": 5
   },
   "news_source_per_ticker": {
     "RKLB": "finnhub",
-    "CRCL": "finnhub",
+    "CRCL": "gnews-rss",
     "PLTU": "gnews-rss",
     "ROBN": "gnews-rss",
-    "MSFU": "finnhub"
+    "MSFU": "gnews-rss"
   }
 }
