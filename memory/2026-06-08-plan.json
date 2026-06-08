@@ -1,0 +1,144 @@
+{
+  "date": "2026-06-08",
+  "fx_rate_usdhkd": 7.8338,
+  "fx_source": "Frankfurter",
+  "regime": {
+    "us": "volatile",
+    "hk": "trending-down"
+  },
+  "book": {
+    "usd_total_pnl": -2700.80,
+    "hkd_total_pnl": -21157.53,
+    "hk_leg_hkd": -21086.24,
+    "us_leg_usd": -9.10
+  },
+  "actions": [
+    {
+      "ticker": "ROBN",
+      "bucket": "cut",
+      "size_pct": 50,
+      "size_shares": 20,
+      "trigger_type": "open",
+      "trigger_price": null,
+      "trigger_condition": "周一开盘任意价",
+      "confidence": 0.55,
+      "driven_by": "technical",
+      "rationale": "仓位硬闸: HOOD < 200MA (-20.2%) + vol 83% + 红色 regime + US 杠杆 ETF 72.9% > 50% cap + β 3.76 > 3.0。纪律性减仓, 非消息驱动。"
+    },
+    {
+      "ticker": "00100",
+      "bucket": "trim_on_rebound",
+      "size_pct": 33,
+      "size_shares": 20,
+      "trigger_type": "price_above",
+      "trigger_price": 600,
+      "trigger_condition": "HSTECH纳入反弹至600+",
+      "confidence": 0.50,
+      "driven_by": "technical",
+      "rationale": "仓位硬闸: 00100=49.38% > 35% cap。HSTECH纳入今日生效, 等被动资金推高后纪律减仓。周五-16.65%暴跌后反弹窗口。"
+    },
+    {
+      "ticker": "07226",
+      "bucket": "trim_on_rebound",
+      "size_pct": 16,
+      "size_shares": 1000,
+      "trigger_type": "price_above",
+      "trigger_price": 3.90,
+      "trigger_condition": "HSTECH反弹至3.90+",
+      "confidence": 0.50,
+      "driven_by": "technical",
+      "rationale": "仓位硬闸: HK 杠杆 ETF 34.8% > 25% cap。HSTECH < 200MA, 杠杆 decay 加速。纳入反弹后减仓。"
+    },
+    {
+      "ticker": "PLTU",
+      "bucket": "trim_on_rebound",
+      "size_pct": 50,
+      "size_shares": 7,
+      "trigger_type": "price_above",
+      "trigger_price": 38,
+      "trigger_condition": "PLTU反弹至38+",
+      "confidence": 0.40,
+      "driven_by": "technical",
+      "rationale": "仓位硬闸: US 杠杆 ETF 72.9% > 50% cap。PLTR < 200MA, 2x decay。历史 trim 5/6 胜但 cut 0/4 → 只 trim 不 cut。"
+    },
+    {
+      "ticker": "RKLB",
+      "bucket": "hold_and_watch",
+      "size_pct": 0,
+      "size_shares": 0,
+      "trigger_type": "price_below",
+      "trigger_price": 100,
+      "trigger_condition": "跌破$100心理关口",
+      "confidence": 0.55,
+      "driven_by": "catalyst",
+      "rationale": "SpaceX IPO 6/12 是双刃剑(行业认可+竞争)。Q1 rev $200M +63.5%, backlog $2.2B。浮盈+55%。69%历史hold胜率。"
+    },
+    {
+      "ticker": "CRCL",
+      "bucket": "hold_and_watch",
+      "size_pct": 0,
+      "size_shares": 0,
+      "trigger_type": "price_below",
+      "trigger_price": 75,
+      "trigger_condition": "跌破$75止损",
+      "confidence": 0.45,
+      "driven_by": "technical",
+      "rationale": "insider+SoftBank selling disconfirming但小仓6.13%。Q1首次盈利EPS $0.23。55%历史胜率。不折腾。"
+    },
+    {
+      "ticker": "MSFU",
+      "bucket": "hold_and_watch",
+      "size_pct": 0,
+      "size_shares": 0,
+      "trigger_type": "price_below",
+      "trigger_price": 25,
+      "trigger_condition": "跌破$25止损",
+      "confidence": 0.55,
+      "driven_by": "technical",
+      "rationale": "85%历史hold胜率。MSFT Azure +29%, underlying最强。仓位硬闸杠杆ETF超限但underlying质量最高, 优先砍ROBN/PLTU。"
+    },
+    {
+      "ticker": "02208",
+      "bucket": "hold_and_watch",
+      "size_pct": 0,
+      "size_shares": 0,
+      "trigger_type": "price_below",
+      "trigger_price": 11.5,
+      "trigger_condition": "跌破$11.5止损",
+      "confidence": 0.55,
+      "driven_by": "technical",
+      "rationale": "86%历史hold胜率。Q1利润+40%, JPM Overweight, 回购。小仓7.29%。bearish block trade但基本面撑得住。"
+    },
+    {
+      "ticker": "03032",
+      "bucket": "hold_and_watch",
+      "size_pct": 0,
+      "size_shares": 0,
+      "trigger_type": "manual",
+      "trigger_price": null,
+      "trigger_condition": "跟踪HSTECH",
+      "confidence": 0.55,
+      "driven_by": "technical",
+      "rationale": "1x HSTECH ETF, 无杠杆decay。小仓1.45%。50%历史胜率。"
+    },
+    {
+      "ticker": "03033",
+      "bucket": "hold_and_watch",
+      "size_pct": 0,
+      "size_shares": 0,
+      "trigger_type": "manual",
+      "trigger_price": null,
+      "trigger_condition": "跟踪HSTECH",
+      "confidence": 0.55,
+      "driven_by": "technical",
+      "rationale": "1x HSTECH ETF, 无杠杆decay。小仓7.12%。50%历史胜率。"
+    }
+  ],
+  "watch_levels": {
+    "hstech_support": 4800,
+    "00100_support": 500,
+    "book_force_derisk_hkd": -22000,
+    "cpi_date": "2026-06-11",
+    "spacex_ipo_date": "2026-06-12"
+  }
+}
