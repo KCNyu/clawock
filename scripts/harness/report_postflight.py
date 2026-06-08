@@ -123,6 +123,46 @@ from _harness_common import (  # noqa: E402
     snapshot_date_for_now,
     validate_forbidden_phrases,
 )
+from _watchdog_common import resolve_wechat_target, send_wechat  # noqa: E402
+
+
+def deliver_wechat(market, phase, date, wechat_prefix, text, block_first):
+    """Primary WeChat send for staged reports — fresh-token `openclaw message send`,
+    decoupled from the cron's announce.
+
+    WHY (2026-06-08): a staged report's cron `announce` fires at the END of a long
+    agent turn (preflight+LLM+postflight+dashboard ≈ 130-300s) using a contextToken
+    captured at turn START; Tencent expires it server-side after ~160s (#61174) →
+    silent drop, run-record `delivered` still true. The 6-08 美股开盘报告 (133s turn)
+    landed delivered=true but never reached kcn's WeChat. Mirroring the intraday fix:
+    we send HERE in a short-lived fresh-token call (the path kcn confirmed lands),
+    the staged crons run --no-deliver so this is the SOLE send (no double), and we
+    record the real result to a marker so report_watchdog only re-sends on a
+    CONFIRMED failure (never doubles a report that went out here).
+
+    Returns (sent_ok, out). Writes marker report-sent-{market}-{phase}-{date}.json.
+    """
+    message = (wechat_prefix + text).strip()
+    try:
+        channel, to, account = resolve_wechat_target(market)
+        sent_ok, out = send_wechat(channel, to, account, message, dry_run=False)
+    except Exception as e:
+        sent_ok, out = False, str(e)[:300]
+    marker = TMP / f'report-sent-{market}-{phase}-{date}.json'
+    try:
+        marker.write_text(json.dumps({
+            'ts': int(datetime.now().timestamp() * 1000),
+            'sent_ok': bool(sent_ok),
+            'first_line': block_first,
+            'market': market,
+            'phase': phase,
+            'out': (out or '')[-200:],
+        }, ensure_ascii=False))
+    except Exception as e:
+        print(f'warn: report send marker write failed: {e}', file=sys.stderr)
+    if not sent_ok:
+        print(f'warn: WeChat send failed (watchdog will retry): {(out or "")[:200]}', file=sys.stderr)
+    return sent_ok, out
 
 
 def maybe_commit(status, commit_msg):
@@ -192,6 +232,15 @@ def main():
                          + ('\n- ...' if len(issues) > 5 else '')
                          + '\n\n')
 
+    # ── Primary WeChat send (fresh token, decoupled from the cron announce) ───
+    # Send on ALL statuses incl. fail — a fail report is still published to kcn
+    # with its banner (matches the old announce behavior); only the commit is
+    # gated on not-fail. The staged crons run --no-deliver so this is the sole
+    # send. See deliver_wechat() docstring for the #61174 long-turn-drop rationale.
+    block_first = (ctx.get('raw_wechat_block', '') or '').strip().splitlines()
+    block_first = block_first[0] if block_first else ''
+    wechat_sent, _ = deliver_wechat(args.market, args.phase, today, wechat_prefix, text, block_first)
+
     commit_ok, commit_msg = maybe_commit(status, ctx['commit_msg'])
 
     result = {
@@ -201,6 +250,7 @@ def main():
         'date':          today,
         'issues':        issues,
         'wechat_prefix': wechat_prefix,
+        'wechat_sent':   wechat_sent,
         'commit_ok':     commit_ok,
         'commit_msg':    commit_msg,
         'n_chars':       len(text),

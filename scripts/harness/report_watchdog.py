@@ -1,29 +1,37 @@
 #!/usr/bin/env python3
 """
-report_watchdog.py — LLM-free safety net for Mode 6 report crons.
+report_watchdog.py — LLM-free safety net for staged (Mode 6) report crons.
 
-WHY (2026-05-29 incident): a report cron's model stalled mid-turn and openclaw
-delivered a one-line stub as the "report" with delivered=true — kcn got garbage
-instead of the close briefing, even though preflight had produced a perfectly good
-`raw_wechat_block`. postflight can't catch this (LLM died in Step 2, long before
-postflight). So this runs OUT OF BAND (system crontab, a few min after the report
-cron's expected completion) and asks: did the report actually deliver?
+ROOT CAUSE this guards (2026-06-08, re-diagnosed): staged reports "没出来" on kcn's
+WeChat even though the run finished status=ok with delivered=true. Same mechanism
+as the intraday drop (#61174, wontfix): a staged cron used to deliver via `announce`
+fired at the END of a long agent turn (preflight+LLM+postflight+dashboard ≈ 130-300s)
+using a contextToken captured at turn START → Tencent expires it server-side after
+~160s → silent drop, run-record `delivered` stays true. The 6-08 美股开盘报告 (133s
+turn) landed delivered=true but never reached WeChat.
 
-Detection (two independent failure signatures): reports deliver preflight's
-`raw_wechat_block` verbatim, so we (a) check whether the target job's latest run
-summary contains that block's first line — if not, the LLM stalled/failed; and
-(b) score the session transcript for a mimo repeat-loop (transcript_loop_score) —
-a high score means the delivery turn degenerated into a repeated sentence and
-burned the maxTokens budget on garbage even if the block technically appears
-(2026-06-01: an intraday delivery loop scored 49 vs threshold 5). Either signature
-→ resend the `raw_wechat_block` directly (data only, banner-flagged auto-resend;
-no LLM). Dedupe flag prevents double-sends.
+THE FIX (2026-06-08, mirrors the intraday decouple): report_postflight is now the
+PRIMARY sender — it delivers each report via a fresh-token `openclaw message send`
+(the path kcn confirmed lands) and the staged crons run --no-deliver (no announce)
+→ exactly one send, no long-turn drop, no double. postflight records the REAL send
+result to memory/.tmp/report-sent-{market}-{phase}-{date}.json.
 
-(Shared run-record / target / send / log helpers live in _watchdog_common.py.)
+This watchdog is now a pure BACKSTOP (system crontab, ~15min after the cron): it
+reads that marker and re-sends ONLY when the postflight send is confirmed failed /
+never happened (marker missing, sent_ok false, or stale/mismatched) — so it never
+doubles a report that already went out. The old approach (string-match the block's
+first line against the run summary) is replaced: it can't tell a landed send from a
+silently-dropped one (the summary is byte-identical), which is exactly why the 6-08
+drop slipped through. WeChat is the only channel (Telegram is dead — do not route).
+
+Healthy-report gate: only re-send a report produced cleanly (block first-line
+present AND not a mimo repeat-loop) — never re-send a stall. Dedupe per slot.
+
+(Shared run-record / target / send helpers live in _watchdog_common.py.)
 
 Usage:
     report_watchdog.py --market hk --phase close --job-name "港股收盘报告"
-    report_watchdog.py --market us --phase close --job-name "美股收盘报告" --dry-run
+    report_watchdog.py --market us --phase open  --job-name "美股开盘报告" --dry-run
 
 Exit 0 always (non-fatal cron); actions logged to logs/watchdog.jsonl.
 """
@@ -35,11 +43,12 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from _watchdog_common import (  # noqa: E402
-    WS, HKT, log, find_job_id, read_runs, today_runs, resolve_target, send_wechat,
-    transcript_loop_score,
+    WS, HKT, log, find_job_id, today_runs, resolve_wechat_target, send_wechat,
+    transcript_loop_score, last_report_text,
 )
 
-LOOP_THRESHOLD = 5  # transcript loop_score ≥ this ⇒ mimo repeat-loop ⇒ garbage delivery
+LOOP_THRESHOLD = 5                 # transcript loop_score ≥ this ⇒ mimo repeat-loop ⇒ garbage
+MARKER_FRESH_MS = 120 * 60 * 1000  # postflight send-marker older than this ⇒ treat as not-this-slot
 
 
 def main():
@@ -53,80 +62,97 @@ def main():
     today = datetime.now(HKT).strftime('%Y-%m-%d')
     tag = f'{args.market}-{args.phase}'
 
-    # Preflight context (with the canonical raw_wechat_block) must exist — if it
-    # doesn't, preflight itself never ran; there's nothing to resend.
-    ctx_path = WS / 'memory' / '.tmp' / f'report-context-{args.market}-{args.phase}-{today}.json'
-    if not ctx_path.exists():
-        log({'tag': tag, 'action': 'skip', 'reason': 'no preflight context (cron likely never ran)'})
-        return 0
-    ctx = json.loads(ctx_path.read_text())
-    raw = (ctx.get('raw_wechat_block') or '').strip()
-    if not raw:
-        log({'tag': tag, 'action': 'skip', 'reason': 'context has no raw_wechat_block'})
-        return 0
-    first_line = raw.splitlines()[0]
-
     job_id = find_job_id(args.job_name)
     if not job_id:
         log({'tag': tag, 'action': 'skip', 'reason': f'job not found: {args.job_name}'})
         return 0
 
-    runs = read_runs(job_id)
     runs_today = today_runs(job_id)
-    last = runs_today[-1] if runs_today else {}
-    last_summary = last.get('summary', '')
-
-    # Two independent failure signatures:
-    #  (a) the report block's first line never made it into the summary → LLM
-    #      stalled/failed, or the cron never produced a run (delivery check);
-    #  (b) the delivery turn was a mimo repeat-loop (transcript_loop_score high)
-    #      that burned the maxTokens budget on one repeated sentence and shipped
-    #      garbage even though the block may technically appear (loop check —
-    #      see brief_watchdog; 2026-06-01 intraday stall scored 49 vs threshold 5).
-    loop_score, blob = transcript_loop_score(last.get('sessionId'))
-    # Delivery signal — authoritative first, brittle string-match as fallback.
-    # 2026-06-01 false-positive: a healthy run where the model called the send
-    # tool fine but its run-record `summary` was meta-prose ("Report sent
-    # successfully. Let me provide a summary…") with no block first-line → the
-    # old `first_line in last_summary` check fired `not-delivered` and resent a
-    # duplicate stub. The run-record's `delivery.messageToolSentTo` records that
-    # the model actually invoked the send tool (empty in the 2026-05-29 stall,
-    # where core auto-delivered partial prose), so trust that; fall back to the
-    # summary match only when telemetry is absent.
-    sent_via_tool = bool((last.get('delivery') or {}).get('messageToolSentTo'))
-    delivered = sent_via_tool or (first_line in last_summary)
-    looped = loop_score >= LOOP_THRESHOLD
-    if delivered and not looped:
-        log({'tag': tag, 'action': 'ok',
-             'reason': f'report delivered normally (loop_score={loop_score})'})
+    if not runs_today:
+        log({'tag': tag, 'action': 'skip', 'reason': 'no run today yet (cron likely never fired)'})
         return 0
-    fail_kind = 'not-delivered' if not delivered else f'repeat-loop(score={loop_score})'
+    last = runs_today[-1]
+    run_at = last.get('runAtMs')
+    session_id = last.get('sessionId')
+    summary = last.get('summary', '')
 
-    # Resend the clean data block (data only, no LLM).
-    flag = WS / 'memory' / '.tmp' / f'watchdog-{tag}-{today}.done'
+    # Dedupe per slot (one re-send per run, keyed by runAtMs).
+    flag = WS / 'memory' / '.tmp' / f'watchdog-{tag}-{run_at}.done'
     if flag.exists():
-        log({'tag': tag, 'action': 'skip', 'reason': 'already resent (dedupe flag present)'})
+        log({'tag': tag, 'action': 'skip', 'reason': 'already handled this slot (dedupe flag)'})
         return 0
 
-    channel, to, account = resolve_target(runs)
-    if not to:
-        log({'tag': tag, 'action': 'fail', 'reason': 'no delivery target resolved from run history'})
+    # --- Healthy-report gate: never re-send a stall/garbage turn --------------
+    # The clean report block's first line comes from the preflight context. If the
+    # context is missing, preflight never ran → nothing to resend.
+    ctx_path = WS / 'memory' / '.tmp' / f'report-context-{args.market}-{args.phase}-{today}.json'
+    raw_block_first = None
+    if ctx_path.exists():
+        try:
+            raw = (json.loads(ctx_path.read_text()).get('raw_wechat_block') or '').strip()
+            raw_block_first = raw.splitlines()[0] if raw else None
+        except Exception:
+            pass
+    if not raw_block_first:
+        log({'tag': tag, 'action': 'skip', 'reason': 'no preflight raw_wechat_block (cron likely never ran)'})
         return 0
 
-    title = ctx.get('title', '').strip()
-    banner = ('📨 自动补发（报告模型生成失败/中断，以下为脚本数据直送，'
-              '无分析段——可在 dashboard 看完整持仓）\n\n')
-    message = banner + (title + '\n\n' if title else '') + raw
+    block_present = raw_block_first in summary
+    loop_score, _ = transcript_loop_score(session_id)
+    looped = loop_score >= LOOP_THRESHOLD
+    if not block_present or looped:
+        # Report itself failed/looped — that's a generation failure, not a
+        # long-turn delivery drop. Don't fabricate a resend of garbage.
+        log({'tag': tag, 'action': 'skip', 'reason': 'run unhealthy (stall/loop) — not a long-turn drop',
+             'block_present': block_present, 'loop_score': loop_score, 'run_at': run_at})
+        return 0
+
+    # --- Decision: did report_postflight already send this report? -------------
+    # postflight is the PRIMARY sender (fresh token) and records the REAL send
+    # result. Trust that marker, not the poisoned run-record `delivered` (which is
+    # byte-identical for a dropped vs a landed run). Only re-send on a CONFIRMED
+    # failure / missing marker — never double a report the postflight send landed.
+    marker_path = WS / 'memory' / '.tmp' / f'report-sent-{args.market}-{args.phase}-{today}.json'
+    marker = None
+    if marker_path.exists():
+        try:
+            marker = json.loads(marker_path.read_text())
+        except Exception:
+            marker = None
+    now_ms = int(datetime.now(HKT).timestamp() * 1000)
+    fresh = bool(marker) and (now_ms - marker.get('ts', 0)) < MARKER_FRESH_MS
+    matches = bool(marker) and (marker.get('first_line') == raw_block_first)
+    if marker and marker.get('sent_ok') and fresh and matches:
+        log({'tag': tag, 'action': 'ok',
+             'reason': 'postflight already sent (marker sent_ok, fresh, matches) — no resend',
+             'run_at': run_at})
+        return 0
+
+    # postflight send failed / never ran / marker mismatch ⇒ re-send via fresh token.
+    report = last_report_text(session_id, raw_block_first)
+    if not report:
+        # Fallback: the run summary holds the full report after the "---" checklist.
+        report = summary.split('\n---\n', 1)[1].strip() if '\n---\n' in summary else summary.strip()
+    channel, to, account = resolve_wechat_target(args.market)
+    if not (channel and to):
+        log({'tag': tag, 'action': 'skip', 'reason': 'no wechat target resolved', 'run_at': run_at})
+        return 0
+
+    reason = ('postflight marker missing' if not marker
+              else 'postflight send failed' if not marker.get('sent_ok')
+              else 'marker stale/mismatch')
+    banner = f'📨 自动补发（{reason}，阶段性报告用 fresh-token 补一份）\n\n'
+    message = banner + report.strip()
 
     sent_ok, out = send_wechat(channel, to, account, message, args.dry_run)
     log({'tag': tag, 'action': 'resend', 'dry_run': args.dry_run, 'sent_ok': sent_ok,
-         'job_id': job_id, 'fail_kind': fail_kind, 'loop_score': loop_score,
-         'last_summary_head': last_summary[:80], 'out': out})
+         'job_id': job_id, 'reason': reason, 'loop_score': loop_score,
+         'run_at': run_at, 'out': out})
     if sent_ok and not args.dry_run:
         flag.write_text(datetime.now(HKT).isoformat())
 
-    print(json.dumps({'tag': tag, 'fail_kind': fail_kind, 'loop_score': loop_score,
-                      'resent': sent_ok, 'dry_run': args.dry_run}, ensure_ascii=False))
+    print(json.dumps({'tag': tag, 'reason': reason, 'resent': sent_ok, 'dry_run': args.dry_run},
+                     ensure_ascii=False))
     return 0
 
 
