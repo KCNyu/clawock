@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-08T16:44:06.698345",
+  "generated_at": "2026-06-09T15:50:44.064521",
   "lookback_hours": 48,
   "tickers": [
     "RKLB",
@@ -8,18 +8,18 @@
     "ROBN",
     "MSFU"
   ],
-  "digest_markdown": "### Top 3-5 移动信号 (跨 ticker 排序)\n- **RKLB**: 竞争对手Blue Origin发射失败及SpaceX IPO估值目标更新，推动股价周一反弹。**Implication**: 短期情绪提振，但需警惕SpaceX IPO可能引发的整个航天板块资金轮动风险。\n- **PLTU (2x PLTR ETF)**: Palantir财报后，相关杠杆ETF交易量激增。**Implication**: 表明市场对PLTR业绩反响强烈，PLTU波动性放大，为短线交易者提供机会，但杠杆产品风险极高。\n- **MSFU (2x MSFT ETF)**: 期权交易量异常高，ETF提供商发布“准备好扣动扳机”的看涨文章。**Implication**: 市场对微软短期走势分歧加剧，MSFU作为杠杆工具热度上升，预示微软股价可能出现方向性选择。\n- **CRCL**: 内部人士 (Rajeev Date) 申报股份处置，同时机构Travelers Companies披露买入。**Implication**: 内部人抛售是明确风险信号，但机构买入构成支撑，股价在消息面多空交织下波动加剧。\n\n### Per-ticker 简报\n- **RKLB**: 股价受SpaceX竞争格局变化消息驱动波动，短期走势与行业新闻高度相关。\n- **CRCL**: 内部人减持 Form 144 披露构成直接抛压，但机构增持消息部分抵消，股价短期承压。\n- **PLTU**: 作为Palantir杠杆ETF，其交易活跃度完全由标的公司财报与股价走势驱动。\n- **ROBN (2x HOOD ETF)**: Robinhood股价盘后下跌，但分析师和散户情绪似乎未过度悲观，ETF跟随标的波动。\n- **MSFU**: 市场热议微软潜在反弹，推动该杠杆ETF期权活动异常，显示高风险偏好资金入场。\n\n### 风险 watch\n- **CRCL**: 大股东/内部人减持（Rajeev Date）是明确的风险事件。\n- **PLTU / MSFU**: 作为2倍杠杆ETF，存在因标的短期波动导致大幅亏损的天然风险。\n- **RKLB**: 航天板块整体在SpaceX IPO前出现下跌（如Benzinga报道），存在板块性资金流出风险。",
+  "digest_markdown": "### Top 3-5 移动信号 (跨 ticker 排序)\n- **RKLB**: SpaceX IPO估值目标高达1.75万亿美元，引发市场对太空板块的资本重新定价担忧，拖累Rocket Lab等同行股价下跌。 -> 对kcn持仓构成直接下行压力，板块情绪受压。\n- **CRCL**: 分析师指出USDC流通量突破700亿美元，交易量上升，并维持“买入”评级。 -> 确认了其在稳定币市场的核心地位与增长，利好kcn的加密基础设施敞口。\n- **ROBN**: 罗宾汉（HOOD）股价盘后下跌，但相关杠杆ETF（如ROBN）新闻频出。 -> 显示散户关注度高，可能放大股价波动，为kcn持仓带来高贝塔交易机会与风险。\n- **MSFU**: 微软2倍做多ETF（MSFU）期权交易量异常高，交易系统对其波动性反应活跃。 -> 反映市场对微软短期走势存在强烈博弈情绪，影响kcn相关杠杆头寸。\n\n### Per-ticker 简报 (有新闻才列)\n- **RKLB**: 分析师提及股价因蓝源事故及SpaceX估值更新而周一反弹，但整体前景受IPO竞争压制。 - 判断：短期反弹难改中长期资本分流逻辑。\n- **CRCL**: SeekAlpha发文称Circle未受加密市场波动损害，USDC使用量增长是核心驱动力。 - 判断：业务基本面稳固，维持积极判断。\n- **ROBN**: 新闻围绕“T-Rex 2X Long HOOD”等杠杆ETF展开，无罗宾汉公司本身新事件。 - 判断：股价波动主因ETF资金流及衍生品活动，非基本面变化。\n- **MSFU**: 多个来源提示该ETF作为微软反弹的交易工具，关注其高波动性。 - 判断：纯交易型产品信号，无公司新信息。\n\n### 风险 watch\n- **RKLB**: SpaceX IPO带来的巨大估值虹吸效应及市场关注度转移，构成板块性风险。\n- **CRCL**: USDC增长与加密市场情绪高度相关，存在周期性波动风险。\n- **ROBN**: 高杠杆ETF（ROBN）本身具备高衰减特性，其新闻热度可能掩盖标的公司（HOOD）实际风险。\n- **MSFU**: 2倍杠杆ETF的每日重置机制在震荡市中易导致净值损耗，属工具结构性风险。",
   "raw_news_counts": {
-    "RKLB": 4,
-    "CRCL": 5,
-    "PLTU": 5,
+    "RKLB": 5,
+    "CRCL": 4,
+    "PLTU": 1,
     "ROBN": 5,
     "MSFU": 5
   },
   "news_source_per_ticker": {
     "RKLB": "finnhub",
-    "CRCL": "gnews-rss",
-    "PLTU": "gnews-rss",
+    "CRCL": "finnhub",
+    "PLTU": "finnhub",
     "ROBN": "gnews-rss",
     "MSFU": "gnews-rss"
   }
