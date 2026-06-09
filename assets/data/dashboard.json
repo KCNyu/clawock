@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-09T00:08:00.801369Z",
+  "generated_at": "2026-06-09T00:09:37.306578Z",
   "last_updated": "2026/06/09 08:00 HKT",
   "fx": {
     "usdhkd": 7.836,
@@ -1925,53 +1925,53 @@
     ]
   },
   "risk": {
-    "generated_at": "2026-06-09T00:00:54.904786+00:00",
-    "as_of": "2026-06-09",
+    "generated_at": "2026-06-08T01:07:43.141034+00:00",
+    "as_of": "2026-06-08",
     "us": {
-      "beta_spx": 3.9128,
-      "vol_30d_annualized": 0.9036,
-      "max_dd_30d": -0.2246,
-      "sharpe_30d": 0.741,
-      "current_value_usd": 2684.89
+      "beta_spx": 3.7623,
+      "vol_30d_annualized": 0.8896,
+      "max_dd_30d": -0.2236,
+      "sharpe_30d": 0.5931,
+      "current_value_usd": 2619.2
     },
     "hk": {
-      "beta_hsi": 1.9029,
-      "vol_30d_annualized": 0.7195,
-      "max_dd_30d": -0.2648,
-      "sharpe_30d": -2.8952,
-      "current_value_hkd": 62878.0
+      "beta_hsi": 1.8527,
+      "vol_30d_annualized": 0.7249,
+      "max_dd_30d": -0.2179,
+      "sharpe_30d": -2.8204,
+      "current_value_hkd": 66752.8
     },
     "combined": {
-      "vol_30d_annualized": 0.624,
-      "max_dd_30d": -0.2244,
-      "sharpe_30d": -1.9794
+      "vol_30d_annualized": 0.6278,
+      "max_dd_30d": -0.193,
+      "sharpe_30d": -1.8694
     },
     "leveraged_exposure": {
-      "us_leverage_factor_avg": 1.7265,
-      "hk_leverage_factor_avg": 1.3516,
-      "combined_avg": 1.4453,
-      "margin_at_risk_pct": 14.4528
+      "us_leverage_factor_avg": 1.7286,
+      "hk_leverage_factor_avg": 1.3437,
+      "combined_avg": 1.4339,
+      "margin_at_risk_pct": 14.3385
     },
     "alerts": [
       {
         "type": "high_beta",
         "severity": "high",
-        "detail": "US β vs S&P 500 = 3.9128 (> 3.0)"
+        "detail": "US β vs S&P 500 = 3.7623 (> 3.0)"
       },
       {
         "type": "high_vol",
         "severity": "high",
-        "detail": "Combined 30d annualised vol = 62.4% (> 50%)"
+        "detail": "Combined 30d annualised vol = 62.8% (> 50%)"
       },
       {
         "type": "deep_dd",
         "severity": "medium",
-        "detail": "Combined 30d max DD = -22.4% (< -10%)"
+        "detail": "Combined 30d max DD = -19.3% (< -10%)"
       },
       {
         "type": "negative_sharpe",
         "severity": "medium",
-        "detail": "Combined 30d Sharpe = -1.9794 (< 0)"
+        "detail": "Combined 30d Sharpe = -1.8694 (< 0)"
       }
     ],
     "meta": {
@@ -1993,8 +1993,8 @@
         ],
         "failed": [],
         "n_returns": 30,
-        "dates_first": "2026-04-24",
-        "dates_last": "2026-06-08"
+        "dates_first": "2026-04-23",
+        "dates_last": "2026-06-05"
       },
       "hk_fetch": {
         "fetched": [
@@ -2006,38 +2006,38 @@
         ],
         "failed": [],
         "n_returns": 30,
-        "dates_first": "2026-04-23",
-        "dates_last": "2026-06-08"
+        "dates_first": "2026-04-22",
+        "dates_last": "2026-06-05"
       }
     }
   },
   "lev_regime": {
-    "generated_at": "2026-06-09T00:00:55.347135+00:00",
-    "as_of": "2026-06-08",
+    "generated_at": "2026-06-08T01:07:43.585119+00:00",
+    "as_of": "2026-06-05",
     "index": "HSTECH",
     "source": "tencent",
-    "bars": 1333,
-    "close": 4755.91,
+    "bars": 1332,
+    "close": 4888.39,
     "ma_window": 200,
-    "ma": 5490.75,
-    "dist_ma_pct": -13.4,
+    "ma": 5494.17,
+    "dist_ma_pct": -11.0,
     "vol_window": 20,
-    "vol_annualized": 0.2993,
+    "vol_annualized": 0.2859,
     "vol_cap": 0.5,
     "trend_on": false,
     "vol_ok": true,
     "tier": "amber",
     "lev_cap_mult": 0.5,
     "label": "趋势OFF：杠杆敞口上限砍半",
-    "rationale": "HSTECH 4756 低于 200日线 5491 (-13.4%)；20日波动 30% < 50% 上限。→ HK 杠杆ETF腿上限 ×0.5（amber）",
+    "rationale": "HSTECH 4888 低于 200日线 5494 (-11.0%)；20日波动 29% < 50% 上限。→ HK 杠杆ETF腿上限 ×0.5（amber）",
     "hk": {
       "tier": "amber",
       "lev_cap_mult": 0.5,
       "label": "趋势OFF：杠杆敞口上限砍半",
-      "close": 4755.91,
-      "ma": 5490.75,
-      "dist_ma_pct": -13.4,
-      "vol_annualized": 0.2993,
+      "close": 4888.39,
+      "ma": 5494.17,
+      "dist_ma_pct": -11.0,
+      "vol_annualized": 0.2859,
       "trend_on": false,
       "vol_ok": true
     },
@@ -2046,11 +2046,11 @@
         {
           "etf": "PLTU",
           "underlying": "PLTR",
-          "close": 136.47,
-          "ma": 160.98,
+          "close": 135.53,
+          "ma": 161.07,
           "ma_window": 200,
-          "dist_ma_pct": -15.2,
-          "vol_annualized": 0.6189,
+          "dist_ma_pct": -15.9,
+          "vol_annualized": 0.6187,
           "vol_hot_cap": 0.7,
           "trend_on": false,
           "vol_hot": false,
@@ -2059,11 +2059,11 @@
         {
           "etf": "ROBN",
           "underlying": "HOOD",
-          "close": 85.04,
-          "ma": 103.19,
+          "close": 82.47,
+          "ma": 103.29,
           "ma_window": 200,
-          "dist_ma_pct": -17.6,
-          "vol_annualized": 0.8311,
+          "dist_ma_pct": -20.2,
+          "vol_annualized": 0.826,
           "vol_hot_cap": 0.7,
           "trend_on": false,
           "vol_hot": true,
@@ -2072,11 +2072,11 @@
         {
           "etf": "MSFU",
           "underlying": "MSFT",
-          "close": 411.74,
-          "ma": 455.91,
+          "close": 416.67,
+          "ma": 456.38,
           "ma_window": 200,
-          "dist_ma_pct": -9.7,
-          "vol_annualized": 0.3635,
+          "dist_ma_pct": -8.7,
+          "vol_annualized": 0.3642,
           "vol_hot_cap": 0.7,
           "trend_on": false,
           "vol_hot": false,
@@ -2144,7 +2144,7 @@
         "leg": "US",
         "ticker": "ROBN",
         "severity": "high",
-        "detail": "🧭 ROBN=2xHOOD 标的破200线 (-17.6%)+波动 83% 过热 → 杠杆制度 red",
+        "detail": "🧭 ROBN=2xHOOD 标的破200线 (-20.2%)+波动 83% 过热 → 杠杆制度 red",
         "action": "ROBN 降杠杆/减仓(driven_by=technical,规则非择时)：标的趋势off 且波动>70%，2x 日内重置在下杀里放大衰减"
       },
       {
@@ -2152,7 +2152,7 @@
         "leg": "US",
         "ticker": null,
         "severity": "high",
-        "detail": "US β vs S&P = 3.9128 (cap 3.0) — 大盘 −1% 本子约 −3.9%",
+        "detail": "US β vs S&P = 3.7623 (cap 3.0) — 大盘 −1% 本子约 −3.8%",
         "action": "降 US β：优先削杠杆 ETF(β 主要来源)，不是砍单票 thesis"
       }
     ],
@@ -2168,32 +2168,32 @@
     "breach_count": 8,
     "directive": "⛔ 7 仓位硬闸 + 1 杠杆止损触发。每条必须在 Judge 段出一个对应动作(driven_by=technical,纪律性再平衡,不算听消息、不受 risk_on HOLD 默认约束)；其余主动 call 仍按 regime guard。",
     "lev_regime": {
-      "generated_at": "2026-06-09T00:00:55.347135+00:00",
-      "as_of": "2026-06-08",
+      "generated_at": "2026-06-08T01:07:43.585119+00:00",
+      "as_of": "2026-06-05",
       "index": "HSTECH",
       "source": "tencent",
-      "bars": 1333,
-      "close": 4755.91,
+      "bars": 1332,
+      "close": 4888.39,
       "ma_window": 200,
-      "ma": 5490.75,
-      "dist_ma_pct": -13.4,
+      "ma": 5494.17,
+      "dist_ma_pct": -11.0,
       "vol_window": 20,
-      "vol_annualized": 0.2993,
+      "vol_annualized": 0.2859,
       "vol_cap": 0.5,
       "trend_on": false,
       "vol_ok": true,
       "tier": "amber",
       "lev_cap_mult": 0.5,
       "label": "趋势OFF：杠杆敞口上限砍半",
-      "rationale": "HSTECH 4756 低于 200日线 5491 (-13.4%)；20日波动 30% < 50% 上限。→ HK 杠杆ETF腿上限 ×0.5（amber）",
+      "rationale": "HSTECH 4888 低于 200日线 5494 (-11.0%)；20日波动 29% < 50% 上限。→ HK 杠杆ETF腿上限 ×0.5（amber）",
       "hk": {
         "tier": "amber",
         "lev_cap_mult": 0.5,
         "label": "趋势OFF：杠杆敞口上限砍半",
-        "close": 4755.91,
-        "ma": 5490.75,
-        "dist_ma_pct": -13.4,
-        "vol_annualized": 0.2993,
+        "close": 4888.39,
+        "ma": 5494.17,
+        "dist_ma_pct": -11.0,
+        "vol_annualized": 0.2859,
         "trend_on": false,
         "vol_ok": true
       },
@@ -2202,11 +2202,11 @@
           {
             "etf": "PLTU",
             "underlying": "PLTR",
-            "close": 136.47,
-            "ma": 160.98,
+            "close": 135.53,
+            "ma": 161.07,
             "ma_window": 200,
-            "dist_ma_pct": -15.2,
-            "vol_annualized": 0.6189,
+            "dist_ma_pct": -15.9,
+            "vol_annualized": 0.6187,
             "vol_hot_cap": 0.7,
             "trend_on": false,
             "vol_hot": false,
@@ -2215,11 +2215,11 @@
           {
             "etf": "ROBN",
             "underlying": "HOOD",
-            "close": 85.04,
-            "ma": 103.19,
+            "close": 82.47,
+            "ma": 103.29,
             "ma_window": 200,
-            "dist_ma_pct": -17.6,
-            "vol_annualized": 0.8311,
+            "dist_ma_pct": -20.2,
+            "vol_annualized": 0.826,
             "vol_hot_cap": 0.7,
             "trend_on": false,
             "vol_hot": true,
@@ -2228,11 +2228,11 @@
           {
             "etf": "MSFU",
             "underlying": "MSFT",
-            "close": 411.74,
-            "ma": 455.91,
+            "close": 416.67,
+            "ma": 456.38,
             "ma_window": 200,
-            "dist_ma_pct": -9.7,
-            "vol_annualized": 0.3635,
+            "dist_ma_pct": -8.7,
+            "vol_annualized": 0.3642,
             "vol_hot_cap": 0.7,
             "trend_on": false,
             "vol_hot": false,
@@ -2282,7 +2282,7 @@
     }
   },
   "benchmark": {
-    "generated_at": "2026-06-09T00:00:58.056126Z",
+    "generated_at": "2026-06-08T01:07:46.291753Z",
     "window_days": 60,
     "series": {
       "SPY": [
@@ -2457,6 +2457,10 @@
       ],
       "HSI": [
         {
+          "date": "2026-04-09",
+          "close": 25752.4
+        },
+        {
           "date": "2026-04-10",
           "close": 25893.54
         },
@@ -2611,13 +2615,13 @@
         {
           "date": "2026-06-05",
           "close": 24961.95
-        },
-        {
-          "date": "2026-06-08",
-          "close": 24657.06
         }
       ],
       "HSTECH": [
+        {
+          "date": "2026-04-09",
+          "close": 4821.67
+        },
         {
           "date": "2026-04-10",
           "close": 4860.26
@@ -2773,10 +2777,6 @@
         {
           "date": "2026-06-05",
           "close": 4888.39
-        },
-        {
-          "date": "2026-06-08",
-          "close": 4755.91
         }
       ]
     }
@@ -3378,7 +3378,7 @@
     ]
   },
   "influencer_feed": {
-    "generated_at": "2026-06-08T16:40:35.305426+00:00",
+    "generated_at": "2026-06-08T23:03:07.861930+00:00",
     "lookback_hours": 48,
     "sources": {
       "trump": "trumpstruth.org/feed (primary)",
@@ -3387,34 +3387,12 @@
     },
     "llm_filtered": true,
     "counts": {
-      "total": 9,
+      "total": 7,
       "held_hits": 0,
       "new_ideas": 0,
-      "sector_hits": 8
+      "sector_hits": 6
     },
     "items": [
-      {
-        "author": "Musk",
-        "text": "Pension funds call SpaceX governance ‘reckless’ as forced buying looms ahead of IPO",
-        "url": "",
-        "published": "Mon, 08 Jun 2026 10:00:00 GMT",
-        "origin": "gnews-rss",
-        "source": "Pensions & Investments",
-        "tickers": [],
-        "held": [],
-        "new_ideas": [],
-        "sectors": [
-          "航天",
-          "IPO",
-          "公司治理"
-        ],
-        "sector_holdings": [
-          "RKLB"
-        ],
-        "stance": "neutral",
-        "relevance": 65,
-        "summary_cn": "养老基金批评SpaceX公司治理'鲁莽'，IPO前强制购买引发争议。"
-      },
       {
         "author": "Musk",
         "text": "Elon Musk’s $1.8 Trillion SpaceX IPO: Is It a Good Investment?",
@@ -3433,36 +3411,35 @@
           "RKLB"
         ],
         "stance": "neutral",
-        "relevance": 60,
-        "summary_cn": "讨论SpaceX 1.8万亿美元IPO是否是好的投资机会。"
+        "relevance": 55,
+        "summary_cn": "Musk 相关报道讨论 SpaceX 1.8 万亿美元 IPO 是否值得投资，涉及航天板块。"
       },
       {
         "author": "Musk",
-        "text": "Elon Musk bullet-proofed his $1 trillion ‘Mars-shot’ pay at SpaceX after the pay brawl at Tesla",
+        "text": "How Elon Musk’s Friendship With the F.C.C. Smooths the Way for SpaceX’s I.P.O.",
         "url": "",
-        "published": "Sat, 06 Jun 2026 10:26:00 GMT",
+        "published": "Mon, 08 Jun 2026 18:31:50 GMT",
         "origin": "gnews-rss",
-        "source": "Fortune",
+        "source": "The New York Times",
         "tickers": [],
         "held": [],
         "new_ideas": [],
         "sectors": [
           "航天",
-          "公司治理",
-          "薪酬"
+          "监管"
         ],
         "sector_holdings": [
           "RKLB"
         ],
         "stance": "neutral",
-        "relevance": 60,
-        "summary_cn": "马斯克在特斯拉薪酬争议后为SpaceX万亿美元薪酬方案加了'防弹'保护。"
+        "relevance": 55,
+        "summary_cn": "Musk 相关报道称 Musk 与 FCC 的友谊为 SpaceX IPO 铺路，涉及航天与监管政策。"
       },
       {
         "author": "Musk",
         "text": "SpaceX IPO to test Elon Musk's market magic",
         "url": "",
-        "published": "Mon, 08 Jun 2026 11:02:23 GMT",
+        "published": "Mon, 08 Jun 2026 11:02:43 GMT",
         "origin": "gnews-rss",
         "source": "Axios",
         "tickers": [],
@@ -3476,16 +3453,16 @@
           "RKLB"
         ],
         "stance": "neutral",
-        "relevance": 60,
-        "summary_cn": "SpaceX IPO将考验马斯克的市场魔力，航天板块关注度提升。"
+        "relevance": 55,
+        "summary_cn": "Musk 相关报道讨论 SpaceX IPO 将考验 Musk 的市场魔力，涉及航天板块。"
       },
       {
         "author": "Musk",
         "text": "Five ways Elon Musk's SpaceX upended Wall Street's IPO playbook",
         "url": "",
-        "published": "Mon, 08 Jun 2026 10:20:18 GMT",
+        "published": "Mon, 08 Jun 2026 10:25:03 GMT",
         "origin": "gnews-rss",
-        "source": "Yahoo Finance",
+        "source": "Reuters",
         "tickers": [],
         "held": [],
         "new_ideas": [],
@@ -3497,8 +3474,8 @@
           "RKLB"
         ],
         "stance": "neutral",
-        "relevance": 60,
-        "summary_cn": "报道SpaceX如何颠覆华尔街IPO规则，航天板块关注度提升。"
+        "relevance": 55,
+        "summary_cn": "Musk 相关报道称 SpaceX 颠覆了华尔街 IPO 剧本，涉及航天板块但 SpaceX 未上市。"
       },
       {
         "author": "Musk",
@@ -3511,15 +3488,14 @@
         "held": [],
         "new_ideas": [],
         "sectors": [
-          "航天",
-          "IPO"
+          "航天"
         ],
         "sector_holdings": [
           "RKLB"
         ],
         "stance": "neutral",
-        "relevance": 60,
-        "summary_cn": "媒体讨论SpaceX是否值1.75万亿美元估值，涉及航天板块关注度提升。"
+        "relevance": 55,
+        "summary_cn": "Musk 相关报道讨论 SpaceX 估值是否值 1.75 万亿美元，涉及航天板块但 SpaceX 未上市。"
       },
       {
         "author": "Musk",
@@ -3533,28 +3509,6 @@
         "new_ideas": [],
         "sectors": [
           "航天",
-          "IPO",
-          "散户投资"
-        ],
-        "sector_holdings": [
-          "RKLB"
-        ],
-        "stance": "neutral",
-        "relevance": 60,
-        "summary_cn": "SpaceX正在吸引散户投资者，航天板块散户参与度提升。"
-      },
-      {
-        "author": "Musk",
-        "text": "Who can buy shares in Elon Musk’s SpaceX?",
-        "url": "",
-        "published": "Fri, 05 Jun 2026 09:51:36 GMT",
-        "origin": "gnews-rss",
-        "source": "BBC",
-        "tickers": [],
-        "held": [],
-        "new_ideas": [],
-        "sectors": [
-          "航天",
           "IPO"
         ],
         "sector_holdings": [
@@ -3562,7 +3516,7 @@
         ],
         "stance": "neutral",
         "relevance": 55,
-        "summary_cn": "讨论谁有资格购买SpaceX股份，涉及航天板块投资者准入门槛。"
+        "summary_cn": "Musk 相关报道称 SpaceX 正在争取散户投资者参与 IPO，涉及航天板块。"
       },
       {
         "author": "Trump",
@@ -3579,35 +3533,13 @@
         ],
         "sector_holdings": [],
         "stance": "neutral",
-        "relevance": 55,
-        "summary_cn": "特朗普称以色列与伊朗正就立即停火进行最终谈判，封锁将持续至最终协议达成。"
+        "relevance": 65,
+        "summary_cn": "Trump 称以色列和伊朗正在谈判立即停火，封锁将持续至最终协议达成，涉及地缘政治与能源市场。"
       }
     ],
     "held_hits": [],
     "new_ideas": [],
     "sector_hits": [
-      {
-        "author": "Musk",
-        "text": "Pension funds call SpaceX governance ‘reckless’ as forced buying looms ahead of IPO",
-        "url": "",
-        "published": "Mon, 08 Jun 2026 10:00:00 GMT",
-        "origin": "gnews-rss",
-        "source": "Pensions & Investments",
-        "tickers": [],
-        "held": [],
-        "new_ideas": [],
-        "sectors": [
-          "航天",
-          "IPO",
-          "公司治理"
-        ],
-        "sector_holdings": [
-          "RKLB"
-        ],
-        "stance": "neutral",
-        "relevance": 65,
-        "summary_cn": "养老基金批评SpaceX公司治理'鲁莽'，IPO前强制购买引发争议。"
-      },
       {
         "author": "Musk",
         "text": "Elon Musk’s $1.8 Trillion SpaceX IPO: Is It a Good Investment?",
@@ -3626,36 +3558,35 @@
           "RKLB"
         ],
         "stance": "neutral",
-        "relevance": 60,
-        "summary_cn": "讨论SpaceX 1.8万亿美元IPO是否是好的投资机会。"
+        "relevance": 55,
+        "summary_cn": "Musk 相关报道讨论 SpaceX 1.8 万亿美元 IPO 是否值得投资，涉及航天板块。"
       },
       {
         "author": "Musk",
-        "text": "Elon Musk bullet-proofed his $1 trillion ‘Mars-shot’ pay at SpaceX after the pay brawl at Tesla",
+        "text": "How Elon Musk’s Friendship With the F.C.C. Smooths the Way for SpaceX’s I.P.O.",
         "url": "",
-        "published": "Sat, 06 Jun 2026 10:26:00 GMT",
+        "published": "Mon, 08 Jun 2026 18:31:50 GMT",
         "origin": "gnews-rss",
-        "source": "Fortune",
+        "source": "The New York Times",
         "tickers": [],
         "held": [],
         "new_ideas": [],
         "sectors": [
           "航天",
-          "公司治理",
-          "薪酬"
+          "监管"
         ],
         "sector_holdings": [
           "RKLB"
         ],
         "stance": "neutral",
-        "relevance": 60,
-        "summary_cn": "马斯克在特斯拉薪酬争议后为SpaceX万亿美元薪酬方案加了'防弹'保护。"
+        "relevance": 55,
+        "summary_cn": "Musk 相关报道称 Musk 与 FCC 的友谊为 SpaceX IPO 铺路，涉及航天与监管政策。"
       },
       {
         "author": "Musk",
         "text": "SpaceX IPO to test Elon Musk's market magic",
         "url": "",
-        "published": "Mon, 08 Jun 2026 11:02:23 GMT",
+        "published": "Mon, 08 Jun 2026 11:02:43 GMT",
         "origin": "gnews-rss",
         "source": "Axios",
         "tickers": [],
@@ -3669,16 +3600,16 @@
           "RKLB"
         ],
         "stance": "neutral",
-        "relevance": 60,
-        "summary_cn": "SpaceX IPO将考验马斯克的市场魔力，航天板块关注度提升。"
+        "relevance": 55,
+        "summary_cn": "Musk 相关报道讨论 SpaceX IPO 将考验 Musk 的市场魔力，涉及航天板块。"
       },
       {
         "author": "Musk",
         "text": "Five ways Elon Musk's SpaceX upended Wall Street's IPO playbook",
         "url": "",
-        "published": "Mon, 08 Jun 2026 10:20:18 GMT",
+        "published": "Mon, 08 Jun 2026 10:25:03 GMT",
         "origin": "gnews-rss",
-        "source": "Yahoo Finance",
+        "source": "Reuters",
         "tickers": [],
         "held": [],
         "new_ideas": [],
@@ -3690,8 +3621,8 @@
           "RKLB"
         ],
         "stance": "neutral",
-        "relevance": 60,
-        "summary_cn": "报道SpaceX如何颠覆华尔街IPO规则，航天板块关注度提升。"
+        "relevance": 55,
+        "summary_cn": "Musk 相关报道称 SpaceX 颠覆了华尔街 IPO 剧本，涉及航天板块但 SpaceX 未上市。"
       },
       {
         "author": "Musk",
@@ -3704,15 +3635,14 @@
         "held": [],
         "new_ideas": [],
         "sectors": [
-          "航天",
-          "IPO"
+          "航天"
         ],
         "sector_holdings": [
           "RKLB"
         ],
         "stance": "neutral",
-        "relevance": 60,
-        "summary_cn": "媒体讨论SpaceX是否值1.75万亿美元估值，涉及航天板块关注度提升。"
+        "relevance": 55,
+        "summary_cn": "Musk 相关报道讨论 SpaceX 估值是否值 1.75 万亿美元，涉及航天板块但 SpaceX 未上市。"
       },
       {
         "author": "Musk",
@@ -3726,28 +3656,6 @@
         "new_ideas": [],
         "sectors": [
           "航天",
-          "IPO",
-          "散户投资"
-        ],
-        "sector_holdings": [
-          "RKLB"
-        ],
-        "stance": "neutral",
-        "relevance": 60,
-        "summary_cn": "SpaceX正在吸引散户投资者，航天板块散户参与度提升。"
-      },
-      {
-        "author": "Musk",
-        "text": "Who can buy shares in Elon Musk’s SpaceX?",
-        "url": "",
-        "published": "Fri, 05 Jun 2026 09:51:36 GMT",
-        "origin": "gnews-rss",
-        "source": "BBC",
-        "tickers": [],
-        "held": [],
-        "new_ideas": [],
-        "sectors": [
-          "航天",
           "IPO"
         ],
         "sector_holdings": [
@@ -3755,7 +3663,7 @@
         ],
         "stance": "neutral",
         "relevance": 55,
-        "summary_cn": "讨论谁有资格购买SpaceX股份，涉及航天板块投资者准入门槛。"
+        "summary_cn": "Musk 相关报道称 SpaceX 正在争取散户投资者参与 IPO，涉及航天板块。"
       }
     ]
   },
