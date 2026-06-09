@@ -4,10 +4,14 @@
 标的：华安黄金ETF联接C (000217)，场外基金，一天一个净值（约 20:00–23:00 HKT 出）。
 跟踪同一份黄金 (母 ETF 518880)，但 C 类有自己的净值刻度 + 销售服务费拖累。
 
-Ground truth = portfolio.json['gold_dca'] 里的两个字段，kcn 按真实账户对账后手填：
-  - principal_invested : 累计投入本金（元）
-  - units_held         : 当前持有份额
-本脚本【绝不】改这两个真值，只：
+对账基线 = portfolio.json['gold_dca'] 里 kcn 按真实账户填的三个字段：
+  - principal_invested : 对账日的累计投入本金（元）
+  - units_held         : 对账日的持有份额
+  - reconciled_date    : 这两个数字截止到哪天（含当天）
+之后每个 A 股交易日，本脚本【自动】按当日净值 +daily_amount（默认200）累加估算
+（principal_effective / units_effective），所以你天天定投也能自动跟上。每隔几周用真实
+账户报一次新数字 + 更新 reconciled_date，自动累加部分即归零重算（消除 T+1/跳过的累积偏差）。
+本脚本【绝不】改这三个基线字段，只：
   1. 拉最新净值 + 近 ~150 交易日历史（api.fund.eastmoney.com/f10/lsjz，稳定渠道）
   2. 拉实时估值（fundgz，净值未出时的当日估算，仅展示用）
   3. 重算 avg_cost / 现值 / 盈亏 / 回本门槛 / 定投摊薄预测 / 区间高低
@@ -33,10 +37,10 @@ from safe_io import safe_write_json  # noqa: E402
 
 PORTFOLIO = os.path.join(WS_ROOT, 'portfolio.json')
 
-# 真值字段：merge 时永不被派生计算覆盖
+# 对账基线字段：merge 时永不被派生计算覆盖
 GROUND_TRUTH_FIELDS = {
     'fund_code', 'fund_name', 'currency', 'daily_amount', 'start_date',
-    'principal_invested', 'units_held', 'principal_note',
+    'principal_invested', 'units_held', 'reconciled_date', 'principal_note',
 }
 
 # 首次运行若 portfolio.json 无 gold_dca，用这套 seed（kcn 2026-06-09 对账）
@@ -48,10 +52,11 @@ SEED = {
     'start_date': '2026-01-22',
     'principal_invested': 17299.0,
     'units_held': 4854.55,
-    'principal_note': ('真实账户为准。2026-06-09 kcn 对账：现值 15470 + 盈亏 -1829 '
-                       '→ 本金 17299，份额 = 15470/净值3.1867 = 4854.55。'
-                       '补投/赎回后手动更新 principal_invested + units_held 这两个值即可，'
-                       '其余字段 fetch_gold_dca.py 每日自动重算。'),
+    'reconciled_date': '2026-06-09',
+    'principal_note': ('对账基线（自动累加模式）。2026-06-09 kcn 对账：现值 15470 + 盈亏 -1829 '
+                       '→ 本金 17299，份额 = 15470/净值3.1867 = 4854.55。此后每个 A 股交易日'
+                       '自动 +200@当日净值。补投对账：把 principal_invested/units_held 改成新的'
+                       '真实数字、reconciled_date 改成对账当天即可，自动累加归零重算。'),
 }
 
 HISTORY_PAGES = 8     # 8×20 = 160 交易日，够画迷你图 + 取区间高低
@@ -132,8 +137,8 @@ def project_dca(units, principal, nav, daily, horizons=(20, 40, 60, 120, 250)):
 
 
 def compute(gold, history, realtime):
-    principal = float(gold['principal_invested'])
-    units = float(gold['units_held'])
+    base_principal = float(gold['principal_invested'])
+    base_units = float(gold['units_held'])
     daily = float(gold.get('daily_amount', 200))
     start = gold.get('start_date', '')
 
@@ -142,6 +147,15 @@ def compute(gold, history, realtime):
         nav_date, nav, nav_chg = history[-1]
     else:
         nav, nav_date, nav_chg = float(gold.get('nav') or 0), gold.get('nav_date'), gold.get('nav_change_pct')
+
+    # 自动累加：对账日【之后】的每个 A 股交易日 +daily@当日净值（基线已含对账日当天）。
+    # reconciled_date 缺失时默认取最新净值日 → auto=0（安全失败：宁可不加，也绝不从起投日双计）。
+    reconciled = gold.get('reconciled_date') or nav_date or start
+    auto = [(d, n) for d, n, _ in history if d > reconciled and n]
+    auto_amount = daily * len(auto)
+    auto_units = sum(daily / n for _, n in auto)
+    principal = base_principal + auto_amount
+    units = base_units + auto_units
 
     avg_cost = principal / units if units else 0
     value = units * nav
@@ -158,6 +172,11 @@ def compute(gold, history, realtime):
         'nav_date': nav_date,
         'nav_change_pct': nav_chg,
         'realtime': realtime,
+        # 自动累加后的实际投入/份额（卡片显示这个，而非对账基线）
+        'principal_effective': round(principal, 2),
+        'units_effective': round(units, 2),
+        'auto_added_days': len(auto),
+        'auto_added_amount': round(auto_amount, 2),
         'avg_cost': round(avg_cost, 4),
         'current_value': round(value, 2),
         'pnl_abs': round(pnl, 2),
@@ -203,10 +222,12 @@ def main():
     g = merged
     print(f"{g['fund_name']} ({g['fund_code']})  净值 {g['nav']} ({g.get('nav_date')})  "
           f"日涨跌 {g.get('nav_change_pct')}%")
-    print(f"  投入 {g['principal_invested']:,.0f}  现值 {g['current_value']:,.0f}  "
+    print(f"  投入 {g['principal_effective']:,.0f}  现值 {g['current_value']:,.0f}  "
           f"盈亏 {g['pnl_abs']:+,.0f} ({g['pnl_percent']:+.2f}%)")
     print(f"  平均成本 {g['avg_cost']}  回本需涨 {g['breakeven_upside_pct']:+.2f}%  "
           f"已投 {g['days_invested']} 个交易日 / ~{g['installments_est']} 笔")
+    print(f"  对账基线 {g['principal_invested']:,.0f}@{g.get('reconciled_date')} "
+          f"+ 自动累加 {g['auto_added_days']} 个交易日 ¥{g['auto_added_amount']:,.0f}")
     if g.get('realtime'):
         rt = g['realtime']
         print(f"  实时估值 {rt['est_nav']} ({rt['est_change_pct']:+.2f}%) @ {rt.get('est_time')}")

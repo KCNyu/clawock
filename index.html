@@ -3257,7 +3257,7 @@ layout: null
         <div style="font-size:15px;font-weight:700;margin-top:1px">${val}</div></div>`;
     document.getElementById('gold-stats').innerHTML =
       `<div style="display:flex;flex-wrap:wrap;gap:2px 8px;padding:8px 0;border-top:1px solid var(--border,#2a2a2a)">
-        ${cell('累计投入', '¥' + num(g.principal_invested))}
+        ${cell('累计投入', '¥' + num(g.principal_effective != null ? g.principal_effective : g.principal_invested))}
         ${cell('平均成本', num(g.avg_cost, 4))}
         ${cell('当前净值', num(g.nav, 4) + navChgStr)}
         ${cell('回本需涨', `<span style="color:${loss ? '#d97706' : '#16a34a'}">${(g.breakeven_upside_pct >= 0 ? '+' : '') + num(g.breakeven_upside_pct, 1)}%</span>`)}
@@ -3311,9 +3311,13 @@ layout: null
     } else { document.getElementById('gold-proj').innerHTML = ''; }
 
     const rt = g.realtime;
+    const auto = (g.auto_added_days || 0) > 0
+      ? ` · 自动累加 ${g.auto_added_days} 日(待对账，基线 ${g.reconciled_date || ''})`
+      : (g.reconciled_date ? ` · 已对账 ${g.reconciled_date}` : '');
     document.getElementById('gold-asof').textContent =
       `净值 ${g.nav_date || ''}` +
       (rt ? ` · 实时估值 ${num(rt.est_nav, 4)} (${rt.est_change_pct >= 0 ? '+' : ''}${rt.est_change_pct}%) @ ${(rt.est_time || '').slice(11)}` : '') +
+      auto +
       ` · 独立人民币卡，不并入跨币种总额`;
   }
 
