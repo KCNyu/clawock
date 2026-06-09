@@ -1233,7 +1233,7 @@ layout: null
     <button class="tab-btn" data-tab="market" role="tab">Market</button>
     <button class="tab-btn" data-tab="plan" role="tab">Plan</button>
     <button class="tab-btn" data-tab="reflect" role="tab">Reflect</button>
-    <button class="tab-btn" data-tab="gold" role="tab">🥇 黄金</button>
+    <button class="tab-btn" data-tab="gold" role="tab">Gold</button>
   </nav>
   <div class="swipe-hint">‹ 左右滑动切换 ›</div>
 </header>
@@ -1819,10 +1819,10 @@ layout: null
        GOLD — 黄金定投 sleeve（独立人民币，不并入跨币种总额）
        ============================================ -->
   <section class="panel" data-panel="gold">
-    <h2>黄金</h2>
+    <h2>Gold</h2>
 
     <div class="card" id="gold-dca-card" style="display:none">
-      <h3>🥇 黄金定投 <span class="muted" id="gold-sub" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:11px"></span></h3>
+      <h3>Gold DCA <span class="muted" id="gold-sub" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:11px"></span></h3>
       <div id="gold-hero"></div>
       <div id="gold-stats"></div>
       <div id="gold-spark"></div>
@@ -3298,8 +3298,8 @@ layout: null
           <circle cx="${x(hist.length - 1).toFixed(1)}" cy="${y(lastV).toFixed(1)}" r="2.6" fill="${pnlColor}"/>
         </svg>
         <div class="muted" style="font-size:10px;display:flex;justify-content:space-between;text-transform:none;letter-spacing:0">
-          <span>🔵 ${hist[startIdx][0]} 起投 ${num(hist[startIdx][1], 3)}</span>
-          <span style="color:#d97706">┄ 成本线 ${num(avg, 3)}</span>
+          <span style="color:#60a5fa">${hist[startIdx][0]} 起投 ${num(hist[startIdx][1], 3)}</span>
+          <span style="color:#d97706">成本线 ${num(avg, 3)}</span>
           <span>区间 ${num(lo, 3)}~${num(hi, 3)}</span>
         </div>`;
     } else { sp.innerHTML = ''; }
@@ -3313,7 +3313,7 @@ layout: null
           <td style="padding:2px 6px;text-align:right">${num(p.avg_cost, 3)}</td>
           <td style="padding:2px 6px;text-align:right;color:#16a34a">+${num(p.breakeven_upside_pct, 1)}%</td></tr>`).join('');
       document.getElementById('gold-proj').innerHTML =
-        `<div class="muted" style="font-size:10px;margin:8px 0 2px;text-transform:none;letter-spacing:0">📉 若净值原地不动、继续每日定投 → 成本线/回本门槛下移</div>
+        `<div class="muted" style="font-size:10px;margin:8px 0 2px;text-transform:none;letter-spacing:0">若净值原地不动、继续每日定投 → 成本线/回本门槛下移</div>
          <table style="width:100%;font-size:12px;border-collapse:collapse">
            <tr class="muted" style="font-size:10px"><td style="padding:2px 6px">继续</td><td style="padding:2px 6px;text-align:right">平均成本</td><td style="padding:2px 6px;text-align:right">回本只需涨</td></tr>
            ${rows}</table>`;
