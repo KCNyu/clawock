@@ -1233,6 +1233,7 @@ layout: null
     <button class="tab-btn" data-tab="market" role="tab">Market</button>
     <button class="tab-btn" data-tab="plan" role="tab">Plan</button>
     <button class="tab-btn" data-tab="reflect" role="tab">Reflect</button>
+    <button class="tab-btn" data-tab="gold" role="tab">🥇 黄金</button>
   </nav>
   <div class="swipe-hint">‹ 左右滑动切换 ›</div>
 </header>
@@ -1430,15 +1431,6 @@ layout: null
       <div class="muted" style="font-size:10px;margin:8px 0 3px;opacity:0.8">US · 2x 单股 per-name（趋势off且波动过热才砍）</div>
       <div class="risk-alerts" id="lev-regime-us"></div>
       <div class="muted" id="lev-regime-asof" style="font-size:10px;margin-top:6px;opacity:0.7"></div>
-    </div>
-
-    <div class="card" id="gold-dca-card" style="display:none">
-      <h3>🥇 黄金定投 <span class="muted" id="gold-sub" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:11px"></span></h3>
-      <div id="gold-hero"></div>
-      <div id="gold-stats"></div>
-      <div id="gold-spark"></div>
-      <div id="gold-proj"></div>
-      <div class="muted" id="gold-asof" style="font-size:10px;margin-top:6px;opacity:0.7"></div>
     </div>
 
   </section>
@@ -1819,6 +1811,23 @@ layout: null
       <h3>Realized vs Unrealized</h3>
       <p class="chart-hint">已兑现（绿）vs 浮动（蓝）—— 兑现的是真金白银，浮动是账面。两根加起来 = 总盈亏。</p>
       <div id="chart-realized" class="chart-box" style="height:220px"></div>
+    </div>
+
+  </section>
+
+  <!-- ============================================
+       GOLD — 黄金定投 sleeve（独立人民币，不并入跨币种总额）
+       ============================================ -->
+  <section class="panel" data-panel="gold">
+    <h2>黄金</h2>
+
+    <div class="card" id="gold-dca-card" style="display:none">
+      <h3>🥇 黄金定投 <span class="muted" id="gold-sub" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:11px"></span></h3>
+      <div id="gold-hero"></div>
+      <div id="gold-stats"></div>
+      <div id="gold-spark"></div>
+      <div id="gold-proj"></div>
+      <div class="muted" id="gold-asof" style="font-size:10px;margin-top:6px;opacity:0.7"></div>
     </div>
 
   </section>
