@@ -1830,6 +1830,13 @@ layout: null
       <div class="muted" id="gold-asof" style="font-size:10px;margin-top:6px;opacity:0.7"></div>
     </div>
 
+    <div class="card" id="gold-backtest-card" style="display:none">
+      <h3>Gold ETF Backtest <span class="muted" id="gold-bt-sub" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:11px"></span></h3>
+      <div class="muted" id="gold-bt-note" style="font-size:11px;line-height:1.5;margin:2px 0 8px"></div>
+      <div id="gold-bt-table"></div>
+      <div class="muted" id="gold-bt-asof" style="font-size:10px;margin-top:6px;opacity:0.7"></div>
+    </div>
+
   </section>
 
   </div><!-- /.pager -->
@@ -2330,6 +2337,7 @@ layout: null
     renderRiskGuardrail();
     renderLevRegime();
     renderGoldDca();
+    renderGoldBacktest();
     renderWatchLevels();
     renderAnomalies();
     renderMovers();
@@ -3328,6 +3336,42 @@ layout: null
       (rt ? ` · 实时估值 ${num(rt.est_nav, 4)} (${rt.est_change_pct >= 0 ? '+' : ''}${rt.est_change_pct}%) @ ${(rt.est_time || '').slice(11)}` : '') +
       auto +
       ` · 独立人民币卡，不并入跨币种总额`;
+  }
+
+  function renderGoldBacktest() {
+    const g = safe(DATA, "gold_dca");
+    const bt = g && g.parent_backtest;
+    const card = document.getElementById('gold-backtest-card');
+    if (!card) return;
+    if (!bt || !(bt.rows || []).length) { card.style.display = 'none'; return; }
+    card.style.display = '';
+    const num = v => v == null ? DASH : Number(v).toLocaleString('zh-CN');
+
+    document.getElementById('gold-bt-sub').textContent =
+      `${bt.fund_code} · ${bt.fund_name} · 每日定投¥${num(bt.daily_amount || 200)}持有至今`;
+    document.getElementById('gold-bt-note').textContent = bt.note || '';
+
+    const retColor = v => v == null ? '' : (v >= 0 ? '#16a34a' : '#dc2626');
+    const rows = bt.rows.map(r => {
+      const sign = r.ret_pct >= 0 ? '+' : '';
+      return `<tr>
+        <td style="padding:3px 6px">${r.label}<div class="muted" style="font-size:9px">${r.start}</div></td>
+        <td style="padding:3px 6px;text-align:right">¥${num(r.invested)}</td>
+        <td style="padding:3px 6px;text-align:right">¥${num(r.value)}</td>
+        <td style="padding:3px 6px;text-align:right;font-weight:700;color:${retColor(r.ret_pct)}">${sign}${num(r.ret_pct)}%</td>
+        <td style="padding:3px 6px;text-align:right;color:${retColor(r.xirr_pct)}">${r.xirr_pct >= 0 ? '+' : ''}${num(r.xirr_pct)}%</td>
+      </tr>`;
+    }).join('');
+    document.getElementById('gold-bt-table').innerHTML =
+      `<table style="width:100%;font-size:12px;border-collapse:collapse">
+        <tr class="muted" style="font-size:10px;text-align:right">
+          <td style="padding:3px 6px;text-align:left">起投</td><td style="padding:3px 6px">投入</td>
+          <td style="padding:3px 6px">现值</td><td style="padding:3px 6px">总收益</td>
+          <td style="padding:3px 6px">年化XIRR</td></tr>
+        ${rows}
+      </table>`;
+    document.getElementById('gold-bt-asof').textContent =
+      `净值 ${bt.last_nav} @ ${bt.as_of} · 成立 ${bt.inception} · 不含申赎费，已买零碎份额`;
   }
 
   function renderLeveragedETF() {

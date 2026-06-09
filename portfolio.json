@@ -1618,6 +1618,81 @@
         3.1867
       ]
     ],
-    "last_updated": "2026-06-09T15:47:05.861372Z"
+    "last_updated": "2026-06-09T15:47:05.861372Z",
+    "parent_backtest": {
+      "fund_code": "518880",
+      "fund_name": "华安黄金ETF",
+      "daily_amount": 200.0,
+      "inception": "2013-07-18",
+      "last_nav": 9.0043,
+      "as_of": "2026-06-09",
+      "rows": [
+        {
+          "start": "2013-07-18",
+          "invested": 627800,
+          "value": 1682721,
+          "ret_pct": 168.0,
+          "xirr_pct": 14.3,
+          "days": 3139,
+          "label": "成立至今"
+        },
+        {
+          "start": "2020-01-02",
+          "invested": 312000,
+          "value": 608100,
+          "ret_pct": 94.9,
+          "xirr_pct": 20.7,
+          "days": 1560,
+          "label": "2020起"
+        },
+        {
+          "start": "2022-01-04",
+          "invested": 214800,
+          "value": 373519,
+          "ret_pct": 73.9,
+          "xirr_pct": 25.9,
+          "days": 1074,
+          "label": "2022起"
+        },
+        {
+          "start": "2023-01-03",
+          "invested": 166200,
+          "value": 258873,
+          "ret_pct": 55.8,
+          "xirr_pct": 27.3,
+          "days": 831,
+          "label": "2023起"
+        },
+        {
+          "start": "2024-01-02",
+          "invested": 117600,
+          "value": 158374,
+          "ret_pct": 34.7,
+          "xirr_pct": 26.3,
+          "days": 588,
+          "label": "2024起"
+        },
+        {
+          "start": "2025-01-02",
+          "invested": 69000,
+          "value": 76444,
+          "ret_pct": 10.8,
+          "xirr_pct": 15.1,
+          "days": 345,
+          "label": "2025起"
+        },
+        {
+          "start": "2025-06-09",
+          "invested": 48800,
+          "value": 49742,
+          "ret_pct": 1.9,
+          "xirr_pct": 3.8,
+          "days": 244,
+          "label": "近1年"
+        }
+      ],
+      "note": "每日定投200元买母ETF 518880、持有至今的历史回测；XIRR=资金加权年化。对照你的 000217 起投点，看长期定投黄金的参照收益。",
+      "updated": "2026-06-09T16:21:08.496596+00:00"
+    }
   }
 }

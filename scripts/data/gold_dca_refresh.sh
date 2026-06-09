@@ -12,8 +12,9 @@ set -uo pipefail
 WS=/root/.openclaw/workspace
 cd "$WS" || exit 1
 
-python3 scripts/data/fetch_gold_dca.py   || { echo "$(date -Is) gold fetch 失败"; exit 1; }
-python3 scripts/data/build_dashboard.py  || { echo "$(date -Is) gold build_dashboard 失败"; exit 1; }
+python3 scripts/data/fetch_gold_dca.py        || { echo "$(date -Is) gold fetch 失败"; exit 1; }
+python3 scripts/data/fetch_gold_backtest.py   || echo "$(date -Is) gold backtest 刷新失败(非致命,沿用旧值)"
+python3 scripts/data/build_dashboard.py       || { echo "$(date -Is) gold build_dashboard 失败"; exit 1; }
 
 # 自动任务 → 用 bot 身份提交,但走 `git -c`(单次注入)而非 `git config`(持久),
 # 否则会污染交互 Claude-Code 会话的提交身份(kcn 要那些 = KCNyu)。
