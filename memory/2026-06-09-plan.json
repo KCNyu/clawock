@@ -1,0 +1,193 @@
+{
+  "date": "2026-06-09",
+  "fx_rate_usdhkd": 7.836,
+  "fx_source": "Frankfurter",
+  "regime": {
+    "us": "neutral",
+    "hk": "trending-down"
+  },
+  "book": {
+    "usd_total_pnl": -3184.64,
+    "hkd_total_pnl": -24954.80,
+    "hk_leg_hkd": -25398.24,
+    "us_leg_usd": 56.59
+  },
+  "actions": [
+    {
+      "ticker": "07226",
+      "bucket": "cut",
+      "size_pct": 50,
+      "size_shares": 3100,
+      "trigger_type": "open",
+      "trigger_price": null,
+      "trigger_condition": "开盘任意价，杠杆ETF硬止损-18.3%触发",
+      "confidence": 0.75,
+      "driven_by": "technical",
+      "rationale": "仓位硬闸：07226 浮亏 -18.3% ≤ 硬止损线 -18%。HSTECH 4756 低于200MA -13.4%，趋势OFF。2x 日内重置在下杀中加速衰减。纪律性砍半仓，非消息驱动。"
+    },
+    {
+      "ticker": "00100",
+      "bucket": "trim_on_rebound",
+      "size_pct": 33,
+      "size_shares": 20,
+      "trigger_type": "price_above",
+      "trigger_price": 530,
+      "trigger_condition": "反弹至530以上减20股",
+      "confidence": 0.55,
+      "driven_by": "technical",
+      "rationale": "仓位硬闸：00100 = 48.47% of HK (cap 35%)。5日跌 -23.9% 超卖区域，等反弹再减。JPM M3 转积极是 confirming 信号，不驱动 cut。纪律性减仓，非消息驱动。"
+    },
+    {
+      "ticker": "ROBN",
+      "bucket": "cut",
+      "size_pct": 100,
+      "size_shares": 40,
+      "trigger_type": "open",
+      "trigger_price": null,
+      "trigger_condition": "开盘任意价",
+      "confidence": 0.70,
+      "driven_by": "technical",
+      "rationale": "仓位硬闸：regime_delever red。HOOD 破200线 -17.6%，波动 83% 过热。2x 日内重置在 selloff 中加速衰减。ROBN 历史清仓×14 胜5（36%），但这次是规则触发非择时。减 US 杠杆ETF敞口 + 降 β。"
+    },
+    {
+      "ticker": "RKLB",
+      "bucket": "hold_and_watch",
+      "size_pct": 0,
+      "size_shares": 0,
+      "trigger_type": "price_below",
+      "trigger_price": 100,
+      "trigger_condition": "跌破$100止损",
+      "confidence": 0.55,
+      "driven_by": "catalyst",
+      "rationale": "+60% P&L。SpaceX IPO ~6/12 双刃剑（板块关注 vs 资金分流）。$1.1B backlog + Neutron 中期催化。小仓5股，hold。"
+    },
+    {
+      "ticker": "CRCL",
+      "bucket": "hold_and_watch",
+      "size_pct": 0,
+      "size_shares": 0,
+      "trigger_type": "price_below",
+      "trigger_price": 70,
+      "trigger_condition": "跌破$70考虑止损",
+      "confidence": 0.45,
+      "driven_by": "macro",
+      "rationale": "-5% P&L，小仓6.15%。SoftBank 减持已知。8月 Coinbase 合同重谈催化。5日 -16.8% 超卖但无硬催化翻转。hold。"
+    },
+    {
+      "ticker": "PLTU",
+      "bucket": "hold_and_watch",
+      "size_pct": 0,
+      "size_shares": 0,
+      "trigger_type": "price_below",
+      "trigger_price": 30,
+      "trigger_condition": "跌破$30考虑止损",
+      "confidence": 0.45,
+      "driven_by": "technical",
+      "rationale": "PLTR 低于200MA -15.2%。2x decay 风险中等（波动 62% < 70% cap）。-12.9% P&L，历史减仓×7 胜6。等反弹减仓窗口。hold。"
+    },
+    {
+      "ticker": "MSFU",
+      "bucket": "hold_and_watch",
+      "size_pct": 0,
+      "size_shares": 0,
+      "trigger_type": "price_below",
+      "trigger_price": 24,
+      "trigger_condition": "跌破$24考虑止损",
+      "confidence": 0.50,
+      "driven_by": "technical",
+      "rationale": "MSFT 低于200MA -9.7%。历史持×12 胜11（92%）。2x decay 风险可控（波动 36% < 70%）。hold。"
+    },
+    {
+      "ticker": "02208",
+      "bucket": "hold_and_watch",
+      "size_pct": 0,
+      "size_shares": 0,
+      "trigger_type": "price_below",
+      "trigger_price": 10.0,
+      "trigger_condition": "跌破10.0止损",
+      "confidence": 0.55,
+      "driven_by": "catalyst",
+      "rationale": "Q1 利润 +60% YoY。分析师目标 18.95 vs 11.69。JPM 维持增持。小仓7.44%。负面：大手卖出 block trade 43.2万股@12.4。hold。"
+    },
+    {
+      "ticker": "03032",
+      "bucket": "hold_and_watch",
+      "size_pct": 0,
+      "size_shares": 0,
+      "trigger_type": "manual",
+      "trigger_price": null,
+      "trigger_condition": "手动观察",
+      "confidence": 0.50,
+      "driven_by": "catalyst",
+      "rationale": "1x HSTECH ETF，无杠杆 decay。HSTECH 纳入生效。跟踪指数。历史 43% 胜率，主动 call 多半没跑赢持有。hold。"
+    },
+    {
+      "ticker": "03033",
+      "bucket": "hold_and_watch",
+      "size_pct": 0,
+      "size_shares": 0,
+      "trigger_type": "manual",
+      "trigger_price": null,
+      "trigger_condition": "手动观察",
+      "confidence": 0.50,
+      "driven_by": "catalyst",
+      "rationale": "1x HSTECH ETF。HSTECH 纳入生效。跟踪指数。历史 43% 胜率。hold。"
+    }
+  ],
+  "guardrail_actions": [
+    {
+      "breach": "hard_stop",
+      "ticker": "07226",
+      "action": "cut 50% (3100 shares) at open",
+      "driven_by": "technical"
+    },
+    {
+      "breach": "single_name",
+      "ticker": "00100",
+      "action": "trim 20 shares at 530+ (discipline, not timing)",
+      "driven_by": "technical"
+    },
+    {
+      "breach": "regime_delever",
+      "ticker": "ROBN",
+      "action": "cut all 40 shares at open (HOOD -17.6% below 200MA, vol 83%)",
+      "driven_by": "technical"
+    },
+    {
+      "breach": "leveraged_exposure_us",
+      "ticker": null,
+      "action": "ROBN cut resolves ~$900 of US leveraged exposure; remaining PLTU+MSFU watch",
+      "driven_by": "technical"
+    },
+    {
+      "breach": "leveraged_exposure_hk",
+      "ticker": null,
+      "action": "07226 cut 50% reduces HK leveraged exposure from 35.2% to ~17%",
+      "driven_by": "technical"
+    },
+    {
+      "breach": "factor_concentration",
+      "ticker": null,
+      "action": "07226 cut + 00100 trim reduce Top2; 00100 still dominant, next round when bounces",
+      "driven_by": "technical"
+    },
+    {
+      "breach": "beta",
+      "ticker": null,
+      "action": "ROBN cut reduces US β (primary source); PLTU+MSFU watch",
+      "driven_by": "technical"
+    }
+  ],
+  "watch_levels": {
+    "00100_trim_trigger": 530,
+    "07226_stop": 3.20,
+    "RKLB_stop": 100,
+    "CRCL_stop": 70,
+    "PLTU_stop": 30,
+    "MSFU_stop": 24,
+    "02208_stop": 10.0,
+    "HSTECH_support": 4600,
+    "CPI_date": "2026-06-11",
+    "FOMC_date": "2026-06-17"
+  }
+}
