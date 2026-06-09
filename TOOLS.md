@@ -191,7 +191,7 @@ python3 scripts/data/analyze_hk_stocks.py --dry-run   # 不写文件
 | 美股收盘报告 | 04:00 (DOW 2-6) | Mode 6 | report --us close |
 | Memory Dreaming Promotion | 03:00 daily | memory-core | — |
 
-系统 crontab（`crontab -l`）：6×report_watchdog + brief_watchdog(08:30) + commit_dreaming.sh(03:20) + gc_sessions.py(03:30) + **git gc(周日04:00,防 dashboard.json 每30min提交撑大 .git；2026-05-31 首次 gc 45M→14M)**。**`openclaw cron`/`gateway status` 在 agent 沙箱会卡** → 直接读 `~/.openclaw/cron/jobs.json` 或 `curl http://127.0.0.1:18789/health`。
+系统 crontab（`crontab -l`）：6×report_watchdog + brief_watchdog(08:30) + commit_dreaming.sh(03:20) + gc_sessions.py(03:30) + **gold_dca_refresh.sh(23:30 工作日，黄金定投 000217 净值刷新→build_dashboard→bot提交→safe_push，纯数据无LLM)** + **git gc(周日04:00,防 dashboard.json 每30min提交撑大 .git；2026-05-31 首次 gc 45M→14M)**。**`openclaw cron`/`gateway status` 在 agent 沙箱会卡** → 直接读 `~/.openclaw/cron/jobs.json` 或 `curl http://127.0.0.1:18789/health`。
 
 ## Skill 安装顺序（重要）
 
