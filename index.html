@@ -1432,6 +1432,15 @@ layout: null
       <div class="muted" id="lev-regime-asof" style="font-size:10px;margin-top:6px;opacity:0.7"></div>
     </div>
 
+    <div class="card" id="gold-dca-card" style="display:none">
+      <h3>🥇 黄金定投 <span class="muted" id="gold-sub" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:11px"></span></h3>
+      <div id="gold-hero"></div>
+      <div id="gold-stats"></div>
+      <div id="gold-spark"></div>
+      <div id="gold-proj"></div>
+      <div class="muted" id="gold-asof" style="font-size:10px;margin-top:6px;opacity:0.7"></div>
+    </div>
+
   </section>
 
   <!-- ============================================
@@ -2311,6 +2320,7 @@ layout: null
     renderRiskMetrics();
     renderRiskGuardrail();
     renderLevRegime();
+    renderGoldDca();
     renderWatchLevels();
     renderAnomalies();
     renderMovers();
@@ -3214,6 +3224,97 @@ layout: null
     usEl.innerHTML = rows || '<div class="muted" style="font-size:12px">无持仓 2x 单股 ETF</div>';
     document.getElementById('lev-regime-asof').textContent =
       `HSTECH ${r.as_of || ''} · 200日线 ${hk.ma ?? '?'} · HK波动 ${hk.vol_annualized != null ? (hk.vol_annualized*100).toFixed(0)+'%' : '?'} · US砍线 ${us.vol_hot_cap != null ? (us.vol_hot_cap*100).toFixed(0)+'%' : '?'}`;
+  }
+
+  function renderGoldDca() {
+    const g = safe(DATA, "gold_dca");
+    const card = document.getElementById('gold-dca-card');
+    if (!card) return;
+    if (!g || g.nav == null || g.principal_invested == null) { card.style.display = 'none'; return; }
+    card.style.display = '';
+    const num = (v, d = 0) => (v == null ? DASH : Number(v).toLocaleString('zh-CN', { minimumFractionDigits: d, maximumFractionDigits: d }));
+    const cur = g.currency || 'CNY';
+    const loss = (g.pnl_abs || 0) < 0;
+    const pnlColor = loss ? '#dc2626' : '#16a34a';
+    const sign = (g.pnl_percent || 0) >= 0 ? '+' : '';
+
+    document.getElementById('gold-sub').textContent = `${g.fund_code} · ${g.fund_name}`;
+
+    // hero: 现值 + 盈亏
+    document.getElementById('gold-hero').innerHTML =
+      `<div style="display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin:2px 0 10px">
+         <span style="font-size:26px;font-weight:800">¥${num(g.current_value)}</span>
+         <span style="font-size:17px;font-weight:700;color:${pnlColor}">${sign}${num(g.pnl_percent, 2)}%</span>
+         <span style="font-size:13px;color:${pnlColor}">${(g.pnl_abs >= 0 ? '+' : '')}¥${num(g.pnl_abs)}</span>
+       </div>`;
+
+    // stats grid
+    const navChg = g.nav_change_pct;
+    const navChgStr = navChg == null ? '' :
+      ` <span style="color:${navChg >= 0 ? '#16a34a' : '#dc2626'};font-size:11px">${navChg >= 0 ? '+' : ''}${navChg.toFixed(2)}%</span>`;
+    const cell = (label, val) => `<div style="flex:1 1 30%;min-width:90px;margin:5px 0">
+        <div class="muted" style="font-size:10px;text-transform:none;letter-spacing:0">${label}</div>
+        <div style="font-size:15px;font-weight:700;margin-top:1px">${val}</div></div>`;
+    document.getElementById('gold-stats').innerHTML =
+      `<div style="display:flex;flex-wrap:wrap;gap:2px 8px;padding:8px 0;border-top:1px solid var(--border,#2a2a2a)">
+        ${cell('累计投入', '¥' + num(g.principal_invested))}
+        ${cell('平均成本', num(g.avg_cost, 4))}
+        ${cell('当前净值', num(g.nav, 4) + navChgStr)}
+        ${cell('回本需涨', `<span style="color:${loss ? '#d97706' : '#16a34a'}">${(g.breakeven_upside_pct >= 0 ? '+' : '') + num(g.breakeven_upside_pct, 1)}%</span>`)}
+        ${cell('已投', `${g.days_invested ?? DASH} 交易日`)}
+        ${cell('约定投', `${g.installments_est ?? DASH} 笔 ×¥${num(g.daily_amount)}`)}
+      </div>`;
+
+    // sparkline (净值走势 + 起投点 + 区间高低)
+    const hist = (g.nav_history || []).filter(p => Array.isArray(p) && p[1] != null);
+    const sp = document.getElementById('gold-spark');
+    if (hist.length >= 2) {
+      const W = 300, H = 50, P = 4;
+      const ys = hist.map(p => p[1]);
+      const lo = Math.min(...ys), hi = Math.max(...ys), rng = (hi - lo) || 1;
+      const x = i => P + i * (W - 2 * P) / (hist.length - 1);
+      const y = v => P + (H - 2 * P) * (1 - (v - lo) / rng);
+      const pts = hist.map((p, i) => `${x(i).toFixed(1)},${y(p[1]).toFixed(1)}`).join(' ');
+      // 起投点位置
+      let startIdx = hist.findIndex(p => p[0] >= (g.start_date || ''));
+      if (startIdx < 0) startIdx = 0;
+      const avg = g.avg_cost;
+      const avgY = (avg >= lo && avg <= hi) ? y(avg) : null;
+      const lastV = hist[hist.length - 1][1];
+      sp.innerHTML =
+        `<svg viewBox="0 0 ${W} ${H}" width="100%" height="${H}" preserveAspectRatio="none" style="margin-top:4px">
+          ${avgY != null ? `<line x1="0" y1="${avgY.toFixed(1)}" x2="${W}" y2="${avgY.toFixed(1)}" stroke="#d97706" stroke-width="1" stroke-dasharray="3 2" opacity="0.7"/>` : ''}
+          <polyline points="${pts}" fill="none" stroke="#eab308" stroke-width="1.6"/>
+          <circle cx="${x(startIdx).toFixed(1)}" cy="${y(hist[startIdx][1]).toFixed(1)}" r="2.6" fill="#60a5fa"/>
+          <circle cx="${x(hist.length - 1).toFixed(1)}" cy="${y(lastV).toFixed(1)}" r="2.6" fill="${pnlColor}"/>
+        </svg>
+        <div class="muted" style="font-size:10px;display:flex;justify-content:space-between;text-transform:none;letter-spacing:0">
+          <span>🔵 ${hist[startIdx][0]} 起投 ${num(hist[startIdx][1], 3)}</span>
+          <span style="color:#d97706">┄ 成本线 ${num(avg, 3)}</span>
+          <span>区间 ${num(lo, 3)}~${num(hi, 3)}</span>
+        </div>`;
+    } else { sp.innerHTML = ''; }
+
+    // 定投摊薄预测 (假设净值不动, 继续投 → 回本门槛下移)
+    const proj = g.projection || [];
+    if (proj.length) {
+      const MONTH = { 20: '+1月', 40: '+2月', 60: '+3月', 120: '+半年', 250: '+1年' };
+      const rows = proj.map(p =>
+        `<tr><td style="padding:2px 6px">${MONTH[p.days] || ('+' + p.days + '日')}</td>
+          <td style="padding:2px 6px;text-align:right">${num(p.avg_cost, 3)}</td>
+          <td style="padding:2px 6px;text-align:right;color:#16a34a">+${num(p.breakeven_upside_pct, 1)}%</td></tr>`).join('');
+      document.getElementById('gold-proj').innerHTML =
+        `<div class="muted" style="font-size:10px;margin:8px 0 2px;text-transform:none;letter-spacing:0">📉 若净值原地不动、继续每日定投 → 成本线/回本门槛下移</div>
+         <table style="width:100%;font-size:12px;border-collapse:collapse">
+           <tr class="muted" style="font-size:10px"><td style="padding:2px 6px">继续</td><td style="padding:2px 6px;text-align:right">平均成本</td><td style="padding:2px 6px;text-align:right">回本只需涨</td></tr>
+           ${rows}</table>`;
+    } else { document.getElementById('gold-proj').innerHTML = ''; }
+
+    const rt = g.realtime;
+    document.getElementById('gold-asof').textContent =
+      `净值 ${g.nav_date || ''}` +
+      (rt ? ` · 实时估值 ${num(rt.est_nav, 4)} (${rt.est_change_pct >= 0 ? '+' : ''}${rt.est_change_pct}%) @ ${(rt.est_time || '').slice(11)}` : '') +
+      ` · 独立人民币卡，不并入跨币种总额`;
   }
 
   function renderLeveragedETF() {

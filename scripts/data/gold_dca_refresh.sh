@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+# gold_dca_refresh.sh — 黄金定投(000217 华安黄金ETF联接C)每日净值刷新 + 上线。
+#
+# 背景: 黄金是场外基金,一天一个净值(约 22:00–23:00 HKT 出),跟美股/港股盘中节奏不同,
+# 故单独一档 system crontab。纯数据、无 LLM、无 key —— fetch_gold_dca.py 拉净值重算定投
+# 指标写回 portfolio.json['gold_dca'],再 build_dashboard 刷 dashboard.json,最后 safe_push 上线。
+# 排在 23:30 HKT(净值已 final),仅工作日(A 股交易日才出新净值;节假日跑也只是重写同值,无害)。
+#
+# 真值字段 principal_invested / units_held 由 kcn 对账后手填,本脚本绝不改(见 fetch_gold_dca.py)。
+set -uo pipefail
+
+WS=/root/.openclaw/workspace
+cd "$WS" || exit 1
+
+python3 scripts/data/fetch_gold_dca.py   || { echo "$(date -Is) gold fetch 失败"; exit 1; }
+python3 scripts/data/build_dashboard.py  || { echo "$(date -Is) gold build_dashboard 失败"; exit 1; }
+
+# 自动任务 → 用 bot 身份提交,但走 `git -c`(单次注入)而非 `git config`(持久),
+# 否则会污染交互 Claude-Code 会话的提交身份(kcn 要那些 = KCNyu)。
+BOT_NAME="github-actions[bot]"
+BOT_EMAIL="41898282+github-actions[bot]@users.noreply.github.com"
+
+git add portfolio.json assets/data/dashboard.json
+if git diff --cached --quiet; then
+  echo "$(date -Is) gold-refresh: 净值无变化,跳过"
+  exit 0
+fi
+
+git -c user.name="$BOT_NAME" -c user.email="$BOT_EMAIL" \
+  commit -q -m "gold: 黄金定投净值刷新 $(TZ=Asia/Hong_Kong date +%Y-%m-%d)" || { echo "$(date -Is) commit 失败"; exit 1; }
+echo "$(date -Is) gold-refresh: 已提交 $(git rev-parse --short HEAD)"
+
+exec bash "$WS/scripts/data/safe_push.sh"

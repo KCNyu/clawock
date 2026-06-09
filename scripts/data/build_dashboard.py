@@ -1870,6 +1870,17 @@ def main():
     out['realized_vs_unrealized'] = compute_realized_vs_unrealized(portfolio, fx_rate)
     out['capital_deployed'] = compute_capital_deployed(portfolio, fx_rate)
     out['net_principal_return'] = compute_net_principal_return(portfolio, fx_rate)
+
+    # 🥇 黄金定投卡（000217 华安黄金ETF联接C）— 独立成卡，CNY，不并入跨币种总额
+    # （见记忆 openclaw-fx-rule）。数据由 fetch_gold_dca.py 每日刷进 portfolio.json['gold_dca']，
+    # 这里只做体积裁剪后透传。portfolio.json 已 commit，GHA fresh-checkout 也有，无 .tmp 依赖。
+    _gold = portfolio.get('gold_dca')
+    if _gold:
+        _gold = dict(_gold)
+        if isinstance(_gold.get('nav_history'), list):
+            _gold['nav_history'] = _gold['nav_history'][-90:]  # 迷你图够用，控体积
+    out['gold_dca'] = _gold
+
     if brief_ctx_path:
         print(f'  brief-context source: {os.path.basename(brief_ctx_path)}')
 
