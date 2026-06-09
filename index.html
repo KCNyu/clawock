@@ -64,6 +64,15 @@ layout: null
 
   * { box-sizing: border-box; }
   html, body { margin: 0; padding: 0; }
+  /* OS-level reduced motion: kill decorative animation (banner pulse, refresh spin,
+     bar transitions). JS smooth-scrolls check the same media query. */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
   body {
     background: var(--bg);
     color: var(--text);
@@ -1436,66 +1445,6 @@ layout: null
   </section>
 
   <!-- ============================================
-       MARKET — 外部情报: 影响力雷达 / catalysts / news / macro / 板块
-       ============================================ -->
-  <section class="panel" data-panel="market">
-    <h2>Market</h2>
-
-
-    <div class="card">
-      <h3>影响力雷达 <span class="muted" id="infl-asof" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:11px">Trump · Musk · Serenity · LLM筛</span></h3>
-      <div class="infl-summary" id="infl-summary"></div>
-      <div class="infl-feed" id="infl-feed">
-        <div class="empty-state">No influence signals.</div>
-      </div>
-    </div>
-
-
-    <div class="card">
-      <h3>Catalysts <span class="muted" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:11px">(next 14d)</span></h3>
-      <div class="catalysts-list" id="catalysts-list">
-        <div class="empty-state">No upcoming catalysts.</div>
-      </div>
-    </div>
-
-
-    <div class="card">
-      <h3>US News Digest <span class="muted" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:11px">(xiaomi · 48h)</span></h3>
-      <div class="news-digest" id="news-digest">
-        <div class="empty-state">No digest yet.</div>
-      </div>
-    </div>
-
-
-    <div class="card">
-      <h3>Macro · Sentiment</h3>
-      <div id="regime-badge" class="regime-badge" style="display:none"></div>
-      <div id="risk-banner" class="risk-banner" style="display:none"></div>
-      <div class="macro-row" id="macro-row">
-        <div class="empty-state">No macro data.</div>
-      </div>
-      <div id="sentiment-drill" class="sentiment-drill"></div>
-    </div>
-
-
-    <div class="card">
-      <h3>板块全景 <span class="muted" id="sector-context-asof" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:11px">—</span></h3>
-      <p class="chart-hint" id="sector-narrative" style="display:none"></p>
-      <div class="sector-context" id="sector-context">
-        <div class="empty-state">等待今日 brief 写入 sector-scan（08:00 HKT 后刷新）</div>
-      </div>
-    </div>
-
-    <div class="card">
-      <h3>同行背离 <span class="muted" id="peer-div-asof" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:11px">Peer Divergence</span></h3>
-      <div class="peer-div-list" id="peer-div-list">
-        <div class="empty-state">No peer divergence flagged.</div>
-      </div>
-    </div>
-
-  </section>
-
-  <!-- ============================================
        DRILL — holdings, sector, winners/losers, weight×conviction
        ============================================ -->
   <section class="panel" data-panel="drill">
@@ -1576,6 +1525,66 @@ layout: null
         <span class="lg-low">Low-conv small (&lt;20% & conf&lt;0.65)</span>
         <span class="lg-com">Comfort (&lt;20% & conf≥0.65)</span>
         <span class="lg-nod">No calibration data</span>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- ============================================
+       MARKET — 外部情报: 影响力雷达 / catalysts / news / macro / 板块
+       ============================================ -->
+  <section class="panel" data-panel="market">
+    <h2>Market</h2>
+
+
+    <div class="card">
+      <h3>影响力雷达 <span class="muted" id="infl-asof" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:11px">Trump · Musk · Serenity · LLM筛</span></h3>
+      <div class="infl-summary" id="infl-summary"></div>
+      <div class="infl-feed" id="infl-feed">
+        <div class="empty-state">No influence signals.</div>
+      </div>
+    </div>
+
+
+    <div class="card">
+      <h3>Catalysts <span class="muted" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:11px">(next 14d)</span></h3>
+      <div class="catalysts-list" id="catalysts-list">
+        <div class="empty-state">No upcoming catalysts.</div>
+      </div>
+    </div>
+
+
+    <div class="card">
+      <h3>US News Digest <span class="muted" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:11px">(xiaomi · 48h)</span></h3>
+      <div class="news-digest" id="news-digest">
+        <div class="empty-state">No digest yet.</div>
+      </div>
+    </div>
+
+
+    <div class="card">
+      <h3>Macro · Sentiment</h3>
+      <div id="regime-badge" class="regime-badge" style="display:none"></div>
+      <div id="risk-banner" class="risk-banner" style="display:none"></div>
+      <div class="macro-row" id="macro-row">
+        <div class="empty-state">No macro data.</div>
+      </div>
+      <div id="sentiment-drill" class="sentiment-drill"></div>
+    </div>
+
+
+    <div class="card">
+      <h3>板块全景 <span class="muted" id="sector-context-asof" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:11px">—</span></h3>
+      <p class="chart-hint" id="sector-narrative" style="display:none"></p>
+      <div class="sector-context" id="sector-context">
+        <div class="empty-state">等待今日 brief 写入 sector-scan（08:00 HKT 后刷新）</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>同行背离 <span class="muted" id="peer-div-asof" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:11px">Peer Divergence</span></h3>
+      <div class="peer-div-list" id="peer-div-list">
+        <div class="empty-state">No peer divergence flagged.</div>
       </div>
     </div>
 
@@ -1927,6 +1936,10 @@ layout: null
   const pagerLive = () =>                       // pager is a real scroller only on mobile
     pager && getComputedStyle(pager).display === "flex";
 
+  // Respect OS-level reduced-motion: swap every smooth scroll for an instant one.
+  const REDUCED_MOTION = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const SCROLL_BEHAVIOR = REDUCED_MOTION ? "auto" : "smooth";
+
   // Reflect the active tab in the button bar + a11y + desktop CSS. Does NOT move
   // the pager (the scroll position is the source of truth on mobile).
   function setActiveButton(t) {
@@ -1940,7 +1953,14 @@ layout: null
       p.classList.toggle("active", p.dataset.panel === t);
     });
     const btn = document.querySelector(`.tab-btn[data-tab="${t}"]`);
-    if (btn) btn.scrollIntoView({ block: "nearest", inline: "center", behavior: "smooth" });
+    if (btn) btn.scrollIntoView({ block: "nearest", inline: "center", behavior: SCROLL_BEHAVIOR });
+    // Deep-link: keep the URL hash in sync (replaceState → no history spam while
+    // swiping). Refresh / bookmark / shared link then lands on the same tab
+    // instead of always resetting to Hero. Hero itself keeps a clean URL.
+    const want = t === TAB_ORDER[0] ? "" : "#" + t;
+    if ((location.hash || "") !== want) {
+      history.replaceState(null, "", want || location.pathname + location.search);
+    }
   }
 
   function currentTab() {
@@ -1958,7 +1978,7 @@ layout: null
     if (!TAB_ORDER.includes(t)) return false;
     const idx = TAB_ORDER.indexOf(t);
     if (pagerLive()) {
-      pager.scrollTo({ left: idx * pager.clientWidth, behavior: smooth ? "smooth" : "auto" });
+      pager.scrollTo({ left: idx * pager.clientWidth, behavior: smooth ? SCROLL_BEHAVIOR : "auto" });
     }
     setActiveButton(t);          // desktop / immediate highlight; scroll listener re-confirms
     return true;
@@ -2014,6 +2034,18 @@ layout: null
 
   // back-compat alias (older call sites used activateTab)
   function activateTab(t) { return goToTab(t); }
+
+  // Deep-link IN: land on the tab named in the URL hash (e.g. /#gold), and follow
+  // browser back/forward across tab switches (hashchange fires on those since we
+  // only write the hash via replaceState while swiping).
+  function tabFromHash() {
+    const t = (location.hash || "").slice(1);
+    return TAB_ORDER.includes(t) ? t : null;
+  }
+  window.addEventListener("hashchange", () => {
+    const t = tabFromHash();
+    if (t && t !== currentTab()) goToTab(t, false);
+  });
 
   // =========================================================
   // Theme detection — for ECharts dark/light
@@ -2089,8 +2121,14 @@ layout: null
     if (btn) btn.classList.add("is-loading");
     if (triggeredByUser && btn) btn.setAttribute("disabled", "true");
     try {
-      const url = "assets/data/dashboard.json?t=" + Date.now();
-      const res = await fetch(url, { cache: "no-store" });
+      // Auto-polls revalidate via ETag/Last-Modified (`no-cache` → conditional GET,
+      // 304 when unchanged = headers-only on mobile data instead of ~113KB/min).
+      // A user-initiated refresh keeps the old cache-buster so it ALWAYS punches
+      // through stale intermediary caches (WeChat webview / carrier proxies).
+      const url = triggeredByUser
+        ? "assets/data/dashboard.json?t=" + Date.now()
+        : "assets/data/dashboard.json";
+      const res = await fetch(url, { cache: triggeredByUser ? "no-store" : "no-cache" });
       if (!res.ok) throw new Error("HTTP " + res.status);
       const json = await res.json();
       const newAt = json.generated_at;
@@ -4808,6 +4846,9 @@ layout: null
       setTimeout(boot, 50);
       return;
     }
+    // Land on the deep-linked tab BEFORE first paint of data (instant, no animation).
+    const t0 = tabFromHash();
+    if (t0) goToTab(t0, false);
     loadData();
     _scheduleAutoRefresh();
   }
