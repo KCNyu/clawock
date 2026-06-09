@@ -1,10 +1,10 @@
 {
-  "generated_at": "2026-06-09T15:33:44.752209Z",
+  "generated_at": "2026-06-09T15:46:42.205485Z",
   "last_updated": "2026/06/09 23:30 HKT",
   "fx": {
-    "usdhkd": 7.836,
-    "source": "Frankfurter",
-    "fetched_at": "2026-06-09T00:00:31.201333+00:00"
+    "usdhkd": null,
+    "source": null,
+    "fetched_at": null
   },
   "totals": {
     "us": {
@@ -757,8 +757,8 @@
     }
   },
   "market_context": {
-    "generated_at": "2026-06-09T08:01:00+08:00",
-    "date": "2026-06-09",
+    "generated_at": "2026-06-08T08:00:00+08:00",
+    "date": "2026-06-08",
     "sectors": [
       {
         "theme": "HK AI 大模型",
@@ -767,35 +767,35 @@
         ],
         "top_movers": [
           {
-            "ticker": "02273",
-            "name": "智云健康",
-            "pct": 0.15,
-            "catalyst": "AI+医疗概念"
-          },
-          {
-            "ticker": "06682",
-            "name": "第四范式",
-            "pct": -3.7,
-            "catalyst": "企业AI决策平台"
+            "ticker": "00100",
+            "name": "MINIMAX-W",
+            "pct": -16.65,
+            "catalyst": "大户派货+估值调整+HSTECH纳入当日"
           },
           {
             "ticker": "00020",
             "name": "商汤-W",
-            "pct": -5.42,
-            "catalyst": "AI视觉+大模型"
+            "pct": -5.0,
+            "catalyst": "港股AI板块sell-off"
+          },
+          {
+            "ticker": "02513",
+            "name": "智谱",
+            "pct": 0,
+            "catalyst": "HSTECH纳入"
           }
         ],
         "self": [
           {
             "ticker": "00100",
-            "pct": -8.14,
-            "rank_text": "落后",
-            "attribution": "sell-the-news持续，HSTECH纳入利好已兑现，6/19被动买盘尚远"
+            "pct": -16.65,
+            "rank_text": "板块最弱",
+            "attribution": "大户派货+估值调整, 纳入能否止血待观"
           }
         ]
       },
       {
-        "theme": "HK 科技指数 2x leveraged (HSTECH 标的)",
+        "theme": "HK 科技指数 (HSTECH 标的)",
         "tickers_in_book": [
           "07226",
           "03032",
@@ -803,54 +803,70 @@
         ],
         "top_movers": [
           {
-            "ticker": "09999",
-            "name": "网易-S",
-            "pct": -0.37,
-            "catalyst": "HSTECH权重股"
+            "ticker": "07226",
+            "name": "XL二南方恒科",
+            "pct": -3.63,
+            "catalyst": "2x杠杆放大HSTECH -1.75%"
           },
           {
-            "ticker": "00700",
-            "name": "腾讯控股",
-            "pct": -1.5,
-            "catalyst": "HSTECH权重股"
+            "ticker": "03032",
+            "name": "恒生科技ETF",
+            "pct": -1.97,
+            "catalyst": "跟踪HSTECH"
           },
           {
-            "ticker": "09618",
-            "name": "京东集团-SW",
-            "pct": -1.99,
-            "catalyst": "HSTECH权重股"
-          },
-          {
-            "ticker": "09988",
-            "name": "阿里巴巴-W",
-            "pct": -2.94,
-            "catalyst": "HSTECH权重股"
-          },
-          {
-            "ticker": "03690",
-            "name": "美团-W",
-            "pct": -4.63,
-            "catalyst": "HSTECH权重股"
+            "ticker": "03033",
+            "name": "南方恒生科技",
+            "pct": -1.72,
+            "catalyst": "跟踪HSTECH"
           }
         ],
         "self": [
           {
             "ticker": "07226",
-            "pct": -5.31,
-            "rank_text": "落后",
-            "attribution": "2x杠杆放大underlying -2.71%弱势，硬止损-18.3%触发"
-          },
-          {
-            "ticker": "03033",
-            "pct": -2.55,
+            "pct": -3.63,
             "rank_text": "中位",
-            "attribution": "跟踪指数，与underlying同步"
+            "attribution": "2x杠杆放大underlying弱势"
           },
           {
             "ticker": "03032",
-            "pct": -2.67,
+            "pct": -1.97,
             "rank_text": "中位",
-            "attribution": "跟踪指数，与underlying同步"
+            "attribution": "1x跟踪"
+          },
+          {
+            "ticker": "03033",
+            "pct": -1.72,
+            "rank_text": "中位",
+            "attribution": "1x跟踪"
+          }
+        ]
+      },
+      {
+        "theme": "商业航天",
+        "tickers_in_book": [
+          "RKLB"
+        ],
+        "top_movers": [
+          {
+            "ticker": "RKLB",
+            "name": "Rocket Lab",
+            "pct": -25.1,
+            "catalyst": "SpaceX IPO竞争+Blue Origin爆炸+宏观"
+          },
+          {
+            "ticker": "ASTS",
+            "name": "AST SpaceMobile",
+            "pct": -15.0,
+            "catalyst": "航天板块sell-off"
+          }
+        ],
+        "self": [
+          {
+            "ticker": "RKLB",
+            "pct": -25.1,
+            "rank_text": "板块最弱",
+            "attribution": "SpaceX IPO竞争压力+YTD仍+58%"
           }
         ]
       },
@@ -861,57 +877,46 @@
         ],
         "top_movers": [
           {
-            "ticker": "00916",
-            "name": "龙源电力",
-            "pct": -0.63,
-            "catalyst": "新能源运营商"
-          },
-          {
-            "ticker": "00956",
-            "name": "中国新能源集团",
-            "pct": -1.15,
-            "catalyst": "新能源整体"
-          },
-          {
-            "ticker": "01798",
-            "name": "大唐新能源",
-            "pct": -1.83,
-            "catalyst": "风电运营"
-          },
-          {
-            "ticker": "01072",
-            "name": "东方电气",
-            "pct": -5.39,
-            "catalyst": "风电设备"
+            "ticker": "02208",
+            "name": "金风科技",
+            "pct": -4.45,
+            "catalyst": "港股sell-off+bearish block trade"
           }
         ],
         "self": [
           {
             "ticker": "02208",
-            "pct": -4.57,
-            "rank_text": "中位",
-            "attribution": "设备端弱于运营端，block trade卖出43.2万股@12.4压制情绪"
+            "pct": -4.45,
+            "rank_text": "落后",
+            "attribution": "港股整体sell-off拖累, 基本面好但资金轮动"
           }
         ]
       },
       {
-        "theme": "商业航天",
+        "theme": "稳定币+agent支付",
         "tickers_in_book": [
-          "RKLB"
+          "CRCL"
         ],
-        "top_movers": [],
+        "top_movers": [
+          {
+            "ticker": "CRCL",
+            "name": "Circle",
+            "pct": -7.72,
+            "catalyst": "insider+SoftBank selling+crypto cooling"
+          }
+        ],
         "self": [
           {
-            "ticker": "RKLB",
-            "pct": 3.4,
-            "rank_text": "领涨",
-            "attribution": "周一美股反弹+3.4%，SpaceX IPO ~6/12板块关注度上升但资金分流恐惧已price-in"
+            "ticker": "CRCL",
+            "pct": -7.72,
+            "rank_text": "落后",
+            "attribution": "个股利空(insider sell)+板块低迷"
           }
         ]
       }
     ],
-    "narrative": "港股AI板块全面承压，主角不是MINIMAX的反弹而是持续的sell-the-news。00100 -8.1%远超同行(智云+0.2%/第四范式-3.7%)，个股alpha在掉。HSTECH权重股中美团-4.6%/阿里-2.9%领跌，2x杠杆ETF(07226)放大弱势触发硬止损。风电板块运营端(龙源-0.6%)远强于设备端(东方电气-5.4%)，02208 Q1+60%基本面未反映。US方面RKLB周一反弹+3.4%，SpaceX IPO在即。",
-    "_source": "sector-scan-2026-06-09.json"
+    "narrative": "周五全球科技sell-off重创组合: NDX -4.77% chip板块$1T蒸发, HSTECH -1.75%<200MA。00100 MINIMAX单日-16.65%是最大痛点, 今日HSTECH纳入生效(470亿被动资金)是最后的反弹窗口。6个仓位硬闸全亮, 杠杆ETF占US leg 73%是核心风险。SpaceX IPO 6/12+CPI 6/11是本周两大催化。",
+    "_source": "sector-scan-2026-06-08.json"
   },
   "holdings_history": {
     "NVDA": [
@@ -1237,86 +1242,69 @@
     }
   ],
   "behavioral_review": {
-    "verdict": "主动信号仅52%胜率但硬闸纪律是真正的alpha来源",
+    "verdict": "6个仓位硬闸全亮, 主动信号51%胜率vs被动69%, 仓位构造问题远大于信号问题",
     "points": [
       {
-        "text": "主动信号(n=140)胜率52% vs 被动hold 68%，模型主动操作结构性不如不动。但硬闸触发的纪律性减仓是例外——它不依赖判断质量",
-        "tag": "edge"
-      },
-      {
-        "text": "trim_on_rebound bucket 历史仅33%胜率且连续3天未触发(680→580→530)，趋势下行中反弹窗口越来越窄。该策略在下跌趋势中系统性失效",
+        "text": "cut bucket 37%胜率+67%avg conf=过度自信+30pp。本次ROBN cut是纪律性(仓位硬闸)而非信号判断, 仍压conf到0.55",
         "tag": "bias"
       },
       {
-        "text": "高信心(≥0.75)实际胜率仅46%——overconfidence_gap +0.31。本次硬闸动作confidence 70-75%由纪律支撑而非判断信心，应与历史高信心失败区分",
+        "text": "主动信号T+1 51% vs T+5 40% — 对了一天看错thesis。本次主动call全压到≤0.55",
         "tag": "warning"
       },
       {
-        "text": "00100/02208 历史胜率83%/88%——持仓中这两只的主动call一直有edge。但03032/03033仅43%——1x HSTECH ETF主动call多半不如持有",
+        "text": "trim_on_rebound历史60%胜率是主动信号里最好的。00100/07226/PLTU用trim而非cut合理",
         "tag": "edge"
       },
       {
-        "text": "ROBN 清仓×14 胜5(36%)——历史上机械清仓ROBN多半错。但这次是regime_delever规则触发而非择时，需观察后续是否重复历史错误",
+        "text": "被动hold 69%胜率>主动51% — 模型主动决策当前跑输持有, 本次倾向少动",
         "tag": "warning"
+      },
+      {
+        "text": "00100 trim @680上次没触发(high 663) → trigger设太高。本次降到@600更实际",
+        "tag": "bias"
       }
     ]
   },
   "bear_cases": [
     {
       "ticker": "00100",
-      "thesis": "HSTECH纳入利好已兑现(6/8生效)，sell-the-news 5d -23.9%未止。真正被动买盘6/19才到，中间10天空窗期可能继续下杀",
-      "falsifier": "00100 收盘站回553(昨收)说明抛压消化",
-      "watch": "6/19 被动流入日"
-    },
-    {
-      "ticker": "07226",
-      "thesis": "2x HSTECH杠杆ETF在趋势下行中加速衰减。HSTECH 4756低于200MA -13.4%，每跌1%本仓跌2%+",
-      "falsifier": "HSTECH 站回5000(200MA附近)",
-      "watch": "HSTECH 4600支撑"
+      "thesis": "单名49%+单日-16.65%+'大户派货'+HSTECH<200MA。纳入已price in, 聪明钱在跑",
+      "falsifier": "纳入后5日内回升到700+",
+      "watch": "今日HSTECH纳入后00100资金流"
     },
     {
       "ticker": "ROBN",
-      "thesis": "HOOD破200线-17.6%+波动83%，2x日内重置在下杀中放大衰减。US β 3.91意味着SPX-1%≈组合-3.9%",
-      "falsifier": "HOOD 站回103(200MA)",
-      "watch": "CPI 6/11 数据"
+      "thesis": "HOOD<200MA -20%+vol 83%+红色regime。2x日内重置在下杀里放大衰减",
+      "falsifier": "HOOD回到$100以上(200MA)",
+      "watch": "US开盘后HOOD走势"
+    },
+    {
+      "ticker": "07226",
+      "thesis": "HSTECH<200MA -11%+2x杠杆decay。港股科技sell-off可能持续",
+      "falsifier": "HSTECH回到5494以上(200MA)",
+      "watch": "HSTECH今日纳入后走势"
     }
   ],
   "hidden_concentration": {
-    "headline": "表面5只港股实为单一AI/科技beta因子暴露",
-    "factor": "HSTECH/AI高beta",
-    "exposure_pct": 84,
-    "detail": "00100(48.5%)+07226(35.2%)+03032(1.5%)+03033(7.4%)=92.6%港股仓位与HSTECH高度联动。02208(7.4%)是唯一非科技敞口。港股leg本质是单一因子押注。"
+    "headline": "名义9只持仓, 实际HK 84%押恒科+US 73%押杠杆ETF, 单因子暴露88%",
+    "factor": "港股科技+美股杠杆ETF",
+    "exposure_pct": 88,
+    "detail": "HK: 00100(49%)+07226(35%)+03032(1.5%)+03033(7%)=92.5%恒科方向。US: ROBN(32%)+PLTU(19%)+MSFU(22%)=73%杠杆ETF。任一方向-15%=book-10%+。"
   },
   "insights_meta": {
-    "source": "insights-2026-06-09.json",
+    "source": "insights-2026-06-08.json",
     "stale": false
   },
   "status_banner": null,
   "status_banner_meta": {
-    "source": "intraday-insights-2026-06-04.json",
-    "generated_at": "2026-06-04T14:30:00+08:00",
+    "source": null,
+    "generated_at": null,
     "stale": true
   },
   "peer_divergence": {
-    "as_of": "2026-06-09",
-    "items": [
-      {
-        "ticker": "00100",
-        "self_pct_1d": -8.14,
-        "best_peer": "02273",
-        "best_peer_name": "智云健康",
-        "peer_pct_1d": 0.15,
-        "divergence_pp": 8.29
-      },
-      {
-        "ticker": "02208",
-        "self_pct_1d": -4.57,
-        "best_peer": "00916",
-        "best_peer_name": "龙源电力",
-        "peer_pct_1d": -0.63,
-        "divergence_pp": 3.94
-      }
-    ]
+    "as_of": "",
+    "items": []
   },
   "calibration": {
     "brier_30d": 0.2612,
@@ -1821,28 +1809,7 @@
       "at_low": true,
       "currency": "HKD"
     },
-    "combined": {
-      "peak": {
-        "value": 129638.62,
-        "date": "2026-05-29"
-      },
-      "trough": {
-        "value": 97948.09,
-        "date": "2026-06-09"
-      },
-      "current": {
-        "value": 97948.09,
-        "date": "2026-06-09"
-      },
-      "current_dd_pct": -24.45,
-      "max_dd_pct": -24.45,
-      "max_dd_abs": 31690.53,
-      "max_dd_peak_date": "2026-05-29",
-      "max_dd_trough_date": "2026-06-09",
-      "at_low": true,
-      "currency": "HKD",
-      "fx_usdhkd": 7.836
-    },
+    "combined": null,
     "basis": "equity (market value + realized)"
   },
   "sector_exposure": {
@@ -1920,7 +1887,7 @@
   "leveraged_etf": {
     "us_pct": 72.49,
     "hk_pct": 36.98,
-    "combined_pct": 45.75,
+    "combined_pct": null,
     "tickers": [
       "07226",
       "MSFU",
@@ -3382,7 +3349,7 @@
     ]
   },
   "influencer_feed": {
-    "generated_at": "2026-06-08T23:03:07.861930+00:00",
+    "generated_at": "2026-06-09T15:46:42.112187+00:00",
     "lookback_hours": 48,
     "sources": {
       "trump": "trumpstruth.org/feed (primary)",
@@ -3391,7 +3358,7 @@
     },
     "llm_filtered": true,
     "counts": {
-      "total": 7,
+      "total": 9,
       "held_hits": 0,
       "new_ideas": 0,
       "sector_hits": 6
@@ -3399,72 +3366,57 @@
     "items": [
       {
         "author": "Musk",
-        "text": "Elon Musk’s $1.8 Trillion SpaceX IPO: Is It a Good Investment?",
+        "text": "Elon Musk Reveals Details For SpaceX-Tesla Orbiting Data Center",
         "url": "",
-        "published": "Sat, 06 Jun 2026 20:40:00 GMT",
+        "published": "Tue, 09 Jun 2026 14:21:00 GMT",
         "origin": "gnews-rss",
-        "source": "Barron's",
+        "source": "Investor's Business Daily",
         "tickers": [],
         "held": [],
         "new_ideas": [],
         "sectors": [
-          "航天",
-          "IPO"
+          "AI",
+          "数据中心",
+          "航天"
         ],
         "sector_holdings": [
+          "MSFU",
+          "PLTU",
           "RKLB"
         ],
-        "stance": "neutral",
-        "relevance": 55,
-        "summary_cn": "Musk 相关报道讨论 SpaceX 1.8 万亿美元 IPO 是否值得投资，涉及航天板块。"
+        "stance": "endorse",
+        "relevance": 60,
+        "summary_cn": "Musk 透露 SpaceX 与 Tesla 联合打造在轨数据中心的细节，涉及 AI 与航天交叉领域。"
       },
       {
         "author": "Musk",
-        "text": "How Elon Musk’s Friendship With the F.C.C. Smooths the Way for SpaceX’s I.P.O.",
+        "text": "Elon Musk Shows Detailed Design of AI Data Center Satellite",
         "url": "",
-        "published": "Mon, 08 Jun 2026 18:31:50 GMT",
+        "published": "Tue, 09 Jun 2026 00:53:00 GMT",
         "origin": "gnews-rss",
-        "source": "The New York Times",
+        "source": "Bloomberg.com",
         "tickers": [],
         "held": [],
         "new_ideas": [],
         "sectors": [
-          "航天",
-          "监管"
+          "AI",
+          "数据中心",
+          "卫星通信"
         ],
         "sector_holdings": [
+          "MSFU",
+          "PLTU",
           "RKLB"
         ],
-        "stance": "neutral",
-        "relevance": 55,
-        "summary_cn": "Musk 相关报道称 Musk 与 FCC 的友谊为 SpaceX IPO 铺路，涉及航天与监管政策。"
+        "stance": "endorse",
+        "relevance": 60,
+        "summary_cn": "Musk 展示 AI 数据中心卫星的详细设计，推动太空 AI 基础设施概念。"
       },
       {
         "author": "Musk",
-        "text": "SpaceX IPO to test Elon Musk's market magic",
+        "text": "Short-sellers to tread carefully as Musk's SpaceX debuts",
         "url": "",
-        "published": "Mon, 08 Jun 2026 11:02:43 GMT",
-        "origin": "gnews-rss",
-        "source": "Axios",
-        "tickers": [],
-        "held": [],
-        "new_ideas": [],
-        "sectors": [
-          "航天",
-          "IPO"
-        ],
-        "sector_holdings": [
-          "RKLB"
-        ],
-        "stance": "neutral",
-        "relevance": 55,
-        "summary_cn": "Musk 相关报道讨论 SpaceX IPO 将考验 Musk 的市场魔力，涉及航天板块。"
-      },
-      {
-        "author": "Musk",
-        "text": "Five ways Elon Musk's SpaceX upended Wall Street's IPO playbook",
-        "url": "",
-        "published": "Mon, 08 Jun 2026 10:25:03 GMT",
+        "published": "Tue, 09 Jun 2026 10:40:49 GMT",
         "origin": "gnews-rss",
         "source": "Reuters",
         "tickers": [],
@@ -3472,6 +3424,49 @@
         "new_ideas": [],
         "sectors": [
           "航天",
+          "做空"
+        ],
+        "sector_holdings": [
+          "RKLB"
+        ],
+        "stance": "neutral",
+        "relevance": 55,
+        "summary_cn": "报道称 SpaceX 登陆资本市场，做空者需谨慎，暗示航天板块可能迎来新变量。"
+      },
+      {
+        "author": "Musk",
+        "text": "Commentary: Here's how Musk's SpaceX IPO could crash your 401(k)",
+        "url": "",
+        "published": "Tue, 09 Jun 2026 10:00:00 GMT",
+        "origin": "gnews-rss",
+        "source": "Los Angeles Times",
+        "tickers": [],
+        "held": [],
+        "new_ideas": [],
+        "sectors": [
+          "航天",
+          "IPO",
+          "市场风险"
+        ],
+        "sector_holdings": [
+          "RKLB"
+        ],
+        "stance": "neutral",
+        "relevance": 55,
+        "summary_cn": "评论称 SpaceX IPO 可能冲击 401(k) 退休账户，暗示大规模 IPO 对市场资金的虹吸效应。"
+      },
+      {
+        "author": "Musk",
+        "text": "SpaceX's stock market blast-off could be Musk's biggest gamble yet",
+        "url": "",
+        "published": "Mon, 08 Jun 2026 23:22:17 GMT",
+        "origin": "gnews-rss",
+        "source": "BBC",
+        "tickers": [],
+        "held": [],
+        "new_ideas": [],
+        "sectors": [
+          "航天",
           "IPO"
         ],
         "sector_holdings": [
@@ -3479,7 +3474,7 @@
         ],
         "stance": "neutral",
         "relevance": 55,
-        "summary_cn": "Musk 相关报道称 SpaceX 颠覆了华尔街 IPO 剧本，涉及航天板块但 SpaceX 未上市。"
+        "summary_cn": "报道称 SpaceX 上市可能是 Musk 最大的赌注，暗示航天板块即将迎来重大事件。"
       },
       {
         "author": "Musk",
@@ -3492,35 +3487,15 @@
         "held": [],
         "new_ideas": [],
         "sectors": [
-          "航天"
-        ],
-        "sector_holdings": [
-          "RKLB"
-        ],
-        "stance": "neutral",
-        "relevance": 55,
-        "summary_cn": "Musk 相关报道讨论 SpaceX 估值是否值 1.75 万亿美元，涉及航天板块但 SpaceX 未上市。"
-      },
-      {
-        "author": "Musk",
-        "text": "Elon Musk’s SpaceX courts retail investors",
-        "url": "",
-        "published": "Mon, 08 Jun 2026 07:08:16 GMT",
-        "origin": "gnews-rss",
-        "source": "Financial Times",
-        "tickers": [],
-        "held": [],
-        "new_ideas": [],
-        "sectors": [
           "航天",
-          "IPO"
+          "估值"
         ],
         "sector_holdings": [
           "RKLB"
         ],
         "stance": "neutral",
         "relevance": 55,
-        "summary_cn": "Musk 相关报道称 SpaceX 正在争取散户投资者参与 IPO，涉及航天板块。"
+        "summary_cn": "讨论 SpaceX 是否真的值 1.75 万亿美元估值，引发市场对航天板块估值体系的关注。"
       },
       {
         "author": "Trump",
@@ -3538,7 +3513,45 @@
         "sector_holdings": [],
         "stance": "neutral",
         "relevance": 65,
-        "summary_cn": "Trump 称以色列和伊朗正在谈判立即停火，封锁将持续至最终协议达成，涉及地缘政治与能源市场。"
+        "summary_cn": "Trump 称以色列和伊朗正寻求立即停火，封锁将持续至最终协议达成，暗示地缘紧张可能缓和。"
+      },
+      {
+        "author": "Musk",
+        "text": "Opinion | Elon Musk took out his chainsaw. Government took out its checkbook.",
+        "url": "",
+        "published": "Tue, 09 Jun 2026 14:31:28 GMT",
+        "origin": "gnews-rss",
+        "source": "The Washington Post",
+        "tickers": [],
+        "held": [],
+        "new_ideas": [],
+        "sectors": [
+          "政府效率",
+          "财政政策"
+        ],
+        "sector_holdings": [],
+        "stance": "neutral",
+        "relevance": 50,
+        "summary_cn": "报道称 Musk 拿出电锯削减政府开支，而政府则拿出支票簿应对，暗示政府效率改革与财政支出的冲突。"
+      },
+      {
+        "author": "Musk",
+        "text": "Elon Musk bullet-proofed his $1 trillion ‘Mars-shot’ pay at SpaceX after the pay brawl at Tesla",
+        "url": "",
+        "published": "Sat, 06 Jun 2026 10:26:00 GMT",
+        "origin": "gnews-rss",
+        "source": "Fortune",
+        "tickers": [],
+        "held": [],
+        "new_ideas": [],
+        "sectors": [
+          "公司治理",
+          "薪酬"
+        ],
+        "sector_holdings": [],
+        "stance": "neutral",
+        "relevance": 50,
+        "summary_cn": "报道称 Musk 在 Tesla 薪酬风波后，为 SpaceX 万亿美元薪酬方案加装防护，涉及公司治理议题。"
       }
     ],
     "held_hits": [],
@@ -3546,72 +3559,57 @@
     "sector_hits": [
       {
         "author": "Musk",
-        "text": "Elon Musk’s $1.8 Trillion SpaceX IPO: Is It a Good Investment?",
+        "text": "Elon Musk Reveals Details For SpaceX-Tesla Orbiting Data Center",
         "url": "",
-        "published": "Sat, 06 Jun 2026 20:40:00 GMT",
+        "published": "Tue, 09 Jun 2026 14:21:00 GMT",
         "origin": "gnews-rss",
-        "source": "Barron's",
+        "source": "Investor's Business Daily",
         "tickers": [],
         "held": [],
         "new_ideas": [],
         "sectors": [
-          "航天",
-          "IPO"
+          "AI",
+          "数据中心",
+          "航天"
         ],
         "sector_holdings": [
+          "MSFU",
+          "PLTU",
           "RKLB"
         ],
-        "stance": "neutral",
-        "relevance": 55,
-        "summary_cn": "Musk 相关报道讨论 SpaceX 1.8 万亿美元 IPO 是否值得投资，涉及航天板块。"
+        "stance": "endorse",
+        "relevance": 60,
+        "summary_cn": "Musk 透露 SpaceX 与 Tesla 联合打造在轨数据中心的细节，涉及 AI 与航天交叉领域。"
       },
       {
         "author": "Musk",
-        "text": "How Elon Musk’s Friendship With the F.C.C. Smooths the Way for SpaceX’s I.P.O.",
+        "text": "Elon Musk Shows Detailed Design of AI Data Center Satellite",
         "url": "",
-        "published": "Mon, 08 Jun 2026 18:31:50 GMT",
+        "published": "Tue, 09 Jun 2026 00:53:00 GMT",
         "origin": "gnews-rss",
-        "source": "The New York Times",
+        "source": "Bloomberg.com",
         "tickers": [],
         "held": [],
         "new_ideas": [],
         "sectors": [
-          "航天",
-          "监管"
+          "AI",
+          "数据中心",
+          "卫星通信"
         ],
         "sector_holdings": [
+          "MSFU",
+          "PLTU",
           "RKLB"
         ],
-        "stance": "neutral",
-        "relevance": 55,
-        "summary_cn": "Musk 相关报道称 Musk 与 FCC 的友谊为 SpaceX IPO 铺路，涉及航天与监管政策。"
+        "stance": "endorse",
+        "relevance": 60,
+        "summary_cn": "Musk 展示 AI 数据中心卫星的详细设计，推动太空 AI 基础设施概念。"
       },
       {
         "author": "Musk",
-        "text": "SpaceX IPO to test Elon Musk's market magic",
+        "text": "Short-sellers to tread carefully as Musk's SpaceX debuts",
         "url": "",
-        "published": "Mon, 08 Jun 2026 11:02:43 GMT",
-        "origin": "gnews-rss",
-        "source": "Axios",
-        "tickers": [],
-        "held": [],
-        "new_ideas": [],
-        "sectors": [
-          "航天",
-          "IPO"
-        ],
-        "sector_holdings": [
-          "RKLB"
-        ],
-        "stance": "neutral",
-        "relevance": 55,
-        "summary_cn": "Musk 相关报道讨论 SpaceX IPO 将考验 Musk 的市场魔力，涉及航天板块。"
-      },
-      {
-        "author": "Musk",
-        "text": "Five ways Elon Musk's SpaceX upended Wall Street's IPO playbook",
-        "url": "",
-        "published": "Mon, 08 Jun 2026 10:25:03 GMT",
+        "published": "Tue, 09 Jun 2026 10:40:49 GMT",
         "origin": "gnews-rss",
         "source": "Reuters",
         "tickers": [],
@@ -3619,6 +3617,49 @@
         "new_ideas": [],
         "sectors": [
           "航天",
+          "做空"
+        ],
+        "sector_holdings": [
+          "RKLB"
+        ],
+        "stance": "neutral",
+        "relevance": 55,
+        "summary_cn": "报道称 SpaceX 登陆资本市场，做空者需谨慎，暗示航天板块可能迎来新变量。"
+      },
+      {
+        "author": "Musk",
+        "text": "Commentary: Here's how Musk's SpaceX IPO could crash your 401(k)",
+        "url": "",
+        "published": "Tue, 09 Jun 2026 10:00:00 GMT",
+        "origin": "gnews-rss",
+        "source": "Los Angeles Times",
+        "tickers": [],
+        "held": [],
+        "new_ideas": [],
+        "sectors": [
+          "航天",
+          "IPO",
+          "市场风险"
+        ],
+        "sector_holdings": [
+          "RKLB"
+        ],
+        "stance": "neutral",
+        "relevance": 55,
+        "summary_cn": "评论称 SpaceX IPO 可能冲击 401(k) 退休账户，暗示大规模 IPO 对市场资金的虹吸效应。"
+      },
+      {
+        "author": "Musk",
+        "text": "SpaceX's stock market blast-off could be Musk's biggest gamble yet",
+        "url": "",
+        "published": "Mon, 08 Jun 2026 23:22:17 GMT",
+        "origin": "gnews-rss",
+        "source": "BBC",
+        "tickers": [],
+        "held": [],
+        "new_ideas": [],
+        "sectors": [
+          "航天",
           "IPO"
         ],
         "sector_holdings": [
@@ -3626,7 +3667,7 @@
         ],
         "stance": "neutral",
         "relevance": 55,
-        "summary_cn": "Musk 相关报道称 SpaceX 颠覆了华尔街 IPO 剧本，涉及航天板块但 SpaceX 未上市。"
+        "summary_cn": "报道称 SpaceX 上市可能是 Musk 最大的赌注，暗示航天板块即将迎来重大事件。"
       },
       {
         "author": "Musk",
@@ -3639,35 +3680,15 @@
         "held": [],
         "new_ideas": [],
         "sectors": [
-          "航天"
-        ],
-        "sector_holdings": [
-          "RKLB"
-        ],
-        "stance": "neutral",
-        "relevance": 55,
-        "summary_cn": "Musk 相关报道讨论 SpaceX 估值是否值 1.75 万亿美元，涉及航天板块但 SpaceX 未上市。"
-      },
-      {
-        "author": "Musk",
-        "text": "Elon Musk’s SpaceX courts retail investors",
-        "url": "",
-        "published": "Mon, 08 Jun 2026 07:08:16 GMT",
-        "origin": "gnews-rss",
-        "source": "Financial Times",
-        "tickers": [],
-        "held": [],
-        "new_ideas": [],
-        "sectors": [
           "航天",
-          "IPO"
+          "估值"
         ],
         "sector_holdings": [
           "RKLB"
         ],
         "stance": "neutral",
         "relevance": 55,
-        "summary_cn": "Musk 相关报道称 SpaceX 正在争取散户投资者参与 IPO，涉及航天板块。"
+        "summary_cn": "讨论 SpaceX 是否真的值 1.75 万亿美元估值，引发市场对航天板块估值体系的关注。"
       }
     ]
   },
@@ -3784,8 +3805,8 @@
       "unrealized": -28084.24
     },
     "combined_usd": {
-      "realized": 2299.27,
-      "unrealized": -3693.28
+      "realized": null,
+      "unrealized": null
     }
   },
   "capital_deployed": {
@@ -3795,9 +3816,9 @@
     },
     "hk": {
       "native": 95535.4,
-      "usd": 12191.86
+      "usd": null
     },
-    "combined_usd": 16193.04
+    "combined_usd": null
   },
   "net_principal_return": {
     "us": {
@@ -3814,9 +3835,9 @@
       "return_basis": "net_principal"
     },
     "combined_usd": {
-      "net_principal": 12810.21,
-      "total_profit": -1394.02,
-      "return_pct": -10.88
+      "net_principal": null,
+      "total_profit": null,
+      "return_pct": null
     },
     "formula": "回报率 = (浮动 + 已实现) ÷ 本金；本金优先用 true_principal（峰值净投入），否则用 净投入本金=累计成本−已实现"
   },

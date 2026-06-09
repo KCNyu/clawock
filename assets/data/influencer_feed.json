@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-08T23:03:07.861930+00:00",
+  "generated_at": "2026-06-09T15:46:42.112187+00:00",
   "lookback_hours": 48,
   "sources": {
     "trump": "trumpstruth.org/feed (primary)",
@@ -8,7 +8,7 @@
   },
   "llm_filtered": true,
   "counts": {
-    "total": 7,
+    "total": 9,
     "held_hits": 0,
     "new_ideas": 0,
     "sector_hits": 6
@@ -16,72 +16,57 @@
   "items": [
     {
       "author": "Musk",
-      "text": "Elon Musk’s $1.8 Trillion SpaceX IPO: Is It a Good Investment?",
+      "text": "Elon Musk Reveals Details For SpaceX-Tesla Orbiting Data Center",
       "url": "",
-      "published": "Sat, 06 Jun 2026 20:40:00 GMT",
+      "published": "Tue, 09 Jun 2026 14:21:00 GMT",
       "origin": "gnews-rss",
-      "source": "Barron's",
+      "source": "Investor's Business Daily",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "航天",
-        "IPO"
+        "AI",
+        "数据中心",
+        "航天"
       ],
       "sector_holdings": [
+        "MSFU",
+        "PLTU",
         "RKLB"
       ],
-      "stance": "neutral",
-      "relevance": 55,
-      "summary_cn": "Musk 相关报道讨论 SpaceX 1.8 万亿美元 IPO 是否值得投资，涉及航天板块。"
+      "stance": "endorse",
+      "relevance": 60,
+      "summary_cn": "Musk 透露 SpaceX 与 Tesla 联合打造在轨数据中心的细节，涉及 AI 与航天交叉领域。"
     },
     {
       "author": "Musk",
-      "text": "How Elon Musk’s Friendship With the F.C.C. Smooths the Way for SpaceX’s I.P.O.",
+      "text": "Elon Musk Shows Detailed Design of AI Data Center Satellite",
       "url": "",
-      "published": "Mon, 08 Jun 2026 18:31:50 GMT",
+      "published": "Tue, 09 Jun 2026 00:53:00 GMT",
       "origin": "gnews-rss",
-      "source": "The New York Times",
+      "source": "Bloomberg.com",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "航天",
-        "监管"
+        "AI",
+        "数据中心",
+        "卫星通信"
       ],
       "sector_holdings": [
+        "MSFU",
+        "PLTU",
         "RKLB"
       ],
-      "stance": "neutral",
-      "relevance": 55,
-      "summary_cn": "Musk 相关报道称 Musk 与 FCC 的友谊为 SpaceX IPO 铺路，涉及航天与监管政策。"
+      "stance": "endorse",
+      "relevance": 60,
+      "summary_cn": "Musk 展示 AI 数据中心卫星的详细设计，推动太空 AI 基础设施概念。"
     },
     {
       "author": "Musk",
-      "text": "SpaceX IPO to test Elon Musk's market magic",
+      "text": "Short-sellers to tread carefully as Musk's SpaceX debuts",
       "url": "",
-      "published": "Mon, 08 Jun 2026 11:02:43 GMT",
-      "origin": "gnews-rss",
-      "source": "Axios",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "IPO"
-      ],
-      "sector_holdings": [
-        "RKLB"
-      ],
-      "stance": "neutral",
-      "relevance": 55,
-      "summary_cn": "Musk 相关报道讨论 SpaceX IPO 将考验 Musk 的市场魔力，涉及航天板块。"
-    },
-    {
-      "author": "Musk",
-      "text": "Five ways Elon Musk's SpaceX upended Wall Street's IPO playbook",
-      "url": "",
-      "published": "Mon, 08 Jun 2026 10:25:03 GMT",
+      "published": "Tue, 09 Jun 2026 10:40:49 GMT",
       "origin": "gnews-rss",
       "source": "Reuters",
       "tickers": [],
@@ -89,6 +74,49 @@
       "new_ideas": [],
       "sectors": [
         "航天",
+        "做空"
+      ],
+      "sector_holdings": [
+        "RKLB"
+      ],
+      "stance": "neutral",
+      "relevance": 55,
+      "summary_cn": "报道称 SpaceX 登陆资本市场，做空者需谨慎，暗示航天板块可能迎来新变量。"
+    },
+    {
+      "author": "Musk",
+      "text": "Commentary: Here's how Musk's SpaceX IPO could crash your 401(k)",
+      "url": "",
+      "published": "Tue, 09 Jun 2026 10:00:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Los Angeles Times",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "IPO",
+        "市场风险"
+      ],
+      "sector_holdings": [
+        "RKLB"
+      ],
+      "stance": "neutral",
+      "relevance": 55,
+      "summary_cn": "评论称 SpaceX IPO 可能冲击 401(k) 退休账户，暗示大规模 IPO 对市场资金的虹吸效应。"
+    },
+    {
+      "author": "Musk",
+      "text": "SpaceX's stock market blast-off could be Musk's biggest gamble yet",
+      "url": "",
+      "published": "Mon, 08 Jun 2026 23:22:17 GMT",
+      "origin": "gnews-rss",
+      "source": "BBC",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
         "IPO"
       ],
       "sector_holdings": [
@@ -96,7 +124,7 @@
       ],
       "stance": "neutral",
       "relevance": 55,
-      "summary_cn": "Musk 相关报道称 SpaceX 颠覆了华尔街 IPO 剧本，涉及航天板块但 SpaceX 未上市。"
+      "summary_cn": "报道称 SpaceX 上市可能是 Musk 最大的赌注，暗示航天板块即将迎来重大事件。"
     },
     {
       "author": "Musk",
@@ -109,35 +137,15 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "航天"
-      ],
-      "sector_holdings": [
-        "RKLB"
-      ],
-      "stance": "neutral",
-      "relevance": 55,
-      "summary_cn": "Musk 相关报道讨论 SpaceX 估值是否值 1.75 万亿美元，涉及航天板块但 SpaceX 未上市。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk’s SpaceX courts retail investors",
-      "url": "",
-      "published": "Mon, 08 Jun 2026 07:08:16 GMT",
-      "origin": "gnews-rss",
-      "source": "Financial Times",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
         "航天",
-        "IPO"
+        "估值"
       ],
       "sector_holdings": [
         "RKLB"
       ],
       "stance": "neutral",
       "relevance": 55,
-      "summary_cn": "Musk 相关报道称 SpaceX 正在争取散户投资者参与 IPO，涉及航天板块。"
+      "summary_cn": "讨论 SpaceX 是否真的值 1.75 万亿美元估值，引发市场对航天板块估值体系的关注。"
     },
     {
       "author": "Trump",
@@ -155,7 +163,45 @@
       "sector_holdings": [],
       "stance": "neutral",
       "relevance": 65,
-      "summary_cn": "Trump 称以色列和伊朗正在谈判立即停火，封锁将持续至最终协议达成，涉及地缘政治与能源市场。"
+      "summary_cn": "Trump 称以色列和伊朗正寻求立即停火，封锁将持续至最终协议达成，暗示地缘紧张可能缓和。"
+    },
+    {
+      "author": "Musk",
+      "text": "Opinion | Elon Musk took out his chainsaw. Government took out its checkbook.",
+      "url": "",
+      "published": "Tue, 09 Jun 2026 14:31:28 GMT",
+      "origin": "gnews-rss",
+      "source": "The Washington Post",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "政府效率",
+        "财政政策"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 50,
+      "summary_cn": "报道称 Musk 拿出电锯削减政府开支，而政府则拿出支票簿应对，暗示政府效率改革与财政支出的冲突。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk bullet-proofed his $1 trillion ‘Mars-shot’ pay at SpaceX after the pay brawl at Tesla",
+      "url": "",
+      "published": "Sat, 06 Jun 2026 10:26:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Fortune",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "公司治理",
+        "薪酬"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 50,
+      "summary_cn": "报道称 Musk 在 Tesla 薪酬风波后，为 SpaceX 万亿美元薪酬方案加装防护，涉及公司治理议题。"
     }
   ],
   "held_hits": [],
@@ -163,72 +209,57 @@
   "sector_hits": [
     {
       "author": "Musk",
-      "text": "Elon Musk’s $1.8 Trillion SpaceX IPO: Is It a Good Investment?",
+      "text": "Elon Musk Reveals Details For SpaceX-Tesla Orbiting Data Center",
       "url": "",
-      "published": "Sat, 06 Jun 2026 20:40:00 GMT",
+      "published": "Tue, 09 Jun 2026 14:21:00 GMT",
       "origin": "gnews-rss",
-      "source": "Barron's",
+      "source": "Investor's Business Daily",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "航天",
-        "IPO"
+        "AI",
+        "数据中心",
+        "航天"
       ],
       "sector_holdings": [
+        "MSFU",
+        "PLTU",
         "RKLB"
       ],
-      "stance": "neutral",
-      "relevance": 55,
-      "summary_cn": "Musk 相关报道讨论 SpaceX 1.8 万亿美元 IPO 是否值得投资，涉及航天板块。"
+      "stance": "endorse",
+      "relevance": 60,
+      "summary_cn": "Musk 透露 SpaceX 与 Tesla 联合打造在轨数据中心的细节，涉及 AI 与航天交叉领域。"
     },
     {
       "author": "Musk",
-      "text": "How Elon Musk’s Friendship With the F.C.C. Smooths the Way for SpaceX’s I.P.O.",
+      "text": "Elon Musk Shows Detailed Design of AI Data Center Satellite",
       "url": "",
-      "published": "Mon, 08 Jun 2026 18:31:50 GMT",
+      "published": "Tue, 09 Jun 2026 00:53:00 GMT",
       "origin": "gnews-rss",
-      "source": "The New York Times",
+      "source": "Bloomberg.com",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "航天",
-        "监管"
+        "AI",
+        "数据中心",
+        "卫星通信"
       ],
       "sector_holdings": [
+        "MSFU",
+        "PLTU",
         "RKLB"
       ],
-      "stance": "neutral",
-      "relevance": 55,
-      "summary_cn": "Musk 相关报道称 Musk 与 FCC 的友谊为 SpaceX IPO 铺路，涉及航天与监管政策。"
+      "stance": "endorse",
+      "relevance": 60,
+      "summary_cn": "Musk 展示 AI 数据中心卫星的详细设计，推动太空 AI 基础设施概念。"
     },
     {
       "author": "Musk",
-      "text": "SpaceX IPO to test Elon Musk's market magic",
+      "text": "Short-sellers to tread carefully as Musk's SpaceX debuts",
       "url": "",
-      "published": "Mon, 08 Jun 2026 11:02:43 GMT",
-      "origin": "gnews-rss",
-      "source": "Axios",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "IPO"
-      ],
-      "sector_holdings": [
-        "RKLB"
-      ],
-      "stance": "neutral",
-      "relevance": 55,
-      "summary_cn": "Musk 相关报道讨论 SpaceX IPO 将考验 Musk 的市场魔力，涉及航天板块。"
-    },
-    {
-      "author": "Musk",
-      "text": "Five ways Elon Musk's SpaceX upended Wall Street's IPO playbook",
-      "url": "",
-      "published": "Mon, 08 Jun 2026 10:25:03 GMT",
+      "published": "Tue, 09 Jun 2026 10:40:49 GMT",
       "origin": "gnews-rss",
       "source": "Reuters",
       "tickers": [],
@@ -236,6 +267,49 @@
       "new_ideas": [],
       "sectors": [
         "航天",
+        "做空"
+      ],
+      "sector_holdings": [
+        "RKLB"
+      ],
+      "stance": "neutral",
+      "relevance": 55,
+      "summary_cn": "报道称 SpaceX 登陆资本市场，做空者需谨慎，暗示航天板块可能迎来新变量。"
+    },
+    {
+      "author": "Musk",
+      "text": "Commentary: Here's how Musk's SpaceX IPO could crash your 401(k)",
+      "url": "",
+      "published": "Tue, 09 Jun 2026 10:00:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Los Angeles Times",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "IPO",
+        "市场风险"
+      ],
+      "sector_holdings": [
+        "RKLB"
+      ],
+      "stance": "neutral",
+      "relevance": 55,
+      "summary_cn": "评论称 SpaceX IPO 可能冲击 401(k) 退休账户，暗示大规模 IPO 对市场资金的虹吸效应。"
+    },
+    {
+      "author": "Musk",
+      "text": "SpaceX's stock market blast-off could be Musk's biggest gamble yet",
+      "url": "",
+      "published": "Mon, 08 Jun 2026 23:22:17 GMT",
+      "origin": "gnews-rss",
+      "source": "BBC",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
         "IPO"
       ],
       "sector_holdings": [
@@ -243,7 +317,7 @@
       ],
       "stance": "neutral",
       "relevance": 55,
-      "summary_cn": "Musk 相关报道称 SpaceX 颠覆了华尔街 IPO 剧本，涉及航天板块但 SpaceX 未上市。"
+      "summary_cn": "报道称 SpaceX 上市可能是 Musk 最大的赌注，暗示航天板块即将迎来重大事件。"
     },
     {
       "author": "Musk",
@@ -256,35 +330,15 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "航天"
-      ],
-      "sector_holdings": [
-        "RKLB"
-      ],
-      "stance": "neutral",
-      "relevance": 55,
-      "summary_cn": "Musk 相关报道讨论 SpaceX 估值是否值 1.75 万亿美元，涉及航天板块但 SpaceX 未上市。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk’s SpaceX courts retail investors",
-      "url": "",
-      "published": "Mon, 08 Jun 2026 07:08:16 GMT",
-      "origin": "gnews-rss",
-      "source": "Financial Times",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
         "航天",
-        "IPO"
+        "估值"
       ],
       "sector_holdings": [
         "RKLB"
       ],
       "stance": "neutral",
       "relevance": 55,
-      "summary_cn": "Musk 相关报道称 SpaceX 正在争取散户投资者参与 IPO，涉及航天板块。"
+      "summary_cn": "讨论 SpaceX 是否真的值 1.75 万亿美元估值，引发市场对航天板块估值体系的关注。"
     }
   ]
 }
