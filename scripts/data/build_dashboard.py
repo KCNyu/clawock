@@ -1655,7 +1655,14 @@ def compute_net_principal_return(portfolio, fx_rate):
 
 
 def main():
-    OUT_DIR.mkdir(parents=True, exist_ok=True)
+    # BUILD_DASHBOARD_OUT: redirect the WRITE target only. Verification callers
+    # (system_check's buildability gate, run by the pre-push hook) build to a
+    # temp file so a *check* never mutates the published artifact — before
+    # 2026-06-10 every pre-push run rewrote dashboard.json in place, leaving
+    # the working tree perpetually dirty. Reads that merge previous values
+    # (load_prev_dashboard) still come from the real OUT_FILE on purpose.
+    out_file = Path(os.environ.get('BUILD_DASHBOARD_OUT') or OUT_FILE)
+    out_file.parent.mkdir(parents=True, exist_ok=True)
     portfolio = load_json(WS_ROOT / 'portfolio.json')
     if not portfolio:
         print('FATAL: portfolio.json missing', file=sys.stderr)
@@ -1899,9 +1906,9 @@ def main():
         size_bytes = len(payload.encode('utf-8'))
 
     from safe_io import safe_write_text
-    safe_write_text(str(OUT_FILE), payload)
+    safe_write_text(str(out_file), payload)
 
-    print(f'✓ wrote {OUT_FILE} ({size_bytes:,} bytes)')
+    print(f'✓ wrote {out_file} ({size_bytes:,} bytes)')
     print(f'  US: {len(us_h)} holdings, {len([h for h in us_h if h["is_active"]])} active, value ${us_conc["total"]:.0f}')
     print(f'  HK: {len(hk_h)} holdings, {len([h for h in hk_h if h["is_active"]])} active, value HK${hk_conc["total"]:.0f}')
     print(f'  Snapshots: {len(snapshots)} embedded / {out["snapshots_total"]} on disk')

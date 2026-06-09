@@ -217,24 +217,28 @@ def rebuild_dashboard(ws=None):
 
 
 def push_with_rebase_retry(remote='origin', branch='master', attempts=3):
-    """git push with rebase+retry on race. Returns (pushed_ok, last_output).
+    """git push via safe_push.sh — THE single hardened push path. Returns
+    (pushed_ok, last_output).
 
-    If rebase itself fails (real conflict on same file), abort rebase and stop —
-    don't loop forever. Manual resolution will be needed.
+    Was a hand-rolled push/rebase loop, which silently lacked safe_push.sh's two
+    hardening knobs (2026-06-10 unification):
+      • `-c rebase.autoStash=true` — plain `pull --rebase` REFUSES on a dirty tree
+        ("you have unstaged changes"), and a postflight tree is often dirty with
+        other in-flight files (portfolio.json mid-refresh, dreaming appending
+        MEMORY.md) — the exact failure that stranded commits before 2026-05-30.
+      • conflict-marker gate — refuses to publish a half-merged file (the
+        2026-06-03 blank-dashboard incident).
+    Delegating keeps every committer's push behaviour identical, per the header
+    contract in safe_push.sh. `attempts` is kept for API compat (safe_push.sh has
+    its own MAX_RETRIES=3).
     """
-    last_out = ''
-    for i in range(1, attempts + 1):
-        ok, out = git_cmd('push', remote, branch)
-        if ok:
-            return True, out
-        last_out = out
-        # Race with another cron commit — try rebase
-        rebase_ok, rebase_out = git_cmd('pull', '--rebase', remote, branch)
-        if not rebase_ok:
-            # Conflict — don't loop, leave commit local for manual resolution
-            git_cmd('rebase', '--abort')  # cleanup
-            return False, f'rebase conflict (manual resolution needed): {rebase_out[-200:]}'
-    return False, last_out
+    script = WS / 'scripts' / 'data' / 'safe_push.sh'
+    try:
+        r = subprocess.run(['bash', str(script), remote, branch],
+                           capture_output=True, text=True, timeout=120, cwd=str(WS))
+        return r.returncode == 0, (r.stdout + r.stderr).strip()[-500:]
+    except Exception as e:
+        return False, str(e)
 
 
 def _extract_md_tables(text):

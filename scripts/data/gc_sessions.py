@@ -29,10 +29,12 @@ from pathlib import Path
 OPENCLAW_HOME = Path(os.environ.get('OPENCLAW_HOME', '/root/.openclaw'))
 SESSIONS_DIR  = OPENCLAW_HOME / 'agents' / 'main' / 'sessions'
 HANDOFF_FILE  = OPENCLAW_HOME / 'gateway-supervisor-restart-handoff.json'
+WORKSPACE_TMP = OPENCLAW_HOME / 'workspace' / 'memory' / '.tmp'
 
 KEEP_TRAJECTORY_DAYS = int(os.environ.get('GC_KEEP_TRAJECTORY_DAYS', '7'))
 KEEP_SESSION_DAYS    = int(os.environ.get('GC_KEEP_SESSION_DAYS',    '14'))
 KEEP_BAK_DAYS        = int(os.environ.get('GC_KEEP_BAK_DAYS',        '3'))
+KEEP_TMP_DAYS        = int(os.environ.get('GC_KEEP_TMP_DAYS',        '14'))
 
 
 def humansize(n):
@@ -43,12 +45,13 @@ def humansize(n):
     return f'{n:.1f} TB'
 
 
-def gc_files(pattern_predicate, cutoff_ts, label, dry_run):
-    """Walk SESSIONS_DIR, delete files matching predicate(name) older than cutoff."""
-    if not SESSIONS_DIR.exists():
+def gc_files(pattern_predicate, cutoff_ts, label, dry_run, dirpath=None):
+    """Walk dirpath (default SESSIONS_DIR), delete files matching predicate(name) older than cutoff."""
+    dirpath = dirpath or SESSIONS_DIR
+    if not dirpath.exists():
         return 0, 0
     n_files, n_bytes = 0, 0
-    for p in SESSIONS_DIR.iterdir():
+    for p in dirpath.iterdir():
         if not p.is_file():
             continue
         if not pattern_predicate(p.name):
@@ -99,7 +102,8 @@ def main():
 
     now = time.time()
     print(f'gc_sessions: dir={SESSIONS_DIR} dry_run={args.dry_run}')
-    print(f'  keep trajectory ≤ {KEEP_TRAJECTORY_DAYS}d, session ≤ {KEEP_SESSION_DAYS}d, bak ≤ {KEEP_BAK_DAYS}d')
+    print(f'  keep trajectory ≤ {KEEP_TRAJECTORY_DAYS}d, session ≤ {KEEP_SESSION_DAYS}d, '
+          f'bak ≤ {KEEP_BAK_DAYS}d, workspace .tmp ≤ {KEEP_TMP_DAYS}d')
 
     total_files, total_bytes = 0, 0
 
@@ -145,6 +149,20 @@ def main():
                   n.split('.')[-1].isdigit() and len(n.split('.')[-1]) >= 10,
         now - KEEP_BAK_DAYS * 86400,
         'tmp / numeric-suffix', args.dry_run,
+    )
+    total_files += f
+    total_bytes += b
+
+    # workspace memory/.tmp — preflight contexts / sidecars / scratch PNGs.
+    # Everything here is per-date scratch that builders read by "newest mtime"
+    # or with a max-age guard (load_tmp_sidecar), so anything ≥ KEEP_TMP_DAYS
+    # old is dead weight. Before 2026-06-10 nothing GC'd this dir (231 stale
+    # files incl. ~470KB PNGs after 3 weeks of cron traffic).
+    f, b = gc_files(
+        lambda n: True,
+        now - KEEP_TMP_DAYS * 86400,
+        f'workspace .tmp (> {KEEP_TMP_DAYS}d)', args.dry_run,
+        dirpath=WORKSPACE_TMP,
     )
     total_files += f
     total_bytes += b

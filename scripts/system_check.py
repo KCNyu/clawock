@@ -140,12 +140,20 @@ def check_plan_json_schema(r):
 
 
 def check_dashboard_buildable(r):
-    """build_dashboard.py produces sub-200KB output."""
-    out = WS / 'assets' / 'data' / 'dashboard.json'
+    """build_dashboard.py produces sub-200KB output.
+
+    Builds to a TEMP file (BUILD_DASHBOARD_OUT) — this is a verification, it
+    must not mutate the published assets/data/dashboard.json. Before 2026-06-10
+    this check rewrote the real file in place, so every pre-push hook run left
+    the working tree dirty with a fresher generated_at.
+    """
+    import tempfile
+    out = Path(tempfile.gettempdir()) / 'system_check_dashboard.json'
     try:
+        env = dict(os.environ, BUILD_DASHBOARD_OUT=str(out))
         rr = subprocess.run(
             ['python3', str(WS / 'scripts' / 'data' / 'build_dashboard.py')],
-            capture_output=True, text=True, timeout=30, cwd=str(WS),
+            capture_output=True, text=True, timeout=30, cwd=str(WS), env=env,
         )
         if rr.returncode != 0:
             r.add('dashboard.json build', CRITICAL, rr.stderr[-200:])
@@ -275,26 +283,37 @@ def check_calibration_csv(r):
 
 
 def check_cron_paths_exist(r):
-    """All scripts referenced from openclaw/cron/jobs.json exist."""
-    jp = Path('/root/.openclaw/cron/jobs.json')
-    if not jp.exists():
-        r.add('cron paths', WARNING, 'jobs.json not found (running outside openclaw env?)')
-        return
-    try:
-        d = json.loads(jp.read_text())
-    except Exception as e:
-        r.add('cron paths', CRITICAL, f'jobs.json parse fail: {e}')
-        return
+    """All scripts referenced from openclaw cron payloads exist.
+
+    6.1 migrated cron storage from cron/jobs.json into state/openclaw.sqlite, so
+    direct file reads silently return nothing. Read via _watchdog_common.load_jobs
+    (storage-agnostic: CLI `cron list --json` primary, pre-migration files fallback)
+    — the same path the watchdogs were fixed to use on 2026-06-04.
+    """
     import re
+    sys.path.insert(0, str(WS / 'scripts' / 'harness'))
+    try:
+        from _watchdog_common import OPENCLAW_BIN, load_jobs  # type: ignore
+        jobs = load_jobs()
+    except Exception as e:
+        r.add('cron paths', WARNING, f'cron jobs unreadable: {e}')
+        return
+    if not jobs:
+        if not os.path.exists(OPENCLAW_BIN):
+            # CI runner / dev clone without the openclaw install — nothing to check.
+            r.add('cron paths', OK, 'skipped (no openclaw CLI on this host)')
+        else:
+            r.add('cron paths', WARNING, 'openclaw CLI returned 0 cron jobs (storage regression? run doctor --fix)')
+        return
     refs = set()
-    for j in d.get('jobs', []):
-        msg = (j.get('payload') or {}).get('message', '')
+    for j in jobs:
+        msg = ((j.get('payload') or {}).get('message')) or j.get('message') or ''
         refs.update(re.findall(r'/root/\.openclaw/workspace/scripts/[a-z/_]+\.py', msg))
-    missing = [r_ for r_ in refs if not os.path.exists(r_)]
+    missing = [p for p in sorted(refs) if not os.path.exists(p)]
     if missing:
         r.add('cron paths', CRITICAL, f'missing: {missing}')
     else:
-        r.add('cron paths', OK, f'{len(refs)} cron-referenced scripts present')
+        r.add('cron paths', OK, f'{len(jobs)} jobs · {len(refs)} referenced scripts present')
 
 
 def main():

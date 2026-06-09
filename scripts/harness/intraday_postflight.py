@@ -124,6 +124,17 @@ def main():
     issues = validate(text, ctx)
     status = categorize(issues)
 
+    # Step 2.5 sidecar liveness (warn-only, stderr — NOT in the WeChat report):
+    # the dashboard status banner went dark 06-04→06-10 when a payload rewrite
+    # dropped Step 2.5 and nothing noticed for 6 days. A missing narrative
+    # sidecar must never block/clutter the report (kcn: no per-cron alerts),
+    # but it should leave a visible trace in the cron run log + result JSON.
+    insights_path = TMP / f'intraday-insights-{datetime.now().strftime("%Y-%m-%d")}.json'
+    insights_written = insights_path.exists()
+    if not insights_written:
+        print(f'warn: {insights_path.name} 未写 — dashboard status_banner 将过期隐藏 '
+              f'(SKILL Mode 7 Step 2.5 / cron payload Step 2.5)', file=sys.stderr)
+
     if status == 'pass':
         wechat_prefix = ''
     elif status == 'warn':
@@ -197,6 +208,7 @@ def main():
         'n_chars':       len(text),
         'wechat_sent':   wechat_sent,
         'dashboard_published': dashboard_published,
+        'insights_sidecar': insights_written,
     }
     print(json.dumps(result, ensure_ascii=False, indent=2))
     return 0 if status == 'pass' else (1 if status == 'warn' else 2)

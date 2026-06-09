@@ -51,10 +51,10 @@ title: clawock · scripts 详细参考
 - **`scripts/data/fetch_influencer_feed.py`**：高影响力人物市场异动 → `assets/data/influencer_feed.json`。Trump 原帖(trumpstruth.org/feed RSS, 全文)+ Musk(Google News RSS 代理, X 无可靠免费 RSS)。关键词预筛 → 单次 Xiaomi LLM(`thinking_disabled` 结构化抽取, ~2.5K token)提相关性/stance/ticker/板块 → 代码交叉匹配持仓分三档：`held_hits`(撞持仓告警) / `new_ideas`(他们点名但 kcn 没持有的选股线索) / `sector_hits`(板块软关联, 非直接点名)。merge-not-overwrite: 源**抓取失败**才保留旧条目（被 LLM 筛掉≠失败）。env `XIAOMI_API_KEY`(缺则降级关键词-only)。dashboard「影响力雷达」卡 + brief `▎名人异动/政策风向` 段消费。
 - **`scripts/data/xiaomi_llm.py`**：OpenAI-compat LLM client，供 GH Action 直调（绕过 openclaw gateway）。**Primary Xiaomi MiMo v2.5-pro → fallback MiniMax M2.7**（Xiaomi 三次重试全挂即透明切 MiniMax，两家全挂才 raise）。**单轮默认 thinking enabled + max_tokens 32K**；多轮传 `thinking_disabled=True` 避 reasoning_content 400。`thinking`/`response_format` 仅发 Xiaomi（MiniMax 不发，靠 prompt"只返回JSON"）。`_clean()` 统一剥 MiniMax 内联 `<think>…</think>` + markdown fence，json.loads 两家通用。retry 3 + 429 handling。env `XIAOMI_API_KEY` + `MINIMAX_API_KEY`(缺则跳过 fallback)。`chat(fallback=False)` 可关兜底。
 - **`scripts/data/gh_action_*.py`**：3 个 GH Action 入口脚本（brief_fallback / weekly_review / news_digest），都用 xiaomi_llm.chat() 直调小米。
-- **`scripts/data/safe_push.sh`**：共享 git push 防 conflict 死循环工具。3 次 retry + 每次 rebase 失败 → `git rebase --abort` + exit 2（不死循环 push）。所有写文件的 GH Action workflow 用 `bash scripts/data/safe_push.sh` 替代原本的 push loop；harness 端 `scripts/harness/_harness_common.push_with_rebase_retry` 也同款逻辑升级。
+- **`scripts/data/safe_push.sh`**：共享 git push 防 conflict 死循环工具。3 次 retry + 每次 rebase 失败 → `git rebase --abort` + exit 2（不死循环 push）。所有写文件的 GH Action workflow 用 `bash scripts/data/safe_push.sh` 替代原本的 push loop；harness 端 `scripts/harness/_harness_common.push_with_rebase_retry` **直接委托本脚本**（2026-06-10 统一，自动获得 rebase.autoStash + 冲突标记硬闸），全体 committer 单一 push 路径。
 - **`scripts/data/update_portfolio.py`** / **`update_us_portfolio.js`**：手动调仓后写 portfolio.json 的辅助
 
-### Cron map（**10 个 job 位于 `~/.openclaw/cron/jobs.json`**）
+### Cron map（**11 个 job，6.1 起存 SQLite `~/.openclaw/state/openclaw.sqlite`，用 `openclaw cron list --json` 读——`cron/jobs.json` 已是死文件**）
 
 | Job 名 | Schedule | Mode | Preflight | Postflight |
 |---|---|---|---|---|
@@ -73,14 +73,14 @@ title: clawock · scripts 详细参考
 所有 harness preflight/postflight 都在 `scripts/harness/`。Mode 6 / brief 的 postflight 会在 pass/warn 时
 自动跑 `scripts/data/build_dashboard.py` 刷新 `assets/data/dashboard.json` 并一起 commit，保证 Pages 同步。
 
-cron prompt 已精简成"按 skill 的 harness 4-step 跑"+ 自包含 fallback 指令，改格式时**只改 SKILL.md 里的 Mode 段**，不动 jobs.json。
+cron prompt 已精简成"按 skill 的 harness 4-step 跑"+ 自包含 fallback 指令，改格式时**只改 SKILL.md 里的 Mode 段**，payload 不重复 SKILL 细节（例外：Step 2.5 sidecar 必须在 payload 里点名——2026-06-04 重写 payload 时漏了它，status_banner 断供 6 天，LLM 只跟 payload 的步骤编号走）。
 
-**改 cron prompt 的安全步骤**：
+**改 cron prompt 的安全步骤**（6.1 后只走 CLI，不碰文件）：
 ```bash
-cp ~/.openclaw/cron/jobs.json ~/.openclaw/cron/jobs.json.bak-$(date +%Y%m%d_%H%M%S)
-python3 -c "import json; d=json.load(open('/root/.openclaw/cron/jobs.json')); ..."
+# 读：openclaw cron list --json | python3 -c '...'   （JSON 前可能有 Config warnings 噪音，find('{') 起切）
+# 写：openclaw cron edit <job-id> --message "$NEW_MSG"   （只 patch message，schedule/tz 不动）
 ```
-不要手编辑 jobs.json — JSON 错误会让全部 10 个 job 停摆（包括 Memory Dreaming）。
+改 `--cron` 表达式时必须同时带 `--tz Asia/Shanghai`（否则 tz 被重置）。升级大版本后先 `openclaw cron list` 数 job 个数（应为 11），少了跑 `openclaw doctor --fix`。
 
 ### Cron 运行历史（自动 + 手动跨 job 聚合）
 
