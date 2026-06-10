@@ -52,8 +52,10 @@ fix_stock_analyzer.py
 # Runtime state files (cron / heartbeat output, not source data)
 memory/heartbeat-state.json
 memory/last_hk_monitoring.json
-# cron logs + dashboard_build_status.json (local-only)
-logs/
+# cron logs (local-only)
+logs/*
+# dashboard build status must reach the GHA cron-health runner (its only reader)
+!logs/dashboard_build_status.json
 
 # Preflight transient context (regenerated every brief run)
 memory/.tmp/

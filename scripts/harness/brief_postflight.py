@@ -308,7 +308,8 @@ def maybe_commit(status, today):
     # 06-05 sidecar-strip bug). The daily brief commit is their natural ride.
     add_ok, add_out = _git('add', 'memory/', 'portfolio.json', 'assets/data/dashboard.json',
                             'memory/calibration.csv', 'assets/data/risk.json',
-                            'assets/data/lev_regime.json', 'assets/data/benchmark.json')
+                            'assets/data/lev_regime.json', 'assets/data/benchmark.json',
+                            'logs/dashboard_build_status.json')
     if not add_ok:
         return False, f'git add failed: {add_out[-200:]}'
 

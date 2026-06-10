@@ -171,7 +171,10 @@ def maybe_commit(status, commit_msg):
     rebuild_dashboard()
     suffix = ' (validation warnings)' if status == 'warn' else ''
     snap_date = snapshot_date_for_now()
-    add_args = ['add', 'portfolio.json', 'assets/data/dashboard.json']
+    # logs/dashboard_build_status.json rides along: its only scheduled reader is
+    # the GHA cron-health runner (fresh checkout), so it must reach origin.
+    add_args = ['add', 'portfolio.json', 'assets/data/dashboard.json',
+                'logs/dashboard_build_status.json']
     if snap_date:
         add_args.append(f'memory/snapshots/{snap_date}.json')
     ok, _ = _git(*add_args)

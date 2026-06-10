@@ -183,7 +183,7 @@ def main():
         try:
             ok, _ = rebuild_dashboard()
             if ok:
-                paths = ['assets/data/dashboard.json']
+                paths = ['assets/data/dashboard.json', 'logs/dashboard_build_status.json']
                 snap = snapshot_date_for_now()
                 if snap:
                     paths.append(f'memory/snapshots/{snap}.json')
