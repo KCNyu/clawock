@@ -2114,6 +2114,17 @@ layout: null
   let holdingsSort = { key: "current_value", dir: "desc" };
   const charts = { equity: null, dailyPnl: null, realized: null, sector: null, weightConf: null };
 
+  // Instant re-theme on OS dark/light flip (phones auto-switch at sunset): CSS vars
+  // flip immediately but cached ECharts instances keep the old palette until the
+  // next 60s poll. Dispose them so render() re-inits with the new theme colors.
+  window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => {
+    Object.keys(charts).forEach(k => {
+      try { if (charts[k]) charts[k].dispose(); } catch (e) {}
+      charts[k] = null;
+    });
+    if (DATA) render();
+  });
+
   // Per-market view shared by Equity Curve + Daily P&L: 'combined' | 'us' | 'hk'.
   let MARKET_VIEW = "combined";
   function setMarketView(v) {

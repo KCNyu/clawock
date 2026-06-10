@@ -300,8 +300,15 @@ def maybe_commit(status, today):
     rebuild_dashboard()  # refresh dashboard.json before commit
 
     msg_suffix = ' (validation warnings)' if status == 'warn' else ''
+    # risk.json / lev_regime.json / benchmark.json are rebuilt fresh by this
+    # preflight every morning but were never committed — origin's copies went
+    # stale, so GH-Action dashboard rebuilds (fresh checkout) regressed the 🚦
+    # guardrail / 🧭 regime / benchmark curve to day-old values until the next
+    # local push overwrote them again (found 2026-06-10; same class as the
+    # 06-05 sidecar-strip bug). The daily brief commit is their natural ride.
     add_ok, add_out = _git('add', 'memory/', 'portfolio.json', 'assets/data/dashboard.json',
-                            'memory/calibration.csv')
+                            'memory/calibration.csv', 'assets/data/risk.json',
+                            'assets/data/lev_regime.json', 'assets/data/benchmark.json')
     if not add_ok:
         return False, f'git add failed: {add_out[-200:]}'
 
