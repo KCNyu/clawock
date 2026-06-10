@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-09T23:04:18.856182+00:00",
+  "generated_at": "2026-06-10T16:28:19.051811+00:00",
   "lookback_hours": 48,
   "sources": {
     "trump": "trumpstruth.org/feed (primary)",
@@ -10,37 +10,61 @@
   "counts": {
     "total": 12,
     "held_hits": 0,
-    "new_ideas": 0,
-    "sector_hits": 6
+    "new_ideas": 2,
+    "sector_hits": 3
   },
   "items": [
     {
       "author": "Musk",
-      "text": "Elon Musk Reveals Details For SpaceX-Tesla Orbiting Data Center",
+      "text": "Tesla Stock: FSD Approved In Denmark; Elon Musk Says This About AI Chips",
       "url": "",
-      "published": "Tue, 09 Jun 2026 17:37:00 GMT",
+      "published": "Wed, 10 Jun 2026 15:38:00 GMT",
       "origin": "gnews-rss",
       "source": "Investor's Business Daily",
-      "tickers": [],
+      "tickers": [
+        "TSLA"
+      ],
       "held": [],
-      "new_ideas": [],
+      "new_ideas": [
+        "TSLA"
+      ],
       "sectors": [
-        "AI",
-        "数据中心",
-        "航天"
+        "电动车",
+        "自动驾驶",
+        "AI"
       ],
-      "sector_holdings": [
-        "RKLB"
-      ],
+      "sector_holdings": [],
       "stance": "endorse",
-      "relevance": 60,
-      "summary_cn": "Musk透露SpaceX-Tesla轨道数据中心细节，涉及太空AI基础设施概念，SpaceX未上市但航天板块受关注。"
+      "relevance": 75,
+      "summary_cn": "马斯克相关：特斯拉FSD在丹麦获批，马斯克就AI芯片发表看法，利好特斯拉自动驾驶业务。"
+    },
+    {
+      "author": "Trump",
+      "text": "Wow! CITI was ranked Number 1 in topping M&A Advisory Market by Value in Q1. Congratulations to Jane F and ALL of her great people. They’ve worked really hard! BIG comeback for CITI!!! President DONALD J. TRUMP",
+      "url": "https://trumpstruth.org/statuses/39204",
+      "published": "2026-06-10T13:30:58+00:00",
+      "origin": "truthsocial",
+      "tickers": [
+        "C"
+      ],
+      "held": [],
+      "new_ideas": [
+        "C"
+      ],
+      "sectors": [
+        "金融",
+        "投资银行"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 65,
+      "summary_cn": "特朗普祝贺花旗集团(C)在Q1并购顾问市场排名第一，称赞其强势回归。"
     },
     {
       "author": "Musk",
-      "text": "Short-sellers to tread carefully as Musk's SpaceX debuts",
+      "text": "SpaceX IPO demand is approaching four times oversubscribed, source says",
       "url": "",
-      "published": "Tue, 09 Jun 2026 19:09:59 GMT",
+      "published": "Tue, 09 Jun 2026 18:22:00 GMT",
       "origin": "gnews-rss",
       "source": "Reuters",
       "tickers": [],
@@ -53,74 +77,31 @@
       "sector_holdings": [
         "RKLB"
       ],
-      "stance": "neutral",
-      "relevance": 55,
-      "summary_cn": "报道SpaceX即将IPO，提醒做空者谨慎，航天板块关注度提升。"
-    },
-    {
-      "author": "Musk",
-      "text": "SpaceX IPO explained: The price is set, but retail allocation still up in the air",
-      "url": "",
-      "published": "Tue, 09 Jun 2026 17:28:35 GMT",
-      "origin": "gnews-rss",
-      "source": "CNBC",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "IPO"
-      ],
-      "sector_holdings": [
-        "RKLB"
-      ],
-      "stance": "neutral",
-      "relevance": 55,
-      "summary_cn": "SpaceX IPO定价已定但散户分配仍不确定，航天IPO关注度高。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk shared a fresh look at the AI data centers SpaceX wants to send into orbit",
-      "url": "",
-      "published": "Tue, 09 Jun 2026 11:30:11 GMT",
-      "origin": "gnews-rss",
-      "source": "Business Insider",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "AI",
-        "数据中心",
-        "航天"
-      ],
-      "sector_holdings": [
-        "RKLB"
-      ],
       "stance": "endorse",
-      "relevance": 55,
-      "summary_cn": "Musk分享SpaceX轨道AI数据中心新概念图，太空+AI融合主题持续发酵。"
+      "relevance": 70,
+      "summary_cn": "马斯克转发消息称SpaceX IPO需求接近四倍超额认购，显示市场对航天板块热情高涨。"
     },
     {
       "author": "Musk",
-      "text": "Commentary: Here's how Musk's SpaceX IPO could crash your 401(k)",
+      "text": "Want to Invest in SpaceX? Here’s What to Know Ahead of Its I.P.O.",
       "url": "",
-      "published": "Tue, 09 Jun 2026 10:00:00 GMT",
+      "published": "Wed, 10 Jun 2026 09:02:59 GMT",
       "origin": "gnews-rss",
-      "source": "Los Angeles Times",
+      "source": "The New York Times",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
         "航天",
         "IPO",
-        "市场风险"
+        "投资"
       ],
       "sector_holdings": [
         "RKLB"
       ],
-      "stance": "neutral",
-      "relevance": 55,
-      "summary_cn": "评论称SpaceX IPO可能冲击401(k)退休账户，暗示大量资金可能从其他资产流向SpaceX。"
+      "stance": "endorse",
+      "relevance": 65,
+      "summary_cn": "马斯克相关：SpaceX IPO前投资指南，反映市场对航天板块投资机会的高度关注。"
     },
     {
       "author": "Musk",
@@ -134,50 +115,14 @@
       "new_ideas": [],
       "sectors": [
         "航天",
-        "IPO"
+        "估值"
       ],
       "sector_holdings": [
         "RKLB"
       ],
-      "stance": "neutral",
-      "relevance": 55,
-      "summary_cn": "讨论SpaceX是否值1.75万亿美元估值，航天板块估值讨论升温。"
-    },
-    {
-      "author": "Trump",
-      "text": "I have just been informed by our Great Military that last night the Iranians shot down one of our highly sophisticated Apache Helicopters while patrolling over the Strait of Hormuz. There were two pilots involved, both are safe and uninjured. Nevertheless, the United States must, of necessity, respond to this attack. Thank you for your attention to this matter! President DONALD J. TRUMP",
-      "url": "https://trumpstruth.org/statuses/39169",
-      "published": "2026-06-09T16:38:07+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "国防军工",
-        "地缘政治"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
+      "stance": "endorse",
       "relevance": 65,
-      "summary_cn": "Trump 称伊朗在霍尔木兹海峡击落美军阿帕奇直升机，美国将做出回应，地缘紧张升级。"
-    },
-    {
-      "author": "Trump",
-      "text": "Both sides, Israel and Iran, are looking to do an immediate CEASEFIRE! Final negotiations on “Peace” are proceeding, subject to ignorance or stupidity getting in its way. The Blockade will remain in place, and in full force and effect, until a “Final Deal” is reached. Things should move quickly. Thank you for your attention to this matter! President DONALD J. TRUMP",
-      "url": "https://trumpstruth.org/statuses/39142",
-      "published": "2026-06-08T10:34:10+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "地缘政治",
-        "中东"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 65,
-      "summary_cn": "Trump 称以色列和伊朗正在谈判立即停火，封锁将持续至最终协议达成，中东局势有望缓和。"
+      "summary_cn": "马斯克相关报道讨论SpaceX是否值1.75万亿美元估值，凸显航天行业估值标杆。"
     },
     {
       "author": "Trump",
@@ -189,13 +134,13 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "贸易",
-        "宏观经济"
+        "宏观经济",
+        "贸易"
       ],
       "sector_holdings": [],
       "stance": "endorse",
       "relevance": 60,
-      "summary_cn": "Trump 宣称美国4月出口创纪录达3271亿美元，贸易逆差收窄，暗示经济强劲。"
+      "summary_cn": "特朗普引用报道称美国4月出口创纪录达3271亿美元，贸易逆差收窄。"
     },
     {
       "author": "Trump",
@@ -207,33 +152,69 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "贸易",
-        "宏观经济"
+        "宏观经济",
+        "贸易"
       ],
       "sector_holdings": [],
       "stance": "neutral",
-      "relevance": 55,
-      "summary_cn": "新闻报道美国贸易逆差创近34年最大增幅，与Trump自夸出口创纪录形成对比。"
+      "relevance": 60,
+      "summary_cn": "特朗普引用路透社报道，称美国贸易逆差扩大幅度为近34年来最大。"
     },
     {
-      "author": "Musk",
-      "text": "Southaven residents sue Elon Musk’s xAI alleging harm from gas turbines",
-      "url": "",
-      "published": "Tue, 09 Jun 2026 22:04:39 GMT",
-      "origin": "gnews-rss",
-      "source": "Mississippi Today",
+      "author": "Trump",
+      "text": "The Fake News Media refuses to report how EFFECTIVE the U.S. Naval BLOCKADE is, the most successful Blockade in the history of Naval Warfare. NOTHING GETS THROUGH unless we want it to. IT IS A STEEL WALL! Iran is doing ZERO business, not paying their military, or any of their bills, and quickly becoming a FAILED NATION! Lots of oil is getting out. Praise be to Allah! President DONALD J. TRUMP",
+      "url": "https://trumpstruth.org/statuses/39202",
+      "published": "2026-06-10T11:32:52+00:00",
+      "origin": "truthsocial",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "AI",
-        "能源",
-        "监管"
+        "石油",
+        "地缘政治",
+        "能源"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 55,
+      "summary_cn": "特朗普宣称美国海军对伊朗的封锁非常成功，导致伊朗石油出口受阻，暗示大量石油仍在流出。"
+    },
+    {
+      "author": "Trump",
+      "text": "I have just been informed by our Great Military that last night the Iranians shot down one of our highly sophisticated Apache Helicopters while patrolling over the Strait of Hormuz. There were two pilots involved, both are safe and uninjured. Nevertheless, the United States must, of necessity, respond to this attack. Thank you for your attention to this matter! President DONALD J. TRUMP",
+      "url": "https://trumpstruth.org/statuses/39169",
+      "published": "2026-06-09T16:38:07+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "国防",
+        "地缘政治"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 55,
+      "summary_cn": "特朗普称伊朗在霍尔木兹海峡击落一架美军阿帕奇直升机，美国将作出回应。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk Is About to Make Saving for Retirement Even Harder",
+      "url": "",
+      "published": "Wed, 10 Jun 2026 09:30:00 GMT",
+      "origin": "gnews-rss",
+      "source": "The American Prospect",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "退休金",
+        "宏观经济"
       ],
       "sector_holdings": [],
       "stance": "attack",
       "relevance": 50,
-      "summary_cn": "Southaven居民起诉Musk的xAI，指控其燃气轮机造成危害，AI数据中心面临环保监管风险。"
+      "summary_cn": "马斯克相关评论称其政策可能使退休储蓄变得更加困难。"
     },
     {
       "author": "Musk",
@@ -252,39 +233,82 @@
       "sector_holdings": [],
       "stance": "neutral",
       "relevance": 50,
-      "summary_cn": "评论文章称Musk用'电锯'削减政府开支，但政府仍大举开支，涉及DOGE效率改革主题。"
-    }
-  ],
-  "held_hits": [],
-  "new_ideas": [],
-  "sector_hits": [
+      "summary_cn": "马斯克相关评论文章讨论其削减政府开支的努力与政府支出现实的矛盾。"
+    },
     {
-      "author": "Musk",
-      "text": "Elon Musk Reveals Details For SpaceX-Tesla Orbiting Data Center",
-      "url": "",
-      "published": "Tue, 09 Jun 2026 17:37:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Investor's Business Daily",
+      "author": "Trump",
+      "text": "Iran’s Military is a complete and total mess. Much of it, like their Navy and Air Force, doesn’t even exist anymore - They have been completely defeated. Iran is all talk and no action. The Bully of the Middle East is DEAD!!! They’ve taken too long to negotiate a deal that would have been great for them, now they will have to pay the price!!! President DONALD J. TRUMP",
+      "url": "https://trumpstruth.org/statuses/39201",
+      "published": "2026-06-10T11:03:39+00:00",
+      "origin": "truthsocial",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "AI",
-        "数据中心",
-        "航天"
+        "地缘政治",
+        "国防"
       ],
-      "sector_holdings": [
-        "RKLB"
-      ],
-      "stance": "endorse",
-      "relevance": 60,
-      "summary_cn": "Musk透露SpaceX-Tesla轨道数据中心细节，涉及太空AI基础设施概念，SpaceX未上市但航天板块受关注。"
-    },
+      "sector_holdings": [],
+      "stance": "attack",
+      "relevance": 50,
+      "summary_cn": "特朗普抨击伊朗军事力量已崩溃，警告其将为拖延谈判付出代价。"
+    }
+  ],
+  "held_hits": [],
+  "new_ideas": [
     {
       "author": "Musk",
-      "text": "Short-sellers to tread carefully as Musk's SpaceX debuts",
+      "text": "Tesla Stock: FSD Approved In Denmark; Elon Musk Says This About AI Chips",
       "url": "",
-      "published": "Tue, 09 Jun 2026 19:09:59 GMT",
+      "published": "Wed, 10 Jun 2026 15:38:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Investor's Business Daily",
+      "tickers": [
+        "TSLA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "TSLA"
+      ],
+      "sectors": [
+        "电动车",
+        "自动驾驶",
+        "AI"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 75,
+      "summary_cn": "马斯克相关：特斯拉FSD在丹麦获批，马斯克就AI芯片发表看法，利好特斯拉自动驾驶业务。"
+    },
+    {
+      "author": "Trump",
+      "text": "Wow! CITI was ranked Number 1 in topping M&A Advisory Market by Value in Q1. Congratulations to Jane F and ALL of her great people. They’ve worked really hard! BIG comeback for CITI!!! President DONALD J. TRUMP",
+      "url": "https://trumpstruth.org/statuses/39204",
+      "published": "2026-06-10T13:30:58+00:00",
+      "origin": "truthsocial",
+      "tickers": [
+        "C"
+      ],
+      "held": [],
+      "new_ideas": [
+        "C"
+      ],
+      "sectors": [
+        "金融",
+        "投资银行"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 65,
+      "summary_cn": "特朗普祝贺花旗集团(C)在Q1并购顾问市场排名第一，称赞其强势回归。"
+    }
+  ],
+  "sector_hits": [
+    {
+      "author": "Musk",
+      "text": "SpaceX IPO demand is approaching four times oversubscribed, source says",
+      "url": "",
+      "published": "Tue, 09 Jun 2026 18:22:00 GMT",
       "origin": "gnews-rss",
       "source": "Reuters",
       "tickers": [],
@@ -297,74 +321,31 @@
       "sector_holdings": [
         "RKLB"
       ],
-      "stance": "neutral",
-      "relevance": 55,
-      "summary_cn": "报道SpaceX即将IPO，提醒做空者谨慎，航天板块关注度提升。"
-    },
-    {
-      "author": "Musk",
-      "text": "SpaceX IPO explained: The price is set, but retail allocation still up in the air",
-      "url": "",
-      "published": "Tue, 09 Jun 2026 17:28:35 GMT",
-      "origin": "gnews-rss",
-      "source": "CNBC",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "IPO"
-      ],
-      "sector_holdings": [
-        "RKLB"
-      ],
-      "stance": "neutral",
-      "relevance": 55,
-      "summary_cn": "SpaceX IPO定价已定但散户分配仍不确定，航天IPO关注度高。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk shared a fresh look at the AI data centers SpaceX wants to send into orbit",
-      "url": "",
-      "published": "Tue, 09 Jun 2026 11:30:11 GMT",
-      "origin": "gnews-rss",
-      "source": "Business Insider",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "AI",
-        "数据中心",
-        "航天"
-      ],
-      "sector_holdings": [
-        "RKLB"
-      ],
       "stance": "endorse",
-      "relevance": 55,
-      "summary_cn": "Musk分享SpaceX轨道AI数据中心新概念图，太空+AI融合主题持续发酵。"
+      "relevance": 70,
+      "summary_cn": "马斯克转发消息称SpaceX IPO需求接近四倍超额认购，显示市场对航天板块热情高涨。"
     },
     {
       "author": "Musk",
-      "text": "Commentary: Here's how Musk's SpaceX IPO could crash your 401(k)",
+      "text": "Want to Invest in SpaceX? Here’s What to Know Ahead of Its I.P.O.",
       "url": "",
-      "published": "Tue, 09 Jun 2026 10:00:00 GMT",
+      "published": "Wed, 10 Jun 2026 09:02:59 GMT",
       "origin": "gnews-rss",
-      "source": "Los Angeles Times",
+      "source": "The New York Times",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
         "航天",
         "IPO",
-        "市场风险"
+        "投资"
       ],
       "sector_holdings": [
         "RKLB"
       ],
-      "stance": "neutral",
-      "relevance": 55,
-      "summary_cn": "评论称SpaceX IPO可能冲击401(k)退休账户，暗示大量资金可能从其他资产流向SpaceX。"
+      "stance": "endorse",
+      "relevance": 65,
+      "summary_cn": "马斯克相关：SpaceX IPO前投资指南，反映市场对航天板块投资机会的高度关注。"
     },
     {
       "author": "Musk",
@@ -378,14 +359,14 @@
       "new_ideas": [],
       "sectors": [
         "航天",
-        "IPO"
+        "估值"
       ],
       "sector_holdings": [
         "RKLB"
       ],
-      "stance": "neutral",
-      "relevance": 55,
-      "summary_cn": "讨论SpaceX是否值1.75万亿美元估值，航天板块估值讨论升温。"
+      "stance": "endorse",
+      "relevance": 65,
+      "summary_cn": "马斯克相关报道讨论SpaceX是否值1.75万亿美元估值，凸显航天行业估值标杆。"
     }
   ]
 }
