@@ -42,6 +42,38 @@ for i in $(seq 1 $MAX_RETRIES); do
     echo "  rebase clean, will retry push"
     sleep $((i * 3))
   else
+    # ── Generated-file auto-resolution (2026-06-10) ─────────────────────────
+    # dashboard.json is REBUILT, never hand-merged — a content conflict on it
+    # carries no information. Before today this aborted with "manual resolution
+    # needed", which silently stranded every intraday/report commit whenever
+    # pushes raced (4h of cron commits piled up locally on 06-10). If every
+    # conflicted path in the replay is a known generated artifact, take either
+    # side and continue; the next rebuild (≤30 min away) restores freshness.
+    # Any non-generated conflict still aborts → human gate unchanged.
+    GENERATED='^(assets/data/dashboard\.json|logs/dashboard_build_status\.json)$'
+    AUTO_OK=true
+    while [ -d "$(git rev-parse --git-path rebase-merge)" ] || \
+          [ -d "$(git rev-parse --git-path rebase-apply)" ]; do
+      CONFLICTS=$(git diff --name-only --diff-filter=U)
+      if [ -z "$CONFLICTS" ]; then
+        GIT_EDITOR=true git rebase --continue >/dev/null 2>&1 || { AUTO_OK=false; break; }
+        continue
+      fi
+      if echo "$CONFLICTS" | grep -vqE "$GENERATED"; then
+        AUTO_OK=false; break   # real source conflict — keep the human gate
+      fi
+      echo "  generated-file conflict ($(echo "$CONFLICTS" | tr '\n' ' ')) — auto-take theirs + continue"
+      echo "$CONFLICTS" | while IFS= read -r f; do
+        git checkout --theirs -- "$f" 2>/dev/null || git checkout --ours -- "$f" || true
+        git add -- "$f"
+      done
+      GIT_EDITOR=true git rebase --continue >/dev/null 2>&1 || { AUTO_OK=false; break; }
+    done
+    if [ "$AUTO_OK" = true ] && ! { [ -d "$(git rev-parse --git-path rebase-merge)" ] || [ -d "$(git rev-parse --git-path rebase-apply)" ]; }; then
+      echo "  rebase auto-resolved (generated files only), will retry push"
+      sleep $((i * 3))
+      continue
+    fi
     # real content conflict (same lines changed both sides) — abort + don't retry.
     echo "  ✗ rebase conflict — abort, leaving commit local"
     git rebase --abort 2>/dev/null || true
