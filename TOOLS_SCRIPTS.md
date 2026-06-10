@@ -13,7 +13,16 @@ title: clawock · scripts 详细参考
 ### 核心（当前在用）
 - **`scripts/data/fetch_us_stocks.py`**：美股多 provider 抓取（7 路 fallback），自动写回 portfolio.json；prev_close 由 Polygon `/prev` 独立获取（带日期戳）
 - **`scripts/data/analyze_us_stocks.py`**：美股完整分析 = 刷价格 + RSI-14/MA20/50 + Finnhub 新闻 + 信号
-- **`scripts/data/fetch_us_filings.py`**：SEC EDGAR 对接 — 10-K/10-Q/8-K filings、XBRL 财务概念、Form 4 insider、13F-HR；无需 API key；Mode 3 fundamental 深挖时用
+- **`scripts/data/fetch_us_filings.py`**：SEC EDGAR 对接 — 10-K/10-Q/8-K filings、XBRL 财务概念、Form 4 insider、13F-HR；无需 API key；Mode 3 fundamental 深挖时用。完整用法（2026-06-10 自 TOOLS.md 移入控 16K）：
+
+| 数据 | 用法 |
+|---|---|
+| 最近 filings (10-K/10-Q/8-K) | `fetch_us_filings.py RKLB` （`--filings 10-K,10-Q` 指定表型） |
+| XBRL 关键财务概念（营收/净利/现金/EPS 等 13 项）| `--financials` |
+| Insider Form 4 / 13F-HR | `--form4` / `--13f` |
+| 机器可读 | 任一模式加 `--json` |
+
+  注意：速率限制 10 req/sec（脚本默认 8/sec）超量 403；`SEC_USER_AGENT` 可放 `.api_keys`；ticker→CIK 本地缓存 7 天；非美股票返回 "CIK not found"
 - **`scripts/data/fetch_fx.py`**：USDHKD 汇率（Frankfurter → exchangerate.host → Yahoo HKD=X 三路 fallback）；4h 本地缓存；`--convert AMT FROM TO` 直接换算。**HK + US 算 book total 必须先调它**
 - **`scripts/data/analyze_hk_stocks.py`**：港股完整分析 = Tencent + Eastmoney HK 双源对账 → stooq → yfinance 兜底 + 恒指/恒科 + Finnhub 新闻 + 信号；c/pc 偏差 > 1% 写入 `_divergence`
 - `check_portfolio.sh`：快速查看持仓

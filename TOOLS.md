@@ -70,23 +70,14 @@ bash check_portfolio.sh
 3. **stooq.com** CSV — 同日 OHLCV，新 IPO 无覆盖；prev_close 用 open 近似（低置信度）
 4. **yfinance** — 经常被限速，最后兜底
 
-⚠️ **2026-05-13 → 2026-05-18 期间 Eastmoney HK 曾 502，已恢复并重新接入**
-✓ **00100 MINIMAX** 现在有 Eastmoney 作为第二独立源（之前只有 Tencent 单点）
 
 ### 美股 & 港股脚本（推荐用法）
 
 ```bash
-# 美股（含 RSI/MA/新闻/信号）
-python3 scripts/data/analyze_us_stocks.py             # 完整分析（默认带新闻）
-python3 scripts/data/analyze_us_stocks.py --no-news   # 跳过新闻（省 Finnhub 配额）
-python3 scripts/data/analyze_us_stocks.py --no-fetch  # 用缓存价，只跑分析
-python3 scripts/data/fetch_us_stocks.py               # 仅刷价格
-
-# 港股（含恒指/恒科/P&L/Finnhub新闻/信号）
-python3 scripts/data/analyze_hk_stocks.py             # 完整分析
-python3 scripts/data/analyze_hk_stocks.py --no-fetch  # 用缓存价
-python3 scripts/data/analyze_hk_stocks.py --no-news   # 跳过新闻
-python3 scripts/data/analyze_hk_stocks.py --dry-run   # 不写文件
+python3 scripts/data/analyze_us_stocks.py   # 美股完整分析（RSI/MA/新闻/信号）
+python3 scripts/data/analyze_hk_stocks.py   # 港股完整分析（恒指/恒科/P&L/信号）
+# 共通 flag：--no-news(省Finnhub配额) --no-fetch(用缓存价) ；hk 另有 --dry-run
+python3 scripts/data/fetch_us_stocks.py     # 仅刷美股价格
 ```
 
 ### 美股 fallback 链
@@ -113,25 +104,8 @@ python3 scripts/data/analyze_hk_stocks.py --dry-run   # 不写文件
 - 换算：`python3 scripts/data/fetch_fx.py --convert 10000 HKD USD`
 - fallback：Frankfurter → exchangerate.host → Yahoo HKD=X；4h 本地缓存
 
-### 美股基本面 / SEC filings（脚本，2026-05-16 加入）
-
-**`scripts/data/fetch_us_filings.py`** — 直接对接 SEC EDGAR，**全免费、无需 API key**（仅需 User-Agent 标识身份）。覆盖 Financial Datasets 付费档才有的内容：
-
-| 数据 | endpoint | 用法 |
-|---|---|---|
-| 最近 filings (10-K/10-Q/8-K) | submissions API | `python3 scripts/data/fetch_us_filings.py RKLB` |
-| 指定表型 | submissions filter | `python3 scripts/data/fetch_us_filings.py RKLB --filings 10-K,10-Q` |
-| XBRL 关键财务概念（营收/净利/现金/EPS 等 13 项）| companyfacts API | `python3 scripts/data/fetch_us_filings.py RKLB --financials` |
-| Insider Form 4 | submissions filter | `python3 scripts/data/fetch_us_filings.py RKLB --form4` |
-| 13F-HR（基金持仓） | submissions filter | `python3 scripts/data/fetch_us_filings.py BRK-A --13f` |
-| 机器可读 JSON | 任一模式加 `--json` | `python3 scripts/data/fetch_us_filings.py RKLB --json` |
-
-**注意**：
-- 速率限制 **10 req/sec**（脚本默认 8/sec 留余量）；超量 SEC 会 403
-- `SEC_USER_AGENT` 可放进 `.api_keys`（格式 `Name email@domain`），默认用 openclaw 标识
-- ticker→CIK 映射本地缓存 7 天，免重复抓
-- 非美股票（如港股 09988）无数据 → 返回 "CIK not found"
-- 不替代 `scripts/data/fetch_us_stocks.py` 抓价格 — 这是**纯基本面/filings 补充**
+### 美股基本面 / SEC filings
+`fetch_us_filings.py {TICKER}` — SEC EDGAR 免费无 key：10-K/10-Q/8-K、`--financials`(XBRL 13项)、`--form4`(insider)、`--13f`、`--json`。速率 8/sec；非美股票返回 "CIK not found"；**纯基本面补充，不替代 fetch_us_stocks 抓价**。完整参数表+注意事项 → `TOOLS_SCRIPTS.md`。
 
 ### 说明
 
@@ -175,7 +149,7 @@ python3 scripts/data/analyze_hk_stocks.py --dry-run   # 不写文件
 
 **其它**：`mark_followed.py`(calibration ground-truth) · `xiaomi_llm.py`(GH Action 直调小米绕 gateway,Xiaomi→MiniMax fallback) · `gh_action_*.py` · `update_portfolio.py`。**每脚本详细说明 + 已废弃 legacy → `TOOLS_SCRIPTS.md`**。
 
-### Cron map（**11 job** @ `~/.openclaw/cron/jobs.json`；时间 HKT）
+### Cron map（**11 job**，存 SQLite 经 `openclaw cron list` 读；时间 HKT）
 
 | Job | Schedule | Mode | Harness |
 |---|---|---|---|
