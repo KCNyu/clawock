@@ -280,6 +280,41 @@ layout: null
   .card h3 .badge { float: right; text-transform: none; letter-spacing: 0; }
 
   /* =========================================================
+     Mobile information-entropy fold — diagnostic cards (Concentration /
+     Leveraged ETF / Risk Metrics) collapse to a one-line peek so Hero answers
+     "怎么样了" in ~2 screens instead of 5. Nothing is removed: tap to expand,
+     state persists per card. Desktop (3-col, space to spare) always expanded.
+     ========================================================= */
+  .card.fold-m > h3 .peek {
+    display: none; text-transform: none; letter-spacing: 0;
+    font-family: var(--mono); font-weight: 600; font-size: 11px;
+    color: var(--text); margin-left: 8px; vertical-align: middle;
+  }
+  @media (max-width: 1023px) {
+    .card.fold-m > h3 {
+      margin-bottom: 0; cursor: pointer; position: relative; padding-right: 18px;
+      -webkit-tap-highlight-color: transparent; user-select: none;
+      /* keep the one-line header tappable at thumb size */
+      min-height: 24px; display: flex; align-items: center; flex-wrap: wrap; gap: 2px 0;
+    }
+    .card.fold-m > h3::after {
+      content: "›"; position: absolute; right: 2px; top: 50%;
+      transform: translateY(-50%) rotate(90deg); transition: transform .15s;
+      color: var(--text-faint); font-size: 15px; font-weight: 400;
+    }
+    .card.fold-m.open > h3 { margin-bottom: 10px; }
+    .card.fold-m.open > h3::after { transform: translateY(-50%) rotate(-90deg); }
+    .card.fold-m:not(.open) > :not(h3) { display: none; }
+    .card.fold-m:not(.open) > h3 .peek { display: inline; }
+  }
+
+  /* Market snapshot source captions are attribution noise on a phone — the
+     stale ⚠ marker already covers the failure case. Desktop keeps them. */
+  @media (max-width: 480px) {
+    .market-cell .src { display: none; }
+  }
+
+  /* =========================================================
      Hero: Market Snapshot (大盘指数 vs 我的组合)
      ========================================================= */
   .market-grid {
@@ -1352,8 +1387,8 @@ layout: null
     </div>
 
 
-    <div class="card">
-      <h3>Concentration (HHI)</h3>
+    <div class="card fold-m" data-fold-id="conc">
+      <h3>Concentration (HHI)<span class="peek" id="peek-conc"></span></h3>
       <div class="hhi-row">
         <div class="hhi-card" id="hhi-us">
           <div class="lbl">US</div>
@@ -1371,8 +1406,8 @@ layout: null
     </div>
 
 
-    <div class="card">
-      <h3>Leveraged ETF Exposure <span class="muted" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:11px">(2x/3x ÷ book)</span></h3>
+    <div class="card fold-m" data-fold-id="lev">
+      <h3>Leveraged ETF Exposure <span class="muted" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:11px">(2x/3x ÷ book)</span><span class="peek" id="peek-lev"></span></h3>
       <div class="lev-row">
         <div class="lev-cell">
           <div class="lbl">US leg</div>
@@ -1391,8 +1426,8 @@ layout: null
     </div>
 
 
-    <div class="card">
-      <h3>Risk Metrics <span class="muted" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:11px">(30d)</span> <span class="badge muted" id="risk-alert-count"></span></h3>
+    <div class="card fold-m" data-fold-id="riskm">
+      <h3>Risk Metrics <span class="muted" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:11px">(30d)</span> <span class="badge muted" id="risk-alert-count"></span><span class="peek" id="peek-riskm"></span></h3>
       <div class="risk-grid">
         <div class="risk-cell">
           <div class="lbl">US β (vs SPX)</div>
@@ -2407,7 +2442,45 @@ layout: null
     renderPlanTimeline();
     renderCalibByTrigger();
     renderCalibByDriver();
+    updateFoldPeeks();
   }
+
+  // ── Mobile fold peeks ──
+  // One-line summaries shown in the collapsed diagnostic cards' headers.
+  // Reads the values straight from the already-rendered DOM (not from DATA)
+  // so it never drifts from what the expanded card would show.
+  function updateFoldPeeks() {
+    const txt = (sel) => {
+      const el = document.querySelector(sel);
+      return el ? el.textContent.trim() : "";
+    };
+    const setPeek = (id, parts) => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = parts.filter(Boolean).join(" · ");
+    };
+    setPeek("peek-conc", [
+      txt("#hhi-us .inner") && "US " + txt("#hhi-us .inner"),
+      txt("#hhi-hk .inner") && "HK " + txt("#hhi-hk .inner"),
+    ]);
+    setPeek("peek-lev", [txt("#lev-combined") && "综合 " + txt("#lev-combined")]);
+    const alerts = txt("#risk-alert-count").replace(/[()\s]/g, "");
+    setPeek("peek-riskm", [
+      txt("#risk-beta-us") && "β " + txt("#risk-beta-us"),
+      txt("#risk-vol") && "vol " + txt("#risk-vol"),
+      alerts && alerts + "⚠",
+    ]);
+  }
+
+  // Fold/unfold on header tap; remember per-card choice across visits.
+  document.querySelectorAll(".card.fold-m").forEach(card => {
+    const id = "fold:" + (card.dataset.foldId || "");
+    try { if (localStorage.getItem(id) === "open") card.classList.add("open"); } catch (e) {}
+    const h = card.querySelector(":scope > h3");
+    if (h) h.addEventListener("click", () => {
+      const open = card.classList.toggle("open");
+      try { localStorage.setItem(id, open ? "open" : "closed"); } catch (e) {}
+    });
+  });
 
   function renderHeader() {
     // Header age label is owned by loadData() / _updateAgeLabel — they keep it
