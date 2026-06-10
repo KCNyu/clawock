@@ -1,0 +1,145 @@
+{
+  "date": "2026-06-10",
+  "fx_rate_usdhkd": 7.8364,
+  "fx_source": "Frankfurter",
+  "regime": {
+    "us": "neutral",
+    "hk": "trending-down"
+  },
+  "book": {
+    "usd_total_pnl": -3614.88,
+    "hkd_total_pnl": -28327.66,
+    "hk_leg_hkd": -27878.24,
+    "us_leg_usd": -57.35
+  },
+  "actions": [
+    {
+      "ticker": "PLTU",
+      "bucket": "cut",
+      "size_pct": 100,
+      "size_shares": 14,
+      "trigger_type": "open",
+      "trigger_price": null,
+      "trigger_condition": "开盘任意价 — 硬止损 -18.5% ≤ -18% 线",
+      "confidence": 0.70,
+      "driven_by": "technical",
+      "rationale": "仓位硬闸：杠杆ETF硬止损触发(-18.5% ≤ -18%)。PLTR 破200MA -17.9%。2x日内重置在下杀中加速衰减。纪律性清仓，非消息驱动。PLTU历史减仓×7胜6(86%)，但清仓×4胜0——硬止损是规则不是择时。"
+    },
+    {
+      "ticker": "ROBN",
+      "bucket": "trim_on_rebound",
+      "size_pct": 50,
+      "size_shares": 20,
+      "trigger_type": "price_above",
+      "trigger_price": 22.0,
+      "trigger_condition": "ROBN 反弹至 ≥22.0 时卖出20股",
+      "confidence": 0.55,
+      "driven_by": "technical",
+      "rationale": "仓位硬闸：regime delever red。HOOD 破200线 -18.7%+波动82%过热。US杠杆ETF 72.6%>50% cap。ROBN历史清仓×15胜6(40%)——但这次是规则触发非择时。昨日计划cut未执行，今日重提。"
+    },
+    {
+      "ticker": "00100",
+      "bucket": "trim_on_rebound",
+      "size_pct": 33,
+      "size_shares": 20,
+      "trigger_type": "price_above",
+      "trigger_price": 480,
+      "trigger_condition": "00100 反弹至 ≥480 时卖出20股（1手）",
+      "confidence": 0.50,
+      "driven_by": "technical",
+      "rationale": "仓位硬闸：single_name 46.13%>35% cap。5日跌-31.4%超卖区域。00100历史减仓×7胜5(71%)，减仓有edge。等反弹减仓避免恐慌底卖出。即使减至40股仍占~40%——下一session继续减到35%。"
+    },
+    {
+      "ticker": "07226",
+      "bucket": "trim_on_rebound",
+      "size_pct": 19,
+      "size_shares": 1200,
+      "trigger_type": "price_above",
+      "trigger_price": 3.65,
+      "trigger_condition": "07226 反弹至 ≥3.65 时卖出1200股",
+      "confidence": 0.50,
+      "driven_by": "technical",
+      "rationale": "仓位硬闸：single_name 36.85%>35%+HK杠杆ETF 36.9%>25%。昨日计划cut 3100未执行。07226历史减仓×8胜6(75%)。部分减仓+下session继续。HSTECH +0.29%但低于200MA -13.1%，趋势OFF确认。"
+    },
+    {
+      "ticker": "MSFU",
+      "bucket": "trim_on_rebound",
+      "size_pct": 50,
+      "size_shares": 10,
+      "trigger_type": "price_above",
+      "trigger_price": 27.0,
+      "trigger_condition": "MSFU 反弹至 ≥27.0 时卖出10股",
+      "confidence": 0.45,
+      "driven_by": "technical",
+      "rationale": "仓位硬闸：US杠杆ETF 72.6%>50% cap。PLTU+ROBN减仓后仍超限(约58%)，需MSFU配合。MSFT 破200MA -11.4%。MSFU历史持×13胜12(92%)——减仓是纪律不是thesis判断。"
+    },
+    {
+      "ticker": "RKLB",
+      "bucket": "hold_and_watch",
+      "size_pct": 0,
+      "size_shares": 0,
+      "trigger_type": "price_below",
+      "trigger_price": 95,
+      "trigger_condition": "RKLB 跌破 95 考虑减仓",
+      "confidence": 0.55,
+      "driven_by": "catalyst",
+      "rationale": "+52.44%浮盈。SpaceX IPO 6/12双刃剑（板块关注vs资金分流）。Space Force $90M合同confirming。5股小仓。hold。RKLB历史持×13胜10(77%)。"
+    },
+    {
+      "ticker": "CRCL",
+      "bucket": "hold_and_watch",
+      "size_pct": 0,
+      "size_shares": 0,
+      "trigger_type": "price_below",
+      "trigger_price": 70,
+      "trigger_condition": "CRCL 跌破 70 考虑减仓",
+      "confidence": 0.45,
+      "driven_by": "technical",
+      "rationale": "-6.78%浮亏，小仓6.3%。SoftBank减持已知利空。近5日-13.3%但无硬催化翻转。hold。"
+    },
+    {
+      "ticker": "02208",
+      "bucket": "hold_and_watch",
+      "size_pct": 0,
+      "size_shares": 0,
+      "trigger_type": "price_below",
+      "trigger_price": 10.0,
+      "trigger_condition": "02208 跌破 10.0 考虑减仓",
+      "confidence": 0.55,
+      "driven_by": "technical",
+      "rationale": "Q1利润+60% YoY。JPM增持。小仓7.7%。大手卖出block trade已消化。hold。历史持×9胜8(89%)。"
+    },
+    {
+      "ticker": "03032",
+      "bucket": "hold_and_watch",
+      "size_pct": 0,
+      "size_shares": 0,
+      "trigger_type": "manual",
+      "trigger_price": null,
+      "trigger_condition": "跟踪指数，无杠杆，hold",
+      "confidence": 0.50,
+      "driven_by": "macro",
+      "rationale": "1x HSTECH ETF，无杠杆decay。小仓1.6%。跟踪指数。hold。"
+    },
+    {
+      "ticker": "03033",
+      "bucket": "hold_and_watch",
+      "size_pct": 0,
+      "size_shares": 0,
+      "trigger_type": "manual",
+      "trigger_price": null,
+      "trigger_condition": "跟踪指数，无杠杆，hold",
+      "confidence": 0.50,
+      "driven_by": "macro",
+      "rationale": "1x HSTECH ETF。HSTECH纳入生效。小仓7.7%。hold。"
+    }
+  ],
+  "watch_levels": {
+    "hstech_breakdown": 4500,
+    "pltu_stop_triggered": true,
+    "cpi_may_release": "2026-06-11",
+    "fomc_meeting": "2026-06-17",
+    "spacex_ipo": "2026-06-12",
+    "book_force_derisk_usd": -3000
+  }
+}
