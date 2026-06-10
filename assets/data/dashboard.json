@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-10T00:08:57.806649Z",
+  "generated_at": "2026-06-10T01:13:07.668986Z",
   "last_updated": "2026/06/10 08:00 HKT",
   "fx": {
     "usdhkd": 7.8364,
@@ -3263,78 +3263,78 @@
     ]
   },
   "macro": {
-    "generated_at": "2026-06-08T23:03:23.060528+00:00",
+    "generated_at": "2026-06-10T01:10:38.528007+00:00",
     "vix": {
       "symbol": "^VIX",
-      "price": 18.92,
-      "prev": 21.51,
-      "change_pct": -12.04,
-      "as_of": 1780949701,
+      "price": 19.87,
+      "prev": 18.92,
+      "change_pct": 5.02,
+      "as_of": 1781036101,
       "source": "yahoo"
     },
     "treasury_10y": {
       "symbol": "^TNX",
-      "price": 4.552,
-      "prev": 4.536,
-      "change_pct": 0.35,
-      "as_of": 1780945193,
+      "price": 4.528,
+      "prev": 4.552,
+      "change_pct": -0.53,
+      "as_of": 1781031594,
       "source": "yahoo",
-      "yield_pct": 4.552
+      "yield_pct": 4.528
     },
     "dxy": {
       "symbol": "DX-Y.NYB",
-      "price": 100.0,
-      "prev": 100.045,
-      "change_pct": -0.04,
-      "as_of": 1780956298,
+      "price": 99.968,
+      "prev": 99.909,
+      "change_pct": 0.06,
+      "as_of": 1781053237,
       "source": "yahoo"
     },
     "fear_greed": {
-      "score": 40.1,
+      "score": 33.4,
       "rating": "fear",
-      "prev_close": 42.1,
-      "prev_1_week": 56.5,
-      "as_of": "2026-06-08T22:46:19+00:00"
+      "prev_close": 40.1,
+      "prev_1_week": 56.1,
+      "as_of": "2026-06-09T23:59:58+00:00"
     },
     "hsi": {
       "symbol": "^HSI",
-      "price": 24657.06,
-      "prev": 24961.95,
-      "change_pct": -1.22,
+      "price": 24565.9,
+      "prev": 24565.9,
+      "change_pct": 0.0,
       "source": "tencent"
     },
     "hstech": {
       "symbol": "^HSTECH",
-      "price": 4755.91,
-      "prev": 4888.39,
-      "change_pct": -2.71,
+      "price": 4769.61,
+      "prev": 4769.61,
+      "change_pct": 0.0,
       "source": "tencent"
     },
     "spx": {
       "symbol": "^GSPC",
-      "price": 7405.73,
-      "prev": 7383.74,
-      "change_pct": 0.3,
-      "as_of": 1780952208,
+      "price": 7386.65,
+      "prev": 7405.73,
+      "change_pct": -0.26,
+      "as_of": 1781040879,
       "source": "yahoo"
     },
     "nasdaq": {
       "symbol": "^IXIC",
-      "price": 25929.66,
-      "prev": 25709.43,
-      "change_pct": 0.86,
+      "price": 25678.82,
+      "prev": 25929.66,
+      "change_pct": -0.97,
       "source": "tencent"
     },
     "fed_press": [
       {
-        "date": "2026-06-02",
-        "title": "Agencies remove additional references to reputation risk",
-        "url": "https://www.federalreserve.gov/newsevents/pressreleases/bcreg20260602a.htm"
+        "date": "2026-06-09",
+        "title": "Federal Reserve Board announces that results from its annual bank stress test will be released on Wednesday, June 24, at 4 p.m. EDT.",
+        "url": "https://www.federalreserve.gov/newsevents/pressreleases/bcreg20260609a.htm"
       }
     ]
   },
   "influencer_feed": {
-    "generated_at": "2026-06-09T15:46:42.112187+00:00",
+    "generated_at": "2026-06-09T23:04:18.856182+00:00",
     "lookback_hours": 48,
     "sources": {
       "trump": "trumpstruth.org/feed (primary)",
@@ -3343,7 +3343,7 @@
     },
     "llm_filtered": true,
     "counts": {
-      "total": 9,
+      "total": 12,
       "held_hits": 0,
       "new_ideas": 0,
       "sector_hits": 6
@@ -3353,7 +3353,7 @@
         "author": "Musk",
         "text": "Elon Musk Reveals Details For SpaceX-Tesla Orbiting Data Center",
         "url": "",
-        "published": "Tue, 09 Jun 2026 14:21:00 GMT",
+        "published": "Tue, 09 Jun 2026 17:37:00 GMT",
         "origin": "gnews-rss",
         "source": "Investor's Business Daily",
         "tickers": [],
@@ -3365,43 +3365,17 @@
           "航天"
         ],
         "sector_holdings": [
-          "MSFU",
-          "PLTU",
           "RKLB"
         ],
         "stance": "endorse",
         "relevance": 60,
-        "summary_cn": "Musk 透露 SpaceX 与 Tesla 联合打造在轨数据中心的细节，涉及 AI 与航天交叉领域。"
-      },
-      {
-        "author": "Musk",
-        "text": "Elon Musk Shows Detailed Design of AI Data Center Satellite",
-        "url": "",
-        "published": "Tue, 09 Jun 2026 00:53:00 GMT",
-        "origin": "gnews-rss",
-        "source": "Bloomberg.com",
-        "tickers": [],
-        "held": [],
-        "new_ideas": [],
-        "sectors": [
-          "AI",
-          "数据中心",
-          "卫星通信"
-        ],
-        "sector_holdings": [
-          "MSFU",
-          "PLTU",
-          "RKLB"
-        ],
-        "stance": "endorse",
-        "relevance": 60,
-        "summary_cn": "Musk 展示 AI 数据中心卫星的详细设计，推动太空 AI 基础设施概念。"
+        "summary_cn": "Musk透露SpaceX-Tesla轨道数据中心细节，涉及太空AI基础设施概念，SpaceX未上市但航天板块受关注。"
       },
       {
         "author": "Musk",
         "text": "Short-sellers to tread carefully as Musk's SpaceX debuts",
         "url": "",
-        "published": "Tue, 09 Jun 2026 10:40:49 GMT",
+        "published": "Tue, 09 Jun 2026 19:09:59 GMT",
         "origin": "gnews-rss",
         "source": "Reuters",
         "tickers": [],
@@ -3409,14 +3383,57 @@
         "new_ideas": [],
         "sectors": [
           "航天",
-          "做空"
+          "IPO"
         ],
         "sector_holdings": [
           "RKLB"
         ],
         "stance": "neutral",
         "relevance": 55,
-        "summary_cn": "报道称 SpaceX 登陆资本市场，做空者需谨慎，暗示航天板块可能迎来新变量。"
+        "summary_cn": "报道SpaceX即将IPO，提醒做空者谨慎，航天板块关注度提升。"
+      },
+      {
+        "author": "Musk",
+        "text": "SpaceX IPO explained: The price is set, but retail allocation still up in the air",
+        "url": "",
+        "published": "Tue, 09 Jun 2026 17:28:35 GMT",
+        "origin": "gnews-rss",
+        "source": "CNBC",
+        "tickers": [],
+        "held": [],
+        "new_ideas": [],
+        "sectors": [
+          "航天",
+          "IPO"
+        ],
+        "sector_holdings": [
+          "RKLB"
+        ],
+        "stance": "neutral",
+        "relevance": 55,
+        "summary_cn": "SpaceX IPO定价已定但散户分配仍不确定，航天IPO关注度高。"
+      },
+      {
+        "author": "Musk",
+        "text": "Elon Musk shared a fresh look at the AI data centers SpaceX wants to send into orbit",
+        "url": "",
+        "published": "Tue, 09 Jun 2026 11:30:11 GMT",
+        "origin": "gnews-rss",
+        "source": "Business Insider",
+        "tickers": [],
+        "held": [],
+        "new_ideas": [],
+        "sectors": [
+          "AI",
+          "数据中心",
+          "航天"
+        ],
+        "sector_holdings": [
+          "RKLB"
+        ],
+        "stance": "endorse",
+        "relevance": 55,
+        "summary_cn": "Musk分享SpaceX轨道AI数据中心新概念图，太空+AI融合主题持续发酵。"
       },
       {
         "author": "Musk",
@@ -3438,28 +3455,7 @@
         ],
         "stance": "neutral",
         "relevance": 55,
-        "summary_cn": "评论称 SpaceX IPO 可能冲击 401(k) 退休账户，暗示大规模 IPO 对市场资金的虹吸效应。"
-      },
-      {
-        "author": "Musk",
-        "text": "SpaceX's stock market blast-off could be Musk's biggest gamble yet",
-        "url": "",
-        "published": "Mon, 08 Jun 2026 23:22:17 GMT",
-        "origin": "gnews-rss",
-        "source": "BBC",
-        "tickers": [],
-        "held": [],
-        "new_ideas": [],
-        "sectors": [
-          "航天",
-          "IPO"
-        ],
-        "sector_holdings": [
-          "RKLB"
-        ],
-        "stance": "neutral",
-        "relevance": 55,
-        "summary_cn": "报道称 SpaceX 上市可能是 Musk 最大的赌注，暗示航天板块即将迎来重大事件。"
+        "summary_cn": "评论称SpaceX IPO可能冲击401(k)退休账户，暗示大量资金可能从其他资产流向SpaceX。"
       },
       {
         "author": "Musk",
@@ -3473,14 +3469,32 @@
         "new_ideas": [],
         "sectors": [
           "航天",
-          "估值"
+          "IPO"
         ],
         "sector_holdings": [
           "RKLB"
         ],
         "stance": "neutral",
         "relevance": 55,
-        "summary_cn": "讨论 SpaceX 是否真的值 1.75 万亿美元估值，引发市场对航天板块估值体系的关注。"
+        "summary_cn": "讨论SpaceX是否值1.75万亿美元估值，航天板块估值讨论升温。"
+      },
+      {
+        "author": "Trump",
+        "text": "I have just been informed by our Great Military that last night the Iranians shot down one of our highly sophisticated Apache Helicopters while patrolling over the Strait of Hormuz. There were two pilots involved, both are safe and uninjured. Nevertheless, the United States must, of necessity, respond to this attack. Thank you for your attention to this matter! President DONALD J. TRUMP",
+        "url": "https://trumpstruth.org/statuses/39169",
+        "published": "2026-06-09T16:38:07+00:00",
+        "origin": "truthsocial",
+        "tickers": [],
+        "held": [],
+        "new_ideas": [],
+        "sectors": [
+          "国防军工",
+          "地缘政治"
+        ],
+        "sector_holdings": [],
+        "stance": "neutral",
+        "relevance": 65,
+        "summary_cn": "Trump 称伊朗在霍尔木兹海峡击落美军阿帕奇直升机，美国将做出回应，地缘紧张升级。"
       },
       {
         "author": "Trump",
@@ -3493,18 +3507,74 @@
         "new_ideas": [],
         "sectors": [
           "地缘政治",
-          "能源"
+          "中东"
         ],
         "sector_holdings": [],
         "stance": "neutral",
         "relevance": 65,
-        "summary_cn": "Trump 称以色列和伊朗正寻求立即停火，封锁将持续至最终协议达成，暗示地缘紧张可能缓和。"
+        "summary_cn": "Trump 称以色列和伊朗正在谈判立即停火，封锁将持续至最终协议达成，中东局势有望缓和。"
+      },
+      {
+        "author": "Trump",
+        "text": "Record $327.1 Billion Exports Help Shrink U.S. Trade Deficit: https://dallasexpress.com/national/record-327-1-billion-exports-help-shrink-u-s-trade-deficit-in-april/",
+        "url": "https://trumpstruth.org/statuses/39170",
+        "published": "2026-06-09T21:57:16+00:00",
+        "origin": "truthsocial",
+        "tickers": [],
+        "held": [],
+        "new_ideas": [],
+        "sectors": [
+          "贸易",
+          "宏观经济"
+        ],
+        "sector_holdings": [],
+        "stance": "endorse",
+        "relevance": 60,
+        "summary_cn": "Trump 宣称美国4月出口创纪录达3271亿美元，贸易逆差收窄，暗示经济强劲。"
+      },
+      {
+        "author": "Trump",
+        "text": "US trade deficit widens by the most in nearly 34 years: https://www.reuters.com/business/us-trade-deficit-widens-by-most-nearly-34-years-november-2026-01-29/",
+        "url": "https://trumpstruth.org/statuses/39171",
+        "published": "2026-06-09T21:56:35+00:00",
+        "origin": "truthsocial",
+        "tickers": [],
+        "held": [],
+        "new_ideas": [],
+        "sectors": [
+          "贸易",
+          "宏观经济"
+        ],
+        "sector_holdings": [],
+        "stance": "neutral",
+        "relevance": 55,
+        "summary_cn": "新闻报道美国贸易逆差创近34年最大增幅，与Trump自夸出口创纪录形成对比。"
+      },
+      {
+        "author": "Musk",
+        "text": "Southaven residents sue Elon Musk’s xAI alleging harm from gas turbines",
+        "url": "",
+        "published": "Tue, 09 Jun 2026 22:04:39 GMT",
+        "origin": "gnews-rss",
+        "source": "Mississippi Today",
+        "tickers": [],
+        "held": [],
+        "new_ideas": [],
+        "sectors": [
+          "AI",
+          "能源",
+          "监管"
+        ],
+        "sector_holdings": [],
+        "stance": "attack",
+        "relevance": 50,
+        "summary_cn": "Southaven居民起诉Musk的xAI，指控其燃气轮机造成危害，AI数据中心面临环保监管风险。"
       },
       {
         "author": "Musk",
         "text": "Opinion | Elon Musk took out his chainsaw. Government took out its checkbook.",
         "url": "",
-        "published": "Tue, 09 Jun 2026 14:31:28 GMT",
+        "published": "Tue, 09 Jun 2026 17:00:01 GMT",
         "origin": "gnews-rss",
         "source": "The Washington Post",
         "tickers": [],
@@ -3512,31 +3582,12 @@
         "new_ideas": [],
         "sectors": [
           "政府效率",
-          "财政政策"
+          "财政"
         ],
         "sector_holdings": [],
         "stance": "neutral",
         "relevance": 50,
-        "summary_cn": "报道称 Musk 拿出电锯削减政府开支，而政府则拿出支票簿应对，暗示政府效率改革与财政支出的冲突。"
-      },
-      {
-        "author": "Musk",
-        "text": "Elon Musk bullet-proofed his $1 trillion ‘Mars-shot’ pay at SpaceX after the pay brawl at Tesla",
-        "url": "",
-        "published": "Sat, 06 Jun 2026 10:26:00 GMT",
-        "origin": "gnews-rss",
-        "source": "Fortune",
-        "tickers": [],
-        "held": [],
-        "new_ideas": [],
-        "sectors": [
-          "公司治理",
-          "薪酬"
-        ],
-        "sector_holdings": [],
-        "stance": "neutral",
-        "relevance": 50,
-        "summary_cn": "报道称 Musk 在 Tesla 薪酬风波后，为 SpaceX 万亿美元薪酬方案加装防护，涉及公司治理议题。"
+        "summary_cn": "评论文章称Musk用'电锯'削减政府开支，但政府仍大举开支，涉及DOGE效率改革主题。"
       }
     ],
     "held_hits": [],
@@ -3546,7 +3597,7 @@
         "author": "Musk",
         "text": "Elon Musk Reveals Details For SpaceX-Tesla Orbiting Data Center",
         "url": "",
-        "published": "Tue, 09 Jun 2026 14:21:00 GMT",
+        "published": "Tue, 09 Jun 2026 17:37:00 GMT",
         "origin": "gnews-rss",
         "source": "Investor's Business Daily",
         "tickers": [],
@@ -3558,43 +3609,17 @@
           "航天"
         ],
         "sector_holdings": [
-          "MSFU",
-          "PLTU",
           "RKLB"
         ],
         "stance": "endorse",
         "relevance": 60,
-        "summary_cn": "Musk 透露 SpaceX 与 Tesla 联合打造在轨数据中心的细节，涉及 AI 与航天交叉领域。"
-      },
-      {
-        "author": "Musk",
-        "text": "Elon Musk Shows Detailed Design of AI Data Center Satellite",
-        "url": "",
-        "published": "Tue, 09 Jun 2026 00:53:00 GMT",
-        "origin": "gnews-rss",
-        "source": "Bloomberg.com",
-        "tickers": [],
-        "held": [],
-        "new_ideas": [],
-        "sectors": [
-          "AI",
-          "数据中心",
-          "卫星通信"
-        ],
-        "sector_holdings": [
-          "MSFU",
-          "PLTU",
-          "RKLB"
-        ],
-        "stance": "endorse",
-        "relevance": 60,
-        "summary_cn": "Musk 展示 AI 数据中心卫星的详细设计，推动太空 AI 基础设施概念。"
+        "summary_cn": "Musk透露SpaceX-Tesla轨道数据中心细节，涉及太空AI基础设施概念，SpaceX未上市但航天板块受关注。"
       },
       {
         "author": "Musk",
         "text": "Short-sellers to tread carefully as Musk's SpaceX debuts",
         "url": "",
-        "published": "Tue, 09 Jun 2026 10:40:49 GMT",
+        "published": "Tue, 09 Jun 2026 19:09:59 GMT",
         "origin": "gnews-rss",
         "source": "Reuters",
         "tickers": [],
@@ -3602,14 +3627,57 @@
         "new_ideas": [],
         "sectors": [
           "航天",
-          "做空"
+          "IPO"
         ],
         "sector_holdings": [
           "RKLB"
         ],
         "stance": "neutral",
         "relevance": 55,
-        "summary_cn": "报道称 SpaceX 登陆资本市场，做空者需谨慎，暗示航天板块可能迎来新变量。"
+        "summary_cn": "报道SpaceX即将IPO，提醒做空者谨慎，航天板块关注度提升。"
+      },
+      {
+        "author": "Musk",
+        "text": "SpaceX IPO explained: The price is set, but retail allocation still up in the air",
+        "url": "",
+        "published": "Tue, 09 Jun 2026 17:28:35 GMT",
+        "origin": "gnews-rss",
+        "source": "CNBC",
+        "tickers": [],
+        "held": [],
+        "new_ideas": [],
+        "sectors": [
+          "航天",
+          "IPO"
+        ],
+        "sector_holdings": [
+          "RKLB"
+        ],
+        "stance": "neutral",
+        "relevance": 55,
+        "summary_cn": "SpaceX IPO定价已定但散户分配仍不确定，航天IPO关注度高。"
+      },
+      {
+        "author": "Musk",
+        "text": "Elon Musk shared a fresh look at the AI data centers SpaceX wants to send into orbit",
+        "url": "",
+        "published": "Tue, 09 Jun 2026 11:30:11 GMT",
+        "origin": "gnews-rss",
+        "source": "Business Insider",
+        "tickers": [],
+        "held": [],
+        "new_ideas": [],
+        "sectors": [
+          "AI",
+          "数据中心",
+          "航天"
+        ],
+        "sector_holdings": [
+          "RKLB"
+        ],
+        "stance": "endorse",
+        "relevance": 55,
+        "summary_cn": "Musk分享SpaceX轨道AI数据中心新概念图，太空+AI融合主题持续发酵。"
       },
       {
         "author": "Musk",
@@ -3631,28 +3699,7 @@
         ],
         "stance": "neutral",
         "relevance": 55,
-        "summary_cn": "评论称 SpaceX IPO 可能冲击 401(k) 退休账户，暗示大规模 IPO 对市场资金的虹吸效应。"
-      },
-      {
-        "author": "Musk",
-        "text": "SpaceX's stock market blast-off could be Musk's biggest gamble yet",
-        "url": "",
-        "published": "Mon, 08 Jun 2026 23:22:17 GMT",
-        "origin": "gnews-rss",
-        "source": "BBC",
-        "tickers": [],
-        "held": [],
-        "new_ideas": [],
-        "sectors": [
-          "航天",
-          "IPO"
-        ],
-        "sector_holdings": [
-          "RKLB"
-        ],
-        "stance": "neutral",
-        "relevance": 55,
-        "summary_cn": "报道称 SpaceX 上市可能是 Musk 最大的赌注，暗示航天板块即将迎来重大事件。"
+        "summary_cn": "评论称SpaceX IPO可能冲击401(k)退休账户，暗示大量资金可能从其他资产流向SpaceX。"
       },
       {
         "author": "Musk",
@@ -3666,22 +3713,23 @@
         "new_ideas": [],
         "sectors": [
           "航天",
-          "估值"
+          "IPO"
         ],
         "sector_holdings": [
           "RKLB"
         ],
         "stance": "neutral",
         "relevance": 55,
-        "summary_cn": "讨论 SpaceX 是否真的值 1.75 万亿美元估值，引发市场对航天板块估值体系的关注。"
+        "summary_cn": "讨论SpaceX是否值1.75万亿美元估值，航天板块估值讨论升温。"
       }
     ]
   },
   "regime": {
-    "label": "neutral",
-    "score": 1,
+    "label": "risk_off",
+    "score": -2,
     "reasons": [
-      "SPX+NDX 同向上行"
+      "F&G 33 fear",
+      "SPX+NDX 同向下行"
     ]
   },
   "all_time_extremes": {
