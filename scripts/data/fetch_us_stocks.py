@@ -725,9 +725,34 @@ def update_us_portfolio(
         holding['prev_close']       = round(pc, 4)
         holding['prev_close_date']  = pc_date
         holding['today_change_pct'] = round(_pct(c, pc), 4)
-        holding['day_high']         = round(q.get('h', c), 4)
-        holding['day_low']          = round(q.get('l', c), 4)
-        holding['day_open']         = round(q.get('o', c), 4)
+
+        # ── session-aware running day range ───────────────────────────────────
+        # Nasdaq's quote payload often carries no real intraday h/l/o (the old
+        # `q.get('h', c)` fallback flattened them to the last price each fetch →
+        # o==h==l==c, and after any move even day_high < current_price — visibly
+        # impossible numbers on the dashboard's Today's Range card). The */30min
+        # intraday cadence lets us accumulate the true session envelope locally:
+        # first capture of the ET day pins the open, every later fetch stretches
+        # high/low with both the API values and the live price. The live price
+        # only grows the range during regular session hours so a stray
+        # pre/post-market print doesn't fake an intraday extreme.
+        api_h, api_l, api_o = q.get('h'), q.get('l'), q.get('o')
+        in_session   = 9 <= now_et.hour < 16
+        same_session = holding.get('day_session_date') == today_et_date
+        cands_h = [v for v in (api_h, c if in_session else None) if v]
+        cands_l = [v for v in (api_l, c if in_session else None) if v]
+        if same_session:
+            if holding.get('day_high'):
+                cands_h.append(holding['day_high'])
+            if holding.get('day_low'):
+                cands_l.append(holding['day_low'])
+            day_o = holding.get('day_open') or api_o or c
+        else:
+            day_o = api_o or c
+        holding['day_high'] = round(max(cands_h) if cands_h else c, 4)
+        holding['day_low']  = round(min(cands_l) if cands_l else c, 4)
+        holding['day_open'] = round(day_o, 4)
+        holding['day_session_date'] = today_et_date
         holding['current_value']    = round(c * shrs, 2)
         holding['pnl_abs']          = round((c - cost) * shrs, 2)
         holding['pnl_percent']      = round((c - cost) / cost * 100, 4)

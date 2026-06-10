@@ -10,8 +10,16 @@ layout: null
 <meta name="theme-color" content="#f7f8fb" media="(prefers-color-scheme: light)">
 <title>clawock · Portfolio Dashboard</title>
 <meta name="description" content="Mobile-first HK + US portfolio dashboard · concentration, calibration, plan outcomes">
-<link rel="preconnect" href="https://cdn.jsdelivr.net">
-<script src="https://cdn.jsdelivr.net/npm/echarts@5.5.1/dist/echarts.min.js" defer></script>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="64x64" href="assets/icons/favicon-64.png">
+<link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="clawock">
+<!-- ECharts vendored same-origin (assets/js/): jsdelivr is a single point of failure
+     (flaky/blocked on mainland-China routes) and cost a DNS+TLS round-trip; Pages
+     serves this gzipped from the same host. Version-pinned 5.5.1 — bump = replace file. -->
+<script src="assets/js/echarts.min.js" defer></script>
 <style>
   /* =========================================================
      CSS Variables — dark first, light overrides via @media

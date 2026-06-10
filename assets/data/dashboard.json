@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-06-10T01:31:08.074211Z",
-  "last_updated": "2026/06/10 09:30 HKT",
+  "generated_at": "2026-06-10T01:34:21.277057Z",
+  "last_updated": "2026/06/10 09:32 HKT",
   "fx": {
     "usdhkd": 7.8364,
     "source": "Frankfurter",
@@ -122,8 +122,8 @@
         "current_value": 541.15,
         "today_change": -27.1,
         "today_change_pct": -4.77,
-        "day_high": 107.1524,
-        "day_low": 107.1524,
+        "day_high": 108.23,
+        "day_low": 108.23,
         "pnl_abs": 186.15,
         "pnl_percent": 52.44,
         "is_active": true,
@@ -139,8 +139,8 @@
         "current_value": 162.2,
         "today_change": -2.86,
         "today_change_pct": -1.73,
-        "day_high": 79.66,
-        "day_low": 79.66,
+        "day_high": 81.1,
+        "day_low": 81.1,
         "pnl_abs": -11.8,
         "pnl_percent": -6.78,
         "is_active": true,
@@ -173,8 +173,8 @@
         "current_value": 871.6,
         "today_change": -27.6,
         "today_change_pct": -3.07,
-        "day_high": 22.48,
-        "day_low": 22.48,
+        "day_high": 21.79,
+        "day_low": 21.79,
         "pnl_abs": -71.7,
         "pnl_percent": -7.6,
         "is_active": true,
@@ -743,21 +743,21 @@
       "price": 7386.65,
       "prev_close": 7405.73,
       "change_pct": -0.258,
-      "source": "Tencent usINX index @ 2026-06-09 20:00 ET"
+      "source": "Tencent usINX index @ 2026-06-09 21:32 ET"
     },
     "NDX": {
       "name": "Nasdaq 100",
       "price": 29084.5,
       "prev_close": 29414.26,
       "change_pct": -1.121,
-      "source": "Tencent usNDX index @ 2026-06-09 20:00 ET"
+      "source": "Tencent usNDX index @ 2026-06-09 21:32 ET"
     },
     "DJI": {
       "name": "Dow Jones",
       "price": 50872.11,
       "prev_close": 50786.01,
       "change_pct": 0.17,
-      "source": "Tencent usDJI index @ 2026-06-09 20:00 ET"
+      "source": "Tencent usDJI index @ 2026-06-09 21:32 ET"
     },
     "HSI": {
       "name": "恒生指数",
