@@ -20,6 +20,7 @@ data_cache/
 # Images / generated output
 # Allow images under docs/ for README screenshots; ignore everywhere else
 *.png
+!assets/icons/*.png
 *.jpg
 !docs/*.png
 !docs/*.jpg
