@@ -24,7 +24,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          fetch-depth: 10
+          fetch-depth: 50
 
       - uses: actions/setup-python@v5
         with:
@@ -44,9 +44,20 @@ jobs:
         id: check
         run: |
           TODAY=$(TZ=Asia/Hong_Kong date +%Y-%m-%d)
+          HOUR=$(TZ=Asia/Hong_Kong date +%-H)
           echo "TODAY=$TODAY" >> $GITHUB_ENV
-          if git log --since "$TODAY 00:00" --grep "daily deep brief $TODAY" --oneline | grep -q "."; then
-            echo "openclaw cron already produced today's brief — skip fallback"
+          # File truth first: the brief commits memory/{date}-pre-open.md, so its
+          # presence in the checkout is depth-proof. The old git-log grep broke on
+          # 2026-06-10: fetch-depth 10 + a busy morning (brief at depth 19) + 4.5h
+          # GHA delay → "no brief found" → near-duplicate brief at 12:53 HKT.
+          if [ -f "memory/$TODAY-pre-open.md" ] || \
+             git log --since "$TODAY 00:00" --grep "daily deep brief $TODAY" --oneline | grep -q "."; then
+            echo "today's brief already exists — skip fallback"
+            echo "skip=true" >> $GITHUB_OUTPUT
+          elif [ "$HOUR" -ge 10 ]; then
+            # Lateness gate: a "pre-open" brief generated after HK open is stale
+            # noise (intraday reports already cover the session) — never generate.
+            echo "too late to be useful (hour=$HOUR HKT >= 10) — skip"
             echo "skip=true" >> $GITHUB_OUTPUT
           else
             echo "no brief found — fallback will run"
