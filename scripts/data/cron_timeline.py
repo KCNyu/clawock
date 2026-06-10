@@ -141,7 +141,12 @@ def sort_key(mins, hours):
 def load_openclaw():
     rows = []
     try:
-        jobs = json.loads(JOBS_PATH.read_text()).get('jobs', [])
+        # 6.1 moved cron storage into SQLite — read via the storage-agnostic CLI
+        # layer (the dead jobs.json silently returned [] and dropped all 11
+        # openclaw jobs from the timeline, found 2026-06-10).
+        sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'harness'))
+        from _watchdog_common import load_jobs
+        jobs = load_jobs()
     except Exception:
         return rows
     for j in jobs:
@@ -247,7 +252,7 @@ def main():
         return 0
 
     print('📆 合并调度时间线（全部归一到 HKT，按当日触发时刻排序）')
-    print(f'   来源: openclaw jobs.json · GH Actions(UTC→HKT) · 系统 crontab(HKT)\n')
+    print(f'   来源: openclaw cron(CLI/SQLite) · GH Actions(UTC→HKT) · 系统 crontab(HKT)\n')
     print(f'{"HKT 触发":<22}  {"来源":<12}  {"任务":<22}  {"星期":<12}  原始 cron')
     print('─' * 108)
 

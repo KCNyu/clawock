@@ -20,16 +20,19 @@ import sys
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
 
+# Storage-agnostic cron readers (6.1 moved jobs.json/runs/*.jsonl into SQLite —
+# direct file reads silently return nothing). Same layer the watchdogs use.
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'harness'))
+from _watchdog_common import load_jobs, read_runs  # noqa: E402
+
 CRON_DIR = Path.home() / '.openclaw' / 'cron'
 RUNS_DIR = CRON_DIR / 'runs'
-JOBS_PATH = CRON_DIR / 'jobs.json'
 HKT = timezone(timedelta(hours=8))
 
 
 def load_job_map():
     try:
-        data = json.loads(JOBS_PATH.read_text())
-        return {j['id']: j.get('name', j['id'][:8]) for j in data.get('jobs', [])}
+        return {j['id']: j.get('name', j['id'][:8]) for j in load_jobs()}
     except Exception:
         return {}
 
@@ -39,22 +42,12 @@ def kind_of(entry):
     return 'manual' if rid.startswith('manual:') else 'cron'
 
 
-def load_entries(kind_filter, job_id_filter, status_filter):
+def load_entries(kind_filter, job_id_filter, status_filter, job_map):
     out = []
-    for f in sorted(RUNS_DIR.glob('*.jsonl')):
-        job_id = f.stem
+    for job_id in sorted(job_map):
         if job_id_filter and job_id not in job_id_filter:
             continue
-        for line in f.read_text(errors='replace').splitlines():
-            line = line.strip()
-            if not line:
-                continue
-            try:
-                d = json.loads(line)
-            except Exception:
-                continue
-            if d.get('action') != 'finished':
-                continue
+        for d in read_runs(job_id):   # CLI(SQLite) primary, .jsonl[.migrated] fallback
             if status_filter and d.get('status') != status_filter:
                 continue
             k = kind_of(d)
@@ -63,7 +56,7 @@ def load_entries(kind_filter, job_id_filter, status_filter):
             d['_kind'] = k
             d['_jobId'] = job_id
             out.append(d)
-    out.sort(key=lambda x: x.get('ts', 0), reverse=True)
+    out.sort(key=lambda x: x.get('ts', 0) or 0, reverse=True)
     return out
 
 
@@ -104,11 +97,10 @@ def main():
     p.add_argument('--json', action='store_true', help='emit JSON instead of table')
     args = p.parse_args()
 
-    if not RUNS_DIR.is_dir():
-        print(f'❌ runs dir not found: {RUNS_DIR}', file=sys.stderr)
-        return 2
-
     jobs = load_job_map()
+    if not jobs:
+        print('❌ no cron jobs visible (openclaw CLI unavailable?)', file=sys.stderr)
+        return 2
     job_id_filter = None
     if args.job:
         needle = args.job.lower()
@@ -118,7 +110,7 @@ def main():
                   ', '.join(sorted(jobs.values())), file=sys.stderr)
             return 2
 
-    entries = load_entries(args.kind, job_id_filter, args.status)[: args.n]
+    entries = load_entries(args.kind, job_id_filter, args.status, jobs)[: args.n]
 
     if args.json:
         slim = [{
