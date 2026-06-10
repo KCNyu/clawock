@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-10T16:28:19.051811+00:00",
+  "generated_at": "2026-06-10T23:12:18.496259+00:00",
   "lookback_hours": 48,
   "sources": {
     "trump": "trumpstruth.org/feed (primary)",
@@ -8,36 +8,12 @@
   },
   "llm_filtered": true,
   "counts": {
-    "total": 12,
+    "total": 13,
     "held_hits": 0,
-    "new_ideas": 2,
-    "sector_hits": 3
+    "new_ideas": 1,
+    "sector_hits": 7
   },
   "items": [
-    {
-      "author": "Musk",
-      "text": "Tesla Stock: FSD Approved In Denmark; Elon Musk Says This About AI Chips",
-      "url": "",
-      "published": "Wed, 10 Jun 2026 15:38:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Investor's Business Daily",
-      "tickers": [
-        "TSLA"
-      ],
-      "held": [],
-      "new_ideas": [
-        "TSLA"
-      ],
-      "sectors": [
-        "电动车",
-        "自动驾驶",
-        "AI"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 75,
-      "summary_cn": "马斯克相关：特斯拉FSD在丹麦获批，马斯克就AI芯片发表看法，利好特斯拉自动驾驶业务。"
-    },
     {
       "author": "Trump",
       "text": "Wow! CITI was ranked Number 1 in topping M&A Advisory Market by Value in Q1. Congratulations to Jane F and ALL of her great people. They’ve worked really hard! BIG comeback for CITI!!! President DONALD J. TRUMP",
@@ -57,8 +33,30 @@
       ],
       "sector_holdings": [],
       "stance": "endorse",
+      "relevance": 70,
+      "summary_cn": "特朗普祝贺花旗集团(C)在Q1并购顾问市场排名第一，称其为'大回归'。"
+    },
+    {
+      "author": "Musk",
+      "text": "Sen. Warren calls on SEC to delay SpaceX IPO, flagging concerns about valuation and governance",
+      "url": "",
+      "published": "Wed, 10 Jun 2026 16:12:13 GMT",
+      "origin": "gnews-rss",
+      "source": "CNBC",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "IPO",
+        "监管"
+      ],
+      "sector_holdings": [
+        "RKLB"
+      ],
+      "stance": "attack",
       "relevance": 65,
-      "summary_cn": "特朗普祝贺花旗集团(C)在Q1并购顾问市场排名第一，称赞其强势回归。"
+      "summary_cn": "参议员沃伦要求SEC推迟SpaceX IPO，对其估值和治理提出担忧（SpaceX未上市，不填tickers）。"
     },
     {
       "author": "Musk",
@@ -77,15 +75,36 @@
       "sector_holdings": [
         "RKLB"
       ],
-      "stance": "endorse",
-      "relevance": 70,
-      "summary_cn": "马斯克转发消息称SpaceX IPO需求接近四倍超额认购，显示市场对航天板块热情高涨。"
+      "stance": "neutral",
+      "relevance": 60,
+      "summary_cn": "消息源称SpaceX IPO需求接近四倍超额认购（SpaceX未上市，不填tickers）。"
     },
     {
       "author": "Musk",
-      "text": "Want to Invest in SpaceX? Here’s What to Know Ahead of Its I.P.O.",
+      "text": "What You Need To Know About Elon Musk’s Ambitions Ahead of Spacex’s IPO",
       "url": "",
-      "published": "Wed, 10 Jun 2026 09:02:59 GMT",
+      "published": "Wed, 10 Jun 2026 20:47:20 GMT",
+      "origin": "gnews-rss",
+      "source": "Katie Couric Media",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "IPO"
+      ],
+      "sector_holdings": [
+        "RKLB"
+      ],
+      "stance": "neutral",
+      "relevance": 55,
+      "summary_cn": "报道介绍马斯克在SpaceX IPO前的野心（SpaceX未上市，不填tickers）。"
+    },
+    {
+      "author": "Musk",
+      "text": "SpaceX’s I.P.O. Could Turn 4,400 Employees Into Millionaires",
+      "url": "",
+      "published": "Wed, 10 Jun 2026 19:10:10 GMT",
       "origin": "gnews-rss",
       "source": "The New York Times",
       "tickers": [],
@@ -93,15 +112,14 @@
       "new_ideas": [],
       "sectors": [
         "航天",
-        "IPO",
-        "投资"
+        "IPO"
       ],
       "sector_holdings": [
         "RKLB"
       ],
-      "stance": "endorse",
-      "relevance": 65,
-      "summary_cn": "马斯克相关：SpaceX IPO前投资指南，反映市场对航天板块投资机会的高度关注。"
+      "stance": "neutral",
+      "relevance": 55,
+      "summary_cn": "报道称SpaceX IPO可能让4400名员工成为百万富翁（SpaceX未上市，不填tickers）。"
     },
     {
       "author": "Musk",
@@ -115,87 +133,36 @@
       "new_ideas": [],
       "sectors": [
         "航天",
-        "估值"
+        "IPO"
       ],
       "sector_holdings": [
         "RKLB"
       ],
-      "stance": "endorse",
-      "relevance": 65,
-      "summary_cn": "马斯克相关报道讨论SpaceX是否值1.75万亿美元估值，凸显航天行业估值标杆。"
-    },
-    {
-      "author": "Trump",
-      "text": "Record $327.1 Billion Exports Help Shrink U.S. Trade Deficit: https://dallasexpress.com/national/record-327-1-billion-exports-help-shrink-u-s-trade-deficit-in-april/",
-      "url": "https://trumpstruth.org/statuses/39170",
-      "published": "2026-06-09T21:57:16+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "宏观经济",
-        "贸易"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 60,
-      "summary_cn": "特朗普引用报道称美国4月出口创纪录达3271亿美元，贸易逆差收窄。"
-    },
-    {
-      "author": "Trump",
-      "text": "US trade deficit widens by the most in nearly 34 years: https://www.reuters.com/business/us-trade-deficit-widens-by-most-nearly-34-years-november-2026-01-29/",
-      "url": "https://trumpstruth.org/statuses/39171",
-      "published": "2026-06-09T21:56:35+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "宏观经济",
-        "贸易"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 60,
-      "summary_cn": "特朗普引用路透社报道，称美国贸易逆差扩大幅度为近34年来最大。"
-    },
-    {
-      "author": "Trump",
-      "text": "The Fake News Media refuses to report how EFFECTIVE the U.S. Naval BLOCKADE is, the most successful Blockade in the history of Naval Warfare. NOTHING GETS THROUGH unless we want it to. IT IS A STEEL WALL! Iran is doing ZERO business, not paying their military, or any of their bills, and quickly becoming a FAILED NATION! Lots of oil is getting out. Praise be to Allah! President DONALD J. TRUMP",
-      "url": "https://trumpstruth.org/statuses/39202",
-      "published": "2026-06-10T11:32:52+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "石油",
-        "地缘政治",
-        "能源"
-      ],
-      "sector_holdings": [],
       "stance": "neutral",
       "relevance": 55,
-      "summary_cn": "特朗普宣称美国海军对伊朗的封锁非常成功，导致伊朗石油出口受阻，暗示大量石油仍在流出。"
+      "summary_cn": "报道讨论SpaceX是否真的值1.75万亿美元估值（SpaceX未上市，不填tickers）。"
     },
     {
-      "author": "Trump",
-      "text": "I have just been informed by our Great Military that last night the Iranians shot down one of our highly sophisticated Apache Helicopters while patrolling over the Strait of Hormuz. There were two pilots involved, both are safe and uninjured. Nevertheless, the United States must, of necessity, respond to this attack. Thank you for your attention to this matter! President DONALD J. TRUMP",
-      "url": "https://trumpstruth.org/statuses/39169",
-      "published": "2026-06-09T16:38:07+00:00",
-      "origin": "truthsocial",
+      "author": "Musk",
+      "text": "Elon Musk Calls for UK Protests Days Before SpaceX IPO",
+      "url": "",
+      "published": "Wed, 10 Jun 2026 22:22:35 GMT",
+      "origin": "gnews-rss",
+      "source": "Bloomberg.com",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "国防",
-        "地缘政治"
+        "航天",
+        "IPO",
+        "政治"
       ],
-      "sector_holdings": [],
+      "sector_holdings": [
+        "RKLB"
+      ],
       "stance": "neutral",
-      "relevance": 55,
-      "summary_cn": "特朗普称伊朗在霍尔木兹海峡击落一架美军阿帕奇直升机，美国将作出回应。"
+      "relevance": 50,
+      "summary_cn": "马斯克在SpaceX IPO前几天呼吁英国进行抗议活动（SpaceX未上市，不填tickers）。"
     },
     {
       "author": "Musk",
@@ -208,78 +175,113 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "退休金",
-        "宏观经济"
+        "退休储蓄",
+        "金融科技"
       ],
-      "sector_holdings": [],
+      "sector_holdings": [
+        "CRCL"
+      ],
       "stance": "attack",
       "relevance": 50,
-      "summary_cn": "马斯克相关评论称其政策可能使退休储蓄变得更加困难。"
-    },
-    {
-      "author": "Musk",
-      "text": "Opinion | Elon Musk took out his chainsaw. Government took out its checkbook.",
-      "url": "",
-      "published": "Tue, 09 Jun 2026 17:00:01 GMT",
-      "origin": "gnews-rss",
-      "source": "The Washington Post",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "政府效率",
-        "财政"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 50,
-      "summary_cn": "马斯克相关评论文章讨论其削减政府开支的努力与政府支出现实的矛盾。"
+      "summary_cn": "报道称马斯克将使退休储蓄变得更加困难（标题党，具体影响待确认）。"
     },
     {
       "author": "Trump",
-      "text": "Iran’s Military is a complete and total mess. Much of it, like their Navy and Air Force, doesn’t even exist anymore - They have been completely defeated. Iran is all talk and no action. The Bully of the Middle East is DEAD!!! They’ve taken too long to negotiate a deal that would have been great for them, now they will have to pay the price!!! President DONALD J. TRUMP",
-      "url": "https://trumpstruth.org/statuses/39201",
-      "published": "2026-06-10T11:03:39+00:00",
+      "text": "I have just been informed by our Great Military that last night the Iranians shot down one of our highly sophisticated Apache Helicopters while patrolling over the Strait of Hormuz. There were two pilots involved, both are safe and uninjured. Nevertheless, the United States must, of necessity, respond to this attack. Thank you for your attention to this matter! President DONALD J. TRUMP",
+      "url": "https://trumpstruth.org/statuses/39169",
+      "published": "2026-06-09T16:38:07+00:00",
       "origin": "truthsocial",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
+        "军事",
         "地缘政治",
-        "国防"
+        "伊朗"
       ],
       "sector_holdings": [],
-      "stance": "attack",
-      "relevance": 50,
-      "summary_cn": "特朗普抨击伊朗军事力量已崩溃，警告其将为拖延谈判付出代价。"
+      "stance": "neutral",
+      "relevance": 65,
+      "summary_cn": "特朗普称伊朗在霍尔木兹海峡击落一架美军阿帕奇直升机，两名飞行员安全，美国将做出回应。"
+    },
+    {
+      "author": "Trump",
+      "text": "Last month, I directed our Great U.S. Military to execute a secret mission to support Oil Tankers and other Commercial Ships through the Straight of Hormuz. Today, I am pleased to announce that this effort has resulted in more than 100 MILLION Barrels of Oil making its way through the Straight, and into the Open Market. More than 200 Commercial Ships have safely traveled through the Strait. This wildly successful effort is because the UNITED STATES of AMERICA CONTROLS the Strait of Hormuz — NOT Iran. Their military is defeated, and their economy is lost. It’s over for Iran! Thank you for your ",
+      "url": "https://trumpstruth.org/statuses/39210",
+      "published": "2026-06-10T17:50:24+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "能源",
+        "石油",
+        "地缘政治"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 60,
+      "summary_cn": "特朗普宣布美军秘密护航霍尔木兹海峡，已超1亿桶石油进入市场，强调美国控制该海峡而非伊朗。"
+    },
+    {
+      "author": "Trump",
+      "text": "Record $327.1 Billion Exports Help Shrink U.S. Trade Deficit: https://dallasexpress.com/national/record-327-1-billion-exports-help-shrink-u-s-trade-deficit-in-april/",
+      "url": "https://trumpstruth.org/statuses/39170",
+      "published": "2026-06-09T21:57:16+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "贸易",
+        "宏观经济"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 60,
+      "summary_cn": "特朗普转发报道：美国4月出口创纪录3271亿美元，贸易逆差收窄。"
+    },
+    {
+      "author": "Trump",
+      "text": "The Fake News Media refuses to report how EFFECTIVE the U.S. Naval BLOCKADE is, the most successful Blockade in the history of Naval Warfare. NOTHING GETS THROUGH unless we want it to. IT IS A STEEL WALL! Iran is doing ZERO business, not paying their military, or any of their bills, and quickly becoming a FAILED NATION! Lots of oil is getting out. Praise be to Allah! President DONALD J. TRUMP",
+      "url": "https://trumpstruth.org/statuses/39202",
+      "published": "2026-06-10T11:32:52+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "能源",
+        "石油",
+        "地缘政治",
+        "军事"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 55,
+      "summary_cn": "特朗普再次强调美国海军对伊朗封锁的有效性，称伊朗经济崩溃，大量石油仍在流出。"
+    },
+    {
+      "author": "Trump",
+      "text": "US trade deficit widens by the most in nearly 34 years: https://www.reuters.com/business/us-trade-deficit-widens-by-most-nearly-34-years-november-2026-01-29/",
+      "url": "https://trumpstruth.org/statuses/39171",
+      "published": "2026-06-09T21:56:35+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "贸易",
+        "宏观经济"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 55,
+      "summary_cn": "特朗普转发路透社报道：美国贸易逆差扩大幅度为近34年来最大（2026年1月数据）。"
     }
   ],
   "held_hits": [],
   "new_ideas": [
-    {
-      "author": "Musk",
-      "text": "Tesla Stock: FSD Approved In Denmark; Elon Musk Says This About AI Chips",
-      "url": "",
-      "published": "Wed, 10 Jun 2026 15:38:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Investor's Business Daily",
-      "tickers": [
-        "TSLA"
-      ],
-      "held": [],
-      "new_ideas": [
-        "TSLA"
-      ],
-      "sectors": [
-        "电动车",
-        "自动驾驶",
-        "AI"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 75,
-      "summary_cn": "马斯克相关：特斯拉FSD在丹麦获批，马斯克就AI芯片发表看法，利好特斯拉自动驾驶业务。"
-    },
     {
       "author": "Trump",
       "text": "Wow! CITI was ranked Number 1 in topping M&A Advisory Market by Value in Q1. Congratulations to Jane F and ALL of her great people. They’ve worked really hard! BIG comeback for CITI!!! President DONALD J. TRUMP",
@@ -299,11 +301,33 @@
       ],
       "sector_holdings": [],
       "stance": "endorse",
-      "relevance": 65,
-      "summary_cn": "特朗普祝贺花旗集团(C)在Q1并购顾问市场排名第一，称赞其强势回归。"
+      "relevance": 70,
+      "summary_cn": "特朗普祝贺花旗集团(C)在Q1并购顾问市场排名第一，称其为'大回归'。"
     }
   ],
   "sector_hits": [
+    {
+      "author": "Musk",
+      "text": "Sen. Warren calls on SEC to delay SpaceX IPO, flagging concerns about valuation and governance",
+      "url": "",
+      "published": "Wed, 10 Jun 2026 16:12:13 GMT",
+      "origin": "gnews-rss",
+      "source": "CNBC",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "IPO",
+        "监管"
+      ],
+      "sector_holdings": [
+        "RKLB"
+      ],
+      "stance": "attack",
+      "relevance": 65,
+      "summary_cn": "参议员沃伦要求SEC推迟SpaceX IPO，对其估值和治理提出担忧（SpaceX未上市，不填tickers）。"
+    },
     {
       "author": "Musk",
       "text": "SpaceX IPO demand is approaching four times oversubscribed, source says",
@@ -321,15 +345,36 @@
       "sector_holdings": [
         "RKLB"
       ],
-      "stance": "endorse",
-      "relevance": 70,
-      "summary_cn": "马斯克转发消息称SpaceX IPO需求接近四倍超额认购，显示市场对航天板块热情高涨。"
+      "stance": "neutral",
+      "relevance": 60,
+      "summary_cn": "消息源称SpaceX IPO需求接近四倍超额认购（SpaceX未上市，不填tickers）。"
     },
     {
       "author": "Musk",
-      "text": "Want to Invest in SpaceX? Here’s What to Know Ahead of Its I.P.O.",
+      "text": "What You Need To Know About Elon Musk’s Ambitions Ahead of Spacex’s IPO",
       "url": "",
-      "published": "Wed, 10 Jun 2026 09:02:59 GMT",
+      "published": "Wed, 10 Jun 2026 20:47:20 GMT",
+      "origin": "gnews-rss",
+      "source": "Katie Couric Media",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "IPO"
+      ],
+      "sector_holdings": [
+        "RKLB"
+      ],
+      "stance": "neutral",
+      "relevance": 55,
+      "summary_cn": "报道介绍马斯克在SpaceX IPO前的野心（SpaceX未上市，不填tickers）。"
+    },
+    {
+      "author": "Musk",
+      "text": "SpaceX’s I.P.O. Could Turn 4,400 Employees Into Millionaires",
+      "url": "",
+      "published": "Wed, 10 Jun 2026 19:10:10 GMT",
       "origin": "gnews-rss",
       "source": "The New York Times",
       "tickers": [],
@@ -337,15 +382,14 @@
       "new_ideas": [],
       "sectors": [
         "航天",
-        "IPO",
-        "投资"
+        "IPO"
       ],
       "sector_holdings": [
         "RKLB"
       ],
-      "stance": "endorse",
-      "relevance": 65,
-      "summary_cn": "马斯克相关：SpaceX IPO前投资指南，反映市场对航天板块投资机会的高度关注。"
+      "stance": "neutral",
+      "relevance": 55,
+      "summary_cn": "报道称SpaceX IPO可能让4400名员工成为百万富翁（SpaceX未上市，不填tickers）。"
     },
     {
       "author": "Musk",
@@ -359,14 +403,57 @@
       "new_ideas": [],
       "sectors": [
         "航天",
-        "估值"
+        "IPO"
       ],
       "sector_holdings": [
         "RKLB"
       ],
-      "stance": "endorse",
-      "relevance": 65,
-      "summary_cn": "马斯克相关报道讨论SpaceX是否值1.75万亿美元估值，凸显航天行业估值标杆。"
+      "stance": "neutral",
+      "relevance": 55,
+      "summary_cn": "报道讨论SpaceX是否真的值1.75万亿美元估值（SpaceX未上市，不填tickers）。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk Calls for UK Protests Days Before SpaceX IPO",
+      "url": "",
+      "published": "Wed, 10 Jun 2026 22:22:35 GMT",
+      "origin": "gnews-rss",
+      "source": "Bloomberg.com",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "IPO",
+        "政治"
+      ],
+      "sector_holdings": [
+        "RKLB"
+      ],
+      "stance": "neutral",
+      "relevance": 50,
+      "summary_cn": "马斯克在SpaceX IPO前几天呼吁英国进行抗议活动（SpaceX未上市，不填tickers）。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk Is About to Make Saving for Retirement Even Harder",
+      "url": "",
+      "published": "Wed, 10 Jun 2026 09:30:00 GMT",
+      "origin": "gnews-rss",
+      "source": "The American Prospect",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "退休储蓄",
+        "金融科技"
+      ],
+      "sector_holdings": [
+        "CRCL"
+      ],
+      "stance": "attack",
+      "relevance": 50,
+      "summary_cn": "报道称马斯克将使退休储蓄变得更加困难（标题党，具体影响待确认）。"
     }
   ]
 }
