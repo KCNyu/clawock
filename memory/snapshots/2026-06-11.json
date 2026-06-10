@@ -1,6 +1,6 @@
 {
   "owner": "kcn",
-  "last_updated": "2026/06/11 02:31 HKT",
+  "last_updated": "2026/06/11 04:00 HKT",
   "portfolios": {
     "us_stocks": {
       "currency": "USD",
@@ -54,17 +54,17 @@
           "ticker": "RKLB",
           "shares": 5,
           "cost_basis": 71,
-          "current_price": 106.74,
-          "today_change_pct": -1.3767,
-          "pnl_percent": 50.338,
-          "data_source": "Nasdaq API (stocks) Jun 10, 2026 14:31 ET",
+          "current_price": 105.05,
+          "today_change_pct": -2.9382,
+          "pnl_percent": 47.9577,
+          "data_source": "Nasdaq API (stocks) Jun 10, 2026 16:00 ET",
           "day_high": 109.74,
-          "day_low": 106.08,
+          "day_low": 105.05,
           "day_open": 107.5301,
           "prev_close": 108.23,
-          "current_value": 533.7,
-          "pnl_abs": 178.7,
-          "today_change": -7.45,
+          "current_value": 525.25,
+          "pnl_abs": 170.25,
+          "today_change": -15.9,
           "name": "Rocket Lab Corp",
           "volume": 5773156,
           "trades": [],
@@ -75,10 +75,10 @@
           "ticker": "CRCL",
           "shares": 2,
           "cost_basis": 87,
-          "current_price": 80.34,
-          "today_change_pct": -0.94,
-          "pnl_percent": -7.6552,
-          "data_source": "Nasdaq API (stocks) Jun 10, 2026 14:31 ET",
+          "current_price": 79.59,
+          "today_change_pct": -1.8619,
+          "pnl_percent": -8.5172,
+          "data_source": "Nasdaq API (stocks) Jun 10, 2026 16:00 ET",
           "note": "2026-02-26/03-02 共买入14股（@88.35+@86.45，均价≈87）；2026-03-04 卖4股@103.21(+64.84)；03-11 卖5股@120(+165)；03-23 卖3股@127(+120)；剩余2股长期持有（看好稳定币+agent支付赛道）",
           "trades": [
             {
@@ -121,15 +121,15 @@
             }
           ],
           "day_high": 83.22,
-          "day_low": 79.635,
+          "day_low": 79.59,
           "day_open": 79.635,
-          "prev_close": 81.1024,
-          "current_value": 160.68,
-          "pnl_abs": -13.32,
-          "today_change": -1.52,
+          "prev_close": 81.1,
+          "current_value": 159.18,
+          "pnl_abs": -14.82,
+          "today_change": -3.02,
           "name": "Circle Internet Group Inc-A",
           "volume": 8165939,
-          "prev_close_date": "2026-06-10",
+          "prev_close_date": "2026-06-09",
           "day_session_date": "2026-06-10"
         },
         {
@@ -287,17 +287,17 @@
           "ticker": "PLTU",
           "shares": 14,
           "cost_basis": 40.957142857142856,
-          "current_price": 33.04,
-          "today_change_pct": -1.0778,
-          "pnl_percent": -19.3303,
-          "data_source": "Nasdaq API (etf) Jun 10, 2026 14:31 ET",
+          "current_price": 32.44,
+          "today_change_pct": -2.8743,
+          "pnl_percent": -20.7953,
+          "data_source": "Nasdaq API (etf) Jun 10, 2026 16:00 ET",
           "day_high": 33.93,
           "day_low": 31.73,
           "day_open": 32.7,
           "prev_close": 33.4,
-          "current_value": 462.56,
-          "pnl_abs": -110.84,
-          "today_change": -5.04,
+          "current_value": 454.16,
+          "pnl_abs": -119.24,
+          "today_change": -13.44,
           "note": "2026-04-16 按用户截图记录买入，做 PLTR 2x 杠杆短线仓",
           "trades": [
             {
@@ -422,16 +422,16 @@
           "ticker": "ROBN",
           "shares": 40,
           "cost_basis": 23.582500000000003,
-          "current_price": 24.575,
-          "today_change_pct": 12.7811,
-          "data_source": "Nasdaq API (etf) Jun 10, 2026 14:31 ET",
+          "current_price": 23.14,
+          "today_change_pct": 6.1955,
+          "data_source": "Nasdaq API (etf) Jun 10, 2026 16:00 ET",
           "day_high": 25.51,
           "day_low": 22.1401,
           "day_open": 22.1401,
           "prev_close": 21.79,
-          "current_value": 983.0,
-          "pnl_abs": 39.7,
-          "today_change": 111.4,
+          "current_value": 925.6,
+          "pnl_abs": -17.7,
+          "today_change": 54.0,
           "name": "二倍做多HOOD ETF-T-Rex",
           "trades": [
             {
@@ -456,7 +456,7 @@
               "note": "用 RKLX 卖出资金加仓 ROBN"
             }
           ],
-          "pnl_percent": 4.2086,
+          "pnl_percent": -1.8764,
           "volume": 239400,
           "prev_close_date": "2026-06-09",
           "day_session_date": "2026-06-10"
@@ -466,12 +466,12 @@
           "name": "二倍做多微软ETF-Direxion",
           "shares": 20,
           "cost_basis": 29.130000000000003,
-          "current_price": 26.14,
-          "current_value": 522.8,
-          "pnl_abs": -59.8,
-          "pnl_percent": -10.2643,
-          "today_change": -5.6,
-          "today_change_pct": -1.0598,
+          "current_price": 25.64,
+          "current_value": 512.8,
+          "pnl_abs": -69.8,
+          "pnl_percent": -11.9808,
+          "today_change": -15.6,
+          "today_change_pct": -2.9523,
           "trades": [
             {
               "date": "2026-04-24",
@@ -484,19 +484,19 @@
           "note": "2026-04-24 按用户截图记录买入，微软 2x 杠杆 ETF，财报前修复短线仓",
           "prev_close": 26.42,
           "day_high": 26.65,
-          "day_low": 26.07,
+          "day_low": 25.64,
           "day_open": 26.07,
-          "data_source": "Nasdaq API (etf) Jun 10, 2026 14:31 ET",
+          "data_source": "Nasdaq API (etf) Jun 10, 2026 16:00 ET",
           "volume": 1331449,
           "prev_close_date": "2026-06-09",
           "day_session_date": "2026-06-10"
         }
       ],
       "total_cost": 2628.3,
-      "total_current_value": 2662.74,
-      "total_pnl": 34.44,
-      "total_pnl_percent": 1.3104,
-      "today_total_change": 91.79,
+      "total_current_value": 2576.99,
+      "total_pnl": -51.31,
+      "total_pnl_percent": -1.9522,
+      "today_total_change": 6.04,
       "realized_pnl": 1372.88,
       "realized_note": "NVDA 3股@197.5(+29.19) + CRCL 4股@103.21(+64.84) + CRCL 5股@120(+165) + CRCL 3股@127(+120) + NVDA 3股@199.41(+34.92) + QQQ 1股@631.3(+9.03) + TQQQ 8股@54.45(+69.76) + HOOD 5股@88.36(+74.3) + OKLO 2股@68(+10.34) + TCOM 5股@53.86(+5.6) + SOXL 5股@112(+100.65) + RKLX 4股@75(+113.2) + RKLX 2股@91.03(+88.66) + SOXL 3股@170.8(+236.79) + SOXL 2股@217.17(+250.6)",
       "last_updated": "May 8, 2026 16:00 ET close",
@@ -505,28 +505,28 @@
       "indices_snapshot": {
         "SPX": {
           "name": "S&P 500",
-          "price": 7304.89,
+          "price": 7274.03,
           "prev_close": 7386.65,
-          "change_pct": -1.107,
-          "source": "Tencent usINX index @ 2026-06-10 14:31 ET"
+          "change_pct": -1.525,
+          "source": "Tencent usINX index @ 2026-06-10 16:00 ET"
         },
         "NDX": {
           "name": "Nasdaq 100",
-          "price": 28661.61,
+          "price": 28566.13,
           "prev_close": 29084.5,
-          "change_pct": -1.454,
-          "source": "Tencent usNDX index @ 2026-06-10 14:31 ET"
+          "change_pct": -1.782,
+          "source": "Tencent usNDX index @ 2026-06-10 16:00 ET"
         },
         "DJI": {
           "name": "Dow Jones",
-          "price": 50180.44,
+          "price": 49926.54,
           "prev_close": 50872.11,
-          "change_pct": -1.36,
-          "source": "Tencent usDJI index @ 2026-06-10 14:31 ET"
+          "change_pct": -1.859,
+          "source": "Tencent usDJI index @ 2026-06-10 16:00 ET"
         }
       },
       "last_trade_update": "2026-05-06 22:57 HKT",
-      "last_afterhours_attempted": "2026-06-09 16:00 UTC-04:00",
+      "last_afterhours_attempted": "2026-06-10 16:00 UTC-04:00",
       "last_closed_attempted": "2026-06-09 21:32 UTC-04:00",
       "last_premarket_attempted": "2026-06-06 06:23 UTC-04:00",
       "premarket_fetch_status": {
@@ -607,7 +607,7 @@
           "Nasdaq API (stocks)": 2,
           "Nasdaq API (etf)": 3
         },
-        "updated_at": "2026-06-09 16:00 UTC-04:00",
+        "updated_at": "2026-06-10 16:00 UTC-04:00",
         "note": "Multi-provider fetch. Sources: 2x Nasdaq API (stocks), 3x Nasdaq API (etf)"
       },
       "closed_fetch_status": {
