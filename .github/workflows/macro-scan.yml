@@ -42,4 +42,5 @@ jobs:
       - name: Commit
         # shared helper: rebuild dashboard + bot commit + safe_push, with deterministic
         # retry when the push loses a dashboard.json race (2026-06-10 macro-vs-influence).
-        run: bash scripts/data/gha_commit_push.sh "macro: daily snapshot $(date -u +%Y-%m-%d) + dashboard rebuild" assets/data/macro.json
+        run: |
+          bash scripts/data/gha_commit_push.sh "macro: daily snapshot $(date -u +%Y-%m-%d) + dashboard rebuild" assets/data/macro.json

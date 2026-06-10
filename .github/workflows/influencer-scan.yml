@@ -45,4 +45,5 @@ jobs:
       - name: Commit + push
         # shared helper: rebuild dashboard + bot commit + safe_push, with deterministic
         # retry when the push loses a dashboard.json race (2026-06-10 macro-vs-influence).
-        run: bash scripts/data/gha_commit_push.sh "influence: Trump/Musk radar $(TZ=Asia/Hong_Kong date +%Y-%m-%d_%H:%M) + dashboard rebuild" assets/data/influencer_feed.json
+        run: |
+          bash scripts/data/gha_commit_push.sh "influence: Trump/Musk radar $(TZ=Asia/Hong_Kong date +%Y-%m-%d_%H:%M) + dashboard rebuild" assets/data/influencer_feed.json
