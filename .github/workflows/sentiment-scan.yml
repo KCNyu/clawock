@@ -39,17 +39,6 @@ jobs:
         run: python3 scripts/data/fetch_sentiment.py
 
       - name: Commit
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add assets/data/sentiment.json
-          if git diff --cached --quiet; then
-            echo "no change"
-            exit 0
-          fi
-          # sentiment.json changed → rebuild dashboard so its embedded sentiment block
-          # doesn't go stale until the next host rebuild (no intraday rebuild on weekends).
-          python3 scripts/data/build_dashboard.py
-          git add assets/data/dashboard.json
-          git commit -m "sentiment: daily Reddit + Google News scan $(date -u +%Y-%m-%d) + dashboard rebuild"
-          bash scripts/data/safe_push.sh
+        # shared helper: rebuild dashboard + bot commit + safe_push, with deterministic
+        # retry when the push loses a dashboard.json race (2026-06-10 macro-vs-influence).
+        run: bash scripts/data/gha_commit_push.sh "sentiment: daily Reddit + Google News scan $(date -u +%Y-%m-%d) + dashboard rebuild" assets/data/sentiment.json

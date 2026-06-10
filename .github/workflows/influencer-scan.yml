@@ -43,15 +43,6 @@ jobs:
         run: python3 scripts/data/fetch_influencer_feed.py
 
       - name: Commit + push
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add assets/data/influencer_feed.json
-          if ! git diff --cached --quiet; then
-            # feed changed → rebuild dashboard so its embedded influencer block doesn't
-            # go stale until the next host rebuild (no intraday rebuild on weekends).
-            python3 scripts/data/build_dashboard.py
-            git add assets/data/dashboard.json
-            git commit -m "influence: Trump/Musk radar $(TZ=Asia/Hong_Kong date +%Y-%m-%d_%H:%M) + dashboard rebuild"
-            bash scripts/data/safe_push.sh
-          fi
+        # shared helper: rebuild dashboard + bot commit + safe_push, with deterministic
+        # retry when the push loses a dashboard.json race (2026-06-10 macro-vs-influence).
+        run: bash scripts/data/gha_commit_push.sh "influence: Trump/Musk radar $(TZ=Asia/Hong_Kong date +%Y-%m-%d_%H:%M) + dashboard rebuild" assets/data/influencer_feed.json
