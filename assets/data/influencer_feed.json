@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-10T23:12:18.496259+00:00",
+  "generated_at": "2026-06-11T16:42:24.008494+00:00",
   "lookback_hours": 48,
   "sources": {
     "trump": "trumpstruth.org/feed (primary)",
@@ -8,7 +8,7 @@
   },
   "llm_filtered": true,
   "counts": {
-    "total": 13,
+    "total": 14,
     "held_hits": 0,
     "new_ideas": 1,
     "sector_hits": 7
@@ -33,38 +33,16 @@
       ],
       "sector_holdings": [],
       "stance": "endorse",
-      "relevance": 70,
+      "relevance": 80,
       "summary_cn": "特朗普祝贺花旗集团(C)在Q1并购顾问市场排名第一，称其为'大回归'。"
     },
     {
       "author": "Musk",
-      "text": "Sen. Warren calls on SEC to delay SpaceX IPO, flagging concerns about valuation and governance",
+      "text": "Musk’s Net Worth Down More Than $50 Billion Ahead Of SpaceX IPO",
       "url": "",
-      "published": "Wed, 10 Jun 2026 16:12:13 GMT",
+      "published": "Thu, 11 Jun 2026 16:24:14 GMT",
       "origin": "gnews-rss",
-      "source": "CNBC",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "IPO",
-        "监管"
-      ],
-      "sector_holdings": [
-        "RKLB"
-      ],
-      "stance": "attack",
-      "relevance": 65,
-      "summary_cn": "参议员沃伦要求SEC推迟SpaceX IPO，对其估值和治理提出担忧（SpaceX未上市，不填tickers）。"
-    },
-    {
-      "author": "Musk",
-      "text": "SpaceX IPO demand is approaching four times oversubscribed, source says",
-      "url": "",
-      "published": "Tue, 09 Jun 2026 18:22:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Reuters",
+      "source": "Forbes",
       "tickers": [],
       "held": [],
       "new_ideas": [],
@@ -76,35 +54,14 @@
         "RKLB"
       ],
       "stance": "neutral",
-      "relevance": 60,
-      "summary_cn": "消息源称SpaceX IPO需求接近四倍超额认购（SpaceX未上市，不填tickers）。"
-    },
-    {
-      "author": "Musk",
-      "text": "What You Need To Know About Elon Musk’s Ambitions Ahead of Spacex’s IPO",
-      "url": "",
-      "published": "Wed, 10 Jun 2026 20:47:20 GMT",
-      "origin": "gnews-rss",
-      "source": "Katie Couric Media",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "IPO"
-      ],
-      "sector_holdings": [
-        "RKLB"
-      ],
-      "stance": "neutral",
-      "relevance": 55,
-      "summary_cn": "报道介绍马斯克在SpaceX IPO前的野心（SpaceX未上市，不填tickers）。"
+      "relevance": 70,
+      "summary_cn": "马斯克净资产在SpaceX IPO前缩水超500亿美元，SpaceX为未上市公司。"
     },
     {
       "author": "Musk",
       "text": "SpaceX’s I.P.O. Could Turn 4,400 Employees Into Millionaires",
       "url": "",
-      "published": "Wed, 10 Jun 2026 19:10:10 GMT",
+      "published": "Thu, 11 Jun 2026 15:14:00 GMT",
       "origin": "gnews-rss",
       "source": "The New York Times",
       "tickers": [],
@@ -118,8 +75,92 @@
         "RKLB"
       ],
       "stance": "neutral",
-      "relevance": 55,
-      "summary_cn": "报道称SpaceX IPO可能让4400名员工成为百万富翁（SpaceX未上市，不填tickers）。"
+      "relevance": 70,
+      "summary_cn": "SpaceX IPO可能让4400名员工成为百万富翁，SpaceX为未上市公司。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk Just Dealt Some Massive News at SpaceX’s Roadshow",
+      "url": "",
+      "published": "Thu, 11 Jun 2026 12:35:32 GMT",
+      "origin": "gnews-rss",
+      "source": "Yahoo Finance",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "IPO"
+      ],
+      "sector_holdings": [
+        "RKLB"
+      ],
+      "stance": "neutral",
+      "relevance": 70,
+      "summary_cn": "马斯克在SpaceX路演中发布重大消息，SpaceX为未上市公司。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk's SpaceX is about to make its debut on Wall Street. What to know",
+      "url": "",
+      "published": "Thu, 11 Jun 2026 11:46:18 GMT",
+      "origin": "gnews-rss",
+      "source": "ABC7 Bay Area",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "IPO"
+      ],
+      "sector_holdings": [
+        "RKLB"
+      ],
+      "stance": "neutral",
+      "relevance": 70,
+      "summary_cn": "马斯克的SpaceX即将在华尔街上市，SpaceX为未上市公司。"
+    },
+    {
+      "author": "Musk",
+      "text": "SpaceX IPO is a ‘referendum’ on Musk, say market watchers",
+      "url": "",
+      "published": "Thu, 11 Jun 2026 10:37:21 GMT",
+      "origin": "gnews-rss",
+      "source": "CNBC",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "IPO"
+      ],
+      "sector_holdings": [
+        "RKLB"
+      ],
+      "stance": "neutral",
+      "relevance": 70,
+      "summary_cn": "市场观察人士称SpaceX IPO是对马斯克的'公投'，SpaceX为未上市公司。"
+    },
+    {
+      "author": "Musk",
+      "text": "SpaceX is poised for blastoff with an IPO likely to break records",
+      "url": "",
+      "published": "Thu, 11 Jun 2026 09:00:00 GMT",
+      "origin": "gnews-rss",
+      "source": "NPR",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "IPO"
+      ],
+      "sector_holdings": [
+        "RKLB"
+      ],
+      "stance": "neutral",
+      "relevance": 70,
+      "summary_cn": "SpaceX准备发射IPO，可能打破纪录，SpaceX为未上市公司。"
     },
     {
       "author": "Musk",
@@ -139,70 +180,27 @@
         "RKLB"
       ],
       "stance": "neutral",
-      "relevance": 55,
-      "summary_cn": "报道讨论SpaceX是否真的值1.75万亿美元估值（SpaceX未上市，不填tickers）。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk Calls for UK Protests Days Before SpaceX IPO",
-      "url": "",
-      "published": "Wed, 10 Jun 2026 22:22:35 GMT",
-      "origin": "gnews-rss",
-      "source": "Bloomberg.com",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "IPO",
-        "政治"
-      ],
-      "sector_holdings": [
-        "RKLB"
-      ],
-      "stance": "neutral",
-      "relevance": 50,
-      "summary_cn": "马斯克在SpaceX IPO前几天呼吁英国进行抗议活动（SpaceX未上市，不填tickers）。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk Is About to Make Saving for Retirement Even Harder",
-      "url": "",
-      "published": "Wed, 10 Jun 2026 09:30:00 GMT",
-      "origin": "gnews-rss",
-      "source": "The American Prospect",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "退休储蓄",
-        "金融科技"
-      ],
-      "sector_holdings": [
-        "CRCL"
-      ],
-      "stance": "attack",
-      "relevance": 50,
-      "summary_cn": "报道称马斯克将使退休储蓄变得更加困难（标题党，具体影响待确认）。"
+      "relevance": 70,
+      "summary_cn": "马斯克的SpaceX是否真的值1.75万亿美元？SpaceX为未上市公司。"
     },
     {
       "author": "Trump",
-      "text": "I have just been informed by our Great Military that last night the Iranians shot down one of our highly sophisticated Apache Helicopters while patrolling over the Strait of Hormuz. There were two pilots involved, both are safe and uninjured. Nevertheless, the United States must, of necessity, respond to this attack. Thank you for your attention to this matter! President DONALD J. TRUMP",
-      "url": "https://trumpstruth.org/statuses/39169",
-      "published": "2026-06-09T16:38:07+00:00",
+      "text": "The United States will be hitting Iran (Whose Navy, Air Force, Radar, Anti Aircraft, and all other forms of Defense, together with most of its offensive capability, are GONE!), VERY HARD TONIGHT. At some point in the not too distant  future, we will be taking Kharg Island, and other oil infrastructure points, and assume total control of their Oil and Gas Markets, much like we have with Venezuela, which is working out brilliantly for both Venezuela and the United States of America. Thank you for your attention to this matter! President DONALD J. TRUMP",
+      "url": "https://trumpstruth.org/statuses/39212",
+      "published": "2026-06-11T12:22:08+00:00",
       "origin": "truthsocial",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "军事",
-        "地缘政治",
-        "伊朗"
+        "能源",
+        "石油",
+        "地缘政治"
       ],
       "sector_holdings": [],
       "stance": "neutral",
-      "relevance": 65,
-      "summary_cn": "特朗普称伊朗在霍尔木兹海峡击落一架美军阿帕奇直升机，两名飞行员安全，美国将做出回应。"
+      "relevance": 75,
+      "summary_cn": "特朗普宣布将对伊朗发动军事打击，并计划夺取其石油基础设施和油气市场控制权，可能引发能源市场波动。"
     },
     {
       "author": "Trump",
@@ -220,26 +218,26 @@
       ],
       "sector_holdings": [],
       "stance": "neutral",
-      "relevance": 60,
-      "summary_cn": "特朗普宣布美军秘密护航霍尔木兹海峡，已超1亿桶石油进入市场，强调美国控制该海峡而非伊朗。"
+      "relevance": 75,
+      "summary_cn": "特朗普宣布美军秘密护航行动成功，超过1亿桶石油通过霍尔木兹海峡，宣称美国控制该海峡。"
     },
     {
       "author": "Trump",
-      "text": "Record $327.1 Billion Exports Help Shrink U.S. Trade Deficit: https://dallasexpress.com/national/record-327-1-billion-exports-help-shrink-u-s-trade-deficit-in-april/",
-      "url": "https://trumpstruth.org/statuses/39170",
-      "published": "2026-06-09T21:57:16+00:00",
+      "text": "No other President has ever been more committed to both REBUILDING our Great Military and SAVING our Great Country — And NOW is the time to make it happen, for Generations to come.    I am hereby calling on Republicans in Congress to IMMEDIATELY advance and pass the forthcoming $350 Billion Reconciliation Bill (Recon 3.0) — which, at the request of our Great Department of War — will include THE SAVE AMERICA ACT as well. No games, no delays, and no weak compromises! Do this ASAP.   This is a GENERATIONAL Investment in our Military, even bigger than President Reagan’s! Recon 3.0 is the ONLY path",
+      "url": "https://trumpstruth.org/statuses/39211",
+      "published": "2026-06-11T01:21:45+00:00",
       "origin": "truthsocial",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "贸易",
-        "宏观经济"
+        "国防军工",
+        "财政政策"
       ],
       "sector_holdings": [],
       "stance": "endorse",
-      "relevance": 60,
-      "summary_cn": "特朗普转发报道：美国4月出口创纪录3271亿美元，贸易逆差收窄。"
+      "relevance": 70,
+      "summary_cn": "特朗普呼吁国会立即通过3500亿美元的军事拨款法案，强调对军事的代际投资。"
     },
     {
       "author": "Trump",
@@ -253,13 +251,30 @@
       "sectors": [
         "能源",
         "石油",
-        "地缘政治",
-        "军事"
+        "地缘政治"
       ],
       "sector_holdings": [],
       "stance": "neutral",
-      "relevance": 55,
-      "summary_cn": "特朗普再次强调美国海军对伊朗封锁的有效性，称伊朗经济崩溃，大量石油仍在流出。"
+      "relevance": 70,
+      "summary_cn": "特朗普宣称美国海军封锁伊朗非常成功，伊朗经济正在崩溃，大量石油正在流出。"
+    },
+    {
+      "author": "Trump",
+      "text": "Record $327.1 Billion Exports Help Shrink U.S. Trade Deficit: https://dallasexpress.com/national/record-327-1-billion-exports-help-shrink-u-s-trade-deficit-in-april/",
+      "url": "https://trumpstruth.org/statuses/39170",
+      "published": "2026-06-09T21:57:16+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "宏观经济",
+        "贸易"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 65,
+      "summary_cn": "特朗普转发新闻：美国4月出口创纪录3271亿美元，贸易逆差收窄。"
     },
     {
       "author": "Trump",
@@ -271,13 +286,13 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "贸易",
-        "宏观经济"
+        "宏观经济",
+        "贸易"
       ],
       "sector_holdings": [],
       "stance": "neutral",
-      "relevance": 55,
-      "summary_cn": "特朗普转发路透社报道：美国贸易逆差扩大幅度为近34年来最大（2026年1月数据）。"
+      "relevance": 65,
+      "summary_cn": "特朗普转发路透社新闻：美国贸易逆差扩大幅度为近34年来最大。"
     }
   ],
   "held_hits": [],
@@ -301,40 +316,18 @@
       ],
       "sector_holdings": [],
       "stance": "endorse",
-      "relevance": 70,
+      "relevance": 80,
       "summary_cn": "特朗普祝贺花旗集团(C)在Q1并购顾问市场排名第一，称其为'大回归'。"
     }
   ],
   "sector_hits": [
     {
       "author": "Musk",
-      "text": "Sen. Warren calls on SEC to delay SpaceX IPO, flagging concerns about valuation and governance",
+      "text": "Musk’s Net Worth Down More Than $50 Billion Ahead Of SpaceX IPO",
       "url": "",
-      "published": "Wed, 10 Jun 2026 16:12:13 GMT",
+      "published": "Thu, 11 Jun 2026 16:24:14 GMT",
       "origin": "gnews-rss",
-      "source": "CNBC",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "IPO",
-        "监管"
-      ],
-      "sector_holdings": [
-        "RKLB"
-      ],
-      "stance": "attack",
-      "relevance": 65,
-      "summary_cn": "参议员沃伦要求SEC推迟SpaceX IPO，对其估值和治理提出担忧（SpaceX未上市，不填tickers）。"
-    },
-    {
-      "author": "Musk",
-      "text": "SpaceX IPO demand is approaching four times oversubscribed, source says",
-      "url": "",
-      "published": "Tue, 09 Jun 2026 18:22:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Reuters",
+      "source": "Forbes",
       "tickers": [],
       "held": [],
       "new_ideas": [],
@@ -346,35 +339,14 @@
         "RKLB"
       ],
       "stance": "neutral",
-      "relevance": 60,
-      "summary_cn": "消息源称SpaceX IPO需求接近四倍超额认购（SpaceX未上市，不填tickers）。"
-    },
-    {
-      "author": "Musk",
-      "text": "What You Need To Know About Elon Musk’s Ambitions Ahead of Spacex’s IPO",
-      "url": "",
-      "published": "Wed, 10 Jun 2026 20:47:20 GMT",
-      "origin": "gnews-rss",
-      "source": "Katie Couric Media",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "IPO"
-      ],
-      "sector_holdings": [
-        "RKLB"
-      ],
-      "stance": "neutral",
-      "relevance": 55,
-      "summary_cn": "报道介绍马斯克在SpaceX IPO前的野心（SpaceX未上市，不填tickers）。"
+      "relevance": 70,
+      "summary_cn": "马斯克净资产在SpaceX IPO前缩水超500亿美元，SpaceX为未上市公司。"
     },
     {
       "author": "Musk",
       "text": "SpaceX’s I.P.O. Could Turn 4,400 Employees Into Millionaires",
       "url": "",
-      "published": "Wed, 10 Jun 2026 19:10:10 GMT",
+      "published": "Thu, 11 Jun 2026 15:14:00 GMT",
       "origin": "gnews-rss",
       "source": "The New York Times",
       "tickers": [],
@@ -388,8 +360,92 @@
         "RKLB"
       ],
       "stance": "neutral",
-      "relevance": 55,
-      "summary_cn": "报道称SpaceX IPO可能让4400名员工成为百万富翁（SpaceX未上市，不填tickers）。"
+      "relevance": 70,
+      "summary_cn": "SpaceX IPO可能让4400名员工成为百万富翁，SpaceX为未上市公司。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk Just Dealt Some Massive News at SpaceX’s Roadshow",
+      "url": "",
+      "published": "Thu, 11 Jun 2026 12:35:32 GMT",
+      "origin": "gnews-rss",
+      "source": "Yahoo Finance",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "IPO"
+      ],
+      "sector_holdings": [
+        "RKLB"
+      ],
+      "stance": "neutral",
+      "relevance": 70,
+      "summary_cn": "马斯克在SpaceX路演中发布重大消息，SpaceX为未上市公司。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk's SpaceX is about to make its debut on Wall Street. What to know",
+      "url": "",
+      "published": "Thu, 11 Jun 2026 11:46:18 GMT",
+      "origin": "gnews-rss",
+      "source": "ABC7 Bay Area",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "IPO"
+      ],
+      "sector_holdings": [
+        "RKLB"
+      ],
+      "stance": "neutral",
+      "relevance": 70,
+      "summary_cn": "马斯克的SpaceX即将在华尔街上市，SpaceX为未上市公司。"
+    },
+    {
+      "author": "Musk",
+      "text": "SpaceX IPO is a ‘referendum’ on Musk, say market watchers",
+      "url": "",
+      "published": "Thu, 11 Jun 2026 10:37:21 GMT",
+      "origin": "gnews-rss",
+      "source": "CNBC",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "IPO"
+      ],
+      "sector_holdings": [
+        "RKLB"
+      ],
+      "stance": "neutral",
+      "relevance": 70,
+      "summary_cn": "市场观察人士称SpaceX IPO是对马斯克的'公投'，SpaceX为未上市公司。"
+    },
+    {
+      "author": "Musk",
+      "text": "SpaceX is poised for blastoff with an IPO likely to break records",
+      "url": "",
+      "published": "Thu, 11 Jun 2026 09:00:00 GMT",
+      "origin": "gnews-rss",
+      "source": "NPR",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "IPO"
+      ],
+      "sector_holdings": [
+        "RKLB"
+      ],
+      "stance": "neutral",
+      "relevance": 70,
+      "summary_cn": "SpaceX准备发射IPO，可能打破纪录，SpaceX为未上市公司。"
     },
     {
       "author": "Musk",
@@ -409,51 +465,8 @@
         "RKLB"
       ],
       "stance": "neutral",
-      "relevance": 55,
-      "summary_cn": "报道讨论SpaceX是否真的值1.75万亿美元估值（SpaceX未上市，不填tickers）。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk Calls for UK Protests Days Before SpaceX IPO",
-      "url": "",
-      "published": "Wed, 10 Jun 2026 22:22:35 GMT",
-      "origin": "gnews-rss",
-      "source": "Bloomberg.com",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "IPO",
-        "政治"
-      ],
-      "sector_holdings": [
-        "RKLB"
-      ],
-      "stance": "neutral",
-      "relevance": 50,
-      "summary_cn": "马斯克在SpaceX IPO前几天呼吁英国进行抗议活动（SpaceX未上市，不填tickers）。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk Is About to Make Saving for Retirement Even Harder",
-      "url": "",
-      "published": "Wed, 10 Jun 2026 09:30:00 GMT",
-      "origin": "gnews-rss",
-      "source": "The American Prospect",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "退休储蓄",
-        "金融科技"
-      ],
-      "sector_holdings": [
-        "CRCL"
-      ],
-      "stance": "attack",
-      "relevance": 50,
-      "summary_cn": "报道称马斯克将使退休储蓄变得更加困难（标题党，具体影响待确认）。"
+      "relevance": 70,
+      "summary_cn": "马斯克的SpaceX是否真的值1.75万亿美元？SpaceX为未上市公司。"
     }
   ]
 }
