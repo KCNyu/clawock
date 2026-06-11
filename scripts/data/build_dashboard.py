@@ -1884,6 +1884,7 @@ def main():
     _gold = portfolio.get('gold_dca')
     if _gold:
         _gold = dict(_gold)
+        _gold.pop('parent_backtest', None)  # ETF 回测段 2026-06-11 撤除（kcn：没用，就是黄金本身）
         if isinstance(_gold.get('nav_history'), list):
             _gold['nav_history'] = _gold['nav_history'][-90:]  # 迷你图够用，控体积
     out['gold_dca'] = _gold
