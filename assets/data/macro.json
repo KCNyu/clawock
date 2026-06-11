@@ -1,67 +1,72 @@
 {
-  "generated_at": "2026-06-10T23:14:45.126276+00:00",
+  "generated_at": "2026-06-11T23:10:55.371451+00:00",
   "vix": {
     "symbol": "^VIX",
-    "price": 19.87,
-    "prev": 18.92,
-    "change_pct": 5.02,
-    "as_of": 1781036100,
+    "price": 22.22,
+    "prev": 19.87,
+    "change_pct": 11.83,
+    "as_of": 1781122500,
     "source": "yahoo"
   },
   "treasury_10y": {
     "symbol": "^TNX",
-    "price": 4.542,
-    "prev": 4.528,
-    "change_pct": 0.31,
-    "as_of": 1781117995,
+    "price": 4.463,
+    "prev": 4.542,
+    "change_pct": -1.74,
+    "as_of": 1781204395,
     "source": "yahoo",
-    "yield_pct": 4.542
+    "yield_pct": 4.463
   },
   "dxy": {
     "symbol": "DX-Y.NYB",
-    "price": 99.91,
-    "prev": 100.05,
-    "change_pct": -0.14,
-    "as_of": 1780977540,
+    "price": 99.675,
+    "prev": 99.858,
+    "change_pct": -0.18,
+    "as_of": 1781215498,
     "source": "yahoo"
   },
   "fear_greed": {
-    "score": 27.5,
+    "score": 29.7,
     "rating": "fear",
-    "prev_close": 33.4,
-    "prev_1_week": 53.0,
-    "as_of": "2026-06-10T22:55:48+00:00"
+    "prev_close": 27.5,
+    "prev_1_week": 53.9,
+    "as_of": "2026-06-11T22:52:39+00:00"
   },
   "hsi": {
     "symbol": "^HSI",
-    "price": 24407.96,
-    "prev": 24565.9,
-    "change_pct": -0.64,
+    "price": 24249.29,
+    "prev": 24407.96,
+    "change_pct": -0.65,
     "source": "tencent"
   },
   "hstech": {
     "symbol": "^HSTECH",
-    "price": 4724.79,
-    "prev": 4769.61,
-    "change_pct": -0.94,
+    "price": 4655.74,
+    "prev": 4724.79,
+    "change_pct": -1.46,
     "source": "tencent"
   },
   "spx": {
     "symbol": "^GSPC",
-    "price": 7266.99,
-    "prev": 7386.65,
-    "change_pct": -1.62,
-    "as_of": 1781124132,
+    "price": 7394.3,
+    "prev": 7266.99,
+    "change_pct": 1.75,
+    "as_of": 1781211378,
     "source": "yahoo"
   },
   "nasdaq": {
     "symbol": "^IXIC",
-    "price": 25169.5,
-    "prev": 25678.82,
-    "change_pct": -1.98,
+    "price": 25809.66,
+    "prev": 25169.5,
+    "change_pct": 2.54,
     "source": "tencent"
   },
   "fed_press": [
+    {
+      "date": "2026-06-11",
+      "title": "Federal Reserve Board announces final rule that establishes data standards for certain information collections",
+      "url": "https://www.federalreserve.gov/newsevents/pressreleases/bcreg20260611a.htm"
+    },
     {
       "date": "2026-06-09",
       "title": "Federal Reserve Board announces that results from its annual bank stress test will be released on Wednesday, June 24, at 4 p.m. EDT.",
