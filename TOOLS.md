@@ -132,7 +132,7 @@ python3 scripts/data/fetch_us_stocks.py     # 仅刷美股价格
 
 ## 现有脚本梳理（精简索引 — 完整说明见 `TOOLS_SCRIPTS.md`）
 
-**数据抓取/分析**：`fetch_us_stocks.py`(美股7路fallback,写回portfolio) · `analyze_us_stocks.py`(刷价+RSI/MA+新闻+信号) · `analyze_hk_stocks.py`(腾讯+东财双源对账→stooq/yf兜底) · `fetch_fx.py`(USDHKD 3路,**book total 必先调**) · `fetch_us_filings.py`(SEC EDGAR) · `fetch_catalysts.py`(14d催化→catalysts.json) · `fetch_influencer_feed.py`(Trump/Musk雷达→influencer_feed.json) · `portfolio_risk_metrics.py`(β/Vol/DD/Sharpe→risk.json)
+**数据抓取/分析**：`fetch_us_stocks.py`(美股7路fallback,写回portfolio) · `analyze_us_stocks.py`(刷价+RSI/MA+新闻+信号) · `analyze_hk_stocks.py`(腾讯+东财双源对账→stooq/yf兜底) · `fetch_fx.py`(USDHKD 3路,**book total 必先调**) · `fetch_us_filings.py`(SEC EDGAR) · `fetch_catalysts.py`(14d催化→catalysts.json) · `fetch_influencer_feed.py`(Trump/Musk雷达→influencer_feed.json) · `portfolio_risk_metrics.py`(β/Vol/DD/Sharpe→risk.json) · `compute_quant_signals.py`(趋势/动量/RSI/z/ATR吊灯/vol-target→quant_signals.json+history.jsonl留痕,杠杆ETF按标的) · `quant_signal_review.py`(留痕vs前瞻收益→因子edge表,n<20不解锁,brief按edge取信)
 
 **Harness（三明治：preflight 确定性 → LLM 合成 → postflight 校验+commit）**
 - brief：`brief_preflight.py` / `brief_postflight.py`（写 `memory/{date}-pre-open.md` + `-plan.json`；postflight 自动跑 build_dashboard + push）

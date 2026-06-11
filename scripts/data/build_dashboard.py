@@ -1854,6 +1854,8 @@ def main():
                 print(f'  warn: {fname} parse fail: {e}', file=sys.stderr)
         out[key] = None
 
+    _embed('quant_signals', 'quant_signals.json')      # compute_quant_signals.py: 趋势/动量/RSI/ATR吊灯/vol-target
+    _embed('quant_signal_review', 'quant_signal_review.json')  # quant_signal_review.py: 因子 edge 自检(T+1/T+5 对账)
     _embed('catalysts', 'catalysts.json')              # fetch_catalysts.py + brief preflight [11/11]
     _embed('benchmark', 'benchmark.json')              # fetch_benchmark_history.py: SPY/HSI/HSTECH daily close
     _embed('us_news_digest', 'us_news_digest.json')    # GH Action news-digest.yml (xiaomi)

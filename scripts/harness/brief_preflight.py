@@ -1450,6 +1450,34 @@ def main():
     except Exception as e:
         print(f'   ⚠ lev_regime compute failed: {e}')
 
+    # [10b2] 量化因子层 — 趋势/动量/RSI/z-score/ATR吊灯止损/vol-target（纯算术，
+    # LLM 技术面判断只准引用此表）。merge-not-overwrite，单只抓空保留旧值。
+    quant_signals = {}
+    try:
+        subprocess.run(['python3', str(WS / 'scripts' / 'data' / 'compute_quant_signals.py')],
+                       capture_output=True, text=True, timeout=120, check=False)
+        qs_path = WS / 'assets' / 'data' / 'quant_signals.json'
+        if qs_path.exists():
+            quant_signals = json.loads(qs_path.read_text())
+            tags = {k: v.get('tag') for k, v in (quant_signals.get('rows') or {}).items()}
+            print(f'   📊 quant_signals: {len(tags)} symbols — '
+                  + '; '.join(f'{k}:{v}' for k, v in list(tags.items())[:4]) + ' …')
+    except Exception as e:
+        print(f'   ⚠ quant_signals compute failed: {e}')
+
+    # [10b3] 因子 edge 自检 — 历史留痕 vs forward return 对账（自迭代：因子话语权由
+    # hit_rate 决定，样本<20 不解锁）。纯本地文件运算。
+    quant_review = {}
+    try:
+        subprocess.run(['python3', str(WS / 'scripts' / 'data' / 'quant_signal_review.py')],
+                       capture_output=True, text=True, timeout=60, check=False)
+        qr_path = WS / 'assets' / 'data' / 'quant_signal_review.json'
+        if qr_path.exists():
+            quant_review = json.loads(qr_path.read_text())
+            print(f'   📐 factor edge: {quant_review.get("summary", "")[:80]}')
+    except Exception as e:
+        print(f'   ⚠ quant_signal_review failed: {e}')
+
     # [10c] Risk guardrails — position-sizing / leverage hard caps → trim/cut directives
     guardrail = compute_risk_guardrail(
         portfolio['portfolios']['hk_stocks']['holdings'],
@@ -1525,6 +1553,8 @@ def main():
         'concentration': {'hk': hk_conc, 'us': us_conc},
         'risk_guardrail': guardrail,
         'breakeven_math': breakeven,
+        'quant_signals': quant_signals,
+        'quant_signal_review': quant_review,
         'us_fundamentals': us_fund,
         'retrospective': retro,
         'peer_scan':     peer_scan,
