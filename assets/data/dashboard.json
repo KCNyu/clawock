@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-11T23:06:56.922125Z",
+  "generated_at": "2026-06-11T23:08:14.404295Z",
   "last_updated": "2026/06/12 04:00 HKT",
   "fx": {
     "usdhkd": null,
@@ -3801,7 +3801,7 @@
     ]
   },
   "influencer_feed": {
-    "generated_at": "2026-06-11T16:42:24.008494+00:00",
+    "generated_at": "2026-06-11T23:08:14.276848+00:00",
     "lookback_hours": 48,
     "sources": {
       "trump": "trumpstruth.org/feed (primary)",
@@ -3810,12 +3810,64 @@
     },
     "llm_filtered": true,
     "counts": {
-      "total": 14,
+      "total": 11,
       "held_hits": 0,
-      "new_ideas": 1,
-      "sector_hits": 7
+      "new_ideas": 3,
+      "sector_hits": 4
     },
     "items": [
+      {
+        "author": "Musk",
+        "text": "Musk To Pitch Terafab Semiconductor Factory To ASML Ahead Of SpaceX IPO",
+        "url": "",
+        "published": "Thu, 11 Jun 2026 20:03:00 GMT",
+        "origin": "gnews-rss",
+        "source": "Investor's Business Daily",
+        "tickers": [
+          "ASML"
+        ],
+        "held": [],
+        "new_ideas": [
+          "ASML"
+        ],
+        "sectors": [
+          "半导体",
+          "航天",
+          "IPO"
+        ],
+        "sector_holdings": [
+          "RKLB"
+        ],
+        "stance": "endorse",
+        "relevance": 85,
+        "summary_cn": "马斯克将在SpaceX IPO前向ASML推销Terafab半导体工厂，直接点名ASML。"
+      },
+      {
+        "author": "Musk",
+        "text": "Ahead of SpaceX IPO, Elon Musk addresses ASML employees as part of push into chip manufacturing",
+        "url": "",
+        "published": "Thu, 11 Jun 2026 17:24:40 GMT",
+        "origin": "gnews-rss",
+        "source": "CNBC",
+        "tickers": [
+          "ASML"
+        ],
+        "held": [],
+        "new_ideas": [
+          "ASML"
+        ],
+        "sectors": [
+          "半导体",
+          "航天",
+          "IPO"
+        ],
+        "sector_holdings": [
+          "RKLB"
+        ],
+        "stance": "endorse",
+        "relevance": 85,
+        "summary_cn": "马斯克在SpaceX IPO前向ASML员工作为推动芯片制造的一部分发表讲话，直接点名ASML。"
+      },
       {
         "author": "Trump",
         "text": "Wow! CITI was ranked Number 1 in topping M&A Advisory Market by Value in Q1. Congratulations to Jane F and ALL of her great people. They’ve worked really hard! BIG comeback for CITI!!! President DONALD J. TRUMP",
@@ -3836,15 +3888,15 @@
         "sector_holdings": [],
         "stance": "endorse",
         "relevance": 80,
-        "summary_cn": "特朗普祝贺花旗集团(C)在Q1并购顾问市场排名第一，称其为'大回归'。"
+        "summary_cn": "特朗普祝贺花旗集团在Q1并购咨询市场按价值排名第一，称其为'大回归'。"
       },
       {
         "author": "Musk",
-        "text": "Musk’s Net Worth Down More Than $50 Billion Ahead Of SpaceX IPO",
+        "text": "SpaceX IPO demand is approaching four times oversubscribed, source says",
         "url": "",
-        "published": "Thu, 11 Jun 2026 16:24:14 GMT",
+        "published": "Wed, 10 Jun 2026 03:47:14 GMT",
         "origin": "gnews-rss",
-        "source": "Forbes",
+        "source": "Reuters",
         "tickers": [],
         "held": [],
         "new_ideas": [],
@@ -3855,17 +3907,17 @@
         "sector_holdings": [
           "RKLB"
         ],
-        "stance": "neutral",
-        "relevance": 70,
-        "summary_cn": "马斯克净资产在SpaceX IPO前缩水超500亿美元，SpaceX为未上市公司。"
+        "stance": "endorse",
+        "relevance": 75,
+        "summary_cn": "马斯克称SpaceX的IPO需求已接近四倍超额认购，显示市场对航天资产的强烈兴趣。"
       },
       {
         "author": "Musk",
-        "text": "SpaceX’s I.P.O. Could Turn 4,400 Employees Into Millionaires",
+        "text": "Elon Musk's SpaceX valued at nearly $1.8tn ahead of record share sale",
         "url": "",
-        "published": "Thu, 11 Jun 2026 15:14:00 GMT",
+        "published": "Thu, 11 Jun 2026 21:10:14 GMT",
         "origin": "gnews-rss",
-        "source": "The New York Times",
+        "source": "BBC",
         "tickers": [],
         "held": [],
         "new_ideas": [],
@@ -3876,17 +3928,17 @@
         "sector_holdings": [
           "RKLB"
         ],
-        "stance": "neutral",
-        "relevance": 70,
-        "summary_cn": "SpaceX IPO可能让4400名员工成为百万富翁，SpaceX为未上市公司。"
+        "stance": "endorse",
+        "relevance": 75,
+        "summary_cn": "SpaceX在创纪录的股份出售前估值接近1.8万亿美元。"
       },
       {
         "author": "Musk",
-        "text": "Elon Musk Just Dealt Some Massive News at SpaceX’s Roadshow",
+        "text": "Elon Musk’s SpaceX is about to make its debut on Wall Street",
         "url": "",
-        "published": "Thu, 11 Jun 2026 12:35:32 GMT",
+        "published": "Thu, 11 Jun 2026 15:18:00 GMT",
         "origin": "gnews-rss",
-        "source": "Yahoo Finance",
+        "source": "AP News",
         "tickers": [],
         "held": [],
         "new_ideas": [],
@@ -3897,93 +3949,31 @@
         "sector_holdings": [
           "RKLB"
         ],
-        "stance": "neutral",
+        "stance": "endorse",
         "relevance": 70,
-        "summary_cn": "马斯克在SpaceX路演中发布重大消息，SpaceX为未上市公司。"
+        "summary_cn": "马斯克的SpaceX即将在华尔街首次亮相。"
       },
       {
         "author": "Musk",
-        "text": "Elon Musk's SpaceX is about to make its debut on Wall Street. What to know",
+        "text": "Elon Musk is the world’s first trillionaire (on paper) thanks to the SpaceX IPO",
         "url": "",
-        "published": "Thu, 11 Jun 2026 11:46:18 GMT",
+        "published": "Thu, 11 Jun 2026 22:43:42 GMT",
         "origin": "gnews-rss",
-        "source": "ABC7 Bay Area",
+        "source": "The Washington Post",
         "tickers": [],
         "held": [],
         "new_ideas": [],
         "sectors": [
           "航天",
-          "IPO"
+          "IPO",
+          "财富"
         ],
         "sector_holdings": [
           "RKLB"
         ],
-        "stance": "neutral",
-        "relevance": 70,
-        "summary_cn": "马斯克的SpaceX即将在华尔街上市，SpaceX为未上市公司。"
-      },
-      {
-        "author": "Musk",
-        "text": "SpaceX IPO is a ‘referendum’ on Musk, say market watchers",
-        "url": "",
-        "published": "Thu, 11 Jun 2026 10:37:21 GMT",
-        "origin": "gnews-rss",
-        "source": "CNBC",
-        "tickers": [],
-        "held": [],
-        "new_ideas": [],
-        "sectors": [
-          "航天",
-          "IPO"
-        ],
-        "sector_holdings": [
-          "RKLB"
-        ],
-        "stance": "neutral",
-        "relevance": 70,
-        "summary_cn": "市场观察人士称SpaceX IPO是对马斯克的'公投'，SpaceX为未上市公司。"
-      },
-      {
-        "author": "Musk",
-        "text": "SpaceX is poised for blastoff with an IPO likely to break records",
-        "url": "",
-        "published": "Thu, 11 Jun 2026 09:00:00 GMT",
-        "origin": "gnews-rss",
-        "source": "NPR",
-        "tickers": [],
-        "held": [],
-        "new_ideas": [],
-        "sectors": [
-          "航天",
-          "IPO"
-        ],
-        "sector_holdings": [
-          "RKLB"
-        ],
-        "stance": "neutral",
-        "relevance": 70,
-        "summary_cn": "SpaceX准备发射IPO，可能打破纪录，SpaceX为未上市公司。"
-      },
-      {
-        "author": "Musk",
-        "text": "Is Elon Musk’s SpaceX Really Worth $1.75 Trillion?",
-        "url": "",
-        "published": "Mon, 08 Jun 2026 10:00:00 GMT",
-        "origin": "gnews-rss",
-        "source": "The New Yorker",
-        "tickers": [],
-        "held": [],
-        "new_ideas": [],
-        "sectors": [
-          "航天",
-          "IPO"
-        ],
-        "sector_holdings": [
-          "RKLB"
-        ],
-        "stance": "neutral",
-        "relevance": 70,
-        "summary_cn": "马斯克的SpaceX是否真的值1.75万亿美元？SpaceX为未上市公司。"
+        "stance": "endorse",
+        "relevance": 65,
+        "summary_cn": "得益于SpaceX IPO，马斯克在纸面上成为世界首位万亿富翁。"
       },
       {
         "author": "Trump",
@@ -3996,13 +3986,13 @@
         "new_ideas": [],
         "sectors": [
           "能源",
-          "石油",
-          "地缘政治"
+          "地缘政治",
+          "石油"
         ],
         "sector_holdings": [],
         "stance": "neutral",
-        "relevance": 75,
-        "summary_cn": "特朗普宣布将对伊朗发动军事打击，并计划夺取其石油基础设施和油气市场控制权，可能引发能源市场波动。"
+        "relevance": 70,
+        "summary_cn": "特朗普宣布将对伊朗发动军事打击，并计划夺取其石油基础设施，可能影响全球石油供应和能源市场。"
       },
       {
         "author": "Trump",
@@ -4020,8 +4010,8 @@
         ],
         "sector_holdings": [],
         "stance": "neutral",
-        "relevance": 75,
-        "summary_cn": "特朗普宣布美军秘密护航行动成功，超过1亿桶石油通过霍尔木兹海峡，宣称美国控制该海峡。"
+        "relevance": 70,
+        "summary_cn": "特朗普宣称美军秘密护航行动已确保超1亿桶石油通过霍尔木兹海峡，强调美国控制该航道。"
       },
       {
         "author": "Trump",
@@ -4033,13 +4023,13 @@
         "held": [],
         "new_ideas": [],
         "sectors": [
-          "国防军工",
+          "国防",
           "财政政策"
         ],
         "sector_holdings": [],
         "stance": "endorse",
-        "relevance": 70,
-        "summary_cn": "特朗普呼吁国会立即通过3500亿美元的军事拨款法案，强调对军事的代际投资。"
+        "relevance": 65,
+        "summary_cn": "特朗普呼吁国会立即通过3500亿美元的国防和解法案，强调对军事的代际投资。"
       },
       {
         "author": "Trump",
@@ -4057,48 +4047,64 @@
         ],
         "sector_holdings": [],
         "stance": "neutral",
-        "relevance": 70,
-        "summary_cn": "特朗普宣称美国海军封锁伊朗非常成功，伊朗经济正在崩溃，大量石油正在流出。"
-      },
-      {
-        "author": "Trump",
-        "text": "Record $327.1 Billion Exports Help Shrink U.S. Trade Deficit: https://dallasexpress.com/national/record-327-1-billion-exports-help-shrink-u-s-trade-deficit-in-april/",
-        "url": "https://trumpstruth.org/statuses/39170",
-        "published": "2026-06-09T21:57:16+00:00",
-        "origin": "truthsocial",
-        "tickers": [],
-        "held": [],
-        "new_ideas": [],
-        "sectors": [
-          "宏观经济",
-          "贸易"
-        ],
-        "sector_holdings": [],
-        "stance": "neutral",
         "relevance": 65,
-        "summary_cn": "特朗普转发新闻：美国4月出口创纪录3271亿美元，贸易逆差收窄。"
-      },
-      {
-        "author": "Trump",
-        "text": "US trade deficit widens by the most in nearly 34 years: https://www.reuters.com/business/us-trade-deficit-widens-by-most-nearly-34-years-november-2026-01-29/",
-        "url": "https://trumpstruth.org/statuses/39171",
-        "published": "2026-06-09T21:56:35+00:00",
-        "origin": "truthsocial",
-        "tickers": [],
-        "held": [],
-        "new_ideas": [],
-        "sectors": [
-          "宏观经济",
-          "贸易"
-        ],
-        "sector_holdings": [],
-        "stance": "neutral",
-        "relevance": 65,
-        "summary_cn": "特朗普转发路透社新闻：美国贸易逆差扩大幅度为近34年来最大。"
+        "summary_cn": "特朗普宣称美国海军对伊朗的封锁是史上最成功的封锁，大量石油正在流出。"
       }
     ],
     "held_hits": [],
     "new_ideas": [
+      {
+        "author": "Musk",
+        "text": "Musk To Pitch Terafab Semiconductor Factory To ASML Ahead Of SpaceX IPO",
+        "url": "",
+        "published": "Thu, 11 Jun 2026 20:03:00 GMT",
+        "origin": "gnews-rss",
+        "source": "Investor's Business Daily",
+        "tickers": [
+          "ASML"
+        ],
+        "held": [],
+        "new_ideas": [
+          "ASML"
+        ],
+        "sectors": [
+          "半导体",
+          "航天",
+          "IPO"
+        ],
+        "sector_holdings": [
+          "RKLB"
+        ],
+        "stance": "endorse",
+        "relevance": 85,
+        "summary_cn": "马斯克将在SpaceX IPO前向ASML推销Terafab半导体工厂，直接点名ASML。"
+      },
+      {
+        "author": "Musk",
+        "text": "Ahead of SpaceX IPO, Elon Musk addresses ASML employees as part of push into chip manufacturing",
+        "url": "",
+        "published": "Thu, 11 Jun 2026 17:24:40 GMT",
+        "origin": "gnews-rss",
+        "source": "CNBC",
+        "tickers": [
+          "ASML"
+        ],
+        "held": [],
+        "new_ideas": [
+          "ASML"
+        ],
+        "sectors": [
+          "半导体",
+          "航天",
+          "IPO"
+        ],
+        "sector_holdings": [
+          "RKLB"
+        ],
+        "stance": "endorse",
+        "relevance": 85,
+        "summary_cn": "马斯克在SpaceX IPO前向ASML员工作为推动芯片制造的一部分发表讲话，直接点名ASML。"
+      },
       {
         "author": "Trump",
         "text": "Wow! CITI was ranked Number 1 in topping M&A Advisory Market by Value in Q1. Congratulations to Jane F and ALL of her great people. They’ve worked really hard! BIG comeback for CITI!!! President DONALD J. TRUMP",
@@ -4119,17 +4125,17 @@
         "sector_holdings": [],
         "stance": "endorse",
         "relevance": 80,
-        "summary_cn": "特朗普祝贺花旗集团(C)在Q1并购顾问市场排名第一，称其为'大回归'。"
+        "summary_cn": "特朗普祝贺花旗集团在Q1并购咨询市场按价值排名第一，称其为'大回归'。"
       }
     ],
     "sector_hits": [
       {
         "author": "Musk",
-        "text": "Musk’s Net Worth Down More Than $50 Billion Ahead Of SpaceX IPO",
+        "text": "SpaceX IPO demand is approaching four times oversubscribed, source says",
         "url": "",
-        "published": "Thu, 11 Jun 2026 16:24:14 GMT",
+        "published": "Wed, 10 Jun 2026 03:47:14 GMT",
         "origin": "gnews-rss",
-        "source": "Forbes",
+        "source": "Reuters",
         "tickers": [],
         "held": [],
         "new_ideas": [],
@@ -4140,17 +4146,17 @@
         "sector_holdings": [
           "RKLB"
         ],
-        "stance": "neutral",
-        "relevance": 70,
-        "summary_cn": "马斯克净资产在SpaceX IPO前缩水超500亿美元，SpaceX为未上市公司。"
+        "stance": "endorse",
+        "relevance": 75,
+        "summary_cn": "马斯克称SpaceX的IPO需求已接近四倍超额认购，显示市场对航天资产的强烈兴趣。"
       },
       {
         "author": "Musk",
-        "text": "SpaceX’s I.P.O. Could Turn 4,400 Employees Into Millionaires",
+        "text": "Elon Musk's SpaceX valued at nearly $1.8tn ahead of record share sale",
         "url": "",
-        "published": "Thu, 11 Jun 2026 15:14:00 GMT",
+        "published": "Thu, 11 Jun 2026 21:10:14 GMT",
         "origin": "gnews-rss",
-        "source": "The New York Times",
+        "source": "BBC",
         "tickers": [],
         "held": [],
         "new_ideas": [],
@@ -4161,17 +4167,17 @@
         "sector_holdings": [
           "RKLB"
         ],
-        "stance": "neutral",
-        "relevance": 70,
-        "summary_cn": "SpaceX IPO可能让4400名员工成为百万富翁，SpaceX为未上市公司。"
+        "stance": "endorse",
+        "relevance": 75,
+        "summary_cn": "SpaceX在创纪录的股份出售前估值接近1.8万亿美元。"
       },
       {
         "author": "Musk",
-        "text": "Elon Musk Just Dealt Some Massive News at SpaceX’s Roadshow",
+        "text": "Elon Musk’s SpaceX is about to make its debut on Wall Street",
         "url": "",
-        "published": "Thu, 11 Jun 2026 12:35:32 GMT",
+        "published": "Thu, 11 Jun 2026 15:18:00 GMT",
         "origin": "gnews-rss",
-        "source": "Yahoo Finance",
+        "source": "AP News",
         "tickers": [],
         "held": [],
         "new_ideas": [],
@@ -4182,93 +4188,31 @@
         "sector_holdings": [
           "RKLB"
         ],
-        "stance": "neutral",
+        "stance": "endorse",
         "relevance": 70,
-        "summary_cn": "马斯克在SpaceX路演中发布重大消息，SpaceX为未上市公司。"
+        "summary_cn": "马斯克的SpaceX即将在华尔街首次亮相。"
       },
       {
         "author": "Musk",
-        "text": "Elon Musk's SpaceX is about to make its debut on Wall Street. What to know",
+        "text": "Elon Musk is the world’s first trillionaire (on paper) thanks to the SpaceX IPO",
         "url": "",
-        "published": "Thu, 11 Jun 2026 11:46:18 GMT",
+        "published": "Thu, 11 Jun 2026 22:43:42 GMT",
         "origin": "gnews-rss",
-        "source": "ABC7 Bay Area",
+        "source": "The Washington Post",
         "tickers": [],
         "held": [],
         "new_ideas": [],
         "sectors": [
           "航天",
-          "IPO"
+          "IPO",
+          "财富"
         ],
         "sector_holdings": [
           "RKLB"
         ],
-        "stance": "neutral",
-        "relevance": 70,
-        "summary_cn": "马斯克的SpaceX即将在华尔街上市，SpaceX为未上市公司。"
-      },
-      {
-        "author": "Musk",
-        "text": "SpaceX IPO is a ‘referendum’ on Musk, say market watchers",
-        "url": "",
-        "published": "Thu, 11 Jun 2026 10:37:21 GMT",
-        "origin": "gnews-rss",
-        "source": "CNBC",
-        "tickers": [],
-        "held": [],
-        "new_ideas": [],
-        "sectors": [
-          "航天",
-          "IPO"
-        ],
-        "sector_holdings": [
-          "RKLB"
-        ],
-        "stance": "neutral",
-        "relevance": 70,
-        "summary_cn": "市场观察人士称SpaceX IPO是对马斯克的'公投'，SpaceX为未上市公司。"
-      },
-      {
-        "author": "Musk",
-        "text": "SpaceX is poised for blastoff with an IPO likely to break records",
-        "url": "",
-        "published": "Thu, 11 Jun 2026 09:00:00 GMT",
-        "origin": "gnews-rss",
-        "source": "NPR",
-        "tickers": [],
-        "held": [],
-        "new_ideas": [],
-        "sectors": [
-          "航天",
-          "IPO"
-        ],
-        "sector_holdings": [
-          "RKLB"
-        ],
-        "stance": "neutral",
-        "relevance": 70,
-        "summary_cn": "SpaceX准备发射IPO，可能打破纪录，SpaceX为未上市公司。"
-      },
-      {
-        "author": "Musk",
-        "text": "Is Elon Musk’s SpaceX Really Worth $1.75 Trillion?",
-        "url": "",
-        "published": "Mon, 08 Jun 2026 10:00:00 GMT",
-        "origin": "gnews-rss",
-        "source": "The New Yorker",
-        "tickers": [],
-        "held": [],
-        "new_ideas": [],
-        "sectors": [
-          "航天",
-          "IPO"
-        ],
-        "sector_holdings": [
-          "RKLB"
-        ],
-        "stance": "neutral",
-        "relevance": 70,
-        "summary_cn": "马斯克的SpaceX是否真的值1.75万亿美元？SpaceX为未上市公司。"
+        "stance": "endorse",
+        "relevance": 65,
+        "summary_cn": "得益于SpaceX IPO，马斯克在纸面上成为世界首位万亿富翁。"
       }
     ]
   },
