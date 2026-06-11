@@ -27,6 +27,7 @@ Exit: 0 if no issues, 1 if any data leg failed.
 """
 
 import json
+import math
 import os
 import subprocess
 import sys
@@ -153,6 +154,26 @@ GUARDRAIL_CAPS = {
     'lev_etf_stop_pct': -18,    # hard-stop line for one leveraged ETF (vs cost)
 }
 
+# 2x→1x 解套换仓映射（kcn 2026-06-11 口径）：现货套牢可以躺（等待免费），2x 日内重置
+# 套牢不能躺（震荡 decay 让等待持续收费）。所以杠杆腿的硬闸动作一律先给「换仓」而非
+# 「清仓 trim」——换成同因子 1x 后反弹敞口一点不丢、decay 出血停止，不算割肉离场。
+# 换回条件 = 🧭 lev_regime 转 green（标的收复 200 日线且波动正常），1x→2x 只在 green 档执行。
+LEV_1X_SWAP = {
+    '07226': '03033',   # XL二南方恒科 2x → 南方恒生科技 1x（同因子同发行人）
+    'PLTU':  'PLTR',
+    'ROBN':  'HOOD',
+    'MSFU':  'MSFT',
+    'TQQQ':  'QQQ',
+    'SOXL':  'SOXX',
+}
+
+
+def _swap_suggestions(holdings):
+    """持有中的杠杆 ETF → 「2x→1x」换仓建议串，如 "07226→03033、ROBN→HOOD"。"""
+    return '、'.join(f"{h['ticker']}→{LEV_1X_SWAP[h['ticker']]}" for h in holdings
+                     if h.get('shares', 0) > 0 and _is_leveraged_etf(h)
+                     and h.get('ticker') in LEV_1X_SWAP)
+
 
 def _holding_pnl_pct(h):
     cost = h.get('cost_basis', 0) * h.get('shares', 0)
@@ -192,7 +213,8 @@ def compute_risk_guardrail(hk_holdings, us_holdings, hk_conc, us_conc, risk, lev
                     'type': 'single_name', 'leg': leg, 'ticker': w['ticker'],
                     'severity': 'high' if w['weight_pct'] > caps['single_name_pct'] + 15 else 'medium',
                     'detail': f"{w['ticker']} = {w['weight_pct']}% of {leg} (cap {caps['single_name_pct']}%)",
-                    'action': f"纪律性 trim {w['ticker']} → ≤{caps['single_name_pct']}% (减约 {trim_val} {ccy})",
+                    'action': (f"纪律性 trim {w['ticker']} → ≤{caps['single_name_pct']}% "
+                               f"(减约 {trim_val} {ccy}，借反弹分批、勿在新低日一次砍)"),
                 })
 
         # single-factor proxy = Top2
@@ -223,7 +245,9 @@ def compute_risk_guardrail(hk_holdings, us_holdings, hk_conc, us_conc, risk, lev
             breaches.append({
                 'type': 'leveraged_exposure', 'leg': leg, 'ticker': None, 'severity': 'high',
                 'detail': f"{leg} 杠杆 ETF = {lev_pct}% (cap {eff_lev_cap}%) — 2x 日内重置，下杀崩/震荡衰减{regime_note}",
-                'action': f"把 {leg} 杠杆 ETF 敞口降到 ≤{eff_lev_cap}% (减约 {trim_val} {ccy})",
+                'action': (f"降杠杆=换仓非清仓：把约 {trim_val} {ccy} 的 2x 换成 1x 同因子"
+                           f"({_swap_suggestions(hold) or '同因子 1x/标的现货'})，"
+                           f"敞口不变、停 decay；🧭转 green 后可换回 2x"),
             })
 
         # hard-stop watch on individual leveraged ETFs
@@ -235,7 +259,9 @@ def compute_risk_guardrail(hk_holdings, us_holdings, hk_conc, us_conc, risk, lev
                 hard_stops.append({
                     'ticker': h['ticker'], 'leg': leg, 'pnl_pct': pnl,
                     'detail': f"{h['ticker']} 浮亏 {pnl}% ≤ 硬止损线 {caps['lev_etf_stop_pct']}%",
-                    'action': f"{h['ticker']} 触发杠杆 ETF 硬止损 → 下一个可接受 bid cut (规则非择时)",
+                    'action': (f"{h['ticker']} 触发杠杆 ETF 硬止损 → 换仓 "
+                               f"{('1x 同因子 ' + LEV_1X_SWAP[h['ticker']]) if h.get('ticker') in LEV_1X_SWAP else '同因子 1x/标的现货'}"
+                               f"（敞口保留、停 decay，规则非择时）；🧭转 green 再换回 2x"),
                 })
 
     # US per-name leverage dial (lev_regime['us']) — only the 'cut' state (underlying
@@ -250,8 +276,9 @@ def compute_risk_guardrail(hk_holdings, us_holdings, hk_conc, us_conc, risk, lev
                     'type': 'regime_delever', 'leg': 'US', 'ticker': nm['etf'], 'severity': 'high',
                     'detail': (f"🧭 {nm['etf']}=2x{nm['underlying']} 标的破200线 "
                                f"({nm.get('dist_ma_pct')}%)+波动 {vol_pct:.0f}% 过热 → 杠杆制度 red"),
-                    'action': (f"{nm['etf']} 降杠杆/减仓(driven_by=technical,规则非择时)：标的趋势off "
-                               f"且波动>{int(nm.get('vol_hot_cap',0.7)*100)}%，2x 日内重置在下杀里放大衰减"),
+                    'action': (f"{nm['etf']} 2x→{nm['underlying']} 现货换仓(driven_by=technical,规则非择时)：标的趋势off "
+                               f"且波动>{int(nm.get('vol_hot_cap',0.7)*100)}%，2x 日内重置在下杀里放大衰减；"
+                               f"{nm['underlying']} 收复200线(green)再换回 2x"),
                 })
 
     # portfolio-level β from risk.json
@@ -267,13 +294,64 @@ def compute_risk_guardrail(hk_holdings, us_holdings, hk_conc, us_conc, risk, lev
     if n:
         directive = (f"⛔ {len(breaches)} 仓位硬闸 + {len(hard_stops)} 杠杆止损触发。"
                      "每条必须在 Judge 段出一个对应动作(driven_by=technical,纪律性再平衡,"
-                     "不算听消息、不受 risk_on HOLD 默认约束)；其余主动 call 仍按 regime guard。")
+                     "不算听消息、不受 risk_on HOLD 默认约束)；其余主动 call 仍按 regime guard。"
+                     "杠杆腿解套口径=2x→1x 同因子换仓而非清仓(见各 action)。")
     else:
         directive = "✅ 无仓位/杠杆硬闸触发，按常规决策。"
 
+    reentry_rule = ("1x→2x 换回闸：HK=HSTECH 收复 200日线且 20日波动<50%(🧭green ×1.0)；"
+                    "US=各标的自身收复 200日线且波动<70%。green 之前不加任何 2x。")
+
     return {'caps': caps, 'breaches': breaches, 'hard_stop_watch': hard_stops,
-            'breach_count': n, 'directive': directive,
+            'breach_count': n, 'directive': directive, 'reentry_rule': reentry_rule,
             'lev_regime': lev_regime, 'eff_lev_caps': eff_caps}
+
+
+def compute_breakeven_math(hk_holdings, us_holdings, lev_regime=None):
+    """解套数学（纯算术，零观点）：每只浮亏持仓回本所需涨幅；2x 另算横盘 decay 成本
+    与含 drag 的等效标的涨幅。k 倍日内重置 ETF 的波动拖累（lognormal 近似）=
+    (k²−k)/2·σ²/年，k=2 → σ²/年 ≈ σ²/12 每月。诚实口径：直线拉升时 2x 回本更快
+    （β 也是 2x）——换 1x 买的是「横盘不失血 + 再跌少挨一半」，不是「回本更快」。
+    LLM 报解套/回本相关数字时必须引用这里，不准心算。"""
+    us_reg = (lev_regime or {}).get('us') if isinstance(lev_regime, dict) else None
+    us_vols = {n.get('etf'): n.get('vol_annualized') for n in (us_reg or {}).get('names', [])}
+    hk_dial = (lev_regime.get('hk') or lev_regime) if isinstance(lev_regime, dict) else {}
+    rows = []
+    for leg, hold in (('HK', hk_holdings), ('US', us_holdings)):
+        for h in hold:
+            if h.get('shares', 0) <= 0:
+                continue
+            pnl = _holding_pnl_pct(h)
+            if pnl is None or pnl >= 0:
+                continue
+            cost = h.get('cost_basis', 0) * h['shares']
+            cur  = h.get('current_value', cost)
+            if not cur:
+                continue
+            need = (cost / cur - 1) * 100
+            row = {'ticker': h['ticker'], 'leg': leg, 'pnl_pct': pnl,
+                   'breakeven_need_pct': round(need, 1),
+                   'leveraged': bool(_is_leveraged_etf(h))}
+            if row['leveraged']:
+                sigma = us_vols.get(h['ticker']) if leg == 'US' else hk_dial.get('vol_annualized')
+                if isinstance(sigma, (int, float)) and sigma > 0:
+                    drag_y = sigma ** 2                     # k=2 → (k²−k)/2·σ² = σ²
+                    x_2x = math.sqrt((1 + need / 100) * math.exp(drag_y * 0.5)) - 1
+                    row.update({
+                        'underlying_vol_pct':        round(sigma * 100, 1),
+                        'chop_drag_pct_per_month':   round(drag_y / 12 * 100, 2),
+                        'underlying_need_2x_6m_pct': round(x_2x * 100, 1),
+                        'underlying_need_if_1x_pct': round(need, 1),
+                        'swap_1x':                   LEV_1X_SWAP.get(h['ticker']),
+                    })
+            rows.append(row)
+    rows.sort(key=lambda r: r['pnl_pct'])
+    return {
+        'rows': rows,
+        'note': ('回本涨幅=成本/现价−1。2x 行加印：标的σ、横盘 decay≈σ²/12 每月、半年窗含 drag '
+                 '的等效标的涨幅。解读纪律：直线涨→2x 回本更快；横盘→2x 每月白付 decay；'
+                 '再跌→2x 双倍挨打。换 1x 买的是后两种情景的保护，不是回本速度。'),
+    }
 
 
 def find_prior_plan(today_iso):
@@ -1383,6 +1461,12 @@ def main():
     for s in guardrail['hard_stop_watch']:
         print(f'   🛑 {s["detail"][:78]}')
 
+    # [10d] 解套数学 — 纯算术回本表（浮亏持仓回本所需涨幅 / 2x 横盘 decay 成本）
+    breakeven = compute_breakeven_math(
+        portfolio['portfolios']['hk_stocks']['holdings'],
+        portfolio['portfolios']['us_stocks']['holdings'], lev_regime=lev_regime)
+    print(f'   breakeven: {len(breakeven["rows"])} 只浮亏持仓入表')
+
     # [11] Catalyst calendar — next 14d earnings + FOMC + macro
     print('[11/11] Fetch catalysts')
     catalysts = {}
@@ -1440,6 +1524,7 @@ def main():
         'book_totals':   book,
         'concentration': {'hk': hk_conc, 'us': us_conc},
         'risk_guardrail': guardrail,
+        'breakeven_math': breakeven,
         'us_fundamentals': us_fund,
         'retrospective': retro,
         'peer_scan':     peer_scan,

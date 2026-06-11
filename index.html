@@ -1480,6 +1480,12 @@ layout: null
       <div class="risk-alerts" id="guardrail-list"></div>
     </div>
 
+    <div class="card" id="breakeven-card" style="display:none">
+      <h3>🧮 解套数学 <span class="muted" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:11px">回本所需涨幅 · 纯算术</span></h3>
+      <div class="risk-alerts" id="breakeven-list"></div>
+      <div class="muted" id="breakeven-note" style="font-size:11px;margin-top:6px;line-height:1.5"></div>
+    </div>
+
     <div class="card" id="lev-regime-card" style="display:none">
       <h3>🧭 杠杆刻度盘 <span class="muted" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:11px">趋势 + 波动 → 杠杆ETF上限</span></h3>
       <div class="muted" style="font-size:10px;margin-bottom:3px;opacity:0.8">HK · HSTECH 指数级</div>
@@ -2429,6 +2435,7 @@ layout: null
     renderLeveragedETF();
     renderRiskMetrics();
     renderRiskGuardrail();
+    renderBreakevenMath();
     renderLevRegime();
     renderGoldDca();
     renderWatchLevels();
@@ -3319,7 +3326,7 @@ layout: null
     if (!countEl || !listEl) return;
     countEl.textContent = n ? `${n} 触发` : '✅ 无';
     countEl.style.color = n ? 'var(--neg, #ef4444)' : 'var(--pos, #22c55e)';
-    if (dirEl) dirEl.textContent = g.directive || '';
+    if (dirEl) dirEl.textContent = [g.directive, g.reentry_rule].filter(Boolean).join(' ');
     const ICON = { single_name: '🎯', factor_concentration: '🧬', leveraged_exposure: '⚡', beta: '📈', regime_delever: '🧭' };
     const row = (icon, sev, detail, action) =>
       `<div class="risk-alert ${sev || 'high'}">
@@ -3329,6 +3336,29 @@ layout: null
     let html = breaches.map(b => row(ICON[b.type] || '⚠️', b.severity, b.detail, b.action)).join('');
     html += stops.map(s => row('🛑', 'high', s.detail, s.action)).join('');
     listEl.innerHTML = html || '<div class="muted" style="font-size:12px">仓位/单因子/杠杆均在阈值内 ✅</div>';
+  }
+
+  function renderBreakevenMath() {
+    const bm = safe(DATA, "breakeven_math");
+    const card = document.getElementById('breakeven-card');
+    if (!card) return;
+    const rows = (bm && bm.rows) || [];
+    if (!rows.length) { card.style.display = 'none'; return; }
+    card.style.display = '';
+    const html = rows.map(r => {
+      let extra = '';
+      if (r.leveraged && r.underlying_vol_pct != null) {
+        extra = `<div class="muted" style="font-size:11px;margin-top:2px">标的σ ${r.underlying_vol_pct}% · 横盘 decay ≈${r.chop_drag_pct_per_month}%/月 · ` +
+                `半年直线路径标的需 +${r.underlying_need_2x_6m_pct}%` +
+                (r.swap_1x ? ` · 换 1x(${r.swap_1x}) 后需 +${r.underlying_need_if_1x_pct}%` : '') + `</div>`;
+      }
+      return `<div class="risk-alert ${r.leveraged ? 'high' : 'medium'}">
+         <span class="icon">${r.leveraged ? '⚡' : '📐'}</span>
+         <div><strong>${r.ticker}</strong> 浮亏 ${r.pnl_pct}% → 回本需 +${r.breakeven_need_pct}%${extra}</div>
+       </div>`;
+    }).join('');
+    document.getElementById('breakeven-list').innerHTML = html;
+    document.getElementById('breakeven-note').textContent = bm.note || '';
   }
 
   function renderLevRegime() {
