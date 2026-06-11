@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-11T04:01:23.950360Z",
+  "generated_at": "2026-06-11T05:20:59.962345Z",
   "last_updated": "2026/06/11 12:00 HKT",
   "fx": {
     "usdhkd": 7.8366,
@@ -4088,86 +4088,82 @@
     "formula": "回报率 = (浮动 + 已实现) ÷ 本金；本金优先用 true_principal（峰值净投入），否则用 净投入本金=累计成本−已实现"
   },
   "gold_dca": {
-    "fund_code": "000217",
-    "principal_note": "对账基线（自动累加模式）。2026-06-09 kcn 对账：现值 15470 + 盈亏 -1829 → 本金 17299，份额 = 15470/净值3.1867 = 4854.55。此后每个 A 股交易日自动 +200@当日净值。补投对账：把 principal_invested/units_held 改成新真实数字、reconciled_date 改成对账当天即可，自动累加归零重算。",
     "currency": "CNY",
-    "daily_amount": 200,
-    "units_held": 4854.55,
-    "fund_name": "华安黄金ETF联接C",
-    "principal_invested": 17299.0,
-    "start_date": "2026-01-22",
     "reconciled_date": "2026-06-09",
-    "nav": 3.1867,
-    "nav_date": "2026-06-09",
-    "nav_change_pct": 0.38,
+    "daily_amount": 200,
+    "principal_invested": 17299.0,
+    "principal_note": "对账基线（自动累加模式）。2026-06-09 kcn 对账：现值 15470 + 盈亏 -1829 → 本金 17299，份额 = 15470/净值3.1867 = 4854.55。此后每个 A 股交易日自动 +200@当日净值。补投对账：把 principal_invested/units_held 改成新真实数字、reconciled_date 改成对账当天即可，自动累加归零重算。",
+    "fund_code": "000217",
+    "units_held": 4854.55,
+    "start_date": "2026-01-22",
+    "fund_name": "华安黄金ETF联接C",
+    "nav": 3.0873,
+    "nav_date": "2026-06-10",
+    "nav_change_pct": -3.12,
     "realtime": {
-      "est_nav": 3.1699,
-      "est_change_pct": -0.53,
-      "est_time": "2026-06-09 22:27",
-      "nav_date": "2026-06-09"
+      "est_nav": 2.9958,
+      "est_change_pct": -2.96,
+      "est_time": "2026-06-11 13:20",
+      "nav_date": "2026-06-10"
     },
-    "principal_effective": 17299.0,
-    "units_effective": 4854.55,
-    "auto_added_days": 0,
-    "auto_added_amount": 0.0,
-    "avg_cost": 3.5635,
-    "current_value": 15469.99,
-    "pnl_abs": -1829.01,
-    "pnl_percent": -10.57,
-    "breakeven_nav": 3.5635,
-    "breakeven_upside_pct": 11.82,
-    "days_invested": 89,
-    "installments_est": 86,
+    "principal_effective": 17499.0,
+    "units_effective": 4919.33,
+    "auto_added_days": 1,
+    "auto_added_amount": 200.0,
+    "avg_cost": 3.5572,
+    "current_value": 15187.45,
+    "pnl_abs": -2311.55,
+    "pnl_percent": -13.21,
+    "breakeven_nav": 3.5572,
+    "breakeven_upside_pct": 15.22,
+    "days_invested": 90,
+    "installments_est": 87,
     "window_high": {
       "date": "2026-01-29",
       "nav": 4.1882
     },
     "window_low": {
-      "date": "2026-03-23",
-      "nav": 3.1365
+      "date": "2026-06-10",
+      "nav": 3.0873
     },
     "projection": [
       {
         "days": 20,
-        "invested": 21299.0,
-        "avg_cost": 3.4861,
-        "pnl_pct": -8.59,
-        "breakeven_upside_pct": 9.39
+        "invested": 21499.0,
+        "avg_cost": 3.4592,
+        "pnl_pct": -10.75,
+        "breakeven_upside_pct": 12.05
       },
       {
         "days": 40,
-        "invested": 25299.0,
-        "avg_cost": 3.435,
-        "pnl_pct": -7.23,
-        "breakeven_upside_pct": 7.79
+        "invested": 25499.0,
+        "avg_cost": 3.3951,
+        "pnl_pct": -9.07,
+        "breakeven_upside_pct": 9.97
       },
       {
         "days": 60,
-        "invested": 29299.0,
-        "avg_cost": 3.3989,
-        "pnl_pct": -6.24,
-        "breakeven_upside_pct": 6.66
+        "invested": 29499.0,
+        "avg_cost": 3.3498,
+        "pnl_pct": -7.84,
+        "breakeven_upside_pct": 8.5
       },
       {
         "days": 120,
-        "invested": 41299.0,
-        "avg_cost": 3.3344,
-        "pnl_pct": -4.43,
-        "breakeven_upside_pct": 4.63
+        "invested": 41499.0,
+        "avg_cost": 3.2694,
+        "pnl_pct": -5.57,
+        "breakeven_upside_pct": 5.9
       },
       {
         "days": 250,
-        "invested": 67299.0,
-        "avg_cost": 3.2757,
-        "pnl_pct": -2.72,
-        "breakeven_upside_pct": 2.79
+        "invested": 67499.0,
+        "avg_cost": 3.1968,
+        "pnl_pct": -3.42,
+        "breakeven_upside_pct": 3.55
       }
     ],
     "nav_history": [
-      [
-        "2026-01-21",
-        3.6753
-      ],
       [
         "2026-01-22",
         3.6627
@@ -4523,83 +4519,12 @@
       [
         "2026-06-09",
         3.1867
+      ],
+      [
+        "2026-06-10",
+        3.0873
       ]
     ],
-    "last_updated": "2026-06-09T15:47:05.861372Z",
-    "parent_backtest": {
-      "fund_code": "518880",
-      "fund_name": "华安黄金ETF",
-      "daily_amount": 200.0,
-      "inception": "2013-07-18",
-      "last_nav": 9.0043,
-      "as_of": "2026-06-09",
-      "rows": [
-        {
-          "start": "2013-07-18",
-          "invested": 627800,
-          "value": 1682721,
-          "ret_pct": 168.0,
-          "xirr_pct": 14.3,
-          "days": 3139,
-          "label": "成立至今"
-        },
-        {
-          "start": "2020-01-02",
-          "invested": 312000,
-          "value": 608100,
-          "ret_pct": 94.9,
-          "xirr_pct": 20.7,
-          "days": 1560,
-          "label": "2020起"
-        },
-        {
-          "start": "2022-01-04",
-          "invested": 214800,
-          "value": 373519,
-          "ret_pct": 73.9,
-          "xirr_pct": 25.9,
-          "days": 1074,
-          "label": "2022起"
-        },
-        {
-          "start": "2023-01-03",
-          "invested": 166200,
-          "value": 258873,
-          "ret_pct": 55.8,
-          "xirr_pct": 27.3,
-          "days": 831,
-          "label": "2023起"
-        },
-        {
-          "start": "2024-01-02",
-          "invested": 117600,
-          "value": 158374,
-          "ret_pct": 34.7,
-          "xirr_pct": 26.3,
-          "days": 588,
-          "label": "2024起"
-        },
-        {
-          "start": "2025-01-02",
-          "invested": 69000,
-          "value": 76444,
-          "ret_pct": 10.8,
-          "xirr_pct": 15.1,
-          "days": 345,
-          "label": "2025起"
-        },
-        {
-          "start": "2025-06-09",
-          "invested": 48800,
-          "value": 49742,
-          "ret_pct": 1.9,
-          "xirr_pct": 3.8,
-          "days": 244,
-          "label": "近1年"
-        }
-      ],
-      "note": "每日定投200元买母ETF 518880、持有至今的历史回测；XIRR=资金加权年化。对照你的 000217 起投点，看长期定投黄金的参照收益。",
-      "updated": "2026-06-09T16:21:08.496596+00:00"
-    }
+    "last_updated": "2026-06-11T05:20:59.521873Z"
   }
 }
