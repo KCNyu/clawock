@@ -1,51 +1,51 @@
 {
-  "generated_at": "2026-06-10T00:00:58.507240+00:00",
-  "as_of": "2026-06-10",
+  "generated_at": "2026-06-11T00:00:52.846286+00:00",
+  "as_of": "2026-06-11",
   "us": {
-    "beta_spx": 3.9864,
-    "vol_30d_annualized": 0.9154,
-    "max_dd_30d": -0.238,
-    "sharpe_30d": 0.3629,
-    "current_value_usd": 2570.95
+    "beta_spx": 3.4445,
+    "vol_30d_annualized": 0.9298,
+    "max_dd_30d": -0.2376,
+    "sharpe_30d": 0.6433,
+    "current_value_usd": 2575.67
   },
   "hk": {
-    "beta_hsi": 1.9875,
-    "vol_30d_annualized": 0.698,
-    "max_dd_30d": -0.286,
-    "sharpe_30d": -2.8814,
-    "current_value_hkd": 60398.0
+    "beta_hsi": 1.9994,
+    "vol_30d_annualized": 0.6977,
+    "max_dd_30d": -0.3022,
+    "sharpe_30d": -3.1198,
+    "current_value_hkd": 58961.6
   },
   "combined": {
-    "vol_30d_annualized": 0.6167,
-    "max_dd_30d": -0.2485,
-    "sharpe_30d": -2.4451
+    "vol_30d_annualized": 0.6102,
+    "max_dd_30d": -0.2601,
+    "sharpe_30d": -2.1464
   },
   "leveraged_exposure": {
-    "us_leverage_factor_avg": 1.7264,
-    "hk_leverage_factor_avg": 1.3685,
-    "combined_avg": 1.4577,
-    "margin_at_risk_pct": 14.5773
+    "us_leverage_factor_avg": 1.7348,
+    "hk_leverage_factor_avg": 1.3703,
+    "combined_avg": 1.463,
+    "margin_at_risk_pct": 14.6297
   },
   "alerts": [
     {
       "type": "high_beta",
       "severity": "high",
-      "detail": "US β vs S&P 500 = 3.9864 (> 3.0)"
+      "detail": "US β vs S&P 500 = 3.4445 (> 3.0)"
     },
     {
       "type": "high_vol",
       "severity": "high",
-      "detail": "Combined 30d annualised vol = 61.7% (> 50%)"
+      "detail": "Combined 30d annualised vol = 61.0% (> 50%)"
     },
     {
       "type": "deep_dd",
       "severity": "medium",
-      "detail": "Combined 30d max DD = -24.9% (< -10%)"
+      "detail": "Combined 30d max DD = -26.0% (< -10%)"
     },
     {
       "type": "negative_sharpe",
       "severity": "medium",
-      "detail": "Combined 30d Sharpe = -2.4451 (< 0)"
+      "detail": "Combined 30d Sharpe = -2.1464 (< 0)"
     }
   ],
   "meta": {
@@ -67,8 +67,8 @@
       ],
       "failed": [],
       "n_returns": 30,
-      "dates_first": "2026-04-27",
-      "dates_last": "2026-06-09"
+      "dates_first": "2026-04-28",
+      "dates_last": "2026-06-10"
     },
     "hk_fetch": {
       "fetched": [
@@ -80,8 +80,8 @@
       ],
       "failed": [],
       "n_returns": 30,
-      "dates_first": "2026-04-24",
-      "dates_last": "2026-06-09"
+      "dates_first": "2026-04-27",
+      "dates_last": "2026-06-10"
     }
   }
 }
