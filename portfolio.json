@@ -1,6 +1,6 @@
 {
   "owner": "kcn",
-  "last_updated": "2026/06/12 23:30 HKT",
+  "last_updated": "2026/06/12 23:54 HKT",
   "portfolios": {
     "us_stocks": {
       "currency": "USD",
@@ -462,6 +462,28 @@
           "day_session_date": "2026-06-12"
         },
         {
+          "ticker": "SPCX",
+          "name": "SpaceX",
+          "shares": 5,
+          "cost_basis": 158.3,
+          "current_price": 158.3,
+          "current_value": 791.5,
+          "pnl_abs": 0.0,
+          "pnl_percent": 0.0,
+          "today_change": 0.0,
+          "today_change_pct": 0.0,
+          "data_source": "manual entry 2026-06-12 23:54 HKT (IPO首日买入价)",
+          "trades": [
+            {
+              "date": "2026-06-12",
+              "action": "buy",
+              "shares": 5,
+              "price": 158.3,
+              "note": "IPO首日买入，$158.3 成交"
+            }
+          ]
+        },
+        {
           "ticker": "MSFU",
           "name": "二倍做多微软ETF-Direxion",
           "shares": 20,
@@ -492,10 +514,10 @@
           "day_session_date": "2026-06-12"
         }
       ],
-      "total_cost": 2628.3,
-      "total_current_value": 2766.43,
+      "total_cost": 3419.8,
+      "total_current_value": 3557.93,
       "total_pnl": 138.13,
-      "total_pnl_percent": 5.2555,
+      "total_pnl_percent": 4.04,
       "today_total_change": 20.05,
       "realized_pnl": 1372.88,
       "realized_note": "NVDA 3股@197.5(+29.19) + CRCL 4股@103.21(+64.84) + CRCL 5股@120(+165) + CRCL 3股@127(+120) + NVDA 3股@199.41(+34.92) + QQQ 1股@631.3(+9.03) + TQQQ 8股@54.45(+69.76) + HOOD 5股@88.36(+74.3) + OKLO 2股@68(+10.34) + TCOM 5股@53.86(+5.6) + SOXL 5股@112(+100.65) + RKLX 4股@75(+113.2) + RKLX 2股@91.03(+88.66) + SOXL 3股@170.8(+236.79) + SOXL 2股@217.17(+250.6)",
@@ -525,7 +547,7 @@
           "source": "Tencent usDJI index @ 2026-06-12 11:30 ET"
         }
       },
-      "last_trade_update": "2026-05-06 22:57 HKT",
+      "last_trade_update": "2026-06-12 23:54 HKT",
       "last_afterhours_attempted": "2026-06-11 16:00 UTC-04:00",
       "last_closed_attempted": "2026-06-11 21:06 UTC-04:00",
       "last_premarket_attempted": "2026-06-06 06:23 UTC-04:00",
@@ -640,8 +662,8 @@
         "updated_at": "2026-06-11 21:06 UTC-04:00",
         "note": "Multi-provider fetch. Sources: 2x Nasdaq API (stocks), 3x Nasdaq API (etf)"
       },
-      "cash_usd": 1255.0,
-      "cash_usd_note": "券商可用现金（kcn 2026-06-12 口述\"差不多1255美元手上\"，约数非对账）。与净自有资金敞口(cost−realized≈1255)数字接近纯属巧合。买卖后须更新。"
+      "cash_usd": 463.5,
+      "cash_usd_note": "2026-06-12 原约$1255，买入SPCX 5股@158.3（=$791.5）后余约$463.5，约数。"
     },
     "hk_stocks": {
       "currency": "HKD",
