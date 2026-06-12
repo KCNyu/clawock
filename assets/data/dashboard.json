@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-12T17:04:37.471473Z",
+  "generated_at": "2026-06-12T17:04:54.647494Z",
   "last_updated": "2026/06/13 01:03 HKT",
   "fx": {
     "usdhkd": 7.8365,
@@ -686,12 +686,12 @@
     {
       "date": "2026-06-12",
       "file": "2026-06-12.json",
-      "us_total_value": 3033.64,
-      "us_total_cost": 3064.8,
-      "us_total_pnl": -31.16,
+      "us_total_value": 2686.84,
+      "us_total_cost": 2796.3,
+      "us_total_pnl": -109.46,
       "us_today_change": 69.66,
       "us_realized": 1372.88,
-      "us_equity": 4406.52,
+      "us_equity": 4059.72,
       "hk_total_value": 55153.2,
       "hk_total_cost": 88276.24,
       "hk_total_pnl": -33123.04,
@@ -1125,7 +1125,7 @@
       57.86,
       57.86,
       57.86,
-      57.86
+      52.3
     ],
     "ROBN": [
       25.1192,
@@ -1245,13 +1245,13 @@
       null,
       null,
       null,
-      173.96
+      168
     ]
   },
   "delta": {
     "us": {
-      "today_pct": 9.54,
-      "7d_pct": 5.44,
+      "today_pct": 0.92,
+      "7d_pct": -2.86,
       "30d_pct": null
     },
     "hk": {
@@ -1851,7 +1851,7 @@
     "max_pct_30d_hk": -32.95,
     "max_pct_30d_us": -18.51,
     "current_pct_hk": -31.11,
-    "current_pct_us": -1.88,
+    "current_pct_us": -9.6,
     "us": {
       "peak": {
         "value": 4775.99,
@@ -1862,10 +1862,10 @@
         "date": "2026-06-09"
       },
       "current": {
-        "value": 4406.52,
+        "value": 4059.72,
         "date": "2026-06-12"
       },
-      "current_dd_pct": -7.74,
+      "current_dd_pct": -15.0,
       "max_dd_pct": -18.51,
       "max_dd_abs": 884.09,
       "max_dd_peak_date": "2026-05-29",
@@ -1900,19 +1900,19 @@
         "date": "2026-05-29"
       },
       "trough": {
-        "value": 95699.68,
-        "date": "2026-06-11"
-      },
-      "current": {
-        "value": 96944.05,
+        "value": 94226.36,
         "date": "2026-06-12"
       },
-      "current_dd_pct": -25.22,
-      "max_dd_pct": -26.18,
-      "max_dd_abs": 33941.32,
+      "current": {
+        "value": 94226.36,
+        "date": "2026-06-12"
+      },
+      "current_dd_pct": -27.32,
+      "max_dd_pct": -27.32,
+      "max_dd_abs": 35414.65,
       "max_dd_peak_date": "2026-05-29",
-      "max_dd_trough_date": "2026-06-11",
-      "at_low": false,
+      "max_dd_trough_date": "2026-06-12",
+      "at_low": true,
       "currency": "HKD",
       "fx_usdhkd": 7.8365
     },

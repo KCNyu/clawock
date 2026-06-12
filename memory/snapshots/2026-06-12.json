@@ -1,6 +1,6 @@
 {
   "owner": "kcn",
-  "last_updated": "2026/06/13 01:00 HKT",
+  "last_updated": "2026/06/13 01:03 HKT",
   "portfolios": {
     "us_stocks": {
       "currency": "USD",
@@ -384,19 +384,19 @@
         },
         {
           "ticker": "RKLX",
-          "shares": 0,
-          "cost_basis": 46.7,
-          "current_price": 57.86,
-          "today_change_pct": 0.0,
+          "shares": 10,
+          "cost_basis": 52.3,
+          "current_price": 52.3,
+          "today_change_pct": 0,
           "pnl_percent": 0,
           "data_source": "Nasdaq API (etf) Jun 06, 2026 06:21 ET",
           "day_high": 57.86,
           "day_low": 57.86,
           "day_open": 57.86,
           "prev_close": 57.86,
-          "current_value": 0.0,
-          "pnl_abs": 0.0,
-          "today_change": 0.0,
+          "current_value": 523.0,
+          "pnl_abs": 0,
+          "today_change": 0,
           "note": "2026-04-21 按用户截图记录买入，做 RKLB 2x 杠杆短线仓",
           "trades": [
             {
@@ -421,6 +421,13 @@
               "price": 91.03,
               "realized_pnl": 88.66,
               "note": "RKLX 全清，兑现利润"
+            },
+            {
+              "date": "2026-06-13",
+              "action": "buy",
+              "shares": 10,
+              "price": 52.3,
+              "note": "RKLB 2x杠杆ETF，重新建仓"
             }
           ],
           "name": "Defiance Daily Target 2X Long R",
@@ -473,14 +480,14 @@
         {
           "ticker": "SPCX",
           "name": "SpaceX",
-          "shares": 5,
+          "shares": 0,
           "cost_basis": 158.3,
-          "current_price": 173.96,
-          "current_value": 869.8,
-          "pnl_abs": 78.3,
-          "pnl_percent": 9.8926,
-          "today_change": 78.3,
-          "today_change_pct": 9.8926,
+          "current_price": 168,
+          "current_value": 0,
+          "pnl_abs": 0,
+          "pnl_percent": 0,
+          "today_change": 0,
+          "today_change_pct": 0,
           "data_source": "Nasdaq API (stocks) Jun 12, 2026 13:00 ET",
           "trades": [
             {
@@ -489,6 +496,14 @@
               "shares": 5,
               "price": 158.3,
               "note": "IPO首日买入，$158.3 成交"
+            },
+            {
+              "date": "2026-06-13",
+              "action": "sell",
+              "shares": 5,
+              "price": 168,
+              "realized_pnl": 48.5,
+              "note": "IPO首日+6%止盈，68卖出"
             }
           ],
           "prev_close": 134.9992,
@@ -529,12 +544,12 @@
           "day_session_date": "2026-06-12"
         }
       ],
-      "total_cost": 3064.8,
-      "total_current_value": 3033.64,
-      "total_pnl": -31.16,
-      "total_pnl_percent": -1.0167,
+      "total_cost": 2796.3,
+      "total_current_value": 2686.84,
+      "total_pnl": -109.46,
+      "total_pnl_percent": -3.9145,
       "today_total_change": 69.66,
-      "realized_pnl": 1518.73,
+      "realized_pnl": 1567.23,
       "realized_note": "NVDA 3股@197.5(+29.19) + CRCL 4股@103.21(+64.84) + CRCL 5股@120(+165) + CRCL 3股@127(+120) + NVDA 3股@199.41(+34.92) + QQQ 1股@631.3(+9.03) + TQQQ 8股@54.45(+69.76) + HOOD 5股@88.36(+74.3) + OKLO 2股@68(+10.34) + TCOM 5股@53.86(+5.6) + SOXL 5股@112(+100.65) + RKLX 4股@75(+113.2) + RKLX 2股@91.03(+88.66) + SOXL 3股@170.8(+236.79) + SOXL 2股@217.17(+250.6) + RKLB 5股@100.17(+145.85)",
       "last_updated": "May 8, 2026 16:00 ET close",
       "last_close_attempted": "May 7, 2026 16:00 ET close",
@@ -677,8 +692,8 @@
         "updated_at": "2026-06-11 21:06 UTC-04:00",
         "note": "Multi-provider fetch. Sources: 2x Nasdaq API (stocks), 3x Nasdaq API (etf)"
       },
-      "cash_usd": 964.35,
-      "cash_usd_note": "SPCX 买入后 $463.5，RKLB 5股@100.17 清仓回笼 $500.85，合计约 $964.35"
+      "cash_usd": 1281.35,
+      "cash_usd_note": "SPCX $168*5卖出+$840, RKLX $52.3*10买入-$523, 后余额约 $1281.35"
     },
     "hk_stocks": {
       "currency": "HKD",
