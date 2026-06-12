@@ -1,26 +1,26 @@
 {
-  "generated_at": "2026-06-11T16:45:23.286855",
+  "generated_at": "2026-06-12T16:12:20.726058",
   "lookback_hours": 48,
   "tickers": [
-    "RKLB",
     "CRCL",
     "PLTU",
     "ROBN",
+    "SPCX",
     "MSFU"
   ],
-  "digest_markdown": "### Top 3-5 移动信号 (跨 ticker 排序)\n- **RKLB**: 股价受 SpaceX IPO 预期带来的太空板块“光环交易”情绪影响，在周中上涨后回落；短期走势与 SpaceX 上市进程高度联动，需警惕情绪退潮风险。\n- **ROBN**: 标题暗示因纳入 S&P 500 指数而股价大涨，随后盘后下跌；指数纳入的利好或已被消化，需关注后续资金流动。\n- **PLTU**: 标题指出 Palantir 财报超出预期，利好相关 ETF；直接表明 PL 底层资产基本面强劲，支撑 PLTU。\n- **MSFU**: 交易系统监测到 (MSFU) 波动性及异常高的期权交易量；作为 2x 做多微软 ETF，其活动反映市场对 MSFT 方向的高度关注与交易机会。\n\n### Per-ticker 简报 (有新闻才列)\n- **RKLB**: 参加年度工业会议并披露问答纪要，未提供即时新数据，影响有限。\n\n### 风险 watch\n- **RKLB**: 当前股价波动与 SpaceX IPO 进程情绪强相关，缺乏独立催化剂，存在情绪驱动回调风险。\n- **ROBN**: 标题显示盘后股价下跌，需关注是否有未披露的负面因素。",
+  "digest_markdown": "### Top 3 移动信号\n- **SPCX**: SpaceX IPO首日股价涨至$174 (较发行价$135涨29%)，但相关空间ETF (如UFO, NASA) 反而普跌。\n  *Implication*: SPCX作为标的可能短期受“卖事实”情绪拖累，但SpaceX上市成功验证了其估值逻辑。\n- **PLTU**: Palantir (PLTR) Q4财报超预期，相关杠杆ETF (如PLTU) 受到关注。\n  *Implication*: PLTR基本面强劲，可能推动其2倍做多ETF PLTU短期表现。\n- **MSFU**: 市场关注微软 (MSFT) AI变现潜力，认为其价值被低估；MSFU出现异常高的期权交易量。\n  *Implication*: 若MSFT反弹，2倍做多ETF MSFU将提供放大收益机会。\n\n### Per-ticker 简报\n- **PLTU**: Palantir财报超预期成为核心催化剂，直接利好其杠杆ETF。\n- **SPCX**: SpaceX完成史上最大IPO并高开，但市场对其估值和业务现金需求存在分歧。\n- **MSFU**: 分析指向MSFT AI潜力被低估，技术面显示ETF或临近交易机会。\n- **CRCL**: 行业文章提及稳定币普及伴随风险增加，但无具体公司事件。\n- **ROBN**: 标题含糊，指向“算法”、“风险”、“区块”等通用术语，无明确标的新闻。\n\n### 风险 watch\n- **SPCX**: SpaceX估值高度依赖Starlink，且发射业务及xAI均需大量现金，存在“上市诅咒”风险。\n- **CRCL**: 稳定币行业面临日益增长的威胁向量（如安全、监管风险）。",
   "raw_news_counts": {
-    "RKLB": 4,
-    "CRCL": 2,
+    "CRCL": 1,
     "PLTU": 5,
     "ROBN": 5,
+    "SPCX": 5,
     "MSFU": 5
   },
   "news_source_per_ticker": {
-    "RKLB": "finnhub",
     "CRCL": "finnhub",
     "PLTU": "gnews-rss",
     "ROBN": "gnews-rss",
+    "SPCX": "finnhub",
     "MSFU": "gnews-rss"
   }
 }
