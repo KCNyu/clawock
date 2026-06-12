@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-11T23:08:14.276848+00:00",
+  "generated_at": "2026-06-12T16:01:01.173757+00:00",
   "lookback_hours": 48,
   "sources": {
     "trump": "trumpstruth.org/feed (primary)",
@@ -8,112 +8,17 @@
   },
   "llm_filtered": true,
   "counts": {
-    "total": 11,
+    "total": 9,
     "held_hits": 0,
-    "new_ideas": 3,
-    "sector_hits": 4
+    "new_ideas": 0,
+    "sector_hits": 5
   },
   "items": [
     {
       "author": "Musk",
-      "text": "Musk To Pitch Terafab Semiconductor Factory To ASML Ahead Of SpaceX IPO",
+      "text": "Elon Musk's SpaceX raises $75bn ahead of record stock market debut",
       "url": "",
-      "published": "Thu, 11 Jun 2026 20:03:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Investor's Business Daily",
-      "tickers": [
-        "ASML"
-      ],
-      "held": [],
-      "new_ideas": [
-        "ASML"
-      ],
-      "sectors": [
-        "半导体",
-        "航天",
-        "IPO"
-      ],
-      "sector_holdings": [
-        "RKLB"
-      ],
-      "stance": "endorse",
-      "relevance": 85,
-      "summary_cn": "马斯克将在SpaceX IPO前向ASML推销Terafab半导体工厂，直接点名ASML。"
-    },
-    {
-      "author": "Musk",
-      "text": "Ahead of SpaceX IPO, Elon Musk addresses ASML employees as part of push into chip manufacturing",
-      "url": "",
-      "published": "Thu, 11 Jun 2026 17:24:40 GMT",
-      "origin": "gnews-rss",
-      "source": "CNBC",
-      "tickers": [
-        "ASML"
-      ],
-      "held": [],
-      "new_ideas": [
-        "ASML"
-      ],
-      "sectors": [
-        "半导体",
-        "航天",
-        "IPO"
-      ],
-      "sector_holdings": [
-        "RKLB"
-      ],
-      "stance": "endorse",
-      "relevance": 85,
-      "summary_cn": "马斯克在SpaceX IPO前向ASML员工作为推动芯片制造的一部分发表讲话，直接点名ASML。"
-    },
-    {
-      "author": "Trump",
-      "text": "Wow! CITI was ranked Number 1 in topping M&A Advisory Market by Value in Q1. Congratulations to Jane F and ALL of her great people. They’ve worked really hard! BIG comeback for CITI!!! President DONALD J. TRUMP",
-      "url": "https://trumpstruth.org/statuses/39204",
-      "published": "2026-06-10T13:30:58+00:00",
-      "origin": "truthsocial",
-      "tickers": [
-        "C"
-      ],
-      "held": [],
-      "new_ideas": [
-        "C"
-      ],
-      "sectors": [
-        "金融",
-        "投资银行"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 80,
-      "summary_cn": "特朗普祝贺花旗集团在Q1并购咨询市场按价值排名第一，称其为'大回归'。"
-    },
-    {
-      "author": "Musk",
-      "text": "SpaceX IPO demand is approaching four times oversubscribed, source says",
-      "url": "",
-      "published": "Wed, 10 Jun 2026 03:47:14 GMT",
-      "origin": "gnews-rss",
-      "source": "Reuters",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "IPO"
-      ],
-      "sector_holdings": [
-        "RKLB"
-      ],
-      "stance": "endorse",
-      "relevance": 75,
-      "summary_cn": "马斯克称SpaceX的IPO需求已接近四倍超额认购，显示市场对航天资产的强烈兴趣。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk's SpaceX valued at nearly $1.8tn ahead of record share sale",
-      "url": "",
-      "published": "Thu, 11 Jun 2026 21:10:14 GMT",
+      "published": "Fri, 12 Jun 2026 12:52:55 GMT",
       "origin": "gnews-rss",
       "source": "BBC",
       "tickers": [],
@@ -121,57 +26,98 @@
       "new_ideas": [],
       "sectors": [
         "航天",
-        "IPO"
-      ],
-      "sector_holdings": [
-        "RKLB"
-      ],
-      "stance": "endorse",
-      "relevance": 75,
-      "summary_cn": "SpaceX在创纪录的股份出售前估值接近1.8万亿美元。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk’s SpaceX is about to make its debut on Wall Street",
-      "url": "",
-      "published": "Thu, 11 Jun 2026 15:18:00 GMT",
-      "origin": "gnews-rss",
-      "source": "AP News",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "IPO"
-      ],
-      "sector_holdings": [
-        "RKLB"
-      ],
-      "stance": "endorse",
-      "relevance": 70,
-      "summary_cn": "马斯克的SpaceX即将在华尔街首次亮相。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk is the world’s first trillionaire (on paper) thanks to the SpaceX IPO",
-      "url": "",
-      "published": "Thu, 11 Jun 2026 22:43:42 GMT",
-      "origin": "gnews-rss",
-      "source": "The Washington Post",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
         "IPO",
+        "融资"
+      ],
+      "sector_holdings": [
+        "RKLB"
+      ],
+      "stance": "neutral",
+      "relevance": 60,
+      "summary_cn": "马斯克旗下SpaceX在创纪录的股市上市前融资750亿美元。"
+    },
+    {
+      "author": "Trump",
+      "text": "I am pleased to announce the Nomination of very Highly Respected Jay Clayton, former Chairman of the Securities and Exchange Commission, the former Head of Sullivan & Cromwell, one of the most prominent and successful Law Firms anywhere in the World, and the current United States Attorney for the Southern District of New York, to be the next Director of National Intelligence and, importantly, to serve in my Cabinet. Few people anywhere in the Legal Community are respected at the level of Jay. I encourage the United States Senate to confirm Jay as soon as possible. Thank you for your attention ",
+      "url": "https://trumpstruth.org/statuses/39219",
+      "published": "2026-06-11T18:00:34+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "金融监管",
+        "政府人事"
+      ],
+      "sector_holdings": [
+        "CRCL"
+      ],
+      "stance": "endorse",
+      "relevance": 60,
+      "summary_cn": "特朗普提名前SEC主席Jay Clayton为国家情报总监，涉及金融监管背景人事变动。"
+    },
+    {
+      "author": "Musk",
+      "text": "SpaceX’s I.P.O. Could Turn 4,400 Employees Into Millionaires",
+      "url": "",
+      "published": "Wed, 10 Jun 2026 19:27:27 GMT",
+      "origin": "gnews-rss",
+      "source": "The New York Times",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "IPO"
+      ],
+      "sector_holdings": [
+        "RKLB"
+      ],
+      "stance": "neutral",
+      "relevance": 55,
+      "summary_cn": "马斯克提及SpaceX的IPO可能使4400名员工成为百万富翁，涉及航天领域资本事件。"
+    },
+    {
+      "author": "Musk",
+      "text": "‘SpaceX wants to be able to take you to the moon’: Elon Musk addresses Nasdaq ahead of SpaceX IPO",
+      "url": "",
+      "published": "Fri, 12 Jun 2026 14:42:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Fortune",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "IPO"
+      ],
+      "sector_holdings": [
+        "RKLB"
+      ],
+      "stance": "neutral",
+      "relevance": 55,
+      "summary_cn": "马斯克在SpaceX上市前于纳斯达克发表演讲，称SpaceX的目标是带人去月球。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk becomes the world's first trillionaire with SpaceX's IPO",
+      "url": "",
+      "published": "Fri, 12 Jun 2026 12:11:00 GMT",
+      "origin": "gnews-rss",
+      "source": "CBS News",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
         "财富"
       ],
       "sector_holdings": [
         "RKLB"
       ],
-      "stance": "endorse",
-      "relevance": 65,
-      "summary_cn": "得益于SpaceX IPO，马斯克在纸面上成为世界首位万亿富翁。"
+      "stance": "neutral",
+      "relevance": 50,
+      "summary_cn": "马斯克因SpaceX上市成为世界首位万亿富翁。"
     },
     {
       "author": "Trump",
@@ -183,14 +129,14 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "能源",
         "地缘政治",
-        "石油"
+        "能源",
+        "军事"
       ],
       "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 70,
-      "summary_cn": "特朗普宣布将对伊朗发动军事打击，并计划夺取其石油基础设施，可能影响全球石油供应和能源市场。"
+      "stance": "attack",
+      "relevance": 85,
+      "summary_cn": "特朗普宣布将对伊朗发动猛烈攻击，并计划夺取哈尔克岛等石油基础设施，控制伊朗油气市场，可能引发能源价格剧烈波动。"
     },
     {
       "author": "Trump",
@@ -203,13 +149,13 @@
       "new_ideas": [],
       "sectors": [
         "能源",
-        "石油",
-        "地缘政治"
+        "地缘政治",
+        "军事"
       ],
       "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 70,
-      "summary_cn": "特朗普宣称美军秘密护航行动已确保超1亿桶石油通过霍尔木兹海峡，强调美国控制该航道。"
+      "stance": "endorse",
+      "relevance": 80,
+      "summary_cn": "特朗普宣布美军秘密护航霍尔木兹海峡，已确保超1亿桶石油和200多艘商船安全通过，宣称美国控制该海峡，伊朗军事和经济已失败。"
     },
     {
       "author": "Trump",
@@ -221,138 +167,41 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "国防",
+        "军事",
         "财政政策"
       ],
       "sector_holdings": [],
       "stance": "endorse",
-      "relevance": 65,
-      "summary_cn": "特朗普呼吁国会立即通过3500亿美元的国防和解法案，强调对军事的代际投资。"
+      "relevance": 70,
+      "summary_cn": "特朗普呼吁国会立即通过3500亿美元的军事和解法案，进行代际军事投资。"
     },
     {
       "author": "Trump",
-      "text": "The Fake News Media refuses to report how EFFECTIVE the U.S. Naval BLOCKADE is, the most successful Blockade in the history of Naval Warfare. NOTHING GETS THROUGH unless we want it to. IT IS A STEEL WALL! Iran is doing ZERO business, not paying their military, or any of their bills, and quickly becoming a FAILED NATION! Lots of oil is getting out. Praise be to Allah! President DONALD J. TRUMP",
-      "url": "https://trumpstruth.org/statuses/39202",
-      "published": "2026-06-10T11:32:52+00:00",
+      "text": "The terms that Iran leaked out to the Fake News have NOTHING to do with the terms that were agreed to, in writing. What they said, including their weak and pathetic statement on having a deal, bears no relation to the truth. Very dishonorable people to deal with. With them, there is no such thing as dealing in good faith. AMAZING! Also, their totally rebuffed Drone attack last night against Indian Ships leaving the Hormuz Strait is TOTALLY UNACCEPTABLE. They better get their act together, and FAST! President DONALD J. TRUMP",
+      "url": "https://trumpstruth.org/statuses/39226",
+      "published": "2026-06-12T13:40:42+00:00",
       "origin": "truthsocial",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "能源",
-        "石油",
-        "地缘政治"
+        "地缘政治",
+        "能源"
       ],
       "sector_holdings": [],
-      "stance": "neutral",
+      "stance": "attack",
       "relevance": 65,
-      "summary_cn": "特朗普宣称美国海军对伊朗的封锁是史上最成功的封锁，大量石油正在流出。"
+      "summary_cn": "特朗普抨击伊朗泄露谈判条款并发动无人机袭击，暗示中东紧张局势升级，可能影响能源市场。"
     }
   ],
   "held_hits": [],
-  "new_ideas": [
-    {
-      "author": "Musk",
-      "text": "Musk To Pitch Terafab Semiconductor Factory To ASML Ahead Of SpaceX IPO",
-      "url": "",
-      "published": "Thu, 11 Jun 2026 20:03:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Investor's Business Daily",
-      "tickers": [
-        "ASML"
-      ],
-      "held": [],
-      "new_ideas": [
-        "ASML"
-      ],
-      "sectors": [
-        "半导体",
-        "航天",
-        "IPO"
-      ],
-      "sector_holdings": [
-        "RKLB"
-      ],
-      "stance": "endorse",
-      "relevance": 85,
-      "summary_cn": "马斯克将在SpaceX IPO前向ASML推销Terafab半导体工厂，直接点名ASML。"
-    },
-    {
-      "author": "Musk",
-      "text": "Ahead of SpaceX IPO, Elon Musk addresses ASML employees as part of push into chip manufacturing",
-      "url": "",
-      "published": "Thu, 11 Jun 2026 17:24:40 GMT",
-      "origin": "gnews-rss",
-      "source": "CNBC",
-      "tickers": [
-        "ASML"
-      ],
-      "held": [],
-      "new_ideas": [
-        "ASML"
-      ],
-      "sectors": [
-        "半导体",
-        "航天",
-        "IPO"
-      ],
-      "sector_holdings": [
-        "RKLB"
-      ],
-      "stance": "endorse",
-      "relevance": 85,
-      "summary_cn": "马斯克在SpaceX IPO前向ASML员工作为推动芯片制造的一部分发表讲话，直接点名ASML。"
-    },
-    {
-      "author": "Trump",
-      "text": "Wow! CITI was ranked Number 1 in topping M&A Advisory Market by Value in Q1. Congratulations to Jane F and ALL of her great people. They’ve worked really hard! BIG comeback for CITI!!! President DONALD J. TRUMP",
-      "url": "https://trumpstruth.org/statuses/39204",
-      "published": "2026-06-10T13:30:58+00:00",
-      "origin": "truthsocial",
-      "tickers": [
-        "C"
-      ],
-      "held": [],
-      "new_ideas": [
-        "C"
-      ],
-      "sectors": [
-        "金融",
-        "投资银行"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 80,
-      "summary_cn": "特朗普祝贺花旗集团在Q1并购咨询市场按价值排名第一，称其为'大回归'。"
-    }
-  ],
+  "new_ideas": [],
   "sector_hits": [
     {
       "author": "Musk",
-      "text": "SpaceX IPO demand is approaching four times oversubscribed, source says",
+      "text": "Elon Musk's SpaceX raises $75bn ahead of record stock market debut",
       "url": "",
-      "published": "Wed, 10 Jun 2026 03:47:14 GMT",
-      "origin": "gnews-rss",
-      "source": "Reuters",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "IPO"
-      ],
-      "sector_holdings": [
-        "RKLB"
-      ],
-      "stance": "endorse",
-      "relevance": 75,
-      "summary_cn": "马斯克称SpaceX的IPO需求已接近四倍超额认购，显示市场对航天资产的强烈兴趣。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk's SpaceX valued at nearly $1.8tn ahead of record share sale",
-      "url": "",
-      "published": "Thu, 11 Jun 2026 21:10:14 GMT",
+      "published": "Fri, 12 Jun 2026 12:52:55 GMT",
       "origin": "gnews-rss",
       "source": "BBC",
       "tickers": [],
@@ -360,57 +209,98 @@
       "new_ideas": [],
       "sectors": [
         "航天",
-        "IPO"
-      ],
-      "sector_holdings": [
-        "RKLB"
-      ],
-      "stance": "endorse",
-      "relevance": 75,
-      "summary_cn": "SpaceX在创纪录的股份出售前估值接近1.8万亿美元。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk’s SpaceX is about to make its debut on Wall Street",
-      "url": "",
-      "published": "Thu, 11 Jun 2026 15:18:00 GMT",
-      "origin": "gnews-rss",
-      "source": "AP News",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "IPO"
-      ],
-      "sector_holdings": [
-        "RKLB"
-      ],
-      "stance": "endorse",
-      "relevance": 70,
-      "summary_cn": "马斯克的SpaceX即将在华尔街首次亮相。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk is the world’s first trillionaire (on paper) thanks to the SpaceX IPO",
-      "url": "",
-      "published": "Thu, 11 Jun 2026 22:43:42 GMT",
-      "origin": "gnews-rss",
-      "source": "The Washington Post",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
         "IPO",
+        "融资"
+      ],
+      "sector_holdings": [
+        "RKLB"
+      ],
+      "stance": "neutral",
+      "relevance": 60,
+      "summary_cn": "马斯克旗下SpaceX在创纪录的股市上市前融资750亿美元。"
+    },
+    {
+      "author": "Trump",
+      "text": "I am pleased to announce the Nomination of very Highly Respected Jay Clayton, former Chairman of the Securities and Exchange Commission, the former Head of Sullivan & Cromwell, one of the most prominent and successful Law Firms anywhere in the World, and the current United States Attorney for the Southern District of New York, to be the next Director of National Intelligence and, importantly, to serve in my Cabinet. Few people anywhere in the Legal Community are respected at the level of Jay. I encourage the United States Senate to confirm Jay as soon as possible. Thank you for your attention ",
+      "url": "https://trumpstruth.org/statuses/39219",
+      "published": "2026-06-11T18:00:34+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "金融监管",
+        "政府人事"
+      ],
+      "sector_holdings": [
+        "CRCL"
+      ],
+      "stance": "endorse",
+      "relevance": 60,
+      "summary_cn": "特朗普提名前SEC主席Jay Clayton为国家情报总监，涉及金融监管背景人事变动。"
+    },
+    {
+      "author": "Musk",
+      "text": "SpaceX’s I.P.O. Could Turn 4,400 Employees Into Millionaires",
+      "url": "",
+      "published": "Wed, 10 Jun 2026 19:27:27 GMT",
+      "origin": "gnews-rss",
+      "source": "The New York Times",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "IPO"
+      ],
+      "sector_holdings": [
+        "RKLB"
+      ],
+      "stance": "neutral",
+      "relevance": 55,
+      "summary_cn": "马斯克提及SpaceX的IPO可能使4400名员工成为百万富翁，涉及航天领域资本事件。"
+    },
+    {
+      "author": "Musk",
+      "text": "‘SpaceX wants to be able to take you to the moon’: Elon Musk addresses Nasdaq ahead of SpaceX IPO",
+      "url": "",
+      "published": "Fri, 12 Jun 2026 14:42:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Fortune",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "IPO"
+      ],
+      "sector_holdings": [
+        "RKLB"
+      ],
+      "stance": "neutral",
+      "relevance": 55,
+      "summary_cn": "马斯克在SpaceX上市前于纳斯达克发表演讲，称SpaceX的目标是带人去月球。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk becomes the world's first trillionaire with SpaceX's IPO",
+      "url": "",
+      "published": "Fri, 12 Jun 2026 12:11:00 GMT",
+      "origin": "gnews-rss",
+      "source": "CBS News",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
         "财富"
       ],
       "sector_holdings": [
         "RKLB"
       ],
-      "stance": "endorse",
-      "relevance": 65,
-      "summary_cn": "得益于SpaceX IPO，马斯克在纸面上成为世界首位万亿富翁。"
+      "stance": "neutral",
+      "relevance": 50,
+      "summary_cn": "马斯克因SpaceX上市成为世界首位万亿富翁。"
     }
   ]
 }
