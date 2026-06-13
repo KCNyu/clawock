@@ -666,8 +666,16 @@ def update_us_portfolio(
         #       set last trading day silently survives into new days when Nasdaq's
         #       PreviousClose field is missing — see ROBN/MSFU 2026-05-18 bug)
         # 4th: keep existing prev_close if it's fresh and we have no other source
-        if t in prev_closes:
-            pc, pc_date = prev_closes[t]
+        # Ticker-reuse / fresh-IPO trap (SPCX 2026-06-12): a "previous close" bar
+        # dated weeks ago is the *old* instrument that used to own this ticker —
+        # a day-change computed against it is fiction (SPCX showed +637%).
+        poly_pc = prev_closes.get(t)
+        if poly_pc and poly_pc[1] < three_days_ago:
+            print(f"  ⚠ {t}: Polygon prev_close dated {poly_pc[1]} (< {three_days_ago}) "
+                  f"— stale bar / ticker reuse, ignoring")
+            poly_pc = None
+        if poly_pc:
+            pc, pc_date = poly_pc
             # ── Post-close authority + stale-current guard (①②) ──────────────────
             # When Polygon's "prev close" date == today, the market has closed and
             # Polygon's bar IS today's official close (not yesterday's). Two traps
@@ -724,7 +732,23 @@ def update_us_portfolio(
         holding['current_price']    = round(c, 4)
         holding['prev_close']       = round(pc, 4)
         holding['prev_close_date']  = pc_date
-        holding['today_change_pct'] = round(_pct(c, pc), 4)
+        # Fresh-lot detection: when the ENTIRE current position was acquired
+        # today, prev_close belongs to a lot you no longer hold — either an IPO
+        # reference price you never got (SPCX 2026-06-12, prev_close was a stale
+        # reused-ticker bar → +637%), or a pre-clearance close from before a
+        # same-day re-entry (RKLX 2026-06-12: re-bought 10@52.3 after the April
+        # lot was fully sold; prev_close 61.67 from 6/11 made today_change read
+        # -21.7% vs the real -7.6% from entry). Compare held shares against
+        # shares bought today; old sold-out buys still in trades[] don't count
+        # because they net to zero against their matching sells. Using a simple
+        # "all buy trades are today" test misses this re-entry case.
+        shares_bought_today = sum(
+            (t.get('shares') or 0)
+            for t in (holding.get('trades') or [])
+            if t.get('action') == 'buy' and t.get('date') == today_et_date)
+        all_bought_today = shares_bought_today > 0 and shares_bought_today >= shrs
+        tc_ref = cost if all_bought_today else pc
+        holding['today_change_pct'] = round(_pct(c, tc_ref), 4)
 
         # ── session-aware running day range ───────────────────────────────────
         # Nasdaq's quote payload often carries no real intraday h/l/o (the old
@@ -756,7 +780,7 @@ def update_us_portfolio(
         holding['current_value']    = round(c * shrs, 2)
         holding['pnl_abs']          = round((c - cost) * shrs, 2)
         holding['pnl_percent']      = round((c - cost) / cost * 100, 4)
-        holding['today_change']     = round((c - pc) * shrs, 2)
+        holding['today_change']     = round((c - tc_ref) * shrs, 2)
         if q.get('volume'):
             holding['volume'] = q['volume']
 

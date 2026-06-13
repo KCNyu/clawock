@@ -387,7 +387,7 @@
           "shares": 10,
           "cost_basis": 52.3,
           "current_price": 48.3,
-          "today_change_pct": -21.6799,
+          "today_change_pct": -7.6482,
           "pnl_percent": -7.6482,
           "data_source": "Nasdaq API (etf) Jun 12, 2026 16:00 ET",
           "day_high": 53.075,
@@ -396,7 +396,7 @@
           "prev_close": 61.67,
           "current_value": 483.0,
           "pnl_abs": -40.0,
-          "today_change": -133.7,
+          "today_change": -40.0,
           "note": "2026-04-21 按用户截图记录买入，做 RKLB 2x 杠杆短线仓",
           "trades": [
             {
@@ -549,7 +549,7 @@
       "total_current_value": 2644.56,
       "total_pnl": -151.74,
       "total_pnl_percent": -5.4265,
-      "today_total_change": -144.62,
+      "today_total_change": -50.92,
       "realized_pnl": 1567.23,
       "realized_note": "NVDA 3股@197.5(+29.19) + CRCL 4股@103.21(+64.84) + CRCL 5股@120(+165) + CRCL 3股@127(+120) + NVDA 3股@199.41(+34.92) + QQQ 1股@631.3(+9.03) + TQQQ 8股@54.45(+69.76) + HOOD 5股@88.36(+74.3) + OKLO 2股@68(+10.34) + TCOM 5股@53.86(+5.6) + SOXL 5股@112(+100.65) + RKLX 4股@75(+113.2) + RKLX 2股@91.03(+88.66) + SOXL 3股@170.8(+236.79) + SOXL 2股@217.17(+250.6) + RKLB 5股@100.17(+145.85) + SPCX 5股@168(+48.5)",
       "last_updated": "May 8, 2026 16:00 ET close",

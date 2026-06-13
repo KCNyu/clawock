@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-12T20:01:29.496015Z",
+  "generated_at": "2026-06-13T05:16:06.925220Z",
   "last_updated": "2026/06/13 04:00 HKT",
   "fx": {
     "usdhkd": 7.8365,
@@ -12,7 +12,7 @@
       "cost_usd": 2796.3,
       "pnl_usd": -151.74,
       "pnl_pct": -5.4265,
-      "today_change_usd": -144.62,
+      "today_change_usd": -50.92,
       "realized_usd": 1567.23
     },
     "hk": {
@@ -154,8 +154,8 @@
         "cost_basis": 52.3,
         "current_price": 48.3,
         "current_value": 483.0,
-        "today_change": -133.7,
-        "today_change_pct": -21.68,
+        "today_change": -40.0,
+        "today_change_pct": -7.65,
         "day_high": 53.075,
         "day_low": 48.3,
         "pnl_abs": -40.0,
@@ -689,7 +689,7 @@
       "us_total_value": 2644.56,
       "us_total_cost": 2796.3,
       "us_total_pnl": -151.74,
-      "us_today_change": -144.62,
+      "us_today_change": -50.92,
       "us_realized": 1372.88,
       "us_equity": 4017.44,
       "hk_total_value": 55153.2,
@@ -1262,19 +1262,19 @@
   },
   "today_movers": [
     {
-      "ticker": "RKLX",
-      "name": "Defiance Daily Target 2X Long R",
-      "region": "us",
-      "today_change_pct": -21.68,
-      "current_price": 48.3,
-      "note": "单日暴跌-18.1%，高异动；浮亏-3.4%暂不大但跌幅剧烈，关注是否尾盘企稳"
-    },
-    {
       "ticker": "00100",
       "name": "MINIMAX-W",
       "region": "hk",
       "today_change_pct": -9.79,
       "current_price": 392.4
+    },
+    {
+      "ticker": "RKLX",
+      "name": "Defiance Daily Target 2X Long R",
+      "region": "us",
+      "today_change_pct": -7.65,
+      "current_price": 48.3,
+      "note": "单日暴跌-18.1%，高异动；浮亏-3.4%暂不大但跌幅剧烈，关注是否尾盘企稳"
     },
     {
       "ticker": "CRCL",
