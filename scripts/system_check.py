@@ -237,11 +237,16 @@ def check_openclaw_doctor(r):
     if 'models' not in d or 'providers' not in d.get('models', {}):
         issues.append('missing models.providers')
 
-    # Check primary model is in providers
+    # Check primary model is in providers. Native/built-in providers (e.g.
+    # claude-cli, registered by openclaw itself reusing ~/.claude login) never
+    # appear in the user's models.providers block, so exempt them — otherwise
+    # switching the direct-chat backend to claude-cli (2026-06-12) false-positives
+    # as "not configured" and blocks every push.
+    NATIVE_PROVIDERS = {'claude-cli'}
     primary = d.get('agents', {}).get('defaults', {}).get('model', {}).get('primary', '')
     if primary and '/' in primary:
         prov_name = primary.split('/')[0]
-        if prov_name not in d['models']['providers']:
+        if prov_name not in d['models']['providers'] and prov_name not in NATIVE_PROVIDERS:
             issues.append(f'primary provider "{prov_name}" not configured')
 
     # Check meta
