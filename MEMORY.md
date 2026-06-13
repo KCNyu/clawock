@@ -96,29 +96,6 @@
 - **单一来源：`portfolio.json`**，不在此维护副本
 - ticker 列表：`memory/current-portfolio-summary.md`（提高检索命中）
 
-## Promoted From Short-Term Memory (2026-06-08)
-
-<!-- openclaw-memory-promotion:memory:memory/2026-06-02.md:14:15 -->
-- 关键发现: ROBN cut 计划待今日 US 开盘执行; HK HHI 0.401 🔴 危险集中 [score=0.834 recalls=0 avg=0.620 source=memory/2026-06-02.md:14-15]
-<!-- openclaw-memory-promotion:memory:memory/2026-06-02.md:18:21 -->
-- 今日动作: PLTU: trim 7 股 @open ≥50; ROBN: cut 20 股 @open; 其余 8 票 hold_and_watch; 00100 新 stop 650 / RKLB 新 stop 115 [score=0.834 recalls=0 avg=0.620 source=memory/2026-06-02.md:18-21]
-<!-- openclaw-memory-promotion:memory:memory/2026-06-02.md:24:27 -->
-- 待办: 09:00 HKT 查 00100 开盘价; 21:30 HKT 执行 PLTU trim + ROBN cut; 6/5 NFP 事件; 6/8 HSTECH 纳入催化 [score=0.834 recalls=0 avg=0.620 source=memory/2026-06-02.md:24-27]
-<!-- openclaw-memory-promotion:memory:memory/2026-06-02.md:3:6 -->
-- 08:00 — 盘前深度简报 2026-06-02 已完成; preflight: 0 issues; postflight: pass, committed; push: 成功 (rebase 冲突已解决) [score=0.834 recalls=0 avg=0.620 source=memory/2026-06-02.md:3-6]
-<!-- openclaw-memory-promotion:memory:memory/2026-06-01.md:3:3 -->
-- 11:26 — embedding 测试 [score=0.826 recalls=0 avg=0.620 source=memory/2026-06-01.md:3-3]
-<!-- openclaw-memory-promotion:memory:memory/2026-05-31-pre-open.md:19:22 -->
-- HK 段 (HKD): | 代码 | 股 | 成本 | 现价 | 今日 | 浮% | 浮$ | |---|---|---|---|---|---|---| | 00100 MINIMAX-W | 60 | 822.83 | 840.0 | +0.36% | +2.09% | +1,030 | | 07226 XL二南方恒科 | 6200 | 4.363 | 3.76 | -0.53% | -13.82% | -3,740 | [score=0.812 recalls=0 avg=0.620 source=memory/2026-05-31-pre-open.md:19-22]
-<!-- openclaw-memory-promotion:memory:memory/2026-05-31-pre-open.md:2:3 -->
-- layout: default title: 盘前深度简报 · 2026-05-31 [score=0.812 recalls=0 avg=0.620 source=memory/2026-05-31-pre-open.md:2-3]
-<!-- openclaw-memory-promotion:memory:memory/2026-06-03-pre-open.md:10:11 -->
-- Header: 🧭 **Regime**: US risk_on (F&G 59.1 greed, VIX 16.05 calm) | HK neutral→risk_on (HSTECH +4.72%, 5199 突破) **FX**: USDHKD = 7.8374 (Frankfurter, 2026-06-03 00:00 UTC) [score=0.812 recalls=0 avg=0.620 source=memory/2026-06-03-pre-open.md:10-11]
-<!-- openclaw-memory-promotion:memory:memory/2026-06-03-pre-open.md:13:13 -->
-- Header: **Book 总览**: [score=0.812 recalls=0 avg=0.620 source=memory/2026-06-03-pre-open.md:13-13]
-<!-- openclaw-memory-promotion:memory:memory/2026-06-03-pre-open.md:15:18 -->
-- Header: 真实总浮盈亏: USD$-872.55 ≈ HKD$-6,838.49 (USDHKD = 7.8374, 来源 Frankfurter, 抓取于 2026-06-03 00:00 UTC) ├─ HK 段：HKD$-10,249.64 ≈ USD$-1,307.82 └─ US 段：USD$435.24 ≈ HKD$3,411.15 [score=0.812 recalls=0 avg=0.620 source=memory/2026-06-03-pre-open.md:15-18]
-
 ## Promoted From Short-Term Memory (2026-06-09)
 
 <!-- openclaw-memory-promotion:memory:memory/2026-06-03-pre-open.md:2:3 -->
@@ -141,3 +118,26 @@
 - WeChat: 已发送 [score=0.814 recalls=0 avg=0.620 source=memory/2026-06-02.md:7-7]
 <!-- openclaw-memory-promotion:memory:memory/2026-06-05-pre-open.md:9:9 -->
 - 📊 盘前深度简报｜2026-06-05 周五 08:00 HKT: 🧭 **Regime**: US = range-bound（SPX +0.41% / NDX -0.54% 混合，macro stale 48h）| HK = volatile/regime-change（HSTECH -1.61%，00100 5日 -21%，6/8 纳入催化 3 天后） [score=0.808 recalls=0 avg=0.620 source=memory/2026-06-05-pre-open.md:9-9]
+
+## Promoted From Short-Term Memory (2026-06-14)
+
+<!-- openclaw-memory-promotion:memory:memory/2026-06-11-0146.md:111:113 -->
+- JD 职责 vs 简历: | ③大数据体系设计，数据标准/规范/资产管理 | Doris 标准化指标框架——直接对口 | ✅ 强 | | ④AI能力与数据平台深度融合 | MCP/Agent Skills、特征平台 | ✅ 强 | | ⑤AI驱动的数据产品：智能风控洞察/合规问答/异常识别 | Chargeback + 决策引擎回测 | ✅ 中上 | [score=0.841 recalls=0 avg=0.620 source=memory/2026-06-11-0146.md:111-113]
+<!-- openclaw-memory-promotion:memory:memory/2026-06-11-0146.md:12:12 -->
+- Conversation Summary: 但你说"上一轮改的不行"——具体是哪些改动你不喜欢？我上一轮改了这些： [score=0.841 recalls=0 avg=0.620 source=memory/2026-06-11-0146.md:12-12]
+<!-- openclaw-memory-promotion:memory:memory/2026-06-11-0146.md:14:17 -->
+- Conversation Summary: 简介删了"特征配置效率提升 90%"→ 只保留两个数字; "补全"→"扩展"; "只能转人工"→"需人工审核"; Checkout "持平"→"对标" [score=0.841 recalls=0 avg=0.620 source=memory/2026-06-11-0146.md:14-17]
+<!-- openclaw-memory-promotion:memory:memory/2026-06-11-0146.md:107:110 -->
+- JD 职责 vs 简历: | JD 要求 | 简历对位 | 匹配 | |---|---|---| | ①面向金融风控和合规，提炼数据逻辑和口径 | Doris 30+ 指标框架、风控数据基础设施 | ✅ 强 | | ②探索大模型/AI提升数据交付效率 | Chargeback LLM 自动化（字段提取 95%+） | ✅ 强 | [score=0.809 recalls=0 avg=0.620 source=memory/2026-06-11-0146.md:107-110]
+<!-- openclaw-memory-promotion:memory:memory/2026-06-11-0146.md:117:120 -->
+- JD 要求 vs 简历: | JD 要求 | 简历对位 | 匹配 | |---|---|---| | 数仓架构、数据开发治理、SQL | 核心能力有 SQL，Doris 项目有数仓协作 | ✅ 中上 | | 数据产品策划运营经验 | 特征平台自助化、决策引擎整合 | ✅ 强 | [score=0.809 recalls=0 avg=0.620 source=memory/2026-06-11-0146.md:117-120]
+<!-- openclaw-memory-promotion:memory:memory/2026-06-11-0146.md:121:124 -->
+- JD 要求 vs 简历: | LLM/AI（Prompt/RAG/Agent） | Chargeback LLM、MCP/Agent Skills | ✅ 强 | | 金融行业（反洗钱/支付/风控/合规） | 支付风控 + chargeback | ✅ 强 | | 开发转产品 | 工程师→PM | ✅ 完美命中 | | 深圳 | 你在深圳 | ✅ | [score=0.809 recalls=0 avg=0.620 source=memory/2026-06-11-0146.md:121-124]
+<!-- openclaw-memory-promotion:memory:memory/2026-06-11-0146.md:129:132 -->
+- 加分项: | JD 加分 | 简历对位 | 匹配 | |---|---|---| | 大厂大数据团队 | Klook 不算大厂，但有实际大数据项目 | ⚠️ | | 大模型数据产品落地（Text-to-SQL/智能数据助手） | Chargeback LLM 是 LLM 落地，但不是 Text-to-SQL | ⚠️ | [score=0.809 recalls=0 avg=0.620 source=memory/2026-06-11-0146.md:129-132]
+<!-- openclaw-memory-promotion:memory:memory/2026-06-11-0146.md:133:133 -->
+- 加分项: | AI 金融合规/风控场景 | Chargeback 自动化、风控决策引擎 | ✅ | [score=0.809 recalls=0 avg=0.620 source=memory/2026-06-11-0146.md:133-133]
+<!-- openclaw-memory-promotion:memory:memory/2026-06-11-0146.md:139:139 -->
+- 简历当前状态的问题: 对照这个 JD 审视，当前简历有 **3 个对位问题**： [score=0.809 recalls=0 avg=0.620 source=memory/2026-06-11-0146.md:139-139]
+<!-- openclaw-memory-promotion:memory:memory/2026-06-11-0146.md:141:141 -->
+- 简历当前状态的问题: **1. 标题定位偏了** [score=0.809 recalls=0 avg=0.620 source=memory/2026-06-11-0146.md:141-141]
