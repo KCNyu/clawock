@@ -1521,6 +1521,21 @@ layout: null
   <section class="panel" data-panel="drill">
     <h2>Drill</h2>
 
+    <div class="card" id="decision-matrix-card">
+      <h3>🎯 持仓决策矩阵 <span class="muted" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:11px">每持仓一行 · 价/量化/52w位置/硬闸 汇总</span></h3>
+      <div class="table-wrap">
+        <table class="holdings-table" id="decision-matrix-table" style="min-width:560px;font-size:12px">
+          <thead><tr>
+            <th>标的</th><th class="num">今日</th><th class="num">浮盈</th>
+            <th>52w位置</th><th>信号</th><th class="num">RSI</th>
+            <th class="num">距200</th><th>硬闸</th>
+          </tr></thead>
+          <tbody id="decision-matrix-tbody"></tbody>
+        </table>
+      </div>
+      <div class="muted" id="decision-matrix-note" style="font-size:11px;margin-top:6px;line-height:1.5"></div>
+    </div>
+
     <div class="card">
       <h3>Holdings <span class="muted" id="holdings-count" style="text-transform:none;letter-spacing:0;font-weight:500"></span></h3>
       <div class="table-wrap">
@@ -2462,6 +2477,7 @@ layout: null
     renderNewsDigest();
     renderMacro();
     renderCalibBadge();
+    renderDecisionMatrix();
     renderHoldings();
     renderTodayRange();
     renderExtremes();
@@ -3230,6 +3246,68 @@ layout: null
     const us = (safe(DATA, "holdings", "us") || []).map(h => ({ ...h, region: "us" }));
     const hk = (safe(DATA, "holdings", "hk") || []).map(h => ({ ...h, region: "hk" }));
     return [...us, ...hk].filter(h => h.is_active !== false && (h.shares ?? 0) > 0);
+  }
+
+  // 持仓决策矩阵：每个活跃持仓一行，把散在 Holdings / 量化因子 / 硬闸 三处的
+  // per-name 信号 join 到一张表（纯前端聚合，数据全在 dashboard.json）。
+  function renderDecisionMatrix() {
+    const card = document.getElementById('decision-matrix-card');
+    if (!card) return;
+    const H = safe(DATA, "holdings") || {};
+    const holds = [...(H.us || []), ...(H.hk || [])].filter(h => h && h.is_active);
+    if (!holds.length) { card.style.display = 'none'; return; }
+    card.style.display = '';
+    const qrows = ((safe(DATA, "quant_signals") || {}).rows) || {};
+    // 杠杆 ETF→底层标的映射（量化按标的算，ETF 本身无 quant 行）。
+    // 双源：lev_regime.us.names 的 etf/underlying + quant 行 note "X 的标的"。
+    const etf2u = {};
+    (((safe(DATA, "lev_regime") || {}).us || {}).names || []).forEach(n => {
+      if (n.etf && n.underlying) etf2u[n.etf] = n.underlying;
+    });
+    Object.keys(qrows).forEach(u => {
+      const m = (qrows[u].note || '').match(/^(\S+)\s*的标的/);
+      if (m) etf2u[m[1]] = u;
+    });
+    const rg = safe(DATA, "risk_guardrail") || {};
+    const action = {};
+    (rg.breaches || []).forEach(b => { if (b.ticker && !action[b.ticker]) action[b.ticker] = { txt: '⚠ trim', col: '#f59e0b' }; });
+    (rg.hard_stop_watch || []).forEach(s => { if (s.ticker) action[s.ticker] = { txt: '🛑 止损', col: 'var(--neg,#ef4444)' }; });
+    const sign = v => v == null ? '' : `style="color:${v < 0 ? 'var(--neg,#ef4444)' : 'var(--pos,#22c55e)'}"`;
+    const num = (v, suf = '') => v == null ? '—' : `${v}${suf}`;
+    const rsiCls = r => r == null ? '' : (r >= 70 ? 'style="color:var(--neg,#ef4444)"' : (r <= 30 ? 'style="color:var(--pos,#22c55e)"' : ''));
+    // 52w 位置条：0=近一年低位(便宜/绿) 100=近一年高位(追高/红)
+    const rangeBar = p => {
+      if (p == null) return '<span class="muted">—</span>';
+      const pos = Math.max(0, Math.min(100, p));
+      const col = p >= 80 ? 'var(--neg,#ef4444)' : (p <= 20 ? 'var(--pos,#22c55e)' : 'var(--muted,#9ca3af)');
+      return `<span style="position:relative;width:52px;height:8px;background:rgba(128,128,128,.18);border-radius:4px;display:inline-block;vertical-align:middle">` +
+        `<span style="position:absolute;left:${pos}%;top:-2px;width:3px;height:12px;background:${col};border-radius:2px;transform:translateX(-50%)"></span></span>` +
+        `<span class="muted" style="font-size:10px;margin-left:5px">${Math.round(p)}</span>`;
+    };
+    let usedProxy = false;
+    document.getElementById('decision-matrix-tbody').innerHTML = holds.map(h => {
+      const direct = qrows[h.ticker];
+      const proxy = !direct && etf2u[h.ticker] && qrows[etf2u[h.ticker]] ? etf2u[h.ticker] : '';
+      const q = direct || (proxy ? qrows[proxy] : {}) || {};
+      const a = action[h.ticker];
+      const mk = proxy ? `<sup style="color:var(--muted,#9ca3af)" title="杠杆ETF · 显示底层 ${proxy} 的信号">▵</sup>` : '';
+      if (proxy) usedProxy = true;
+      const sig = q.tag ? q.tag.split('·')[0].trim() + mk : (mk || '—');
+      return `<tr>` +
+        `<td><strong>${h.ticker}</strong></td>` +
+        `<td class="num" ${sign(h.today_change_pct)}>${num(h.today_change_pct, '%')}</td>` +
+        `<td class="num" ${sign(h.pnl_percent)}>${num(h.pnl_percent, '%')}</td>` +
+        `<td>${rangeBar(q.pct_52w_range)}</td>` +
+        `<td style="font-size:11px">${sig}</td>` +
+        `<td class="num" ${rsiCls(q.rsi14)}>${num(q.rsi14)}</td>` +
+        `<td class="num" ${sign(q.dist_ma200_pct)}>${num(q.dist_ma200_pct, '%')}</td>` +
+        `<td style="font-size:10px">${a ? `<span style="color:${a.col};font-weight:600">${a.txt}</span>` : '<span class="muted">—</span>'}</td>` +
+        `</tr>`;
+    }).join('');
+    document.getElementById('decision-matrix-note').textContent =
+      '52w位置：绿=近一年低位(相对便宜)、红=近一年高位(追高警惕)。'
+      + (usedProxy ? '▵=杠杆ETF显示其底层标的信号(量化按标的算)。' : '')
+      + '信号/RSI/距200/硬闸汇总自诊断卡，完整逻辑见 Hero。';
   }
 
   function renderHoldings() {
