@@ -1388,6 +1388,13 @@ layout: null
     </div>
 
 
+    <div class="card" id="guardrail-card">
+      <h3>🚦 仓位/杠杆硬闸 <span class="badge muted" id="guardrail-count"></span></h3>
+      <div class="muted" id="guardrail-directive" style="font-size:12px;margin-bottom:8px;line-height:1.5"></div>
+      <div class="risk-alerts" id="guardrail-list"></div>
+    </div>
+
+
     <div class="card">
       <h3>Anomalies <span class="badge muted" id="anom-count"></span></h3>
       <div class="anomaly-list" id="anomaly-list">
@@ -1474,31 +1481,9 @@ layout: null
       <div class="risk-alerts" id="risk-alerts"></div>
     </div>
 
-    <div class="card" id="guardrail-card">
-      <h3>🚦 仓位/杠杆硬闸 <span class="badge muted" id="guardrail-count"></span></h3>
-      <div class="muted" id="guardrail-directive" style="font-size:12px;margin-bottom:8px;line-height:1.5"></div>
-      <div class="risk-alerts" id="guardrail-list"></div>
-    </div>
-
-    <div class="card" id="breakeven-card" style="display:none">
-      <h3>🧮 解套数学 <span class="muted" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:11px">回本所需涨幅 · 纯算术</span></h3>
-      <div class="risk-alerts" id="breakeven-list"></div>
-      <div class="muted" id="breakeven-note" style="font-size:11px;margin-top:6px;line-height:1.5"></div>
-    </div>
-
-    <div class="card" id="quant-card" style="display:none">
-      <h3>📊 量化因子 <span class="muted" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:11px">趋势·动量·RSI·吊灯止损·vol仓位 <span id="quant-asof"></span></span></h3>
-      <div class="table-wrap">
-        <table class="holdings-table" id="quant-table" style="min-width:560px;font-size:12px">
-          <thead><tr><th>标的</th><th>信号</th><th class="num">RSI</th><th class="num">z20</th><th class="num">距200线</th><th class="num">吊灯距</th><th class="num">vol权重</th></tr></thead>
-          <tbody id="quant-tbody"></tbody>
-        </table>
-      </div>
-      <div class="muted" id="quant-edge" style="font-size:11px;margin-top:6px;line-height:1.5"></div>
-    </div>
-
-    <div class="card" id="lev-regime-card" style="display:none">
-      <h3>🧭 杠杆刻度盘 <span class="muted" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:11px">趋势 + 波动 → 杠杆ETF上限</span></h3>
+    <!-- 诊断区：mobile 默认折叠成 peek，点 h3 展开（与 HHI/Lev/Risk 同机制） -->
+    <div class="card fold-m" id="lev-regime-card" data-fold-id="levregime" style="display:none">
+      <h3>🧭 杠杆刻度盘 <span class="muted" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:11px">趋势 + 波动 → 杠杆ETF上限</span><span class="peek" id="peek-levregime"></span></h3>
       <div class="muted" style="font-size:10px;margin-bottom:3px;opacity:0.8">HK · HSTECH 指数级</div>
       <div class="regime-badge" id="lev-regime-badge" style="margin-bottom:6px">
         <span class="rg-dot"></span><span class="rg-label" id="lev-regime-label"></span>
@@ -1509,6 +1494,23 @@ layout: null
       <div class="muted" style="font-size:10px;margin:8px 0 3px;opacity:0.8">US · 2x 单股 per-name（趋势off且波动过热才砍）</div>
       <div class="risk-alerts" id="lev-regime-us"></div>
       <div class="muted" id="lev-regime-asof" style="font-size:10px;margin-top:6px;opacity:0.7"></div>
+    </div>
+
+    <div class="card fold-m" id="quant-card" data-fold-id="quant" style="display:none">
+      <h3>📊 量化因子 <span class="muted" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:11px">趋势·动量·RSI·吊灯止损·vol仓位 <span id="quant-asof"></span></span><span class="peek" id="peek-quant"></span></h3>
+      <div class="table-wrap">
+        <table class="holdings-table" id="quant-table" style="min-width:560px;font-size:12px">
+          <thead><tr><th>标的</th><th>信号</th><th class="num">RSI</th><th class="num">z20</th><th class="num">距200线</th><th class="num">吊灯距</th><th class="num">vol权重</th></tr></thead>
+          <tbody id="quant-tbody"></tbody>
+        </table>
+      </div>
+      <div class="muted" id="quant-edge" style="font-size:11px;margin-top:6px;line-height:1.5"></div>
+    </div>
+
+    <div class="card fold-m" id="breakeven-card" data-fold-id="breakeven" style="display:none">
+      <h3>🧮 解套数学 <span class="muted" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:11px">回本所需涨幅 · 纯算术</span><span class="peek" id="peek-breakeven"></span></h3>
+      <div class="risk-alerts" id="breakeven-list"></div>
+      <div class="muted" id="breakeven-note" style="font-size:11px;margin-top:6px;line-height:1.5"></div>
     </div>
 
   </section>
@@ -2508,6 +2510,14 @@ layout: null
       txt("#risk-vol") && "vol " + txt("#risk-vol"),
       alerts && alerts + "⚠",
     ]);
+    setPeek("peek-levregime", [
+      txt("#lev-regime-label") && "HK " + txt("#lev-regime-label"),
+      txt("#lev-regime-cap"),
+    ]);
+    const qn = document.querySelectorAll("#quant-tbody tr").length;
+    setPeek("peek-quant", [qn ? qn + " 标的信号" : ""]);
+    const bn = document.querySelectorAll("#breakeven-list > *").length;
+    setPeek("peek-breakeven", [bn ? bn + " 标的待回本" : ""]);
   }
 
   // Fold/unfold on header tap; remember per-card choice across visits.
