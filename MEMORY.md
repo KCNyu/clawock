@@ -96,48 +96,25 @@
 - **单一来源：`portfolio.json`**，不在此维护副本
 - ticker 列表：`memory/current-portfolio-summary.md`（提高检索命中）
 
-## Promoted From Short-Term Memory (2026-06-09)
+## Promoted From Short-Term Memory (2026-06-15)
 
-<!-- openclaw-memory-promotion:memory:memory/2026-06-03-pre-open.md:2:3 -->
-- layout: default title: 盘前深度简报 · 2026-06-03 [score=0.834 recalls=0 avg=0.620 source=memory/2026-06-03-pre-open.md:2-3]
-<!-- openclaw-memory-promotion:memory:memory/2026-06-03-pre-open.md:21:21 -->
-- Header: **⚠️ 风险仪表盘** (4 alerts): [score=0.834 recalls=0 avg=0.620 source=memory/2026-06-03-pre-open.md:21-21]
-<!-- openclaw-memory-promotion:memory:memory/2026-06-03-pre-open.md:22:25 -->
-- Header: 🔴 US β vs S&P 500 = 3.95 (> 3.0); 🔴 Combined 30d annualised vol = 59.5% (> 50%); 🟡 Combined 30d max DD = -15.9% (< -10%); 🟡 Combined 30d Sharpe = -0.97 (< 0) [score=0.834 recalls=0 avg=0.620 source=memory/2026-06-03-pre-open.md:22-25]
-<!-- openclaw-memory-promotion:memory:memory/2026-06-05-pre-open.md:11:11 -->
-- 📊 盘前深度简报｜2026-06-05 周五 08:00 HKT: **USDHKD = 7.8338**（Frankfurter, 2026-06-05 00:00 UTC） [score=0.820 recalls=0 avg=0.620 source=memory/2026-06-05-pre-open.md:11-11]
-<!-- openclaw-memory-promotion:memory:memory/2026-06-05-pre-open.md:19:22 -->
-- HK 段（HKD）: | 代码 | 股 | 成本 | 现价 | 今日 | 浮% | 浮$ | |---|---|---|---|---|---|---| | 00100 MINIMAX | 60 | 822.83 | 663.5 | -1.70% | -19.36% | -9,560 | | 07226 2x恒科 | 6200 | 4.3632 | 3.908 | -3.17% | -10.43% | -2,822 | [score=0.820 recalls=0 avg=0.620 source=memory/2026-06-05-pre-open.md:19-22]
-<!-- openclaw-memory-promotion:memory:memory/2026-06-05-pre-open.md:2:3 -->
-- layout: default title: 盘前深度简报 · 2026-06-05 [score=0.820 recalls=0 avg=0.620 source=memory/2026-06-05-pre-open.md:2-3]
-<!-- openclaw-memory-promotion:memory:memory/2026-06-05-pre-open.md:23:25 -->
-- HK 段（HKD）: | 02208 金风科技 | 400 | 14.084 | 12.82 | -2.51% | -8.97% | -506 | | 03033 南方恒科 | 1000 | 5.14 | 4.87 | -1.62% | -5.25% | -270 | | 03032 恒科ETF | 200 | 5.405 | 4.972 | -1.64% | -8.01% | -87 | [score=0.820 recalls=0 avg=0.620 source=memory/2026-06-05-pre-open.md:23-25]
-<!-- openclaw-memory-promotion:memory:memory/2026-06-05-pre-open.md:27:27 -->
-- HK 段（HKD）: HK 段合计：HKD 75,032 | 浮亏 HKD -13,244 [score=0.820 recalls=0 avg=0.620 source=memory/2026-06-05-pre-open.md:27-27]
-<!-- openclaw-memory-promotion:memory:memory/2026-06-02.md:7:7 -->
-- WeChat: 已发送 [score=0.814 recalls=0 avg=0.620 source=memory/2026-06-02.md:7-7]
-<!-- openclaw-memory-promotion:memory:memory/2026-06-05-pre-open.md:9:9 -->
-- 📊 盘前深度简报｜2026-06-05 周五 08:00 HKT: 🧭 **Regime**: US = range-bound（SPX +0.41% / NDX -0.54% 混合，macro stale 48h）| HK = volatile/regime-change（HSTECH -1.61%，00100 5日 -21%，6/8 纳入催化 3 天后） [score=0.808 recalls=0 avg=0.620 source=memory/2026-06-05-pre-open.md:9-9]
-
-## Promoted From Short-Term Memory (2026-06-14)
-
-<!-- openclaw-memory-promotion:memory:memory/2026-06-11-0146.md:111:113 -->
-- JD 职责 vs 简历: | ③大数据体系设计，数据标准/规范/资产管理 | Doris 标准化指标框架——直接对口 | ✅ 强 | | ④AI能力与数据平台深度融合 | MCP/Agent Skills、特征平台 | ✅ 强 | | ⑤AI驱动的数据产品：智能风控洞察/合规问答/异常识别 | Chargeback + 决策引擎回测 | ✅ 中上 | [score=0.841 recalls=0 avg=0.620 source=memory/2026-06-11-0146.md:111-113]
-<!-- openclaw-memory-promotion:memory:memory/2026-06-11-0146.md:12:12 -->
-- Conversation Summary: 但你说"上一轮改的不行"——具体是哪些改动你不喜欢？我上一轮改了这些： [score=0.841 recalls=0 avg=0.620 source=memory/2026-06-11-0146.md:12-12]
-<!-- openclaw-memory-promotion:memory:memory/2026-06-11-0146.md:14:17 -->
-- Conversation Summary: 简介删了"特征配置效率提升 90%"→ 只保留两个数字; "补全"→"扩展"; "只能转人工"→"需人工审核"; Checkout "持平"→"对标" [score=0.841 recalls=0 avg=0.620 source=memory/2026-06-11-0146.md:14-17]
-<!-- openclaw-memory-promotion:memory:memory/2026-06-11-0146.md:107:110 -->
-- JD 职责 vs 简历: | JD 要求 | 简历对位 | 匹配 | |---|---|---| | ①面向金融风控和合规，提炼数据逻辑和口径 | Doris 30+ 指标框架、风控数据基础设施 | ✅ 强 | | ②探索大模型/AI提升数据交付效率 | Chargeback LLM 自动化（字段提取 95%+） | ✅ 强 | [score=0.809 recalls=0 avg=0.620 source=memory/2026-06-11-0146.md:107-110]
-<!-- openclaw-memory-promotion:memory:memory/2026-06-11-0146.md:117:120 -->
-- JD 要求 vs 简历: | JD 要求 | 简历对位 | 匹配 | |---|---|---| | 数仓架构、数据开发治理、SQL | 核心能力有 SQL，Doris 项目有数仓协作 | ✅ 中上 | | 数据产品策划运营经验 | 特征平台自助化、决策引擎整合 | ✅ 强 | [score=0.809 recalls=0 avg=0.620 source=memory/2026-06-11-0146.md:117-120]
-<!-- openclaw-memory-promotion:memory:memory/2026-06-11-0146.md:121:124 -->
-- JD 要求 vs 简历: | LLM/AI（Prompt/RAG/Agent） | Chargeback LLM、MCP/Agent Skills | ✅ 强 | | 金融行业（反洗钱/支付/风控/合规） | 支付风控 + chargeback | ✅ 强 | | 开发转产品 | 工程师→PM | ✅ 完美命中 | | 深圳 | 你在深圳 | ✅ | [score=0.809 recalls=0 avg=0.620 source=memory/2026-06-11-0146.md:121-124]
-<!-- openclaw-memory-promotion:memory:memory/2026-06-11-0146.md:129:132 -->
-- 加分项: | JD 加分 | 简历对位 | 匹配 | |---|---|---| | 大厂大数据团队 | Klook 不算大厂，但有实际大数据项目 | ⚠️ | | 大模型数据产品落地（Text-to-SQL/智能数据助手） | Chargeback LLM 是 LLM 落地，但不是 Text-to-SQL | ⚠️ | [score=0.809 recalls=0 avg=0.620 source=memory/2026-06-11-0146.md:129-132]
-<!-- openclaw-memory-promotion:memory:memory/2026-06-11-0146.md:133:133 -->
-- 加分项: | AI 金融合规/风控场景 | Chargeback 自动化、风控决策引擎 | ✅ | [score=0.809 recalls=0 avg=0.620 source=memory/2026-06-11-0146.md:133-133]
-<!-- openclaw-memory-promotion:memory:memory/2026-06-11-0146.md:139:139 -->
-- 简历当前状态的问题: 对照这个 JD 审视，当前简历有 **3 个对位问题**： [score=0.809 recalls=0 avg=0.620 source=memory/2026-06-11-0146.md:139-139]
-<!-- openclaw-memory-promotion:memory:memory/2026-06-11-0146.md:141:141 -->
-- 简历当前状态的问题: **1. 标题定位偏了** [score=0.809 recalls=0 avg=0.620 source=memory/2026-06-11-0146.md:141-141]
+<!-- openclaw-memory-promotion:memory:memory/2026-06-10-1027.md:12:15 -->
+- Conversation Summary: | Job | 时间 (HKT) | 频率 | 上次耗时 | 下次触发 | |---|---|---|---|---| | 盘前深度简报 | 08:00 工作日 | 1×/天 | ~10min | 明天 08:00 | | 港股开盘报告 | 09:30 工作日 | 1×/天 | ~99s | 明天 09:30 | [score=0.812 recalls=0 avg=0.620 source=memory/2026-06-10-1027.md:12-15]
+<!-- openclaw-memory-promotion:memory:memory/2026-06-10-1027.md:16:19 -->
+- Conversation Summary: | 港股盘中盯盘 | */30 10-11,14-15 | 30min | ~146s | 10:30 | | 港股午盘报告 | 12:00 工作日 | 1×/天 | ~139s | 明天 12:00 | | 港股午后快报 | 13:30 工作日 | 1×/天 | ~80s | 明天 13:30 | | 港股收盘报告 | 16:00 工作日 | 1×/天 | ~160s | 明天 16:00 | [score=0.812 recalls=0 avg=0.620 source=memory/2026-06-10-1027.md:16-19]
+<!-- openclaw-memory-promotion:memory:memory/2026-06-10-1027.md:20:23 -->
+- Conversation Summary: | 美股开盘报告 | 21:30 工作日 | 1×/天 | ~210s | 今晚 21:30 | | 美股盘中盯盘 | */30 22-23 | 30min | ~135s | 今晚 22:00 | | 美股盘中-overnight | */30 0-2 (Tue-Sat) | 30min | ~125s | 明天 00:00 | | 美股收盘报告 | 04:00 (Tue-Sat) | 1×/天 | ~109s | 明天 04:00 | [score=0.812 recalls=0 avg=0.620 source=memory/2026-06-10-1027.md:20-23]
+<!-- openclaw-memory-promotion:memory:memory/2026-06-10-1027.md:24:24 -->
+- Conversation Summary: | Memory Dreaming | 03:00 每天 | 1×/天 | ~18s | 明天 03:00 | [score=0.812 recalls=0 avg=0.620 source=memory/2026-06-10-1027.md:24-24]
+<!-- openclaw-memory-promotion:memory:memory/2026-06-10-1027.md:3:5 -->
+- Session: 2026-06-10 10:27:19 GMT+8: **Session Key**: agent:main:openclaw-weixin:direct:o9cq80-hgtrum-oss8knmdotlvzi@im.wechat; **Session ID**: 2be8f9bd-a12f-4043-b307-a84a1ba8b1c1; **Source**: openclaw-weixin [score=0.812 recalls=0 avg=0.620 source=memory/2026-06-10-1027.md:3-5]
+<!-- openclaw-memory-promotion:memory:memory/2026-06-10-1027.md:9:10 -->
+- Conversation Summary: user: 定时任务呢 assistant: 全部 **11 个 cron**，全 enabled，全部 **lastStatus=ok**，连续错误 0。汇总： [score=0.812 recalls=0 avg=0.620 source=memory/2026-06-10-1027.md:9-10]
+<!-- openclaw-memory-promotion:memory:memory/2026-06-10-2354.md:13:13 -->
+- Conversation Summary: **问题根因：** tectonic 在 GitHub Actions 环境下载 `FontAwesome5Free-Solid-900.otf` 时 core dump（`free(): invalid pointer`）。这是 tectonic 的 bug，跟中文模板的 fontawesome5 依赖冲突。 [score=0.812 recalls=0 avg=0.620 source=memory/2026-06-10-2354.md:13-13]
+<!-- openclaw-memory-promotion:memory:memory/2026-06-10-2354.md:15:15 -->
+- Conversation Summary: **修复：** 拆分编译——英文用 tectonic，中文用 xelatex（CI 装 `texlive-xetex` + `texlive-fonts-extra` + `texlive-lang-chinese`）。 [score=0.812 recalls=0 avg=0.620 source=memory/2026-06-10-2354.md:15-15]
+<!-- openclaw-memory-promotion:memory:memory/2026-06-10-2354.md:18:20 -->
+- Conversation Summary: ✓ tectonic resume.tex → resume.pdf (28KB) ✓ xelatex resume-cn.tex → resume-cn.pdf (90KB) ✓ upload-artifact [score=0.812 recalls=0 avg=0.620 source=memory/2026-06-10-2354.md:18-20]
+<!-- openclaw-memory-promotion:memory:memory/2026-06-10-2354.md:23:26 -->
+- Conversation Summary: **注意：** CI 还有一个 Node.js 20 deprecation warning（actions/checkout@v4 等），6 月 16 号之后可能会出问题。到时候可能需要更新 actions 版本。 user: 然后你再搜一下现在市面上ai产品经理相关的可能会问到以及需要了解的一些，看看怎么修改简历 assistant: Let me search for AI PM interview questions and requirements. assistant: The user wants me to search for AI PM interview questions and requirements, then figure out how to modify the resume to better position for AI PM roles. [score=0.812 recalls=0 avg=0.620 source=memory/2026-06-10-2354.md:23-26]
