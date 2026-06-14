@@ -86,8 +86,12 @@ def _parse_args(argv):
     i = 0
     while i < len(argv):
         a = argv[i]
-        if a == "--days":
-            days = int(argv[i + 1]); i += 1
+        if a == "--days" and i + 1 < len(argv):
+            try:
+                days = max(1, int(argv[i + 1]))
+            except ValueError:
+                pass
+            i += 1
         elif a == "--json":
             as_json = True
         elif not a.startswith("-"):

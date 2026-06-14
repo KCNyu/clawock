@@ -61,6 +61,20 @@ def _throttle() -> None:
     _last_call = time.time()
 
 
+def _fmt(v, is_pct: bool = False) -> str:
+    """人读格式化(仅用于 print, JSON 保留原始精度)。大额→亿/万, 比率→2位。"""
+    if not isinstance(v, (int, float)):
+        return str(v)
+    if is_pct:
+        return f"{v:.2f}%"
+    a = abs(v)
+    if a >= 1e8:
+        return f"{v / 1e8:,.2f}亿"
+    if a >= 1e4:
+        return f"{v / 1e4:,.2f}万"
+    return f"{v:.4g}"
+
+
 def _datacenter(report_name: str, secucode: str, page_size: int, retries: int = 3) -> List[Dict]:
     """东财数据中心统一查询。空/失败静默返回 []，永不抛。"""
     params = {
@@ -102,15 +116,29 @@ def get_indicators(secucode: str, market: str, periods: int = 4) -> List[Dict]:
 
 
 def get_statement(secucode: str, market: str, statement: str, periods: int = 4) -> List[Dict]:
-    """财报三表科目行 (中文科目名)。datacenter 按行展开, 每行一个科目。"""
+    """财报三表科目行 (中文科目名)。datacenter 按行展开, 每行一个科目。
+
+    datacenter 一页混多期、每期约数十科目行、行数不定 —— 故 over-fetch 后按
+    REPORT_DATE 精确截到最近 N 期, 并对 (期, 科目) 去重 (REPORT_TYPE 变体会重复)。
+    """
     report = _REPORT_MAP[statement][market]
-    rows = _datacenter(report, secucode, periods * 60)  # 每期多科目行, 放宽 page_size
-    out = []
+    rows = _datacenter(report, secucode, max(periods * 80, 200))
+    out, seen, kept_dates = [], set(), []
     for row in rows:
+        rd = row.get("REPORT_DATE")
+        if rd not in kept_dates:
+            if len(kept_dates) >= periods:
+                continue  # 已收满 N 期, 跳过更早的
+            kept_dates.append(rd)
+        item = row.get("ITEM_NAME")
+        key = (rd, item)
+        if key in seen:
+            continue
+        seen.add(key)
         out.append({
-            "report_date": row.get("REPORT_DATE"),
+            "report_date": rd,
             "report": row.get("REPORT"),
-            "item": row.get("ITEM_NAME"),
+            "item": item,
             "amount": row.get("AMOUNT"),
             "yoy_pct": row.get("YOY_RATIO"),
             "currency": row.get("CURRENCY"),
@@ -134,8 +162,12 @@ def _parse_args(argv):
             mode = "statements"
             if i + 1 < len(argv) and not argv[i + 1].startswith("-"):
                 statement = argv[i + 1]; i += 1
-        elif a == "--periods":
-            periods = int(argv[i + 1]); i += 1
+        elif a == "--periods" and i + 1 < len(argv):
+            try:
+                periods = max(1, int(argv[i + 1]))
+            except ValueError:
+                pass
+            i += 1
         elif a == "--json":
             as_json = True
         elif not a.startswith("-"):
@@ -158,11 +190,26 @@ def main():
         sys.exit(1)
     market = "hk" if sym["mkt_num"] == 116 else "us"
 
+    def _fetch(secucode):
+        if mode == "indicators":
+            return get_indicators(secucode, market, periods)
+        return get_statement(secucode, market, statement, periods)
+
+    data = _fetch(sym["secucode"])
+    # US 启发式回退可能把 NASDAQ(.O)/NYSE(.N) 猜反 → 空结果时换后缀再试一次
+    if not data and market == "us":
+        alt = sym["secucode"][:-2] + (".N" if sym["secucode"].endswith(".O") else ".O")
+        alt_data = _fetch(alt)
+        if alt_data:
+            sym = {**sym, "secucode": alt,
+                   "mkt_num": 106 if alt.endswith(".N") else 105,
+                   "market": "NYSE" if alt.endswith(".N") else "NASDAQ",
+                   "secid": f"{106 if alt.endswith('.N') else 105}.{sym['code']}"}
+            data = alt_data
+
     if mode == "indicators":
-        data = get_indicators(sym["secucode"], market, periods)
         result = {"symbol": sym, "indicators": data}
     else:
-        data = get_statement(sym["secucode"], market, statement, periods)
         result = {"symbol": sym, "statement": statement, "rows": data}
 
     if as_json:
@@ -176,10 +223,12 @@ def main():
         if not data:
             print("  (无数据)")
         for rec in data:
-            print(f"\n  ▎{rec.get('报告期', '?')}")
+            rd = str(rec.get("报告期", "?"))[:10]
+            print(f"\n  ▎{rd}")
             for k, v in rec.items():
-                if k != "报告期":
-                    print(f"    {k}: {v}")
+                if k in ("报告期", "币种"):
+                    continue
+                print(f"    {k}: {_fmt(v, is_pct='%' in k)}")
     else:
         print(f"\n  {statement} 财报科目 — {tag}")
         if not data:
@@ -188,9 +237,10 @@ def main():
         for row in data:
             if row["report_date"] != cur:
                 cur = row["report_date"]
-                print(f"\n  ▎{cur} ({row.get('currency') or ''})")
-            print(f"    {row['item']}: {row['amount']}"
-                  + (f"  (同比 {row['yoy_pct']}%)" if row.get("yoy_pct") is not None else ""))
+                print(f"\n  ▎{str(cur)[:10]} ({row.get('currency') or ''})")
+            yoy = row.get("yoy_pct")
+            print(f"    {row['item']}: {_fmt(row['amount'])}"
+                  + (f"  (同比 {_fmt(yoy, is_pct=True)})" if yoy is not None else ""))
 
 
 if __name__ == "__main__":
