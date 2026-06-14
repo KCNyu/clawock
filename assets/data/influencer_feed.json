@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-12T16:01:01.173757+00:00",
+  "generated_at": "2026-06-14T22:46:38.036055+00:00",
   "lookback_hours": 48,
   "sources": {
     "trump": "trumpstruth.org/feed (primary)",
@@ -8,14 +8,170 @@
   },
   "llm_filtered": true,
   "counts": {
-    "total": 9,
+    "total": 12,
     "held_hits": 0,
-    "new_ideas": 0,
-    "sector_hits": 5
+    "new_ideas": 1,
+    "sector_hits": 0
   },
   "items": [
     {
       "author": "Musk",
+      "text": "Will Elon Musk Merge SpaceX And Tesla In 2026? Crypto Prediction Market Isn't Ruling Out The Possibility",
+      "url": "",
+      "published": "Sun, 14 Jun 2026 18:01:26 GMT",
+      "origin": "gnews-rss",
+      "source": "Yahoo Finance",
+      "tickers": [
+        "TSLA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "TSLA"
+      ],
+      "sectors": [
+        "航天",
+        "电动车",
+        "加密货币"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 60,
+      "summary_cn": "预测市场讨论马斯克可能在2026年合并SpaceX和特斯拉，加密预测市场不排除此可能性。"
+    },
+    {
+      "author": "Trump",
+      "text": "The Deal with the Islamic Republic of Iran is now complete. Congratulations to all! I hereby fully authorize the toll free opening of the Strait of Hormuz, and, simultaneously herewith, authorize the immediate removal of the United States Naval blockade. Ships of the World, start your engines. Let the oil flow! President DONALD J. TRUMP",
+      "url": "https://trumpstruth.org/statuses/39259",
+      "published": "2026-06-14T21:29:48+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "能源",
+        "地缘政治",
+        "石油"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 70,
+      "summary_cn": "特朗普宣布与伊朗协议完成，授权开放霍尔木兹海峡并解除美国海军封锁，让石油流向世界。"
+    },
+    {
+      "author": "Trump",
+      "text": "This Great Deal will bring Peace and Security to the whole Region. Many presidents have tried to make Peace with Iran, and all have failed before me. The Leaders of the Region have, for the first time, found a President who can help them achieve real Peace. With the opening of the Strait upon the signing of the Deal on Friday, for purposes of mine removal, oil will flow on both ends again for the Region, and the World! President DONALD J. TRUMP",
+      "url": "https://trumpstruth.org/statuses/39260",
+      "published": "2026-06-14T22:27:37+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "能源",
+        "地缘政治",
+        "石油"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 65,
+      "summary_cn": "特朗普宣布与伊朗达成协议，霍尔木兹海峡将重新开放，石油将恢复流通，利好全球能源供应。"
+    },
+    {
+      "author": "Trump",
+      "text": "Barack Hussein Obama’s Deal with Iran, the JCPOA, was an easy, beautiful, smooth road to a Nuclear Weapon, which Iran would have had six years ago, and would have used long before now. My Agreement with Iran is the exact opposite, A WALL TO NO NUCLEAR WEAPON! In fact, they no longer want a Nuclear Weapon, nor will they have one, either through purchase, development, or any other form of procurement. The Deal is scheduled to get signed tomorrow, and immediately after it is signed, the Hormuz Strait is OPEN TO ALL. Our relationship with Iran is a much different and better one than previous Admin",
+      "url": "https://trumpstruth.org/statuses/39239",
+      "published": "2026-06-13T16:45:43+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "能源",
+        "地缘政治",
+        "石油"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 65,
+      "summary_cn": "特朗普对比奥巴马伊朗协议，称自己的协议是阻止核武器的'墙'，协议签署后霍尔木兹海峡将立即开放。"
+    },
+    {
+      "author": "Trump",
+      "text": "Victoria Coates of the Heritage Foundation is absolutely fantastic! She gets it like few other do. Thank you Victoria. Iran will never have a Nuclear weapon, and the Strait of Hormuz will be opening up for business very shortly!!! President DJT",
+      "url": "https://trumpstruth.org/statuses/39258",
+      "published": "2026-06-14T20:35:13+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "能源",
+        "地缘政治",
+        "石油"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 60,
+      "summary_cn": "特朗普重申伊朗将永远不会有核武器，霍尔木兹海峡将很快开放通商。"
+    },
+    {
+      "author": "Trump",
+      "text": "This morning’s attack on Beirut should not have happened, particularly on a special day when we are so close to a Peace Deal with Iran. Israel has the right to defend itself against threats, but the attack it was responding to was very small and meaningless, nobody was hurt, injured, or killed, and should not disrupt this important process. We are very close to a Deal that will bring peace to the region, including to Lebanon, and all sides should stand down. There should be no more attacks by Israel anywhere in Lebanon, but there should also be no more attacks by any other party, including Hez",
+      "url": "https://trumpstruth.org/statuses/39250",
+      "published": "2026-06-14T14:46:45+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "地缘政治",
+        "中东局势"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 60,
+      "summary_cn": "特朗普评论以色列对贝鲁特的袭击，称不应破坏与伊朗的和平进程，呼吁各方停火。"
+    },
+    {
+      "author": "Musk",
+      "text": "SpaceX makes historic debut; Musk solidifies status as world’s first trillionaire",
+      "url": "",
+      "published": "Fri, 12 Jun 2026 21:03:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Fox Business",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "科技"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 55,
+      "summary_cn": "SpaceX完成历史性首次亮相，马斯克巩固全球首位万亿富翁地位。(SpaceX未上市，无直接可交易标的)"
+    },
+    {
+      "author": "Musk",
+      "text": "The Final Frontier of Tax Avoidance: Elon Musk’s SpaceX Has $1.9 Billion to Gain from Defunding the IRS",
+      "url": "",
+      "published": "Fri, 12 Jun 2026 14:24:36 GMT",
+      "origin": "gnews-rss",
+      "source": "Institute on Taxation and Economic Policy",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "税收政策"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 55,
+      "summary_cn": "报道指出马斯克的SpaceX可能从削减IRS资金中获益19亿美元，涉及税务规避话题。(SpaceX未上市)"
+    },
+    {
+      "author": "Musk",
       "text": "Elon Musk's SpaceX raises $75bn ahead of record stock market debut",
       "url": "",
       "published": "Fri, 12 Jun 2026 12:52:55 GMT",
@@ -26,41 +182,37 @@
       "new_ideas": [],
       "sectors": [
         "航天",
-        "IPO",
-        "融资"
+        "IPO"
       ],
-      "sector_holdings": [
-        "RKLB"
-      ],
+      "sector_holdings": [],
       "stance": "neutral",
-      "relevance": 60,
-      "summary_cn": "马斯克旗下SpaceX在创纪录的股市上市前融资750亿美元。"
+      "relevance": 55,
+      "summary_cn": "SpaceX在创纪录股市上市前融资750亿美元。(SpaceX未上市，但IPO预期可能影响相关板块情绪)"
     },
     {
-      "author": "Trump",
-      "text": "I am pleased to announce the Nomination of very Highly Respected Jay Clayton, former Chairman of the Securities and Exchange Commission, the former Head of Sullivan & Cromwell, one of the most prominent and successful Law Firms anywhere in the World, and the current United States Attorney for the Southern District of New York, to be the next Director of National Intelligence and, importantly, to serve in my Cabinet. Few people anywhere in the Legal Community are respected at the level of Jay. I encourage the United States Senate to confirm Jay as soon as possible. Thank you for your attention ",
-      "url": "https://trumpstruth.org/statuses/39219",
-      "published": "2026-06-11T18:00:34+00:00",
-      "origin": "truthsocial",
+      "author": "Musk",
+      "text": "Opinion | SpaceX’s I.P.O. Will Help Fulfill Elon Musk’s Political Vision of America",
+      "url": "",
+      "published": "Fri, 12 Jun 2026 09:01:03 GMT",
+      "origin": "gnews-rss",
+      "source": "The New York Times",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "金融监管",
-        "政府人事"
+        "航天",
+        "政治"
       ],
-      "sector_holdings": [
-        "CRCL"
-      ],
-      "stance": "endorse",
-      "relevance": 60,
-      "summary_cn": "特朗普提名前SEC主席Jay Clayton为国家情报总监，涉及金融监管背景人事变动。"
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 50,
+      "summary_cn": "评论称SpaceX的IPO将帮助实现马斯克的美国政治愿景。(SpaceX未上市)"
     },
     {
       "author": "Musk",
       "text": "SpaceX’s I.P.O. Could Turn 4,400 Employees Into Millionaires",
       "url": "",
-      "published": "Wed, 10 Jun 2026 19:27:27 GMT",
+      "published": "Fri, 12 Jun 2026 07:00:00 GMT",
       "origin": "gnews-rss",
       "source": "The New York Times",
       "tickers": [],
@@ -70,237 +222,56 @@
         "航天",
         "IPO"
       ],
-      "sector_holdings": [
-        "RKLB"
-      ],
-      "stance": "neutral",
-      "relevance": 55,
-      "summary_cn": "马斯克提及SpaceX的IPO可能使4400名员工成为百万富翁，涉及航天领域资本事件。"
-    },
-    {
-      "author": "Musk",
-      "text": "‘SpaceX wants to be able to take you to the moon’: Elon Musk addresses Nasdaq ahead of SpaceX IPO",
-      "url": "",
-      "published": "Fri, 12 Jun 2026 14:42:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Fortune",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "IPO"
-      ],
-      "sector_holdings": [
-        "RKLB"
-      ],
-      "stance": "neutral",
-      "relevance": 55,
-      "summary_cn": "马斯克在SpaceX上市前于纳斯达克发表演讲，称SpaceX的目标是带人去月球。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk becomes the world's first trillionaire with SpaceX's IPO",
-      "url": "",
-      "published": "Fri, 12 Jun 2026 12:11:00 GMT",
-      "origin": "gnews-rss",
-      "source": "CBS News",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "财富"
-      ],
-      "sector_holdings": [
-        "RKLB"
-      ],
+      "sector_holdings": [],
       "stance": "neutral",
       "relevance": 50,
-      "summary_cn": "马斯克因SpaceX上市成为世界首位万亿富翁。"
+      "summary_cn": "SpaceX的IPO可能让4400名员工成为百万富翁。(SpaceX未上市)"
     },
     {
       "author": "Trump",
-      "text": "The United States will be hitting Iran (Whose Navy, Air Force, Radar, Anti Aircraft, and all other forms of Defense, together with most of its offensive capability, are GONE!), VERY HARD TONIGHT. At some point in the not too distant  future, we will be taking Kharg Island, and other oil infrastructure points, and assume total control of their Oil and Gas Markets, much like we have with Venezuela, which is working out brilliantly for both Venezuela and the United States of America. Thank you for your attention to this matter! President DONALD J. TRUMP",
-      "url": "https://trumpstruth.org/statuses/39212",
-      "published": "2026-06-11T12:22:08+00:00",
+      "text": "At my direction, the United States Southern Command delivered a swift and lethal kinetic strike to successfully execute Niño Guerrero, the infamous leader of Tren De Aragua, one of the most bloodthirsty Terrorist Organizations on Planet Earth. Before I returned to office, Joe Biden opened our Southern Border to millions of Illegal Criminals, and allowed this foreign army to rape, maim, and murder American Citizens with total impunity. During my Campaign, I pledged to expel these monsters from our Country, and bring Justice to the families of those they slaughtered, including the precious 12-ye",
+      "url": "https://trumpstruth.org/statuses/39234",
+      "published": "2026-06-13T01:03:58+00:00",
       "origin": "truthsocial",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "地缘政治",
-        "能源",
-        "军事"
+        "国防",
+        "安全"
       ],
       "sector_holdings": [],
-      "stance": "attack",
-      "relevance": 85,
-      "summary_cn": "特朗普宣布将对伊朗发动猛烈攻击，并计划夺取哈尔克岛等石油基础设施，控制伊朗油气市场，可能引发能源价格剧烈波动。"
-    },
-    {
-      "author": "Trump",
-      "text": "Last month, I directed our Great U.S. Military to execute a secret mission to support Oil Tankers and other Commercial Ships through the Straight of Hormuz. Today, I am pleased to announce that this effort has resulted in more than 100 MILLION Barrels of Oil making its way through the Straight, and into the Open Market. More than 200 Commercial Ships have safely traveled through the Strait. This wildly successful effort is because the UNITED STATES of AMERICA CONTROLS the Strait of Hormuz — NOT Iran. Their military is defeated, and their economy is lost. It’s over for Iran! Thank you for your ",
-      "url": "https://trumpstruth.org/statuses/39210",
-      "published": "2026-06-10T17:50:24+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "能源",
-        "地缘政治",
-        "军事"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 80,
-      "summary_cn": "特朗普宣布美军秘密护航霍尔木兹海峡，已确保超1亿桶石油和200多艘商船安全通过，宣称美国控制该海峡，伊朗军事和经济已失败。"
-    },
-    {
-      "author": "Trump",
-      "text": "No other President has ever been more committed to both REBUILDING our Great Military and SAVING our Great Country — And NOW is the time to make it happen, for Generations to come.    I am hereby calling on Republicans in Congress to IMMEDIATELY advance and pass the forthcoming $350 Billion Reconciliation Bill (Recon 3.0) — which, at the request of our Great Department of War — will include THE SAVE AMERICA ACT as well. No games, no delays, and no weak compromises! Do this ASAP.   This is a GENERATIONAL Investment in our Military, even bigger than President Reagan’s! Recon 3.0 is the ONLY path",
-      "url": "https://trumpstruth.org/statuses/39211",
-      "published": "2026-06-11T01:21:45+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "军事",
-        "财政政策"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 70,
-      "summary_cn": "特朗普呼吁国会立即通过3500亿美元的军事和解法案，进行代际军事投资。"
-    },
-    {
-      "author": "Trump",
-      "text": "The terms that Iran leaked out to the Fake News have NOTHING to do with the terms that were agreed to, in writing. What they said, including their weak and pathetic statement on having a deal, bears no relation to the truth. Very dishonorable people to deal with. With them, there is no such thing as dealing in good faith. AMAZING! Also, their totally rebuffed Drone attack last night against Indian Ships leaving the Hormuz Strait is TOTALLY UNACCEPTABLE. They better get their act together, and FAST! President DONALD J. TRUMP",
-      "url": "https://trumpstruth.org/statuses/39226",
-      "published": "2026-06-12T13:40:42+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "地缘政治",
-        "能源"
-      ],
-      "sector_holdings": [],
-      "stance": "attack",
-      "relevance": 65,
-      "summary_cn": "特朗普抨击伊朗泄露谈判条款并发动无人机袭击，暗示中东紧张局势升级，可能影响能源市场。"
+      "stance": "neutral",
+      "relevance": 50,
+      "summary_cn": "特朗普宣布美军南方司令部成功击毙Tren De Aragua恐怖组织头目，强调打击非法犯罪。"
     }
   ],
   "held_hits": [],
-  "new_ideas": [],
-  "sector_hits": [
+  "new_ideas": [
     {
       "author": "Musk",
-      "text": "Elon Musk's SpaceX raises $75bn ahead of record stock market debut",
+      "text": "Will Elon Musk Merge SpaceX And Tesla In 2026? Crypto Prediction Market Isn't Ruling Out The Possibility",
       "url": "",
-      "published": "Fri, 12 Jun 2026 12:52:55 GMT",
+      "published": "Sun, 14 Jun 2026 18:01:26 GMT",
       "origin": "gnews-rss",
-      "source": "BBC",
-      "tickers": [],
+      "source": "Yahoo Finance",
+      "tickers": [
+        "TSLA"
+      ],
       "held": [],
-      "new_ideas": [],
+      "new_ideas": [
+        "TSLA"
+      ],
       "sectors": [
         "航天",
-        "IPO",
-        "融资"
+        "电动车",
+        "加密货币"
       ],
-      "sector_holdings": [
-        "RKLB"
-      ],
+      "sector_holdings": [],
       "stance": "neutral",
       "relevance": 60,
-      "summary_cn": "马斯克旗下SpaceX在创纪录的股市上市前融资750亿美元。"
-    },
-    {
-      "author": "Trump",
-      "text": "I am pleased to announce the Nomination of very Highly Respected Jay Clayton, former Chairman of the Securities and Exchange Commission, the former Head of Sullivan & Cromwell, one of the most prominent and successful Law Firms anywhere in the World, and the current United States Attorney for the Southern District of New York, to be the next Director of National Intelligence and, importantly, to serve in my Cabinet. Few people anywhere in the Legal Community are respected at the level of Jay. I encourage the United States Senate to confirm Jay as soon as possible. Thank you for your attention ",
-      "url": "https://trumpstruth.org/statuses/39219",
-      "published": "2026-06-11T18:00:34+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "金融监管",
-        "政府人事"
-      ],
-      "sector_holdings": [
-        "CRCL"
-      ],
-      "stance": "endorse",
-      "relevance": 60,
-      "summary_cn": "特朗普提名前SEC主席Jay Clayton为国家情报总监，涉及金融监管背景人事变动。"
-    },
-    {
-      "author": "Musk",
-      "text": "SpaceX’s I.P.O. Could Turn 4,400 Employees Into Millionaires",
-      "url": "",
-      "published": "Wed, 10 Jun 2026 19:27:27 GMT",
-      "origin": "gnews-rss",
-      "source": "The New York Times",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "IPO"
-      ],
-      "sector_holdings": [
-        "RKLB"
-      ],
-      "stance": "neutral",
-      "relevance": 55,
-      "summary_cn": "马斯克提及SpaceX的IPO可能使4400名员工成为百万富翁，涉及航天领域资本事件。"
-    },
-    {
-      "author": "Musk",
-      "text": "‘SpaceX wants to be able to take you to the moon’: Elon Musk addresses Nasdaq ahead of SpaceX IPO",
-      "url": "",
-      "published": "Fri, 12 Jun 2026 14:42:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Fortune",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "IPO"
-      ],
-      "sector_holdings": [
-        "RKLB"
-      ],
-      "stance": "neutral",
-      "relevance": 55,
-      "summary_cn": "马斯克在SpaceX上市前于纳斯达克发表演讲，称SpaceX的目标是带人去月球。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk becomes the world's first trillionaire with SpaceX's IPO",
-      "url": "",
-      "published": "Fri, 12 Jun 2026 12:11:00 GMT",
-      "origin": "gnews-rss",
-      "source": "CBS News",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "财富"
-      ],
-      "sector_holdings": [
-        "RKLB"
-      ],
-      "stance": "neutral",
-      "relevance": 50,
-      "summary_cn": "马斯克因SpaceX上市成为世界首位万亿富翁。"
+      "summary_cn": "预测市场讨论马斯克可能在2026年合并SpaceX和特斯拉，加密预测市场不排除此可能性。"
     }
-  ]
+  ],
+  "sector_hits": []
 }
