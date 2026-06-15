@@ -256,12 +256,21 @@ def load_snapshots():
             'us_today_change': us.get('today_total_change', 0),
             'us_realized': us_real,
             'us_equity': round(us_val + us_real, 2),
+            # 总利润 = 浮盈 + 已实现 = equity − 成本基础. Unlike equity, this nets out
+            # deployed capital, so its peak is the true P&L peak (market value peaks
+            # when capital is MOST deployed, which is not the same as making the most
+            # money — see the 5/16-vs-5/29 reconciliation). Uses the self-healed
+            # realized so a lagging snapshot can't poison it either. NOTE: profit can
+            # go negative, so % drawdown on this series is meaningless — only ever
+            # report it in absolute money terms (the equity series owns the % axis).
+            'us_profit': round(us_val + us_real - (us.get('total_cost', 0) or 0), 2),
             'hk_total_value': hk_val,
             'hk_total_cost': hk.get('total_cost', 0),
             'hk_total_pnl': hk.get('total_pnl', 0),
             'hk_today_change': hk.get('today_total_change', 0),
             'hk_realized': hk_real,
             'hk_equity': round(hk_val + hk_real, 2),
+            'hk_profit': round(hk_val + hk_real - (hk.get('total_cost', 0) or 0), 2),
             # Market-session dates (≠ filename date) so daily P&L can collapse a US
             # session that straddles two HK-dated snapshots instead of double-counting.
             'us_asof': _session_asof(us, date[:4]),
@@ -1254,6 +1263,46 @@ def _series_extremes(series):
     }
 
 
+def _profit_extremes(series):
+    """Like _series_extremes but for 总利润 (浮盈+已实现), which can go NEGATIVE.
+
+    A % drawdown on a series that crosses zero is nonsense (peak +4.8k → trough
+    −25.9k would read −637%), so this reports money only: all-time peak / trough,
+    today's value, and today's shortfall from the running peak in absolute terms
+    (`from_peak_abs`, ≤ 0). No percentages — the equity series owns the % axis.
+    """
+    pts = [(d, float(v)) for d, v in series if v is not None]
+    if not pts:
+        return None
+    peak = pts[0][1]
+    worst_abs = 0.0
+    worst_trough_date = pts[0][0]
+    worst_peak_date = pts[0][0]
+    peak_date = pts[0][0]
+    for d, v in pts:
+        if v > peak:
+            peak = v
+            peak_date = d
+        gap = v - peak
+        if gap < worst_abs:
+            worst_abs = gap
+            worst_trough_date = d
+            worst_peak_date = peak_date
+    hi = max(pts, key=lambda x: x[1])
+    lo = min(pts, key=lambda x: x[1])
+    cur_date, cur = pts[-1]
+    return {
+        'peak': {'value': round(hi[1], 2), 'date': hi[0]},
+        'trough': {'value': round(lo[1], 2), 'date': lo[0]},
+        'current': {'value': round(cur, 2), 'date': cur_date},
+        'from_peak_abs': round(cur - peak, 2),       # today's shortfall vs running peak (≤0)
+        'max_dd_abs': round(worst_abs, 2),           # deepest peak→trough drop ($, ≤0)
+        'max_dd_peak_date': worst_peak_date,
+        'max_dd_trough_date': worst_trough_date,
+        'at_low': abs(cur - lo[1]) < 1e-6,
+    }
+
+
 def compute_drawdown(snapshots, fx_rate=None):
     """All-time peak / trough / max-drawdown per region AND combined.
 
@@ -1274,6 +1323,8 @@ def compute_drawdown(snapshots, fx_rate=None):
         'us': None,
         'hk': None,
         'combined': None,
+        'profit': {'us': None, 'hk': None, 'combined': None,
+                   'basis': 'total profit (unrealized + realized), money-only'},
         'basis': 'equity (market value + realized)',
     }
     try:
@@ -1343,6 +1394,28 @@ def compute_drawdown(snapshots, fx_rate=None):
         if hk_ext:
             hk_ext['currency'] = 'HKD'
 
+        # 总利润 (浮盈+已实现) extremes — money-only, parallel to the equity block.
+        # Lets the dashboard answer "利润峰值到过多少 / 现在离峰值差多少 $" without the
+        # market-value-peak ≠ profit-peak confusion that equity invites.
+        us_profit_ext = _profit_extremes([(s.get('date'), s.get('us_profit')) for s in snapshots])
+        if us_profit_ext:
+            us_profit_ext['currency'] = 'USD'
+        hk_profit_ext = _profit_extremes([(s.get('date'), s.get('hk_profit')) for s in snapshots])
+        if hk_profit_ext:
+            hk_profit_ext['currency'] = 'HKD'
+        combined_profit_ext = None
+        if fx_rate and fx_rate > 0:
+            comb_p = []
+            for s in snapshots:
+                up, hp = s.get('us_profit'), s.get('hk_profit')
+                if up is None or hp is None:
+                    continue
+                comb_p.append((s.get('date'), up * fx_rate + hp))   # HKD base, same as combined equity
+            combined_profit_ext = _profit_extremes(comb_p)
+            if combined_profit_ext:
+                combined_profit_ext['currency'] = 'HKD'
+                combined_profit_ext['fx_usdhkd'] = round(fx_rate, 4)
+
         return {
             'max_pct_30d_hk': max_drawdown_pct('hk_equity'),
             'max_pct_30d_us': max_drawdown_pct('us_equity'),
@@ -1351,6 +1424,12 @@ def compute_drawdown(snapshots, fx_rate=None):
             'us': us_ext,
             'hk': hk_ext,
             'combined': combined,
+            'profit': {
+                'us': us_profit_ext,
+                'hk': hk_profit_ext,
+                'combined': combined_profit_ext,
+                'basis': 'total profit (unrealized + realized), money-only',
+            },
             'basis': 'equity (market value + realized)',
         }
     except Exception as e:

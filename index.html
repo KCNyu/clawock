@@ -1868,7 +1868,7 @@ layout: null
 
     <div class="card">
       <h3>历史净值极值 <span class="muted" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:11px">(峰值 / 谷底 / 最大回撤)</span></h3>
-      <p class="chart-hint">口径 = <b>equity（持仓市值 + 累计已实现）</b>，卖出不再造成假回撤。<b>历史最高/最低</b> = 有快照以来的净值峰值与谷底；<b>最大回撤</b> = 从某个峰值到其后最深谷底的跌幅（含发生区间与金额）。<span id="extremes-window" class="muted"></span></p>
+      <p class="chart-hint">口径 = <b>equity（持仓市值 + 累计已实现）</b>，卖出不再造成假回撤。<b>历史最高/最低</b> = 有快照以来的净值峰值与谷底；<b>最大回撤</b> = 从某个峰值到其后最深谷底的跌幅（含发生区间与金额）。<br>下半区 = <b>利润口径（净化本金）</b>：总利润＝浮盈＋已实现，<b>利润峰值</b>才是"真·赚最多"那天（≠市值峰），<b>距利润峰值</b>＝今天离它还差多少（可为负＝账面亏损，故此口径只报金额不报百分比）。<span id="extremes-window" class="muted"></span></p>
       <div class="ext-grid" id="ext-grid">
         <div class="ext-region" id="ext-region-combined"></div>
         <div class="ext-region" id="ext-region-us"></div>
@@ -1885,7 +1885,7 @@ layout: null
           <button class="mkt-seg-btn" data-mkt="hk"><span class="seg-dot hk"></span>港股</button>
         </div>
       </div>
-      <p class="chart-hint">实线 = 日终净值（持仓市值 + 已实现现金）；灰虚线 = 累计成本基础；<b>紫线 = SPY 等值</b>（"当初同等美元 all-in SPY 到今天的账面"，非美股交易日延用前值）；<b style="color:#f59e0b">橙线 = 恒科等值</b> + <b style="color:#f59e0b">橙虚线 = 恒科200日线触发位</b>（橙线涨到虚线 = 恒科站回200线 → 杠杆刻度盘放回杠杆）；红色填充 = 历史峰值回撤。<br><b>切换上方〔总览 / 美股 / 港股〕看分市场曲线</b>：总览=USD-eq 合并（HK 按现汇折美元）；美股=$ 计、对标 SPY；港股=HK$ 计、对标恒科。</p>
+      <p class="chart-hint">实线 = 日终净值（持仓市值 + 已实现现金）；<b style="color:#34d399">绿线 = 总利润</b>（浮盈 + 已实现 = 净值 − 成本，<b>净化掉投入本金</b>，它的峰值才是"真·赚最多"那天；可为负 = 账面亏损）；灰虚线 = 累计成本基础；<b>紫线 = SPY 等值</b>（"当初同等美元 all-in SPY 到今天的账面"，非美股交易日延用前值）；<b style="color:#f59e0b">橙线 = 恒科等值</b> + <b style="color:#f59e0b">橙虚线 = 恒科200日线触发位</b>（橙线涨到虚线 = 恒科站回200线 → 杠杆刻度盘放回杠杆）；红色填充 = 历史峰值回撤。<br><b>切换上方〔总览 / 美股 / 港股〕看分市场曲线</b>：总览=USD-eq 合并（HK 按现汇折美元）；美股=$ 计、对标 SPY；港股=HK$ 计、对标恒科。</p>
       <div id="chart-equity" class="chart-box"></div>
     </div>
 
@@ -4067,6 +4067,16 @@ layout: null
       else t = (s.us_total_cost ?? 0) + ((s.hk_total_cost ?? 0) / fx);
       return (t != null && t > 0) ? r2(t) : null;
     });
+    // 总利润 = 浮盈 + 已实现 ( = 净值 − 成本基础 ). Nets out deployed capital, so its
+    // peak is the TRUE profit peak — market value peaks when capital is most deployed,
+    // which is not the same as making the most money (5/16 市值峰 ≠ 5/29 利润峰).
+    // Same money axis as 净值; can go negative (HK underwater), which is the point.
+    const profit = series.map(s => {
+      if (view === "us") return s.us_profit != null ? r2(s.us_profit) : null;
+      if (view === "hk") return s.hk_profit != null ? r2(s.hk_profit) : null;
+      if (s.us_profit == null || s.hk_profit == null) return null;
+      return r2(s.us_profit + (s.hk_profit / fx));
+    });
 
     // Drawdown from running peak (this view's equity)
     let peak = -Infinity;
@@ -4133,7 +4143,7 @@ layout: null
     const manyPts = dates.length > 30;
     const zoomStart = manyPts ? Math.max(0, (1 - 30 / dates.length) * 100) : 0;
 
-    const legendData = [eqName, "成本基础"];
+    const legendData = [eqName, "总利润", "成本基础"];
     if (showSPY) legendData.push("SPY 等值");
     if (showHSTECH) legendData.push("恒科等值");
     legendData.push("回撤");
@@ -4143,6 +4153,14 @@ layout: null
         itemStyle: { color: accent }, lineStyle: { width: 2.5 }, smooth: true,
         symbol: dates.length > 45 ? "none" : "circle", symbolSize: 5,
         areaStyle: { color: accent, opacity: 0.08 }, z: 3, connectNulls: true },
+      // 总利润线：净值减成本基础的那段 gap，单独画出来免得把"市值峰"误当"利润峰"。
+      { name: "总利润", type: "line", data: profit, yAxisIndex: 0,
+        itemStyle: { color: green }, lineStyle: { width: 1.8, color: green }, smooth: true,
+        symbol: "none", z: 3, connectNulls: true,
+        markLine: { symbol: "none", silent: true,
+          lineStyle: { color: green, type: "dotted", width: 1, opacity: 0.5 },
+          label: { color: green, fontSize: 9, position: "insideStartTop", formatter: "盈亏线 0" },
+          data: [{ yAxis: 0 }] } },
       { name: "成本基础", type: "line", data: cost, yAxisIndex: 0,
         itemStyle: { color: dim }, lineStyle: { width: 1, type: "dashed", color: dim },
         symbol: "none", z: 2, connectNulls: true },
@@ -4952,6 +4970,8 @@ layout: null
     };
     const dstr = d => d ? d.slice(5) : "";  // MM-DD
 
+    const profitDd = (dd.profit) || {};
+    const signed = (v, cur) => (v != null && isFinite(v) ? (v >= 0 ? "+" : "−") + money(Math.abs(v), cur) : DASH);
     regions.forEach(r => {
       const el = document.getElementById(`ext-region-${r.key}`);
       if (!el) return;
@@ -4960,6 +4980,15 @@ layout: null
       const cur = e.currency;
       const atLow = !!e.at_low;
       el.classList.toggle("is-low", atLow);
+      // 利润口径（净化本金）— money-only block. p.from_peak_abs ≤ 0 = 距利润峰值还差多少.
+      const p = profitDd[r.key];
+      const profitBlock = p ? `
+        <div class="ext-dd">
+          <div class="ext-row"><span class="k">利润峰值</span><span class="v">${signed(p.peak && p.peak.value, cur)}<small>${dstr(p.peak && p.peak.date)}</small></span></div>
+          <div class="ext-row"><span class="k">当前利润</span><span class="v ${(p.current && p.current.value) < 0 ? "neg" : ""}">${signed(p.current && p.current.value, cur)}</span></div>
+          <div class="ext-row"><span class="k">距利润峰值</span><span class="v ${(p.from_peak_abs ?? 0) < 0 ? "neg" : ""}">${signed(p.from_peak_abs, cur)}</span></div>
+          <div class="span">口径＝总利润（浮盈＋已实现，净化本金）；峰值≠市值峰</div>
+        </div>` : "";
       el.innerHTML = `
         <div class="ext-head">
           <span class="ext-name">${r.name}</span>
@@ -4971,7 +5000,7 @@ layout: null
         <div class="ext-dd">
           <div class="ext-row"><span class="k">最大回撤</span><span class="v">${e.max_dd_pct != null ? e.max_dd_pct.toFixed(1) + "%" : DASH}<small>${money(e.max_dd_abs, cur)}</small></span></div>
           <div class="span">峰值 ${dstr(e.max_dd_peak_date)} → 谷底 ${dstr(e.max_dd_trough_date)}</div>
-        </div>`;
+        </div>${profitBlock}`;
     });
   }
 
