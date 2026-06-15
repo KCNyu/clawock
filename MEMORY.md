@@ -96,25 +96,25 @@
 - **单一来源：`portfolio.json`**，不在此维护副本
 - ticker 列表：`memory/current-portfolio-summary.md`（提高检索命中）
 
-## Promoted From Short-Term Memory (2026-06-15)
+## Promoted From Short-Term Memory (2026-06-16)
 
-<!-- openclaw-memory-promotion:memory:memory/2026-06-10-1027.md:12:15 -->
-- Conversation Summary: | Job | 时间 (HKT) | 频率 | 上次耗时 | 下次触发 | |---|---|---|---|---| | 盘前深度简报 | 08:00 工作日 | 1×/天 | ~10min | 明天 08:00 | | 港股开盘报告 | 09:30 工作日 | 1×/天 | ~99s | 明天 09:30 | [score=0.812 recalls=0 avg=0.620 source=memory/2026-06-10-1027.md:12-15]
-<!-- openclaw-memory-promotion:memory:memory/2026-06-10-1027.md:16:19 -->
-- Conversation Summary: | 港股盘中盯盘 | */30 10-11,14-15 | 30min | ~146s | 10:30 | | 港股午盘报告 | 12:00 工作日 | 1×/天 | ~139s | 明天 12:00 | | 港股午后快报 | 13:30 工作日 | 1×/天 | ~80s | 明天 13:30 | | 港股收盘报告 | 16:00 工作日 | 1×/天 | ~160s | 明天 16:00 | [score=0.812 recalls=0 avg=0.620 source=memory/2026-06-10-1027.md:16-19]
-<!-- openclaw-memory-promotion:memory:memory/2026-06-10-1027.md:20:23 -->
-- Conversation Summary: | 美股开盘报告 | 21:30 工作日 | 1×/天 | ~210s | 今晚 21:30 | | 美股盘中盯盘 | */30 22-23 | 30min | ~135s | 今晚 22:00 | | 美股盘中-overnight | */30 0-2 (Tue-Sat) | 30min | ~125s | 明天 00:00 | | 美股收盘报告 | 04:00 (Tue-Sat) | 1×/天 | ~109s | 明天 04:00 | [score=0.812 recalls=0 avg=0.620 source=memory/2026-06-10-1027.md:20-23]
-<!-- openclaw-memory-promotion:memory:memory/2026-06-10-1027.md:24:24 -->
-- Conversation Summary: | Memory Dreaming | 03:00 每天 | 1×/天 | ~18s | 明天 03:00 | [score=0.812 recalls=0 avg=0.620 source=memory/2026-06-10-1027.md:24-24]
-<!-- openclaw-memory-promotion:memory:memory/2026-06-10-1027.md:3:5 -->
-- Session: 2026-06-10 10:27:19 GMT+8: **Session Key**: agent:main:openclaw-weixin:direct:o9cq80-hgtrum-oss8knmdotlvzi@im.wechat; **Session ID**: 2be8f9bd-a12f-4043-b307-a84a1ba8b1c1; **Source**: openclaw-weixin [score=0.812 recalls=0 avg=0.620 source=memory/2026-06-10-1027.md:3-5]
-<!-- openclaw-memory-promotion:memory:memory/2026-06-10-1027.md:9:10 -->
-- Conversation Summary: user: 定时任务呢 assistant: 全部 **11 个 cron**，全 enabled，全部 **lastStatus=ok**，连续错误 0。汇总： [score=0.812 recalls=0 avg=0.620 source=memory/2026-06-10-1027.md:9-10]
-<!-- openclaw-memory-promotion:memory:memory/2026-06-10-2354.md:13:13 -->
-- Conversation Summary: **问题根因：** tectonic 在 GitHub Actions 环境下载 `FontAwesome5Free-Solid-900.otf` 时 core dump（`free(): invalid pointer`）。这是 tectonic 的 bug，跟中文模板的 fontawesome5 依赖冲突。 [score=0.812 recalls=0 avg=0.620 source=memory/2026-06-10-2354.md:13-13]
-<!-- openclaw-memory-promotion:memory:memory/2026-06-10-2354.md:15:15 -->
-- Conversation Summary: **修复：** 拆分编译——英文用 tectonic，中文用 xelatex（CI 装 `texlive-xetex` + `texlive-fonts-extra` + `texlive-lang-chinese`）。 [score=0.812 recalls=0 avg=0.620 source=memory/2026-06-10-2354.md:15-15]
-<!-- openclaw-memory-promotion:memory:memory/2026-06-10-2354.md:18:20 -->
-- Conversation Summary: ✓ tectonic resume.tex → resume.pdf (28KB) ✓ xelatex resume-cn.tex → resume-cn.pdf (90KB) ✓ upload-artifact [score=0.812 recalls=0 avg=0.620 source=memory/2026-06-10-2354.md:18-20]
-<!-- openclaw-memory-promotion:memory:memory/2026-06-10-2354.md:23:26 -->
-- Conversation Summary: **注意：** CI 还有一个 Node.js 20 deprecation warning（actions/checkout@v4 等），6 月 16 号之后可能会出问题。到时候可能需要更新 actions 版本。 user: 然后你再搜一下现在市面上ai产品经理相关的可能会问到以及需要了解的一些，看看怎么修改简历 assistant: Let me search for AI PM interview questions and requirements. assistant: The user wants me to search for AI PM interview questions and requirements, then figure out how to modify the resume to better position for AI PM roles. [score=0.812 recalls=0 avg=0.620 source=memory/2026-06-10-2354.md:23-26]
+<!-- openclaw-memory-promotion:memory:memory/2026-06-12-1016.md:13:13 -->
+- Conversation Summary: **🌍 Book 总览**（USDHKD = 7.8365，Frankfurter） [score=0.839 recalls=0 avg=0.620 source=memory/2026-06-12-1016.md:13-13]
+<!-- openclaw-memory-promotion:memory:memory/2026-06-12-1016.md:19:19 -->
+- Conversation Summary: | **合计** | | **≈ -$3,902 USD / -HK$30,577** | | [score=0.839 recalls=0 avg=0.620 source=memory/2026-06-12-1016.md:19-19]
+<!-- openclaw-memory-promotion:memory:memory/2026-06-10-2354.md:3:5 -->
+- Session: 2026-06-10 23:54:37 GMT+8: **Session Key**: agent:main:openclaw-weixin:direct:o9cq80-hgtrum-oss8knmdotlvzi@im.wechat; **Session ID**: 0fd911b9-8789-4cc2-8a8d-2aaba251e696; **Source**: openclaw-weixin [score=0.834 recalls=0 avg=0.620 source=memory/2026-06-10-2354.md:3-5]
+<!-- openclaw-memory-promotion:memory:memory/2026-06-10-2354.md:9:11 -->
+- Conversation Summary: assistant: Still in progress (38s). The texlive install is probably still running — `texlive-fonts-extra` is large. Let me wait a bit more. Still in progress — texlive installation takes a while. Let me wait a bit longer: assistant: CI 通过了 ✅ assistant: CI 全绿 ✅ [score=0.834 recalls=0 avg=0.620 source=memory/2026-06-10-2354.md:9-11]
+<!-- openclaw-memory-promotion:memory:memory/2026-06-11-0146.md:18:21 -->
+- Conversation Summary: 决策引擎加了三套系统名（Klook-risk/Risk-DecisionEngine/Mojing）; SG ISO "安全合规模板"→"安全架构文档与合规流程模板"; 腾讯 TEG 补了内容; 删了 ISPRAS/Linux 内核贡献者 [score=0.834 recalls=0 avg=0.620 source=memory/2026-06-11-0146.md:18-21]
+<!-- openclaw-memory-promotion:memory:memory/2026-06-11-0146.md:22:22 -->
+- Conversation Summary: Chatroulette 改措辞（已恢复） [score=0.834 recalls=0 avg=0.620 source=memory/2026-06-11-0146.md:22-22]
+<!-- openclaw-memory-promotion:memory:memory/2026-06-11-0146.md:3:5 -->
+- Session: 2026-06-11 01:46:21 GMT+8: **Session Key**: agent:main:openclaw-weixin:direct:o9cq80-hgtrum-oss8knmdotlvzi@im.wechat; **Session ID**: 90325130-d208-47db-9614-1839262037bd; **Source**: openclaw-weixin [score=0.834 recalls=0 avg=0.620 source=memory/2026-06-11-0146.md:3-5]
+<!-- openclaw-memory-promotion:memory:memory/2026-06-11-0146.md:9:10 -->
+- Conversation Summary: assistant: 明白，你不想改 Chatroulette 那条。我先把它恢复原样： assistant: Chatroulette 恢复了。 [score=0.834 recalls=0 avg=0.620 source=memory/2026-06-11-0146.md:9-10]
+<!-- openclaw-memory-promotion:memory:memory/2026-06-11-pre-open.md:14:14 -->
+- Header: 港股开盘前 90 分钟。US 周三大跌 — SPX -1.62%, NDX -1.98%, DJI -1.87%（CPI 5月数据 4.2% YoY 符合预期但能源推动仍在, FOMC 6/17 下周压阵）。HK 周三收盘 HSI -0.64%, HSTECH -0.94%, 趋势 OFF 确认（距 200MA -13.8%）。**07226 硬止损触发(-19.3% ≤ -18%)**、**PLTU 硬止损触发(-20.8% ≤ -18%)**，10 条仓位硬闸 + 2 条杠杆 ETF 硬止损，今日必须执行纪律性减仓。 [score=0.828 recalls=0 avg=0.620 source=memory/2026-06-11-pre-open.md:14-14]
+<!-- openclaw-memory-promotion:memory:memory/2026-06-11-pre-open.md:16:17 -->
+- Header: 🧭 US regime: **risk_off**（F&G 33.4 fear, SPX+NDX 同向下行, CPI 4.2% 仍高）→ 防御优先, cut/trim 门槛放宽, add 需更强触发; 杠杆仓位优先减。 🧭 HK regime: **trending-down**（HSTECH 4725 < 200MA 5482, -13.8%, ADX 趋势确认 OFF）→ HK 杠杆仓位必须减。 [score=0.828 recalls=0 avg=0.620 source=memory/2026-06-11-pre-open.md:16-17]
