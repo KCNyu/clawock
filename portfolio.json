@@ -1,6 +1,6 @@
 {
   "owner": "kcn",
-  "last_updated": "2026/06/15 12:59 ET",
+  "last_updated": "2026/06/15 13:01 ET",
   "portfolios": {
     "us_stocks": {
       "currency": "USD",
@@ -384,20 +384,20 @@
         },
         {
           "ticker": "RKLX",
-          "shares": 10,
+          "shares": 0,
           "cost_basis": 52.3,
-          "current_price": 53.8498,
-          "today_change_pct": 11.4903,
-          "pnl_percent": 2.9633,
-          "data_source": "Nasdaq API (etf) Jun 15, 2026 13:00 ET",
+          "current_price": 53.93,
+          "today_change_pct": 0,
+          "pnl_percent": 0,
+          "data_source": "user Jun 15, 2026 13:01 ET",
           "day_high": 55.98,
           "day_low": 52.21,
           "day_open": 53.3,
           "prev_close": 48.3,
-          "current_value": 538.5,
-          "pnl_abs": 15.5,
-          "today_change": 55.5,
-          "note": "2026-04-21 按用户截图记录买入，做 RKLB 2x 杠杆短线仓",
+          "current_value": 0,
+          "pnl_abs": 0,
+          "today_change": 0,
+          "note": "T+0清仓，等回踩再建仓，原仓$52.30→$53.93",
           "trades": [
             {
               "date": "2026-04-21",
@@ -428,6 +428,14 @@
               "shares": 10,
               "price": 52.3,
               "note": "RKLB 2x杠杆ETF，重新建仓"
+            },
+            {
+              "date": "2026-06-15",
+              "action": "sell",
+              "shares": 10,
+              "price": 53.93,
+              "realized_pnl": 16.3,
+              "note": "T+0做T清仓，等回踩再建"
             }
           ],
           "name": "Defiance Daily Target 2X Long R",
@@ -582,13 +590,13 @@
           "day_session_date": "2026-06-15"
         }
       ],
-      "total_cost": 2796.3,
+      "total_cost": 2273.3,
       "total_current_value": 3280.7,
       "total_pnl": 150.8,
       "total_pnl_percent": 4.818,
       "today_total_change": 303.7,
-      "realized_pnl": 1602.03,
-      "realized_note": "NVDA 3股@197.5(+29.19) + CRCL 4股@103.21(+64.84) + CRCL 5股@120(+165) + CRCL 3股@127(+120) + NVDA 3股@199.41(+34.92) + QQQ 1股@631.3(+9.03) + TQQQ 8股@54.45(+69.76) + HOOD 5股@88.36(+74.3) + OKLO 2股@68(+10.34) + TCOM 5股@53.86(+5.6) + SOXL 5股@112(+100.65) + RKLX 4股@75(+113.2) + RKLX 2股@91.03(+88.66) + SOXL 3股@170.8(+236.79) + SOXL 2股@217.17(+250.6) + RKLB 5股@100.17(+145.85) + SPCX 5股@168(+48.5) + SPCH 20股@18.42(+34.8)",
+      "realized_pnl": 1618.33,
+      "realized_note": "NVDA 3股@197.5(+29.19) + CRCL 4股@103.21(+64.84) + CRCL 5股@120(+165) + CRCL 3股@127(+120) + NVDA 3股@199.41(+34.92) + QQQ 1股@631.3(+9.03) + TQQQ 8股@54.45(+69.76) + HOOD 5股@88.36(+74.3) + OKLO 2股@68(+10.34) + TCOM 5股@53.86(+5.6) + SOXL 5股@112(+100.65) + RKLX 4股@75(+113.2) + RKLX 2股@91.03(+88.66) + SOXL 3股@170.8(+236.79) + SOXL 2股@217.17(+250.6) + RKLB 5股@100.17(+145.85) + SPCX 5股@168(+48.5) + SPCH 20股@18.42(+34.8) + RKLX 10股@53.93(+16.3)",
       "last_updated": "May 8, 2026 16:00 ET close",
       "last_close_attempted": "May 7, 2026 16:00 ET close",
       "last_open_attempted": "2026-06-15 13:00 UTC-04:00",
@@ -733,8 +741,8 @@
         "updated_at": "2026-06-14 20:00 UTC-04:00",
         "note": "Multi-provider fetch. Sources: 1x Nasdaq API (stocks), 4x Nasdaq API (etf)"
       },
-      "cash_usd": 1316.15,
-      "cash_usd_note": "SPCX $168*5卖出+$840, RKLX $52.3*10买入-$523, SPCH $16.68*20买入-$333.6, SPCH $18.42*20卖出+$368.4, 余额约 $1316.15"
+      "cash_usd": 1855.45,
+      "cash_usd_note": "…+ RKLX $53.93*10卖出+$539.3, 余额约 $1855.45"
     },
     "hk_stocks": {
       "currency": "HKD",
