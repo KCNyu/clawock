@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-15T17:01:48.267870Z",
+  "generated_at": "2026-06-15T17:16:52.395725Z",
   "last_updated": "2026/06/15 13:01 ET",
   "fx": {
     "usdhkd": 7.8355,
@@ -8,11 +8,11 @@
   },
   "totals": {
     "us": {
-      "value_usd": 3280.7,
+      "value_usd": 2374.6,
       "cost_usd": 2273.3,
-      "pnl_usd": 150.8,
-      "pnl_pct": 4.818,
-      "today_change_usd": 303.7,
+      "pnl_usd": 101.3,
+      "pnl_pct": 4.4561,
+      "today_change_usd": 214.2,
       "realized_usd": 1618.33
     },
     "hk": {
@@ -747,13 +747,13 @@
     {
       "date": "2026-06-16",
       "file": "2026-06-16.json",
-      "us_total_value": 3280.7,
+      "us_total_value": 2374.6,
       "us_total_cost": 2273.3,
-      "us_total_pnl": 150.8,
-      "us_today_change": 303.7,
+      "us_total_pnl": 101.3,
+      "us_today_change": 214.2,
       "us_realized": 1618.33,
-      "us_equity": 4899.03,
-      "us_profit": 2625.73,
+      "us_equity": 3992.93,
+      "us_profit": 1719.63,
       "hk_total_value": 57756.8,
       "hk_total_cost": 88276.24,
       "hk_total_pnl": -30519.44,
@@ -1265,8 +1265,8 @@
   },
   "delta": {
     "us": {
-      "today_pct": 1.5,
-      "7d_pct": 22.67,
+      "today_pct": -17.27,
+      "7d_pct": -0.02,
       "30d_pct": null
     },
     "hk": {
@@ -1859,21 +1859,21 @@
     "max_pct_30d_hk": -32.95,
     "max_pct_30d_us": -18.51,
     "current_pct_hk": -28.24,
-    "current_pct_us": 9.08,
+    "current_pct_us": -11.09,
     "us": {
       "peak": {
-        "value": 4899.03,
-        "date": "2026-06-16"
+        "value": 4826.56,
+        "date": "2026-06-15"
       },
       "trough": {
         "value": 3891.9,
         "date": "2026-06-09"
       },
       "current": {
-        "value": 4899.03,
+        "value": 3992.93,
         "date": "2026-06-16"
       },
-      "current_dd_pct": 0.0,
+      "current_dd_pct": -17.27,
       "max_dd_pct": -18.51,
       "max_dd_abs": 884.09,
       "max_dd_peak_date": "2026-05-29",
@@ -1912,10 +1912,10 @@
         "date": "2026-06-12"
       },
       "current": {
-        "value": 103402.31,
+        "value": 96302.56,
         "date": "2026-06-16"
       },
-      "current_dd_pct": -20.24,
+      "current_dd_pct": -25.71,
       "max_dd_pct": -27.57,
       "max_dd_abs": 35745.22,
       "max_dd_peak_date": "2026-05-29",
@@ -1927,18 +1927,18 @@
     "profit": {
       "us": {
         "peak": {
-          "value": 2625.73,
-          "date": "2026-06-16"
+          "value": 2147.69,
+          "date": "2026-05-29"
         },
         "trough": {
           "value": 1092.41,
           "date": "2026-05-19"
         },
         "current": {
-          "value": 2625.73,
+          "value": 1719.63,
           "date": "2026-06-16"
         },
-        "from_peak_abs": 0.0,
+        "from_peak_abs": -428.06,
         "max_dd_abs": -926.55,
         "max_dd_peak_date": "2026-05-29",
         "max_dd_trough_date": "2026-06-12",
@@ -1975,10 +1975,10 @@
           "date": "2026-06-12"
         },
         "current": {
-          "value": -2686.37,
+          "value": -9786.12,
           "date": "2026-06-16"
         },
-        "from_peak_abs": -23452.32,
+        "from_peak_abs": -30552.06,
         "max_dd_abs": -37061.58,
         "max_dd_peak_date": "2026-05-29",
         "max_dd_trough_date": "2026-06-12",
@@ -4338,7 +4338,7 @@
   "realized_vs_unrealized": {
     "us": {
       "realized": 1618.33,
-      "unrealized": 150.8
+      "unrealized": 101.3
     },
     "hk": {
       "realized": 7259.16,
@@ -4346,7 +4346,7 @@
     },
     "combined_usd": {
       "realized": 2544.78,
-      "unrealized": -3744.22
+      "unrealized": -3793.72
     }
   },
   "capital_deployed": {
@@ -4363,8 +4363,8 @@
   "net_principal_return": {
     "us": {
       "net_principal": 654.97,
-      "total_profit": 1769.13,
-      "return_pct": 71.59,
+      "total_profit": 1719.63,
+      "return_pct": 69.59,
       "return_basis": "true_principal",
       "true_principal": 2471.12
     },
@@ -4376,8 +4376,8 @@
     },
     "combined_usd": {
       "net_principal": 12810.87,
-      "total_profit": -1199.45,
-      "return_pct": -9.36
+      "total_profit": -1248.95,
+      "return_pct": -9.75
     },
     "formula": "回报率 = (浮动 + 已实现) ÷ 本金；本金优先用 true_principal（峰值净投入），否则用 净投入本金=累计成本−已实现"
   },
