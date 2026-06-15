@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-15T17:47:00.962593+00:00",
+  "generated_at": "2026-06-15T23:21:58.290906+00:00",
   "lookback_hours": 48,
   "sources": {
     "trump": "trumpstruth.org/feed (primary)",
@@ -8,12 +8,33 @@
   },
   "llm_filtered": true,
   "counts": {
-    "total": 17,
+    "total": 16,
     "held_hits": 0,
     "new_ideas": 0,
-    "sector_hits": 0
+    "sector_hits": 1
   },
   "items": [
+    {
+      "author": "Musk",
+      "text": "Judge Dismisses Elon Musk’s xAI Trade-Secret Lawsuit Against OpenAI",
+      "url": "",
+      "published": "Mon, 15 Jun 2026 20:47:00 GMT",
+      "origin": "gnews-rss",
+      "source": "WSJ",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "AI",
+        "法律诉讼"
+      ],
+      "sector_holdings": [
+        "MSFU"
+      ],
+      "stance": "neutral",
+      "relevance": 55,
+      "summary_cn": "法官驳回马斯克旗下xAI对OpenAI的商业秘密诉讼，涉及AI行业竞争与法律纠纷，微软是OpenAI主要投资者。"
+    },
     {
       "author": "Trump",
       "text": "The Deal with the Islamic Republic of Iran is now complete. Congratulations to all! I hereby fully authorize the toll free opening of the Strait of Hormuz, and, simultaneously herewith, authorize the immediate removal of the United States Naval blockade. Ships of the World, start your engines. Let the oil flow! President DONALD J. TRUMP",
@@ -25,13 +46,13 @@
       "new_ideas": [],
       "sectors": [
         "能源",
-        "石油",
+        "航运",
         "地缘政治"
       ],
       "sector_holdings": [],
       "stance": "endorse",
-      "relevance": 85,
-      "summary_cn": "Trump 宣布与伊朗协议完成，授权开放霍尔木兹海峡并解除美国海军封锁，让石油流动。"
+      "relevance": 80,
+      "summary_cn": "特朗普宣布与伊朗协议完成，授权霍尔木兹海峡免费开放并解除美国海军封锁，呼吁全球船只启动引擎让石油流动。"
     },
     {
       "author": "Trump",
@@ -44,13 +65,31 @@
       "new_ideas": [],
       "sectors": [
         "能源",
-        "石油",
         "地缘政治"
       ],
       "sector_holdings": [],
       "stance": "endorse",
-      "relevance": 80,
-      "summary_cn": "Trump 宣称伊朗协议将带来和平与安全，霍尔木兹海峡将重新开放，石油将再次流通。"
+      "relevance": 75,
+      "summary_cn": "特朗普称与伊朗的协议将带来和平与安全，霍尔木兹海峡将重新开放，石油将再次流动。"
+    },
+    {
+      "author": "Trump",
+      "text": "This morning’s attack on Beirut should not have happened, particularly on a special day when we are so close to a Peace Deal with Iran. Israel has the right to defend itself against threats, but the attack it was responding to was very small and meaningless, nobody was hurt, injured, or killed, and should not disrupt this important process. We are very close to a Deal that will bring peace to the region, including to Lebanon, and all sides should stand down. There should be no more attacks by Israel anywhere in Lebanon, but there should also be no more attacks by any other party, including Hez",
+      "url": "https://trumpstruth.org/statuses/39250",
+      "published": "2026-06-14T14:46:45+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "能源",
+        "地缘政治",
+        "国防"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 75,
+      "summary_cn": "特朗普对以色列袭击贝鲁特表示关切，称不应破坏与伊朗的和平进程，呼吁各方停火，涉及中东地缘政治与能源安全。"
     },
     {
       "author": "Trump",
@@ -63,13 +102,12 @@
       "new_ideas": [],
       "sectors": [
         "能源",
-        "石油",
         "地缘政治"
       ],
       "sector_holdings": [],
       "stance": "endorse",
-      "relevance": 75,
-      "summary_cn": "Trump 宣称与伊朗达成历史性和平协议，缓解油价压力，利好全球能源市场。"
+      "relevance": 70,
+      "summary_cn": "特朗普宣称与伊朗达成和平协议，称其将缓解选举前油价，涉及能源市场与地缘政治。"
     },
     {
       "author": "Trump",
@@ -82,13 +120,12 @@
       "new_ideas": [],
       "sectors": [
         "能源",
-        "石油",
         "地缘政治"
       ],
       "sector_holdings": [],
       "stance": "endorse",
-      "relevance": 75,
-      "summary_cn": "Trump 与伊朗达成和平协议，缓解油价压力，利好全球能源市场。"
+      "relevance": 70,
+      "summary_cn": "特朗普宣称与伊朗达成历史性和平协议，称其将缓解选举前油价，涉及能源市场与地缘政治。"
     },
     {
       "author": "Trump",
@@ -101,20 +138,18 @@
       "new_ideas": [],
       "sectors": [
         "能源",
-        "石油",
-        "地缘政治",
-        "核不扩散"
+        "地缘政治"
       ],
       "sector_holdings": [],
       "stance": "endorse",
-      "relevance": 75,
-      "summary_cn": "Trump 称伊朗永远不会拥有核武器，霍尔木兹海峡将很快开放。"
+      "relevance": 70,
+      "summary_cn": "特朗普重申伊朗永不拥有核武器，霍尔木兹海峡即将开放，涉及能源与地缘政治。"
     },
     {
       "author": "Musk",
-      "text": "Elon Musk's SpaceX raises $75bn ahead of record stock market debut",
+      "text": "SpaceX IPO raised $10bn more than thought",
       "url": "",
-      "published": "Fri, 12 Jun 2026 12:52:55 GMT",
+      "published": "Mon, 15 Jun 2026 21:15:39 GMT",
       "origin": "gnews-rss",
       "source": "BBC",
       "tickers": [],
@@ -122,38 +157,37 @@
       "new_ideas": [],
       "sectors": [
         "航天",
-        "IPO",
-        "融资"
+        "IPO"
       ],
       "sector_holdings": [],
       "stance": "endorse",
-      "relevance": 70,
-      "summary_cn": "SpaceX 在创纪录的股市上市前融资 750 亿美元。"
+      "relevance": 65,
+      "summary_cn": "SpaceX IPO筹集资金比预期多100亿美元，但SpaceX未上市，不涉及可交易标的。"
     },
     {
-      "author": "Trump",
-      "text": "This morning’s attack on Beirut should not have happened, particularly on a special day when we are so close to a Peace Deal with Iran. Israel has the right to defend itself against threats, but the attack it was responding to was very small and meaningless, nobody was hurt, injured, or killed, and should not disrupt this important process. We are very close to a Deal that will bring peace to the region, including to Lebanon, and all sides should stand down. There should be no more attacks by Israel anywhere in Lebanon, but there should also be no more attacks by any other party, including Hez",
-      "url": "https://trumpstruth.org/statuses/39250",
-      "published": "2026-06-14T14:46:45+00:00",
-      "origin": "truthsocial",
+      "author": "Musk",
+      "text": "SpaceX Soars Another 20%—Rocketing Musk’s Net Worth To $1.3 Trillion",
+      "url": "",
+      "published": "Mon, 15 Jun 2026 21:09:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Forbes",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "地缘政治",
-        "中东",
-        "能源"
+        "航天",
+        "IPO"
       ],
       "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 70,
-      "summary_cn": "Trump 称以色列对贝鲁特的袭击不应发生，因伊朗和平协议接近达成，各方应停火。"
+      "stance": "endorse",
+      "relevance": 65,
+      "summary_cn": "SpaceX股价再涨20%，马斯克净资产飙升至1.3万亿美元，但SpaceX未上市，不涉及可交易标的。"
     },
     {
       "author": "Musk",
       "text": "SpaceX Stock Jumps Again as Elon Musk Unveils Meteoric Revenue Target",
       "url": "",
-      "published": "Mon, 15 Jun 2026 16:43:00 GMT",
+      "published": "Mon, 15 Jun 2026 20:24:00 GMT",
       "origin": "gnews-rss",
       "source": "Barron's",
       "tickers": [],
@@ -166,34 +200,15 @@
       "sector_holdings": [],
       "stance": "endorse",
       "relevance": 65,
-      "summary_cn": "Musk 公布 SpaceX 雄心勃勃的收入目标，股价再次上涨。"
-    },
-    {
-      "author": "Trump",
-      "text": "Ships are starting to move, many loaded up with Oil, out of the Strait of Hormuz. They are going along the Southern “Highway,” which is totally safe, secure, and pristine. There are other areas of travel, also!!!  President DJT",
-      "url": "https://trumpstruth.org/statuses/39290",
-      "published": "2026-06-15T13:06:11+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "能源",
-        "石油",
-        "地缘政治"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 65,
-      "summary_cn": "Trump 称霍尔木兹海峡船只开始移动，大量石油运出，暗示伊朗局势缓和利好石油供应。"
+      "summary_cn": "马斯克公布SpaceX惊人收入目标，SpaceX股价再次上涨，但SpaceX未上市，不涉及可交易标的。"
     },
     {
       "author": "Musk",
-      "text": "Elon Musk Projects $1 Trillion SpaceX Revenue by 2030: Practical or a Long Shot?",
+      "text": "SpaceX IPO gives Elon Musk a net worth number that stuns Wall Street | SPCX",
       "url": "",
-      "published": "Sun, 14 Jun 2026 22:00:33 GMT",
+      "published": "Mon, 15 Jun 2026 20:00:00 GMT",
       "origin": "gnews-rss",
-      "source": "Yahoo Finance",
+      "source": "thestreet.com",
       "tickers": [],
       "held": [],
       "new_ideas": [],
@@ -203,8 +218,8 @@
       ],
       "sector_holdings": [],
       "stance": "endorse",
-      "relevance": 60,
-      "summary_cn": "Musk 预测 SpaceX 到 2030 年收入达 1 万亿美元，市场讨论其可行性。"
+      "relevance": 65,
+      "summary_cn": "SpaceX IPO使马斯克净资产数字震惊华尔街，但SpaceX未上市，不涉及可交易标的。"
     },
     {
       "author": "Musk",
@@ -218,13 +233,67 @@
       "new_ideas": [],
       "sectors": [
         "航天",
-        "IPO",
-        "财富"
+        "IPO"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 65,
+      "summary_cn": "马斯克可能因SpaceX IPO成为世界首位万亿富翁，但SpaceX未上市，不涉及可交易标的。"
+    },
+    {
+      "author": "Trump",
+      "text": "Ships are starting to move, many loaded up with Oil, out of the Strait of Hormuz. They are going along the Southern “Highway,” which is totally safe, secure, and pristine. There are other areas of travel, also!!!  President DJT",
+      "url": "https://trumpstruth.org/statuses/39290",
+      "published": "2026-06-15T13:06:11+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "能源",
+        "航运"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 65,
+      "summary_cn": "特朗普称霍尔木兹海峡船只开始移动，许多满载石油，暗示能源运输通道安全改善。"
+    },
+    {
+      "author": "Musk",
+      "text": "The ‘Other’ Elon Musk Stock Is Still Worth a Look",
+      "url": "",
+      "published": "Mon, 15 Jun 2026 18:15:12 GMT",
+      "origin": "gnews-rss",
+      "source": "ETF Database",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "投资"
       ],
       "sector_holdings": [],
       "stance": "endorse",
       "relevance": 60,
-      "summary_cn": "Musk 可能通过 SpaceX IPO 成为世界首位万亿富翁。"
+      "summary_cn": "文章称马斯克的'另一只'股票仍值得关注，但未指明具体标的，可能涉及未上市公司。"
+    },
+    {
+      "author": "Trump",
+      "text": "Iran has agreed to never have a Nuclear Weapon! Also, the story that the U.S. is paying Iran 300 million Dollars is Fake News, put out by the Dumocrats!!! President DJT",
+      "url": "https://trumpstruth.org/statuses/39295",
+      "published": "2026-06-15T23:17:52+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "能源",
+        "地缘政治"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 60,
+      "summary_cn": "特朗普宣布伊朗同意永不拥有核武器，否认美国向伊朗支付3亿美元，涉及中东地缘政治与能源安全。"
     },
     {
       "author": "Trump",
@@ -236,110 +305,38 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "地缘政治",
-        "核不扩散"
+        "能源",
+        "地缘政治"
       ],
       "sector_holdings": [],
       "stance": "attack",
       "relevance": 60,
-      "summary_cn": "Trump 攻击民主党参议员 Reed 谎称伊朗协议不如奥巴马的 JCPOA，称其协议是防止伊朗核武的壁垒。"
-    },
-    {
-      "author": "Musk",
-      "text": "Gina Rinehart makes ‘significant investment’ in Elon Musk’s SpaceX",
-      "url": "",
-      "published": "Mon, 15 Jun 2026 07:27:00 GMT",
-      "origin": "gnews-rss",
-      "source": "The Guardian",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "投资"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 55,
-      "summary_cn": "澳大利亚矿业巨头 Gina Rinehart 对 SpaceX 进行重大投资。"
-    },
-    {
-      "author": "Musk",
-      "text": "The Final Frontier of Tax Avoidance: Elon Musk’s SpaceX Has $1.9 Billion to Gain from Defunding the IRS",
-      "url": "",
-      "published": "Fri, 12 Jun 2026 14:24:36 GMT",
-      "origin": "gnews-rss",
-      "source": "Institute on Taxation and Economic Policy",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "税收",
-        "政府监管"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 55,
-      "summary_cn": "Musk 的 SpaceX 可能从削减 IRS 资金中获益 19 亿美元，涉及税务规避争议。"
-    },
-    {
-      "author": "Trump",
-      "text": "RT @realDonaldTrumpUnder the disastrous Open Border Policy of Crooked Joe Biden and his traitorous DHS Secretary Alejandro Mayorkas, TENS OF MILLIONS of criminals, including over 13,000 STONE-COLD MURDERERS, poured into our Country from Prisons and Jails, from Mental Institutions and Insane Asylums. Needless to say, they were NOT always the safest drivers! Car Insurance Premiums rose to RECORD HIGHS, forcing Law-abiding American Citizens to subsidize the \"free riding” Biden Illegals. After over a year of ZERO ILLEGAL IMMIGRATION, and our highly successful efforts to REVERSE the Biden Invasion,",
-      "url": "https://trumpstruth.org/statuses/39271",
-      "published": "2026-06-15T12:03:55+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "保险",
-        "移民政策"
-      ],
-      "sector_holdings": [],
-      "stance": "attack",
-      "relevance": 55,
-      "summary_cn": "Trump 攻击拜登开放边境政策导致犯罪涌入，推高汽车保险费至历史新高。"
-    },
-    {
-      "author": "Trump",
-      "text": "A few Dumocrats are against FISA, with or without Bill Pulte going to DNI, as Acting. What kind of a deal is that. Besides, I’m against FISA if it doesn’t come with The Save America Act (Full version!) firmly attached to it. MAKE AMERICA GREAT AGAIN! Thank you for your attention to this matter. President DONALD J. TRUMP",
-      "url": "https://trumpstruth.org/statuses/39254",
-      "published": "2026-06-14T18:20:06+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "政府监管",
-        "情报机构",
-        "立法"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 55,
-      "summary_cn": "Trump 表示反对 FISA 法案，除非附带《拯救美国法案》完整版本。"
-    },
-    {
-      "author": "Trump",
-      "text": "Why are the Dumocrats so afraid of of Bill Pulte at DNI??? He would only be Acting! What do they have to be afraid of, what are they hiding? There must be something BIG, mustn’t there??? President DJT",
-      "url": "https://trumpstruth.org/statuses/39255",
-      "published": "2026-06-14T18:27:19+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "政府监管",
-        "情报机构"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 50,
-      "summary_cn": "Trump 质疑民主党为何害怕 Bill Pulte 担任 DNI 代理，暗示可能有重大隐情。"
+      "summary_cn": "特朗普抨击民主党参议员杰克·里德对其伊朗协议的批评，称奥巴马协议是灾难，涉及能源与地缘政治政策对比。"
     }
   ],
   "held_hits": [],
   "new_ideas": [],
-  "sector_hits": []
+  "sector_hits": [
+    {
+      "author": "Musk",
+      "text": "Judge Dismisses Elon Musk’s xAI Trade-Secret Lawsuit Against OpenAI",
+      "url": "",
+      "published": "Mon, 15 Jun 2026 20:47:00 GMT",
+      "origin": "gnews-rss",
+      "source": "WSJ",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "AI",
+        "法律诉讼"
+      ],
+      "sector_holdings": [
+        "MSFU"
+      ],
+      "stance": "neutral",
+      "relevance": 55,
+      "summary_cn": "法官驳回马斯克旗下xAI对OpenAI的商业秘密诉讼，涉及AI行业竞争与法律纠纷，微软是OpenAI主要投资者。"
+    }
+  ]
 }
