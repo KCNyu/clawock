@@ -1,26 +1,23 @@
 {
-  "generated_at": "2026-06-12T16:12:20.726058",
+  "generated_at": "2026-06-15T17:48:47.483192",
   "lookback_hours": 48,
   "tickers": [
     "CRCL",
     "PLTU",
     "ROBN",
-    "SPCX",
     "MSFU"
   ],
-  "digest_markdown": "### Top 3 移动信号\n- **SPCX**: SpaceX IPO首日股价涨至$174 (较发行价$135涨29%)，但相关空间ETF (如UFO, NASA) 反而普跌。\n  *Implication*: SPCX作为标的可能短期受“卖事实”情绪拖累，但SpaceX上市成功验证了其估值逻辑。\n- **PLTU**: Palantir (PLTR) Q4财报超预期，相关杠杆ETF (如PLTU) 受到关注。\n  *Implication*: PLTR基本面强劲，可能推动其2倍做多ETF PLTU短期表现。\n- **MSFU**: 市场关注微软 (MSFT) AI变现潜力，认为其价值被低估；MSFU出现异常高的期权交易量。\n  *Implication*: 若MSFT反弹，2倍做多ETF MSFU将提供放大收益机会。\n\n### Per-ticker 简报\n- **PLTU**: Palantir财报超预期成为核心催化剂，直接利好其杠杆ETF。\n- **SPCX**: SpaceX完成史上最大IPO并高开，但市场对其估值和业务现金需求存在分歧。\n- **MSFU**: 分析指向MSFT AI潜力被低估，技术面显示ETF或临近交易机会。\n- **CRCL**: 行业文章提及稳定币普及伴随风险增加，但无具体公司事件。\n- **ROBN**: 标题含糊，指向“算法”、“风险”、“区块”等通用术语，无明确标的新闻。\n\n### 风险 watch\n- **SPCX**: SpaceX估值高度依赖Starlink，且发射业务及xAI均需大量现金，存在“上市诅咒”风险。\n- **CRCL**: 稳定币行业面临日益增长的威胁向量（如安全、监管风险）。",
+  "digest_markdown": "### Top 3-5 移动信号 (跨 ticker 排序)\n- **CRCL**: 标题显示股价本周下跌4%后随BTC突破$81k而集体反弹，单日涨幅超11%。**Implication**: kcn的position高度敏感于加密货币市场情绪，短期走势与BTC强相关。\n- **PLTU**: Palantir (PLTR) Q4财报超预期推动其杠杆ETF PLTU关注度提升，有新ETF产品上线。**Implication**: 短期催化来自母公司PLTR业绩，但作为2倍杠杆ETF，波动和风险被放大。\n- **ROBN**: 多个标题不相关（如Ron Baron/Red Robin），无直接公司新闻。**Implication**: 无新增催化剂，需关注ticker匹配准确性。\n- **MSFU**: 作为微软(MSFT)杠杆ETF，出现“准备扣动扳机”、“异常高期权交易量”等关注信号。**Implication**: 交易性关注度提升，但无微软基本面新闻，纯粹是ETF工具层面的交易活动。\n\n### Per-ticker 简报\n- **CRCL**: 股价与加密货币（BTC）走势高度联动，近期从低点反弹。 - 短期交易由加密市场beta驱动，缺乏独立基本面催化剂。\n- **PLTU**: 受益于母股Palantir财报后走强及杠杆ETF产品线扩充新闻。 - 价格走势依赖PLTR，且自带杠杆属性。\n- **MSFU**: ETF出现高期权交易量及交易性讨论升温。 - 反映市场对MSFT方向性押注的短期工具需求。\n\n### 风险 watch\n- **无新增明确风险**：本次新闻摘要未见涉及**财务指引下调、监管行动、大股东减持或合约失败**等关键词。所有新闻均为市场交易活动或间接关联。",
   "raw_news_counts": {
-    "CRCL": 1,
+    "CRCL": 5,
     "PLTU": 5,
     "ROBN": 5,
-    "SPCX": 5,
     "MSFU": 5
   },
   "news_source_per_ticker": {
-    "CRCL": "finnhub",
+    "CRCL": "gnews-rss",
     "PLTU": "gnews-rss",
     "ROBN": "gnews-rss",
-    "SPCX": "finnhub",
     "MSFU": "gnews-rss"
   }
 }
