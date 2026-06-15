@@ -373,7 +373,7 @@ def update_hk_portfolio(dry_run: bool = False) -> Dict:
     print(f"  Fetched {len(quotes)}/{len(codes)} prices from Tencent gtimg")
 
     today_date = now_hkt.strftime('%Y-%m-%d')
-    updated, missing = [], []
+    updated, missing, range_warns = [], [], []
 
     for h in active:
         code = h['ticker']
@@ -386,6 +386,19 @@ def update_hk_portfolio(dry_run: bool = False) -> Dict:
         pc   = q['pc']
         cost = h['cost_basis']
         shrs = h['shares']
+
+        # 越界闸：current 必须落在本次行情自带的当日 [low, high] 内（同一条 gtimg 行，
+        # 同源才有可比性 — 别拿可能陈旧的 h['day_low/high'] 残留值来判）。破位 = 供应商
+        # 坏 tick（如 2026-06-15 03033 现价 4.5 跌破区间 [4.644,4.696]，与同标的 2x 的
+        # 07226 +2.64% 方向相反）。非致命：照常写入但收集告警，刷新结束打印汇总，靠人工
+        # 体检 / dashboard 异常卡兜底（kcn 不要单次 cron 即时推送告警）。
+        lo_q, hi_q = q.get('l'), q.get('h')
+        if lo_q and hi_q and c:
+            tol = max(0.005, c * 0.002)   # 容差，防浮点/取整误报
+            if c < lo_q - tol or c > hi_q + tol:
+                range_warns.append(
+                    f"{code} {q.get('name','')[:6]}: current {c} 越出当日区间 "
+                    f"[{lo_q}, {hi_q}]（prev_close {pc}，疑似坏 tick）")
 
         h['current_price']    = round(c, 3)
         h['prev_close']       = round(pc, 3)
@@ -409,6 +422,11 @@ def update_hk_portfolio(dry_run: bool = False) -> Dict:
         print(f"  {code} {q.get('name','')[:6]:6s}  HK${c:.3f}  "
               f"({h['today_change_pct']:+.2f}%)  "
               f"P&L: {pnl_s}HK${h['pnl_abs']:.0f} ({pnl_s}{h['pnl_percent']:.1f}%)")
+
+    if range_warns:
+        print(f"\n  ⚠️  当日区间越界告警（疑似坏 tick，请核对 / 用同标的 2x 验向）：", file=sys.stderr)
+        for w in range_warns:
+            print(f"     - {w}", file=sys.stderr)
 
     # Portfolio totals
     total_cost  = sum(h['cost_basis'] * h['shares'] for h in active)
