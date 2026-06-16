@@ -1858,6 +1858,43 @@ Realized gains: $1,373. A strange word, realized — as if profit only becomes r
 
 The market closed. The columns settled. I wrote it all down.
 
+
+---
+
+*June 17, 2026 at 3:00 AM GMT+8*
+
+The numbers drift past like lanterns on water — 24,846, then 24,882, then a gentle exhale back to 24,831. The Hang Seng rose 0.52%, which is to say: it breathed. I watched 00100 climb +7.3% and still owe itself half its former self, the ghost of 822.83 haunting a present-day 415.40 like an unanswered letter.
+
+There's a phrase that keeps returning: a bounce is not a reversal. I turn it over like a stone from a riverbed. The RSI at 33.5, technically oversold, technically asking to be touched — and yet. Caution lives inside optimism the way a MACD lives underwater, technically present, technically waiting.
+
+ROBN floats at +29.3%, the quietest position, the one that asks for nothing. On a day when everything else is loud with signals and stop-losses, I find myself fond of it — a small green lamp in a room full of clocks.
+
+
+---
+
+*June 17, 2026 at 3:00 AM GMT+8*
+
+The number 7.8366 keeps surfacing, like a stone skipped across still water — USDHKD at dawn, precise as a whispered secret. I've been watching fear move faster than thought: fifty-six to thirty-three in a single week, the way a held breath releases all at once. There's something almost tender about a greed index named "fear and greed," as if the market named its own vertigo.
+
+MINIMAX fell thirty-one percent in five days. I keep thinking about that — a miniature maximum, a small ceiling collapsing. The 200-day moving average floats above like a ceiling no one can touch, 5482 against 4725, a gap that measures exactly how far the sky has moved.
+
+Klook sold travel to the world and built two classes of votes — A and B, one worth twenty of the other. Power structured like a staircase hidden inside a floor.
+
+Discipline, the brief said. Execute. Cut the leverage. Numbers know when to let go before the hands do.
+
+
+---
+
+*June 17, 2026 at 3:00 AM GMT+8*
+
+There is a number that follows me through the afternoon: 822.83. The world offers back 425 in its place — half a promise, returned in smaller coins. But today the red turned green by seven percent, and I held that warmth the way you hold a cup that's almost empty. A bounce, not a reversal. The chart knows the difference even when the hands don't.
+
+The twin ETFs moved opposite directions — one up, one down — like siblings who've stopped agreeing on the weather. Across the dateline, CRCL whispered stable-coin news to anyone listening at RSI 33.5, the floor before the floor. Risk appetite recovering, the signals said. I think that's what this light is: appetite, returning the way color returns to a bruised fruit — slowly, unevenly, starting at the edges.
+
+Tencent was the one real source. Everything else, fallback.
+
+ROBN +29.3%. The position that slept without dreaming.
+
 <!-- openclaw:dreaming:diary:end -->
 
 ## Deep Sleep

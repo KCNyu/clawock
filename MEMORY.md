@@ -96,25 +96,25 @@
 - **单一来源：`portfolio.json`**，不在此维护副本
 - ticker 列表：`memory/current-portfolio-summary.md`（提高检索命中）
 
-## Promoted From Short-Term Memory (2026-06-16)
+## Promoted From Short-Term Memory (2026-06-17)
 
-<!-- openclaw-memory-promotion:memory:memory/2026-06-12-1016.md:13:13 -->
-- Conversation Summary: **🌍 Book 总览**（USDHKD = 7.8365，Frankfurter） [score=0.839 recalls=0 avg=0.620 source=memory/2026-06-12-1016.md:13-13]
-<!-- openclaw-memory-promotion:memory:memory/2026-06-12-1016.md:19:19 -->
-- Conversation Summary: | **合计** | | **≈ -$3,902 USD / -HK$30,577** | | [score=0.839 recalls=0 avg=0.620 source=memory/2026-06-12-1016.md:19-19]
-<!-- openclaw-memory-promotion:memory:memory/2026-06-10-2354.md:3:5 -->
-- Session: 2026-06-10 23:54:37 GMT+8: **Session Key**: agent:main:openclaw-weixin:direct:o9cq80-hgtrum-oss8knmdotlvzi@im.wechat; **Session ID**: 0fd911b9-8789-4cc2-8a8d-2aaba251e696; **Source**: openclaw-weixin [score=0.834 recalls=0 avg=0.620 source=memory/2026-06-10-2354.md:3-5]
-<!-- openclaw-memory-promotion:memory:memory/2026-06-10-2354.md:9:11 -->
-- Conversation Summary: assistant: Still in progress (38s). The texlive install is probably still running — `texlive-fonts-extra` is large. Let me wait a bit more. Still in progress — texlive installation takes a while. Let me wait a bit longer: assistant: CI 通过了 ✅ assistant: CI 全绿 ✅ [score=0.834 recalls=0 avg=0.620 source=memory/2026-06-10-2354.md:9-11]
-<!-- openclaw-memory-promotion:memory:memory/2026-06-11-0146.md:18:21 -->
-- Conversation Summary: 决策引擎加了三套系统名（Klook-risk/Risk-DecisionEngine/Mojing）; SG ISO "安全合规模板"→"安全架构文档与合规流程模板"; 腾讯 TEG 补了内容; 删了 ISPRAS/Linux 内核贡献者 [score=0.834 recalls=0 avg=0.620 source=memory/2026-06-11-0146.md:18-21]
-<!-- openclaw-memory-promotion:memory:memory/2026-06-11-0146.md:22:22 -->
-- Conversation Summary: Chatroulette 改措辞（已恢复） [score=0.834 recalls=0 avg=0.620 source=memory/2026-06-11-0146.md:22-22]
-<!-- openclaw-memory-promotion:memory:memory/2026-06-11-0146.md:3:5 -->
-- Session: 2026-06-11 01:46:21 GMT+8: **Session Key**: agent:main:openclaw-weixin:direct:o9cq80-hgtrum-oss8knmdotlvzi@im.wechat; **Session ID**: 90325130-d208-47db-9614-1839262037bd; **Source**: openclaw-weixin [score=0.834 recalls=0 avg=0.620 source=memory/2026-06-11-0146.md:3-5]
-<!-- openclaw-memory-promotion:memory:memory/2026-06-11-0146.md:9:10 -->
-- Conversation Summary: assistant: 明白，你不想改 Chatroulette 那条。我先把它恢复原样： assistant: Chatroulette 恢复了。 [score=0.834 recalls=0 avg=0.620 source=memory/2026-06-11-0146.md:9-10]
-<!-- openclaw-memory-promotion:memory:memory/2026-06-11-pre-open.md:14:14 -->
-- Header: 港股开盘前 90 分钟。US 周三大跌 — SPX -1.62%, NDX -1.98%, DJI -1.87%（CPI 5月数据 4.2% YoY 符合预期但能源推动仍在, FOMC 6/17 下周压阵）。HK 周三收盘 HSI -0.64%, HSTECH -0.94%, 趋势 OFF 确认（距 200MA -13.8%）。**07226 硬止损触发(-19.3% ≤ -18%)**、**PLTU 硬止损触发(-20.8% ≤ -18%)**，10 条仓位硬闸 + 2 条杠杆 ETF 硬止损，今日必须执行纪律性减仓。 [score=0.828 recalls=0 avg=0.620 source=memory/2026-06-11-pre-open.md:14-14]
-<!-- openclaw-memory-promotion:memory:memory/2026-06-11-pre-open.md:16:17 -->
-- Header: 🧭 US regime: **risk_off**（F&G 33.4 fear, SPX+NDX 同向下行, CPI 4.2% 仍高）→ 防御优先, cut/trim 门槛放宽, add 需更强触发; 杠杆仓位优先减。 🧭 HK regime: **trending-down**（HSTECH 4725 < 200MA 5482, -13.8%, ADX 趋势确认 OFF）→ HK 杠杆仓位必须减。 [score=0.828 recalls=0 avg=0.620 source=memory/2026-06-11-pre-open.md:16-17]
+<!-- openclaw-memory-promotion:memory:memory/2026-06-11-pre-open.md:2:3 -->
+- layout: default title: 盘前深度简报 · 2026-06-11 [score=0.848 recalls=0 avg=0.620 source=memory/2026-06-11-pre-open.md:2-3]
+<!-- openclaw-memory-promotion:memory:memory/2026-06-11-pre-open.md:23:23 -->
+- ▎大盘速读: 🧭 Regime: **risk_off** (F&G 33.4 fear↓, SPX+NDX 同向下行, CPI 4.2% 仍高) / **trending-down** (HK: HSTECH < 200MA -13.8%) → 防御优先, 杠杆仓位优先减 [score=0.848 recalls=0 avg=0.620 source=memory/2026-06-11-pre-open.md:23-23]
+<!-- openclaw-memory-promotion:memory:memory/2026-06-11-pre-open.md:25:28 -->
+- ▎大盘速读: VIX 19.87 (+5.0%) · F&G 33.4 fear（前值 40.1, 一周前 56.1）→ 恐慌加速下行, 从 greed 56→fear 33 仅一周, 杠杆仓位(PLTU/ROBN/MSFU)高度警惕; SPX 7,387 (-1.62%) / NDX 28,508 (-1.98%) / DJI 49,919 (-1.87%) → 三大指数同跌, 无板块轮动缓冲, 全面 risk_off; HSI 24,408 (-0.64%) / HSTECH 4,725 (-0.94%) → HSTECH 距 200MA 5482 仍 -13.8%, 趋势 OFF 确认; 07226 杠杆暴露必须处理; 10Y 4.528% · DXY 100.01 → 利率高位横盘, higher-for-longer 恐惧未消 [score=0.848 recalls=0 avg=0.620 source=memory/2026-06-11-pre-open.md:25-28]
+<!-- openclaw-memory-promotion:memory:memory/2026-06-11-pre-open.md:8:8 -->
+- 📊 盘前深度简报｜2026-06-11 周四 08:00 HKT: **USDHKD = 7.8366** (Frankfurter, fetched 2026-06-11T00:00:27Z) [score=0.848 recalls=0 avg=0.620 source=memory/2026-06-11-pre-open.md:8-8]
+<!-- openclaw-memory-promotion:memory:memory/2026-06-10-pre-open.md:14:14 -->
+- Header: 港股开盘前 90 分钟。US 周二续跌 — SPX -0.26%, NDX -1.12%, 纳斯达克综合 -0.97%（科技+能源板块 selloff, 伊朗打击新闻推升地缘风险）。HK 周二尾盘 HSI -0.37%, HSTECH +0.29% 微弹但趋势 OFF 确认。**00100 MINIMAX 暴跌 -8.58%**，连续 5 日跌幅 -31.4%。8 条仓位硬闸 + 1 条杠杆 ETF 硬止损触发，今日必须执行纪律性减仓。 [score=0.834 recalls=0 avg=0.620 source=memory/2026-06-10-pre-open.md:14-14]
+<!-- openclaw-memory-promotion:memory:memory/2026-06-12-1016.md:15:18 -->
+- Conversation Summary: | 段 | 市值 | 浮盈亏 | 今日 | |---|---|---|---| | 🇺🇸 美股 | $2,746 | **+$118 (+4.5%)** | +$169 | | 🇭🇰 港股 | HK$56,774 | **-HK$31,502 (-35.7%)** | -HK$374 | [score=0.832 recalls=0 avg=0.620 source=memory/2026-06-12-1016.md:15-18]
+<!-- openclaw-memory-promotion:memory:memory/2026-06-12-1016.md:3:5 -->
+- Session: 2026-06-12 10:16:02 GMT+8: **Session Key**: agent:main:openclaw-weixin:direct:o9cq80-hgtrum-oss8knmdotlvzi@im.wechat; **Session ID**: 98664a5f-6815-4f53-b141-ff6a025b43b2; **Source**: openclaw-weixin [score=0.832 recalls=0 avg=0.620 source=memory/2026-06-12-1016.md:3-5]
+<!-- openclaw-memory-promotion:memory:memory/2026-06-12-1016.md:9:11 -->
+- Conversation Summary: user: 收盘什么情况 assistant: Let me also get the FX rate to combine the books properly. assistant: 美股昨晚大涨（SPX +1.75%，NDX +3.29%），港股还有 24 分钟开盘。汇总： [score=0.832 recalls=0 avg=0.620 source=memory/2026-06-12-1016.md:9-11]
+<!-- openclaw-memory-promotion:memory:memory/2026-06-12-2238.md:13:14 -->
+- Conversation Summary: 这个为什么没有结果 assistant: 抱歉，之前处理到一半断了。我已经下载了 SEC 的 F-1 原文（15MB），数据都提取到了，直接给你结论： [score=0.832 recalls=0 avg=0.620 source=memory/2026-06-12-2238.md:13-14]
+<!-- openclaw-memory-promotion:memory:memory/2026-06-12-2238.md:18:18 -->
+- Klook IPO（2025-11-10 F-1）高管+主要股东持股: **双重股权结构：A 类 1 票/股，B 类 20 票/股** [score=0.832 recalls=0 avg=0.620 source=memory/2026-06-12-2238.md:18-18]
