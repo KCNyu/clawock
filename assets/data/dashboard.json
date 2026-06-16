@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-16T23:08:05.655871Z",
+  "generated_at": "2026-06-16T23:09:39.317039Z",
   "last_updated": "2026/06/17 04:03 HKT",
   "fx": {
     "usdhkd": null,
@@ -3913,66 +3913,66 @@
     ]
   },
   "macro": {
-    "generated_at": "2026-06-15T23:24:17.049635+00:00",
+    "generated_at": "2026-06-16T23:09:33.791995+00:00",
     "vix": {
       "symbol": "^VIX",
-      "price": 16.2,
-      "prev": 19.44,
-      "change_pct": -16.67,
-      "as_of": 1781554501,
+      "price": 16.41,
+      "prev": 16.2,
+      "change_pct": 1.3,
+      "as_of": 1781640901,
       "source": "yahoo"
     },
     "treasury_10y": {
       "symbol": "^TNX",
-      "price": 4.469,
-      "prev": 4.487,
-      "change_pct": -0.4,
-      "as_of": 1781549992,
+      "price": 4.428,
+      "prev": 4.469,
+      "change_pct": -0.92,
+      "as_of": 1781636394,
       "source": "yahoo",
-      "yield_pct": 4.469
+      "yield_pct": 4.428
     },
     "dxy": {
       "symbol": "DX-Y.NYB",
-      "price": 99.75,
-      "prev": 99.86,
-      "change_pct": -0.11,
-      "as_of": 1781236740,
+      "price": 99.54,
+      "prev": 99.54,
+      "change_pct": 0.0,
+      "as_of": 1781647496,
       "source": "yahoo"
     },
     "fear_greed": {
-      "score": 40.9,
+      "score": 39.2,
       "rating": "fear",
-      "prev_close": 34.0,
-      "prev_1_week": 39.9,
-      "as_of": "2026-06-15T23:08:40+00:00"
+      "prev_close": 40.9,
+      "prev_1_week": 32.4,
+      "as_of": "2026-06-16T22:50:39+00:00"
     },
     "hsi": {
       "symbol": "^HSI",
-      "price": 24842.67,
-      "prev": 24718.1,
-      "change_pct": 0.5,
+      "price": 24493.95,
+      "prev": 24842.67,
+      "change_pct": -1.4,
       "source": "tencent"
     },
     "hstech": {
       "symbol": "^HSTECH",
-      "price": 4765.58,
-      "prev": 4705.2,
-      "change_pct": 1.28,
+      "price": 4658.65,
+      "prev": 4765.58,
+      "change_pct": -2.24,
       "source": "tencent"
     },
     "spx": {
       "symbol": "^GSPC",
-      "price": 7554.29,
-      "prev": 7431.46,
-      "change_pct": 1.65,
-      "as_of": 1781556014,
+      "price": 7511.35,
+      "prev": 7554.29,
+      "change_pct": -0.57,
+      "as_of": 1781643376,
       "source": "yahoo"
     },
     "nasdaq": {
       "symbol": "^IXIC",
-      "price": 26683.94,
-      "prev": 25888.84,
-      "change_pct": 3.07,
+      "price": 26376.34,
+      "prev": 26683.94,
+      "change_pct": -1.15,
       "source": "tencent"
     },
     "fed_press": [
@@ -3980,11 +3980,6 @@
         "date": "2026-06-11",
         "title": "Federal Reserve Board announces final rule that establishes data standards for certain information collections",
         "url": "https://www.federalreserve.gov/newsevents/pressreleases/bcreg20260611a.htm"
-      },
-      {
-        "date": "2026-06-09",
-        "title": "Federal Reserve Board announces that results from its annual bank stress test will be released on Wednesday, June 24, at 4 p.m. EDT.",
-        "url": "https://www.federalreserve.gov/newsevents/pressreleases/bcreg20260609a.htm"
       }
     ]
   },
@@ -4396,11 +4391,12 @@
     ]
   },
   "regime": {
-    "label": "risk_on",
-    "score": 2,
+    "label": "neutral",
+    "score": -1,
     "reasons": [
+      "F&G 39 fear",
       "VIX 16 calm",
-      "SPX+NDX 同向上行"
+      "SPX+NDX 同向下行"
     ]
   },
   "all_time_extremes": {
