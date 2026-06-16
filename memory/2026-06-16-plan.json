@@ -1,0 +1,130 @@
+{
+  "date": "2026-06-16",
+  "fx_rate_usdhkd": 7.8341,
+  "fx_source": "Frankfurter",
+  "regime": {
+    "us": "neutral",
+    "hk": "trending-down"
+  },
+  "book": {
+    "usd_total_pnl": -3813.04,
+    "hkd_total_pnl": -29871.72,
+    "hk_leg_hkd": -30519.44,
+    "us_leg_usd": 82.68
+  },
+  "actions": [
+    {
+      "ticker": "ROBN",
+      "bucket": "trim_on_rebound",
+      "size_pct": 50,
+      "size_shares": 20,
+      "trigger_type": "price_above",
+      "trigger_price": 29.0,
+      "trigger_condition": "≥29.0 卖出 20 股（剩余 20 股 ~33% US leg）",
+      "confidence": 0.50,
+      "driven_by": "technical",
+      "rationale": "仓位硬闸：single_name 50.39%>35% + regime_delever red(HOOD<200MA+vol81%) + US β 3.45>3.0。纪律性再平衡，非消息驱动。ROBN 历史清×15 胜 6(40%)——只 trim 不清仓。"
+    },
+    {
+      "ticker": "PLTU",
+      "bucket": "hold_and_watch",
+      "size_pct": 0,
+      "size_shares": 0,
+      "trigger_type": "event",
+      "trigger_price": null,
+      "trigger_condition": "post-FOMC: 若 dot plot 显示 2+ 次加息中位数 → 立刻换仓 PLTR 1x",
+      "confidence": 0.45,
+      "driven_by": "technical",
+      "rationale": "仓位硬闸：US leveraged 92.9%>50%。硬止损已解除(-15.7%回到-18%以上)但 leveraged_exposure 仍 breach。PLTR -16%<200MA + 2x decay 3.39%/月(最高)。等 FOMC 结果再决策——hawkish 立刻换，中性/鸽派逐步换。"
+    },
+    {
+      "ticker": "MSFU",
+      "bucket": "hold_and_watch",
+      "size_pct": 0,
+      "size_shares": 0,
+      "trigger_type": "event",
+      "trigger_price": null,
+      "trigger_condition": "post-FOMC: 若 US leveraged 仍 >50% → 换仓 MSFT 1x",
+      "confidence": 0.50,
+      "driven_by": "technical",
+      "rationale": "仓位硬闸：US leveraged 92.9%>50%。MSFU 持×14 胜 12(92%)最不想卖。MSFT 相对防御(Azure+Copilot)。等 ROBN 先减 + FOMC 结果再动。"
+    },
+    {
+      "ticker": "00100",
+      "bucket": "hold_and_watch",
+      "size_pct": 0,
+      "size_shares": 0,
+      "trigger_type": "price_above",
+      "trigger_price": 465,
+      "trigger_condition": "≥465 减约 9 股到 ≤35% HK leg",
+      "confidence": 0.45,
+      "driven_by": "technical",
+      "rationale": "仓位硬闸：single_name 44.03%>35%。RSI 29.9 极端超卖不砍底。lock-up 7月到期(46%股份)是 disconfirming 硬催化但未到。hold×12 胜 9(75%)。等反弹减，不追低。"
+    },
+    {
+      "ticker": "07226",
+      "bucket": "hold_and_watch",
+      "size_pct": 0,
+      "size_shares": 0,
+      "trigger_type": "price_above",
+      "trigger_price": 3.65,
+      "trigger_condition": "≥3.65 换仓 ~2000 股到 03033",
+      "confidence": 0.50,
+      "driven_by": "technical",
+      "rationale": "仓位硬闸：single_name 38.47%>35% + leveraged 38.5%>25%(amber×0.5)。硬止损已解除(-17.9%回到-18%以上)。HSTECH -12.9%<200MA趋势OFF，2x decay 0.74%/月。等 ≥3.65 换仓 03033。"
+    },
+    {
+      "ticker": "02208",
+      "bucket": "hold_and_watch",
+      "size_pct": 0,
+      "size_shares": 0,
+      "trigger_type": "price_below",
+      "trigger_price": 10.0,
+      "trigger_condition": "<10.0 止损",
+      "confidence": 0.55,
+      "driven_by": "catalyst",
+      "rationale": "Q1 利润+60% YoY 硬催化(confirming) · JPM 增持 · hold×12 胜 11(92%)历史最好。Citi block trade 流出消化中。但股价不跟=典型等风来。止损设 10.0（心理关口+技术支撑）。"
+    },
+    {
+      "ticker": "CRCL",
+      "bucket": "hold_and_watch",
+      "size_pct": 0,
+      "size_shares": 0,
+      "trigger_type": "price_below",
+      "trigger_price": 70.0,
+      "trigger_condition": "<70.0 止损",
+      "confidence": 0.50,
+      "driven_by": "technical",
+      "rationale": "小仓 7.1%。ARK增持+GENIUS Act 立法(confirming)。董事减持 routine 10b5-1。近5日-22.7%已price in。接近回本(-4.2%)。止损设70。"
+    },
+    {
+      "ticker": "03032",
+      "bucket": "hold_and_watch",
+      "size_pct": 0,
+      "size_shares": 0,
+      "trigger_type": "manual",
+      "trigger_price": null,
+      "trigger_condition": "跟踪 HSTECH",
+      "confidence": 0.50,
+      "driven_by": "macro",
+      "rationale": "被动跟踪恒科指数 · 1x 无 decay · 小仓 1.65%。hold 历史 45%胜率(偏低)但仓位太小不值得主动调。"
+    },
+    {
+      "ticker": "03033",
+      "bucket": "hold_and_watch",
+      "size_pct": 0,
+      "size_shares": 0,
+      "trigger_type": "manual",
+      "trigger_price": null,
+      "trigger_condition": "跟踪 HSTECH（07226 换仓目标）",
+      "confidence": 0.50,
+      "driven_by": "macro",
+      "rationale": "被动跟踪恒科指数 · 1x 无 decay · 07226 换仓后仓位将增加。"
+    }
+  ],
+  "watch_levels": {
+    "hstech_breakdown": 4500,
+    "fomc_hawkish_spx_drop": -3,
+    "book_force_derisk_usd": -5000
+  }
+}
