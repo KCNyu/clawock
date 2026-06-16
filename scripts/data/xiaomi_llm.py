@@ -2,8 +2,9 @@
 """
 xiaomi_llm.py — minimal Anthropic-Messages LLM client for GH Action workflows.
 
-Primary: Xiaomi MiMo v2.5-pro. Fallback: MiniMax M3 (when Xiaomi errors out or
-its key is missing). BOTH now speak the Anthropic Messages protocol — the same
+Primary: MiniMax M3. Fallback: Xiaomi MiMo v2.5-pro (only while its token-plan
+key still works — being retired 2026-06-16 as the plan expires; auto-skipped once
+XIAOMI_API_KEY is gone). BOTH speak the Anthropic Messages protocol — the same
 transport openclaw's gateway uses — which is the stable path: thinking is a
 first-class block (no reasoning_content replay 400s, no empty-turn ambiguity).
 Used by brief-fallback / weekly-review / news-digest / influencer-scan — none of
@@ -19,8 +20,9 @@ OpenAI /v1/chat/completions transport. MiniMax M2.7 + openai-completions is dead
 both providers POST {base}/v1/messages with x-api-key + anthropic-version.
 
 Env:
-- XIAOMI_API_KEY   — primary
-- MINIMAX_API_KEY  — fallback (optional; if unset, fallback is skipped)
+- MINIMAX_API_KEY  — primary
+- XIAOMI_API_KEY   — fallback (optional; being retired as the token-plan expires;
+                     if unset, the Xiaomi fallback is skipped)
 
 Notes:
 - system is a TOP-LEVEL Anthropic param (not a message role) — we lift it out.
@@ -191,9 +193,9 @@ def chat(system: str = '', user: str = '', messages: list = None,
          model: str = DEFAULT_MODEL, base_url: str = DEFAULT_BASE,
          api_key: str = None, thinking_disabled: bool = False,
          json_response: bool = False, fallback: bool = True) -> str:
-    """Call Xiaomi MiMo; on total failure fall back to MiniMax M3 (both Anthropic
+    """Call MiniMax M3; on total failure fall back to Xiaomi MiMo (both Anthropic
     Messages). Returns assistant content string, or raises if BOTH providers fail.
-    Set fallback=False to use Xiaomi only.
+    Set fallback=False to use MiniMax only (no Xiaomi fallback).
     """
     if messages is None:
         messages = []
@@ -205,29 +207,32 @@ def chat(system: str = '', user: str = '', messages: list = None,
     thinking = {'type': 'disabled'} if thinking_disabled else {'type': 'enabled'}
     errors = []
 
-    # ── Primary: Xiaomi MiMo ──
-    xiaomi_key = api_key or os.environ.get('XIAOMI_API_KEY')
-    if xiaomi_key:
-        try:
-            return _call_provider('xiaomi', base_url, xiaomi_key, model, messages,
-                                  max_tokens, temperature, json_response, thinking)
-        except Exception as e:
-            errors.append(f'xiaomi[{e}]')
-            print('  ⚠️ xiaomi exhausted — falling back to MiniMax M3', file=sys.stderr)
-    else:
-        errors.append('xiaomi[no XIAOMI_API_KEY]')
-
-    # ── Fallback: MiniMax M3 (same Anthropic transport) ──
+    # ── Primary: MiniMax M3 (Anthropic Messages) ──
+    # 2026-06-16, kcn: Xiaomi token-plan is expiring → MiniMax is now primary
+    # everywhere. Xiaomi stays only as a last-resort fallback while its key still
+    # works; once the token dies it is auto-skipped (no XIAOMI_API_KEY).
     mm_key = os.environ.get('MINIMAX_API_KEY')
-    if fallback and mm_key:
+    if mm_key:
         try:
             return _call_provider('minimax', MINIMAX_BASE, mm_key, MINIMAX_MODEL,
                                   messages, min(max_tokens, MINIMAX_MAX_TOKENS),
                                   temperature, json_response, thinking)
         except Exception as e:
             errors.append(f'minimax[{e}]')
-    elif fallback and not mm_key:
+            print('  ⚠️ minimax exhausted — falling back to Xiaomi MiMo', file=sys.stderr)
+    else:
         errors.append('minimax[no MINIMAX_API_KEY]')
+
+    # ── Fallback: Xiaomi MiMo (same Anthropic transport; key may be expired) ──
+    xiaomi_key = api_key or os.environ.get('XIAOMI_API_KEY')
+    if fallback and xiaomi_key:
+        try:
+            return _call_provider('xiaomi', base_url, xiaomi_key, model, messages,
+                                  max_tokens, temperature, json_response, thinking)
+        except Exception as e:
+            errors.append(f'xiaomi[{e}]')
+    elif fallback and not xiaomi_key:
+        errors.append('xiaomi[no XIAOMI_API_KEY]')
 
     raise RuntimeError('all LLM providers failed: ' + ' | '.join(errors))
 
