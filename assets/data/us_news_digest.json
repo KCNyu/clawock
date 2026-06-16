@@ -1,22 +1,25 @@
 {
-  "generated_at": "2026-06-15T17:48:47.483192",
+  "generated_at": "2026-06-16T17:55:22.004072",
   "lookback_hours": 48,
   "tickers": [
     "CRCL",
     "PLTU",
+    "RKLX",
     "ROBN",
     "MSFU"
   ],
-  "digest_markdown": "### Top 3-5 移动信号 (跨 ticker 排序)\n- **CRCL**: 标题显示股价本周下跌4%后随BTC突破$81k而集体反弹，单日涨幅超11%。**Implication**: kcn的position高度敏感于加密货币市场情绪，短期走势与BTC强相关。\n- **PLTU**: Palantir (PLTR) Q4财报超预期推动其杠杆ETF PLTU关注度提升，有新ETF产品上线。**Implication**: 短期催化来自母公司PLTR业绩，但作为2倍杠杆ETF，波动和风险被放大。\n- **ROBN**: 多个标题不相关（如Ron Baron/Red Robin），无直接公司新闻。**Implication**: 无新增催化剂，需关注ticker匹配准确性。\n- **MSFU**: 作为微软(MSFT)杠杆ETF，出现“准备扣动扳机”、“异常高期权交易量”等关注信号。**Implication**: 交易性关注度提升，但无微软基本面新闻，纯粹是ETF工具层面的交易活动。\n\n### Per-ticker 简报\n- **CRCL**: 股价与加密货币（BTC）走势高度联动，近期从低点反弹。 - 短期交易由加密市场beta驱动，缺乏独立基本面催化剂。\n- **PLTU**: 受益于母股Palantir财报后走强及杠杆ETF产品线扩充新闻。 - 价格走势依赖PLTR，且自带杠杆属性。\n- **MSFU**: ETF出现高期权交易量及交易性讨论升温。 - 反映市场对MSFT方向性押注的短期工具需求。\n\n### 风险 watch\n- **无新增明确风险**：本次新闻摘要未见涉及**财务指引下调、监管行动、大股东减持或合约失败**等关键词。所有新闻均为市场交易活动或间接关联。",
+  "digest_markdown": "## Top 移动信号\n\n- **RKLX**: SpaceX IPO 同日 +10.86%, RKLB 通过 SpaceX 估值锚定获得情绪溢价 — 对 kcn 而言, RKLB 间接持仓的 beta 被外生 IPO 事件放大, 短线波动率升级\n- **CRCL**: 宏观风险偏好急升 (Nasdaq 领涨, 油价 -5%, 美伊和谈重开霍尔木兹) — 加密/稳定币板块顺风, 但本批新闻无 Circle-specific catalyst, 仓位无需调整\n- **PLTU**: Palantir Q4 财报 beat 仍是 PLTU 核心驱动 (Q4 复盘仍在 ETF 渠道发酵) — 杠杆 ETF 渠道传播利好但属旧闻, 关注 PLTR 自身下一指引\n\n## Per-ticker 简报\n\n- **CRCL**: 无 ticker-specific 新闻; 头条 Travala 属 AVA 代币叙事, 与 Circle 无直接关联 — 中性\n- **PLTU**: LongPoint 扩展 2x 单股 ETF 产品线, PLTR Q4 beat 续被 ETF Trends 复盘 — 利好但已 price-in, 偏噪声\n- **RKLX**: SpaceX IPO 情绪外溢驱动 +10.86% 单日行情 — 短期 momentum 信号, 非基本面变化\n- **ROBN**: Ron Baron 新 space ETF 创新高或与 ROBN 无关 (T-Rex 2x HOOD), 疑似错配; 其余为算法/技术面噪声 — 忽略\n- **MSFU**: 全部为 Seeking Alpha / ETF Trends 对 MSFU 的推销式分析, 无 MSFT 财报/合约 catalyst — 零信号\n\n## 风险 Watch\n\n- **RKLX**: SpaceX IPO 驱动的 +10.86% 属事件型 rally, IPO 情绪退潮后杠杆 ETF 易回吐, 杠杆回撤风险\n- **CRCL**: 美伊和谈若反复, 油价反弹将逆转今日 risk-on, 稳定币板块承压\n- **PLTU/ROBN**: 2x 单股 ETF 普遍面临 vol-decay 与隔夜 rebalance 风险, 持仓需监控\n\n**整体判断**: 本批 48h 新闻以 ETF 渠道噪声和宏观为主, 唯一 actionable 是 RKLX 跟随 SpaceX IPO 的短线 momentum, CRCL 受益宏观但缺自身 catalyst。其余持仓无新信息, 维持现状。",
   "raw_news_counts": {
-    "CRCL": 5,
+    "CRCL": 2,
     "PLTU": 5,
+    "RKLX": 5,
     "ROBN": 5,
     "MSFU": 5
   },
   "news_source_per_ticker": {
-    "CRCL": "gnews-rss",
+    "CRCL": "finnhub",
     "PLTU": "gnews-rss",
+    "RKLX": "gnews-rss",
     "ROBN": "gnews-rss",
     "MSFU": "gnews-rss"
   }
