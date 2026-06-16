@@ -1,18 +1,18 @@
 {
-  "generated_at": "2026-06-16T17:35:52.781302Z",
-  "last_updated": "2026/06/17 01:33 HKT",
+  "generated_at": "2026-06-16T17:52:17.226956Z",
+  "last_updated": "2026/06/16 23:30 HKT",
   "fx": {
-    "usdhkd": 7.8341,
-    "source": "Frankfurter",
-    "fetched_at": "2026-06-16T00:00:29.032391+00:00"
+    "usdhkd": null,
+    "source": null,
+    "fetched_at": null
   },
   "totals": {
     "us": {
-      "value_usd": 2775.4,
+      "value_usd": 2736.83,
       "cost_usd": 2770.2,
-      "pnl_usd": 5.2,
-      "pnl_pct": 0.1877,
-      "today_change_usd": -77.46,
+      "pnl_usd": -33.37,
+      "pnl_pct": -1.2046,
+      "today_change_usd": -116.03,
       "realized_usd": 1609.33
     },
     "hk": {
@@ -26,41 +26,41 @@
   },
   "concentration": {
     "us": {
-      "hhi": 0.2669,
-      "top2": 0.5986,
+      "hhi": 0.2635,
+      "top2": 0.5905,
       "positions": [
         {
           "ticker": "ROBN",
           "name": "二倍做多HOOD ETF-T-Rex",
-          "value": 1143.08,
-          "weight": 0.4119
+          "value": 1108.46,
+          "weight": 0.405
         },
         {
           "ticker": "RKLX",
           "name": "Defiance Daily Target 2X Long R",
-          "value": 518.1,
-          "weight": 0.1867
+          "value": 507.55,
+          "weight": 0.1855
         },
         {
           "ticker": "MSFU",
           "name": "二倍做多微软ETF-Direxion",
-          "value": 496.0,
-          "weight": 0.1787
+          "value": 501.6,
+          "weight": 0.1833
         },
         {
           "ticker": "PLTU",
           "name": "二倍做多PLTR ETF-Direxion",
-          "value": 456.12,
-          "weight": 0.1643
+          "value": 458.22,
+          "weight": 0.1674
         },
         {
           "ticker": "CRCL",
           "name": "Circle Internet Group Inc-A",
-          "value": 162.1,
-          "weight": 0.0584
+          "value": 161.0,
+          "weight": 0.0588
         }
       ],
-      "total": 2775.4,
+      "total": 2736.83,
       "verdict": {
         "level": "concentrated",
         "label": "集中风险",
@@ -118,14 +118,14 @@
         "currency": "USD",
         "shares": 2,
         "cost_basis": 87,
-        "current_price": 81.0501,
-        "current_value": 162.1,
-        "today_change": -4.64,
-        "today_change_pct": -2.78,
+        "current_price": 80.5,
+        "current_value": 161.0,
+        "today_change": -5.74,
+        "today_change_pct": -3.44,
         "day_high": 82.06,
         "day_low": 78.985,
-        "pnl_abs": -11.9,
-        "pnl_percent": -6.84,
+        "pnl_abs": -13.0,
+        "pnl_percent": -7.47,
         "is_active": true,
         "trades_count": 5
       },
@@ -135,14 +135,14 @@
         "currency": "USD",
         "shares": 14,
         "cost_basis": 40.9571,
-        "current_price": 32.58,
-        "current_value": 456.12,
-        "today_change": -27.3,
-        "today_change_pct": -5.65,
+        "current_price": 32.73,
+        "current_value": 458.22,
+        "today_change": -25.2,
+        "today_change_pct": -5.21,
         "day_high": 34.37,
         "day_low": 32.0744,
-        "pnl_abs": -117.28,
-        "pnl_percent": -20.45,
+        "pnl_abs": -115.18,
+        "pnl_percent": -20.09,
         "is_active": true,
         "trades_count": 2
       },
@@ -152,14 +152,14 @@
         "currency": "USD",
         "shares": 10,
         "cost_basis": 49.69,
-        "current_price": 51.81,
-        "current_value": 518.1,
-        "today_change": 21.2,
-        "today_change_pct": 4.27,
-        "day_high": 52.485,
+        "current_price": 50.755,
+        "current_value": 507.55,
+        "today_change": 10.65,
+        "today_change_pct": 2.14,
+        "day_high": 50.755,
         "day_low": 49.51,
-        "pnl_abs": 21.2,
-        "pnl_percent": 4.27,
+        "pnl_abs": 10.65,
+        "pnl_percent": 2.14,
         "is_active": true,
         "trades_count": 6
       },
@@ -169,14 +169,14 @@
         "currency": "USD",
         "shares": 40,
         "cost_basis": 23.5825,
-        "current_price": 28.5769,
-        "current_value": 1143.08,
-        "today_change": -44.12,
-        "today_change_pct": -3.72,
+        "current_price": 27.7116,
+        "current_value": 1108.46,
+        "today_change": -78.74,
+        "today_change_pct": -6.63,
         "day_high": 30.21,
-        "day_low": 27.71,
-        "pnl_abs": 199.78,
-        "pnl_percent": 21.18,
+        "day_low": 27.7116,
+        "pnl_abs": 165.16,
+        "pnl_percent": 17.51,
         "is_active": true,
         "trades_count": 3
       },
@@ -186,14 +186,14 @@
         "currency": "USD",
         "shares": 20,
         "cost_basis": 29.13,
-        "current_price": 24.7999,
-        "current_value": 496.0,
-        "today_change": -22.6,
-        "today_change_pct": -4.36,
+        "current_price": 25.08,
+        "current_value": 501.6,
+        "today_change": -17.0,
+        "today_change_pct": -3.28,
         "day_high": 25.28,
-        "day_low": 24.7999,
-        "pnl_abs": -86.6,
-        "pnl_percent": -14.86,
+        "day_low": 24.97,
+        "pnl_abs": -81.0,
+        "pnl_percent": -13.9,
         "is_active": true,
         "trades_count": 1
       }
@@ -882,24 +882,24 @@
   "indices": {
     "SPX": {
       "name": "S&P 500",
-      "price": 7531.24,
+      "price": 7536.51,
       "prev_close": 7554.29,
-      "change_pct": -0.305,
-      "source": "Tencent usINX index @ 2026-06-16 13:33 ET"
+      "change_pct": -0.235,
+      "source": "Tencent usINX index @ 2026-06-16 11:30 ET"
     },
     "NDX": {
       "name": "Nasdaq 100",
-      "price": 30119.68,
+      "price": 30208.71,
       "prev_close": 30543.92,
-      "change_pct": -1.389,
-      "source": "Tencent usNDX index @ 2026-06-16 13:33 ET"
+      "change_pct": -1.097,
+      "source": "Tencent usNDX index @ 2026-06-16 11:30 ET"
     },
     "DJI": {
       "name": "Dow Jones",
-      "price": 52135.09,
+      "price": 52053.25,
       "prev_close": 51671.03,
-      "change_pct": 0.898,
-      "source": "Tencent usDJI index @ 2026-06-16 13:33 ET"
+      "change_pct": 0.74,
+      "source": "Tencent usDJI index @ 2026-06-16 11:30 ET"
     },
     "HSI": {
       "name": "恒生指数",
@@ -917,8 +917,8 @@
     }
   },
   "market_context": {
-    "generated_at": "2026-06-16T08:00:00+08:00",
-    "date": "2026-06-16",
+    "generated_at": "2026-06-08T08:00:00+08:00",
+    "date": "2026-06-08",
     "sectors": [
       {
         "theme": "HK AI 大模型",
@@ -927,41 +927,35 @@
         ],
         "top_movers": [
           {
-            "ticker": "02513",
-            "name": "智谱",
-            "pct": 32.8,
-            "catalyst": "港股通纳入+板块资金涌入"
-          },
-          {
             "ticker": "00100",
             "name": "MINIMAX-W",
-            "pct": 7.02,
-            "catalyst": "板块联动+超卖反弹"
-          },
-          {
-            "ticker": "06682",
-            "name": "第四范式",
-            "pct": 1.46,
-            "catalyst": "企业AI平台"
+            "pct": -16.65,
+            "catalyst": "大户派货+估值调整+HSTECH纳入当日"
           },
           {
             "ticker": "00020",
             "name": "商汤-W",
-            "pct": 1.35,
-            "catalyst": "AI视觉+大模型"
+            "pct": -5.0,
+            "catalyst": "港股AI板块sell-off"
+          },
+          {
+            "ticker": "02513",
+            "name": "智谱",
+            "pct": 0,
+            "catalyst": "HSTECH纳入"
           }
         ],
         "self": [
           {
             "ticker": "00100",
-            "pct": 7.02,
-            "rank_text": "领涨同行之一（仅落后智谱）",
-            "attribution": "板块联动+超卖反弹，但仅为智谱涨幅1/5——lock-up 7月到期压制个股alpha"
+            "pct": -16.65,
+            "rank_text": "板块最弱",
+            "attribution": "大户派货+估值调整, 纳入能否止血待观"
           }
         ]
       },
       {
-        "theme": "HK 科技指数 HSTECH",
+        "theme": "HK 科技指数 (HSTECH 标的)",
         "tickers_in_book": [
           "07226",
           "03032",
@@ -969,48 +963,70 @@
         ],
         "top_movers": [
           {
-            "ticker": "03690",
-            "name": "美团-W",
-            "pct": 0.45,
-            "catalyst": "权重股微涨"
+            "ticker": "07226",
+            "name": "XL二南方恒科",
+            "pct": -3.63,
+            "catalyst": "2x杠杆放大HSTECH -1.75%"
           },
           {
-            "ticker": "09999",
-            "name": "网易-S",
-            "pct": 0.4,
-            "catalyst": "权重股微涨"
+            "ticker": "03032",
+            "name": "恒生科技ETF",
+            "pct": -1.97,
+            "catalyst": "跟踪HSTECH"
           },
           {
-            "ticker": "09618",
-            "name": "京东集团-SW",
-            "pct": -0.09,
-            "catalyst": "持平"
-          },
-          {
-            "ticker": "09988",
-            "name": "阿里巴巴-W",
-            "pct": -0.82,
-            "catalyst": "南向资金净卖出"
+            "ticker": "03033",
+            "name": "南方恒生科技",
+            "pct": -1.72,
+            "catalyst": "跟踪HSTECH"
           }
         ],
         "self": [
           {
             "ticker": "07226",
-            "pct": 2.69,
-            "rank_text": "领涨（2x beta放大）",
-            "attribution": "US隔夜NDX+3.06%正面溢出+2x beta放大"
-          },
-          {
-            "ticker": "03033",
-            "pct": 1.26,
+            "pct": -3.63,
             "rank_text": "中位",
-            "attribution": "被动跟踪HSTECH"
+            "attribution": "2x杠杆放大underlying弱势"
           },
           {
             "ticker": "03032",
-            "pct": 1.58,
+            "pct": -1.97,
             "rank_text": "中位",
-            "attribution": "被动跟踪HSTECH"
+            "attribution": "1x跟踪"
+          },
+          {
+            "ticker": "03033",
+            "pct": -1.72,
+            "rank_text": "中位",
+            "attribution": "1x跟踪"
+          }
+        ]
+      },
+      {
+        "theme": "商业航天",
+        "tickers_in_book": [
+          "RKLB"
+        ],
+        "top_movers": [
+          {
+            "ticker": "RKLB",
+            "name": "Rocket Lab",
+            "pct": -25.1,
+            "catalyst": "SpaceX IPO竞争+Blue Origin爆炸+宏观"
+          },
+          {
+            "ticker": "ASTS",
+            "name": "AST SpaceMobile",
+            "pct": -15.0,
+            "catalyst": "航天板块sell-off"
+          }
+        ],
+        "self": [
+          {
+            "ticker": "RKLB",
+            "pct": -25.1,
+            "rank_text": "板块最弱",
+            "attribution": "SpaceX IPO竞争压力+YTD仍+58%"
           }
         ]
       },
@@ -1021,30 +1037,46 @@
         ],
         "top_movers": [
           {
-            "ticker": "01072",
-            "name": "东方电气",
-            "pct": 2.82,
-            "catalyst": "风电设备需求"
-          },
-          {
             "ticker": "02208",
             "name": "金风科技",
-            "pct": -1.06,
-            "catalyst": "Citi block trade流出消化中"
+            "pct": -4.45,
+            "catalyst": "港股sell-off+bearish block trade"
           }
         ],
         "self": [
           {
             "ticker": "02208",
-            "pct": -1.06,
+            "pct": -4.45,
             "rank_text": "落后",
-            "attribution": "Q1+60%硬催化已price in，Citi流出仍在消化——典型利好不涨等风来"
+            "attribution": "港股整体sell-off拖累, 基本面好但资金轮动"
+          }
+        ]
+      },
+      {
+        "theme": "稳定币+agent支付",
+        "tickers_in_book": [
+          "CRCL"
+        ],
+        "top_movers": [
+          {
+            "ticker": "CRCL",
+            "name": "Circle",
+            "pct": -7.72,
+            "catalyst": "insider+SoftBank selling+crypto cooling"
+          }
+        ],
+        "self": [
+          {
+            "ticker": "CRCL",
+            "pct": -7.72,
+            "rank_text": "落后",
+            "attribution": "个股利空(insider sell)+板块低迷"
           }
         ]
       }
     ],
-    "narrative": "今日港股板块分化：AI大模型板块由智谱(+32.8%)带动全线爆发，MINIMAX+7%跟涨但仅为领涨者1/5，lock-up压制个股alpha。HSTECH权重股微涨（US隔夜NDX+3.06%溢出），07226 2x beta放大涨幅。风电板块逆势分化，东方电气+2.82%而金风-1.06%。核心风险：FOMC明天（Warsh首秀），β3.45=hawkish surprise→book -7%+。",
-    "_source": "sector-scan-2026-06-16.json"
+    "narrative": "周五全球科技sell-off重创组合: NDX -4.77% chip板块$1T蒸发, HSTECH -1.75%<200MA。00100 MINIMAX单日-16.65%是最大痛点, 今日HSTECH纳入生效(470亿被动资金)是最后的反弹窗口。6个仓位硬闸全亮, 杠杆ETF占US leg 73%是核心风险。SpaceX IPO 6/12+CPI 6/11是本周两大催化。",
+    "_source": "sector-scan-2026-06-08.json"
   },
   "holdings_history": {
     "NVDA": [
@@ -1326,12 +1358,18 @@
   },
   "today_movers": [
     {
+      "ticker": "ROBN",
+      "name": "二倍做多HOOD ETF-T-Rex",
+      "region": "us",
+      "today_change_pct": -6.63,
+      "current_price": 27.7116
+    },
+    {
       "ticker": "PLTU",
       "name": "二倍做多PLTR ETF-Direxion",
       "region": "us",
-      "today_change_pct": -5.65,
-      "current_price": 32.58,
-      "note": "2x 铂族金属 -5.6%（基础约 -2.8%），浮亏 -20.5% 触止损，杠杆正常放大"
+      "today_change_pct": -5.21,
+      "current_price": 32.73
     },
     {
       "ticker": "07226",
@@ -1341,28 +1379,18 @@
       "current_price": 3.41
     },
     {
+      "ticker": "CRCL",
+      "name": "Circle Internet Group Inc-A",
+      "region": "us",
+      "today_change_pct": -3.44,
+      "current_price": 80.5
+    },
+    {
       "ticker": "MSFU",
       "name": "二倍做多微软ETF-Direxion",
       "region": "us",
-      "today_change_pct": -4.36,
-      "current_price": 24.7999,
-      "note": "2x 微软 -4.4%（MSFT 约 -2.2%），杠杆放大器工作正常，未破位"
-    },
-    {
-      "ticker": "RKLX",
-      "name": "Defiance Daily Target 2X Long R",
-      "region": "us",
-      "today_change_pct": 4.27,
-      "current_price": 51.81,
-      "note": "弱势市逆势 +4.3%，无明确个股催化，纯 beta 偏离待验证"
-    },
-    {
-      "ticker": "ROBN",
-      "name": "二倍做多HOOD ETF-T-Rex",
-      "region": "us",
-      "today_change_pct": -3.72,
-      "current_price": 28.5769,
-      "note": "高弹性小盘 -3.7%，浮盈 +21% 仍有保护，不需操作"
+      "today_change_pct": -3.28,
+      "current_price": 25.08
     }
   ],
   "anomalies": [
@@ -1392,78 +1420,69 @@
     }
   ],
   "behavioral_review": {
-    "verdict": "FOMC前β3.45+杠杆92.9%=定时炸弹，guardrail纪律松弛",
+    "verdict": "6个仓位硬闸全亮, 主动信号51%胜率vs被动69%, 仓位构造问题远大于信号问题",
     "points": [
       {
-        "text": "昨天3个guardrail触发(PLTU/07226/ROBN)全部未执行——市场反弹救了你，但这是运气不是判断。FOMC不会有第二次机会。",
-        "tag": "warning"
-      },
-      {
-        "text": "active signals 53%胜率(n=76) vs passive holds 69%(n=104)：主动call结构性亏钱。本次只做guardrail强制动作+hold。",
+        "text": "cut bucket 37%胜率+67%avg conf=过度自信+30pp。本次ROBN cut是纪律性(仓位硬闸)而非信号判断, 仍压conf到0.55",
         "tag": "bias"
       },
       {
-        "text": "catalyst面(硬催化)58%胜率(n=19)是唯一有edge的信号源。02208 Q1+60%的hold决策(55%conf)有数据支撑。",
-        "tag": "edge"
-      },
-      {
-        "text": "high-conf(≥0.75)实际胜率仅43%，overconfidence_gap+0.34——历史上你报70%+信心的call有超过1/3是错的。本次全部压到≤55%。",
+        "text": "主动信号T+1 51% vs T+5 40% — 对了一天看错thesis。本次主动call全压到≤0.55",
         "tag": "warning"
       },
       {
-        "text": "cut bucket 37%胜率(n=27)+overconfidence_gap+0.28=你在cut上严重过度自信。ROBN history:清×15胜6(40%)——每砍10次错6次。",
+        "text": "trim_on_rebound历史60%胜率是主动信号里最好的。00100/07226/PLTU用trim而非cut合理",
+        "tag": "edge"
+      },
+      {
+        "text": "被动hold 69%胜率>主动51% — 模型主动决策当前跑输持有, 本次倾向少动",
+        "tag": "warning"
+      },
+      {
+        "text": "00100 trim @680上次没触发(high 663) → trigger设太高。本次降到@600更实际",
         "tag": "bias"
       }
     ]
   },
   "bear_cases": [
     {
-      "ticker": "ROBN",
-      "thesis": "50.4%仓位+2x杠杆+HOOD<200MA+vol81%过热+FOMC明天。Warsh hawkish→HOOD-5%→ROBN-10%→US book -5%",
-      "falsifier": "HOOD收复200MA(102.78)+波动降至70%以下",
-      "watch": "FOMC dot plot + HOOD 102.78"
+      "ticker": "00100",
+      "thesis": "单名49%+单日-16.65%+'大户派货'+HSTECH<200MA。纳入已price in, 聪明钱在跑",
+      "falsifier": "纳入后5日内回升到700+",
+      "watch": "今日HSTECH纳入后00100资金流"
     },
     {
-      "ticker": "00100",
-      "thesis": "需+94%才回本+lock-up 7月46%解禁+HSTECH-12.9%<200MA趋势OFF。今天+7%是板块带动不是个股转势",
-      "falsifier": "lock-up到期后无大额抛售+纳入恒科后持续买盘",
-      "watch": "7月lock-up具体日期+南向资金流向"
+      "ticker": "ROBN",
+      "thesis": "HOOD<200MA -20%+vol 83%+红色regime。2x日内重置在下杀里放大衰减",
+      "falsifier": "HOOD回到$100以上(200MA)",
+      "watch": "US开盘后HOOD走势"
     },
     {
       "ticker": "07226",
-      "thesis": "2x杠杆+HSTECH趋势OFF+decay 0.74%/月+Top2 82.5%集中。FOMC hawkish→HSTECH再跌→2x加速衰减",
-      "falsifier": "HSTECH收复200MA(5470)",
-      "watch": "HSTECH 4500支撑"
+      "thesis": "HSTECH<200MA -11%+2x杠杆decay。港股科技sell-off可能持续",
+      "falsifier": "HSTECH回到5494以上(200MA)",
+      "watch": "HSTECH今日纳入后走势"
     }
   ],
   "hidden_concentration": {
-    "headline": "名义5只港股实为单因子——HSTECH beta占HK book 82.5%",
-    "factor": "HSTECH beta（00100+07226+03032+03033全部关联恒",
-    "exposure_pct": 92,
-    "detail": "00100/07226/03032/03033 四只全跟HSTECH方向联动（00100虽是AI个股但已纳入恒科）。若HSTECH再跌5%，HK book约-8%到-12%。唯一独立因子是02208风电(7.8%)。US侧同理：ROBN/PLTU/MSFU 3只2x杠杆=92.9%暴露，β3.45=SPX跌1%→book跌3.5%。"
+    "headline": "名义9只持仓, 实际HK 84%押恒科+US 73%押杠杆ETF, 单因子暴露88%",
+    "factor": "港股科技+美股杠杆ETF",
+    "exposure_pct": 88,
+    "detail": "HK: 00100(49%)+07226(35%)+03032(1.5%)+03033(7%)=92.5%恒科方向。US: ROBN(32%)+PLTU(19%)+MSFU(22%)=73%杠杆ETF。任一方向-15%=book-10%+。"
   },
   "insights_meta": {
-    "source": "insights-2026-06-16.json",
+    "source": "insights-2026-06-08.json",
     "stale": false
   },
-  "status_banner": "普跌日 PLTU/MSFU 拖累 $-77；杠杆 94% 敞口放大；盯 PLTU 收盘 $33 砍留",
+  "status_banner": null,
   "status_banner_meta": {
-    "source": "intraday-insights-2026-06-17.json",
-    "generated_at": "2026-06-17T01:33:14",
-    "stale": false
+    "source": null,
+    "generated_at": null,
+    "stale": true
   },
   "peer_divergence": {
-    "as_of": "2026-06-16",
-    "items": [
-      {
-        "ticker": "02208",
-        "self_pct_1d": -1.06,
-        "best_peer": "01072",
-        "best_peer_name": "东方电气",
-        "peer_pct_1d": 2.82,
-        "divergence_pp": 3.88
-      }
-    ]
+    "as_of": "",
+    "items": []
   },
   "calibration": {
     "brier_30d": 0.2587,
@@ -1851,7 +1870,7 @@
     {
       "ticker": "ROBN",
       "region": "us",
-      "weight_pct": 41.19,
+      "weight_pct": 40.5,
       "avg_confidence": 0.61,
       "n_actions": 22,
       "quadrant": "high_risk"
@@ -1867,7 +1886,7 @@
     {
       "ticker": "RKLX",
       "region": "us",
-      "weight_pct": 18.67,
+      "weight_pct": 18.55,
       "avg_confidence": 0.45,
       "n_actions": 1,
       "quadrant": "low_conv_small"
@@ -1875,7 +1894,7 @@
     {
       "ticker": "MSFU",
       "region": "us",
-      "weight_pct": 17.87,
+      "weight_pct": 18.33,
       "avg_confidence": 0.578,
       "n_actions": 19,
       "quadrant": "low_conv_small"
@@ -1883,7 +1902,7 @@
     {
       "ticker": "PLTU",
       "region": "us",
-      "weight_pct": 16.43,
+      "weight_pct": 16.74,
       "avg_confidence": 0.531,
       "n_actions": 20,
       "quadrant": "low_conv_small"
@@ -1907,7 +1926,7 @@
     {
       "ticker": "CRCL",
       "region": "us",
-      "weight_pct": 5.84,
+      "weight_pct": 5.88,
       "avg_confidence": 0.507,
       "n_actions": 17,
       "quadrant": "low_conv_small"
@@ -1968,28 +1987,7 @@
       "at_low": false,
       "currency": "HKD"
     },
-    "combined": {
-      "peak": {
-        "value": 129629.54,
-        "date": "2026-05-29"
-      },
-      "trough": {
-        "value": 93885.39,
-        "date": "2026-06-12"
-      },
-      "current": {
-        "value": 97715.97,
-        "date": "2026-06-17"
-      },
-      "current_dd_pct": -24.62,
-      "max_dd_pct": -27.57,
-      "max_dd_abs": 35744.16,
-      "max_dd_peak_date": "2026-05-29",
-      "max_dd_trough_date": "2026-06-12",
-      "at_low": false,
-      "currency": "HKD",
-      "fx_usdhkd": 7.8341
-    },
+    "combined": null,
     "profit": {
       "us": {
         "peak": {
@@ -2031,27 +2029,7 @@
         "at_low": false,
         "currency": "HKD"
       },
-      "combined": {
-        "peak": {
-          "value": 20762.94,
-          "date": "2026-05-29"
-        },
-        "trough": {
-          "value": -16297.35,
-          "date": "2026-06-12"
-        },
-        "current": {
-          "value": -12262.29,
-          "date": "2026-06-17"
-        },
-        "from_peak_abs": -33025.23,
-        "max_dd_abs": -37060.29,
-        "max_dd_peak_date": "2026-05-29",
-        "max_dd_trough_date": "2026-06-12",
-        "at_low": false,
-        "currency": "HKD",
-        "fx_usdhkd": 7.8341
-      },
+      "combined": null,
       "basis": "total profit (unrealized + realized), money-only"
     },
     "basis": "equity (market value + realized)"
@@ -2060,40 +2038,40 @@
     "us": [
       {
         "sector": "Fintech",
-        "value": 1143.08,
-        "pct": 41.19,
+        "value": 1108.46,
+        "pct": 40.5,
         "tickers": [
           "ROBN"
         ]
       },
       {
         "sector": "Aerospace",
-        "value": 518.1,
-        "pct": 18.67,
+        "value": 507.55,
+        "pct": 18.55,
         "tickers": [
           "RKLX"
         ]
       },
       {
         "sector": "Tech Mega-cap",
-        "value": 496.0,
-        "pct": 17.87,
+        "value": 501.6,
+        "pct": 18.33,
         "tickers": [
           "MSFU"
         ]
       },
       {
         "sector": "AI / Defense",
-        "value": 456.12,
-        "pct": 16.43,
+        "value": 458.22,
+        "pct": 16.74,
         "tickers": [
           "PLTU"
         ]
       },
       {
         "sector": "Crypto / Stablecoin",
-        "value": 162.1,
-        "pct": 5.84,
+        "value": 161.0,
+        "pct": 5.88,
         "tickers": [
           "CRCL"
         ]
@@ -2129,9 +2107,9 @@
     ]
   },
   "leveraged_etf": {
-    "us_pct": 94.16,
+    "us_pct": 94.12,
     "hk_pct": 37.68,
-    "combined_pct": 53.46,
+    "combined_pct": null,
     "tickers": [
       "07226",
       "MSFU",
@@ -2351,16 +2329,16 @@
         "leg": "US",
         "ticker": "ROBN",
         "severity": "medium",
-        "detail": "ROBN = 41.19% of US (cap 35%)",
-        "action": "纪律性 trim ROBN → ≤35% (减约 171.69 USD，借反弹分批、勿在新低日一次砍)"
+        "detail": "ROBN = 40.5% of US (cap 35%)",
+        "action": "纪律性 trim ROBN → ≤35% (减约 150.57 USD，借反弹分批、勿在新低日一次砍)"
       },
       {
         "type": "leveraged_exposure",
         "leg": "US",
         "ticker": null,
         "severity": "high",
-        "detail": "US 杠杆 ETF = 94.2% (cap 50%) — 2x 日内重置，下杀崩/震荡衰减",
-        "action": "降杠杆=换仓非清仓：把约 1225.6 USD 的 2x 换成 1x 同因子(PLTU→PLTR、ROBN→HOOD、MSFU→MSFT)，敞口不变、停 decay；🧭转 green 后可换回 2x"
+        "detail": "US 杠杆 ETF = 94.1% (cap 50%) — 2x 日内重置，下杀崩/震荡衰减",
+        "action": "降杠杆=换仓非清仓：把约 1207.41 USD 的 2x 换成 1x 同因子(PLTU→PLTR、ROBN→HOOD、MSFU→MSFT)，敞口不变、停 decay；🧭转 green 后可换回 2x"
       },
       {
         "type": "regime_delever",
@@ -2390,8 +2368,8 @@
       {
         "ticker": "PLTU",
         "leg": "US",
-        "pnl_pct": -20.5,
-        "detail": "PLTU 浮亏 -20.5% ≤ 硬止损线 -18%",
+        "pnl_pct": -20.1,
+        "detail": "PLTU 浮亏 -20.1% ≤ 硬止损线 -18%",
         "action": "PLTU 触发杠杆 ETF 硬止损 → 换仓 1x 同因子 PLTR（敞口保留、停 decay，规则非择时）；🧭转 green 再换回 2x"
       }
     ],
@@ -2513,26 +2491,14 @@
       {
         "ticker": "PLTU",
         "leg": "US",
-        "pnl_pct": -20.5,
-        "breakeven_need_pct": 25.7,
+        "pnl_pct": -20.1,
+        "breakeven_need_pct": 25.1,
         "leveraged": true,
         "underlying_vol_pct": 63.8,
         "chop_drag_pct_per_month": 3.39,
-        "underlying_need_2x_6m_pct": 24.1,
-        "underlying_need_if_1x_pct": 25.7,
+        "underlying_need_2x_6m_pct": 23.8,
+        "underlying_need_if_1x_pct": 25.1,
         "swap_1x": "PLTR"
-      },
-      {
-        "ticker": "MSFU",
-        "leg": "US",
-        "pnl_pct": -14.9,
-        "breakeven_need_pct": 17.5,
-        "leveraged": true,
-        "underlying_vol_pct": 36.5,
-        "chop_drag_pct_per_month": 1.11,
-        "underlying_need_2x_6m_pct": 12.1,
-        "underlying_need_if_1x_pct": 17.5,
-        "swap_1x": "MSFT"
       },
       {
         "ticker": "03032",
@@ -2540,6 +2506,18 @@
         "pnl_pct": -14.1,
         "breakeven_need_pct": 16.4,
         "leveraged": false
+      },
+      {
+        "ticker": "MSFU",
+        "leg": "US",
+        "pnl_pct": -13.9,
+        "breakeven_need_pct": 16.1,
+        "leveraged": true,
+        "underlying_vol_pct": 36.5,
+        "chop_drag_pct_per_month": 1.11,
+        "underlying_need_2x_6m_pct": 11.4,
+        "underlying_need_if_1x_pct": 16.1,
+        "swap_1x": "MSFT"
       },
       {
         "ticker": "03033",
@@ -2551,8 +2529,8 @@
       {
         "ticker": "CRCL",
         "leg": "US",
-        "pnl_pct": -6.8,
-        "breakeven_need_pct": 7.3,
+        "pnl_pct": -7.5,
+        "breakeven_need_pct": 8.1,
         "leveraged": false
       }
     ],
@@ -3960,7 +3938,7 @@
     ]
   },
   "influencer_feed": {
-    "generated_at": "2026-06-15T23:21:58.290906+00:00",
+    "generated_at": "2026-06-16T17:52:17.087326+00:00",
     "lookback_hours": 48,
     "sources": {
       "trump": "trumpstruth.org/feed (primary)",
@@ -3969,89 +3947,12 @@
     },
     "llm_filtered": true,
     "counts": {
-      "total": 16,
+      "total": 12,
       "held_hits": 0,
       "new_ideas": 0,
-      "sector_hits": 1
+      "sector_hits": 0
     },
     "items": [
-      {
-        "author": "Musk",
-        "text": "Judge Dismisses Elon Musk’s xAI Trade-Secret Lawsuit Against OpenAI",
-        "url": "",
-        "published": "Mon, 15 Jun 2026 20:47:00 GMT",
-        "origin": "gnews-rss",
-        "source": "WSJ",
-        "tickers": [],
-        "held": [],
-        "new_ideas": [],
-        "sectors": [
-          "AI",
-          "法律诉讼"
-        ],
-        "sector_holdings": [
-          "MSFU"
-        ],
-        "stance": "neutral",
-        "relevance": 55,
-        "summary_cn": "法官驳回马斯克旗下xAI对OpenAI的商业秘密诉讼，涉及AI行业竞争与法律纠纷，微软是OpenAI主要投资者。"
-      },
-      {
-        "author": "Trump",
-        "text": "The Deal with the Islamic Republic of Iran is now complete. Congratulations to all! I hereby fully authorize the toll free opening of the Strait of Hormuz, and, simultaneously herewith, authorize the immediate removal of the United States Naval blockade. Ships of the World, start your engines. Let the oil flow! President DONALD J. TRUMP",
-        "url": "https://trumpstruth.org/statuses/39259",
-        "published": "2026-06-14T21:29:48+00:00",
-        "origin": "truthsocial",
-        "tickers": [],
-        "held": [],
-        "new_ideas": [],
-        "sectors": [
-          "能源",
-          "航运",
-          "地缘政治"
-        ],
-        "sector_holdings": [],
-        "stance": "endorse",
-        "relevance": 80,
-        "summary_cn": "特朗普宣布与伊朗协议完成，授权霍尔木兹海峡免费开放并解除美国海军封锁，呼吁全球船只启动引擎让石油流动。"
-      },
-      {
-        "author": "Trump",
-        "text": "This Great Deal will bring Peace and Security to the whole Region. Many presidents have tried to make Peace with Iran, and all have failed before me. The Leaders of the Region have, for the first time, found a President who can help them achieve real Peace. With the opening of the Strait upon the signing of the Deal on Friday, for purposes of mine removal, oil will flow on both ends again for the Region, and the World! President DONALD J. TRUMP",
-        "url": "https://trumpstruth.org/statuses/39260",
-        "published": "2026-06-14T22:27:37+00:00",
-        "origin": "truthsocial",
-        "tickers": [],
-        "held": [],
-        "new_ideas": [],
-        "sectors": [
-          "能源",
-          "地缘政治"
-        ],
-        "sector_holdings": [],
-        "stance": "endorse",
-        "relevance": 75,
-        "summary_cn": "特朗普称与伊朗的协议将带来和平与安全，霍尔木兹海峡将重新开放，石油将再次流动。"
-      },
-      {
-        "author": "Trump",
-        "text": "This morning’s attack on Beirut should not have happened, particularly on a special day when we are so close to a Peace Deal with Iran. Israel has the right to defend itself against threats, but the attack it was responding to was very small and meaningless, nobody was hurt, injured, or killed, and should not disrupt this important process. We are very close to a Deal that will bring peace to the region, including to Lebanon, and all sides should stand down. There should be no more attacks by Israel anywhere in Lebanon, but there should also be no more attacks by any other party, including Hez",
-        "url": "https://trumpstruth.org/statuses/39250",
-        "published": "2026-06-14T14:46:45+00:00",
-        "origin": "truthsocial",
-        "tickers": [],
-        "held": [],
-        "new_ideas": [],
-        "sectors": [
-          "能源",
-          "地缘政治",
-          "国防"
-        ],
-        "sector_holdings": [],
-        "stance": "neutral",
-        "relevance": 75,
-        "summary_cn": "特朗普对以色列袭击贝鲁特表示关切，称不应破坏与伊朗的和平进程，呼吁各方停火，涉及中东地缘政治与能源安全。"
-      },
       {
         "author": "Trump",
         "text": "RT @realDonaldTrumpTrump scores once-elusive peace deal with Iran, easing oil prices ahead of elections: https://justthenews.com/government/security/montrump-etches-iran-peace-deal-after-months-false-starts",
@@ -4063,12 +3964,13 @@
         "new_ideas": [],
         "sectors": [
           "能源",
+          "石油",
           "地缘政治"
         ],
         "sector_holdings": [],
         "stance": "endorse",
-        "relevance": 70,
-        "summary_cn": "特朗普宣称与伊朗达成和平协议，称其将缓解选举前油价，涉及能源市场与地缘政治。"
+        "relevance": 72,
+        "summary_cn": "Trump与伊朗达成和平协议，选举前油价下行，利空原油/能源股，宏观利好消费。"
       },
       {
         "author": "Trump",
@@ -4081,125 +3983,51 @@
         "new_ideas": [],
         "sectors": [
           "能源",
+          "石油",
           "地缘政治"
         ],
         "sector_holdings": [],
         "stance": "endorse",
-        "relevance": 70,
-        "summary_cn": "特朗普宣称与伊朗达成历史性和平协议，称其将缓解选举前油价，涉及能源市场与地缘政治。"
+        "relevance": 72,
+        "summary_cn": "Trump敲定伊朗和平协议，选举前油价承压下行（与第5条重复，保留信息量更高的一条）。"
       },
       {
         "author": "Trump",
-        "text": "Victoria Coates of the Heritage Foundation is absolutely fantastic! She gets it like few other do. Thank you Victoria. Iran will never have a Nuclear weapon, and the Strait of Hormuz will be opening up for business very shortly!!! President DJT",
-        "url": "https://trumpstruth.org/statuses/39258",
-        "published": "2026-06-14T20:35:13+00:00",
+        "text": "The Deal with the Islamic Republic of Iran is now complete. Congratulations to all! I hereby fully authorize the toll free opening of the Strait of Hormuz, and, simultaneously herewith, authorize the immediate removal of the United States Naval blockade. Ships of the World, start your engines. Let the oil flow! President DONALD J. TRUMP",
+        "url": "https://trumpstruth.org/statuses/39259",
+        "published": "2026-06-14T21:29:48+00:00",
         "origin": "truthsocial",
         "tickers": [],
         "held": [],
         "new_ideas": [],
         "sectors": [
           "能源",
+          "石油",
+          "航运"
+        ],
+        "sector_holdings": [],
+        "stance": "endorse",
+        "relevance": 72,
+        "summary_cn": "Trump宣布伊朗协议完成，下令开放霍尔木兹海峡、解除美海军封锁，全球油运恢复。"
+      },
+      {
+        "author": "Trump",
+        "text": "This Great Deal will bring Peace and Security to the whole Region. Many presidents have tried to make Peace with Iran, and all have failed before me. The Leaders of the Region have, for the first time, found a President who can help them achieve real Peace. With the opening of the Strait upon the signing of the Deal on Friday, for purposes of mine removal, oil will flow on both ends again for the Region, and the World! President DONALD J. TRUMP",
+        "url": "https://trumpstruth.org/statuses/39260",
+        "published": "2026-06-14T22:27:37+00:00",
+        "origin": "truthsocial",
+        "tickers": [],
+        "held": [],
+        "new_ideas": [],
+        "sectors": [
+          "能源",
+          "石油",
           "地缘政治"
         ],
         "sector_holdings": [],
         "stance": "endorse",
         "relevance": 70,
-        "summary_cn": "特朗普重申伊朗永不拥有核武器，霍尔木兹海峡即将开放，涉及能源与地缘政治。"
-      },
-      {
-        "author": "Musk",
-        "text": "SpaceX IPO raised $10bn more than thought",
-        "url": "",
-        "published": "Mon, 15 Jun 2026 21:15:39 GMT",
-        "origin": "gnews-rss",
-        "source": "BBC",
-        "tickers": [],
-        "held": [],
-        "new_ideas": [],
-        "sectors": [
-          "航天",
-          "IPO"
-        ],
-        "sector_holdings": [],
-        "stance": "endorse",
-        "relevance": 65,
-        "summary_cn": "SpaceX IPO筹集资金比预期多100亿美元，但SpaceX未上市，不涉及可交易标的。"
-      },
-      {
-        "author": "Musk",
-        "text": "SpaceX Soars Another 20%—Rocketing Musk’s Net Worth To $1.3 Trillion",
-        "url": "",
-        "published": "Mon, 15 Jun 2026 21:09:00 GMT",
-        "origin": "gnews-rss",
-        "source": "Forbes",
-        "tickers": [],
-        "held": [],
-        "new_ideas": [],
-        "sectors": [
-          "航天",
-          "IPO"
-        ],
-        "sector_holdings": [],
-        "stance": "endorse",
-        "relevance": 65,
-        "summary_cn": "SpaceX股价再涨20%，马斯克净资产飙升至1.3万亿美元，但SpaceX未上市，不涉及可交易标的。"
-      },
-      {
-        "author": "Musk",
-        "text": "SpaceX Stock Jumps Again as Elon Musk Unveils Meteoric Revenue Target",
-        "url": "",
-        "published": "Mon, 15 Jun 2026 20:24:00 GMT",
-        "origin": "gnews-rss",
-        "source": "Barron's",
-        "tickers": [],
-        "held": [],
-        "new_ideas": [],
-        "sectors": [
-          "航天",
-          "IPO"
-        ],
-        "sector_holdings": [],
-        "stance": "endorse",
-        "relevance": 65,
-        "summary_cn": "马斯克公布SpaceX惊人收入目标，SpaceX股价再次上涨，但SpaceX未上市，不涉及可交易标的。"
-      },
-      {
-        "author": "Musk",
-        "text": "SpaceX IPO gives Elon Musk a net worth number that stuns Wall Street | SPCX",
-        "url": "",
-        "published": "Mon, 15 Jun 2026 20:00:00 GMT",
-        "origin": "gnews-rss",
-        "source": "thestreet.com",
-        "tickers": [],
-        "held": [],
-        "new_ideas": [],
-        "sectors": [
-          "航天",
-          "IPO"
-        ],
-        "sector_holdings": [],
-        "stance": "endorse",
-        "relevance": 65,
-        "summary_cn": "SpaceX IPO使马斯克净资产数字震惊华尔街，但SpaceX未上市，不涉及可交易标的。"
-      },
-      {
-        "author": "Musk",
-        "text": "Elon Musk could become the world's first trillionaire with SpaceX's IPO",
-        "url": "",
-        "published": "Fri, 12 Jun 2026 15:06:55 GMT",
-        "origin": "gnews-rss",
-        "source": "PBS",
-        "tickers": [],
-        "held": [],
-        "new_ideas": [],
-        "sectors": [
-          "航天",
-          "IPO"
-        ],
-        "sector_holdings": [],
-        "stance": "endorse",
-        "relevance": 65,
-        "summary_cn": "马斯克可能因SpaceX IPO成为世界首位万亿富翁，但SpaceX未上市，不涉及可交易标的。"
+        "summary_cn": "Trump称伊朗协议周五签署后霍尔木兹海峡开放、油流恢复，全球石油供应增加。"
       },
       {
         "author": "Trump",
@@ -4212,31 +4040,49 @@
         "new_ideas": [],
         "sectors": [
           "能源",
+          "石油",
           "航运"
         ],
         "sector_holdings": [],
-        "stance": "neutral",
-        "relevance": 65,
-        "summary_cn": "特朗普称霍尔木兹海峡船只开始移动，许多满载石油，暗示能源运输通道安全改善。"
+        "stance": "endorse",
+        "relevance": 68,
+        "summary_cn": "Trump称霍尔木兹海峡船只开始移动、油轮启航，南方航线安全，原油运输恢复，利好石油及航运板块。"
       },
       {
-        "author": "Musk",
-        "text": "The ‘Other’ Elon Musk Stock Is Still Worth a Look",
-        "url": "",
-        "published": "Mon, 15 Jun 2026 18:15:12 GMT",
-        "origin": "gnews-rss",
-        "source": "ETF Database",
+        "author": "Trump",
+        "text": "Victoria Coates of the Heritage Foundation is absolutely fantastic! She gets it like few other do. Thank you Victoria. Iran will never have a Nuclear weapon, and the Strait of Hormuz will be opening up for business very shortly!!! President DJT",
+        "url": "https://trumpstruth.org/statuses/39258",
+        "published": "2026-06-14T20:35:13+00:00",
+        "origin": "truthsocial",
         "tickers": [],
         "held": [],
         "new_ideas": [],
         "sectors": [
-          "航天",
-          "投资"
+          "能源",
+          "石油",
+          "地缘政治"
         ],
         "sector_holdings": [],
         "stance": "endorse",
-        "relevance": 60,
-        "summary_cn": "文章称马斯克的'另一只'股票仍值得关注，但未指明具体标的，可能涉及未上市公司。"
+        "relevance": 65,
+        "summary_cn": "Trump称赞保守派智库专家，主旨仍是伊朗协议后霍尔木兹海峡将很快通航，利好能源及油运。"
+      },
+      {
+        "author": "Trump",
+        "text": "Former Trump economist says Iran deal means big economic boom for US: https://justthenews.com/nation/free-speech/trumps-former-economist-says-iran-deal-means-big-economic-boom-us",
+        "url": "https://trumpstruth.org/statuses/39296",
+        "published": "2026-06-16T16:06:57+00:00",
+        "origin": "truthsocial",
+        "tickers": [],
+        "held": [],
+        "new_ideas": [],
+        "sectors": [
+          "宏观"
+        ],
+        "sector_holdings": [],
+        "stance": "endorse",
+        "relevance": 58,
+        "summary_cn": "Trump前经济顾问称伊朗协议将给美国带来巨大经济繁荣，宏观利好信号。"
       },
       {
         "author": "Trump",
@@ -4252,9 +4098,9 @@
           "地缘政治"
         ],
         "sector_holdings": [],
-        "stance": "neutral",
-        "relevance": 60,
-        "summary_cn": "特朗普宣布伊朗同意永不拥有核武器，否认美国向伊朗支付3亿美元，涉及中东地缘政治与能源安全。"
+        "stance": "endorse",
+        "relevance": 55,
+        "summary_cn": "Trump称伊朗已同意不发展核武，且否认美国支付3亿美元，利好中东地缘稳定。"
       },
       {
         "author": "Trump",
@@ -4267,39 +4113,73 @@
         "new_ideas": [],
         "sectors": [
           "能源",
-          "地缘政治"
+          "地缘政治",
+          "国防"
         ],
         "sector_holdings": [],
-        "stance": "attack",
-        "relevance": 60,
-        "summary_cn": "特朗普抨击民主党参议员杰克·里德对其伊朗协议的批评，称奥巴马协议是灾难，涉及能源与地缘政治政策对比。"
-      }
-    ],
-    "held_hits": [],
-    "new_ideas": [],
-    "sector_hits": [
+        "stance": "endorse",
+        "relevance": 55,
+        "summary_cn": "Trump抨击民主党参议员Reed贬低伊朗协议，强调其协议彻底阻断伊朗核武、远超奥巴马JCPOA。"
+      },
       {
         "author": "Musk",
-        "text": "Judge Dismisses Elon Musk’s xAI Trade-Secret Lawsuit Against OpenAI",
+        "text": "Department of Justice sides with Elon Musk’s xAI in Southaven lawsuit",
         "url": "",
-        "published": "Mon, 15 Jun 2026 20:47:00 GMT",
+        "published": "Tue, 16 Jun 2026 15:32:40 GMT",
         "origin": "gnews-rss",
-        "source": "WSJ",
+        "source": "Mississippi Today",
         "tickers": [],
         "held": [],
         "new_ideas": [],
         "sectors": [
           "AI",
-          "法律诉讼"
+          "法律"
         ],
-        "sector_holdings": [
-          "MSFU"
+        "sector_holdings": [],
+        "stance": "endorse",
+        "relevance": 50,
+        "summary_cn": "美国司法部在Southaven诉讼中站在Musk旗下xAI一边，对xAI有利（xAI未上市，无直接交易标的）。"
+      },
+      {
+        "author": "Trump",
+        "text": "RT @realDonaldTrumpUnder the disastrous Open Border Policy of Crooked Joe Biden and his traitorous DHS Secretary Alejandro Mayorkas, TENS OF MILLIONS of criminals, including over 13,000 STONE-COLD MURDERERS, poured into our Country from Prisons and Jails, from Mental Institutions and Insane Asylums. Needless to say, they were NOT always the safest drivers! Car Insurance Premiums rose to RECORD HIGHS, forcing Law-abiding American Citizens to subsidize the \"free riding” Biden Illegals. After over a year of ZERO ILLEGAL IMMIGRATION, and our highly successful efforts to REVERSE the Biden Invasion,",
+        "url": "https://trumpstruth.org/statuses/39271",
+        "published": "2026-06-15T12:03:55+00:00",
+        "origin": "truthsocial",
+        "tickers": [],
+        "held": [],
+        "new_ideas": [],
+        "sectors": [
+          "保险",
+          "移民政策"
         ],
-        "stance": "neutral",
-        "relevance": 55,
-        "summary_cn": "法官驳回马斯克旗下xAI对OpenAI的商业秘密诉讼，涉及AI行业竞争与法律纠纷，微软是OpenAI主要投资者。"
+        "sector_holdings": [],
+        "stance": "endorse",
+        "relevance": 50,
+        "summary_cn": "Trump宣传零非法移民后车险保费已下降，间接利好保险板块。"
+      },
+      {
+        "author": "Trump",
+        "text": "Under the disastrous Open Border Policy of Crooked Joe Biden and his traitorous DHS Secretary Alejandro Mayorkas, TENS OF MILLIONS of criminals, including over 13,000 STONE-COLD MURDERERS, poured into our Country from Prisons and Jails, from Mental Institutions and Insane Asylums. Needless to say, they were NOT always the safest drivers! Car Insurance Premiums rose to RECORD HIGHS, forcing Law-abiding American Citizens to subsidize the \"free riding” Biden Illegals. After over a year of ZERO ILLEGAL IMMIGRATION, and our highly successful efforts to REVERSE the Biden Invasion, Car Insurance Prem",
+        "url": "https://trumpstruth.org/statuses/39267",
+        "published": "2026-06-15T10:38:53+00:00",
+        "origin": "truthsocial",
+        "tickers": [],
+        "held": [],
+        "new_ideas": [],
+        "sectors": [
+          "保险",
+          "移民政策"
+        ],
+        "sector_holdings": [],
+        "stance": "endorse",
+        "relevance": 50,
+        "summary_cn": "Trump再宣传驱逐非法移民后车险保费创纪录下降（与第6条重复）。"
       }
-    ]
+    ],
+    "held_hits": [],
+    "new_ideas": [],
+    "sector_hits": []
   },
   "regime": {
     "label": "risk_on",
@@ -4315,25 +4195,25 @@
         "ticker": "ROBN",
         "name": "二倍做多HOOD ETF-T-Rex",
         "region": "us",
-        "pnl_percent": 21.18,
-        "pnl_abs": 199.78,
-        "current_value": 1143.08
+        "pnl_percent": 17.51,
+        "pnl_abs": 165.16,
+        "current_value": 1108.46
       },
       {
         "ticker": "RKLX",
         "name": "Defiance Daily Target 2X Long R",
         "region": "us",
-        "pnl_percent": 4.27,
-        "pnl_abs": 21.2,
-        "current_value": 518.1
+        "pnl_percent": 2.14,
+        "pnl_abs": 10.65,
+        "current_value": 507.55
       },
       {
         "ticker": "CRCL",
         "name": "Circle Internet Group Inc-A",
         "region": "us",
-        "pnl_percent": -6.84,
-        "pnl_abs": -11.9,
-        "current_value": 162.1
+        "pnl_percent": -7.47,
+        "pnl_abs": -13.0,
+        "current_value": 161.0
       }
     ],
     "losers": [
@@ -4368,9 +4248,9 @@
       "ticker": "ROBN",
       "region": "us",
       "high": 30.21,
-      "low": 27.71,
-      "current": 28.5769,
-      "range_pct": 8.75
+      "low": 27.7116,
+      "current": 27.7116,
+      "range_pct": 9.02
     },
     {
       "ticker": "00100",
@@ -4385,8 +4265,8 @@
       "region": "us",
       "high": 34.37,
       "low": 32.0744,
-      "current": 32.58,
-      "range_pct": 7.05
+      "current": 32.73,
+      "range_pct": 7.01
     },
     {
       "ticker": "02208",
@@ -4395,14 +4275,6 @@
       "low": 10.96,
       "current": 11.14,
       "range_pct": 5.75
-    },
-    {
-      "ticker": "RKLX",
-      "region": "us",
-      "high": 52.485,
-      "low": 49.51,
-      "current": 51.81,
-      "range_pct": 5.74
     },
     {
       "ticker": "07226",
@@ -4417,8 +4289,8 @@
       "region": "us",
       "high": 82.06,
       "low": 78.985,
-      "current": 81.0501,
-      "range_pct": 3.79
+      "current": 80.5,
+      "range_pct": 3.82
     },
     {
       "ticker": "03033",
@@ -4427,20 +4299,28 @@
       "low": 4.548,
       "current": 4.56,
       "range_pct": 2.81
+    },
+    {
+      "ticker": "03032",
+      "region": "hk",
+      "high": 4.76,
+      "low": 4.632,
+      "current": 4.642,
+      "range_pct": 2.76
     }
   ],
   "realized_vs_unrealized": {
     "us": {
       "realized": 1609.33,
-      "unrealized": 5.2
+      "unrealized": -33.37
     },
     "hk": {
       "realized": 7259.16,
       "unrealized": -32169.84
     },
     "combined_usd": {
-      "realized": 2535.94,
-      "unrealized": -4101.19
+      "realized": null,
+      "unrealized": null
     }
   },
   "capital_deployed": {
@@ -4450,15 +4330,15 @@
     },
     "hk": {
       "native": 95535.4,
-      "usd": 12194.81
+      "usd": null
     },
-    "combined_usd": 16574.34
+    "combined_usd": null
   },
   "net_principal_return": {
     "us": {
       "net_principal": 1160.87,
-      "total_profit": 1614.53,
-      "return_pct": 65.34,
+      "total_profit": 1575.96,
+      "return_pct": 63.78,
       "return_basis": "true_principal",
       "true_principal": 2471.12
     },
@@ -4469,9 +4349,9 @@
       "return_basis": "net_principal"
     },
     "combined_usd": {
-      "net_principal": 12812.71,
-      "total_profit": -1565.25,
-      "return_pct": -12.22
+      "net_principal": null,
+      "total_profit": null,
+      "return_pct": null
     },
     "formula": "回报率 = (浮动 + 已实现) ÷ 本金；本金优先用 true_principal（峰值净投入），否则用 净投入本金=累计成本−已实现"
   },
