@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-16T17:52:17.087326+00:00",
+  "generated_at": "2026-06-16T23:08:05.525591+00:00",
   "lookback_hours": 48,
   "sources": {
     "trump": "trumpstruth.org/feed (primary)",
@@ -11,9 +11,156 @@
     "total": 12,
     "held_hits": 0,
     "new_ideas": 0,
-    "sector_hits": 0
+    "sector_hits": 7
   },
   "items": [
+    {
+      "author": "Musk",
+      "text": "Trump Administration Attempts Massive Power Grab in Defense of Musk’s xAI",
+      "url": "",
+      "published": "Tue, 16 Jun 2026 16:58:30 GMT",
+      "origin": "gnews-rss",
+      "source": "Earthjustice",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "AI",
+        "监管"
+      ],
+      "sector_holdings": [
+        "MSFU"
+      ],
+      "stance": "endorse",
+      "relevance": 68,
+      "summary_cn": "特朗普政府为保护马斯克旗下xAI而进行大规模监管/法律权力扩张，强烈利好AI板块并暗示对xAI生态的政策支持。"
+    },
+    {
+      "author": "Musk",
+      "text": "D.O.J. Seeks to Halt Pollution Lawsuit Against Elon Musk’s Data Center",
+      "url": "",
+      "published": "Tue, 16 Jun 2026 19:59:14 GMT",
+      "origin": "gnews-rss",
+      "source": "The New York Times",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "AI",
+        "数据中心",
+        "监管"
+      ],
+      "sector_holdings": [
+        "MSFU"
+      ],
+      "stance": "endorse",
+      "relevance": 62,
+      "summary_cn": "美司法部试图阻止针对马斯克数据中心的污染诉讼，特朗普政府为xAI/数据中心扫除监管障碍，利好AI算力。"
+    },
+    {
+      "author": "Musk",
+      "text": "Opinion | The SpaceX IPO has a bright side",
+      "url": "",
+      "published": "Tue, 16 Jun 2026 17:15:00 GMT",
+      "origin": "gnews-rss",
+      "source": "The Washington Post",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天/商业航天",
+        "IPO"
+      ],
+      "sector_holdings": [
+        "RKLX"
+      ],
+      "stance": "endorse",
+      "relevance": 55,
+      "summary_cn": "评论文章看好SpaceX IPO的积极外溢效应，间接提振商业航天板块情绪。"
+    },
+    {
+      "author": "Musk",
+      "text": "Musk's SpaceX overtakes Amazon to become world's fifth most valuable firm",
+      "url": "",
+      "published": "Tue, 16 Jun 2026 16:38:14 GMT",
+      "origin": "gnews-rss",
+      "source": "BBC",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天/商业航天",
+        "AI"
+      ],
+      "sector_holdings": [
+        "RKLX"
+      ],
+      "stance": "endorse",
+      "relevance": 55,
+      "summary_cn": "马斯克旗下SpaceX市值超越亚马逊成为全球第五大公司，间接利好航天板块情绪。"
+    },
+    {
+      "author": "Musk",
+      "text": "How Elon Musk's second-in-command Gwynne Shotwell helped turn SpaceX into an IPO giant",
+      "url": "",
+      "published": "Tue, 16 Jun 2026 09:39:48 GMT",
+      "origin": "gnews-rss",
+      "source": "CNBC",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天/商业航天"
+      ],
+      "sector_holdings": [
+        "RKLX"
+      ],
+      "stance": "neutral",
+      "relevance": 52,
+      "summary_cn": "报道聚焦SpaceX二号人物Gwynne Shotwell，暗示SpaceX IPO进程推进，间接提振航天板块。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon's super currency: SpaceX' surging stock paid for the $60 billion Cursor acquisition in just a few hours of trading",
+      "url": "",
+      "published": "Tue, 16 Jun 2026 17:20:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Fortune",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "AI",
+        "航天/商业航天"
+      ],
+      "sector_holdings": [
+        "MSFU",
+        "RKLX"
+      ],
+      "stance": "endorse",
+      "relevance": 50,
+      "summary_cn": "报道称SpaceX股价上涨数小时交易额即覆盖对Cursor的600亿美元收购，凸显SpaceX估值飙升，间接利好AI与航天板块。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk could lose nearly $1 trillion and still be the world's richest person",
+      "url": "",
+      "published": "Tue, 16 Jun 2026 16:35:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Yahoo Finance",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天/商业航天"
+      ],
+      "sector_holdings": [
+        "RKLX"
+      ],
+      "stance": "neutral",
+      "relevance": 48,
+      "summary_cn": "马斯克净资产达1.4万亿美元，即使缩水近1万亿仍为全球首富，反映SpaceX估值膨胀，间接利好航天板块。"
+    },
     {
       "author": "Trump",
       "text": "RT @realDonaldTrumpTrump scores once-elusive peace deal with Iran, easing oil prices ahead of elections: https://justthenews.com/government/security/montrump-etches-iran-peace-deal-after-months-false-starts",
@@ -24,14 +171,13 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "能源",
-        "石油",
+        "能源/原油",
         "地缘政治"
       ],
       "sector_holdings": [],
       "stance": "endorse",
-      "relevance": 72,
-      "summary_cn": "Trump与伊朗达成和平协议，选举前油价下行，利空原油/能源股，宏观利好消费。"
+      "relevance": 65,
+      "summary_cn": "特朗普与伊朗达成和平协议，油价在大选前回落，宏观风险偏好与能源板块受益。"
     },
     {
       "author": "Trump",
@@ -43,52 +189,13 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "能源",
-        "石油",
+        "能源/原油",
         "地缘政治"
       ],
       "sector_holdings": [],
       "stance": "endorse",
-      "relevance": 72,
-      "summary_cn": "Trump敲定伊朗和平协议，选举前油价承压下行（与第5条重复，保留信息量更高的一条）。"
-    },
-    {
-      "author": "Trump",
-      "text": "The Deal with the Islamic Republic of Iran is now complete. Congratulations to all! I hereby fully authorize the toll free opening of the Strait of Hormuz, and, simultaneously herewith, authorize the immediate removal of the United States Naval blockade. Ships of the World, start your engines. Let the oil flow! President DONALD J. TRUMP",
-      "url": "https://trumpstruth.org/statuses/39259",
-      "published": "2026-06-14T21:29:48+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "能源",
-        "石油",
-        "航运"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 72,
-      "summary_cn": "Trump宣布伊朗协议完成，下令开放霍尔木兹海峡、解除美海军封锁，全球油运恢复。"
-    },
-    {
-      "author": "Trump",
-      "text": "This Great Deal will bring Peace and Security to the whole Region. Many presidents have tried to make Peace with Iran, and all have failed before me. The Leaders of the Region have, for the first time, found a President who can help them achieve real Peace. With the opening of the Strait upon the signing of the Deal on Friday, for purposes of mine removal, oil will flow on both ends again for the Region, and the World! President DONALD J. TRUMP",
-      "url": "https://trumpstruth.org/statuses/39260",
-      "published": "2026-06-14T22:27:37+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "能源",
-        "石油",
-        "地缘政治"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 70,
-      "summary_cn": "Trump称伊朗协议周五签署后霍尔木兹海峡开放、油流恢复，全球石油供应增加。"
+      "relevance": 65,
+      "summary_cn": "特朗普敲定伊朗和平协议，油价在大选前回落，与第5条为同一事件，保留信息量更高的一条。"
     },
     {
       "author": "Trump",
@@ -100,33 +207,13 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "能源",
-        "石油",
+        "能源/原油",
         "航运"
       ],
       "sector_holdings": [],
       "stance": "endorse",
-      "relevance": 68,
-      "summary_cn": "Trump称霍尔木兹海峡船只开始移动、油轮启航，南方航线安全，原油运输恢复，利好石油及航运板块。"
-    },
-    {
-      "author": "Trump",
-      "text": "Victoria Coates of the Heritage Foundation is absolutely fantastic! She gets it like few other do. Thank you Victoria. Iran will never have a Nuclear weapon, and the Strait of Hormuz will be opening up for business very shortly!!! President DJT",
-      "url": "https://trumpstruth.org/statuses/39258",
-      "published": "2026-06-14T20:35:13+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "能源",
-        "石油",
-        "地缘政治"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 65,
-      "summary_cn": "Trump称赞保守派智库专家，主旨仍是伊朗协议后霍尔木兹海峡将很快通航，利好能源及油运。"
+      "relevance": 62,
+      "summary_cn": "特朗普称船只开始通过霍尔木兹海峡南部走廊安全运输石油，地缘风险缓解利好原油供应和航运。"
     },
     {
       "author": "Trump",
@@ -138,12 +225,13 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "宏观"
+        "能源/原油",
+        "地缘政治"
       ],
       "sector_holdings": [],
       "stance": "endorse",
-      "relevance": 58,
-      "summary_cn": "Trump前经济顾问称伊朗协议将给美国带来巨大经济繁荣，宏观利好信号。"
+      "relevance": 60,
+      "summary_cn": "特朗普前经济顾问称伊朗协议将给美国带来巨大经济繁荣，利好宏观风险偏好。"
     },
     {
       "author": "Trump",
@@ -155,90 +243,165 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "能源",
-        "地缘政治"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 55,
-      "summary_cn": "Trump称伊朗已同意不发展核武，且否认美国支付3亿美元，利好中东地缘稳定。"
-    },
-    {
-      "author": "Trump",
-      "text": "Senator Jack Reed, a Dumocrat from R.I., lied when stating the the Deal we just made is not as good as the Obama disaster known as the JCPOA. Reed is either an outright fraud, or incompetent. The Obuma Deal was a road to a Nuclear weapon for Iran, cash and all, one of the worst and dumbest (hence Dumocrats!) Deals ever made by the U.S. Our Deal is a WALL against Iran ever having a Nuclear weapon, the complete opposite of Obuma. Impeach Jack Reed!",
-      "url": "https://trumpstruth.org/statuses/39257",
-      "published": "2026-06-14T20:22:35+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "能源",
+        "能源/原油",
         "地缘政治",
-        "国防"
+        "中东"
       ],
       "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 55,
-      "summary_cn": "Trump抨击民主党参议员Reed贬低伊朗协议，强调其协议彻底阻断伊朗核武、远超奥巴马JCPOA。"
-    },
+      "stance": "neutral",
+      "relevance": 58,
+      "summary_cn": "特朗普宣称伊朗同意永不发展核武，否认美国支付3亿美元，试图安抚市场对中东局势的担忧。"
+    }
+  ],
+  "held_hits": [],
+  "new_ideas": [],
+  "sector_hits": [
     {
       "author": "Musk",
-      "text": "Department of Justice sides with Elon Musk’s xAI in Southaven lawsuit",
+      "text": "Trump Administration Attempts Massive Power Grab in Defense of Musk’s xAI",
       "url": "",
-      "published": "Tue, 16 Jun 2026 15:32:40 GMT",
+      "published": "Tue, 16 Jun 2026 16:58:30 GMT",
       "origin": "gnews-rss",
-      "source": "Mississippi Today",
+      "source": "Earthjustice",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
         "AI",
-        "法律"
+        "监管"
       ],
-      "sector_holdings": [],
+      "sector_holdings": [
+        "MSFU"
+      ],
       "stance": "endorse",
-      "relevance": 50,
-      "summary_cn": "美国司法部在Southaven诉讼中站在Musk旗下xAI一边，对xAI有利（xAI未上市，无直接交易标的）。"
+      "relevance": 68,
+      "summary_cn": "特朗普政府为保护马斯克旗下xAI而进行大规模监管/法律权力扩张，强烈利好AI板块并暗示对xAI生态的政策支持。"
     },
     {
-      "author": "Trump",
-      "text": "RT @realDonaldTrumpUnder the disastrous Open Border Policy of Crooked Joe Biden and his traitorous DHS Secretary Alejandro Mayorkas, TENS OF MILLIONS of criminals, including over 13,000 STONE-COLD MURDERERS, poured into our Country from Prisons and Jails, from Mental Institutions and Insane Asylums. Needless to say, they were NOT always the safest drivers! Car Insurance Premiums rose to RECORD HIGHS, forcing Law-abiding American Citizens to subsidize the \"free riding” Biden Illegals. After over a year of ZERO ILLEGAL IMMIGRATION, and our highly successful efforts to REVERSE the Biden Invasion,",
-      "url": "https://trumpstruth.org/statuses/39271",
-      "published": "2026-06-15T12:03:55+00:00",
-      "origin": "truthsocial",
+      "author": "Musk",
+      "text": "D.O.J. Seeks to Halt Pollution Lawsuit Against Elon Musk’s Data Center",
+      "url": "",
+      "published": "Tue, 16 Jun 2026 19:59:14 GMT",
+      "origin": "gnews-rss",
+      "source": "The New York Times",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "保险",
-        "移民政策"
+        "AI",
+        "数据中心",
+        "监管"
       ],
-      "sector_holdings": [],
+      "sector_holdings": [
+        "MSFU"
+      ],
       "stance": "endorse",
-      "relevance": 50,
-      "summary_cn": "Trump宣传零非法移民后车险保费已下降，间接利好保险板块。"
+      "relevance": 62,
+      "summary_cn": "美司法部试图阻止针对马斯克数据中心的污染诉讼，特朗普政府为xAI/数据中心扫除监管障碍，利好AI算力。"
     },
     {
-      "author": "Trump",
-      "text": "Under the disastrous Open Border Policy of Crooked Joe Biden and his traitorous DHS Secretary Alejandro Mayorkas, TENS OF MILLIONS of criminals, including over 13,000 STONE-COLD MURDERERS, poured into our Country from Prisons and Jails, from Mental Institutions and Insane Asylums. Needless to say, they were NOT always the safest drivers! Car Insurance Premiums rose to RECORD HIGHS, forcing Law-abiding American Citizens to subsidize the \"free riding” Biden Illegals. After over a year of ZERO ILLEGAL IMMIGRATION, and our highly successful efforts to REVERSE the Biden Invasion, Car Insurance Prem",
-      "url": "https://trumpstruth.org/statuses/39267",
-      "published": "2026-06-15T10:38:53+00:00",
-      "origin": "truthsocial",
+      "author": "Musk",
+      "text": "Opinion | The SpaceX IPO has a bright side",
+      "url": "",
+      "published": "Tue, 16 Jun 2026 17:15:00 GMT",
+      "origin": "gnews-rss",
+      "source": "The Washington Post",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "保险",
-        "移民政策"
+        "航天/商业航天",
+        "IPO"
       ],
-      "sector_holdings": [],
+      "sector_holdings": [
+        "RKLX"
+      ],
+      "stance": "endorse",
+      "relevance": 55,
+      "summary_cn": "评论文章看好SpaceX IPO的积极外溢效应，间接提振商业航天板块情绪。"
+    },
+    {
+      "author": "Musk",
+      "text": "Musk's SpaceX overtakes Amazon to become world's fifth most valuable firm",
+      "url": "",
+      "published": "Tue, 16 Jun 2026 16:38:14 GMT",
+      "origin": "gnews-rss",
+      "source": "BBC",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天/商业航天",
+        "AI"
+      ],
+      "sector_holdings": [
+        "RKLX"
+      ],
+      "stance": "endorse",
+      "relevance": 55,
+      "summary_cn": "马斯克旗下SpaceX市值超越亚马逊成为全球第五大公司，间接利好航天板块情绪。"
+    },
+    {
+      "author": "Musk",
+      "text": "How Elon Musk's second-in-command Gwynne Shotwell helped turn SpaceX into an IPO giant",
+      "url": "",
+      "published": "Tue, 16 Jun 2026 09:39:48 GMT",
+      "origin": "gnews-rss",
+      "source": "CNBC",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天/商业航天"
+      ],
+      "sector_holdings": [
+        "RKLX"
+      ],
+      "stance": "neutral",
+      "relevance": 52,
+      "summary_cn": "报道聚焦SpaceX二号人物Gwynne Shotwell，暗示SpaceX IPO进程推进，间接提振航天板块。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon's super currency: SpaceX' surging stock paid for the $60 billion Cursor acquisition in just a few hours of trading",
+      "url": "",
+      "published": "Tue, 16 Jun 2026 17:20:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Fortune",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "AI",
+        "航天/商业航天"
+      ],
+      "sector_holdings": [
+        "MSFU",
+        "RKLX"
+      ],
       "stance": "endorse",
       "relevance": 50,
-      "summary_cn": "Trump再宣传驱逐非法移民后车险保费创纪录下降（与第6条重复）。"
+      "summary_cn": "报道称SpaceX股价上涨数小时交易额即覆盖对Cursor的600亿美元收购，凸显SpaceX估值飙升，间接利好AI与航天板块。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk could lose nearly $1 trillion and still be the world's richest person",
+      "url": "",
+      "published": "Tue, 16 Jun 2026 16:35:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Yahoo Finance",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天/商业航天"
+      ],
+      "sector_holdings": [
+        "RKLX"
+      ],
+      "stance": "neutral",
+      "relevance": 48,
+      "summary_cn": "马斯克净资产达1.4万亿美元，即使缩水近1万亿仍为全球首富，反映SpaceX估值膨胀，间接利好航天板块。"
     }
-  ],
-  "held_hits": [],
-  "new_ideas": [],
-  "sector_hits": []
+  ]
 }
