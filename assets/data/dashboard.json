@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-17T18:57:53.294741Z",
+  "generated_at": "2026-06-17T19:09:10.439103Z",
   "last_updated": "2026/06/18 02:33 HKT",
   "fx": {
     "usdhkd": 7.8334,
@@ -3532,6 +3532,11 @@
           "close": 4669.07
         }
       ]
+    },
+    "staleness": {
+      "last_date": "2026-06-17",
+      "days_behind": 1,
+      "is_stale": false
     }
   },
   "us_news_digest": {

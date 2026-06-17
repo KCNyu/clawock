@@ -1542,13 +1542,23 @@ def main():
     influencer_trim = load_influencer_feed(issues)
 
     # Write context.json
+    # 简报上下文里的 portfolio 拷贝去掉 gold_dca.nav_history(~140条/3.3KB 黄金每日净值流水):
+    # 简报 LLM 不逐日分析黄金(黄金有独立 cron)，dashboard 🥇卡也是直接读 portfolio.json，
+    # 都用不到这段 → 纯占 token。浅拷贝只替换 gold_dca 键，不改原始 portfolio(下游仍用全量)。
+    portfolio_ctx = portfolio
+    _g = portfolio.get('gold_dca')
+    if isinstance(_g, dict) and _g.get('nav_history'):
+        _g_trim = {k: v for k, v in _g.items() if k != 'nav_history'}
+        _g_trim['nav_history_omitted'] = len(_g['nav_history'])  # 留计数标记=故意省略非丢失
+        portfolio_ctx = {**portfolio, 'gold_dca': _g_trim}
+
     context = {
         'generated_at':  datetime.now(timezone(timedelta(hours=8))).isoformat(),
         'date':          today,
         'fx':            fx,
         'portfolio_path': str(portfolio_path),
         'snapshot_path': str(snapshot_path),
-        'portfolio':     portfolio,
+        'portfolio':     portfolio_ctx,
         'book_totals':   book,
         'concentration': {'hk': hk_conc, 'us': us_conc},
         'risk_guardrail': guardrail,

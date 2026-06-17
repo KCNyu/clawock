@@ -1960,6 +1960,29 @@ def main():
     _embed('quant_signal_review', 'quant_signal_review.json')  # quant_signal_review.py: 因子 edge 自检(T+1/T+5 对账)
     _embed('catalysts', 'catalysts.json')              # fetch_catalysts.py + brief preflight [11/11]
     _embed('benchmark', 'benchmark.json')              # fetch_benchmark_history.py: SPY/HSI/HSTECH daily close
+    # 基准新鲜度守卫 — Polygon/HSI 抓取偶发限流会让 benchmark.json 停更(曾停到6天),
+    # equity curve 的 SPY/恒科等值线会静默退化成平线。被动暴露 staleness 给前端显示小字
+    # 提示(不推送,遵 feedback_no_individual_cron_alerts)。>4 日历日(≈>2交易日,含周末)算停更。
+    try:
+        _bm = out.get('benchmark')
+        if isinstance(_bm, dict):
+            _series = _bm.get('series') or {}
+            _last = [arr[-1].get('date') for arr in _series.values()
+                     if isinstance(arr, list) and arr and arr[-1].get('date')]
+            if _last:
+                _fresh = max(_last)
+                try:
+                    _y, _m, _d = map(int, _fresh.split('-'))
+                    _behind = (datetime.now().date() - datetime(_y, _m, _d).date()).days
+                except Exception:
+                    _behind = None
+                _bm['staleness'] = {
+                    'last_date': _fresh,
+                    'days_behind': _behind,
+                    'is_stale': (_behind is not None and _behind > 4),
+                }
+    except Exception as e:
+        print(f'  warn: benchmark staleness calc failed: {e}', file=sys.stderr)
     _embed('us_news_digest', 'us_news_digest.json')    # GH Action news-digest.yml (xiaomi)
     _embed('sentiment', 'sentiment.json')              # GH Action sentiment-scan.yml
     _embed('macro', 'macro.json')                      # GH Action macro-scan.yml
