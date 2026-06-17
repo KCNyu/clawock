@@ -1,19 +1,21 @@
 {
-  "generated_at": "2026-06-16T17:55:22.004072",
+  "generated_at": "2026-06-17T16:33:11.944939",
   "lookback_hours": 48,
   "tickers": [
     "CRCL",
     "PLTU",
     "RKLX",
     "ROBN",
+    "SPCH",
     "MSFU"
   ],
-  "digest_markdown": "## Top 移动信号\n\n- **RKLX**: SpaceX IPO 同日 +10.86%, RKLB 通过 SpaceX 估值锚定获得情绪溢价 — 对 kcn 而言, RKLB 间接持仓的 beta 被外生 IPO 事件放大, 短线波动率升级\n- **CRCL**: 宏观风险偏好急升 (Nasdaq 领涨, 油价 -5%, 美伊和谈重开霍尔木兹) — 加密/稳定币板块顺风, 但本批新闻无 Circle-specific catalyst, 仓位无需调整\n- **PLTU**: Palantir Q4 财报 beat 仍是 PLTU 核心驱动 (Q4 复盘仍在 ETF 渠道发酵) — 杠杆 ETF 渠道传播利好但属旧闻, 关注 PLTR 自身下一指引\n\n## Per-ticker 简报\n\n- **CRCL**: 无 ticker-specific 新闻; 头条 Travala 属 AVA 代币叙事, 与 Circle 无直接关联 — 中性\n- **PLTU**: LongPoint 扩展 2x 单股 ETF 产品线, PLTR Q4 beat 续被 ETF Trends 复盘 — 利好但已 price-in, 偏噪声\n- **RKLX**: SpaceX IPO 情绪外溢驱动 +10.86% 单日行情 — 短期 momentum 信号, 非基本面变化\n- **ROBN**: Ron Baron 新 space ETF 创新高或与 ROBN 无关 (T-Rex 2x HOOD), 疑似错配; 其余为算法/技术面噪声 — 忽略\n- **MSFU**: 全部为 Seeking Alpha / ETF Trends 对 MSFU 的推销式分析, 无 MSFT 财报/合约 catalyst — 零信号\n\n## 风险 Watch\n\n- **RKLX**: SpaceX IPO 驱动的 +10.86% 属事件型 rally, IPO 情绪退潮后杠杆 ETF 易回吐, 杠杆回撤风险\n- **CRCL**: 美伊和谈若反复, 油价反弹将逆转今日 risk-on, 稳定币板块承压\n- **PLTU/ROBN**: 2x 单股 ETF 普遍面临 vol-decay 与隔夜 rebalance 风险, 持仓需监控\n\n**整体判断**: 本批 48h 新闻以 ETF 渠道噪声和宏观为主, 唯一 actionable 是 RKLX 跟随 SpaceX IPO 的短线 momentum, CRCL 受益宏观但缺自身 catalyst。其余持仓无新信息, 维持现状。",
+  "digest_markdown": "### Top 3-5 移动信号\n- **SPCH**: SpaceX 2x ETF 首两日累计成交破 $3B, SPCH 单日创纪录成交量 — 主题 ETF 流动性极佳, kcn 可作为 SpaceX 敞口首选执行工具\n- **ROBN**: Ron Baron 在 SpaceX IPO 锚定 $1B, 累计持仓 $25B — 大机构定价背书, SpaceX 主题杠杆 ETF 短期有 fomo 买盘\n- **RKLX**: SpaceX IPO 当日 RKLB +6.9%, RKLX YTD +54% — 板块 beta 仍强, 杠杆产品注意 rebalance 损耗\n- **MSFU**: 期权异常放量 + \"MSFT woes hide opportunity\" 框架 — 短期情绪多, 但 \"woes\" 暗示基本面疑点\n- **PLTU**: LongPoint 扩展 2x 单股 ETF 产品线 — 同业供给加速, PLTU 价差/流动性边际改善\n\n### Per-ticker 简报\n- **CRCL**: 无 ticker catalyst; Travala/AI 故事与 CRCL 无关, 油价 -5% 仅为宏观背景\n- **PLTU**: 噪声为主, Palantir Q4 beat 已 price-in\n- **RKLX**: MooMoo 散户跟风帖, 缺机构增量\n- **ROBN**: 部分新闻 (Red Robin 评级) 为 ticker 混淆, 与 ROBN 无关\n- **SPCH**: 同日 10 只 SpaceX ETF 上市, 竞争将压窄价差\n- **MSFU**: 期权活动异常值得持续 monitor\n\n### 风险 watch\n- **MSFU**: \"MSFT woes\" 叙事 — 2x 杠杆下行加速损耗快, 警惕 reverse split\n- **SPCH/ROBN/RKLX**: 估值锚定 IPO 价, 若 SpaceX 破发将拖累整条 ETF 链\n- **杠杆 ETF 整体**: 高波动期 daily rebalance 损耗显著, 持仓周期建议 ≤ 数日",
   "raw_news_counts": {
     "CRCL": 2,
     "PLTU": 5,
     "RKLX": 5,
     "ROBN": 5,
+    "SPCH": 5,
     "MSFU": 5
   },
   "news_source_per_ticker": {
@@ -21,6 +23,7 @@
     "PLTU": "gnews-rss",
     "RKLX": "gnews-rss",
     "ROBN": "gnews-rss",
+    "SPCH": "gnews-rss",
     "MSFU": "gnews-rss"
   }
 }
