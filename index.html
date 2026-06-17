@@ -3386,7 +3386,6 @@ layout: null
       let cls = "val";
       if (id === 'risk-beta-us' || id === 'risk-beta-hk') cls += v > 3 ? ' neg' : (v > 2 ? ' warn-text' : '');
       else if (id === 'risk-vol') cls += v > 0.5 ? ' neg' : (v > 0.35 ? ' warn-text' : '');
-      else if (id === 'risk-dd') cls += v < -0.1 ? ' neg' : '';
       else if (id === 'risk-sharpe') cls += v < 0 ? ' neg' : (v > 1 ? ' pos' : '');
       else if (id === 'risk-margin') cls += v < -10 ? ' neg' : '';
       el.className = cls;
