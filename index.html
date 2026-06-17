@@ -4908,27 +4908,33 @@ layout: null
       const head = p || e;                 // who drives the headline + at_low flag
       const atLow = !!head.at_low;
       el.classList.toggle("is-low", atLow);
-      // % 仅在利润全程为正时有意义(见 _profit_extremes 守卫)；否则只报金额。
+      // 最大回撤 %: 仅利润全程为正时有意义(见 _profit_extremes 守卫)；港股利润为负→null。
       const ddPct = (p && p.max_dd_pct != null) ? p.max_dd_pct.toFixed(1) + "%" : null;
-      // 回撤恢复(并入本卡): curr=今天相对利润峰回撤% (current_dd_pct), max=历史最大回撤%。
-      //   100% = 已回到峰值/为正; 0% = 仍在最深处。利润为负的区域两者为 null → 无恢复条。
-      const curDd = p && p.current_dd_pct, maxDd = p && p.max_dd_pct;
+      // 回撤恢复 — 用「金额」算 → 不论利润正负都成立(港股深套也能给恢复%):
+      //   recovery = (当前 − 最深谷) / (起跌峰 − 最深谷)，0%=仍在坑底，100%=已回到峰。
+      //   US:(1945−1221)/(2148−1221)=78%; 港股:(−22913−(−25864))/(4811−(−25864))≈10%。
       let recovery = null;
-      if (maxDd != null && maxDd !== 0 && curDd != null) {
-        recovery = curDd >= 0 ? 100 : (curDd <= maxDd ? 0 : Math.max(0, Math.min(100, (1 - curDd / maxDd) * 100)));
+      if (p && p.max_dd_peak_val != null && p.max_dd_trough_val != null) {
+        const span = p.max_dd_peak_val - p.max_dd_trough_val;   // 跌幅 $ (>0)
+        const curV = p.current && p.current.value;
+        if (span > 0 && curV != null) {
+          recovery = Math.max(0, Math.min(100, (curV - p.max_dd_trough_val) / span * 100));
+        }
       }
-      let recTier = "mid", recTxt = "利润为负 — 无回撤%";
+      let recTier = "mid", recTxt = "无回撤数据";
       if (recovery != null) {
         if (recovery >= 70) { recTier = "good"; recTxt = recovery >= 95 ? "几乎完全恢复 ✓" : "已反弹大部分"; }
         else if (recovery >= 30) { recTier = "mid"; recTxt = "部分恢复中"; }
         else { recTier = "poor"; recTxt = recovery < 5 ? "贴底无反弹 — 谨慎" : "刚反弹一点 — 仍接近最低"; }
       }
       const recPctTxt = recovery == null ? DASH : (recovery > 0 && recovery < 1) ? "<1%" : recovery.toFixed(0) + "%";
+      // 港股利润为负、回撤%无意义 → 显示金额跌幅；否则显示 %。
+      const ddMain = ddPct ? `${ddPct}<small>${signed(p && p.max_dd_abs, cur)}</small>` : signed(p && p.max_dd_abs, cur);
       const recoveryBlock = `
         <div class="ext-dd">
-          <div class="ext-row"><span class="k">当前回撤 → 恢复</span><span class="v">${curDd != null ? curDd.toFixed(1) + "%" : DASH} → <b class="rec-${recTier}">${recPctTxt}</b></span></div>
+          <div class="ext-row"><span class="k">从坑底恢复</span><span class="v"><b class="rec-${recTier}">${recPctTxt}</b></span></div>
           <div class="dd-bar"><div class="dd-bar-fill ${recTier}" style="width:${recovery == null ? 0 : recovery}%"></div></div>
-          <div class="span">${recTxt}（恢复% = 离历史利润峰还差多远，100%＝已回峰值）</div>
+          <div class="span">${recTxt}（恢复% = 从最深谷反弹回历史利润峰的比例，100%＝已回峰值）</div>
         </div>`;
       const profitPrimary = p ? `
         <div class="ext-head">
@@ -4939,20 +4945,51 @@ layout: null
         <div class="ext-row"><span class="k">历史最低利润</span><span class="v ${(p.trough && p.trough.value) < 0 ? "neg" : ""}">${signed(p.trough && p.trough.value, cur)}<small>${dstr(p.trough && p.trough.date)}</small></span></div>
         <div class="ext-row"><span class="k">当前利润</span><span class="v ${(p.current && p.current.value) < 0 ? "neg" : ""}">${signed(p.current && p.current.value, cur)}<small>${dstr(p.current && p.current.date)}</small></span></div>
         <div class="ext-dd">
-          <div class="ext-row"><span class="k">最大回撤</span><span class="v">${ddPct || DASH}<small>${signed(p.max_dd_abs, cur)}</small></span></div>
+          <div class="ext-row"><span class="k">最大回撤</span><span class="v">${ddMain}</span></div>
           <div class="ext-row"><span class="k">距利润峰值</span><span class="v ${(p.from_peak_abs ?? 0) < 0 ? "neg" : ""}">${signed(p.from_peak_abs, cur)}</span></div>
           <div class="span">口径＝总利润（浮盈＋已实现，净化本金）；加减仓不影响它</div>
         </div>${recoveryBlock}` : `
         <div class="ext-head"><span class="ext-name">${r.name}</span></div>
         <div class="muted" style="margin-top:8px">无利润口径数据</div>`;
-      // SECONDARY = 净值口径，明确标注会被加减仓抬高，仅供参考。
-      const equitySecondary = e ? `
-        <div class="ext-dd" style="opacity:.72">
-          <div class="span" style="margin-top:0">净值口径（市值＋已实现）— <b>加减仓会抬高，仅参考</b></div>
-          <div class="ext-row"><span class="k">净值最高</span><span class="v">${money(e.peak && e.peak.value, cur)}<small>${dstr(e.peak && e.peak.date)}</small></span></div>
-          <div class="ext-row"><span class="k">净值当前</span><span class="v">${money(e.current && e.current.value, cur)}<small>${dstr(e.current && e.current.date)}</small></span></div>
+      // SECONDARY = 真实总资产（持仓市值 + 现金余额）。这是 trade-invariant 的"现在值多少钱"
+      // ——买入只是现金→股票、总额不变，不像旧"净值口径"会被加仓虚抬。只有当前值(没存历史
+      // 每日现金，做不了曲线)。港股现金未跟踪 → 标注。
+      const tot = safe(DATA, "totals") || {};
+      let taLine = "";
+      if (r.key === "us") {
+        const mv = safe(tot, "us", "value_usd"), cash = safe(tot, "us", "cash_usd");
+        if (mv != null) {
+          const total = cash != null ? mv + cash : null;
+          taLine = `
+            <div class="ext-row"><span class="k">　持仓市值</span><span class="v">${money(mv, "USD")}</span></div>
+            <div class="ext-row"><span class="k">　＋现金</span><span class="v">${cash != null ? money(cash, "USD") : "<span class='muted'>未跟踪</span>"}</span></div>
+            <div class="ext-row"><span class="k">＝真实总资产</span><span class="v" style="color:var(--accent)">${total != null ? money(total, "USD") : DASH}</span></div>`;
+        }
+      } else if (r.key === "hk") {
+        const mv = safe(tot, "hk", "value_hkd"), cash = safe(tot, "hk", "cash_hkd");
+        taLine = `
+            <div class="ext-row"><span class="k">　持仓市值</span><span class="v">${money(mv, "HKD")}</span></div>
+            <div class="ext-row"><span class="k">　＋现金</span><span class="v">${cash != null ? money(cash, "HKD") : "<span class='muted'>未跟踪</span>"}</span></div>
+            <div class="ext-row"><span class="k">＝真实总资产</span><span class="v" style="color:var(--accent)">${cash != null ? money(mv + cash, "HKD") : "<span class='muted'>需港股现金</span>"}</span></div>`;
+      } else { // combined: US(市值+现金)折美元 + HK(市值+现金)折美元
+        const um = safe(tot, "us", "value_usd"), uc = safe(tot, "us", "cash_usd");
+        const hm = safe(tot, "hk", "value_hkd"), hc = safe(tot, "hk", "cash_hkd");
+        const fxc = safe(DATA, "fx", "usdhkd") || 7.83;
+        if (um != null && hm != null) {
+          const usTot = um + (uc || 0), hkTotUsd = (hm + (hc || 0)) / fxc;
+          const partial = (uc == null || hc == null);
+          taLine = `
+            <div class="ext-row"><span class="k">美股总资产</span><span class="v">${money(usTot, "USD")}${uc == null ? "<small>无现金</small>" : ""}</span></div>
+            <div class="ext-row"><span class="k">港股总资产≈</span><span class="v">${money(hkTotUsd, "USD")}${hc == null ? "<small>无现金</small>" : ""}</span></div>
+            <div class="ext-row"><span class="k">＝合计(USD)</span><span class="v" style="color:var(--accent)">${money(usTot + hkTotUsd, "USD")}${partial ? "<small>偏低·缺现金</small>" : ""}</span></div>`;
+        }
+      }
+      const assetSecondary = taLine ? `
+        <div class="ext-dd" style="opacity:.85">
+          <div class="span" style="margin-top:0"><b>真实总资产</b>（持仓市值 ＋ 现金，加减仓不影响）</div>
+          ${taLine}
         </div>` : "";
-      el.innerHTML = profitPrimary + equitySecondary;
+      el.innerHTML = profitPrimary + assetSecondary;
     });
   }
 

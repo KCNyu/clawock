@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-17T18:34:53.573602Z",
+  "generated_at": "2026-06-17T18:37:34.161376Z",
   "last_updated": "2026/06/18 02:33 HKT",
   "fx": {
     "usdhkd": 7.8334,
@@ -13,7 +13,8 @@
       "pnl_usd": 104.59,
       "pnl_pct": 3.3097,
       "today_change_usd": 137.17,
-      "realized_usd": 1841.18
+      "realized_usd": 1841.18,
+      "cash_usd": 1200.45
     },
     "hk": {
       "value_hkd": 58104.4,
@@ -21,7 +22,8 @@
       "pnl_hkd": -30171.84,
       "pnl_pct": -34.18,
       "today_change_hkd": 1988.4,
-      "realized_hkd": 7259.16
+      "realized_hkd": 7259.16,
+      "cash_hkd": null
     }
   },
   "concentration": {
@@ -2066,6 +2068,8 @@
         "max_dd_pct": -43.14,
         "max_dd_peak_date": "2026-05-29",
         "max_dd_trough_date": "2026-06-12",
+        "max_dd_peak_val": 2147.69,
+        "max_dd_trough_val": 1221.14,
         "at_low": false,
         "currency": "USD"
       },
@@ -2088,6 +2092,8 @@
         "max_dd_pct": null,
         "max_dd_peak_date": "2026-05-27",
         "max_dd_trough_date": "2026-06-12",
+        "max_dd_peak_val": 4810.52,
+        "max_dd_trough_val": -25863.88,
         "at_low": false,
         "currency": "HKD"
       },
@@ -2110,6 +2116,8 @@
         "max_dd_pct": null,
         "max_dd_peak_date": "2026-05-29",
         "max_dd_trough_date": "2026-06-12",
+        "max_dd_peak_val": 20761.43,
+        "max_dd_trough_val": -16298.2,
         "at_low": false,
         "currency": "HKD",
         "fx_usdhkd": 7.8334

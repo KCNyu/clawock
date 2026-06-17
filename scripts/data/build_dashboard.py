@@ -1312,6 +1312,8 @@ def _profit_extremes(series):
         'max_dd_pct': max_dd_pct,                    # deepest drop as % of peak (None if profit crossed ≤0)
         'max_dd_peak_date': worst_peak_date,
         'max_dd_trough_date': worst_trough_date,
+        'max_dd_peak_val': round(worst_peak_val, 2),     # profit at the peak that started the worst DD
+        'max_dd_trough_val': round(worst_trough_val, 2), # profit at the deepest trough
         'at_low': abs(cur - lo[1]) < 1e-6,
     }
 
@@ -1792,6 +1794,8 @@ def main():
                 'pnl_pct': us_pf.get('total_pnl_percent', 0),
                 'today_change_usd': us_pf.get('today_total_change', 0),
                 'realized_usd': us_pf.get('realized_pnl', 0),
+                # 现金余额(kcn 对账手填) → 真实总资产 = 持仓市值 + 现金 (trade-invariant).
+                'cash_usd': us_pf.get('cash_usd'),
             },
             'hk': {
                 'value_hkd': hk_pf.get('total_current_value', 0),
@@ -1800,6 +1804,7 @@ def main():
                 'pnl_pct': hk_pf.get('total_pnl_percent', 0),
                 'today_change_hkd': hk_pf.get('today_total_change', 0),
                 'realized_hkd': hk_pf.get('realized_pnl', 0),
+                'cash_hkd': hk_pf.get('cash_hkd'),   # None = HK 现金未跟踪
             },
         },
         'concentration': {
