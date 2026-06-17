@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-17T15:34:21.554715Z",
+  "generated_at": "2026-06-17T15:50:13.967648Z",
   "last_updated": "2026/06/17 23:32 HKT",
   "fx": {
     "usdhkd": 7.8334,
@@ -4640,36 +4640,36 @@
     "formula": "回报率 = (浮动 + 已实现) ÷ 本金；本金优先用 true_principal（峰值净投入），否则用 净投入本金=累计成本−已实现"
   },
   "gold_dca": {
-    "principal_note": "对账基线（自动累加模式）。2026-06-09 kcn 对账：现值 15470 + 盈亏 -1829 → 本金 17299，份额 = 15470/净值3.1867 = 4854.55。此后每个 A 股交易日自动 +200@当日净值。补投对账：把 principal_invested/units_held 改成新真实数字、reconciled_date 改成对账当天即可，自动累加归零重算。",
-    "start_date": "2026-01-22",
-    "reconciled_date": "2026-06-09",
-    "daily_amount": 200,
-    "fund_name": "华安黄金ETF联接C",
-    "fund_code": "000217",
-    "principal_invested": 17299.0,
     "currency": "CNY",
+    "daily_amount": 200,
+    "start_date": "2026-01-22",
     "units_held": 4854.55,
-    "nav": 3.171,
-    "nav_date": "2026-06-16",
-    "nav_change_pct": 0.37,
+    "reconciled_date": "2026-06-09",
+    "principal_note": "对账基线（自动累加模式）。2026-06-09 kcn 对账：现值 15470 + 盈亏 -1829 → 本金 17299，份额 = 15470/净值3.1867 = 4854.55。此后每个 A 股交易日自动 +200@当日净值。补投对账：把 principal_invested/units_held 改成新真实数字、reconciled_date 改成对账当天即可，自动累加归零重算。",
+    "fund_code": "000217",
+    "fund_name": "华安黄金ETF联接C",
+    "principal_invested": 17299.0,
+    "nav": 3.1668,
+    "nav_date": "2026-06-17",
+    "nav_change_pct": -0.13,
     "realtime": {
-      "est_nav": 3.1509,
-      "est_change_pct": -0.26,
-      "est_time": "2026-06-16 22:29",
-      "nav_date": "2026-06-15"
+      "est_nav": 3.1864,
+      "est_change_pct": 0.62,
+      "est_time": "2026-06-17 22:27",
+      "nav_date": "2026-06-17"
     },
-    "principal_effective": 18299.0,
-    "units_effective": 5177.29,
-    "auto_added_days": 5,
-    "auto_added_amount": 1000.0,
-    "avg_cost": 3.5345,
-    "current_value": 16417.19,
-    "pnl_abs": -1881.81,
-    "pnl_percent": -10.28,
-    "breakeven_nav": 3.5345,
-    "breakeven_upside_pct": 11.46,
-    "days_invested": 94,
-    "installments_est": 91,
+    "principal_effective": 18499.0,
+    "units_effective": 5240.45,
+    "auto_added_days": 6,
+    "auto_added_amount": 1200.0,
+    "avg_cost": 3.53,
+    "current_value": 16595.45,
+    "pnl_abs": -1903.55,
+    "pnl_percent": -10.29,
+    "breakeven_nav": 3.53,
+    "breakeven_upside_pct": 11.47,
+    "days_invested": 95,
+    "installments_est": 92,
     "window_high": {
       "date": "2026-01-29",
       "nav": 4.1882
@@ -4681,45 +4681,41 @@
     "projection": [
       {
         "days": 20,
-        "invested": 22299.0,
-        "avg_cost": 3.4633,
-        "pnl_pct": -8.44,
-        "breakeven_upside_pct": 9.22
+        "invested": 22499.0,
+        "avg_cost": 3.4595,
+        "pnl_pct": -8.46,
+        "breakeven_upside_pct": 9.24
       },
       {
         "days": 40,
-        "invested": 26299.0,
-        "avg_cost": 3.4154,
-        "pnl_pct": -7.16,
-        "breakeven_upside_pct": 7.71
+        "invested": 26499.0,
+        "avg_cost": 3.4119,
+        "pnl_pct": -7.18,
+        "breakeven_upside_pct": 7.74
       },
       {
         "days": 60,
-        "invested": 30299.0,
-        "avg_cost": 3.381,
-        "pnl_pct": -6.21,
-        "breakeven_upside_pct": 6.62
+        "invested": 30499.0,
+        "avg_cost": 3.3776,
+        "pnl_pct": -6.24,
+        "breakeven_upside_pct": 6.66
       },
       {
         "days": 120,
-        "invested": 42299.0,
-        "avg_cost": 3.3186,
-        "pnl_pct": -4.45,
-        "breakeven_upside_pct": 4.66
+        "invested": 42499.0,
+        "avg_cost": 3.3153,
+        "pnl_pct": -4.48,
+        "breakeven_upside_pct": 4.69
       },
       {
         "days": 250,
-        "invested": 68299.0,
-        "avg_cost": 3.2608,
-        "pnl_pct": -2.76,
-        "breakeven_upside_pct": 2.83
+        "invested": 68499.0,
+        "avg_cost": 3.2573,
+        "pnl_pct": -2.78,
+        "breakeven_upside_pct": 2.86
       }
     ],
     "nav_history": [
-      [
-        "2026-01-28",
-        3.993
-      ],
       [
         "2026-01-29",
         4.1882
@@ -5075,8 +5071,12 @@
       [
         "2026-06-16",
         3.171
+      ],
+      [
+        "2026-06-17",
+        3.1668
       ]
     ],
-    "last_updated": "2026-06-16T15:50:18.429285Z"
+    "last_updated": "2026-06-17T15:50:13.660557Z"
   }
 }
