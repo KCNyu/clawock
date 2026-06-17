@@ -39,6 +39,16 @@ TMP = WS / 'memory' / '.tmp'
 REQUIRED_SECTIONS = ['▎情绪面', '▎技术面', '▎操作建议']
 FORBIDDEN_PHRASES = ['数据待获取', '等待数据', '数据缺失（占位）', 'TODO', 'TBD']
 
+# A real report is always >500 字 (raw_wechat_block alone ≈600). Anything this
+# short is a broken pipe, not a report — never deliver it. 2026-06-17: the cron
+# LLM issued the file-write and `report_postflight ... <<< "$(cat report.txt)"`
+# as PARALLEL tool calls in one turn; cat raced the write, read a missing file →
+# empty stdin (n_chars=1). The validator (correctly) failed it, but deliver_wechat
+# sends on ALL statuses incl. fail → kcn got a scary empty "🔴 Validation FAILED"
+# banner before the model's serial retry delivered the real report. Guard the
+# degenerate-input case BEFORE send/commit so a broken pipe never reaches WeChat.
+MIN_REPORT_CHARS = 50
+
 # Char limits — HK + US 统一 2000/2500（2026-05-27 起，1200 太紧报告频繁 warn）
 CHAR_LIMITS = {
     'hk': {'soft': 2000, 'hard': 2500},
@@ -215,6 +225,27 @@ def main():
             'wechat_prefix': f'🔴 postflight 异常: {ctx_err}\n\n',
             'commit_ok': False,
             'commit_msg': 'skipped (no preflight context)',
+        }
+        print(json.dumps(result, ensure_ascii=False, indent=2))
+        return 2
+
+    # Degenerate/empty stdin = broken pipe (see MIN_REPORT_CHARS note). Bail out
+    # BEFORE deliver_wechat so kcn never gets an empty-bodied FAILED banner; exit
+    # non-zero so the run record shows the breakage. The model's retry (serial
+    # `< file`) or report_watchdog's raw-block fallback delivers the real report.
+    if len(text.strip()) < MIN_REPORT_CHARS:
+        result = {
+            'status': 'fail',
+            'market': args.market,
+            'phase': args.phase,
+            'date': today,
+            'issues': [f'report text 仅 {len(text.strip())} 字 (< {MIN_REPORT_CHARS}) '
+                       f'— 疑似空管道（写文件与读取竞态），跳过投递+commit'],
+            'wechat_prefix': '',
+            'wechat_sent': False,
+            'commit_ok': False,
+            'commit_msg': 'skipped (degenerate empty report text)',
+            'n_chars': len(text),
         }
         print(json.dumps(result, ensure_ascii=False, indent=2))
         return 2
