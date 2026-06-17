@@ -1,51 +1,51 @@
 {
-  "generated_at": "2026-06-16T00:00:52.593528+00:00",
-  "as_of": "2026-06-16",
+  "generated_at": "2026-06-17T00:03:51.715292+00:00",
+  "as_of": "2026-06-17",
   "us": {
-    "beta_spx": 3.4521,
-    "vol_30d_annualized": 1.0472,
-    "max_dd_30d": -0.2371,
-    "sharpe_30d": 2.0932,
-    "current_value_usd": 2355.98
+    "beta_spx": 4.7246,
+    "vol_30d_annualized": 1.1055,
+    "max_dd_30d": -0.277,
+    "sharpe_30d": 2.0349,
+    "current_value_usd": 2783.98
   },
   "hk": {
-    "beta_hsi": 1.9126,
-    "vol_30d_annualized": 0.6926,
-    "max_dd_30d": -0.336,
-    "sharpe_30d": -2.8803,
-    "current_value_hkd": 57756.8
+    "beta_hsi": 1.6391,
+    "vol_30d_annualized": 0.6502,
+    "max_dd_30d": -0.3383,
+    "sharpe_30d": -4.4711,
+    "current_value_hkd": 56116.0
   },
   "combined": {
-    "vol_30d_annualized": 0.5858,
-    "max_dd_30d": -0.2732,
-    "sharpe_30d": -2.8125
+    "vol_30d_annualized": 0.6141,
+    "max_dd_30d": -0.2876,
+    "sharpe_30d": -2.3915
   },
   "leveraged_exposure": {
-    "us_leverage_factor_avg": 1.9292,
-    "hk_leverage_factor_avg": 1.3847,
-    "combined_avg": 1.5162,
-    "margin_at_risk_pct": 15.1616
+    "us_leverage_factor_avg": 1.9427,
+    "hk_leverage_factor_avg": 1.3765,
+    "combined_avg": 1.5345,
+    "margin_at_risk_pct": 15.345
   },
   "alerts": [
     {
       "type": "high_beta",
       "severity": "high",
-      "detail": "US β vs S&P 500 = 3.4521 (> 3.0)"
+      "detail": "US β vs S&P 500 = 4.7246 (> 3.0)"
     },
     {
       "type": "high_vol",
       "severity": "high",
-      "detail": "Combined 30d annualised vol = 58.6% (> 50%)"
+      "detail": "Combined 30d annualised vol = 61.4% (> 50%)"
     },
     {
       "type": "deep_dd",
       "severity": "medium",
-      "detail": "Combined 30d max DD = -27.3% (< -10%)"
+      "detail": "Combined 30d max DD = -28.8% (< -10%)"
     },
     {
       "type": "negative_sharpe",
       "severity": "medium",
-      "detail": "Combined 30d Sharpe = -2.8125 (< 0)"
+      "detail": "Combined 30d Sharpe = -2.3915 (< 0)"
     }
   ],
   "meta": {
@@ -61,13 +61,14 @@
       "fetched": [
         "CRCL",
         "PLTU",
+        "RKLX",
         "ROBN",
         "MSFU"
       ],
       "failed": [],
       "n_returns": 30,
-      "dates_first": "2026-05-01",
-      "dates_last": "2026-06-15"
+      "dates_first": "2026-05-04",
+      "dates_last": "2026-06-16"
     },
     "hk_fetch": {
       "fetched": [
@@ -79,8 +80,8 @@
       ],
       "failed": [],
       "n_returns": 30,
-      "dates_first": "2026-04-30",
-      "dates_last": "2026-06-15"
+      "dates_first": "2026-05-04",
+      "dates_last": "2026-06-16"
     }
   }
 }

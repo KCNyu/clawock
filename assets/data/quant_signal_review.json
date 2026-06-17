@@ -1,11 +1,11 @@
 {
-  "as_of": "2026-06-16",
-  "days_logged": 4,
+  "as_of": "2026-06-17",
+  "days_logged": 5,
   "min_n": 20,
   "factors": {
     "trend_on_follow": {
-      "n": 3,
-      "hit_rate": 0.333,
+      "n": 4,
+      "hit_rate": 0.25,
       "usable": false,
       "note": "样本不足，brief 不得引用方向结论"
     },
@@ -40,6 +40,6 @@
       "note": "样本不足，brief 不得引用方向结论"
     }
   },
-  "summary": "全部因子样本 <20，累积中（4 天留痕）——结论未解锁",
+  "summary": "全部因子样本 <20，累积中（5 天留痕）——结论未解锁",
   "discipline": "自迭代规则：hit_rate 是因子话语权的唯一来源。usable=false 的因子只展示不入决策；usable 后 <50% 的因子方向结论按反向警示处理（同 driven_by technical 39% 降权为过滤器的先例）。"
 }
