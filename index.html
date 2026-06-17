@@ -1840,14 +1840,14 @@ layout: null
     </div>
 
     <div class="card">
-      <h3>30天回撤恢复 <span class="muted" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:11px">(per region)</span></h3>
-      <p class="chart-hint">当前 DD = 你现在相对 30 天峰值跌了多少；30d 最大 = 这 30 天里最深的那一刻。<b>恢复比例</b> 越接近 100% = 已经从底部反弹得越多；接近 0% = 还在底部或刚跌新低。</p>
+      <h3>利润回撤恢复 <span class="muted" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:11px">(全历史 · per region)</span></h3>
+      <p class="chart-hint">口径 = <b>总利润（净化本金）</b>，加减仓不影响。当前 DD = 现在相对<b>历史利润峰</b>跌了多少；历史最大 = 有快照以来最深的那一刻。<b>恢复比例</b> 越接近 100% = 已从底部反弹越多；接近 0% = 仍在底部或刚跌新低。<br>利润口径为负的区域（如港股）无回撤%，请看「历史利润极值」卡的金额。</p>
       <div class="dd-grid" id="dd-grid">
         <div class="dd-region" id="dd-region-us">
           <div class="dd-region-name">US</div>
           <div class="dd-stats">
             <div class="dd-cell"><div class="lbl">当前 DD</div><div class="val" id="dd-us-current">—</div></div>
-            <div class="dd-cell"><div class="lbl">30d 最大</div><div class="val" id="dd-us-max">—</div></div>
+            <div class="dd-cell"><div class="lbl">历史最大</div><div class="val" id="dd-us-max">—</div></div>
             <div class="dd-cell"><div class="lbl">恢复</div><div class="val" id="dd-us-recovery">—</div></div>
           </div>
           <div class="dd-bar"><div class="dd-bar-fill" id="dd-us-bar" style="width:0%"></div></div>
@@ -1857,7 +1857,7 @@ layout: null
           <div class="dd-region-name">HK</div>
           <div class="dd-stats">
             <div class="dd-cell"><div class="lbl">当前 DD</div><div class="val" id="dd-hk-current">—</div></div>
-            <div class="dd-cell"><div class="lbl">30d 最大</div><div class="val" id="dd-hk-max">—</div></div>
+            <div class="dd-cell"><div class="lbl">历史最大</div><div class="val" id="dd-hk-max">—</div></div>
             <div class="dd-cell"><div class="lbl">恢复</div><div class="val" id="dd-hk-recovery">—</div></div>
           </div>
           <div class="dd-bar"><div class="dd-bar-fill" id="dd-hk-bar" style="width:0%"></div></div>
@@ -1867,8 +1867,8 @@ layout: null
     </div>
 
     <div class="card">
-      <h3>历史净值极值 <span class="muted" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:11px">(峰值 / 谷底 / 最大回撤)</span></h3>
-      <p class="chart-hint">口径 = <b>equity（持仓市值 + 累计已实现）</b>，卖出不再造成假回撤。<b>历史最高/最低</b> = 有快照以来的净值峰值与谷底；<b>最大回撤</b> = 从某个峰值到其后最深谷底的跌幅（含发生区间与金额）。<br>下半区 = <b>利润口径（净化本金）</b>：总利润＝浮盈＋已实现，<b>利润峰值</b>才是"真·赚最多"那天（≠市值峰），<b>距利润峰值</b>＝今天离它还差多少（可为负＝账面亏损，故此口径只报金额不报百分比）。<span id="extremes-window" class="muted"></span></p>
+      <h3>历史利润极值 <span class="muted" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:11px">(峰值 / 谷底 / 最大回撤)</span></h3>
+      <p class="chart-hint">主口径 = <b>总利润（浮盈＋已实现，净化本金）</b>：<b>加减仓不会影响它</b>，所以它的<b>峰值才是"真·赚最多"那天</b>。<b>历史最高/最低利润</b> = 有快照以来的利润峰值与谷底；<b>最大回撤</b> = 从利润峰到其后最深谷的跌幅（% 仅在利润全程为正时给出，否则只报金额）；<b>距利润峰值</b> = 今天离它还差多少。<br>下半区灰色 = <b>净值口径（市值＋已实现）</b>，<b>仅供参考</b>：买入会把它抬高（花掉的现金不计入净值），所以它常显示"假新高"——别把它当真峰值。<span id="extremes-window" class="muted"></span></p>
       <div class="ext-grid" id="ext-grid">
         <div class="ext-region" id="ext-region-combined"></div>
         <div class="ext-region" id="ext-region-us"></div>
@@ -4887,9 +4887,14 @@ layout: null
   // =========================================================
   function renderDrawdownRecovery() {
     const dd = safe(DATA, "drawdown") || {};
+    const pf = dd.profit || {};
+    // 利润口径（净化本金，trade-invariant）的全历史回撤：
+    //   curr = 今天相对利润峰的回撤%（current_dd_pct，≤0）
+    //   max  = 有快照以来最深的利润回撤%（max_dd_pct，≤0）
+    // 利润全程为负的区域（如港股）这两个字段为 null → 卡片显示"无%、见金额"。
     const regions = [
-      { key: "us", curr: dd.current_pct_us, max: dd.max_pct_30d_us },
-      { key: "hk", curr: dd.current_pct_hk, max: dd.max_pct_30d_hk },
+      { key: "us", curr: (pf.us && pf.us.current_dd_pct), max: (pf.us && pf.us.max_dd_pct) },
+      { key: "hk", curr: (pf.hk && pf.hk.current_dd_pct), max: (pf.hk && pf.hk.max_dd_pct) },
     ];
     regions.forEach(r => {
       const setT = (suf, txt) => { const el = document.getElementById(`dd-${r.key}-${suf}`); if (el) el.textContent = txt; };
@@ -4922,7 +4927,7 @@ layout: null
 
       let tier, statusTxt;
       if (recovery == null) {
-        tier = "mid"; statusTxt = "无 30d 回撤数据";
+        tier = "mid"; statusTxt = "利润口径为负 — 无回撤%，见上方金额";
       } else if (recovery >= 70) {
         tier = "good"; statusTxt = recovery >= 95 ? "几乎完全恢复 ✓" : "已反弹大部分";
       } else if (recovery >= 30) {
@@ -4978,29 +4983,38 @@ layout: null
       const e = r.data;
       if (!e) { el.innerHTML = `<div class="ext-name">${r.name}</div><div class="muted" style="margin-top:8px">无数据</div>`; return; }
       const cur = e.currency;
-      const atLow = !!e.at_low;
-      el.classList.toggle("is-low", atLow);
-      // 利润口径（净化本金）— money-only block. p.from_peak_abs ≤ 0 = 距利润峰值还差多少.
+      // PRIMARY = 总利润口径 (净化本金) — trade-invariant: 加减仓不会虚抬/虚降它，
+      // 所以它的峰值才是"真·赚最多"那天。净值(市值+已实现)会被买入抬高(花掉的现金
+      // 不计入)，故只作参考。p 缺失时退回 equity 作主显示。
       const p = profitDd[r.key];
-      const profitBlock = p ? `
-        <div class="ext-dd">
-          <div class="ext-row"><span class="k">利润峰值</span><span class="v">${signed(p.peak && p.peak.value, cur)}<small>${dstr(p.peak && p.peak.date)}</small></span></div>
-          <div class="ext-row"><span class="k">当前利润</span><span class="v ${(p.current && p.current.value) < 0 ? "neg" : ""}">${signed(p.current && p.current.value, cur)}</span></div>
-          <div class="ext-row"><span class="k">距利润峰值</span><span class="v ${(p.from_peak_abs ?? 0) < 0 ? "neg" : ""}">${signed(p.from_peak_abs, cur)}</span></div>
-          <div class="span">口径＝总利润（浮盈＋已实现，净化本金）；峰值≠市值峰</div>
-        </div>` : "";
-      el.innerHTML = `
+      const head = p || e;                 // who drives the headline + at_low flag
+      const atLow = !!head.at_low;
+      el.classList.toggle("is-low", atLow);
+      // % 仅在利润全程为正时有意义(见 _profit_extremes 守卫)；否则只报金额。
+      const ddPct = (p && p.max_dd_pct != null) ? p.max_dd_pct.toFixed(1) + "%" : null;
+      const profitPrimary = p ? `
         <div class="ext-head">
           <span class="ext-name">${r.name}</span>
-          <span class="ext-flag ${atLow ? "low" : "ok"}">${atLow ? "● 现处历史最低" : "未创新低"}</span>
+          <span class="ext-flag ${atLow ? "low" : "ok"}">${atLow ? "● 现处历史最低利润" : "未创利润新低"}</span>
         </div>
-        <div class="ext-row"><span class="k">历史最高</span><span class="v">${money(e.peak && e.peak.value, cur)}<small>${dstr(e.peak && e.peak.date)}</small></span></div>
-        <div class="ext-row"><span class="k">历史最低</span><span class="v">${money(e.trough && e.trough.value, cur)}<small>${dstr(e.trough && e.trough.date)}</small></span></div>
-        <div class="ext-row"><span class="k">当前</span><span class="v ${atLow ? "neg" : ""}">${money(e.current && e.current.value, cur)}<small>${dstr(e.current && e.current.date)}</small></span></div>
+        <div class="ext-row"><span class="k">历史最高利润</span><span class="v">${signed(p.peak && p.peak.value, cur)}<small>${dstr(p.peak && p.peak.date)}</small></span></div>
+        <div class="ext-row"><span class="k">历史最低利润</span><span class="v ${(p.trough && p.trough.value) < 0 ? "neg" : ""}">${signed(p.trough && p.trough.value, cur)}<small>${dstr(p.trough && p.trough.date)}</small></span></div>
+        <div class="ext-row"><span class="k">当前利润</span><span class="v ${(p.current && p.current.value) < 0 ? "neg" : ""}">${signed(p.current && p.current.value, cur)}<small>${dstr(p.current && p.current.date)}</small></span></div>
         <div class="ext-dd">
-          <div class="ext-row"><span class="k">最大回撤</span><span class="v">${e.max_dd_pct != null ? e.max_dd_pct.toFixed(1) + "%" : DASH}<small>${money(e.max_dd_abs, cur)}</small></span></div>
-          <div class="span">峰值 ${dstr(e.max_dd_peak_date)} → 谷底 ${dstr(e.max_dd_trough_date)}</div>
-        </div>${profitBlock}`;
+          <div class="ext-row"><span class="k">最大回撤</span><span class="v">${ddPct || DASH}<small>${signed(p.max_dd_abs, cur)}</small></span></div>
+          <div class="ext-row"><span class="k">距利润峰值</span><span class="v ${(p.from_peak_abs ?? 0) < 0 ? "neg" : ""}">${signed(p.from_peak_abs, cur)}</span></div>
+          <div class="span">口径＝总利润（浮盈＋已实现，净化本金）；加减仓不影响它</div>
+        </div>` : `
+        <div class="ext-head"><span class="ext-name">${r.name}</span></div>
+        <div class="muted" style="margin-top:8px">无利润口径数据</div>`;
+      // SECONDARY = 净值口径，明确标注会被加减仓抬高，仅供参考。
+      const equitySecondary = e ? `
+        <div class="ext-dd" style="opacity:.72">
+          <div class="span" style="margin-top:0">净值口径（市值＋已实现）— <b>加减仓会抬高，仅参考</b></div>
+          <div class="ext-row"><span class="k">净值最高</span><span class="v">${money(e.peak && e.peak.value, cur)}<small>${dstr(e.peak && e.peak.date)}</small></span></div>
+          <div class="ext-row"><span class="k">净值当前</span><span class="v">${money(e.current && e.current.value, cur)}<small>${dstr(e.current && e.current.date)}</small></span></div>
+        </div>` : "";
+      el.innerHTML = profitPrimary + equitySecondary;
     });
   }
 

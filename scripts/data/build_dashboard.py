@@ -1278,6 +1278,8 @@ def _profit_extremes(series):
     worst_abs = 0.0
     worst_trough_date = pts[0][0]
     worst_peak_date = pts[0][0]
+    worst_peak_val = pts[0][1]      # running peak at the worst drawdown (for the % guard)
+    worst_trough_val = pts[0][1]
     peak_date = pts[0][0]
     for d, v in pts:
         if v > peak:
@@ -1288,15 +1290,26 @@ def _profit_extremes(series):
             worst_abs = gap
             worst_trough_date = d
             worst_peak_date = peak_date
+            worst_peak_val = peak
+            worst_trough_val = v
     hi = max(pts, key=lambda x: x[1])
     lo = min(pts, key=lambda x: x[1])
     cur_date, cur = pts[-1]
+    # Trade-invariant % drawdown — ONLY meaningful while profit stays positive
+    # across the span (a series that crosses zero gives nonsense %, see docstring).
+    # current_dd_pct: today's give-back vs the running peak; max_dd_pct: deepest.
+    cur_dd_pct = (round((cur - peak) / peak * 100, 2)
+                  if peak > 0 and cur > 0 else None)
+    max_dd_pct = (round(worst_abs / worst_peak_val * 100, 2)
+                  if worst_peak_val > 0 and worst_trough_val > 0 else None)
     return {
         'peak': {'value': round(hi[1], 2), 'date': hi[0]},
         'trough': {'value': round(lo[1], 2), 'date': lo[0]},
         'current': {'value': round(cur, 2), 'date': cur_date},
         'from_peak_abs': round(cur - peak, 2),       # today's shortfall vs running peak (≤0)
+        'current_dd_pct': cur_dd_pct,                # % give-back from running peak (None if profit ≤0)
         'max_dd_abs': round(worst_abs, 2),           # deepest peak→trough drop ($, ≤0)
+        'max_dd_pct': max_dd_pct,                    # deepest drop as % of peak (None if profit crossed ≤0)
         'max_dd_peak_date': worst_peak_date,
         'max_dd_trough_date': worst_trough_date,
         'at_low': abs(cur - lo[1]) < 1e-6,
