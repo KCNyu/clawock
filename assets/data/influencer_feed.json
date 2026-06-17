@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-17T16:30:47.132624+00:00",
+  "generated_at": "2026-06-17T23:05:24.208060+00:00",
   "lookback_hours": 48,
   "sources": {
     "trump": "trumpstruth.org/feed (primary)",
@@ -9,56 +9,119 @@
   "llm_filtered": true,
   "counts": {
     "total": 11,
-    "held_hits": 8,
-    "new_ideas": 0,
-    "sector_hits": 0
+    "held_hits": 0,
+    "new_ideas": 2,
+    "sector_hits": 6
   },
   "items": [
     {
       "author": "Musk",
-      "text": "Musk’s Next Move May Be a Mega-Merger of SpaceX and Tesla",
+      "text": "Elon Musk’s Next Move May Be a Mega-Merger of SpaceX and Tesla",
       "url": "",
-      "published": "Wed, 17 Jun 2026 16:20:24 GMT",
+      "published": "Wed, 17 Jun 2026 21:34:24 GMT",
       "origin": "gnews-rss",
       "source": "The New York Times",
       "tickers": [
-        "SPCH"
+        "TSLA"
       ],
-      "held": [
-        "SPCH"
+      "held": [],
+      "new_ideas": [
+        "TSLA"
       ],
-      "new_ideas": [],
       "sectors": [
         "航天",
         "电动车",
         "AI"
       ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 82,
-      "summary_cn": "传Musk酝酿SpaceX与Tesla的超级合并，重大催化剂，直接利好SPCH持仓。"
+      "sector_holdings": [
+        "SPCH"
+      ],
+      "stance": "neutral",
+      "relevance": 78,
+      "summary_cn": "Musk相关报道：SpaceX与Tesla可能进行大型合并，TSLA被直接点名，kcn未持有但持有SPCH（SpaceX杠杆ETF）有板块关联。"
     },
     {
       "author": "Musk",
-      "text": "Musk's SpaceX overtakes Amazon to become world's fifth most valuable firm",
+      "text": "Elon Musk gets a $116 billion Tesla payday",
       "url": "",
-      "published": "Wed, 17 Jun 2026 01:27:26 GMT",
+      "published": "Wed, 17 Jun 2026 21:51:00 GMT",
       "origin": "gnews-rss",
-      "source": "BBC",
+      "source": "Electrek",
       "tickers": [
-        "SPCH"
+        "TSLA"
       ],
-      "held": [
-        "SPCH"
+      "held": [],
+      "new_ideas": [
+        "TSLA"
       ],
+      "sectors": [
+        "电动车"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 72,
+      "summary_cn": "Musk获得1160亿美元Tesla薪酬包，TSLA直接被点名，看多信号。"
+    },
+    {
+      "author": "Musk",
+      "text": "Michael Burry ‘tempted’ to bet against Elon Musk’s SpaceX",
+      "url": "",
+      "published": "Wed, 17 Jun 2026 11:19:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Fortune",
+      "tickers": [],
+      "held": [],
       "new_ideas": [],
       "sectors": [
         "航天"
       ],
-      "sector_holdings": [],
+      "sector_holdings": [
+        "SPCH"
+      ],
+      "stance": "attack",
+      "relevance": 68,
+      "summary_cn": "Michael Burry考虑做空SpaceX——SpaceX未上市无法直接交易，但kcn持有SPCH（2倍做多SpaceX ETF），空头信号对该持仓为利空。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk’s SpaceX has been on a wild ride post-IPO. Should you try to get on?",
+      "url": "",
+      "published": "Wed, 17 Jun 2026 16:15:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Yahoo Finance",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天"
+      ],
+      "sector_holdings": [
+        "SPCH"
+      ],
+      "stance": "neutral",
+      "relevance": 65,
+      "summary_cn": "报道讨论SpaceX IPO后是否值得买入，间接利好kcn持有的SPCH（2倍做多SpaceX杠杆ETF）。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk could become the world's first trillionaire with SpaceX's IPO",
+      "url": "",
+      "published": "Fri, 12 Jun 2026 15:06:55 GMT",
+      "origin": "gnews-rss",
+      "source": "PBS",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "AI"
+      ],
+      "sector_holdings": [
+        "SPCH"
+      ],
       "stance": "endorse",
-      "relevance": 80,
-      "summary_cn": "SpaceX市值超越亚马逊成为全球第五大公司，里程碑估值重估利好SPCH。"
+      "relevance": 65,
+      "summary_cn": "Musk可能凭SpaceX IPO成为全球首位万亿富翁，SpaceX未上市但kcn持有SPCH，IPO预期利好杠杆ETF。"
     },
     {
       "author": "Musk",
@@ -67,112 +130,19 @@
       "published": "Wed, 17 Jun 2026 01:10:00 GMT",
       "origin": "gnews-rss",
       "source": "WSJ",
-      "tickers": [
-        "SPCH"
-      ],
-      "held": [
-        "SPCH"
-      ],
+      "tickers": [],
+      "held": [],
       "new_ideas": [],
       "sectors": [
         "航天",
         "AI"
       ],
-      "sector_holdings": [],
+      "sector_holdings": [
+        "SPCH"
+      ],
       "stance": "endorse",
-      "relevance": 78,
-      "summary_cn": "Musk动用SpaceX资金解决AI算力问题，看多SpaceX/SPCH估值逻辑（AI+航天双轮）。"
-    },
-    {
-      "author": "Musk",
-      "text": "Jim Cramer says SpaceX investors aren't buying earnings — they're buying Elon Musk",
-      "url": "",
-      "published": "Tue, 16 Jun 2026 22:42:05 GMT",
-      "origin": "gnews-rss",
-      "source": "CNBC",
-      "tickers": [
-        "SPCH"
-      ],
-      "held": [
-        "SPCH"
-      ],
-      "new_ideas": [],
-      "sectors": [
-        "航天"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 75,
-      "summary_cn": "Cramer称SpaceX投资人买的不是盈利而是Elon Musk，间接看多SPCH的成长溢价。"
-    },
-    {
-      "author": "Musk",
-      "text": "Michael Burry 'tempted' to bet against Elon Musk's SpaceX",
-      "url": "",
-      "published": "Wed, 17 Jun 2026 11:19:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Fortune",
-      "tickers": [
-        "SPCH"
-      ],
-      "held": [
-        "SPCH"
-      ],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "AI"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 72,
-      "summary_cn": "Michael Burry考虑做空SpaceX（SPCH持仓2x做多标的），出现知名空头信号，需警惕杠杆ETF波动。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk and the Rise of Space Capitalism",
-      "url": "",
-      "published": "Wed, 17 Jun 2026 08:48:35 GMT",
-      "origin": "gnews-rss",
-      "source": "Foreign Policy",
-      "tickers": [
-        "SPCH"
-      ],
-      "held": [
-        "SPCH"
-      ],
-      "new_ideas": [],
-      "sectors": [
-        "航天"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 70,
-      "summary_cn": "Musk与太空资本主义崛起，叙事层面持续看多SpaceX/SPCH长期价值。"
-    },
-    {
-      "author": "Musk",
-      "text": "10 things Elon Musk can — but probably won’t — do with $1 trillion",
-      "url": "",
-      "published": "Wed, 17 Jun 2026 10:00:00 GMT",
-      "origin": "gnews-rss",
-      "source": "vox.com",
-      "tickers": [
-        "SPCH"
-      ],
-      "held": [
-        "SPCH"
-      ],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "AI",
-        "电动车"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 68,
-      "summary_cn": "Musk万亿美元帝国的10种潜在动作，SpaceX/SPCH作为核心载体间接受益。"
+      "relevance": 60,
+      "summary_cn": "Musk正在动用SpaceX新融资金解决AI问题——SpaceX资金/AI双叙事利好kcn的SPCH持仓。"
     },
     {
       "author": "Musk",
@@ -181,61 +151,40 @@
       "published": "Fri, 12 Jun 2026 14:24:36 GMT",
       "origin": "gnews-rss",
       "source": "Institute on Taxation and Economic Policy",
-      "tickers": [
-        "SPCH"
-      ],
-      "held": [
-        "SPCH"
-      ],
+      "tickers": [],
+      "held": [],
       "new_ideas": [],
       "sectors": [
         "航天",
-        "加密货币",
-        "监管"
+        "AI",
+        "税务/监管"
       ],
       "sector_holdings": [
-        "CRCL"
+        "SPCH"
+      ],
+      "stance": "endorse",
+      "relevance": 58,
+      "summary_cn": "报道称SpaceX可通过削减IRS资金获益19亿美元——税收/监管主题间接利好SPCH板块情绪。"
+    },
+    {
+      "author": "Musk",
+      "text": "SpaceX adds longtime Elon Musk ally Roelof Botha to board",
+      "url": "",
+      "published": "Wed, 17 Jun 2026 22:03:19 GMT",
+      "origin": "gnews-rss",
+      "source": "CNBC",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天"
+      ],
+      "sector_holdings": [
+        "SPCH"
       ],
       "stance": "neutral",
-      "relevance": 60,
-      "summary_cn": "SpaceX因IRS资金削减可额外获益19亿美元税务利益，间接利好SPCH估值。"
-    },
-    {
-      "author": "Trump",
-      "text": "Former Trump economist says Iran deal means big economic boom for US: https://justthenews.com/nation/free-speech/trumps-former-economist-says-iran-deal-means-big-economic-boom-us",
-      "url": "https://trumpstruth.org/statuses/39296",
-      "published": "2026-06-16T16:06:57+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "能源",
-        "宏观经济",
-        "中东地缘政治"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 65,
-      "summary_cn": "Trump前经济顾问称伊朗协议将给美国带来经济繁荣，间接看多宏观/能源风险偏好。"
-    },
-    {
-      "author": "Trump",
-      "text": "Iran has agreed to never have a Nuclear Weapon! Also, the story that the U.S. is paying Iran 300 million Dollars is Fake News, put out by the Dumocrats!!! President DJT",
-      "url": "https://trumpstruth.org/statuses/39295",
-      "published": "2026-06-15T23:17:52+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "中东地缘政治",
-        "能源"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 63,
-      "summary_cn": "Trump称伊朗同意不发展核武，且否认支付3亿美元，利好中东局势缓和与能源供给预期。"
+      "relevance": 55,
+      "summary_cn": "SpaceX新增长期盟友Roelof Botha为董事，未涉及直接交易标的但利好SPCH板块情绪。"
     },
     {
       "author": "Trump",
@@ -247,62 +196,166 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
+        "宏观政策",
+        "中东/地缘政治",
         "能源",
-        "宏观经济",
-        "中东地缘政治"
+        "关税"
       ],
       "sector_holdings": [],
       "stance": "neutral",
       "relevance": 62,
-      "summary_cn": "Trump称霍尔木兹海峡将立即开放、美国经济数据强劲，利好能源/宏观风险偏好。"
+      "summary_cn": "Trump称伊朗不会拥有核武器、霍尔木兹海峡将立即开放，宣称美国经济数据强劲、19.1万亿美元在美投资——涉及中东局势与宏观经贸信号。"
+    },
+    {
+      "author": "Trump",
+      "text": "Former Trump economist says Iran deal means big economic boom for US: https://justthenews.com/nation/free-speech/trumps-former-economist-says-iran-deal-means-big-economic-boom-us",
+      "url": "https://trumpstruth.org/statuses/39296",
+      "published": "2026-06-16T16:06:57+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "宏观经济",
+        "中东/地缘政治",
+        "能源"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 60,
+      "summary_cn": "Trump前经济顾问称伊朗协议将给美国带来重大经济繁荣，间接利好宏观与能源板块情绪。"
+    },
+    {
+      "author": "Trump",
+      "text": "Iran has agreed to never have a Nuclear Weapon! Also, the story that the U.S. is paying Iran 300 million Dollars is Fake News, put out by the Dumocrats!!! President DJT",
+      "url": "https://trumpstruth.org/statuses/39295",
+      "published": "2026-06-15T23:17:52+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "中东/地缘政治",
+        "能源"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 58,
+      "summary_cn": "Trump称伊朗已同意永不拥有核武器，否认向伊朗支付3亿美元——地缘风险缓和信号，对原油/能源板块有方向性影响。"
     }
   ],
-  "held_hits": [
+  "held_hits": [],
+  "new_ideas": [
     {
       "author": "Musk",
-      "text": "Musk’s Next Move May Be a Mega-Merger of SpaceX and Tesla",
+      "text": "Elon Musk’s Next Move May Be a Mega-Merger of SpaceX and Tesla",
       "url": "",
-      "published": "Wed, 17 Jun 2026 16:20:24 GMT",
+      "published": "Wed, 17 Jun 2026 21:34:24 GMT",
       "origin": "gnews-rss",
       "source": "The New York Times",
       "tickers": [
-        "SPCH"
+        "TSLA"
       ],
-      "held": [
-        "SPCH"
+      "held": [],
+      "new_ideas": [
+        "TSLA"
       ],
-      "new_ideas": [],
       "sectors": [
         "航天",
         "电动车",
         "AI"
       ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 82,
-      "summary_cn": "传Musk酝酿SpaceX与Tesla的超级合并，重大催化剂，直接利好SPCH持仓。"
+      "sector_holdings": [
+        "SPCH"
+      ],
+      "stance": "neutral",
+      "relevance": 78,
+      "summary_cn": "Musk相关报道：SpaceX与Tesla可能进行大型合并，TSLA被直接点名，kcn未持有但持有SPCH（SpaceX杠杆ETF）有板块关联。"
     },
     {
       "author": "Musk",
-      "text": "Musk's SpaceX overtakes Amazon to become world's fifth most valuable firm",
+      "text": "Elon Musk gets a $116 billion Tesla payday",
       "url": "",
-      "published": "Wed, 17 Jun 2026 01:27:26 GMT",
+      "published": "Wed, 17 Jun 2026 21:51:00 GMT",
       "origin": "gnews-rss",
-      "source": "BBC",
+      "source": "Electrek",
       "tickers": [
-        "SPCH"
+        "TSLA"
       ],
-      "held": [
-        "SPCH"
+      "held": [],
+      "new_ideas": [
+        "TSLA"
       ],
+      "sectors": [
+        "电动车"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 72,
+      "summary_cn": "Musk获得1160亿美元Tesla薪酬包，TSLA直接被点名，看多信号。"
+    }
+  ],
+  "sector_hits": [
+    {
+      "author": "Musk",
+      "text": "Michael Burry ‘tempted’ to bet against Elon Musk’s SpaceX",
+      "url": "",
+      "published": "Wed, 17 Jun 2026 11:19:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Fortune",
+      "tickers": [],
+      "held": [],
       "new_ideas": [],
       "sectors": [
         "航天"
       ],
-      "sector_holdings": [],
+      "sector_holdings": [
+        "SPCH"
+      ],
+      "stance": "attack",
+      "relevance": 68,
+      "summary_cn": "Michael Burry考虑做空SpaceX——SpaceX未上市无法直接交易，但kcn持有SPCH（2倍做多SpaceX ETF），空头信号对该持仓为利空。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk’s SpaceX has been on a wild ride post-IPO. Should you try to get on?",
+      "url": "",
+      "published": "Wed, 17 Jun 2026 16:15:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Yahoo Finance",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天"
+      ],
+      "sector_holdings": [
+        "SPCH"
+      ],
+      "stance": "neutral",
+      "relevance": 65,
+      "summary_cn": "报道讨论SpaceX IPO后是否值得买入，间接利好kcn持有的SPCH（2倍做多SpaceX杠杆ETF）。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk could become the world's first trillionaire with SpaceX's IPO",
+      "url": "",
+      "published": "Fri, 12 Jun 2026 15:06:55 GMT",
+      "origin": "gnews-rss",
+      "source": "PBS",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "AI"
+      ],
+      "sector_holdings": [
+        "SPCH"
+      ],
       "stance": "endorse",
-      "relevance": 80,
-      "summary_cn": "SpaceX市值超越亚马逊成为全球第五大公司，里程碑估值重估利好SPCH。"
+      "relevance": 65,
+      "summary_cn": "Musk可能凭SpaceX IPO成为全球首位万亿富翁，SpaceX未上市但kcn持有SPCH，IPO预期利好杠杆ETF。"
     },
     {
       "author": "Musk",
@@ -311,112 +364,19 @@
       "published": "Wed, 17 Jun 2026 01:10:00 GMT",
       "origin": "gnews-rss",
       "source": "WSJ",
-      "tickers": [
-        "SPCH"
-      ],
-      "held": [
-        "SPCH"
-      ],
+      "tickers": [],
+      "held": [],
       "new_ideas": [],
       "sectors": [
         "航天",
         "AI"
       ],
-      "sector_holdings": [],
+      "sector_holdings": [
+        "SPCH"
+      ],
       "stance": "endorse",
-      "relevance": 78,
-      "summary_cn": "Musk动用SpaceX资金解决AI算力问题，看多SpaceX/SPCH估值逻辑（AI+航天双轮）。"
-    },
-    {
-      "author": "Musk",
-      "text": "Jim Cramer says SpaceX investors aren't buying earnings — they're buying Elon Musk",
-      "url": "",
-      "published": "Tue, 16 Jun 2026 22:42:05 GMT",
-      "origin": "gnews-rss",
-      "source": "CNBC",
-      "tickers": [
-        "SPCH"
-      ],
-      "held": [
-        "SPCH"
-      ],
-      "new_ideas": [],
-      "sectors": [
-        "航天"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 75,
-      "summary_cn": "Cramer称SpaceX投资人买的不是盈利而是Elon Musk，间接看多SPCH的成长溢价。"
-    },
-    {
-      "author": "Musk",
-      "text": "Michael Burry 'tempted' to bet against Elon Musk's SpaceX",
-      "url": "",
-      "published": "Wed, 17 Jun 2026 11:19:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Fortune",
-      "tickers": [
-        "SPCH"
-      ],
-      "held": [
-        "SPCH"
-      ],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "AI"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 72,
-      "summary_cn": "Michael Burry考虑做空SpaceX（SPCH持仓2x做多标的），出现知名空头信号，需警惕杠杆ETF波动。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk and the Rise of Space Capitalism",
-      "url": "",
-      "published": "Wed, 17 Jun 2026 08:48:35 GMT",
-      "origin": "gnews-rss",
-      "source": "Foreign Policy",
-      "tickers": [
-        "SPCH"
-      ],
-      "held": [
-        "SPCH"
-      ],
-      "new_ideas": [],
-      "sectors": [
-        "航天"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 70,
-      "summary_cn": "Musk与太空资本主义崛起，叙事层面持续看多SpaceX/SPCH长期价值。"
-    },
-    {
-      "author": "Musk",
-      "text": "10 things Elon Musk can — but probably won’t — do with $1 trillion",
-      "url": "",
-      "published": "Wed, 17 Jun 2026 10:00:00 GMT",
-      "origin": "gnews-rss",
-      "source": "vox.com",
-      "tickers": [
-        "SPCH"
-      ],
-      "held": [
-        "SPCH"
-      ],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "AI",
-        "电动车"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 68,
-      "summary_cn": "Musk万亿美元帝国的10种潜在动作，SpaceX/SPCH作为核心载体间接受益。"
+      "relevance": 60,
+      "summary_cn": "Musk正在动用SpaceX新融资金解决AI问题——SpaceX资金/AI双叙事利好kcn的SPCH持仓。"
     },
     {
       "author": "Musk",
@@ -425,26 +385,40 @@
       "published": "Fri, 12 Jun 2026 14:24:36 GMT",
       "origin": "gnews-rss",
       "source": "Institute on Taxation and Economic Policy",
-      "tickers": [
-        "SPCH"
-      ],
-      "held": [
-        "SPCH"
-      ],
+      "tickers": [],
+      "held": [],
       "new_ideas": [],
       "sectors": [
         "航天",
-        "加密货币",
-        "监管"
+        "AI",
+        "税务/监管"
       ],
       "sector_holdings": [
-        "CRCL"
+        "SPCH"
+      ],
+      "stance": "endorse",
+      "relevance": 58,
+      "summary_cn": "报道称SpaceX可通过削减IRS资金获益19亿美元——税收/监管主题间接利好SPCH板块情绪。"
+    },
+    {
+      "author": "Musk",
+      "text": "SpaceX adds longtime Elon Musk ally Roelof Botha to board",
+      "url": "",
+      "published": "Wed, 17 Jun 2026 22:03:19 GMT",
+      "origin": "gnews-rss",
+      "source": "CNBC",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天"
+      ],
+      "sector_holdings": [
+        "SPCH"
       ],
       "stance": "neutral",
-      "relevance": 60,
-      "summary_cn": "SpaceX因IRS资金削减可额外获益19亿美元税务利益，间接利好SPCH估值。"
+      "relevance": 55,
+      "summary_cn": "SpaceX新增长期盟友Roelof Botha为董事，未涉及直接交易标的但利好SPCH板块情绪。"
     }
-  ],
-  "new_ideas": [],
-  "sector_hits": []
+  ]
 }
