@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-17T18:37:34.161376Z",
+  "generated_at": "2026-06-17T18:40:35.248492Z",
   "last_updated": "2026/06/18 02:33 HKT",
   "fx": {
     "usdhkd": 7.8334,
@@ -23,7 +23,7 @@
       "pnl_pct": -34.18,
       "today_change_hkd": 1988.4,
       "realized_hkd": 7259.16,
-      "cash_hkd": null
+      "cash_hkd": 4597
     }
   },
   "concentration": {
