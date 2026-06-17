@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-17T18:40:35.248492Z",
+  "generated_at": "2026-06-17T18:49:49.327972Z",
   "last_updated": "2026/06/18 02:33 HKT",
   "fx": {
     "usdhkd": 7.8334,
@@ -329,6 +329,8 @@
       "hk_realized": 7259.16,
       "hk_equity": 90599.56,
       "hk_profit": 2323.32,
+      "us_cash": null,
+      "hk_cash": null,
       "us_asof": "2026-05-16",
       "hk_asof": "2026-05-16"
     },
@@ -349,6 +351,8 @@
       "hk_realized": 7259.16,
       "hk_equity": 90599.56,
       "hk_profit": 2323.32,
+      "us_cash": null,
+      "hk_cash": null,
       "us_asof": "2026-05-16",
       "hk_asof": "2026-05-16"
     },
@@ -369,6 +373,8 @@
       "hk_realized": 7259.16,
       "hk_equity": 90599.56,
       "hk_profit": 2323.32,
+      "us_cash": null,
+      "hk_cash": null,
       "us_asof": "2026-05-16",
       "hk_asof": "2026-05-16"
     },
@@ -389,6 +395,8 @@
       "hk_realized": 7259.16,
       "hk_equity": 86736.36,
       "hk_profit": -1539.88,
+      "us_cash": null,
+      "hk_cash": null,
       "us_asof": "2026-05-19",
       "hk_asof": "2026-05-19"
     },
@@ -409,6 +417,8 @@
       "hk_realized": 7259.16,
       "hk_equity": 86812.76,
       "hk_profit": -1463.48,
+      "us_cash": null,
+      "hk_cash": null,
       "us_asof": "2026-05-19",
       "hk_asof": "2026-05-20"
     },
@@ -429,6 +439,8 @@
       "hk_realized": 7259.16,
       "hk_equity": 83428.76,
       "hk_profit": -4847.48,
+      "us_cash": null,
+      "hk_cash": null,
       "us_asof": "2026-05-20",
       "hk_asof": "2026-05-20"
     },
@@ -449,6 +461,8 @@
       "hk_realized": 7259.16,
       "hk_equity": 87019.56,
       "hk_profit": -1256.68,
+      "us_cash": null,
+      "hk_cash": null,
       "us_asof": "2026-05-22",
       "hk_asof": "2026-05-22"
     },
@@ -469,6 +483,8 @@
       "hk_realized": 7259.16,
       "hk_equity": 88155.56,
       "hk_profit": -120.68,
+      "us_cash": null,
+      "hk_cash": null,
       "us_asof": "2026-05-25",
       "hk_asof": "2026-05-25"
     },
@@ -489,6 +505,8 @@
       "hk_realized": 7259.16,
       "hk_equity": 88956.36,
       "hk_profit": 680.12,
+      "us_cash": null,
+      "hk_cash": null,
       "us_asof": "2026-05-26",
       "hk_asof": "2026-05-26"
     },
@@ -509,6 +527,8 @@
       "hk_realized": 7259.16,
       "hk_equity": 93086.76,
       "hk_profit": 4810.52,
+      "us_cash": null,
+      "hk_cash": null,
       "us_asof": "2026-05-27",
       "hk_asof": "2026-05-27"
     },
@@ -529,6 +549,8 @@
       "hk_realized": 7259.16,
       "hk_equity": 92290.36,
       "hk_profit": 4014.12,
+      "us_cash": null,
+      "hk_cash": null,
       "us_asof": "2026-05-28",
       "hk_asof": "2026-05-28"
     },
@@ -549,6 +571,8 @@
       "hk_realized": 7259.16,
       "hk_equity": 92213.96,
       "hk_profit": 3937.72,
+      "us_cash": null,
+      "hk_cash": null,
       "us_asof": "2026-05-29",
       "hk_asof": "2026-05-29"
     },
@@ -569,6 +593,8 @@
       "hk_realized": 7259.16,
       "hk_equity": 92213.96,
       "hk_profit": 3937.72,
+      "us_cash": null,
+      "hk_cash": null,
       "us_asof": "2026-05-31",
       "hk_asof": "2026-05-31"
     },
@@ -589,6 +615,8 @@
       "hk_realized": 7259.16,
       "hk_equity": 85239.16,
       "hk_profit": -3037.08,
+      "us_cash": null,
+      "hk_cash": null,
       "us_asof": "2026-06-01",
       "hk_asof": "2026-06-01"
     },
@@ -609,6 +637,8 @@
       "hk_realized": 7259.16,
       "hk_equity": 85299.16,
       "hk_profit": -2977.08,
+      "us_cash": null,
+      "hk_cash": null,
       "us_asof": "2026-06-02",
       "hk_asof": "2026-06-02"
     },
@@ -629,6 +659,8 @@
       "hk_realized": 7259.16,
       "hk_equity": 84179.96,
       "hk_profit": -4096.28,
+      "us_cash": null,
+      "hk_cash": null,
       "us_asof": "2026-06-03",
       "hk_asof": "2026-06-03"
     },
@@ -649,6 +681,8 @@
       "hk_realized": 7259.16,
       "hk_equity": 82373.56,
       "hk_profit": -5902.68,
+      "us_cash": null,
+      "hk_cash": null,
       "us_asof": "2026-06-04",
       "hk_asof": "2026-06-04"
     },
@@ -669,6 +703,8 @@
       "hk_realized": 7259.16,
       "hk_equity": 74853.56,
       "hk_profit": -13422.68,
+      "us_cash": null,
+      "hk_cash": null,
       "us_asof": "2026-06-05",
       "hk_asof": "2026-06-05"
     },
@@ -689,6 +725,8 @@
       "hk_realized": 7259.16,
       "hk_equity": 70021.56,
       "hk_profit": -18254.68,
+      "us_cash": null,
+      "hk_cash": null,
       "us_asof": "2026-06-08",
       "hk_asof": "2026-06-08"
     },
@@ -709,6 +747,8 @@
       "hk_realized": 7259.16,
       "hk_equity": 67451.16,
       "hk_profit": -20825.08,
+      "us_cash": null,
+      "hk_cash": null,
       "us_asof": "2026-06-09",
       "hk_asof": "2026-06-09"
     },
@@ -729,6 +769,8 @@
       "hk_realized": 7259.16,
       "hk_equity": 66169.56,
       "hk_profit": -22106.68,
+      "us_cash": null,
+      "hk_cash": null,
       "us_asof": "2026-06-10",
       "hk_asof": "2026-06-10"
     },
@@ -749,6 +791,8 @@
       "hk_realized": 7259.16,
       "hk_equity": 64175.56,
       "hk_profit": -24100.68,
+      "us_cash": null,
+      "hk_cash": null,
       "us_asof": "2026-06-11",
       "hk_asof": "2026-06-11"
     },
@@ -769,6 +813,8 @@
       "hk_realized": 7259.16,
       "hk_equity": 62412.36,
       "hk_profit": -25863.88,
+      "us_cash": 1281.35,
+      "hk_cash": null,
       "us_asof": "2026-06-12",
       "hk_asof": "2026-06-12"
     },
@@ -789,6 +835,8 @@
       "hk_realized": 7259.16,
       "hk_equity": 65015.96,
       "hk_profit": -23260.28,
+      "us_cash": 947.75,
+      "hk_cash": null,
       "us_asof": "2026-06-15",
       "hk_asof": "2026-06-15"
     },
@@ -809,6 +857,8 @@
       "hk_realized": 7259.16,
       "hk_equity": 63365.56,
       "hk_profit": -24910.68,
+      "us_cash": 1358.55,
+      "hk_cash": null,
       "us_asof": "2026-06-16",
       "hk_asof": "2026-06-16"
     },
@@ -829,6 +879,8 @@
       "hk_realized": 7259.16,
       "hk_equity": 65363.56,
       "hk_profit": -22912.68,
+      "us_cash": 921.95,
+      "hk_cash": null,
       "us_asof": "2026-06-17",
       "hk_asof": "2026-06-17"
     },
@@ -849,6 +901,8 @@
       "hk_realized": 7259.16,
       "hk_equity": 65363.56,
       "hk_profit": -22912.68,
+      "us_cash": 1200.45,
+      "hk_cash": 4597,
       "us_asof": "2026-06-17",
       "hk_asof": "2026-06-17"
     }

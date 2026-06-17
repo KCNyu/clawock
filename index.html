@@ -1866,7 +1866,7 @@ layout: null
           <button class="mkt-seg-btn" data-mkt="hk"><span class="seg-dot hk"></span>港股</button>
         </div>
       </div>
-      <p class="chart-hint"><b style="color:#34d399">粗绿线 = 总利润（主）</b>（浮盈 + 已实现 = 净值 − 成本，<b>净化掉投入本金；加减仓不影响它</b>，它的峰值才是"真·赚最多"那天；可为负 = 账面亏损）；<b>细蓝线 = 净值</b>（持仓市值 + 已实现现金）<b>仅作参考</b>：买入会把它虚抬（花掉的现金不计入），别把它的高点当真峰值，留它只为和 SPY/恒科同尺度对比；灰虚线 = 累计成本基础；<b>紫线 = SPY 等值</b>（"当初同等美元 all-in SPY 到今天的账面"，非美股交易日延用前值）；<b style="color:#f59e0b">橙线 = 恒科等值</b> + <b style="color:#f59e0b">橙虚线 = 恒科200日线触发位</b>；<b>红色填充 = 利润口径的历史峰值回撤</b>（与下方"历史利润极值"卡同口径，利润为负的区域无填充）。<br><b>切换上方〔总览 / 美股 / 港股〕看分市场曲线</b>：总览=USD-eq 合并（HK 按现汇折美元）；美股=$ 计、对标 SPY；港股=HK$ 计、对标恒科。</p>
+      <p class="chart-hint"><b style="color:#34d399">粗绿线 = 总利润（主）</b>（浮盈 + 已实现 = 净值 − 成本，<b>净化掉投入本金；加减仓不影响它</b>，它的峰值才是"真·赚最多"那天；可为负 = 账面亏损）；<b>蓝线 = 真实总资产</b>（持仓市值 ＋ 现金 = 真·身家，<b>加减仓不影响</b>）—— 已替换掉旧的"净值"线（旧线对现金视而不见、被加仓虚抬，没用）；<b>注意：现金 US 自 6/12、港股/合计自 6/18 才开始记录，更早没有 → 蓝线只从有现金那天起画</b>；灰虚线 = 累计成本基础；<b>紫线 = SPY 等值</b>（"当初同等美元 all-in SPY 到今天的账面"，非美股交易日延用前值）；<b style="color:#f59e0b">橙线 = 恒科等值</b> + <b style="color:#f59e0b">橙虚线 = 恒科200日线触发位</b>；<b>红色填充 = 利润口径的历史峰值回撤</b>（与下方"历史利润极值"卡同口径，利润为负的区域无填充）。<br><b>切换上方〔总览 / 美股 / 港股〕看分市场曲线</b>：总览=USD-eq 合并（HK 按现汇折美元）；美股=$ 计、对标 SPY；港股=HK$ 计、对标恒科。</p>
       <div id="chart-equity" class="chart-box"></div>
     </div>
 
@@ -4025,8 +4025,26 @@ layout: null
       .filter(s => s.us_total_value != null || s.hk_total_value != null);
     const byDate = new Map();
     snaps.forEach(s => byDate.set(s.date, s));
-    const series = Array.from(byDate.values()).sort((a, b) => a.date.localeCompare(b.date));
-    const dates = series.map(s => s.date);
+    let series = Array.from(byDate.values()).sort((a, b) => a.date.localeCompare(b.date));
+    // Collapse same-session snapshots (US session straddles HK midnight → two HK-dated
+    // snapshots for ONE US session; weekend copies repeat Fri). Mirror renderDailyPnlChart:
+    // key on us_asof/hk_asof per view, keep the LAST (most-settled) of consecutive dupes —
+    // for a value curve that means no duplicate point for the same session. (cross-day fix,
+    // 见 openclaw-us-crossday-double-count)
+    const sameSession = (a, b) => {
+      if (view === "us") return !!a.us_asof && a.us_asof === b.us_asof;
+      if (view === "hk") return !!a.hk_asof && a.hk_asof === b.hk_asof;
+      return !!a.us_asof && a.us_asof === b.us_asof && !!a.hk_asof && a.hk_asof === b.hk_asof;
+    };
+    series = series.filter((s, i) => {
+      const next = series[i + 1];
+      if (!next) return true;
+      if (s.us_asof && s.hk_asof && next.us_asof && next.hk_asof) return !sameSession(s, next);
+      return true;
+    });
+    // Per-market views label the x-axis by the true session date (≠ filename date).
+    const dates = series.map(s =>
+      view === "us" ? (s.us_asof || s.date) : view === "hk" ? (s.hk_asof || s.date) : s.date);
     const r2 = v => Math.round(v * 100) / 100;
 
     // ── Per-market basis ──────────────────────────────────────────────────
@@ -4035,7 +4053,18 @@ layout: null
     const cur = view === "hk" ? "HK$" : "$";
     const showSPY = view !== "hk";              // SPY overlay only where USD makes sense
     const showHSTECH = view !== "us";           // 恒科 overlay only where HK is in play
-    const eqName = view === "us" ? "美股净值" : view === "hk" ? "港股净值" : "总资产";
+    const taName = view === "us" ? "美股总资产" : view === "hk" ? "港股总资产" : "真实总资产";
+    // 真实总资产 = 持仓市值 + 现金 (trade-invariant 的"现在值多少钱"，加减仓不动它)。
+    // 现金没记录的早期快照 → null → 线在该点断开(connectNulls 跨过)。这是替代旧"净值"线
+    // (市值+已实现,会被加仓虚抬、对现金视而不见) 的纠正口径。US 自 6/12、HK/合计 自 6/18 起有。
+    const ta = series.map(s => {
+      if (view === "us") return (s.us_cash != null && s.us_total_value != null) ? r2(s.us_total_value + s.us_cash) : null;
+      if (view === "hk") return (s.hk_cash != null && s.hk_total_value != null) ? r2(s.hk_total_value + s.hk_cash) : null;
+      if (s.us_cash == null || s.hk_cash == null || s.us_total_value == null || s.hk_total_value == null) return null;
+      return r2((s.us_total_value + s.us_cash) + ((s.hk_total_value + s.hk_cash) / fx));
+    });
+    // 净值(市值+已实现) — 不再画出(对现金视而不见、被加仓虚抬，对用户没用)，仅保留作
+    // benchmark "SPY/恒科等值" 的归一锚点(全历史、value-scale)，故仍需算出但不进 seriesArr。
     const eq = series.map(s => {
       if (view === "us") return s.us_equity != null ? r2(s.us_equity) : null;
       if (view === "hk") return s.hk_equity != null ? r2(s.hk_equity) : null;
@@ -4068,13 +4097,13 @@ layout: null
       if (v > peak) peak = v;
       return (peak > 0 && v > 0) ? Math.round(((v - peak) / peak) * 10000) / 100 : null;
     });
-    // Day-over-day equity change — shown in tooltip separately from 回撤 so
-    // consecutive new highs (回撤 0%) don't look like a stuck/duplicate value.
-    const chg = eq.map((v, i) =>
-      (i > 0 && v != null && eq[i - 1] != null) ? r2(v - eq[i - 1]) : null);
-    const chgPct = eq.map((v, i) =>
-      (i > 0 && v != null && eq[i - 1] != null && eq[i - 1] !== 0)
-        ? Math.round(((v - eq[i - 1]) / eq[i - 1]) * 10000) / 100 : null);
+    // 总利润较昨日 — 用总利润(trade-invariant)算日变化，在 tooltip 与"回撤"分列，
+    // 避免连续新高时回撤恒 0% 看起来像卡住。(原用净值,会被加仓污染)
+    const chg = profit.map((v, i) =>
+      (i > 0 && v != null && profit[i - 1] != null) ? r2(v - profit[i - 1]) : null);
+    const chgPct = profit.map((v, i) =>
+      (i > 0 && v != null && profit[i - 1] != null && profit[i - 1] !== 0)
+        ? Math.round(((v - profit[i - 1]) / Math.abs(profit[i - 1])) * 10000) / 100 : null);
 
     // Benchmark overlay — "what if I bought N at the same amount on day 0?" Normalized
     // so bench[base] === eq[base], then scaled by close[i]/close[base], so it lands in
@@ -4126,7 +4155,7 @@ layout: null
     const manyPts = dates.length > 30;
     const zoomStart = manyPts ? Math.max(0, (1 - 30 / dates.length) * 100) : 0;
 
-    const legendData = ["总利润", eqName, "成本基础"];
+    const legendData = ["总利润", taName, "成本基础"];
     if (showSPY) legendData.push("SPY 等值");
     if (showHSTECH) legendData.push("恒科等值");
     legendData.push("回撤");
@@ -4142,11 +4171,12 @@ layout: null
           lineStyle: { color: green, type: "dotted", width: 1, opacity: 0.5 },
           label: { color: green, fontSize: 9, position: "insideStartTop", formatter: "盈亏线 0" },
           data: [{ yAxis: 0 }] } },
-      // 净值(市值+已实现)= 细参考线：加减仓会把它虚抬(花掉的现金不计入)，仅用来和
-      // SPY/恒科等值同尺度对比，别把它的高点当真峰值 → 故降为细、低透明、无面积。
-      { name: eqName, type: "line", data: eq, yAxisIndex: 0,
-        itemStyle: { color: accent }, lineStyle: { width: 1.2, color: accent, opacity: 0.5 },
-        smooth: true, symbol: "none", z: 3, connectNulls: true },
+      // 真实总资产(市值+现金)= value-scale 参考线，替代旧"净值"线。trade-invariant、
+      // 是真·身家。现金有记录才画(US 6/12+、HK/合计 6/18+)，早期断开。
+      { name: taName, type: "line", data: ta, yAxisIndex: 0,
+        itemStyle: { color: accent }, lineStyle: { width: 1.8, color: accent }, smooth: true,
+        symbol: dates.length > 45 ? "none" : "circle", symbolSize: 4,
+        z: 3, connectNulls: true },
       { name: "成本基础", type: "line", data: cost, yAxisIndex: 0,
         itemStyle: { color: dim }, lineStyle: { width: 1, type: "dashed", color: dim },
         symbol: "none", z: 2, connectNulls: true },
@@ -4195,7 +4225,7 @@ layout: null
               : (v != null ? tipMoney(v) : "—");
             return `${p.marker} ${p.seriesName}: <b>${fmt}</b>`;
           });
-          // 净值较昨日 = 本曲线两点之差(含隔夜/取数时点)，与"回撤"分列。
+          // 总利润较昨日 = 总利润两点之差(trade-invariant，不含加减仓噪声)，与"回撤"分列。
           // 注意：这≠"每日P&L图"的 today_change(今日盘中相对昨收)，两者口径不同。
           if (i != null && chg[i] != null) {
             const c = chg[i];
@@ -4203,9 +4233,9 @@ layout: null
             const s = c >= 0 ? "+" : "-";
             const pctStr = chgPct[i] != null ? ` (${s}${Math.abs(chgPct[i]).toFixed(2)}%)` : "";
             const abs = Math.abs(c).toLocaleString("en-US", { maximumFractionDigits: 0 });
-            lines.push(`<span style="color:${col}">${eqName}较昨日: <b>${s}${cur}${abs}</b>${pctStr}</span>`);
+            lines.push(`<span style="color:${col}">总利润较昨日: <b>${s}${cur}${abs}</b>${pctStr}</span>`);
           } else if (i === 0) {
-            lines.push(`<span style="color:${dim}">${eqName}较昨日: <b>首日</b></span>`);
+            lines.push(`<span style="color:${dim}">总利润较昨日: <b>首日</b></span>`);
           }
           return [date, ...lines].join("<br>");
         },

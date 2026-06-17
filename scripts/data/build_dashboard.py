@@ -271,6 +271,11 @@ def load_snapshots():
             'hk_realized': hk_real,
             'hk_equity': round(hk_val + hk_real, 2),
             'hk_profit': round(hk_val + hk_real - (hk.get('total_cost', 0) or 0), 2),
+            # 现金余额 (kcn 对账手填进 portfolio.json，refresh_today_snapshot 整文件拷进
+            # 快照故自动留痕)。真实总资产 = total_value + cash。早于现金跟踪的快照为 None
+            # → 前端 total-assets 曲线在该点断开(不瞎算)。US 自 2026-06-12 起有、HK 自 06-18 起有。
+            'us_cash': us.get('cash_usd'),
+            'hk_cash': hk.get('cash_hkd'),
             # Market-session dates (≠ filename date) so daily P&L can collapse a US
             # session that straddles two HK-dated snapshots instead of double-counting.
             'us_asof': _session_asof(us, date[:4]),

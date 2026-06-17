@@ -1086,6 +1086,8 @@
       ],
       "total_cost": 88276.24,
       "total_current_value": 58104.4,
+      "cash_hkd": 4597,
+      "cash_hkd_note": "港股现金余额（HKD，kcn 对账手填，2026-06-18）。真实总资产 = total_current_value + cash_hkd。改持仓/补流水后须重对账。",
       "total_pnl": -30171.84,
       "total_pnl_percent": -34.18,
       "realized_pnl": 7259.16,
