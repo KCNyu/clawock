@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-06-17T00:13:21.775109Z",
-  "last_updated": "2026/06/17 08:03 HKT",
+  "generated_at": "2026-06-17T01:33:54.117398Z",
+  "last_updated": "2026/06/17 09:32 HKT",
   "fx": {
     "usdhkd": 7.8334,
     "source": "Frankfurter",
@@ -16,11 +16,11 @@
       "realized_usd": 1609.33
     },
     "hk": {
-      "value_hkd": 56116.0,
+      "value_hkd": 55129.6,
       "cost_hkd": 88276.24,
-      "pnl_hkd": -32160.24,
-      "pnl_pct": -36.43,
-      "today_change_hkd": -1640.8,
+      "pnl_hkd": -33146.64,
+      "pnl_pct": -37.55,
+      "today_change_hkd": -986.4,
       "realized_hkd": 7259.16
     }
   },
@@ -68,41 +68,41 @@
       }
     },
     "hk": {
-      "hhi": 0.3534,
-      "top2": 0.8219,
+      "hhi": 0.3517,
+      "top2": 0.8202,
       "positions": [
         {
           "ticker": "00100",
           "name": "MINIMAX-W",
-          "value": 24996.0,
-          "weight": 0.4454
+          "value": 24252.0,
+          "weight": 0.4399
         },
         {
           "ticker": "07226",
           "name": "XL二南方恒科",
-          "value": 21129.6,
-          "weight": 0.3765
+          "value": 20968.4,
+          "weight": 0.3803
         },
         {
           "ticker": "03033",
           "name": "南方恒生科技",
-          "value": 4562.0,
-          "weight": 0.0813
+          "value": 4544.0,
+          "weight": 0.0824
         },
         {
           "ticker": "02208",
           "name": "金风科技",
-          "value": 4500.0,
-          "weight": 0.0802
+          "value": 4440.0,
+          "weight": 0.0805
         },
         {
           "ticker": "03032",
           "name": "恒生科技ETF",
-          "value": 928.4,
-          "weight": 0.0165
+          "value": 925.2,
+          "weight": 0.0168
         }
       ],
-      "total": 56116.0,
+      "total": 55129.6,
       "verdict": {
         "level": "danger",
         "label": "危险集中",
@@ -205,14 +205,14 @@
         "currency": "HKD",
         "shares": 60,
         "cost_basis": 822.83,
-        "current_price": 416.6,
-        "current_value": 24996.0,
-        "today_change": -432.0,
-        "today_change_pct": -1.7,
-        "day_high": 435.0,
-        "day_low": 402.8,
-        "pnl_abs": -24373.8,
-        "pnl_percent": -49.37,
+        "current_price": 404.2,
+        "current_value": 24252.0,
+        "today_change": -744.0,
+        "today_change_pct": -2.98,
+        "day_high": 410.2,
+        "day_low": 402.0,
+        "pnl_abs": -25117.8,
+        "pnl_percent": -50.88,
         "is_active": true,
         "trades_count": 3
       },
@@ -222,14 +222,14 @@
         "currency": "HKD",
         "shares": 400,
         "cost_basis": 14.084,
-        "current_price": 11.25,
-        "current_value": 4500.0,
-        "today_change": 12.0,
-        "today_change_pct": 0.27,
-        "day_high": 11.6,
-        "day_low": 10.96,
-        "pnl_abs": -1133.6,
-        "pnl_percent": -20.12,
+        "current_price": 11.1,
+        "current_value": 4440.0,
+        "today_change": -60.0,
+        "today_change_pct": -1.33,
+        "day_high": 11.14,
+        "day_low": 11.0,
+        "pnl_abs": -1193.6,
+        "pnl_percent": -21.19,
         "is_active": true,
         "trades_count": 1
       },
@@ -239,14 +239,14 @@
         "currency": "HKD",
         "shares": 200,
         "cost_basis": 5.405,
-        "current_price": 4.642,
-        "current_value": 928.4,
-        "today_change": -23.6,
-        "today_change_pct": -2.48,
-        "day_high": 4.76,
-        "day_low": 4.632,
-        "pnl_abs": -152.6,
-        "pnl_percent": -14.12,
+        "current_price": 4.626,
+        "current_value": 925.2,
+        "today_change": -3.2,
+        "today_change_pct": -0.34,
+        "day_high": 4.642,
+        "day_low": 4.61,
+        "pnl_abs": -155.8,
+        "pnl_percent": -14.41,
         "is_active": true,
         "trades_count": 0
       },
@@ -256,14 +256,14 @@
         "currency": "HKD",
         "shares": 6200,
         "cost_basis": 4.3632,
-        "current_price": 3.408,
-        "current_value": 21129.6,
-        "today_change": -1091.2,
-        "today_change_pct": -4.91,
-        "day_high": 3.584,
-        "day_low": 3.394,
-        "pnl_abs": -5922.24,
-        "pnl_percent": -21.89,
+        "current_price": 3.382,
+        "current_value": 20968.4,
+        "today_change": -161.2,
+        "today_change_pct": -0.76,
+        "day_high": 3.39,
+        "day_low": 3.354,
+        "pnl_abs": -6083.44,
+        "pnl_percent": -22.49,
         "is_active": true,
         "trades_count": 1
       },
@@ -273,14 +273,14 @@
         "currency": "HKD",
         "shares": 1000,
         "cost_basis": 5.14,
-        "current_price": 4.562,
-        "current_value": 4562.0,
-        "today_change": -106.0,
-        "today_change_pct": -2.27,
-        "day_high": 4.676,
-        "day_low": 4.548,
-        "pnl_abs": -578.0,
-        "pnl_percent": -11.25,
+        "current_price": 4.544,
+        "current_value": 4544.0,
+        "today_change": -18.0,
+        "today_change_pct": -0.39,
+        "day_high": 4.556,
+        "day_low": 4.524,
+        "pnl_abs": -596.0,
+        "pnl_percent": -11.6,
         "is_active": true,
         "trades_count": 0
       }
@@ -797,13 +797,13 @@
       "us_realized": 1609.33,
       "us_equity": 4393.31,
       "us_profit": 1623.11,
-      "hk_total_value": 56116.0,
+      "hk_total_value": 55129.6,
       "hk_total_cost": 88276.24,
-      "hk_total_pnl": -32160.24,
-      "hk_today_change": -1640.8,
+      "hk_total_pnl": -33146.64,
+      "hk_today_change": -986.4,
       "hk_realized": 7259.16,
-      "hk_equity": 63375.16,
-      "hk_profit": -24901.08,
+      "hk_equity": 62388.76,
+      "hk_profit": -25887.48,
       "us_asof": "2026-06-16",
       "hk_asof": "2026-06-17"
     }
@@ -903,17 +903,17 @@
     },
     "HSI": {
       "name": "恒生指数",
-      "price": 24493.95,
-      "prev_close": 24842.67,
-      "change_pct": -1.4,
-      "source": "Tencent qt.gtimg.cn 2026/06/17 08:03 HKT"
+      "price": 24484.12,
+      "prev_close": 24493.95,
+      "change_pct": -0.04,
+      "source": "Tencent qt.gtimg.cn 2026/06/17 09:32 HKT"
     },
     "HSTECH": {
       "name": "恒生科技",
-      "price": 4658.65,
-      "prev_close": 4765.58,
-      "change_pct": -2.24,
-      "source": "Tencent qt.gtimg.cn 2026/06/17 08:03 HKT"
+      "price": 4637.22,
+      "prev_close": 4658.65,
+      "change_pct": -0.46,
+      "source": "Tencent qt.gtimg.cn 2026/06/17 09:32 HKT"
     }
   },
   "market_context": {
@@ -1213,7 +1213,7 @@
       392.4,
       423.8,
       417.0,
-      416.6
+      404.2
     ],
     "02208": [
       12.81,
@@ -1225,7 +1225,7 @@
       11.26,
       11.22,
       11.14,
-      11.25
+      11.1
     ],
     "03032": [
       4.972,
@@ -1237,7 +1237,7 @@
       4.688,
       4.76,
       4.642,
-      4.642
+      4.626
     ],
     "07226": [
       3.92,
@@ -1249,7 +1249,7 @@
       3.478,
       3.584,
       3.41,
-      3.408
+      3.382
     ],
     "03033": [
       4.882,
@@ -1261,7 +1261,7 @@
       4.604,
       4.668,
       4.56,
-      4.562
+      4.544
     ],
     "07709": [
       null,
@@ -1319,19 +1319,12 @@
       "30d_pct": null
     },
     "hk": {
-      "today_pct": 0.02,
-      "7d_pct": -9.49,
+      "today_pct": -1.54,
+      "7d_pct": -10.9,
       "30d_pct": null
     }
   },
   "today_movers": [
-    {
-      "ticker": "07226",
-      "name": "XL二南方恒科",
-      "region": "hk",
-      "today_change_pct": -4.91,
-      "current_price": 3.408
-    },
     {
       "ticker": "CRCL",
       "name": "Circle Internet Group Inc-A",
@@ -1360,19 +1353,19 @@
     {
       "type": "high_weight_loss",
       "ticker": "00100",
-      "detail": "weight 44.5% + pnl -49.4%",
+      "detail": "weight 44.5% + pnl -50.9%",
       "severity": "high"
     },
     {
       "type": "high_weight_loss",
       "ticker": "07226",
-      "detail": "weight 37.6% + pnl -21.9%",
+      "detail": "weight 37.6% + pnl -22.5%",
       "severity": "high"
     },
     {
       "type": "leveraged_etf_stop",
       "ticker": "07226",
-      "detail": "leveraged ETF: pnl -21.9%",
+      "detail": "leveraged ETF: pnl -22.5%",
       "severity": "medium"
     },
     {
@@ -1834,7 +1827,7 @@
     {
       "ticker": "00100",
       "region": "hk",
-      "weight_pct": 44.54,
+      "weight_pct": 43.99,
       "avg_confidence": 0.56,
       "n_actions": 23,
       "quadrant": "high_risk"
@@ -1850,7 +1843,7 @@
     {
       "ticker": "07226",
       "region": "hk",
-      "weight_pct": 37.65,
+      "weight_pct": 38.03,
       "avg_confidence": 0.571,
       "n_actions": 23,
       "quadrant": "high_risk"
@@ -1882,7 +1875,7 @@
     {
       "ticker": "03033",
       "region": "hk",
-      "weight_pct": 8.13,
+      "weight_pct": 8.24,
       "avg_confidence": 0.527,
       "n_actions": 13,
       "quadrant": "low_conv_small"
@@ -1890,7 +1883,7 @@
     {
       "ticker": "02208",
       "region": "hk",
-      "weight_pct": 8.02,
+      "weight_pct": 8.05,
       "avg_confidence": 0.561,
       "n_actions": 14,
       "quadrant": "low_conv_small"
@@ -1906,16 +1899,16 @@
     {
       "ticker": "03032",
       "region": "hk",
-      "weight_pct": 1.65,
+      "weight_pct": 1.68,
       "avg_confidence": 0.527,
       "n_actions": 13,
       "quadrant": "low_conv_small"
     }
   ],
   "drawdown": {
-    "max_pct_30d_hk": -32.95,
+    "max_pct_30d_hk": -32.98,
     "max_pct_30d_us": -18.51,
-    "current_pct_hk": -30.05,
+    "current_pct_hk": -31.14,
     "current_pct_us": -2.18,
     "us": {
       "peak": {
@@ -1944,19 +1937,19 @@
         "date": "2026-05-27"
       },
       "trough": {
-        "value": 62412.36,
-        "date": "2026-06-12"
-      },
-      "current": {
-        "value": 63375.16,
+        "value": 62388.76,
         "date": "2026-06-17"
       },
-      "current_dd_pct": -31.92,
-      "max_dd_pct": -32.95,
-      "max_dd_abs": 30674.4,
+      "current": {
+        "value": 62388.76,
+        "date": "2026-06-17"
+      },
+      "current_dd_pct": -32.98,
+      "max_dd_pct": -32.98,
+      "max_dd_abs": 30698.0,
       "max_dd_peak_date": "2026-05-27",
-      "max_dd_trough_date": "2026-06-12",
-      "at_low": false,
+      "max_dd_trough_date": "2026-06-17",
+      "at_low": true,
       "currency": "HKD"
     },
     "combined": {
@@ -1969,10 +1962,10 @@
         "date": "2026-06-12"
       },
       "current": {
-        "value": 97789.71,
+        "value": 96803.31,
         "date": "2026-06-17"
       },
-      "current_dd_pct": -24.56,
+      "current_dd_pct": -25.32,
       "max_dd_pct": -27.57,
       "max_dd_abs": 35743.63,
       "max_dd_peak_date": "2026-05-29",
@@ -2008,18 +2001,18 @@
           "date": "2026-05-27"
         },
         "trough": {
-          "value": -25863.88,
-          "date": "2026-06-12"
-        },
-        "current": {
-          "value": -24901.08,
+          "value": -25887.48,
           "date": "2026-06-17"
         },
-        "from_peak_abs": -29711.6,
-        "max_dd_abs": -30674.4,
+        "current": {
+          "value": -25887.48,
+          "date": "2026-06-17"
+        },
+        "from_peak_abs": -30698.0,
+        "max_dd_abs": -30698.0,
         "max_dd_peak_date": "2026-05-27",
-        "max_dd_trough_date": "2026-06-12",
-        "at_low": false,
+        "max_dd_trough_date": "2026-06-17",
+        "at_low": true,
         "currency": "HKD"
       },
       "combined": {
@@ -2032,10 +2025,10 @@
           "date": "2026-06-12"
         },
         "current": {
-          "value": -12186.61,
+          "value": -13173.01,
           "date": "2026-06-17"
         },
-        "from_peak_abs": -32948.04,
+        "from_peak_abs": -33934.44,
         "max_dd_abs": -37059.64,
         "max_dd_peak_date": "2026-05-29",
         "max_dd_trough_date": "2026-06-12",
@@ -2093,8 +2086,8 @@
     "hk": [
       {
         "sector": "恒生科技 ETF",
-        "value": 26620.0,
-        "pct": 47.44,
+        "value": 26437.6,
+        "pct": 47.96,
         "tickers": [
           "03032",
           "07226",
@@ -2103,16 +2096,16 @@
       },
       {
         "sector": "AI / 大模型",
-        "value": 24996.0,
-        "pct": 44.54,
+        "value": 24252.0,
+        "pct": 43.99,
         "tickers": [
           "00100"
         ]
       },
       {
         "sector": "新能源",
-        "value": 4500.0,
-        "pct": 8.02,
+        "value": 4440.0,
+        "pct": 8.05,
         "tickers": [
           "02208"
         ]
@@ -2121,8 +2114,8 @@
   },
   "leveraged_etf": {
     "us_pct": 94.27,
-    "hk_pct": 37.65,
-    "combined_pct": 53.5,
+    "hk_pct": 38.03,
+    "combined_pct": 53.98,
     "tickers": [
       "07226",
       "MSFU",
@@ -2311,23 +2304,23 @@
         "leg": "HK",
         "ticker": "00100",
         "severity": "medium",
-        "detail": "00100 = 44.54% of HK (cap 35%)",
-        "action": "纪律性 trim 00100 → ≤35% (减约 5355.4 HKD，借反弹分批、勿在新低日一次砍)"
+        "detail": "00100 = 43.99% of HK (cap 35%)",
+        "action": "纪律性 trim 00100 → ≤35% (减约 4956.64 HKD，借反弹分批、勿在新低日一次砍)"
       },
       {
         "type": "single_name",
         "leg": "HK",
         "ticker": "07226",
         "severity": "medium",
-        "detail": "07226 = 37.65% of HK (cap 35%)",
-        "action": "纪律性 trim 07226 → ≤35% (减约 1489.0 HKD，借反弹分批、勿在新低日一次砍)"
+        "detail": "07226 = 38.03% of HK (cap 35%)",
+        "action": "纪律性 trim 07226 → ≤35% (减约 1673.04 HKD，借反弹分批、勿在新低日一次砍)"
       },
       {
         "type": "factor_concentration",
         "leg": "HK",
         "ticker": null,
         "severity": "high",
-        "detail": "HK Top2 = 82.2% (cap 70%) — 名义多只实为单因子",
+        "detail": "HK Top2 = 82.0% (cap 70%) — 名义多只实为单因子",
         "action": "把 HK Top2 降到 ≤70%：借强减最大那只，别在同因子内换票"
       },
       {
@@ -2335,8 +2328,8 @@
         "leg": "HK",
         "ticker": null,
         "severity": "high",
-        "detail": "HK 杠杆 ETF = 37.7% (cap 25%) — 2x 日内重置，下杀崩/震荡衰减（🧭HK制度 amber：基准 50% ×0.5 → 25%，趋势OFF：杠杆敞口上限砍半）",
-        "action": "降杠杆=换仓非清仓：把约 7100.6 HKD 的 2x 换成 1x 同因子(07226→03033)，敞口不变、停 decay；🧭转 green 后可换回 2x"
+        "detail": "HK 杠杆 ETF = 38.0% (cap 25%) — 2x 日内重置，下杀崩/震荡衰减（🧭HK制度 amber：基准 50% ×0.5 → 25%，趋势OFF：杠杆敞口上限砍半）",
+        "action": "降杠杆=换仓非清仓：把约 7186.0 HKD 的 2x 换成 1x 同因子(07226→03033)，敞口不变、停 decay；🧭转 green 后可换回 2x"
       },
       {
         "type": "single_name",
@@ -2375,8 +2368,8 @@
       {
         "ticker": "07226",
         "leg": "HK",
-        "pnl_pct": -21.9,
-        "detail": "07226 浮亏 -21.9% ≤ 硬止损线 -18%",
+        "pnl_pct": -22.5,
+        "detail": "07226 浮亏 -22.5% ≤ 硬止损线 -18%",
         "action": "07226 触发杠杆 ETF 硬止损 → 换仓 1x 同因子 03033（敞口保留、停 decay，规则非择时）；🧭转 green 再换回 2x"
       }
     ],
@@ -2472,27 +2465,27 @@
       {
         "ticker": "00100",
         "leg": "HK",
-        "pnl_pct": -49.4,
-        "breakeven_need_pct": 97.5,
+        "pnl_pct": -50.9,
+        "breakeven_need_pct": 103.6,
         "leveraged": false
       },
       {
         "ticker": "07226",
         "leg": "HK",
-        "pnl_pct": -21.9,
-        "breakeven_need_pct": 28.0,
+        "pnl_pct": -22.5,
+        "breakeven_need_pct": 29.0,
         "leveraged": true,
         "underlying_vol_pct": 30.1,
         "chop_drag_pct_per_month": 0.76,
-        "underlying_need_2x_6m_pct": 15.7,
-        "underlying_need_if_1x_pct": 28.0,
+        "underlying_need_2x_6m_pct": 16.2,
+        "underlying_need_if_1x_pct": 29.0,
         "swap_1x": "03033"
       },
       {
         "ticker": "02208",
         "leg": "HK",
-        "pnl_pct": -20.1,
-        "breakeven_need_pct": 25.2,
+        "pnl_pct": -21.2,
+        "breakeven_need_pct": 26.9,
         "leveraged": false
       },
       {
@@ -2510,8 +2503,8 @@
       {
         "ticker": "03032",
         "leg": "HK",
-        "pnl_pct": -14.1,
-        "breakeven_need_pct": 16.4,
+        "pnl_pct": -14.4,
+        "breakeven_need_pct": 16.8,
         "leveraged": false
       },
       {
@@ -2529,8 +2522,8 @@
       {
         "ticker": "03033",
         "leg": "HK",
-        "pnl_pct": -11.2,
-        "breakeven_need_pct": 12.7,
+        "pnl_pct": -11.6,
+        "breakeven_need_pct": 13.1,
         "leveraged": false
       },
       {
@@ -3998,7 +3991,7 @@
     ]
   },
   "influencer_feed": {
-    "generated_at": "2026-06-16T17:52:17.087326+00:00",
+    "generated_at": "2026-06-16T23:08:05.525591+00:00",
     "lookback_hours": 48,
     "sources": {
       "trump": "trumpstruth.org/feed (primary)",
@@ -4010,9 +4003,156 @@
       "total": 12,
       "held_hits": 0,
       "new_ideas": 0,
-      "sector_hits": 0
+      "sector_hits": 7
     },
     "items": [
+      {
+        "author": "Musk",
+        "text": "Trump Administration Attempts Massive Power Grab in Defense of Musk’s xAI",
+        "url": "",
+        "published": "Tue, 16 Jun 2026 16:58:30 GMT",
+        "origin": "gnews-rss",
+        "source": "Earthjustice",
+        "tickers": [],
+        "held": [],
+        "new_ideas": [],
+        "sectors": [
+          "AI",
+          "监管"
+        ],
+        "sector_holdings": [
+          "MSFU"
+        ],
+        "stance": "endorse",
+        "relevance": 68,
+        "summary_cn": "特朗普政府为保护马斯克旗下xAI而进行大规模监管/法律权力扩张，强烈利好AI板块并暗示对xAI生态的政策支持。"
+      },
+      {
+        "author": "Musk",
+        "text": "D.O.J. Seeks to Halt Pollution Lawsuit Against Elon Musk’s Data Center",
+        "url": "",
+        "published": "Tue, 16 Jun 2026 19:59:14 GMT",
+        "origin": "gnews-rss",
+        "source": "The New York Times",
+        "tickers": [],
+        "held": [],
+        "new_ideas": [],
+        "sectors": [
+          "AI",
+          "数据中心",
+          "监管"
+        ],
+        "sector_holdings": [
+          "MSFU"
+        ],
+        "stance": "endorse",
+        "relevance": 62,
+        "summary_cn": "美司法部试图阻止针对马斯克数据中心的污染诉讼，特朗普政府为xAI/数据中心扫除监管障碍，利好AI算力。"
+      },
+      {
+        "author": "Musk",
+        "text": "Opinion | The SpaceX IPO has a bright side",
+        "url": "",
+        "published": "Tue, 16 Jun 2026 17:15:00 GMT",
+        "origin": "gnews-rss",
+        "source": "The Washington Post",
+        "tickers": [],
+        "held": [],
+        "new_ideas": [],
+        "sectors": [
+          "航天/商业航天",
+          "IPO"
+        ],
+        "sector_holdings": [
+          "RKLX"
+        ],
+        "stance": "endorse",
+        "relevance": 55,
+        "summary_cn": "评论文章看好SpaceX IPO的积极外溢效应，间接提振商业航天板块情绪。"
+      },
+      {
+        "author": "Musk",
+        "text": "Musk's SpaceX overtakes Amazon to become world's fifth most valuable firm",
+        "url": "",
+        "published": "Tue, 16 Jun 2026 16:38:14 GMT",
+        "origin": "gnews-rss",
+        "source": "BBC",
+        "tickers": [],
+        "held": [],
+        "new_ideas": [],
+        "sectors": [
+          "航天/商业航天",
+          "AI"
+        ],
+        "sector_holdings": [
+          "RKLX"
+        ],
+        "stance": "endorse",
+        "relevance": 55,
+        "summary_cn": "马斯克旗下SpaceX市值超越亚马逊成为全球第五大公司，间接利好航天板块情绪。"
+      },
+      {
+        "author": "Musk",
+        "text": "How Elon Musk's second-in-command Gwynne Shotwell helped turn SpaceX into an IPO giant",
+        "url": "",
+        "published": "Tue, 16 Jun 2026 09:39:48 GMT",
+        "origin": "gnews-rss",
+        "source": "CNBC",
+        "tickers": [],
+        "held": [],
+        "new_ideas": [],
+        "sectors": [
+          "航天/商业航天"
+        ],
+        "sector_holdings": [
+          "RKLX"
+        ],
+        "stance": "neutral",
+        "relevance": 52,
+        "summary_cn": "报道聚焦SpaceX二号人物Gwynne Shotwell，暗示SpaceX IPO进程推进，间接提振航天板块。"
+      },
+      {
+        "author": "Musk",
+        "text": "Elon's super currency: SpaceX' surging stock paid for the $60 billion Cursor acquisition in just a few hours of trading",
+        "url": "",
+        "published": "Tue, 16 Jun 2026 17:20:00 GMT",
+        "origin": "gnews-rss",
+        "source": "Fortune",
+        "tickers": [],
+        "held": [],
+        "new_ideas": [],
+        "sectors": [
+          "AI",
+          "航天/商业航天"
+        ],
+        "sector_holdings": [
+          "MSFU",
+          "RKLX"
+        ],
+        "stance": "endorse",
+        "relevance": 50,
+        "summary_cn": "报道称SpaceX股价上涨数小时交易额即覆盖对Cursor的600亿美元收购，凸显SpaceX估值飙升，间接利好AI与航天板块。"
+      },
+      {
+        "author": "Musk",
+        "text": "Elon Musk could lose nearly $1 trillion and still be the world's richest person",
+        "url": "",
+        "published": "Tue, 16 Jun 2026 16:35:00 GMT",
+        "origin": "gnews-rss",
+        "source": "Yahoo Finance",
+        "tickers": [],
+        "held": [],
+        "new_ideas": [],
+        "sectors": [
+          "航天/商业航天"
+        ],
+        "sector_holdings": [
+          "RKLX"
+        ],
+        "stance": "neutral",
+        "relevance": 48,
+        "summary_cn": "马斯克净资产达1.4万亿美元，即使缩水近1万亿仍为全球首富，反映SpaceX估值膨胀，间接利好航天板块。"
+      },
       {
         "author": "Trump",
         "text": "RT @realDonaldTrumpTrump scores once-elusive peace deal with Iran, easing oil prices ahead of elections: https://justthenews.com/government/security/montrump-etches-iran-peace-deal-after-months-false-starts",
@@ -4023,14 +4163,13 @@
         "held": [],
         "new_ideas": [],
         "sectors": [
-          "能源",
-          "石油",
+          "能源/原油",
           "地缘政治"
         ],
         "sector_holdings": [],
         "stance": "endorse",
-        "relevance": 72,
-        "summary_cn": "Trump与伊朗达成和平协议，选举前油价下行，利空原油/能源股，宏观利好消费。"
+        "relevance": 65,
+        "summary_cn": "特朗普与伊朗达成和平协议，油价在大选前回落，宏观风险偏好与能源板块受益。"
       },
       {
         "author": "Trump",
@@ -4042,52 +4181,13 @@
         "held": [],
         "new_ideas": [],
         "sectors": [
-          "能源",
-          "石油",
+          "能源/原油",
           "地缘政治"
         ],
         "sector_holdings": [],
         "stance": "endorse",
-        "relevance": 72,
-        "summary_cn": "Trump敲定伊朗和平协议，选举前油价承压下行（与第5条重复，保留信息量更高的一条）。"
-      },
-      {
-        "author": "Trump",
-        "text": "The Deal with the Islamic Republic of Iran is now complete. Congratulations to all! I hereby fully authorize the toll free opening of the Strait of Hormuz, and, simultaneously herewith, authorize the immediate removal of the United States Naval blockade. Ships of the World, start your engines. Let the oil flow! President DONALD J. TRUMP",
-        "url": "https://trumpstruth.org/statuses/39259",
-        "published": "2026-06-14T21:29:48+00:00",
-        "origin": "truthsocial",
-        "tickers": [],
-        "held": [],
-        "new_ideas": [],
-        "sectors": [
-          "能源",
-          "石油",
-          "航运"
-        ],
-        "sector_holdings": [],
-        "stance": "endorse",
-        "relevance": 72,
-        "summary_cn": "Trump宣布伊朗协议完成，下令开放霍尔木兹海峡、解除美海军封锁，全球油运恢复。"
-      },
-      {
-        "author": "Trump",
-        "text": "This Great Deal will bring Peace and Security to the whole Region. Many presidents have tried to make Peace with Iran, and all have failed before me. The Leaders of the Region have, for the first time, found a President who can help them achieve real Peace. With the opening of the Strait upon the signing of the Deal on Friday, for purposes of mine removal, oil will flow on both ends again for the Region, and the World! President DONALD J. TRUMP",
-        "url": "https://trumpstruth.org/statuses/39260",
-        "published": "2026-06-14T22:27:37+00:00",
-        "origin": "truthsocial",
-        "tickers": [],
-        "held": [],
-        "new_ideas": [],
-        "sectors": [
-          "能源",
-          "石油",
-          "地缘政治"
-        ],
-        "sector_holdings": [],
-        "stance": "endorse",
-        "relevance": 70,
-        "summary_cn": "Trump称伊朗协议周五签署后霍尔木兹海峡开放、油流恢复，全球石油供应增加。"
+        "relevance": 65,
+        "summary_cn": "特朗普敲定伊朗和平协议，油价在大选前回落，与第5条为同一事件，保留信息量更高的一条。"
       },
       {
         "author": "Trump",
@@ -4099,33 +4199,13 @@
         "held": [],
         "new_ideas": [],
         "sectors": [
-          "能源",
-          "石油",
+          "能源/原油",
           "航运"
         ],
         "sector_holdings": [],
         "stance": "endorse",
-        "relevance": 68,
-        "summary_cn": "Trump称霍尔木兹海峡船只开始移动、油轮启航，南方航线安全，原油运输恢复，利好石油及航运板块。"
-      },
-      {
-        "author": "Trump",
-        "text": "Victoria Coates of the Heritage Foundation is absolutely fantastic! She gets it like few other do. Thank you Victoria. Iran will never have a Nuclear weapon, and the Strait of Hormuz will be opening up for business very shortly!!! President DJT",
-        "url": "https://trumpstruth.org/statuses/39258",
-        "published": "2026-06-14T20:35:13+00:00",
-        "origin": "truthsocial",
-        "tickers": [],
-        "held": [],
-        "new_ideas": [],
-        "sectors": [
-          "能源",
-          "石油",
-          "地缘政治"
-        ],
-        "sector_holdings": [],
-        "stance": "endorse",
-        "relevance": 65,
-        "summary_cn": "Trump称赞保守派智库专家，主旨仍是伊朗协议后霍尔木兹海峡将很快通航，利好能源及油运。"
+        "relevance": 62,
+        "summary_cn": "特朗普称船只开始通过霍尔木兹海峡南部走廊安全运输石油，地缘风险缓解利好原油供应和航运。"
       },
       {
         "author": "Trump",
@@ -4137,12 +4217,13 @@
         "held": [],
         "new_ideas": [],
         "sectors": [
-          "宏观"
+          "能源/原油",
+          "地缘政治"
         ],
         "sector_holdings": [],
         "stance": "endorse",
-        "relevance": 58,
-        "summary_cn": "Trump前经济顾问称伊朗协议将给美国带来巨大经济繁荣，宏观利好信号。"
+        "relevance": 60,
+        "summary_cn": "特朗普前经济顾问称伊朗协议将给美国带来巨大经济繁荣，利好宏观风险偏好。"
       },
       {
         "author": "Trump",
@@ -4154,92 +4235,167 @@
         "held": [],
         "new_ideas": [],
         "sectors": [
-          "能源",
-          "地缘政治"
-        ],
-        "sector_holdings": [],
-        "stance": "endorse",
-        "relevance": 55,
-        "summary_cn": "Trump称伊朗已同意不发展核武，且否认美国支付3亿美元，利好中东地缘稳定。"
-      },
-      {
-        "author": "Trump",
-        "text": "Senator Jack Reed, a Dumocrat from R.I., lied when stating the the Deal we just made is not as good as the Obama disaster known as the JCPOA. Reed is either an outright fraud, or incompetent. The Obuma Deal was a road to a Nuclear weapon for Iran, cash and all, one of the worst and dumbest (hence Dumocrats!) Deals ever made by the U.S. Our Deal is a WALL against Iran ever having a Nuclear weapon, the complete opposite of Obuma. Impeach Jack Reed!",
-        "url": "https://trumpstruth.org/statuses/39257",
-        "published": "2026-06-14T20:22:35+00:00",
-        "origin": "truthsocial",
-        "tickers": [],
-        "held": [],
-        "new_ideas": [],
-        "sectors": [
-          "能源",
+          "能源/原油",
           "地缘政治",
-          "国防"
+          "中东"
         ],
         "sector_holdings": [],
-        "stance": "endorse",
-        "relevance": 55,
-        "summary_cn": "Trump抨击民主党参议员Reed贬低伊朗协议，强调其协议彻底阻断伊朗核武、远超奥巴马JCPOA。"
-      },
+        "stance": "neutral",
+        "relevance": 58,
+        "summary_cn": "特朗普宣称伊朗同意永不发展核武，否认美国支付3亿美元，试图安抚市场对中东局势的担忧。"
+      }
+    ],
+    "held_hits": [],
+    "new_ideas": [],
+    "sector_hits": [
       {
         "author": "Musk",
-        "text": "Department of Justice sides with Elon Musk’s xAI in Southaven lawsuit",
+        "text": "Trump Administration Attempts Massive Power Grab in Defense of Musk’s xAI",
         "url": "",
-        "published": "Tue, 16 Jun 2026 15:32:40 GMT",
+        "published": "Tue, 16 Jun 2026 16:58:30 GMT",
         "origin": "gnews-rss",
-        "source": "Mississippi Today",
+        "source": "Earthjustice",
         "tickers": [],
         "held": [],
         "new_ideas": [],
         "sectors": [
           "AI",
-          "法律"
+          "监管"
         ],
-        "sector_holdings": [],
+        "sector_holdings": [
+          "MSFU"
+        ],
         "stance": "endorse",
-        "relevance": 50,
-        "summary_cn": "美国司法部在Southaven诉讼中站在Musk旗下xAI一边，对xAI有利（xAI未上市，无直接交易标的）。"
+        "relevance": 68,
+        "summary_cn": "特朗普政府为保护马斯克旗下xAI而进行大规模监管/法律权力扩张，强烈利好AI板块并暗示对xAI生态的政策支持。"
       },
       {
-        "author": "Trump",
-        "text": "RT @realDonaldTrumpUnder the disastrous Open Border Policy of Crooked Joe Biden and his traitorous DHS Secretary Alejandro Mayorkas, TENS OF MILLIONS of criminals, including over 13,000 STONE-COLD MURDERERS, poured into our Country from Prisons and Jails, from Mental Institutions and Insane Asylums. Needless to say, they were NOT always the safest drivers! Car Insurance Premiums rose to RECORD HIGHS, forcing Law-abiding American Citizens to subsidize the \"free riding” Biden Illegals. After over a year of ZERO ILLEGAL IMMIGRATION, and our highly successful efforts to REVERSE the Biden Invasion,",
-        "url": "https://trumpstruth.org/statuses/39271",
-        "published": "2026-06-15T12:03:55+00:00",
-        "origin": "truthsocial",
+        "author": "Musk",
+        "text": "D.O.J. Seeks to Halt Pollution Lawsuit Against Elon Musk’s Data Center",
+        "url": "",
+        "published": "Tue, 16 Jun 2026 19:59:14 GMT",
+        "origin": "gnews-rss",
+        "source": "The New York Times",
         "tickers": [],
         "held": [],
         "new_ideas": [],
         "sectors": [
-          "保险",
-          "移民政策"
+          "AI",
+          "数据中心",
+          "监管"
         ],
-        "sector_holdings": [],
+        "sector_holdings": [
+          "MSFU"
+        ],
         "stance": "endorse",
-        "relevance": 50,
-        "summary_cn": "Trump宣传零非法移民后车险保费已下降，间接利好保险板块。"
+        "relevance": 62,
+        "summary_cn": "美司法部试图阻止针对马斯克数据中心的污染诉讼，特朗普政府为xAI/数据中心扫除监管障碍，利好AI算力。"
       },
       {
-        "author": "Trump",
-        "text": "Under the disastrous Open Border Policy of Crooked Joe Biden and his traitorous DHS Secretary Alejandro Mayorkas, TENS OF MILLIONS of criminals, including over 13,000 STONE-COLD MURDERERS, poured into our Country from Prisons and Jails, from Mental Institutions and Insane Asylums. Needless to say, they were NOT always the safest drivers! Car Insurance Premiums rose to RECORD HIGHS, forcing Law-abiding American Citizens to subsidize the \"free riding” Biden Illegals. After over a year of ZERO ILLEGAL IMMIGRATION, and our highly successful efforts to REVERSE the Biden Invasion, Car Insurance Prem",
-        "url": "https://trumpstruth.org/statuses/39267",
-        "published": "2026-06-15T10:38:53+00:00",
-        "origin": "truthsocial",
+        "author": "Musk",
+        "text": "Opinion | The SpaceX IPO has a bright side",
+        "url": "",
+        "published": "Tue, 16 Jun 2026 17:15:00 GMT",
+        "origin": "gnews-rss",
+        "source": "The Washington Post",
         "tickers": [],
         "held": [],
         "new_ideas": [],
         "sectors": [
-          "保险",
-          "移民政策"
+          "航天/商业航天",
+          "IPO"
         ],
-        "sector_holdings": [],
+        "sector_holdings": [
+          "RKLX"
+        ],
+        "stance": "endorse",
+        "relevance": 55,
+        "summary_cn": "评论文章看好SpaceX IPO的积极外溢效应，间接提振商业航天板块情绪。"
+      },
+      {
+        "author": "Musk",
+        "text": "Musk's SpaceX overtakes Amazon to become world's fifth most valuable firm",
+        "url": "",
+        "published": "Tue, 16 Jun 2026 16:38:14 GMT",
+        "origin": "gnews-rss",
+        "source": "BBC",
+        "tickers": [],
+        "held": [],
+        "new_ideas": [],
+        "sectors": [
+          "航天/商业航天",
+          "AI"
+        ],
+        "sector_holdings": [
+          "RKLX"
+        ],
+        "stance": "endorse",
+        "relevance": 55,
+        "summary_cn": "马斯克旗下SpaceX市值超越亚马逊成为全球第五大公司，间接利好航天板块情绪。"
+      },
+      {
+        "author": "Musk",
+        "text": "How Elon Musk's second-in-command Gwynne Shotwell helped turn SpaceX into an IPO giant",
+        "url": "",
+        "published": "Tue, 16 Jun 2026 09:39:48 GMT",
+        "origin": "gnews-rss",
+        "source": "CNBC",
+        "tickers": [],
+        "held": [],
+        "new_ideas": [],
+        "sectors": [
+          "航天/商业航天"
+        ],
+        "sector_holdings": [
+          "RKLX"
+        ],
+        "stance": "neutral",
+        "relevance": 52,
+        "summary_cn": "报道聚焦SpaceX二号人物Gwynne Shotwell，暗示SpaceX IPO进程推进，间接提振航天板块。"
+      },
+      {
+        "author": "Musk",
+        "text": "Elon's super currency: SpaceX' surging stock paid for the $60 billion Cursor acquisition in just a few hours of trading",
+        "url": "",
+        "published": "Tue, 16 Jun 2026 17:20:00 GMT",
+        "origin": "gnews-rss",
+        "source": "Fortune",
+        "tickers": [],
+        "held": [],
+        "new_ideas": [],
+        "sectors": [
+          "AI",
+          "航天/商业航天"
+        ],
+        "sector_holdings": [
+          "MSFU",
+          "RKLX"
+        ],
         "stance": "endorse",
         "relevance": 50,
-        "summary_cn": "Trump再宣传驱逐非法移民后车险保费创纪录下降（与第6条重复）。"
+        "summary_cn": "报道称SpaceX股价上涨数小时交易额即覆盖对Cursor的600亿美元收购，凸显SpaceX估值飙升，间接利好AI与航天板块。"
+      },
+      {
+        "author": "Musk",
+        "text": "Elon Musk could lose nearly $1 trillion and still be the world's richest person",
+        "url": "",
+        "published": "Tue, 16 Jun 2026 16:35:00 GMT",
+        "origin": "gnews-rss",
+        "source": "Yahoo Finance",
+        "tickers": [],
+        "held": [],
+        "new_ideas": [],
+        "sectors": [
+          "航天/商业航天"
+        ],
+        "sector_holdings": [
+          "RKLX"
+        ],
+        "stance": "neutral",
+        "relevance": 48,
+        "summary_cn": "马斯克净资产达1.4万亿美元，即使缩水近1万亿仍为全球首富，反映SpaceX估值膨胀，间接利好航天板块。"
       }
-    ],
-    "held_hits": [],
-    "new_ideas": [],
-    "sector_hits": []
+    ]
   },
   "regime": {
     "label": "neutral",
@@ -4282,25 +4438,25 @@
         "ticker": "00100",
         "name": "MINIMAX-W",
         "region": "hk",
-        "pnl_percent": -49.37,
-        "pnl_abs": -24373.8,
-        "current_value": 24996.0
+        "pnl_percent": -50.88,
+        "pnl_abs": -25117.8,
+        "current_value": 24252.0
       },
       {
         "ticker": "07226",
         "name": "XL二南方恒科",
         "region": "hk",
-        "pnl_percent": -21.89,
-        "pnl_abs": -5922.24,
-        "current_value": 21129.6
+        "pnl_percent": -22.49,
+        "pnl_abs": -6083.44,
+        "current_value": 20968.4
       },
       {
         "ticker": "02208",
         "name": "金风科技",
         "region": "hk",
-        "pnl_percent": -20.12,
-        "pnl_abs": -1133.6,
-        "current_value": 4500.0
+        "pnl_percent": -21.19,
+        "pnl_abs": -1193.6,
+        "current_value": 4440.0
       }
     ]
   },
@@ -4322,36 +4478,12 @@
       "range_pct": 8.7
     },
     {
-      "ticker": "00100",
-      "region": "hk",
-      "high": 435.0,
-      "low": 402.8,
-      "current": 416.6,
-      "range_pct": 7.73
-    },
-    {
       "ticker": "PLTU",
       "region": "us",
       "high": 34.37,
       "low": 32.0744,
       "current": 33.76,
       "range_pct": 6.8
-    },
-    {
-      "ticker": "02208",
-      "region": "hk",
-      "high": 11.6,
-      "low": 10.96,
-      "current": 11.25,
-      "range_pct": 5.69
-    },
-    {
-      "ticker": "07226",
-      "region": "hk",
-      "high": 3.584,
-      "low": 3.394,
-      "current": 3.408,
-      "range_pct": 5.58
     },
     {
       "ticker": "MSFU",
@@ -4368,6 +4500,30 @@
       "low": 78.985,
       "current": 79.72,
       "range_pct": 3.86
+    },
+    {
+      "ticker": "00100",
+      "region": "hk",
+      "high": 410.2,
+      "low": 402.0,
+      "current": 404.2,
+      "range_pct": 2.03
+    },
+    {
+      "ticker": "02208",
+      "region": "hk",
+      "high": 11.14,
+      "low": 11.0,
+      "current": 11.1,
+      "range_pct": 1.26
+    },
+    {
+      "ticker": "07226",
+      "region": "hk",
+      "high": 3.39,
+      "low": 3.354,
+      "current": 3.382,
+      "range_pct": 1.06
     }
   ],
   "realized_vs_unrealized": {
@@ -4377,11 +4533,11 @@
     },
     "hk": {
       "realized": 7259.16,
-      "unrealized": -32160.24
+      "unrealized": -33146.64
     },
     "combined_usd": {
       "realized": 2536.02,
-      "unrealized": -4091.75
+      "unrealized": -4217.67
     }
   },
   "capital_deployed": {
@@ -4405,14 +4561,14 @@
     },
     "hk": {
       "net_principal": 81017.08,
-      "total_profit": -24901.08,
-      "return_pct": -30.74,
+      "total_profit": -25887.48,
+      "return_pct": -31.95,
       "return_basis": "net_principal"
     },
     "combined_usd": {
       "net_principal": 12813.64,
-      "total_profit": -1555.72,
-      "return_pct": -12.14
+      "total_profit": -1681.65,
+      "return_pct": -13.12
     },
     "formula": "回报率 = (浮动 + 已实现) ÷ 本金；本金优先用 true_principal（峰值净投入），否则用 净投入本金=累计成本−已实现"
   },
