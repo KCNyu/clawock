@@ -1116,6 +1116,18 @@ layout: null
   }
   .ext-region .ext-dd .v { font-size: 20px; color: var(--red); }
   .ext-region .ext-dd .span { font-size: 10px; color: var(--text-dim); margin-top: 3px; }
+  /* 回撤恢复条 (并入历史利润极值卡) */
+  .ext-region .ext-dd .dd-bar {
+    height: 8px; background: var(--card); border-radius: 4px; overflow: hidden;
+    border: 1px solid var(--border); margin-top: 6px;
+  }
+  .ext-region .ext-dd .dd-bar-fill { height: 100%; transition: width 0.4s; }
+  .ext-region .ext-dd .dd-bar-fill.poor { background: var(--red); }
+  .ext-region .ext-dd .dd-bar-fill.mid  { background: var(--amber); }
+  .ext-region .ext-dd .dd-bar-fill.good { background: var(--green); }
+  .ext-region .ext-dd .v .rec-good { color: var(--green); }
+  .ext-region .ext-dd .v .rec-mid  { color: var(--amber); }
+  .ext-region .ext-dd .v .rec-poor { color: var(--red); }
 
   /* 8d Return Heatmap (Drill) */
   .ret-heatmap {
@@ -1464,10 +1476,6 @@ layout: null
         <div class="risk-cell">
           <div class="lbl">Vol (combined)</div>
           <div class="val" id="risk-vol">—</div>
-        </div>
-        <div class="risk-cell">
-          <div class="lbl">Max DD 30d</div>
-          <div class="val" id="risk-dd">—</div>
         </div>
         <div class="risk-cell">
           <div class="lbl">Sharpe</div>
@@ -1840,35 +1848,8 @@ layout: null
     </div>
 
     <div class="card">
-      <h3>利润回撤恢复 <span class="muted" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:11px">(全历史 · per region)</span></h3>
-      <p class="chart-hint">口径 = <b>总利润（净化本金）</b>，加减仓不影响。当前 DD = 现在相对<b>历史利润峰</b>跌了多少；历史最大 = 有快照以来最深的那一刻。<b>恢复比例</b> 越接近 100% = 已从底部反弹越多；接近 0% = 仍在底部或刚跌新低。<br>利润口径为负的区域（如港股）无回撤%，请看「历史利润极值」卡的金额。</p>
-      <div class="dd-grid" id="dd-grid">
-        <div class="dd-region" id="dd-region-us">
-          <div class="dd-region-name">US</div>
-          <div class="dd-stats">
-            <div class="dd-cell"><div class="lbl">当前 DD</div><div class="val" id="dd-us-current">—</div></div>
-            <div class="dd-cell"><div class="lbl">历史最大</div><div class="val" id="dd-us-max">—</div></div>
-            <div class="dd-cell"><div class="lbl">恢复</div><div class="val" id="dd-us-recovery">—</div></div>
-          </div>
-          <div class="dd-bar"><div class="dd-bar-fill" id="dd-us-bar" style="width:0%"></div></div>
-          <div class="dd-status" id="dd-us-status">—</div>
-        </div>
-        <div class="dd-region" id="dd-region-hk">
-          <div class="dd-region-name">HK</div>
-          <div class="dd-stats">
-            <div class="dd-cell"><div class="lbl">当前 DD</div><div class="val" id="dd-hk-current">—</div></div>
-            <div class="dd-cell"><div class="lbl">历史最大</div><div class="val" id="dd-hk-max">—</div></div>
-            <div class="dd-cell"><div class="lbl">恢复</div><div class="val" id="dd-hk-recovery">—</div></div>
-          </div>
-          <div class="dd-bar"><div class="dd-bar-fill" id="dd-hk-bar" style="width:0%"></div></div>
-          <div class="dd-status" id="dd-hk-status">—</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="card">
-      <h3>历史利润极值 <span class="muted" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:11px">(峰值 / 谷底 / 最大回撤)</span></h3>
-      <p class="chart-hint">主口径 = <b>总利润（浮盈＋已实现，净化本金）</b>：<b>加减仓不会影响它</b>，所以它的<b>峰值才是"真·赚最多"那天</b>。<b>历史最高/最低利润</b> = 有快照以来的利润峰值与谷底；<b>最大回撤</b> = 从利润峰到其后最深谷的跌幅（% 仅在利润全程为正时给出，否则只报金额）；<b>距利润峰值</b> = 今天离它还差多少。<br>下半区灰色 = <b>净值口径（市值＋已实现）</b>，<b>仅供参考</b>：买入会把它抬高（花掉的现金不计入净值），所以它常显示"假新高"——别把它当真峰值。<span id="extremes-window" class="muted"></span></p>
+      <h3>历史利润极值 & 回撤恢复 <span class="muted" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:11px">(峰值 / 谷底 / 最大回撤 / 恢复)</span></h3>
+      <p class="chart-hint">主口径 = <b>总利润（浮盈＋已实现，净化本金）</b>：<b>加减仓不会影响它</b>，所以它的<b>峰值才是"真·赚最多"那天</b>。<b>历史最高/最低利润</b> = 有快照以来的利润峰值与谷底；<b>最大回撤</b> = 从利润峰到其后最深谷的跌幅（% 仅在利润全程为正时给出，否则只报金额）；<b>距利润峰值</b> = 今天离它还差多少；<b>恢复%</b> = 从最深处反弹回来多少（100%＝已回峰值，0%＝仍在底部）。<br>下半区灰色 = <b>净值口径（市值＋已实现）</b>，<b>仅供参考</b>：买入会把它抬高（花掉的现金不计入净值），所以它常显示"假新高"——别把它当真峰值。<span id="extremes-window" class="muted"></span></p>
       <div class="ext-grid" id="ext-grid">
         <div class="ext-region" id="ext-region-combined"></div>
         <div class="ext-region" id="ext-region-us"></div>
@@ -1885,7 +1866,7 @@ layout: null
           <button class="mkt-seg-btn" data-mkt="hk"><span class="seg-dot hk"></span>港股</button>
         </div>
       </div>
-      <p class="chart-hint">实线 = 日终净值（持仓市值 + 已实现现金）；<b style="color:#34d399">绿线 = 总利润</b>（浮盈 + 已实现 = 净值 − 成本，<b>净化掉投入本金</b>，它的峰值才是"真·赚最多"那天；可为负 = 账面亏损）；灰虚线 = 累计成本基础；<b>紫线 = SPY 等值</b>（"当初同等美元 all-in SPY 到今天的账面"，非美股交易日延用前值）；<b style="color:#f59e0b">橙线 = 恒科等值</b> + <b style="color:#f59e0b">橙虚线 = 恒科200日线触发位</b>（橙线涨到虚线 = 恒科站回200线 → 杠杆刻度盘放回杠杆）；红色填充 = 历史峰值回撤。<br><b>切换上方〔总览 / 美股 / 港股〕看分市场曲线</b>：总览=USD-eq 合并（HK 按现汇折美元）；美股=$ 计、对标 SPY；港股=HK$ 计、对标恒科。</p>
+      <p class="chart-hint"><b style="color:#34d399">粗绿线 = 总利润（主）</b>（浮盈 + 已实现 = 净值 − 成本，<b>净化掉投入本金；加减仓不影响它</b>，它的峰值才是"真·赚最多"那天；可为负 = 账面亏损）；<b>细蓝线 = 净值</b>（持仓市值 + 已实现现金）<b>仅作参考</b>：买入会把它虚抬（花掉的现金不计入），别把它的高点当真峰值，留它只为和 SPY/恒科同尺度对比；灰虚线 = 累计成本基础；<b>紫线 = SPY 等值</b>（"当初同等美元 all-in SPY 到今天的账面"，非美股交易日延用前值）；<b style="color:#f59e0b">橙线 = 恒科等值</b> + <b style="color:#f59e0b">橙虚线 = 恒科200日线触发位</b>；<b>红色填充 = 利润口径的历史峰值回撤</b>（与下方"历史利润极值"卡同口径，利润为负的区域无填充）。<br><b>切换上方〔总览 / 美股 / 港股〕看分市场曲线</b>：总览=USD-eq 合并（HK 按现汇折美元）；美股=$ 计、对标 SPY；港股=HK$ 计、对标恒科。</p>
       <div id="chart-equity" class="chart-box"></div>
     </div>
 
@@ -2488,7 +2469,6 @@ layout: null
     render8dHeatmap();
     renderWeightConfidence();
     renderReflectKpi();
-    renderDrawdownRecovery();
     renderHistoricalExtremes();
     renderSectorChart();
     renderPlanTimeline();
@@ -3414,7 +3394,8 @@ layout: null
     setNum('risk-beta-us', us.beta_spx);
     setNum('risk-beta-hk', hk.beta_hsi);
     setNum('risk-vol', combined.vol_30d_annualized, 'pct');
-    setNum('risk-dd', combined.max_dd_30d, 'pct_signed');
+    // Max DD 已移除 — 历史最大回撤集中显示在「历史利润极值 & 回撤恢复」卡(净化本金口径)，
+    // 不在此处重复(且 Risk Metrics 是滚动 30d 风险统计，与全历史回撤口径不同)。
     setNum('risk-sharpe', combined.sharpe_30d);
     setNum('risk-margin', lev.margin_at_risk_pct);  // already in pct form
 
@@ -4078,12 +4059,14 @@ layout: null
       return r2(s.us_profit + (s.hk_profit / fx));
     });
 
-    // Drawdown from running peak (this view's equity)
+    // 回撤 — 用 PROFIT(净化本金) 口径而非 净值。净值会被加仓虚抬(花掉的现金不计),
+    // 使回撤恒显示 ~0%(假新高);profit 是 trade-invariant 的真回撤,与下方"历史利润极值"
+    // 卡一致。% 仅在利润全程为正时给(running peak>0 且当前>0),否则 null=无红色填充。
     let peak = -Infinity;
-    const ddPct = eq.map(v => {
+    const ddPct = profit.map(v => {
       if (v == null) return null;
       if (v > peak) peak = v;
-      return peak > 0 ? Math.round(((v - peak) / peak) * 10000) / 100 : 0;
+      return (peak > 0 && v > 0) ? Math.round(((v - peak) / peak) * 10000) / 100 : null;
     });
     // Day-over-day equity change — shown in tooltip separately from 回撤 so
     // consecutive new highs (回撤 0%) don't look like a stuck/duplicate value.
@@ -4143,24 +4126,27 @@ layout: null
     const manyPts = dates.length > 30;
     const zoomStart = manyPts ? Math.max(0, (1 - 30 / dates.length) * 100) : 0;
 
-    const legendData = [eqName, "总利润", "成本基础"];
+    const legendData = ["总利润", eqName, "成本基础"];
     if (showSPY) legendData.push("SPY 等值");
     if (showHSTECH) legendData.push("恒科等值");
     legendData.push("回撤");
 
     const seriesArr = [
-      { name: eqName, type: "line", data: eq, yAxisIndex: 0,
-        itemStyle: { color: accent }, lineStyle: { width: 2.5 }, smooth: true,
-        symbol: dates.length > 45 ? "none" : "circle", symbolSize: 5,
-        areaStyle: { color: accent, opacity: 0.08 }, z: 3, connectNulls: true },
-      // 总利润线：净值减成本基础的那段 gap，单独画出来免得把"市值峰"误当"利润峰"。
+      // 总利润(净化本金)= 主线：加减仓不影响它，它的峰值才是"真·赚最多"那天，
+      // 与下方"历史利润极值"卡 + 回撤填充同口径。粗线 + 面积填充作视觉重心。
       { name: "总利润", type: "line", data: profit, yAxisIndex: 0,
-        itemStyle: { color: green }, lineStyle: { width: 1.8, color: green }, smooth: true,
-        symbol: "none", z: 3, connectNulls: true,
+        itemStyle: { color: green }, lineStyle: { width: 2.6, color: green }, smooth: true,
+        symbol: dates.length > 45 ? "none" : "circle", symbolSize: 5,
+        areaStyle: { color: green, opacity: 0.08 }, z: 4, connectNulls: true,
         markLine: { symbol: "none", silent: true,
           lineStyle: { color: green, type: "dotted", width: 1, opacity: 0.5 },
           label: { color: green, fontSize: 9, position: "insideStartTop", formatter: "盈亏线 0" },
           data: [{ yAxis: 0 }] } },
+      // 净值(市值+已实现)= 细参考线：加减仓会把它虚抬(花掉的现金不计入)，仅用来和
+      // SPY/恒科等值同尺度对比，别把它的高点当真峰值 → 故降为细、低透明、无面积。
+      { name: eqName, type: "line", data: eq, yAxisIndex: 0,
+        itemStyle: { color: accent }, lineStyle: { width: 1.2, color: accent, opacity: 0.5 },
+        smooth: true, symbol: "none", z: 3, connectNulls: true },
       { name: "成本基础", type: "line", data: cost, yAxisIndex: 0,
         itemStyle: { color: dim }, lineStyle: { width: 1, type: "dashed", color: dim },
         symbol: "none", z: 2, connectNulls: true },
@@ -4882,74 +4868,6 @@ layout: null
     charts.weightConf.setOption(opt, true);
   }
 
-  // =========================================================
-  // Drawdown Recovery (Reflect)
-  // =========================================================
-  function renderDrawdownRecovery() {
-    const dd = safe(DATA, "drawdown") || {};
-    const pf = dd.profit || {};
-    // 利润口径（净化本金，trade-invariant）的全历史回撤：
-    //   curr = 今天相对利润峰的回撤%（current_dd_pct，≤0）
-    //   max  = 有快照以来最深的利润回撤%（max_dd_pct，≤0）
-    // 利润全程为负的区域（如港股）这两个字段为 null → 卡片显示"无%、见金额"。
-    const regions = [
-      { key: "us", curr: (pf.us && pf.us.current_dd_pct), max: (pf.us && pf.us.max_dd_pct) },
-      { key: "hk", curr: (pf.hk && pf.hk.current_dd_pct), max: (pf.hk && pf.hk.max_dd_pct) },
-    ];
-    regions.forEach(r => {
-      const setT = (suf, txt) => { const el = document.getElementById(`dd-${r.key}-${suf}`); if (el) el.textContent = txt; };
-      const setCls = (suf, cls) => { const el = document.getElementById(`dd-${r.key}-${suf}`); if (el) { el.classList.remove("pos","neg"); el.classList.add(cls); } };
-      const card = document.getElementById(`dd-region-${r.key}`);
-
-      const fmt = v => v == null || !isFinite(v) ? DASH : (v > 0 ? "+" : "") + v.toFixed(2) + "%";
-      setT("current", fmt(r.curr));
-      setT("max", fmt(r.max));
-
-      // Recovery: clamped 0..100; 100% = fully recovered (current >= 0 or current > max),
-      // 0% = still at or below max
-      let recovery = null;
-      if (r.max == null || r.max === 0) {
-        recovery = null;
-      } else if (r.curr == null) {
-        recovery = null;
-      } else if (r.curr >= 0) {
-        recovery = 100;
-      } else if (r.curr <= r.max) {
-        recovery = 0;
-      } else {
-        recovery = Math.max(0, Math.min(100, (1 - r.curr / r.max) * 100));
-      }
-
-      setT("recovery", recovery == null ? DASH
-        : (recovery > 0 && recovery < 1) ? "<1%"
-        : recovery.toFixed(0) + "%");
-      setCls("current", (r.curr != null && r.curr < 0) ? "neg" : "pos");
-
-      let tier, statusTxt;
-      if (recovery == null) {
-        tier = "mid"; statusTxt = "利润口径为负 — 无回撤%，见上方金额";
-      } else if (recovery >= 70) {
-        tier = "good"; statusTxt = recovery >= 95 ? "几乎完全恢复 ✓" : "已反弹大部分";
-      } else if (recovery >= 30) {
-        tier = "mid"; statusTxt = "部分恢复中";
-      } else {
-        tier = "poor"; statusTxt = recovery < 5
-          ? "贴底无反弹 — 谨慎"
-          : "刚反弹一点 — 仍接近最低";
-      }
-      const bar = document.getElementById(`dd-${r.key}-bar`);
-      if (bar) {
-        bar.classList.remove("poor", "mid", "good");
-        bar.classList.add(tier);
-        bar.style.width = (recovery == null ? 0 : recovery) + "%";
-      }
-      if (card) {
-        card.classList.remove("recovery-poor", "recovery-mid", "recovery-good");
-        card.classList.add(`recovery-${tier}`);
-      }
-      setT("status", statusTxt);
-    });
-  }
 
   // =========================================================
   // 历史净值极值 — peak / trough / max drawdown (equity basis)
@@ -4992,6 +4910,26 @@ layout: null
       el.classList.toggle("is-low", atLow);
       // % 仅在利润全程为正时有意义(见 _profit_extremes 守卫)；否则只报金额。
       const ddPct = (p && p.max_dd_pct != null) ? p.max_dd_pct.toFixed(1) + "%" : null;
+      // 回撤恢复(并入本卡): curr=今天相对利润峰回撤% (current_dd_pct), max=历史最大回撤%。
+      //   100% = 已回到峰值/为正; 0% = 仍在最深处。利润为负的区域两者为 null → 无恢复条。
+      const curDd = p && p.current_dd_pct, maxDd = p && p.max_dd_pct;
+      let recovery = null;
+      if (maxDd != null && maxDd !== 0 && curDd != null) {
+        recovery = curDd >= 0 ? 100 : (curDd <= maxDd ? 0 : Math.max(0, Math.min(100, (1 - curDd / maxDd) * 100)));
+      }
+      let recTier = "mid", recTxt = "利润为负 — 无回撤%";
+      if (recovery != null) {
+        if (recovery >= 70) { recTier = "good"; recTxt = recovery >= 95 ? "几乎完全恢复 ✓" : "已反弹大部分"; }
+        else if (recovery >= 30) { recTier = "mid"; recTxt = "部分恢复中"; }
+        else { recTier = "poor"; recTxt = recovery < 5 ? "贴底无反弹 — 谨慎" : "刚反弹一点 — 仍接近最低"; }
+      }
+      const recPctTxt = recovery == null ? DASH : (recovery > 0 && recovery < 1) ? "<1%" : recovery.toFixed(0) + "%";
+      const recoveryBlock = `
+        <div class="ext-dd">
+          <div class="ext-row"><span class="k">当前回撤 → 恢复</span><span class="v">${curDd != null ? curDd.toFixed(1) + "%" : DASH} → <b class="rec-${recTier}">${recPctTxt}</b></span></div>
+          <div class="dd-bar"><div class="dd-bar-fill ${recTier}" style="width:${recovery == null ? 0 : recovery}%"></div></div>
+          <div class="span">${recTxt}（恢复% = 离历史利润峰还差多远，100%＝已回峰值）</div>
+        </div>`;
       const profitPrimary = p ? `
         <div class="ext-head">
           <span class="ext-name">${r.name}</span>
@@ -5004,7 +4942,7 @@ layout: null
           <div class="ext-row"><span class="k">最大回撤</span><span class="v">${ddPct || DASH}<small>${signed(p.max_dd_abs, cur)}</small></span></div>
           <div class="ext-row"><span class="k">距利润峰值</span><span class="v ${(p.from_peak_abs ?? 0) < 0 ? "neg" : ""}">${signed(p.from_peak_abs, cur)}</span></div>
           <div class="span">口径＝总利润（浮盈＋已实现，净化本金）；加减仓不影响它</div>
-        </div>` : `
+        </div>${recoveryBlock}` : `
         <div class="ext-head"><span class="ext-name">${r.name}</span></div>
         <div class="muted" style="margin-top:8px">无利润口径数据</div>`;
       // SECONDARY = 净值口径，明确标注会被加减仓抬高，仅供参考。
