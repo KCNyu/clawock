@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-16T23:08:05.525591+00:00",
+  "generated_at": "2026-06-17T16:30:47.132624+00:00",
   "lookback_hours": 48,
   "sources": {
     "trump": "trumpstruth.org/feed (primary)",
@@ -8,212 +8,197 @@
   },
   "llm_filtered": true,
   "counts": {
-    "total": 12,
-    "held_hits": 0,
+    "total": 11,
+    "held_hits": 8,
     "new_ideas": 0,
-    "sector_hits": 7
+    "sector_hits": 0
   },
   "items": [
     {
       "author": "Musk",
-      "text": "Trump Administration Attempts Massive Power Grab in Defense of Musk’s xAI",
+      "text": "Musk’s Next Move May Be a Mega-Merger of SpaceX and Tesla",
       "url": "",
-      "published": "Tue, 16 Jun 2026 16:58:30 GMT",
-      "origin": "gnews-rss",
-      "source": "Earthjustice",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "AI",
-        "监管"
-      ],
-      "sector_holdings": [
-        "MSFU"
-      ],
-      "stance": "endorse",
-      "relevance": 68,
-      "summary_cn": "特朗普政府为保护马斯克旗下xAI而进行大规模监管/法律权力扩张，强烈利好AI板块并暗示对xAI生态的政策支持。"
-    },
-    {
-      "author": "Musk",
-      "text": "D.O.J. Seeks to Halt Pollution Lawsuit Against Elon Musk’s Data Center",
-      "url": "",
-      "published": "Tue, 16 Jun 2026 19:59:14 GMT",
+      "published": "Wed, 17 Jun 2026 16:20:24 GMT",
       "origin": "gnews-rss",
       "source": "The New York Times",
-      "tickers": [],
-      "held": [],
+      "tickers": [
+        "SPCH"
+      ],
+      "held": [
+        "SPCH"
+      ],
       "new_ideas": [],
       "sectors": [
-        "AI",
-        "数据中心",
-        "监管"
+        "航天",
+        "电动车",
+        "AI"
       ],
-      "sector_holdings": [
-        "MSFU"
-      ],
+      "sector_holdings": [],
       "stance": "endorse",
-      "relevance": 62,
-      "summary_cn": "美司法部试图阻止针对马斯克数据中心的污染诉讼，特朗普政府为xAI/数据中心扫除监管障碍，利好AI算力。"
-    },
-    {
-      "author": "Musk",
-      "text": "Opinion | The SpaceX IPO has a bright side",
-      "url": "",
-      "published": "Tue, 16 Jun 2026 17:15:00 GMT",
-      "origin": "gnews-rss",
-      "source": "The Washington Post",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天/商业航天",
-        "IPO"
-      ],
-      "sector_holdings": [
-        "RKLX"
-      ],
-      "stance": "endorse",
-      "relevance": 55,
-      "summary_cn": "评论文章看好SpaceX IPO的积极外溢效应，间接提振商业航天板块情绪。"
+      "relevance": 82,
+      "summary_cn": "传Musk酝酿SpaceX与Tesla的超级合并，重大催化剂，直接利好SPCH持仓。"
     },
     {
       "author": "Musk",
       "text": "Musk's SpaceX overtakes Amazon to become world's fifth most valuable firm",
       "url": "",
-      "published": "Tue, 16 Jun 2026 16:38:14 GMT",
+      "published": "Wed, 17 Jun 2026 01:27:26 GMT",
       "origin": "gnews-rss",
       "source": "BBC",
-      "tickers": [],
-      "held": [],
+      "tickers": [
+        "SPCH"
+      ],
+      "held": [
+        "SPCH"
+      ],
       "new_ideas": [],
       "sectors": [
-        "航天/商业航天",
+        "航天"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 80,
+      "summary_cn": "SpaceX市值超越亚马逊成为全球第五大公司，里程碑估值重估利好SPCH。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk Is Unleashing SpaceX’s New War Chest to Solve His AI Problem",
+      "url": "",
+      "published": "Wed, 17 Jun 2026 01:10:00 GMT",
+      "origin": "gnews-rss",
+      "source": "WSJ",
+      "tickers": [
+        "SPCH"
+      ],
+      "held": [
+        "SPCH"
+      ],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
         "AI"
       ],
-      "sector_holdings": [
-        "RKLX"
-      ],
+      "sector_holdings": [],
       "stance": "endorse",
-      "relevance": 55,
-      "summary_cn": "马斯克旗下SpaceX市值超越亚马逊成为全球第五大公司，间接利好航天板块情绪。"
+      "relevance": 78,
+      "summary_cn": "Musk动用SpaceX资金解决AI算力问题，看多SpaceX/SPCH估值逻辑（AI+航天双轮）。"
     },
     {
       "author": "Musk",
-      "text": "How Elon Musk's second-in-command Gwynne Shotwell helped turn SpaceX into an IPO giant",
+      "text": "Jim Cramer says SpaceX investors aren't buying earnings — they're buying Elon Musk",
       "url": "",
-      "published": "Tue, 16 Jun 2026 09:39:48 GMT",
+      "published": "Tue, 16 Jun 2026 22:42:05 GMT",
       "origin": "gnews-rss",
       "source": "CNBC",
-      "tickers": [],
-      "held": [],
+      "tickers": [
+        "SPCH"
+      ],
+      "held": [
+        "SPCH"
+      ],
       "new_ideas": [],
       "sectors": [
-        "航天/商业航天"
+        "航天"
       ],
-      "sector_holdings": [
-        "RKLX"
-      ],
-      "stance": "neutral",
-      "relevance": 52,
-      "summary_cn": "报道聚焦SpaceX二号人物Gwynne Shotwell，暗示SpaceX IPO进程推进，间接提振航天板块。"
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 75,
+      "summary_cn": "Cramer称SpaceX投资人买的不是盈利而是Elon Musk，间接看多SPCH的成长溢价。"
     },
     {
       "author": "Musk",
-      "text": "Elon's super currency: SpaceX' surging stock paid for the $60 billion Cursor acquisition in just a few hours of trading",
+      "text": "Michael Burry 'tempted' to bet against Elon Musk's SpaceX",
       "url": "",
-      "published": "Tue, 16 Jun 2026 17:20:00 GMT",
+      "published": "Wed, 17 Jun 2026 11:19:00 GMT",
       "origin": "gnews-rss",
       "source": "Fortune",
-      "tickers": [],
-      "held": [],
+      "tickers": [
+        "SPCH"
+      ],
+      "held": [
+        "SPCH"
+      ],
       "new_ideas": [],
       "sectors": [
-        "AI",
-        "航天/商业航天"
+        "航天",
+        "AI"
       ],
-      "sector_holdings": [
-        "MSFU",
-        "RKLX"
-      ],
-      "stance": "endorse",
-      "relevance": 50,
-      "summary_cn": "报道称SpaceX股价上涨数小时交易额即覆盖对Cursor的600亿美元收购，凸显SpaceX估值飙升，间接利好AI与航天板块。"
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 72,
+      "summary_cn": "Michael Burry考虑做空SpaceX（SPCH持仓2x做多标的），出现知名空头信号，需警惕杠杆ETF波动。"
     },
     {
       "author": "Musk",
-      "text": "Elon Musk could lose nearly $1 trillion and still be the world's richest person",
+      "text": "Elon Musk and the Rise of Space Capitalism",
       "url": "",
-      "published": "Tue, 16 Jun 2026 16:35:00 GMT",
+      "published": "Wed, 17 Jun 2026 08:48:35 GMT",
       "origin": "gnews-rss",
-      "source": "Yahoo Finance",
-      "tickers": [],
-      "held": [],
+      "source": "Foreign Policy",
+      "tickers": [
+        "SPCH"
+      ],
+      "held": [
+        "SPCH"
+      ],
       "new_ideas": [],
       "sectors": [
-        "航天/商业航天"
+        "航天"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 70,
+      "summary_cn": "Musk与太空资本主义崛起，叙事层面持续看多SpaceX/SPCH长期价值。"
+    },
+    {
+      "author": "Musk",
+      "text": "10 things Elon Musk can — but probably won’t — do with $1 trillion",
+      "url": "",
+      "published": "Wed, 17 Jun 2026 10:00:00 GMT",
+      "origin": "gnews-rss",
+      "source": "vox.com",
+      "tickers": [
+        "SPCH"
+      ],
+      "held": [
+        "SPCH"
+      ],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "AI",
+        "电动车"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 68,
+      "summary_cn": "Musk万亿美元帝国的10种潜在动作，SpaceX/SPCH作为核心载体间接受益。"
+    },
+    {
+      "author": "Musk",
+      "text": "The Final Frontier of Tax Avoidance: Elon Musk’s SpaceX Has $1.9 Billion to Gain from Defunding the IRS",
+      "url": "",
+      "published": "Fri, 12 Jun 2026 14:24:36 GMT",
+      "origin": "gnews-rss",
+      "source": "Institute on Taxation and Economic Policy",
+      "tickers": [
+        "SPCH"
+      ],
+      "held": [
+        "SPCH"
+      ],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "加密货币",
+        "监管"
       ],
       "sector_holdings": [
-        "RKLX"
+        "CRCL"
       ],
       "stance": "neutral",
-      "relevance": 48,
-      "summary_cn": "马斯克净资产达1.4万亿美元，即使缩水近1万亿仍为全球首富，反映SpaceX估值膨胀，间接利好航天板块。"
-    },
-    {
-      "author": "Trump",
-      "text": "RT @realDonaldTrumpTrump scores once-elusive peace deal with Iran, easing oil prices ahead of elections: https://justthenews.com/government/security/montrump-etches-iran-peace-deal-after-months-false-starts",
-      "url": "https://trumpstruth.org/statuses/39270",
-      "published": "2026-06-15T12:03:59+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "能源/原油",
-        "地缘政治"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 65,
-      "summary_cn": "特朗普与伊朗达成和平协议，油价在大选前回落，宏观风险偏好与能源板块受益。"
-    },
-    {
-      "author": "Trump",
-      "text": "Trump scores once-elusive peace deal with Iran, easing oil prices ahead of elections: https://justthenews.com/government/security/montrump-etches-iran-peace-deal-after-months-false-starts",
-      "url": "https://trumpstruth.org/statuses/39268",
-      "published": "2026-06-15T11:50:27+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "能源/原油",
-        "地缘政治"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 65,
-      "summary_cn": "特朗普敲定伊朗和平协议，油价在大选前回落，与第5条为同一事件，保留信息量更高的一条。"
-    },
-    {
-      "author": "Trump",
-      "text": "Ships are starting to move, many loaded up with Oil, out of the Strait of Hormuz. They are going along the Southern “Highway,” which is totally safe, secure, and pristine. There are other areas of travel, also!!!  President DJT",
-      "url": "https://trumpstruth.org/statuses/39290",
-      "published": "2026-06-15T13:06:11+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "能源/原油",
-        "航运"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 62,
-      "summary_cn": "特朗普称船只开始通过霍尔木兹海峡南部走廊安全运输石油，地缘风险缓解利好原油供应和航运。"
+      "relevance": 60,
+      "summary_cn": "SpaceX因IRS资金削减可额外获益19亿美元税务利益，间接利好SPCH估值。"
     },
     {
       "author": "Trump",
@@ -225,13 +210,14 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "能源/原油",
-        "地缘政治"
+        "能源",
+        "宏观经济",
+        "中东地缘政治"
       ],
       "sector_holdings": [],
       "stance": "endorse",
-      "relevance": 60,
-      "summary_cn": "特朗普前经济顾问称伊朗协议将给美国带来巨大经济繁荣，利好宏观风险偏好。"
+      "relevance": 65,
+      "summary_cn": "Trump前经济顾问称伊朗协议将给美国带来经济繁荣，间接看多宏观/能源风险偏好。"
     },
     {
       "author": "Trump",
@@ -243,165 +229,222 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "能源/原油",
-        "地缘政治",
-        "中东"
+        "中东地缘政治",
+        "能源"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 63,
+      "summary_cn": "Trump称伊朗同意不发展核武，且否认支付3亿美元，利好中东局势缓和与能源供给预期。"
+    },
+    {
+      "author": "Trump",
+      "text": "I will be doing a Press Conference in 45 minutes from France. I’ll then be heading to Versailles for Dinner with French and other European Leaders, and then back home tonight! The trip was a Great Success but, mostly what people wanted to talk about, is the fact that Iran will not have a Nuclear Weapon, and that the Strait of Hormuz will immediately be opened! Great Numbers in all categories for the United States Economy with more people working today than have ever worked before. Over 19.1 Trillion being invested in the U.S.A. with Factories and everything else happening but, importantly, rec",
+      "url": "https://trumpstruth.org/statuses/39318",
+      "published": "2026-06-17T14:01:23+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "能源",
+        "宏观经济",
+        "中东地缘政治"
       ],
       "sector_holdings": [],
       "stance": "neutral",
-      "relevance": 58,
-      "summary_cn": "特朗普宣称伊朗同意永不发展核武，否认美国支付3亿美元，试图安抚市场对中东局势的担忧。"
+      "relevance": 62,
+      "summary_cn": "Trump称霍尔木兹海峡将立即开放、美国经济数据强劲，利好能源/宏观风险偏好。"
     }
   ],
-  "held_hits": [],
-  "new_ideas": [],
-  "sector_hits": [
+  "held_hits": [
     {
       "author": "Musk",
-      "text": "Trump Administration Attempts Massive Power Grab in Defense of Musk’s xAI",
+      "text": "Musk’s Next Move May Be a Mega-Merger of SpaceX and Tesla",
       "url": "",
-      "published": "Tue, 16 Jun 2026 16:58:30 GMT",
-      "origin": "gnews-rss",
-      "source": "Earthjustice",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "AI",
-        "监管"
-      ],
-      "sector_holdings": [
-        "MSFU"
-      ],
-      "stance": "endorse",
-      "relevance": 68,
-      "summary_cn": "特朗普政府为保护马斯克旗下xAI而进行大规模监管/法律权力扩张，强烈利好AI板块并暗示对xAI生态的政策支持。"
-    },
-    {
-      "author": "Musk",
-      "text": "D.O.J. Seeks to Halt Pollution Lawsuit Against Elon Musk’s Data Center",
-      "url": "",
-      "published": "Tue, 16 Jun 2026 19:59:14 GMT",
+      "published": "Wed, 17 Jun 2026 16:20:24 GMT",
       "origin": "gnews-rss",
       "source": "The New York Times",
-      "tickers": [],
-      "held": [],
+      "tickers": [
+        "SPCH"
+      ],
+      "held": [
+        "SPCH"
+      ],
       "new_ideas": [],
       "sectors": [
-        "AI",
-        "数据中心",
-        "监管"
+        "航天",
+        "电动车",
+        "AI"
       ],
-      "sector_holdings": [
-        "MSFU"
-      ],
+      "sector_holdings": [],
       "stance": "endorse",
-      "relevance": 62,
-      "summary_cn": "美司法部试图阻止针对马斯克数据中心的污染诉讼，特朗普政府为xAI/数据中心扫除监管障碍，利好AI算力。"
-    },
-    {
-      "author": "Musk",
-      "text": "Opinion | The SpaceX IPO has a bright side",
-      "url": "",
-      "published": "Tue, 16 Jun 2026 17:15:00 GMT",
-      "origin": "gnews-rss",
-      "source": "The Washington Post",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天/商业航天",
-        "IPO"
-      ],
-      "sector_holdings": [
-        "RKLX"
-      ],
-      "stance": "endorse",
-      "relevance": 55,
-      "summary_cn": "评论文章看好SpaceX IPO的积极外溢效应，间接提振商业航天板块情绪。"
+      "relevance": 82,
+      "summary_cn": "传Musk酝酿SpaceX与Tesla的超级合并，重大催化剂，直接利好SPCH持仓。"
     },
     {
       "author": "Musk",
       "text": "Musk's SpaceX overtakes Amazon to become world's fifth most valuable firm",
       "url": "",
-      "published": "Tue, 16 Jun 2026 16:38:14 GMT",
+      "published": "Wed, 17 Jun 2026 01:27:26 GMT",
       "origin": "gnews-rss",
       "source": "BBC",
-      "tickers": [],
-      "held": [],
+      "tickers": [
+        "SPCH"
+      ],
+      "held": [
+        "SPCH"
+      ],
       "new_ideas": [],
       "sectors": [
-        "航天/商业航天",
+        "航天"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 80,
+      "summary_cn": "SpaceX市值超越亚马逊成为全球第五大公司，里程碑估值重估利好SPCH。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk Is Unleashing SpaceX’s New War Chest to Solve His AI Problem",
+      "url": "",
+      "published": "Wed, 17 Jun 2026 01:10:00 GMT",
+      "origin": "gnews-rss",
+      "source": "WSJ",
+      "tickers": [
+        "SPCH"
+      ],
+      "held": [
+        "SPCH"
+      ],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
         "AI"
       ],
-      "sector_holdings": [
-        "RKLX"
-      ],
+      "sector_holdings": [],
       "stance": "endorse",
-      "relevance": 55,
-      "summary_cn": "马斯克旗下SpaceX市值超越亚马逊成为全球第五大公司，间接利好航天板块情绪。"
+      "relevance": 78,
+      "summary_cn": "Musk动用SpaceX资金解决AI算力问题，看多SpaceX/SPCH估值逻辑（AI+航天双轮）。"
     },
     {
       "author": "Musk",
-      "text": "How Elon Musk's second-in-command Gwynne Shotwell helped turn SpaceX into an IPO giant",
+      "text": "Jim Cramer says SpaceX investors aren't buying earnings — they're buying Elon Musk",
       "url": "",
-      "published": "Tue, 16 Jun 2026 09:39:48 GMT",
+      "published": "Tue, 16 Jun 2026 22:42:05 GMT",
       "origin": "gnews-rss",
       "source": "CNBC",
-      "tickers": [],
-      "held": [],
+      "tickers": [
+        "SPCH"
+      ],
+      "held": [
+        "SPCH"
+      ],
       "new_ideas": [],
       "sectors": [
-        "航天/商业航天"
+        "航天"
       ],
-      "sector_holdings": [
-        "RKLX"
-      ],
-      "stance": "neutral",
-      "relevance": 52,
-      "summary_cn": "报道聚焦SpaceX二号人物Gwynne Shotwell，暗示SpaceX IPO进程推进，间接提振航天板块。"
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 75,
+      "summary_cn": "Cramer称SpaceX投资人买的不是盈利而是Elon Musk，间接看多SPCH的成长溢价。"
     },
     {
       "author": "Musk",
-      "text": "Elon's super currency: SpaceX' surging stock paid for the $60 billion Cursor acquisition in just a few hours of trading",
+      "text": "Michael Burry 'tempted' to bet against Elon Musk's SpaceX",
       "url": "",
-      "published": "Tue, 16 Jun 2026 17:20:00 GMT",
+      "published": "Wed, 17 Jun 2026 11:19:00 GMT",
       "origin": "gnews-rss",
       "source": "Fortune",
-      "tickers": [],
-      "held": [],
+      "tickers": [
+        "SPCH"
+      ],
+      "held": [
+        "SPCH"
+      ],
       "new_ideas": [],
       "sectors": [
-        "AI",
-        "航天/商业航天"
+        "航天",
+        "AI"
       ],
-      "sector_holdings": [
-        "MSFU",
-        "RKLX"
-      ],
-      "stance": "endorse",
-      "relevance": 50,
-      "summary_cn": "报道称SpaceX股价上涨数小时交易额即覆盖对Cursor的600亿美元收购，凸显SpaceX估值飙升，间接利好AI与航天板块。"
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 72,
+      "summary_cn": "Michael Burry考虑做空SpaceX（SPCH持仓2x做多标的），出现知名空头信号，需警惕杠杆ETF波动。"
     },
     {
       "author": "Musk",
-      "text": "Elon Musk could lose nearly $1 trillion and still be the world's richest person",
+      "text": "Elon Musk and the Rise of Space Capitalism",
       "url": "",
-      "published": "Tue, 16 Jun 2026 16:35:00 GMT",
+      "published": "Wed, 17 Jun 2026 08:48:35 GMT",
       "origin": "gnews-rss",
-      "source": "Yahoo Finance",
-      "tickers": [],
-      "held": [],
+      "source": "Foreign Policy",
+      "tickers": [
+        "SPCH"
+      ],
+      "held": [
+        "SPCH"
+      ],
       "new_ideas": [],
       "sectors": [
-        "航天/商业航天"
+        "航天"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 70,
+      "summary_cn": "Musk与太空资本主义崛起，叙事层面持续看多SpaceX/SPCH长期价值。"
+    },
+    {
+      "author": "Musk",
+      "text": "10 things Elon Musk can — but probably won’t — do with $1 trillion",
+      "url": "",
+      "published": "Wed, 17 Jun 2026 10:00:00 GMT",
+      "origin": "gnews-rss",
+      "source": "vox.com",
+      "tickers": [
+        "SPCH"
+      ],
+      "held": [
+        "SPCH"
+      ],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "AI",
+        "电动车"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 68,
+      "summary_cn": "Musk万亿美元帝国的10种潜在动作，SpaceX/SPCH作为核心载体间接受益。"
+    },
+    {
+      "author": "Musk",
+      "text": "The Final Frontier of Tax Avoidance: Elon Musk’s SpaceX Has $1.9 Billion to Gain from Defunding the IRS",
+      "url": "",
+      "published": "Fri, 12 Jun 2026 14:24:36 GMT",
+      "origin": "gnews-rss",
+      "source": "Institute on Taxation and Economic Policy",
+      "tickers": [
+        "SPCH"
+      ],
+      "held": [
+        "SPCH"
+      ],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "加密货币",
+        "监管"
       ],
       "sector_holdings": [
-        "RKLX"
+        "CRCL"
       ],
       "stance": "neutral",
-      "relevance": 48,
-      "summary_cn": "马斯克净资产达1.4万亿美元，即使缩水近1万亿仍为全球首富，反映SpaceX估值膨胀，间接利好航天板块。"
+      "relevance": 60,
+      "summary_cn": "SpaceX因IRS资金削减可额外获益19亿美元税务利益，间接利好SPCH估值。"
     }
-  ]
+  ],
+  "new_ideas": [],
+  "sector_hits": []
 }
