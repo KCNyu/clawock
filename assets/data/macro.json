@@ -1,67 +1,77 @@
 {
-  "generated_at": "2026-06-16T23:09:33.791995+00:00",
+  "generated_at": "2026-06-17T23:07:49.271870+00:00",
   "vix": {
     "symbol": "^VIX",
-    "price": 16.41,
-    "prev": 16.2,
-    "change_pct": 1.3,
-    "as_of": 1781640901,
+    "price": 18.44,
+    "prev": 16.41,
+    "change_pct": 12.37,
+    "as_of": 1781727301,
     "source": "yahoo"
   },
   "treasury_10y": {
     "symbol": "^TNX",
-    "price": 4.428,
-    "prev": 4.469,
-    "change_pct": -0.92,
-    "as_of": 1781636394,
+    "price": 4.463,
+    "prev": 4.428,
+    "change_pct": 0.79,
+    "as_of": 1781722794,
     "source": "yahoo",
-    "yield_pct": 4.428
+    "yield_pct": 4.463
   },
   "dxy": {
     "symbol": "DX-Y.NYB",
-    "price": 99.54,
-    "prev": 99.54,
-    "change_pct": 0.0,
-    "as_of": 1781647496,
+    "price": 100.388,
+    "prev": 100.089,
+    "change_pct": 0.3,
+    "as_of": 1781733899,
     "source": "yahoo"
   },
   "fear_greed": {
-    "score": 39.2,
+    "score": 32.7,
     "rating": "fear",
-    "prev_close": 40.9,
-    "prev_1_week": 32.4,
-    "as_of": "2026-06-16T22:50:39+00:00"
+    "prev_close": 39.3,
+    "prev_1_week": 26.9,
+    "as_of": "2026-06-17T22:47:24+00:00"
   },
   "hsi": {
     "symbol": "^HSI",
-    "price": 24493.95,
-    "prev": 24842.67,
-    "change_pct": -1.4,
+    "price": 24312.16,
+    "prev": 24493.95,
+    "change_pct": -0.74,
     "source": "tencent"
   },
   "hstech": {
     "symbol": "^HSTECH",
-    "price": 4658.65,
-    "prev": 4765.58,
-    "change_pct": -2.24,
+    "price": 4669.07,
+    "prev": 4658.65,
+    "change_pct": 0.22,
     "source": "tencent"
   },
   "spx": {
     "symbol": "^GSPC",
-    "price": 7511.35,
-    "prev": 7554.29,
-    "change_pct": -0.57,
-    "as_of": 1781643376,
+    "price": 7420.1,
+    "prev": 7511.35,
+    "change_pct": -1.21,
+    "as_of": 1781729434,
     "source": "yahoo"
   },
   "nasdaq": {
     "symbol": "^IXIC",
-    "price": 26376.34,
-    "prev": 26683.94,
-    "change_pct": -1.15,
+    "price": 26021.66,
+    "prev": 26376.34,
+    "change_pct": -1.34,
     "source": "tencent"
   },
   "fed_press": [
+    {
+      "date": "2026-06-17",
+      "title": "Federal Reserve issues FOMC statement",
+      "url": "https://www.federalreserve.gov/newsevents/pressreleases/monetary20260617a.htm"
+    },
+    {
+      "date": "2026-06-17",
+      "title": "Federal Reserve Board and Federal Open Market Committee release economic projections from the June 16-17 FOMC meeting",
+      "url": "https://www.federalreserve.gov/newsevents/pressreleases/monetary20260617b.htm"
+    },
     {
       "date": "2026-06-11",
       "title": "Federal Reserve Board announces final rule that establishes data standards for certain information collections",
