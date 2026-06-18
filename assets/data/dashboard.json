@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-18T23:22:12.001336Z",
+  "generated_at": "2026-06-18T23:24:08.104469Z",
   "last_updated": "2026/06/19 04:02 HKT",
   "fx": {
     "usdhkd": null,
@@ -4117,69 +4117,84 @@
     ]
   },
   "macro": {
-    "generated_at": "2026-06-17T23:07:49.271870+00:00",
+    "generated_at": "2026-06-18T23:24:02.303378+00:00",
     "vix": {
       "symbol": "^VIX",
-      "price": 18.44,
+      "price": 16.4,
       "prev": 16.41,
-      "change_pct": 12.37,
-      "as_of": 1781727301,
+      "change_pct": -0.06,
+      "as_of": 1781813701,
       "source": "yahoo"
     },
     "treasury_10y": {
       "symbol": "^TNX",
-      "price": 4.463,
-      "prev": 4.428,
-      "change_pct": 0.79,
-      "as_of": 1781722794,
+      "price": 4.451,
+      "prev": 4.463,
+      "change_pct": -0.27,
+      "as_of": 1781809193,
       "source": "yahoo",
-      "yield_pct": 4.463
+      "yield_pct": 4.451
     },
     "dxy": {
       "symbol": "DX-Y.NYB",
-      "price": 100.388,
-      "prev": 100.089,
-      "change_pct": 0.3,
-      "as_of": 1781733899,
+      "price": 100.814,
+      "prev": 100.849,
+      "change_pct": -0.03,
+      "as_of": 1781820299,
       "source": "yahoo"
     },
     "fear_greed": {
-      "score": 32.7,
+      "score": 37.5,
       "rating": "fear",
-      "prev_close": 39.3,
-      "prev_1_week": 26.9,
-      "as_of": "2026-06-17T22:47:24+00:00"
+      "prev_close": 32.7,
+      "prev_1_week": 31.6,
+      "as_of": "2026-06-18T23:04:34+00:00"
     },
     "hsi": {
       "symbol": "^HSI",
-      "price": 24312.16,
-      "prev": 24493.95,
-      "change_pct": -0.74,
+      "price": 23924.81,
+      "prev": 24312.16,
+      "change_pct": -1.59,
       "source": "tencent"
     },
     "hstech": {
       "symbol": "^HSTECH",
-      "price": 4669.07,
-      "prev": 4658.65,
-      "change_pct": 0.22,
+      "price": 4604.35,
+      "prev": 4669.07,
+      "change_pct": -1.39,
       "source": "tencent"
     },
     "spx": {
       "symbol": "^GSPC",
-      "price": 7420.1,
-      "prev": 7511.35,
-      "change_pct": -1.21,
-      "as_of": 1781729434,
+      "price": 7500.58,
+      "prev": 7420.1,
+      "change_pct": 1.08,
+      "as_of": 1781815326,
       "source": "yahoo"
     },
     "nasdaq": {
       "symbol": "^IXIC",
-      "price": 26021.66,
-      "prev": 26376.34,
-      "change_pct": -1.34,
+      "price": 26517.93,
+      "prev": 26021.66,
+      "change_pct": 1.91,
       "source": "tencent"
     },
     "fed_press": [
+      {
+        "date": "2026-06-18",
+        "title": "Federal Reserve Board issues enforcement action with former employee of Bank of Eufaula and S N B Bancshares, Inc.",
+        "url": "https://www.federalreserve.gov/newsevents/pressreleases/enforcement20260618b.htm"
+      },
+      {
+        "date": "2026-06-18",
+        "title": "Federal Reserve Board issues enforcement action with former employee of Manufacturers and Traders Trust Company",
+        "url": "https://www.federalreserve.gov/newsevents/pressreleases/enforcement20260618a.htm"
+      },
+      {
+        "date": "2026-06-18",
+        "title": "Federal Reserve Board requests comment on proposal to require certain payment stablecoin issuers to maintain an effective customer identification program",
+        "url": "https://www.federalreserve.gov/newsevents/pressreleases/bcreg20260618a.htm"
+      },
       {
         "date": "2026-06-17",
         "title": "Federal Reserve issues FOMC statement",
@@ -4189,11 +4204,6 @@
         "date": "2026-06-17",
         "title": "Federal Reserve Board and Federal Open Market Committee release economic projections from the June 16-17 FOMC meeting",
         "url": "https://www.federalreserve.gov/newsevents/pressreleases/monetary20260617b.htm"
-      },
-      {
-        "date": "2026-06-11",
-        "title": "Federal Reserve Board announces final rule that establishes data standards for certain information collections",
-        "url": "https://www.federalreserve.gov/newsevents/pressreleases/bcreg20260611a.htm"
       }
     ]
   },
@@ -4694,11 +4704,12 @@
     ]
   },
   "regime": {
-    "label": "risk_off",
-    "score": -2,
+    "label": "neutral",
+    "score": 1,
     "reasons": [
-      "F&G 33 fear",
-      "SPX+NDX 同向下行"
+      "F&G 38 fear",
+      "VIX 16 calm",
+      "SPX+NDX 同向上行"
     ]
   },
   "all_time_extremes": {
