@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-18T15:35:25.476586Z",
+  "generated_at": "2026-06-18T15:50:19.492549Z",
   "last_updated": "2026/06/18 23:32 HKT",
   "fx": {
     "usdhkd": 7.8355,
@@ -4821,36 +4821,36 @@
     "formula": "回报率 = (浮动 + 已实现) ÷ 本金；本金优先用 true_principal（峰值净投入），否则用 净投入本金=累计成本−已实现"
   },
   "gold_dca": {
-    "currency": "CNY",
-    "daily_amount": 200,
-    "start_date": "2026-01-22",
-    "units_held": 4854.55,
-    "reconciled_date": "2026-06-09",
     "principal_note": "对账基线（自动累加模式）。2026-06-09 kcn 对账：现值 15470 + 盈亏 -1829 → 本金 17299，份额 = 15470/净值3.1867 = 4854.55。此后每个 A 股交易日自动 +200@当日净值。补投对账：把 principal_invested/units_held 改成新真实数字、reconciled_date 改成对账当天即可，自动累加归零重算。",
+    "currency": "CNY",
+    "units_held": 4854.55,
     "fund_code": "000217",
     "fund_name": "华安黄金ETF联接C",
+    "start_date": "2026-01-22",
     "principal_invested": 17299.0,
-    "nav": 3.1668,
-    "nav_date": "2026-06-17",
-    "nav_change_pct": -0.13,
+    "daily_amount": 200,
+    "reconciled_date": "2026-06-09",
+    "nav": 3.1561,
+    "nav_date": "2026-06-18",
+    "nav_change_pct": -0.34,
     "realtime": {
-      "est_nav": 3.1864,
-      "est_change_pct": 0.62,
-      "est_time": "2026-06-17 22:27",
+      "est_nav": 3.1556,
+      "est_change_pct": -0.35,
+      "est_time": "2026-06-18 15:30",
       "nav_date": "2026-06-17"
     },
-    "principal_effective": 18499.0,
-    "units_effective": 5240.45,
-    "auto_added_days": 6,
-    "auto_added_amount": 1200.0,
-    "avg_cost": 3.53,
-    "current_value": 16595.45,
-    "pnl_abs": -1903.55,
-    "pnl_percent": -10.29,
-    "breakeven_nav": 3.53,
-    "breakeven_upside_pct": 11.47,
-    "days_invested": 95,
-    "installments_est": 92,
+    "principal_effective": 18699.0,
+    "units_effective": 5303.82,
+    "auto_added_days": 7,
+    "auto_added_amount": 1400.0,
+    "avg_cost": 3.5256,
+    "current_value": 16739.38,
+    "pnl_abs": -1959.62,
+    "pnl_percent": -10.48,
+    "breakeven_nav": 3.5256,
+    "breakeven_upside_pct": 11.71,
+    "days_invested": 96,
+    "installments_est": 93,
     "window_high": {
       "date": "2026-01-29",
       "nav": 4.1882
@@ -4862,45 +4862,41 @@
     "projection": [
       {
         "days": 20,
-        "invested": 22499.0,
-        "avg_cost": 3.4595,
-        "pnl_pct": -8.46,
-        "breakeven_upside_pct": 9.24
+        "invested": 22699.0,
+        "avg_cost": 3.4543,
+        "pnl_pct": -8.63,
+        "breakeven_upside_pct": 9.45
       },
       {
         "days": 40,
-        "invested": 26499.0,
-        "avg_cost": 3.4119,
-        "pnl_pct": -7.18,
-        "breakeven_upside_pct": 7.74
+        "invested": 26699.0,
+        "avg_cost": 3.4061,
+        "pnl_pct": -7.34,
+        "breakeven_upside_pct": 7.92
       },
       {
         "days": 60,
-        "invested": 30499.0,
-        "avg_cost": 3.3776,
-        "pnl_pct": -6.24,
-        "breakeven_upside_pct": 6.66
+        "invested": 30699.0,
+        "avg_cost": 3.3713,
+        "pnl_pct": -6.38,
+        "breakeven_upside_pct": 6.82
       },
       {
         "days": 120,
-        "invested": 42499.0,
-        "avg_cost": 3.3153,
-        "pnl_pct": -4.48,
-        "breakeven_upside_pct": 4.69
+        "invested": 42699.0,
+        "avg_cost": 3.3079,
+        "pnl_pct": -4.59,
+        "breakeven_upside_pct": 4.81
       },
       {
         "days": 250,
-        "invested": 68499.0,
-        "avg_cost": 3.2573,
-        "pnl_pct": -2.78,
-        "breakeven_upside_pct": 2.86
+        "invested": 68699.0,
+        "avg_cost": 3.2488,
+        "pnl_pct": -2.85,
+        "breakeven_upside_pct": 2.94
       }
     ],
     "nav_history": [
-      [
-        "2026-01-29",
-        4.1882
-      ],
       [
         "2026-01-30",
         3.9355
@@ -5256,8 +5252,12 @@
       [
         "2026-06-17",
         3.1668
+      ],
+      [
+        "2026-06-18",
+        3.1561
       ]
     ],
-    "last_updated": "2026-06-17T15:50:13.660557Z"
+    "last_updated": "2026-06-18T15:50:19.183911Z"
   }
 }
