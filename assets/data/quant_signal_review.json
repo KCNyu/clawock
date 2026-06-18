@@ -1,23 +1,23 @@
 {
-  "as_of": "2026-06-17",
-  "days_logged": 5,
+  "as_of": "2026-06-18",
+  "days_logged": 6,
   "min_n": 20,
   "factors": {
     "trend_on_follow": {
-      "n": 4,
-      "hit_rate": 0.25,
+      "n": 5,
+      "hit_rate": 0.2,
       "usable": false,
       "note": "样本不足，brief 不得引用方向结论"
     },
     "trend_off_avoid": {
-      "n": 0,
-      "hit_rate": null,
+      "n": 8,
+      "hit_rate": 0.25,
       "usable": false,
       "note": "样本不足，brief 不得引用方向结论"
     },
     "rsi_oversold_bounce": {
-      "n": 0,
-      "hit_rate": null,
+      "n": 2,
+      "hit_rate": 1.0,
       "usable": false,
       "note": "样本不足，brief 不得引用方向结论"
     },
@@ -28,18 +28,18 @@
       "note": "样本不足，brief 不得引用方向结论"
     },
     "zscore_extreme_revert": {
-      "n": 0,
-      "hit_rate": null,
+      "n": 1,
+      "hit_rate": 0.0,
       "usable": false,
       "note": "样本不足，brief 不得引用方向结论"
     },
     "stop_breach_continue": {
-      "n": 0,
-      "hit_rate": null,
+      "n": 9,
+      "hit_rate": 0.222,
       "usable": false,
       "note": "样本不足，brief 不得引用方向结论"
     }
   },
-  "summary": "全部因子样本 <20，累积中（5 天留痕）——结论未解锁",
+  "summary": "全部因子样本 <20，累积中（6 天留痕）——结论未解锁",
   "discipline": "自迭代规则：hit_rate 是因子话语权的唯一来源。usable=false 的因子只展示不入决策；usable 后 <50% 的因子方向结论按反向警示处理（同 driven_by technical 39% 降权为过滤器的先例）。"
 }

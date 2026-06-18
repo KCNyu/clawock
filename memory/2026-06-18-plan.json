@@ -1,0 +1,124 @@
+{
+  "date": "2026-06-18",
+  "fx_rate_usdhkd": 7.8355,
+  "fx_source": "Frankfurter 2026-06-18T00:02 UTC",
+  "regime_us": "regime_change (Warsh hawkish dot plot, 6/17 -1.21%/-0.99%)",
+  "regime_hk": "range_bearish (HSTECH 4669 -14.5%<MA200, 南向 6/17 -32.22亿)",
+  "actions": [
+    {
+      "ticker": "07226",
+      "bucket": "cut",
+      "trigger_type": "open",
+      "trigger_price": 3.39,
+      "plan_size_shares": 2083,
+      "confidence": 0.65,
+      "driven_by": "technical",
+      "rationale": "仓位硬闸: 硬止损 -21.6% ≤ -18% + HK 杠杆 36.7%>25% (amber×0.5) + 07226 single_name 36.74%>35% + HK Top2 82.8%>70%。partial swap 33% 解硬止损 + 解杠杆 cap + 解 single_name breach; 留 4117 股 (10.8% of HK leg) 仍在 25% amber cap 内; 1x 换 03033 同因子, 敞口保留, 停 2x decay 0.76%/月。纪律非择时, 不算 LLM signal。07226 reflection 24 次 50% 胜率中性 (cut×9 胜 7 = 78% 高), 但硬规则触发 = 强制。"
+    },
+    {
+      "ticker": "PLTU",
+      "bucket": "cut",
+      "trigger_type": "open",
+      "trigger_price": 32.48,
+      "plan_size_shares": 14,
+      "confidence": 0.60,
+      "driven_by": "technical",
+      "rationale": "仓位硬闸: 硬止损 -20.7% ≤ -18% + US 杠杆 94.8%>50% + US β 4.47>3.0 + 2x decay 3.39%/月 (US 2x 最高) + PLTU reflection 21 次 48% 胜率 (最差) + 标的 PLTR 6/16 close $133.25 -1.08%<MA200 -16.8% 趋势 OFF 但 1x 不付 decay。full swap 全部 14 股 → PLTR 1x (~4 股 @ $130)。纪律非择时, driven_by=technical 排除主动 signal 噪声 (cut 历史 86% 胜率降权先例不适用)。"
+    },
+    {
+      "ticker": "MSFU",
+      "bucket": "cut",
+      "trigger_type": "open",
+      "trigger_price": 23.21,
+      "plan_size_shares": 20,
+      "confidence": 0.60,
+      "driven_by": "technical",
+      "rationale": "仓位硬闸: 硬止损 -20.3% ≤ -18% + US 杠杆 94.8%>50% + 标的 MSFT 6/17 -3.8% (Oracle 合作崩 + AI 定价压力) 距 MA200 -16.2% 趋势 OFF + 2x decay 1.12%/月。full swap 全部 20 股 → MSFT 1x (~10 股 @ $375)。MSFU reflection 20 次 75% 胜率高 (持×16 胜 12), 但硬规则触发 = 强制纪律非择时。"
+    },
+    {
+      "ticker": "00100",
+      "bucket": "trim_on_rebound",
+      "trigger_type": "price_above",
+      "trigger_price": 440.0,
+      "plan_size_shares": 6,
+      "confidence": 0.55,
+      "driven_by": "technical",
+      "rationale": "仓位硬闸: 00100 single_name 46.06%>35% (HK 闸 breach)。RSI 33 极端超卖不砍底; lock-up 7/9 解禁 (50% 股份) disconfirming 硬催化未到; BofAS TP 500 / CMBI TP 570 confirming 估值底; 板块 6/17 智谱催化 +12.62% + 00100 跟涨 +6.34% 落后智谱 6.3pp。reflection 24 次 75% 胜率高 (减×9 胜 7), recent 6/17 trim_on_rebound 3.7% win。今天 00100 现 443 已过 trigger 440, 借反弹不追低; 进一步反弹 ≥460 触发第二批 trim 5-8 股。"
+    },
+    {
+      "ticker": "SPCH",
+      "bucket": "cut",
+      "trigger_type": "open",
+      "trigger_price": 20.69,
+      "plan_size_shares": 20,
+      "confidence": 0.55,
+      "driven_by": "technical",
+      "rationale": "仓位硬闸: reverse kcn 6/18 早盘加仓 20→40 股 (加仓 20@21.25)。解 US 杠杆 94.8%>50% breach + β 4.47>3.0 breach; SPCH 当前 26.57% US (Top1), 减 20 股 → 13.3% US, US 杠杆 cap 缓解。6/18 价格 20.69 距 prev_close 22.95 -9.85% (after-hours 含 overnight gap, fetch status failed 标 risk, 开盘可能再低开)。⚠️ SPCH fetch failed → 仓位决策保守, 减 20 股为锁定 reverse 加仓敞口。"
+    },
+    {
+      "ticker": "02208",
+      "bucket": "hold_and_watch",
+      "trigger_type": "manual",
+      "confidence": 0.65,
+      "driven_by": "technical",
+      "rationale": "基本面: Q1 26 利润 +60% YoY 硬催化 confirming + BlackRock 加仓 70.58 万 H 股 ≈ HK$9.34M + 国家能源局 6/17 调度会加大新能源并网消纳利好。技术: RSI 27.9 极端超卖, 距 MA200 -18.2% 跌穿, 12m +128% 反弹回归概率高。板块 6/17 -1.5%~-2% 普跌, 02208 独强。reflection 14 次 86% 胜率全 book 最高 (持×14 胜 12), recent 6/15-6/16 连 win +12.2/+12.5。止损 10.0 (心理关口+技术支撑) 维持。"
+    },
+    {
+      "ticker": "03032",
+      "bucket": "hold_and_watch",
+      "trigger_type": "manual",
+      "confidence": 0.45,
+      "driven_by": "technical",
+      "rationale": "1x HSTECH 跟踪, 1.65% HK leg 极小, 不值得主动调; reflection 13 次 46% 胜率 (主动 call 多半跑输持有); 被动持有免费等趋势回归, 1x 不付 decay。HSTECH 4669 -14.5%<MA200 趋势 OFF, 但 6/17 顽强 +0.22% (智谱催化局部撑场), 6/18 开盘跟跌美股压力大但非系统性风险。"
+    },
+    {
+      "ticker": "03033",
+      "bucket": "hold_and_watch",
+      "trigger_type": "manual",
+      "confidence": 0.45,
+      "driven_by": "technical",
+      "rationale": "1x HSTECH 跟踪, 07226 partial swap 后 03033 占比上升但仍 < 35% cap。reflection 13 次 46% 胜率, 1x 跟踪免费。6/12 出现 block trade 889K 股 @ $4.87 (≈$4.3M) 异常卖单 — 软情绪 disconfirming 但成交 1x ETF 流动性影响有限, 不升级为硬信号。swap 接收方, 别再加。"
+    },
+    {
+      "ticker": "CRCL",
+      "bucket": "hold_and_watch",
+      "trigger_type": "manual",
+      "confidence": 0.50,
+      "driven_by": "technical",
+      "rationale": "基本面: Q1 26 营业现金流转正 +$21M (硬催化 confirming, 商业模式转折), 营收 $694M; USDC 增长 + agent 支付叙事 intact; GENIUS Act 立法进行中。技术: RSI 38.4, 吊灯破 15.3%, 距 MA200 -20.1% 跌穿, 5 日 -1.3% 弱。仓位 5.18% US 极小, 不需主动调。reflection 18 次 72% 胜率 (加×10 胜 6; 持×8 胜 7), recent 6/15-6/17 3 连 win +19.11/+13.89/+1.19。"
+    },
+    {
+      "ticker": "ROBN",
+      "bucket": "hold_and_watch",
+      "trigger_type": "manual",
+      "confidence": 0.50,
+      "driven_by": "technical",
+      "rationale": "kcn 6/18 早盘已主动减半仓 20@35.175 +$231.85 realized (优于 6/17 sim -143.96), 余 20 股浮盈 +43% +$203.75 安全垫; HOOD 6/17 +8.8%~12.88% 创纪录交易量 + 裁员 + 分析师上调, ROBN 2x +17.58% 表现; HOOD z+2.2σ 极端 vol_hot 风险, 但 reflection 23 次 43% 胜率 (cut×16 胜 6 = 38%) 历史 cut 差。仓位 21.69% US < 35% cap ✓, 浮盈 +43% 安全垫足够, 6/18 应进一步 trim 5 股解 US 杠杆缓冲 (但不在本 plan 硬规则范围)。"
+    },
+    {
+      "ticker": "RKLX",
+      "bucket": "hold_and_watch",
+      "trigger_type": "manual",
+      "confidence": 0.55,
+      "driven_by": "technical",
+      "rationale": "RKLB 6/22 入 NDX 倒计时 4 天, momentum 67.9% 3m / 332% 12m, 6/18 +6.11% 反弹已验证资金提前; T+0 风格, 仓位不进隔夜 (但当前持仓持有)。reflection 2 次 100% 胜率 (样本少)。技术: 标的 RKLB 趋势 ON, RKLX 2x chop drag, 6/18 现 53.11 距 cost 49.69 +6.88% 浮盈。"
+    }
+  ],
+  "meta": {
+    "drafted_by": "Rick (brief swarm 2026-06-18 08:00 HKT)",
+    "driven_by_distribution": {
+      "technical": 11
+    },
+    "breach_coverage": {
+      "total_breaches": 6,
+      "total_hard_stops": 3,
+      "trim_cut_actions": 5
+    },
+    "post_swap_estimate": {
+      "us_beta": 2.04,
+      "us_leverage_pct": 52.1,
+      "hk_single_name_00100_pct": 39.0,
+      "hk_2x_pct": 10.8
+    }
+  }
+}

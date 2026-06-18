@@ -1,74 +1,74 @@
 {
-  "generated_at": "2026-06-17T23:07:55.429377Z",
-  "last_updated": "2026/06/18 04:03 HKT",
+  "generated_at": "2026-06-18T00:15:31.912153Z",
+  "last_updated": "2026/06/18 08:02 HKT",
   "fx": {
-    "usdhkd": null,
-    "source": null,
-    "fetched_at": null
+    "usdhkd": 7.8355,
+    "source": "Frankfurter",
+    "fetched_at": "2026-06-18T00:02:52.939563+00:00"
   },
   "totals": {
     "us": {
-      "value_usd": 3132.37,
+      "value_usd": 3114.36,
       "cost_usd": 3160.15,
-      "pnl_usd": -27.78,
-      "pnl_pct": -0.8791,
-      "today_change_usd": 43.2,
+      "pnl_usd": -45.79,
+      "pnl_pct": -1.449,
+      "today_change_usd": -13.22,
       "realized_usd": 1841.18,
       "cash_usd": 1200.45
     },
     "hk": {
-      "value_hkd": 58104.4,
+      "value_hkd": 57710.0,
       "cost_hkd": 88276.24,
-      "pnl_hkd": -30171.84,
-      "pnl_pct": -34.18,
-      "today_change_hkd": 1988.4,
+      "pnl_hkd": -30566.24,
+      "pnl_pct": -34.63,
+      "today_change_hkd": 1594.0,
       "realized_hkd": 7259.16,
       "cash_hkd": 4597
     }
   },
   "concentration": {
     "us": {
-      "hhi": 0.193,
-      "top2": 0.4828,
+      "hhi": 0.1929,
+      "top2": 0.4826,
       "positions": [
         {
           "ticker": "SPCH",
           "name": "Leverage Shares 2X Long SpaceX Daily ETF",
-          "value": 830.4,
-          "weight": 0.2651
+          "value": 827.6,
+          "weight": 0.2657
         },
         {
           "ticker": "ROBN",
           "name": "二倍做多HOOD ETF-T-Rex",
-          "value": 682.0,
-          "weight": 0.2177
+          "value": 675.4,
+          "weight": 0.2169
         },
         {
           "ticker": "RKLX",
           "name": "Defiance Daily Target 2X Long R",
-          "value": 535.0,
-          "weight": 0.1708
+          "value": 531.1,
+          "weight": 0.1705
         },
         {
           "ticker": "MSFU",
           "name": "二倍做多微软ETF-Direxion",
-          "value": 466.0,
-          "weight": 0.1488
+          "value": 464.2,
+          "weight": 0.1491
         },
         {
           "ticker": "PLTU",
           "name": "二倍做多PLTR ETF-Direxion",
-          "value": 457.79,
-          "weight": 0.1461
+          "value": 454.72,
+          "weight": 0.146
         },
         {
           "ticker": "CRCL",
           "name": "Circle Internet Group Inc-A",
-          "value": 161.18,
-          "weight": 0.0515
+          "value": 161.34,
+          "weight": 0.0518
         }
       ],
-      "total": 3132.37,
+      "total": 3114.36,
       "verdict": {
         "level": "moderate",
         "label": "偏集中",
@@ -76,41 +76,41 @@
       }
     },
     "hk": {
-      "hhi": 0.3608,
-      "top2": 0.829,
+      "hhi": 0.3595,
+      "top2": 0.828,
       "positions": [
         {
           "ticker": "00100",
           "name": "MINIMAX-W",
-          "value": 26952.0,
-          "weight": 0.4639
+          "value": 26580.0,
+          "weight": 0.4606
         },
         {
           "ticker": "07226",
           "name": "XL二南方恒科",
-          "value": 21216.4,
-          "weight": 0.3651
+          "value": 21204.0,
+          "weight": 0.3674
         },
         {
           "ticker": "03033",
           "name": "南方恒生科技",
-          "value": 4572.0,
-          "weight": 0.0787
+          "value": 4566.0,
+          "weight": 0.0791
         },
         {
           "ticker": "02208",
           "name": "金风科技",
-          "value": 4432.0,
-          "weight": 0.0763
+          "value": 4428.0,
+          "weight": 0.0767
         },
         {
           "ticker": "03032",
           "name": "恒生科技ETF",
           "value": 932.0,
-          "weight": 0.016
+          "weight": 0.0161
         }
       ],
-      "total": 58104.4,
+      "total": 57710.0,
       "verdict": {
         "level": "danger",
         "label": "危险集中",
@@ -126,14 +126,14 @@
         "currency": "USD",
         "shares": 2,
         "cost_basis": 87,
-        "current_price": 80.59,
-        "current_value": 161.18,
-        "today_change": 1.74,
-        "today_change_pct": 1.09,
+        "current_price": 80.67,
+        "current_value": 161.34,
+        "today_change": 1.9,
+        "today_change_pct": 1.19,
         "day_high": 82.8995,
         "day_low": 79.0199,
-        "pnl_abs": -12.82,
-        "pnl_percent": -7.37,
+        "pnl_abs": -12.66,
+        "pnl_percent": -7.28,
         "is_active": true,
         "trades_count": 5
       },
@@ -143,14 +143,14 @@
         "currency": "USD",
         "shares": 14,
         "cost_basis": 40.9571,
-        "current_price": 32.699,
-        "current_value": 457.79,
-        "today_change": -14.85,
-        "today_change_pct": -3.14,
+        "current_price": 32.48,
+        "current_value": 454.72,
+        "today_change": -17.92,
+        "today_change_pct": -3.79,
         "day_high": 34.85,
-        "day_low": 32.699,
-        "pnl_abs": -115.61,
-        "pnl_percent": -20.16,
+        "day_low": 32.48,
+        "pnl_abs": -118.68,
+        "pnl_percent": -20.7,
         "is_active": true,
         "trades_count": 2
       },
@@ -160,14 +160,14 @@
         "currency": "USD",
         "shares": 10,
         "cost_basis": 49.69,
-        "current_price": 53.5,
-        "current_value": 535.0,
-        "today_change": 34.5,
-        "today_change_pct": 6.89,
+        "current_price": 53.11,
+        "current_value": 531.1,
+        "today_change": 30.6,
+        "today_change_pct": 6.11,
         "day_high": 55.42,
         "day_low": 50.1,
-        "pnl_abs": 38.1,
-        "pnl_percent": 7.67,
+        "pnl_abs": 34.2,
+        "pnl_percent": 6.88,
         "is_active": true,
         "trades_count": 6
       },
@@ -177,14 +177,14 @@
         "currency": "USD",
         "shares": 20,
         "cost_basis": 23.5825,
-        "current_price": 34.1,
-        "current_value": 682.0,
-        "today_change": 107.6,
-        "today_change_pct": 18.73,
+        "current_price": 33.77,
+        "current_value": 675.4,
+        "today_change": 101.0,
+        "today_change_pct": 17.58,
         "day_high": 36.01,
         "day_low": 28.6285,
-        "pnl_abs": 210.35,
-        "pnl_percent": 44.6,
+        "pnl_abs": 203.75,
+        "pnl_percent": 43.2,
         "is_active": true,
         "trades_count": 4
       },
@@ -194,14 +194,14 @@
         "currency": "USD",
         "shares": 40,
         "cost_basis": 21.54,
-        "current_price": 20.7599,
-        "current_value": 830.4,
-        "today_change": -87.6,
-        "today_change_pct": -9.54,
-        "day_high": 22.225,
+        "current_price": 20.69,
+        "current_value": 827.6,
+        "today_change": -90.4,
+        "today_change_pct": -9.85,
+        "day_high": 22.95,
         "day_low": 20.485,
-        "pnl_abs": -31.2,
-        "pnl_percent": -3.62,
+        "pnl_abs": -34.0,
+        "pnl_percent": -3.95,
         "is_active": true,
         "trades_count": 4
       },
@@ -211,14 +211,14 @@
         "currency": "USD",
         "shares": 20,
         "cost_basis": 29.13,
-        "current_price": 23.3,
-        "current_value": 466.0,
-        "today_change": 1.81,
-        "today_change_pct": 0.39,
+        "current_price": 23.21,
+        "current_value": 464.2,
+        "today_change": -38.4,
+        "today_change_pct": -7.64,
         "day_high": 24.59,
-        "day_low": 23.3,
-        "pnl_abs": -116.6,
-        "pnl_percent": -20.01,
+        "day_low": 23.21,
+        "pnl_abs": -118.4,
+        "pnl_percent": -20.32,
         "is_active": true,
         "trades_count": 1
       }
@@ -230,14 +230,14 @@
         "currency": "HKD",
         "shares": 60,
         "cost_basis": 822.83,
-        "current_price": 449.2,
-        "current_value": 26952.0,
-        "today_change": 1956.0,
-        "today_change_pct": 7.83,
+        "current_price": 443.0,
+        "current_value": 26580.0,
+        "today_change": 1584.0,
+        "today_change_pct": 6.34,
         "day_high": 470.0,
         "day_low": 402.0,
-        "pnl_abs": -22417.8,
-        "pnl_percent": -45.41,
+        "pnl_abs": -22789.8,
+        "pnl_percent": -46.16,
         "is_active": true,
         "trades_count": 3
       },
@@ -247,14 +247,14 @@
         "currency": "HKD",
         "shares": 400,
         "cost_basis": 14.084,
-        "current_price": 11.08,
-        "current_value": 4432.0,
-        "today_change": -68.0,
-        "today_change_pct": -1.51,
+        "current_price": 11.07,
+        "current_value": 4428.0,
+        "today_change": -72.0,
+        "today_change_pct": -1.6,
         "day_high": 11.32,
         "day_low": 11.0,
-        "pnl_abs": -1201.6,
-        "pnl_percent": -21.33,
+        "pnl_abs": -1205.6,
+        "pnl_percent": -21.4,
         "is_active": true,
         "trades_count": 1
       },
@@ -281,14 +281,14 @@
         "currency": "HKD",
         "shares": 6200,
         "cost_basis": 4.3632,
-        "current_price": 3.422,
-        "current_value": 21216.4,
-        "today_change": 86.8,
-        "today_change_pct": 0.41,
+        "current_price": 3.42,
+        "current_value": 21204.0,
+        "today_change": 74.4,
+        "today_change_pct": 0.35,
         "day_high": 3.448,
         "day_low": 3.354,
-        "pnl_abs": -5835.44,
-        "pnl_percent": -21.57,
+        "pnl_abs": -5847.84,
+        "pnl_percent": -21.62,
         "is_active": true,
         "trades_count": 1
       },
@@ -298,14 +298,14 @@
         "currency": "HKD",
         "shares": 1000,
         "cost_basis": 5.14,
-        "current_price": 4.572,
-        "current_value": 4572.0,
-        "today_change": 10.0,
-        "today_change_pct": 0.22,
+        "current_price": 4.566,
+        "current_value": 4566.0,
+        "today_change": 4.0,
+        "today_change_pct": 0.09,
         "day_high": 4.588,
         "day_low": 4.524,
-        "pnl_abs": -568.0,
-        "pnl_percent": -11.05,
+        "pnl_abs": -574.0,
+        "pnl_percent": -11.17,
         "is_active": true,
         "trades_count": 0
       }
@@ -887,43 +887,30 @@
     {
       "date": "2026-06-18",
       "file": "2026-06-18.json",
-      "us_total_value": 3132.37,
+      "us_total_value": 3114.36,
       "us_total_cost": 3160.15,
-      "us_total_pnl": -27.78,
-      "us_today_change": 43.2,
+      "us_total_pnl": -45.79,
+      "us_today_change": -13.22,
       "us_realized": 1841.18,
-      "us_equity": 4973.55,
-      "us_profit": 1813.4,
-      "hk_total_value": 58104.4,
+      "us_equity": 4955.54,
+      "us_profit": 1795.39,
+      "hk_total_value": 57710.0,
       "hk_total_cost": 88276.24,
-      "hk_total_pnl": -30171.84,
-      "hk_today_change": 1988.4,
+      "hk_total_pnl": -30566.24,
+      "hk_today_change": 1594.0,
       "hk_realized": 7259.16,
-      "hk_equity": 65363.56,
-      "hk_profit": -22912.68,
+      "hk_equity": 64969.16,
+      "hk_profit": -23307.08,
       "us_cash": 1200.45,
       "hk_cash": 4597,
       "us_asof": "2026-06-17",
-      "hk_asof": "2026-06-17"
+      "hk_asof": "2026-06-18"
     }
   ],
   "snapshots_total": 27,
   "snapshots_embedded_cap": 90,
-  "plans_count": 23,
+  "plans_count": 24,
   "recent_plans": [
-    {
-      "date": "2026-06-10",
-      "file": "2026-06-10-plan.json",
-      "plan": {
-        "date": "2026-06-10",
-        "actions_count": 10,
-        "tldr": "",
-        "has_retrospective": false,
-        "context": {},
-        "truncated": true,
-        "original_bytes": 3737
-      }
-    },
     {
       "date": "2026-06-11",
       "file": "2026-06-11-plan.json",
@@ -975,49 +962,62 @@
         "truncated": true,
         "original_bytes": 6293
       }
+    },
+    {
+      "date": "2026-06-18",
+      "file": "2026-06-18-plan.json",
+      "plan": {
+        "date": "2026-06-18",
+        "actions_count": 11,
+        "tldr": "",
+        "has_retrospective": false,
+        "context": {},
+        "truncated": true,
+        "original_bytes": 5292
+      }
     }
   ],
   "recent_plans_cap": 5,
   "indices": {
     "SPX": {
       "name": "S&P 500",
-      "price": 7420.13,
+      "price": 7420.1,
       "prev_close": 7511.35,
-      "change_pct": -1.214,
-      "source": "Tencent usINX index @ 2026-06-17 16:03 ET"
+      "change_pct": -1.215,
+      "source": "Tencent usINX index @ 2026-06-17 20:02 ET"
     },
     "NDX": {
       "name": "Nasdaq 100",
       "price": 29670.95,
       "prev_close": 29968.13,
       "change_pct": -0.992,
-      "source": "Tencent usNDX index @ 2026-06-17 16:03 ET"
+      "source": "Tencent usNDX index @ 2026-06-17 20:02 ET"
     },
     "DJI": {
       "name": "Dow Jones",
-      "price": 51493.16,
+      "price": 51492.55,
       "prev_close": 51999.67,
-      "change_pct": -0.974,
-      "source": "Tencent usDJI index @ 2026-06-17 16:03 ET"
+      "change_pct": -0.975,
+      "source": "Tencent usDJI index @ 2026-06-17 20:02 ET"
     },
     "HSI": {
       "name": "恒生指数",
-      "price": 24289.8,
+      "price": 24312.16,
       "prev_close": 24493.95,
-      "change_pct": -0.83,
-      "source": "Tencent qt.gtimg.cn 2026/06/17 16:02 HKT"
+      "change_pct": -0.74,
+      "source": "Tencent qt.gtimg.cn 2026/06/18 08:02 HKT"
     },
     "HSTECH": {
       "name": "恒生科技",
-      "price": 4664.87,
+      "price": 4669.07,
       "prev_close": 4658.65,
-      "change_pct": 0.13,
-      "source": "Tencent qt.gtimg.cn 2026/06/17 16:02 HKT"
+      "change_pct": 0.22,
+      "source": "Tencent qt.gtimg.cn 2026/06/18 08:02 HKT"
     }
   },
   "market_context": {
-    "generated_at": "2026-06-08T08:00:00+08:00",
-    "date": "2026-06-08",
+    "generated_at": "2026-06-16T08:00:00+08:00",
+    "date": "2026-06-16",
     "sectors": [
       {
         "theme": "HK AI 大模型",
@@ -1026,35 +1026,41 @@
         ],
         "top_movers": [
           {
+            "ticker": "02513",
+            "name": "智谱",
+            "pct": 32.8,
+            "catalyst": "港股通纳入+板块资金涌入"
+          },
+          {
             "ticker": "00100",
             "name": "MINIMAX-W",
-            "pct": -16.65,
-            "catalyst": "大户派货+估值调整+HSTECH纳入当日"
+            "pct": 7.02,
+            "catalyst": "板块联动+超卖反弹"
+          },
+          {
+            "ticker": "06682",
+            "name": "第四范式",
+            "pct": 1.46,
+            "catalyst": "企业AI平台"
           },
           {
             "ticker": "00020",
             "name": "商汤-W",
-            "pct": -5.0,
-            "catalyst": "港股AI板块sell-off"
-          },
-          {
-            "ticker": "02513",
-            "name": "智谱",
-            "pct": 0,
-            "catalyst": "HSTECH纳入"
+            "pct": 1.35,
+            "catalyst": "AI视觉+大模型"
           }
         ],
         "self": [
           {
             "ticker": "00100",
-            "pct": -16.65,
-            "rank_text": "板块最弱",
-            "attribution": "大户派货+估值调整, 纳入能否止血待观"
+            "pct": 7.02,
+            "rank_text": "领涨同行之一（仅落后智谱）",
+            "attribution": "板块联动+超卖反弹，但仅为智谱涨幅1/5——lock-up 7月到期压制个股alpha"
           }
         ]
       },
       {
-        "theme": "HK 科技指数 (HSTECH 标的)",
+        "theme": "HK 科技指数 HSTECH",
         "tickers_in_book": [
           "07226",
           "03032",
@@ -1062,70 +1068,48 @@
         ],
         "top_movers": [
           {
-            "ticker": "07226",
-            "name": "XL二南方恒科",
-            "pct": -3.63,
-            "catalyst": "2x杠杆放大HSTECH -1.75%"
+            "ticker": "03690",
+            "name": "美团-W",
+            "pct": 0.45,
+            "catalyst": "权重股微涨"
           },
           {
-            "ticker": "03032",
-            "name": "恒生科技ETF",
-            "pct": -1.97,
-            "catalyst": "跟踪HSTECH"
+            "ticker": "09999",
+            "name": "网易-S",
+            "pct": 0.4,
+            "catalyst": "权重股微涨"
           },
           {
-            "ticker": "03033",
-            "name": "南方恒生科技",
-            "pct": -1.72,
-            "catalyst": "跟踪HSTECH"
+            "ticker": "09618",
+            "name": "京东集团-SW",
+            "pct": -0.09,
+            "catalyst": "持平"
+          },
+          {
+            "ticker": "09988",
+            "name": "阿里巴巴-W",
+            "pct": -0.82,
+            "catalyst": "南向资金净卖出"
           }
         ],
         "self": [
           {
             "ticker": "07226",
-            "pct": -3.63,
-            "rank_text": "中位",
-            "attribution": "2x杠杆放大underlying弱势"
-          },
-          {
-            "ticker": "03032",
-            "pct": -1.97,
-            "rank_text": "中位",
-            "attribution": "1x跟踪"
+            "pct": 2.69,
+            "rank_text": "领涨（2x beta放大）",
+            "attribution": "US隔夜NDX+3.06%正面溢出+2x beta放大"
           },
           {
             "ticker": "03033",
-            "pct": -1.72,
+            "pct": 1.26,
             "rank_text": "中位",
-            "attribution": "1x跟踪"
-          }
-        ]
-      },
-      {
-        "theme": "商业航天",
-        "tickers_in_book": [
-          "RKLB"
-        ],
-        "top_movers": [
-          {
-            "ticker": "RKLB",
-            "name": "Rocket Lab",
-            "pct": -25.1,
-            "catalyst": "SpaceX IPO竞争+Blue Origin爆炸+宏观"
+            "attribution": "被动跟踪HSTECH"
           },
           {
-            "ticker": "ASTS",
-            "name": "AST SpaceMobile",
-            "pct": -15.0,
-            "catalyst": "航天板块sell-off"
-          }
-        ],
-        "self": [
-          {
-            "ticker": "RKLB",
-            "pct": -25.1,
-            "rank_text": "板块最弱",
-            "attribution": "SpaceX IPO竞争压力+YTD仍+58%"
+            "ticker": "03032",
+            "pct": 1.58,
+            "rank_text": "中位",
+            "attribution": "被动跟踪HSTECH"
           }
         ]
       },
@@ -1136,46 +1120,30 @@
         ],
         "top_movers": [
           {
+            "ticker": "01072",
+            "name": "东方电气",
+            "pct": 2.82,
+            "catalyst": "风电设备需求"
+          },
+          {
             "ticker": "02208",
             "name": "金风科技",
-            "pct": -4.45,
-            "catalyst": "港股sell-off+bearish block trade"
+            "pct": -1.06,
+            "catalyst": "Citi block trade流出消化中"
           }
         ],
         "self": [
           {
             "ticker": "02208",
-            "pct": -4.45,
+            "pct": -1.06,
             "rank_text": "落后",
-            "attribution": "港股整体sell-off拖累, 基本面好但资金轮动"
-          }
-        ]
-      },
-      {
-        "theme": "稳定币+agent支付",
-        "tickers_in_book": [
-          "CRCL"
-        ],
-        "top_movers": [
-          {
-            "ticker": "CRCL",
-            "name": "Circle",
-            "pct": -7.72,
-            "catalyst": "insider+SoftBank selling+crypto cooling"
-          }
-        ],
-        "self": [
-          {
-            "ticker": "CRCL",
-            "pct": -7.72,
-            "rank_text": "落后",
-            "attribution": "个股利空(insider sell)+板块低迷"
+            "attribution": "Q1+60%硬催化已price in，Citi流出仍在消化——典型利好不涨等风来"
           }
         ]
       }
     ],
-    "narrative": "周五全球科技sell-off重创组合: NDX -4.77% chip板块$1T蒸发, HSTECH -1.75%<200MA。00100 MINIMAX单日-16.65%是最大痛点, 今日HSTECH纳入生效(470亿被动资金)是最后的反弹窗口。6个仓位硬闸全亮, 杠杆ETF占US leg 73%是核心风险。SpaceX IPO 6/12+CPI 6/11是本周两大催化。",
-    "_source": "sector-scan-2026-06-08.json"
+    "narrative": "今日港股板块分化：AI大模型板块由智谱(+32.8%)带动全线爆发，MINIMAX+7%跟涨但仅为领涨者1/5，lock-up压制个股alpha。HSTECH权重股微涨（US隔夜NDX+3.06%溢出），07226 2x beta放大涨幅。风电板块逆势分化，东方电气+2.82%而金风-1.06%。核心风险：FOMC明天（Warsh首秀），β3.45=hawkish surprise→book -7%+。",
+    "_source": "sector-scan-2026-06-16.json"
   },
   "holdings_history": {
     "NVDA": [
@@ -1212,7 +1180,7 @@
       85.365,
       80.5,
       82.64,
-      80.59
+      80.67
     ],
     "OKLO": [
       72.39,
@@ -1284,7 +1252,7 @@
       34.2,
       32.73,
       34.74,
-      32.699
+      32.48
     ],
     "SOXL": [
       217.17,
@@ -1308,7 +1276,7 @@
       52.9,
       50.755,
       52.595,
-      53.5
+      53.11
     ],
     "ROBN": [
       21.28,
@@ -1320,7 +1288,7 @@
       30.505,
       27.7116,
       34.6409,
-      34.1
+      33.77
     ],
     "MSFU": [
       28.25,
@@ -1332,7 +1300,7 @@
       25.74,
       25.08,
       24.0401,
-      23.3
+      23.21
     ],
     "00100": [
       559.5,
@@ -1344,7 +1312,7 @@
       423.8,
       417.0,
       449.2,
-      449.2
+      443.0
     ],
     "02208": [
       12.25,
@@ -1356,7 +1324,7 @@
       11.22,
       11.14,
       11.08,
-      11.08
+      11.07
     ],
     "03032": [
       4.874,
@@ -1380,7 +1348,7 @@
       3.584,
       3.41,
       3.422,
-      3.422
+      3.42
     ],
     "03033": [
       4.788,
@@ -1392,7 +1360,7 @@
       4.668,
       4.56,
       4.572,
-      4.572
+      4.566
     ],
     "07709": [
       null,
@@ -1440,18 +1408,18 @@
       17.29,
       18.42,
       20.955,
-      20.7599
+      20.69
     ]
   },
   "delta": {
     "us": {
-      "today_pct": -1.95,
-      "7d_pct": 27.79,
+      "today_pct": -2.3,
+      "7d_pct": 27.33,
       "30d_pct": null
     },
     "hk": {
-      "today_pct": 0.0,
-      "7d_pct": -3.09,
+      "today_pct": -0.6,
+      "7d_pct": -3.68,
       "30d_pct": null
     }
   },
@@ -1460,49 +1428,60 @@
       "ticker": "ROBN",
       "name": "二倍做多HOOD ETF-T-Rex",
       "region": "us",
-      "today_change_pct": 18.73,
-      "current_price": 34.1
+      "today_change_pct": 17.58,
+      "current_price": 33.77,
+      "note": "2x HOOD ETF +25.4%（隐含HOOD ~+12%），无明确催化，警惕冲高回落"
     },
     {
       "ticker": "SPCH",
       "name": "Leverage Shares 2X Long SpaceX Daily ETF",
       "region": "us",
-      "today_change_pct": -9.54,
-      "current_price": 20.7599
+      "today_change_pct": -9.85,
+      "current_price": 20.69,
+      "note": "2x SpaceX ETF -3.7%，私人估值+杠杆放大噪音，仓位小不痛"
+    },
+    {
+      "ticker": "MSFU",
+      "name": "二倍做多微软ETF-Direxion",
+      "region": "us",
+      "today_change_pct": -7.64,
+      "current_price": 23.21,
+      "note": "2x MSFT ETF -5.5%，科技股回调+杠杆放大，今日主要拖累"
     },
     {
       "ticker": "00100",
       "name": "MINIMAX-W",
       "region": "hk",
-      "today_change_pct": 7.83,
-      "current_price": 449.2
+      "today_change_pct": 6.34,
+      "current_price": 443.0
     },
     {
       "ticker": "RKLX",
       "name": "Defiance Daily Target 2X Long R",
       "region": "us",
-      "today_change_pct": 6.89,
-      "current_price": 53.5
+      "today_change_pct": 6.11,
+      "current_price": 53.11,
+      "note": "2x RKLB ETF +8.2%，板块beta推动，火箭股动量延续"
     },
     {
       "ticker": "PLTU",
       "name": "二倍做多PLTR ETF-Direxion",
       "region": "us",
-      "today_change_pct": -3.14,
-      "current_price": 32.699
+      "today_change_pct": -3.79,
+      "current_price": 32.48
     }
   ],
   "anomalies": [
     {
       "type": "high_weight_loss",
       "ticker": "00100",
-      "detail": "weight 44.5% + pnl -45.4%",
+      "detail": "weight 46.1% + pnl -46.2%",
       "severity": "high"
     },
     {
       "type": "high_weight_loss",
       "ticker": "07226",
-      "detail": "weight 37.6% + pnl -21.6%",
+      "detail": "weight 36.7% + pnl -21.6%",
       "severity": "high"
     },
     {
@@ -1514,104 +1493,104 @@
     {
       "type": "leveraged_etf_stop",
       "ticker": "MSFU",
-      "detail": "leveraged ETF: pnl -20.0%",
+      "detail": "leveraged ETF: pnl -20.3%",
       "severity": "medium"
     },
     {
       "type": "leveraged_etf_stop",
       "ticker": "PLTU",
-      "detail": "leveraged ETF: pnl -20.2%",
+      "detail": "leveraged ETF: pnl -20.7%",
       "severity": "medium"
     }
   ],
   "behavioral_review": {
-    "verdict": "6个仓位硬闸全亮, 主动信号51%胜率vs被动69%, 仓位构造问题远大于信号问题",
+    "verdict": "纪律 swap ≠ 主动 signal: 别把 3 个 cut 当 edge 测试",
     "points": [
       {
-        "text": "cut bucket 37%胜率+67%avg conf=过度自信+30pp。本次ROBN cut是纪律性(仓位硬闸)而非信号判断, 仍压conf到0.55",
-        "tag": "bias"
-      },
-      {
-        "text": "主动信号T+1 51% vs T+5 40% — 对了一天看错thesis。本次主动call全压到≤0.55",
-        "tag": "warning"
-      },
-      {
-        "text": "trim_on_rebound历史60%胜率是主动信号里最好的。00100/07226/PLTU用trim而非cut合理",
+        "text": "driven_by technical 历史 39% 胜率 (n=23), 今天 4 个动作全走 hard-rule (硬止损/breach), driven_by=technical 但不算主动 signal — 不计入 LLM edge 测试",
         "tag": "edge"
       },
       {
-        "text": "被动hold 69%胜率>主动51% — 模型主动决策当前跑输持有, 本次倾向少动",
+        "text": "alpha vs baseline +4pp (LLM 62% vs hold 58%, n=184) — 但单 regime, 熊市/震荡未确认; 主动 vs 被动 = -13pp gap (主动 55% < 被动 68%)",
         "tag": "warning"
       },
       {
-        "text": "00100 trim @680上次没触发(high 663) → trigger设太高。本次降到@600更实际",
+        "text": "高 conf (≥0.75) 实际胜率 46% (n=13), overconfidence_gap +0.31 — 今天全部 ≤0.65 已合规, 跳过 80%+ 档位",
         "tag": "bias"
+      },
+      {
+        "text": "cut bucket 历史 38% 胜率 (n=26, conf 0.65, overconf +0.27) — 3 个 cut 全靠纪律触发, 不算 LLM 胜率样本; 但如果未来靠 38% 胜率做主动 cut 就是赌博",
+        "tag": "bias"
+      },
+      {
+        "text": "T+5 副镜: 主动 n=67 胜率 45% (< 50%) — 当前 regime 主动信号 5d 后跌穿, regime guard 已 cap ≤0.55, 但还要再降",
+        "tag": "warning"
       }
     ]
   },
   "bear_cases": [
     {
       "ticker": "00100",
-      "thesis": "单名49%+单日-16.65%+'大户派货'+HSTECH<200MA。纳入已price in, 聪明钱在跑",
-      "falsifier": "纳入后5日内回升到700+",
-      "watch": "今日HSTECH纳入后00100资金流"
+      "thesis": "RSI 29.5 极端超卖 + lock-up 7月(46% 股份) + BofAS TP 500 估值底 — 但 recent 3 天连 loss -25%, 板块 6/15 +32% 后 6/16 全线回调",
+      "falsifier": "若 7月 lock-up 平稳度过 + 营收持续 + 反弹 ≥460 — 估值底确认",
+      "watch": "6/30 前后 lock-up 公告 + 6/17 早盘是否反弹至 ≥430"
     },
     {
       "ticker": "ROBN",
-      "thesis": "HOOD<200MA -20%+vol 83%+红色regime。2x日内重置在下杀里放大衰减",
-      "falsifier": "HOOD回到$100以上(200MA)",
-      "watch": "US开盘后HOOD走势"
+      "thesis": "2x HOOD + 标的 vol 82%>70% (red) + HOOD 200MA 破位, 1x→2x reentry 条件未到 (HOOD 须 102.75 + vol<70%)",
+      "falsifier": "若 HOOD Q1 crypto 收入翻倍 + 散户平台 alpha 持续 → 1x 仓位可吃 100%+ 涨幅",
+      "watch": "HOOD 6/30 收市价 (距 200MA 102.75 -5.9%, 距 6.3% 反弹)"
     },
     {
       "ticker": "07226",
-      "thesis": "HSTECH<200MA -11%+2x杠杆decay。港股科技sell-off可能持续",
-      "falsifier": "HSTECH回到5494以上(200MA)",
-      "watch": "HSTECH今日纳入后走势"
+      "thesis": "已触硬止损 -21.9%, 1x swap 03033 后仍同向 (HSTECH 趋势 OFF), 2x reentry 须 HSTECH 200MA 5465 + vol<50% (当前 -14.8%/30.1%)",
+      "falsifier": "若 HSTECH 收复 200MA + 南向资金持续净流入 — 2x reentry 信号",
+      "watch": "HSTECH 4800 阻力 (距 +0.7%) + 200MA 5465 (距 +14.8%)"
     }
   ],
   "hidden_concentration": {
-    "headline": "名义9只持仓, 实际HK 84%押恒科+US 73%押杠杆ETF, 单因子暴露88%",
-    "factor": "港股科技+美股杠杆ETF",
-    "exposure_pct": 88,
-    "detail": "HK: 00100(49%)+07226(35%)+03032(1.5%)+03033(7%)=92.5%恒科方向。US: ROBN(32%)+PLTU(19%)+MSFU(22%)=73%杠杆ETF。任一方向-15%=book-10%+。"
+    "headline": "swap 后杠杆降到 48% (US) / 11% (HK), 但 1x 仍集中 AI/科技单因子",
+    "factor": "杠杆 + 科技/AI 单因子 (HK: 00100+03033→MiniMax+",
+    "exposure_pct": 78,
+    "detail": "3 个 2x swap 释放 β 从 4.72→2.1 + 杠杆 cap 从 94%→48% (US) / 38%→11% (HK), 但 1x 侧仍集中: HK 00100+03033 顶 79.5% 仍 > 70% Top2 cap; US HOOD+MSFT+PLTR 1x 合计 60%+, 全科技股同向. 若 FOMC hawkish + AI 板块 alpha 同期失守, 1x 侧仍可能 -3%~-5% 联动"
   },
   "insights_meta": {
-    "source": "insights-2026-06-08.json",
+    "source": "insights-2026-06-17.json",
     "stale": false
   },
-  "status_banner": null,
+  "status_banner": "盘中高弹震荡，ROBN单票爆拉贡献今日+$137，95%杠杆敞口是双刃剑",
   "status_banner_meta": {
-    "source": null,
-    "generated_at": null,
-    "stale": true
+    "source": "intraday-insights-2026-06-18.json",
+    "generated_at": "2026-06-18T02:33:02",
+    "stale": false
   },
   "peer_divergence": {
-    "as_of": "",
+    "as_of": "2026-06-18",
     "items": []
   },
   "calibration": {
-    "brier_30d": 0.2525,
-    "samples": 184,
+    "brier_30d": 0.2543,
+    "samples": 190,
     "bands": [
       {
         "band": "0-50%",
-        "n": 26,
-        "actual_win_rate": 0.7692
+        "n": 27,
+        "actual_win_rate": 0.7778
       },
       {
         "band": "50-60%",
-        "n": 97,
-        "actual_win_rate": 0.5979
+        "n": 104,
+        "actual_win_rate": 0.6058
       },
       {
         "band": "60-70%",
-        "n": 36,
-        "actual_win_rate": 0.6111
+        "n": 35,
+        "actual_win_rate": 0.6
       },
       {
         "band": "70-80%",
-        "n": 23,
-        "actual_win_rate": 0.6087
+        "n": 22,
+        "actual_win_rate": 0.5909
       },
       {
         "band": "80-100%",
@@ -1621,65 +1600,65 @@
     ],
     "per_bucket": {
       "cut": {
-        "n": 26,
-        "win_rate": 0.3846
+        "n": 28,
+        "win_rate": 0.3571
       },
       "trim_on_rebound": {
         "n": 36,
         "win_rate": 0.6667
       },
       "hold_and_watch": {
-        "n": 104,
-        "win_rate": 0.6923
+        "n": 110,
+        "win_rate": 0.6909
       },
       "t_only": {
         "n": 3,
         "win_rate": 0.0
       },
       "add_only_on_trigger": {
-        "n": 12,
-        "win_rate": 0.5833
+        "n": 11,
+        "win_rate": 0.6364
       }
     },
     "vs_baseline": {
-      "n": 184,
-      "llm_win_rate": 0.625,
-      "hold_baseline_win_rate": 0.5815,
-      "alpha_pp": 4.3
+      "n": 190,
+      "llm_win_rate": 0.6263,
+      "hold_baseline_win_rate": 0.5947,
+      "alpha_pp": 3.2
     }
   },
   "calibration_by_trigger": {
     "price_above": {
-      "n_resolved": 53,
+      "n_resolved": 51,
       "n_pending": 1,
       "wins": 30,
-      "losses": 23,
-      "win_rate": 0.566,
-      "avg_confidence": 0.56
+      "losses": 21,
+      "win_rate": 0.5882,
+      "avg_confidence": 0.557
     },
     "price_below": {
-      "n_resolved": 71,
+      "n_resolved": 70,
       "n_pending": 0,
-      "wins": 64,
+      "wins": 63,
       "losses": 7,
-      "win_rate": 0.9014,
-      "avg_confidence": 0.554
+      "win_rate": 0.9,
+      "avg_confidence": 0.552
     },
     "open": {
-      "n_resolved": 26,
-      "n_pending": 3,
-      "wins": 8,
-      "losses": 18,
-      "win_rate": 0.3077,
-      "avg_confidence": 0.634
+      "n_resolved": 29,
+      "n_pending": 4,
+      "wins": 9,
+      "losses": 20,
+      "win_rate": 0.3103,
+      "avg_confidence": 0.63
     },
     "manual": {
-      "n_resolved": 30,
+      "n_resolved": 36,
       "n_pending": 6,
-      "wins": 13,
-      "losses": 17,
-      "win_rate": 0.4333,
-      "avg_confidence": 0.531
+      "wins": 17,
+      "losses": 19,
+      "win_rate": 0.4722,
+      "avg_confidence": 0.529
     },
     "index_breakdown": {
       "n_resolved": 2,
@@ -1692,20 +1671,20 @@
   },
   "calibration_by_driver": {
     "technical": {
-      "n_resolved": 93,
-      "n_pending": 10,
-      "wins": 57,
-      "losses": 36,
-      "win_rate": 0.6129,
+      "n_resolved": 102,
+      "n_pending": 11,
+      "wins": 63,
+      "losses": 39,
+      "win_rate": 0.6176,
       "avg_confidence": 0.546
     },
     "catalyst": {
-      "n_resolved": 59,
+      "n_resolved": 58,
       "n_pending": 0,
-      "wins": 42,
+      "wins": 41,
       "losses": 17,
-      "win_rate": 0.7119,
-      "avg_confidence": 0.584
+      "win_rate": 0.7069,
+      "avg_confidence": 0.582
     },
     "sentiment": {
       "n_resolved": 0,
@@ -1732,20 +1711,20 @@
       "avg_confidence": 0.525
     },
     "peer": {
-      "n_resolved": 9,
+      "n_resolved": 8,
       "n_pending": 0,
-      "wins": 4,
+      "wins": 3,
       "losses": 5,
-      "win_rate": 0.4444,
-      "avg_confidence": 0.679
+      "win_rate": 0.375,
+      "avg_confidence": 0.683
     }
   },
   "recent_plan_actions": [
     {
-      "date": "2026-06-17",
+      "date": "2026-06-18",
       "ticker": "07226",
       "bucket": "cut",
-      "confidence": 0.6,
+      "confidence": 0.65,
       "trigger_type": "open",
       "outcome": "pending",
       "pnl_5d": null,
@@ -1753,21 +1732,10 @@
       "driven_by": "technical"
     },
     {
-      "date": "2026-06-17",
-      "ticker": "ROBN",
-      "bucket": "cut",
-      "confidence": 0.6,
-      "trigger_type": "open",
-      "outcome": "pending",
-      "pnl_5d": null,
-      "followed": "unknown",
-      "driven_by": "technical"
-    },
-    {
-      "date": "2026-06-17",
+      "date": "2026-06-18",
       "ticker": "PLTU",
       "bucket": "cut",
-      "confidence": 0.55,
+      "confidence": 0.6,
       "trigger_type": "open",
       "outcome": "pending",
       "pnl_5d": null,
@@ -1775,10 +1743,21 @@
       "driven_by": "technical"
     },
     {
-      "date": "2026-06-17",
+      "date": "2026-06-18",
+      "ticker": "MSFU",
+      "bucket": "cut",
+      "confidence": 0.6,
+      "trigger_type": "open",
+      "outcome": "pending",
+      "pnl_5d": null,
+      "followed": "unknown",
+      "driven_by": "technical"
+    },
+    {
+      "date": "2026-06-18",
       "ticker": "00100",
       "bucket": "trim_on_rebound",
-      "confidence": 0.45,
+      "confidence": 0.55,
       "trigger_type": "price_above",
       "outcome": "pending",
       "pnl_5d": null,
@@ -1786,10 +1765,21 @@
       "driven_by": "technical"
     },
     {
-      "date": "2026-06-17",
+      "date": "2026-06-18",
+      "ticker": "SPCH",
+      "bucket": "cut",
+      "confidence": 0.55,
+      "trigger_type": "open",
+      "outcome": "pending",
+      "pnl_5d": null,
+      "followed": "unknown",
+      "driven_by": "technical"
+    },
+    {
+      "date": "2026-06-18",
       "ticker": "02208",
       "bucket": "hold_and_watch",
-      "confidence": 0.55,
+      "confidence": 0.65,
       "trigger_type": "manual",
       "outcome": "pending",
       "pnl_5d": null,
@@ -1797,10 +1787,10 @@
       "driven_by": "technical"
     },
     {
-      "date": "2026-06-17",
+      "date": "2026-06-18",
       "ticker": "03032",
       "bucket": "hold_and_watch",
-      "confidence": 0.5,
+      "confidence": 0.45,
       "trigger_type": "manual",
       "outcome": "pending",
       "pnl_5d": null,
@@ -1808,10 +1798,10 @@
       "driven_by": "technical"
     },
     {
-      "date": "2026-06-17",
+      "date": "2026-06-18",
       "ticker": "03033",
       "bucket": "hold_and_watch",
-      "confidence": 0.5,
+      "confidence": 0.45,
       "trigger_type": "manual",
       "outcome": "pending",
       "pnl_5d": null,
@@ -1819,7 +1809,7 @@
       "driven_by": "technical"
     },
     {
-      "date": "2026-06-17",
+      "date": "2026-06-18",
       "ticker": "CRCL",
       "bucket": "hold_and_watch",
       "confidence": 0.5,
@@ -1830,8 +1820,8 @@
       "driven_by": "technical"
     },
     {
-      "date": "2026-06-17",
-      "ticker": "MSFU",
+      "date": "2026-06-18",
+      "ticker": "ROBN",
       "bucket": "hold_and_watch",
       "confidence": 0.5,
       "trigger_type": "manual",
@@ -1841,10 +1831,10 @@
       "driven_by": "technical"
     },
     {
-      "date": "2026-06-17",
+      "date": "2026-06-18",
       "ticker": "RKLX",
       "bucket": "hold_and_watch",
-      "confidence": 0.5,
+      "confidence": 0.55,
       "trigger_type": "manual",
       "outcome": "pending",
       "pnl_5d": null,
@@ -1852,113 +1842,102 @@
       "driven_by": "technical"
     },
     {
-      "date": "2026-06-16",
-      "ticker": "ROBN",
-      "bucket": "trim_on_rebound",
-      "confidence": 0.5,
-      "trigger_type": "price_above",
-      "outcome": "win",
-      "pnl_5d": 0.97,
+      "date": "2026-06-17",
+      "ticker": "07226",
+      "bucket": "cut",
+      "confidence": 0.6,
+      "trigger_type": "open",
+      "outcome": "loss",
+      "pnl_5d": -0.35,
       "followed": "unknown",
       "driven_by": "technical"
     },
     {
-      "date": "2026-06-16",
-      "ticker": "PLTU",
-      "bucket": "hold_and_watch",
-      "confidence": 0.45,
-      "trigger_type": "event",
+      "date": "2026-06-17",
+      "ticker": "ROBN",
+      "bucket": "cut",
+      "confidence": 0.6,
+      "trigger_type": "open",
       "outcome": "loss",
-      "pnl_5d": -2.23,
-      "followed": "true",
+      "pnl_5d": -17.58,
+      "followed": "unknown",
       "driven_by": "technical"
     },
     {
-      "date": "2026-06-16",
-      "ticker": "MSFU",
-      "bucket": "hold_and_watch",
-      "confidence": 0.5,
-      "trigger_type": "event",
-      "outcome": "loss",
-      "pnl_5d": -3.09,
-      "followed": "true",
-      "driven_by": "technical"
-    },
-    {
-      "date": "2026-06-16",
-      "ticker": "00100",
-      "bucket": "hold_and_watch",
-      "confidence": 0.45,
-      "trigger_type": "price_above",
-      "outcome": "loss",
-      "pnl_5d": -10.41,
-      "followed": "true",
-      "driven_by": "technical"
-    },
-    {
-      "date": "2026-06-16",
-      "ticker": "07226",
-      "bucket": "hold_and_watch",
-      "confidence": 0.5,
-      "trigger_type": "price_above",
-      "outcome": "loss",
-      "pnl_5d": -6.63,
-      "followed": "true",
-      "driven_by": "technical"
-    },
-    {
-      "date": "2026-06-16",
-      "ticker": "02208",
-      "bucket": "hold_and_watch",
-      "confidence": 0.55,
-      "trigger_type": "price_below",
-      "outcome": "win",
-      "pnl_5d": 12.5,
-      "followed": "true",
-      "driven_by": "catalyst"
-    },
-    {
-      "date": "2026-06-16",
-      "ticker": "CRCL",
-      "bucket": "hold_and_watch",
-      "confidence": 0.5,
-      "trigger_type": "price_below",
-      "outcome": "win",
-      "pnl_5d": 13.89,
-      "followed": "true",
-      "driven_by": "technical"
-    },
-    {
-      "date": "2026-06-16",
-      "ticker": "03032",
-      "bucket": "hold_and_watch",
-      "confidence": 0.5,
-      "trigger_type": "manual",
-      "outcome": "loss",
-      "pnl_5d": -2.48,
-      "followed": "true",
-      "driven_by": "macro"
-    },
-    {
-      "date": "2026-06-16",
-      "ticker": "03033",
-      "bucket": "hold_and_watch",
-      "confidence": 0.5,
-      "trigger_type": "manual",
-      "outcome": "loss",
-      "pnl_5d": -2.27,
-      "followed": "true",
-      "driven_by": "macro"
-    },
-    {
-      "date": "2026-06-15",
+      "date": "2026-06-17",
       "ticker": "PLTU",
       "bucket": "cut",
       "confidence": 0.55,
       "trigger_type": "open",
+      "outcome": "win",
+      "pnl_5d": 3.79,
+      "followed": "unknown",
+      "driven_by": "technical"
+    },
+    {
+      "date": "2026-06-17",
+      "ticker": "00100",
+      "bucket": "trim_on_rebound",
+      "confidence": 0.45,
+      "trigger_type": "price_above",
+      "outcome": "win",
+      "pnl_5d": 3.7,
+      "followed": "unknown",
+      "driven_by": "technical"
+    },
+    {
+      "date": "2026-06-17",
+      "ticker": "02208",
+      "bucket": "hold_and_watch",
+      "confidence": 0.55,
+      "trigger_type": "manual",
       "outcome": "loss",
-      "pnl_5d": -10.39,
-      "followed": "false",
+      "pnl_5d": -1.6,
+      "followed": "true",
+      "driven_by": "technical"
+    },
+    {
+      "date": "2026-06-17",
+      "ticker": "03032",
+      "bucket": "hold_and_watch",
+      "confidence": 0.5,
+      "trigger_type": "manual",
+      "outcome": "win",
+      "pnl_5d": 0.39,
+      "followed": "true",
+      "driven_by": "technical"
+    },
+    {
+      "date": "2026-06-17",
+      "ticker": "03033",
+      "bucket": "hold_and_watch",
+      "confidence": 0.5,
+      "trigger_type": "manual",
+      "outcome": "win",
+      "pnl_5d": 0.09,
+      "followed": "true",
+      "driven_by": "technical"
+    },
+    {
+      "date": "2026-06-17",
+      "ticker": "CRCL",
+      "bucket": "hold_and_watch",
+      "confidence": 0.5,
+      "trigger_type": "manual",
+      "outcome": "win",
+      "pnl_5d": 1.19,
+      "followed": "true",
+      "driven_by": "technical"
+    },
+    {
+      "date": "2026-06-17",
+      "ticker": "MSFU",
+      "bucket": "hold_and_watch",
+      "confidence": 0.5,
+      "trigger_type": "manual",
+      "outcome": "loss",
+      "pnl_5d": -7.64,
+      "followed": "true",
       "driven_by": "technical"
     }
   ],
@@ -1967,97 +1946,97 @@
     {
       "ticker": "00100",
       "region": "hk",
-      "weight_pct": 46.39,
-      "avg_confidence": 0.56,
+      "weight_pct": 46.06,
+      "avg_confidence": 0.555,
       "n_actions": 23,
       "quadrant": "high_risk"
     },
     {
       "ticker": "07226",
       "region": "hk",
-      "weight_pct": 36.51,
-      "avg_confidence": 0.571,
-      "n_actions": 23,
+      "weight_pct": 36.74,
+      "avg_confidence": 0.574,
+      "n_actions": 24,
+      "quadrant": "high_risk"
+    },
+    {
+      "ticker": "SPCH",
+      "region": "us",
+      "weight_pct": 26.57,
+      "avg_confidence": 0.55,
+      "n_actions": 1,
       "quadrant": "high_risk"
     },
     {
       "ticker": "ROBN",
       "region": "us",
-      "weight_pct": 21.77,
-      "avg_confidence": 0.603,
+      "weight_pct": 21.69,
+      "avg_confidence": 0.594,
       "n_actions": 22,
       "quadrant": "high_risk"
     },
     {
       "ticker": "RKLX",
       "region": "us",
-      "weight_pct": 17.08,
-      "avg_confidence": 0.475,
-      "n_actions": 2,
+      "weight_pct": 17.05,
+      "avg_confidence": 0.5,
+      "n_actions": 3,
       "quadrant": "low_conv_small"
     },
     {
       "ticker": "MSFU",
       "region": "us",
-      "weight_pct": 14.88,
-      "avg_confidence": 0.567,
-      "n_actions": 19,
+      "weight_pct": 14.91,
+      "avg_confidence": 0.569,
+      "n_actions": 20,
       "quadrant": "low_conv_small"
     },
     {
       "ticker": "PLTU",
       "region": "us",
-      "weight_pct": 14.61,
-      "avg_confidence": 0.532,
-      "n_actions": 21,
+      "weight_pct": 14.6,
+      "avg_confidence": 0.535,
+      "n_actions": 22,
       "quadrant": "low_conv_small"
     },
     {
       "ticker": "03033",
       "region": "hk",
-      "weight_pct": 7.87,
-      "avg_confidence": 0.527,
-      "n_actions": 13,
+      "weight_pct": 7.91,
+      "avg_confidence": 0.521,
+      "n_actions": 14,
       "quadrant": "low_conv_small"
     },
     {
       "ticker": "02208",
       "region": "hk",
-      "weight_pct": 7.63,
-      "avg_confidence": 0.561,
-      "n_actions": 14,
+      "weight_pct": 7.67,
+      "avg_confidence": 0.567,
+      "n_actions": 15,
       "quadrant": "low_conv_small"
     },
     {
       "ticker": "CRCL",
       "region": "us",
-      "weight_pct": 5.15,
-      "avg_confidence": 0.507,
-      "n_actions": 18,
+      "weight_pct": 5.18,
+      "avg_confidence": 0.506,
+      "n_actions": 19,
       "quadrant": "low_conv_small"
     },
     {
       "ticker": "03032",
       "region": "hk",
-      "weight_pct": 1.6,
-      "avg_confidence": 0.527,
-      "n_actions": 13,
+      "weight_pct": 1.61,
+      "avg_confidence": 0.521,
+      "n_actions": 14,
       "quadrant": "low_conv_small"
-    },
-    {
-      "ticker": "SPCH",
-      "region": "us",
-      "weight_pct": 26.51,
-      "avg_confidence": null,
-      "n_actions": 0,
-      "quadrant": "no_data"
     }
   ],
   "drawdown": {
     "max_pct_30d_hk": -32.95,
     "max_pct_30d_us": -18.51,
-    "current_pct_hk": -27.85,
-    "current_pct_us": 10.74,
+    "current_pct_hk": -28.29,
+    "current_pct_us": 10.34,
     "us": {
       "peak": {
         "value": 5072.46,
@@ -2068,10 +2047,10 @@
         "date": "2026-06-09"
       },
       "current": {
-        "value": 4973.55,
+        "value": 4955.54,
         "date": "2026-06-18"
       },
-      "current_dd_pct": -1.95,
+      "current_dd_pct": -2.3,
       "max_dd_pct": -18.51,
       "max_dd_abs": 884.09,
       "max_dd_peak_date": "2026-05-29",
@@ -2089,10 +2068,10 @@
         "date": "2026-06-12"
       },
       "current": {
-        "value": 65363.56,
+        "value": 64969.16,
         "date": "2026-06-18"
       },
-      "current_dd_pct": -29.78,
+      "current_dd_pct": -30.21,
       "max_dd_pct": -32.95,
       "max_dd_abs": 30674.4,
       "max_dd_peak_date": "2026-05-27",
@@ -2100,7 +2079,28 @@
       "at_low": false,
       "currency": "HKD"
     },
-    "combined": null,
+    "combined": {
+      "peak": {
+        "value": 129636.23,
+        "date": "2026-05-29"
+      },
+      "trough": {
+        "value": 93891.01,
+        "date": "2026-06-12"
+      },
+      "current": {
+        "value": 103798.29,
+        "date": "2026-06-18"
+      },
+      "current_dd_pct": -19.93,
+      "max_dd_pct": -27.57,
+      "max_dd_abs": 35745.22,
+      "max_dd_peak_date": "2026-05-29",
+      "max_dd_trough_date": "2026-06-12",
+      "at_low": false,
+      "currency": "HKD",
+      "fx_usdhkd": 7.8355
+    },
     "profit": {
       "us": {
         "peak": {
@@ -2112,11 +2112,11 @@
           "date": "2026-05-19"
         },
         "current": {
-          "value": 1813.4,
+          "value": 1795.39,
           "date": "2026-06-18"
         },
-        "from_peak_abs": -334.29,
-        "current_dd_pct": -15.57,
+        "from_peak_abs": -352.3,
+        "current_dd_pct": -16.4,
         "max_dd_abs": -926.55,
         "max_dd_pct": -43.14,
         "max_dd_peak_date": "2026-05-29",
@@ -2136,10 +2136,10 @@
           "date": "2026-06-12"
         },
         "current": {
-          "value": -22912.68,
+          "value": -23307.08,
           "date": "2026-06-18"
         },
-        "from_peak_abs": -27723.2,
+        "from_peak_abs": -28117.6,
         "current_dd_pct": null,
         "max_dd_abs": -30674.4,
         "max_dd_pct": null,
@@ -2150,7 +2150,31 @@
         "at_low": false,
         "currency": "HKD"
       },
-      "combined": null,
+      "combined": {
+        "peak": {
+          "value": 20765.94,
+          "date": "2026-05-29"
+        },
+        "trough": {
+          "value": -16295.64,
+          "date": "2026-06-12"
+        },
+        "current": {
+          "value": -9239.3,
+          "date": "2026-06-18"
+        },
+        "from_peak_abs": -30005.25,
+        "current_dd_pct": null,
+        "max_dd_abs": -37061.58,
+        "max_dd_pct": null,
+        "max_dd_peak_date": "2026-05-29",
+        "max_dd_trough_date": "2026-06-12",
+        "max_dd_peak_val": 20765.94,
+        "max_dd_trough_val": -16295.64,
+        "at_low": false,
+        "currency": "HKD",
+        "fx_usdhkd": 7.8355
+      },
       "basis": "total profit (unrealized + realized), money-only"
     },
     "basis": "equity (market value + realized)"
@@ -2159,48 +2183,48 @@
     "us": [
       {
         "sector": "Other",
-        "value": 830.4,
-        "pct": 26.51,
+        "value": 827.6,
+        "pct": 26.57,
         "tickers": [
           "SPCH"
         ]
       },
       {
         "sector": "Fintech",
-        "value": 682.0,
-        "pct": 21.77,
+        "value": 675.4,
+        "pct": 21.69,
         "tickers": [
           "ROBN"
         ]
       },
       {
         "sector": "Aerospace",
-        "value": 535.0,
-        "pct": 17.08,
+        "value": 531.1,
+        "pct": 17.05,
         "tickers": [
           "RKLX"
         ]
       },
       {
         "sector": "Tech Mega-cap",
-        "value": 466.0,
-        "pct": 14.88,
+        "value": 464.2,
+        "pct": 14.91,
         "tickers": [
           "MSFU"
         ]
       },
       {
         "sector": "AI / Defense",
-        "value": 457.79,
-        "pct": 14.61,
+        "value": 454.72,
+        "pct": 14.6,
         "tickers": [
           "PLTU"
         ]
       },
       {
         "sector": "Crypto / Stablecoin",
-        "value": 161.18,
-        "pct": 5.15,
+        "value": 161.34,
+        "pct": 5.18,
         "tickers": [
           "CRCL"
         ]
@@ -2208,17 +2232,9 @@
     ],
     "hk": [
       {
-        "sector": "AI / 大模型",
-        "value": 26952.0,
-        "pct": 46.39,
-        "tickers": [
-          "00100"
-        ]
-      },
-      {
         "sector": "恒生科技 ETF",
-        "value": 26720.4,
-        "pct": 45.99,
+        "value": 26702.0,
+        "pct": 46.27,
         "tickers": [
           "03032",
           "07226",
@@ -2226,9 +2242,17 @@
         ]
       },
       {
+        "sector": "AI / 大模型",
+        "value": 26580.0,
+        "pct": 46.06,
+        "tickers": [
+          "00100"
+        ]
+      },
+      {
         "sector": "新能源",
-        "value": 4432.0,
-        "pct": 7.63,
+        "value": 4428.0,
+        "pct": 7.67,
         "tickers": [
           "02208"
         ]
@@ -2236,9 +2260,9 @@
     ]
   },
   "leveraged_etf": {
-    "us_pct": 68.34,
-    "hk_pct": 36.51,
-    "combined_pct": null,
+    "us_pct": 68.25,
+    "hk_pct": 36.74,
+    "combined_pct": 46.1,
     "tickers": [
       "07226",
       "MSFU",
@@ -2248,53 +2272,53 @@
     ]
   },
   "risk": {
-    "generated_at": "2026-06-17T00:03:51.715292+00:00",
-    "as_of": "2026-06-17",
+    "generated_at": "2026-06-18T00:03:35.158602+00:00",
+    "as_of": "2026-06-18",
     "us": {
-      "beta_spx": 4.7246,
-      "vol_30d_annualized": 1.1055,
-      "max_dd_30d": -0.277,
-      "sharpe_30d": 2.0349,
-      "current_value_usd": 2783.98
+      "beta_spx": 4.47,
+      "vol_30d_annualized": 1.0984,
+      "max_dd_30d": -0.2974,
+      "sharpe_30d": 2.4299,
+      "current_value_usd": 3114.36
     },
     "hk": {
-      "beta_hsi": 1.6391,
-      "vol_30d_annualized": 0.6502,
-      "max_dd_30d": -0.3383,
-      "sharpe_30d": -4.4711,
-      "current_value_hkd": 56116.0
+      "beta_hsi": 1.5374,
+      "vol_30d_annualized": 0.6735,
+      "max_dd_30d": -0.344,
+      "sharpe_30d": -3.734,
+      "current_value_hkd": 57710.0
     },
     "combined": {
-      "vol_30d_annualized": 0.6141,
-      "max_dd_30d": -0.2876,
-      "sharpe_30d": -2.3915
+      "vol_30d_annualized": 0.6377,
+      "max_dd_30d": -0.3028,
+      "sharpe_30d": -1.5353
     },
     "leveraged_exposure": {
-      "us_leverage_factor_avg": 1.9427,
-      "hk_leverage_factor_avg": 1.3765,
-      "combined_avg": 1.5345,
-      "margin_at_risk_pct": 15.345
+      "us_leverage_factor_avg": 1.6825,
+      "hk_leverage_factor_avg": 1.3674,
+      "combined_avg": 1.4607,
+      "margin_at_risk_pct": 14.6075
     },
     "alerts": [
       {
         "type": "high_beta",
         "severity": "high",
-        "detail": "US β vs S&P 500 = 4.7246 (> 3.0)"
+        "detail": "US β vs S&P 500 = 4.47 (> 3.0)"
       },
       {
         "type": "high_vol",
         "severity": "high",
-        "detail": "Combined 30d annualised vol = 61.4% (> 50%)"
+        "detail": "Combined 30d annualised vol = 63.8% (> 50%)"
       },
       {
         "type": "deep_dd",
         "severity": "medium",
-        "detail": "Combined 30d max DD = -28.8% (< -10%)"
+        "detail": "Combined 30d max DD = -30.3% (< -10%)"
       },
       {
         "type": "negative_sharpe",
         "severity": "medium",
-        "detail": "Combined 30d Sharpe = -2.3915 (< 0)"
+        "detail": "Combined 30d Sharpe = -1.5353 (< 0)"
       }
     ],
     "meta": {
@@ -2314,10 +2338,12 @@
           "ROBN",
           "MSFU"
         ],
-        "failed": [],
+        "failed": [
+          "SPCH"
+        ],
         "n_returns": 30,
-        "dates_first": "2026-05-04",
-        "dates_last": "2026-06-16"
+        "dates_first": "2026-05-05",
+        "dates_last": "2026-06-17"
       },
       "hk_fetch": {
         "fetched": [
@@ -2329,38 +2355,38 @@
         ],
         "failed": [],
         "n_returns": 30,
-        "dates_first": "2026-05-04",
-        "dates_last": "2026-06-16"
+        "dates_first": "2026-05-05",
+        "dates_last": "2026-06-17"
       }
     }
   },
   "lev_regime": {
-    "generated_at": "2026-06-17T00:03:52.173254+00:00",
-    "as_of": "2026-06-16",
+    "generated_at": "2026-06-18T00:03:35.676377+00:00",
+    "as_of": "2026-06-17",
     "index": "HSTECH",
     "source": "tencent",
-    "bars": 1339,
-    "close": 4658.65,
+    "bars": 1340,
+    "close": 4669.07,
     "ma_window": 200,
-    "ma": 5465.09,
-    "dist_ma_pct": -14.8,
+    "ma": 5460.94,
+    "dist_ma_pct": -14.5,
     "vol_window": 20,
-    "vol_annualized": 0.3011,
+    "vol_annualized": 0.301,
     "vol_cap": 0.5,
     "trend_on": false,
     "vol_ok": true,
     "tier": "amber",
     "lev_cap_mult": 0.5,
     "label": "趋势OFF：杠杆敞口上限砍半",
-    "rationale": "HSTECH 4659 低于 200日线 5465 (-14.8%)；20日波动 30% < 50% 上限。→ HK 杠杆ETF腿上限 ×0.5（amber）",
+    "rationale": "HSTECH 4669 低于 200日线 5461 (-14.5%)；20日波动 30% < 50% 上限。→ HK 杠杆ETF腿上限 ×0.5（amber）",
     "hk": {
       "tier": "amber",
       "lev_cap_mult": 0.5,
       "label": "趋势OFF：杠杆敞口上限砍半",
-      "close": 4658.65,
-      "ma": 5465.09,
-      "dist_ma_pct": -14.8,
-      "vol_annualized": 0.3011,
+      "close": 4669.07,
+      "ma": 5460.94,
+      "dist_ma_pct": -14.5,
+      "vol_annualized": 0.301,
       "trend_on": false,
       "vol_ok": true
     },
@@ -2369,11 +2395,11 @@
         {
           "etf": "PLTU",
           "underlying": "PLTR",
-          "close": 133.25,
-          "ma": 160.18,
+          "close": 130.63,
+          "ma": 160.05,
           "ma_window": 200,
-          "dist_ma_pct": -16.8,
-          "vol_annualized": 0.6382,
+          "dist_ma_pct": -18.4,
+          "vol_annualized": 0.642,
           "vol_hot_cap": 0.7,
           "trend_on": false,
           "vol_hot": false,
@@ -2382,34 +2408,34 @@
         {
           "etf": "ROBN",
           "underlying": "HOOD",
-          "close": 96.71,
+          "close": 105.2,
           "ma": 102.75,
           "ma_window": 200,
-          "dist_ma_pct": -5.9,
-          "vol_annualized": 0.8167,
+          "dist_ma_pct": 2.4,
+          "vol_annualized": 0.8345,
           "vol_hot_cap": 0.7,
-          "trend_on": false,
+          "trend_on": true,
           "vol_hot": true,
-          "state": "cut"
+          "state": "ok"
         },
         {
           "etf": "MSFU",
           "underlying": "MSFT",
-          "close": 393.83,
-          "ma": 452.62,
+          "close": 378.91,
+          "ma": 451.98,
           "ma_window": 200,
-          "dist_ma_pct": -13.0,
-          "vol_annualized": 0.3672,
+          "dist_ma_pct": -16.2,
+          "vol_annualized": 0.3855,
           "vol_hot_cap": 0.7,
           "trend_on": false,
           "vol_hot": false,
           "state": "watch"
         }
       ],
-      "tier": "red",
-      "label": "1 只趋势off+波动过热 → 该名降杠杆",
+      "tier": "amber",
+      "label": "2 只趋势off(波动未过热) → 观察，暂不强砍",
       "vol_hot_cap": 0.7,
-      "cut_count": 1,
+      "cut_count": 0,
       "watch_count": 2
     }
   },
@@ -2427,23 +2453,23 @@
         "leg": "HK",
         "ticker": "00100",
         "severity": "medium",
-        "detail": "00100 = 46.39% of HK (cap 35%)",
-        "action": "纪律性 trim 00100 → ≤35% (减约 6615.46 HKD，借反弹分批、勿在新低日一次砍)"
+        "detail": "00100 = 46.06% of HK (cap 35%)",
+        "action": "纪律性 trim 00100 → ≤35% (减约 6381.5 HKD，借反弹分批、勿在新低日一次砍)"
       },
       {
         "type": "single_name",
         "leg": "HK",
         "ticker": "07226",
         "severity": "medium",
-        "detail": "07226 = 36.51% of HK (cap 35%)",
-        "action": "纪律性 trim 07226 → ≤35% (减约 879.86 HKD，借反弹分批、勿在新低日一次砍)"
+        "detail": "07226 = 36.74% of HK (cap 35%)",
+        "action": "纪律性 trim 07226 → ≤35% (减约 1005.5 HKD，借反弹分批、勿在新低日一次砍)"
       },
       {
         "type": "factor_concentration",
         "leg": "HK",
         "ticker": null,
         "severity": "high",
-        "detail": "HK Top2 = 82.9% (cap 70%) — 名义多只实为单因子",
+        "detail": "HK Top2 = 82.8% (cap 70%) — 名义多只实为单因子",
         "action": "把 HK Top2 降到 ≤70%：借强减最大那只，别在同因子内换票"
       },
       {
@@ -2451,31 +2477,23 @@
         "leg": "HK",
         "ticker": null,
         "severity": "high",
-        "detail": "HK 杠杆 ETF = 36.5% (cap 25%) — 2x 日内重置，下杀崩/震荡衰减（🧭HK制度 amber：基准 50% ×0.5 → 25%，趋势OFF：杠杆敞口上限砍半）",
-        "action": "降杠杆=换仓非清仓：把约 6690.3 HKD 的 2x 换成 1x 同因子(07226→03033)，敞口不变、停 decay；🧭转 green 后可换回 2x"
+        "detail": "HK 杠杆 ETF = 36.7% (cap 25%) — 2x 日内重置，下杀崩/震荡衰减（🧭HK制度 amber：基准 50% ×0.5 → 25%，趋势OFF：杠杆敞口上限砍半）",
+        "action": "降杠杆=换仓非清仓：把约 6776.5 HKD 的 2x 换成 1x 同因子(07226→03033)，敞口不变、停 decay；🧭转 green 后可换回 2x"
       },
       {
         "type": "leveraged_exposure",
         "leg": "US",
         "ticker": null,
         "severity": "high",
-        "detail": "US 杠杆 ETF = 94.9% (cap 50%) — 2x 日内重置，下杀崩/震荡衰减",
-        "action": "降杠杆=换仓非清仓：把约 1405.01 USD 的 2x 换成 1x 同因子(PLTU→PLTR、ROBN→HOOD、MSFU→MSFT)，敞口不变、停 decay；🧭转 green 后可换回 2x"
-      },
-      {
-        "type": "regime_delever",
-        "leg": "US",
-        "ticker": "ROBN",
-        "severity": "high",
-        "detail": "🧭 ROBN=2xHOOD 标的破200线 (-5.9%)+波动 82% 过热 → 杠杆制度 red",
-        "action": "ROBN 2x→HOOD 现货换仓(driven_by=technical,规则非择时)：标的趋势off 且波动>70%，2x 日内重置在下杀里放大衰减；HOOD 收复200线(green)再换回 2x"
+        "detail": "US 杠杆 ETF = 94.8% (cap 50%) — 2x 日内重置，下杀崩/震荡衰减",
+        "action": "降杠杆=换仓非清仓：把约 1395.84 USD 的 2x 换成 1x 同因子(PLTU→PLTR、ROBN→HOOD、MSFU→MSFT)，敞口不变、停 decay；🧭转 green 后可换回 2x"
       },
       {
         "type": "beta",
         "leg": "US",
         "ticker": null,
         "severity": "high",
-        "detail": "US β vs S&P = 4.7246 (cap 3.0) — 大盘 −1% 本子约 −4.7%",
+        "detail": "US β vs S&P = 4.47 (cap 3.0) — 大盘 −1% 本子约 −4.5%",
         "action": "降 US β：优先削杠杆 ETF(β 主要来源)，不是砍单票 thesis"
       }
     ],
@@ -2490,48 +2508,48 @@
       {
         "ticker": "PLTU",
         "leg": "US",
-        "pnl_pct": -20.2,
-        "detail": "PLTU 浮亏 -20.2% ≤ 硬止损线 -18%",
+        "pnl_pct": -20.7,
+        "detail": "PLTU 浮亏 -20.7% ≤ 硬止损线 -18%",
         "action": "PLTU 触发杠杆 ETF 硬止损 → 换仓 1x 同因子 PLTR（敞口保留、停 decay，规则非择时）；🧭转 green 再换回 2x"
       },
       {
         "ticker": "MSFU",
         "leg": "US",
-        "pnl_pct": -20.0,
-        "detail": "MSFU 浮亏 -20.0% ≤ 硬止损线 -18%",
+        "pnl_pct": -20.3,
+        "detail": "MSFU 浮亏 -20.3% ≤ 硬止损线 -18%",
         "action": "MSFU 触发杠杆 ETF 硬止损 → 换仓 1x 同因子 MSFT（敞口保留、停 decay，规则非择时）；🧭转 green 再换回 2x"
       }
     ],
-    "breach_count": 10,
-    "directive": "⛔ 7 仓位硬闸 + 3 杠杆止损触发。每条必须在 Judge 段出一个对应动作(driven_by=technical,纪律性再平衡,不算听消息、不受 risk_on HOLD 默认约束)；其余主动 call 仍按 regime guard。杠杆腿解套口径=2x→1x 同因子换仓而非清仓(见各 action)。",
+    "breach_count": 9,
+    "directive": "⛔ 6 仓位硬闸 + 3 杠杆止损触发。每条必须在 Judge 段出一个对应动作(driven_by=technical,纪律性再平衡,不算听消息、不受 risk_on HOLD 默认约束)；其余主动 call 仍按 regime guard。杠杆腿解套口径=2x→1x 同因子换仓而非清仓(见各 action)。",
     "reentry_rule": "1x→2x 换回闸：HK=HSTECH 收复 200日线且 20日波动<50%(🧭green ×1.0)；US=各标的自身收复 200日线且波动<70%。green 之前不加任何 2x。",
     "lev_regime": {
-      "generated_at": "2026-06-17T00:03:52.173254+00:00",
-      "as_of": "2026-06-16",
+      "generated_at": "2026-06-18T00:03:35.676377+00:00",
+      "as_of": "2026-06-17",
       "index": "HSTECH",
       "source": "tencent",
-      "bars": 1339,
-      "close": 4658.65,
+      "bars": 1340,
+      "close": 4669.07,
       "ma_window": 200,
-      "ma": 5465.09,
-      "dist_ma_pct": -14.8,
+      "ma": 5460.94,
+      "dist_ma_pct": -14.5,
       "vol_window": 20,
-      "vol_annualized": 0.3011,
+      "vol_annualized": 0.301,
       "vol_cap": 0.5,
       "trend_on": false,
       "vol_ok": true,
       "tier": "amber",
       "lev_cap_mult": 0.5,
       "label": "趋势OFF：杠杆敞口上限砍半",
-      "rationale": "HSTECH 4659 低于 200日线 5465 (-14.8%)；20日波动 30% < 50% 上限。→ HK 杠杆ETF腿上限 ×0.5（amber）",
+      "rationale": "HSTECH 4669 低于 200日线 5461 (-14.5%)；20日波动 30% < 50% 上限。→ HK 杠杆ETF腿上限 ×0.5（amber）",
       "hk": {
         "tier": "amber",
         "lev_cap_mult": 0.5,
         "label": "趋势OFF：杠杆敞口上限砍半",
-        "close": 4658.65,
-        "ma": 5465.09,
-        "dist_ma_pct": -14.8,
-        "vol_annualized": 0.3011,
+        "close": 4669.07,
+        "ma": 5460.94,
+        "dist_ma_pct": -14.5,
+        "vol_annualized": 0.301,
         "trend_on": false,
         "vol_ok": true
       },
@@ -2540,11 +2558,11 @@
           {
             "etf": "PLTU",
             "underlying": "PLTR",
-            "close": 133.25,
-            "ma": 160.18,
+            "close": 130.63,
+            "ma": 160.05,
             "ma_window": 200,
-            "dist_ma_pct": -16.8,
-            "vol_annualized": 0.6382,
+            "dist_ma_pct": -18.4,
+            "vol_annualized": 0.642,
             "vol_hot_cap": 0.7,
             "trend_on": false,
             "vol_hot": false,
@@ -2553,34 +2571,34 @@
           {
             "etf": "ROBN",
             "underlying": "HOOD",
-            "close": 96.71,
+            "close": 105.2,
             "ma": 102.75,
             "ma_window": 200,
-            "dist_ma_pct": -5.9,
-            "vol_annualized": 0.8167,
+            "dist_ma_pct": 2.4,
+            "vol_annualized": 0.8345,
             "vol_hot_cap": 0.7,
-            "trend_on": false,
+            "trend_on": true,
             "vol_hot": true,
-            "state": "cut"
+            "state": "ok"
           },
           {
             "etf": "MSFU",
             "underlying": "MSFT",
-            "close": 393.83,
-            "ma": 452.62,
+            "close": 378.91,
+            "ma": 451.98,
             "ma_window": 200,
-            "dist_ma_pct": -13.0,
-            "vol_annualized": 0.3672,
+            "dist_ma_pct": -16.2,
+            "vol_annualized": 0.3855,
             "vol_hot_cap": 0.7,
             "trend_on": false,
             "vol_hot": false,
             "state": "watch"
           }
         ],
-        "tier": "red",
-        "label": "1 只趋势off+波动过热 → 该名降杠杆",
+        "tier": "amber",
+        "label": "2 只趋势off(波动未过热) → 观察，暂不强砍",
         "vol_hot_cap": 0.7,
-        "cut_count": 1,
+        "cut_count": 0,
         "watch_count": 2
       }
     },
@@ -2594,51 +2612,51 @@
       {
         "ticker": "00100",
         "leg": "HK",
-        "pnl_pct": -45.4,
-        "breakeven_need_pct": 83.2,
+        "pnl_pct": -46.2,
+        "breakeven_need_pct": 85.7,
         "leveraged": false
       },
       {
         "ticker": "07226",
         "leg": "HK",
         "pnl_pct": -21.6,
-        "breakeven_need_pct": 27.5,
+        "breakeven_need_pct": 27.6,
         "leveraged": true,
         "underlying_vol_pct": 30.1,
         "chop_drag_pct_per_month": 0.76,
         "underlying_need_2x_6m_pct": 15.5,
-        "underlying_need_if_1x_pct": 27.5,
+        "underlying_need_if_1x_pct": 27.6,
         "swap_1x": "03033"
       },
       {
         "ticker": "02208",
         "leg": "HK",
-        "pnl_pct": -21.3,
-        "breakeven_need_pct": 27.1,
+        "pnl_pct": -21.4,
+        "breakeven_need_pct": 27.2,
         "leveraged": false
       },
       {
         "ticker": "PLTU",
         "leg": "US",
-        "pnl_pct": -20.2,
-        "breakeven_need_pct": 25.3,
+        "pnl_pct": -20.7,
+        "breakeven_need_pct": 26.1,
         "leveraged": true,
-        "underlying_vol_pct": 63.8,
-        "chop_drag_pct_per_month": 3.39,
-        "underlying_need_2x_6m_pct": 23.9,
-        "underlying_need_if_1x_pct": 25.3,
+        "underlying_vol_pct": 64.2,
+        "chop_drag_pct_per_month": 3.43,
+        "underlying_need_2x_6m_pct": 24.5,
+        "underlying_need_if_1x_pct": 26.1,
         "swap_1x": "PLTR"
       },
       {
         "ticker": "MSFU",
         "leg": "US",
-        "pnl_pct": -20.0,
-        "breakeven_need_pct": 25.0,
+        "pnl_pct": -20.3,
+        "breakeven_need_pct": 25.5,
         "leveraged": true,
-        "underlying_vol_pct": 36.7,
-        "chop_drag_pct_per_month": 1.12,
-        "underlying_need_2x_6m_pct": 15.6,
-        "underlying_need_if_1x_pct": 25.0,
+        "underlying_vol_pct": 38.6,
+        "chop_drag_pct_per_month": 1.24,
+        "underlying_need_2x_6m_pct": 16.3,
+        "underlying_need_if_1x_pct": 25.5,
         "swap_1x": "MSFT"
       },
       {
@@ -2651,143 +2669,143 @@
       {
         "ticker": "03033",
         "leg": "HK",
-        "pnl_pct": -11.1,
-        "breakeven_need_pct": 12.4,
+        "pnl_pct": -11.2,
+        "breakeven_need_pct": 12.6,
         "leveraged": false
       },
       {
         "ticker": "CRCL",
         "leg": "US",
-        "pnl_pct": -7.4,
-        "breakeven_need_pct": 8.0,
+        "pnl_pct": -7.3,
+        "breakeven_need_pct": 7.8,
         "leveraged": false
       },
       {
         "ticker": "SPCH",
         "leg": "US",
-        "pnl_pct": -3.6,
-        "breakeven_need_pct": 3.8,
+        "pnl_pct": -3.9,
+        "breakeven_need_pct": 4.1,
         "leveraged": true
       }
     ],
     "note": "回本涨幅=成本/现价−1。2x 行加印：标的σ、横盘 decay≈σ²/12 每月、半年窗含 drag 的等效标的涨幅。解读纪律：直线涨→2x 回本更快；横盘→2x 每月白付 decay；再跌→2x 双倍挨打。换 1x 买的是后两种情景的保护，不是回本速度。"
   },
   "quant_signals": {
-    "as_of": "2026-06-17",
+    "as_of": "2026-06-18",
     "sigma_target": 0.25,
     "rows": {
       "00100": {
-        "close": 416.6,
-        "ma50": 759.022,
+        "close": 443.0,
+        "ma50": 746.682,
         "ma200": null,
         "dist_ma200_pct": null,
         "golden_cross": null,
         "trend_on": null,
-        "mom_1m": -47.5,
-        "mom_3m": -61.6,
+        "mom_1m": -44.6,
+        "mom_3m": -56.1,
         "mom_6m": null,
         "mom_12_1": null,
-        "rsi14": 29.5,
-        "zscore20": -1.38,
-        "vol20_annualized": 1.2149,
-        "atr14_pct": 17.4,
-        "chandelier_stop": 700.534,
-        "stop_distance_pct": -40.5,
-        "vol_target_weight": 0.21,
-        "pct_52w_range": 8.0,
-        "bars": 105,
-        "tag": "趋势OFF · RSI超卖29.5 · 已破吊灯止损",
+        "rsi14": 33.0,
+        "zscore20": -1.09,
+        "vol20_annualized": 1.2447,
+        "atr14_pct": 16.29,
+        "chandelier_stop": 701.496,
+        "stop_distance_pct": -36.8,
+        "vol_target_weight": 0.2,
+        "pct_52w_range": 11.0,
+        "bars": 106,
+        "tag": "趋势OFF · 已破吊灯止损",
         "code": "hk00100"
       },
       "02208": {
-        "close": 11.25,
-        "ma50": 14.748,
-        "ma200": 13.754,
-        "dist_ma200_pct": -18.2,
+        "close": 11.07,
+        "ma50": 14.687,
+        "ma200": 13.767,
+        "dist_ma200_pct": -19.6,
         "golden_cross": true,
         "trend_on": false,
-        "mom_1m": -23.6,
-        "mom_3m": -30.9,
-        "mom_6m": -13.7,
-        "mom_12_1": 124.2,
-        "rsi14": 29.0,
-        "zscore20": -1.26,
+        "mom_1m": -27.5,
+        "mom_3m": -33.7,
+        "mom_6m": -16.3,
+        "mom_12_1": 128.3,
+        "rsi14": 27.9,
+        "zscore20": -1.27,
         "vol20_annualized": 0.3284,
-        "atr14_pct": 6.29,
-        "chandelier_stop": 13.559,
-        "stop_distance_pct": -17.0,
+        "atr14_pct": 6.14,
+        "chandelier_stop": 13.432,
+        "stop_distance_pct": -17.6,
         "vol_target_weight": 0.76,
-        "pct_52w_range": 40.1,
+        "pct_52w_range": 38.5,
         "bars": 400,
-        "tag": "趋势OFF · RSI超卖29.0 · 已破吊灯止损",
+        "tag": "趋势OFF · RSI超卖27.9 · 已破吊灯止损",
         "code": "hk02208"
       },
       "03032": {
-        "close": 4.642,
-        "ma50": 4.894,
-        "ma200": 5.443,
-        "dist_ma200_pct": -14.7,
+        "close": 4.66,
+        "ma50": 4.893,
+        "ma200": 5.439,
+        "dist_ma200_pct": -14.3,
         "golden_cross": false,
         "trend_on": false,
-        "mom_1m": -5.7,
-        "mom_3m": -7.3,
-        "mom_6m": -17.8,
-        "mom_12_1": -6.1,
-        "rsi14": 39.5,
-        "zscore20": -1.51,
-        "vol20_annualized": 0.2924,
-        "atr14_pct": 2.63,
-        "chandelier_stop": 4.819,
-        "stop_distance_pct": -3.7,
+        "mom_1m": -3.4,
+        "mom_3m": -6.0,
+        "mom_6m": -17.4,
+        "mom_12_1": -10.5,
+        "rsi14": 40.6,
+        "zscore20": -1.25,
+        "vol20_annualized": 0.2923,
+        "atr14_pct": 2.52,
+        "chandelier_stop": 4.832,
+        "stop_distance_pct": -3.6,
         "vol_target_weight": 0.86,
-        "pct_52w_range": 0.9,
+        "pct_52w_range": 1.8,
         "bars": 400,
         "tag": "趋势OFF · 已破吊灯止损",
         "code": "hk03032"
       },
       "HSTECH": {
-        "close": 4658.65,
-        "ma50": 4910.369,
-        "ma200": 5465.09,
-        "dist_ma200_pct": -14.8,
+        "close": 4669.07,
+        "ma50": 4908.621,
+        "ma200": 5460.943,
+        "dist_ma200_pct": -14.5,
         "golden_cross": false,
         "trend_on": false,
-        "mom_1m": -5.7,
-        "mom_3m": -7.3,
-        "mom_6m": -17.7,
-        "mom_12_1": -6.5,
-        "rsi14": 39.5,
-        "zscore20": -1.49,
-        "vol20_annualized": 0.2935,
-        "atr14_pct": 2.62,
-        "chandelier_stop": 4836.93,
+        "mom_1m": -3.6,
+        "mom_3m": -6.2,
+        "mom_6m": -17.5,
+        "mom_12_1": -10.8,
+        "rsi14": 40.2,
+        "zscore20": -1.28,
+        "vol20_annualized": 0.2934,
+        "atr14_pct": 2.52,
+        "chandelier_stop": 4849.435,
         "stop_distance_pct": -3.7,
         "vol_target_weight": 0.85,
-        "pct_52w_range": 0.4,
+        "pct_52w_range": 0.9,
         "bars": 400,
         "tag": "趋势OFF · 已破吊灯止损",
         "code": "hkHSTECH",
         "note": "07226 的标的"
       },
       "03033": {
-        "close": 4.562,
-        "ma50": 4.807,
-        "ma200": 5.352,
-        "dist_ma200_pct": -14.8,
+        "close": 4.566,
+        "ma50": 4.805,
+        "ma200": 5.348,
+        "dist_ma200_pct": -14.6,
         "golden_cross": false,
         "trend_on": false,
-        "mom_1m": -5.5,
-        "mom_3m": -7.4,
+        "mom_1m": -3.6,
+        "mom_3m": -6.2,
         "mom_6m": -17.7,
-        "mom_12_1": -6.7,
-        "rsi14": 39.6,
-        "zscore20": -1.5,
-        "vol20_annualized": 0.2936,
-        "atr14_pct": 2.63,
-        "chandelier_stop": 4.736,
-        "stop_distance_pct": -3.7,
+        "mom_12_1": -11.1,
+        "rsi14": 39.8,
+        "zscore20": -1.33,
+        "vol20_annualized": 0.2927,
+        "atr14_pct": 2.54,
+        "chandelier_stop": 4.748,
+        "stop_distance_pct": -3.8,
         "vol_target_weight": 0.85,
-        "pct_52w_range": 0.6,
+        "pct_52w_range": 0.8,
         "bars": 400,
         "tag": "趋势OFF · 已破吊灯止损",
         "code": "hk03033"
@@ -2816,120 +2834,120 @@
         "code": "usRKLB.OQ"
       },
       "CRCL": {
-        "close": 79.72,
-        "ma50": 101.848,
-        "ma200": 99.795,
-        "dist_ma200_pct": -20.1,
+        "close": 80.59,
+        "ma50": 101.577,
+        "ma200": 99.538,
+        "dist_ma200_pct": -19.0,
         "golden_cross": true,
         "trend_on": false,
-        "mom_1m": -30.1,
-        "mom_3m": -39.7,
-        "mom_6m": -4.5,
-        "mom_12_1": -14.6,
-        "rsi14": 37.5,
-        "zscore20": -1.16,
-        "vol20_annualized": 0.8168,
-        "atr14_pct": 10.03,
-        "chandelier_stop": 94.859,
-        "stop_distance_pct": -16.0,
-        "vol_target_weight": 0.31,
-        "pct_52w_range": 13.8,
-        "bars": 259,
+        "mom_1m": -27.7,
+        "mom_3m": -39.3,
+        "mom_6m": 6.8,
+        "mom_12_1": -26.3,
+        "rsi14": 38.4,
+        "zscore20": -1.0,
+        "vol20_annualized": 0.8209,
+        "atr14_pct": 9.81,
+        "chandelier_stop": 95.128,
+        "stop_distance_pct": -15.3,
+        "vol_target_weight": 0.3,
+        "pct_52w_range": 14.2,
+        "bars": 260,
         "tag": "趋势OFF · 已破吊灯止损",
         "code": "usCRCL.N"
       },
       "PLTR": {
-        "close": 133.25,
-        "ma50": 139.069,
-        "ma200": 160.184,
-        "dist_ma200_pct": -16.8,
+        "close": 130.63,
+        "ma50": 138.68,
+        "ma200": 160.053,
+        "dist_ma200_pct": -18.4,
         "golden_cross": false,
         "trend_on": false,
-        "mom_1m": -0.6,
-        "mom_3m": -14.1,
-        "mom_6m": -27.4,
-        "mom_12_1": -2.5,
-        "rsi14": 45.4,
-        "zscore20": -0.64,
-        "vol20_annualized": 0.6221,
-        "atr14_pct": 4.86,
-        "chandelier_stop": 144.283,
-        "stop_distance_pct": -7.6,
+        "mom_1m": -3.3,
+        "mom_3m": -14.5,
+        "mom_6m": -28.7,
+        "mom_12_1": -4.4,
+        "rsi14": 43.1,
+        "zscore20": -0.91,
+        "vol20_annualized": 0.6258,
+        "atr14_pct": 4.94,
+        "chandelier_stop": 144.345,
+        "stop_distance_pct": -9.5,
         "vol_target_weight": 0.4,
-        "pct_52w_range": 6.6,
+        "pct_52w_range": 3.3,
         "bars": 401,
         "tag": "趋势OFF · 已破吊灯止损",
         "code": "usPLTR.OQ",
         "note": "PLTU 的标的"
       },
       "HOOD": {
-        "close": 96.71,
-        "ma50": 81.365,
-        "ma200": 102.749,
-        "dist_ma200_pct": -5.9,
+        "close": 105.2,
+        "ma50": 82.076,
+        "ma200": 102.755,
+        "dist_ma200_pct": 2.4,
         "golden_cross": false,
         "trend_on": false,
-        "mom_1m": 25.4,
-        "mom_3m": 25.0,
-        "mom_6m": -19.1,
-        "mom_12_1": 6.3,
-        "rsi14": 63.3,
-        "zscore20": 1.54,
-        "vol20_annualized": 0.796,
-        "atr14_pct": 6.32,
-        "chandelier_stop": 83.552,
-        "stop_distance_pct": 15.7,
+        "mom_1m": 36.4,
+        "mom_3m": 40.5,
+        "mom_6m": -8.7,
+        "mom_12_1": 0.5,
+        "rsi14": 69.4,
+        "zscore20": 2.21,
+        "vol20_annualized": 0.8134,
+        "atr14_pct": 6.41,
+        "chandelier_stop": 90.503,
+        "stop_distance_pct": 16.2,
         "vol_target_weight": 0.31,
-        "pct_52w_range": 36.1,
+        "pct_52w_range": 45.9,
         "bars": 401,
-        "tag": "趋势OFF",
+        "tag": "趋势OFF · z+2.2σ极端",
         "code": "usHOOD.OQ",
         "note": "ROBN 的标的"
       },
       "MSFT": {
-        "close": 393.83,
-        "ma50": 412.742,
-        "ma200": 452.617,
-        "dist_ma200_pct": -13.0,
+        "close": 378.91,
+        "ma50": 412.874,
+        "ma200": 451.978,
+        "dist_ma200_pct": -16.2,
         "golden_cross": false,
         "trend_on": false,
-        "mom_1m": -6.7,
-        "mom_3m": -1.4,
-        "mom_6m": -17.7,
-        "mom_12_1": -11.2,
-        "rsi14": 40.2,
-        "zscore20": -1.27,
-        "vol20_annualized": 0.3579,
-        "atr14_pct": 3.02,
-        "chandelier_stop": 430.688,
-        "stop_distance_pct": -8.6,
-        "vol_target_weight": 0.7,
-        "pct_52w_range": 20.0,
+        "mom_1m": -10.5,
+        "mom_3m": -3.3,
+        "mom_6m": -20.2,
+        "mom_12_1": -11.6,
+        "rsi14": 34.6,
+        "zscore20": -1.8,
+        "vol20_annualized": 0.3757,
+        "atr14_pct": 3.22,
+        "chandelier_stop": 429.695,
+        "stop_distance_pct": -11.8,
+        "vol_target_weight": 0.67,
+        "pct_52w_range": 11.9,
         "bars": 401,
         "tag": "趋势OFF · 已破吊灯止损",
         "code": "usMSFT.OQ",
         "note": "MSFU 的标的"
       },
       "RKLX": {
-        "close": 50.05,
-        "ma50": 57.95,
-        "ma200": 66.187,
-        "dist_ma200_pct": -24.4,
+        "close": 53.11,
+        "ma50": 58.467,
+        "ma200": 65.975,
+        "dist_ma200_pct": -19.5,
         "golden_cross": false,
         "trend_on": false,
-        "mom_1m": -38.1,
-        "mom_3m": 20.5,
-        "mom_6m": 31.4,
-        "mom_12_1": 166.9,
-        "rsi14": 42.8,
-        "zscore20": -1.21,
-        "vol20_annualized": 2.082,
-        "atr14_pct": 25.25,
-        "chandelier_stop": 76.915,
-        "stop_distance_pct": -34.9,
+        "mom_1m": -40.4,
+        "mom_3m": 66.0,
+        "mom_6m": 74.0,
+        "mom_12_1": 170.2,
+        "rsi14": 44.4,
+        "zscore20": -0.97,
+        "vol20_annualized": 2.0916,
+        "atr14_pct": 23.04,
+        "chandelier_stop": 78.128,
+        "stop_distance_pct": -32.0,
         "vol_target_weight": 0.12,
-        "pct_52w_range": 19.6,
-        "bars": 317,
+        "pct_52w_range": 21.7,
+        "bars": 318,
         "tag": "趋势OFF · 已破吊灯止损",
         "code": "usRKLX.OQ"
       }
@@ -2945,25 +2963,25 @@
     "reading_discipline": "因子是纪律不是预言：趋势/动量管「该不该持有」，RSI/z 管「别在极端点动手」，吊灯线管「趋势单何处离场」，vol-target 管「该拿多大」。LLM 技术面判断只准引用本表，效果由 calibration 事后验证。"
   },
   "quant_signal_review": {
-    "as_of": "2026-06-17",
-    "days_logged": 5,
+    "as_of": "2026-06-18",
+    "days_logged": 6,
     "min_n": 20,
     "factors": {
       "trend_on_follow": {
-        "n": 4,
-        "hit_rate": 0.25,
+        "n": 5,
+        "hit_rate": 0.2,
         "usable": false,
         "note": "样本不足，brief 不得引用方向结论"
       },
       "trend_off_avoid": {
-        "n": 0,
-        "hit_rate": null,
+        "n": 8,
+        "hit_rate": 0.25,
         "usable": false,
         "note": "样本不足，brief 不得引用方向结论"
       },
       "rsi_oversold_bounce": {
-        "n": 0,
-        "hit_rate": null,
+        "n": 2,
+        "hit_rate": 1.0,
         "usable": false,
         "note": "样本不足，brief 不得引用方向结论"
       },
@@ -2974,19 +2992,19 @@
         "note": "样本不足，brief 不得引用方向结论"
       },
       "zscore_extreme_revert": {
-        "n": 0,
-        "hit_rate": null,
+        "n": 1,
+        "hit_rate": 0.0,
         "usable": false,
         "note": "样本不足，brief 不得引用方向结论"
       },
       "stop_breach_continue": {
-        "n": 0,
-        "hit_rate": null,
+        "n": 9,
+        "hit_rate": 0.222,
         "usable": false,
         "note": "样本不足，brief 不得引用方向结论"
       }
     },
-    "summary": "全部因子样本 <20，累积中（5 天留痕）——结论未解锁",
+    "summary": "全部因子样本 <20，累积中（6 天留痕）——结论未解锁",
     "discipline": "自迭代规则：hit_rate 是因子话语权的唯一来源。usable=false 的因子只展示不入决策；usable 后 <50% 的因子方向结论按反向警示处理（同 driven_by technical 39% 降权为过滤器的先例）。"
   },
   "catalysts": {
@@ -3020,7 +3038,7 @@
     }
   },
   "benchmark": {
-    "generated_at": "2026-06-17T18:57:33.116849Z",
+    "generated_at": "2026-06-18T00:03:41.351676Z",
     "window_days": 60,
     "series": {
       "SPY": [
@@ -3524,7 +3542,7 @@
     },
     "staleness": {
       "last_date": "2026-06-17",
-      "days_behind": 0,
+      "days_behind": 1,
       "is_stale": false
     }
   },
@@ -4193,7 +4211,7 @@
     ]
   },
   "influencer_feed": {
-    "generated_at": "2026-06-17T23:05:24.208060+00:00",
+    "generated_at": "2026-06-17T16:30:47.132624+00:00",
     "lookback_hours": 48,
     "sources": {
       "trump": "trumpstruth.org/feed (primary)",
@@ -4203,119 +4221,56 @@
     "llm_filtered": true,
     "counts": {
       "total": 11,
-      "held_hits": 0,
-      "new_ideas": 2,
-      "sector_hits": 6
+      "held_hits": 8,
+      "new_ideas": 0,
+      "sector_hits": 0
     },
     "items": [
       {
         "author": "Musk",
-        "text": "Elon Musk’s Next Move May Be a Mega-Merger of SpaceX and Tesla",
+        "text": "Musk’s Next Move May Be a Mega-Merger of SpaceX and Tesla",
         "url": "",
-        "published": "Wed, 17 Jun 2026 21:34:24 GMT",
+        "published": "Wed, 17 Jun 2026 16:20:24 GMT",
         "origin": "gnews-rss",
         "source": "The New York Times",
         "tickers": [
-          "TSLA"
+          "SPCH"
         ],
-        "held": [],
-        "new_ideas": [
-          "TSLA"
+        "held": [
+          "SPCH"
         ],
+        "new_ideas": [],
         "sectors": [
           "航天",
           "电动车",
           "AI"
         ],
-        "sector_holdings": [
-          "SPCH"
-        ],
-        "stance": "neutral",
-        "relevance": 78,
-        "summary_cn": "Musk相关报道：SpaceX与Tesla可能进行大型合并，TSLA被直接点名，kcn未持有但持有SPCH（SpaceX杠杆ETF）有板块关联。"
+        "sector_holdings": [],
+        "stance": "endorse",
+        "relevance": 82,
+        "summary_cn": "传Musk酝酿SpaceX与Tesla的超级合并，重大催化剂，直接利好SPCH持仓。"
       },
       {
         "author": "Musk",
-        "text": "Elon Musk gets a $116 billion Tesla payday",
+        "text": "Musk's SpaceX overtakes Amazon to become world's fifth most valuable firm",
         "url": "",
-        "published": "Wed, 17 Jun 2026 21:51:00 GMT",
+        "published": "Wed, 17 Jun 2026 01:27:26 GMT",
         "origin": "gnews-rss",
-        "source": "Electrek",
+        "source": "BBC",
         "tickers": [
-          "TSLA"
+          "SPCH"
         ],
-        "held": [],
-        "new_ideas": [
-          "TSLA"
+        "held": [
+          "SPCH"
         ],
+        "new_ideas": [],
         "sectors": [
-          "电动车"
+          "航天"
         ],
         "sector_holdings": [],
         "stance": "endorse",
-        "relevance": 72,
-        "summary_cn": "Musk获得1160亿美元Tesla薪酬包，TSLA直接被点名，看多信号。"
-      },
-      {
-        "author": "Musk",
-        "text": "Michael Burry ‘tempted’ to bet against Elon Musk’s SpaceX",
-        "url": "",
-        "published": "Wed, 17 Jun 2026 11:19:00 GMT",
-        "origin": "gnews-rss",
-        "source": "Fortune",
-        "tickers": [],
-        "held": [],
-        "new_ideas": [],
-        "sectors": [
-          "航天"
-        ],
-        "sector_holdings": [
-          "SPCH"
-        ],
-        "stance": "attack",
-        "relevance": 68,
-        "summary_cn": "Michael Burry考虑做空SpaceX——SpaceX未上市无法直接交易，但kcn持有SPCH（2倍做多SpaceX ETF），空头信号对该持仓为利空。"
-      },
-      {
-        "author": "Musk",
-        "text": "Elon Musk’s SpaceX has been on a wild ride post-IPO. Should you try to get on?",
-        "url": "",
-        "published": "Wed, 17 Jun 2026 16:15:00 GMT",
-        "origin": "gnews-rss",
-        "source": "Yahoo Finance",
-        "tickers": [],
-        "held": [],
-        "new_ideas": [],
-        "sectors": [
-          "航天"
-        ],
-        "sector_holdings": [
-          "SPCH"
-        ],
-        "stance": "neutral",
-        "relevance": 65,
-        "summary_cn": "报道讨论SpaceX IPO后是否值得买入，间接利好kcn持有的SPCH（2倍做多SpaceX杠杆ETF）。"
-      },
-      {
-        "author": "Musk",
-        "text": "Elon Musk could become the world's first trillionaire with SpaceX's IPO",
-        "url": "",
-        "published": "Fri, 12 Jun 2026 15:06:55 GMT",
-        "origin": "gnews-rss",
-        "source": "PBS",
-        "tickers": [],
-        "held": [],
-        "new_ideas": [],
-        "sectors": [
-          "航天",
-          "AI"
-        ],
-        "sector_holdings": [
-          "SPCH"
-        ],
-        "stance": "endorse",
-        "relevance": 65,
-        "summary_cn": "Musk可能凭SpaceX IPO成为全球首位万亿富翁，SpaceX未上市但kcn持有SPCH，IPO预期利好杠杆ETF。"
+        "relevance": 80,
+        "summary_cn": "SpaceX市值超越亚马逊成为全球第五大公司，里程碑估值重估利好SPCH。"
       },
       {
         "author": "Musk",
@@ -4324,19 +4279,112 @@
         "published": "Wed, 17 Jun 2026 01:10:00 GMT",
         "origin": "gnews-rss",
         "source": "WSJ",
-        "tickers": [],
-        "held": [],
+        "tickers": [
+          "SPCH"
+        ],
+        "held": [
+          "SPCH"
+        ],
         "new_ideas": [],
         "sectors": [
           "航天",
           "AI"
         ],
-        "sector_holdings": [
+        "sector_holdings": [],
+        "stance": "endorse",
+        "relevance": 78,
+        "summary_cn": "Musk动用SpaceX资金解决AI算力问题，看多SpaceX/SPCH估值逻辑（AI+航天双轮）。"
+      },
+      {
+        "author": "Musk",
+        "text": "Jim Cramer says SpaceX investors aren't buying earnings — they're buying Elon Musk",
+        "url": "",
+        "published": "Tue, 16 Jun 2026 22:42:05 GMT",
+        "origin": "gnews-rss",
+        "source": "CNBC",
+        "tickers": [
           "SPCH"
         ],
+        "held": [
+          "SPCH"
+        ],
+        "new_ideas": [],
+        "sectors": [
+          "航天"
+        ],
+        "sector_holdings": [],
         "stance": "endorse",
-        "relevance": 60,
-        "summary_cn": "Musk正在动用SpaceX新融资金解决AI问题——SpaceX资金/AI双叙事利好kcn的SPCH持仓。"
+        "relevance": 75,
+        "summary_cn": "Cramer称SpaceX投资人买的不是盈利而是Elon Musk，间接看多SPCH的成长溢价。"
+      },
+      {
+        "author": "Musk",
+        "text": "Michael Burry 'tempted' to bet against Elon Musk's SpaceX",
+        "url": "",
+        "published": "Wed, 17 Jun 2026 11:19:00 GMT",
+        "origin": "gnews-rss",
+        "source": "Fortune",
+        "tickers": [
+          "SPCH"
+        ],
+        "held": [
+          "SPCH"
+        ],
+        "new_ideas": [],
+        "sectors": [
+          "航天",
+          "AI"
+        ],
+        "sector_holdings": [],
+        "stance": "neutral",
+        "relevance": 72,
+        "summary_cn": "Michael Burry考虑做空SpaceX（SPCH持仓2x做多标的），出现知名空头信号，需警惕杠杆ETF波动。"
+      },
+      {
+        "author": "Musk",
+        "text": "Elon Musk and the Rise of Space Capitalism",
+        "url": "",
+        "published": "Wed, 17 Jun 2026 08:48:35 GMT",
+        "origin": "gnews-rss",
+        "source": "Foreign Policy",
+        "tickers": [
+          "SPCH"
+        ],
+        "held": [
+          "SPCH"
+        ],
+        "new_ideas": [],
+        "sectors": [
+          "航天"
+        ],
+        "sector_holdings": [],
+        "stance": "endorse",
+        "relevance": 70,
+        "summary_cn": "Musk与太空资本主义崛起，叙事层面持续看多SpaceX/SPCH长期价值。"
+      },
+      {
+        "author": "Musk",
+        "text": "10 things Elon Musk can — but probably won’t — do with $1 trillion",
+        "url": "",
+        "published": "Wed, 17 Jun 2026 10:00:00 GMT",
+        "origin": "gnews-rss",
+        "source": "vox.com",
+        "tickers": [
+          "SPCH"
+        ],
+        "held": [
+          "SPCH"
+        ],
+        "new_ideas": [],
+        "sectors": [
+          "航天",
+          "AI",
+          "电动车"
+        ],
+        "sector_holdings": [],
+        "stance": "neutral",
+        "relevance": 68,
+        "summary_cn": "Musk万亿美元帝国的10种潜在动作，SpaceX/SPCH作为核心载体间接受益。"
       },
       {
         "author": "Musk",
@@ -4345,60 +4393,24 @@
         "published": "Fri, 12 Jun 2026 14:24:36 GMT",
         "origin": "gnews-rss",
         "source": "Institute on Taxation and Economic Policy",
-        "tickers": [],
-        "held": [],
+        "tickers": [
+          "SPCH"
+        ],
+        "held": [
+          "SPCH"
+        ],
         "new_ideas": [],
         "sectors": [
           "航天",
-          "AI",
-          "税务/监管"
+          "加密货币",
+          "监管"
         ],
         "sector_holdings": [
-          "SPCH"
-        ],
-        "stance": "endorse",
-        "relevance": 58,
-        "summary_cn": "报道称SpaceX可通过削减IRS资金获益19亿美元——税收/监管主题间接利好SPCH板块情绪。"
-      },
-      {
-        "author": "Musk",
-        "text": "SpaceX adds longtime Elon Musk ally Roelof Botha to board",
-        "url": "",
-        "published": "Wed, 17 Jun 2026 22:03:19 GMT",
-        "origin": "gnews-rss",
-        "source": "CNBC",
-        "tickers": [],
-        "held": [],
-        "new_ideas": [],
-        "sectors": [
-          "航天"
-        ],
-        "sector_holdings": [
-          "SPCH"
+          "CRCL"
         ],
         "stance": "neutral",
-        "relevance": 55,
-        "summary_cn": "SpaceX新增长期盟友Roelof Botha为董事，未涉及直接交易标的但利好SPCH板块情绪。"
-      },
-      {
-        "author": "Trump",
-        "text": "I will be doing a Press Conference in 45 minutes from France. I’ll then be heading to Versailles for Dinner with French and other European Leaders, and then back home tonight! The trip was a Great Success but, mostly what people wanted to talk about, is the fact that Iran will not have a Nuclear Weapon, and that the Strait of Hormuz will immediately be opened! Great Numbers in all categories for the United States Economy with more people working today than have ever worked before. Over 19.1 Trillion being invested in the U.S.A. with Factories and everything else happening but, importantly, rec",
-        "url": "https://trumpstruth.org/statuses/39318",
-        "published": "2026-06-17T14:01:23+00:00",
-        "origin": "truthsocial",
-        "tickers": [],
-        "held": [],
-        "new_ideas": [],
-        "sectors": [
-          "宏观政策",
-          "中东/地缘政治",
-          "能源",
-          "关税"
-        ],
-        "sector_holdings": [],
-        "stance": "neutral",
-        "relevance": 62,
-        "summary_cn": "Trump称伊朗不会拥有核武器、霍尔木兹海峡将立即开放，宣称美国经济数据强劲、19.1万亿美元在美投资——涉及中东局势与宏观经贸信号。"
+        "relevance": 60,
+        "summary_cn": "SpaceX因IRS资金削减可额外获益19亿美元税务利益，间接利好SPCH估值。"
       },
       {
         "author": "Trump",
@@ -4410,14 +4422,14 @@
         "held": [],
         "new_ideas": [],
         "sectors": [
+          "能源",
           "宏观经济",
-          "中东/地缘政治",
-          "能源"
+          "中东地缘政治"
         ],
         "sector_holdings": [],
         "stance": "endorse",
-        "relevance": 60,
-        "summary_cn": "Trump前经济顾问称伊朗协议将给美国带来重大经济繁荣，间接利好宏观与能源板块情绪。"
+        "relevance": 65,
+        "summary_cn": "Trump前经济顾问称伊朗协议将给美国带来经济繁荣，间接看多宏观/能源风险偏好。"
       },
       {
         "author": "Trump",
@@ -4429,127 +4441,80 @@
         "held": [],
         "new_ideas": [],
         "sectors": [
-          "中东/地缘政治",
+          "中东地缘政治",
           "能源"
         ],
         "sector_holdings": [],
         "stance": "endorse",
-        "relevance": 58,
-        "summary_cn": "Trump称伊朗已同意永不拥有核武器，否认向伊朗支付3亿美元——地缘风险缓和信号，对原油/能源板块有方向性影响。"
+        "relevance": 63,
+        "summary_cn": "Trump称伊朗同意不发展核武，且否认支付3亿美元，利好中东局势缓和与能源供给预期。"
+      },
+      {
+        "author": "Trump",
+        "text": "I will be doing a Press Conference in 45 minutes from France. I’ll then be heading to Versailles for Dinner with French and other European Leaders, and then back home tonight! The trip was a Great Success but, mostly what people wanted to talk about, is the fact that Iran will not have a Nuclear Weapon, and that the Strait of Hormuz will immediately be opened! Great Numbers in all categories for the United States Economy with more people working today than have ever worked before. Over 19.1 Trillion being invested in the U.S.A. with Factories and everything else happening but, importantly, rec",
+        "url": "https://trumpstruth.org/statuses/39318",
+        "published": "2026-06-17T14:01:23+00:00",
+        "origin": "truthsocial",
+        "tickers": [],
+        "held": [],
+        "new_ideas": [],
+        "sectors": [
+          "能源",
+          "宏观经济",
+          "中东地缘政治"
+        ],
+        "sector_holdings": [],
+        "stance": "neutral",
+        "relevance": 62,
+        "summary_cn": "Trump称霍尔木兹海峡将立即开放、美国经济数据强劲，利好能源/宏观风险偏好。"
       }
     ],
-    "held_hits": [],
-    "new_ideas": [
+    "held_hits": [
       {
         "author": "Musk",
-        "text": "Elon Musk’s Next Move May Be a Mega-Merger of SpaceX and Tesla",
+        "text": "Musk’s Next Move May Be a Mega-Merger of SpaceX and Tesla",
         "url": "",
-        "published": "Wed, 17 Jun 2026 21:34:24 GMT",
+        "published": "Wed, 17 Jun 2026 16:20:24 GMT",
         "origin": "gnews-rss",
         "source": "The New York Times",
         "tickers": [
-          "TSLA"
+          "SPCH"
         ],
-        "held": [],
-        "new_ideas": [
-          "TSLA"
+        "held": [
+          "SPCH"
         ],
+        "new_ideas": [],
         "sectors": [
           "航天",
           "电动车",
           "AI"
         ],
-        "sector_holdings": [
-          "SPCH"
-        ],
-        "stance": "neutral",
-        "relevance": 78,
-        "summary_cn": "Musk相关报道：SpaceX与Tesla可能进行大型合并，TSLA被直接点名，kcn未持有但持有SPCH（SpaceX杠杆ETF）有板块关联。"
+        "sector_holdings": [],
+        "stance": "endorse",
+        "relevance": 82,
+        "summary_cn": "传Musk酝酿SpaceX与Tesla的超级合并，重大催化剂，直接利好SPCH持仓。"
       },
       {
         "author": "Musk",
-        "text": "Elon Musk gets a $116 billion Tesla payday",
+        "text": "Musk's SpaceX overtakes Amazon to become world's fifth most valuable firm",
         "url": "",
-        "published": "Wed, 17 Jun 2026 21:51:00 GMT",
+        "published": "Wed, 17 Jun 2026 01:27:26 GMT",
         "origin": "gnews-rss",
-        "source": "Electrek",
+        "source": "BBC",
         "tickers": [
-          "TSLA"
+          "SPCH"
         ],
-        "held": [],
-        "new_ideas": [
-          "TSLA"
+        "held": [
+          "SPCH"
         ],
+        "new_ideas": [],
         "sectors": [
-          "电动车"
+          "航天"
         ],
         "sector_holdings": [],
         "stance": "endorse",
-        "relevance": 72,
-        "summary_cn": "Musk获得1160亿美元Tesla薪酬包，TSLA直接被点名，看多信号。"
-      }
-    ],
-    "sector_hits": [
-      {
-        "author": "Musk",
-        "text": "Michael Burry ‘tempted’ to bet against Elon Musk’s SpaceX",
-        "url": "",
-        "published": "Wed, 17 Jun 2026 11:19:00 GMT",
-        "origin": "gnews-rss",
-        "source": "Fortune",
-        "tickers": [],
-        "held": [],
-        "new_ideas": [],
-        "sectors": [
-          "航天"
-        ],
-        "sector_holdings": [
-          "SPCH"
-        ],
-        "stance": "attack",
-        "relevance": 68,
-        "summary_cn": "Michael Burry考虑做空SpaceX——SpaceX未上市无法直接交易，但kcn持有SPCH（2倍做多SpaceX ETF），空头信号对该持仓为利空。"
-      },
-      {
-        "author": "Musk",
-        "text": "Elon Musk’s SpaceX has been on a wild ride post-IPO. Should you try to get on?",
-        "url": "",
-        "published": "Wed, 17 Jun 2026 16:15:00 GMT",
-        "origin": "gnews-rss",
-        "source": "Yahoo Finance",
-        "tickers": [],
-        "held": [],
-        "new_ideas": [],
-        "sectors": [
-          "航天"
-        ],
-        "sector_holdings": [
-          "SPCH"
-        ],
-        "stance": "neutral",
-        "relevance": 65,
-        "summary_cn": "报道讨论SpaceX IPO后是否值得买入，间接利好kcn持有的SPCH（2倍做多SpaceX杠杆ETF）。"
-      },
-      {
-        "author": "Musk",
-        "text": "Elon Musk could become the world's first trillionaire with SpaceX's IPO",
-        "url": "",
-        "published": "Fri, 12 Jun 2026 15:06:55 GMT",
-        "origin": "gnews-rss",
-        "source": "PBS",
-        "tickers": [],
-        "held": [],
-        "new_ideas": [],
-        "sectors": [
-          "航天",
-          "AI"
-        ],
-        "sector_holdings": [
-          "SPCH"
-        ],
-        "stance": "endorse",
-        "relevance": 65,
-        "summary_cn": "Musk可能凭SpaceX IPO成为全球首位万亿富翁，SpaceX未上市但kcn持有SPCH，IPO预期利好杠杆ETF。"
+        "relevance": 80,
+        "summary_cn": "SpaceX市值超越亚马逊成为全球第五大公司，里程碑估值重估利好SPCH。"
       },
       {
         "author": "Musk",
@@ -4558,19 +4523,112 @@
         "published": "Wed, 17 Jun 2026 01:10:00 GMT",
         "origin": "gnews-rss",
         "source": "WSJ",
-        "tickers": [],
-        "held": [],
+        "tickers": [
+          "SPCH"
+        ],
+        "held": [
+          "SPCH"
+        ],
         "new_ideas": [],
         "sectors": [
           "航天",
           "AI"
         ],
-        "sector_holdings": [
+        "sector_holdings": [],
+        "stance": "endorse",
+        "relevance": 78,
+        "summary_cn": "Musk动用SpaceX资金解决AI算力问题，看多SpaceX/SPCH估值逻辑（AI+航天双轮）。"
+      },
+      {
+        "author": "Musk",
+        "text": "Jim Cramer says SpaceX investors aren't buying earnings — they're buying Elon Musk",
+        "url": "",
+        "published": "Tue, 16 Jun 2026 22:42:05 GMT",
+        "origin": "gnews-rss",
+        "source": "CNBC",
+        "tickers": [
           "SPCH"
         ],
+        "held": [
+          "SPCH"
+        ],
+        "new_ideas": [],
+        "sectors": [
+          "航天"
+        ],
+        "sector_holdings": [],
         "stance": "endorse",
-        "relevance": 60,
-        "summary_cn": "Musk正在动用SpaceX新融资金解决AI问题——SpaceX资金/AI双叙事利好kcn的SPCH持仓。"
+        "relevance": 75,
+        "summary_cn": "Cramer称SpaceX投资人买的不是盈利而是Elon Musk，间接看多SPCH的成长溢价。"
+      },
+      {
+        "author": "Musk",
+        "text": "Michael Burry 'tempted' to bet against Elon Musk's SpaceX",
+        "url": "",
+        "published": "Wed, 17 Jun 2026 11:19:00 GMT",
+        "origin": "gnews-rss",
+        "source": "Fortune",
+        "tickers": [
+          "SPCH"
+        ],
+        "held": [
+          "SPCH"
+        ],
+        "new_ideas": [],
+        "sectors": [
+          "航天",
+          "AI"
+        ],
+        "sector_holdings": [],
+        "stance": "neutral",
+        "relevance": 72,
+        "summary_cn": "Michael Burry考虑做空SpaceX（SPCH持仓2x做多标的），出现知名空头信号，需警惕杠杆ETF波动。"
+      },
+      {
+        "author": "Musk",
+        "text": "Elon Musk and the Rise of Space Capitalism",
+        "url": "",
+        "published": "Wed, 17 Jun 2026 08:48:35 GMT",
+        "origin": "gnews-rss",
+        "source": "Foreign Policy",
+        "tickers": [
+          "SPCH"
+        ],
+        "held": [
+          "SPCH"
+        ],
+        "new_ideas": [],
+        "sectors": [
+          "航天"
+        ],
+        "sector_holdings": [],
+        "stance": "endorse",
+        "relevance": 70,
+        "summary_cn": "Musk与太空资本主义崛起，叙事层面持续看多SpaceX/SPCH长期价值。"
+      },
+      {
+        "author": "Musk",
+        "text": "10 things Elon Musk can — but probably won’t — do with $1 trillion",
+        "url": "",
+        "published": "Wed, 17 Jun 2026 10:00:00 GMT",
+        "origin": "gnews-rss",
+        "source": "vox.com",
+        "tickers": [
+          "SPCH"
+        ],
+        "held": [
+          "SPCH"
+        ],
+        "new_ideas": [],
+        "sectors": [
+          "航天",
+          "AI",
+          "电动车"
+        ],
+        "sector_holdings": [],
+        "stance": "neutral",
+        "relevance": 68,
+        "summary_cn": "Musk万亿美元帝国的10种潜在动作，SpaceX/SPCH作为核心载体间接受益。"
       },
       {
         "author": "Musk",
@@ -4579,42 +4637,28 @@
         "published": "Fri, 12 Jun 2026 14:24:36 GMT",
         "origin": "gnews-rss",
         "source": "Institute on Taxation and Economic Policy",
-        "tickers": [],
-        "held": [],
+        "tickers": [
+          "SPCH"
+        ],
+        "held": [
+          "SPCH"
+        ],
         "new_ideas": [],
         "sectors": [
           "航天",
-          "AI",
-          "税务/监管"
+          "加密货币",
+          "监管"
         ],
         "sector_holdings": [
-          "SPCH"
-        ],
-        "stance": "endorse",
-        "relevance": 58,
-        "summary_cn": "报道称SpaceX可通过削减IRS资金获益19亿美元——税收/监管主题间接利好SPCH板块情绪。"
-      },
-      {
-        "author": "Musk",
-        "text": "SpaceX adds longtime Elon Musk ally Roelof Botha to board",
-        "url": "",
-        "published": "Wed, 17 Jun 2026 22:03:19 GMT",
-        "origin": "gnews-rss",
-        "source": "CNBC",
-        "tickers": [],
-        "held": [],
-        "new_ideas": [],
-        "sectors": [
-          "航天"
-        ],
-        "sector_holdings": [
-          "SPCH"
+          "CRCL"
         ],
         "stance": "neutral",
-        "relevance": 55,
-        "summary_cn": "SpaceX新增长期盟友Roelof Botha为董事，未涉及直接交易标的但利好SPCH板块情绪。"
+        "relevance": 60,
+        "summary_cn": "SpaceX因IRS资金削减可额外获益19亿美元税务利益，间接利好SPCH估值。"
       }
-    ]
+    ],
+    "new_ideas": [],
+    "sector_hits": []
   },
   "regime": {
     "label": "risk_off",
@@ -4630,25 +4674,25 @@
         "ticker": "ROBN",
         "name": "二倍做多HOOD ETF-T-Rex",
         "region": "us",
-        "pnl_percent": 44.6,
-        "pnl_abs": 210.35,
-        "current_value": 682.0
+        "pnl_percent": 43.2,
+        "pnl_abs": 203.75,
+        "current_value": 675.4
       },
       {
         "ticker": "RKLX",
         "name": "Defiance Daily Target 2X Long R",
         "region": "us",
-        "pnl_percent": 7.67,
-        "pnl_abs": 38.1,
-        "current_value": 535.0
+        "pnl_percent": 6.88,
+        "pnl_abs": 34.2,
+        "current_value": 531.1
       },
       {
         "ticker": "SPCH",
         "name": "Leverage Shares 2X Long SpaceX Daily ETF",
         "region": "us",
-        "pnl_percent": -3.62,
-        "pnl_abs": -31.2,
-        "current_value": 830.4
+        "pnl_percent": -3.95,
+        "pnl_abs": -34.0,
+        "current_value": 827.6
       }
     ],
     "losers": [
@@ -4656,25 +4700,25 @@
         "ticker": "00100",
         "name": "MINIMAX-W",
         "region": "hk",
-        "pnl_percent": -45.41,
-        "pnl_abs": -22417.8,
-        "current_value": 26952.0
+        "pnl_percent": -46.16,
+        "pnl_abs": -22789.8,
+        "current_value": 26580.0
       },
       {
         "ticker": "07226",
         "name": "XL二南方恒科",
         "region": "hk",
-        "pnl_percent": -21.57,
-        "pnl_abs": -5835.44,
-        "current_value": 21216.4
+        "pnl_percent": -21.62,
+        "pnl_abs": -5847.84,
+        "current_value": 21204.0
       },
       {
         "ticker": "02208",
         "name": "金风科技",
         "region": "hk",
-        "pnl_percent": -21.33,
-        "pnl_abs": -1201.6,
-        "current_value": 4432.0
+        "pnl_percent": -21.4,
+        "pnl_abs": -1205.6,
+        "current_value": 4428.0
       }
     ]
   },
@@ -4684,55 +4728,55 @@
       "region": "us",
       "high": 36.01,
       "low": 28.6285,
-      "current": 34.1,
-      "range_pct": 21.65
+      "current": 33.77,
+      "range_pct": 21.86
     },
     {
       "ticker": "00100",
       "region": "hk",
       "high": 470.0,
       "low": 402.0,
-      "current": 449.2,
-      "range_pct": 15.14
+      "current": 443.0,
+      "range_pct": 15.35
+    },
+    {
+      "ticker": "SPCH",
+      "region": "us",
+      "high": 22.95,
+      "low": 20.485,
+      "current": 20.69,
+      "range_pct": 11.91
     },
     {
       "ticker": "RKLX",
       "region": "us",
       "high": 55.42,
       "low": 50.1,
-      "current": 53.5,
-      "range_pct": 9.94
-    },
-    {
-      "ticker": "SPCH",
-      "region": "us",
-      "high": 22.225,
-      "low": 20.485,
-      "current": 20.7599,
-      "range_pct": 8.38
+      "current": 53.11,
+      "range_pct": 10.02
     },
     {
       "ticker": "PLTU",
       "region": "us",
       "high": 34.85,
-      "low": 32.699,
-      "current": 32.699,
-      "range_pct": 6.58
+      "low": 32.48,
+      "current": 32.48,
+      "range_pct": 7.3
     },
     {
       "ticker": "MSFU",
       "region": "us",
       "high": 24.59,
-      "low": 23.3,
-      "current": 23.3,
-      "range_pct": 5.54
+      "low": 23.21,
+      "current": 23.21,
+      "range_pct": 5.95
     },
     {
       "ticker": "CRCL",
       "region": "us",
       "high": 82.8995,
       "low": 79.0199,
-      "current": 80.59,
+      "current": 80.67,
       "range_pct": 4.81
     },
     {
@@ -4740,22 +4784,22 @@
       "region": "hk",
       "high": 11.32,
       "low": 11.0,
-      "current": 11.08,
+      "current": 11.07,
       "range_pct": 2.89
     }
   ],
   "realized_vs_unrealized": {
     "us": {
       "realized": 1841.18,
-      "unrealized": -27.78
+      "unrealized": -45.79
     },
     "hk": {
       "realized": 7259.16,
-      "unrealized": -30171.84
+      "unrealized": -30566.24
     },
     "combined_usd": {
-      "realized": null,
-      "unrealized": null
+      "realized": 2767.63,
+      "unrealized": -3946.78
     }
   },
   "capital_deployed": {
@@ -4765,28 +4809,28 @@
     },
     "hk": {
       "native": 95535.4,
-      "usd": null
+      "usd": 12192.64
     },
-    "combined_usd": null
+    "combined_usd": 17193.97
   },
   "net_principal_return": {
     "us": {
       "net_principal": 1318.97,
-      "total_profit": 1813.4,
-      "return_pct": 73.38,
+      "total_profit": 1795.39,
+      "return_pct": 72.65,
       "return_basis": "true_principal",
       "true_principal": 2471.12
     },
     "hk": {
       "net_principal": 81017.08,
-      "total_profit": -22912.68,
-      "return_pct": -28.28,
+      "total_profit": -23307.08,
+      "return_pct": -28.77,
       "return_basis": "net_principal"
     },
     "combined_usd": {
-      "net_principal": null,
-      "total_profit": null,
-      "return_pct": null
+      "net_principal": 12810.87,
+      "total_profit": -1179.16,
+      "return_pct": -9.2
     },
     "formula": "回报率 = (浮动 + 已实现) ÷ 本金；本金优先用 true_principal（峰值净投入），否则用 净投入本金=累计成本−已实现"
   },

@@ -1,51 +1,51 @@
 {
-  "generated_at": "2026-06-17T00:03:51.715292+00:00",
-  "as_of": "2026-06-17",
+  "generated_at": "2026-06-18T00:03:35.158602+00:00",
+  "as_of": "2026-06-18",
   "us": {
-    "beta_spx": 4.7246,
-    "vol_30d_annualized": 1.1055,
-    "max_dd_30d": -0.277,
-    "sharpe_30d": 2.0349,
-    "current_value_usd": 2783.98
+    "beta_spx": 4.47,
+    "vol_30d_annualized": 1.0984,
+    "max_dd_30d": -0.2974,
+    "sharpe_30d": 2.4299,
+    "current_value_usd": 3114.36
   },
   "hk": {
-    "beta_hsi": 1.6391,
-    "vol_30d_annualized": 0.6502,
-    "max_dd_30d": -0.3383,
-    "sharpe_30d": -4.4711,
-    "current_value_hkd": 56116.0
+    "beta_hsi": 1.5374,
+    "vol_30d_annualized": 0.6735,
+    "max_dd_30d": -0.344,
+    "sharpe_30d": -3.734,
+    "current_value_hkd": 57710.0
   },
   "combined": {
-    "vol_30d_annualized": 0.6141,
-    "max_dd_30d": -0.2876,
-    "sharpe_30d": -2.3915
+    "vol_30d_annualized": 0.6377,
+    "max_dd_30d": -0.3028,
+    "sharpe_30d": -1.5353
   },
   "leveraged_exposure": {
-    "us_leverage_factor_avg": 1.9427,
-    "hk_leverage_factor_avg": 1.3765,
-    "combined_avg": 1.5345,
-    "margin_at_risk_pct": 15.345
+    "us_leverage_factor_avg": 1.6825,
+    "hk_leverage_factor_avg": 1.3674,
+    "combined_avg": 1.4607,
+    "margin_at_risk_pct": 14.6075
   },
   "alerts": [
     {
       "type": "high_beta",
       "severity": "high",
-      "detail": "US β vs S&P 500 = 4.7246 (> 3.0)"
+      "detail": "US β vs S&P 500 = 4.47 (> 3.0)"
     },
     {
       "type": "high_vol",
       "severity": "high",
-      "detail": "Combined 30d annualised vol = 61.4% (> 50%)"
+      "detail": "Combined 30d annualised vol = 63.8% (> 50%)"
     },
     {
       "type": "deep_dd",
       "severity": "medium",
-      "detail": "Combined 30d max DD = -28.8% (< -10%)"
+      "detail": "Combined 30d max DD = -30.3% (< -10%)"
     },
     {
       "type": "negative_sharpe",
       "severity": "medium",
-      "detail": "Combined 30d Sharpe = -2.3915 (< 0)"
+      "detail": "Combined 30d Sharpe = -1.5353 (< 0)"
     }
   ],
   "meta": {
@@ -65,10 +65,12 @@
         "ROBN",
         "MSFU"
       ],
-      "failed": [],
+      "failed": [
+        "SPCH"
+      ],
       "n_returns": 30,
-      "dates_first": "2026-05-04",
-      "dates_last": "2026-06-16"
+      "dates_first": "2026-05-05",
+      "dates_last": "2026-06-17"
     },
     "hk_fetch": {
       "fetched": [
@@ -80,8 +82,8 @@
       ],
       "failed": [],
       "n_returns": 30,
-      "dates_first": "2026-05-04",
-      "dates_last": "2026-06-16"
+      "dates_first": "2026-05-05",
+      "dates_last": "2026-06-17"
     }
   }
 }
