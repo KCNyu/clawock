@@ -29,6 +29,8 @@ WS = Path(__file__).resolve().parents[2]
 PORTFOLIO = WS / 'portfolio.json'
 QUANT = WS / 'assets' / 'data' / 'quant_signals.json'
 OUT = WS / 'assets' / 'data' / 't0_setups.json'
+HIST = WS / 'assets' / 'data' / 't0_setups_history.jsonl'
+HIST_MAX_LINES = 4000   # 盘中每 30min 一行，封顶约 1 年留痕
 
 sys.path.insert(0, str(WS / 'scripts' / 'data'))
 try:
@@ -100,6 +102,30 @@ def fetch_vwap_orb(code):
         return None
 
 
+def holding_metrics(h, q=None):
+    """从单只持仓字段（+ 可选 quant 行）算 T+0 牌面指标。供 compute() 与 backfill 复用。"""
+    q = q or {}
+    cur = _num(h.get('current_price'))
+    lo = _num(h.get('day_low'))
+    hi = _num(h.get('day_high'))
+    op = _num(h.get('day_open'))
+    pc = _num(h.get('prev_close'))
+    atr = _num(q.get('atr14_pct'))
+    gap = round((op - pc) / pc * 100, 2) if op and pc else None
+    rng = (hi - lo) if (hi and lo) else None
+    range_pos = round((cur - lo) / rng * 100, 1) if (rng and rng > 0 and cur is not None) else None
+    day_range_pct = round(rng / pc * 100, 2) if (rng and pc) else None
+    range_used_atr = round(day_range_pct / atr, 2) if (day_range_pct and atr) else None
+    return {
+        'name': h.get('name'), 'current': cur,
+        'today_change_pct': _num(h.get('today_change_pct')),
+        'gap_pct': gap, 'range_pos': range_pos, 'day_range_pct': day_range_pct,
+        'range_used_atr': range_used_atr,
+        'rsi14': _num(q.get('rsi14')), 'zscore20': _num(q.get('zscore20')),
+        'atr14_pct': atr,
+    }
+
+
 def grade(m):
     """规则化牌面评级（诚实：纪律因子，不是 alpha）。返回 (emoji, label, reason)。"""
     rp = m.get('range_pos')
@@ -162,32 +188,8 @@ def compute(intraday=False):
                 continue
             t = h.get('ticker')
             cur = _num(h.get('current_price'))
-            lo = _num(h.get('day_low'))
-            hi = _num(h.get('day_high'))
-            op = _num(h.get('day_open'))
-            pc = _num(h.get('prev_close'))
-            q = quant.get(t, {})
-            atr = _num(q.get('atr14_pct'))
-
-            gap = round((op - pc) / pc * 100, 2) if op and pc else None
-            rng = (hi - lo) if (hi and lo) else None
-            range_pos = round((cur - lo) / rng * 100, 1) if (rng and rng > 0 and cur is not None) else None
-            day_range_pct = round(rng / pc * 100, 2) if (rng and pc) else None
-            range_used_atr = round(day_range_pct / atr, 2) if (day_range_pct and atr) else None
-
-            m = {
-                'market': market,
-                'name': h.get('name'),
-                'current': cur,
-                'today_change_pct': _num(h.get('today_change_pct')),
-                'gap_pct': gap,
-                'range_pos': range_pos,
-                'day_range_pct': day_range_pct,
-                'range_used_atr': range_used_atr,
-                'rsi14': _num(q.get('rsi14')),
-                'zscore20': _num(q.get('zscore20')),
-                'atr14_pct': atr,
-            }
+            m = {'market': market}
+            m.update(holding_metrics(h, quant.get(t, {})))
             if t in LEVERAGED:
                 u, x = LEVERAGED[t]
                 m['leveraged'] = f'{x}x {u}'
@@ -214,10 +216,33 @@ def compute(intraday=False):
     }
 
 
+def persist_history(data):
+    """每次运行追加一行留痕，供 t0_setup_review.py 对账（零网络）。
+    只记结算需要的精简字段：grade_label + range_pos + close（= 记录时现价）。"""
+    from datetime import date as _date
+    rows = {t: {'grade_label': m.get('grade_label'), 'range_pos': m.get('range_pos'),
+                'close': m.get('current'), 'market': m.get('market')}
+            for t, m in data.get('rows', {}).items() if m.get('current') is not None}
+    if not rows:
+        return
+    line = json.dumps({'as_of': _date.today().isoformat(),
+                       'ts': data.get('as_of'), 'rows': rows}, ensure_ascii=False)
+    try:
+        existing = HIST.read_text().splitlines() if HIST.exists() else []
+    except Exception:
+        existing = []
+    existing.append(line)
+    if len(existing) > HIST_MAX_LINES:
+        existing = existing[-HIST_MAX_LINES:]
+    HIST.parent.mkdir(parents=True, exist_ok=True)
+    HIST.write_text('\n'.join(existing) + '\n')
+
+
 def main(argv):
     intraday = os.environ.get('T0_INTRADAY') == '1' or '--intraday' in argv
     data = compute(intraday=intraday)
     safe_write_json(str(OUT), data)
+    persist_history(data)
     for t, m in data['rows'].items():
         extra = f"  vsVWAP {m['vs_vwap_pct']:+.1f}%" if m.get('vs_vwap_pct') is not None else ''
         print(f"{m['grade']} {t:7s} {m['grade_label']:14s} "

@@ -1512,6 +1512,19 @@ def main():
     except Exception as e:
         print(f'   ⚠ t0_setups compute failed: {e}')
 
+    # [10b4b] T+0 牌面 edge 自检 — 牌面评级对账 T+1 forward return（数据背书）。
+    # 零网络：结算用历史留痕的 close，绝不每分钟抓价。
+    t0_review = {}
+    try:
+        subprocess.run(['python3', str(WS / 'scripts' / 'data' / 't0_setup_review.py')],
+                       capture_output=True, text=True, timeout=60, check=False)
+        tr_path = WS / 'assets' / 'data' / 't0_setup_review.json'
+        if tr_path.exists():
+            t0_review = json.loads(tr_path.read_text())
+            print(f'   🎯 T+0 牌面背书: {t0_review.get("summary", "")[:80]}')
+    except Exception as e:
+        print(f'   ⚠ t0_setup_review failed: {e}')
+
     # [10b5] 数据体检闸 — 把历史踩过的数字 bug 固化成自动门。warn-only 注入 context
     # （遵 feedback_no_individual_cron_alerts 不推送），ERROR 由 build_status 健康卡暴露。
     integrity = {}
@@ -1619,6 +1632,7 @@ def main():
         'quant_signals': quant_signals,
         'quant_signal_review': quant_review,
         't0_setups': t0_setups,
+        't0_setup_review': t0_review,
         'integrity': integrity,
         'us_fundamentals': us_fund,
         'retrospective': retro,

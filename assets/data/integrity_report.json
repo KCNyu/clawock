@@ -1,50 +1,7 @@
 {
-  "generated_at": "2026-06-19T17:16:29+08:00",
-  "ok": false,
-  "error_count": 3,
-  "warn_count": 3,
-  "findings": [
-    {
-      "code": "FX_TAG",
-      "level": "ERROR",
-      "region": "us_stocks",
-      "ticker": null,
-      "msg": "us_stocks currency=HKD 应为 USD（HKD/USD 不能混加）"
-    },
-    {
-      "code": "TCV_SUM",
-      "level": "ERROR",
-      "region": "hk_stocks",
-      "ticker": null,
-      "msg": "total_current_value=61151.60 ≠ Σ活跃持仓 current_value=60245.60 (差 +906.00)；疑似手工卖出漏重算聚合 → equity 假新高"
-    },
-    {
-      "code": "PNL_TOTAL",
-      "level": "ERROR",
-      "region": "hk_stocks",
-      "ticker": null,
-      "msg": "total_pnl=-28030.64 ≠ TCV−cost=-27124.64"
-    },
-    {
-      "code": "PRICE_RANGE",
-      "level": "WARN",
-      "region": "hk_stocks",
-      "ticker": "03033",
-      "msg": "03033 current=2.0 越出当日区间[4.48, 4.55]；疑似坏 tick，用同标的 2x/1x 兄弟验向"
-    },
-    {
-      "code": "PNL_LEG",
-      "level": "WARN",
-      "region": "hk_stocks",
-      "ticker": "03033",
-      "msg": "03033 pnl_abs=-628.00 ≠ shares×(cur−cost)=-3140.00"
-    },
-    {
-      "code": "LEV_DIRECTION",
-      "level": "WARN",
-      "region": "hk_stocks",
-      "ticker": null,
-      "msg": "恒科同标的族方向矛盾（07226 +2.50%, 03033 -3.00%）；疑似某只坏 tick"
-    }
-  ]
+  "generated_at": "2026-06-19T17:22:51+08:00",
+  "ok": true,
+  "error_count": 0,
+  "warn_count": 0,
+  "findings": []
 }

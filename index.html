@@ -3576,8 +3576,14 @@ layout: null
         `<td class="num" ${cls(r.gap_pct)}>${num(r.gap_pct, '%')}</td>` +
         `<td class="num">${num(r.range_used_atr, '×')}</td></tr>`;
     }).join('');
+    // 数据背书：牌面命中率（T+1 对账，n<20 标样本不足）
+    const rev = safe(DATA, "t0_setup_review");
+    let backing = '';
+    if (rev && rev.summary) {
+      backing = ` ｜ 📐 牌面背书（${rev.days_logged || 0}日留痕·T+1）：${rev.summary}`;
+    }
     document.getElementById('t0-note').textContent =
-      (t0.note || '') + ' 区间位=现价在当日高低区间位置（越高越接近追在顶部）；振幅/ATR>1=今日已跑过一个典型日。';
+      (t0.note || '') + ' 区间位=现价在当日高低区间位置（越高越接近追在顶部）；振幅/ATR>1=今日已跑过一个典型日。' + backing;
   }
 
   function renderLevRegime() {
