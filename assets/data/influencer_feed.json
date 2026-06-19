@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-18T23:22:11.846809+00:00",
+  "generated_at": "2026-06-19T15:55:11.000711+00:00",
   "lookback_hours": 48,
   "sources": {
     "trump": "trumpstruth.org/feed (primary)",
@@ -8,10 +8,10 @@
   },
   "llm_filtered": true,
   "counts": {
-    "total": 17,
+    "total": 14,
     "held_hits": 0,
     "new_ideas": 4,
-    "sector_hits": 2
+    "sector_hits": 4
   },
   "items": [
     {
@@ -21,8 +21,8 @@
       "published": "2026-06-18T04:29:38+00:00",
       "origin": "truthsocial",
       "tickers": [
-        "NVDA",
-        "INTC"
+        "INTC",
+        "NVDA"
       ],
       "held": [],
       "new_ideas": [
@@ -32,12 +32,61 @@
       "sectors": [
         "半导体",
         "关税",
+        "制造业回流",
         "AI"
       ],
       "sector_holdings": [],
       "stance": "endorse",
+      "relevance": 88,
+      "summary_cn": "Trump强调美国必须夺回半导体制造业，点名Intel和Nvidia，明确支持美国建厂和关税保护。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk’s Next Move May Be a Mega-Merger of SpaceX and Tesla",
+      "url": "",
+      "published": "Wed, 17 Jun 2026 16:20:24 GMT",
+      "origin": "gnews-rss",
+      "source": "The New York Times",
+      "tickers": [
+        "TSLA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "TSLA"
+      ],
+      "sectors": [
+        "航天",
+        "电动车",
+        "AI"
+      ],
+      "sector_holdings": [
+        "SPCH"
+      ],
+      "stance": "endorse",
       "relevance": 78,
-      "summary_cn": "Trump强调美国必须通过关税夺回半导体制造产业，明确点名Intel并力挺其在美国建厂，同时提到Nvidia在美国建厂。"
+      "summary_cn": "马斯克酝酿SpaceX与特斯拉大型合并，SpaceX(SPCH持仓间接相关)与Tesla均为重点关注标的。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk gets a $116 billion Tesla payday",
+      "url": "",
+      "published": "Wed, 17 Jun 2026 21:51:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Electrek",
+      "tickers": [
+        "TSLA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "TSLA"
+      ],
+      "sectors": [
+        "电动车"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 70,
+      "summary_cn": "马斯克获得1160亿美元特斯拉巨额薪酬包，强烈看多TSLA。"
     },
     {
       "author": "Musk",
@@ -58,94 +107,29 @@
       ],
       "sector_holdings": [],
       "stance": "endorse",
-      "relevance": 70,
-      "summary_cn": "Musk行使2018年TSLA股票期权并增持股份，明确利好信号。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk’s Next Move May Be a Mega-Merger of SpaceX and Tesla",
-      "url": "",
-      "published": "Wed, 17 Jun 2026 16:20:24 GMT",
-      "origin": "gnews-rss",
-      "source": "The New York Times",
-      "tickers": [
-        "TSLA"
-      ],
-      "held": [],
-      "new_ideas": [
-        "TSLA"
-      ],
-      "sectors": [
-        "航天",
-        "电动车"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 68,
-      "summary_cn": "Musk下一步可能推动SpaceX与Tesla的巨型合并，涉及TSLA。"
-    },
-    {
-      "author": "Musk",
-      "text": "Is Tesla destined to be folded into SpaceX?",
-      "url": "",
-      "published": "Thu, 18 Jun 2026 16:42:39 GMT",
-      "origin": "gnews-rss",
-      "source": "Financial Times",
-      "tickers": [
-        "TSLA"
-      ],
-      "held": [],
-      "new_ideas": [
-        "TSLA"
-      ],
-      "sectors": [
-        "电动车",
-        "航天"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
       "relevance": 65,
-      "summary_cn": "市场讨论Tesla是否将被并入SpaceX，涉及TSLA的重大结构性变化。"
+      "summary_cn": "马斯克行使2018年特斯拉股票期权并增持股权，彰显对公司信心。"
     },
     {
       "author": "Musk",
-      "text": "Elon Musk could become the world's first trillionaire with SpaceX's IPO",
+      "text": "AP delivers stellar all-formats coverage of SpaceX stock debut that turned founder Elon Musk into the world’s first trillionaire",
       "url": "",
-      "published": "Fri, 12 Jun 2026 15:06:55 GMT",
+      "published": "Fri, 19 Jun 2026 14:29:24 GMT",
       "origin": "gnews-rss",
-      "source": "PBS",
+      "source": "ap.org",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "航天"
+        "航天",
+        "SpaceX(未上市)"
       ],
       "sector_holdings": [
         "SPCH"
       ],
       "stance": "endorse",
-      "relevance": 62,
-      "summary_cn": "Musk有望通过SpaceX IPO成为全球首位万亿富翁，间接利好SPCH。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk and the rise of space capitalism",
-      "url": "",
-      "published": "Thu, 18 Jun 2026 19:36:11 GMT",
-      "origin": "gnews-rss",
-      "source": "The Washington Post",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天"
-      ],
-      "sector_holdings": [
-        "SPCH"
-      ],
-      "stance": "neutral",
-      "relevance": 55,
-      "summary_cn": "Musk与太空资本主义崛起相关报道，间接利好kcn持有的SPCH（2倍做多SpaceX ETF）。"
+      "relevance": 72,
+      "summary_cn": "SpaceX股票上市使马斯克成为全球首位万亿富翁，SPCH作为2x杠杆SpaceX ETF间接受益。"
     },
     {
       "author": "Trump",
@@ -157,14 +141,155 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "能源",
+        "能源/原油",
         "委内瑞拉",
         "地缘政治"
       ],
-      "sector_holdings": [],
+      "sector_holdings": [
+        "02208"
+      ],
       "stance": "neutral",
+      "relevance": 68,
+      "summary_cn": "Trump表态欢迎中国和印度投资委内瑞拉石油，对原油供给格局有影响；金风科技(02208)属能源板块受宏观能源主题影响。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk Is Unleashing SpaceX’s New War Chest to Solve His AI Problem",
+      "url": "",
+      "published": "Wed, 17 Jun 2026 01:10:00 GMT",
+      "origin": "gnews-rss",
+      "source": "WSJ",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "AI",
+        "SpaceX(未上市)"
+      ],
+      "sector_holdings": [
+        "SPCH"
+      ],
+      "stance": "neutral",
+      "relevance": 65,
+      "summary_cn": "马斯克动用SpaceX新筹集资金来解决其AI(算力)难题，SPCH间接关联。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk and the rise of space capitalism",
+      "url": "",
+      "published": "Fri, 19 Jun 2026 01:44:43 GMT",
+      "origin": "gnews-rss",
+      "source": "The Washington Post",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "太空经济"
+      ],
+      "sector_holdings": [
+        "SPCH"
+      ],
+      "stance": "endorse",
       "relevance": 60,
-      "summary_cn": "Trump表态欢迎中国和印度投资委内瑞拉石油，影响原油供给格局。"
+      "summary_cn": "报道马斯克与太空资本主义的崛起，SPCH作为杠杆SpaceX ETF间接受益。"
+    },
+    {
+      "author": "Trump",
+      "text": "The United States is committed to PEACE, and we encourage everyone in the Middle East Region to maintain their commitment to allowing our negotiations to beautifully unfold. The Markets are loving what is happening with Oil Prices way down, and Stocks way up. We expect a complete Ceasefire on all fronts, including Lebanon, Hezbollah, and Israel. Thank you for your attention to this matter! President DONALD J. TRUMP",
+      "url": "https://trumpstruth.org/statuses/39351",
+      "published": "2026-06-18T18:01:06+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "能源/原油",
+        "中东地缘政治",
+        "美股大盘"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 62,
+      "summary_cn": "Trump称中东和平进展使油价下跌、股市上涨，市场反应积极。"
+    },
+    {
+      "author": "Trump",
+      "text": "There is no 300 Billion Dollar payment to Iran by the U.S. That’s Fake News! All there is for the U.S. is Success, Lower Oil Prices, and Victory. Check out the Stock Market. Dumocrat propaganda at play!!! President DJT",
+      "url": "https://trumpstruth.org/statuses/39350",
+      "published": "2026-06-18T16:49:39+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "能源/原油",
+        "美股大盘",
+        "伊朗制裁"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 60,
+      "summary_cn": "Trump否认美国向伊朗支付3000亿美元，强调低油价和股市上涨是美国的胜利。"
+    },
+    {
+      "author": "Trump",
+      "text": "OIL IS FLOWING, IRAN CAN NEVER HAVE A NUCLEAR WEAPON (THE WORLD WILL BE SAFE!), THE STOCK MARKETS ARE ROARING, JOBS ARE AT RECORDS, AND PRICES ARE DROPPING (AFFORDABILITY!). OUR COUNTRY IS STRONG, SAFE, AND RESPECTED LIKE NEVER BEFORE. “YOU’RE WELCOME!” President DJT",
+      "url": "https://trumpstruth.org/statuses/39347",
+      "published": "2026-06-18T13:59:53+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "能源/原油",
+        "美股大盘",
+        "就业",
+        "伊朗制裁"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 60,
+      "summary_cn": "Trump高调宣称石油流动、股市创新高、就业创纪录、物价下降，美国空前强盛。"
+    },
+    {
+      "author": "Trump",
+      "text": "RT @realDonaldTrumpFormer Trump economist says Iran deal means big economic boom for US: https://justthenews.com/nation/free-speech/trumps-former-economist-says-iran-deal-means-big-economic-boom-us",
+      "url": "https://trumpstruth.org/statuses/39348",
+      "published": "2026-06-18T16:45:05+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "宏观经济",
+        "能源/原油",
+        "伊朗制裁"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 58,
+      "summary_cn": "Trump转发前经济学家观点，称伊朗协议将给美国带来重大经济繁荣。"
+    },
+    {
+      "author": "Trump",
+      "text": "These fools, who think I haven’t been tough enough on Iran, when the Stock Market Just Hit A RECORD HIGH, and Oil prices are “tumbling” down, are either jealous, bad people, or stupid. MAKE AMERICA GREAT AGAIN!!! President DJT",
+      "url": "https://trumpstruth.org/statuses/39344",
+      "published": "2026-06-18T08:32:31+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "能源/原油",
+        "美股大盘",
+        "伊朗制裁"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 58,
+      "summary_cn": "Trump回击批评者，宣称对伊朗强硬，股市新高、油价暴跌。"
     },
     {
       "author": "Musk",
@@ -177,182 +302,13 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "AI"
+        "AI",
+        "xAI(未上市)"
       ],
       "sector_holdings": [],
       "stance": "attack",
       "relevance": 55,
-      "summary_cn": "AI教父抨击Musk的xAI是'失败'，警告AI实验室正酝酿'巨大泡沫爆炸'。"
-    },
-    {
-      "author": "Trump",
-      "text": "The United States is committed to PEACE, and we encourage everyone in the Middle East Region to maintain their commitment to allowing our negotiations to beautifully unfold. The Markets are loving what is happening with Oil Prices way down, and Stocks way up. We expect a complete Ceasefire on all fronts, including Lebanon, Hezbollah, and Israel. Thank you for your attention to this matter! President DONALD J. TRUMP",
-      "url": "https://trumpstruth.org/statuses/39351",
-      "published": "2026-06-18T18:01:06+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "能源",
-        "中东局势",
-        "宏观"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 55,
-      "summary_cn": "Trump称中东和平进展使油价大跌、股市大涨，预期全面停火。"
-    },
-    {
-      "author": "Trump",
-      "text": "The Ballroom is coming along fantastically well. It's on time, and under budget (Unlike the Federal Reserve Building, where \"Too Late\" has done a terrible job of Cost and Time Control!), and at a much higher quality than I ever promised, including the DronePort, and ALL of the other many Military elements, which are all vital for National Security, that are being built throughout the whole integrated, cohesive Project. It is desperately needed, and will be very special! The woman that sued me has absolutely no STANDING to do so. This should not even be a case, and it is highly damaging to our ",
-      "url": "https://trumpstruth.org/statuses/39336",
-      "published": "2026-06-18T06:51:03+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "美联储",
-        "利率"
-      ],
-      "sector_holdings": [],
-      "stance": "attack",
-      "relevance": 55,
-      "summary_cn": "Trump抨击美联储及其主席'Too Late'在建设成本和时间控制上表现糟糕。"
-    },
-    {
-      "author": "Trump",
-      "text": "I will be doing a Press Conference in 45 minutes from France. I’ll then be heading to Versailles for Dinner with French and other European Leaders, and then back home tonight! The trip was a Great Success but, mostly what people wanted to talk about, is the fact that Iran will not have a Nuclear Weapon, and that the Strait of Hormuz will immediately be opened! Great Numbers in all categories for the United States Economy with more people working today than have ever worked before. Over 19.1 Trillion being invested in the U.S.A. with Factories and everything else happening but, importantly, rec",
-      "url": "https://trumpstruth.org/statuses/39318",
-      "published": "2026-06-17T14:01:23+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "能源",
-        "中东局势",
-        "伊朗",
-        "宏观"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 55,
-      "summary_cn": "Trump从法国发表讲话，称伊朗无核武、霍尔木兹海峡重开、美国投资创纪录。"
-    },
-    {
-      "author": "Trump",
-      "text": "OIL IS FLOWING, IRAN CAN NEVER HAVE A NUCLEAR WEAPON (THE WORLD WILL BE SAFE!), THE STOCK MARKETS ARE ROARING, JOBS ARE AT RECORDS, AND PRICES ARE DROPPING (AFFORDABILITY!). OUR COUNTRY IS STRONG, SAFE, AND RESPECTED LIKE NEVER BEFORE. “YOU’RE WELCOME!” President DJT",
-      "url": "https://trumpstruth.org/statuses/39347",
-      "published": "2026-06-18T13:59:53+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "能源",
-        "伊朗",
-        "宏观"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 52,
-      "summary_cn": "Trump高调宣称石油流动、伊朗无核武、股市飙升、物价下降。"
-    },
-    {
-      "author": "Trump",
-      "text": "These fools, who think I haven’t been tough enough on Iran, when the Stock Market Just Hit A RECORD HIGH, and Oil prices are “tumbling” down, are either jealous, bad people, or stupid. MAKE AMERICA GREAT AGAIN!!! President DJT",
-      "url": "https://trumpstruth.org/statuses/39344",
-      "published": "2026-06-18T08:32:31+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "能源",
-        "伊朗",
-        "宏观"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 52,
-      "summary_cn": "Trump称股市创新高、油价暴跌，回击批评者对伊朗政策不够强硬的质疑。"
-    },
-    {
-      "author": "Musk",
-      "text": "AI pioneer Yann LeCun calls Elon Musk's xAI a 'failure'",
-      "url": "",
-      "published": "Thu, 18 Jun 2026 19:28:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Business Insider",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "AI"
-      ],
-      "sector_holdings": [],
-      "stance": "attack",
-      "relevance": 50,
-      "summary_cn": "AI先驱Yann LeCun抨击Musk的xAI是'失败'，加剧AI泡沫担忧。"
-    },
-    {
-      "author": "Trump",
-      "text": "There is no 300 Billion Dollar payment to Iran by the U.S. That’s Fake News! All there is for the U.S. is Success, Lower Oil Prices, and Victory. Check out the Stock Market. Dumocrat propaganda at play!!! President DJT",
-      "url": "https://trumpstruth.org/statuses/39350",
-      "published": "2026-06-18T16:49:39+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "能源",
-        "伊朗",
-        "宏观"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 50,
-      "summary_cn": "Trump否认美国向伊朗支付3000亿，强调低油价和股市胜利。"
-    },
-    {
-      "author": "Trump",
-      "text": "RT @realDonaldTrumpFormer Trump economist says Iran deal means big economic boom for US: https://justthenews.com/nation/free-speech/trumps-former-economist-says-iran-deal-means-big-economic-boom-us",
-      "url": "https://trumpstruth.org/statuses/39348",
-      "published": "2026-06-18T16:45:05+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "能源",
-        "伊朗",
-        "宏观"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 50,
-      "summary_cn": "Trump转发其前经济学家观点，称伊朗协议将给美国带来经济大繁荣。"
-    },
-    {
-      "author": "Trump",
-      "text": "Pope Leo commends US-Iran peace deal: https://justthenews.com/nation/religion/pope-leo-commends-us-iran-peace-deal-ahead-friday-signing",
-      "url": "https://trumpstruth.org/statuses/39346",
-      "published": "2026-06-18T12:57:28+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "能源",
-        "伊朗",
-        "宏观"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 48,
-      "summary_cn": "教皇Leo赞扬美伊和平协议，Trump转发作为背书。"
+      "summary_cn": "\"AI教父\"批评马斯克xAI是\"失败\"，警告AI行业可能存在巨大泡沫。"
     }
   ],
   "held_hits": [],
@@ -364,8 +320,8 @@
       "published": "2026-06-18T04:29:38+00:00",
       "origin": "truthsocial",
       "tickers": [
-        "NVDA",
-        "INTC"
+        "INTC",
+        "NVDA"
       ],
       "held": [],
       "new_ideas": [
@@ -375,12 +331,61 @@
       "sectors": [
         "半导体",
         "关税",
+        "制造业回流",
         "AI"
       ],
       "sector_holdings": [],
       "stance": "endorse",
+      "relevance": 88,
+      "summary_cn": "Trump强调美国必须夺回半导体制造业，点名Intel和Nvidia，明确支持美国建厂和关税保护。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk’s Next Move May Be a Mega-Merger of SpaceX and Tesla",
+      "url": "",
+      "published": "Wed, 17 Jun 2026 16:20:24 GMT",
+      "origin": "gnews-rss",
+      "source": "The New York Times",
+      "tickers": [
+        "TSLA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "TSLA"
+      ],
+      "sectors": [
+        "航天",
+        "电动车",
+        "AI"
+      ],
+      "sector_holdings": [
+        "SPCH"
+      ],
+      "stance": "endorse",
       "relevance": 78,
-      "summary_cn": "Trump强调美国必须通过关税夺回半导体制造产业，明确点名Intel并力挺其在美国建厂，同时提到Nvidia在美国建厂。"
+      "summary_cn": "马斯克酝酿SpaceX与特斯拉大型合并，SpaceX(SPCH持仓间接相关)与Tesla均为重点关注标的。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk gets a $116 billion Tesla payday",
+      "url": "",
+      "published": "Wed, 17 Jun 2026 21:51:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Electrek",
+      "tickers": [
+        "TSLA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "TSLA"
+      ],
+      "sectors": [
+        "电动车"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 70,
+      "summary_cn": "马斯克获得1160亿美元特斯拉巨额薪酬包，强烈看多TSLA。"
     },
     {
       "author": "Musk",
@@ -401,96 +406,95 @@
       ],
       "sector_holdings": [],
       "stance": "endorse",
-      "relevance": 70,
-      "summary_cn": "Musk行使2018年TSLA股票期权并增持股份，明确利好信号。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk’s Next Move May Be a Mega-Merger of SpaceX and Tesla",
-      "url": "",
-      "published": "Wed, 17 Jun 2026 16:20:24 GMT",
-      "origin": "gnews-rss",
-      "source": "The New York Times",
-      "tickers": [
-        "TSLA"
-      ],
-      "held": [],
-      "new_ideas": [
-        "TSLA"
-      ],
-      "sectors": [
-        "航天",
-        "电动车"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 68,
-      "summary_cn": "Musk下一步可能推动SpaceX与Tesla的巨型合并，涉及TSLA。"
-    },
-    {
-      "author": "Musk",
-      "text": "Is Tesla destined to be folded into SpaceX?",
-      "url": "",
-      "published": "Thu, 18 Jun 2026 16:42:39 GMT",
-      "origin": "gnews-rss",
-      "source": "Financial Times",
-      "tickers": [
-        "TSLA"
-      ],
-      "held": [],
-      "new_ideas": [
-        "TSLA"
-      ],
-      "sectors": [
-        "电动车",
-        "航天"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
       "relevance": 65,
-      "summary_cn": "市场讨论Tesla是否将被并入SpaceX，涉及TSLA的重大结构性变化。"
+      "summary_cn": "马斯克行使2018年特斯拉股票期权并增持股权，彰显对公司信心。"
     }
   ],
   "sector_hits": [
     {
       "author": "Musk",
-      "text": "Elon Musk could become the world's first trillionaire with SpaceX's IPO",
+      "text": "AP delivers stellar all-formats coverage of SpaceX stock debut that turned founder Elon Musk into the world’s first trillionaire",
       "url": "",
-      "published": "Fri, 12 Jun 2026 15:06:55 GMT",
+      "published": "Fri, 19 Jun 2026 14:29:24 GMT",
       "origin": "gnews-rss",
-      "source": "PBS",
+      "source": "ap.org",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "航天"
+        "航天",
+        "SpaceX(未上市)"
       ],
       "sector_holdings": [
         "SPCH"
       ],
       "stance": "endorse",
-      "relevance": 62,
-      "summary_cn": "Musk有望通过SpaceX IPO成为全球首位万亿富翁，间接利好SPCH。"
+      "relevance": 72,
+      "summary_cn": "SpaceX股票上市使马斯克成为全球首位万亿富翁，SPCH作为2x杠杆SpaceX ETF间接受益。"
+    },
+    {
+      "author": "Trump",
+      "text": "Trump Says He Welcomes China, India Investment in Venezuela Oil: https://www.bloomberg.com/news/articles/2026-02-01/trump-says-he-welcomes-china-india-investment-in-venezuela-oil",
+      "url": "https://trumpstruth.org/statuses/39339",
+      "published": "2026-06-18T08:28:21+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "能源/原油",
+        "委内瑞拉",
+        "地缘政治"
+      ],
+      "sector_holdings": [
+        "02208"
+      ],
+      "stance": "neutral",
+      "relevance": 68,
+      "summary_cn": "Trump表态欢迎中国和印度投资委内瑞拉石油，对原油供给格局有影响；金风科技(02208)属能源板块受宏观能源主题影响。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk Is Unleashing SpaceX’s New War Chest to Solve His AI Problem",
+      "url": "",
+      "published": "Wed, 17 Jun 2026 01:10:00 GMT",
+      "origin": "gnews-rss",
+      "source": "WSJ",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "AI",
+        "SpaceX(未上市)"
+      ],
+      "sector_holdings": [
+        "SPCH"
+      ],
+      "stance": "neutral",
+      "relevance": 65,
+      "summary_cn": "马斯克动用SpaceX新筹集资金来解决其AI(算力)难题，SPCH间接关联。"
     },
     {
       "author": "Musk",
       "text": "Elon Musk and the rise of space capitalism",
       "url": "",
-      "published": "Thu, 18 Jun 2026 19:36:11 GMT",
+      "published": "Fri, 19 Jun 2026 01:44:43 GMT",
       "origin": "gnews-rss",
       "source": "The Washington Post",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "航天"
+        "航天",
+        "太空经济"
       ],
       "sector_holdings": [
         "SPCH"
       ],
-      "stance": "neutral",
-      "relevance": 55,
-      "summary_cn": "Musk与太空资本主义崛起相关报道，间接利好kcn持有的SPCH（2倍做多SpaceX ETF）。"
+      "stance": "endorse",
+      "relevance": 60,
+      "summary_cn": "报道马斯克与太空资本主义的崛起，SPCH作为杠杆SpaceX ETF间接受益。"
     }
   ]
 }
