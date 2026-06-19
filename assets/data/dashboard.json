@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-06-19T01:34:18.996368Z",
-  "last_updated": "2026/06/19 09:33 HKT",
+  "generated_at": "2026-06-19T02:03:55.999000Z",
+  "last_updated": "2026/06/19 10:02 HKT",
   "fx": {
     "usdhkd": 7.8376,
     "source": "Frankfurter",
@@ -1027,14 +1027,14 @@
       "price": 23924.81,
       "prev_close": 24312.16,
       "change_pct": -1.59,
-      "source": "Tencent qt.gtimg.cn 2026/06/19 09:33 HKT"
+      "source": "Tencent qt.gtimg.cn 2026/06/19 10:02 HKT"
     },
     "HSTECH": {
       "name": "恒生科技",
       "price": 4604.35,
       "prev_close": 4669.07,
       "change_pct": -1.39,
-      "source": "Tencent qt.gtimg.cn 2026/06/19 09:33 HKT"
+      "source": "Tencent qt.gtimg.cn 2026/06/19 10:02 HKT"
     }
   },
   "market_context": {
@@ -1451,31 +1451,29 @@
       "name": "MINIMAX-W",
       "region": "hk",
       "today_change_pct": 12.33,
-      "current_price": 497.6
+      "current_price": 497.6,
+      "note": "MINIMAX逆市+12.3%，深V反弹修复前低；浮亏仍-39.5%，不建议重仓追"
     },
     {
       "ticker": "SPCH",
       "name": "Leverage Shares 2X Long SpaceX Daily ETF",
       "region": "us",
       "today_change_pct": -8.22,
-      "current_price": 18.99,
-      "note": "SpaceX ETF -13.9%，'Bonkers'标题暗示 meme 退潮，17.8 是关键支撑"
+      "current_price": 18.99
     },
     {
       "ticker": "ROBN",
       "name": "二倍做多HOOD ETF-T-Rex",
       "region": "us",
       "today_change_pct": 5.47,
-      "current_price": 35.66,
-      "note": "HOOD 2x +2.0%≈HOOD +1%，今日唯一亮点，杠杆放大"
+      "current_price": 35.66
     },
     {
       "ticker": "PLTU",
       "name": "二倍做多PLTR ETF-Direxion",
       "region": "us",
       "today_change_pct": -3.45,
-      "current_price": 31.36,
-      "note": "PLTR 2x 杠杆，-4.2%≈PLTR 自身 -2.1%，触发浮-24%止损线"
+      "current_price": 31.36
     }
   ],
   "anomalies": [
@@ -1561,10 +1559,10 @@
     "source": "insights-2026-06-19.json",
     "stale": false
   },
-  "status_banner": "95% 杠杆敞口被挨打；SPCH -13.9% meme退潮是主戏；盯 SPCH 17.8 能否守住",
+  "status_banner": "恒指/恒科双跌1.5%浅红，00100独拉+12%但浮亏仍深；今日盈亏主靠00100一只贡献正，5票其余全绿",
   "status_banner_meta": {
     "source": "intraday-insights-2026-06-19.json",
-    "generated_at": "2026-06-19T02:32:47Z",
+    "generated_at": "2026-06-19T02:03:00Z",
     "stale": false
   },
   "peer_divergence": {
