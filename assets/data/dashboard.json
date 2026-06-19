@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-06-19T02:35:19.138941Z",
-  "last_updated": "2026/06/19 10:33 HKT",
+  "generated_at": "2026-06-19T03:04:33.971544Z",
+  "last_updated": "2026/06/19 11:03 HKT",
   "fx": {
     "usdhkd": 7.8376,
     "source": "Frankfurter",
@@ -1027,14 +1027,14 @@
       "price": 23924.81,
       "prev_close": 24312.16,
       "change_pct": -1.59,
-      "source": "Tencent qt.gtimg.cn 2026/06/19 10:33 HKT"
+      "source": "Tencent qt.gtimg.cn 2026/06/19 11:03 HKT"
     },
     "HSTECH": {
       "name": "恒生科技",
       "price": 4604.35,
       "prev_close": 4669.07,
       "change_pct": -1.39,
-      "source": "Tencent qt.gtimg.cn 2026/06/19 10:33 HKT"
+      "source": "Tencent qt.gtimg.cn 2026/06/19 11:03 HKT"
     }
   },
   "market_context": {
@@ -1452,7 +1452,7 @@
       "region": "hk",
       "today_change_pct": 12.33,
       "current_price": 497.6,
-      "note": "今日+12.3%与大盘背离,浮亏仍39.5%;反弹可分批减,不追"
+      "note": "今日 +12.3% 逆势拉，浮亏 -39.5%；无明确个股催化，仓位占浮亏 70%。不追，等量价确认。"
     },
     {
       "ticker": "SPCH",
@@ -1559,10 +1559,10 @@
     "source": "insights-2026-06-19.json",
     "stale": false
   },
-  "status_banner": "大盘弱势 | 00100 独力反弹对冲 | 杠杆ETF放大亏损,最该盯 00100 反弹持续性",
+  "status_banner": "大市跌 1.5%+ 逆势异动；00100 占浮亏 70%。盯 00100 是真反弹还是诱多。",
   "status_banner_meta": {
     "source": "intraday-insights-2026-06-19.json",
-    "generated_at": "2026-06-19T02:33:43Z",
+    "generated_at": "2026-06-19T03:03:52Z",
     "stale": false
   },
   "peer_divergence": {
