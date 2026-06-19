@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-18T16:22:06.296752",
+  "generated_at": "2026-06-19T15:56:57.606631",
   "lookback_hours": 48,
   "tickers": [
     "CRCL",
@@ -9,7 +9,7 @@
     "SPCH",
     "MSFU"
   ],
-  "digest_markdown": "### Top 移动信号\n- **SPCH**: SpaceX IPO 催化杠杆 ETF 成交破 $10亿, SPCH 单日量能超 IBIT 首秀 2 倍 — 短期动量极强, 但明确为 trader-only 工具\n- **CRCL**: Trump 行政令将 Circle 估值与 USDC 接入 Fed 提上议程, 同期 hot CPI 拖累股价回撤 — 监管正向催化 vs 宏观逆风对冲, 实质进展决定方向\n- **RKLX**: SpaceX IPO 当日 +10.86% 单日爆发 — 主题 beta 已兑现, 追高性价比低\n- **ROBN(主题相关)**: Ron Baron IPO 阶段加仓 SpaceX $10亿, 总持仓升至 $250亿 — 机构锚定强化 SpaceX 估值, 间接利好暴露 ETF\n- **PLTU**: 底层 PLTR Q4 业绩 beat — 财报驱动反弹, 持续性待观察\n\n### Per-ticker 简报\n- **CRCL**: Trump 行政令聚焦 USDC 监管路径; hot CPI 致 crypto 板块普跌, 价格回撤中获分析师目标价上调\n- **PLTU**: PLTR 财报超预期驱动 ETF 跟涨; 散户情绪两极化, Moomoo 看空声量抬升\n- **RKLX**: SpaceX IPO 主题催化 +10.86% 单日跳涨, 量价齐升\n- **SPCH**: SpaceX 杠杆 ETF 成交爆量创纪录, 资金涌入但波动率风险同步放大\n- **MSFU**: 微软\"困境反转\"叙事发酵, Seeking Alpha 喊 trigger, 无具体 catalyst\n- **ROBN**: 直接新闻缺位; Ron Baron $1B SpaceX IPO 买入为唯一 cross-ticker 信号(注: 同名\"Robin Energy\"为不同标的, 勿混淆)\n\n### 风险 watch\n- **CPI 宏观逆风**: hot CPI 打压 CRCL/COIN 等利率敏感敞口\n- **杠杆 ETF 衰减**: SPCH/MSFU/PLTU/RKLX 均为 2X 日产品, volatility drag 严重, 不适合长持\n- **CRCL 监管落地风险**: Trump 行政令到 USDC Fed access 实质化之间仍有政策真空\n- **SpaceX 主题拥挤**: 短期资金集中涌入相关 ETF, IPO 情绪退潮后回撤风险高",
+  "digest_markdown": "## Top 移动信号\n- **SPCH**: SpaceX IPO 触发杠杆 ETF 狂潮,SPCH 单日成交破 $1B, debut 量级为 IBIT 上市首日两倍 — 短期动量极强,但 2X 产品波动风险高,kcn 若持仓需设紧止损\n- **CRCL**: Fed 提议禁止 stablecoin yield 致盘后下跌,但 Cathie Wood/ARK 加仓对冲 — 监管利空 vs 机构背书,信号矛盾,减仓观望优于追价\n- **PLTU**: Palantir Q4 财报 beat,带动 PLTU 重获买盘 — PLTR 基本面 catalyst 确认,但 PLTU 是 2X 杠杆,波动放大,kcn 短线可持有、不加仓\n- **ROBN**: HOOD 盘后下挫,但 Ron Baron 新 ETF 凭 SpaceX 重仓创纪录 — 两则信号方向相反,持仓应以 SpaceX 敞口逻辑为主,忽略 HOOD 短线噪音\n- **RKLX**: SpaceX IPO 当日 +10.86%,杠杆 RKLB ETF 交易活跃 — 与 SPCH 同主题但波动更小,可作为 SpaceX 间接敞口的较低 beta 选项\n\n## Per-ticker 简报\n- **CRCL**: Fed stablecoin yield 禁令提案 + ARK 加仓 — 监管风险主导,机构买入提供下行垫,kcn 持仓宜持有不加仓\n- **PLTU**: PLTR Q4 财报超预期 + ETF 重获关注 — 利好确认但杠杆产品回撤风险并存\n- **RKLX**: SpaceX IPO 日 +10.86% 跳涨 — 短期催化兑现,无新多头进场信号\n- **ROBN**: HOOD 盘后下挫 + Baron SpaceX ETF 创纪录 — 信号对冲,净影响中性\n- **SPCH**: SpaceX 杠杆 ETF 成交破 $1B,史无前例 debut — 极强短期动量,2X 波动风险显著\n\n## 风险 watch\n- **CRCL**: Fed stablecoin yield ban 提案 — 监管层面直接威胁 revenue model,最大单一风险点\n- **MSFU**: 微软基本面 \"woes\" 叙事持续,ETF 仍被推荐为反弹工具 — 若 kcn 未持仓则无需关注;若持仓需警惕基本面恶化",
   "raw_news_counts": {
     "CRCL": 5,
     "PLTU": 5,
