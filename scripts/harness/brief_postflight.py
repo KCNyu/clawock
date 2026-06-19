@@ -30,6 +30,9 @@ from pathlib import Path
 # brief_preflight.py for the bug this avoids (hardcoded /root broke the runner).
 WS = Path(__file__).resolve().parents[2]
 
+sys.path.insert(0, str(WS / 'scripts' / 'data'))
+import trading_calendar  # noqa: E402
+
 VALID_BUCKETS = {
     'cut', 'trim_on_rebound', 'hold_and_watch', 't_only', 'add_only_on_trigger',
 }
@@ -356,6 +359,15 @@ def main():
     args = ap.parse_args()
 
     today = datetime.now().strftime('%Y-%m-%d')
+
+    # Holiday/weekend gate: skip send/commit only when BOTH markets are closed
+    # (mirrors brief_preflight; brief still ships if either market trades).
+    if trading_calendar.closed_reason('hk') and trading_calendar.closed_reason('us'):
+        result = {'status': 'market_closed', 'date': today, 'wechat_sent': False,
+                  'issues': ['港股+美股均休市，跳过简报投递+commit']}
+        print(json.dumps(result, ensure_ascii=False, indent=2))
+        return 0
+
     md_path   = WS / 'memory' / f'{today}-pre-open.md'
     plan_path = WS / 'memory' / f'{today}-plan.json'
 

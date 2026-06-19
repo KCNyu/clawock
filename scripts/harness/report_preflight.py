@@ -39,6 +39,15 @@ WS = Path(__file__).resolve().parents[2]
 DATA_DIR = WS / 'scripts' / 'data'
 TMP = WS / 'memory' / '.tmp'
 
+sys.path.insert(0, str(DATA_DIR))
+import trading_calendar  # noqa: E402
+
+
+def _market_closed_reason(market, phase):
+    """None if the market trades now; else short reason (holiday/weekend)."""
+    session = trading_calendar.phase_session(market, phase)
+    return trading_calendar.closed_reason(market, session=session)
+
 TITLE_TEMPLATES = {
     ('hk', 'open'):  '📊 港股开盘快报｜{date} 09:30',
     ('hk', 'mid'):   '☕ 港股午盘快报｜{date} 12:00',
@@ -151,6 +160,24 @@ def main():
         return 2
 
     today = datetime.now().strftime('%Y-%m-%d')
+
+    # --- Holiday/weekend gate (before any fetch): on a closed market, skip the
+    # price refresh entirely (stale closes must NOT be written as a new session)
+    # and write a market_closed sentinel with NO raw_wechat_block — the report
+    # watchdog treats a blockless context as "never ran" and won't re-send. ---
+    reason = _market_closed_reason(args.market, args.phase)
+    if reason:
+        result = {'status': 'market_closed', 'market': args.market,
+                  'phase': args.phase, 'date': today, 'reason': reason, 'skip': True}
+        TMP.mkdir(parents=True, exist_ok=True)
+        (TMP / f'report-context-{args.market}-{args.phase}-{today}.json').write_text(
+            json.dumps(result, ensure_ascii=False, indent=2))
+        market_cn = '港股' if args.market == 'hk' else '美股'
+        print(f'=== MARKET CLOSED — {market_cn}今日{reason} ({today}) ===')
+        print('SKIP：不要生成报告、不要调用任何 send/postflight、本回合到此结束。')
+        print(json.dumps(result, ensure_ascii=False, indent=2))
+        return 0
+
     rc, stdout, stderr = run_analyze(args.market)
 
     if rc != 0:

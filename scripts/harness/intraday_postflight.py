@@ -41,6 +41,9 @@ from _watchdog_common import resolve_wechat_target, send_wechat  # noqa: E402
 WS = Path(__file__).resolve().parents[2]
 TMP = WS / 'memory' / '.tmp'
 
+sys.path.insert(0, str(WS / 'scripts' / 'data'))
+import trading_calendar  # noqa: E402
+
 REQUIRED_SECTION = '▎我的看法'
 FORBIDDEN_PHRASES = ['数据待获取', '等待数据', 'TODO', 'TBD']
 CRITICAL_KEYWORDS = ['缺段标记', '未包含原始数据块', '> 1000', '敷衍词', '表格行未 verbatim']
@@ -108,6 +111,16 @@ def main():
     parser.add_argument('--market', choices=['hk', 'us'], required=True)
     parser.add_argument('--text-file', help='briefing text file (default: stdin)')
     args = parser.parse_args()
+
+    # Holiday/weekend gate: no send/publish on a closed market.
+    closed = trading_calendar.closed_reason(args.market)
+    if closed:
+        market_cn = '港股' if args.market == 'hk' else '美股'
+        result = {'status': 'market_closed', 'market': args.market, 'reason': closed,
+                  'wechat_sent': False, 'wechat_prefix': '',
+                  'issues': [f'{market_cn}{closed}，跳过投递+publish']}
+        print(json.dumps(result, ensure_ascii=False, indent=2))
+        return 0
 
     text = Path(args.text_file).read_text() if args.text_file else sys.stdin.read()
 

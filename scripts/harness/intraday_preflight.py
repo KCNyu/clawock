@@ -31,6 +31,9 @@ WS = Path(__file__).resolve().parents[2]
 DATA_DIR = WS / 'scripts' / 'data'
 TMP = WS / 'memory' / '.tmp'
 
+sys.path.insert(0, str(DATA_DIR))
+import trading_calendar  # noqa: E402
+
 
 def run_analyze(market):
     script = DATA_DIR / f'analyze_{market}_stocks.py'
@@ -114,6 +117,25 @@ def main():
 
     now = datetime.now()
     stamp = now.strftime('%Y-%m-%d_%H%M')
+
+    # Holiday/weekend gate (before fetch): closed market → no stale price write,
+    # emit a market_closed sentinel (no alert), exit 0.
+    reason = trading_calendar.closed_reason(args.market)
+    if reason:
+        result = {'status': 'market_closed', 'market': args.market,
+                  'reason': reason, 'should_alert': False, 'skip': True}
+        TMP.mkdir(parents=True, exist_ok=True)
+        payload = json.dumps(result, ensure_ascii=False, indent=2)
+        (TMP / f'intraday-context-{args.market}-{stamp}.json').write_text(payload)
+        # Also refresh -latest.json (the watchdog reads it) so it sees a clean
+        # market_closed instead of yesterday's stale block.
+        (TMP / f'intraday-context-{args.market}-latest.json').write_text(payload)
+        market_cn = '港股' if args.market == 'hk' else '美股'
+        print(f'=== MARKET CLOSED — {market_cn}今日{reason} ===')
+        print('SKIP：不要生成报告、不要调用任何 send/postflight、本回合到此结束。')
+        print(json.dumps(result, ensure_ascii=False, indent=2))
+        return 0
+
     rc, stdout, stderr = run_analyze(args.market)
 
     if rc != 0:

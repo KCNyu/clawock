@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-06-19T03:04:33.971544Z",
-  "last_updated": "2026/06/19 11:03 HKT",
+  "generated_at": "2026-06-19T03:31:31.820099Z",
+  "last_updated": "2026/06/18 16:00 HKT (HK close; US Jun 18 session)",
   "fx": {
     "usdhkd": 7.8376,
     "source": "Frankfurter",
@@ -21,7 +21,7 @@
       "cost_hkd": 88276.24,
       "pnl_hkd": -28030.64,
       "pnl_pct": -31.75,
-      "today_change_hkd": 2627.6,
+      "today_change_hkd": 0.0,
       "realized_hkd": 7259.16,
       "cash_hkd": 4597
     }
@@ -232,8 +232,8 @@
         "cost_basis": 822.83,
         "current_price": 497.6,
         "current_value": 29856.0,
-        "today_change": 3276.0,
-        "today_change_pct": 12.33,
+        "today_change": 0,
+        "today_change_pct": 0,
         "day_high": 498.0,
         "day_low": 440.6,
         "pnl_abs": -19513.8,
@@ -249,8 +249,8 @@
         "cost_basis": 14.084,
         "current_price": 10.88,
         "current_value": 4352.0,
-        "today_change": 16.0,
-        "today_change_pct": 0.37,
+        "today_change": 0,
+        "today_change_pct": 0,
         "day_high": 11.13,
         "day_low": 10.58,
         "pnl_abs": -1281.6,
@@ -266,8 +266,8 @@
         "cost_basis": 5.405,
         "current_price": 4.584,
         "current_value": 916.8,
-        "today_change": -15.2,
-        "today_change_pct": -1.63,
+        "today_change": 0,
+        "today_change_pct": 0,
         "day_high": 4.628,
         "day_low": 4.562,
         "pnl_abs": -164.2,
@@ -283,8 +283,8 @@
         "cost_basis": 4.3632,
         "current_price": 3.324,
         "current_value": 20608.8,
-        "today_change": -595.2,
-        "today_change_pct": -2.81,
+        "today_change": 0,
+        "today_change_pct": 0,
         "day_high": 3.386,
         "day_low": 3.288,
         "pnl_abs": -6443.04,
@@ -300,8 +300,8 @@
         "cost_basis": 5.14,
         "current_price": 4.512,
         "current_value": 4512.0,
-        "today_change": -54.0,
-        "today_change_pct": -1.18,
+        "today_change": 0,
+        "today_change_pct": 0,
         "day_high": 4.55,
         "day_low": 4.48,
         "pnl_abs": -628.0,
@@ -916,17 +916,17 @@
       "us_realized": 1841.18,
       "us_equity": 5280.38,
       "us_profit": 1774.03,
-      "hk_total_value": 60245.6,
+      "hk_total_value": 60291.6,
       "hk_total_cost": 88276.24,
-      "hk_total_pnl": -28030.64,
-      "hk_today_change": 2627.6,
+      "hk_total_pnl": -27984.64,
+      "hk_today_change": 2673.6,
       "hk_realized": 7259.16,
-      "hk_equity": 67504.76,
-      "hk_profit": -20771.48,
+      "hk_equity": 67550.76,
+      "hk_profit": -20725.48,
       "us_cash": 854.25,
       "hk_cash": 4597,
       "us_asof": "2026-06-18",
-      "hk_asof": "2026-06-19"
+      "hk_asof": "2026-06-18"
     }
   ],
   "snapshots_total": 28,
@@ -1346,7 +1346,7 @@
       11.14,
       11.08,
       11.18,
-      10.88
+      11.18
     ],
     "03032": [
       4.742,
@@ -1370,7 +1370,7 @@
       3.41,
       3.422,
       3.314,
-      3.324
+      3.314
     ],
     "03033": [
       4.658,
@@ -1382,7 +1382,7 @@
       4.56,
       4.572,
       4.5,
-      4.512
+      4.5
     ],
     "07709": [
       null,
@@ -1440,20 +1440,12 @@
       "30d_pct": null
     },
     "hk": {
-      "today_pct": -0.07,
-      "7d_pct": 2.02,
+      "today_pct": 0.0,
+      "7d_pct": 2.09,
       "30d_pct": null
     }
   },
   "today_movers": [
-    {
-      "ticker": "00100",
-      "name": "MINIMAX-W",
-      "region": "hk",
-      "today_change_pct": 12.33,
-      "current_price": 497.6,
-      "note": "今日 +12.3% 逆势拉，浮亏 -39.5%；无明确个股催化，仓位占浮亏 70%。不追，等量价确认。"
-    },
     {
       "ticker": "SPCH",
       "name": "Leverage Shares 2X Long SpaceX Daily ETF",
@@ -2036,7 +2028,7 @@
   "drawdown": {
     "max_pct_30d_hk": -32.95,
     "max_pct_30d_us": -18.51,
-    "current_pct_hk": -25.49,
+    "current_pct_hk": -25.44,
     "current_pct_us": 17.57,
     "us": {
       "peak": {
@@ -2069,10 +2061,10 @@
         "date": "2026-06-12"
       },
       "current": {
-        "value": 67504.76,
+        "value": 67550.76,
         "date": "2026-06-19"
       },
-      "current_dd_pct": -27.48,
+      "current_dd_pct": -27.43,
       "max_dd_pct": -32.95,
       "max_dd_abs": 30674.4,
       "max_dd_peak_date": "2026-05-27",
@@ -2090,10 +2082,10 @@
         "date": "2026-06-12"
       },
       "current": {
-        "value": 108890.27,
+        "value": 108936.27,
         "date": "2026-06-19"
       },
-      "current_dd_pct": -16.01,
+      "current_dd_pct": -15.97,
       "max_dd_pct": -27.57,
       "max_dd_abs": 35746.81,
       "max_dd_peak_date": "2026-05-29",
@@ -2137,10 +2129,10 @@
           "date": "2026-06-12"
         },
         "current": {
-          "value": -20771.48,
+          "value": -20725.48,
           "date": "2026-06-19"
         },
-        "from_peak_abs": -25582.0,
+        "from_peak_abs": -25536.0,
         "current_dd_pct": null,
         "max_dd_abs": -30674.4,
         "max_dd_pct": null,
@@ -2161,10 +2153,10 @@
           "date": "2026-06-12"
         },
         "current": {
-          "value": -6867.34,
+          "value": -6821.34,
           "date": "2026-06-19"
         },
-        "from_peak_abs": -27637.8,
+        "from_peak_abs": -27591.8,
         "current_dd_pct": null,
         "max_dd_abs": -37063.53,
         "max_dd_pct": null,

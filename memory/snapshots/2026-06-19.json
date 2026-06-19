@@ -798,7 +798,7 @@
           "current_price": 497.6,
           "current_value": 29856.0,
           "pnl_percent": -39.53,
-          "data_source": "Tencent Jun 19 11:03 HKT",
+          "data_source": "Tencent Jun 18 16:02 HKT",
           "today_change": 3276.0,
           "today_change_pct": 12.33,
           "pnl_abs": -19513.8,
@@ -834,7 +834,7 @@
           ],
           "turnover": 28080650.0,
           "today_change_abs": -4.0,
-          "prev_close_date": "2026-06-19",
+          "prev_close_date": "2026-06-18",
           "stock_name": "MINIMAX-W"
         },
         {
@@ -843,13 +843,13 @@
           "ticker_finnhub": "2208.HK",
           "shares": 400,
           "cost_basis": 14.084,
-          "current_price": 10.88,
-          "current_value": 4352.0,
-          "pnl_percent": -22.75,
-          "data_source": "Tencent Jun 19 11:03 HKT",
-          "today_change": 16.0,
-          "today_change_pct": 0.37,
-          "pnl_abs": -1281.6,
+          "current_price": 11.18,
+          "current_value": 4472.0,
+          "pnl_percent": -20.62,
+          "data_source": "Tencent Jun 18 16:02 HKT",
+          "today_change": 136.0,
+          "today_change_pct": 3.14,
+          "pnl_abs": -1161.6,
           "day_open": 10.99,
           "day_high": 11.13,
           "day_low": 10.58,
@@ -867,7 +867,7 @@
           ],
           "turnover": 14936588.0,
           "today_change_abs": -0.15,
-          "prev_close_date": "2026-06-19",
+          "prev_close_date": "2026-06-18",
           "stock_name": "金风科技"
         },
         {
@@ -879,7 +879,7 @@
           "current_price": 4.584,
           "current_value": 916.8,
           "pnl_percent": -15.19,
-          "data_source": "Tencent Jun 19 11:03 HKT",
+          "data_source": "Tencent Jun 18 16:02 HKT",
           "today_change": -15.2,
           "today_change_pct": -1.63,
           "pnl_abs": -164.2,
@@ -890,7 +890,7 @@
           "volume": 2690000,
           "turnover": 13722674.0,
           "today_change_abs": 0.02,
-          "prev_close_date": "2026-06-19",
+          "prev_close_date": "2026-06-18",
           "stock_name": "恒生科技ETF"
         },
         {
@@ -899,10 +899,10 @@
           "ticker_finnhub": "7226.HK",
           "shares": 6200,
           "cost_basis": 4.3632,
-          "current_price": 3.324,
-          "current_value": 20608.8,
-          "pnl_percent": -23.82,
-          "data_source": "Tencent Jun 19 11:03 HKT",
+          "current_price": 3.314,
+          "current_value": 20546.8,
+          "pnl_percent": -24.05,
+          "data_source": "Tencent Jun 18 16:02 HKT",
           "trades": [
             {
               "date": "2026-03-24",
@@ -912,9 +912,9 @@
               "note": "加仓补摊，摊低成本至4.3632"
             }
           ],
-          "today_change": -595.2,
-          "today_change_pct": -2.81,
-          "pnl_abs": -6443.04,
+          "today_change": -657.2,
+          "today_change_pct": -3.1,
+          "pnl_abs": -6505.04,
           "day_open": 3.372,
           "day_high": 3.386,
           "day_low": 3.288,
@@ -922,7 +922,7 @@
           "volume": 10798200,
           "turnover": 45110333.4,
           "today_change_abs": 0.034,
-          "prev_close_date": "2026-06-19",
+          "prev_close_date": "2026-06-18",
           "stock_name": "XL二南方恒科"
         },
         {
@@ -931,13 +931,13 @@
           "ticker_finnhub": "3033.HK",
           "shares": 1000,
           "cost_basis": 5.14,
-          "current_price": 4.512,
-          "current_value": 4512.0,
-          "pnl_percent": -12.22,
-          "data_source": "Tencent Jun 19 11:03 HKT",
-          "today_change": -54.0,
-          "today_change_pct": -1.18,
-          "pnl_abs": -628.0,
+          "current_price": 4.5,
+          "current_value": 4500.0,
+          "pnl_percent": -12.45,
+          "data_source": "Tencent Jun 18 16:02 HKT",
+          "today_change": -66.0,
+          "today_change_pct": -1.45,
+          "pnl_abs": -640.0,
           "day_open": 4.548,
           "day_high": 4.55,
           "day_low": 4.48,
@@ -945,7 +945,7 @@
           "volume": 25157240,
           "turnover": 126176969.0,
           "today_change_abs": 0.022,
-          "prev_close_date": "2026-06-19",
+          "prev_close_date": "2026-06-18",
           "stock_name": "南方恒生科技"
         },
         {
@@ -1098,30 +1098,30 @@
         }
       ],
       "total_cost": 88276.24,
-      "total_current_value": 60245.6,
+      "total_current_value": 60291.6,
       "cash_hkd": 4597,
       "cash_hkd_note": "港股现金余额（HKD，kcn 对账手填，2026-06-18）。真实总资产 = total_current_value + cash_hkd。改持仓/补流水后须重对账。",
-      "total_pnl": -28030.64,
-      "total_pnl_percent": -31.75,
+      "total_pnl": -27984.64,
+      "total_pnl_percent": -31.7,
       "realized_pnl": 7259.16,
       "realized_note": "07709 100股@33.14(+144.86) + 07709 100股@34.2(+250.86) + 07747 100股@85(+315) + 07709 100股@33.5(+243.38) + 07709 100股@31.76(+226.7) + 07747 100股@83.58(+173) + 07709 100股@31.5(+196.52) + 07709 100股@36(+646.52) + 07709 100股@36.02(+648.52) + 07709 100股@38.7(+916.52) + 07709 400股@36.98(+2978.08) + 02208 200股@16.68(+519.2)",
-      "today_total_change": 2627.6,
+      "today_total_change": 2673.6,
       "last_updated": "2026/05/12 09:30 HKT",
       "last_close_attempted": "2026/05/11 16:00 HKT",
       "indices_snapshot": {
         "HSI": {
           "name": "恒生指数",
-          "price": 23924.81,
+          "price": 23828.46,
           "prev_close": 24312.16,
-          "chg_pct": -1.59,
-          "source": "Tencent qt.gtimg.cn 2026/06/19 11:03 HKT"
+          "chg_pct": -1.99,
+          "source": "Tencent qt.gtimg.cn 2026/06/18 16:02 HKT"
         },
         "HSTECH": {
           "name": "恒生科技",
-          "price": 4604.35,
+          "price": 4586.52,
           "prev_close": 4669.07,
-          "chg_pct": -1.39,
-          "source": "Tencent qt.gtimg.cn 2026/06/19 11:03 HKT"
+          "chg_pct": -1.77,
+          "source": "Tencent qt.gtimg.cn 2026/06/18 16:02 HKT"
         }
       },
       "last_midday_attempted": "2026-05-07 12:00:00 HKT",

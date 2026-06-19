@@ -36,6 +36,9 @@ from pathlib import Path
 WS = Path(__file__).resolve().parents[2]
 TMP = WS / 'memory' / '.tmp'
 
+sys.path.insert(0, str(WS / 'scripts' / 'data'))
+import trading_calendar  # noqa: E402
+
 REQUIRED_SECTIONS = ['▎情绪面', '▎技术面', '▎操作建议']
 FORBIDDEN_PHRASES = ['数据待获取', '等待数据', '数据缺失（占位）', 'TODO', 'TBD']
 
@@ -209,6 +212,18 @@ def main():
     parser.add_argument('--phase', choices=['open', 'mid', 'pm', 'close'], required=True)
     parser.add_argument('--text-file', help='briefing text file (default: stdin)')
     args = parser.parse_args()
+
+    # Holiday/weekend gate: never send/commit on a closed market — even if the
+    # model produced a report off stale data. Mirrors the preflight gate.
+    session = trading_calendar.phase_session(args.market, args.phase)
+    closed = trading_calendar.closed_reason(args.market, session=session)
+    if closed:
+        market_cn = '港股' if args.market == 'hk' else '美股'
+        result = {'status': 'market_closed', 'market': args.market, 'phase': args.phase,
+                  'reason': closed, 'wechat_sent': False, 'commit_ok': False,
+                  'wechat_prefix': '', 'issues': [f'{market_cn}{closed}，跳过投递+commit']}
+        print(json.dumps(result, ensure_ascii=False, indent=2))
+        return 0
 
     if args.text_file:
         text = Path(args.text_file).read_text()

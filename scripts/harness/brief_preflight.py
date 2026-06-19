@@ -44,6 +44,9 @@ WS = Path(__file__).resolve().parents[2]
 TMP_DIR = WS / 'memory' / '.tmp'
 SNAPSHOT_DIR = WS / 'memory' / 'snapshots'
 
+sys.path.insert(0, str(WS / 'scripts' / 'data'))
+import trading_calendar  # noqa: E402
+
 
 def _run(script, args=None, timeout=120):
     """Run a workspace script; return (stdout, ok)."""
@@ -1290,6 +1293,22 @@ def main():
     TMP_DIR.mkdir(parents=True, exist_ok=True)
     SNAPSHOT_DIR.mkdir(parents=True, exist_ok=True)
     issues = []
+
+    # Holiday/weekend gate: the brief covers both markets, so skip ONLY when both
+    # HK and US are closed (still runs if either trades). At 08:00 HKT the relevant
+    # US session is the just-closed NY day, which trading_calendar reads correctly
+    # (NY-local date is still the prior calendar day at that hour).
+    hk_closed = trading_calendar.closed_reason('hk')
+    us_closed = trading_calendar.closed_reason('us')
+    if hk_closed and us_closed:
+        result = {'status': 'market_closed', 'date': today,
+                  'reason': f'港股{hk_closed}+美股{us_closed}', 'skip': True}
+        (TMP_DIR / f'brief-context-{today}.json').write_text(
+            json.dumps(result, ensure_ascii=False, indent=2))
+        print(f'=== MARKET CLOSED — 港股{hk_closed} + 美股{us_closed} ({today}) ===')
+        print('SKIP：两市均休市，不生成简报、不调用 send/postflight，本回合结束。')
+        print(json.dumps(result, ensure_ascii=False, indent=2))
+        return 0
 
     print(f'═════ brief_preflight.py | {today} ═════')
 
