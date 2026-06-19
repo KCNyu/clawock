@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-19T03:31:31.820099Z",
+  "generated_at": "2026-06-19T09:17:35.692090Z",
   "last_updated": "2026/06/18 16:00 HKT (HK close; US Jun 18 session)",
   "fx": {
     "usdhkd": 7.8376,
@@ -2992,6 +2992,205 @@
     "summary": "全部因子样本 <20，累积中（7 天留痕）——结论未解锁",
     "discipline": "自迭代规则：hit_rate 是因子话语权的唯一来源。usable=false 的因子只展示不入决策；usable 后 <50% 的因子方向结论按反向警示处理（同 driven_by technical 39% 降权为过滤器的先例）。"
   },
+  "t0_setups": {
+    "as_of": "2026-06-19T17:14:31+08:00",
+    "market_closed": {
+      "us": true,
+      "hk": true
+    },
+    "intraday_enriched": false,
+    "note": "牌面质量评级，非买卖信号。追高检测 = 当日高位+振幅耗尽时买入为低质。",
+    "rows": {
+      "CRCL": {
+        "market": "us",
+        "name": "Circle Internet Group Inc-A",
+        "current": 80.23,
+        "today_change_pct": -0.4467,
+        "gap_pct": -1.21,
+        "range_pos": 73.8,
+        "day_range_pct": 4.95,
+        "range_used_atr": 0.52,
+        "rsi14": 38.1,
+        "zscore20": -0.93,
+        "atr14_pct": 9.56,
+        "grade": "🟡",
+        "grade_label": "偏高位（追高风险）",
+        "grade_reason": "现价在当日区间 74% 偏高位，追买性价比差，等回踩"
+      },
+      "PLTU": {
+        "market": "us",
+        "name": "二倍做多PLTR ETF-Direxion",
+        "current": 31.36,
+        "today_change_pct": -3.4483,
+        "gap_pct": -2.01,
+        "range_pos": 75.7,
+        "day_range_pct": 5.94,
+        "range_used_atr": null,
+        "rsi14": null,
+        "zscore20": null,
+        "atr14_pct": null,
+        "leveraged": "2x PLTR",
+        "decay_note": "2x 每日杠杆，多日持有有衰减；做 T 当日无碍，别拿来等多日故事",
+        "grade": "🟡",
+        "grade_label": "偏高位（追高风险）",
+        "grade_reason": "现价在当日区间 76% 偏高位，追买性价比差，等回踩"
+      },
+      "RKLX": {
+        "market": "us",
+        "name": "Defiance Daily Target 2X Long R",
+        "current": 52.45,
+        "today_change_pct": -1.2427,
+        "gap_pct": 0.96,
+        "range_pos": 82.1,
+        "day_range_pct": 12.32,
+        "range_used_atr": 0.54,
+        "rsi14": 44.2,
+        "zscore20": -0.9,
+        "atr14_pct": 22.8,
+        "leveraged": "2x RKLB",
+        "decay_note": "2x 每日杠杆，多日持有有衰减；做 T 当日无碍，别拿来等多日故事",
+        "grade": "🟡",
+        "grade_label": "偏高位（追高风险）",
+        "grade_reason": "现价在当日区间 82% 偏高位，追买性价比差，等回踩"
+      },
+      "ROBN": {
+        "market": "us",
+        "name": "二倍做多HOOD ETF-T-Rex",
+        "current": 35.66,
+        "today_change_pct": 5.4718,
+        "gap_pct": 1.84,
+        "range_pos": 88.6,
+        "day_range_pct": 7.58,
+        "range_used_atr": null,
+        "rsi14": null,
+        "zscore20": null,
+        "atr14_pct": null,
+        "leveraged": "2x HOOD",
+        "decay_note": "2x 每日杠杆，多日持有有衰减；做 T 当日无碍，别拿来等多日故事",
+        "grade": "🔴",
+        "grade_label": "追高低质",
+        "grade_reason": "现价在当日区间 89% 顶部，几乎买在最高点"
+      },
+      "SPCH": {
+        "market": "us",
+        "name": "Leverage Shares 2X Long SpaceX Daily ETF",
+        "current": 18.99,
+        "today_change_pct": -8.2165,
+        "gap_pct": -8.46,
+        "range_pos": 100.0,
+        "day_range_pct": 12.9,
+        "range_used_atr": null,
+        "rsi14": null,
+        "zscore20": null,
+        "atr14_pct": null,
+        "leveraged": "2x SPCX",
+        "decay_note": "2x 每日杠杆，多日持有有衰减；做 T 当日无碍，别拿来等多日故事",
+        "grade": "🔴",
+        "grade_label": "追高低质",
+        "grade_reason": "现价在当日区间 100% 顶部，几乎买在最高点"
+      },
+      "MSFU": {
+        "market": "us",
+        "name": "二倍做多微软ETF-Direxion",
+        "current": 23.13,
+        "today_change_pct": -0.34,
+        "gap_pct": -0.08,
+        "range_pos": 60.7,
+        "day_range_pct": 2.63,
+        "range_used_atr": null,
+        "rsi14": null,
+        "zscore20": null,
+        "atr14_pct": null,
+        "leveraged": "2x MSFT",
+        "decay_note": "2x 每日杠杆，多日持有有衰减；做 T 当日无碍，别拿来等多日故事",
+        "grade": "🟡",
+        "grade_label": "中性",
+        "grade_reason": "区间 61% 中段，无明显边缘"
+      },
+      "00100": {
+        "market": "hk",
+        "name": "MINIMAX-W",
+        "current": 497.6,
+        "today_change_pct": 0.0,
+        "gap_pct": 3.84,
+        "range_pos": 99.3,
+        "day_range_pct": 12.96,
+        "range_used_atr": 0.91,
+        "rsi14": 39.6,
+        "zscore20": -0.67,
+        "atr14_pct": 14.29,
+        "grade": "🔴",
+        "grade_label": "追高低质",
+        "grade_reason": "现价在当日区间 99% 顶部、今日振幅已达典型日 0.9×，几乎买在最高点"
+      },
+      "02208": {
+        "market": "hk",
+        "name": "金风科技",
+        "current": 10.88,
+        "today_change_pct": 0.0,
+        "gap_pct": 1.38,
+        "range_pos": 54.5,
+        "day_range_pct": 5.07,
+        "range_used_atr": 0.82,
+        "rsi14": 26.8,
+        "zscore20": -1.28,
+        "atr14_pct": 6.16,
+        "grade": "🟡",
+        "grade_label": "低位/超卖（观察）",
+        "grade_reason": "RSI27 超卖；均值回归候选，但有接刀风险"
+      },
+      "03032": {
+        "market": "hk",
+        "name": "恒生科技ETF",
+        "current": 4.584,
+        "today_change_pct": 0.0,
+        "gap_pct": -0.73,
+        "range_pos": 33.3,
+        "day_range_pct": 1.42,
+        "range_used_atr": 0.56,
+        "rsi14": 37.5,
+        "zscore20": -1.59,
+        "atr14_pct": 2.54,
+        "grade": "🟡",
+        "grade_label": "中性",
+        "grade_reason": "区间 33% 中段，无明显边缘"
+      },
+      "07226": {
+        "market": "hk",
+        "name": "XL二南方恒科",
+        "current": 3.324,
+        "today_change_pct": 0.0,
+        "gap_pct": -1.4,
+        "range_pos": 36.7,
+        "day_range_pct": 2.87,
+        "range_used_atr": null,
+        "rsi14": null,
+        "zscore20": null,
+        "atr14_pct": null,
+        "leveraged": "2x HSTECH",
+        "decay_note": "2x 每日杠杆，多日持有有衰减；做 T 当日无碍，别拿来等多日故事",
+        "grade": "🟡",
+        "grade_label": "中性",
+        "grade_reason": "区间 37% 中段，无明显边缘"
+      },
+      "03033": {
+        "market": "hk",
+        "name": "南方恒生科技",
+        "current": 4.512,
+        "today_change_pct": 0.0,
+        "gap_pct": -0.39,
+        "range_pos": 45.7,
+        "day_range_pct": 1.53,
+        "range_used_atr": 0.61,
+        "rsi14": 37.5,
+        "zscore20": -1.53,
+        "atr14_pct": 2.52,
+        "grade": "🟡",
+        "grade_label": "中性",
+        "grade_reason": "区间 46% 中段，无明显边缘"
+      }
+    }
+  },
   "catalysts": {
     "generated_at": "2026-05-30T01:32:39.692845+08:00",
     "lookback_window_days": 14,
@@ -5317,5 +5516,105 @@
       ]
     ],
     "last_updated": "2026-06-18T15:50:19.183911Z"
+  },
+  "build_status": {
+    "generated_at": "2026-06-19T17:17:35+08:00",
+    "healthy": true,
+    "stale_files": [],
+    "files": [
+      {
+        "name": "portfolio.json",
+        "age_hours": 5.8,
+        "sla_hours": 26,
+        "stale": false,
+        "present": true
+      },
+      {
+        "name": "benchmark.json",
+        "age_hours": 9.0,
+        "sla_hours": 80,
+        "stale": false,
+        "present": true
+      },
+      {
+        "name": "catalysts.json",
+        "age_hours": 9.0,
+        "sla_hours": 30,
+        "stale": false,
+        "present": true
+      },
+      {
+        "name": "influencer_feed.json",
+        "age_hours": 9.0,
+        "sla_hours": 30,
+        "stale": false,
+        "present": true
+      },
+      {
+        "name": "lev_regime.json",
+        "age_hours": 9.0,
+        "sla_hours": 30,
+        "stale": false,
+        "present": true
+      },
+      {
+        "name": "macro.json",
+        "age_hours": 9.0,
+        "sla_hours": 30,
+        "stale": false,
+        "present": true
+      },
+      {
+        "name": "quant_signal_review.json",
+        "age_hours": 9.0,
+        "sla_hours": 30,
+        "stale": false,
+        "present": true
+      },
+      {
+        "name": "quant_signals.json",
+        "age_hours": 9.0,
+        "sla_hours": 30,
+        "stale": false,
+        "present": true
+      },
+      {
+        "name": "risk.json",
+        "age_hours": 9.0,
+        "sla_hours": 30,
+        "stale": false,
+        "present": true
+      },
+      {
+        "name": "sentiment.json",
+        "age_hours": 9.0,
+        "sla_hours": 30,
+        "stale": false,
+        "present": true
+      },
+      {
+        "name": "us_news_digest.json",
+        "age_hours": 16.7,
+        "sla_hours": 30,
+        "stale": false,
+        "present": true
+      }
+    ],
+    "markets": {
+      "us": {
+        "last_updated": "May 8, 2026 16:00 ET close",
+        "closed_today": true
+      },
+      "hk": {
+        "last_updated": "2026/06/18 16:00 HKT (close; Jun 19 休市)",
+        "closed_today": true
+      }
+    },
+    "integrity": {
+      "ok": true,
+      "error_count": 0,
+      "warn_count": 0,
+      "top": []
+    }
   }
 }

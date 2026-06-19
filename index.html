@@ -1256,6 +1256,14 @@ layout: null
     text-align: center; font-size: 11px; color: var(--text-faint);
   }
   footer a { color: var(--text-dim); }
+  .build-status {
+    display: inline-flex; align-items: center; gap: 8px; flex-wrap: wrap;
+    justify-content: center; margin: 0 auto 12px; padding: 5px 12px;
+    border: 1px solid var(--border, #2a2f3a); border-radius: 999px;
+    font-size: 11px; color: var(--text-dim); cursor: help; max-width: 92%;
+  }
+  .build-status .bs-label { color: var(--text); }
+  .build-status .bs-gen { color: var(--text-faint); font-family: var(--mono); }
 
   /* Utility */
   .mono { font-family: var(--mono); }
@@ -1513,6 +1521,17 @@ layout: null
         </table>
       </div>
       <div class="muted" id="quant-edge" style="font-size:11px;margin-top:6px;line-height:1.5"></div>
+    </div>
+
+    <div class="card fold-m" id="t0-card" data-fold-id="t0" style="display:none">
+      <h3>🎯 T+0 牌面 <span class="muted" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:11px">做T前先看牌面·非买卖信号 <span id="t0-asof"></span></span><span class="peek" id="peek-t0"></span></h3>
+      <div class="table-wrap">
+        <table class="holdings-table" id="t0-table" style="min-width:520px;font-size:12px">
+          <thead><tr><th>标的</th><th>牌面</th><th class="num">区间位</th><th class="num">今日%</th><th class="num">跳空%</th><th class="num">振幅/ATR</th></tr></thead>
+          <tbody id="t0-tbody"></tbody>
+        </table>
+      </div>
+      <div class="muted" id="t0-note" style="font-size:11px;margin-top:6px;line-height:1.5"></div>
     </div>
 
     <div class="card fold-m" id="breakeven-card" data-fold-id="breakeven" style="display:none">
@@ -1914,6 +1933,7 @@ layout: null
 </main>
 
 <footer>
+  <div id="build-status" class="build-status"></div>
   <p>
     <a href="https://github.com/KCNyu/clawock">clawock</a>
     · <a href="briefs.html">briefs</a>
@@ -2447,6 +2467,7 @@ layout: null
     renderRiskGuardrail();
     renderBreakevenMath();
     renderQuantSignals();
+    renderT0Setups();
     renderLevRegime();
     renderGoldDca();
     renderWatchLevels();
@@ -2480,7 +2501,45 @@ layout: null
     renderPlanTimeline();
     renderCalibByTrigger();
     renderCalibByDriver();
+    renderBuildStatus();
     updateFoldPeeks();
+  }
+
+  // ── A2 系统健康卡（页脚）──
+  // 数据新鲜度 + 体检结论（A1）的被动展示。不推送（遵 feedback_no_individual_cron_alerts），
+  // 让 stale / 体检异常一眼可见。绿=全新鲜且体检过；黄=有 stale 或 WARN；红=体检 ERROR。
+  function renderBuildStatus() {
+    const el = document.getElementById('build-status');
+    if (!el) return;
+    const bs = safe(DATA, 'build_status');
+    if (!bs) { el.style.display = 'none'; return; }
+    el.style.display = '';
+    const ig = bs.integrity || {};
+    const stale = bs.stale_files || [];
+    let dot, label;
+    if (ig.error_count > 0) { dot = '🔴'; label = `体检 ${ig.error_count} ERROR`; }
+    else if (stale.length || ig.warn_count > 0) {
+      dot = '🟡';
+      const bits = [];
+      if (stale.length) bits.push(`${stale.length} 文件 stale`);
+      if (ig.warn_count > 0) bits.push(`体检 ${ig.warn_count} WARN`);
+      label = bits.join(' · ');
+    } else { dot = '🟢'; label = '数据健康 · 体检 ✓'; }
+    // tooltip：逐文件年龄 + 体检 top + 每市场时点
+    const lines = [];
+    (bs.files || []).forEach(f => {
+      if (!f.present) lines.push(`✗ ${f.name} 缺失`);
+      else lines.push(`${f.stale ? '⚠' : '·'} ${f.name}  ${f.age_hours}h / SLA ${f.sla_hours}h`);
+    });
+    (ig.top || []).forEach(t => lines.push(`${t.level === 'ERROR' ? '🔴' : '🟡'} ${t.code}: ${t.msg}`));
+    if (bs.markets) {
+      Object.entries(bs.markets).forEach(([m, v]) =>
+        lines.push(`${m.toUpperCase()}: ${v.last_updated || '?'}${v.closed_today ? ' (休市)' : ''}`));
+    }
+    const gen = bs.generated_at ? bs.generated_at.replace('T', ' ').slice(0, 16) : '';
+    el.innerHTML = `<span class="bs-dot">${dot}</span> <span class="bs-label">${label}</span>` +
+      `<span class="bs-gen">构建 ${gen}</span>`;
+    el.title = lines.join('\n');
   }
 
   // ── Mobile fold peeks ──
@@ -3484,6 +3543,41 @@ layout: null
     } else {
       edgeEl.textContent = '因子 edge 自检：信号每日留痕中，样本够 20 天后自动出 T+1/T+5 胜率表。';
     }
+  }
+
+  function renderT0Setups() {
+    const t0 = safe(DATA, "t0_setups");
+    const card = document.getElementById('t0-card');
+    if (!card) return;
+    const rows = (t0 && t0.rows) || {};
+    const names = Object.keys(rows);
+    if (!names.length) { card.style.display = 'none'; return; }
+    card.style.display = '';
+    // 市场休市时这些是上一交易日收盘的牌面
+    const closed = t0.market_closed || {};
+    const anyClosed = Object.values(closed).some(Boolean);
+    document.getElementById('t0-asof').textContent =
+      (t0.as_of || '') + (anyClosed ? ' · 收盘牌面' : '');
+    const num = (v, suf = '') => v == null ? '—' : `${v}${suf}`;
+    const cls = v => v == null ? '' : (v < 0 ? 'style="color:var(--neg,#ef4444)"' : 'style="color:var(--pos,#22c55e)"');
+    // 🔴 追高排前面（最该看的牌面）
+    const order = { '🔴': 0, '🟡': 1, '⚪': 2 };
+    names.sort((a, b) => (order[rows[a].grade] ?? 3) - (order[rows[b].grade] ?? 3));
+    document.getElementById('t0-tbody').innerHTML = names.map(k => {
+      const r = rows[k];
+      const lev = r.leveraged ? `<span class="muted" style="font-size:10px"> ${r.leveraged}</span>` : '';
+      const vw = (r.vs_vwap_pct != null)
+        ? `<div class="muted" style="font-size:10px">VWAP ${r.vs_vwap_pct > 0 ? '+' : ''}${r.vs_vwap_pct}%</div>` : '';
+      return `<tr><td><strong>${k}</strong>${lev}</td>` +
+        `<td style="text-align:left;font-size:11px">${r.grade} ${r.grade_label}` +
+        `<div class="muted" style="font-size:10px">${r.grade_reason || ''}</div>${vw}</td>` +
+        `<td class="num">${num(r.range_pos, '%')}</td>` +
+        `<td class="num" ${cls(r.today_change_pct)}>${num(r.today_change_pct, '%')}</td>` +
+        `<td class="num" ${cls(r.gap_pct)}>${num(r.gap_pct, '%')}</td>` +
+        `<td class="num">${num(r.range_used_atr, '×')}</td></tr>`;
+    }).join('');
+    document.getElementById('t0-note').textContent =
+      (t0.note || '') + ' 区间位=现价在当日高低区间位置（越高越接近追在顶部）；振幅/ATR>1=今日已跑过一个典型日。';
   }
 
   function renderLevRegime() {

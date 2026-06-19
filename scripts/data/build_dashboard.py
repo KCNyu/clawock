@@ -1753,6 +1753,74 @@ def compute_net_principal_return(portfolio, fx_rate):
     return out
 
 
+# 期望刷新节奏（小时）——超过即标 stale。值取「正常情况下两次成功刷新的最大间隔 +
+# 容忍隔夜/周末」，不是硬 SLA。盘中/收盘类短，GHA 扫描类长。
+_FRESHNESS_SLA_H = {
+    'portfolio.json': 26,
+    'quant_signals.json': 30,
+    'quant_signal_review.json': 30,
+    'risk.json': 30,
+    'lev_regime.json': 30,
+    'benchmark.json': 80,          # 偶发限流，宽容
+    'macro.json': 30,
+    'sentiment.json': 30,
+    'catalysts.json': 30,
+    'us_news_digest.json': 30,
+    'influencer_feed.json': 30,
+}
+
+
+def compute_build_status(portfolio, data_dir):
+    """A2 健康卡数据：每个数据文件的新鲜度 + 体检结论 + 每市场 data 时点。
+
+    纯文件运算、零网络。被动暴露 staleness 给前端（不推送，遵 feedback_no_individual_cron_alerts）。
+    内联跑一次 preflight_integrity 取新鲜体检结论嵌进来。
+    """
+    now = datetime.now().astimezone()
+    files = []
+    targets = ['portfolio.json'] + sorted(_FRESHNESS_SLA_H.keys() - {'portfolio.json'})
+    for name in targets:
+        path = (WS_ROOT / name) if name == 'portfolio.json' else (data_dir / name)
+        sla = _FRESHNESS_SLA_H.get(name, 30)
+        if path.exists():
+            age_h = (time.time() - path.stat().st_mtime) / 3600.0
+            files.append({'name': name, 'age_hours': round(age_h, 1),
+                          'sla_hours': sla, 'stale': age_h > sla, 'present': True})
+        else:
+            files.append({'name': name, 'present': False, 'stale': True, 'sla_hours': sla})
+
+    # 每市场数据时点（用 trading_calendar 比上一交易日）
+    markets = {}
+    try:
+        sys.path.insert(0, str(WS_ROOT / 'scripts' / 'data'))
+        import trading_calendar as _tc
+    except Exception:
+        _tc = None
+    for region, mkt in (('us_stocks', 'us'), ('hk_stocks', 'hk')):
+        pf = portfolio.get('portfolios', {}).get(region, {})
+        markets[mkt] = {'last_updated': pf.get('last_updated'),
+                        'closed_today': (_tc.closed_reason(mkt) is not None) if _tc else None}
+
+    # 体检结论（A1）——纯文件运算，安全内联
+    integrity = None
+    try:
+        sys.path.insert(0, str(WS_ROOT / 'scripts' / 'data'))
+        import preflight_integrity as _pi
+        rep = _pi.check()
+        integrity = {'ok': rep['ok'], 'error_count': rep['error_count'],
+                     'warn_count': rep['warn_count'],
+                     'top': [{'code': f['code'], 'level': f['level'], 'msg': f['msg']}
+                             for f in rep['findings']][:6]}
+    except Exception as e:
+        print(f'  warn: integrity check in build_status failed: {e}', file=sys.stderr)
+
+    stale_files = [f['name'] for f in files if f.get('stale')]
+    healthy = (not stale_files) and (integrity is None or integrity.get('ok'))
+    return {'generated_at': now.isoformat(timespec='seconds'), 'healthy': healthy,
+            'stale_files': stale_files, 'files': files, 'markets': markets,
+            'integrity': integrity}
+
+
 def main():
     # BUILD_DASHBOARD_OUT: redirect the WRITE target only. Verification callers
     # (system_check's buildability gate, run by the pre-push hook) build to a
@@ -1958,6 +2026,7 @@ def main():
 
     _embed('quant_signals', 'quant_signals.json')      # compute_quant_signals.py: 趋势/动量/RSI/ATR吊灯/vol-target
     _embed('quant_signal_review', 'quant_signal_review.json')  # quant_signal_review.py: 因子 edge 自检(T+1/T+5 对账)
+    _embed('t0_setups', 't0_setups.json')              # compute_t0_setups.py: T+0 牌面评级(追高检测)
     _embed('catalysts', 'catalysts.json')              # fetch_catalysts.py + brief preflight [11/11]
     _embed('benchmark', 'benchmark.json')              # fetch_benchmark_history.py: SPY/HSI/HSTECH daily close
     # 基准新鲜度守卫 — Polygon/HSI 抓取偶发限流会让 benchmark.json 停更(曾停到6天),
@@ -2018,6 +2087,13 @@ def main():
         if isinstance(_gold.get('nav_history'), list):
             _gold['nav_history'] = _gold['nav_history'][-90:]  # 迷你图够用，控体积
     out['gold_dca'] = _gold
+
+    # A2 健康卡：数据新鲜度 + 体检结论（纯文件运算，零网络）
+    try:
+        out['build_status'] = compute_build_status(portfolio, OUT_DIR)
+    except Exception as e:
+        print(f'  warn: compute_build_status failed: {e}', file=sys.stderr)
+        out['build_status'] = None
 
     if brief_ctx_path:
         print(f'  brief-context source: {os.path.basename(brief_ctx_path)}')

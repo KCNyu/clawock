@@ -153,6 +153,18 @@ def main():
     signals, signals_detail = parse_signals(stdout)
     anomalies = parse_anomalies(stdout)
 
+    # T+0 牌面评级 — analyze_*_stocks 刚刷过价，此处用实时区间位算追高检测。
+    # 零额外请求（T0_INTRADAY 默认关）。失败不阻断盯盘。
+    t0_setups = {}
+    try:
+        subprocess.run(['python3', str(DATA_DIR / 'compute_t0_setups.py')],
+                       capture_output=True, text=True, timeout=45, check=False)
+        t0_path = WS / 'assets' / 'data' / 't0_setups.json'
+        if t0_path.exists():
+            t0_setups = json.loads(t0_path.read_text())
+    except Exception:
+        pass
+
     total_signals = signals['watch'] + signals['stop'] + signals['trim']
     should_alert = (len(anomalies) > 0) or (total_signals >= 2) or (signals['stop'] > 0)
 
@@ -177,6 +189,7 @@ def main():
         'anomalies':        anomalies,
         'should_alert':     should_alert,
         'alert_reasons':    alert_reasons,
+        't0_setups':        t0_setups,
     }
 
     TMP.mkdir(parents=True, exist_ok=True)

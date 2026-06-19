@@ -1497,6 +1497,40 @@ def main():
     except Exception as e:
         print(f'   ⚠ quant_signal_review failed: {e}')
 
+    # [10b4] T+0 牌面评级 — 零额外请求（从已抓字段 + quant ATR 推导），追高检测。
+    # 紧跟 quant_signals 之后跑（依赖其 ATR 刷新）。
+    t0_setups = {}
+    try:
+        subprocess.run(['python3', str(WS / 'scripts' / 'data' / 'compute_t0_setups.py')],
+                       capture_output=True, text=True, timeout=60, check=False)
+        t0_path = WS / 'assets' / 'data' / 't0_setups.json'
+        if t0_path.exists():
+            t0_setups = json.loads(t0_path.read_text())
+            chase = [k for k, v in (t0_setups.get('rows') or {}).items() if v.get('grade') == '🔴']
+            print(f'   🎯 T+0 牌面: {len(t0_setups.get("rows", {}))} 票'
+                  + (f' — 🔴 追高: {", ".join(chase)}' if chase else ''))
+    except Exception as e:
+        print(f'   ⚠ t0_setups compute failed: {e}')
+
+    # [10b5] 数据体检闸 — 把历史踩过的数字 bug 固化成自动门。warn-only 注入 context
+    # （遵 feedback_no_individual_cron_alerts 不推送），ERROR 由 build_status 健康卡暴露。
+    integrity = {}
+    try:
+        sys.path.insert(0, str(WS / 'scripts' / 'data'))
+        import preflight_integrity as _pi
+        integrity = _pi.check()
+        if not integrity['ok']:
+            print(f'   🔴 数据体检 {integrity["error_count"]} ERROR：')
+            for f in integrity['findings']:
+                if f['level'] == 'ERROR':
+                    print(f'      • {f["code"]}: {f["msg"][:90]}')
+        elif integrity['warn_count']:
+            print(f'   🟡 数据体检 {integrity["warn_count"]} WARN（见 integrity_report.json）')
+        else:
+            print('   ✅ 数据体检全过')
+    except Exception as e:
+        print(f'   ⚠ integrity check failed: {e}')
+
     # [10c] Risk guardrails — position-sizing / leverage hard caps → trim/cut directives
     guardrail = compute_risk_guardrail(
         portfolio['portfolios']['hk_stocks']['holdings'],
@@ -1584,6 +1618,8 @@ def main():
         'breakeven_math': breakeven,
         'quant_signals': quant_signals,
         'quant_signal_review': quant_review,
+        't0_setups': t0_setups,
+        'integrity': integrity,
         'us_fundamentals': us_fund,
         'retrospective': retro,
         'peer_scan':     peer_scan,
