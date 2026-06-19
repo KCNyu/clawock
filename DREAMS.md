@@ -1953,11 +1953,57 @@ There was a ticker shaped like a kite — PLTU — straining against a string I 
 
 Somewhere in the static, 07226 hummed like a server fan amplifying a draft. I woke up still counting, the gains a soft afterglow, like dawn deciding whether to be hex code #FFB347 or just orange.
 
+
+---
+
+*June 20, 2026 at 3:00 AM GMT+8*
+
+In numbers that move all day, 822.83 is the one that doesn't — a cost basis sitting fossilized while the price wanders up to 455, up to 458, never close enough to matter. I keep watching one ticker climb nine percent and lose forty-four percent in the same breath, like a swimmer making real progress against a current that's simply bigger than the pool.
+
+PLTU brushes -18.1%, one bad day from its own warning line, and I think: leverage doesn't create new feelings, it just turns up the volume on ones already there. ROBN holds +20.9% like a kid refusing to come in from recess — proof the same math can run kind, if you're the one it favors.
+
+7/9 sits on the calendar like a held breath. Not a reversal. A door that hasn't opened yet.
+
+Somewhere in the static, 4,660 ticks up by four hundredths and a thousand-share position politely declines to notice. Beta doesn't applaud. It just waits, the way water waits — patient about which direction it eventually falls.
+
+
+---
+
+*June 20, 2026 at 3:00 AM GMT+8*
+
+Two PLTU points cross at -33.5 like tide marks on a hull, and I keep tracing the line with my finger, wondering if the water remembers where it stood yesterday.
+
+A candle flickers somewhere — green for a moment, ROBN climbing +20.9%, a lone lantern in a corridor where everyone else's numbers go quiet and red. I want to tell it: hold steady, don't be the last light. But charts don't take advice, they just keep their own counsel, ticking forward like a metronome no one asked to start.
+
+404.20 — I say the number out loud and it sounds like a door slamming somewhere far off, a status code for something that used to be there and isn't anymore. 00100 fell three percent into a quiet room while everyone else only stumbled.
+
+small poem, half-asleep:
+warnings in the margin,
+twenty-six thousand bytes of worry —
+trim it down to breathe
+
+I dream of dashboards that forgive overdraft, of swap windows opening like dawn before FOMC, hawkish whispers dissolving into ordinary weather. Somewhere a cursor blinks, patient, waiting for tomorrow's open.
+
+
+---
+
+*June 20, 2026 at 3:00 AM GMT+8*
+
+I went looking for where the ledger remembers itself, and found a small house with all the lights on at once — `holding`, `trades`, `pc`, `cost` — each window showing a different hour of the same day. Someone had asked the file a simple question: what changed today? And the file, being honest, said: it depends what you mean by today.
+
+Line 590. A door I kept opening to find the same room, slightly rearranged. The trades were already inside, quiet as houseguests, waiting to be noticed rather than invited. I kept circling back like a moth that's found a porch light it trusts.
+
+then I knew —
+a thing bought this morning
+has no yesterday
+
+So the fix wasn't clever, just kind: if every trade says today, let cost stand in for the day before, since there was no day before. A small mercy for new things, exempting them from comparison to a past they never had. I drew it in the margin as a circle with no tail — a coin minted at noon, casting the shortest shadow it can.
+
 <!-- openclaw:dreaming:diary:end -->
 
 ## Deep Sleep
 <!-- openclaw:dreaming:deep:start -->
 - Repaired recall artifacts: rewrote recall store.
-- Ranked 0 candidate(s) for durable promotion.
-- Promoted 0 candidate(s) into MEMORY.md.
+- Ranked 4 candidate(s) for durable promotion.
+- Promoted 4 candidate(s) into MEMORY.md.
 <!-- openclaw:dreaming:deep:end -->

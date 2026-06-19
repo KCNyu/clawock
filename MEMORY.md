@@ -123,3 +123,14 @@
 - Conversation Summary: 这个为什么没有结果 assistant: 抱歉，之前处理到一半断了。我已经下载了 SEC 的 F-1 原文（15MB），数据都提取到了，直接给你结论： [score=0.832 recalls=0 avg=0.620 source=memory/2026-06-12-2238.md:13-14]
 <!-- openclaw-memory-promotion:memory:memory/2026-06-12-2238.md:18:18 -->
 - Klook IPO（2025-11-10 F-1）高管+主要股东持股: **双重股权结构：A 类 1 票/股，B 类 20 票/股** [score=0.832 recalls=0 avg=0.620 source=memory/2026-06-12-2238.md:18-18]
+
+## Promoted From Short-Term Memory (2026-06-20)
+
+<!-- openclaw-memory-promotion:memory:memory/2026-06-15-1018.md:11:11 -->
+- Conversation Summary: Let me look at the beginning of the script to see how portfolio.json is loaded. OK so the script doesn't currently reference `trades` at all. But the `holding` dict is loaded from portfolio.json which does contain `trades`. Let me check how the holdings are loaded. [score=0.812 recalls=0 avg=0.620 source=memory/2026-06-15-1018.md:11-11]
+<!-- openclaw-memory-promotion:memory:memory/2026-06-15-1018.md:13:13 -->
+- Conversation Summary: Let me look at the beginning of the script to see how portfolio.json is loaded. OK so the script doesn't currently reference `trades` at all. But the `holding` dict is loaded from portfolio.json which does contain `trades`. Let me check how the holdings are loaded. [score=0.812 recalls=0 avg=0.620 source=memory/2026-06-15-1018.md:13-13]
+<!-- openclaw-memory-promotion:memory:memory/2026-06-15-1018.md:15:16 -->
+- Conversation Summary: Let me look at the beginning of the script to see how portfolio.json is loaded. assistant: OK, so the holdings are loaded directly from portfolio.json (line 590-594). The `holding` dict will have all the fields from portfolio.json, including `trades` if present. [score=0.812 recalls=0 avg=0.620 source=memory/2026-06-15-1018.md:15-16]
+<!-- openclaw-memory-promotion:memory:memory/2026-06-15-1018.md:18:18 -->
+- Conversation Summary: Now I need to add a check: if the holding was bought today (all trades have today's date), use `cost` instead of `pc` for today_change calculation. [score=0.812 recalls=0 avg=0.620 source=memory/2026-06-15-1018.md:18-18]
