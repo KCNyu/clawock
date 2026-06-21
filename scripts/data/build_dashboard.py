@@ -2092,6 +2092,15 @@ def main():
     out['anomalies'] = extract_anomalies(brief_ctx, us_h, hk_h)
     _preserve_absent('anomalies', bool(brief_ctx))
 
+    # market_context is sector-scan-derived (load_sector_scan reads memory/.tmp,
+    # absent on a GHA checkout) and portfolio.market_context is usually empty — so
+    # a context-less rebuild would blank the 大盘速读 card. Preserve last good,
+    # same merge-not-overwrite contract as the sidecar fields above.
+    if not out.get('market_context'):
+        _prev_mc = _prev_dash.get('market_context')
+        if _prev_mc:
+            out['market_context'] = _prev_mc
+
     # ── LLM narrative sidecars (agent-written in Step 3; text-only, no keys) ──
     # Each sidecar is validated (validate_insights / validate_intraday_insights)
     # before it reaches dashboard.json: malformed / hallucinated content is dropped
