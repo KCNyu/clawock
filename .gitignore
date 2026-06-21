@@ -26,6 +26,7 @@ data_cache/
 !docs/*.jpg
 *.jpeg
 *.gif
+!docs/*.gif
 *.mp4
 
 # IDE / OS

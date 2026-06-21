@@ -17,10 +17,10 @@
 <br>
 
 <a href="https://kcnyu.github.io/clawock/">
-  <img src="docs/dashboard-preview.png" alt="clawock dashboard" width="800">
+  <img src="docs/dashboard-demo.gif" alt="clawock 实时仪表盘" width="800">
 </a>
 
-<sub>真实持仓,真实盈亏。页面在每次 cron 运行后更新;这张截图每周由 <a href="https://github.com/KCNyu/clawock/actions/workflows/screenshot-refresh.yml">GitHub Action</a> 自动刷新,永不过期。</sub>
+<sub>真实持仓,真实盈亏。↑ 真实 live 仪表盘的滚动实录 —— <a href="https://kcnyu.github.io/clawock/">点这里打开</a>。页面在每次 cron 运行后更新。</sub>
 
 <br><br>
 
