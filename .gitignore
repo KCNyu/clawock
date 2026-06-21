@@ -52,6 +52,8 @@ fix_stock_analyzer.py
 # Runtime state files (cron / heartbeat output, not source data)
 memory/heartbeat-state.json
 memory/last_hk_monitoring.json
+# openclaw bootstrap/setup state — machine-local runtime artifact, never source
+openclaw-workspace-state.json
 # cron logs (local-only)
 logs/*
 # dashboard build status must reach the GHA cron-health runner (its only reader)
