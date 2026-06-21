@@ -1,0 +1,410 @@
+{
+  "method": "复用 calibration benefit%(方向化:hold/add=ret, cut/trim=-ret)，算术累计 pp，等权，不含 size/手续费/滑点。全部信号含 hold(=beta)，主动信号(cut/trim/add/t_only)才是 AI 顾问 alpha 代理。",
+  "horizons": {
+    "t1_next_session": {
+      "all_signals": {
+        "cum": 473.76,
+        "avg": 2.256,
+        "win_rate": 0.6,
+        "n": 210
+      },
+      "active_signals": {
+        "cum": -33.01,
+        "avg": -0.367,
+        "win_rate": 0.522,
+        "n": 90
+      },
+      "by_bucket": {
+        "hold_and_watch": {
+          "cum": 499.79,
+          "avg": 4.236,
+          "win_rate": 0.653,
+          "n": 118
+        },
+        "trim_on_rebound": {
+          "cum": 99.02,
+          "avg": 2.539,
+          "win_rate": 0.641,
+          "n": 39
+        },
+        "add_only_on_trigger": {
+          "cum": 43.57,
+          "avg": 3.631,
+          "win_rate": 0.583,
+          "n": 12
+        },
+        "watch": {
+          "cum": 6.98,
+          "avg": 3.49,
+          "win_rate": 1.0,
+          "n": 2
+        },
+        "add_on_breakout": {
+          "cum": -12.71,
+          "avg": -12.71,
+          "win_rate": 0.0,
+          "n": 1
+        },
+        "t_only": {
+          "cum": -16.67,
+          "avg": -4.168,
+          "win_rate": 0.0,
+          "n": 4
+        },
+        "cut": {
+          "cum": -146.22,
+          "avg": -4.301,
+          "win_rate": 0.441,
+          "n": 34
+        }
+      },
+      "by_driver": {
+        "macro": {
+          "cum": 16.72,
+          "avg": 8.36,
+          "win_rate": 1.0,
+          "n": 2
+        },
+        "peer": {
+          "cum": -2.55,
+          "avg": -0.283,
+          "win_rate": 0.333,
+          "n": 9
+        },
+        "(空)": {
+          "cum": -12.71,
+          "avg": -12.71,
+          "win_rate": 0.0,
+          "n": 1
+        },
+        "technical": {
+          "cum": -16.18,
+          "avg": -0.279,
+          "win_rate": 0.569,
+          "n": 58
+        },
+        "catalyst": {
+          "cum": -18.29,
+          "avg": -0.915,
+          "win_rate": 0.45,
+          "n": 20
+        }
+      },
+      "curve": [
+        {
+          "date": "2026-05-17",
+          "cum_all": 0.0,
+          "cum_active": 0.0
+        },
+        {
+          "date": "2026-05-18",
+          "cum_all": -9.66,
+          "cum_active": -9.66
+        },
+        {
+          "date": "2026-05-19",
+          "cum_all": 10.23,
+          "cum_active": -3.73
+        },
+        {
+          "date": "2026-05-20",
+          "cum_all": 26.64,
+          "cum_active": -1.09
+        },
+        {
+          "date": "2026-05-21",
+          "cum_all": 13.11,
+          "cum_active": -14.2
+        },
+        {
+          "date": "2026-05-22",
+          "cum_all": -78.27,
+          "cum_active": -24.58
+        },
+        {
+          "date": "2026-05-25",
+          "cum_all": -177.67,
+          "cum_active": -56.61
+        },
+        {
+          "date": "2026-05-26",
+          "cum_all": -169.02,
+          "cum_active": -92.88
+        },
+        {
+          "date": "2026-05-27",
+          "cum_all": -100.06,
+          "cum_active": -79.58
+        },
+        {
+          "date": "2026-05-28",
+          "cum_all": -111.96,
+          "cum_active": -141.46
+        },
+        {
+          "date": "2026-05-29",
+          "cum_all": -91.91,
+          "cum_active": -176.42
+        },
+        {
+          "date": "2026-05-31",
+          "cum_all": 14.52,
+          "cum_active": -149.06
+        },
+        {
+          "date": "2026-06-01",
+          "cum_all": 71.16,
+          "cum_active": -131.37
+        },
+        {
+          "date": "2026-06-02",
+          "cum_all": 160.69,
+          "cum_active": -108.87
+        },
+        {
+          "date": "2026-06-03",
+          "cum_all": 208.77,
+          "cum_active": -94.36
+        },
+        {
+          "date": "2026-06-05",
+          "cum_all": 249.9,
+          "cum_active": -44.59
+        },
+        {
+          "date": "2026-06-08",
+          "cum_all": 302.28,
+          "cum_active": -20.46
+        },
+        {
+          "date": "2026-06-09",
+          "cum_all": 379.4,
+          "cum_active": -5.64
+        },
+        {
+          "date": "2026-06-10",
+          "cum_all": 424.03,
+          "cum_active": 6.47
+        },
+        {
+          "date": "2026-06-11",
+          "cum_all": 446.0,
+          "cum_active": -3.55
+        },
+        {
+          "date": "2026-06-15",
+          "cum_all": 485.26,
+          "cum_active": -24.41
+        },
+        {
+          "date": "2026-06-16",
+          "cum_all": 485.51,
+          "cum_active": -23.44
+        },
+        {
+          "date": "2026-06-17",
+          "cum_all": 473.61,
+          "cum_active": -33.88
+        },
+        {
+          "date": "2026-06-18",
+          "cum_all": 473.76,
+          "cum_active": -33.01
+        }
+      ]
+    },
+    "t5_fifth_session": {
+      "all_signals": {
+        "cum": 13.14,
+        "avg": 0.077,
+        "win_rate": 0.518,
+        "n": 170
+      },
+      "active_signals": {
+        "cum": -45.71,
+        "avg": -0.601,
+        "win_rate": 0.474,
+        "n": 76
+      },
+      "by_bucket": {
+        "trim_on_rebound": {
+          "cum": 164.89,
+          "avg": 4.85,
+          "win_rate": 0.588,
+          "n": 34
+        },
+        "t_only": {
+          "cum": 71.05,
+          "avg": 17.762,
+          "win_rate": 0.75,
+          "n": 4
+        },
+        "hold_and_watch": {
+          "cum": 34.6,
+          "avg": 0.376,
+          "win_rate": 0.543,
+          "n": 92
+        },
+        "watch": {
+          "cum": 24.25,
+          "avg": 12.125,
+          "win_rate": 1.0,
+          "n": 2
+        },
+        "add_only_on_trigger": {
+          "cum": 19.55,
+          "avg": 1.629,
+          "win_rate": 0.333,
+          "n": 12
+        },
+        "add_on_breakout": {
+          "cum": 16.07,
+          "avg": 16.07,
+          "win_rate": 1.0,
+          "n": 1
+        },
+        "cut": {
+          "cum": -317.27,
+          "avg": -12.691,
+          "win_rate": 0.32,
+          "n": 25
+        }
+      },
+      "by_driver": {
+        "(空)": {
+          "cum": 16.07,
+          "avg": 16.07,
+          "win_rate": 1.0,
+          "n": 1
+        },
+        "macro": {
+          "cum": 12.92,
+          "avg": 6.46,
+          "win_rate": 0.5,
+          "n": 2
+        },
+        "technical": {
+          "cum": 1.55,
+          "avg": 0.035,
+          "win_rate": 0.523,
+          "n": 44
+        },
+        "catalyst": {
+          "cum": -3.85,
+          "avg": -0.193,
+          "win_rate": 0.4,
+          "n": 20
+        },
+        "peer": {
+          "cum": -72.4,
+          "avg": -8.044,
+          "win_rate": 0.333,
+          "n": 9
+        }
+      },
+      "curve": [
+        {
+          "date": "2026-05-17",
+          "cum_all": 26.44,
+          "cum_active": 11.93
+        },
+        {
+          "date": "2026-05-18",
+          "cum_all": 71.04,
+          "cum_active": 56.53
+        },
+        {
+          "date": "2026-05-19",
+          "cum_all": 173.76,
+          "cum_active": 110.75
+        },
+        {
+          "date": "2026-05-20",
+          "cum_all": 200.56,
+          "cum_active": 94.57
+        },
+        {
+          "date": "2026-05-21",
+          "cum_all": 137.15,
+          "cum_active": 30.84
+        },
+        {
+          "date": "2026-05-22",
+          "cum_all": 35.75,
+          "cum_active": -14.73
+        },
+        {
+          "date": "2026-05-25",
+          "cum_all": -56.13,
+          "cum_active": -65.68
+        },
+        {
+          "date": "2026-05-26",
+          "cum_all": -44.75,
+          "cum_active": -116.28
+        },
+        {
+          "date": "2026-05-27",
+          "cum_all": -62.47,
+          "cum_active": -170.37
+        },
+        {
+          "date": "2026-05-28",
+          "cum_all": -116.09,
+          "cum_active": -230.12
+        },
+        {
+          "date": "2026-05-29",
+          "cum_all": -133.7,
+          "cum_active": -242.28
+        },
+        {
+          "date": "2026-05-31",
+          "cum_all": -72.68,
+          "cum_active": -192.07
+        },
+        {
+          "date": "2026-06-01",
+          "cum_all": -67.78,
+          "cum_active": -153.27
+        },
+        {
+          "date": "2026-06-02",
+          "cum_all": -71.63,
+          "cum_active": -123.82
+        },
+        {
+          "date": "2026-06-03",
+          "cum_all": -43.83,
+          "cum_active": -76.32
+        },
+        {
+          "date": "2026-06-05",
+          "cum_all": -35.4,
+          "cum_active": -23.58
+        },
+        {
+          "date": "2026-06-08",
+          "cum_all": -22.18,
+          "cum_active": 12.5
+        },
+        {
+          "date": "2026-06-09",
+          "cum_all": 20.44,
+          "cum_active": 0.07
+        },
+        {
+          "date": "2026-06-10",
+          "cum_all": 42.49,
+          "cum_active": -4.79
+        },
+        {
+          "date": "2026-06-11",
+          "cum_all": 13.14,
+          "cum_active": -45.71
+        }
+      ]
+    }
+  },
+  "verdict": "全听 AI 的主动建议(n=90)累计 -33pp，跑输「不动」——主动出手是负贡献；「全部信号」+474pp 几乎全来自 hold(=持有=beta，非 AI alpha)；cut 累计 -146pp(均 -4.3pp/次，n=34)最拖累"
+}

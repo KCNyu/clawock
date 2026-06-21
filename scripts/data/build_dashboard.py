@@ -2149,6 +2149,16 @@ def main():
         if isinstance(_prev_pd, dict) and _prev_pd.get('items'):
             out['peer_divergence'] = _prev_pd
     out['calibration'] = compute_calibration()
+    # 影子回测:「如果全听 AI 主动建议」累计 benefit 曲线 vs 不动(=beta)。复用
+    # calibration 的方向化 benefit%,不另造成交假设。Defensive — 永不阻断构建。
+    try:
+        if str(WS_ROOT / 'scripts' / 'data') not in sys.path:
+            sys.path.insert(0, str(WS_ROOT / 'scripts' / 'data'))
+        from shadow_backtest import compute as _shadow_compute
+        out['shadow_backtest'] = _shadow_compute()
+    except Exception as e:
+        print(f'  warn: shadow_backtest compute fail: {e}', file=sys.stderr)
+        out['shadow_backtest'] = None
     out['debate_metrics'] = compute_debate_metrics()
     out['active_signal_discipline'] = compute_active_signal_discipline()
     out['calibration_by_trigger'] = compute_calibration_by_trigger()

@@ -2509,8 +2509,21 @@ layout: null
       fe.push(`${k} ${(e.win_rate * 100).toFixed(0)}%${band}${e.edge_significant ? "✓" : "✗"}`);
     });
     if (fe.length) rows.push(row("消息源 edge", fe.join(" · "), "var(--text-dim)"));
+    // 🔬 影子回测:如果每条 AI 主动建议都被严格执行(执行权仍在 kcn,这是反事实)
+    const sb = safe(DATA, "shadow_backtest");
+    const t1 = safe(sb, "horizons", "t1_next_session");
+    if (t1 && t1.active_signals) {
+      const act = t1.active_signals, alls = t1.all_signals || {}, cut = (t1.by_bucket || {}).cut;
+      rows.push(`<div style="color:var(--text-dim);font-size:10px;margin:8px 0 2px;border-top:1px dashed var(--border);padding-top:6px">🔬 如果全听 AI(反事实回测 · 复用 calibration benefit% · 等权 · T+1)</div>`);
+      if (act.cum != null)
+        rows.push(row("全听·仅主动建议", `${act.cum >= 0 ? "+" : ""}${Math.round(act.cum)}pp 累计 (n=${act.n})${act.cum < 0 ? " · 跑输「不动」" : ""}`, act.cum < 0 ? "var(--red)" : "var(--green)"));
+      if (alls.cum != null)
+        rows.push(row("全部信号(含 hold)", `${alls.cum >= 0 ? "+" : ""}${Math.round(alls.cum)}pp · 几乎全是持有的市场 β`, "var(--text-dim)"));
+      if (cut && cut.cum != null)
+        rows.push(row("cut 动作累计", `${cut.cum >= 0 ? "+" : ""}${Math.round(cut.cum)}pp (均 ${cut.avg >= 0 ? "+" : ""}${cut.avg}pp/次, n=${cut.n})`, cut.cum < 0 ? "var(--red)" : "var(--green)"));
+    }
     el.innerHTML = rows.join("")
-      + `<div style="color:var(--text-dim);font-size:10px;margin-top:6px">算账全在 Python，模型改不了这张表。命中率高 ≠ 有 edge — 看收益口径 + 显著性。</div>`;
+      + `<div style="color:var(--text-dim);font-size:10px;margin-top:6px">算账全在 Python，模型改不了这张表。命中率高 ≠ 有 edge — 看收益口径 + 显著性。AI 只产出建议,执行权在 kcn;影子回测=「假设全执行」的反事实。</div>`;
     card.style.display = "";
   }
 
