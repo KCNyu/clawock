@@ -62,6 +62,33 @@ So I can tell you, with receipts, how the AI is *actually* doing:
 
 ---
 
+## 🎯 How it actually decides
+
+Behind the persona is a fixed decision framework — not freeform vibes. Every call is attributed, gated, and bucketed before it's allowed to count.
+
+**1. Attribution-first — and the edge is measured.** Every call is tagged by *what drove it*, then scored over time. On the live record:
+
+| Driver | Hit rate | How it's used |
+|---|---:|---|
+| **catalyst** (earnings, FOMC, dated event) | **69%** (n=61) | the only driver allowed to *initiate* an action |
+| **technical** (trend / RSI / levels) | **59%** (n=116) | a filter, never the thesis |
+| macro | 50% (n=20) | context; a coin-flip on its own |
+| **peer / 抱团 read-across** | **40%** (n=10) | the worst — herd reasoning is actively distrusted |
+
+**2. Hard catalyst vs. soft sentiment.** Soft sentiment (Reddit, mood, a single tweet) can only nudge a *confidence* number — it can never flip the action bucket. Only a hard, dated catalyst can.
+
+**3. Falsify, don't confirm.** In a risk-on tape the default is `HOLD`. A *confirming* bullish story doesn't trigger a buy; the model first has to clear a disconfirming check and a "is this already priced in?" test (the last-5-day move).
+
+**4. Conviction is capped by hard risk gates.** However sure it feels: single name ≤35%, Top-2 ≤70%, leverage-ETF sleeve ≤50%, portfolio β ≤3.0, stop at −18%. Position size is bounded by construction, not by mood.
+
+**5. Leverage is dialed by regime, not timed.** A 200-day-trend × volatility dial sets a multiplier (×1 / ×0.5 / ×0) on the leverage-ETF cap. The backtest lesson behind it: the alpha was in *de-leveraging in the wrong regime*, not in calling tops.
+
+**6. Quant signals must earn the right to speak.** A factor layer (MA cross, 12-1 momentum, RSI-14, z-score, ATR chandelier stop, vol-target sizing) runs in Python — but each factor is **barred from influencing a decision until it clears n≥20 and proves a hit rate.** Unproven factors are shown, never obeyed.
+
+Everything resolves into an action bucket with an explicit trigger — `cut` / `trim-on-rebound` / `hold` / `T-only` / `add-only-on-trigger`. That bucket list *is* the `plan.json` graded the next morning: **the strategy and the scorecard are the same object.**
+
+---
+
 ## 📅 What a day actually looks like
 
 ```
