@@ -117,17 +117,6 @@ def today_runs(job_id):
     return [r for r in read_runs(job_id) if is_today_hkt(r.get('ts'))]
 
 
-def resolve_target(runs):
-    """WeChat target from this job's most recent successful delivery resolution,
-    so we send wherever the job normally sends (no hardcoded account that rots
-    when the bot is re-paired). Returns (channel, to, accountId)."""
-    for r in reversed(runs):
-        d = (r.get('delivery') or {}).get('resolved') or {}
-        if d.get('ok') and d.get('to'):
-            return d.get('channel'), d.get('to'), d.get('accountId')
-    return None, None, None
-
-
 # kcn's WeChat conversation — last-resort fallback if cron config can't be read.
 KCN_WECHAT = ('openclaw-weixin', 'o9cq80-hGTruM-OSs8kNmDOtLVZI@im.wechat', '61bf112daf0d-im-bot')
 
@@ -215,102 +204,6 @@ def send_telegram(target, message, dry_run):
         cmd.append('--dry-run')
     r = subprocess.run(cmd, capture_output=True, text=True, timeout=60)
     return r.returncode == 0, (r.stdout + r.stderr)[-400:]
-
-
-def cron_session_ids():
-    """Set of every cron run's sessionId (across all cron/runs/*.jsonl). Used to
-    EXCLUDE cron sessions when looking for kcn's last human inbound — cron runs
-    live in the same agents/main/sessions/ dir and their 'user' turn is the
-    harness prompt (every 30min), which would otherwise look like fresh human
-    activity and keep the session perpetually 'warm'."""
-    ids = set()
-    if not RUNS_DIR.exists():
-        return ids
-    for p in RUNS_DIR.glob('*.jsonl'):
-        try:
-            for line in p.read_text().splitlines():
-                line = line.strip()
-                if not line:
-                    continue
-                sid = json.loads(line).get('sessionId')
-                if sid:
-                    ids.add(sid)
-        except Exception:
-            continue
-    return ids
-
-
-def last_human_inbound_ms(before_ms=None, lookback_hours=24):
-    """Timestamp (ms) of kcn's most recent inbound message to the bot, optionally
-    only counting messages at/before `before_ms`. Scans non-cron main-agent
-    session transcripts (mtime within lookback_hours) for role=user entries.
-
-    This is our session-warmth proxy: the WeChat cold-session drop has NO read
-    receipt and `delivered` is poisoned (always true), so the only honest signal
-    of 'did kcn actually get it' is how long since kcn last talked to the bot.
-    Returns None if no human inbound found in the window.
-
-    Synthetic role=user turns are excluded: cron harness prompts (via cron
-    sessions) and — critically — the `[OpenClaw heartbeat poll]` injected every
-    hour, which would otherwise masquerade as a fresh human message and keep the
-    session perpetually 'warm' (2026-06-02: a 10:50 heartbeat made an 11:30 cold
-    session read as idle=39m and suppressed the Telegram backup)."""
-    if not SESSIONS_DIR.exists():
-        return None
-    cron_ids = cron_session_ids()
-    now_ms = datetime.now(timezone.utc).timestamp() * 1000
-    floor_ms = now_ms - lookback_hours * 3600 * 1000
-    best = None
-    for p in SESSIONS_DIR.glob('*.jsonl'):
-        if p.name.endswith('.trajectory.jsonl'):
-            continue
-        if p.stem in cron_ids:
-            continue
-        try:
-            if p.stat().st_mtime * 1000 < floor_ms:
-                continue
-        except OSError:
-            continue
-        try:
-            for line in p.read_text().splitlines():
-                line = line.strip()
-                if not line:
-                    continue
-                try:
-                    e = json.loads(line)
-                except Exception:
-                    continue
-                m = e.get('message', e)
-                if m.get('role') != 'user':
-                    continue
-                ts = m.get('timestamp')
-                if not isinstance(ts, (int, float)):
-                    continue
-                if before_ms is not None and ts > before_ms:
-                    continue
-                if _is_synthetic_user(m.get('content')):
-                    continue
-                if best is None or ts > best:
-                    best = ts
-        except Exception:
-            continue
-    return best
-
-
-def _is_synthetic_user(content):
-    """True if a role=user turn is machine-injected (heartbeat poll, system tag)
-    rather than a real kcn message — must not count as session warmth."""
-    if isinstance(content, list):
-        text = ' '.join(b.get('text', '') for b in content
-                        if isinstance(b, dict) and b.get('type') == 'text')
-    elif isinstance(content, str):
-        text = content
-    else:
-        return True
-    t = text.strip()
-    if not t:
-        return True
-    return t.startswith('[OpenClaw') or 'heartbeat poll' in t
 
 
 def last_report_text(session_id, first_line):
