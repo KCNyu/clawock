@@ -2146,6 +2146,16 @@ layout: null
     _chartTabsShown.add(t);
     paintCharts(t);
   }
+  // At ≥1024px the pager is display:contents and ALL panels show at once as a grid
+  // (not one tab at a time), so every chart is visible immediately — lazy-by-active-tab
+  // would leave the Sector/Position/equity/shadow charts blank on desktop. Render the
+  // visible set: all tabs on desktop, just the current tab on the mobile pager.
+  const DESKTOP_MQ = window.matchMedia("(min-width: 1024px)");
+  function ensureVisibleCharts() {
+    if (DESKTOP_MQ.matches) Object.keys(CHART_FNS).forEach(ensureTabCharts);
+    else ensureTabCharts(currentTab());
+  }
+  DESKTOP_MQ.addEventListener("change", () => { if (DATA) ensureVisibleCharts(); });
 
   // Instant re-theme on OS dark/light flip (phones auto-switch at sunset): CSS vars
   // flip immediately but cached ECharts instances keep the old palette until the
@@ -2554,7 +2564,7 @@ layout: null
     // Charts are lazy (see CHART_FNS): repaint tabs already shown with the fresh
     // DATA, then ensure the current tab's charts get drawn.
     _chartTabsShown.forEach(paintCharts);
-    ensureTabCharts(currentTab());
+    ensureVisibleCharts();
   }
 
   // ── A2 系统健康卡（页脚）──

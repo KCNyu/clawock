@@ -20,12 +20,22 @@ const URL = process.env.URL || 'https://kcnyu.github.io/clawock/';
 const OUT_DIR = process.env.OUT_DIR || 'docs';
 
 async function settle(page) {
-  // The landing (Hero) tab has NO chart since charts lazy-load per tab (2026-06-22),
-  // so the old canvas wait would hang the full 45s timeout. Wait for the hero panel
-  // to actually populate instead, then let layout/fonts settle.
+  // 1) Wait for the data to populate the Hero panel (don't key off <canvas>: the
+  //    Hero tab has no chart since charts lazy-load — that wait would hang 45s).
   await page.waitForFunction(
     () => { const h = document.querySelector('[data-panel=hero]'); return h && h.textContent.trim().length > 200; },
     { timeout: 45000 },
+  ).catch(() => {});
+  // 2) On desktop the grid shows all panels at once → all charts draw on load; wait
+  //    for every <canvas> to have real size so none is captured blank. On mobile only
+  //    the (chart-less) Hero tab is visible, so don't wait (charts are lazy per tab).
+  await page.waitForFunction(
+    () => {
+      if (!window.matchMedia('(min-width: 1024px)').matches) return true;
+      const cs = [...document.querySelectorAll('canvas')];
+      return cs.length > 0 && cs.every(c => c.width > 50);
+    },
+    { timeout: 15000 },
   ).catch(() => {});
   await page.waitForTimeout(2500);
 }
