@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-21T10:08:40.724713Z",
+  "generated_at": "2026-06-21T10:11:06.761866Z",
   "last_updated": "2026/06/18 16:00 HKT (HK close; US Jun 18 session)",
   "fx": {
     "usdhkd": 7.8376,
@@ -5847,7 +5847,7 @@
     "last_updated": "2026-06-19T15:50:09.097221Z"
   },
   "build_status": {
-    "generated_at": "2026-06-21T18:08:40+08:00",
+    "generated_at": "2026-06-21T18:11:06+08:00",
     "healthy": false,
     "stale_files": [
       "portfolio.json",
@@ -5884,7 +5884,7 @@
       },
       {
         "name": "em_news.json",
-        "age_hours": 0.0,
+        "age_hours": 0.1,
         "sla_hours": 30,
         "stale": false,
         "present": true
