@@ -4874,10 +4874,10 @@ layout: null
       const pendFrac = total ? (e.n_pending || 0) / total : 0;
       const ci = e.ci95;
       const ciTxt = ci ? ` [${(ci[0]*100).toFixed(0)}–${(ci[1]*100).toFixed(0)}]` : "";
-      const edge = e.edge_significant ? " ✓edge" : "";   // 整区间 > 50% 才打勾
+      const edge = e.edge_significant ? "✓" : "";   // 整区间 > 50% 才打勾(紧凑,省手机宽度)
       const wrTxt = e.win_rate == null
         ? `pending (${e.n_pending || 0})`
-        : `win ${(e.win_rate * 100).toFixed(0)}%${ciTxt} · n=${e.n_resolved}${edge}`;
+        : `${(e.win_rate * 100).toFixed(0)}%${ciTxt} n=${e.n_resolved}${edge}`;
       const alertCls = (e.win_rate != null && e.win_rate < 0.4 && e.n_resolved >= 2) ? " alert" : "";
       const confTxt = e.avg_confidence != null ? ` · conf ${(e.avg_confidence * 100).toFixed(0)}%` : "";
       return `
@@ -4923,10 +4923,10 @@ layout: null
       const pendFrac = total ? (e.n_pending || 0) / total : 0;
       const ci = e.ci95;
       const ciTxt = ci ? ` [${(ci[0]*100).toFixed(0)}–${(ci[1]*100).toFixed(0)}]` : "";
-      const edge = e.edge_significant ? " ✓edge" : "";   // 整区间 > 50% 才打勾
+      const edge = e.edge_significant ? "✓" : "";   // 整区间 > 50% 才打勾(紧凑,省手机宽度)
       const wrTxt = e.win_rate == null
         ? `pending (${e.n_pending || 0})`
-        : `win ${(e.win_rate * 100).toFixed(0)}%${ciTxt} · n=${e.n_resolved}${edge}`;
+        : `${(e.win_rate * 100).toFixed(0)}%${ciTxt} n=${e.n_resolved}${edge}`;
       const alertCls = (e.win_rate != null && e.win_rate < 0.4 && e.n_resolved >= 2) ? " alert" : "";
       const confTxt = e.avg_confidence != null ? ` · conf ${(e.avg_confidence * 100).toFixed(0)}%` : "";
       return `
