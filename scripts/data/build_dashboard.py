@@ -1062,12 +1062,27 @@ def compute_calibration():
                 'risk_context': risk_note,
             }
 
+        # Followed discipline over the SAME resolved set, so the % shares the
+        # `samples` denominator. (The card used to compute this off the recent-20
+        # actions slice → read a misleading 100% from just 4 known-followed rows,
+        # implying all `samples` plans were followed when the real rate is ~61%.)
+        def _fl(r):
+            return (r.get('followed') or '').strip().lower()
+        f_true = sum(1 for r, _ in resolved if _fl(r).startswith('true'))
+        f_false = sum(1 for r, _ in resolved if _fl(r).startswith('false'))
+        f_known = f_true + f_false
+        followed = {
+            'true': f_true, 'false': f_false, 'unknown': n - f_known,
+            'pct': round(100 * f_true / f_known) if f_known else None,
+        }
+
         return {
             'brier_30d': brier_30d,
             'samples': n,
             'bands': bands_out,
             'per_bucket': per_bucket,
             'vs_baseline': vs_baseline,
+            'followed': followed,
         }
     except Exception as e:
         print(f'  warn: compute_calibration failed: {e}', file=sys.stderr)

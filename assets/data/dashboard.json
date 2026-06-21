@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-21T16:09:36.341529Z",
+  "generated_at": "2026-06-21T16:12:18.239057Z",
   "last_updated": "2026/06/18 16:00 HKT (HK close; US Jun 18 session)",
   "fx": {
     "usdhkd": 7.8376,
@@ -1636,6 +1636,12 @@
         "sharpe_30d": -1.34,
         "caveat": "hold baseline 命中率受 β/杠杆放大；命中率高≠决策有 edge，看 alpha_ret_pp（收益口径）+ sharpe 才是风险调整后的真账"
       }
+    },
+    "followed": {
+      "true": 117,
+      "false": 62,
+      "unknown": 5,
+      "pct": 65
     }
   },
   "shadow_backtest": {
@@ -6483,7 +6489,7 @@
     "last_updated": "2026-06-19T15:50:09.097221Z"
   },
   "build_status": {
-    "generated_at": "2026-06-22T00:09:36+08:00",
+    "generated_at": "2026-06-22T00:12:18+08:00",
     "healthy": false,
     "stale_files": [
       "portfolio.json",
@@ -6497,7 +6503,7 @@
     "files": [
       {
         "name": "portfolio.json",
-        "age_hours": 48.3,
+        "age_hours": 48.4,
         "sla_hours": 26,
         "stale": true,
         "present": true
@@ -6525,7 +6531,7 @@
       },
       {
         "name": "influencer_feed.json",
-        "age_hours": 44.8,
+        "age_hours": 44.9,
         "sla_hours": 30,
         "stale": true,
         "present": true
@@ -6546,21 +6552,21 @@
       },
       {
         "name": "quant_signal_review.json",
-        "age_hours": 5.0,
+        "age_hours": 5.1,
         "sla_hours": 30,
         "stale": false,
         "present": true
       },
       {
         "name": "quant_signals.json",
-        "age_hours": 5.0,
+        "age_hours": 5.1,
         "sla_hours": 30,
         "stale": false,
         "present": true
       },
       {
         "name": "risk.json",
-        "age_hours": 5.0,
+        "age_hours": 5.1,
         "sla_hours": 30,
         "stale": false,
         "present": true
@@ -6574,7 +6580,7 @@
       },
       {
         "name": "us_news_digest.json",
-        "age_hours": 44.8,
+        "age_hours": 44.9,
         "sla_hours": 30,
         "stale": true,
         "present": true

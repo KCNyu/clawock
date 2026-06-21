@@ -4719,10 +4719,20 @@ layout: null
     const actions = safe(DATA, "recent_plan_actions") || [];
 
     const total = calib.samples || actions.length || 0;
-    const followedTrue = actions.filter(a => (a.followed || "").toLowerCase() === "true").length;
-    const followedFalse = actions.filter(a => (a.followed || "").toLowerCase() === "false").length;
-    const followedKnown = followedTrue + followedFalse;
-    const followedPct = followedKnown ? Math.round((followedTrue / followedKnown) * 100) : null;
+    // Followed discipline over the SAME resolved set as `total` (calib.followed),
+    // not the recent-20 actions slice — that slice read a misleading 100% off a
+    // handful of known rows next to the much larger `total`. Fall back to the
+    // actions calc only if the backend field is absent (old dashboard.json).
+    const fl = calib.followed;
+    let followedTrue, followedKnown, followedPct;
+    if (fl && fl.pct != null) {
+      followedTrue = fl.true; followedKnown = fl.true + fl.false; followedPct = fl.pct;
+    } else {
+      followedTrue = actions.filter(a => (a.followed || "").toLowerCase() === "true").length;
+      const followedFalse = actions.filter(a => (a.followed || "").toLowerCase() === "false").length;
+      followedKnown = followedTrue + followedFalse;
+      followedPct = followedKnown ? Math.round((followedTrue / followedKnown) * 100) : null;
+    }
 
     // Alpha vs passive "hold everything" baseline — regime-robust edge, replaces the old
     // followed-only win rate (which was ≈ passive holds and read inflated).
