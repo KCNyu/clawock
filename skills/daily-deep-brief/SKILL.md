@@ -534,7 +534,8 @@ postflight 严格 schema 校验：
       "confidence": 0.82,
       "driven_by": "catalyst",
       "contested": true,
-      "rationale": "HOOD Q1 26 earnings miss + crypto rev -47%"
+      "rationale": "HOOD Q1 26 earnings miss + crypto rev -47%",
+      "thesis_invalidation": "若 crypto rev 环比转正 / DAU 回升 → 论点失效，停止减仓"
     }
   ],
   "watch_levels": {
@@ -551,6 +552,7 @@ postflight 严格 schema 校验：
 - `driven_by` ∈ {`technical`, `catalyst`, `sentiment`, `influencer`, `macro`, `peer`}（**每个 action 必填**，见"消息面权重铁律"段的归因表；postflight 校验，软情绪不得单独翻 bucket）
 - `confidence` ∈ [0.0, 1.0]
 - `contested` ∈ {`true`, `false`}（**每个 action 必填**）：Tier 2 的 Bull 与 Bear 是否**真的在这个仓位上分歧**？`true`=两方对该仓给出相反结论、由 Judge 裁决；`false`=两方一致、辩论没改变它。这是辩论价值的度量种子——日后用它对账「被争议的 call 是否比一致的 call 校准更好」，量化 Tier1/2/3 辩论值不值它多花的 token。诚实标，别为了好看全标 true。
+- `thesis_invalidation`（string，主动 cut/trim/add 必填；hold 选填）：**借鉴 UZI-Skill 的 thesis-tracking**——这个仓位的论点**会被什么具体催化推翻**？把 catalyst-gate(cut #1)落地成「论点+失效条件」：你只在这个**失效催化真的发生**时动手，而不是技术面波动。例：「crypto rev 环比转正则停止减仓」。这逼着每个主动 call 绑定一个可被证伪的硬催化，而非"看着toppy"。
 
 **trigger_type 详解**（决定 retrospective 怎么算触发）：
 
