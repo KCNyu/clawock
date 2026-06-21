@@ -859,10 +859,13 @@ def update_us_portfolio(
     if dry_run:
         print("\n  [dry-run] portfolio.json NOT written.\n")
     else:
-        from safe_io import safe_write_json
+        from safe_io import mutate_json
         from recompute_realized import recompute as recompute_realized
         recompute_realized(data)
-        safe_write_json(portfolio_path, data)
+        # 锁内重读、只覆盖自己拥有的 us_stocks 区，保住并发写者(gold/hk)的字段 [cut #2]
+        mutate_json(portfolio_path, lambda d: {
+            **d, 'portfolios': {**d.get('portfolios', {}),
+                                'us_stocks': data['portfolios']['us_stocks']}})
         print(f"\n  ✅ Saved → {portfolio_path}")
 
     print(f"{'═'*62}\n")

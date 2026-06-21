@@ -236,8 +236,10 @@ def main():
         print('  [dry-run] 不写盘')
         return 0
 
-    pf['gold_dca'] = merged
-    safe_write_json(PORTFOLIO, pf)
+    # 锁内重读当前 portfolio，只覆盖自己拥有的 gold_dca key —— 防与 market/intraday
+    # 写者的 load-modify-write 竞态（旧内存整块覆盖刚写的 gold 字段）。[cut #2]
+    from safe_io import mutate_json
+    mutate_json(PORTFOLIO, lambda d: {**d, 'gold_dca': merged})
     print(f"  ✓ 已写回 {PORTFOLIO}")
     return 0
 
