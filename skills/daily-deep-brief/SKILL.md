@@ -364,6 +364,7 @@ preflight 已算好,直接读 `context.risk_guardrail`:
 ```
 据 regime 收敛主动操作(calibration 实测 hold 在 risk_on 下 76%、主动信号仅 40%):
 - **risk_on** → **默认动作 = HOLD,别跟趋势对着干**。cut/trim 必须有 disconfirming 硬催化才允许(见证伪铁律);所有主动 call(cut/trim/add)confidence **上限 ≤0.55**,并在 rationale 写"risk_on regime,主动信号历史 ~40%,倾向不动"。牛市砍仓结构性吃亏。
+  - **🎯 catalyst-gate 铁律(收窄主动信号面 / cut #1)**：calibration 实测**只有 `driven_by=catalyst` 经 95% CI 证明有 edge**(catalyst [59–82]),technical 仅勉强、是过滤器,peer/macro 无 edge;且主动 call 收益口径 alpha 为负(跟随 LLM 反而少赚)。**所以任何主动 cut/trim/add 必须 `driven_by=catalyst`(硬催化)**;若你只有 technical/peer/macro 依据 → **默认改 `hold_and_watch`**,把该理由写进 watch_levels 当触发条件,而不是直接出主动动作。每多一个非 catalyst 的主动 call,就是在重复已被证伪的负 alpha 行为。dashboard `active_signal_discipline.catalyst_pct` 会公开记录你这条做得好不好。
 - **neutral** → 正常按 frame 判断,无额外封顶。
 - **risk_off** → 防御优先,cut/trim 门槛放宽(可信度提高),add 需更强触发;杠杆仓位优先减。
 - regime 缺失(null,数据 stale)→ 写"regime 未知,主动操作按常规谨慎"并跳过封顶。

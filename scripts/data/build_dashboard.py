@@ -320,6 +320,56 @@ def total_plans_count():
 _DEBATE_PASSIVE = {'hold_and_watch', 'watch', ''}
 
 
+_ACTIVE_BUCKETS = {'cut', 'trim_on_rebound', 'add_only_on_trigger', 'add_on_breakout'}
+
+
+def compute_active_signal_discipline(window_days=30):
+    """Catalyst-gate discipline metric [cut #1].
+
+    Calibration proves active calls (cut/trim/add) have no significant edge and
+    that catalyst is the ONLY driver that beats a coin flip. So an active call
+    *should* be catalyst-backed; a technical/peer/macro-driven active call is a
+    filter-grade signal used as a decision — the proven-negative-alpha behavior.
+    This surfaces how disciplined the book actually is, so over-trading is visible
+    instead of buried."""
+    try:
+        rows = _read_calibration_rows()
+        if not rows:
+            return None
+        today = datetime.now(timezone.utc).date()
+        active = []
+        for r in rows:
+            if (r.get('bucket') or '').strip() not in _ACTIVE_BUCKETS:
+                continue
+            try:
+                pd = datetime.strptime(r.get('plan_date', '')[:10], '%Y-%m-%d').date()
+            except Exception:
+                continue
+            if (today - pd).days > window_days:
+                continue
+            active.append((r.get('driven_by') or '').strip() or '(blank)')
+        n = len(active)
+        if not n:
+            return None
+        catalyst = sum(1 for d in active if d == 'catalyst')
+        by_driver = {}
+        for d in active:
+            by_driver[d] = by_driver.get(d, 0) + 1
+        return {
+            'window_days': window_days,
+            'active_calls': n,
+            'catalyst_backed': catalyst,
+            'catalyst_pct': round(100 * catalyst / n, 1),
+            'by_driver': dict(sorted(by_driver.items(), key=lambda kv: -kv[1])),
+            'note': ('catalyst-gate：只有 catalyst 经校准证明有 edge。catalyst_pct 低 = 大量主动'
+                     'cut/trim/add 由 technical/peer 驱动（过滤器当决策用，历史无显著 edge、跑输 hold）。'
+                     '提高这个比例 = 收窄主动信号面、向「只在硬催化时出手」靠拢。'),
+        }
+    except Exception as e:
+        print(f'  warn: compute_active_signal_discipline failed: {e}', file=sys.stderr)
+        return None
+
+
 def compute_debate_metrics(recent=20):
     """Does the multi-agent Tier1/2/3+Judge debate actually move anything? [cut #4]
 
@@ -2069,6 +2119,7 @@ def main():
     }
     out['calibration'] = compute_calibration()
     out['debate_metrics'] = compute_debate_metrics()
+    out['active_signal_discipline'] = compute_active_signal_discipline()
     out['calibration_by_trigger'] = compute_calibration_by_trigger()
     out['calibration_by_driver'] = compute_calibration_by_driver()
     out['recent_plan_actions'] = recent_actions_from_csv(limit=20)

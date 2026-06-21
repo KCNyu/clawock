@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-21T06:37:41.933352Z",
+  "generated_at": "2026-06-21T06:40:36.285200Z",
   "last_updated": "2026/06/18 16:00 HKT (HK close; US Jun 18 session)",
   "fx": {
     "usdhkd": 7.8376,
@@ -1652,6 +1652,19 @@
     "contested_rate": null,
     "contested_coverage": 0,
     "note": "辩论产出量化：decisiveness 低=risk_on 里 Judge 大多回 HOLD，一行默认规则即可复现，3-5x token 的辩论边际可疑。contested_rate 待 plan 开始标记后，与 calibration 联合检验「被争议的 call 是否校准更好」。"
+  },
+  "active_signal_discipline": {
+    "window_days": 30,
+    "active_calls": 74,
+    "catalyst_backed": 15,
+    "catalyst_pct": 20.3,
+    "by_driver": {
+      "technical": 54,
+      "catalyst": 15,
+      "peer": 3,
+      "macro": 2
+    },
+    "note": "catalyst-gate：只有 catalyst 经校准证明有 edge。catalyst_pct 低 = 大量主动cut/trim/add 由 technical/peer 驱动（过滤器当决策用，历史无显著 edge、跑输 hold）。提高这个比例 = 收窄主动信号面、向「只在硬催化时出手」靠拢。"
   },
   "calibration_by_trigger": {
     "price_above": {
@@ -5680,7 +5693,7 @@
     "last_updated": "2026-06-19T15:50:09.097221Z"
   },
   "build_status": {
-    "generated_at": "2026-06-21T14:37:41+08:00",
+    "generated_at": "2026-06-21T14:40:36+08:00",
     "healthy": false,
     "stale_files": [
       "portfolio.json",
