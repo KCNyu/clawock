@@ -180,6 +180,18 @@ def check_dashboard_build():
             'ok': True, 'warn_count': 0, 'age_hours': age_hours}
 
 
+def _market_closed_today(market):
+    """True if `market` ('hk'/'us') is on holiday/weekend today (its own TZ). Used to
+    suppress false 'missing commit' reds: a market-report cron on that market's holiday
+    is correctly skipped by preflight's holiday gate (memory: openclaw-market-holiday-gate),
+    so it produces no commit by design. Fail-open (False) if the calendar is unavailable."""
+    try:
+        import trading_calendar as _tc
+        return not _tc.is_trading_day(market)
+    except Exception:
+        return False
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--json', action='store_true')
@@ -215,6 +227,18 @@ def main():
         expected_past = [s for s in expected if s <= now_local]
         commit_pat = COMMIT_PATTERNS.get(name)
         commit_n = commit_count_today(commit_pat)
+
+        # Holiday gate: don't expect a commit from a 港股*/美股* report on that market's
+        # holiday — preflight skips the run by design (the 6-19 端午+Juneteenth double
+        # close was a false red). 港股→hk, 美股→us; other jobs (brief/dream) unaffected.
+        mkt = 'hk' if name.startswith('港股') else ('us' if name.startswith('美股') else None)
+        if mkt and expected_past and _market_closed_today(mkt):
+            report.append({
+                'name': name, 'schedule': expr, 'tz': tz,
+                'expected_today': 0, 'commits_today': commit_n,
+                'status': 'holiday', 'detail': f'{mkt.upper()} 休市 · 跳过(无需 commit)',
+            })
+            continue
 
         status = 'ok'
         detail = ''
@@ -264,7 +288,7 @@ def main():
     elif not args.silent:
         print(f"═══ cron health @ {summary['now_hkt']} ═══")
         for r in report:
-            icon = {'ok':'✓','idle':'·','missing':'✗','ok-no-track':'~'}[r['status']]
+            icon = {'ok':'✓','idle':'·','missing':'✗','ok-no-track':'~','holiday':'🏖'}.get(r['status'], '·')
             print(f"  {icon} {r['name']:25s}  {r['detail']}")
         dash_icon = {'ok':'✓','degraded':'⚠','stale':'⚠','failed':'✗','absent':'·'}[dash['state']]
         print(f"  {dash_icon} {'dashboard build':25s}  {dash['detail']}")
