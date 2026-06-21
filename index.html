@@ -1339,6 +1339,11 @@ layout: null
 
     <div id="today-highlights" class="today-highlights"></div>
 
+    <div class="card" id="honesty-card" style="display:none">
+      <h3>🪞 诚实自评 · self-grading</h3>
+      <div id="honesty-body" style="font-size:12px"></div>
+    </div>
+
 
     <div class="card market-card">
       <h3>Market Snapshot <span class="muted" id="market-asof" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:11px">—</span></h3>
@@ -2467,11 +2472,54 @@ layout: null
       `<span class="hl-chip ${c.cls}"><span class="hl-ic">${c.icon}</span>${c.txt}</span>`).join("");
   }
 
+  // 🪞 诚实自评卡 — 把这轮做的诚实层(风险调整判决 / catalyst 纪律 / 辩论决断 / 因子 CI)聚一处
+  function renderHonesty() {
+    const card = document.getElementById("honesty-card");
+    const el = document.getElementById("honesty-body");
+    if (!card || !el) return;
+    const vb = safe(DATA, "calibration", "vs_baseline");
+    const asd = safe(DATA, "active_signal_discipline");
+    const dm = safe(DATA, "debate_metrics");
+    const drv = safe(DATA, "calibration_by_driver") || {};
+    if (!vb && !asd) { card.style.display = "none"; return; }
+    const row = (label, val, color) =>
+      `<div style="display:flex;justify-content:space-between;gap:10px;padding:5px 0;border-bottom:1px solid var(--border)">`
+      + `<span style="color:var(--text-dim)">${label}</span>`
+      + `<span style="font-family:var(--mono);text-align:right;color:${color || 'var(--text)'}">${val}</span></div>`;
+    const rows = [];
+    if (vb && vb.alpha_pp != null) {
+      const retA = vb.alpha_ret_pp, sig = vb.alpha_significant;
+      const bad = retA != null ? (retA < 0 || sig === false) : vb.alpha_pp < 0;
+      let v = `命中 ${vb.alpha_pp >= 0 ? "+" : ""}${vb.alpha_pp}pp`;
+      if (retA != null) v += ` · 收益 ${retA >= 0 ? "+" : ""}${retA}pp`;
+      if (sig === false) v += " (不显著)";
+      rows.push(row("主动 vs 躺平", v, bad ? "var(--red)" : "var(--green)"));
+      const beta = safe(vb, "risk_context", "us_beta_spx");
+      if (beta != null) rows.push(row("组合 β (美股腿)", `${beta.toFixed(1)} · 多为杠杆 β,非 alpha`, "var(--text-dim)"));
+    }
+    if (asd && asd.catalyst_pct != null)
+      rows.push(row("催化纪律", `${asd.catalyst_pct}% 有硬催化 (${asd.catalyst_backed}/${asd.active_calls})`,
+                    asd.catalyst_pct >= 50 ? "var(--green)" : "var(--red)"));
+    if (dm && dm.decisiveness_pct != null)
+      rows.push(row("辩论决断率", `${dm.decisiveness_pct}% · 其余=默认 HOLD`, "var(--text-dim)"));
+    const fe = [];
+    ["catalyst", "technical", "macro", "peer"].forEach(k => {
+      const e = drv[k]; if (!e || e.win_rate == null) return;
+      const ci = e.ci95, band = ci ? `[${(ci[0] * 100).toFixed(0)}–${(ci[1] * 100).toFixed(0)}]` : "";
+      fe.push(`${k} ${(e.win_rate * 100).toFixed(0)}%${band}${e.edge_significant ? "✓" : "✗"}`);
+    });
+    if (fe.length) rows.push(row("消息源 edge", fe.join(" · "), "var(--text-dim)"));
+    el.innerHTML = rows.join("")
+      + `<div style="color:var(--text-dim);font-size:10px;margin-top:6px">算账全在 Python，模型改不了这张表。命中率高 ≠ 有 edge — 看收益口径 + 显著性。</div>`;
+    card.style.display = "";
+  }
+
   function render() {
     if (!DATA) return;
     renderHeader();
     renderStatusBanner();
     renderTodayHighlights();
+    renderHonesty();
     renderMarketSnapshot();
     renderHoldingsTrend();
     renderTotals();
