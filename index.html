@@ -5244,9 +5244,13 @@ layout: null
     ].filter(h => h.is_active !== false && (h.shares ?? 0) > 0);
 
     const rows = active.map(h => {
-      const series = hh[h.ticker] || [];
-      if (!series.length || series[0] === 0) return null;
+      // holdings_history pads missing days with null (e.g. a freshly-bought name
+      // has null before entry) — filter to finite numbers so a null base doesn't
+      // divide to Infinity (null===0 is false, then x/null → x/0 → Infinity).
+      const series = (hh[h.ticker] || []).filter(v => typeof v === "number" && isFinite(v));
+      if (series.length < 2 || series[0] <= 0) return null;
       const ret = (series[series.length - 1] - series[0]) / series[0] * 100;
+      if (!isFinite(ret)) return null;
       return {
         ticker: h.ticker,
         region: (h.currency === "HKD" ? "HK" : "US"),
