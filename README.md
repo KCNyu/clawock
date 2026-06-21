@@ -89,6 +89,18 @@ Everything resolves into an action bucket with an explicit trigger — `cut` / `
 
 ---
 
+## 🗣️ Every morning, the desk argues with itself
+
+The 08:00 deep brief isn't one model's monologue — it's a structured **multi-agent debate**, borrowed from [TradingAgents](https://github.com/TauricResearch/TradingAgents) and adapted for a dual-leg book:
+
+- **Tier 1 — four analyst lenses.** Fundamental / technical / sentiment / sector-rotation each read the *same* `context.json` and merge into one table. Numbers only, no vibes.
+- **Tier 2 — Bull vs Bear.** Two researchers build opposing cases (hold/add vs trim/cut), each citing ≥2 concrete Tier-1 data points. The hard rule: **they must genuinely disagree on at least one position** — unanimous agreement means the debate failed and is thrown out.
+- **Tier 3 — three risk voices + a Judge.** Aggressive, Conservative and Neutral each argue their corner; a **Judge** weighs them, names which strategy frame is driving each decision, and resolves the argument into concrete bucketed actions with triggers.
+
+The goal isn't consensus — it's **forcing a real bear case to exist before anything is held**, so the book never just talks itself into its own positions. The Judge's verdict *is* the `plan.json` that gets graded the next morning.
+
+---
+
 ## 📅 What a day actually looks like
 
 ```
