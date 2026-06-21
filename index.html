@@ -1798,7 +1798,7 @@ layout: null
 
     <div class="card" id="shadow-card" style="display:none">
       <h3>🔬 全听 AI vs 不动 <span class="muted" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:11px">反事实回测 · 累计 benefit pp · T+1</span></h3>
-      <p class="chart-hint">「如果每条 AI 建议都严格执行」的累计收益（相对什么都不做）。复用 calibration 的方向化 benefit%，等权、不含 size/手续费。<b>仅主动建议</b>线掉到 0 以下＝主动出手跑输「不动」；<b>全部信号</b>含 hold≈持有的市场 β，不是 AI 的 alpha。执行权始终在你。</p>
+      <p class="chart-hint">三条都相对「不动 = 0」基线，同口径（calibration 方向化 benefit%，等权、不含 size/手续费）：<b style="color:var(--accent)">我实际执行</b>＝followed 列为 true 的 call（你真做了的）；<b>仅主动建议</b>＝全听它的 cut/trim/add（线在 0 下＝主动出手跑输不动）；<b>全听 AI</b>含 hold≈市场 β、非 alpha。执行权始终在你——这条对比的就是「我的选择 vs 两种无脑策略」。</p>
       <div id="chart-shadow" class="chart-box"></div>
       <div id="shadow-note" class="muted" style="font-size:11px;margin-top:6px"></div>
     </div>
@@ -4204,16 +4204,18 @@ layout: null
     const dates = curve.map(p => p.date);
     const active = curve.map(p => p.cum_active);
     const all = curve.map(p => p.cum_all);
+    const followed = curve.map(p => p.cum_followed);
     const green = getCSS("--green") || "#34d399";
     const red = getCSS("--red") || "#f87171";
     const dim = getCSS("--text-dim") || "#9aa4b8";
+    const accent = getCSS("--accent") || "#5b8def";
     const isMobile = window.innerWidth < 1024;
     const actEnd = active.length ? active[active.length - 1] : 0;
     const actColor = actEnd >= 0 ? green : red;
     charts.shadow.setOption({
       backgroundColor: "transparent",
-      grid: { left: isMobile ? 46 : 58, right: isMobile ? 16 : 24, top: 30, bottom: dates.length > 6 ? 52 : 32 },
-      legend: { data: ["仅主动建议", "全部信号(含hold=β)"], top: 0,
+      grid: { left: isMobile ? 46 : 58, right: isMobile ? 16 : 24, top: isMobile ? 46 : 30, bottom: dates.length > 6 ? 52 : 32 },
+      legend: { data: ["我实际执行", "仅主动建议", "全听 AI(含hold=β)"], top: 0,
         textStyle: { color: chartTextColor(), fontSize: isMobile ? 9 : 10 } },
       tooltip: { trigger: "axis",
         valueFormatter: v => (v == null ? "—" : (v >= 0 ? "+" : "") + v.toFixed(1) + "pp") },
@@ -4225,14 +4227,17 @@ layout: null
         axisLine: { lineStyle: { color: chartGridColor() } },
         splitLine: { lineStyle: { color: chartGridColor() } } },
       series: [
+        // 我实际执行的 (followed=true) — 真实选择,不是反事实
+        { name: "我实际执行", type: "line", data: followed, smooth: true, showSymbol: false,
+          itemStyle: { color: accent }, lineStyle: { width: 2.4, color: accent }, z: 5 },
         { name: "仅主动建议", type: "line", data: active, smooth: true, showSymbol: false,
-          itemStyle: { color: actColor }, lineStyle: { width: 2.6, color: actColor },
-          areaStyle: { color: actColor, opacity: 0.08 }, z: 4,
+          itemStyle: { color: actColor }, lineStyle: { width: 2.2, color: actColor },
+          areaStyle: { color: actColor, opacity: 0.07 }, z: 4,
           markLine: { silent: true, symbol: "none",
             lineStyle: { color: dim, type: "dotted", width: 1, opacity: 0.7 },
             label: { color: dim, fontSize: 9, position: "insideStartTop", formatter: "不动 = 0" },
             data: [{ yAxis: 0 }] } },
-        { name: "全部信号(含hold=β)", type: "line", data: all, smooth: true, showSymbol: false,
+        { name: "全听 AI(含hold=β)", type: "line", data: all, smooth: true, showSymbol: false,
           itemStyle: { color: dim }, lineStyle: { width: 1.4, color: dim, type: "dashed", opacity: 0.8 } },
       ],
     });

@@ -66,6 +66,10 @@ def _horizon(rows, col):
     all_ben = [_f(r[col]) for r in settled]
     active_rows = [r for r in settled if (r.get('bucket') or '') in ACTIVE]
     active_ben = [_f(r[col]) for r in active_rows]
+    # 「我实际执行的」= followed 列被(自动/手动)判为 true 的 call —— 不是反事实,是真
+    # 做了的那部分。同 benefit% 口径,可直接跟「全听」「仅主动」同轴比。
+    followed_rows = [r for r in settled if (r.get('followed') or '').strip().lower().startswith('true')]
+    followed_ben = [_f(r[col]) for r in followed_rows]
 
     by_bucket = defaultdict(list)
     for r in settled:
@@ -74,25 +78,35 @@ def _horizon(rows, col):
     for r in active_rows:  # driver 只对主动信号有意义
         by_driver[r.get('driven_by') or '(空)'].append(_f(r[col]))
 
-    # 累计曲线:每个 plan_date 一个点(当日及之前所有信号的累计 benefit)
+    # 累计曲线:每个 plan_date 一个点(当日及之前的累计 benefit),三条口径:
+    #   cum_all      全听 AI(所有 call)
+    #   cum_active   仅听主动(cut/trim/add/t-only)
+    #   cum_followed 我实际执行的(followed=true)——「我当前」的真实选择
     curve = []
-    cum_all = cum_act = 0.0
+    cum_all = cum_act = cum_fol = 0.0
     by_date_all = defaultdict(float)
     by_date_act = defaultdict(float)
+    by_date_fol = defaultdict(float)
     for r in settled:
         d = r.get('plan_date', '')
-        by_date_all[d] += _f(r[col])
+        v = _f(r[col])
+        by_date_all[d] += v
         if (r.get('bucket') or '') in ACTIVE:
-            by_date_act[d] += _f(r[col])
+            by_date_act[d] += v
+        if (r.get('followed') or '').strip().lower().startswith('true'):
+            by_date_fol[d] += v
     for d in sorted(by_date_all):
         cum_all += by_date_all[d]
         cum_act += by_date_act.get(d, 0.0)
+        cum_fol += by_date_fol.get(d, 0.0)
         curve.append({'date': d, 'cum_all': round(cum_all, 2),
-                      'cum_active': round(cum_act, 2)})
+                      'cum_active': round(cum_act, 2),
+                      'cum_followed': round(cum_fol, 2)})
 
     return {
         'all_signals': _agg(all_ben),
         'active_signals': _agg(active_ben),
+        'followed_signals': _agg(followed_ben),
         'by_bucket': {k: _agg(v) for k, v in
                       sorted(by_bucket.items(), key=lambda x: -sum(x[1]))},
         'by_driver': {k: _agg(v) for k, v in
@@ -108,12 +122,15 @@ def _verdict(t1):
     if act['n'] < 20:
         return f"样本不足(主动信号 n={act['n']}<20),累计 benefit 仅供参考"
     cut = t1['by_bucket'].get('cut') or {}
+    fol = t1.get('followed_signals') or {}
     parts = []
     if act['cum'] < 0:
         parts.append(f"全听 AI 的主动建议(n={act['n']})累计 {act['cum']:+.0f}pp，"
                      f"跑输「不动」——主动出手是负贡献")
     else:
         parts.append(f"AI 主动建议(n={act['n']})累计 {act['cum']:+.0f}pp")
+    if fol.get('n'):
+        parts.append(f"我实际执行的(followed n={fol['n']})累计 {fol['cum']:+.0f}pp")
     parts.append(f"「全部信号」{alls['cum']:+.0f}pp 几乎全来自 hold(=持有=beta，非 AI alpha)")
     if cut.get('n'):
         parts.append(f"cut 累计 {cut['cum']:+.0f}pp(均 {cut['avg']:+.1f}pp/次，n={cut['n']})最拖累")

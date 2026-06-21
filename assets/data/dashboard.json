@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-21T16:12:18.239057Z",
+  "generated_at": "2026-06-21T16:32:34.663659Z",
   "last_updated": "2026/06/18 16:00 HKT (HK close; US Jun 18 session)",
   "fx": {
     "usdhkd": 7.8376,
@@ -1660,6 +1660,12 @@
           "win_rate": 0.522,
           "n": 90
         },
+        "followed_signals": {
+          "cum": 408.27,
+          "avg": 3.24,
+          "win_rate": 0.619,
+          "n": 126
+        },
         "by_bucket": {
           "hold_and_watch": {
             "cum": 499.79,
@@ -1740,122 +1746,146 @@
           {
             "date": "2026-05-17",
             "cum_all": 0.0,
-            "cum_active": 0.0
+            "cum_active": 0.0,
+            "cum_followed": 0.0
           },
           {
             "date": "2026-05-18",
             "cum_all": -9.66,
-            "cum_active": -9.66
+            "cum_active": -9.66,
+            "cum_followed": 0.0
           },
           {
             "date": "2026-05-19",
             "cum_all": 10.23,
-            "cum_active": -3.73
+            "cum_active": -3.73,
+            "cum_followed": 13.96
           },
           {
             "date": "2026-05-20",
             "cum_all": 26.64,
-            "cum_active": -1.09
+            "cum_active": -1.09,
+            "cum_followed": 13.96
           },
           {
             "date": "2026-05-21",
             "cum_all": 13.11,
-            "cum_active": -14.2
+            "cum_active": -14.2,
+            "cum_followed": 3.35
           },
           {
             "date": "2026-05-22",
             "cum_all": -78.27,
-            "cum_active": -24.58
+            "cum_active": -24.58,
+            "cum_followed": -81.75
           },
           {
             "date": "2026-05-25",
             "cum_all": -177.67,
-            "cum_active": -56.61
+            "cum_active": -56.61,
+            "cum_followed": -155.77
           },
           {
             "date": "2026-05-26",
             "cum_all": -169.02,
-            "cum_active": -92.88
+            "cum_active": -92.88,
+            "cum_followed": -130.73
           },
           {
             "date": "2026-05-27",
             "cum_all": -100.06,
-            "cum_active": -79.58
+            "cum_active": -79.58,
+            "cum_followed": -61.94
           },
           {
             "date": "2026-05-28",
             "cum_all": -111.96,
-            "cum_active": -141.46
+            "cum_active": -141.46,
+            "cum_followed": -11.96
           },
           {
             "date": "2026-05-29",
             "cum_all": -91.91,
-            "cum_active": -176.42
+            "cum_active": -176.42,
+            "cum_followed": 43.05
           },
           {
             "date": "2026-05-31",
             "cum_all": 14.52,
-            "cum_active": -149.06
+            "cum_active": -149.06,
+            "cum_followed": 122.12
           },
           {
             "date": "2026-06-01",
             "cum_all": 71.16,
-            "cum_active": -131.37
+            "cum_active": -131.37,
+            "cum_followed": 161.07
           },
           {
             "date": "2026-06-02",
             "cum_all": 160.69,
-            "cum_active": -108.87
+            "cum_active": -108.87,
+            "cum_followed": 228.1
           },
           {
             "date": "2026-06-03",
             "cum_all": 208.77,
-            "cum_active": -94.36
+            "cum_active": -94.36,
+            "cum_followed": 261.67
           },
           {
             "date": "2026-06-05",
             "cum_all": 249.9,
-            "cum_active": -44.59
+            "cum_active": -44.59,
+            "cum_followed": 253.03
           },
           {
             "date": "2026-06-08",
             "cum_all": 302.28,
-            "cum_active": -20.46
+            "cum_active": -20.46,
+            "cum_followed": 281.28
           },
           {
             "date": "2026-06-09",
             "cum_all": 379.4,
-            "cum_active": -5.64
+            "cum_active": -5.64,
+            "cum_followed": 343.58
           },
           {
             "date": "2026-06-10",
             "cum_all": 424.03,
-            "cum_active": 6.47
+            "cum_active": 6.47,
+            "cum_followed": 376.1
           },
           {
             "date": "2026-06-11",
             "cum_all": 446.0,
-            "cum_active": -3.55
+            "cum_active": -3.55,
+            "cum_followed": 408.09
           },
           {
             "date": "2026-06-15",
             "cum_all": 485.26,
-            "cum_active": -24.41
+            "cum_active": -24.41,
+            "cum_followed": 433.38
           },
           {
             "date": "2026-06-16",
             "cum_all": 485.51,
-            "cum_active": -23.44
+            "cum_active": -23.44,
+            "cum_followed": 433.63
           },
           {
             "date": "2026-06-17",
             "cum_all": 473.61,
-            "cum_active": -33.88
+            "cum_active": -33.88,
+            "cum_followed": 414.59
           },
           {
             "date": "2026-06-18",
             "cum_all": 473.76,
-            "cum_active": -33.01
+            "cum_active": -33.01,
+            "cum_followed": 408.27
           }
         ]
       },
@@ -1871,6 +1901,12 @@
           "avg": -0.601,
           "win_rate": 0.474,
           "n": 76
+        },
+        "followed_signals": {
+          "cum": 60.41,
+          "avg": 0.604,
+          "win_rate": 0.55,
+          "n": 100
         },
         "by_bucket": {
           "trim_on_rebound": {
@@ -1952,107 +1988,127 @@
           {
             "date": "2026-05-17",
             "cum_all": 26.44,
-            "cum_active": 11.93
+            "cum_active": 11.93,
+            "cum_followed": 11.46
           },
           {
             "date": "2026-05-18",
             "cum_all": 71.04,
-            "cum_active": 56.53
+            "cum_active": 56.53,
+            "cum_followed": 11.46
           },
           {
             "date": "2026-05-19",
             "cum_all": 173.76,
-            "cum_active": 110.75
+            "cum_active": 110.75,
+            "cum_followed": 59.96
           },
           {
             "date": "2026-05-20",
             "cum_all": 200.56,
-            "cum_active": 94.57
+            "cum_active": 94.57,
+            "cum_followed": 59.96
           },
           {
             "date": "2026-05-21",
             "cum_all": 137.15,
-            "cum_active": 30.84
+            "cum_active": 30.84,
+            "cum_followed": 34.6
           },
           {
             "date": "2026-05-22",
             "cum_all": 35.75,
-            "cum_active": -14.73
+            "cum_active": -14.73,
+            "cum_followed": 2.35
           },
           {
             "date": "2026-05-25",
             "cum_all": -56.13,
-            "cum_active": -65.68
+            "cum_active": -65.68,
+            "cum_followed": -14.97
           },
           {
             "date": "2026-05-26",
             "cum_all": -44.75,
-            "cum_active": -116.28
+            "cum_active": -116.28,
+            "cum_followed": 59.96
           },
           {
             "date": "2026-05-27",
             "cum_all": -62.47,
-            "cum_active": -170.37
+            "cum_active": -170.37,
+            "cum_followed": 109.46
           },
           {
             "date": "2026-05-28",
             "cum_all": -116.09,
-            "cum_active": -230.12
+            "cum_active": -230.12,
+            "cum_followed": 115.59
           },
           {
             "date": "2026-05-29",
             "cum_all": -133.7,
-            "cum_active": -242.28
+            "cum_active": -242.28,
+            "cum_followed": 110.14
           },
           {
             "date": "2026-05-31",
             "cum_all": -72.68,
-            "cum_active": -192.07
+            "cum_active": -192.07,
+            "cum_followed": 120.95
           },
           {
             "date": "2026-06-01",
             "cum_all": -67.78,
-            "cum_active": -153.27
+            "cum_active": -153.27,
+            "cum_followed": 87.05
           },
           {
             "date": "2026-06-02",
             "cum_all": -71.63,
-            "cum_active": -123.82
+            "cum_active": -123.82,
+            "cum_followed": 53.75
           },
           {
             "date": "2026-06-03",
             "cum_all": -43.83,
-            "cum_active": -76.32
+            "cum_active": -76.32,
+            "cum_followed": 34.05
           },
           {
             "date": "2026-06-05",
             "cum_all": -35.4,
-            "cum_active": -23.58
+            "cum_active": -23.58,
+            "cum_followed": -10.26
           },
           {
             "date": "2026-06-08",
             "cum_all": -22.18,
-            "cum_active": 12.5
+            "cum_active": 12.5,
+            "cum_followed": -33.12
           },
           {
             "date": "2026-06-09",
             "cum_all": 20.44,
-            "cum_active": 0.07
+            "cum_active": 0.07,
+            "cum_followed": 21.93
           },
           {
             "date": "2026-06-10",
             "cum_all": 42.49,
-            "cum_active": -4.79
+            "cum_active": -4.79,
+            "cum_followed": 48.84
           },
           {
             "date": "2026-06-11",
             "cum_all": 13.14,
-            "cum_active": -45.71
+            "cum_active": -45.71,
+            "cum_followed": 60.41
           }
         ]
       }
     },
-    "verdict": "全听 AI 的主动建议(n=90)累计 -33pp，跑输「不动」——主动出手是负贡献；「全部信号」+474pp 几乎全来自 hold(=持有=beta，非 AI alpha)；cut 累计 -146pp(均 -4.3pp/次，n=34)最拖累"
+    "verdict": "全听 AI 的主动建议(n=90)累计 -33pp，跑输「不动」——主动出手是负贡献；我实际执行的(followed n=126)累计 +408pp；「全部信号」+474pp 几乎全来自 hold(=持有=beta，非 AI alpha)；cut 累计 -146pp(均 -4.3pp/次，n=34)最拖累"
   },
   "debate_metrics": {
     "plans": 20,
@@ -6489,7 +6545,7 @@
     "last_updated": "2026-06-19T15:50:09.097221Z"
   },
   "build_status": {
-    "generated_at": "2026-06-22T00:12:18+08:00",
+    "generated_at": "2026-06-22T00:32:34+08:00",
     "healthy": false,
     "stale_files": [
       "portfolio.json",
@@ -6503,84 +6559,84 @@
     "files": [
       {
         "name": "portfolio.json",
-        "age_hours": 48.4,
+        "age_hours": 48.7,
         "sla_hours": 26,
         "stale": true,
         "present": true
       },
       {
         "name": "benchmark.json",
-        "age_hours": 63.9,
+        "age_hours": 64.3,
         "sla_hours": 80,
         "stale": false,
         "present": true
       },
       {
         "name": "catalysts.json",
-        "age_hours": 63.9,
+        "age_hours": 64.3,
         "sla_hours": 30,
         "stale": true,
         "present": true
       },
       {
         "name": "em_news.json",
-        "age_hours": 6.1,
+        "age_hours": 6.4,
         "sla_hours": 30,
         "stale": false,
         "present": true
       },
       {
         "name": "influencer_feed.json",
-        "age_hours": 44.9,
+        "age_hours": 45.2,
         "sla_hours": 30,
         "stale": true,
         "present": true
       },
       {
         "name": "lev_regime.json",
-        "age_hours": 63.9,
+        "age_hours": 64.3,
         "sla_hours": 30,
         "stale": true,
         "present": true
       },
       {
         "name": "macro.json",
-        "age_hours": 63.9,
+        "age_hours": 64.3,
         "sla_hours": 30,
         "stale": true,
         "present": true
       },
       {
         "name": "quant_signal_review.json",
-        "age_hours": 5.1,
+        "age_hours": 5.4,
         "sla_hours": 30,
         "stale": false,
         "present": true
       },
       {
         "name": "quant_signals.json",
-        "age_hours": 5.1,
+        "age_hours": 5.4,
         "sla_hours": 30,
         "stale": false,
         "present": true
       },
       {
         "name": "risk.json",
-        "age_hours": 5.1,
+        "age_hours": 5.4,
         "sla_hours": 30,
         "stale": false,
         "present": true
       },
       {
         "name": "sentiment.json",
-        "age_hours": 63.9,
+        "age_hours": 64.3,
         "sla_hours": 30,
         "stale": true,
         "present": true
       },
       {
         "name": "us_news_digest.json",
-        "age_hours": 44.9,
+        "age_hours": 45.2,
         "sla_hours": 30,
         "stale": true,
         "present": true
