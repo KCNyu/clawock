@@ -2396,13 +2396,29 @@ layout: null
         txt: `Regime ${escapeHtml(rg.label.replace("_"," "))} · ${escapeHtml(r.stance)}` });
     }
 
-    // 0b. Alpha vs 无脑全持有 — is the model adding value (regime-robust edge check)
+    // 0b. Alpha vs 无脑全持有 — HONEST verdict [cut #7/#8]: judge by RETURN alpha
+    // + statistical significance, not the misleading frequency alpha_pp (which can
+    // look positive while the return is negative and the gap isn't significant).
     const vb = safe(DATA, "calibration", "vs_baseline");
     if (vb && vb.alpha_pp != null) {
-      const good = vb.alpha_pp >= 0;
-      chips.push({ cls: good ? "hl-up" : "hl-warn", icon: good ? "✅" : "⚠️",
-        txt: `近30d vs 持有 ${vb.alpha_pp >= 0 ? "+" : ""}${vb.alpha_pp}pp`
-           + (good ? "" : " · 主动信号慎听") });
+      const retA = vb.alpha_ret_pp;          // undefined on pre-cut#7 data → fall back
+      const sig = vb.alpha_significant;
+      const good = retA != null ? (retA >= 0 && sig === true) : vb.alpha_pp >= 0;
+      let txt = `近30d vs 持有: 命中 ${vb.alpha_pp >= 0 ? "+" : ""}${vb.alpha_pp}pp`;
+      if (retA != null) txt += `, 收益 ${retA >= 0 ? "+" : ""}${retA}pp`;
+      if (sig === false) txt += " (不显著)";
+      if (!good) txt += " · 主动信号慎听";
+      chips.push({ cls: good ? "hl-up" : "hl-warn", icon: good ? "✅" : "⚠️", txt });
+    }
+
+    // 0c. Catalyst-gate discipline [cut #1] — how much of the active book is the
+    // proven-no-edge (technical-only) over-trading vs catalyst-backed.
+    const asd = safe(DATA, "active_signal_discipline");
+    if (asd && asd.catalyst_pct != null) {
+      const ok = asd.catalyst_pct >= 50;
+      chips.push({ cls: ok ? "hl-up" : "hl-warn", icon: ok ? "🎯" : "⚠️",
+        txt: `主动 call 仅 ${asd.catalyst_pct}% 有催化 (${asd.catalyst_backed}/${asd.active_calls})`
+           + (ok ? "" : " · 多为无 edge 的技术面操作") });
     }
 
     // 1. Nearest-to-firing trigger (from the shared watch-level resolver)
