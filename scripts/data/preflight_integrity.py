@@ -105,6 +105,26 @@ def _extract_iso(s):
     return None
 
 
+def _prev_snapshot_cash(region, field):
+    """Most recent snapshot's hand-filled cash for <region>.<field>, or None.
+    Used to fat-finger-check manual cash edits (a digit typo shows up as a big
+    jump vs. the last published snapshot)."""
+    snaps = sorted((WS / 'memory' / 'snapshots').glob('*.json'))
+    today = date.today().isoformat()
+    for f in reversed(snaps):
+        if f.stem >= today:          # skip a snapshot already written for today
+            continue
+        try:
+            d = json.loads(f.read_text())
+            v = (d.get('portfolios', {}).get(region, {}) or {}).get(field)
+            n = _num(v)
+            if n is not None:
+                return n
+        except Exception:
+            continue
+    return None
+
+
 def check(portfolio_path=PORTFOLIO):
     data = json.loads(Path(portfolio_path).read_text())
     P = data.get('portfolios', {})
@@ -219,6 +239,39 @@ def check(portfolio_path=PORTFOLIO):
         if market == 'us' and len(asofs) > 1:
             add('US_ASOF', 'WARN',
                 f'活跃美股横跨多个 session 日期 {sorted(asofs)}；当心每日 P&L 跨天双计', region)
+
+        # CASH_SANITY：手填现金 fat-finger 闸（既有 ERROR 校验只看持仓，抓不到现金笔误）
+        cash_field = {'us_stocks': 'cash_usd', 'hk_stocks': 'cash_hkd'}.get(region)
+        if cash_field and port.get(cash_field) is not None:
+            raw = port.get(cash_field)
+            cash = _num(raw)
+            if cash is None:
+                add('CASH_SANITY', 'WARN', f'{cash_field}={raw!r} 非数值；手填现金损坏', region)
+            else:
+                if cash < 0:
+                    add('CASH_SANITY', 'WARN',
+                        f'{cash_field}={cash:.2f} 为负；手填现金异常需核对', region)
+                prev = _prev_snapshot_cash(region, cash_field)
+                if prev and prev > 0 and cash > 0:
+                    ratio = cash / prev
+                    if ratio >= 5 or ratio <= 0.2:
+                        add('CASH_SANITY', 'WARN',
+                            f'{cash_field}={cash:.2f} 较上一快照 {prev:.2f} 跳变 {ratio:.1f}×；'
+                            f'疑似手填多/少一位（总资产 = 持仓 + 现金，会被静默污染）', region)
+
+    # GOLD_RECON：黄金定投手填对账值闸（隐含均价 vs NAV，抓填错/单位反）
+    g = data.get('gold_dca') or {}
+    pi, uh, nav = _num(g.get('principal_invested')), _num(g.get('units_held')), _num(g.get('nav'))
+    if pi is not None and uh is not None:
+        if pi <= 0 or uh <= 0:
+            add('GOLD_RECON', 'WARN',
+                f'gold_dca principal_invested/units_held 非正（{pi}/{uh}）；对账值疑误', region='gold')
+        elif nav and nav > 0:
+            implied = pi / uh
+            if not (0.3 <= implied / nav <= 3):
+                add('GOLD_RECON', 'WARN',
+                    f'gold_dca 手填隐含均价 {implied:.3f} 与 NAV {nav:.3f} 偏离 {implied / nav:.2f}×；'
+                    f'疑 principal/units 填错或单位反', region='gold')
 
     errors = [f for f in findings if f['level'] == 'ERROR']
     warns = [f for f in findings if f['level'] == 'WARN']
