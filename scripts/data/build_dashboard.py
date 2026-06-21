@@ -908,6 +908,7 @@ def compute_calibration():
         # cut/trim. alpha_pp < 0 = active calls did worse than doing nothing.
         _SELL = {'cut', 'trim_on_rebound'}
         llm_w = base_w = base_n = 0
+        ben_sum = ret_sum = 0.0
         for r, outcome in resolved:
             ben = _to_float(r.get('pnl_5d'))
             if ben is None:
@@ -916,15 +917,44 @@ def compute_calibration():
             base_n += 1
             llm_w += 1 if outcome == 'win' else 0
             base_w += 1 if ret > 0 else 0
+            ben_sum += ben          # 跟随 LLM 动作的实际收益（benefit）
+            ret_sum += ret          # 躺着不动（hold baseline）的实际收益
         vs_baseline = None
         if base_n:
             llm_wr = llm_w / base_n
             base_wr = base_w / base_n
+            llm_ci = _wilson_ci(llm_w, base_n)
+            hold_ci = _wilson_ci(base_w, base_n)
+            # alpha 显著 = 两个 95% 区间不重叠（保守口径）；否则 frequency 上的"跑输"
+            # 也可能只是噪音，不能据此下结论
+            alpha_sig = (llm_ci is not None and hold_ci is not None
+                         and (llm_ci[1] < hold_ci[0] or hold_ci[1] < llm_ci[0]))
+            # 风险调整上下文：hold baseline 在 risk_on 里大半是杠杆放大的 β，不是决策技巧。
+            # 把 β 和杠杆因子贴在判决旁边，免得把"杠杆赢"当成"edge"。[cut #7]
+            risk_note = None
+            try:
+                rk = json.loads((OUT_DIR / 'risk.json').read_text())
+                bus = (rk.get('us') or {}).get('beta_spx')
+                lev = (rk.get('leveraged_exposure') or {}).get('combined_avg')
+                shp = (rk.get('combined') or {}).get('sharpe_30d')
+                risk_note = {'us_beta_spx': bus, 'leverage_factor_avg': lev, 'sharpe_30d': shp,
+                             'caveat': 'hold baseline 命中率受 β/杠杆放大；命中率高≠决策有 edge，'
+                                       '看 alpha_ret_pp（收益口径）+ sharpe 才是风险调整后的真账'}
+            except Exception:
+                pass
             vs_baseline = {
                 'n': base_n,
                 'llm_win_rate': round(llm_wr, 4),
                 'hold_baseline_win_rate': round(base_wr, 4),
                 'alpha_pp': round((llm_wr - base_wr) * 100, 1),
+                'llm_ci95': llm_ci,
+                'hold_ci95': hold_ci,
+                'alpha_significant': alpha_sig,
+                # 收益口径（不只命中率）：跟随 LLM 的平均收益 vs 躺平平均收益
+                'llm_avg_benefit_pct': round(ben_sum / base_n, 3),
+                'hold_avg_ret_pct': round(ret_sum / base_n, 3),
+                'alpha_ret_pp': round((ben_sum - ret_sum) / base_n, 3),
+                'risk_context': risk_note,
             }
 
         return {
