@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-21T15:44:31.665677Z",
+  "generated_at": "2026-06-21T16:09:36.341529Z",
   "last_updated": "2026/06/18 16:00 HKT (HK close; US Jun 18 session)",
   "fx": {
     "usdhkd": 7.8376,
@@ -2439,7 +2439,233 @@
       "driven_by": "technical"
     }
   ],
-  "plan_timeline": [],
+  "plan_timeline": [
+    {
+      "date": "2026-06-19",
+      "ticker": "07226",
+      "bucket": "cut",
+      "trigger_type": "open",
+      "trigger_price": null,
+      "trigger_condition": "6/22 09:30 HKT 港股重启 open 任意价 (HK closed 6/19 端午节)",
+      "size_pct": 33,
+      "size_shares": 2083,
+      "confidence": 0.5,
+      "rationale": "仓位硬闸: 硬止损 -23.8% ≤ -18% + HK 杠杆 34.2%>25% (amber×0.5) + 07226 single_name 34.2%>35% + HK Top2 83.8%>70%。partial swap 33% 解硬止损 + 解杠杆 cap + 解 single_name breach; 留 4117 股 (10.7% of HK leg) 仍在 25% amber cap 内; 1x 换 03033 同因子, 敞口保留, 停 2x decay 0.77%/月。纪律非择时, 不算 LLM signal。07226 reflection 24 次 50% 胜率中性 (cut×9 胜 7 = 78% 高), 但硬规则触发 = 强制。kcn 6/18 未执行 → conf 0.55 → 0.50 降权。",
+      "outcome": "pending",
+      "pnl_5d": null,
+      "followed": "unknown"
+    },
+    {
+      "date": "2026-06-19",
+      "ticker": "PLTU",
+      "bucket": "cut",
+      "trigger_type": "open",
+      "trigger_price": null,
+      "trigger_condition": "6/19 21:30 HKT 美股周五盘 open 任意价 OR 6/22 21:30 HKT 美股周一盘 open",
+      "size_pct": 100,
+      "size_shares": 14,
+      "confidence": 0.55,
+      "rationale": "仓位硬闸: 硬止损 -23.4% ≤ -18% + US 杠杆 95.3%>50% + US β 4.40>3.0 + 2x decay 3.43%/月 (US 2x 最高) + PLTU reflection 22 次 50% 胜率 + 标的 PLTR 距 MA200 -19.7% 趋势 OFF。full swap 全部 14 股 → PLTR 1x (~3 股 @ $128)。纪律非择时。kcn 6/18 未执行 → conf 0.60 → 0.55 降权。",
+      "outcome": "pending",
+      "pnl_5d": null,
+      "followed": "unknown"
+    },
+    {
+      "date": "2026-06-19",
+      "ticker": "MSFU",
+      "bucket": "cut",
+      "trigger_type": "open",
+      "trigger_price": null,
+      "trigger_condition": "6/19 21:30 HKT 美股周五盘 open 任意价 OR 6/22 21:30 HKT 美股周一盘 open",
+      "size_pct": 100,
+      "size_shares": 20,
+      "confidence": 0.55,
+      "rationale": "仓位硬闸: 硬止损 -20.6% ≤ -18% + US 杠杆 95.3%>50% + 标的 MSFT 379.4 距 MA200 -15.9% 趋势 OFF + 2x decay 1.22%/月。full swap 全部 20 股 → MSFT 1x (~1 股 @ $379, 余 $83 现金)。MSFU reflection 21 次 76% 高胜率但纪律非择时。kcn 6/18 未执行 → conf 0.60 → 0.55 降权。",
+      "outcome": "pending",
+      "pnl_5d": null,
+      "followed": "unknown"
+    },
+    {
+      "date": "2026-06-19",
+      "ticker": "00100",
+      "bucket": "trim_on_rebound",
+      "trigger_type": "price_above",
+      "trigger_price": 460.0,
+      "trigger_condition": "",
+      "size_pct": 12,
+      "size_shares": 8,
+      "confidence": 0.55,
+      "rationale": "仓位硬闸: 00100 single_name 49.56%>35% (HK 闸 breach)。现 497.6 已突破 BofAS TP 500 = disconfirming 估值触顶; RSI 39.6 不砍底; lock-up 7/9 解禁 (50% 股份) 6/29 倒计时 20 天 disconfirming 硬催化未到; 智谱板块 +26.14% 6/18 板块 alpha 仍在 but 00100 个股催化是板块 beta 拉涨 (落后智谱 13.8pp). reflection 25 次 72% 高 (减×10 胜 7)。6/22 09:30 HKT 港股重启后 trim 8 股 (借 BofAS TP 500 触顶), 借反弹不追低。driven_by=catalyst 由 disconfirming 估值顶驱动 ✓ (允许 trim)。",
+      "outcome": "pending",
+      "pnl_5d": null,
+      "followed": "unknown"
+    },
+    {
+      "date": "2026-06-19",
+      "ticker": "SPCH",
+      "bucket": "trim_on_rebound",
+      "trigger_type": "open",
+      "trigger_price": null,
+      "trigger_condition": "6/19 21:30 HKT 美股周五盘 open 任意价 OR 6/22 21:30 HKT 美股周一盘 open",
+      "size_pct": 42,
+      "size_shares": 25,
+      "confidence": 0.5,
+      "rationale": "仓位硬闸: reverse kcn 6/19 早晨逆 brief 加仓 20@17.31 (现 60 股 33.13% US 单仓 + portfolio.json 显式 note '逆建议操作')。trim 25 股 (60 → 35) 解 US 杠杆 95.3%>50% breach + β 4.40>3.0 breach 部分缓解; trim 后 US 2x 估 16.5% + RKLX 17.1% + ROBN 21.7% = 55.3% (临界, 可接受); SPCH 残 35 股 16.5% US 单仓降低单一事件风险。**不推 trim 50% (接受 kcn 多仓偏好)**, SPCH 35 股 16.5% US 是折衷。reflection 1 次 100% (样本少)。driven_by=technical 纪律性解 breach, 不算主动 signal。",
+      "outcome": "pending",
+      "pnl_5d": null,
+      "followed": "unknown"
+    },
+    {
+      "date": "2026-06-19",
+      "ticker": "02208",
+      "bucket": "hold_and_watch",
+      "trigger_type": "manual",
+      "trigger_price": null,
+      "trigger_condition": "",
+      "size_pct": null,
+      "size_shares": null,
+      "confidence": 0.65,
+      "rationale": "基本面: Q1 26 利润 +60% YoY 硬催化 confirming + BlackRock 6/9 加仓 70.58 万 H 股 ≈ HK$9.34M + 6/12 调入沪深300 (大资金流入) + 5/26 回购 3-5 亿元 上限 39.84 元/股 + 6/4/5 中广核 10.15 亿订单 + 5/20 绿电直连 688 号文。技术: RSI 26.8 极端超卖, 距 MA200 -21.0% 跌穿, 12m +127.7% 反弹回归概率高。板块 6/18: 东方电气 +1.57% (唯一逆), 龙源 -5.68% / 大唐 -2.78% 普跌, 02208 +0.37% **领先板块中位**。reflection 15 次 80% 胜率全 book 最高 (持×15 胜 12), recent 6/15-6/16 连 win +12.2/+12.5。止损 10.0 (心理关口+技术支撑) 维持。",
+      "outcome": "pending",
+      "pnl_5d": null,
+      "followed": "unknown"
+    },
+    {
+      "date": "2026-06-19",
+      "ticker": "03032",
+      "bucket": "hold_and_watch",
+      "trigger_type": "manual",
+      "trigger_price": null,
+      "trigger_condition": "",
+      "size_pct": null,
+      "size_shares": null,
+      "confidence": 0.45,
+      "rationale": "1x HSTECH 跟踪, 1.52% HK leg 极小, 不值得主动调; reflection 14 次 43% 胜率 (主动 call 多半跑输持有); 被动持有免费等趋势回归, 1x 不付 decay。HSTECH 4604 -15.6%<MA200 趋势 OFF, 但 6/18 智谱催化板块局部撑场, 6/22 港股重启跟跌美股压力大但非系统性风险。",
+      "outcome": "pending",
+      "pnl_5d": null,
+      "followed": "unknown"
+    },
+    {
+      "date": "2026-06-19",
+      "ticker": "03033",
+      "bucket": "hold_and_watch",
+      "trigger_type": "manual",
+      "trigger_price": null,
+      "trigger_condition": "",
+      "size_pct": null,
+      "size_shares": null,
+      "confidence": 0.45,
+      "rationale": "1x HSTECH 跟踪, 07226 partial swap 后 03033 占比上升但仍 < 35% cap。reflection 14 次 43% 胜率, 1x 跟踪免费。6/12 出现 block trade 889K 股 @ $4.87 (≈$4.3M) 异常卖单 — 软情绪 disconfirming 但成交 1x ETF 流动性影响有限, 不升级为硬信号。swap 接收方, 别再加。",
+      "outcome": "pending",
+      "pnl_5d": null,
+      "followed": "unknown"
+    },
+    {
+      "date": "2026-06-19",
+      "ticker": "CRCL",
+      "bucket": "hold_and_watch",
+      "trigger_type": "manual",
+      "trigger_price": null,
+      "trigger_condition": "",
+      "size_pct": null,
+      "size_shares": null,
+      "confidence": 0.5,
+      "rationale": "基本面: Q1 26 营业现金流转正 +$21M (硬催化 confirming, 商业模式转折), 营收 $694M; USDC 增长 + agent 支付叙事 intact; GENIUS Act 立法进行中。技术: RSI 38.1, 吊灯破 16.3%, 距 MA200 -19.2% 跌穿, 5 日 +3.0% 弱。仓位 4.67% US 极小, 不需主动调。reflection 19 次 68% 胜率 (加×10 胜 6; 持×9 胜 7)。",
+      "outcome": "pending",
+      "pnl_5d": null,
+      "followed": "unknown"
+    },
+    {
+      "date": "2026-06-19",
+      "ticker": "ROBN",
+      "bucket": "hold_and_watch",
+      "trigger_type": "manual",
+      "trigger_price": null,
+      "trigger_condition": "",
+      "size_pct": null,
+      "size_shares": null,
+      "confidence": 0.5,
+      "rationale": "kcn 6/18 早盘已主动减半仓 20@35.175 +$231.85 realized, 余 20 股浮盈 +51.21% +$241.55 安全垫; HOOD 6/18 +9%~12% 创纪录交易量 + crypto 板块延续; ROBN 6/19 +5.47% 续涨; HOOD z+2.15σ 极端 vol_hot 风险, 但 reflection 24 次 46% 胜率 (cut×16 胜 6 = 38%) 历史 cut 差。仓位 20.74% US < 35% cap ✓, 浮盈 +51% 安全垫足够, **不进 US 杠杆 cap 硬规则范围** (ROBN 单仓 < 35%, 不需 trim)。",
+      "outcome": "pending",
+      "pnl_5d": null,
+      "followed": "unknown"
+    },
+    {
+      "date": "2026-06-19",
+      "ticker": "RKLX",
+      "bucket": "hold_and_watch",
+      "trigger_type": "manual",
+      "trigger_price": null,
+      "trigger_condition": "",
+      "size_pct": null,
+      "size_shares": null,
+      "confidence": 0.6,
+      "rationale": "**RKLB 6/22 入 NDX open (confirmed, 4 只新成员)** — 被动资金流入锚, RKLX 2x 唯一 vehicles; momentum 67.9% 3m / 332% 12m, 趋势 ON MA200 +58.7%; T+0 风格, 仓位不进隔夜 (但当前持仓持有); reflection 3 次 67% 胜率; 现 52.45 距 cost 49.69 +5.55% 浮盈。**不 swap 不 trim**, 6/22 开盘前不操作, 等 RKLB 入指 open momentum 验证。",
+      "outcome": "pending",
+      "pnl_5d": null,
+      "followed": "unknown"
+    },
+    {
+      "date": "2026-06-18",
+      "ticker": "07226",
+      "bucket": "cut",
+      "trigger_type": "open",
+      "trigger_price": 3.39,
+      "trigger_condition": "",
+      "size_pct": null,
+      "size_shares": null,
+      "confidence": 0.65,
+      "rationale": "仓位硬闸: 硬止损 -21.6% ≤ -18% + HK 杠杆 36.7%>25% (amber×0.5) + 07226 single_name 36.74%>35% + HK Top2 82.8%>70%。partial swap 33% 解硬止损 + 解杠杆 cap + 解 single_name breach; 留 4117 股 (10.8% of HK leg) 仍在 25% amber cap 内; 1x 换 03033 同因子, 敞口保留, 停 2x decay 0.76%/月。纪律非择时, 不算 LLM signal。07226 reflection 24 次 50% 胜率中性 (cut×9 胜 7 = 78% 高), 但硬规则触发 = 强制。",
+      "outcome": "win",
+      "pnl_5d": 1.95,
+      "followed": "unknown"
+    },
+    {
+      "date": "2026-06-18",
+      "ticker": "PLTU",
+      "bucket": "cut",
+      "trigger_type": "open",
+      "trigger_price": 32.48,
+      "trigger_condition": "",
+      "size_pct": null,
+      "size_shares": null,
+      "confidence": 0.6,
+      "rationale": "仓位硬闸: 硬止损 -20.7% ≤ -18% + US 杠杆 94.8%>50% + US β 4.47>3.0 + 2x decay 3.39%/月 (US 2x 最高) + PLTU reflection 21 次 48% 胜率 (最差) + 标的 PLTR 6/16 close $133.25 -1.08%<MA200 -16.8% 趋势 OFF 但 1x 不付 decay。full swap 全部 14 股 → PLTR 1x (~4 股 @ $130)。纪律非择时, driven_by=technical 排除主动 signal 噪声 (cut 历史 86% 胜率降权先例不适用)。",
+      "outcome": "win",
+      "pnl_5d": 3.45,
+      "followed": "unknown"
+    },
+    {
+      "date": "2026-06-18",
+      "ticker": "MSFU",
+      "bucket": "cut",
+      "trigger_type": "open",
+      "trigger_price": 23.21,
+      "trigger_condition": "",
+      "size_pct": null,
+      "size_shares": null,
+      "confidence": 0.6,
+      "rationale": "仓位硬闸: 硬止损 -20.3% ≤ -18% + US 杠杆 94.8%>50% + 标的 MSFT 6/17 -3.8% (Oracle 合作崩 + AI 定价压力) 距 MA200 -16.2% 趋势 OFF + 2x decay 1.12%/月。full swap 全部 20 股 → MSFT 1x (~10 股 @ $375)。MSFU reflection 20 次 75% 胜率高 (持×16 胜 12), 但硬规则触发 = 强制纪律非择时。",
+      "outcome": "win",
+      "pnl_5d": 0.34,
+      "followed": "unknown"
+    },
+    {
+      "date": "2026-06-18",
+      "ticker": "00100",
+      "bucket": "trim_on_rebound",
+      "trigger_type": "price_above",
+      "trigger_price": 440.0,
+      "trigger_condition": "",
+      "size_pct": null,
+      "size_shares": null,
+      "confidence": 0.55,
+      "rationale": "仓位硬闸: 00100 single_name 46.06%>35% (HK 闸 breach)。RSI 33 极端超卖不砍底; lock-up 7/9 解禁 (50% 股份) disconfirming 硬催化未到; BofAS TP 500 / CMBI TP 570 confirming 估值底; 板块 6/17 智谱催化 +12.62% + 00100 跟涨 +6.34% 落后智谱 6.3pp。reflection 24 次 75% 胜率高 (减×9 胜 7), recent 6/17 trim_on_rebound 3.7% win。今天 00100 现 443 已过 trigger 440, 借反弹不追低; 进一步反弹 ≥460 触发第二批 trim 5-8 股。",
+      "outcome": "loss",
+      "pnl_5d": -13.09,
+      "followed": "unknown"
+    }
+  ],
   "weight_confidence": [
     {
       "ticker": "00100",
@@ -4319,7 +4545,7 @@
     },
     "staleness": {
       "last_date": "2026-06-18",
-      "days_behind": 3,
+      "days_behind": 4,
       "is_stale": false
     }
   },
@@ -6257,7 +6483,7 @@
     "last_updated": "2026-06-19T15:50:09.097221Z"
   },
   "build_status": {
-    "generated_at": "2026-06-21T23:44:31+08:00",
+    "generated_at": "2026-06-22T00:09:36+08:00",
     "healthy": false,
     "stale_files": [
       "portfolio.json",
@@ -6271,84 +6497,84 @@
     "files": [
       {
         "name": "portfolio.json",
-        "age_hours": 47.9,
+        "age_hours": 48.3,
         "sla_hours": 26,
         "stale": true,
         "present": true
       },
       {
         "name": "benchmark.json",
-        "age_hours": 63.5,
+        "age_hours": 63.9,
         "sla_hours": 80,
         "stale": false,
         "present": true
       },
       {
         "name": "catalysts.json",
-        "age_hours": 63.5,
+        "age_hours": 63.9,
         "sla_hours": 30,
         "stale": true,
         "present": true
       },
       {
         "name": "em_news.json",
-        "age_hours": 5.6,
+        "age_hours": 6.1,
         "sla_hours": 30,
         "stale": false,
         "present": true
       },
       {
         "name": "influencer_feed.json",
-        "age_hours": 44.4,
+        "age_hours": 44.8,
         "sla_hours": 30,
         "stale": true,
         "present": true
       },
       {
         "name": "lev_regime.json",
-        "age_hours": 63.5,
+        "age_hours": 63.9,
         "sla_hours": 30,
         "stale": true,
         "present": true
       },
       {
         "name": "macro.json",
-        "age_hours": 63.5,
+        "age_hours": 63.9,
         "sla_hours": 30,
         "stale": true,
         "present": true
       },
       {
         "name": "quant_signal_review.json",
-        "age_hours": 4.6,
+        "age_hours": 5.0,
         "sla_hours": 30,
         "stale": false,
         "present": true
       },
       {
         "name": "quant_signals.json",
-        "age_hours": 4.6,
+        "age_hours": 5.0,
         "sla_hours": 30,
         "stale": false,
         "present": true
       },
       {
         "name": "risk.json",
-        "age_hours": 4.6,
+        "age_hours": 5.0,
         "sla_hours": 30,
         "stale": false,
         "present": true
       },
       {
         "name": "sentiment.json",
-        "age_hours": 63.5,
+        "age_hours": 63.9,
         "sla_hours": 30,
         "stale": true,
         "present": true
       },
       {
         "name": "us_news_digest.json",
-        "age_hours": 44.4,
+        "age_hours": 44.8,
         "sla_hours": 30,
         "stale": true,
         "present": true
@@ -6361,14 +6587,45 @@
       },
       "hk": {
         "last_updated": "2026/06/18 16:00 HKT (close; Jun 19 休市)",
-        "closed_today": true
+        "closed_today": false
       }
     },
     "integrity": {
       "ok": true,
       "error_count": 0,
-      "warn_count": 0,
-      "top": []
+      "warn_count": 6,
+      "top": [
+        {
+          "code": "STALENESS",
+          "level": "WARN",
+          "msg": "CRCL data_source 日期 2026-06-18 早于上一交易日 2026-06-22；可能 stale 价当新 session"
+        },
+        {
+          "code": "STALENESS",
+          "level": "WARN",
+          "msg": "PLTU data_source 日期 2026-06-18 早于上一交易日 2026-06-22；可能 stale 价当新 session"
+        },
+        {
+          "code": "STALENESS",
+          "level": "WARN",
+          "msg": "RKLX data_source 日期 2026-06-18 早于上一交易日 2026-06-22；可能 stale 价当新 session"
+        },
+        {
+          "code": "STALENESS",
+          "level": "WARN",
+          "msg": "ROBN data_source 日期 2026-06-18 早于上一交易日 2026-06-22；可能 stale 价当新 session"
+        },
+        {
+          "code": "STALENESS",
+          "level": "WARN",
+          "msg": "SPCH data_source 日期 2026-06-18 早于上一交易日 2026-06-22；可能 stale 价当新 session"
+        },
+        {
+          "code": "STALENESS",
+          "level": "WARN",
+          "msg": "MSFU data_source 日期 2026-06-18 早于上一交易日 2026-06-22；可能 stale 价当新 session"
+        }
+      ]
     }
   }
 }

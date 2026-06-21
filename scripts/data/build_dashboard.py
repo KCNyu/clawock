@@ -1322,8 +1322,6 @@ def compute_plan_timeline(plans, limit=15):
     what happened'. Returns most-recent-first.
     """
     try:
-        if not plans:
-            return []
         rows = _read_calibration_rows()
         # Build index: (date, ticker, bucket) -> calibration row
         cal_idx = {}
@@ -1334,12 +1332,18 @@ def compute_plan_timeline(plans, limit=15):
                 cal_idx[key] = r
 
         out = []
-        # plans is ascending date — reverse so newest first
-        for entry in reversed(plans):
-            date = entry.get('date', '')
-            plan = entry.get('plan') or {}
-            # plan can be the trimmed-summary dict (no actions field) — skip
-            actions = plan.get('actions') if isinstance(plan, dict) else None
+        # The embedded `plans` arg is trimmed of its actions to save bytes, so the
+        # timeline (needs rationale + size) reads the FULL plan files directly, newest
+        # first. (Before: it iterated the trimmed plans, found no actions field, and
+        # the card sat permanently empty showing "No timeline data yet".)
+        files = sorted(glob.glob(str(WS_ROOT / 'memory' / '*-plan.json')), reverse=True)
+        for fp in files:
+            try:
+                pj = json.loads(Path(fp).read_text())
+            except Exception:
+                continue
+            date = (pj.get('date') or os.path.basename(fp)[:10])
+            actions = pj.get('actions')
             if not isinstance(actions, list):
                 continue
             for a in actions:
