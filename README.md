@@ -22,9 +22,17 @@
 
 <sub>Real positions. Real P&L. The page updates after every cron run; this screenshot refreshes weekly via a <a href="https://github.com/KCNyu/clawock/actions/workflows/screenshot-refresh.yml">GitHub Action</a> so it never drifts.</sub>
 
+<br><br>
+
+🪞 **Grades its own trades** — and admits they lose to buy-and-hold &nbsp;·&nbsp; 💸 **Real money**, not a paper sim &nbsp;·&nbsp; 🗣️ **Bull-vs-bear AI debate** every morning &nbsp;·&nbsp; 🛡️ **Python does the math** so the LLM can't fudge the score &nbsp;·&nbsp; 🌏 **Bilingual** HK + US &nbsp;·&nbsp; 🌐 **Live public dashboard**
+
+<sub>If "an AI that's honest about being wrong" is your kind of thing — ⭐ it.</sub>
+
 </div>
 
 ---
+
+> **TL;DR** — A multi-agent LLM runs a real Hong-Kong + US stock portfolio, debates bull-vs-bear each morning, and back-tests its own calls every night. Its verdict on itself, in public: the active calls *lose to simply holding*. The honesty is the point.
 
 ## 🎰 The 60-second version
 
@@ -228,5 +236,11 @@ Personal-use repository. No license granted for derivative trading systems, auto
 ---
 
 <div align="center">
+
+### ⭐ Star it if "an AI that's honest about being wrong" is your kind of thing.
+
+[**🎯 Live Dashboard**](https://kcnyu.github.io/clawock/) &nbsp;·&nbsp; [**📅 Daily Briefs**](https://kcnyu.github.io/clawock/briefs.html) &nbsp;·&nbsp; [**简体中文**](README.zh.md)
+
 <sub>Built and maintained by <a href="https://github.com/KCNyu">Shengyu Li (kcn)</a> and Rick · 2026</sub>
+
 </div>

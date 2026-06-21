@@ -22,9 +22,17 @@
 
 <sub>真实持仓,真实盈亏。页面在每次 cron 运行后更新;这张截图每周由 <a href="https://github.com/KCNyu/clawock/actions/workflows/screenshot-refresh.yml">GitHub Action</a> 自动刷新,永不过期。</sub>
 
+<br><br>
+
+🪞 **给自己打分**——还承认主动操作跑输躺平 &nbsp;·&nbsp; 💸 **真金白银**,不是模拟盘 &nbsp;·&nbsp; 🗣️ 每天早上一场 **AI 牛熊辩论** &nbsp;·&nbsp; 🛡️ **算账全在 Python**,LLM 改不了成绩单 &nbsp;·&nbsp; 🌏 **双语** 港股 + 美股 &nbsp;·&nbsp; 🌐 **实时公开仪表盘**
+
+<sub>如果"一个敢承认自己错的 AI"对你胃口 —— ⭐ 一下。</sub>
+
 </div>
 
 ---
+
+> **一句话** —— 一群 LLM 跑着一个真实的港股 + 美股组合,每天早上牛熊辩论,每晚回测自己的判断。它对自己的公开判决:主动操作*跑输单纯持有*。诚实本身就是卖点。
 
 ## 🎰 60 秒看懂
 
@@ -228,5 +236,11 @@ clawock/
 ---
 
 <div align="center">
+
+### ⭐ 如果"一个敢承认自己错的 AI"对你胃口,点个 star。
+
+[**🎯 实时仪表盘**](https://kcnyu.github.io/clawock/) &nbsp;·&nbsp; [**📅 每日简报**](https://kcnyu.github.io/clawock/briefs.html) &nbsp;·&nbsp; [**English**](README.md)
+
 <sub>由 <a href="https://github.com/KCNyu">Shengyu Li (kcn)</a> 与 Rick 构建维护 · 2026</sub>
+
 </div>
