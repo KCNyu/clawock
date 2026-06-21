@@ -15,6 +15,9 @@ venv/
 # Data cache / temp
 data_cache/
 *.cache
+# shadow_backtest.json — build_dashboard computes it INLINE (compute()); the
+# standalone file is only an ad-hoc CLI artifact and would rot if committed.
+assets/data/shadow_backtest.json
 *.log
 
 # Images / generated output

@@ -68,6 +68,8 @@ So I can tell you, with receipts, how the AI is *actually* doing:
 
 **There's now a curve for it.** A counterfactual *"if you'd followed every call"* backtest (the LLM only advises — execution is always mine) reuses the same direction-signed benefit% the scorecard already logs, and plots three lines against a `do-nothing = 0` baseline on the **Reflect** tab: **what I actually followed**, **follow-only-active**, and **follow-everything**. The active-only line sits **−33pp below doing nothing** (T+1; −46pp at T+5); the "all signals" line's +474pp is almost entirely `hold` = market β; and *what I actually did* tracks that beta (I mostly held) — so you can see my real path against both naive policies, and *watch* the active calls bleed relative to a hold.
 
+<p align="center"><img src="docs/shadow-backtest.png" alt="shadow backtest: what I followed vs follow-only-active vs follow-everything, each against a do-nothing baseline" width="760"></p>
+
 <sub>Numbers are point-in-time from `memory/calibration.csv`, `quant_signal_review.json`, `t0_setup_review.json` and move as samples grow. Factors with n < 20 are shown but **barred from influencing decisions** until they earn it.</sub>
 
 **The scorecard is built not to fool itself.** Three guards stop a noisy number from masquerading as edge:
