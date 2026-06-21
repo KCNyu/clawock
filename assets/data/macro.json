@@ -1,36 +1,36 @@
 {
-  "generated_at": "2026-06-18T23:24:02.303378+00:00",
+  "generated_at": "2026-06-21T22:48:41.889696+00:00",
   "vix": {
     "symbol": "^VIX",
-    "price": 16.4,
-    "prev": 16.41,
-    "change_pct": -0.06,
-    "as_of": 1781813701,
+    "price": 16.78,
+    "prev": 16.4,
+    "change_pct": 2.32,
+    "as_of": 1781883001,
     "source": "yahoo"
   },
   "treasury_10y": {
     "symbol": "^TNX",
     "price": 4.451,
-    "prev": 4.463,
-    "change_pct": -0.27,
+    "prev": 4.451,
+    "change_pct": 0.0,
     "as_of": 1781809193,
     "source": "yahoo",
     "yield_pct": 4.451
   },
   "dxy": {
     "symbol": "DX-Y.NYB",
-    "price": 100.814,
+    "price": 100.849,
     "prev": 100.849,
-    "change_pct": -0.03,
-    "as_of": 1781820299,
+    "change_pct": 0.0,
+    "as_of": 1782081520,
     "source": "yahoo"
   },
   "fear_greed": {
-    "score": 37.5,
+    "score": 37.3,
     "rating": "fear",
-    "prev_close": 32.7,
-    "prev_1_week": 31.6,
-    "as_of": "2026-06-18T23:04:34+00:00"
+    "prev_close": 37.5,
+    "prev_1_week": 35.5,
+    "as_of": "2026-06-19T00:59:47+00:00"
   },
   "hsi": {
     "symbol": "^HSI",
