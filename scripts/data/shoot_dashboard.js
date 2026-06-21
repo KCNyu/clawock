@@ -20,9 +20,14 @@ const URL = process.env.URL || 'https://kcnyu.github.io/clawock/';
 const OUT_DIR = process.env.OUT_DIR || 'docs';
 
 async function settle(page) {
-  // ECharts renders into <canvas>; wait for at least one to exist, then let animations finish.
-  await page.waitForSelector('canvas', { timeout: 45000 }).catch(() => {});
-  await page.waitForTimeout(3500);
+  // The landing (Hero) tab has NO chart since charts lazy-load per tab (2026-06-22),
+  // so the old canvas wait would hang the full 45s timeout. Wait for the hero panel
+  // to actually populate instead, then let layout/fonts settle.
+  await page.waitForFunction(
+    () => { const h = document.querySelector('[data-panel=hero]'); return h && h.textContent.trim().length > 200; },
+    { timeout: 45000 },
+  ).catch(() => {});
+  await page.waitForTimeout(2500);
 }
 
 (async () => {
