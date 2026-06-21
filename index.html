@@ -1309,12 +1309,12 @@ layout: null
     </div>
   </div>
   <nav class="tabs" role="tablist">
-    <button class="tab-btn active" data-tab="hero" role="tab" aria-selected="true">Hero</button>
-    <button class="tab-btn" data-tab="drill" role="tab">Drill</button>
-    <button class="tab-btn" data-tab="market" role="tab">Market</button>
-    <button class="tab-btn" data-tab="plan" role="tab">Plan</button>
-    <button class="tab-btn" data-tab="reflect" role="tab">Reflect</button>
-    <button class="tab-btn" data-tab="gold" role="tab">Gold</button>
+    <button class="tab-btn active" data-tab="hero" role="tab" aria-selected="true">总览</button>
+    <button class="tab-btn" data-tab="drill" role="tab">持仓</button>
+    <button class="tab-btn" data-tab="risk" role="tab">风控</button>
+    <button class="tab-btn" data-tab="market" role="tab">信号</button>
+    <button class="tab-btn" data-tab="plan" role="tab">计划</button>
+    <button class="tab-btn" data-tab="reflect" role="tab">诚实</button>
   </nav>
   <div class="swipe-hint">‹ 左右滑动切换 ›</div>
 </header>
@@ -1329,21 +1329,16 @@ layout: null
   </div>
 
   <!-- ============================================
-       HERO — 我的状态 + 今日异动 + 风险 (9 张速读卡)
-       外部情报已拆到『Market』tab
+       6 tabs, 按「每个 tab 回答一个问题」归类 (2026-06-22 重构):
+       总览=我现在怎样 · 持仓=每只仓位 · 风控=敞口/杠杆/回撤
+       信号=量化+消息输入 · 计划=触发与动作 · 诚实=AI/战绩自评
        ============================================ -->
   <div class="pager" id="pager">
 
   <section class="panel active" data-panel="hero">
-    <h2>Hero</h2>
+    <h2>总览</h2>
 
     <div id="today-highlights" class="today-highlights"></div>
-
-    <div class="card" id="honesty-card" style="display:none">
-      <h3>🪞 诚实自评 · self-grading</h3>
-      <div id="honesty-body" style="font-size:12px"></div>
-    </div>
-
 
     <div class="card market-card">
       <h3>Market Snapshot <span class="muted" id="market-asof" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:11px">—</span></h3>
@@ -1352,7 +1347,6 @@ layout: null
       </div>
       <div class="rs-row muted" id="market-rs" style="margin-top:10px;font-size:11px"></div>
     </div>
-
 
     <div class="card">
       <h3>Total Book</h3>
@@ -1382,7 +1376,6 @@ layout: null
       </div>
     </div>
 
-
     <div class="card">
       <h3>Today's P&amp;L</h3>
       <div class="today-pnl-grid">
@@ -1399,26 +1392,16 @@ layout: null
       </div>
     </div>
 
-
-    <div class="card">
-      <h3>Delta</h3>
-      <table class="delta-table">
-        <thead>
-          <tr><th>Period</th><th>US</th><th>HK</th></tr>
-        </thead>
-        <tbody id="delta-tbody">
-          <tr><td colspan="3" class="muted">—</td></tr>
-        </tbody>
-      </table>
-    </div>
-
-
     <div class="card" id="guardrail-card">
       <h3>🚦 仓位/杠杆硬闸 <span class="badge muted" id="guardrail-count"></span></h3>
       <div class="muted" id="guardrail-directive" style="font-size:12px;margin-bottom:8px;line-height:1.5"></div>
       <div class="risk-alerts" id="guardrail-list"></div>
     </div>
 
+    <div class="card" id="honesty-card" style="display:none">
+      <h3>🪞 诚实自评 · self-grading</h3>
+      <div id="honesty-body" style="font-size:12px"></div>
+    </div>
 
     <div class="card">
       <h3>Anomalies <span class="badge muted" id="anom-count"></span></h3>
@@ -1427,131 +1410,18 @@ layout: null
       </div>
     </div>
 
-
-    <div class="card">
-      <h3>Today's Movers <span class="muted" style="text-transform:none;letter-spacing:0;font-weight:500">(≥3%)</span></h3>
-      <div class="movers-scroll" id="movers-scroll">
-        <div class="empty-state">No movers ≥3% today.</div>
-      </div>
-    </div>
-
-
-    <div class="card fold-m" data-fold-id="conc">
-      <h3>Concentration (HHI)<span class="peek" id="peek-conc"></span></h3>
-      <div class="hhi-row">
-        <div class="hhi-card" id="hhi-us">
-          <div class="lbl">US</div>
-          <div class="hhi-ring" style="--pct: 0; --color: var(--gray);"><span class="inner">—</span></div>
-          <div class="verdict muted">—</div>
-          <div class="top2">—</div>
-        </div>
-        <div class="hhi-card" id="hhi-hk">
-          <div class="lbl">HK</div>
-          <div class="hhi-ring" style="--pct: 0; --color: var(--gray);"><span class="inner">—</span></div>
-          <div class="verdict muted">—</div>
-          <div class="top2">—</div>
-        </div>
-      </div>
-    </div>
-
-
-    <div class="card fold-m" data-fold-id="lev">
-      <h3>Leveraged ETF Exposure <span class="muted" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:11px">(2x/3x ÷ book)</span><span class="peek" id="peek-lev"></span></h3>
-      <div class="lev-row">
-        <div class="lev-cell">
-          <div class="lbl">US leg</div>
-          <div class="val" id="lev-us">—</div>
-        </div>
-        <div class="lev-cell">
-          <div class="lbl">HK leg</div>
-          <div class="val" id="lev-hk">—</div>
-        </div>
-        <div class="lev-cell">
-          <div class="lbl">Combined</div>
-          <div class="val" id="lev-combined">—</div>
-        </div>
-      </div>
-      <div class="lev-tickers muted" id="lev-tickers">—</div>
-    </div>
-
-
-    <div class="card fold-m" data-fold-id="riskm">
-      <h3>Risk Metrics <span class="muted" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:11px">(30d)</span> <span class="badge muted" id="risk-alert-count"></span><span class="peek" id="peek-riskm"></span></h3>
-      <div class="risk-grid">
-        <div class="risk-cell">
-          <div class="lbl">US β (vs SPX)</div>
-          <div class="val" id="risk-beta-us">—</div>
-        </div>
-        <div class="risk-cell">
-          <div class="lbl">HK β (vs HSI)</div>
-          <div class="val" id="risk-beta-hk">—</div>
-        </div>
-        <div class="risk-cell">
-          <div class="lbl">Vol (combined)</div>
-          <div class="val" id="risk-vol">—</div>
-        </div>
-        <div class="risk-cell">
-          <div class="lbl">Sharpe</div>
-          <div class="val" id="risk-sharpe">—</div>
-        </div>
-        <div class="risk-cell">
-          <div class="lbl">Margin @ -10%</div>
-          <div class="val" id="risk-margin">—</div>
-        </div>
-      </div>
-      <div class="risk-alerts" id="risk-alerts"></div>
-    </div>
-
-    <!-- 诊断区：mobile 默认折叠成 peek，点 h3 展开（与 HHI/Lev/Risk 同机制） -->
-    <div class="card fold-m" id="lev-regime-card" data-fold-id="levregime" style="display:none">
-      <h3>🧭 杠杆刻度盘 <span class="muted" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:11px">趋势 + 波动 → 杠杆ETF上限</span><span class="peek" id="peek-levregime"></span></h3>
-      <div class="muted" style="font-size:10px;margin-bottom:3px;opacity:0.8">HK · HSTECH 指数级</div>
-      <div class="regime-badge" id="lev-regime-badge" style="margin-bottom:6px">
-        <span class="rg-dot"></span><span class="rg-label" id="lev-regime-label"></span>
-        <span class="rg-reasons" id="lev-regime-cap"></span>
-      </div>
-      <div class="muted" id="lev-regime-rationale" style="font-size:12px;line-height:1.5"></div>
-      <div id="lev-regime-trigger" style="font-size:11px;margin-top:5px;line-height:1.5"></div>
-      <div class="muted" style="font-size:10px;margin:8px 0 3px;opacity:0.8">US · 2x 单股 per-name（趋势off且波动过热才砍）</div>
-      <div class="risk-alerts" id="lev-regime-us"></div>
-      <div class="muted" id="lev-regime-asof" style="font-size:10px;margin-top:6px;opacity:0.7"></div>
-    </div>
-
-    <div class="card fold-m" id="quant-card" data-fold-id="quant" style="display:none">
-      <h3>📊 量化因子 <span class="muted" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:11px">趋势·动量·RSI·吊灯止损·vol仓位 <span id="quant-asof"></span></span><span class="peek" id="peek-quant"></span></h3>
-      <div class="table-wrap">
-        <table class="holdings-table" id="quant-table" style="min-width:560px;font-size:12px">
-          <thead><tr><th>标的</th><th>信号</th><th class="num">RSI</th><th class="num">z20</th><th class="num">距200线</th><th class="num">吊灯距</th><th class="num">vol权重</th></tr></thead>
-          <tbody id="quant-tbody"></tbody>
-        </table>
-      </div>
-      <div class="muted" id="quant-edge" style="font-size:11px;margin-top:6px;line-height:1.5"></div>
-    </div>
-
-    <div class="card fold-m" id="t0-card" data-fold-id="t0" style="display:none">
-      <h3>🎯 T+0 牌面 <span class="muted" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:11px">做T前先看牌面·非买卖信号 <span id="t0-asof"></span></span><span class="peek" id="peek-t0"></span></h3>
-      <div class="table-wrap">
-        <table class="holdings-table" id="t0-table" style="min-width:520px;font-size:12px">
-          <thead><tr><th>标的</th><th>牌面</th><th class="num">区间位</th><th class="num">今日%</th><th class="num">跳空%</th><th class="num">振幅/ATR</th></tr></thead>
-          <tbody id="t0-tbody"></tbody>
-        </table>
-      </div>
-      <div class="muted" id="t0-note" style="font-size:11px;margin-top:6px;line-height:1.5"></div>
-    </div>
-
-    <div class="card fold-m" id="breakeven-card" data-fold-id="breakeven" style="display:none">
-      <h3>🧮 解套数学 <span class="muted" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:11px">回本所需涨幅 · 纯算术</span><span class="peek" id="peek-breakeven"></span></h3>
-      <div class="risk-alerts" id="breakeven-list"></div>
-      <div class="muted" id="breakeven-note" style="font-size:11px;margin-top:6px;line-height:1.5"></div>
+    <div class="card" id="gold-dca-card" style="display:none">
+      <h3>Gold DCA <span class="muted" id="gold-sub" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:11px"></span></h3>
+      <div id="gold-hero"></div>
+      <div id="gold-stats"></div>
+      <div id="gold-spark"></div>
+      <div id="gold-proj"></div>
+      <div class="muted" id="gold-asof" style="font-size:10px;margin-top:6px;opacity:0.7"></div>
     </div>
 
   </section>
-
-  <!-- ============================================
-       DRILL — holdings, sector, winners/losers, weight×conviction
-       ============================================ -->
   <section class="panel" data-panel="drill">
-    <h2>Drill</h2>
+    <h2>持仓</h2>
 
     <div class="card" id="decision-matrix-card">
       <h3>🎯 持仓决策矩阵 <span class="muted" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:11px">每持仓一行 · 价/量化/52w位置/硬闸 汇总</span></h3>
@@ -1590,6 +1460,12 @@ layout: null
       </div>
     </div>
 
+    <div class="card">
+      <h3>Today's Movers <span class="muted" style="text-transform:none;letter-spacing:0;font-weight:500">(≥3%)</span></h3>
+      <div class="movers-scroll" id="movers-scroll">
+        <div class="empty-state">No movers ≥3% today.</div>
+      </div>
+    </div>
 
     <div class="card">
       <h3>Holdings 7d Trend <span class="muted" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:11px">(active 持仓 · 价格走势)</span></h3>
@@ -1598,18 +1474,12 @@ layout: null
       </div>
     </div>
 
-
     <div class="card">
       <h3>8天涨跌热力 <span class="muted" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:11px">(近 8 日收益 · 按强弱排序)</span></h3>
       <p class="chart-hint">把 holdings_history 8 天价格序列折算成回报率：绿色 = 在跑、红色 = 在拖。每格下方小字 = 当前仓位权重，重仓 + 大红块 = 优先审视。</p>
       <div class="ret-heatmap" id="ret-heatmap">
         <div class="empty-state">No price history.</div>
       </div>
-    </div>
-
-    <div class="card">
-      <h3>Sector Exposure <span class="muted" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:11px">(持仓按板块·含 ETF 与个股)</span></h3>
-      <div id="chart-sector" class="chart-box" style="height:300px"></div>
     </div>
 
     <div class="card">
@@ -1647,13 +1517,140 @@ layout: null
     </div>
 
   </section>
+  <section class="panel" data-panel="risk">
+    <h2>风控</h2>
 
-  <!-- ============================================
-       MARKET — 外部情报: 影响力雷达 / catalysts / news / macro / 板块
-       ============================================ -->
+    <div class="card fold-m" data-fold-id="conc">
+      <h3>Concentration (HHI)<span class="peek" id="peek-conc"></span></h3>
+      <div class="hhi-row">
+        <div class="hhi-card" id="hhi-us">
+          <div class="lbl">US</div>
+          <div class="hhi-ring" style="--pct: 0; --color: var(--gray);"><span class="inner">—</span></div>
+          <div class="verdict muted">—</div>
+          <div class="top2">—</div>
+        </div>
+        <div class="hhi-card" id="hhi-hk">
+          <div class="lbl">HK</div>
+          <div class="hhi-ring" style="--pct: 0; --color: var(--gray);"><span class="inner">—</span></div>
+          <div class="verdict muted">—</div>
+          <div class="top2">—</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card fold-m" data-fold-id="lev">
+      <h3>Leveraged ETF Exposure <span class="muted" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:11px">(2x/3x ÷ book)</span><span class="peek" id="peek-lev"></span></h3>
+      <div class="lev-row">
+        <div class="lev-cell">
+          <div class="lbl">US leg</div>
+          <div class="val" id="lev-us">—</div>
+        </div>
+        <div class="lev-cell">
+          <div class="lbl">HK leg</div>
+          <div class="val" id="lev-hk">—</div>
+        </div>
+        <div class="lev-cell">
+          <div class="lbl">Combined</div>
+          <div class="val" id="lev-combined">—</div>
+        </div>
+      </div>
+      <div class="lev-tickers muted" id="lev-tickers">—</div>
+    </div>
+
+    <div class="card">
+      <h3>Sector Exposure <span class="muted" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:11px">(持仓按板块·含 ETF 与个股)</span></h3>
+      <div id="chart-sector" class="chart-box" style="height:300px"></div>
+    </div>
+
+    <div class="card fold-m" data-fold-id="riskm">
+      <h3>Risk Metrics <span class="muted" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:11px">(30d)</span> <span class="badge muted" id="risk-alert-count"></span><span class="peek" id="peek-riskm"></span></h3>
+      <div class="risk-grid">
+        <div class="risk-cell">
+          <div class="lbl">US β (vs SPX)</div>
+          <div class="val" id="risk-beta-us">—</div>
+        </div>
+        <div class="risk-cell">
+          <div class="lbl">HK β (vs HSI)</div>
+          <div class="val" id="risk-beta-hk">—</div>
+        </div>
+        <div class="risk-cell">
+          <div class="lbl">Vol (combined)</div>
+          <div class="val" id="risk-vol">—</div>
+        </div>
+        <div class="risk-cell">
+          <div class="lbl">Sharpe</div>
+          <div class="val" id="risk-sharpe">—</div>
+        </div>
+        <div class="risk-cell">
+          <div class="lbl">Margin @ -10%</div>
+          <div class="val" id="risk-margin">—</div>
+        </div>
+      </div>
+      <div class="risk-alerts" id="risk-alerts"></div>
+    </div>
+
+    <div class="card fold-m" id="lev-regime-card" data-fold-id="levregime" style="display:none">
+      <h3>🧭 杠杆刻度盘 <span class="muted" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:11px">趋势 + 波动 → 杠杆ETF上限</span><span class="peek" id="peek-levregime"></span></h3>
+      <div class="muted" style="font-size:10px;margin-bottom:3px;opacity:0.8">HK · HSTECH 指数级</div>
+      <div class="regime-badge" id="lev-regime-badge" style="margin-bottom:6px">
+        <span class="rg-dot"></span><span class="rg-label" id="lev-regime-label"></span>
+        <span class="rg-reasons" id="lev-regime-cap"></span>
+      </div>
+      <div class="muted" id="lev-regime-rationale" style="font-size:12px;line-height:1.5"></div>
+      <div id="lev-regime-trigger" style="font-size:11px;margin-top:5px;line-height:1.5"></div>
+      <div class="muted" style="font-size:10px;margin:8px 0 3px;opacity:0.8">US · 2x 单股 per-name（趋势off且波动过热才砍）</div>
+      <div class="risk-alerts" id="lev-regime-us"></div>
+      <div class="muted" id="lev-regime-asof" style="font-size:10px;margin-top:6px;opacity:0.7"></div>
+    </div>
+
+    <div class="card fold-m" id="breakeven-card" data-fold-id="breakeven" style="display:none">
+      <h3>🧮 解套数学 <span class="muted" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:11px">回本所需涨幅 · 纯算术</span><span class="peek" id="peek-breakeven"></span></h3>
+      <div class="risk-alerts" id="breakeven-list"></div>
+      <div class="muted" id="breakeven-note" style="font-size:11px;margin-top:6px;line-height:1.5"></div>
+    </div>
+
+    <div class="card">
+      <h3>历史利润极值 & 回撤恢复 <span class="muted" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:11px">(峰值 / 谷底 / 最大回撤 / 恢复)</span></h3>
+      <p class="chart-hint">主口径 = <b>总利润（浮盈＋已实现，净化本金）</b>：<b>加减仓不会影响它</b>，所以它的<b>峰值才是"真·赚最多"那天</b>。<b>历史最高/最低利润</b> = 有快照以来的利润峰值与谷底；<b>最大回撤</b> = 从利润峰到其后最深谷的跌幅（% 仅在利润全程为正时给出，否则只报金额）；<b>距利润峰值</b> = 今天离它还差多少；<b>恢复%</b> = 从最深处反弹回来多少（100%＝已回峰值，0%＝仍在底部）。<br>下半区灰色 = <b>净值口径（市值＋已实现）</b>，<b>仅供参考</b>：买入会把它抬高（花掉的现金不计入净值），所以它常显示"假新高"——别把它当真峰值。<span id="extremes-window" class="muted"></span></p>
+      <div class="ext-grid" id="ext-grid">
+        <div class="ext-region" id="ext-region-combined"></div>
+        <div class="ext-region" id="ext-region-us"></div>
+        <div class="ext-region" id="ext-region-hk"></div>
+      </div>
+    </div>
+
+  </section>
   <section class="panel" data-panel="market">
-    <h2>Market</h2>
+    <h2>信号</h2>
 
+    <div class="card fold-m" id="quant-card" data-fold-id="quant" style="display:none">
+      <h3>📊 量化因子 <span class="muted" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:11px">趋势·动量·RSI·吊灯止损·vol仓位 <span id="quant-asof"></span></span><span class="peek" id="peek-quant"></span></h3>
+      <div class="table-wrap">
+        <table class="holdings-table" id="quant-table" style="min-width:560px;font-size:12px">
+          <thead><tr><th>标的</th><th>信号</th><th class="num">RSI</th><th class="num">z20</th><th class="num">距200线</th><th class="num">吊灯距</th><th class="num">vol权重</th></tr></thead>
+          <tbody id="quant-tbody"></tbody>
+        </table>
+      </div>
+      <div class="muted" id="quant-edge" style="font-size:11px;margin-top:6px;line-height:1.5"></div>
+    </div>
+
+    <div class="card fold-m" id="t0-card" data-fold-id="t0" style="display:none">
+      <h3>🎯 T+0 牌面 <span class="muted" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:11px">做T前先看牌面·非买卖信号 <span id="t0-asof"></span></span><span class="peek" id="peek-t0"></span></h3>
+      <div class="table-wrap">
+        <table class="holdings-table" id="t0-table" style="min-width:520px;font-size:12px">
+          <thead><tr><th>标的</th><th>牌面</th><th class="num">区间位</th><th class="num">今日%</th><th class="num">跳空%</th><th class="num">振幅/ATR</th></tr></thead>
+          <tbody id="t0-tbody"></tbody>
+        </table>
+      </div>
+      <div class="muted" id="t0-note" style="font-size:11px;margin-top:6px;line-height:1.5"></div>
+    </div>
+
+    <div class="card">
+      <h3>Catalysts <span class="muted" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:11px">(next 14d)</span></h3>
+      <div class="catalysts-list" id="catalysts-list">
+        <div class="empty-state">No upcoming catalysts.</div>
+      </div>
+    </div>
 
     <div class="card">
       <h3>影响力雷达 <span class="muted" id="infl-asof" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:11px">Trump · Musk · Serenity · LLM筛</span></h3>
@@ -1663,22 +1660,12 @@ layout: null
       </div>
     </div>
 
-
-    <div class="card">
-      <h3>Catalysts <span class="muted" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:11px">(next 14d)</span></h3>
-      <div class="catalysts-list" id="catalysts-list">
-        <div class="empty-state">No upcoming catalysts.</div>
-      </div>
-    </div>
-
-
     <div class="card">
       <h3>US News Digest <span class="muted" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:11px">(xiaomi · 48h)</span></h3>
       <div class="news-digest" id="news-digest">
         <div class="empty-state">No digest yet.</div>
       </div>
     </div>
-
 
     <div class="card">
       <h3>Macro · Sentiment</h3>
@@ -1690,6 +1677,12 @@ layout: null
       <div id="sentiment-drill" class="sentiment-drill"></div>
     </div>
 
+    <div class="card">
+      <h3>同行背离 <span class="muted" id="peer-div-asof" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:11px">Peer Divergence</span></h3>
+      <div class="peer-div-list" id="peer-div-list">
+        <div class="empty-state">No peer divergence flagged.</div>
+      </div>
+    </div>
 
     <div class="card">
       <h3>板块全景 <span class="muted" id="sector-context-asof" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:11px">—</span></h3>
@@ -1699,20 +1692,9 @@ layout: null
       </div>
     </div>
 
-    <div class="card">
-      <h3>同行背离 <span class="muted" id="peer-div-asof" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:11px">Peer Divergence</span></h3>
-      <div class="peer-div-list" id="peer-div-list">
-        <div class="empty-state">No peer divergence flagged.</div>
-      </div>
-    </div>
-
   </section>
-
-  <!-- ============================================
-       PLAN — 触发位 / 计划动作 / 决策时间线 / 计划复盘
-       ============================================ -->
   <section class="panel" data-panel="plan">
-    <h2>Plan</h2>
+    <h2>计划</h2>
 
     <div class="card" id="watch-levels-card" style="display:none">
       <h3>今日触发位 <span class="muted" id="watch-levels-date" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:11px">Watch Levels</span></h3>
@@ -1724,6 +1706,14 @@ layout: null
       <h3>Recent Plan Actions <span class="muted" style="text-transform:none;letter-spacing:0;font-weight:500">(last 5d)</span></h3>
       <div class="plan-actions" id="plan-actions">
         <div class="empty-state">No recent plan actions.</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Plan Timeline <span class="muted" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:11px">(last 15 actions · 包含 rationale)</span></h3>
+      <p class="chart-hint">每条卡片 = 一次具体计划：写的时候置信度 / 当初理由 / 现在结果。绿色边 = win，红色边 = loss，灰色边 = 待结算。<b>followed=true</b> 才记入命中率。</p>
+      <div class="plan-timeline" id="plan-timeline">
+        <div class="empty-state">No timeline data yet.</div>
       </div>
     </div>
 
@@ -1741,12 +1731,28 @@ layout: null
       <div class="llm-src" id="hidden-conc-src"></div>
     </div>
 
+  </section>
+  <section class="panel" data-panel="reflect">
+    <h2>诚实</h2>
+
+    <div class="card llm-card" id="behavioral-review-card" style="display:none">
+      <h3>行为复盘 <span class="muted llm-tag">🧠 LLM · 每日 brief 刷新</span></h3>
+      <p class="chart-hint">基于 calibration 战绩的复盘 —— 直接点出最近的决策偏差，数字来源见下方 Plan Review / Calibration 卡。</p>
+      <div class="br-verdict" id="br-verdict"></div>
+      <div id="br-points"></div>
+      <div class="llm-src" id="br-src"></div>
+    </div>
+
     <div class="card">
-      <h3>Plan Timeline <span class="muted" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:11px">(last 15 actions · 包含 rationale)</span></h3>
-      <p class="chart-hint">每条卡片 = 一次具体计划：写的时候置信度 / 当初理由 / 现在结果。绿色边 = win，红色边 = loss，灰色边 = 待结算。<b>followed=true</b> 才记入命中率。</p>
-      <div class="plan-timeline" id="plan-timeline">
-        <div class="empty-state">No timeline data yet.</div>
+      <h3>Calibration · 30d</h3>
+      <div class="calib-badge" id="calib-badge">
+        <div>
+          <div class="brier-val" id="brier-val">—</div>
+          <div class="meta" id="brier-meta">—</div>
+        </div>
+        <div class="tier" id="brier-tier">—</div>
       </div>
+      <div class="meta" id="alpha-line" style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border)">—</div>
     </div>
 
     <div class="card">
@@ -1788,33 +1794,6 @@ layout: null
           <div class="empty-state" style="font-size:11px">No driver data yet.</div>
         </div>
       </div>
-    </div>
-
-    <div class="card">
-      <h3>Calibration · 30d</h3>
-      <div class="calib-badge" id="calib-badge">
-        <div>
-          <div class="brier-val" id="brier-val">—</div>
-          <div class="meta" id="brier-meta">—</div>
-        </div>
-        <div class="tier" id="brier-tier">—</div>
-      </div>
-      <div class="meta" id="alpha-line" style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border)">—</div>
-    </div>
-  </section>
-
-  <!-- ============================================
-       REFLECT — track record, equity, drawdown
-       ============================================ -->
-  <section class="panel" data-panel="reflect">
-    <h2>Reflect</h2>
-
-    <div class="card llm-card" id="behavioral-review-card" style="display:none">
-      <h3>行为复盘 <span class="muted llm-tag">🧠 LLM · 每日 brief 刷新</span></h3>
-      <p class="chart-hint">基于 calibration 战绩的复盘 —— 直接点出最近的决策偏差，数字来源见下方 Plan Review / Calibration 卡。</p>
-      <div class="br-verdict" id="br-verdict"></div>
-      <div id="br-points"></div>
-      <div class="llm-src" id="br-src"></div>
     </div>
 
     <div class="card">
@@ -1872,16 +1851,6 @@ layout: null
     </div>
 
     <div class="card">
-      <h3>历史利润极值 & 回撤恢复 <span class="muted" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:11px">(峰值 / 谷底 / 最大回撤 / 恢复)</span></h3>
-      <p class="chart-hint">主口径 = <b>总利润（浮盈＋已实现，净化本金）</b>：<b>加减仓不会影响它</b>，所以它的<b>峰值才是"真·赚最多"那天</b>。<b>历史最高/最低利润</b> = 有快照以来的利润峰值与谷底；<b>最大回撤</b> = 从利润峰到其后最深谷的跌幅（% 仅在利润全程为正时给出，否则只报金额）；<b>距利润峰值</b> = 今天离它还差多少；<b>恢复%</b> = 从最深处反弹回来多少（100%＝已回峰值，0%＝仍在底部）。<br>下半区灰色 = <b>净值口径（市值＋已实现）</b>，<b>仅供参考</b>：买入会把它抬高（花掉的现金不计入净值），所以它常显示"假新高"——别把它当真峰值。<span id="extremes-window" class="muted"></span></p>
-      <div class="ext-grid" id="ext-grid">
-        <div class="ext-region" id="ext-region-combined"></div>
-        <div class="ext-region" id="ext-region-us"></div>
-        <div class="ext-region" id="ext-region-hk"></div>
-      </div>
-    </div>
-
-    <div class="card">
       <div class="card-head">
         <h3 id="equity-title">Equity Curve · USD-eq</h3>
         <span id="benchmark-stale" class="muted" style="display:none;font-size:11px;color:var(--amber)"></span>
@@ -1914,21 +1883,16 @@ layout: null
       <div id="chart-realized" class="chart-box" style="height:220px"></div>
     </div>
 
-  </section>
-
-  <!-- ============================================
-       GOLD — 黄金定投 sleeve（独立人民币，不并入跨币种总额）
-       ============================================ -->
-  <section class="panel" data-panel="gold">
-    <h2>Gold</h2>
-
-    <div class="card" id="gold-dca-card" style="display:none">
-      <h3>Gold DCA <span class="muted" id="gold-sub" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:11px"></span></h3>
-      <div id="gold-hero"></div>
-      <div id="gold-stats"></div>
-      <div id="gold-spark"></div>
-      <div id="gold-proj"></div>
-      <div class="muted" id="gold-asof" style="font-size:10px;margin-top:6px;opacity:0.7"></div>
+    <div class="card">
+      <h3>Delta</h3>
+      <table class="delta-table">
+        <thead>
+          <tr><th>Period</th><th>US</th><th>HK</th></tr>
+        </thead>
+        <tbody id="delta-tbody">
+          <tr><td colspan="3" class="muted">—</td></tr>
+        </tbody>
+      </table>
     </div>
 
   </section>
@@ -2157,7 +2121,8 @@ layout: null
   // theme flip keep them live. (Before: boot() blocked first paint polling for
   // echarts, then render() init'd all 5 charts up front even on Hero.)
   const CHART_FNS = {
-    drill:   () => { renderSectorChart(); renderWeightConfidence(); },
+    drill:   () => { renderWeightConfidence(); },
+    risk:    () => { renderSectorChart(); },
     reflect: () => { renderEquityChart(); renderRealizedChart(); renderDailyPnlChart(); },
   };
   const _chartTabsShown = new Set();
