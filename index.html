@@ -3086,20 +3086,39 @@ layout: null
     const wrap = document.getElementById('news-digest');
     if (!wrap) return;
     const d = safe(DATA, 'us_news_digest') || {};
-    if (!d.digest_markdown) {
+    // US digest (English) — render if present
+    let md = "";
+    if (d.digest_markdown) {
+      md = d.digest_markdown
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        .replace(/^### (.+)$/gm, '<h3>$1</h3>')
+        .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+        .replace(/^- (.+)$/gm, '<li>$1</li>');
+      md = md.replace(/(<li>.*?<\/li>(\n<li>.*?<\/li>)*)/gs, '<ul>$1</ul>');
+      md = md.replace(/\n\n/g, '<br>');
+    }
+    // Eastmoney Chinese info layer — HK holding news + 7x24 [info breadth]
+    const em = safe(DATA, 'em_news') || {};
+    let emHtml = "";
+    const hn = em.holdings_news || {};
+    const hk = Object.keys(hn);
+    if (hk.length) {
+      emHtml += '<h3>🇭🇰 港股中文消息 · 东财</h3>';
+      hk.forEach(tk => {
+        const v = hn[tk] || {};
+        emHtml += `<div style="margin:3px 0"><strong>${escapeHtml(tk)} ${escapeHtml(v.name || '')}</strong>`;
+        (v.items || []).slice(0, 2).forEach(it => {
+          emHtml += `<div style="font-size:11px;opacity:.8">· [${escapeHtml(it.date || '')}] ${escapeHtml(it.title || '')}</div>`;
+        });
+        emHtml += '</div>';
+      });
+    }
+    if (!md && !emHtml) {
       wrap.innerHTML = '<div class="empty-state">No digest yet.</div>';
       return;
     }
-    // Minimal markdown render: H3 (### → h3), bold (**), bullets (-)
-    let md = d.digest_markdown
-      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-      .replace(/^### (.+)$/gm, '<h3>$1</h3>')
-      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-      .replace(/^- (.+)$/gm, '<li>$1</li>');
-    md = md.replace(/(<li>.*?<\/li>(\n<li>.*?<\/li>)*)/gs, '<ul>$1</ul>');
-    md = md.replace(/\n\n/g, '<br>');
     const meta = d.generated_at ? new Date(d.generated_at).toLocaleString('zh-CN', {hour12: false}) : '—';
-    wrap.innerHTML = `<div class="digest-meta">generated: ${meta}</div>${md}`;
+    wrap.innerHTML = `<div class="digest-meta">generated: ${meta}</div>${md}${emHtml}`;
   }
 
   function renderMacro() {
@@ -4853,9 +4872,12 @@ layout: null
       const winFrac = total ? (e.wins || 0) / total : 0;
       const lossFrac = total ? (e.losses || 0) / total : 0;
       const pendFrac = total ? (e.n_pending || 0) / total : 0;
+      const ci = e.ci95;
+      const ciTxt = ci ? ` [${(ci[0]*100).toFixed(0)}–${(ci[1]*100).toFixed(0)}]` : "";
+      const edge = e.edge_significant ? " ✓edge" : "";   // 整区间 > 50% 才打勾
       const wrTxt = e.win_rate == null
         ? `pending (${e.n_pending || 0})`
-        : `win ${(e.win_rate * 100).toFixed(0)}% · n=${e.n_resolved}`;
+        : `win ${(e.win_rate * 100).toFixed(0)}%${ciTxt} · n=${e.n_resolved}${edge}`;
       const alertCls = (e.win_rate != null && e.win_rate < 0.4 && e.n_resolved >= 2) ? " alert" : "";
       const confTxt = e.avg_confidence != null ? ` · conf ${(e.avg_confidence * 100).toFixed(0)}%` : "";
       return `
@@ -4899,9 +4921,12 @@ layout: null
       const winFrac = total ? (e.wins || 0) / total : 0;
       const lossFrac = total ? (e.losses || 0) / total : 0;
       const pendFrac = total ? (e.n_pending || 0) / total : 0;
+      const ci = e.ci95;
+      const ciTxt = ci ? ` [${(ci[0]*100).toFixed(0)}–${(ci[1]*100).toFixed(0)}]` : "";
+      const edge = e.edge_significant ? " ✓edge" : "";   // 整区间 > 50% 才打勾
       const wrTxt = e.win_rate == null
         ? `pending (${e.n_pending || 0})`
-        : `win ${(e.win_rate * 100).toFixed(0)}% · n=${e.n_resolved}`;
+        : `win ${(e.win_rate * 100).toFixed(0)}%${ciTxt} · n=${e.n_resolved}${edge}`;
       const alertCls = (e.win_rate != null && e.win_rate < 0.4 && e.n_resolved >= 2) ? " alert" : "";
       const confTxt = e.avg_confidence != null ? ` · conf ${(e.avg_confidence * 100).toFixed(0)}%` : "";
       return `
@@ -4915,6 +4940,15 @@ layout: null
           <div class="trig-stat${alertCls}">${wrTxt}${confTxt}</div>
         </div>`;
     }).join("");
+    // 顶部小结：catalyst 纪律 + 辩论决断率 [cut #1 / #4]
+    const dm = safe(DATA, "debate_metrics"), asd = safe(DATA, "active_signal_discipline");
+    const bits = [];
+    if (asd && asd.catalyst_pct != null)
+      bits.push(`催化纪律 ${asd.catalyst_pct}% (${asd.catalyst_backed}/${asd.active_calls})`);
+    if (dm && dm.decisiveness_pct != null)
+      bits.push(`辩论决断率 ${dm.decisiveness_pct}%`);
+    if (bits.length) el.insertAdjacentHTML("afterbegin",
+      `<div style="font-size:11px;opacity:.75;margin-bottom:6px">🎯 ${bits.join(" · ")}</div>`);
   }
 
   // =========================================================
