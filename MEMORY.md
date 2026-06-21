@@ -101,17 +101,6 @@
 - **单一来源：`portfolio.json`**，不在此维护副本
 - ticker 列表：`memory/current-portfolio-summary.md`（提高检索命中）
 
-## Promoted From Short-Term Memory (2026-06-20)
-
-<!-- openclaw-memory-promotion:memory:memory/2026-06-15-1018.md:11:11 -->
-- Conversation Summary: Let me look at the beginning of the script to see how portfolio.json is loaded. OK so the script doesn't currently reference `trades` at all. But the `holding` dict is loaded from portfolio.json which does contain `trades`. Let me check how the holdings are loaded. [score=0.812 recalls=0 avg=0.620 source=memory/2026-06-15-1018.md:11-11]
-<!-- openclaw-memory-promotion:memory:memory/2026-06-15-1018.md:13:13 -->
-- Conversation Summary: Let me look at the beginning of the script to see how portfolio.json is loaded. OK so the script doesn't currently reference `trades` at all. But the `holding` dict is loaded from portfolio.json which does contain `trades`. Let me check how the holdings are loaded. [score=0.812 recalls=0 avg=0.620 source=memory/2026-06-15-1018.md:13-13]
-<!-- openclaw-memory-promotion:memory:memory/2026-06-15-1018.md:15:16 -->
-- Conversation Summary: Let me look at the beginning of the script to see how portfolio.json is loaded. assistant: OK, so the holdings are loaded directly from portfolio.json (line 590-594). The `holding` dict will have all the fields from portfolio.json, including `trades` if present. [score=0.812 recalls=0 avg=0.620 source=memory/2026-06-15-1018.md:15-16]
-<!-- openclaw-memory-promotion:memory:memory/2026-06-15-1018.md:18:18 -->
-- Conversation Summary: Now I need to add a check: if the holding was bought today (all trades have today's date), use `cost` instead of `pc` for today_change calculation. [score=0.812 recalls=0 avg=0.620 source=memory/2026-06-15-1018.md:18-18]
-
 ## Promoted From Short-Term Memory (2026-06-21)
 
 <!-- openclaw-memory-promotion:memory:memory/2026-06-16-pre-open.md:10:10 -->
@@ -126,3 +115,26 @@
 - Header: 真实总浮盈亏: USD$-3,813 ≈ HKD$-29,872 (USDHKD = 7.8341, 来源 Frankfurter, 抓取于 2026-06-16T00:00 UTC) ├─ HK 段：HKD$-30,519 ≈ USD$-3,896 └─ US 段：USD$+83 ≈ HKD$+648 [score=0.812 recalls=0 avg=0.620 source=memory/2026-06-16-pre-open.md:18-21]
 <!-- openclaw-memory-promotion:memory:memory/2026-06-16-pre-open.md:2:3 -->
 - layout: default title: 盘前深度简报 · 2026-06-16 [score=0.812 recalls=0 avg=0.620 source=memory/2026-06-16-pre-open.md:2-3]
+
+## Promoted From Short-Term Memory (2026-06-22)
+
+<!-- openclaw-memory-promotion:memory:memory/2026-06-17-pre-open.md:10:10 -->
+- Header: 🧭 **US Regime: risk_on**（VIX 16.2 calm / F&G 40.9 fear 转 neutral / SPX 7554 +1.65% / NDX 26683 +3.07% 周一收涨）→ 主动信号 ≤0.55 封顶，但 breach/hard_stop 走纪律硬闸不受 risk_on HOLD 默认豁免 [score=0.812 recalls=0 avg=0.620 source=memory/2026-06-17-pre-open.md:10-10]
+<!-- openclaw-memory-promotion:memory:memory/2026-06-17-pre-open.md:12:12 -->
+- Header: 🧭 **HK Regime: trending-down**（HSTECH 4765, -12.9% below 200MA 5465, RSI 39.5）→ cut/trim 门槛放宽，杠杆仓位优先减，🧭amber 杠杆 cap ×0.5=25% [score=0.812 recalls=0 avg=0.620 source=memory/2026-06-17-pre-open.md:12-12]
+<!-- openclaw-memory-promotion:memory:memory/2026-06-17-pre-open.md:14:14 -->
+- Header: **FX**: USDHKD = 7.8334（Frankfurter，2026-06-17T00:03 UTC） [score=0.812 recalls=0 avg=0.620 source=memory/2026-06-17-pre-open.md:14-14]
+<!-- openclaw-memory-promotion:memory:memory/2026-06-17-pre-open.md:16:16 -->
+- Header: **Book 双视角**： [score=0.812 recalls=0 avg=0.620 source=memory/2026-06-17-pre-open.md:16-16]
+<!-- openclaw-memory-promotion:memory:memory/2026-06-17-pre-open.md:18:21 -->
+- Header: 真实总浮盈亏: USD$-4,091.75 ≈ HKD$-32,052 (USDHKD = 7.8334, 来源 Frankfurter, 抓取于 2026-06-17T00:03 UTC) ├─ HK 段：HKD$-32,160.24 ≈ USD$-4,105 └─ US 段：USD$+13.78 ≈ HKD$+108 [score=0.812 recalls=0 avg=0.620 source=memory/2026-06-17-pre-open.md:18-21]
+<!-- openclaw-memory-promotion:memory:memory/2026-06-17-pre-open.md:2:3 -->
+- layout: default title: 盘前深度简报 · 2026-06-17 [score=0.812 recalls=0 avg=0.620 source=memory/2026-06-17-pre-open.md:2-3]
+<!-- openclaw-memory-promotion:memory:memory/2026-06-18-pre-open.md:10:10 -->
+- Header: 🧭 **US Regime: regime_change（hawkish FOMC 后）** — Warsh 首秀：维持 3.50-3.75% + dot plot 鹰派转向（9/19 票委预计 2026 加息；2026 利率预测 3.4%→3.8%；2026 通胀 2.7%→3.6%；期货市场定价 66% 加息概率）。6/17 反应：SPX -1.21%, NDX -1.34%, DJI -0.98%, 10Y +0.3pp, Gold 跌。**VIX 16.4 calm（regime-change 还没在 vol 上反映）+ F&G 39.2 fear** → 默认 HOLD，纪律 swap 不豁免。 [score=0.808 recalls=0 avg=0.620 source=memory/2026-06-18-pre-open.md:10-10]
+<!-- openclaw-memory-promotion:memory:memory/2026-06-18-pre-open.md:12:12 -->
+- Header: 🧭 **HK Regime: range_bearish** — HSTECH 4669 (仍然 -14.5%<200MA 5461)，RSI 39.5；6/17 HSI -0.74% / HSTECH +0.22% / 南向净流出 32.22 亿 HKD。AI 大模型板块局部强（智谱 +12.6% 领涨），但 6/18 开盘跟跌美股压力大。**amber 杠杆 cap ×0.5**：HK 25%，US 50%。 [score=0.808 recalls=0 avg=0.620 source=memory/2026-06-18-pre-open.md:12-12]
+<!-- openclaw-memory-promotion:memory:memory/2026-06-18-pre-open.md:14:14 -->
+- Header: **FX**: USDHKD = **7.8355**（Frankfurter，2026-06-18T00:02 UTC） [score=0.808 recalls=0 avg=0.620 source=memory/2026-06-18-pre-open.md:14-14]
+<!-- openclaw-memory-promotion:memory:memory/2026-06-18-pre-open.md:16:16 -->
+- Header: **Book 双视角**（HKD + USD 不能直接相加；FX=7.8355）： [score=0.808 recalls=0 avg=0.620 source=memory/2026-06-18-pre-open.md:16-16]
