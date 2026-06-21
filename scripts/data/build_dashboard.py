@@ -2069,18 +2069,28 @@ def main():
     brief_ctx_path, brief_ctx = _latest_brief_context()
     out['delta'] = compute_delta(snapshots)
     out['today_movers'] = compute_today_movers(us_h, hk_h)
+
+    # merge-not-overwrite guard for sidecar-derived cards. A context-less rebuild
+    # (GHA fresh-checkout: memory/.tmp is gitignored, so brief-context + insights/
+    # intraday sidecars are ABSENT — meaning "not in THIS checkout", NOT "no insight
+    # today") must NOT blank the cards the last local build published, or Pages
+    # flickers empty several times a day (every macro/sentiment/influencer GHA scan
+    # rebuilds dashboard.json via gha_commit_push.sh). Restore the last non-empty
+    # published value whenever the source context is absent. This regressed to
+    # anomalies-only at some point; restored to all sidecar fields 2026-06-21 —
+    # see memory: openclaw-gha-sidecar-strip-and-prepush-seterr.
+    _prev_dash = _load_existing_dashboard() or {}
+
+    def _preserve_absent(key, source_present):
+        """Keep the freshly-computed value when its source context was present in
+        this checkout; otherwise fall back to the last non-empty published value."""
+        if not source_present:
+            prev = _prev_dash.get(key)
+            if prev:
+                out[key] = prev
+
     out['anomalies'] = extract_anomalies(brief_ctx, us_h, hk_h)
-    # GHA fresh-checkout has no memory/.tmp (gitignored) → brief_ctx is None → the
-    # 'no_context' fallback would OVERWRITE the real anomalies the last local build
-    # published, surfacing a false "no brief-context found" card on Pages. The file's
-    # absence here means "not in this checkout", NOT "no brief today". So when context
-    # is missing, preserve the previous anomalies from the on-disk dashboard.json
-    # instead of clobbering them (merge-not-overwrite, same pattern as the sidecar
-    # fields — see memory: openclaw-gha-sidecar-strip-and-prepush-seterr).
-    if not brief_ctx:
-        prev_anom = (_load_existing_dashboard() or {}).get('anomalies')
-        if isinstance(prev_anom, list) and prev_anom:
-            out['anomalies'] = prev_anom
+    _preserve_absent('anomalies', bool(brief_ctx))
 
     # ── LLM narrative sidecars (agent-written in Step 3; text-only, no keys) ──
     # Each sidecar is validated (validate_insights / validate_intraday_insights)
@@ -2091,6 +2101,7 @@ def main():
     # daily insights (brief): behavioral_review / bear_cases / hidden_concentration.
     # 7d stale guard so a missed brief doesn't show week-old critique as current.
     _insights = load_tmp_sidecar('insights', max_age_days=7)
+    insights_present = bool(_insights)  # file existed in this checkout (vs. GHA-absent)
     _ins = validate_insights({} if _insights.get('_stale') else _insights, known_tickers)
     out['behavioral_review'] = _ins['behavioral_review']
     out['bear_cases'] = _ins['bear_cases']
@@ -2099,8 +2110,11 @@ def main():
         'source': _insights.get('_source'),
         'stale': _insights.get('_stale', True if not _insights else False),
     }
+    for _k in ('behavioral_review', 'bear_cases', 'hidden_concentration', 'insights_meta'):
+        _preserve_absent(_k, insights_present)
     # intraday insights (every 30min): status_banner + per-mover attribution.
     _intra = load_tmp_sidecar('intraday-insights', max_age_days=1)
+    intra_present = bool(_intra)  # file existed in this checkout (vs. GHA-absent)
     _intra_v = validate_intraday_insights({} if _intra.get('_stale') else _intra, known_tickers)
     out['status_banner'] = _intra_v['status_banner']
     out['status_banner_meta'] = {
@@ -2108,6 +2122,8 @@ def main():
         'generated_at': _intra.get('generated_at'),
         'stale': _intra.get('_stale', True if not _intra else False),
     }
+    _preserve_absent('status_banner', intra_present)
+    _preserve_absent('status_banner_meta', intra_present)
     # Merge validated mover attribution onto the deterministic movers list (by ticker).
     for _m in out['today_movers']:
         _note = _intra_v['movers'].get(_m.get('ticker'))
@@ -2118,6 +2134,11 @@ def main():
                  or ((brief_ctx or {}).get('generated_at') or '')[:10],
         'items': extract_peer_divergence(brief_ctx, us_h, hk_h),
     }
+    # peer_divergence is brief-context-derived → preserve last good when absent.
+    if not brief_ctx and not out['peer_divergence']['items']:
+        _prev_pd = _prev_dash.get('peer_divergence')
+        if isinstance(_prev_pd, dict) and _prev_pd.get('items'):
+            out['peer_divergence'] = _prev_pd
     out['calibration'] = compute_calibration()
     out['debate_metrics'] = compute_debate_metrics()
     out['active_signal_discipline'] = compute_active_signal_discipline()
