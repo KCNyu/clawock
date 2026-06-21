@@ -1309,12 +1309,12 @@ layout: null
     </div>
   </div>
   <nav class="tabs" role="tablist">
-    <button class="tab-btn active" data-tab="hero" role="tab" aria-selected="true">总览</button>
-    <button class="tab-btn" data-tab="drill" role="tab">持仓</button>
-    <button class="tab-btn" data-tab="risk" role="tab">风控</button>
-    <button class="tab-btn" data-tab="market" role="tab">信号</button>
-    <button class="tab-btn" data-tab="plan" role="tab">计划</button>
-    <button class="tab-btn" data-tab="reflect" role="tab">诚实</button>
+    <button class="tab-btn active" data-tab="hero" role="tab" aria-selected="true">Hero</button>
+    <button class="tab-btn" data-tab="drill" role="tab">Holdings</button>
+    <button class="tab-btn" data-tab="risk" role="tab">Risk</button>
+    <button class="tab-btn" data-tab="market" role="tab">Signals</button>
+    <button class="tab-btn" data-tab="plan" role="tab">Plan</button>
+    <button class="tab-btn" data-tab="reflect" role="tab">Reflect</button>
   </nav>
   <div class="swipe-hint">‹ 左右滑动切换 ›</div>
 </header>
@@ -1336,7 +1336,7 @@ layout: null
   <div class="pager" id="pager">
 
   <section class="panel active" data-panel="hero">
-    <h2>总览</h2>
+    <h2>Hero</h2>
 
     <div id="today-highlights" class="today-highlights"></div>
 
@@ -1421,7 +1421,7 @@ layout: null
 
   </section>
   <section class="panel" data-panel="drill">
-    <h2>持仓</h2>
+    <h2>Holdings</h2>
 
     <div class="card" id="decision-matrix-card">
       <h3>🎯 持仓决策矩阵 <span class="muted" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:11px">每持仓一行 · 价/量化/52w位置/硬闸 汇总</span></h3>
@@ -1518,7 +1518,7 @@ layout: null
 
   </section>
   <section class="panel" data-panel="risk">
-    <h2>风控</h2>
+    <h2>Risk</h2>
 
     <div class="card fold-m" data-fold-id="conc">
       <h3>Concentration (HHI)<span class="peek" id="peek-conc"></span></h3>
@@ -1621,7 +1621,7 @@ layout: null
 
   </section>
   <section class="panel" data-panel="market">
-    <h2>信号</h2>
+    <h2>Signals</h2>
 
     <div class="card fold-m" id="quant-card" data-fold-id="quant" style="display:none">
       <h3>📊 量化因子 <span class="muted" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:11px">趋势·动量·RSI·吊灯止损·vol仓位 <span id="quant-asof"></span></span><span class="peek" id="peek-quant"></span></h3>
@@ -1694,7 +1694,7 @@ layout: null
 
   </section>
   <section class="panel" data-panel="plan">
-    <h2>计划</h2>
+    <h2>Plan</h2>
 
     <div class="card" id="watch-levels-card" style="display:none">
       <h3>今日触发位 <span class="muted" id="watch-levels-date" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:11px">Watch Levels</span></h3>
@@ -1733,7 +1733,7 @@ layout: null
 
   </section>
   <section class="panel" data-panel="reflect">
-    <h2>诚实</h2>
+    <h2>Reflect</h2>
 
     <div class="card llm-card" id="behavioral-review-card" style="display:none">
       <h3>行为复盘 <span class="muted llm-tag">🧠 LLM · 每日 brief 刷新</span></h3>
@@ -1794,6 +1794,13 @@ layout: null
           <div class="empty-state" style="font-size:11px">No driver data yet.</div>
         </div>
       </div>
+    </div>
+
+    <div class="card" id="shadow-card" style="display:none">
+      <h3>🔬 全听 AI vs 不动 <span class="muted" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:11px">反事实回测 · 累计 benefit pp · T+1</span></h3>
+      <p class="chart-hint">「如果每条 AI 建议都严格执行」的累计收益（相对什么都不做）。复用 calibration 的方向化 benefit%，等权、不含 size/手续费。<b>仅主动建议</b>线掉到 0 以下＝主动出手跑输「不动」；<b>全部信号</b>含 hold≈持有的市场 β，不是 AI 的 alpha。执行权始终在你。</p>
+      <div id="chart-shadow" class="chart-box"></div>
+      <div id="shadow-note" class="muted" style="font-size:11px;margin-top:6px"></div>
     </div>
 
     <div class="card">
@@ -2111,7 +2118,7 @@ layout: null
   // =========================================================
   let DATA = null;
   let holdingsSort = { key: "current_value", dir: "desc" };
-  const charts = { equity: null, dailyPnl: null, realized: null, sector: null, weightConf: null };
+  const charts = { equity: null, dailyPnl: null, realized: null, sector: null, weightConf: null, shadow: null };
 
   // ── Lazy chart init (perf) ──────────────────────────────────────────────
   // ECharts canvas init+setOption for these 5 charts is the bulk of first paint,
@@ -2123,7 +2130,7 @@ layout: null
   const CHART_FNS = {
     drill:   () => { renderWeightConfidence(); },
     risk:    () => { renderSectorChart(); },
-    reflect: () => { renderEquityChart(); renderRealizedChart(); renderDailyPnlChart(); },
+    reflect: () => { renderShadowChart(); renderEquityChart(); renderRealizedChart(); renderDailyPnlChart(); },
   };
   const _chartTabsShown = new Set();
   function whenEcharts(cb) {
@@ -4181,6 +4188,56 @@ layout: null
       };
       mktCards.innerHTML = buildCard("us", "US", "USD") + buildCard("hk", "HK", "HKD");
     }
+  }
+
+  // 🔬 影子回测曲线 — 「如果全听 AI」累计 benefit(相对不动)。仅主动建议线在 0 下=主动跑输。
+  function renderShadowChart() {
+    const el = document.getElementById("chart-shadow");
+    const card = el ? el.closest(".card") : null;
+    if (!el || !window.echarts) return;
+    const sb = safe(DATA, "shadow_backtest");
+    const t1 = safe(sb, "horizons", "t1_next_session");
+    const curve = (t1 && t1.curve) || [];
+    if (curve.length < 2) { if (card) card.style.display = "none"; return; }
+    if (card) card.style.display = "";
+    if (!charts.shadow) charts.shadow = echarts.init(el, null, { renderer: "canvas" });
+    const dates = curve.map(p => p.date);
+    const active = curve.map(p => p.cum_active);
+    const all = curve.map(p => p.cum_all);
+    const green = getCSS("--green") || "#34d399";
+    const red = getCSS("--red") || "#f87171";
+    const dim = getCSS("--text-dim") || "#9aa4b8";
+    const isMobile = window.innerWidth < 1024;
+    const actEnd = active.length ? active[active.length - 1] : 0;
+    const actColor = actEnd >= 0 ? green : red;
+    charts.shadow.setOption({
+      backgroundColor: "transparent",
+      grid: { left: isMobile ? 46 : 58, right: isMobile ? 16 : 24, top: 30, bottom: dates.length > 6 ? 52 : 32 },
+      legend: { data: ["仅主动建议", "全部信号(含hold=β)"], top: 0,
+        textStyle: { color: chartTextColor(), fontSize: isMobile ? 9 : 10 } },
+      tooltip: { trigger: "axis",
+        valueFormatter: v => (v == null ? "—" : (v >= 0 ? "+" : "") + v.toFixed(1) + "pp") },
+      xAxis: { type: "category", data: dates, boundaryGap: false,
+        axisLine: { lineStyle: { color: chartGridColor() } },
+        axisLabel: { color: chartTextColor(), fontSize: 9, rotate: dates.length > 6 ? 35 : 0 } },
+      yAxis: { type: "value", name: "累计 pp", nameTextStyle: { color: chartTextColor(), fontSize: 9 },
+        axisLabel: { color: chartTextColor(), fontSize: 9, formatter: v => (v > 0 ? "+" : "") + v },
+        axisLine: { lineStyle: { color: chartGridColor() } },
+        splitLine: { lineStyle: { color: chartGridColor() } } },
+      series: [
+        { name: "仅主动建议", type: "line", data: active, smooth: true, showSymbol: false,
+          itemStyle: { color: actColor }, lineStyle: { width: 2.6, color: actColor },
+          areaStyle: { color: actColor, opacity: 0.08 }, z: 4,
+          markLine: { silent: true, symbol: "none",
+            lineStyle: { color: dim, type: "dotted", width: 1, opacity: 0.7 },
+            label: { color: dim, fontSize: 9, position: "insideStartTop", formatter: "不动 = 0" },
+            data: [{ yAxis: 0 }] } },
+        { name: "全部信号(含hold=β)", type: "line", data: all, smooth: true, showSymbol: false,
+          itemStyle: { color: dim }, lineStyle: { width: 1.4, color: dim, type: "dashed", opacity: 0.8 } },
+      ],
+    });
+    const note = document.getElementById("shadow-note");
+    if (note) note.textContent = (sb && sb.verdict) ? sb.verdict : "";
   }
 
   function renderEquityChart() {
