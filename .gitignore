@@ -67,3 +67,6 @@ memory/dreaming/
 
 # Misc
 share/
+
+# Playwright lib for local GIF recording (refresh_dashboard_gif.sh) — never commit
+node_modules/
