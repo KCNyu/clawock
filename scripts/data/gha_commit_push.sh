@@ -19,8 +19,12 @@ set -euo pipefail
 MSG="$1"; shift
 DATA_FILES=("$@")
 
-git config user.name "github-actions[bot]"
-git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+# Bot identity via per-invocation `-c` injection — NEVER persistent `git config`.
+# This script normally runs on an ephemeral GHA runner, but if it's ever invoked
+# in a real workspace (debugging, a misrouted cron), writing local config would
+# clobber kcn's interactive KCNyu identity (see memory feedback-commit-identity-kcnyu).
+BOT_ID=(-c "user.name=github-actions[bot]"
+        -c "user.email=41898282+github-actions[bot]@users.noreply.github.com")
 
 commit_once() {
   git add -- "${DATA_FILES[@]}"
@@ -30,7 +34,7 @@ commit_once() {
   fi
   python3 scripts/data/build_dashboard.py
   git add assets/data/dashboard.json
-  git commit -m "$MSG"
+  git "${BOT_ID[@]}" commit -m "$MSG"
 }
 
 commit_once || exit 0
