@@ -60,6 +60,12 @@ So I can tell you, with receipts, how the AI is *actually* doing:
 
 <sub>Numbers are point-in-time from `memory/calibration.csv`, `quant_signal_review.json`, `t0_setup_review.json` and move as samples grow. Factors with n < 20 are shown but **barred from influencing decisions** until they earn it.</sub>
 
+**The scorecard is built not to fool itself.** Three guards stop a noisy number from masquerading as edge:
+
+- **95% confidence intervals on every rate.** "catalyst 72%" is really `[59–82]` at n=54; a band that straddles 50% (macro, peer) is flagged `edge_significant: false` — statistically indistinguishable from a coin flip.
+- **A risk-adjusted verdict, not just hit-rate.** By *frequency* the active book looks +6pp ahead of holding. By *return* it's **−0.57pp** — and the gap isn't significant — against a portfolio β of 4.4. So a leveraged-beta "win" is never mistaken for skill.
+- **Catalyst-gate discipline.** Only `catalyst` has a CI-proven edge, so an active cut/trim/add must name the hard catalyst that justifies it (and the one that would *invalidate* its thesis). The dashboard tracks how many actually do — currently ~20%, i.e. most active calls are still filter-grade technicals.
+
 ---
 
 ## 🎯 How it actually decides
@@ -156,7 +162,7 @@ Four independent layers — cron → GitHub Action backstop → system-crontab w
 - The local harness pulls the other way: `sync_gha_data_files()` does `fetch + checkout origin/master -- <file>` *before* rebuilding, embedding the freshest remote data without touching the rest of the tree.
 - Everyone pushes through `safe_push.sh` — rebase-retry, abort (don't loop) on a real conflict; a committed conflict marker is **rejected at the push hook** so a broken `dashboard.json` can never reach Pages.
 
-The residual risk is two writers racing between rebuild and push; it self-heals on the next rebuild and is never authoritative for portfolio numbers — those live in `portfolio.json` with atomic writes.
+The residual risk is two writers racing between rebuild and push; it self-heals on the next rebuild and is never authoritative for portfolio numbers — those live in `portfolio.json`, written under an **advisory `flock` + read-fresh-then-overlay** (`mutate_json`) so concurrent fetchers serialize and can't lose each other's updates (closing the load-modify-write race class), with atomic `os.replace` underneath.
 
 </details>
 
@@ -167,6 +173,7 @@ The residual risk is two writers racing between rebuild and push; it self-heals 
 The constraints `postflight` won't let the model violate. Quant readers will recognize why each exists:
 
 - **🪙 FX — HKD and USD never sum directly.** Totals are always shown in both views with the rate + timestamp stamped (`USDHKD = 7.83, source Frankfurter, <ts>`). Adding two currencies naively is a meaningless number.
+- **🔢 Manual-entry guards.** The few hand-typed values (cash balances, gold-fund reconciliation) get fat-finger checks: a cash number that jumps ≥5× vs the last snapshot, or a gold avg-cost that diverges from NAV, is flagged before it silently corrupts total assets.
 - **📊 Concentration — HHI per leg.** `HHI = Σ wᵢ²`, plus Top-2 weight. Buckets: `<0.15` ✅ · `0.15–0.25` 🟡 · `0.25–0.40` 🟠 · `>0.40` 🔴. Computed per leg, never blended.
 - **🎲 Leverage ETFs — judge the underlying.** Tickers whose name carries a leverage marker (`倍`, `Direxion`, `T-Rex`, `ProShares`, `2X/3X Long`, …) skip fundamentals entirely — for a daily-reset 2×/3× product, fundamentals are noise; a **regime dial** (200-day trend × volatility) caps how much leverage is allowed instead.
 - **💵 Return basis — peak net principal.** Return % uses `true_principal` = peak net deposit from the cash-flow ledger, *not* `cost − realized`. A realized win shrinks `cost − realized` and fakes a higher return; the ledger basis doesn't move.
