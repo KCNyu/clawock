@@ -17,10 +17,10 @@
 <br>
 
 <a href="https://kcnyu.github.io/clawock/">
-  <img src="docs/dashboard-demo.gif" alt="clawock live dashboard" width="800">
+  <img src="docs/dashboard-preview.png" alt="clawock dashboard" width="800">
 </a>
 
-<sub>Real positions. Real P&L. ↑ a scroll-through of the actual live dashboard — open it <a href="https://kcnyu.github.io/clawock/">here</a>. The page updates after every cron run.</sub>
+<sub>Real positions. Real P&L. The page updates after every cron run; this screenshot refreshes weekly via a <a href="https://github.com/KCNyu/clawock/actions/workflows/screenshot-refresh.yml">GitHub Action</a> so it never drifts.</sub>
 
 <br><br>
 
