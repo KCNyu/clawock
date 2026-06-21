@@ -1130,6 +1130,31 @@ def _recent_price_moves(tickers, lookback_sessions=5):
     return out
 
 
+def load_em_news(issues):
+    """Read em_news.json (Eastmoney Chinese-language info layer) → LLM-friendly subset.
+
+    Widens the brief's information inputs where clawock is thinnest: HK-holding
+    Chinese news + market 7x24 快讯. Catalyst-grade (dated, company-specific), so
+    it feeds the catalyst-gate. Stale/missing → {} (warn-only, never blocks)."""
+    path = WS / 'assets' / 'data' / 'em_news.json'
+    if not path.exists():
+        issues.append('em_news.json 缺失 — fetch_em_news 未跑(中文消息源)')
+        return {}
+    try:
+        d = json.loads(path.read_text())
+        hold = {tk: {'name': v.get('name'),
+                     'items': [{'date': i.get('date'), 'title': i.get('title')}
+                               for i in (v.get('items') or [])[:3]]}
+                for tk, v in (d.get('holdings_news') or {}).items()}
+        mkt = [{'date': i.get('date'), 'title': i.get('title')}
+               for i in (d.get('market_724') or [])[:5]]
+        return {'holdings_news': hold, 'market_724': mkt,
+                'generated_at': d.get('generated_at')}
+    except Exception as e:
+        issues.append(f'em_news.json 解析失败: {e}')
+        return {}
+
+
 def load_macro_and_sentiment(today, issues):
     """Read GH-Action-produced macro.json + sentiment.json; trim to LLM-friendly subset.
 
@@ -1525,6 +1550,14 @@ def main():
     except Exception as e:
         print(f'   ⚠ t0_setup_review failed: {e}')
 
+    # [10b6] 中文消息源 — Eastmoney HK 持仓新闻 + 7x24 快讯（信息广度，喂 catalyst-gate）。
+    # 借鉴 UZI-Skill 的数据源广度；信息收集是 LLM 强项 + kcn token 充足。失败 fail-soft。
+    try:
+        subprocess.run(['python3', str(WS / 'scripts' / 'data' / 'fetch_em_news.py')],
+                       capture_output=True, text=True, timeout=60, check=False)
+    except Exception as e:
+        print(f'   ⚠ fetch_em_news failed: {e}')
+
     # [10b5] 数据体检闸 — 把历史踩过的数字 bug 固化成自动门。warn-only 注入 context
     # （遵 feedback_no_individual_cron_alerts 不推送），ERROR 由 build_status 健康卡暴露。
     integrity = {}
@@ -1606,6 +1639,7 @@ def main():
     print('[13/13] Load macro + sentiment + influencer snapshots')
     macro_trim, sentiment_trim = load_macro_and_sentiment(today, issues)
     influencer_trim = load_influencer_feed(issues)
+    em_news_trim = load_em_news(issues)
 
     # Write context.json
     # 简报上下文里的 portfolio 拷贝去掉 gold_dca.nav_history(~140条/3.3KB 黄金每日净值流水):
@@ -1644,6 +1678,7 @@ def main():
         'macro':         macro_trim,
         'sentiment':     sentiment_trim,
         'influencer':    influencer_trim,
+        'em_news':       em_news_trim,
         'issues':        issues,
     }
     ctx_path = TMP_DIR / f'brief-context-{today}.json'

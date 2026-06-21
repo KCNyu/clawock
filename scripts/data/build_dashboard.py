@@ -1921,6 +1921,7 @@ _FRESHNESS_SLA_H = {
     'sentiment.json': 30,
     'catalysts.json': 30,
     'us_news_digest.json': 30,
+    'em_news.json': 30,
     'influencer_feed.json': 30,
 }
 
@@ -2214,6 +2215,7 @@ def main():
     _embed('sentiment', 'sentiment.json')              # GH Action sentiment-scan.yml
     _embed('macro', 'macro.json')                      # GH Action macro-scan.yml
     _embed('influencer_feed', 'influencer_feed.json')  # GH Action influencer-scan.yml (Trump/Musk/Serenity)
+    _embed('em_news', 'em_news.json')                  # Eastmoney 中文消息源 (brief preflight fetch_em_news)
 
     # Regime badge: reuse the brief's classifier on the embedded macro so the dashboard
     # shows the same risk_on/neutral/risk_off the brief acts on (2026-05-30). Defensive

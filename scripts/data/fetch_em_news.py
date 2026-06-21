@@ -1,0 +1,134 @@
+#!/usr/bin/env python3
+"""fetch_em_news.py — Chinese-language news source (Eastmoney) for the info layer.
+
+clawock's news_digest is Finnhub + Google News — English / US-skewed. clawock is
+half a Hong-Kong book, so its biggest information gap is *Chinese-source* news and
+holding-level catalysts. Eastmoney gives both, free + no key, and is reachable
+here. Inspired by UZI-Skill's data-source breadth (github.com/wbh604/UZI-Skill):
+information-gathering is what an LLM is *best* at, so widen the inputs — this is a
+separate axis from decision/debate breadth (which the calibration deliberately
+keeps narrow).
+
+Pulls, into assets/data/em_news.json:
+  - per active HK holding: recent EM company news (catalyst-grade, dated)
+  - market 7x24 快讯: a few macro/sector headlines for context
+
+Fail-soft: any source error -> that slice is empty, never raises.
+"""
+import json
+import re
+import sys
+import time
+import urllib.parse
+from datetime import datetime, timezone
+from pathlib import Path
+
+import requests
+
+WS = Path(__file__).resolve().parents[2]
+PORTFOLIO = WS / 'portfolio.json'
+OUT = WS / 'assets' / 'data' / 'em_news.json'
+UA = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36'
+TIMEOUT = 12
+
+sys.path.insert(0, str(WS / 'scripts' / 'data'))
+try:
+    from safe_io import safe_write_json
+except Exception:
+    def safe_write_json(path, data, indent=2):
+        Path(path).write_text(json.dumps(data, ensure_ascii=False, indent=indent))
+
+
+def _strip(s):
+    return re.sub(r'<[^>]+>', '', str(s or '')).strip()
+
+
+def em_stock_news(keyword, limit=3):
+    """Holding-level Chinese news via Eastmoney search (dated, catalyst-grade)."""
+    param = {'uid': '', 'keyword': keyword, 'type': ['cmsArticleWebOld'],
+             'pageIndex': 1, 'pageSize': limit,
+             'preTag': '', 'postTag': ''}
+    url = ('https://search-api-web.eastmoney.com/search/jsonp?cb=x&param='
+           + urllib.parse.quote(json.dumps(param, ensure_ascii=False)))
+    try:
+        t = requests.get(url, headers={'User-Agent': UA}, timeout=TIMEOUT).text
+        m = re.search(r'\((\{.*\})\)\s*;?\s*$', t, re.S)
+        d = json.loads(m.group(1))
+        arts = (d.get('result') or {}).get('cmsArticleWebOld') or []
+        out = []
+        for a in arts[:limit]:
+            out.append({'title': _strip(a.get('title')),
+                        'digest': _strip(a.get('content'))[:160],
+                        'date': (a.get('date') or '')[:10],
+                        'url': f"https://finance.eastmoney.com/a/{a.get('code')}.html",
+                        'origin': 'eastmoney-search'})
+        return out
+    except Exception as e:
+        print(f'  warn: em_stock_news({keyword}) failed: {e}', file=sys.stderr)
+        return []
+
+
+def em_fast_news(limit=6):
+    """Market 7x24 快讯 — macro/sector context."""
+    url = f'https://newsapi.eastmoney.com/kuaixun/v1/getlist_102_ajaxResult_{limit}_1_.html'
+    try:
+        t = requests.get(url, headers={'User-Agent': UA}, timeout=TIMEOUT).text
+        m = re.search(r'=\s*(\{.*\})\s*;?\s*$', t, re.S)
+        d = json.loads(m.group(1))
+        out = []
+        for it in (d.get('LivesList') or [])[:limit]:
+            out.append({'title': _strip(it.get('title')),
+                        'digest': _strip(it.get('digest'))[:160],
+                        'date': (it.get('showtime') or '')[:16],
+                        'url': it.get('url_unique', ''),
+                        'origin': 'eastmoney-724'})
+        return out
+    except Exception as e:
+        print(f'  warn: em_fast_news failed: {e}', file=sys.stderr)
+        return []
+
+
+# Leverage markers — a 2x/3x ETF's marketing name ("XL二南方恒科") keyword-
+# searches into junk (name collisions like 万恒科技) AND, per clawock's existing
+# rule, company news doesn't apply to a daily-reset index tracker. Skip them;
+# they're covered by the 7x24 feed + the regime dial.
+_LEV_MARKERS = ('倍', 'XL二', 'XL三', 'X二', 'X三', '两倍', '三倍', '杠杆',
+                'Direxion', 'ProShares', '2X', '3X')
+
+
+def _is_lev(name):
+    return any(m in str(name) for m in _LEV_MARKERS)
+
+
+def active_hk_names():
+    try:
+        pf = json.loads(PORTFOLIO.read_text())
+        hk = (pf.get('portfolios', {}).get('hk_stocks', {}) or {}).get('holdings', []) or []
+        return [(h.get('ticker'), h.get('name') or h.get('ticker'))
+                for h in hk
+                if (h.get('shares') or 0) > 0 and not _is_lev(h.get('name'))]
+    except Exception:
+        return []
+
+
+def main():
+    by_ticker = {}
+    for ticker, name in active_hk_names():
+        items = em_stock_news(name)
+        if items:
+            by_ticker[ticker] = {'name': name, 'items': items}
+        time.sleep(0.4)  # gentle on the endpoint (kcn worries about minute limits)
+    out = {
+        'generated_at': datetime.now(timezone.utc).astimezone().isoformat(timespec='seconds'),
+        'source': 'eastmoney (Chinese-language info layer)',
+        'holdings_news': by_ticker,
+        'market_724': em_fast_news(),
+    }
+    safe_write_json(str(OUT), out)
+    n = sum(len(v['items']) for v in by_ticker.values())
+    print(f'  em_news: {len(by_ticker)} HK holdings · {n} company items · '
+          f"{len(out['market_724'])} 快讯 → {OUT}")
+
+
+if __name__ == '__main__':
+    main()
