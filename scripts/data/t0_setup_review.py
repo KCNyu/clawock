@@ -19,9 +19,24 @@
 输出 assets/data/t0_setup_review.json。brief preflight 每日顺跑，dashboard🎯卡展示。
 """
 import json
+import math
 import sys
 from datetime import date
 from pathlib import Path
+
+
+def wilson_ci(hits, n, z=1.96):
+    """95% Wilson score interval for a proportion → [lo, hi], or None.
+    Inlined (not imported) so an isolated cron never breaks on a path issue.
+    A band that straddles 0.5 = the 'edge' is indistinguishable from a coin flip."""
+    if not n:
+        return None
+    p = hits / n
+    denom = 1 + z * z / n
+    center = (p + z * z / (2 * n)) / denom
+    half = z * math.sqrt(p * (1 - p) / n + z * z / (4 * n * n)) / denom
+    return [round(max(0.0, center - half), 3), round(min(1.0, center + half), 3)]
+
 
 WS = Path(__file__).resolve().parents[2]
 HIST = WS / 'assets' / 'data' / 't0_setups_history.jsonl'
@@ -101,13 +116,17 @@ def main():
     for name, s in stats.items():
         wr = round(s['hits'] / s['n'], 3) if s['n'] else None
         avg = round(s['fwd_sum'] / s['n'] * 100, 2) if s['n'] else None
+        ci = wilson_ci(s['hits'], s['n'])      # 95% Wilson — 让样本不确定性显形
+        edge_sig = ci is not None and ci[0] > 0.5   # 整个区间 > 掷硬币才算真方向 edge
         grades[name] = {
             'label': GRADE_CN[name], 'n': s['n'], 'hit_rate': wr,
+            'ci95': ci, 'edge_significant': edge_sig,
             'avg_dir_fwd_pct': avg, 'usable': s['n'] >= MIN_N,
             'note': '样本不足，不得当结论引用方向' if s['n'] < MIN_N else '',
         }
         if s['n'] >= MIN_N and wr is not None:
-            usable.append(f"{GRADE_CN[name]} 命中{wr*100:.0f}%(n={s['n']})")
+            band = f"[{ci[0]*100:.0f}–{ci[1]*100:.0f}]" if ci else ''
+            usable.append(f"{GRADE_CN[name]} 命中{wr*100:.0f}%{band}(n={s['n']})")
 
     summary = ('、'.join(usable) if usable
                else f'各牌面样本 <{MIN_N}，累积中（{len(days)} 交易日留痕）——结论未解锁')

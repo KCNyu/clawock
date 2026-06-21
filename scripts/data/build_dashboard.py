@@ -10,6 +10,7 @@ Run after each portfolio mutation (cron commit) so Pages stays fresh.
 import csv
 import glob
 import json
+import math
 import os
 import re
 import sys
@@ -971,6 +972,19 @@ def recent_actions_from_csv(limit=20):
 _CALIB_TRIGGERS = ['price_above', 'price_below', 'open', 'manual', 'index_breakdown']
 
 
+def _wilson_ci(wins, decided, z=1.96):
+    """95% Wilson interval [lo, hi] for wins/decided, or None. Makes the sample
+    uncertainty behind every win_rate explicit; a band straddling 0.5 means the
+    'edge' is statistically indistinguishable from a coin flip (critique #3)."""
+    if not decided:
+        return None
+    p = wins / decided
+    denom = 1 + z * z / decided
+    center = (p + z * z / (2 * decided)) / denom
+    half = z * math.sqrt(p * (1 - p) / decided + z * z / (4 * decided * decided)) / denom
+    return [round(max(0.0, center - half), 3), round(min(1.0, center + half), 3)]
+
+
 def compute_calibration_by_trigger(window_days=30):
     """Per-trigger_type win/loss/pending breakdown — answers 'which trigger
     pattern is bleeding'. Counts pending separately (gives texture beyond 30d
@@ -1013,12 +1027,15 @@ def compute_calibration_by_trigger(window_days=30):
             decided = agg['wins'] + agg['losses']
             wr = round(agg['wins'] / decided, 4) if decided else None
             avg_c = round(agg['conf_sum'] / agg['conf_n'], 3) if agg['conf_n'] else None
+            ci = _wilson_ci(agg['wins'], decided)
             result[t] = {
                 'n_resolved': agg['n_resolved'],
                 'n_pending': agg['n_pending'],
                 'wins': agg['wins'],
                 'losses': agg['losses'],
                 'win_rate': wr,
+                'ci95': ci,
+                'edge_significant': (ci is not None and ci[0] > 0.5),
                 'avg_confidence': avg_c,
             }
         return result
@@ -1073,12 +1090,15 @@ def compute_calibration_by_driver(window_days=30):
             decided = agg['wins'] + agg['losses']
             wr = round(agg['wins'] / decided, 4) if decided else None
             avg_c = round(agg['conf_sum'] / agg['conf_n'], 3) if agg['conf_n'] else None
+            ci = _wilson_ci(agg['wins'], decided)
             result[t] = {
                 'n_resolved': agg['n_resolved'],
                 'n_pending': agg['n_pending'],
                 'wins': agg['wins'],
                 'losses': agg['losses'],
                 'win_rate': wr,
+                'ci95': ci,
+                'edge_significant': (ci is not None and ci[0] > 0.5),
                 'avg_confidence': avg_c,
             }
         return result

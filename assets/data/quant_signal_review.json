@@ -1,41 +1,68 @@
 {
-  "as_of": "2026-06-19",
+  "as_of": "2026-06-21",
   "days_logged": 7,
   "min_n": 20,
   "factors": {
     "trend_on_follow": {
       "n": 6,
       "hit_rate": 0.167,
+      "ci95": [
+        0.03,
+        0.564
+      ],
+      "edge_significant": false,
       "usable": false,
       "note": "样本不足，brief 不得引用方向结论"
     },
     "trend_off_avoid": {
       "n": 16,
       "hit_rate": 0.562,
+      "ci95": [
+        0.332,
+        0.769
+      ],
+      "edge_significant": false,
       "usable": false,
       "note": "样本不足，brief 不得引用方向结论"
     },
     "rsi_oversold_bounce": {
       "n": 4,
       "hit_rate": 0.75,
+      "ci95": [
+        0.301,
+        0.954
+      ],
+      "edge_significant": false,
       "usable": false,
       "note": "样本不足，brief 不得引用方向结论"
     },
     "rsi_overbought_fade": {
       "n": 0,
       "hit_rate": null,
+      "ci95": null,
+      "edge_significant": false,
       "usable": false,
       "note": "样本不足，brief 不得引用方向结论"
     },
     "zscore_extreme_revert": {
       "n": 1,
       "hit_rate": 0.0,
+      "ci95": [
+        0.0,
+        0.793
+      ],
+      "edge_significant": false,
       "usable": false,
       "note": "样本不足，brief 不得引用方向结论"
     },
     "stop_breach_continue": {
       "n": 18,
       "hit_rate": 0.5,
+      "ci95": [
+        0.29,
+        0.71
+      ],
+      "edge_significant": false,
       "usable": false,
       "note": "样本不足，brief 不得引用方向结论"
     }

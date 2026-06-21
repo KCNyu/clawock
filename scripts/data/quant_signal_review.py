@@ -16,9 +16,26 @@
 纯本地文件运算，无网络请求，brief preflight 每日顺跑。
 """
 import json
+import math
 import sys
 from datetime import date
 from pathlib import Path
+
+
+def wilson_ci(hits, n, z=1.96):
+    """95% Wilson score interval for a proportion. Returns [lo, hi] rounded, or None.
+
+    Why: a raw hit-rate like 69% on n=61 hides huge uncertainty. The Wilson band
+    makes the false precision explicit — and if the band straddles 0.5 the
+    'edge' is statistically indistinguishable from a coin flip.
+    """
+    if not n:
+        return None
+    p = hits / n
+    denom = 1 + z * z / n
+    center = (p + z * z / (2 * n)) / denom
+    half = z * math.sqrt(p * (1 - p) / n + z * z / (4 * n * n)) / denom
+    return [round(max(0.0, center - half), 3), round(min(1.0, center + half), 3)]
 
 WS = Path(__file__).resolve().parents[2]
 HIST = WS / 'assets' / 'data' / 'quant_signals_history.jsonl'
@@ -79,11 +96,17 @@ def main():
     usable = []
     for name, s in stats.items():
         wr = round(s['hits'] / s['n'], 3) if s['n'] else None
+        ci = wilson_ci(s['hits'], s['n'])          # 95% Wilson 区间，量化"假精度"
+        # 真有方向 edge = 整个 95% 区间都在掷硬币(50%)之上；否则命中率与随机不可区分
+        edge_sig = ci is not None and ci[0] > 0.5
         factors[name] = {'n': s['n'], 'hit_rate': wr,
+                         'ci95': ci,
+                         'edge_significant': edge_sig,
                          'usable': s['n'] >= MIN_N,
                          'note': '样本不足，brief 不得引用方向结论' if s['n'] < MIN_N else ''}
         if s['n'] >= MIN_N and wr is not None:
-            usable.append(f"{name} {wr*100:.0f}%(n={s['n']})")
+            band = f"[{ci[0]*100:.0f}–{ci[1]*100:.0f}]" if ci else ''
+            usable.append(f"{name} {wr*100:.0f}%{band}(n={s['n']})")
 
     summary = ('、'.join(usable) if usable
                else f'全部因子样本 <{MIN_N}，累积中（{len(days)} 天留痕）——结论未解锁')

@@ -1,5 +1,5 @@
 {
-  "as_of": "2026-06-19",
+  "as_of": "2026-06-21",
   "days_logged": 28,
   "min_n": 20,
   "horizon": 1,
@@ -8,6 +8,11 @@
       "label": "🔴 追高低质",
       "n": 22,
       "hit_rate": 0.5,
+      "ci95": [
+        0.307,
+        0.693
+      ],
+      "edge_significant": false,
       "avg_dir_fwd_pct": 0.99,
       "usable": true,
       "note": ""
@@ -16,6 +21,11 @@
       "label": "🟡 偏高位",
       "n": 10,
       "hit_rate": 0.7,
+      "ci95": [
+        0.397,
+        0.892
+      ],
+      "edge_significant": false,
       "avg_dir_fwd_pct": 2.2,
       "usable": false,
       "note": "样本不足，不得当结论引用方向"
@@ -24,11 +34,16 @@
       "label": "🟡 低位/超卖",
       "n": 77,
       "hit_rate": 0.364,
+      "ci95": [
+        0.265,
+        0.475
+      ],
+      "edge_significant": false,
       "avg_dir_fwd_pct": 0.01,
       "usable": true,
       "note": ""
     }
   },
-  "summary": "🔴 追高低质 命中50%(n=22)、🟡 低位/超卖 命中36%(n=77)",
+  "summary": "🔴 追高低质 命中50%[31–69](n=22)、🟡 低位/超卖 命中36%[26–48](n=77)",
   "discipline": "自迭代：命中率是牌面话语权的唯一来源。usable=false 只展示不下结论；「命中」= 评级方向警示被次日价格证实（追高→跌 / 超卖→涨），不是「能赚钱」。"
 }
