@@ -84,6 +84,18 @@
         {"ticker": "RKLB", "region": "us", "name": "Rocket Lab (underlying)", "rel": "基础标的"}
       ]
     },
+    "SPCH": {
+      "name": "Leverage Shares 2X Long SpaceX Daily ETF",
+      "theme": "SpaceX 2x leveraged (商业航天)",
+      "underlying": "SpaceX (未上市/private — 合成多头敞口, 无公开标的价)",
+      "listed_peers": [
+        {"ticker": "RKLB", "region": "us", "name": "Rocket Lab", "rel": "最接近的公开商业航天同行"},
+        {"ticker": "RKLX", "region": "us", "name": "2X Long RKLB", "rel": "杠杆航天姊妹"},
+        {"ticker": "ASTS", "region": "us", "name": "AST SpaceMobile", "rel": "卫星通信"}
+      ],
+      "private_peers": ["Rocket Lab", "Relativity Space", "Blue Origin"],
+      "key_news_keywords": ["SpaceX 估值", "Starship", "Starlink IPO", "商业航天发射"]
+    },
     "SOXL": {
       "name": "三倍做多半导体 ETF-Direxion",
       "theme": "美股半导体 3x leveraged (SOXX 标的)",
