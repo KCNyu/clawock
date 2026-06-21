@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-21T06:34:30.847069Z",
+  "generated_at": "2026-06-21T06:37:41.933352Z",
   "last_updated": "2026/06/18 16:00 HKT (HK close; US Jun 18 session)",
   "fx": {
     "usdhkd": 7.8376,
@@ -1637,6 +1637,21 @@
         "caveat": "hold baseline 命中率受 β/杠杆放大；命中率高≠决策有 edge，看 alpha_ret_pp（收益口径）+ sharpe 才是风险调整后的真账"
       }
     }
+  },
+  "debate_metrics": {
+    "plans": 20,
+    "actions": 190,
+    "decisiveness_pct": 38.4,
+    "bucket_dist": {
+      "hold_and_watch": 117,
+      "cut": 30,
+      "trim_on_rebound": 30,
+      "add_only_on_trigger": 10,
+      "t_only": 3
+    },
+    "contested_rate": null,
+    "contested_coverage": 0,
+    "note": "辩论产出量化：decisiveness 低=risk_on 里 Judge 大多回 HOLD，一行默认规则即可复现，3-5x token 的辩论边际可疑。contested_rate 待 plan 开始标记后，与 calibration 联合检验「被争议的 call 是否校准更好」。"
   },
   "calibration_by_trigger": {
     "price_above": {
@@ -5665,7 +5680,7 @@
     "last_updated": "2026-06-19T15:50:09.097221Z"
   },
   "build_status": {
-    "generated_at": "2026-06-21T14:34:30+08:00",
+    "generated_at": "2026-06-21T14:37:41+08:00",
     "healthy": false,
     "stale_files": [
       "portfolio.json",
@@ -5681,77 +5696,77 @@
     "files": [
       {
         "name": "portfolio.json",
-        "age_hours": 38.7,
+        "age_hours": 38.8,
         "sla_hours": 26,
         "stale": true,
         "present": true
       },
       {
         "name": "benchmark.json",
-        "age_hours": 54.3,
+        "age_hours": 54.4,
         "sla_hours": 80,
         "stale": false,
         "present": true
       },
       {
         "name": "catalysts.json",
-        "age_hours": 54.3,
+        "age_hours": 54.4,
         "sla_hours": 30,
         "stale": true,
         "present": true
       },
       {
         "name": "influencer_feed.json",
-        "age_hours": 35.2,
+        "age_hours": 35.3,
         "sla_hours": 30,
         "stale": true,
         "present": true
       },
       {
         "name": "lev_regime.json",
-        "age_hours": 54.3,
+        "age_hours": 54.4,
         "sla_hours": 30,
         "stale": true,
         "present": true
       },
       {
         "name": "macro.json",
-        "age_hours": 54.3,
+        "age_hours": 54.4,
         "sla_hours": 30,
         "stale": true,
         "present": true
       },
       {
         "name": "quant_signal_review.json",
-        "age_hours": 0.2,
+        "age_hours": 0.3,
         "sla_hours": 30,
         "stale": false,
         "present": true
       },
       {
         "name": "quant_signals.json",
-        "age_hours": 54.3,
+        "age_hours": 54.4,
         "sla_hours": 30,
         "stale": true,
         "present": true
       },
       {
         "name": "risk.json",
-        "age_hours": 54.3,
+        "age_hours": 54.4,
         "sla_hours": 30,
         "stale": true,
         "present": true
       },
       {
         "name": "sentiment.json",
-        "age_hours": 54.3,
+        "age_hours": 54.4,
         "sla_hours": 30,
         "stale": true,
         "present": true
       },
       {
         "name": "us_news_digest.json",
-        "age_hours": 35.2,
+        "age_hours": 35.3,
         "sla_hours": 30,
         "stale": true,
         "present": true

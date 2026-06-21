@@ -317,6 +317,61 @@ def total_plans_count():
     return len(glob.glob(str(WS_ROOT / 'memory' / '*-plan.json')))
 
 
+_DEBATE_PASSIVE = {'hold_and_watch', 'watch', ''}
+
+
+def compute_debate_metrics(recent=20):
+    """Does the multi-agent Tier1/2/3+Judge debate actually move anything? [cut #4]
+
+    The debate costs ~3-5x the tokens of a single pass; its marginal value has
+    never been measured. This quantifies its OUTPUT so the theater-vs-edge
+    question becomes data-driven:
+      - decisiveness  = share of actions that are active (cut/trim/add) vs the
+        risk_on default of HOLD. ~all-HOLD means the debate reproduced a one-line
+        rule at 5x the cost.
+      - contested_rate = share of actions the Judge marked as genuinely contested
+        (Bull vs Bear disagreed). Null until plans start carrying the flag; pairs
+        with calibration to later test 'do contested calls calibrate better?'.
+    """
+    paths = sorted(glob.glob(str(WS_ROOT / 'memory' / '*-plan.json')))[-recent:]
+    n_actions = n_active = n_contested = n_contested_known = 0
+    buckets = {}
+    plans_n = 0
+    for p in paths:
+        try:
+            d = json.loads(Path(p).read_text())
+        except Exception:
+            continue
+        acts = d.get('actions') or []
+        if not acts:
+            continue
+        plans_n += 1
+        for a in acts:
+            b = (a.get('bucket') or '').strip()
+            n_actions += 1
+            buckets[b] = buckets.get(b, 0) + 1
+            if b not in _DEBATE_PASSIVE:
+                n_active += 1
+            c = a.get('contested')
+            if isinstance(c, bool):
+                n_contested_known += 1
+                n_contested += 1 if c else 0
+    if not n_actions:
+        return None
+    return {
+        'plans': plans_n,
+        'actions': n_actions,
+        'decisiveness_pct': round(100 * n_active / n_actions, 1),
+        'bucket_dist': dict(sorted(buckets.items(), key=lambda kv: -kv[1])),
+        'contested_rate': (round(n_contested / n_contested_known, 3)
+                           if n_contested_known else None),
+        'contested_coverage': n_contested_known,
+        'note': ('辩论产出量化：decisiveness 低=risk_on 里 Judge 大多回 HOLD，'
+                 '一行默认规则即可复现，3-5x token 的辩论边际可疑。contested_rate '
+                 '待 plan 开始标记后，与 calibration 联合检验「被争议的 call 是否校准更好」。'),
+    }
+
+
 def total_snapshots_count():
     return sum(
         1 for p in glob.glob(str(WS_ROOT / 'memory' / 'snapshots' / '*.json'))
@@ -2013,6 +2068,7 @@ def main():
         'items': extract_peer_divergence(brief_ctx, us_h, hk_h),
     }
     out['calibration'] = compute_calibration()
+    out['debate_metrics'] = compute_debate_metrics()
     out['calibration_by_trigger'] = compute_calibration_by_trigger()
     out['calibration_by_driver'] = compute_calibration_by_driver()
     out['recent_plan_actions'] = recent_actions_from_csv(limit=20)

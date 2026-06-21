@@ -532,6 +532,7 @@ postflight 严格 schema 校验：
       "trigger_condition": "周一开盘任意价",
       "confidence": 0.82,
       "driven_by": "catalyst",
+      "contested": true,
       "rationale": "HOOD Q1 26 earnings miss + crypto rev -47%"
     }
   ],
@@ -548,6 +549,7 @@ postflight 严格 schema 校验：
 - `trigger_type` ∈ {`open`, `price_above`, `price_below`, `index_breakdown`, `event`, `manual`}
 - `driven_by` ∈ {`technical`, `catalyst`, `sentiment`, `influencer`, `macro`, `peer`}（**每个 action 必填**，见"消息面权重铁律"段的归因表；postflight 校验，软情绪不得单独翻 bucket）
 - `confidence` ∈ [0.0, 1.0]
+- `contested` ∈ {`true`, `false`}（**每个 action 必填**）：Tier 2 的 Bull 与 Bear 是否**真的在这个仓位上分歧**？`true`=两方对该仓给出相反结论、由 Judge 裁决；`false`=两方一致、辩论没改变它。这是辩论价值的度量种子——日后用它对账「被争议的 call 是否比一致的 call 校准更好」，量化 Tier1/2/3 辩论值不值它多花的 token。诚实标，别为了好看全标 true。
 
 **trigger_type 详解**（决定 retrospective 怎么算触发）：
 
