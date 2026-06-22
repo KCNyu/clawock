@@ -231,3 +231,4 @@ plan_date,ticker,bucket,trigger_type,driven_by,trigger_price,confidence,sim_entr
 2026-06-22,ROBN,hold_and_watch,price_below,technical,30.0,0.45,30.0,pending,,,unknown,,2026-06-22T08:10:04.939035
 2026-06-22,RKLX,hold_and_watch,price_below,technical,45.0,0.45,45.0,pending,,,unknown,,2026-06-22T08:10:04.939038
 2026-06-22,SPCH,trim_on_rebound,event,influencer,,0.5,18.97,pending,,,unknown,,2026-06-22T08:10:04.939538
+2026-06-22,SPCH,hold_and_watch,event,technical,,0.5,18.97,pending,,,unknown,,2026-06-22T08:12:24.553093

@@ -152,17 +152,17 @@
     },
     {
       "ticker": "SPCH",
-      "bucket": "trim_on_rebound",
-      "size_pct": 20,
-      "size_shares": 12,
+      "bucket": "hold_and_watch",
+      "size_pct": 0,
+      "size_shares": 0,
       "trigger_type": "event",
       "trigger_price": null,
-      "trigger_condition": "SpaceX/Tesla合并传闻落地或SPCX估值进一步飙升时分批减",
+      "trigger_condition": "SpaceX/Tesla合并传闻官方落地(硬催化)前不动",
       "confidence": 0.5,
-      "driven_by": "influencer",
+      "driven_by": "technical",
       "contested": false,
-      "rationale": "Musk暗示SpaceX-Tesla合并+SpaceX上市造就万亿富翁，SPCH(2x SPCX ETF)间接受益，relevance 72分软证据。SPCH历史2次100%胜率样本太小不可靠，US杠杆95.3%闸已靠PLTU/MSFU满足，SPCH本身浮亏仅-5.8%远离止损，trim_on_rebound等估值进一步走高再减不追高。",
-      "thesis_invalidation": "若合并传闻被官方否认 → 维持hold不减"
+      "rationale": "软情绪铁律：Musk暗示SpaceX-Tesla合并仅relevance 72分软证据(无落地合同/公告)，不能单独翻bucket。SPCH本身浮亏-5.8%远离止损，US杠杆95.3%闸已靠PLTU/MSFU满足，hold等硬催化落地或止损触发。",
+      "thesis_invalidation": "若合并传闻获官方确认(硬催化) → 升级为trim_on_rebound；若浮亏触及-18%硬止损线 → 转cut"
     }
   ],
   "watch_levels": {
