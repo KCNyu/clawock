@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-21T22:46:12.567316+00:00",
+  "generated_at": "2026-06-22T17:20:23.626722+00:00",
   "lookback_hours": 48,
   "sources": {
     "trump": "trumpstruth.org/feed (primary)",
@@ -11,178 +11,172 @@
     "total": 11,
     "held_hits": 0,
     "new_ideas": 0,
-    "sector_hits": 8
+    "sector_hits": 7
   },
   "items": [
     {
       "author": "Musk",
-      "text": "Musk’s Next Move May Be a Megamerger of SpaceX and Tesla",
+      "text": "Elon Musk-led SpaceX's first week as a public company sparks market mania",
       "url": "",
-      "published": "Wed, 17 Jun 2026 16:20:24 GMT",
+      "published": "Mon, 22 Jun 2026 12:49:59 GMT",
       "origin": "gnews-rss",
-      "source": "The New York Times",
+      "source": "Reuters",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "航天",
-        "电动车"
+        "航天/商业航天",
+        "IPO"
       ],
       "sector_holdings": [
         "SPCH"
       ],
-      "stance": "neutral",
+      "stance": "endorse",
       "relevance": 72,
-      "summary_cn": "市场传闻 Musk 酝酿 SpaceX 与 Tesla 的巨型合并——SPCH(杠杆 SpaceX ETF)与 02208(非 Tesla 标的)若合并传闻发酵将剧烈波动。"
+      "summary_cn": "SpaceX上市首周引爆市场狂热，间接利好持有SPCH（2倍做多SpaceX ETF）的多头情绪，但SpaceX本身未上市无直接ticker。"
     },
     {
       "author": "Musk",
-      "text": "Elon Musk could become the world's first trillionaire with SpaceX's IPO",
+      "text": "Elon Musk's SpaceX Moves into Chip Manufacturing",
       "url": "",
-      "published": "Fri, 12 Jun 2026 07:00:00 GMT",
+      "published": "Mon, 22 Jun 2026 12:01:43 GMT",
       "origin": "gnews-rss",
-      "source": "PBS",
+      "source": "Business Chief",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "航天"
+        "半导体/芯片制造",
+        "航天/商业航天",
+        "AI基础设施"
       ],
       "sector_holdings": [
         "SPCH"
       ],
       "stance": "endorse",
       "relevance": 68,
-      "summary_cn": "Musk 有望借 SpaceX IPO 成为全球首位万亿富翁，强化 SPCH 估值锚与上市预期。"
+      "summary_cn": "SpaceX进军芯片制造（自研），加强其垂直整合与AI算力叙事，间接利好SPCH及半导体供应链情绪。"
     },
     {
       "author": "Musk",
-      "text": "Before SpaceX IPO, Investors in China Secretly Acquired Stakes",
+      "text": "Elon Musk to get a billion shares of SpaceX if he can settle a million humans on Mars",
       "url": "",
-      "published": "Thu, 18 Jun 2026 09:00:00 GMT",
+      "published": "Mon, 22 Jun 2026 16:44:00 GMT",
       "origin": "gnews-rss",
-      "source": "ProPublica",
+      "source": "Fortune",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "航天",
-        "中概/港股"
-      ],
-      "sector_holdings": [
-        "SPCH"
-      ],
-      "stance": "neutral",
-      "relevance": 65,
-      "summary_cn": "SpaceX 上市前夕中国投资者秘密收购其股份——可能影响 SPCH 上市定价与跨境投资情绪。"
-    },
-    {
-      "author": "Musk",
-      "text": "Musk's SpaceX stake is worth over $1 trillion. Here are the other billionaire shareholders",
-      "url": "",
-      "published": "Fri, 19 Jun 2026 10:44:21 GMT",
-      "origin": "gnews-rss",
-      "source": "CNBC",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天"
-      ],
-      "sector_holdings": [
-        "SPCH"
-      ],
-      "stance": "endorse",
-      "relevance": 62,
-      "summary_cn": "报道 Musk 持有的 SpaceX 股份价值已超1万亿美元，强化 SpaceX 估值叙事，利好 SPCH。"
-    },
-    {
-      "author": "Musk",
-      "text": "Each $1 gain in SpaceX stock adds $4.76B to Elon Musk’s net worth. Here’s what $1K, $7K or $15K invested could earn you",
-      "url": "",
-      "published": "Sat, 20 Jun 2026 12:45:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Yahoo Finance",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天"
+        "航天/商业航天",
+        "火星/殖民概念"
       ],
       "sector_holdings": [
         "SPCH"
       ],
       "stance": "endorse",
       "relevance": 60,
-      "summary_cn": "媒体强调 SpaceX 每涨1美元为 Musk 增富47.6亿美元，间接渲染 SpaceX 估值跃升，利好 SPCH。"
+      "summary_cn": "Musk获100亿股SpaceX股权激励，条件是殖民火星100万人——强化长期看多叙事，对SPCH情绪面利好。"
     },
     {
       "author": "Musk",
-      "text": "The Final Frontier of Tax Avoidance: Elon Musk’s SpaceX Has $1.9 Billion to Gain from Defunding the IRS",
+      "text": "SpaceX's successful IPO shows that Elon Musk has a real product, says Walter Isaacson",
       "url": "",
-      "published": "Fri, 12 Jun 2026 07:00:00 GMT",
+      "published": "Mon, 22 Jun 2026 12:57:48 GMT",
       "origin": "gnews-rss",
-      "source": "Institute on Taxation and Economic Policy",
+      "source": "CNBC",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "航天",
-        "宏观/税收"
+        "航天/商业航天"
+      ],
+      "sector_holdings": [
+        "SPCH"
+      ],
+      "stance": "endorse",
+      "relevance": 58,
+      "summary_cn": "传记作者Isaacson公开背书SpaceX IPO，称Musk有'真产品'，间接为SpaceX估值与SPCH多头背书。"
+    },
+    {
+      "author": "Musk",
+      "text": "Did Elon Musk Just Hint a SpaceX-Tesla Merger Is Imminent?",
+      "url": "",
+      "published": "Mon, 22 Jun 2026 13:34:14 GMT",
+      "origin": "gnews-rss",
+      "source": "Yahoo Finance",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天/商业航天",
+        "电动车"
       ],
       "sector_holdings": [
         "SPCH"
       ],
       "stance": "neutral",
-      "relevance": 58,
-      "summary_cn": "报道指 SpaceX 可借削弱 IRS 节省19亿美元税务——若美国税制/IRS 预算议题升温，会影响 SPCH 上市后估值。"
+      "relevance": 55,
+      "summary_cn": "Musk被传暗示SpaceX-Tesla合并临近，纯猜测性质、涉及未上市公司，但暗示两家关联公司资本运作。"
     },
     {
       "author": "Musk",
-      "text": "Free Press Opinion: Elon Musk’s new ‘trillionaire’ status is a good thing, actually",
+      "text": "SpaceX handed lowest possible ESG rating by MSCI",
       "url": "",
-      "published": "Sun, 21 Jun 2026 16:00:00 GMT",
+      "published": "Sun, 21 Jun 2026 04:00:52 GMT",
       "origin": "gnews-rss",
-      "source": "Chattanooga Times Free Press",
+      "source": "Financial Times",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "航天"
+        "ESG/航天"
       ],
       "sector_holdings": [
         "SPCH"
       ],
-      "stance": "endorse",
-      "relevance": 55,
-      "summary_cn": "Free Press 评论认为 Musk 即将成为'万亿富翁'是好事——舆论层面利好 SPCH 叙事。"
+      "stance": "attack",
+      "relevance": 50,
+      "summary_cn": "MSCI给SpaceX最低ESG评级，属于舆论/资金面利空但对股价影响有限；SPCH持有者需留意ESG基金被动减持风险。"
     },
     {
       "author": "Trump",
-      "text": "Happy Father’s Day! Our Country is doing GREAT. Record Jobs Numbers and Stock Market, BEST ECONOMY EVER! Greatest Military in the World, by far. We are WINNING on all fronts, WINNING LIKE NEVER BEFORE. GOD BLESS YOU ALL!!! President DONALD J. TRUMP",
-      "url": "https://trumpstruth.org/statuses/39409",
-      "published": "2026-06-21T11:41:44+00:00",
+      "text": "Keir Starmer will resign as Prime Minister of The United Kingdom. He failed badly on two very important subjects- IMMIGRATION AND ENERGY (OPEN NORTH SEA OIL!). I wish him well! President DJT",
+      "url": "https://trumpstruth.org/statuses/39413",
+      "published": "2026-06-21T13:59:13+00:00",
       "origin": "truthsocial",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "宏观经济"
+        "能源/原油",
+        "英国政治"
       ],
       "sector_holdings": [
-        "03032",
-        "03033",
-        "07226",
-        "CRCL",
-        "MSFU",
-        "PLTU",
-        "RKLX",
-        "ROBN",
-        "SPCH"
+        "02208"
       ],
-      "stance": "endorse",
+      "stance": "neutral",
       "relevance": 50,
-      "summary_cn": "Trump 称美国就业与股市创历史新高、经济处于最佳状态，整体利好风险资产。"
+      "summary_cn": "Trump抨击英国首相Starmer并点名要求'开放北海石油'，暗示对英国能源政策不满及对油气板块的态度。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk says Tesla's Cybercab has started production",
+      "url": "",
+      "published": "Sun, 21 Jun 2026 22:00:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Mashable",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "电动车/自动驾驶",
+        "机器人/AI"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 65,
+      "summary_cn": "Musk宣布Tesla Cybercab已启动生产，Robotaxi商业化进入实质阶段——Tesla未在kcn持仓中，但属重大产业催化剂。"
     },
     {
       "author": "Trump",
@@ -194,14 +188,14 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "能源",
-        "国防军工",
-        "宏观/中东局势"
+        "能源/原油",
+        "军工/国防",
+        "宏观市场"
       ],
       "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 55,
-      "summary_cn": "Trump 称伊朗军事力量已被摧毁、霍尔木兹海峡已重新开放且石油正常流通，暗示中东局势缓和利好能源与军工板块。"
+      "stance": "endorse",
+      "relevance": 62,
+      "summary_cn": "Trump宣称伊朗军事力量已崩溃、霍尔木兹海峡开放、油价畅通、且美股与就业创历史新高，传递地缘缓和+能源供应恢复+美股看多信号。"
     },
     {
       "author": "Trump",
@@ -213,31 +207,32 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "能源",
-        "宏观/中东局势"
+        "能源/原油",
+        "地缘政治/中东"
       ],
       "sector_holdings": [],
       "stance": "neutral",
-      "relevance": 55,
-      "summary_cn": "Trump 宣布霍尔木兹海峡停火期间60天内免通过费，否则由美国征收——中东航运与能源格局的关键变量。"
+      "relevance": 58,
+      "summary_cn": "Trump宣布霍尔木兹海峡60天停火期内免通行费，60天后除非美方征收否则也不收费——直接影响全球油运成本与中东原油供应定价。"
     },
     {
-      "author": "Trump",
-      "text": "Iranian resistance leader, former national security aide praise Trump’s deal with Tehran: https://justthenews.com/government/security/iranian-resistance-leader-former-national-security-aide-praise-trumps-mou",
-      "url": "https://trumpstruth.org/statuses/39396",
-      "published": "2026-06-20T12:25:37+00:00",
-      "origin": "truthsocial",
+      "author": "Musk",
+      "text": "Elon Musk 'needs to answer' for 4.5M kids 'sentenced to death' over DOGE cuts, Ro Khanna argues",
+      "url": "",
+      "published": "Mon, 22 Jun 2026 04:47:00 GMT",
+      "origin": "gnews-rss",
+      "source": "New York Post",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "宏观/中东局势",
-        "国防军工"
+        "政治/政府效率(DOGE)",
+        "联邦支出/社会项目"
       ],
       "sector_holdings": [],
-      "stance": "endorse",
+      "stance": "neutral",
       "relevance": 50,
-      "summary_cn": "伊朗反对派领导人与前国安官员赞扬 Trump 与德黑兰达成的协议，暗示中东格局重塑。"
+      "summary_cn": "民主党议员Ro Khanna公开要求Musk为DOGE削减致450万儿童'被判死刑'负责——DOGE削减议题升温，可能影响联邦支出/医保板块情绪。"
     }
   ],
   "held_hits": [],
@@ -245,173 +240,148 @@
   "sector_hits": [
     {
       "author": "Musk",
-      "text": "Musk’s Next Move May Be a Megamerger of SpaceX and Tesla",
+      "text": "Elon Musk-led SpaceX's first week as a public company sparks market mania",
       "url": "",
-      "published": "Wed, 17 Jun 2026 16:20:24 GMT",
+      "published": "Mon, 22 Jun 2026 12:49:59 GMT",
       "origin": "gnews-rss",
-      "source": "The New York Times",
+      "source": "Reuters",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "航天",
-        "电动车"
+        "航天/商业航天",
+        "IPO"
       ],
       "sector_holdings": [
         "SPCH"
       ],
-      "stance": "neutral",
+      "stance": "endorse",
       "relevance": 72,
-      "summary_cn": "市场传闻 Musk 酝酿 SpaceX 与 Tesla 的巨型合并——SPCH(杠杆 SpaceX ETF)与 02208(非 Tesla 标的)若合并传闻发酵将剧烈波动。"
+      "summary_cn": "SpaceX上市首周引爆市场狂热，间接利好持有SPCH（2倍做多SpaceX ETF）的多头情绪，但SpaceX本身未上市无直接ticker。"
     },
     {
       "author": "Musk",
-      "text": "Elon Musk could become the world's first trillionaire with SpaceX's IPO",
+      "text": "Elon Musk's SpaceX Moves into Chip Manufacturing",
       "url": "",
-      "published": "Fri, 12 Jun 2026 07:00:00 GMT",
+      "published": "Mon, 22 Jun 2026 12:01:43 GMT",
       "origin": "gnews-rss",
-      "source": "PBS",
+      "source": "Business Chief",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "航天"
+        "半导体/芯片制造",
+        "航天/商业航天",
+        "AI基础设施"
       ],
       "sector_holdings": [
         "SPCH"
       ],
       "stance": "endorse",
       "relevance": 68,
-      "summary_cn": "Musk 有望借 SpaceX IPO 成为全球首位万亿富翁，强化 SPCH 估值锚与上市预期。"
+      "summary_cn": "SpaceX进军芯片制造（自研），加强其垂直整合与AI算力叙事，间接利好SPCH及半导体供应链情绪。"
     },
     {
       "author": "Musk",
-      "text": "Before SpaceX IPO, Investors in China Secretly Acquired Stakes",
+      "text": "Elon Musk to get a billion shares of SpaceX if he can settle a million humans on Mars",
       "url": "",
-      "published": "Thu, 18 Jun 2026 09:00:00 GMT",
+      "published": "Mon, 22 Jun 2026 16:44:00 GMT",
       "origin": "gnews-rss",
-      "source": "ProPublica",
+      "source": "Fortune",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "航天",
-        "中概/港股"
-      ],
-      "sector_holdings": [
-        "SPCH"
-      ],
-      "stance": "neutral",
-      "relevance": 65,
-      "summary_cn": "SpaceX 上市前夕中国投资者秘密收购其股份——可能影响 SPCH 上市定价与跨境投资情绪。"
-    },
-    {
-      "author": "Musk",
-      "text": "Musk's SpaceX stake is worth over $1 trillion. Here are the other billionaire shareholders",
-      "url": "",
-      "published": "Fri, 19 Jun 2026 10:44:21 GMT",
-      "origin": "gnews-rss",
-      "source": "CNBC",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天"
-      ],
-      "sector_holdings": [
-        "SPCH"
-      ],
-      "stance": "endorse",
-      "relevance": 62,
-      "summary_cn": "报道 Musk 持有的 SpaceX 股份价值已超1万亿美元，强化 SpaceX 估值叙事，利好 SPCH。"
-    },
-    {
-      "author": "Musk",
-      "text": "Each $1 gain in SpaceX stock adds $4.76B to Elon Musk’s net worth. Here’s what $1K, $7K or $15K invested could earn you",
-      "url": "",
-      "published": "Sat, 20 Jun 2026 12:45:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Yahoo Finance",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天"
+        "航天/商业航天",
+        "火星/殖民概念"
       ],
       "sector_holdings": [
         "SPCH"
       ],
       "stance": "endorse",
       "relevance": 60,
-      "summary_cn": "媒体强调 SpaceX 每涨1美元为 Musk 增富47.6亿美元，间接渲染 SpaceX 估值跃升，利好 SPCH。"
+      "summary_cn": "Musk获100亿股SpaceX股权激励，条件是殖民火星100万人——强化长期看多叙事，对SPCH情绪面利好。"
     },
     {
       "author": "Musk",
-      "text": "The Final Frontier of Tax Avoidance: Elon Musk’s SpaceX Has $1.9 Billion to Gain from Defunding the IRS",
+      "text": "SpaceX's successful IPO shows that Elon Musk has a real product, says Walter Isaacson",
       "url": "",
-      "published": "Fri, 12 Jun 2026 07:00:00 GMT",
+      "published": "Mon, 22 Jun 2026 12:57:48 GMT",
       "origin": "gnews-rss",
-      "source": "Institute on Taxation and Economic Policy",
+      "source": "CNBC",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "航天",
-        "宏观/税收"
+        "航天/商业航天"
+      ],
+      "sector_holdings": [
+        "SPCH"
+      ],
+      "stance": "endorse",
+      "relevance": 58,
+      "summary_cn": "传记作者Isaacson公开背书SpaceX IPO，称Musk有'真产品'，间接为SpaceX估值与SPCH多头背书。"
+    },
+    {
+      "author": "Musk",
+      "text": "Did Elon Musk Just Hint a SpaceX-Tesla Merger Is Imminent?",
+      "url": "",
+      "published": "Mon, 22 Jun 2026 13:34:14 GMT",
+      "origin": "gnews-rss",
+      "source": "Yahoo Finance",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天/商业航天",
+        "电动车"
       ],
       "sector_holdings": [
         "SPCH"
       ],
       "stance": "neutral",
-      "relevance": 58,
-      "summary_cn": "报道指 SpaceX 可借削弱 IRS 节省19亿美元税务——若美国税制/IRS 预算议题升温，会影响 SPCH 上市后估值。"
+      "relevance": 55,
+      "summary_cn": "Musk被传暗示SpaceX-Tesla合并临近，纯猜测性质、涉及未上市公司，但暗示两家关联公司资本运作。"
     },
     {
       "author": "Musk",
-      "text": "Free Press Opinion: Elon Musk’s new ‘trillionaire’ status is a good thing, actually",
+      "text": "SpaceX handed lowest possible ESG rating by MSCI",
       "url": "",
-      "published": "Sun, 21 Jun 2026 16:00:00 GMT",
+      "published": "Sun, 21 Jun 2026 04:00:52 GMT",
       "origin": "gnews-rss",
-      "source": "Chattanooga Times Free Press",
+      "source": "Financial Times",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "航天"
+        "ESG/航天"
       ],
       "sector_holdings": [
         "SPCH"
       ],
-      "stance": "endorse",
-      "relevance": 55,
-      "summary_cn": "Free Press 评论认为 Musk 即将成为'万亿富翁'是好事——舆论层面利好 SPCH 叙事。"
+      "stance": "attack",
+      "relevance": 50,
+      "summary_cn": "MSCI给SpaceX最低ESG评级，属于舆论/资金面利空但对股价影响有限；SPCH持有者需留意ESG基金被动减持风险。"
     },
     {
       "author": "Trump",
-      "text": "Happy Father’s Day! Our Country is doing GREAT. Record Jobs Numbers and Stock Market, BEST ECONOMY EVER! Greatest Military in the World, by far. We are WINNING on all fronts, WINNING LIKE NEVER BEFORE. GOD BLESS YOU ALL!!! President DONALD J. TRUMP",
-      "url": "https://trumpstruth.org/statuses/39409",
-      "published": "2026-06-21T11:41:44+00:00",
+      "text": "Keir Starmer will resign as Prime Minister of The United Kingdom. He failed badly on two very important subjects- IMMIGRATION AND ENERGY (OPEN NORTH SEA OIL!). I wish him well! President DJT",
+      "url": "https://trumpstruth.org/statuses/39413",
+      "published": "2026-06-21T13:59:13+00:00",
       "origin": "truthsocial",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "宏观经济"
+        "能源/原油",
+        "英国政治"
       ],
       "sector_holdings": [
-        "03032",
-        "03033",
-        "07226",
-        "CRCL",
-        "MSFU",
-        "PLTU",
-        "RKLX",
-        "ROBN",
-        "SPCH"
+        "02208"
       ],
-      "stance": "endorse",
+      "stance": "neutral",
       "relevance": 50,
-      "summary_cn": "Trump 称美国就业与股市创历史新高、经济处于最佳状态，整体利好风险资产。"
+      "summary_cn": "Trump抨击英国首相Starmer并点名要求'开放北海石油'，暗示对英国能源政策不满及对油气板块的态度。"
     }
   ]
 }
