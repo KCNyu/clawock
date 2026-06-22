@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-06-22T05:32:39.370230Z",
-  "last_updated": "2026/06/22 13:31 HKT",
+  "generated_at": "2026-06-22T06:02:36.415200Z",
+  "last_updated": "2026/06/22 14:01 HKT",
   "fx": {
     "usdhkd": 7.8388,
     "source": "Frankfurter",
@@ -17,11 +17,11 @@
       "cash_usd": 854.25
     },
     "hk": {
-      "value_hkd": 64571.6,
+      "value_hkd": 65042.8,
       "cost_hkd": 88276.24,
-      "pnl_hkd": -23704.64,
-      "pnl_pct": -26.85,
-      "today_change_hkd": 4326.0,
+      "pnl_hkd": -23233.44,
+      "pnl_pct": -26.32,
+      "today_change_hkd": 4797.2,
       "realized_hkd": 7259.16,
       "cash_hkd": 4597
     }
@@ -76,41 +76,41 @@
       }
     },
     "hk": {
-      "hhi": 0.3984,
-      "top2": 0.8527,
+      "hhi": 0.4009,
+      "top2": 0.8535,
       "positions": [
         {
           "ticker": "00100",
           "name": "MINIMAX-W",
-          "value": 34860.0,
-          "weight": 0.5399
+          "value": 35400.0,
+          "weight": 0.5443
         },
         {
           "ticker": "07226",
           "name": "XL二南方恒科",
-          "value": 20199.6,
-          "weight": 0.3128
+          "value": 20112.8,
+          "weight": 0.3092
         },
         {
           "ticker": "03033",
           "name": "南方恒生科技",
-          "value": 4460.0,
-          "weight": 0.0691
+          "value": 4448.0,
+          "weight": 0.0684
         },
         {
           "ticker": "02208",
           "name": "金风科技",
-          "value": 4144.0,
+          "value": 4176.0,
           "weight": 0.0642
         },
         {
           "ticker": "03032",
           "name": "恒生科技ETF",
-          "value": 908.0,
-          "weight": 0.0141
+          "value": 906.0,
+          "weight": 0.0139
         }
       ],
-      "total": 64571.6,
+      "total": 65042.8,
       "verdict": {
         "level": "danger",
         "label": "危险集中",
@@ -230,14 +230,14 @@
         "currency": "HKD",
         "shares": 60,
         "cost_basis": 822.83,
-        "current_price": 581.0,
-        "current_value": 34860.0,
-        "today_change": 5004.0,
-        "today_change_pct": 16.76,
+        "current_price": 590.0,
+        "current_value": 35400.0,
+        "today_change": 5544.0,
+        "today_change_pct": 18.57,
         "day_high": 623.0,
         "day_low": 502.0,
-        "pnl_abs": -14509.8,
-        "pnl_percent": -29.39,
+        "pnl_abs": -13969.8,
+        "pnl_percent": -28.3,
         "is_active": true,
         "trades_count": 3
       },
@@ -247,14 +247,14 @@
         "currency": "HKD",
         "shares": 400,
         "cost_basis": 14.084,
-        "current_price": 10.36,
-        "current_value": 4144.0,
-        "today_change": -208.0,
-        "today_change_pct": -4.78,
+        "current_price": 10.44,
+        "current_value": 4176.0,
+        "today_change": -176.0,
+        "today_change_pct": -4.04,
         "day_high": 10.88,
         "day_low": 10.18,
-        "pnl_abs": -1489.6,
-        "pnl_percent": -26.44,
+        "pnl_abs": -1457.6,
+        "pnl_percent": -25.87,
         "is_active": true,
         "trades_count": 1
       },
@@ -264,14 +264,14 @@
         "currency": "HKD",
         "shares": 200,
         "cost_basis": 5.405,
-        "current_price": 4.54,
-        "current_value": 908.0,
-        "today_change": -8.8,
-        "today_change_pct": -0.96,
+        "current_price": 4.53,
+        "current_value": 906.0,
+        "today_change": -10.8,
+        "today_change_pct": -1.18,
         "day_high": 4.584,
         "day_low": 4.508,
-        "pnl_abs": -173.0,
-        "pnl_percent": -16.0,
+        "pnl_abs": -175.0,
+        "pnl_percent": -16.19,
         "is_active": true,
         "trades_count": 0
       },
@@ -281,14 +281,14 @@
         "currency": "HKD",
         "shares": 6200,
         "cost_basis": 4.3632,
-        "current_price": 3.258,
-        "current_value": 20199.6,
-        "today_change": -409.2,
-        "today_change_pct": -1.99,
+        "current_price": 3.244,
+        "current_value": 20112.8,
+        "today_change": -496.0,
+        "today_change_pct": -2.41,
         "day_high": 3.332,
         "day_low": 3.208,
-        "pnl_abs": -6852.24,
-        "pnl_percent": -25.33,
+        "pnl_abs": -6939.04,
+        "pnl_percent": -25.65,
         "is_active": true,
         "trades_count": 1
       },
@@ -298,14 +298,14 @@
         "currency": "HKD",
         "shares": 1000,
         "cost_basis": 5.14,
-        "current_price": 4.46,
-        "current_value": 4460.0,
-        "today_change": -52.0,
-        "today_change_pct": -1.15,
+        "current_price": 4.448,
+        "current_value": 4448.0,
+        "today_change": -64.0,
+        "today_change_pct": -1.42,
         "day_high": 4.51,
         "day_low": 4.426,
-        "pnl_abs": -680.0,
-        "pnl_percent": -13.23,
+        "pnl_abs": -692.0,
+        "pnl_percent": -13.46,
         "is_active": true,
         "trades_count": 0
       }
@@ -938,13 +938,13 @@
       "us_realized": 1841.18,
       "us_equity": 5281.58,
       "us_profit": 1775.23,
-      "hk_total_value": 64571.6,
+      "hk_total_value": 65042.8,
       "hk_total_cost": 88276.24,
-      "hk_total_pnl": -23704.64,
-      "hk_today_change": 4326.0,
+      "hk_total_pnl": -23233.44,
+      "hk_today_change": 4797.2,
       "hk_realized": 7259.16,
-      "hk_equity": 71830.76,
-      "hk_profit": -16445.48,
+      "hk_equity": 72301.96,
+      "hk_profit": -15974.28,
       "us_cash": 854.25,
       "hk_cash": 4597,
       "us_asof": "2026-06-21",
@@ -1046,17 +1046,17 @@
     },
     "HSI": {
       "name": "恒生指数",
-      "price": 23774.04,
+      "price": 23711.59,
       "prev_close": 23924.81,
-      "change_pct": -0.63,
-      "source": "Tencent qt.gtimg.cn 2026/06/22 13:31 HKT"
+      "change_pct": -0.89,
+      "source": "Tencent qt.gtimg.cn 2026/06/22 14:01 HKT"
     },
     "HSTECH": {
       "name": "恒生科技",
-      "price": 4547.32,
+      "price": 4535.14,
       "prev_close": 4604.35,
-      "change_pct": -1.24,
-      "source": "Tencent qt.gtimg.cn 2026/06/22 13:31 HKT"
+      "change_pct": -1.5,
+      "source": "Tencent qt.gtimg.cn 2026/06/22 14:01 HKT"
     }
   },
   "market_context": {
@@ -1387,7 +1387,7 @@
       449.2,
       497.6,
       497.6,
-      581.0
+      590.0
     ],
     "02208": [
       11.59,
@@ -1399,7 +1399,7 @@
       11.08,
       11.18,
       11.18,
-      10.36
+      10.44
     ],
     "03032": [
       4.76,
@@ -1411,7 +1411,7 @@
       4.66,
       4.584,
       4.584,
-      4.54
+      4.53
     ],
     "07226": [
       3.59,
@@ -1423,7 +1423,7 @@
       3.422,
       3.314,
       3.314,
-      3.258
+      3.244
     ],
     "03033": [
       4.674,
@@ -1435,7 +1435,7 @@
       4.572,
       4.5,
       4.5,
-      4.46
+      4.448
     ],
     "07709": [
       null,
@@ -1493,8 +1493,8 @@
       "30d_pct": null
     },
     "hk": {
-      "today_pct": 6.34,
-      "7d_pct": 11.93,
+      "today_pct": 7.03,
+      "7d_pct": 12.66,
       "30d_pct": null
     }
   },
@@ -1503,36 +1503,36 @@
       "ticker": "00100",
       "name": "MINIMAX-W",
       "region": "hk",
-      "today_change_pct": 16.76,
-      "current_price": 581.0,
-      "note": "今日+19.5%但浮亏仍-27.8%，现价处日内区间83%高位且振幅达常态1.6倍，反弹质量差不是反转，别追"
+      "today_change_pct": 18.57,
+      "current_price": 590.0,
+      "note": "今日+18.6%但浮亏仍-28.3%，现价处区间73%偏高位，追买性价比差，等回踩"
     },
     {
       "ticker": "02208",
       "name": "金风科技",
       "region": "hk",
-      "today_change_pct": -4.78,
-      "current_price": 10.36,
-      "note": "-3.5%补跌，RSI27超卖均值回归候选但有接刀风险，浮亏-25.4%已触发STOP"
+      "today_change_pct": -4.04,
+      "current_price": 10.44,
+      "note": "今日-4.0%加深浮亏至-25.9%，RSI27超卖但有接刀风险，别抄底"
     }
   ],
   "anomalies": [
     {
       "type": "high_weight_loss",
       "ticker": "00100",
-      "detail": "weight 49.6% + pnl -29.4%",
+      "detail": "weight 49.6% + pnl -28.3%",
       "severity": "high"
     },
     {
       "type": "high_weight_loss",
       "ticker": "07226",
-      "detail": "weight 34.2% + pnl -25.3%",
+      "detail": "weight 34.2% + pnl -25.6%",
       "severity": "high"
     },
     {
       "type": "leveraged_etf_stop",
       "ticker": "07226",
-      "detail": "leveraged ETF: pnl -25.3%",
+      "detail": "leveraged ETF: pnl -25.6%",
       "severity": "high"
     },
     {
@@ -1603,10 +1603,10 @@
     "source": "insights-2026-06-22.json",
     "stale": false
   },
-  "status_banner": "大盘跌恒科-1.1%，00100单票暴拉+19.5%抗住全仓今日转正，但已追高区间83%耗尽振幅",
+  "status_banner": "恒指恒科双跌，00100今日反弹+18.6%撑住盈亏；区间73%偏高位，追高风险仍在",
   "status_banner_meta": {
     "source": "intraday-insights-2026-06-22.json",
-    "generated_at": "2026-06-22T03:33:00Z",
+    "generated_at": "2026-06-22T06:01:39Z",
     "stale": false
   },
   "peer_divergence": {
@@ -2797,7 +2797,7 @@
     {
       "ticker": "00100",
       "region": "hk",
-      "weight_pct": 53.99,
+      "weight_pct": 54.43,
       "avg_confidence": 0.528,
       "n_actions": 20,
       "quadrant": "high_risk"
@@ -2813,7 +2813,7 @@
     {
       "ticker": "07226",
       "region": "hk",
-      "weight_pct": 31.28,
+      "weight_pct": 30.92,
       "avg_confidence": 0.549,
       "n_actions": 22,
       "quadrant": "high_risk"
@@ -2853,7 +2853,7 @@
     {
       "ticker": "03033",
       "region": "hk",
-      "weight_pct": 6.91,
+      "weight_pct": 6.84,
       "avg_confidence": 0.512,
       "n_actions": 16,
       "quadrant": "low_conv_small"
@@ -2877,7 +2877,7 @@
     {
       "ticker": "03032",
       "region": "hk",
-      "weight_pct": 1.41,
+      "weight_pct": 1.39,
       "avg_confidence": 0.512,
       "n_actions": 16,
       "quadrant": "low_conv_small"
@@ -2886,7 +2886,7 @@
   "drawdown": {
     "max_pct_30d_hk": -32.95,
     "max_pct_30d_us": -18.51,
-    "current_pct_hk": -20.72,
+    "current_pct_hk": -20.2,
     "current_pct_us": 17.6,
     "us": {
       "peak": {
@@ -2919,10 +2919,10 @@
         "date": "2026-06-12"
       },
       "current": {
-        "value": 71830.76,
+        "value": 72301.96,
         "date": "2026-06-22"
       },
-      "current_dd_pct": -22.83,
+      "current_dd_pct": -22.33,
       "max_dd_pct": -32.95,
       "max_dd_abs": 30674.4,
       "max_dd_peak_date": "2026-05-27",
@@ -2940,10 +2940,10 @@
         "date": "2026-06-12"
       },
       "current": {
-        "value": 113232.01,
+        "value": 113703.21,
         "date": "2026-06-22"
       },
-      "current_dd_pct": -12.66,
+      "current_dd_pct": -12.3,
       "max_dd_pct": -27.57,
       "max_dd_abs": 35747.72,
       "max_dd_peak_date": "2026-05-29",
@@ -2987,10 +2987,10 @@
           "date": "2026-06-12"
         },
         "current": {
-          "value": -16445.48,
+          "value": -15974.28,
           "date": "2026-06-22"
         },
-        "from_peak_abs": -21256.0,
+        "from_peak_abs": -20784.8,
         "current_dd_pct": null,
         "max_dd_abs": -30674.4,
         "max_dd_pct": null,
@@ -3011,10 +3011,10 @@
           "date": "2026-06-12"
         },
         "current": {
-          "value": -2529.81,
+          "value": -2058.61,
           "date": "2026-06-22"
         },
-        "from_peak_abs": -23302.84,
+        "from_peak_abs": -22831.64,
         "current_dd_pct": null,
         "max_dd_abs": -37064.64,
         "max_dd_pct": null,
@@ -3084,16 +3084,16 @@
     "hk": [
       {
         "sector": "AI / 大模型",
-        "value": 34860.0,
-        "pct": 53.99,
+        "value": 35400.0,
+        "pct": 54.43,
         "tickers": [
           "00100"
         ]
       },
       {
         "sector": "恒生科技 ETF",
-        "value": 25567.6,
-        "pct": 39.6,
+        "value": 25466.8,
+        "pct": 39.15,
         "tickers": [
           "03032",
           "07226",
@@ -3102,7 +3102,7 @@
       },
       {
         "sector": "新能源",
-        "value": 4144.0,
+        "value": 4176.0,
         "pct": 6.42,
         "tickers": [
           "02208"
@@ -3112,8 +3112,8 @@
   },
   "leveraged_etf": {
     "us_pct": 62.25,
-    "hk_pct": 31.28,
-    "combined_pct": 40.41,
+    "hk_pct": 30.92,
+    "combined_pct": 40.11,
     "tickers": [
       "07226",
       "MSFU",
@@ -3304,8 +3304,8 @@
         "leg": "HK",
         "ticker": "00100",
         "severity": "high",
-        "detail": "00100 = 53.99% of HK (cap 35%)",
-        "action": "纪律性 trim 00100 → ≤35% (减约 12259.94 HKD，借反弹分批、勿在新低日一次砍)"
+        "detail": "00100 = 54.43% of HK (cap 35%)",
+        "action": "纪律性 trim 00100 → ≤35% (减约 12635.02 HKD，借反弹分批、勿在新低日一次砍)"
       },
       {
         "type": "factor_concentration",
@@ -3320,8 +3320,8 @@
         "leg": "HK",
         "ticker": null,
         "severity": "high",
-        "detail": "HK 杠杆 ETF = 31.3% (cap 25%) — 2x 日内重置，下杀崩/震荡衰减（🧭HK制度 amber：基准 50% ×0.5 → 25%，趋势OFF：杠杆敞口上限砍半）",
-        "action": "降杠杆=换仓非清仓：把约 4056.7 HKD 的 2x 换成 1x 同因子(07226→03033)，敞口不变、停 decay；🧭转 green 后可换回 2x"
+        "detail": "HK 杠杆 ETF = 30.9% (cap 25%) — 2x 日内重置，下杀崩/震荡衰减（🧭HK制度 amber：基准 50% ×0.5 → 25%，趋势OFF：杠杆敞口上限砍半）",
+        "action": "降杠杆=换仓非清仓：把约 3852.1 HKD 的 2x 换成 1x 同因子(07226→03033)，敞口不变、停 decay；🧭转 green 后可换回 2x"
       },
       {
         "type": "leveraged_exposure",
@@ -3344,8 +3344,8 @@
       {
         "ticker": "07226",
         "leg": "HK",
-        "pnl_pct": -25.3,
-        "detail": "07226 浮亏 -25.3% ≤ 硬止损线 -18%",
+        "pnl_pct": -25.7,
+        "detail": "07226 浮亏 -25.7% ≤ 硬止损线 -18%",
         "action": "07226 触发杠杆 ETF 硬止损 → 换仓 1x 同因子 03033（敞口保留、停 decay，规则非择时）；🧭转 green 再换回 2x"
       },
       {
@@ -3455,27 +3455,27 @@
       {
         "ticker": "00100",
         "leg": "HK",
-        "pnl_pct": -29.4,
-        "breakeven_need_pct": 41.6,
+        "pnl_pct": -28.3,
+        "breakeven_need_pct": 39.5,
         "leveraged": false
       },
       {
         "ticker": "02208",
         "leg": "HK",
-        "pnl_pct": -26.4,
-        "breakeven_need_pct": 35.9,
+        "pnl_pct": -25.9,
+        "breakeven_need_pct": 34.9,
         "leveraged": false
       },
       {
         "ticker": "07226",
         "leg": "HK",
-        "pnl_pct": -25.3,
-        "breakeven_need_pct": 33.9,
+        "pnl_pct": -25.7,
+        "breakeven_need_pct": 34.5,
         "leveraged": true,
         "underlying_vol_pct": 30.3,
         "chop_drag_pct_per_month": 0.77,
-        "underlying_need_2x_6m_pct": 18.4,
-        "underlying_need_if_1x_pct": 33.9,
+        "underlying_need_2x_6m_pct": 18.7,
+        "underlying_need_if_1x_pct": 34.5,
         "swap_1x": "03033"
       },
       {
@@ -3505,15 +3505,15 @@
       {
         "ticker": "03032",
         "leg": "HK",
-        "pnl_pct": -16.0,
-        "breakeven_need_pct": 19.1,
+        "pnl_pct": -16.2,
+        "breakeven_need_pct": 19.3,
         "leveraged": false
       },
       {
         "ticker": "03033",
         "leg": "HK",
-        "pnl_pct": -13.2,
-        "breakeven_need_pct": 15.2,
+        "pnl_pct": -13.5,
+        "breakeven_need_pct": 15.6,
         "leveraged": false
       },
       {
@@ -3878,9 +3878,9 @@
     "discipline": "自迭代规则：hit_rate 是因子话语权的唯一来源。usable=false 的因子只展示不入决策；usable 后 <50% 的因子方向结论按反向警示处理（同 driven_by technical 39% 降权为过滤器的先例）。"
   },
   "t0_setups": {
-    "as_of": "2026-06-22T11:32:59+08:00",
+    "as_of": "2026-06-22T14:01:47+08:00",
     "market_closed": {
-      "us": true,
+      "us": false,
       "hk": false
     },
     "intraday_enriched": false,
@@ -3995,26 +3995,26 @@
       "00100": {
         "market": "hk",
         "name": "MINIMAX-W",
-        "current": 594.5,
-        "today_change_pct": 19.47,
+        "current": 590.0,
+        "today_change_pct": 18.57,
         "gap_pct": 4.5,
-        "range_pos": 83.3,
-        "day_range_pct": 22.31,
-        "range_used_atr": 1.56,
+        "range_pos": 72.7,
+        "day_range_pct": 24.32,
+        "range_used_atr": 1.7,
         "rsi14": 39.6,
         "zscore20": -0.67,
         "atr14_pct": 14.29,
-        "grade": "🔴",
-        "grade_label": "追高低质",
-        "grade_reason": "现价在当日区间 83% 高位、今日振幅已达典型日的 1.6×，追在尾部"
+        "grade": "🟡",
+        "grade_label": "偏高位（追高风险）",
+        "grade_reason": "现价在当日区间 73% 偏高位，追买性价比差，等回踩"
       },
       "02208": {
         "market": "hk",
         "name": "金风科技",
-        "current": 10.5,
-        "today_change_pct": -3.49,
+        "current": 10.44,
+        "today_change_pct": -4.04,
         "gap_pct": 0.0,
-        "range_pos": 45.7,
+        "range_pos": 37.1,
         "day_range_pct": 6.43,
         "range_used_atr": 1.04,
         "rsi14": 26.8,
@@ -4027,10 +4027,10 @@
       "03032": {
         "market": "hk",
         "name": "恒生科技ETF",
-        "current": 4.546,
-        "today_change_pct": -0.83,
+        "current": 4.53,
+        "today_change_pct": -1.18,
         "gap_pct": 0.0,
-        "range_pos": 50.0,
+        "range_pos": 28.9,
         "day_range_pct": 1.66,
         "range_used_atr": 0.65,
         "rsi14": 37.5,
@@ -4038,15 +4038,15 @@
         "atr14_pct": 2.54,
         "grade": "🟡",
         "grade_label": "中性",
-        "grade_reason": "区间 50% 中段，无明显边缘"
+        "grade_reason": "区间 29% 中段，无明显边缘"
       },
       "07226": {
         "market": "hk",
         "name": "XL二南方恒科",
-        "current": 3.268,
-        "today_change_pct": -1.68,
+        "current": 3.244,
+        "today_change_pct": -2.41,
         "gap_pct": 0.24,
-        "range_pos": 48.4,
+        "range_pos": 29.0,
         "day_range_pct": 3.73,
         "range_used_atr": null,
         "rsi14": null,
@@ -4056,15 +4056,15 @@
         "decay_note": "2x 每日杠杆，多日持有有衰减；做 T 当日无碍，别拿来等多日故事",
         "grade": "🟡",
         "grade_label": "中性",
-        "grade_reason": "区间 48% 中段，无明显边缘"
+        "grade_reason": "区间 29% 中段，无明显边缘"
       },
       "03033": {
         "market": "hk",
         "name": "南方恒生科技",
-        "current": 4.464,
-        "today_change_pct": -1.06,
+        "current": 4.448,
+        "today_change_pct": -1.42,
         "gap_pct": -0.04,
-        "range_pos": 45.2,
+        "range_pos": 26.2,
         "day_range_pct": 1.86,
         "range_used_atr": 0.74,
         "rsi14": 37.5,
@@ -4072,7 +4072,7 @@
         "atr14_pct": 2.52,
         "grade": "🟡",
         "grade_label": "中性",
-        "grade_reason": "区间 45% 中段，无明显边缘"
+        "grade_reason": "区间 26% 中段，无明显边缘"
       }
     }
   },
@@ -5915,25 +5915,25 @@
         "ticker": "00100",
         "name": "MINIMAX-W",
         "region": "hk",
-        "pnl_percent": -29.39,
-        "pnl_abs": -14509.8,
-        "current_value": 34860.0
+        "pnl_percent": -28.3,
+        "pnl_abs": -13969.8,
+        "current_value": 35400.0
       },
       {
         "ticker": "02208",
         "name": "金风科技",
         "region": "hk",
-        "pnl_percent": -26.44,
-        "pnl_abs": -1489.6,
-        "current_value": 4144.0
+        "pnl_percent": -25.87,
+        "pnl_abs": -1457.6,
+        "current_value": 4176.0
       },
       {
         "ticker": "07226",
         "name": "XL二南方恒科",
         "region": "hk",
-        "pnl_percent": -25.33,
-        "pnl_abs": -6852.24,
-        "current_value": 20199.6
+        "pnl_percent": -25.65,
+        "pnl_abs": -6939.04,
+        "current_value": 20112.8
       }
     ]
   },
@@ -5943,40 +5943,40 @@
       "region": "hk",
       "high": 623.0,
       "low": 502.0,
-      "current": 581.0,
-      "range_pct": 20.83
+      "current": 590.0,
+      "range_pct": 20.51
     },
     {
       "ticker": "02208",
       "region": "hk",
       "high": 10.88,
       "low": 10.18,
-      "current": 10.36,
-      "range_pct": 6.76
+      "current": 10.44,
+      "range_pct": 6.7
     },
     {
       "ticker": "07226",
       "region": "hk",
       "high": 3.332,
       "low": 3.208,
-      "current": 3.258,
-      "range_pct": 3.81
+      "current": 3.244,
+      "range_pct": 3.82
     },
     {
       "ticker": "03033",
       "region": "hk",
       "high": 4.51,
       "low": 4.426,
-      "current": 4.46,
-      "range_pct": 1.88
+      "current": 4.448,
+      "range_pct": 1.89
     },
     {
       "ticker": "03032",
       "region": "hk",
       "high": 4.584,
       "low": 4.508,
-      "current": 4.54,
-      "range_pct": 1.67
+      "current": 4.53,
+      "range_pct": 1.68
     }
   ],
   "realized_vs_unrealized": {
@@ -5986,11 +5986,11 @@
     },
     "hk": {
       "realized": 7259.16,
-      "unrealized": -23704.64
+      "unrealized": -23233.44
     },
     "combined_usd": {
       "realized": 2767.24,
-      "unrealized": -3089.96
+      "unrealized": -3029.85
     }
   },
   "capital_deployed": {
@@ -6014,14 +6014,14 @@
     },
     "hk": {
       "net_principal": 81017.08,
-      "total_profit": -16445.48,
-      "return_pct": -20.3,
+      "total_profit": -15974.28,
+      "return_pct": -19.72,
       "return_basis": "net_principal"
     },
     "combined_usd": {
       "net_principal": 12806.51,
-      "total_profit": -322.73,
-      "return_pct": -2.52
+      "total_profit": -262.62,
+      "return_pct": -2.05
     },
     "formula": "回报率 = (浮动 + 已实现) ÷ 本金；本金优先用 true_principal（峰值净投入），否则用 净投入本金=累计成本−已实现"
   },
@@ -6466,7 +6466,7 @@
     "last_updated": "2026-06-19T15:50:09.097221Z"
   },
   "build_status": {
-    "generated_at": "2026-06-22T13:32:39+08:00",
+    "generated_at": "2026-06-22T14:02:36+08:00",
     "healthy": false,
     "stale_files": [
       "us_news_digest.json"
@@ -6481,77 +6481,77 @@
       },
       {
         "name": "benchmark.json",
-        "age_hours": 5.4,
+        "age_hours": 5.9,
         "sla_hours": 80,
         "stale": false,
         "present": true
       },
       {
         "name": "catalysts.json",
-        "age_hours": 5.4,
+        "age_hours": 5.9,
         "sla_hours": 30,
         "stale": false,
         "present": true
       },
       {
         "name": "em_news.json",
-        "age_hours": 5.4,
+        "age_hours": 5.9,
         "sla_hours": 30,
         "stale": false,
         "present": true
       },
       {
         "name": "influencer_feed.json",
-        "age_hours": 5.4,
+        "age_hours": 5.9,
         "sla_hours": 30,
         "stale": false,
         "present": true
       },
       {
         "name": "lev_regime.json",
-        "age_hours": 5.4,
+        "age_hours": 5.9,
         "sla_hours": 30,
         "stale": false,
         "present": true
       },
       {
         "name": "macro.json",
-        "age_hours": 5.4,
+        "age_hours": 5.9,
         "sla_hours": 30,
         "stale": false,
         "present": true
       },
       {
         "name": "quant_signal_review.json",
-        "age_hours": 5.4,
+        "age_hours": 5.9,
         "sla_hours": 30,
         "stale": false,
         "present": true
       },
       {
         "name": "quant_signals.json",
-        "age_hours": 5.4,
+        "age_hours": 5.9,
         "sla_hours": 30,
         "stale": false,
         "present": true
       },
       {
         "name": "risk.json",
-        "age_hours": 5.4,
+        "age_hours": 5.9,
         "sla_hours": 30,
         "stale": false,
         "present": true
       },
       {
         "name": "sentiment.json",
-        "age_hours": 5.4,
+        "age_hours": 5.9,
         "sla_hours": 30,
         "stale": false,
         "present": true
       },
       {
         "name": "us_news_digest.json",
-        "age_hours": 58.2,
+        "age_hours": 58.7,
         "sla_hours": 30,
         "stale": true,
         "present": true
