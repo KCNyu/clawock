@@ -1,5 +1,13 @@
 title: clawock
 description: kcn 的 openclaw 投资分析 workspace — harness 化 cron + Tier 3 swarm
+url: https://kcnyu.github.io
+baseurl: /clawock
+
+# SEO: jekyll-sitemap auto-generates /sitemap.xml on every build (lastmod stays fresh,
+# unlike a hand-written static file). GitHub Pages supports this plugin natively.
+plugins:
+  - jekyll-sitemap
+
 markdown: kramdown
 kramdown:
   input: GFM
