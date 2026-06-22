@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-22T17:20:23.626722+00:00",
+  "generated_at": "2026-06-22T23:04:53.521613+00:00",
   "lookback_hours": 48,
   "sources": {
     "trump": "trumpstruth.org/feed (primary)",
@@ -8,12 +8,58 @@
   },
   "llm_filtered": true,
   "counts": {
-    "total": 11,
+    "total": 10,
     "held_hits": 0,
-    "new_ideas": 0,
+    "new_ideas": 1,
     "sector_hits": 7
   },
   "items": [
+    {
+      "author": "Musk",
+      "text": "SpaceX-Tesla Merger Buzz Poses Risk To EV Maker's Stock",
+      "url": "",
+      "published": "Mon, 22 Jun 2026 20:30:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Investor's Business Daily",
+      "tickers": [
+        "TSLA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "TSLA"
+      ],
+      "sectors": [
+        "电动车",
+        "航天/SpaceX"
+      ],
+      "sector_holdings": [
+        "SPCH"
+      ],
+      "stance": "neutral",
+      "relevance": 72,
+      "summary_cn": "市场讨论 SpaceX 与 Tesla 合并传闻，分析师警告对 Tesla 股价构成下行风险；传闻若成真将影响 SPCH 与 TSLA 关系。"
+    },
+    {
+      "author": "Musk",
+      "text": "SpaceX Keeps Falling, Takes Market Down With It",
+      "url": "",
+      "published": "Mon, 22 Jun 2026 22:05:23 GMT",
+      "origin": "gnews-rss",
+      "source": "Bloomberg.com",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天/SpaceX",
+        "二级市场"
+      ],
+      "sector_holdings": [
+        "SPCH"
+      ],
+      "stance": "attack",
+      "relevance": 78,
+      "summary_cn": "报道称 SpaceX 股价持续下跌并拖累大盘，作为 SPCH 二倍做多标的，SPCH 短期承压风险显著。"
+    },
     {
       "author": "Musk",
       "text": "Elon Musk-led SpaceX's first week as a public company sparks market mania",
@@ -25,37 +71,64 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "航天/商业航天",
-        "IPO"
+        "航天/SpaceX",
+        "IPO/二级市场"
       ],
       "sector_holdings": [
         "SPCH"
       ],
       "stance": "endorse",
-      "relevance": 72,
-      "summary_cn": "SpaceX上市首周引爆市场狂热，间接利好持有SPCH（2倍做多SpaceX ETF）的多头情绪，但SpaceX本身未上市无直接ticker。"
+      "relevance": 70,
+      "summary_cn": "SpaceX 上市首周引发市场狂热，作为公开发行的标的间接映射 SPCH 二倍杠杆表现，关注二级交易热度。"
     },
     {
       "author": "Musk",
-      "text": "Elon Musk's SpaceX Moves into Chip Manufacturing",
+      "text": "SpaceX signs computing power deal with open-source AI startup Reflection worth up to $6.3 billion",
       "url": "",
-      "published": "Mon, 22 Jun 2026 12:01:43 GMT",
+      "published": "Mon, 22 Jun 2026 15:00:01 GMT",
       "origin": "gnews-rss",
-      "source": "Business Chief",
+      "source": "CNBC",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "半导体/芯片制造",
-        "航天/商业航天",
-        "AI基础设施"
+        "AI算力",
+        "航天"
       ],
       "sector_holdings": [
+        "MSFU",
         "SPCH"
       ],
       "stance": "endorse",
-      "relevance": 68,
-      "summary_cn": "SpaceX进军芯片制造（自研），加强其垂直整合与AI算力叙事，间接利好SPCH及半导体供应链情绪。"
+      "relevance": 65,
+      "summary_cn": "SpaceX 与开源 AI 公司 Reflection 签下最高 63 亿美元算力大单，强化 SpaceX 算力叙事，间接利好 SPCH。"
+    },
+    {
+      "author": "Trump",
+      "text": "Happy Father’s Day! Our Country is doing GREAT. Record Jobs Numbers and Stock Market, BEST ECONOMY EVER! Greatest Military in the World, by far. We are WINNING on all fronts, WINNING LIKE NEVER BEFORE. GOD BLESS YOU ALL!!! President DONALD J. TRUMP",
+      "url": "https://trumpstruth.org/statuses/39409",
+      "published": "2026-06-21T11:41:44+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "宏观经济/股市"
+      ],
+      "sector_holdings": [
+        "03032",
+        "03033",
+        "07226",
+        "CRCL",
+        "MSFU",
+        "PLTU",
+        "RKLX",
+        "ROBN",
+        "SPCH"
+      ],
+      "stance": "endorse",
+      "relevance": 62,
+      "summary_cn": "Trump 父亲节发文称美股、岗位、经济创历史最佳，看多美国宏观与股市。"
     },
     {
       "author": "Musk",
@@ -68,115 +141,15 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "航天/商业航天",
-        "火星/殖民概念"
+        "航天/SpaceX",
+        "薪酬激励"
       ],
       "sector_holdings": [
         "SPCH"
       ],
       "stance": "endorse",
       "relevance": 60,
-      "summary_cn": "Musk获100亿股SpaceX股权激励，条件是殖民火星100万人——强化长期看多叙事，对SPCH情绪面利好。"
-    },
-    {
-      "author": "Musk",
-      "text": "SpaceX's successful IPO shows that Elon Musk has a real product, says Walter Isaacson",
-      "url": "",
-      "published": "Mon, 22 Jun 2026 12:57:48 GMT",
-      "origin": "gnews-rss",
-      "source": "CNBC",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天/商业航天"
-      ],
-      "sector_holdings": [
-        "SPCH"
-      ],
-      "stance": "endorse",
-      "relevance": 58,
-      "summary_cn": "传记作者Isaacson公开背书SpaceX IPO，称Musk有'真产品'，间接为SpaceX估值与SPCH多头背书。"
-    },
-    {
-      "author": "Musk",
-      "text": "Did Elon Musk Just Hint a SpaceX-Tesla Merger Is Imminent?",
-      "url": "",
-      "published": "Mon, 22 Jun 2026 13:34:14 GMT",
-      "origin": "gnews-rss",
-      "source": "Yahoo Finance",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天/商业航天",
-        "电动车"
-      ],
-      "sector_holdings": [
-        "SPCH"
-      ],
-      "stance": "neutral",
-      "relevance": 55,
-      "summary_cn": "Musk被传暗示SpaceX-Tesla合并临近，纯猜测性质、涉及未上市公司，但暗示两家关联公司资本运作。"
-    },
-    {
-      "author": "Musk",
-      "text": "SpaceX handed lowest possible ESG rating by MSCI",
-      "url": "",
-      "published": "Sun, 21 Jun 2026 04:00:52 GMT",
-      "origin": "gnews-rss",
-      "source": "Financial Times",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "ESG/航天"
-      ],
-      "sector_holdings": [
-        "SPCH"
-      ],
-      "stance": "attack",
-      "relevance": 50,
-      "summary_cn": "MSCI给SpaceX最低ESG评级，属于舆论/资金面利空但对股价影响有限；SPCH持有者需留意ESG基金被动减持风险。"
-    },
-    {
-      "author": "Trump",
-      "text": "Keir Starmer will resign as Prime Minister of The United Kingdom. He failed badly on two very important subjects- IMMIGRATION AND ENERGY (OPEN NORTH SEA OIL!). I wish him well! President DJT",
-      "url": "https://trumpstruth.org/statuses/39413",
-      "published": "2026-06-21T13:59:13+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "能源/原油",
-        "英国政治"
-      ],
-      "sector_holdings": [
-        "02208"
-      ],
-      "stance": "neutral",
-      "relevance": 50,
-      "summary_cn": "Trump抨击英国首相Starmer并点名要求'开放北海石油'，暗示对英国能源政策不满及对油气板块的态度。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk says Tesla's Cybercab has started production",
-      "url": "",
-      "published": "Sun, 21 Jun 2026 22:00:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Mashable",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "电动车/自动驾驶",
-        "机器人/AI"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 65,
-      "summary_cn": "Musk宣布Tesla Cybercab已启动生产，Robotaxi商业化进入实质阶段——Tesla未在kcn持仓中，但属重大产业催化剂。"
+      "summary_cn": "Musk 若在火星定居 100 万人将获得 10 亿股 SpaceX 股份，激励计划披露强化 SpaceX 长期增长预期，利好 SPCH。"
     },
     {
       "author": "Trump",
@@ -188,180 +161,16 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
+        "宏观/地缘政治",
         "能源/原油",
-        "军工/国防",
-        "宏观市场"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 62,
-      "summary_cn": "Trump宣称伊朗军事力量已崩溃、霍尔木兹海峡开放、油价畅通、且美股与就业创历史新高，传递地缘缓和+能源供应恢复+美股看多信号。"
-    },
-    {
-      "author": "Trump",
-      "text": "There will be NO TOLLS in the  Hormuz Strait for 60 days during the Cease Fire Period, and there will be NO TOLLS after the 60 day period has expired, unless they are imposed by and for the United States of America, should the deal not be completed, for services rendered as the Guardian Angel to the countries of the Middle East for purposes of both past, present, and future reimbursement of costs. Thank you for your attention to this matter!!! President DJT",
-      "url": "https://trumpstruth.org/statuses/39401",
-      "published": "2026-06-20T19:15:17+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "能源/原油",
-        "地缘政治/中东"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 58,
-      "summary_cn": "Trump宣布霍尔木兹海峡60天停火期内免通行费，60天后除非美方征收否则也不收费——直接影响全球油运成本与中东原油供应定价。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk 'needs to answer' for 4.5M kids 'sentenced to death' over DOGE cuts, Ro Khanna argues",
-      "url": "",
-      "published": "Mon, 22 Jun 2026 04:47:00 GMT",
-      "origin": "gnews-rss",
-      "source": "New York Post",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "政治/政府效率(DOGE)",
-        "联邦支出/社会项目"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 50,
-      "summary_cn": "民主党议员Ro Khanna公开要求Musk为DOGE削减致450万儿童'被判死刑'负责——DOGE削减议题升温，可能影响联邦支出/医保板块情绪。"
-    }
-  ],
-  "held_hits": [],
-  "new_ideas": [],
-  "sector_hits": [
-    {
-      "author": "Musk",
-      "text": "Elon Musk-led SpaceX's first week as a public company sparks market mania",
-      "url": "",
-      "published": "Mon, 22 Jun 2026 12:49:59 GMT",
-      "origin": "gnews-rss",
-      "source": "Reuters",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天/商业航天",
-        "IPO"
+        "伊朗局势"
       ],
       "sector_holdings": [
-        "SPCH"
-      ],
-      "stance": "endorse",
-      "relevance": 72,
-      "summary_cn": "SpaceX上市首周引爆市场狂热，间接利好持有SPCH（2倍做多SpaceX ETF）的多头情绪，但SpaceX本身未上市无直接ticker。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk's SpaceX Moves into Chip Manufacturing",
-      "url": "",
-      "published": "Mon, 22 Jun 2026 12:01:43 GMT",
-      "origin": "gnews-rss",
-      "source": "Business Chief",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "半导体/芯片制造",
-        "航天/商业航天",
-        "AI基础设施"
-      ],
-      "sector_holdings": [
-        "SPCH"
-      ],
-      "stance": "endorse",
-      "relevance": 68,
-      "summary_cn": "SpaceX进军芯片制造（自研），加强其垂直整合与AI算力叙事，间接利好SPCH及半导体供应链情绪。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk to get a billion shares of SpaceX if he can settle a million humans on Mars",
-      "url": "",
-      "published": "Mon, 22 Jun 2026 16:44:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Fortune",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天/商业航天",
-        "火星/殖民概念"
-      ],
-      "sector_holdings": [
-        "SPCH"
-      ],
-      "stance": "endorse",
-      "relevance": 60,
-      "summary_cn": "Musk获100亿股SpaceX股权激励，条件是殖民火星100万人——强化长期看多叙事，对SPCH情绪面利好。"
-    },
-    {
-      "author": "Musk",
-      "text": "SpaceX's successful IPO shows that Elon Musk has a real product, says Walter Isaacson",
-      "url": "",
-      "published": "Mon, 22 Jun 2026 12:57:48 GMT",
-      "origin": "gnews-rss",
-      "source": "CNBC",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天/商业航天"
-      ],
-      "sector_holdings": [
-        "SPCH"
+        "02208"
       ],
       "stance": "endorse",
       "relevance": 58,
-      "summary_cn": "传记作者Isaacson公开背书SpaceX IPO，称Musk有'真产品'，间接为SpaceX估值与SPCH多头背书。"
-    },
-    {
-      "author": "Musk",
-      "text": "Did Elon Musk Just Hint a SpaceX-Tesla Merger Is Imminent?",
-      "url": "",
-      "published": "Mon, 22 Jun 2026 13:34:14 GMT",
-      "origin": "gnews-rss",
-      "source": "Yahoo Finance",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天/商业航天",
-        "电动车"
-      ],
-      "sector_holdings": [
-        "SPCH"
-      ],
-      "stance": "neutral",
-      "relevance": 55,
-      "summary_cn": "Musk被传暗示SpaceX-Tesla合并临近，纯猜测性质、涉及未上市公司，但暗示两家关联公司资本运作。"
-    },
-    {
-      "author": "Musk",
-      "text": "SpaceX handed lowest possible ESG rating by MSCI",
-      "url": "",
-      "published": "Sun, 21 Jun 2026 04:00:52 GMT",
-      "origin": "gnews-rss",
-      "source": "Financial Times",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "ESG/航天"
-      ],
-      "sector_holdings": [
-        "SPCH"
-      ],
-      "stance": "attack",
-      "relevance": 50,
-      "summary_cn": "MSCI给SpaceX最低ESG评级，属于舆论/资金面利空但对股价影响有限；SPCH持有者需留意ESG基金被动减持风险。"
+      "summary_cn": "Trump 驳斥 NYT 关于伊朗战争报道，强调美军/股市/就业创新高、霍尔木兹海峡开放、石油产量恢复，影响原油与地缘风险定价。"
     },
     {
       "author": "Trump",
@@ -379,9 +188,227 @@
       "sector_holdings": [
         "02208"
       ],
+      "stance": "attack",
+      "relevance": 55,
+      "summary_cn": "Trump 押注英国首相 Starmer 将因移民与北海油气政策下台，看好英国开放北海油气开采，对全球油气供给预期偏多。"
+    },
+    {
+      "author": "Trump",
+      "text": "After spending Trillions of Dollars on NATO, Italy, and its Prime Minister, wouldn’t even think of becoming involved with the Islamic Republic of Iran and their very serious Nuclear Threat. For decades, we defend them but, when tested, they are not there to defend us, and the rest of the World. Not good! President DONALD J. TRUMP",
+      "url": "https://trumpstruth.org/statuses/39414",
+      "published": "2026-06-21T19:39:24+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "宏观/地缘政治",
+        "国防/NATO"
+      ],
+      "sector_holdings": [],
+      "stance": "attack",
+      "relevance": 52,
+      "summary_cn": "Trump 抨击意大利/NATO 在伊朗问题上不作为，质疑美国为盟友承担巨额防务费用的合理性，影响国防板块与欧洲政策预期。"
+    },
+    {
+      "author": "Trump",
+      "text": "Lots of Killing going on in Chicago. 22 people shot, at least 4 Dead. Why isn’t Governor Pritzker calling me for help. I could make Chicago a safe City in ONE MONTH, in ONE YEAR, it would be one of the safest!!! D.C. went from one of the worst, to one of the safest cities in the U.S. President DJT",
+      "url": "https://trumpstruth.org/statuses/39410",
+      "published": "2026-06-21T12:52:08+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "美国治安/联邦介入"
+      ],
+      "sector_holdings": [],
       "stance": "neutral",
-      "relevance": 50,
-      "summary_cn": "Trump抨击英国首相Starmer并点名要求'开放北海石油'，暗示对英国能源政策不满及对油气板块的态度。"
+      "relevance": 48,
+      "summary_cn": "Trump 称可在一月内让芝加哥恢复安全，暗示联邦介入城市治安，政治议题、无直接市场含义。"
+    }
+  ],
+  "held_hits": [],
+  "new_ideas": [
+    {
+      "author": "Musk",
+      "text": "SpaceX-Tesla Merger Buzz Poses Risk To EV Maker's Stock",
+      "url": "",
+      "published": "Mon, 22 Jun 2026 20:30:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Investor's Business Daily",
+      "tickers": [
+        "TSLA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "TSLA"
+      ],
+      "sectors": [
+        "电动车",
+        "航天/SpaceX"
+      ],
+      "sector_holdings": [
+        "SPCH"
+      ],
+      "stance": "neutral",
+      "relevance": 72,
+      "summary_cn": "市场讨论 SpaceX 与 Tesla 合并传闻，分析师警告对 Tesla 股价构成下行风险；传闻若成真将影响 SPCH 与 TSLA 关系。"
+    }
+  ],
+  "sector_hits": [
+    {
+      "author": "Musk",
+      "text": "SpaceX Keeps Falling, Takes Market Down With It",
+      "url": "",
+      "published": "Mon, 22 Jun 2026 22:05:23 GMT",
+      "origin": "gnews-rss",
+      "source": "Bloomberg.com",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天/SpaceX",
+        "二级市场"
+      ],
+      "sector_holdings": [
+        "SPCH"
+      ],
+      "stance": "attack",
+      "relevance": 78,
+      "summary_cn": "报道称 SpaceX 股价持续下跌并拖累大盘，作为 SPCH 二倍做多标的，SPCH 短期承压风险显著。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk-led SpaceX's first week as a public company sparks market mania",
+      "url": "",
+      "published": "Mon, 22 Jun 2026 12:49:59 GMT",
+      "origin": "gnews-rss",
+      "source": "Reuters",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天/SpaceX",
+        "IPO/二级市场"
+      ],
+      "sector_holdings": [
+        "SPCH"
+      ],
+      "stance": "endorse",
+      "relevance": 70,
+      "summary_cn": "SpaceX 上市首周引发市场狂热，作为公开发行的标的间接映射 SPCH 二倍杠杆表现，关注二级交易热度。"
+    },
+    {
+      "author": "Musk",
+      "text": "SpaceX signs computing power deal with open-source AI startup Reflection worth up to $6.3 billion",
+      "url": "",
+      "published": "Mon, 22 Jun 2026 15:00:01 GMT",
+      "origin": "gnews-rss",
+      "source": "CNBC",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "AI算力",
+        "航天"
+      ],
+      "sector_holdings": [
+        "MSFU",
+        "SPCH"
+      ],
+      "stance": "endorse",
+      "relevance": 65,
+      "summary_cn": "SpaceX 与开源 AI 公司 Reflection 签下最高 63 亿美元算力大单，强化 SpaceX 算力叙事，间接利好 SPCH。"
+    },
+    {
+      "author": "Trump",
+      "text": "Happy Father’s Day! Our Country is doing GREAT. Record Jobs Numbers and Stock Market, BEST ECONOMY EVER! Greatest Military in the World, by far. We are WINNING on all fronts, WINNING LIKE NEVER BEFORE. GOD BLESS YOU ALL!!! President DONALD J. TRUMP",
+      "url": "https://trumpstruth.org/statuses/39409",
+      "published": "2026-06-21T11:41:44+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "宏观经济/股市"
+      ],
+      "sector_holdings": [
+        "03032",
+        "03033",
+        "07226",
+        "CRCL",
+        "MSFU",
+        "PLTU",
+        "RKLX",
+        "ROBN",
+        "SPCH"
+      ],
+      "stance": "endorse",
+      "relevance": 62,
+      "summary_cn": "Trump 父亲节发文称美股、岗位、经济创历史最佳，看多美国宏观与股市。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk to get a billion shares of SpaceX if he can settle a million humans on Mars",
+      "url": "",
+      "published": "Mon, 22 Jun 2026 16:44:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Fortune",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天/SpaceX",
+        "薪酬激励"
+      ],
+      "sector_holdings": [
+        "SPCH"
+      ],
+      "stance": "endorse",
+      "relevance": 60,
+      "summary_cn": "Musk 若在火星定居 100 万人将获得 10 亿股 SpaceX 股份，激励计划披露强化 SpaceX 长期增长预期，利好 SPCH。"
+    },
+    {
+      "author": "Trump",
+      "text": "The headline in the Corrupt and Failing New York Times: “What Changed After Almost 4 Months of War? Analysts Say Not Much.” REALLY? Their Military is DONE, their Navy is GONE, their Air Force is GONE, their Launching Pads, Missiles, Drones and Manufacturing of same, is almost GONE, their top two sets of Leaders are GONE, their Inflation is at 250%, their Economy is BROKEN, their Soldiers aren’t being paid, the Hormuz Strait is OPEN, THE OIL IS GUSHING, and the U.S. Stock Market and Jobs are at record HIGHS. That’s what’s CHANGED, you corrupt and unethical cowards, and MORE!!! President DJT",
+      "url": "https://trumpstruth.org/statuses/39418",
+      "published": "2026-06-21T20:57:26+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "宏观/地缘政治",
+        "能源/原油",
+        "伊朗局势"
+      ],
+      "sector_holdings": [
+        "02208"
+      ],
+      "stance": "endorse",
+      "relevance": 58,
+      "summary_cn": "Trump 驳斥 NYT 关于伊朗战争报道，强调美军/股市/就业创新高、霍尔木兹海峡开放、石油产量恢复，影响原油与地缘风险定价。"
+    },
+    {
+      "author": "Trump",
+      "text": "Keir Starmer will resign as Prime Minister of The United Kingdom. He failed badly on two very important subjects- IMMIGRATION AND ENERGY (OPEN NORTH SEA OIL!). I wish him well! President DJT",
+      "url": "https://trumpstruth.org/statuses/39413",
+      "published": "2026-06-21T13:59:13+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "能源/原油",
+        "英国政治"
+      ],
+      "sector_holdings": [
+        "02208"
+      ],
+      "stance": "attack",
+      "relevance": 55,
+      "summary_cn": "Trump 押注英国首相 Starmer 将因移民与北海油气政策下台，看好英国开放北海油气开采，对全球油气供给预期偏多。"
     }
   ]
 }
