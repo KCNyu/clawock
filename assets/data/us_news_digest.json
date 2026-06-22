@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-19T15:56:57.606631",
+  "generated_at": "2026-06-22T17:26:16.744383",
   "lookback_hours": 48,
   "tickers": [
     "CRCL",
@@ -9,13 +9,13 @@
     "SPCH",
     "MSFU"
   ],
-  "digest_markdown": "## Top 移动信号\n- **SPCH**: SpaceX IPO 触发杠杆 ETF 狂潮,SPCH 单日成交破 $1B, debut 量级为 IBIT 上市首日两倍 — 短期动量极强,但 2X 产品波动风险高,kcn 若持仓需设紧止损\n- **CRCL**: Fed 提议禁止 stablecoin yield 致盘后下跌,但 Cathie Wood/ARK 加仓对冲 — 监管利空 vs 机构背书,信号矛盾,减仓观望优于追价\n- **PLTU**: Palantir Q4 财报 beat,带动 PLTU 重获买盘 — PLTR 基本面 catalyst 确认,但 PLTU 是 2X 杠杆,波动放大,kcn 短线可持有、不加仓\n- **ROBN**: HOOD 盘后下挫,但 Ron Baron 新 ETF 凭 SpaceX 重仓创纪录 — 两则信号方向相反,持仓应以 SpaceX 敞口逻辑为主,忽略 HOOD 短线噪音\n- **RKLX**: SpaceX IPO 当日 +10.86%,杠杆 RKLB ETF 交易活跃 — 与 SPCH 同主题但波动更小,可作为 SpaceX 间接敞口的较低 beta 选项\n\n## Per-ticker 简报\n- **CRCL**: Fed stablecoin yield 禁令提案 + ARK 加仓 — 监管风险主导,机构买入提供下行垫,kcn 持仓宜持有不加仓\n- **PLTU**: PLTR Q4 财报超预期 + ETF 重获关注 — 利好确认但杠杆产品回撤风险并存\n- **RKLX**: SpaceX IPO 日 +10.86% 跳涨 — 短期催化兑现,无新多头进场信号\n- **ROBN**: HOOD 盘后下挫 + Baron SpaceX ETF 创纪录 — 信号对冲,净影响中性\n- **SPCH**: SpaceX 杠杆 ETF 成交破 $1B,史无前例 debut — 极强短期动量,2X 波动风险显著\n\n## 风险 watch\n- **CRCL**: Fed stablecoin yield ban 提案 — 监管层面直接威胁 revenue model,最大单一风险点\n- **MSFU**: 微软基本面 \"woes\" 叙事持续,ETF 仍被推荐为反弹工具 — 若 kcn 未持仓则无需关注;若持仓需警惕基本面恶化",
+  "digest_markdown": "## Top 移动信号\n\n- **SPCH**: Leverage Shares 2x SpaceX ETF 首日交易量破 $500M，超越 IBIT 史上首日纪录 - 散户对 SpaceX 敞口需求极强，kcn 关注相关杠杆工具流动性\n- **CRCL**: Trump 行政令将 USDC 接入 Federal Reserve 议题推上焦点，叠加 Monness Crespi 警示 CLARITY Act 政治风险 - 监管/政策双向变量放大波动，clamp 仓位\n- **CRCL**: 推出 cirBTC 进入 DeFi 领域 - 业务扩张但股价走弱，多空信号混合\n- **ROBN**: 盘后下跌但 S&P 500 纳入 + 分析师淡化 - 纳入是被动买盘催化剂，技术性回调而非基本面恶化\n- **PLTU**: PLTR Q4 业绩超预期，杠杆 ETF 续涨 - 持有逻辑得到业绩验证\n\n## Per-ticker 简报\n\n- **CRCL**: Trump 行政令聚焦 USDC/Fed 通道 + cirBTC 上市 - 政策利好与产品扩张并行，但 CLARITY Act 政治噪音施压\n- **SPCH**: 新发 SpaceX 杠杆 ETF 首日 $500M 成交量创纪录 - 强劲散户需求，关注后续 AUM 增长\n- **ROBN**: 盘后下挫 + S&P 500 纳入预期 - 短期卖压被纳入买盘对冲\n- **PLTU**: 底层 PLTR Q4 业绩超预期 - 杠杆 ETF 动能延续\n\n## 风险 Watch\n\n- **CRCL**: Trump 行政令 + CLARITY Act 政治博弈 = 监管不确定性极高，USDC 接入 Fed 预期若落空将重估\n- **SPCH/RKLX/PLTU/MSFU**: 均为 2x 杠杆 ETF，underlying 任何回撤会被加倍放大；SPCH 上市初期可能存在溢价回归风险\n- **ROBN**: 盘后下跌原因未明，需警惕纳入后被动买盘兑现\n\n(忽略：Moomoo 散户 meme、Stock Traders Daily 算法评论、options chain 报价页)",
   "raw_news_counts": {
     "CRCL": 5,
     "PLTU": 5,
     "RKLX": 5,
     "ROBN": 5,
-    "SPCH": 2,
+    "SPCH": 5,
     "MSFU": 5
   },
   "news_source_per_ticker": {
@@ -23,7 +23,7 @@
     "PLTU": "gnews-rss",
     "RKLX": "gnews-rss",
     "ROBN": "gnews-rss",
-    "SPCH": "finnhub",
+    "SPCH": "gnews-rss",
     "MSFU": "gnews-rss"
   }
 }
