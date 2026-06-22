@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-22T14:03:08.574177Z",
+  "generated_at": "2026-06-22T14:03:56.223083Z",
   "last_updated": "2026/06/22 22:03 HKT",
   "fx": {
     "usdhkd": 7.8388,
@@ -931,13 +931,13 @@
     {
       "date": "2026-06-22",
       "file": "2026-06-22.json",
-      "us_total_value": 3276.28,
+      "us_total_value": 3242.76,
       "us_total_cost": 3506.35,
-      "us_total_pnl": -230.07,
-      "us_today_change": -164.07,
+      "us_total_pnl": -263.59,
+      "us_today_change": -197.64,
       "us_realized": 1841.18,
-      "us_equity": 5117.46,
-      "us_profit": 1611.11,
+      "us_equity": 5083.94,
+      "us_profit": 1577.59,
       "hk_total_value": 67196.4,
       "hk_total_cost": 88276.24,
       "hk_total_pnl": -21079.84,
@@ -1255,7 +1255,7 @@
       82.64,
       79.23,
       80.23,
-      81.54
+      83.7617
     ],
     "OKLO": [
       72.39,
@@ -1327,7 +1327,7 @@
       34.74,
       30.405,
       31.36,
-      29.9
+      30.76
     ],
     "SOXL": [
       182.54,
@@ -1351,7 +1351,7 @@
       52.595,
       50.87,
       52.45,
-      49.38
+      46.59
     ],
     "ROBN": [
       20.92,
@@ -1363,7 +1363,7 @@
       34.6409,
       35.32,
       35.66,
-      35.91
+      37.725
     ],
     "MSFU": [
       26.49,
@@ -1375,7 +1375,7 @@
       24.0401,
       22.7599,
       23.13,
-      22.8
+      23.19
     ],
     "00100": [
       461.2,
@@ -1483,13 +1483,13 @@
       20.955,
       17.0201,
       18.99,
-      17.11
+      16.0067
     ]
   },
   "delta": {
     "us": {
-      "today_pct": -3.09,
-      "7d_pct": 27.21,
+      "today_pct": -3.72,
+      "7d_pct": 26.38,
       "30d_pct": null
     },
     "hk": {
@@ -2927,7 +2927,7 @@
     "max_pct_30d_hk": -32.95,
     "max_pct_30d_us": -18.51,
     "current_pct_hk": -17.82,
-    "current_pct_us": 13.95,
+    "current_pct_us": 13.2,
     "us": {
       "peak": {
         "value": 5280.38,
@@ -2938,10 +2938,10 @@
         "date": "2026-06-09"
       },
       "current": {
-        "value": 5117.46,
+        "value": 5083.94,
         "date": "2026-06-22"
       },
-      "current_dd_pct": -3.09,
+      "current_dd_pct": -3.72,
       "max_dd_pct": -18.51,
       "max_dd_abs": 884.09,
       "max_dd_peak_date": "2026-05-29",
@@ -2980,10 +2980,10 @@
         "date": "2026-06-12"
       },
       "current": {
-        "value": 114570.31,
+        "value": 114307.55,
         "date": "2026-06-22"
       },
-      "current_dd_pct": -11.63,
+      "current_dd_pct": -11.84,
       "max_dd_pct": -27.57,
       "max_dd_abs": 35747.72,
       "max_dd_peak_date": "2026-05-29",
@@ -3003,11 +3003,11 @@
           "date": "2026-05-19"
         },
         "current": {
-          "value": 1611.11,
+          "value": 1577.59,
           "date": "2026-06-22"
         },
-        "from_peak_abs": -536.58,
-        "current_dd_pct": -24.98,
+        "from_peak_abs": -570.1,
+        "current_dd_pct": -26.54,
         "max_dd_abs": -926.55,
         "max_dd_pct": -43.14,
         "max_dd_peak_date": "2026-05-29",
@@ -3051,10 +3051,10 @@
           "date": "2026-06-12"
         },
         "current": {
-          "value": -1191.51,
+          "value": -1454.27,
           "date": "2026-06-22"
         },
-        "from_peak_abs": -21964.54,
+        "from_peak_abs": -22227.3,
         "current_dd_pct": null,
         "max_dd_abs": -37064.64,
         "max_dd_pct": null,
@@ -3932,7 +3932,7 @@
     "discipline": "自迭代规则：hit_rate 是因子话语权的唯一来源。usable=false 的因子只展示不入决策；usable 后 <50% 的因子方向结论按反向警示处理（同 driven_by technical 39% 降权为过滤器的先例）。"
   },
   "t0_setups": {
-    "as_of": "2026-06-22T15:31:33+08:00",
+    "as_of": "2026-06-22T22:03:17+08:00",
     "market_closed": {
       "us": false,
       "hk": false
@@ -3943,116 +3943,116 @@
       "CRCL": {
         "market": "us",
         "name": "Circle Internet Group Inc-A",
-        "current": 80.23,
-        "today_change_pct": 0.0,
-        "gap_pct": 0.0,
-        "range_pos": null,
-        "day_range_pct": null,
-        "range_used_atr": null,
+        "current": 83.7617,
+        "today_change_pct": 4.4,
+        "gap_pct": 1.63,
+        "range_pos": 100.0,
+        "day_range_pct": 2.77,
+        "range_used_atr": 0.29,
         "rsi14": 38.1,
         "zscore20": -0.93,
         "atr14_pct": 9.56,
-        "grade": "⚪",
-        "grade_label": "无设置",
-        "grade_reason": "当日数据不足以判牌面"
+        "grade": "🔴",
+        "grade_label": "追高低质",
+        "grade_reason": "现价在当日区间 100% 顶部、今日振幅已达典型日 0.3×，几乎买在最高点"
       },
       "PLTU": {
         "market": "us",
         "name": "二倍做多PLTR ETF-Direxion",
-        "current": 31.36,
-        "today_change_pct": 0.0,
-        "gap_pct": 0.0,
-        "range_pos": null,
-        "day_range_pct": null,
+        "current": 30.76,
+        "today_change_pct": -1.9101,
+        "gap_pct": -4.65,
+        "range_pos": 100.0,
+        "day_range_pct": 3.06,
         "range_used_atr": null,
         "rsi14": null,
         "zscore20": null,
         "atr14_pct": null,
         "leveraged": "2x PLTR",
         "decay_note": "2x 每日杠杆，多日持有有衰减；做 T 当日无碍，别拿来等多日故事",
-        "grade": "⚪",
-        "grade_label": "无设置",
-        "grade_reason": "当日数据不足以判牌面"
+        "grade": "🔴",
+        "grade_label": "追高低质",
+        "grade_reason": "现价在当日区间 100% 顶部，几乎买在最高点"
       },
       "RKLX": {
         "market": "us",
         "name": "Defiance Daily Target 2X Long R",
-        "current": 52.45,
-        "today_change_pct": 0.0,
-        "gap_pct": 0.0,
-        "range_pos": null,
-        "day_range_pct": null,
-        "range_used_atr": null,
+        "current": 46.59,
+        "today_change_pct": -11.17,
+        "gap_pct": -5.85,
+        "range_pos": 0.0,
+        "day_range_pct": 5.32,
+        "range_used_atr": 0.23,
         "rsi14": 44.2,
         "zscore20": -0.9,
         "atr14_pct": 22.8,
         "leveraged": "2x RKLB",
         "decay_note": "2x 每日杠杆，多日持有有衰减；做 T 当日无碍，别拿来等多日故事",
-        "grade": "⚪",
-        "grade_label": "无设置",
-        "grade_reason": "当日数据不足以判牌面"
+        "grade": "🟡",
+        "grade_label": "低位/超卖（观察）",
+        "grade_reason": "区间 0% 低位；均值回归候选，但有接刀风险"
       },
       "ROBN": {
         "market": "us",
         "name": "二倍做多HOOD ETF-T-Rex",
-        "current": 35.7,
-        "today_change_pct": 0.0,
-        "gap_pct": 0.0,
-        "range_pos": null,
-        "day_range_pct": null,
+        "current": 37.725,
+        "today_change_pct": 5.6699,
+        "gap_pct": 0.59,
+        "range_pos": 100.0,
+        "day_range_pct": 5.08,
         "range_used_atr": null,
         "rsi14": null,
         "zscore20": null,
         "atr14_pct": null,
         "leveraged": "2x HOOD",
         "decay_note": "2x 每日杠杆，多日持有有衰减；做 T 当日无碍，别拿来等多日故事",
-        "grade": "⚪",
-        "grade_label": "无设置",
-        "grade_reason": "当日数据不足以判牌面"
+        "grade": "🔴",
+        "grade_label": "追高低质",
+        "grade_reason": "现价在当日区间 100% 顶部，几乎买在最高点"
       },
       "SPCH": {
         "market": "us",
         "name": "Leverage Shares 2X Long SpaceX Daily ETF",
-        "current": 18.97,
-        "today_change_pct": 0.0,
-        "gap_pct": 0.0,
-        "range_pos": null,
-        "day_range_pct": null,
+        "current": 16.0067,
+        "today_change_pct": -15.6201,
+        "gap_pct": -9.8,
+        "range_pos": 0.0,
+        "day_range_pct": 5.82,
         "range_used_atr": null,
         "rsi14": null,
         "zscore20": null,
         "atr14_pct": null,
         "leveraged": "2x SPCX",
         "decay_note": "2x 每日杠杆，多日持有有衰减；做 T 当日无碍，别拿来等多日故事",
-        "grade": "⚪",
-        "grade_label": "无设置",
-        "grade_reason": "当日数据不足以判牌面"
+        "grade": "🟡",
+        "grade_label": "低位/超卖（观察）",
+        "grade_reason": "区间 0% 低位；均值回归候选，但有接刀风险"
       },
       "MSFU": {
         "market": "us",
         "name": "二倍做多微软ETF-Direxion",
-        "current": 23.21,
-        "today_change_pct": 0.0047,
-        "gap_pct": 0.0,
-        "range_pos": null,
-        "day_range_pct": null,
+        "current": 23.19,
+        "today_change_pct": -0.09,
+        "gap_pct": -1.77,
+        "range_pos": 100.0,
+        "day_range_pct": 1.68,
         "range_used_atr": null,
         "rsi14": null,
         "zscore20": null,
         "atr14_pct": null,
         "leveraged": "2x MSFT",
         "decay_note": "2x 每日杠杆，多日持有有衰减；做 T 当日无碍，别拿来等多日故事",
-        "grade": "⚪",
-        "grade_label": "无设置",
-        "grade_reason": "当日数据不足以判牌面"
+        "grade": "🔴",
+        "grade_label": "追高低质",
+        "grade_reason": "现价在当日区间 100% 顶部，几乎买在最高点"
       },
       "00100": {
         "market": "hk",
         "name": "MINIMAX-W",
-        "current": 635.5,
-        "today_change_pct": 27.71,
+        "current": 623.5,
+        "today_change_pct": 25.3,
         "gap_pct": 4.5,
-        "range_pos": 98.5,
+        "range_pos": 89.7,
         "day_range_pct": 27.23,
         "range_used_atr": 1.91,
         "rsi14": 39.6,
@@ -4060,31 +4060,31 @@
         "atr14_pct": 14.29,
         "grade": "🔴",
         "grade_label": "追高低质",
-        "grade_reason": "现价在当日区间 98% 顶部、今日振幅已达典型日 1.9×，几乎买在最高点"
+        "grade_reason": "现价在当日区间 90% 顶部、今日振幅已达典型日 1.9×，几乎买在最高点"
       },
       "02208": {
         "market": "hk",
         "name": "金风科技",
-        "current": 10.68,
-        "today_change_pct": -1.84,
+        "current": 10.5,
+        "today_change_pct": -3.49,
         "gap_pct": 0.0,
-        "range_pos": 71.4,
+        "range_pos": 45.7,
         "day_range_pct": 6.43,
         "range_used_atr": 1.04,
         "rsi14": 26.8,
         "zscore20": -1.28,
         "atr14_pct": 6.16,
         "grade": "🟡",
-        "grade_label": "偏高位（追高风险）",
-        "grade_reason": "现价在当日区间 71% 偏高位，追买性价比差，等回踩"
+        "grade_label": "低位/超卖（观察）",
+        "grade_reason": "RSI27 超卖；均值回归候选，但有接刀风险"
       },
       "03032": {
         "market": "hk",
         "name": "恒生科技ETF",
-        "current": 4.558,
-        "today_change_pct": -0.57,
+        "current": 4.552,
+        "today_change_pct": -0.7,
         "gap_pct": 0.0,
-        "range_pos": 65.8,
+        "range_pos": 57.9,
         "day_range_pct": 1.66,
         "range_used_atr": 0.65,
         "rsi14": 37.5,
@@ -4092,15 +4092,15 @@
         "atr14_pct": 2.54,
         "grade": "🟡",
         "grade_label": "中性",
-        "grade_reason": "区间 66% 中段，无明显边缘"
+        "grade_reason": "区间 58% 中段，无明显边缘"
       },
       "07226": {
         "market": "hk",
         "name": "XL二南方恒科",
-        "current": 3.286,
-        "today_change_pct": -1.14,
+        "current": 3.26,
+        "today_change_pct": -1.93,
         "gap_pct": 0.24,
-        "range_pos": 62.9,
+        "range_pos": 41.9,
         "day_range_pct": 3.73,
         "range_used_atr": null,
         "rsi14": null,
@@ -4110,15 +4110,15 @@
         "decay_note": "2x 每日杠杆，多日持有有衰减；做 T 当日无碍，别拿来等多日故事",
         "grade": "🟡",
         "grade_label": "中性",
-        "grade_reason": "区间 63% 中段，无明显边缘"
+        "grade_reason": "区间 42% 中段，无明显边缘"
       },
       "03033": {
         "market": "hk",
         "name": "南方恒生科技",
-        "current": 4.476,
-        "today_change_pct": -0.8,
+        "current": 4.464,
+        "today_change_pct": -1.06,
         "gap_pct": -0.04,
-        "range_pos": 59.5,
+        "range_pos": 45.2,
         "day_range_pct": 1.86,
         "range_used_atr": 0.74,
         "rsi14": 37.5,
@@ -4126,7 +4126,7 @@
         "atr14_pct": 2.52,
         "grade": "🟡",
         "grade_label": "中性",
-        "grade_reason": "区间 60% 中段，无明显边缘"
+        "grade_reason": "区间 45% 中段，无明显边缘"
       }
     }
   },
@@ -6544,7 +6544,7 @@
     "last_updated": "2026-06-19T15:50:09.097221Z"
   },
   "build_status": {
-    "generated_at": "2026-06-22T22:03:08+08:00",
+    "generated_at": "2026-06-22T22:03:56+08:00",
     "healthy": false,
     "stale_files": [
       "us_news_digest.json"
