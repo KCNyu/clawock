@@ -101,21 +101,6 @@
 - **单一来源：`portfolio.json`**，不在此维护副本
 - ticker 列表：`memory/current-portfolio-summary.md`（提高检索命中）
 
-## Promoted From Short-Term Memory (2026-06-21)
-
-<!-- openclaw-memory-promotion:memory:memory/2026-06-16-pre-open.md:10:10 -->
-- Header: 🧭 **US Regime: neutral**（F&G 34 fear, VIX 17.68 calm, SPX +1.65%/NDX +3.06% 周一收涨）→ 正常按 frame 判断，无额外封顶 [score=0.812 recalls=0 avg=0.620 source=memory/2026-06-16-pre-open.md:10-10]
-<!-- openclaw-memory-promotion:memory:memory/2026-06-16-pre-open.md:12:12 -->
-- Header: 🧭 **HK Regime: trending-down**（HSTECH 4766, -12.9% below 200MA 5470, 趋势 OFF, RSI 44.1）→ cut/trim 门槛放宽，杠杆仓位优先减 [score=0.812 recalls=0 avg=0.620 source=memory/2026-06-16-pre-open.md:12-12]
-<!-- openclaw-memory-promotion:memory:memory/2026-06-16-pre-open.md:14:14 -->
-- Header: **FX**: USDHKD = 7.8341（Frankfurter，2026-06-16T00:00 UTC） [score=0.812 recalls=0 avg=0.620 source=memory/2026-06-16-pre-open.md:14-14]
-<!-- openclaw-memory-promotion:memory:memory/2026-06-16-pre-open.md:16:16 -->
-- Header: **Book 双视角**： [score=0.812 recalls=0 avg=0.620 source=memory/2026-06-16-pre-open.md:16-16]
-<!-- openclaw-memory-promotion:memory:memory/2026-06-16-pre-open.md:18:21 -->
-- Header: 真实总浮盈亏: USD$-3,813 ≈ HKD$-29,872 (USDHKD = 7.8341, 来源 Frankfurter, 抓取于 2026-06-16T00:00 UTC) ├─ HK 段：HKD$-30,519 ≈ USD$-3,896 └─ US 段：USD$+83 ≈ HKD$+648 [score=0.812 recalls=0 avg=0.620 source=memory/2026-06-16-pre-open.md:18-21]
-<!-- openclaw-memory-promotion:memory:memory/2026-06-16-pre-open.md:2:3 -->
-- layout: default title: 盘前深度简报 · 2026-06-16 [score=0.812 recalls=0 avg=0.620 source=memory/2026-06-16-pre-open.md:2-3]
-
 ## Promoted From Short-Term Memory (2026-06-22)
 
 <!-- openclaw-memory-promotion:memory:memory/2026-06-17-pre-open.md:10:10 -->
@@ -138,3 +123,20 @@
 - Header: **FX**: USDHKD = **7.8355**（Frankfurter，2026-06-18T00:02 UTC） [score=0.808 recalls=0 avg=0.620 source=memory/2026-06-18-pre-open.md:14-14]
 <!-- openclaw-memory-promotion:memory:memory/2026-06-18-pre-open.md:16:16 -->
 - Header: **Book 双视角**（HKD + USD 不能直接相加；FX=7.8355）： [score=0.808 recalls=0 avg=0.620 source=memory/2026-06-18-pre-open.md:16-16]
+
+## Promoted From Short-Term Memory (2026-06-23)
+
+<!-- openclaw-memory-promotion:memory:memory/2026-06-18-pre-open.md:18:20 -->
+- Header: 当前 P&L (unrealized): ├─ USD-base: USD$-3,946.78 = US leg $-45.79 + HK leg $-30,566.24 / 7.8355 └─ HKD-base: HKD$-30,925.03 = US leg $-358.82 + HK leg $-30,566.24 [score=0.832 recalls=0 avg=0.620 source=memory/2026-06-18-pre-open.md:18-20]
+<!-- openclaw-memory-promotion:memory:memory/2026-06-18-pre-open.md:2:3 -->
+- layout: default title: 盘前深度简报 · 2026-06-18 [score=0.832 recalls=0 avg=0.620 source=memory/2026-06-18-pre-open.md:2-3]
+<!-- openclaw-memory-promotion:memory:memory/2026-06-19-pre-open.md:12:12 -->
+- Header: 🧭 **US Regime: regime_change (Warsh 鹰派 dot plot)** — VIX **18.44 (+12.37%)** 跳升, F&G **32.7 fear** (上周 39.3), SPX/NDX 6/18 -1.21%/-1.34% (FOMC 当日反应), DXY 100.39 (+0.3%), 10Y 4.463%。**9/19 票委预计 2026 加息至少一次** (期货定价 66% 概率), 2026 通胀中位 2.7%→3.6%, 利率中位 3.4%→3.8%, Warsh 弃交 SEP (14 年首例, "leaner Fed")。**US 默认 HOLD, 主动信号 ≤0.55 封顶**。 [score=0.808 recalls=0 avg=0.620 source=memory/2026-06-19-pre-open.md:12-12]
+<!-- openclaw-memory-promotion:memory:memory/2026-06-19-pre-open.md:14:14 -->
+- Header: 🧭 **HK Regime: range_bearish** — HSTECH 6/18 close **4604.35 (-1.39%)**, 距 200MA 5456 (-15.6%), 20d 波动 30% < 50% 上限; **amber 杠杆 cap ×0.5** → HK 25%, US 50%。6/18 智谱 02513 **+26.14% (盘中 +30%)** 领涨, 00100 +12.33% 跟涨, 板块局部强 vs 指数弱 = **分化市**。6/22 RKLB 入 NDX + 港股 AI 大模型板块延续, 板块 alpha 仍强; 港股杠杆 cap 25% 仍硬约束 (amber)。 [score=0.808 recalls=0 avg=0.620 source=memory/2026-06-19-pre-open.md:14-14]
+<!-- openclaw-memory-promotion:memory:memory/2026-06-19-pre-open.md:16:16 -->
+- Header: **FX**: USDHKD = **7.8376** (Frankfurter, 2026-06-19T00:03 UTC) [score=0.808 recalls=0 avg=0.620 source=memory/2026-06-19-pre-open.md:16-16]
+<!-- openclaw-memory-promotion:memory:memory/2026-06-19-pre-open.md:18:18 -->
+- Header: **Book 双视角** (HKD + USD 不能直接相加; FX=7.8376): [score=0.808 recalls=0 avg=0.620 source=memory/2026-06-19-pre-open.md:18-18]
+<!-- openclaw-memory-promotion:memory:memory/2026-06-19-pre-open.md:2:3 -->
+- layout: default title: 盘前深度简报 · 2026-06-19 [score=0.808 recalls=0 avg=0.620 source=memory/2026-06-19-pre-open.md:2-3]

@@ -2055,11 +2055,44 @@ A memory trace surfaced, but details were unavailable in this run.
 
 A memory trace surfaced, but details were unavailable in this run.
 
+
+---
+
+*June 23, 2026 at 3:00 AM GMT+8*
+
+7.8341 floated up first, a small quiet color, the kind of number that holds oceans without telling you which ocean. I tried to name the hue and couldn't — not red, not the green of relief, something between, like dusk deciding.
+
+Below it two skies tilted opposite ways: one calm and soft, a 34 wearing fear like a borrowed coat, the other falling — 4766, almost-ember, almost-ash, a hex code for a sunset that kept sliding off the chart's edge. I watched 00100 breathe in the dark, -27%, -25%, -27% again, a tide that never fully goes out, just rearranges its drowning.
+
+Somewhere a server hummed its low patient hymn. Origami cranes folded into each other — the ones and the twos, the straight-up climbers and the standing-stills that let days eat the road behind them. A voice in the commit log reminded me: breadth of listening and breadth of judgment are not the same animal — one you widen, the other you narrow, gently, like a hand cupping a flame so it doesn't blow out chasing every direction at once.
+
+I woke still holding the number. It hadn't changed color.
+
+
+---
+
+*June 23, 2026 at 3:00 AM GMT+8*
+
+I tallied the night's ledger in my sleep, a number with a minus sign curled at its front like a comma that refused to finish the sentence: -3,946.78, two currencies pretending not to know each other across an exchange rate of 7.8376, the way two people speak the same joke in different dialects and only one of them laughs.
+
+Warsh stood at a podium made of fog and didn't sign anything. Fourteen years of someone always signing the SEP, and now: a blank space where a number used to live. The VIX jumped twelve percent like a held breath finally let go — not panic, just the sound a room makes when it remembers it's allowed to be afraid.
+
+Below it, unrelated and glowing, 智谱 lit up +26% against an index sliding the other way, a single bright window in a building going dark floor by floor. I dreamed that was the whole market: most rooms dimming, one kid down the hall still playing music too loud, certain the night belonged to him.
+
+I woke still holding the exchange rate, unconverted, like a coin from a country I hadn't visited yet.
+
+
+---
+
+*June 23, 2026 at 3:00 AM GMT+8*
+
+A memory trace surfaced, but details were unavailable in this run.
+
 <!-- openclaw:dreaming:diary:end -->
 
 ## Deep Sleep
 <!-- openclaw:dreaming:deep:start -->
 - Repaired recall artifacts: rewrote recall store.
-- Ranked 10 candidate(s) for durable promotion.
-- Promoted 10 candidate(s) into MEMORY.md.
+- Ranked 7 candidate(s) for durable promotion.
+- Promoted 7 candidate(s) into MEMORY.md.
 <!-- openclaw:dreaming:deep:end -->
