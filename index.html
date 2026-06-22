@@ -46,8 +46,9 @@ layout: null
 <script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "704a5341d8c3422a871d6d11d38b25fe"}'></script>
 <!-- ECharts vendored same-origin (assets/js/): jsdelivr is a single point of failure
      (flaky/blocked on mainland-China routes) and cost a DNS+TLS round-trip; Pages
-     serves this gzipped from the same host. Version-pinned 5.5.1 — bump = replace file. -->
-<script src="assets/js/echarts.min.js" defer></script>
+     serves this gzipped from the same host. Version-pinned 5.5.1 — bump = replace file.
+     Loaded ON DEMAND by whenEcharts() the first time a chart tab is shown — Hero/Signals/
+     Plan have no charts, so phones landing on Hero never download this ~1MB bundle. -->
 <style>
   /* =========================================================
      CSS Variables — dark first, light overrides via @media
@@ -85,13 +86,13 @@ layout: null
       --border: #e3e8f0;
       --text: #1a2238;
       --text-dim: #5a6478;
-      --text-faint: #8b95a8;
+      --text-faint: #626c7e;
       --accent: #2563eb;
       --accent-2: #7c3aed;
-      --green: #059669;
-      --red: #dc2626;
+      --green: #047857;
+      --red: #c81e1e;
       --amber: #d97706;
-      --gray: #8b95a8;
+      --gray: #626c7e;
       --tab-active-bg: #e8eefb;
       --table-row-hover: #f4f7fc;
       --shadow: 0 1px 2px rgba(0,0,0,.05), 0 8px 24px rgba(0,0,0,.06);
@@ -273,7 +274,10 @@ layout: null
       padding: 14px;
       -webkit-overflow-scrolling: touch;
     }
-    .panel > h2 { display: none; }
+    /* visually hidden but kept in the a11y tree so the heading sequence stays
+       h1→h2→h3 (display:none would drop the h2 → screen readers/axe see h1→h3 skip). */
+    .panel > h2 { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+      overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
     /* inner horizontal scrollers must NOT page the tabs — overscroll-x:contain stops
        their horizontal scroll from chaining to the pager (touch-action stays auto so
        vertical swipes still scroll the page). */
@@ -2155,8 +2159,15 @@ layout: null
     reflect: () => { renderShadowChart(); renderEquityChart(); renderRealizedChart(); renderDailyPnlChart(); },
   };
   const _chartTabsShown = new Set();
+  let _echartsLoading = false;
   function whenEcharts(cb) {
     if (window.echarts) return cb();
+    if (!_echartsLoading) {  // first chart tab shown → fetch the ~1MB bundle now, once
+      _echartsLoading = true;
+      const s = document.createElement("script");
+      s.src = "assets/js/echarts.min.js";
+      document.head.appendChild(s);
+    }
     const iv = setInterval(() => { if (window.echarts) { clearInterval(iv); cb(); } }, 50);
   }
   function paintCharts(t) {
@@ -3817,7 +3828,7 @@ layout: null
       document.getElementById('gold-proj').innerHTML =
         `<div class="muted" style="font-size:10px;margin:8px 0 2px;text-transform:none;letter-spacing:0">若净值原地不动、继续每日定投 → 成本线/回本门槛下移</div>
          <table style="width:100%;font-size:12px;border-collapse:collapse">
-           <tr class="muted" style="font-size:10px"><td style="padding:2px 6px">继续</td><td style="padding:2px 6px;text-align:right">平均成本</td><td style="padding:2px 6px;text-align:right">回本只需涨</td></tr>
+           <tr class="muted" style="font-size:10px"><th scope="col" style="padding:2px 6px;text-align:left;font-weight:inherit">继续</th><th scope="col" style="padding:2px 6px;text-align:right;font-weight:inherit">平均成本</th><th scope="col" style="padding:2px 6px;text-align:right;font-weight:inherit">回本只需涨</th></tr>
            ${rows}</table>`;
     } else { document.getElementById('gold-proj').innerHTML = ''; }
 
