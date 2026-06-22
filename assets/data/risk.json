@@ -1,12 +1,12 @@
 {
-  "generated_at": "2026-06-19T00:03:46.224786+00:00",
-  "as_of": "2026-06-19",
+  "generated_at": "2026-06-22T00:03:13.129631+00:00",
+  "as_of": "2026-06-22",
   "us": {
-    "beta_spx": 4.3954,
-    "vol_30d_annualized": 1.0952,
-    "max_dd_30d": -0.2949,
-    "sharpe_30d": 2.1652,
-    "current_value_usd": 3439.2
+    "beta_spx": 4.3934,
+    "vol_30d_annualized": 1.0946,
+    "max_dd_30d": -0.2948,
+    "sharpe_30d": 2.1649,
+    "current_value_usd": 3440.4
   },
   "hk": {
     "beta_hsi": 1.1482,
@@ -16,21 +16,21 @@
     "current_value_hkd": 60245.6
   },
   "combined": {
-    "vol_30d_annualized": 0.6665,
+    "vol_30d_annualized": 0.6664,
     "max_dd_30d": -0.3122,
-    "sharpe_30d": -1.34
+    "sharpe_30d": -1.3404
   },
   "leveraged_exposure": {
-    "us_leverage_factor_avg": 1.622,
+    "us_leverage_factor_avg": 1.6225,
     "hk_leverage_factor_avg": 1.3421,
-    "combined_avg": 1.4283,
-    "margin_at_risk_pct": 14.2833
+    "combined_avg": 1.4285,
+    "margin_at_risk_pct": 14.285
   },
   "alerts": [
     {
       "type": "high_beta",
       "severity": "high",
-      "detail": "US β vs S&P 500 = 4.3954 (> 3.0)"
+      "detail": "US β vs S&P 500 = 4.3934 (> 3.0)"
     },
     {
       "type": "high_vol",
@@ -45,7 +45,7 @@
     {
       "type": "negative_sharpe",
       "severity": "medium",
-      "detail": "Combined 30d Sharpe = -1.34 (< 0)"
+      "detail": "Combined 30d Sharpe = -1.3404 (< 0)"
     }
   ],
   "meta": {

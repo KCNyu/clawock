@@ -1,5 +1,5 @@
 {
-  "as_of": "2026-06-19",
+  "as_of": "2026-06-22",
   "sigma_target": 0.25,
   "rows": {
     "00100": {
@@ -183,7 +183,7 @@
       "stop_distance_pct": -11.0,
       "vol_target_weight": 0.4,
       "pct_52w_range": 0.6,
-      "bars": 401,
+      "bars": 400,
       "tag": "趋势OFF · 已破吊灯止损",
       "code": "usPLTR.OQ",
       "note": "PLTU 的标的"
@@ -207,7 +207,7 @@
       "stop_distance_pct": 19.2,
       "vol_target_weight": 0.31,
       "pct_52w_range": 49.2,
-      "bars": 401,
+      "bars": 400,
       "tag": "趋势OFF · RSI超买71.2 · z+2.1σ极端",
       "code": "usHOOD.OQ",
       "note": "ROBN 的标的"
@@ -231,7 +231,7 @@
       "stop_distance_pct": -11.9,
       "vol_target_weight": 0.67,
       "pct_52w_range": 12.2,
-      "bars": 401,
+      "bars": 400,
       "tag": "趋势OFF · 已破吊灯止损",
       "code": "usMSFT.OQ",
       "note": "MSFU 的标的"
