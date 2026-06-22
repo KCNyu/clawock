@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-22T15:33:01.046540Z",
+  "generated_at": "2026-06-22T15:50:12.850501Z",
   "last_updated": "2026/06/22 23:31 HKT",
   "fx": {
     "usdhkd": 7.8388,
@@ -6107,36 +6107,36 @@
     "formula": "回报率 = (浮动 + 已实现) ÷ 本金；本金优先用 true_principal（峰值净投入），否则用 净投入本金=累计成本−已实现"
   },
   "gold_dca": {
-    "currency": "CNY",
     "start_date": "2026-01-22",
-    "fund_code": "000217",
-    "daily_amount": 200,
     "principal_note": "对账基线（自动累加模式）。2026-06-09 kcn 对账：现值 15470 + 盈亏 -1829 → 本金 17299，份额 = 15470/净值3.1867 = 4854.55。此后每个 A 股交易日自动 +200@当日净值。补投对账：把 principal_invested/units_held 改成新真实数字、reconciled_date 改成对账当天即可，自动累加归零重算。",
-    "principal_invested": 17299.0,
+    "currency": "CNY",
+    "daily_amount": 200,
     "units_held": 4854.55,
-    "fund_name": "华安黄金ETF联接C",
+    "fund_code": "000217",
+    "principal_invested": 17299.0,
     "reconciled_date": "2026-06-09",
-    "nav": 3.1561,
-    "nav_date": "2026-06-18",
-    "nav_change_pct": -0.34,
+    "fund_name": "华安黄金ETF联接C",
+    "nav": 3.082,
+    "nav_date": "2026-06-22",
+    "nav_change_pct": -2.35,
     "realtime": {
-      "est_nav": 3.1556,
-      "est_change_pct": -0.35,
-      "est_time": "2026-06-18 15:30",
-      "nav_date": "2026-06-17"
+      "est_nav": 3.0741,
+      "est_change_pct": -0.26,
+      "est_time": "2026-06-22 22:28",
+      "nav_date": "2026-06-22"
     },
-    "principal_effective": 18699.0,
-    "units_effective": 5303.82,
-    "auto_added_days": 7,
-    "auto_added_amount": 1400.0,
-    "avg_cost": 3.5256,
-    "current_value": 16739.38,
-    "pnl_abs": -1959.62,
-    "pnl_percent": -10.48,
-    "breakeven_nav": 3.5256,
-    "breakeven_upside_pct": 11.71,
-    "days_invested": 96,
-    "installments_est": 93,
+    "principal_effective": 18899.0,
+    "units_effective": 5368.71,
+    "auto_added_days": 8,
+    "auto_added_amount": 1600.0,
+    "avg_cost": 3.5202,
+    "current_value": 16546.36,
+    "pnl_abs": -2352.64,
+    "pnl_percent": -12.45,
+    "breakeven_nav": 3.5202,
+    "breakeven_upside_pct": 14.22,
+    "days_invested": 97,
+    "installments_est": 94,
     "window_high": {
       "date": "2026-01-29",
       "nav": 4.1882
@@ -6148,45 +6148,41 @@
     "projection": [
       {
         "days": 20,
-        "invested": 22699.0,
-        "avg_cost": 3.4543,
-        "pnl_pct": -8.63,
-        "breakeven_upside_pct": 9.45
+        "invested": 22899.0,
+        "avg_cost": 3.4349,
+        "pnl_pct": -10.27,
+        "breakeven_upside_pct": 11.45
       },
       {
         "days": 40,
-        "invested": 26699.0,
-        "avg_cost": 3.4061,
-        "pnl_pct": -7.34,
-        "breakeven_upside_pct": 7.92
+        "invested": 26899.0,
+        "avg_cost": 3.3774,
+        "pnl_pct": -8.75,
+        "breakeven_upside_pct": 9.58
       },
       {
         "days": 60,
-        "invested": 30699.0,
-        "avg_cost": 3.3713,
-        "pnl_pct": -6.38,
-        "breakeven_upside_pct": 6.82
+        "invested": 30899.0,
+        "avg_cost": 3.336,
+        "pnl_pct": -7.61,
+        "breakeven_upside_pct": 8.24
       },
       {
         "days": 120,
-        "invested": 42699.0,
-        "avg_cost": 3.3079,
-        "pnl_pct": -4.59,
-        "breakeven_upside_pct": 4.81
+        "invested": 42899.0,
+        "avg_cost": 3.2608,
+        "pnl_pct": -5.48,
+        "breakeven_upside_pct": 5.8
       },
       {
         "days": 250,
-        "invested": 68699.0,
-        "avg_cost": 3.2488,
-        "pnl_pct": -2.85,
-        "breakeven_upside_pct": 2.94
+        "invested": 68899.0,
+        "avg_cost": 3.191,
+        "pnl_pct": -3.41,
+        "breakeven_upside_pct": 3.54
       }
     ],
     "nav_history": [
-      [
-        "2026-01-30",
-        3.9355
-      ],
       [
         "2026-02-02",
         3.4881
@@ -6542,12 +6538,16 @@
       [
         "2026-06-18",
         3.1561
+      ],
+      [
+        "2026-06-22",
+        3.082
       ]
     ],
-    "last_updated": "2026-06-19T15:50:09.097221Z"
+    "last_updated": "2026-06-22T15:50:12.477193Z"
   },
   "build_status": {
-    "generated_at": "2026-06-22T23:33:01+08:00",
+    "generated_at": "2026-06-22T23:50:12+08:00",
     "healthy": false,
     "stale_files": [
       "us_news_digest.json"
@@ -6562,77 +6562,77 @@
       },
       {
         "name": "benchmark.json",
-        "age_hours": 15.4,
+        "age_hours": 15.7,
         "sla_hours": 80,
         "stale": false,
         "present": true
       },
       {
         "name": "catalysts.json",
-        "age_hours": 15.4,
+        "age_hours": 15.7,
         "sla_hours": 30,
         "stale": false,
         "present": true
       },
       {
         "name": "em_news.json",
-        "age_hours": 15.4,
+        "age_hours": 15.7,
         "sla_hours": 30,
         "stale": false,
         "present": true
       },
       {
         "name": "influencer_feed.json",
-        "age_hours": 15.4,
+        "age_hours": 15.7,
         "sla_hours": 30,
         "stale": false,
         "present": true
       },
       {
         "name": "lev_regime.json",
-        "age_hours": 15.4,
+        "age_hours": 15.7,
         "sla_hours": 30,
         "stale": false,
         "present": true
       },
       {
         "name": "macro.json",
-        "age_hours": 15.4,
+        "age_hours": 15.7,
         "sla_hours": 30,
         "stale": false,
         "present": true
       },
       {
         "name": "quant_signal_review.json",
-        "age_hours": 15.4,
+        "age_hours": 15.7,
         "sla_hours": 30,
         "stale": false,
         "present": true
       },
       {
         "name": "quant_signals.json",
-        "age_hours": 15.4,
+        "age_hours": 15.7,
         "sla_hours": 30,
         "stale": false,
         "present": true
       },
       {
         "name": "risk.json",
-        "age_hours": 15.4,
+        "age_hours": 15.7,
         "sla_hours": 30,
         "stale": false,
         "present": true
       },
       {
         "name": "sentiment.json",
-        "age_hours": 15.4,
+        "age_hours": 15.7,
         "sla_hours": 30,
         "stale": false,
         "present": true
       },
       {
         "name": "us_news_digest.json",
-        "age_hours": 68.2,
+        "age_hours": 68.5,
         "sla_hours": 30,
         "stale": true,
         "present": true
