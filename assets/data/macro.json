@@ -1,67 +1,72 @@
 {
-  "generated_at": "2026-06-21T22:48:41.889696+00:00",
+  "generated_at": "2026-06-22T23:05:55.483973+00:00",
   "vix": {
     "symbol": "^VIX",
-    "price": 16.78,
-    "prev": 16.4,
-    "change_pct": 2.32,
-    "as_of": 1781883001,
+    "price": 17.28,
+    "prev": 16.78,
+    "change_pct": 2.98,
+    "as_of": 1782159301,
     "source": "yahoo"
   },
   "treasury_10y": {
     "symbol": "^TNX",
-    "price": 4.451,
+    "price": 4.509,
     "prev": 4.451,
-    "change_pct": 0.0,
-    "as_of": 1781809193,
+    "change_pct": 1.3,
+    "as_of": 1782154793,
     "source": "yahoo",
-    "yield_pct": 4.451
+    "yield_pct": 4.509
   },
   "dxy": {
     "symbol": "DX-Y.NYB",
-    "price": 100.849,
-    "prev": 100.849,
-    "change_pct": 0.0,
-    "as_of": 1782081520,
+    "price": 100.996,
+    "prev": 101.02,
+    "change_pct": -0.02,
+    "as_of": 1782165897,
     "source": "yahoo"
   },
   "fear_greed": {
-    "score": 37.3,
+    "score": 34.7,
     "rating": "fear",
-    "prev_close": 37.5,
-    "prev_1_week": 35.5,
-    "as_of": "2026-06-19T00:59:47+00:00"
+    "prev_close": 37.3,
+    "prev_1_week": 41.6,
+    "as_of": "2026-06-22T22:45:25+00:00"
   },
   "hsi": {
     "symbol": "^HSI",
-    "price": 23924.81,
-    "prev": 24312.16,
-    "change_pct": -1.59,
+    "price": 23768.52,
+    "prev": 23924.81,
+    "change_pct": -0.65,
     "source": "tencent"
   },
   "hstech": {
     "symbol": "^HSTECH",
-    "price": 4604.35,
-    "prev": 4669.07,
-    "change_pct": -1.39,
+    "price": 4549.41,
+    "prev": 4604.35,
+    "change_pct": -1.19,
     "source": "tencent"
   },
   "spx": {
     "symbol": "^GSPC",
-    "price": 7500.58,
-    "prev": 7420.1,
-    "change_pct": 1.08,
-    "as_of": 1781815326,
+    "price": 7472.79,
+    "prev": 7500.58,
+    "change_pct": -0.37,
+    "as_of": 1782161107,
     "source": "yahoo"
   },
   "nasdaq": {
     "symbol": "^IXIC",
-    "price": 26517.93,
-    "prev": 26021.66,
-    "change_pct": 1.91,
+    "price": 26166.6,
+    "prev": 26517.93,
+    "change_pct": -1.32,
     "source": "tencent"
   },
   "fed_press": [
+    {
+      "date": "2026-06-22",
+      "title": "Federal Reserve notes with deep sadness the passing of Alan Greenspan",
+      "url": "https://www.federalreserve.gov/newsevents/pressreleases/other20260622a.htm"
+    },
     {
       "date": "2026-06-18",
       "title": "Federal Reserve Board issues enforcement action with former employee of Bank of Eufaula and S N B Bancshares, Inc.",
