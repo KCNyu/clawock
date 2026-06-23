@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-22T23:04:53.521613+00:00",
+  "generated_at": "2026-06-23T15:42:08.109293+00:00",
   "lookback_hours": 48,
   "sources": {
     "trump": "trumpstruth.org/feed (primary)",
@@ -8,148 +8,79 @@
   },
   "llm_filtered": true,
   "counts": {
-    "total": 10,
-    "held_hits": 0,
-    "new_ideas": 1,
-    "sector_hits": 7
+    "total": 12,
+    "held_hits": 3,
+    "new_ideas": 0,
+    "sector_hits": 1
   },
   "items": [
     {
       "author": "Musk",
-      "text": "SpaceX-Tesla Merger Buzz Poses Risk To EV Maker's Stock",
+      "text": "After $86 billion IPO, SpaceX to borrow $20 billion",
       "url": "",
-      "published": "Mon, 22 Jun 2026 20:30:00 GMT",
+      "published": "Tue, 23 Jun 2026 09:02:39 GMT",
       "origin": "gnews-rss",
-      "source": "Investor's Business Daily",
+      "source": "Axios",
       "tickers": [
-        "TSLA"
-      ],
-      "held": [],
-      "new_ideas": [
-        "TSLA"
-      ],
-      "sectors": [
-        "电动车",
-        "航天/SpaceX"
-      ],
-      "sector_holdings": [
         "SPCH"
       ],
+      "held": [
+        "SPCH"
+      ],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "私募信贷/债券"
+      ],
+      "sector_holdings": [],
       "stance": "neutral",
-      "relevance": 72,
-      "summary_cn": "市场讨论 SpaceX 与 Tesla 合并传闻，分析师警告对 Tesla 股价构成下行风险；传闻若成真将影响 SPCH 与 TSLA 关系。"
+      "relevance": 82,
+      "summary_cn": "SpaceX在860亿美元IPO后计划借入200亿美元，加杠杆扩张——SPCH(2倍做多SpaceX ETF)直接受益但需关注债务风险。"
     },
     {
       "author": "Musk",
-      "text": "SpaceX Keeps Falling, Takes Market Down With It",
+      "text": "SpaceX's drop off sees Elon Musk's net worth fall $240 billion—roughly the same value as computing giant IBM",
       "url": "",
-      "published": "Mon, 22 Jun 2026 22:05:23 GMT",
-      "origin": "gnews-rss",
-      "source": "Bloomberg.com",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天/SpaceX",
-        "二级市场"
-      ],
-      "sector_holdings": [
-        "SPCH"
-      ],
-      "stance": "attack",
-      "relevance": 78,
-      "summary_cn": "报道称 SpaceX 股价持续下跌并拖累大盘，作为 SPCH 二倍做多标的，SPCH 短期承压风险显著。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk-led SpaceX's first week as a public company sparks market mania",
-      "url": "",
-      "published": "Mon, 22 Jun 2026 12:49:59 GMT",
-      "origin": "gnews-rss",
-      "source": "Reuters",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天/SpaceX",
-        "IPO/二级市场"
-      ],
-      "sector_holdings": [
-        "SPCH"
-      ],
-      "stance": "endorse",
-      "relevance": 70,
-      "summary_cn": "SpaceX 上市首周引发市场狂热，作为公开发行的标的间接映射 SPCH 二倍杠杆表现，关注二级交易热度。"
-    },
-    {
-      "author": "Musk",
-      "text": "SpaceX signs computing power deal with open-source AI startup Reflection worth up to $6.3 billion",
-      "url": "",
-      "published": "Mon, 22 Jun 2026 15:00:01 GMT",
-      "origin": "gnews-rss",
-      "source": "CNBC",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "AI算力",
-        "航天"
-      ],
-      "sector_holdings": [
-        "MSFU",
-        "SPCH"
-      ],
-      "stance": "endorse",
-      "relevance": 65,
-      "summary_cn": "SpaceX 与开源 AI 公司 Reflection 签下最高 63 亿美元算力大单，强化 SpaceX 算力叙事，间接利好 SPCH。"
-    },
-    {
-      "author": "Trump",
-      "text": "Happy Father’s Day! Our Country is doing GREAT. Record Jobs Numbers and Stock Market, BEST ECONOMY EVER! Greatest Military in the World, by far. We are WINNING on all fronts, WINNING LIKE NEVER BEFORE. GOD BLESS YOU ALL!!! President DONALD J. TRUMP",
-      "url": "https://trumpstruth.org/statuses/39409",
-      "published": "2026-06-21T11:41:44+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "宏观经济/股市"
-      ],
-      "sector_holdings": [
-        "03032",
-        "03033",
-        "07226",
-        "CRCL",
-        "MSFU",
-        "PLTU",
-        "RKLX",
-        "ROBN",
-        "SPCH"
-      ],
-      "stance": "endorse",
-      "relevance": 62,
-      "summary_cn": "Trump 父亲节发文称美股、岗位、经济创历史最佳，看多美国宏观与股市。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk to get a billion shares of SpaceX if he can settle a million humans on Mars",
-      "url": "",
-      "published": "Mon, 22 Jun 2026 16:44:00 GMT",
+      "published": "Tue, 23 Jun 2026 11:19:00 GMT",
       "origin": "gnews-rss",
       "source": "Fortune",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天/SpaceX",
-        "薪酬激励"
-      ],
-      "sector_holdings": [
+      "tickers": [
         "SPCH"
       ],
-      "stance": "endorse",
-      "relevance": 60,
-      "summary_cn": "Musk 若在火星定居 100 万人将获得 10 亿股 SpaceX 股份，激励计划披露强化 SpaceX 长期增长预期，利好 SPCH。"
+      "held": [
+        "SPCH"
+      ],
+      "new_ideas": [],
+      "sectors": [
+        "航天"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 78,
+      "summary_cn": "SpaceX股价回落使Musk净资产蒸发约2400亿美元(约等于IBM市值)，对SPCH(2倍做多SpaceX)产生显著回撤压力。"
+    },
+    {
+      "author": "Musk",
+      "text": "SpaceX IPO fuels more speculation of a merger with Tesla. Here's why.",
+      "url": "",
+      "published": "Tue, 23 Jun 2026 11:08:14 GMT",
+      "origin": "gnews-rss",
+      "source": "Austin American-Statesman",
+      "tickers": [
+        "SPCH"
+      ],
+      "held": [
+        "SPCH"
+      ],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "电动车"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 75,
+      "summary_cn": "SpaceX IPO引发市场对其与Tesla合并的猜测升温，若合并落地将对SPCH(2倍做多SpaceX)与Tesla产生重大估值影响。"
     },
     {
       "author": "Trump",
@@ -161,36 +92,126 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "宏观/地缘政治",
-        "能源/原油",
-        "伊朗局势"
+        "原油/能源",
+        "中东地缘政治",
+        "美股大盘"
       ],
       "sector_holdings": [
-        "02208"
+        "03032",
+        "03033",
+        "07226"
       ],
-      "stance": "endorse",
-      "relevance": 58,
-      "summary_cn": "Trump 驳斥 NYT 关于伊朗战争报道，强调美军/股市/就业创新高、霍尔木兹海峡开放、石油产量恢复，影响原油与地缘风险定价。"
+      "stance": "endorses",
+      "relevance": 72,
+      "summary_cn": "Trump反驳《纽时》'战争无变化'的标题，列举伊朗军事/经济被摧毁、霍尔木兹开放、美股与就业创新高——为美股与恒生科技提供宏观背书。"
     },
     {
       "author": "Trump",
-      "text": "Keir Starmer will resign as Prime Minister of The United Kingdom. He failed badly on two very important subjects- IMMIGRATION AND ENERGY (OPEN NORTH SEA OIL!). I wish him well! President DJT",
-      "url": "https://trumpstruth.org/statuses/39413",
-      "published": "2026-06-21T13:59:13+00:00",
+      "text": "19 Millions Barrels of Oil flowed out of the Hormuz Strait yesterday, an all time RECORD. Oil prices are tumbling down, and the World is a much safer place!!! President DONALD J. TRUMP",
+      "url": "https://trumpstruth.org/statuses/39465",
+      "published": "2026-06-23T11:24:12+00:00",
       "origin": "truthsocial",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "能源/原油",
-        "英国政治"
+        "原油/能源"
       ],
-      "sector_holdings": [
-        "02208"
+      "sector_holdings": [],
+      "stance": "endorses",
+      "relevance": 72,
+      "summary_cn": "Trump宣称霍尔木兹海峡昨日通过1900万桶石油创历史纪录，油价大跌，全球更安全——利好原油流通与油市稳定。"
+    },
+    {
+      "author": "Trump",
+      "text": "Despite their protestations and false statements to the contrary, coupled with the drumbeat of the Fake News, which is doing everything possible to make the U.S. Victory as small and insignificant as possible, Iran has fully and completely agreed to highest level Nuclear inspections long into the future (Infinity!!!). This will insure “Nuclear Honesty.” If they did not agree to this, there would be no further negotiations! Based on this and other major concessions being made by Iran, I have agreed to allow the Hormuz Strait to remain OPEN, with no further Naval Blockade. However, all ships are",
+      "url": "https://trumpstruth.org/statuses/39466",
+      "published": "2026-06-23T11:20:55+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "原油/能源",
+        "中东地缘政治",
+        "国防军工"
       ],
-      "stance": "attack",
+      "sector_holdings": [],
+      "stance": "endorses",
+      "relevance": 70,
+      "summary_cn": "Trump称伊朗同意全面核检查，霍尔木兹海峡保持开放、解除海军封锁，全球地缘风险降温，油运与风险资产受益。"
+    },
+    {
+      "author": "Trump",
+      "text": "Iranian resistance leader, former national security aide praise Trump’s deal with Tehran: https://justthenews.com/government/security/iranian-resistance-leader-former-national-security-aide-praise-trumps-mou",
+      "url": "https://trumpstruth.org/statuses/39460",
+      "published": "2026-06-23T00:51:36+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "原油/能源",
+        "中东地缘政治"
+      ],
+      "sector_holdings": [],
+      "stance": "endorses",
+      "relevance": 60,
+      "summary_cn": "伊朗反对派领导人与前国安高官赞扬Trump与德黑兰达成的核协议，强化市场对地缘缓和的预期。"
+    },
+    {
+      "author": "Trump",
+      "text": "RT @realDonaldTrumpEverybody is fully aware that Iran will agree to have Major Weapons Inspections in order to ensure “Nuclear Honesty” long into the future. President DONALD J. TRUMP",
+      "url": "https://trumpstruth.org/statuses/39435",
+      "published": "2026-06-22T18:14:34+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "中东地缘政治",
+        "国防军工"
+      ],
+      "sector_holdings": [],
+      "stance": "endorses",
+      "relevance": 58,
+      "summary_cn": "Trump重申伊朗将接受长期重大武器核查以确保'核诚实'，地缘紧张局势进一步降温。"
+    },
+    {
+      "author": "Trump",
+      "text": "Everybody is fully aware that Iran will agree to have Major Weapons Inspections in order to ensure “Nuclear Honesty” long into the future. President DONALD J. TRUMP",
+      "url": "https://trumpstruth.org/statuses/39423",
+      "published": "2026-06-22T16:58:08+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "中东地缘政治",
+        "国防军工"
+      ],
+      "sector_holdings": [],
+      "stance": "endorses",
       "relevance": 55,
-      "summary_cn": "Trump 押注英国首相 Starmer 将因移民与北海油气政策下台，看好英国开放北海油气开采，对全球油气供给预期偏多。"
+      "summary_cn": "Trump再发推强调伊朗将接受长期武器核查以维持'核诚实'，与条目17内容重复，保留作为地缘缓和信号。"
+    },
+    {
+      "author": "Musk",
+      "text": "Ro Khanna challenges Elon Musk to televised debate after online DOGE battle",
+      "url": "",
+      "published": "Mon, 22 Jun 2026 23:22:22 GMT",
+      "origin": "gnews-rss",
+      "source": "CNBC",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "政治/DOGE/政府效率"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 50,
+      "summary_cn": "国会议员Ro Khanna公开挑战Musk就DOGE相关问题进行电视辩论，Musk与民主党议员矛盾升级，关注后续政府效率政策走向。"
     },
     {
       "author": "Trump",
@@ -202,173 +223,104 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "宏观/地缘政治",
-        "国防/NATO"
+        "国防军工",
+        "北约/国际关系"
       ],
       "sector_holdings": [],
       "stance": "attack",
-      "relevance": 52,
-      "summary_cn": "Trump 抨击意大利/NATO 在伊朗问题上不作为，质疑美国为盟友承担巨额防务费用的合理性，影响国防板块与欧洲政策预期。"
+      "relevance": 50,
+      "summary_cn": "Trump抨击意大利/北约在伊朗核威胁面前不愿出力，质疑美国为盟友国防买单的合理性——或影响国防开支与盟友关系。"
     },
     {
       "author": "Trump",
-      "text": "Lots of Killing going on in Chicago. 22 people shot, at least 4 Dead. Why isn’t Governor Pritzker calling me for help. I could make Chicago a safe City in ONE MONTH, in ONE YEAR, it would be one of the safest!!! D.C. went from one of the worst, to one of the safest cities in the U.S. President DJT",
-      "url": "https://trumpstruth.org/statuses/39410",
-      "published": "2026-06-21T12:52:08+00:00",
+      "text": "The way the Corrupt and Failing New York Times is covering stories on a very battered and beat up  Iran, through FAKE & MADE UP “FACTS” is, in my opinion, “TREASONOUS.” I will be adding all of their false and ridiculous reporting to my multi Billion Dollar lawsuit against them. They are Criminals! President DJT",
+      "url": "https://trumpstruth.org/statuses/39419",
+      "published": "2026-06-21T22:28:11+00:00",
       "origin": "truthsocial",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "美国治安/联邦介入"
+        "媒体/新闻业"
       ],
       "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 48,
-      "summary_cn": "Trump 称可在一月内让芝加哥恢复安全，暗示联邦介入城市治安，政治议题、无直接市场含义。"
+      "stance": "attack",
+      "relevance": 45,
+      "summary_cn": "Trump抨击《纽约时报》对伊朗的报道为'叛国'，威胁加入对其数十亿美元的诉讼——Trump与主流媒体冲突持续。"
     }
   ],
-  "held_hits": [],
-  "new_ideas": [
+  "held_hits": [
     {
       "author": "Musk",
-      "text": "SpaceX-Tesla Merger Buzz Poses Risk To EV Maker's Stock",
+      "text": "After $86 billion IPO, SpaceX to borrow $20 billion",
       "url": "",
-      "published": "Mon, 22 Jun 2026 20:30:00 GMT",
+      "published": "Tue, 23 Jun 2026 09:02:39 GMT",
       "origin": "gnews-rss",
-      "source": "Investor's Business Daily",
+      "source": "Axios",
       "tickers": [
-        "TSLA"
-      ],
-      "held": [],
-      "new_ideas": [
-        "TSLA"
-      ],
-      "sectors": [
-        "电动车",
-        "航天/SpaceX"
-      ],
-      "sector_holdings": [
         "SPCH"
       ],
+      "held": [
+        "SPCH"
+      ],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "私募信贷/债券"
+      ],
+      "sector_holdings": [],
       "stance": "neutral",
-      "relevance": 72,
-      "summary_cn": "市场讨论 SpaceX 与 Tesla 合并传闻，分析师警告对 Tesla 股价构成下行风险；传闻若成真将影响 SPCH 与 TSLA 关系。"
-    }
-  ],
-  "sector_hits": [
-    {
-      "author": "Musk",
-      "text": "SpaceX Keeps Falling, Takes Market Down With It",
-      "url": "",
-      "published": "Mon, 22 Jun 2026 22:05:23 GMT",
-      "origin": "gnews-rss",
-      "source": "Bloomberg.com",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天/SpaceX",
-        "二级市场"
-      ],
-      "sector_holdings": [
-        "SPCH"
-      ],
-      "stance": "attack",
-      "relevance": 78,
-      "summary_cn": "报道称 SpaceX 股价持续下跌并拖累大盘，作为 SPCH 二倍做多标的，SPCH 短期承压风险显著。"
+      "relevance": 82,
+      "summary_cn": "SpaceX在860亿美元IPO后计划借入200亿美元，加杠杆扩张——SPCH(2倍做多SpaceX ETF)直接受益但需关注债务风险。"
     },
     {
       "author": "Musk",
-      "text": "Elon Musk-led SpaceX's first week as a public company sparks market mania",
+      "text": "SpaceX's drop off sees Elon Musk's net worth fall $240 billion—roughly the same value as computing giant IBM",
       "url": "",
-      "published": "Mon, 22 Jun 2026 12:49:59 GMT",
-      "origin": "gnews-rss",
-      "source": "Reuters",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天/SpaceX",
-        "IPO/二级市场"
-      ],
-      "sector_holdings": [
-        "SPCH"
-      ],
-      "stance": "endorse",
-      "relevance": 70,
-      "summary_cn": "SpaceX 上市首周引发市场狂热，作为公开发行的标的间接映射 SPCH 二倍杠杆表现，关注二级交易热度。"
-    },
-    {
-      "author": "Musk",
-      "text": "SpaceX signs computing power deal with open-source AI startup Reflection worth up to $6.3 billion",
-      "url": "",
-      "published": "Mon, 22 Jun 2026 15:00:01 GMT",
-      "origin": "gnews-rss",
-      "source": "CNBC",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "AI算力",
-        "航天"
-      ],
-      "sector_holdings": [
-        "MSFU",
-        "SPCH"
-      ],
-      "stance": "endorse",
-      "relevance": 65,
-      "summary_cn": "SpaceX 与开源 AI 公司 Reflection 签下最高 63 亿美元算力大单，强化 SpaceX 算力叙事，间接利好 SPCH。"
-    },
-    {
-      "author": "Trump",
-      "text": "Happy Father’s Day! Our Country is doing GREAT. Record Jobs Numbers and Stock Market, BEST ECONOMY EVER! Greatest Military in the World, by far. We are WINNING on all fronts, WINNING LIKE NEVER BEFORE. GOD BLESS YOU ALL!!! President DONALD J. TRUMP",
-      "url": "https://trumpstruth.org/statuses/39409",
-      "published": "2026-06-21T11:41:44+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "宏观经济/股市"
-      ],
-      "sector_holdings": [
-        "03032",
-        "03033",
-        "07226",
-        "CRCL",
-        "MSFU",
-        "PLTU",
-        "RKLX",
-        "ROBN",
-        "SPCH"
-      ],
-      "stance": "endorse",
-      "relevance": 62,
-      "summary_cn": "Trump 父亲节发文称美股、岗位、经济创历史最佳，看多美国宏观与股市。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk to get a billion shares of SpaceX if he can settle a million humans on Mars",
-      "url": "",
-      "published": "Mon, 22 Jun 2026 16:44:00 GMT",
+      "published": "Tue, 23 Jun 2026 11:19:00 GMT",
       "origin": "gnews-rss",
       "source": "Fortune",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天/SpaceX",
-        "薪酬激励"
-      ],
-      "sector_holdings": [
+      "tickers": [
         "SPCH"
       ],
-      "stance": "endorse",
-      "relevance": 60,
-      "summary_cn": "Musk 若在火星定居 100 万人将获得 10 亿股 SpaceX 股份，激励计划披露强化 SpaceX 长期增长预期，利好 SPCH。"
+      "held": [
+        "SPCH"
+      ],
+      "new_ideas": [],
+      "sectors": [
+        "航天"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 78,
+      "summary_cn": "SpaceX股价回落使Musk净资产蒸发约2400亿美元(约等于IBM市值)，对SPCH(2倍做多SpaceX)产生显著回撤压力。"
     },
+    {
+      "author": "Musk",
+      "text": "SpaceX IPO fuels more speculation of a merger with Tesla. Here's why.",
+      "url": "",
+      "published": "Tue, 23 Jun 2026 11:08:14 GMT",
+      "origin": "gnews-rss",
+      "source": "Austin American-Statesman",
+      "tickers": [
+        "SPCH"
+      ],
+      "held": [
+        "SPCH"
+      ],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "电动车"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 75,
+      "summary_cn": "SpaceX IPO引发市场对其与Tesla合并的猜测升温，若合并落地将对SPCH(2倍做多SpaceX)与Tesla产生重大估值影响。"
+    }
+  ],
+  "new_ideas": [],
+  "sector_hits": [
     {
       "author": "Trump",
       "text": "The headline in the Corrupt and Failing New York Times: “What Changed After Almost 4 Months of War? Analysts Say Not Much.” REALLY? Their Military is DONE, their Navy is GONE, their Air Force is GONE, their Launching Pads, Missiles, Drones and Manufacturing of same, is almost GONE, their top two sets of Leaders are GONE, their Inflation is at 250%, their Economy is BROKEN, their Soldiers aren’t being paid, the Hormuz Strait is OPEN, THE OIL IS GUSHING, and the U.S. Stock Market and Jobs are at record HIGHS. That’s what’s CHANGED, you corrupt and unethical cowards, and MORE!!! President DJT",
@@ -379,36 +331,18 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "宏观/地缘政治",
-        "能源/原油",
-        "伊朗局势"
+        "原油/能源",
+        "中东地缘政治",
+        "美股大盘"
       ],
       "sector_holdings": [
-        "02208"
+        "03032",
+        "03033",
+        "07226"
       ],
-      "stance": "endorse",
-      "relevance": 58,
-      "summary_cn": "Trump 驳斥 NYT 关于伊朗战争报道，强调美军/股市/就业创新高、霍尔木兹海峡开放、石油产量恢复，影响原油与地缘风险定价。"
-    },
-    {
-      "author": "Trump",
-      "text": "Keir Starmer will resign as Prime Minister of The United Kingdom. He failed badly on two very important subjects- IMMIGRATION AND ENERGY (OPEN NORTH SEA OIL!). I wish him well! President DJT",
-      "url": "https://trumpstruth.org/statuses/39413",
-      "published": "2026-06-21T13:59:13+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "能源/原油",
-        "英国政治"
-      ],
-      "sector_holdings": [
-        "02208"
-      ],
-      "stance": "attack",
-      "relevance": 55,
-      "summary_cn": "Trump 押注英国首相 Starmer 将因移民与北海油气政策下台，看好英国开放北海油气开采，对全球油气供给预期偏多。"
+      "stance": "endorses",
+      "relevance": 72,
+      "summary_cn": "Trump反驳《纽时》'战争无变化'的标题，列举伊朗军事/经济被摧毁、霍尔木兹开放、美股与就业创新高——为美股与恒生科技提供宏观背书。"
     }
   ]
 }
