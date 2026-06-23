@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-22T17:26:16.744383",
+  "generated_at": "2026-06-23T15:44:09.784349",
   "lookback_hours": 48,
   "tickers": [
     "CRCL",
@@ -9,9 +9,9 @@
     "SPCH",
     "MSFU"
   ],
-  "digest_markdown": "## Top 移动信号\n\n- **SPCH**: Leverage Shares 2x SpaceX ETF 首日交易量破 $500M，超越 IBIT 史上首日纪录 - 散户对 SpaceX 敞口需求极强，kcn 关注相关杠杆工具流动性\n- **CRCL**: Trump 行政令将 USDC 接入 Federal Reserve 议题推上焦点，叠加 Monness Crespi 警示 CLARITY Act 政治风险 - 监管/政策双向变量放大波动，clamp 仓位\n- **CRCL**: 推出 cirBTC 进入 DeFi 领域 - 业务扩张但股价走弱，多空信号混合\n- **ROBN**: 盘后下跌但 S&P 500 纳入 + 分析师淡化 - 纳入是被动买盘催化剂，技术性回调而非基本面恶化\n- **PLTU**: PLTR Q4 业绩超预期，杠杆 ETF 续涨 - 持有逻辑得到业绩验证\n\n## Per-ticker 简报\n\n- **CRCL**: Trump 行政令聚焦 USDC/Fed 通道 + cirBTC 上市 - 政策利好与产品扩张并行，但 CLARITY Act 政治噪音施压\n- **SPCH**: 新发 SpaceX 杠杆 ETF 首日 $500M 成交量创纪录 - 强劲散户需求，关注后续 AUM 增长\n- **ROBN**: 盘后下挫 + S&P 500 纳入预期 - 短期卖压被纳入买盘对冲\n- **PLTU**: 底层 PLTR Q4 业绩超预期 - 杠杆 ETF 动能延续\n\n## 风险 Watch\n\n- **CRCL**: Trump 行政令 + CLARITY Act 政治博弈 = 监管不确定性极高，USDC 接入 Fed 预期若落空将重估\n- **SPCH/RKLX/PLTU/MSFU**: 均为 2x 杠杆 ETF，underlying 任何回撤会被加倍放大；SPCH 上市初期可能存在溢价回归风险\n- **ROBN**: 盘后下跌原因未明，需警惕纳入后被动买盘兑现\n\n(忽略：Moomoo 散户 meme、Stock Traders Daily 算法评论、options chain 报价页)",
+  "digest_markdown": "## Top 移动信号\n\n- **SPCH**: SpaceX IPO 传闻持续发酵,BlackRock / ProShares 抢发 space-themed leveraged ETF,SPCX 等同类产品同步上市 → SPCH 所在赛道拥挤度飙升,短线 beta 机会大但 2X 杠杆产品相互稀释,留意资金分流。\n- **PLTU**: Palantir Q4 财报 beat 已被多源 (ETF Trends / Direxion) 确认 → 直接利好 2X 杠杆敞口,但 \"Water or Gasoline\" 标题暗示估值已 price-in,追高风险上升。\n- **ROBN**: HOOD 盘后下跌,散户与分析态度分裂 (\"3 Reasons Why Analysts Shrug Off\") → 2X 杠杆首日波动放大,需盯次日开盘 gap 决定去留。\n- **MSFU**: MSFT \"Woes\" 与 \"Ready to Rebound\" 两派对立,Seeking Alpha 给 \"Pull the Trigger\" 看多 → 杠杆 ETF 多空分歧大,事件驱动不足,趋势未明前避免加仓。\n- **RKLX**: 无 MU 新 catalyst,仅 Zacks blog 罗列式提及,选项链页面与 Stock Traders Daily 流水稿占多数 → 纯杠杆衰减敞口,无信息优势。\n\n## Per-ticker 简报\n\n- **CRCL**: 无 ticker-specific 催化剂,Seeking Alpha \"Singularity\" 文为多 ticker 综述,忽略。\n- **PLTU**: PLTR Q4 beat 已落地,杠杆 ETF 关注度回升 (ETF Trends / Direxion 双源) - 短期动能正向但拥挤。\n- **ROBN**: HOOD 盘后回调,散户情绪 \"shrug off\" - 杠杆敞口波动放大,持仓需设紧 stop。\n- **SPCH**: SpaceX IPO 催化下同类 2X 产品 (SPCX 等) 集中上市 - 赛道扩容但 alpha 分散。\n- **MSFU**: MSFT 基本面分歧明显 - 杠杆多空都有论据,等待明确方向。\n- **RKLX**: 无新增 catalyst - 持有纯靠 MU 趋势惯性。\n\n## 风险 Watch\n\n- **ROBN**: HOOD 盘后下跌 (after-hours gap risk),2X 杠杆放大。\n- **PLTU**: 财报后 \"Water or Gasoline\" 标题暗示高估值回吐风险。\n- **RKLX**: 无 catalyst 下的杠杆衰减 + Zacks 仅为罗列式提及,无实质信息。\n- **MSFU**: MSFT \"Woes\" 若加深,杠杆下行放大;若 rebound 兑现则相反。\n- **SPCH**: 同期 10 只 SpaceX ETF 上市,资金分流与溢价回落风险。",
   "raw_news_counts": {
-    "CRCL": 5,
+    "CRCL": 1,
     "PLTU": 5,
     "RKLX": 5,
     "ROBN": 5,
@@ -19,7 +19,7 @@
     "MSFU": 5
   },
   "news_source_per_ticker": {
-    "CRCL": "gnews-rss",
+    "CRCL": "finnhub",
     "PLTU": "gnews-rss",
     "RKLX": "gnews-rss",
     "ROBN": "gnews-rss",
