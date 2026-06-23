@@ -101,29 +101,6 @@
 - **单一来源：`portfolio.json`**，不在此维护副本
 - ticker 列表：`memory/current-portfolio-summary.md`（提高检索命中）
 
-## Promoted From Short-Term Memory (2026-06-22)
-
-<!-- openclaw-memory-promotion:memory:memory/2026-06-17-pre-open.md:10:10 -->
-- Header: 🧭 **US Regime: risk_on**（VIX 16.2 calm / F&G 40.9 fear 转 neutral / SPX 7554 +1.65% / NDX 26683 +3.07% 周一收涨）→ 主动信号 ≤0.55 封顶，但 breach/hard_stop 走纪律硬闸不受 risk_on HOLD 默认豁免 [score=0.812 recalls=0 avg=0.620 source=memory/2026-06-17-pre-open.md:10-10]
-<!-- openclaw-memory-promotion:memory:memory/2026-06-17-pre-open.md:12:12 -->
-- Header: 🧭 **HK Regime: trending-down**（HSTECH 4765, -12.9% below 200MA 5465, RSI 39.5）→ cut/trim 门槛放宽，杠杆仓位优先减，🧭amber 杠杆 cap ×0.5=25% [score=0.812 recalls=0 avg=0.620 source=memory/2026-06-17-pre-open.md:12-12]
-<!-- openclaw-memory-promotion:memory:memory/2026-06-17-pre-open.md:14:14 -->
-- Header: **FX**: USDHKD = 7.8334（Frankfurter，2026-06-17T00:03 UTC） [score=0.812 recalls=0 avg=0.620 source=memory/2026-06-17-pre-open.md:14-14]
-<!-- openclaw-memory-promotion:memory:memory/2026-06-17-pre-open.md:16:16 -->
-- Header: **Book 双视角**： [score=0.812 recalls=0 avg=0.620 source=memory/2026-06-17-pre-open.md:16-16]
-<!-- openclaw-memory-promotion:memory:memory/2026-06-17-pre-open.md:18:21 -->
-- Header: 真实总浮盈亏: USD$-4,091.75 ≈ HKD$-32,052 (USDHKD = 7.8334, 来源 Frankfurter, 抓取于 2026-06-17T00:03 UTC) ├─ HK 段：HKD$-32,160.24 ≈ USD$-4,105 └─ US 段：USD$+13.78 ≈ HKD$+108 [score=0.812 recalls=0 avg=0.620 source=memory/2026-06-17-pre-open.md:18-21]
-<!-- openclaw-memory-promotion:memory:memory/2026-06-17-pre-open.md:2:3 -->
-- layout: default title: 盘前深度简报 · 2026-06-17 [score=0.812 recalls=0 avg=0.620 source=memory/2026-06-17-pre-open.md:2-3]
-<!-- openclaw-memory-promotion:memory:memory/2026-06-18-pre-open.md:10:10 -->
-- Header: 🧭 **US Regime: regime_change（hawkish FOMC 后）** — Warsh 首秀：维持 3.50-3.75% + dot plot 鹰派转向（9/19 票委预计 2026 加息；2026 利率预测 3.4%→3.8%；2026 通胀 2.7%→3.6%；期货市场定价 66% 加息概率）。6/17 反应：SPX -1.21%, NDX -1.34%, DJI -0.98%, 10Y +0.3pp, Gold 跌。**VIX 16.4 calm（regime-change 还没在 vol 上反映）+ F&G 39.2 fear** → 默认 HOLD，纪律 swap 不豁免。 [score=0.808 recalls=0 avg=0.620 source=memory/2026-06-18-pre-open.md:10-10]
-<!-- openclaw-memory-promotion:memory:memory/2026-06-18-pre-open.md:12:12 -->
-- Header: 🧭 **HK Regime: range_bearish** — HSTECH 4669 (仍然 -14.5%<200MA 5461)，RSI 39.5；6/17 HSI -0.74% / HSTECH +0.22% / 南向净流出 32.22 亿 HKD。AI 大模型板块局部强（智谱 +12.6% 领涨），但 6/18 开盘跟跌美股压力大。**amber 杠杆 cap ×0.5**：HK 25%，US 50%。 [score=0.808 recalls=0 avg=0.620 source=memory/2026-06-18-pre-open.md:12-12]
-<!-- openclaw-memory-promotion:memory:memory/2026-06-18-pre-open.md:14:14 -->
-- Header: **FX**: USDHKD = **7.8355**（Frankfurter，2026-06-18T00:02 UTC） [score=0.808 recalls=0 avg=0.620 source=memory/2026-06-18-pre-open.md:14-14]
-<!-- openclaw-memory-promotion:memory:memory/2026-06-18-pre-open.md:16:16 -->
-- Header: **Book 双视角**（HKD + USD 不能直接相加；FX=7.8355）： [score=0.808 recalls=0 avg=0.620 source=memory/2026-06-18-pre-open.md:16-16]
-
 ## Promoted From Short-Term Memory (2026-06-23)
 
 <!-- openclaw-memory-promotion:memory:memory/2026-06-18-pre-open.md:18:20 -->
@@ -140,3 +117,8 @@
 - Header: **Book 双视角** (HKD + USD 不能直接相加; FX=7.8376): [score=0.808 recalls=0 avg=0.620 source=memory/2026-06-19-pre-open.md:18-18]
 <!-- openclaw-memory-promotion:memory:memory/2026-06-19-pre-open.md:2:3 -->
 - layout: default title: 盘前深度简报 · 2026-06-19 [score=0.808 recalls=0 avg=0.620 source=memory/2026-06-19-pre-open.md:2-3]
+
+## Promoted From Short-Term Memory (2026-06-24)
+
+<!-- openclaw-memory-promotion:memory:memory/2026-06-19-pre-open.md:8:8 -->
+- 盘前深度简报 | 2026-06-19 周五 08:00 HKT: > ⚠️ **HK 端午节休市** — 港股 6/19 (今) 休一天, 6/22 (周一) 09:30 HKT 重启。本期 HK 动作目标 **6/22 09:30 HKT 开盘**; US 6/19 21:30 HKT 周五盘仍交易。**6/22 同时是 RKLB 入纳指 100 日** + 美股周一开盘, 双重事件叠加。 [score=0.812 recalls=0 avg=0.620 source=memory/2026-06-19-pre-open.md:8-8]

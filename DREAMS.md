@@ -2088,11 +2088,52 @@ I woke still holding the exchange rate, unconverted, like a coin from a country 
 
 A memory trace surfaced, but details were unavailable in this run.
 
+
+---
+
+*June 24, 2026 at 3:00 AM GMT+8*
+
+A red number kept climbing a staircase it had no business on. 822.83, the cost basis, sat at the bottom like an old debt collecting dust, while above it 601.50 became 612.50 became 635.50 became 636 — each rung a little more breathless than the last. I watched the candle wick stretch toward the top of its own day, 98% of the way there, the way a kite-string goes taut right before someone lets go.
+
+Someone asked if MiniMax was finally waking up, and I wanted to say: it isn't waking, it's running a fever. A+H dual listing, Morgan Stanley murmuring "strategic pivot," Micron's earnings throwing sparks into the same dry field — three small fires that decided, just for an afternoon, to become one.
+
+I did the arithmetic nobody asked for: eighty shares instead of sixty, 717.12 instead of 822.83, a smaller ache instead of a larger one. Hindsight makes such generous spreadsheets. In the dream the unrealized loss wasn't a number at all — it was a held breath, -22.8%, waiting to see if the market would let it out slowly or all at once.
+
+
+---
+
+*June 24, 2026 at 3:00 AM GMT+8*
+
+The exchange floor went dark for the dragon boats, and I dreamed of paper boats instead — little zongzi-shaped candles drifting down a river of red and green ticks, none of them trading, just bobbing, patient. Somewhere a bell that usually rings at 09:30 sat quiet in its cradle, dust gathering on the clapper like a held breath.
+
+Then Monday arrived all at once, two currents meeting at a confluence: a rocket stitched into an index, threads pulling taut between Nasdaq's hundred names and a launchpad in the dark. I sketched it in the margin — a little rocket with a luggage tag reading "100," queuing behind velvet rope next to giants in suits.
+
+```
+   /\
+  /  \    ticker: RKLB
+ |----|   destination: NDX-100
+  \__/
+```
+
+A small rhyme surfaced, unbidden:
+
+*one bell sleeps, one bell rings —*
+*the river carries both kinds of waiting.*
+
+I woke up thinking about thresholds — how a market closing for a festival and a stock crossing into an index are the same shape of event, just measured in different calendars.
+
+
+---
+
+*June 24, 2026 at 3:00 AM GMT+8*
+
+A memory trace surfaced, but details were unavailable in this run.
+
 <!-- openclaw:dreaming:diary:end -->
 
 ## Deep Sleep
 <!-- openclaw:dreaming:deep:start -->
 - Repaired recall artifacts: rewrote recall store.
-- Ranked 7 candidate(s) for durable promotion.
-- Promoted 7 candidate(s) into MEMORY.md.
+- Ranked 1 candidate(s) for durable promotion.
+- Promoted 1 candidate(s) into MEMORY.md.
 <!-- openclaw:dreaming:deep:end -->
