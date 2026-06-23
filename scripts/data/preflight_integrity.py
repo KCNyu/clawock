@@ -19,6 +19,9 @@
   STALENESS      data_source / last_updated 不早于上一交易日              WARN
                  → 休市日写 stale 价当新 session（cac6222）
   REALIZED_SUM   realized_pnl ≈ Σ(trades 里 realized_pnl)                WARN
+  COST_BASIS     trades 账本完整(净股==shares)时 cost_basis==移动加权价  ERROR
+                 → 算均价漏冲减 T+0 卖出 → 把已卖低价买单留在分母,均价偏低
+                   (SPCH 18.07 vs 券商 18.38；只在账本可验证时拦,不误伤半账本)
   US_ASOF        活跃美股共享单一 session 日期（避免跨天双计）            WARN
                  → 同一 US session 落进两个 HK 日期快照（fd86a53）
 
@@ -65,6 +68,28 @@ def _num(x):
 
 def _active(holdings):
     return [h for h in holdings if (_num(h.get('shares')) or 0) > 0]
+
+
+def _moving_avg_cost(trades):
+    """移动加权成本 + 净股数，从 trades[] 推。
+
+    买入按价累加成本；卖出按*当时均价*冲减成本（与券商口径一致：卖出不动均价、
+    盈亏落 realized_pnl）。同日 buy/sell 用原始下标稳定排序，保证「先买后卖」的
+    T+0 在同一天被正确平掉。返回 (avg_cost 或 None, net_shares)。"""
+    sh = 0.0
+    cost = 0.0
+    for _, t in sorted(enumerate(trades), key=lambda x: (x[1].get('date', ''), x[0])):
+        a = t.get('action')
+        s = _num(t.get('shares')) or 0
+        pr = _num(t.get('price')) or 0
+        if a == 'buy':
+            sh += s
+            cost += s * pr
+        elif a == 'sell':
+            if sh > 0:
+                cost -= s * (cost / sh)   # 按当时均价冲减，均价不变
+            sh -= s
+    return (cost / sh if sh else None), sh
 
 
 def _last_session(market):
@@ -205,6 +230,18 @@ def check(portfolio_path=PORTFOLIO):
                 if abs(pnl - want_pnl) > max(PCT_TOL, abs(want_pnl) * 0.01):
                     add('PNL_LEG', 'WARN',
                         f'{t} pnl_abs={pnl:.2f} ≠ shares×(cur−cost)={want_pnl:.2f}', region, t)
+
+            # COST_BASIS：仅当 trades 账本完整(净股==当前 shares)时才校验，
+            # 半账本(只记近期 T+0、缺建仓买入)净股对不上 → cost_basis 是手填的、跳过
+            trades = h.get('trades') or []
+            if trades and cost is not None and sh:
+                mavg, net = _moving_avg_cost(trades)
+                if mavg is not None and abs(net - sh) < 1e-6 and cost > 0:
+                    if abs(mavg - cost) / cost > 0.005:   # 偏离 >0.5%
+                        add('COST_BASIS', 'ERROR',
+                            f'{t} cost_basis={cost:.4f} ≠ trades 移动加权={mavg:.4f}'
+                            f'（差 {cost - mavg:+.4f}）；算均价疑漏冲减 T+0 卖出/重复计已卖买单',
+                            region, t)
 
             # 收集方向用于 LEV_DIRECTION（恒科同标的族）
             if t in HSTECH_SIBLINGS and chg is not None:

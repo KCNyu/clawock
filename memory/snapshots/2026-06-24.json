@@ -541,11 +541,11 @@
           "ticker": "SPCH",
           "name": "Leverage Shares 2X Long SpaceX Daily ETF",
           "shares": 90,
-          "cost_basis": 18.0673,
+          "cost_basis": 18.3756,
           "current_price": 13.8771,
           "current_value": 1248.94,
-          "pnl_abs": -377.12,
-          "pnl_percent": -23.1922,
+          "pnl_abs": -404.86,
+          "pnl_percent": -24.4805,
           "today_change": 107.74,
           "today_change_pct": 9.4409,
           "trades": [
@@ -607,7 +607,7 @@
               "note": "用户口头补记：2026-06-23 加仓 10 股 @13.13 (conversation info 22:24 HKT，盘中操作)"
             }
           ],
-          "note": "SPCX(SpaceX) 2x做多ETF，已五次加仓摊本（6/22同日两次），FTSE/CRSP入指利好兑现当天反跌+8月解禁悬云(最多44%股份)未出清，逻辑持续弱化\n2026-06-23 加仓 10 股 @$13.13 → 净 80 股,加权均成本 $18.0673 (vs 旧 19.0312)。逆硬止损线操作第 6 次,minimax 立场=反对但 kcn 选择执行。\n2026-06-23 用户声明无限子弹流策略：持续加仓摊本直到 SPCX 正股反弹或 8 月解禁落地。minimax 不再每条盯盘喊砍，仅在 (a)单日跌幅 >15% (b)累计加仓金额 > $3000 (c)SPCX 正股单周 -25% 时升级为 P0 风险提示。",
+          "note": "SPCX(SpaceX) 2x做多ETF，已五次加仓摊本（6/22同日两次），FTSE/CRSP入指利好兑现当天反跌+8月解禁悬云(最多44%股份)未出清，逻辑持续弱化\n2026-06-23 加仓 10 股 @$13.13 → 净 90 股,加权均成本 $18.3756 (vs 旧 19.0312)。逆硬止损线操作第 6 次,minimax 立场=反对但 kcn 选择执行。\n2026-06-23 用户声明无限子弹流策略：持续加仓摊本直到 SPCX 正股反弹或 8 月解禁落地。minimax 不再每条盯盘喊砍，仅在 (a)单日跌幅 >15% (b)累计加仓金额 > $3000 (c)SPCX 正股单周 -25% 时升级为 P0 风险提示。",
           "prev_close": 12.68,
           "day_high": 13.8771,
           "day_low": 11.81,
@@ -654,9 +654,9 @@
           "day_session_date": "2026-06-23"
         }
       ],
-      "total_cost": 3924.61,
+      "total_cost": 3952.35,
       "total_current_value": 3331.32,
-      "total_pnl": -593.29,
+      "total_pnl": -621.03,
       "total_pnl_percent": -15.1171,
       "today_total_change": 85.95,
       "realized_pnl": 1841.18,

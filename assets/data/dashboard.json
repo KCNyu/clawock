@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-23T16:04:13.612939Z",
+  "generated_at": "2026-06-23T16:30:20.759024Z",
   "last_updated": "2026/06/24 00:03 HKT",
   "fx": {
     "usdhkd": 7.8396,
@@ -9,8 +9,8 @@
   "totals": {
     "us": {
       "value_usd": 3331.32,
-      "cost_usd": 3924.61,
-      "pnl_usd": -593.29,
+      "cost_usd": 3952.35,
+      "pnl_usd": -621.03,
       "pnl_pct": -15.1171,
       "today_change_usd": 85.95,
       "realized_usd": 1841.18,
@@ -193,15 +193,15 @@
         "name": "Leverage Shares 2X Long SpaceX Daily ETF",
         "currency": "USD",
         "shares": 90,
-        "cost_basis": 18.0673,
+        "cost_basis": 18.3756,
         "current_price": 13.8771,
         "current_value": 1248.94,
         "today_change": 107.74,
         "today_change_pct": 9.44,
         "day_high": 13.8771,
         "day_low": 11.81,
-        "pnl_abs": -377.12,
-        "pnl_percent": -23.19,
+        "pnl_abs": -404.86,
+        "pnl_percent": -24.48,
         "is_active": true,
         "trades_count": 8
       },
@@ -954,12 +954,12 @@
       "date": "2026-06-23",
       "file": "2026-06-23.json",
       "us_total_value": 3261.31,
-      "us_total_cost": 3924.61,
-      "us_total_pnl": -663.3,
+      "us_total_cost": 3952.35,
+      "us_total_pnl": -691.04,
       "us_today_change": 15.93,
       "us_realized": 1841.18,
       "us_equity": 5102.49,
-      "us_profit": 1177.88,
+      "us_profit": 1150.14,
       "hk_total_value": 59594.4,
       "hk_total_cost": 88276.24,
       "hk_total_pnl": -28681.84,
@@ -976,12 +976,12 @@
       "date": "2026-06-24",
       "file": "2026-06-24.json",
       "us_total_value": 3331.32,
-      "us_total_cost": 3924.61,
-      "us_total_pnl": -593.29,
+      "us_total_cost": 3952.35,
+      "us_total_pnl": -621.03,
       "us_today_change": 85.95,
       "us_realized": 1841.18,
       "us_equity": 5172.5,
-      "us_profit": 1247.89,
+      "us_profit": 1220.15,
       "hk_total_value": 59594.4,
       "hk_total_cost": 88276.24,
       "hk_total_pnl": -28681.84,
@@ -1600,7 +1600,7 @@
     {
       "type": "high_weight_loss",
       "ticker": "SPCH",
-      "detail": "weight 32.6% + pnl -23.2%",
+      "detail": "weight 32.6% + pnl -24.5%",
       "severity": "high"
     },
     {
@@ -3070,17 +3070,17 @@
           "date": "2026-05-19"
         },
         "current": {
-          "value": 1247.89,
+          "value": 1220.15,
           "date": "2026-06-24"
         },
-        "from_peak_abs": -899.8,
-        "current_dd_pct": -41.9,
-        "max_dd_abs": -969.81,
-        "max_dd_pct": -45.16,
+        "from_peak_abs": -927.54,
+        "current_dd_pct": -43.19,
+        "max_dd_abs": -997.55,
+        "max_dd_pct": -46.45,
         "max_dd_peak_date": "2026-05-29",
         "max_dd_trough_date": "2026-06-23",
         "max_dd_peak_val": 2147.69,
-        "max_dd_trough_val": 1177.88,
+        "max_dd_trough_val": 1150.14,
         "at_low": false,
         "currency": "USD"
       },
@@ -3118,10 +3118,10 @@
           "date": "2026-06-12"
         },
         "current": {
-          "value": -11639.72,
+          "value": -11857.19,
           "date": "2026-06-24"
         },
-        "from_peak_abs": -32414.47,
+        "from_peak_abs": -32631.94,
         "current_dd_pct": null,
         "max_dd_abs": -37065.38,
         "max_dd_pct": null,
@@ -3453,8 +3453,8 @@
       {
         "ticker": "SPCH",
         "leg": "US",
-        "pnl_pct": -23.2,
-        "detail": "SPCH 浮亏 -23.2% ≤ 硬止损线 -18%",
+        "pnl_pct": -24.5,
+        "detail": "SPCH 浮亏 -24.5% ≤ 硬止损线 -18%",
         "action": "SPCH 触发杠杆 ETF 硬止损 → 换仓 同因子 1x/标的现货（敞口保留、停 decay，规则非择时）；🧭转 green 再换回 2x"
       },
       {
@@ -3593,6 +3593,13 @@
         "leveraged": false
       },
       {
+        "ticker": "SPCH",
+        "leg": "US",
+        "pnl_pct": -24.5,
+        "breakeven_need_pct": 32.4,
+        "leveraged": true
+      },
+      {
         "ticker": "MSFU",
         "leg": "US",
         "pnl_pct": -23.7,
@@ -3603,13 +3610,6 @@
         "underlying_need_2x_6m_pct": 19.0,
         "underlying_need_if_1x_pct": 31.0,
         "swap_1x": "MSFT"
-      },
-      {
-        "ticker": "SPCH",
-        "leg": "US",
-        "pnl_pct": -23.2,
-        "breakeven_need_pct": 30.2,
-        "leveraged": true
       },
       {
         "ticker": "03032",
@@ -6051,7 +6051,7 @@
   "realized_vs_unrealized": {
     "us": {
       "realized": 1841.18,
-      "unrealized": -593.29
+      "unrealized": -621.03
     },
     "hk": {
       "realized": 7259.16,
@@ -6059,25 +6059,25 @@
     },
     "combined_usd": {
       "realized": 2767.14,
-      "unrealized": -4251.87
+      "unrealized": -4279.61
     }
   },
   "capital_deployed": {
     "us": {
-      "native": 5765.79,
-      "usd": 5765.79
+      "native": 5793.53,
+      "usd": 5793.53
     },
     "hk": {
       "native": 95535.4,
       "usd": 12186.26
     },
-    "combined_usd": 17952.05
+    "combined_usd": 17979.79
   },
   "net_principal_return": {
     "us": {
-      "net_principal": 2083.43,
-      "total_profit": 1247.89,
-      "return_pct": 50.5,
+      "net_principal": 2111.17,
+      "total_profit": 1220.15,
+      "return_pct": 49.38,
       "return_basis": "true_principal",
       "true_principal": 2471.12
     },
@@ -6089,8 +6089,8 @@
     },
     "combined_usd": {
       "net_principal": 12805.46,
-      "total_profit": -1484.73,
-      "return_pct": -11.59
+      "total_profit": -1512.47,
+      "return_pct": -11.81
     },
     "formula": "回报率 = (浮动 + 已实现) ÷ 本金；本金优先用 true_principal（峰值净投入），否则用 净投入本金=累计成本−已实现"
   },
@@ -6535,90 +6535,90 @@
     "last_updated": "2026-06-23T15:50:21.530314Z"
   },
   "build_status": {
-    "generated_at": "2026-06-24T00:04:13+08:00",
+    "generated_at": "2026-06-24T00:30:20+08:00",
     "healthy": true,
     "stale_files": [],
     "files": [
       {
         "name": "portfolio.json",
-        "age_hours": 0.0,
+        "age_hours": 0.1,
         "sla_hours": 26,
         "stale": false,
         "present": true
       },
       {
         "name": "benchmark.json",
-        "age_hours": 15.9,
+        "age_hours": 16.3,
         "sla_hours": 80,
         "stale": false,
         "present": true
       },
       {
         "name": "catalysts.json",
-        "age_hours": 15.9,
+        "age_hours": 16.3,
         "sla_hours": 30,
         "stale": false,
         "present": true
       },
       {
         "name": "em_news.json",
-        "age_hours": 0.2,
+        "age_hours": 0.7,
         "sla_hours": 30,
         "stale": false,
         "present": true
       },
       {
         "name": "influencer_feed.json",
-        "age_hours": 0.2,
+        "age_hours": 0.7,
         "sla_hours": 30,
         "stale": false,
         "present": true
       },
       {
         "name": "lev_regime.json",
-        "age_hours": 15.9,
+        "age_hours": 16.3,
         "sla_hours": 30,
         "stale": false,
         "present": true
       },
       {
         "name": "macro.json",
-        "age_hours": 15.9,
+        "age_hours": 16.3,
         "sla_hours": 30,
         "stale": false,
         "present": true
       },
       {
         "name": "quant_signal_review.json",
-        "age_hours": 15.9,
+        "age_hours": 16.3,
         "sla_hours": 30,
         "stale": false,
         "present": true
       },
       {
         "name": "quant_signals.json",
-        "age_hours": 15.9,
+        "age_hours": 16.3,
         "sla_hours": 30,
         "stale": false,
         "present": true
       },
       {
         "name": "risk.json",
-        "age_hours": 15.9,
+        "age_hours": 16.3,
         "sla_hours": 30,
         "stale": false,
         "present": true
       },
       {
         "name": "sentiment.json",
-        "age_hours": 15.9,
+        "age_hours": 16.3,
         "sla_hours": 30,
         "stale": false,
         "present": true
       },
       {
         "name": "us_news_digest.json",
-        "age_hours": 0.2,
+        "age_hours": 0.7,
         "sla_hours": 30,
         "stale": false,
         "present": true

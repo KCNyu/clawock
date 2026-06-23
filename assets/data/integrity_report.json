@@ -1,7 +1,50 @@
 {
-  "generated_at": "2026-06-21T17:57:33+08:00",
+  "generated_at": "2026-06-24T00:27:23+08:00",
   "ok": true,
   "error_count": 0,
-  "warn_count": 0,
-  "findings": []
+  "warn_count": 6,
+  "findings": [
+    {
+      "code": "STALENESS",
+      "level": "WARN",
+      "region": "us_stocks",
+      "ticker": "CRCL",
+      "msg": "CRCL data_source 日期 2026-06-23 早于上一交易日 2026-06-24；可能 stale 价当新 session"
+    },
+    {
+      "code": "STALENESS",
+      "level": "WARN",
+      "region": "us_stocks",
+      "ticker": "PLTU",
+      "msg": "PLTU data_source 日期 2026-06-23 早于上一交易日 2026-06-24；可能 stale 价当新 session"
+    },
+    {
+      "code": "STALENESS",
+      "level": "WARN",
+      "region": "us_stocks",
+      "ticker": "RKLX",
+      "msg": "RKLX data_source 日期 2026-06-23 早于上一交易日 2026-06-24；可能 stale 价当新 session"
+    },
+    {
+      "code": "STALENESS",
+      "level": "WARN",
+      "region": "us_stocks",
+      "ticker": "ROBN",
+      "msg": "ROBN data_source 日期 2026-06-23 早于上一交易日 2026-06-24；可能 stale 价当新 session"
+    },
+    {
+      "code": "STALENESS",
+      "level": "WARN",
+      "region": "us_stocks",
+      "ticker": "SPCH",
+      "msg": "SPCH data_source 日期 2026-06-23 早于上一交易日 2026-06-24；可能 stale 价当新 session"
+    },
+    {
+      "code": "STALENESS",
+      "level": "WARN",
+      "region": "us_stocks",
+      "ticker": "MSFU",
+      "msg": "MSFU data_source 日期 2026-06-23 早于上一交易日 2026-06-24；可能 stale 价当新 session"
+    }
+  ]
 }
