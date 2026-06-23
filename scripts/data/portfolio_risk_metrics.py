@@ -613,6 +613,47 @@ def main():
     print(f'\nFetching HK bucket ({len(hk_holdings)} tickers)...')
     hk_out, hk_meta = compute_bucket(hk_holdings, hsi_series, label='hk')
 
+    # --- Hardening: a transient price-history fetch failure (yahoo 429/flaky)
+    # can null out a whole bucket even though we still hold positions there.
+    # Publishing a single-market view is misleading (the 2026-06-23 "missing US"
+    # bug). Instead fall back to the previous good block and flag it stale
+    # (merge-not-overwrite, same pattern as the dashboard sidecar guard).
+    # The position VALUE never depends on the risk fetch — it comes straight from
+    # portfolio.json — so we always refresh it from current holdings even when the
+    # rest of the block (β/vol/sharpe) is stale.
+    prev = {}
+    if os.path.exists(OUT_FILE):
+        try:
+            prev = json.load(open(OUT_FILE, 'r', encoding='utf-8'))
+        except Exception:
+            prev = {}
+
+    def _preserve_stale(out_block, holdings, prev_block, value_key, value):
+        """If this run produced no stats but we still hold positions, reuse the
+        last good stats and mark stale; always refresh the live position value."""
+        if out_block is not None or not holdings:
+            return out_block, False
+        if not isinstance(prev_block, dict):
+            return out_block, False
+        revived = dict(prev_block)
+        revived['stale'] = True
+        revived['stale_since'] = prev.get('generated_at')
+        revived[value_key] = round(value, 2)  # live value, never stale
+        return revived, True
+
+    us_value = sum(h['current_value'] for h in us_holdings)
+    hk_value = sum(h['current_value'] for h in hk_holdings)
+    us_out, us_stale = _preserve_stale(us_out, us_holdings, prev.get('us'),
+                                       'current_value_usd', us_value)
+    hk_out, hk_stale = _preserve_stale(hk_out, hk_holdings, prev.get('hk'),
+                                       'current_value_hkd', hk_value)
+    if us_stale:
+        print('  WARN: US risk fetch empty — kept previous β/vol block (stale), '
+              'value refreshed from holdings', file=sys.stderr)
+    if hk_stale:
+        print('  WARN: HK risk fetch empty — kept previous β/vol block (stale), '
+              'value refreshed from holdings', file=sys.stderr)
+
     # Try to pick up an FX rate from existing fx.json if present, else 1/7.8
     fx_hkd_to_usd = 1.0 / 7.8
     fx_file = os.path.join(WS_ROOT, 'assets', 'data', 'fx.json')
@@ -659,6 +700,7 @@ def main():
                 'n_returns': (us_meta or {}).get('n_returns'),
                 'dates_first': (us_meta or {}).get('dates_first'),
                 'dates_last': (us_meta or {}).get('dates_last'),
+                'stale': us_stale,
             },
             'hk_fetch': {
                 'fetched': (hk_meta or {}).get('fetched', []),
@@ -666,6 +708,7 @@ def main():
                 'n_returns': (hk_meta or {}).get('n_returns'),
                 'dates_first': (hk_meta or {}).get('dates_first'),
                 'dates_last': (hk_meta or {}).get('dates_last'),
+                'stale': hk_stale,
             },
         },
     }

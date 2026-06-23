@@ -1,40 +1,41 @@
 {
-  "generated_at": "2026-06-23T00:04:29.154834+00:00",
+  "generated_at": "2026-06-23T17:51:02.946502+00:00",
   "as_of": "2026-06-23",
-  "us": null,
+  "us": {
+    "beta_spx": -1.6688,
+    "vol_30d_annualized": 1.2864,
+    "max_dd_30d": -0.2049,
+    "sharpe_30d": -7.0346,
+    "current_value_usd": 3342.2
+  },
   "hk": {
-    "beta_hsi": 0.7158,
-    "vol_30d_annualized": 0.8674,
-    "max_dd_30d": -0.3796,
-    "sharpe_30d": -1.9643,
-    "current_value_hkd": 66819.6
+    "beta_hsi": 1.1303,
+    "vol_30d_annualized": 0.8762,
+    "max_dd_30d": -0.3694,
+    "sharpe_30d": -2.5315,
+    "current_value_hkd": 59594.4
   },
   "combined": {
-    "vol_30d_annualized": 0.8674,
-    "max_dd_30d": -0.3796,
-    "sharpe_30d": -1.9643
+    "vol_30d_annualized": 0.6876,
+    "max_dd_30d": -0.0724,
+    "sharpe_30d": -0.7429
   },
   "leveraged_exposure": {
-    "us_leverage_factor_avg": 1.6229,
-    "hk_leverage_factor_avg": 1.3025,
-    "combined_avg": 1.3882,
-    "margin_at_risk_pct": 13.8815
+    "us_leverage_factor_avg": 1.5731,
+    "hk_leverage_factor_avg": 1.3169,
+    "combined_avg": 1.3949,
+    "margin_at_risk_pct": 13.9487
   },
   "alerts": [
     {
       "type": "high_vol",
       "severity": "high",
-      "detail": "Combined 30d annualised vol = 86.7% (> 50%)"
-    },
-    {
-      "type": "deep_dd",
-      "severity": "medium",
-      "detail": "Combined 30d max DD = -38.0% (< -10%)"
+      "detail": "Combined 30d annualised vol = 68.8% (> 50%)"
     },
     {
       "type": "negative_sharpe",
       "severity": "medium",
-      "detail": "Combined 30d Sharpe = -1.9643 (< 0)"
+      "detail": "Combined 30d Sharpe = -0.7429 (< 0)"
     }
   ],
   "meta": {
@@ -56,9 +57,10 @@
         "MSFU"
       ],
       "failed": [],
-      "n_returns": null,
-      "dates_first": null,
-      "dates_last": null
+      "n_returns": 5,
+      "dates_first": "2026-06-15",
+      "dates_last": "2026-06-23",
+      "stale": false
     },
     "hk_fetch": {
       "fetched": [
@@ -70,8 +72,9 @@
       ],
       "failed": [],
       "n_returns": 30,
-      "dates_first": "2026-05-07",
-      "dates_last": "2026-06-22"
+      "dates_first": "2026-05-08",
+      "dates_last": "2026-06-23",
+      "stale": false
     }
   }
 }
