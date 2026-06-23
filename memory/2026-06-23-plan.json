@@ -1,0 +1,144 @@
+{
+  "date": "2026-06-23",
+  "fx_rate_usdhkd": 7.8396,
+  "fx_source": "Frankfurter",
+  "regime": {"us": "trending-up", "hk": "trending-down"},
+  "book": {
+    "usd_total_pnl": -3431.69,
+    "hkd_total_pnl": -26903.05,
+    "hk_leg_hkd": -21456.64,
+    "us_leg_usd": -694.73
+  },
+  "actions": [
+    {
+      "ticker": "00100",
+      "bucket": "trim_on_rebound",
+      "size_pct": 13,
+      "size_shares": 22,
+      "trigger_type": "open",
+      "trigger_price": null,
+      "trigger_condition": "开盘任意价，借今日+23.89%大涨减至HK single_name cap 35%",
+      "confidence": 0.55,
+      "driven_by": "catalyst",
+      "contested": true,
+      "rationale": "single_name硬闸55.36%>35%cap；t0牌面🔴追高低质(区间84%高位,振幅2.2倍,该牌面历史命中率54%)；7/9解禁(近10倍流通供给)仅剩16天是真实disconfirming硬催化。过去3次trim_on_rebound都被涨幅甩开(loss)，本次借量化牌面+解禁倒计时补强论据。",
+      "thesis_invalidation": "若A+H双重上市正式获批落地且解禁前出现稳定的机构接盘信号(非单日情绪) → 停止继续减仓，转回hold_and_watch"
+    },
+    {
+      "ticker": "07226",
+      "bucket": "cut",
+      "size_pct": 100,
+      "size_shares": 6200,
+      "trigger_type": "open",
+      "trigger_price": null,
+      "trigger_condition": "开盘任意价，硬止损已破多日",
+      "confidence": 0.50,
+      "driven_by": "technical",
+      "contested": false,
+      "rationale": "仓位硬闸，非消息驱动：浮亏-25.3%≤硬止损-18%，HK杠杆ETF占比30.2%>25%cap(amber×0.5)。换仓口径=2x→1x同因子(07226→03033)，敞口保留只停decay，非清仓。",
+      "thesis_invalidation": "HSTECH收复200日线且20日波动<50%(🧭转green)后可换回2x"
+    },
+    {
+      "ticker": "PLTU",
+      "bucket": "cut",
+      "size_pct": 100,
+      "size_shares": 14,
+      "trigger_type": "open",
+      "trigger_price": null,
+      "trigger_condition": "开盘任意价，硬止损已破多日",
+      "confidence": 0.50,
+      "driven_by": "technical",
+      "contested": false,
+      "rationale": "仓位硬闸，非消息驱动：浮亏-34.1%≤硬止损-18%，US杠杆ETF占比94.9%>50%cap，标的PLTR本身趋势OFF(距200MA-19.7%)。换仓口径=PLTU→PLTR 1x，敞口保留只停decay。",
+      "thesis_invalidation": "PLTR收复200日线且波动<70%(🧭转green)后可换回2x"
+    },
+    {
+      "ticker": "MSFU",
+      "bucket": "cut",
+      "size_pct": 100,
+      "size_shares": 20,
+      "trigger_type": "open",
+      "trigger_price": null,
+      "trigger_condition": "开盘任意价，硬止损已破多日",
+      "confidence": 0.50,
+      "driven_by": "technical",
+      "contested": false,
+      "rationale": "仓位硬闸，非消息驱动：浮亏-25.3%≤硬止损-18%，US杠杆ETF占比94.9%>50%cap，标的MSFT趋势OFF。换仓口径=MSFU→MSFT 1x，敞口保留只停decay。",
+      "thesis_invalidation": "MSFT收复200日线且波动<70%(🧭转green)后可换回2x"
+    },
+    {
+      "ticker": "SPCH",
+      "bucket": "cut",
+      "size_pct": 100,
+      "size_shares": 80,
+      "trigger_type": "open",
+      "trigger_price": null,
+      "trigger_condition": "开盘任意价，硬止损昨日已破",
+      "confidence": 0.55,
+      "driven_by": "technical",
+      "contested": true,
+      "rationale": "浮亏-33.1%≤硬止损-18%。SPCH是SpaceX IPO后新上市的单股2x杠杆ETF，无确认流动性的1x替代标的；昨日hold_and_watch策略已实测失败(单日-32.84%)。Musk多条软情绪看多SpaceX([confirming叙事]但disconfirming价格表现)不构成继续hold的理由。换仓口径=暂转现金，待确认有流动性的1x SpaceX相关标的再考虑换入。",
+      "thesis_invalidation": "若官方SPCX 1x产品流动性确认充足且SPCH反弹收复-18%止损线以上并企稳 → 可重新评估换回，否则维持空仓"
+    },
+    {
+      "ticker": "03033",
+      "bucket": "hold_and_watch",
+      "trigger_type": "manual",
+      "confidence": 0.45,
+      "driven_by": "technical",
+      "contested": false,
+      "rationale": "接收07226换仓资金(同因子1x)，停杠杆decay。本身trend_off但非杠杆，按方针等待不补不卖。"
+    },
+    {
+      "ticker": "02208",
+      "bucket": "hold_and_watch",
+      "trigger_type": "manual",
+      "confidence": 0.50,
+      "driven_by": "technical",
+      "contested": false,
+      "rationale": "RSI25.3超卖，trend_off_avoid因子65%命中(usable)支持回避新增，但作为已持有非杠杆现货按方针等待，不补不卖。"
+    },
+    {
+      "ticker": "03032",
+      "bucket": "hold_and_watch",
+      "trigger_type": "manual",
+      "confidence": 0.45,
+      "driven_by": "technical",
+      "contested": false,
+      "rationale": "同HSTECH趋势OFF已破吊灯止损，非杠杆现货，历史主动call胜率仅38%——本次不折腾，继续hold。"
+    },
+    {
+      "ticker": "CRCL",
+      "bucket": "hold_and_watch",
+      "trigger_type": "manual",
+      "confidence": 0.50,
+      "driven_by": "sentiment",
+      "contested": false,
+      "rationale": "ARK加仓利好已部分price-in(近5日仅-0.8%)[confirming]，RSI38偏低位但非超卖确认信号弱，软情绪不翻bucket，维持hold。"
+    },
+    {
+      "ticker": "RKLX",
+      "bucket": "hold_and_watch",
+      "trigger_type": "manual",
+      "confidence": 0.50,
+      "driven_by": "peer",
+      "contested": false,
+      "rationale": "标的RKLB trend_on=true+golden cross+12个月动能+332.7%，US杠杆腿里唯一基本面技术面双强标的，不应被整体杠杆超限连坐处理。"
+    },
+    {
+      "ticker": "ROBN",
+      "bucket": "hold_and_watch",
+      "trigger_type": "manual",
+      "confidence": 0.50,
+      "driven_by": "technical",
+      "contested": true,
+      "rationale": "账面+44.15%(US唯一盈利仓位)，标的HOOD未破硬止损。PLTU/MSFU/SPCH三处cut已超额完成US杠杆腿deleverage目标(~$1403)，无需再动ROBN。"
+    }
+  ],
+  "watch_levels": {
+    "hstech_breakdown": 4500,
+    "00100_rsi_overheat": 70,
+    "00100_lockup_expiry_date": "2026-07-09",
+    "book_force_derisk_usd": -5000
+  }
+}

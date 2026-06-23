@@ -1,51 +1,40 @@
 {
-  "generated_at": "2026-06-22T00:03:13.129631+00:00",
-  "as_of": "2026-06-22",
-  "us": {
-    "beta_spx": 4.3934,
-    "vol_30d_annualized": 1.0946,
-    "max_dd_30d": -0.2948,
-    "sharpe_30d": 2.1649,
-    "current_value_usd": 3440.4
-  },
+  "generated_at": "2026-06-23T00:04:29.154834+00:00",
+  "as_of": "2026-06-23",
+  "us": null,
   "hk": {
-    "beta_hsi": 1.1482,
-    "vol_30d_annualized": 0.7233,
-    "max_dd_30d": -0.3576,
-    "sharpe_30d": -3.2441,
-    "current_value_hkd": 60245.6
+    "beta_hsi": 0.7158,
+    "vol_30d_annualized": 0.8674,
+    "max_dd_30d": -0.3796,
+    "sharpe_30d": -1.9643,
+    "current_value_hkd": 66819.6
   },
   "combined": {
-    "vol_30d_annualized": 0.6664,
-    "max_dd_30d": -0.3122,
-    "sharpe_30d": -1.3404
+    "vol_30d_annualized": 0.8674,
+    "max_dd_30d": -0.3796,
+    "sharpe_30d": -1.9643
   },
   "leveraged_exposure": {
-    "us_leverage_factor_avg": 1.6225,
-    "hk_leverage_factor_avg": 1.3421,
-    "combined_avg": 1.4285,
-    "margin_at_risk_pct": 14.285
+    "us_leverage_factor_avg": 1.6229,
+    "hk_leverage_factor_avg": 1.3025,
+    "combined_avg": 1.3882,
+    "margin_at_risk_pct": 13.8815
   },
   "alerts": [
     {
-      "type": "high_beta",
-      "severity": "high",
-      "detail": "US β vs S&P 500 = 4.3934 (> 3.0)"
-    },
-    {
       "type": "high_vol",
       "severity": "high",
-      "detail": "Combined 30d annualised vol = 66.6% (> 50%)"
+      "detail": "Combined 30d annualised vol = 86.7% (> 50%)"
     },
     {
       "type": "deep_dd",
       "severity": "medium",
-      "detail": "Combined 30d max DD = -31.2% (< -10%)"
+      "detail": "Combined 30d max DD = -38.0% (< -10%)"
     },
     {
       "type": "negative_sharpe",
       "severity": "medium",
-      "detail": "Combined 30d Sharpe = -1.3404 (< 0)"
+      "detail": "Combined 30d Sharpe = -1.9643 (< 0)"
     }
   ],
   "meta": {
@@ -63,14 +52,13 @@
         "PLTU",
         "RKLX",
         "ROBN",
+        "SPCH",
         "MSFU"
       ],
-      "failed": [
-        "SPCH"
-      ],
-      "n_returns": 30,
-      "dates_first": "2026-05-06",
-      "dates_last": "2026-06-18"
+      "failed": [],
+      "n_returns": null,
+      "dates_first": null,
+      "dates_last": null
     },
     "hk_fetch": {
       "fetched": [
@@ -82,8 +70,8 @@
       ],
       "failed": [],
       "n_returns": 30,
-      "dates_first": "2026-05-06",
-      "dates_last": "2026-06-18"
+      "dates_first": "2026-05-07",
+      "dates_last": "2026-06-22"
     }
   }
 }
