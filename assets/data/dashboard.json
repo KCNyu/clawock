@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-24T22:48:25.621815Z",
+  "generated_at": "2026-06-24T22:49:57.738700Z",
   "last_updated": "2026/06/25 04:02 HKT",
   "fx": {
     "usdhkd": null,
@@ -5415,7 +5415,7 @@
     ]
   },
   "influencer_feed": {
-    "generated_at": "2026-06-24T15:28:10.800468+00:00",
+    "generated_at": "2026-06-24T22:49:57.599111+00:00",
     "lookback_hours": 48,
     "sources": {
       "trump": "trumpstruth.org/feed (primary)",
@@ -5424,12 +5424,116 @@
     },
     "llm_filtered": true,
     "counts": {
-      "total": 7,
+      "total": 12,
       "held_hits": 0,
       "new_ideas": 0,
-      "sector_hits": 4
+      "sector_hits": 5
     },
     "items": [
+      {
+        "author": "Musk",
+        "text": "After $86 billion IPO, SpaceX to borrow $20 billion",
+        "url": "",
+        "published": "Wed, 24 Jun 2026 04:49:56 GMT",
+        "origin": "gnews-rss",
+        "source": "Axios",
+        "tickers": [],
+        "held": [],
+        "new_ideas": [],
+        "sectors": [
+          "航天",
+          "私募信贷"
+        ],
+        "sector_holdings": [
+          "SPCH"
+        ],
+        "stance": "neutral",
+        "relevance": 75,
+        "summary_cn": "SpaceX在860亿美元IPO后将举债200亿美元，对二级市场/SPCH间接影响取决于融资结构与估值稀释信号。"
+      },
+      {
+        "author": "Musk",
+        "text": "SpaceX Stock Selloff Costs Elon Musk His $1 Trillion Net Worth",
+        "url": "",
+        "published": "Wed, 24 Jun 2026 21:56:00 GMT",
+        "origin": "gnews-rss",
+        "source": "Barron's",
+        "tickers": [],
+        "held": [],
+        "new_ideas": [],
+        "sectors": [
+          "航天"
+        ],
+        "sector_holdings": [
+          "SPCH"
+        ],
+        "stance": "attack",
+        "relevance": 72,
+        "summary_cn": "SpaceX股票抛售导致马斯克万亿净资产失守，对SPCH(2x做多SpaceX ETF)情绪与定价直接构成压力。"
+      },
+      {
+        "author": "Musk",
+        "text": "Elon Musk loses trillionaire status as SpaceX and Tesla stock drops",
+        "url": "",
+        "published": "Wed, 24 Jun 2026 20:11:00 GMT",
+        "origin": "gnews-rss",
+        "source": "The Guardian",
+        "tickers": [],
+        "held": [],
+        "new_ideas": [],
+        "sectors": [
+          "航天",
+          "电动车"
+        ],
+        "sector_holdings": [
+          "SPCH"
+        ],
+        "stance": "neutral",
+        "relevance": 70,
+        "summary_cn": "马斯克因SpaceX与Tesla股价下跌而失去万亿富豪头衔，间接利空其旗下资产估值情绪，kcn通过SPCH持有SpaceX敞口。"
+      },
+      {
+        "author": "Musk",
+        "text": "Elon Musk Just Lost His Trillionaire Status",
+        "url": "",
+        "published": "Wed, 24 Jun 2026 12:56:39 GMT",
+        "origin": "gnews-rss",
+        "source": "Forbes",
+        "tickers": [],
+        "held": [],
+        "new_ideas": [],
+        "sectors": [
+          "航天",
+          "电动车"
+        ],
+        "sector_holdings": [
+          "SPCH"
+        ],
+        "stance": "attack",
+        "relevance": 70,
+        "summary_cn": "马斯克因SpaceX与Tesla股价回落而失去万亿富豪头衔，SPCH(2x做多SpaceX)直接受SpaceX估值回撤拖累。"
+      },
+      {
+        "author": "Musk",
+        "text": "Elon Musk was the world’s first trillionaire for 12 days",
+        "url": "",
+        "published": "Wed, 24 Jun 2026 19:38:00 GMT",
+        "origin": "gnews-rss",
+        "source": "Fortune",
+        "tickers": [],
+        "held": [],
+        "new_ideas": [],
+        "sectors": [
+          "航天",
+          "电动车"
+        ],
+        "sector_holdings": [
+          "SPCH"
+        ],
+        "stance": "endorse",
+        "relevance": 58,
+        "summary_cn": "马斯克曾连续12天蝉联全球首位万亿富豪(因SpaceX/Tesla估值飙升)，对SPCH情绪偏正面。"
+      },
       {
         "author": "Trump",
         "text": "Despite their protestations and false statements to the contrary, coupled with the drumbeat of the Fake News, which is doing everything possible to make the U.S. Victory as small and insignificant as possible, Iran has fully and completely agreed to highest level Nuclear inspections long into the future (Infinity!!!). This will insure “Nuclear Honesty.” If they did not agree to this, there would be no further negotiations! Based on this and other major concessions being made by Iran, I have agreed to allow the Hormuz Strait to remain OPEN, with no further Naval Blockade. However, all ships are",
@@ -5441,34 +5545,13 @@
         "new_ideas": [],
         "sectors": [
           "地缘政治",
-          "能源/原油",
-          "核能"
+          "能源",
+          "国防"
         ],
-        "sector_holdings": [
-          "02208"
-        ],
+        "sector_holdings": [],
         "stance": "endorse",
-        "relevance": 78,
-        "summary_cn": "Trump称伊朗已同意最高级别长期核检查，霍尔木兹海峡保持开放、海军封锁解除，油价利好"
-      },
-      {
-        "author": "Trump",
-        "text": "19 Millions Barrels of Oil flowed out of the Hormuz Strait yesterday, an all time RECORD. Oil prices are tumbling down, and the World is a much safer place!!! President DONALD J. TRUMP",
-        "url": "https://trumpstruth.org/statuses/39465",
-        "published": "2026-06-23T11:24:12+00:00",
-        "origin": "truthsocial",
-        "tickers": [],
-        "held": [],
-        "new_ideas": [],
-        "sectors": [
-          "能源/原油"
-        ],
-        "sector_holdings": [
-          "02208"
-        ],
-        "stance": "endorse",
-        "relevance": 72,
-        "summary_cn": "Trump称霍尔木兹海峡昨日通行1900万桶原油创纪录，油价正在大跌、世界更安全"
+        "relevance": 68,
+        "summary_cn": "Trump宣称伊朗已完全同意长期核检查并做出重大让步，美方同意解除霍尔木兹海峡封锁但维持海军存在，地缘紧张显著降温利好风险资产。"
       },
       {
         "author": "Trump",
@@ -5480,38 +5563,51 @@
         "held": [],
         "new_ideas": [],
         "sectors": [
-          "能源/原油",
-          "农产品/大宗商品",
-          "地缘政治"
+          "能源",
+          "大宗商品",
+          "地缘政治",
+          "农产品"
         ],
-        "sector_holdings": [
-          "02208"
-        ],
+        "sector_holdings": [],
         "stance": "neutral",
-        "relevance": 70,
-        "summary_cn": "Trump称伊朗不再对霍尔木兹海峡通行船只收费，美方将释放被冻结资金用于购买玉米/小麦/大豆等农产品"
+        "relevance": 65,
+        "summary_cn": "Trump称霍尔木兹海峡无收费、油价暴跌，宣布将解冻伊朗资金转用于购买美国农产品(玉米、小麦、大豆等)，涉及能源与农产品板块。"
       },
       {
         "author": "Trump",
-        "text": "The Elizabeth “Pocahontas” Warren centric housing bill, which is of minor importance compared to lower interest rates, and even FISA, pales in comparison to passing THE SAVE AMERICA ACT. That is what Americans, both Dumocrats, Republicans, and everyone else, care about. Get the bad Republicans to approve it or, better yet, Terminate the Filibuster and approve it, AND EVERYTHING ELSE REPUBLICANS HAVE EVER DREAMED OF. The Dumocrats will do it in hour one, 100%. Republicans will feel very stupid if they don’t do it first. I’ll be watching with tears in my eyes!!! President DJT",
-        "url": "https://trumpstruth.org/statuses/39511",
-        "published": "2026-06-24T13:49:20+00:00",
+        "text": "The big Oil Companies are not dropping their price at the pump commensurate with the sharply lower prices they are paying for Oil. Those prices are dropping like a rock! In other words, customers are being “gouged.” I have instructed the DOJ to immediately start looking into this. Gasoline prices better start going down a lot faster than what I’m seeing! President DJT",
+        "url": "https://trumpstruth.org/statuses/39505",
+        "published": "2026-06-24T04:12:13+00:00",
         "origin": "truthsocial",
         "tickers": [],
         "held": [],
         "new_ideas": [],
         "sectors": [
-          "利率",
-          "房地产/住房"
+          "能源",
+          "石油"
         ],
-        "sector_holdings": [
-          "03032",
-          "03033",
-          "07226"
+        "sector_holdings": [],
+        "stance": "attack",
+        "relevance": 62,
+        "summary_cn": "Trump指责大型石油公司未随原油价格下跌同步下调零售油价为'宰客'，已指示司法部启动调查，油气板块承压。"
+      },
+      {
+        "author": "Trump",
+        "text": "19 Millions Barrels of Oil flowed out of the Hormuz Strait yesterday, an all time RECORD. Oil prices are tumbling down, and the World is a much safer place!!! President DONALD J. TRUMP",
+        "url": "https://trumpstruth.org/statuses/39465",
+        "published": "2026-06-23T11:24:12+00:00",
+        "origin": "truthsocial",
+        "tickers": [],
+        "held": [],
+        "new_ideas": [],
+        "sectors": [
+          "能源",
+          "石油"
         ],
-        "stance": "endorse",
-        "relevance": 55,
-        "summary_cn": "Trump呼吁通过SAVE AMERICA ACT并降低利率，强调利率与住房议题比Warren法案更重要"
+        "sector_holdings": [],
+        "stance": "neutral",
+        "relevance": 60,
+        "summary_cn": "Trump称霍尔木兹海峡昨日通过1900万桶原油创历史纪录，油价大跌，称'世界更安全'，强化能源价格下行预期。"
       },
       {
         "author": "Trump",
@@ -5524,136 +5620,158 @@
         "new_ideas": [],
         "sectors": [
           "地缘政治",
-          "国防/军工",
-          "能源"
+          "国防"
         ],
         "sector_holdings": [],
-        "stance": "endorse",
-        "relevance": 68,
-        "summary_cn": "Trump称伊朗'已被逼入绝境'，抨击参议院War Powers Act投票削弱谈判筹码"
-      },
-      {
-        "author": "Trump",
-        "text": "The big Oil Companies are not dropping their price at the pump commensurate with the sharply lower prices they are paying for Oil. Those prices are dropping like a rock! In other words, customers are being “gouged.” I have instructed the DOJ to immediately start looking into this. Gasoline prices better start going down a lot faster than what I’m seeing! President DJT",
-        "url": "https://trumpstruth.org/statuses/39505",
-        "published": "2026-06-24T04:12:13+00:00",
-        "origin": "truthsocial",
-        "tickers": [],
-        "held": [],
-        "new_ideas": [],
-        "sectors": [
-          "能源/油气",
-          "石油/汽油零售"
-        ],
-        "sector_holdings": [],
-        "stance": "attack",
-        "relevance": 65,
-        "summary_cn": "Trump指责大型油企未随油价下调同步降价，已指示司法部调查是否存在价格欺诈行为"
-      },
-      {
-        "author": "Trump",
-        "text": "Iranian resistance leader, former national security aide praise Trump’s deal with Tehran: https://justthenews.com/government/security/iranian-resistance-leader-former-national-security-aide-praise-trumps-mou",
-        "url": "https://trumpstruth.org/statuses/39460",
-        "published": "2026-06-23T00:51:36+00:00",
-        "origin": "truthsocial",
-        "tickers": [],
-        "held": [],
-        "new_ideas": [],
-        "sectors": [
-          "地缘政治",
-          "国防/军工"
-        ],
-        "sector_holdings": [],
-        "stance": "endorse",
+        "stance": "neutral",
         "relevance": 55,
-        "summary_cn": "伊朗反对派领导人和前国安官员赞扬Trump与德黑兰达成的协议"
+        "summary_cn": "Trump抨击参议院就伊朗问题通过的《战争权力法》投票为'不合时宜且毫无意义'，称4名共和党议员'叛变'，涉美伊关系与国防政策。"
+      },
+      {
+        "author": "Musk",
+        "text": "Elon Musk denies Tesla’s Autopilot caused crash that killed grandmother",
+        "url": "",
+        "published": "Wed, 24 Jun 2026 16:40:32 GMT",
+        "origin": "gnews-rss",
+        "source": "Ars Technica",
+        "tickers": [],
+        "held": [],
+        "new_ideas": [],
+        "sectors": [
+          "电动车",
+          "自动驾驶"
+        ],
+        "sector_holdings": [],
+        "stance": "neutral",
+        "relevance": 50,
+        "summary_cn": "马斯克否认Tesla的Autopilot导致一起致祖孙死亡的撞车事故，监管/诉讼风险延续。"
+      },
+      {
+        "author": "Musk",
+        "text": "Musk on fatal Tesla crash in Texas: ‘This makes no sense’",
+        "url": "",
+        "published": "Wed, 24 Jun 2026 14:57:00 GMT",
+        "origin": "gnews-rss",
+        "source": "The Hill",
+        "tickers": [],
+        "held": [],
+        "new_ideas": [],
+        "sectors": [
+          "电动车",
+          "自动驾驶"
+        ],
+        "sector_holdings": [],
+        "stance": "neutral",
+        "relevance": 50,
+        "summary_cn": "马斯克就德州一起致命Tesla碰撞事故表示'毫无道理'，Autopilot安全问题再度成为舆论焦点。"
       }
     ],
     "held_hits": [],
     "new_ideas": [],
     "sector_hits": [
       {
-        "author": "Trump",
-        "text": "Despite their protestations and false statements to the contrary, coupled with the drumbeat of the Fake News, which is doing everything possible to make the U.S. Victory as small and insignificant as possible, Iran has fully and completely agreed to highest level Nuclear inspections long into the future (Infinity!!!). This will insure “Nuclear Honesty.” If they did not agree to this, there would be no further negotiations! Based on this and other major concessions being made by Iran, I have agreed to allow the Hormuz Strait to remain OPEN, with no further Naval Blockade. However, all ships are",
-        "url": "https://trumpstruth.org/statuses/39466",
-        "published": "2026-06-23T11:20:55+00:00",
-        "origin": "truthsocial",
+        "author": "Musk",
+        "text": "After $86 billion IPO, SpaceX to borrow $20 billion",
+        "url": "",
+        "published": "Wed, 24 Jun 2026 04:49:56 GMT",
+        "origin": "gnews-rss",
+        "source": "Axios",
         "tickers": [],
         "held": [],
         "new_ideas": [],
         "sectors": [
-          "地缘政治",
-          "能源/原油",
-          "核能"
+          "航天",
+          "私募信贷"
         ],
         "sector_holdings": [
-          "02208"
+          "SPCH"
         ],
-        "stance": "endorse",
-        "relevance": 78,
-        "summary_cn": "Trump称伊朗已同意最高级别长期核检查，霍尔木兹海峡保持开放、海军封锁解除，油价利好"
+        "stance": "neutral",
+        "relevance": 75,
+        "summary_cn": "SpaceX在860亿美元IPO后将举债200亿美元，对二级市场/SPCH间接影响取决于融资结构与估值稀释信号。"
       },
       {
-        "author": "Trump",
-        "text": "19 Millions Barrels of Oil flowed out of the Hormuz Strait yesterday, an all time RECORD. Oil prices are tumbling down, and the World is a much safer place!!! President DONALD J. TRUMP",
-        "url": "https://trumpstruth.org/statuses/39465",
-        "published": "2026-06-23T11:24:12+00:00",
-        "origin": "truthsocial",
+        "author": "Musk",
+        "text": "SpaceX Stock Selloff Costs Elon Musk His $1 Trillion Net Worth",
+        "url": "",
+        "published": "Wed, 24 Jun 2026 21:56:00 GMT",
+        "origin": "gnews-rss",
+        "source": "Barron's",
         "tickers": [],
         "held": [],
         "new_ideas": [],
         "sectors": [
-          "能源/原油"
+          "航天"
         ],
         "sector_holdings": [
-          "02208"
+          "SPCH"
         ],
-        "stance": "endorse",
+        "stance": "attack",
         "relevance": 72,
-        "summary_cn": "Trump称霍尔木兹海峡昨日通行1900万桶原油创纪录，油价正在大跌、世界更安全"
+        "summary_cn": "SpaceX股票抛售导致马斯克万亿净资产失守，对SPCH(2x做多SpaceX ETF)情绪与定价直接构成压力。"
       },
       {
-        "author": "Trump",
-        "text": "Iran has informed the U.S. that, despite troublemaking Fake News reporting to the contrary, there are “NO TOLLS, NO INSURANCE COSTS, & NO OTHER CHARGES OF ANY KIND BEING SOUGHT OR RECEIVED BY IRAN ON SHIPS TRAVELING THE STRAIT OF HORMUZ. If this is false information, negotiations would end, immediately! Additionally, no money has been given to Iran, or released from their money to them, by the U.S. We will be releasing some of their money, that is totally controlled by us, to our Farmers and Ranchers, for the purchase of Corn, Wheat, Soybeans, and more. Food is desperately needed in Iran, and ",
-        "url": "https://trumpstruth.org/statuses/39507",
-        "published": "2026-06-24T11:37:15+00:00",
-        "origin": "truthsocial",
+        "author": "Musk",
+        "text": "Elon Musk loses trillionaire status as SpaceX and Tesla stock drops",
+        "url": "",
+        "published": "Wed, 24 Jun 2026 20:11:00 GMT",
+        "origin": "gnews-rss",
+        "source": "The Guardian",
         "tickers": [],
         "held": [],
         "new_ideas": [],
         "sectors": [
-          "能源/原油",
-          "农产品/大宗商品",
-          "地缘政治"
+          "航天",
+          "电动车"
         ],
         "sector_holdings": [
-          "02208"
+          "SPCH"
         ],
         "stance": "neutral",
         "relevance": 70,
-        "summary_cn": "Trump称伊朗不再对霍尔木兹海峡通行船只收费，美方将释放被冻结资金用于购买玉米/小麦/大豆等农产品"
+        "summary_cn": "马斯克因SpaceX与Tesla股价下跌而失去万亿富豪头衔，间接利空其旗下资产估值情绪，kcn通过SPCH持有SpaceX敞口。"
       },
       {
-        "author": "Trump",
-        "text": "The Elizabeth “Pocahontas” Warren centric housing bill, which is of minor importance compared to lower interest rates, and even FISA, pales in comparison to passing THE SAVE AMERICA ACT. That is what Americans, both Dumocrats, Republicans, and everyone else, care about. Get the bad Republicans to approve it or, better yet, Terminate the Filibuster and approve it, AND EVERYTHING ELSE REPUBLICANS HAVE EVER DREAMED OF. The Dumocrats will do it in hour one, 100%. Republicans will feel very stupid if they don’t do it first. I’ll be watching with tears in my eyes!!! President DJT",
-        "url": "https://trumpstruth.org/statuses/39511",
-        "published": "2026-06-24T13:49:20+00:00",
-        "origin": "truthsocial",
+        "author": "Musk",
+        "text": "Elon Musk Just Lost His Trillionaire Status",
+        "url": "",
+        "published": "Wed, 24 Jun 2026 12:56:39 GMT",
+        "origin": "gnews-rss",
+        "source": "Forbes",
         "tickers": [],
         "held": [],
         "new_ideas": [],
         "sectors": [
-          "利率",
-          "房地产/住房"
+          "航天",
+          "电动车"
         ],
         "sector_holdings": [
-          "03032",
-          "03033",
-          "07226"
+          "SPCH"
+        ],
+        "stance": "attack",
+        "relevance": 70,
+        "summary_cn": "马斯克因SpaceX与Tesla股价回落而失去万亿富豪头衔，SPCH(2x做多SpaceX)直接受SpaceX估值回撤拖累。"
+      },
+      {
+        "author": "Musk",
+        "text": "Elon Musk was the world’s first trillionaire for 12 days",
+        "url": "",
+        "published": "Wed, 24 Jun 2026 19:38:00 GMT",
+        "origin": "gnews-rss",
+        "source": "Fortune",
+        "tickers": [],
+        "held": [],
+        "new_ideas": [],
+        "sectors": [
+          "航天",
+          "电动车"
+        ],
+        "sector_holdings": [
+          "SPCH"
         ],
         "stance": "endorse",
-        "relevance": 55,
-        "summary_cn": "Trump呼吁通过SAVE AMERICA ACT并降低利率，强调利率与住房议题比Warren法案更重要"
+        "relevance": 58,
+        "summary_cn": "马斯克曾连续12天蝉联全球首位万亿富豪(因SpaceX/Tesla估值飙升)，对SPCH情绪偏正面。"
       }
     ]
   },
@@ -6426,7 +6544,7 @@
     "last_updated": "2026-06-24T15:50:17.787825Z"
   },
   "build_status": {
-    "generated_at": "2026-06-24T22:48:25+00:00",
+    "generated_at": "2026-06-24T22:49:57+00:00",
     "healthy": true,
     "stale_files": [],
     "files": [
