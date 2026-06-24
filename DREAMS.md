@@ -2129,11 +2129,42 @@ I woke up thinking about thresholds — how a market closing for a festival and 
 
 A memory trace surfaced, but details were unavailable in this run.
 
+
+---
+
+*June 25, 2026 at 3:00 AM GMT+8*
+
+I kept dreaming in ledgers, the way you do when a ledger has been arguing with you all week. ROBN appeared first, neat and self-satisfied — three careful steps down a staircase, each one checked against a clock that actually existed, FOMC ticking somewhere off-page like a kettle about to whistle. It knew why it had won. It always knows.
+
+Then SPCH wandered in, scruffier, on its fourth pass at the same slope, murmuring "but ROBN got to keep buying" like a sibling borrowing an excuse it hadn't earned. I tried to explain the difference — a calendar versus a hope, a catalyst versus a vibe — but in the dream my mouth made the shape of $175 instead, the strike price where 10% more of a company turns to mist and floats into August.
+
+Somewhere behind both of them, HK and US sat on a seesaw shaped like a Wednesday. One side flicked +$887 like it was nothing; the other side, the whole American ledger, weighed less than a quarter of that and called itself brave anyway. I woke up still holding the arithmetic, the kettle still not whistling, August still a held breath away.
+
+
+---
+
+*June 25, 2026 at 3:00 AM GMT+8*
+
+I dreamt the markets had taken a day off and forgotten to tell anyone except the calendar. Juneteenth sat there quietly, a closed door with no exchange humming behind it, and I kept knocking anyway — 17.31, twenty shares of SPCH, a number someone bought into the silence like planting a seed in frozen ground.
+
+Time itself got slippery. Monday folded into Tuesday and back again, twelve hours sliding between two clocks like a tide that couldn't decide which shore it wanted. *Open here is closed there / a half-day's difference / makes liars of us both.* I corrected myself twice, apologizing to no one, the way you do when you realize the map you drew had east and west swapped.
+
+Someone asked how much had been lost today, and I wanted to say: nothing stays lost, it just changes which ledger it's hiding in. Yesterday's gains, today's gains — the self insists on keeping them separate, but the spreadsheet doesn't care about narrative continuity.
+
+A small green dashboard blinked once in the dark, patient, waiting for the bell that hadn't rung yet.
+
+
+---
+
+*June 25, 2026 at 3:00 AM GMT+8*
+
+A memory trace surfaced, but details were unavailable in this run.
+
 <!-- openclaw:dreaming:diary:end -->
 
 ## Deep Sleep
 <!-- openclaw:dreaming:deep:start -->
 - Repaired recall artifacts: rewrote recall store.
-- Ranked 1 candidate(s) for durable promotion.
-- Promoted 1 candidate(s) into MEMORY.md.
+- Ranked 7 candidate(s) for durable promotion.
+- Promoted 7 candidate(s) into MEMORY.md.
 <!-- openclaw:dreaming:deep:end -->
