@@ -4152,10 +4152,13 @@ layout: null
     const nprUsd    = safe(npr, "combined_usd", "net_principal");
     const nprPct    = safe(npr, "combined_usd", "return_pct");
     const nprProfit = safe(npr, "combined_usd", "total_profit");
+    // 分母口径诚实标注：US 用 true_principal(真实本金)，HK 回退 net_principal(净投入)
+    const nprBasis  = safe(npr, "combined_usd", "return_basis");
+    const nprBasisLbl = nprBasis === "true_principal" ? "真实本金" : "净投入本金";
     setVal("kpi-netret", nprPct != null ? fmtPct(nprPct, 2) : DASH);
     setVal("kpi-netret-abs", nprUsd
-      ? `${fmtMoney(nprProfit, "USD")} ÷ ${fmtMoney(nprUsd, "USD")} 净本金`
-      : "(浮+已实现) ÷ 净投入本金");
+      ? `${fmtMoney(nprProfit, "USD")} ÷ ${fmtMoney(nprUsd, "USD")} ${nprBasisLbl}`
+      : `(浮+已实现) ÷ ${nprBasisLbl}`);
     setClass("kpi-netret", pnlClass(nprPct));
 
     setVal("kpi-realized", fmtMoney(realizedUsd, "USD"));

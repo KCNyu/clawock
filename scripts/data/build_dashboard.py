@@ -1914,10 +1914,17 @@ def compute_net_principal_return(portfolio, fx_rate):
         if fx_rate and fx_rate > 0:
             np_usd = round(out['us']['_denom'] + out['hk']['_denom'] / fx_rate, 2)
             tp_usd = round(out['us']['total_profit'] + out['hk']['total_profit'] / fx_rate, 2)
+            # combined 分母是混合的：US 用 true_principal、HK 用 net_principal。
+            # 暴露 basis 让前端标签诚实（任一 region 用真实本金即标「真实本金」）。
+            mixed_basis = ('true_principal'
+                           if 'true_principal' in (out['us'].get('return_basis'),
+                                                   out['hk'].get('return_basis'))
+                           else 'net_principal')
             out['combined_usd'] = {
                 'net_principal': np_usd,
                 'total_profit': tp_usd,
                 'return_pct': round(tp_usd / np_usd * 100, 2) if np_usd > 0 else None,
+                'return_basis': mixed_basis,
             }
         # _denom 仅用于 combined 计算，不外泄到输出
         for r in ('us', 'hk'):

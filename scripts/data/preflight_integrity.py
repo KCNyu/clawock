@@ -38,6 +38,8 @@ cost_basis/prev_close/trades[])复原，且都有一道闸守着。计算链：
                    (SPCH 18.07 vs 券商 18.38；只在账本可验证时拦,不误伤半账本)
   US_ASOF        活跃美股共享单一 session 日期（避免跨天双计）            WARN
                  → 同一 US session 落进两个 HK 日期快照（fd86a53）
+  TRUE_PRINCIPAL true_principal（峰值净投入）≥ 当前净投入(cost−realized)   WARN
+                 → 手填本金常量过期 → 「净本金回报率」分母失真而虚高
 
 用法：
   python3 preflight_integrity.py [portfolio.json]   # 默认仓库根 portfolio.json
@@ -376,6 +378,21 @@ def check(portfolio_path=PORTFOLIO):
         if market == 'us' and len(asofs) > 1:
             add('US_ASOF', 'WARN',
                 f'活跃美股横跨多个 session 日期 {sorted(asofs)}；当心每日 P&L 跨天双计', region)
+
+        # TRUE_PRINCIPAL：手填的「峰值净投入」常量是「净本金回报率」的分母，改仓忘
+        # 重算会让回报率失真。不变量：true_principal（历史峰值净投入）≥ 当前净投入
+        # net_principal(total_cost − realized_pnl)。反超 = 常量过期需按现金流账本重算。
+        tp = _num(port.get('true_principal'))
+        if tp is not None and tp > 0:
+            tcost_tp = _num(port.get('total_cost'))
+            real_tp = _num(port.get('realized_pnl'))
+            if tcost_tp is not None and real_tp is not None:
+                net_principal = tcost_tp - real_tp
+                if net_principal > tp + 1:
+                    add('TRUE_PRINCIPAL', 'WARN',
+                        f'true_principal={tp:.2f} < 当前净投入 cost−realized={net_principal:.2f}'
+                        f'（差 {net_principal - tp:+.2f}）；峰值净投入常量疑过期，改仓后须按'
+                        f'现金流账本重算（它是「净本金回报率」分母，过期则回报率虚高）', region)
 
         # CASH_SANITY：手填现金 fat-finger 闸（既有 ERROR 校验只看持仓，抓不到现金笔误）
         cash_field = {'us_stocks': 'cash_usd', 'hk_stocks': 'cash_hkd'}.get(region)

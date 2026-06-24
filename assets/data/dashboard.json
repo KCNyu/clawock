@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-24T17:33:19.531793Z",
+  "generated_at": "2026-06-24T17:40:42.658006Z",
   "last_updated": "2026/06/25 01:31 HKT",
   "fx": {
     "usdhkd": 7.84,
@@ -5957,7 +5957,8 @@
     "combined_usd": {
       "net_principal": 12804.93,
       "total_profit": -2176.72,
-      "return_pct": -17.0
+      "return_pct": -17.0,
+      "return_basis": "true_principal"
     },
     "formula": "回报率 = (浮动 + 已实现) ÷ 本金；本金优先用 true_principal（峰值净投入），否则用 净投入本金=累计成本−已实现"
   },
@@ -6402,90 +6403,90 @@
     "last_updated": "2026-06-24T15:50:17.787825Z"
   },
   "build_status": {
-    "generated_at": "2026-06-25T01:33:19+08:00",
+    "generated_at": "2026-06-25T01:40:42+08:00",
     "healthy": true,
     "stale_files": [],
     "files": [
       {
         "name": "portfolio.json",
-        "age_hours": 0.0,
+        "age_hours": 0.2,
         "sla_hours": 26,
         "stale": false,
         "present": true
       },
       {
         "name": "benchmark.json",
-        "age_hours": 17.3,
+        "age_hours": 17.5,
         "sla_hours": 80,
         "stale": false,
         "present": true
       },
       {
         "name": "catalysts.json",
-        "age_hours": 17.4,
+        "age_hours": 17.5,
         "sla_hours": 30,
         "stale": false,
         "present": true
       },
       {
         "name": "em_news.json",
-        "age_hours": 2.0,
+        "age_hours": 2.1,
         "sla_hours": 30,
         "stale": false,
         "present": true
       },
       {
         "name": "influencer_feed.json",
-        "age_hours": 2.0,
+        "age_hours": 2.1,
         "sla_hours": 30,
         "stale": false,
         "present": true
       },
       {
         "name": "lev_regime.json",
-        "age_hours": 17.3,
+        "age_hours": 17.5,
         "sla_hours": 30,
         "stale": false,
         "present": true
       },
       {
         "name": "macro.json",
-        "age_hours": 17.4,
+        "age_hours": 17.5,
         "sla_hours": 30,
         "stale": false,
         "present": true
       },
       {
         "name": "quant_signal_review.json",
-        "age_hours": 17.3,
+        "age_hours": 17.5,
         "sla_hours": 30,
         "stale": false,
         "present": true
       },
       {
         "name": "quant_signals.json",
-        "age_hours": 17.3,
+        "age_hours": 17.5,
         "sla_hours": 30,
         "stale": false,
         "present": true
       },
       {
         "name": "risk.json",
-        "age_hours": 17.3,
+        "age_hours": 17.5,
         "sla_hours": 30,
         "stale": false,
         "present": true
       },
       {
         "name": "sentiment.json",
-        "age_hours": 17.4,
+        "age_hours": 17.5,
         "sla_hours": 30,
         "stale": false,
         "present": true
       },
       {
         "name": "us_news_digest.json",
-        "age_hours": 2.0,
+        "age_hours": 2.1,
         "sla_hours": 30,
         "stale": false,
         "present": true
