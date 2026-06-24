@@ -1,67 +1,72 @@
 {
-  "generated_at": "2026-06-23T22:51:17.759898+00:00",
+  "generated_at": "2026-06-24T22:51:21.704949+00:00",
   "vix": {
     "symbol": "^VIX",
-    "price": 19.49,
-    "prev": 16.4,
-    "change_pct": 18.84,
-    "as_of": 1782245701,
+    "price": 18.63,
+    "prev": 17.28,
+    "change_pct": 7.81,
+    "as_of": 1782332101,
     "source": "yahoo"
   },
   "treasury_10y": {
     "symbol": "^TNX",
-    "price": 4.493,
-    "prev": 4.509,
-    "change_pct": -0.35,
-    "as_of": 1782241195,
+    "price": 4.402,
+    "prev": 4.493,
+    "change_pct": -2.03,
+    "as_of": 1782327594,
     "source": "yahoo",
-    "yield_pct": 4.493
+    "yield_pct": 4.402
   },
   "dxy": {
     "symbol": "DX-Y.NYB",
-    "price": 101.39,
-    "prev": 101.02,
-    "change_pct": 0.37,
-    "as_of": 1782252299,
+    "price": 101.584,
+    "prev": 101.408,
+    "change_pct": 0.17,
+    "as_of": 1782338692,
     "source": "yahoo"
   },
   "fear_greed": {
-    "score": 27.5,
+    "score": 25.9,
     "rating": "fear",
-    "prev_close": 34.7,
-    "prev_1_week": 39.1,
-    "as_of": "2026-06-23T22:32:25+00:00"
+    "prev_close": 27.5,
+    "prev_1_week": 32.2,
+    "as_of": "2026-06-24T22:34:31+00:00"
   },
   "hsi": {
     "symbol": "^HSI",
-    "price": 23336.28,
-    "prev": 23768.52,
-    "change_pct": -1.82,
+    "price": 23412.18,
+    "prev": 23336.28,
+    "change_pct": 0.33,
     "source": "tencent"
   },
   "hstech": {
     "symbol": "^HSTECH",
-    "price": 4399.22,
-    "prev": 4549.41,
-    "change_pct": -3.3,
+    "price": 4479.02,
+    "prev": 4399.22,
+    "change_pct": 1.81,
     "source": "tencent"
   },
   "spx": {
     "symbol": "^GSPC",
-    "price": 7365.46,
-    "prev": 7472.79,
-    "change_pct": -1.44,
-    "as_of": 1782250413,
+    "price": 7358.22,
+    "prev": 7365.46,
+    "change_pct": -0.1,
+    "as_of": 1782333693,
     "source": "yahoo"
   },
   "nasdaq": {
     "symbol": "^IXIC",
-    "price": 25587.04,
-    "prev": 26166.6,
-    "change_pct": -2.21,
+    "price": 25476.64,
+    "prev": 25587.04,
+    "change_pct": -0.43,
     "source": "tencent"
   },
   "fed_press": [
+    {
+      "date": "2026-06-24",
+      "title": "Federal Reserve Board's annual bank stress test confirms that large banks are well positioned to weather a severe recession and able to continue to lend to households and businesses",
+      "url": "https://www.federalreserve.gov/newsevents/pressreleases/bcreg20260624a.htm"
+    },
     {
       "date": "2026-06-22",
       "title": "Federal Reserve notes with deep sadness the passing of Alan Greenspan",
@@ -81,16 +86,6 @@
       "date": "2026-06-18",
       "title": "Federal Reserve Board requests comment on proposal to require certain payment stablecoin issuers to maintain an effective customer identification program",
       "url": "https://www.federalreserve.gov/newsevents/pressreleases/bcreg20260618a.htm"
-    },
-    {
-      "date": "2026-06-17",
-      "title": "Federal Reserve issues FOMC statement",
-      "url": "https://www.federalreserve.gov/newsevents/pressreleases/monetary20260617a.htm"
-    },
-    {
-      "date": "2026-06-17",
-      "title": "Federal Reserve Board and Federal Open Market Committee release economic projections from the June 16-17 FOMC meeting",
-      "url": "https://www.federalreserve.gov/newsevents/pressreleases/monetary20260617b.htm"
     }
   ]
 }
