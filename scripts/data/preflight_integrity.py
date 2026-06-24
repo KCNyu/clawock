@@ -92,6 +92,48 @@ def _moving_avg_cost(trades):
     return (cost / sh if sh else None), sh
 
 
+def _trade_cashflow_after(holdings, after_date):
+    """Σ(此日期*之后*所有 trades 的现金流)：sell=+shares×price，buy=−shares×price。
+
+    after_date 为基线对账日 ISO 串；严格大于（基线值已含当日及之前所有成交）。"""
+    flow = 0.0
+    n = 0
+    for h in holdings or []:
+        for t in h.get('trades', []) or []:
+            d = t.get('date', '')
+            if not d or d <= after_date:
+                continue
+            s = _num(t.get('shares')) or 0
+            pr = _num(t.get('price')) or 0
+            a = t.get('action')
+            if a == 'sell':
+                flow += s * pr
+            elif a == 'buy':
+                flow -= s * pr
+            else:
+                continue
+            n += 1
+    return flow, n
+
+
+def derive_cash(port):
+    """从对账基线 + 此后 trades 现金流 + 存取款派生现金。
+
+    返回 (derived, baseline, baseline_date, n_trades) 或 None（无基线则不可派生，
+    调用方应跳过 CASH_RECON 闸——与 COST_BASIS「账本不完整就不校验」同理）。"""
+    baseline = _num(port.get('cash_reconciled'))
+    bdate = port.get('cash_reconciled_date')
+    if baseline is None or not bdate:
+        return None
+    flow, n = _trade_cashflow_after(port.get('holdings', []), bdate)
+    adj = 0.0
+    for a in port.get('cash_adjustments', []) or []:
+        d = a.get('date', '')
+        if d and d > bdate:
+            adj += _num(a.get('amount')) or 0
+    return round(baseline + flow + adj, 2), baseline, bdate, n
+
+
 def _last_session(market):
     """上一个（含今天）交易日 ISO 字符串；trading_calendar 不可用时返回 None。"""
     if tc is None:
@@ -295,6 +337,20 @@ def check(portfolio_path=PORTFOLIO):
                         add('CASH_SANITY', 'WARN',
                             f'{cash_field}={cash:.2f} 较上一快照 {prev:.2f} 跳变 {ratio:.1f}×；'
                             f'疑似手填多/少一位（总资产 = 持仓 + 现金，会被静默污染）', region)
+
+        # CASH_RECON：现金可复原闸。有对账基线时，cash 必须 == 基线 + 此后 trades
+        # 现金流 + 存取款。抓「加了 trades 没重算现金」（如 6/22-24 漏扣 SPCH $581
+        # 双计）——这是 CASH_SANITY 抓不到的「该降没降」。无基线则跳过（同 COST_BASIS）。
+        if cash_field and port.get(cash_field) is not None:
+            der = derive_cash(port)
+            stated = _num(port.get(cash_field))
+            if der is not None and stated is not None:
+                derived, baseline, bdate, n_tr = der
+                if abs(stated - derived) > TCV_TOL:
+                    add('CASH_RECON', 'ERROR',
+                        f'{cash_field}={stated:.2f} ≠ 派生值 {derived:.2f}'
+                        f'（基线 {baseline:.2f}@{bdate} + 此后 {n_tr} 笔成交现金流，差 '
+                        f'{stated - derived:+.2f}）；改/补 trades 后须跑 recompute_cash.py', region)
 
     # GOLD_RECON：黄金定投手填对账值闸（隐含均价 vs NAV，抓填错/单位反）
     g = data.get('gold_dca') or {}

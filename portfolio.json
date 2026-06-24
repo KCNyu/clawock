@@ -819,7 +819,11 @@
         "note": "Multi-provider fetch. Sources: 1x Nasdaq API (stocks), 5x Nasdaq API (etf)"
       },
       "cash_usd": 273.25,
-      "cash_usd_note": "…+ RKLX $53.93*10卖出+$539.3→$1855.45; 2026-06-16 RKLX 10@$49.69买入-$496.9→$1358.55; 2026-06-17 SPCH 20@$21.83买入-$436.6→$921.95; 2026-06-18 SPCH 20@$21.25再买入-$425→$496.95; 2026-06-18 ROBN 20@$35.175卖出+$703.5→$1200.45; 2026-06-19 SPCH 20@$17.31三次加仓-$346.2→$854.25; 2026-06-22 SPCH 10@$15.3+10@$16.17买入-$314.7→$539.55; 2026-06-23 SPCH 10@$13.13买入-$131.3→$408.25; 2026-06-24 SPCH 10@$13.5买入-$135→$273.25 (台账原停在6/19漏扣6/22-24四笔SPCH加仓$581=双计已修)"
+      "cash_reconciled": 854.25,
+      "cash_reconciled_date": "2026-06-19",
+      "cash_reconciled_note": "与券商对账确认的现金基线（截至该日收盘）。现金不再手填：cash_usd = cash_reconciled + Σ(此日之后 trades 的 sells−buys) + Σ(cash_adjustments)。改/补 trades 后跑 `recompute_cash.py` 自动重算 cash_usd，CASH_RECON 闸(ERROR)校验二者一致。存取款记进 cash_adjustments[] 或直接抬高 cash_reconciled+date 重新对账。",
+      "cash_adjustments": [],
+      "cash_usd_note": "(历史台账，仅供追溯；现金权威值已改为从 cash_reconciled 基线派生) …2026-06-19 SPCH 20@$17.31→$854.25(基线); 2026-06-22 SPCH 10@$15.3+10@$16.17-$314.7→$539.55; 2026-06-23 SPCH 10@$13.13-$131.3→$408.25; 2026-06-24 SPCH 10@$13.5-$135→$273.25"
     },
     "hk_stocks": {
       "currency": "HKD",
