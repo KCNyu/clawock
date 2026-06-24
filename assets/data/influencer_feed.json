@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-23T22:49:59.839292+00:00",
+  "generated_at": "2026-06-24T15:28:10.800468+00:00",
   "lookback_hours": 48,
   "sources": {
     "trump": "trumpstruth.org/feed (primary)",
@@ -8,142 +8,12 @@
   },
   "llm_filtered": true,
   "counts": {
-    "total": 11,
+    "total": 7,
     "held_hits": 0,
-    "new_ideas": 2,
+    "new_ideas": 0,
     "sector_hits": 4
   },
   "items": [
-    {
-      "author": "Musk",
-      "text": "SpaceX IPO fuels more speculation of a merger with Tesla. Here's why.",
-      "url": "",
-      "published": "Tue, 23 Jun 2026 11:08:14 GMT",
-      "origin": "gnews-rss",
-      "source": "Austin American-Statesman",
-      "tickers": [
-        "TSLA"
-      ],
-      "held": [],
-      "new_ideas": [
-        "TSLA"
-      ],
-      "sectors": [
-        "航天",
-        "电动车"
-      ],
-      "sector_holdings": [
-        "SPCH"
-      ],
-      "stance": "neutral",
-      "relevance": 75,
-      "summary_cn": "Musk相关：SpaceX IPO引发与Tesla合并猜测升温，若合并将极大重估TSLA；SPCH（kcn持仓）亦间接受益于SpaceX估值。"
-    },
-    {
-      "author": "Musk",
-      "text": "Right After Becoming a Trillionaire, Elon Musk \"Sold\" 17.5 Million Tesla Shares. Here's Why This Isn't a Big Deal.",
-      "url": "",
-      "published": "Tue, 23 Jun 2026 13:41:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Yahoo Finance",
-      "tickers": [
-        "TSLA"
-      ],
-      "held": [],
-      "new_ideas": [
-        "TSLA"
-      ],
-      "sectors": [
-        "电动车"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 70,
-      "summary_cn": "Musk相关：Musk成为万亿富翁后减持1750万股Tesla股票，但被解读为'非大事'（可能为预安排行权/缴税），整体偏中性。"
-    },
-    {
-      "author": "Musk",
-      "text": "As SpaceX IPO blasts off, Elon Musk becomes a trillionaire",
-      "url": "",
-      "published": "Tue, 23 Jun 2026 18:56:46 GMT",
-      "origin": "gnews-rss",
-      "source": "Mashable",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天"
-      ],
-      "sector_holdings": [
-        "SPCH"
-      ],
-      "stance": "neutral",
-      "relevance": 72,
-      "summary_cn": "Musk相关：SpaceX IPO火爆使Musk成为万亿富翁；SpaceX未上市但SPCH（kcn持仓2倍杠杆SpaceX ETF）直接受益于IPO估值跃升。"
-    },
-    {
-      "author": "Musk",
-      "text": "After $86 billion IPO, SpaceX to borrow $20 billion",
-      "url": "",
-      "published": "Tue, 23 Jun 2026 08:38:33 GMT",
-      "origin": "gnews-rss",
-      "source": "Axios",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "私募/IPO"
-      ],
-      "sector_holdings": [
-        "SPCH"
-      ],
-      "stance": "neutral",
-      "relevance": 72,
-      "summary_cn": "Musk相关：SpaceX完成860亿美元IPO后计划再借款200亿美元；SpaceX未上市，但SPCH为kcn持仓的2倍杠杆SpaceX ETF，IPO与融资动态直接影响其净值与情绪。"
-    },
-    {
-      "author": "Musk",
-      "text": "SpaceX's drop off sees Elon Musk's net worth fall $240 billion—roughly the same value as computing giant IBM",
-      "url": "",
-      "published": "Tue, 23 Jun 2026 11:19:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Fortune",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "电动车"
-      ],
-      "sector_holdings": [
-        "SPCH"
-      ],
-      "stance": "neutral",
-      "relevance": 68,
-      "summary_cn": "Musk相关：SpaceX估值回撤使Musk净资产蒸发约2400亿美元；SPCH（kcn持仓）作为2倍杠杆SpaceX ETF受SpaceX估值波动直接影响。"
-    },
-    {
-      "author": "Musk",
-      "text": "Ro Khanna challenges Elon Musk to televised debate after online DOGE battle",
-      "url": "",
-      "published": "Mon, 22 Jun 2026 23:22:22 GMT",
-      "origin": "gnews-rss",
-      "source": "CNBC",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "政府效率/DOGE",
-        "加密货币"
-      ],
-      "sector_holdings": [
-        "CRCL"
-      ],
-      "stance": "neutral",
-      "relevance": 50,
-      "summary_cn": "Musk相关：众议员Ro Khanna在与Musk的DOGE线上交锋后邀其参加电视辩论，DOGE主题持续吸睛，间接利好加密情绪。"
-    },
     {
       "author": "Trump",
       "text": "Despite their protestations and false statements to the contrary, coupled with the drumbeat of the Fake News, which is doing everything possible to make the U.S. Victory as small and insignificant as possible, Iran has fully and completely agreed to highest level Nuclear inspections long into the future (Infinity!!!). This will insure “Nuclear Honesty.” If they did not agree to this, there would be no further negotiations! Based on this and other major concessions being made by Iran, I have agreed to allow the Hormuz Strait to remain OPEN, with no further Naval Blockade. However, all ships are",
@@ -154,14 +24,16 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "地缘政治/中东",
-        "能源/石油",
-        "国防/军工"
+        "地缘政治",
+        "能源/原油",
+        "核能"
       ],
-      "sector_holdings": [],
+      "sector_holdings": [
+        "02208"
+      ],
       "stance": "endorse",
-      "relevance": 65,
-      "summary_cn": "Trump宣布伊朗同意最高级别核检查并解除霍尔木兹海峡海军封锁，对全球能源与地缘风险偏好影响重大。"
+      "relevance": 78,
+      "summary_cn": "Trump称伊朗已同意最高级别长期核检查，霍尔木兹海峡保持开放、海军封锁解除，油价利好"
     },
     {
       "author": "Trump",
@@ -173,12 +45,94 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "能源/石油"
+        "能源/原油"
+      ],
+      "sector_holdings": [
+        "02208"
+      ],
+      "stance": "endorse",
+      "relevance": 72,
+      "summary_cn": "Trump称霍尔木兹海峡昨日通行1900万桶原油创纪录，油价正在大跌、世界更安全"
+    },
+    {
+      "author": "Trump",
+      "text": "Iran has informed the U.S. that, despite troublemaking Fake News reporting to the contrary, there are “NO TOLLS, NO INSURANCE COSTS, & NO OTHER CHARGES OF ANY KIND BEING SOUGHT OR RECEIVED BY IRAN ON SHIPS TRAVELING THE STRAIT OF HORMUZ. If this is false information, negotiations would end, immediately! Additionally, no money has been given to Iran, or released from their money to them, by the U.S. We will be releasing some of their money, that is totally controlled by us, to our Farmers and Ranchers, for the purchase of Corn, Wheat, Soybeans, and more. Food is desperately needed in Iran, and ",
+      "url": "https://trumpstruth.org/statuses/39507",
+      "published": "2026-06-24T11:37:15+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "能源/原油",
+        "农产品/大宗商品",
+        "地缘政治"
+      ],
+      "sector_holdings": [
+        "02208"
+      ],
+      "stance": "neutral",
+      "relevance": 70,
+      "summary_cn": "Trump称伊朗不再对霍尔木兹海峡通行船只收费，美方将释放被冻结资金用于购买玉米/小麦/大豆等农产品"
+    },
+    {
+      "author": "Trump",
+      "text": "The Elizabeth “Pocahontas” Warren centric housing bill, which is of minor importance compared to lower interest rates, and even FISA, pales in comparison to passing THE SAVE AMERICA ACT. That is what Americans, both Dumocrats, Republicans, and everyone else, care about. Get the bad Republicans to approve it or, better yet, Terminate the Filibuster and approve it, AND EVERYTHING ELSE REPUBLICANS HAVE EVER DREAMED OF. The Dumocrats will do it in hour one, 100%. Republicans will feel very stupid if they don’t do it first. I’ll be watching with tears in my eyes!!! President DJT",
+      "url": "https://trumpstruth.org/statuses/39511",
+      "published": "2026-06-24T13:49:20+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "利率",
+        "房地产/住房"
+      ],
+      "sector_holdings": [
+        "03032",
+        "03033",
+        "07226"
+      ],
+      "stance": "endorse",
+      "relevance": 55,
+      "summary_cn": "Trump呼吁通过SAVE AMERICA ACT并降低利率，强调利率与住房议题比Warren法案更重要"
+    },
+    {
+      "author": "Trump",
+      "text": "So, I have Iran on the “ropes,” ready to go down for the fall, willing to give us practically anything, and for the first time in decades, respecting the hell out of the United States and its President, ME, and the U.S. Senate decides to have a poorly timed and meaningless War Powers Act Vote, telling the Number One Sponser of Terror in the World that the United States doesn’t  like what I am doing to them, and I must stop, and by so doing has provided aid and comfort the Enemy. Four Republican Losers voted with the Dumocrats, and Iran asked my people, “what does that all mean?” These Senators",
+      "url": "https://trumpstruth.org/statuses/39501",
+      "published": "2026-06-24T02:39:15+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "地缘政治",
+        "国防/军工",
+        "能源"
       ],
       "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 60,
-      "summary_cn": "Trump称霍尔木兹海峡昨日通过1900万桶石油创纪录，油价大跌、世界更安全。"
+      "stance": "endorse",
+      "relevance": 68,
+      "summary_cn": "Trump称伊朗'已被逼入绝境'，抨击参议院War Powers Act投票削弱谈判筹码"
+    },
+    {
+      "author": "Trump",
+      "text": "The big Oil Companies are not dropping their price at the pump commensurate with the sharply lower prices they are paying for Oil. Those prices are dropping like a rock! In other words, customers are being “gouged.” I have instructed the DOJ to immediately start looking into this. Gasoline prices better start going down a lot faster than what I’m seeing! President DJT",
+      "url": "https://trumpstruth.org/statuses/39505",
+      "published": "2026-06-24T04:12:13+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "能源/油气",
+        "石油/汽油零售"
+      ],
+      "sector_holdings": [],
+      "stance": "attack",
+      "relevance": 65,
+      "summary_cn": "Trump指责大型油企未随油价下调同步降价，已指示司法部调查是否存在价格欺诈行为"
     },
     {
       "author": "Trump",
@@ -190,185 +144,100 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "地缘政治/中东",
-        "国防/军工",
-        "能源/石油"
+        "地缘政治",
+        "国防/军工"
       ],
       "sector_holdings": [],
       "stance": "endorse",
-      "relevance": 58,
-      "summary_cn": "伊朗反对派领导人与前国安官员赞扬Trump与德黑兰达成的协议，地缘紧张局势降温。"
-    },
-    {
-      "author": "Trump",
-      "text": "RT @realDonaldTrumpEverybody is fully aware that Iran will agree to have Major Weapons Inspections in order to ensure “Nuclear Honesty” long into the future. President DONALD J. TRUMP",
-      "url": "https://trumpstruth.org/statuses/39435",
-      "published": "2026-06-22T18:14:34+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "地缘政治/中东",
-        "国防/军工"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
       "relevance": 55,
-      "summary_cn": "Trump转推强调伊朗将同意长期重大武器检查以确保'核诚实'。"
-    },
-    {
-      "author": "Trump",
-      "text": "Everybody is fully aware that Iran will agree to have Major Weapons Inspections in order to ensure “Nuclear Honesty” long into the future. President DONALD J. TRUMP",
-      "url": "https://trumpstruth.org/statuses/39423",
-      "published": "2026-06-22T16:58:08+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "地缘政治/中东",
-        "国防/军工"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 50,
-      "summary_cn": "Trump再称伊朗将同意长期重大武器检查以确保'核诚实'。"
+      "summary_cn": "伊朗反对派领导人和前国安官员赞扬Trump与德黑兰达成的协议"
     }
   ],
   "held_hits": [],
-  "new_ideas": [
-    {
-      "author": "Musk",
-      "text": "SpaceX IPO fuels more speculation of a merger with Tesla. Here's why.",
-      "url": "",
-      "published": "Tue, 23 Jun 2026 11:08:14 GMT",
-      "origin": "gnews-rss",
-      "source": "Austin American-Statesman",
-      "tickers": [
-        "TSLA"
-      ],
-      "held": [],
-      "new_ideas": [
-        "TSLA"
-      ],
-      "sectors": [
-        "航天",
-        "电动车"
-      ],
-      "sector_holdings": [
-        "SPCH"
-      ],
-      "stance": "neutral",
-      "relevance": 75,
-      "summary_cn": "Musk相关：SpaceX IPO引发与Tesla合并猜测升温，若合并将极大重估TSLA；SPCH（kcn持仓）亦间接受益于SpaceX估值。"
-    },
-    {
-      "author": "Musk",
-      "text": "Right After Becoming a Trillionaire, Elon Musk \"Sold\" 17.5 Million Tesla Shares. Here's Why This Isn't a Big Deal.",
-      "url": "",
-      "published": "Tue, 23 Jun 2026 13:41:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Yahoo Finance",
-      "tickers": [
-        "TSLA"
-      ],
-      "held": [],
-      "new_ideas": [
-        "TSLA"
-      ],
-      "sectors": [
-        "电动车"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 70,
-      "summary_cn": "Musk相关：Musk成为万亿富翁后减持1750万股Tesla股票，但被解读为'非大事'（可能为预安排行权/缴税），整体偏中性。"
-    }
-  ],
+  "new_ideas": [],
   "sector_hits": [
     {
-      "author": "Musk",
-      "text": "As SpaceX IPO blasts off, Elon Musk becomes a trillionaire",
-      "url": "",
-      "published": "Tue, 23 Jun 2026 18:56:46 GMT",
-      "origin": "gnews-rss",
-      "source": "Mashable",
+      "author": "Trump",
+      "text": "Despite their protestations and false statements to the contrary, coupled with the drumbeat of the Fake News, which is doing everything possible to make the U.S. Victory as small and insignificant as possible, Iran has fully and completely agreed to highest level Nuclear inspections long into the future (Infinity!!!). This will insure “Nuclear Honesty.” If they did not agree to this, there would be no further negotiations! Based on this and other major concessions being made by Iran, I have agreed to allow the Hormuz Strait to remain OPEN, with no further Naval Blockade. However, all ships are",
+      "url": "https://trumpstruth.org/statuses/39466",
+      "published": "2026-06-23T11:20:55+00:00",
+      "origin": "truthsocial",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "航天"
+        "地缘政治",
+        "能源/原油",
+        "核能"
       ],
       "sector_holdings": [
-        "SPCH"
+        "02208"
       ],
-      "stance": "neutral",
+      "stance": "endorse",
+      "relevance": 78,
+      "summary_cn": "Trump称伊朗已同意最高级别长期核检查，霍尔木兹海峡保持开放、海军封锁解除，油价利好"
+    },
+    {
+      "author": "Trump",
+      "text": "19 Millions Barrels of Oil flowed out of the Hormuz Strait yesterday, an all time RECORD. Oil prices are tumbling down, and the World is a much safer place!!! President DONALD J. TRUMP",
+      "url": "https://trumpstruth.org/statuses/39465",
+      "published": "2026-06-23T11:24:12+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "能源/原油"
+      ],
+      "sector_holdings": [
+        "02208"
+      ],
+      "stance": "endorse",
       "relevance": 72,
-      "summary_cn": "Musk相关：SpaceX IPO火爆使Musk成为万亿富翁；SpaceX未上市但SPCH（kcn持仓2倍杠杆SpaceX ETF）直接受益于IPO估值跃升。"
+      "summary_cn": "Trump称霍尔木兹海峡昨日通行1900万桶原油创纪录，油价正在大跌、世界更安全"
     },
     {
-      "author": "Musk",
-      "text": "After $86 billion IPO, SpaceX to borrow $20 billion",
-      "url": "",
-      "published": "Tue, 23 Jun 2026 08:38:33 GMT",
-      "origin": "gnews-rss",
-      "source": "Axios",
+      "author": "Trump",
+      "text": "Iran has informed the U.S. that, despite troublemaking Fake News reporting to the contrary, there are “NO TOLLS, NO INSURANCE COSTS, & NO OTHER CHARGES OF ANY KIND BEING SOUGHT OR RECEIVED BY IRAN ON SHIPS TRAVELING THE STRAIT OF HORMUZ. If this is false information, negotiations would end, immediately! Additionally, no money has been given to Iran, or released from their money to them, by the U.S. We will be releasing some of their money, that is totally controlled by us, to our Farmers and Ranchers, for the purchase of Corn, Wheat, Soybeans, and more. Food is desperately needed in Iran, and ",
+      "url": "https://trumpstruth.org/statuses/39507",
+      "published": "2026-06-24T11:37:15+00:00",
+      "origin": "truthsocial",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "航天",
-        "私募/IPO"
+        "能源/原油",
+        "农产品/大宗商品",
+        "地缘政治"
       ],
       "sector_holdings": [
-        "SPCH"
+        "02208"
       ],
       "stance": "neutral",
-      "relevance": 72,
-      "summary_cn": "Musk相关：SpaceX完成860亿美元IPO后计划再借款200亿美元；SpaceX未上市，但SPCH为kcn持仓的2倍杠杆SpaceX ETF，IPO与融资动态直接影响其净值与情绪。"
+      "relevance": 70,
+      "summary_cn": "Trump称伊朗不再对霍尔木兹海峡通行船只收费，美方将释放被冻结资金用于购买玉米/小麦/大豆等农产品"
     },
     {
-      "author": "Musk",
-      "text": "SpaceX's drop off sees Elon Musk's net worth fall $240 billion—roughly the same value as computing giant IBM",
-      "url": "",
-      "published": "Tue, 23 Jun 2026 11:19:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Fortune",
+      "author": "Trump",
+      "text": "The Elizabeth “Pocahontas” Warren centric housing bill, which is of minor importance compared to lower interest rates, and even FISA, pales in comparison to passing THE SAVE AMERICA ACT. That is what Americans, both Dumocrats, Republicans, and everyone else, care about. Get the bad Republicans to approve it or, better yet, Terminate the Filibuster and approve it, AND EVERYTHING ELSE REPUBLICANS HAVE EVER DREAMED OF. The Dumocrats will do it in hour one, 100%. Republicans will feel very stupid if they don’t do it first. I’ll be watching with tears in my eyes!!! President DJT",
+      "url": "https://trumpstruth.org/statuses/39511",
+      "published": "2026-06-24T13:49:20+00:00",
+      "origin": "truthsocial",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "航天",
-        "电动车"
+        "利率",
+        "房地产/住房"
       ],
       "sector_holdings": [
-        "SPCH"
+        "03032",
+        "03033",
+        "07226"
       ],
-      "stance": "neutral",
-      "relevance": 68,
-      "summary_cn": "Musk相关：SpaceX估值回撤使Musk净资产蒸发约2400亿美元；SPCH（kcn持仓）作为2倍杠杆SpaceX ETF受SpaceX估值波动直接影响。"
-    },
-    {
-      "author": "Musk",
-      "text": "Ro Khanna challenges Elon Musk to televised debate after online DOGE battle",
-      "url": "",
-      "published": "Mon, 22 Jun 2026 23:22:22 GMT",
-      "origin": "gnews-rss",
-      "source": "CNBC",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "政府效率/DOGE",
-        "加密货币"
-      ],
-      "sector_holdings": [
-        "CRCL"
-      ],
-      "stance": "neutral",
-      "relevance": 50,
-      "summary_cn": "Musk相关：众议员Ro Khanna在与Musk的DOGE线上交锋后邀其参加电视辩论，DOGE主题持续吸睛，间接利好加密情绪。"
+      "stance": "endorse",
+      "relevance": 55,
+      "summary_cn": "Trump呼吁通过SAVE AMERICA ACT并降低利率，强调利率与住房议题比Warren法案更重要"
     }
   ]
 }
