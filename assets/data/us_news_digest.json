@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-23T15:44:09.784349",
+  "generated_at": "2026-06-24T15:30:16.555023",
   "lookback_hours": 48,
   "tickers": [
     "CRCL",
@@ -9,9 +9,9 @@
     "SPCH",
     "MSFU"
   ],
-  "digest_markdown": "## Top 移动信号\n\n- **SPCH**: SpaceX IPO 传闻持续发酵,BlackRock / ProShares 抢发 space-themed leveraged ETF,SPCX 等同类产品同步上市 → SPCH 所在赛道拥挤度飙升,短线 beta 机会大但 2X 杠杆产品相互稀释,留意资金分流。\n- **PLTU**: Palantir Q4 财报 beat 已被多源 (ETF Trends / Direxion) 确认 → 直接利好 2X 杠杆敞口,但 \"Water or Gasoline\" 标题暗示估值已 price-in,追高风险上升。\n- **ROBN**: HOOD 盘后下跌,散户与分析态度分裂 (\"3 Reasons Why Analysts Shrug Off\") → 2X 杠杆首日波动放大,需盯次日开盘 gap 决定去留。\n- **MSFU**: MSFT \"Woes\" 与 \"Ready to Rebound\" 两派对立,Seeking Alpha 给 \"Pull the Trigger\" 看多 → 杠杆 ETF 多空分歧大,事件驱动不足,趋势未明前避免加仓。\n- **RKLX**: 无 MU 新 catalyst,仅 Zacks blog 罗列式提及,选项链页面与 Stock Traders Daily 流水稿占多数 → 纯杠杆衰减敞口,无信息优势。\n\n## Per-ticker 简报\n\n- **CRCL**: 无 ticker-specific 催化剂,Seeking Alpha \"Singularity\" 文为多 ticker 综述,忽略。\n- **PLTU**: PLTR Q4 beat 已落地,杠杆 ETF 关注度回升 (ETF Trends / Direxion 双源) - 短期动能正向但拥挤。\n- **ROBN**: HOOD 盘后回调,散户情绪 \"shrug off\" - 杠杆敞口波动放大,持仓需设紧 stop。\n- **SPCH**: SpaceX IPO 催化下同类 2X 产品 (SPCX 等) 集中上市 - 赛道扩容但 alpha 分散。\n- **MSFU**: MSFT 基本面分歧明显 - 杠杆多空都有论据,等待明确方向。\n- **RKLX**: 无新增 catalyst - 持有纯靠 MU 趋势惯性。\n\n## 风险 Watch\n\n- **ROBN**: HOOD 盘后下跌 (after-hours gap risk),2X 杠杆放大。\n- **PLTU**: 财报后 \"Water or Gasoline\" 标题暗示高估值回吐风险。\n- **RKLX**: 无 catalyst 下的杠杆衰减 + Zacks 仅为罗列式提及,无实质信息。\n- **MSFU**: MSFT \"Woes\" 若加深,杠杆下行放大;若 rebound 兑现则相反。\n- **SPCH**: 同期 10 只 SpaceX ETF 上市,资金分流与溢价回落风险。",
+  "digest_markdown": "## Top 移动信号\n\n- **CRCL**: Tapiero 预测 Coinbase 达万亿市值 + Web3 agentic AI 需 stablecoin 支付与钱包基建\n  → CRCL 作为 USDC 发行方,直接受益于 stablecoin 成为 AI 商业通道叙事,估值锚上移\n- **SPCH**: BlackRock、ProShares 加速发行 SpaceX 主题杠杆 ETF,本周 10 只集中上市\n  → 主题资金流入加速但杠杆 ETF 供应激增,SPCH 短期波动率与折溢价风险同步放大\n- **ROBN**: Ron Baron 新 ETF 创新高,核心仓位为 SpaceX\n  → 机构级 SpaceX 估值锚被验证,SPCH 类跟涨标的间接受益\n- **PLTU**: Palantir Q4 业绩 beat,ETF 重获关注\n  → PLTR 动量延续,2x 杠杆放大收益但情绪转弱时回撤同步\n\n## Per-ticker 简报\n\n- **CRCL**: Coinbase 万亿预测 + agentic AI 依赖区块链支付通道 — 正向 catalyst,USDC 商业用例叙事强化\n- **PLTU**: PLTR Q4 盈利超预期驱动 ETF 反弹 — 短期动量 OK,杠杆放大需配合仓位管理\n- **ROBN**: Baron 旗下基金因 SpaceX 重仓创新高 — 间接确认 SpaceX 估值,主题扩散\n- **SPCH**: 10 只 SpaceX 杠杆 ETF 集中上市 — 资金分流但叙事热度升温,催化剂密集\n- **MSFU**: 微软\"困境反转\"叙事重燃 — 杠杆 ETF 资金回流,但业绩 catalyst 缺位\n\n## 风险 watch\n\n- **SPCH/ROBN**: 新杠杆 ETF 集中上市 → 短期溢价/折价剧烈波动,流动性分层风险\n- **CRCL**: 估值高度依赖 crypto 周期与机构入场节奏,尚无 Q4 实绩支撑\n- 多数 ticker 当前以零售情绪稿 + ETF 营销为主,机构级合约/监管 catalyst 仍稀缺",
   "raw_news_counts": {
-    "CRCL": 1,
+    "CRCL": 3,
     "PLTU": 5,
     "RKLX": 5,
     "ROBN": 5,
