@@ -55,8 +55,14 @@ US_2X_MAP = {
     'PLTU': ('PLTR', 'usPLTR.OQ'),
     'ROBN': ('HOOD', 'usHOOD.OQ'),
     'MSFU': ('MSFT', 'usMSFT.OQ'),
+    # SPCH = 2x SpaceX daily ETF. SpaceX 未上市、无 200日线可用 → 拿 1x 代理 SPCX 做趋势
+    # 确认。SPCX 本身 2026-06 才上市 (~8 bars)，远不够 200DMA → 走短均线「右侧」回退规则
+    # (见 compute_us)。把 41% 的盲区接上：逆市 2x 做多 = 左侧，短均线之下即判 cut。
+    'SPCH': ('SPCX', 'usSPCX.OQ'),
 }
 US_VOL_HOT = 0.70    # single stocks run hot; only >70% annualised counts as "过热"
+SHORT_MA_WINDOW = 5  # 新上市杠杆名不足 200DMA 时的「右侧确认」短均线（仅趋势方向、非完整 regime）
+SHORT_MA_MIN = 5     # 短均线至少需要的 bar 数，再少则 unknown
 
 sys.path.insert(0, str(WS / 'scripts' / 'data'))
 try:
@@ -122,8 +128,28 @@ def compute_us():
         underlying, sym = US_2X_MAP[etf]
         closes = fetch_us(sym)
         if len(closes) < MA_WINDOW + 1:
-            names.append({'etf': etf, 'underlying': underlying, 'state': 'unknown',
-                          'note': f'insufficient history ({len(closes)} bars)'})
+            # 新上市标的不够 200DMA：用短均线做「右侧确认」回退（kcn 口径：逆市不上 2x，
+            # 趋势确认了再上）。仅判趋势方向、不算 vol；短均线之下=左侧逆市→保守 cut。
+            if len(closes) >= SHORT_MA_MIN:
+                w = min(SHORT_MA_WINDOW, len(closes))
+                short_ma = sum(closes[-w:]) / w
+                close = closes[-1]
+                trend_on = close > short_ma
+                names.append({
+                    'etf': etf, 'underlying': underlying,
+                    'close': round(close, 2), 'ma': round(short_ma, 2), 'ma_window': w,
+                    'dist_ma_pct': round((close / short_ma - 1) * 100, 1),
+                    'vol_annualized': None, 'trend_on': trend_on,
+                    'state': 'ok' if trend_on else 'cut',
+                    'regime_basis': f'short_ma_{w}',
+                    'note': (f'{underlying} 新上市仅 {len(closes)} bars，不足 200DMA → 用 {w}日均线'
+                             f'做右侧确认（非完整 regime）。'
+                             + ('趋势确认(>短均)→可持杠杆' if trend_on
+                                else '短均线之下=左侧逆市，2x 应降杠杆/换 1x，等右侧再上')),
+                })
+            else:
+                names.append({'etf': etf, 'underlying': underlying, 'state': 'unknown',
+                              'note': f'insufficient history ({len(closes)} bars)'})
             continue
         ma, vol = compute(closes)
         close = closes[-1]
@@ -146,7 +172,7 @@ def compute_us():
     cuts = [n for n in names if n.get('state') == 'cut']
     watches = [n for n in names if n.get('state') == 'watch']
     if cuts:
-        tier, label = 'red', f"{len(cuts)} 只趋势off+波动过热 → 该名降杠杆"
+        tier, label = 'red', f"{len(cuts)} 只触发降杠杆（趋势off+波动过热，或新名左侧逆市）"
     elif watches:
         tier, label = 'amber', f"{len(watches)} 只趋势off(波动未过热) → 观察，暂不强砍"
     else:

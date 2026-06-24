@@ -3742,10 +3742,14 @@ layout: null
       const sev = n.state === 'cut' ? 'high' : (n.state === 'watch' ? 'medium' : 'low');
       const vol = n.vol_annualized != null ? (n.vol_annualized*100).toFixed(0)+'%' : '—';
       const re = reclaim(n.close, n.ma);
-      const trig = (n.trend_on || re == null) ? '' : ` · <span class="warn-text">站回 ${Math.round(n.ma)}（+${re.toFixed(0)}%）解锁2x</span>`;
+      // 短历史名(新上市)用短均线做右侧确认，标签随 ma_window 走，别误写"200线"
+      const maLbl = (n.ma_window && n.ma_window < 200) ? `${n.ma_window}日均(右侧)` : '200线';
+      const trig = (n.trend_on || re == null) ? '' : ` · <span class="warn-text">站回 ${Math.round(n.ma)}（+${re.toFixed(0)}%）${n.ma_window && n.ma_window < 200 ? '右侧再上2x' : '解锁2x'}</span>`;
+      const basisNote = n.regime_basis && n.regime_basis.startsWith('short_ma')
+        ? ` · <span class="muted">新上市不足200日线,短均线替代</span>` : '';
       return `<div class="risk-alert ${sev}"><span class="icon">🧭</span>
         <div><strong>${n.etf}=2x ${n.underlying} <span class="${cls}">${tag}</span></strong>
-        <div class="muted" style="font-size:11px;margin-top:2px">距200线 ${n.dist_ma_pct ?? '—'}% · 20日波动 ${vol}${n.vol_hot ? ' 🔥' : ''}${trig}</div></div></div>`;
+        <div class="muted" style="font-size:11px;margin-top:2px">距${maLbl} ${n.dist_ma_pct ?? '—'}% · 20日波动 ${vol}${n.vol_hot ? ' 🔥' : ''}${trig}${basisNote}</div></div></div>`;
     }).join('');
     usEl.innerHTML = rows || '<div class="muted" style="font-size:12px">无持仓 2x 单股 ETF</div>';
     document.getElementById('lev-regime-asof').textContent =
