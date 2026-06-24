@@ -5,11 +5,25 @@
 知识散在各 fetcher 和记忆里。本脚本把这些不变量收进一处，每次 preflight / 发布前跑，
 硬违规（ERROR）阻止发布、软违规（WARN）标红留痕但不拦。输出 assets/data/integrity_report.json。
 
-固化的不变量（每条都对应一次真实事故）：
+完整对账逻辑：portfolio.json 每个「派生数字」都能从源头(shares/current_price/
+cost_basis/prev_close/trades[])复原，且都有一道闸守着。计算链：
+  current_price → current_value(VALUE_LEG) → TCV(TCV_SUM) → total_pnl(PNL_TOTAL)
+  cost_basis(COST_BASIS) → total_cost(COST_TOTAL) ↗        → total_pnl_percent(PNL_PCT)
+  prev_close → today_change(TODAY_LEG) → today_total_change(TODAY_TOTAL)
+  trades[] → realized_pnl(REALIZED_SUM) / cost_basis(COST_BASIS) / cash(CASH_RECON)
+
+固化的不变量（每条都对应一次真实事故或链上一环）：
+  VALUE_LEG      每只 current_value == shares×current_price               ERROR
   TCV_SUM        total_current_value == Σ(活跃持仓 current_value)        ERROR
                  → 手工 T+0 卖出漏重算 TCV → equity 假新高 / 回撤归零（3a68822）
+  COST_TOTAL     total_cost == Σ(活跃持仓 shares×cost_basis)             ERROR
   PNL_TOTAL      total_pnl == total_current_value − total_cost           ERROR
+  PNL_PCT        total_pnl_percent == total_pnl/total_cost×100           WARN
   PNL_LEG        每只 pnl_abs == shares×(current − cost)                 WARN
+  TODAY_LEG      每只 today_change == shares×(current − prev_close)      WARN
+  TODAY_TOTAL    today_total_change == Σ(活跃持仓 today_change)          WARN
+  CASH_RECON     cash == cash_reconciled基线 + Σ(此后trades现金流) + 存取款 ERROR
+                 → 加仓记进仓位漏扣现金 → 双计（6/22-24 SPCH $581；recompute_cash.py）
   PRICE_RANGE    current_price ∈ [day_low, day_high]                     WARN
                  → 03033 坏 tick 4.5 跌破 [4.644,4.696]（e54bc54）
   LEV_DIRECTION  同标的 2x 与 1x 的 today_change_pct 同号                WARN
@@ -225,13 +239,37 @@ def check(portfolio_path=PORTFOLIO):
                 f'total_current_value={tcv:.2f} ≠ Σ活跃持仓 current_value={sum_cv:.2f} '
                 f'(差 {tcv - sum_cv:+.2f})；疑似手工卖出漏重算聚合 → equity 假新高', region)
 
-        # PNL_TOTAL ------------------------------------------------------
+        # COST_TOTAL：total_cost == Σ(活跃持仓 shares×cost_basis)（喂 total_pnl）
         tcost = _num(port.get('total_cost'))
+        sum_cost = sum((_num(h.get('shares')) or 0) * (_num(h.get('cost_basis')) or 0)
+                       for h in active if _num(h.get('cost_basis')) is not None)
+        if tcost is not None and abs(tcost - sum_cost) > TCV_TOL:
+            add('COST_TOTAL', 'ERROR',
+                f'total_cost={tcost:.2f} ≠ Σ活跃持仓 shares×cost_basis={sum_cost:.2f} '
+                f'(差 {tcost - sum_cost:+.2f})；手工记仓漏重算成本 → total_pnl 失真', region)
+
+        # PNL_TOTAL ------------------------------------------------------
         tpnl = _num(port.get('total_pnl'))
         if tcv is not None and tcost is not None and tpnl is not None:
             if abs(tpnl - (tcv - tcost)) > TCV_TOL:
                 add('PNL_TOTAL', 'ERROR',
                     f'total_pnl={tpnl:.2f} ≠ TCV−cost={tcv - tcost:.2f}', region)
+
+        # PNL_PCT：total_pnl_percent == total_pnl/total_cost×100（口径=未实现/当前成本）
+        tpct = _num(port.get('total_pnl_percent'))
+        if tpct is not None and tpnl is not None and tcost:
+            want_pct = tpnl / tcost * 100
+            if abs(tpct - want_pct) > 0.5:
+                add('PNL_PCT', 'WARN',
+                    f'total_pnl_percent={tpct:.2f} ≠ total_pnl/total_cost={want_pct:.2f}', region)
+
+        # TODAY_TOTAL：today_total_change == Σ(活跃持仓 today_change)
+        ttc = _num(port.get('today_total_change'))
+        sum_tc = sum(_num(h.get('today_change')) or 0 for h in active)
+        if ttc is not None and abs(ttc - sum_tc) > TCV_TOL:
+            add('TODAY_TOTAL', 'WARN',
+                f'today_total_change={ttc:.2f} ≠ Σ活跃持仓 today_change={sum_tc:.2f} '
+                f'(差 {ttc - sum_tc:+.2f})', region)
 
         # REALIZED_SUM ---------------------------------------------------
         rp = _num(port.get('realized_pnl'))
@@ -266,12 +304,32 @@ def check(portfolio_path=PORTFOLIO):
                         f'{t} current={cur} 越出当日区间[{lo}, {hi}]；疑似坏 tick，'
                         f'用同标的 2x/1x 兄弟验向', region, t)
 
+            # VALUE_LEG：current_value == shares×current_price（喂 TCV→equity 的源；
+            # TCV_SUM 只验「总额==Σcv」，若每只 cv 本身算错则一起错也发现不了）
+            cv = _num(h.get('current_value'))
+            if cur is not None and sh and cv is not None:
+                want_cv = sh * cur
+                if abs(cv - want_cv) > max(PCT_TOL, abs(want_cv) * 0.01):
+                    add('VALUE_LEG', 'ERROR',
+                        f'{t} current_value={cv:.2f} ≠ shares×current_price={want_cv:.2f}'
+                        f'（差 {cv - want_cv:+.2f}）；手工记仓漏重算市值 → equity 失真', region, t)
+
             # PNL_LEG
             if cur is not None and sh and cost is not None and pnl is not None:
                 want_pnl = sh * (cur - cost)
                 if abs(pnl - want_pnl) > max(PCT_TOL, abs(want_pnl) * 0.01):
                     add('PNL_LEG', 'WARN',
                         f'{t} pnl_abs={pnl:.2f} ≠ shares×(cur−cost)={want_pnl:.2f}', region, t)
+
+            # TODAY_LEG：today_change == shares×(current−prev_close)（日内 P&L 的源）
+            prev = _num(h.get('prev_close'))
+            tchg = _num(h.get('today_change'))
+            if cur is not None and sh and prev is not None and tchg is not None:
+                want_tc = sh * (cur - prev)
+                if abs(tchg - want_tc) > max(PCT_TOL, abs(want_tc) * 0.02):
+                    add('TODAY_LEG', 'WARN',
+                        f'{t} today_change={tchg:.2f} ≠ shares×(cur−prev_close)={want_tc:.2f}'
+                        f'（差 {tchg - want_tc:+.2f}）；prev_close 陈旧或漏重算', region, t)
 
             # COST_BASIS：仅当 trades 账本完整(净股==当前 shares)时才校验，
             # 半账本(只记近期 T+0、缺建仓买入)净股对不上 → cost_basis 是手填的、跳过
