@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-24T15:30:16.555023",
+  "generated_at": "2026-06-25T15:37:47.152921",
   "lookback_hours": 48,
   "tickers": [
     "CRCL",
@@ -9,7 +9,7 @@
     "SPCH",
     "MSFU"
   ],
-  "digest_markdown": "## Top 移动信号\n\n- **CRCL**: Tapiero 预测 Coinbase 达万亿市值 + Web3 agentic AI 需 stablecoin 支付与钱包基建\n  → CRCL 作为 USDC 发行方,直接受益于 stablecoin 成为 AI 商业通道叙事,估值锚上移\n- **SPCH**: BlackRock、ProShares 加速发行 SpaceX 主题杠杆 ETF,本周 10 只集中上市\n  → 主题资金流入加速但杠杆 ETF 供应激增,SPCH 短期波动率与折溢价风险同步放大\n- **ROBN**: Ron Baron 新 ETF 创新高,核心仓位为 SpaceX\n  → 机构级 SpaceX 估值锚被验证,SPCH 类跟涨标的间接受益\n- **PLTU**: Palantir Q4 业绩 beat,ETF 重获关注\n  → PLTR 动量延续,2x 杠杆放大收益但情绪转弱时回撤同步\n\n## Per-ticker 简报\n\n- **CRCL**: Coinbase 万亿预测 + agentic AI 依赖区块链支付通道 — 正向 catalyst,USDC 商业用例叙事强化\n- **PLTU**: PLTR Q4 盈利超预期驱动 ETF 反弹 — 短期动量 OK,杠杆放大需配合仓位管理\n- **ROBN**: Baron 旗下基金因 SpaceX 重仓创新高 — 间接确认 SpaceX 估值,主题扩散\n- **SPCH**: 10 只 SpaceX 杠杆 ETF 集中上市 — 资金分流但叙事热度升温,催化剂密集\n- **MSFU**: 微软\"困境反转\"叙事重燃 — 杠杆 ETF 资金回流,但业绩 catalyst 缺位\n\n## 风险 watch\n\n- **SPCH/ROBN**: 新杠杆 ETF 集中上市 → 短期溢价/折价剧烈波动,流动性分层风险\n- **CRCL**: 估值高度依赖 crypto 周期与机构入场节奏,尚无 Q4 实绩支撑\n- 多数 ticker 当前以零售情绪稿 + ETF 营销为主,机构级合约/监管 catalyst 仍稀缺",
+  "digest_markdown": "### Top 移动信号 (跨 ticker)\n- **SPCH**: 鲸鱼+机构资金涌入, 多源 (\"Wall Street levering up SpaceX\") 确认 SpaceX 加杠杆主题 → 同主题 **ROBN** (Ron Baron 含 SpaceX 重仓) 同步创纪录, 双重验证\n- **PLTU**: PLTR rally 延续, 杠杆 ETF \"创纪录新高\" → 顺势但拥挤, 警惕回调放大\n- **MSFU**: \"Microsoft Woes\" 框架下多家媒体 (ETFDB/SA/ETFTrends) 喊反弹 → 2x 放大 MSFT 反弹预期\n- **CRCL**: agentic AI 依赖 stablecoin 支付 + Web3 基础设施 → 间接利好 USDC 发行方 Circle 叙事\n\n### Per-ticker 简报\n- **CRCL**: Coinbase $1T 预测是 **COIN** 而非 CRCL, 别误读; 真正催化 = stablecoin/agentic AI 趋势 (中等利好)\n- **PLTU**: PLTR 创纪录带动正催化; 注意一条 \"印尼 PLTU 煤电\" 是 **同名干扰**, 务必忽略\n- **RKLX**: 仅有期权链/分析师博客罗列, 无实质催化, 观望\n- **ROBN**: Ron Baron 新 ETF (SpaceX 重仓) 创新高 = 正信号; \"Robinhood 盘后跌\" 是 **HOOD** 而非 ROBN, 不相关\n- **SPCH**: 多源证实机构/鲸鱼建仓 + Nasdaq-100 准备, 共识强势\n- **MSFU**: 媒体共识偏多, 但标题 \"Woes\" 暗示 MSFT 仍存隐忧 (Azure/AI capex 未明)\n\n### 风险 watch\n- **杠杆 ETF 衰减**: PLTU / SPCH / MSFU 均为 2x, 单日反转即放大回撤, 不宜追高\n- **主题拥挤**: SpaceX + PLTR 两主题同步新高, 集中反转风险升\n- **标的混淆**: PLTU 印尼煤电、HOOD 盘后跌、COIN $1T 预测 等非相关 ticker 噪音需在交易决策中过滤\n- **MSFT 基本面**: \"Woes\" 来源未明, 若 Azure 增速放缓属实, MSFU 反弹逻辑直接证伪",
   "raw_news_counts": {
     "CRCL": 3,
     "PLTU": 5,
