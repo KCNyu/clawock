@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-25T23:00:36.965537Z",
+  "generated_at": "2026-06-25T23:02:23.727567Z",
   "last_updated": "2026/06/26 04:03 HKT",
   "fx": {
     "usdhkd": null,
@@ -5346,69 +5346,79 @@
     ]
   },
   "macro": {
-    "generated_at": "2026-06-24T22:51:21.704949+00:00",
+    "generated_at": "2026-06-25T23:02:18.333802+00:00",
     "vix": {
       "symbol": "^VIX",
-      "price": 18.63,
-      "prev": 17.28,
-      "change_pct": 7.81,
-      "as_of": 1782332101,
+      "price": 18.89,
+      "prev": 19.49,
+      "change_pct": -3.08,
+      "as_of": 1782418501,
       "source": "yahoo"
     },
     "treasury_10y": {
       "symbol": "^TNX",
-      "price": 4.402,
-      "prev": 4.493,
-      "change_pct": -2.03,
-      "as_of": 1782327594,
+      "price": 4.392,
+      "prev": 4.402,
+      "change_pct": -0.23,
+      "as_of": 1782413994,
       "source": "yahoo",
-      "yield_pct": 4.402
+      "yield_pct": 4.392
     },
     "dxy": {
       "symbol": "DX-Y.NYB",
-      "price": 101.584,
-      "prev": 101.408,
-      "change_pct": 0.17,
-      "as_of": 1782338692,
+      "price": 101.441,
+      "prev": 101.431,
+      "change_pct": 0.01,
+      "as_of": 1782425094,
       "source": "yahoo"
     },
     "fear_greed": {
-      "score": 25.9,
+      "score": 25.5,
       "rating": "fear",
-      "prev_close": 27.5,
-      "prev_1_week": 32.2,
-      "as_of": "2026-06-24T22:34:31+00:00"
+      "prev_close": 25.9,
+      "prev_1_week": 37.6,
+      "as_of": "2026-06-25T22:46:22+00:00"
     },
     "hsi": {
       "symbol": "^HSI",
-      "price": 23412.18,
-      "prev": 23336.28,
-      "change_pct": 0.33,
+      "price": 23076.91,
+      "prev": 23412.18,
+      "change_pct": -1.43,
       "source": "tencent"
     },
     "hstech": {
       "symbol": "^HSTECH",
-      "price": 4479.02,
-      "prev": 4399.22,
-      "change_pct": 1.81,
+      "price": 4405.92,
+      "prev": 4479.02,
+      "change_pct": -1.63,
       "source": "tencent"
     },
     "spx": {
       "symbol": "^GSPC",
-      "price": 7358.22,
-      "prev": 7365.46,
-      "change_pct": -0.1,
-      "as_of": 1782333693,
+      "price": 7357.49,
+      "prev": 7358.22,
+      "change_pct": -0.01,
+      "as_of": 1782420381,
       "source": "yahoo"
     },
     "nasdaq": {
       "symbol": "^IXIC",
-      "price": 25476.64,
-      "prev": 25587.04,
-      "change_pct": -0.43,
+      "price": 25358.6,
+      "prev": 25476.64,
+      "change_pct": -0.46,
       "source": "tencent"
     },
     "fed_press": [
+      {
+        "date": "2026-06-25",
+        "title": "Federal Reserve Board issues enforcement action with employee of Bank of Eufaula and S N B Bancshares, Inc.",
+        "url": "https://www.federalreserve.gov/newsevents/pressreleases/enforcement20260625b.htm"
+      },
+      {
+        "date": "2026-06-25",
+        "title": "Federal Reserve Board announces termination of enforcement action with Jiko Group, Inc.",
+        "url": "https://www.federalreserve.gov/newsevents/pressreleases/enforcement20260625a.htm"
+      },
       {
         "date": "2026-06-24",
         "title": "Federal Reserve Board's annual bank stress test confirms that large banks are well positioned to weather a severe recession and able to continue to lend to households and businesses",
@@ -5418,21 +5428,6 @@
         "date": "2026-06-22",
         "title": "Federal Reserve notes with deep sadness the passing of Alan Greenspan",
         "url": "https://www.federalreserve.gov/newsevents/pressreleases/other20260622a.htm"
-      },
-      {
-        "date": "2026-06-18",
-        "title": "Federal Reserve Board issues enforcement action with former employee of Bank of Eufaula and S N B Bancshares, Inc.",
-        "url": "https://www.federalreserve.gov/newsevents/pressreleases/enforcement20260618b.htm"
-      },
-      {
-        "date": "2026-06-18",
-        "title": "Federal Reserve Board issues enforcement action with former employee of Manufacturers and Traders Trust Company",
-        "url": "https://www.federalreserve.gov/newsevents/pressreleases/enforcement20260618a.htm"
-      },
-      {
-        "date": "2026-06-18",
-        "title": "Federal Reserve Board requests comment on proposal to require certain payment stablecoin issuers to maintain an effective customer identification program",
-        "url": "https://www.federalreserve.gov/newsevents/pressreleases/bcreg20260618a.htm"
       }
     ]
   },
@@ -6513,7 +6508,7 @@
     "last_updated": "2026-06-25T15:50:29.047772Z"
   },
   "build_status": {
-    "generated_at": "2026-06-25T23:00:37+00:00",
+    "generated_at": "2026-06-25T23:02:23+00:00",
     "healthy": true,
     "stale_files": [],
     "files": [
