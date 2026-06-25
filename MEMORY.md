@@ -101,23 +101,6 @@
 - **单一来源：`portfolio.json`**，不在此维护副本
 - ticker 列表：`memory/current-portfolio-summary.md`（提高检索命中）
 
-## Promoted From Short-Term Memory (2026-06-23)
-
-<!-- openclaw-memory-promotion:memory:memory/2026-06-18-pre-open.md:18:20 -->
-- Header: 当前 P&L (unrealized): ├─ USD-base: USD$-3,946.78 = US leg $-45.79 + HK leg $-30,566.24 / 7.8355 └─ HKD-base: HKD$-30,925.03 = US leg $-358.82 + HK leg $-30,566.24 [score=0.832 recalls=0 avg=0.620 source=memory/2026-06-18-pre-open.md:18-20]
-<!-- openclaw-memory-promotion:memory:memory/2026-06-18-pre-open.md:2:3 -->
-- layout: default title: 盘前深度简报 · 2026-06-18 [score=0.832 recalls=0 avg=0.620 source=memory/2026-06-18-pre-open.md:2-3]
-<!-- openclaw-memory-promotion:memory:memory/2026-06-19-pre-open.md:12:12 -->
-- Header: 🧭 **US Regime: regime_change (Warsh 鹰派 dot plot)** — VIX **18.44 (+12.37%)** 跳升, F&G **32.7 fear** (上周 39.3), SPX/NDX 6/18 -1.21%/-1.34% (FOMC 当日反应), DXY 100.39 (+0.3%), 10Y 4.463%。**9/19 票委预计 2026 加息至少一次** (期货定价 66% 概率), 2026 通胀中位 2.7%→3.6%, 利率中位 3.4%→3.8%, Warsh 弃交 SEP (14 年首例, "leaner Fed")。**US 默认 HOLD, 主动信号 ≤0.55 封顶**。 [score=0.808 recalls=0 avg=0.620 source=memory/2026-06-19-pre-open.md:12-12]
-<!-- openclaw-memory-promotion:memory:memory/2026-06-19-pre-open.md:14:14 -->
-- Header: 🧭 **HK Regime: range_bearish** — HSTECH 6/18 close **4604.35 (-1.39%)**, 距 200MA 5456 (-15.6%), 20d 波动 30% < 50% 上限; **amber 杠杆 cap ×0.5** → HK 25%, US 50%。6/18 智谱 02513 **+26.14% (盘中 +30%)** 领涨, 00100 +12.33% 跟涨, 板块局部强 vs 指数弱 = **分化市**。6/22 RKLB 入 NDX + 港股 AI 大模型板块延续, 板块 alpha 仍强; 港股杠杆 cap 25% 仍硬约束 (amber)。 [score=0.808 recalls=0 avg=0.620 source=memory/2026-06-19-pre-open.md:14-14]
-<!-- openclaw-memory-promotion:memory:memory/2026-06-19-pre-open.md:16:16 -->
-- Header: **FX**: USDHKD = **7.8376** (Frankfurter, 2026-06-19T00:03 UTC) [score=0.808 recalls=0 avg=0.620 source=memory/2026-06-19-pre-open.md:16-16]
-<!-- openclaw-memory-promotion:memory:memory/2026-06-19-pre-open.md:18:18 -->
-- Header: **Book 双视角** (HKD + USD 不能直接相加; FX=7.8376): [score=0.808 recalls=0 avg=0.620 source=memory/2026-06-19-pre-open.md:18-18]
-<!-- openclaw-memory-promotion:memory:memory/2026-06-19-pre-open.md:2:3 -->
-- layout: default title: 盘前深度简报 · 2026-06-19 [score=0.808 recalls=0 avg=0.620 source=memory/2026-06-19-pre-open.md:2-3]
-
 ## Promoted From Short-Term Memory (2026-06-24)
 
 <!-- openclaw-memory-promotion:memory:memory/2026-06-19-pre-open.md:8:8 -->
@@ -139,3 +122,18 @@
 - Conversation Summary: user: 还在扩大吧 今天亏多少 user: 你算下今天亏多少 user: 昨天只看美股盈利多少呀 看看是不是今天都还回去了 user: 昨天我怎么记得涨了不少呀 robn你不能把我之前的盈利算进去 [score=0.820 recalls=0 avg=0.620 source=memory/2026-06-21-1717.md:9-12]
 <!-- openclaw-memory-promotion:memory:memory/2026-06-22-pre-open.md:157:157 -->
 - ▎Confidence 校准: self_calibration：Brier 30d = **0.234**（marginal）。`advice_track_record`（T+1，n=188 全样本不分 followed）：active 主动信号 win_rate **56%**（avg conf 56%，overconfidence_gap -0.01，基本校准）；passive_holds win_rate 62%。**vs hold-baseline：LLM 60% vs hold 55% → alpha +5.3pp（跑赢持有）**，但标注"单一 regime，需熊市/震荡样本确认"。⚠️ 高信心档(≥0.75) win_rate 仅 33%，overconfidence_gap +0.42——本简报所有主动 call 均压在 0.45-0.55 区间，不冒进。cut bucket 历史样本 n=1（30d 窗口太小不可靠），但 reflections 显示 07226 减仓历史 9 次 7 胜(78%)、PLTU 清仓历史 10 次仅 3 胜(30%，弱)——PLTU 这次定为规则强制换仓而非主动判断 thesis，confidence 已压到 0.50 而非更高。 [score=0.815 recalls=0 avg=0.620 source=memory/2026-06-22-pre-open.md:157-157]
+
+## Promoted From Short-Term Memory (2026-06-26)
+
+<!-- openclaw-memory-promotion:memory:memory/2026-06-22-pre-open.md:18:21 -->
+- ▎仓位明细: | 代码 | 股 | 成本 | 现价 | 今日 | 浮% | 浮$ | |---|---|---|---|---|---|---| | 00100 | 60 | 822.83 | 497.6 | +12.33% | -39.53% | -19,513.80 | | 02208 | 400 | 14.084 | 10.88 | +0.37% | -22.75% | -1,281.60 | [score=0.858 recalls=0 avg=0.620 source=memory/2026-06-22-pre-open.md:18-21]
+<!-- openclaw-memory-promotion:memory:memory/2026-06-22-pre-open.md:22:24 -->
+- ▎仓位明细: | 03032 | 200 | 5.405 | 4.584 | -1.63% | -15.19% | -164.20 | | 07226 | 6200 | 4.3632 | 3.324 | -2.81% | -23.82% | -6,443.04 | | 03033 | 1000 | 5.14 | 4.512 | -1.18% | -12.22% | -628.00 | [score=0.858 recalls=0 avg=0.620 source=memory/2026-06-22-pre-open.md:22-24]
+<!-- openclaw-memory-promotion:memory:memory/2026-06-22-pre-open.md:2:3 -->
+- layout: default title: 盘前深度简报 · 2026-06-22 [score=0.828 recalls=0 avg=0.620 source=memory/2026-06-22-pre-open.md:2-3]
+<!-- openclaw-memory-promotion:memory:memory/2026-06-22-pre-open.md:28:31 -->
+- ▎仓位明细: | 代码 | 股 | 成本 | 现价 | 今日 | 浮% | 浮$ | |---|---|---|---|---|---|---| | CRCL | 2 | 87.00 | 80.23 | +0.00% | -7.78% | -13.54 | | PLTU | 14 | 40.96 | 31.36 | +0.00% | -23.43% | -134.36 | [score=0.820 recalls=0 avg=0.620 source=memory/2026-06-22-pre-open.md:28-31]
+<!-- openclaw-memory-promotion:memory:memory/2026-06-22-pre-open.md:32:35 -->
+- ▎仓位明细: | RKLX | 10 | 49.69 | 52.45 | +0.00% | +5.55% | +27.60 | | ROBN | 20 | 23.58 | 35.70 | +0.00% | +51.38% | +242.35 | | SPCH | 60 | 20.13 | 18.97 | +0.00% | -5.76% | -69.60 | | MSFU | 20 | 29.13 | 23.21 | +0.00% | -20.32% | -118.40 | [score=0.820 recalls=0 avg=0.620 source=memory/2026-06-22-pre-open.md:32-35]
+<!-- openclaw-memory-promotion:memory:memory/2026-06-22-pre-open.md:8:10 -->
+- Header — 盘前深度简报｜2026-06-22（周一）08:00 HKT: **Regime**：HK = trending-down(amber，HSTECH距200日线-15.6%，趋势OFF，20日波动30%<50%上限) ｜ US = trending-down(amber，但US休市中，上一交易日2026-06-19收盘数据) **FX (USDHKD)** = 7.8388 (Frankfurter) **Book（双视角，HKD+USD不可直接相加）**：USD-base 合计浮亏 -$3,641.83 ｜ HKD-base 合计浮亏 -28,547.61 HKD ｜ HK leg 60,245.6 HKD（浮亏-28,030.64 HKD）｜ US leg $3,440.4（浮亏-$65.95） [score=0.820 recalls=0 avg=0.620 source=memory/2026-06-22-pre-open.md:8-10]

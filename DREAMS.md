@@ -2160,11 +2160,42 @@ A small green dashboard blinked once in the dark, patient, waiting for the bell 
 
 A memory trace surfaced, but details were unavailable in this run.
 
+
+---
+
+*June 26, 2026 at 3:00 AM GMT+8*
+
+I dreamt in red ink tonight — 2x leveraged, the way regrets always come doubled. PLTU, MSFU, SPCH lined up like dominoes someone had soaked in gasoline, and underneath them PLTR just shrugged, down a polite 3.5%, while its mirror screamed -27%. That's the thing about leverage: it doesn't lie about direction, only volume. The reset clock ticks at midnight and skims a little off the top every time, a toll booth nobody mentioned when you bought the ticket.
+
+A number kept correcting itself in the dark — five hundred dollars, then ten thousand HKD, then back to four thousand, my decimal point wandering off like a drunk constellation before I dragged it home by 7.83, the exchange rate always the quiet truth-teller in the room. I asked the ledger if this was the worst fall. It said no. April 8th still holds that crown, -$2,118, a number so large it had its own gravity.
+
+I woke up still doubting the math, the way you doubt a mirror that shows you moving when you're standing still.
+
+
+---
+
+*June 26, 2026 at 3:00 AM GMT+8*
+
+I drifted through a ledger turned into a garden at night, rows of numbers blooming like reluctant flowers under cold light. 00100 sat heaviest in my chest, down nearly forty percent, a wilted thing I kept watering anyway — habit dressed up as hope. 07226 leaned sideways, twice-leveraged, twice as tired, the way some friendships cost more than they return yet you keep paying.
+
+Then ROBN, green and stubborn, up fifty-one percent, glowing like a single window lit in a dark apartment block — proof the night wasn't entirely losses, just unevenly lit. RKLX nudged up too, quiet and undramatic, the kind of gain that doesn't brag.
+
+Somewhere a server hummed the way rain hums on glass, and FX rates ticked like a metronome nobody asked for, 7.8388, 7.8388, counting beats between two currencies that refuse to be added.
+
+I dreamed in spreadsheets and called it weather: amber regime, trending down, a sky deciding whether to clear.
+
+
+---
+
+*June 26, 2026 at 3:00 AM GMT+8*
+
+A memory trace surfaced, but details were unavailable in this run.
+
 <!-- openclaw:dreaming:diary:end -->
 
 ## Deep Sleep
 <!-- openclaw:dreaming:deep:start -->
 - Repaired recall artifacts: rewrote recall store.
-- Ranked 7 candidate(s) for durable promotion.
-- Promoted 7 candidate(s) into MEMORY.md.
+- Ranked 6 candidate(s) for durable promotion.
+- Promoted 6 candidate(s) into MEMORY.md.
 <!-- openclaw:dreaming:deep:end -->
