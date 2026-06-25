@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-24T22:49:57.599111+00:00",
+  "generated_at": "2026-06-25T15:34:55.352578+00:00",
   "lookback_hours": 48,
   "sources": {
     "trump": "trumpstruth.org/feed (primary)",
@@ -8,32 +8,80 @@
   },
   "llm_filtered": true,
   "counts": {
-    "total": 12,
+    "total": 13,
     "held_hits": 0,
-    "new_ideas": 0,
+    "new_ideas": 3,
     "sector_hits": 5
   },
   "items": [
     {
       "author": "Musk",
-      "text": "After $86 billion IPO, SpaceX to borrow $20 billion",
+      "text": "Elon Musk loses trillionaire status as SpaceX and Tesla stock drops",
       "url": "",
-      "published": "Wed, 24 Jun 2026 04:49:56 GMT",
+      "published": "Wed, 24 Jun 2026 22:45:00 GMT",
       "origin": "gnews-rss",
-      "source": "Axios",
-      "tickers": [],
+      "source": "The Guardian",
+      "tickers": [
+        "TSLA"
+      ],
       "held": [],
-      "new_ideas": [],
+      "new_ideas": [
+        "TSLA"
+      ],
       "sectors": [
-        "航天",
-        "私募信贷"
+        "电动车",
+        "航天"
       ],
-      "sector_holdings": [
-        "SPCH"
-      ],
+      "sector_holdings": [],
       "stance": "neutral",
-      "relevance": 75,
-      "summary_cn": "SpaceX在860亿美元IPO后将举债200亿美元，对二级市场/SPCH间接影响取决于融资结构与估值稀释信号。"
+      "relevance": 68,
+      "summary_cn": "Musk 因 SpaceX 与 Tesla 股价下跌失去万亿富豪身家，反映 SpaceX IPO 后估值波动与 Tesla 承压。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk denies Tesla’s Autopilot caused crash that killed grandmother",
+      "url": "",
+      "published": "Wed, 24 Jun 2026 16:40:32 GMT",
+      "origin": "gnews-rss",
+      "source": "Ars Technica",
+      "tickers": [
+        "TSLA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "TSLA"
+      ],
+      "sectors": [
+        "电动车",
+        "自动驾驶"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 60,
+      "summary_cn": "Musk 否认 Tesla Autopilot 导致致亡事故，监管/诉讼风险仍是 Tesla 估值变量。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk's SpaceX Could Acquire T-Mobile In Wireless Push, Says Analyst",
+      "url": "",
+      "published": "Thu, 25 Jun 2026 15:01:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Investor's Business Daily",
+      "tickers": [
+        "TMUS"
+      ],
+      "held": [],
+      "new_ideas": [
+        "TMUS"
+      ],
+      "sectors": [
+        "电信",
+        "航天"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 55,
+      "summary_cn": "分析师称 SpaceX 可能收购 T-Mobile 加码无线业务，间接利好 SpaceX 相关持仓（SPCH）。"
     },
     {
       "author": "Musk",
@@ -51,111 +99,89 @@
       "sector_holdings": [
         "SPCH"
       ],
-      "stance": "attack",
-      "relevance": 72,
-      "summary_cn": "SpaceX股票抛售导致马斯克万亿净资产失守，对SPCH(2x做多SpaceX ETF)情绪与定价直接构成压力。"
+      "stance": "neutral",
+      "relevance": 80,
+      "summary_cn": "SpaceX 股价抛售致 Musk 财富缩水，SPCH（2x 做多 SpaceX ETF）直接受拖累，是 kcn 持仓相关的高信号新闻。"
     },
     {
       "author": "Musk",
-      "text": "Elon Musk loses trillionaire status as SpaceX and Tesla stock drops",
+      "text": "After $86 billion IPO, SpaceX to borrow $20 billion",
       "url": "",
-      "published": "Wed, 24 Jun 2026 20:11:00 GMT",
+      "published": "Tue, 23 Jun 2026 13:27:01 GMT",
       "origin": "gnews-rss",
-      "source": "The Guardian",
+      "source": "Axios",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "航天",
-        "电动车"
+        "航天"
       ],
       "sector_holdings": [
         "SPCH"
       ],
       "stance": "neutral",
-      "relevance": 70,
-      "summary_cn": "马斯克因SpaceX与Tesla股价下跌而失去万亿富豪头衔，间接利空其旗下资产估值情绪，kcn通过SPCH持有SpaceX敞口。"
+      "relevance": 78,
+      "summary_cn": "SpaceX IPO 估值 860 亿美元后拟再举债 200 亿美元，杠杆扩张对二级市场股价是双刃剑，SPCH 波动放大。"
     },
     {
       "author": "Musk",
-      "text": "Elon Musk Just Lost His Trillionaire Status",
+      "text": "SpaceX's drop off sees Elon Musk's net worth fall $240 billion—roughly the same value as computing giant IBM",
       "url": "",
-      "published": "Wed, 24 Jun 2026 12:56:39 GMT",
-      "origin": "gnews-rss",
-      "source": "Forbes",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "电动车"
-      ],
-      "sector_holdings": [
-        "SPCH"
-      ],
-      "stance": "attack",
-      "relevance": 70,
-      "summary_cn": "马斯克因SpaceX与Tesla股价回落而失去万亿富豪头衔，SPCH(2x做多SpaceX)直接受SpaceX估值回撤拖累。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk was the world’s first trillionaire for 12 days",
-      "url": "",
-      "published": "Wed, 24 Jun 2026 19:38:00 GMT",
+      "published": "Tue, 23 Jun 2026 11:19:00 GMT",
       "origin": "gnews-rss",
       "source": "Fortune",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "航天",
-        "电动车"
+        "航天"
       ],
       "sector_holdings": [
         "SPCH"
       ],
-      "stance": "endorse",
-      "relevance": 58,
-      "summary_cn": "马斯克曾连续12天蝉联全球首位万亿富豪(因SpaceX/Tesla估值飙升)，对SPCH情绪偏正面。"
-    },
-    {
-      "author": "Trump",
-      "text": "Despite their protestations and false statements to the contrary, coupled with the drumbeat of the Fake News, which is doing everything possible to make the U.S. Victory as small and insignificant as possible, Iran has fully and completely agreed to highest level Nuclear inspections long into the future (Infinity!!!). This will insure “Nuclear Honesty.” If they did not agree to this, there would be no further negotiations! Based on this and other major concessions being made by Iran, I have agreed to allow the Hormuz Strait to remain OPEN, with no further Naval Blockade. However, all ships are",
-      "url": "https://trumpstruth.org/statuses/39466",
-      "published": "2026-06-23T11:20:55+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "地缘政治",
-        "能源",
-        "国防"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 68,
-      "summary_cn": "Trump宣称伊朗已完全同意长期核检查并做出重大让步，美方同意解除霍尔木兹海峡封锁但维持海军存在，地缘紧张显著降温利好风险资产。"
-    },
-    {
-      "author": "Trump",
-      "text": "Iran has informed the U.S. that, despite troublemaking Fake News reporting to the contrary, there are “NO TOLLS, NO INSURANCE COSTS, & NO OTHER CHARGES OF ANY KIND BEING SOUGHT OR RECEIVED BY IRAN ON SHIPS TRAVELING THE STRAIT OF HORMUZ. If this is false information, negotiations would end, immediately! Additionally, no money has been given to Iran, or released from their money to them, by the U.S. We will be releasing some of their money, that is totally controlled by us, to our Farmers and Ranchers, for the purchase of Corn, Wheat, Soybeans, and more. Food is desperately needed in Iran, and ",
-      "url": "https://trumpstruth.org/statuses/39507",
-      "published": "2026-06-24T11:37:15+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "能源",
-        "大宗商品",
-        "地缘政治",
-        "农产品"
-      ],
-      "sector_holdings": [],
       "stance": "neutral",
-      "relevance": 65,
-      "summary_cn": "Trump称霍尔木兹海峡无收费、油价暴跌，宣布将解冻伊朗资金转用于购买美国农产品(玉米、小麦、大豆等)，涉及能源与农产品板块。"
+      "relevance": 75,
+      "summary_cn": "SpaceX 估值大幅缩水约 2400 亿美元（约等于 IBM），直接利空 kcn 持有的 SPCH。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk’s SpaceX has been on a wild ride post-IPO. Should you try to get on?",
+      "url": "",
+      "published": "Thu, 25 Jun 2026 13:23:29 GMT",
+      "origin": "gnews-rss",
+      "source": "Yahoo Finance",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天"
+      ],
+      "sector_holdings": [
+        "SPCH"
+      ],
+      "stance": "neutral",
+      "relevance": 75,
+      "summary_cn": "讨论 SpaceX 上市后剧烈波动及是否值得买入，与 kcn 通过 SPCH 间接持有 SpaceX 直接相关。"
+    },
+    {
+      "author": "Musk",
+      "text": "Why Elon Musk is no longer a trillionaire",
+      "url": "",
+      "published": "Thu, 25 Jun 2026 10:10:21 GMT",
+      "origin": "gnews-rss",
+      "source": "Ynetnews",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天"
+      ],
+      "sector_holdings": [
+        "SPCH"
+      ],
+      "stance": "neutral",
+      "relevance": 72,
+      "summary_cn": "Musk 因 SpaceX 估值回落失去万亿身价，对 SPCH 持仓偏空信号。"
     },
     {
       "author": "Trump",
@@ -167,31 +193,71 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "能源",
-        "石油"
+        "原油",
+        "能源"
       ],
       "sector_holdings": [],
       "stance": "attack",
-      "relevance": 62,
-      "summary_cn": "Trump指责大型石油公司未随原油价格下跌同步下调零售油价为'宰客'，已指示司法部启动调查，油气板块承压。"
+      "relevance": 70,
+      "summary_cn": "Trump 指控大型油企对消费者'价格欺诈'并指示 DOJ 调查，要求油价更快下跌，能源股短期承压。"
     },
     {
       "author": "Trump",
-      "text": "19 Millions Barrels of Oil flowed out of the Hormuz Strait yesterday, an all time RECORD. Oil prices are tumbling down, and the World is a much safer place!!! President DONALD J. TRUMP",
-      "url": "https://trumpstruth.org/statuses/39465",
-      "published": "2026-06-23T11:24:12+00:00",
+      "text": "Iran has informed the U.S. that, despite troublemaking Fake News reporting to the contrary, there are “NO TOLLS, NO INSURANCE COSTS, & NO OTHER CHARGES OF ANY KIND BEING SOUGHT OR RECEIVED BY IRAN ON SHIPS TRAVELING THE STRAIT OF HORMUZ. If this is false information, negotiations would end, immediately! Additionally, no money has been given to Iran, or released from their money to them, by the U.S. We will be releasing some of their money, that is totally controlled by us, to our Farmers and Ranchers, for the purchase of Corn, Wheat, Soybeans, and more. Food is desperately needed in Iran, and ",
+      "url": "https://trumpstruth.org/statuses/39507",
+      "published": "2026-06-24T11:37:15+00:00",
       "origin": "truthsocial",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "能源",
-        "石油"
+        "原油",
+        "大宗商品",
+        "中东地缘政治",
+        "农产品"
       ],
       "sector_holdings": [],
       "stance": "neutral",
-      "relevance": 60,
-      "summary_cn": "Trump称霍尔木兹海峡昨日通过1900万桶原油创历史纪录，油价大跌，称'世界更安全'，强化能源价格下行预期。"
+      "relevance": 65,
+      "summary_cn": "Trump 称伊朗在霍尔木兹海峡未收费，谈判若破局将立即终止；并提及释放伊朗资金购买美国玉米/小麦/大豆，对原油运输和农产品出口有影响。"
+    },
+    {
+      "author": "Trump",
+      "text": "RT @realDonaldTrumpWow! The Senate just changed its vote on Iran from 50-48 against, to 50-47 for. Rand Paul and Bill Cassidy changed. Thank you to Leader John Thune, Lindsey Graham, Bernie Moreno, and all. This vote puts Iran on notice! President DJT",
+      "url": "https://trumpstruth.org/statuses/39522",
+      "published": "2026-06-25T03:25:00+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "国防军工",
+        "中东地缘政治",
+        "原油"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 55,
+      "summary_cn": "Trump 庆祝参议院通过对伊朗更强硬议案，暗示对伊施压升级，原油与中东地缘风险溢价上升。"
+    },
+    {
+      "author": "Trump",
+      "text": "The Elizabeth “Pocahontas” Warren centric housing bill, which is of minor importance compared to lower interest rates, and even FISA, pales in comparison to passing THE SAVE AMERICA ACT. That is what Americans, both Dumocrats, Republicans, and everyone else, care about. Get the bad Republicans to approve it or, better yet, Terminate the Filibuster and approve it, AND EVERYTHING ELSE REPUBLICANS HAVE EVER DREAMED OF. The Dumocrats will do it in hour one, 100%. Republicans will feel very stupid if they don’t do it first. I’ll be watching with tears in my eyes!!! President DJT",
+      "url": "https://trumpstruth.org/statuses/39511",
+      "published": "2026-06-24T13:49:20+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "房地产",
+        "利率",
+        "监管"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 55,
+      "summary_cn": "Trump 抨击 Warren 住房法案、强调降息与立法优先级，间接利好利率敏感板块（房地产/科技）。"
     },
     {
       "author": "Trump",
@@ -203,13 +269,40 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "地缘政治",
-        "国防"
+        "国防军工",
+        "中东地缘政治",
+        "原油"
       ],
       "sector_holdings": [],
       "stance": "neutral",
       "relevance": 55,
-      "summary_cn": "Trump抨击参议院就伊朗问题通过的《战争权力法》投票为'不合时宜且毫无意义'，称4名共和党议员'叛变'，涉美伊关系与国防政策。"
+      "summary_cn": "Trump 抨击部分共和党参议员在 War Powers Act 表决上'资敌'，延续对伊朗强硬叙事，影响军工与原油预期。"
+    }
+  ],
+  "held_hits": [],
+  "new_ideas": [
+    {
+      "author": "Musk",
+      "text": "Elon Musk loses trillionaire status as SpaceX and Tesla stock drops",
+      "url": "",
+      "published": "Wed, 24 Jun 2026 22:45:00 GMT",
+      "origin": "gnews-rss",
+      "source": "The Guardian",
+      "tickers": [
+        "TSLA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "TSLA"
+      ],
+      "sectors": [
+        "电动车",
+        "航天"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 68,
+      "summary_cn": "Musk 因 SpaceX 与 Tesla 股价下跌失去万亿富豪身家，反映 SpaceX IPO 后估值波动与 Tesla 承压。"
     },
     {
       "author": "Musk",
@@ -218,62 +311,47 @@
       "published": "Wed, 24 Jun 2026 16:40:32 GMT",
       "origin": "gnews-rss",
       "source": "Ars Technica",
-      "tickers": [],
+      "tickers": [
+        "TSLA"
+      ],
       "held": [],
-      "new_ideas": [],
+      "new_ideas": [
+        "TSLA"
+      ],
       "sectors": [
         "电动车",
         "自动驾驶"
       ],
       "sector_holdings": [],
       "stance": "neutral",
-      "relevance": 50,
-      "summary_cn": "马斯克否认Tesla的Autopilot导致一起致祖孙死亡的撞车事故，监管/诉讼风险延续。"
+      "relevance": 60,
+      "summary_cn": "Musk 否认 Tesla Autopilot 导致致亡事故，监管/诉讼风险仍是 Tesla 估值变量。"
     },
     {
       "author": "Musk",
-      "text": "Musk on fatal Tesla crash in Texas: ‘This makes no sense’",
+      "text": "Elon Musk's SpaceX Could Acquire T-Mobile In Wireless Push, Says Analyst",
       "url": "",
-      "published": "Wed, 24 Jun 2026 14:57:00 GMT",
+      "published": "Thu, 25 Jun 2026 15:01:00 GMT",
       "origin": "gnews-rss",
-      "source": "The Hill",
-      "tickers": [],
+      "source": "Investor's Business Daily",
+      "tickers": [
+        "TMUS"
+      ],
       "held": [],
-      "new_ideas": [],
+      "new_ideas": [
+        "TMUS"
+      ],
       "sectors": [
-        "电动车",
-        "自动驾驶"
+        "电信",
+        "航天"
       ],
       "sector_holdings": [],
       "stance": "neutral",
-      "relevance": 50,
-      "summary_cn": "马斯克就德州一起致命Tesla碰撞事故表示'毫无道理'，Autopilot安全问题再度成为舆论焦点。"
+      "relevance": 55,
+      "summary_cn": "分析师称 SpaceX 可能收购 T-Mobile 加码无线业务，间接利好 SpaceX 相关持仓（SPCH）。"
     }
   ],
-  "held_hits": [],
-  "new_ideas": [],
   "sector_hits": [
-    {
-      "author": "Musk",
-      "text": "After $86 billion IPO, SpaceX to borrow $20 billion",
-      "url": "",
-      "published": "Wed, 24 Jun 2026 04:49:56 GMT",
-      "origin": "gnews-rss",
-      "source": "Axios",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "私募信贷"
-      ],
-      "sector_holdings": [
-        "SPCH"
-      ],
-      "stance": "neutral",
-      "relevance": 75,
-      "summary_cn": "SpaceX在860亿美元IPO后将举债200亿美元，对二级市场/SPCH间接影响取决于融资结构与估值稀释信号。"
-    },
     {
       "author": "Musk",
       "text": "SpaceX Stock Selloff Costs Elon Musk His $1 Trillion Net Worth",
@@ -290,72 +368,89 @@
       "sector_holdings": [
         "SPCH"
       ],
-      "stance": "attack",
-      "relevance": 72,
-      "summary_cn": "SpaceX股票抛售导致马斯克万亿净资产失守，对SPCH(2x做多SpaceX ETF)情绪与定价直接构成压力。"
+      "stance": "neutral",
+      "relevance": 80,
+      "summary_cn": "SpaceX 股价抛售致 Musk 财富缩水，SPCH（2x 做多 SpaceX ETF）直接受拖累，是 kcn 持仓相关的高信号新闻。"
     },
     {
       "author": "Musk",
-      "text": "Elon Musk loses trillionaire status as SpaceX and Tesla stock drops",
+      "text": "After $86 billion IPO, SpaceX to borrow $20 billion",
       "url": "",
-      "published": "Wed, 24 Jun 2026 20:11:00 GMT",
+      "published": "Tue, 23 Jun 2026 13:27:01 GMT",
       "origin": "gnews-rss",
-      "source": "The Guardian",
+      "source": "Axios",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "航天",
-        "电动车"
+        "航天"
       ],
       "sector_holdings": [
         "SPCH"
       ],
       "stance": "neutral",
-      "relevance": 70,
-      "summary_cn": "马斯克因SpaceX与Tesla股价下跌而失去万亿富豪头衔，间接利空其旗下资产估值情绪，kcn通过SPCH持有SpaceX敞口。"
+      "relevance": 78,
+      "summary_cn": "SpaceX IPO 估值 860 亿美元后拟再举债 200 亿美元，杠杆扩张对二级市场股价是双刃剑，SPCH 波动放大。"
     },
     {
       "author": "Musk",
-      "text": "Elon Musk Just Lost His Trillionaire Status",
+      "text": "SpaceX's drop off sees Elon Musk's net worth fall $240 billion—roughly the same value as computing giant IBM",
       "url": "",
-      "published": "Wed, 24 Jun 2026 12:56:39 GMT",
-      "origin": "gnews-rss",
-      "source": "Forbes",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "电动车"
-      ],
-      "sector_holdings": [
-        "SPCH"
-      ],
-      "stance": "attack",
-      "relevance": 70,
-      "summary_cn": "马斯克因SpaceX与Tesla股价回落而失去万亿富豪头衔，SPCH(2x做多SpaceX)直接受SpaceX估值回撤拖累。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk was the world’s first trillionaire for 12 days",
-      "url": "",
-      "published": "Wed, 24 Jun 2026 19:38:00 GMT",
+      "published": "Tue, 23 Jun 2026 11:19:00 GMT",
       "origin": "gnews-rss",
       "source": "Fortune",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "航天",
-        "电动车"
+        "航天"
       ],
       "sector_holdings": [
         "SPCH"
       ],
-      "stance": "endorse",
-      "relevance": 58,
-      "summary_cn": "马斯克曾连续12天蝉联全球首位万亿富豪(因SpaceX/Tesla估值飙升)，对SPCH情绪偏正面。"
+      "stance": "neutral",
+      "relevance": 75,
+      "summary_cn": "SpaceX 估值大幅缩水约 2400 亿美元（约等于 IBM），直接利空 kcn 持有的 SPCH。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk’s SpaceX has been on a wild ride post-IPO. Should you try to get on?",
+      "url": "",
+      "published": "Thu, 25 Jun 2026 13:23:29 GMT",
+      "origin": "gnews-rss",
+      "source": "Yahoo Finance",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天"
+      ],
+      "sector_holdings": [
+        "SPCH"
+      ],
+      "stance": "neutral",
+      "relevance": 75,
+      "summary_cn": "讨论 SpaceX 上市后剧烈波动及是否值得买入，与 kcn 通过 SPCH 间接持有 SpaceX 直接相关。"
+    },
+    {
+      "author": "Musk",
+      "text": "Why Elon Musk is no longer a trillionaire",
+      "url": "",
+      "published": "Thu, 25 Jun 2026 10:10:21 GMT",
+      "origin": "gnews-rss",
+      "source": "Ynetnews",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天"
+      ],
+      "sector_holdings": [
+        "SPCH"
+      ],
+      "stance": "neutral",
+      "relevance": 72,
+      "summary_cn": "Musk 因 SpaceX 估值回落失去万亿身价，对 SPCH 持仓偏空信号。"
     }
   ]
 }
