@@ -138,17 +138,17 @@
     },
     {
       "ticker": "ROBN",
-      "bucket": "hold_and_watch",
-      "size_pct": 0,
-      "size_shares": 0,
-      "trigger_type": "manual",
-      "trigger_price": null,
-      "trigger_condition": "若HOOD跌破200MA幅度扩大且波动持续>70%则升级为cut",
+      "bucket": "trim_on_rebound",
+      "size_pct": 50,
+      "size_shares": 10,
+      "trigger_type": "price_above",
+      "trigger_price": 30,
+      "trigger_condition": "反弹至≥30再减半换仓HOOD，勿在新低日一次砍",
       "confidence": 0.5,
       "driven_by": "technical",
       "contested": true,
-      "rationale": "regime_delever红区(HOOD破200MA-5.5%+波动88%过热)但ROBN历史主动清仓胜率仅46%(清×16胜6)，本次降速观察而非立即换仓，避免重复历史上常错的判断。",
-      "thesis_invalidation": "HOOD收复200日线且波动<70%→regime转green，维持2x"
+      "rationale": "regime_delever红区(HOOD破200MA-5.5%+波动88%过热)，US杠杆ETF腿95.4%>50%cap共振。但ROBN历史主动清仓胜率仅46%(清×16胜6)，本次用trim_on_rebound(历史77%)分批换HOOD而非一次性cut，避免重复历史上常错的全清判断。",
+      "thesis_invalidation": "HOOD收复200日线且波动<70%→regime转green，停止减仓维持2x"
     }
   ],
   "watch_levels": {

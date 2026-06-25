@@ -264,3 +264,4 @@ plan_date,ticker,bucket,trigger_type,driven_by,trigger_price,confidence,sim_entr
 2026-06-25,03032,hold_and_watch,manual,technical,,0.5,4.468,pending,,,unknown,,2026-06-25T08:08:00.677052
 2026-06-25,03033,hold_and_watch,manual,technical,,0.5,4.4,pending,,,unknown,,2026-06-25T08:08:00.677555
 2026-06-25,ROBN,hold_and_watch,manual,technical,,0.5,28.61,pending,,,unknown,,2026-06-25T08:08:00.678237
+2026-06-25,ROBN,trim_on_rebound,price_above,technical,30,0.5,30,pending,,,unknown,,2026-06-25T08:09:16.263885
