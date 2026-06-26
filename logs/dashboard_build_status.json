@@ -1,6 +1,6 @@
 {
-  "checked_at": "2026-06-26T08:02:58Z",
+  "checked_at": "2026-06-26T13:33:29Z",
   "ok": true,
   "warn_count": 0,
-  "tail": "  brief-context source: brief-context-2026-06-26.json\n✓ wrote /root/.openclaw/workspace/assets/data/dashboard.json (192,552 bytes)\n  US: 15 holdings, 6 active, value $2886\n  HK: 7 holdings, 5 active, value HK$51900\n  Snapshots: 33 embedded / 33 on disk\n  Plans: 5 embedded / 30 on disk\n  Snapshots: 33 | Plans: 5\n  FX USDHKD: 7.8406 (Frankfurter)\n"
+  "tail": "  brief-context source: brief-context-2026-06-26.json\n✓ wrote /root/.openclaw/workspace/assets/data/dashboard.json (190,557 bytes)\n  US: 15 holdings, 6 active, value $2867\n  HK: 7 holdings, 5 active, value HK$51900\n  Snapshots: 33 embedded / 33 on disk\n  Plans: 5 embedded / 30 on disk\n  Snapshots: 33 | Plans: 5\n  FX USDHKD: 7.8406 (Frankfurter)\n"
 }
