@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-25T15:37:47.152921",
+  "generated_at": "2026-06-26T15:20:10.712772",
   "lookback_hours": 48,
   "tickers": [
     "CRCL",
@@ -9,7 +9,7 @@
     "SPCH",
     "MSFU"
   ],
-  "digest_markdown": "### Top 移动信号 (跨 ticker)\n- **SPCH**: 鲸鱼+机构资金涌入, 多源 (\"Wall Street levering up SpaceX\") 确认 SpaceX 加杠杆主题 → 同主题 **ROBN** (Ron Baron 含 SpaceX 重仓) 同步创纪录, 双重验证\n- **PLTU**: PLTR rally 延续, 杠杆 ETF \"创纪录新高\" → 顺势但拥挤, 警惕回调放大\n- **MSFU**: \"Microsoft Woes\" 框架下多家媒体 (ETFDB/SA/ETFTrends) 喊反弹 → 2x 放大 MSFT 反弹预期\n- **CRCL**: agentic AI 依赖 stablecoin 支付 + Web3 基础设施 → 间接利好 USDC 发行方 Circle 叙事\n\n### Per-ticker 简报\n- **CRCL**: Coinbase $1T 预测是 **COIN** 而非 CRCL, 别误读; 真正催化 = stablecoin/agentic AI 趋势 (中等利好)\n- **PLTU**: PLTR 创纪录带动正催化; 注意一条 \"印尼 PLTU 煤电\" 是 **同名干扰**, 务必忽略\n- **RKLX**: 仅有期权链/分析师博客罗列, 无实质催化, 观望\n- **ROBN**: Ron Baron 新 ETF (SpaceX 重仓) 创新高 = 正信号; \"Robinhood 盘后跌\" 是 **HOOD** 而非 ROBN, 不相关\n- **SPCH**: 多源证实机构/鲸鱼建仓 + Nasdaq-100 准备, 共识强势\n- **MSFU**: 媒体共识偏多, 但标题 \"Woes\" 暗示 MSFT 仍存隐忧 (Azure/AI capex 未明)\n\n### 风险 watch\n- **杠杆 ETF 衰减**: PLTU / SPCH / MSFU 均为 2x, 单日反转即放大回撤, 不宜追高\n- **主题拥挤**: SpaceX + PLTR 两主题同步新高, 集中反转风险升\n- **标的混淆**: PLTU 印尼煤电、HOOD 盘后跌、COIN $1T 预测 等非相关 ticker 噪音需在交易决策中过滤\n- **MSFT 基本面**: \"Woes\" 来源未明, 若 Azure 增速放缓属实, MSFU 反弹逻辑直接证伪",
+  "digest_markdown": "## 48h Digest\n\n### Top 移动信号\n- **CRCL**: Circle 与 Nomura 启动稳定币结算业务 (Nikkei Asia) - 日本大型金融机构接入, 机构采用里程碑, **加注信号**.\n- **CRCL**: 加密概念股遭抛售, BTC 下跌拖累 + Strategy STRC 优先股疲软 - 短期 beta 风险, 但非 CRCL 基本面, **持仓承受波动但不破位**.\n- **SPCH**: 鲸鱼/机构资金流入, 押注 SpaceX 进入 Nasdaq-100 - 若 SpaceX IPO 或纳指纳入落地, SPCH 弹性最大, **主题 beta 持仓**.\n\n### Per-ticker\n- **CRCL**: Nomura 结算合作 = 真实机构催化剂; 同日 crypto-beta 卖压为噪音, 不改变主线.\n- **ROBN**: Robin Energy (如确为同一 ticker) 12/24 反向拆股执行 - 注意 corporate action, 但若 ROBN 为 Ron Baron SpaceX ETF 则与该新闻无关, 需核实.\n- **PLTU / RKLX / MSFU**: 仅技术分析/散户情绪/ETF 评论, 无可执行 catalyst, 忽略.\n- **SPCH**: SpaceX 纳入 Nasdaq-100 预期为唯一有意义叙事, 但未官宣, 纯博弈.\n\n### Risk Watch\n- **CRCL**: BTC 价格波动 = 直接 beta 风险, 关注 Strategy STRC 优先股抛售蔓延.\n- **ROBN**: 12/24 反向拆股 (若适用) - 流动性短暂扰动.\n- **SPCH**: SpaceX 纳指纳入为预期博弈, 未兑现则回吐风险高.",
   "raw_news_counts": {
     "CRCL": 3,
     "PLTU": 5,
