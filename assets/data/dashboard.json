@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-06-26T00:08:46.571277Z",
-  "last_updated": "2026/06/26 08:01 HKT",
+  "generated_at": "2026-06-26T01:33:08.610286Z",
+  "last_updated": "2026/06/26 09:32 HKT",
   "fx": {
     "usdhkd": 7.8406,
     "source": "Frankfurter",
@@ -17,11 +17,11 @@
       "cash_usd": 273.25
     },
     "hk": {
-      "value_hkd": 55394.0,
+      "value_hkd": 53129.6,
       "cost_hkd": 88276.24,
-      "pnl_hkd": -32882.24,
-      "pnl_pct": -37.25,
-      "today_change_hkd": -2125.2,
+      "pnl_hkd": -35146.64,
+      "pnl_pct": -39.81,
+      "today_change_hkd": -2264.4,
       "realized_hkd": 7259.16,
       "cash_hkd": 4597
     }
@@ -76,41 +76,41 @@
       }
     },
     "hk": {
-      "hhi": 0.3725,
-      "top2": 0.836,
+      "hhi": 0.3672,
+      "top2": 0.829,
       "positions": [
         {
           "ticker": "00100",
           "name": "MINIMAX-W",
-          "value": 27396.0,
-          "weight": 0.4946
+          "value": 26028.0,
+          "weight": 0.4899
         },
         {
           "ticker": "07226",
           "name": "XL二南方恒科",
-          "value": 18910.0,
-          "weight": 0.3414
+          "value": 18017.2,
+          "weight": 0.3391
         },
         {
           "ticker": "03033",
           "name": "南方恒生科技",
-          "value": 4330.0,
-          "weight": 0.0782
+          "value": 4224.0,
+          "weight": 0.0795
         },
         {
           "ticker": "02208",
           "name": "金风科技",
-          "value": 3876.0,
-          "weight": 0.07
+          "value": 4000.0,
+          "weight": 0.0753
         },
         {
           "ticker": "03032",
           "name": "恒生科技ETF",
-          "value": 882.0,
-          "weight": 0.0159
+          "value": 860.4,
+          "weight": 0.0162
         }
       ],
-      "total": 55394.0,
+      "total": 53129.6,
       "verdict": {
         "level": "danger",
         "label": "危险集中",
@@ -230,14 +230,14 @@
         "currency": "HKD",
         "shares": 60,
         "cost_basis": 822.83,
-        "current_price": 456.6,
-        "current_value": 27396.0,
-        "today_change": -1260.0,
-        "today_change_pct": -4.4,
-        "day_high": 503.0,
-        "day_low": 446.2,
-        "pnl_abs": -21973.8,
-        "pnl_percent": -44.51,
+        "current_price": 433.8,
+        "current_value": 26028.0,
+        "today_change": -1368.0,
+        "today_change_pct": -4.99,
+        "day_high": 450.0,
+        "day_low": 434.0,
+        "pnl_abs": -23341.8,
+        "pnl_percent": -47.28,
         "is_active": true,
         "trades_count": 3
       },
@@ -247,14 +247,14 @@
         "currency": "HKD",
         "shares": 400,
         "cost_basis": 14.084,
-        "current_price": 9.69,
-        "current_value": 3876.0,
-        "today_change": -176.0,
-        "today_change_pct": -4.34,
-        "day_high": 10.0,
-        "day_low": 9.59,
-        "pnl_abs": -1757.6,
-        "pnl_percent": -31.2,
+        "current_price": 10.0,
+        "current_value": 4000.0,
+        "today_change": 124.0,
+        "today_change_pct": 3.2,
+        "day_high": 10.11,
+        "day_low": 9.69,
+        "pnl_abs": -1633.6,
+        "pnl_percent": -29.0,
         "is_active": true,
         "trades_count": 1
       },
@@ -264,14 +264,14 @@
         "currency": "HKD",
         "shares": 200,
         "cost_basis": 5.405,
-        "current_price": 4.41,
-        "current_value": 882.0,
-        "today_change": -11.6,
-        "today_change_pct": -1.3,
-        "day_high": 4.466,
-        "day_low": 4.346,
-        "pnl_abs": -199.0,
-        "pnl_percent": -18.41,
+        "current_price": 4.302,
+        "current_value": 860.4,
+        "today_change": -21.6,
+        "today_change_pct": -2.45,
+        "day_high": 4.37,
+        "day_low": 4.3,
+        "pnl_abs": -220.6,
+        "pnl_percent": -20.41,
         "is_active": true,
         "trades_count": 0
       },
@@ -281,14 +281,14 @@
         "currency": "HKD",
         "shares": 6200,
         "cost_basis": 4.3632,
-        "current_price": 3.05,
-        "current_value": 18910.0,
-        "today_change": -607.6,
-        "today_change_pct": -3.11,
-        "day_high": 3.15,
-        "day_low": 2.97,
-        "pnl_abs": -8141.84,
-        "pnl_percent": -30.1,
+        "current_price": 2.906,
+        "current_value": 18017.2,
+        "today_change": -892.8,
+        "today_change_pct": -4.72,
+        "day_high": 2.998,
+        "day_low": 2.902,
+        "pnl_abs": -9034.64,
+        "pnl_percent": -33.4,
         "is_active": true,
         "trades_count": 1
       },
@@ -298,14 +298,14 @@
         "currency": "HKD",
         "shares": 1000,
         "cost_basis": 5.14,
-        "current_price": 4.33,
-        "current_value": 4330.0,
-        "today_change": -70.0,
-        "today_change_pct": -1.59,
-        "day_high": 4.396,
-        "day_low": 4.268,
-        "pnl_abs": -810.0,
-        "pnl_percent": -15.76,
+        "current_price": 4.224,
+        "current_value": 4224.0,
+        "today_change": -106.0,
+        "today_change_pct": -2.45,
+        "day_high": 4.304,
+        "day_low": 4.222,
+        "pnl_abs": -916.0,
+        "pnl_percent": -17.82,
         "is_active": true,
         "trades_count": 0
       }
@@ -1026,13 +1026,13 @@
       "us_realized": 1841.18,
       "us_equity": 4727.42,
       "us_profit": 640.07,
-      "hk_total_value": 55394.0,
+      "hk_total_value": 53129.6,
       "hk_total_cost": 88276.24,
-      "hk_total_pnl": -32882.24,
-      "hk_today_change": -2125.2,
+      "hk_total_pnl": -35146.64,
+      "hk_today_change": -2264.4,
       "hk_realized": 7259.16,
-      "hk_equity": 62653.16,
-      "hk_profit": -25623.08,
+      "hk_equity": 60388.76,
+      "hk_profit": -27887.48,
       "us_cash": 273.25,
       "hk_cash": 4597,
       "us_asof": "2026-06-25",
@@ -1134,17 +1134,17 @@
     },
     "HSI": {
       "name": "恒生指数",
-      "price": 23076.91,
-      "prev_close": 23412.18,
-      "change_pct": -1.43,
-      "source": "Tencent qt.gtimg.cn 2026/06/26 08:01 HKT"
+      "price": 22850.95,
+      "prev_close": 23076.91,
+      "change_pct": -0.98,
+      "source": "Tencent qt.gtimg.cn 2026/06/26 09:32 HKT"
     },
     "HSTECH": {
       "name": "恒生科技",
-      "price": 4405.92,
-      "prev_close": 4479.02,
-      "change_pct": -1.63,
-      "source": "Tencent qt.gtimg.cn 2026/06/26 08:01 HKT"
+      "price": 4308.39,
+      "prev_close": 4405.92,
+      "change_pct": -2.21,
+      "source": "Tencent qt.gtimg.cn 2026/06/26 09:32 HKT"
     }
   },
   "market_context": {
@@ -1431,7 +1431,7 @@
       523.0,
       475.2,
       455.0,
-      456.6
+      433.8
     ],
     "02208": [
       11.22,
@@ -1443,7 +1443,7 @@
       10.3,
       10.1,
       9.59,
-      9.69
+      10.0
     ],
     "03032": [
       4.76,
@@ -1455,7 +1455,7 @@
       4.396,
       4.468,
       4.41,
-      4.41
+      4.302
     ],
     "07226": [
       3.584,
@@ -1467,7 +1467,7 @@
       3.046,
       3.148,
       3.046,
-      3.05
+      2.906
     ],
     "03033": [
       4.668,
@@ -1479,7 +1479,7 @@
       4.33,
       4.392,
       4.324,
-      4.33
+      4.224
     ],
     "07709": [
       null,
@@ -1513,9 +1513,9 @@
       "30d_pct": 5.26
     },
     "hk": {
-      "today_pct": 0.27,
-      "7d_pct": -4.15,
-      "30d_pct": -30.85
+      "today_pct": -3.36,
+      "7d_pct": -7.61,
+      "30d_pct": -33.35
     }
   },
   "today_movers": [
@@ -1555,22 +1555,22 @@
       "ticker": "00100",
       "name": "MINIMAX-W",
       "region": "hk",
-      "today_change_pct": -4.4,
-      "current_price": 456.6
-    },
-    {
-      "ticker": "02208",
-      "name": "金风科技",
-      "region": "hk",
-      "today_change_pct": -4.34,
-      "current_price": 9.69
+      "today_change_pct": -4.99,
+      "current_price": 433.8
     },
     {
       "ticker": "07226",
       "name": "XL二南方恒科",
       "region": "hk",
-      "today_change_pct": -3.11,
-      "current_price": 3.05
+      "today_change_pct": -4.72,
+      "current_price": 2.906
+    },
+    {
+      "ticker": "02208",
+      "name": "金风科技",
+      "region": "hk",
+      "today_change_pct": 3.2,
+      "current_price": 10.0
     },
     {
       "ticker": "CRCL",
@@ -1591,19 +1591,19 @@
     {
       "type": "high_weight_loss",
       "ticker": "00100",
-      "detail": "weight 49.5% + pnl -44.5%",
+      "detail": "weight 49.5% + pnl -47.3%",
       "severity": "high"
     },
     {
       "type": "high_weight_loss",
       "ticker": "07226",
-      "detail": "weight 34.1% + pnl -30.1%",
+      "detail": "weight 34.1% + pnl -33.4%",
       "severity": "high"
     },
     {
       "type": "leveraged_etf_stop",
       "ticker": "07226",
-      "detail": "leveraged ETF: pnl -30.1%",
+      "detail": "leveraged ETF: pnl -33.4%",
       "severity": "high"
     },
     {
@@ -1682,14 +1682,6 @@
         "best_peer_name": "第四范式",
         "peer_pct_1d": -1.18,
         "divergence_pp": 3.22
-      },
-      {
-        "ticker": "02208",
-        "self_pct_1d": -4.34,
-        "best_peer": "01072",
-        "best_peer_name": "东方电气",
-        "peer_pct_1d": -0.5,
-        "divergence_pp": 3.84
       }
     ]
   },
@@ -2936,7 +2928,7 @@
     {
       "ticker": "00100",
       "region": "hk",
-      "weight_pct": 49.46,
+      "weight_pct": 48.99,
       "avg_confidence": 0.525,
       "n_actions": 22,
       "quadrant": "high_risk"
@@ -2952,7 +2944,7 @@
     {
       "ticker": "07226",
       "region": "hk",
-      "weight_pct": 34.14,
+      "weight_pct": 33.91,
       "avg_confidence": 0.54,
       "n_actions": 24,
       "quadrant": "high_risk"
@@ -2992,7 +2984,7 @@
     {
       "ticker": "03033",
       "region": "hk",
-      "weight_pct": 7.82,
+      "weight_pct": 7.95,
       "avg_confidence": 0.503,
       "n_actions": 19,
       "quadrant": "low_conv_small"
@@ -3000,7 +2992,7 @@
     {
       "ticker": "02208",
       "region": "hk",
-      "weight_pct": 7.0,
+      "weight_pct": 7.53,
       "avg_confidence": 0.552,
       "n_actions": 20,
       "quadrant": "low_conv_small"
@@ -3016,16 +3008,16 @@
     {
       "ticker": "03032",
       "region": "hk",
-      "weight_pct": 1.59,
+      "weight_pct": 1.62,
       "avg_confidence": 0.503,
       "n_actions": 19,
       "quadrant": "low_conv_small"
     }
   ],
   "drawdown": {
-    "max_pct_30d_hk": -32.95,
+    "max_pct_30d_hk": -35.13,
     "max_pct_30d_us": -18.51,
-    "current_pct_hk": -27.77,
+    "current_pct_hk": -30.38,
     "current_pct_us": 10.62,
     "us": {
       "peak": {
@@ -3054,19 +3046,19 @@
         "date": "2026-05-27"
       },
       "trough": {
-        "value": 62412.36,
-        "date": "2026-06-12"
-      },
-      "current": {
-        "value": 62653.16,
+        "value": 60388.76,
         "date": "2026-06-26"
       },
-      "current_dd_pct": -32.69,
-      "max_dd_pct": -32.95,
-      "max_dd_abs": 30674.4,
+      "current": {
+        "value": 60388.76,
+        "date": "2026-06-26"
+      },
+      "current_dd_pct": -35.13,
+      "max_dd_pct": -35.13,
+      "max_dd_abs": 32698.0,
       "max_dd_peak_date": "2026-05-27",
-      "max_dd_trough_date": "2026-06-12",
-      "at_low": false,
+      "max_dd_trough_date": "2026-06-26",
+      "at_low": true,
       "currency": "HKD"
     },
     "combined": {
@@ -3079,10 +3071,10 @@
         "date": "2026-06-12"
       },
       "current": {
-        "value": 99718.97,
+        "value": 97454.57,
         "date": "2026-06-26"
       },
-      "current_dd_pct": -23.09,
+      "current_dd_pct": -24.84,
       "max_dd_pct": -27.57,
       "max_dd_abs": 35749.09,
       "max_dd_peak_date": "2026-05-29",
@@ -3122,22 +3114,22 @@
           "date": "2026-05-27"
         },
         "trough": {
-          "value": -25863.88,
-          "date": "2026-06-12"
-        },
-        "current": {
-          "value": -25623.08,
+          "value": -27887.48,
           "date": "2026-06-26"
         },
-        "from_peak_abs": -30433.6,
+        "current": {
+          "value": -27887.48,
+          "date": "2026-06-26"
+        },
+        "from_peak_abs": -32698.0,
         "current_dd_pct": null,
-        "max_dd_abs": -30674.4,
+        "max_dd_abs": -32698.0,
         "max_dd_pct": null,
         "max_dd_peak_date": "2026-05-27",
-        "max_dd_trough_date": "2026-06-12",
+        "max_dd_trough_date": "2026-06-26",
         "max_dd_peak_val": 4810.52,
-        "max_dd_trough_val": -25863.88,
-        "at_low": false,
+        "max_dd_trough_val": -27887.48,
+        "at_low": true,
         "currency": "HKD"
       },
       "combined": {
@@ -3146,21 +3138,21 @@
           "date": "2026-05-29"
         },
         "trough": {
-          "value": -20604.55,
+          "value": -22868.95,
           "date": "2026-06-26"
         },
         "current": {
-          "value": -20604.55,
+          "value": -22868.95,
           "date": "2026-06-26"
         },
-        "from_peak_abs": -41381.45,
+        "from_peak_abs": -43645.85,
         "current_dd_pct": null,
-        "max_dd_abs": -41381.45,
+        "max_dd_abs": -43645.85,
         "max_dd_pct": null,
         "max_dd_peak_date": "2026-05-29",
         "max_dd_trough_date": "2026-06-26",
         "max_dd_peak_val": 20776.9,
-        "max_dd_trough_val": -20604.55,
+        "max_dd_trough_val": -22868.95,
         "at_low": true,
         "currency": "HKD",
         "fx_usdhkd": 7.8406
@@ -3223,16 +3215,16 @@
     "hk": [
       {
         "sector": "AI / 大模型",
-        "value": 27396.0,
-        "pct": 49.46,
+        "value": 26028.0,
+        "pct": 48.99,
         "tickers": [
           "00100"
         ]
       },
       {
         "sector": "恒生科技 ETF",
-        "value": 24122.0,
-        "pct": 43.55,
+        "value": 23101.6,
+        "pct": 43.48,
         "tickers": [
           "03032",
           "07226",
@@ -3241,8 +3233,8 @@
       },
       {
         "sector": "新能源",
-        "value": 3876.0,
-        "pct": 7.0,
+        "value": 4000.0,
+        "pct": 7.53,
         "tickers": [
           "02208"
         ]
@@ -3251,7 +3243,7 @@
   },
   "leveraged_etf": {
     "us_pct": 52.44,
-    "hk_pct": 34.14,
+    "hk_pct": 33.91,
     "combined_pct": 39.45,
     "tickers": [
       "07226",
@@ -3452,15 +3444,15 @@
         "leg": "HK",
         "ticker": "00100",
         "severity": "medium",
-        "detail": "00100 = 49.46% of HK (cap 35%)",
-        "action": "纪律性 trim 00100 → ≤35% (减约 8008.1 HKD，借反弹分批、勿在新低日一次砍)"
+        "detail": "00100 = 48.99% of HK (cap 35%)",
+        "action": "纪律性 trim 00100 → ≤35% (减约 7432.64 HKD，借反弹分批、勿在新低日一次砍)"
       },
       {
         "type": "factor_concentration",
         "leg": "HK",
         "ticker": null,
         "severity": "high",
-        "detail": "HK Top2 = 83.6% (cap 70%) — 名义多只实为单因子",
+        "detail": "HK Top2 = 82.9% (cap 70%) — 名义多只实为单因子",
         "action": "把 HK Top2 降到 ≤70%：借强减最大那只，别在同因子内换票"
       },
       {
@@ -3468,8 +3460,8 @@
         "leg": "HK",
         "ticker": null,
         "severity": "high",
-        "detail": "HK 杠杆 ETF = 34.1% (cap 25%) — 2x 日内重置，下杀崩/震荡衰减（🧭HK制度 amber：基准 50% ×0.5 → 25%，趋势OFF：杠杆敞口上限砍半）",
-        "action": "降杠杆=换仓非清仓：把约 5061.5 HKD 的 2x 换成 1x 同因子(07226→03033)，敞口不变、停 decay；🧭转 green 后可换回 2x"
+        "detail": "HK 杠杆 ETF = 33.9% (cap 25%) — 2x 日内重置，下杀崩/震荡衰减（🧭HK制度 amber：基准 50% ×0.5 → 25%，趋势OFF：杠杆敞口上限砍半）",
+        "action": "降杠杆=换仓非清仓：把约 4734.8 HKD 的 2x 换成 1x 同因子(07226→03033)，敞口不变、停 decay；🧭转 green 后可换回 2x"
       },
       {
         "type": "single_name",
@@ -3516,8 +3508,8 @@
       {
         "ticker": "07226",
         "leg": "HK",
-        "pnl_pct": -30.1,
-        "detail": "07226 浮亏 -30.1% ≤ 硬止损线 -18%",
+        "pnl_pct": -33.4,
+        "detail": "07226 浮亏 -33.4% ≤ 硬止损线 -18%",
         "action": "07226 触发杠杆 ETF 硬止损 → 换仓 1x 同因子 03033（敞口保留、停 decay，规则非择时）；🧭转 green 再换回 2x"
       },
       {
@@ -3666,8 +3658,8 @@
       {
         "ticker": "00100",
         "leg": "HK",
-        "pnl_pct": -44.5,
-        "breakeven_need_pct": 80.2,
+        "pnl_pct": -47.3,
+        "breakeven_need_pct": 89.7,
         "leveraged": false
       },
       {
@@ -3676,6 +3668,18 @@
         "pnl_pct": -41.9,
         "breakeven_need_pct": 72.1,
         "leveraged": true
+      },
+      {
+        "ticker": "07226",
+        "leg": "HK",
+        "pnl_pct": -33.4,
+        "breakeven_need_pct": 50.1,
+        "leveraged": true,
+        "underlying_vol_pct": 30.8,
+        "chop_drag_pct_per_month": 0.79,
+        "underlying_need_2x_6m_pct": 25.5,
+        "underlying_need_if_1x_pct": 50.1,
+        "swap_1x": "03033"
       },
       {
         "ticker": "MSFU",
@@ -3690,13 +3694,6 @@
         "swap_1x": "MSFT"
       },
       {
-        "ticker": "02208",
-        "leg": "HK",
-        "pnl_pct": -31.2,
-        "breakeven_need_pct": 45.3,
-        "leveraged": false
-      },
-      {
         "ticker": "SPCH",
         "leg": "US",
         "pnl_pct": -31.0,
@@ -3704,16 +3701,11 @@
         "leveraged": true
       },
       {
-        "ticker": "07226",
+        "ticker": "02208",
         "leg": "HK",
-        "pnl_pct": -30.1,
-        "breakeven_need_pct": 43.1,
-        "leveraged": true,
-        "underlying_vol_pct": 30.8,
-        "chop_drag_pct_per_month": 0.79,
-        "underlying_need_2x_6m_pct": 22.5,
-        "underlying_need_if_1x_pct": 43.1,
-        "swap_1x": "03033"
+        "pnl_pct": -29.0,
+        "breakeven_need_pct": 40.8,
+        "leveraged": false
       },
       {
         "ticker": "CRCL",
@@ -3725,15 +3717,15 @@
       {
         "ticker": "03032",
         "leg": "HK",
-        "pnl_pct": -18.4,
-        "breakeven_need_pct": 22.6,
+        "pnl_pct": -20.4,
+        "breakeven_need_pct": 25.6,
         "leveraged": false
       },
       {
         "ticker": "03033",
         "leg": "HK",
-        "pnl_pct": -15.8,
-        "breakeven_need_pct": 18.7,
+        "pnl_pct": -17.8,
+        "breakeven_need_pct": 21.7,
         "leveraged": false
       }
     ],
@@ -5543,7 +5535,7 @@
     ]
   },
   "influencer_feed": {
-    "generated_at": "2026-06-25T15:34:55.352578+00:00",
+    "generated_at": "2026-06-25T23:00:36.808968+00:00",
     "lookback_hours": 48,
     "sources": {
       "trump": "trumpstruth.org/feed (primary)",
@@ -5552,63 +5544,17 @@
     },
     "llm_filtered": true,
     "counts": {
-      "total": 13,
+      "total": 10,
       "held_hits": 0,
-      "new_ideas": 3,
-      "sector_hits": 5
+      "new_ideas": 1,
+      "sector_hits": 3
     },
     "items": [
       {
         "author": "Musk",
-        "text": "Elon Musk loses trillionaire status as SpaceX and Tesla stock drops",
-        "url": "",
-        "published": "Wed, 24 Jun 2026 22:45:00 GMT",
-        "origin": "gnews-rss",
-        "source": "The Guardian",
-        "tickers": [
-          "TSLA"
-        ],
-        "held": [],
-        "new_ideas": [
-          "TSLA"
-        ],
-        "sectors": [
-          "电动车",
-          "航天"
-        ],
-        "sector_holdings": [],
-        "stance": "neutral",
-        "relevance": 68,
-        "summary_cn": "Musk 因 SpaceX 与 Tesla 股价下跌失去万亿富豪身家，反映 SpaceX IPO 后估值波动与 Tesla 承压。"
-      },
-      {
-        "author": "Musk",
-        "text": "Elon Musk denies Tesla’s Autopilot caused crash that killed grandmother",
-        "url": "",
-        "published": "Wed, 24 Jun 2026 16:40:32 GMT",
-        "origin": "gnews-rss",
-        "source": "Ars Technica",
-        "tickers": [
-          "TSLA"
-        ],
-        "held": [],
-        "new_ideas": [
-          "TSLA"
-        ],
-        "sectors": [
-          "电动车",
-          "自动驾驶"
-        ],
-        "sector_holdings": [],
-        "stance": "neutral",
-        "relevance": 60,
-        "summary_cn": "Musk 否认 Tesla Autopilot 导致致亡事故，监管/诉讼风险仍是 Tesla 估值变量。"
-      },
-      {
-        "author": "Musk",
         "text": "Elon Musk's SpaceX Could Acquire T-Mobile In Wireless Push, Says Analyst",
         "url": "",
-        "published": "Thu, 25 Jun 2026 15:01:00 GMT",
+        "published": "Thu, 25 Jun 2026 18:13:00 GMT",
         "origin": "gnews-rss",
         "source": "Investor's Business Daily",
         "tickers": [
@@ -5624,8 +5570,8 @@
         ],
         "sector_holdings": [],
         "stance": "neutral",
-        "relevance": 55,
-        "summary_cn": "分析师称 SpaceX 可能收购 T-Mobile 加码无线业务，间接利好 SpaceX 相关持仓（SPCH）。"
+        "relevance": 70,
+        "summary_cn": "分析师称 SpaceX 可能收购 T-Mobile 拓展无线业务，Musk 体系延伸至电信领域（SpaceX 自身未上市，关联标的 TMUS）。"
       },
       {
         "author": "Musk",
@@ -5638,14 +5584,36 @@
         "held": [],
         "new_ideas": [],
         "sectors": [
-          "航天"
+          "航天",
+          "私募估值"
         ],
         "sector_holdings": [
           "SPCH"
         ],
         "stance": "neutral",
-        "relevance": 80,
-        "summary_cn": "SpaceX 股价抛售致 Musk 财富缩水，SPCH（2x 做多 SpaceX ETF）直接受拖累，是 kcn 持仓相关的高信号新闻。"
+        "relevance": 72,
+        "summary_cn": "SpaceX 股票遭抛售使 Musk 跌出万亿俱乐部，SPCH（2x 做多 SpaceX）持仓短期承压。"
+      },
+      {
+        "author": "Musk",
+        "text": "Easy come, easy go: Elon Musk loses trillionaire status as SpaceX stock falls",
+        "url": "",
+        "published": "Thu, 25 Jun 2026 19:36:19 GMT",
+        "origin": "gnews-rss",
+        "source": "KRON4",
+        "tickers": [],
+        "held": [],
+        "new_ideas": [],
+        "sectors": [
+          "航天",
+          "私募估值"
+        ],
+        "sector_holdings": [
+          "SPCH"
+        ],
+        "stance": "neutral",
+        "relevance": 70,
+        "summary_cn": "SpaceX 股价下跌导致 Musk 失去万亿富豪地位，间接影响 SPCH（2x 做多 SpaceX ETF）持仓估值。"
       },
       {
         "author": "Musk",
@@ -5658,74 +5626,15 @@
         "held": [],
         "new_ideas": [],
         "sectors": [
-          "航天"
+          "航天",
+          "私募估值"
         ],
         "sector_holdings": [
           "SPCH"
         ],
         "stance": "neutral",
-        "relevance": 78,
-        "summary_cn": "SpaceX IPO 估值 860 亿美元后拟再举债 200 亿美元，杠杆扩张对二级市场股价是双刃剑，SPCH 波动放大。"
-      },
-      {
-        "author": "Musk",
-        "text": "SpaceX's drop off sees Elon Musk's net worth fall $240 billion—roughly the same value as computing giant IBM",
-        "url": "",
-        "published": "Tue, 23 Jun 2026 11:19:00 GMT",
-        "origin": "gnews-rss",
-        "source": "Fortune",
-        "tickers": [],
-        "held": [],
-        "new_ideas": [],
-        "sectors": [
-          "航天"
-        ],
-        "sector_holdings": [
-          "SPCH"
-        ],
-        "stance": "neutral",
-        "relevance": 75,
-        "summary_cn": "SpaceX 估值大幅缩水约 2400 亿美元（约等于 IBM），直接利空 kcn 持有的 SPCH。"
-      },
-      {
-        "author": "Musk",
-        "text": "Elon Musk’s SpaceX has been on a wild ride post-IPO. Should you try to get on?",
-        "url": "",
-        "published": "Thu, 25 Jun 2026 13:23:29 GMT",
-        "origin": "gnews-rss",
-        "source": "Yahoo Finance",
-        "tickers": [],
-        "held": [],
-        "new_ideas": [],
-        "sectors": [
-          "航天"
-        ],
-        "sector_holdings": [
-          "SPCH"
-        ],
-        "stance": "neutral",
-        "relevance": 75,
-        "summary_cn": "讨论 SpaceX 上市后剧烈波动及是否值得买入，与 kcn 通过 SPCH 间接持有 SpaceX 直接相关。"
-      },
-      {
-        "author": "Musk",
-        "text": "Why Elon Musk is no longer a trillionaire",
-        "url": "",
-        "published": "Thu, 25 Jun 2026 10:10:21 GMT",
-        "origin": "gnews-rss",
-        "source": "Ynetnews",
-        "tickers": [],
-        "held": [],
-        "new_ideas": [],
-        "sectors": [
-          "航天"
-        ],
-        "sector_holdings": [
-          "SPCH"
-        ],
-        "stance": "neutral",
-        "relevance": 72,
-        "summary_cn": "Musk 因 SpaceX 估值回落失去万亿身价，对 SPCH 持仓偏空信号。"
+        "relevance": 68,
+        "summary_cn": "SpaceX 在 860 亿美元 IPO 后计划再举债 200 亿美元，反映其资本需求强劲，间接利好 SPCH 标的资产规模扩张预期。"
       },
       {
         "author": "Trump",
@@ -5737,13 +5646,13 @@
         "held": [],
         "new_ideas": [],
         "sectors": [
-          "原油",
-          "能源"
+          "能源",
+          "石油"
         ],
         "sector_holdings": [],
         "stance": "attack",
-        "relevance": 70,
-        "summary_cn": "Trump 指控大型油企对消费者'价格欺诈'并指示 DOJ 调查，要求油价更快下跌，能源股短期承压。"
+        "relevance": 75,
+        "summary_cn": "Trump 抨击大型石油公司油价未跟随原油下跌同步下调，指责'价格欺诈'，已指示 DOJ 启动调查，利好消费者、利空石油巨头。"
       },
       {
         "author": "Trump",
@@ -5755,53 +5664,14 @@
         "held": [],
         "new_ideas": [],
         "sectors": [
-          "原油",
-          "大宗商品",
-          "中东地缘政治",
+          "原油运输",
+          "地缘政治",
           "农产品"
         ],
         "sector_holdings": [],
-        "stance": "neutral",
-        "relevance": 65,
-        "summary_cn": "Trump 称伊朗在霍尔木兹海峡未收费，谈判若破局将立即终止；并提及释放伊朗资金购买美国玉米/小麦/大豆，对原油运输和农产品出口有影响。"
-      },
-      {
-        "author": "Trump",
-        "text": "RT @realDonaldTrumpWow! The Senate just changed its vote on Iran from 50-48 against, to 50-47 for. Rand Paul and Bill Cassidy changed. Thank you to Leader John Thune, Lindsey Graham, Bernie Moreno, and all. This vote puts Iran on notice! President DJT",
-        "url": "https://trumpstruth.org/statuses/39522",
-        "published": "2026-06-25T03:25:00+00:00",
-        "origin": "truthsocial",
-        "tickers": [],
-        "held": [],
-        "new_ideas": [],
-        "sectors": [
-          "国防军工",
-          "中东地缘政治",
-          "原油"
-        ],
-        "sector_holdings": [],
-        "stance": "neutral",
-        "relevance": 55,
-        "summary_cn": "Trump 庆祝参议院通过对伊朗更强硬议案，暗示对伊施压升级，原油与中东地缘风险溢价上升。"
-      },
-      {
-        "author": "Trump",
-        "text": "The Elizabeth “Pocahontas” Warren centric housing bill, which is of minor importance compared to lower interest rates, and even FISA, pales in comparison to passing THE SAVE AMERICA ACT. That is what Americans, both Dumocrats, Republicans, and everyone else, care about. Get the bad Republicans to approve it or, better yet, Terminate the Filibuster and approve it, AND EVERYTHING ELSE REPUBLICANS HAVE EVER DREAMED OF. The Dumocrats will do it in hour one, 100%. Republicans will feel very stupid if they don’t do it first. I’ll be watching with tears in my eyes!!! President DJT",
-        "url": "https://trumpstruth.org/statuses/39511",
-        "published": "2026-06-24T13:49:20+00:00",
-        "origin": "truthsocial",
-        "tickers": [],
-        "held": [],
-        "new_ideas": [],
-        "sectors": [
-          "房地产",
-          "利率",
-          "监管"
-        ],
-        "sector_holdings": [],
-        "stance": "neutral",
-        "relevance": 55,
-        "summary_cn": "Trump 抨击 Warren 住房法案、强调降息与立法优先级，间接利好利率敏感板块（房地产/科技）。"
+        "stance": "endorse",
+        "relevance": 72,
+        "summary_cn": "Trump 称伊朗保证不收霍尔木兹海峡通行费/保险费，否则谈判立即结束；并计划释放被冻结资金用于美国农产品出口伊朗。"
       },
       {
         "author": "Trump",
@@ -5813,69 +5683,80 @@
         "held": [],
         "new_ideas": [],
         "sectors": [
-          "国防军工",
-          "中东地缘政治",
-          "原油"
+          "地缘政治",
+          "军工",
+          "能源"
+        ],
+        "sector_holdings": [],
+        "stance": "endorse",
+        "relevance": 60,
+        "summary_cn": "Trump 强硬表态对伊朗'占上风'，抨击参议院 4 名共和党人投票支持战争权力法案，称其给敌人送去'安慰援助'。"
+      },
+      {
+        "author": "Trump",
+        "text": "RT @realDonaldTrumpWow! The Senate just changed its vote on Iran from 50-48 against, to 50-47 for. Rand Paul and Bill Cassidy changed. Thank you to Leader John Thune, Lindsey Graham, Bernie Moreno, and all. This vote puts Iran on notice! President DJT",
+        "url": "https://trumpstruth.org/statuses/39522",
+        "published": "2026-06-25T03:25:00+00:00",
+        "origin": "truthsocial",
+        "tickers": [],
+        "held": [],
+        "new_ideas": [],
+        "sectors": [
+          "地缘政治",
+          "军工",
+          "能源",
+          "原油运输"
         ],
         "sector_holdings": [],
         "stance": "neutral",
         "relevance": 55,
-        "summary_cn": "Trump 抨击部分共和党参议员在 War Powers Act 表决上'资敌'，延续对伊朗强硬叙事，影响军工与原油预期。"
+        "summary_cn": "Trump 宣布参议院以 50-47 通过涉伊朗议案，向伊朗发出强硬警告，涉及地缘政治与中东局势。"
+      },
+      {
+        "author": "Trump",
+        "text": "Today’s Housing News Conference and Signing is hereby cancelled until such time as we pass the desperately needed SAVE AMERICA ACT, which I consider to be a National Emergency. Thank you for your attention to this matter! President DJT",
+        "url": "https://trumpstruth.org/statuses/39514",
+        "published": "2026-06-24T14:26:20+00:00",
+        "origin": "truthsocial",
+        "tickers": [],
+        "held": [],
+        "new_ideas": [],
+        "sectors": [
+          "房地产",
+          "利率"
+        ],
+        "sector_holdings": [],
+        "stance": "neutral",
+        "relevance": 50,
+        "summary_cn": "Trump 取消住房新闻发布活动，转而施压国会通过 SAVE AMERICA ACT，间接涉及住房与利率议题。"
+      },
+      {
+        "author": "Trump",
+        "text": "The Elizabeth “Pocahontas” Warren centric housing bill, which is of minor importance compared to lower interest rates, and even FISA, pales in comparison to passing THE SAVE AMERICA ACT. That is what Americans, both Dumocrats, Republicans, and everyone else, care about. Get the bad Republicans to approve it or, better yet, Terminate the Filibuster and approve it, AND EVERYTHING ELSE REPUBLICANS HAVE EVER DREAMED OF. The Dumocrats will do it in hour one, 100%. Republicans will feel very stupid if they don’t do it first. I’ll be watching with tears in my eyes!!! President DJT",
+        "url": "https://trumpstruth.org/statuses/39511",
+        "published": "2026-06-24T13:49:20+00:00",
+        "origin": "truthsocial",
+        "tickers": [],
+        "held": [],
+        "new_ideas": [],
+        "sectors": [
+          "利率",
+          "房地产",
+          "立法"
+        ],
+        "sector_holdings": [],
+        "stance": "neutral",
+        "relevance": 50,
+        "summary_cn": "Trump 公开抨击 Warren 的住房法案，强调低利率更重要，并施压共和党通过 SAVE AMERICA ACT 并废除阻挠议事。"
       }
     ],
     "held_hits": [],
     "new_ideas": [
       {
         "author": "Musk",
-        "text": "Elon Musk loses trillionaire status as SpaceX and Tesla stock drops",
-        "url": "",
-        "published": "Wed, 24 Jun 2026 22:45:00 GMT",
-        "origin": "gnews-rss",
-        "source": "The Guardian",
-        "tickers": [
-          "TSLA"
-        ],
-        "held": [],
-        "new_ideas": [
-          "TSLA"
-        ],
-        "sectors": [
-          "电动车",
-          "航天"
-        ],
-        "sector_holdings": [],
-        "stance": "neutral",
-        "relevance": 68,
-        "summary_cn": "Musk 因 SpaceX 与 Tesla 股价下跌失去万亿富豪身家，反映 SpaceX IPO 后估值波动与 Tesla 承压。"
-      },
-      {
-        "author": "Musk",
-        "text": "Elon Musk denies Tesla’s Autopilot caused crash that killed grandmother",
-        "url": "",
-        "published": "Wed, 24 Jun 2026 16:40:32 GMT",
-        "origin": "gnews-rss",
-        "source": "Ars Technica",
-        "tickers": [
-          "TSLA"
-        ],
-        "held": [],
-        "new_ideas": [
-          "TSLA"
-        ],
-        "sectors": [
-          "电动车",
-          "自动驾驶"
-        ],
-        "sector_holdings": [],
-        "stance": "neutral",
-        "relevance": 60,
-        "summary_cn": "Musk 否认 Tesla Autopilot 导致致亡事故，监管/诉讼风险仍是 Tesla 估值变量。"
-      },
-      {
-        "author": "Musk",
         "text": "Elon Musk's SpaceX Could Acquire T-Mobile In Wireless Push, Says Analyst",
         "url": "",
-        "published": "Thu, 25 Jun 2026 15:01:00 GMT",
+        "published": "Thu, 25 Jun 2026 18:13:00 GMT",
         "origin": "gnews-rss",
         "source": "Investor's Business Daily",
         "tickers": [
@@ -5891,8 +5772,8 @@
         ],
         "sector_holdings": [],
         "stance": "neutral",
-        "relevance": 55,
-        "summary_cn": "分析师称 SpaceX 可能收购 T-Mobile 加码无线业务，间接利好 SpaceX 相关持仓（SPCH）。"
+        "relevance": 70,
+        "summary_cn": "分析师称 SpaceX 可能收购 T-Mobile 拓展无线业务，Musk 体系延伸至电信领域（SpaceX 自身未上市，关联标的 TMUS）。"
       }
     ],
     "sector_hits": [
@@ -5907,14 +5788,36 @@
         "held": [],
         "new_ideas": [],
         "sectors": [
-          "航天"
+          "航天",
+          "私募估值"
         ],
         "sector_holdings": [
           "SPCH"
         ],
         "stance": "neutral",
-        "relevance": 80,
-        "summary_cn": "SpaceX 股价抛售致 Musk 财富缩水，SPCH（2x 做多 SpaceX ETF）直接受拖累，是 kcn 持仓相关的高信号新闻。"
+        "relevance": 72,
+        "summary_cn": "SpaceX 股票遭抛售使 Musk 跌出万亿俱乐部，SPCH（2x 做多 SpaceX）持仓短期承压。"
+      },
+      {
+        "author": "Musk",
+        "text": "Easy come, easy go: Elon Musk loses trillionaire status as SpaceX stock falls",
+        "url": "",
+        "published": "Thu, 25 Jun 2026 19:36:19 GMT",
+        "origin": "gnews-rss",
+        "source": "KRON4",
+        "tickers": [],
+        "held": [],
+        "new_ideas": [],
+        "sectors": [
+          "航天",
+          "私募估值"
+        ],
+        "sector_holdings": [
+          "SPCH"
+        ],
+        "stance": "neutral",
+        "relevance": 70,
+        "summary_cn": "SpaceX 股价下跌导致 Musk 失去万亿富豪地位，间接影响 SPCH（2x 做多 SpaceX ETF）持仓估值。"
       },
       {
         "author": "Musk",
@@ -5927,74 +5830,15 @@
         "held": [],
         "new_ideas": [],
         "sectors": [
-          "航天"
+          "航天",
+          "私募估值"
         ],
         "sector_holdings": [
           "SPCH"
         ],
         "stance": "neutral",
-        "relevance": 78,
-        "summary_cn": "SpaceX IPO 估值 860 亿美元后拟再举债 200 亿美元，杠杆扩张对二级市场股价是双刃剑，SPCH 波动放大。"
-      },
-      {
-        "author": "Musk",
-        "text": "SpaceX's drop off sees Elon Musk's net worth fall $240 billion—roughly the same value as computing giant IBM",
-        "url": "",
-        "published": "Tue, 23 Jun 2026 11:19:00 GMT",
-        "origin": "gnews-rss",
-        "source": "Fortune",
-        "tickers": [],
-        "held": [],
-        "new_ideas": [],
-        "sectors": [
-          "航天"
-        ],
-        "sector_holdings": [
-          "SPCH"
-        ],
-        "stance": "neutral",
-        "relevance": 75,
-        "summary_cn": "SpaceX 估值大幅缩水约 2400 亿美元（约等于 IBM），直接利空 kcn 持有的 SPCH。"
-      },
-      {
-        "author": "Musk",
-        "text": "Elon Musk’s SpaceX has been on a wild ride post-IPO. Should you try to get on?",
-        "url": "",
-        "published": "Thu, 25 Jun 2026 13:23:29 GMT",
-        "origin": "gnews-rss",
-        "source": "Yahoo Finance",
-        "tickers": [],
-        "held": [],
-        "new_ideas": [],
-        "sectors": [
-          "航天"
-        ],
-        "sector_holdings": [
-          "SPCH"
-        ],
-        "stance": "neutral",
-        "relevance": 75,
-        "summary_cn": "讨论 SpaceX 上市后剧烈波动及是否值得买入，与 kcn 通过 SPCH 间接持有 SpaceX 直接相关。"
-      },
-      {
-        "author": "Musk",
-        "text": "Why Elon Musk is no longer a trillionaire",
-        "url": "",
-        "published": "Thu, 25 Jun 2026 10:10:21 GMT",
-        "origin": "gnews-rss",
-        "source": "Ynetnews",
-        "tickers": [],
-        "held": [],
-        "new_ideas": [],
-        "sectors": [
-          "航天"
-        ],
-        "sector_holdings": [
-          "SPCH"
-        ],
-        "stance": "neutral",
-        "relevance": 72,
-        "summary_cn": "Musk 因 SpaceX 估值回落失去万亿身价，对 SPCH 持仓偏空信号。"
+        "relevance": 68,
+        "summary_cn": "SpaceX 在 860 亿美元 IPO 后计划再举债 200 亿美元，反映其资本需求强劲，间接利好 SPCH 标的资产规模扩张预期。"
       }
     ]
   },
@@ -6174,17 +6018,17 @@
         "ticker": "03033",
         "name": "南方恒生科技",
         "region": "hk",
-        "pnl_percent": -15.76,
-        "pnl_abs": -810.0,
-        "current_value": 4330.0
+        "pnl_percent": -17.82,
+        "pnl_abs": -916.0,
+        "current_value": 4224.0
       },
       {
         "ticker": "03032",
         "name": "恒生科技ETF",
         "region": "hk",
-        "pnl_percent": -18.41,
-        "pnl_abs": -199.0,
-        "current_value": 882.0
+        "pnl_percent": -20.41,
+        "pnl_abs": -220.6,
+        "current_value": 860.4
       }
     ],
     "losers": [
@@ -6200,9 +6044,9 @@
         "ticker": "00100",
         "name": "MINIMAX-W",
         "region": "hk",
-        "pnl_percent": -44.51,
-        "pnl_abs": -21973.8,
-        "current_value": 27396.0
+        "pnl_percent": -47.28,
+        "pnl_abs": -23341.8,
+        "current_value": 26028.0
       },
       {
         "ticker": "RKLX",
@@ -6222,14 +6066,6 @@
       "low": 21.24,
       "current": 21.44,
       "range_pct": 13.01
-    },
-    {
-      "ticker": "00100",
-      "region": "hk",
-      "high": 503.0,
-      "low": 446.2,
-      "current": 456.6,
-      "range_pct": 12.44
     },
     {
       "ticker": "SPCH",
@@ -6256,14 +6092,6 @@
       "range_pct": 6.44
     },
     {
-      "ticker": "07226",
-      "region": "hk",
-      "high": 3.15,
-      "low": 2.97,
-      "current": 3.05,
-      "range_pct": 5.9
-    },
-    {
       "ticker": "RKLX",
       "region": "us",
       "high": 30.21,
@@ -6274,10 +6102,26 @@
     {
       "ticker": "02208",
       "region": "hk",
-      "high": 10.0,
-      "low": 9.59,
-      "current": 9.69,
-      "range_pct": 4.23
+      "high": 10.11,
+      "low": 9.69,
+      "current": 10.0,
+      "range_pct": 4.2
+    },
+    {
+      "ticker": "00100",
+      "region": "hk",
+      "high": 450.0,
+      "low": 434.0,
+      "current": 433.8,
+      "range_pct": 3.69
+    },
+    {
+      "ticker": "07226",
+      "region": "hk",
+      "high": 2.998,
+      "low": 2.902,
+      "current": 2.906,
+      "range_pct": 3.3
     }
   ],
   "realized_vs_unrealized": {
@@ -6287,11 +6131,11 @@
     },
     "hk": {
       "realized": 7259.16,
-      "unrealized": -32882.24
+      "unrealized": -35146.64
     },
     "combined_usd": {
       "realized": 2767.02,
-      "unrealized": -5394.95
+      "unrealized": -5683.76
     }
   },
   "capital_deployed": {
@@ -6315,14 +6159,14 @@
     },
     "hk": {
       "net_principal": 81017.08,
-      "total_profit": -25623.08,
-      "return_pct": -31.63,
+      "total_profit": -27887.48,
+      "return_pct": -34.42,
       "return_basis": "net_principal"
     },
     "combined_usd": {
       "net_principal": 12804.14,
-      "total_profit": -2627.93,
-      "return_pct": -20.52,
+      "total_profit": -2916.73,
+      "return_pct": -22.78,
       "return_basis": "true_principal"
     },
     "formula": "回报率 = (浮动 + 已实现) ÷ 本金；本金优先用 true_principal（峰值净投入），否则用 净投入本金=累计成本−已实现"
@@ -6768,90 +6612,90 @@
     "last_updated": "2026-06-25T15:50:29.047772Z"
   },
   "build_status": {
-    "generated_at": "2026-06-26T08:08:46+08:00",
+    "generated_at": "2026-06-26T09:33:08+08:00",
     "healthy": true,
     "stale_files": [],
     "files": [
       {
         "name": "portfolio.json",
-        "age_hours": 0.1,
+        "age_hours": 0.0,
         "sla_hours": 26,
         "stale": false,
         "present": true
       },
       {
         "name": "benchmark.json",
-        "age_hours": 0.1,
+        "age_hours": 1.4,
         "sla_hours": 80,
         "stale": false,
         "present": true
       },
       {
         "name": "catalysts.json",
-        "age_hours": 0.0,
+        "age_hours": 1.4,
         "sla_hours": 30,
         "stale": false,
         "present": true
       },
       {
         "name": "em_news.json",
-        "age_hours": 0.1,
+        "age_hours": 1.4,
         "sla_hours": 30,
         "stale": false,
         "present": true
       },
       {
         "name": "influencer_feed.json",
-        "age_hours": 8.3,
+        "age_hours": 1.4,
         "sla_hours": 30,
         "stale": false,
         "present": true
       },
       {
         "name": "lev_regime.json",
-        "age_hours": 0.1,
+        "age_hours": 1.4,
         "sla_hours": 30,
         "stale": false,
         "present": true
       },
       {
         "name": "macro.json",
-        "age_hours": 0.0,
+        "age_hours": 1.4,
         "sla_hours": 30,
         "stale": false,
         "present": true
       },
       {
         "name": "quant_signal_review.json",
-        "age_hours": 0.1,
+        "age_hours": 1.4,
         "sla_hours": 30,
         "stale": false,
         "present": true
       },
       {
         "name": "quant_signals.json",
-        "age_hours": 0.1,
+        "age_hours": 1.4,
         "sla_hours": 30,
         "stale": false,
         "present": true
       },
       {
         "name": "risk.json",
-        "age_hours": 0.1,
+        "age_hours": 1.4,
         "sla_hours": 30,
         "stale": false,
         "present": true
       },
       {
         "name": "sentiment.json",
-        "age_hours": 0.0,
+        "age_hours": 1.4,
         "sla_hours": 30,
         "stale": false,
         "present": true
       },
       {
         "name": "us_news_digest.json",
-        "age_hours": 8.3,
+        "age_hours": 9.7,
         "sla_hours": 30,
         "stale": false,
         "present": true
