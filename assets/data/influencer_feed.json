@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-25T23:00:36.808968+00:00",
+  "generated_at": "2026-06-26T15:18:25.113888+00:00",
   "lookback_hours": 48,
   "sources": {
     "trump": "trumpstruth.org/feed (primary)",
@@ -8,12 +8,35 @@
   },
   "llm_filtered": true,
   "counts": {
-    "total": 10,
-    "held_hits": 0,
+    "total": 12,
+    "held_hits": 7,
     "new_ideas": 1,
-    "sector_hits": 3
+    "sector_hits": 0
   },
   "items": [
+    {
+      "author": "Musk",
+      "text": "After $86 billion IPO, SpaceX to borrow $20 billion",
+      "url": "",
+      "published": "Tue, 23 Jun 2026 13:27:01 GMT",
+      "origin": "gnews-rss",
+      "source": "Axios",
+      "tickers": [
+        "SPCH"
+      ],
+      "held": [
+        "SPCH"
+      ],
+      "new_ideas": [],
+      "sectors": [
+        "航天/卫星",
+        "债务/杠杆"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 80,
+      "summary_cn": "SpaceX 在860亿美元IPO后拟再举债200亿美元，规模与杠杆信号均偏积极/激进，直接影响 SPCH 估值预期。"
+    },
     {
       "author": "Musk",
       "text": "Elon Musk's SpaceX Could Acquire T-Mobile In Wireless Push, Says Analyst",
@@ -22,139 +45,166 @@
       "origin": "gnews-rss",
       "source": "Investor's Business Daily",
       "tickers": [
+        "SPCH",
         "TMUS"
       ],
-      "held": [],
+      "held": [
+        "SPCH"
+      ],
       "new_ideas": [
         "TMUS"
       ],
       "sectors": [
-        "电信",
-        "航天"
+        "航天/卫星",
+        "电信/无线",
+        "并购"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 78,
+      "summary_cn": "分析师称 SpaceX 可能收购 T-Mobile 拓展无线业务；如成行将利好 SPCH，并带来 TMUS 这一 new_idea（被收购方）。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk-connected company buys land, water infrastructure before Grimes County’s SpaceX tax vote",
+      "url": "",
+      "published": "Fri, 26 Jun 2026 04:10:00 GMT",
+      "origin": "gnews-rss",
+      "source": "KBTX News 3",
+      "tickers": [
+        "SPCH"
+      ],
+      "held": [
+        "SPCH"
+      ],
+      "new_ideas": [],
+      "sectors": [
+        "航天/卫星",
+        "基建/土地"
       ],
       "sector_holdings": [],
       "stance": "neutral",
-      "relevance": 70,
-      "summary_cn": "分析师称 SpaceX 可能收购 T-Mobile 拓展无线业务，Musk 体系延伸至电信领域（SpaceX 自身未上市，关联标的 TMUS）。"
+      "relevance": 75,
+      "summary_cn": "Musk 关联公司在 SpaceX 税收投票前抢购 Grimes County 土地与水利基建，利好 SPCH（2x SpaceX ETF）所跟踪的 SpaceX 估值。"
     },
     {
       "author": "Musk",
-      "text": "SpaceX Stock Selloff Costs Elon Musk His $1 Trillion Net Worth",
+      "text": "SpaceX's drop off sees Elon Musk's net worth fall $240 billion—roughly the same value as computing giant IBM",
       "url": "",
-      "published": "Wed, 24 Jun 2026 21:56:00 GMT",
+      "published": "Tue, 23 Jun 2026 11:19:00 GMT",
       "origin": "gnews-rss",
-      "source": "Barron's",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "私募估值"
-      ],
-      "sector_holdings": [
+      "source": "Fortune",
+      "tickers": [
         "SPCH"
       ],
-      "stance": "neutral",
-      "relevance": 72,
-      "summary_cn": "SpaceX 股票遭抛售使 Musk 跌出万亿俱乐部，SPCH（2x 做多 SpaceX）持仓短期承压。"
-    },
-    {
-      "author": "Musk",
-      "text": "Easy come, easy go: Elon Musk loses trillionaire status as SpaceX stock falls",
-      "url": "",
-      "published": "Thu, 25 Jun 2026 19:36:19 GMT",
-      "origin": "gnews-rss",
-      "source": "KRON4",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "私募估值"
-      ],
-      "sector_holdings": [
+      "held": [
         "SPCH"
       ],
-      "stance": "neutral",
-      "relevance": 70,
-      "summary_cn": "SpaceX 股价下跌导致 Musk 失去万亿富豪地位，间接影响 SPCH（2x 做多 SpaceX ETF）持仓估值。"
-    },
-    {
-      "author": "Musk",
-      "text": "After $86 billion IPO, SpaceX to borrow $20 billion",
-      "url": "",
-      "published": "Tue, 23 Jun 2026 13:27:01 GMT",
-      "origin": "gnews-rss",
-      "source": "Axios",
-      "tickers": [],
-      "held": [],
       "new_ideas": [],
       "sectors": [
-        "航天",
-        "私募估值"
-      ],
-      "sector_holdings": [
-        "SPCH"
-      ],
-      "stance": "neutral",
-      "relevance": 68,
-      "summary_cn": "SpaceX 在 860 亿美元 IPO 后计划再举债 200 亿美元，反映其资本需求强劲，间接利好 SPCH 标的资产规模扩张预期。"
-    },
-    {
-      "author": "Trump",
-      "text": "The big Oil Companies are not dropping their price at the pump commensurate with the sharply lower prices they are paying for Oil. Those prices are dropping like a rock! In other words, customers are being “gouged.” I have instructed the DOJ to immediately start looking into this. Gasoline prices better start going down a lot faster than what I’m seeing! President DJT",
-      "url": "https://trumpstruth.org/statuses/39505",
-      "published": "2026-06-24T04:12:13+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "能源",
-        "石油"
+        "航天/卫星",
+        "科技"
       ],
       "sector_holdings": [],
       "stance": "attack",
-      "relevance": 75,
-      "summary_cn": "Trump 抨击大型石油公司油价未跟随原油下跌同步下调，指责'价格欺诈'，已指示 DOJ 启动调查，利好消费者、利空石油巨头。"
+      "relevance": 72,
+      "summary_cn": "SpaceX 估值大幅回调致 Musk 净资产蒸发约2400亿美元，SPCH（2x SpaceX ETF）跟踪标的承压。"
     },
     {
-      "author": "Trump",
-      "text": "Iran has informed the U.S. that, despite troublemaking Fake News reporting to the contrary, there are “NO TOLLS, NO INSURANCE COSTS, & NO OTHER CHARGES OF ANY KIND BEING SOUGHT OR RECEIVED BY IRAN ON SHIPS TRAVELING THE STRAIT OF HORMUZ. If this is false information, negotiations would end, immediately! Additionally, no money has been given to Iran, or released from their money to them, by the U.S. We will be releasing some of their money, that is totally controlled by us, to our Farmers and Ranchers, for the purchase of Corn, Wheat, Soybeans, and more. Food is desperately needed in Iran, and ",
-      "url": "https://trumpstruth.org/statuses/39507",
-      "published": "2026-06-24T11:37:15+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
+      "author": "Musk",
+      "text": "Musk's SpaceX targets US consumers with Starlink mobile service push, FT reports",
+      "url": "",
+      "published": "Fri, 26 Jun 2026 07:48:58 GMT",
+      "origin": "gnews-rss",
+      "source": "Reuters",
+      "tickers": [
+        "SPCH"
+      ],
+      "held": [
+        "SPCH"
+      ],
       "new_ideas": [],
       "sectors": [
-        "原油运输",
-        "地缘政治",
-        "农产品"
+        "航天/卫星",
+        "电信/无线"
       ],
       "sector_holdings": [],
       "stance": "endorse",
       "relevance": 72,
-      "summary_cn": "Trump 称伊朗保证不收霍尔木兹海峡通行费/保险费，否则谈判立即结束；并计划释放被冻结资金用于美国农产品出口伊朗。"
+      "summary_cn": "SpaceX 旗下 Starlink 推进面向美国消费者的卫星移动通信服务，直接利好 SPCH（2x SpaceX ETF）。"
     },
     {
-      "author": "Trump",
-      "text": "So, I have Iran on the “ropes,” ready to go down for the fall, willing to give us practically anything, and for the first time in decades, respecting the hell out of the United States and its President, ME, and the U.S. Senate decides to have a poorly timed and meaningless War Powers Act Vote, telling the Number One Sponser of Terror in the World that the United States doesn’t  like what I am doing to them, and I must stop, and by so doing has provided aid and comfort the Enemy. Four Republican Losers voted with the Dumocrats, and Iran asked my people, “what does that all mean?” These Senators",
-      "url": "https://trumpstruth.org/statuses/39501",
-      "published": "2026-06-24T02:39:15+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
+      "author": "Musk",
+      "text": "'The cult of Elon': SpaceX investors grapple with volatility amid big swings",
+      "url": "",
+      "published": "Fri, 26 Jun 2026 11:00:01 GMT",
+      "origin": "gnews-rss",
+      "source": "CNBC",
+      "tickers": [
+        "SPCH"
+      ],
+      "held": [
+        "SPCH"
+      ],
       "new_ideas": [],
       "sectors": [
-        "地缘政治",
-        "军工",
-        "能源"
+        "航天/卫星",
+        "私募/估值"
       ],
       "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 60,
-      "summary_cn": "Trump 强硬表态对伊朗'占上风'，抨击参议院 4 名共和党人投票支持战争权力法案，称其给敌人送去'安慰援助'。"
+      "stance": "neutral",
+      "relevance": 70,
+      "summary_cn": "SpaceX 投资人面对剧烈估值波动，凸显二级/私募市场对 SpaceX 的高波动预期，与 SPCH 跟踪标的直接相关。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk loses trillionaire status as SpaceX and Tesla stock drops",
+      "url": "",
+      "published": "Wed, 24 Jun 2026 22:45:00 GMT",
+      "origin": "gnews-rss",
+      "source": "The Guardian",
+      "tickers": [
+        "TSLA",
+        "SPCH"
+      ],
+      "held": [
+        "SPCH"
+      ],
+      "new_ideas": [
+        "TSLA"
+      ],
+      "sectors": [
+        "航天/卫星",
+        "电动车",
+        "科技"
+      ],
+      "sector_holdings": [],
+      "stance": "attack",
+      "relevance": 68,
+      "summary_cn": "Musk 因 Tesla 与 SpaceX 股价下跌失去万亿富翁头衔，反映 Musk 系资产承压；间接影响 SPCH 情绪。"
+    },
+    {
+      "author": "Musk",
+      "text": "In Europe, Tesla Sales Are Rising Despite Views on Elon Musk",
+      "url": "",
+      "published": "Fri, 26 Jun 2026 14:21:12 GMT",
+      "origin": "gnews-rss",
+      "source": "The New York Times",
+      "tickers": [
+        "TSLA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "TSLA"
+      ],
+      "sectors": [
+        "电动车",
+        "消费"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 58,
+      "summary_cn": "Tesla 在欧洲销量逆势上升，Musk 个人形象争议未拖累销售，对 TSLA 偏多信号。"
     },
     {
       "author": "Trump",
@@ -166,56 +216,94 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "地缘政治",
-        "军工",
-        "能源",
-        "原油运输"
+        "地缘政治/伊朗",
+        "国防/军工",
+        "能源/石油"
       ],
       "sector_holdings": [],
-      "stance": "neutral",
+      "stance": "endorse",
+      "relevance": 62,
+      "summary_cn": "美参议院对伊朗立场转鹰（50-47支持），地缘紧张升级，利多国防/军工与能源板块。"
+    },
+    {
+      "author": "Trump",
+      "text": "Wow! The Senate just changed its vote on Iran from 50-48 against, to 50-47 for. Rand Paul and Bill Cassidy changed. Thank you to Leader John Thune, Lindsey Graham, Bernie Moreno, and all. This vote puts Iran on notice! President DJT",
+      "url": "https://trumpstruth.org/statuses/39520",
+      "published": "2026-06-25T03:15:06+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "地缘政治/伊朗",
+        "国防/军工",
+        "能源/石油"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
       "relevance": 55,
-      "summary_cn": "Trump 宣布参议院以 50-47 通过涉伊朗议案，向伊朗发出强硬警告，涉及地缘政治与中东局势。"
+      "summary_cn": "与第7条同一事件重复报道，保留信息量最高的一条即可，本条可忽略。"
     },
     {
       "author": "Trump",
-      "text": "Today’s Housing News Conference and Signing is hereby cancelled until such time as we pass the desperately needed SAVE AMERICA ACT, which I consider to be a National Emergency. Thank you for your attention to this matter! President DJT",
-      "url": "https://trumpstruth.org/statuses/39514",
-      "published": "2026-06-24T14:26:20+00:00",
+      "text": "The Communists are finally making their move. I’ve been waiting and preparing for this for a long time. It’s easy to be a Communist — All you have to do is say, “I’ll give you everything,” but that means you’re taking it away from others that have earned it. Over thousands of years, that Ideology has not worked once. The game is on. Enjoy watching! President DONALD J. TRUMP",
+      "url": "https://trumpstruth.org/statuses/39530",
+      "published": "2026-06-25T22:46:12+00:00",
       "origin": "truthsocial",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "房地产",
-        "利率"
+        "宏观政策",
+        "意识形态"
       ],
       "sector_holdings": [],
       "stance": "neutral",
       "relevance": 50,
-      "summary_cn": "Trump 取消住房新闻发布活动，转而施压国会通过 SAVE AMERICA ACT，间接涉及住房与利率议题。"
+      "summary_cn": "Trump 称'共产主义者在行动'，意识形态口水，间接暗示对国内政策/选举格局的强硬立场，对市场影响有限但反映政治氛围。"
     },
     {
       "author": "Trump",
-      "text": "The Elizabeth “Pocahontas” Warren centric housing bill, which is of minor importance compared to lower interest rates, and even FISA, pales in comparison to passing THE SAVE AMERICA ACT. That is what Americans, both Dumocrats, Republicans, and everyone else, care about. Get the bad Republicans to approve it or, better yet, Terminate the Filibuster and approve it, AND EVERYTHING ELSE REPUBLICANS HAVE EVER DREAMED OF. The Dumocrats will do it in hour one, 100%. Republicans will feel very stupid if they don’t do it first. I’ll be watching with tears in my eyes!!! President DJT",
-      "url": "https://trumpstruth.org/statuses/39511",
-      "published": "2026-06-24T13:49:20+00:00",
+      "text": "The two major earthquakes that just hit the great people of Venezuela are both massive in scale and have left a devastating number of deaths. The U.S.A. stands ready, willing, and able to help! I have instructed all agencies of our government to get ready to move quickly. We will be there for our new and great friends. Early reports are not good!!! President DJT",
+      "url": "https://trumpstruth.org/statuses/39525",
+      "published": "2026-06-25T03:45:00+00:00",
       "origin": "truthsocial",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "利率",
-        "房地产",
-        "立法"
+        "能源/石油"
       ],
       "sector_holdings": [],
       "stance": "neutral",
       "relevance": 50,
-      "summary_cn": "Trump 公开抨击 Warren 的住房法案，强调低利率更重要，并施压共和党通过 SAVE AMERICA ACT 并废除阻挠议事。"
+      "summary_cn": "委内瑞拉大地震，美国准备援助；委内瑞拉是重要产油国，灾后局势可能扰动油价。"
     }
   ],
-  "held_hits": [],
-  "new_ideas": [
+  "held_hits": [
+    {
+      "author": "Musk",
+      "text": "After $86 billion IPO, SpaceX to borrow $20 billion",
+      "url": "",
+      "published": "Tue, 23 Jun 2026 13:27:01 GMT",
+      "origin": "gnews-rss",
+      "source": "Axios",
+      "tickers": [
+        "SPCH"
+      ],
+      "held": [
+        "SPCH"
+      ],
+      "new_ideas": [],
+      "sectors": [
+        "航天/卫星",
+        "债务/杠杆"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 80,
+      "summary_cn": "SpaceX 在860亿美元IPO后拟再举债200亿美元，规模与杠杆信号均偏积极/激进，直接影响 SPCH 估值预期。"
+    },
     {
       "author": "Musk",
       "text": "Elon Musk's SpaceX Could Acquire T-Mobile In Wireless Push, Says Analyst",
@@ -224,85 +312,169 @@
       "origin": "gnews-rss",
       "source": "Investor's Business Daily",
       "tickers": [
+        "SPCH",
         "TMUS"
       ],
-      "held": [],
+      "held": [
+        "SPCH"
+      ],
       "new_ideas": [
         "TMUS"
       ],
       "sectors": [
-        "电信",
-        "航天"
+        "航天/卫星",
+        "电信/无线",
+        "并购"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 78,
+      "summary_cn": "分析师称 SpaceX 可能收购 T-Mobile 拓展无线业务；如成行将利好 SPCH，并带来 TMUS 这一 new_idea（被收购方）。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk-connected company buys land, water infrastructure before Grimes County’s SpaceX tax vote",
+      "url": "",
+      "published": "Fri, 26 Jun 2026 04:10:00 GMT",
+      "origin": "gnews-rss",
+      "source": "KBTX News 3",
+      "tickers": [
+        "SPCH"
+      ],
+      "held": [
+        "SPCH"
+      ],
+      "new_ideas": [],
+      "sectors": [
+        "航天/卫星",
+        "基建/土地"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 75,
+      "summary_cn": "Musk 关联公司在 SpaceX 税收投票前抢购 Grimes County 土地与水利基建，利好 SPCH（2x SpaceX ETF）所跟踪的 SpaceX 估值。"
+    },
+    {
+      "author": "Musk",
+      "text": "SpaceX's drop off sees Elon Musk's net worth fall $240 billion—roughly the same value as computing giant IBM",
+      "url": "",
+      "published": "Tue, 23 Jun 2026 11:19:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Fortune",
+      "tickers": [
+        "SPCH"
+      ],
+      "held": [
+        "SPCH"
+      ],
+      "new_ideas": [],
+      "sectors": [
+        "航天/卫星",
+        "科技"
+      ],
+      "sector_holdings": [],
+      "stance": "attack",
+      "relevance": 72,
+      "summary_cn": "SpaceX 估值大幅回调致 Musk 净资产蒸发约2400亿美元，SPCH（2x SpaceX ETF）跟踪标的承压。"
+    },
+    {
+      "author": "Musk",
+      "text": "Musk's SpaceX targets US consumers with Starlink mobile service push, FT reports",
+      "url": "",
+      "published": "Fri, 26 Jun 2026 07:48:58 GMT",
+      "origin": "gnews-rss",
+      "source": "Reuters",
+      "tickers": [
+        "SPCH"
+      ],
+      "held": [
+        "SPCH"
+      ],
+      "new_ideas": [],
+      "sectors": [
+        "航天/卫星",
+        "电信/无线"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 72,
+      "summary_cn": "SpaceX 旗下 Starlink 推进面向美国消费者的卫星移动通信服务，直接利好 SPCH（2x SpaceX ETF）。"
+    },
+    {
+      "author": "Musk",
+      "text": "'The cult of Elon': SpaceX investors grapple with volatility amid big swings",
+      "url": "",
+      "published": "Fri, 26 Jun 2026 11:00:01 GMT",
+      "origin": "gnews-rss",
+      "source": "CNBC",
+      "tickers": [
+        "SPCH"
+      ],
+      "held": [
+        "SPCH"
+      ],
+      "new_ideas": [],
+      "sectors": [
+        "航天/卫星",
+        "私募/估值"
       ],
       "sector_holdings": [],
       "stance": "neutral",
       "relevance": 70,
-      "summary_cn": "分析师称 SpaceX 可能收购 T-Mobile 拓展无线业务，Musk 体系延伸至电信领域（SpaceX 自身未上市，关联标的 TMUS）。"
+      "summary_cn": "SpaceX 投资人面对剧烈估值波动，凸显二级/私募市场对 SpaceX 的高波动预期，与 SPCH 跟踪标的直接相关。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk loses trillionaire status as SpaceX and Tesla stock drops",
+      "url": "",
+      "published": "Wed, 24 Jun 2026 22:45:00 GMT",
+      "origin": "gnews-rss",
+      "source": "The Guardian",
+      "tickers": [
+        "TSLA",
+        "SPCH"
+      ],
+      "held": [
+        "SPCH"
+      ],
+      "new_ideas": [
+        "TSLA"
+      ],
+      "sectors": [
+        "航天/卫星",
+        "电动车",
+        "科技"
+      ],
+      "sector_holdings": [],
+      "stance": "attack",
+      "relevance": 68,
+      "summary_cn": "Musk 因 Tesla 与 SpaceX 股价下跌失去万亿富翁头衔，反映 Musk 系资产承压；间接影响 SPCH 情绪。"
     }
   ],
-  "sector_hits": [
+  "new_ideas": [
     {
       "author": "Musk",
-      "text": "SpaceX Stock Selloff Costs Elon Musk His $1 Trillion Net Worth",
+      "text": "In Europe, Tesla Sales Are Rising Despite Views on Elon Musk",
       "url": "",
-      "published": "Wed, 24 Jun 2026 21:56:00 GMT",
+      "published": "Fri, 26 Jun 2026 14:21:12 GMT",
       "origin": "gnews-rss",
-      "source": "Barron's",
-      "tickers": [],
+      "source": "The New York Times",
+      "tickers": [
+        "TSLA"
+      ],
       "held": [],
-      "new_ideas": [],
+      "new_ideas": [
+        "TSLA"
+      ],
       "sectors": [
-        "航天",
-        "私募估值"
+        "电动车",
+        "消费"
       ],
-      "sector_holdings": [
-        "SPCH"
-      ],
+      "sector_holdings": [],
       "stance": "neutral",
-      "relevance": 72,
-      "summary_cn": "SpaceX 股票遭抛售使 Musk 跌出万亿俱乐部，SPCH（2x 做多 SpaceX）持仓短期承压。"
-    },
-    {
-      "author": "Musk",
-      "text": "Easy come, easy go: Elon Musk loses trillionaire status as SpaceX stock falls",
-      "url": "",
-      "published": "Thu, 25 Jun 2026 19:36:19 GMT",
-      "origin": "gnews-rss",
-      "source": "KRON4",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "私募估值"
-      ],
-      "sector_holdings": [
-        "SPCH"
-      ],
-      "stance": "neutral",
-      "relevance": 70,
-      "summary_cn": "SpaceX 股价下跌导致 Musk 失去万亿富豪地位，间接影响 SPCH（2x 做多 SpaceX ETF）持仓估值。"
-    },
-    {
-      "author": "Musk",
-      "text": "After $86 billion IPO, SpaceX to borrow $20 billion",
-      "url": "",
-      "published": "Tue, 23 Jun 2026 13:27:01 GMT",
-      "origin": "gnews-rss",
-      "source": "Axios",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "私募估值"
-      ],
-      "sector_holdings": [
-        "SPCH"
-      ],
-      "stance": "neutral",
-      "relevance": 68,
-      "summary_cn": "SpaceX 在 860 亿美元 IPO 后计划再举债 200 亿美元，反映其资本需求强劲，间接利好 SPCH 标的资产规模扩张预期。"
+      "relevance": 58,
+      "summary_cn": "Tesla 在欧洲销量逆势上升，Musk 个人形象争议未拖累销售，对 TSLA 偏多信号。"
     }
-  ]
+  ],
+  "sector_hits": []
 }
