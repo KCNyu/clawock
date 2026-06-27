@@ -101,40 +101,25 @@
 - **单一来源：`portfolio.json`**，不在此维护副本
 - ticker 列表：`memory/current-portfolio-summary.md`（提高检索命中）
 
-## Promoted From Short-Term Memory (2026-06-26)
+## Promoted From Short-Term Memory (2026-06-28)
 
-<!-- openclaw-memory-promotion:memory:memory/2026-06-22-pre-open.md:18:21 -->
-- ▎仓位明细: | 代码 | 股 | 成本 | 现价 | 今日 | 浮% | 浮$ | |---|---|---|---|---|---|---| | 00100 | 60 | 822.83 | 497.6 | +12.33% | -39.53% | -19,513.80 | | 02208 | 400 | 14.084 | 10.88 | +0.37% | -22.75% | -1,281.60 | [score=0.858 recalls=0 avg=0.620 source=memory/2026-06-22-pre-open.md:18-21]
-<!-- openclaw-memory-promotion:memory:memory/2026-06-22-pre-open.md:22:24 -->
-- ▎仓位明细: | 03032 | 200 | 5.405 | 4.584 | -1.63% | -15.19% | -164.20 | | 07226 | 6200 | 4.3632 | 3.324 | -2.81% | -23.82% | -6,443.04 | | 03033 | 1000 | 5.14 | 4.512 | -1.18% | -12.22% | -628.00 | [score=0.858 recalls=0 avg=0.620 source=memory/2026-06-22-pre-open.md:22-24]
-<!-- openclaw-memory-promotion:memory:memory/2026-06-22-pre-open.md:2:3 -->
-- layout: default title: 盘前深度简报 · 2026-06-22 [score=0.828 recalls=0 avg=0.620 source=memory/2026-06-22-pre-open.md:2-3]
-<!-- openclaw-memory-promotion:memory:memory/2026-06-22-pre-open.md:28:31 -->
-- ▎仓位明细: | 代码 | 股 | 成本 | 现价 | 今日 | 浮% | 浮$ | |---|---|---|---|---|---|---| | CRCL | 2 | 87.00 | 80.23 | +0.00% | -7.78% | -13.54 | | PLTU | 14 | 40.96 | 31.36 | +0.00% | -23.43% | -134.36 | [score=0.820 recalls=0 avg=0.620 source=memory/2026-06-22-pre-open.md:28-31]
-<!-- openclaw-memory-promotion:memory:memory/2026-06-22-pre-open.md:32:35 -->
-- ▎仓位明细: | RKLX | 10 | 49.69 | 52.45 | +0.00% | +5.55% | +27.60 | | ROBN | 20 | 23.58 | 35.70 | +0.00% | +51.38% | +242.35 | | SPCH | 60 | 20.13 | 18.97 | +0.00% | -5.76% | -69.60 | | MSFU | 20 | 29.13 | 23.21 | +0.00% | -20.32% | -118.40 | [score=0.820 recalls=0 avg=0.620 source=memory/2026-06-22-pre-open.md:32-35]
-<!-- openclaw-memory-promotion:memory:memory/2026-06-22-pre-open.md:8:10 -->
-- Header — 盘前深度简报｜2026-06-22（周一）08:00 HKT: **Regime**：HK = trending-down(amber，HSTECH距200日线-15.6%，趋势OFF，20日波动30%<50%上限) ｜ US = trending-down(amber，但US休市中，上一交易日2026-06-19收盘数据) **FX (USDHKD)** = 7.8388 (Frankfurter) **Book（双视角，HKD+USD不可直接相加）**：USD-base 合计浮亏 -$3,641.83 ｜ HKD-base 合计浮亏 -28,547.61 HKD ｜ HK leg 60,245.6 HKD（浮亏-28,030.64 HKD）｜ US leg $3,440.4（浮亏-$65.95） [score=0.820 recalls=0 avg=0.620 source=memory/2026-06-22-pre-open.md:8-10]
-
-## Promoted From Short-Term Memory (2026-06-27)
-
-<!-- openclaw-memory-promotion:memory:memory/2026-06-23-1252.md:11:14 -->
-- Conversation Summary: | 名次 | 日期 | 美股账户当日 P&L | 备注 | |---|---|---|---| | **🥇 最大** | **2026-04-08** | **-$2,118.40** | 应该是上次类似级别的科技股共振下跌 | | 🥈 次大 | 2026-04-09 | -$1,214.51 | 4/8 跌幅的延续 | [score=0.820 recalls=0 avg=0.620 source=memory/2026-06-23-1252.md:11-14]
-<!-- openclaw-memory-promotion:memory:memory/2026-06-24-0045.md:101:104 -->
-- Conversation Summary: | 代码 | 股 | 成本 | 现价 | 今日 | 浮% | 浮$ | |:------|------:|-------:|-------:|-------:|-------:|--------:| | CRCL | 2 | 87.00 | 76.42 | -4.4% | -12.2% | -21 | | PLTU | 14 | 40.96 | 26.36 | -2.3% | -35.6% | -204 | [score=0.809 recalls=0 avg=0.620 source=memory/2026-06-24-0045.md:101-104]
-<!-- openclaw-memory-promotion:memory:memory/2026-06-24-0045.md:105:108 -->
-- Conversation Summary: | RKLX | 10 | 49.69 | 43.60 | -4.1% | -12.3% | -61 | | ROBN | 20 | 23.58 | 33.39 | -1.8% | +41.6% | +196 | | SPCH | 90 | 18.07 | 13.44 | +6.0% | -25.6% | -416 | | MSFU | 20 | 29.13 | 22.36 | +3.5% | -23.3% | -136 | [score=0.809 recalls=0 avg=0.620 source=memory/2026-06-24-0045.md:105-108]
-<!-- openclaw-memory-promotion:memory:memory/2026-06-24-0045.md:11:11 -->
-- Conversation Summary: **📋 SPCH 更新后状态** [score=0.809 recalls=0 avg=0.620 source=memory/2026-06-24-0045.md:11-11]
-<!-- openclaw-memory-promotion:memory:memory/2026-06-24-0045.md:111:114 -->
-- Conversation Summary: ▼ STOP-LOSS PLTU | 今日-2.3% 浮-35.6% · RSI 34.0 超卖区 · 价格低于MA20 -27.6% ▼ STOP-LOSS SPCH | 今日+6.0% 浮-25.6% [score=0.809 recalls=0 avg=0.620 source=memory/2026-06-24-0045.md:111-114]
-<!-- openclaw-memory-promotion:memory:memory/2026-06-24-0045.md:115:118 -->
-- Conversation Summary: · 浮亏 -25.6% 警惕止损 · 今日强涨 +6.0% ▼ STOP-LOSS MSFU | 今日+3.5% 浮-23.3% · 浮亏 -23.3% 警惕止损 [score=0.809 recalls=0 avg=0.620 source=memory/2026-06-24-0045.md:115-118]
-<!-- openclaw-memory-promotion:memory:memory/2026-06-24-0045.md:119:119 -->
-- Conversation Summary: · 2x 杠杆 ETF，波动放大 [score=0.809 recalls=0 avg=0.620 source=memory/2026-06-24-0045.md:119-119]
-<!-- openclaw-memory-promotion:memory:memory/2026-06-24-0045.md:121:121 -->
-- Conversation Summary: 📉 亏损持仓 5/6 | 杠杆ETF敞口 95% [score=0.809 recalls=0 avg=0.620 source=memory/2026-06-24-0045.md:121-121]
-<!-- openclaw-memory-promotion:memory:memory/2026-06-24-0045.md:124:127 -->
-- Conversation Summary: 📰 CRCL (1条) · The Singularity Portfolio 📰 SPCH (2条) · SpaceX ETF Frenzy Reaches Bonkers Levels As [score=0.809 recalls=0 avg=0.620 source=memory/2026-06-24-0045.md:124-127]
-<!-- openclaw-memory-promotion:memory:memory/2026-06-24-0045.md:128:128 -->
-- Conversation Summary: · Move Over, Bitcoin: New SpaceX ETF Just Doubl [score=0.809 recalls=0 avg=0.620 source=memory/2026-06-24-0045.md:128-128]
+<!-- openclaw-memory-promotion:memory:memory/2026-06-24-pre-open.md:10:10 -->
+- 📊 盘前深度简报｜2026-06-24（周三）08:00 HKT: **FX**: USDHKD = 7.84 (Frankfurter) [score=0.839 recalls=0 avg=0.620 source=memory/2026-06-24-pre-open.md:10-10]
+<!-- openclaw-memory-promotion:memory:memory/2026-06-24-0045.md:13:16 -->
+- Conversation Summary: | 项 | 旧值 | 新值 | |---|---|---| | 净持仓 | 80 股 | **90 股** (+10) | | 加权均成本 | $19.0312 | **$18.0673** | [score=0.833 recalls=0 avg=0.620 source=memory/2026-06-24-0045.md:13-16]
+<!-- openclaw-memory-promotion:memory:memory/2026-06-24-0045.md:17:20 -->
+- Conversation Summary: | 现价 | $12.80 | $12.80 | | 浮亏 | -$463.38 (-30.44%) | **-$474.05 (-29.15%)** | | 总入金 | $1,523 | **$1,987.40** | | 已实现 | +$34.80 (T+0) | +$34.80 | [score=0.833 recalls=0 avg=0.620 source=memory/2026-06-24-0045.md:17-20]
+<!-- openclaw-memory-promotion:memory:memory/2026-06-24-0045.md:22:22 -->
+- Conversation Summary: **有意思的小数**:均成本从 19.03 → 18.07,**绝对亏幅从 -30.4% 收紧到 -29.2%** — 因为你这笔 13.13 拉低了一点。但**总浮亏绝对值反而多了 $10.67**,因为加仓 10 股等于把更多本金暴露在已经破止损的位置上。这是"摊本"的真实效果:看起来百分比好看,本金燃烧速度其实更快。 [score=0.833 recalls=0 avg=0.620 source=memory/2026-06-24-0045.md:22-22]
+<!-- openclaw-memory-promotion:memory:memory/2026-06-24-0045.md:3:5 -->
+- Session: 2026-06-24 00:45:35 GMT+8: **Session Key**: agent:main:openclaw-weixin:direct:o9cq80-hgtrum-oss8knmdotlvzi@im.wechat; **Session ID**: c86fce6e-0e86-44b5-af85-e6d46cd8c68c; **Source**: openclaw-weixin [score=0.833 recalls=0 avg=0.620 source=memory/2026-06-24-0045.md:3-5]
+<!-- openclaw-memory-promotion:memory:memory/2026-06-23-1252.md:15:17 -->
+- Conversation Summary: | 🥉 第三 | 2026-05-13 | -$801.25 | | | **今天** | 2026-06-22 | -$531.39 | **历史第7-8名**，常规单日下跌规模 | | 较小 | 多次 | -$200~$400 | 常规震荡 | [score=0.832 recalls=0 avg=0.620 source=memory/2026-06-23-1252.md:15-17]
+<!-- openclaw-memory-promotion:memory:memory/2026-06-23-1252.md:19:19 -->
+- Conversation Summary: **今天的-$531.39只排在中位数偏上的位置**，**真正的灾难日是4/8那波-$2,118.40（是今天跌幅的4倍）**——估计是上一次关税或者科技股集体杀估值的事件。 [score=0.832 recalls=0 avg=0.620 source=memory/2026-06-23-1252.md:19-19]
+<!-- openclaw-memory-promotion:memory:memory/2026-06-23-1252.md:21:21 -->
+- Conversation Summary: **真实结构是这样的**： [score=0.832 recalls=0 avg=0.620 source=memory/2026-06-23-1252.md:21-21]
+<!-- openclaw-memory-promotion:memory:memory/2026-06-23-1252.md:3:5 -->
+- Session: 2026-06-23 12:52:51 GMT+8: **Session Key**: agent:main:openclaw-weixin:direct:o9cq80-hgtrum-oss8knmdotlvzi@im.wechat; **Session ID**: 09eb7c0d-a102-4f8b-8247-173529760fdf; **Source**: openclaw-weixin [score=0.832 recalls=0 avg=0.620 source=memory/2026-06-23-1252.md:3-5]
+<!-- openclaw-memory-promotion:memory:memory/2026-06-23-1252.md:9:9 -->
+- Conversation Summary: assistant: 查了portfolio.json里所有20笔已平仓记录 + 当前未平仓的日P&L时间序列，**不是最大回撤**： [score=0.832 recalls=0 avg=0.620 source=memory/2026-06-23-1252.md:9-9]
