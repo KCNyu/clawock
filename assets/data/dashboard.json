@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-28T22:39:20.625617Z",
+  "generated_at": "2026-06-28T22:43:04.457391Z",
   "last_updated": "2026/06/27 04:01 HKT",
   "fx": {
     "usdhkd": null,
@@ -5399,66 +5399,66 @@
     ]
   },
   "macro": {
-    "generated_at": "2026-06-25T23:02:18.333802+00:00",
+    "generated_at": "2026-06-28T22:42:58.584280+00:00",
     "vix": {
       "symbol": "^VIX",
-      "price": 18.89,
-      "prev": 19.49,
-      "change_pct": -3.08,
-      "as_of": 1782418501,
+      "price": 18.41,
+      "prev": 18.89,
+      "change_pct": -2.54,
+      "as_of": 1782504901,
       "source": "yahoo"
     },
     "treasury_10y": {
       "symbol": "^TNX",
-      "price": 4.392,
-      "prev": 4.402,
-      "change_pct": -0.23,
-      "as_of": 1782413994,
+      "price": 4.372,
+      "prev": 4.392,
+      "change_pct": -0.46,
+      "as_of": 1782500395,
       "source": "yahoo",
-      "yield_pct": 4.392
+      "yield_pct": 4.372
     },
     "dxy": {
       "symbol": "DX-Y.NYB",
-      "price": 101.441,
-      "prev": 101.431,
-      "change_pct": 0.01,
-      "as_of": 1782425094,
+      "price": 101.376,
+      "prev": 101.357,
+      "change_pct": 0.02,
+      "as_of": 1782685977,
       "source": "yahoo"
     },
     "fear_greed": {
-      "score": 25.5,
-      "rating": "fear",
-      "prev_close": 25.9,
+      "score": 24.8,
+      "rating": "extreme fear",
+      "prev_close": 25.5,
       "prev_1_week": 37.6,
-      "as_of": "2026-06-25T22:46:22+00:00"
+      "as_of": "2026-06-26T23:59:57+00:00"
     },
     "hsi": {
       "symbol": "^HSI",
-      "price": 23076.91,
-      "prev": 23412.18,
-      "change_pct": -1.43,
+      "price": 22671.86,
+      "prev": 23076.91,
+      "change_pct": -1.76,
       "source": "tencent"
     },
     "hstech": {
       "symbol": "^HSTECH",
-      "price": 4405.92,
-      "prev": 4479.02,
-      "change_pct": -1.63,
+      "price": 4255.59,
+      "prev": 4405.92,
+      "change_pct": -3.41,
       "source": "tencent"
     },
     "spx": {
       "symbol": "^GSPC",
-      "price": 7357.49,
-      "prev": 7358.22,
-      "change_pct": -0.01,
-      "as_of": 1782420381,
+      "price": 7354.02,
+      "prev": 7357.49,
+      "change_pct": -0.05,
+      "as_of": 1782508020,
       "source": "yahoo"
     },
     "nasdaq": {
       "symbol": "^IXIC",
-      "price": 25358.6,
-      "prev": 25476.64,
-      "change_pct": -0.46,
+      "price": 25297.62,
+      "prev": 25358.6,
+      "change_pct": -0.24,
       "source": "tencent"
     },
     "fed_press": [
@@ -6017,7 +6017,7 @@
     "label": "risk_off",
     "score": -2,
     "reasons": [
-      "F&G 26 fear",
+      "F&G 25 fear",
       "SPX+NDX 同向下行"
     ]
   },
@@ -6628,7 +6628,7 @@
     "last_updated": "2026-06-26T15:50:22.641769Z"
   },
   "build_status": {
-    "generated_at": "2026-06-28T22:39:20+00:00",
+    "generated_at": "2026-06-28T22:43:04+00:00",
     "healthy": true,
     "stale_files": [],
     "files": [
