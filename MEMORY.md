@@ -101,25 +101,25 @@
 - **单一来源：`portfolio.json`**，不在此维护副本
 - ticker 列表：`memory/current-portfolio-summary.md`（提高检索命中）
 
-## Promoted From Short-Term Memory (2026-06-28)
+## Promoted From Short-Term Memory (2026-06-29)
 
-<!-- openclaw-memory-promotion:memory:memory/2026-06-24-pre-open.md:10:10 -->
-- 📊 盘前深度简报｜2026-06-24（周三）08:00 HKT: **FX**: USDHKD = 7.84 (Frankfurter) [score=0.839 recalls=0 avg=0.620 source=memory/2026-06-24-pre-open.md:10-10]
-<!-- openclaw-memory-promotion:memory:memory/2026-06-24-0045.md:13:16 -->
-- Conversation Summary: | 项 | 旧值 | 新值 | |---|---|---| | 净持仓 | 80 股 | **90 股** (+10) | | 加权均成本 | $19.0312 | **$18.0673** | [score=0.833 recalls=0 avg=0.620 source=memory/2026-06-24-0045.md:13-16]
-<!-- openclaw-memory-promotion:memory:memory/2026-06-24-0045.md:17:20 -->
-- Conversation Summary: | 现价 | $12.80 | $12.80 | | 浮亏 | -$463.38 (-30.44%) | **-$474.05 (-29.15%)** | | 总入金 | $1,523 | **$1,987.40** | | 已实现 | +$34.80 (T+0) | +$34.80 | [score=0.833 recalls=0 avg=0.620 source=memory/2026-06-24-0045.md:17-20]
-<!-- openclaw-memory-promotion:memory:memory/2026-06-24-0045.md:22:22 -->
-- Conversation Summary: **有意思的小数**:均成本从 19.03 → 18.07,**绝对亏幅从 -30.4% 收紧到 -29.2%** — 因为你这笔 13.13 拉低了一点。但**总浮亏绝对值反而多了 $10.67**,因为加仓 10 股等于把更多本金暴露在已经破止损的位置上。这是"摊本"的真实效果:看起来百分比好看,本金燃烧速度其实更快。 [score=0.833 recalls=0 avg=0.620 source=memory/2026-06-24-0045.md:22-22]
-<!-- openclaw-memory-promotion:memory:memory/2026-06-24-0045.md:3:5 -->
-- Session: 2026-06-24 00:45:35 GMT+8: **Session Key**: agent:main:openclaw-weixin:direct:o9cq80-hgtrum-oss8knmdotlvzi@im.wechat; **Session ID**: c86fce6e-0e86-44b5-af85-e6d46cd8c68c; **Source**: openclaw-weixin [score=0.833 recalls=0 avg=0.620 source=memory/2026-06-24-0045.md:3-5]
-<!-- openclaw-memory-promotion:memory:memory/2026-06-23-1252.md:15:17 -->
-- Conversation Summary: | 🥉 第三 | 2026-05-13 | -$801.25 | | | **今天** | 2026-06-22 | -$531.39 | **历史第7-8名**，常规单日下跌规模 | | 较小 | 多次 | -$200~$400 | 常规震荡 | [score=0.832 recalls=0 avg=0.620 source=memory/2026-06-23-1252.md:15-17]
-<!-- openclaw-memory-promotion:memory:memory/2026-06-23-1252.md:19:19 -->
-- Conversation Summary: **今天的-$531.39只排在中位数偏上的位置**，**真正的灾难日是4/8那波-$2,118.40（是今天跌幅的4倍）**——估计是上一次关税或者科技股集体杀估值的事件。 [score=0.832 recalls=0 avg=0.620 source=memory/2026-06-23-1252.md:19-19]
-<!-- openclaw-memory-promotion:memory:memory/2026-06-23-1252.md:21:21 -->
-- Conversation Summary: **真实结构是这样的**： [score=0.832 recalls=0 avg=0.620 source=memory/2026-06-23-1252.md:21-21]
-<!-- openclaw-memory-promotion:memory:memory/2026-06-23-1252.md:3:5 -->
-- Session: 2026-06-23 12:52:51 GMT+8: **Session Key**: agent:main:openclaw-weixin:direct:o9cq80-hgtrum-oss8knmdotlvzi@im.wechat; **Session ID**: 09eb7c0d-a102-4f8b-8247-173529760fdf; **Source**: openclaw-weixin [score=0.832 recalls=0 avg=0.620 source=memory/2026-06-23-1252.md:3-5]
-<!-- openclaw-memory-promotion:memory:memory/2026-06-23-1252.md:9:9 -->
-- Conversation Summary: assistant: 查了portfolio.json里所有20笔已平仓记录 + 当前未平仓的日P&L时间序列，**不是最大回撤**： [score=0.832 recalls=0 avg=0.620 source=memory/2026-06-23-1252.md:9-9]
+<!-- openclaw-memory-promotion:memory:memory/2026-06-23-2221.md:11:12 -->
+- Conversation Summary: 🇭🇰 港股盯盘 | 06/23 13:33 HKT 恒指 23,400 ▼1.55% 恒科 4,420 ▼2.85% [score=0.853 recalls=0 avg=0.620 source=memory/2026-06-23-2221.md:11-12]
+<!-- openclaw-memory-promotion:memory:memory/2026-06-23-2221.md:14:14 -->
+- Conversation Summary: 📊 市值 HK$58,953 | 浮盈 -29,323 (-33.2%) | 今日 -7,866 [score=0.853 recalls=0 avg=0.620 source=memory/2026-06-23-2221.md:14-14]
+<!-- openclaw-memory-promotion:memory:memory/2026-06-23-2221.md:16:19 -->
+- Conversation Summary: | 代码 | 股 | 成本 | 现价 | 今日 | 浮% | 浮$ | |:------|------:|-------:|-------:|-------:|-------:|--------:| | 00100 | 60 | 822.83 | 509.50 | -17.4% | -38.1% | -18,800 | | 02208 | 400 | 14.08 | 10.27 | -3.2% | -27.1% | -1,526 | [score=0.834 recalls=0 avg=0.620 source=memory/2026-06-23-2221.md:16-19]
+<!-- openclaw-memory-promotion:memory:memory/2026-06-23-2221.md:20:22 -->
+- Conversation Summary: | 03032 | 200 | 5.41 | 4.41 | -3.0% | -18.4% | -199 | | 07226 | 6200 | 4.36 | 3.07 | -5.7% | -29.6% | -7,993 | | 03033 | 1000 | 5.14 | 4.33 | -2.9% | -15.7% | -806 | [score=0.834 recalls=0 avg=0.620 source=memory/2026-06-23-2221.md:20-22]
+<!-- openclaw-memory-promotion:memory:memory/2026-06-23-2221.md:3:5 -->
+- Session: 2026-06-23 22:21:51 GMT+8: **Session Key**: agent:main:openclaw-weixin:direct:o9cq80-hgtrum-oss8knmdotlvzi@im.wechat; **Session ID**: 259d76b5-2ab4-4b39-89f2-f420b80c39c4; **Source**: openclaw-weixin [score=0.834 recalls=0 avg=0.620 source=memory/2026-06-23-2221.md:3-5]
+<!-- openclaw-memory-promotion:memory:memory/2026-06-23-2225-spch-infinite-ammo.md:12:13 -->
+- 当前 SPCH 仓位: 累计买入成本: $1,987.40; 已实现: +$34.80 [score=0.834 recalls=0 avg=0.620 source=memory/2026-06-23-2225-spch-infinite-ammo.md:12-13]
+<!-- openclaw-memory-promotion:memory:memory/2026-06-23-2225-spch-infinite-ammo.md:16:19 -->
+- minimax 立场 (记录用,不重复劝): 数学上回本需 +41.2% 单股反弹 (12.80→18.07); 8 月解禁前 SPCX 正股单周 -25% 已出现过(IPO首日成交价→现在跌 30%+); 单股 2x 杠杆 ETF 没有"摊本回归"机制, 加仓 = 加大敞口; 但 kcn 是 risk_on 选手, 这是 explicit user override, 严格执行 [score=0.834 recalls=0 avg=0.620 source=memory/2026-06-23-2225-spch-infinite-ammo.md:16-19]
+<!-- openclaw-memory-promotion:memory:memory/2026-06-23-2225-spch-infinite-ammo.md:22:25 -->
+- Rick 操作契约 (写入 portfolio.json + 本文件): **默认状态**: SPCH 走 DCA 模式, 每次加仓正常记账 + commit, 盯盘报告不喊砍; **不再重复风险提示**, 除非触发以下 P0 升级条件:; **触发 A**: SPCH 单日跌幅 > 15% (现已是高 beta, 单日-15% 意味着正股 -7.5%, 解禁前不可接受); **触发 B**: 累计加仓成本突破 $3,000 USD (目前 $1,987, 距触发还有 $1,013 空间, 约 77 股 @ 13.13 或更多) [score=0.834 recalls=0 avg=0.620 source=memory/2026-06-23-2225-spch-infinite-ammo.md:22-25]
+<!-- openclaw-memory-promotion:memory:memory/2026-06-23-2225-spch-infinite-ammo.md:26:27 -->
+- Rick 操作契约 (写入 portfolio.json + 本文件): **触发 C**: SPCX 正股单周跌幅 > 25% (基本面彻底破位); **触发后动作**: P0 风险报告 (不走劝阻, 只摆数学 + 问一次"继续?") [score=0.834 recalls=0 avg=0.620 source=memory/2026-06-23-2225-spch-infinite-ammo.md:26-27]
+<!-- openclaw-memory-promotion:memory:memory/2026-06-23-2225-spch-infinite-ammo.md:4:5 -->
+- 触发: 用户 (kcn) 22:25 HKT 微信消息明确声明: SPCH 持仓采用 **无限子弹流持续加仓摊本** 策略, 直到 SPCX 正股出现实质性反弹,或 8 月解禁悬云落地。 [score=0.834 recalls=0 avg=0.620 source=memory/2026-06-23-2225-spch-infinite-ammo.md:4-5]
