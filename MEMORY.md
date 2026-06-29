@@ -101,25 +101,25 @@
 - **单一来源：`portfolio.json`**，不在此维护副本
 - ticker 列表：`memory/current-portfolio-summary.md`（提高检索命中）
 
-## Promoted From Short-Term Memory (2026-06-29)
+## Promoted From Short-Term Memory (2026-06-30)
 
-<!-- openclaw-memory-promotion:memory:memory/2026-06-23-2221.md:11:12 -->
-- Conversation Summary: 🇭🇰 港股盯盘 | 06/23 13:33 HKT 恒指 23,400 ▼1.55% 恒科 4,420 ▼2.85% [score=0.853 recalls=0 avg=0.620 source=memory/2026-06-23-2221.md:11-12]
-<!-- openclaw-memory-promotion:memory:memory/2026-06-23-2221.md:14:14 -->
-- Conversation Summary: 📊 市值 HK$58,953 | 浮盈 -29,323 (-33.2%) | 今日 -7,866 [score=0.853 recalls=0 avg=0.620 source=memory/2026-06-23-2221.md:14-14]
-<!-- openclaw-memory-promotion:memory:memory/2026-06-23-2221.md:16:19 -->
-- Conversation Summary: | 代码 | 股 | 成本 | 现价 | 今日 | 浮% | 浮$ | |:------|------:|-------:|-------:|-------:|-------:|--------:| | 00100 | 60 | 822.83 | 509.50 | -17.4% | -38.1% | -18,800 | | 02208 | 400 | 14.08 | 10.27 | -3.2% | -27.1% | -1,526 | [score=0.834 recalls=0 avg=0.620 source=memory/2026-06-23-2221.md:16-19]
-<!-- openclaw-memory-promotion:memory:memory/2026-06-23-2221.md:20:22 -->
-- Conversation Summary: | 03032 | 200 | 5.41 | 4.41 | -3.0% | -18.4% | -199 | | 07226 | 6200 | 4.36 | 3.07 | -5.7% | -29.6% | -7,993 | | 03033 | 1000 | 5.14 | 4.33 | -2.9% | -15.7% | -806 | [score=0.834 recalls=0 avg=0.620 source=memory/2026-06-23-2221.md:20-22]
-<!-- openclaw-memory-promotion:memory:memory/2026-06-23-2221.md:3:5 -->
-- Session: 2026-06-23 22:21:51 GMT+8: **Session Key**: agent:main:openclaw-weixin:direct:o9cq80-hgtrum-oss8knmdotlvzi@im.wechat; **Session ID**: 259d76b5-2ab4-4b39-89f2-f420b80c39c4; **Source**: openclaw-weixin [score=0.834 recalls=0 avg=0.620 source=memory/2026-06-23-2221.md:3-5]
-<!-- openclaw-memory-promotion:memory:memory/2026-06-23-2225-spch-infinite-ammo.md:12:13 -->
-- 当前 SPCH 仓位: 累计买入成本: $1,987.40; 已实现: +$34.80 [score=0.834 recalls=0 avg=0.620 source=memory/2026-06-23-2225-spch-infinite-ammo.md:12-13]
-<!-- openclaw-memory-promotion:memory:memory/2026-06-23-2225-spch-infinite-ammo.md:16:19 -->
-- minimax 立场 (记录用,不重复劝): 数学上回本需 +41.2% 单股反弹 (12.80→18.07); 8 月解禁前 SPCX 正股单周 -25% 已出现过(IPO首日成交价→现在跌 30%+); 单股 2x 杠杆 ETF 没有"摊本回归"机制, 加仓 = 加大敞口; 但 kcn 是 risk_on 选手, 这是 explicit user override, 严格执行 [score=0.834 recalls=0 avg=0.620 source=memory/2026-06-23-2225-spch-infinite-ammo.md:16-19]
-<!-- openclaw-memory-promotion:memory:memory/2026-06-23-2225-spch-infinite-ammo.md:22:25 -->
-- Rick 操作契约 (写入 portfolio.json + 本文件): **默认状态**: SPCH 走 DCA 模式, 每次加仓正常记账 + commit, 盯盘报告不喊砍; **不再重复风险提示**, 除非触发以下 P0 升级条件:; **触发 A**: SPCH 单日跌幅 > 15% (现已是高 beta, 单日-15% 意味着正股 -7.5%, 解禁前不可接受); **触发 B**: 累计加仓成本突破 $3,000 USD (目前 $1,987, 距触发还有 $1,013 空间, 约 77 股 @ 13.13 或更多) [score=0.834 recalls=0 avg=0.620 source=memory/2026-06-23-2225-spch-infinite-ammo.md:22-25]
-<!-- openclaw-memory-promotion:memory:memory/2026-06-23-2225-spch-infinite-ammo.md:26:27 -->
-- Rick 操作契约 (写入 portfolio.json + 本文件): **触发 C**: SPCX 正股单周跌幅 > 25% (基本面彻底破位); **触发后动作**: P0 风险报告 (不走劝阻, 只摆数学 + 问一次"继续?") [score=0.834 recalls=0 avg=0.620 source=memory/2026-06-23-2225-spch-infinite-ammo.md:26-27]
-<!-- openclaw-memory-promotion:memory:memory/2026-06-23-2225-spch-infinite-ammo.md:4:5 -->
-- 触发: 用户 (kcn) 22:25 HKT 微信消息明确声明: SPCH 持仓采用 **无限子弹流持续加仓摊本** 策略, 直到 SPCX 正股出现实质性反弹,或 8 月解禁悬云落地。 [score=0.834 recalls=0 avg=0.620 source=memory/2026-06-23-2225-spch-infinite-ammo.md:4-5]
+<!-- openclaw-memory-promotion:memory:memory/2026-06-23-2225-spch-infinite-ammo.md:8:11 -->
+- 当前 SPCH 仓位: 净持仓: 90 股; 加权均成本: $18.0673 ⚠️ **更正(2026-06-24)**: 此值算错——把 6/15 已 T+0 卖出的 20 股 @16.68 仍留在分母(按 110 股而非净 90 股平均)。正确移动加权均价 = **$18.3756**(对上券商 18.37);净建仓成本应为 90×18.3756=$1,653.80,非下方「累计买入成本 $1,987.40」(后者含已卖 20 股)。已修 portfolio.json + 快照 + 加 COST_BASIS 体检闸; 现价: $12.80 (06/23 收盘); 浮亏: -$474.05 (-29.15%) [score=0.854 recalls=0 avg=0.620 source=memory/2026-06-23-2225-spch-infinite-ammo.md:8-11]
+<!-- openclaw-memory-promotion:memory:memory/2026-06-24-0045.md:9:9 -->
+- Conversation Summary: assistant: 补记完成。 [score=0.853 recalls=0 avg=0.620 source=memory/2026-06-24-0045.md:9-9]
+<!-- openclaw-memory-promotion:memory:memory/2026-06-26-pre-open.md:24:26 -->
+- ▎仓位明细: | 02208 | 400 | 14.084 | 9.69 | -4.34% | -31.20% | -1,757.6 | | 03033 | 1000 | 5.14 | 4.33 | -1.59% | -15.76% | -810.0 | | 03032 | 200 | 5.405 | 4.41 | -1.30% | -18.41% | -199.0 | [score=0.851 recalls=0 avg=0.620 source=memory/2026-06-26-pre-open.md:24-26]
+<!-- openclaw-memory-promotion:memory:memory/2026-06-23-2221.md:9:9 -->
+- Conversation Summary: assistant: 🌤 港股午后快报｜2026-06-23 13:30 [score=0.844 recalls=0 avg=0.620 source=memory/2026-06-23-2221.md:9-9]
+<!-- openclaw-memory-promotion:memory:memory/2026-06-24-pre-open.md:12:12 -->
+- 📊 盘前深度简报｜2026-06-24（周三）08:00 HKT: **Book（USD-base + HKD-base 双视角，硬铁律：HKD/USD 不能直接相加）** [score=0.834 recalls=0 avg=0.620 source=memory/2026-06-24-pre-open.md:12-12]
+<!-- openclaw-memory-promotion:memory:memory/2026-06-24-pre-open.md:15:17 -->
+- 📊 盘前深度简报｜2026-06-24（周三）08:00 HKT: 真实总浮盈亏: USD$-4,505.85 ≈ HKD$-35,325.87 (USDHKD=7.84, Frankfurter, 2026-06-24 00:00 UTC) ├─ HK 段：HKD$-29,219.84 ≈ USD$-3,727.5 └─ US 段：USD$-778.83 ≈ HKD$-6,106.07 [score=0.834 recalls=0 avg=0.620 source=memory/2026-06-24-pre-open.md:15-17]
+<!-- openclaw-memory-promotion:memory:memory/2026-06-24-pre-open.md:2:3 -->
+- layout: default title: 盘前深度简报 · 2026-06-24 [score=0.834 recalls=0 avg=0.620 source=memory/2026-06-24-pre-open.md:2-3]
+<!-- openclaw-memory-promotion:memory:memory/2026-06-24-pre-open.md:20:20 -->
+- 📊 盘前深度简报｜2026-06-24（周三）08:00 HKT: ⚠️ **这是第 2 天没执行昨日 plan 的硬闸动作**（昨日 plan 明确给了 00100 trim 22股 + 07226/PLTU/MSFU/SPCH 全部 cut/换仓的开盘价指令）。结果：00100 今日单日再跌 -16.46%（trigger_fired=true，模拟若执行可避免 ~2750 HKD 浮亏继续扩大）；07226 跌破止损线已 -30.2%（cap线 -18%）；PLTU/MSFU/SPCH 全部仍在硬止损线下方。**今天不是"评估要不要做"的日子，是"昨天该做没做、今天必须做"的日子。** [score=0.834 recalls=0 avg=0.620 source=memory/2026-06-24-pre-open.md:20-20]
+<!-- openclaw-memory-promotion:memory:memory/2026-06-24-pre-open.md:8:8 -->
+- 📊 盘前深度简报｜2026-06-24（周三）08:00 HKT: 🧭 Regime: US/HK 均 **neutral**（F&G 35 fear、VIX 17.3 calm、SPX+NDX 同向小跌；HK lev_regime **amber** — HSTECH 距200日线 -19.2%，趋势OFF，杠杆ETF上限砍半至25%）→ 无 risk_on 封顶约束，但**仓位硬闸已连续2日触发未执行**，今日是"按规则强制动手"的日子，不是"再等一天"。 [score=0.834 recalls=0 avg=0.620 source=memory/2026-06-24-pre-open.md:8-8]
+<!-- openclaw-memory-promotion:memory:memory/2026-06-25-pre-open.md:10:12 -->
+- 盘前深度简报 — 2026-06-25（周四）08:00 HKT: **Regime**：US `risk_off`（score -2，SPX -1.44% / NASDAQ -2.21% 同向下行，VIX 19.49 +18.84%，F&G 27.5 恐惧）｜HK `risk_off`（HSTECH -3.3%，HSI -1.82%，HK杠杆ETF制度 amber） **FX (USDHKD)**：7.8404（Frankfurter） **Book**：USD leg $3,089.29（浮亏 -$998.06）｜HKD leg 57,519.20 HKD（浮亏 -30,757.04 HKD）—— **两腿不可直接相加**，USD-base 总浮亏 -$4,920.95 / HKD-base 总浮亏 -38,582.23 HKD [score=0.832 recalls=0 avg=0.620 source=memory/2026-06-25-pre-open.md:10-12]
