@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-26T15:20:10.712772",
+  "generated_at": "2026-06-29T16:33:43.475854",
   "lookback_hours": 48,
   "tickers": [
     "CRCL",
@@ -9,9 +9,9 @@
     "SPCH",
     "MSFU"
   ],
-  "digest_markdown": "## 48h Digest\n\n### Top 移动信号\n- **CRCL**: Circle 与 Nomura 启动稳定币结算业务 (Nikkei Asia) - 日本大型金融机构接入, 机构采用里程碑, **加注信号**.\n- **CRCL**: 加密概念股遭抛售, BTC 下跌拖累 + Strategy STRC 优先股疲软 - 短期 beta 风险, 但非 CRCL 基本面, **持仓承受波动但不破位**.\n- **SPCH**: 鲸鱼/机构资金流入, 押注 SpaceX 进入 Nasdaq-100 - 若 SpaceX IPO 或纳指纳入落地, SPCH 弹性最大, **主题 beta 持仓**.\n\n### Per-ticker\n- **CRCL**: Nomura 结算合作 = 真实机构催化剂; 同日 crypto-beta 卖压为噪音, 不改变主线.\n- **ROBN**: Robin Energy (如确为同一 ticker) 12/24 反向拆股执行 - 注意 corporate action, 但若 ROBN 为 Ron Baron SpaceX ETF 则与该新闻无关, 需核实.\n- **PLTU / RKLX / MSFU**: 仅技术分析/散户情绪/ETF 评论, 无可执行 catalyst, 忽略.\n- **SPCH**: SpaceX 纳入 Nasdaq-100 预期为唯一有意义叙事, 但未官宣, 纯博弈.\n\n### Risk Watch\n- **CRCL**: BTC 价格波动 = 直接 beta 风险, 关注 Strategy STRC 优先股抛售蔓延.\n- **ROBN**: 12/24 反向拆股 (若适用) - 流动性短暂扰动.\n- **SPCH**: SpaceX 纳指纳入为预期博弈, 未兑现则回吐风险高.",
+  "digest_markdown": "### Top 移动信号\n- **SPCH**: Leverage Shares 2x SpaceX ETF 与姊妹产品 SSPC 上市首日交易量突破 $500M，whale 与 agency 资金明显流入 → 持有 SPCH 直接受益 SpaceX 私募估值重估 momentum，流动性溢价强化\n- **CRCL**: Circle 面临 USDC 储备缩水 + 短债收益率下行 + 通胀回落三重风险叠加 → 短期估值压制，持有需紧盯月度 reserve attestation\n- **ROBN**: HOOD 盘后下跌触发 after-hours selloff，但分析师与散户普遍 shrug off → 短期噪音 > 实质，2x 杠杆放大波动\n- **RKLX**: Zacks 专题将 RDWU / LABX / RKLX 归入同一太空板块推荐 → 板块情绪正向溢出，持有获主题 beta\n- **PLTU**: Palantir 涨势带动 PLTU 重新获关注 → 持有享 underlying momentum\n\n### Per-ticker 简报\n- **SPCH**: 上市首日 $500M+ 成交量，机构建仓明显 - bullish catalyst ✓\n- **CRCL**: 三重基本面逆风 - 偏空，需量化 reserve impact\n- **ROBN**: HOOD 盘后跌但 thesis 未破 - mixed，短期波动\n- **RKLX**: Zacks 板块推荐 - mild positive\n- **PLTU**: Palantir 余温 + ETF 媒体曝光 - mild positive\n- **MSFU**: 无 ticker-specific catalyst，仅 generic ETF 评论 - 持有观望\n\n### 风险 watch\n- **CRCL**: USDC 储备下降 + 短债收益率 + 通胀 = 最直接 fundamental risk catalyst，若 reserve 数据继续走弱可能触发评级下调\n- **ROBN**: HOOD after-hours 异常波动暴露 2x 杠杆 ETF 隔夜 gap risk，仓位 size 需控制\n- 其余 ticker 无明确 guidance / 监管 / 大股东动作信号\n\n**核心 action**: SPCH 流动性事件是本期最强新增信号，CRCL 是唯一明确 fundamental risk。",
   "raw_news_counts": {
-    "CRCL": 3,
+    "CRCL": 1,
     "PLTU": 5,
     "RKLX": 5,
     "ROBN": 5,
