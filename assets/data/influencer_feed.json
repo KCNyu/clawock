@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-28T22:39:20.481458+00:00",
+  "generated_at": "2026-06-29T16:30:03.262484+00:00",
   "lookback_hours": 48,
   "sources": {
     "trump": "trumpstruth.org/feed (primary)",
@@ -8,169 +8,12 @@
   },
   "llm_filtered": true,
   "counts": {
-    "total": 9,
+    "total": 12,
     "held_hits": 0,
-    "new_ideas": 3,
-    "sector_hits": 4
+    "new_ideas": 0,
+    "sector_hits": 7
   },
   "items": [
-    {
-      "author": "Musk",
-      "text": "Elon Musk loses trillionaire status as SpaceX and Tesla stock drops",
-      "url": "",
-      "published": "Wed, 24 Jun 2026 22:45:00 GMT",
-      "origin": "gnews-rss",
-      "source": "The Guardian",
-      "tickers": [
-        "TSLA",
-        "SPX"
-      ],
-      "held": [],
-      "new_ideas": [
-        "SPX",
-        "TSLA"
-      ],
-      "sectors": [
-        "电动车",
-        "航天",
-        "特斯拉"
-      ],
-      "sector_holdings": [
-        "SPCH"
-      ],
-      "stance": "sell",
-      "relevance": 68,
-      "summary_cn": "马斯克因SpaceX与特斯拉股价下跌，丢失万亿富豪头衔，对相关股价偏空信号。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk Should 'Consider Selling EVs Again,' Says Ross Gerber As TSLA Stock Declines",
-      "url": "",
-      "published": "Sun, 28 Jun 2026 11:31:31 GMT",
-      "origin": "gnews-rss",
-      "source": "Yahoo Finance",
-      "tickers": [
-        "TSLA"
-      ],
-      "held": [],
-      "new_ideas": [
-        "TSLA"
-      ],
-      "sectors": [
-        "电动车",
-        "特斯拉"
-      ],
-      "sector_holdings": [],
-      "stance": "sell",
-      "relevance": 60,
-      "summary_cn": "Ross Gerber建议马斯克应'考虑重新卖电动车'，TSLA股价下跌。"
-    },
-    {
-      "author": "Musk",
-      "text": "In Europe, Tesla Sales Are Rising Despite Views on Elon Musk",
-      "url": "",
-      "published": "Fri, 26 Jun 2026 14:21:12 GMT",
-      "origin": "gnews-rss",
-      "source": "The New York Times",
-      "tickers": [
-        "TSLA"
-      ],
-      "held": [],
-      "new_ideas": [
-        "TSLA"
-      ],
-      "sectors": [
-        "电动车",
-        "特斯拉"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 52,
-      "summary_cn": "尽管对马斯克看法不一，特斯拉在欧洲销量仍在上升。"
-    },
-    {
-      "author": "Trump",
-      "text": "RT @realDonaldTrumpNumerous European Countries have been discussing the imminent implementation of a Digital Services Tax on American Companies. Some of these Countries are close to actually doing this. Please let this statement serve to represent that any Country that imposes such a Tax will immediately be met with a 100% TARIFF on any and all Goods sent to the United States of America. This TARIFF will supersede Trade Deals made with the Country, whether implemented, signed, or not. Additionally, the 100% TARIFF will be immediately imposed, if they proceed. Thank you for your attention to th",
-      "url": "https://trumpstruth.org/statuses/39558",
-      "published": "2026-06-27T10:03:35+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "关税",
-        "科技"
-      ],
-      "sector_holdings": [
-        "MSFU"
-      ],
-      "stance": "attack",
-      "relevance": 72,
-      "summary_cn": "特朗普威胁：任何欧洲国家若对美国公司征数字服务税，将立即加征100%关税并凌驾于现有贸易协议之上，科技板块承压。"
-    },
-    {
-      "author": "Musk",
-      "text": "SpaceX Stock Selloff Costs Elon Musk His $1 Trillion Net Worth",
-      "url": "",
-      "published": "Wed, 24 Jun 2026 21:56:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Barron's",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "私募股权"
-      ],
-      "sector_holdings": [
-        "SPCH"
-      ],
-      "stance": "sell",
-      "relevance": 65,
-      "summary_cn": "SpaceX股票抛售导致马斯克身家跌破1万亿，SPCH等SpaceX杠杆产品承压。"
-    },
-    {
-      "author": "Musk",
-      "text": "After $86 billion IPO, SpaceX to borrow $20 billion",
-      "url": "",
-      "published": "Tue, 23 Jun 2026 13:27:01 GMT",
-      "origin": "gnews-rss",
-      "source": "Axios",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "私募信贷"
-      ],
-      "sector_holdings": [
-        "SPCH"
-      ],
-      "stance": "neutral",
-      "relevance": 62,
-      "summary_cn": "SpaceX在860亿美元IPO后计划再借款200亿美元，IPO+举债规模庞大，间接影响SPCH等跟踪产品。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk-connected company buys land, water infrastructure before Grimes County’s SpaceX tax vote",
-      "url": "",
-      "published": "Fri, 26 Jun 2026 04:10:00 GMT",
-      "origin": "gnews-rss",
-      "source": "KBTX News 3",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "基建"
-      ],
-      "sector_holdings": [
-        "SPCH"
-      ],
-      "stance": "neutral",
-      "relevance": 55,
-      "summary_cn": "马斯克关联公司在SpaceX所在Grimes County房产税投票前抢购土地与水利基建，航天主题间接利好。"
-    },
     {
       "author": "Trump",
       "text": "United States aircraft just struck Iranian missile and drone storage locations, and coastal radar sites, for violating the Cease Fire Agreement, AGAIN! It is very possible that they will never learn! There may come a point when we are no longer able to be reasonable, and will be forced to militarily complete the job that we very successfully started. If that happens, the Islamic Republic of Iran will no longer exist! President DJT",
@@ -181,37 +24,101 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "国防军工",
+        "军工",
+        "地缘政治",
         "能源",
-        "伊朗"
+        "原油"
       ],
-      "sector_holdings": [],
+      "sector_holdings": [
+        "02208"
+      ],
       "stance": "neutral",
-      "relevance": 58,
-      "summary_cn": "特朗普称美军空袭伊朗导弹/无人机/雷达设施，威胁可能彻底摧毁伊朗伊斯兰共和国，地缘冲突升温利好军工与能源板块。"
+      "relevance": 78,
+      "summary_cn": "Trump宣布美军空袭伊朗导弹/无人机仓库与沿海雷达站，因其违反停火协议，并威胁可能全面动武——重大地缘事件，短线利多原油与国防、利空风险资产。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk's SpaceX Could Acquire T-Mobile In Wireless Push, Says Analyst",
+      "url": "",
+      "published": "Fri, 26 Jun 2026 17:11:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Investor's Business Daily",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "电信",
+        "航天"
+      ],
+      "sector_holdings": [
+        "SPCH"
+      ],
+      "stance": "endorse",
+      "relevance": 72,
+      "summary_cn": "分析师称SpaceX可能收购T-Mobile以推进无线业务，若落地将形成航天+电信巨无霸，重大利好SpaceX估值（SpaceX未上市，关联SPCH）。"
     },
     {
       "author": "Trump",
-      "text": "Mack to the future: Trump touts Iran deal energy boom that could boost trucking biz: https://justthenews.com/government/white-house/mack-future-trump-touts-tariffs-and-iran-deal-energy-boom-will-boost",
-      "url": "https://trumpstruth.org/statuses/39583",
-      "published": "2026-06-28T03:53:25+00:00",
+      "text": "WTI CRUDE - $69, and heading down. This is less than it was prior to the start of the Denuclearization of Iran! President DJT",
+      "url": "https://trumpstruth.org/statuses/39610",
+      "published": "2026-06-29T11:23:32+00:00",
       "origin": "truthsocial",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
         "能源",
-        "关税",
-        "伊朗"
+        "原油"
       ],
-      "sector_holdings": [],
+      "sector_holdings": [
+        "02208"
+      ],
+      "stance": "endorse",
+      "relevance": 72,
+      "summary_cn": "Trump喊话WTI原油跌至$69并将继续下行，关联伊朗去核化进展；油价走低利好下游与消费，间接利空传统油气但降低整体通胀压力。"
+    },
+    {
+      "author": "Musk",
+      "text": "SpaceX Short Sellers Retreat Before Elon Musk Touts Grok 4.5 AI Model: Short Seller Tracker",
+      "url": "",
+      "published": "Mon, 29 Jun 2026 13:45:30 GMT",
+      "origin": "gnews-rss",
+      "source": "Moomoo",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "AI",
+        "航天"
+      ],
+      "sector_holdings": [
+        "SPCH"
+      ],
+      "stance": "endorse",
+      "relevance": 70,
+      "summary_cn": "SpaceX空头在Musk力推Grok 4.5模型前回补撤出，显示市场对xAI进展与SpaceX估值上修持正面态度，利好SpaceX相关持仓。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk says SpaceX is putting top Starship and Starlink engineers to work on Grok",
+      "url": "",
+      "published": "Mon, 29 Jun 2026 10:51:12 GMT",
+      "origin": "gnews-rss",
+      "source": "Business Insider",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "AI",
+        "航天"
+      ],
+      "sector_holdings": [
+        "SPCH"
+      ],
       "stance": "neutral",
-      "relevance": 55,
-      "summary_cn": "特朗普宣扬伊朗协议能源繁荣及关税政策，将利好卡车运输等行业。"
-    }
-  ],
-  "held_hits": [],
-  "new_ideas": [
+      "relevance": 65,
+      "summary_cn": "Musk将SpaceX旗下Starship与Starlink顶尖工程师调至Grok团队，显示AI优先级提升、xAI获得SpaceX资源倾斜，间接利好SpaceX相关持仓。"
+    },
     {
       "author": "Musk",
       "text": "Elon Musk loses trillionaire status as SpaceX and Tesla stock drops",
@@ -219,136 +126,19 @@
       "published": "Wed, 24 Jun 2026 22:45:00 GMT",
       "origin": "gnews-rss",
       "source": "The Guardian",
-      "tickers": [
-        "TSLA",
-        "SPX"
-      ],
+      "tickers": [],
       "held": [],
-      "new_ideas": [
-        "SPX",
-        "TSLA"
-      ],
+      "new_ideas": [],
       "sectors": [
         "电动车",
-        "航天",
-        "特斯拉"
+        "航天"
       ],
       "sector_holdings": [
         "SPCH"
       ],
-      "stance": "sell",
-      "relevance": 68,
-      "summary_cn": "马斯克因SpaceX与特斯拉股价下跌，丢失万亿富豪头衔，对相关股价偏空信号。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk Should 'Consider Selling EVs Again,' Says Ross Gerber As TSLA Stock Declines",
-      "url": "",
-      "published": "Sun, 28 Jun 2026 11:31:31 GMT",
-      "origin": "gnews-rss",
-      "source": "Yahoo Finance",
-      "tickers": [
-        "TSLA"
-      ],
-      "held": [],
-      "new_ideas": [
-        "TSLA"
-      ],
-      "sectors": [
-        "电动车",
-        "特斯拉"
-      ],
-      "sector_holdings": [],
-      "stance": "sell",
+      "stance": "neutral",
       "relevance": 60,
-      "summary_cn": "Ross Gerber建议马斯克应'考虑重新卖电动车'，TSLA股价下跌。"
-    },
-    {
-      "author": "Musk",
-      "text": "In Europe, Tesla Sales Are Rising Despite Views on Elon Musk",
-      "url": "",
-      "published": "Fri, 26 Jun 2026 14:21:12 GMT",
-      "origin": "gnews-rss",
-      "source": "The New York Times",
-      "tickers": [
-        "TSLA"
-      ],
-      "held": [],
-      "new_ideas": [
-        "TSLA"
-      ],
-      "sectors": [
-        "电动车",
-        "特斯拉"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 52,
-      "summary_cn": "尽管对马斯克看法不一，特斯拉在欧洲销量仍在上升。"
-    }
-  ],
-  "sector_hits": [
-    {
-      "author": "Trump",
-      "text": "RT @realDonaldTrumpNumerous European Countries have been discussing the imminent implementation of a Digital Services Tax on American Companies. Some of these Countries are close to actually doing this. Please let this statement serve to represent that any Country that imposes such a Tax will immediately be met with a 100% TARIFF on any and all Goods sent to the United States of America. This TARIFF will supersede Trade Deals made with the Country, whether implemented, signed, or not. Additionally, the 100% TARIFF will be immediately imposed, if they proceed. Thank you for your attention to th",
-      "url": "https://trumpstruth.org/statuses/39558",
-      "published": "2026-06-27T10:03:35+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "关税",
-        "科技"
-      ],
-      "sector_holdings": [
-        "MSFU"
-      ],
-      "stance": "attack",
-      "relevance": 72,
-      "summary_cn": "特朗普威胁：任何欧洲国家若对美国公司征数字服务税，将立即加征100%关税并凌驾于现有贸易协议之上，科技板块承压。"
-    },
-    {
-      "author": "Musk",
-      "text": "SpaceX Stock Selloff Costs Elon Musk His $1 Trillion Net Worth",
-      "url": "",
-      "published": "Wed, 24 Jun 2026 21:56:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Barron's",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "私募股权"
-      ],
-      "sector_holdings": [
-        "SPCH"
-      ],
-      "stance": "sell",
-      "relevance": 65,
-      "summary_cn": "SpaceX股票抛售导致马斯克身家跌破1万亿，SPCH等SpaceX杠杆产品承压。"
-    },
-    {
-      "author": "Musk",
-      "text": "After $86 billion IPO, SpaceX to borrow $20 billion",
-      "url": "",
-      "published": "Tue, 23 Jun 2026 13:27:01 GMT",
-      "origin": "gnews-rss",
-      "source": "Axios",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "私募信贷"
-      ],
-      "sector_holdings": [
-        "SPCH"
-      ],
-      "stance": "neutral",
-      "relevance": 62,
-      "summary_cn": "SpaceX在860亿美元IPO后计划再借款200亿美元，IPO+举债规模庞大，间接影响SPCH等跟踪产品。"
+      "summary_cn": "Musk因SpaceX与Tesla股价下跌而短暂失去万亿富豪身家，Tesla承压信号明显。"
     },
     {
       "author": "Musk",
@@ -362,14 +152,256 @@
       "new_ideas": [],
       "sectors": [
         "航天",
-        "基建"
+        "房地产"
       ],
       "sector_holdings": [
         "SPCH"
       ],
       "stance": "neutral",
+      "relevance": 58,
+      "summary_cn": "Musk关联公司在SpaceX所在Grimes County的房产税投票前购入土地与水利设施，反映SpaceX持续扩张与基础设施投入。"
+    },
+    {
+      "author": "Trump",
+      "text": "IRAN HAS REQUESTED A MEETING. IT WILL TAKE PLACE TOMORROW IN DOHA! President DJT",
+      "url": "https://trumpstruth.org/statuses/39612",
+      "published": "2026-06-29T11:31:09+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "能源",
+        "原油",
+        "地缘政治"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 65,
+      "summary_cn": "Trump宣布伊朗已请求在多哈举行会谈，直接关系中东局势与原油价格走向。"
+    },
+    {
+      "author": "Trump",
+      "text": "GAS PRICES COMING DOWN, FAST! REPORT ANY ABUSES AT RETAIL LEVEL!!! President DJT",
+      "url": "https://trumpstruth.org/statuses/39611",
+      "published": "2026-06-29T11:20:41+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "能源",
+        "汽油价格"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
       "relevance": 55,
-      "summary_cn": "马斯克关联公司在SpaceX所在Grimes County房产税投票前抢购土地与水利基建，航天主题间接利好。"
+      "summary_cn": "Trump宣称汽油价格快速下跌并要求举报零售端价格操纵，宏观层面利好消费者支出与通胀预期。"
+    },
+    {
+      "author": "Trump",
+      "text": "BIG WIN just moments ago at the Supreme Court, in the Slaughter Case, confirming Presidential Power in our Country to remove Executive Branch Officers and Agency Appointees, or Representatives, under Article II. This Decision was long sought by United States Presidents, dating all the way back to the 1930s. It is such an Honor to be the sitting President who won this Historic and Unprecedented Ruling, one of the most important ever given with respect to Presidential Powers. Thank you for your attention to this matter! President DONALD J. TRUMP",
+      "url": "https://trumpstruth.org/statuses/39615",
+      "published": "2026-06-29T14:51:10+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "监管",
+        "行政权力"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 52,
+      "summary_cn": "Trump称最高法院在Slaughter案中作出重大裁决，确认总统可依宪法第二条移除行政分支官员，利好总统对独立机构的掌控力（如SEC、CFTC等）。"
+    },
+    {
+      "author": "Trump",
+      "text": "The Cook Lawsuit, having to do with her suitability in sitting on the Board of the Federal Reserve, was sent back by the Supreme Court on a strictly procedural basis, we will take appropriate action immediately to make sure that someone who has committed wrongdoing will not be making vital decisions concerning the Welfare of the United States of America! Thank you for your attention to this matter. President DONALD J. TRUMP",
+      "url": "https://trumpstruth.org/statuses/39619",
+      "published": "2026-06-29T15:23:58+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "美联储",
+        "监管"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 50,
+      "summary_cn": "Trump就美联储理事Cook的诉讼被最高法院退回一事表态，誓言阻止其继续任职，涉及美联储人事与独立性。"
+    },
+    {
+      "author": "Trump",
+      "text": "Treasury Secretary vows law-breaking leftist nonprofits to face prosecution, asset seizures: https://justthenews.com/accountability/political-ethics/treasury-secretary-vows-law-breaking-leftist-nonprofits-face",
+      "url": "https://trumpstruth.org/statuses/39586",
+      "published": "2026-06-28T03:51:54+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "监管",
+        "政治"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 48,
+      "summary_cn": "财政部长誓言对违法左翼非营利组织进行起诉与资产冻结，涉及政治性监管与言论/资金自由话题。"
+    }
+  ],
+  "held_hits": [],
+  "new_ideas": [],
+  "sector_hits": [
+    {
+      "author": "Trump",
+      "text": "United States aircraft just struck Iranian missile and drone storage locations, and coastal radar sites, for violating the Cease Fire Agreement, AGAIN! It is very possible that they will never learn! There may come a point when we are no longer able to be reasonable, and will be forced to militarily complete the job that we very successfully started. If that happens, the Islamic Republic of Iran will no longer exist! President DJT",
+      "url": "https://trumpstruth.org/statuses/39580",
+      "published": "2026-06-27T23:13:04+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "军工",
+        "地缘政治",
+        "能源",
+        "原油"
+      ],
+      "sector_holdings": [
+        "02208"
+      ],
+      "stance": "neutral",
+      "relevance": 78,
+      "summary_cn": "Trump宣布美军空袭伊朗导弹/无人机仓库与沿海雷达站，因其违反停火协议，并威胁可能全面动武——重大地缘事件，短线利多原油与国防、利空风险资产。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk's SpaceX Could Acquire T-Mobile In Wireless Push, Says Analyst",
+      "url": "",
+      "published": "Fri, 26 Jun 2026 17:11:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Investor's Business Daily",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "电信",
+        "航天"
+      ],
+      "sector_holdings": [
+        "SPCH"
+      ],
+      "stance": "endorse",
+      "relevance": 72,
+      "summary_cn": "分析师称SpaceX可能收购T-Mobile以推进无线业务，若落地将形成航天+电信巨无霸，重大利好SpaceX估值（SpaceX未上市，关联SPCH）。"
+    },
+    {
+      "author": "Trump",
+      "text": "WTI CRUDE - $69, and heading down. This is less than it was prior to the start of the Denuclearization of Iran! President DJT",
+      "url": "https://trumpstruth.org/statuses/39610",
+      "published": "2026-06-29T11:23:32+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "能源",
+        "原油"
+      ],
+      "sector_holdings": [
+        "02208"
+      ],
+      "stance": "endorse",
+      "relevance": 72,
+      "summary_cn": "Trump喊话WTI原油跌至$69并将继续下行，关联伊朗去核化进展；油价走低利好下游与消费，间接利空传统油气但降低整体通胀压力。"
+    },
+    {
+      "author": "Musk",
+      "text": "SpaceX Short Sellers Retreat Before Elon Musk Touts Grok 4.5 AI Model: Short Seller Tracker",
+      "url": "",
+      "published": "Mon, 29 Jun 2026 13:45:30 GMT",
+      "origin": "gnews-rss",
+      "source": "Moomoo",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "AI",
+        "航天"
+      ],
+      "sector_holdings": [
+        "SPCH"
+      ],
+      "stance": "endorse",
+      "relevance": 70,
+      "summary_cn": "SpaceX空头在Musk力推Grok 4.5模型前回补撤出，显示市场对xAI进展与SpaceX估值上修持正面态度，利好SpaceX相关持仓。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk says SpaceX is putting top Starship and Starlink engineers to work on Grok",
+      "url": "",
+      "published": "Mon, 29 Jun 2026 10:51:12 GMT",
+      "origin": "gnews-rss",
+      "source": "Business Insider",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "AI",
+        "航天"
+      ],
+      "sector_holdings": [
+        "SPCH"
+      ],
+      "stance": "neutral",
+      "relevance": 65,
+      "summary_cn": "Musk将SpaceX旗下Starship与Starlink顶尖工程师调至Grok团队，显示AI优先级提升、xAI获得SpaceX资源倾斜，间接利好SpaceX相关持仓。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk loses trillionaire status as SpaceX and Tesla stock drops",
+      "url": "",
+      "published": "Wed, 24 Jun 2026 22:45:00 GMT",
+      "origin": "gnews-rss",
+      "source": "The Guardian",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "电动车",
+        "航天"
+      ],
+      "sector_holdings": [
+        "SPCH"
+      ],
+      "stance": "neutral",
+      "relevance": 60,
+      "summary_cn": "Musk因SpaceX与Tesla股价下跌而短暂失去万亿富豪身家，Tesla承压信号明显。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk-connected company buys land, water infrastructure before Grimes County’s SpaceX tax vote",
+      "url": "",
+      "published": "Fri, 26 Jun 2026 04:10:00 GMT",
+      "origin": "gnews-rss",
+      "source": "KBTX News 3",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "房地产"
+      ],
+      "sector_holdings": [
+        "SPCH"
+      ],
+      "stance": "neutral",
+      "relevance": 58,
+      "summary_cn": "Musk关联公司在SpaceX所在Grimes County的房产税投票前购入土地与水利设施，反映SpaceX持续扩张与基础设施投入。"
     }
   ]
 }
