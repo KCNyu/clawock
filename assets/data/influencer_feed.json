@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-30T15:21:00.910809+00:00",
+  "generated_at": "2026-06-30T22:53:23.138034+00:00",
   "lookback_hours": 48,
   "sources": {
     "trump": "trumpstruth.org/feed (primary)",
@@ -8,10 +8,10 @@
   },
   "llm_filtered": true,
   "counts": {
-    "total": 12,
+    "total": 13,
     "held_hits": 0,
-    "new_ideas": 0,
-    "sector_hits": 6
+    "new_ideas": 2,
+    "sector_hits": 4
   },
   "items": [
     {
@@ -21,46 +21,77 @@
       "published": "Mon, 29 Jun 2026 19:02:41 GMT",
       "origin": "gnews-rss",
       "source": "Forbes",
-      "tickers": [],
+      "tickers": [
+        "TSLA"
+      ],
       "held": [],
-      "new_ideas": [],
+      "new_ideas": [
+        "TSLA"
+      ],
       "sectors": [
-        "航天/电动车/AI"
+        "电动车",
+        "航天"
       ],
       "sector_holdings": [
         "SPCH"
       ],
       "stance": "endorse",
       "relevance": 72,
-      "summary_cn": "报道Musk净资产因SpaceX和Tesla回升600亿美元重回万亿富翁，间接利好SPCH等Musk相关持仓。"
+      "summary_cn": "马斯克净资产单日暴增600亿美元重回万亿富豪，SpaceX+特斯拉齐涨，TSLA与SPCH间接受益。"
     },
     {
       "author": "Musk",
-      "text": "Elon Musk's SpaceX Could Acquire T-Mobile In Wireless Push, Says Analyst",
+      "text": "Does Elon Musk's Recent $1 Trillion SpaceX Comment Heavily Hint That a Tesla Merger Is Coming?",
       "url": "",
-      "published": "Fri, 26 Jun 2026 17:11:00 GMT",
+      "published": "Tue, 30 Jun 2026 11:30:00 GMT",
       "origin": "gnews-rss",
-      "source": "Investor's Business Daily",
-      "tickers": [],
+      "source": "The Motley Fool",
+      "tickers": [
+        "TSLA"
+      ],
       "held": [],
-      "new_ideas": [],
+      "new_ideas": [
+        "TSLA"
+      ],
       "sectors": [
-        "航天/电信"
+        "电动车",
+        "航天"
       ],
       "sector_holdings": [
         "SPCH"
       ],
-      "stance": "endorse",
-      "relevance": 72,
-      "summary_cn": "分析师称SpaceX可能收购T-Mobile进军无线业务，若属实将显著提升SpaceX估值，利好SPCH。"
+      "stance": "neutral",
+      "relevance": 70,
+      "summary_cn": "马斯克关于SpaceX万亿估值的评论被市场猜测暗示特斯拉与SpaceX合并可能，TSLA短线情绪催化。"
     },
     {
       "author": "Musk",
-      "text": "Inside the SpaceX trading frenzy",
+      "text": "SpaceX ignited a trading frenzy. Here’s what to know",
       "url": "",
       "published": "Tue, 30 Jun 2026 09:00:25 GMT",
       "origin": "gnews-rss",
       "source": "CNN",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "私募市场"
+      ],
+      "sector_holdings": [
+        "SPCH"
+      ],
+      "stance": "neutral",
+      "relevance": 75,
+      "summary_cn": "SpaceX引发二级交易狂热，估值/股权交易升温，SPCH(2x做多SpaceX)直接受益于SpaceX估值上行。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk wins approval to acquire firm founded by former SpaceX employees",
+      "url": "",
+      "published": "Tue, 30 Jun 2026 15:21:33 GMT",
+      "origin": "gnews-rss",
+      "source": "Austin American-Statesman",
       "tickers": [],
       "held": [],
       "new_ideas": [],
@@ -70,9 +101,9 @@
       "sector_holdings": [
         "SPCH"
       ],
-      "stance": "neutral",
+      "stance": "endorse",
       "relevance": 70,
-      "summary_cn": "报道SpaceX二级市场交易热潮及估值动态，对kcn持有的SPCH构成直接影响信号。"
+      "summary_cn": "马斯克获批收购一家由SpaceX前员工创立的公司，强化其航天帝国整合，对SPCH(2x做多SpaceX)间接利好。"
     },
     {
       "author": "Musk",
@@ -85,71 +116,38 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "航天"
+        "航天",
+        "私募市场"
       ],
       "sector_holdings": [
         "SPCH"
       ],
       "stance": "neutral",
       "relevance": 68,
-      "summary_cn": "报道SpaceX估值回调及IPO前景预期，间接影响kcn持有的SPCH(SpaceX 2x杠杆ETF)。"
-    },
-    {
-      "author": "Musk",
-      "text": "Does Elon Musk's Recent $1 Trillion SpaceX Comment Heavily Hint That a Tesla Merger Is Coming?",
-      "url": "",
-      "published": "Tue, 30 Jun 2026 11:30:00 GMT",
-      "origin": "gnews-rss",
-      "source": "The Motley Fool",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天/电动车/AI"
-      ],
-      "sector_holdings": [
-        "SPCH"
-      ],
-      "stance": "neutral",
-      "relevance": 65,
-      "summary_cn": "分析称Musk万亿估值SpaceX言论或暗示Tesla与SpaceX合并预期，市场对Musk系资产关注升温。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk’s massive AI data center sparks fight over who can enforce clean air laws",
-      "url": "",
-      "published": "Tue, 30 Jun 2026 14:30:04 GMT",
-      "origin": "gnews-rss",
-      "source": "Los Angeles Times",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "AI/数据中心/环保监管"
-      ],
-      "sector_holdings": [
-        "MSFU"
-      ],
-      "stance": "neutral",
-      "relevance": 58,
-      "summary_cn": "Musk大规模AI数据中心引发清洁空气法执法权之争，涉及AI算力扩张与监管摩擦，间接影响AI主题。"
+      "summary_cn": "报道SpaceX估值下调/IPO预期，SPCH(2x做多SpaceX ETF)直接跟踪SpaceX估值，估值下移对SPCH偏空。"
     },
     {
       "author": "Trump",
-      "text": "Gasoline Retailers must get their Prices down, IMMEDIATELY! They’re too high considering that Oil is now at $68 a Barrel, and heading south. The Retailers must quickly react to this statement, and do what they know is right — DROP YOUR PRICE FOR OUR GREAT AMERICAN PEOPLE! There will be no gauging, which is totally illegal. If Retailers don’t do this, big problems lie ahead! Start targeting around the $2.50 a Gallon number, and California should stop charging such heavy Taxes on their Gasoline. Soon the Tax will be higher than the Product itself, and the United States will not stand for it, nor",
-      "url": "https://trumpstruth.org/statuses/39623",
-      "published": "2026-06-29T23:39:34+00:00",
+      "text": "I would like to congratulate President Xi, and the Great Country of China, on their massive Birthright Citizenship WIN! President DONALD J. TRUMP",
+      "url": "https://trumpstruth.org/statuses/39637",
+      "published": "2026-06-30T17:30:31+00:00",
       "origin": "truthsocial",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "能源/油价/汽油零售"
+        "中概股"
       ],
-      "sector_holdings": [],
-      "stance": "attack",
-      "relevance": 58,
-      "summary_cn": "Trump公开施压加油站零售商，要求油价立即降至约2.50美元/加仑，并抨击加州高汽油税，威胁干预。"
+      "sector_holdings": [
+        "00100",
+        "02208",
+        "03032",
+        "03033",
+        "07226"
+      ],
+      "stance": "neutral",
+      "relevance": 55,
+      "summary_cn": "特朗普祝贺中国取消出生公民权，姿态相对正面，缓和中美紧张局势，间接利好中概股/H股科技ETF持仓情绪。"
     },
     {
       "author": "Trump",
@@ -161,29 +159,12 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "美联储/金融监管"
+        "美联储"
       ],
       "sector_holdings": [],
       "stance": "attack",
-      "relevance": 55,
-      "summary_cn": "Trump就美联储理事Cook的诉讼被最高法院退回表态，将采取行动阻止其参与决策，暗示试图干预美联储人事。"
-    },
-    {
-      "author": "Trump",
-      "text": "BIG WIN just moments ago at the Supreme Court, in the Slaughter Case, confirming Presidential Power in our Country to remove Executive Branch Officers and Agency Appointees, or Representatives, under Article II. This Decision was long sought by United States Presidents, dating all the way back to the 1930s. It is such an Honor to be the sitting President who won this Historic and Unprecedented Ruling, one of the most important ever given with respect to Presidential Powers. Thank you for your attention to this matter! President DONALD J. TRUMP",
-      "url": "https://trumpstruth.org/statuses/39615",
-      "published": "2026-06-29T14:51:10+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "总统行政权力/监管"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 55,
-      "summary_cn": "Trump宣称最高法院在Slaughter案中胜诉，确认总统可解除行政分支官员，扩大总统对独立机构的控制权。"
+      "relevance": 75,
+      "summary_cn": "特朗普称最高法院程序性驳回Cook案，将'立即采取行动'确保有问题的人不在Fed做决策，加大美联储独立性/人事动荡风险，利好金融板块、短线扰动利率路径。"
     },
     {
       "author": "Trump",
@@ -195,12 +176,31 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "能源/油价"
+        "能源",
+        "石油"
       ],
       "sector_holdings": [],
       "stance": "neutral",
-      "relevance": 52,
-      "summary_cn": "Trump称WTI原油跌至69美元并继续下行，归因于伊朗去核进程，地缘+油价信号。"
+      "relevance": 72,
+      "summary_cn": "特朗普称WTI跌至69美元、低于伊朗'去核'之前水平，暗示油价受其外交政策压制，短线偏空能源股。"
+    },
+    {
+      "author": "Trump",
+      "text": "Gasoline Retailers must get their Prices down, IMMEDIATELY! They’re too high considering that Oil is now at $68 a Barrel, and heading south. The Retailers must quickly react to this statement, and do what they know is right — DROP YOUR PRICE FOR OUR GREAT AMERICAN PEOPLE! There will be no gauging, which is totally illegal. If Retailers don’t do this, big problems lie ahead! Start targeting around the $2.50 a Gallon number, and California should stop charging such heavy Taxes on their Gasoline. Soon the Tax will be higher than the Product itself, and the United States will not stand for it, nor",
+      "url": "https://trumpstruth.org/statuses/39623",
+      "published": "2026-06-29T23:39:34+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "能源",
+        "石油"
+      ],
+      "sector_holdings": [],
+      "stance": "attack",
+      "relevance": 70,
+      "summary_cn": "特朗普公开施压加油站降价，称WTI已跌至68美元、加州汽油税过高，威胁'有大麻烦'，短线压制石油/能源板块情绪。"
     },
     {
       "author": "Trump",
@@ -212,12 +212,13 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "地缘政治/中东/能源"
+        "地缘政治",
+        "能源"
       ],
       "sector_holdings": [],
       "stance": "neutral",
-      "relevance": 50,
-      "summary_cn": "Trump宣布伊朗请求会面，明天在多哈举行，与伊朗核问题及油价走向相关。"
+      "relevance": 70,
+      "summary_cn": "特朗普宣布伊朗请求明天在多哈会面，伊朗局势/核谈判进展将直接影响油价与避险资产。"
     },
     {
       "author": "Trump",
@@ -229,17 +230,52 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "能源/汽油价格"
+        "能源"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 65,
+      "summary_cn": "特朗普宣称'油价快速下跌'并呼吁举报加油站价格垄断，消费端利好但压制能源股。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk's X Money — New Details On Bank Killer Super App",
+      "url": "",
+      "published": "Tue, 30 Jun 2026 15:38:07 GMT",
+      "origin": "gnews-rss",
+      "source": "Benzinga",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "金融科技",
+        "支付"
       ],
       "sector_holdings": [],
       "stance": "neutral",
-      "relevance": 50,
-      "summary_cn": "Trump强调油价将快速下降，呼吁举报零售端价格违规行为。"
+      "relevance": 55,
+      "summary_cn": "报道X Money超级应用新细节，拟颠覆银行业，潜在冲击支付/金融科技板块。"
+    },
+    {
+      "author": "Trump",
+      "text": "BIG WIN just moments ago at the Supreme Court, in the Slaughter Case, confirming Presidential Power in our Country to remove Executive Branch Officers and Agency Appointees, or Representatives, under Article II. This Decision was long sought by United States Presidents, dating all the way back to the 1930s. It is such an Honor to be the sitting President who won this Historic and Unprecedented Ruling, one of the most important ever given with respect to Presidential Powers. Thank you for your attention to this matter! President DONALD J. TRUMP",
+      "url": "https://trumpstruth.org/statuses/39615",
+      "published": "2026-06-29T14:51:10+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "监管"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 55,
+      "summary_cn": "最高法院Slaughter案裁决扩大总统罢免行政/独立机构官员权力，强化特朗普对Fed等机构的掌控力，间接影响监管板块。"
     }
   ],
   "held_hits": [],
-  "new_ideas": [],
-  "sector_hits": [
+  "new_ideas": [
     {
       "author": "Musk",
       "text": "Musk Is A Trillionaire Again: SpaceX And Tesla Boost Net Worth By $60 Billion",
@@ -247,46 +283,79 @@
       "published": "Mon, 29 Jun 2026 19:02:41 GMT",
       "origin": "gnews-rss",
       "source": "Forbes",
-      "tickers": [],
+      "tickers": [
+        "TSLA"
+      ],
       "held": [],
-      "new_ideas": [],
+      "new_ideas": [
+        "TSLA"
+      ],
       "sectors": [
-        "航天/电动车/AI"
+        "电动车",
+        "航天"
       ],
       "sector_holdings": [
         "SPCH"
       ],
       "stance": "endorse",
       "relevance": 72,
-      "summary_cn": "报道Musk净资产因SpaceX和Tesla回升600亿美元重回万亿富翁，间接利好SPCH等Musk相关持仓。"
+      "summary_cn": "马斯克净资产单日暴增600亿美元重回万亿富豪，SpaceX+特斯拉齐涨，TSLA与SPCH间接受益。"
     },
     {
       "author": "Musk",
-      "text": "Elon Musk's SpaceX Could Acquire T-Mobile In Wireless Push, Says Analyst",
+      "text": "Does Elon Musk's Recent $1 Trillion SpaceX Comment Heavily Hint That a Tesla Merger Is Coming?",
       "url": "",
-      "published": "Fri, 26 Jun 2026 17:11:00 GMT",
+      "published": "Tue, 30 Jun 2026 11:30:00 GMT",
       "origin": "gnews-rss",
-      "source": "Investor's Business Daily",
-      "tickers": [],
+      "source": "The Motley Fool",
+      "tickers": [
+        "TSLA"
+      ],
       "held": [],
-      "new_ideas": [],
+      "new_ideas": [
+        "TSLA"
+      ],
       "sectors": [
-        "航天/电信"
+        "电动车",
+        "航天"
       ],
       "sector_holdings": [
         "SPCH"
       ],
-      "stance": "endorse",
-      "relevance": 72,
-      "summary_cn": "分析师称SpaceX可能收购T-Mobile进军无线业务，若属实将显著提升SpaceX估值，利好SPCH。"
-    },
+      "stance": "neutral",
+      "relevance": 70,
+      "summary_cn": "马斯克关于SpaceX万亿估值的评论被市场猜测暗示特斯拉与SpaceX合并可能，TSLA短线情绪催化。"
+    }
+  ],
+  "sector_hits": [
     {
       "author": "Musk",
-      "text": "Inside the SpaceX trading frenzy",
+      "text": "SpaceX ignited a trading frenzy. Here’s what to know",
       "url": "",
       "published": "Tue, 30 Jun 2026 09:00:25 GMT",
       "origin": "gnews-rss",
       "source": "CNN",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "私募市场"
+      ],
+      "sector_holdings": [
+        "SPCH"
+      ],
+      "stance": "neutral",
+      "relevance": 75,
+      "summary_cn": "SpaceX引发二级交易狂热，估值/股权交易升温，SPCH(2x做多SpaceX)直接受益于SpaceX估值上行。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk wins approval to acquire firm founded by former SpaceX employees",
+      "url": "",
+      "published": "Tue, 30 Jun 2026 15:21:33 GMT",
+      "origin": "gnews-rss",
+      "source": "Austin American-Statesman",
       "tickers": [],
       "held": [],
       "new_ideas": [],
@@ -296,9 +365,9 @@
       "sector_holdings": [
         "SPCH"
       ],
-      "stance": "neutral",
+      "stance": "endorse",
       "relevance": 70,
-      "summary_cn": "报道SpaceX二级市场交易热潮及估值动态，对kcn持有的SPCH构成直接影响信号。"
+      "summary_cn": "马斯克获批收购一家由SpaceX前员工创立的公司，强化其航天帝国整合，对SPCH(2x做多SpaceX)间接利好。"
     },
     {
       "author": "Musk",
@@ -311,54 +380,38 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "航天"
+        "航天",
+        "私募市场"
       ],
       "sector_holdings": [
         "SPCH"
       ],
       "stance": "neutral",
       "relevance": 68,
-      "summary_cn": "报道SpaceX估值回调及IPO前景预期，间接影响kcn持有的SPCH(SpaceX 2x杠杆ETF)。"
+      "summary_cn": "报道SpaceX估值下调/IPO预期，SPCH(2x做多SpaceX ETF)直接跟踪SpaceX估值，估值下移对SPCH偏空。"
     },
     {
-      "author": "Musk",
-      "text": "Does Elon Musk's Recent $1 Trillion SpaceX Comment Heavily Hint That a Tesla Merger Is Coming?",
-      "url": "",
-      "published": "Tue, 30 Jun 2026 11:30:00 GMT",
-      "origin": "gnews-rss",
-      "source": "The Motley Fool",
+      "author": "Trump",
+      "text": "I would like to congratulate President Xi, and the Great Country of China, on their massive Birthright Citizenship WIN! President DONALD J. TRUMP",
+      "url": "https://trumpstruth.org/statuses/39637",
+      "published": "2026-06-30T17:30:31+00:00",
+      "origin": "truthsocial",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "航天/电动车/AI"
+        "中概股"
       ],
       "sector_holdings": [
-        "SPCH"
+        "00100",
+        "02208",
+        "03032",
+        "03033",
+        "07226"
       ],
       "stance": "neutral",
-      "relevance": 65,
-      "summary_cn": "分析称Musk万亿估值SpaceX言论或暗示Tesla与SpaceX合并预期，市场对Musk系资产关注升温。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk’s massive AI data center sparks fight over who can enforce clean air laws",
-      "url": "",
-      "published": "Tue, 30 Jun 2026 14:30:04 GMT",
-      "origin": "gnews-rss",
-      "source": "Los Angeles Times",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "AI/数据中心/环保监管"
-      ],
-      "sector_holdings": [
-        "MSFU"
-      ],
-      "stance": "neutral",
-      "relevance": 58,
-      "summary_cn": "Musk大规模AI数据中心引发清洁空气法执法权之争，涉及AI算力扩张与监管摩擦，间接影响AI主题。"
+      "relevance": 55,
+      "summary_cn": "特朗普祝贺中国取消出生公民权，姿态相对正面，缓和中美紧张局势，间接利好中概股/H股科技ETF持仓情绪。"
     }
   ]
 }
