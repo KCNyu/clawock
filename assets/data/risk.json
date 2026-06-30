@@ -1,46 +1,46 @@
 {
-  "generated_at": "2026-06-29T00:02:51.038131+00:00",
-  "as_of": "2026-06-29",
+  "generated_at": "2026-06-30T00:03:06.756831+00:00",
+  "as_of": "2026-06-30",
   "us": {
-    "beta_spx": -0.6428,
-    "vol_30d_annualized": 1.1329,
-    "max_dd_30d": -0.3232,
-    "sharpe_30d": -8.1319,
-    "current_value_usd": 3050.0
+    "beta_spx": 2.8195,
+    "vol_30d_annualized": 1.3545,
+    "max_dd_30d": -0.331,
+    "sharpe_30d": -3.8564,
+    "current_value_usd": 3395.08
   },
   "hk": {
-    "beta_hsi": 1.148,
-    "vol_30d_annualized": 0.7756,
-    "max_dd_30d": -0.38,
-    "sharpe_30d": -4.7515,
-    "current_value_hkd": 52221.6
+    "beta_hsi": 1.2539,
+    "vol_30d_annualized": 0.7721,
+    "max_dd_30d": -0.3587,
+    "sharpe_30d": -4.5245,
+    "current_value_hkd": 53572.0
   },
   "combined": {
-    "vol_30d_annualized": 0.5734,
-    "max_dd_30d": -0.1701,
-    "sharpe_30d": -7.5317
+    "vol_30d_annualized": 0.6416,
+    "max_dd_30d": -0.1682,
+    "sharpe_30d": -3.9459
   },
   "leveraged_exposure": {
-    "us_leverage_factor_avg": 1.5482,
-    "hk_leverage_factor_avg": 1.3369,
-    "combined_avg": 1.403,
-    "margin_at_risk_pct": 14.0305
+    "us_leverage_factor_avg": 1.5373,
+    "hk_leverage_factor_avg": 1.3495,
+    "combined_avg": 1.4116,
+    "margin_at_risk_pct": 14.1163
   },
   "alerts": [
     {
       "type": "high_vol",
       "severity": "high",
-      "detail": "Combined 30d annualised vol = 57.3% (> 50%)"
+      "detail": "Combined 30d annualised vol = 64.2% (> 50%)"
     },
     {
       "type": "deep_dd",
       "severity": "medium",
-      "detail": "Combined 30d max DD = -17.0% (< -10%)"
+      "detail": "Combined 30d max DD = -16.8% (< -10%)"
     },
     {
       "type": "negative_sharpe",
       "severity": "medium",
-      "detail": "Combined 30d Sharpe = -7.5317 (< 0)"
+      "detail": "Combined 30d Sharpe = -3.9459 (< 0)"
     }
   ],
   "meta": {
@@ -62,9 +62,9 @@
         "MSFU"
       ],
       "failed": [],
-      "n_returns": 8,
+      "n_returns": 9,
       "dates_first": "2026-06-15",
-      "dates_last": "2026-06-26",
+      "dates_last": "2026-06-29",
       "stale": false
     },
     "hk_fetch": {
@@ -77,8 +77,8 @@
       ],
       "failed": [],
       "n_returns": 30,
-      "dates_first": "2026-05-13",
-      "dates_last": "2026-06-26",
+      "dates_first": "2026-05-14",
+      "dates_last": "2026-06-29",
       "stale": false
     }
   }
