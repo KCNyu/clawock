@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-29T16:33:43.475854",
+  "generated_at": "2026-06-30T15:23:13.656251",
   "lookback_hours": 48,
   "tickers": [
     "CRCL",
@@ -9,13 +9,13 @@
     "SPCH",
     "MSFU"
   ],
-  "digest_markdown": "### Top 移动信号\n- **SPCH**: Leverage Shares 2x SpaceX ETF 与姊妹产品 SSPC 上市首日交易量突破 $500M，whale 与 agency 资金明显流入 → 持有 SPCH 直接受益 SpaceX 私募估值重估 momentum，流动性溢价强化\n- **CRCL**: Circle 面临 USDC 储备缩水 + 短债收益率下行 + 通胀回落三重风险叠加 → 短期估值压制，持有需紧盯月度 reserve attestation\n- **ROBN**: HOOD 盘后下跌触发 after-hours selloff，但分析师与散户普遍 shrug off → 短期噪音 > 实质，2x 杠杆放大波动\n- **RKLX**: Zacks 专题将 RDWU / LABX / RKLX 归入同一太空板块推荐 → 板块情绪正向溢出，持有获主题 beta\n- **PLTU**: Palantir 涨势带动 PLTU 重新获关注 → 持有享 underlying momentum\n\n### Per-ticker 简报\n- **SPCH**: 上市首日 $500M+ 成交量，机构建仓明显 - bullish catalyst ✓\n- **CRCL**: 三重基本面逆风 - 偏空，需量化 reserve impact\n- **ROBN**: HOOD 盘后跌但 thesis 未破 - mixed，短期波动\n- **RKLX**: Zacks 板块推荐 - mild positive\n- **PLTU**: Palantir 余温 + ETF 媒体曝光 - mild positive\n- **MSFU**: 无 ticker-specific catalyst，仅 generic ETF 评论 - 持有观望\n\n### 风险 watch\n- **CRCL**: USDC 储备下降 + 短债收益率 + 通胀 = 最直接 fundamental risk catalyst，若 reserve 数据继续走弱可能触发评级下调\n- **ROBN**: HOOD after-hours 异常波动暴露 2x 杠杆 ETF 隔夜 gap risk，仓位 size 需控制\n- 其余 ticker 无明确 guidance / 监管 / 大股东动作信号\n\n**核心 action**: SPCH 流动性事件是本期最强新增信号，CRCL 是唯一明确 fundamental risk。",
+  "digest_markdown": "## Top 移动信号\n\n- **CRCL**: BNY 扩大合作,新增 USDC 机构级托管/铸造/赎回服务 - 验证机构采用加速,但股价已较高点回撤 ~40%,crypto beta 仍高\n- **CRCL**: SeekingAlpha 多头论:RLDC 利润率创新高 + CPN 交易量快速增长 + Arc 协议被低估 - 估值分歧显著扩大\n- **SPCH**: \"Winner Emerges In SpaceX ETF Race\" - SpaceX 杠杆 ETF 赛道收窄,SPCH 占据规模/流量优势\n- **MSFU**: \"Microsoft Woes Hide Opportunity\" 框架 - MSFT 短期承压但 ETF 视作反弹机会,情绪博弈\n- **ROBN**: Ron Baron 新 ETF 创纪录 + 重仓 SpaceX - 太空主题资金集中度↑ (ticker 关联度需二次核对)\n\n## Per-ticker 简报\n\n- **CRCL**: BNY 合作扩容 - 实质机构催化剂 ✓\n- **PLTU**: 仅有 PLTR Q4 财报间接利好 + options chain 噪音,无直接催化\n- **RKLX**: 散户情绪帖 + Zacks 列表提及,无实质信号\n- **ROBN**: Robinhood (HOOD) after-hours 回落但分析师不以为意 - 中性; \"Robin Energy 反向拆股\" 为不同公司,与持仓无关\n- **SPCH**: SpaceX 杠杆 ETF 赛道胜出 - 结构性优势\n- **MSFU**: MSFT 承压叙事主导,无直接催化\n\n## 风险 watch\n\n- **CRCL**: 较高点回撤 ~40%,crypto 情绪敏感;利率路径不利可能压制 USDC 流通量增速\n- **ROBN**: 新闻 feed 含 HOOD / Robin Energy / Baron ETF 多重信号混杂,需确认 ticker 实际对应资产\n- **MSFU**: 2x 杠杆 ETF 在 MSFT 弱势中下行风险放大,叙事虽看反弹但波动率敞口高",
   "raw_news_counts": {
-    "CRCL": 1,
+    "CRCL": 3,
     "PLTU": 5,
     "RKLX": 5,
     "ROBN": 5,
-    "SPCH": 5,
+    "SPCH": 1,
     "MSFU": 5
   },
   "news_source_per_ticker": {
@@ -23,7 +23,7 @@
     "PLTU": "gnews-rss",
     "RKLX": "gnews-rss",
     "ROBN": "gnews-rss",
-    "SPCH": "gnews-rss",
+    "SPCH": "finnhub",
     "MSFU": "gnews-rss"
   }
 }
