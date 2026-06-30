@@ -1444,6 +1444,7 @@ layout: null
       <h3>Gold DCA <span class="muted" id="gold-sub" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:11px"></span></h3>
       <div id="gold-hero"></div>
       <div id="gold-stats"></div>
+      <div id="gold-london"></div>
       <div id="gold-spark"></div>
       <div id="gold-proj"></div>
       <div class="muted" id="gold-asof" style="font-size:10px;margin-top:6px;opacity:0.7"></div>
@@ -3794,6 +3795,59 @@ layout: null
         ${cell('已投', `${g.days_invested ?? DASH} 交易日`)}
         ${cell('约定投', `${g.installments_est ?? DASH} 笔 ×¥${num(g.daily_amount)}`)}
       </div>`;
+
+    // 伦敦金类比口径：折算成克/盎司 + 国际口径现值 + 伦敦金vs你基金归一趋势线
+    // （kcn 日常看伦敦金现货趋势/新闻，这块把人民币基金翻译成他熟悉的口径）
+    const ld = g.london;
+    const goldLondon = document.getElementById('gold-london');
+    if (goldLondon) {
+      if (!ld || ld.xau_usd == null) { goldLondon.innerHTML = ''; }
+      else {
+        const xchg = ld.xau_change_pct;
+        const xcolor = (xchg == null ? 'var(--muted,#888)' : (xchg >= 0 ? '#16a34a' : '#dc2626'));
+        const xchgStr = xchg == null ? '' : ` <span style="color:${xcolor};font-size:11px">${xchg >= 0 ? '+' : ''}${Number(xchg).toFixed(2)}%</span>`;
+        // 折算行 + 现价行
+        let html =
+          `<div style="margin:10px 0 4px;padding:9px 10px;border-radius:8px;background:rgba(234,179,8,0.07);border:1px solid rgba(234,179,8,0.25)">
+             <div class="muted" style="font-size:10px;text-transform:none;letter-spacing:0">类比伦敦金（国际口径）</div>
+             <div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-top:3px">
+               <span style="font-size:18px;font-weight:800">≈ ${num(ld.grams_equiv, 1)} 克</span>
+               <span style="font-size:13px;font-weight:700;color:var(--muted,#999)">/ ${num(ld.oz_equiv, 3)} oz</span>
+               ${ld.intl_value_usd != null ? `<span style="font-size:13px">国际现值 <b>$${num(ld.intl_value_usd)}</b></span>` : ''}
+             </div>
+             <div class="muted" style="font-size:11px;margin-top:5px;text-transform:none;letter-spacing:0">
+               伦敦金现货 <b style="color:var(--text,#eee)">$${num(ld.xau_usd, 2)}</b>/oz${xchgStr}
+               ${ld.xau_high != null && ld.xau_low != null ? ` · 日内 ${num(ld.xau_low, 0)}~${num(ld.xau_high, 0)}` : ''}
+               · USDCNY ${num(ld.usdcny, 4)}
+             </div>`;
+        // 归一对比线：起投=100，伦敦金(USD) vs 你的基金(CNY)
+        const cs = (ld.compare_series || []).filter(r => Array.isArray(r) && r[1] != null && r[2] != null);
+        if (cs.length >= 2) {
+          const W = 300, H = 56, P = 4;
+          const all = cs.flatMap(r => [r[1], r[2]]);
+          const lo = Math.min(...all), hi = Math.max(...all), rng = (hi - lo) || 1;
+          const x = i => P + i * (W - 2 * P) / (cs.length - 1);
+          const y = v => P + (H - 2 * P) * (1 - (v - lo) / rng);
+          const lineF = cs.map((r, i) => `${x(i).toFixed(1)},${y(r[1]).toFixed(1)}`).join(' ');
+          const lineL = cs.map((r, i) => `${x(i).toFixed(1)},${y(r[2]).toFixed(1)}`).join(' ');
+          const fLast = cs[cs.length - 1][1], lLast = cs[cs.length - 1][2];
+          const fColor = fLast >= 100 ? '#16a34a' : '#dc2626';
+          html +=
+            `<svg viewBox="0 0 ${W} ${H}" width="100%" height="${H}" preserveAspectRatio="none" style="margin-top:8px">
+               <line x1="0" y1="${y(100).toFixed(1)}" x2="${W}" y2="${y(100).toFixed(1)}" stroke="var(--border,#3a3a3a)" stroke-width="0.8" stroke-dasharray="2 2"/>
+               <polyline points="${lineL}" fill="none" stroke="#eab308" stroke-width="1.6"/>
+               <polyline points="${lineF}" fill="none" stroke="${fColor}" stroke-width="1.6" stroke-dasharray="4 2"/>
+             </svg>
+             <div class="muted" style="font-size:10px;display:flex;justify-content:space-between;text-transform:none;letter-spacing:0;margin-top:1px">
+               <span style="color:#eab308">伦敦金 ${lLast >= 100 ? '+' : ''}${num(lLast - 100, 1)}%</span>
+               <span style="color:${fColor}">你的基金 ${fLast >= 100 ? '+' : ''}${num(fLast - 100, 1)}%</span>
+               <span>起投=100 · 差因:汇率+费率</span>
+             </div>`;
+        }
+        html += `</div>`;
+        goldLondon.innerHTML = html;
+      }
+    }
 
     // sparkline (净值走势 + 起投点 + 区间高低)
     const hist = (g.nav_history || []).filter(p => Array.isArray(p) && p[1] != null);

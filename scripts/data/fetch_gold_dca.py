@@ -29,7 +29,11 @@ import json
 import subprocess
 import sys
 import os
+import bisect
+import time
 from datetime import date, datetime, timezone
+
+GRAMS_PER_OZ = 31.1035  # 1 金衡盎司(troy oz) = 31.1035 克
 
 WS_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.insert(0, os.path.join(WS_ROOT, 'scripts', 'data'))
@@ -66,9 +70,11 @@ HISTORY_KEEP = 140    # 写回 portfolio.json 的最大点数（控体积）
 def _curl(url, referer):
     for _ in range(4):
         try:
+            # errors='replace'：gtimg 等源名字段是 GBK，UTF-8 严格解码会抛异常被吞成空串；
+            # 数值字段全是 ASCII，replace 不影响解析（只有中文名变成替换符）。
             out = subprocess.run(
-                ['curl', '-s', url, '-m', '15', '-H', f'Referer: {referer}'],
-                capture_output=True, text=True, timeout=20).stdout
+                ['curl', '-sL', url, '-m', '15', '-H', f'Referer: {referer}'],
+                capture_output=True, text=True, errors='replace', timeout=20).stdout
             if out and len(out) > 40:
                 return out
         except Exception:
@@ -115,6 +121,157 @@ def fetch_realtime(code):
         return None
 
 
+# ───────────────────────── 伦敦金（XAU）类比口径 ─────────────────────────
+# kcn 日常看的是伦敦金现货趋势 → 把这笔人民币基金折算成「等于多少克/盎司黄金」+
+# 「伦敦金 vs 你的基金」起投归一对比线。三个源（都无 key）：
+#   · 现价/涨跌/高低 = 腾讯 hf_XAU（真·伦敦金现货，稳）
+#   · USDCNY        = frankfurter（ECB 日频，带历史）
+#   · 历史日线      = 新浪 GlobalFutures XAU（真·伦敦金现货日线，回溯 2006）；东财 GC00Y 兜底
+# 任一抓空 → compute_london 返回旧 london（merge-not-overwrite，绝不清空真值/旧线）。
+
+def fetch_london_spot():
+    """腾讯 hf_XAU 伦敦金现货。返回 dict 或 None。
+    字段: v_hf_XAU="现价,涨跌%,_,_,高,低,时间,昨收,...,日期,名称" """
+    raw = _curl('https://qt.gtimg.cn/q=hf_XAU', 'https://gu.qq.com')
+    if 'hf_XAU=' not in raw:
+        return None
+    try:
+        body = raw[raw.index('"') + 1: raw.rindex('"')]
+        f = body.split(',')
+        return {
+            'xau_usd': float(f[0]),
+            'change_pct': float(f[1]) if f[1] not in ('', None) else None,
+            'high': float(f[4]) if len(f) > 4 and f[4] else None,
+            'low': float(f[5]) if len(f) > 5 and f[5] else None,
+            'prev_close': float(f[7]) if len(f) > 7 and f[7] else None,
+            'date': f[12] if len(f) > 12 else None,
+        }
+    except Exception:
+        return None
+
+
+def fetch_usdcny(start):
+    """frankfurter USD→CNY：当前值 + start..今天 历史。返回 (cur, {date: rate}) 或 (None, {})。"""
+    today = date.today().isoformat()
+    cur, hist = None, {}
+    raw = _curl('https://api.frankfurter.app/latest?from=USD&to=CNY',
+                'https://www.frankfurter.app/')
+    try:
+        cur = float(json.loads(raw)['rates']['CNY'])
+    except Exception:
+        cur = None
+    if start:
+        rawh = _curl(f'https://api.frankfurter.app/{start}..{today}?from=USD&to=CNY',
+                     'https://www.frankfurter.app/')
+        try:
+            for d, r in json.loads(rawh).get('rates', {}).items():
+                if r.get('CNY'):
+                    hist[d] = float(r['CNY'])
+        except Exception:
+            pass
+    if cur is None and hist:
+        cur = hist[max(hist)]
+    return cur, hist
+
+
+def fetch_xau_history(start):
+    """伦敦金现货 XAU 日线收盘，返回 [(date, usd)] 升序、>= start，抓空 []。
+    主源 = 新浪全球期货（真·伦敦金现货，回溯 2006，稳）；兜底 = 东财 101.GC00Y（COMEX 连续，会限流）。"""
+    s = start or ''
+    # ① 新浪 GlobalFutures XAU
+    raw = _curl('https://stock2.finance.sina.com.cn/futures/api/jsonp.php/var_=/'
+                'GlobalFuturesService.getGlobalFuturesDailyKLine?symbol=XAU',
+                'https://finance.sina.com.cn')
+    try:
+        import re
+        m = re.search(r'(\[.*\])', raw, re.S)
+        arr = json.loads(m.group(1)) if m else []
+        out = [(x['date'], float(x['close'])) for x in arr
+               if x.get('date', '') >= s and x.get('close')]
+        if out:
+            return sorted(out)
+    except Exception:
+        pass
+    # ② 兜底 东财 GC00Y（限流时退避重试）
+    url = ('https://push2his.eastmoney.com/api/qt/stock/kline/get?'
+           'secid=101.GC00Y&fields1=f1&fields2=f51,f53&klt=101&fqt=1&end=20991231&lmt=200')
+    for attempt in range(4):
+        raw = _curl(url, 'https://quote.eastmoney.com/')
+        try:
+            kl = (json.loads(raw).get('data') or {}).get('klines') or []
+        except Exception:
+            kl = []
+        if kl:
+            return sorted((p[0], float(p[1])) for p in (r.split(',') for r in kl)
+                          if len(p) >= 2 and p[0] >= s and p[1])
+        time.sleep(1.5 * (attempt + 1))
+    return []
+
+
+def _xau_at(xau_sorted_dates, xau_vals, d):
+    """forward-fill：返回 <= d 的最近一个 XAU 值（对齐 A 股/COMEX 不同交易日历）。"""
+    i = bisect.bisect_right(xau_sorted_dates, d) - 1
+    return xau_vals[i] if i >= 0 else None
+
+
+def build_compare_series(nav_history, xau_hist, start, keep=90):
+    """[[date, fund_index, london_index]]，起投锚点=100。fund 用 CNY 净值、london 用 USD，
+    两条线发散 = 汇率 + 销售费 + C 类拖累（kcn 要的「差因」叙事）。"""
+    fund = [(d, n) for d, n in nav_history if n is not None]
+    if start:
+        fund = [(d, n) for d, n in fund if d >= start] or fund
+    if len(fund) < 2 or not xau_hist:
+        return []
+    xs = sorted(xau_hist)
+    xd = [d for d, _ in xs]
+    xv = [v for _, v in xs]
+    base_fund = base_xau = None
+    for d, n in fund:
+        x = _xau_at(xd, xv, d)
+        if x:
+            base_fund, base_xau = n, x
+            break
+    if not base_xau:
+        return []
+    series = []
+    for d, n in fund:
+        x = _xau_at(xd, xv, d)
+        if not x:
+            continue
+        series.append([d, round(n / base_fund * 100, 2), round(x / base_xau * 100, 2)])
+    return series[-keep:]
+
+
+def compute_london(derived, gold, spot, usdcny, usdcny_hist, xau_hist):
+    """折算 + 对比线。任一关键源缺失 → 保留旧 london（merge-not-overwrite）。"""
+    if not spot or not spot.get('xau_usd') or not usdcny:
+        return gold.get('london')  # 抓空：沿用旧值，绝不清空
+    xau = spot['xau_usd']
+    cur_value_cny = derived.get('current_value') or 0
+    intl_usd = cur_value_cny / usdcny if usdcny else None
+    oz = intl_usd / xau if (intl_usd and xau) else None
+    grams = oz * GRAMS_PER_OZ if oz else None
+    compare = build_compare_series(derived.get('nav_history') or [], xau_hist,
+                                   gold.get('start_date', ''))
+    # 抓到现价/汇率但历史限流 → 折算照出，对比线沿用旧线
+    if not compare and gold.get('london', {}).get('compare_series'):
+        compare = gold['london']['compare_series']
+    return {
+        'xau_usd': round(xau, 2),
+        'xau_change_pct': spot.get('change_pct'),
+        'xau_high': spot.get('high'),
+        'xau_low': spot.get('low'),
+        'xau_prev_close': spot.get('prev_close'),
+        'xau_date': spot.get('date'),
+        'usdcny': round(usdcny, 4),
+        'oz_equiv': round(oz, 3) if oz else None,
+        'grams_equiv': round(grams, 1) if grams else None,
+        'intl_value_usd': round(intl_usd, 2) if intl_usd else None,
+        'compare_series': compare,
+        'last_updated': datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%S.%fZ'),
+    }
+
+
 def trading_days_since(history, start):
     return sum(1 for dt, _, _ in history if dt >= start)
 
@@ -136,7 +293,7 @@ def project_dca(units, principal, nav, daily, horizons=(20, 40, 60, 120, 250)):
     return out
 
 
-def compute(gold, history, realtime):
+def compute(gold, history, realtime, spot=None, usdcny=None, usdcny_hist=None, xau_hist=None):
     base_principal = float(gold['principal_invested'])
     base_units = float(gold['units_held'])
     daily = float(gold.get('daily_amount', 200))
@@ -191,6 +348,7 @@ def compute(gold, history, realtime):
         'nav_history': [[d, round(n, 4)] for d, n, _ in history[-HISTORY_KEEP:]],
         'last_updated': datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%S.%fZ'),
     }
+    derived['london'] = compute_london(derived, gold, spot, usdcny, usdcny_hist, xau_hist)
     return derived
 
 
@@ -211,7 +369,16 @@ def main():
     if not history:
         print('  warn: 净值历史抓空，沿用 portfolio 里旧 nav（merge-not-overwrite）', file=sys.stderr)
 
-    derived = compute(gold, history, realtime)
+    # 伦敦金类比口径（best-effort，抓空各自沿用旧值）
+    spot = fetch_london_spot()
+    usdcny, usdcny_hist = fetch_usdcny(gold.get('start_date', ''))
+    xau_hist = fetch_xau_history(gold.get('start_date', '')) if spot and usdcny else []
+    if not spot:
+        print('  warn: 伦敦金现货(hf_XAU)抓空，沿用旧 london', file=sys.stderr)
+    elif not xau_hist:
+        print('  warn: 伦敦金历史(GC00Y)限流抓空，对比线沿用旧线', file=sys.stderr)
+
+    derived = compute(gold, history, realtime, spot, usdcny, usdcny_hist, xau_hist)
 
     # merge：真值字段原样保留，派生字段更新；nav_history 抓空时不清空
     merged = {k: gold[k] for k in GROUND_TRUTH_FIELDS if k in gold}
@@ -231,6 +398,11 @@ def main():
     if g.get('realtime'):
         rt = g['realtime']
         print(f"  实时估值 {rt['est_nav']} ({rt['est_change_pct']:+.2f}%) @ {rt.get('est_time')}")
+    if g.get('london'):
+        ld = g['london']
+        print(f"  伦敦金 ${ld.get('xau_usd')}/oz ({(ld.get('xau_change_pct') or 0):+.2f}%) "
+              f"USDCNY {ld.get('usdcny')} → 折 {ld.get('grams_equiv')} 克 / {ld.get('oz_equiv')} oz "
+              f"(国际口径 ${ld.get('intl_value_usd'):,.0f})  对比线 {len(ld.get('compare_series') or [])} 点")
 
     if dry:
         print('  [dry-run] 不写盘')

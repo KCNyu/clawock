@@ -74,3 +74,9 @@ share/
 
 # Playwright lib for local GIF recording (refresh_dashboard_gif.sh) — never commit
 node_modules/
+
+# safe_io 写盘产物（flock 锁 + 备份），不入库
+portfolio.json.lock
+portfolio.json.bak
+*.json.lock
+*.json.bak
