@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-30T22:49:57.801586+00:00",
+  "generated_at": "2026-07-01T22:47:27.843412+00:00",
   "sources": [
     "reddit-json-public",
     "google-news-rss"
@@ -18,29 +18,29 @@
           "published": "Tue, 30 Jun 2026 14:05:23 GMT"
         },
         {
-          "title": "As Stablecoins Keep Growing, These 2 Stocks Benefit",
-          "source": "MarketBeat",
-          "published": "Sun, 28 Jun 2026 15:37:29 GMT"
+          "title": "Circle (CRCL) Just Dropped Out Of Five Major Russell Growth Indexes",
+          "source": "simplywall.st",
+          "published": "Tue, 30 Jun 2026 01:25:03 GMT"
         },
         {
-          "title": "Circle Internet (CRCL) director reports trust share distribution",
-          "source": "Stock Titan",
-          "published": "Tue, 30 Jun 2026 21:03:29 GMT"
+          "title": "CRCL Stock Rises Overnight — Cathie Wood’s ARK Boosts Stake; Retail Cheers Stablecoin Yield Ban Proposal",
+          "source": "Stocktwits",
+          "published": "Wed, 01 Jul 2026 05:49:48 GMT"
         },
         {
-          "title": "Why Is Circle Internet Group Stock Falling On Tuesday? - Circle Internet Group (NYSE:CRCL)",
-          "source": "Benzinga",
-          "published": "Tue, 30 Jun 2026 17:45:51 GMT"
+          "title": "Circle (CRCL) Stock Looks Above Fair Value Despite Strong Sales Growth",
+          "source": "Yahoo Finance",
+          "published": "Wed, 01 Jul 2026 11:10:06 GMT"
         },
         {
-          "title": "Circle Internet Group Falls as Insider Sale Filings and Valuation Pressure Weigh on Shares",
-          "source": "Quiver Quantitative",
-          "published": "Tue, 30 Jun 2026 15:50:00 GMT"
+          "title": "CRCL Stock in Focus as Circle Faces Increasing Stablecoin Competition",
+          "source": "Barchart.com",
+          "published": "Wed, 01 Jul 2026 16:38:34 GMT"
         },
         {
-          "title": "Circle Internet (CRCL) Faces 17% Drop Amid Competing Stablecoin Launch",
-          "source": "GuruFocus",
-          "published": "Tue, 30 Jun 2026 20:10:03 GMT"
+          "title": "Circle Stock Fell 18% After a Rival Stablecoin Launched: Is CRCL a Buy at $62?",
+          "source": "TIKR.com",
+          "published": "Wed, 01 Jul 2026 15:13:00 GMT"
         }
       ],
       "google_news_zh": []
@@ -53,6 +53,11 @@
       "reddit_posts": [],
       "google_news_en": [
         {
+          "title": "PTIR Investors Lost 49% While Palantir Fell 14%: The 20-Point Decay Tax Nobody Discusses",
+          "source": "24/7 Wall St.",
+          "published": "Wed, 01 Jul 2026 20:38:09 GMT"
+        },
+        {
           "title": "PLTU 260618 20.00P (PLTU260618P20000) Stock Options Chain | Quotes & News",
           "source": "Moomoo",
           "published": "Fri, 26 Jun 2026 11:44:24 GMT"
@@ -63,9 +68,9 @@
           "published": "Mon, 01 Jun 2026 07:00:00 GMT"
         },
         {
-          "title": "PLTU Forecast — Price Target — Prediction for 2027",
+          "title": "Price to earnings forward of Les Placements de Tunisie-SICAF SA – BVMT:PLTU",
           "source": "TradingView",
-          "published": "Thu, 25 Jun 2026 20:58:27 GMT"
+          "published": "Sun, 28 Jun 2026 04:36:27 GMT"
         },
         {
           "title": "Behavioral Patterns of PLTU and Institutional Flows",
@@ -76,11 +81,6 @@
           "title": "Palantir Q4 Earnings Beat Spells Opportunity With These ETFs",
           "source": "ETF Trends",
           "published": "Wed, 04 Feb 2026 08:00:00 GMT"
-        },
-        {
-          "title": "$Direxion Daily PLTR Bull 2X Shares (PLTU.US)$ Survive, with a little profit",
-          "source": "Moomoo",
-          "published": "Tue, 16 Jun 2026 07:00:00 GMT"
         }
       ],
       "google_news_zh": []
@@ -138,9 +138,9 @@
           "published": "Tue, 30 Jun 2026 10:50:29 GMT"
         },
         {
-          "title": "(ROBN) Risk Channels and Responsive Allocation",
-          "source": "Stock Traders Daily",
-          "published": "Fri, 12 Jun 2026 03:36:02 GMT"
+          "title": "ROBN - T-Rex 2X Long HOOD Daily Target ETF Stock Price and Quote",
+          "source": "Finviz",
+          "published": "Tue, 26 May 2026 13:46:58 GMT"
         },
         {
           "title": "Robin Energy Announces Reverse Stock Split to be Effective December 24, 2025",
@@ -158,9 +158,9 @@
           "published": "Mon, 26 Jan 2026 08:00:00 GMT"
         },
         {
-          "title": "ROBN Stock Fund Price and Chart — BOATS:ROBN",
-          "source": "TradingView",
-          "published": "Thu, 31 Jul 2025 11:38:43 GMT"
+          "title": "Ron Baron’s SpaceX ETF Bet Gets Diluted",
+          "source": "ETF.com",
+          "published": "Fri, 30 Jan 2026 08:00:00 GMT"
         }
       ],
       "google_news_zh": []
@@ -173,6 +173,11 @@
       "reddit_posts": [],
       "google_news_en": [
         {
+          "title": "SPCH ETF | Leverage Shares 2X Long SPCX Daily",
+          "source": "GuruFocus",
+          "published": "Wed, 01 Jul 2026 11:21:40 GMT"
+        },
+        {
           "title": "SPCH News | LEVERAGE SHARES 2X SPCX (NYSEARCA:SPCH)",
           "source": "ChartMill",
           "published": "Mon, 29 Jun 2026 19:57:05 GMT"
@@ -181,11 +186,6 @@
           "title": "SPCH Stock Fund Price and Chart — CBOE:SPCH",
           "source": "TradingView",
           "published": "Tue, 16 Jun 2026 12:19:19 GMT"
-        },
-        {
-          "title": "Winner Emerges In SpaceX ETF Race",
-          "source": "Yahoo Finance",
-          "published": "Mon, 29 Jun 2026 21:40:33 GMT"
         },
         {
           "title": "$Leverage Shares 2X Long SpaceX Daily ETF (SPCH.US)$",
@@ -198,9 +198,9 @@
           "published": "Wed, 24 Jun 2026 07:43:27 GMT"
         },
         {
-          "title": "$Leverage Shares 2X Long SpaceX Daily ETF (SPCH.US)$",
+          "title": "$Leverage Shares 2X Long SpaceX Daily ETF (SPCH.US)$ Whale is coming. Going up!",
           "source": "Moomoo",
-          "published": "Wed, 24 Jun 2026 06:29:29 GMT"
+          "published": "Tue, 23 Jun 2026 07:00:00 GMT"
         }
       ],
       "google_news_zh": []
@@ -213,14 +213,14 @@
       "reddit_posts": [],
       "google_news_en": [
         {
-          "title": "(MSFU) Movement Within Algorithmic Entry Frameworks",
-          "source": "Stock Traders Daily",
-          "published": "Sat, 27 Jun 2026 20:24:01 GMT"
-        },
-        {
           "title": "Microsoft Woes Hide Opportunity With This ETF",
           "source": "ETF Database",
           "published": "Tue, 16 Jun 2026 07:00:00 GMT"
+        },
+        {
+          "title": "(MSFU) Movement Within Algorithmic Entry Frameworks",
+          "source": "Stock Traders Daily",
+          "published": "Sat, 27 Jun 2026 20:24:01 GMT"
         },
         {
           "title": "MSFU, MSFD, MSFL all on the MSFT page — moomoo just hands th... - moomoo Community",
@@ -275,6 +275,11 @@
       ],
       "google_news_zh": [
         {
+          "title": "給員工發錢這事兒，智譜AI當學MiniMax",
+          "source": "Moomoo",
+          "published": "Wed, 01 Jul 2026 09:03:25 GMT"
+        },
+        {
           "title": "早盤異動 | MINIMAX-W跌超6%，7月將迎來首批解禁",
           "source": "富途牛牛",
           "published": "Sat, 27 Jun 2026 02:03:28 GMT"
@@ -283,11 +288,6 @@
           "title": "MINIMAX-W(00100) 股份計劃",
           "source": "信報網站",
           "published": "Tue, 23 Jun 2026 14:07:34 GMT"
-        },
-        {
-          "title": "港股異動 | MiniMax-W(00100)午後跌超18% 7月9日將迎來首批解禁 阿里米哈遊表態長期看好",
-          "source": "Moomoo",
-          "published": "Tue, 23 Jun 2026 05:50:40 GMT"
         },
         {
           "title": "富時指數季度調整出爐：MiniMax、兆易創新、壁仞科技等明星股獲納入",
@@ -300,9 +300,9 @@
           "published": "Thu, 25 Jun 2026 07:18:41 GMT"
         },
         {
-          "title": "港股人工智能闆塊持續走低 智譜跌超15%、MINIMAX-W跌超8%",
-          "source": "觀點網",
-          "published": "Tue, 23 Jun 2026 03:03:08 GMT"
+          "title": "恆生科技指數納入MINIMAX-W、智譜財經新聞Financial News",
+          "source": "aastocks.com",
+          "published": "Fri, 22 May 2026 07:00:00 GMT"
         }
       ]
     },
@@ -336,34 +336,34 @@
       ],
       "google_news_zh": [
         {
+          "title": "金風科技AH齊升逾9% 機構看好風電板塊下半年業績",
+          "source": "Moomoo",
+          "published": "Tue, 30 Jun 2026 06:57:08 GMT"
+        },
+        {
           "title": "【大行報告】大摩升金風科技目標價40%",
           "source": "Yahoo 財經",
           "published": "Mon, 19 Jan 2026 08:00:00 GMT"
         },
         {
-          "title": "金風科技：2026年一季報業績說明會",
-          "source": "Moomoo",
-          "published": "Sat, 27 Jun 2026 08:22:58 GMT"
-        },
-        {
-          "title": "金風科技(02208) 股東特別大會通告 / 暫停辦理過戶登記手續或更改暫停辦理過戶日期 / 修訂憲章文件 / 股份計劃 / 向聯屬公司提供財務資助及/或作出擔保",
-          "source": "信報網站",
-          "published": "Tue, 30 Jun 2026 06:09:05 GMT"
+          "title": "早盤異動 | 金風科技漲超9%，新能源十五五規劃出台",
+          "source": "富途牛牛",
+          "published": "Tue, 30 Jun 2026 02:02:35 GMT"
         },
         {
           "title": "歐盟宣佈對中國清潔能源巨頭金風科技展開反補貼深入調查",
-          "source": "DW.com",
+          "source": "dw.com",
           "published": "Tue, 03 Feb 2026 08:00:00 GMT"
+        },
+        {
+          "title": "全球裝機續壯大 金風科技乘勢上",
+          "source": "信報網站",
+          "published": "Wed, 06 May 2026 07:00:00 GMT"
         },
         {
           "title": "金風科技為沙特PIF5項目發運首批風電設備",
           "source": "TradingView",
           "published": "Tue, 23 Jun 2026 03:12:00 GMT"
-        },
-        {
-          "title": "金風科技漲近9%，藍箭航天IPO更新進展，子公司持有藍箭航天4.14%股權；機構看好下半年風電板塊",
-          "source": "富途牛牛",
-          "published": "Tue, 30 Jun 2026 02:23:00 GMT"
         }
       ]
     },
@@ -380,27 +380,22 @@
           "published": "Mon, 29 Dec 2025 08:00:00 GMT"
         },
         {
+          "title": "Zhitong HK Stock Connect Holdings Ratio Anomaly Statistics | June 29",
+          "source": "Moomoo",
+          "published": "Mon, 29 Jun 2026 00:36:07 GMT"
+        },
+        {
+          "title": "New funds are channeling into the Hong Kong stock market via funds, with the number of newly issued products doubling and existing ETFs attracting 61.1 billion yuan.",
+          "source": "富途牛牛",
+          "published": "Wed, 15 Apr 2026 07:00:00 GMT"
+        },
+        {
           "title": "Has the Hang Seng Tech Index fallen 25% to become 'Old Tech'? Southbound capital is increasing its purchases, which should not be underestimated.",
           "source": "富途牛牛",
           "published": "Mon, 02 Mar 2026 08:00:00 GMT"
-        },
-        {
-          "title": "Report: Volcano Engine's revenue will double this year to 25 billion, with usage nearly equal to the sum of Alibaba and Baidu.",
-          "source": "Moomoo",
-          "published": "Mon, 09 Jun 2025 07:00:00 GMT"
-        },
-        {
-          "title": "CMB Securities: The Hang Seng Tech Index currently holds significant allocation value. It is recommended to buy on dips and hold shares over the holiday.",
-          "source": "富途牛牛",
-          "published": "Wed, 11 Feb 2026 08:00:00 GMT"
         }
       ],
       "google_news_zh": [
-        {
-          "title": "恒生科技ETF(03032.HK)午后涨1.83%，成交额2.98亿港元",
-          "source": "FX168财经",
-          "published": "Tue, 30 Jun 2026 06:42:36 GMT"
-        },
         {
           "title": "恒生科技ＥＴＦ(03032) 交易所買賣基金的交易資料",
           "source": "信報網站",
@@ -412,14 +407,19 @@
           "published": "Fri, 26 Jun 2026 03:30:49 GMT"
         },
         {
+          "title": "恒生科技ETF(03032.HK)午后涨1.83%，成交额2.98亿港元",
+          "source": "FX168财经",
+          "published": "Tue, 30 Jun 2026 06:42:36 GMT"
+        },
+        {
           "title": "03032 恒生科技ＥＴＦ - ETF 詳情 - ETF",
           "source": "etnet 經濟通",
           "published": "Fri, 26 Jun 2026 07:00:00 GMT"
         },
         {
-          "title": "恒生科技ETF易方達(513010)收升2.26%，機構：港股當前賠率有吸引力，但壓制仍存",
+          "title": "港股大爆發，恒生科技ETF易方達(513010)升3.4%，錄得連續第三日上升",
           "source": "SL886 財經網",
-          "published": "Wed, 24 Jun 2026 08:03:41 GMT"
+          "published": "Tue, 02 Jun 2026 07:00:00 GMT"
         },
         {
           "title": "熱門科投股投資工具｜比較6款恒生科技指數ETF邊隻好！",
@@ -463,14 +463,9 @@
           "published": "Fri, 26 Jun 2026 07:00:00 GMT"
         },
         {
-          "title": "盤中速報 - 恆生科技指數下跌-163.51點至4242.41點，跌幅3.71%",
-          "source": "Yahoo 財經",
-          "published": "Fri, 26 Jun 2026 04:26:18 GMT"
-        },
-        {
           "title": "槓桿及反向產品的交易資料",
           "source": "信報網站",
-          "published": "Fri, 26 Jun 2026 07:00:00 GMT"
+          "published": "Wed, 01 Jul 2026 09:12:42 GMT"
         },
         {
           "title": "盤中速報 - 恆生科技指數下跌-143.28點至4262.64點，跌幅3.25%",
@@ -478,14 +473,19 @@
           "published": "Fri, 26 Jun 2026 04:30:44 GMT"
         },
         {
-          "title": "周度港股ETF规模变化排行榜（2026年6月第二周）",
-          "source": "FX168财经",
-          "published": "Mon, 15 Jun 2026 07:00:00 GMT"
-        },
-        {
           "title": "盤中速報 - 恆生科技指數下跌-152.59點至4253.33點，跌幅3.46%",
           "source": "Yahoo 財經",
           "published": "Fri, 26 Jun 2026 03:52:33 GMT"
+        },
+        {
+          "title": "盤中速報 - 恆生科技指數下跌-170.42點至4235.5點，跌幅3.87%",
+          "source": "Yahoo 財經",
+          "published": "Fri, 26 Jun 2026 04:27:33 GMT"
+        },
+        {
+          "title": "盤中速報 - 恆生科技指數下跌-142.87點至4263.05點，跌幅3.24%",
+          "source": "Yahoo 財經",
+          "published": "Fri, 26 Jun 2026 03:30:26 GMT"
         }
       ]
     },
@@ -497,6 +497,11 @@
       "reddit_posts": [],
       "google_news_en": [
         {
+          "title": "Zhitong HK Stock Connect Holdings Ratio Anomaly Statistics | June 29",
+          "source": "Moomoo",
+          "published": "Mon, 29 Jun 2026 00:36:07 GMT"
+        },
+        {
           "title": "$CSOP Hang Seng TECH Index ETF (03033.HK)$",
           "source": "Moomoo",
           "published": "Thu, 25 Jun 2026 16:49:29 GMT"
@@ -507,14 +512,9 @@
           "published": "Tue, 10 Mar 2026 07:00:00 GMT"
         },
         {
-          "title": "Capital Flows | Northbound investors aggressively purchased Hong Kong stocks exceeding HKD 13.3 billion, increasing positions in Tencent and Alibaba.",
-          "source": "富途牛牛",
-          "published": "Wed, 04 Feb 2026 08:00:00 GMT"
-        },
-        {
-          "title": "Southbound Capital Trends | Southbound capital recorded net sales of HK$10.339 billion, with continued buying of AI hardware stocks and across-the-board selling of the Tracker Fund of Hong Kong (02800) totaling over HK$7.3 billion for the day.",
+          "title": "Southbound Capital Tracker | Net Selling Exceeds HK$8.6 Billion, Heavy Selling of Tracker Fund with Increased Positions in Kingboard Holdings and Tencent",
           "source": "Moomoo",
-          "published": "Mon, 29 Jun 2026 09:51:05 GMT"
+          "published": "Tue, 09 Jun 2026 07:00:00 GMT"
         }
       ],
       "google_news_zh": [
