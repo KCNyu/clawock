@@ -1,46 +1,51 @@
 {
-  "generated_at": "2026-06-30T00:03:06.756831+00:00",
-  "as_of": "2026-06-30",
+  "generated_at": "2026-07-01T00:02:11.060232+00:00",
+  "as_of": "2026-07-01",
   "us": {
-    "beta_spx": 2.8195,
-    "vol_30d_annualized": 1.3545,
-    "max_dd_30d": -0.331,
-    "sharpe_30d": -3.8564,
-    "current_value_usd": 3395.08
+    "beta_spx": 3.2741,
+    "vol_30d_annualized": 1.3425,
+    "max_dd_30d": -0.3386,
+    "sharpe_30d": -2.9019,
+    "current_value_usd": 3503.06
   },
   "hk": {
-    "beta_hsi": 1.2539,
-    "vol_30d_annualized": 0.7721,
-    "max_dd_30d": -0.3587,
-    "sharpe_30d": -4.5245,
-    "current_value_hkd": 53572.0
+    "beta_hsi": 1.1923,
+    "vol_30d_annualized": 0.7435,
+    "max_dd_30d": -0.3544,
+    "sharpe_30d": -3.9184,
+    "current_value_hkd": 53969.2
   },
   "combined": {
-    "vol_30d_annualized": 0.6416,
-    "max_dd_30d": -0.1682,
-    "sharpe_30d": -3.9459
+    "vol_30d_annualized": 0.6096,
+    "max_dd_30d": -0.1651,
+    "sharpe_30d": -3.1922
   },
   "leveraged_exposure": {
-    "us_leverage_factor_avg": 1.5373,
-    "hk_leverage_factor_avg": 1.3495,
-    "combined_avg": 1.4116,
-    "margin_at_risk_pct": 14.1163
+    "us_leverage_factor_avg": 1.5263,
+    "hk_leverage_factor_avg": 1.3605,
+    "combined_avg": 1.4162,
+    "margin_at_risk_pct": 14.1624
   },
   "alerts": [
     {
+      "type": "high_beta",
+      "severity": "high",
+      "detail": "US β vs S&P 500 = 3.2741 (> 3.0)"
+    },
+    {
       "type": "high_vol",
       "severity": "high",
-      "detail": "Combined 30d annualised vol = 64.2% (> 50%)"
+      "detail": "Combined 30d annualised vol = 61.0% (> 50%)"
     },
     {
       "type": "deep_dd",
       "severity": "medium",
-      "detail": "Combined 30d max DD = -16.8% (< -10%)"
+      "detail": "Combined 30d max DD = -16.5% (< -10%)"
     },
     {
       "type": "negative_sharpe",
       "severity": "medium",
-      "detail": "Combined 30d Sharpe = -3.9459 (< 0)"
+      "detail": "Combined 30d Sharpe = -3.1922 (< 0)"
     }
   ],
   "meta": {
@@ -62,9 +67,9 @@
         "MSFU"
       ],
       "failed": [],
-      "n_returns": 9,
+      "n_returns": 10,
       "dates_first": "2026-06-15",
-      "dates_last": "2026-06-29",
+      "dates_last": "2026-06-30",
       "stale": false
     },
     "hk_fetch": {
@@ -77,8 +82,8 @@
       ],
       "failed": [],
       "n_returns": 30,
-      "dates_first": "2026-05-14",
-      "dates_last": "2026-06-29",
+      "dates_first": "2026-05-15",
+      "dates_last": "2026-06-30",
       "stale": false
     }
   }

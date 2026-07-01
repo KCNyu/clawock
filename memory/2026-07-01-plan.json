@@ -1,0 +1,146 @@
+{
+  "date": "2026-07-01",
+  "generated_at": "2026-07-01T08:00:00+08:00",
+  "fx_rate_usdhkd": 7.8418,
+  "regime_note": "港股今日休市（回归日）。US lev_regime=RED(HOOD vol 73.9%)，HK lev_regime=amber(HSTECH -17.3% < 200DMA)。全部持仓 quant 趋势OFF。NFP 7/3 为最近最大尾部风险。US β=3.27。",
+  "driven_by_summary": "technical（换仓纪律/硬止损）+ risk_cap（单名/杠杆 cap breach）",
+  "actions": [
+    {
+      "ticker": "PLTU",
+      "bucket": "cut",
+      "trigger_type": "open",
+      "trigger_price": null,
+      "size_shares": 14,
+      "confidence": 0.65,
+      "rationale": "硬止损 -38.5% ≤ -18% 线悬置多日；PLTR 距 MA200 -26.3% 趋势OFF；月 decay ~2.6%；换仓 1x PLTR 停 decay（敞口保留，非清仓）；US 杠杆 ETF 腿 96.4% > 50% cap；NFP 前降 beta。",
+      "driven_by": "technical"
+    },
+    {
+      "ticker": "MSFU",
+      "bucket": "cut",
+      "trigger_type": "open",
+      "trigger_price": null,
+      "size_shares": 20,
+      "confidence": 0.65,
+      "rationale": "硬止损 -24.2% ≤ -18% 线；MSFT 距 MA200 -16.5% 趋势OFF；月 decay 1.31%；换仓 1x MSFT 停 decay（敞口保留）；6/30 计划模拟 open 触发已确认，今日执行兑现纪律。",
+      "driven_by": "technical"
+    },
+    {
+      "ticker": "ROBN",
+      "bucket": "cut",
+      "trigger_type": "open",
+      "trigger_price": null,
+      "size_shares": 10,
+      "confidence": 0.60,
+      "rationale": "US lev_regime RED：底层 HOOD vol 73.9% > 70% hot cap，触发 regime_delever 制度性换仓；换仓 HOOD 保留敞口停 2x decay；trim_on_rebound 历史胜率 74%（n=35）支持高位换仓。",
+      "driven_by": "technical"
+    },
+    {
+      "ticker": "SPCH",
+      "bucket": "trim_on_rebound",
+      "trigger_type": "price_above",
+      "trigger_price": 15.0,
+      "size_shares": 20,
+      "confidence": 0.60,
+      "rationale": "单名 43.79% > 35% cap（breach，需减约 $308 USD）；昨日 +8.26% 反弹提供高位窗口；SPCX 趋势 OK（>5DMA）短期持仓合理；NFP 前纪律性 trim 降 beta。",
+      "driven_by": "technical"
+    },
+    {
+      "ticker": "07226",
+      "bucket": "cut",
+      "trigger_type": "manual",
+      "trigger_price": null,
+      "size_shares": 6200,
+      "confidence": 0.60,
+      "rationale": "港股今日休市，7/2 复市第一优先执行。硬止损 -28.1% ≤ -18% 线悬置；HK 杠杆 ETF amber regime 上限砍半（有效 cap 25%，当前 36%）；换仓 1x 03033 敞口保留停 decay；stop_breach_continue factor edge 69% 支撑换仓纪律。",
+      "driven_by": "technical"
+    },
+    {
+      "ticker": "00100",
+      "bucket": "trim_on_rebound",
+      "trigger_type": "manual",
+      "trigger_price": null,
+      "size_shares": 16,
+      "confidence": 0.50,
+      "rationale": "港股今日休市，7/2 复市视盘面执行。单名 46.36% > 35% cap；7/9 解禁 1.46 亿股（63% 港股流通）时间窗口压力；借反弹减仓，不在新低日一次砍。",
+      "driven_by": "catalyst"
+    },
+    {
+      "ticker": "CRCL",
+      "bucket": "hold_and_watch",
+      "trigger_type": "price_below",
+      "trigger_price": 55.0,
+      "size_shares": null,
+      "confidence": 0.50,
+      "rationale": "Russell exclusion 技术性卖压已发生 -17.5%，RSI 31.2 超卖，z=-2.16σ 极端；GENIUS Act 7/17 中期催化在；仓位仅 $125（2sh）无 cap breach；若破 $55 评估是否硬止损（当前 -28% 已超 -18% 线，但仓小无痛）。",
+      "driven_by": "catalyst"
+    },
+    {
+      "ticker": "RKLX",
+      "bucket": "hold_and_watch",
+      "trigger_type": "price_below",
+      "trigger_price": 38.0,
+      "size_shares": null,
+      "confidence": 0.50,
+      "rationale": "RKLB Nasdaq-100 7/7 收录事件驱动未落地；近 5 日 +27.3%，RKLB 本身 trend_on=true；持有至事件落地（7/7）后评估获利了结；破 $38 接近 -18% 硬止损边界需重评。",
+      "driven_by": "catalyst"
+    },
+    {
+      "ticker": "02208",
+      "bucket": "hold_and_watch",
+      "trigger_type": "price_below",
+      "trigger_price": 7.78,
+      "size_shares": null,
+      "confidence": 0.50,
+      "rationale": "港股今日休市。BlackRock 增仓 H 股 + 沙特首批风机发运为基本面支撑；RSI 35.9 超卖；趋势OFF但吊灯止损距离 -13.9%，尚未硬触发。7/2 复市跟踪南向资金。",
+      "driven_by": "catalyst"
+    },
+    {
+      "ticker": "03032",
+      "bucket": "hold_and_watch",
+      "trigger_type": "manual",
+      "trigger_price": null,
+      "size_shares": null,
+      "confidence": 0.50,
+      "rationale": "港股今日休市。1x 无杠杆衰减风险；07226 换仓 03033 后 HSTECH 敞口将进一步转入 1x；趋势OFF但不强制减。",
+      "driven_by": "technical"
+    },
+    {
+      "ticker": "03033",
+      "bucket": "hold_and_watch",
+      "trigger_type": "manual",
+      "trigger_price": null,
+      "size_shares": null,
+      "confidence": 0.50,
+      "rationale": "港股今日休市。1x 跟踪 HSTECH，07226 换仓后将增加此腿规模；南向资金 6/29 净卖超 12 亿 HKD 需 7/2 观察是否延续；无杠杆衰减风险。",
+      "driven_by": "technical"
+    }
+  ],
+  "watch_events": [
+    {
+      "date": "2026-07-03",
+      "event": "NFP（非农就业）",
+      "detail": "Jun jobs report，BLS 08:30 ET。US β=3.27，高 beta 仓位对数据极敏感。若差 → 7/2 EOD 前需先降 SPCH/RKLX 敞口。"
+    },
+    {
+      "date": "2026-07-07",
+      "event": "RKLB Nasdaq-100 收录生效",
+      "detail": "事件驱动高点。生效当日或前后评估 RKLX 获利了结。"
+    },
+    {
+      "date": "2026-07-09",
+      "event": "00100 MiniMax 解禁",
+      "detail": "1.46 亿股（63% 港股流通）解禁压力窗口，需在此前完成减仓至 cap。"
+    },
+    {
+      "date": "2026-07-15",
+      "event": "CPI 发布",
+      "detail": "Jun CPI，BLS 08:30 ET。二级宏观风险，影响成长/科技估值。"
+    },
+    {
+      "date": "2026-07-17",
+      "event": "GENIUS Act 国会听证",
+      "detail": "稳定币立法 CRCL 中期催化，听证结果影响 CRCL 持仓评估。"
+    }
+  ]
+}
