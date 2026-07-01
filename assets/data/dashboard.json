@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-01T18:03:29.754165Z",
+  "generated_at": "2026-07-01T18:05:05.247277Z",
   "last_updated": "2026/07/02 02:02 HKT",
   "fx": {
     "usdhkd": 7.8418,
@@ -8,13 +8,13 @@
   },
   "totals": {
     "us": {
-      "value_usd": 3576.11,
-      "cost_usd": 4087.35,
-      "pnl_usd": -511.24,
-      "pnl_pct": -12.5079,
+      "value_usd": 3714.8,
+      "cost_usd": 4525.05,
+      "pnl_usd": -810.25,
+      "pnl_pct": -17.9059,
       "today_change_usd": 75.46,
       "realized_usd": 1841.18,
-      "cash_usd": 273.25
+      "cash_usd": 134.35
     },
     "hk": {
       "value_hkd": 53969.2,
@@ -193,15 +193,15 @@
         "name": "Leverage Shares 2X Long SpaceX Daily ETF",
         "currency": "USD",
         "shares": 110,
-        "cost_basis": 17.5345,
+        "cost_basis": 20.2409,
         "current_price": 13.8687,
         "current_value": 1525.56,
         "today_change": -145.13,
         "today_change_pct": -9.47,
         "day_high": 14.8,
         "day_low": 13.16,
-        "pnl_abs": -403.13,
-        "pnl_percent": -20.9,
+        "pnl_abs": -701.14,
+        "pnl_percent": -31.48,
         "is_active": true,
         "trades_count": 10
       },
@@ -1666,7 +1666,7 @@
     {
       "type": "high_weight_loss",
       "ticker": "SPCH",
-      "detail": "weight 43.8% + pnl -20.9%",
+      "detail": "weight 43.8% + pnl -31.5%",
       "severity": "high"
     },
     {
@@ -3648,8 +3648,8 @@
       {
         "ticker": "SPCH",
         "leg": "US",
-        "pnl_pct": -20.9,
-        "detail": "SPCH 浮亏 -20.9% ≤ 硬止损线 -18%",
+        "pnl_pct": -31.5,
+        "detail": "SPCH 浮亏 -31.5% ≤ 硬止损线 -18%",
         "action": "SPCH 触发杠杆 ETF 硬止损 → 换仓 同因子 1x/标的现货（敞口保留、停 decay，规则非择时）；🧭转 green 再换回 2x"
       },
       {
@@ -3770,6 +3770,13 @@
         "leveraged": false
       },
       {
+        "ticker": "SPCH",
+        "leg": "US",
+        "pnl_pct": -31.5,
+        "breakeven_need_pct": 45.9,
+        "leveraged": true
+      },
+      {
         "ticker": "07226",
         "leg": "HK",
         "pnl_pct": -28.1,
@@ -3806,13 +3813,6 @@
         "pnl_pct": -25.3,
         "breakeven_need_pct": 33.9,
         "leveraged": false
-      },
-      {
-        "ticker": "SPCH",
-        "leg": "US",
-        "pnl_pct": -20.9,
-        "breakeven_need_pct": 26.4,
-        "leveraged": true
       },
       {
         "ticker": "MSFU",
@@ -6021,20 +6021,20 @@
         "current_value": 25020.0
       },
       {
+        "ticker": "SPCH",
+        "name": "Leverage Shares 2X Long SpaceX Daily ETF",
+        "region": "us",
+        "pnl_percent": -31.48,
+        "pnl_abs": -701.14,
+        "current_value": 1525.56
+      },
+      {
         "ticker": "07226",
         "name": "XL二南方恒科",
         "region": "hk",
         "pnl_percent": -28.08,
         "pnl_abs": -7596.24,
         "current_value": 19455.6
-      },
-      {
-        "ticker": "PLTU",
-        "name": "二倍做多PLTR ETF-Direxion",
-        "region": "us",
-        "pnl_percent": -27.07,
-        "pnl_abs": -155.22,
-        "current_value": 418.18
       }
     ]
   },
@@ -6107,7 +6107,7 @@
   "realized_vs_unrealized": {
     "us": {
       "realized": 1841.18,
-      "unrealized": -511.24
+      "unrealized": -810.25
     },
     "hk": {
       "realized": 7259.16,
@@ -6115,25 +6115,25 @@
     },
     "combined_usd": {
       "realized": 2766.88,
-      "unrealized": -4886.13
+      "unrealized": -5185.14
     }
   },
   "capital_deployed": {
     "us": {
-      "native": 5928.53,
-      "usd": 5928.53
+      "native": 6366.23,
+      "usd": 6366.23
     },
     "hk": {
       "native": 95535.4,
       "usd": 12182.84
     },
-    "combined_usd": 18111.37
+    "combined_usd": 18549.07
   },
   "net_principal_return": {
     "us": {
-      "net_principal": 2246.17,
-      "total_profit": 1329.94,
-      "return_pct": 53.82,
+      "net_principal": 2683.87,
+      "total_profit": 1030.93,
+      "return_pct": 41.72,
       "return_basis": "true_principal",
       "true_principal": 2471.12
     },
@@ -6145,8 +6145,8 @@
     },
     "combined_usd": {
       "net_principal": 12802.56,
-      "total_profit": -2119.25,
-      "return_pct": -16.55,
+      "total_profit": -2418.26,
+      "return_pct": -18.89,
       "return_basis": "true_principal"
     },
     "formula": "回报率 = (浮动 + 已实现) ÷ 本金；本金优先用 true_principal（峰值净投入），否则用 净投入本金=累计成本−已实现"
@@ -6160,7 +6160,7 @@
     "units_held": 4854.55,
     "principal_invested": 17299.0,
     "reconciled_date": "2026-06-09",
-    "principal_note": "对账基线（自动累加模式）。2026-06-09 kcn 对账：现值 15470 + 盈亏 -1829 → 本金 17299，份额 = 15470/净值3.1867 = 4854.55。此后每个 A 股交易日自动 +200@当日净值。补投对账：把 principal_invested/units_held 改成新真实数字、reconciled_date 改成对账当天即可，自动累加归零重算。",
+    "principal_note": "对账基线(自动累加模式)。2026-06-09 kcn 对账:现值 15470 + 盈亏 -1829 → 本金 17299,份额 = 15470/净值3.1867 = 4854.55。此后每个 A 股交易日自动 +200@当日净值。补投对账:把 principal_invested/units_held 改成新真实数字、reconciled_date 改成对账当天即可,自动累加归零重算。",
     "nav": 2.9282,
     "nav_date": "2026-07-01",
     "nav_change_pct": -1.08,
@@ -7057,7 +7057,7 @@
     }
   },
   "build_status": {
-    "generated_at": "2026-07-02T02:03:29+08:00",
+    "generated_at": "2026-07-02T02:05:05+08:00",
     "healthy": false,
     "stale_files": [],
     "files": [
@@ -7158,19 +7158,9 @@
     },
     "integrity": {
       "ok": false,
-      "error_count": 3,
-      "warn_count": 7,
+      "error_count": 1,
+      "warn_count": 8,
       "top": [
-        {
-          "code": "TCV_SUM",
-          "level": "ERROR",
-          "msg": "total_current_value=3576.11 ≠ Σ活跃持仓 current_value=3714.80 (差 -138.69)；疑似手工卖出漏重算聚合 → equity 假新高"
-        },
-        {
-          "code": "COST_TOTAL",
-          "level": "ERROR",
-          "msg": "total_cost=4087.35 ≠ Σ活跃持仓 shares×cost_basis=4227.35 (差 -140.00)；手工记仓漏重算成本 → total_pnl 失真"
-        },
         {
           "code": "STALENESS",
           "level": "WARN",
@@ -7190,6 +7180,16 @@
           "code": "STALENESS",
           "level": "WARN",
           "msg": "ROBN data_source 日期 2026-07-01 早于上一交易日 2026-07-02；可能 stale 价当新 session"
+        },
+        {
+          "code": "TODAY_LEG",
+          "level": "WARN",
+          "msg": "SPCH today_change=-145.13 ≠ shares×(cur−prev_close)=-159.64（差 +14.51）；prev_close 陈旧或漏重算"
+        },
+        {
+          "code": "COST_BASIS",
+          "level": "ERROR",
+          "msg": "SPCH cost_basis=20.2409 ≠ trades 移动加权=17.5245（差 +2.7164）；算均价疑漏冲减 T+0 卖出/重复计已卖买单"
         }
       ]
     }
