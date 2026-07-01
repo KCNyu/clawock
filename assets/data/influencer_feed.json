@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-01T15:33:01.566926+00:00",
+  "generated_at": "2026-07-01T22:50:06.619588+00:00",
   "lookback_hours": 48,
   "sources": {
     "trump": "trumpstruth.org/feed (primary)",
@@ -8,31 +8,32 @@
   },
   "llm_filtered": true,
   "counts": {
-    "total": 4,
+    "total": 10,
     "held_hits": 0,
-    "new_ideas": 0,
-    "sector_hits": 4
+    "new_ideas": 1,
+    "sector_hits": 5
   },
   "items": [
     {
       "author": "Trump",
-      "text": "Gasoline Retailers must get their Prices down, IMMEDIATELY! They’re too high considering that Oil is now at $68 a Barrel, and heading south. The Retailers must quickly react to this statement, and do what they know is right — DROP YOUR PRICE FOR OUR GREAT AMERICAN PEOPLE! There will be no gauging, which is totally illegal. If Retailers don’t do this, big problems lie ahead! Start targeting around the $2.50 a Gallon number, and California should stop charging such heavy Taxes on their Gasoline. Soon the Tax will be higher than the Product itself, and the United States will not stand for it, nor",
-      "url": "https://trumpstruth.org/statuses/39623",
-      "published": "2026-06-29T23:39:34+00:00",
+      "text": "BIG NEWS! Micron, a truly GREAT American Company, and one of the “HOTTEST” anywhere in the World, has announced a HISTORIC $250 MILLION Investment in TRUMP ACCOUNTS. This incredible gesture, made by Micron’s fantastic CEO, Sanjay Mehrotra, will make many children extremely happy some day in the not too distant future. This is the BIGGEST CORPORATE Investment of its kind, and will help jumpstart the American Dream for these fabulous children as we celebrate America's 250th Anniversary! This MASSIVE Investment will help MILLIONS of American children and families get a strong start in life, and g",
+      "url": "https://trumpstruth.org/statuses/39656",
+      "published": "2026-07-01T16:19:16+00:00",
       "origin": "truthsocial",
-      "tickers": [],
+      "tickers": [
+        "MU"
+      ],
       "held": [],
-      "new_ideas": [],
+      "new_ideas": [
+        "MU"
+      ],
       "sectors": [
-        "能源",
-        "石油"
+        "半导体"
       ],
-      "sector_holdings": [
-        "02208"
-      ],
-      "stance": "attack",
-      "relevance": 62,
-      "summary_cn": "Trump 公开施压汽油零售商降价，点名批评加州高汽油税，并警告 $68 油价下零售价应降至 $2.50/加仑——对炼油与加油站板块偏空，对油价/能源股有间接影响。"
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 65,
+      "summary_cn": "Trump力挺Micron及CEO Sanjay Mehrotra，称其投资2.5亿美元至Trump Accounts，对美光公开背书。"
     },
     {
       "author": "Musk",
@@ -51,54 +52,92 @@
         "SPCH"
       ],
       "stance": "endorse",
-      "relevance": 58,
-      "summary_cn": "Wedbush 首次覆盖 SpaceX 给出 Outperform 与 $190 目标价——SpaceX 未上市不可直接交易，但 kcn 持有 SPCH(2x 做多 SpaceX ETF)间接受益。"
+      "relevance": 72,
+      "summary_cn": "Wedbush首次覆盖SpaceX给出'Outperform'评级、$190目标价，对SpaceX/航天板块利好，间接利好SPCH。"
     },
     {
       "author": "Musk",
-      "text": "Elon Musk Says He Would Be 'Disappointed' If SpaceX Does Not ‘Significantly Exceed’ These Bullish Revenue Milestones",
+      "text": "Elon Musk No Longer A Trillionaire As SpaceX Stock Falls",
       "url": "",
-      "published": "Tue, 30 Jun 2026 22:00:55 GMT",
-      "origin": "gnews-rss",
-      "source": "Yahoo Finance",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天"
-      ],
-      "sector_holdings": [
-        "SPCH"
-      ],
-      "stance": "endorse",
-      "relevance": 55,
-      "summary_cn": "Musk 称若 SpaceX 不'大幅超越'既定收入里程碑他会'失望'——管理层放卫星姿态偏乐观，间接利好 kcn 持有的 SPCH。"
-    },
-    {
-      "author": "Musk",
-      "text": "Musk Is A Trillionaire Again: SpaceX And Tesla Boost Net Worth By $60 Billion",
-      "url": "",
-      "published": "Mon, 29 Jun 2026 19:02:41 GMT",
+      "published": "Wed, 01 Jul 2026 16:33:46 GMT",
       "origin": "gnews-rss",
       "source": "Forbes",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "电动车",
         "航天"
       ],
       "sector_holdings": [
         "SPCH"
       ],
-      "stance": "endorse",
+      "stance": "neutral",
+      "relevance": 60,
+      "summary_cn": "Musk因SpaceX估值回调身价缩水，SpaceX二级市场走低间接影响SPCH。"
+    },
+    {
+      "author": "Musk",
+      "text": "Exclusive | SpaceX Showed Investors Prototype of Elon Musk’s New AI Device",
+      "url": "",
+      "published": "Wed, 01 Jul 2026 18:11:00 GMT",
+      "origin": "gnews-rss",
+      "source": "WSJ",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "AI硬件/消费电子",
+        "航天"
+      ],
+      "sector_holdings": [
+        "MSFU",
+        "SPCH"
+      ],
+      "stance": "neutral",
       "relevance": 55,
-      "summary_cn": "Musk 净资产再破万亿美元，SpaceX 与 Tesla 估值贡献 $600 亿——为 SPCH(2x SpaceX) 提供正面前景，但对 kcn 持仓为间接利好。"
-    }
-  ],
-  "held_hits": [],
-  "new_ideas": [],
-  "sector_hits": [
+      "summary_cn": "SpaceX向投资者展示AI设备原型，属非上市标的，但AI硬件主题对消费电子链/AI概念有辐射。"
+    },
+    {
+      "author": "Musk",
+      "text": "Commentary: Is Elon Musk really a trillionaire? Only on paper",
+      "url": "",
+      "published": "Wed, 01 Jul 2026 15:58:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Los Angeles Times",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天"
+      ],
+      "sector_holdings": [
+        "SPCH"
+      ],
+      "stance": "neutral",
+      "relevance": 55,
+      "summary_cn": "媒体分析Musk万亿富翁'仅纸面'，质疑SpaceX估值，间接影响SPCH。"
+    },
+    {
+      "author": "Trump",
+      "text": "I would like to congratulate President Xi, and the Great Country of China, on their massive Birthright Citizenship WIN! President DONALD J. TRUMP",
+      "url": "https://trumpstruth.org/statuses/39637",
+      "published": "2026-06-30T17:30:31+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "中概/中美关系"
+      ],
+      "sector_holdings": [
+        "03032",
+        "03033",
+        "07226"
+      ],
+      "stance": "neutral",
+      "relevance": 55,
+      "summary_cn": "Trump祝贺中国出生公民权裁决，涉中美议题，对恒生科技等中概持仓有间接影响。"
+    },
     {
       "author": "Trump",
       "text": "Gasoline Retailers must get their Prices down, IMMEDIATELY! They’re too high considering that Oil is now at $68 a Barrel, and heading south. The Retailers must quickly react to this statement, and do what they know is right — DROP YOUR PRICE FOR OUR GREAT AMERICAN PEOPLE! There will be no gauging, which is totally illegal. If Retailers don’t do this, big problems lie ahead! Start targeting around the $2.50 a Gallon number, and California should stop charging such heavy Taxes on their Gasoline. Soon the Tax will be higher than the Product itself, and the United States will not stand for it, nor",
@@ -109,16 +148,86 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "能源",
-        "石油"
+        "能源/石油"
       ],
-      "sector_holdings": [
-        "02208"
-      ],
+      "sector_holdings": [],
       "stance": "attack",
-      "relevance": 62,
-      "summary_cn": "Trump 公开施压汽油零售商降价，点名批评加州高汽油税，并警告 $68 油价下零售价应降至 $2.50/加仑——对炼油与加油站板块偏空，对油价/能源股有间接影响。"
+      "relevance": 75,
+      "summary_cn": "Trump公开施压汽油零售商降价，点名加州燃油税过高，威胁'big problems'，对炼油/零售板块短期利空。"
     },
+    {
+      "author": "Trump",
+      "text": "BIG NEWS! For the first time ever, the Republican Party will hold a MIDTERM CONVENTION. It will be in Dallas, Texas — One of my favorite places in the World. It will be fantastic! It has never been done before, and will be a truly Historic Event. We are going to celebrate the GREAT AMERICAN COMEBACK, and the incredible successes of the American People who transformed our Country through the America First Agenda — NO TAX ON TIPS, NO TAX ON OVERTIME, NO TAX ON SOCIAL SECURITY, STRONGER BORDERS, SAFEST EVER COMMUNITIES, LOWER COSTS AND REAL AFFORDABILITY, MORE JOBS, AMERICAN ENERGY DOMINANCE, AND",
+      "url": "https://trumpstruth.org/statuses/39642",
+      "published": "2026-06-30T21:39:02+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 50,
+      "summary_cn": "Trump宣布GOP首次中期选举大会在达拉斯举行，重申税改/能源/边境等政策口号，宏观政策信号中等。"
+    },
+    {
+      "author": "Trump",
+      "text": "The Supreme Court upheld Birthright Citizenship, which is too bad for our Country, but we can easily make it up in Congress through Legislation, with the support of the President, that has now been determined during this process. No long and unwieldy Constitutional Amendment is necessary! Congress should start TODAY to work on ending expensive and unfair to our Country, Birthright Citizenship. They will have my Complete and Total Support! President DONALD J. TRUMP",
+      "url": "https://trumpstruth.org/statuses/39632",
+      "published": "2026-06-30T16:23:50+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "移民/人口政策"
+      ],
+      "sector_holdings": [],
+      "stance": "attack",
+      "relevance": 50,
+      "summary_cn": "Trump不满最高法维持出生公民权裁决，呼吁国会立法废除，移民政策再起波澜。"
+    },
+    {
+      "author": "Trump",
+      "text": "Since September, my Council of Economic Advisers has been led by the very highly respected Professor Pierre Yared, of Columbia University, as he and his team of “Brainiacs” at the CEA have worked around the clock to Make America WEALTHY Again — with Great Success! Unfortunately, Pierre is returning to Columbia Graduate School where he is greatly respected by all. I want to thank Pierre for his terrific service to our Country, and wish him and his wonderful family all of the best for a healthy and happy future. Pierre is a STAR, and I thank him for his service. THANK YOU PIERRE, AND GOOD LUCK! ",
+      "url": "https://trumpstruth.org/statuses/39647",
+      "published": "2026-06-30T22:10:24+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 45,
+      "summary_cn": "Trump任命Pierre Yared领导经济顾问委员会(CEA)，属人事任命，无直接市场含义。"
+    }
+  ],
+  "held_hits": [],
+  "new_ideas": [
+    {
+      "author": "Trump",
+      "text": "BIG NEWS! Micron, a truly GREAT American Company, and one of the “HOTTEST” anywhere in the World, has announced a HISTORIC $250 MILLION Investment in TRUMP ACCOUNTS. This incredible gesture, made by Micron’s fantastic CEO, Sanjay Mehrotra, will make many children extremely happy some day in the not too distant future. This is the BIGGEST CORPORATE Investment of its kind, and will help jumpstart the American Dream for these fabulous children as we celebrate America's 250th Anniversary! This MASSIVE Investment will help MILLIONS of American children and families get a strong start in life, and g",
+      "url": "https://trumpstruth.org/statuses/39656",
+      "published": "2026-07-01T16:19:16+00:00",
+      "origin": "truthsocial",
+      "tickers": [
+        "MU"
+      ],
+      "held": [],
+      "new_ideas": [
+        "MU"
+      ],
+      "sectors": [
+        "半导体"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 65,
+      "summary_cn": "Trump力挺Micron及CEO Sanjay Mehrotra，称其投资2.5亿美元至Trump Accounts，对美光公开背书。"
+    }
+  ],
+  "sector_hits": [
     {
       "author": "Musk",
       "text": "Wedbush Initiates SpaceX Coverage With 'Outperform' Rating, $190 Price Target",
@@ -136,49 +245,91 @@
         "SPCH"
       ],
       "stance": "endorse",
-      "relevance": 58,
-      "summary_cn": "Wedbush 首次覆盖 SpaceX 给出 Outperform 与 $190 目标价——SpaceX 未上市不可直接交易，但 kcn 持有 SPCH(2x 做多 SpaceX ETF)间接受益。"
+      "relevance": 72,
+      "summary_cn": "Wedbush首次覆盖SpaceX给出'Outperform'评级、$190目标价，对SpaceX/航天板块利好，间接利好SPCH。"
     },
     {
       "author": "Musk",
-      "text": "Elon Musk Says He Would Be 'Disappointed' If SpaceX Does Not ‘Significantly Exceed’ These Bullish Revenue Milestones",
+      "text": "Elon Musk No Longer A Trillionaire As SpaceX Stock Falls",
       "url": "",
-      "published": "Tue, 30 Jun 2026 22:00:55 GMT",
-      "origin": "gnews-rss",
-      "source": "Yahoo Finance",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天"
-      ],
-      "sector_holdings": [
-        "SPCH"
-      ],
-      "stance": "endorse",
-      "relevance": 55,
-      "summary_cn": "Musk 称若 SpaceX 不'大幅超越'既定收入里程碑他会'失望'——管理层放卫星姿态偏乐观，间接利好 kcn 持有的 SPCH。"
-    },
-    {
-      "author": "Musk",
-      "text": "Musk Is A Trillionaire Again: SpaceX And Tesla Boost Net Worth By $60 Billion",
-      "url": "",
-      "published": "Mon, 29 Jun 2026 19:02:41 GMT",
+      "published": "Wed, 01 Jul 2026 16:33:46 GMT",
       "origin": "gnews-rss",
       "source": "Forbes",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "电动车",
         "航天"
       ],
       "sector_holdings": [
         "SPCH"
       ],
-      "stance": "endorse",
+      "stance": "neutral",
+      "relevance": 60,
+      "summary_cn": "Musk因SpaceX估值回调身价缩水，SpaceX二级市场走低间接影响SPCH。"
+    },
+    {
+      "author": "Musk",
+      "text": "Exclusive | SpaceX Showed Investors Prototype of Elon Musk’s New AI Device",
+      "url": "",
+      "published": "Wed, 01 Jul 2026 18:11:00 GMT",
+      "origin": "gnews-rss",
+      "source": "WSJ",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "AI硬件/消费电子",
+        "航天"
+      ],
+      "sector_holdings": [
+        "MSFU",
+        "SPCH"
+      ],
+      "stance": "neutral",
       "relevance": 55,
-      "summary_cn": "Musk 净资产再破万亿美元，SpaceX 与 Tesla 估值贡献 $600 亿——为 SPCH(2x SpaceX) 提供正面前景，但对 kcn 持仓为间接利好。"
+      "summary_cn": "SpaceX向投资者展示AI设备原型，属非上市标的，但AI硬件主题对消费电子链/AI概念有辐射。"
+    },
+    {
+      "author": "Musk",
+      "text": "Commentary: Is Elon Musk really a trillionaire? Only on paper",
+      "url": "",
+      "published": "Wed, 01 Jul 2026 15:58:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Los Angeles Times",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天"
+      ],
+      "sector_holdings": [
+        "SPCH"
+      ],
+      "stance": "neutral",
+      "relevance": 55,
+      "summary_cn": "媒体分析Musk万亿富翁'仅纸面'，质疑SpaceX估值，间接影响SPCH。"
+    },
+    {
+      "author": "Trump",
+      "text": "I would like to congratulate President Xi, and the Great Country of China, on their massive Birthright Citizenship WIN! President DONALD J. TRUMP",
+      "url": "https://trumpstruth.org/statuses/39637",
+      "published": "2026-06-30T17:30:31+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "中概/中美关系"
+      ],
+      "sector_holdings": [
+        "03032",
+        "03033",
+        "07226"
+      ],
+      "stance": "neutral",
+      "relevance": 55,
+      "summary_cn": "Trump祝贺中国出生公民权裁决，涉中美议题，对恒生科技等中概持仓有间接影响。"
     }
   ]
 }
