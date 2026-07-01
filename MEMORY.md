@@ -123,3 +123,8 @@
 - ▎仓位明细: | 代码 | 股 | 成本 | 现价 | 今日 | 浮% | 浮$ | |---|---|---|---|---|---|---| | SPCH | 100 | 17.888 | 12.35 | -2.45% | -30.96% | -553.8 | | PLTU | 14 | 40.957 | 21.44 | -10.78% | -47.65% | -273.2 | [score=0.843 recalls=0 avg=0.620 source=memory/2026-06-26-pre-open.md:30-33]
 <!-- openclaw-memory-promotion:memory:memory/2026-06-26-pre-open.md:34:37 -->
 - ▎仓位明细: | RKLX | 10 | 49.69 | 28.87 | -11.09% | -41.90% | -208.2 | | ROBN | 20 | 23.583 | 26.355 | -7.98% | +11.76% | +55.5 | | MSFU | 20 | 29.130 | 19.88 | -7.02% | -31.75% | -185.0 | | CRCL | 2 | 87.00 | 68.84 | -3.01% | -20.87% | -36.3 | [score=0.843 recalls=0 avg=0.620 source=memory/2026-06-26-pre-open.md:34-37]
+
+## Promoted From Short-Term Memory (2026-07-02)
+
+<!-- openclaw-memory-promotion:memory:memory/2026-06-29-pre-open.md:97:97 -->
+- Confidence Calls: **自校准（30天）**：Brier=0.2495（marginal）。T+1 vs hold baseline：LLM 56% vs 42% → alpha+14pp（跑赢空仓基线）。⚠️ high-conf(≥0.75) 历史胜率=0%——本简报所有 confidence 已压在 0.50-0.55，不虚高。 [score=0.815 recalls=0 avg=0.620 source=memory/2026-06-29-pre-open.md:97-97]
