@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-30T15:23:13.656251",
+  "generated_at": "2026-07-01T15:34:45.934426",
   "lookback_hours": 48,
   "tickers": [
     "CRCL",
@@ -9,9 +9,9 @@
     "SPCH",
     "MSFU"
   ],
-  "digest_markdown": "## Top 移动信号\n\n- **CRCL**: BNY 扩大合作,新增 USDC 机构级托管/铸造/赎回服务 - 验证机构采用加速,但股价已较高点回撤 ~40%,crypto beta 仍高\n- **CRCL**: SeekingAlpha 多头论:RLDC 利润率创新高 + CPN 交易量快速增长 + Arc 协议被低估 - 估值分歧显著扩大\n- **SPCH**: \"Winner Emerges In SpaceX ETF Race\" - SpaceX 杠杆 ETF 赛道收窄,SPCH 占据规模/流量优势\n- **MSFU**: \"Microsoft Woes Hide Opportunity\" 框架 - MSFT 短期承压但 ETF 视作反弹机会,情绪博弈\n- **ROBN**: Ron Baron 新 ETF 创纪录 + 重仓 SpaceX - 太空主题资金集中度↑ (ticker 关联度需二次核对)\n\n## Per-ticker 简报\n\n- **CRCL**: BNY 合作扩容 - 实质机构催化剂 ✓\n- **PLTU**: 仅有 PLTR Q4 财报间接利好 + options chain 噪音,无直接催化\n- **RKLX**: 散户情绪帖 + Zacks 列表提及,无实质信号\n- **ROBN**: Robinhood (HOOD) after-hours 回落但分析师不以为意 - 中性; \"Robin Energy 反向拆股\" 为不同公司,与持仓无关\n- **SPCH**: SpaceX 杠杆 ETF 赛道胜出 - 结构性优势\n- **MSFU**: MSFT 承压叙事主导,无直接催化\n\n## 风险 watch\n\n- **CRCL**: 较高点回撤 ~40%,crypto 情绪敏感;利率路径不利可能压制 USDC 流通量增速\n- **ROBN**: 新闻 feed 含 HOOD / Robin Energy / Baron ETF 多重信号混杂,需确认 ticker 实际对应资产\n- **MSFU**: 2x 杠杆 ETF 在 MSFT 弱势中下行风险放大,叙事虽看反弹但波动率敞口高",
+  "digest_markdown": "## Top 移动信号\n\n- **CRCL**: Open USD 稳定币联盟（Stripe/Visa/BlackRock/BNY Mellon/Coinbase）正式上线，CRCL 单日 -16%。Implication: USDC 护城河首次遭制度级对手围攻，短期估值锚松动。\n- **CRCL**: Cathie Wood 抛阿里同时加仓 CRCL，机构逆势建仓。Implication: 与空头共识反向，短线技术反弹概率提升，但\"抄底陷阱\"风险并存。\n- **ROBN**: HOOD 财报后盘后跳水，散户与分析师\"耸肩\"应对。Implication: 2x 杠杆 ETF 隔夜 gap risk 放大，ROBN 溢价/折价回归加速。\n- **SPCH**: SpaceX ETF 赛道\"赢家浮现\"，同业产品分流资金。Implication: SPCH AUM 增长承压，流动性溢价收窄。\n- **PLTU**: Palantir Q4 财报超预期，主题 ETF 受益。Implication: 净值修复有支撑，但 PLTU 为杠杆/反向产品，跟踪误差与杠杆衰减需监控。\n\n## Per-ticker 简报\n\n- **CRCL**: 双重催化剂夹击（监管级对手 vs ARK 抄底），方向取决于成交量能否在 -16% 后企稳。\n- **ROBN**: HOOD 业绩后回调，分析师偏冷；杠杆 ETF 双向风险，重新评估底层趋势后再定仓位。\n- **SPCH**: SpaceX ETF 竞争升温，赢家通吃格局对中小产品不利，关注费率与流动性。\n- **PLTU**: PLTR 业绩 beat 为底层支撑，产品定位（2x/反向）需逐日核对。\n- **RKLX / MSFU**: 无 ticker-specific catalyst，跳过。\n\n## 风险 Watch\n\n- **CRCL**: Open USD 由 BlackRock+Stripe+Visa 背书，分销与合规渠道碾压 USDC，长期市占率风险定价不足。\n- **ROBN**: HOOD 业绩/指引若下修，2x 杠杆放大回撤；盘后流动性差，止损滑点风险高。\n- **SPCH**: SpaceX 私募估值回调风险未被 ETF 充分定价，\"winner ≠ alpha\"。\n- **PLTU**: 杠杆 ETF 在标的低波动期损耗明显，非趋势行情下持有成本上升。",
   "raw_news_counts": {
-    "CRCL": 3,
+    "CRCL": 5,
     "PLTU": 5,
     "RKLX": 5,
     "ROBN": 5,
