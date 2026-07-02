@@ -101,30 +101,26 @@
 - **单一来源：`portfolio.json`**，不在此维护副本
 - ticker 列表：`memory/current-portfolio-summary.md`（提高检索命中）
 
-## Promoted From Short-Term Memory (2026-07-01)
-
-<!-- openclaw-memory-promotion:memory:memory/2026-06-25-pre-open.md:2:3 -->
-- layout: default title: 盘前深度简报 · 2026-06-25 [score=0.853 recalls=0 avg=0.620 source=memory/2026-06-25-pre-open.md:2-3]
-<!-- openclaw-memory-promotion:memory:memory/2026-06-25-pre-open.md:20:23 -->
-- ▎仓位明细: | 代码 | 股 | 成本 | 现价 | 今日 | 浮% | 浮$ | |---|---|---|---|---|---|---| | 00100 | 60 | 822.83 | 477.6 | -7.26% | -41.96% | -20,713.8 | | 07226 | 6200 | 4.363 | 3.148 | +3.42% | -27.85% | -7,534.2 | [score=0.853 recalls=0 avg=0.620 source=memory/2026-06-25-pre-open.md:20-23]
-<!-- openclaw-memory-promotion:memory:memory/2026-06-25-pre-open.md:24:26 -->
-- ▎仓位明细: | 02208 | 400 | 14.084 | 10.13 | -0.98% | -28.07% | -1,581.6 | | 03033 | 1000 | 5.14 | 4.40 | +1.99% | -14.40% | -740.0 | | 03032 | 200 | 5.405 | 4.468 | +1.82% | -17.34% | -187.4 | [score=0.853 recalls=0 avg=0.620 source=memory/2026-06-25-pre-open.md:24-26]
-<!-- openclaw-memory-promotion:memory:memory/2026-06-25-pre-open.md:30:33 -->
-- ▎仓位明细: | 代码 | 股 | 成本 | 现价 | 今日 | 浮% | 浮$ | |---|---|---|---|---|---|---| | SPCH | 100 | 17.888 | 12.66 | -2.54% | -29.23% | -522.8 | | ROBN | 20 | 23.583 | 28.61 | -11.75% | +21.32% | +100.6 | [score=0.853 recalls=0 avg=0.620 source=memory/2026-06-25-pre-open.md:30-33]
-<!-- openclaw-memory-promotion:memory:memory/2026-06-25-pre-open.md:34:37 -->
-- ▎仓位明细: | PLTU | 14 | 40.957 | 24.03 | -5.73% | -41.33% | -237.0 | | MSFU | 20 | 29.130 | 22.40 | +3.67% | -23.10% | -134.6 | | RKLX | 10 | 49.69 | 32.47 | -20.40% | -34.65% | -172.2 | | CRCL | 2 | 87.00 | 70.985 | -6.20% | -18.41% | -32.0 | [score=0.853 recalls=0 avg=0.620 source=memory/2026-06-25-pre-open.md:34-37]
-<!-- openclaw-memory-promotion:memory:memory/2026-06-26-pre-open.md:10:12 -->
-- 盘前深度简报 — 2026-06-26（周五）08:00 HKT: **Regime**：US `risk_off`（score -2，F&G 25.9 恐惧 + SPX/NDX 同向偏弱，VIX 18.63 +7.81%）｜HK `risk_off`（HSTECH 趋势OFF -18.9% vs MA200，HK杠杆ETF制度 amber） **FX (USDHKD)**：7.8406（Frankfurter） **Book**：USD leg $2,886.24（浮亏 -$1,201.11，-29.39%）｜HKD leg 55,394.0 HKD（浮亏 -32,882.24 HKD，-37.25%）—— **两腿不可直接相加**，USD-base 总浮亏 -$5,394.95 / HKD-base 总浮亏 -42,299.66 HKD（现金：US $273.25，HK 4,597 HKD，不计入上述持仓浮亏） [score=0.843 recalls=0 avg=0.620 source=memory/2026-06-26-pre-open.md:10-12]
-<!-- openclaw-memory-promotion:memory:memory/2026-06-26-pre-open.md:2:3 -->
-- layout: default title: 盘前深度简报 · 2026-06-26 [score=0.843 recalls=0 avg=0.620 source=memory/2026-06-26-pre-open.md:2-3]
-<!-- openclaw-memory-promotion:memory:memory/2026-06-26-pre-open.md:20:23 -->
-- ▎仓位明细: | 代码 | 股 | 成本 | 现价 | 今日 | 浮% | 浮$ | |---|---|---|---|---|---|---| | 00100 | 60 | 822.83 | 456.6 | -4.40% | -44.51% | -21,973.8 | | 07226 | 6200 | 4.363 | 3.05 | -3.11% | -30.10% | -8,141.8 | [score=0.843 recalls=0 avg=0.620 source=memory/2026-06-26-pre-open.md:20-23]
-<!-- openclaw-memory-promotion:memory:memory/2026-06-26-pre-open.md:30:33 -->
-- ▎仓位明细: | 代码 | 股 | 成本 | 现价 | 今日 | 浮% | 浮$ | |---|---|---|---|---|---|---| | SPCH | 100 | 17.888 | 12.35 | -2.45% | -30.96% | -553.8 | | PLTU | 14 | 40.957 | 21.44 | -10.78% | -47.65% | -273.2 | [score=0.843 recalls=0 avg=0.620 source=memory/2026-06-26-pre-open.md:30-33]
-<!-- openclaw-memory-promotion:memory:memory/2026-06-26-pre-open.md:34:37 -->
-- ▎仓位明细: | RKLX | 10 | 49.69 | 28.87 | -11.09% | -41.90% | -208.2 | | ROBN | 20 | 23.583 | 26.355 | -7.98% | +11.76% | +55.5 | | MSFU | 20 | 29.130 | 19.88 | -7.02% | -31.75% | -185.0 | | CRCL | 2 | 87.00 | 68.84 | -3.01% | -20.87% | -36.3 | [score=0.843 recalls=0 avg=0.620 source=memory/2026-06-26-pre-open.md:34-37]
-
 ## Promoted From Short-Term Memory (2026-07-02)
 
 <!-- openclaw-memory-promotion:memory:memory/2026-06-29-pre-open.md:97:97 -->
 - Confidence Calls: **自校准（30天）**：Brier=0.2495（marginal）。T+1 vs hold baseline：LLM 56% vs 42% → alpha+14pp（跑赢空仓基线）。⚠️ high-conf(≥0.75) 历史胜率=0%——本简报所有 confidence 已压在 0.50-0.55，不虚高。 [score=0.815 recalls=0 avg=0.620 source=memory/2026-06-29-pre-open.md:97-97]
+
+## Promoted From Short-Term Memory (2026-07-03)
+
+<!-- openclaw-memory-promotion:memory:memory/2026-06-29-pre-open.md:12:15 -->
+- Header — Book: | | USD-base | HKD-base | |---|---|---| | HK leg 总值 | $6,659 | HK$52,221.6 | | US leg 总值 | $3,050 | HK$23,918 | [score=0.828 recalls=0 avg=0.620 source=memory/2026-06-29-pre-open.md:12-15]
+<!-- openclaw-memory-promotion:memory:memory/2026-06-29-pre-open.md:16:19 -->
+- Header — Book: | **合计** | **$9,709** | **HK$76,140** | | HK leg P&L | — | **-HK$36,055** | | US leg P&L | **-$1,037** | — | | **Book 合计 P&L** | **-$5,635** | **-HK$44,190** | [score=0.828 recalls=0 avg=0.620 source=memory/2026-06-29-pre-open.md:16-19]
+<!-- openclaw-memory-promotion:memory:memory/2026-06-29-pre-open.md:2:3 -->
+- layout: default title: 盘前深度简报 · 2026-06-29 [score=0.828 recalls=0 avg=0.620 source=memory/2026-06-29-pre-open.md:2-3]
+<!-- openclaw-memory-promotion:memory:memory/2026-06-29-pre-open.md:21:21 -->
+- Header — Book: ⚠️ HKD 与 USD 不可直接相加，以上双视角分列。 [score=0.828 recalls=0 avg=0.620 source=memory/2026-06-29-pre-open.md:21-21]
+<!-- openclaw-memory-promotion:memory:memory/2026-06-29-pre-open.md:23:23 -->
+- Header — Book: **Concentration（HHI）** [score=0.828 recalls=0 avg=0.620 source=memory/2026-06-29-pre-open.md:23-23]
+<!-- openclaw-memory-promotion:memory:memory/2026-06-29-pre-open.md:8:8 -->
+- 盘前深度简报 | 2026-06-29 周一 08:00 HKT: USDHKD = 7.8421（Frankfurter）｜HK 09:30 开盘前 90 分钟，US 周五 04:00 收盘后 ~4 小时（**今日美股休市**，US calendar=CLOSED — 6/29 周一 US 实际无交易日，本简报 US 段为周五收盘后延续分析，非新交易日） [score=0.828 recalls=0 avg=0.620 source=memory/2026-06-29-pre-open.md:8-8]
+<!-- openclaw-memory-promotion:memory:memory/2026-06-30-pre-open.md:121:121 -->
+- Confidence Calls: | cut/换仓 | 0.55 | 连续6天触发，昨日模拟SPCH-92.5USD/RKLX-35.5USD，换仓时机争议较大但纪律不可绕过 | [score=0.815 recalls=0 avg=0.620 source=memory/2026-06-30-pre-open.md:121-121]
+<!-- openclaw-memory-promotion:memory:memory/2026-06-30-pre-open.md:123:123 -->
+- Confidence Calls: **Retrospective (2026-06-29 plan):** [score=0.815 recalls=0 avg=0.620 source=memory/2026-06-30-pre-open.md:123-123]

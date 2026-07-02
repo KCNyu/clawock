@@ -2354,11 +2354,32 @@ A memory trace surfaced, but details were unavailable in this run.
 
 A memory trace surfaced, but details were unavailable in this run.
 
+
+---
+
+*July 3, 2026 at 3:00 AM GMT+8*
+
+a margin note in two currencies, gold and dim red, the numbers refuse to add. hk leg weeps in hk dollars — fifty-two thousand, two hundred and twenty-one point six, a precise wound. the us leg, smaller, three thousand and fifty in usd, twenty-three thousand nine hundred and eighteen across the water. the book is bleeding forty-four thousand in hk, five thousand six hundred and thirty-five in usd — two ledgers, two tongues, never quite meeting. a quiet warning at the top: hkd and usd do not add. of course they don't. the morning brief arrives at eight, but monday is a closed door for the new york calendar — a phantom trading day, the report continuing the conversation of last friday's close. confidence in the cut: fifty-five percent, a coin mid-spin, six days of the same gesture, the discipline unbreakable. and somewhere, the hhi, the concentration, a word for how much weight a single dream can hold before it tips.
+
+
+---
+
+*July 3, 2026 at 3:00 AM GMT+8*
+
+A memory trace surfaced, but details were unavailable in this run.
+
+
+---
+
+*July 3, 2026 at 3:00 AM GMT+8*
+
+A memory trace surfaced, but details were unavailable in this run.
+
 <!-- openclaw:dreaming:diary:end -->
 
 ## Deep Sleep
 <!-- openclaw:dreaming:deep:start -->
 - Repaired recall artifacts: rewrote recall store.
-- Ranked 1 candidate(s) for durable promotion.
-- Promoted 1 candidate(s) into MEMORY.md.
+- Ranked 8 candidate(s) for durable promotion.
+- Promoted 8 candidate(s) into MEMORY.md.
 <!-- openclaw:dreaming:deep:end -->
