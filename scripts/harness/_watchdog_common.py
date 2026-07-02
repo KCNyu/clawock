@@ -120,6 +120,10 @@ def today_runs(job_id):
 # kcn's WeChat conversation — last-resort fallback if cron config can't be read.
 KCN_WECHAT = ('openclaw-weixin', 'o9cq80-hGTruM-OSs8kNmDOtLVZI@im.wechat', '61bf112daf0d-im-bot')
 
+# kcn's Telegram chat id — the cold-session-proof mirror target (bot @clawock_bot,
+# revived 2026-07-03). Only messaged when the watchdog judges a WeChat push dropped.
+KCN_TELEGRAM = '2033937852'
+
 # Public full-brief link (rendered from memory/{date}-pre-open.md by GH Pages).
 BRIEF_URL_TMPL = 'https://kcnyu.github.io/clawock/memory/{date}-pre-open.html'
 

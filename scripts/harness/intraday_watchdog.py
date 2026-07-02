@@ -23,7 +23,13 @@ REAL send result to memory/.tmp/intraday-sent-{market}.json.
 This watchdog is now a pure BACKSTOP: it reads that marker and re-sends ONLY when
 the postflight send is confirmed failed / never happened (marker missing, sent_ok
 false, or stale/mismatched) — so it never doubles a report that already went out.
-WeChat is the only channel (Telegram is dead — do not route here).
+
+TELEGRAM MIRROR (2026-07-03, bot @clawock_bot revived): "cold session" here means
+"the confirmed WeChat send did not land" (marker missing/failed/stale) — NOT idle
+time. On exactly that branch we ALSO mirror the report to Telegram (KCN_TELEGRAM),
+which has no contextToken-expiry drop, so kcn still gets it even if the fresh-token
+WeChat resend drops too. Only fires on a cold event — a cleanly-delivered report
+never touches Telegram (no double-channel spam on healthy runs).
 
 Healthy-report gate: only re-send a report produced cleanly (block first-line
 present AND not a mimo repeat-loop) — never re-send a stall. Dedupe per slot.
@@ -45,8 +51,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from _watchdog_common import (  # noqa: E402
-    WS, HKT, log, find_job_id, today_runs,
-    transcript_loop_score, last_report_text, send_wechat, resolve_wechat_target,
+    WS, HKT, log, find_job_id, today_runs, KCN_TELEGRAM,
+    transcript_loop_score, last_report_text, send_wechat, send_telegram, resolve_wechat_target,
 )
 
 LOOP_THRESHOLD = 5         # transcript loop_score ≥ this ⇒ mimo repeat-loop ⇒ garbage
@@ -148,11 +154,24 @@ def main():
     log({'tag': tag, 'action': 'resend-wechat', 'dry_run': args.dry_run, 'sent_ok': sent_ok,
          'job_id': job_id, 'reason': reason, 'loop_score': loop_score,
          'run_at': run_at, 'channel': channel, 'out': out})
-    if sent_ok and not args.dry_run:
+
+    # Cold-session mirror: the WeChat send just above may itself drop (same
+    # contextToken expiry), so mirror the report to Telegram — a cold-proof
+    # channel — on the same cold-detection branch. Only reached when the
+    # postflight WeChat send was NOT confirmed landed, so healthy runs never
+    # hit Telegram. Dedupe flag guards against re-mirroring the same slot.
+    tg_banner = f'📲 补投（{reason}，微信可能没送达，Telegram 兜底一份）\n\n'
+    tg_ok, tg_out = send_telegram(KCN_TELEGRAM, tg_banner + report.strip(), args.dry_run)
+    log({'tag': tag, 'action': 'mirror-telegram', 'dry_run': args.dry_run, 'sent_ok': tg_ok,
+         'reason': reason, 'run_at': run_at, 'target': KCN_TELEGRAM, 'out': tg_out})
+
+    # Slot handled if EITHER channel landed — don't keep retrying a report kcn
+    # already received on Telegram just because WeChat stayed cold.
+    if (sent_ok or tg_ok) and not args.dry_run:
         flag.write_text(datetime.now(HKT).isoformat())
 
-    print(json.dumps({'tag': tag, 'resent': sent_ok, 'reason': reason, 'dry_run': args.dry_run},
-                     ensure_ascii=False))
+    print(json.dumps({'tag': tag, 'resent_wechat': sent_ok, 'mirrored_telegram': tg_ok,
+                      'reason': reason, 'dry_run': args.dry_run}, ensure_ascii=False))
     return 0
 
 
