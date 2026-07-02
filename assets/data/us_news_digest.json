@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-01T15:34:45.934426",
+  "generated_at": "2026-07-02T15:06:14.075515",
   "lookback_hours": 48,
   "tickers": [
     "CRCL",
@@ -9,13 +9,13 @@
     "SPCH",
     "MSFU"
   ],
-  "digest_markdown": "## Top 移动信号\n\n- **CRCL**: Open USD 稳定币联盟（Stripe/Visa/BlackRock/BNY Mellon/Coinbase）正式上线，CRCL 单日 -16%。Implication: USDC 护城河首次遭制度级对手围攻，短期估值锚松动。\n- **CRCL**: Cathie Wood 抛阿里同时加仓 CRCL，机构逆势建仓。Implication: 与空头共识反向，短线技术反弹概率提升，但\"抄底陷阱\"风险并存。\n- **ROBN**: HOOD 财报后盘后跳水，散户与分析师\"耸肩\"应对。Implication: 2x 杠杆 ETF 隔夜 gap risk 放大，ROBN 溢价/折价回归加速。\n- **SPCH**: SpaceX ETF 赛道\"赢家浮现\"，同业产品分流资金。Implication: SPCH AUM 增长承压，流动性溢价收窄。\n- **PLTU**: Palantir Q4 财报超预期，主题 ETF 受益。Implication: 净值修复有支撑，但 PLTU 为杠杆/反向产品，跟踪误差与杠杆衰减需监控。\n\n## Per-ticker 简报\n\n- **CRCL**: 双重催化剂夹击（监管级对手 vs ARK 抄底），方向取决于成交量能否在 -16% 后企稳。\n- **ROBN**: HOOD 业绩后回调，分析师偏冷；杠杆 ETF 双向风险，重新评估底层趋势后再定仓位。\n- **SPCH**: SpaceX ETF 竞争升温，赢家通吃格局对中小产品不利，关注费率与流动性。\n- **PLTU**: PLTR 业绩 beat 为底层支撑，产品定位（2x/反向）需逐日核对。\n- **RKLX / MSFU**: 无 ticker-specific catalyst，跳过。\n\n## 风险 Watch\n\n- **CRCL**: Open USD 由 BlackRock+Stripe+Visa 背书，分销与合规渠道碾压 USDC，长期市占率风险定价不足。\n- **ROBN**: HOOD 业绩/指引若下修，2x 杠杆放大回撤；盘后流动性差，止损滑点风险高。\n- **SPCH**: SpaceX 私募估值回调风险未被 ETF 充分定价，\"winner ≠ alpha\"。\n- **PLTU**: 杠杆 ETF 在标的低波动期损耗明显，非趋势行情下持有成本上升。",
+  "digest_markdown": "## Top 移动信号\n- **CRCL**: 分析师分歧 — Compass Point 升级 vs SeekingAlpha 因 OUSD 竞争(Visa/Mastercard/BlackRock 支持)下调评级 vs Susquehanna 启动 Neutral。竞争格局恶化是真实风险。kcn 需评估 OUSD 对 USDC 市占的实质侵蚀。\n- **ROBN (HOOD 2x ETF)**: HOOD 财报后盘后下跌,但分析师与散户均\"shrugging off the dip\",暗示卖压或为 noise。杠杆 ETF 短期波动放大,kcn 须确认 HOOD 财报核心数据稳健再持仓。\n\n## Per-ticker 简报\n- **CRCL**: 多家券商分歧 (升级 / 启动 Neutral / OUSD 竞争下调) — 共识未形成,2026 增长放缓确认但 Arc 区块链/监管或支撑 2027 反弹。**影响**: 持有者需为短期波动定价,等待下一份季度数据验证 USDC 增速。\n- **ROBN**: HOOD 财报后盘后走弱但市场反应平淡 — 杠杆 ETF 放大效应使持仓更敏感。**影响**: 关注 HOOD 营收/用户指引是否支撑叙事,否则考虑减仓降杠杆。\n- **PLTU / RKLX / SPCH / MSFU**: 仅有 ETF 报价页、options chain、moomoo 散户闲聊、技术分析废话,**无 catalyst**, 忽略。\n\n## 风险 watch\n- **CRCL — 监管/竞争**: OUSD 新 stablecoin 由 Visa/Mastercard/BlackRock 等背书,直接威胁 USDC;若市占下滑超预期,2026 增速假设需下修。\n- **CRCL — 2026 指引**: SeekingAlpha 明示\"tough 2026\",USDC 增长停滞已确认;若管理层 Q4 财报未给出 Arc 货币化时间表,估值锚松动。\n- **ROBN/HOOD — 财报 catalyst**: HOOD 盘后下跌,若次日不能修复,2x 杠杆 ROBN 短期回撤显著。",
   "raw_news_counts": {
     "CRCL": 5,
     "PLTU": 5,
     "RKLX": 5,
     "ROBN": 5,
-    "SPCH": 1,
+    "SPCH": 5,
     "MSFU": 5
   },
   "news_source_per_ticker": {
@@ -23,7 +23,7 @@
     "PLTU": "gnews-rss",
     "RKLX": "gnews-rss",
     "ROBN": "gnews-rss",
-    "SPCH": "finnhub",
+    "SPCH": "gnews-rss",
     "MSFU": "gnews-rss"
   }
 }
