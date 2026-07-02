@@ -3820,6 +3820,26 @@ layout: null
                ${ld.xau_high != null && ld.xau_low != null ? ` · 日内 ${num(ld.xau_low, 0)}~${num(ld.xau_high, 0)}` : ''}
                · USDCNY ${num(ld.usdcny, 4)}
              </div>`;
+        // DCA 对应现值：同样的钱、同样的定投日子，改买伦敦金现货现在值多少（直接对标你的基金）
+        const de = ld.dca_equiv;
+        if (de && de.current_value_cny != null) {
+          const dColor = de.pnl_pct >= 0 ? '#16a34a' : '#dc2626';
+          const fp = g.pnl_percent;
+          const diff = (de.pnl_pct != null && fp != null) ? de.pnl_pct - fp : null;
+          html +=
+            `<div style="margin-top:7px;padding-top:7px;border-top:1px dashed rgba(234,179,8,0.28)">
+               <div class="muted" style="font-size:10px;text-transform:none;letter-spacing:0">同额定投伦敦金 · 对应现值</div>
+               <div style="display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;margin-top:2px">
+                 <span style="font-size:17px;font-weight:800">¥${num(de.current_value_cny)}</span>
+                 <span style="font-size:13px;font-weight:700;color:${dColor}">${de.pnl_pct >= 0 ? '+' : ''}${num(de.pnl_pct, 2)}%</span>
+                 <span class="muted" style="font-size:11px;text-transform:none;letter-spacing:0">投入 ¥${num(de.principal_cny)}</span>
+               </div>
+               ${diff != null ? `<div class="muted" style="font-size:11px;margin-top:3px;text-transform:none;letter-spacing:0">
+                 vs 你的基金 <b style="color:var(--text,#eee)">${fp >= 0 ? '+' : ''}${num(fp, 2)}%</b>
+                 · 伦敦金${diff >= 0 ? '多赚' : '还差'} <b style="color:${diff >= 0 ? '#16a34a' : '#dc2626'}">${num(Math.abs(diff), 2)}pp</b>（汇率+C类费率拖累）
+               </div>` : ''}
+             </div>`;
+        }
         // 归一对比线：起投=100，伦敦金(USD) vs 你的基金(CNY)
         const cs = (ld.compare_series || []).filter(r => Array.isArray(r) && r[1] != null && r[2] != null);
         if (cs.length >= 2) {

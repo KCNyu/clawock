@@ -242,8 +242,46 @@ def build_compare_series(nav_history, xau_hist, start, keep=90):
     return series[-keep:]
 
 
+def build_london_dca(nav_history, xau_hist, usdcny_hist, xau_cur, usdcny_cur, start, daily):
+    """反事实「对应现值」：同样的钱、同样的定投日子，改买伦敦金现货（CNY 计价）现在值多少。
+
+    直接对标你的基金 current_value —— 两边都是 DCA、同一节奏，唯一变量是标的（基金 vs 伦敦金）。
+    每个 A 股交易日投 daily 元，按当日伦敦金 CNY 价（xau_usd×USDCNY）买入盎司，累加后用当前
+    现价×汇率算现值。历史 XAU / USDCNY 缺天 → forward-fill（对齐不同交易日历）。
+    关键源缺失 → 返回 None（调用方沿用旧值，绝不清空）。"""
+    if not xau_hist or not xau_cur or not usdcny_cur:
+        return None
+    dates = sorted({d for d, n in nav_history if n is not None and (not start or d >= start)})
+    if len(dates) < 2:
+        return None
+    xs = sorted(xau_hist)
+    xd, xv = [d for d, _ in xs], [v for _, v in xs]
+    fx = sorted(usdcny_hist.items()) if usdcny_hist else []
+    fxd, fxv = [d for d, _ in fx], [v for _, v in fx]
+    oz, principal = 0.0, 0.0
+    for d in dates:
+        x = _xau_at(xd, xv, d)
+        if not x:
+            continue
+        r = _xau_at(fxd, fxv, d) or usdcny_cur  # 汇率缺天 → forward-fill，再兜底当前
+        oz += daily / (x * r)                    # daily 元 ÷ 每盎司人民币价 = 买到的盎司
+        principal += daily
+    if principal <= 0 or oz <= 0:
+        return None
+    value = oz * xau_cur * usdcny_cur
+    return {
+        'principal_cny': round(principal, 2),
+        'oz_held': round(oz, 4),
+        'grams_held': round(oz * GRAMS_PER_OZ, 1),
+        'current_value_cny': round(value, 2),
+        'pnl_abs': round(value - principal, 2),
+        'pnl_pct': round((value / principal - 1) * 100, 2),
+        'days': len(dates),
+    }
+
+
 def compute_london(derived, gold, spot, usdcny, usdcny_hist, xau_hist):
-    """折算 + 对比线。任一关键源缺失 → 保留旧 london（merge-not-overwrite）。"""
+    """折算 + 对比线 + DCA 对应现值。任一关键源缺失 → 保留旧 london（merge-not-overwrite）。"""
     if not spot or not spot.get('xau_usd') or not usdcny:
         return gold.get('london')  # 抓空：沿用旧值，绝不清空
     xau = spot['xau_usd']
@@ -256,6 +294,11 @@ def compute_london(derived, gold, spot, usdcny, usdcny_hist, xau_hist):
     # 抓到现价/汇率但历史限流 → 折算照出，对比线沿用旧线
     if not compare and gold.get('london', {}).get('compare_series'):
         compare = gold['london']['compare_series']
+    dca_equiv = build_london_dca(derived.get('nav_history') or [], xau_hist, usdcny_hist,
+                                 xau, usdcny, gold.get('start_date', ''),
+                                 float(gold.get('daily_amount', 200)))
+    if not dca_equiv and gold.get('london', {}).get('dca_equiv'):
+        dca_equiv = gold['london']['dca_equiv']  # 历史限流 → 沿用旧值
     return {
         'xau_usd': round(xau, 2),
         'xau_change_pct': spot.get('change_pct'),
@@ -268,6 +311,7 @@ def compute_london(derived, gold, spot, usdcny, usdcny_hist, xau_hist):
         'grams_equiv': round(grams, 1) if grams else None,
         'intl_value_usd': round(intl_usd, 2) if intl_usd else None,
         'compare_series': compare,
+        'dca_equiv': dca_equiv,
         'last_updated': datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%S.%fZ'),
     }
 
@@ -403,6 +447,11 @@ def main():
         print(f"  伦敦金 ${ld.get('xau_usd')}/oz ({(ld.get('xau_change_pct') or 0):+.2f}%) "
               f"USDCNY {ld.get('usdcny')} → 折 {ld.get('grams_equiv')} 克 / {ld.get('oz_equiv')} oz "
               f"(国际口径 ${ld.get('intl_value_usd'):,.0f})  对比线 {len(ld.get('compare_series') or [])} 点")
+        de = ld.get('dca_equiv')
+        if de:
+            print(f"  ↳ 同额定投伦敦金：现值 ¥{de['current_value_cny']:,.0f} "
+                  f"(投入 ¥{de['principal_cny']:,.0f}, 盈亏 {de['pnl_abs']:+,.0f} / {de['pnl_pct']:+.2f}%) "
+                  f"vs 你的基金 {g['pnl_percent']:+.2f}%")
 
     if dry:
         print('  [dry-run] 不写盘')
