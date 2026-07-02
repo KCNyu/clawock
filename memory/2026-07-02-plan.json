@@ -1,0 +1,151 @@
+{
+  "date": "2026-07-02",
+  "generated_at": "2026-07-02T08:02:00+08:00",
+  "fx_rate_usdhkd": 7.8439,
+  "regime_note": "HK amber (HSTECH -17.3%于200MA，lev cap×0.5); US red (SPCX破5DMA，HOOD vol 77.6%>70%热cap); NFP 7/3为近期最大binary; 今日主基调=降beta+纪律换仓集中执行",
+  "driven_by_summary": "全部active动作driven_by=technical (纪律性2x→1x换仓 / hard-stop / cap breach); 非方向判断",
+  "actions": [
+    {
+      "ticker": "07226",
+      "bucket": "cut",
+      "trigger_type": "open",
+      "trigger_price": null,
+      "size_shares": 6200,
+      "confidence": 0.65,
+      "rationale": "硬止损-28.1% ≤ -18%线悬置; HK amber regime有效lev cap=25%，当前36%超标; stop_breach_continue factor edge 67%支撑换仓纪律; 换仓目标03033(同因子1x，敞口保留停decay); 今日HSTECH +1.8%复市反弹提供相对较优换仓时机",
+      "driven_by": "technical",
+      "swap_target": "03033"
+    },
+    {
+      "ticker": "PLTU",
+      "bucket": "cut",
+      "trigger_type": "open",
+      "trigger_price": null,
+      "size_shares": 14,
+      "confidence": 0.65,
+      "rationale": "硬止损-28.9% ≤ -18%线; PLTR距200MA -20.5%趋势OFF; 月decay~3.2%; 换仓1x PLTR停decay(敞口保留非清仓); US lev ETF腿96.5% > 50%cap; 昨日+15.5%弹提供更好换仓价位",
+      "driven_by": "technical",
+      "swap_target": "PLTR"
+    },
+    {
+      "ticker": "MSFU",
+      "bucket": "cut",
+      "trigger_type": "open",
+      "trigger_price": null,
+      "size_shares": 20,
+      "confidence": 0.65,
+      "rationale": "硬止损-19.5% ≤ -18%线; MSFT距200MA -13.9%趋势OFF; 月decay~1.3%; 换仓1x MSFT停decay(敞口保留); US lev ETF腿超cap; 昨日+6.2%弹后今日开盘执行",
+      "driven_by": "technical",
+      "swap_target": "MSFT"
+    },
+    {
+      "ticker": "SPCH",
+      "bucket": "cut",
+      "trigger_type": "manual",
+      "trigger_price": null,
+      "size_shares": 110,
+      "confidence": 0.50,
+      "rationale": "三重breach同时触发: (1)硬止损-25.9% ≤ -18%; (2)单名40.1% > 35%cap; (3)regime_delever: SPCX破5DMA state=cut; 应换仓SPCX现货停2x decay; 约束: US现金$134触底无弹药直接换仓; 执行路径: 先完成PLTU→PLTR+MSFU→MSFT后腾出约$850现金，再评估SPCH→SPCX换仓; SPCX需收复5DMA作为技术确认",
+      "driven_by": "technical",
+      "swap_target": "SPCX"
+    },
+    {
+      "ticker": "00100",
+      "bucket": "trim_on_rebound",
+      "trigger_type": "price_above",
+      "trigger_price": 430.0,
+      "size_shares": 20,
+      "confidence": 0.55,
+      "rationale": "单名46.36% > 35%上限 (cap breach需减约6131 HKD); 7/9解禁1.46亿股(63%港股流通) = 7天倒计时最后窗口; 今日开盘436跌至417(-2.89%)，盘中若反弹至430+执行; reflections历史68%胜率支持; 若全天未回430推至明日强势日",
+      "driven_by": "technical"
+    },
+    {
+      "ticker": "ROBN",
+      "bucket": "trim_on_rebound",
+      "trigger_type": "price_below",
+      "trigger_price": 33.0,
+      "size_shares": 10,
+      "confidence": 0.55,
+      "rationale": "US lev_regime RED: HOOD vol=77.6% > 70%热cap触发regime_delever; 规则要求换仓HOOD保留敞口停decay; 但今日ROBN在96%区间高位(追高低质🔴，历史命中55%); 等回踩≤$33再执行10股→HOOD; 不在日内高位追换",
+      "driven_by": "technical",
+      "swap_target": "HOOD"
+    },
+    {
+      "ticker": "RKLX",
+      "bucket": "hold_and_watch",
+      "trigger_type": "price_below",
+      "trigger_price": 38.0,
+      "size_shares": null,
+      "confidence": 0.55,
+      "rationale": "RKLB NDX100 7/7正式纳入=5天内事件催化; RKLB正股trend_on=true; 持有至7/7后评估获利了结; 破$38接近-18%止损边界需重评; 今日-3.23%在区间12%低位",
+      "driven_by": "catalyst"
+    },
+    {
+      "ticker": "CRCL",
+      "bucket": "hold_and_watch",
+      "trigger_type": "price_below",
+      "trigger_price": 55.0,
+      "size_shares": null,
+      "confidence": 0.50,
+      "rationale": "仓位仅$124(2股)无cap breach; Q1 EPS首次盈利转正(+$0.23); GENIUS Act 7/17为次要催化; RSI 30.8超卖z=-2.18σ极端(接刀风险高，但仓小); 破$55评估止损; reflections 63%胜率支持继续持有",
+      "driven_by": "catalyst"
+    },
+    {
+      "ticker": "02208",
+      "bucket": "hold_and_watch",
+      "trigger_type": "price_below",
+      "trigger_price": 8.0,
+      "size_shares": null,
+      "confidence": 0.55,
+      "rationale": "蓝箭航天IPO重估催化(+7.9%领涨风电板块); Q1营收+63.5%; 国金证券下半年风电利好预期; RSI 35.9偏超卖但今日强势; reflections 71%胜率支持持有; 破8.0需重评",
+      "driven_by": "catalyst"
+    },
+    {
+      "ticker": "03032",
+      "bucket": "hold_and_watch",
+      "trigger_type": "manual",
+      "trigger_price": null,
+      "size_shares": null,
+      "confidence": 0.50,
+      "rationale": "1x无杠杆衰减风险; 07226换仓03033后HSTECH敞口从2x转入1x池; 趋势OFF但无强制减仓理由; 今日在区间92%偏高(追高低质🔴，不加仓); reflections 35%主动胜率，谨慎",
+      "driven_by": "technical"
+    },
+    {
+      "ticker": "03033",
+      "bucket": "hold_and_watch",
+      "trigger_type": "manual",
+      "trigger_price": null,
+      "size_shares": null,
+      "confidence": 0.50,
+      "rationale": "07226换仓后此腿将大幅扩大; 1x无衰减风险; HSTECH趋势OFF但今日+1.9%反弹; 南向资金7/2首日观察; reflections 35%主动胜率，谨慎",
+      "driven_by": "technical"
+    }
+  ],
+  "watch_events": [
+    {
+      "date": "2026-07-03",
+      "event": "NFP非农就业报告",
+      "impact": "US β=3.09; 强数据→美联储鸽派预期退潮→growth+crypto承压; 弱数据→降息预期回升→成长股支撑"
+    },
+    {
+      "date": "2026-07-07",
+      "event": "RKLB正式纳入NDX100",
+      "impact": "RKLX持有目标时间窗口; 纳入当日可能短暂拉升后兑现获利"
+    },
+    {
+      "date": "2026-07-09",
+      "event": "00100 MiniMax解禁 ~1.46亿股(63%港股流通)",
+      "impact": "巨大供给压力; 最迟7/7前完成减仓目标"
+    },
+    {
+      "date": "2026-07-15",
+      "event": "CPI数据",
+      "impact": "通胀方向影响成长估值"
+    },
+    {
+      "date": "2026-07-17",
+      "event": "HOOD Q2 earnings + GENIUS Act进展",
+      "impact": "ROBN/HOOD方向确认; CRCL稳定币板块催化"
+    }
+  ]
+}
