@@ -1,0 +1,155 @@
+{
+  "date": "2026-07-03",
+  "generated_at": "2026-07-03T08:02:00+08:00",
+  "fx_rate_usdhkd": 7.844,
+  "regime_note": "HK amber (HSTECH 4454 低于200MA 5404,-17.6%; lev cap×0.5; 00100竞价-14.44%解禁恐慌); US amber-cautious (NFP 57k超弱降息预期前移; NDX昨-1.61%; HOOD/ROBN trend_on例外); 今日主基调=07226换仓第4天必须执行+00100解禁6天倒计时+RKLB/SPCX 7/7 NDX入指前夕",
+  "driven_by_summary": "07226/PLTU driven_by=technical(硬止损纪律,第4天); 00100/ROBN driven_by=technical(cap breach减仓); RKLX driven_by=catalyst(7/7 NDX入指); CRCL/SPCH driven_by=catalyst(GENIUS Act/无限子弹P0持续)",
+  "actions": [
+    {
+      "ticker": "07226",
+      "bucket": "cut",
+      "trigger_type": "open",
+      "trigger_price": null,
+      "size_shares": 6200,
+      "confidence": 0.70,
+      "rationale": "硬止损-29.1% ≤ -18%线第4日未执行; amber lev cap 25% vs当前38.5%超标; stop_breach_continue factor edge 63%[54-71]; 换仓03033(同因子1x停decay); 连续4日推迟累积opportunity cost+decay成本; 今日HSTECH竞价-0.4%但权重股偏正(京东+3.6%,美团+3.4%),相对较优换仓时机",
+      "driven_by": "technical",
+      "swap_target": "03033"
+    },
+    {
+      "ticker": "PLTU",
+      "bucket": "cut",
+      "trigger_type": "open",
+      "trigger_price": null,
+      "size_shares": 14,
+      "confidence": 0.68,
+      "rationale": "硬止损-25.1% ≤ -18%线; PLTR距200MA -18.1%趋势OFF; 月decay~2.93%; 换仓1x PLTR停decay(敞口保留非清仓); US lev ETF腿96.5% > 50%cap; 7/2收盘+5.39%弹至$30.68,提供相对较优换仓价位",
+      "driven_by": "technical",
+      "swap_target": "PLTR"
+    },
+    {
+      "ticker": "00100",
+      "bucket": "trim_on_rebound",
+      "trigger_type": "price_above",
+      "trigger_price": 380.0,
+      "size_shares": 20,
+      "confidence": 0.60,
+      "rationale": "7/9解禁倒计时T-6天; 1.46亿股(63%港股流通)博裕/IDG/ADIA压制; 竞价-14.44%至356.8开启恐慌模式; 单名42.98% > 35%cap仍需减; 触发价从430降至380(竞价已至357); reflections 69%胜率; 盘中若反弹至380执行20股出货",
+      "driven_by": "technical"
+    },
+    {
+      "ticker": "ROBN",
+      "bucket": "trim_on_rebound",
+      "trigger_type": "price_above",
+      "trigger_price": 40.0,
+      "size_shares": 10,
+      "confidence": 0.60,
+      "rationale": "Robinhood Chain L2发布(7/1 Forbes/Benzinga报道)+股票代币化+DeFi+AI交易; HOOD RSI=67,vol=73.4%过热; ROBN浮盈+60.42%是账面最优仓位; trim_on_rebound历史胜率71%; ≥$40执行10股锁利(保留10股继续跑HOOD Q2财报7/29催化)",
+      "driven_by": "technical",
+      "swap_target": "HOOD"
+    },
+    {
+      "ticker": "RKLX",
+      "bucket": "hold_and_watch",
+      "trigger_type": "price_below",
+      "trigger_price": 38.0,
+      "size_shares": null,
+      "confidence": 0.62,
+      "rationale": "RKLB+SPCX 7/7双双入NDX100(4天倒计时); 被动买盘约$43亿; RKLB趋势ON(距200MA+58.7%); 7/7安静期结束大量分析师评级涌出; 当前$43.31在日区间23%低位; 破$38接近-18%止损边界需重评",
+      "driven_by": "catalyst"
+    },
+    {
+      "ticker": "SPCH",
+      "bucket": "cut",
+      "trigger_type": "manual",
+      "trigger_price": null,
+      "size_shares": 110,
+      "confidence": 0.50,
+      "rationale": "三重breach: (1)硬止损-22.2% ≤ -18%; (2)单名40.21% > 35%cap; (3)US lev ETF腿96.5% > 50%cap; 应换仓SPCX现货停2x decay; 执行约束: US现金$134触底无法买入SPCX现货作为过渡; SPCX 7/7 NDX入指($43亿被动买盘,4天)为正面催化; Wedbush $190目标(7/1); 执行路径: 先完成PLTU→PLTR(约$429)腾现金后再评估SPCH→SPCX; P0协议持续; kcn无限子弹声明维持",
+      "driven_by": "technical",
+      "swap_target": "SPCX"
+    },
+    {
+      "ticker": "CRCL",
+      "bucket": "hold_and_watch",
+      "trigger_type": "price_below",
+      "trigger_price": 55.0,
+      "size_shares": null,
+      "confidence": 0.55,
+      "rationale": "Q1 EPS首次转正(+$0.23); GENIUS Act 7/17稳定币立法催化; Cathie Wood ARK加仓; RSI 34.0偏超卖; 仓小2股($130); reflections 64%胜率; 破$55评估止损",
+      "driven_by": "catalyst"
+    },
+    {
+      "ticker": "02208",
+      "bucket": "hold_and_watch",
+      "trigger_type": "price_below",
+      "trigger_price": 8.5,
+      "size_shares": null,
+      "confidence": 0.55,
+      "rationale": "今日-5.42%严重落后板块同行(大唐+1.24%,龙源+0.4%); 个股因素非板块beta; RSI 31.9偏超卖; reflections 72%胜率历史最高支持持有; Q1营收+63.5%; 破8.5需重评",
+      "driven_by": "catalyst"
+    },
+    {
+      "ticker": "03032",
+      "bucket": "hold_and_watch",
+      "trigger_type": "manual",
+      "trigger_price": null,
+      "size_shares": null,
+      "confidence": 0.50,
+      "rationale": "1x无杠杆衰减; HSTECH跟踪ETF; 趋势OFF but无强制减仓; reflections 33%主动胜率，不主动操作",
+      "driven_by": "technical"
+    },
+    {
+      "ticker": "03033",
+      "bucket": "hold_and_watch",
+      "trigger_type": "manual",
+      "trigger_price": null,
+      "size_shares": null,
+      "confidence": 0.50,
+      "rationale": "07226换仓后此腿将大幅扩大至约19170HKD级别; 1x无衰减; HSTECH趋势OFF; 等07226换仓执行后评估总敞口比例",
+      "driven_by": "technical"
+    },
+    {
+      "ticker": "MSFU",
+      "bucket": "hold_and_watch",
+      "trigger_type": "price_below",
+      "trigger_price": 22.0,
+      "size_shares": null,
+      "confidence": 0.52,
+      "rationale": "当前pnl -17.27%已脱离-18%硬止损线(昨日-19.5%,今日弹回); MSFT趋势OFF距200MA -12.3%; US lev ETF总cap超标组成之一; 若再跌破$22.0(对应pnl≈-24.5%)恢复换仓MSFT纪律; reflections 58%胜率",
+      "driven_by": "technical"
+    }
+  ],
+  "watch_events": [
+    {
+      "date": "2026-07-03",
+      "event": "NFP June 2026结果已出: +57k (预期110-113k大幅不及)",
+      "impact": "降息预期提前升温; 前两月大幅下修74k; UNR 4.2%下降0.1pp; 短期利好成长/成长估值但经济走弱信号"
+    },
+    {
+      "date": "2026-07-07",
+      "event": "RKLB + SPCX 双双正式纳入NDX100",
+      "impact": "约$43亿被动买盘; 安静期结束大量分析师评级涌出; RKLX/SPCH是直接受益仓; Wedbush $190 SPCX目标"
+    },
+    {
+      "date": "2026-07-09",
+      "event": "00100 MiniMax解禁 ~1.46亿股(63%港股流通)",
+      "impact": "最大尾部风险: 博裕/IDG/ADIA可套现; Alibaba/miHoYo承诺锁仓是下行保护; 最迟今日/明日执行减仓"
+    },
+    {
+      "date": "2026-07-15",
+      "event": "CPI June数据",
+      "impact": "NFP弱后通胀方向二次验证降息路径"
+    },
+    {
+      "date": "2026-07-17",
+      "event": "GENIUS Act进展 + 潜在HOOD生态新闻",
+      "impact": "CRCL稳定币催化; ROBN/HOOD Q2财报预热"
+    },
+    {
+      "date": "2026-07-29",
+      "event": "Robinhood HOOD Q2财报",
+      "impact": "Robinhood Chain+DeFi+tokenized stocks首季确认; Mizuho目标$130; ROBN最大基本面催化"
+    }
+  ]
+}
