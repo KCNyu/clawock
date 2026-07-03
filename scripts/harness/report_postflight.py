@@ -136,7 +136,7 @@ from _harness_common import (  # noqa: E402
     snapshot_date_for_now,
     validate_forbidden_phrases,
 )
-from _watchdog_common import resolve_wechat_target, send_wechat  # noqa: E402
+from _watchdog_common import resolve_wechat_target, send_wechat, cosend_telegram  # noqa: E402
 
 
 def deliver_wechat(market, phase, date, wechat_prefix, text, block_first):
@@ -161,6 +161,9 @@ def deliver_wechat(market, phase, date, wechat_prefix, text, block_first):
         sent_ok, out = send_wechat(channel, to, account, message, dry_run=False)
     except Exception as e:
         sent_ok, out = False, str(e)[:300]
+    # Always co-send to Telegram — WeChat can't confirm real delivery (cold drop
+    # returns sent_ok=true), so we don't gate on it. See cosend_telegram docstring.
+    cosend_telegram(message, f'{market}-{phase}')
     marker = TMP / f'report-sent-{market}-{phase}-{date}.json'
     try:
         marker.write_text(json.dumps({

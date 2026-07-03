@@ -34,7 +34,7 @@ from _harness_common import (  # noqa: E402
     snapshot_date_for_now,
     validate_forbidden_phrases,
 )
-from _watchdog_common import resolve_wechat_target, send_wechat  # noqa: E402
+from _watchdog_common import resolve_wechat_target, send_wechat, cosend_telegram  # noqa: E402
 
 # Workspace root, resolved from this file's location (location-independent;
 # matches the old hardcoded /root path locally, robust if run elsewhere).
@@ -177,6 +177,8 @@ def main():
             wechat_sent, send_out = send_wechat(channel, to, account, message, dry_run=False)
         except Exception as e:
             wechat_sent, send_out = False, str(e)[:300]
+        # Always co-send to Telegram (cold-proof) — WeChat can't confirm real delivery.
+        cosend_telegram(message, f'intraday-{args.market}')
         marker = TMP / f'intraday-sent-{args.market}.json'
         try:
             marker.write_text(json.dumps({

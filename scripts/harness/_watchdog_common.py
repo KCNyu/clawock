@@ -210,6 +210,25 @@ def send_telegram(target, message, dry_run):
     return r.returncode == 0, (r.stdout + r.stderr)[-400:]
 
 
+def cosend_telegram(message, tag, dry_run=False):
+    """Unconditional Telegram co-send for high-value cron reports (brief / staged
+    report / intraday). Called from each postflight RIGHT AFTER the WeChat send.
+
+    WHY ALWAYS, not on cold-detection (2026-07-03, kcn's call): WeChat cannot
+    confirm REAL delivery — a cold-session silent drop still returns a messageId
+    and sent_ok=true (#81096/#81316 wontfix), so no marker/token signal reliably
+    tells a landed send from a dropped one. Rather than guess the WeChat state, we
+    ALWAYS also push the same body to Telegram (the cold-proof channel, @clawock_bot).
+    A duplicate when WeChat did land is far cheaper than a silent miss. Best-effort:
+    never raises; logs the outcome to watchdog.jsonl. Returns (ok, tail_of_output)."""
+    try:
+        ok, out = send_telegram(KCN_TELEGRAM, message, dry_run)
+    except Exception as e:
+        ok, out = False, str(e)[:300]
+    log({'tag': tag, 'action': 'telegram-cosend', 'sent_ok': bool(ok), 'dry_run': bool(dry_run)})
+    return ok, out
+
+
 def last_report_text(session_id, first_line):
     """The actual announced intraday report — the last assistant text block in
     the cron session transcript that contains the data block's first line. We

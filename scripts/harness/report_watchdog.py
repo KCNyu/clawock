@@ -155,17 +155,26 @@ def main():
          'job_id': job_id, 'reason': reason, 'loop_score': loop_score,
          'run_at': run_at, 'out': out})
 
-    # Cold-session mirror to Telegram (cold-proof channel) on the same branch —
-    # the fresh-token WeChat send above may itself drop. Only reached when the
-    # postflight WeChat send was NOT confirmed landed, so healthy runs never hit TG.
-    tg_banner = f'📨 自动补发（{reason}，微信可能没送达，Telegram 兜底一份）\n\n'
-    tg_ok, tg_out = send_telegram(KCN_TELEGRAM, tg_banner + report.strip(), args.dry_run)
-    log({'tag': tag, 'action': 'mirror-telegram', 'dry_run': args.dry_run, 'sent_ok': tg_ok,
-         'reason': reason, 'run_at': run_at, 'target': KCN_TELEGRAM, 'out': tg_out})
+    # Telegram mirror — ONLY when postflight never ran this slot (no fresh marker),
+    # i.e. cosend_telegram never fired. When a fresh marker exists, postflight already
+    # co-sent this report to Telegram unconditionally (see cosend_telegram, 2026-07-03
+    # dual-send), so a mirror here would DOUBLE it. A fresh marker with sent_ok=false /
+    # mismatch still means the WeChat-send block (and thus the cosend right after it)
+    # ran → TG is already covered; we only retry WeChat below.
+    cosend_covered_tg = bool(marker) and fresh
+    tg_ok = False
+    if cosend_covered_tg:
+        log({'tag': tag, 'action': 'mirror-telegram-skip', 'run_at': run_at,
+             'reason': 'postflight cosend already sent TG this slot (fresh marker)'})
+    else:
+        tg_banner = f'📨 自动补发（{reason}，微信可能没送达，Telegram 兜底一份）\n\n'
+        tg_ok, tg_out = send_telegram(KCN_TELEGRAM, tg_banner + report.strip(), args.dry_run)
+        log({'tag': tag, 'action': 'mirror-telegram', 'dry_run': args.dry_run, 'sent_ok': tg_ok,
+             'reason': reason, 'run_at': run_at, 'target': KCN_TELEGRAM, 'out': tg_out})
 
-    # Slot handled if EITHER channel landed — don't keep retrying a report kcn
-    # already received on Telegram just because WeChat stayed cold.
-    if (sent_ok or tg_ok) and not args.dry_run:
+    # Slot handled if a channel landed (or cosend already covered TG this slot) —
+    # don't keep retrying a report kcn already received on Telegram.
+    if (sent_ok or tg_ok or cosend_covered_tg) and not args.dry_run:
         flag.write_text(datetime.now(HKT).isoformat())
 
     print(json.dumps({'tag': tag, 'reason': reason, 'resent_wechat': sent_ok,

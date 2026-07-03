@@ -198,7 +198,7 @@ from _harness_common import (  # noqa: E402
     rebuild_dashboard,
 )
 from _watchdog_common import (  # noqa: E402
-    resolve_wechat_target, send_wechat, build_brief_card,
+    resolve_wechat_target, send_wechat, build_brief_card, cosend_telegram,
 )
 
 
@@ -424,6 +424,8 @@ def main():
             wechat_sent, send_out = send_wechat(channel, to, account, message, dry_run=args.dry_run)
         except Exception as e:
             wechat_sent, send_out = False, str(e)[:300]
+        # Always co-send to Telegram (cold-proof) — WeChat can't confirm real delivery.
+        cosend_telegram(message, 'brief', dry_run=args.dry_run)
         marker = WS / 'memory' / '.tmp' / f'brief-sent-{today}.json'
         try:
             marker.parent.mkdir(parents=True, exist_ok=True)
