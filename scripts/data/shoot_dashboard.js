@@ -18,6 +18,10 @@ const { chromium, devices } = require('playwright');
 
 const URL = process.env.URL || 'https://kcnyu.github.io/clawock/';
 const OUT_DIR = process.env.OUT_DIR || 'docs';
+// Optional explicit browser binary — lets this run locally against a system/cached
+// Chromium (e.g. CHROME_EXE=/root/.cache/ms-playwright/.../chrome-headless-shell)
+// when the pinned Playwright download isn't present. CI leaves it unset.
+const CHROME_EXE = process.env.CHROME_EXE || undefined;
 
 async function settle(page) {
   // 1) Wait for the data to populate the Hero panel (don't key off <canvas>: the
@@ -41,7 +45,7 @@ async function settle(page) {
 }
 
 (async () => {
-  const browser = await chromium.launch();
+  const browser = await chromium.launch(CHROME_EXE ? { executablePath: CHROME_EXE, args: ['--no-sandbox'] } : {});
   try {
     // Desktop 1440x900 @2x
     const desk = await browser.newContext({

@@ -294,6 +294,12 @@ layout: null
       gap: 20px;
       padding: 20px;
     }
+    /* The status banner is a full-width strip across the top — NOT a grid cell.
+       `.pager{display:contents}` dissolves the pager so the 6 panels become direct
+       grid items; without this the (visible) banner would take column 1 and get
+       stretched to the row height, leaving a huge blank box under a one-line banner
+       and shoving Hero into column 2 (2026-07-03 screenshot regression). */
+    .status-banner { grid-column: 1 / -1; margin: 0; }
     .panel > h2 {
       margin: 0 0 12px;
       font-size: 13px; font-weight: 600;
@@ -3820,24 +3826,22 @@ layout: null
                ${ld.xau_high != null && ld.xau_low != null ? ` · 日内 ${num(ld.xau_low, 0)}~${num(ld.xau_high, 0)}` : ''}
                · USDCNY ${num(ld.usdcny, 4)}
              </div>`;
-        // DCA 对应现值：同样的钱、同样的定投日子，改买伦敦金现货现在值多少（直接对标你的基金）
+        // DCA 平均成本：同样的钱、同样的定投日子，改买伦敦金现货 → 我的均价是多少（对标基金卡的「平均成本」）
         const de = ld.dca_equiv;
-        if (de && de.current_value_cny != null) {
+        if (de && de.avg_cost_usd_oz != null) {
+          const beColor = de.breakeven_upside_pct > 0 ? '#dc2626' : '#16a34a';
           const dColor = de.pnl_pct >= 0 ? '#16a34a' : '#dc2626';
-          const fp = g.pnl_percent;
-          const diff = (de.pnl_pct != null && fp != null) ? de.pnl_pct - fp : null;
           html +=
             `<div style="margin-top:7px;padding-top:7px;border-top:1px dashed rgba(234,179,8,0.28)">
-               <div class="muted" style="font-size:10px;text-transform:none;letter-spacing:0">同额定投伦敦金 · 对应现值</div>
+               <div class="muted" style="font-size:10px;text-transform:none;letter-spacing:0">同额定投伦敦金 · 我的平均成本</div>
                <div style="display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;margin-top:2px">
-                 <span style="font-size:17px;font-weight:800">¥${num(de.current_value_cny)}</span>
-                 <span style="font-size:13px;font-weight:700;color:${dColor}">${de.pnl_pct >= 0 ? '+' : ''}${num(de.pnl_pct, 2)}%</span>
-                 <span class="muted" style="font-size:11px;text-transform:none;letter-spacing:0">投入 ¥${num(de.principal_cny)}</span>
+                 <span style="font-size:17px;font-weight:800">$${num(de.avg_cost_usd_oz, 2)}<span style="font-size:11px;font-weight:600;color:var(--muted,#999)">/oz</span></span>
+                 <span style="font-size:12px;font-weight:700;color:var(--muted,#999)">¥${num(de.avg_cost_cny_g, 2)}/克</span>
                </div>
-               ${diff != null ? `<div class="muted" style="font-size:11px;margin-top:3px;text-transform:none;letter-spacing:0">
-                 vs 你的基金 <b style="color:var(--text,#eee)">${fp >= 0 ? '+' : ''}${num(fp, 2)}%</b>
-                 · 伦敦金${diff >= 0 ? '多赚' : '还差'} <b style="color:${diff >= 0 ? '#16a34a' : '#dc2626'}">${num(Math.abs(diff), 2)}pp</b>（汇率+C类费率拖累）
-               </div>` : ''}
+               <div class="muted" style="font-size:11px;margin-top:3px;text-transform:none;letter-spacing:0">
+                 现货 <b style="color:var(--text,#eee)">$${num(de.spot_usd_oz, 2)}</b>/oz · 回本需涨 <b style="color:${beColor}">${de.breakeven_upside_pct >= 0 ? '+' : ''}${num(de.breakeven_upside_pct, 2)}%</b>
+                 ${de.current_value_cny != null ? `· 对应现值 <b style="color:${dColor}">¥${num(de.current_value_cny)}</b> (${de.pnl_pct >= 0 ? '+' : ''}${num(de.pnl_pct, 2)}%)` : ''}
+               </div>
              </div>`;
         }
         // 归一对比线：起投=100，伦敦金(USD) vs 你的基金(CNY)
