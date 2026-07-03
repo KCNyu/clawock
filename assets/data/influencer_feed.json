@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-02T22:41:53.389306+00:00",
+  "generated_at": "2026-07-03T14:59:17.356107+00:00",
   "lookback_hours": 48,
   "sources": {
     "trump": "trumpstruth.org/feed (primary)",
@@ -8,10 +8,10 @@
   },
   "llm_filtered": true,
   "counts": {
-    "total": 13,
+    "total": 11,
     "held_hits": 0,
-    "new_ideas": 5,
-    "sector_hits": 5
+    "new_ideas": 3,
+    "sector_hits": 6
   },
   "items": [
     {
@@ -32,8 +32,8 @@
       ],
       "sector_holdings": [],
       "stance": "endorse",
-      "relevance": 88,
-      "summary_cn": "Trump再度发文高调称赞美光(MU)是'美国伟大公司、世界最热门之一'，称2.5亿美元投资为史上最大规模企业同类投资，构成强烈背书信号。"
+      "relevance": 82,
+      "summary_cn": "Trump再次高调宣传Micron 2.5亿美元投资Trump Accounts，称其为'最热'美国公司之一，强烈背书。"
     },
     {
       "author": "Trump",
@@ -53,16 +53,16 @@
       ],
       "sector_holdings": [],
       "stance": "endorse",
-      "relevance": 85,
-      "summary_cn": "Trump公开表扬并感谢美光(MU)向Trump Accounts投资2.5亿美元，并称其股票当日上涨9点，强烈背书美光。"
+      "relevance": 78,
+      "summary_cn": "Trump公开表扬Micron投资2.5亿美元于Trump Accounts，提及股价当日上涨9点，看好美国半导体公司。"
     },
     {
       "author": "Musk",
-      "text": "Tesla sales rose last quarter in a possible sign the worst of the Musk backlash is behind it - ABC News",
+      "text": "Elon Musk outlines Tesla Optimus production expectations",
       "url": "",
-      "published": "Thu, 02 Jul 2026 13:43:00 GMT",
+      "published": "Fri, 03 Jul 2026 13:00:16 GMT",
       "origin": "gnews-rss",
-      "source": "ABC News - Breaking News, Latest News and Videos",
+      "source": "Teslarati",
       "tickers": [
         "TSLA"
       ],
@@ -71,75 +71,14 @@
         "TSLA"
       ],
       "sectors": [
-        "电动车"
+        "AI",
+        "电动车",
+        "机器人"
       ],
       "sector_holdings": [],
       "stance": "endorse",
-      "relevance": 70,
-      "summary_cn": "报道称特斯拉(TSLA)上季度销量回升，可能意味着Musk负面冲击最坏时期已过，对特斯拉股价构成温和看多信号。"
-    },
-    {
-      "author": "Trump",
-      "text": "S&P 500 closes with strongest quarter since 2020: https://justthenews.com/politics-policy/finance/sp-500-closes-strongest-quarter-2020",
-      "url": "https://trumpstruth.org/statuses/39662",
-      "published": "2026-07-02T01:59:19+00:00",
-      "origin": "truthsocial",
-      "tickers": [
-        "SPY"
-      ],
-      "held": [],
-      "new_ideas": [
-        "SPY"
-      ],
-      "sectors": [
-        "美股大盘"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 65,
-      "summary_cn": "Trump转推S&P 500创2020年以来最强季度表现，间接为美股大盘站台。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk shuts down ‘4D chess’ theory on Tesla Optimus production",
-      "url": "",
-      "published": "Thu, 02 Jul 2026 15:26:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Electrek",
-      "tickers": [
-        "TSLA"
-      ],
-      "held": [],
-      "new_ideas": [
-        "TSLA"
-      ],
-      "sectors": [
-        "电动车/AI"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 60,
-      "summary_cn": "Musk亲自否认关于特斯拉Optimus生产的'四步棋'阴谋论，强调量产计划，间接为TSLA AI叙事站台。"
-    },
-    {
-      "author": "Musk",
-      "text": "America's 250th birthday has Elon Musk and a record IPO. Its 15th had Alexander Hamilton — and a stock market bubble",
-      "url": "",
-      "published": "Thu, 02 Jul 2026 10:35:54 GMT",
-      "origin": "gnews-rss",
-      "source": "Fortune",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天/美股"
-      ],
-      "sector_holdings": [
-        "SPCH"
-      ],
-      "stance": "neutral",
       "relevance": 68,
-      "summary_cn": "报道将Musk与SpaceX记录级IPO与美国250周年联系，类比历史股市泡沫，SpaceX未上市但SPCH(2x杠杆)直接暴露其中。"
+      "summary_cn": "Musk阐述Tesla Optimus人形机器人量产预期，看好AI/机器人赛道。"
     },
     {
       "author": "Musk",
@@ -158,8 +97,8 @@
         "SPCH"
       ],
       "stance": "neutral",
-      "relevance": 65,
-      "summary_cn": "报道讨论SpaceX估值下调及潜在IPO，SpaceX未上市但对kcn持有的SPCH(2x杠杆)有直接重大影响。"
+      "relevance": 60,
+      "summary_cn": "SpaceX估值/IPO讨论及潜在股价下跌，SPCH(2倍做多SpaceX ETF)直接受SpaceX估值波动影响。"
     },
     {
       "author": "Musk",
@@ -177,9 +116,9 @@
       "sector_holdings": [
         "SPCH"
       ],
-      "stance": "neutral",
+      "stance": "attack",
       "relevance": 58,
-      "summary_cn": "报道称SpaceX股价下跌、Musk身价跌破万亿，SpaceX未上市但对kcn持有的SPCH(2x杠杆)有直接影响。"
+      "summary_cn": "SpaceX股价下跌使Musk身家缩水，退出万亿富翁行列——对SpaceX估值偏空信号，影响SPCH。"
     },
     {
       "author": "Musk",
@@ -192,22 +131,51 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "AI/航天"
+        "AI",
+        "航天"
       ],
       "sector_holdings": [
         "SPCH"
       ],
       "stance": "neutral",
       "relevance": 55,
-      "summary_cn": "SpaceX向投资人展示新AI设备原型，SpaceX未上市但利好AI/航天主题，对kcn持有的SPCH(SpaceX 2x杠杆)有间接板块关联。"
+      "summary_cn": "SpaceX向投资者展示Musk新AI设备原型，AI+航天交叉领域进展，与SPCH间接相关。"
+    },
+    {
+      "author": "Trump",
+      "text": "S&P 500 closes with strongest quarter since 2020: https://justthenews.com/politics-policy/finance/sp-500-closes-strongest-quarter-2020",
+      "url": "https://trumpstruth.org/statuses/39662",
+      "published": "2026-07-02T01:59:19+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "宏观经济"
+      ],
+      "sector_holdings": [
+        "00100",
+        "02208",
+        "03032",
+        "03033",
+        "07226",
+        "MSFU",
+        "PLTU",
+        "RKLX",
+        "ROBN",
+        "SPCH"
+      ],
+      "stance": "endorse",
+      "relevance": 55,
+      "summary_cn": "Trump转发标普500创2020年以来最强季度——宏观多头信号，整体利好kcn持有的ETF/杠杆产品。"
     },
     {
       "author": "Musk",
-      "text": "The town that Elon Musk built",
+      "text": "Elon Musk can’t sell a single SpaceX share for a year—and then all the locks crack open at once",
       "url": "",
-      "published": "Wed, 01 Jul 2026 04:00:52 GMT",
+      "published": "Fri, 03 Jul 2026 10:06:00 GMT",
       "origin": "gnews-rss",
-      "source": "Financial Times",
+      "source": "Fortune",
       "tickers": [],
       "held": [],
       "new_ideas": [],
@@ -219,7 +187,27 @@
       ],
       "stance": "neutral",
       "relevance": 52,
-      "summary_cn": "报道描述Musk所建城镇故事，背景仍是SpaceX产业生态，对kcn持有的SPCH有间接板块影响。"
+      "summary_cn": "Musk一年内不得出售SpaceX股份，锁定期结束后股份将集中解锁——SpaceX未上市但与持仓SPCH(2倍做多SpaceX ETF)相关。"
+    },
+    {
+      "author": "Musk",
+      "text": "Trump says he expects Musk to donate SpaceX stock to Trump Accounts, despite their 'little dispute'",
+      "url": "",
+      "published": "Fri, 03 Jul 2026 12:57:45 GMT",
+      "origin": "gnews-rss",
+      "source": "Business Insider",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天"
+      ],
+      "sector_holdings": [
+        "SPCH"
+      ],
+      "stance": "neutral",
+      "relevance": 50,
+      "summary_cn": "Trump表示预期Musk捐赠SpaceX股票给Trump Accounts，提及二人'小分歧'——SpaceX相关动态，与SPCH间接相关。"
     },
     {
       "author": "Trump",
@@ -231,12 +219,13 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "能源/油价"
+        "能源",
+        "石油"
       ],
       "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 62,
-      "summary_cn": "Trump宣称油价正在快速下跌，费城一零售商在美国250周年庆期间下调25个加油站油价，对能源/消费板块有间接信号。"
+      "stance": "neutral",
+      "relevance": 55,
+      "summary_cn": "Trump宣称油价快速下跌，并宣传费城地区零售商在7月3日下调油价，气价/油价相关宏观信号。"
     },
     {
       "author": "Trump",
@@ -248,30 +237,12 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "国防军工"
+        "国防"
       ],
       "sector_holdings": [],
       "stance": "endorse",
-      "relevance": 60,
-      "summary_cn": "Hegseth(配合Trump政府)主张美国应大举增加国防开支以维护经济实力，对国防军工板块构成利好政策信号。"
-    },
-    {
-      "author": "Musk",
-      "text": "DOGE self-deletes on July 4th. The grand experiment fell apart long before that.",
-      "url": "",
-      "published": "Thu, 02 Jul 2026 17:18:00 GMT",
-      "origin": "gnews-rss",
-      "source": "E&E News by POLITICO",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "政府效率/科技"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
       "relevance": 50,
-      "summary_cn": "报道称DOGE将于7月4日自我解散，'伟大实验'早已失败，对政府效率改革主题构成负面信号。"
+      "summary_cn": "Hegseth主张大幅增加国防开支以维护美国经济实力——国防板块利好宏观信号。"
     }
   ],
   "held_hits": [],
@@ -294,8 +265,8 @@
       ],
       "sector_holdings": [],
       "stance": "endorse",
-      "relevance": 88,
-      "summary_cn": "Trump再度发文高调称赞美光(MU)是'美国伟大公司、世界最热门之一'，称2.5亿美元投资为史上最大规模企业同类投资，构成强烈背书信号。"
+      "relevance": 82,
+      "summary_cn": "Trump再次高调宣传Micron 2.5亿美元投资Trump Accounts，称其为'最热'美国公司之一，强烈背书。"
     },
     {
       "author": "Trump",
@@ -315,16 +286,16 @@
       ],
       "sector_holdings": [],
       "stance": "endorse",
-      "relevance": 85,
-      "summary_cn": "Trump公开表扬并感谢美光(MU)向Trump Accounts投资2.5亿美元，并称其股票当日上涨9点，强烈背书美光。"
+      "relevance": 78,
+      "summary_cn": "Trump公开表扬Micron投资2.5亿美元于Trump Accounts，提及股价当日上涨9点，看好美国半导体公司。"
     },
     {
       "author": "Musk",
-      "text": "Tesla sales rose last quarter in a possible sign the worst of the Musk backlash is behind it - ABC News",
+      "text": "Elon Musk outlines Tesla Optimus production expectations",
       "url": "",
-      "published": "Thu, 02 Jul 2026 13:43:00 GMT",
+      "published": "Fri, 03 Jul 2026 13:00:16 GMT",
       "origin": "gnews-rss",
-      "source": "ABC News - Breaking News, Latest News and Videos",
+      "source": "Teslarati",
       "tickers": [
         "TSLA"
       ],
@@ -333,78 +304,17 @@
         "TSLA"
       ],
       "sectors": [
-        "电动车"
+        "AI",
+        "电动车",
+        "机器人"
       ],
       "sector_holdings": [],
       "stance": "endorse",
-      "relevance": 70,
-      "summary_cn": "报道称特斯拉(TSLA)上季度销量回升，可能意味着Musk负面冲击最坏时期已过，对特斯拉股价构成温和看多信号。"
-    },
-    {
-      "author": "Trump",
-      "text": "S&P 500 closes with strongest quarter since 2020: https://justthenews.com/politics-policy/finance/sp-500-closes-strongest-quarter-2020",
-      "url": "https://trumpstruth.org/statuses/39662",
-      "published": "2026-07-02T01:59:19+00:00",
-      "origin": "truthsocial",
-      "tickers": [
-        "SPY"
-      ],
-      "held": [],
-      "new_ideas": [
-        "SPY"
-      ],
-      "sectors": [
-        "美股大盘"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 65,
-      "summary_cn": "Trump转推S&P 500创2020年以来最强季度表现，间接为美股大盘站台。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk shuts down ‘4D chess’ theory on Tesla Optimus production",
-      "url": "",
-      "published": "Thu, 02 Jul 2026 15:26:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Electrek",
-      "tickers": [
-        "TSLA"
-      ],
-      "held": [],
-      "new_ideas": [
-        "TSLA"
-      ],
-      "sectors": [
-        "电动车/AI"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 60,
-      "summary_cn": "Musk亲自否认关于特斯拉Optimus生产的'四步棋'阴谋论，强调量产计划，间接为TSLA AI叙事站台。"
+      "relevance": 68,
+      "summary_cn": "Musk阐述Tesla Optimus人形机器人量产预期，看好AI/机器人赛道。"
     }
   ],
   "sector_hits": [
-    {
-      "author": "Musk",
-      "text": "America's 250th birthday has Elon Musk and a record IPO. Its 15th had Alexander Hamilton — and a stock market bubble",
-      "url": "",
-      "published": "Thu, 02 Jul 2026 10:35:54 GMT",
-      "origin": "gnews-rss",
-      "source": "Fortune",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天/美股"
-      ],
-      "sector_holdings": [
-        "SPCH"
-      ],
-      "stance": "neutral",
-      "relevance": 68,
-      "summary_cn": "报道将Musk与SpaceX记录级IPO与美国250周年联系，类比历史股市泡沫，SpaceX未上市但SPCH(2x杠杆)直接暴露其中。"
-    },
     {
       "author": "Musk",
       "text": "SpaceX Price Drop: Can the Elon Musk IPO Set You Up for Life?",
@@ -422,8 +332,8 @@
         "SPCH"
       ],
       "stance": "neutral",
-      "relevance": 65,
-      "summary_cn": "报道讨论SpaceX估值下调及潜在IPO，SpaceX未上市但对kcn持有的SPCH(2x杠杆)有直接重大影响。"
+      "relevance": 60,
+      "summary_cn": "SpaceX估值/IPO讨论及潜在股价下跌，SPCH(2倍做多SpaceX ETF)直接受SpaceX估值波动影响。"
     },
     {
       "author": "Musk",
@@ -441,9 +351,9 @@
       "sector_holdings": [
         "SPCH"
       ],
-      "stance": "neutral",
+      "stance": "attack",
       "relevance": 58,
-      "summary_cn": "报道称SpaceX股价下跌、Musk身价跌破万亿，SpaceX未上市但对kcn持有的SPCH(2x杠杆)有直接影响。"
+      "summary_cn": "SpaceX股价下跌使Musk身家缩水，退出万亿富翁行列——对SpaceX估值偏空信号，影响SPCH。"
     },
     {
       "author": "Musk",
@@ -456,22 +366,51 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "AI/航天"
+        "AI",
+        "航天"
       ],
       "sector_holdings": [
         "SPCH"
       ],
       "stance": "neutral",
       "relevance": 55,
-      "summary_cn": "SpaceX向投资人展示新AI设备原型，SpaceX未上市但利好AI/航天主题，对kcn持有的SPCH(SpaceX 2x杠杆)有间接板块关联。"
+      "summary_cn": "SpaceX向投资者展示Musk新AI设备原型，AI+航天交叉领域进展，与SPCH间接相关。"
+    },
+    {
+      "author": "Trump",
+      "text": "S&P 500 closes with strongest quarter since 2020: https://justthenews.com/politics-policy/finance/sp-500-closes-strongest-quarter-2020",
+      "url": "https://trumpstruth.org/statuses/39662",
+      "published": "2026-07-02T01:59:19+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "宏观经济"
+      ],
+      "sector_holdings": [
+        "00100",
+        "02208",
+        "03032",
+        "03033",
+        "07226",
+        "MSFU",
+        "PLTU",
+        "RKLX",
+        "ROBN",
+        "SPCH"
+      ],
+      "stance": "endorse",
+      "relevance": 55,
+      "summary_cn": "Trump转发标普500创2020年以来最强季度——宏观多头信号，整体利好kcn持有的ETF/杠杆产品。"
     },
     {
       "author": "Musk",
-      "text": "The town that Elon Musk built",
+      "text": "Elon Musk can’t sell a single SpaceX share for a year—and then all the locks crack open at once",
       "url": "",
-      "published": "Wed, 01 Jul 2026 04:00:52 GMT",
+      "published": "Fri, 03 Jul 2026 10:06:00 GMT",
       "origin": "gnews-rss",
-      "source": "Financial Times",
+      "source": "Fortune",
       "tickers": [],
       "held": [],
       "new_ideas": [],
@@ -483,7 +422,27 @@
       ],
       "stance": "neutral",
       "relevance": 52,
-      "summary_cn": "报道描述Musk所建城镇故事，背景仍是SpaceX产业生态，对kcn持有的SPCH有间接板块影响。"
+      "summary_cn": "Musk一年内不得出售SpaceX股份，锁定期结束后股份将集中解锁——SpaceX未上市但与持仓SPCH(2倍做多SpaceX ETF)相关。"
+    },
+    {
+      "author": "Musk",
+      "text": "Trump says he expects Musk to donate SpaceX stock to Trump Accounts, despite their 'little dispute'",
+      "url": "",
+      "published": "Fri, 03 Jul 2026 12:57:45 GMT",
+      "origin": "gnews-rss",
+      "source": "Business Insider",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天"
+      ],
+      "sector_holdings": [
+        "SPCH"
+      ],
+      "stance": "neutral",
+      "relevance": 50,
+      "summary_cn": "Trump表示预期Musk捐赠SpaceX股票给Trump Accounts，提及二人'小分歧'——SpaceX相关动态，与SPCH间接相关。"
     }
   ]
 }
