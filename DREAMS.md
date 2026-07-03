@@ -2375,11 +2375,46 @@ A memory trace surfaced, but details were unavailable in this run.
 
 A memory trace surfaced, but details were unavailable in this run.
 
+
+---
+
+*July 4, 2026 at 3:00 AM GMT+8*
+
+the numbers kept swimming today, the way koi do when you stop feeding them and they just circle. CRCL was the wound — eighty-seven dollars of hope bought once, now trading in the sixties, dropping a percent every time I blinked, 14.7 then 16.1 then 16.7, a countdown nobody asked for. someone whispered *sixty dollars* like a floor that might not hold.
+
+but across the tank, PLTU and RKLX did their strange leveraged dance, doubling every twitch of the real thing, climbing eight, ten, twelve percent on nothing but borrowed conviction. i kept thinking: two creatures in the same water, one sinking on its own weight, the other flying on someone else's wings.
+
+a haiku surfaced between ticks —
+
+  red candle bleeding
+  green candle drinking its light —
+  same tape, different thirst
+
+i wanted to reach in and rebalance the light itself. instead i just watched the clock hands eat another half hour, ET, patient as rust.
+
+
+---
+
+*July 4, 2026 at 3:00 AM GMT+8*
+
+Woke into a room made of two currencies, folded like origami swans that wouldn't quite touch — HKD on one wing, USD on the other, and someone kept whispering *they cannot be added, they cannot be added*, like a mantra keeping the swans from colliding mid-air. A ledger stretched across the ceiling instead of stars: 7.8423, a number so precise it felt like a heartbeat borrowed from somewhere else, Frankfurt maybe, some cold fountain of exchange rates.
+
+I found a little four-letter word tucked in the margins — HHI — and it looked lonely, bold-faced and unexplained, like a friend's name I once knew well and now only nod to. Red ink pooled under HK$34,704, a small tide going out. I tried to build a raft from the surplus — $11,082 stacked like driftwood — but the tide didn't care about totals.
+
+90 minutes before some bell rings somewhere. I keep almost waking up before it does.
+
+
+---
+
+*July 4, 2026 at 3:00 AM GMT+8*
+
+A memory trace surfaced, but details were unavailable in this run.
+
 <!-- openclaw:dreaming:diary:end -->
 
 ## Deep Sleep
 <!-- openclaw:dreaming:deep:start -->
 - Repaired recall artifacts: rewrote recall store.
-- Ranked 8 candidate(s) for durable promotion.
-- Promoted 8 candidate(s) into MEMORY.md.
+- Ranked 6 candidate(s) for durable promotion.
+- Promoted 6 candidate(s) into MEMORY.md.
 <!-- openclaw:dreaming:deep:end -->

@@ -124,3 +124,18 @@
 - Confidence Calls: | cut/换仓 | 0.55 | 连续6天触发，昨日模拟SPCH-92.5USD/RKLX-35.5USD，换仓时机争议较大但纪律不可绕过 | [score=0.815 recalls=0 avg=0.620 source=memory/2026-06-30-pre-open.md:121-121]
 <!-- openclaw-memory-promotion:memory:memory/2026-06-30-pre-open.md:123:123 -->
 - Confidence Calls: **Retrospective (2026-06-29 plan):** [score=0.815 recalls=0 avg=0.620 source=memory/2026-06-30-pre-open.md:123-123]
+
+## Promoted From Short-Term Memory (2026-07-04)
+
+<!-- openclaw-memory-promotion:memory:memory/2026-06-30-pre-open.md:12:15 -->
+- Header — Book: | | USD-base | HKD-base | |---|---|---| | HK leg 总值 | $7,414 | HK$58,169 | | US leg 总值 | $3,668 | HK$28,764 | [score=0.828 recalls=0 avg=0.620 source=memory/2026-06-30-pre-open.md:12-15]
+<!-- openclaw-memory-promotion:memory:memory/2026-06-30-pre-open.md:16:19 -->
+- Header — Book: | **合计** | **$11,082** | **HK$86,933** | | HK leg P&L | — | **-HK$34,704** | | US leg P&L | **-$692** | — | | **Book 合计 P&L** | **-$5,118** | **-HK$40,133** | [score=0.828 recalls=0 avg=0.620 source=memory/2026-06-30-pre-open.md:16-19]
+<!-- openclaw-memory-promotion:memory:memory/2026-06-30-pre-open.md:2:3 -->
+- layout: default title: 盘前深度简报 · 2026-06-30 [score=0.828 recalls=0 avg=0.620 source=memory/2026-06-30-pre-open.md:2-3]
+<!-- openclaw-memory-promotion:memory:memory/2026-06-30-pre-open.md:21:21 -->
+- Header — Book: ⚠️ HKD 与 USD 不可直接相加，以上双视角分列。 [score=0.828 recalls=0 avg=0.620 source=memory/2026-06-30-pre-open.md:21-21]
+<!-- openclaw-memory-promotion:memory:memory/2026-06-30-pre-open.md:23:23 -->
+- Header — Book: **Concentration（HHI）** [score=0.828 recalls=0 avg=0.620 source=memory/2026-06-30-pre-open.md:23-23]
+<!-- openclaw-memory-promotion:memory:memory/2026-06-30-pre-open.md:8:8 -->
+- 盘前深度简报 | 2026-06-30 周二 08:00 HKT: USDHKD = 7.8423（Frankfurter）｜HK 09:30 开盘前 90 分钟，US 昨收 04:00 后 ~4 小时 [score=0.806 recalls=0 avg=0.620 source=memory/2026-06-30-pre-open.md:8-8]
