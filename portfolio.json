@@ -1179,36 +1179,36 @@
   },
   "market_context": {},
   "gold_dca": {
+    "fund_name": "华安黄金ETF联接C",
+    "start_date": "2026-01-22",
+    "fund_code": "000217",
     "daily_amount": 200,
     "currency": "CNY",
-    "principal_invested": 17299.0,
-    "start_date": "2026-01-22",
     "reconciled_date": "2026-06-09",
-    "principal_note": "对账基线(自动累加模式)。2026-06-09 kcn 对账:现值 15470 + 盈亏 -1829 → 本金 17299,份额 = 15470/净值3.1867 = 4854.55。此后每个 A 股交易日自动 +200@当日净值。补投对账:把 principal_invested/units_held 改成新真实数字、reconciled_date 改成对账当天即可,自动累加归零重算。",
-    "fund_name": "华安黄金ETF联接C",
     "units_held": 4854.55,
-    "fund_code": "000217",
-    "nav": 2.989,
-    "nav_date": "2026-07-02",
-    "nav_change_pct": 2.08,
+    "principal_note": "对账基线(自动累加模式)。2026-06-09 kcn 对账:现值 15470 + 盈亏 -1829 → 本金 17299,份额 = 15470/净值3.1867 = 4854.55。此后每个 A 股交易日自动 +200@当日净值。补投对账:把 principal_invested/units_held 改成新真实数字、reconciled_date 改成对账当天即可,自动累加归零重算。",
+    "principal_invested": 17299.0,
+    "nav": 3.0688,
+    "nav_date": "2026-07-03",
+    "nav_change_pct": 2.67,
     "realtime": {
-      "est_nav": 3.0361,
-      "est_change_pct": 1.58,
-      "est_time": "2026-07-02 22:28",
+      "est_nav": 3.0698,
+      "est_change_pct": 2.7,
+      "est_time": "2026-07-03 15:30",
       "nav_date": "2026-07-02"
     },
-    "principal_effective": 20499.0,
-    "units_effective": 5905.76,
-    "auto_added_days": 16,
-    "auto_added_amount": 3200.0,
-    "avg_cost": 3.471,
-    "current_value": 17652.32,
-    "pnl_abs": -2846.68,
-    "pnl_percent": -13.89,
-    "breakeven_nav": 3.471,
-    "breakeven_upside_pct": 16.13,
-    "days_invested": 105,
-    "installments_est": 102,
+    "principal_effective": 20699.0,
+    "units_effective": 5970.93,
+    "auto_added_days": 17,
+    "auto_added_amount": 3400.0,
+    "avg_cost": 3.4666,
+    "current_value": 18323.6,
+    "pnl_abs": -2375.4,
+    "pnl_percent": -11.48,
+    "breakeven_nav": 3.4666,
+    "breakeven_upside_pct": 12.96,
+    "days_invested": 106,
+    "installments_est": 103,
     "window_high": {
       "date": "2026-01-29",
       "nav": 4.1882
@@ -1220,45 +1220,41 @@
     "projection": [
       {
         "days": 20,
-        "invested": 24499.0,
-        "avg_cost": 3.382,
-        "pnl_pct": -11.62,
-        "breakeven_upside_pct": 13.15
+        "invested": 24699.0,
+        "avg_cost": 3.3953,
+        "pnl_pct": -9.62,
+        "breakeven_upside_pct": 10.64
       },
       {
         "days": 40,
-        "invested": 28499.0,
-        "avg_cost": 3.3207,
-        "pnl_pct": -9.99,
-        "breakeven_upside_pct": 11.1
+        "invested": 28699.0,
+        "avg_cost": 3.3457,
+        "pnl_pct": -8.28,
+        "breakeven_upside_pct": 9.02
       },
       {
         "days": 60,
-        "invested": 32499.0,
-        "avg_cost": 3.276,
-        "pnl_pct": -8.76,
-        "breakeven_upside_pct": 9.6
+        "invested": 32699.0,
+        "avg_cost": 3.3092,
+        "pnl_pct": -7.26,
+        "breakeven_upside_pct": 7.83
       },
       {
         "days": 120,
-        "invested": 44499.0,
-        "avg_cost": 3.1933,
-        "pnl_pct": -6.4,
-        "breakeven_upside_pct": 6.83
+        "invested": 44699.0,
+        "avg_cost": 3.241,
+        "pnl_pct": -5.31,
+        "breakeven_upside_pct": 5.61
       },
       {
         "days": 250,
-        "invested": 70499.0,
-        "avg_cost": 3.1148,
-        "pnl_pct": -4.04,
-        "breakeven_upside_pct": 4.21
+        "invested": 70699.0,
+        "avg_cost": 3.1755,
+        "pnl_pct": -3.36,
+        "breakeven_upside_pct": 3.48
       }
     ],
     "nav_history": [
-      [
-        "2025-12-02",
-        3.2364
-      ],
       [
         "2025-12-03",
         3.2206
@@ -1814,26 +1810,25 @@
       [
         "2026-07-02",
         2.989
+      ],
+      [
+        "2026-07-03",
+        3.0688
       ]
     ],
-    "last_updated": "2026-07-02T18:17:22.569871Z",
+    "last_updated": "2026-07-03T15:50:36.492298Z",
     "london": {
-      "xau_usd": 4118.48,
-      "xau_change_pct": 2.17,
-      "xau_high": 4143.75,
-      "xau_low": 4030.77,
-      "xau_prev_close": 4030.94,
+      "xau_usd": 4168.39,
+      "xau_change_pct": 1.09,
+      "xau_high": 4195.27,
+      "xau_low": 4121.11,
+      "xau_prev_close": 4123.61,
       "xau_date": "2026-07-03",
-      "usdcny": 6.789,
-      "oz_equiv": 0.631,
-      "grams_equiv": 19.6,
-      "intl_value_usd": 2600.14,
+      "usdcny": 6.7814,
+      "oz_equiv": 0.648,
+      "grams_equiv": 20.2,
+      "intl_value_usd": 2702.04,
       "compare_series": [
-        [
-          "2026-02-12",
-          103.63,
-          99.69
-        ],
         [
           "2026-02-13",
           102.33,
@@ -2277,23 +2272,28 @@
         [
           "2026-07-02",
           81.61,
-          83.52
+          83.54
+        ],
+        [
+          "2026-07-03",
+          83.79,
+          84.43
         ]
       ],
       "dca_equiv": {
-        "principal_cny": 21000.0,
-        "oz_held": 0.659,
-        "grams_held": 20.5,
-        "avg_cost_usd_oz": 4654.52,
-        "avg_cost_cny_g": 1024.46,
-        "spot_usd_oz": 4118.48,
-        "breakeven_upside_pct": 13.02,
-        "current_value_cny": 18427.14,
-        "pnl_abs": -2572.86,
-        "pnl_pct": -12.25,
-        "days": 105
+        "principal_cny": 21200.0,
+        "oz_held": 0.6661,
+        "grams_held": 20.7,
+        "avg_cost_usd_oz": 4649.36,
+        "avg_cost_cny_g": 1023.23,
+        "spot_usd_oz": 4168.39,
+        "breakeven_upside_pct": 11.54,
+        "current_value_cny": 18829.55,
+        "pnl_abs": -2370.45,
+        "pnl_pct": -11.18,
+        "days": 106
       },
-      "last_updated": "2026-07-02T18:17:22.570214Z"
+      "last_updated": "2026-07-03T15:50:36.492621Z"
     }
   }
 }
