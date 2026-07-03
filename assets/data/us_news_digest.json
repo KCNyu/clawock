@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-02T15:06:14.075515",
+  "generated_at": "2026-07-03T15:01:50.482470",
   "lookback_hours": 48,
   "tickers": [
     "CRCL",
@@ -9,7 +9,7 @@
     "SPCH",
     "MSFU"
   ],
-  "digest_markdown": "## Top 移动信号\n- **CRCL**: 分析师分歧 — Compass Point 升级 vs SeekingAlpha 因 OUSD 竞争(Visa/Mastercard/BlackRock 支持)下调评级 vs Susquehanna 启动 Neutral。竞争格局恶化是真实风险。kcn 需评估 OUSD 对 USDC 市占的实质侵蚀。\n- **ROBN (HOOD 2x ETF)**: HOOD 财报后盘后下跌,但分析师与散户均\"shrugging off the dip\",暗示卖压或为 noise。杠杆 ETF 短期波动放大,kcn 须确认 HOOD 财报核心数据稳健再持仓。\n\n## Per-ticker 简报\n- **CRCL**: 多家券商分歧 (升级 / 启动 Neutral / OUSD 竞争下调) — 共识未形成,2026 增长放缓确认但 Arc 区块链/监管或支撑 2027 反弹。**影响**: 持有者需为短期波动定价,等待下一份季度数据验证 USDC 增速。\n- **ROBN**: HOOD 财报后盘后走弱但市场反应平淡 — 杠杆 ETF 放大效应使持仓更敏感。**影响**: 关注 HOOD 营收/用户指引是否支撑叙事,否则考虑减仓降杠杆。\n- **PLTU / RKLX / SPCH / MSFU**: 仅有 ETF 报价页、options chain、moomoo 散户闲聊、技术分析废话,**无 catalyst**, 忽略。\n\n## 风险 watch\n- **CRCL — 监管/竞争**: OUSD 新 stablecoin 由 Visa/Mastercard/BlackRock 等背书,直接威胁 USDC;若市占下滑超预期,2026 增速假设需下修。\n- **CRCL — 2026 指引**: SeekingAlpha 明示\"tough 2026\",USDC 增长停滞已确认;若管理层 Q4 财报未给出 Arc 货币化时间表,估值锚松动。\n- **ROBN/HOOD — 财报 catalyst**: HOOD 盘后下跌,若次日不能修复,2x 杠杆 ROBN 短期回撤显著。",
+  "digest_markdown": "## Top 移动信号\n\n- **CRCL**: Goldman Sachs 下调 PT 从 $111 → $96 (Neutral) — 卖方共识向 $96-100 区间靠拢, 短期估值压力增大\n- **CRCL**: EU MiCA 过渡期 7/1 截止, 欧洲加密持牌公司从 3,167 家锐减至 244 家 — 监管壁垒抬高, Circle 作为合规 USDC 发行方受益, 长期份额逻辑强化\n- **CRCL**: SeekingAlpha 提出 2026 USDC 增长停滞 + Arc 区块链/监管红利 = 2027 反弹叙事 — 中期 catalyst 取决于 Arc 采纳率\n- **ROBN (underlying HOOD)**: HOOD 盘后下跌, 分析师与散户均视为逢低 — 杠杆 ETF 杠杆放大效应需关注隔夜跳空风险\n\n## Per-ticker 简报\n\n- **CRCL**: 三重信号叠加 — 卖方下修 + 监管护城河 + 2026/27 拐点叙事, 关注 $96 是否守住\n- **ROBN**: HOOD 自身催化 (盘后回调), 2x 杠杆放大会放大波动, 持仓前审视底层 HOOD 财报后动向\n\n## 风险 Watch\n\n- **CRCL**: 卖方 PT 共识下调, $96 测试位失守触发技术性破位\n- **CRCL**: 2026 USDC 增速若进一步放缓, 现有估值溢价收缩\n- **ROBN**: HOOD 杠杆 ETF 对隔夜 gap 敏感, 财报周前建议降杠杆或换底层\n\n## 忽略\n\n- PLTU / RKLX / SPCH / MSFU 均为杠杆 ETF 通用页面/Moomoo 散户吐槽, 无 ticker-specific catalyst\n- CRCL 加密价格综述、Big Stocks Moving 列表中未点名 CRCL 的条目",
   "raw_news_counts": {
     "CRCL": 5,
     "PLTU": 5,
