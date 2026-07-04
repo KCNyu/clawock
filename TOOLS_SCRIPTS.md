@@ -110,11 +110,9 @@ cron prompt 已精简成"按 skill 的 harness 4-step 跑"+ 自包含 fallback �
 
 ### 已废弃（不作为调用入口，但作为参考代码可读）
 > 这些脚本**不要直接调起来跑**当主路径，但里面的 URL、header、fallback 思路、解析片段在调试或场景超出现役脚本时仍有参考价值。
-- `scripts/legacy/stock_analyzer.py` — 被 `scripts/data/analyze_us_stocks.py` + `analyze_hk_stocks.py` 取代；早期 fallback 顺序的来源
-- `scripts/legacy/hk_stock_fetcher.py` — 已被 `analyze_hk_stocks.py` 内联；Tencent 解析参考
-- `scripts/legacy/hk_monitor.py` / `hk_open_monitor.py` — 为已清仓的韩股链（07709/07747）写的，无现役作用；监控循环写法参考
-- `scripts/legacy/portfolio_monitor.py` / `portfolio_table.py` / `portfolio_visualization.py` — 早期可视化/监控参考
+- `scripts/legacy/stock_analyzer.py` — 被 `scripts/data/analyze_us_stocks.py` + `analyze_hk_stocks.py` 取代；早期 fallback 顺序的来源（`check_portfolio.sh` 仍引用）
 - **完全删掉** (2026-05-16 大扫除)：`monday_signal.py` (含硬编码 key)、`api_retry_wrapper.py`、`baidu_search_wrapper.py`、`deep_analysis.py`、`final_analysis.py`、`find_opportunities.py`、`hk_ai_monitor.py`、`multi_agent_stock_analysis.py`、`price_alert_monitor.py`、`TradingAgents/` 整目录
+- **完全删掉** (2026-07-04 清理)：`scripts/legacy/{hk_monitor,hk_open_monitor,hk_stock_fetcher,portfolio_monitor,portfolio_table,portfolio_visualization}.py`（无代码/cron 引用的死参考）、`scripts/data/brief_fallback_send.py`（被 `gh_action_brief_fallback.py` 取代）
 
 ---
 

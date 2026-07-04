@@ -18,6 +18,9 @@ data_cache/
 # shadow_backtest.json — build_dashboard computes it INLINE (compute()); the
 # standalone file is only an ad-hoc CLI artifact and would rot if committed.
 assets/data/shadow_backtest.json
+# integrity_report.json — preflight_integrity.check() returns the dict in-memory
+# (brief_preflight uses the return value); the written file has no reader and rots.
+assets/data/integrity_report.json
 *.log
 
 # Images / generated output
