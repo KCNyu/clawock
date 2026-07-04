@@ -15,6 +15,9 @@ cd "$(git rev-parse --show-toplevel)"
 DRY=""
 [ "${1:-}" = "--dry-run" ] && DRY="--dry-run"
 
+echo "▸ recompute aggregates (leaf shares/price/cost → current_value, totals, pnl)…"
+python3 scripts/data/recompute_aggregates.py $DRY
+
 echo "▸ recompute cash (baseline + trades cashflow + adjustments)…"
 python3 scripts/data/recompute_cash.py $DRY
 

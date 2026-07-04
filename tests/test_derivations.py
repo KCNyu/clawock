@@ -21,6 +21,7 @@ sys.path.insert(0, os.path.join(WS, "scripts", "harness"))
 
 import preflight_integrity as pi  # noqa: E402
 import recompute_realized as rr  # noqa: E402
+import recompute_aggregates as ra  # noqa: E402
 import build_dashboard as bd  # noqa: E402
 
 
@@ -170,3 +171,54 @@ class TestProfitExtremes:
         assert r["from_peak_abs"] == pytest.approx(-30700.0)
         # money-only contract: once the series crosses ≤0, every % field is None
         assert r["current_dd_pct"] is None and r["max_dd_pct"] is None
+
+
+# ── recompute_aggregates: leaf shares/price/cost → derived fields + region totals ─
+class TestRecomputeAggregates:
+    def _book(self):
+        # one region, two active holdings + one closed (shares 0, must be excluded)
+        return {"portfolios": {"us_stocks": {
+            "total_current_value": 0, "total_cost": 0, "total_pnl": 0,
+            "total_pnl_percent": 0, "today_total_change": 0,
+            "holdings": [
+                {"ticker": "A", "shares": 10, "cost_basis": 5.0,
+                 "current_price": 8.0, "prev_close": 7.0,
+                 "current_value": 999, "pnl_abs": 999, "today_change": 999},
+                {"ticker": "B", "shares": 4, "cost_basis": 20.0,
+                 "current_price": 25.0, "prev_close": 24.0,
+                 "current_value": 0, "pnl_abs": 0, "today_change": 0},
+                {"ticker": "CLOSED", "shares": 0, "cost_basis": 3.0,
+                 "current_price": 1.0, "prev_close": 1.0, "current_value": 123},
+            ],
+        }}}
+
+    def test_leaf_and_region_derivation(self):
+        d = self._book()
+        ra.recompute(d, dry_run=False)
+        us = d["portfolios"]["us_stocks"]
+        A, B, C = us["holdings"]
+        # per-holding leaves rebuilt from shares/price/cost
+        assert A["current_value"] == 80.0 and A["pnl_abs"] == 30.0 and A["today_change"] == 10.0
+        assert B["current_value"] == 100.0 and B["pnl_abs"] == 20.0 and B["today_change"] == 4.0
+        # region totals over ACTIVE only (closed C excluded, its stale 123 not summed)
+        assert us["total_current_value"] == 180.0          # 80 + 100
+        assert us["total_cost"] == 130.0                   # 10*5 + 4*20
+        assert us["total_pnl"] == 50.0                     # 180 - 130
+        assert us["total_pnl_percent"] == pytest.approx(38.4615, abs=1e-3)
+        assert us["today_total_change"] == 14.0            # 10 + 4
+        assert C["current_value"] == 123                   # closed holding untouched
+
+    def test_fixes_phantom_peak_drift(self):
+        # the real bug (3a68822): a manual T+0 sell left total_current_value inflated.
+        d = self._book()
+        ra.recompute(d, dry_run=False)                     # make consistent
+        d["portfolios"]["us_stocks"]["total_current_value"] += 906.0   # inject drift
+        changes = ra.recompute(d, dry_run=False)           # recompute must fix it
+        assert d["portfolios"]["us_stocks"]["total_current_value"] == 180.0
+        assert "us_stocks" in changes                      # and report it changed
+
+    def test_dry_run_writes_nothing(self):
+        d = self._book()
+        d["portfolios"]["us_stocks"]["total_current_value"] = 777
+        ra.recompute(d, dry_run=True)
+        assert d["portfolios"]["us_stocks"]["total_current_value"] == 777  # unchanged
