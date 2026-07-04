@@ -24,7 +24,7 @@
 
 <br><br>
 
-🪞 **给自己打分**——还承认主动操作跑输躺平 &nbsp;·&nbsp; 💸 **真金白银**,不是模拟盘 &nbsp;·&nbsp; 🗣️ 每天早上一场 **AI 牛熊辩论** &nbsp;·&nbsp; 🛡️ **算账全在 Python**,LLM 改不了成绩单 &nbsp;·&nbsp; 🌏 **双语** 港股 + 美股 &nbsp;·&nbsp; 🌐 **实时公开仪表盘**
+🪞 **给自己打分**——还承认主动操作跑输躺平 &nbsp;·&nbsp; 💸 **真金白银**,不是模拟盘 &nbsp;·&nbsp; 🗣️ 每天早上一场 **AI 牛熊辩论** &nbsp;·&nbsp; 🛡️ **算账全在 Python**——有单元测试兜底,LLM 改不了成绩单 &nbsp;·&nbsp; 🌏 **双语** 港股 + 美股 &nbsp;·&nbsp; 🌐 **实时公开仪表盘**
 
 <sub>如果"一个敢承认自己错的 AI"对你胃口 —— ⭐ 一下。</sub>
 
@@ -143,7 +143,7 @@
 
 **1. Harness 模式**
 
-每个 job 都是 `preflight(Python)→ LLM → postflight(Python)`。确定性的活 —— 价格、FX、HHI、信号计数 —— 100% 在代码里跑。LLM 只负责写*观点*。忘了 FX、漏了快照、跳过 >3% 异动 → postflight 抓出来并给报告打标记。
+每个 job 都是 `preflight(Python)→ LLM → postflight(Python)`。确定性的活 —— 价格、FX、HHI、信号计数 —— 100% 在代码里跑。LLM 只负责写*观点*。忘了 FX、漏了快照、跳过 >3% 异动 → postflight 抓出来并给报告打标记。算账那套有**单元测试**,而且 **pre-push 闸会拒绝发布任何对不上账的账本** —— 数字不会悄悄漂移。
 
 </td><td width="33%" valign="top">
 

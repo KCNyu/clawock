@@ -24,7 +24,7 @@
 
 <br><br>
 
-🪞 **Grades its own trades** — and admits they lose to buy-and-hold &nbsp;·&nbsp; 💸 **Real money**, not a paper sim &nbsp;·&nbsp; 🗣️ **Bull-vs-bear AI debate** every morning &nbsp;·&nbsp; 🛡️ **Python does the math** so the LLM can't fudge the score &nbsp;·&nbsp; 🌏 **Bilingual** HK + US &nbsp;·&nbsp; 🌐 **Live public dashboard**
+🪞 **Grades its own trades** — and admits they lose to buy-and-hold &nbsp;·&nbsp; 💸 **Real money**, not a paper sim &nbsp;·&nbsp; 🗣️ **Bull-vs-bear AI debate** every morning &nbsp;·&nbsp; 🛡️ **Python does the math** — unit-tested, so the LLM can't fudge the score &nbsp;·&nbsp; 🌏 **Bilingual** HK + US &nbsp;·&nbsp; 🌐 **Live public dashboard**
 
 <sub>If "an AI that's honest about being wrong" is your kind of thing — ⭐ it.</sub>
 
@@ -143,7 +143,7 @@ Running real automation for months taught me that the hard part isn't the prompt
 
 **1. Harness pattern**
 
-Every job is `preflight (Python) → LLM → postflight (Python)`. Deterministic work — prices, FX, HHI, signal counting — runs 100% in code. The LLM only writes the *opinion*. Forget FX, miss a snapshot, skip a >3% mover → postflight catches it and flags the report.
+Every job is `preflight (Python) → LLM → postflight (Python)`. Deterministic work — prices, FX, HHI, signal counting — runs 100% in code. The LLM only writes the *opinion*. Forget FX, miss a snapshot, skip a >3% mover → postflight catches it and flags the report. The money math is **unit-tested**, and a **pre-push gate refuses to publish a book that doesn't reconcile** — the numbers can't silently drift.
 
 </td><td width="33%" valign="top">
 
