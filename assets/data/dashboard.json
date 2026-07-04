@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-04T07:36:52.460344Z",
+  "generated_at": "2026-07-04T07:40:02.773230Z",
   "last_updated": "2026/07/03 16:01 HKT",
   "fx": {
     "usdhkd": 7.844,
@@ -6105,7 +6105,7 @@
     }
   },
   "build_status": {
-    "generated_at": "2026-07-04T15:36:52+08:00",
+    "generated_at": "2026-07-04T15:40:02+08:00",
     "healthy": false,
     "stale_files": [
       "catalysts.json",
@@ -6119,7 +6119,7 @@
     "files": [
       {
         "name": "portfolio.json",
-        "age_hours": 0.2,
+        "age_hours": 0.3,
         "sla_hours": 26,
         "stale": false,
         "present": true
