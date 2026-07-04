@@ -101,30 +101,6 @@
 - **单一来源：`portfolio.json`**，不在此维护副本
 - ticker 列表：`memory/current-portfolio-summary.md`（提高检索命中）
 
-## Promoted From Short-Term Memory (2026-07-02)
-
-<!-- openclaw-memory-promotion:memory:memory/2026-06-29-pre-open.md:97:97 -->
-- Confidence Calls: **自校准（30天）**：Brier=0.2495（marginal）。T+1 vs hold baseline：LLM 56% vs 42% → alpha+14pp（跑赢空仓基线）。⚠️ high-conf(≥0.75) 历史胜率=0%——本简报所有 confidence 已压在 0.50-0.55，不虚高。 [score=0.815 recalls=0 avg=0.620 source=memory/2026-06-29-pre-open.md:97-97]
-
-## Promoted From Short-Term Memory (2026-07-03)
-
-<!-- openclaw-memory-promotion:memory:memory/2026-06-29-pre-open.md:12:15 -->
-- Header — Book: | | USD-base | HKD-base | |---|---|---| | HK leg 总值 | $6,659 | HK$52,221.6 | | US leg 总值 | $3,050 | HK$23,918 | [score=0.828 recalls=0 avg=0.620 source=memory/2026-06-29-pre-open.md:12-15]
-<!-- openclaw-memory-promotion:memory:memory/2026-06-29-pre-open.md:16:19 -->
-- Header — Book: | **合计** | **$9,709** | **HK$76,140** | | HK leg P&L | — | **-HK$36,055** | | US leg P&L | **-$1,037** | — | | **Book 合计 P&L** | **-$5,635** | **-HK$44,190** | [score=0.828 recalls=0 avg=0.620 source=memory/2026-06-29-pre-open.md:16-19]
-<!-- openclaw-memory-promotion:memory:memory/2026-06-29-pre-open.md:2:3 -->
-- layout: default title: 盘前深度简报 · 2026-06-29 [score=0.828 recalls=0 avg=0.620 source=memory/2026-06-29-pre-open.md:2-3]
-<!-- openclaw-memory-promotion:memory:memory/2026-06-29-pre-open.md:21:21 -->
-- Header — Book: ⚠️ HKD 与 USD 不可直接相加，以上双视角分列。 [score=0.828 recalls=0 avg=0.620 source=memory/2026-06-29-pre-open.md:21-21]
-<!-- openclaw-memory-promotion:memory:memory/2026-06-29-pre-open.md:23:23 -->
-- Header — Book: **Concentration（HHI）** [score=0.828 recalls=0 avg=0.620 source=memory/2026-06-29-pre-open.md:23-23]
-<!-- openclaw-memory-promotion:memory:memory/2026-06-29-pre-open.md:8:8 -->
-- 盘前深度简报 | 2026-06-29 周一 08:00 HKT: USDHKD = 7.8421（Frankfurter）｜HK 09:30 开盘前 90 分钟，US 周五 04:00 收盘后 ~4 小时（**今日美股休市**，US calendar=CLOSED — 6/29 周一 US 实际无交易日，本简报 US 段为周五收盘后延续分析，非新交易日） [score=0.828 recalls=0 avg=0.620 source=memory/2026-06-29-pre-open.md:8-8]
-<!-- openclaw-memory-promotion:memory:memory/2026-06-30-pre-open.md:121:121 -->
-- Confidence Calls: | cut/换仓 | 0.55 | 连续6天触发，昨日模拟SPCH-92.5USD/RKLX-35.5USD，换仓时机争议较大但纪律不可绕过 | [score=0.815 recalls=0 avg=0.620 source=memory/2026-06-30-pre-open.md:121-121]
-<!-- openclaw-memory-promotion:memory:memory/2026-06-30-pre-open.md:123:123 -->
-- Confidence Calls: **Retrospective (2026-06-29 plan):** [score=0.815 recalls=0 avg=0.620 source=memory/2026-06-30-pre-open.md:123-123]
-
 ## Promoted From Short-Term Memory (2026-07-04)
 
 <!-- openclaw-memory-promotion:memory:memory/2026-06-30-pre-open.md:12:15 -->
@@ -139,3 +115,26 @@
 - Header — Book: **Concentration（HHI）** [score=0.828 recalls=0 avg=0.620 source=memory/2026-06-30-pre-open.md:23-23]
 <!-- openclaw-memory-promotion:memory:memory/2026-06-30-pre-open.md:8:8 -->
 - 盘前深度简报 | 2026-06-30 周二 08:00 HKT: USDHKD = 7.8423（Frankfurter）｜HK 09:30 开盘前 90 分钟，US 昨收 04:00 后 ~4 小时 [score=0.806 recalls=0 avg=0.620 source=memory/2026-06-30-pre-open.md:8-8]
+
+## Promoted From Short-Term Memory (2026-07-05)
+
+<!-- openclaw-memory-promotion:memory:memory/2026-07-02-0209.md:124:124 -->
+- 🌟 **重要更正**：SPCX 已经不是私募！: **SPCX 在 2026-06-12 已经 IPO，发行价 $135，7-01 收盘 $170.86（+4.06%）。** [score=0.841 recalls=0 avg=0.620 source=memory/2026-07-02-0209.md:124-124]
+<!-- openclaw-memory-promotion:memory:memory/2026-07-02-0209.md:128:128 -->
+- 🌟 **重要更正**：SPCX 已经不是私募！: **这意味着**： [score=0.841 recalls=0 avg=0.620 source=memory/2026-07-02-0209.md:128-128]
+<!-- openclaw-memory-promotion:memory:memory/2026-07-02-0209.md:129:131 -->
+- 🌟 **重要更正**：SPCX 已经不是私募！: **SPCX 流动性大幅改善** → SPCH 的价差会收窄; **7 月 7 日 SPCX 将被纳入 Nasdaq-100 指数** → 触发**被动基金 ~$43B 资金流入**; **8 月有 lockup 风险**（早期股东解禁） [score=0.841 recalls=0 avg=0.620 source=memory/2026-07-02-0209.md:129-131]
+<!-- openclaw-memory-promotion:memory:memory/2026-07-02-0151.md:102:105 -->
+- Conversation Summary: SPCH -11%最烫手：2x杠杆放大基础资产下跌，当前0%区间低位，技术上是均值回归候选，但接刀风险极实际——无明确正催化时 STOP 信号就是 STOP 信号。 PLTU 今日+13.7%是假象：PLTR beta 放大，但MA20/50均跌破、浮亏-30%，这不是解套，别加仓。 ROBN 唯一亮点，+8%浮盈+38%，是全场唯一有意义的兑现窗口——有实现空间的候选。 assistant: 🇺🇸 美股盯盘 | 07/01 10:32 ET [score=0.809 recalls=0 avg=0.620 source=memory/2026-07-02-0151.md:102-105]
+<!-- openclaw-memory-promotion:memory:memory/2026-07-02-0151.md:107:107 -->
+- Conversation Summary: 📊 市值 $3,432 | 浮盈 $-655 (-16.0%) | 今日 $-69 | ✅ 已实现 +$1,841 [score=0.809 recalls=0 avg=0.620 source=memory/2026-07-02-0151.md:107-107]
+<!-- openclaw-memory-promotion:memory:memory/2026-07-02-0151.md:109:112 -->
+- Conversation Summary: | 代码 | 股 | 成本 | 现价 | 今日 | 浮% | 浮$ | |:------|------:|-------:|-------:|-------:|-------:|--------:| | CRCL | 2 | 87.00 | 64.59 | +3.1% | -25.8% | -45 | | PLTU | 14 | 40.96 | 28.69 | +13.8% | -30.0% | -172 | [score=0.809 recalls=0 avg=0.620 source=memory/2026-07-02-0151.md:109-112]
+<!-- openclaw-memory-promotion:memory:memory/2026-07-02-0151.md:11:11 -->
+- Conversation Summary: 📊 市值 $3,495 | 浮盈 $-592 (-14.5%) | 今日 $-5 | ✅ 已实现 +$1,841 [score=0.809 recalls=0 avg=0.620 source=memory/2026-07-02-0151.md:11-11]
+<!-- openclaw-memory-promotion:memory:memory/2026-07-02-0151.md:113:116 -->
+- Conversation Summary: | RKLX | 10 | 49.69 | 44.24 | -0.7% | -11.0% | -54 | | ROBN | 20 | 23.58 | 32.94 | +9.2% | +39.7% | +187 | | SPCH | 100 | 17.89 | 13.36 | -12.8% | -25.3% | -453 | | MSFU | 20 | 29.13 | 23.20 | +5.0% | -20.4% | -119 | [score=0.809 recalls=0 avg=0.620 source=memory/2026-07-02-0151.md:113-116]
+<!-- openclaw-memory-promotion:memory:memory/2026-07-02-0151.md:119:122 -->
+- Conversation Summary: ▼ STOP-LOSS PLTU | 今日+13.8% 浮-30.0% · 价格低于MA20 -8.5% · 跌破MA50 ▼ STOP-LOSS SPCH | 今日-12.8% 浮-25.3% [score=0.809 recalls=0 avg=0.620 source=memory/2026-07-02-0151.md:119-122]
+<!-- openclaw-memory-promotion:memory:memory/2026-07-02-0151.md:123:126 -->
+- Conversation Summary: · 浮亏 -25.3% 警惕止损 · 今日大跌 -12.8% ▼ STOP-LOSS MSFU | 今日+5.0% 浮-20.4% · 浮亏 -20.4% 警惕止损 [score=0.809 recalls=0 avg=0.620 source=memory/2026-07-02-0151.md:123-126]
