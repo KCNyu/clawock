@@ -83,3 +83,6 @@ portfolio.json.lock
 portfolio.json.bak
 *.json.lock
 *.json.bak
+
+# root-level scratch (cron report drafts) — never commit
+/.tmp/
