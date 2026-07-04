@@ -167,14 +167,12 @@
 
 **模型。** 交互式聊天跑在 Claude 上(走 `claude-cli` runtime,复用我的 Claude Code 登录态 —— 仓库里没有 key)。无人值守的简报/报告跑在 pin 死的 **`MiniMax-M3`** 上,后面挂一条 fallback 链(`GLM → DeepSeek → GPT → Claude → Haiku`)。协议混合:Claude/MiniMax 走 `anthropic-messages`(thinking 是独立 block);GLM/DeepSeek/OpenAI 走 `openai-completions`。第三方 reasoning 模型**必须**注册 `"reasoning": true`,否则 thinking 会静默锁 off —— 这个坑我踩过一次。
 
-**写入对账(唯一真正难的地方)。** 四类独立写者都 push 到 `master`:cron 守护进程、约 11 个 GitHub Actions、系统 crontab 兜底、临时 session。它们在 `assets/data/dashboard.json` 上重叠。在没有中心锁的前提下:
+**写入对账(唯一真正难的地方)。** `dashboard.json` 是 100% 派生产物,却有一堆 job 在动 `master` —— cron 守护进程、约 11 个 GitHub Actions、系统 crontab 兜底、临时 session。几个月的竞态事故最后收敛成一条铁律:**一个文件只有一个写者。**
 
-- GH Actions 之间靠 `concurrency: group: data-write` 互相串行。
-- 每个产数据的 Action **只在自己的子文件确有变化时重建 `dashboard.json`**,这样发布出去的页面永远不落后于它自己的 macro/sentiment/influencer 块(周末最关键)。
-- 本地 harness 反方向拉:`sync_gha_data_files()` 在重建*之前*对 GH 写的文件做 `fetch + checkout origin/master -- <file>`,嵌入最新远端数据又不动工作区其余部分。
-- 所有人都经 `safe_push.sh` push —— rebase 重试、遇真冲突 abort(不死循环);提交进来的冲突标记会在 **push hook 被拒**,所以坏掉的 `dashboard.json` 永远到不了 Pages。
-
-残余风险是两个写者在重建和 push 之间打架;它在下一次重建时自愈,且永不作为组合数字的权威来源 —— 那些数字活在 `portfolio.json` 里,写入走 **advisory `flock` + 锁内重读再覆盖**(`mutate_json`):并发 fetcher 串行化、互不丢更新(根治 load-modify-write 竞态),底层再压一层原子 `os.replace`。
+- **前端直接读 scan 子文件。** `macro / sentiment / influencer_feed / us_news_digest / em_news` 不再被嵌进 `dashboard.json`,`index.html` 加载时各自 fetch。于是一个 GitHub Action 永远只提交它*自己*那个互不相交的子文件 —— 这些写者不可能冲突,而且一次 scan 的 commit 一落地就立刻上页面,无需任何重建。(GH Actions 之间仍靠 `concurrency: group: data-write` 串行。)
+- **`dashboard.json` 只有唯一一条发布路径。** 只有本地 harness 的 postflight 和一个 flock 守护的 `publish_dashboard.sh` crontab 会重建它;两者抢同一把 `/tmp/dashboard_publish.lock`,所以两次重建绝不会交错。发布者**只在语义 diff 时**才重新提交(墙钟字段全部剥掉),所以单纯的新鲜度跳动永远不会刷出空提交。
+- **所有人都经 `safe_push.sh` push** —— rebase 重试、遇真冲突 abort(不死循环);提交进来的冲突标记会在 **push hook 被拒**,坏掉的 `dashboard.json` 永远到不了 Pages。
+- **组合数字在门口就被闸住。** `portfolio.json` —— 唯一真值源 —— 写入走 advisory `flock` + 锁内重读再覆盖(`mutate_json`,原子 `os.replace`),根治 load-modify-write 竞态。**pre-push hook 会拦下任何账本违反资金守恒恒等式的 push**(`TCV = Σ 市值`、`现金 = 基线 + 成交 + 存取款`、`成本 = 移动加权`),所以没对账的改动到不了 Pages —— 而这些纯派生函数由 CI 里的 `pytest` 套件钉死。
 
 </details>
 
@@ -210,10 +208,11 @@ clawock/
 ├─ index.html  briefs.md                    ← Pages 着陆页
 ├─ assets/data/        由 harness + GH Actions 生成,绝不手改
 │   ├─ dashboard.json  risk.json  catalysts.json  fx.json
-│   ├─ macro.json  sentiment.json  influencer_feed.json  us_news_digest.json
+│   ├─ macro.json  sentiment.json  influencer_feed.json  us_news_digest.json  ← scan 子文件,前端直接 fetch
 │   ├─ quant_signals.json  quant_signal_review.json     ← 因子战绩表
 │   └─ t0_setups.json  t0_setup_review.json             ← 盘中牌面战绩表
 ├─ portfolio.json                           ← 唯一真值源(原子写入)
+├─ tests/                                    ← pytest:资金守恒派生(CI 闸)
 ├─ MEMORY.md  DREAMS.md                      ← 铁律 + 每夜「做梦」提升
 ├─ memory/
 │   ├─ {date}-pre-open.md  {date}-plan.json  ← 简报输出 + 结构化计划

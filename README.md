@@ -167,14 +167,12 @@ Four independent layers — cron → GitHub Action backstop → system-crontab w
 
 **Models.** Interactive chat runs on Claude (via the `claude-cli` runtime, reusing my Claude Code login — no key in the repo). The unattended briefs/reports run on a pinned **`MiniMax-M3`** with a fallback chain behind it (`GLM → DeepSeek → GPT → Claude → Haiku`). Mixed protocols: Claude/MiniMax speak `anthropic-messages` (thinking is its own block); GLM/DeepSeek/OpenAI speak `openai-completions`. A third-party reasoning model **must** be registered with `"reasoning": true` or its thinking silently locks off — a trap I paid for once.
 
-**Write reconciliation (the one genuinely hard part).** Four independent writers push to `master`: the cron daemon, ~11 GitHub Actions, system-crontab backstops, and ad-hoc sessions. They overlap on `assets/data/dashboard.json`. With no central lock:
+**Write reconciliation (the one genuinely hard part).** `dashboard.json` is 100% derived, yet many jobs touch `master` — the cron daemon, ~11 GitHub Actions, system-crontab backstops, ad-hoc sessions. Months of race-condition incidents converged on one rule: **one writer per file.**
 
-- GH Actions serialize among themselves via `concurrency: group: data-write`.
-- Each data-producing Action **rebuilds `dashboard.json` only when its own sub-file changes**, so the published page never lags its own macro/sentiment/influencer blocks (matters most on weekends).
-- The local harness pulls the other way: `sync_gha_data_files()` does `fetch + checkout origin/master -- <file>` *before* rebuilding, embedding the freshest remote data without touching the rest of the tree.
-- Everyone pushes through `safe_push.sh` — rebase-retry, abort (don't loop) on a real conflict; a committed conflict marker is **rejected at the push hook** so a broken `dashboard.json` can never reach Pages.
-
-The residual risk is two writers racing between rebuild and push; it self-heals on the next rebuild and is never authoritative for portfolio numbers — those live in `portfolio.json`, written under an **advisory `flock` + read-fresh-then-overlay** (`mutate_json`) so concurrent fetchers serialize and can't lose each other's updates (closing the load-modify-write race class), with atomic `os.replace` underneath.
+- **The frontend reads the scan sidecars directly.** `macro / sentiment / influencer_feed / us_news_digest / em_news` are no longer embedded into `dashboard.json`; `index.html` fetches each file itself at load. So a GitHub Action only ever commits its *own* disjoint sidecar — those writers can't conflict, and a scan appears on the page the instant its commit lands, with no rebuild. (GH Actions still serialize among themselves via `concurrency: group: data-write`.)
+- **`dashboard.json` has exactly one publisher path.** Only the local harness postflights and a flock-guarded `publish_dashboard.sh` crontab rebuild it; both hold the same `/tmp/dashboard_publish.lock`, so two rebuilds can never interleave. The publisher re-commits **only on a semantic diff** (wall-clock fields stripped), so a freshness tick alone never spams a no-op commit.
+- **Everyone pushes through `safe_push.sh`** — rebase-retry, abort (don't loop) on a real conflict; a committed conflict marker is **rejected at the push hook** so a broken `dashboard.json` can never reach Pages.
+- **Portfolio numbers are gated at the door.** `portfolio.json` — the single source of truth — is written under an advisory `flock` + read-fresh-then-overlay (`mutate_json`, atomic `os.replace`), closing the load-modify-write race class. A **pre-push hook blocks any push whose book fails a money-conservation identity** (`TCV = Σ value`, `cash = baseline + trades + adjustments`, `cost = moving-weighted`), so an un-reconciled edit can't reach Pages — and those pure derivations are pinned by a `pytest` suite in CI.
 
 </details>
 
@@ -210,10 +208,11 @@ clawock/
 ├─ index.html  briefs.md                    ← Pages landing
 ├─ assets/data/        built by harness + GH Actions, never hand-edited
 │   ├─ dashboard.json  risk.json  catalysts.json  fx.json
-│   ├─ macro.json  sentiment.json  influencer_feed.json  us_news_digest.json
+│   ├─ macro.json  sentiment.json  influencer_feed.json  us_news_digest.json  ← scan sidecars, fetched straight by the frontend
 │   ├─ quant_signals.json  quant_signal_review.json     ← factor scorecard
 │   └─ t0_setups.json  t0_setup_review.json             ← intraday setup scorecard
 ├─ portfolio.json                           ← single source of truth (atomic writes)
+├─ tests/                                    ← pytest: money-conservation derivations (CI-gated)
 ├─ MEMORY.md  DREAMS.md                      ← iron rules + nightly "dreaming" promotion
 ├─ memory/
 │   ├─ {date}-pre-open.md  {date}-plan.json  ← brief output + structured plan
