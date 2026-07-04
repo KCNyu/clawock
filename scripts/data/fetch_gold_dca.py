@@ -258,24 +258,32 @@ def build_london_dca(nav_history, xau_hist, usdcny_hist, xau_cur, usdcny_cur, st
     xd, xv = [d for d, _ in xs], [v for _, v in xs]
     fx = sorted(usdcny_hist.items()) if usdcny_hist else []
     fxd, fxv = [d for d, _ in fx], [v for _, v in fx]
-    oz, principal = 0.0, 0.0
+    oz, principal_cny, usd_spent = 0.0, 0.0, 0.0
     for d in dates:
         x = _xau_at(xd, xv, d)
         if not x:
             continue
         r = _xau_at(fxd, fxv, d) or usdcny_cur  # 汇率缺天 → forward-fill，再兜底当前
         oz += daily / (x * r)                    # daily 元 ÷ 每盎司人民币价 = 买到的盎司
-        principal += daily
-    if principal <= 0 or oz <= 0:
+        principal_cny += daily
+        usd_spent += daily / r                    # 当日 daily 元折算的美元（算 USD/oz 均价）
+    if principal_cny <= 0 or oz <= 0:
         return None
+    grams = oz * GRAMS_PER_OZ
     value = oz * xau_cur * usdcny_cur
+    # 平均成本：blended 买入价。USD/oz 对标现货报价，CNY/克对标人民币直觉。
+    avg_usd_oz = usd_spent / oz
     return {
-        'principal_cny': round(principal, 2),
+        'principal_cny': round(principal_cny, 2),
         'oz_held': round(oz, 4),
-        'grams_held': round(oz * GRAMS_PER_OZ, 1),
+        'grams_held': round(grams, 1),
+        'avg_cost_usd_oz': round(avg_usd_oz, 2),
+        'avg_cost_cny_g': round(principal_cny / grams, 2),
+        'spot_usd_oz': round(xau_cur, 2),
+        'breakeven_upside_pct': round((avg_usd_oz / xau_cur - 1) * 100, 2),
         'current_value_cny': round(value, 2),
-        'pnl_abs': round(value - principal, 2),
-        'pnl_pct': round((value / principal - 1) * 100, 2),
+        'pnl_abs': round(value - principal_cny, 2),
+        'pnl_pct': round((value / principal_cny - 1) * 100, 2),
         'days': len(dates),
     }
 
@@ -449,9 +457,11 @@ def main():
               f"(国际口径 ${ld.get('intl_value_usd'):,.0f})  对比线 {len(ld.get('compare_series') or [])} 点")
         de = ld.get('dca_equiv')
         if de:
-            print(f"  ↳ 同额定投伦敦金：现值 ¥{de['current_value_cny']:,.0f} "
-                  f"(投入 ¥{de['principal_cny']:,.0f}, 盈亏 {de['pnl_abs']:+,.0f} / {de['pnl_pct']:+.2f}%) "
-                  f"vs 你的基金 {g['pnl_percent']:+.2f}%")
+            print(f"  ↳ 同额定投伦敦金：平均成本 ${de['avg_cost_usd_oz']:,.2f}/oz "
+                  f"(¥{de['avg_cost_cny_g']:,.2f}/克) vs 现货 ${de['spot_usd_oz']:,.2f}/oz "
+                  f"→ 回本需涨 {de['breakeven_upside_pct']:+.2f}%")
+            print(f"     现值 ¥{de['current_value_cny']:,.0f} (投入 ¥{de['principal_cny']:,.0f}, "
+                  f"{de['pnl_pct']:+.2f}%) vs 你的基金 {g['pnl_percent']:+.2f}%")
 
     if dry:
         print('  [dry-run] 不写盘')
