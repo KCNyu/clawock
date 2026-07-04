@@ -28,5 +28,24 @@ if [ "$RC" = "1" ]; then
   exit 1
 fi
 
+# ── Money-conservation gate (2026-07-04) ─────────────────────────────────────
+# preflight_integrity's ERROR class = arithmetic identities that MUST hold:
+# TCV==Σcurrent_value, total_pnl==TCV−cost, cash==baseline+Σtrades+adj (CASH_RECON),
+# cost_basis==moving-weighted (COST_BASIS), FX currency tags. These fire exactly
+# when someone edited portfolio.json (a T+0 sell, an abshou buy) and FORGOT to
+# reconcile — the "$581 double-count" / "phantom-peak TCV" class of bug. Turning
+# the human "改完必跑 recompute" 铁律 into a structural block: never publish an
+# unreconciled book. WARN (staleness etc.) does NOT block. Override: --no-verify.
+IRC=0
+python3 "$WS/scripts/data/preflight_integrity.py" >/tmp/clawock_integrity.out 2>&1 || IRC=$?
+if [ "$IRC" = "2" ]; then
+  echo
+  echo "🚫 push blocked — portfolio.json fails a money-conservation check:"
+  grep -E 'ERROR|❌|🔴' /tmp/clawock_integrity.out | head -12
+  echo "   run:  bash scripts/data/reconcile.sh   (recompute cash + realized, re-check)"
+  echo "   then re-commit portfolio.json. Override (rare): git push --no-verify"
+  exit 1
+fi
+
 # RC=0 (all OK) or RC=2 (warnings) — allow push
 exit 0

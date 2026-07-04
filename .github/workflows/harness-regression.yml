@@ -5,6 +5,7 @@ on:
     branches: [master]
     paths:
       - 'scripts/**'
+      - 'tests/**'
       - 'portfolio.json'
       - 'memory/**-plan.json'
       - 'assets/data/dashboard.json'
@@ -25,7 +26,10 @@ jobs:
           python-version: '3.11'
 
       - name: Install minimal deps
-        run: pip install --quiet requests
+        run: pip install --quiet requests pytest
+
+      - name: Unit tests — money-integrity derivations
+        run: python3 -m pytest tests/ -q
 
       - name: Import-check all scripts
         run: |

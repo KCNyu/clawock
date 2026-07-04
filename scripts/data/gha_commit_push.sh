@@ -1,17 +1,20 @@
 #!/usr/bin/env bash
 # gha_commit_push.sh — shared commit+push for GH Action data-scan jobs
-# (macro / sentiment / influencer). Stages the job's data file(s), rebuilds
-# dashboard.json so its embedded block doesn't go stale, commits as the bot,
-# pushes via safe_push.sh — and on a lost push race, retries deterministically.
+# (macro / sentiment / influencer). Stages the job's data file(s), commits as
+# the bot, pushes via safe_push.sh — and on a lost push race, retries.
 #
-# WHY the retry (2026-06-10 macro-scan failure): the `data-write` concurrency
-# group serializes runs, but GitHub's ref replication can lag a few seconds —
-# macro checked out master at 23:04:25, missing influence's 23:04:19 push.
-# Its push was rejected, the rebase then CONFLICTED on dashboard.json (both
-# runners rebuilt the generated file), safe_push correctly refused to publish
-# a half-merge… and the day's macro.json was lost with it. A generated file
-# must never be hand-merged: stash the data files aside, hard-reset to the
-# winner, re-apply data, REBUILD dashboard on top, recommit, push again.
+# SINGLE-PUBLISHER (Option 1, 2026-07-04): GH Actions NO LONGER rebuild
+# dashboard.json. They only commit their own disjoint sidecar (macro.json /
+# sentiment.json / influencer_feed.json …). dashboard.json is rebuilt solely by
+# the host harness postflights + the flock-guarded publish_dashboard.sh crontab,
+# which re-embeds these sidecars within ≤20 min. This eliminates the entire class
+# of failures that this script used to work around:
+#   • sidecar-strip regression — GHA rebuilt dashboard on a fresh checkout with an
+#     empty memory/.tmp and published blanked-out narrative cards.
+#   • the 2026-06-10 macro-vs-influence race — two runners rebuilt the SAME
+#     generated file, safe_push refused the half-merge, and macro.json was lost.
+# With dashboard out of the commit, the only files here are per-job disjoint
+# sidecars that never content-conflict, so the push path is now trivial.
 #
 # Usage: gha_commit_push.sh "<commit message>" <data-file> [<data-file>…]
 set -euo pipefail
@@ -32,8 +35,7 @@ commit_once() {
     echo "no change"
     return 1
   fi
-  python3 scripts/data/build_dashboard.py
-  git add assets/data/dashboard.json
+  # NOTE: intentionally does NOT rebuild/stage dashboard.json — see header.
   git "${BOT_ID[@]}" commit -m "$MSG"
 }
 
@@ -43,6 +45,8 @@ if bash scripts/data/safe_push.sh; then
   exit 0
 fi
 
+# Sidecars are disjoint per job, so a push rejection here is only GitHub ref-lag,
+# never a content conflict. Re-apply this job's data on top of the winner + retry.
 echo "push lost a race — re-applying data on top of latest origin/master"
 STASH_DIR=$(mktemp -d)
 for f in "${DATA_FILES[@]}"; do

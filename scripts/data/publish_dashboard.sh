@@ -1,0 +1,70 @@
+#!/usr/bin/env bash
+# publish_dashboard.sh — the single scheduled publisher for dashboard.json
+# (Option 1, 2026-07-04). GH Action scans now commit ONLY their sidecar files
+# (macro/sentiment/influencer/…); they no longer rebuild the dashboard. This
+# crontab-run publisher re-embeds those sidecars into dashboard.json and pushes,
+# so the live page never lags the latest scan — including weekends/holidays when
+# the host harness (weekday market crons) isn't rebuilding it.
+#
+# Concurrency: holds /tmp/dashboard_publish.lock (the same lock the host harness
+# rebuild takes, see _harness_common.DASHBOARD_PUBLISH_LOCK) for the WHOLE
+# build→commit→push critical section, so a host cron and this publisher can never
+# race on the generated file. `flock -n` → if a build is already in flight, skip
+# this tick rather than pile up.
+#
+# Commits as the bot via per-invocation `-c` (never persistent git config, which
+# would clobber kcn's interactive KCNyu identity — see feedback-commit-identity-kcnyu).
+set -euo pipefail
+
+WS="/root/.openclaw/workspace"
+LOCK="/tmp/dashboard_publish.lock"
+cd "$WS"
+
+BOT_ID=(-c "user.name=github-actions[bot]"
+        -c "user.email=41898282+github-actions[bot]@users.noreply.github.com")
+
+# Take the lock on fd 9 for the whole critical section (released on exit). -n:
+# if the host harness is mid-rebuild, skip this tick rather than pile up.
+exec 9>"$LOCK"
+if ! flock -n 9; then
+  echo "publish_dashboard: another build holds the lock — skipping this tick"
+  exit 0
+fi
+
+# Fetch first so we build on top of the latest sidecars other writers pushed.
+git fetch -q origin master || true
+git merge -q --ff-only origin/master 2>/dev/null || true
+
+python3 scripts/data/build_dashboard.py
+
+# Only publish on a SEMANTIC change. build_dashboard always bumps the wall-clock
+# generated_at stamps, so a byte diff is always non-empty — committing on that
+# would spam ~72 no-op commits/day. Compare to the committed copy with every
+# generated_at stripped (same recursive rule the weekly-health idempotency check
+# uses); if nothing real changed, discard the rebuild and stop.
+if python3 - <<'PY'
+import json, subprocess, sys
+def strip(o):
+    if isinstance(o, dict):
+        o.pop('generated_at', None)
+        for v in o.values(): strip(v)
+    elif isinstance(o, list):
+        for v in o: strip(v)
+    return o
+new = strip(json.load(open('assets/data/dashboard.json')))
+try:
+    old = strip(json.loads(subprocess.check_output(
+        ['git', 'show', 'HEAD:assets/data/dashboard.json'])))
+except Exception:
+    old = None
+sys.exit(0 if new == old else 1)   # exit 0 == unchanged
+PY
+then
+  echo "publish_dashboard: no semantic change"
+  git checkout -- assets/data/dashboard.json
+  exit 0
+fi
+
+git add assets/data/dashboard.json
+git "${BOT_ID[@]}" commit -q -m "dashboard: scheduled publish $(date -u +%Y-%m-%dT%H:%MZ)"
+bash scripts/data/safe_push.sh

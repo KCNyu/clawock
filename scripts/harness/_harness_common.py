@@ -16,6 +16,11 @@ from pathlib import Path
 # hardcoded /root path locally, but correct on a runner too. (2026-05-30)
 WS = Path(__file__).resolve().parents[2]
 
+# Single-publisher mutex for dashboard.json (Option 1, 2026-07-04). Shared by the
+# host harness rebuild and the weekend publish_dashboard.sh crontab so the two
+# never build/write the generated file concurrently.
+DASHBOARD_PUBLISH_LOCK = '/tmp/dashboard_publish.lock'
+
 # Where rebuild_dashboard records its last outcome so the daily cron health
 # check can surface silent build failures / degradations (kcn doesn't want
 # per-cron alerts — see feedback_no_individual_cron_alerts).
@@ -203,8 +208,14 @@ def rebuild_dashboard(ws=None):
     refresh_today_snapshot(ws)
     sync_gha_data_files(ws)
     try:
+        # Single-publisher lock (2026-07-04): dashboard.json now has exactly two
+        # writer categories — the host harness (here) and the weekend
+        # publish_dashboard.sh crontab. GH Actions no longer rebuild it at all
+        # (see gha_commit_push.sh). flock serializes the build so a host run and
+        # the publisher can't interleave writes to the same generated file.
         r = subprocess.run(
-            ['python3', str(ws / 'scripts' / 'data' / 'build_dashboard.py')],
+            ['flock', DASHBOARD_PUBLISH_LOCK,
+             'python3', str(ws / 'scripts' / 'data' / 'build_dashboard.py')],
             capture_output=True, text=True, timeout=30, cwd=str(ws),
         )
         ok = r.returncode == 0
