@@ -107,12 +107,20 @@ jobs:
           cp assets/data/dashboard.json /tmp/dash1.json
           sleep 1
           python3 scripts/data/build_dashboard.py
-          # Only `generated_at` should differ between two consecutive runs
+          # Only wall-clock `generated_at` stamps should differ between two runs.
+          # These live at the top level AND nested (e.g. build_status.generated_at,
+          # added with the health card) — strip every `generated_at` recursively.
           python3 -c "
           import json
-          a = json.load(open('/tmp/dash1.json'))
-          b = json.load(open('assets/data/dashboard.json'))
-          a.pop('generated_at', None); b.pop('generated_at', None)
+          def strip(o):
+              if isinstance(o, dict):
+                  o.pop('generated_at', None)
+                  for v in o.values(): strip(v)
+              elif isinstance(o, list):
+                  for v in o: strip(v)
+              return o
+          a = strip(json.load(open('/tmp/dash1.json')))
+          b = strip(json.load(open('assets/data/dashboard.json')))
           assert a == b, 'dashboard build is non-deterministic'
           print('dashboard build deterministic ✓')
           "
