@@ -37,16 +37,19 @@ git merge -q --ff-only origin/master 2>/dev/null || true
 
 python3 scripts/data/build_dashboard.py
 
-# Only publish on a SEMANTIC change. build_dashboard always bumps the wall-clock
-# generated_at stamps, so a byte diff is always non-empty — committing on that
-# would spam ~72 no-op commits/day. Compare to the committed copy with every
-# generated_at stripped (same recursive rule the weekly-health idempotency check
-# uses); if nothing real changed, discard the rebuild and stop.
+# Only publish on a SEMANTIC change. build_dashboard bumps wall-clock fields on
+# every run — generated_at, and the freshness block's age_hours / days_behind
+# tick every few minutes with no real data change — so a byte diff (or even a
+# generated_at-only strip) is always non-empty and would spam no-op commits every
+# tick. Strip ALL clock fields recursively and compare; meaningful state (stale
+# booleans, stale_files, prices, cards) still triggers a publish. If nothing real
+# changed, discard the rebuild and stop.
 if python3 - <<'PY'
 import json, subprocess, sys
+CLOCK = {'generated_at', 'age_hours', 'days_behind'}
 def strip(o):
     if isinstance(o, dict):
-        o.pop('generated_at', None)
+        for k in CLOCK: o.pop(k, None)
         for v in o.values(): strip(v)
     elif isinstance(o, list):
         for v in o: strip(v)
