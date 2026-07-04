@@ -2281,6 +2281,21 @@ layout: null
       const res = await fetch(url, { cache: triggeredByUser ? "no-store" : "no-cache" });
       if (!res.ok) throw new Error("HTTP " + res.status);
       const json = await res.json();
+      // Option 2 decouple (2026-07-04): the GH-Action scan sidecars are no longer
+      // embedded server-side into dashboard.json — fetch them directly here so a
+      // scan shows up the instant its bot commit lands, with no dashboard rebuild.
+      // Parallel + failure-tolerant: a missing/parse-failed sidecar renders as
+      // absent (same `null` contract the old build_dashboard _embed used). Each is
+      // a separate conditional GET → 304 headers-only when unchanged.
+      const SIDECARS = ["macro", "sentiment", "influencer_feed", "us_news_digest", "em_news"];
+      const _cache = triggeredByUser ? "no-store" : "no-cache";
+      const _bust = triggeredByUser ? "?t=" + Date.now() : "";
+      await Promise.all(SIDECARS.map(async (k) => {
+        try {
+          const r = await fetch("assets/data/" + k + ".json" + _bust, { cache: _cache });
+          json[k] = r.ok ? await r.json() : null;
+        } catch (_e) { json[k] = null; }
+      }));
       const newAt = json.generated_at;
       const hasNew = newAt && newAt !== LAST_LOADED_AT;
       DATA = json;

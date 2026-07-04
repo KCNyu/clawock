@@ -2277,23 +2277,27 @@ def main():
                 }
     except Exception as e:
         print(f'  warn: benchmark staleness calc failed: {e}', file=sys.stderr)
-    _embed('us_news_digest', 'us_news_digest.json')    # GH Action news-digest.yml (xiaomi)
-    _embed('sentiment', 'sentiment.json')              # GH Action sentiment-scan.yml
-    _embed('macro', 'macro.json')                      # GH Action macro-scan.yml
-    _embed('influencer_feed', 'influencer_feed.json')  # GH Action influencer-scan.yml (Trump/Musk/Serenity)
-    _embed('em_news', 'em_news.json')                  # Eastmoney 中文消息源 (brief preflight fetch_em_news)
+    # Option 2 decouple (2026-07-04): the GH-Action / scan sidecars (macro,
+    # sentiment, influencer_feed, us_news_digest, em_news) are NO LONGER embedded
+    # here — index.html fetches them directly. This makes dashboard.json carry only
+    # portfolio-derived data, so a scan's bot commit reaches the page immediately
+    # without any dashboard rebuild (true disjoint writers, the endgame Option 1
+    # started). Their freshness is still monitored via _FRESHNESS_SLA_H below (that
+    # check reads the files from disk, not from `out`).
 
-    # Regime badge: reuse the brief's classifier on the embedded macro so the dashboard
-    # shows the same risk_on/neutral/risk_off the brief acts on (2026-05-30). Defensive
-    # import — never break the build if the harness module is unavailable.
+    # Regime badge stays in dashboard.json (the brief acts on it): read macro.json
+    # directly to classify, without embedding the full macro payload. Defensive —
+    # never break the build if the file or harness module is unavailable.
     out['regime'] = None
     try:
-        if out.get('macro'):
+        _macro_path = WS_ROOT / 'assets' / 'data' / 'macro.json'
+        _macro = json.loads(_macro_path.read_text()) if _macro_path.exists() else None
+        if _macro:
             _harness = WS_ROOT / 'scripts' / 'harness'
             if str(_harness) not in sys.path:
                 sys.path.insert(0, str(_harness))
             from brief_preflight import _classify_regime
-            out['regime'] = _classify_regime(out['macro'])
+            out['regime'] = _classify_regime(_macro)
     except Exception as e:
         print(f'  warn: regime classify failed: {e}', file=sys.stderr)
 
