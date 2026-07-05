@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-05T13:20:02.168255Z",
+  "generated_at": "2026-07-05T16:00:03.063490Z",
   "last_updated": "2026/07/03 16:01 HKT",
   "fx": {
     "usdhkd": 7.844,
@@ -5007,7 +5007,7 @@
     },
     "staleness": {
       "last_date": "2026-07-02",
-      "days_behind": 3,
+      "days_behind": 4,
       "is_stale": false
     }
   },
@@ -6105,7 +6105,7 @@
     }
   },
   "build_status": {
-    "generated_at": "2026-07-05T21:20:02+08:00",
+    "generated_at": "2026-07-06T00:00:03+08:00",
     "healthy": false,
     "stale_files": [
       "portfolio.json",
@@ -6123,84 +6123,84 @@
     "files": [
       {
         "name": "portfolio.json",
-        "age_hours": 29.2,
+        "age_hours": 31.8,
         "sla_hours": 26,
         "stale": true,
         "present": true
       },
       {
         "name": "benchmark.json",
-        "age_hours": 61.1,
+        "age_hours": 63.7,
         "sla_hours": 80,
         "stale": false,
         "present": true
       },
       {
         "name": "catalysts.json",
-        "age_hours": 61.1,
+        "age_hours": 63.7,
         "sla_hours": 30,
         "stale": true,
         "present": true
       },
       {
         "name": "em_news.json",
-        "age_hours": 30.3,
+        "age_hours": 33.0,
         "sla_hours": 30,
         "stale": true,
         "present": true
       },
       {
         "name": "influencer_feed.json",
-        "age_hours": 45.5,
+        "age_hours": 48.2,
         "sla_hours": 30,
         "stale": true,
         "present": true
       },
       {
         "name": "lev_regime.json",
-        "age_hours": 61.1,
+        "age_hours": 63.7,
         "sla_hours": 30,
         "stale": true,
         "present": true
       },
       {
         "name": "macro.json",
-        "age_hours": 61.1,
+        "age_hours": 63.7,
         "sla_hours": 30,
         "stale": true,
         "present": true
       },
       {
         "name": "quant_signal_review.json",
-        "age_hours": 61.1,
+        "age_hours": 63.7,
         "sla_hours": 30,
         "stale": true,
         "present": true
       },
       {
         "name": "quant_signals.json",
-        "age_hours": 61.1,
+        "age_hours": 63.7,
         "sla_hours": 30,
         "stale": true,
         "present": true
       },
       {
         "name": "risk.json",
-        "age_hours": 61.1,
+        "age_hours": 63.7,
         "sla_hours": 30,
         "stale": true,
         "present": true
       },
       {
         "name": "sentiment.json",
-        "age_hours": 61.1,
+        "age_hours": 63.7,
         "sla_hours": 30,
         "stale": true,
         "present": true
       },
       {
         "name": "us_news_digest.json",
-        "age_hours": 45.5,
+        "age_hours": 48.2,
         "sla_hours": 30,
         "stale": true,
         "present": true
@@ -6213,14 +6213,45 @@
       },
       "hk": {
         "last_updated": "2026/06/18 16:00 HKT (close; Jun 19 休市)",
-        "closed_today": true
+        "closed_today": false
       }
     },
     "integrity": {
       "ok": true,
       "error_count": 0,
-      "warn_count": 0,
-      "top": []
+      "warn_count": 6,
+      "top": [
+        {
+          "code": "STALENESS",
+          "level": "WARN",
+          "msg": "CRCL data_source 日期 2026-07-02 早于上一交易日 2026-07-06；可能 stale 价当新 session"
+        },
+        {
+          "code": "STALENESS",
+          "level": "WARN",
+          "msg": "PLTU data_source 日期 2026-07-02 早于上一交易日 2026-07-06；可能 stale 价当新 session"
+        },
+        {
+          "code": "STALENESS",
+          "level": "WARN",
+          "msg": "RKLX data_source 日期 2026-07-02 早于上一交易日 2026-07-06；可能 stale 价当新 session"
+        },
+        {
+          "code": "STALENESS",
+          "level": "WARN",
+          "msg": "ROBN data_source 日期 2026-07-02 早于上一交易日 2026-07-06；可能 stale 价当新 session"
+        },
+        {
+          "code": "STALENESS",
+          "level": "WARN",
+          "msg": "SPCH data_source 日期 2026-07-02 早于上一交易日 2026-07-06；可能 stale 价当新 session"
+        },
+        {
+          "code": "STALENESS",
+          "level": "WARN",
+          "msg": "MSFU data_source 日期 2026-07-02 早于上一交易日 2026-07-06；可能 stale 价当新 session"
+        }
+      ]
     }
   }
 }
