@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-05T16:00:03.063490Z",
+  "generated_at": "2026-07-05T22:40:02.469445Z",
   "last_updated": "2026/07/03 16:01 HKT",
   "fx": {
     "usdhkd": 7.844,
@@ -5015,7 +5015,7 @@
     "label": "neutral",
     "score": 0,
     "reasons": [
-      "F&G 31 fear",
+      "F&G 32 fear",
       "VIX 16 calm"
     ]
   },
@@ -6105,102 +6105,99 @@
     }
   },
   "build_status": {
-    "generated_at": "2026-07-06T00:00:03+08:00",
+    "generated_at": "2026-07-06T06:40:02+08:00",
     "healthy": false,
     "stale_files": [
       "portfolio.json",
       "catalysts.json",
       "em_news.json",
-      "influencer_feed.json",
       "lev_regime.json",
-      "macro.json",
       "quant_signal_review.json",
       "quant_signals.json",
       "risk.json",
-      "sentiment.json",
       "us_news_digest.json"
     ],
     "files": [
       {
         "name": "portfolio.json",
-        "age_hours": 31.8,
+        "age_hours": 38.5,
         "sla_hours": 26,
         "stale": true,
         "present": true
       },
       {
         "name": "benchmark.json",
-        "age_hours": 63.7,
+        "age_hours": 70.4,
         "sla_hours": 80,
         "stale": false,
         "present": true
       },
       {
         "name": "catalysts.json",
-        "age_hours": 63.7,
+        "age_hours": 70.4,
         "sla_hours": 30,
         "stale": true,
         "present": true
       },
       {
         "name": "em_news.json",
-        "age_hours": 33.0,
+        "age_hours": 39.6,
         "sla_hours": 30,
         "stale": true,
         "present": true
       },
       {
         "name": "influencer_feed.json",
-        "age_hours": 48.2,
+        "age_hours": 0.0,
         "sla_hours": 30,
-        "stale": true,
+        "stale": false,
         "present": true
       },
       {
         "name": "lev_regime.json",
-        "age_hours": 63.7,
+        "age_hours": 70.4,
         "sla_hours": 30,
         "stale": true,
         "present": true
       },
       {
         "name": "macro.json",
-        "age_hours": 63.7,
+        "age_hours": 0.0,
         "sla_hours": 30,
-        "stale": true,
+        "stale": false,
         "present": true
       },
       {
         "name": "quant_signal_review.json",
-        "age_hours": 63.7,
+        "age_hours": 70.4,
         "sla_hours": 30,
         "stale": true,
         "present": true
       },
       {
         "name": "quant_signals.json",
-        "age_hours": 63.7,
+        "age_hours": 70.4,
         "sla_hours": 30,
         "stale": true,
         "present": true
       },
       {
         "name": "risk.json",
-        "age_hours": 63.7,
+        "age_hours": 70.4,
         "sla_hours": 30,
         "stale": true,
         "present": true
       },
       {
         "name": "sentiment.json",
-        "age_hours": 63.7,
+        "age_hours": 0.0,
         "sla_hours": 30,
-        "stale": true,
+        "stale": false,
         "present": true
       },
       {
         "name": "us_news_digest.json",
-        "age_hours": 48.2,
+        "age_hours": 54.8,
         "sla_hours": 30,
         "stale": true,
         "present": true
