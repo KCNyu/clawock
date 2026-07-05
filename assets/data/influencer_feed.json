@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-03T14:59:17.356107+00:00",
+  "generated_at": "2026-07-05T22:34:33.835059+00:00",
   "lookback_hours": 48,
   "sources": {
     "trump": "trumpstruth.org/feed (primary)",
@@ -8,97 +8,34 @@
   },
   "llm_filtered": true,
   "counts": {
-    "total": 11,
+    "total": 5,
     "held_hits": 0,
-    "new_ideas": 3,
-    "sector_hits": 6
+    "new_ideas": 1,
+    "sector_hits": 4
   },
   "items": [
     {
-      "author": "Trump",
-      "text": "BIG NEWS! Micron, a truly GREAT American Company, and one of the “HOTTEST” anywhere in the World, has announced a HISTORIC $250 MILLION Investment in TRUMP ACCOUNTS. This incredible gesture, made by Micron’s fantastic CEO, Sanjay Mehrotra, will make many children extremely happy some day in the not too distant future. This is the BIGGEST CORPORATE Investment of its kind, and will help jumpstart the American Dream for these fabulous children as we celebrate America's 250th Anniversary! This MASSIVE Investment will help MILLIONS of American children and families get a strong start in life, and g",
-      "url": "https://trumpstruth.org/statuses/39656",
-      "published": "2026-07-01T16:19:16+00:00",
-      "origin": "truthsocial",
-      "tickers": [
-        "MU"
-      ],
-      "held": [],
-      "new_ideas": [
-        "MU"
-      ],
-      "sectors": [
-        "半导体"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 82,
-      "summary_cn": "Trump再次高调宣传Micron 2.5亿美元投资Trump Accounts，称其为'最热'美国公司之一，强烈背书。"
-    },
-    {
-      "author": "Trump",
-      "text": "How about this? Micron, a GREAT American Company, announced that they are putting in 250 Million Dollars into the Trump Accounts for the future benefit of children, and their stock went up 9 points today. Thank you Micron! President DJT",
-      "url": "https://trumpstruth.org/statuses/39667",
-      "published": "2026-07-02T13:23:28+00:00",
-      "origin": "truthsocial",
-      "tickers": [
-        "MU"
-      ],
-      "held": [],
-      "new_ideas": [
-        "MU"
-      ],
-      "sectors": [
-        "半导体"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 78,
-      "summary_cn": "Trump公开表扬Micron投资2.5亿美元于Trump Accounts，提及股价当日上涨9点，看好美国半导体公司。"
-    },
-    {
       "author": "Musk",
-      "text": "Elon Musk outlines Tesla Optimus production expectations",
+      "text": "California vs. Elon Musk: Tesla Snubbed as New EV Incentives Boost Rivian, Lucid",
       "url": "",
-      "published": "Fri, 03 Jul 2026 13:00:16 GMT",
-      "origin": "gnews-rss",
-      "source": "Teslarati",
-      "tickers": [
-        "TSLA"
-      ],
-      "held": [],
-      "new_ideas": [
-        "TSLA"
-      ],
-      "sectors": [
-        "AI",
-        "电动车",
-        "机器人"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 68,
-      "summary_cn": "Musk阐述Tesla Optimus人形机器人量产预期，看好AI/机器人赛道。"
-    },
-    {
-      "author": "Musk",
-      "text": "SpaceX Price Drop: Can the Elon Musk IPO Set You Up for Life?",
-      "url": "",
-      "published": "Tue, 30 Jun 2026 11:50:00 GMT",
+      "published": "Sun, 05 Jul 2026 13:31:01 GMT",
       "origin": "gnews-rss",
       "source": "Yahoo Finance",
-      "tickers": [],
+      "tickers": [
+        "TSLA"
+      ],
       "held": [],
-      "new_ideas": [],
+      "new_ideas": [
+        "TSLA"
+      ],
       "sectors": [
-        "航天"
+        "电动车",
+        "新能源"
       ],
-      "sector_holdings": [
-        "SPCH"
-      ],
-      "stance": "neutral",
-      "relevance": 60,
-      "summary_cn": "SpaceX估值/IPO讨论及潜在股价下跌，SPCH(2倍做多SpaceX ETF)直接受SpaceX估值波动影响。"
+      "sector_holdings": [],
+      "stance": "attack",
+      "relevance": 50,
+      "summary_cn": "Musk 相关：加州新电动车激励政策偏向 Rivian、Lucid 而非 Tesla，对 TSLA 偏负面，但与 kcn 持仓无直接交集。"
     },
     {
       "author": "Musk",
@@ -111,63 +48,15 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "航天"
+        "航天",
+        "马斯克生态"
       ],
       "sector_holdings": [
         "SPCH"
       ],
       "stance": "attack",
-      "relevance": 58,
-      "summary_cn": "SpaceX股价下跌使Musk身家缩水，退出万亿富翁行列——对SpaceX估值偏空信号，影响SPCH。"
-    },
-    {
-      "author": "Musk",
-      "text": "Exclusive | SpaceX Showed Investors Prototype of Elon Musk’s New AI Device",
-      "url": "",
-      "published": "Wed, 01 Jul 2026 18:11:00 GMT",
-      "origin": "gnews-rss",
-      "source": "WSJ",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "AI",
-        "航天"
-      ],
-      "sector_holdings": [
-        "SPCH"
-      ],
-      "stance": "neutral",
-      "relevance": 55,
-      "summary_cn": "SpaceX向投资者展示Musk新AI设备原型，AI+航天交叉领域进展，与SPCH间接相关。"
-    },
-    {
-      "author": "Trump",
-      "text": "S&P 500 closes with strongest quarter since 2020: https://justthenews.com/politics-policy/finance/sp-500-closes-strongest-quarter-2020",
-      "url": "https://trumpstruth.org/statuses/39662",
-      "published": "2026-07-02T01:59:19+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "宏观经济"
-      ],
-      "sector_holdings": [
-        "00100",
-        "02208",
-        "03032",
-        "03033",
-        "07226",
-        "MSFU",
-        "PLTU",
-        "RKLX",
-        "ROBN",
-        "SPCH"
-      ],
-      "stance": "endorse",
-      "relevance": 55,
-      "summary_cn": "Trump转发标普500创2020年以来最强季度——宏观多头信号，整体利好kcn持有的ETF/杠杆产品。"
+      "relevance": 65,
+      "summary_cn": "Musk 相关：SpaceX 估值下跌致 Musk 身价缩水，间接利空 kcn 持有的 SpaceX 2x 杠杆 ETF SPCH。"
     },
     {
       "author": "Musk",
@@ -180,122 +69,69 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "航天"
+        "航天",
+        "私募股权"
       ],
       "sector_holdings": [
         "SPCH"
       ],
       "stance": "neutral",
-      "relevance": 52,
-      "summary_cn": "Musk一年内不得出售SpaceX股份，锁定期结束后股份将集中解锁——SpaceX未上市但与持仓SPCH(2倍做多SpaceX ETF)相关。"
+      "relevance": 60,
+      "summary_cn": "Musk 相关：SpaceX 股票面临一年锁定期满后集中解禁压力，可能影响 SPCH 净值，二级间接信号。"
     },
     {
       "author": "Musk",
-      "text": "Trump says he expects Musk to donate SpaceX stock to Trump Accounts, despite their 'little dispute'",
+      "text": "SpaceX to rocket up list of largest local employers",
       "url": "",
-      "published": "Fri, 03 Jul 2026 12:57:45 GMT",
+      "published": "Sun, 05 Jul 2026 15:48:00 GMT",
       "origin": "gnews-rss",
-      "source": "Business Insider",
+      "source": "The Business Journals",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "航天"
+        "航天",
+        "就业"
+      ],
+      "sector_holdings": [
+        "SPCH"
+      ],
+      "stance": "endorse",
+      "relevance": 55,
+      "summary_cn": "Musk 相关：SpaceX 即将成为当地最大雇主之一，间接正面信号利好 SPCH。"
+    },
+    {
+      "author": "Musk",
+      "text": "SpaceX’s Telecom Dreams",
+      "url": "",
+      "published": "Sun, 05 Jul 2026 11:37:00 GMT",
+      "origin": "gnews-rss",
+      "source": "WSJ",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "通信",
+        "卫星互联网"
       ],
       "sector_holdings": [
         "SPCH"
       ],
       "stance": "neutral",
-      "relevance": 50,
-      "summary_cn": "Trump表示预期Musk捐赠SpaceX股票给Trump Accounts，提及二人'小分歧'——SpaceX相关动态，与SPCH间接相关。"
-    },
-    {
-      "author": "Trump",
-      "text": "Just as I promised, Oil Prices are plummeting FAST, and Gas Prices at the pump are dropping too, but not as fast as they should be. As we approach America’s 250th Birthday, I am pleased to announce that a VERY smart Retailer, located throughout the Northeast, is stepping up, and wishing the People of Philadelphia a “Happy Birthday!” On July 3rd, the Freedom Fuel Network will be lowering gas prices at 25 “FREEDOM FUEL” Stations across the Greater Philadelphia Area. This Retailer is taking the lead, and others should follow. They are doing this because they love the U.S.A. We are proud to celebr",
-      "url": "https://trumpstruth.org/statuses/39658",
-      "published": "2026-07-01T23:53:49+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "能源",
-        "石油"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
       "relevance": 55,
-      "summary_cn": "Trump宣称油价快速下跌，并宣传费城地区零售商在7月3日下调油价，气价/油价相关宏观信号。"
-    },
-    {
-      "author": "Trump",
-      "text": "Hegseth: We must spend big on defense to save America’s economic might: https://nypost.com/2026/06/23/opinion/hegseth-we-must-spend-big-on-defense-to-save-americas-economic-might/",
-      "url": "https://trumpstruth.org/statuses/39659",
-      "published": "2026-07-02T00:51:44+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "国防"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 50,
-      "summary_cn": "Hegseth主张大幅增加国防开支以维护美国经济实力——国防板块利好宏观信号。"
+      "summary_cn": "Musk 相关：SpaceX 电信业务（卫星互联网/星链）报道，间接利好 kcn 持有的 SpaceX 2x 杠杆 ETF SPCH。"
     }
   ],
   "held_hits": [],
   "new_ideas": [
     {
-      "author": "Trump",
-      "text": "BIG NEWS! Micron, a truly GREAT American Company, and one of the “HOTTEST” anywhere in the World, has announced a HISTORIC $250 MILLION Investment in TRUMP ACCOUNTS. This incredible gesture, made by Micron’s fantastic CEO, Sanjay Mehrotra, will make many children extremely happy some day in the not too distant future. This is the BIGGEST CORPORATE Investment of its kind, and will help jumpstart the American Dream for these fabulous children as we celebrate America's 250th Anniversary! This MASSIVE Investment will help MILLIONS of American children and families get a strong start in life, and g",
-      "url": "https://trumpstruth.org/statuses/39656",
-      "published": "2026-07-01T16:19:16+00:00",
-      "origin": "truthsocial",
-      "tickers": [
-        "MU"
-      ],
-      "held": [],
-      "new_ideas": [
-        "MU"
-      ],
-      "sectors": [
-        "半导体"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 82,
-      "summary_cn": "Trump再次高调宣传Micron 2.5亿美元投资Trump Accounts，称其为'最热'美国公司之一，强烈背书。"
-    },
-    {
-      "author": "Trump",
-      "text": "How about this? Micron, a GREAT American Company, announced that they are putting in 250 Million Dollars into the Trump Accounts for the future benefit of children, and their stock went up 9 points today. Thank you Micron! President DJT",
-      "url": "https://trumpstruth.org/statuses/39667",
-      "published": "2026-07-02T13:23:28+00:00",
-      "origin": "truthsocial",
-      "tickers": [
-        "MU"
-      ],
-      "held": [],
-      "new_ideas": [
-        "MU"
-      ],
-      "sectors": [
-        "半导体"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 78,
-      "summary_cn": "Trump公开表扬Micron投资2.5亿美元于Trump Accounts，提及股价当日上涨9点，看好美国半导体公司。"
-    },
-    {
       "author": "Musk",
-      "text": "Elon Musk outlines Tesla Optimus production expectations",
+      "text": "California vs. Elon Musk: Tesla Snubbed as New EV Incentives Boost Rivian, Lucid",
       "url": "",
-      "published": "Fri, 03 Jul 2026 13:00:16 GMT",
+      "published": "Sun, 05 Jul 2026 13:31:01 GMT",
       "origin": "gnews-rss",
-      "source": "Teslarati",
+      "source": "Yahoo Finance",
       "tickers": [
         "TSLA"
       ],
@@ -304,37 +140,16 @@
         "TSLA"
       ],
       "sectors": [
-        "AI",
         "电动车",
-        "机器人"
+        "新能源"
       ],
       "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 68,
-      "summary_cn": "Musk阐述Tesla Optimus人形机器人量产预期，看好AI/机器人赛道。"
+      "stance": "attack",
+      "relevance": 50,
+      "summary_cn": "Musk 相关：加州新电动车激励政策偏向 Rivian、Lucid 而非 Tesla，对 TSLA 偏负面，但与 kcn 持仓无直接交集。"
     }
   ],
   "sector_hits": [
-    {
-      "author": "Musk",
-      "text": "SpaceX Price Drop: Can the Elon Musk IPO Set You Up for Life?",
-      "url": "",
-      "published": "Tue, 30 Jun 2026 11:50:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Yahoo Finance",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天"
-      ],
-      "sector_holdings": [
-        "SPCH"
-      ],
-      "stance": "neutral",
-      "relevance": 60,
-      "summary_cn": "SpaceX估值/IPO讨论及潜在股价下跌，SPCH(2倍做多SpaceX ETF)直接受SpaceX估值波动影响。"
-    },
     {
       "author": "Musk",
       "text": "Elon Musk No Longer A Trillionaire As SpaceX Stock Falls",
@@ -346,63 +161,15 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "航天"
+        "航天",
+        "马斯克生态"
       ],
       "sector_holdings": [
         "SPCH"
       ],
       "stance": "attack",
-      "relevance": 58,
-      "summary_cn": "SpaceX股价下跌使Musk身家缩水，退出万亿富翁行列——对SpaceX估值偏空信号，影响SPCH。"
-    },
-    {
-      "author": "Musk",
-      "text": "Exclusive | SpaceX Showed Investors Prototype of Elon Musk’s New AI Device",
-      "url": "",
-      "published": "Wed, 01 Jul 2026 18:11:00 GMT",
-      "origin": "gnews-rss",
-      "source": "WSJ",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "AI",
-        "航天"
-      ],
-      "sector_holdings": [
-        "SPCH"
-      ],
-      "stance": "neutral",
-      "relevance": 55,
-      "summary_cn": "SpaceX向投资者展示Musk新AI设备原型，AI+航天交叉领域进展，与SPCH间接相关。"
-    },
-    {
-      "author": "Trump",
-      "text": "S&P 500 closes with strongest quarter since 2020: https://justthenews.com/politics-policy/finance/sp-500-closes-strongest-quarter-2020",
-      "url": "https://trumpstruth.org/statuses/39662",
-      "published": "2026-07-02T01:59:19+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "宏观经济"
-      ],
-      "sector_holdings": [
-        "00100",
-        "02208",
-        "03032",
-        "03033",
-        "07226",
-        "MSFU",
-        "PLTU",
-        "RKLX",
-        "ROBN",
-        "SPCH"
-      ],
-      "stance": "endorse",
-      "relevance": 55,
-      "summary_cn": "Trump转发标普500创2020年以来最强季度——宏观多头信号，整体利好kcn持有的ETF/杠杆产品。"
+      "relevance": 65,
+      "summary_cn": "Musk 相关：SpaceX 估值下跌致 Musk 身价缩水，间接利空 kcn 持有的 SpaceX 2x 杠杆 ETF SPCH。"
     },
     {
       "author": "Musk",
@@ -415,34 +182,58 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "航天"
+        "航天",
+        "私募股权"
       ],
       "sector_holdings": [
         "SPCH"
       ],
       "stance": "neutral",
-      "relevance": 52,
-      "summary_cn": "Musk一年内不得出售SpaceX股份，锁定期结束后股份将集中解锁——SpaceX未上市但与持仓SPCH(2倍做多SpaceX ETF)相关。"
+      "relevance": 60,
+      "summary_cn": "Musk 相关：SpaceX 股票面临一年锁定期满后集中解禁压力，可能影响 SPCH 净值，二级间接信号。"
     },
     {
       "author": "Musk",
-      "text": "Trump says he expects Musk to donate SpaceX stock to Trump Accounts, despite their 'little dispute'",
+      "text": "SpaceX to rocket up list of largest local employers",
       "url": "",
-      "published": "Fri, 03 Jul 2026 12:57:45 GMT",
+      "published": "Sun, 05 Jul 2026 15:48:00 GMT",
       "origin": "gnews-rss",
-      "source": "Business Insider",
+      "source": "The Business Journals",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "航天"
+        "航天",
+        "就业"
+      ],
+      "sector_holdings": [
+        "SPCH"
+      ],
+      "stance": "endorse",
+      "relevance": 55,
+      "summary_cn": "Musk 相关：SpaceX 即将成为当地最大雇主之一，间接正面信号利好 SPCH。"
+    },
+    {
+      "author": "Musk",
+      "text": "SpaceX’s Telecom Dreams",
+      "url": "",
+      "published": "Sun, 05 Jul 2026 11:37:00 GMT",
+      "origin": "gnews-rss",
+      "source": "WSJ",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "通信",
+        "卫星互联网"
       ],
       "sector_holdings": [
         "SPCH"
       ],
       "stance": "neutral",
-      "relevance": 50,
-      "summary_cn": "Trump表示预期Musk捐赠SpaceX股票给Trump Accounts，提及二人'小分歧'——SpaceX相关动态，与SPCH间接相关。"
+      "relevance": 55,
+      "summary_cn": "Musk 相关：SpaceX 电信业务（卫星互联网/星链）报道，间接利好 kcn 持有的 SpaceX 2x 杠杆 ETF SPCH。"
     }
   ]
 }
