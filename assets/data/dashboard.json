@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-04T22:00:04.203046Z",
+  "generated_at": "2026-07-05T10:20:01.737600Z",
   "last_updated": "2026/07/03 16:01 HKT",
   "fx": {
     "usdhkd": 7.844,
@@ -6105,9 +6105,10 @@
     }
   },
   "build_status": {
-    "generated_at": "2026-07-05T06:00:04+08:00",
+    "generated_at": "2026-07-05T18:20:01+08:00",
     "healthy": false,
     "stale_files": [
+      "portfolio.json",
       "catalysts.json",
       "influencer_feed.json",
       "lev_regime.json",
@@ -6121,84 +6122,84 @@
     "files": [
       {
         "name": "portfolio.json",
-        "age_hours": 13.8,
+        "age_hours": 26.2,
         "sla_hours": 26,
-        "stale": false,
+        "stale": true,
         "present": true
       },
       {
         "name": "benchmark.json",
-        "age_hours": 45.7,
+        "age_hours": 58.1,
         "sla_hours": 80,
         "stale": false,
         "present": true
       },
       {
         "name": "catalysts.json",
-        "age_hours": 45.7,
+        "age_hours": 58.1,
         "sla_hours": 30,
         "stale": true,
         "present": true
       },
       {
         "name": "em_news.json",
-        "age_hours": 15.0,
+        "age_hours": 27.3,
         "sla_hours": 30,
         "stale": false,
         "present": true
       },
       {
         "name": "influencer_feed.json",
-        "age_hours": 30.2,
+        "age_hours": 42.5,
         "sla_hours": 30,
         "stale": true,
         "present": true
       },
       {
         "name": "lev_regime.json",
-        "age_hours": 45.7,
+        "age_hours": 58.1,
         "sla_hours": 30,
         "stale": true,
         "present": true
       },
       {
         "name": "macro.json",
-        "age_hours": 45.7,
+        "age_hours": 58.1,
         "sla_hours": 30,
         "stale": true,
         "present": true
       },
       {
         "name": "quant_signal_review.json",
-        "age_hours": 45.7,
+        "age_hours": 58.1,
         "sla_hours": 30,
         "stale": true,
         "present": true
       },
       {
         "name": "quant_signals.json",
-        "age_hours": 45.7,
+        "age_hours": 58.1,
         "sla_hours": 30,
         "stale": true,
         "present": true
       },
       {
         "name": "risk.json",
-        "age_hours": 45.7,
+        "age_hours": 58.1,
         "sla_hours": 30,
         "stale": true,
         "present": true
       },
       {
         "name": "sentiment.json",
-        "age_hours": 45.7,
+        "age_hours": 58.1,
         "sla_hours": 30,
         "stale": true,
         "present": true
       },
       {
         "name": "us_news_digest.json",
-        "age_hours": 30.2,
+        "age_hours": 42.5,
         "sla_hours": 30,
         "stale": true,
         "present": true
