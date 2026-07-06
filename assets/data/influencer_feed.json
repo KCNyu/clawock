@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-06T16:11:39.964365+00:00",
+  "generated_at": "2026-07-06T22:46:48.919831+00:00",
   "lookback_hours": 48,
   "sources": {
     "trump": "trumpstruth.org/feed (primary)",
@@ -8,19 +8,19 @@
   },
   "llm_filtered": true,
   "counts": {
-    "total": 11,
+    "total": 12,
     "held_hits": 0,
-    "new_ideas": 2,
-    "sector_hits": 6
+    "new_ideas": 3,
+    "sector_hits": 7
   },
   "items": [
     {
       "author": "Musk",
-      "text": "Tim Draper’s Elon Musk Playbook: SpaceX, Tesla and The $2 Trillion IPO",
+      "text": "Are SpaceX and Tesla Hurtling Toward a Merger?",
       "url": "",
-      "published": "Mon, 06 Jul 2026 13:15:11 GMT",
+      "published": "Mon, 06 Jul 2026 09:00:22 GMT",
       "origin": "gnews-rss",
-      "source": "Forbes",
+      "source": "Bloomberg.com",
       "tickers": [
         "TSLA"
       ],
@@ -29,15 +29,15 @@
         "TSLA"
       ],
       "sectors": [
-        "航天",
+        "航天/私募",
         "电动车"
       ],
       "sector_holdings": [
         "SPCH"
       ],
-      "stance": "endorse",
-      "relevance": 72,
-      "summary_cn": "Tim Draper回顾投资马斯克 playbook，盛赞SpaceX、特斯拉及潜在2万亿美元IPO，传递看多马斯克系资产信号。"
+      "stance": "neutral",
+      "relevance": 70,
+      "summary_cn": "报道探讨SpaceX与Tesla走向合并的可能性，若实现将重塑估值。"
     },
     {
       "author": "Musk",
@@ -58,29 +58,70 @@
       ],
       "sector_holdings": [],
       "stance": "neutral",
-      "relevance": 70,
-      "summary_cn": "特斯拉Q2交付数据强劲但股价反跌6%，市场对电动车/自动驾驶叙事与短期交付的定价出现背离。"
+      "relevance": 62,
+      "summary_cn": "Tesla Q2交付数据强劲但股价反跌6%，Musk相关利空信号。"
     },
     {
-      "author": "Musk",
-      "text": "Elon Musk becomes world's first trillionaire as SpaceX soars in stock market debut",
-      "url": "",
-      "published": "Fri, 12 Jun 2026 07:00:00 GMT",
-      "origin": "gnews-rss",
-      "source": "BBC",
+      "author": "Trump",
+      "text": "Great news! I have just been informed that one of the biggest, best, and smartest Retailers in America, Walmart, will be lowering prices, by a lot, at my Administration's request to celebrate our great Country's 250th birthday. Walmart will, in particular, be dropping the price for a pound of ground beef by almost 15%, among many other products. This is a huge deal for the many millions of Americans who, smartly, shop at Walmart, which is a truly patriotic Company who loves the U.S.A. My Administration is lowering prices that Joe Biden incompetently raised with the worst inflation crisis in hi",
+      "url": "https://trumpstruth.org/statuses/39863",
+      "published": "2026-07-06T20:45:33+00:00",
+      "origin": "truthsocial",
+      "tickers": [
+        "WMT"
+      ],
+      "held": [],
+      "new_ideas": [
+        "WMT"
+      ],
+      "sectors": [
+        "消费/零售",
+        "通胀"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 52,
+      "summary_cn": "Trump宣称应其政府要求，Walmart将大幅降价庆祝美国建国250周年，涉及通胀与消费主题。"
+    },
+    {
+      "author": "Trump",
+      "text": "OIL PRICES COMING DOWN! https://www.bloomberg.com/news/articles/2026-07-06/saudis-make-biggest-oil-price-cut-in-decades-as-market-weakens",
+      "url": "https://trumpstruth.org/statuses/39862",
+      "published": "2026-07-06T19:00:46+00:00",
+      "origin": "truthsocial",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "航天",
-        "AI"
+        "原油/能源"
+      ],
+      "sector_holdings": [
+        "02208"
+      ],
+      "stance": "neutral",
+      "relevance": 72,
+      "summary_cn": "Trump发文称油价将下跌，转发沙特大幅降价新闻；宏观利空原油，间接利好金风科技等新能源。"
+    },
+    {
+      "author": "Musk",
+      "text": "Tim Draper’s Elon Musk Playbook: SpaceX, Tesla and The $2 Trillion IPO",
+      "url": "",
+      "published": "Mon, 06 Jul 2026 13:15:11 GMT",
+      "origin": "gnews-rss",
+      "source": "Forbes",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天/私募",
+        "电动车/AI"
       ],
       "sector_holdings": [
         "SPCH"
       ],
-      "stance": "endorse",
-      "relevance": 80,
-      "summary_cn": "SpaceX上市首日股价飙升，马斯克成为全球首位万亿富翁，强化SPCH所追踪标的估值锚与市场情绪。"
+      "stance": "neutral",
+      "relevance": 68,
+      "summary_cn": "Musk相关报道：Tim Draper复盘Musk打法，谈SpaceX、Tesla及2万亿美元IPO预期，间接利好SpaceX敞口。"
     },
     {
       "author": "Musk",
@@ -93,15 +134,56 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "AI硬件",
-        "航天"
+        "AI硬件/航天",
+        "消费电子"
+      ],
+      "sector_holdings": [
+        "MSFU",
+        "SPCH"
+      ],
+      "stance": "neutral",
+      "relevance": 65,
+      "summary_cn": "SpaceX向投资者展示Musk新款AI设备原型，跨界AI硬件领域。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk can’t sell a single SpaceX share for a year—and then all the locks crack open at once",
+      "url": "",
+      "published": "Fri, 03 Jul 2026 10:06:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Fortune",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天/私募"
       ],
       "sector_holdings": [
         "SPCH"
       ],
       "stance": "neutral",
-      "relevance": 68,
-      "summary_cn": "SpaceX向投资者展示马斯克新AI设备原型，跨界消费级AI硬件，模糊航天与AI边界，利好马斯克系生态叙事。"
+      "relevance": 65,
+      "summary_cn": "Musk一年内不得出售SpaceX股份，一年后禁售期集中到期，将带来大额抛压。"
+    },
+    {
+      "author": "Musk",
+      "text": "DOGE officially shuts down",
+      "url": "",
+      "published": "Mon, 06 Jul 2026 20:40:00 GMT",
+      "origin": "gnews-rss",
+      "source": "The Hill",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "政府效率/加密货币"
+      ],
+      "sector_holdings": [
+        "CRCL"
+      ],
+      "stance": "neutral",
+      "relevance": 60,
+      "summary_cn": "Musk旗下政府效率部门DOGE正式关闭，宏观财政叙事告一段落，间接影响加密与AI叙事。"
     },
     {
       "author": "Musk",
@@ -114,76 +196,35 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "航天",
-        "私募/IPO"
-      ],
-      "sector_holdings": [
-        "SPCH"
-      ],
-      "stance": "neutral",
-      "relevance": 62,
-      "summary_cn": "媒体报道部分机构投资者正试图将SpaceX及马斯克相关持仓排除出组合，反映SpaceXIPO后市场对马斯克关联风险的定价分歧。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk's No. 2 Says She's Giving SpaceX Stock to Trump Accounts",
-      "url": "",
-      "published": "Mon, 06 Jul 2026 14:53:32 GMT",
-      "origin": "gnews-rss",
-      "source": "Business Insider",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "退休账户/政策"
-      ],
-      "sector_holdings": [
-        "SPCH"
-      ],
-      "stance": "neutral",
-      "relevance": 60,
-      "summary_cn": "马斯克二号人物Gwynne Shotwell宣布将SpaceX股票赠予'Trump Accounts'(新生儿退休账户)，暗示SpaceX资产将被嵌入新政策产品，间接扩大SpaceX散户触达面。"
-    },
-    {
-      "author": "Musk",
-      "text": "The town that Elon Musk built",
-      "url": "",
-      "published": "Wed, 01 Jul 2026 04:00:52 GMT",
-      "origin": "gnews-rss",
-      "source": "Financial Times",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天"
-      ],
-      "sector_holdings": [
-        "SPCH"
-      ],
-      "stance": "neutral",
-      "relevance": 58,
-      "summary_cn": "媒体报道马斯克在得州打造的'town that Musk built'——Starbase等社区扩张，揭示SpaceX产能与人才虹吸效应，间接支撑航天主题。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk posted twice as often on UK race and immigration as about SpaceX in IPO run-up",
-      "url": "",
-      "published": "Sun, 05 Jul 2026 23:08:00 GMT",
-      "origin": "gnews-rss",
-      "source": "The Guardian",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天"
+        "航天/私募",
+        "ESG/机构持仓"
       ],
       "sector_holdings": [
         "SPCH"
       ],
       "stance": "neutral",
       "relevance": 55,
-      "summary_cn": "报道指出SpaceXIPO路演期间，马斯克发帖频率最高的竟是英国种族与移民议题而非航天，相关舆论风险被市场关注。"
+      "summary_cn": "报道称部分机构投资者正试图避开SpaceX及Musk相关持仓。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk's No. 2 Says She's Giving SpaceX Stock to Trump Accounts",
+      "url": "",
+      "published": "Mon, 06 Jul 2026 12:19:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Business Insider",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天/私募"
+      ],
+      "sector_holdings": [
+        "SPCH"
+      ],
+      "stance": "neutral",
+      "relevance": 55,
+      "summary_cn": "Musk二号人物称将SpaceX股票赠予Trump Accounts（儿童投资账户），具市场叙事效应。"
     },
     {
       "author": "Trump",
@@ -195,13 +236,14 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "宏观/移民政策",
-        "房地产"
+        "房地产/住房",
+        "移民政策",
+        "宏观"
       ],
       "sector_holdings": [],
       "stance": "neutral",
       "relevance": 55,
-      "summary_cn": "特朗普转发美联储工作论文，称拜登时期的非法移民浪潮推高房价30%，为其移民/驱逐政策辩护，间接利空住房需求侧预期。"
+      "summary_cn": "Trump转发美联储工作论文，称Biden时期非法移民推动房价上涨30%，关联住房/移民宏观议题。"
     },
     {
       "author": "Trump",
@@ -213,40 +255,24 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "国防/军工"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 55,
-      "summary_cn": "特朗普宣传国防相关大型工厂/设施正在美国各地兴建，暗示国防工业产能扩张主题。"
-    },
-    {
-      "author": "Trump",
-      "text": "From Shou Chew, CEO of TikTok: “Attached are the latest numbers of the President on TikTok. All time views of #Trump TikToks are now at 425 billion. Also, 1 billion new views across UFC 250, Trump's Iran Peace Deal and “Happy Birthday, Mr. President\" TikToks in just 48 hours! Wishing the President a belated happy birthday!”",
-      "url": "https://trumpstruth.org/statuses/39761",
-      "published": "2026-07-05T16:23:43+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "社交媒体/科技"
+        "国防/军工",
+        "制造业"
       ],
       "sector_holdings": [],
       "stance": "neutral",
-      "relevance": 50,
-      "summary_cn": "TikTok CEO向特朗普汇报其平台数据，称Trump相关内容总观看量达4250亿次，间接确认TikTok在美国继续运营/未被封禁。"
+      "relevance": 55,
+      "summary_cn": "Trump称全国大量新建工厂，其中许多为国防相关，规模庞大。"
     }
   ],
   "held_hits": [],
   "new_ideas": [
     {
       "author": "Musk",
-      "text": "Tim Draper’s Elon Musk Playbook: SpaceX, Tesla and The $2 Trillion IPO",
+      "text": "Are SpaceX and Tesla Hurtling Toward a Merger?",
       "url": "",
-      "published": "Mon, 06 Jul 2026 13:15:11 GMT",
+      "published": "Mon, 06 Jul 2026 09:00:22 GMT",
       "origin": "gnews-rss",
-      "source": "Forbes",
+      "source": "Bloomberg.com",
       "tickers": [
         "TSLA"
       ],
@@ -255,15 +281,15 @@
         "TSLA"
       ],
       "sectors": [
-        "航天",
+        "航天/私募",
         "电动车"
       ],
       "sector_holdings": [
         "SPCH"
       ],
-      "stance": "endorse",
-      "relevance": 72,
-      "summary_cn": "Tim Draper回顾投资马斯克 playbook，盛赞SpaceX、特斯拉及潜在2万亿美元IPO，传递看多马斯克系资产信号。"
+      "stance": "neutral",
+      "relevance": 70,
+      "summary_cn": "报道探讨SpaceX与Tesla走向合并的可能性，若实现将重塑估值。"
     },
     {
       "author": "Musk",
@@ -284,31 +310,72 @@
       ],
       "sector_holdings": [],
       "stance": "neutral",
-      "relevance": 70,
-      "summary_cn": "特斯拉Q2交付数据强劲但股价反跌6%，市场对电动车/自动驾驶叙事与短期交付的定价出现背离。"
+      "relevance": 62,
+      "summary_cn": "Tesla Q2交付数据强劲但股价反跌6%，Musk相关利空信号。"
+    },
+    {
+      "author": "Trump",
+      "text": "Great news! I have just been informed that one of the biggest, best, and smartest Retailers in America, Walmart, will be lowering prices, by a lot, at my Administration's request to celebrate our great Country's 250th birthday. Walmart will, in particular, be dropping the price for a pound of ground beef by almost 15%, among many other products. This is a huge deal for the many millions of Americans who, smartly, shop at Walmart, which is a truly patriotic Company who loves the U.S.A. My Administration is lowering prices that Joe Biden incompetently raised with the worst inflation crisis in hi",
+      "url": "https://trumpstruth.org/statuses/39863",
+      "published": "2026-07-06T20:45:33+00:00",
+      "origin": "truthsocial",
+      "tickers": [
+        "WMT"
+      ],
+      "held": [],
+      "new_ideas": [
+        "WMT"
+      ],
+      "sectors": [
+        "消费/零售",
+        "通胀"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 52,
+      "summary_cn": "Trump宣称应其政府要求，Walmart将大幅降价庆祝美国建国250周年，涉及通胀与消费主题。"
     }
   ],
   "sector_hits": [
     {
-      "author": "Musk",
-      "text": "Elon Musk becomes world's first trillionaire as SpaceX soars in stock market debut",
-      "url": "",
-      "published": "Fri, 12 Jun 2026 07:00:00 GMT",
-      "origin": "gnews-rss",
-      "source": "BBC",
+      "author": "Trump",
+      "text": "OIL PRICES COMING DOWN! https://www.bloomberg.com/news/articles/2026-07-06/saudis-make-biggest-oil-price-cut-in-decades-as-market-weakens",
+      "url": "https://trumpstruth.org/statuses/39862",
+      "published": "2026-07-06T19:00:46+00:00",
+      "origin": "truthsocial",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "航天",
-        "AI"
+        "原油/能源"
+      ],
+      "sector_holdings": [
+        "02208"
+      ],
+      "stance": "neutral",
+      "relevance": 72,
+      "summary_cn": "Trump发文称油价将下跌，转发沙特大幅降价新闻；宏观利空原油，间接利好金风科技等新能源。"
+    },
+    {
+      "author": "Musk",
+      "text": "Tim Draper’s Elon Musk Playbook: SpaceX, Tesla and The $2 Trillion IPO",
+      "url": "",
+      "published": "Mon, 06 Jul 2026 13:15:11 GMT",
+      "origin": "gnews-rss",
+      "source": "Forbes",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天/私募",
+        "电动车/AI"
       ],
       "sector_holdings": [
         "SPCH"
       ],
-      "stance": "endorse",
-      "relevance": 80,
-      "summary_cn": "SpaceX上市首日股价飙升，马斯克成为全球首位万亿富翁，强化SPCH所追踪标的估值锚与市场情绪。"
+      "stance": "neutral",
+      "relevance": 68,
+      "summary_cn": "Musk相关报道：Tim Draper复盘Musk打法，谈SpaceX、Tesla及2万亿美元IPO预期，间接利好SpaceX敞口。"
     },
     {
       "author": "Musk",
@@ -321,15 +388,56 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "AI硬件",
-        "航天"
+        "AI硬件/航天",
+        "消费电子"
+      ],
+      "sector_holdings": [
+        "MSFU",
+        "SPCH"
+      ],
+      "stance": "neutral",
+      "relevance": 65,
+      "summary_cn": "SpaceX向投资者展示Musk新款AI设备原型，跨界AI硬件领域。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk can’t sell a single SpaceX share for a year—and then all the locks crack open at once",
+      "url": "",
+      "published": "Fri, 03 Jul 2026 10:06:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Fortune",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天/私募"
       ],
       "sector_holdings": [
         "SPCH"
       ],
       "stance": "neutral",
-      "relevance": 68,
-      "summary_cn": "SpaceX向投资者展示马斯克新AI设备原型，跨界消费级AI硬件，模糊航天与AI边界，利好马斯克系生态叙事。"
+      "relevance": 65,
+      "summary_cn": "Musk一年内不得出售SpaceX股份，一年后禁售期集中到期，将带来大额抛压。"
+    },
+    {
+      "author": "Musk",
+      "text": "DOGE officially shuts down",
+      "url": "",
+      "published": "Mon, 06 Jul 2026 20:40:00 GMT",
+      "origin": "gnews-rss",
+      "source": "The Hill",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "政府效率/加密货币"
+      ],
+      "sector_holdings": [
+        "CRCL"
+      ],
+      "stance": "neutral",
+      "relevance": 60,
+      "summary_cn": "Musk旗下政府效率部门DOGE正式关闭，宏观财政叙事告一段落，间接影响加密与AI叙事。"
     },
     {
       "author": "Musk",
@@ -342,76 +450,35 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "航天",
-        "私募/IPO"
-      ],
-      "sector_holdings": [
-        "SPCH"
-      ],
-      "stance": "neutral",
-      "relevance": 62,
-      "summary_cn": "媒体报道部分机构投资者正试图将SpaceX及马斯克相关持仓排除出组合，反映SpaceXIPO后市场对马斯克关联风险的定价分歧。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk's No. 2 Says She's Giving SpaceX Stock to Trump Accounts",
-      "url": "",
-      "published": "Mon, 06 Jul 2026 14:53:32 GMT",
-      "origin": "gnews-rss",
-      "source": "Business Insider",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "退休账户/政策"
-      ],
-      "sector_holdings": [
-        "SPCH"
-      ],
-      "stance": "neutral",
-      "relevance": 60,
-      "summary_cn": "马斯克二号人物Gwynne Shotwell宣布将SpaceX股票赠予'Trump Accounts'(新生儿退休账户)，暗示SpaceX资产将被嵌入新政策产品，间接扩大SpaceX散户触达面。"
-    },
-    {
-      "author": "Musk",
-      "text": "The town that Elon Musk built",
-      "url": "",
-      "published": "Wed, 01 Jul 2026 04:00:52 GMT",
-      "origin": "gnews-rss",
-      "source": "Financial Times",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天"
-      ],
-      "sector_holdings": [
-        "SPCH"
-      ],
-      "stance": "neutral",
-      "relevance": 58,
-      "summary_cn": "媒体报道马斯克在得州打造的'town that Musk built'——Starbase等社区扩张，揭示SpaceX产能与人才虹吸效应，间接支撑航天主题。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk posted twice as often on UK race and immigration as about SpaceX in IPO run-up",
-      "url": "",
-      "published": "Sun, 05 Jul 2026 23:08:00 GMT",
-      "origin": "gnews-rss",
-      "source": "The Guardian",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天"
+        "航天/私募",
+        "ESG/机构持仓"
       ],
       "sector_holdings": [
         "SPCH"
       ],
       "stance": "neutral",
       "relevance": 55,
-      "summary_cn": "报道指出SpaceXIPO路演期间，马斯克发帖频率最高的竟是英国种族与移民议题而非航天，相关舆论风险被市场关注。"
+      "summary_cn": "报道称部分机构投资者正试图避开SpaceX及Musk相关持仓。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk's No. 2 Says She's Giving SpaceX Stock to Trump Accounts",
+      "url": "",
+      "published": "Mon, 06 Jul 2026 12:19:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Business Insider",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天/私募"
+      ],
+      "sector_holdings": [
+        "SPCH"
+      ],
+      "stance": "neutral",
+      "relevance": 55,
+      "summary_cn": "Musk二号人物称将SpaceX股票赠予Trump Accounts（儿童投资账户），具市场叙事效应。"
     }
   ]
 }
