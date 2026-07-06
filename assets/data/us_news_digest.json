@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-03T15:01:50.482470",
+  "generated_at": "2026-07-06T16:12:05.780212",
   "lookback_hours": 48,
   "tickers": [
     "CRCL",
@@ -9,11 +9,11 @@
     "SPCH",
     "MSFU"
   ],
-  "digest_markdown": "## Top 移动信号\n\n- **CRCL**: Goldman Sachs 下调 PT 从 $111 → $96 (Neutral) — 卖方共识向 $96-100 区间靠拢, 短期估值压力增大\n- **CRCL**: EU MiCA 过渡期 7/1 截止, 欧洲加密持牌公司从 3,167 家锐减至 244 家 — 监管壁垒抬高, Circle 作为合规 USDC 发行方受益, 长期份额逻辑强化\n- **CRCL**: SeekingAlpha 提出 2026 USDC 增长停滞 + Arc 区块链/监管红利 = 2027 反弹叙事 — 中期 catalyst 取决于 Arc 采纳率\n- **ROBN (underlying HOOD)**: HOOD 盘后下跌, 分析师与散户均视为逢低 — 杠杆 ETF 杠杆放大效应需关注隔夜跳空风险\n\n## Per-ticker 简报\n\n- **CRCL**: 三重信号叠加 — 卖方下修 + 监管护城河 + 2026/27 拐点叙事, 关注 $96 是否守住\n- **ROBN**: HOOD 自身催化 (盘后回调), 2x 杠杆放大会放大波动, 持仓前审视底层 HOOD 财报后动向\n\n## 风险 Watch\n\n- **CRCL**: 卖方 PT 共识下调, $96 测试位失守触发技术性破位\n- **CRCL**: 2026 USDC 增速若进一步放缓, 现有估值溢价收缩\n- **ROBN**: HOOD 杠杆 ETF 对隔夜 gap 敏感, 财报周前建议降杠杆或换底层\n\n## 忽略\n\n- PLTU / RKLX / SPCH / MSFU 均为杠杆 ETF 通用页面/Moomoo 散户吐槽, 无 ticker-specific catalyst\n- CRCL 加密价格综述、Big Stocks Moving 列表中未点名 CRCL 的条目",
+  "digest_markdown": "## Top 移动信号\n\n- **CRCL**: 月内跌超40%, 机构主导的 OUSD 稳定币挤压 USDC 份额 - **看跌**, 下调 kcn 对 CRCL 的敞口, 竞争格局正在重构而非单纯 beta 下行\n- **ROBN** (HOOD): 盘后下跌但分析师/散户均不买账, 视为噪音 - **中性**, 持仓不动, 若无后续基本面恶化则无需调整\n- **PLTU** (Palantir ETF): Q4 财报 beat 被重新提起, 杠杆 ETF 资金流活跃 - **温和看多**, PLTR 底层 momentum 仍在支撑 PLTU 溢价\n\n## Per-ticker 简报\n\n- **CRCL**: 月跌40%+ 触发竞争叙事, OUSD 获140+机构背书 - 利空持续\n- **ROBN**: HOOD 盘后回调, 卖方未跟进降级 - 影响有限\n- **PLTU**: Palantir Q4 beat 持续发酵, 杠杆 ETF 关注度上升 - 动能延续\n- **RKLX / SPCH / MSFU**: 均为杠杆 ETF 营销/教学稿, 无催化剂 - 忽略\n\n## 风险 Watch\n\n- **CRCL**: 价格崩跌叠加 OUSD 替代威胁, 属\"竞争+流动性\"双杀, 若 kcn 持有需重新评估退出节奏\n- **ROBN**: 盘后跌幅需盯次日开盘是否补跌, 避免 only-pump-then-drag 情景拖累 2x 杠杆\n- **PLTU** 待监测: 杠杆 ETF 拥挤交易放大尾部回撤风险",
   "raw_news_counts": {
-    "CRCL": 5,
+    "CRCL": 2,
     "PLTU": 5,
-    "RKLX": 5,
+    "RKLX": 1,
     "ROBN": 5,
     "SPCH": 5,
     "MSFU": 5
@@ -21,7 +21,7 @@
   "news_source_per_ticker": {
     "CRCL": "finnhub",
     "PLTU": "gnews-rss",
-    "RKLX": "gnews-rss",
+    "RKLX": "finnhub",
     "ROBN": "gnews-rss",
     "SPCH": "gnews-rss",
     "MSFU": "gnews-rss"
