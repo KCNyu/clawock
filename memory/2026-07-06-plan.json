@@ -1,0 +1,174 @@
+{
+  "date": "2026-07-06",
+  "generated_at": "2026-07-06T08:00:00+08:00",
+  "fx_rate_usdhkd": 7.8434,
+  "driven_by": "SPCX NDX entry T+1(7/7) + 07226换仓纪律(第N日) + 00100 T-3解禁(7/9)",
+  "status_banner": "🟡 Amber — HK杠杆上限×0.5；US杠杆腿96.5%超标；3 hard stops未解；SPCX 7/7入NDX是本周最大美股催化",
+  "regime": {
+    "hk": "amber",
+    "us": "neutral",
+    "hk_lev_cap_pct": 25,
+    "us_lev_cap_pct": 50,
+    "hk_lev_actual_pct": 39.1,
+    "us_lev_actual_pct": 96.5
+  },
+  "book": {
+    "fx_usdhkd": 7.8434,
+    "hk_current_hkd": 50122.4,
+    "us_current_usd": 3726.46,
+    "total_usd_base": 10116.8,
+    "total_hkd_base": 79352.9,
+    "hk_pnl_hkd": -38153.84,
+    "us_pnl_usd": -499.78,
+    "combined_pnl_usd": -5364.23,
+    "us_cash_usd": 134.35,
+    "hk_cash_hkd": 4597.0
+  },
+  "concentration": {
+    "hk_hhi": 0.341,
+    "hk_verdict": "⚠️ 集中风险",
+    "hk_top2_pct": 80.6,
+    "us_hhi": 0.247,
+    "us_verdict": "偏集中",
+    "us_top2_pct": 60.5
+  },
+  "actions": [
+    {
+      "ticker": "07226",
+      "bucket": "cut",
+      "trigger_type": "open",
+      "trigger_price": null,
+      "size_shares": 6200,
+      "confidence": 0.70,
+      "rationale": "硬止损-27.6%≤-18%第N日未执行；HK lev ETF腿39.1%超标(cap 25%,amber×0.5)；stop_breach_continue factor 59%；HSTECH +1.0%提供相对换仓窗口；换仓03033(1x同因子停decay)，敞口保留，规则非择时；🧭转green后换回2x",
+      "swap_target": "03033",
+      "driven_by": "technical",
+      "leg": "HK"
+    },
+    {
+      "ticker": "PLTU",
+      "bucket": "cut",
+      "trigger_type": "manual",
+      "trigger_price": null,
+      "size_shares": 14,
+      "confidence": 0.65,
+      "rationale": "硬止损-25.1%≤-18%；PLTR距200MA -18.1%趋势OFF；月decay~2.93%；US lev ETF腿96.5%超标(cap 50%)；7/3计划fires但需确认kcn是否实际执行；换仓1x PLTR停decay，敞口保留；今晚美股按open执行",
+      "swap_target": "PLTR",
+      "driven_by": "technical",
+      "leg": "US"
+    },
+    {
+      "ticker": "00100",
+      "bucket": "trim_on_rebound",
+      "trigger_type": "price_above",
+      "trigger_price": 380.0,
+      "size_shares": 20,
+      "confidence": 0.60,
+      "rationale": "T-3天(7/9)解禁1.07-1.46亿股(34-63%流通)，市值HK$40bn；单名41.5%>35%cap；reflections trim_on_rebound历史胜率69%；今日日高381曾触380(7/5模拟+668HKD)；若盘中再触380执行20股，从41.5%→约37%",
+      "driven_by": "catalyst",
+      "leg": "HK"
+    },
+    {
+      "ticker": "ROBN",
+      "bucket": "trim_on_rebound",
+      "trigger_type": "price_above",
+      "trigger_price": 40.0,
+      "size_shares": 10,
+      "confidence": 0.60,
+      "rationale": "HOOD RSI 67偏高，近5日+26.9%过热；ROBN浮盈+60.4%是账面最优仓位；trim 10股锁利~$400腾US现金弹药（供PLTU换仓/SPCH换仓用）；trim_on_rebound历史胜率69%；保留10股等HOOD Q2财报7/29催化",
+      "driven_by": "technical",
+      "leg": "US"
+    },
+    {
+      "ticker": "SPCH",
+      "bucket": "cut",
+      "trigger_type": "manual",
+      "trigger_price": null,
+      "size_shares": 110,
+      "confidence": 0.62,
+      "rationale": "三重硬闸：(1)硬止损-22.4%≤-18%；(2)单名40.2%>35%cap；(3)US lev ETF腿96.5%>50%cap。执行约束：US现金$134底，无法直接买SPCX现货作过渡；执行路径：先完成ROBN trim@$40腾~$400弹药，再评估SPCH→SPCX换仓；P0协议持续(kcn无限子弹声明)；SPCX 7/7 NDX entry是正面催化但不改变硬闸纪律；规则非择时",
+      "swap_target": "SPCX",
+      "driven_by": "technical",
+      "leg": "US"
+    },
+    {
+      "ticker": "02208",
+      "bucket": "hold_and_watch",
+      "trigger_type": "price_below",
+      "trigger_price": 8.5,
+      "size_shares": null,
+      "confidence": 0.55,
+      "rationale": "今日+11.36%在日内96%区间🔴追高低质不加仓；多重催化(LandSpace IPO+Baldon并网+BlackRock增持+H2三重共振)支撑基本面；reflections持仓胜率73%；破8.5重评；继续hold",
+      "driven_by": "catalyst",
+      "leg": "HK"
+    },
+    {
+      "ticker": "CRCL",
+      "bucket": "hold_and_watch",
+      "trigger_type": "price_below",
+      "trigger_price": 55.0,
+      "size_shares": null,
+      "confidence": 0.55,
+      "rationale": "RSI 34超卖；GENIUS Act 7/17立法窗口T-11天；ARK持续增持；Q1 EPS首次转正(+$0.23)；竞争者压制近5日-11.9%；仓小2股($129)；破$55重评止损；reflections 66%胜率",
+      "driven_by": "catalyst",
+      "leg": "US"
+    },
+    {
+      "ticker": "RKLX",
+      "bucket": "hold_and_watch",
+      "trigger_type": "price_below",
+      "trigger_price": 38.0,
+      "size_shares": null,
+      "confidence": 0.57,
+      "rationale": "RKLB已于6/22入NDX100；SPCX 7/7入指带动整体航天板块情绪；RKLB趋势ON(距200MA+58.7%)是持仓中少有趋势ON标的；reflections 57%胜率；破$38(-23.6%硬止损边界)重评",
+      "driven_by": "catalyst",
+      "leg": "US"
+    },
+    {
+      "ticker": "MSFU",
+      "bucket": "hold_and_watch",
+      "trigger_type": "price_below",
+      "trigger_price": 22.0,
+      "size_shares": null,
+      "confidence": 0.52,
+      "rationale": "周五从-19.5%弹回-17.3%(+2.73%)，暂脱离-18%硬止损线；MSFT距200MA -12.3%趋势OFF；月decay 1.26%；若再破$22(pnl≈-24.5%)换仓MSFT；reflections 59%胜率",
+      "driven_by": "technical",
+      "leg": "US"
+    },
+    {
+      "ticker": "03032",
+      "bucket": "hold_and_watch",
+      "trigger_type": "manual",
+      "trigger_price": null,
+      "size_shares": null,
+      "confidence": 0.5,
+      "rationale": "1x无杠杆衰减；HSTECH跟踪ETF；趋势OFF无强制减仓；reflections 36%主动call胜率极低，不主动操作；等07226换仓落地后评估总HSTECH敞口",
+      "driven_by": "technical",
+      "leg": "HK"
+    },
+    {
+      "ticker": "03033",
+      "bucket": "hold_and_watch",
+      "trigger_type": "manual",
+      "trigger_price": null,
+      "size_shares": null,
+      "confidence": 0.5,
+      "rationale": "07226换仓03033后此腿将大幅扩大；1x无衰减；HSTECH趋势OFF；等07226换仓执行后评估总敞口比例；reflections 36%主动call胜率低，不主动动",
+      "driven_by": "technical",
+      "leg": "HK"
+    }
+  ],
+  "catalysts_window": {
+    "T1_2026-07-07": "SPCX入NDX100 → SPCH直接受益(被动买盘$40bn+)",
+    "T3_2026-07-09": "MiniMax解禁HK$40bn → 00100供给冲击",
+    "T9_2026-07-15": "美国6月CPI (8:30 ET)",
+    "T11_2026-07-17": "GENIUS Act立法窗口 → CRCL催化",
+    "T23_2026-07-29": "HOOD Q2财报 → ROBN(HOOD 2x)催化"
+  },
+  "confidence_calibration": {
+    "brier_30d": 0.248,
+    "high_conf_winrate": "0% (n=1)",
+    "max_confidence_today": 0.72,
+    "note": "高置信(≥75%)胜率0%，今日置信上限0.72"
+  }
+}

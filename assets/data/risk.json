@@ -1,41 +1,41 @@
 {
-  "generated_at": "2026-07-03T00:01:59.628283+00:00",
-  "as_of": "2026-07-03",
+  "generated_at": "2026-07-06T00:02:36.935834+00:00",
+  "as_of": "2026-07-06",
   "us": {
-    "beta_spx": 3.118,
-    "vol_30d_annualized": 1.1996,
-    "max_dd_30d": -0.3262,
-    "sharpe_30d": -1.901,
-    "current_value_usd": 3731.25
+    "beta_spx": 3.1168,
+    "vol_30d_annualized": 1.1991,
+    "max_dd_30d": -0.3261,
+    "sharpe_30d": -1.8972,
+    "current_value_usd": 3726.46
   },
   "hk": {
-    "beta_hsi": 1.0818,
-    "vol_30d_annualized": 0.729,
-    "max_dd_30d": -0.3685,
-    "sharpe_30d": -4.5679,
-    "current_value_hkd": 49810.4
+    "beta_hsi": 1.1652,
+    "vol_30d_annualized": 0.7127,
+    "max_dd_30d": -0.363,
+    "sharpe_30d": -4.2012,
+    "current_value_hkd": 50122.4
   },
   "combined": {
-    "vol_30d_annualized": 0.5731,
-    "max_dd_30d": -0.165,
-    "sharpe_30d": -4.4392
+    "vol_30d_annualized": 0.5677,
+    "max_dd_30d": -0.1647,
+    "sharpe_30d": -4.4865
   },
   "leveraged_exposure": {
-    "us_leverage_factor_avg": 1.5631,
-    "hk_leverage_factor_avg": 1.3849,
-    "combined_avg": 1.4506,
-    "margin_at_risk_pct": 14.5062
+    "us_leverage_factor_avg": 1.5639,
+    "hk_leverage_factor_avg": 1.3906,
+    "combined_avg": 1.4542,
+    "margin_at_risk_pct": 14.5422
   },
   "alerts": [
     {
       "type": "high_beta",
       "severity": "high",
-      "detail": "US β vs S&P 500 = 3.118 (> 3.0)"
+      "detail": "US β vs S&P 500 = 3.1168 (> 3.0)"
     },
     {
       "type": "high_vol",
       "severity": "high",
-      "detail": "Combined 30d annualised vol = 57.3% (> 50%)"
+      "detail": "Combined 30d annualised vol = 56.8% (> 50%)"
     },
     {
       "type": "deep_dd",
@@ -45,7 +45,7 @@
     {
       "type": "negative_sharpe",
       "severity": "medium",
-      "detail": "Combined 30d Sharpe = -4.4392 (< 0)"
+      "detail": "Combined 30d Sharpe = -4.4865 (< 0)"
     }
   ],
   "meta": {
@@ -82,8 +82,8 @@
       ],
       "failed": [],
       "n_returns": 30,
-      "dates_first": "2026-05-18",
-      "dates_last": "2026-07-02",
+      "dates_first": "2026-05-19",
+      "dates_last": "2026-07-03",
       "stale": false
     }
   }

@@ -1,40 +1,40 @@
 {
-  "as_of": "2026-07-03",
-  "days_logged": 17,
+  "as_of": "2026-07-06",
+  "days_logged": 18,
   "min_n": 20,
   "factors": {
     "trend_on_follow": {
-      "n": 16,
-      "hit_rate": 0.062,
+      "n": 17,
+      "hit_rate": 0.059,
       "ci95": [
-        0.011,
-        0.283
+        0.01,
+        0.27
       ],
       "edge_significant": false,
       "usable": false,
       "note": "样本不足，brief 不得引用方向结论"
     },
     "trend_off_avoid": {
-      "n": 106,
-      "hit_rate": 0.689,
+      "n": 115,
+      "hit_rate": 0.643,
       "ci95": [
-        0.595,
-        0.769
+        0.553,
+        0.725
       ],
       "edge_significant": true,
       "usable": true,
       "note": ""
     },
     "rsi_oversold_bounce": {
-      "n": 19,
-      "hit_rate": 0.579,
+      "n": 23,
+      "hit_rate": 0.652,
       "ci95": [
-        0.363,
-        0.769
+        0.449,
+        0.812
       ],
       "edge_significant": false,
-      "usable": false,
-      "note": "样本不足，brief 不得引用方向结论"
+      "usable": true,
+      "note": ""
     },
     "rsi_overbought_fade": {
       "n": 2,
@@ -48,28 +48,28 @@
       "note": "样本不足，brief 不得引用方向结论"
     },
     "zscore_extreme_revert": {
-      "n": 4,
-      "hit_rate": 0.75,
+      "n": 7,
+      "hit_rate": 0.857,
       "ci95": [
-        0.301,
-        0.954
+        0.487,
+        0.974
       ],
       "edge_significant": false,
       "usable": false,
       "note": "样本不足，brief 不得引用方向结论"
     },
     "stop_breach_continue": {
-      "n": 118,
-      "hit_rate": 0.627,
+      "n": 128,
+      "hit_rate": 0.594,
       "ci95": [
-        0.537,
-        0.709
+        0.507,
+        0.675
       ],
       "edge_significant": true,
       "usable": true,
       "note": ""
     }
   },
-  "summary": "trend_off_avoid 69%[60–77](n=106)、stop_breach_continue 63%[54–71](n=118)",
+  "summary": "trend_off_avoid 64%[55–72](n=115)、rsi_oversold_bounce 65%[45–81](n=23)、stop_breach_continue 59%[51–68](n=128)",
   "discipline": "自迭代规则：hit_rate 是因子话语权的唯一来源。usable=false 的因子只展示不入决策；usable 后 <50% 的因子方向结论按反向警示处理（同 driven_by technical 39% 降权为过滤器的先例）。"
 }
