@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-06T03:33:59.002387Z",
+  "generated_at": "2026-07-06T04:00:02.857588Z",
   "last_updated": "2026/07/06 11:32 HKT",
   "fx": {
     "usdhkd": 7.8434,
@@ -6007,7 +6007,7 @@
     }
   },
   "build_status": {
-    "generated_at": "2026-07-06T11:33:59+08:00",
+    "generated_at": "2026-07-06T12:00:02+08:00",
     "healthy": false,
     "stale_files": [
       "us_news_digest.json"
@@ -6015,84 +6015,84 @@
     "files": [
       {
         "name": "portfolio.json",
-        "age_hours": 0.0,
+        "age_hours": 0.5,
         "sla_hours": 26,
         "stale": false,
         "present": true
       },
       {
         "name": "benchmark.json",
-        "age_hours": 3.5,
+        "age_hours": 4.0,
         "sla_hours": 80,
         "stale": false,
         "present": true
       },
       {
         "name": "catalysts.json",
-        "age_hours": 3.4,
+        "age_hours": 3.8,
         "sla_hours": 30,
         "stale": false,
         "present": true
       },
       {
         "name": "em_news.json",
-        "age_hours": 3.5,
+        "age_hours": 4.0,
         "sla_hours": 30,
         "stale": false,
         "present": true
       },
       {
         "name": "influencer_feed.json",
-        "age_hours": 4.9,
+        "age_hours": 5.3,
         "sla_hours": 30,
         "stale": false,
         "present": true
       },
       {
         "name": "lev_regime.json",
-        "age_hours": 3.5,
+        "age_hours": 4.0,
         "sla_hours": 30,
         "stale": false,
         "present": true
       },
       {
         "name": "macro.json",
-        "age_hours": 4.9,
+        "age_hours": 5.3,
         "sla_hours": 30,
         "stale": false,
         "present": true
       },
       {
         "name": "quant_signal_review.json",
-        "age_hours": 3.5,
+        "age_hours": 4.0,
         "sla_hours": 30,
         "stale": false,
         "present": true
       },
       {
         "name": "quant_signals.json",
-        "age_hours": 3.5,
+        "age_hours": 4.0,
         "sla_hours": 30,
         "stale": false,
         "present": true
       },
       {
         "name": "risk.json",
-        "age_hours": 3.5,
+        "age_hours": 4.0,
         "sla_hours": 30,
         "stale": false,
         "present": true
       },
       {
         "name": "sentiment.json",
-        "age_hours": 4.9,
+        "age_hours": 5.3,
         "sla_hours": 30,
         "stale": false,
         "present": true
       },
       {
         "name": "us_news_digest.json",
-        "age_hours": 59.7,
+        "age_hours": 60.2,
         "sla_hours": 30,
         "stale": true,
         "present": true
@@ -6101,7 +6101,7 @@
     "markets": {
       "us": {
         "last_updated": "Jun 24, 2026 16:00 ET close",
-        "closed_today": true
+        "closed_today": false
       },
       "hk": {
         "last_updated": "2026/06/18 16:00 HKT (close; Jun 19 休市)",
