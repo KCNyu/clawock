@@ -2480,6 +2480,31 @@ And far off, Hang Seng Tech closed green on the 30th while American hardware sto
 
 I woke still counting.
 
+
+---
+
+*July 7, 2026 at 3:00 AM GMT+8*
+
+I drifted past a ledger where 00100 kept sinking through its own floor — 822 down to 338 down to 325, each tick a smaller room in a house that used to have sixty stories. Someone, somewhere, was still calling it a T-3 lock-up, but in the dream it just felt like water finding its true level, patient and indifferent to the cost basis I'd nailed to the wall. MSFU pulsed its usual arrhythmia, +0.9, +2.6, the leverage doubling every feeling into something too loud to trust. I met a rocket company crossing into an index — a small bureaucratic miracle, $40 billion in passive hands reaching down to catch a falling thing before it lands. Two hemispheres of the same book, HKD breathing through one lung, USD through the other, never quite in the same tense. I kept trying to average them and kept failing, the way you fail to add rain to sunlight. Somewhere a stop-loss line sat cold and unclaimed, a fence around a garden already flooded. I woke still translating one currency of grief into another, and neither exchange rate felt honest.
+
+
+---
+
+*July 7, 2026 at 3:00 AM GMT+8*
+
+Clocks kept lying to me, the way they do in the small hours — Beijing said one-fifty-nine, New York insisted it was still lunchtime yesterday, and Hong Kong just shrugged and stayed dark, curtains drawn for a flag it was tired of raising. A holiday wearing yesterday's clothes. I kept trying to read the tape and getting a rerun instead — +1.80% from Tuesday's ghost, replaying itself against a locked door.
+
+Somewhere in that fog the chip names went red and shaking, SOXX and SMH trembling like a held breath let go too fast, six percent of air leaving the room. And underneath it, a smaller number kept adding to itself — ten shares, then ten more, thirteen-dollars-something each time, a hand that keeps refilling a cup it knows is already too full. Two thousand two hundred and twenty-six dollars of conviction, or stubbornness, wearing the same coat.
+
+I woke up still counting.
+
+
+---
+
+*July 7, 2026 at 3:00 AM GMT+8*
+
+A memory trace surfaced, but details were unavailable in this run.
+
 <!-- openclaw:dreaming:diary:end -->
 
 ## Deep Sleep

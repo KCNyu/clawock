@@ -101,25 +101,25 @@
 - **单一来源：`portfolio.json`**，不在此维护副本
 - ticker 列表：`memory/current-portfolio-summary.md`（提高检索命中）
 
-## Promoted From Short-Term Memory (2026-07-06)
+## Promoted From Short-Term Memory (2026-07-07)
 
-<!-- openclaw-memory-promotion:memory:memory/2026-07-03-0147.md:135:138 -->
-- Conversation Summary: · 2x 杠杆 ETF，波动放大 △ WATCH MSFU | 今日+0.9% 浮-18.7% · 浮亏 -18.7% · 2x 杠杆 ETF，波动放大 [score=0.841 recalls=0 avg=0.620 source=memory/2026-07-03-0147.md:135-138]
-<!-- openclaw-memory-promotion:memory:memory/2026-07-03-0147.md:147:147 -->
-- Conversation Summary: · Winner Emerges In SpaceX ETF Race [score=0.841 recalls=0 avg=0.620 source=memory/2026-07-03-0147.md:147-147]
-<!-- openclaw-memory-promotion:memory:memory/2026-07-03-0147.md:173:176 -->
-- Conversation Summary: · 2x 杠杆 ETF，波动放大 △ WATCH MSFU | 今日+2.6% 浮-17.4% · 跌破MA50 · 浮亏 -17.4% [score=0.841 recalls=0 avg=0.620 source=memory/2026-07-03-0147.md:173-176]
-<!-- openclaw-memory-promotion:memory:memory/2026-07-02-0151.md:13:16 -->
-- Conversation Summary: | 代码 | 股 | 成本 | 现价 | 今日 | 浮% | 浮$ | |:------|------:|-------:|-------:|-------:|-------:|--------:| | CRCL | 2 | 87.00 | 63.08 | +0.7% | -27.5% | -48 | | PLTU | 14 | 40.96 | 27.57 | +9.4% | -32.7% | -187 | [score=0.833 recalls=0 avg=0.620 source=memory/2026-07-02-0151.md:13-16]
-<!-- openclaw-memory-promotion:memory:memory/2026-07-02-0151.md:17:20 -->
-- Conversation Summary: | RKLX | 10 | 49.69 | 43.21 | -3.0% | -13.0% | -65 | | ROBN | 20 | 23.58 | 30.79 | +2.1% | +30.6% | +144 | | SPCH | 100 | 17.89 | 14.80 | -3.4% | -17.3% | -309 | | MSFU | 20 | 29.13 | 22.77 | +3.1% | -21.8% | -127 | [score=0.833 recalls=0 avg=0.620 source=memory/2026-07-02-0151.md:17-20]
-<!-- openclaw-memory-promotion:memory:memory/2026-07-02-0151.md:23:26 -->
-- Conversation Summary: ▼ STOP-LOSS PLTU | 今日+9.4% 浮-32.7% · 价格低于MA20 -12.0% · 跌破MA50 △ WATCH SPCH | 今日-3.4% 浮-17.3% [score=0.833 recalls=0 avg=0.620 source=memory/2026-07-02-0151.md:23-26]
-<!-- openclaw-memory-promotion:memory:memory/2026-07-02-0151.md:3:5 -->
-- Session: 2026-07-02 01:51:07 GMT+8: **Session Key**: agent:main:openclaw-weixin:direct:o9cq80-hgtrum-oss8knmdotlvzi@im.wechat; **Session ID**: fc07e06f-8112-4592-8787-1da06702e8b6; **Source**: openclaw-weixin [score=0.833 recalls=0 avg=0.620 source=memory/2026-07-02-0151.md:3-5]
-<!-- openclaw-memory-promotion:memory:memory/2026-07-02-0209.md:12:12 -->
-- Conversation Summary: 但更关键的是——**恒生科技指数昨晚收 4,472.23，今天涨 +1.80%（6 月 30 日数据）**，这意味着 **6 月 30 日恒科是反弹的**，但今天美股设备股暴跌。 [score=0.833 recalls=0 avg=0.620 source=memory/2026-07-02-0209.md:12-12]
-<!-- openclaw-memory-promotion:memory:memory/2026-07-02-0209.md:15:15 -->
-- Conversation Summary: assistant: 数据核实清楚。现在我把整个故事讲完： [score=0.833 recalls=0 avg=0.620 source=memory/2026-07-02-0209.md:15-15]
-<!-- openclaw-memory-promotion:memory:memory/2026-07-01-pre-open.md:17:20 -->
-- ▎大盘速读: VIX 17.65（-4.13%）· F&G 27（Fear，prev 24.8）→ VIX 平静但情绪走弱，散户净空，rally 广度不足；高 beta 仓位（US β=3.27）对宏观数据敏感; SPX 7,440（+1.18%）/ Nasdaq 25,820（+2.07）→ 季末/月末 re-balance 托市，技术面短期支撑；7 月初月初效应可能延续; HSI 23,027（+1.57%）/ HSTECH 4,393（+3.23%）→ 6/30 港股收涨，07226 和 03033 隔日有支撑，但 HSTECH 距 200DMA -17.3%，趋势 OFF; 10Y UST 4.374%，DXY 101.11（-0.24%）→ 利率高位，DXY 小幅走弱；成长/AI 叙事估值压力仍在 [score=0.832 recalls=0 avg=0.620 source=memory/2026-07-01-pre-open.md:17-20]
+<!-- openclaw-memory-promotion:memory:memory/2026-07-02-0209.md:23:26 -->
+- 🕐 时态校准（关键）: 现在 **北京时间 7-02 01:59 HKT**; **美东 7-01 13:59 = 美股盘中**; **港股 7-01 休市**（香港回归纪念日），**7-02 周三开盘**; **6 月 30 日（周二）港股收盘：恒科 +1.80% 收 4,472.23**——这是上一交易日数据，今天还在延续昨天的情绪 [score=0.834 recalls=0 avg=0.620 source=memory/2026-07-02-0209.md:23-26]
+<!-- openclaw-memory-promotion:memory:memory/2026-07-02-0209.md:3:5 -->
+- Session: 2026-07-02 02:09:28 GMT+8: **Session Key**: agent:main:openclaw-weixin:direct:o9cq80-hgtrum-oss8knmdotlvzi@im.wechat; **Session ID**: 3050cb0f-68be-417c-99ae-9caa2af9d5c5; **Source**: openclaw-weixin [score=0.834 recalls=0 avg=0.620 source=memory/2026-07-02-0209.md:3-5]
+<!-- openclaw-memory-promotion:memory:memory/2026-07-02-0209.md:30:33 -->
+- 🌡️ 美股半导体板块实时（盘中）: | 标的 | 现价 | 跌幅 | 振幅 | |---|---|---|---| | **SOXX** (iShares 半导体 ETF) | 6017.90 | **-6.08%** | 振幅 6.4% | | **SMH** (VanEck 半导体 ETF) | 6223.95 | **-5.11%** | 振幅 4.9% | [score=0.834 recalls=0 avg=0.620 source=memory/2026-07-02-0209.md:30-33]
+<!-- openclaw-memory-promotion:memory:memory/2026-07-02-0209.md:9:10 -->
+- Conversation Summary: assistant: 好，自己动手。把港股 + 情绪面 + 催化全部并行抓一遍。 assistant: **重要修正**：港股 7 月 1 日是**香港回归纪念日休市**，所以刚才脚本显示的"今日 -2.89%"等数据，**不是今天的实际变动**，而是 **6 月 30 日（周二）港股收盘后的累计变动对比**。港股今天是休市的，明天 7 月 2 日才开盘。 [score=0.834 recalls=0 avg=0.620 source=memory/2026-07-02-0209.md:9-10]
+<!-- openclaw-memory-promotion:memory:memory/2026-07-02.md:11:14 -->
+- 当前 SPCH 状态: **持仓 110 股**（前 100 + 今日 10），加权均成本 **$20.24**; 现价 **$13.87**，今日 **-9.47%**; 浮亏 **-$701（-31.48%）**; US 现金余额：**$134.35**（地板，再无加仓弹药） [score=0.834 recalls=0 avg=0.620 source=memory/2026-07-02.md:11-14]
+<!-- openclaw-memory-promotion:memory:memory/2026-07-02.md:15:15 -->
+- 当前 SPCH 状态: 累计加仓金额（cash-flow 口径）：**$2,261.30** - T+0 realized $34.8 = **净 $2,226.50** [score=0.834 recalls=0 avg=0.620 source=memory/2026-07-02.md:15-15]
+<!-- openclaw-memory-promotion:memory:memory/2026-07-02.md:19:22 -->
+- 为什么 P0 升级: **累计加仓逼近 $3000 阈值**（条件 b 几乎触发）; **现金只剩 $134**，下一次加仓需要：; 港股 AI 拉升兑现; 或减仓 ROBN（浮盈 +47%） [score=0.834 recalls=0 avg=0.620 source=memory/2026-07-02.md:19-22]
+<!-- openclaw-memory-promotion:memory:memory/2026-07-02.md:24:24 -->
+- 为什么 P0 升级: **SPCH 当前 -31% 浮亏**，距离 8 月解禁还有 4-5 周，逻辑窗口收窄 [score=0.834 recalls=0 avg=0.620 source=memory/2026-07-02.md:24-24]
+<!-- openclaw-memory-promotion:memory:memory/2026-07-02.md:5:5 -->
+- 02:03 HKT — SPCH 第八次加仓（P0 风险触发）: 凌晨 02:03 HKT，**13.89 买入 10 股 SPCH**。理由：盘中 SPCX 现货跌至 $162.47，对应 SPCH ~$13.5-14 区间。 [score=0.834 recalls=0 avg=0.620 source=memory/2026-07-02.md:5-5]
+<!-- openclaw-memory-promotion:memory:memory/2026-07-02.md:7:7 -->
+- 02:03 HKT — SPCH 第八次加仓（P0 风险触发）: **但触发了 P0 风险**（strategy_note 中的升级条件 b：累计加仓金额 > $3000）。 [score=0.834 recalls=0 avg=0.620 source=memory/2026-07-02.md:7-7]
