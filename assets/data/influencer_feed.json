@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-05T22:34:33.835059+00:00",
+  "generated_at": "2026-07-06T16:11:39.964365+00:00",
   "lookback_hours": 48,
   "sources": {
     "trump": "trumpstruth.org/feed (primary)",
@@ -8,17 +8,42 @@
   },
   "llm_filtered": true,
   "counts": {
-    "total": 5,
+    "total": 11,
     "held_hits": 0,
-    "new_ideas": 1,
-    "sector_hits": 4
+    "new_ideas": 2,
+    "sector_hits": 6
   },
   "items": [
     {
       "author": "Musk",
-      "text": "California vs. Elon Musk: Tesla Snubbed as New EV Incentives Boost Rivian, Lucid",
+      "text": "Tim Draper’s Elon Musk Playbook: SpaceX, Tesla and The $2 Trillion IPO",
       "url": "",
-      "published": "Sun, 05 Jul 2026 13:31:01 GMT",
+      "published": "Mon, 06 Jul 2026 13:15:11 GMT",
+      "origin": "gnews-rss",
+      "source": "Forbes",
+      "tickers": [
+        "TSLA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "TSLA"
+      ],
+      "sectors": [
+        "航天",
+        "电动车"
+      ],
+      "sector_holdings": [
+        "SPCH"
+      ],
+      "stance": "endorse",
+      "relevance": 72,
+      "summary_cn": "Tim Draper回顾投资马斯克 playbook，盛赞SpaceX、特斯拉及潜在2万亿美元IPO，传递看多马斯克系资产信号。"
+    },
+    {
+      "author": "Musk",
+      "text": "Tesla's Solid Q2 Delivery Report Sent Elon Musk's Stock Down 6%. What Happened?",
+      "url": "",
+      "published": "Mon, 06 Jul 2026 09:00:00 GMT",
       "origin": "gnews-rss",
       "source": "Yahoo Finance",
       "tickers": [
@@ -29,107 +54,222 @@
         "TSLA"
       ],
       "sectors": [
-        "电动车",
-        "新能源"
+        "电动车"
       ],
       "sector_holdings": [],
-      "stance": "attack",
-      "relevance": 50,
-      "summary_cn": "Musk 相关：加州新电动车激励政策偏向 Rivian、Lucid 而非 Tesla，对 TSLA 偏负面，但与 kcn 持仓无直接交集。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk No Longer A Trillionaire As SpaceX Stock Falls",
-      "url": "",
-      "published": "Wed, 01 Jul 2026 16:33:46 GMT",
-      "origin": "gnews-rss",
-      "source": "Forbes",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "马斯克生态"
-      ],
-      "sector_holdings": [
-        "SPCH"
-      ],
-      "stance": "attack",
-      "relevance": 65,
-      "summary_cn": "Musk 相关：SpaceX 估值下跌致 Musk 身价缩水，间接利空 kcn 持有的 SpaceX 2x 杠杆 ETF SPCH。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk can’t sell a single SpaceX share for a year—and then all the locks crack open at once",
-      "url": "",
-      "published": "Fri, 03 Jul 2026 10:06:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Fortune",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "私募股权"
-      ],
-      "sector_holdings": [
-        "SPCH"
-      ],
       "stance": "neutral",
-      "relevance": 60,
-      "summary_cn": "Musk 相关：SpaceX 股票面临一年锁定期满后集中解禁压力，可能影响 SPCH 净值，二级间接信号。"
+      "relevance": 70,
+      "summary_cn": "特斯拉Q2交付数据强劲但股价反跌6%，市场对电动车/自动驾驶叙事与短期交付的定价出现背离。"
     },
     {
       "author": "Musk",
-      "text": "SpaceX to rocket up list of largest local employers",
+      "text": "Elon Musk becomes world's first trillionaire as SpaceX soars in stock market debut",
       "url": "",
-      "published": "Sun, 05 Jul 2026 15:48:00 GMT",
+      "published": "Fri, 12 Jun 2026 07:00:00 GMT",
       "origin": "gnews-rss",
-      "source": "The Business Journals",
+      "source": "BBC",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
         "航天",
-        "就业"
+        "AI"
       ],
       "sector_holdings": [
         "SPCH"
       ],
       "stance": "endorse",
-      "relevance": 55,
-      "summary_cn": "Musk 相关：SpaceX 即将成为当地最大雇主之一，间接正面信号利好 SPCH。"
+      "relevance": 80,
+      "summary_cn": "SpaceX上市首日股价飙升，马斯克成为全球首位万亿富翁，强化SPCH所追踪标的估值锚与市场情绪。"
     },
     {
       "author": "Musk",
-      "text": "SpaceX’s Telecom Dreams",
+      "text": "Exclusive | SpaceX Showed Investors Prototype of Elon Musk’s New AI Device",
       "url": "",
-      "published": "Sun, 05 Jul 2026 11:37:00 GMT",
+      "published": "Wed, 01 Jul 2026 18:11:00 GMT",
       "origin": "gnews-rss",
       "source": "WSJ",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
+        "AI硬件",
+        "航天"
+      ],
+      "sector_holdings": [
+        "SPCH"
+      ],
+      "stance": "neutral",
+      "relevance": 68,
+      "summary_cn": "SpaceX向投资者展示马斯克新AI设备原型，跨界消费级AI硬件，模糊航天与AI边界，利好马斯克系生态叙事。"
+    },
+    {
+      "author": "Musk",
+      "text": "The investors scrambling to keep SpaceX – and Elon Musk – out of their portfolios",
+      "url": "",
+      "published": "Mon, 06 Jul 2026 12:42:42 GMT",
+      "origin": "gnews-rss",
+      "source": "East Bay Times",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
         "航天",
-        "通信",
-        "卫星互联网"
+        "私募/IPO"
+      ],
+      "sector_holdings": [
+        "SPCH"
+      ],
+      "stance": "neutral",
+      "relevance": 62,
+      "summary_cn": "媒体报道部分机构投资者正试图将SpaceX及马斯克相关持仓排除出组合，反映SpaceXIPO后市场对马斯克关联风险的定价分歧。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk's No. 2 Says She's Giving SpaceX Stock to Trump Accounts",
+      "url": "",
+      "published": "Mon, 06 Jul 2026 14:53:32 GMT",
+      "origin": "gnews-rss",
+      "source": "Business Insider",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "退休账户/政策"
+      ],
+      "sector_holdings": [
+        "SPCH"
+      ],
+      "stance": "neutral",
+      "relevance": 60,
+      "summary_cn": "马斯克二号人物Gwynne Shotwell宣布将SpaceX股票赠予'Trump Accounts'(新生儿退休账户)，暗示SpaceX资产将被嵌入新政策产品，间接扩大SpaceX散户触达面。"
+    },
+    {
+      "author": "Musk",
+      "text": "The town that Elon Musk built",
+      "url": "",
+      "published": "Wed, 01 Jul 2026 04:00:52 GMT",
+      "origin": "gnews-rss",
+      "source": "Financial Times",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天"
+      ],
+      "sector_holdings": [
+        "SPCH"
+      ],
+      "stance": "neutral",
+      "relevance": 58,
+      "summary_cn": "媒体报道马斯克在得州打造的'town that Musk built'——Starbase等社区扩张，揭示SpaceX产能与人才虹吸效应，间接支撑航天主题。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk posted twice as often on UK race and immigration as about SpaceX in IPO run-up",
+      "url": "",
+      "published": "Sun, 05 Jul 2026 23:08:00 GMT",
+      "origin": "gnews-rss",
+      "source": "The Guardian",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天"
       ],
       "sector_holdings": [
         "SPCH"
       ],
       "stance": "neutral",
       "relevance": 55,
-      "summary_cn": "Musk 相关：SpaceX 电信业务（卫星互联网/星链）报道，间接利好 kcn 持有的 SpaceX 2x 杠杆 ETF SPCH。"
+      "summary_cn": "报道指出SpaceXIPO路演期间，马斯克发帖频率最高的竟是英国种族与移民议题而非航天，相关舆论风险被市场关注。"
+    },
+    {
+      "author": "Trump",
+      "text": "Fed Reserve working paper suggests Biden illegal immigrant wave drove up home prices 30%: https://justthenews.com/government/security/fed-reserve-working-paper-suggests-biden-illegal-immigrant-wave-drove-home",
+      "url": "https://trumpstruth.org/statuses/39815",
+      "published": "2026-07-06T02:21:04+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "宏观/移民政策",
+        "房地产"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 55,
+      "summary_cn": "特朗普转发美联储工作论文，称拜登时期的非法移民浪潮推高房价30%，为其移民/驱逐政策辩护，间接利空住房需求侧预期。"
+    },
+    {
+      "author": "Trump",
+      "text": "Plants like this are going up all over the Country. Many are Defense. They are massive!",
+      "url": "https://trumpstruth.org/statuses/39770",
+      "published": "2026-07-05T16:32:01+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "国防/军工"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 55,
+      "summary_cn": "特朗普宣传国防相关大型工厂/设施正在美国各地兴建，暗示国防工业产能扩张主题。"
+    },
+    {
+      "author": "Trump",
+      "text": "From Shou Chew, CEO of TikTok: “Attached are the latest numbers of the President on TikTok. All time views of #Trump TikToks are now at 425 billion. Also, 1 billion new views across UFC 250, Trump's Iran Peace Deal and “Happy Birthday, Mr. President\" TikToks in just 48 hours! Wishing the President a belated happy birthday!”",
+      "url": "https://trumpstruth.org/statuses/39761",
+      "published": "2026-07-05T16:23:43+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "社交媒体/科技"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 50,
+      "summary_cn": "TikTok CEO向特朗普汇报其平台数据，称Trump相关内容总观看量达4250亿次，间接确认TikTok在美国继续运营/未被封禁。"
     }
   ],
   "held_hits": [],
   "new_ideas": [
     {
       "author": "Musk",
-      "text": "California vs. Elon Musk: Tesla Snubbed as New EV Incentives Boost Rivian, Lucid",
+      "text": "Tim Draper’s Elon Musk Playbook: SpaceX, Tesla and The $2 Trillion IPO",
       "url": "",
-      "published": "Sun, 05 Jul 2026 13:31:01 GMT",
+      "published": "Mon, 06 Jul 2026 13:15:11 GMT",
+      "origin": "gnews-rss",
+      "source": "Forbes",
+      "tickers": [
+        "TSLA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "TSLA"
+      ],
+      "sectors": [
+        "航天",
+        "电动车"
+      ],
+      "sector_holdings": [
+        "SPCH"
+      ],
+      "stance": "endorse",
+      "relevance": 72,
+      "summary_cn": "Tim Draper回顾投资马斯克 playbook，盛赞SpaceX、特斯拉及潜在2万亿美元IPO，传递看多马斯克系资产信号。"
+    },
+    {
+      "author": "Musk",
+      "text": "Tesla's Solid Q2 Delivery Report Sent Elon Musk's Stock Down 6%. What Happened?",
+      "url": "",
+      "published": "Mon, 06 Jul 2026 09:00:00 GMT",
       "origin": "gnews-rss",
       "source": "Yahoo Finance",
       "tickers": [
@@ -140,100 +280,138 @@
         "TSLA"
       ],
       "sectors": [
-        "电动车",
-        "新能源"
+        "电动车"
       ],
       "sector_holdings": [],
-      "stance": "attack",
-      "relevance": 50,
-      "summary_cn": "Musk 相关：加州新电动车激励政策偏向 Rivian、Lucid 而非 Tesla，对 TSLA 偏负面，但与 kcn 持仓无直接交集。"
+      "stance": "neutral",
+      "relevance": 70,
+      "summary_cn": "特斯拉Q2交付数据强劲但股价反跌6%，市场对电动车/自动驾驶叙事与短期交付的定价出现背离。"
     }
   ],
   "sector_hits": [
     {
       "author": "Musk",
-      "text": "Elon Musk No Longer A Trillionaire As SpaceX Stock Falls",
+      "text": "Elon Musk becomes world's first trillionaire as SpaceX soars in stock market debut",
       "url": "",
-      "published": "Wed, 01 Jul 2026 16:33:46 GMT",
+      "published": "Fri, 12 Jun 2026 07:00:00 GMT",
       "origin": "gnews-rss",
-      "source": "Forbes",
+      "source": "BBC",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
         "航天",
-        "马斯克生态"
-      ],
-      "sector_holdings": [
-        "SPCH"
-      ],
-      "stance": "attack",
-      "relevance": 65,
-      "summary_cn": "Musk 相关：SpaceX 估值下跌致 Musk 身价缩水，间接利空 kcn 持有的 SpaceX 2x 杠杆 ETF SPCH。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk can’t sell a single SpaceX share for a year—and then all the locks crack open at once",
-      "url": "",
-      "published": "Fri, 03 Jul 2026 10:06:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Fortune",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "私募股权"
-      ],
-      "sector_holdings": [
-        "SPCH"
-      ],
-      "stance": "neutral",
-      "relevance": 60,
-      "summary_cn": "Musk 相关：SpaceX 股票面临一年锁定期满后集中解禁压力，可能影响 SPCH 净值，二级间接信号。"
-    },
-    {
-      "author": "Musk",
-      "text": "SpaceX to rocket up list of largest local employers",
-      "url": "",
-      "published": "Sun, 05 Jul 2026 15:48:00 GMT",
-      "origin": "gnews-rss",
-      "source": "The Business Journals",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "就业"
+        "AI"
       ],
       "sector_holdings": [
         "SPCH"
       ],
       "stance": "endorse",
-      "relevance": 55,
-      "summary_cn": "Musk 相关：SpaceX 即将成为当地最大雇主之一，间接正面信号利好 SPCH。"
+      "relevance": 80,
+      "summary_cn": "SpaceX上市首日股价飙升，马斯克成为全球首位万亿富翁，强化SPCH所追踪标的估值锚与市场情绪。"
     },
     {
       "author": "Musk",
-      "text": "SpaceX’s Telecom Dreams",
+      "text": "Exclusive | SpaceX Showed Investors Prototype of Elon Musk’s New AI Device",
       "url": "",
-      "published": "Sun, 05 Jul 2026 11:37:00 GMT",
+      "published": "Wed, 01 Jul 2026 18:11:00 GMT",
       "origin": "gnews-rss",
       "source": "WSJ",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
+        "AI硬件",
+        "航天"
+      ],
+      "sector_holdings": [
+        "SPCH"
+      ],
+      "stance": "neutral",
+      "relevance": 68,
+      "summary_cn": "SpaceX向投资者展示马斯克新AI设备原型，跨界消费级AI硬件，模糊航天与AI边界，利好马斯克系生态叙事。"
+    },
+    {
+      "author": "Musk",
+      "text": "The investors scrambling to keep SpaceX – and Elon Musk – out of their portfolios",
+      "url": "",
+      "published": "Mon, 06 Jul 2026 12:42:42 GMT",
+      "origin": "gnews-rss",
+      "source": "East Bay Times",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
         "航天",
-        "通信",
-        "卫星互联网"
+        "私募/IPO"
+      ],
+      "sector_holdings": [
+        "SPCH"
+      ],
+      "stance": "neutral",
+      "relevance": 62,
+      "summary_cn": "媒体报道部分机构投资者正试图将SpaceX及马斯克相关持仓排除出组合，反映SpaceXIPO后市场对马斯克关联风险的定价分歧。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk's No. 2 Says She's Giving SpaceX Stock to Trump Accounts",
+      "url": "",
+      "published": "Mon, 06 Jul 2026 14:53:32 GMT",
+      "origin": "gnews-rss",
+      "source": "Business Insider",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "退休账户/政策"
+      ],
+      "sector_holdings": [
+        "SPCH"
+      ],
+      "stance": "neutral",
+      "relevance": 60,
+      "summary_cn": "马斯克二号人物Gwynne Shotwell宣布将SpaceX股票赠予'Trump Accounts'(新生儿退休账户)，暗示SpaceX资产将被嵌入新政策产品，间接扩大SpaceX散户触达面。"
+    },
+    {
+      "author": "Musk",
+      "text": "The town that Elon Musk built",
+      "url": "",
+      "published": "Wed, 01 Jul 2026 04:00:52 GMT",
+      "origin": "gnews-rss",
+      "source": "Financial Times",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天"
+      ],
+      "sector_holdings": [
+        "SPCH"
+      ],
+      "stance": "neutral",
+      "relevance": 58,
+      "summary_cn": "媒体报道马斯克在得州打造的'town that Musk built'——Starbase等社区扩张，揭示SpaceX产能与人才虹吸效应，间接支撑航天主题。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk posted twice as often on UK race and immigration as about SpaceX in IPO run-up",
+      "url": "",
+      "published": "Sun, 05 Jul 2026 23:08:00 GMT",
+      "origin": "gnews-rss",
+      "source": "The Guardian",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天"
       ],
       "sector_holdings": [
         "SPCH"
       ],
       "stance": "neutral",
       "relevance": 55,
-      "summary_cn": "Musk 相关：SpaceX 电信业务（卫星互联网/星链）报道，间接利好 kcn 持有的 SpaceX 2x 杠杆 ETF SPCH。"
+      "summary_cn": "报道指出SpaceXIPO路演期间，马斯克发帖频率最高的竟是英国种族与移民议题而非航天，相关舆论风险被市场关注。"
     }
   ]
 }
