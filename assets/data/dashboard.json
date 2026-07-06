@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-06T15:34:00.699914Z",
+  "generated_at": "2026-07-06T15:34:25.517342Z",
   "last_updated": "2026/07/06 23:32 HKT",
   "fx": {
     "usdhkd": 7.8434,
@@ -8,13 +8,13 @@
   },
   "totals": {
     "us": {
-      "value_usd": 3336.7,
-      "cost_usd": 3990.42,
-      "pnl_usd": -653.72,
-      "pnl_pct": -16.3822,
-      "today_change_usd": -11.46,
+      "value_usd": 3470.58,
+      "cost_usd": 4125.12,
+      "pnl_usd": -654.54,
+      "pnl_pct": -15.8671,
+      "today_change_usd": -13.58,
       "realized_usd": 2005.35,
-      "cash_usd": 534.35
+      "cash_usd": 399.65
     },
     "hk": {
       "value_hkd": 49766.4,
@@ -28,47 +28,47 @@
   },
   "concentration": {
     "us": {
-      "hhi": 0.2639,
-      "top2": 0.5833,
+      "hhi": 0.2781,
+      "top2": 0.5993,
       "positions": [
         {
           "ticker": "SPCH",
           "name": "Leverage Shares 2X Long SpaceX Daily ETF",
-          "value": 1472.66,
-          "weight": 0.4414
+          "value": 1606.54,
+          "weight": 0.4629
         },
         {
           "ticker": "MSFU",
           "name": "二倍做多微软ETF-Direxion",
           "value": 473.4,
-          "weight": 0.1419
+          "weight": 0.1364
         },
         {
           "ticker": "PLTU",
           "name": "二倍做多PLTR ETF-Direxion",
           "value": 451.78,
-          "weight": 0.1354
+          "weight": 0.1302
         },
         {
           "ticker": "ROBN",
           "name": "二倍做多HOOD ETF-T-Rex",
           "value": 406.08,
-          "weight": 0.1217
+          "weight": 0.117
         },
         {
           "ticker": "RKLX",
           "name": "Defiance Daily Target 2X Long R",
           "value": 396.5,
-          "weight": 0.1188
+          "weight": 0.1142
         },
         {
           "ticker": "CRCL",
           "name": "Circle Internet Group Inc-A",
           "value": 136.28,
-          "weight": 0.0408
+          "weight": 0.0393
         }
       ],
-      "total": 3336.7,
+      "total": 3470.58,
       "verdict": {
         "level": "concentrated",
         "label": "集中风险",
@@ -192,18 +192,18 @@
         "ticker": "SPCH",
         "name": "Leverage Shares 2X Long SpaceX Daily ETF",
         "currency": "USD",
-        "shares": 110,
-        "cost_basis": 17.5245,
+        "shares": 120,
+        "cost_basis": 17.1866,
         "current_price": 13.3878,
-        "current_value": 1472.66,
-        "today_change": -23.34,
+        "current_value": 1606.54,
+        "today_change": -25.46,
         "today_change_pct": -1.56,
         "day_high": 14.5351,
         "day_low": 13.3878,
-        "pnl_abs": -455.04,
-        "pnl_percent": -23.61,
+        "pnl_abs": -455.86,
+        "pnl_percent": -22.1,
         "is_active": true,
-        "trades_count": 10
+        "trades_count": 11
       },
       {
         "ticker": "MSFU",
@@ -1695,7 +1695,7 @@
     {
       "type": "high_weight_loss",
       "ticker": "SPCH",
-      "detail": "weight 40.1% + pnl -23.6%",
+      "detail": "weight 40.1% + pnl -22.1%",
       "severity": "high"
     },
     {
@@ -3079,7 +3079,7 @@
     {
       "ticker": "SPCH",
       "region": "us",
-      "weight_pct": 44.14,
+      "weight_pct": 46.29,
       "avg_confidence": 0.545,
       "n_actions": 15,
       "quadrant": "high_risk"
@@ -3103,7 +3103,7 @@
     {
       "ticker": "MSFU",
       "region": "us",
-      "weight_pct": 14.19,
+      "weight_pct": 13.64,
       "avg_confidence": 0.534,
       "n_actions": 20,
       "quadrant": "low_conv_small"
@@ -3111,7 +3111,7 @@
     {
       "ticker": "PLTU",
       "region": "us",
-      "weight_pct": 13.54,
+      "weight_pct": 13.02,
       "avg_confidence": 0.554,
       "n_actions": 21,
       "quadrant": "low_conv_small"
@@ -3119,7 +3119,7 @@
     {
       "ticker": "ROBN",
       "region": "us",
-      "weight_pct": 12.17,
+      "weight_pct": 11.7,
       "avg_confidence": 0.538,
       "n_actions": 21,
       "quadrant": "low_conv_small"
@@ -3127,7 +3127,7 @@
     {
       "ticker": "RKLX",
       "region": "us",
-      "weight_pct": 11.88,
+      "weight_pct": 11.42,
       "avg_confidence": 0.529,
       "n_actions": 15,
       "quadrant": "low_conv_small"
@@ -3151,7 +3151,7 @@
     {
       "ticker": "CRCL",
       "region": "us",
-      "weight_pct": 4.08,
+      "weight_pct": 3.93,
       "avg_confidence": 0.492,
       "n_actions": 19,
       "quadrant": "low_conv_small"
@@ -3316,8 +3316,8 @@
     "us": [
       {
         "sector": "Other",
-        "value": 1472.66,
-        "pct": 44.14,
+        "value": 1606.54,
+        "pct": 46.29,
         "tickers": [
           "SPCH"
         ]
@@ -3325,7 +3325,7 @@
       {
         "sector": "Tech Mega-cap",
         "value": 473.4,
-        "pct": 14.19,
+        "pct": 13.64,
         "tickers": [
           "MSFU"
         ]
@@ -3333,7 +3333,7 @@
       {
         "sector": "AI / Defense",
         "value": 451.78,
-        "pct": 13.54,
+        "pct": 13.02,
         "tickers": [
           "PLTU"
         ]
@@ -3341,7 +3341,7 @@
       {
         "sector": "Fintech",
         "value": 406.08,
-        "pct": 12.17,
+        "pct": 11.7,
         "tickers": [
           "ROBN"
         ]
@@ -3349,7 +3349,7 @@
       {
         "sector": "Aerospace",
         "value": 396.5,
-        "pct": 11.88,
+        "pct": 11.42,
         "tickers": [
           "RKLX"
         ]
@@ -3357,7 +3357,7 @@
       {
         "sector": "Crypto / Stablecoin",
         "value": 136.28,
-        "pct": 4.08,
+        "pct": 3.93,
         "tickers": [
           "CRCL"
         ]
@@ -3393,9 +3393,9 @@
     ]
   },
   "leveraged_etf": {
-    "us_pct": 51.78,
+    "us_pct": 49.78,
     "hk_pct": 40.09,
-    "combined_pct": 44.12,
+    "combined_pct": 43.52,
     "tickers": [
       "07226",
       "MSFU",
@@ -3632,16 +3632,16 @@
         "leg": "US",
         "ticker": "SPCH",
         "severity": "medium",
-        "detail": "SPCH = 44.14% of US (cap 35%)",
-        "action": "纪律性 trim SPCH → ≤35% (减约 304.82 USD，借反弹分批、勿在新低日一次砍)"
+        "detail": "SPCH = 46.29% of US (cap 35%)",
+        "action": "纪律性 trim SPCH → ≤35% (减约 391.84 USD，借反弹分批、勿在新低日一次砍)"
       },
       {
         "type": "leveraged_exposure",
         "leg": "US",
         "ticker": null,
         "severity": "high",
-        "detail": "US 杠杆 ETF = 95.9% (cap 50%) — 2x 日内重置，下杀崩/震荡衰减",
-        "action": "降杠杆=换仓非清仓：把约 1532.07 USD 的 2x 换成 1x 同因子(PLTU→PLTR、ROBN→HOOD、MSFU→MSFT)，敞口不变、停 decay；🧭转 green 后可换回 2x"
+        "detail": "US 杠杆 ETF = 96.1% (cap 50%) — 2x 日内重置，下杀崩/震荡衰减",
+        "action": "降杠杆=换仓非清仓：把约 1599.01 USD 的 2x 换成 1x 同因子(PLTU→PLTR、ROBN→HOOD、MSFU→MSFT)，敞口不变、停 decay；🧭转 green 后可换回 2x"
       },
       {
         "type": "beta",
@@ -3677,8 +3677,8 @@
       {
         "ticker": "SPCH",
         "leg": "US",
-        "pnl_pct": -23.6,
-        "detail": "SPCH 浮亏 -23.6% ≤ 硬止损线 -18%",
+        "pnl_pct": -22.1,
+        "detail": "SPCH 浮亏 -22.1% ≤ 硬止损线 -18%",
         "action": "SPCH 触发杠杆 ETF 硬止损 → 换仓 同因子 1x/标的现货（敞口保留、停 decay，规则非择时）；🧭转 green 再换回 2x"
       },
       {
@@ -3811,18 +3811,18 @@
         "swap_1x": "03033"
       },
       {
-        "ticker": "SPCH",
-        "leg": "US",
-        "pnl_pct": -23.6,
-        "breakeven_need_pct": 30.9,
-        "leveraged": true
-      },
-      {
         "ticker": "02208",
         "leg": "HK",
         "pnl_pct": -22.7,
         "breakeven_need_pct": 29.4,
         "leveraged": false
+      },
+      {
+        "ticker": "SPCH",
+        "leg": "US",
+        "pnl_pct": -22.1,
+        "breakeven_need_pct": 28.4,
+        "leveraged": true
       },
       {
         "ticker": "CRCL",
@@ -5050,12 +5050,12 @@
         "current_value": 19951.6
       },
       {
-        "ticker": "SPCH",
-        "name": "Leverage Shares 2X Long SpaceX Daily ETF",
-        "region": "us",
-        "pnl_percent": -23.61,
-        "pnl_abs": -455.04,
-        "current_value": 1472.66
+        "ticker": "02208",
+        "name": "金风科技",
+        "region": "hk",
+        "pnl_percent": -22.75,
+        "pnl_abs": -1281.6,
+        "current_value": 4352.0
       }
     ]
   },
@@ -5128,7 +5128,7 @@
   "realized_vs_unrealized": {
     "us": {
       "realized": 2005.35,
-      "unrealized": -653.72
+      "unrealized": -654.54
     },
     "hk": {
       "realized": 7259.16,
@@ -5136,25 +5136,25 @@
     },
     "combined_usd": {
       "realized": 2930.86,
-      "unrealized": -5563.56
+      "unrealized": -5564.38
     }
   },
   "capital_deployed": {
     "us": {
-      "native": 5995.77,
-      "usd": 5995.77
+      "native": 6130.47,
+      "usd": 6130.47
     },
     "hk": {
       "native": 95535.4,
       "usd": 12180.36
     },
-    "combined_usd": 18176.13
+    "combined_usd": 18310.83
   },
   "net_principal_return": {
     "us": {
-      "net_principal": 1985.07,
-      "total_profit": 1351.63,
-      "return_pct": 54.7,
+      "net_principal": 2119.77,
+      "total_profit": 1350.81,
+      "return_pct": 54.66,
       "return_basis": "true_principal",
       "true_principal": 2471.12
     },
@@ -5166,7 +5166,7 @@
     },
     "combined_usd": {
       "net_principal": 12800.45,
-      "total_profit": -2632.7,
+      "total_profit": -2633.52,
       "return_pct": -20.57,
       "return_basis": "true_principal"
     },
@@ -6091,7 +6091,7 @@
     }
   },
   "build_status": {
-    "generated_at": "2026-07-06T23:34:00+08:00",
+    "generated_at": "2026-07-06T23:34:25+08:00",
     "healthy": false,
     "stale_files": [
       "us_news_digest.json"
