@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-05T22:40:02.469445Z",
+  "generated_at": "2026-07-06T00:00:02.712459Z",
   "last_updated": "2026/07/03 16:01 HKT",
   "fx": {
     "usdhkd": 7.844,
@@ -1786,18 +1786,18 @@
     ]
   },
   "calibration": {
-    "brier_30d": 0.2573,
-    "samples": 204,
+    "brier_30d": 0.2565,
+    "samples": 194,
     "bands": [
       {
         "band": "0-50%",
-        "n": 32,
-        "actual_win_rate": 0.5
+        "n": 28,
+        "actual_win_rate": 0.4643
       },
       {
         "band": "50-60%",
-        "n": 151,
-        "actual_win_rate": 0.5099
+        "n": 145,
+        "actual_win_rate": 0.5172
       },
       {
         "band": "60-70%",
@@ -1821,12 +1821,12 @@
         "win_rate": 0.4107
       },
       "trim_on_rebound": {
-        "n": 36,
-        "win_rate": 0.6944
+        "n": 33,
+        "win_rate": 0.6667
       },
       "hold_and_watch": {
-        "n": 112,
-        "win_rate": 0.4732
+        "n": 105,
+        "win_rate": 0.4857
       },
       "t_only": {
         "n": 0,
@@ -1838,22 +1838,22 @@
       }
     },
     "vs_baseline": {
-      "n": 204,
-      "llm_win_rate": 0.4951,
-      "hold_baseline_win_rate": 0.4461,
-      "alpha_pp": 4.9,
+      "n": 194,
+      "llm_win_rate": 0.4948,
+      "hold_baseline_win_rate": 0.4588,
+      "alpha_pp": 3.6,
       "llm_ci95": [
-        0.427,
-        0.563
+        0.425,
+        0.565
       ],
       "hold_ci95": [
-        0.379,
-        0.515
+        0.39,
+        0.529
       ],
       "alpha_significant": false,
-      "llm_avg_benefit_pct": 0.745,
-      "hold_avg_ret_pct": 0.237,
-      "alpha_ret_pp": 0.508,
+      "llm_avg_benefit_pct": 0.572,
+      "hold_avg_ret_pct": 0.55,
+      "alpha_ret_pp": 0.022,
       "risk_context": {
         "us_beta_spx": 3.118,
         "leverage_factor_avg": 1.4506,
@@ -1862,10 +1862,10 @@
       }
     },
     "followed": {
-      "true": 111,
-      "false": 87,
+      "true": 104,
+      "false": 84,
       "unknown": 6,
-      "pct": 56
+      "pct": 55
     }
   },
   "shadow_backtest": {
@@ -2481,11 +2481,11 @@
   },
   "active_signal_discipline": {
     "window_days": 30,
-    "active_calls": 97,
+    "active_calls": 94,
     "catalyst_backed": 5,
-    "catalyst_pct": 5.2,
+    "catalyst_pct": 5.3,
     "by_driver": {
-      "technical": 91,
+      "technical": 88,
       "catalyst": 5,
       "influencer": 1
     },
@@ -2493,30 +2493,30 @@
   },
   "calibration_by_trigger": {
     "price_above": {
-      "n_resolved": 31,
+      "n_resolved": 27,
       "n_pending": 2,
-      "wins": 19,
-      "losses": 12,
-      "win_rate": 0.6129,
+      "wins": 16,
+      "losses": 11,
+      "win_rate": 0.5926,
       "ci95": [
-        0.438,
-        0.763
+        0.407,
+        0.755
       ],
       "edge_significant": false,
-      "avg_confidence": 0.503
+      "avg_confidence": 0.51
     },
     "price_below": {
-      "n_resolved": 38,
+      "n_resolved": 34,
       "n_pending": 4,
-      "wins": 35,
-      "losses": 3,
-      "win_rate": 0.9211,
+      "wins": 33,
+      "losses": 1,
+      "win_rate": 0.9706,
       "ci95": [
-        0.792,
-        0.973
+        0.851,
+        0.995
       ],
       "edge_significant": true,
-      "avg_confidence": 0.514
+      "avg_confidence": 0.513
     },
     "open": {
       "n_resolved": 55,
@@ -2532,17 +2532,17 @@
       "avg_confidence": 0.572
     },
     "manual": {
-      "n_resolved": 71,
+      "n_resolved": 69,
       "n_pending": 3,
       "wins": 20,
-      "losses": 51,
-      "win_rate": 0.2817,
+      "losses": 49,
+      "win_rate": 0.2899,
       "ci95": [
-        0.19,
-        0.395
+        0.196,
+        0.406
       ],
       "edge_significant": false,
-      "avg_confidence": 0.511
+      "avg_confidence": 0.51
     },
     "index_breakdown": {
       "n_resolved": 4,
@@ -2560,30 +2560,30 @@
   },
   "calibration_by_driver": {
     "technical": {
-      "n_resolved": 161,
+      "n_resolved": 154,
       "n_pending": 8,
-      "wins": 78,
-      "losses": 83,
-      "win_rate": 0.4845,
+      "wins": 73,
+      "losses": 81,
+      "win_rate": 0.474,
       "ci95": [
-        0.409,
-        0.561
+        0.397,
+        0.553
       ],
       "edge_significant": false,
-      "avg_confidence": 0.528
+      "avg_confidence": 0.529
     },
     "catalyst": {
-      "n_resolved": 27,
+      "n_resolved": 24,
       "n_pending": 3,
       "wins": 19,
-      "losses": 8,
-      "win_rate": 0.7037,
+      "losses": 5,
+      "win_rate": 0.7917,
       "ci95": [
-        0.515,
-        0.841
+        0.595,
+        0.908
       ],
       "edge_significant": true,
-      "avg_confidence": 0.531
+      "avg_confidence": 0.534
     },
     "sentiment": {
       "n_resolved": 3,
@@ -3092,8 +3092,8 @@
       "ticker": "00100",
       "region": "hk",
       "weight_pct": 41.48,
-      "avg_confidence": 0.522,
-      "n_actions": 20,
+      "avg_confidence": 0.526,
+      "n_actions": 19,
       "quadrant": "high_risk"
     },
     {
@@ -3108,24 +3108,24 @@
       "ticker": "07226",
       "region": "hk",
       "weight_pct": 39.08,
-      "avg_confidence": 0.562,
-      "n_actions": 21,
+      "avg_confidence": 0.565,
+      "n_actions": 20,
       "quadrant": "high_risk"
     },
     {
       "ticker": "ROBN",
       "region": "us",
       "weight_pct": 20.28,
-      "avg_confidence": 0.531,
-      "n_actions": 21,
+      "avg_confidence": 0.535,
+      "n_actions": 20,
       "quadrant": "high_risk"
     },
     {
       "ticker": "MSFU",
       "region": "us",
       "weight_pct": 12.92,
-      "avg_confidence": 0.536,
-      "n_actions": 20,
+      "avg_confidence": 0.535,
+      "n_actions": 19,
       "quadrant": "low_conv_small"
     },
     {
@@ -3140,40 +3140,40 @@
       "ticker": "PLTU",
       "region": "us",
       "weight_pct": 11.51,
-      "avg_confidence": 0.542,
-      "n_actions": 21,
+      "avg_confidence": 0.549,
+      "n_actions": 20,
       "quadrant": "low_conv_small"
     },
     {
       "ticker": "02208",
       "region": "hk",
       "weight_pct": 8.85,
-      "avg_confidence": 0.54,
-      "n_actions": 20,
+      "avg_confidence": 0.539,
+      "n_actions": 19,
       "quadrant": "low_conv_small"
     },
     {
       "ticker": "03033",
       "region": "hk",
       "weight_pct": 8.8,
-      "avg_confidence": 0.493,
-      "n_actions": 20,
+      "avg_confidence": 0.489,
+      "n_actions": 19,
       "quadrant": "low_conv_small"
     },
     {
       "ticker": "CRCL",
       "region": "us",
       "weight_pct": 3.47,
-      "avg_confidence": 0.487,
-      "n_actions": 19,
+      "avg_confidence": 0.489,
+      "n_actions": 18,
       "quadrant": "low_conv_small"
     },
     {
       "ticker": "03032",
       "region": "hk",
       "weight_pct": 1.79,
-      "avg_confidence": 0.493,
-      "n_actions": 20,
+      "avg_confidence": 0.489,
+      "n_actions": 19,
       "quadrant": "low_conv_small"
     }
   ],
@@ -6105,7 +6105,7 @@
     }
   },
   "build_status": {
-    "generated_at": "2026-07-06T06:40:02+08:00",
+    "generated_at": "2026-07-06T08:00:02+08:00",
     "healthy": false,
     "stale_files": [
       "portfolio.json",
@@ -6120,84 +6120,84 @@
     "files": [
       {
         "name": "portfolio.json",
-        "age_hours": 38.5,
+        "age_hours": 39.8,
         "sla_hours": 26,
         "stale": true,
         "present": true
       },
       {
         "name": "benchmark.json",
-        "age_hours": 70.4,
+        "age_hours": 71.7,
         "sla_hours": 80,
         "stale": false,
         "present": true
       },
       {
         "name": "catalysts.json",
-        "age_hours": 70.4,
+        "age_hours": 71.7,
         "sla_hours": 30,
         "stale": true,
         "present": true
       },
       {
         "name": "em_news.json",
-        "age_hours": 39.6,
+        "age_hours": 41.0,
         "sla_hours": 30,
         "stale": true,
         "present": true
       },
       {
         "name": "influencer_feed.json",
-        "age_hours": 0.0,
+        "age_hours": 1.3,
         "sla_hours": 30,
         "stale": false,
         "present": true
       },
       {
         "name": "lev_regime.json",
-        "age_hours": 70.4,
+        "age_hours": 71.7,
         "sla_hours": 30,
         "stale": true,
         "present": true
       },
       {
         "name": "macro.json",
-        "age_hours": 0.0,
+        "age_hours": 1.3,
         "sla_hours": 30,
         "stale": false,
         "present": true
       },
       {
         "name": "quant_signal_review.json",
-        "age_hours": 70.4,
+        "age_hours": 71.7,
         "sla_hours": 30,
         "stale": true,
         "present": true
       },
       {
         "name": "quant_signals.json",
-        "age_hours": 70.4,
+        "age_hours": 71.7,
         "sla_hours": 30,
         "stale": true,
         "present": true
       },
       {
         "name": "risk.json",
-        "age_hours": 70.4,
+        "age_hours": 71.7,
         "sla_hours": 30,
         "stale": true,
         "present": true
       },
       {
         "name": "sentiment.json",
-        "age_hours": 0.0,
+        "age_hours": 1.3,
         "sla_hours": 30,
         "stale": false,
         "present": true
       },
       {
         "name": "us_news_digest.json",
-        "age_hours": 54.8,
+        "age_hours": 56.2,
         "sla_hours": 30,
         "stale": true,
         "present": true
