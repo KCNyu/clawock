@@ -101,25 +101,25 @@
 - **单一来源：`portfolio.json`**，不在此维护副本
 - ticker 列表：`memory/current-portfolio-summary.md`（提高检索命中）
 
-## Promoted From Short-Term Memory (2026-07-07)
+## Promoted From Short-Term Memory (2026-07-08)
 
-<!-- openclaw-memory-promotion:memory:memory/2026-07-02-0209.md:23:26 -->
-- 🕐 时态校准（关键）: 现在 **北京时间 7-02 01:59 HKT**; **美东 7-01 13:59 = 美股盘中**; **港股 7-01 休市**（香港回归纪念日），**7-02 周三开盘**; **6 月 30 日（周二）港股收盘：恒科 +1.80% 收 4,472.23**——这是上一交易日数据，今天还在延续昨天的情绪 [score=0.834 recalls=0 avg=0.620 source=memory/2026-07-02-0209.md:23-26]
-<!-- openclaw-memory-promotion:memory:memory/2026-07-02-0209.md:3:5 -->
-- Session: 2026-07-02 02:09:28 GMT+8: **Session Key**: agent:main:openclaw-weixin:direct:o9cq80-hgtrum-oss8knmdotlvzi@im.wechat; **Session ID**: 3050cb0f-68be-417c-99ae-9caa2af9d5c5; **Source**: openclaw-weixin [score=0.834 recalls=0 avg=0.620 source=memory/2026-07-02-0209.md:3-5]
-<!-- openclaw-memory-promotion:memory:memory/2026-07-02-0209.md:30:33 -->
-- 🌡️ 美股半导体板块实时（盘中）: | 标的 | 现价 | 跌幅 | 振幅 | |---|---|---|---| | **SOXX** (iShares 半导体 ETF) | 6017.90 | **-6.08%** | 振幅 6.4% | | **SMH** (VanEck 半导体 ETF) | 6223.95 | **-5.11%** | 振幅 4.9% | [score=0.834 recalls=0 avg=0.620 source=memory/2026-07-02-0209.md:30-33]
-<!-- openclaw-memory-promotion:memory:memory/2026-07-02-0209.md:9:10 -->
-- Conversation Summary: assistant: 好，自己动手。把港股 + 情绪面 + 催化全部并行抓一遍。 assistant: **重要修正**：港股 7 月 1 日是**香港回归纪念日休市**，所以刚才脚本显示的"今日 -2.89%"等数据，**不是今天的实际变动**，而是 **6 月 30 日（周二）港股收盘后的累计变动对比**。港股今天是休市的，明天 7 月 2 日才开盘。 [score=0.834 recalls=0 avg=0.620 source=memory/2026-07-02-0209.md:9-10]
-<!-- openclaw-memory-promotion:memory:memory/2026-07-02.md:11:14 -->
-- 当前 SPCH 状态: **持仓 110 股**（前 100 + 今日 10），加权均成本 **$20.24**; 现价 **$13.87**，今日 **-9.47%**; 浮亏 **-$701（-31.48%）**; US 现金余额：**$134.35**（地板，再无加仓弹药） [score=0.834 recalls=0 avg=0.620 source=memory/2026-07-02.md:11-14]
-<!-- openclaw-memory-promotion:memory:memory/2026-07-02.md:15:15 -->
-- 当前 SPCH 状态: 累计加仓金额（cash-flow 口径）：**$2,261.30** - T+0 realized $34.8 = **净 $2,226.50** [score=0.834 recalls=0 avg=0.620 source=memory/2026-07-02.md:15-15]
-<!-- openclaw-memory-promotion:memory:memory/2026-07-02.md:19:22 -->
-- 为什么 P0 升级: **累计加仓逼近 $3000 阈值**（条件 b 几乎触发）; **现金只剩 $134**，下一次加仓需要：; 港股 AI 拉升兑现; 或减仓 ROBN（浮盈 +47%） [score=0.834 recalls=0 avg=0.620 source=memory/2026-07-02.md:19-22]
-<!-- openclaw-memory-promotion:memory:memory/2026-07-02.md:24:24 -->
-- 为什么 P0 升级: **SPCH 当前 -31% 浮亏**，距离 8 月解禁还有 4-5 周，逻辑窗口收窄 [score=0.834 recalls=0 avg=0.620 source=memory/2026-07-02.md:24-24]
-<!-- openclaw-memory-promotion:memory:memory/2026-07-02.md:5:5 -->
-- 02:03 HKT — SPCH 第八次加仓（P0 风险触发）: 凌晨 02:03 HKT，**13.89 买入 10 股 SPCH**。理由：盘中 SPCX 现货跌至 $162.47，对应 SPCH ~$13.5-14 区间。 [score=0.834 recalls=0 avg=0.620 source=memory/2026-07-02.md:5-5]
-<!-- openclaw-memory-promotion:memory:memory/2026-07-02.md:7:7 -->
-- 02:03 HKT — SPCH 第八次加仓（P0 风险触发）: **但触发了 P0 风险**（strategy_note 中的升级条件 b：累计加仓金额 > $3000）。 [score=0.834 recalls=0 avg=0.620 source=memory/2026-07-02.md:7-7]
+<!-- openclaw-memory-promotion:memory:memory/2026-07-03-0147.md:12:12 -->
+- Conversation Summary: 📊 市值 HK$49,764 | 浮盈 -38,512 (-43.6%) | 今日 -4,205 [score=0.854 recalls=0 avg=0.620 source=memory/2026-07-03-0147.md:12-12]
+<!-- openclaw-memory-promotion:memory:memory/2026-07-03-0147.md:14:17 -->
+- Conversation Summary: | 代码 | 股 | 成本 | 现价 | 今日 | 浮% | 浮$ | |:------|------:|-------:|-------:|-------:|-------:|--------:| | 00100 | 60 | 822.83 | 357.60 | -14.2% | -56.5% | -27,914 | | 02208 | 400 | 14.08 | 9.89 | -6.0% | -29.8% | -1,678 | [score=0.854 recalls=0 avg=0.620 source=memory/2026-07-03-0147.md:14-17]
+<!-- openclaw-memory-promotion:memory:memory/2026-07-03-0147.md:18:20 -->
+- Conversation Summary: | 03032 | 200 | 5.41 | 4.44 | -0.9% | -17.9% | -193 | | 07226 | 6200 | 4.36 | 3.08 | -1.8% | -29.4% | -7,943 | | 03033 | 1000 | 5.14 | 4.36 | -0.8% | -15.2% | -784 | [score=0.854 recalls=0 avg=0.620 source=memory/2026-07-03-0147.md:18-20]
+<!-- openclaw-memory-promotion:memory:memory/2026-07-03-0147.md:23:25 -->
+- Conversation Summary: ⚠️ ALERT 00100 MINIMA | 今日-14.2% 浮-56.5% △ WATCH 02208 金风科技 | 今日-6.0% 浮-29.8% ✋ STOP? 07226 XL二南方恒 | 今日-1.8% 浮-29.4% [score=0.854 recalls=0 avg=0.620 source=memory/2026-07-03-0147.md:23-25]
+<!-- openclaw-memory-promotion:memory:memory/2026-07-03-0147.md:3:5 -->
+- Session: 2026-07-03 01:47:51 GMT+8: **Session Key**: agent:main:openclaw-weixin:direct:o9cq80-hgtrum-oss8knmdotlvzi@im.wechat; **Session ID**: d917906e-6df4-495f-b368-f5f80d129d1e; **Source**: openclaw-weixin [score=0.854 recalls=0 avg=0.620 source=memory/2026-07-03-0147.md:3-5]
+<!-- openclaw-memory-promotion:memory:memory/2026-07-02-0151.md:9:9 -->
+- Conversation Summary: assistant: 🇺🇸 美股盯盘 | 07/01 09:32 ET [score=0.853 recalls=0 avg=0.620 source=memory/2026-07-02-0151.md:9-9]
+<!-- openclaw-memory-promotion:memory:memory/2026-07-02-pre-open.md:17:20 -->
+- ▎大盘速读: **VIX 16.45（-10.65%）· F&G 31.2（Fear，prev 27.0）** → VIX 快速收缩显示表面平静，但 F&G 仍在 Fear 区——两者背离，market complacency 信号，非真实风险偏好改善; **US 7/1: SPX -0.22% / NDX -1.54%** → 科技板块整体承压，但 HOOD/PLTR 事件驱动逆势大涨；宽度收窄，板块分化加剧; **HK 7/2 开盘: HSI -0.63% / HSTECH +1.8%** → 港股复市补涨（美股 6/30 月末反弹情绪传导），科技跑赢大盘；但 HSTECH 距 200DMA 仍 -17.3%，趋势 OFF; **美元 DXY 101.17（平稳）/ 10Y UST 4.42%** → 利率高位持续压制成长估值，DXY 平稳 HKD 无汇率扰动 [score=0.834 recalls=0 avg=0.620 source=memory/2026-07-02-pre-open.md:17-20]
+<!-- openclaw-memory-promotion:memory:memory/2026-07-02-pre-open.md:2:3 -->
+- layout: default title: 盘前深度简报 · 2026-07-02 [score=0.834 recalls=0 avg=0.620 source=memory/2026-07-02-pre-open.md:2-3]
+<!-- openclaw-memory-promotion:memory:memory/2026-07-02-pre-open.md:21:22 -->
+- ▎大盘速读: **黄金 XAU $4,085（+1.93%）** → 避险升温，与 F&G=31 Fear 一致; **NFP 明日 7/3 08:30 ET** → 本周最大 binary；US β=3.09 意味着大盘 -1% 约本子 -3.1%；今日降 β 优先于 NFP 前 [score=0.834 recalls=0 avg=0.620 source=memory/2026-07-02-pre-open.md:21-22]
+<!-- openclaw-memory-promotion:memory:memory/2026-07-02-pre-open.md:9:11 -->
+- 📊 盘前深度简报 | 2026-07-02 周四: **08:00 HKT | 港股今日复市（07/01 为回归纪念日） | US 7/1 已收盘 ~4h** USDHKD = 7.8439（Frankfurter）| HK lev_regime: 🟡 amber | US lev_regime: 🔴 RED 生成于 2026-07-02 08:02 HKT | Rick AI Stock Analyst [score=0.834 recalls=0 avg=0.620 source=memory/2026-07-02-pre-open.md:9-11]
