@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-07T15:34:42.471531Z",
+  "generated_at": "2026-07-07T15:50:20.366655Z",
   "last_updated": "2026/07/07 23:33 HKT",
   "fx": {
     "usdhkd": 7.843,
@@ -5220,36 +5220,36 @@
     "formula": "回报率 = (浮动 + 已实现) ÷ 本金；本金优先用 true_principal（峰值净投入），否则用 净投入本金=累计成本−已实现"
   },
   "gold_dca": {
-    "daily_amount": 200,
     "start_date": "2026-01-22",
-    "currency": "CNY",
     "principal_invested": 17299.0,
     "reconciled_date": "2026-06-09",
+    "daily_amount": 200,
+    "currency": "CNY",
     "fund_name": "华安黄金ETF联接C",
-    "principal_note": "对账基线(自动累加模式)。2026-06-09 kcn 对账:现值 15470 + 盈亏 -1829 → 本金 17299,份额 = 15470/净值3.1867 = 4854.55。此后每个 A 股交易日自动 +200@当日净值。补投对账:把 principal_invested/units_held 改成新真实数字、reconciled_date 改成对账当天即可,自动累加归零重算。",
     "fund_code": "000217",
+    "principal_note": "对账基线(自动累加模式)。2026-06-09 kcn 对账:现值 15470 + 盈亏 -1829 → 本金 17299,份额 = 15470/净值3.1867 = 4854.55。此后每个 A 股交易日自动 +200@当日净值。补投对账:把 principal_invested/units_held 改成新真实数字、reconciled_date 改成对账当天即可,自动累加归零重算。",
     "units_held": 4854.55,
-    "nav": 3.0592,
-    "nav_date": "2026-07-06",
-    "nav_change_pct": -0.31,
+    "nav": 3.0412,
+    "nav_date": "2026-07-07",
+    "nav_change_pct": -0.59,
     "realtime": {
-      "est_nav": 3.0465,
-      "est_change_pct": -0.42,
-      "est_time": "2026-07-06 22:27",
-      "nav_date": "2026-07-06"
+      "est_nav": 3.0595,
+      "est_change_pct": 0.6,
+      "est_time": "2026-07-07 22:27",
+      "nav_date": "2026-07-07"
     },
-    "principal_effective": 20899.0,
-    "units_effective": 6036.31,
-    "auto_added_days": 18,
-    "auto_added_amount": 3600.0,
-    "avg_cost": 3.4622,
-    "current_value": 18466.28,
-    "pnl_abs": -2432.72,
-    "pnl_percent": -11.64,
-    "breakeven_nav": 3.4622,
-    "breakeven_upside_pct": 13.17,
-    "days_invested": 107,
-    "installments_est": 104,
+    "principal_effective": 21099.0,
+    "units_effective": 6102.07,
+    "auto_added_days": 19,
+    "auto_added_amount": 3800.0,
+    "avg_cost": 3.4577,
+    "current_value": 18557.62,
+    "pnl_abs": -2541.38,
+    "pnl_percent": -12.05,
+    "breakeven_nav": 3.4577,
+    "breakeven_upside_pct": 13.69,
+    "days_invested": 108,
+    "installments_est": 105,
     "window_high": {
       "date": "2026-01-29",
       "nav": 4.1882
@@ -5261,45 +5261,41 @@
     "projection": [
       {
         "days": 20,
-        "invested": 24899.0,
-        "avg_cost": 3.3905,
-        "pnl_pct": -9.77,
-        "breakeven_upside_pct": 10.83
+        "invested": 25099.0,
+        "avg_cost": 3.3838,
+        "pnl_pct": -10.13,
+        "breakeven_upside_pct": 11.27
       },
       {
         "days": 40,
-        "invested": 28899.0,
-        "avg_cost": 3.3404,
-        "pnl_pct": -8.42,
-        "breakeven_upside_pct": 9.19
+        "invested": 29099.0,
+        "avg_cost": 3.3322,
+        "pnl_pct": -8.73,
+        "breakeven_upside_pct": 9.57
       },
       {
         "days": 60,
-        "invested": 32899.0,
-        "avg_cost": 3.3035,
-        "pnl_pct": -7.39,
-        "breakeven_upside_pct": 7.98
+        "invested": 33099.0,
+        "avg_cost": 3.2941,
+        "pnl_pct": -7.68,
+        "breakeven_upside_pct": 8.32
       },
       {
         "days": 120,
-        "invested": 44899.0,
-        "avg_cost": 3.2344,
-        "pnl_pct": -5.42,
-        "breakeven_upside_pct": 5.73
+        "invested": 45099.0,
+        "avg_cost": 3.2228,
+        "pnl_pct": -5.64,
+        "breakeven_upside_pct": 5.97
       },
       {
         "days": 250,
-        "invested": 70899.0,
-        "avg_cost": 3.1679,
-        "pnl_pct": -3.43,
-        "breakeven_upside_pct": 3.55
+        "invested": 71099.0,
+        "avg_cost": 3.1539,
+        "pnl_pct": -3.57,
+        "breakeven_upside_pct": 3.71
       }
     ],
     "nav_history": [
-      [
-        "2026-02-24",
-        3.8765
-      ],
       [
         "2026-02-25",
         3.8695
@@ -5655,26 +5651,25 @@
       [
         "2026-07-06",
         3.0592
+      ],
+      [
+        "2026-07-07",
+        3.0412
       ]
     ],
-    "last_updated": "2026-07-06T15:50:33.958831Z",
+    "last_updated": "2026-07-07T15:50:19.945878Z",
     "london": {
-      "xau_usd": 4147.58,
-      "xau_change_pct": -0.65,
-      "xau_high": 4202.09,
-      "xau_low": 4128.5,
-      "xau_prev_close": 4174.77,
-      "xau_date": "2026-07-06",
-      "usdcny": 6.7957,
-      "oz_equiv": 0.655,
-      "grams_equiv": 20.4,
-      "intl_value_usd": 2717.35,
+      "xau_usd": 4143.21,
+      "xau_change_pct": -0.52,
+      "xau_high": 4180.26,
+      "xau_low": 4116.63,
+      "xau_prev_close": 4164.75,
+      "xau_date": "2026-07-07",
+      "usdcny": 6.7935,
+      "oz_equiv": 0.659,
+      "grams_equiv": 20.5,
+      "intl_value_usd": 2731.67,
       "compare_series": [
-        [
-          "2026-02-24",
-          105.84,
-          104.16
-        ],
         [
           "2026-02-25",
           105.65,
@@ -6118,27 +6113,32 @@
         [
           "2026-07-06",
           83.52,
-          84.09
+          84.37
+        ],
+        [
+          "2026-07-07",
+          83.03,
+          83.98
         ]
       ],
       "dca_equiv": {
-        "principal_cny": 21400.0,
-        "oz_held": 0.6732,
-        "grams_held": 20.9,
-        "avg_cost_usd_oz": 4644.2,
-        "avg_cost_cny_g": 1022.03,
-        "spot_usd_oz": 4147.58,
+        "principal_cny": 21600.0,
+        "oz_held": 0.6803,
+        "grams_held": 21.2,
+        "avg_cost_usd_oz": 4639.15,
+        "avg_cost_cny_g": 1020.84,
+        "spot_usd_oz": 4143.21,
         "breakeven_upside_pct": 11.97,
-        "current_value_cny": 18974.57,
-        "pnl_abs": -2425.43,
-        "pnl_pct": -11.33,
-        "days": 107
+        "current_value_cny": 19147.66,
+        "pnl_abs": -2452.34,
+        "pnl_pct": -11.35,
+        "days": 108
       },
-      "last_updated": "2026-07-06T15:50:33.959404Z"
+      "last_updated": "2026-07-07T15:50:19.946228Z"
     }
   },
   "build_status": {
-    "generated_at": "2026-07-07T23:34:42+08:00",
+    "generated_at": "2026-07-07T23:50:20+08:00",
     "healthy": true,
     "stale_files": [],
     "files": [
@@ -6151,77 +6151,77 @@
       },
       {
         "name": "benchmark.json",
-        "age_hours": 15.5,
+        "age_hours": 15.8,
         "sla_hours": 80,
         "stale": false,
         "present": true
       },
       {
         "name": "catalysts.json",
-        "age_hours": 15.3,
+        "age_hours": 15.6,
         "sla_hours": 30,
         "stale": false,
         "present": true
       },
       {
         "name": "em_news.json",
-        "age_hours": 15.5,
+        "age_hours": 15.8,
         "sla_hours": 30,
         "stale": false,
         "present": true
       },
       {
         "name": "influencer_feed.json",
-        "age_hours": 16.6,
+        "age_hours": 0.2,
         "sla_hours": 30,
         "stale": false,
         "present": true
       },
       {
         "name": "lev_regime.json",
-        "age_hours": 15.5,
+        "age_hours": 15.8,
         "sla_hours": 30,
         "stale": false,
         "present": true
       },
       {
         "name": "macro.json",
-        "age_hours": 16.6,
+        "age_hours": 16.8,
         "sla_hours": 30,
         "stale": false,
         "present": true
       },
       {
         "name": "quant_signal_review.json",
-        "age_hours": 15.5,
+        "age_hours": 15.8,
         "sla_hours": 30,
         "stale": false,
         "present": true
       },
       {
         "name": "quant_signals.json",
-        "age_hours": 15.5,
+        "age_hours": 15.8,
         "sla_hours": 30,
         "stale": false,
         "present": true
       },
       {
         "name": "risk.json",
-        "age_hours": 15.5,
+        "age_hours": 15.8,
         "sla_hours": 30,
         "stale": false,
         "present": true
       },
       {
         "name": "sentiment.json",
-        "age_hours": 16.6,
+        "age_hours": 16.8,
         "sla_hours": 30,
         "stale": false,
         "present": true
       },
       {
         "name": "us_news_digest.json",
-        "age_hours": 23.2,
+        "age_hours": 23.5,
         "sla_hours": 30,
         "stale": false,
         "present": true
