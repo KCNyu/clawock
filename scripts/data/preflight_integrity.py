@@ -189,9 +189,11 @@ def _extract_iso(s):
 
 
 def _prev_snapshot_cash(region, field):
-    """Most recent snapshot's hand-filled cash for <region>.<field>, or None.
-    Used to fat-finger-check manual cash edits (a digit typo shows up as a big
-    jump vs. the last published snapshot)."""
+    """Most recent prior snapshot's cash for <region>.<field> as (value, snap_date),
+    or None. Used to fat-finger-check manual cash edits (a digit typo shows up as a
+    big jump vs. the last published snapshot). The date lets CASH_SANITY subtract any
+    deposits/withdrawals logged *after* that snapshot so a confirmed cash move isn't
+    misread as a typo."""
     snaps = sorted((WS / 'memory' / 'snapshots').glob('*.json'))
     today = date.today().isoformat()
     for f in reversed(snaps):
@@ -202,7 +204,7 @@ def _prev_snapshot_cash(region, field):
             v = (d.get('portfolios', {}).get(region, {}) or {}).get(field)
             n = _num(v)
             if n is not None:
-                return n
+                return n, f.stem
         except Exception:
             continue
     return None
@@ -405,13 +407,25 @@ def check(portfolio_path=PORTFOLIO):
                 if cash < 0:
                     add('CASH_SANITY', 'WARN',
                         f'{cash_field}={cash:.2f} 为负；手填现金异常需核对', region)
-                prev = _prev_snapshot_cash(region, cash_field)
-                if prev and prev > 0 and cash > 0:
-                    ratio = cash / prev
-                    if ratio >= 5 or ratio <= 0.2:
-                        add('CASH_SANITY', 'WARN',
-                            f'{cash_field}={cash:.2f} 较上一快照 {prev:.2f} 跳变 {ratio:.1f}×；'
-                            f'疑似手填多/少一位（总资产 = 持仓 + 现金，会被静默污染）', region)
+                prev_info = _prev_snapshot_cash(region, cash_field)
+                if prev_info and prev_info[0] > 0 and cash > 0:
+                    prev, prev_date = prev_info
+                    # A logged deposit/withdrawal after the last snapshot legitimately
+                    # moves cash — subtract it so a *confirmed* move doesn't read as a
+                    # fat-finger. An unlogged digit typo still trips the ratio gate.
+                    adj_since = sum(
+                        _num(a.get('amount')) or 0
+                        for a in port.get('cash_adjustments', []) or []
+                        if a.get('date', '') > (prev_date or ''))
+                    base = cash - adj_since
+                    if base > 0:
+                        ratio = base / prev
+                        if ratio >= 5 or ratio <= 0.2:
+                            explained = f'（已扣登记存取款 {adj_since:+.0f} 后仍 {ratio:.1f}×）' \
+                                if adj_since else f'跳变 {ratio:.1f}×'
+                            add('CASH_SANITY', 'WARN',
+                                f'{cash_field}={cash:.2f} 较上一快照 {prev:.2f} {explained}；'
+                                f'疑似手填多/少一位（总资产 = 持仓 + 现金，会被静默污染）', region)
 
         # CASH_RECON：现金可复原闸。有对账基线时，cash 必须 == 基线 + 此后 trades
         # 现金流 + 存取款。抓「加了 trades 没重算现金」（如 6/22-24 漏扣 SPCH $581

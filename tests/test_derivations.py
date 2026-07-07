@@ -10,6 +10,7 @@ reconciliation pain):
 Historically the ONLY defense here was runtime gates + human review; this file
 is the missing regression net. Run: `python3 -m pytest tests/ -q`.
 """
+import json
 import os
 import sys
 
@@ -85,6 +86,44 @@ class TestDeriveCash:
         }
         derived, _, _, _ = pi.derive_cash(port)
         assert derived == 150.0
+
+
+# ── CASH_SANITY: a logged deposit/withdrawal must explain a jump, not trip it ──
+class TestCashSanityDeposit:
+    """The fat-finger gate flags a ≥5× cash jump vs the last snapshot. A *confirmed*
+    deposit (HK$30k, 2026-07-07) logged in cash_adjustments must NOT read as a typo,
+    while an unlogged jump still must."""
+
+    def _cash_sanity(self, tmp_path, monkeypatch, port, prev):
+        monkeypatch.setattr(pi, "_prev_snapshot_cash", lambda region, field: prev)
+        data = {"portfolios": {"hk_stocks": {"currency": "HKD", **port}}}
+        f = tmp_path / "p.json"
+        f.write_text(json.dumps(data))
+        rep = pi.check(f)
+        return [x for x in rep["findings"] if x["code"] == "CASH_SANITY"]
+
+    def test_logged_deposit_suppresses_jump(self, tmp_path, monkeypatch):
+        # 4597 → 34597 is 7.5×, but +30000 logged after the snapshot explains it.
+        hits = self._cash_sanity(
+            tmp_path, monkeypatch,
+            {"cash_hkd": 34597, "cash_adjustments": [{"date": "2026-07-07", "amount": 30000}]},
+            (4597.0, "2026-07-06"))
+        assert hits == []
+
+    def test_unlogged_jump_still_warns(self, tmp_path, monkeypatch):
+        # Same jump, no adjustment logged → still a fat-finger WARN (protection intact).
+        hits = self._cash_sanity(
+            tmp_path, monkeypatch, {"cash_hkd": 34597}, (4597.0, "2026-07-06"))
+        assert len(hits) == 1
+
+    def test_adjustment_not_after_snapshot_does_not_explain(self, tmp_path, monkeypatch):
+        # An adjustment dated on/before the snapshot can't explain a later jump
+        # (strict-after, same rule as derive_cash) → WARN stands.
+        hits = self._cash_sanity(
+            tmp_path, monkeypatch,
+            {"cash_hkd": 34597, "cash_adjustments": [{"date": "2026-07-06", "amount": 30000}]},
+            (4597.0, "2026-07-06"))
+        assert len(hits) == 1
 
 
 # ── _moving_avg_cost: sells reduce cost at THEN-current avg; avg unchanged ─────

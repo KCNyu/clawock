@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-07T15:04:57.484106Z",
+  "generated_at": "2026-07-07T15:20:02.972034Z",
   "last_updated": "2026/07/07 23:02 HKT",
   "fx": {
     "usdhkd": 7.843,
@@ -23,7 +23,7 @@
       "pnl_pct": -45.33,
       "today_change_hkd": -1510.0,
       "realized_hkd": 7259.16,
-      "cash_hkd": 34597
+      "cash_hkd": 34597.0
     }
   },
   "concentration": {
@@ -6137,7 +6137,7 @@
     }
   },
   "build_status": {
-    "generated_at": "2026-07-07T23:04:57+08:00",
+    "generated_at": "2026-07-07T23:20:03+08:00",
     "healthy": true,
     "stale_files": [],
     "files": [
@@ -6150,77 +6150,77 @@
       },
       {
         "name": "benchmark.json",
-        "age_hours": 15.0,
+        "age_hours": 15.3,
         "sla_hours": 80,
         "stale": false,
         "present": true
       },
       {
         "name": "catalysts.json",
-        "age_hours": 14.8,
+        "age_hours": 15.1,
         "sla_hours": 30,
         "stale": false,
         "present": true
       },
       {
         "name": "em_news.json",
-        "age_hours": 15.0,
+        "age_hours": 15.3,
         "sla_hours": 30,
         "stale": false,
         "present": true
       },
       {
         "name": "influencer_feed.json",
-        "age_hours": 16.1,
+        "age_hours": 16.3,
         "sla_hours": 30,
         "stale": false,
         "present": true
       },
       {
         "name": "lev_regime.json",
-        "age_hours": 15.0,
+        "age_hours": 15.3,
         "sla_hours": 30,
         "stale": false,
         "present": true
       },
       {
         "name": "macro.json",
-        "age_hours": 16.1,
+        "age_hours": 16.3,
         "sla_hours": 30,
         "stale": false,
         "present": true
       },
       {
         "name": "quant_signal_review.json",
-        "age_hours": 15.0,
+        "age_hours": 15.3,
         "sla_hours": 30,
         "stale": false,
         "present": true
       },
       {
         "name": "quant_signals.json",
-        "age_hours": 15.0,
+        "age_hours": 15.3,
         "sla_hours": 30,
         "stale": false,
         "present": true
       },
       {
         "name": "risk.json",
-        "age_hours": 15.0,
+        "age_hours": 15.3,
         "sla_hours": 30,
         "stale": false,
         "present": true
       },
       {
         "name": "sentiment.json",
-        "age_hours": 16.1,
+        "age_hours": 16.3,
         "sla_hours": 30,
         "stale": false,
         "present": true
       },
       {
         "name": "us_news_digest.json",
-        "age_hours": 22.7,
+        "age_hours": 23.0,
         "sla_hours": 30,
         "stale": false,
         "present": true
@@ -6239,14 +6239,8 @@
     "integrity": {
       "ok": true,
       "error_count": 0,
-      "warn_count": 1,
-      "top": [
-        {
-          "code": "CASH_SANITY",
-          "level": "WARN",
-          "msg": "cash_hkd=34597.00 较上一快照 4597.00 跳变 7.5×；疑似手填多/少一位（总资产 = 持仓 + 现金，会被静默污染）"
-        }
-      ]
+      "warn_count": 0,
+      "top": []
     }
   }
 }
