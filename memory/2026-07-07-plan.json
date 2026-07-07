@@ -1,0 +1,167 @@
+{
+  "date": "2026-07-07",
+  "generated_at": "2026-07-07T08:00:00+08:00",
+  "book_usd": 10784.73,
+  "book_hkd": 84585.3,
+  "fx_usdhkd": 7.843,
+  "fx_rate_usdhkd": 7.843,
+  "driven_by": "technical",
+  "status_banner": "⚠️ 5档杠杆硬止损触发 | 7/9解禁T-2 | 换仓纪律执行日",
+  "narrative": "今日主基调为规则性降杠杆换仓：07226/RKLX/SPCH/PLTU/MSFU均已触及-18%硬止损线，按制度换1x同因子停decay；同时00100 MiniMax 7/9解禁(63%流通)在即，开盘≥340触发trim 20股。US β=3.18超标，港股南向205亿单日新高提供今日高开支撑，但解禁风险主导中期。",
+  "actions": [
+    {
+      "ticker": "07226",
+      "bucket": "cut",
+      "trigger_type": "open",
+      "trigger_price": null,
+      "size_shares": 6200,
+      "confidence": 0.72,
+      "driven_by": "technical",
+      "rationale": "硬止损-26.2%≤-18%；HK lev regime amber，lev cap 25%但07226占40.1%；HSTECH趋势OFF；换仓03033(1x同因子停decay，月节省0.72%)；敞口保留等绿灯换回2x；reflections cut胜率49%但本次为规则非主动",
+      "swap_to": "03033",
+      "swap_note": "卖6200股07226@市价，买入等值03033约1390股（6200×3.218÷4.456≈4483 HKD/4.456）"
+    },
+    {
+      "ticker": "RKLX",
+      "bucket": "cut",
+      "trigger_type": "open",
+      "trigger_price": null,
+      "size_shares": 10,
+      "confidence": 0.70,
+      "driven_by": "technical",
+      "rationale": "硬止损-25.6%≤-18%，昨日收盘36.95跌破38.0触发线；RKLB趋势ON(dist200MA +58.7%)是持仓中少有正向基础；换1x RKLB敞口保留；RKLB数据stale(6/12)，执行前确认当前价格；reflections cut胜率53%",
+      "swap_to": "RKLB",
+      "swap_note": "卖10股RKLX@市价≈$370，买入RKLB 1x约3股(视当日RKLB价)；若RKLB>120则约3股，若<110则3-4股"
+    },
+    {
+      "ticker": "00100",
+      "bucket": "trim_on_rebound",
+      "trigger_type": "price_above",
+      "trigger_price": 340.0,
+      "size_shares": 20,
+      "confidence": 0.65,
+      "driven_by": "catalyst",
+      "rationale": "7/9解禁T-2天(1.07-1.46亿股，63%流通)；单名40.4%>35%cap；花旗加入30日下行观察名单；RSI 32超卖但解禁压力>技术反弹；reflections trim 70%胜率；trim 20股→约36%，降至cap线以内",
+      "swap_to": null,
+      "swap_note": "开盘≥340即市卖出20股，回收约6800 HKD进HK现金"
+    },
+    {
+      "ticker": "SPCH",
+      "bucket": "cut",
+      "trigger_type": "manual",
+      "trigger_price": null,
+      "size_shares": 48,
+      "confidence": 0.62,
+      "driven_by": "technical",
+      "rationale": "三重硬闸：硬止损-21.9%；单名46.6%>35%；US lev ETF 96%>50%；SPCX今日入NDX可能带来SPCH短暂反弹窗口；部分換仓：RKLX清仓~$370+US cash~$400≈$770买SPCX约4-5股(≈$160)；同时卖SPCH约48-60股；P0协议持续(kcn无限子弹声明维持)",
+      "swap_to": "SPCX",
+      "swap_note": "等RKLX清仓资金到位后执行；买4-5股SPCX，卖48-60股SPCH；若SPCX今日>168则推迟换仓等回踩"
+    },
+    {
+      "ticker": "PLTU",
+      "bucket": "cut",
+      "trigger_type": "manual",
+      "trigger_price": null,
+      "size_shares": 14,
+      "confidence": 0.60,
+      "driven_by": "technical",
+      "rationale": "硬止损-21.3%；PLTR dist 200MA -16%趋势OFF，月decay~3%；Q2财报8月催化，换1x PLTR保留敞口；等SPCH換仓完成后评估US cash余额再执行；reflections cut胜率44%(偏低)但规则性",
+      "swap_to": "PLTR",
+      "swap_note": "14股PLTU@$32.24≈$451；换买约3-4股PLTR(视当日价格)；US cash紧张，优先于SPCH換仓后再做"
+    },
+    {
+      "ticker": "ROBN",
+      "bucket": "hold_and_watch",
+      "trigger_type": "event",
+      "trigger_price": null,
+      "size_shares": null,
+      "confidence": 0.60,
+      "driven_by": "catalyst",
+      "rationale": "浮盈+73.9%，7/6已trim 10股@40；HOOD RSI 69.9 z+2.0极端高位不追涨；保留10股等7/29 Q2财报催化；reflections trim胜率46%偏低不主动动；止盈目标50-55(ROBN≈120-130%浮盈)时再评",
+      "swap_to": null
+    },
+    {
+      "ticker": "02208",
+      "bucket": "hold_and_watch",
+      "trigger_type": "price_below",
+      "trigger_price": 8.5,
+      "size_shares": null,
+      "confidence": 0.55,
+      "driven_by": "sentiment",
+      "rationale": "基本面支撑多重(Baldon并网✓/BlackRock增持/Saudi出货/H2机构看多)；reflections hold 74%胜率；今日-1.81%落后东方电气(+6.65%)是β差异非基本面分歧；破8.5重评止损",
+      "swap_to": null
+    },
+    {
+      "ticker": "CRCL",
+      "bucket": "hold_and_watch",
+      "trigger_type": "price_below",
+      "trigger_price": 55.0,
+      "size_shares": null,
+      "confidence": 0.55,
+      "driven_by": "catalyst",
+      "rationale": "Q1 EPS首次转正+$0.23；USDC 6月$1.21T 67%市占；ARK增持；7/17 GENIUS Act yield ban最终规则是下个催化；OUSD竞争是风险但先发优势+BNY Mellon/渣打整合护城河强；RSI 38.7超卖区；仓小(2股)破$55止损",
+      "swap_to": null
+    },
+    {
+      "ticker": "MSFU",
+      "bucket": "hold_and_watch",
+      "trigger_type": "price_below",
+      "trigger_price": 22.0,
+      "size_shares": null,
+      "confidence": 0.52,
+      "driven_by": "technical",
+      "rationale": "昨收$23.74暂脱-18%硬止损线($22触发)；MSFT dist 200MA -13.1%趋势OFF，月decay 1.26%；reflections hold 61%胜率；$22(pnl≈-24.5%)自动触发換MSFT；今日不主动动",
+      "swap_to": "MSFT",
+      "swap_note": "触发条件：MSFU≤$22；換仓：20股MSFU@≤$22≈$440，买约1股MSFT(≈$390)"
+    },
+    {
+      "ticker": "MSFU",
+      "bucket": "cut",
+      "trigger_type": "price_below",
+      "trigger_price": 22.0,
+      "size_shares": 20,
+      "confidence": 0.55,
+      "driven_by": "technical",
+      "rationale": "硬止损-18.5%≤-18%；MSFT dist 200MA -13.1%趋势OFF，月decay 1.26%；昨收$23.74暂脱-18%线，$22为硬换仓触发点(pnl≈-24.5%)；换1x MSFT敞口保留，停2x decay；reflections hold胜率61%，cut/换仓胜率有限但规则必执行",
+      "swap_to": "MSFT",
+      "swap_note": "trigger: MSFU≤$22；20股MSFU≈$440，换买约1股MSFT(≈$390)；若今日盘中触发则执行，若未触发继续hold"
+    },
+    {
+      "ticker": "03032",
+      "bucket": "hold_and_watch",
+      "trigger_type": "manual",
+      "trigger_price": null,
+      "size_shares": null,
+      "confidence": 0.50,
+      "driven_by": "technical",
+      "rationale": "1x无杠杆衰减；HSTECH跟踪ETF；07226換仓03033后评估总HSTECH比例；reflections主动call胜率38%不主动操作",
+      "swap_to": null
+    },
+    {
+      "ticker": "03033",
+      "bucket": "hold_and_watch",
+      "trigger_type": "manual",
+      "trigger_price": null,
+      "size_shares": null,
+      "confidence": 0.50,
+      "driven_by": "technical",
+      "rationale": "07226換仓后此腿大幅扩大；1x无衰减；HSTECH趋势OFF持续；reflections主动call胜率38%不主动动；等07226換仓完成后评估总敞口",
+      "swap_to": null
+    }
+  ],
+  "key_catalysts_window": [
+    {"date": "2026-07-07", "event": "SPCX入Nasdaq100生效", "impact": "SPCH+RKLB板块机械买入$4.3B"},
+    {"date": "2026-07-09", "event": "00100 MiniMax解禁1.07-1.46亿股(63%流通)", "impact": "HK腿高风险事件，trim窗口"},
+    {"date": "2026-07-15", "event": "Jun CPI BLS 8:30ET", "impact": "美债/成长股估值"},
+    {"date": "2026-07-17", "event": "GENIUS Act yield ban最终规则", "impact": "CRCL/USDC催化"},
+    {"date": "2026-07-29", "event": "HOOD Q2财报", "impact": "ROBN 10股持有兑现窗口"},
+    {"date": "2026-08-03", "event": "PLTR Q2财报(估计)", "impact": "PLTU/PLTR换仓后基础标的催化"}
+  ],
+  "risk_flags": [
+    {"flag": "00100_lock_unlock_T2", "severity": "high", "detail": "7/9解禁63%流通，单名40.4%HK"},
+    {"flag": "us_cash_floor", "severity": "medium", "detail": "US cash~$400，換仓弹药有限，SPCH部分换仓优先"},
+    {"flag": "rklb_stale_data", "severity": "warn", "detail": "RKLB价格数据为6/12，RKLX换仓前需确认实时价"},
+    {"flag": "spcx_lockup_risk", "severity": "medium", "detail": "Musk 1年禁售期到期在即，入指买盘vs抛压风险对冲"},
+    {"flag": "high_confidence_overfit", "severity": "warn", "detail": "自校准: conf≥0.75胜率0%，今日最高conf=0.72"}
+  ]
+}
