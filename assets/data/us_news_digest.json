@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-06T16:12:05.780212",
+  "generated_at": "2026-07-07T15:40:24.392787",
   "lookback_hours": 48,
   "tickers": [
     "CRCL",
@@ -9,9 +9,9 @@
     "SPCH",
     "MSFU"
   ],
-  "digest_markdown": "## Top 移动信号\n\n- **CRCL**: 月内跌超40%, 机构主导的 OUSD 稳定币挤压 USDC 份额 - **看跌**, 下调 kcn 对 CRCL 的敞口, 竞争格局正在重构而非单纯 beta 下行\n- **ROBN** (HOOD): 盘后下跌但分析师/散户均不买账, 视为噪音 - **中性**, 持仓不动, 若无后续基本面恶化则无需调整\n- **PLTU** (Palantir ETF): Q4 财报 beat 被重新提起, 杠杆 ETF 资金流活跃 - **温和看多**, PLTR 底层 momentum 仍在支撑 PLTU 溢价\n\n## Per-ticker 简报\n\n- **CRCL**: 月跌40%+ 触发竞争叙事, OUSD 获140+机构背书 - 利空持续\n- **ROBN**: HOOD 盘后回调, 卖方未跟进降级 - 影响有限\n- **PLTU**: Palantir Q4 beat 持续发酵, 杠杆 ETF 关注度上升 - 动能延续\n- **RKLX / SPCH / MSFU**: 均为杠杆 ETF 营销/教学稿, 无催化剂 - 忽略\n\n## 风险 Watch\n\n- **CRCL**: 价格崩跌叠加 OUSD 替代威胁, 属\"竞争+流动性\"双杀, 若 kcn 持有需重新评估退出节奏\n- **ROBN**: 盘后跌幅需盯次日开盘是否补跌, 避免 only-pump-then-drag 情景拖累 2x 杠杆\n- **PLTU** 待监测: 杠杆 ETF 拥挤交易放大尾部回撤风险",
+  "digest_markdown": "### Top 移动信号\n- **CRCL**: 月跌 40%, 单日再挫 17.5%, 导火索是 OUSD — 由 140+ 机构背书的新稳定币直接对标 USDC → kcn 持仓需重新评估护城河, 短期估值压缩未止\n- **CRCL**: NODE 月报 50% 年化波动、13.2% 回撤, 21 交易日中仅 8 日收阳 → 情绪已极端悲观, 反向看任何 OUSD 份额数据都是潜在拐点信号\n- **ROBN (HOOD 杠杆)**: Robinhood 盘后跳水, 分析师与散户均反应冷淡 → 2x 杠杆放大隔夜 gap, kcn 若持有需警惕次日开盘补跌\n- **HIVE (加密邻接)**: 上调 0% 可交换优先票据规模 $75M→$100M, 2031 到期 → 加密挖矿/财库方加杠杆, 间接说明数字资产融资窗口仍开, 对 CRCL 链上需求中性偏正\n- **HTX Q3 评级**: BTC + RWA Overweight, 长尾 alt Underweight → 主流稳定币结算需求结构性受益, 但 CRCL 短期被竞争叙事压制\n\n### Per-ticker 简报\n- **CRCL**: OUSD 替代威胁 + 月度深跌 - 核心持仓风险事件, 关注 8 月链上 USDC 市占率数据\n- **PLTU / RKLX / SPCH / MSFU**: 全部为杠杆 ETF 营销稿或科普内容, 无 ticker-specific catalyst, 忽略\n\n### 风险 watch\n- **CRCL**: OUSD 竞争叙事 (-40% MTD); 稳定币监管立法 (GENIUS Act 后续) 仍未完全落地, 双向波动\n- **ROBN**: 盘后无明确催化剂下跌 - 警惕 HOOD 财报后 reset 在 2x 杠杆上放大损失",
   "raw_news_counts": {
-    "CRCL": 2,
+    "CRCL": 4,
     "PLTU": 5,
     "RKLX": 1,
     "ROBN": 5,
