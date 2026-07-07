@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-07T15:37:12.185120+00:00",
+  "generated_at": "2026-07-07T22:40:23.675915+00:00",
   "lookback_hours": 48,
   "sources": {
     "trump": "trumpstruth.org/feed (primary)",
@@ -8,94 +8,117 @@
   },
   "llm_filtered": true,
   "counts": {
-    "total": 11,
+    "total": 9,
     "held_hits": 0,
-    "new_ideas": 0,
-    "sector_hits": 8
+    "new_ideas": 2,
+    "sector_hits": 4
   },
   "items": [
     {
-      "author": "Musk",
-      "text": "SpaceX joins the Nasdaq 100, clearing way for potential investment influx. Here's what to know - ABC News",
-      "url": "",
-      "published": "Tue, 07 Jul 2026 15:01:15 GMT",
-      "origin": "gnews-rss",
-      "source": "ABC News - Breaking News, Latest News and Videos",
-      "tickers": [],
+      "author": "Trump",
+      "text": "Great news! I have just been informed that one of the biggest, best, and smartest Retailers in America, Walmart, will be lowering prices, by a lot, at my Administration's request to celebrate our great Country's 250th birthday. Walmart will, in particular, be dropping the price for a pound of ground beef by almost 15%, among many other products. This is a huge deal for the many millions of Americans who, smartly, shop at Walmart, which is a truly patriotic Company who loves the U.S.A. My Administration is lowering prices that Joe Biden incompetently raised with the worst inflation crisis in hi",
+      "url": "https://trumpstruth.org/statuses/39863",
+      "published": "2026-07-06T20:45:33+00:00",
+      "origin": "truthsocial",
+      "tickers": [
+        "WMT"
+      ],
       "held": [],
-      "new_ideas": [],
+      "new_ideas": [
+        "WMT"
+      ],
       "sectors": [
-        "航天",
-        "指数纳入"
+        "零售/消费"
       ],
-      "sector_holdings": [
-        "SPCH"
-      ],
+      "sector_holdings": [],
       "stance": "endorse",
-      "relevance": 72,
-      "summary_cn": "SpaceX加入纳斯达克100指数，为潜在资金流入铺路，重大利好SPCH(SpaceX杠杆ETF)持仓。"
+      "relevance": 62,
+      "summary_cn": "特朗普宣称沃尔玛应其要求大幅降价（碎牛肉降近15%），行政施压通胀降温，对零售消费板块有直接定价影响。"
+    },
+    {
+      "author": "Trump",
+      "text": "Toyota is moving from Mexico to the United States (Texas!). A really big deal. Tariffs at work! President DONALD J. TRUMP",
+      "url": "https://trumpstruth.org/statuses/39875",
+      "published": "2026-07-07T12:21:24+00:00",
+      "origin": "truthsocial",
+      "tickers": [
+        "TM"
+      ],
+      "held": [],
+      "new_ideas": [
+        "TM"
+      ],
+      "sectors": [
+        "关税",
+        "汽车"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 58,
+      "summary_cn": "特朗普宣称丰田将从墨西哥迁至美国德州生产，宣称关税奏效，提振汽车与制造业回流叙事。"
     },
     {
       "author": "Musk",
-      "text": "Elon Musk can’t sell a single SpaceX share for a year—and then all the locks crack open at once",
+      "text": "Wall Street is telling us how it really feels about SpaceX as it enters the Nasdaq",
       "url": "",
-      "published": "Fri, 03 Jul 2026 10:06:00 GMT",
+      "published": "Tue, 07 Jul 2026 17:16:06 GMT",
       "origin": "gnews-rss",
-      "source": "Fortune",
+      "source": "Business Insider",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "航天",
-        "流动性"
+        "航天/火箭",
+        "纳斯达克/IPO"
       ],
       "sector_holdings": [
         "SPCH"
       ],
       "stance": "neutral",
-      "relevance": 68,
-      "summary_cn": "Musk一年内不能出售任何SpaceX股份，锁定期满后所有限制同时解除，揭示SPCH持仓标的的解禁与流动性风险。"
+      "relevance": 82,
+      "summary_cn": "报道SpaceX即将登陆纳斯达克，华尔街机构表态估值预期，对kcn持有的SPCH（2x做多SpaceX ETF）有直接定价影响。"
     },
     {
       "author": "Musk",
-      "text": "SpaceX valuations are a bit 'fantastical,' even if Elon Musk can put data centers in space",
+      "text": "Elon Musk’s Net Worth Drops $50 Billion In Latest SpaceX Selloff",
       "url": "",
-      "published": "Tue, 07 Jul 2026 15:05:59 GMT",
+      "published": "Tue, 07 Jul 2026 19:38:55 GMT",
       "origin": "gnews-rss",
-      "source": "Yahoo Finance",
+      "source": "Forbes",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "航天",
-        "AI"
+        "航天/火箭",
+        "私募/二级市场"
       ],
       "sector_holdings": [
         "SPCH"
       ],
-      "stance": "attack",
-      "relevance": 60,
-      "summary_cn": "媒体质疑SpaceX估值'幻想化'，即使太空数据中心概念也难支撑，对SPCH持仓偏负面。"
+      "stance": "neutral",
+      "relevance": 80,
+      "summary_cn": "报道马斯克净资产因SpaceX二级份额抛售单日蒸发500亿美元，反映SpaceX估值波动，间接影响kcn持有的SPCH。"
     },
     {
       "author": "Musk",
-      "text": "Even Fervent Musk Fans Should Worry About the SpaceX Governance Risks",
+      "text": "Breakingviews - Wall Street gets high on Elon Musk's SpaceX supply",
       "url": "",
-      "published": "Tue, 07 Jul 2026 10:00:00 GMT",
+      "published": "Tue, 07 Jul 2026 18:26:22 GMT",
       "origin": "gnews-rss",
-      "source": "ProMarket",
+      "source": "Reuters",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "航天"
+        "航天/火箭",
+        "私募/二级市场"
       ],
       "sector_holdings": [
         "SPCH"
       ],
-      "stance": "attack",
-      "relevance": 58,
-      "summary_cn": "媒体警示SpaceX治理风险，质疑Musk帝国治理结构，对SPCH(SpaceX杠杆ETF)持仓偏负面信号。"
+      "stance": "neutral",
+      "relevance": 78,
+      "summary_cn": "路透Breakingviews报道华尔街对SpaceX二级份额估值持续走高，与kcn持有的SPCH（2x做多SpaceX ETF）直接相关。"
     },
     {
       "author": "Musk",
@@ -109,35 +132,14 @@
       "new_ideas": [],
       "sectors": [
         "AI",
-        "航天"
+        "航天/火箭"
       ],
       "sector_holdings": [
         "SPCH"
       ],
       "stance": "neutral",
-      "relevance": 55,
-      "summary_cn": "Musk的xAI正式更名为SpaceXAI，整合AI与航天业务，SPCH(SpaceX杠杆ETF)持仓间接受关注。"
-    },
-    {
-      "author": "Musk",
-      "text": "XAI makes its rebrand to SpaceXAI complete with a new logo",
-      "url": "",
-      "published": "Mon, 06 Jul 2026 21:50:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Business Insider",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "AI",
-        "航天"
-      ],
-      "sector_holdings": [
-        "SPCH"
-      ],
-      "stance": "neutral",
-      "relevance": 55,
-      "summary_cn": "xAI完成更名SpaceXAI并发布新logo，强化航天+AI叙事，SPCH持仓间接受关注。"
+      "relevance": 65,
+      "summary_cn": "xAI正式更名为SpaceXAI，将马斯克AI业务并入SpaceX体系，间接利好kcn持有的SPCH，并强化SpaceX的AI故事。"
     },
     {
       "author": "Trump",
@@ -149,55 +151,12 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "能源",
-        "石油"
-      ],
-      "sector_holdings": [
-        "02208"
-      ],
-      "stance": "endorse",
-      "relevance": 55,
-      "summary_cn": "Trump发文宣称油价下跌，附带沙特大幅降价报道，对能源板块偏多；金风科技(02208)作为新能源持仓间接受益油价回落。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk and Tesla announce serious AI changes for workers",
-      "url": "",
-      "published": "Tue, 07 Jul 2026 14:47:00 GMT",
-      "origin": "gnews-rss",
-      "source": "thestreet.com",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "AI",
-        "电动车"
-      ],
-      "sector_holdings": [
-        "MSFU"
-      ],
-      "stance": "neutral",
-      "relevance": 50,
-      "summary_cn": "Musk与Tesla宣布员工层面AI变革，涉Tesla/电动车AI应用，与MSFU(微软杠杆ETF)同属AI板块间接相关。"
-    },
-    {
-      "author": "Trump",
-      "text": "Toyota is moving from Mexico to the United States (Texas!). A really big deal. Tariffs at work! President DONALD J. TRUMP",
-      "url": "https://trumpstruth.org/statuses/39875",
-      "published": "2026-07-07T12:21:24+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "关税",
-        "汽车",
-        "制造业回流"
+        "能源/原油"
       ],
       "sector_holdings": [],
       "stance": "endorse",
-      "relevance": 65,
-      "summary_cn": "Trump称丰田从墨西哥迁至美国德州，归功于关税政策，体现制造业回流主题。"
+      "relevance": 72,
+      "summary_cn": "特朗普发帖宣称油价将下跌，沙特最大幅度降价，宏观利好消费者与运输板块、利空能源股。"
     },
     {
       "author": "Trump",
@@ -209,120 +168,144 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "房地产",
-        "移民政策",
-        "利率"
+        "房地产/住房",
+        "移民",
+        "美联储"
       ],
       "sector_holdings": [],
       "stance": "attack",
-      "relevance": 50,
-      "summary_cn": "Trump转Fed工作论文称Biden时期非法移民推高房价30%，暗示当前政策纠偏有利于房价，对房地产/利率板块有间接影响。"
+      "relevance": 55,
+      "summary_cn": "美联储工作论文被引用称拜登任内非法移民推高房价30%，特朗普转发布强化反移民与房地产政策叙事。"
     },
     {
-      "author": "Musk",
-      "text": "What will define Elon Musk’s legacy? Doge cuts to USAID Ebola programs",
-      "url": "",
-      "published": "Tue, 07 Jul 2026 11:00:00 GMT",
-      "origin": "gnews-rss",
-      "source": "The Guardian",
+      "author": "Trump",
+      "text": "The United States Military has never been stronger, or more powerful. No other Nation can do what we do (It’s not even close!). This year we set even more Historic Recruiting Records, months ahead of schedule. Morale has never been higher. Our Military’s unmatched POWER was on full display during our Celebration of 250 Years of American Independence and, like our Country, the WAR DEPARTMENT has never been “HOTTER.” We need to keep it that way, which is why, when Congress returns, we must pass Reconciliation 3.0, with 350 Billion Dollars for Defense, plus THE SAVE AMERICA ACT! I am calling on H",
+      "url": "https://trumpstruth.org/statuses/39869",
+      "published": "2026-07-07T04:58:08+00:00",
+      "origin": "truthsocial",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "政府效率",
-        "公共卫生"
+        "国防/军工",
+        "财政/税收",
+        "移民"
       ],
       "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 45,
-      "summary_cn": "Musk主导的DOGE削减USAID埃博拉项目等预算，涉政府支出与公共健康板块。"
+      "stance": "endorse",
+      "relevance": 50,
+      "summary_cn": "特朗普呼吁国会通过第三阶段财政协调法案，含3500亿美元国防开支及Save America法案（移民相关），利好国防板块。"
     }
   ],
   "held_hits": [],
-  "new_ideas": [],
+  "new_ideas": [
+    {
+      "author": "Trump",
+      "text": "Great news! I have just been informed that one of the biggest, best, and smartest Retailers in America, Walmart, will be lowering prices, by a lot, at my Administration's request to celebrate our great Country's 250th birthday. Walmart will, in particular, be dropping the price for a pound of ground beef by almost 15%, among many other products. This is a huge deal for the many millions of Americans who, smartly, shop at Walmart, which is a truly patriotic Company who loves the U.S.A. My Administration is lowering prices that Joe Biden incompetently raised with the worst inflation crisis in hi",
+      "url": "https://trumpstruth.org/statuses/39863",
+      "published": "2026-07-06T20:45:33+00:00",
+      "origin": "truthsocial",
+      "tickers": [
+        "WMT"
+      ],
+      "held": [],
+      "new_ideas": [
+        "WMT"
+      ],
+      "sectors": [
+        "零售/消费"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 62,
+      "summary_cn": "特朗普宣称沃尔玛应其要求大幅降价（碎牛肉降近15%），行政施压通胀降温，对零售消费板块有直接定价影响。"
+    },
+    {
+      "author": "Trump",
+      "text": "Toyota is moving from Mexico to the United States (Texas!). A really big deal. Tariffs at work! President DONALD J. TRUMP",
+      "url": "https://trumpstruth.org/statuses/39875",
+      "published": "2026-07-07T12:21:24+00:00",
+      "origin": "truthsocial",
+      "tickers": [
+        "TM"
+      ],
+      "held": [],
+      "new_ideas": [
+        "TM"
+      ],
+      "sectors": [
+        "关税",
+        "汽车"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 58,
+      "summary_cn": "特朗普宣称丰田将从墨西哥迁至美国德州生产，宣称关税奏效，提振汽车与制造业回流叙事。"
+    }
+  ],
   "sector_hits": [
     {
       "author": "Musk",
-      "text": "SpaceX joins the Nasdaq 100, clearing way for potential investment influx. Here's what to know - ABC News",
+      "text": "Wall Street is telling us how it really feels about SpaceX as it enters the Nasdaq",
       "url": "",
-      "published": "Tue, 07 Jul 2026 15:01:15 GMT",
+      "published": "Tue, 07 Jul 2026 17:16:06 GMT",
       "origin": "gnews-rss",
-      "source": "ABC News - Breaking News, Latest News and Videos",
+      "source": "Business Insider",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "航天",
-        "指数纳入"
-      ],
-      "sector_holdings": [
-        "SPCH"
-      ],
-      "stance": "endorse",
-      "relevance": 72,
-      "summary_cn": "SpaceX加入纳斯达克100指数，为潜在资金流入铺路，重大利好SPCH(SpaceX杠杆ETF)持仓。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk can’t sell a single SpaceX share for a year—and then all the locks crack open at once",
-      "url": "",
-      "published": "Fri, 03 Jul 2026 10:06:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Fortune",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "流动性"
+        "航天/火箭",
+        "纳斯达克/IPO"
       ],
       "sector_holdings": [
         "SPCH"
       ],
       "stance": "neutral",
-      "relevance": 68,
-      "summary_cn": "Musk一年内不能出售任何SpaceX股份，锁定期满后所有限制同时解除，揭示SPCH持仓标的的解禁与流动性风险。"
+      "relevance": 82,
+      "summary_cn": "报道SpaceX即将登陆纳斯达克，华尔街机构表态估值预期，对kcn持有的SPCH（2x做多SpaceX ETF）有直接定价影响。"
     },
     {
       "author": "Musk",
-      "text": "SpaceX valuations are a bit 'fantastical,' even if Elon Musk can put data centers in space",
+      "text": "Elon Musk’s Net Worth Drops $50 Billion In Latest SpaceX Selloff",
       "url": "",
-      "published": "Tue, 07 Jul 2026 15:05:59 GMT",
+      "published": "Tue, 07 Jul 2026 19:38:55 GMT",
       "origin": "gnews-rss",
-      "source": "Yahoo Finance",
+      "source": "Forbes",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "航天",
-        "AI"
+        "航天/火箭",
+        "私募/二级市场"
       ],
       "sector_holdings": [
         "SPCH"
       ],
-      "stance": "attack",
-      "relevance": 60,
-      "summary_cn": "媒体质疑SpaceX估值'幻想化'，即使太空数据中心概念也难支撑，对SPCH持仓偏负面。"
+      "stance": "neutral",
+      "relevance": 80,
+      "summary_cn": "报道马斯克净资产因SpaceX二级份额抛售单日蒸发500亿美元，反映SpaceX估值波动，间接影响kcn持有的SPCH。"
     },
     {
       "author": "Musk",
-      "text": "Even Fervent Musk Fans Should Worry About the SpaceX Governance Risks",
+      "text": "Breakingviews - Wall Street gets high on Elon Musk's SpaceX supply",
       "url": "",
-      "published": "Tue, 07 Jul 2026 10:00:00 GMT",
+      "published": "Tue, 07 Jul 2026 18:26:22 GMT",
       "origin": "gnews-rss",
-      "source": "ProMarket",
+      "source": "Reuters",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "航天"
+        "航天/火箭",
+        "私募/二级市场"
       ],
       "sector_holdings": [
         "SPCH"
       ],
-      "stance": "attack",
-      "relevance": 58,
-      "summary_cn": "媒体警示SpaceX治理风险，质疑Musk帝国治理结构，对SPCH(SpaceX杠杆ETF)持仓偏负面信号。"
+      "stance": "neutral",
+      "relevance": 78,
+      "summary_cn": "路透Breakingviews报道华尔街对SpaceX二级份额估值持续走高，与kcn持有的SPCH（2x做多SpaceX ETF）直接相关。"
     },
     {
       "author": "Musk",
@@ -336,76 +319,14 @@
       "new_ideas": [],
       "sectors": [
         "AI",
-        "航天"
+        "航天/火箭"
       ],
       "sector_holdings": [
         "SPCH"
       ],
       "stance": "neutral",
-      "relevance": 55,
-      "summary_cn": "Musk的xAI正式更名为SpaceXAI，整合AI与航天业务，SPCH(SpaceX杠杆ETF)持仓间接受关注。"
-    },
-    {
-      "author": "Musk",
-      "text": "XAI makes its rebrand to SpaceXAI complete with a new logo",
-      "url": "",
-      "published": "Mon, 06 Jul 2026 21:50:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Business Insider",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "AI",
-        "航天"
-      ],
-      "sector_holdings": [
-        "SPCH"
-      ],
-      "stance": "neutral",
-      "relevance": 55,
-      "summary_cn": "xAI完成更名SpaceXAI并发布新logo，强化航天+AI叙事，SPCH持仓间接受关注。"
-    },
-    {
-      "author": "Trump",
-      "text": "OIL PRICES COMING DOWN! https://www.bloomberg.com/news/articles/2026-07-06/saudis-make-biggest-oil-price-cut-in-decades-as-market-weakens",
-      "url": "https://trumpstruth.org/statuses/39862",
-      "published": "2026-07-06T19:00:46+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "能源",
-        "石油"
-      ],
-      "sector_holdings": [
-        "02208"
-      ],
-      "stance": "endorse",
-      "relevance": 55,
-      "summary_cn": "Trump发文宣称油价下跌，附带沙特大幅降价报道，对能源板块偏多；金风科技(02208)作为新能源持仓间接受益油价回落。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk and Tesla announce serious AI changes for workers",
-      "url": "",
-      "published": "Tue, 07 Jul 2026 14:47:00 GMT",
-      "origin": "gnews-rss",
-      "source": "thestreet.com",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "AI",
-        "电动车"
-      ],
-      "sector_holdings": [
-        "MSFU"
-      ],
-      "stance": "neutral",
-      "relevance": 50,
-      "summary_cn": "Musk与Tesla宣布员工层面AI变革，涉Tesla/电动车AI应用，与MSFU(微软杠杆ETF)同属AI板块间接相关。"
+      "relevance": 65,
+      "summary_cn": "xAI正式更名为SpaceXAI，将马斯克AI业务并入SpaceX体系，间接利好kcn持有的SPCH，并强化SpaceX的AI故事。"
     }
   ]
 }
