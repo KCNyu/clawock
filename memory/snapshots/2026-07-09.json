@@ -452,18 +452,18 @@
         },
         {
           "ticker": "ROBN",
-          "shares": 10,
+          "shares": 0,
           "cost_basis": 23.582500000000003,
           "current_price": 37.15,
-          "today_change_pct": -1.3804,
+          "today_change_pct": 0,
           "data_source": "Nasdaq API (etf) Jul 08, 2026 14:14 ET",
           "day_high": 37.67,
           "day_low": 35.47,
           "day_open": 37.67,
           "prev_close": 37.67,
-          "current_value": 371.5,
-          "pnl_abs": 135.67,
-          "today_change": -5.2,
+          "current_value": 0.0,
+          "pnl_abs": 0.0,
+          "today_change": 0,
           "name": "二倍做多HOOD ETF-T-Rex",
           "trades": [
             {
@@ -502,9 +502,17 @@
               "price": 40.0,
               "realized_pnl": 164.17,
               "note": "按用户成交记录卖出,洞察目标价位成交,剩余 10 股"
+            },
+            {
+              "date": "2026-07-08",
+              "action": "sell",
+              "shares": 10,
+              "price": 37.0,
+              "realized_pnl": 134.18,
+              "note": "按用户成交记录清仓,$37 卖出最后 10 股,ROBN 全部平仓"
             }
           ],
-          "pnl_percent": 57.5321,
+          "pnl_percent": 0,
           "volume": 239400,
           "prev_close_date": "2026-07-07",
           "day_session_date": "2026-07-08"
@@ -518,7 +526,7 @@
           "current_value": 146.51,
           "pnl_abs": -0.99,
           "pnl_percent": -0.6712,
-          "today_change": -0.99,
+          "today_change": -2.96,
           "today_change_pct": -0.6712,
           "data_source": "Nasdaq API (stocks) Jul 08, 2026 14:14 ET",
           "trades": [
@@ -697,13 +705,13 @@
           "day_session_date": "2026-07-08"
         }
       ],
-      "total_cost": 4390.92,
-      "total_current_value": 3274.74,
-      "total_pnl": -1116.18,
-      "total_pnl_percent": -25.4202,
-      "today_total_change": -123.47,
-      "realized_pnl": 2005.35,
-      "realized_note": "NVDA 3股@197.5(+29.19) + CRCL 4股@103.21(+64.84) + CRCL 5股@120(+165) + CRCL 3股@127(+120) + NVDA 3股@199.41(+34.92) + QQQ 1股@631.3(+9.03) + TQQQ 8股@54.45(+69.76) + HOOD 5股@88.36(+74.3) + OKLO 2股@68(+10.34) + TCOM 5股@53.86(+5.6) + SOXL 5股@112(+100.65) + RKLX 4股@75(+113.2) + RKLX 2股@91.03(+88.66) + SOXL 3股@170.8(+236.79) + SOXL 2股@217.17(+250.6) + RKLB 5股@100.17(+145.85) + SPCX 5股@168(+48.5) + RKLX 10股@53.93(+7.3) + SPCH 20股@18.42(+34.8) + ROBN 20股@35.175(+231.85) + ROBN 10股@40(+164.17)",
+      "total_cost": 4155.1,
+      "total_current_value": 2903.24,
+      "total_pnl": -1251.86,
+      "total_pnl_percent": -30.1282,
+      "today_total_change": -120.24,
+      "realized_pnl": 2139.53,
+      "realized_note": "NVDA 3股@197.5(+29.19) + CRCL 4股@103.21(+64.84) + CRCL 5股@120(+165) + CRCL 3股@127(+120) + NVDA 3股@199.41(+34.92) + QQQ 1股@631.3(+9.03) + TQQQ 8股@54.45(+69.76) + HOOD 5股@88.36(+74.3) + OKLO 2股@68(+10.34) + TCOM 5股@53.86(+5.6) + SOXL 5股@112(+100.65) + RKLX 4股@75(+113.2) + RKLX 2股@91.03(+88.66) + SOXL 3股@170.8(+236.79) + SOXL 2股@217.17(+250.6) + RKLB 5股@100.17(+145.85) + SPCX 5股@168(+48.5) + RKLX 10股@53.93(+7.3) + SPCH 20股@18.42(+34.8) + ROBN 20股@35.175(+231.85) + ROBN 10股@40(+164.17) + ROBN 10股@37(+134.18)",
       "last_updated": "Jun 24, 2026 16:00 ET close",
       "last_close_attempted": "May 7, 2026 16:00 ET close",
       "last_open_attempted": "2026-07-08 14:14 UTC-04:00",
@@ -857,7 +865,7 @@
         "updated_at": "2026-07-08 03:45 UTC-04:00",
         "note": "Multi-provider fetch. Sources: 1x Nasdaq API (stocks), 5x Nasdaq API (etf)"
       },
-      "cash_usd": 281.35,
+      "cash_usd": 503.85,
       "cash_reconciled": 854.25,
       "cash_reconciled_date": "2026-06-19",
       "cash_reconciled_note": "与券商对账确认的现金基线(截至该日收盘)。现金不再手填:cash_usd = cash_reconciled + Σ(此日之后 trades 的 sells-buys) + Σ(cash_adjustments)。改/补 trades 后跑 `recompute_cash.py` 自动重算 cash_usd,CASH_RECON 闸(ERROR)校验二者一致。存取款记进 cash_adjustments[] 或直接抬高 cash_reconciled+date 重新对账。",
