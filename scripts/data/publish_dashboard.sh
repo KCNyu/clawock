@@ -69,5 +69,8 @@ then
 fi
 
 git add assets/data/dashboard.json
-git "${BOT_ID[@]}" commit -q -m "dashboard: scheduled publish $(date -u +%Y-%m-%dT%H:%MZ)"
+# Scope the commit to dashboard.json with an explicit pathspec: a bare `git commit`
+# would also sweep in anything ELSE already staged in the index (e.g. a human mid-edit
+# staging files at publish time), mislabeling them "scheduled publish" — happened once.
+git "${BOT_ID[@]}" commit -q -m "dashboard: scheduled publish $(date -u +%Y-%m-%dT%H:%MZ)" -- assets/data/dashboard.json
 bash scripts/data/safe_push.sh
