@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-07T22:40:23.675915+00:00",
+  "generated_at": "2026-07-08T15:03:14.057229+00:00",
   "lookback_hours": 48,
   "sources": {
     "trump": "trumpstruth.org/feed (primary)",
@@ -8,33 +8,12 @@
   },
   "llm_filtered": true,
   "counts": {
-    "total": 9,
+    "total": 10,
     "held_hits": 0,
-    "new_ideas": 2,
-    "sector_hits": 4
+    "new_ideas": 4,
+    "sector_hits": 3
   },
   "items": [
-    {
-      "author": "Trump",
-      "text": "Great news! I have just been informed that one of the biggest, best, and smartest Retailers in America, Walmart, will be lowering prices, by a lot, at my Administration's request to celebrate our great Country's 250th birthday. Walmart will, in particular, be dropping the price for a pound of ground beef by almost 15%, among many other products. This is a huge deal for the many millions of Americans who, smartly, shop at Walmart, which is a truly patriotic Company who loves the U.S.A. My Administration is lowering prices that Joe Biden incompetently raised with the worst inflation crisis in hi",
-      "url": "https://trumpstruth.org/statuses/39863",
-      "published": "2026-07-06T20:45:33+00:00",
-      "origin": "truthsocial",
-      "tickers": [
-        "WMT"
-      ],
-      "held": [],
-      "new_ideas": [
-        "WMT"
-      ],
-      "sectors": [
-        "零售/消费"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 62,
-      "summary_cn": "特朗普宣称沃尔玛应其要求大幅降价（碎牛肉降近15%），行政施压通胀降温，对零售消费板块有直接定价影响。"
-    },
     {
       "author": "Trump",
       "text": "Toyota is moving from Mexico to the United States (Texas!). A really big deal. Tariffs at work! President DONALD J. TRUMP",
@@ -49,34 +28,109 @@
         "TM"
       ],
       "sectors": [
+        "汽车",
         "关税",
-        "汽车"
+        "制造业"
       ],
-      "sector_holdings": [],
+      "sector_holdings": [
+        "02208"
+      ],
       "stance": "endorse",
-      "relevance": 58,
-      "summary_cn": "特朗普宣称丰田将从墨西哥迁至美国德州生产，宣称关税奏效，提振汽车与制造业回流叙事。"
+      "relevance": 72,
+      "summary_cn": "特朗普宣称丰田将从墨西哥迁回美国（德州），归功于'关税奏效'，利好关税回流制造业叙事。"
     },
     {
       "author": "Musk",
-      "text": "Wall Street is telling us how it really feels about SpaceX as it enters the Nasdaq",
+      "text": "BTC news: Elon Musk's SpaceX moves bitcoin for the first time in six months",
       "url": "",
-      "published": "Tue, 07 Jul 2026 17:16:06 GMT",
+      "published": "Wed, 08 Jul 2026 12:47:51 GMT",
       "origin": "gnews-rss",
-      "source": "Business Insider",
+      "source": "CoinDesk",
+      "tickers": [
+        "BTC"
+      ],
+      "held": [],
+      "new_ideas": [
+        "BTC"
+      ],
+      "sectors": [
+        "加密货币",
+        "比特币"
+      ],
+      "sector_holdings": [
+        "CRCL"
+      ],
+      "stance": "neutral",
+      "relevance": 70,
+      "summary_cn": "马斯克旗下SpaceX三年来首次移动其比特币持仓，加密市场关注；CRCL（Circle/USDC）作为加密基础设施间接受关注。"
+    },
+    {
+      "author": "Trump",
+      "text": "Great news! I have just been informed that one of the biggest, best, and smartest Retailers in America, Walmart, will be lowering prices, by a lot, at my Administration's request to celebrate our great Country's 250th birthday. Walmart will, in particular, be dropping the price for a pound of ground beef by almost 15%, among many other products. This is a huge deal for the many millions of Americans who, smartly, shop at Walmart, which is a truly patriotic Company who loves the U.S.A. My Administration is lowering prices that Joe Biden incompetently raised with the worst inflation crisis in hi",
+      "url": "https://trumpstruth.org/statuses/39863",
+      "published": "2026-07-06T20:45:33+00:00",
+      "origin": "truthsocial",
+      "tickers": [
+        "WMT"
+      ],
+      "held": [],
+      "new_ideas": [
+        "WMT"
+      ],
+      "sectors": [
+        "零售",
+        "消费",
+        "通胀"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 62,
+      "summary_cn": "特朗普亲宣沃尔玛将大幅降价（碎牛肉降近15%）庆祝美国250周年，强调抗通胀政绩。"
+    },
+    {
+      "author": "Trump",
+      "text": "Trump announces Walmart to lower prices for thousands of products at his administration's request: https://justthenews.com/nation/economy/trump-announces-walmart-lower-prices-thousands-products-his-administrations-request",
+      "url": "https://trumpstruth.org/statuses/39880",
+      "published": "2026-07-08T02:33:03+00:00",
+      "origin": "truthsocial",
+      "tickers": [
+        "WMT"
+      ],
+      "held": [],
+      "new_ideas": [
+        "WMT"
+      ],
+      "sectors": [
+        "零售",
+        "消费",
+        "通胀"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 60,
+      "summary_cn": "特朗普宣布沃尔玛应其政府请求下调数千种商品价格，视为通胀回落政绩。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk can’t sell a single SpaceX share for a year—and then all the locks crack open at once",
+      "url": "",
+      "published": "Fri, 03 Jul 2026 10:06:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Fortune",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "航天/火箭",
-        "纳斯达克/IPO"
+        "航天",
+        "私募流动性",
+        "SpaceX"
       ],
       "sector_holdings": [
         "SPCH"
       ],
       "stance": "neutral",
-      "relevance": 82,
-      "summary_cn": "报道SpaceX即将登陆纳斯达克，华尔街机构表态估值预期，对kcn持有的SPCH（2x做多SpaceX ETF）有直接定价影响。"
+      "relevance": 72,
+      "summary_cn": "报道指出马斯克一年内无法出售任何SpaceX股份，届时所有限售将一次性解锁，对SPCH等SpaceX相关产品构成未来流动性事件风险。"
     },
     {
       "author": "Musk",
@@ -89,15 +143,15 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "航天/火箭",
-        "私募/二级市场"
+        "航天",
+        "私募估值"
       ],
       "sector_holdings": [
         "SPCH"
       ],
       "stance": "neutral",
-      "relevance": 80,
-      "summary_cn": "报道马斯克净资产因SpaceX二级份额抛售单日蒸发500亿美元，反映SpaceX估值波动，间接影响kcn持有的SPCH。"
+      "relevance": 65,
+      "summary_cn": "马斯克净资产因SpaceX二级市场抛售缩水500亿美元，间接影响SPCH（2倍做多SpaceX ETF）估值锚。"
     },
     {
       "author": "Musk",
@@ -110,36 +164,15 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "航天/火箭",
-        "私募/二级市场"
+        "航天",
+        "私募二级市场"
       ],
       "sector_holdings": [
         "SPCH"
       ],
       "stance": "neutral",
-      "relevance": 78,
-      "summary_cn": "路透Breakingviews报道华尔街对SpaceX二级份额估值持续走高，与kcn持有的SPCH（2x做多SpaceX ETF）直接相关。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk's xAI is now officially called SpaceXAI",
-      "url": "",
-      "published": "Tue, 07 Jul 2026 08:41:02 GMT",
-      "origin": "gnews-rss",
-      "source": "Mashable",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "AI",
-        "航天/火箭"
-      ],
-      "sector_holdings": [
-        "SPCH"
-      ],
-      "stance": "neutral",
-      "relevance": 65,
-      "summary_cn": "xAI正式更名为SpaceXAI，将马斯克AI业务并入SpaceX体系，间接利好kcn持有的SPCH，并强化SpaceX的AI故事。"
+      "relevance": 60,
+      "summary_cn": "Reuters Breakingviews评论SpaceX二级份额供给激增，华尔街对马斯克系资产兴趣浓厚，间接利好SPCH。"
     },
     {
       "author": "Trump",
@@ -151,31 +184,13 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "能源/原油"
+        "能源",
+        "原油"
       ],
       "sector_holdings": [],
       "stance": "endorse",
-      "relevance": 72,
-      "summary_cn": "特朗普发帖宣称油价将下跌，沙特最大幅度降价，宏观利好消费者与运输板块、利空能源股。"
-    },
-    {
-      "author": "Trump",
-      "text": "Fed Reserve working paper suggests Biden illegal immigrant wave drove up home prices 30%: https://justthenews.com/government/security/fed-reserve-working-paper-suggests-biden-illegal-immigrant-wave-drove-home",
-      "url": "https://trumpstruth.org/statuses/39815",
-      "published": "2026-07-06T02:21:04+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "房地产/住房",
-        "移民",
-        "美联储"
-      ],
-      "sector_holdings": [],
-      "stance": "attack",
-      "relevance": 55,
-      "summary_cn": "美联储工作论文被引用称拜登任内非法移民推高房价30%，特朗普转发布强化反移民与房地产政策叙事。"
+      "relevance": 58,
+      "summary_cn": "特朗普发帖欢呼'油价要降'，并转发沙特数十年来最大幅度降油价的报道。"
     },
     {
       "author": "Trump",
@@ -187,39 +202,37 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "国防/军工",
-        "财政/税收",
-        "移民"
+        "国防军工",
+        "财政支出"
       ],
       "sector_holdings": [],
       "stance": "endorse",
+      "relevance": 55,
+      "summary_cn": "特朗普呼吁国会通过第三轮预算协调案，含3500亿美元国防开支，利好国防军工板块。"
+    },
+    {
+      "author": "Trump",
+      "text": "Fed Reserve working paper suggests Biden illegal immigrant wave caused 30% of home price increases: https://justthenews.com/government/security/fed-reserve-working-paper-suggests-biden-illegal-immigrant-wave-drove-hom",
+      "url": "https://trumpstruth.org/statuses/39877",
+      "published": "2026-07-08T02:34:51+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "宏观经济",
+        "房地产",
+        "移民政策",
+        "美联储"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
       "relevance": 50,
-      "summary_cn": "特朗普呼吁国会通过第三阶段财政协调法案，含3500亿美元国防开支及Save America法案（移民相关），利好国防板块。"
+      "summary_cn": "特朗普分享美联储工作论文，声称拜登时期非法移民潮推高房价30%，为移民政策辩护。"
     }
   ],
   "held_hits": [],
   "new_ideas": [
-    {
-      "author": "Trump",
-      "text": "Great news! I have just been informed that one of the biggest, best, and smartest Retailers in America, Walmart, will be lowering prices, by a lot, at my Administration's request to celebrate our great Country's 250th birthday. Walmart will, in particular, be dropping the price for a pound of ground beef by almost 15%, among many other products. This is a huge deal for the many millions of Americans who, smartly, shop at Walmart, which is a truly patriotic Company who loves the U.S.A. My Administration is lowering prices that Joe Biden incompetently raised with the worst inflation crisis in hi",
-      "url": "https://trumpstruth.org/statuses/39863",
-      "published": "2026-07-06T20:45:33+00:00",
-      "origin": "truthsocial",
-      "tickers": [
-        "WMT"
-      ],
-      "held": [],
-      "new_ideas": [
-        "WMT"
-      ],
-      "sectors": [
-        "零售/消费"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 62,
-      "summary_cn": "特朗普宣称沃尔玛应其要求大幅降价（碎牛肉降近15%），行政施压通胀降温，对零售消费板块有直接定价影响。"
-    },
     {
       "author": "Trump",
       "text": "Toyota is moving from Mexico to the United States (Texas!). A really big deal. Tariffs at work! President DONALD J. TRUMP",
@@ -234,36 +247,111 @@
         "TM"
       ],
       "sectors": [
+        "汽车",
         "关税",
-        "汽车"
+        "制造业"
+      ],
+      "sector_holdings": [
+        "02208"
+      ],
+      "stance": "endorse",
+      "relevance": 72,
+      "summary_cn": "特朗普宣称丰田将从墨西哥迁回美国（德州），归功于'关税奏效'，利好关税回流制造业叙事。"
+    },
+    {
+      "author": "Musk",
+      "text": "BTC news: Elon Musk's SpaceX moves bitcoin for the first time in six months",
+      "url": "",
+      "published": "Wed, 08 Jul 2026 12:47:51 GMT",
+      "origin": "gnews-rss",
+      "source": "CoinDesk",
+      "tickers": [
+        "BTC"
+      ],
+      "held": [],
+      "new_ideas": [
+        "BTC"
+      ],
+      "sectors": [
+        "加密货币",
+        "比特币"
+      ],
+      "sector_holdings": [
+        "CRCL"
+      ],
+      "stance": "neutral",
+      "relevance": 70,
+      "summary_cn": "马斯克旗下SpaceX三年来首次移动其比特币持仓，加密市场关注；CRCL（Circle/USDC）作为加密基础设施间接受关注。"
+    },
+    {
+      "author": "Trump",
+      "text": "Great news! I have just been informed that one of the biggest, best, and smartest Retailers in America, Walmart, will be lowering prices, by a lot, at my Administration's request to celebrate our great Country's 250th birthday. Walmart will, in particular, be dropping the price for a pound of ground beef by almost 15%, among many other products. This is a huge deal for the many millions of Americans who, smartly, shop at Walmart, which is a truly patriotic Company who loves the U.S.A. My Administration is lowering prices that Joe Biden incompetently raised with the worst inflation crisis in hi",
+      "url": "https://trumpstruth.org/statuses/39863",
+      "published": "2026-07-06T20:45:33+00:00",
+      "origin": "truthsocial",
+      "tickers": [
+        "WMT"
+      ],
+      "held": [],
+      "new_ideas": [
+        "WMT"
+      ],
+      "sectors": [
+        "零售",
+        "消费",
+        "通胀"
       ],
       "sector_holdings": [],
       "stance": "endorse",
-      "relevance": 58,
-      "summary_cn": "特朗普宣称丰田将从墨西哥迁至美国德州生产，宣称关税奏效，提振汽车与制造业回流叙事。"
+      "relevance": 62,
+      "summary_cn": "特朗普亲宣沃尔玛将大幅降价（碎牛肉降近15%）庆祝美国250周年，强调抗通胀政绩。"
+    },
+    {
+      "author": "Trump",
+      "text": "Trump announces Walmart to lower prices for thousands of products at his administration's request: https://justthenews.com/nation/economy/trump-announces-walmart-lower-prices-thousands-products-his-administrations-request",
+      "url": "https://trumpstruth.org/statuses/39880",
+      "published": "2026-07-08T02:33:03+00:00",
+      "origin": "truthsocial",
+      "tickers": [
+        "WMT"
+      ],
+      "held": [],
+      "new_ideas": [
+        "WMT"
+      ],
+      "sectors": [
+        "零售",
+        "消费",
+        "通胀"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 60,
+      "summary_cn": "特朗普宣布沃尔玛应其政府请求下调数千种商品价格，视为通胀回落政绩。"
     }
   ],
   "sector_hits": [
     {
       "author": "Musk",
-      "text": "Wall Street is telling us how it really feels about SpaceX as it enters the Nasdaq",
+      "text": "Elon Musk can’t sell a single SpaceX share for a year—and then all the locks crack open at once",
       "url": "",
-      "published": "Tue, 07 Jul 2026 17:16:06 GMT",
+      "published": "Fri, 03 Jul 2026 10:06:00 GMT",
       "origin": "gnews-rss",
-      "source": "Business Insider",
+      "source": "Fortune",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "航天/火箭",
-        "纳斯达克/IPO"
+        "航天",
+        "私募流动性",
+        "SpaceX"
       ],
       "sector_holdings": [
         "SPCH"
       ],
       "stance": "neutral",
-      "relevance": 82,
-      "summary_cn": "报道SpaceX即将登陆纳斯达克，华尔街机构表态估值预期，对kcn持有的SPCH（2x做多SpaceX ETF）有直接定价影响。"
+      "relevance": 72,
+      "summary_cn": "报道指出马斯克一年内无法出售任何SpaceX股份，届时所有限售将一次性解锁，对SPCH等SpaceX相关产品构成未来流动性事件风险。"
     },
     {
       "author": "Musk",
@@ -276,15 +364,15 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "航天/火箭",
-        "私募/二级市场"
+        "航天",
+        "私募估值"
       ],
       "sector_holdings": [
         "SPCH"
       ],
       "stance": "neutral",
-      "relevance": 80,
-      "summary_cn": "报道马斯克净资产因SpaceX二级份额抛售单日蒸发500亿美元，反映SpaceX估值波动，间接影响kcn持有的SPCH。"
+      "relevance": 65,
+      "summary_cn": "马斯克净资产因SpaceX二级市场抛售缩水500亿美元，间接影响SPCH（2倍做多SpaceX ETF）估值锚。"
     },
     {
       "author": "Musk",
@@ -297,36 +385,15 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "航天/火箭",
-        "私募/二级市场"
+        "航天",
+        "私募二级市场"
       ],
       "sector_holdings": [
         "SPCH"
       ],
       "stance": "neutral",
-      "relevance": 78,
-      "summary_cn": "路透Breakingviews报道华尔街对SpaceX二级份额估值持续走高，与kcn持有的SPCH（2x做多SpaceX ETF）直接相关。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk's xAI is now officially called SpaceXAI",
-      "url": "",
-      "published": "Tue, 07 Jul 2026 08:41:02 GMT",
-      "origin": "gnews-rss",
-      "source": "Mashable",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "AI",
-        "航天/火箭"
-      ],
-      "sector_holdings": [
-        "SPCH"
-      ],
-      "stance": "neutral",
-      "relevance": 65,
-      "summary_cn": "xAI正式更名为SpaceXAI，将马斯克AI业务并入SpaceX体系，间接利好kcn持有的SPCH，并强化SpaceX的AI故事。"
+      "relevance": 60,
+      "summary_cn": "Reuters Breakingviews评论SpaceX二级份额供给激增，华尔街对马斯克系资产兴趣浓厚，间接利好SPCH。"
     }
   ]
 }
