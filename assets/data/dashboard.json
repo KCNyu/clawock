@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-08T05:40:03.013420Z",
+  "generated_at": "2026-07-08T05:40:31.672751Z",
   "last_updated": "2026/07/08 13:39 HKT",
   "fx": {
     "usdhkd": 7.8423,
@@ -1202,13 +1202,13 @@
       "us_realized": 2005.35,
       "us_equity": 5250.69,
       "us_profit": 1007.27,
-      "hk_total_value": 50878.8,
+      "hk_total_value": 51078.0,
       "hk_total_cost": 88276.24,
-      "hk_total_pnl": -37397.44,
-      "hk_today_change": 2488.0,
+      "hk_total_pnl": -37198.24,
+      "hk_today_change": 2687.2,
       "hk_realized": 7259.16,
-      "hk_equity": 58137.96,
-      "hk_profit": -30138.28,
+      "hk_equity": 58337.16,
+      "hk_profit": -29939.08,
       "us_cash": 281.35,
       "hk_cash": 34597.0,
       "us_asof": "2026-07-07",
@@ -1751,7 +1751,7 @@
       346.8,
       335.0,
       321.6,
-      333.0
+      334.6
     ],
     "02208": [
       9.59,
@@ -1763,7 +1763,7 @@
       11.1,
       10.88,
       10.05,
-      10.08
+      9.99
     ],
     "03032": [
       4.41,
@@ -1775,7 +1775,7 @@
       4.496,
       4.534,
       4.508,
-      4.696
+      4.712
     ],
     "07226": [
       3.046,
@@ -1787,7 +1787,7 @@
       3.162,
       3.218,
       3.164,
-      3.438
+      3.458
     ],
     "03033": [
       4.324,
@@ -1799,7 +1799,7 @@
       4.416,
       4.456,
       4.422,
-      4.612
+      4.624
     ],
     "07709": [
       null,
@@ -1833,9 +1833,9 @@
       "30d_pct": 22.96
     },
     "hk": {
-      "today_pct": 4.72,
-      "7d_pct": -4.31,
-      "30d_pct": -37.01
+      "today_pct": 5.08,
+      "7d_pct": -3.98,
+      "30d_pct": -36.79
     }
   },
   "today_movers": [
@@ -3406,7 +3406,7 @@
   "drawdown": {
     "max_pct_30d_hk": -39.8,
     "max_pct_30d_us": -18.51,
-    "current_pct_hk": -36.95,
+    "current_pct_hk": -36.74,
     "current_pct_us": 9.94,
     "us": {
       "peak": {
@@ -3439,10 +3439,10 @@
         "date": "2026-07-07"
       },
       "current": {
-        "value": 58137.96,
+        "value": 58337.16,
         "date": "2026-07-08"
       },
-      "current_dd_pct": -37.54,
+      "current_dd_pct": -37.33,
       "max_dd_pct": -40.36,
       "max_dd_abs": 37571.2,
       "max_dd_peak_date": "2026-05-27",
@@ -3460,10 +3460,10 @@
         "date": "2026-06-12"
       },
       "current": {
-        "value": 99315.45,
+        "value": 99514.65,
         "date": "2026-07-08"
       },
-      "current_dd_pct": -23.41,
+      "current_dd_pct": -23.25,
       "max_dd_pct": -27.57,
       "max_dd_abs": 35750.38,
       "max_dd_peak_date": "2026-05-29",
@@ -3507,10 +3507,10 @@
           "date": "2026-07-07"
         },
         "current": {
-          "value": -30138.28,
+          "value": -29939.08,
           "date": "2026-07-08"
         },
-        "from_peak_abs": -34948.8,
+        "from_peak_abs": -34749.6,
         "current_dd_pct": null,
         "max_dd_abs": -37571.2,
         "max_dd_pct": null,
@@ -3531,10 +3531,10 @@
           "date": "2026-07-07"
         },
         "current": {
-          "value": -22238.97,
+          "value": -22039.77,
           "date": "2026-07-08"
         },
-        "from_peak_abs": -43019.52,
+        "from_peak_abs": -42820.32,
         "current_dd_pct": null,
         "max_dd_abs": -44965.83,
         "max_dd_pct": null,
@@ -6325,7 +6325,7 @@
     }
   },
   "build_status": {
-    "generated_at": "2026-07-08T13:40:03+08:00",
+    "generated_at": "2026-07-08T13:40:31+08:00",
     "healthy": true,
     "stale_files": [],
     "files": [
