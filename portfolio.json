@@ -512,15 +512,15 @@
         {
           "ticker": "SPCX",
           "name": "SpaceX",
-          "shares": 0,
-          "cost_basis": 158.3,
-          "current_price": 168,
-          "current_value": 0,
-          "pnl_abs": 0,
-          "pnl_percent": 0,
-          "today_change": 0,
-          "today_change_pct": 0,
-          "data_source": "Nasdaq API (stocks) Jun 12, 2026 13:00 ET",
+          "shares": 1,
+          "cost_basis": 147.5,
+          "current_price": 147.69,
+          "current_value": 147.69,
+          "pnl_abs": 0.19,
+          "pnl_percent": 0.13,
+          "today_change": -1.78,
+          "today_change_pct": -1.19,
+          "data_source": "Nasdaq API (stocks) 2026-07-08",
           "trades": [
             {
               "date": "2026-06-12",
@@ -536,6 +536,13 @@
               "price": 168,
               "realized_pnl": 48.5,
               "note": "IPO首日+6%止盈,68卖出"
+            },
+            {
+              "date": "2026-07-08",
+              "action": "buy",
+              "shares": 1,
+              "price": 147.5,
+              "note": "按用户记录买入"
             }
           ],
           "prev_close": 134.9992,
