@@ -178,12 +178,15 @@ def main():
         except Exception as e:
             wechat_sent, send_out = False, str(e)[:300]
         # Always co-send to Telegram (cold-proof) — WeChat can't confirm real delivery.
-        cosend_telegram(message, f'intraday-{args.market}')
+        # Record the Telegram result: it's the sole backstop intraday_watchdog now
+        # uses (no more WeChat resend), so it needs to know if TG already got this.
+        tg_ok, _tg_out = cosend_telegram(message, f'intraday-{args.market}')
         marker = TMP / f'intraday-sent-{args.market}.json'
         try:
             marker.write_text(json.dumps({
                 'ts': int(datetime.now().timestamp() * 1000),
                 'sent_ok': bool(wechat_sent),
+                'tg_ok': bool(tg_ok),
                 'first_line': block_first,
                 'market': args.market,
                 'out': (send_out or '')[-200:],

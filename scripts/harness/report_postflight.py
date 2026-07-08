@@ -163,12 +163,16 @@ def deliver_wechat(market, phase, date, wechat_prefix, text, block_first):
         sent_ok, out = False, str(e)[:300]
     # Always co-send to Telegram — WeChat can't confirm real delivery (cold drop
     # returns sent_ok=true), so we don't gate on it. See cosend_telegram docstring.
-    cosend_telegram(message, f'{market}-{phase}')
+    # Record the Telegram result too: it's the cold-proof channel and the ONLY
+    # backstop report_watchdog now uses (it no longer re-sends WeChat), so the
+    # watchdog needs to know whether THIS report already reached Telegram.
+    tg_ok, _tg_out = cosend_telegram(message, f'{market}-{phase}')
     marker = TMP / f'report-sent-{market}-{phase}-{date}.json'
     try:
         marker.write_text(json.dumps({
             'ts': int(datetime.now().timestamp() * 1000),
             'sent_ok': bool(sent_ok),
+            'tg_ok': bool(tg_ok),
             'first_line': block_first,
             'market': market,
             'phase': phase,

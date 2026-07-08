@@ -9,13 +9,20 @@ turn start → expired mid-turn → silent drop; brief turns are ALWAYS >160s �
 memory: openclaw-wechat-longturn-token-expiry). Postflight records the REAL send
 result to memory/.tmp/brief-sent-{date}.json.
 
-This watchdog is now a pure backstop (mirrors intraday_watchdog): it reads that
-marker and re-sends ONLY when the postflight send is confirmed failed / never
-happened (marker missing, sent_ok false, or stale) — so it never doubles a card the
-postflight send already landed. The run-record `delivered` field is useless (byte-
-identical for dropped vs landed); we trust the marker instead. Card content comes
-from _watchdog_common.build_brief_card (LLM card file → plan.json fallback), the
-same builder postflight uses. Dedupe flag prevents double-sends within the slot.
+This watchdog is now a pure Telegram BACKSTOP (mirrors intraday/report_watchdog):
+it reads that marker and mirrors the card to Telegram ONLY when the postflight
+cosend is not confirmed for today (marker missing, tg_ok false, or stale) — so it
+never doubles a card Telegram already has.
+
+NO WECHAT RESEND (2026-07-09, kcn's call): the watchdog used to re-send the card on
+WeChat via a fresh token. That DUPLICATED the card on WeChat whenever the marker
+merely looked stale but WeChat had actually landed — and you can't tell a landed
+WeChat send from a silently-dropped one (#81096/#81316 wontfix). Since brief_postflight
+now ALWAYS co-sends the card to Telegram (cold-proof), the WeChat retry bought
+nothing but duplicates, so it's gone. Telegram is the sole backstop channel.
+
+Card content comes from _watchdog_common.build_brief_card (LLM card file → plan.json
+fallback), the same builder postflight uses. Dedupe flag prevents double-sends.
 
 Usage: brief_watchdog.py [--dry-run]
 """
@@ -27,7 +34,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from _watchdog_common import (  # noqa: E402
-    WS, HKT, log, resolve_wechat_target, send_wechat, build_brief_card,
+    WS, HKT, log, build_brief_card, send_telegram, KCN_TELEGRAM,
 )
 
 MARKER_FRESH_MS = 30 * 60 * 1000  # postflight send-marker older than this ⇒ not this slot
@@ -56,35 +63,33 @@ def main():
             marker = None
     now_ms = int(datetime.now(HKT).timestamp() * 1000)
     fresh = bool(marker) and (now_ms - marker.get('ts', 0)) < MARKER_FRESH_MS
-    if marker and marker.get('sent_ok') and fresh:
+    # TG is covered iff postflight's cosend confirmably delivered today's card to
+    # Telegram (fresh marker, tg_ok=true). No WeChat resend — Telegram is the backstop.
+    if marker and marker.get('tg_ok') and fresh:
         log({'tag': tag, 'action': 'ok',
-             'reason': 'postflight already sent (marker sent_ok, fresh) — no resend'})
+             'reason': 'postflight cosend already delivered Telegram today — no backstop'})
         return 0
 
-    # Postflight send failed / never ran / stale marker ⇒ re-send via fresh token.
+    # Postflight cosend failed / never ran / stale marker ⇒ mirror the card to Telegram.
     flag = WS / 'memory' / '.tmp' / f'watchdog-brief-{today}.done'
     if flag.exists():
-        log({'tag': tag, 'action': 'skip', 'reason': 'already resent (dedupe flag present)'})
+        log({'tag': tag, 'action': 'skip', 'reason': 'already mirrored (dedupe flag present)'})
         return 0
 
     reason = ('postflight marker missing' if not marker
               else 'marker stale' if not fresh
-              else 'postflight send failed (sent_ok=false)')
-
-    channel, to, account = resolve_wechat_target()
-    if not to:
-        log({'tag': tag, 'action': 'fail', 'reason': 'no wechat target resolved'})
-        return 0
+              else 'postflight cosend failed (tg_ok=false)')
 
     message = build_brief_card(today)
-    sent_ok, out = send_wechat(channel, to, account, message, args.dry_run)
-    log({'tag': tag, 'action': 'resend', 'dry_run': args.dry_run, 'sent_ok': sent_ok,
-         'fail_reason': reason, 'marker': marker, 'out': out})
-    if sent_ok and not args.dry_run:
+    tg_banner = f'📨 自动补发（{reason}，Telegram 兜底一份）\n\n'
+    tg_ok, out = send_telegram(KCN_TELEGRAM, tg_banner + message, args.dry_run)
+    log({'tag': tag, 'action': 'mirror-telegram', 'dry_run': args.dry_run, 'sent_ok': tg_ok,
+         'fail_reason': reason, 'marker': marker, 'target': KCN_TELEGRAM, 'out': out})
+    if tg_ok and not args.dry_run:
         flag.parent.mkdir(parents=True, exist_ok=True)
         flag.write_text(datetime.now(HKT).isoformat())
 
-    print(json.dumps({'tag': tag, 'reason': reason, 'resent': sent_ok,
+    print(json.dumps({'tag': tag, 'reason': reason, 'mirrored_telegram': tg_ok,
                       'dry_run': args.dry_run}, ensure_ascii=False))
     return 0
 

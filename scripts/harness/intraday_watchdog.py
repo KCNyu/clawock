@@ -20,16 +20,18 @@ send` (the path kcn confirmed lands) and the 3 intraday crons run --no-deliver (
 announce) → exactly one send, no long-turn drop, no double. postflight records the
 REAL send result to memory/.tmp/intraday-sent-{market}.json.
 
-This watchdog is now a pure BACKSTOP: it reads that marker and re-sends ONLY when
-the postflight send is confirmed failed / never happened (marker missing, sent_ok
-false, or stale/mismatched) — so it never doubles a report that already went out.
+This watchdog is now a pure Telegram BACKSTOP: it reads that marker and mirrors the
+report to Telegram ONLY when the postflight cosend is not confirmed for this slot
+(marker missing, tg_ok false, or stale/mismatched) — so it never doubles a report
+Telegram already has.
 
-TELEGRAM MIRROR (2026-07-03, bot @clawock_bot revived): "cold session" here means
-"the confirmed WeChat send did not land" (marker missing/failed/stale) — NOT idle
-time. On exactly that branch we ALSO mirror the report to Telegram (KCN_TELEGRAM),
-which has no contextToken-expiry drop, so kcn still gets it even if the fresh-token
-WeChat resend drops too. Only fires on a cold event — a cleanly-delivered report
-never touches Telegram (no double-channel spam on healthy runs).
+NO WECHAT RESEND (2026-07-09, kcn's call): the watchdog used to also re-send on
+WeChat via a fresh token. That DUPLICATED reports on WeChat whenever the marker
+merely looked stale/mismatched but WeChat had actually landed — and you can't tell a
+landed WeChat send from a silently-dropped one (#81096/#81316 wontfix, cold drop
+still returns sent_ok=true). Since intraday_postflight now ALWAYS co-sends the same
+body to Telegram (cold-proof, no contextToken drop), the WeChat retry bought nothing
+but duplicates, so it's gone. Telegram is the sole backstop channel.
 
 Healthy-report gate: only re-send a report produced cleanly (block first-line
 present AND not a mimo repeat-loop) — never re-send a stall. Dedupe per slot.
@@ -52,7 +54,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from _watchdog_common import (  # noqa: E402
     WS, HKT, log, find_job_id, today_runs, KCN_TELEGRAM,
-    transcript_loop_score, last_report_text, send_wechat, send_telegram, resolve_wechat_target,
+    transcript_loop_score, last_report_text, send_telegram,
 )
 
 LOOP_THRESHOLD = 5         # transcript loop_score ≥ this ⇒ mimo repeat-loop ⇒ garbage
@@ -109,14 +111,15 @@ def main():
              'delivered_clean': delivered_clean, 'loop_score': loop_score, 'run_at': run_at})
         return 0
 
-    # --- Decision: did intraday_postflight already send this report? -----------
-    # postflight is now the PRIMARY sender (fresh token, see its docstring) and
-    # records the REAL send result to intraday-sent-{market}.json. We trust that
-    # marker instead of the poisoned run-record `delivered` (which is byte-identical
-    # for a dropped vs a landed run). Only re-send on a CONFIRMED failure / missing
-    # marker — never double a report the postflight send already landed. This
-    # replaces the old duration heuristic that false-doubled every long-but-delivered
-    # run (214s landed, 282s dropped — duration can't tell them apart).
+    # --- Delivery backstop: Telegram only (no WeChat resend) ------------------
+    # WHY NO WECHAT RESEND ANYMORE (2026-07-09, kcn's call): a watchdog WeChat
+    # resend DUPLICATED the report on WeChat whenever the marker merely looked
+    # stale/mismatched but WeChat had actually landed — and you can't tell a landed
+    # WeChat send from a silently-dropped one (#81096/#81316 wontfix, cold drop
+    # still returns sent_ok=true). Now that intraday_postflight ALWAYS co-sends the
+    # same body to Telegram (cold-proof, no contextToken drop), the WeChat retry
+    # bought nothing but duplicates. So the watchdog's SOLE job is to guarantee
+    # Telegram has this report — never touch WeChat.
     marker_path = WS / 'memory' / '.tmp' / f'intraday-sent-{args.market}.json'
     marker = None
     if marker_path.exists():
@@ -129,53 +132,34 @@ def main():
     # first_line guards against a stale marker from a previous slot; if we can't read
     # the block, trust recency alone (avoid false-double).
     matches = bool(marker) and (not raw_block_first or marker.get('first_line') == raw_block_first)
-    if marker and marker.get('sent_ok') and fresh and matches:
+    # TG is covered iff postflight's cosend confirmably delivered this report to
+    # Telegram this slot (fresh marker, matching first line, tg_ok=true).
+    if marker and marker.get('tg_ok') and fresh and matches:
         log({'tag': tag, 'action': 'ok',
-             'reason': 'postflight already sent (marker sent_ok, fresh, matches) — no resend',
+             'reason': 'postflight cosend already delivered Telegram this slot — no backstop',
              'run_at': run_at})
         return 0
 
-    # postflight send failed / never ran / marker mismatch ⇒ re-send via fresh token
+    # postflight cosend never ran / failed / stale-or-mismatched marker ⇒ Telegram
+    # is not confirmed for this report → mirror it now.
     report = last_report_text(session_id, raw_block_first) if raw_block_first else None
     if not report:
         report = summary  # fallback: run-record summary (usually holds the full block)
-    channel, to, account = resolve_wechat_target(args.market)
-    if not (channel and to):
-        log({'tag': tag, 'action': 'skip', 'reason': 'no wechat target resolved', 'run_at': run_at})
-        return 0
 
     reason = ('postflight marker missing' if not marker
-              else 'postflight send failed' if not marker.get('sent_ok')
+              else 'postflight cosend failed' if not marker.get('tg_ok')
               else 'marker stale/mismatch')
-    banner = f'📲 补投（{reason}，盘中盯盘用 fresh-token 补一份）\n\n'
-    message = banner + report.strip()
-
-    sent_ok, out = send_wechat(channel, to, account, message, args.dry_run)
-    log({'tag': tag, 'action': 'resend-wechat', 'dry_run': args.dry_run, 'sent_ok': sent_ok,
+    tg_banner = f'📲 补投（{reason}，Telegram 兜底一份）\n\n'
+    tg_ok, tg_out = send_telegram(KCN_TELEGRAM, tg_banner + report.strip(), args.dry_run)
+    log({'tag': tag, 'action': 'mirror-telegram', 'dry_run': args.dry_run, 'sent_ok': tg_ok,
          'job_id': job_id, 'reason': reason, 'loop_score': loop_score,
-         'run_at': run_at, 'channel': channel, 'out': out})
+         'run_at': run_at, 'target': KCN_TELEGRAM, 'out': tg_out})
 
-    # Telegram mirror — ONLY when postflight never ran this slot (no fresh marker),
-    # i.e. cosend_telegram never fired. A fresh marker (even sent_ok=false/mismatch)
-    # means the WeChat-send block ran and the unconditional cosend right after it
-    # already delivered TG (2026-07-03 dual-send) → mirroring here would DOUBLE it.
-    cosend_covered_tg = bool(marker) and fresh
-    tg_ok = False
-    if cosend_covered_tg:
-        log({'tag': tag, 'action': 'mirror-telegram-skip', 'run_at': run_at,
-             'reason': 'postflight cosend already sent TG this slot (fresh marker)'})
-    else:
-        tg_banner = f'📲 补投（{reason}，微信可能没送达，Telegram 兜底一份）\n\n'
-        tg_ok, tg_out = send_telegram(KCN_TELEGRAM, tg_banner + report.strip(), args.dry_run)
-        log({'tag': tag, 'action': 'mirror-telegram', 'dry_run': args.dry_run, 'sent_ok': tg_ok,
-             'reason': reason, 'run_at': run_at, 'target': KCN_TELEGRAM, 'out': tg_out})
-
-    # Slot handled if a channel landed (or cosend already covered TG this slot) —
-    # don't keep retrying a report kcn already received on Telegram.
-    if (sent_ok or tg_ok or cosend_covered_tg) and not args.dry_run:
+    # Slot handled once Telegram landed — don't keep retrying a report kcn has.
+    if tg_ok and not args.dry_run:
         flag.write_text(datetime.now(HKT).isoformat())
 
-    print(json.dumps({'tag': tag, 'resent_wechat': sent_ok, 'mirrored_telegram': tg_ok,
+    print(json.dumps({'tag': tag, 'mirrored_telegram': tg_ok,
                       'reason': reason, 'dry_run': args.dry_run}, ensure_ascii=False))
     return 0
 

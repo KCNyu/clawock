@@ -425,13 +425,16 @@ def main():
         except Exception as e:
             wechat_sent, send_out = False, str(e)[:300]
         # Always co-send to Telegram (cold-proof) — WeChat can't confirm real delivery.
-        cosend_telegram(message, 'brief', dry_run=args.dry_run)
+        # Record the Telegram result: it's the sole backstop brief_watchdog now uses
+        # (no more WeChat resend), so it needs to know if TG already got this card.
+        tg_ok, _tg_out = cosend_telegram(message, 'brief', dry_run=args.dry_run)
         marker = WS / 'memory' / '.tmp' / f'brief-sent-{today}.json'
         try:
             marker.parent.mkdir(parents=True, exist_ok=True)
             marker.write_text(json.dumps({
                 'ts': int(datetime.now().timestamp() * 1000),
                 'sent_ok': bool(wechat_sent),
+                'tg_ok': bool(tg_ok),
                 'first_line': first_line,
                 'out': (send_out or '')[-200:],
             }, ensure_ascii=False))
