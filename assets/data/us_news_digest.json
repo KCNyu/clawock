@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-07T15:40:24.392787",
+  "generated_at": "2026-07-08T15:09:59.696633",
   "lookback_hours": 48,
   "tickers": [
     "CRCL",
@@ -9,7 +9,7 @@
     "SPCH",
     "MSFU"
   ],
-  "digest_markdown": "### Top 移动信号\n- **CRCL**: 月跌 40%, 单日再挫 17.5%, 导火索是 OUSD — 由 140+ 机构背书的新稳定币直接对标 USDC → kcn 持仓需重新评估护城河, 短期估值压缩未止\n- **CRCL**: NODE 月报 50% 年化波动、13.2% 回撤, 21 交易日中仅 8 日收阳 → 情绪已极端悲观, 反向看任何 OUSD 份额数据都是潜在拐点信号\n- **ROBN (HOOD 杠杆)**: Robinhood 盘后跳水, 分析师与散户均反应冷淡 → 2x 杠杆放大隔夜 gap, kcn 若持有需警惕次日开盘补跌\n- **HIVE (加密邻接)**: 上调 0% 可交换优先票据规模 $75M→$100M, 2031 到期 → 加密挖矿/财库方加杠杆, 间接说明数字资产融资窗口仍开, 对 CRCL 链上需求中性偏正\n- **HTX Q3 评级**: BTC + RWA Overweight, 长尾 alt Underweight → 主流稳定币结算需求结构性受益, 但 CRCL 短期被竞争叙事压制\n\n### Per-ticker 简报\n- **CRCL**: OUSD 替代威胁 + 月度深跌 - 核心持仓风险事件, 关注 8 月链上 USDC 市占率数据\n- **PLTU / RKLX / SPCH / MSFU**: 全部为杠杆 ETF 营销稿或科普内容, 无 ticker-specific catalyst, 忽略\n\n### 风险 watch\n- **CRCL**: OUSD 竞争叙事 (-40% MTD); 稳定币监管立法 (GENIUS Act 后续) 仍未完全落地, 双向波动\n- **ROBN**: 盘后无明确催化剂下跌 - 警惕 HOOD 财报后 reset 在 2x 杠杆上放大损失",
+  "digest_markdown": "### Top 移动信号\n- **ROBN/HOOD**: 盘后跳水但分析师与散户均\"shrug off\" - kcn 若持有 ROBN,关注次日开盘是否快速修复,止损位依 HOOD 盘后低点设\n- **PLTU/PLTR**: Q4 财报 beat 持续发酵,ETF 杠杆放大正向 beta - 多头仓位可继续持有,不加仓\n- **CRCL**: HTX Q3 展望将 RWA 列为 Overweight - 间接利好 Circle 稳定币叙事,无直接 catalyst,持仓观望\n- **SPCH**: SpaceX IPO 主题热度推升杠杆 ETF 关注度 - 纯主题驱动,波动极大,kcn 控仓为主\n\n### Per-ticker 简报\n- **CRCL**: 无公司层新闻;Visa 上调至 Buy 与 HIVE $100M 可交换债扩容为无关噪音,忽略\n- **PLTU**: Palantir Q4 beat 仍是主要驱动,其余为 ETF 营销稿\n- **ROBN**: HOOD 盘后下跌但被市场淡化,次日走势决定 ROBN 方向\n- **SPCH**: 押注 SpaceX IPO 预期的 2x 杠杆工具,情绪面大于基本面\n- **MSFU / RKLX**: 全部为 ETF 推介/论坛帖,无 catalyst,忽略\n\n### 风险 watch\n- **杠杆 ETF 群**: PLTU/ROBN/SPCH/MSFU/RKLX 均为 2x 日杠杆,隔夜跳空 + 波动率衰减(Volmageddon 型)是共同尾部风险,尤其 ROBN 盘后已显示脆弱性\n- **HOOD**: gnews-rss 标题级信号,需开盘后用价格/成交量验证,不要仅凭标题加仓\n- **SpaceX IPO 主题**: SPCH 高度依赖未确认 IPO 时间表,跳票风险存在",
   "raw_news_counts": {
     "CRCL": 4,
     "PLTU": 5,
