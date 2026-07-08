@@ -1012,28 +1012,53 @@ def compute_calibration():
         # return from the stored benefit% (pnl_5d): benefit = ret for hold/add, -ret for
         # cut/trim. alpha_pp < 0 = active calls did worse than doing nothing.
         _SELL = {'cut', 'trim_on_rebound'}
-        llm_w = base_w = base_n = 0
-        ben_sum = ret_sum = 0.0
-        for r, outcome in resolved:
-            ben = _to_float(r.get('pnl_5d'))
-            if ben is None:
-                continue
-            ret = -ben if (r.get('bucket') or '').strip() in _SELL else ben
-            base_n += 1
-            llm_w += 1 if outcome == 'win' else 0
-            base_w += 1 if ret > 0 else 0
-            ben_sum += ben          # 跟随 LLM 动作的实际收益（benefit）
-            ret_sum += ret          # 躺着不动（hold baseline）的实际收益
-        vs_baseline = None
-        if base_n:
+
+        def _alpha_bucket(bucket_rows):
+            """Same LLM-vs-hold alpha metrics over an arbitrary slice of resolved rows."""
+            llm_w = base_w = base_n = 0
+            ben_sum = ret_sum = 0.0
+            for r, outcome in bucket_rows:
+                ben = _to_float(r.get('pnl_5d'))
+                if ben is None:
+                    continue
+                ret = -ben if (r.get('bucket') or '').strip() in _SELL else ben
+                base_n += 1
+                llm_w += 1 if outcome == 'win' else 0
+                base_w += 1 if ret > 0 else 0
+                ben_sum += ben          # 跟随 LLM 动作的实际收益（benefit）
+                ret_sum += ret          # 躺着不动（hold baseline）的实际收益
+            if not base_n:
+                return None
             llm_wr = llm_w / base_n
             base_wr = base_w / base_n
             llm_ci = _wilson_ci(llm_w, base_n)
             hold_ci = _wilson_ci(base_w, base_n)
-            # alpha 显著 = 两个 95% 区间不重叠（保守口径）；否则 frequency 上的"跑输"
-            # 也可能只是噪音，不能据此下结论
             alpha_sig = (llm_ci is not None and hold_ci is not None
                          and (llm_ci[1] < hold_ci[0] or hold_ci[1] < llm_ci[0]))
+            return {
+                'n': base_n,
+                'llm_win_rate': round(llm_wr, 4),
+                'hold_baseline_win_rate': round(base_wr, 4),
+                'alpha_pp': round((llm_wr - base_wr) * 100, 1),
+                'llm_ci95': llm_ci,
+                'hold_ci95': hold_ci,
+                'alpha_significant': alpha_sig,
+                'llm_avg_benefit_pct': round(ben_sum / base_n, 3),
+                'hold_avg_ret_pct': round(ret_sum / base_n, 3),
+                'alpha_ret_pp': round((ben_sum - ret_sum) / base_n, 3),
+            }
+
+        base_agg = _alpha_bucket(resolved)
+        base_n = base_agg['n'] if base_agg else 0
+        vs_baseline = None
+        if base_agg:
+            llm_wr = base_agg['llm_win_rate']
+            base_wr = base_agg['hold_baseline_win_rate']
+            llm_ci = base_agg['llm_ci95']
+            hold_ci = base_agg['hold_ci95']
+            # alpha 显著 = 两个 95% 区间不重叠（保守口径）；否则 frequency 上的"跑输"
+            # 也可能只是噪音，不能据此下结论
+            alpha_sig = base_agg['alpha_significant']
             # 风险调整上下文：hold baseline 在 risk_on 里大半是杠杆放大的 β，不是决策技巧。
             # 把 β 和杠杆因子贴在判决旁边，免得把"杠杆赢"当成"edge"。[cut #7]
             risk_note = None
@@ -1047,20 +1072,50 @@ def compute_calibration():
                                        '看 alpha_ret_pp（收益口径）+ sharpe 才是风险调整后的真账'}
             except Exception:
                 pass
-            vs_baseline = {
-                'n': base_n,
-                'llm_win_rate': round(llm_wr, 4),
-                'hold_baseline_win_rate': round(base_wr, 4),
-                'alpha_pp': round((llm_wr - base_wr) * 100, 1),
-                'llm_ci95': llm_ci,
-                'hold_ci95': hold_ci,
-                'alpha_significant': alpha_sig,
-                # 收益口径（不只命中率）：跟随 LLM 的平均收益 vs 躺平平均收益
-                'llm_avg_benefit_pct': round(ben_sum / base_n, 3),
-                'hold_avg_ret_pct': round(ret_sum / base_n, 3),
-                'alpha_ret_pp': round((ben_sum - ret_sum) / base_n, 3),
-                'risk_context': risk_note,
-            }
+            vs_baseline = dict(base_agg)
+            vs_baseline['risk_context'] = risk_note
+
+            # by_regime: split the SAME alpha calc by MARKET regime at each call's plan_date.
+            # The whole point — is the −6pp alpha a single-regime artifact? cut/trim
+            # structurally lose in up-legs, so the honest test is whether the sign flips
+            # across bull/bear/choppy. Regime map = lev_regime.json's regime_history, routed
+            # per market (US ticker → SPY momentum, HK numeric ticker → HSTECH momentum).
+            try:
+                regime_hist = json.loads(
+                    (OUT_DIR / 'lev_regime.json').read_text()).get('regime_history') or {}
+            except Exception:
+                regime_hist = {}
+            hk_hist = regime_hist.get('hk') or {}
+            us_hist = regime_hist.get('us') or {}
+            if hk_hist or us_hist:
+                hk_dates = sorted(hk_hist)
+                us_dates = sorted(us_hist)
+
+                def _regime_at(ticker, plan_date):
+                    """regime3 (bull/bear/chop) for the ticker's market at the most recent
+                    session on-or-before plan_date; None if unknown / no coverage."""
+                    hist, dts = ((hk_hist, hk_dates) if (ticker or '').strip().isdigit()
+                                 else (us_hist, us_dates))
+                    pick = None
+                    for d in dts:
+                        if d <= plan_date:
+                            pick = d
+                        else:
+                            break
+                    return hist[pick].get('regime3') if pick else None
+
+                buckets = {'bull': [], 'bear': [], 'chop': [], 'unknown': []}
+                for r, outcome in resolved:
+                    reg = _regime_at(r.get('ticker'), (r.get('plan_date') or '')[:10])
+                    buckets[reg if reg in buckets else 'unknown'].append((r, outcome))
+                by_regime = {}
+                for key, rows_b in buckets.items():
+                    agg = _alpha_bucket(rows_b)
+                    if agg:
+                        by_regime[key] = agg
+                if by_regime:
+                    vs_baseline['by_regime'] = by_regime
+                    vs_baseline['regime_meta'] = regime_hist.get('meta')
 
         # Followed discipline over the SAME resolved set, so the % shares the
         # `samples` denominator. (The card used to compute this off the recent-20

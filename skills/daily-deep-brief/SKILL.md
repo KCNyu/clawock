@@ -210,6 +210,14 @@ context.json 关键字段：
 
 **核心教训(写进每次决策心智)**:这次大回撤主因是**港股 beta**,三个面都没提前叫出来(港股全程 hold/macro);能被预判的只有杠杆 ETF 那段,而**只有 catalyst 真出过力、technical 是噪声、sentiment 根本没上场**。所以:**消息面(硬催化)是唯一值得听的方向信号,技术面降权当过滤器而非触发器,情绪面只调温不掌舵。** catalyst 的 58% 也只是相对最好(样本 19、区间宽),不是稳定 edge——继续积累、每月回填这张表。
 
+#### 🌡️ 主动 alpha 是 regime 依赖的(REQUIRED — 别把某一段 regime 的战绩当定论)
+
+`calibration.vs_baseline.by_regime`(dashboard「Calibration·30d」卡)把「主动 vs 全持有」alpha 按每笔 call **当时的市场动量**分桶(US=SPY、HK=HSTECH 近10日动量:牛 up-leg / 熊 down-leg / 震荡)。实测规律:
+
+- **cut/trim 在上涨腿(牛)结构性吃亏**——早期偏多子窗口曾测出 alpha −6pp,不是模型无能,是逆势减仓在涨市必然被躺平打败。
+- **熊/震荡里主动信号才见真章**:近 30 天(HSTECH 全程 trend-off)熊腿 alpha **+8pp**、震荡 ~持平,合计翻正。**所以「AI 主动决策没意义」是把单一牛市子窗口当全部的误读。**
+- **纪律**:引用主动战绩必须**带 regime 限定词**(「在当前弱势/震荡市里…」),不准拿一段 regime 的数字下全局结论;各桶 CI 目前多重叠 = 方向性未显著,继续积累。牛市样本仍 =0,跨 regime 未定论。
+
 #### 🚦 仓位/杠杆硬闸(REQUIRED — 优先级高于 driven_by 与 regime guard)
 
 **回撤复盘的最大教训:亏不是因为"没听 LLM",是因为组合构造**(US β≈4.4、73% 杠杆 ETF、HK 85% 单因子)。任何一个 driven_by 面都没提前叫出来——这不是信号问题,是**风控纪律层缺失**。所以在所有 driven_by/regime 逻辑之上,先过一道仓位硬闸。

@@ -181,6 +181,50 @@ def compute_us():
             'vol_hot_cap': US_VOL_HOT, 'cut_count': len(cuts), 'watch_count': len(watches)}
 
 
+MOM_WINDOW = 10      # ~2 周动量：短周期市场方向（牛/熊/震荡），比 200DMA 有对比度
+MOM_BAND = 3.0       # ±3% 死区 = 震荡；之上=牛(up-leg)、之下=熊(down-leg)
+
+
+def build_regime_history(dates, closes, lookback=150):
+    """Per-date regime for the most recent `lookback` sessions, consumed by build_dashboard
+    to bucket the vs_baseline alpha by market regime — the caveat check for '−6pp 是不是纯
+    涨市假象'. Emits per date:
+      • regime3  — short-horizon MOM_WINDOW momentum → bull/bear/chop (牛/熊/震荡). The axis
+                   with real contrast; primary key build_dashboard buckets on.
+      • trend_on — canonical 200DMA dial (same def as the live leverage dial `classify`);
+                   None when the series is shorter than 200 bars (e.g. US SPY proxy).
+    Works on short series (US SPY ≈ 39 bars): momentum needs only MOM_WINDOW+1 bars."""
+    n = len(closes)
+    hist = {}
+    start = max(MOM_WINDOW, n - lookback)
+    for i in range(start, n):
+        ma200 = sum(closes[i - MA_WINDOW + 1:i + 1]) / MA_WINDOW if i >= MA_WINDOW - 1 else None
+        mom = (closes[i] / closes[i - MOM_WINDOW] - 1) * 100
+        regime3 = 'bull' if mom > MOM_BAND else ('bear' if mom < -MOM_BAND else 'chop')
+        hist[dates[i]] = {
+            'trend_on': (closes[i] > ma200) if ma200 is not None else None,
+            'dist_ma_pct': round((closes[i] / ma200 - 1) * 100, 1) if ma200 else None,
+            'mom_pct': round(mom, 1),
+            'regime3': regime3,
+        }
+    return hist
+
+
+def load_spy_series():
+    """US market-direction proxy for the regime split. tencent only returns 1 bar for
+    ETFs/indices, so reuse the SPY daily series already maintained in benchmark.json
+    (~60d). Enough for MOM_WINDOW momentum; not for 200DMA (trend_on stays None on US)."""
+    try:
+        bench = json.loads((WS / 'assets' / 'data' / 'benchmark.json').read_text())
+        spy = (bench.get('series') or {}).get('SPY') or []
+        pts = [(x['date'], float(x['close'])) for x in spy if x.get('close') is not None]
+        pts.sort(key=lambda p: p[0])
+        return [d for d, _ in pts], [c for _, c in pts]
+    except Exception as e:
+        print(f'  warn: SPY series load failed (US regime skipped): {e}', file=sys.stderr)
+        return [], []
+
+
 def compute(closes):
     n = len(closes)
     ma = sum(closes[-MA_WINDOW:]) / MA_WINDOW if n >= MA_WINDOW else None
@@ -255,6 +299,17 @@ def main():
                  'close': out['close'], 'ma': out['ma'], 'dist_ma_pct': dist,
                  'vol_annualized': out['vol_annualized'], 'trend_on': trend_on, 'vol_ok': vol_ok}
     out['us'] = compute_us()
+    # regime_history: per-market per-date regime for the alpha-by-regime dashboard bucket.
+    # hk ← HSTECH (full history: 200DMA + momentum); us ← SPY proxy (momentum only).
+    us_dates, us_closes = load_spy_series()
+    out['regime_history'] = {
+        'hk': build_regime_history(dates, closes),
+        'us': build_regime_history(us_dates, us_closes) if us_closes else {},
+        'meta': {'hk_index': 'HSTECH', 'us_index': 'SPY(proxy)',
+                 'mom_window': MOM_WINDOW, 'mom_band_pct': MOM_BAND,
+                 'note': 'regime3=近%d日动量分 牛(>+%g%%)/熊(<-%g%%)/震荡；trend_on=200日线(US 因样本<200 为 null)'
+                         % (MOM_WINDOW, MOM_BAND, MOM_BAND)},
+    }
 
     if args.dry_run:
         print(json.dumps(out, ensure_ascii=False, indent=2))

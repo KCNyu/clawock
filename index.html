@@ -3396,9 +3396,38 @@ layout: null
       if (vb && vb.alpha_pp != null) {
         const a = vb.alpha_pp;
         const col = a > 0 ? "var(--green)" : (a < 0 ? "var(--red)" : "var(--gray)");
-        alphaEl.innerHTML = `🎯 LLM vs 全持有基线 · `
-          + `<b style="color:${col}">alpha ${a > 0 ? "+" : ""}${a}pp</b> `
+        const sigTag = vb.alpha_significant
+          ? `<span style="color:${col};font-size:10px">·显著</span>`
+          : `<span style="color:var(--text-faint);font-size:10px">·未显著(方向性)</span>`;
+        let html = `🎯 LLM vs 全持有基线 · `
+          + `<b style="color:${col}">alpha ${a > 0 ? "+" : ""}${a}pp</b> ${sigTag} `
           + `<span style="color:var(--text-faint)">(LLM ${Math.round(vb.llm_win_rate*100)}% vs hold ${Math.round(vb.hold_baseline_win_rate*100)}%, n=${vb.n})</span>`;
+
+        // 分市场 regime — 是否 −alpha 只是单一 regime 假象。牛市 cut/trim 结构性吃亏，
+        // 熊/震荡才见真章；按每笔 call 当时的市场动量分桶（US=SPY, HK=HSTECH）。
+        const br = vb.by_regime;
+        if (br) {
+          const LAB = { bull: "牛 (up-leg)", bear: "熊 (down-leg)", chop: "震荡", unknown: "未知" };
+          const ORDER = ["bull", "bear", "chop", "unknown"];
+          const rows = ORDER.filter(k => br[k]).map(k => {
+            const g = br[k], ap = g.alpha_pp;
+            const c = ap > 0 ? "var(--green)" : (ap < 0 ? "var(--red)" : "var(--gray)");
+            const dim = g.alpha_significant ? "" : "opacity:.72";
+            return `<div style="display:flex;justify-content:space-between;gap:8px;padding:1px 0;${dim}">`
+              + `<span style="color:var(--text-faint)">${LAB[k] || k}</span>`
+              + `<span><b style="color:${c}">${ap > 0 ? "+" : ""}${ap}pp</b>`
+              + `<span style="color:var(--text-faint);font-size:10px"> ·收益${g.alpha_ret_pp > 0 ? "+" : ""}${g.alpha_ret_pp}pp ·n=${g.n}</span></span>`
+              + `</div>`;
+          }).join("");
+          const missing = ORDER.filter(k => k !== "unknown" && !br[k]).map(k => LAB[k]);
+          const note = missing.length
+            ? `<div style="color:var(--text-faint);font-size:10px;margin-top:3px">⚠ ${missing.join("/")} 样本=0，跨 regime 未定论；CI 重叠均属方向性</div>`
+            : `<div style="color:var(--text-faint);font-size:10px;margin-top:3px">CI 多重叠，属方向性非定论</div>`;
+          html += `<div style="margin-top:6px;padding-top:5px;border-top:1px dashed var(--border)">`
+            + `<div style="color:var(--text-faint);font-size:10px;margin-bottom:2px">分市场 regime（近10日动量）· 主动信号该不该听</div>`
+            + rows + note + `</div>`;
+        }
+        alphaEl.innerHTML = html;
       } else {
         alphaEl.textContent = "🎯 LLM vs 全持有基线 · 数据不足";
       }
