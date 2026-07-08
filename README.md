@@ -57,12 +57,12 @@ Every brief doesn't just talk. It commits a structured **`plan.json`**: each cal
 So I can tell you, with receipts, how the AI is *actually* doing:
 
 | What the AI did | Sample | Hit rate | Honest verdict |
-|---|---|---:|---|
-| **cut / trim / add** (active calls) | — | **< 45%** | worse than a coin flip |
-| high-conviction calls (confidence ≥ 0.75) | — | **42%** | overconfident |
-| **just `hold`** | — | **76%** | this is β, not α |
-| 🔴 "chasing a high" warning | n=22 | 50% | flags the move, can't time it |
-| 🟡 "oversold, might bounce" | n=77 | 36% | catching knives |
+|---|---:|---:|---|
+| **cut / trim / add** (active calls) | n=166 | **50%** | basically a coin flip |
+| high-conviction calls (confidence ≥ 0.75) | n=14 | **43%** | still overconfident |
+| **just `hold`** | n=188 | **60%** | this is β, not α |
+| 🔴 "chasing a high" warning | n=58 | 57% | flags the move, can't time it |
+| 🟡 "oversold, might bounce" | n=140 | 36% | catching knives |
 
 > Read that again: on this sample, **the model's active signals underperform simply holding.** The system *says so itself*, in public, because the scorecard is computed in Python and the LLM isn't allowed to fudge it. The honesty is the feature — most of the value of an "AI analyst" is knowing when to ignore it.
 
@@ -72,11 +72,13 @@ So I can tell you, with receipts, how the AI is *actually* doing:
 
 <sub>Numbers are point-in-time from `memory/calibration.csv`, `quant_signal_review.json`, `t0_setup_review.json` and move as samples grow. Factors with n < 20 are shown but **barred from influencing decisions** until they earn it.</sub>
 
+> 💸 **And the real book?** As of Jul 2026, on a peak-net-principal basis the live combined portfolio sits at **−22%** — US leg **+41%**, HK leg **−37%**, leverage cutting both ways (realized +\$2.9k, unrealized −\$5.8k; 30-day Sharpe −6.5). It's on the dashboard in real time. *That's* the number the honesty is about — not a backtest I get to re-run, but the one book I actually have to live with.
+
 **The scorecard is built not to fool itself.** Three guards stop a noisy number from masquerading as edge:
 
-- **95% confidence intervals on every rate.** "catalyst 72%" is really `[59–82]` at n=54; a band that straddles 50% (macro, peer) is flagged `edge_significant: false` — statistically indistinguishable from a coin flip.
-- **A risk-adjusted verdict, not just hit-rate.** By *frequency* the active book looks +6pp ahead of holding. By *return* it's **−0.57pp** — and the gap isn't significant — against a portfolio β of 4.4. So a leveraged-beta "win" is never mistaken for skill.
-- **Catalyst-gate discipline.** Only `catalyst` has a CI-proven edge, so an active cut/trim/add must name the hard catalyst that justifies it (and the one that would *invalidate* its thesis). The dashboard tracks how many actually do — currently ~20%, i.e. most active calls are still filter-grade technicals.
+- **95% confidence intervals on every rate.** "catalyst 70%" is really `[63–90]` at n=84 — the one driver whose band clears 50%. Any rate whose band straddles 50% (macro, peer) is flagged `edge_significant: false`: statistically indistinguishable from a coin flip.
+- **A risk-adjusted verdict, not just hit-rate.** By *frequency* the LLM's calls look **+4.4pp** ahead of a hold. By *return* that shrinks to **+0.42pp** — indistinguishable from zero — against a portfolio β of **3.4**. So a leveraged-beta "win" is never mistaken for skill.
+- **Catalyst-gate discipline.** Only `catalyst` has a CI-proven edge, so an active cut/trim/add must name the hard catalyst that justifies it (and the one that would *invalidate* its thesis). The dashboard tracks how many actually do — currently ~7%, i.e. most active calls are still filter-grade technicals.
 
 ---
 
@@ -88,10 +90,10 @@ Behind the persona is a fixed decision framework — not freeform vibes. Every c
 
 | Driver | Hit rate | How it's used |
 |---|---:|---|
-| **catalyst** (earnings, FOMC, dated event) | **69%** (n=61) | the only driver allowed to *initiate* an action |
-| **technical** (trend / RSI / levels) | **59%** (n=116) | a filter, never the thesis |
+| **catalyst** (earnings, FOMC, dated event) | **70%** (n=84) | the only driver allowed to *initiate* an action |
+| **technical** (trend / RSI / levels) | **52%** (n=231) | a filter, never the thesis |
 | macro | 50% (n=20) | context; a coin-flip on its own |
-| **peer / 抱团 read-across** | **40%** (n=10) | the worst — herd reasoning is actively distrusted |
+| **peer / 抱团 read-across** | **31%** (n=13) | the worst — herd reasoning is actively distrusted |
 
 **2. Hard catalyst vs. soft sentiment.** Soft sentiment (Reddit, mood, a single tweet) can only nudge a *confidence* number — it can never flip the action bucket. Only a hard, dated catalyst can.
 
