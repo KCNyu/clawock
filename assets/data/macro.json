@@ -1,67 +1,72 @@
 {
-  "generated_at": "2026-07-07T22:43:10.158546+00:00",
+  "generated_at": "2026-07-08T22:42:56.485348+00:00",
   "vix": {
     "symbol": "^VIX",
-    "price": 16.13,
-    "prev": 15.57,
-    "change_pct": 3.6,
-    "as_of": 1783455301,
+    "price": 16.9,
+    "prev": 16.13,
+    "change_pct": 4.77,
+    "as_of": 1783541701,
     "source": "yahoo"
   },
   "treasury_10y": {
     "symbol": "^TNX",
-    "price": 4.529,
-    "prev": 4.479,
-    "change_pct": 1.12,
-    "as_of": 1783450794,
+    "price": 4.569,
+    "prev": 4.529,
+    "change_pct": 0.88,
+    "as_of": 1783537195,
     "source": "yahoo",
-    "yield_pct": 4.529
+    "yield_pct": 4.569
   },
   "dxy": {
     "symbol": "DX-Y.NYB",
-    "price": 101.122,
-    "prev": 100.853,
-    "change_pct": 0.27,
-    "as_of": 1783461898,
+    "price": 101.066,
+    "prev": 101.023,
+    "change_pct": 0.04,
+    "as_of": 1783548298,
     "source": "yahoo"
   },
   "fear_greed": {
-    "score": 43,
+    "score": 42.2,
     "rating": "fear",
-    "prev_close": 43.9,
-    "prev_1_week": 30.9,
-    "as_of": "2026-07-07T22:24:21+00:00"
+    "prev_close": 43.0,
+    "prev_1_week": 30.5,
+    "as_of": "2026-07-08T22:26:24+00:00"
   },
   "hsi": {
     "symbol": "^HSI",
-    "price": 23496.89,
-    "prev": 23616.32,
-    "change_pct": -0.51,
+    "price": 24199.46,
+    "prev": 23496.89,
+    "change_pct": 2.99,
     "source": "tencent"
   },
   "hstech": {
     "symbol": "^HSTECH",
-    "price": 4507.04,
-    "prev": 4541.23,
-    "change_pct": -0.75,
+    "price": 4731.02,
+    "prev": 4507.04,
+    "change_pct": 4.97,
     "source": "tencent"
   },
   "spx": {
     "symbol": "^GSPC",
-    "price": 7503.85,
-    "prev": 7537.43,
-    "change_pct": -0.45,
-    "as_of": 1783457591,
+    "price": 7482.71,
+    "prev": 7503.85,
+    "change_pct": -0.28,
+    "as_of": 1783543721,
     "source": "yahoo"
   },
   "nasdaq": {
     "symbol": "^IXIC",
-    "price": 25818.69,
-    "prev": 26121.16,
-    "change_pct": -1.16,
+    "price": 25870.65,
+    "prev": 25818.69,
+    "change_pct": 0.2,
     "source": "tencent"
   },
   "fed_press": [
+    {
+      "date": "2026-07-08",
+      "title": "Minutes of the Federal Open Market Committee, June 16-17, 2026",
+      "url": "https://www.federalreserve.gov/newsevents/pressreleases/monetary20260708a.htm"
+    },
     {
       "date": "2026-07-07",
       "title": "Federal Reserve Board requests comment on a proposal to amend its requirements for banks to maintain anti-money laundering programs",
@@ -71,11 +76,6 @@
       "date": "2026-07-02",
       "title": "Federal Reserve Board issues enforcement action with Small Business Bank and announces termination enforcement actions with BNP Paribas S.A., BNP Paribas USA, Inc., BNP Paribas Securities Corp., and C",
       "url": "https://www.federalreserve.gov/newsevents/pressreleases/enforcement20260702a.htm"
-    },
-    {
-      "date": "2026-07-01",
-      "title": "Federal Reserve issues initial findings from its 2025 triennial payments study",
-      "url": "https://www.federalreserve.gov/newsevents/pressreleases/other20260701a.htm"
     }
   ]
 }
