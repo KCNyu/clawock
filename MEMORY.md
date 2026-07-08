@@ -102,25 +102,25 @@
 - **单一来源：`portfolio.json`**，不在此维护副本
 - ticker 列表：`memory/current-portfolio-summary.md`（提高检索命中）
 
-## Promoted From Short-Term Memory (2026-07-08)
+## Promoted From Short-Term Memory (2026-07-09)
 
-<!-- openclaw-memory-promotion:memory:memory/2026-07-03-0147.md:12:12 -->
-- Conversation Summary: 📊 市值 HK$49,764 | 浮盈 -38,512 (-43.6%) | 今日 -4,205 [score=0.854 recalls=0 avg=0.620 source=memory/2026-07-03-0147.md:12-12]
-<!-- openclaw-memory-promotion:memory:memory/2026-07-03-0147.md:14:17 -->
-- Conversation Summary: | 代码 | 股 | 成本 | 现价 | 今日 | 浮% | 浮$ | |:------|------:|-------:|-------:|-------:|-------:|--------:| | 00100 | 60 | 822.83 | 357.60 | -14.2% | -56.5% | -27,914 | | 02208 | 400 | 14.08 | 9.89 | -6.0% | -29.8% | -1,678 | [score=0.854 recalls=0 avg=0.620 source=memory/2026-07-03-0147.md:14-17]
-<!-- openclaw-memory-promotion:memory:memory/2026-07-03-0147.md:18:20 -->
-- Conversation Summary: | 03032 | 200 | 5.41 | 4.44 | -0.9% | -17.9% | -193 | | 07226 | 6200 | 4.36 | 3.08 | -1.8% | -29.4% | -7,943 | | 03033 | 1000 | 5.14 | 4.36 | -0.8% | -15.2% | -784 | [score=0.854 recalls=0 avg=0.620 source=memory/2026-07-03-0147.md:18-20]
-<!-- openclaw-memory-promotion:memory:memory/2026-07-03-0147.md:23:25 -->
-- Conversation Summary: ⚠️ ALERT 00100 MINIMA | 今日-14.2% 浮-56.5% △ WATCH 02208 金风科技 | 今日-6.0% 浮-29.8% ✋ STOP? 07226 XL二南方恒 | 今日-1.8% 浮-29.4% [score=0.854 recalls=0 avg=0.620 source=memory/2026-07-03-0147.md:23-25]
-<!-- openclaw-memory-promotion:memory:memory/2026-07-03-0147.md:3:5 -->
-- Session: 2026-07-03 01:47:51 GMT+8: **Session Key**: agent:main:openclaw-weixin:direct:o9cq80-hgtrum-oss8knmdotlvzi@im.wechat; **Session ID**: d917906e-6df4-495f-b368-f5f80d129d1e; **Source**: openclaw-weixin [score=0.854 recalls=0 avg=0.620 source=memory/2026-07-03-0147.md:3-5]
-<!-- openclaw-memory-promotion:memory:memory/2026-07-02-0151.md:9:9 -->
-- Conversation Summary: assistant: 🇺🇸 美股盯盘 | 07/01 09:32 ET [score=0.853 recalls=0 avg=0.620 source=memory/2026-07-02-0151.md:9-9]
-<!-- openclaw-memory-promotion:memory:memory/2026-07-02-pre-open.md:17:20 -->
-- ▎大盘速读: **VIX 16.45（-10.65%）· F&G 31.2（Fear，prev 27.0）** → VIX 快速收缩显示表面平静，但 F&G 仍在 Fear 区——两者背离，market complacency 信号，非真实风险偏好改善; **US 7/1: SPX -0.22% / NDX -1.54%** → 科技板块整体承压，但 HOOD/PLTR 事件驱动逆势大涨；宽度收窄，板块分化加剧; **HK 7/2 开盘: HSI -0.63% / HSTECH +1.8%** → 港股复市补涨（美股 6/30 月末反弹情绪传导），科技跑赢大盘；但 HSTECH 距 200DMA 仍 -17.3%，趋势 OFF; **美元 DXY 101.17（平稳）/ 10Y UST 4.42%** → 利率高位持续压制成长估值，DXY 平稳 HKD 无汇率扰动 [score=0.834 recalls=0 avg=0.620 source=memory/2026-07-02-pre-open.md:17-20]
-<!-- openclaw-memory-promotion:memory:memory/2026-07-02-pre-open.md:2:3 -->
-- layout: default title: 盘前深度简报 · 2026-07-02 [score=0.834 recalls=0 avg=0.620 source=memory/2026-07-02-pre-open.md:2-3]
-<!-- openclaw-memory-promotion:memory:memory/2026-07-02-pre-open.md:21:22 -->
-- ▎大盘速读: **黄金 XAU $4,085（+1.93%）** → 避险升温，与 F&G=31 Fear 一致; **NFP 明日 7/3 08:30 ET** → 本周最大 binary；US β=3.09 意味着大盘 -1% 约本子 -3.1%；今日降 β 优先于 NFP 前 [score=0.834 recalls=0 avg=0.620 source=memory/2026-07-02-pre-open.md:21-22]
-<!-- openclaw-memory-promotion:memory:memory/2026-07-02-pre-open.md:9:11 -->
-- 📊 盘前深度简报 | 2026-07-02 周四: **08:00 HKT | 港股今日复市（07/01 为回归纪念日） | US 7/1 已收盘 ~4h** USDHKD = 7.8439（Frankfurter）| HK lev_regime: 🟡 amber | US lev_regime: 🔴 RED 生成于 2026-07-02 08:02 HKT | Rick AI Stock Analyst [score=0.834 recalls=0 avg=0.620 source=memory/2026-07-02-pre-open.md:9-11]
+<!-- openclaw-memory-promotion:memory:memory/2026-07-03-0147.md:9:10 -->
+- Conversation Summary: assistant: 🇭🇰 港股盯盘 | 07/02 15:32 HKT 恒指 22,971 ▲0.39% 恒科 4,438 ▼0.77% [score=0.854 recalls=0 avg=0.620 source=memory/2026-07-03-0147.md:9-10]
+<!-- openclaw-memory-promotion:memory:memory/2026-07-03-0201.md:12:12 -->
+- Conversation Summary: 航空股今天高开是因为 Goldman Sachs / TD Cowen / BMO 集体上调目标价（DAL $80→$116，AAL 上调到$19.5）+ 油价下跌利好——开盘情绪乐观。但全天走势： [score=0.854 recalls=0 avg=0.620 source=memory/2026-07-03-0201.md:12-12]
+<!-- openclaw-memory-promotion:memory:memory/2026-07-03-0201.md:14:17 -->
+- Conversation Summary: | 标的 | 开盘 | 日高 | 收盘区间 | 说明 | |---|---|---|---|---| | DAL | $94.47 | $95.68 | ~$93.58 | 新52周高后回落 | | UAL | $137.87 | $138.51 | ~$135.13 | 日内跌2.4% | [score=0.854 recalls=0 avg=0.620 source=memory/2026-07-03-0201.md:14-17]
+<!-- openclaw-memory-promotion:memory:memory/2026-07-03-0201.md:18:18 -->
+- Conversation Summary: | AAL | $18.24 | $18.34 | ~$17.87 | 连涨9天+18%后回吐 | [score=0.854 recalls=0 avg=0.620 source=memory/2026-07-03-0201.md:18-18]
+<!-- openclaw-memory-promotion:memory:memory/2026-07-03-0201.md:20:20 -->
+- Conversation Summary: **高开低走三条原因**： [score=0.854 recalls=0 avg=0.620 source=memory/2026-07-03-0201.md:20-20]
+<!-- openclaw-memory-promotion:memory:memory/2026-07-03-0201.md:3:5 -->
+- Session: 2026-07-03 02:01:56 GMT+8: **Session Key**: agent:main:openclaw-weixin:direct:o9cq80-hgtrum-oss8knmdotlvzi@im.wechat; **Session ID**: d8b71e35-b99c-403f-9896-b640c06867c7; **Source**: openclaw-weixin [score=0.854 recalls=0 avg=0.620 source=memory/2026-07-03-0201.md:3-5]
+<!-- openclaw-memory-promotion:memory:memory/2026-07-03-0201.md:9:10 -->
+- Conversation Summary: user: 你觉得今天为什么高开低走 航空股还有未来吗 assistant: **高开低走的逻辑**（7/2） [score=0.854 recalls=0 avg=0.620 source=memory/2026-07-03-0201.md:9-10]
+<!-- openclaw-memory-promotion:memory:memory/2026-07-03-pre-open.md:17:20 -->
+- ▎大盘速读: **VIX 16.59（+0.85%）· F&G 31.9（Fear，prev 26.0）** → VIX 低位平静，F&G 从极度恐慌区改善中，但 Fear 区未出；情绪渐暖但未转 Greed; **US 7/2: SPX flat / NDX -1.61% / DJI +1.14%** → 成长科技回调，价值/道指逆势——HOOD/加密链相关事件驱动逆势；纳指宽度分化; **NFP June +57k（预期110-113k，大幅 miss）** → 经济走弱信号；前两月下修74k；UNR降至4.2%；时薪+3.5% YoY → 降息预期前移，利好成长估值，但需CPI 7/15验证; **HK 7/3 竞价: HSI +0.76% / HSTECH -0.40%** → 权重互联网内需股偏正（京东+3.6%,美团+3.4%）；但00100竞价-14.44%解禁恐慌拖累科技指数 [score=0.834 recalls=0 avg=0.620 source=memory/2026-07-03-pre-open.md:17-20]
+<!-- openclaw-memory-promotion:memory:memory/2026-07-03-pre-open.md:2:3 -->
+- layout: default title: 盘前深度简报 · 2026-07-03 [score=0.834 recalls=0 avg=0.620 source=memory/2026-07-03-pre-open.md:2-3]
+<!-- openclaw-memory-promotion:memory:memory/2026-07-03-pre-open.md:21:22 -->
+- ▎大盘速读: **美债10Y 4.475% / DXY 101.4** → NFP弱后美元可能走弱，国债利率高位但有下行预期；HKD peg稳定; **黄金 XAU/USD $4,118（+2.17%）** → 避险+弱美元双催化；黄金DCA持仓受益 [score=0.834 recalls=0 avg=0.620 source=memory/2026-07-03-pre-open.md:21-22]
