@@ -1,28 +1,28 @@
 {
-  "generated_at": "2026-07-08T15:09:59.696633",
+  "generated_at": "2026-07-09T15:53:02.190498",
   "lookback_hours": 48,
   "tickers": [
     "CRCL",
     "PLTU",
     "RKLX",
-    "ROBN",
+    "SPCX",
     "SPCH",
     "MSFU"
   ],
-  "digest_markdown": "### Top 移动信号\n- **ROBN/HOOD**: 盘后跳水但分析师与散户均\"shrug off\" - kcn 若持有 ROBN,关注次日开盘是否快速修复,止损位依 HOOD 盘后低点设\n- **PLTU/PLTR**: Q4 财报 beat 持续发酵,ETF 杠杆放大正向 beta - 多头仓位可继续持有,不加仓\n- **CRCL**: HTX Q3 展望将 RWA 列为 Overweight - 间接利好 Circle 稳定币叙事,无直接 catalyst,持仓观望\n- **SPCH**: SpaceX IPO 主题热度推升杠杆 ETF 关注度 - 纯主题驱动,波动极大,kcn 控仓为主\n\n### Per-ticker 简报\n- **CRCL**: 无公司层新闻;Visa 上调至 Buy 与 HIVE $100M 可交换债扩容为无关噪音,忽略\n- **PLTU**: Palantir Q4 beat 仍是主要驱动,其余为 ETF 营销稿\n- **ROBN**: HOOD 盘后下跌但被市场淡化,次日走势决定 ROBN 方向\n- **SPCH**: 押注 SpaceX IPO 预期的 2x 杠杆工具,情绪面大于基本面\n- **MSFU / RKLX**: 全部为 ETF 推介/论坛帖,无 catalyst,忽略\n\n### 风险 watch\n- **杠杆 ETF 群**: PLTU/ROBN/SPCH/MSFU/RKLX 均为 2x 日杠杆,隔夜跳空 + 波动率衰减(Volmageddon 型)是共同尾部风险,尤其 ROBN 盘后已显示脆弱性\n- **HOOD**: gnews-rss 标题级信号,需开盘后用价格/成交量验证,不要仅凭标题加仓\n- **SpaceX IPO 主题**: SPCH 高度依赖未确认 IPO 时间表,跳票风险存在",
+  "digest_markdown": "### Top 移动信号\n- **SPCX/SK hynix 旁证**: SK hynix Nasdaq 挂牌市值 ~$1T, AI 内存龙头地位确认 → 强化 AI infra 风险偏好, 间接受益 PLTU (PLTR) / MSFU / RKLX 主题顺风.\n- **RKLX**: \"SpaceX 上市 ≠ 抛弃 RKLB\" 论调见 Yahoo → 缓解 SPCX IPO 后 RKLB 资金挤出担忧, RKLX 仍获 standalone catalyst (Neutron / 中子号) 支持.\n- **CRCL**: Bitwise CIO 称 BTC 下大买家已从 Strategy 转向机构资本 (\"end boss\") → 结构性 bullish, 解除 MSTR 单一卖压, CRCL 顺风延展.\n- **PLTU**: Palantir Q4 beat 重新激活 ETF 关注, 杠杆放大效应下 PLTR 续创新高对 PLTU 直接利好.\n- **MSFU**: 多家媒体 (ETF Trends / ETF Database / Seeking Alpha) 同声唱多 MSFT 反转窗口 → 杠杆做多动能聚集.\n\n### Per-ticker 简报\n- **CRCL**: BTC 机构买盘结构性转变, 直接利好稳定币发行商业绩路径. 影响: 顺势持有.\n- **PLTU**: PLTR 财报 beat 重燃 2x 多头关注. 影响: 仓位合理续持.\n- **RKLX**: SPCX IPO 叙事无损 RKLB 独立逻辑. 影响: 持有理由强化.\n- **SPCX**: 无 ticker-specific 催化 (Yahoo 提及多为 ClearBridge 模板). 影响: 观望.\n- **SPCH**: 无 ticker-specific 催化. 影响: 闲置.\n- **MSFU**: 反转叙事共振, 短期催化. 影响: 持有.\n\n### Risk watch\n- 2x 杠杆 ETF 波动衰减持续 (PLTU/SPCH 在横盘市最大威胁).\n- CRCL 仍受 BTC macro + 美国稳定币监管节奏双重敏感.\n- SPCX 上市后流动性 / 估值锚未定, 杠杆产品 SPCH 风险加大.",
   "raw_news_counts": {
-    "CRCL": 4,
+    "CRCL": 3,
     "PLTU": 5,
-    "RKLX": 1,
-    "ROBN": 5,
+    "RKLX": 5,
+    "SPCX": 5,
     "SPCH": 5,
     "MSFU": 5
   },
   "news_source_per_ticker": {
     "CRCL": "finnhub",
     "PLTU": "gnews-rss",
-    "RKLX": "finnhub",
-    "ROBN": "gnews-rss",
+    "RKLX": "gnews-rss",
+    "SPCX": "finnhub",
     "SPCH": "gnews-rss",
     "MSFU": "gnews-rss"
   }
