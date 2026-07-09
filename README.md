@@ -136,6 +136,74 @@ All times HKT. Markets closed? A **holiday + weekend gate** skips the run instea
 
 ---
 
+## 🏗️ The whole machine on one page
+
+It's tempting to read this as "a cron daemon calling Python scripts" — and the *deterministic* half genuinely is (that's the point: prices, FX, delivery and reconciliation must never depend on a model's mood). The **agent** half is the eleven independent LLM turns wrapped inside those scripts, the debate swarm inside the brief, the watchdogs supervising the workers, and a reconciliation layer arbitrating everything that lands in shared state. Deterministic scaffolding, agentic judgment — that split *is* the architecture:
+
+```mermaid
+flowchart TB
+    subgraph TRIG["⏱️ Three independent schedulers"]
+        OC["openclaw cron daemon<br/>11 isolated agent turns"]
+        SC["system crontab<br/>watchdogs · publish · gold · nostr"]
+        GHA["GitHub Actions<br/>11 workflows · data scans + CI"]
+    end
+
+    subgraph HARNESS["🔁 Harness pattern — wraps every agent turn"]
+        direction LR
+        PRE["preflight.py<br/>deterministic<br/>prices · FX · HHI · signals"]
+        LLM(["🧠 LLM agent turn — Rick<br/>MiniMax-M3<br/>writes the opinion only"])
+        POST["postflight.py<br/>validate · commit · deliver"]
+        PRE --> LLM --> POST
+    end
+
+    subgraph SWARM["🗣️ Debate swarm — inside the 08:00 brief"]
+        direction TB
+        T1["Tier 1 · 4 analyst lenses<br/>fundamental / technical / sentiment / sector"]
+        T2["Tier 2 · Bull vs Bear<br/>must genuinely disagree"]
+        T3["Tier 3 · Aggressive / Conservative / Neutral"]
+        JUDGE{{"⚖️ Judge → resolves to plan.json"}}
+        T1 --> T2 --> T3 --> JUDGE
+    end
+
+    subgraph STATE["🗃️ Shared state — the blackboard"]
+        PF[("portfolio.json<br/>single source of truth<br/>flock + atomic write")]
+        TMP[("memory/.tmp/*.json<br/>context sidecars")]
+        PLAN[("memory/{date}-plan.json")]
+        DATA[("assets/data/*.json<br/>dashboard + scan sidecars")]
+    end
+
+    subgraph GATE["🛡️ Reconciliation & integrity"]
+        RECON["preflight_integrity · reconcile.sh<br/>compute_regime / quant / t0<br/>recompute_cash / realized / aggregates"]
+        HOOK["pre-push hook<br/>money-conservation gate"]
+    end
+
+    subgraph OUT["📮 Delivery & publish"]
+        WECHAT["WeChat · primary"]
+        TG["Telegram · watchdog fallback"]
+        PAGES["GitHub Pages dashboard"]
+    end
+
+    OC --> HARNESS
+    GHA --> DATA
+    HARNESS -. brief only .-> SWARM
+    PRE --> TMP
+    JUDGE --> PLAN
+    POST --> PF
+    POST --> RECON
+    RECON --> DATA
+    RECON --> HOOK
+    HOOK --> PAGES
+    POST --> WECHAT
+    SC -. detects a stalled turn .-> TG
+
+    PLAN -. graded next morning .-> LOOP["📈 calibration.csv<br/>self-grading feeds the next brief"]
+    LOOP -. confidence calls .-> LLM
+```
+
+**How to read it:** the solid path (schedulers → harness → shared state → publish) is the deterministic backbone that runs whether or not a model behaves. The **agents** are the eleven `LLM agent turn` instances and the **swarm** — they only ever write *opinions* into shared state; everything factual (data in, money math, delivery) is arbitrated by code. The dotted edges are the parts people forget exist: the **supervisor** watchdogs that catch a stalled turn, and the **self-learning loop** that grades yesterday's `plan.json` and feeds the score back in. That's what makes it a multi-agent desk rather than a scripted report generator.
+
+---
+
 ## 🛡️ Why it doesn't quietly break
 
 Running real automation for months taught me that the hard part isn't the prompt — it's everything that goes wrong *around* it. Three ideas carry the whole thing:
