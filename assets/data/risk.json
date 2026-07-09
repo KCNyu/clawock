@@ -1,51 +1,51 @@
 {
-  "generated_at": "2026-07-08T00:04:11.239577+00:00",
-  "as_of": "2026-07-08",
+  "generated_at": "2026-07-09T00:02:51.456032+00:00",
+  "as_of": "2026-07-09",
   "us": {
-    "beta_spx": 3.4121,
-    "vol_30d_annualized": 1.1924,
-    "max_dd_30d": -0.3502,
-    "sharpe_30d": -3.7009,
-    "current_value_usd": 3245.34
+    "beta_spx": 3.6454,
+    "vol_30d_annualized": 1.2257,
+    "max_dd_30d": -0.3769,
+    "sharpe_30d": -4.5663,
+    "current_value_usd": 2971.34
   },
   "hk": {
-    "beta_hsi": 1.1392,
-    "vol_30d_annualized": 0.695,
-    "max_dd_30d": -0.3734,
-    "sharpe_30d": -3.8285,
-    "current_value_hkd": 48390.8
+    "beta_hsi": 1.3937,
+    "vol_30d_annualized": 0.7201,
+    "max_dd_30d": -0.3774,
+    "sharpe_30d": -3.5979,
+    "current_value_hkd": 52972.8
   },
   "combined": {
-    "vol_30d_annualized": 0.5219,
-    "max_dd_30d": -0.1683,
-    "sharpe_30d": -6.4907
+    "vol_30d_annualized": 0.5936,
+    "max_dd_30d": -0.1724,
+    "sharpe_30d": -3.7553
   },
   "leveraged_exposure": {
-    "us_leverage_factor_avg": 1.4956,
-    "hk_leverage_factor_avg": 1.4051,
-    "combined_avg": 1.4362,
-    "margin_at_risk_pct": 14.3618
+    "us_leverage_factor_avg": 1.4057,
+    "hk_leverage_factor_avg": 1.4082,
+    "combined_avg": 1.4075,
+    "margin_at_risk_pct": 14.0747
   },
   "alerts": [
     {
       "type": "high_beta",
       "severity": "high",
-      "detail": "US β vs S&P 500 = 3.4121 (> 3.0)"
+      "detail": "US β vs S&P 500 = 3.6454 (> 3.0)"
     },
     {
       "type": "high_vol",
       "severity": "high",
-      "detail": "Combined 30d annualised vol = 52.2% (> 50%)"
+      "detail": "Combined 30d annualised vol = 59.4% (> 50%)"
     },
     {
       "type": "deep_dd",
       "severity": "medium",
-      "detail": "Combined 30d max DD = -16.8% (< -10%)"
+      "detail": "Combined 30d max DD = -17.2% (< -10%)"
     },
     {
       "type": "negative_sharpe",
       "severity": "medium",
-      "detail": "Combined 30d Sharpe = -6.4907 (< 0)"
+      "detail": "Combined 30d Sharpe = -3.7553 (< 0)"
     }
   ],
   "meta": {
@@ -62,14 +62,14 @@
         "CRCL",
         "PLTU",
         "RKLX",
-        "ROBN",
+        "SPCX",
         "SPCH",
         "MSFU"
       ],
       "failed": [],
-      "n_returns": 14,
+      "n_returns": 15,
       "dates_first": "2026-06-15",
-      "dates_last": "2026-07-07",
+      "dates_last": "2026-07-08",
       "stale": false
     },
     "hk_fetch": {
@@ -82,8 +82,8 @@
       ],
       "failed": [],
       "n_returns": 30,
-      "dates_first": "2026-05-21",
-      "dates_last": "2026-07-07",
+      "dates_first": "2026-05-22",
+      "dates_last": "2026-07-08",
       "stale": false
     }
   }

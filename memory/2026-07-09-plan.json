@@ -1,0 +1,133 @@
+{
+  "date": "2026-07-09",
+  "generated_at": "2026-07-09T08:05:00+08:00",
+  "fx_rate_usdhkd": 7.8389,
+  "driven_by": "technical",
+  "regime": {
+    "hk": "amber",
+    "us": "red"
+  },
+  "summary": "HK借昨日大涨执行积压纪律性减仓（07226→03033换仓+00100 trim解禁日cap超限）；US继续杠杆换仓队列（PLTU/MSFU/RKLX/SPCH）；全组合去杠杆优先于方向押注；5条硬止损积压，今日须落地至少3条。",
+  "actions": [
+    {
+      "ticker": "07226",
+      "leg": "HK",
+      "bucket": "cut",
+      "trigger_type": "open",
+      "trigger_price": null,
+      "size_shares": 6200,
+      "swap_to": "03033",
+      "confidence": 0.82,
+      "rationale": "硬止损-20.1%≤-18%；HK lev regime amber，杠杆cap25%但07226占40.8%；HSTECH趋势OFF；今日昨收3.488是近期最佳换仓价位；→03033(1x同因子)停decay≈0.93%/月；敞口保留等green灯换回2x；规则非择时",
+      "driven_by": "technical"
+    },
+    {
+      "ticker": "00100",
+      "leg": "HK",
+      "bucket": "trim_on_rebound",
+      "trigger_type": "price_above",
+      "trigger_price": 360.0,
+      "size_shares": 20,
+      "confidence": 0.68,
+      "rationale": "7/9解禁日（~63%股份解禁）；单名41.1%>35%cap；阿里/米哈游声明长期持有托底；解禁后若价格>360稳定则trim 20股→约40股剩余，降至~32%；reflections trim 71%胜率；不在振幅>15%急跌日执行",
+      "driven_by": "technical"
+    },
+    {
+      "ticker": "PLTU",
+      "leg": "US",
+      "bucket": "cut",
+      "trigger_type": "open",
+      "trigger_price": null,
+      "size_shares": 14,
+      "swap_to": "PLTR",
+      "confidence": 0.70,
+      "rationale": "硬止损-21.7%≤-18%；PLTR dist200MA -16.0%趋势OFF，月decay≈2.84%；昨日manual未执行今日须落地；→PLTR(1x)停decay；规则非择时",
+      "driven_by": "technical"
+    },
+    {
+      "ticker": "MSFU",
+      "leg": "US",
+      "bucket": "cut",
+      "trigger_type": "open",
+      "trigger_price": null,
+      "size_shares": 20,
+      "swap_to": "MSFT",
+      "confidence": 0.68,
+      "rationale": "硬止损-20.2%≤-18%；MSFT dist200MA -13.6%趋势OFF，月decay≈1.22%；→MSFT(1x)停decay；规则非择时",
+      "driven_by": "technical"
+    },
+    {
+      "ticker": "RKLX",
+      "leg": "US",
+      "bucket": "cut",
+      "trigger_type": "open",
+      "trigger_price": null,
+      "size_shares": 10,
+      "swap_to": "RKLB",
+      "confidence": 0.72,
+      "rationale": "硬止损-41.3%≤-18%；昨日模拟触发但组合仍显示10股；→RKLB(1x)保留航天方向；RKLB趋势ON(dist200MA +58.7%)是组合中少有正向动量标的；规则非择时",
+      "driven_by": "technical"
+    },
+    {
+      "ticker": "SPCH",
+      "leg": "US",
+      "bucket": "cut",
+      "trigger_type": "manual",
+      "trigger_price": null,
+      "size_shares": null,
+      "swap_to": "SPCX",
+      "confidence": 0.60,
+      "rationale": "P0协议持续；regime red(SPCX 5DMA以下-4.7%)；硬止损-31.7%触发；US现金$504近零限制操作灵活度；换仓SPCX(1x)停2x decay；8/6解禁20%供给冲击是下一关键风险；单名50.1%>35%cap严重超限；规则非择时",
+      "driven_by": "technical"
+    },
+    {
+      "ticker": "CRCL",
+      "leg": "US",
+      "bucket": "hold_and_watch",
+      "trigger_type": "manual",
+      "trigger_price": null,
+      "size_shares": null,
+      "confidence": 0.55,
+      "rationale": "RSI 35.6超卖；Q1运营盈利$45M首次扭亏；竞品稳定币出现（风险信号），GENIUS Act催化等候；无止损压力（非杠杆现货）；2股小仓位继续持有等政策催化",
+      "driven_by": "sentiment"
+    }
+  ],
+  "watchlist": [
+    {
+      "item": "00100解禁日全天量价",
+      "note": "若成交量>昨3806万且收盘<320，升级解禁抛压预警"
+    },
+    {
+      "item": "SPCX Starship V3催化",
+      "note": "测试飞行若成功可能触发SPCH短线弹，观察是否有换仓窗口"
+    },
+    {
+      "item": "CPI 2026-07-15",
+      "note": "高影响，影响US所有持仓方向，提前降US beta"
+    },
+    {
+      "item": "SPCX 8/6解禁",
+      "note": "20%+股份解禁，估值77x P/S，供给冲击风险"
+    }
+  ],
+  "risk_flags": {
+    "hk_lev_overshoot": "07226 40.8% > cap 25%，需今日换仓",
+    "us_lev_overshoot": "US杠杆ETF 90.7% > cap 50%，需分批换仓",
+    "beta_overshoot": "US β 3.6454 > cap 3.0",
+    "hard_stops_pending": ["07226", "PLTU", "RKLX", "SPCH", "MSFU"],
+    "hhi_hk": "0.349 ⚠️ 集中风险",
+    "hhi_us": "0.312 ⚠️ 集中风险",
+    "calibration_note": "high-conf(≥0.75) win_rate 33%，过度自信 +0.43 gap，今日最高置信0.82应相应降权"
+  },
+  "book": {
+    "fx_usdhkd": 7.8389,
+    "hk_holdings_hkd": 52972.8,
+    "hk_cash_hkd": 34597.0,
+    "hk_total_hkd": 87569.8,
+    "us_holdings_usd": 2971.34,
+    "us_cash_usd": 503.85,
+    "us_total_usd": 3475.19,
+    "combined_usd_approx": 14644.7,
+    "combined_hkd_approx": 114809.5
+  }
+}
