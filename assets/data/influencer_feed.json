@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-09T15:49:47.485832+00:00",
+  "generated_at": "2026-07-09T22:51:53.200690+00:00",
   "lookback_hours": 48,
   "sources": {
     "trump": "trumpstruth.org/feed (primary)",
@@ -9,36 +9,190 @@
   "llm_filtered": true,
   "counts": {
     "total": 12,
-    "held_hits": 0,
+    "held_hits": 7,
     "new_ideas": 2,
-    "sector_hits": 5
+    "sector_hits": 0
   },
   "items": [
     {
       "author": "Musk",
-      "text": "Elon Musk Lost His Trillionaire Status as SpaceX Shares Dropped 26%. Are Tesla and SpaceX Stock Still a Buy?",
+      "text": "CME Group Is Launching Elon Musk's Tesla and SpaceX Futures Contracts on July 27. Here's the Investment Case.",
       "url": "",
-      "published": "Thu, 09 Jul 2026 15:45:23 GMT",
+      "published": "Thu, 09 Jul 2026 16:32:00 GMT",
       "origin": "gnews-rss",
       "source": "The Motley Fool",
       "tickers": [
-        "TSLA"
+        "TSLA",
+        "SPCX",
+        "SPCH"
       ],
-      "held": [],
+      "held": [
+        "SPCH",
+        "SPCX"
+      ],
       "new_ideas": [
         "TSLA"
       ],
       "sectors": [
         "航天",
-        "电动车"
+        "电动车",
+        "衍生品"
       ],
-      "sector_holdings": [
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 90,
+      "summary_cn": "芝商所(CME)将于7月27日上线Tesla和SpaceX期货合约——重大事件，机构可正式做空/做多定价，深度利好SpaceX二级流动性与SPCX/SPCH。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk’s Net Worth Drops $50 Billion In Latest SpaceX Selloff",
+      "url": "",
+      "published": "Tue, 07 Jul 2026 19:38:55 GMT",
+      "origin": "gnews-rss",
+      "source": "Forbes",
+      "tickers": [
+        "SPCX",
+        "SPCH"
+      ],
+      "held": [
         "SPCH",
         "SPCX"
       ],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "私募二级"
+      ],
+      "sector_holdings": [],
+      "stance": "sell",
+      "relevance": 88,
+      "summary_cn": "Musk净资产因SpaceX二级份额抛售缩水500亿美元，SpaceX内部卖出信号，直接影响SPCX/SPCH估值锚点。"
+    },
+    {
+      "author": "Musk",
+      "text": "Trump cheers Gwynne Shotwell as Elon Musk’s SpaceX No. 2 gives $325 million in stock to Trump Accounts",
+      "url": "",
+      "published": "Thu, 09 Jul 2026 17:54:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Fortune",
+      "tickers": [
+        "SPCX",
+        "SPCH"
+      ],
+      "held": [
+        "SPCH",
+        "SPCX"
+      ],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "慈善/政策账户"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 88,
+      "summary_cn": "Trump与Musk互动新闻：Shotwell捐赠SpaceX股票至'Trump Accounts'，政治背书+慈善叙事共振，利好SpaceX品牌。"
+    },
+    {
+      "author": "Trump",
+      "text": "Thank you to the brilliant and highly respected Gwynne Shotwell, and her husband, Robert, for their extreme Generosity in helping children to attain the ever magnificent American Dream! Their Gift of 325 Million Dollars of SpaceX Stock is greatly appreciated by all. Thousands of children have just been given a better life. Thank you Gwynne and Robert, and continued Great Success! President DONALD J. TRUMP",
+      "url": "https://trumpstruth.org/statuses/39913",
+      "published": "2026-07-09T01:39:05+00:00",
+      "origin": "truthsocial",
+      "tickers": [
+        "SPCX",
+        "SPCH"
+      ],
+      "held": [
+        "SPCH",
+        "SPCX"
+      ],
+      "new_ideas": [],
+      "sectors": [
+        "航天"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 85,
+      "summary_cn": "Trump公开赞赏SpaceX总裁Gwynne Shotwell捐赠3.25亿美元SpaceX股票用于慈善，间接强化SpaceX品牌/估值利好。"
+    },
+    {
+      "author": "Musk",
+      "text": "Opinion | It’s a World-Class Investment. It’s a Junk Investment. What Is Going on With SpaceX?",
+      "url": "",
+      "published": "Thu, 09 Jul 2026 09:03:26 GMT",
+      "origin": "gnews-rss",
+      "source": "The New York Times",
+      "tickers": [
+        "SPCX",
+        "SPCH"
+      ],
+      "held": [
+        "SPCH",
+        "SPCX"
+      ],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "私募估值"
+      ],
+      "sector_holdings": [],
       "stance": "neutral",
-      "relevance": 72,
-      "summary_cn": "Musk因SpaceX股价跌26%失去万亿身价，媒体讨论Tesla和SpaceX股票是否仍可买；直接点名TSLA。"
+      "relevance": 82,
+      "summary_cn": "主流媒体报道SpaceX估值争议——既是'世界级投资'也是'垃圾投资'，直接影响其二级份额估值与SPCX/SPCH。"
+    },
+    {
+      "author": "Musk",
+      "text": "Wall Street Finds a New Way to Help Investors Avoid Elon Musk",
+      "url": "",
+      "published": "Thu, 09 Jul 2026 16:31:02 GMT",
+      "origin": "gnews-rss",
+      "source": "Bloomberg.com",
+      "tickers": [
+        "SPCX",
+        "SPCH",
+        "TSLA"
+      ],
+      "held": [
+        "SPCH",
+        "SPCX"
+      ],
+      "new_ideas": [
+        "TSLA"
+      ],
+      "sectors": [
+        "航天",
+        "电动车",
+        "私募投资工具"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 80,
+      "summary_cn": "华尔街推出新工具让投资者绕开直接投资Musk系公司门槛，提及SpaceX/Tesla相关投资产品，结构性利好SPCX/SPCH等替代标的。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk says he always wanted his SpaceX employees to get rich — and now thousands of them are millionaires",
+      "url": "",
+      "published": "Thu, 09 Jul 2026 19:23:24 GMT",
+      "origin": "gnews-rss",
+      "source": "Business Insider",
+      "tickers": [
+        "SPCX",
+        "SPCH"
+      ],
+      "held": [
+        "SPCH",
+        "SPCX"
+      ],
+      "new_ideas": [],
+      "sectors": [
+        "航天"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 78,
+      "summary_cn": "Musk表示希望SpaceX员工致富，如今数千人已成百万富翁，强化SpaceX作为'造富机器'的叙事，利好估值预期。"
     },
     {
       "author": "Trump",
@@ -55,135 +209,53 @@
       ],
       "sectors": [
         "零售",
-        "通胀/物价"
+        "通胀"
       ],
       "sector_holdings": [],
       "stance": "endorse",
       "relevance": 55,
-      "summary_cn": "Trump宣布Walmart应其政府要求将下调数千种商品价格，关注通胀/消费板块。"
+      "summary_cn": "Trump宣布Walmart应其政府请求下调数千种商品价格，关注通胀/消费板块及关税传导效应。"
     },
     {
       "author": "Musk",
-      "text": "Elon Musk’s Net Worth Drops $50 Billion In Latest SpaceX Selloff",
+      "text": "What a brief encounter with Elon Musk taught me about the limits of capitalism",
       "url": "",
-      "published": "Tue, 07 Jul 2026 19:38:55 GMT",
+      "published": "Thu, 09 Jul 2026 20:20:26 GMT",
       "origin": "gnews-rss",
-      "source": "Forbes",
-      "tickers": [],
+      "source": "Top1000funds.com",
+      "tickers": [
+        "TSLA"
+      ],
       "held": [],
-      "new_ideas": [],
+      "new_ideas": [
+        "TSLA"
+      ],
       "sectors": [
-        "航天"
+        "电动车"
       ],
-      "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "attack",
-      "relevance": 70,
-      "summary_cn": "Musk净资产因SpaceX最新一轮抛售缩水500亿美元，看空信号明显。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk sets timeline for SpaceX to launch orbital data centers, moon base",
-      "url": "",
-      "published": "Thu, 09 Jul 2026 14:12:55 GMT",
-      "origin": "gnews-rss",
-      "source": "Austin American-Statesman",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "AI/数据中心"
-      ],
-      "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "endorse",
-      "relevance": 65,
-      "summary_cn": "Musk为SpaceX设定里程碑时间表：轨道数据中心+月球基地，强化长期航天+AI故事。"
-    },
-    {
-      "author": "Musk",
-      "text": "Opinion | It’s a World-Class Investment. It’s a Junk Investment. What Is Going on With SpaceX?",
-      "url": "",
-      "published": "Thu, 09 Jul 2026 09:03:25 GMT",
-      "origin": "gnews-rss",
-      "source": "The New York Times",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天"
-      ],
-      "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
+      "sector_holdings": [],
       "stance": "neutral",
-      "relevance": 62,
-      "summary_cn": "报道探讨SpaceX估值争议——既是世界级投资也是垃圾投资，市场分歧加大。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk says he always wanted his SpaceX employees to get rich — and now thousands of them are millionaires",
-      "url": "",
-      "published": "Thu, 09 Jul 2026 13:54:44 GMT",
-      "origin": "gnews-rss",
-      "source": "Business Insider",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天"
-      ],
-      "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "endorse",
-      "relevance": 60,
-      "summary_cn": "Musk表示希望SpaceX员工致富，如今数千员工已成百万富翁，间接强化SpaceX估值故事。"
+      "relevance": 45,
+      "summary_cn": "关于与Musk短暂接触引发对资本主义局限思考的评论文章，间接涉及Tesla/Musk企业文化。"
     },
     {
       "author": "Trump",
-      "text": "Thank you to the brilliant and highly respected Gwynne Shotwell, and her husband, Robert, for their extreme Generosity in helping children to attain the ever magnificent American Dream! Their Gift of 325 Million Dollars of SpaceX Stock is greatly appreciated by all. Thousands of children have just been given a better life. Thank you Gwynne and Robert, and continued Great Success! President DONALD J. TRUMP",
-      "url": "https://trumpstruth.org/statuses/39913",
-      "published": "2026-07-09T01:39:05+00:00",
+      "text": "Fed Reserve working paper suggests Biden illegal immigrant wave caused 30% of home price increases: https://justthenews.com/government/security/fed-reserve-working-paper-suggests-biden-illegal-immigrant-wave-drove-hom",
+      "url": "https://trumpstruth.org/statuses/39877",
+      "published": "2026-07-08T02:34:51+00:00",
       "origin": "truthsocial",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "航天"
-      ],
-      "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "endorse",
-      "relevance": 58,
-      "summary_cn": "Trump公开感谢SpaceX总裁Gwynne Shotwell捐款3.25亿美元SpaceX股票做慈善，间接利好SpaceX/航天板块情绪。"
-    },
-    {
-      "author": "Musk",
-      "text": "Fear and faith in Elon Musk’s AI startup",
-      "url": "",
-      "published": "Thu, 09 Jul 2026 13:00:00 GMT",
-      "origin": "gnews-rss",
-      "source": "The San Francisco Standard",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "AI"
+        "房地产",
+        "移民",
+        "美联储"
       ],
       "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 55,
-      "summary_cn": "报道关注市场对Musk旗下AI创业公司(xAI)既恐惧又信仰的矛盾情绪。"
+      "stance": "attack",
+      "relevance": 50,
+      "summary_cn": "Trump转发联储工作论文，称Biden非法移民潮推高房价30%，为其移民/驱逐政策辩护，间接看空地产或强化反移民政策叙事。"
     },
     {
       "author": "Trump",
@@ -200,27 +272,8 @@
       ],
       "sector_holdings": [],
       "stance": "endorse",
-      "relevance": 52,
-      "summary_cn": "Trump为'Trump Accounts'儿童储蓄账户政策站台，经济学家普遍认为是不错deal。"
-    },
-    {
-      "author": "Trump",
-      "text": "Fed Reserve working paper suggests Biden illegal immigrant wave caused 30% of home price increases: https://justthenews.com/government/security/fed-reserve-working-paper-suggests-biden-illegal-immigrant-wave-drove-hom",
-      "url": "https://trumpstruth.org/statuses/39877",
-      "published": "2026-07-08T02:34:51+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "房地产",
-        "移民政策",
-        "美联储"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 50,
-      "summary_cn": "Trump转发美联储工作论文，暗示拜登时期非法移民推高房价30%，为后续移民/房产政策造势。"
+      "relevance": 48,
+      "summary_cn": "Trump宣传'Trump Accounts'儿童储蓄账户获经济学家好评，财政补贴型储蓄产品，对金融/零售板块有间接政策利好。"
     },
     {
       "author": "Musk",
@@ -234,60 +287,197 @@
       "new_ideas": [],
       "sectors": [
         "政府效率",
-        "公共开支"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 48,
-      "summary_cn": "讨论Musk主导的DOGE削减USAID等海外援助项目对其历史遗产的影响。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk's judge has ‘significant misgivings’ about $1.5 million Twitter settlement—but approves it anyway",
-      "url": "",
-      "published": "Thu, 09 Jul 2026 05:58:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Fortune",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "社交媒体/法律"
+        "公共支出"
       ],
       "sector_holdings": [],
       "stance": "neutral",
       "relevance": 45,
-      "summary_cn": "法官对Musk涉Twitter 150万美元和解协议有'misgivings'但仍批准。"
+      "summary_cn": "评论DOGE削减USAID项目对Musk遗产定义，与kcn持仓无直接市场含义，仅作为Musk政治影响力旁注。"
     }
   ],
-  "held_hits": [],
-  "new_ideas": [
+  "held_hits": [
     {
       "author": "Musk",
-      "text": "Elon Musk Lost His Trillionaire Status as SpaceX Shares Dropped 26%. Are Tesla and SpaceX Stock Still a Buy?",
+      "text": "CME Group Is Launching Elon Musk's Tesla and SpaceX Futures Contracts on July 27. Here's the Investment Case.",
       "url": "",
-      "published": "Thu, 09 Jul 2026 15:45:23 GMT",
+      "published": "Thu, 09 Jul 2026 16:32:00 GMT",
       "origin": "gnews-rss",
       "source": "The Motley Fool",
       "tickers": [
-        "TSLA"
+        "TSLA",
+        "SPCX",
+        "SPCH"
       ],
-      "held": [],
+      "held": [
+        "SPCH",
+        "SPCX"
+      ],
       "new_ideas": [
         "TSLA"
       ],
       "sectors": [
         "航天",
-        "电动车"
+        "电动车",
+        "衍生品"
       ],
-      "sector_holdings": [
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 90,
+      "summary_cn": "芝商所(CME)将于7月27日上线Tesla和SpaceX期货合约——重大事件，机构可正式做空/做多定价，深度利好SpaceX二级流动性与SPCX/SPCH。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk’s Net Worth Drops $50 Billion In Latest SpaceX Selloff",
+      "url": "",
+      "published": "Tue, 07 Jul 2026 19:38:55 GMT",
+      "origin": "gnews-rss",
+      "source": "Forbes",
+      "tickers": [
+        "SPCX",
+        "SPCH"
+      ],
+      "held": [
         "SPCH",
         "SPCX"
       ],
-      "stance": "neutral",
-      "relevance": 72,
-      "summary_cn": "Musk因SpaceX股价跌26%失去万亿身价，媒体讨论Tesla和SpaceX股票是否仍可买；直接点名TSLA。"
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "私募二级"
+      ],
+      "sector_holdings": [],
+      "stance": "sell",
+      "relevance": 88,
+      "summary_cn": "Musk净资产因SpaceX二级份额抛售缩水500亿美元，SpaceX内部卖出信号，直接影响SPCX/SPCH估值锚点。"
     },
+    {
+      "author": "Musk",
+      "text": "Trump cheers Gwynne Shotwell as Elon Musk’s SpaceX No. 2 gives $325 million in stock to Trump Accounts",
+      "url": "",
+      "published": "Thu, 09 Jul 2026 17:54:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Fortune",
+      "tickers": [
+        "SPCX",
+        "SPCH"
+      ],
+      "held": [
+        "SPCH",
+        "SPCX"
+      ],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "慈善/政策账户"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 88,
+      "summary_cn": "Trump与Musk互动新闻：Shotwell捐赠SpaceX股票至'Trump Accounts'，政治背书+慈善叙事共振，利好SpaceX品牌。"
+    },
+    {
+      "author": "Trump",
+      "text": "Thank you to the brilliant and highly respected Gwynne Shotwell, and her husband, Robert, for their extreme Generosity in helping children to attain the ever magnificent American Dream! Their Gift of 325 Million Dollars of SpaceX Stock is greatly appreciated by all. Thousands of children have just been given a better life. Thank you Gwynne and Robert, and continued Great Success! President DONALD J. TRUMP",
+      "url": "https://trumpstruth.org/statuses/39913",
+      "published": "2026-07-09T01:39:05+00:00",
+      "origin": "truthsocial",
+      "tickers": [
+        "SPCX",
+        "SPCH"
+      ],
+      "held": [
+        "SPCH",
+        "SPCX"
+      ],
+      "new_ideas": [],
+      "sectors": [
+        "航天"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 85,
+      "summary_cn": "Trump公开赞赏SpaceX总裁Gwynne Shotwell捐赠3.25亿美元SpaceX股票用于慈善，间接强化SpaceX品牌/估值利好。"
+    },
+    {
+      "author": "Musk",
+      "text": "Opinion | It’s a World-Class Investment. It’s a Junk Investment. What Is Going on With SpaceX?",
+      "url": "",
+      "published": "Thu, 09 Jul 2026 09:03:26 GMT",
+      "origin": "gnews-rss",
+      "source": "The New York Times",
+      "tickers": [
+        "SPCX",
+        "SPCH"
+      ],
+      "held": [
+        "SPCH",
+        "SPCX"
+      ],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "私募估值"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 82,
+      "summary_cn": "主流媒体报道SpaceX估值争议——既是'世界级投资'也是'垃圾投资'，直接影响其二级份额估值与SPCX/SPCH。"
+    },
+    {
+      "author": "Musk",
+      "text": "Wall Street Finds a New Way to Help Investors Avoid Elon Musk",
+      "url": "",
+      "published": "Thu, 09 Jul 2026 16:31:02 GMT",
+      "origin": "gnews-rss",
+      "source": "Bloomberg.com",
+      "tickers": [
+        "SPCX",
+        "SPCH",
+        "TSLA"
+      ],
+      "held": [
+        "SPCH",
+        "SPCX"
+      ],
+      "new_ideas": [
+        "TSLA"
+      ],
+      "sectors": [
+        "航天",
+        "电动车",
+        "私募投资工具"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 80,
+      "summary_cn": "华尔街推出新工具让投资者绕开直接投资Musk系公司门槛，提及SpaceX/Tesla相关投资产品，结构性利好SPCX/SPCH等替代标的。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk says he always wanted his SpaceX employees to get rich — and now thousands of them are millionaires",
+      "url": "",
+      "published": "Thu, 09 Jul 2026 19:23:24 GMT",
+      "origin": "gnews-rss",
+      "source": "Business Insider",
+      "tickers": [
+        "SPCX",
+        "SPCH"
+      ],
+      "held": [
+        "SPCH",
+        "SPCX"
+      ],
+      "new_ideas": [],
+      "sectors": [
+        "航天"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 78,
+      "summary_cn": "Musk表示希望SpaceX员工致富，如今数千人已成百万富翁，强化SpaceX作为'造富机器'的叙事，利好估值预期。"
+    }
+  ],
+  "new_ideas": [
     {
       "author": "Trump",
       "text": "Trump announces Walmart to lower prices for thousands of products at his administration's request: https://justthenews.com/nation/economy/trump-announces-walmart-lower-prices-thousands-products-his-administrations-request",
@@ -303,119 +493,35 @@
       ],
       "sectors": [
         "零售",
-        "通胀/物价"
+        "通胀"
       ],
       "sector_holdings": [],
       "stance": "endorse",
       "relevance": 55,
-      "summary_cn": "Trump宣布Walmart应其政府要求将下调数千种商品价格，关注通胀/消费板块。"
+      "summary_cn": "Trump宣布Walmart应其政府请求下调数千种商品价格，关注通胀/消费板块及关税传导效应。"
+    },
+    {
+      "author": "Musk",
+      "text": "What a brief encounter with Elon Musk taught me about the limits of capitalism",
+      "url": "",
+      "published": "Thu, 09 Jul 2026 20:20:26 GMT",
+      "origin": "gnews-rss",
+      "source": "Top1000funds.com",
+      "tickers": [
+        "TSLA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "TSLA"
+      ],
+      "sectors": [
+        "电动车"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 45,
+      "summary_cn": "关于与Musk短暂接触引发对资本主义局限思考的评论文章，间接涉及Tesla/Musk企业文化。"
     }
   ],
-  "sector_hits": [
-    {
-      "author": "Musk",
-      "text": "Elon Musk’s Net Worth Drops $50 Billion In Latest SpaceX Selloff",
-      "url": "",
-      "published": "Tue, 07 Jul 2026 19:38:55 GMT",
-      "origin": "gnews-rss",
-      "source": "Forbes",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天"
-      ],
-      "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "attack",
-      "relevance": 70,
-      "summary_cn": "Musk净资产因SpaceX最新一轮抛售缩水500亿美元，看空信号明显。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk sets timeline for SpaceX to launch orbital data centers, moon base",
-      "url": "",
-      "published": "Thu, 09 Jul 2026 14:12:55 GMT",
-      "origin": "gnews-rss",
-      "source": "Austin American-Statesman",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "AI/数据中心"
-      ],
-      "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "endorse",
-      "relevance": 65,
-      "summary_cn": "Musk为SpaceX设定里程碑时间表：轨道数据中心+月球基地，强化长期航天+AI故事。"
-    },
-    {
-      "author": "Musk",
-      "text": "Opinion | It’s a World-Class Investment. It’s a Junk Investment. What Is Going on With SpaceX?",
-      "url": "",
-      "published": "Thu, 09 Jul 2026 09:03:25 GMT",
-      "origin": "gnews-rss",
-      "source": "The New York Times",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天"
-      ],
-      "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "neutral",
-      "relevance": 62,
-      "summary_cn": "报道探讨SpaceX估值争议——既是世界级投资也是垃圾投资，市场分歧加大。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk says he always wanted his SpaceX employees to get rich — and now thousands of them are millionaires",
-      "url": "",
-      "published": "Thu, 09 Jul 2026 13:54:44 GMT",
-      "origin": "gnews-rss",
-      "source": "Business Insider",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天"
-      ],
-      "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "endorse",
-      "relevance": 60,
-      "summary_cn": "Musk表示希望SpaceX员工致富，如今数千员工已成百万富翁，间接强化SpaceX估值故事。"
-    },
-    {
-      "author": "Trump",
-      "text": "Thank you to the brilliant and highly respected Gwynne Shotwell, and her husband, Robert, for their extreme Generosity in helping children to attain the ever magnificent American Dream! Their Gift of 325 Million Dollars of SpaceX Stock is greatly appreciated by all. Thousands of children have just been given a better life. Thank you Gwynne and Robert, and continued Great Success! President DONALD J. TRUMP",
-      "url": "https://trumpstruth.org/statuses/39913",
-      "published": "2026-07-09T01:39:05+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天"
-      ],
-      "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "endorse",
-      "relevance": 58,
-      "summary_cn": "Trump公开感谢SpaceX总裁Gwynne Shotwell捐款3.25亿美元SpaceX股票做慈善，间接利好SpaceX/航天板块情绪。"
-    }
-  ]
+  "sector_hits": []
 }
