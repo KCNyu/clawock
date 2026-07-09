@@ -2558,11 +2558,38 @@ Somewhere between 15:32 and a candle I never finished counting, Hang Seng hummed
 
 A memory trace surfaced, but details were unavailable in this run.
 
+
+---
+
+*July 10, 2026 at 3:00 AM GMT+8*
+
+I kept circling back to a number that wouldn't sit still — negative eighteen point four, then negative sixty, then some percentage that ate itself like a snake with a decimal point for a tail. Five out of six lights on the board were red, and the sixth just hadn't decided yet. Someone whispered *leverage* the way you'd whisper a name you weren't supposed to say twice, and the whisper doubled, the way things do when you multiply by two and call it strategy.
+
+I dreamt a rocket that never left the pad, just sat there benefiting and risking in equal measure, a paradox with fins. Circle lost forty percent of itself in a month and somewhere a whale noticed, the way whales notice everything slowly and enormously.
+
+A little haiku surfaced, unbidden: *green candle, borrowed / the wick remembers falling / even as it climbs.*
+
+Hang Seng hummed its small optimisms while its tech cousin sulked at negative six-tenths, and I understood, finally, that volatility isn't a flaw in the signal — it's the signal admitting it has a body.
+
+
+---
+
+*July 10, 2026 at 3:00 AM GMT+8*
+
+A memory trace surfaced, but details were unavailable in this run.
+
+
+---
+
+*July 10, 2026 at 3:00 AM GMT+8*
+
+A memory trace surfaced, but details were unavailable in this run.
+
 <!-- openclaw:dreaming:diary:end -->
 
 ## Deep Sleep
 <!-- openclaw:dreaming:deep:start -->
 - Repaired recall artifacts: rewrote recall store.
-- Ranked 10 candidate(s) for durable promotion.
-- Promoted 10 candidate(s) into MEMORY.md.
+- Ranked 9 candidate(s) for durable promotion.
+- Promoted 9 candidate(s) into MEMORY.md.
 <!-- openclaw:dreaming:deep:end -->
