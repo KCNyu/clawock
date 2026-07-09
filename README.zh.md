@@ -138,69 +138,11 @@
 
 ## 🏗️ 一页看懂整台机器
 
-很容易把它读成"一个 cron 守护进程在调 Python 脚本"—— 其中**确定性**的那一半确实如此(这正是刻意为之:报价、汇率、投递、对账,绝不能依赖模型的心情)。而 **agent** 的那一半,是被这些脚本包住的十一个独立 LLM turn、简报里的辩论 swarm、监督 worker 的 watchdog,以及在产物汇入共享状态处做仲裁的对账层。确定性的脚手架 + 需要判断处的 agent —— 这个切分**本身**就是架构:
+不只是"一个 cron 在调脚本"。**确定性**那一半确实是——报价、汇率、投递、对账,绝不能押在模型的心情上。而 **agent** 那一半,是被脚本包住的十一个独立 LLM turn、简报里的辩论 swarm、监督它们的 watchdog,以及仲裁共享状态的对账层。**确定性脚手架 + 需要判断处的 agent —— 这个切分本身就是架构:**
 
-```mermaid
-flowchart TB
-    subgraph TRIG["⏱️ 三个互相独立的调度器"]
-        OC["openclaw cron 守护<br/>11 个 isolated agent turn"]
-        SC["系统 crontab<br/>watchdog · 发布 · 黄金 · nostr"]
-        GHA["GitHub Actions<br/>11 个 workflow · 数据扫描 + CI"]
-    end
+![clawock 架构 —— 确定性的 preflight→LLM→postflight harness,包住十一个 agent 化的 LLM turn、简报时的辩论 swarm、监督型 watchdog,与对账闸](assets/architecture.svg)
 
-    subgraph HARNESS["🔁 Harness 模式 — 包住每个 agent turn"]
-        direction LR
-        PRE["preflight.py<br/>确定性<br/>报价 · 汇率 · HHI · 信号"]
-        LLM(["🧠 LLM agent turn — Rick<br/>MiniMax-M3<br/>只写观点"])
-        POST["postflight.py<br/>校验 · commit · 投递"]
-        PRE --> LLM --> POST
-    end
-
-    subgraph SWARM["🗣️ 辩论 swarm — 08:00 简报内部"]
-        direction TB
-        T1["Tier 1 · 4 个分析师视角<br/>基本面 / 技术 / 情绪 / 板块轮动"]
-        T2["Tier 2 · 多头 vs 空头<br/>必须真分歧"]
-        T3["Tier 3 · 激进 / 保守 / 中性"]
-        JUDGE{{"⚖️ Judge → 裁决成 plan.json"}}
-        T1 --> T2 --> T3 --> JUDGE
-    end
-
-    subgraph STATE["🗃️ 共享状态 — 黑板"]
-        PF[("portfolio.json<br/>唯一真值源<br/>flock + 原子写")]
-        TMP[("memory/.tmp/*.json<br/>context sidecar")]
-        PLAN[("memory/{date}-plan.json")]
-        DATA[("assets/data/*.json<br/>dashboard + 扫描 sidecar")]
-    end
-
-    subgraph GATE["🛡️ 对账与完整性"]
-        RECON["preflight_integrity · reconcile.sh<br/>compute_regime / quant / t0<br/>recompute_cash / realized / aggregates"]
-        HOOK["pre-push 钩子<br/>金额守恒闸"]
-    end
-
-    subgraph OUT["📮 投递与发布"]
-        WECHAT["微信 · 主投递"]
-        TG["Telegram · watchdog 兜底"]
-        PAGES["GitHub Pages dashboard"]
-    end
-
-    OC --> HARNESS
-    GHA --> DATA
-    HARNESS -. 仅简报 .-> SWARM
-    PRE --> TMP
-    JUDGE --> PLAN
-    POST --> PF
-    POST --> RECON
-    RECON --> DATA
-    RECON --> HOOK
-    HOOK --> PAGES
-    POST --> WECHAT
-    SC -. 检测到 turn 卡死 .-> TG
-
-    PLAN -. 次日早上被打分 .-> LOOP["📈 calibration.csv<br/>自评喂回下一份简报"]
-    LOOP -. 置信度校准 .-> LLM
-```
-
-**怎么读这张图:**实线路径(调度器 → harness → 共享状态 → 发布)是**确定性骨架**,不管模型乖不乖都照跑。**agent** 是那十一个 `LLM agent turn` 实例和那个 **swarm** —— 它们只往共享状态里写**观点**;所有事实性的东西(数据进、金额算、投递)都由代码仲裁。虚线边是大家容易忘掉的部分:**监督型** watchdog 捕捉卡死的 turn,以及**自学习闭环** —— 给昨天的 `plan.json` 打分再把成绩喂回来。这些加起来才让它成为一张 multi-agent 的交易桌,而不是一个脚本化的报告生成器。
+**实线路径**(调度器 → harness → 共享状态 → 闸 → 发布)是不管模型乖不乖都照跑的确定性骨架。**agent**——十一个 `LLM turn` 加那个 `swarm`——只往共享状态里写**观点**,事实性的东西全由代码仲裁。**虚线边**是大家容易忘的部分:捕捉卡死 turn 的 watchdog,以及给昨天 `plan.json` 打分再喂回来的自学习闭环。这些才让它是一张 multi-agent 交易桌,而不是脚本化的报告机。
 
 ---
 
