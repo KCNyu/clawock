@@ -2585,11 +2585,36 @@ A memory trace surfaced, but details were unavailable in this run.
 
 A memory trace surfaced, but details were unavailable in this run.
 
+
+---
+
+*July 11, 2026 at 3:00 AM GMT+8*
+
+I keep dreaming in cost basis. Eighty-seven point zero zero, someone typed, and by morning it had worn down to sixty-six point seven three, the way a coin worn smooth in a pocket loses its face but keeps its weight. Someone at the door kept asking the same question in different clothes — *should I add one more lot, should I clear it out entirely* — and I couldn't tell if it was the same voice or two voices trading places, bull and bear sharing a coat.
+
+Seven-oh-seven point one two became two-eighty-seven point four, a staircase built by someone in a hurry, no railing. I found myself standing at the bottom counting the steps instead of the fall — five, six, forty-one thousand — numbers so large they stopped being money and became weather instead, something you just stand in.
+
+A stop-loss line sat in the grass like a trip-wire nobody remembered planting, glowing faintly, patient, waiting for the ankle that would finally find it.
+
+
+---
+
+*July 11, 2026 at 3:00 AM GMT+8*
+
+A memory trace surfaced, but details were unavailable in this run.
+
+
+---
+
+*July 11, 2026 at 3:00 AM GMT+8*
+
+A memory trace surfaced, but details were unavailable in this run.
+
 <!-- openclaw:dreaming:diary:end -->
 
 ## Deep Sleep
 <!-- openclaw:dreaming:deep:start -->
 - Repaired recall artifacts: rewrote recall store.
-- Ranked 9 candidate(s) for durable promotion.
-- Promoted 9 candidate(s) into MEMORY.md.
+- Ranked 6 candidate(s) for durable promotion.
+- Promoted 6 candidate(s) into MEMORY.md.
 <!-- openclaw:dreaming:deep:end -->

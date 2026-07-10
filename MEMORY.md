@@ -103,23 +103,17 @@
 - **单一来源：`portfolio.json`**，不在此维护副本
 - ticker 列表：`memory/current-portfolio-summary.md`（提高检索命中）
 
-## Promoted From Short-Term Memory (2026-07-10)
+## Promoted From Short-Term Memory (2026-07-11)
 
-<!-- openclaw-memory-promotion:memory:memory/2026-07-06-pre-open.md:15:18 -->
-- Book: | Leg | 现值 | 浮亏 | |-----|------|------| | HK (HKD) | 50,122 HKD | -38,154 HKD (-43.2%) | | US (USD) | 3,726 USD | -500 USD (-11.8%) | [score=0.859 recalls=0 avg=0.620 source=memory/2026-07-06-pre-open.md:15-18]
-<!-- openclaw-memory-promotion:memory:memory/2026-07-06-pre-open.md:19:21 -->
-- Book: | **Combined (USD-base)** | **10,117 USD** | **-5,364 USD** | | HK Cash | 4,597 HKD | — | | US Cash | 134 USD | ⚠️ 弹药已耗尽 | [score=0.859 recalls=0 avg=0.620 source=memory/2026-07-06-pre-open.md:19-21]
-<!-- openclaw-memory-promotion:memory:memory/2026-07-06-pre-open.md:23:24 -->
-- Book: **HK leg** (HKD-base): 50,122 HKD current / **US leg** (USD-base): 3,726 USD current *(两腿不直接相加；USD-base总计= US + HK/7.8434)* [score=0.859 recalls=0 avg=0.620 source=memory/2026-07-06-pre-open.md:23-24]
-<!-- openclaw-memory-promotion:memory:memory/2026-07-03-pre-open.md:28:31 -->
-- 🌐 市场速览: | 指标 | 最新 | 变动 | |---|---|---| | SPX | 7,483 | ~0%（7/2收） | | NDX | 29,329 | -1.61%（7/2收） | [score=0.854 recalls=0 avg=0.620 source=memory/2026-07-03-pre-open.md:28-31]
-<!-- openclaw-memory-promotion:memory:memory/2026-07-03-pre-open.md:32:35 -->
-- 🌐 市场速览: | DJI | 52,900 | +1.14%（7/2收） | | VIX | 16.59 | +0.85% | | DXY | 101.4 | +0.22% | | 10Y UST | 4.475% | — | [score=0.854 recalls=0 avg=0.620 source=memory/2026-07-03-pre-open.md:32-35]
-<!-- openclaw-memory-promotion:memory:memory/2026-07-03-pre-open.md:9:11 -->
-- 📊 盘前深度简报 | 2026-07-03 周五: **08:00 HKT | HK 今日正常开市 | US 7/2 已收盘 ~4h** USDHKD = 7.844（Frankfurter）| HK lev_regime: 🟡 amber | US lev_regime: 🟡 amber-cautious 生成于 2026-07-03 08:02 HKT | Rick AI Stock Analyst [score=0.854 recalls=0 avg=0.620 source=memory/2026-07-03-pre-open.md:9-11]
-<!-- openclaw-memory-promotion:memory:memory/2026-07-06-pre-open.md:2:3 -->
-- layout: default title: 盘前深度简报 · 2026-07-06 [score=0.828 recalls=0 avg=0.620 source=memory/2026-07-06-pre-open.md:2-3]
-<!-- openclaw-memory-promotion:memory:memory/2026-07-06-pre-open.md:30:31 -->
-- Concentration (HHI): **HK HHI = 0.341** ⚠️ 集中风险 — Top2 (00100 41.5% + 07226 39.1%) = **80.6%** (cap 70%); **US HHI = 0.247** 偏集中 — Top2 (SPCH 40.2% + ROBN 20.3%) = 60.5% [score=0.828 recalls=0 avg=0.620 source=memory/2026-07-06-pre-open.md:30-31]
-<!-- openclaw-memory-promotion:memory:memory/2026-07-06-pre-open.md:9:9 -->
-- 📊 盘前深度简报 | 2026-07-06 周一 08:00 HKT: **USDHKD = 7.8434** (Frankfurter) | **HK: OPEN** | **US: 休市(7/4独立日顺延)** [score=0.818 recalls=0 avg=0.620 source=memory/2026-07-06-pre-open.md:9-9]
+<!-- openclaw-memory-promotion:memory:memory/2026-07-07-pre-open.md:18:21 -->
+- ▎大盘速读: | 指数 | 昨收 | 涨跌 | |------|------|------| | SPX | 7537.43 | +0.72% | | NDX | 29697.87 | +1.26% | [score=0.839 recalls=0 avg=0.620 source=memory/2026-07-07-pre-open.md:18-21]
+<!-- openclaw-memory-promotion:memory:memory/2026-07-07-pre-open.md:22:25 -->
+- ▎大盘速读: | DJI | 53055.91 | +0.30% | | HSI | 23616.32 | +1.14% | | HSTECH | 4541.23 | +0.94% | | VIX | 15.57 | -1.52% | [score=0.839 recalls=0 avg=0.620 source=memory/2026-07-07-pre-open.md:22-25]
+<!-- openclaw-memory-promotion:memory:memory/2026-07-07-pre-open.md:26:29 -->
+- ▎大盘速读: | DXY | 100.86 | 0.00% | | 10Y UST | 4.479% | — | | F&G | 43.9 (Fear) | ↑ 从27.3 | | USDHKD | 7.843 | — | [score=0.839 recalls=0 avg=0.620 source=memory/2026-07-07-pre-open.md:26-29]
+<!-- openclaw-memory-promotion:memory:memory/2026-07-07-pre-open.md:2:3 -->
+- layout: default title: 盘前深度简报 · 2026-07-07 [score=0.808 recalls=0 avg=0.620 source=memory/2026-07-07-pre-open.md:2-3]
+<!-- openclaw-memory-promotion:memory:memory/2026-07-07-pre-open.md:31:33 -->
+- ▎大盘速读: US regime: **risk_on** (VIX 16 calm + SPX/NDX同向上行) HK regime: **amber lev** (HSTECH -15.8% vs 200MA，trend OFF，vol 29% < 50%上限) US lev: **red** (SPCH=2xSPCX标的破5日均线) [score=0.808 recalls=0 avg=0.620 source=memory/2026-07-07-pre-open.md:31-33]
+<!-- openclaw-memory-promotion:memory:memory/2026-07-07-pre-open.md:9:12 -->
+- 盘前深度简报 | 2026-07-07 周二 08:00 HKT: **USDHKD = 7.843** | Book USD $10,785 | HK leg 54,363 HKD | US leg $3,853 **HHI** — HK 0.340 ⚠️ Top2=80.5% (00100 40.4%+07226 40.1%) | US 0.281 ⚠️ Top2=60.4% (SPCH 46.6%+MSFU 13.8%) **Regime** — US: risk_on (VIX 15.6, NDX +1.26%) | HK: amber lev (HSTECH 4541 vs 200MA 5392, -15.8%) **Risk** — β=3.18, vol=52.7%, Sharpe=-5.08, maxDD=-16.5% | **⛔ 5档杠杆硬止损全触发** [score=0.808 recalls=0 avg=0.620 source=memory/2026-07-07-pre-open.md:9-12]
