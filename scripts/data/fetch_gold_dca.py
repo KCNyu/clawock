@@ -273,6 +273,17 @@ def build_london_dca(nav_history, xau_hist, usdcny_hist, xau_cur, usdcny_cur, st
     value = oz * xau_cur * usdcny_cur
     # 平均成本：blended 买入价。USD/oz 对标现货报价，CNY/克对标人民币直觉。
     avg_usd_oz = usd_spent / oz
+    # 摊薄轨迹：假设现货+汇率冻结在今天，继续每日投 daily 元按现货买入，
+    # 均成本 $/oz 往下移多少、回本门槛降到哪。回本涨幅与基金口径线性一致。
+    daily_usd = daily / usdcny_cur
+    oz_per_day = daily / (xau_cur * usdcny_cur)
+    def _avg_after(n):
+        return (usd_spent + daily_usd * n) / (oz + oz_per_day * n)
+    projection = [{
+        'days': k,
+        'avg_cost_usd_oz': round(_avg_after(k), 2),
+        'breakeven_upside_pct': round((_avg_after(k) / xau_cur - 1) * 100, 2),
+    } for k in (20, 40, 60, 120, 250)]
     return {
         'principal_cny': round(principal_cny, 2),
         'oz_held': round(oz, 4),
@@ -285,6 +296,8 @@ def build_london_dca(nav_history, xau_hist, usdcny_hist, xau_cur, usdcny_cur, st
         'pnl_abs': round(value - principal_cny, 2),
         'pnl_pct': round((value / principal_cny - 1) * 100, 2),
         'days': len(dates),
+        'daily_grams': round(oz_per_day * GRAMS_PER_OZ, 3),
+        'projection': projection,
     }
 
 

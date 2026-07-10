@@ -3887,6 +3887,20 @@ layout: null
                  ${de.current_value_cny != null ? `· 对应现值 <b style="color:${dColor}">¥${num(de.current_value_cny)}</b> (${de.pnl_pct >= 0 ? '+' : ''}${num(de.pnl_pct, 2)}%)` : ''}
                </div>
              </div>`;
+          // 摊薄轨迹：继续同额定投伦敦金 → 均成本 $/oz 往下移、回本门槛下降
+          const lproj = (de.projection || []).filter(p => p && p.avg_cost_usd_oz != null);
+          if (lproj.length) {
+            const MON = { 20: '+1月', 40: '+2月', 60: '+3月', 120: '+半年', 250: '+1年' };
+            const lrows = lproj.map(p =>
+              `<tr><td style="padding:2px 6px">${MON[p.days] || ('+' + p.days + '日')}</td>
+                <td style="padding:2px 6px;text-align:right">$${num(p.avg_cost_usd_oz, 0)}</td>
+                <td style="padding:2px 6px;text-align:right;color:#16a34a">+${num(p.breakeven_upside_pct, 1)}%</td></tr>`).join('');
+            html +=
+              `<div class="muted" style="font-size:10px;margin:7px 0 2px;text-transform:none;letter-spacing:0">若金价/汇率不动、继续每日定投 → 持金成本 $/oz 下移</div>
+               <table style="width:100%;font-size:12px;border-collapse:collapse">
+                 <tr class="muted" style="font-size:10px"><th scope="col" style="padding:2px 6px;text-align:left;font-weight:inherit">继续</th><th scope="col" style="padding:2px 6px;text-align:right;font-weight:inherit">均成本/oz</th><th scope="col" style="padding:2px 6px;text-align:right;font-weight:inherit">回本只需涨</th></tr>
+                 ${lrows}</table>`;
+          }
         }
         // 归一对比线：起投=100，伦敦金(USD) vs 你的基金(CNY)
         const cs = (ld.compare_series || []).filter(r => Array.isArray(r) && r[1] != null && r[2] != null);
