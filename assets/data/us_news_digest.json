@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-09T15:53:02.190498",
+  "generated_at": "2026-07-10T15:26:30.631804",
   "lookback_hours": 48,
   "tickers": [
     "CRCL",
@@ -9,9 +9,9 @@
     "SPCH",
     "MSFU"
   ],
-  "digest_markdown": "### Top 移动信号\n- **SPCX/SK hynix 旁证**: SK hynix Nasdaq 挂牌市值 ~$1T, AI 内存龙头地位确认 → 强化 AI infra 风险偏好, 间接受益 PLTU (PLTR) / MSFU / RKLX 主题顺风.\n- **RKLX**: \"SpaceX 上市 ≠ 抛弃 RKLB\" 论调见 Yahoo → 缓解 SPCX IPO 后 RKLB 资金挤出担忧, RKLX 仍获 standalone catalyst (Neutron / 中子号) 支持.\n- **CRCL**: Bitwise CIO 称 BTC 下大买家已从 Strategy 转向机构资本 (\"end boss\") → 结构性 bullish, 解除 MSTR 单一卖压, CRCL 顺风延展.\n- **PLTU**: Palantir Q4 beat 重新激活 ETF 关注, 杠杆放大效应下 PLTR 续创新高对 PLTU 直接利好.\n- **MSFU**: 多家媒体 (ETF Trends / ETF Database / Seeking Alpha) 同声唱多 MSFT 反转窗口 → 杠杆做多动能聚集.\n\n### Per-ticker 简报\n- **CRCL**: BTC 机构买盘结构性转变, 直接利好稳定币发行商业绩路径. 影响: 顺势持有.\n- **PLTU**: PLTR 财报 beat 重燃 2x 多头关注. 影响: 仓位合理续持.\n- **RKLX**: SPCX IPO 叙事无损 RKLB 独立逻辑. 影响: 持有理由强化.\n- **SPCX**: 无 ticker-specific 催化 (Yahoo 提及多为 ClearBridge 模板). 影响: 观望.\n- **SPCH**: 无 ticker-specific 催化. 影响: 闲置.\n- **MSFU**: 反转叙事共振, 短期催化. 影响: 持有.\n\n### Risk watch\n- 2x 杠杆 ETF 波动衰减持续 (PLTU/SPCH 在横盘市最大威胁).\n- CRCL 仍受 BTC macro + 美国稳定币监管节奏双重敏感.\n- SPCX 上市后流动性 / 估值锚未定, 杠杆产品 SPCH 风险加大.",
+  "digest_markdown": "## Top 移动信号 (跨 ticker)\n\n- **CRCL**: 周五 pre-market 跳涨 12.4% 至 $70.82，与 EquipmentShare、Vodafone 同列\"big movers higher\"，市值回升至 $15.6B。→ 短线动能强，但跳空需警惕回补；若持仓浮盈可考虑部分锁利。\n- **SPCX/SPCH**: SK Hynix 以 \"SKHY\" 在 Nasdaq 挂牌，募资 $26.5B，为美股史上最大外国 IPO；SpaceX 近端价值被分析师锚定于\"地面 AI 数据中心基建\"。→ 双重利好：外国 AI 标的赴美热潮 + SpaceX 估值叙事迁移到 AI infra，对 SPCX/SPCH 估值锚正面。\n- **PLTU**: 底层 PLTR 财报后 rally 延续，ETF Trends/ETF Database 重新推荐 PLTU 类杠杆品。→ 杠杆放大器正在被市场重新发现，跟踪 PLTR 趋势动能。\n- **MSFU**: 周五出现 gap down，标题警示\"Microsoft Woes\"但同时有反弹 ETF 推荐文章。→ 短期承压，杠杆 2X 双向风险放大，仓位需控。\n- **RKLX**: 无 ticker-specific catalyst，仅 Zacks 综合榜单提及及杠杆 ETF 结构性噪音。→ 无操作信号，按兵不动。\n\n## Per-ticker 简报\n\n- **CRCL**: 跳空大涨 + 比特币机构买家叙事强化（Bitwise 称 BTC 已脱钩单一 corporate buyer）→ 情绪面共振偏多。\n- **SPCX**: SK Hynix 美股 debut 强化 AI 基建外资叙事 + SpaceX 估值向数据中心靠拢 → 主题驱动续命。\n- **SPCH**: 与 SPCX 同源，受 SpaceX IPO 杠杆 ETF 浪潮推介 → 流动性预期改善。\n- **PLTU**: Palantir rally + Q4 beat → 杠杆品重获关注。\n- **MSFU**: gap down 触发，但市场仍存反弹押注 → 高 beta 双向震荡。\n\n## 风险 Watch\n\n- **MSFU**: gap down 提示底层 MSFT 短期承压，2X 杠杆放大下行风险。\n- **CRCL**: 单日跳空 +12.4%，波动率极高，回补缺口概率需警惕。\n- **PLTU/RKLX/SPCH**: 均为 2X 杠杆 ETF，隔夜衰减（PTIR 案例显示 49% 损耗）+ 主题轮动时易遭双杀，仓位上限须严控。",
   "raw_news_counts": {
-    "CRCL": 3,
+    "CRCL": 4,
     "PLTU": 5,
     "RKLX": 5,
     "SPCX": 5,
