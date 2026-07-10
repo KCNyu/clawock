@@ -1,0 +1,132 @@
+{
+  "date": "2026-07-10",
+  "generated_at": "2026-07-10T08:00:00+08:00",
+  "fx_rate_usdhkd": 7.836,
+  "driven_by": "technical,规则纪律",
+  "book": {
+    "hk_hkd": 54844.8,
+    "us_usd": 3011.13,
+    "total_usd": 10011.77,
+    "total_hkd": 78440.0,
+    "pnl_usd": -6329.17,
+    "pnl_hkd": -49595.39,
+    "fx_used": 7.836
+  },
+  "concentration": {
+    "hk_hhi": 0.355,
+    "hk_top2_pct": 82.7,
+    "hk_verdict": "⚠️ 集中风险",
+    "us_hhi": 0.323,
+    "us_top2_pct": 67.1,
+    "us_verdict": "⚠️ 集中风险"
+  },
+  "regime": {
+    "us": "risk_on",
+    "hk": "amber",
+    "us_lev": "red",
+    "hk_lev": "amber"
+  },
+  "actions": [
+    {
+      "ticker": "07226",
+      "bucket": "cut",
+      "trigger_type": "open",
+      "trigger_price": null,
+      "size_shares": 6200,
+      "confidence": 0.85,
+      "rationale": "硬止损-20.3%≤-18%；HK lev regime amber；lev cap 39.32%>25%；昨日trigger fired未执行，今日必落地；规则非择时",
+      "driven_by": "technical"
+    },
+    {
+      "ticker": "PLTU",
+      "bucket": "cut",
+      "trigger_type": "open",
+      "trigger_price": null,
+      "size_shares": 14,
+      "confidence": 0.80,
+      "rationale": "硬止损-25.5%≤-18%；PLTR dist200MA -17.8% 趋势OFF；月decay≈2.84%；→PLTR(1x)停止decay；规则非择时",
+      "driven_by": "technical"
+    },
+    {
+      "ticker": "RKLX",
+      "bucket": "cut",
+      "trigger_type": "open",
+      "trigger_price": null,
+      "size_shares": 10,
+      "confidence": 0.82,
+      "rationale": "硬止损-42.5%；昨日trigger fired未执行；→RKLB(1x)保留航天方向；规则非择时",
+      "driven_by": "technical"
+    },
+    {
+      "ticker": "MSFU",
+      "bucket": "cut",
+      "trigger_type": "open",
+      "trigger_price": null,
+      "size_shares": 20,
+      "confidence": 0.78,
+      "rationale": "硬止损-19.7%≤-18%；MSFT dist200MA -13.2% 趋势OFF；月decay≈1.22%；规则非择时",
+      "driven_by": "technical"
+    },
+    {
+      "ticker": "SPCH",
+      "bucket": "cut",
+      "trigger_type": "open",
+      "trigger_price": null,
+      "size_shares": 130,
+      "confidence": 0.75,
+      "rationale": "硬止损-28.8%≤-18%；US lev regime red；SPCX 5DMA以下-1.5%；规则纪律非择时；CME 7/27前可重建1x SPCX仓位",
+      "driven_by": "technical"
+    },
+    {
+      "ticker": "00100",
+      "bucket": "trim_on_rebound",
+      "trigger_type": "price_above",
+      "trigger_price": 320.0,
+      "size_shares": 15,
+      "confidence": 0.60,
+      "rationale": "单名43.4%>35% cap（breach）；解禁消化中；$320稳定后trim 15股→~65股降至cap内；历史trim胜率70%",
+      "driven_by": "peer"
+    },
+    {
+      "ticker": "02208",
+      "bucket": "hold_and_watch",
+      "trigger_type": "manual",
+      "trigger_price": null,
+      "size_shares": null,
+      "confidence": 0.60,
+      "rationale": "风电政策背书；历史76%胜率(n=29)；-2.59%短期承压但无结构恶化；维持观察",
+      "driven_by": "macro"
+    },
+    {
+      "ticker": "CRCL",
+      "bucket": "hold_and_watch",
+      "trigger_type": "manual",
+      "trigger_price": null,
+      "size_shares": null,
+      "confidence": 0.55,
+      "rationale": "RSI 34.8超卖；GENIUS Act政策窗口；Q1首次盈利$45M确认；2股小仓位维持",
+      "driven_by": "catalyst"
+    }
+  ],
+  "key_catalysts": [
+    {
+      "date": "2026-07-15",
+      "event": "CPI Jun release (BLS 8:30 ET)",
+      "impact": "超预期→若已重建SPCX，再trim"
+    },
+    {
+      "date": "2026-07-27",
+      "event": "CME SPCX/TSLA单股期货上线",
+      "impact": "SPCX流动性催化；SPCH cut后可考虑1x SPCX重建"
+    }
+  ],
+  "risk_summary": {
+    "active_hard_stops": 5,
+    "guardrail_breaches": 13,
+    "us_lev_exposure_pct": 90.8,
+    "hk_lev_exposure_pct": 39.3,
+    "combined_sharpe_30d": -4.8275,
+    "combined_dd_30d": -0.1764,
+    "us_beta_spx": 3.7274
+  }
+}
