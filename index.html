@@ -1640,6 +1640,13 @@ layout: null
       <div class="muted" id="lev-regime-asof" style="font-size:10px;margin-top:6px;opacity:0.7"></div>
     </div>
 
+    <div class="card fold-m" id="reentry-card" data-fold-id="reentry" style="display:none">
+      <h3>🎯 再入场雷达 <span class="muted" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:11px">持币等回均线 → 触发即布局</span><span class="peek" id="peek-reentry"></span></h3>
+      <div id="reentry-powder" style="margin-bottom:8px"></div>
+      <div id="reentry-list"></div>
+      <div class="muted" id="reentry-asof" style="font-size:10px;margin-top:6px;opacity:0.7"></div>
+    </div>
+
     <div class="card fold-m" id="breakeven-card" data-fold-id="breakeven" style="display:none">
       <h3>🧮 解套数学 <span class="muted" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:11px">回本所需涨幅 · 纯算术</span><span class="peek" id="peek-breakeven"></span></h3>
       <div class="risk-alerts" id="breakeven-list"></div>
@@ -2592,6 +2599,7 @@ layout: null
     renderQuantSignals();
     renderT0Setups();
     renderLevRegime();
+    renderReentryRadar();
     renderGoldDca();
     renderWatchLevels();
     renderAnomalies();
@@ -3805,6 +3813,60 @@ layout: null
     usEl.innerHTML = rows || '<div class="muted" style="font-size:12px">无持仓 2x 单股 ETF</div>';
     document.getElementById('lev-regime-asof').textContent =
       `HSTECH ${r.as_of || ''} · 200日线 ${hk.ma ?? '?'} · HK波动 ${hk.vol_annualized != null ? (hk.vol_annualized*100).toFixed(0)+'%' : '?'} · US砍线 ${us.vol_hot_cap != null ? (us.vol_hot_cap*100).toFixed(0)+'%' : '?'}`;
+  }
+
+  function renderReentryRadar() {
+    const r = safe(DATA, "reentry_radar");
+    const card = document.getElementById('reentry-card');
+    if (!card) return;
+    if (!r || !(r.watches || []).length) { card.style.display = 'none'; return; }
+    card.style.display = '';
+    const num = (v, d = 0) => (v == null ? DASH : Number(v).toLocaleString('en-US', { minimumFractionDigits: d, maximumFractionDigits: d }));
+    // 弹药(live 现金,不硬编码)
+    const p = r.powder || {};
+    const bits = [];
+    if (p.us_cash_usd != null) bits.push(`US $${num(p.us_cash_usd, 0)}`);
+    if (p.hk_cash_hkd != null) bits.push(`HK $${num(p.hk_cash_hkd, 0)}`);
+    document.getElementById('reentry-powder').innerHTML =
+      `<div style="padding:8px 10px;border-radius:8px;background:rgba(96,165,250,0.08);border:1px solid rgba(96,165,250,0.25)">
+         <span class="muted" style="font-size:10px;text-transform:none;letter-spacing:0">待布局弹药</span>
+         <div style="font-size:15px;font-weight:800;margin-top:2px">${bits.join('  ·  ') || DASH}</div>
+         <div class="muted" style="font-size:10px;text-transform:none;letter-spacing:0;margin-top:2px">${r.triggered_count}/${r.total} 已触发 · 触发=收盘站回均线,右侧再布局</div>
+       </div>`;
+    // 每个受监控标的一行
+    const rows = r.watches.map(w => {
+      const on = w.trend_on;
+      const dist = w.dist_ma_pct;
+      const need = (w.close && w.ma && !on) ? (w.ma / w.close - 1) * 100 : null;
+      const color = on ? '#16a34a' : (dist != null && dist > -3 ? '#d97706' : '#dc2626');
+      const mw = (w.ma_window && w.ma_window >= 200) ? '200DMA' : ((w.ma_window || '?') + '日线');
+      const badge = on
+        ? `<span style="color:#16a34a;font-weight:700">✅ 已站回·可布局</span>`
+        : `<span style="color:${color}">还需 +${need != null ? need.toFixed(1) : '?'}% 站回${mw}</span>`;
+      const prox = dist == null ? 0 : Math.max(0, Math.min(100, (1 + dist / 20) * 100));
+      const mkt = w.market === 'HK' ? '🇭🇰' : '🇺🇸';
+      const nameLine = w.etf ? `${w.name} <span class="muted" style="font-size:10px">(${w.etf} 2x)</span>` : w.name;
+      return `
+        <div style="padding:7px 0;border-top:1px solid var(--border,#2a2a2a)">
+          <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px">
+            <span style="font-weight:700;font-size:13px">${mkt} ${nameLine}</span>
+            <span style="font-size:12px">${badge}</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;margin-top:4px">
+            <div style="flex:1;height:5px;border-radius:3px;background:var(--border,#2a2a2a);position:relative;overflow:hidden">
+              <div style="position:absolute;left:0;top:0;bottom:0;width:${prox.toFixed(0)}%;background:${color};opacity:0.55"></div>
+            </div>
+            <span style="font-size:11px;color:${color};min-width:52px;text-align:right">${dist != null ? (dist > 0 ? '+' : '') + dist.toFixed(1) + '%' : DASH}</span>
+          </div>
+          <div class="muted" style="font-size:10px;text-transform:none;letter-spacing:0;margin-top:2px">
+            现价 ${num(w.close, 2)} · ${mw} ${num(w.ma, 2)}${w.state ? ' · ' + w.state : ''}
+          </div>
+          ${w.note ? `<div class="muted" style="font-size:9px;text-transform:none;letter-spacing:0;margin-top:2px;opacity:0.75">${w.note}</div>` : ''}
+        </div>`;
+    }).join('');
+    document.getElementById('reentry-list').innerHTML = rows;
+    document.getElementById('reentry-asof').textContent =
+      (r.as_of ? `数据 ${r.as_of} · ` : '') + '距均线越接近 0 越该盯 · 条件复用 lev_regime 右侧确认';
   }
 
   function renderGoldDca() {

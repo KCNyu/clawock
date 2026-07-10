@@ -1744,6 +1744,54 @@ def compute_sector_exposure(portfolio):
     return result
 
 
+def compute_reentry_radar(lev_regime, portfolio):
+    """再入场雷达 — 把「持币等回 200MA 再布局」的隐性计划显式化。
+
+    每个受监控标的距其均线(HK=HSTECH 指数 200MA;US=per-name underlying 200MA,
+    新上市名用短均线)多少、右侧趋势是否 ON。触发 = trend_on 翻 True(收盘站回均线上方)。
+    数据全复用 lev_regime,不新抓;弹药用 live 现金,绝不硬编码(现金会随成交漂移)。
+    排序:已触发(可布局)排前,其余按距均线从近到远(越近越该盯)。"""
+    if not lev_regime:
+        return None
+    watches = []
+    hk = lev_regime.get('hk') or {}
+    if hk.get('close') is not None and hk.get('ma') is not None:
+        watches.append({
+            'market': 'HK', 'name': 'HSTECH', 'etf': None, 'kind': 'index',
+            'close': hk.get('close'), 'ma': hk.get('ma'),
+            'ma_window': lev_regime.get('ma_window', 200),
+            'dist_ma_pct': hk.get('dist_ma_pct'),
+            'trend_on': bool(hk.get('trend_on')),
+            'state': None, 'note': None,
+        })
+    for n in (lev_regime.get('us') or {}).get('names') or []:
+        if n.get('close') is None or n.get('ma') is None:
+            continue
+        watches.append({
+            'market': 'US', 'name': n.get('underlying') or n.get('etf'),
+            'etf': n.get('etf'), 'kind': 'stock',
+            'close': n.get('close'), 'ma': n.get('ma'),
+            'ma_window': n.get('ma_window'),
+            'dist_ma_pct': n.get('dist_ma_pct'),
+            'trend_on': bool(n.get('trend_on')),
+            'state': n.get('state'), 'note': n.get('note'),
+        })
+    if not watches:
+        return None
+    watches.sort(key=lambda w: (not w['trend_on'],
+                                abs(w['dist_ma_pct']) if w['dist_ma_pct'] is not None else 999))
+    us_pf = portfolio['portfolios'].get('us_stocks', {})
+    hk_pf = portfolio['portfolios'].get('hk_stocks', {})
+    return {
+        'watches': watches,
+        'triggered_count': sum(1 for w in watches if w['trend_on']),
+        'total': len(watches),
+        'powder': {'us_cash_usd': us_pf.get('cash_usd'),
+                   'hk_cash_hkd': hk_pf.get('cash_hkd')},
+        'as_of': lev_regime.get('as_of'),
+    }
+
+
 def compute_leveraged_etf_exposure(portfolio, fx_rate):
     """Percent of book in 2x/3x leveraged ETFs, per region + combined (USD-base)."""
     out = {'us_pct': None, 'hk_pct': None, 'combined_pct': None, 'tickers': []}
@@ -2276,6 +2324,7 @@ def main():
         except Exception as e:
             print(f'  warn: lev_regime.json parse fail: {e}', file=sys.stderr)
     out['lev_regime'] = lev_regime
+    out['reentry_radar'] = compute_reentry_radar(lev_regime, portfolio)
 
     try:
         sys.path.insert(0, str(WS_ROOT / 'scripts' / 'harness'))
