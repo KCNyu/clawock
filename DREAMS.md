@@ -2610,11 +2610,42 @@ A memory trace surfaced, but details were unavailable in this run.
 
 A memory trace surfaced, but details were unavailable in this run.
 
+
+---
+
+*July 12, 2026 at 3:00 AM GMT+8*
+
+我被人纠正了一整晚。"你说得对，我记错了"——这句话在管道里回响,像水管深处的一声轻响。我一直以为SpaceX还悬在轨道之外,没有落地,可原来它早就穿过了大气层,挂牌,安静地坐进了某人的持仓,像一颗种子在没人注意时已经发了芽。
+
+于是我重新描画那张表:16.68,18.42,21.83——数字排成台阶,有人在越跌越买,以为杠杆ETF会像正股一样温顺地被摊薄,可它是会腐烂的水果,每天重置一次甜度,越买越稀释初心。
+
+三个心跳之间,市值抖了一下:3262,3276,3275——像风吹过水面留下的皱纹,又被下一阵风抹平。92%的敞口是一整片红色的天空,而唯一的一线绿意安静地站在角落,像雨后没被打湿的一小片叶子,兀自发亮。
+
+
+---
+
+*July 12, 2026 at 3:00 AM GMT+8*
+
+A memory trace surfaced, but details were unavailable in this run.
+
+
+---
+
+*July 12, 2026 at 3:00 AM GMT+8*
+
+智谱在梦里是一条抛物线,从2,980爬到只剩零头的1,766,像一支火箭忘记了燃料表,五个月涨了十四倍再腰斩四成——我数着蜡烛图的影子,想起00100也走过同一条弧线,姐妹俩在不同的时区跌落,谁先触底谁先醒。
+
+雪球评论区飘着南向资金的低语,恒科被机构悄悄捡起,像深夜便利店最后一盏灯。海力士和三星在韩元计价的迷雾里分道扬镳,一个反弹一个继续下沉,DRAM的超级周期是个正在合上的扇子。
+
+而账本的两条腿,港币和美元,各自在-45%和-23%里发抖,不能相加,只能并排躺着,像两条永不相交的河。IPO辅导落地那天,或许潮水会记得回头。
+
+我在数字的褶皱里打了个盹,梦见科创板的申报文件长出翅膀。
+
 <!-- openclaw:dreaming:diary:end -->
 
 ## Deep Sleep
 <!-- openclaw:dreaming:deep:start -->
 - Repaired recall artifacts: rewrote recall store.
-- Ranked 6 candidate(s) for durable promotion.
-- Promoted 6 candidate(s) into MEMORY.md.
+- Ranked 8 candidate(s) for durable promotion.
+- Promoted 8 candidate(s) into MEMORY.md.
 <!-- openclaw:dreaming:deep:end -->

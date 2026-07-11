@@ -103,17 +103,21 @@
 - **单一来源：`portfolio.json`**，不在此维护副本
 - ticker 列表：`memory/current-portfolio-summary.md`（提高检索命中）
 
-## Promoted From Short-Term Memory (2026-07-11)
+## Promoted From Short-Term Memory (2026-07-12)
 
-<!-- openclaw-memory-promotion:memory:memory/2026-07-07-pre-open.md:18:21 -->
-- ▎大盘速读: | 指数 | 昨收 | 涨跌 | |------|------|------| | SPX | 7537.43 | +0.72% | | NDX | 29697.87 | +1.26% | [score=0.839 recalls=0 avg=0.620 source=memory/2026-07-07-pre-open.md:18-21]
-<!-- openclaw-memory-promotion:memory:memory/2026-07-07-pre-open.md:22:25 -->
-- ▎大盘速读: | DJI | 53055.91 | +0.30% | | HSI | 23616.32 | +1.14% | | HSTECH | 4541.23 | +0.94% | | VIX | 15.57 | -1.52% | [score=0.839 recalls=0 avg=0.620 source=memory/2026-07-07-pre-open.md:22-25]
-<!-- openclaw-memory-promotion:memory:memory/2026-07-07-pre-open.md:26:29 -->
-- ▎大盘速读: | DXY | 100.86 | 0.00% | | 10Y UST | 4.479% | — | | F&G | 43.9 (Fear) | ↑ 从27.3 | | USDHKD | 7.843 | — | [score=0.839 recalls=0 avg=0.620 source=memory/2026-07-07-pre-open.md:26-29]
-<!-- openclaw-memory-promotion:memory:memory/2026-07-07-pre-open.md:2:3 -->
-- layout: default title: 盘前深度简报 · 2026-07-07 [score=0.808 recalls=0 avg=0.620 source=memory/2026-07-07-pre-open.md:2-3]
-<!-- openclaw-memory-promotion:memory:memory/2026-07-07-pre-open.md:31:33 -->
-- ▎大盘速读: US regime: **risk_on** (VIX 16 calm + SPX/NDX同向上行) HK regime: **amber lev** (HSTECH -15.8% vs 200MA，trend OFF，vol 29% < 50%上限) US lev: **red** (SPCH=2xSPCX标的破5日均线) [score=0.808 recalls=0 avg=0.620 source=memory/2026-07-07-pre-open.md:31-33]
-<!-- openclaw-memory-promotion:memory:memory/2026-07-07-pre-open.md:9:12 -->
-- 盘前深度简报 | 2026-07-07 周二 08:00 HKT: **USDHKD = 7.843** | Book USD $10,785 | HK leg 54,363 HKD | US leg $3,853 **HHI** — HK 0.340 ⚠️ Top2=80.5% (00100 40.4%+07226 40.1%) | US 0.281 ⚠️ Top2=60.4% (SPCH 46.6%+MSFU 13.8%) **Regime** — US: risk_on (VIX 15.6, NDX +1.26%) | HK: amber lev (HSTECH 4541 vs 200MA 5392, -15.8%) **Risk** — β=3.18, vol=52.7%, Sharpe=-5.08, maxDD=-16.5% | **⛔ 5档杠杆硬止损全触发** [score=0.808 recalls=0 avg=0.620 source=memory/2026-07-07-pre-open.md:9-12]
+<!-- openclaw-memory-promotion:memory:memory/2026-07-08-1223.md:20:20 -->
+- Conversation Summary: **智谱**：今天 +9.69% 反弹，但从 6/22 高点 2,980 已经回撤 40%，波动率远超 00100。IPO 到现在 5 个月涨 14 倍，属于典型"AI 独角兽疯牛→深度回调"曲线，跟 00100 MiniMax 走的是同一剧本（00100 现在也是从高点腰斩状态）。如果要追智谱，现在是回调中继还是二次探底，需要看 A股科创板 IPO 辅导落地时点（募资 150亿，用于大模型基座+MaaS平台）作为下一个催化剂——辅导已完成，等正式申报。 [score=0.839 recalls=0 avg=0.620 source=memory/2026-07-08-1223.md:20-20]
+<!-- openclaw-memory-promotion:memory:memory/2026-07-07-pre-open.md:39:42 -->
+- ▎社交舆情速读: | Ticker | 5日 | Reddit | 关键新闻 | |--------|-----|--------|----------| | 00100 | -19.7% | 0 | 花旗下调→HK$533；7/9解禁63%流通；MiniMax-W午后跌超18% | | 07226 | +2.4% | 0 | CITIC：HSTECH估值已充分调整；机构大举买入恒科 | [score=0.814 recalls=0 avg=0.620 source=memory/2026-07-07-pre-open.md:39-42]
+<!-- openclaw-memory-promotion:memory:memory/2026-07-08-1223.md:12:15 -->
+- Conversation Summary: | 标的 | 现价 | 今日 | today high/low | 距近期高点 | |---|---|---|---|---| | SK海力士 000660.KS | ₩2,217,500 | +0.75% | 2,090,000 / 2,329,000 | 距 6月高点 ~₩2.98M 约 -25.6% | | 三星电子 005930.KS | ₩285,750 | -3.46% | 283,000 / 300,000 | 距 52周高 ₩374,500 约 -23.7% | [score=0.808 recalls=0 avg=0.620 source=memory/2026-07-08-1223.md:12-15]
+<!-- openclaw-memory-promotion:memory:memory/2026-07-08-1223.md:16:16 -->
+- Conversation Summary: | 智谱 02513.HK | HK$1,766 | +9.69% | 1,450 / 1,854 | 距 6/22 历史高 HK$2,980 约 -40.7%；距 IPO 价 116.2 仍 **+1420%** | [score=0.808 recalls=0 avg=0.620 source=memory/2026-07-08-1223.md:16-16]
+<!-- openclaw-memory-promotion:memory:memory/2026-07-08-1223.md:18:18 -->
+- Conversation Summary: **韩国存储芯片**：6/23 开始的"AI 存储超建"恐慌拖累 Kospi 科技股，三星 Q2 盈利指引超预期（营业利润同比 +1810%，约 $58B）但股价反而跌，市场在为"DRAM 超级周期见顶"定价，而非基本面。SK海力士今天是**反弹**（此前 7/2 单日 -14.6%），三星今天继续跌 -3.46%，两者走势分化——说明资金还在犹豫哪个跌得够了。这轮跟美股 Micron/SanDisk 联动，不是孤立的韩国事件。 [score=0.808 recalls=0 avg=0.620 source=memory/2026-07-08-1223.md:18-18]
+<!-- openclaw-memory-promotion:memory:memory/2026-07-08-1223.md:3:5 -->
+- Session: 2026-07-08 12:23:23 GMT+8: **Session Key**: agent:main:openclaw-weixin:direct:o9cq80-hgtrum-oss8knmdotlvzi@im.wechat; **Session ID**: 83e990ab-6fe7-475c-9e99-c9f1a30aa9e5; **Source**: openclaw-weixin [score=0.808 recalls=0 avg=0.620 source=memory/2026-07-08-1223.md:3-5]
+<!-- openclaw-memory-promotion:memory:memory/2026-07-08-1223.md:9:10 -->
+- Conversation Summary: user: 海力士和三星怎么样？还有智谱 assistant: **注：三只都不在持仓（韩股已清仓，智谱未建仓），纯市场观察。** [score=0.808 recalls=0 avg=0.620 source=memory/2026-07-08-1223.md:9-10]
+<!-- openclaw-memory-promotion:memory:memory/2026-07-08-pre-open.md:15:18 -->
+- Header — 全组合快照: | 腿 | 仓位市值 | 现金 | 总资产 | 浮亏 PnL | |---|---|---|---|---| | HK (HKD) | HK$48,391 | HK$34,597 | **HK$82,988** | -HK$39,885 (-45.2%) | | US (USD) | $3,245 | $281 | **$3,527** | -$998 (-23.5%) | [score=0.808 recalls=0 avg=0.620 source=memory/2026-07-08-pre-open.md:15-18]
