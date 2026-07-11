@@ -326,9 +326,19 @@ def check(portfolio_path=PORTFOLIO):
                         f'{t} pnl_abs={pnl:.2f} ≠ shares×(cur−cost)={want_pnl:.2f}', region, t)
 
             # TODAY_LEG：today_change == shares×(current−prev_close)（日内 P&L 的源）
+            # 例外：本 session 内建仓的持仓——prev_close 时未持有，其当日 P&L 基准是
+            # 成本价而非前收(today_change==current−cost==pnl_abs 才对)，prev_close 对它
+            # 无意义(IPO 首日更是连真实前收都没有)。跳过前收公式，免 IPO/新建仓假警报。
             prev = _num(h.get('prev_close'))
             tchg = _num(h.get('today_change'))
-            if cur is not None and sh and prev is not None and tchg is not None:
+            sess_date = h.get('day_session_date')
+            trade_dates = [tr.get('date') for tr in (h.get('trades') or []) if tr.get('date')]
+            opened_this_session = bool(sess_date) and (
+                h.get('prev_close_date') == sess_date               # 前收日==会话日 → 非真实前收
+                or (trade_dates and min(trade_dates) >= sess_date)  # 首笔买入在本会话 → 前收时未持有
+            )
+            if (cur is not None and sh and prev is not None and tchg is not None
+                    and not opened_this_session):
                 want_tc = sh * (cur - prev)
                 if abs(tchg - want_tc) > max(PCT_TOL, abs(want_tc) * 0.02):
                     add('TODAY_LEG', 'WARN',

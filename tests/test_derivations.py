@@ -126,6 +126,42 @@ class TestCashSanityDeposit:
         assert len(hits) == 1
 
 
+# ── TODAY_LEG: a position opened THIS session uses cost (not prev_close) basis ──
+class TestTodayLegSameSessionBuild:
+    """For a holding bought during the current session you weren't holding it at
+    prev_close, so its daily-P&L basis is cost (today_change==current−cost==pnl_abs),
+    and shares×(cur−prev_close) doesn't apply — e.g. an IPO first day with no real
+    prior close. That case must NOT warn, while a genuinely stale prev_close on a
+    normally-held position still must (protection intact)."""
+
+    def _today_leg(self, tmp_path, holding):
+        data = {"portfolios": {"us_stocks": {"currency": "USD", "holdings": [holding]}}}
+        f = tmp_path / "p.json"
+        f.write_text(json.dumps(data))
+        rep = pi.check(f)
+        return [x for x in rep["findings"] if x["code"] == "TODAY_LEG"]
+
+    def test_ipo_first_day_build_does_not_warn(self, tmp_path):
+        # today_change=-0.84 (=current−cost) is CORRECT for a same-session build;
+        # shares×(cur−prev_close)=+0.34 would be wrong → exemption suppresses the WARN.
+        hits = self._today_leg(tmp_path, {
+            "ticker": "IPO1", "shares": 1, "current_price": 168.34, "cost_basis": 169.185,
+            "prev_close": 168.004, "prev_close_date": "2026-07-10",
+            "day_session_date": "2026-07-10", "today_change": -0.84,
+            "trades": [{"date": "2026-07-10", "action": "buy", "shares": 1, "price": 169.185}]})
+        assert hits == []
+
+    def test_stale_prev_close_on_held_position_still_warns(self, tmp_path):
+        # Held since June, prev_close is a real prior close → formula applies, and a
+        # today_change that ignores a 20/sh gap must still trip the gate.
+        hits = self._today_leg(tmp_path, {
+            "ticker": "OLD1", "shares": 10, "current_price": 100.0, "cost_basis": 90.0,
+            "prev_close": 80.0, "prev_close_date": "2026-07-09",
+            "day_session_date": "2026-07-10", "today_change": 5.0,
+            "trades": [{"date": "2026-06-01", "action": "buy", "shares": 10, "price": 90}]})
+        assert len(hits) == 1
+
+
 # ── _moving_avg_cost: sells reduce cost at THEN-current avg; avg unchanged ─────
 class TestMovingAvgCost:
     def test_simple_average(self):
