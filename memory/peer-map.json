@@ -3,85 +3,233 @@
     "purpose": "Per-holding peer/neighborhood map for rotation detection. Maintained semi-manually; revisit every ~3 months or when adding new positions.",
     "private_peers_handled_by": "Tavily news search in preflight (no price feed)",
     "listed_peers_handled_by": "scripts/data/fetch_peers.py (Tencent / Nasdaq / yfinance fallback chain)",
-    "last_updated": "2026-05-17"
+    "last_updated": "2026-07-11"
   },
   "holdings": {
     "00100": {
       "name": "MINIMAX-W",
       "theme": "HK AI 大模型",
       "listed_peers": [
-        {"ticker": "00020", "region": "hk", "name": "商汤-W", "rel": "AI 视觉+大模型"},
-        {"ticker": "06682", "region": "hk", "name": "第四范式", "rel": "企业 AI 决策平台"},
-        {"ticker": "02273", "region": "hk", "name": "智云健康", "rel": "AI+医疗"},
-        {"ticker": "02469", "region": "hk", "name": "速腾聚创", "rel": "AI+车载"}
+        {
+          "ticker": "00020",
+          "region": "hk",
+          "name": "商汤-W",
+          "rel": "AI 视觉+大模型"
+        },
+        {
+          "ticker": "06682",
+          "region": "hk",
+          "name": "第四范式",
+          "rel": "企业 AI 决策平台"
+        },
+        {
+          "ticker": "02273",
+          "region": "hk",
+          "name": "智云健康",
+          "rel": "AI+医疗"
+        },
+        {
+          "ticker": "02469",
+          "region": "hk",
+          "name": "速腾聚创",
+          "rel": "AI+车载"
+        }
       ],
-      "private_peers": ["智谱 Zhipu AI", "百川智能 Baichuan", "月之暗面 Moonshot Kimi", "阶跃星辰 StepFun", "DeepSeek"],
-      "etf_proxies": ["03032", "03033"],
-      "key_news_keywords": ["MiniMax 估值", "AI 大模型 港股", "智谱 IPO", "中概 AI"]
+      "private_peers": [
+        "智谱 Zhipu AI",
+        "百川智能 Baichuan",
+        "月之暗面 Moonshot Kimi",
+        "阶跃星辰 StepFun",
+        "DeepSeek"
+      ],
+      "etf_proxies": [
+        "03032",
+        "03033"
+      ],
+      "key_news_keywords": [
+        "MiniMax 估值",
+        "AI 大模型 港股",
+        "智谱 IPO",
+        "中概 AI"
+      ]
     },
     "07226": {
       "name": "XL二南方恒科",
       "theme": "HK 科技指数 2x leveraged (HSTECH 标的)",
       "underlying_index": "HSTECH",
       "listed_peers": [
-        {"ticker": "09988", "region": "hk", "name": "阿里巴巴-W", "rel": "HSTECH 权重股"},
-        {"ticker": "00700", "region": "hk", "name": "腾讯控股", "rel": "HSTECH 权重股"},
-        {"ticker": "03690", "region": "hk", "name": "美团-W", "rel": "HSTECH 权重股"},
-        {"ticker": "09618", "region": "hk", "name": "京东集团-SW", "rel": "HSTECH 权重股"},
-        {"ticker": "09999", "region": "hk", "name": "网易-S", "rel": "HSTECH 权重股"}
+        {
+          "ticker": "09988",
+          "region": "hk",
+          "name": "阿里巴巴-W",
+          "rel": "HSTECH 权重股"
+        },
+        {
+          "ticker": "00700",
+          "region": "hk",
+          "name": "腾讯控股",
+          "rel": "HSTECH 权重股"
+        },
+        {
+          "ticker": "03690",
+          "region": "hk",
+          "name": "美团-W",
+          "rel": "HSTECH 权重股"
+        },
+        {
+          "ticker": "09618",
+          "region": "hk",
+          "name": "京东集团-SW",
+          "rel": "HSTECH 权重股"
+        },
+        {
+          "ticker": "09999",
+          "region": "hk",
+          "name": "网易-S",
+          "rel": "HSTECH 权重股"
+        }
       ],
-      "etf_proxies": ["03033 南方恒科", "07552 三星恒科 2x"],
-      "key_news_keywords": ["恒科指数", "中概互联网", "南向资金"]
+      "etf_proxies": [
+        "03033 南方恒科",
+        "07552 三星恒科 2x"
+      ],
+      "key_news_keywords": [
+        "恒科指数",
+        "中概互联网",
+        "南向资金"
+      ]
     },
     "03032": {
       "name": "恒生科技ETF",
       "theme": "HK 科技指数 1x (HSTECH 标的)",
       "underlying_index": "HSTECH",
       "listed_peers": [
-        {"ticker": "03033", "region": "hk", "name": "南方恒生科技 ETF", "rel": "同跟踪 HSTECH"},
-        {"ticker": "09023", "region": "hk", "name": "Premia 港股科技 ETF", "rel": "类似主题"}
+        {
+          "ticker": "03033",
+          "region": "hk",
+          "name": "南方恒生科技 ETF",
+          "rel": "同跟踪 HSTECH"
+        },
+        {
+          "ticker": "09023",
+          "region": "hk",
+          "name": "Premia 港股科技 ETF",
+          "rel": "类似主题"
+        }
       ],
-      "key_news_keywords": ["恒科指数", "港股科技 ETF"]
+      "key_news_keywords": [
+        "恒科指数",
+        "港股科技 ETF"
+      ]
     },
     "03033": {
       "name": "南方恒生科技",
       "theme": "HK 科技指数 1x (HSTECH 标的)",
       "underlying_index": "HSTECH",
       "listed_peers": [
-        {"ticker": "03032", "region": "hk", "name": "恒生科技 ETF", "rel": "同跟踪 HSTECH"}
+        {
+          "ticker": "03032",
+          "region": "hk",
+          "name": "恒生科技 ETF",
+          "rel": "同跟踪 HSTECH"
+        }
       ],
-      "key_news_keywords": ["恒科指数"]
+      "key_news_keywords": [
+        "恒科指数"
+      ]
     },
     "02208": {
       "name": "金风科技",
       "theme": "风电",
       "listed_peers": [
-        {"ticker": "00916", "region": "hk", "name": "龙源电力", "rel": "新能源运营商"},
-        {"ticker": "01798", "region": "hk", "name": "大唐新能源", "rel": "风电运营"},
-        {"ticker": "00956", "region": "hk", "name": "中国新能源集团", "rel": "新能源整体"},
-        {"ticker": "01072", "region": "hk", "name": "东方电气", "rel": "风电设备"}
+        {
+          "ticker": "00916",
+          "region": "hk",
+          "name": "龙源电力",
+          "rel": "新能源运营商"
+        },
+        {
+          "ticker": "01798",
+          "region": "hk",
+          "name": "大唐新能源",
+          "rel": "风电运营"
+        },
+        {
+          "ticker": "00956",
+          "region": "hk",
+          "name": "中国新能源集团",
+          "rel": "新能源整体"
+        },
+        {
+          "ticker": "01072",
+          "region": "hk",
+          "name": "东方电气",
+          "rel": "风电设备"
+        }
       ],
-      "private_peers": ["远景能源 Envision", "明阳智能", "金风海上风电业务"],
-      "key_news_keywords": ["风电政策", "海上风电", "新能源装机", "中国双碳"]
+      "private_peers": [
+        "远景能源 Envision",
+        "明阳智能",
+        "金风海上风电业务"
+      ],
+      "key_news_keywords": [
+        "风电政策",
+        "海上风电",
+        "新能源装机",
+        "中国双碳"
+      ]
     },
     "RKLB": {
       "name": "Rocket Lab",
       "theme": "商业航天",
       "listed_peers": [
-        {"ticker": "ASTS", "region": "us", "name": "AST SpaceMobile", "rel": "卫星通信"},
-        {"ticker": "MNTS", "region": "us", "name": "Momentus", "rel": "在轨服务"},
-        {"ticker": "BKSY", "region": "us", "name": "BlackSky", "rel": "对地观测"},
-        {"ticker": "LMT", "region": "us", "name": "Lockheed Martin", "rel": "大型防务承包商"}
+        {
+          "ticker": "ASTS",
+          "region": "us",
+          "name": "AST SpaceMobile",
+          "rel": "卫星通信"
+        },
+        {
+          "ticker": "MNTS",
+          "region": "us",
+          "name": "Momentus",
+          "rel": "在轨服务"
+        },
+        {
+          "ticker": "BKSY",
+          "region": "us",
+          "name": "BlackSky",
+          "rel": "对地观测"
+        },
+        {
+          "ticker": "LMT",
+          "region": "us",
+          "name": "Lockheed Martin",
+          "rel": "大型防务承包商"
+        }
       ],
-      "private_peers": ["SpaceX", "Relativity Space", "Stoke Space"],
-      "key_news_keywords": ["Neutron 火箭", "SpaceX 竞争", "卫星发射合同"]
+      "private_peers": [
+        "SpaceX",
+        "Relativity Space",
+        "Stoke Space"
+      ],
+      "key_news_keywords": [
+        "Neutron 火箭",
+        "SpaceX 竞争",
+        "卫星发射合同"
+      ]
     },
     "RKLX": {
       "name": "Defiance Daily Target 2X Long RKLB",
       "theme": "RKLB 2x leveraged",
       "underlying": "RKLB",
       "listed_peers": [
-        {"ticker": "RKLB", "region": "us", "name": "Rocket Lab (underlying)", "rel": "基础标的"}
+        {
+          "ticker": "RKLB",
+          "region": "us",
+          "name": "Rocket Lab (underlying)",
+          "rel": "基础标的"
+        }
       ]
     },
     "SPCH": {
@@ -89,75 +237,333 @@
       "theme": "SpaceX 2x leveraged (商业航天)",
       "underlying": "SpaceX (未上市/private — 合成多头敞口, 无公开标的价)",
       "listed_peers": [
-        {"ticker": "RKLB", "region": "us", "name": "Rocket Lab", "rel": "最接近的公开商业航天同行"},
-        {"ticker": "RKLX", "region": "us", "name": "2X Long RKLB", "rel": "杠杆航天姊妹"},
-        {"ticker": "ASTS", "region": "us", "name": "AST SpaceMobile", "rel": "卫星通信"}
+        {
+          "ticker": "RKLB",
+          "region": "us",
+          "name": "Rocket Lab",
+          "rel": "最接近的公开商业航天同行"
+        },
+        {
+          "ticker": "RKLX",
+          "region": "us",
+          "name": "2X Long RKLB",
+          "rel": "杠杆航天姊妹"
+        },
+        {
+          "ticker": "ASTS",
+          "region": "us",
+          "name": "AST SpaceMobile",
+          "rel": "卫星通信"
+        }
       ],
-      "private_peers": ["Rocket Lab", "Relativity Space", "Blue Origin"],
-      "key_news_keywords": ["SpaceX 估值", "Starship", "Starlink IPO", "商业航天发射"]
+      "private_peers": [
+        "Rocket Lab",
+        "Relativity Space",
+        "Blue Origin"
+      ],
+      "key_news_keywords": [
+        "SpaceX 估值",
+        "Starship",
+        "Starlink IPO",
+        "商业航天发射"
+      ]
     },
     "SOXL": {
       "name": "三倍做多半导体 ETF-Direxion",
       "theme": "美股半导体 3x leveraged (SOXX 标的)",
       "underlying": "SOXX (PHLX 半导体指数)",
       "listed_peers": [
-        {"ticker": "SOXX", "region": "us", "name": "iShares 半导体 1x", "rel": "底层指数 ETF"},
-        {"ticker": "SMH", "region": "us", "name": "VanEck 半导体", "rel": "替代半导体 ETF"},
-        {"ticker": "NVDA", "region": "us", "name": "英伟达", "rel": "SOXX 头号权重"},
-        {"ticker": "AMD", "region": "us", "name": "AMD", "rel": "SOXX 权重"},
-        {"ticker": "AVGO", "region": "us", "name": "Broadcom", "rel": "SOXX 权重"},
-        {"ticker": "TSM", "region": "us", "name": "台积电 ADR", "rel": "全球半导体龙头"}
+        {
+          "ticker": "SOXX",
+          "region": "us",
+          "name": "iShares 半导体 1x",
+          "rel": "底层指数 ETF"
+        },
+        {
+          "ticker": "SMH",
+          "region": "us",
+          "name": "VanEck 半导体",
+          "rel": "替代半导体 ETF"
+        },
+        {
+          "ticker": "NVDA",
+          "region": "us",
+          "name": "英伟达",
+          "rel": "SOXX 头号权重"
+        },
+        {
+          "ticker": "AMD",
+          "region": "us",
+          "name": "AMD",
+          "rel": "SOXX 权重"
+        },
+        {
+          "ticker": "AVGO",
+          "region": "us",
+          "name": "Broadcom",
+          "rel": "SOXX 权重"
+        },
+        {
+          "ticker": "TSM",
+          "region": "us",
+          "name": "台积电 ADR",
+          "rel": "全球半导体龙头"
+        }
       ],
-      "key_news_keywords": ["半导体周期", "NVDA 财报", "AI 算力", "台积电产能"]
+      "key_news_keywords": [
+        "半导体周期",
+        "NVDA 财报",
+        "AI 算力",
+        "台积电产能"
+      ]
     },
     "ROBN": {
       "name": "二倍做多 HOOD ETF-T-Rex",
       "theme": "HOOD 2x leveraged",
       "underlying": "HOOD",
       "listed_peers": [
-        {"ticker": "HOOD", "region": "us", "name": "Robinhood (underlying)", "rel": "基础标的"},
-        {"ticker": "SQ", "region": "us", "name": "Block (Square)", "rel": "fintech+crypto"},
-        {"ticker": "COIN", "region": "us", "name": "Coinbase", "rel": "crypto exchange"},
-        {"ticker": "PYPL", "region": "us", "name": "PayPal", "rel": "支付"}
+        {
+          "ticker": "HOOD",
+          "region": "us",
+          "name": "Robinhood (underlying)",
+          "rel": "基础标的"
+        },
+        {
+          "ticker": "SQ",
+          "region": "us",
+          "name": "Block (Square)",
+          "rel": "fintech+crypto"
+        },
+        {
+          "ticker": "COIN",
+          "region": "us",
+          "name": "Coinbase",
+          "rel": "crypto exchange"
+        },
+        {
+          "ticker": "PYPL",
+          "region": "us",
+          "name": "PayPal",
+          "rel": "支付"
+        }
       ],
-      "key_news_keywords": ["Robinhood crypto rev", "retail trading volume", "FINRA"]
+      "key_news_keywords": [
+        "Robinhood crypto rev",
+        "retail trading volume",
+        "FINRA"
+      ]
     },
     "MSFU": {
       "name": "二倍做多微软 ETF-Direxion",
       "theme": "MSFT 2x leveraged",
       "underlying": "MSFT",
       "listed_peers": [
-        {"ticker": "MSFT", "region": "us", "name": "微软 (underlying)", "rel": "基础标的"},
-        {"ticker": "GOOGL", "region": "us", "name": "Alphabet", "rel": "云+AI 同行"},
-        {"ticker": "AAPL", "region": "us", "name": "Apple", "rel": "Mega-cap 科技"},
-        {"ticker": "META", "region": "us", "name": "Meta", "rel": "Mega-cap 科技"},
-        {"ticker": "ORCL", "region": "us", "name": "Oracle", "rel": "企业云+AI"}
+        {
+          "ticker": "MSFT",
+          "region": "us",
+          "name": "微软 (underlying)",
+          "rel": "基础标的"
+        },
+        {
+          "ticker": "GOOGL",
+          "region": "us",
+          "name": "Alphabet",
+          "rel": "云+AI 同行"
+        },
+        {
+          "ticker": "AAPL",
+          "region": "us",
+          "name": "Apple",
+          "rel": "Mega-cap 科技"
+        },
+        {
+          "ticker": "META",
+          "region": "us",
+          "name": "Meta",
+          "rel": "Mega-cap 科技"
+        },
+        {
+          "ticker": "ORCL",
+          "region": "us",
+          "name": "Oracle",
+          "rel": "企业云+AI"
+        }
       ],
-      "key_news_keywords": ["MSFT 财报", "Azure 增长", "OpenAI 合作", "AI Copilot"]
+      "key_news_keywords": [
+        "MSFT 财报",
+        "Azure 增长",
+        "OpenAI 合作",
+        "AI Copilot"
+      ]
     },
     "PLTU": {
       "name": "二倍做多 PLTR ETF-Direxion",
       "theme": "PLTR 2x leveraged",
       "underlying": "PLTR",
       "listed_peers": [
-        {"ticker": "PLTR", "region": "us", "name": "Palantir (underlying)", "rel": "基础标的"},
-        {"ticker": "SNOW", "region": "us", "name": "Snowflake", "rel": "数据平台同行"},
-        {"ticker": "DDOG", "region": "us", "name": "Datadog", "rel": "AIOps"},
-        {"ticker": "NET", "region": "us", "name": "Cloudflare", "rel": "云+AI infra"}
+        {
+          "ticker": "PLTR",
+          "region": "us",
+          "name": "Palantir (underlying)",
+          "rel": "基础标的"
+        },
+        {
+          "ticker": "SNOW",
+          "region": "us",
+          "name": "Snowflake",
+          "rel": "数据平台同行"
+        },
+        {
+          "ticker": "DDOG",
+          "region": "us",
+          "name": "Datadog",
+          "rel": "AIOps"
+        },
+        {
+          "ticker": "NET",
+          "region": "us",
+          "name": "Cloudflare",
+          "rel": "云+AI infra"
+        }
       ],
-      "key_news_keywords": ["PLTR 国防合同", "AI 政府合同", "AIP 平台"]
+      "key_news_keywords": [
+        "PLTR 国防合同",
+        "AI 政府合同",
+        "AIP 平台"
+      ]
     },
     "CRCL": {
       "name": "Circle Internet Group-A",
       "theme": "稳定币 + agent 支付",
       "listed_peers": [
-        {"ticker": "COIN", "region": "us", "name": "Coinbase", "rel": "USDC 合作方"},
-        {"ticker": "BKKT", "region": "us", "name": "Bakkt", "rel": "数字资产平台"},
-        {"ticker": "PYPL", "region": "us", "name": "PayPal", "rel": "稳定币 PYUSD"},
-        {"ticker": "HOOD", "region": "us", "name": "Robinhood", "rel": "crypto 渠道"}
+        {
+          "ticker": "COIN",
+          "region": "us",
+          "name": "Coinbase",
+          "rel": "USDC 合作方"
+        },
+        {
+          "ticker": "BKKT",
+          "region": "us",
+          "name": "Bakkt",
+          "rel": "数字资产平台"
+        },
+        {
+          "ticker": "PYPL",
+          "region": "us",
+          "name": "PayPal",
+          "rel": "稳定币 PYUSD"
+        },
+        {
+          "ticker": "HOOD",
+          "region": "us",
+          "name": "Robinhood",
+          "rel": "crypto 渠道"
+        }
       ],
-      "private_peers": ["Tether (USDT)", "Paxos", "Ripple/XRP"],
-      "key_news_keywords": ["GENIUS Act", "USDC", "稳定币立法", "Stablecoin", "agent 支付"]
+      "private_peers": [
+        "Tether (USDT)",
+        "Paxos",
+        "Ripple/XRP"
+      ],
+      "key_news_keywords": [
+        "GENIUS Act",
+        "USDC",
+        "稳定币立法",
+        "Stablecoin",
+        "agent 支付"
+      ]
+    },
+    "SKHYV": {
+      "name": "SK海力士 ADR",
+      "theme": "存储芯片 / HBM (AI 内存)",
+      "listed_peers": [
+        {
+          "ticker": "MU",
+          "region": "us",
+          "name": "美光科技",
+          "rel": "DRAM/HBM/NAND 直接竞争"
+        },
+        {
+          "ticker": "WDC",
+          "region": "us",
+          "name": "西部数据",
+          "rel": "NAND 存储"
+        },
+        {
+          "ticker": "STX",
+          "region": "us",
+          "name": "希捷",
+          "rel": "HDD/存储"
+        },
+        {
+          "ticker": "NVDA",
+          "region": "us",
+          "name": "英伟达",
+          "rel": "HBM 最大客户"
+        }
+      ],
+      "private_peers": [
+        "三星电子 Samsung(HBM/DRAM 龙头)",
+        "铠侠 Kioxia(NAND)",
+        "长江存储 YMTC",
+        "长鑫存储 CXMT"
+      ],
+      "etf_proxies": [
+        "SMH",
+        "SOXX"
+      ],
+      "key_news_keywords": [
+        "HBM",
+        "存储芯片周期",
+        "DRAM 涨价",
+        "AI 内存需求",
+        "三星 HBM",
+        "SK Hynix"
+      ]
+    },
+    "SPCX": {
+      "name": "SpaceX",
+      "theme": "商业航天 (火箭发射 + Starlink 卫星互联网)",
+      "listed_peers": [
+        {
+          "ticker": "RKLB",
+          "region": "us",
+          "name": "Rocket Lab",
+          "rel": "火箭发射直接竞争"
+        },
+        {
+          "ticker": "ASTS",
+          "region": "us",
+          "name": "AST SpaceMobile",
+          "rel": "卫星通信/Starlink 竞品"
+        },
+        {
+          "ticker": "BKSY",
+          "region": "us",
+          "name": "BlackSky",
+          "rel": "对地观测"
+        },
+        {
+          "ticker": "IRDM",
+          "region": "us",
+          "name": "Iridium",
+          "rel": "卫星通信运营"
+        }
+      ],
+      "private_peers": [
+        "Blue Origin",
+        "Relativity Space",
+        "Stoke Space",
+        "OneWeb/Eutelsat"
+      ],
+      "key_news_keywords": [
+        "Starship",
+        "Starlink IPO",
+        "商业发射",
+        "卫星互联网",
+        "星舰"
+      ]
     }
   }
 }
