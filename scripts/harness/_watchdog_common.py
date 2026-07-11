@@ -229,6 +229,42 @@ def cosend_telegram(message, tag, dry_run=False):
     return ok, out
 
 
+def already_delivered(marker_path, within_ms=None):
+    """Idempotency guard for a postflight's PRIMARY send — returns True if a prior
+    run of this same slot already delivered (WeChat OR Telegram), so the send must
+    be skipped.
+
+    WHY (2026-07-11): openclaw marks a cron run `error` and AUTO-RETRIES the whole
+    agent turn when the *post-turn summary generation* fails — its model fallback
+    chain (minimax→glm→deepseek→anthropic…) is frequently all-down (overloaded /
+    billing / session-limit; see memory: openclaw-xiaomi-fallback). But the WeChat
+    report already went out inside that turn, so each retry re-runs the harness and
+    re-sends → kcn got the same slot 2–4×. The delivery layer is per-run single-send;
+    the dup is at the RUN layer. This guard makes the postflight send idempotent per
+    slot regardless of how many times openclaw retries. Genuine misses (marker shows
+    neither channel succeeded) are NOT blocked, and the watchdog remains the backstop.
+
+    marker_path : the per-slot send marker written by the postflight
+      (report-sent-{market}-{phase}-{date}.json, brief-sent-{date}.json,
+       intraday-sent-{market}.json).
+    within_ms   : None → any-age marker blocks (report/brief markers are keyed per
+      phase+date and legitimately fire once/day). Set a window for intraday, whose
+      marker is per-market (not per-slot): a retry lands within minutes while the
+      legit next slot is ~30min later, so only a *recent* marker means "retry".
+    """
+    try:
+        m = json.loads(Path(marker_path).read_text())
+    except Exception:
+        return False
+    if not (m.get('sent_ok') or m.get('tg_ok')):
+        return False
+    if within_ms is not None:
+        age = int(datetime.now().timestamp() * 1000) - (m.get('ts') or 0)
+        if age >= within_ms:
+            return False
+    return True
+
+
 def last_report_text(session_id, first_line):
     """The actual announced intraday report — the last assistant text block in
     the cron session transcript that contains the data block's first line. We

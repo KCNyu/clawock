@@ -34,7 +34,7 @@ from _harness_common import (  # noqa: E402
     snapshot_date_for_now,
     validate_forbidden_phrases,
 )
-from _watchdog_common import resolve_wechat_target, send_wechat, cosend_telegram  # noqa: E402
+from _watchdog_common import resolve_wechat_target, send_wechat, cosend_telegram, already_delivered  # noqa: E402
 
 # Workspace root, resolved from this file's location (location-independent;
 # matches the old hardcoded /root path locally, robust if run elsewhere).
@@ -168,7 +168,14 @@ def main():
     # record the real send result to a marker so intraday_watchdog only re-sends on
     # a CONFIRMED failure (never doubles a report that went out here).
     wechat_sent = None
-    if status in ('pass', 'warn'):
+    marker = TMP / f'intraday-sent-{args.market}.json'
+    # Idempotency: if openclaw auto-retried this run (post-turn summary-gen failure),
+    # the report already went out on the prior attempt — skip the re-send. Intraday's
+    # marker is per-market, so use a 20min window (< the 30min slot cadence, > the
+    # few-min retry gap) to tell a retry from the next legit slot. See already_delivered.
+    if status in ('pass', 'warn') and already_delivered(marker, within_ms=20 * 60 * 1000):
+        print('idempotency: intraday already delivered this slot — skip re-send', file=sys.stderr)
+    elif status in ('pass', 'warn'):
         block_first = (ctx.get('raw_wechat_block', '') or '').strip().splitlines()
         block_first = block_first[0] if block_first else ''
         message = (wechat_prefix + text).strip()
@@ -181,7 +188,6 @@ def main():
         # Record the Telegram result: it's the sole backstop intraday_watchdog now
         # uses (no more WeChat resend), so it needs to know if TG already got this.
         tg_ok, _tg_out = cosend_telegram(message, f'intraday-{args.market}')
-        marker = TMP / f'intraday-sent-{args.market}.json'
         try:
             marker.write_text(json.dumps({
                 'ts': int(datetime.now().timestamp() * 1000),

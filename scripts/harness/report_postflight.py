@@ -136,7 +136,7 @@ from _harness_common import (  # noqa: E402
     snapshot_date_for_now,
     validate_forbidden_phrases,
 )
-from _watchdog_common import resolve_wechat_target, send_wechat, cosend_telegram  # noqa: E402
+from _watchdog_common import resolve_wechat_target, send_wechat, cosend_telegram, already_delivered  # noqa: E402
 
 
 def deliver_wechat(market, phase, date, wechat_prefix, text, block_first):
@@ -295,7 +295,17 @@ def main():
     # send. See deliver_wechat() docstring for the #61174 long-turn-drop rationale.
     block_first = (ctx.get('raw_wechat_block', '') or '').strip().splitlines()
     block_first = block_first[0] if block_first else ''
-    wechat_sent, _ = deliver_wechat(args.market, args.phase, today, wechat_prefix, text, block_first)
+    # Idempotency: this phase's marker is per market+phase+date and fires once/day,
+    # so if it already shows a delivery this is an openclaw auto-retry of a run that
+    # errored only in post-turn summary-gen — the report already went out. Skip the
+    # re-send (watchdog still backstops a genuine miss). See already_delivered.
+    report_marker = TMP / f'report-sent-{args.market}-{args.phase}-{today}.json'
+    if already_delivered(report_marker):
+        print(f'idempotency: {args.market}-{args.phase} already delivered today — skip re-send',
+              file=sys.stderr)
+        wechat_sent = True
+    else:
+        wechat_sent, _ = deliver_wechat(args.market, args.phase, today, wechat_prefix, text, block_first)
 
     commit_ok, commit_msg = maybe_commit(status, ctx['commit_msg'])
 

@@ -198,7 +198,7 @@ from _harness_common import (  # noqa: E402
     rebuild_dashboard,
 )
 from _watchdog_common import (  # noqa: E402
-    resolve_wechat_target, send_wechat, build_brief_card, cosend_telegram,
+    resolve_wechat_target, send_wechat, build_brief_card, cosend_telegram, already_delivered,
 )
 
 
@@ -415,7 +415,15 @@ def main():
     # re-sends on a CONFIRMED miss. Card = LLM's brief-card-{date}.txt, else a
     # deterministic compact card from plan.json (build_brief_card).
     wechat_sent = None
-    if status in ('pass', 'warn'):
+    brief_marker = WS / 'memory' / '.tmp' / f'brief-sent-{today}.json'
+    # Idempotency: brief marker is per-date, fires once/day. If it already shows a
+    # delivery this run is an openclaw auto-retry of a turn that errored only in
+    # post-turn summary-gen — the card already went out. Skip re-send. See
+    # already_delivered (2026-07-11 retry-storm dup fix).
+    if status in ('pass', 'warn') and already_delivered(brief_marker):
+        print('idempotency: brief already delivered today — skip re-send', file=sys.stderr)
+        wechat_sent = True
+    elif status in ('pass', 'warn'):
         card = build_brief_card(today)
         message = (wechat_prefix + card).strip()
         first_line = card.strip().splitlines()[0] if card.strip() else ''
@@ -428,10 +436,9 @@ def main():
         # Record the Telegram result: it's the sole backstop brief_watchdog now uses
         # (no more WeChat resend), so it needs to know if TG already got this card.
         tg_ok, _tg_out = cosend_telegram(message, 'brief', dry_run=args.dry_run)
-        marker = WS / 'memory' / '.tmp' / f'brief-sent-{today}.json'
         try:
-            marker.parent.mkdir(parents=True, exist_ok=True)
-            marker.write_text(json.dumps({
+            brief_marker.parent.mkdir(parents=True, exist_ok=True)
+            brief_marker.write_text(json.dumps({
                 'ts': int(datetime.now().timestamp() * 1000),
                 'sent_ok': bool(wechat_sent),
                 'tg_ok': bool(tg_ok),
