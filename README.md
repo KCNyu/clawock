@@ -17,10 +17,10 @@
 <br>
 
 <a href="https://kcnyu.github.io/clawock/">
-  <img src="docs/dashboard-preview.png" alt="clawock dashboard" width="800">
+  <img src="assets/social-card.png" alt="clawock — an autonomous AI trading desk that grades its own calls" width="820">
 </a>
 
-<sub>Real positions. Real P&L. The page updates after every cron run; this screenshot refreshes weekly via a <a href="https://github.com/KCNyu/clawock/actions/workflows/screenshot-refresh.yml">GitHub Action</a> so it never drifts.</sub>
+<sub>Real positions. Real P&L. The card + screenshots refresh weekly via a <a href="https://github.com/KCNyu/clawock/actions/workflows/screenshot-refresh.yml">GitHub Action</a> so they never drift.</sub>
 
 <br>
 

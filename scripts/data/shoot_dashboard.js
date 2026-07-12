@@ -59,17 +59,17 @@ async function settle(page) {
 function cardHTML(shotDataUri) {
   return `<!doctype html><html><head><meta charset="utf-8"><style>
   * { margin:0; padding:0; box-sizing:border-box; }
-  html,body { width:1200px; height:630px; overflow:hidden; }
+  html,body { width:1280px; height:640px; overflow:hidden; }
   body { font-family:-apple-system,"Segoe UI","Helvetica Neue","Noto Sans CJK SC",sans-serif;
     background:radial-gradient(120% 120% at 0% 0%,#16203a 0%,#0b1020 55%,#070a14 100%);
     color:#eef2fb; display:flex; align-items:center; position:relative; }
-  .left { width:540px; padding:60px 0 60px 68px; flex:none; z-index:2; }
+  .left { width:560px; padding:64px 0 64px 70px; flex:none; z-index:2; }
   .brand { display:flex; align-items:center; gap:12px; margin-bottom:30px; }
   .brand .dot { width:16px; height:16px; border-radius:50%;
     background:radial-gradient(circle at 35% 30%,#4fd18b,#1f9d63); box-shadow:0 0 18px #2fbd7a88; }
   .brand .name { font-size:30px; font-weight:800; letter-spacing:-.5px; }
   .brand .tag { font-size:15px; color:#8aa0c6; font-weight:600; }
-  h1 { font-size:44px; line-height:1.13; font-weight:800; letter-spacing:-1px; margin-bottom:20px; max-width:470px; }
+  h1 { font-size:45px; line-height:1.13; font-weight:800; letter-spacing:-1px; margin-bottom:20px; max-width:490px; }
   h1 .hl { color:#ffca4a; }
   .sub { font-size:19px; line-height:1.5; color:#aebbd6; font-weight:500; max-width:455px; }
   .sub b { color:#e7edf9; font-weight:700; }
@@ -79,14 +79,14 @@ function cardHTML(shotDataUri) {
   .repo { position:absolute; left:68px; bottom:44px; font-size:19px; font-weight:700; color:#7fb2ff;
     display:flex; align-items:center; gap:9px; }
   .repo .star { color:#ffca4a; }
-  .shot { position:absolute; right:-34px; top:50%; transform:translateY(-50%) rotate(-2deg);
-    width:648px; height:470px; border-radius:16px; overflow:hidden;
+  .shot { position:absolute; right:-30px; top:50%; transform:translateY(-50%) rotate(-2deg);
+    width:690px; height:500px; border-radius:16px; overflow:hidden;
     box-shadow:0 40px 90px #000a,0 0 0 1px #ffffff1a; background:#fff; }
   .shot .bar { height:34px; background:#eef1f6; display:flex; align-items:center; gap:8px; padding:0 14px;
     border-bottom:1px solid #e2e6ee; }
   .shot .bar i { width:11px; height:11px; border-radius:50%; display:inline-block; }
   .shot .bar i:nth-child(1){background:#ff5f57} .shot .bar i:nth-child(2){background:#febc2e} .shot .bar i:nth-child(3){background:#28c840}
-  .shot img { width:100%; height:436px; object-fit:cover; object-position:0 0; display:block; }
+  .shot img { width:100%; height:466px; object-fit:cover; object-position:0 0; display:block; }
   .fade { position:absolute; right:0; top:0; bottom:0; width:180px; z-index:1;
     background:linear-gradient(90deg,rgba(11,16,32,0) 0%,rgba(7,10,20,0.4) 100%); pointer-events:none; }
 </style></head><body>
@@ -116,7 +116,7 @@ function cardHTML(shotDataUri) {
 
     // 2) Social card (1200x630) — embeds the fresh desktop shot as a data-URI
     const shotUri = 'data:image/png;base64,' + fs.readFileSync(`${OUT_DIR}/dashboard-preview.png`).toString('base64');
-    const cardCtx = await browser.newContext({ viewport: { width: 1200, height: 630 }, deviceScaleFactor: 2 });
+    const cardCtx = await browser.newContext({ viewport: { width: 1280, height: 640 }, deviceScaleFactor: 2 });
     const cp = await cardCtx.newPage();
     await cp.setContent(cardHTML(shotUri), { waitUntil: 'networkidle' });
     await cp.waitForTimeout(300);
@@ -131,12 +131,18 @@ function cardHTML(shotDataUri) {
     await mp.screenshot({ path: `${OUT_DIR}/dashboard-mobile.png`, fullPage: true });
     await mob.close();
 
-    // 4) Per-tab mobile frames for the animated GIF (assembled by the python step)
+    // 4) Per-tab mobile frames for the animated GIF (assembled by the python step).
+    //    The panels scroll inside an internal container (body is fixed, so fullPage ==
+    //    viewport). So we locate that container and screenshot the viewport at several
+    //    scroll positions top→bottom → real vertical-scroll frames, then move to the
+    //    next tab (the assembler adds the horizontal swipe between tabs).
+    const VSCROLL = 5;   // scroll frames per tab (skipped when the tab barely scrolls)
     const gifCtx = await browser.newContext({ viewport: { width: 400, height: 860 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true });
     const gp = await gifCtx.newPage();
     await gp.goto(URL, { waitUntil: 'networkidle', timeout: 45000 });
     await gp.waitForFunction(() => { const h = document.querySelector('[data-panel=hero]'); return h && h.textContent.trim().length > 200; }, { timeout: 45000 }).catch(() => {});
     await gp.waitForTimeout(1500);
+    const counts = [];
     for (let i = 0; i < TABS.length; i++) {
       await gp.click(`[data-tab=${TABS[i]}]`).catch(() => {});
       await gp.waitForTimeout(400);
@@ -146,11 +152,30 @@ function cardHTML(shotDataUri) {
         const cs = [...panel.querySelectorAll('canvas')];
         return cs.length === 0 || cs.every(c => c.width > 50);
       }, TABS[i], { timeout: 12000 }).catch(() => {});
-      await gp.evaluate(() => window.scrollTo(0, 0));
-      await gp.waitForTimeout(1100);
-      await gp.screenshot({ path: `${FRAME_DIR}/f${i}.png`, fullPage: false });
+      // find + remember the most-scrollable element around the active panel
+      const over = await gp.evaluate((tab) => {
+        const panel = document.querySelector(`[data-panel=${tab}]`);
+        const scope = [];
+        if (panel) { scope.push(panel); panel.querySelectorAll('*').forEach(e => scope.push(e)); }
+        [document.scrollingElement, document.documentElement, document.body].forEach(e => e && scope.push(e));
+        let best = null, mx = 0;
+        for (const el of scope) { const o = el.scrollHeight - el.clientHeight; if (o > mx) { mx = o; best = el; } }
+        window.__scrollEl = best;
+        return mx;
+      }, TABS[i]);
+      const steps = over > 120 ? VSCROLL : 0;
+      await gp.evaluate(() => { const el = window.__scrollEl; if (el) el.scrollTop = 0; else window.scrollTo(0, 0); });
+      await gp.waitForTimeout(700);
+      await gp.screenshot({ path: `${FRAME_DIR}/f${i}_0.png` });
+      for (let j = 1; j <= steps; j++) {
+        await gp.evaluate((frac) => { const el = window.__scrollEl; el.scrollTop = Math.round((el.scrollHeight - el.clientHeight) * frac); }, j / steps);
+        await gp.waitForTimeout(320);
+        await gp.screenshot({ path: `${FRAME_DIR}/f${i}_${j}.png` });
+      }
+      counts.push(steps + 1);
     }
     await gifCtx.close();
+    console.log('gif frames per tab:', counts.join(','));
 
     console.log(`✓ desktop+card+mobile shot; ${TABS.length} gif frames → ${FRAME_DIR}`);
   } finally {

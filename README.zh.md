@@ -17,10 +17,10 @@
 <br>
 
 <a href="https://kcnyu.github.io/clawock/">
-  <img src="docs/dashboard-preview.png" alt="clawock 仪表盘" width="800">
+  <img src="assets/social-card.png" alt="clawock — 会给自己打分的自主 AI 投研台" width="820">
 </a>
 
-<sub>真实持仓,真实盈亏。页面在每次 cron 运行后更新;这张截图每周由 <a href="https://github.com/KCNyu/clawock/actions/workflows/screenshot-refresh.yml">GitHub Action</a> 自动刷新,永不过期。</sub>
+<sub>真实持仓,真实盈亏。这张卡片和截图每周由 <a href="https://github.com/KCNyu/clawock/actions/workflows/screenshot-refresh.yml">GitHub Action</a> 自动刷新,永不过期。</sub>
 
 <br>
 
