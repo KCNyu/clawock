@@ -210,6 +210,8 @@ The constraints `postflight` won't let the model violate. Quant readers will rec
 
 <sub>The news layer is deliberately **bilingual**: Finnhub + Google News (English/US) *and* Eastmoney company news + 7×24 快讯 (Chinese/HK), since half the book is Hong Kong and HK catalysts surface in Chinese sources first. Information breadth is the one axis kept wide on purpose — it's what an LLM is best at — separate from the deliberately-narrow decision layer.</sub>
 
+📊 Full endpoint catalog with per-host reachability → [`scripts/data/README.md`](scripts/data/README.md)
+
 <details>
 <summary><b>📂 Repository layout</b></summary>
 

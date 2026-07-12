@@ -210,6 +210,8 @@
 
 <sub>消息层刻意**双语**:Finnhub + Google News(英文/美股)*和* 东财公司新闻 + 7×24 快讯(中文/港股)——半个组合在香港,港股催化常在中文源先出。**信息广度是唯一刻意做宽的轴**(LLM 最擅长信息收集),与刻意收窄的决策层分开。</sub>
 
+📊 完整端点目录与本机实测可达性 → [`scripts/data/README.md`](scripts/data/README.md)
+
 <details>
 <summary><b>📂 仓库结构</b></summary>
 
