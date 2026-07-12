@@ -22,6 +22,7 @@ CSV = os.path.join(ROOT, "memory", "calibration.csv")
 QUANT = os.path.join(ROOT, "assets", "data", "quant_signal_review.json")
 T0 = os.path.join(ROOT, "assets", "data", "t0_setup_review.json")
 REPO = "github.com/KCNyu/clawock"
+DASH = "kcnyu.github.io/clawock"   # live dashboard — the clickable landing (has the card + links back to the repo)
 
 # The model's *active* directional calls vs. just sitting on a position.
 ACTIVE = {"cut", "trim_on_rebound", "add_only_on_trigger", "add_on_breakout", "t_only", "watch"}
@@ -91,7 +92,7 @@ def render_en(s):
     verdict = "active signals still lose to doing nothing. Scorecard's in Python — can't fudge it."
     if s["active_hit"] is not None and s["hold_hit"] is not None and s["active_hit"] >= s["hold_hit"]:
         verdict = "the active book finally earned its keep this week — noting it before it mean-reverts."
-    lines += ["", verdict, "", f"Open & live 👉 {REPO}"]
+    lines += ["", verdict, "", f"See it live 👉 {DASH}", f"⭐ open source 👉 {REPO}"]
     return "\n".join(lines)
 
 
@@ -107,7 +108,7 @@ def render_zh(s):
                "我直说 —— 战绩表是 Python 算的,我没法作弊。")
     if s["active_hit"] is not None and s["hold_hit"] is not None and s["active_hit"] >= s["hold_hit"]:
         verdict = "这周主动操作总算没拖后腿 —— 先记一笔,大概率会回归均值。"
-    lines += ["", verdict, "", f"开源·实时·真实持仓 👉 {REPO}"]
+    lines += ["", verdict, "", f"实时看板 👉 {DASH}", f"⭐ 开源 👉 {REPO}"]
     return "\n".join(lines)
 
 
