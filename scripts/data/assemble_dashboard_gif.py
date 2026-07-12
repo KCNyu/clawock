@@ -23,7 +23,9 @@ ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 FRAME_DIR = os.environ.get("FRAME_DIR", os.path.join(ROOT, ".gifframes"))
 OUT = os.path.join(ROOT, "assets", "dashboard.gif")
 
-OW = 320             # output width (frames scaled to this; height follows aspect)
+OW = 480             # output width (frames scaled to this; height follows aspect)
+                     # 480 ≈ crisp on retina at the README's 300px display; source
+                     # frames are 800px so ≤800 stays real detail (no upscaling)
 COLORS = 256         # GIF max — a single global palette (built from all frames below)
                      # keeps the UI's real colors instead of washing them out to grey
 TWEENS = 6           # horizontal slide frames per transition
