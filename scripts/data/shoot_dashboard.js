@@ -116,7 +116,10 @@ function cardHTML(shotDataUri) {
 
     // 2) Social card (1200x630) — embeds the fresh desktop shot as a data-URI
     const shotUri = 'data:image/png;base64,' + fs.readFileSync(`${OUT_DIR}/dashboard-preview.png`).toString('base64');
-    const cardCtx = await browser.newContext({ viewport: { width: 1280, height: 640 }, deviceScaleFactor: 2 });
+    // dsf 1 → exactly 1280x640 (GitHub Social preview's ideal size + its 1MB limit;
+    // 2x doubled it to 2560x1280 / >1MB and the upload wouldn't fit). Still crisp: the
+    // embedded dashboard shot is downscaled from the 2x desktop capture.
+    const cardCtx = await browser.newContext({ viewport: { width: 1280, height: 640 }, deviceScaleFactor: 1 });
     const cp = await cardCtx.newPage();
     await cp.setContent(cardHTML(shotUri), { waitUntil: 'networkidle' });
     await cp.waitForTimeout(300);
