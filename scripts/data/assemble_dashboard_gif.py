@@ -24,7 +24,8 @@ FRAME_DIR = os.environ.get("FRAME_DIR", os.path.join(ROOT, ".gifframes"))
 OUT = os.path.join(ROOT, "assets", "dashboard.gif")
 
 OW = 320             # output width (frames scaled to this; height follows aspect)
-COLORS = 48          # palette per frame (size vs. fidelity)
+COLORS = 256         # GIF max — a single global palette (built from all frames below)
+                     # keeps the UI's real colors instead of washing them out to grey
 TWEENS = 6           # horizontal slide frames per transition
 HOLD_TOP_MS = 1200   # dwell at the top of each tab
 HOLD_TOP_REFLECT_MS = 1900   # the self-grading tab (tab 5) lingers longest
@@ -75,7 +76,14 @@ for i in range(6):
         frames.append(canvas)
         durations.append(SLIDE_MS)
 
-frames = [f.quantize(colors=COLORS, method=Image.MEDIANCUT, dither=Image.NONE) for f in frames]
+# One global adaptive palette derived from every frame → colors stay true and stable
+# across frames (per-frame palettes drift toward grey and flicker). No dither: the UI
+# is flat color, and dithering just adds noise + bloats the file.
+_stack = Image.new("RGB", (OW, VH * len(frames)))
+for _i, _f in enumerate(frames):
+    _stack.paste(_f, (0, VH * _i))
+_pal = _stack.quantize(colors=COLORS, method=Image.MEDIANCUT)
+frames = [f.quantize(palette=_pal, dither=Image.Dither.NONE) for f in frames]
 frames[0].save(OUT, save_all=True, append_images=frames[1:],
                duration=durations, loop=0, optimize=True, disposal=2)
 print(f"✓ wrote {OUT} ({os.path.getsize(OUT)//1024} KB, {frames[0].size}, {len(frames)} frames)")
