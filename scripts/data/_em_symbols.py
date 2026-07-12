@@ -18,20 +18,17 @@ MktNum / secid 前缀:
 
 零鉴权。endpoint 实测可达 (2026-06-14, kcn 服务器 IP)。
 """
+import os
 import re
 import sys
-import time
 from typing import Dict, List, Optional
 
-import requests
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from _em_http import em_get  # noqa: E402  统一防封出口(串行+抖动+session)
 
-UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36"
 SEARCH_URL = "https://searchapi.eastmoney.com/api/suggest/get"
 # 公开 token(满网皆是,非密钥); 若失效会自动回退到启发式
 SEARCH_TOKEN = "D43BF722C8E33BDC906FB84D85E326E8"
-TIMEOUT = 10
-MIN_INTERVAL = 0.2
-_last_call = 0.0
 
 # MktNum → (市场名, SECUCODE 后缀)
 _MKT = {
@@ -48,14 +45,6 @@ _SUFFIX = {
 }
 
 
-def _throttle() -> None:
-    global _last_call
-    gap = time.time() - _last_call
-    if gap < MIN_INTERVAL:
-        time.sleep(MIN_INTERVAL - gap)
-    _last_call = time.time()
-
-
 def _make(code: str, mkt_num: str, name: str = "") -> Dict:
     market, suffix = _MKT.get(mkt_num, ("US_OTHER", ".O"))
     return {
@@ -70,15 +59,14 @@ def _make(code: str, mkt_num: str, name: str = "") -> Dict:
 
 def search(keyword: str, count: int = 10) -> List[Dict]:
     """东财股票搜索 — 返回美股/港股候选。失败返回 []。"""
-    _throttle()
+    r = em_get(SEARCH_URL, params={
+        "input": keyword, "type": 14, "token": SEARCH_TOKEN, "count": count,
+    }, label="search")
+    if r is None:
+        return []
     try:
-        r = requests.get(SEARCH_URL, params={
-            "input": keyword, "type": 14, "token": SEARCH_TOKEN, "count": count,
-        }, headers={"User-Agent": UA}, timeout=TIMEOUT)
-        r.raise_for_status()
         rows = (r.json().get("QuotationCodeTable") or {}).get("Data") or []
-    except (requests.RequestException, ValueError) as e:
-        print(f"  ⚠️  东财 search 失败: {e}", file=sys.stderr)
+    except ValueError:
         return []
 
     out = []

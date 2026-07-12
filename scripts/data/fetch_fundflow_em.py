@@ -19,20 +19,16 @@ Usage:
 import json
 import os
 import sys
-import time
 from typing import Dict, List
-
-import requests
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from _em_symbols import resolve  # noqa: E402
+from _em_http import em_get  # noqa: E402  统一防封出口(串行+抖动+session)
 
 FFLOW_URL = "https://push2his.eastmoney.com/api/qt/stock/fflow/daykline/get"
-UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36"
-TIMEOUT = 15
 
 
-def get_fund_flow(secid: str, days: int = 20, retries: int = 3) -> List[Dict]:
+def get_fund_flow(secid: str, days: int = 20) -> List[Dict]:
     """近 N 日资金流。空/失败静默返回 []，永不抛。"""
     params = {
         "secid": secid, "klt": 101,
@@ -40,20 +36,12 @@ def get_fund_flow(secid: str, days: int = 20, retries: int = 3) -> List[Dict]:
         "fields2": "f51,f52,f53,f54,f55,f56,f57",
         "lmt": days,
     }
-    for attempt in range(retries):
-        try:
-            r = requests.get(FFLOW_URL, params=params,
-                             headers={"User-Agent": UA}, timeout=TIMEOUT)
-            r.raise_for_status()
-            data = (r.json() or {}).get("data") or {}
-            klines = data.get("klines") or []
-            break
-        except (requests.RequestException, ValueError) as e:
-            if attempt == retries - 1:
-                print(f"  ⚠️  东财 push2his 失败: {e}", file=sys.stderr)
-                return []
-            time.sleep(0.8 * (attempt + 1))
-    else:
+    r = em_get(FFLOW_URL, params=params, label="push2his fflow")
+    if r is None:
+        return []
+    try:
+        klines = ((r.json() or {}).get("data") or {}).get("klines") or []
+    except ValueError:
         return []
 
     out = []

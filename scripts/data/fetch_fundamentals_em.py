@@ -19,19 +19,13 @@ Usage:
 import json
 import os
 import sys
-import time
-from typing import Dict, List, Optional
-
-import requests
+from typing import Dict, List
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from _em_symbols import resolve  # noqa: E402
+from _em_http import em_get  # noqa: E402  统一防封出口(串行+抖动+session)
 
-UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36"
 DATACENTER_URL = "https://datacenter-web.eastmoney.com/api/data/v1/get"
-TIMEOUT = 15
-MIN_INTERVAL = 0.25
-_last_call = 0.0
 
 # statement → {market: reportName}  (命名不统一: balance/income 用 F10, cashflow 用 SK)
 _REPORT_MAP = {
@@ -53,14 +47,6 @@ _INDICATOR_FIELDS = [
 ]
 
 
-def _throttle() -> None:
-    global _last_call
-    gap = time.time() - _last_call
-    if gap < MIN_INTERVAL:
-        time.sleep(MIN_INTERVAL - gap)
-    _last_call = time.time()
-
-
 def _fmt(v, is_pct: bool = False) -> str:
     """人读格式化(仅用于 print, JSON 保留原始精度)。大额→亿/万, 比率→2位。"""
     if not isinstance(v, (int, float)):
@@ -75,7 +61,7 @@ def _fmt(v, is_pct: bool = False) -> str:
     return f"{v:.4g}"
 
 
-def _datacenter(report_name: str, secucode: str, page_size: int, retries: int = 3) -> List[Dict]:
+def _datacenter(report_name: str, secucode: str, page_size: int) -> List[Dict]:
     """东财数据中心统一查询。空/失败静默返回 []，永不抛。"""
     params = {
         "reportName": report_name, "columns": "ALL",
@@ -83,22 +69,16 @@ def _datacenter(report_name: str, secucode: str, page_size: int, retries: int = 
         "pageSize": str(page_size), "sortColumns": "REPORT_DATE",
         "sortTypes": "-1", "source": "WEB", "client": "WEB",
     }
-    for attempt in range(retries):
-        _throttle()
-        try:
-            r = requests.get(DATACENTER_URL, params=params,
-                             headers={"User-Agent": UA}, timeout=TIMEOUT)
-            r.raise_for_status()
-            d = r.json()
-            res = d.get("result")
-            if res and res.get("data"):
-                return res["data"]
-            return []  # 合法空 (该报表无此票)
-        except (requests.RequestException, ValueError) as e:
-            if attempt == retries - 1:
-                print(f"  ⚠️  东财 datacenter 失败 ({report_name}): {e}", file=sys.stderr)
-            time.sleep(0.8 * (attempt + 1))
-    return []
+    r = em_get(DATACENTER_URL, params=params, label=f"datacenter {report_name}")
+    if r is None:
+        return []
+    try:
+        res = (r.json() or {}).get("result")
+    except ValueError:
+        return []
+    if res and res.get("data"):
+        return res["data"]
+    return []  # 合法空 (该报表无此票)
 
 
 def get_indicators(secucode: str, market: str, periods: int = 4) -> List[Dict]:

@@ -18,12 +18,9 @@ Fail-soft: any source error -> that slice is empty, never raises.
 import json
 import re
 import sys
-import time
 import urllib.parse
 from datetime import datetime, timezone
 from pathlib import Path
-
-import requests
 
 WS = Path(__file__).resolve().parents[2]
 PORTFOLIO = WS / 'portfolio.json'
@@ -32,6 +29,7 @@ UA = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36'
 TIMEOUT = 12
 
 sys.path.insert(0, str(WS / 'scripts' / 'data'))
+from _em_http import em_get  # noqa: E402  统一防封出口(串行+抖动+session)
 try:
     from safe_io import safe_write_json
 except Exception:
@@ -51,7 +49,10 @@ def em_stock_news(keyword, limit=3):
     url = ('https://search-api-web.eastmoney.com/search/jsonp?cb=x&param='
            + urllib.parse.quote(json.dumps(param, ensure_ascii=False)))
     try:
-        t = requests.get(url, headers={'User-Agent': UA}, timeout=TIMEOUT).text
+        r = em_get(url, headers={'User-Agent': UA}, timeout=TIMEOUT, label='em-search')
+        if r is None:
+            return []
+        t = r.text
         m = re.search(r'\((\{.*\})\)\s*;?\s*$', t, re.S)
         d = json.loads(m.group(1))
         arts = (d.get('result') or {}).get('cmsArticleWebOld') or []
@@ -72,7 +73,10 @@ def em_fast_news(limit=6):
     """Market 7x24 快讯 — macro/sector context."""
     url = f'https://newsapi.eastmoney.com/kuaixun/v1/getlist_102_ajaxResult_{limit}_1_.html'
     try:
-        t = requests.get(url, headers={'User-Agent': UA}, timeout=TIMEOUT).text
+        r = em_get(url, headers={'User-Agent': UA}, timeout=TIMEOUT, label='em-724')
+        if r is None:
+            return []
+        t = r.text
         m = re.search(r'=\s*(\{.*\})\s*;?\s*$', t, re.S)
         d = json.loads(m.group(1))
         out = []
@@ -117,7 +121,7 @@ def main():
         items = em_stock_news(name)
         if items:
             by_ticker[ticker] = {'name': name, 'items': items}
-        time.sleep(0.4)  # gentle on the endpoint (kcn worries about minute limits)
+        # 限速已由 em_get 统一处理(串行 >=1s + 抖动),无需再手 sleep
     out = {
         'generated_at': datetime.now(timezone.utc).astimezone().isoformat(timespec='seconds'),
         'source': 'eastmoney (Chinese-language info layer)',
