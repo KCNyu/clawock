@@ -7,6 +7,7 @@ baseurl: /clawock
 # unlike a hand-written static file). GitHub Pages supports this plugin natively.
 plugins:
   - jekyll-sitemap
+  - jekyll-seo-tag   # per-page <title>/description/canonical/OpenGraph/Twitter/JSON-LD
 
 markdown: kramdown
 kramdown:
@@ -52,6 +53,9 @@ defaults:
       path: ""
     values:
       layout: default
+      # default OpenGraph/Twitter image for pages that don't set their own (briefs) —
+      # jekyll-seo-tag picks this up so every page shares a proper social card
+      image: https://kcnyu.github.io/clawock/assets/social-card.png
 
 # Author
 author:
