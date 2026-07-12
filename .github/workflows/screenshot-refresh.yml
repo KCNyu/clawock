@@ -33,16 +33,21 @@ jobs:
           npm install --silent playwright@1.60.0
           npx playwright install --with-deps chromium
 
-      - name: Capture desktop + mobile
+      - name: Capture desktop + mobile + social card + gif frames
         run: |
-          mkdir -p docs
+          mkdir -p docs assets
           NODE_PATH="$GITHUB_WORKSPACE/node_modules" node scripts/data/shoot_dashboard.js
+
+      - name: Assemble tab-cycle GIF
+        run: |
+          python3 -m pip install --quiet --upgrade Pillow
+          python3 scripts/data/assemble_dashboard_gif.py
 
       - name: Commit if changed
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add docs/dashboard-preview.png docs/dashboard-mobile.png
+          git add docs/dashboard-preview.png docs/dashboard-mobile.png assets/social-card.png assets/dashboard.gif
           if git diff --cached --quiet; then
             echo "no visual change"
             exit 0

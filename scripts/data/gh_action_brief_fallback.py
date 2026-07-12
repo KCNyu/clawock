@@ -49,8 +49,11 @@ def main():
         md_part = out
         json_part = '{}'
 
+    desc = (f"clawock 盘前深度简报 {today}：港股 + 美股真实持仓的多空辩论、量化因子、"
+            f"风控硬闸与 AI 自评战绩（诚实公开，承认主动操作跑输躺平）。")
     md_with_fm = (
-        f"---\nlayout: default\ntitle: 盘前深度简报 · {today} (xiaomi fallback)\n---\n\n"
+        f"---\nlayout: default\ntitle: 盘前深度简报 · {today} (xiaomi fallback)\n"
+        f'description: "{desc}"\n---\n\n'
         + md_part.strip()
     )
     Path(f'memory/{today}-pre-open.md').write_text(md_with_fm)

@@ -33,6 +33,11 @@ assets/data/integrity_report.json
 *.jpeg
 *.gif
 *.mp4
+# README/social artifacts (refreshed weekly by screenshot-refresh.yml) — allow these
+!assets/social-card.png
+!assets/dashboard.gif
+# per-tab frames are transient inputs to assemble_dashboard_gif.py — never commit
+.gifframes/
 
 # IDE / OS
 .vscode/

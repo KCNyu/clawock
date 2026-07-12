@@ -22,6 +22,12 @@
 
 <sub>Real positions. Real P&L. The page updates after every cron run; this screenshot refreshes weekly via a <a href="https://github.com/KCNyu/clawock/actions/workflows/screenshot-refresh.yml">GitHub Action</a> so it never drifts.</sub>
 
+<br>
+
+<a href="https://kcnyu.github.io/clawock/"><img src="assets/dashboard.gif" alt="clawock dashboard cycling through its six tabs" width="300"></a>
+
+<sub>📱 Cycling all six tabs — Hero · Holdings · Risk · Signals · Plan · <b>Reflect</b> (the self-grading scorecard). Regenerated weekly alongside the screenshot.</sub>
+
 <br><br>
 
 🪞 **Grades its own trades** — and admits they lose to buy-and-hold &nbsp;·&nbsp; 💸 **Real money**, not a paper sim &nbsp;·&nbsp; 🗣️ **Bull-vs-bear AI debate** every morning &nbsp;·&nbsp; 🛡️ **Python does the math** — unit-tested, so the LLM can't fudge the score &nbsp;·&nbsp; 🌏 **Bilingual** HK + US &nbsp;·&nbsp; 🌐 **Live public dashboard**

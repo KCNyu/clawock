@@ -22,6 +22,12 @@
 
 <sub>真实持仓,真实盈亏。页面在每次 cron 运行后更新;这张截图每周由 <a href="https://github.com/KCNyu/clawock/actions/workflows/screenshot-refresh.yml">GitHub Action</a> 自动刷新,永不过期。</sub>
 
+<br>
+
+<a href="https://kcnyu.github.io/clawock/"><img src="assets/dashboard.gif" alt="clawock 仪表盘循环六个标签页" width="300"></a>
+
+<sub>📱 循环六个标签页 — 总览 · 持仓 · 风控 · 信号 · 计划 · <b>诚实</b>(自评战绩卡)。跟截图一起每周自动重生。</sub>
+
 <br><br>
 
 🪞 **给自己打分**——还承认主动操作跑输躺平 &nbsp;·&nbsp; 💸 **真金白银**,不是模拟盘 &nbsp;·&nbsp; 🗣️ 每天早上一场 **AI 牛熊辩论** &nbsp;·&nbsp; 🛡️ **算账全在 Python**——有单元测试兜底,LLM 改不了成绩单 &nbsp;·&nbsp; 🌏 **双语** 港股 + 美股 &nbsp;·&nbsp; 🌐 **实时公开仪表盘**

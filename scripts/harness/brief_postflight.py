@@ -346,7 +346,14 @@ def _ensure_jekyll_front_matter(md_path, date):
     # Strip stale empty `---\n\n` if present
     if content.startswith('---\n\n') and 'layout:' not in content[:200]:
         content = content[5:].lstrip()
-    fm = f'---\nlayout: default\ntitle: 盘前深度简报 · {date}\n---\n\n'
+    # Per-page meta description → unique, keyword-rich (the `default` layout emits it
+    # as <meta name=description>). Without this every brief falls back to the site-wide
+    # description = duplicate meta across all pages = near-zero long-tail SEO. The date
+    # makes each one unique; the keywords target the topics people actually search.
+    desc = (f'clawock 盘前深度简报 {date}：港股 + 美股真实持仓的多空辩论、量化因子、'
+            f'风控硬闸与 AI 自评战绩（诚实公开，承认主动操作跑输躺平）。')
+    fm = (f'---\nlayout: default\ntitle: 盘前深度简报 · {date}\n'
+          f'description: "{desc}"\n---\n\n')
     md_path.write_text(fm + content)
 
 
