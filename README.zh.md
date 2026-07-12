@@ -210,7 +210,36 @@
 
 <sub>消息层刻意**双语**:Finnhub + Google News(英文/美股)*和* 东财公司新闻 + 7×24 快讯(中文/港股)——半个组合在香港,港股催化常在中文源先出。**信息广度是唯一刻意做宽的轴**(LLM 最擅长信息收集),与刻意收窄的决策层分开。</sub>
 
-📊 完整端点目录与本机实测可达性 → [`scripts/data/README.md`](scripts/data/README.md)
+<details>
+<summary><b>📊 数据工具包 — 8 层 26 端点，含每源本机可达性</b></summary>
+
+<br>
+
+每个 fetcher **无 key 优先**（能用公开端点绝不要 key；唯一需 key 的 Finnhub 有免 key fallback）+ **多源降级**（主源挂了自动落下一个；抓空保留旧值不整片覆盖）。**可达** 列是本机服务器 IP 实测，不是文档宣称：✅ 稳定 · 🟡 flaky/限流 · 🔴 本机被封（保留代码，换 IP 可用）。
+
+| 层 | 端点 | 主数据源 |
+|---|:---:|---|
+| 1 · 行情 | 5 | 腾讯 gtimg · Yahoo v8 · 东财基金 |
+| 2 · 基本面/申报 | 2 | SEC EDGAR · 东财 datacenter |
+| 3 · 资金面 | 1 | 东财 push2his |
+| 4 · 消息面 | 3 | 东财 · Finnhub · Google News |
+| 5 · 宏观/情绪 | 4 | Yahoo · Reddit · Truth Social |
+| 6 · 量化因子 | 4 | 派生(纯算术) |
+| 7 · 汇率/校验 | 2 | Frankfurter · 本地不变量 |
+| 8 · 回测/自省 | 5 | 本地快照 + 日线 |
+
+- **1 · 行情** — `fetch_us_stocks` 美股实时价·多provider链 ✅ · `analyze_us_stocks` 美股刷新+RSI ✅ · `analyze_hk_stocks` 港股实时+HSI/HSTECH+新闻+信号 ✅ · `fetch_benchmark_history` SPY/HSI/HSTECH 日线 ✅ · `fetch_gold_dca` 黄金定投 000217 净值 ✅
+- **2 · 基本面** — `fetch_us_filings` 10-K/10-Q·Form4·13F·XBRL(SEC) ✅ · `fetch_fundamentals_em` 美/港财报三表+关键指标 ✅
+- **3 · 资金面** — `fetch_fundflow_em` 日级主力/超大/大/中/小单净流入 🟡
+- **4 · 消息面** — `fetch_em_news` 港股个股中文新闻+7×24快讯 ✅ · `gh_action_news_digest` 美股持仓新闻→可执行要点 ✅ · `fetch_catalysts` 未来14天财报/事件 🟡
+- **5 · 宏观/情绪** — `fetch_macro` VIX+宏观速读 ✅ · `fetch_sentiment` Reddit 情绪 🟡 · `fetch_influencer_feed` Trump/Musk 言论 🟡 · `fetch_peers` 同业现价+5日P&L ✅
+- **6 · 量化因子**(纯算术零外部依赖) — `compute_quant_signals` 双均线/动量/RSI/ATR/vol-target ✅ · `compute_regime` 杠杆刻度盘(200DMA+波动带) ✅ · `compute_t0_setups` T+0牌面评级+追高检测 ✅ · `portfolio_risk_metrics` β/Cov-Var/回撤/集中度 ✅
+- **7 · 汇率/校验** — `fetch_fx` USDHKD 3路fallback ✅ · `preflight_integrity` 钱守恒硬闸(TCV/PNL/FX/cash) ✅
+- **8 · 回测/自省** — `backtest_hstech_regime` · `backtest_us_leverage` · `backtest_combined_regime` · `shadow_backtest`(「全听AI」反事实) · `quant_signal_review` + `t0_setup_review`(T+1/T+5 命中率自检) ✅
+
+**防封** — 所有东财调用统一走 `_em_http.em_get()`：进程内串行(≥1s + 随机抖动)、单 `Session` 复用、3 次重试后优雅 `None`。完整逐文件目录见 [`scripts/data/README.md`](scripts/data/README.md)。
+
+</details>
 
 <details>
 <summary><b>📂 仓库结构</b></summary>

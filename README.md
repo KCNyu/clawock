@@ -210,7 +210,36 @@ The constraints `postflight` won't let the model violate. Quant readers will rec
 
 <sub>The news layer is deliberately **bilingual**: Finnhub + Google News (English/US) *and* Eastmoney company news + 7×24 快讯 (Chinese/HK), since half the book is Hong Kong and HK catalysts surface in Chinese sources first. Information breadth is the one axis kept wide on purpose — it's what an LLM is best at — separate from the deliberately-narrow decision layer.</sub>
 
-📊 Full endpoint catalog with per-host reachability → [`scripts/data/README.md`](scripts/data/README.md)
+<details>
+<summary><b>📊 Data toolkit — 26 endpoints across 8 layers, with per-host reachability</b></summary>
+
+<br>
+
+Every fetcher is **no-key-first** (public endpoints before any API key; the one that needs a key — Finnhub — has a key-free fallback) and **multi-source** (a dead primary falls through to the next; an empty fetch keeps the prior value instead of overwriting). The **Reach** marks are measured on the live server IP, not claimed: ✅ stable · 🟡 flaky / rate-limited · 🔴 IP-banned here (code kept — works from another IP).
+
+| Layer | Endpoints | Primary sources |
+|---|:---:|---|
+| 1 · Market | 5 | Tencent gtimg · Yahoo v8 · Eastmoney fund |
+| 2 · Fundamentals & filings | 2 | SEC EDGAR · Eastmoney datacenter |
+| 3 · Capital flow | 1 | Eastmoney push2his |
+| 4 · News | 3 | Eastmoney · Finnhub · Google News |
+| 5 · Macro & sentiment | 4 | Yahoo · Reddit · Truth Social |
+| 6 · Quant signals | 4 | derived (pure arithmetic) |
+| 7 · FX & integrity | 2 | Frankfurter · local invariants |
+| 8 · Backtest & calibration | 5 | local snapshots + daily bars |
+
+- **1 · Market** — `fetch_us_stocks` US live prices, multi-provider chain ✅ · `analyze_us_stocks` US refresh + RSI ✅ · `analyze_hk_stocks` HK live + HSI/HSTECH + news + signals ✅ · `fetch_benchmark_history` SPY/HSI/HSTECH daily bars ✅ · `fetch_gold_dca` gold-fund 000217 NAV ✅
+- **2 · Fundamentals** — `fetch_us_filings` 10-K/10-Q · Form 4 · 13F · XBRL (SEC EDGAR) ✅ · `fetch_fundamentals_em` US/HK statements + key metrics ✅
+- **3 · Capital flow** — `fetch_fundflow_em` daily main/large/mid/small net order flow 🟡
+- **4 · News** — `fetch_em_news` HK company news + 7×24 flash (Chinese) ✅ · `gh_action_news_digest` US holdings news → actionable bullets ✅ · `fetch_catalysts` next-14-day earnings/events 🟡
+- **5 · Macro & sentiment** — `fetch_macro` VIX + macro read ✅ · `fetch_sentiment` Reddit WSB/stocks/investing 🟡 · `fetch_influencer_feed` Trump/Musk market-movers 🟡 · `fetch_peers` peer prices + 5-day P&L ✅
+- **6 · Quant signals** (pure arithmetic, zero external deps) — `compute_quant_signals` dual-MA/momentum/RSI/ATR/vol-target ✅ · `compute_regime` leverage dial (200DMA + vol band) ✅ · `compute_t0_setups` T+0 setup grading + chase detection ✅ · `portfolio_risk_metrics` β / Cov-Var / drawdown / concentration ✅
+- **7 · FX & integrity** — `fetch_fx` USDHKD, 3-route fallback ✅ · `preflight_integrity` money-conservation gate (TCV/PNL/FX/cash) ✅
+- **8 · Backtest & calibration** — `backtest_hstech_regime` · `backtest_us_leverage` · `backtest_combined_regime` · `shadow_backtest` ("what if I'd followed every AI call") · `quant_signal_review` + `t0_setup_review` (T+1/T+5 hit-rate self-audit) ✅
+
+**Anti-ban** — all Eastmoney calls route through one wrapper `_em_http.em_get()`: in-process serialization (≥1s gap + random jitter), single reused `Session`, 3 retries then graceful `None`. Full per-file catalog: [`scripts/data/README.md`](scripts/data/README.md).
+
+</details>
 
 <details>
 <summary><b>📂 Repository layout</b></summary>
