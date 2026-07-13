@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-13T15:37:06.017447+00:00",
+  "generated_at": "2026-07-13T22:31:56.199172+00:00",
   "lookback_hours": 48,
   "sources": {
     "trump": "trumpstruth.org/feed (primary)",
@@ -9,62 +9,11 @@
   "llm_filtered": true,
   "counts": {
     "total": 10,
-    "held_hits": 5,
+    "held_hits": 4,
     "new_ideas": 0,
-    "sector_hits": 2
+    "sector_hits": 5
   },
   "items": [
-    {
-      "author": "Musk",
-      "text": "J.P. Morgan Called a Potential Elon Musk SpaceX-Tesla Merger \"Strategically Coherent\"",
-      "url": "",
-      "published": "Sun, 12 Jul 2026 20:50:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Yahoo Finance",
-      "tickers": [
-        "SPCX",
-        "SPCH"
-      ],
-      "held": [
-        "SPCH",
-        "SPCX"
-      ],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "电动车",
-        "Tesla-SpaceX合并"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 82,
-      "summary_cn": "JPMorgan称SpaceX与Tesla潜在合并'战略上合理'，若成行将重塑Musk系公司架构，直接利好kcn持有的SpaceX ETF。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk Says His Goal Is for SpaceX to Be Worth More than the Entire Earth",
-      "url": "",
-      "published": "Fri, 10 Jul 2026 16:53:24 GMT",
-      "origin": "gnews-rss",
-      "source": "Futurism",
-      "tickers": [
-        "SPCX",
-        "SPCH"
-      ],
-      "held": [
-        "SPCH",
-        "SPCX"
-      ],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "SpaceX"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 80,
-      "summary_cn": "Musk公开目标：让SpaceX市值超过整个地球GDP总和，极度看多自家公司，直接强化SpaceX估值叙事。"
-    },
     {
       "author": "Musk",
       "text": "The SpaceX IPO made history. One month on has it lost momentum?",
@@ -72,10 +21,28 @@
       "published": "Mon, 13 Jul 2026 11:45:25 GMT",
       "origin": "gnews-rss",
       "source": "BBC",
-      "tickers": [
-        "SPCX",
-        "SPCH"
+      "tickers": [],
+      "held": [
+        "SPCH",
+        "SPCX"
       ],
+      "new_ideas": [],
+      "sectors": [
+        "航天"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 82,
+      "summary_cn": "回顾SpaceX IPO历史性表现及上市一个月后动能是否消退，直接关联kcn的SpaceX持仓"
+    },
+    {
+      "author": "Musk",
+      "text": "Would A SpaceX-Tesla Merger Make Elon Musk Unstoppable?",
+      "url": "",
+      "published": "Mon, 13 Jul 2026 20:06:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Investor's Business Daily",
+      "tickers": [],
       "held": [
         "SPCH",
         "SPCX"
@@ -83,12 +50,12 @@
       "new_ideas": [],
       "sectors": [
         "航天",
-        "SpaceX"
+        "电动车"
       ],
       "sector_holdings": [],
       "stance": "neutral",
       "relevance": 78,
-      "summary_cn": "新闻讨论SpaceX IPO一个月后表现与动能，Musk话题引关注，直接关联kcn持有的SpaceX相关标的。"
+      "summary_cn": "讨论SpaceX与Tesla合并可能性，若实现将大幅提升Musk帝国估值"
     },
     {
       "author": "Musk",
@@ -97,91 +64,40 @@
       "published": "Mon, 13 Jul 2026 13:33:00 GMT",
       "origin": "gnews-rss",
       "source": "thestreet.com",
-      "tickers": [
-        "SPCX",
-        "SPCH"
-      ],
+      "tickers": [],
       "held": [
         "SPCH",
         "SPCX"
       ],
       "new_ideas": [],
       "sectors": [
-        "航天",
-        "SpaceX"
+        "航天"
       ],
       "sector_holdings": [],
       "stance": "neutral",
-      "relevance": 76,
-      "summary_cn": "新闻聚焦Musk向SpaceX投资者做出的惊人表态/承诺，对SpaceX估值叙事至关重要，直接影响kcn持仓。"
+      "relevance": 75,
+      "summary_cn": "Musk对SpaceX投资者做出惊人表态/承诺，直接影响kcn的SpaceX持仓"
     },
     {
       "author": "Musk",
-      "text": "SpaceX and Amazon are tech dopplegangers worth $4.5 trillion—and they're headed for a collision",
+      "text": "Musk’s Net Worth Drops Below $900 Billion With SpaceX Nearing IPO Value",
       "url": "",
-      "published": "Mon, 13 Jul 2026 07:01:00 GMT",
+      "published": "Mon, 13 Jul 2026 16:19:54 GMT",
       "origin": "gnews-rss",
-      "source": "Fortune",
-      "tickers": [
-        "SPCX",
-        "SPCH"
-      ],
+      "source": "Forbes",
+      "tickers": [],
       "held": [
         "SPCH",
         "SPCX"
       ],
       "new_ideas": [],
       "sectors": [
-        "航天",
-        "云计算",
-        "科技巨头"
+        "航天"
       ],
       "sector_holdings": [],
       "stance": "neutral",
       "relevance": 72,
-      "summary_cn": "报道将SpaceX与Amazon并列为4.5万亿美元科技双雄，称两者业务正面碰撞，影响SpaceX估值想象空间。"
-    },
-    {
-      "author": "Trump",
-      "text": "In honor of Senator Lindsey Graham, a big supporter, the U.S. Senate should pass the Clarity Act. China, and many other countries, would like to take complete and total control of this major financial “happening,” as well as A.I., where we are now leading, but where they are fighting hard. Don’t let China win on either subject!!! President DONALD J. TRUMP",
-      "url": "https://trumpstruth.org/statuses/40007",
-      "published": "2026-07-13T14:26:03+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "加密货币",
-        "AI",
-        "中国"
-      ],
-      "sector_holdings": [
-        "CRCL"
-      ],
-      "stance": "neutral",
-      "relevance": 68,
-      "summary_cn": "Trump呼吁参议院通过Clarity Act，主张美国在加密货币和AI领域保持领先、阻止中国超越，政策导向利好加密板块。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk and Sam Altman Are Fighting in Public Again",
-      "url": "",
-      "published": "Sun, 12 Jul 2026 22:00:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Business Insider",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "AI"
-      ],
-      "sector_holdings": [
-        "MSFU",
-        "SKHY"
-      ],
-      "stance": "neutral",
-      "relevance": 55,
-      "summary_cn": "Musk与Sam Altman再次公开互怼，OpenAI/xAI口水战升级，反映AI行业内部竞争与叙事博弈。"
+      "summary_cn": "Musk净资产跌破9000亿美元，SpaceX IPO估值接近，间接影响kcn的SpaceX相关持仓"
     },
     {
       "author": "Trump",
@@ -194,184 +110,17 @@
       "new_ideas": [],
       "sectors": [
         "能源",
-        "原油运输",
-        "地缘政治"
+        "航运",
+        "地缘政治",
+        "油价"
       ],
-      "sector_holdings": [],
+      "sector_holdings": [
+        "02208"
+      ],
       "stance": "neutral",
-      "relevance": 58,
-      "summary_cn": "Trump宣布霍尔木兹海峡开放并对所有过境货物征收20%费用，重申对伊朗封锁，重大地缘与能源运输政策信号。"
+      "relevance": 75,
+      "summary_cn": "Trump宣布霍尔木兹海峡开放并对过境货物征收20%费用，重申美国为'霍尔兹海峡守护者'，影响油价与能源板块"
     },
-    {
-      "author": "Musk",
-      "text": "Tesla Stock Is Falling. Can Robots Arrive Soon Enough to Save It?",
-      "url": "",
-      "published": "Mon, 13 Jul 2026 13:51:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Barron's",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "电动车",
-        "机器人",
-        "特斯拉"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 55,
-      "summary_cn": "Tesla股价下跌，焦点转向Optimus机器人能否及时落地提振估值，间接反映Musk对Tesla未来叙事重心。"
-    },
-    {
-      "author": "Trump",
-      "text": "BIG WIN at the Supreme Court, in the Slaughter Case, confirming Presidential Power in our Country to remove Executive Branch Officers and Agency Appointees, or Representatives, under Article II. This Decision was long sought by United States Presidents, dating all the way back to the 1930s. It is such an Honor to be the sitting President who won this Historic and Unprecedented Ruling, one of the most important ever given with respect to Presidential Powers. Thank you for your attention to this matter! President DONALD J. TRUMP",
-      "url": "https://trumpstruth.org/statuses/39992",
-      "published": "2026-07-13T13:19:19+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "行政权力",
-        "监管"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 50,
-      "summary_cn": "Trump庆祝最高法院Slaughter案胜诉，确认总统可依Article II移除行政部门/机构官员，扩大行政权对监管机构影响力。"
-    }
-  ],
-  "held_hits": [
-    {
-      "author": "Musk",
-      "text": "J.P. Morgan Called a Potential Elon Musk SpaceX-Tesla Merger \"Strategically Coherent\"",
-      "url": "",
-      "published": "Sun, 12 Jul 2026 20:50:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Yahoo Finance",
-      "tickers": [
-        "SPCX",
-        "SPCH"
-      ],
-      "held": [
-        "SPCH",
-        "SPCX"
-      ],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "电动车",
-        "Tesla-SpaceX合并"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 82,
-      "summary_cn": "JPMorgan称SpaceX与Tesla潜在合并'战略上合理'，若成行将重塑Musk系公司架构，直接利好kcn持有的SpaceX ETF。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk Says His Goal Is for SpaceX to Be Worth More than the Entire Earth",
-      "url": "",
-      "published": "Fri, 10 Jul 2026 16:53:24 GMT",
-      "origin": "gnews-rss",
-      "source": "Futurism",
-      "tickers": [
-        "SPCX",
-        "SPCH"
-      ],
-      "held": [
-        "SPCH",
-        "SPCX"
-      ],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "SpaceX"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 80,
-      "summary_cn": "Musk公开目标：让SpaceX市值超过整个地球GDP总和，极度看多自家公司，直接强化SpaceX估值叙事。"
-    },
-    {
-      "author": "Musk",
-      "text": "The SpaceX IPO made history. One month on has it lost momentum?",
-      "url": "",
-      "published": "Mon, 13 Jul 2026 11:45:25 GMT",
-      "origin": "gnews-rss",
-      "source": "BBC",
-      "tickers": [
-        "SPCX",
-        "SPCH"
-      ],
-      "held": [
-        "SPCH",
-        "SPCX"
-      ],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "SpaceX"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 78,
-      "summary_cn": "新闻讨论SpaceX IPO一个月后表现与动能，Musk话题引关注，直接关联kcn持有的SpaceX相关标的。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk’s startling claim to SpaceX investors",
-      "url": "",
-      "published": "Mon, 13 Jul 2026 13:33:00 GMT",
-      "origin": "gnews-rss",
-      "source": "thestreet.com",
-      "tickers": [
-        "SPCX",
-        "SPCH"
-      ],
-      "held": [
-        "SPCH",
-        "SPCX"
-      ],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "SpaceX"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 76,
-      "summary_cn": "新闻聚焦Musk向SpaceX投资者做出的惊人表态/承诺，对SpaceX估值叙事至关重要，直接影响kcn持仓。"
-    },
-    {
-      "author": "Musk",
-      "text": "SpaceX and Amazon are tech dopplegangers worth $4.5 trillion—and they're headed for a collision",
-      "url": "",
-      "published": "Mon, 13 Jul 2026 07:01:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Fortune",
-      "tickers": [
-        "SPCX",
-        "SPCH"
-      ],
-      "held": [
-        "SPCH",
-        "SPCX"
-      ],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "云计算",
-        "科技巨头"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 72,
-      "summary_cn": "报道将SpaceX与Amazon并列为4.5万亿美元科技双雄，称两者业务正面碰撞，影响SpaceX估值想象空间。"
-    }
-  ],
-  "new_ideas": [],
-  "sector_hits": [
     {
       "author": "Trump",
       "text": "In honor of Senator Lindsey Graham, a big supporter, the U.S. Senate should pass the Clarity Act. China, and many other countries, would like to take complete and total control of this major financial “happening,” as well as A.I., where we are now leading, but where they are fighting hard. Don’t let China win on either subject!!! President DONALD J. TRUMP",
@@ -383,23 +132,22 @@
       "new_ideas": [],
       "sectors": [
         "加密货币",
-        "AI",
-        "中国"
+        "AI"
       ],
       "sector_holdings": [
         "CRCL"
       ],
-      "stance": "neutral",
-      "relevance": 68,
-      "summary_cn": "Trump呼吁参议院通过Clarity Act，主张美国在加密货币和AI领域保持领先、阻止中国超越，政策导向利好加密板块。"
+      "stance": "endorse",
+      "relevance": 72,
+      "summary_cn": "Trump呼吁国会通过 Clarity Act，呼吁美国在稳定币和AI领域不能输给中国，间接利好加密板块"
     },
     {
       "author": "Musk",
-      "text": "Elon Musk and Sam Altman Are Fighting in Public Again",
+      "text": "Elon Musk and Sam Altman accuse each other of scamming investors as each pitches their AI vision",
       "url": "",
-      "published": "Sun, 12 Jul 2026 22:00:00 GMT",
+      "published": "Mon, 13 Jul 2026 19:42:00 GMT",
       "origin": "gnews-rss",
-      "source": "Business Insider",
+      "source": "Fortune",
       "tickers": [],
       "held": [],
       "new_ideas": [],
@@ -410,9 +158,262 @@
         "MSFU",
         "SKHY"
       ],
-      "stance": "neutral",
+      "stance": "attack",
+      "relevance": 60,
+      "summary_cn": "Musk与Sam Altman互指对方欺诈投资者，双方推销各自AI愿景"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk, Sam Altman bicker on X after Apple files OpenAI lawsuit",
+      "url": "",
+      "published": "Mon, 13 Jul 2026 15:41:00 GMT",
+      "origin": "gnews-rss",
+      "source": "The Hill",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "AI"
+      ],
+      "sector_holdings": [
+        "MSFU"
+      ],
+      "stance": "attack",
+      "relevance": 58,
+      "summary_cn": "Musk与Altman在X上互相攻击，时机正值Apple起诉OpenAI"
+    },
+    {
+      "author": "Trump",
+      "text": "RT @realDonaldTrump59% Approval Rating. Prices coming down along with the lowering of oil and gas. Thank you! President DJT",
+      "url": "https://trumpstruth.org/statuses/40005",
+      "published": "2026-07-13T13:20:10+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "油价",
+        "能源",
+        "宏观"
+      ],
+      "sector_holdings": [
+        "02208"
+      ],
+      "stance": "endorse",
       "relevance": 55,
-      "summary_cn": "Musk与Sam Altman再次公开互怼，OpenAI/xAI口水战升级，反映AI行业内部竞争与叙事博弈。"
+      "summary_cn": "Trump自夸支持率59%，强调油价气价下行、物价走低"
+    },
+    {
+      "author": "Trump",
+      "text": "BIG WIN at the Supreme Court, in the Slaughter Case, confirming Presidential Power in our Country to remove Executive Branch Officers and Agency Appointees, or Representatives, under Article II. This Decision was long sought by United States Presidents, dating all the way back to the 1930s. It is such an Honor to be the sitting President who won this Historic and Unprecedented Ruling, one of the most important ever given with respect to Presidential Powers. Thank you for your attention to this matter! President DONALD J. TRUMP",
+      "url": "https://trumpstruth.org/statuses/39992",
+      "published": "2026-07-13T13:19:19+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "监管",
+        "总统权力"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 55,
+      "summary_cn": "Trump庆祝最高法院Slaughter案裁决，确认总统有权解除行政分支官员，扩大总统行政权"
+    }
+  ],
+  "held_hits": [
+    {
+      "author": "Musk",
+      "text": "The SpaceX IPO made history. One month on has it lost momentum?",
+      "url": "",
+      "published": "Mon, 13 Jul 2026 11:45:25 GMT",
+      "origin": "gnews-rss",
+      "source": "BBC",
+      "tickers": [],
+      "held": [
+        "SPCH",
+        "SPCX"
+      ],
+      "new_ideas": [],
+      "sectors": [
+        "航天"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 82,
+      "summary_cn": "回顾SpaceX IPO历史性表现及上市一个月后动能是否消退，直接关联kcn的SpaceX持仓"
+    },
+    {
+      "author": "Musk",
+      "text": "Would A SpaceX-Tesla Merger Make Elon Musk Unstoppable?",
+      "url": "",
+      "published": "Mon, 13 Jul 2026 20:06:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Investor's Business Daily",
+      "tickers": [],
+      "held": [
+        "SPCH",
+        "SPCX"
+      ],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "电动车"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 78,
+      "summary_cn": "讨论SpaceX与Tesla合并可能性，若实现将大幅提升Musk帝国估值"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk’s startling claim to SpaceX investors",
+      "url": "",
+      "published": "Mon, 13 Jul 2026 13:33:00 GMT",
+      "origin": "gnews-rss",
+      "source": "thestreet.com",
+      "tickers": [],
+      "held": [
+        "SPCH",
+        "SPCX"
+      ],
+      "new_ideas": [],
+      "sectors": [
+        "航天"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 75,
+      "summary_cn": "Musk对SpaceX投资者做出惊人表态/承诺，直接影响kcn的SpaceX持仓"
+    },
+    {
+      "author": "Musk",
+      "text": "Musk’s Net Worth Drops Below $900 Billion With SpaceX Nearing IPO Value",
+      "url": "",
+      "published": "Mon, 13 Jul 2026 16:19:54 GMT",
+      "origin": "gnews-rss",
+      "source": "Forbes",
+      "tickers": [],
+      "held": [
+        "SPCH",
+        "SPCX"
+      ],
+      "new_ideas": [],
+      "sectors": [
+        "航天"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 72,
+      "summary_cn": "Musk净资产跌破9000亿美元，SpaceX IPO估值接近，间接影响kcn的SpaceX相关持仓"
+    }
+  ],
+  "new_ideas": [],
+  "sector_hits": [
+    {
+      "author": "Trump",
+      "text": "The Hormuz Strait is OPEN, and will remain OPEN, with or without Iran. We are reinstating the THE IRANIAN BLOCKADE, so named because it is only stopping Iran’s ships or customers from entering or leaving. All other countries will have fair and open use of the Strait. The U.S.A. will be, from this point forward, known as “THE GUARDIAN OF THE HORMUZ STRAIT,” but as such, and as a matter of FAIRNESS, will be reimbursed, at the rate of 20% on all cargo shipped, for any and all costs necessary to do the job of providing safety and security to this very volatile section of the World. The process and",
+      "url": "https://trumpstruth.org/statuses/40006",
+      "published": "2026-07-13T14:16:44+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "能源",
+        "航运",
+        "地缘政治",
+        "油价"
+      ],
+      "sector_holdings": [
+        "02208"
+      ],
+      "stance": "neutral",
+      "relevance": 75,
+      "summary_cn": "Trump宣布霍尔木兹海峡开放并对过境货物征收20%费用，重申美国为'霍尔兹海峡守护者'，影响油价与能源板块"
+    },
+    {
+      "author": "Trump",
+      "text": "In honor of Senator Lindsey Graham, a big supporter, the U.S. Senate should pass the Clarity Act. China, and many other countries, would like to take complete and total control of this major financial “happening,” as well as A.I., where we are now leading, but where they are fighting hard. Don’t let China win on either subject!!! President DONALD J. TRUMP",
+      "url": "https://trumpstruth.org/statuses/40007",
+      "published": "2026-07-13T14:26:03+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "加密货币",
+        "AI"
+      ],
+      "sector_holdings": [
+        "CRCL"
+      ],
+      "stance": "endorse",
+      "relevance": 72,
+      "summary_cn": "Trump呼吁国会通过 Clarity Act，呼吁美国在稳定币和AI领域不能输给中国，间接利好加密板块"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk and Sam Altman accuse each other of scamming investors as each pitches their AI vision",
+      "url": "",
+      "published": "Mon, 13 Jul 2026 19:42:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Fortune",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "AI"
+      ],
+      "sector_holdings": [
+        "MSFU",
+        "SKHY"
+      ],
+      "stance": "attack",
+      "relevance": 60,
+      "summary_cn": "Musk与Sam Altman互指对方欺诈投资者，双方推销各自AI愿景"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk, Sam Altman bicker on X after Apple files OpenAI lawsuit",
+      "url": "",
+      "published": "Mon, 13 Jul 2026 15:41:00 GMT",
+      "origin": "gnews-rss",
+      "source": "The Hill",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "AI"
+      ],
+      "sector_holdings": [
+        "MSFU"
+      ],
+      "stance": "attack",
+      "relevance": 58,
+      "summary_cn": "Musk与Altman在X上互相攻击，时机正值Apple起诉OpenAI"
+    },
+    {
+      "author": "Trump",
+      "text": "RT @realDonaldTrump59% Approval Rating. Prices coming down along with the lowering of oil and gas. Thank you! President DJT",
+      "url": "https://trumpstruth.org/statuses/40005",
+      "published": "2026-07-13T13:20:10+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "油价",
+        "能源",
+        "宏观"
+      ],
+      "sector_holdings": [
+        "02208"
+      ],
+      "stance": "endorse",
+      "relevance": 55,
+      "summary_cn": "Trump自夸支持率59%，强调油价气价下行、物价走低"
     }
   ]
 }
