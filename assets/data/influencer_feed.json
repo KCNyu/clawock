@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-12T22:27:34.445622+00:00",
+  "generated_at": "2026-07-13T15:37:06.017447+00:00",
   "lookback_hours": 48,
   "sources": {
     "trump": "trumpstruth.org/feed (primary)",
@@ -9,133 +9,12 @@
   "llm_filtered": true,
   "counts": {
     "total": 10,
-    "held_hits": 0,
-    "new_ideas": 6,
-    "sector_hits": 4
+    "held_hits": 5,
+    "new_ideas": 0,
+    "sector_hits": 2
   },
   "items": [
     {
-      "author": "Trump",
-      "text": "“Last week, I shared with President Trump that, because of his leadership and policies, Micron would announce today that we are ahead of schedule and increasing our U.S. manufacturing and R&D investment from $200 billion to $250 billion—creating 100,000 American jobs. Today, I was proud to make that announcement in New York alongside Secretary Lutnick, Administrator Loeffler, and White Chief Technology Officer, Dr. Ethan Klein. It’s another example of the Trump effect driving historic private-sector investment, American manufacturing, and job creation.”   SANJAY MEHROTRA, CEO OF MICRON TECHNOL",
-      "url": "https://trumpstruth.org/statuses/39931",
-      "published": "2026-07-10T23:35:40+00:00",
-      "origin": "truthsocial",
-      "tickers": [
-        "MU"
-      ],
-      "held": [],
-      "new_ideas": [
-        "MU"
-      ],
-      "sectors": [
-        "半导体",
-        "AI"
-      ],
-      "sector_holdings": [
-        "SKHYV"
-      ],
-      "stance": "endorse",
-      "relevance": 78,
-      "summary_cn": "Trump分享美光CEO声明，宣布在美投资从2000亿提至2500亿美元、创造10万就业，归功于Trump政策。"
-    },
-    {
-      "author": "Trump",
-      "text": "BIGGER INVESTMENTS JUST KEEP COMING! The Trump Effect is REAL! Micron is accelerating its U.S. spending to a MASSIVE 250 BILLION DOLLARS to build Memory Chips right here in the U.S.A. For years, the Do Nothing Dumocrats bogged down American Industry with crushing Red Tape, complete Economic Mismanagement, and ridiculous Woke Mandates. They stalled everything. Not anymore! We are slashing the Radical Left's Job killing Regulations, and actually GETTING SHOVELS IN THE GROUND. We are reshooting Manufacturing to America, and securing our Supply Chains. This means THOUSANDS of GREAT JOBS for Hardwo",
-      "url": "https://trumpstruth.org/statuses/39928",
-      "published": "2026-07-10T23:35:02+00:00",
-      "origin": "truthsocial",
-      "tickers": [
-        "MU"
-      ],
-      "held": [],
-      "new_ideas": [
-        "MU"
-      ],
-      "sectors": [
-        "半导体",
-        "关税",
-        "AI"
-      ],
-      "sector_holdings": [
-        "SKHYV"
-      ],
-      "stance": "endorse",
-      "relevance": 78,
-      "summary_cn": "Trump高调宣传美光将2500亿美元投入美国存储芯片制造，强调\"Trump效应\"及制造业回流政策。"
-    },
-    {
-      "author": "Trump",
-      "text": "Micron Accelerates U.S. Investments, Pours First Concrete at New York Fab: https://investors.micron.com/news-releases/news-release-details/micron-accelerates-us-investments-pours-first-concrete-new-york",
-      "url": "https://trumpstruth.org/statuses/39930",
-      "published": "2026-07-10T23:36:49+00:00",
-      "origin": "truthsocial",
-      "tickers": [
-        "MU"
-      ],
-      "held": [],
-      "new_ideas": [
-        "MU"
-      ],
-      "sectors": [
-        "半导体",
-        "AI"
-      ],
-      "sector_holdings": [
-        "SKHYV"
-      ],
-      "stance": "endorse",
-      "relevance": 75,
-      "summary_cn": "Trump转发美光加速在美投资、纽约晶圆厂开始浇筑混凝土的新闻，看好美国半导体制造回流。"
-    },
-    {
-      "author": "Trump",
-      "text": "Apple to invest $30 billion in US chip manufacturing: https://www.foxbusiness.com/media/apple-invest-30-billion-us-chip-manufacturing",
-      "url": "https://trumpstruth.org/statuses/39933",
-      "published": "2026-07-11T00:19:01+00:00",
-      "origin": "truthsocial",
-      "tickers": [
-        "AAPL"
-      ],
-      "held": [],
-      "new_ideas": [
-        "AAPL"
-      ],
-      "sectors": [
-        "半导体",
-        "AI"
-      ],
-      "sector_holdings": [
-        "SKHYV"
-      ],
-      "stance": "endorse",
-      "relevance": 72,
-      "summary_cn": "Trump转发苹果宣布在美国投资300亿美元生产芯片的新闻，看好美国本土芯片制造。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk and Sam Altman spar on X after Apple files OpenAI lawsuit",
-      "url": "",
-      "published": "Sun, 12 Jul 2026 15:32:34 GMT",
-      "origin": "gnews-rss",
-      "source": "CNBC",
-      "tickers": [
-        "AAPL"
-      ],
-      "held": [],
-      "new_ideas": [
-        "AAPL"
-      ],
-      "sectors": [
-        "AI"
-      ],
-      "sector_holdings": [
-        "MSFU"
-      ],
-      "stance": "neutral",
-      "relevance": 58,
-      "summary_cn": "Apple起诉OpenAI后，Musk与Sam Altman在X上展开口水战，涉及AI竞争格局。"
-    },
-    {
       "author": "Musk",
       "text": "J.P. Morgan Called a Potential Elon Musk SpaceX-Tesla Merger \"Strategically Coherent\"",
       "url": "",
@@ -143,23 +22,23 @@
       "origin": "gnews-rss",
       "source": "Yahoo Finance",
       "tickers": [
-        "TSLA"
+        "SPCX",
+        "SPCH"
       ],
-      "held": [],
-      "new_ideas": [
-        "TSLA"
-      ],
-      "sectors": [
-        "航天",
-        "电动车"
-      ],
-      "sector_holdings": [
+      "held": [
         "SPCH",
         "SPCX"
       ],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "电动车",
+        "Tesla-SpaceX合并"
+      ],
+      "sector_holdings": [],
       "stance": "neutral",
-      "relevance": 55,
-      "summary_cn": "摩根大通称Musk旗下SpaceX与特斯拉潜在合并具有\"战略一致性\"。"
+      "relevance": 82,
+      "summary_cn": "JPMorgan称SpaceX与Tesla潜在合并'战略上合理'，若成行将重塑Musk系公司架构，直接利好kcn持有的SpaceX ETF。"
     },
     {
       "author": "Musk",
@@ -168,70 +47,128 @@
       "published": "Fri, 10 Jul 2026 16:53:24 GMT",
       "origin": "gnews-rss",
       "source": "Futurism",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天"
+      "tickers": [
+        "SPCX",
+        "SPCH"
       ],
-      "sector_holdings": [
+      "held": [
         "SPCH",
         "SPCX"
       ],
-      "stance": "endorse",
-      "relevance": 70,
-      "summary_cn": "Musk称目标让SpaceX市值超过整个地球GDP总和，极度看多SpaceX，利好SPCX/SPCH持仓。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk sets timeline for SpaceX to launch orbital data centers, moon base",
-      "url": "",
-      "published": "Thu, 09 Jul 2026 14:12:55 GMT",
-      "origin": "gnews-rss",
-      "source": "Austin American-Statesman",
-      "tickers": [],
-      "held": [],
       "new_ideas": [],
       "sectors": [
         "航天",
-        "AI"
+        "SpaceX"
       ],
-      "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
+      "sector_holdings": [],
       "stance": "endorse",
-      "relevance": 68,
-      "summary_cn": "Musk为SpaceX设定时间表：部署轨道数据中心并建设月球基地，强化SpaceX长期愿景，利好SPCX/SPCH。"
+      "relevance": 80,
+      "summary_cn": "Musk公开目标：让SpaceX市值超过整个地球GDP总和，极度看多自家公司，直接强化SpaceX估值叙事。"
     },
     {
       "author": "Musk",
-      "text": "James Murdoch may have reaped as much as $7.5 billion from his pre-IPO investment in Elon Musk’s SpaceX",
+      "text": "The SpaceX IPO made history. One month on has it lost momentum?",
       "url": "",
-      "published": "Sun, 12 Jul 2026 10:31:00 GMT",
+      "published": "Mon, 13 Jul 2026 11:45:25 GMT",
+      "origin": "gnews-rss",
+      "source": "BBC",
+      "tickers": [
+        "SPCX",
+        "SPCH"
+      ],
+      "held": [
+        "SPCH",
+        "SPCX"
+      ],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "SpaceX"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 78,
+      "summary_cn": "新闻讨论SpaceX IPO一个月后表现与动能，Musk话题引关注，直接关联kcn持有的SpaceX相关标的。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk’s startling claim to SpaceX investors",
+      "url": "",
+      "published": "Mon, 13 Jul 2026 13:33:00 GMT",
+      "origin": "gnews-rss",
+      "source": "thestreet.com",
+      "tickers": [
+        "SPCX",
+        "SPCH"
+      ],
+      "held": [
+        "SPCH",
+        "SPCX"
+      ],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "SpaceX"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 76,
+      "summary_cn": "新闻聚焦Musk向SpaceX投资者做出的惊人表态/承诺，对SpaceX估值叙事至关重要，直接影响kcn持仓。"
+    },
+    {
+      "author": "Musk",
+      "text": "SpaceX and Amazon are tech dopplegangers worth $4.5 trillion—and they're headed for a collision",
+      "url": "",
+      "published": "Mon, 13 Jul 2026 07:01:00 GMT",
       "origin": "gnews-rss",
       "source": "Fortune",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天"
+      "tickers": [
+        "SPCX",
+        "SPCH"
       ],
-      "sector_holdings": [
+      "held": [
         "SPCH",
         "SPCX"
       ],
-      "stance": "endorse",
-      "relevance": 62,
-      "summary_cn": "James Murdoch从SpaceX Pre-IPO投资中获利高达75亿美元，间接印证SpaceX估值飙升利好SPCX/SPCH持仓。"
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "云计算",
+        "科技巨头"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 72,
+      "summary_cn": "报道将SpaceX与Amazon并列为4.5万亿美元科技双雄，称两者业务正面碰撞，影响SpaceX估值想象空间。"
+    },
+    {
+      "author": "Trump",
+      "text": "In honor of Senator Lindsey Graham, a big supporter, the U.S. Senate should pass the Clarity Act. China, and many other countries, would like to take complete and total control of this major financial “happening,” as well as A.I., where we are now leading, but where they are fighting hard. Don’t let China win on either subject!!! President DONALD J. TRUMP",
+      "url": "https://trumpstruth.org/statuses/40007",
+      "published": "2026-07-13T14:26:03+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "加密货币",
+        "AI",
+        "中国"
+      ],
+      "sector_holdings": [
+        "CRCL"
+      ],
+      "stance": "neutral",
+      "relevance": 68,
+      "summary_cn": "Trump呼吁参议院通过Clarity Act，主张美国在加密货币和AI领域保持领先、阻止中国超越，政策导向利好加密板块。"
     },
     {
       "author": "Musk",
-      "text": "Elon Musk praises Mythos/Fable, promises not to ‘cut off’ Anthropic",
+      "text": "Elon Musk and Sam Altman Are Fighting in Public Again",
       "url": "",
-      "published": "Thu, 09 Jul 2026 21:57:42 GMT",
+      "published": "Sun, 12 Jul 2026 22:00:00 GMT",
       "origin": "gnews-rss",
-      "source": "TechCrunch",
+      "source": "Business Insider",
       "tickers": [],
       "held": [],
       "new_ideas": [],
@@ -239,136 +176,72 @@
         "AI"
       ],
       "sector_holdings": [
-        "MSFU"
+        "MSFU",
+        "SKHY"
       ],
-      "stance": "endorse",
-      "relevance": 60,
-      "summary_cn": "Musk公开称赞AI安全公司Mythos/Fable，并承诺不会\"切断\"对Anthropic的支持，涉及AI生态站队。"
-    }
-  ],
-  "held_hits": [],
-  "new_ideas": [
-    {
-      "author": "Trump",
-      "text": "“Last week, I shared with President Trump that, because of his leadership and policies, Micron would announce today that we are ahead of schedule and increasing our U.S. manufacturing and R&D investment from $200 billion to $250 billion—creating 100,000 American jobs. Today, I was proud to make that announcement in New York alongside Secretary Lutnick, Administrator Loeffler, and White Chief Technology Officer, Dr. Ethan Klein. It’s another example of the Trump effect driving historic private-sector investment, American manufacturing, and job creation.”   SANJAY MEHROTRA, CEO OF MICRON TECHNOL",
-      "url": "https://trumpstruth.org/statuses/39931",
-      "published": "2026-07-10T23:35:40+00:00",
-      "origin": "truthsocial",
-      "tickers": [
-        "MU"
-      ],
-      "held": [],
-      "new_ideas": [
-        "MU"
-      ],
-      "sectors": [
-        "半导体",
-        "AI"
-      ],
-      "sector_holdings": [
-        "SKHYV"
-      ],
-      "stance": "endorse",
-      "relevance": 78,
-      "summary_cn": "Trump分享美光CEO声明，宣布在美投资从2000亿提至2500亿美元、创造10万就业，归功于Trump政策。"
+      "stance": "neutral",
+      "relevance": 55,
+      "summary_cn": "Musk与Sam Altman再次公开互怼，OpenAI/xAI口水战升级，反映AI行业内部竞争与叙事博弈。"
     },
     {
       "author": "Trump",
-      "text": "BIGGER INVESTMENTS JUST KEEP COMING! The Trump Effect is REAL! Micron is accelerating its U.S. spending to a MASSIVE 250 BILLION DOLLARS to build Memory Chips right here in the U.S.A. For years, the Do Nothing Dumocrats bogged down American Industry with crushing Red Tape, complete Economic Mismanagement, and ridiculous Woke Mandates. They stalled everything. Not anymore! We are slashing the Radical Left's Job killing Regulations, and actually GETTING SHOVELS IN THE GROUND. We are reshooting Manufacturing to America, and securing our Supply Chains. This means THOUSANDS of GREAT JOBS for Hardwo",
-      "url": "https://trumpstruth.org/statuses/39928",
-      "published": "2026-07-10T23:35:02+00:00",
+      "text": "The Hormuz Strait is OPEN, and will remain OPEN, with or without Iran. We are reinstating the THE IRANIAN BLOCKADE, so named because it is only stopping Iran’s ships or customers from entering or leaving. All other countries will have fair and open use of the Strait. The U.S.A. will be, from this point forward, known as “THE GUARDIAN OF THE HORMUZ STRAIT,” but as such, and as a matter of FAIRNESS, will be reimbursed, at the rate of 20% on all cargo shipped, for any and all costs necessary to do the job of providing safety and security to this very volatile section of the World. The process and",
+      "url": "https://trumpstruth.org/statuses/40006",
+      "published": "2026-07-13T14:16:44+00:00",
       "origin": "truthsocial",
-      "tickers": [
-        "MU"
-      ],
+      "tickers": [],
       "held": [],
-      "new_ideas": [
-        "MU"
-      ],
+      "new_ideas": [],
       "sectors": [
-        "半导体",
-        "关税",
-        "AI"
+        "能源",
+        "原油运输",
+        "地缘政治"
       ],
-      "sector_holdings": [
-        "SKHYV"
-      ],
-      "stance": "endorse",
-      "relevance": 78,
-      "summary_cn": "Trump高调宣传美光将2500亿美元投入美国存储芯片制造，强调\"Trump效应\"及制造业回流政策。"
-    },
-    {
-      "author": "Trump",
-      "text": "Micron Accelerates U.S. Investments, Pours First Concrete at New York Fab: https://investors.micron.com/news-releases/news-release-details/micron-accelerates-us-investments-pours-first-concrete-new-york",
-      "url": "https://trumpstruth.org/statuses/39930",
-      "published": "2026-07-10T23:36:49+00:00",
-      "origin": "truthsocial",
-      "tickers": [
-        "MU"
-      ],
-      "held": [],
-      "new_ideas": [
-        "MU"
-      ],
-      "sectors": [
-        "半导体",
-        "AI"
-      ],
-      "sector_holdings": [
-        "SKHYV"
-      ],
-      "stance": "endorse",
-      "relevance": 75,
-      "summary_cn": "Trump转发美光加速在美投资、纽约晶圆厂开始浇筑混凝土的新闻，看好美国半导体制造回流。"
-    },
-    {
-      "author": "Trump",
-      "text": "Apple to invest $30 billion in US chip manufacturing: https://www.foxbusiness.com/media/apple-invest-30-billion-us-chip-manufacturing",
-      "url": "https://trumpstruth.org/statuses/39933",
-      "published": "2026-07-11T00:19:01+00:00",
-      "origin": "truthsocial",
-      "tickers": [
-        "AAPL"
-      ],
-      "held": [],
-      "new_ideas": [
-        "AAPL"
-      ],
-      "sectors": [
-        "半导体",
-        "AI"
-      ],
-      "sector_holdings": [
-        "SKHYV"
-      ],
-      "stance": "endorse",
-      "relevance": 72,
-      "summary_cn": "Trump转发苹果宣布在美国投资300亿美元生产芯片的新闻，看好美国本土芯片制造。"
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 58,
+      "summary_cn": "Trump宣布霍尔木兹海峡开放并对所有过境货物征收20%费用，重申对伊朗封锁，重大地缘与能源运输政策信号。"
     },
     {
       "author": "Musk",
-      "text": "Elon Musk and Sam Altman spar on X after Apple files OpenAI lawsuit",
+      "text": "Tesla Stock Is Falling. Can Robots Arrive Soon Enough to Save It?",
       "url": "",
-      "published": "Sun, 12 Jul 2026 15:32:34 GMT",
+      "published": "Mon, 13 Jul 2026 13:51:00 GMT",
       "origin": "gnews-rss",
-      "source": "CNBC",
-      "tickers": [
-        "AAPL"
-      ],
+      "source": "Barron's",
+      "tickers": [],
       "held": [],
-      "new_ideas": [
-        "AAPL"
-      ],
+      "new_ideas": [],
       "sectors": [
-        "AI"
+        "电动车",
+        "机器人",
+        "特斯拉"
       ],
-      "sector_holdings": [
-        "MSFU"
-      ],
+      "sector_holdings": [],
       "stance": "neutral",
-      "relevance": 58,
-      "summary_cn": "Apple起诉OpenAI后，Musk与Sam Altman在X上展开口水战，涉及AI竞争格局。"
+      "relevance": 55,
+      "summary_cn": "Tesla股价下跌，焦点转向Optimus机器人能否及时落地提振估值，间接反映Musk对Tesla未来叙事重心。"
     },
+    {
+      "author": "Trump",
+      "text": "BIG WIN at the Supreme Court, in the Slaughter Case, confirming Presidential Power in our Country to remove Executive Branch Officers and Agency Appointees, or Representatives, under Article II. This Decision was long sought by United States Presidents, dating all the way back to the 1930s. It is such an Honor to be the sitting President who won this Historic and Unprecedented Ruling, one of the most important ever given with respect to Presidential Powers. Thank you for your attention to this matter! President DONALD J. TRUMP",
+      "url": "https://trumpstruth.org/statuses/39992",
+      "published": "2026-07-13T13:19:19+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "行政权力",
+        "监管"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 50,
+      "summary_cn": "Trump庆祝最高法院Slaughter案胜诉，确认总统可依Article II移除行政部门/机构官员，扩大行政权对监管机构影响力。"
+    }
+  ],
+  "held_hits": [
     {
       "author": "Musk",
       "text": "J.P. Morgan Called a Potential Elon Musk SpaceX-Tesla Merger \"Strategically Coherent\"",
@@ -377,97 +250,156 @@
       "origin": "gnews-rss",
       "source": "Yahoo Finance",
       "tickers": [
-        "TSLA"
+        "SPCX",
+        "SPCH"
       ],
-      "held": [],
-      "new_ideas": [
-        "TSLA"
-      ],
-      "sectors": [
-        "航天",
-        "电动车"
-      ],
-      "sector_holdings": [
+      "held": [
         "SPCH",
         "SPCX"
       ],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "电动车",
+        "Tesla-SpaceX合并"
+      ],
+      "sector_holdings": [],
       "stance": "neutral",
-      "relevance": 55,
-      "summary_cn": "摩根大通称Musk旗下SpaceX与特斯拉潜在合并具有\"战略一致性\"。"
+      "relevance": 82,
+      "summary_cn": "JPMorgan称SpaceX与Tesla潜在合并'战略上合理'，若成行将重塑Musk系公司架构，直接利好kcn持有的SpaceX ETF。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk Says His Goal Is for SpaceX to Be Worth More than the Entire Earth",
+      "url": "",
+      "published": "Fri, 10 Jul 2026 16:53:24 GMT",
+      "origin": "gnews-rss",
+      "source": "Futurism",
+      "tickers": [
+        "SPCX",
+        "SPCH"
+      ],
+      "held": [
+        "SPCH",
+        "SPCX"
+      ],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "SpaceX"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 80,
+      "summary_cn": "Musk公开目标：让SpaceX市值超过整个地球GDP总和，极度看多自家公司，直接强化SpaceX估值叙事。"
+    },
+    {
+      "author": "Musk",
+      "text": "The SpaceX IPO made history. One month on has it lost momentum?",
+      "url": "",
+      "published": "Mon, 13 Jul 2026 11:45:25 GMT",
+      "origin": "gnews-rss",
+      "source": "BBC",
+      "tickers": [
+        "SPCX",
+        "SPCH"
+      ],
+      "held": [
+        "SPCH",
+        "SPCX"
+      ],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "SpaceX"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 78,
+      "summary_cn": "新闻讨论SpaceX IPO一个月后表现与动能，Musk话题引关注，直接关联kcn持有的SpaceX相关标的。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk’s startling claim to SpaceX investors",
+      "url": "",
+      "published": "Mon, 13 Jul 2026 13:33:00 GMT",
+      "origin": "gnews-rss",
+      "source": "thestreet.com",
+      "tickers": [
+        "SPCX",
+        "SPCH"
+      ],
+      "held": [
+        "SPCH",
+        "SPCX"
+      ],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "SpaceX"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 76,
+      "summary_cn": "新闻聚焦Musk向SpaceX投资者做出的惊人表态/承诺，对SpaceX估值叙事至关重要，直接影响kcn持仓。"
+    },
+    {
+      "author": "Musk",
+      "text": "SpaceX and Amazon are tech dopplegangers worth $4.5 trillion—and they're headed for a collision",
+      "url": "",
+      "published": "Mon, 13 Jul 2026 07:01:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Fortune",
+      "tickers": [
+        "SPCX",
+        "SPCH"
+      ],
+      "held": [
+        "SPCH",
+        "SPCX"
+      ],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "云计算",
+        "科技巨头"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 72,
+      "summary_cn": "报道将SpaceX与Amazon并列为4.5万亿美元科技双雄，称两者业务正面碰撞，影响SpaceX估值想象空间。"
     }
   ],
+  "new_ideas": [],
   "sector_hits": [
     {
-      "author": "Musk",
-      "text": "Elon Musk Says His Goal Is for SpaceX to Be Worth More than the Entire Earth",
-      "url": "",
-      "published": "Fri, 10 Jul 2026 16:53:24 GMT",
-      "origin": "gnews-rss",
-      "source": "Futurism",
+      "author": "Trump",
+      "text": "In honor of Senator Lindsey Graham, a big supporter, the U.S. Senate should pass the Clarity Act. China, and many other countries, would like to take complete and total control of this major financial “happening,” as well as A.I., where we are now leading, but where they are fighting hard. Don’t let China win on either subject!!! President DONALD J. TRUMP",
+      "url": "https://trumpstruth.org/statuses/40007",
+      "published": "2026-07-13T14:26:03+00:00",
+      "origin": "truthsocial",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "航天"
+        "加密货币",
+        "AI",
+        "中国"
       ],
       "sector_holdings": [
-        "SPCH",
-        "SPCX"
+        "CRCL"
       ],
-      "stance": "endorse",
-      "relevance": 70,
-      "summary_cn": "Musk称目标让SpaceX市值超过整个地球GDP总和，极度看多SpaceX，利好SPCX/SPCH持仓。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk sets timeline for SpaceX to launch orbital data centers, moon base",
-      "url": "",
-      "published": "Thu, 09 Jul 2026 14:12:55 GMT",
-      "origin": "gnews-rss",
-      "source": "Austin American-Statesman",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "AI"
-      ],
-      "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "endorse",
+      "stance": "neutral",
       "relevance": 68,
-      "summary_cn": "Musk为SpaceX设定时间表：部署轨道数据中心并建设月球基地，强化SpaceX长期愿景，利好SPCX/SPCH。"
+      "summary_cn": "Trump呼吁参议院通过Clarity Act，主张美国在加密货币和AI领域保持领先、阻止中国超越，政策导向利好加密板块。"
     },
     {
       "author": "Musk",
-      "text": "James Murdoch may have reaped as much as $7.5 billion from his pre-IPO investment in Elon Musk’s SpaceX",
+      "text": "Elon Musk and Sam Altman Are Fighting in Public Again",
       "url": "",
-      "published": "Sun, 12 Jul 2026 10:31:00 GMT",
+      "published": "Sun, 12 Jul 2026 22:00:00 GMT",
       "origin": "gnews-rss",
-      "source": "Fortune",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天"
-      ],
-      "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "endorse",
-      "relevance": 62,
-      "summary_cn": "James Murdoch从SpaceX Pre-IPO投资中获利高达75亿美元，间接印证SpaceX估值飙升利好SPCX/SPCH持仓。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk praises Mythos/Fable, promises not to ‘cut off’ Anthropic",
-      "url": "",
-      "published": "Thu, 09 Jul 2026 21:57:42 GMT",
-      "origin": "gnews-rss",
-      "source": "TechCrunch",
+      "source": "Business Insider",
       "tickers": [],
       "held": [],
       "new_ideas": [],
@@ -475,11 +407,12 @@
         "AI"
       ],
       "sector_holdings": [
-        "MSFU"
+        "MSFU",
+        "SKHY"
       ],
-      "stance": "endorse",
-      "relevance": 60,
-      "summary_cn": "Musk公开称赞AI安全公司Mythos/Fable，并承诺不会\"切断\"对Anthropic的支持，涉及AI生态站队。"
+      "stance": "neutral",
+      "relevance": 55,
+      "summary_cn": "Musk与Sam Altman再次公开互怼，OpenAI/xAI口水战升级，反映AI行业内部竞争与叙事博弈。"
     }
   ]
 }
