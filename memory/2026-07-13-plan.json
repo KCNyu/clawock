@@ -1,0 +1,198 @@
+{
+  "date": "2026-07-13",
+  "generated_at": "2026-07-13T08:04:00+08:00",
+  "fx_rate_usdhkd": 7.84,
+  "regime": {
+    "hk": "amber_chop",
+    "us": "red_chop"
+  },
+  "driven_by": "technical",
+  "book": {
+    "hk_hkd": 80367,
+    "us_usd": 3350,
+    "total_usd": 13601,
+    "total_hkd": 106631
+  },
+  "hhi": {
+    "hk": 0.362,
+    "us": 0.278
+  },
+  "actions": [
+    {
+      "ticker": "07226",
+      "bucket": "cut",
+      "trigger_type": "open",
+      "trigger_price": null,
+      "size_shares": 6200,
+      "size_note": "全数换仓 → 03033（等值 HKD），保留恒科敞口停 2x decay",
+      "confidence": 0.90,
+      "driven_by": "technical",
+      "rationale": "硬止损 -20.5% ≤ -18%；HK lev regime amber，lev cap 25% 已超（现 37%）；连续2日未执行，今日必落；规则非择时",
+      "leg": "HK",
+      "session": "open_930"
+    },
+    {
+      "ticker": "PLTU",
+      "bucket": "cut",
+      "trigger_type": "open",
+      "trigger_price": null,
+      "size_shares": 14,
+      "size_note": "全换 → PLTR 1x 等值，停止 monthly decay 2.83%",
+      "confidence": 0.85,
+      "driven_by": "technical",
+      "rationale": "硬止损 -28.2% ≤ -18%；PLTR dist200MA -19.1% 趋势OFF；月 decay 2.83%；US lev regime red；规则非择时",
+      "leg": "US",
+      "session": "open_2130hkt"
+    },
+    {
+      "ticker": "RKLX",
+      "bucket": "cut",
+      "trigger_type": "open",
+      "trigger_price": null,
+      "size_shares": 10,
+      "size_note": "换仓 → RKLB 1x（等值 USD）或部分清仓，视流动性",
+      "confidence": 0.85,
+      "driven_by": "technical",
+      "rationale": "硬止损 -44.8% ≤ -18%；保留航天敞口方向；连续2日未执行；规则非择时",
+      "leg": "US",
+      "session": "open_2130hkt"
+    },
+    {
+      "ticker": "MSFU",
+      "bucket": "cut",
+      "trigger_type": "open",
+      "trigger_price": null,
+      "size_shares": 20,
+      "size_note": "全换 → MSFT 1x，停止 monthly decay 1.17%",
+      "confidence": 0.82,
+      "driven_by": "technical",
+      "rationale": "硬止损 -19.4% ≤ -18%；MSFT dist200MA -12.9% 趋势OFF；US lev regime red；规则非择时",
+      "leg": "US",
+      "session": "open_2130hkt"
+    },
+    {
+      "ticker": "SPCH",
+      "bucket": "cut",
+      "trigger_type": "open",
+      "trigger_price": null,
+      "size_shares": 130,
+      "size_note": "全换 → SPCX 1x；无限子弹策略改持现货，等 SPCX 5DMA 收复再切 2x",
+      "confidence": 0.78,
+      "driven_by": "technical",
+      "rationale": "硬止损 -35.1% ≤ -18%；SPCX 5DMA 以下 -3.9%，US lev regime red；8月解禁前用 1x；规则非择时",
+      "leg": "US",
+      "session": "open_2130hkt"
+    },
+    {
+      "ticker": "00100",
+      "bucket": "trim_on_rebound",
+      "trigger_type": "price_above",
+      "trigger_price": 310.0,
+      "size_shares": null,
+      "size_note": "反弹至 >310 HKD 时分批减仓，目标减至 ≤35% HK 仓位（约需减 5,500 HKD 市值）",
+      "confidence": 0.75,
+      "driven_by": "technical",
+      "rationale": "single_name breach 46.18% > 35% cap，需 trim；但今日 -9.68% 新低，新低日禁砍规则；等反弹至 310 窗口再执行",
+      "leg": "HK",
+      "session": "conditional"
+    },
+    {
+      "ticker": "02208",
+      "bucket": "add_only_on_trigger",
+      "trigger_type": "price_below",
+      "trigger_price": 10.2,
+      "size_shares": 200,
+      "size_note": "午盘回踩至 10.0-10.2 微加（≤200股）；+8.4% 开盘不追高",
+      "confidence": 0.65,
+      "driven_by": "catalyst",
+      "rationale": "政策催化实打实（十五五碳达峰+蓝箭航天可控回收）；今日已涨8.4%，追高性价比低；低吸再进",
+      "leg": "HK",
+      "session": "intraday"
+    },
+    {
+      "ticker": "03032",
+      "bucket": "hold_and_watch",
+      "trigger_type": "event",
+      "trigger_price": null,
+      "size_shares": 200,
+      "size_note": "底仓不动；CPI 7/15 低于预期后可考虑加仓",
+      "confidence": 0.80,
+      "driven_by": "macro",
+      "rationale": "被动 β，RSI 54.1；CPI 7/15 前不加，等方向确认",
+      "leg": "HK",
+      "session": "open_930"
+    },
+    {
+      "ticker": "03033",
+      "bucket": "hold_and_watch",
+      "trigger_type": "event",
+      "trigger_price": null,
+      "size_shares": 1000,
+      "size_note": "底仓不动；07226换仓后仓位增加",
+      "confidence": 0.80,
+      "driven_by": "technical",
+      "rationale": "被动 β，HSTECH 1x，无 decay 风险；07226换来的资金将增持此票",
+      "leg": "HK",
+      "session": "open_930"
+    },
+    {
+      "ticker": "SPCX",
+      "bucket": "hold_and_watch",
+      "trigger_type": "price_above",
+      "trigger_price": 148.0,
+      "size_shares": 1,
+      "size_note": "小仓 hold；5DMA 收复后可补仓（SPCH换仓后的1x底仓）",
+      "confidence": 0.70,
+      "driven_by": "technical",
+      "rationale": "pnl -1.5%，小仓位；8月解禁前持 1x 而非 2x；SpaceX 长期thesis不变",
+      "leg": "US",
+      "session": "open_2130hkt"
+    },
+    {
+      "ticker": "SKHYV",
+      "bucket": "hold_and_watch",
+      "trigger_type": "event",
+      "trigger_price": null,
+      "size_shares": 1,
+      "size_note": "IPO 首日 +12.76%，持有等 CPI 利好；Trump MU 背书半导体情绪",
+      "confidence": 0.70,
+      "driven_by": "catalyst",
+      "rationale": "IPO 硬事实；Trump 持续背书半导体制造回流；confidence +5pp 因 Trump 软情绪",
+      "leg": "US",
+      "session": "open_2130hkt"
+    },
+    {
+      "ticker": "CRCL",
+      "bucket": "hold_and_watch",
+      "trigger_type": "event",
+      "trigger_price": null,
+      "size_shares": 2,
+      "size_note": "稳定币银行牌照批复利好，小仓 hold",
+      "confidence": 0.70,
+      "driven_by": "catalyst",
+      "rationale": "CRCL 稳定币信托银行牌照批复 = 硬催化（监管落地）；confidence +5pp；pnl -24% 但仓小，long term thesis hold",
+      "leg": "US",
+      "session": "open_2130hkt"
+    }
+  ],
+  "catalysts_this_week": [
+    {
+      "date": "2026-07-15",
+      "event": "US CPI Jun release (BLS 8:30 ET)",
+      "impact": "high",
+      "positioning_note": "低于预期→降息预期→港股估值修复→03032/03033加仓窗；超预期→美债收益率反弹→防御"
+    }
+  ],
+  "risk_flags": [
+    "00100 融资稀释+解禁双压：今日个股事件驱动，非板块风险",
+    "HK Top2 = 83.1% ≥ 70% cap：07226换仓后 Top2 仍超，需等00100反弹窗减仓",
+    "US β = 3.445 > 3.0：换仓后 β 降低",
+    "5 hard stops 连续2日未执行：今日必须全落地"
+  ],
+  "self_cal": {
+    "brier_30d": 0.247,
+    "llm_vs_hold_alpha": "+6pp",
+    "high_conf_winrate": "75%",
+    "trend_off_avoid_edge": "56% (n=160)"
+  }
+}
