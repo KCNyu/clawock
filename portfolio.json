@@ -907,11 +907,17 @@
         "updated_at": "2026-07-12 20:02 UTC-04:00",
         "note": "Multi-provider fetch. Sources: 3x Nasdaq API (stocks), 4x Nasdaq API (etf)"
       },
-      "cash_usd": 234.66,
+      "cash_usd": 237.43,
       "cash_reconciled": 854.25,
       "cash_reconciled_date": "2026-06-19",
       "cash_reconciled_note": "与券商对账确认的现金基线(截至该日收盘)。现金不再手填:cash_usd = cash_reconciled + Σ(此日之后 trades 的 sells-buys) + Σ(cash_adjustments)。改/补 trades 后跑 `recompute_cash.py` 自动重算 cash_usd,CASH_RECON 闸(ERROR)校验二者一致。存取款记进 cash_adjustments[] 或直接抬高 cash_reconciled+date 重新对账。",
-      "cash_adjustments": [],
+      "cash_adjustments": [
+        {
+          "date": "2026-06-30",
+          "amount": 2.77,
+          "note": "PLTU 14股股息入账(HSBC通知书,2026 dividend,gross $3.08扣10%预提税$0.31,净$2.77,payment date 2026-06-30)"
+        }
+      ],
       "cash_usd_note": "(历史台账，仅供追溯；现金权威值已改为从 cash_reconciled 基线派生) …2026-06-19 SPCH 20@$17.31→$854.25(基线); 2026-06-22 SPCH 10@$15.3+10@$16.17-$314.7→$539.55; 2026-06-23 SPCH 10@$13.13-$131.3→$408.25; 2026-06-24 SPCH 10@$13.5-$135→$273.25; 2026-07-02 02:09 HKT SPCH 10@$13.89-$138.9→$134.35 (含手续费可能再低 ~$5-10)。⚠️ US 现金余额仅剩 ~$134,触及 SPCH 加仓地板——再无弹药支持后续加仓,除非 a) 港股 AI 拉升兑现 b) 减仓其他杠杆 ETF(ROBN 浮盈 +47%,可考虑) c) 等待下笔入金。"
     },
     "hk_stocks": {
