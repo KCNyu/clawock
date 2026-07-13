@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-10T15:26:30.631804",
+  "generated_at": "2026-07-13T15:38:29.550989",
   "lookback_hours": 48,
   "tickers": [
     "CRCL",
@@ -7,23 +7,26 @@
     "RKLX",
     "SPCX",
     "SPCH",
-    "MSFU"
+    "MSFU",
+    "SKHY"
   ],
-  "digest_markdown": "## Top 移动信号 (跨 ticker)\n\n- **CRCL**: 周五 pre-market 跳涨 12.4% 至 $70.82，与 EquipmentShare、Vodafone 同列\"big movers higher\"，市值回升至 $15.6B。→ 短线动能强，但跳空需警惕回补；若持仓浮盈可考虑部分锁利。\n- **SPCX/SPCH**: SK Hynix 以 \"SKHY\" 在 Nasdaq 挂牌，募资 $26.5B，为美股史上最大外国 IPO；SpaceX 近端价值被分析师锚定于\"地面 AI 数据中心基建\"。→ 双重利好：外国 AI 标的赴美热潮 + SpaceX 估值叙事迁移到 AI infra，对 SPCX/SPCH 估值锚正面。\n- **PLTU**: 底层 PLTR 财报后 rally 延续，ETF Trends/ETF Database 重新推荐 PLTU 类杠杆品。→ 杠杆放大器正在被市场重新发现，跟踪 PLTR 趋势动能。\n- **MSFU**: 周五出现 gap down，标题警示\"Microsoft Woes\"但同时有反弹 ETF 推荐文章。→ 短期承压，杠杆 2X 双向风险放大，仓位需控。\n- **RKLX**: 无 ticker-specific catalyst，仅 Zacks 综合榜单提及及杠杆 ETF 结构性噪音。→ 无操作信号，按兵不动。\n\n## Per-ticker 简报\n\n- **CRCL**: 跳空大涨 + 比特币机构买家叙事强化（Bitwise 称 BTC 已脱钩单一 corporate buyer）→ 情绪面共振偏多。\n- **SPCX**: SK Hynix 美股 debut 强化 AI 基建外资叙事 + SpaceX 估值向数据中心靠拢 → 主题驱动续命。\n- **SPCH**: 与 SPCX 同源，受 SpaceX IPO 杠杆 ETF 浪潮推介 → 流动性预期改善。\n- **PLTU**: Palantir rally + Q4 beat → 杠杆品重获关注。\n- **MSFU**: gap down 触发，但市场仍存反弹押注 → 高 beta 双向震荡。\n\n## 风险 Watch\n\n- **MSFU**: gap down 提示底层 MSFT 短期承压，2X 杠杆放大下行风险。\n- **CRCL**: 单日跳空 +12.4%，波动率极高，回补缺口概率需警惕。\n- **PLTU/RKLX/SPCH**: 均为 2X 杠杆 ETF，隔夜衰减（PTIR 案例显示 49% 损耗）+ 主题轮动时易遭双杀，仓位上限须严控。",
+  "digest_markdown": "## Top 移动信号\n- **CRCL**: 获 OCC 联邦银行牌照, 成首家持牌稳定币银行 → 结构性护城河加固, \"strong buy\" 叙事出笼, 估值已部分反映\n- **SKHY**: 分析师首次覆盖 Buy, ADR 目标 $300, 强调 HBM 领导地位与 NVDA/TSMC 绑定 → AI 内存周期 alpha 仍在\n- **SPCX/SPCH**: SpaceX 自 $75B IPO 峰值已跌 35%, 分析师目标价仍乐观但动能转弱 → post-IPO profit-taking, 对冲/减仓窗口\n- **Starlink 威胁**: Bernstein 因 Starlink 竞争下调 T/VZ/TMUS 目标价 → SpaceX 商业模式获验证, 长期利好 SPCX\n- **TSLA Q2 财报 7/22**: 近端 catalyst, TSLA 波动将传导 SpaceX 情绪\n\n## Per-ticker 简报\n- **CRCL**: OCC national trust bank 获批 + Seeking Alpha 强推 - 监管催化剂兑现, 利好 core 持仓\n- **SKHY**: Buy 评级 $300 首次覆盖, HBM/AI 内存纯 beta - 加注理由强化\n- **SPCX/SPCH**: SpaceX IPO 后 -35%, 情绪转弱但分析师仍 bullish - 短期承压\n- **MSFU/PLTU/RKLX**: 仅有 ETF 营销稿、散户帖、纯技术分析, 无 ticker-specific catalyst - 忽略\n\n## Risk watch\n- SpaceX post-IPO 回撤 35%, 持仓 SPCX/SPCH 敞口需重估\n- Starlink 竞争叙事扩散, 电信大盘股遭 Bernstein 下调\n- CRCL 利好已 priced in, \"buy rumor sell news\" 风险\n- EM 美元走强 + 中东能源通胀背景, 对新兴市场敞口 (SKHY) 形成宏观逆风",
   "raw_news_counts": {
-    "CRCL": 4,
+    "CRCL": 2,
     "PLTU": 5,
     "RKLX": 5,
     "SPCX": 5,
-    "SPCH": 5,
-    "MSFU": 5
+    "SPCH": 1,
+    "MSFU": 5,
+    "SKHY": 2
   },
   "news_source_per_ticker": {
     "CRCL": "finnhub",
     "PLTU": "gnews-rss",
     "RKLX": "gnews-rss",
     "SPCX": "finnhub",
-    "SPCH": "gnews-rss",
-    "MSFU": "gnews-rss"
+    "SPCH": "finnhub",
+    "MSFU": "gnews-rss",
+    "SKHY": "finnhub"
   }
 }
