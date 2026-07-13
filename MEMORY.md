@@ -103,25 +103,23 @@
 - **单一来源：`portfolio.json`**，不在此维护副本
 - ticker 列表：`memory/current-portfolio-summary.md`（提高检索命中）
 
-## Promoted From Short-Term Memory (2026-07-13)
+## Promoted From Short-Term Memory (2026-07-14)
 
-<!-- openclaw-memory-promotion:memory:memory/2026-07-08-pre-open.md:19:19 -->
-- Header — 全组合快照: | USD-base 合并 | — | — | **~$14,108** | **-$6,084** | [score=0.812 recalls=0 avg=0.620 source=memory/2026-07-08-pre-open.md:19-19]
-<!-- openclaw-memory-promotion:memory:memory/2026-07-08-pre-open.md:2:3 -->
-- layout: default title: 盘前深度简报 · 2026-07-08 [score=0.812 recalls=0 avg=0.620 source=memory/2026-07-08-pre-open.md:2-3]
-<!-- openclaw-memory-promotion:memory:memory/2026-07-08-pre-open.md:21:24 -->
-- Header — 全组合快照: **HHI**: HK=0.341 ⚠️ 集中风险（Top2=80.7%｜07226 40.5% + 00100 40.2%）; **HHI**: US=0.281 ⚠️ 集中风险（Top2=61.1%｜SPCH 46.4% + MSFU 14.6%）; **FX**: USDHKD 7.8423（HKD+USD 不可直接相加，本简报已换算）; **Risk**: β_US_vs_SPX=3.41 | Vol_30d=52.2% | Sharpe_30d=−6.49 | MaxDD_30d=−16.8% [score=0.812 recalls=0 avg=0.620 source=memory/2026-07-08-pre-open.md:21-24]
-<!-- openclaw-memory-promotion:memory:memory/2026-07-08-pre-open.md:25:26 -->
-- Header — 全组合快照: **Regime**: 🟡 HK amber（HSTECH 趋势OFF, 距200线 −16.3%）｜🔴 US red（SPCX/SPCH 5日线以下）｜Macro neutral; ⛔ **13 guardrail breaches**: 8 仓位硬闸 + 5 杠杆止损触发（全部需在 Judge 段出对应动作） [score=0.812 recalls=0 avg=0.620 source=memory/2026-07-08-pre-open.md:25-26]
-<!-- openclaw-memory-promotion:memory:memory/2026-07-08-pre-open.md:32:32 -->
-- Retrospective — 昨日 2026-07-07 计划复盘: **calibration 60-79% band: 3/3（全中）** [score=0.812 recalls=0 avg=0.620 source=memory/2026-07-08-pre-open.md:32-32]
-<!-- openclaw-memory-promotion:memory:memory/2026-07-08-pre-open.md:8:9 -->
-- 盘前深度简报 | 2026-07-08 周三: > HK 开盘前 90 分钟 | USDHKD = 7.8423 (Frankfurter) | 08:00 HKT > ⚠️ 数据说明：US 持仓价格均为 7/7 收盘数据（6 WARN STALENESS，港股 08:03 HKT 实时） [score=0.812 recalls=0 avg=0.620 source=memory/2026-07-08-pre-open.md:8-9]
-<!-- openclaw-memory-promotion:memory:memory/2026-07-08-1223.md:22:22 -->
-- Conversation Summary: Sources: [score=0.812 recalls=0 avg=0.620 source=memory/2026-07-08-1223.md:22-22]
-<!-- openclaw-memory-promotion:memory:memory/2026-07-09-pre-open.md:14:14 -->
-- Header: **Regime HK: amber** (HSTECH -12.1% vs 200DMA, 趋势OFF, 杠杆上限×0.5=25%) | **Regime US: red** (SPCH=2xSPCX 5DMA以下 -4.7%, cut) | **USDHKD = 7.8389** | Book USD≈$14,645 / HKD≈HK$114,810 [score=0.808 recalls=0 avg=0.620 source=memory/2026-07-09-pre-open.md:14-14]
-<!-- openclaw-memory-promotion:memory:memory/2026-07-09-pre-open.md:2:3 -->
-- layout: default title: 盘前深度简报 · 2026-07-09 [score=0.808 recalls=0 avg=0.620 source=memory/2026-07-09-pre-open.md:2-3]
-<!-- openclaw-memory-promotion:memory:memory/2026-07-09-pre-open.md:20:20 -->
-- 核心结论: **今日主基调：HK 借昨日大涨执行积压纪律性减仓，US 继续杠杆换仓队列，全组合去杠杆优先于方向押注。** [score=0.808 recalls=0 avg=0.620 source=memory/2026-07-09-pre-open.md:20-20]
+<!-- openclaw-memory-promotion:memory:memory/2026-07-09-pre-open.md:22:22 -->
+- 核心结论: 00100 解禁日不跌反涨（昨日 +11.98%，商汤同步 +12%），阿里 +12.2% 领涨恒科，HK momentum 跳入 bull zone (+7.5%)。但 HSTECH 仍 -12.1% 低于 200DMA，amber 制度未解；5 条硬止损（07226/PLTU/RKLX/SPCH/MSFU）积压未执行。今日窗口：借 HK 强势出清 07226（→03033 换仓，纪律必须）+ trim 00100（解禁后降至 cap 内），US 执行 PLTU/MSFU 换仓。 [score=0.832 recalls=0 avg=0.620 source=memory/2026-07-09-pre-open.md:22-22]
+<!-- openclaw-memory-promotion:memory:memory/2026-07-09-pre-open.md:28:31 -->
+- Book 总览: | 维度 | 金额 | 备注 | |---|---|---| | HK 持仓 | HK$52,973 | 5 只活跃仓 | | HK 现金 | HK$34,597 | 7/7 入金 3万后基线 | [score=0.832 recalls=0 avg=0.620 source=memory/2026-07-09-pre-open.md:28-31]
+<!-- openclaw-memory-promotion:memory:memory/2026-07-09-pre-open.md:8:8 -->
+- 盘前深度简报｜2026-07-09 周三 08:00 HKT: > USDHKD = 7.8389 (Frankfurter) | HHI HK=0.349 ⚠️ | HHI US=0.312 ⚠️ | 生成 08:03 HKT [score=0.832 recalls=0 avg=0.620 source=memory/2026-07-09-pre-open.md:8-8]
+<!-- openclaw-memory-promotion:memory:memory/2026-07-10-pre-open.md:14:15 -->
+- Header: **Regime HK: amber** (HSTECH -12.0% vs 200DMA, 趋势OFF, 杠杆上限×0.5=25%) | **Regime US: red** (SPCH=2xSPCX 5DMA以下 -1.5%, cut) | **USDHKD=7.836** | Book USD≈$10,012 / HKD≈78,440 HHI HK=0.355 Top2=82.7% ⚠️ | HHI US=0.323 Top2=67.1% ⚠️ | VIX 15.84 (-6.3%) | F&G 47.2 neutral | 10Y 4.539% [score=0.820 recalls=0 avg=0.620 source=memory/2026-07-10-pre-open.md:14-15]
+<!-- openclaw-memory-promotion:memory:memory/2026-07-10-pre-open.md:2:3 -->
+- layout: default title: 盘前深度简报 · 2026-07-10 [score=0.808 recalls=0 avg=0.620 source=memory/2026-07-10-pre-open.md:2-3]
+<!-- openclaw-memory-promotion:memory:memory/2026-07-10-pre-open.md:21:21 -->
+- 核心结论: **今日主基调：5只硬止损今日必须落地，先清HK（07226），US盘执行3只杠杆ETF清仓（PLTU/RKLX/MSFU）+ SPCH全仓割肉；不能再拖，合规优先。** [score=0.808 recalls=0 avg=0.620 source=memory/2026-07-10-pre-open.md:21-21]
+<!-- openclaw-memory-promotion:memory:memory/2026-07-10-pre-open.md:23:23 -->
+- 核心结论: 00100 昨日-17.98%→297.4，解禁63%已完成，板块同仁06682 +7.4% 印证非板块性崩盘。US risk_on底部坚实（SPX +0.81%, VIX 16, F&G 47.2），CME July 27 SPCX期货 = 近期催化，但 SPCH stop -28.8% 已深度违规——先切，等催化再考虑重新建仓。5只止损昨日均满足触发条件但未执行，今日是最后纪律窗口。 [score=0.808 recalls=0 avg=0.620 source=memory/2026-07-10-pre-open.md:23-23]
+<!-- openclaw-memory-promotion:memory:memory/2026-07-10-pre-open.md:29:32 -->
+- Book 总览: | 维度 | 金额 | 备注 | |---|---|---| | HK 持仓 | HK$54,845 | 5只活跃仓 | | **HK leg** | **HK$54,845** | | [score=0.808 recalls=0 avg=0.620 source=memory/2026-07-10-pre-open.md:29-32]
+<!-- openclaw-memory-promotion:memory:memory/2026-07-10-pre-open.md:8:8 -->
+- 📊 盘前深度简报｜2026-07-10 周四 08:00 HKT: > USDHKD=7.836 (Frankfurter) | HHI HK=0.355 ⚠️ | HHI US=0.323 ⚠️ | 生成 08:00 HKT [score=0.808 recalls=0 avg=0.620 source=memory/2026-07-10-pre-open.md:8-8]
