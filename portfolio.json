@@ -705,18 +705,18 @@
           "day_session_date": "2026-07-13"
         },
         {
-          "ticker": "SKHYV",
-          "name": "SK海力士 ADR(IPO首日,临时代码)",
+          "ticker": "SKHY",
+          "name": "SK海力士 ADR",
           "shares": 1,
           "cost_basis": 169.185,
-          "current_price": 168.01,
-          "current_value": 168.01,
-          "pnl_abs": -1.18,
-          "pnl_percent": -0.6945,
-          "data_source": "Polygon (prev close) Jul 13, 2026 09:33 ET",
-          "day_high": 177.0,
-          "day_low": 166.19,
-          "note": "2026-07-10 IPO首日(发行价$149,史上第二大全球股票发行仅次于SpaceX)169.185买入1股,用户报告成交。临时代码待正式挂牌确认",
+          "current_price": 155.48,
+          "current_value": 155.48,
+          "pnl_abs": -13.71,
+          "pnl_percent": -8.1,
+          "data_source": "Nasdaq API Jul 13, 2026 09:35 ET",
+          "day_high": 156.98,
+          "day_low": 152.4,
+          "note": "2026-07-10 IPO首日(发行价$149,史上第二大全球股票发行仅次于SpaceX)169.185买入1股,用户报告成交。临时代码SKHYV已于2026-07-13转为正式代码SKHY",
           "trades": [
             {
               "date": "2026-07-10",
@@ -726,19 +726,18 @@
               "note": "IPO首日买入,用户报告成交"
             }
           ],
-          "prev_close": 171.4833,
-          "prev_close_date": "2026-07-13",
-          "today_change_pct": -2.0254,
-          "day_open": 170.0,
+          "prev_close": 168.01,
+          "prev_close_date": "2026-07-10",
+          "today_change_pct": -7.46,
           "day_session_date": "2026-07-13",
-          "today_change": -3.47
+          "today_change": -12.53
         }
       ],
       "total_cost": 4324.28,
-      "total_current_value": 2958.14,
-      "total_pnl": -1366.14,
-      "total_pnl_percent": -31.5924,
-      "today_total_change": -60.94,
+      "total_current_value": 2945.61,
+      "total_pnl": -1378.67,
+      "total_pnl_percent": -31.8821,
+      "today_total_change": -70.0,
       "realized_pnl": 2139.53,
       "realized_note": "NVDA 3股@197.5(+29.19) + CRCL 4股@103.21(+64.84) + CRCL 5股@120(+165) + CRCL 3股@127(+120) + NVDA 3股@199.41(+34.92) + QQQ 1股@631.3(+9.03) + TQQQ 8股@54.45(+69.76) + HOOD 5股@88.36(+74.3) + OKLO 2股@68(+10.34) + TCOM 5股@53.86(+5.6) + SOXL 5股@112(+100.65) + RKLX 4股@75(+113.2) + RKLX 2股@91.03(+88.66) + SOXL 3股@170.8(+236.79) + SOXL 2股@217.17(+250.6) + RKLB 5股@100.17(+145.85) + SPCX 5股@168(+48.5) + RKLX 10股@53.93(+7.3) + SPCH 20股@18.42(+34.8) + ROBN 20股@35.175(+231.85) + ROBN 10股@40(+164.17) + ROBN 10股@37(+134.18)",
       "last_updated": "Jun 24, 2026 16:00 ET close",
