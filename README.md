@@ -70,11 +70,11 @@ The Reflect dashboard reports:
 - execution separately from advice quality; and
 - capital-weighted daily benefit compounded through time — never an arithmetic sum of percentage points across positions.
 
-All figures are generated from the ledger and live snapshots. The LLM writes decisions; Python owns IDs, trigger evaluation, episode grouping, metrics, and the backtest.
+All figures are generated from the ledger and live snapshots. The LLM writes decisions; a deterministic Python Backtester/Auditor owns IDs, trigger evaluation, episode grouping, metrics, and the backtest.
 
-<p align="center"><img src="docs/shadow-backtest.png" alt="decision v2 counterfactual: actual execution, follow every triggered active AI strategy, and the explicit do-nothing baseline" width="760"></p>
+<p align="center"><img src="docs/shadow-backtest.png" alt="decision v2 counterfactual: accepted calls, the complete migrated AI history including holds, active AI strategies, a neutral score line, and cumulative win rates" width="760"></p>
 
-<sub>Three comparable lines: actual execution · all triggered active AI strategies · do nothing = 0. The chart prints episode n, average benefit and date-cluster CI underneath; a CI crossing zero means “alpha not yet proven,” not “AI can never help.” Refreshed weekly by GitHub Actions.</sub>
+<sub>The benefit chart shows accepted calls · complete AI history including HOLD/market beta · active AI calls isolating alpha · a neutral-score zero line (not a buy-and-hold portfolio). A separate cumulative win-rate chart uses 50% as its directional-hit reference. Migrated v1 calls remain in the v2 episode ledger. Refreshed weekly by GitHub Actions.</sub>
 
 ---
 

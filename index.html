@@ -1816,9 +1816,9 @@ layout: null
           <div class="sub" id="plan-followed-sub">—</div>
         </div>
         <div class="kpi-cell">
-          <div class="lbl">Alpha vs hold</div>
+          <div class="lbl">AI 主动胜率</div>
           <div class="val" id="plan-winrate">—</div>
-          <div class="sub muted" id="plan-winrate-sub">vs 全持有</div>
+          <div class="sub muted" id="plan-winrate-sub">triggered active episodes</div>
         </div>
         <div class="kpi-cell">
           <div class="lbl">Brier score</div>
@@ -1843,10 +1843,12 @@ layout: null
     </div>
 
     <div class="card" id="shadow-card" style="display:none">
-      <h3>🔬 全听 AI vs 不动 <span class="muted" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:11px">反事实回测 · 复合 benefit % · T+1</span></h3>
-      <p class="chart-hint">三根线同口径：<b style="color:var(--accent)">实际执行</b>、<b>全听 AI（仅已触发主动策略）</b>、<b>不动 = 0</b>。按 episode 去重、按计划资金权重逐日复合；未触发条件不进入回测。</p>
+      <h3>🔬 AI 全历史 vs 实际采纳 <span class="muted" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:11px">反事实回测 · 复合 benefit % · T+1</span></h3>
+      <p class="chart-hint">累计 benefit 得分：<b style="color:var(--accent)">实际采纳的建议</b>、<b>全量 AI（含 HOLD/β，承接迁移后的 v1 历史）</b>、<b>主动 AI（cut/trim/add/T，隔离 alpha）</b>。灰色 0 是<b>无方向判断得分线</b>，不是你的真实 buy-and-hold 组合。按 episode 去重、按计划资金权重逐日复合；未触发条件不进入回测。</p>
       <div id="chart-shadow" class="chart-box"></div>
       <div id="shadow-note" class="muted" style="font-size:11px;margin-top:6px"></div>
+      <div class="trig-title" style="font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-dim);margin:16px 0 4px;font-weight:600">AI cumulative episode win rate — v1 migrated + v2</div>
+      <div id="chart-ai-winrate" class="chart-box" style="height:210px;min-height:210px"></div>
     </div>
 
     <div class="card">
@@ -2164,7 +2166,7 @@ layout: null
   // =========================================================
   let DATA = null;
   let holdingsSort = { key: "current_value", dir: "desc" };
-  const charts = { equity: null, dailyPnl: null, realized: null, sector: null, weightConf: null, shadow: null };
+  const charts = { equity: null, dailyPnl: null, realized: null, sector: null, weightConf: null, shadow: null, aiWinRate: null };
 
   // ── Lazy chart init (perf) ──────────────────────────────────────────────
   // ECharts canvas init+setOption for these 5 charts is the bulk of first paint,
@@ -4407,9 +4409,10 @@ layout: null
     if (!el || !window.echarts) return;
     const sb = safe(DATA, "episode_backtest");
     const t1 = safe(sb, "horizons", "t1") || {};
+    const allCurve = t1.all_curve || [];
     const activeCurve = t1.active_curve || [];
     const followedCurve = t1.followed_curve || [];
-    const dates = [...new Set([...activeCurve, ...followedCurve].map(p => p.date))].sort();
+    const dates = [...new Set([...allCurve, ...activeCurve, ...followedCurve].map(p => p.date))].sort();
     if (dates.length < 2) { if (card) card.style.display = "none"; return; }
     if (card) card.style.display = "";
     if (!charts.shadow) charts.shadow = echarts.init(el, null, { renderer: "canvas" });
@@ -4418,6 +4421,7 @@ layout: null
       let last = null;
       return dates.map(d => { if (map[d] != null) last = map[d]; return last; });
     };
+    const allAI = seriesFor(allCurve);
     const active = seriesFor(activeCurve);
     const followed = seriesFor(followedCurve);
     const green = getCSS("--green") || "#34d399";
@@ -4430,37 +4434,77 @@ layout: null
     charts.shadow.setOption({
       backgroundColor: "transparent",
       grid: { left: isMobile ? 46 : 58, right: isMobile ? 16 : 24, top: isMobile ? 46 : 30, bottom: dates.length > 6 ? 52 : 32 },
-      legend: { data: ["实际执行", "全听AI·主动", "不动基线"], top: 0,
+      legend: { data: ["实际采纳", "全量AI·含HOLD", "主动AI·alpha", "零判断线"], top: 0,
         textStyle: { color: chartTextColor(), fontSize: isMobile ? 9 : 10 } },
       tooltip: { trigger: "axis",
         valueFormatter: v => (v == null ? "—" : (v >= 0 ? "+" : "") + v.toFixed(2) + "%") },
       xAxis: { type: "category", data: dates, boundaryGap: false,
         axisLine: { lineStyle: { color: chartGridColor() } },
         axisLabel: { color: chartTextColor(), fontSize: 9, rotate: dates.length > 6 ? 35 : 0 } },
-      yAxis: { type: "value", name: "复合 benefit %", nameTextStyle: { color: chartTextColor(), fontSize: 9 },
+      yAxis: { type: "value",
         axisLabel: { color: chartTextColor(), fontSize: 9, formatter: v => (v > 0 ? "+" : "") + v },
         axisLine: { lineStyle: { color: chartGridColor() } },
         splitLine: { lineStyle: { color: chartGridColor() } } },
       series: [
-        { name: "实际执行", type: "line", data: followed, smooth: true, showSymbol: false,
+        { name: "实际采纳", type: "line", data: followed, smooth: true, showSymbol: false,
           itemStyle: { color: accent }, lineStyle: { width: 2.4, color: accent }, z: 5 },
-        { name: "全听AI·主动", type: "line", data: active, smooth: true, showSymbol: false,
+        { name: "全量AI·含HOLD", type: "line", data: allAI, smooth: true, showSymbol: false,
+          itemStyle: { color: green }, lineStyle: { width: 2.2, color: green }, z: 4 },
+        { name: "主动AI·alpha", type: "line", data: active, smooth: true, showSymbol: false,
           itemStyle: { color: actColor }, lineStyle: { width: 2.2, color: actColor },
-          areaStyle: { color: actColor, opacity: 0.07 }, z: 4 },
-        { name: "不动基线", type: "line", data: dates.map(() => 0), showSymbol: false,
+          areaStyle: { color: actColor, opacity: 0.07 }, z: 3 },
+        { name: "零判断线", type: "line", data: dates.map(() => 0), showSymbol: false,
           itemStyle: { color: dim }, lineStyle: { width: 1.4, color: dim, type: "dotted", opacity: 0.9 }, z: 2 },
       ],
     });
     const note = document.getElementById("shadow-note");
     if (note) {
+      const all = t1.all || {};
       const a = t1.active || {};
       const ci = a.cluster_ci95;
       const verdict = ci && ci[0] <= 0 && ci[1] >= 0
         ? "尚未证明稳定 alpha（CI 跨 0，不等于证明 AI 永远无用）"
         : ci && ci[0] > 0 ? "当前样本显示正 edge" : ci ? "当前样本显示负 edge" : "样本不足";
-      note.textContent = `${sb && sb.method ? sb.method + " · " : ""}主动 episode n=${a.n_episodes || 0}`
-        + `${a.avg_benefit_pct == null ? "" : ` · avg ${a.avg_benefit_pct >= 0 ? "+" : ""}${a.avg_benefit_pct.toFixed(2)}%`}`
+      note.textContent = `全量 AI ${all.win_rate == null ? "—" : (all.win_rate * 100).toFixed(1) + "%"}胜率 (n=${all.n_episodes || 0})`
+        + ` · 主动 AI ${a.win_rate == null ? "—" : (a.win_rate * 100).toFixed(1) + "%"}胜率 (n=${a.n_episodes || 0})`
+        + `${a.avg_benefit_pct == null ? "" : ` · 主动 avg ${a.avg_benefit_pct >= 0 ? "+" : ""}${a.avg_benefit_pct.toFixed(2)}%`}`
         + `${ci ? ` · cluster CI [${ci[0].toFixed(2)}, ${ci[1].toFixed(2)}]` : ""} · ${verdict}`;
+    }
+
+    // A separate chart because win rate and compounded benefit are different
+    // quantities. The 50% line is a directional-hit reference, not P&L.
+    const wrEl = document.getElementById("chart-ai-winrate");
+    if (wrEl) {
+      if (!charts.aiWinRate) charts.aiWinRate = echarts.init(wrEl, null, { renderer: "canvas" });
+      const allWrCurve = t1.all_win_rate_curve || [];
+      const activeWrCurve = t1.active_win_rate_curve || [];
+      const wrDates = [...new Set([...allWrCurve, ...activeWrCurve].map(p => p.date))].sort();
+      const wrSeries = curve => {
+        const map = Object.fromEntries(curve.map(p => [p.date, p.win_rate * 100]));
+        let last = null;
+        return wrDates.map(d => { if (map[d] != null) last = map[d]; return last; });
+      };
+      charts.aiWinRate.setOption({
+        backgroundColor: "transparent",
+        grid: { left: isMobile ? 42 : 52, right: isMobile ? 16 : 24, top: 34, bottom: wrDates.length > 6 ? 48 : 26 },
+        legend: { data: ["全量AI胜率", "主动AI胜率", "50%参考"], top: 0,
+          textStyle: { color: chartTextColor(), fontSize: isMobile ? 9 : 10 } },
+        tooltip: { trigger: "axis", valueFormatter: v => v == null ? "—" : v.toFixed(1) + "%" },
+        xAxis: { type: "category", data: wrDates, boundaryGap: false,
+          axisLine: { lineStyle: { color: chartGridColor() } },
+          axisLabel: { color: chartTextColor(), fontSize: 9, rotate: wrDates.length > 6 ? 35 : 0 } },
+        yAxis: { type: "value", min: 0, max: 100, interval: 25,
+          axisLabel: { color: chartTextColor(), fontSize: 9, formatter: v => v + "%" },
+          splitLine: { lineStyle: { color: chartGridColor() } } },
+        series: [
+          { name: "全量AI胜率", type: "line", data: wrSeries(allWrCurve), smooth: true, showSymbol: false,
+            itemStyle: { color: green }, lineStyle: { width: 2.2, color: green } },
+          { name: "主动AI胜率", type: "line", data: wrSeries(activeWrCurve), smooth: true, showSymbol: false,
+            itemStyle: { color: actColor }, lineStyle: { width: 2.2, color: actColor } },
+          { name: "50%参考", type: "line", data: wrDates.map(() => 50), showSymbol: false,
+            itemStyle: { color: dim }, lineStyle: { width: 1.2, color: dim, type: "dashed" } },
+        ],
+      });
     }
   }
 
@@ -5023,16 +5067,17 @@ layout: null
       setClass("plan-followed", followedPct >= 60 ? "pos" : followedPct >= 30 ? "neutral" : "neg");
     }
 
-    if (active.avg_benefit_pct == null) {
+    if (active.win_rate == null) {
       setVal("plan-winrate", DASH);
       setSub("plan-winrate-sub", "active episodes · 数据不足");
       setClass("plan-winrate", "neutral");
     } else {
-      const a = active.avg_benefit_pct;
+      const wr = active.win_rate * 100;
+      const avg = active.avg_benefit_pct;
       const ci = active.cluster_ci95 ? ` · CI [${active.cluster_ci95[0].toFixed(2)}, ${active.cluster_ci95[1].toFixed(2)}]` : "";
-      setVal("plan-winrate", (a > 0 ? "+" : "") + a.toFixed(2) + "%");
-      setSub("plan-winrate-sub", `active episodes n=${active.n_episodes}${ci}`);
-      setClass("plan-winrate", a > 0 ? "pos" : (a < 0 ? "neg" : "neutral"));
+      setVal("plan-winrate", wr.toFixed(1) + "%");
+      setSub("plan-winrate-sub", `n=${active.n_episodes} · avg ${avg == null ? "—" : (avg >= 0 ? "+" : "") + avg.toFixed(2) + "%"}${ci}`);
+      setClass("plan-winrate", wr > 50 ? "pos" : (wr < 50 ? "neg" : "neutral"));
     }
 
     if (brier == null) {
@@ -5569,6 +5614,7 @@ layout: null
       renderDailyPnlChart();
       renderPlanReview();
       renderWeightConfidence();
+      renderShadowChart();
     }
   });
 

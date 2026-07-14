@@ -70,11 +70,11 @@ Reflect 仪表盘展示：
 - 执行与建议质量分开统计；
 - 按资金权重计算每日 benefit 并逐日复合，绝不跨仓位直接累加百分点。
 
-所有数字由账本和真实快照生成。LLM 负责写决策；ID、触发判断、episode 分组、指标和回测全部由 Python 掌管。
+所有数字由账本和真实快照生成。LLM 负责写决策；确定性的 Python Backtester/Auditor 负责 ID、触发判断、episode 分组、指标和回测，模型不能改自己的分数。
 
-<p align="center"><img src="docs/shadow-backtest.png" alt="decision v2 反事实回测：实际执行、全听已触发主动 AI 策略、显式不动基线" width="760"></p>
+<p align="center"><img src="docs/shadow-backtest.png" alt="decision v2 反事实回测：实际采纳、含 hold 的完整迁移 AI 历史、主动 AI 策略、零判断线与累计胜率" width="760"></p>
 
-<sub>三根同口径曲线：实际执行 · 全听已触发主动 AI 策略 · 不动=0。图下直接打印 episode n、平均 benefit 和日期聚类 CI；CI 跨 0 表示“尚未证明 alpha”，不等于“AI 永远没用”。由 GitHub Actions 每周刷新。</sub>
+<sub>Benefit 图展示：实际采纳 · 含 HOLD/市场 β 的完整 AI 历史 · 隔离 alpha 的主动 AI · 无方向判断的零分线（不是 buy-and-hold 组合）。另设真正的累计胜率图，以 50% 为方向命中参考线。v1 历史已迁入 v2 episode 账本；由 GitHub Actions 每周刷新。</sub>
 
 ---
 

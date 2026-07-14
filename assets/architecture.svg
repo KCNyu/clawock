@@ -1,134 +1,124 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1180 900" font-family="ui-sans-serif">
-<defs><marker id="arw" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#8b98b0"/></marker><marker id="arwB" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#f0b429"/></marker></defs>
-<rect x="0" y="0" width="1180" height="900" rx="0" fill="#0d1117"/>
-<rect x="10" y="10" width="1160" height="880" rx="16" fill="#111725" stroke="#2b3550" stroke-width="1.2"/>
-<text x="36" y="56" font-family="ui-sans-serif, -apple-system, Segoe UI, Roboto, Helvetica, Arial" font-size="30" font-weight="800" fill="#e6edf3" text-anchor="start">clawock</text>
-<text x="176" y="56" font-family="ui-sans-serif, -apple-system, Segoe UI, Roboto, Helvetica, Arial" font-size="17" font-weight="500" fill="#8b98b0" text-anchor="start">one machine · many agents</text>
-<text x="36" y="82" font-family="ui-sans-serif, -apple-system, Segoe UI, Roboto, Helvetica, Arial" font-size="13.5" font-weight="400" fill="#8b98b0" text-anchor="start">Deterministic scaffolding wraps agentic judgment — that split IS the architecture.</text>
-<rect x="714" y="44" width="150" height="24" rx="12" fill="#12233f" stroke="#5aa2ff" stroke-width="1"/>
-<circle cx="729" cy="56" r="4.5" fill="#5aa2ff"/>
-<text x="741" y="60" font-family="ui-sans-serif, -apple-system, Segoe UI, Roboto, Helvetica, Arial" font-size="12" font-weight="500" fill="#e6edf3" text-anchor="start">deterministic (code)</text>
-<rect x="876" y="44" width="105" height="24" rx="12" fill="#33280c" stroke="#f0b429" stroke-width="1"/>
-<circle cx="891" cy="56" r="4.5" fill="#f0b429"/>
-<text x="903" y="60" font-family="ui-sans-serif, -apple-system, Segoe UI, Roboto, Helvetica, Arial" font-size="12" font-weight="500" fill="#e6edf3" text-anchor="start">agent (LLM)</text>
-<rect x="993" y="44" width="120" height="24" rx="12" fill="#182033" stroke="#9aa7bf" stroke-width="1"/>
-<circle cx="1008" cy="56" r="4.5" fill="#9aa7bf"/>
-<text x="1020" y="60" font-family="ui-sans-serif, -apple-system, Segoe UI, Roboto, Helvetica, Arial" font-size="12" font-weight="500" fill="#e6edf3" text-anchor="start">shared state</text>
-<text x="36" y="110" font-family="ui-sans-serif, -apple-system, Segoe UI, Roboto, Helvetica, Arial" font-size="12" font-weight="700" fill="#9aa7bf" text-anchor="start" letter-spacing="1.5">① SCHEDULERS — THREE INDEPENDENT TRIGGERS</text>
-<rect x="36" y="122" width="267.3333333333333" height="64" rx="10" fill="#161d2e" stroke="#2b3550" stroke-width="1.3"/>
-<rect x="36" y="122" width="4" height="64" rx="2" fill="#9aa7bf"/>
-<rect x="36" y="122" width="4" height="64" rx="2" fill="#9aa7bf"/>
-<text x="52" y="147" font-family="ui-sans-serif, -apple-system, Segoe UI, Roboto, Helvetica, Arial" font-size="15" font-weight="600" fill="#e6edf3" text-anchor="start">openclaw cron</text>
-<text x="52" y="167" font-family="ui-sans-serif, -apple-system, Segoe UI, Roboto, Helvetica, Arial" font-size="12.5" font-weight="400" fill="#8b98b0" text-anchor="start">11 isolated agent turns</text>
-<rect x="233.33333333333331" y="135" width="58.0" height="19" rx="9" fill="#182033" stroke="#9aa7bf" stroke-width="1"/>
-<text x="262.3333333333333" y="148" font-family="ui-sans-serif, -apple-system, Segoe UI, Roboto, Helvetica, Arial" font-size="11" font-weight="600" fill="#9aa7bf" text-anchor="middle">daemon</text>
-<rect x="319.3333333333333" y="122" width="267.3333333333333" height="64" rx="10" fill="#161d2e" stroke="#2b3550" stroke-width="1.3"/>
-<rect x="319.3333333333333" y="122" width="4" height="64" rx="2" fill="#9aa7bf"/>
-<rect x="319.3333333333333" y="122" width="4" height="64" rx="2" fill="#9aa7bf"/>
-<text x="335.3333333333333" y="147" font-family="ui-sans-serif, -apple-system, Segoe UI, Roboto, Helvetica, Arial" font-size="15" font-weight="600" fill="#e6edf3" text-anchor="start">system crontab</text>
-<text x="335.3333333333333" y="167" font-family="ui-sans-serif, -apple-system, Segoe UI, Roboto, Helvetica, Arial" font-size="12.5" font-weight="400" fill="#8b98b0" text-anchor="start">watchdogs · publish · gold</text>
-<rect x="544.6666666666666" y="135" width="30.0" height="19" rx="9" fill="#182033" stroke="#9aa7bf" stroke-width="1"/>
-<text x="559.6666666666666" y="148" font-family="ui-sans-serif, -apple-system, Segoe UI, Roboto, Helvetica, Arial" font-size="11" font-weight="600" fill="#9aa7bf" text-anchor="middle">OS</text>
-<rect x="602.6666666666666" y="122" width="267.3333333333333" height="64" rx="10" fill="#161d2e" stroke="#2b3550" stroke-width="1.3"/>
-<rect x="602.6666666666666" y="122" width="4" height="64" rx="2" fill="#9aa7bf"/>
-<rect x="602.6666666666666" y="122" width="4" height="64" rx="2" fill="#9aa7bf"/>
-<text x="618.6666666666666" y="147" font-family="ui-sans-serif, -apple-system, Segoe UI, Roboto, Helvetica, Arial" font-size="15" font-weight="600" fill="#e6edf3" text-anchor="start">GitHub Actions</text>
-<text x="618.6666666666666" y="167" font-family="ui-sans-serif, -apple-system, Segoe UI, Roboto, Helvetica, Arial" font-size="12.5" font-weight="400" fill="#8b98b0" text-anchor="start">weekend scans · CI gates</text>
-<rect x="828.0" y="135" width="30.0" height="19" rx="9" fill="#182033" stroke="#9aa7bf" stroke-width="1"/>
-<text x="843.0" y="148" font-family="ui-sans-serif, -apple-system, Segoe UI, Roboto, Helvetica, Arial" font-size="11" font-weight="600" fill="#9aa7bf" text-anchor="middle">CI</text>
-<path d="M 169.66666666666666 186 L 169.66666666666666 216" stroke="#8b98b0" stroke-width="1.6" fill="none" marker-end="url(#arw)"/>
-<text x="181.66666666666666" y="208" font-family="ui-sans-serif, -apple-system, Segoe UI, Roboto, Helvetica, Arial" font-size="12" font-weight="500" fill="#8b98b0" text-anchor="start">every turn runs the harness →</text>
-<text x="36" y="228" font-family="ui-sans-serif, -apple-system, Segoe UI, Roboto, Helvetica, Arial" font-size="12" font-weight="700" fill="#5aa2ff" text-anchor="start" letter-spacing="1.5">② HARNESS — THE SAME WRAPPER AROUND EVERY ONE OF THE 11 TURNS</text>
-<rect x="36" y="240" width="834" height="118" rx="12" fill="#0f1626" stroke="#2b3550" stroke-width="1.2"/>
-<rect x="56" y="262" width="250.0" height="56" rx="10" fill="#161d2e" stroke="#2b3550" stroke-width="1.3"/>
-<rect x="56" y="262" width="4" height="56" rx="2" fill="#5aa2ff"/>
-<rect x="56" y="262" width="4" height="56" rx="2" fill="#5aa2ff"/>
-<text x="72" y="287" font-family="ui-sans-serif, -apple-system, Segoe UI, Roboto, Helvetica, Arial" font-size="15" font-weight="600" fill="#e6edf3" text-anchor="start">preflight.py</text>
-<text x="72" y="307" font-family="ui-sans-serif, -apple-system, Segoe UI, Roboto, Helvetica, Arial" font-size="12.5" font-weight="400" fill="#8b98b0" text-anchor="start">prices · trigger settlement · metrics</text>
-<rect x="328.0" y="256" width="250.0" height="68" rx="10" fill="#33280c" stroke="#f0b429" stroke-width="1.8"/>
-<text x="344.0" y="278" font-family="ui-sans-serif, -apple-system, Segoe UI, Roboto, Helvetica, Arial" font-size="15" font-weight="700" fill="#f0b429" text-anchor="start">LLM agent turn — Rick</text>
-<text x="344.0" y="297" font-family="ui-sans-serif, -apple-system, Segoe UI, Roboto, Helvetica, Arial" font-size="12.5" font-weight="400" fill="#e8d9a8" text-anchor="start">writes the opinion only</text>
-<rect x="600.0" y="262" width="250.0" height="56" rx="10" fill="#161d2e" stroke="#2b3550" stroke-width="1.3"/>
-<rect x="600.0" y="262" width="4" height="56" rx="2" fill="#5aa2ff"/>
-<rect x="600.0" y="262" width="4" height="56" rx="2" fill="#5aa2ff"/>
-<text x="616.0" y="287" font-family="ui-sans-serif, -apple-system, Segoe UI, Roboto, Helvetica, Arial" font-size="15" font-weight="600" fill="#e6edf3" text-anchor="start">postflight.py</text>
-<text x="616.0" y="307" font-family="ui-sans-serif, -apple-system, Segoe UI, Roboto, Helvetica, Arial" font-size="12.5" font-weight="400" fill="#8b98b0" text-anchor="start">validate · IDs/episode · commit</text>
-<path d="M 306.0 290.0 L 328.0 290.0" stroke="#8b98b0" stroke-width="1.6" fill="none" marker-end="url(#arw)"/>
-<path d="M 578.0 290.0 L 600.0 290.0" stroke="#8b98b0" stroke-width="1.6" fill="none" marker-end="url(#arw)"/>
-<text x="453.0" y="346" font-family="ui-sans-serif, -apple-system, Segoe UI, Roboto, Helvetica, Arial" font-size="12" font-weight="400" fill="#8b98b0" text-anchor="middle">The model produces judgment; everything factual (data in · money math · delivery) is code.</text>
-<path d="M 453.0 358 L 453.0 388" stroke="#8b98b0" stroke-width="1.6" fill="none" marker-end="url(#arw)"/>
-<text x="36" y="400" font-family="ui-sans-serif, -apple-system, Segoe UI, Roboto, Helvetica, Arial" font-size="12" font-weight="700" fill="#9aa7bf" text-anchor="start" letter-spacing="1.5">③ SHARED STATE — THE BLACKBOARD EVERY AGENT READS &amp; WRITES</text>
-<rect x="36.0" y="412" width="198.0" height="64" rx="10" fill="#161d2e" stroke="#2b3550" stroke-width="1.3"/>
-<rect x="36.0" y="412" width="4" height="64" rx="2" fill="#9aa7bf"/>
-<rect x="36.0" y="412" width="4" height="64" rx="2" fill="#9aa7bf"/>
-<text x="52.0" y="437" font-family="ui-sans-serif, -apple-system, Segoe UI, Roboto, Helvetica, Arial" font-size="15" font-weight="600" fill="#e6edf3" text-anchor="start">portfolio.json</text>
-<text x="52.0" y="457" font-family="ui-sans-serif, -apple-system, Segoe UI, Roboto, Helvetica, Arial" font-size="12.5" font-weight="400" fill="#8b98b0" text-anchor="start">source of truth · flock</text>
-<rect x="248.0" y="412" width="198.0" height="64" rx="10" fill="#161d2e" stroke="#2b3550" stroke-width="1.3"/>
-<rect x="248.0" y="412" width="4" height="64" rx="2" fill="#9aa7bf"/>
-<rect x="248.0" y="412" width="4" height="64" rx="2" fill="#9aa7bf"/>
-<text x="264.0" y="437" font-family="ui-sans-serif, -apple-system, Segoe UI, Roboto, Helvetica, Arial" font-size="15" font-weight="600" fill="#e6edf3" text-anchor="start">plan v2 · decisions[]</text>
-<text x="264.0" y="457" font-family="ui-sans-serif, -apple-system, Segoe UI, Roboto, Helvetica, Arial" font-size="12.5" font-weight="400" fill="#8b98b0" text-anchor="start">same stock · many strategies</text>
-<rect x="460.0" y="412" width="198.0" height="64" rx="10" fill="#161d2e" stroke="#2b3550" stroke-width="1.3"/>
-<rect x="460.0" y="412" width="4" height="64" rx="2" fill="#9aa7bf"/>
-<rect x="460.0" y="412" width="4" height="64" rx="2" fill="#9aa7bf"/>
-<text x="476.0" y="437" font-family="ui-sans-serif, -apple-system, Segoe UI, Roboto, Helvetica, Arial" font-size="15" font-weight="600" fill="#e6edf3" text-anchor="start">decisions.jsonl</text>
-<text x="476.0" y="457" font-family="ui-sans-serif, -apple-system, Segoe UI, Roboto, Helvetica, Arial" font-size="12.5" font-weight="400" fill="#8b98b0" text-anchor="start">triggered strategy episodes</text>
-<rect x="672.0" y="412" width="198.0" height="64" rx="10" fill="#161d2e" stroke="#2b3550" stroke-width="1.3"/>
-<rect x="672.0" y="412" width="4" height="64" rx="2" fill="#9aa7bf"/>
-<rect x="672.0" y="412" width="4" height="64" rx="2" fill="#9aa7bf"/>
-<text x="688.0" y="437" font-family="ui-sans-serif, -apple-system, Segoe UI, Roboto, Helvetica, Arial" font-size="15" font-weight="600" fill="#e6edf3" text-anchor="start">assets/data/*.json</text>
-<text x="688.0" y="457" font-family="ui-sans-serif, -apple-system, Segoe UI, Roboto, Helvetica, Arial" font-size="12.5" font-weight="400" fill="#8b98b0" text-anchor="start">context · metrics · backtest</text>
-<path d="M 135.0 476 L 135.0 506" stroke="#8b98b0" stroke-width="1.6" fill="none" marker-end="url(#arw)"/>
-<text x="36" y="518" font-family="ui-sans-serif, -apple-system, Segoe UI, Roboto, Helvetica, Arial" font-size="12" font-weight="700" fill="#3fb950" text-anchor="start" letter-spacing="1.5">④ INTEGRITY GATES — AN EDIT CAN&#x27;T REACH THE WORLD UNLESS THE BOOKS BALANCE</text>
-<rect x="36" y="530" width="409.0" height="64" rx="10" fill="#161d2e" stroke="#2b3550" stroke-width="1.3"/>
-<rect x="36" y="530" width="4" height="64" rx="2" fill="#3fb950"/>
-<rect x="36" y="530" width="4" height="64" rx="2" fill="#3fb950"/>
-<text x="52" y="555" font-family="ui-sans-serif, -apple-system, Segoe UI, Roboto, Helvetica, Arial" font-size="15" font-weight="600" fill="#e6edf3" text-anchor="start">reconcile + integrity</text>
-<text x="52" y="575" font-family="ui-sans-serif, -apple-system, Segoe UI, Roboto, Helvetica, Arial" font-size="12.5" font-weight="400" fill="#8b98b0" text-anchor="start">TCV · cash · cost · regime · quant</text>
-<rect x="389.0" y="543" width="44.0" height="19" rx="9" fill="#0f2a1a" stroke="#3fb950" stroke-width="1"/>
-<text x="411.0" y="556" font-family="ui-sans-serif, -apple-system, Segoe UI, Roboto, Helvetica, Arial" font-size="11" font-weight="600" fill="#3fb950" text-anchor="middle">auto</text>
-<rect x="461.0" y="530" width="409.0" height="64" rx="10" fill="#161d2e" stroke="#2b3550" stroke-width="1.3"/>
-<rect x="461.0" y="530" width="4" height="64" rx="2" fill="#3fb950"/>
-<rect x="461.0" y="530" width="4" height="64" rx="2" fill="#3fb950"/>
-<text x="477.0" y="555" font-family="ui-sans-serif, -apple-system, Segoe UI, Roboto, Helvetica, Arial" font-size="15" font-weight="600" fill="#e6edf3" text-anchor="start">pre-push money gate</text>
-<text x="477.0" y="575" font-family="ui-sans-serif, -apple-system, Segoe UI, Roboto, Helvetica, Arial" font-size="12.5" font-weight="400" fill="#8b98b0" text-anchor="start">blocks any non-conserving push</text>
-<rect x="814.0" y="543" width="44.0" height="19" rx="9" fill="#0f2a1a" stroke="#3fb950" stroke-width="1"/>
-<text x="836.0" y="556" font-family="ui-sans-serif, -apple-system, Segoe UI, Roboto, Helvetica, Arial" font-size="11" font-weight="600" fill="#3fb950" text-anchor="middle">hook</text>
-<path d="M 240.5 594 L 240.5 624" stroke="#8b98b0" stroke-width="1.6" fill="none" marker-end="url(#arw)"/>
-<text x="36" y="636" font-family="ui-sans-serif, -apple-system, Segoe UI, Roboto, Helvetica, Arial" font-size="12" font-weight="700" fill="#b98cff" text-anchor="start" letter-spacing="1.5">⑤ PUBLISH &amp; DELIVER</text>
-<rect x="36" y="648" width="267.3333333333333" height="64" rx="10" fill="#161d2e" stroke="#2b3550" stroke-width="1.3"/>
-<rect x="36" y="648" width="4" height="64" rx="2" fill="#b98cff"/>
-<rect x="36" y="648" width="4" height="64" rx="2" fill="#b98cff"/>
-<text x="52" y="673" font-family="ui-sans-serif, -apple-system, Segoe UI, Roboto, Helvetica, Arial" font-size="15" font-weight="600" fill="#e6edf3" text-anchor="start">GitHub Pages</text>
-<text x="52" y="693" font-family="ui-sans-serif, -apple-system, Segoe UI, Roboto, Helvetica, Arial" font-size="12.5" font-weight="400" fill="#8b98b0" text-anchor="start">public dashboard</text>
-<rect x="319.3333333333333" y="648" width="267.3333333333333" height="64" rx="10" fill="#161d2e" stroke="#2b3550" stroke-width="1.3"/>
-<rect x="319.3333333333333" y="648" width="4" height="64" rx="2" fill="#b98cff"/>
-<rect x="319.3333333333333" y="648" width="4" height="64" rx="2" fill="#b98cff"/>
-<text x="335.3333333333333" y="673" font-family="ui-sans-serif, -apple-system, Segoe UI, Roboto, Helvetica, Arial" font-size="15" font-weight="600" fill="#e6edf3" text-anchor="start">WeChat</text>
-<text x="335.3333333333333" y="693" font-family="ui-sans-serif, -apple-system, Segoe UI, Roboto, Helvetica, Arial" font-size="12.5" font-weight="400" fill="#8b98b0" text-anchor="start">primary channel</text>
-<rect x="602.6666666666666" y="648" width="267.3333333333333" height="64" rx="10" fill="#161d2e" stroke="#2b3550" stroke-width="1.3"/>
-<rect x="602.6666666666666" y="648" width="4" height="64" rx="2" fill="#b98cff"/>
-<rect x="602.6666666666666" y="648" width="4" height="64" rx="2" fill="#b98cff"/>
-<text x="618.6666666666666" y="673" font-family="ui-sans-serif, -apple-system, Segoe UI, Roboto, Helvetica, Arial" font-size="15" font-weight="600" fill="#e6edf3" text-anchor="start">Telegram</text>
-<text x="618.6666666666666" y="693" font-family="ui-sans-serif, -apple-system, Segoe UI, Roboto, Helvetica, Arial" font-size="12.5" font-weight="400" fill="#8b98b0" text-anchor="start">watchdog fallback</text>
-<rect x="894" y="122" width="250" height="590" rx="12" fill="#0f1626" stroke="#f0b429" stroke-width="1.3" stroke-dasharray="4 4"/>
-<text x="912" y="152" font-family="ui-sans-serif, -apple-system, Segoe UI, Roboto, Helvetica, Arial" font-size="14" font-weight="700" fill="#f0b429" text-anchor="start">Supervision &amp; learning</text>
-<text x="912" y="172" font-family="ui-sans-serif, -apple-system, Segoe UI, Roboto, Helvetica, Arial" font-size="12" font-weight="400" fill="#8b98b0" text-anchor="start">the non-linear parts</text>
-<rect x="910" y="194" width="218" height="118" rx="10" fill="#33280c" stroke="#f0b429" stroke-width="1"/>
-<text x="924" y="218" font-family="ui-sans-serif, -apple-system, Segoe UI, Roboto, Helvetica, Arial" font-size="13" font-weight="700" fill="#f0b429" text-anchor="start">Debate swarm · 08:00 brief</text>
-<circle cx="926" cy="236" r="3" fill="#f0b429"/>
-<text x="936" y="240" font-family="ui-sans-serif, -apple-system, Segoe UI, Roboto, Helvetica, Arial" font-size="12" font-weight="500" fill="#e6edf3" text-anchor="start">Tier 1 · 4 analyst lenses</text>
-<circle cx="926" cy="258" r="3" fill="#f0b429"/>
-<text x="936" y="262" font-family="ui-sans-serif, -apple-system, Segoe UI, Roboto, Helvetica, Arial" font-size="12" font-weight="500" fill="#e6edf3" text-anchor="start">Tier 2 · Bull vs Bear</text>
-<circle cx="926" cy="280" r="3" fill="#f0b429"/>
-<text x="936" y="284" font-family="ui-sans-serif, -apple-system, Segoe UI, Roboto, Helvetica, Arial" font-size="12" font-weight="500" fill="#e6edf3" text-anchor="start">Judge → multi-strategy plan v2</text>
-<rect x="910" y="328" width="218" height="70" rx="10" fill="#161d2e" stroke="#2b3550" stroke-width="1"/>
-<text x="924" y="352" font-family="ui-sans-serif, -apple-system, Segoe UI, Roboto, Helvetica, Arial" font-size="13" font-weight="700" fill="#e6edf3" text-anchor="start">Watchdogs (supervisor)</text>
-<text x="924" y="372" font-family="ui-sans-serif, -apple-system, Segoe UI, Roboto, Helvetica, Arial" font-size="12" font-weight="400" fill="#8b98b0" text-anchor="start">stalled turn → Telegram, always</text>
-<rect x="910" y="410" width="218" height="70" rx="10" fill="#161d2e" stroke="#2b3550" stroke-width="1"/>
-<text x="924" y="434" font-family="ui-sans-serif, -apple-system, Segoe UI, Roboto, Helvetica, Arial" font-size="13" font-weight="700" fill="#e6edf3" text-anchor="start">Self-learning loop  ↺</text>
-<text x="924" y="454" font-family="ui-sans-serif, -apple-system, Segoe UI, Roboto, Helvetica, Arial" font-size="12" font-weight="400" fill="#8b98b0" text-anchor="start">episode CI/backtest → next brief</text>
-<path d="M 578.0 265 L 882 265 L 882 254 L 908 254" stroke="#f0b429" stroke-width="1.4" fill="none" stroke-linejoin="round" stroke-dasharray="5 4" marker-end="url(#arwB)"/>
-<text x="744" y="260" font-family="ui-sans-serif, -apple-system, Segoe UI, Roboto, Helvetica, Arial" font-size="11" font-weight="600" fill="#f0b429" text-anchor="start">brief only</text>
-<path d="M 894 363 L 881 363 L 881 680.0 L 870.0 680.0" stroke="#8b98b0" stroke-width="1.4" fill="none" stroke-linejoin="round" stroke-dasharray="5 4" marker-end="url(#arw)"/>
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="900" viewBox="0 0 1440 900" role="img" aria-labelledby="title desc">
+  <title id="title">clawock decision operating system</title>
+  <desc id="desc">A deterministic data and audit plane surrounds an LLM decision mesh, with strategy episodes, backtesting, watchdogs, and delivery gates.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#070b14"/><stop offset=".55" stop-color="#0a1020"/><stop offset="1" stop-color="#080c17"/>
+    </linearGradient>
+    <radialGradient id="haloA"><stop stop-color="#38bdf8" stop-opacity=".16"/><stop offset="1" stop-color="#38bdf8" stop-opacity="0"/></radialGradient>
+    <radialGradient id="haloB"><stop stop-color="#8b5cf6" stop-opacity=".14"/><stop offset="1" stop-color="#8b5cf6" stop-opacity="0"/></radialGradient>
+    <pattern id="grid" width="32" height="32" patternUnits="userSpaceOnUse"><path d="M32 0H0V32" fill="none" stroke="#334155" stroke-width=".6" opacity=".18"/></pattern>
+    <linearGradient id="bus" x1="0" y1="0" x2="1" y2="0"><stop stop-color="#38bdf8"/><stop offset=".5" stop-color="#8b5cf6"/><stop offset="1" stop-color="#34d399"/></linearGradient>
+    <filter id="glow" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="150%"><feDropShadow dx="0" dy="10" stdDeviation="14" flood-color="#000" flood-opacity=".34"/></filter>
+    <marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0L8 4L0 8Z" fill="#64748b"/></marker>
+    <marker id="arrowC" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0L8 4L0 8Z" fill="#38bdf8"/></marker>
+    <style>
+      .sans{font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif}.mono{font-family:"SFMono-Regular",Consolas,"Liberation Mono",monospace}
+      .stage{font:700 12px "SFMono-Regular",Consolas,monospace;letter-spacing:1.7px}.title{font:700 19px Inter,-apple-system,"Segoe UI",Arial,sans-serif}.body{font:500 12.5px Inter,-apple-system,"Segoe UI",Arial,sans-serif}.small{font:500 11px "SFMono-Regular",Consolas,monospace}.dim{fill:#8fa0b8}.white{fill:#eef5ff}
+      .card{fill:#101827;stroke:#25324a;stroke-width:1.2}.chip{fill:#0b1220;stroke:#26344d;stroke-width:1}.wire{fill:none;stroke:#64748b;stroke-width:1.6;marker-end:url(#arrow)}
+    </style>
+  </defs>
+
+  <rect width="1440" height="900" fill="url(#bg)"/>
+  <rect width="1440" height="900" fill="url(#grid)"/>
+  <ellipse cx="210" cy="80" rx="420" ry="250" fill="url(#haloA)"/>
+  <ellipse cx="770" cy="330" rx="470" ry="330" fill="url(#haloB)"/>
+
+  <!-- header -->
+  <g class="sans">
+    <text x="42" y="62" font-size="29" font-weight="800" fill="#f4f8ff">claw<tspan fill="#38bdf8">ock</tspan></text>
+    <text x="42" y="88" class="mono" font-size="12" fill="#8291aa" letter-spacing="1.4">DECISION OPERATING SYSTEM · HK + US</text>
+    <g transform="translate(955 38)"><rect width="128" height="34" rx="17" fill="#0b1725" stroke="#1e7497"/><circle cx="18" cy="17" r="4" fill="#38bdf8" filter="url(#glow)"/><text x="31" y="21" class="small" fill="#9ddfff">DATA LIVE</text></g>
+    <g transform="translate(1094 38)"><rect width="140" height="34" rx="17" fill="#151128" stroke="#5941a6"/><circle cx="18" cy="17" r="4" fill="#a78bfa" filter="url(#glow)"/><text x="31" y="21" class="small" fill="#cdbdff">LLM SANDBOXED</text></g>
+    <g transform="translate(1245 38)"><rect width="153" height="34" rx="17" fill="#0b1c19" stroke="#237a61"/><circle cx="18" cy="17" r="4" fill="#34d399" filter="url(#glow)"/><text x="31" y="21" class="small" fill="#9cf5d2">AUDIT ENABLED</text></g>
+  </g>
+
+  <text x="42" y="145" class="stage" fill="#64748b">01 · LIVE DECISION PIPELINE</text>
+  <path d="M42 161H1398" stroke="#26344d"/>
+
+  <!-- connecting data bus -->
+  <path d="M214 334H1198" stroke="url(#bus)" stroke-width="4" opacity=".18" filter="url(#glow)"/>
+  <path d="M232 334H266M508 334H542M808 334H842M1083 334H1117" class="wire"/>
+
+  <!-- orchestrator -->
+  <g transform="translate(42 186)" filter="url(#shadow)">
+    <rect class="card" width="190" height="296" rx="18"/>
+    <rect width="190" height="5" rx="3" fill="#64748b"/>
+    <text x="18" y="33" class="stage" fill="#94a3b8">ORCHESTRATOR</text>
+    <text x="18" y="62" class="title white">Schedule + inputs</text>
+    <g transform="translate(16 82)"><rect class="chip" width="158" height="42" rx="9"/><text x="13" y="18" class="small white">openclaw cron</text><text x="13" y="33" class="small dim">11 HKT jobs</text></g>
+    <g transform="translate(16 134)"><rect class="chip" width="158" height="52" rx="9"/><text x="13" y="18" class="small white">market fabric</text><text x="13" y="34" class="small dim">prices · FX · macro</text><text x="13" y="47" class="small dim">signals · news</text></g>
+    <g transform="translate(16 196)"><rect class="chip" width="158" height="66" rx="9"/><text x="13" y="18" class="small white">source of truth</text><text x="13" y="35" class="small dim">portfolio.json</text><text x="13" y="50" class="small dim">snapshots + ledger</text></g>
+  </g>
+
+  <!-- deterministic preflight -->
+  <g transform="translate(270 186)" filter="url(#shadow)">
+    <rect class="card" width="238" height="296" rx="18"/>
+    <rect width="238" height="5" rx="3" fill="#38bdf8" filter="url(#glow)"/>
+    <text x="18" y="33" class="stage" fill="#38bdf8">DETERMINISTIC · PYTHON</text>
+    <text x="18" y="62" class="title white">Preflight engine</text>
+    <text x="18" y="84" class="body dim">Facts enter; opinions do not.</text>
+    <g transform="translate(16 105)"><rect class="chip" width="206" height="42" rx="9"/><text x="13" y="18" class="small white">refresh + reconcile</text><text x="13" y="33" class="small dim">prices · FX · positions</text></g>
+    <g transform="translate(16 157)"><rect class="chip" width="206" height="52" rx="9"/><text x="13" y="18" class="small white">derive risk state</text><text x="13" y="34" class="small dim">HHI · beta · regime</text><text x="13" y="47" class="small dim">hard caps · integrity</text></g>
+    <g transform="translate(16 219)"><rect class="chip" width="206" height="46" rx="9"/><text x="13" y="18" class="small white">settle v2 episodes</text><text x="13" y="34" class="small dim">trigger → outcome → metrics</text></g>
+  </g>
+
+  <!-- LLM mesh -->
+  <g transform="translate(546 174)" filter="url(#shadow)">
+    <rect x="0" y="12" class="card" width="262" height="320" rx="20" stroke="#6048a8"/>
+    <rect x="0" y="12" width="262" height="5" rx="3" fill="#a78bfa" filter="url(#glow)"/>
+    <text x="18" y="45" class="stage" fill="#a78bfa">LLM DECISION MESH</text>
+    <text x="18" y="74" class="title white">Debate, then decide</text>
+    <text x="18" y="96" class="body dim">Judgment only · no money math</text>
+    <g transform="translate(16 117)"><rect class="chip" width="230" height="47" rx="10"/><circle cx="16" cy="16" r="4" fill="#38bdf8"/><text x="29" y="20" class="small white">TIER 1 · 4 lenses</text><text x="13" y="37" class="small dim">fund · tech · sentiment · sector</text></g>
+    <g transform="translate(16 174)"><rect class="chip" width="230" height="47" rx="10"/><circle cx="16" cy="16" r="4" fill="#f472b6"/><text x="29" y="20" class="small white">TIER 2 · BULL ↔ BEAR</text><text x="13" y="37" class="small dim">mandatory disagreement</text></g>
+    <g transform="translate(16 231)"><rect class="chip" width="230" height="61" rx="10"/><circle cx="16" cy="16" r="4" fill="#a78bfa"/><text x="29" y="20" class="small white">TIER 3 · RISK + JUDGE</text><text x="13" y="38" class="small dim">aggr · neutral · conservative</text><text x="13" y="53" class="small" fill="#cdbdff">→ multi-strategy decisions[]</text></g>
+  </g>
+
+  <!-- postflight -->
+  <g transform="translate(846 186)" filter="url(#shadow)">
+    <rect class="card" width="238" height="296" rx="18"/>
+    <rect width="238" height="5" rx="3" fill="#34d399" filter="url(#glow)"/>
+    <text x="18" y="33" class="stage" fill="#34d399">DETERMINISTIC · GATE</text>
+    <text x="18" y="62" class="title white">Postflight commit</text>
+    <text x="18" y="84" class="body dim">The model cannot grade itself.</text>
+    <g transform="translate(16 105)"><rect class="chip" width="206" height="46" rx="9"/><text x="13" y="18" class="small white">validate contract</text><text x="13" y="34" class="small dim">strategy · condition · size</text></g>
+    <g transform="translate(16 161)"><rect class="chip" width="206" height="52" rx="9"/><text x="13" y="18" class="small white">assign identity</text><text x="13" y="34" class="small dim">stable ID · episode · upsert</text><text x="13" y="47" class="small dim">override ledger</text></g>
+    <g transform="translate(16 223)"><rect width="206" height="42" rx="9" fill="#0b1c19" stroke="#237a61"/><text x="13" y="18" class="small" fill="#9cf5d2">PASS → atomic commit</text><text x="13" y="33" class="small dim">safe_push + rebuild</text></g>
+  </g>
+
+  <!-- publish -->
+  <g transform="translate(1122 186)" filter="url(#shadow)">
+    <rect class="card" width="276" height="296" rx="18"/>
+    <rect width="276" height="5" rx="3" fill="#fbbf24" filter="url(#glow)"/>
+    <text x="18" y="33" class="stage" fill="#fbbf24">PUBLISH + OBSERVE</text>
+    <text x="18" y="62" class="title white">Human-facing outputs</text>
+    <g transform="translate(16 86)"><rect class="chip" width="244" height="42" rx="9"/><text x="13" y="25" class="small white">WeChat brief · Telegram fallback</text></g>
+    <g transform="translate(16 138)"><rect class="chip" width="244" height="55" rx="9"/><text x="13" y="20" class="small white">public dashboard</text><text x="13" y="38" class="small dim">metrics · backtest · deltas</text></g>
+    <g transform="translate(16 203)"><rect class="chip" width="244" height="61" rx="9"/><text x="13" y="20" class="small white">versioned evidence</text><text x="13" y="38" class="small dim">plan v2 · decisions.jsonl</text><text x="13" y="53" class="small dim">reports · screenshots</text></g>
+  </g>
+
+  <!-- shared state rail -->
+  <text x="42" y="539" class="stage" fill="#64748b">02 · VERSIONED STATE + CLOSED-LOOP AUDIT</text>
+  <path d="M42 554H1398" stroke="#26344d"/>
+  <g transform="translate(42 574)">
+    <rect width="1356" height="144" rx="20" fill="#0b1220" stroke="#273650"/>
+    <path d="M31 72H1325" stroke="url(#bus)" stroke-width="2.5" opacity=".72" filter="url(#glow)"/>
+    <g transform="translate(26 21)"><rect class="card" width="218" height="102" rx="14"/><text x="16" y="28" class="stage" fill="#38bdf8">MARKET STATE</text><text x="16" y="54" class="small white">portfolio + snapshots</text><text x="16" y="74" class="small dim">atomic · reconciled</text><circle cx="199" cy="51" r="5" fill="#38bdf8"/></g>
+    <g transform="translate(266 21)"><rect class="card" width="250" height="102" rx="14"/><text x="16" y="28" class="stage" fill="#a78bfa">DECISION V2 LEDGER</text><text x="16" y="54" class="small white">v1 migrated + native v2</text><text x="16" y="74" class="small dim">stable ID · strategy episode</text><circle cx="231" cy="51" r="5" fill="#a78bfa"/></g>
+    <g transform="translate(538 14)"><rect width="516" height="116" rx="16" fill="#11142a" stroke="#5b48a4" stroke-width="1.4"/><text x="18" y="30" class="stage" fill="#c4b5fd">PYTHON BACKTESTER / AUDITOR</text><text x="18" y="57" class="body white">condition fired? → one representative / strategy episode → T+1 / T+5</text><text x="18" y="80" class="small dim">capital-weighted daily compounding · date-cluster CI · cumulative win rate</text><text x="18" y="100" class="small" fill="#9ddfff">evidence feeds the next brief; LLM cannot rewrite outcomes</text></g>
+    <g transform="translate(1076 21)"><rect class="card" width="254" height="102" rx="14"/><text x="16" y="28" class="stage" fill="#34d399">DASHBOARD STATE</text><text x="16" y="54" class="small white">metrics + curves + deltas</text><text x="16" y="74" class="small dim">static · public · reproducible</text><circle cx="235" cy="51" r="5" fill="#34d399"/></g>
+  </g>
+  <path d="M838 574C838 535 676 535 676 496" fill="none" stroke="#a78bfa" stroke-width="1.8" stroke-dasharray="7 6" marker-end="url(#arrowC)" opacity=".9"/>
+
+  <!-- resilience -->
+  <text x="42" y="763" class="stage" fill="#64748b">03 · DEFENCE IN DEPTH</text>
+  <path d="M42 778H1398" stroke="#26344d"/>
+  <g transform="translate(42 798)" class="mono">
+    <g><rect class="card" width="310" height="64" rx="13" stroke="#315f82"/><text x="16" y="24" class="small" fill="#9ddfff">01 / PRIMARY</text><text x="16" y="45" class="small white">openclaw cron · 11 jobs</text></g>
+    <g transform="translate(328)"><rect class="card" width="310" height="64" rx="13" stroke="#574292"/><text x="16" y="24" class="small" fill="#cdbdff">02 / BACKSTOP</text><text x="16" y="45" class="small white">GitHub Actions · reproducible refresh</text></g>
+    <g transform="translate(656)"><rect class="card" width="310" height="64" rx="13" stroke="#8a6922"/><text x="16" y="24" class="small" fill="#fde68a">03 / SUPERVISOR</text><text x="16" y="45" class="small white">watchdog · deterministic Telegram fallback</text></g>
+    <g transform="translate(984)"><rect class="card" width="372" height="64" rx="13" stroke="#26735f"/><text x="16" y="24" class="small" fill="#9cf5d2">04 / INTEGRITY</text><text x="16" y="45" class="small white">schema · ledger · tests · health sentinels</text></g>
+  </g>
 </svg>

@@ -189,7 +189,7 @@ function cardHTML(shotDataUri) {
 
     // 5) Render the version-controlled architecture HTML in the same Chromium
     // run so the published diagram cannot drift from the weekly screenshots.
-    const archCtx = await browser.newContext({ viewport: { width: 1320, height: 812 }, deviceScaleFactor: 2 });
+    const archCtx = await browser.newContext({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: 2 });
     const ap = await archCtx.newPage();
     await ap.goto(pathToFileURL(path.join(ROOT, 'scripts/data/architecture_diagram.html')).href, { waitUntil: 'networkidle' });
     await ap.waitForTimeout(400);

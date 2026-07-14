@@ -503,6 +503,24 @@ def _compounded_curve(rows: list[dict], benefit_key: str) -> list[dict]:
     return curve
 
 
+def _cumulative_win_rate_curve(rows: list[dict], benefit_key: str) -> list[dict]:
+    """Cumulative episode hit rate by plan date, for a true win-rate chart."""
+    by_date = defaultdict(list)
+    for r in rows:
+        value = _float((r.get("evaluation") or {}).get(benefit_key))
+        if value is not None:
+            by_date[r.get("plan_date")].append(value)
+    curve = []
+    wins = total = 0
+    for day in sorted(by_date):
+        values = by_date[day]
+        wins += sum(v > 0 for v in values)
+        total += len(values)
+        curve.append({"date": day, "wins": wins, "n_episodes": total,
+                      "win_rate": round(wins / total, 4)})
+    return curve
+
+
 def compute_metrics(decisions: list[dict], window_days: int = 30) -> dict:
     cutoff = (datetime.now(timezone.utc).date() - timedelta(days=window_days)).isoformat()
     reps = [r for r in episode_representatives(decisions, "t1") if r.get("plan_date", "") >= cutoff]
@@ -541,11 +559,19 @@ def compute_backtest(decisions: list[dict]) -> dict:
         active = [r for r in reps if r.get("action") in ACTIVE_ACTIONS]
         followed = [r for r in reps if (r.get("execution") or {}).get("status") == "followed"]
         horizons[horizon] = {
+            # Keep the complete AI track record, including HOLD/WATCH episodes.
+            # This is the v2 continuation of the migrated v1 "all calls" line;
+            # `active` remains separate so passive market beta cannot masquerade
+            # as evidence that cut/trim/add timing has alpha.
+            "all": _aggregate(reps, key),
             "active": _aggregate(active, key),
             "followed": _aggregate(followed, key),
             "by_strategy": _breakdown(reps, lambda r: r.get("strategy_id"), key),
+            "all_curve": _compounded_curve(reps, key),
             "active_curve": _compounded_curve(active, key),
             "followed_curve": _compounded_curve(followed, key),
+            "all_win_rate_curve": _cumulative_win_rate_curve(reps, key),
+            "active_win_rate_curve": _cumulative_win_rate_curve(active, key),
         }
     return {
         "schema_version": SCHEMA_VERSION,

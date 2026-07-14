@@ -75,6 +75,17 @@ class DecisionV2Test(unittest.TestCase):
         self.assertAlmostEqual(curve[0]["daily_benefit_pct"], 8.0)
         self.assertAlmostEqual(curve[-1]["compounded_benefit_pct"], 18.8)
 
+    def test_backtest_preserves_complete_ai_line_including_migrated_holds(self):
+        rows = [decision("2026-07-01", action="hold_and_watch", benefit=4),
+                decision("2026-07-02", ticker="BBB", action="cut", benefit=-2)]
+        dv2.assign_episode_ids(rows)
+        bt = dv2.compute_backtest(rows)["horizons"]["t1"]
+        self.assertEqual(bt["all"]["n_episodes"], 2)
+        self.assertEqual(bt["active"]["n_episodes"], 1)
+        self.assertEqual(len(bt["all_curve"]), 2)
+        self.assertEqual(bt["all_win_rate_curve"][-1]["win_rate"], 0.5)
+        self.assertEqual(bt["active_win_rate_curve"][-1]["win_rate"], 0.0)
+
     def test_v1_actions_are_rejected(self):
         self.assertIn("v1 actions field is forbidden", dv2.validate_plan({
             "schema_version": 2, "date": "2026-07-01", "actions": [], "decisions": []

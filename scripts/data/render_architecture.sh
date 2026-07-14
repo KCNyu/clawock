@@ -17,7 +17,7 @@ from playwright.sync_api import sync_playwright
 html = os.path.abspath("scripts/data/architecture_diagram.html")
 with sync_playwright() as p:
     b = p.chromium.launch()
-    ctx = b.new_context(viewport={"width": 1320, "height": 812}, device_scale_factor=2)
+    ctx = b.new_context(viewport={"width": 1440, "height": 900}, device_scale_factor=2)
     pg = ctx.new_page()
     pg.goto(f"file://{html}", wait_until="networkidle")
     pg.wait_for_timeout(400)
