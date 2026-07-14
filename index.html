@@ -1843,8 +1843,8 @@ layout: null
     </div>
 
     <div class="card" id="shadow-card" style="display:none">
-      <h3>🔬 全听 AI vs 不动 <span class="muted" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:11px">反事实回测 · 累计 benefit pp · T+1</span></h3>
-      <p class="chart-hint">相对「不动 = 0」基线，按 episode 去重、按计划资金权重计算并逐日复合。<b style="color:var(--accent)">实际执行</b>与<b>全部已触发主动决策</b>分开；未触发条件不进入回测。</p>
+      <h3>🔬 全听 AI vs 不动 <span class="muted" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:11px">反事实回测 · 复合 benefit % · T+1</span></h3>
+      <p class="chart-hint">三根线同口径：<b style="color:var(--accent)">实际执行</b>、<b>全听 AI（仅已触发主动策略）</b>、<b>不动 = 0</b>。按 episode 去重、按计划资金权重逐日复合；未触发条件不进入回测。</p>
       <div id="chart-shadow" class="chart-box"></div>
       <div id="shadow-note" class="muted" style="font-size:11px;margin-top:6px"></div>
     </div>
@@ -4430,7 +4430,7 @@ layout: null
     charts.shadow.setOption({
       backgroundColor: "transparent",
       grid: { left: isMobile ? 46 : 58, right: isMobile ? 16 : 24, top: isMobile ? 46 : 30, bottom: dates.length > 6 ? 52 : 32 },
-      legend: { data: ["实际执行", "全部已触发主动决策"], top: 0,
+      legend: { data: ["实际执行", "全听AI·主动", "不动基线"], top: 0,
         textStyle: { color: chartTextColor(), fontSize: isMobile ? 9 : 10 } },
       tooltip: { trigger: "axis",
         valueFormatter: v => (v == null ? "—" : (v >= 0 ? "+" : "") + v.toFixed(2) + "%") },
@@ -4444,17 +4444,24 @@ layout: null
       series: [
         { name: "实际执行", type: "line", data: followed, smooth: true, showSymbol: false,
           itemStyle: { color: accent }, lineStyle: { width: 2.4, color: accent }, z: 5 },
-        { name: "全部已触发主动决策", type: "line", data: active, smooth: true, showSymbol: false,
+        { name: "全听AI·主动", type: "line", data: active, smooth: true, showSymbol: false,
           itemStyle: { color: actColor }, lineStyle: { width: 2.2, color: actColor },
-          areaStyle: { color: actColor, opacity: 0.07 }, z: 4,
-          markLine: { silent: true, symbol: "none",
-            lineStyle: { color: dim, type: "dotted", width: 1, opacity: 0.7 },
-            label: { color: dim, fontSize: 9, position: "insideStartTop", formatter: "不动 = 0" },
-            data: [{ yAxis: 0 }] } },
+          areaStyle: { color: actColor, opacity: 0.07 }, z: 4 },
+        { name: "不动基线", type: "line", data: dates.map(() => 0), showSymbol: false,
+          itemStyle: { color: dim }, lineStyle: { width: 1.4, color: dim, type: "dotted", opacity: 0.9 }, z: 2 },
       ],
     });
     const note = document.getElementById("shadow-note");
-    if (note) note.textContent = sb && sb.method ? sb.method : "";
+    if (note) {
+      const a = t1.active || {};
+      const ci = a.cluster_ci95;
+      const verdict = ci && ci[0] <= 0 && ci[1] >= 0
+        ? "尚未证明稳定 alpha（CI 跨 0，不等于证明 AI 永远无用）"
+        : ci && ci[0] > 0 ? "当前样本显示正 edge" : ci ? "当前样本显示负 edge" : "样本不足";
+      note.textContent = `${sb && sb.method ? sb.method + " · " : ""}主动 episode n=${a.n_episodes || 0}`
+        + `${a.avg_benefit_pct == null ? "" : ` · avg ${a.avg_benefit_pct >= 0 ? "+" : ""}${a.avg_benefit_pct.toFixed(2)}%`}`
+        + `${ci ? ` · cluster CI [${ci[0].toFixed(2)}, ${ci[1].toFixed(2)}]` : ""} · ${verdict}`;
+    }
   }
 
   function renderEquityChart() {
