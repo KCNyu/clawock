@@ -123,3 +123,8 @@
 - Book 总览: | 维度 | 金额 | 备注 | |---|---|---| | HK 持仓 | HK$54,845 | 5只活跃仓 | | **HK leg** | **HK$54,845** | | [score=0.808 recalls=0 avg=0.620 source=memory/2026-07-10-pre-open.md:29-32]
 <!-- openclaw-memory-promotion:memory:memory/2026-07-10-pre-open.md:8:8 -->
 - 📊 盘前深度简报｜2026-07-10 周四 08:00 HKT: > USDHKD=7.836 (Frankfurter) | HHI HK=0.355 ⚠️ | HHI US=0.323 ⚠️ | 生成 08:00 HKT [score=0.808 recalls=0 avg=0.620 source=memory/2026-07-10-pre-open.md:8-8]
+
+## Promoted From Short-Term Memory (2026-07-14)
+
+<!-- openclaw-memory-promotion:memory:memory/2026-07-09-pre-open.md:32:35 -->
+- Book 总览: | **HK leg 合计** | **HK$87,570** | | | US 持仓 | $2,971 | 6 只活跃仓 | | US 现金 | $504 | 几乎耗尽 | | **US leg 合计** | **$3,475** | | [score=0.843 recalls=0 avg=0.620 source=memory/2026-07-09-pre-open.md:32-35]
