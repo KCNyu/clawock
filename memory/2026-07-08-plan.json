@@ -80,7 +80,7 @@
         "execution_price": 3.172,
         "underlying_return_t1_pct": 9.6469,
         "benefit_t1_pct": -9.6469,
-        "benefit_t5_pct": -7.9445,
+        "benefit_t5_pct": -8.0076,
         "outcome": "loss",
         "capital": 19666.4
       },
@@ -138,7 +138,7 @@
         "execution_price": 29.23,
         "underlying_return_t1_pct": 1.2658,
         "benefit_t1_pct": -1.2658,
-        "benefit_t5_pct": 8.9976,
+        "benefit_t5_pct": 9.716,
         "outcome": "loss",
         "capital": 292.3
       },
@@ -254,7 +254,7 @@
         "execution_price": 340.0,
         "underlying_return_t1_pct": -12.5294,
         "benefit_t1_pct": 12.5294,
-        "benefit_t5_pct": 32.9412,
+        "benefit_t5_pct": 32.3529,
         "outcome": "win",
         "capital": 6800.0
       },
@@ -486,7 +486,7 @@
         "execution_price": 8.5,
         "underlying_return_t1_pct": 14.8235,
         "benefit_t1_pct": 14.8235,
-        "benefit_t5_pct": 11.8824,
+        "benefit_t5_pct": 12.1176,
         "outcome": "win",
         "capital": null
       },
@@ -544,7 +544,7 @@
         "execution_price": 55.0,
         "underlying_return_t1_pct": 16.8091,
         "benefit_t1_pct": 16.8091,
-        "benefit_t5_pct": 13.9455,
+        "benefit_t5_pct": 14.8727,
         "outcome": "win",
         "capital": null
       },
@@ -602,7 +602,7 @@
         "execution_price": 4.418,
         "underlying_return_t1_pct": 5.0249,
         "benefit_t1_pct": 5.0249,
-        "benefit_t5_pct": 4.21,
+        "benefit_t5_pct": 4.1195,
         "outcome": "win",
         "capital": null
       },
@@ -660,7 +660,7 @@
         "execution_price": 4.502,
         "underlying_return_t1_pct": 4.9756,
         "benefit_t1_pct": 4.9756,
-        "benefit_t5_pct": 4.0871,
+        "benefit_t5_pct": 4.2648,
         "outcome": "win",
         "capital": null
       },

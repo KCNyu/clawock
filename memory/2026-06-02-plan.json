@@ -53,7 +53,7 @@
       "confidence": 0.5,
       "driven_by": "technical",
       "rationale": "79%历史hold胜率+HSTECH纳入6/8催化在前。但今日-15.71%穿780 stop+alpha严重落后同行23.5pp。risk_on cap 0.55。新stop 650。",
-      "simulated_entry_price": null,
+      "simulated_entry_price": 650.0,
       "horizon_sessions": 1,
       "override": {
         "status": "none",
@@ -73,18 +73,22 @@
         "capital": null
       },
       "execution": {
-        "status": "unknown",
-        "detected_at": null,
-        "source": null
+        "status": "followed",
+        "detected_at": "2026-06-03T08:00:35.938198 (auto)",
+        "source": "calibration_v1_migration"
       },
       "migration": {
-        "source": "plan_v1"
+        "source": "calibration_v1",
+        "legacy_outcome": "win",
+        "legacy_benefit_t1_pct": "2.69",
+        "legacy_benefit_t5_pct": "-21.85",
+        "legacy_updated_at": "2026-06-09T08:00:47.564588"
       }
     },
     {
       "schema_version": 2,
       "decision_id": "dec-745900cec395",
-      "episode_id": "ep-7fc7ca7cdce3",
+      "episode_id": "ep-96ac0d053ef1",
       "decision_group_id": "2026-06-02:07226",
       "plan_date": "2026-06-02",
       "created_at": "2026-06-02T08:00:00+08:00",
@@ -107,7 +111,7 @@
       "confidence": 0.45,
       "driven_by": "technical",
       "rationale": "HSTECH 4965支撑确认+南向资金13.3B净流入+2x杠杆正向放大。但54%历史胜率+HHI 31%集中。",
-      "simulated_entry_price": null,
+      "simulated_entry_price": 3.5,
       "horizon_sessions": 1,
       "override": {
         "status": "none",
@@ -127,12 +131,16 @@
         "capital": null
       },
       "execution": {
-        "status": "unknown",
-        "detected_at": null,
-        "source": null
+        "status": "followed",
+        "detected_at": "2026-06-03T08:00:35.951032 (auto)",
+        "source": "calibration_v1_migration"
       },
       "migration": {
-        "source": "plan_v1"
+        "source": "calibration_v1",
+        "legacy_outcome": "win",
+        "legacy_benefit_t1_pct": "21.94",
+        "legacy_benefit_t5_pct": "1.89",
+        "legacy_updated_at": "2026-06-09T08:00:47.564611"
       }
     },
     {
@@ -161,7 +169,7 @@
       "confidence": 0.55,
       "driven_by": "technical",
       "rationale": "Q1利润+40% YoY+JPM Overweight；400股小仓hold。75%历史胜率。",
-      "simulated_entry_price": null,
+      "simulated_entry_price": 13.0,
       "horizon_sessions": 1,
       "override": {
         "status": "none",
@@ -181,12 +189,16 @@
         "capital": null
       },
       "execution": {
-        "status": "unknown",
-        "detected_at": null,
-        "source": null
+        "status": "followed",
+        "detected_at": "2026-06-03T08:00:35.963716 (auto)",
+        "source": "calibration_v1_migration"
       },
       "migration": {
-        "source": "plan_v1"
+        "source": "calibration_v1",
+        "legacy_outcome": "win",
+        "legacy_benefit_t1_pct": "3.54",
+        "legacy_benefit_t5_pct": "-10.08",
+        "legacy_updated_at": "2026-06-09T08:00:47.564619"
       }
     },
     {
@@ -215,7 +227,7 @@
       "confidence": 0.55,
       "driven_by": "macro",
       "rationale": "1x恒科ETF，无额外杠杆decay，跟随HSTECH方向。67%历史胜率。",
-      "simulated_entry_price": null,
+      "simulated_entry_price": 4.95,
       "horizon_sessions": 1,
       "override": {
         "status": "none",
@@ -235,12 +247,16 @@
         "capital": null
       },
       "execution": {
-        "status": "unknown",
-        "detected_at": null,
-        "source": null
+        "status": "followed",
+        "detected_at": "2026-06-03T08:00:35.976298 (auto)",
+        "source": "calibration_v1_migration"
       },
       "migration": {
-        "source": "plan_v1"
+        "source": "calibration_v1",
+        "legacy_outcome": "win",
+        "legacy_benefit_t1_pct": "4.65",
+        "legacy_benefit_t5_pct": "-4.16",
+        "legacy_updated_at": "2026-06-09T08:00:47.564625"
       }
     },
     {
@@ -269,7 +285,7 @@
       "confidence": 0.55,
       "driven_by": "macro",
       "rationale": "1x恒科ETF，无额外杠杆decay。大宗交易880K@4.668看空信号仍在。67%历史胜率。",
-      "simulated_entry_price": null,
+      "simulated_entry_price": 4.866,
       "horizon_sessions": 1,
       "override": {
         "status": "none",
@@ -289,12 +305,16 @@
         "capital": null
       },
       "execution": {
-        "status": "unknown",
-        "detected_at": null,
-        "source": null
+        "status": "followed",
+        "detected_at": "2026-06-03T08:00:35.988850 (auto)",
+        "source": "calibration_v1_migration"
       },
       "migration": {
-        "source": "plan_v1"
+        "source": "calibration_v1",
+        "legacy_outcome": "win",
+        "legacy_benefit_t1_pct": "4.71",
+        "legacy_benefit_t5_pct": "-4.15",
+        "legacy_updated_at": "2026-06-09T08:00:47.564630"
       }
     },
     {
@@ -323,7 +343,7 @@
       "confidence": 0.5,
       "driven_by": "catalyst",
       "rationale": "80%历史hold胜率+Q1 rev $200M+63%+backlog $2.2B+$90M Space Force合同。但-14.85%已穿130 stop，SpaceX IPO是结构性变化。新stop 115。risk_on cap。",
-      "simulated_entry_price": null,
+      "simulated_entry_price": 115.0,
       "horizon_sessions": 1,
       "override": {
         "status": "none",
@@ -343,12 +363,16 @@
         "capital": null
       },
       "execution": {
-        "status": "unknown",
-        "detected_at": null,
-        "source": null
+        "status": "followed",
+        "detected_at": "2026-06-03T08:00:36.001194 (auto)",
+        "source": "calibration_v1_migration"
       },
       "migration": {
-        "source": "plan_v1"
+        "source": "calibration_v1",
+        "legacy_outcome": "win",
+        "legacy_benefit_t1_pct": "7.23",
+        "legacy_benefit_t5_pct": "-1.03",
+        "legacy_updated_at": "2026-06-09T08:00:47.564636"
       }
     },
     {
@@ -377,7 +401,7 @@
       "confidence": 0.5,
       "driven_by": "catalyst",
       "rationale": "Q1首次盈利EPS $0.23+USDC $77B+GENIUS Act已落地。但crypto cooling+看空标题。62%历史加仓胜率。risk_on cap。",
-      "simulated_entry_price": null,
+      "simulated_entry_price": 95.0,
       "horizon_sessions": 1,
       "override": {
         "status": "none",
@@ -397,12 +421,16 @@
         "capital": 95.0
       },
       "execution": {
-        "status": "unknown",
-        "detected_at": null,
-        "source": null
+        "status": "not_followed",
+        "detected_at": "2026-06-04T08:00:35.703730 (auto)",
+        "source": "calibration_v1_migration"
       },
       "migration": {
-        "source": "plan_v1"
+        "source": "calibration_v1",
+        "legacy_outcome": "win",
+        "legacy_benefit_t1_pct": "6.16",
+        "legacy_benefit_t5_pct": "-13.04",
+        "legacy_updated_at": "2026-06-09T08:00:47.564641"
       }
     },
     {
@@ -431,7 +459,7 @@
       "confidence": 0.5,
       "driven_by": "technical",
       "rationale": "PLTR insider sell $43M硬催化+92x fwd PE+5日+41.9%过热。纪律减仓非信号驱动。PLTR Maven全面采用是confirming利好不驱动加仓。20%历史胜率但trim是纪律动作。",
-      "simulated_entry_price": null,
+      "simulated_entry_price": 50.0,
       "horizon_sessions": 1,
       "override": {
         "status": "none",
@@ -451,18 +479,22 @@
         "capital": 350.0
       },
       "execution": {
-        "status": "unknown",
-        "detected_at": null,
-        "source": null
+        "status": "not_followed",
+        "detected_at": "2026-06-04T08:00:35.718965 (auto)",
+        "source": "calibration_v1_migration"
       },
       "migration": {
-        "source": "plan_v1"
+        "source": "calibration_v1",
+        "legacy_outcome": "win",
+        "legacy_benefit_t1_pct": "10.48",
+        "legacy_benefit_t5_pct": "28.66",
+        "legacy_updated_at": "2026-06-09T08:00:47.564647"
       }
     },
     {
       "schema_version": 2,
       "decision_id": "dec-bea54f51dca2",
-      "episode_id": "ep-20f264461a77",
+      "episode_id": "ep-65313d24451f",
       "decision_group_id": "2026-06-02:ROBN",
       "plan_date": "2026-06-02",
       "created_at": "2026-06-02T08:00:00+08:00",
@@ -485,7 +517,7 @@
       "confidence": 0.45,
       "driven_by": "technical",
       "rationale": "38%历史胜率(清×12胜4)+cut bucket 33%胜率+overconfidence +35pp。但四期未执行断层是最大行为风险。HOOD Q1 miss+Agentic Trading是confirming利好但2x decay+miss未变。纪律驱动。",
-      "simulated_entry_price": null,
+      "simulated_entry_price": 26.1,
       "horizon_sessions": 1,
       "override": {
         "status": "none",
@@ -505,12 +537,16 @@
         "capital": 482.0
       },
       "execution": {
-        "status": "unknown",
-        "detected_at": null,
-        "source": null
+        "status": "not_followed",
+        "detected_at": "2026-06-04T08:00:35.733778 (auto)",
+        "source": "calibration_v1_migration"
       },
       "migration": {
-        "source": "plan_v1"
+        "source": "calibration_v1",
+        "legacy_outcome": "win",
+        "legacy_benefit_t1_pct": "5.86",
+        "legacy_benefit_t5_pct": "13.83",
+        "legacy_updated_at": "2026-06-09T08:00:47.564652"
       }
     },
     {
@@ -539,7 +575,7 @@
       "confidence": 0.55,
       "driven_by": "catalyst",
       "rationale": "MSFT Q3 beat rev $82.9B+Azure +29%。80%历史hold胜率。5日+23.8%动量强。",
-      "simulated_entry_price": null,
+      "simulated_entry_price": 26.0,
       "horizon_sessions": 1,
       "override": {
         "status": "none",
@@ -559,12 +595,16 @@
         "capital": null
       },
       "execution": {
-        "status": "unknown",
-        "detected_at": null,
-        "source": null
+        "status": "followed",
+        "detected_at": "2026-06-03T08:00:36.014352 (auto)",
+        "source": "calibration_v1_migration"
       },
       "migration": {
-        "source": "plan_v1"
+        "source": "calibration_v1",
+        "legacy_outcome": "win",
+        "legacy_benefit_t1_pct": "22.27",
+        "legacy_benefit_t5_pct": "6.08",
+        "legacy_updated_at": "2026-06-09T08:00:47.564658"
       }
     }
   ]

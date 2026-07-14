@@ -233,7 +233,7 @@
       "confidence": 0.5,
       "driven_by": "technical",
       "rationale": "三重breach同时触发: (1)硬止损-25.9% ≤ -18%; (2)单名40.1% > 35%cap; (3)regime_delever: SPCX破5DMA state=cut; 应换仓SPCX现货停2x decay; 约束: US现金$134触底无弹药直接换仓; 执行路径: 先完成PLTU→PLTR+MSFU→MSFT后腾出约$850现金，再评估SPCH→SPCX换仓; SPCX需收复5DMA作为技术确认",
-      "simulated_entry_price": null,
+      "simulated_entry_price": 12.98,
       "horizon_sessions": 1,
       "override": {
         "status": "none",
@@ -253,12 +253,16 @@
         "capital": null
       },
       "execution": {
-        "status": "unknown",
-        "detected_at": null,
-        "source": null
+        "status": "not_followed",
+        "detected_at": "2026-07-06T08:02:28.480486 (auto)",
+        "source": "calibration_v1_migration"
       },
       "migration": {
-        "source": "plan_v1"
+        "source": "calibration_v1",
+        "legacy_outcome": "loss",
+        "legacy_benefit_t1_pct": "-5.08",
+        "legacy_benefit_t5_pct": "11.77",
+        "legacy_updated_at": "2026-07-09T08:02:43.564497"
       }
     },
     {

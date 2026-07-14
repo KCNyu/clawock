@@ -96,52 +96,106 @@ def migrate(apply=False):
         }
         print(json.dumps(report, ensure_ascii=False, indent=2))
         return report
-    row_queues = defaultdict(deque)
-    for row in rows:
-        row_queues[_row_key(row)].append(row)
-
     plans = []
     all_decisions = []
+    authored_at = defaultdict(list)  # (plan_date, ticker) -> authored decisions
+    date_lies = []
     for path in sorted((WS / "memory").glob("*-plan.json")):
         plan = json.loads(path.read_text())
-        plan_date = plan.get("date") or path.name[:10]
+        # The filename is the only trustworthy date: 2026-06-01-plan.json shipped
+        # with date="2026-06-02", which silently collapsed two plan-days onto one
+        # set of decision_ids and dropped the six decisions authored that day.
+        plan_date = path.name[:10]
+        if plan.get("date") and plan["date"] != plan_date:
+            date_lies.append(f"{path.name} declares date={plan['date']!r}")
         source = plan.get("decisions") if plan.get("schema_version") == 2 else plan.get("actions") or []
         decisions = []
         for i, item in enumerate(source):
+            # Ids are pure functions of (plan_date, ticker, strategy, action,
+            # condition, ordinal), but legacy_action_to_decision reuses a stored
+            # one when present. A re-run over already-migrated plans would then
+            # keep ids minted from a wrong plan_date, so re-derive them here.
+            item = {k: v for k, v in item.items() if k not in ("decision_id", "episode_id")}
             d = legacy_action_to_decision(item, plan_date, i)
             if item.get("user_override"):
                 d["override"] = {
                     "status": "active", "reason": str(item.get("user_override")),
                     "expires_on": None, "revisit_condition": "material thesis/risk change",
                 }
-            key = (plan_date, d["ticker"], d["action"], d["condition"]["type"])
-            row = row_queues[key].popleft() if row_queues[key] else None
-            _apply_legacy_ground_truth(d, row)
             decisions.append(d)
             all_decisions.append(d)
+            authored_at[(plan_date, d["ticker"])].append(d)
         migrated = {k: v for k, v in plan.items() if k != "actions"}
         migrated["schema_version"] = 2
+        migrated["date"] = plan_date
         migrated["decisions"] = decisions
         plans.append((path, migrated))
 
-    # Some early calibration rows outlived their plan file or used a legacy key
-    # that no longer matches it. They are still raw evidence and must migrate too.
-    orphan_n = 0
-    for queue in row_queues.values():
+    # Attach v1 ground truth to the decision each row describes. The two stores
+    # were written independently and disagree on bucket/trigger_type for ~4% of
+    # rows (v1 also used retired names: watch, add_on_breakout, conditional), and
+    # the plan side is normalized while the CSV side is raw. Keying on exact
+    # 4-tuple equality therefore fails for rows whose decision plainly exists, so
+    # match strictly first, then fall back to date+ticker.
+    def _normalized(row):
+        return legacy_action_to_decision({
+            "ticker": row.get("ticker"), "bucket": row.get("bucket"),
+            "trigger_type": row.get("trigger_type"), "trigger_price": row.get("trigger_price"),
+        }, (row.get("plan_date") or "")[:10], 0)
+
+    strict = defaultdict(deque)
+    for d in all_decisions:
+        strict[(d["plan_date"], d["ticker"], d["action"], d["condition"]["type"])].append(d)
+
+    claimed, loose_n, dropped = set(), 0, []
+    deferred = []
+    for row in rows:
+        norm = _normalized(row)
+        pick = None
+        queue = strict[(norm["plan_date"], norm["ticker"], norm["action"], norm["condition"]["type"])]
         while queue:
-            row = queue.popleft()
-            item = {
-                "ticker": row.get("ticker"), "bucket": row.get("bucket"),
-                "trigger_type": row.get("trigger_type"), "trigger_price": row.get("trigger_price"),
-                "confidence": row.get("confidence"), "driven_by": row.get("driven_by") or "technical",
-                "simulated_entry_price": row.get("sim_entry_price"),
-                "rationale": "migrated calibration row; source plan unavailable",
-            }
-            d = legacy_action_to_decision(item, row.get("plan_date"), 10000 + orphan_n)
-            d["migration"] = {"source": "calibration_v1_orphan"}
-            _apply_legacy_ground_truth(d, row)
-            all_decisions.append(d)
-            orphan_n += 1
+            cand = queue.popleft()
+            if id(cand) not in claimed:
+                pick = cand
+                break
+        if pick is None:
+            deferred.append(row)
+            continue
+        claimed.add(id(pick))
+        _apply_legacy_ground_truth(pick, row)
+
+    orphan_n = 0
+    for row in deferred:
+        key = ((row.get("plan_date") or "")[:10], str(row.get("ticker") or "").strip())
+        free = [d for d in authored_at.get(key, []) if id(d) not in claimed]
+        if free:
+            # Prefer a candidate whose action agrees; where v1 logged two
+            # contradictory rows against one authored decision, attaching the
+            # disagreeing row's followed/outcome would rewrite the track record.
+            norm = _normalized(row)
+            pick = next((d for d in free if d["action"] == norm["action"]), free[0])
+            claimed.add(id(pick))
+            _apply_legacy_ground_truth(pick, row)
+            loose_n += 1
+            continue
+        if key in authored_at:
+            # Every decision authored that day/ticker already carries ground truth;
+            # this row is a stale duplicate. Fabricating a decision nobody authored
+            # would inflate the episode count, so drop it and report the count.
+            dropped.append(row)
+            continue
+        item = {
+            "ticker": row.get("ticker"), "bucket": row.get("bucket"),
+            "trigger_type": row.get("trigger_type"), "trigger_price": row.get("trigger_price"),
+            "confidence": row.get("confidence"), "driven_by": row.get("driven_by") or "technical",
+            "simulated_entry_price": row.get("sim_entry_price"),
+            "rationale": "migrated calibration row; source plan unavailable",
+        }
+        d = legacy_action_to_decision(item, row.get("plan_date"), 10000 + orphan_n)
+        _apply_legacy_ground_truth(d, row)
+        d["migration"] = {"source": "calibration_v1_orphan"}  # after: _apply overwrites migration
+        all_decisions.append(d)
+        orphan_n += 1
 
     assign_episode_ids(all_decisions)
     # The plan and ledger share object references; episode ids now exist in both.
@@ -155,8 +209,12 @@ def migrate(apply=False):
     report = {
         "plans": len(plans), "decisions": len(all_decisions),
         "episodes": len({d.get("episode_id") for d in all_decisions}),
-        "legacy_rows": len(rows), "migrated_orphan_rows": orphan_n,
-        "unmatched_legacy_rows": sum(len(q) for q in row_queues.values()),
+        "legacy_rows": len(rows),
+        "matched_strict": len(claimed) - loose_n,
+        "matched_by_date_ticker": loose_n,
+        "migrated_orphan_rows": orphan_n,
+        "dropped_stale_duplicate_rows": len(dropped),
+        "plans_with_wrong_date_field": date_lies,
         "apply": apply,
     }
     if apply:

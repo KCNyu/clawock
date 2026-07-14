@@ -1,5 +1,5 @@
 {
-  "date": "2026-06-02",
+  "date": "2026-06-01",
   "fx_rate_usdhkd": 7.8356,
   "fx_source": "Frankurter",
   "regime": {
@@ -29,10 +29,10 @@
   "decisions": [
     {
       "schema_version": 2,
-      "decision_id": "dec-e52c9683ab02",
+      "decision_id": "dec-d833613c5421",
       "episode_id": "ep-916d240f65a8",
       "decision_group_id": "2026-06-02:00100",
-      "plan_date": "2026-06-02",
+      "plan_date": "2026-06-01",
       "created_at": "2026-06-02T08:00:00+08:00",
       "ticker": "00100",
       "name": "",
@@ -64,33 +64,33 @@
       "evaluation": {
         "status": "settled",
         "triggered": true,
-        "trigger_session": "2026-06-02",
+        "trigger_session": "2026-06-01",
         "execution_price": 650.0,
-        "underlying_return_t1_pct": 4.1538,
-        "benefit_t1_pct": 4.1538,
-        "benefit_t5_pct": -29.0462,
+        "underlying_return_t1_pct": 2.6923,
+        "benefit_t1_pct": 2.6923,
+        "benefit_t5_pct": -22.0,
         "outcome": "win",
         "capital": null
       },
       "execution": {
         "status": "followed",
-        "detected_at": "2026-06-03T08:00:35.938198 (auto)",
+        "detected_at": "2026-06-02T08:01:08.730792 (auto)",
         "source": "calibration_v1_migration"
       },
       "migration": {
         "source": "calibration_v1",
-        "legacy_outcome": "win",
-        "legacy_benefit_t1_pct": "2.69",
-        "legacy_benefit_t5_pct": "-21.85",
-        "legacy_updated_at": "2026-06-09T08:00:47.564588"
+        "legacy_outcome": "loss",
+        "legacy_benefit_t1_pct": "-9.23",
+        "legacy_benefit_t5_pct": "-29.1",
+        "legacy_updated_at": "2026-06-08T08:00:38.968528"
       }
     },
     {
       "schema_version": 2,
-      "decision_id": "dec-745900cec395",
-      "episode_id": "ep-7fc7ca7cdce3",
+      "decision_id": "dec-a9635a9faa18",
+      "episode_id": "ep-96ac0d053ef1",
       "decision_group_id": "2026-06-02:07226",
-      "plan_date": "2026-06-02",
+      "plan_date": "2026-06-01",
       "created_at": "2026-06-02T08:00:00+08:00",
       "ticker": "07226",
       "name": "",
@@ -122,33 +122,33 @@
       "evaluation": {
         "status": "settled",
         "triggered": true,
-        "trigger_session": "2026-06-02",
+        "trigger_session": "2026-06-01",
         "execution_price": 3.5,
-        "underlying_return_t1_pct": 15.5429,
-        "benefit_t1_pct": 15.5429,
-        "benefit_t5_pct": 2.5714,
+        "underlying_return_t1_pct": 22.0,
+        "benefit_t1_pct": 22.0,
+        "benefit_t5_pct": 1.7143,
         "outcome": "win",
         "capital": null
       },
       "execution": {
         "status": "followed",
-        "detected_at": "2026-06-03T08:00:35.951032 (auto)",
+        "detected_at": "2026-06-02T08:01:08.744067 (auto)",
         "source": "calibration_v1_migration"
       },
       "migration": {
         "source": "calibration_v1",
         "legacy_outcome": "win",
-        "legacy_benefit_t1_pct": "21.94",
-        "legacy_benefit_t5_pct": "1.89",
-        "legacy_updated_at": "2026-06-09T08:00:47.564611"
+        "legacy_benefit_t1_pct": "11.43",
+        "legacy_benefit_t5_pct": "7.6",
+        "legacy_updated_at": "2026-06-08T08:00:38.968555"
       }
     },
     {
       "schema_version": 2,
-      "decision_id": "dec-e015935d11cd",
+      "decision_id": "dec-3f60b908edb5",
       "episode_id": "ep-7de4a991863a",
       "decision_group_id": "2026-06-02:02208",
-      "plan_date": "2026-06-02",
+      "plan_date": "2026-06-01",
       "created_at": "2026-06-02T08:00:00+08:00",
       "ticker": "02208",
       "name": "",
@@ -180,33 +180,33 @@
       "evaluation": {
         "status": "settled",
         "triggered": true,
-        "trigger_session": "2026-06-02",
+        "trigger_session": "2026-06-01",
         "execution_price": 13.0,
-        "underlying_return_t1_pct": 1.1538,
-        "benefit_t1_pct": 1.1538,
-        "benefit_t5_pct": -10.8462,
+        "underlying_return_t1_pct": 3.5385,
+        "benefit_t1_pct": 3.5385,
+        "benefit_t5_pct": -10.3077,
         "outcome": "win",
         "capital": null
       },
       "execution": {
         "status": "followed",
-        "detected_at": "2026-06-03T08:00:35.963716 (auto)",
+        "detected_at": "2026-06-02T08:01:08.766628 (auto)",
         "source": "calibration_v1_migration"
       },
       "migration": {
         "source": "calibration_v1",
         "legacy_outcome": "win",
-        "legacy_benefit_t1_pct": "3.54",
-        "legacy_benefit_t5_pct": "-10.08",
-        "legacy_updated_at": "2026-06-09T08:00:47.564619"
+        "legacy_benefit_t1_pct": "6.08",
+        "legacy_benefit_t5_pct": "-5.77",
+        "legacy_updated_at": "2026-06-08T08:00:38.968567"
       }
     },
     {
       "schema_version": 2,
-      "decision_id": "dec-0f50300b0eb7",
+      "decision_id": "dec-5c3d18dfb544",
       "episode_id": "ep-36d5c81de62f",
       "decision_group_id": "2026-06-02:03032",
-      "plan_date": "2026-06-02",
+      "plan_date": "2026-06-01",
       "created_at": "2026-06-02T08:00:00+08:00",
       "ticker": "03032",
       "name": "",
@@ -238,33 +238,33 @@
       "evaluation": {
         "status": "settled",
         "triggered": true,
-        "trigger_session": "2026-06-02",
+        "trigger_session": "2026-06-01",
         "execution_price": 4.95,
-        "underlying_return_t1_pct": 2.0202,
-        "benefit_t1_pct": 2.0202,
-        "benefit_t5_pct": -3.8384,
+        "underlying_return_t1_pct": 4.7475,
+        "benefit_t1_pct": 4.7475,
+        "benefit_t5_pct": -4.202,
         "outcome": "win",
         "capital": null
       },
       "execution": {
         "status": "followed",
-        "detected_at": "2026-06-03T08:00:35.976298 (auto)",
+        "detected_at": "2026-06-02T08:01:08.779973 (auto)",
         "source": "calibration_v1_migration"
       },
       "migration": {
         "source": "calibration_v1",
         "legacy_outcome": "win",
-        "legacy_benefit_t1_pct": "4.65",
-        "legacy_benefit_t5_pct": "-4.16",
-        "legacy_updated_at": "2026-06-09T08:00:47.564625"
+        "legacy_benefit_t1_pct": "1.56",
+        "legacy_benefit_t5_pct": "0.0",
+        "legacy_updated_at": "2026-06-08T08:00:38.968578"
       }
     },
     {
       "schema_version": 2,
-      "decision_id": "dec-cff480411ad0",
+      "decision_id": "dec-23e12d170bae",
       "episode_id": "ep-257e1ec41583",
       "decision_group_id": "2026-06-02:03033",
-      "plan_date": "2026-06-02",
+      "plan_date": "2026-06-01",
       "created_at": "2026-06-02T08:00:00+08:00",
       "ticker": "03033",
       "name": "",
@@ -296,33 +296,33 @@
       "evaluation": {
         "status": "settled",
         "triggered": true,
-        "trigger_session": "2026-06-02",
+        "trigger_session": "2026-06-01",
         "execution_price": 4.866,
-        "underlying_return_t1_pct": 1.8907,
-        "benefit_t1_pct": 1.8907,
-        "benefit_t5_pct": -3.9457,
+        "underlying_return_t1_pct": 4.7061,
+        "benefit_t1_pct": 4.7061,
+        "benefit_t5_pct": -4.2746,
         "outcome": "win",
         "capital": null
       },
       "execution": {
         "status": "followed",
-        "detected_at": "2026-06-03T08:00:35.988850 (auto)",
+        "detected_at": "2026-06-02T08:01:08.793056 (auto)",
         "source": "calibration_v1_migration"
       },
       "migration": {
         "source": "calibration_v1",
         "legacy_outcome": "win",
-        "legacy_benefit_t1_pct": "4.71",
-        "legacy_benefit_t5_pct": "-4.15",
-        "legacy_updated_at": "2026-06-09T08:00:47.564630"
+        "legacy_benefit_t1_pct": "1.71",
+        "legacy_benefit_t5_pct": "0.04",
+        "legacy_updated_at": "2026-06-08T08:00:38.968587"
       }
     },
     {
       "schema_version": 2,
-      "decision_id": "dec-b99f738b56e7",
+      "decision_id": "dec-4232eb5b53fe",
       "episode_id": "ep-a5e1fee521c0",
       "decision_group_id": "2026-06-02:RKLB",
-      "plan_date": "2026-06-02",
+      "plan_date": "2026-06-01",
       "created_at": "2026-06-02T08:00:00+08:00",
       "ticker": "RKLB",
       "name": "",
@@ -354,33 +354,33 @@
       "evaluation": {
         "status": "settled",
         "triggered": true,
-        "trigger_session": "2026-06-02",
+        "trigger_session": "2026-06-01",
         "execution_price": 115.0,
-        "underlying_return_t1_pct": -0.1478,
-        "benefit_t1_pct": -0.1478,
-        "benefit_t5_pct": -7.487,
-        "outcome": "loss",
+        "underlying_return_t1_pct": 8.1435,
+        "benefit_t1_pct": 8.1435,
+        "benefit_t5_pct": 0.0009,
+        "outcome": "win",
         "capital": null
       },
       "execution": {
         "status": "followed",
-        "detected_at": "2026-06-03T08:00:36.001194 (auto)",
+        "detected_at": "2026-06-02T08:01:08.806479 (auto)",
         "source": "calibration_v1_migration"
       },
       "migration": {
         "source": "calibration_v1",
-        "legacy_outcome": "win",
-        "legacy_benefit_t1_pct": "7.23",
-        "legacy_benefit_t5_pct": "-1.03",
-        "legacy_updated_at": "2026-06-09T08:00:47.564636"
+        "legacy_outcome": "loss",
+        "legacy_benefit_t1_pct": "-6.02",
+        "legacy_benefit_t5_pct": "-15.32",
+        "legacy_updated_at": "2026-06-08T08:00:38.968597"
       }
     },
     {
       "schema_version": 2,
-      "decision_id": "dec-8d9662471ece",
-      "episode_id": "ep-81b9c727bcf5",
+      "decision_id": "dec-dd1ca20589fc",
+      "episode_id": "ep-f1ab737e28b9",
       "decision_group_id": "2026-06-02:CRCL",
-      "plan_date": "2026-06-02",
+      "plan_date": "2026-06-01",
       "created_at": "2026-06-02T08:00:00+08:00",
       "ticker": "CRCL",
       "name": "",
@@ -422,23 +422,23 @@
       },
       "execution": {
         "status": "not_followed",
-        "detected_at": "2026-06-04T08:00:35.703730 (auto)",
+        "detected_at": "2026-06-03T08:00:35.894114 (auto)",
         "source": "calibration_v1_migration"
       },
       "migration": {
         "source": "calibration_v1",
         "legacy_outcome": "win",
-        "legacy_benefit_t1_pct": "6.16",
-        "legacy_benefit_t5_pct": "-13.04",
-        "legacy_updated_at": "2026-06-09T08:00:47.564641"
+        "legacy_benefit_t1_pct": "10.18",
+        "legacy_benefit_t5_pct": "-15.49",
+        "legacy_updated_at": "2026-06-08T08:00:38.968606"
       }
     },
     {
       "schema_version": 2,
-      "decision_id": "dec-15aadd3938b8",
+      "decision_id": "dec-9204a76508e5",
       "episode_id": "ep-8bf3a6bd4dd0",
       "decision_group_id": "2026-06-02:PLTU",
-      "plan_date": "2026-06-02",
+      "plan_date": "2026-06-01",
       "created_at": "2026-06-02T08:00:00+08:00",
       "ticker": "PLTU",
       "name": "",
@@ -480,23 +480,23 @@
       },
       "execution": {
         "status": "not_followed",
-        "detected_at": "2026-06-04T08:00:35.718965 (auto)",
+        "detected_at": "2026-06-03T08:00:35.909675 (auto)",
         "source": "calibration_v1_migration"
       },
       "migration": {
         "source": "calibration_v1",
-        "legacy_outcome": "win",
-        "legacy_benefit_t1_pct": "10.48",
-        "legacy_benefit_t5_pct": "28.66",
-        "legacy_updated_at": "2026-06-09T08:00:47.564647"
+        "legacy_outcome": "loss",
+        "legacy_benefit_t1_pct": "-0.1",
+        "legacy_benefit_t5_pct": "29.48",
+        "legacy_updated_at": "2026-06-08T08:00:38.968616"
       }
     },
     {
       "schema_version": 2,
-      "decision_id": "dec-bea54f51dca2",
-      "episode_id": "ep-20f264461a77",
+      "decision_id": "dec-b93dd0f4c9fc",
+      "episode_id": "ep-65313d24451f",
       "decision_group_id": "2026-06-02:ROBN",
-      "plan_date": "2026-06-02",
+      "plan_date": "2026-06-01",
       "created_at": "2026-06-02T08:00:00+08:00",
       "ticker": "ROBN",
       "name": "",
@@ -528,33 +528,33 @@
       "evaluation": {
         "status": "settled",
         "triggered": true,
-        "trigger_session": "2026-06-02",
-        "execution_price": 24.1,
-        "underlying_return_t1_pct": -8.7552,
-        "benefit_t1_pct": 8.7552,
-        "benefit_t5_pct": 13.195,
+        "trigger_session": "2026-06-01",
+        "execution_price": 25.1192,
+        "underlying_return_t1_pct": -4.0575,
+        "benefit_t1_pct": 4.0575,
+        "benefit_t5_pct": 10.6659,
         "outcome": "win",
-        "capital": 482.0
+        "capital": 502.38
       },
       "execution": {
         "status": "not_followed",
-        "detected_at": "2026-06-04T08:00:35.733778 (auto)",
+        "detected_at": "2026-06-03T08:00:35.924713 (auto)",
         "source": "calibration_v1_migration"
       },
       "migration": {
         "source": "calibration_v1",
         "legacy_outcome": "win",
-        "legacy_benefit_t1_pct": "5.86",
-        "legacy_benefit_t5_pct": "13.83",
-        "legacy_updated_at": "2026-06-09T08:00:47.564652"
+        "legacy_benefit_t1_pct": "7.61",
+        "legacy_benefit_t5_pct": "24.81",
+        "legacy_updated_at": "2026-06-08T08:00:38.968626"
       }
     },
     {
       "schema_version": 2,
-      "decision_id": "dec-2a1bdd15bdac",
+      "decision_id": "dec-589286ed98f5",
       "episode_id": "ep-f8e83b8026b4",
       "decision_group_id": "2026-06-02:MSFU",
-      "plan_date": "2026-06-02",
+      "plan_date": "2026-06-01",
       "created_at": "2026-06-02T08:00:00+08:00",
       "ticker": "MSFU",
       "name": "",
@@ -586,25 +586,25 @@
       "evaluation": {
         "status": "settled",
         "triggered": true,
-        "trigger_session": "2026-06-02",
+        "trigger_session": "2026-06-01",
         "execution_price": 26.0,
-        "underlying_return_t1_pct": 14.6538,
-        "benefit_t1_pct": 14.6538,
-        "benefit_t5_pct": 1.8846,
+        "underlying_return_t1_pct": 23.5392,
+        "benefit_t1_pct": 23.5392,
+        "benefit_t5_pct": 5.7308,
         "outcome": "win",
         "capital": null
       },
       "execution": {
         "status": "followed",
-        "detected_at": "2026-06-03T08:00:36.014352 (auto)",
+        "detected_at": "2026-06-02T08:01:08.819193 (auto)",
         "source": "calibration_v1_migration"
       },
       "migration": {
         "source": "calibration_v1",
         "legacy_outcome": "win",
-        "legacy_benefit_t1_pct": "22.27",
-        "legacy_benefit_t5_pct": "6.08",
-        "legacy_updated_at": "2026-06-09T08:00:47.564658"
+        "legacy_benefit_t1_pct": "33.42",
+        "legacy_benefit_t5_pct": "8.65",
+        "legacy_updated_at": "2026-06-08T08:00:38.968636"
       }
     }
   ]

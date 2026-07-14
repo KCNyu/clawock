@@ -217,7 +217,7 @@
       "confidence": 0.55,
       "driven_by": "technical",
       "rationale": "regime_delever red。HOOD 破 200线 -20.2%，vol 83%。2x 日内重置在 selloff 中加速衰减。开盘即减半。",
-      "simulated_entry_price": null,
+      "simulated_entry_price": 21.24,
       "horizon_sessions": 1,
       "override": {
         "status": "none",
@@ -237,12 +237,16 @@
         "capital": null
       },
       "execution": {
-        "status": "unknown",
-        "detected_at": null,
-        "source": null
+        "status": "not_followed",
+        "detected_at": "2026-06-10T08:00:50.932968 (auto)",
+        "source": "calibration_v1_migration"
       },
       "migration": {
-        "source": "plan_v1"
+        "source": "calibration_v1",
+        "legacy_outcome": "loss",
+        "legacy_benefit_t1_pct": "-5.89",
+        "legacy_benefit_t5_pct": "-26.11",
+        "legacy_updated_at": "2026-06-15T08:00:43.018128"
       }
     },
     {
@@ -387,7 +391,7 @@
       "confidence": 0.5,
       "driven_by": "macro",
       "rationale": "-24% 5d 超卖。SoftBank 减持已知。8月 Coinbase 合同重谈催化。小仓 6.13%。",
-      "simulated_entry_price": null,
+      "simulated_entry_price": 75.0,
       "horizon_sessions": 1,
       "override": {
         "status": "none",
@@ -407,12 +411,16 @@
         "capital": null
       },
       "execution": {
-        "status": "unknown",
-        "detected_at": null,
-        "source": null
+        "status": "followed",
+        "detected_at": "2026-06-09T08:00:47.475504 (auto)",
+        "source": "calibration_v1_migration"
       },
       "migration": {
-        "source": "plan_v1"
+        "source": "calibration_v1",
+        "legacy_outcome": "win",
+        "legacy_benefit_t1_pct": "10.14",
+        "legacy_benefit_t5_pct": "3.79",
+        "legacy_updated_at": "2026-06-15T08:00:43.018177"
       }
     },
     {
@@ -499,7 +507,7 @@
       "confidence": 0.45,
       "driven_by": "technical",
       "rationale": "MSFT 下 200MA -8.7%。2x decay 风险中等（波动 36% < 70% cap）。",
-      "simulated_entry_price": null,
+      "simulated_entry_price": 25.0,
       "horizon_sessions": 1,
       "override": {
         "status": "none",
@@ -519,12 +527,16 @@
         "capital": null
       },
       "execution": {
-        "status": "unknown",
-        "detected_at": null,
-        "source": null
+        "status": "followed",
+        "detected_at": "2026-06-09T08:00:47.489764 (auto)",
+        "source": "calibration_v1_migration"
       },
       "migration": {
-        "source": "plan_v1"
+        "source": "calibration_v1",
+        "legacy_outcome": "win",
+        "legacy_benefit_t1_pct": "10.32",
+        "legacy_benefit_t5_pct": "-0.92",
+        "legacy_updated_at": "2026-06-15T08:00:43.018183"
       }
     },
     {

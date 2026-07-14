@@ -41,7 +41,7 @@
       "confidence": 0.65,
       "driven_by": "technical",
       "rationale": "peer divergence -6.4pp (智云健康 -0.2% vs self -6.6%); HK AI 情绪退潮; HK leg concentration 57%→48% after trim",
-      "simulated_entry_price": null,
+      "simulated_entry_price": 794.0,
       "horizon_sessions": 1,
       "override": {
         "status": "none",
@@ -61,12 +61,16 @@
         "capital": 8000.0
       },
       "execution": {
-        "status": "unknown",
-        "detected_at": null,
-        "source": null
+        "status": "not_followed",
+        "detected_at": "2026-05-21T23:37:25.561856 (auto)",
+        "source": "calibration_v1_migration"
       },
       "migration": {
-        "source": "plan_v1"
+        "source": "calibration_v1",
+        "legacy_outcome": "win",
+        "legacy_benefit_t1_pct": "6.61",
+        "legacy_benefit_t5_pct": "3.21",
+        "legacy_updated_at": "2026-05-30T18:24:12.045964"
       }
     },
     {
