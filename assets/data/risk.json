@@ -1,51 +1,51 @@
 {
-  "generated_at": "2026-07-13T00:03:20.324322+00:00",
-  "as_of": "2026-07-13",
+  "generated_at": "2026-07-14T00:03:15.944708+00:00",
+  "as_of": "2026-07-14",
   "us": {
-    "beta_spx": 3.445,
-    "vol_30d_annualized": 1.1526,
-    "max_dd_30d": -0.3744,
-    "sharpe_30d": -4.7401,
-    "current_value_usd": 3015.63
+    "beta_spx": 3.3409,
+    "vol_30d_annualized": 1.1105,
+    "max_dd_30d": -0.3845,
+    "sharpe_30d": -5.1137,
+    "current_value_usd": 2970.95
   },
   "hk": {
-    "beta_hsi": 1.3955,
-    "vol_30d_annualized": 0.7821,
-    "max_dd_30d": -0.4181,
-    "sharpe_30d": -5.5416,
-    "current_value_hkd": 58170.0
+    "beta_hsi": 1.4952,
+    "vol_30d_annualized": 0.7689,
+    "max_dd_30d": -0.4444,
+    "sharpe_30d": -6.0674,
+    "current_value_hkd": 52779.2
   },
   "combined": {
-    "vol_30d_annualized": 0.622,
-    "max_dd_30d": -0.2208,
-    "sharpe_30d": -5.5861
+    "vol_30d_annualized": 0.6127,
+    "max_dd_30d": -0.2586,
+    "sharpe_30d": -6.9455
   },
   "leveraged_exposure": {
-    "us_leverage_factor_avg": 1.3832,
-    "hk_leverage_factor_avg": 1.3696,
-    "combined_avg": 1.3735,
-    "margin_at_risk_pct": 13.7354
+    "us_leverage_factor_avg": 1.3909,
+    "hk_leverage_factor_avg": 1.4006,
+    "combined_avg": 1.3976,
+    "margin_at_risk_pct": 13.9763
   },
   "alerts": [
     {
       "type": "high_beta",
       "severity": "high",
-      "detail": "US β vs S&P 500 = 3.445 (> 3.0)"
+      "detail": "US β vs S&P 500 = 3.3409 (> 3.0)"
     },
     {
       "type": "high_vol",
       "severity": "high",
-      "detail": "Combined 30d annualised vol = 62.2% (> 50%)"
+      "detail": "Combined 30d annualised vol = 61.3% (> 50%)"
     },
     {
       "type": "deep_dd",
       "severity": "medium",
-      "detail": "Combined 30d max DD = -22.1% (< -10%)"
+      "detail": "Combined 30d max DD = -25.9% (< -10%)"
     },
     {
       "type": "negative_sharpe",
       "severity": "medium",
-      "detail": "Combined 30d Sharpe = -5.5861 (< 0)"
+      "detail": "Combined 30d Sharpe = -6.9455 (< 0)"
     }
   ],
   "meta": {
@@ -67,11 +67,11 @@
         "MSFU"
       ],
       "failed": [
-        "SKHYV"
+        "SKHY"
       ],
-      "n_returns": 17,
+      "n_returns": 18,
       "dates_first": "2026-06-15",
-      "dates_last": "2026-07-10",
+      "dates_last": "2026-07-13",
       "stale": false
     },
     "hk_fetch": {
@@ -84,8 +84,8 @@
       ],
       "failed": [],
       "n_returns": 30,
-      "dates_first": "2026-05-27",
-      "dates_last": "2026-07-10",
+      "dates_first": "2026-05-28",
+      "dates_last": "2026-07-13",
       "stale": false
     }
   }
