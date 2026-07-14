@@ -6,49 +6,184 @@
     "us": "recovery",
     "hk": "correction"
   },
-  "actions": [
-    {
-      "ticker": "00100",
-      "action": "sell",
-      "bucket": "trim_on_rebound",
-      "trigger_type": "price_above",
-      "trigger_price": 800.0,
-      "size_shares": 10,
-      "confidence": 0.65,
-      "rationale": "peer divergence -6.4pp (智云健康 -0.2% vs self -6.6%); HK AI 情绪退潮; HK leg concentration 57%→48% after trim",
-      "stop_loss": 720.0,
-      "target": 850.0
-    },
-    {
-      "ticker": "ROBN",
-      "action": "sell",
-      "bucket": "cut",
-      "trigger_type": "price_below",
-      "trigger_price": 17.5,
-      "size_shares": 40,
-      "confidence": 0.7,
-      "rationale": "-17.5% 浮亏，crypto rev 结构性萎缩，HOOD 财报 risk 叠加; stop below cost basis",
-      "stop_loss": null,
-      "target": null
-    },
-    {
-      "ticker": "SOXL",
-      "action": "buy",
-      "bucket": "add_only_on_trigger",
-      "trigger_type": "price_above",
-      "trigger_price": 170.0,
-      "size_shares": 1,
-      "confidence": 0.6,
-      "rationale": "纳指反弹趋势若延续，SOXL 3x 放大; cost basis 164.18, +78.7% 保护垫厚; add 1 on breakout 170",
-      "stop_loss": 155.0,
-      "target": 180.0
-    }
-  ],
   "observations": [
     "00100 MiniMax peer divergence -6.4pp vs 智云健康 confirms alpha erosion",
     "HK HHI=0.418 concentrated: 00100+07226=85.9% of HK leg",
     "US HHI=0.171: SOXL+ROBN=43.3% of US leg",
     "Retrospective 2026-05-17: 0/3 fired in 60-79% conf band, reduce conf by 5pp"
   ],
-  "self_calibration_note": "60-79% conf band 0/3 hit rate; all calls above use conf-5pp effective"
+  "migration_note": "legacy confidence note: 60-79% band 0/3; authored calls used conf-5pp",
+  "schema_version": 2,
+  "decisions": [
+    {
+      "schema_version": 2,
+      "decision_id": "dec-d064848e79d4",
+      "episode_id": "ep-b92cb22808d5",
+      "decision_group_id": "2026-05-18:00100",
+      "plan_date": "2026-05-18",
+      "created_at": "2026-05-18T08:00:00+08:00",
+      "ticker": "00100",
+      "name": "",
+      "leg": "HK",
+      "strategy_id": "core_position",
+      "thesis_id": "00100-core_position",
+      "action": "cut",
+      "condition": {
+        "type": "price_above",
+        "price": 800.0,
+        "description": ""
+      },
+      "size": {
+        "shares": 10,
+        "pct": null,
+        "note": ""
+      },
+      "confidence": 0.65,
+      "driven_by": "technical",
+      "rationale": "peer divergence -6.4pp (智云健康 -0.2% vs self -6.6%); HK AI 情绪退潮; HK leg concentration 57%→48% after trim",
+      "simulated_entry_price": null,
+      "horizon_sessions": 1,
+      "override": {
+        "status": "none",
+        "reason": "",
+        "expires_on": null,
+        "revisit_condition": ""
+      },
+      "evaluation": {
+        "status": "not_triggered",
+        "triggered": false,
+        "trigger_session": null,
+        "execution_price": 800.0,
+        "underlying_return_t1_pct": null,
+        "benefit_t1_pct": null,
+        "benefit_t5_pct": null,
+        "outcome": "not_triggered",
+        "capital": 8000.0
+      },
+      "execution": {
+        "status": "unknown",
+        "detected_at": null,
+        "source": null
+      },
+      "migration": {
+        "source": "plan_v1"
+      }
+    },
+    {
+      "schema_version": 2,
+      "decision_id": "dec-e3d8fb6fb3b3",
+      "episode_id": "ep-65313d24451f",
+      "decision_group_id": "2026-05-18:ROBN",
+      "plan_date": "2026-05-18",
+      "created_at": "2026-05-18T08:00:00+08:00",
+      "ticker": "ROBN",
+      "name": "",
+      "leg": "US",
+      "strategy_id": "core_position",
+      "thesis_id": "robn-core_position",
+      "action": "cut",
+      "condition": {
+        "type": "price_below",
+        "price": 17.5,
+        "description": ""
+      },
+      "size": {
+        "shares": 40,
+        "pct": null,
+        "note": ""
+      },
+      "confidence": 0.7,
+      "driven_by": "technical",
+      "rationale": "-17.5% 浮亏，crypto rev 结构性萎缩，HOOD 财报 risk 叠加; stop below cost basis",
+      "simulated_entry_price": 19.45,
+      "horizon_sessions": 1,
+      "override": {
+        "status": "none",
+        "reason": "",
+        "expires_on": null,
+        "revisit_condition": ""
+      },
+      "evaluation": {
+        "status": "not_triggered",
+        "triggered": false,
+        "trigger_session": null,
+        "execution_price": 17.5,
+        "underlying_return_t1_pct": null,
+        "benefit_t1_pct": null,
+        "benefit_t5_pct": null,
+        "outcome": "not_triggered",
+        "capital": 700.0
+      },
+      "execution": {
+        "status": "not_followed",
+        "detected_at": "2026-05-21T23:37:25.603449 (auto)",
+        "source": "calibration_v1_migration"
+      },
+      "migration": {
+        "source": "calibration_v1",
+        "legacy_outcome": "win",
+        "legacy_benefit_t1_pct": "9.15",
+        "legacy_benefit_t5_pct": "9.25",
+        "legacy_updated_at": "2026-05-30T18:24:12.046520"
+      }
+    },
+    {
+      "schema_version": 2,
+      "decision_id": "dec-937230ef5eb6",
+      "episode_id": "ep-74737067ea3c",
+      "decision_group_id": "2026-05-18:SOXL",
+      "plan_date": "2026-05-18",
+      "created_at": "2026-05-18T08:00:00+08:00",
+      "ticker": "SOXL",
+      "name": "",
+      "leg": "US",
+      "strategy_id": "core_position",
+      "thesis_id": "soxl-core_position",
+      "action": "add_only_on_trigger",
+      "condition": {
+        "type": "price_above",
+        "price": 170.0,
+        "description": ""
+      },
+      "size": {
+        "shares": 1,
+        "pct": null,
+        "note": ""
+      },
+      "confidence": 0.6,
+      "driven_by": "technical",
+      "rationale": "纳指反弹趋势若延续，SOXL 3x 放大; cost basis 164.18, +78.7% 保护垫厚; add 1 on breakout 170",
+      "simulated_entry_price": 164.18,
+      "horizon_sessions": 1,
+      "override": {
+        "status": "none",
+        "reason": "",
+        "expires_on": null,
+        "revisit_condition": ""
+      },
+      "evaluation": {
+        "status": "not_triggered",
+        "triggered": false,
+        "trigger_session": null,
+        "execution_price": 170.0,
+        "underlying_return_t1_pct": null,
+        "benefit_t1_pct": null,
+        "benefit_t5_pct": null,
+        "outcome": "not_triggered",
+        "capital": 170.0
+      },
+      "execution": {
+        "status": "not_followed",
+        "detected_at": "2026-05-21T23:37:25.670650 (auto)",
+        "source": "calibration_v1_migration"
+      },
+      "migration": {
+        "source": "calibration_v1",
+        "legacy_outcome": "loss",
+        "legacy_benefit_t1_pct": "-12.71",
+        "legacy_benefit_t5_pct": "16.07",
+        "legacy_updated_at": "2026-05-30T18:24:12.047622"
+      }
+    }
+  ]
 }

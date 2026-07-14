@@ -32,19 +32,8 @@ WS = Path(__file__).resolve().parents[2]
 
 sys.path.insert(0, str(WS / 'scripts' / 'data'))
 import trading_calendar  # noqa: E402
+import decision_v2  # noqa: E402
 
-VALID_BUCKETS = {
-    'cut', 'trim_on_rebound', 'hold_and_watch', 't_only', 'add_only_on_trigger',
-}
-VALID_TRIGGER_TYPES = {
-    'open', 'price_above', 'price_below', 'index_breakdown', 'event', 'manual',
-}
-# driven_by = which data source actually drove the call (vs trigger_type = the price
-# mechanism). Lets calibration answer "does the news feed add edge per source".
-# '' allowed (legacy/backfill); 'technical' is the default for chart/MA/RSI-driven calls.
-VALID_DRIVERS = {
-    '', 'technical', 'catalyst', 'sentiment', 'influencer', 'macro', 'peer',
-}
 REQUIRED_MARKDOWN_TOKENS = [
     'Header', 'Tier 1', 'Tier 2', 'Tier 3', 'Judge', 'Confidence', 'Next-Session',
     '同行扫描',  # NEW: peer rotation section
@@ -62,36 +51,17 @@ def validate_plan_json(path, context=None):
     except json.JSONDecodeError as e:
         return [f'plan.json 解析失败: {e}']
 
-    issues = []
-    for field in ('date', 'fx_rate_usdhkd', 'actions'):
-        if field not in plan:
-            issues.append(f'plan.json 缺顶层字段 "{field}"')
-
-    actions = plan.get('actions', [])
-    if not isinstance(actions, list) or not actions:
-        issues.append('plan.json actions 空或非 list')
-        return issues
-
-    for i, a in enumerate(actions):
-        tag = f'plan.json action[{i}] ({a.get("ticker", "?")})'
-        if not a.get('ticker'):
-            issues.append(f'{tag}: 缺 ticker')
-        if a.get('bucket') not in VALID_BUCKETS:
-            issues.append(f'{tag}: bucket "{a.get("bucket")}" 不合法')
-        if a.get('trigger_type') not in VALID_TRIGGER_TYPES:
-            issues.append(f'{tag}: trigger_type "{a.get("trigger_type")}" 不合法')
-        if a.get('driven_by', '') not in VALID_DRIVERS:
-            issues.append(f'{tag}: driven_by "{a.get("driven_by")}" 不合法 '
-                          f'(允许 {sorted(VALID_DRIVERS - {""})})')
-        # 消息面权重铁律 (warn): 软情绪 (sentiment/influencer) 不得单独驱动主动 call。
-        # 硬催化才能翻 bucket;软情绪只能动 confidence。见 SKILL "消息面权重铁律"。
-        if (a.get('driven_by') in ('sentiment', 'influencer')
-                and a.get('bucket') in ('cut', 'trim_on_rebound', 'add_only_on_trigger')):
-            issues.append(f'{tag}: 软情绪铁律 — driven_by={a.get("driven_by")} 不应单独驱动 '
-                          f'{a.get("bucket")}(软情绪只能动 confidence,翻 bucket 需硬催化)')
-        conf = a.get('confidence')
-        if conf is not None and not (0.0 <= float(conf) <= 1.0):
-            issues.append(f'{tag}: confidence {conf} 不在 [0, 1]')
+    issues = [f'plan.json v2: {x}' for x in decision_v2.validate_plan(plan)]
+    decisions = plan.get('decisions', []) if isinstance(plan.get('decisions'), list) else []
+    for i, d in enumerate(decisions):
+        tag = f'plan.json decision[{i}] ({d.get("ticker", "?")}/{d.get("strategy_id", "?")})'
+        # Active timing calls need a hard catalyst. Deterministic risk-rebalance is
+        # the explicit exception: it is policy execution, not discretionary alpha.
+        if (d.get('action') in decision_v2.ACTIVE_ACTIONS
+                and d.get('strategy_id') != 'risk_rebalance'
+                and d.get('driven_by') != 'catalyst'):
+            issues.append(f'{tag}: catalyst-gate — 主动 {d.get("action")} 必须 driven_by=catalyst；'
+                          'risk_rebalance 才允许 risk_rule/technical')
 
     # 仓位/杠杆硬闸闭环 (warn): context.risk_guardrail 的每条 breach / hard_stop
     # 必须在 plan 里有对应的减仓动作，否则 LLM 忽略了硬闸。见 SKILL「🚦 仓位/杠杆硬闸」。
@@ -99,19 +69,22 @@ def validate_plan_json(path, context=None):
     if gr.get('breach_count'):
         TRIM = {'trim_on_rebound', 'cut'}
         def _leg(t): return 'HK' if str(t).isdigit() else 'US'
-        trims = [a for a in actions if a.get('bucket') in TRIM]
-        trim_tickers = {a.get('ticker') for a in trims}
-        trim_legs = {_leg(a.get('ticker')) for a in trims}
+        trims = [d for d in decisions if d.get('action') in TRIM and d.get('strategy_id') == 'risk_rebalance']
+        trim_tickers = {d.get('ticker') for d in trims}
+        trim_legs = {_leg(d.get('ticker')) for d in trims}
+        overridden = {d.get('ticker') for d in decisions
+                      if (d.get('override') or {}).get('status') == 'active'}
         for b in gr.get('breaches', []):
             tk, leg = b.get('ticker'), b.get('leg')
-            if tk and tk not in trim_tickers:
+            if tk and tk not in trim_tickers and tk not in overridden:
                 issues.append(f'仓位硬闸未处理: {b["type"]} {tk} ({b["detail"]}) — '
                               f'plan 里 {tk} 没有 trim/cut 动作（SKILL 要求每条 breach 出对应动作）')
             elif not tk and leg and leg not in trim_legs:
                 issues.append(f'仓位硬闸未处理: {b["type"]}/{leg} ({b["detail"]}) — '
                               f'plan 里 {leg} leg 没有任何 trim/cut 动作')
         for s in gr.get('hard_stop_watch', []):
-            if s.get('ticker') not in {a.get('ticker') for a in actions if a.get('bucket') == 'cut'}:
+            if s.get('ticker') not in {d.get('ticker') for d in trims if d.get('action') == 'cut'} \
+                    and s.get('ticker') not in overridden:
                 issues.append(f'杠杆硬止损未处理: {s["ticker"]} ({s["detail"]}) — plan 里没有对应 cut')
     return issues
 
@@ -220,86 +193,44 @@ def _current_price_for(ticker):
     return ''
 
 
-def log_calibration(today):
-    """Append today's plan actions to memory/calibration.csv (outcome filled in by future preflight)."""
-    import csv
+def log_decisions(today):
+    """Normalize and upsert today's plan into the v2 decision ledger."""
     plan_path = WS / 'memory' / f'{today}-plan.json'
+
+    # V2 authoring keeps semantic fields human/LLM-readable; deterministic ids,
+    # episode linkage and evaluation defaults are filled here before validation.
+    if plan_path.exists():
+        try:
+            authored = json.loads(plan_path.read_text())
+            if authored.get('schema_version') == 2 and isinstance(authored.get('decisions'), list):
+                authored = decision_v2.normalize_authored_plan(authored)
+                plan_path.write_text(json.dumps(authored, ensure_ascii=False, indent=2) + '\n')
+        except Exception as e:
+            print(f'warn: v2 plan normalization failed: {e}', file=sys.stderr)
     if not plan_path.exists():
         return
     try:
         plan = json.loads(plan_path.read_text())
     except Exception:
         return
-    actions = plan.get('actions', [])
-    if not actions:
+    if plan.get('schema_version') != 2 or not plan.get('decisions'):
         return
-
-    calib_path = WS / 'memory' / 'calibration.csv'
-    new_file = not calib_path.exists()
-    fieldnames = ['plan_date','ticker','bucket','trigger_type','driven_by','trigger_price',
-                  'confidence','sim_entry_price','outcome','pnl_5d','pnl_30d',
-                  'followed','followed_at','updated_at']
-    rows = []
-    if not new_file:
-        try:
-            with open(calib_path, encoding='utf-8') as f:
-                rows = list(csv.DictReader(f))
-        except Exception:
-            rows = []
-
-    # Skip if this plan_date already logged
-    existing = {(r.get('plan_date'), r.get('ticker'), r.get('bucket')) for r in rows}
-    appended = 0
-    for a in actions:
-        key = (today, a.get('ticker'), a.get('bucket'))
-        if key in existing:
-            continue
-        # Fallback: pull current_price from portfolio.json when plan didn't carry one
-        sim_entry = a.get('simulated_entry_price') or a.get('trigger_price') or _current_price_for(a.get('ticker'))
-        rows.append({
-            'plan_date':       today,
-            'ticker':          a.get('ticker'),
-            'bucket':          a.get('bucket', ''),
-            'trigger_type':    a.get('trigger_type', ''),
-            'driven_by':       a.get('driven_by', ''),  # which data source drove the call
-            'trigger_price':   a.get('trigger_price', ''),
-            'confidence':      a.get('confidence', ''),
-            'sim_entry_price': sim_entry,
-            'outcome':         'pending',  # filled by future preflight retrospective
-            'pnl_5d':          '',
-            'pnl_30d':         '',
-            'followed':        'unknown',  # user marks via scripts/data/mark_followed.py
-            'followed_at':     '',
-            'updated_at':      datetime.now().isoformat(),
-        })
-        appended += 1
-
-    # Retention: drop rows older than 365 days (rolling window)
-    cutoff = (datetime.now() - timedelta(days=365)).strftime('%Y-%m-%d')
-    before = len(rows)
-    rows = [r for r in rows if r.get('plan_date', '') >= cutoff]
-    dropped = before - len(rows)
-
-    if appended or dropped:
-        import io
-        from _harness_common import safe_write_text
-        buf = io.StringIO()
-        w = csv.DictWriter(buf, fieldnames=fieldnames)
-        w.writeheader()
-        w.writerows(rows)
-        safe_write_text(str(calib_path), buf.getvalue())
-        msg = f'  calibration.csv: +{appended} pending rows'
-        if dropped:
-            msg += f', -{dropped} old (>365d)'
-        msg += f' ({len(rows)} total)'
-        print(msg)
+    for d in plan['decisions']:
+        if d.get('simulated_entry_price') is None:
+            d['simulated_entry_price'] = _current_price_for(d.get('ticker'))
+    plan_path.write_text(json.dumps(plan, ensure_ascii=False, indent=2) + '\n')
+    inserted, updated = decision_v2.upsert_plan_decisions(plan)
+    ledger = decision_v2.load_decisions()
+    settled = decision_v2.settle_decisions(ledger)
+    decision_v2.write_decisions(ledger)
+    print(f'  decisions.jsonl: +{inserted}, updated {updated}, settled {settled} ({len(ledger)} total)')
 
 
 def maybe_commit(status, today):
     if status == 'fail':
         return False, 'skipped (status=fail)'
 
-    log_calibration(today)   # append today's plan to calibration log (idempotent)
+    log_decisions(today)   # upsert today's v2 plan (idempotent)
     rebuild_dashboard()  # refresh dashboard.json before commit
 
     msg_suffix = ' (validation warnings)' if status == 'warn' else ''
@@ -310,7 +241,7 @@ def maybe_commit(status, today):
     # local push overwrote them again (found 2026-06-10; same class as the
     # 06-05 sidecar-strip bug). The daily brief commit is their natural ride.
     add_ok, add_out = _git('add', 'memory/', 'portfolio.json', 'assets/data/dashboard.json',
-                            'memory/calibration.csv', 'assets/data/risk.json',
+                            'memory/decisions.jsonl', 'assets/data/risk.json',
                             'assets/data/lev_regime.json', 'assets/data/benchmark.json',
                             'assets/data/quant_signals.json',
                             'assets/data/quant_signals_history.jsonl',

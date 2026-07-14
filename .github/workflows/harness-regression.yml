@@ -69,17 +69,20 @@ jobs:
       - name: Schema-validate memory/*-plan.json
         run: |
           python3 << 'PY'
-          import json, glob
-          required_top = {'date'}
+          import json, glob, sys
+          sys.path.insert(0, 'scripts/data')
+          import decision_v2
           for p in sorted(glob.glob('memory/*-plan.json')):
               with open(p) as f: d = json.load(f)
-              missing = required_top - set(d.keys())
-              assert not missing, f'{p}: missing top fields {missing}'
-              # actions is optional but if present must be list
-              if 'actions' in d:
-                  assert isinstance(d['actions'], list), f'{p}: actions not list'
+              errors = decision_v2.validate_plan(d)
+              assert not errors, f'{p}: {errors}'
               print(f'{p}: OK')
           PY
+
+      - name: Decision v2 unit tests and migration audit
+        run: |
+          python3 -m unittest discover -s tests -p 'test_decision_v2.py' -v
+          python3 scripts/data/migrate_decisions_v2.py
 
       - name: Rebuild dashboard.json and validate
         run: |
@@ -87,7 +90,7 @@ jobs:
           python3 << 'PY'
           import json
           with open('assets/data/dashboard.json') as f: d = json.load(f)
-          needed = ['generated_at','fx','totals','concentration','holdings','snapshots']
+          needed = ['generated_at','fx','totals','concentration','holdings','snapshots','decision_metrics','episode_backtest','decision_delta']
           missing = [k for k in needed if k not in d]
           assert not missing, f'missing keys: {missing}'
           for leg in ('us', 'hk'):

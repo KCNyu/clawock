@@ -12,77 +12,360 @@
     "hk_leg_hkd": -12106.64,
     "us_leg_usd": 269.08
   },
-  "actions": [
-    {
-      "ticker": "ROBN",
-      "bucket": "cut",
-      "size_pct": 50,
-      "size_shares": 20,
-      "trigger_type": "open",
-      "trigger_price": null,
-      "trigger_condition": "开盘任意价减20股",
-      "confidence": 0.75,
-      "rationale": "PnL -21.6% 证伪 thesis；HOOD 加密叙事退潮；2x decay 加速"
-    },
-    {
-      "ticker": "MSFU",
-      "bucket": "cut",
-      "size_pct": 100,
-      "size_shares": 20,
-      "trigger_type": "open",
-      "trigger_price": null,
-      "trigger_condition": "开盘任意价全清",
-      "confidence": 0.78,
-      "rationale": "PnL 归零；MSFT 无 AI 催化；cash 备用"
-    },
-    {
-      "ticker": "00100",
-      "bucket": "trim_on_rebound",
-      "size_pct": 33,
-      "size_shares": 20,
-      "trigger_type": "price_above",
-      "trigger_price": 730,
-      "trigger_condition": "盘中反弹至730以上减20股至40股",
-      "confidence": 0.68,
-      "rationale": "-7.5% vs peer -1.4%，alpha 流失6pp；700有支撑先守"
-    },
-    {
-      "ticker": "SOXL",
-      "bucket": "trim_on_rebound",
-      "size_pct": 50,
-      "size_shares": 1,
-      "trigger_type": "price_above",
-      "trigger_price": 180,
-      "trigger_condition": "若盘后/隔夜涨至180以上减1股留1股",
-      "confidence": 0.72,
-      "rationale": "RSI>80 momentum极致随时reversion；+88%浮盈保护只留1股"
-    },
-    {
-      "ticker": "PLTU",
-      "bucket": "trim_on_rebound",
-      "size_pct": 50,
-      "size_shares": 7,
-      "trigger_type": "price_above",
-      "trigger_price": 38.5,
-      "trigger_condition": "反弹至38.5以上减半至7股",
-      "confidence": 0.65,
-      "rationale": "2x leverage decay；PLTR叙事相对MSFT强，留半仓等反弹"
-    },
-    {
-      "ticker": "07226",
-      "bucket": "hold_and_watch",
-      "size_pct": 0,
-      "size_shares": 0,
-      "trigger_type": "manual",
-      "trigger_price": null,
-      "trigger_condition": "等HSTECH确认方向后再动",
-      "confidence": 0.60,
-      "rationale": "HSTECH方向未明；2x杠杆不追加也不减"
-    }
-  ],
   "watch_levels": {
     "hstech_breakdown": 4800,
     "soxl_breakdown_pct": -4,
     "book_force_derisk_usd": -300
-  }
+  },
+  "schema_version": 2,
+  "decisions": [
+    {
+      "schema_version": 2,
+      "decision_id": "dec-fa46bca503ca",
+      "episode_id": "ep-65313d24451f",
+      "decision_group_id": "2026-05-21:ROBN",
+      "plan_date": "2026-05-21",
+      "created_at": "2026-05-21T08:00:00+08:00",
+      "ticker": "ROBN",
+      "name": "",
+      "leg": "US",
+      "strategy_id": "core_position",
+      "thesis_id": "robn-core_position",
+      "action": "cut",
+      "condition": {
+        "type": "open",
+        "price": null,
+        "description": "开盘任意价减20股"
+      },
+      "size": {
+        "shares": 20,
+        "pct": 50.0,
+        "note": ""
+      },
+      "confidence": 0.75,
+      "driven_by": "technical",
+      "rationale": "PnL -21.6% 证伪 thesis；HOOD 加密叙事退潮；2x decay 加速",
+      "simulated_entry_price": 18.5,
+      "horizon_sessions": 1,
+      "override": {
+        "status": "none",
+        "reason": "",
+        "expires_on": null,
+        "revisit_condition": ""
+      },
+      "evaluation": {
+        "status": "settled",
+        "triggered": true,
+        "trigger_session": "2026-05-21",
+        "execution_price": 18.5,
+        "underlying_return_t1_pct": -4.6486,
+        "benefit_t1_pct": 4.6486,
+        "benefit_t5_pct": -11.8924,
+        "outcome": "win",
+        "capital": 370.0
+      },
+      "execution": {
+        "status": "not_followed",
+        "detected_at": "2026-05-25T08:02:50.448705 (auto)",
+        "source": "calibration_v1_migration"
+      },
+      "migration": {
+        "source": "calibration_v1",
+        "legacy_outcome": "win",
+        "legacy_benefit_t1_pct": "4.65",
+        "legacy_benefit_t5_pct": "-11.89",
+        "legacy_updated_at": "2026-05-30T18:24:12.054395"
+      }
+    },
+    {
+      "schema_version": 2,
+      "decision_id": "dec-08dac7c3cf24",
+      "episode_id": "ep-3936ac8a21cd",
+      "decision_group_id": "2026-05-21:MSFU",
+      "plan_date": "2026-05-21",
+      "created_at": "2026-05-21T08:00:00+08:00",
+      "ticker": "MSFU",
+      "name": "",
+      "leg": "US",
+      "strategy_id": "core_position",
+      "thesis_id": "msfu-core_position",
+      "action": "cut",
+      "condition": {
+        "type": "open",
+        "price": null,
+        "description": "开盘任意价全清"
+      },
+      "size": {
+        "shares": 20,
+        "pct": 100.0,
+        "note": ""
+      },
+      "confidence": 0.78,
+      "driven_by": "technical",
+      "rationale": "PnL 归零；MSFT 无 AI 催化；cash 备用",
+      "simulated_entry_price": 29.06,
+      "horizon_sessions": 1,
+      "override": {
+        "status": "none",
+        "reason": "",
+        "expires_on": null,
+        "revisit_condition": ""
+      },
+      "evaluation": {
+        "status": "settled",
+        "triggered": true,
+        "trigger_session": "2026-05-21",
+        "execution_price": 29.06,
+        "underlying_return_t1_pct": -0.8603,
+        "benefit_t1_pct": 0.8603,
+        "benefit_t5_pct": -1.9615,
+        "outcome": "win",
+        "capital": 581.2
+      },
+      "execution": {
+        "status": "not_followed",
+        "detected_at": "2026-05-25T08:02:50.462784 (auto)",
+        "source": "calibration_v1_migration"
+      },
+      "migration": {
+        "source": "calibration_v1",
+        "legacy_outcome": "win",
+        "legacy_benefit_t1_pct": "0.86",
+        "legacy_benefit_t5_pct": "-1.96",
+        "legacy_updated_at": "2026-05-30T18:24:12.054963"
+      }
+    },
+    {
+      "schema_version": 2,
+      "decision_id": "dec-bb50c2eff14b",
+      "episode_id": "ep-3eb3e4938509",
+      "decision_group_id": "2026-05-21:00100",
+      "plan_date": "2026-05-21",
+      "created_at": "2026-05-21T08:00:00+08:00",
+      "ticker": "00100",
+      "name": "",
+      "leg": "HK",
+      "strategy_id": "core_position",
+      "thesis_id": "00100-core_position",
+      "action": "trim_on_rebound",
+      "condition": {
+        "type": "price_above",
+        "price": 730.0,
+        "description": "盘中反弹至730以上减20股至40股"
+      },
+      "size": {
+        "shares": 20,
+        "pct": 33.0,
+        "note": ""
+      },
+      "confidence": 0.68,
+      "driven_by": "technical",
+      "rationale": "-7.5% vs peer -1.4%，alpha 流失6pp；700有支撑先守",
+      "simulated_entry_price": 687.0,
+      "horizon_sessions": 1,
+      "override": {
+        "status": "none",
+        "reason": "",
+        "expires_on": null,
+        "revisit_condition": ""
+      },
+      "evaluation": {
+        "status": "settled",
+        "triggered": true,
+        "trigger_session": "2026-05-21",
+        "execution_price": 730.0,
+        "underlying_return_t1_pct": 2.6027,
+        "benefit_t1_pct": -2.6027,
+        "benefit_t5_pct": -14.6575,
+        "outcome": "loss",
+        "capital": 14600.0
+      },
+      "execution": {
+        "status": "not_followed",
+        "detected_at": "2026-05-25T08:02:50.476010 (auto)",
+        "source": "calibration_v1_migration"
+      },
+      "migration": {
+        "source": "calibration_v1",
+        "legacy_outcome": "loss",
+        "legacy_benefit_t1_pct": "-9.02",
+        "legacy_benefit_t5_pct": "-21.83",
+        "legacy_updated_at": "2026-05-30T18:24:12.055563"
+      }
+    },
+    {
+      "schema_version": 2,
+      "decision_id": "dec-d24392b78cbf",
+      "episode_id": "ep-d8147a4b24ef",
+      "decision_group_id": "2026-05-21:SOXL",
+      "plan_date": "2026-05-21",
+      "created_at": "2026-05-21T08:00:00+08:00",
+      "ticker": "SOXL",
+      "name": "",
+      "leg": "US",
+      "strategy_id": "core_position",
+      "thesis_id": "soxl-core_position",
+      "action": "trim_on_rebound",
+      "condition": {
+        "type": "price_above",
+        "price": 180.0,
+        "description": "若盘后/隔夜涨至180以上减1股留1股"
+      },
+      "size": {
+        "shares": 1,
+        "pct": 50.0,
+        "note": ""
+      },
+      "confidence": 0.72,
+      "driven_by": "technical",
+      "rationale": "RSI>80 momentum极致随时reversion；+88%浮盈保护只留1股",
+      "simulated_entry_price": 172.8,
+      "horizon_sessions": 1,
+      "override": {
+        "status": "none",
+        "reason": "",
+        "expires_on": null,
+        "revisit_condition": ""
+      },
+      "evaluation": {
+        "status": "not_triggered",
+        "triggered": false,
+        "trigger_session": null,
+        "execution_price": 180.0,
+        "underlying_return_t1_pct": null,
+        "benefit_t1_pct": null,
+        "benefit_t5_pct": null,
+        "outcome": "not_triggered",
+        "capital": 180.0
+      },
+      "execution": {
+        "status": "followed",
+        "detected_at": "2026-05-25T08:02:50.489058 (auto)",
+        "source": "calibration_v1_migration"
+      },
+      "migration": {
+        "source": "calibration_v1",
+        "legacy_outcome": "loss",
+        "legacy_benefit_t1_pct": "-10.19",
+        "legacy_benefit_t5_pct": "-25.68",
+        "legacy_updated_at": "2026-05-30T18:24:12.056185"
+      }
+    },
+    {
+      "schema_version": 2,
+      "decision_id": "dec-4665db017e64",
+      "episode_id": "ep-d0ab1219045c",
+      "decision_group_id": "2026-05-21:PLTU",
+      "plan_date": "2026-05-21",
+      "created_at": "2026-05-21T08:00:00+08:00",
+      "ticker": "PLTU",
+      "name": "",
+      "leg": "US",
+      "strategy_id": "core_position",
+      "thesis_id": "pltu-core_position",
+      "action": "trim_on_rebound",
+      "condition": {
+        "type": "price_above",
+        "price": 38.5,
+        "description": "反弹至38.5以上减半至7股"
+      },
+      "size": {
+        "shares": 7,
+        "pct": 50.0,
+        "note": ""
+      },
+      "confidence": 0.65,
+      "driven_by": "technical",
+      "rationale": "2x leverage decay；PLTR叙事相对MSFT强，留半仓等反弹",
+      "simulated_entry_price": 37.12,
+      "horizon_sessions": 1,
+      "override": {
+        "status": "none",
+        "reason": "",
+        "expires_on": null,
+        "revisit_condition": ""
+      },
+      "evaluation": {
+        "status": "not_triggered",
+        "triggered": false,
+        "trigger_session": null,
+        "execution_price": 38.5,
+        "underlying_return_t1_pct": null,
+        "benefit_t1_pct": null,
+        "benefit_t5_pct": null,
+        "outcome": "not_triggered",
+        "capital": 269.5
+      },
+      "execution": {
+        "status": "not_followed",
+        "detected_at": "2026-05-25T08:02:50.502092 (auto)",
+        "source": "calibration_v1_migration"
+      },
+      "migration": {
+        "source": "calibration_v1",
+        "legacy_outcome": "win",
+        "legacy_benefit_t1_pct": "0.59",
+        "legacy_benefit_t5_pct": "-2.37",
+        "legacy_updated_at": "2026-05-30T18:24:12.056726"
+      }
+    },
+    {
+      "schema_version": 2,
+      "decision_id": "dec-6be1c475b568",
+      "episode_id": "ep-993185269f05",
+      "decision_group_id": "2026-05-21:07226",
+      "plan_date": "2026-05-21",
+      "created_at": "2026-05-21T08:00:00+08:00",
+      "ticker": "07226",
+      "name": "",
+      "leg": "HK",
+      "strategy_id": "core_position",
+      "thesis_id": "07226-core_position",
+      "action": "hold_and_watch",
+      "condition": {
+        "type": "manual",
+        "price": null,
+        "description": "等HSTECH确认方向后再动"
+      },
+      "size": {
+        "shares": 0,
+        "pct": 0.0,
+        "note": ""
+      },
+      "confidence": 0.6,
+      "driven_by": "technical",
+      "rationale": "HSTECH方向未明；2x杠杆不追加也不减",
+      "simulated_entry_price": 3.768,
+      "horizon_sessions": 1,
+      "override": {
+        "status": "none",
+        "reason": "",
+        "expires_on": null,
+        "revisit_condition": ""
+      },
+      "evaluation": {
+        "status": "settled",
+        "triggered": true,
+        "trigger_session": "2026-05-21",
+        "execution_price": 3.768,
+        "underlying_return_t1_pct": -0.4246,
+        "benefit_t1_pct": -0.4246,
+        "benefit_t5_pct": 0.3185,
+        "outcome": "loss",
+        "capital": null
+      },
+      "execution": {
+        "status": "followed",
+        "detected_at": "2026-05-22T08:00:49.511590 (auto)",
+        "source": "calibration_v1_migration"
+      },
+      "migration": {
+        "source": "calibration_v1",
+        "legacy_outcome": "loss",
+        "legacy_benefit_t1_pct": "-0.42",
+        "legacy_benefit_t5_pct": "0.32",
+        "legacy_updated_at": "2026-05-30T18:24:12.057263"
+      }
+    }
+  ]
 }

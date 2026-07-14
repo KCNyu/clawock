@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """rick_broadcast.py — turn the self-grading scorecard into a Rick-voiced post.
 
-Reads the honest track record (calibration.csv + the quant/T+0 review sidecars)
+Reads the honest v2 decision ledger plus the quant/T+0 review sidecars
 and emits a short, ready-to-post update in Rick's voice. Delivery is a separate
 concern: this only prints text (and optional --json) to stdout, so you can pipe
 it to X / Nostr / a copy-paste, manually or from a cron.
@@ -13,12 +13,13 @@ Usage:
 """
 from __future__ import annotations
 import argparse
-import csv
 import json
 import os
+import sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-CSV = os.path.join(ROOT, "memory", "calibration.csv")
+sys.path.insert(0, os.path.join(ROOT, "scripts", "data"))
+import decision_v2
 QUANT = os.path.join(ROOT, "assets", "data", "quant_signal_review.json")
 T0 = os.path.join(ROOT, "assets", "data", "t0_setup_review.json")
 REPO = "github.com/KCNyu/clawock"
@@ -39,23 +40,18 @@ def _rate(rows):
 
 
 def scorecard():
-    rows = list(csv.DictReader(open(CSV)))
-
-    def conf(r):
-        try:
-            return float(r["confidence"] or 0)
-        except ValueError:
-            return 0.0
-
-    active_pct, active_n = _rate([r for r in rows if r["bucket"] in ACTIVE])
-    hold_pct, hold_n = _rate([r for r in rows if r["bucket"] in PASSIVE])
-    hi_pct, hi_n = _rate([r for r in rows if conf(r) >= 0.75])
+    rows = decision_v2.episode_representatives(decision_v2.load_decisions(), "t1")
+    def pct(group):
+        return (round(100 * sum((r.get("evaluation") or {}).get("outcome") == "win" for r in group) / len(group)), len(group)) if group else (None, 0)
+    active_pct, active_n = pct([r for r in rows if r.get("action") in ACTIVE])
+    hold_pct, hold_n = pct([r for r in rows if r.get("action") in PASSIVE])
+    hi_pct, hi_n = pct([r for r in rows if float(r.get("confidence") or 0) >= 0.75])
 
     out = {
         "active_hit": active_pct, "active_n": active_n,
         "hold_hit": hold_pct, "hold_n": hold_n,
         "high_conf_hit": hi_pct, "high_conf_n": hi_n,
-        "total_settled": sum(1 for r in rows if r["outcome"] in ("win", "loss")),
+        "total_settled": len(rows),
     }
 
     # T+0 setup grades (usable ones only) — the "card read" honesty

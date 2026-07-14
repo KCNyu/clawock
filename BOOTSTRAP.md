@@ -38,18 +38,18 @@
 
 ### C+. 自进化机制（daily-deep-brief）
 
-context.json 现在多了两个字段，**必须用上**：
+context.json 的决策/自进化字段，**必须用上**：
 
 1. **`peer_scan`** — 每个持仓的同题材竞品（listed + private + ETF proxy）
    - 必须输出 ▎同行扫描 段（表格）
    - 出现 `divergence_signal` 字段 → Judge 必须考虑 rotation trigger
    - 不许说 "考虑减仓"，要说 "减 X 股 → 加 Y 股"
 
-2. **`self_calibration`** — 过去 30 天你（这个 brief）的 confidence 准确率
-   - 如果 `samples ≥ 5`：必须输出 ▎Confidence 校准 段
-   - 给 action 的 confidence 字段前，参考过去类似情境实际胜率
-   - 如果 `brier_30d > 0.30` (模型过自信)：本次所有 confidence 自动 -10pp
-   - **calibration 只统计 `followed=true` 的 plan actions**。preflight 跑 `_detect_followed` 用 git history shares diff 自动推断；kcn 也可用 `scripts/data/mark_followed.py` 手动标。
+2. **`decision_metrics`** — v2 strategy episode 的 confidence 与 benefit 审计
+   - 只结算 condition 实际触发的 episode；同策略连续重申不重复计样本。
+   - 输出 ▎Decision v2 校准：Brier、active/passive、by_strategy/by_driver/by_condition 与 date-cluster CI。
+   - 给 decision 的 confidence 前参考同策略 episode；CI 跨 0 只能称方向性，不许声称稳定 edge。
+   - execution 与建议质量分离。手动标记：`scripts/data/mark_followed.py DECISION_ID [--no]`。
 
 3. **`risk_metrics`** — 当下组合风险量化（β/Vol/Max DD/Sharpe/leverage/margin_at_risk）
    - 出现 `alerts[]` 数组 → 必须输出 ▎风险警报 段，列举每个 alert.type + detail

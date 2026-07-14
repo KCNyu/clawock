@@ -105,7 +105,7 @@ clawock 是**美股 + 港股 + 黄金定投**的实盘组合，工具包只做�
 | `backtest_hstech_regime.py` | 恒科 regime 去杠杆回测(2021→今) | 腾讯 kline | ✅ |
 | `backtest_us_leverage.py` | 美股 2x ETF regime 回测 | 日线模拟 | ✅ |
 | `backtest_combined_regime.py` | 全组合 regime vs buy&hold vs 全 1x | 因子代理历史 | ✅ |
-| `shadow_backtest.py` | 「全听 AI」反事实累计对比 | 本地 calibration | ✅ |
+| `decision_v2.py` | strategy episode 结算、cluster CI、资金加权复合回测 | decisions ledger + snapshots | ✅ |
 | `quant_signal_review.py` · `t0_setup_review.py` | 因子 / 牌面 edge 自检(T+1/T+5 命中率) | 本地留痕 | ✅ |
 
 ---

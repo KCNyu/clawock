@@ -7,7 +7,6 @@ Output: assets/data/dashboard.json
 
 Run after each portfolio mutation (cron commit) so Pages stays fresh.
 """
-import csv
 import glob
 import json
 import math
@@ -17,6 +16,8 @@ import sys
 import time
 from datetime import datetime, timezone
 from pathlib import Path
+
+import decision_v2
 
 # Strict YYYY-MM-DD.json — rejects baselines/backups/archives that share the
 # snapshots dir (e.g. 2026-05-16-saturday-baseline.json caused duplicate 5-16
@@ -298,11 +299,12 @@ def load_plans():
         date = fname.replace('-plan.json', '')
         raw = json.dumps(d, ensure_ascii=False)
         if len(raw.encode('utf-8')) > MAX_PLAN_BYTES:
-            # Plan too big — keep only top-level summary fields (actions count, tldr)
-            actions = d.get('actions') or d.get('plan') or []
+            # Plan too big — keep only top-level summary fields.
+            actions = d.get('decisions') or []
             d = {
+                'schema_version': 2,
                 'date': d.get('date', date),
-                'actions_count': len(actions),
+                'decisions_count': len(actions),
                 'tldr': d.get('summary') or d.get('tldr') or '',
                 'has_retrospective': bool(d.get('retrospective')),
                 'context': d.get('context', {}),
@@ -323,51 +325,6 @@ _DEBATE_PASSIVE = {'hold_and_watch', 'watch', ''}
 _ACTIVE_BUCKETS = {'cut', 'trim_on_rebound', 'add_only_on_trigger', 'add_on_breakout'}
 
 
-def compute_active_signal_discipline(window_days=30):
-    """Catalyst-gate discipline metric [cut #1].
-
-    Calibration proves active calls (cut/trim/add) have no significant edge and
-    that catalyst is the ONLY driver that beats a coin flip. So an active call
-    *should* be catalyst-backed; a technical/peer/macro-driven active call is a
-    filter-grade signal used as a decision — the proven-negative-alpha behavior.
-    This surfaces how disciplined the book actually is, so over-trading is visible
-    instead of buried."""
-    try:
-        rows = _read_calibration_rows()
-        if not rows:
-            return None
-        today = datetime.now(timezone.utc).date()
-        active = []
-        for r in rows:
-            if (r.get('bucket') or '').strip() not in _ACTIVE_BUCKETS:
-                continue
-            try:
-                pd = datetime.strptime(r.get('plan_date', '')[:10], '%Y-%m-%d').date()
-            except Exception:
-                continue
-            if (today - pd).days > window_days:
-                continue
-            active.append((r.get('driven_by') or '').strip() or '(blank)')
-        n = len(active)
-        if not n:
-            return None
-        catalyst = sum(1 for d in active if d == 'catalyst')
-        by_driver = {}
-        for d in active:
-            by_driver[d] = by_driver.get(d, 0) + 1
-        return {
-            'window_days': window_days,
-            'active_calls': n,
-            'catalyst_backed': catalyst,
-            'catalyst_pct': round(100 * catalyst / n, 1),
-            'by_driver': dict(sorted(by_driver.items(), key=lambda kv: -kv[1])),
-            'note': ('catalyst-gate：只有 catalyst 经校准证明有 edge。catalyst_pct 低 = 大量主动'
-                     'cut/trim/add 由 technical/peer 驱动（过滤器当决策用，历史无显著 edge、跑输 hold）。'
-                     '提高这个比例 = 收窄主动信号面、向「只在硬催化时出手」靠拢。'),
-        }
-    except Exception as e:
-        print(f'  warn: compute_active_signal_discipline failed: {e}', file=sys.stderr)
-        return None
 
 
 def compute_debate_metrics(recent=20):
@@ -392,12 +349,12 @@ def compute_debate_metrics(recent=20):
             d = json.loads(Path(p).read_text())
         except Exception:
             continue
-        acts = d.get('actions') or []
+        acts = d.get('decisions') or []
         if not acts:
             continue
         plans_n += 1
         for a in acts:
-            b = (a.get('bucket') or '').strip()
+            b = (a.get('action') or '').strip()
             n_actions += 1
             buckets[b] = buckets.get(b, 0) + 1
             if b not in _DEBATE_PASSIVE:
@@ -410,9 +367,9 @@ def compute_debate_metrics(recent=20):
         return None
     return {
         'plans': plans_n,
-        'actions': n_actions,
+        'decisions': n_actions,
         'decisiveness_pct': round(100 * n_active / n_actions, 1),
-        'bucket_dist': dict(sorted(buckets.items(), key=lambda kv: -kv[1])),
+        'action_dist': dict(sorted(buckets.items(), key=lambda kv: -kv[1])),
         'contested_rate': (round(n_contested / n_contested_known, 3)
                            if n_contested_known else None),
         'contested_coverage': n_contested_known,
@@ -898,420 +855,6 @@ def extract_peer_divergence(brief_ctx, us_h=None, hk_h=None):
         return []
 
 
-_CALIB_BUCKETS = ['cut', 'trim_on_rebound', 'hold_and_watch', 't_only', 'add_only_on_trigger']
-_CALIB_BANDS = [
-    ('0-50%',  0.0, 0.5),
-    ('50-60%', 0.5, 0.6),
-    ('60-70%', 0.6, 0.7),
-    ('70-80%', 0.7, 0.8),
-    ('80-100%', 0.8, 1.0001),
-]
-
-
-def _read_calibration_rows():
-    """Returns list of dict rows from memory/calibration.csv, or []."""
-    path = WS_ROOT / 'memory' / 'calibration.csv'
-    try:
-        if not path.exists():
-            return []
-        with open(path, encoding='utf-8') as f:
-            reader = csv.DictReader(f)
-            return list(reader)
-    except Exception as e:
-        print(f'  warn: _read_calibration_rows failed: {e}', file=sys.stderr)
-        return []
-
-
-def _to_float(s):
-    try:
-        if s is None or s == '':
-            return None
-        return float(s)
-    except Exception:
-        return None
-
-
-def compute_calibration():
-    """Brier + per-band + per-bucket accuracy from calibration.csv (resolved rows only, ≤30d)."""
-    bands_empty = [{'band': b[0], 'n': 0, 'actual_win_rate': 0.0} for b in _CALIB_BANDS]
-    per_bucket_empty = {b: {'n': 0, 'win_rate': 0.0} for b in _CALIB_BUCKETS}
-    empty = {
-        'brier_30d': None,
-        'samples': 0,
-        'bands': bands_empty,
-        'per_bucket': per_bucket_empty,
-        'vs_baseline': None,
-    }
-    try:
-        rows = _read_calibration_rows()
-        if not rows:
-            return empty
-        # Resolved = outcome in {win, loss, flat} (skip pending/blank).
-        # 30d window: keep rows whose plan_date is within 30 days of today.
-        today = datetime.now(timezone.utc).date()
-        resolved = []
-        for r in rows:
-            outcome = (r.get('outcome') or '').strip().lower()
-            if outcome not in ('win', 'loss', 'flat'):
-                continue
-            try:
-                pd = datetime.strptime(r.get('plan_date', '')[:10], '%Y-%m-%d').date()
-            except Exception:
-                continue
-            if (today - pd).days > 30:
-                continue
-            resolved.append((r, outcome))
-
-        n = len(resolved)
-        if n == 0:
-            return empty
-
-        # Brier: (confidence - actual)^2, actual ∈ {1 for win, 0 for loss/flat}
-        brier_sum = 0.0
-        brier_count = 0
-        for r, outcome in resolved:
-            conf = _to_float(r.get('confidence'))
-            if conf is None:
-                continue
-            actual = 1.0 if outcome == 'win' else 0.0
-            brier_sum += (conf - actual) ** 2
-            brier_count += 1
-        brier_30d = round(brier_sum / brier_count, 4) if (brier_count >= 5) else None
-
-        # Bands
-        bands_out = []
-        for label, lo, hi in _CALIB_BANDS:
-            wins = 0
-            total = 0
-            for r, outcome in resolved:
-                conf = _to_float(r.get('confidence'))
-                if conf is None:
-                    continue
-                if lo <= conf < hi:
-                    total += 1
-                    if outcome == 'win':
-                        wins += 1
-            win_rate = round(wins / total, 4) if total else 0.0
-            bands_out.append({'band': label, 'n': total, 'actual_win_rate': win_rate})
-
-        # Per-bucket
-        per_bucket = {}
-        for b in _CALIB_BUCKETS:
-            wins = 0
-            total = 0
-            for r, outcome in resolved:
-                if (r.get('bucket') or '').strip() == b:
-                    total += 1
-                    if outcome == 'win':
-                        wins += 1
-            win_rate = round(wins / total, 4) if total else 0.0
-            per_bucket[b] = {'n': total, 'win_rate': win_rate}
-
-        # vs_baseline: LLM decision win-rate vs passive "hold everything" baseline
-        # (wins whenever the asset rose). Regime-robust edge check. Recover the asset's
-        # return from the stored benefit% (pnl_5d): benefit = ret for hold/add, -ret for
-        # cut/trim. alpha_pp < 0 = active calls did worse than doing nothing.
-        _SELL = {'cut', 'trim_on_rebound'}
-
-        def _alpha_bucket(bucket_rows):
-            """Same LLM-vs-hold alpha metrics over an arbitrary slice of resolved rows."""
-            llm_w = base_w = base_n = 0
-            ben_sum = ret_sum = 0.0
-            for r, outcome in bucket_rows:
-                ben = _to_float(r.get('pnl_5d'))
-                if ben is None:
-                    continue
-                ret = -ben if (r.get('bucket') or '').strip() in _SELL else ben
-                base_n += 1
-                llm_w += 1 if outcome == 'win' else 0
-                base_w += 1 if ret > 0 else 0
-                ben_sum += ben          # 跟随 LLM 动作的实际收益（benefit）
-                ret_sum += ret          # 躺着不动（hold baseline）的实际收益
-            if not base_n:
-                return None
-            llm_wr = llm_w / base_n
-            base_wr = base_w / base_n
-            llm_ci = _wilson_ci(llm_w, base_n)
-            hold_ci = _wilson_ci(base_w, base_n)
-            alpha_sig = (llm_ci is not None and hold_ci is not None
-                         and (llm_ci[1] < hold_ci[0] or hold_ci[1] < llm_ci[0]))
-            return {
-                'n': base_n,
-                'llm_win_rate': round(llm_wr, 4),
-                'hold_baseline_win_rate': round(base_wr, 4),
-                'alpha_pp': round((llm_wr - base_wr) * 100, 1),
-                'llm_ci95': llm_ci,
-                'hold_ci95': hold_ci,
-                'alpha_significant': alpha_sig,
-                'llm_avg_benefit_pct': round(ben_sum / base_n, 3),
-                'hold_avg_ret_pct': round(ret_sum / base_n, 3),
-                'alpha_ret_pp': round((ben_sum - ret_sum) / base_n, 3),
-            }
-
-        base_agg = _alpha_bucket(resolved)
-        base_n = base_agg['n'] if base_agg else 0
-        vs_baseline = None
-        if base_agg:
-            llm_wr = base_agg['llm_win_rate']
-            base_wr = base_agg['hold_baseline_win_rate']
-            llm_ci = base_agg['llm_ci95']
-            hold_ci = base_agg['hold_ci95']
-            # alpha 显著 = 两个 95% 区间不重叠（保守口径）；否则 frequency 上的"跑输"
-            # 也可能只是噪音，不能据此下结论
-            alpha_sig = base_agg['alpha_significant']
-            # 风险调整上下文：hold baseline 在 risk_on 里大半是杠杆放大的 β，不是决策技巧。
-            # 把 β 和杠杆因子贴在判决旁边，免得把"杠杆赢"当成"edge"。[cut #7]
-            risk_note = None
-            try:
-                rk = json.loads((OUT_DIR / 'risk.json').read_text())
-                bus = (rk.get('us') or {}).get('beta_spx')
-                lev = (rk.get('leveraged_exposure') or {}).get('combined_avg')
-                shp = (rk.get('combined') or {}).get('sharpe_30d')
-                risk_note = {'us_beta_spx': bus, 'leverage_factor_avg': lev, 'sharpe_30d': shp,
-                             'caveat': 'hold baseline 命中率受 β/杠杆放大；命中率高≠决策有 edge，'
-                                       '看 alpha_ret_pp（收益口径）+ sharpe 才是风险调整后的真账'}
-            except Exception:
-                pass
-            vs_baseline = dict(base_agg)
-            vs_baseline['risk_context'] = risk_note
-
-            # by_regime: split the SAME alpha calc by MARKET regime at each call's plan_date.
-            # The whole point — is the −6pp alpha a single-regime artifact? cut/trim
-            # structurally lose in up-legs, so the honest test is whether the sign flips
-            # across bull/bear/choppy. Regime map = lev_regime.json's regime_history, routed
-            # per market (US ticker → SPY momentum, HK numeric ticker → HSTECH momentum).
-            try:
-                regime_hist = json.loads(
-                    (OUT_DIR / 'lev_regime.json').read_text()).get('regime_history') or {}
-            except Exception:
-                regime_hist = {}
-            hk_hist = regime_hist.get('hk') or {}
-            us_hist = regime_hist.get('us') or {}
-            if hk_hist or us_hist:
-                hk_dates = sorted(hk_hist)
-                us_dates = sorted(us_hist)
-
-                def _regime_at(ticker, plan_date):
-                    """regime3 (bull/bear/chop) for the ticker's market at the most recent
-                    session on-or-before plan_date; None if unknown / no coverage."""
-                    hist, dts = ((hk_hist, hk_dates) if (ticker or '').strip().isdigit()
-                                 else (us_hist, us_dates))
-                    pick = None
-                    for d in dts:
-                        if d <= plan_date:
-                            pick = d
-                        else:
-                            break
-                    return hist[pick].get('regime3') if pick else None
-
-                buckets = {'bull': [], 'bear': [], 'chop': [], 'unknown': []}
-                for r, outcome in resolved:
-                    reg = _regime_at(r.get('ticker'), (r.get('plan_date') or '')[:10])
-                    buckets[reg if reg in buckets else 'unknown'].append((r, outcome))
-                by_regime = {}
-                for key, rows_b in buckets.items():
-                    agg = _alpha_bucket(rows_b)
-                    if agg:
-                        by_regime[key] = agg
-                if by_regime:
-                    vs_baseline['by_regime'] = by_regime
-                    vs_baseline['regime_meta'] = regime_hist.get('meta')
-
-        # Followed discipline over the SAME resolved set, so the % shares the
-        # `samples` denominator. (The card used to compute this off the recent-20
-        # actions slice → read a misleading 100% from just 4 known-followed rows,
-        # implying all `samples` plans were followed when the real rate is ~61%.)
-        def _fl(r):
-            return (r.get('followed') or '').strip().lower()
-        f_true = sum(1 for r, _ in resolved if _fl(r).startswith('true'))
-        f_false = sum(1 for r, _ in resolved if _fl(r).startswith('false'))
-        f_known = f_true + f_false
-        followed = {
-            'true': f_true, 'false': f_false, 'unknown': n - f_known,
-            'pct': round(100 * f_true / f_known) if f_known else None,
-        }
-
-        return {
-            'brier_30d': brier_30d,
-            'samples': n,
-            'bands': bands_out,
-            'per_bucket': per_bucket,
-            'vs_baseline': vs_baseline,
-            'followed': followed,
-        }
-    except Exception as e:
-        print(f'  warn: compute_calibration failed: {e}', file=sys.stderr)
-        return empty
-
-
-def recent_actions_from_csv(limit=20):
-    """Last `limit` rows of calibration.csv, most recent plan_date first."""
-    try:
-        rows = _read_calibration_rows()
-        if not rows:
-            return []
-        # Sort by plan_date desc (string sort works for YYYY-MM-DD); stable for ties.
-        rows.sort(key=lambda r: r.get('plan_date', ''), reverse=True)
-        out = []
-        for r in rows[:limit]:
-            outcome = (r.get('outcome') or '').strip().lower()
-            if outcome not in ('win', 'loss', 'flat', 'pending'):
-                outcome = 'pending'
-            out.append({
-                'date': r.get('plan_date', ''),
-                'ticker': r.get('ticker', ''),
-                'bucket': r.get('bucket', ''),
-                'confidence': _to_float(r.get('confidence')),
-                'trigger_type': r.get('trigger_type', ''),
-                'outcome': outcome,
-                'pnl_5d': _to_float(r.get('pnl_5d')),
-                'followed': (r.get('followed') or 'unknown').strip().lower(),
-                'driven_by': (r.get('driven_by') or '').strip().lower(),
-            })
-        return out
-    except Exception as e:
-        print(f'  warn: recent_actions_from_csv failed: {e}', file=sys.stderr)
-        return []
-
-
-_CALIB_TRIGGERS = ['price_above', 'price_below', 'open', 'manual', 'index_breakdown']
-
-
-def _wilson_ci(wins, decided, z=1.96):
-    """95% Wilson interval [lo, hi] for wins/decided, or None. Makes the sample
-    uncertainty behind every win_rate explicit; a band straddling 0.5 means the
-    'edge' is statistically indistinguishable from a coin flip (critique #3)."""
-    if not decided:
-        return None
-    p = wins / decided
-    denom = 1 + z * z / decided
-    center = (p + z * z / (2 * decided)) / denom
-    half = z * math.sqrt(p * (1 - p) / decided + z * z / (4 * decided * decided)) / denom
-    return [round(max(0.0, center - half), 3), round(min(1.0, center + half), 3)]
-
-
-def compute_calibration_by_trigger(window_days=30):
-    """Per-trigger_type win/loss/pending breakdown — answers 'which trigger
-    pattern is bleeding'. Counts pending separately (gives texture beyond 30d
-    Brier which only sees resolved rows).
-    """
-    empty = {t: {'n_resolved': 0, 'n_pending': 0, 'wins': 0, 'losses': 0,
-                 'win_rate': None, 'avg_confidence': None} for t in _CALIB_TRIGGERS}
-    try:
-        rows = _read_calibration_rows()
-        if not rows:
-            return empty
-        today = datetime.now(timezone.utc).date()
-        out = {t: {'n_resolved': 0, 'n_pending': 0, 'wins': 0, 'losses': 0,
-                   'conf_sum': 0.0, 'conf_n': 0} for t in _CALIB_TRIGGERS}
-        for r in rows:
-            try:
-                pd = datetime.strptime(r.get('plan_date', '')[:10], '%Y-%m-%d').date()
-            except Exception:
-                continue
-            if (today - pd).days > window_days:
-                continue
-            trig = (r.get('trigger_type') or '').strip()
-            if trig not in out:
-                continue
-            outcome = (r.get('outcome') or '').strip().lower()
-            conf = _to_float(r.get('confidence'))
-            if conf is not None:
-                out[trig]['conf_sum'] += conf
-                out[trig]['conf_n'] += 1
-            if outcome in ('win', 'loss', 'flat'):
-                out[trig]['n_resolved'] += 1
-                if outcome == 'win':
-                    out[trig]['wins'] += 1
-                elif outcome == 'loss':
-                    out[trig]['losses'] += 1
-            elif outcome == 'pending':
-                out[trig]['n_pending'] += 1
-        result = {}
-        for t, agg in out.items():
-            decided = agg['wins'] + agg['losses']
-            wr = round(agg['wins'] / decided, 4) if decided else None
-            avg_c = round(agg['conf_sum'] / agg['conf_n'], 3) if agg['conf_n'] else None
-            ci = _wilson_ci(agg['wins'], decided)
-            result[t] = {
-                'n_resolved': agg['n_resolved'],
-                'n_pending': agg['n_pending'],
-                'wins': agg['wins'],
-                'losses': agg['losses'],
-                'win_rate': wr,
-                'ci95': ci,
-                'edge_significant': (ci is not None and ci[0] > 0.5),
-                'avg_confidence': avg_c,
-            }
-        return result
-    except Exception as e:
-        print(f'  warn: compute_calibration_by_trigger failed: {e}', file=sys.stderr)
-        return empty
-
-
-_CALIB_DRIVERS = ['technical', 'catalyst', 'sentiment', 'influencer', 'macro', 'peer']
-
-
-def compute_calibration_by_driver(window_days=30):
-    """Per-driven_by win/loss/pending breakdown — answers 'which DATA SOURCE has edge'.
-    driven_by attributes each call to technical/catalyst/sentiment/influencer/macro/peer.
-    This is the number that tells us whether the news feed (sentiment/influencer/catalyst)
-    actually beats coin-flip vs plain technical calls (2026-05-30). Mirrors
-    compute_calibration_by_trigger; rows with blank driven_by (legacy) are skipped."""
-    empty = {t: {'n_resolved': 0, 'n_pending': 0, 'wins': 0, 'losses': 0,
-                 'win_rate': None, 'avg_confidence': None} for t in _CALIB_DRIVERS}
-    try:
-        rows = _read_calibration_rows()
-        if not rows:
-            return empty
-        today = datetime.now(timezone.utc).date()
-        out = {t: {'n_resolved': 0, 'n_pending': 0, 'wins': 0, 'losses': 0,
-                   'conf_sum': 0.0, 'conf_n': 0} for t in _CALIB_DRIVERS}
-        for r in rows:
-            try:
-                pd = datetime.strptime(r.get('plan_date', '')[:10], '%Y-%m-%d').date()
-            except Exception:
-                continue
-            if (today - pd).days > window_days:
-                continue
-            drv = (r.get('driven_by') or '').strip()
-            if drv not in out:
-                continue
-            outcome = (r.get('outcome') or '').strip().lower()
-            conf = _to_float(r.get('confidence'))
-            if conf is not None:
-                out[drv]['conf_sum'] += conf
-                out[drv]['conf_n'] += 1
-            if outcome in ('win', 'loss', 'flat'):
-                out[drv]['n_resolved'] += 1
-                if outcome == 'win':
-                    out[drv]['wins'] += 1
-                elif outcome == 'loss':
-                    out[drv]['losses'] += 1
-            elif outcome == 'pending':
-                out[drv]['n_pending'] += 1
-        result = {}
-        for t, agg in out.items():
-            decided = agg['wins'] + agg['losses']
-            wr = round(agg['wins'] / decided, 4) if decided else None
-            avg_c = round(agg['conf_sum'] / agg['conf_n'], 3) if agg['conf_n'] else None
-            ci = _wilson_ci(agg['wins'], decided)
-            result[t] = {
-                'n_resolved': agg['n_resolved'],
-                'n_pending': agg['n_pending'],
-                'wins': agg['wins'],
-                'losses': agg['losses'],
-                'win_rate': wr,
-                'ci95': ci,
-                'edge_significant': (ci is not None and ci[0] > 0.5),
-                'avg_confidence': avg_c,
-            }
-        return result
-    except Exception as e:
-        print(f'  warn: compute_calibration_by_driver failed: {e}', file=sys.stderr)
-        return empty
-
-
 def compute_weight_confidence(portfolio, window_days=30):
     """Per-ticker current_weight × avg_confidence (last N days), to spot
     'high weight + low confidence' red flags at a glance.
@@ -1323,7 +866,7 @@ def compute_weight_confidence(portfolio, window_days=30):
       comfort        = weight < 0.20 AND conf ≥ 0.65
     """
     try:
-        rows = _read_calibration_rows()
+        rows = decision_v2.episode_representatives(decision_v2.load_decisions(), 't1')
         today = datetime.now(timezone.utc).date()
         # Aggregate avg confidence per ticker over window
         conf_acc = {}  # ticker -> [sum, count]
@@ -1335,7 +878,7 @@ def compute_weight_confidence(portfolio, window_days=30):
             if (today - pd).days > window_days:
                 continue
             tk = (r.get('ticker') or '').strip()
-            c = _to_float(r.get('confidence'))
+            c = decision_v2._float(r.get('confidence'))
             if not tk or c is None:
                 continue
             acc = conf_acc.setdefault(tk, [0.0, 0])
@@ -1387,63 +930,23 @@ def compute_weight_confidence(portfolio, window_days=30):
 
 
 def compute_plan_timeline(plans, limit=15):
-    """Join recent_plans[].plan.actions with calibration.csv outcomes by
-    (date, ticker, bucket) so the dashboard can show 'what I planned + why +
-    what happened'. Returns most-recent-first.
-    """
+    """V2 strategy-aware decision timeline, most recent first."""
     try:
-        rows = _read_calibration_rows()
-        # Build index: (date, ticker, bucket) -> calibration row
-        cal_idx = {}
-        for r in rows:
-            key = (r.get('plan_date', '')[:10], (r.get('ticker') or '').strip(),
-                   (r.get('bucket') or '').strip())
-            if key[0] and key[1] and key[2]:
-                cal_idx[key] = r
-
         out = []
-        # The embedded `plans` arg is trimmed of its actions to save bytes, so the
-        # timeline (needs rationale + size) reads the FULL plan files directly, newest
-        # first. (Before: it iterated the trimmed plans, found no actions field, and
-        # the card sat permanently empty showing "No timeline data yet".)
-        files = sorted(glob.glob(str(WS_ROOT / 'memory' / '*-plan.json')), reverse=True)
-        for fp in files:
-            try:
-                pj = json.loads(Path(fp).read_text())
-            except Exception:
-                continue
-            date = (pj.get('date') or os.path.basename(fp)[:10])
-            actions = pj.get('actions')
-            if not isinstance(actions, list):
-                continue
-            for a in actions:
-                if not isinstance(a, dict):
-                    continue
-                tk = (a.get('ticker') or '').strip()
-                bk = (a.get('bucket') or '').strip()
-                cal = cal_idx.get((date, tk, bk))
-                outcome = (cal.get('outcome') if cal else None) or 'pending'
-                followed_raw = (cal.get('followed') if cal else '') or 'unknown'
-                followed = followed_raw.strip().lower().split(' ', 1)[0]  # strip trailing "(auto)"
-                if followed not in ('true', 'false', 'unknown'):
-                    followed = 'unknown'
-                out.append({
-                    'date': date,
-                    'ticker': tk,
-                    'bucket': bk,
-                    'trigger_type': a.get('trigger_type') or '',
-                    'trigger_price': a.get('trigger_price'),
-                    'trigger_condition': a.get('trigger_condition') or '',
-                    'size_pct': a.get('size_pct'),
-                    'size_shares': a.get('size_shares'),
-                    'confidence': a.get('confidence'),
-                    'rationale': (a.get('rationale') or '').strip(),
-                    'outcome': outcome.strip().lower() if isinstance(outcome, str) else 'pending',
-                    'pnl_5d': _to_float(cal.get('pnl_5d')) if cal else None,
-                    'followed': followed,
-                })
-                if len(out) >= limit:
-                    return out
+        rows = sorted(decision_v2.load_decisions(),
+                      key=lambda d: (d.get('created_at', ''), d.get('decision_id', '')), reverse=True)
+        for d in rows[:limit]:
+            ev, ex, cond, size = (d.get('evaluation') or {}, d.get('execution') or {},
+                                  d.get('condition') or {}, d.get('size') or {})
+            out.append({
+                'date': d.get('plan_date'), 'decision_id': d.get('decision_id'),
+                'episode_id': d.get('episode_id'), 'ticker': d.get('ticker'),
+                'strategy_id': d.get('strategy_id'), 'action': d.get('action'),
+                'condition': cond, 'size': size, 'confidence': d.get('confidence'),
+                'rationale': d.get('rationale'), 'status': ev.get('status'),
+                'outcome': ev.get('outcome'), 'benefit_t1_pct': ev.get('benefit_t1_pct'),
+                'execution': ex.get('status', 'unknown'), 'override': d.get('override'),
+            })
         return out
     except Exception as e:
         print(f'  warn: compute_plan_timeline failed: {e}', file=sys.stderr)
@@ -2277,22 +1780,16 @@ def main():
         _prev_pd = _prev_dash.get('peer_divergence')
         if isinstance(_prev_pd, dict) and _prev_pd.get('items'):
             out['peer_divergence'] = _prev_pd
-    out['calibration'] = compute_calibration()
-    # 影子回测:「如果全听 AI 主动建议」累计 benefit 曲线 vs 不动(=beta)。复用
-    # calibration 的方向化 benefit%,不另造成交假设。Defensive — 永不阻断构建。
-    try:
-        if str(WS_ROOT / 'scripts' / 'data') not in sys.path:
-            sys.path.insert(0, str(WS_ROOT / 'scripts' / 'data'))
-        from shadow_backtest import compute as _shadow_compute
-        out['shadow_backtest'] = _shadow_compute()
-    except Exception as e:
-        print(f'  warn: shadow_backtest compute fail: {e}', file=sys.stderr)
-        out['shadow_backtest'] = None
+    # Decision system v2 is the only live scoring path. No CSV/signal-row
+    # compatibility keys are emitted: frontend, README and harness share this.
+    _decisions = decision_v2.load_decisions()
+    decision_v2.settle_decisions(_decisions)
+    out['decision_schema_version'] = 2
+    out['decision_metrics'] = decision_v2.compute_metrics(_decisions)
+    out['episode_backtest'] = decision_v2.compute_backtest(_decisions)
+    out['decision_delta'] = decision_v2.decision_delta(_decisions)
+    out['recent_decisions'] = decision_v2.recent_decisions(_decisions, limit=20)
     out['debate_metrics'] = compute_debate_metrics()
-    out['active_signal_discipline'] = compute_active_signal_discipline()
-    out['calibration_by_trigger'] = compute_calibration_by_trigger()
-    out['calibration_by_driver'] = compute_calibration_by_driver()
-    out['recent_plan_actions'] = recent_actions_from_csv(limit=20)
     out['plan_timeline'] = compute_plan_timeline(plans, limit=15)
     out['weight_confidence'] = compute_weight_confidence(portfolio)
     # v2.1: broker-style analytics

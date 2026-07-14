@@ -1551,7 +1551,7 @@ layout: null
         <span class="lg-conv">Conviction (≥20% & conf≥0.65)</span>
         <span class="lg-low">Low-conv small (&lt;20% & conf&lt;0.65)</span>
         <span class="lg-com">Comfort (&lt;20% & conf≥0.65)</span>
-        <span class="lg-nod">No calibration data</span>
+        <span class="lg-nod">No settled decision episodes</span>
       </div>
     </div>
 
@@ -1757,7 +1757,7 @@ layout: null
 
     <div class="card">
       <h3>Plan Timeline <span class="muted" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:11px">(last 15 actions · 包含 rationale)</span></h3>
-      <p class="chart-hint">每条卡片 = 一次具体计划：写的时候置信度 / 当初理由 / 现在结果。绿色边 = win，红色边 = loss，灰色边 = 待结算。<b>followed=true</b> 才记入命中率。</p>
+      <p class="chart-hint">每条卡片 = 一个策略决策；同一股票同一天可有多个策略。只有条件触发的 episode 才结算，是否执行单独统计。</p>
       <div class="plan-timeline" id="plan-timeline">
         <div class="empty-state">No timeline data yet.</div>
       </div>
@@ -1783,7 +1783,7 @@ layout: null
 
     <div class="card llm-card" id="behavioral-review-card" style="display:none">
       <h3>行为复盘 <span class="muted llm-tag">🧠 LLM · 每日 brief 刷新</span></h3>
-      <p class="chart-hint">基于 calibration 战绩的复盘 —— 直接点出最近的决策偏差，数字来源见下方 Plan Review / Calibration 卡。</p>
+      <p class="chart-hint">基于 v2 decision episode 的复盘：触发、执行、策略收益分别计算，避免把同股不同策略混在一起。</p>
       <div class="br-verdict" id="br-verdict"></div>
       <div id="br-points"></div>
       <div class="llm-src" id="br-src"></div>
@@ -1844,7 +1844,7 @@ layout: null
 
     <div class="card" id="shadow-card" style="display:none">
       <h3>🔬 全听 AI vs 不动 <span class="muted" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:11px">反事实回测 · 累计 benefit pp · T+1</span></h3>
-      <p class="chart-hint">三条都相对「不动 = 0」基线，同口径（calibration 方向化 benefit%，等权、不含 size/手续费）：<b style="color:var(--accent)">我实际执行</b>＝followed 列为 true 的 call（你真做了的）；<b>仅主动建议</b>＝全听它的 cut/trim/add（线在 0 下＝主动出手跑输不动）；<b>全听 AI</b>含 hold≈市场 β、非 alpha。执行权始终在你——这条对比的就是「我的选择 vs 两种无脑策略」。</p>
+      <p class="chart-hint">相对「不动 = 0」基线，按 episode 去重、按计划资金权重计算并逐日复合。<b style="color:var(--accent)">实际执行</b>与<b>全部已触发主动决策</b>分开；未触发条件不进入回测。</p>
       <div id="chart-shadow" class="chart-box"></div>
       <div id="shadow-note" class="muted" style="font-size:11px;margin-top:6px"></div>
     </div>
@@ -2532,53 +2532,38 @@ layout: null
     const card = document.getElementById("honesty-card");
     const el = document.getElementById("honesty-body");
     if (!card || !el) return;
-    const vb = safe(DATA, "calibration", "vs_baseline");
-    const asd = safe(DATA, "active_signal_discipline");
+    const metrics = safe(DATA, "decision_metrics") || {};
+    const backtest = safe(DATA, "episode_backtest", "horizons", "t1") || {};
+    const delta = safe(DATA, "decision_delta") || {};
     const dm = safe(DATA, "debate_metrics");
-    const drv = safe(DATA, "calibration_by_driver") || {};
-    if (!vb && !asd) { card.style.display = "none"; return; }
+    const drv = metrics.by_driver || {};
+    if (!metrics.raw_decisions) { card.style.display = "none"; return; }
     const row = (label, val, color) =>
       `<div style="display:flex;justify-content:space-between;gap:10px;padding:5px 0;border-bottom:1px solid var(--border)">`
       + `<span style="color:var(--text-dim)">${label}</span>`
       + `<span style="font-family:var(--mono);text-align:right;color:${color || 'var(--text)'}">${val}</span></div>`;
     const rows = [];
-    if (vb && vb.alpha_pp != null) {
-      const retA = vb.alpha_ret_pp, sig = vb.alpha_significant;
-      const bad = retA != null ? (retA < 0 || sig === false) : vb.alpha_pp < 0;
-      let v = `命中 ${vb.alpha_pp >= 0 ? "+" : ""}${vb.alpha_pp}pp`;
-      if (retA != null) v += ` · 收益 ${retA >= 0 ? "+" : ""}${retA}pp`;
-      if (sig === false) v += " (不显著)";
-      rows.push(row("主动 vs 躺平", v, bad ? "var(--red)" : "var(--green)"));
-      const beta = safe(vb, "risk_context", "us_beta_spx");
-      if (beta != null) rows.push(row("组合 β (美股腿)", `${beta.toFixed(1)} · 多为杠杆 β,非 alpha`, "var(--text-dim)"));
+    const active = metrics.active || {};
+    if (active.avg_benefit_pct != null) {
+      const ci = active.cluster_ci95 ? ` [${active.cluster_ci95[0].toFixed(2)}, ${active.cluster_ci95[1].toFixed(2)}]` : "";
+      rows.push(row("主动 episode 平均收益", `${active.avg_benefit_pct >= 0 ? "+" : ""}${active.avg_benefit_pct.toFixed(2)}%${ci} · n=${active.n_episodes}`,
+        active.avg_benefit_pct >= 0 ? "var(--green)" : "var(--red)"));
     }
-    if (asd && asd.catalyst_pct != null)
-      rows.push(row("催化纪律", `${asd.catalyst_pct}% 有硬催化 (${asd.catalyst_backed}/${asd.active_calls})`,
-                    asd.catalyst_pct >= 50 ? "var(--green)" : "var(--red)"));
+    if (backtest.active && backtest.active.capital_weighted_benefit_pct != null)
+      rows.push(row("资金加权平均收益", `${backtest.active.capital_weighted_benefit_pct >= 0 ? "+" : ""}${backtest.active.capital_weighted_benefit_pct.toFixed(2)}%`,
+        backtest.active.capital_weighted_benefit_pct >= 0 ? "var(--green)" : "var(--red)"));
+    rows.push(row("今日决策变化", `新增 ${(delta.new || []).length} · 修改 ${(delta.changed || []).length} · 触发 ${(delta.triggered || []).length} · override ${(delta.active_overrides || []).length}`, "var(--text-dim)"));
     if (dm && dm.decisiveness_pct != null)
       rows.push(row("辩论决断率", `${dm.decisiveness_pct}% · 其余=默认 HOLD`, "var(--text-dim)"));
     const fe = [];
     ["catalyst", "technical", "macro", "peer"].forEach(k => {
       const e = drv[k]; if (!e || e.win_rate == null) return;
-      const ci = e.ci95, band = ci ? `[${(ci[0] * 100).toFixed(0)}–${(ci[1] * 100).toFixed(0)}]` : "";
-      fe.push(`${k} ${(e.win_rate * 100).toFixed(0)}%${band}${e.edge_significant ? "✓" : "✗"}`);
+      const ci = e.cluster_ci95, band = ci ? `[${ci[0].toFixed(1)}–${ci[1].toFixed(1)}]` : "";
+      fe.push(`${k} ${(e.win_rate * 100).toFixed(0)}% ${band}`);
     });
     if (fe.length) rows.push(row("消息源 edge", fe.join(" · "), "var(--text-dim)"));
-    // 🔬 影子回测:如果每条 AI 主动建议都被严格执行(执行权仍在 kcn,这是反事实)
-    const sb = safe(DATA, "shadow_backtest");
-    const t1 = safe(sb, "horizons", "t1_next_session");
-    if (t1 && t1.active_signals) {
-      const act = t1.active_signals, alls = t1.all_signals || {}, cut = (t1.by_bucket || {}).cut;
-      rows.push(`<div style="color:var(--text-dim);font-size:10px;margin:8px 0 2px;border-top:1px dashed var(--border);padding-top:6px">🔬 如果全听 AI(反事实回测 · 复用 calibration benefit% · 等权 · T+1)</div>`);
-      if (act.cum != null)
-        rows.push(row("全听·仅主动建议", `${act.cum >= 0 ? "+" : ""}${Math.round(act.cum)}pp 累计 (n=${act.n})${act.cum < 0 ? " · 跑输「不动」" : ""}`, act.cum < 0 ? "var(--red)" : "var(--green)"));
-      if (alls.cum != null)
-        rows.push(row("全部信号(含 hold)", `${alls.cum >= 0 ? "+" : ""}${Math.round(alls.cum)}pp · 几乎全是持有的市场 β`, "var(--text-dim)"));
-      if (cut && cut.cum != null)
-        rows.push(row("cut 动作累计", `${cut.cum >= 0 ? "+" : ""}${Math.round(cut.cum)}pp (均 ${cut.avg >= 0 ? "+" : ""}${cut.avg}pp/次, n=${cut.n})`, cut.cum < 0 ? "var(--red)" : "var(--green)"));
-    }
     el.innerHTML = rows.join("")
-      + `<div style="color:var(--text-dim);font-size:10px;margin-top:6px">算账全在 Python，模型改不了这张表。命中率高 ≠ 有 edge — 看收益口径 + 显著性。AI 只产出建议,执行权在 kcn;影子回测=「假设全执行」的反事实。</div>`;
+      + `<div style="color:var(--text-dim);font-size:10px;margin-top:6px">算账在 Python：同策略连续决策按 episode 去重；条件未触发不结算；执行与建议收益分开。</div>`;
     card.style.display = "";
   }
 
@@ -3395,65 +3380,34 @@ layout: null
   }
 
   function renderCalibBadge() {
-    const cal = safe(DATA, "calibration");
+    const cal = safe(DATA, "decision_metrics") || {};
     const brierEl = document.getElementById("brier-val");
     const metaEl = document.getElementById("brier-meta");
     const tierEl = document.getElementById("brier-tier");
     // Alpha vs passive "hold everything" baseline — the regime-robust edge check.
     const alphaEl = document.getElementById("alpha-line");
     if (alphaEl) {
-      const vb = cal && cal.vs_baseline;
-      if (vb && vb.alpha_pp != null) {
-        const a = vb.alpha_pp;
+      const vb = cal.active || {};
+      if (vb.avg_benefit_pct != null) {
+        const a = vb.avg_benefit_pct;
         const col = a > 0 ? "var(--green)" : (a < 0 ? "var(--red)" : "var(--gray)");
-        const sigTag = vb.alpha_significant
-          ? `<span style="color:${col};font-size:10px">·显著</span>`
-          : `<span style="color:var(--text-faint);font-size:10px">·未显著(方向性)</span>`;
-        let html = `🎯 LLM vs 全持有基线 · `
-          + `<b style="color:${col}">alpha ${a > 0 ? "+" : ""}${a}pp</b> ${sigTag} `
-          + `<span style="color:var(--text-faint)">(LLM ${Math.round(vb.llm_win_rate*100)}% vs hold ${Math.round(vb.hold_baseline_win_rate*100)}%, n=${vb.n})</span>`;
-
-        // 分市场 regime — 是否 −alpha 只是单一 regime 假象。牛市 cut/trim 结构性吃亏，
-        // 熊/震荡才见真章；按每笔 call 当时的市场动量分桶（US=SPY, HK=HSTECH）。
-        const br = vb.by_regime;
-        if (br) {
-          const LAB = { bull: "牛 (up-leg)", bear: "熊 (down-leg)", chop: "震荡", unknown: "未知" };
-          const ORDER = ["bull", "bear", "chop", "unknown"];
-          const rows = ORDER.filter(k => br[k]).map(k => {
-            const g = br[k], ap = g.alpha_pp;
-            const c = ap > 0 ? "var(--green)" : (ap < 0 ? "var(--red)" : "var(--gray)");
-            const dim = g.alpha_significant ? "" : "opacity:.72";
-            return `<div style="display:flex;justify-content:space-between;gap:8px;padding:1px 0;${dim}">`
-              + `<span style="color:var(--text-faint)">${LAB[k] || k}</span>`
-              + `<span><b style="color:${c}">${ap > 0 ? "+" : ""}${ap}pp</b>`
-              + `<span style="color:var(--text-faint);font-size:10px"> ·收益${g.alpha_ret_pp > 0 ? "+" : ""}${g.alpha_ret_pp}pp ·n=${g.n}</span></span>`
-              + `</div>`;
-          }).join("");
-          const missing = ORDER.filter(k => k !== "unknown" && !br[k]).map(k => LAB[k]);
-          const note = missing.length
-            ? `<div style="color:var(--text-faint);font-size:10px;margin-top:3px">⚠ ${missing.join("/")} 样本=0，跨 regime 未定论；CI 重叠均属方向性</div>`
-            : `<div style="color:var(--text-faint);font-size:10px;margin-top:3px">CI 多重叠，属方向性非定论</div>`;
-          html += `<div style="margin-top:6px;padding-top:5px;border-top:1px dashed var(--border)">`
-            + `<div style="color:var(--text-faint);font-size:10px;margin-bottom:2px">分市场 regime（近10日动量）· 主动信号该不该听</div>`
-            + rows + note + `</div>`;
-        }
-        alphaEl.innerHTML = html;
+        const ci = vb.cluster_ci95 ? ` · cluster CI [${vb.cluster_ci95[0].toFixed(2)}, ${vb.cluster_ci95[1].toFixed(2)}]` : "";
+        alphaEl.innerHTML = `🎯 主动决策 episode · <b style="color:${col}">${a > 0 ? "+" : ""}${a.toFixed(2)}%</b>`
+          + `<span style="color:var(--text-faint)">${ci} · n=${vb.n_episodes || 0}</span>`;
       } else {
         alphaEl.textContent = "🎯 LLM vs 全持有基线 · 数据不足";
       }
     }
-    if (!cal || cal.brier_30d == null) {
+    if (cal.brier == null) {
       brierEl.textContent = DASH;
-      metaEl.textContent = cal && cal.samples != null
-        ? `n=${cal.samples} · need ≥5 samples`
-        : "No calibration data yet";
+      metaEl.textContent = `n=${cal.settled_episodes || 0} · need settled episodes`;
       tierEl.textContent = "n/a";
       tierEl.className = "tier";
       return;
     }
-    const b = cal.brier_30d;
+    const b = cal.brier;
     brierEl.textContent = b.toFixed(3);
-    metaEl.textContent = `Brier · n=${cal.samples ?? DASH}`;
+    metaEl.textContent = `Brier · episodes n=${cal.settled_episodes ?? DASH}`;
     let tier, cls;
     if (b < 0.15) { tier = "Excellent"; cls = "excellent"; }
     else if (b < 0.20) { tier = "Good"; cls = "good"; }
@@ -4111,19 +4065,19 @@ layout: null
     render(ext.losers, "extremes-losers");
   }
 
-  // Historical win-rate badge for a plan bucket, sourced from calibration.per_bucket.
+  // Episode-level historical win-rate badge for a decision action.
   // Lets you discount each LLM action at a glance: ⚠ <45% (worse than coin flip),
   // ~ 45–60% (weak), ✓ ≥60% (holds up). n = sample size; faint when small.
   function bucketWinBadge(bucket) {
-    const pb = safe(DATA, "calibration", "per_bucket", bucket);
-    if (!pb || pb.win_rate == null || !pb.n) return "";
+    const pb = safe(DATA, "decision_metrics", "by_action", bucket);
+    if (!pb || pb.win_rate == null || !pb.n_episodes) return "";
     const wr = pb.win_rate * 100;
     let cls = "wr-ok", icon = "✓";
     if (wr < 45)      { cls = "wr-bad"; icon = "⚠"; }
     else if (wr < 60) { cls = "wr-mid"; icon = "~"; }
-    const lowN = pb.n < 8 ? " wr-lown" : "";
-    const tip = pb.n < 8 ? "样本少，参考性弱" : `该 bucket 近 30d 历史胜率 ${wr.toFixed(0)}%`;
-    return `<span class="bucket-wr ${cls}${lowN}" title="${tip}">${icon}${wr.toFixed(0)}%<span class="wr-n">n${pb.n}</span></span>`;
+    const lowN = pb.n_episodes < 8 ? " wr-lown" : "";
+    const tip = pb.n_episodes < 8 ? "episode 样本少，参考性弱" : `该动作 episode 胜率 ${wr.toFixed(0)}%`;
+    return `<span class="bucket-wr ${cls}${lowN}" title="${tip}">${icon}${wr.toFixed(0)}%<span class="wr-n">n${pb.n_episodes}</span></span>`;
   }
 
   // driven_by → which data source drove the call. Color encodes edge (catalyst has
@@ -4135,6 +4089,7 @@ layout: null
     influencer: { label: "影响力", cls: "drv-influencer" },
     macro:      { label: "宏观",   cls: "drv-macro"      },
     peer:       { label: "同行",   cls: "drv-peer"       },
+    risk_rule:  { label: "风控",   cls: "drv-macro"      },
   };
   function driverChip(driven_by) {
     const d = (driven_by || "").trim().toLowerCase();
@@ -4144,7 +4099,7 @@ layout: null
   }
 
   function renderPlanActions() {
-    const list = (safe(DATA, "recent_plan_actions") || []).slice(0, 8);
+    const list = (safe(DATA, "recent_decisions") || []).slice(0, 8);
     const wrap = document.getElementById("plan-actions");
     if (!list.length) {
       wrap.innerHTML = '<div class="empty-state">No recent plan actions.</div>';
@@ -4153,7 +4108,8 @@ layout: null
     wrap.innerHTML = list.map(a => {
       const oc = a.outcome || "pending";
       const conf = a.confidence != null ? (a.confidence * 100).toFixed(0) + "%" : DASH;
-      const pnl = a.pnl_5d != null ? fmtPct(a.pnl_5d) : DASH;
+      const pnl = a.benefit_t1_pct != null ? fmtPct(a.benefit_t1_pct) : DASH;
+      const cond = a.condition || {};
       return `
         <div class="plan-action">
           <div>
@@ -4161,8 +4117,8 @@ layout: null
             <div class="date">${a.date || ""}</div>
           </div>
           <div>
-            <div>${a.bucket || DASH}${bucketWinBadge(a.bucket)}${driverChip(a.driven_by)}</div>
-            <div class="meta">conf ${conf} · ${a.trigger_type || DASH} · 次日遵循 ${pnl}</div>
+            <div>${a.action || DASH}${bucketWinBadge(a.action)}${driverChip(a.driven_by)}</div>
+            <div class="meta">${a.strategy_id || DASH} · conf ${conf} · ${cond.type || DASH} · T+1 ${pnl}</div>
           </div>
           <div class="outcome ${oc}">${oc}</div>
         </div>
@@ -4444,59 +4400,61 @@ layout: null
     }
   }
 
-  // 🔬 影子回测曲线 — 「如果全听 AI」累计 benefit(相对不动)。仅主动建议线在 0 下=主动跑输。
+  // Episode 回测曲线：触发后才计入，按日资金加权并复合。
   function renderShadowChart() {
     const el = document.getElementById("chart-shadow");
     const card = el ? el.closest(".card") : null;
     if (!el || !window.echarts) return;
-    const sb = safe(DATA, "shadow_backtest");
-    const t1 = safe(sb, "horizons", "t1_next_session");
-    const curve = (t1 && t1.curve) || [];
-    if (curve.length < 2) { if (card) card.style.display = "none"; return; }
+    const sb = safe(DATA, "episode_backtest");
+    const t1 = safe(sb, "horizons", "t1") || {};
+    const activeCurve = t1.active_curve || [];
+    const followedCurve = t1.followed_curve || [];
+    const dates = [...new Set([...activeCurve, ...followedCurve].map(p => p.date))].sort();
+    if (dates.length < 2) { if (card) card.style.display = "none"; return; }
     if (card) card.style.display = "";
     if (!charts.shadow) charts.shadow = echarts.init(el, null, { renderer: "canvas" });
-    const dates = curve.map(p => p.date);
-    const active = curve.map(p => p.cum_active);
-    const all = curve.map(p => p.cum_all);
-    const followed = curve.map(p => p.cum_followed);
+    const seriesFor = curve => {
+      const map = Object.fromEntries(curve.map(p => [p.date, p.compounded_benefit_pct]));
+      let last = null;
+      return dates.map(d => { if (map[d] != null) last = map[d]; return last; });
+    };
+    const active = seriesFor(activeCurve);
+    const followed = seriesFor(followedCurve);
     const green = getCSS("--green") || "#34d399";
     const red = getCSS("--red") || "#f87171";
     const dim = getCSS("--text-dim") || "#9aa4b8";
     const accent = getCSS("--accent") || "#5b8def";
     const isMobile = window.innerWidth < 1024;
-    const actEnd = active.length ? active[active.length - 1] : 0;
+    const actEnd = active.filter(v => v != null).slice(-1)[0] || 0;
     const actColor = actEnd >= 0 ? green : red;
     charts.shadow.setOption({
       backgroundColor: "transparent",
       grid: { left: isMobile ? 46 : 58, right: isMobile ? 16 : 24, top: isMobile ? 46 : 30, bottom: dates.length > 6 ? 52 : 32 },
-      legend: { data: ["我实际执行", "仅主动建议", "全听 AI(含hold=β)"], top: 0,
+      legend: { data: ["实际执行", "全部已触发主动决策"], top: 0,
         textStyle: { color: chartTextColor(), fontSize: isMobile ? 9 : 10 } },
       tooltip: { trigger: "axis",
-        valueFormatter: v => (v == null ? "—" : (v >= 0 ? "+" : "") + v.toFixed(1) + "pp") },
+        valueFormatter: v => (v == null ? "—" : (v >= 0 ? "+" : "") + v.toFixed(2) + "%") },
       xAxis: { type: "category", data: dates, boundaryGap: false,
         axisLine: { lineStyle: { color: chartGridColor() } },
         axisLabel: { color: chartTextColor(), fontSize: 9, rotate: dates.length > 6 ? 35 : 0 } },
-      yAxis: { type: "value", name: "累计 pp", nameTextStyle: { color: chartTextColor(), fontSize: 9 },
+      yAxis: { type: "value", name: "复合 benefit %", nameTextStyle: { color: chartTextColor(), fontSize: 9 },
         axisLabel: { color: chartTextColor(), fontSize: 9, formatter: v => (v > 0 ? "+" : "") + v },
         axisLine: { lineStyle: { color: chartGridColor() } },
         splitLine: { lineStyle: { color: chartGridColor() } } },
       series: [
-        // 我实际执行的 (followed=true) — 真实选择,不是反事实
-        { name: "我实际执行", type: "line", data: followed, smooth: true, showSymbol: false,
+        { name: "实际执行", type: "line", data: followed, smooth: true, showSymbol: false,
           itemStyle: { color: accent }, lineStyle: { width: 2.4, color: accent }, z: 5 },
-        { name: "仅主动建议", type: "line", data: active, smooth: true, showSymbol: false,
+        { name: "全部已触发主动决策", type: "line", data: active, smooth: true, showSymbol: false,
           itemStyle: { color: actColor }, lineStyle: { width: 2.2, color: actColor },
           areaStyle: { color: actColor, opacity: 0.07 }, z: 4,
           markLine: { silent: true, symbol: "none",
             lineStyle: { color: dim, type: "dotted", width: 1, opacity: 0.7 },
             label: { color: dim, fontSize: 9, position: "insideStartTop", formatter: "不动 = 0" },
             data: [{ yAxis: 0 }] } },
-        { name: "全听 AI(含hold=β)", type: "line", data: all, smooth: true, showSymbol: false,
-          itemStyle: { color: dim }, lineStyle: { width: 1.4, color: dim, type: "dashed", opacity: 0.8 } },
       ],
     });
     const note = document.getElementById("shadow-note");
-    if (note) note.textContent = (sb && sb.verdict) ? sb.verdict : "";
+    if (note) note.textContent = sb && sb.method ? sb.method : "";
   }
 
   function renderEquityChart() {
@@ -5030,31 +4988,14 @@ layout: null
   //  overrode it; it still rendered the legacy "5d" pnl label and a stale pnlClass path.)
 
   function renderPlanReview() {
-    // KPI strip on top of the Plan Review card
-    const calib = safe(DATA, "calibration") || {};
-    const actions = safe(DATA, "recent_plan_actions") || [];
-
-    const total = calib.samples || actions.length || 0;
-    // Followed discipline over the SAME resolved set as `total` (calib.followed),
-    // not the recent-20 actions slice — that slice read a misleading 100% off a
-    // handful of known rows next to the much larger `total`. Fall back to the
-    // actions calc only if the backend field is absent (old dashboard.json).
-    const fl = calib.followed;
-    let followedTrue, followedKnown, followedPct;
-    if (fl && fl.pct != null) {
-      followedTrue = fl.true; followedKnown = fl.true + fl.false; followedPct = fl.pct;
-    } else {
-      followedTrue = actions.filter(a => (a.followed || "").toLowerCase() === "true").length;
-      const followedFalse = actions.filter(a => (a.followed || "").toLowerCase() === "false").length;
-      followedKnown = followedTrue + followedFalse;
-      followedPct = followedKnown ? Math.round((followedTrue / followedKnown) * 100) : null;
-    }
-
-    // Alpha vs passive "hold everything" baseline — regime-robust edge, replaces the old
-    // followed-only win rate (which was ≈ passive holds and read inflated).
-    const vb = calib.vs_baseline;
-
-    const brier = calib.brier_30d;
+    const calib = safe(DATA, "decision_metrics") || {};
+    const total = calib.settled_episodes || 0;
+    const ex = calib.execution || {};
+    const followedTrue = ex.followed || 0;
+    const followedKnown = followedTrue + (ex.not_followed || 0);
+    const followedPct = followedKnown ? Math.round(followedTrue / followedKnown * 100) : null;
+    const active = calib.active || {};
+    const brier = calib.brier;
 
     const setVal = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
     const setSub = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
@@ -5067,22 +5008,23 @@ layout: null
 
     if (followedPct == null) {
       setVal("plan-followed", DASH);
-      setSub("plan-followed-sub", "no resolved followed yet");
+      setSub("plan-followed-sub", "no known execution yet");
       setClass("plan-followed", "neutral");
     } else {
       setVal("plan-followed", followedPct + "%");
-      setSub("plan-followed-sub", `${followedTrue}/${followedKnown} resolved`);
+      setSub("plan-followed-sub", `${followedTrue}/${followedKnown} known`);
       setClass("plan-followed", followedPct >= 60 ? "pos" : followedPct >= 30 ? "neutral" : "neg");
     }
 
-    if (!vb || vb.alpha_pp == null) {
+    if (active.avg_benefit_pct == null) {
       setVal("plan-winrate", DASH);
-      setSub("plan-winrate-sub", "vs 全持有 · 数据不足");
+      setSub("plan-winrate-sub", "active episodes · 数据不足");
       setClass("plan-winrate", "neutral");
     } else {
-      const a = vb.alpha_pp;
-      setVal("plan-winrate", (a > 0 ? "+" : "") + a + "pp");
-      setSub("plan-winrate-sub", `LLM ${Math.round(vb.llm_win_rate*100)}% vs hold ${Math.round(vb.hold_baseline_win_rate*100)}% · n=${vb.n}`);
+      const a = active.avg_benefit_pct;
+      const ci = active.cluster_ci95 ? ` · CI [${active.cluster_ci95[0].toFixed(2)}, ${active.cluster_ci95[1].toFixed(2)}]` : "";
+      setVal("plan-winrate", (a > 0 ? "+" : "") + a.toFixed(2) + "%");
+      setSub("plan-winrate-sub", `active episodes n=${active.n_episodes}${ci}`);
       setClass("plan-winrate", a > 0 ? "pos" : (a < 0 ? "neg" : "neutral"));
     }
 
@@ -5095,37 +5037,26 @@ layout: null
       setClass("plan-brier", brier < 0.20 ? "pos" : brier < 0.30 ? "neutral" : "neg");
     }
 
-    // Per-bucket horizontal bars
+    // Per-action episode metrics
     const container = document.getElementById("plan-bucket-bars");
     if (!container) return;
     const buckets = ["cut", "trim_on_rebound", "add_only_on_trigger", "add_on_breakout", "hold_and_watch", "watch", "t_only"];
-    const perBucket = calib.per_bucket || {};
-    const byBucket = {};
-    buckets.forEach(b => byBucket[b] = { total: 0, followed: 0, win: 0, loss: 0 });
-    actions.forEach(a => {
-      const b = a.bucket;
-      if (!byBucket[b]) return;
-      byBucket[b].total++;
-      if ((a.followed || "").toLowerCase() === "true") byBucket[b].followed++;
-      if (a.outcome === "win")  byBucket[b].win++;
-      if (a.outcome === "loss") byBucket[b].loss++;
-    });
+    const perBucket = calib.by_action || {};
 
     const rows = buckets
-      .map(b => ({ name: b, ...byBucket[b], cal: perBucket[b] }))
-      // show a bucket if it had a recent action OR has a 30d calibration sample
-      .filter(r => r.total > 0 || (r.cal && r.cal.n))
+      .map(b => ({ name: b, cal: perBucket[b] }))
+      .filter(r => r.cal && r.cal.n_episodes)
       .map(r => {
         // Bar width + color = 30d win rate (same source/thresholds as the action badges),
         // so a long green bar = a bucket that historically pays off. followed stays as text.
         const wr = r.cal && r.cal.win_rate != null ? Math.round(r.cal.win_rate * 100) : null;
-        const wn = r.cal && r.cal.n ? r.cal.n : 0;
+        const wn = r.cal && r.cal.n_episodes ? r.cal.n_episodes : 0;
         const wCls = wr == null ? "" : wr < 45 ? "wr-bad" : wr < 60 ? "wr-mid" : "wr-ok";
         const lowN = wn && wn < 8 ? " lown" : "";
         const winTxt = wr == null
           ? `<span class="muted">无 30d 样本</span>`
           : `<span class="n">win ${wr}%</span> <span class="muted">n${wn}</span>`;
-        const followTxt = r.total ? ` · ${r.followed}/${r.total} 遵循` : "";
+        const followTxt = r.cal.avg_benefit_pct != null ? ` · avg ${r.cal.avg_benefit_pct >= 0 ? "+" : ""}${r.cal.avg_benefit_pct.toFixed(2)}%` : "";
         return `
           <div class="bucket-row">
             <div class="name">${r.name}</div>
@@ -5139,7 +5070,7 @@ layout: null
 
     container.innerHTML = rows ||
       `<div style="text-align:center; color:var(--text-faint); font-size:12px; padding:20px 0;">
-         No plan actions logged yet — first daily-deep-brief seeds this.
+         No settled decision episodes yet.
        </div>`;
   }
 
@@ -5157,23 +5088,23 @@ layout: null
     const fmtTriggerPrice = (p) => p == null ? "" : ` @ ${typeof p === "number" ? p.toLocaleString("en-US", { maximumFractionDigits: 4 }) : p}`;
     const fmtSize = (a) => {
       const parts = [];
-      if (a.size_pct != null) parts.push(`${a.size_pct}%`);
-      if (a.size_shares != null) parts.push(`${Number(a.size_shares).toLocaleString("en-US")} 股`);
+      const size = a.size || {};
+      if (size.pct != null) parts.push(`${size.pct}%`);
+      if (size.shares != null) parts.push(`${Number(size.shares).toLocaleString("en-US")} 股`);
       return parts.length ? ` · ${parts.join(" / ")}` : "";
     };
     const fmtPnl = (p) => {
       if (p == null) return "";
       const cls = p >= 0 ? "pos" : "neg";
       const s = p >= 0 ? "+" : "";
-      // pnl_5d (legacy column name) now = benefit-of-following over the NEXT session:
-      // positive always = the call paid off (for cut/trim that means the price fell).
-      return `<div class="pt-pnl ${cls}" title="遵循该 call 的次日收益;正=该决策有利(cut/trim 价跌记为正)">遵循 ${s}${p.toFixed(2)}%</div>`;
+      return `<div class="pt-pnl ${cls}" title="已触发 episode 的 T+1 benefit；正值表示该决策有利">T+1 ${s}${p.toFixed(2)}%</div>`;
     };
     wrap.innerHTML = list.map(a => {
       const oc = a.outcome || "pending";
-      const followed = (a.followed || "unknown").toLowerCase();
-      const trig = `${a.trigger_type || ""}${fmtTriggerPrice(a.trigger_price)}${fmtSize(a)}`;
-      const cond = a.trigger_condition ? `<div class="pt-trigger" title="${escapeHtml(a.trigger_condition)}">${escapeHtml(a.trigger_condition)}</div>` : "";
+      const followed = (a.execution || "unknown").toLowerCase();
+      const c = a.condition || {};
+      const trig = `${c.type || ""}${fmtTriggerPrice(c.price)}${fmtSize(a)}`;
+      const cond = c.note ? `<div class="pt-trigger" title="${escapeHtml(c.note)}">${escapeHtml(c.note)}</div>` : "";
       const rationale = a.rationale ? `<div class="pt-rationale">${escapeHtml(a.rationale)}</div>` : "";
       const region = /^\d/.test(a.ticker) ? "HK" : "US";
       const followedTag = followed === "true"
@@ -5189,7 +5120,7 @@ layout: null
             <div class="pt-region">${region}</div>
           </div>
           <div class="pt-body">
-            <div class="pt-action">${escapeHtml(a.bucket || DASH)}${bucketWinBadge(a.bucket)}</div>
+            <div class="pt-action">${escapeHtml(a.action || DASH)}${bucketWinBadge(a.action)} · ${escapeHtml(a.strategy_id || DASH)}</div>
             <div class="pt-trigger">${escapeHtml(trig)}</div>
             ${cond}
             ${rationale}
@@ -5198,22 +5129,22 @@ layout: null
             <div class="pt-conf">conf ${fmtConf(a.confidence)}</div>
             <div class="outcome ${oc}">${oc}</div>
             ${followedTag}
-            ${fmtPnl(a.pnl_5d)}
+            ${fmtPnl(a.benefit_t1_pct)}
           </div>
         </div>`;
     }).join("");
   }
 
   // =========================================================
-  // Calibration by Trigger Type — extends Plan Review
+  // Decision episodes by condition type
   // =========================================================
   function renderCalibByTrigger() {
     const el = document.getElementById("plan-trigger-bars");
     if (!el) return;
-    const data = safe(DATA, "calibration_by_trigger") || {};
+    const data = safe(DATA, "decision_metrics", "by_condition") || {};
     const entries = Object.entries(data)
       .map(([k, v]) => ({ name: k, ...v }))
-      .filter(e => (e.n_resolved || 0) + (e.n_pending || 0) > 0);
+      .filter(e => (e.n_episodes || 0) > 0);
     if (!entries.length) {
       el.innerHTML = '<div class="empty-state" style="font-size:11px">No trigger data yet.</div>';
       return;
@@ -5224,21 +5155,19 @@ layout: null
       const bw = b.win_rate == null ? 99 : b.win_rate;
       return aw - bw;
     });
-    const maxTotal = Math.max(...entries.map(e => (e.wins || 0) + (e.losses || 0) + (e.n_pending || 0)));
+    const maxTotal = Math.max(...entries.map(e => e.n_episodes || 0));
     el.innerHTML = entries.map(e => {
-      const total = (e.wins || 0) + (e.losses || 0) + (e.n_pending || 0);
+      const total = e.n_episodes || 0;
       const scale = maxTotal > 0 ? total / maxTotal : 0;
-      const winFrac = total ? (e.wins || 0) / total : 0;
-      const lossFrac = total ? (e.losses || 0) / total : 0;
-      const pendFrac = total ? (e.n_pending || 0) / total : 0;
-      const ci = e.ci95;
-      const ciTxt = ci ? ` [${(ci[0]*100).toFixed(0)}–${(ci[1]*100).toFixed(0)}]` : "";
+      const winFrac = e.win_rate || 0;
+      const lossFrac = 1 - winFrac;
+      const pendFrac = 0;
+      const ci = e.cluster_ci95;
+      const ciTxt = ci ? ` avgCI[${ci[0].toFixed(1)}–${ci[1].toFixed(1)}]` : "";
       const edge = e.edge_significant ? "✓" : "";   // 整区间 > 50% 才打勾(紧凑,省手机宽度)
-      const wrTxt = e.win_rate == null
-        ? `pending (${e.n_pending || 0})`
-        : `${(e.win_rate * 100).toFixed(0)}%${ciTxt} n=${e.n_resolved}${edge}`;
-      const alertCls = (e.win_rate != null && e.win_rate < 0.4 && e.n_resolved >= 2) ? " alert" : "";
-      const confTxt = e.avg_confidence != null ? ` · conf ${(e.avg_confidence * 100).toFixed(0)}%` : "";
+      const wrTxt = `${(e.win_rate * 100).toFixed(0)}%${ciTxt} n=${e.n_episodes}${edge}`;
+      const alertCls = (e.win_rate < 0.4 && e.n_episodes >= 2) ? " alert" : "";
+      const confTxt = e.avg_benefit_pct != null ? ` · avg ${e.avg_benefit_pct >= 0 ? "+" : ""}${e.avg_benefit_pct.toFixed(2)}%` : "";
       return `
         <div class="trig-row">
           <div class="trig-name">${escapeHtml(e.name)}</div>
@@ -5253,15 +5182,15 @@ layout: null
   }
 
   // =========================================================
-  // Calibration by Driver (data source) — does the news feed add edge?
+  // Decision episodes by driver
   // =========================================================
   function renderCalibByDriver() {
     const el = document.getElementById("plan-driver-bars");
     if (!el) return;
-    const data = safe(DATA, "calibration_by_driver") || {};
+    const data = safe(DATA, "decision_metrics", "by_driver") || {};
     const entries = Object.entries(data)
       .map(([k, v]) => ({ name: k, ...v }))
-      .filter(e => (e.n_resolved || 0) + (e.n_pending || 0) > 0);
+      .filter(e => (e.n_episodes || 0) > 0);
     if (!entries.length) {
       el.innerHTML = '<div class="empty-state" style="font-size:11px">No driver data yet — '
         + 'plan actions need a driven_by tag (backfilling from next brief).</div>';
@@ -5273,21 +5202,19 @@ layout: null
       const bw = b.win_rate == null ? 99 : b.win_rate;
       return aw - bw;
     });
-    const maxTotal = Math.max(...entries.map(e => (e.wins || 0) + (e.losses || 0) + (e.n_pending || 0)));
+    const maxTotal = Math.max(...entries.map(e => e.n_episodes || 0));
     el.innerHTML = entries.map(e => {
-      const total = (e.wins || 0) + (e.losses || 0) + (e.n_pending || 0);
+      const total = e.n_episodes || 0;
       const scale = maxTotal > 0 ? total / maxTotal : 0;
-      const winFrac = total ? (e.wins || 0) / total : 0;
-      const lossFrac = total ? (e.losses || 0) / total : 0;
-      const pendFrac = total ? (e.n_pending || 0) / total : 0;
-      const ci = e.ci95;
-      const ciTxt = ci ? ` [${(ci[0]*100).toFixed(0)}–${(ci[1]*100).toFixed(0)}]` : "";
+      const winFrac = e.win_rate || 0;
+      const lossFrac = 1 - winFrac;
+      const pendFrac = 0;
+      const ci = e.cluster_ci95;
+      const ciTxt = ci ? ` avgCI[${ci[0].toFixed(1)}–${ci[1].toFixed(1)}]` : "";
       const edge = e.edge_significant ? "✓" : "";   // 整区间 > 50% 才打勾(紧凑,省手机宽度)
-      const wrTxt = e.win_rate == null
-        ? `pending (${e.n_pending || 0})`
-        : `${(e.win_rate * 100).toFixed(0)}%${ciTxt} n=${e.n_resolved}${edge}`;
-      const alertCls = (e.win_rate != null && e.win_rate < 0.4 && e.n_resolved >= 2) ? " alert" : "";
-      const confTxt = e.avg_confidence != null ? ` · conf ${(e.avg_confidence * 100).toFixed(0)}%` : "";
+      const wrTxt = `${(e.win_rate * 100).toFixed(0)}%${ciTxt} n=${e.n_episodes}${edge}`;
+      const alertCls = (e.win_rate < 0.4 && e.n_episodes >= 2) ? " alert" : "";
+      const confTxt = e.avg_benefit_pct != null ? ` · avg ${e.avg_benefit_pct >= 0 ? "+" : ""}${e.avg_benefit_pct.toFixed(2)}%` : "";
       return `
         <div class="trig-row">
           <div class="trig-name">${escapeHtml(e.name)}</div>
@@ -5300,10 +5227,10 @@ layout: null
         </div>`;
     }).join("");
     // 顶部小结：catalyst 纪律 + 辩论决断率 [cut #1 / #4]
-    const dm = safe(DATA, "debate_metrics"), asd = safe(DATA, "active_signal_discipline");
+    const dm = safe(DATA, "debate_metrics"), metrics = safe(DATA, "decision_metrics") || {};
     const bits = [];
-    if (asd && asd.catalyst_pct != null)
-      bits.push(`催化纪律 ${asd.catalyst_pct}% (${asd.catalyst_backed}/${asd.active_calls})`);
+    if (metrics.active_overrides != null)
+      bits.push(`active overrides ${metrics.active_overrides}`);
     if (dm && dm.decisiveness_pct != null)
       bits.push(`辩论决断率 ${dm.decisiveness_pct}%`);
     if (bits.length) el.insertAdjacentHTML("afterbegin",

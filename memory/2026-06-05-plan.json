@@ -12,128 +12,6 @@
     "hk_leg_hkd": -13244.24,
     "us_leg_usd": 267.57
   },
-  "actions": [
-    {
-      "ticker": "00100",
-      "bucket": "trim_on_rebound",
-      "size_pct": 33,
-      "size_shares": 20,
-      "trigger_type": "price_above",
-      "trigger_price": 680,
-      "trigger_condition": "00100 反弹至 680 以上",
-      "confidence": 0.45,
-      "driven_by": "technical",
-      "rationale": "仓位硬闸：00100=53%超限(35%cap)。纪律性减仓。HSTECH 6/8纳入催化在前但M3 sell-the-news alpha崩塌-21% 5d。risk_on cap 0.55。"
-    },
-    {
-      "ticker": "07226",
-      "bucket": "hold_and_watch",
-      "size_pct": 0,
-      "size_shares": 0,
-      "trigger_type": "price_above",
-      "trigger_price": 4.0,
-      "trigger_condition": "07226 反弹至 4.0 以上时 trim 1000 股降 HK Top2",
-      "confidence": 0.5,
-      "driven_by": "catalyst",
-      "rationale": "6/8 HSTECH纳入催化3天后生效，470亿被动资金。等event后再评估减仓。仓位硬闸Top2 85.3%>70% cap → 借纳入反弹减。"
-    },
-    {
-      "ticker": "02208",
-      "bucket": "hold_and_watch",
-      "size_pct": 0,
-      "size_shares": 0,
-      "trigger_type": "price_below",
-      "trigger_price": 12.0,
-      "trigger_condition": "02208 跌破 12.0 止损",
-      "confidence": 0.55,
-      "driven_by": "technical",
-      "rationale": "Q1利润+40% YoY + JPM Overweight + 公司回购193万股。小仓400股。83%历史hold胜率。风电2026景气但港股板块低迷。"
-    },
-    {
-      "ticker": "03032",
-      "bucket": "hold_and_watch",
-      "size_pct": 0,
-      "size_shares": 0,
-      "trigger_type": "manual",
-      "trigger_price": null,
-      "trigger_condition": "HSTECH 破 4800 时评估",
-      "confidence": 0.55,
-      "driven_by": "technical",
-      "rationale": "1x HSTECH ETF，无杠杆decay。跟踪指数。60%历史胜率。"
-    },
-    {
-      "ticker": "03033",
-      "bucket": "hold_and_watch",
-      "size_pct": 0,
-      "size_shares": 0,
-      "trigger_type": "manual",
-      "trigger_price": null,
-      "trigger_condition": "HSTECH 破 4800 时评估",
-      "confidence": 0.55,
-      "driven_by": "technical",
-      "rationale": "1x HSTECH ETF，无杠杆decay。60%历史胜率。"
-    },
-    {
-      "ticker": "RKLB",
-      "bucket": "hold_and_watch",
-      "size_pct": 0,
-      "size_shares": 0,
-      "trigger_type": "price_below",
-      "trigger_price": 115,
-      "trigger_condition": "RKLB 跌破 115 止损",
-      "confidence": 0.55,
-      "driven_by": "catalyst",
-      "rationale": "SpaceX IPO 6/12催化 + Q1 rev $200M +63% + backlog $2.2B + $90M Space Force。浮盈+69%。75%历史hold胜率。SpaceX $1.75T估值是行业认可+竞争双刃剑。risk_on cap。"
-    },
-    {
-      "ticker": "CRCL",
-      "bucket": "hold_and_watch",
-      "size_pct": 0,
-      "size_shares": 0,
-      "trigger_type": "price_below",
-      "trigger_price": 85,
-      "trigger_condition": "CRCL 跌破 85 止损（接 cost $87）",
-      "confidence": 0.45,
-      "driven_by": "catalyst",
-      "rationale": "Q1首次盈利 EPS $0.23 + USDC $77B + GENIUS Act 已落地 = confirming。但 insider selling + SoftBank selling = disconfirming 硬催化。5d -19.8% 已部分消化。守$85止损。60%历史加仓胜率。"
-    },
-    {
-      "ticker": "PLTU",
-      "bucket": "trim_on_rebound",
-      "size_pct": 50,
-      "size_shares": 7,
-      "trigger_type": "price_above",
-      "trigger_price": 42,
-      "trigger_condition": "PLTU 反弹至 42 以上",
-      "confidence": 0.4,
-      "driven_by": "technical",
-      "rationale": "仓位硬闸：US杠杆ETF 73%>50% cap。PLTR 92x fwd PE过热 + insider sell $43M。纪律减仓。33%历史trim胜率但trim胜率80%(5次胜4次)。risk_on cap。"
-    },
-    {
-      "ticker": "ROBN",
-      "bucket": "trim_on_rebound",
-      "size_pct": 50,
-      "size_shares": 20,
-      "trigger_type": "price_above",
-      "trigger_price": 25,
-      "trigger_condition": "ROBN 反弹至 25 以上（今日+13.19%已接近）",
-      "confidence": 0.45,
-      "driven_by": "technical",
-      "rationale": "仓位硬闸：US杠杆ETF 73%>50% cap + β 4.48>3.0 cap。HOOD Q1 miss + crypto rev -47%。今日+13.19%给窗口。清仓历史38%胜率→trim而非cut。risk_on cap。"
-    },
-    {
-      "ticker": "MSFU",
-      "bucket": "hold_and_watch",
-      "size_pct": 0,
-      "size_shares": 0,
-      "trigger_type": "price_below",
-      "trigger_price": 26,
-      "trigger_condition": "MSFU 跌破 26 止损",
-      "confidence": 0.55,
-      "driven_by": "technical",
-      "rationale": "MSFT Q3 beat rev $82.9B + Azure +29%。underlying 最强。83%历史hold胜率。2x杠杆但underlying撑得住。"
-    }
-  ],
   "watch_levels": {
     "hstech_support": 4800,
     "hstechn_inclusion_date": "2026-06-08",
@@ -142,5 +20,588 @@
     "book_force_derisk_usd": -3000,
     "00100_trim_target_shares": 40,
     "us_lev_etf_target_pct": 50
-  }
+  },
+  "schema_version": 2,
+  "decisions": [
+    {
+      "schema_version": 2,
+      "decision_id": "dec-01eebc785220",
+      "episode_id": "ep-19e5d6ab7ccc",
+      "decision_group_id": "2026-06-05:00100",
+      "plan_date": "2026-06-05",
+      "created_at": "2026-06-05T08:00:00+08:00",
+      "ticker": "00100",
+      "name": "",
+      "leg": "HK",
+      "strategy_id": "risk_rebalance",
+      "thesis_id": "00100-risk_rebalance",
+      "action": "trim_on_rebound",
+      "condition": {
+        "type": "price_above",
+        "price": 680.0,
+        "description": "00100 反弹至 680 以上"
+      },
+      "size": {
+        "shares": 20,
+        "pct": 33.0,
+        "note": ""
+      },
+      "confidence": 0.45,
+      "driven_by": "technical",
+      "rationale": "仓位硬闸：00100=53%超限(35%cap)。纪律性减仓。HSTECH 6/8纳入催化在前但M3 sell-the-news alpha崩塌-21% 5d。risk_on cap 0.55。",
+      "simulated_entry_price": 680.0,
+      "horizon_sessions": 1,
+      "override": {
+        "status": "none",
+        "reason": "",
+        "expires_on": null,
+        "revisit_condition": ""
+      },
+      "evaluation": {
+        "status": "not_triggered",
+        "triggered": false,
+        "trigger_session": null,
+        "execution_price": 680.0,
+        "underlying_return_t1_pct": null,
+        "benefit_t1_pct": null,
+        "benefit_t5_pct": null,
+        "outcome": "not_triggered",
+        "capital": 13600.0
+      },
+      "execution": {
+        "status": "not_followed",
+        "detected_at": "2026-06-08T08:00:38.830913 (auto)",
+        "source": "calibration_v1_migration"
+      },
+      "migration": {
+        "source": "calibration_v1",
+        "legacy_outcome": "win",
+        "legacy_benefit_t1_pct": "18.68",
+        "legacy_benefit_t5_pct": "36.03",
+        "legacy_updated_at": "2026-06-12T08:00:40.513278"
+      }
+    },
+    {
+      "schema_version": 2,
+      "decision_id": "dec-b9be763847c2",
+      "episode_id": "ep-d2889aaf9364",
+      "decision_group_id": "2026-06-05:07226",
+      "plan_date": "2026-06-05",
+      "created_at": "2026-06-05T08:00:00+08:00",
+      "ticker": "07226",
+      "name": "",
+      "leg": "HK",
+      "strategy_id": "risk_rebalance",
+      "thesis_id": "07226-risk_rebalance",
+      "action": "hold_and_watch",
+      "condition": {
+        "type": "price_above",
+        "price": 4.0,
+        "description": "07226 反弹至 4.0 以上时 trim 1000 股降 HK Top2"
+      },
+      "size": {
+        "shares": 0,
+        "pct": 0.0,
+        "note": ""
+      },
+      "confidence": 0.5,
+      "driven_by": "catalyst",
+      "rationale": "6/8 HSTECH纳入催化3天后生效，470亿被动资金。等event后再评估减仓。仓位硬闸Top2 85.3%>70% cap → 借纳入反弹减。",
+      "simulated_entry_price": 4.0,
+      "horizon_sessions": 1,
+      "override": {
+        "status": "none",
+        "reason": "",
+        "expires_on": null,
+        "revisit_condition": ""
+      },
+      "evaluation": {
+        "status": "settled",
+        "triggered": true,
+        "trigger_session": "2026-06-05",
+        "execution_price": 4.0,
+        "underlying_return_t1_pct": -11.0,
+        "benefit_t1_pct": -11.0,
+        "benefit_t5_pct": -13.05,
+        "outcome": "loss",
+        "capital": null
+      },
+      "execution": {
+        "status": "followed",
+        "detected_at": "2026-06-08T08:00:38.843542 (auto)",
+        "source": "calibration_v1_migration"
+      },
+      "migration": {
+        "source": "calibration_v1",
+        "legacy_outcome": "loss",
+        "legacy_benefit_t1_pct": "-5.85",
+        "legacy_benefit_t5_pct": "-14.6",
+        "legacy_updated_at": "2026-06-12T08:00:40.513305"
+      }
+    },
+    {
+      "schema_version": 2,
+      "decision_id": "dec-9cf9145fff96",
+      "episode_id": "ep-7de4a991863a",
+      "decision_group_id": "2026-06-05:02208",
+      "plan_date": "2026-06-05",
+      "created_at": "2026-06-05T08:00:00+08:00",
+      "ticker": "02208",
+      "name": "",
+      "leg": "HK",
+      "strategy_id": "risk_rebalance",
+      "thesis_id": "02208-risk_rebalance",
+      "action": "hold_and_watch",
+      "condition": {
+        "type": "price_below",
+        "price": 12.0,
+        "description": "02208 跌破 12.0 止损"
+      },
+      "size": {
+        "shares": 0,
+        "pct": 0.0,
+        "note": ""
+      },
+      "confidence": 0.55,
+      "driven_by": "technical",
+      "rationale": "Q1利润+40% YoY + JPM Overweight + 公司回购193万股。小仓400股。83%历史hold胜率。风电2026景气但港股板块低迷。",
+      "simulated_entry_price": 12.0,
+      "horizon_sessions": 1,
+      "override": {
+        "status": "none",
+        "reason": "",
+        "expires_on": null,
+        "revisit_condition": ""
+      },
+      "evaluation": {
+        "status": "settled",
+        "triggered": true,
+        "trigger_session": "2026-06-05",
+        "execution_price": 12.0,
+        "underlying_return_t1_pct": -2.8333,
+        "benefit_t1_pct": -2.8333,
+        "benefit_t5_pct": -6.1667,
+        "outcome": "loss",
+        "capital": null
+      },
+      "execution": {
+        "status": "followed",
+        "detected_at": "2026-06-08T08:00:38.855790 (auto)",
+        "source": "calibration_v1_migration"
+      },
+      "migration": {
+        "source": "calibration_v1",
+        "legacy_outcome": "win",
+        "legacy_benefit_t1_pct": "2.08",
+        "legacy_benefit_t5_pct": "-8.75",
+        "legacy_updated_at": "2026-06-12T08:00:40.513317"
+      }
+    },
+    {
+      "schema_version": 2,
+      "decision_id": "dec-c3f361193b51",
+      "episode_id": "ep-36d5c81de62f",
+      "decision_group_id": "2026-06-05:03032",
+      "plan_date": "2026-06-05",
+      "created_at": "2026-06-05T08:00:00+08:00",
+      "ticker": "03032",
+      "name": "",
+      "leg": "HK",
+      "strategy_id": "core_position",
+      "thesis_id": "03032-core_position",
+      "action": "hold_and_watch",
+      "condition": {
+        "type": "manual",
+        "price": null,
+        "description": "HSTECH 破 4800 时评估"
+      },
+      "size": {
+        "shares": 0,
+        "pct": 0.0,
+        "note": ""
+      },
+      "confidence": 0.55,
+      "driven_by": "technical",
+      "rationale": "1x HSTECH ETF，无杠杆decay。跟踪指数。60%历史胜率。",
+      "simulated_entry_price": 4.972,
+      "horizon_sessions": 1,
+      "override": {
+        "status": "none",
+        "reason": "",
+        "expires_on": null,
+        "revisit_condition": ""
+      },
+      "evaluation": {
+        "status": "settled",
+        "triggered": true,
+        "trigger_session": "2026-06-05",
+        "execution_price": 4.972,
+        "underlying_return_t1_pct": -4.6259,
+        "benefit_t1_pct": -4.6259,
+        "benefit_t5_pct": -5.712,
+        "outcome": "loss",
+        "capital": null
+      },
+      "execution": {
+        "status": "followed",
+        "detected_at": "2026-06-08T08:00:38.879793 (auto)",
+        "source": "calibration_v1_migration"
+      },
+      "migration": {
+        "source": "calibration_v1",
+        "legacy_outcome": "loss",
+        "legacy_benefit_t1_pct": "-1.97",
+        "legacy_benefit_t5_pct": "-6.56",
+        "legacy_updated_at": "2026-06-12T08:00:40.513327"
+      }
+    },
+    {
+      "schema_version": 2,
+      "decision_id": "dec-50dcb738056b",
+      "episode_id": "ep-257e1ec41583",
+      "decision_group_id": "2026-06-05:03033",
+      "plan_date": "2026-06-05",
+      "created_at": "2026-06-05T08:00:00+08:00",
+      "ticker": "03033",
+      "name": "",
+      "leg": "HK",
+      "strategy_id": "core_position",
+      "thesis_id": "03033-core_position",
+      "action": "hold_and_watch",
+      "condition": {
+        "type": "manual",
+        "price": null,
+        "description": "HSTECH 破 4800 时评估"
+      },
+      "size": {
+        "shares": 0,
+        "pct": 0.0,
+        "note": ""
+      },
+      "confidence": 0.55,
+      "driven_by": "technical",
+      "rationale": "1x HSTECH ETF，无杠杆decay。60%历史胜率。",
+      "simulated_entry_price": 4.87,
+      "horizon_sessions": 1,
+      "override": {
+        "status": "none",
+        "reason": "",
+        "expires_on": null,
+        "revisit_condition": ""
+      },
+      "evaluation": {
+        "status": "settled",
+        "triggered": true,
+        "trigger_session": "2026-06-05",
+        "execution_price": 4.87,
+        "underlying_return_t1_pct": -4.3532,
+        "benefit_t1_pct": -4.3532,
+        "benefit_t5_pct": -5.462,
+        "outcome": "loss",
+        "capital": null
+      },
+      "execution": {
+        "status": "followed",
+        "detected_at": "2026-06-08T08:00:38.894520 (auto)",
+        "source": "calibration_v1_migration"
+      },
+      "migration": {
+        "source": "calibration_v1",
+        "legacy_outcome": "loss",
+        "legacy_benefit_t1_pct": "-1.72",
+        "legacy_benefit_t5_pct": "-6.37",
+        "legacy_updated_at": "2026-06-12T08:00:40.513335"
+      }
+    },
+    {
+      "schema_version": 2,
+      "decision_id": "dec-fa3c1795460a",
+      "episode_id": "ep-a5e1fee521c0",
+      "decision_group_id": "2026-06-05:RKLB",
+      "plan_date": "2026-06-05",
+      "created_at": "2026-06-05T08:00:00+08:00",
+      "ticker": "RKLB",
+      "name": "",
+      "leg": "US",
+      "strategy_id": "risk_rebalance",
+      "thesis_id": "rklb-risk_rebalance",
+      "action": "hold_and_watch",
+      "condition": {
+        "type": "price_below",
+        "price": 115.0,
+        "description": "RKLB 跌破 115 止损"
+      },
+      "size": {
+        "shares": 0,
+        "pct": 0.0,
+        "note": ""
+      },
+      "confidence": 0.55,
+      "driven_by": "catalyst",
+      "rationale": "SpaceX IPO 6/12催化 + Q1 rev $200M +63% + backlog $2.2B + $90M Space Force。浮盈+69%。75%历史hold胜率。SpaceX $1.75T估值是行业认可+竞争双刃剑。risk_on cap。",
+      "simulated_entry_price": 115.0,
+      "horizon_sessions": 1,
+      "override": {
+        "status": "none",
+        "reason": "",
+        "expires_on": null,
+        "revisit_condition": ""
+      },
+      "evaluation": {
+        "status": "settled",
+        "triggered": true,
+        "trigger_session": "2026-06-05",
+        "execution_price": 115.0,
+        "underlying_return_t1_pct": 0.0009,
+        "benefit_t1_pct": 0.0009,
+        "benefit_t5_pct": -12.895,
+        "outcome": "win",
+        "capital": null
+      },
+      "execution": {
+        "status": "followed",
+        "detected_at": "2026-06-08T08:00:38.907307 (auto)",
+        "source": "calibration_v1_migration"
+      },
+      "migration": {
+        "source": "calibration_v1",
+        "legacy_outcome": "loss",
+        "legacy_benefit_t1_pct": "-4.28",
+        "legacy_benefit_t5_pct": "-0.19",
+        "legacy_updated_at": "2026-06-12T08:00:40.513344"
+      }
+    },
+    {
+      "schema_version": 2,
+      "decision_id": "dec-9e904f19eea9",
+      "episode_id": "ep-a321c8896429",
+      "decision_group_id": "2026-06-05:CRCL",
+      "plan_date": "2026-06-05",
+      "created_at": "2026-06-05T08:00:00+08:00",
+      "ticker": "CRCL",
+      "name": "",
+      "leg": "US",
+      "strategy_id": "risk_rebalance",
+      "thesis_id": "crcl-risk_rebalance",
+      "action": "hold_and_watch",
+      "condition": {
+        "type": "price_below",
+        "price": 85.0,
+        "description": "CRCL 跌破 85 止损（接 cost $87）"
+      },
+      "size": {
+        "shares": 0,
+        "pct": 0.0,
+        "note": ""
+      },
+      "confidence": 0.45,
+      "driven_by": "catalyst",
+      "rationale": "Q1首次盈利 EPS $0.23 + USDC $77B + GENIUS Act 已落地 = confirming。但 insider selling + SoftBank selling = disconfirming 硬催化。5d -19.8% 已部分消化。守$85止损。60%历史加仓胜率。",
+      "simulated_entry_price": 85.0,
+      "horizon_sessions": 1,
+      "override": {
+        "status": "none",
+        "reason": "",
+        "expires_on": null,
+        "revisit_condition": ""
+      },
+      "evaluation": {
+        "status": "settled",
+        "triggered": true,
+        "trigger_session": "2026-06-05",
+        "execution_price": 85.0,
+        "underlying_return_t1_pct": -2.5015,
+        "benefit_t1_pct": -2.5015,
+        "benefit_t5_pct": -8.3294,
+        "outcome": "loss",
+        "capital": null
+      },
+      "execution": {
+        "status": "followed",
+        "detected_at": "2026-06-08T08:00:38.919143 (auto)",
+        "source": "calibration_v1_migration"
+      },
+      "migration": {
+        "source": "calibration_v1",
+        "legacy_outcome": "loss",
+        "legacy_benefit_t1_pct": "-5.55",
+        "legacy_benefit_t5_pct": "-2.84",
+        "legacy_updated_at": "2026-06-12T08:00:40.513350"
+      }
+    },
+    {
+      "schema_version": 2,
+      "decision_id": "dec-0538dc55e0f9",
+      "episode_id": "ep-2342005aa67b",
+      "decision_group_id": "2026-06-05:PLTU",
+      "plan_date": "2026-06-05",
+      "created_at": "2026-06-05T08:00:00+08:00",
+      "ticker": "PLTU",
+      "name": "",
+      "leg": "US",
+      "strategy_id": "risk_rebalance",
+      "thesis_id": "pltu-risk_rebalance",
+      "action": "trim_on_rebound",
+      "condition": {
+        "type": "price_above",
+        "price": 42.0,
+        "description": "PLTU 反弹至 42 以上"
+      },
+      "size": {
+        "shares": 7,
+        "pct": 50.0,
+        "note": ""
+      },
+      "confidence": 0.4,
+      "driven_by": "technical",
+      "rationale": "仓位硬闸：US杠杆ETF 73%>50% cap。PLTR 92x fwd PE过热 + insider sell $43M。纪律减仓。33%历史trim胜率但trim胜率80%(5次胜4次)。risk_on cap。",
+      "simulated_entry_price": 42.0,
+      "horizon_sessions": 1,
+      "override": {
+        "status": "none",
+        "reason": "",
+        "expires_on": null,
+        "revisit_condition": ""
+      },
+      "evaluation": {
+        "status": "not_triggered",
+        "triggered": false,
+        "trigger_session": null,
+        "execution_price": 42.0,
+        "underlying_return_t1_pct": null,
+        "benefit_t1_pct": null,
+        "benefit_t5_pct": null,
+        "outcome": "not_triggered",
+        "capital": 294.0
+      },
+      "execution": {
+        "status": "not_followed",
+        "detected_at": "2026-06-08T08:00:38.933692 (auto)",
+        "source": "calibration_v1_migration"
+      },
+      "migration": {
+        "source": "calibration_v1",
+        "legacy_outcome": "win",
+        "legacy_benefit_t1_pct": "16.05",
+        "legacy_benefit_t5_pct": "21.83",
+        "legacy_updated_at": "2026-06-12T08:00:40.513356"
+      }
+    },
+    {
+      "schema_version": 2,
+      "decision_id": "dec-b9286e257a1a",
+      "episode_id": "ep-782cadf69364",
+      "decision_group_id": "2026-06-05:ROBN",
+      "plan_date": "2026-06-05",
+      "created_at": "2026-06-05T08:00:00+08:00",
+      "ticker": "ROBN",
+      "name": "",
+      "leg": "US",
+      "strategy_id": "risk_rebalance",
+      "thesis_id": "robn-risk_rebalance",
+      "action": "trim_on_rebound",
+      "condition": {
+        "type": "price_above",
+        "price": 25.0,
+        "description": "ROBN 反弹至 25 以上（今日+13.19%已接近）"
+      },
+      "size": {
+        "shares": 20,
+        "pct": 50.0,
+        "note": ""
+      },
+      "confidence": 0.45,
+      "driven_by": "technical",
+      "rationale": "仓位硬闸：US杠杆ETF 73%>50% cap + β 4.48>3.0 cap。HOOD Q1 miss + crypto rev -47%。今日+13.19%给窗口。清仓历史38%胜率→trim而非cut。risk_on cap。",
+      "simulated_entry_price": 25.0,
+      "horizon_sessions": 1,
+      "override": {
+        "status": "none",
+        "reason": "",
+        "expires_on": null,
+        "revisit_condition": ""
+      },
+      "evaluation": {
+        "status": "not_triggered",
+        "triggered": false,
+        "trigger_session": null,
+        "execution_price": 25.0,
+        "underlying_return_t1_pct": null,
+        "benefit_t1_pct": null,
+        "benefit_t5_pct": null,
+        "outcome": "not_triggered",
+        "capital": 500.0
+      },
+      "execution": {
+        "status": "not_followed",
+        "detected_at": "2026-06-08T08:00:38.949030 (auto)",
+        "source": "calibration_v1_migration"
+      },
+      "migration": {
+        "source": "calibration_v1",
+        "legacy_outcome": "win",
+        "legacy_benefit_t1_pct": "15.04",
+        "legacy_benefit_t5_pct": "-5.12",
+        "legacy_updated_at": "2026-06-12T08:00:40.513362"
+      }
+    },
+    {
+      "schema_version": 2,
+      "decision_id": "dec-741f18f363e3",
+      "episode_id": "ep-f8e83b8026b4",
+      "decision_group_id": "2026-06-05:MSFU",
+      "plan_date": "2026-06-05",
+      "created_at": "2026-06-05T08:00:00+08:00",
+      "ticker": "MSFU",
+      "name": "",
+      "leg": "US",
+      "strategy_id": "risk_rebalance",
+      "thesis_id": "msfu-risk_rebalance",
+      "action": "hold_and_watch",
+      "condition": {
+        "type": "price_below",
+        "price": 26.0,
+        "description": "MSFU 跌破 26 止损"
+      },
+      "size": {
+        "shares": 0,
+        "pct": 0.0,
+        "note": ""
+      },
+      "confidence": 0.55,
+      "driven_by": "technical",
+      "rationale": "MSFT Q3 beat rev $82.9B + Azure +29%。underlying 最强。83%历史hold胜率。2x杠杆但underlying撑得住。",
+      "simulated_entry_price": 26.0,
+      "horizon_sessions": 1,
+      "override": {
+        "status": "none",
+        "reason": "",
+        "expires_on": null,
+        "revisit_condition": ""
+      },
+      "evaluation": {
+        "status": "settled",
+        "triggered": true,
+        "trigger_session": "2026-06-05",
+        "execution_price": 26.0,
+        "underlying_return_t1_pct": 5.7308,
+        "benefit_t1_pct": 5.7308,
+        "benefit_t5_pct": -4.7308,
+        "outcome": "win",
+        "capital": null
+      },
+      "execution": {
+        "status": "followed",
+        "detected_at": "2026-06-08T08:00:38.963505 (auto)",
+        "source": "calibration_v1_migration"
+      },
+      "migration": {
+        "source": "calibration_v1",
+        "legacy_outcome": "win",
+        "legacy_benefit_t1_pct": "8.65",
+        "legacy_benefit_t5_pct": "-5.0",
+        "legacy_updated_at": "2026-06-12T08:00:40.513368"
+      }
+    }
+  ]
 }

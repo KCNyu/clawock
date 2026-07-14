@@ -56,35 +56,21 @@ That's the gimmick: *a whole AI desk that trades alongside me and never sleeps.*
 
 But here's the part most "AI trader" demos skip 👇
 
-## 🪞 It grades its own homework — and admits it's losing
+## 🪞 It grades strategy episodes, not repeated daily calls
 
-Every brief doesn't just talk. It commits a structured **`plan.json`**: each call gets a trigger, a confidence number, and a simulated entry price. The next morning the system reads it back, checks which triggers actually fired, simulates the P&L, and logs the result to a rolling scorecard.
+Every brief commits a v2 `plan.json`. A stock may carry several simultaneous decisions — for example a long-term `core_position`, an `intraday_t`, and a `risk_rebalance` — because different horizons can legitimately disagree on the same day.
 
-So I can tell you, with receipts, how the AI is *actually* doing:
+The authoritative ledger is `memory/decisions.jsonl`. Each decision has a stable ID, strategy, condition, size, confidence, driver, execution state, and evaluation state. Only conditions that actually fire are scored. Consecutive reaffirmations of the same strategy/action form one episode, so repeating “hold” for five mornings does not manufacture five samples.
 
-| What the AI did | Sample | Hit rate | Honest verdict |
-|---|---:|---:|---|
-| **cut / trim / add** (active calls) | n=166 | **50%** | basically a coin flip |
-| high-conviction calls (confidence ≥ 0.75) | n=14 | **43%** | still overconfident |
-| **just `hold`** | n=188 | **60%** | this is β, not α |
-| 🔴 "chasing a high" warning | n=58 | 57% | flags the move, can't time it |
-| 🟡 "oversold, might bounce" | n=140 | 36% | catching knives |
+The Reflect dashboard reports:
 
-> Read that again: on this sample, **the model's active signals underperform simply holding.** The system *says so itself*, in public, because the scorecard is computed in Python and the LLM isn't allowed to fudge it. The honesty is the feature — most of the value of an "AI analyst" is knowing when to ignore it.
+- active/passive benefit by strategy, action, condition, and driver;
+- Brier calibration over settled episodes;
+- date-cluster bootstrap intervals, so same-day calls are not treated as independent evidence;
+- execution separately from advice quality; and
+- capital-weighted daily benefit compounded through time — never an arithmetic sum of percentage points across positions.
 
-**There's now a curve for it.** A counterfactual *"if you'd followed every call"* backtest (the LLM only advises — execution is always mine) reuses the same direction-signed benefit% the scorecard already logs, and plots three lines against a `do-nothing = 0` baseline on the **Reflect** tab: **what I actually followed**, **follow-only-active**, and **follow-everything**. The active-only line sits **−33pp below doing nothing** (T+1; −46pp at T+5); the "all signals" line's +474pp is almost entirely `hold` = market β; and *what I actually did* tracks that beta (I mostly held) — so you can see my real path against both naive policies, and *watch* the active calls bleed relative to a hold.
-
-<p align="center"><img src="docs/shadow-backtest.png" alt="shadow backtest: what I followed vs follow-only-active vs follow-everything, each against a do-nothing baseline" width="760"></p>
-
-<sub>Numbers are point-in-time from `memory/calibration.csv`, `quant_signal_review.json`, `t0_setup_review.json` and move as samples grow. Factors with n < 20 are shown but **barred from influencing decisions** until they earn it.</sub>
-
-> 💸 **And the real book?** As of Jul 2026, on a peak-net-principal basis the live combined portfolio sits at **−22%** — US leg **+41%**, HK leg **−37%**, leverage cutting both ways (realized +\$2.9k, unrealized −\$5.8k; 30-day Sharpe −6.5). It's on the dashboard in real time. *That's* the number the honesty is about — not a backtest I get to re-run, but the one book I actually have to live with.
-
-**The scorecard is built not to fool itself.** Three guards stop a noisy number from masquerading as edge:
-
-- **95% confidence intervals on every rate.** "catalyst 70%" is really `[63–90]` at n=84 — the one driver whose band clears 50%. Any rate whose band straddles 50% (macro, peer) is flagged `edge_significant: false`: statistically indistinguishable from a coin flip.
-- **A risk-adjusted verdict, not just hit-rate.** By *frequency* the LLM's calls look **+4.4pp** ahead of a hold. By *return* that shrinks to **+0.42pp** — indistinguishable from zero — against a portfolio β of **3.4**. So a leveraged-beta "win" is never mistaken for skill.
-- **Catalyst-gate discipline.** Only `catalyst` has a CI-proven edge, so an active cut/trim/add must name the hard catalyst that justifies it (and the one that would *invalidate* its thesis). The dashboard tracks how many actually do — currently ~7%, i.e. most active calls are still filter-grade technicals.
+All figures are generated from the ledger and live snapshots. The LLM writes decisions; Python owns IDs, trigger evaluation, episode grouping, metrics, and the backtest.
 
 ---
 
@@ -92,14 +78,7 @@ So I can tell you, with receipts, how the AI is *actually* doing:
 
 Behind the persona is a fixed decision framework — not freeform vibes. Every call is attributed, gated, and bucketed before it's allowed to count.
 
-**1. Attribution-first — and the edge is measured.** Every call is tagged by *what drove it*, then scored over time. On the live record:
-
-| Driver | Hit rate | How it's used |
-|---|---:|---|
-| **catalyst** (earnings, FOMC, dated event) | **70%** (n=84) | the only driver allowed to *initiate* an action |
-| **technical** (trend / RSI / levels) | **52%** (n=231) | a filter, never the thesis |
-| macro | 50% (n=20) | context; a coin-flip on its own |
-| **peer / 抱团 read-across** | **31%** (n=13) | the worst — herd reasoning is actively distrusted |
+**1. Attribution-first — and the edge is measured dynamically.** Every decision is tagged by its dominant driver. Current sample size, average benefit, win rate, and date-cluster interval come from `decision_metrics.by_driver`; no point-in-time hit rate is hard-coded here.
 
 **2. Hard catalyst vs. soft sentiment.** Soft sentiment (Reddit, mood, a single tweet) can only nudge a *confidence* number — it can never flip the action bucket. Only a hard, dated catalyst can.
 
@@ -111,7 +90,7 @@ Behind the persona is a fixed decision framework — not freeform vibes. Every c
 
 **6. Quant signals must earn the right to speak.** A factor layer (MA cross, 12-1 momentum, RSI-14, z-score, ATR chandelier stop, vol-target sizing) runs in Python — but each factor is **barred from influencing a decision until it clears n≥20 and proves a hit rate.** Unproven factors are shown, never obeyed.
 
-Everything resolves into an action bucket with an explicit trigger — `cut` / `trim-on-rebound` / `hold` / `T-only` / `add-only-on-trigger`. That bucket list *is* the `plan.json` graded the next morning: **the strategy and the scorecard are the same object.**
+Everything resolves into one or more strategy decisions with explicit conditions. Same-stock `core_position`, `risk_rebalance`, `intraday_t`, `event_trade`, and `tactical_entry` decisions may coexist; each is graded in its own episode.
 
 ---
 
@@ -121,7 +100,7 @@ The 08:00 deep brief isn't one model's monologue — it's a structured **multi-a
 
 - **Tier 1 — four analyst lenses.** Fundamental / technical / sentiment / sector-rotation each read the *same* `context.json` and merge into one table. Numbers only, no vibes.
 - **Tier 2 — Bull vs Bear.** Two researchers build opposing cases (hold/add vs trim/cut), each citing ≥2 concrete Tier-1 data points. The hard rule: **they must genuinely disagree on at least one position** — unanimous agreement means the debate failed and is thrown out.
-- **Tier 3 — three risk voices + a Judge.** Aggressive, Conservative and Neutral each argue their corner; a **Judge** weighs them, names which strategy frame is driving each decision, and resolves the argument into concrete bucketed actions with triggers.
+- **Tier 3 — three risk voices + a Judge.** Aggressive, Conservative and Neutral each argue their corner; a **Judge** weighs them, names which strategy frame is driving each decision, and resolves the argument into concrete strategy decisions with conditions.
 
 The goal isn't consensus — it's **forcing a real bear case to exist before anything is held**, so the book never just talks itself into its own positions. The Judge's verdict *is* the `plan.json` that gets graded the next morning.
 
@@ -241,7 +220,7 @@ Every fetcher is **no-key-first** (public endpoints before any API key; the one 
 - **5 · Macro & sentiment** — `fetch_macro` VIX + macro read ✅ · `fetch_sentiment` Reddit WSB/stocks/investing 🟡 · `fetch_influencer_feed` Trump/Musk market-movers 🟡 · `fetch_peers` peer prices + 5-day P&L ✅
 - **6 · Quant signals** (pure arithmetic, zero external deps) — `compute_quant_signals` dual-MA/momentum/RSI/ATR/vol-target ✅ · `compute_regime` leverage dial (200DMA + vol band) ✅ · `compute_t0_setups` T+0 setup grading + chase detection ✅ · `portfolio_risk_metrics` β / Cov-Var / drawdown / concentration ✅
 - **7 · FX & integrity** — `fetch_fx` USDHKD, 3-route fallback ✅ · `preflight_integrity` money-conservation gate (TCV/PNL/FX/cash) ✅
-- **8 · Backtest & calibration** — `backtest_hstech_regime` · `backtest_us_leverage` · `backtest_combined_regime` · `shadow_backtest` ("what if I'd followed every AI call") · `quant_signal_review` + `t0_setup_review` (T+1/T+5 hit-rate self-audit) ✅
+- **8 · Backtest & decision audit** — `decision_v2` episode backtest · `backtest_hstech_regime` · `backtest_us_leverage` · `backtest_combined_regime` · `quant_signal_review` + `t0_setup_review` ✅
 
 **Anti-ban** — all Eastmoney calls route through one wrapper `_em_http.em_get()`: in-process serialization (≥1s gap + random jitter), single reused `Session`, 3 retries then graceful `None`. Full per-file catalog: [`scripts/data/README.md`](scripts/data/README.md).
 
@@ -261,11 +240,11 @@ clawock/
 │   ├─ quant_signals.json  quant_signal_review.json     ← factor scorecard
 │   └─ t0_setups.json  t0_setup_review.json             ← intraday setup scorecard
 ├─ portfolio.json                           ← single source of truth (atomic writes)
-├─ tests/                                    ← pytest: money-conservation derivations (CI-gated)
+├─ tests/                                    ← decision-v2 + money-conservation regression gates
 ├─ MEMORY.md  DREAMS.md                      ← iron rules + nightly "dreaming" promotion
 ├─ memory/
 │   ├─ {date}-pre-open.md  {date}-plan.json  ← brief output + structured plan
-│   ├─ calibration.csv                       ← the self-grading scorecard
+│   ├─ decisions.jsonl                       ← authoritative v2 decision/episode ledger
 │   └─ snapshots/{date}.json
 ├─ scripts/
 │   ├─ data/      fetchers · build_dashboard.py · risk/quant/regime/t0 compute · safe_push.sh

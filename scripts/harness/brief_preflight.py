@@ -46,6 +46,7 @@ SNAPSHOT_DIR = WS / 'memory' / 'snapshots'
 
 sys.path.insert(0, str(WS / 'scripts' / 'data'))
 import trading_calendar  # noqa: E402
+import decision_v2  # noqa: E402
 
 
 def _run(script, args=None, timeout=120):
@@ -370,9 +371,9 @@ def _is_hk_ticker(t):
 
 
 def compute_retrospective(prior_plan_path, portfolio):
-    """For each action in prior plan, check trigger + simulate PnL."""
+    """V2 retrospective: each strategy decision is scored only if its condition fired."""
     if not prior_plan_path:
-        return {'prior_plan_date': None, 'actions': [], 'note': 'first run (no prior plan)'}
+        return {'prior_plan_date': None, 'decisions': [], 'note': 'first run (no prior plan)'}
 
     try:
         prior = json.loads(prior_plan_path.read_text())
@@ -384,7 +385,7 @@ def compute_retrospective(prior_plan_path, portfolio):
     htmap = {h['ticker']: h for h in all_holdings}
 
     results = []
-    for action in prior.get('actions', []):
+    for action in prior.get('decisions', []):
         ticker = action.get('ticker')
         h = htmap.get(ticker)
         if not h:
@@ -393,10 +394,11 @@ def compute_retrospective(prior_plan_path, portfolio):
             })
             continue
 
-        trigger_type  = action.get('trigger_type', 'manual')
-        trigger_price = action.get('trigger_price')
-        size_shares   = action.get('size_shares')
-        bucket        = action.get('bucket', '')
+        condition = action.get('condition') or {}
+        trigger_type  = condition.get('type', 'manual')
+        trigger_price = condition.get('price')
+        size_shares   = (action.get('size') or {}).get('shares')
+        bucket        = action.get('action', '')
 
         current   = h.get('current_price', 0)
         prev_close = h.get('prev_close', current)
@@ -431,7 +433,10 @@ def compute_retrospective(prior_plan_path, portfolio):
 
         results.append({
             'ticker':                   ticker,
-            'bucket':                   bucket,
+            'decision_id':              action.get('decision_id'),
+            'episode_id':               action.get('episode_id'),
+            'strategy_id':              action.get('strategy_id'),
+            'action':                    bucket,
             'plan_trigger_type':        trigger_type,
             'plan_trigger_price':       trigger_price,
             'plan_size_shares':         size_shares,
@@ -460,7 +465,7 @@ def compute_retrospective(prior_plan_path, portfolio):
     return {
         'prior_plan_date': prior.get('date'),
         'prior_plan_path': str(prior_plan_path),
-        'actions':         results,
+        'decisions':       results,
         'confidence_calibration': {
             'conf_80_100':  _calib(0.80, 1.01),
             'conf_60_79':   _calib(0.60, 0.80),
@@ -638,321 +643,29 @@ def _detect_followed(row, min_window_days=None):
     return 'unknown'  # 未识别 bucket
 
 
-def _resolve_pending_followed():
-    """Scan calibration.csv for rows with followed='unknown' and try to auto-detect
-    via shares diff in git history. Runs every preflight — does NOT wait for the
-    5-day outcome window. Returns updated row count.
-
-    Separated from _resolve_pending_outcomes because:
-    - followed answer often known within T+1 (hold_and_watch) or T+2 (trade buckets)
-    - outcome resolution requires T+5 for price-move statistical significance
-    - Previously these were coupled, so followed stayed 'unknown' for 5 days even
-      when the answer was already determinable from portfolio.json shares diff.
-    """
-    calib_path = WS / 'memory' / 'calibration.csv'
-    if not calib_path.exists():
-        return 0
-
-    import csv
-    try:
-        with open(calib_path, encoding='utf-8') as f:
-            rows = list(csv.DictReader(f))
-    except Exception:
-        return 0
-
-    updated = 0
-    for r in rows:
-        if (r.get('followed') or 'unknown').lower() != 'unknown':
-            continue
-        verdict = _detect_followed(r)
-        if verdict in ('true', 'false'):
-            r['followed']    = verdict
-            r['followed_at'] = datetime.now().isoformat() + ' (auto)'
-            r['updated_at']  = datetime.now().isoformat()
-            updated += 1
-
-    if updated and rows:
-        with open(calib_path, 'w', encoding='utf-8', newline='') as f:
-            w = csv.DictWriter(f, fieldnames=list(rows[0].keys()))
-            w.writeheader()
-            w.writerows(rows)
-
-    return updated
-
-
-# Per-process caches: the snapshots dir doesn't change mid-run, and the resolver
-# touches the same dates/files across all 75 rows — glob once, parse each file once.
-_SNAP_DATES = None        # sorted list[str] of all snapshot dates
-_SNAP_JSON = {}           # date_iso -> parsed snapshot dict (or None on miss/parse-fail)
-
-
-def _all_snapshot_dates():
-    global _SNAP_DATES
-    if _SNAP_DATES is None:
-        import glob, os
-        _SNAP_DATES = sorted(os.path.basename(p)[:-5]
-                             for p in glob.glob(str(WS / 'memory' / 'snapshots' / '20*.json')))
-    return _SNAP_DATES
-
-
-def _load_snapshot(date_iso):
-    if date_iso not in _SNAP_JSON:
-        p = WS / 'memory' / 'snapshots' / f'{date_iso}.json'
-        try:
-            _SNAP_JSON[date_iso] = json.loads(p.read_text()) if p.exists() else None
-        except Exception:
-            _SNAP_JSON[date_iso] = None
-    return _SNAP_JSON[date_iso]
-
-
-def _snapshot_price(date_iso, ticker):
-    """current_price of `ticker` in the daily snapshot for date_iso, or None."""
-    d = _load_snapshot(date_iso)
-    if not d:
-        return None
-    for region in ('hk_stocks', 'us_stocks'):
-        for h in d.get('portfolios', {}).get(region, {}).get('holdings', []):
-            if h.get('ticker') == ticker:
-                cp = h.get('current_price')
-                try:
-                    return float(cp) if cp else None
-                except Exception:
-                    return None
-    return None
-
-
-def _session_dates_after(plan_date):
-    """Sorted snapshot dates strictly after plan_date. Snapshots are one-per-trading-
-    session, so [0] is the next session (T+1), [4] is T+5 — weekends/holidays skipped."""
-    return [d for d in _all_snapshot_dates() if d > plan_date]
-
-
-def _next_session_date(plan_date):
-    s = _session_dates_after(plan_date)
-    return s[0] if s else None
-
-
-def _benefit_pct(bucket, price_d, price_dn):
-    """Signed 'benefit of following the call' % at some later session.
-    cut/trim: sold at D → benefit if it fell. add/hold/t_only/watch: benefit if it rose."""
-    if not price_d or not price_dn:
-        return None
-    ret = (price_dn - price_d) / price_d * 100.0
-    return -ret if bucket in ('cut', 'trim_on_rebound') else ret
-
-
-def _resolve_pending_outcomes():
-    """Settle each pending calibration row at T+1 (the NEXT trading session) by
-    backtesting "if the call had been followed".
-
-    The brief predicts the next session, so the evaluation horizon is one session —
-    NOT 5 days (corrected 2026-05-30; the old 5-day window + today_change_pct proxy
-    measured noise and could never score an executed cut). Outcome = did following the
-    call pay off over D→D+1, priced from the daily snapshots:
-      cut / trim          → sold at D; win if the asset FELL by D+1 (dodged the drop)
-      add_only_on_trigger → bought at D; win if it ROSE by D+1
-      hold_and_watch/t_only/watch → kept exposure; win if it ROSE (≥0) by D+1
-    Two legacy-named columns now hold "benefit of following %" (positive = the call
-    helped), at two horizons (kept the old names to avoid a cross-file/frontend rename):
-      pnl_5d  → T+1 (next session) — the PRIMARY outcome, drives win/loss
-      pnl_30d → T+5 (5th session)  — SECONDARY thesis-durability lens, backfilled as
-                soon as 5 sessions exist (even for rows already settled at T+1)
-    Returns updated row count."""
-    calib_path = WS / 'memory' / 'calibration.csv'
-    if not calib_path.exists():
-        return 0
-
-    import csv
-    try:
-        with open(calib_path, encoding='utf-8') as f:
-            rows = list(csv.DictReader(f))
-    except Exception:
-        return 0
-
-    updated = 0
-    for r in rows:
-        plan_date = r.get('plan_date')
-        ticker = r.get('ticker')
-        if not (plan_date and ticker):
-            continue
-        bucket = (r.get('bucket') or '').lower()
-        sessions = _session_dates_after(plan_date)
-
-        # D price: the plan's recorded sim_entry (≈ D close); fall back to D's snapshot.
-        try:
-            price_d = float(r.get('sim_entry_price') or 0) or None
-        except Exception:
-            price_d = None
-        if not price_d:
-            price_d = _snapshot_price(plan_date, ticker)
-
-        row_changed = False
-
-        # --- PRIMARY: settle pending rows at T+1 (next session) ---
-        if r.get('outcome') == 'pending' and sessions:
-            price_d1 = _snapshot_price(sessions[0], ticker)
-            ben1 = _benefit_pct(bucket, price_d, price_d1)
-            if ben1 is None:
-                r['outcome'] = 'unknown'; r['pnl_5d'] = ''
-            else:
-                r['outcome'] = 'win' if ben1 > 0 else 'loss'
-                r['pnl_5d'] = round(ben1, 2)
-            if (r.get('followed') or 'unknown').lower() == 'unknown':
-                r['followed'] = _detect_followed(r)
-                if r['followed'] in ('true', 'false'):
-                    r['followed_at'] = datetime.now().isoformat() + ' (auto)'
-            row_changed = True
-
-        # --- SECONDARY: backfill T+5 into pnl_30d once 5 sessions exist (any row) ---
-        if not (r.get('pnl_30d') or '').strip() and len(sessions) >= 5:
-            ben5 = _benefit_pct(bucket, price_d, _snapshot_price(sessions[4], ticker))
-            if ben5 is not None:
-                r['pnl_30d'] = round(ben5, 2)
-                row_changed = True
-
-        if row_changed:
-            r['updated_at'] = datetime.now().isoformat()
-            updated += 1
-
-    if updated:
-        with open(calib_path, 'w', encoding='utf-8', newline='') as f:
-            w = csv.DictWriter(f, fieldnames=list(rows[0].keys()))
-            w.writeheader()
-            w.writerows(rows)
-
-    return updated
-
-
-def _advice_track_record(rows, cutoff):
-    """Score the model's ADVICE over ALL settled rows (regardless of followed) — the
-    unfiltered view that compute_self_calibration's followed-only block hides. Lets the
-    brief see whether its active cut/trim/add signals actually beat a coin flip and
-    whether its high-confidence calls are overconfident (2026-05-30)."""
-    ACTIVE = {'cut', 'trim_on_rebound', 'add_only_on_trigger', 'add_on_breakout'}
-    SELL = {'cut', 'trim_on_rebound'}
-    scored = []
-    for r in rows:
-        if r.get('plan_date', '') < cutoff or r.get('outcome') not in ('win', 'loss'):
-            continue
-        try:
-            conf = float(r.get('confidence', 0))
-        except Exception:
-            conf = None
-        # Recover the asset's next-session return from the stored benefit% (pnl_5d):
-        # benefit = ret for hold/add, -ret for cut/trim → ret = ±benefit. The passive
-        # "hold everything" baseline wins whenever the asset rose (ret > 0).
-        try:
-            ben = float(r.get('pnl_5d'))
-            ret = -ben if r.get('bucket', '') in SELL else ben
-            base_win = 1 if ret > 0 else 0
-        except (TypeError, ValueError):
-            base_win = None
-        scored.append({'bucket': r.get('bucket', ''), 'confidence': conf,
-                       'win': 1 if r.get('outcome') == 'win' else 0,
-                       'base_win': base_win})
-
-    def _agg(seg):
-        if not seg:
-            return None
-        n = len(seg)
-        wr = sum(s['win'] for s in seg) / n
-        confs = [s['confidence'] for s in seg if s['confidence'] is not None]
-        out = {'n': n, 'win_rate': round(wr, 2)}
-        if confs:
-            avg_c = sum(confs) / len(confs)
-            out['avg_confidence'] = round(avg_c, 2)
-            out['overconfidence_gap'] = round(avg_c - wr, 2)  # >0 = overconfident
-        return out
-
-    # Secondary lens: T+5 (5-session) win, from the pnl_30d column (sign = win/loss).
-    # A call that wins T+1 but loses T+5 = right for a day, wrong on thesis.
-    def _t5num(r):
-        try:
-            return float(r.get('pnl_30d'))
-        except (TypeError, ValueError):
-            return None
-    t5 = [{'bucket': r.get('bucket', ''), 'win': 1 if _t5num(r) > 0 else 0}
-          for r in rows if r.get('plan_date', '') >= cutoff and _t5num(r) is not None]
-    def _wr(seg):
-        return {'n': len(seg), 'win_rate': round(sum(s['win'] for s in seg) / len(seg), 2)} if seg else None
-
-    # vs_baseline: the regime-robust "is the LLM useful?" number. Compare the LLM's
-    # actual decision win-rate to a passive "hold everything" baseline (wins whenever
-    # the asset rose) over the SAME calls. alpha_pp < 0 = the LLM's interventions did
-    # worse than doing nothing. (Absolute win-rate alone is confounded by bull/bear.)
-    base = [s for s in scored if s['base_win'] is not None]
-    vs_baseline = None
-    if base:
-        llm_wr = sum(s['win'] for s in base) / len(base)
-        base_wr = sum(s['base_win'] for s in base) / len(base)
-        vs_baseline = {
-            'n': len(base),
-            'llm_win_rate': round(llm_wr, 2),
-            'hold_baseline_win_rate': round(base_wr, 2),
-            'alpha_pp': round((llm_wr - base_wr) * 100, 1),
-            'verdict': ('LLM beat hold' if llm_wr > base_wr else
-                        'LLM == hold' if llm_wr == base_wr else 'LLM worse than just holding'),
-            'note': 'regime-robust edge check; alpha_pp<0 = active calls subtracted value '
-                    'vs doing nothing. one-regime sample — needs bear/chop to confirm.',
-        }
-
-    return {
-        'horizon': 'T+1 (next session)',
-        'n_settled': len(scored),
-        'vs_baseline': vs_baseline,
-        'active_signals': _agg([s for s in scored if s['bucket'] in ACTIVE]),
-        'passive_holds':  _agg([s for s in scored if s['bucket'] not in ACTIVE]),
-        'per_bucket': {b: _agg([s for s in scored if s['bucket'] == b])
-                       for b in sorted(set(s['bucket'] for s in scored))},
-        'per_confidence_band': {k: _agg([s for s in scored
-                                         if s['confidence'] is not None and lo <= s['confidence'] < hi])
-                                for k, lo, hi in [('0.50-0.65', 0.50, 0.65),
-                                                  ('0.65-0.75', 0.65, 0.75),
-                                                  ('>=0.75', 0.75, 1.01)]},
-        'secondary_T5': {
-            'n': len(t5),
-            'active_signals': _wr([s for s in t5 if s['bucket'] in ACTIVE]),
-            'passive_holds':  _wr([s for s in t5 if s['bucket'] not in ACTIVE]),
-            'note': 'thesis-durability lens at 5 sessions; compare to T+1 — a call that '
-                    'wins T+1 but loses T+5 was right for a day, wrong on thesis.',
-        },
-        'note': 'win_rate over ALL settled calls (not just followed). active <0.50 = '
-                'signals add no edge; overconfidence_gap >0 on high bands = trim confidence.',
-    }
 
 
 def compute_reflections(portfolio):
-    """TradingAgents-style reflection memory (deterministic, derived from calibration.csv,
-    no LLM): for each CURRENTLY HELD ticker, surface its prior settled calls + a one-line
-    lesson, so the brief retrieves "what happened last time I made this kind of call on
-    this name" instead of deciding from scratch. Keyed on holdings (known at preflight;
-    today's plan isn't written yet). (2026-05-30)"""
-    calib_path = WS / 'memory' / 'calibration.csv'
-    if not calib_path.exists():
-        return {}
-    import csv
-    try:
-        rows = list(csv.DictReader(open(calib_path, encoding='utf-8')))
-    except Exception:
-        return {}
+    """Episode-level lessons for currently held tickers."""
+    rows = decision_v2.episode_representatives(decision_v2.load_decisions(), 't1')
 
     held = {h['ticker'] for leg in ('hk_stocks', 'us_stocks')
             for h in portfolio['portfolios'][leg]['holdings'] if h.get('shares', 0) > 0}
     SELL = {'cut', 'trim_on_rebound'}
     out = {}
     for tk in sorted(held):
-        settled = [r for r in rows if r['ticker'] == tk and r.get('outcome') in ('win', 'loss')]
+        settled = [r for r in rows if r['ticker'] == tk and (r.get('evaluation') or {}).get('outcome') in ('win', 'loss')]
         if not settled:
             continue
         settled.sort(key=lambda r: r['plan_date'])
-        wins = sum(1 for r in settled if r['outcome'] == 'win')
+        wins = sum(1 for r in settled if (r.get('evaluation') or {}).get('outcome') == 'win')
         # dominant bucket history + a plain lesson
         by_b = {}
         for r in settled:
-            by_b.setdefault(r['bucket'], []).append(r)
+            by_b.setdefault(r['action'], []).append(r)
         lessons = []
         for b, rs in by_b.items():
-            w = sum(1 for r in rs if r['outcome'] == 'win')
+            w = sum(1 for r in rs if (r.get('evaluation') or {}).get('outcome') == 'win')
             verb = {'cut': '清', 'trim_on_rebound': '减', 'add_only_on_trigger': '加',
                     'hold_and_watch': '持', 't_only': 'T'}.get(b, b)
             lessons.append(f'{verb}×{len(rs)} 胜{w}')
@@ -961,102 +674,35 @@ def compute_reflections(portfolio):
             'n': len(settled),
             'win_rate': round(wins / len(settled), 2),
             'bucket_history': '; '.join(lessons),
-            'recent': [{'date': r['plan_date'], 'bucket': r['bucket'],
-                        'conf': r.get('confidence'), 'outcome': r['outcome'],
-                        'benefit_pct': r.get('pnl_5d')} for r in recent],
-            'lesson': (f'{tk}: 过去 {len(settled)} 次主动判断胜率 {wins/len(settled):.0%}'
+            'recent': [{'date': r['plan_date'], 'strategy_id': r.get('strategy_id'),
+                        'action': r['action'], 'conf': r.get('confidence'),
+                        'outcome': (r.get('evaluation') or {}).get('outcome'),
+                        'benefit_pct': (r.get('evaluation') or {}).get('benefit_t1_pct')} for r in recent],
+            'lesson': (f'{tk}: 过去 {len(settled)} 个策略 episode 胜率 {wins/len(settled):.0%}'
                        + ('（主动 call 多半没跑赢持有，本次谨慎）' if wins / len(settled) < 0.5 else '')),
         }
     return out
 
 
-def compute_self_calibration():
-    """Read memory/calibration.csv accumulated by past brief postflights;
-    compute Brier score + per-bucket win rate over rolling 30 days."""
-    _resolve_pending_followed()  # T+1/T+2 followed detection (cheap, every run)
-    _resolve_pending_outcomes()  # T+1 next-session outcome resolution (2026-05-30)
-
-    calib_path = WS / 'memory' / 'calibration.csv'
-    if not calib_path.exists():
-        return {'samples': 0, 'note': 'no calibration log yet (first runs)'}
-
-    import csv
-    rows = []
-    try:
-        with open(calib_path, encoding='utf-8') as f:
-            for row in csv.DictReader(f):
-                rows.append(row)
-    except Exception as e:
-        return {'samples': 0, 'note': f'calibration read failed: {e}'}
-
-    # Filter to last 30 days with outcome known
-    cutoff = (datetime.now() - timedelta(days=30)).strftime('%Y-%m-%d')
-    scored = []
-    for r in rows:
-        if r.get('plan_date', '') < cutoff:
+def compute_decision_metrics():
+    """Settle the v2 ledger and return episode-level decision metrics."""
+    decisions = decision_v2.load_decisions()
+    # Preserve execution ground truth while migrating; prospective detection is
+    # applied only to triggered decisions whose execution is still unknown.
+    for d in decisions:
+        if (d.get('execution') or {}).get('status') != 'unknown':
             continue
-        try:
-            conf = float(r.get('confidence', 0))
-        except Exception:
+        if (d.get('evaluation') or {}).get('triggered') is not True:
             continue
-        outcome = r.get('outcome', '')  # 'win', 'loss', 'pending'
-        if outcome not in ('win', 'loss'):
-            continue
-        # Tier 1.1: only count plans you actually followed
-        # 'unknown' / 'true' / 'false' — only 'true' counted for calibration
-        followed = (r.get('followed') or 'unknown').lower()
-        if followed != 'true':
-            continue
-        actual = 1.0 if outcome == 'win' else 0.0
-        scored.append({
-            'bucket': r.get('bucket', ''),
-            'confidence': conf,
-            'actual':     actual,
-            'brier':      (conf - actual) ** 2,
-        })
-
-    if not scored:
-        return {'samples': len(rows),
-                'note': f'{len(rows)} plans logged but no followed-outcomes resolved yet',
-                'advice_track_record': _advice_track_record(rows, cutoff)}
-
-    # Brier score
-    brier_30d = sum(r['brier'] for r in scored) / len(scored)
-
-    # Per-bucket
-    buckets = {}
-    for r in scored:
-        b = r['bucket']
-        buckets.setdefault(b, {'n': 0, 'wins': 0, 'conf_sum': 0})
-        buckets[b]['n'] += 1
-        buckets[b]['wins'] += int(r['actual'])
-        buckets[b]['conf_sum'] += r['confidence']
-    per_bucket = {b: {
-        'n': v['n'], 'win_rate': v['wins'] / v['n'],
-        'avg_confidence': v['conf_sum'] / v['n'],
-        'calibration_gap': (v['conf_sum'] / v['n']) - (v['wins'] / v['n']),
-    } for b, v in buckets.items()}
-
-    # Per-confidence-bucket actual win rate
-    conf_buckets = {'50-60': [], '60-70': [], '70-80': [], '80-90': [], '90-100': []}
-    for r in scored:
-        c = r['confidence']
-        for k, lo, hi in [('50-60',0.50,0.60),('60-70',0.60,0.70),('70-80',0.70,0.80),('80-90',0.80,0.90),('90-100',0.90,1.01)]:
-            if lo <= c < hi:
-                conf_buckets[k].append(r['actual'])
-                break
-    conf_table = {k: {'n': len(v), 'actual_win_rate': sum(v)/len(v) if v else None} for k, v in conf_buckets.items()}
-
-    return {
-        'samples': len(scored),
-        'brier_30d': round(brier_30d, 4),
-        'brier_quality': 'good' if brier_30d < 0.20 else ('marginal' if brier_30d < 0.30 else 'poor — confidence is unreliable'),
-        'per_bucket': per_bucket,
-        'per_confidence_band': conf_table,
-        'advice_track_record': _advice_track_record(rows, cutoff),
-        'note': 'lower Brier = better calibrated. < 0.20 good, > 0.30 means model is overconfident. '
-                'See advice_track_record for the unfiltered (all-settled) view of advice quality.',
-    }
+        legacy_view = {'plan_date': d.get('plan_date'), 'ticker': d.get('ticker'),
+                       'bucket': d.get('action')}
+        verdict = _detect_followed(legacy_view)
+        if verdict in ('true', 'false'):
+            d['execution'] = {'status': 'followed' if verdict == 'true' else 'not_followed',
+                              'detected_at': datetime.now().isoformat(), 'source': 'git_shares_diff'}
+    decision_v2.settle_decisions(decisions)
+    decision_v2.write_decisions(decisions)
+    return decision_v2.compute_metrics(decisions)
 
 
 def _classify_regime(macro_trim):
@@ -1408,7 +1054,7 @@ def main():
     prior_plan = find_prior_plan(today)
     retro = compute_retrospective(prior_plan, portfolio)
     if retro.get('prior_plan_date'):
-        actions = retro['actions']
+        actions = retro['decisions']
         fired = sum(1 for a in actions if a.get('trigger_fired') is True)
         not_fired = sum(1 for a in actions if a.get('trigger_fired') is False)
         ambiguous = sum(1 for a in actions if a.get('trigger_fired') is None and 'error' not in a)
@@ -1424,30 +1070,15 @@ def main():
     peer_scan = collect_peer_scan(portfolio)
     print(f'   {len(peer_scan)} holdings with peer data; {sum(1 for h in peer_scan.values() if h.get("divergence_signal"))} divergence signals')
 
-    # [9] Self-calibration — read past plan outcomes and compute confidence accuracy
-    print('[9/11] Self-calibration')
-    self_calib = compute_self_calibration()
-    if self_calib.get('samples', 0) >= 5 and 'brier_30d' in self_calib:
-        print(f'   Brier (30d): {self_calib["brier_30d"]:.3f}  ({self_calib["samples"]} samples)')
-        for bucket, stats in self_calib.get('per_bucket', {}).items():
-            print(f'   {bucket:24s} n={stats["n"]} win_rate={stats["win_rate"]:.0%}')
-    else:
-        print(f'   not enough data yet (need ≥5 plans, have {self_calib.get("samples", 0)})')
-    atr = self_calib.get('advice_track_record') or {}
-    if atr.get('n_settled'):
-        act, pas = atr.get('active_signals'), atr.get('passive_holds')
-        if act:
-            print(f'   advice (T+1, all settled n={atr["n_settled"]}): '
-                  f'active {act["win_rate"]:.0%} (conf {act.get("avg_confidence",0):.2f}, '
-                  f'overconf +{act.get("overconfidence_gap",0):.2f}) | '
-                  f'passive {pas["win_rate"]:.0%}' if pas else '')
-        hi = (atr.get('per_confidence_band') or {}).get('>=0.75')
-        if hi:
-            print(f'   ⚠ high-conf (≥0.75) win_rate {hi["win_rate"]:.0%} — overconfidence_gap +{hi.get("overconfidence_gap",0):.2f}')
-        vb = atr.get('vs_baseline')
-        if vb:
-            print(f'   🎯 vs hold-baseline: LLM {vb["llm_win_rate"]:.0%} vs hold {vb["hold_baseline_win_rate"]:.0%} '
-                  f'→ alpha {vb["alpha_pp"]:+.0f}pp ({vb["verdict"]})')
+    # [9] V2 episode metrics — triggered-only, strategy-aware, cluster-bootstrap
+    print('[9/11] Decision metrics v2')
+    decision_metrics = compute_decision_metrics()
+    print(f'   {decision_metrics.get("settled_episodes", 0)} settled episodes / '
+          f'{decision_metrics.get("raw_decisions", 0)} raw decisions; Brier={decision_metrics.get("brier")}')
+    active_v2 = decision_metrics.get('active') or {}
+    print(f'   active: n={active_v2.get("n_episodes", 0)} '
+          f'avg benefit={active_v2.get("avg_benefit_pct")}%, '
+          f'cluster CI={active_v2.get("cluster_ci95")}')
 
     # [9b] Reflection memory — per held ticker, prior call outcomes (TradingAgents-style)
     reflections = compute_reflections(portfolio)
@@ -1671,7 +1302,7 @@ def main():
         'us_fundamentals': us_fund,
         'retrospective': retro,
         'peer_scan':     peer_scan,
-        'self_calibration': self_calib,
+        'decision_metrics': decision_metrics,
         'reflections':   reflections,
         'risk_metrics':  risk,
         'catalysts':     catalysts,

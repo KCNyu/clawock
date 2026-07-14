@@ -45,8 +45,7 @@ python3 /root/.openclaw/workspace/scripts/harness/brief_preflight.py
    - 杠杆 ETF 检测启发式（name 关键词）：'倍', 'Direxion', 'T-Rex', 'Defiance', 'ProShares',
      '2X Long', '3X Long', 'Daily Target'
    - 当前实际跑 EDGAR 的票：RKLB / CRCL（其他 5 个 US 持仓都是杠杆 ETF）
-7. **Retrospective**：读 prior `memory/*-plan.json`（日期 < 今天的最新），对每个 action 算
-   trigger 是否触发 + 模拟 P&L + confidence calibration
+7. **Retrospective**：读 prior v2 plan，对每个 decision 按 strategy 检查 condition 是否触发、模拟 benefit 与 confidence calibration
 
 输出：`memory/.tmp/brief-context-{date}.json` —— 所有数据准备好的单一 JSON。
 
@@ -61,7 +60,7 @@ context.json 关键字段：
 - `book` — `usd_total_pnl`, `hkd_total_pnl`, `hk_leg_hkd`, `us_leg_usd`（FX 已换算）
 - `concentration` — `{hk: {hhi, top2_pct, weights, verdict}, us: {...}}`
 - `edgar_summaries` — 单股最新 quarter 财报关键数字
-- `retrospective` — 上次 plan.json 每个 action 的触发结果 + 模拟 P&L
+- `retrospective` — 上次 plan.json 每个 strategy decision 的触发结果 + 模拟 benefit
 - `macro` — VIX / DXY / 10Y / F&G / HSI / HSTECH / SPX / NASDAQ + Fed press top 3（GH Action 每个工作日 23:30 UTC 刷）
 - `sentiment` — 每个持仓票的 Reddit 提及数 + Reddit top 3 + Google News top 3（无 signal 的票已被剔）
 - `em_news` — **东财中文消息源**（`holdings_news` 逐 HK 持仓近 3 条公司新闻 + `market_724` 大盘 7x24 快讯）。clawock 英文 news 薄在港股/中文面,这里补上。**HK 持仓找硬催化优先看这个**——回购/公告/事件多在中文源先出。命中硬催化 → `driven_by=catalyst` 并在 rationale 引日期+标题;只是情绪/涨跌色 → 不构成主动操作依据(见 catalyst-gate 铁律)。杠杆 ETF 已自动剔除(看标的不看公司新闻)。
@@ -171,9 +170,9 @@ context.json 关键字段：
 - **但** trending down regime 启动时 Conservative 权重 +1 档
 - 数据 stale 任何一段 → 涉及票 confidence -10pp
 
-输出 **5 个 action bucket**（也是 plan.json 的 `bucket` 字段）：
+输出策略级 decision。**同一股票同一天允许多条决策**，例如 `core_position` 继续持有，同时 `intraday_t` 做日内 T；两者不能互相覆盖。
 
-| bucket | 含义 |
+| action | 含义 |
 |---|---|
 | `cut` | thesis 破，挂卖单 |
 | `trim_on_rebound` | thesis 弱化，等强势 |
@@ -181,9 +180,9 @@ context.json 关键字段：
 | `t_only` | 不留隔夜信念，fade 极值 |
 | `add_only_on_trigger` | 明确触发条件后加仓 |
 
-每个 bucket 内：ticker + 1 行具体理由 + 1 行触发价/条件。
+每条 decision：ticker + `strategy_id` + action + 1 行具体理由 + 1 行触发条件。
 
-**每个 action 还必须带 `driven_by` 字段(plan.json)——这个 call 主要被哪个数据源驱动**(写进 calibration,日后能算出"哪个消息源真有 edge"):
+**每个 decision 必须带 `driven_by`**——这个策略决策主要由哪个数据源驱动（写进 v2 ledger，按 episode 计算 edge）：
 
 | driven_by | 含义 |
 |---|---|
@@ -193,30 +192,26 @@ context.json 关键字段：
 | `influencer` | Trump 原帖 / Musk 言论 / Serenity(AI半导体供应链选股) |
 | `macro` | VIX/利率/DXY/指数 regime |
 | `peer` | 相对强弱 / 板块轮动(同行扫描驱动) |
+| `risk_rule` | 组合上限、杠杆、β 等政策型再平衡 |
 
 规则：**只填主导那一个**(不是把所有沾边的都列上)。若是技术面为主、消息面只是佐证 → 填 `technical`。这个字段决定我们能不能回答"消息面值不值得听",所以要诚实归因,别把图表驱动的 call 贴成 catalyst 来给自己加分。
 
-#### 📊 driven_by 实测 edge 三档(REQUIRED 据此加权 — 2026-06-04 用 118 条 calibration 回填)
+#### 📊 driven_by / strategy 的动态 edge（REQUIRED）
 
-5/30 立 `driven_by` 时 edge "待几周填充",现已填出。**按动作方向校准**(cut/trim 看标的随后跌才算对、add 看涨才算对)的主动信号方向正确率:
+只读 `context.decision_metrics.by_driver` 与 `by_strategy`，禁止把 README 或旧报告里的点时数字当当前事实。比较 `n_episodes`、`avg_benefit_pct` 和 `cluster_ci95`：n 小或 CI 跨 0 时只能说“方向性”，不能声称显著。`risk_rule` 是政策执行，不当作择时信号夸奖。
 
-| 面 | 主动方向正确率 | 定性 | 加权规则 |
-|---|---|---|---|
-| **catalyst(消息/硬事件)** | **58%** (n=19) | 唯一站上掷硬币线、最有信息量;回撤里真正踩中 PLTU 利空崩盘的就是它 | **唯一可加权的方向源**;catalyst 驱动的 cut/trim/add 可正常下,confidence 不强制封顶(仍受 regime guard) |
-| peer(同业轮动) | 56% (n=9) | 样本太小,暂等同 catalyst 看待但别重仓押 | 可佐证,不单独重仓 |
-| **technical(纯图表)** | **39%** (n=23) | **比硬币还差**;回撤窗口里 ROBN/SOXL 那批"天天喊 cut"的坏钟就是它——没预判回撤,只是一直空、碰上崩盘蒙对 | **纯 technical 触发的 cut/trim 必须抬门槛**:要么有 catalyst 联署,要么 confidence ≤0.5 且 rationale 写明"纯技术、历史 39%、降级观察";不准用纯 technical 单独翻成 cut |
-| macro | 0/2 主动 | 几乎只配 hold,对个股择时无贡献 | 只用作 regime/段落背景,不驱动个股 bucket |
-| **sentiment / influencer(软情绪)** | **从未驱动过任何信号(n=0)** | 进了 brief 段落但从没转化成 bucket = 落地贡献 0 | **永不单独驱动方向**(已有铁律,见下节);只动 confidence ±10pp |
+#### 🌡️ 牛 / 熊 / 震荡 regime（REQUIRED，保留）
 
-**核心教训(写进每次决策心智)**:这次大回撤主因是**港股 beta**,三个面都没提前叫出来(港股全程 hold/macro);能被预判的只有杠杆 ETF 那段,而**只有 catalyst 真出过力、technical 是噪声、sentiment 根本没上场**。所以:**消息面(硬催化)是唯一值得听的方向信号,技术面降权当过滤器而非触发器,情绪面只调温不掌舵。** catalyst 的 58% 也只是相对最好(样本 19、区间宽),不是稳定 edge——继续积累、每月回填这张表。
+Bull/Bear 是决策框架的一部分，不能因升级账本而删除：
 
-#### 🌡️ 主动 alpha 是 regime 依赖的(REQUIRED — 别把某一段 regime 的战绩当定论)
+- Tier 2 仍必须分别写 Bull case 与 Bear case，并且至少在一个持仓或一个策略上形成真分歧。
+- 当前 regime 仍由 `context.macro.regime` 和可用的市场趋势数据判断为 `risk_on` / `neutral` / `risk_off`；报告必须写判断依据，数据 stale 时明确降置信度。
+- `risk_on`：`core_position` 默认让利润奔跑；没有证伪催化时不要因短线波动反复 cut。`intraday_t` 与 `risk_rebalance` 可独立存在，不能覆盖 core thesis。
+- `risk_off`：提高防御权重，杠杆与集中风险优先由 `risk_rebalance` 处理；`tactical_entry` 需要更强的价格/事件触发。
+- `neutral`：按各 strategy 自己的 condition 执行，不把同股不同时间尺度压成一个动作。
+- 复盘时按 `strategy_id` 分层看牛熊适应性；在 v2 尚无足够 regime episode 样本前，保留定性判断并注明样本不足，绝不引用旧 v1 的静态百分比冒充当前结果。
 
-`calibration.vs_baseline.by_regime`(dashboard「Calibration·30d」卡)把「主动 vs 全持有」alpha 按每笔 call **当时的市场动量**分桶(US=SPY、HK=HSTECH 近10日动量:牛 up-leg / 熊 down-leg / 震荡)。实测规律:
-
-- **cut/trim 在上涨腿(牛)结构性吃亏**——早期偏多子窗口曾测出 alpha −6pp,不是模型无能,是逆势减仓在涨市必然被躺平打败。
-- **熊/震荡里主动信号才见真章**:近 30 天(HSTECH 全程 trend-off)熊腿 alpha **+8pp**、震荡 ~持平,合计翻正。**所以「AI 主动决策没意义」是把单一牛市子窗口当全部的误读。**
-- **纪律**:引用主动战绩必须**带 regime 限定词**(「在当前弱势/震荡市里…」),不准拿一段 regime 的数字下全局结论;各桶 CI 目前多重叠 = 方向性未显著,继续积累。牛市样本仍 =0,跨 regime 未定论。
+这意味着“牛市 core 持有 + 同日 intraday T”“熊市 core 未证伪 + risk_rebalance 降杠杆”都可以同时成立；它们是不同策略，不是自相矛盾。
 
 #### 🚦 仓位/杠杆硬闸(REQUIRED — 优先级高于 driven_by 与 regime guard)
 
@@ -229,7 +224,7 @@ preflight 已算好,直接读 `context.risk_guardrail`:
 
 硬性规则:
 - **每一条 breach 和 hard_stop 必须在 Judge 段落出一个对应的具体动作**(trim 到 ≤cap / cut),不准忽略、不准"观望"。直接采用 `action` 文案或给等价方案。
-- 这些减仓 **driven_by 一律填 `technical`**(纪律性再平衡,与新闻无关),并在 rationale 注明"仓位硬闸,非消息驱动"。
+- 这些减仓 **strategy_id=`risk_rebalance`、driven_by=`risk_rule`**（纪律性再平衡，不是择时预测），并在 rationale 注明组合政策依据。
 - **这是 risk_on HOLD 默认的唯一豁免**:证伪铁律已写明纪律性再平衡正常走;别因为 regime=risk_on 就把降杠杆/降集中也按住。牛市里恰恰要借强减杠杆,不是等回调后。
 - **降 β/降杠杆优先削杠杆 ETF**(β 的主要来源),不要去砍高信念单票的 thesis。
 - **杠杆腿解套口径(kcn 2026-06-11 定)**:杠杆 ETF 的 breach/hard_stop 动作 = **2x→1x 同因子换仓而非清仓**(映射在 `brief_preflight.LEV_1X_SWAP`:07226→03033、PLTU→PLTR、ROBN→HOOD、MSFU→MSFT)——敞口不变、反弹一点不踏空,但停掉日内重置 decay;`context.risk_guardrail.reentry_rule` 满足(🧭转 green,标的收复 200 线)才允许 1x→2x 换回。**现货(非杠杆)套牢 kcn 方针=持有等待合法**(现货等待免费,2x 等待收费),对现货超限的最低要求是"不补仓、借反弹分批",别反复催清仓。
@@ -266,7 +261,7 @@ preflight 已算好,直接读 `context.risk_guardrail`:
 - **不准用利好新闻 justify 主动减仓/加仓**(牛市 churn 的头号来源)。"催化已兑现/已在价"是观望理由,不是出手理由——若真要动,driven_by 必须是 `technical`(估值/技术过热),不能挂成 catalyst。
 - 想加仓(add)同样要硬触发:明确回踩支撑价 + 量价确认,不是"利好所以追"。
 - 一条新闻若你判为 confirming 又想据此出手 → 停,这是矛盾,改 hold_and_watch。
-- 例外:止盈/再平衡这类**纪律性**减仓与新闻无关,正常走(driven_by=`technical`),但要在 rationale 标明是纪律不是消息。
+- 例外:止盈/再平衡这类**纪律性**减仓与新闻无关，走 `strategy_id=risk_rebalance` + `driven_by=risk_rule`，rationale 写明是纪律不是消息。
 
 #### Strategy frame menu — Judge 段必须显式选 1-3 个 per action
 
@@ -386,9 +381,8 @@ preflight 已算好,直接读 `context.risk_guardrail`:
 ```
 🧭 Regime: {label}({reasons 拼接}) → {该 regime 下的决策默认}
 ```
-据 regime 收敛主动操作(calibration 实测 hold 在 risk_on 下 76%、主动信号仅 40%):
-- **risk_on** → **默认动作 = HOLD,别跟趋势对着干**。cut/trim 必须有 disconfirming 硬催化才允许(见证伪铁律);所有主动 call(cut/trim/add)confidence **上限 ≤0.55**,并在 rationale 写"risk_on regime,主动信号历史 ~40%,倾向不动"。牛市砍仓结构性吃亏。
-  - **🎯 catalyst-gate 铁律(收窄主动信号面 / cut #1)**：calibration 实测**只有 `driven_by=catalyst` 经 95% CI 证明有 edge**(catalyst [59–82]),technical 仅勉强、是过滤器,peer/macro 无 edge;且主动 call 收益口径 alpha 为负(跟随 LLM 反而少赚)。**所以任何主动 cut/trim/add 必须 `driven_by=catalyst`(硬催化)**;若你只有 technical/peer/macro 依据 → **默认改 `hold_and_watch`**,把该理由写进 watch_levels 当触发条件,而不是直接出主动动作。每多一个非 catalyst 的主动 call,就是在重复已被证伪的负 alpha 行为。dashboard `active_signal_discipline.catalyst_pct` 会公开记录你这条做得好不好。
+据 regime 收敛主动操作：
+- **risk_on** → core_position 默认 HOLD；择时 cut/trim 需要 disconfirming 硬催化。`risk_rebalance` 是独立策略，可因组合政策在 risk_on 中减杠杆，不与 core thesis 混为一谈。
 - **neutral** → 正常按 frame 判断,无额外封顶。
 - **risk_off** → 防御优先,cut/trim 门槛放宽(可信度提高),add 需更强触发;杠杆仓位优先减。
 - regime 缺失(null,数据 stale)→ 写"regime 未知,主动操作按常规谨慎"并跳过封顶。
@@ -415,7 +409,7 @@ preflight 已算好,直接读 `context.risk_guardrail`:
 规则：
 - **近5日列**取自 `context.sentiment.tickers[].recent_move`(`px_pct` over `n_sessions`,可能为 null=无快照)。**price-in 判断必做**:利好 + 该票近5日已大涨 → 多半"已在价",追/不减都行但别当新理由出手;利好 + 近5日没动 → 才有"未反应"的可操作空间;利空 + 已大跌 = 部分消化,利空 + 没跌 = 风险未释放要警惕
 - 新闻关键词只抽 2-3 个动词/名词短语，不要复制全标题
-- 信号判断必须连到**你今天对这个票的 action bucket**（一致 / 矛盾要点出来）
+- 信号判断必须连到**你今天对这个票的具体 strategy/action**（一致 / 矛盾要点出来）
 - **每条信号判断结尾标 `[confirming]` 或 `[disconfirming]`**（见"消息面证伪不证实"铁律）：confirming 利好**不得**驱动 cut/trim/add；只有 disconfirming 的硬催化能驱动减仓
 - "异常关注"段：扫所有 ticker 的 news_top + reddit_top 文本，命中负面关键词 (`miss/SEC/probe/fraud/lawsuit/downgrade/halt/recall/short report`) 必列；无命中写"无"
 - sentiment 数据 age_hours > 36 整段写"⚠️ sentiment 数据 stale, 跳过本段"
@@ -449,48 +443,37 @@ preflight 已算好,直接读 `context.risk_guardrail`:
 - Serenity 条目来自 Substack(一手但低频，几周才一篇)，多为微盘/小票选股 idea：当"新机会"线索看，**别当买入指令**，措辞强调需自查基本面/一手证据(见 [[serenity-skill]])
 - influencer 数据 age_hours > 36 或 counts.total=0 整段写"⚠️ 名人异动数据 stale/无信号, 跳过本段"；postflight 不 fail
 
-#### ▎Confidence 自校准 (REQUIRED if `self_calibration.samples >= 5`)
+#### ▎Confidence / episode 校准（REQUIRED）
 
-context.json 有 `self_calibration` 字段含 Brier 30d + 每个 bucket 实际胜率 + 信心分桶实际率。
+context.json 的 `decision_metrics` 是 v2 唯一口径：只结算**条件实际触发**的决策；同一 `ticker + strategy_id` 的连续同类决策合并为一个 episode，只取一次代表样本，避免每日重复建议放大样本量。
 
 格式：
 ```
-▎Confidence 校准
+▎Decision v2 校准
 
-过去 30 天 Brier = X.XXX (good/marginal/poor)
-- cut bucket: N 次, win rate Y%, 平均报 confidence Z% → 校准差距 +/- Wpp
-- ...
-
-本次报 confidence 时考虑:
-- 你过去 70-80% 信心实际只赢 X% → 这次类似情境的我会调到 Y%
+过去 30 天：已结算 {settled_episodes} 个 episode，Brier = X.XXX
+- 主动决策：n=N，平均 benefit=X%，date-cluster CI=[L,U]
+- 按 strategy / action / driven_by 点出最强与最弱各一项
+- 执行状态：followed / not_followed / unknown；执行率不等于建议质量
 ```
 
-如果 self_calibration.samples < 5，这段写 "校准窗口未填满（N/5），跳过"。
-
-**注意**：上面的 brier / per_bucket 只计 `followed=true` 的 plan actions（kcn 真执行了的，≈ 被动 hold），会掩盖主动信号的真实质量。
-kcn 标记方式：`python3 scripts/data/mark_followed.py YYYY-MM-DD TICKER BUCKET [--no]`
-
-**REQUIRED 同时引用 `self_calibration.advice_track_record`**（口径 = T+1 次日回测、**所有已结算**行不过滤 followed —— 这才是"建议本身"的成色）。它含 `active_signals` / `passive_holds` / `per_bucket` / `per_confidence_band`，每项带 `win_rate` + `overconfidence_gap`(报的信心−实际胜率,>0=过度自信)。本次定 confidence 时**必须据此收敛**：
-- `active_signals.win_rate < 0.50` → 你的 cut/trim/add 信号历史上没 edge，这次主动信号的 confidence 上限压到 ≤0.60、并在理由里直说"主动信号近 N 次仅 X% 胜率"。
-- 某 `per_confidence_band` 的 `overconfidence_gap > 0.15`(尤其 `>=0.75` 档)→ 你在那个信心档系统性过度自信,本次同档 confidence 下调该 gap 的量。
-- 诚实呈现给 kcn：主动 vs 被动胜率对比 + 一句"模型主动信号目前是否值得听"。样本 < ~20 时注明"样本小,方向性参考"。
-- 同时看 `advice_track_record.secondary_T5`(T+5 副镜):若主动信号 **T+1 和 T+5 都 <0.50**，说明不是单日噪声、是真没 edge,措辞更硬;若 T+1 高但 T+5 低 = "对了一天、看错 thesis"，提醒 next-session 触发可设更紧/更快了结。
-
-**🎯 vs-baseline(最重要,REQUIRED 摆头条)**：`advice_track_record.vs_baseline` 给出 **LLM 决策胜率 vs "无脑全持有"基线**的 `alpha_pp`。这是抗 regime 的"模型到底有没有用"判据。**brief 的 ▎Confidence 校准段第一行必须是**：
-```
-🎯 近 30 天 LLM 决策 vs 无脑全持有：alpha {alpha_pp:+}pp（{verdict}）
-```
-若 `alpha_pp < 0`（LLM 跑输持有）→ 当期所有主动 call 的 confidence 上限压到 ≤0.55,并明说"模型主动决策当前跑输持有,本次倾向不动/小动"。注:单一 regime,标注"待熊市/震荡确认"。
+规则：
+- `settled_episodes < 5`：明确写样本未填满，只作方向性参考。
+- 主动 `cluster_ci95` 跨 0：不许声称有稳定 edge。
+- confidence 必须参考同 strategy/action 的 episode 战绩；样本小则收敛到中性，不得因同一股票连续多日重复 call 而虚增信心。
+- 同一天同一股票可以有多个 strategy；分别写、分别触发、分别评估，禁止压成一条综合 action。
+- `event` / `manual` 条件若无可验证触发证据，状态为 `not_evaluable`，不进入胜率和 Brier。
+- `execution` 与 `evaluation` 分离：建议是否有利和 kcn 是否执行是两个问题，报告时不得混写。
 
 #### ▎决策记忆 (reflections — REQUIRED if `context.reflections` 非空)
 
 `context.reflections[ticker]` 是每个持仓的历史同类决策战绩(`bucket_history` 如 "清×9 胜3" / `recent` / `lesson`)。**给某标的下主动 call 前必须先看它的 reflection**:
 - 若该票 `bucket_history` 显示你**反复做某动作且多半错**(如 ROBN "清×9 胜3")→ 这次别再机械重复,要么换论据要么降级为 hold,并在 rationale 里引"过去 N 次清 ROBN 错 M 次"。
-- `win_rate < 0.5` 的票 → 主动 call 需要比平时更强的新증据才出手。
+- `win_rate < 0.5` 的票 → 主动 call 需要比平时更强的新证据才出手。
 
 #### Next-Session Plan（可交易，不是观察清单）
 
-**决策优先(decision-first)**:先用 `reflections` + `advice_track_record` 为每个持仓定 bucket(hold/cut/trim/add)+ confidence,**再**写上面的叙事去论证这个决策——不要先写一大篇分析再顺出动作。决策是主角,叙事是它的理由。宁可 1-3 个高确信动作,其余 hold,也不要 8 个摊薄的逐票评级。
+**决策优先(decision-first)**:先用 `reflections` + `decision_metrics` 为每个持仓按 strategy 定 action + condition + confidence，**再**写叙事论证决策。决策是主角，叙事是理由。宁可 1-3 个高确信主动策略，其余 core hold，也不要 8 个摊薄的逐票评级。
 
 格式：
 ```
@@ -522,7 +505,7 @@ kcn 标记方式：`python3 scripts/data/mark_followed.py YYYY-MM-DD TICKER BUCK
 - `## ▎社交舆情速读` per-ticker Reddit + news (uses `sentiment` from context; 无信号票自动剔)
 - `## ▎名人异动/政策风向` Trump/Musk/Serenity radar (uses `influencer` from context; 撞持仓>新机会>板块相关, total=0 或 stale>36h 跳过)
 - `## Confidence` 表
-- `## ▎Confidence 校准` self-calibration (uses `self_calibration` from context, if samples ≥ 5)
+- `## ▎Decision v2 校准`（使用 `decision_metrics`，按 episode / strategy 展示）
 - `## Next-Session` plan
 
 必须包含的内容关键词（postflight 检查）：
@@ -536,6 +519,7 @@ postflight 严格 schema 校验：
 
 ```json
 {
+  "schema_version": 2,
   "date": "2026-05-18",
   "fx_rate_usdhkd": 7.8315,
   "fx_source": "Frankfurter",
@@ -546,20 +530,31 @@ postflight 严格 schema 校验：
     "hk_leg_hkd": -4936.0,
     "us_leg_usd": 513.0
   },
-  "actions": [
+  "decisions": [
     {
+      "strategy_id": "risk_rebalance",
+      "thesis_id": "reduce-leveraged-beta",
       "ticker": "ROBN",
-      "bucket": "cut",
-      "size_pct": 50,
-      "size_shares": 20,
-      "trigger_type": "open",
-      "trigger_price": null,
-      "trigger_condition": "周一开盘任意价",
+      "action": "cut",
+      "condition": {"type": "open", "price": null, "note": "周一开盘任意价"},
+      "size": {"pct": 50, "shares": 20, "capital": 3200},
       "confidence": 0.82,
-      "driven_by": "catalyst",
+      "driven_by": "risk_rule",
       "contested": true,
-      "rationale": "HOOD Q1 26 earnings miss + crypto rev -47%",
+      "rationale": "降低杠杆 beta；这是组合政策型再平衡，不是预测",
       "thesis_invalidation": "若 crypto rev 环比转正 / DAU 回升 → 论点失效，停止减仓"
+    },
+    {
+      "strategy_id": "intraday_t",
+      "thesis_id": "robn-intraday-mean-reversion",
+      "ticker": "ROBN",
+      "action": "t_only",
+      "condition": {"type": "price_above", "price": 16.2, "note": "冲高缩量时做 T"},
+      "size": {"pct": 15},
+      "confidence": 0.61,
+      "driven_by": "technical",
+      "contested": false,
+      "rationale": "与 core/risk_rebalance 分开的日内策略"
     }
   ],
   "watch_levels": {
@@ -571,14 +566,15 @@ postflight 严格 schema 校验：
 ```
 
 合法 enum：
-- `bucket` ∈ {`cut`, `trim_on_rebound`, `hold_and_watch`, `t_only`, `add_only_on_trigger`}
-- `trigger_type` ∈ {`open`, `price_above`, `price_below`, `index_breakdown`, `event`, `manual`}
-- `driven_by` ∈ {`technical`, `catalyst`, `sentiment`, `influencer`, `macro`, `peer`}（**每个 action 必填**，见"消息面权重铁律"段的归因表；postflight 校验，软情绪不得单独翻 bucket）
+- `strategy_id` ∈ {`core_position`, `risk_rebalance`, `intraday_t`, `event_trade`, `tactical_entry`}；迁移历史才允许 `legacy_unknown`
+- `action` ∈ {`cut`, `trim_on_rebound`, `hold_and_watch`, `t_only`, `add_only_on_trigger`, `watch`}
+- `condition.type` ∈ {`open`, `price_above`, `price_below`, `index_breakdown`, `event`, `manual`}
+- `driven_by` ∈ {`technical`, `catalyst`, `sentiment`, `influencer`, `macro`, `peer`, `risk_rule`}（每个 decision 必填）
 - `confidence` ∈ [0.0, 1.0]
-- `contested` ∈ {`true`, `false`}（**每个 action 必填**）：Tier 2 的 Bull 与 Bear 是否**真的在这个仓位上分歧**？`true`=两方对该仓给出相反结论、由 Judge 裁决；`false`=两方一致、辩论没改变它。这是辩论价值的度量种子——日后用它对账「被争议的 call 是否比一致的 call 校准更好」，量化 Tier1/2/3 辩论值不值它多花的 token。诚实标，别为了好看全标 true。
+- `contested` ∈ {`true`, `false`}（每个 decision 必填）：Tier 2 的 Bull 与 Bear 是否真的在该策略上分歧。
 - `thesis_invalidation`（string，主动 cut/trim/add 必填；hold 选填）：**借鉴 UZI-Skill 的 thesis-tracking**——这个仓位的论点**会被什么具体催化推翻**？把 catalyst-gate(cut #1)落地成「论点+失效条件」：你只在这个**失效催化真的发生**时动手，而不是技术面波动。例：「crypto rev 环比转正则停止减仓」。这逼着每个主动 call 绑定一个可被证伪的硬催化，而非"看着toppy"。
 
-**trigger_type 详解**（决定 retrospective 怎么算触发）：
+**condition.type 详解**（决定 retrospective 怎么算触发）：
 
 | 值 | 含义 | 模拟触发逻辑 |
 |---|---|---|
@@ -586,8 +582,10 @@ postflight 严格 schema 校验：
 | `price_above` | 价格突破上方 | `day_high >= trigger_price` |
 | `price_below` | 价格跌破下方 | `day_low <= trigger_price` |
 | `index_breakdown` | 指数破位 | trigger_condition 字段说明哪个指数 + 哪个值 |
-| `event` | 事件型（财报/公告） | 手动判断，不进 calibration 统计 |
-| `manual` | 完全靠人判断 | 不参与 calibration |
+| `event` | 事件型（财报/公告） | 有结构化证据才触发，否则 not_evaluable |
+| `manual` | 完全靠人判断 | 无结构化证据则 not_evaluable |
+
+禁止输出顶层 `actions`。postflight 会生成稳定的 `decision_id` / `episode_id` 并写入 `memory/decisions.jsonl`。同股同日的不同 strategy 必须保留为不同 decision；同策略连续同 action 才可归入同一 episode。
 
 #### C. LLM 复盘 sidecar → `memory/.tmp/insights-{YYYY-MM-DD}.json`
 
@@ -617,7 +615,7 @@ build_dashboard 会读它，让 dashboard 上 **行为复盘 / 唱反调 Pre-mor
 ```
 
 内容要求：
-- **behavioral_review.points 4-5 条**，覆盖：① `calibration_by_driver` 各源 edge 差（哪个该多信/降权）；② active 操作 alpha vs hold baseline（过度操作问题）；③ `calibration_by_trigger` 哪类 trigger 最该信/最该改；④ 任何过度自信信号（高 confidence 低 win_rate）。`tag`：edge=正面发现 / bias=认知偏差 / warning=要警惕。
+- **behavioral_review.points 4-5 条**，覆盖：① `decision_metrics.by_driver`；② `by_strategy`；③ `by_condition`；④ active episode 的 cluster CI；⑤ execution 与 advice 是否出现偏差。`tag`：edge=正面发现 / bias=认知偏差 / warning=要警惕。
 - **bear_cases 2-3 个**，选**最重仓或最高杠杆**的持仓（看 context 仓位权重 + leveraged_etf）。
 - **hidden_concentration**：看 sector_exposure + leveraged_etf + 持仓权重，识别表面分散实际同因子；`exposure_pct` 给该因子占组合的估算整数。
 - 全部中文，口吻直接、像私人交易教练，指出问题不安慰。
@@ -636,7 +634,7 @@ build_dashboard 会读它，让 dashboard 上 **行为复盘 / 唱反调 Pre-mor
 USD${total} ({pct}%) | HK leg {hk}HKD | US leg {us}USD
 
 ▎今日动作（≤4 条，来自 plan.json，标 driven_by）
-1. {ticker} {bucket} {trigger}(conf{%})
+1. {ticker} [{strategy_id}] {action} {condition}(conf{%})
 2. …
 
 ▎触发位（≤2 条最近的）
@@ -687,7 +685,7 @@ python3 /root/.openclaw/workspace/scripts/harness/brief_postflight.py
 
 - 表格优先（3+ 数据点必表格化）
 - ⚠️ stale 任何数据必前置标注
-- 没有"小心地"、"建议关注"这种废话 — 拍 buckets，拍价位
+- 没有"小心地"、"建议关注"这种废话 — 拍 strategy/action，拍条件与价位
 - 每个 claim 钉到具体 ticker + 数字，没有泛论
 - Bull/Bear/Aggressive/Conservative 必须真的不同观点
 - Judge 不重复 Bull/Bear，是合成不是复述

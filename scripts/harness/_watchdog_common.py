@@ -135,7 +135,7 @@ def build_brief_card(today):
     Preference order:
       1. LLM-written card at memory/.tmp/brief-card-{date}.txt — the rich TL;DR
          (核心结论 narrative) the model composes in the SKILL's Step 5. Sent verbatim.
-      2. Deterministic fallback from memory/{date}-plan.json (book + ≤4 actions +
+      2. Deterministic fallback from memory/{date}-plan.json (book + ≤4 decisions +
          full-brief link) if the model didn't write the card file — never silent.
     """
     url = BRIEF_URL_TMPL.format(date=today)
@@ -154,15 +154,16 @@ def build_brief_card(today):
         if bk:
             lines.append(f"Book: USD${bk.get('usd_total_pnl', '?')} | "
                          f"HK leg {bk.get('hk_leg_hkd', '?')}HKD | US leg {bk.get('us_leg_usd', '?')}USD")
-        acts = [a for a in (plan.get('actions') or []) if isinstance(a, dict)][:4]
+        acts = [a for a in (plan.get('decisions') or []) if isinstance(a, dict)][:4]
         if acts:
             lines.append('今日动作：')
             for i, a in enumerate(acts, 1):
-                trig = a.get('trigger_price')
-                trig = f"@{trig}" if trig is not None else (a.get('trigger_type') or '')
+                condition = a.get('condition') or {}
+                trig = condition.get('price')
+                trig = f"@{trig}" if trig is not None else (condition.get('type') or '')
                 conf = a.get('confidence')
                 conf = f" conf{round(float(conf) * 100)}%" if conf is not None else ''
-                lines.append(f"{i}. {a.get('ticker', '?')} {a.get('bucket', '')} {trig}{conf}")
+                lines.append(f"{i}. {a.get('ticker', '?')} [{a.get('strategy_id', '?')}] {a.get('action', '')} {trig}{conf}")
     except Exception:
         pass  # link-only fallback
     lines += ['', f'📈 完整报告：{url}']

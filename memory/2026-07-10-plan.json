@@ -26,88 +26,6 @@
     "us_lev": "red",
     "hk_lev": "amber"
   },
-  "actions": [
-    {
-      "ticker": "07226",
-      "bucket": "cut",
-      "trigger_type": "open",
-      "trigger_price": null,
-      "size_shares": 6200,
-      "confidence": 0.85,
-      "rationale": "硬止损-20.3%≤-18%；HK lev regime amber；lev cap 39.32%>25%；昨日trigger fired未执行，今日必落地；规则非择时",
-      "driven_by": "technical"
-    },
-    {
-      "ticker": "PLTU",
-      "bucket": "cut",
-      "trigger_type": "open",
-      "trigger_price": null,
-      "size_shares": 14,
-      "confidence": 0.80,
-      "rationale": "硬止损-25.5%≤-18%；PLTR dist200MA -17.8% 趋势OFF；月decay≈2.84%；→PLTR(1x)停止decay；规则非择时",
-      "driven_by": "technical"
-    },
-    {
-      "ticker": "RKLX",
-      "bucket": "cut",
-      "trigger_type": "open",
-      "trigger_price": null,
-      "size_shares": 10,
-      "confidence": 0.82,
-      "rationale": "硬止损-42.5%；昨日trigger fired未执行；→RKLB(1x)保留航天方向；规则非择时",
-      "driven_by": "technical"
-    },
-    {
-      "ticker": "MSFU",
-      "bucket": "cut",
-      "trigger_type": "open",
-      "trigger_price": null,
-      "size_shares": 20,
-      "confidence": 0.78,
-      "rationale": "硬止损-19.7%≤-18%；MSFT dist200MA -13.2% 趋势OFF；月decay≈1.22%；规则非择时",
-      "driven_by": "technical"
-    },
-    {
-      "ticker": "SPCH",
-      "bucket": "cut",
-      "trigger_type": "open",
-      "trigger_price": null,
-      "size_shares": 130,
-      "confidence": 0.75,
-      "rationale": "硬止损-28.8%≤-18%；US lev regime red；SPCX 5DMA以下-1.5%；规则纪律非择时；CME 7/27前可重建1x SPCX仓位",
-      "driven_by": "technical"
-    },
-    {
-      "ticker": "00100",
-      "bucket": "trim_on_rebound",
-      "trigger_type": "price_above",
-      "trigger_price": 320.0,
-      "size_shares": 15,
-      "confidence": 0.60,
-      "rationale": "单名43.4%>35% cap（breach）；解禁消化中；$320稳定后trim 15股→~65股降至cap内；历史trim胜率70%",
-      "driven_by": "peer"
-    },
-    {
-      "ticker": "02208",
-      "bucket": "hold_and_watch",
-      "trigger_type": "manual",
-      "trigger_price": null,
-      "size_shares": null,
-      "confidence": 0.60,
-      "rationale": "风电政策背书；历史76%胜率(n=29)；-2.59%短期承压但无结构恶化；维持观察",
-      "driven_by": "macro"
-    },
-    {
-      "ticker": "CRCL",
-      "bucket": "hold_and_watch",
-      "trigger_type": "manual",
-      "trigger_price": null,
-      "size_shares": null,
-      "confidence": 0.55,
-      "rationale": "RSI 34.8超卖；GENIUS Act政策窗口；Q1首次盈利$45M确认；2股小仓位维持",
-      "driven_by": "catalyst"
-    }
-  ],
   "key_catalysts": [
     {
       "date": "2026-07-15",
@@ -128,5 +46,472 @@
     "combined_sharpe_30d": -4.8275,
     "combined_dd_30d": -0.1764,
     "us_beta_spx": 3.7274
-  }
+  },
+  "schema_version": 2,
+  "decisions": [
+    {
+      "schema_version": 2,
+      "decision_id": "dec-da4e32376ea0",
+      "episode_id": "ep-cf1087600d0e",
+      "decision_group_id": "2026-07-10:07226",
+      "plan_date": "2026-07-10",
+      "created_at": "2026-07-10T08:00:00+08:00",
+      "ticker": "07226",
+      "name": "",
+      "leg": "HK",
+      "strategy_id": "risk_rebalance",
+      "thesis_id": "07226-risk_rebalance",
+      "action": "cut",
+      "condition": {
+        "type": "open",
+        "price": null,
+        "description": ""
+      },
+      "size": {
+        "shares": 6200,
+        "pct": null,
+        "note": ""
+      },
+      "confidence": 0.85,
+      "driven_by": "technical",
+      "rationale": "硬止损-20.3%≤-18%；HK lev regime amber；lev cap 39.32%>25%；昨日trigger fired未执行，今日必落地；规则非择时",
+      "simulated_entry_price": 3.478,
+      "horizon_sessions": 1,
+      "override": {
+        "status": "none",
+        "reason": "",
+        "expires_on": null,
+        "revisit_condition": ""
+      },
+      "evaluation": {
+        "status": "settled",
+        "triggered": true,
+        "trigger_session": "2026-07-10",
+        "execution_price": 3.524,
+        "underlying_return_t1_pct": -3.235,
+        "benefit_t1_pct": 3.235,
+        "benefit_t5_pct": null,
+        "outcome": "win",
+        "capital": 21848.8
+      },
+      "execution": {
+        "status": "not_followed",
+        "detected_at": "2026-07-13T08:02:55.225874 (auto)",
+        "source": "calibration_v1_migration"
+      },
+      "migration": {
+        "source": "calibration_v1",
+        "legacy_outcome": "win",
+        "legacy_benefit_t1_pct": "0.29",
+        "legacy_benefit_t5_pct": "",
+        "legacy_updated_at": "2026-07-13T08:02:55.356495"
+      }
+    },
+    {
+      "schema_version": 2,
+      "decision_id": "dec-f6250084ffa7",
+      "episode_id": "ep-8388b010b8dd",
+      "decision_group_id": "2026-07-10:PLTU",
+      "plan_date": "2026-07-10",
+      "created_at": "2026-07-10T08:00:00+08:00",
+      "ticker": "PLTU",
+      "name": "",
+      "leg": "US",
+      "strategy_id": "risk_rebalance",
+      "thesis_id": "pltu-risk_rebalance",
+      "action": "cut",
+      "condition": {
+        "type": "open",
+        "price": null,
+        "description": ""
+      },
+      "size": {
+        "shares": 14,
+        "pct": null,
+        "note": ""
+      },
+      "confidence": 0.8,
+      "driven_by": "technical",
+      "rationale": "硬止损-25.5%≤-18%；PLTR dist200MA -17.8% 趋势OFF；月decay≈2.84%；→PLTR(1x)停止decay；规则非择时",
+      "simulated_entry_price": 30.5,
+      "horizon_sessions": 1,
+      "override": {
+        "status": "none",
+        "reason": "",
+        "expires_on": null,
+        "revisit_condition": ""
+      },
+      "evaluation": {
+        "status": "settled",
+        "triggered": true,
+        "trigger_session": "2026-07-10",
+        "execution_price": 31.86,
+        "underlying_return_t1_pct": -2.6051,
+        "benefit_t1_pct": 2.6051,
+        "benefit_t5_pct": null,
+        "outcome": "win",
+        "capital": 446.04
+      },
+      "execution": {
+        "status": "not_followed",
+        "detected_at": "2026-07-13T08:02:55.244678 (auto)",
+        "source": "calibration_v1_migration"
+      },
+      "migration": {
+        "source": "calibration_v1",
+        "legacy_outcome": "win",
+        "legacy_benefit_t1_pct": "3.57",
+        "legacy_benefit_t5_pct": "",
+        "legacy_updated_at": "2026-07-13T08:02:55.356503"
+      }
+    },
+    {
+      "schema_version": 2,
+      "decision_id": "dec-efffef53054c",
+      "episode_id": "ep-d083bdb25639",
+      "decision_group_id": "2026-07-10:RKLX",
+      "plan_date": "2026-07-10",
+      "created_at": "2026-07-10T08:00:00+08:00",
+      "ticker": "RKLX",
+      "name": "",
+      "leg": "US",
+      "strategy_id": "risk_rebalance",
+      "thesis_id": "rklx-risk_rebalance",
+      "action": "cut",
+      "condition": {
+        "type": "open",
+        "price": null,
+        "description": ""
+      },
+      "size": {
+        "shares": 10,
+        "pct": null,
+        "note": ""
+      },
+      "confidence": 0.82,
+      "driven_by": "technical",
+      "rationale": "硬止损-42.5%；昨日trigger fired未执行；→RKLB(1x)保留航天方向；规则非择时",
+      "simulated_entry_price": 28.59,
+      "horizon_sessions": 1,
+      "override": {
+        "status": "none",
+        "reason": "",
+        "expires_on": null,
+        "revisit_condition": ""
+      },
+      "evaluation": {
+        "status": "settled",
+        "triggered": true,
+        "trigger_session": "2026-07-10",
+        "execution_price": 27.73,
+        "underlying_return_t1_pct": -8.4385,
+        "benefit_t1_pct": 8.4385,
+        "benefit_t5_pct": null,
+        "outcome": "win",
+        "capital": 277.3
+      },
+      "execution": {
+        "status": "not_followed",
+        "detected_at": "2026-07-13T08:02:55.261155 (auto)",
+        "source": "calibration_v1_migration"
+      },
+      "migration": {
+        "source": "calibration_v1",
+        "legacy_outcome": "win",
+        "legacy_benefit_t1_pct": "3.99",
+        "legacy_benefit_t5_pct": "",
+        "legacy_updated_at": "2026-07-13T08:02:55.356510"
+      }
+    },
+    {
+      "schema_version": 2,
+      "decision_id": "dec-cbdf085b40e0",
+      "episode_id": "ep-f5593025f99b",
+      "decision_group_id": "2026-07-10:MSFU",
+      "plan_date": "2026-07-10",
+      "created_at": "2026-07-10T08:00:00+08:00",
+      "ticker": "MSFU",
+      "name": "",
+      "leg": "US",
+      "strategy_id": "risk_rebalance",
+      "thesis_id": "msfu-risk_rebalance",
+      "action": "cut",
+      "condition": {
+        "type": "open",
+        "price": null,
+        "description": ""
+      },
+      "size": {
+        "shares": 20,
+        "pct": null,
+        "note": ""
+      },
+      "confidence": 0.78,
+      "driven_by": "technical",
+      "rationale": "硬止损-19.7%≤-18%；MSFT dist200MA -13.2% 趋势OFF；月decay≈1.22%；规则非择时",
+      "simulated_entry_price": 23.38,
+      "horizon_sessions": 1,
+      "override": {
+        "status": "none",
+        "reason": "",
+        "expires_on": null,
+        "revisit_condition": ""
+      },
+      "evaluation": {
+        "status": "settled",
+        "triggered": true,
+        "trigger_session": "2026-07-10",
+        "execution_price": 23.68,
+        "underlying_return_t1_pct": 2.1955,
+        "benefit_t1_pct": -2.1955,
+        "benefit_t5_pct": null,
+        "outcome": "loss",
+        "capital": 473.6
+      },
+      "execution": {
+        "status": "not_followed",
+        "detected_at": "2026-07-13T08:02:55.278106 (auto)",
+        "source": "calibration_v1_migration"
+      },
+      "migration": {
+        "source": "calibration_v1",
+        "legacy_outcome": "loss",
+        "legacy_benefit_t1_pct": "-0.38",
+        "legacy_benefit_t5_pct": "",
+        "legacy_updated_at": "2026-07-13T08:02:55.356517"
+      }
+    },
+    {
+      "schema_version": 2,
+      "decision_id": "dec-7c96467c9f25",
+      "episode_id": "ep-324b2ae6a53b",
+      "decision_group_id": "2026-07-10:SPCH",
+      "plan_date": "2026-07-10",
+      "created_at": "2026-07-10T08:00:00+08:00",
+      "ticker": "SPCH",
+      "name": "",
+      "leg": "US",
+      "strategy_id": "risk_rebalance",
+      "thesis_id": "spch-risk_rebalance",
+      "action": "cut",
+      "condition": {
+        "type": "open",
+        "price": null,
+        "description": ""
+      },
+      "size": {
+        "shares": 130,
+        "pct": null,
+        "note": ""
+      },
+      "confidence": 0.75,
+      "driven_by": "technical",
+      "rationale": "硬止损-28.8%≤-18%；US lev regime red；SPCX 5DMA以下-1.5%；规则纪律非择时；CME 7/27前可重建1x SPCX仓位",
+      "simulated_entry_price": 11.94,
+      "horizon_sessions": 1,
+      "override": {
+        "status": "none",
+        "reason": "",
+        "expires_on": null,
+        "revisit_condition": ""
+      },
+      "evaluation": {
+        "status": "settled",
+        "triggered": true,
+        "trigger_session": "2026-07-10",
+        "execution_price": 11.5,
+        "underlying_return_t1_pct": -14.2617,
+        "benefit_t1_pct": 14.2617,
+        "benefit_t5_pct": null,
+        "outcome": "win",
+        "capital": 1495.0
+      },
+      "execution": {
+        "status": "not_followed",
+        "detected_at": "2026-07-13T08:02:55.297869 (auto)",
+        "source": "calibration_v1_migration"
+      },
+      "migration": {
+        "source": "calibration_v1",
+        "legacy_outcome": "win",
+        "legacy_benefit_t1_pct": "8.88",
+        "legacy_benefit_t5_pct": "",
+        "legacy_updated_at": "2026-07-13T08:02:55.356523"
+      }
+    },
+    {
+      "schema_version": 2,
+      "decision_id": "dec-4f9399f1e56c",
+      "episode_id": "ep-29ff23fec933",
+      "decision_group_id": "2026-07-10:00100",
+      "plan_date": "2026-07-10",
+      "created_at": "2026-07-10T08:00:00+08:00",
+      "ticker": "00100",
+      "name": "",
+      "leg": "HK",
+      "strategy_id": "risk_rebalance",
+      "thesis_id": "00100-risk_rebalance",
+      "action": "trim_on_rebound",
+      "condition": {
+        "type": "price_above",
+        "price": 320.0,
+        "description": ""
+      },
+      "size": {
+        "shares": 15,
+        "pct": null,
+        "note": ""
+      },
+      "confidence": 0.6,
+      "driven_by": "peer",
+      "rationale": "单名43.4%>35% cap（breach）；解禁消化中；$320稳定后trim 15股→~65股降至cap内；历史trim胜率70%",
+      "simulated_entry_price": 320.0,
+      "horizon_sessions": 1,
+      "override": {
+        "status": "none",
+        "reason": "",
+        "expires_on": null,
+        "revisit_condition": ""
+      },
+      "evaluation": {
+        "status": "not_triggered",
+        "triggered": false,
+        "trigger_session": null,
+        "execution_price": 320.0,
+        "underlying_return_t1_pct": null,
+        "benefit_t1_pct": null,
+        "benefit_t5_pct": null,
+        "outcome": "not_triggered",
+        "capital": 4800.0
+      },
+      "execution": {
+        "status": "not_followed",
+        "detected_at": "2026-07-13T08:02:55.314434 (auto)",
+        "source": "calibration_v1_migration"
+      },
+      "migration": {
+        "source": "calibration_v1",
+        "legacy_outcome": "win",
+        "legacy_benefit_t1_pct": "16.06",
+        "legacy_benefit_t5_pct": "",
+        "legacy_updated_at": "2026-07-13T08:02:55.356529"
+      }
+    },
+    {
+      "schema_version": 2,
+      "decision_id": "dec-f86312cb7c63",
+      "episode_id": "ep-b44b44f06d25",
+      "decision_group_id": "2026-07-10:02208",
+      "plan_date": "2026-07-10",
+      "created_at": "2026-07-10T08:00:00+08:00",
+      "ticker": "02208",
+      "name": "",
+      "leg": "HK",
+      "strategy_id": "core_position",
+      "thesis_id": "02208-core_position",
+      "action": "hold_and_watch",
+      "condition": {
+        "type": "manual",
+        "price": null,
+        "description": ""
+      },
+      "size": {
+        "shares": null,
+        "pct": null,
+        "note": ""
+      },
+      "confidence": 0.6,
+      "driven_by": "macro",
+      "rationale": "风电政策背书；历史76%胜率(n=29)；-2.59%短期承压但无结构恶化；维持观察",
+      "simulated_entry_price": 9.76,
+      "horizon_sessions": 1,
+      "override": {
+        "status": "none",
+        "reason": "",
+        "expires_on": null,
+        "revisit_condition": ""
+      },
+      "evaluation": {
+        "status": "settled",
+        "triggered": true,
+        "trigger_session": "2026-07-10",
+        "execution_price": 9.76,
+        "underlying_return_t1_pct": -1.332,
+        "benefit_t1_pct": -1.332,
+        "benefit_t5_pct": null,
+        "outcome": "loss",
+        "capital": null
+      },
+      "execution": {
+        "status": "followed",
+        "detected_at": "2026-07-13T08:02:55.331514 (auto)",
+        "source": "calibration_v1_migration"
+      },
+      "migration": {
+        "source": "calibration_v1",
+        "legacy_outcome": "win",
+        "legacy_benefit_t1_pct": "8.4",
+        "legacy_benefit_t5_pct": "",
+        "legacy_updated_at": "2026-07-13T08:02:55.356534"
+      }
+    },
+    {
+      "schema_version": 2,
+      "decision_id": "dec-7fb064e9ef60",
+      "episode_id": "ep-ae6600517aee",
+      "decision_group_id": "2026-07-10:CRCL",
+      "plan_date": "2026-07-10",
+      "created_at": "2026-07-10T08:00:00+08:00",
+      "ticker": "CRCL",
+      "name": "",
+      "leg": "US",
+      "strategy_id": "event_trade",
+      "thesis_id": "crcl-event_trade",
+      "action": "hold_and_watch",
+      "condition": {
+        "type": "manual",
+        "price": null,
+        "description": ""
+      },
+      "size": {
+        "shares": null,
+        "pct": null,
+        "note": ""
+      },
+      "confidence": 0.55,
+      "driven_by": "catalyst",
+      "rationale": "RSI 34.8超卖；GENIUS Act政策窗口；Q1首次盈利$45M确认；2股小仓位维持",
+      "simulated_entry_price": 63.05,
+      "horizon_sessions": 1,
+      "override": {
+        "status": "none",
+        "reason": "",
+        "expires_on": null,
+        "revisit_condition": ""
+      },
+      "evaluation": {
+        "status": "settled",
+        "triggered": true,
+        "trigger_session": "2026-07-10",
+        "execution_price": 63.05,
+        "underlying_return_t1_pct": 2.2363,
+        "benefit_t1_pct": 2.2363,
+        "benefit_t5_pct": null,
+        "outcome": "win",
+        "capital": null
+      },
+      "execution": {
+        "status": "followed",
+        "detected_at": "2026-07-13T08:02:55.349274 (auto)",
+        "source": "calibration_v1_migration"
+      },
+      "migration": {
+        "source": "calibration_v1",
+        "legacy_outcome": "win",
+        "legacy_benefit_t1_pct": "4.9",
+        "legacy_benefit_t5_pct": "",
+        "legacy_updated_at": "2026-07-13T08:02:55.356540"
+      }
+    }
+  ]
 }

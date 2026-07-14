@@ -56,35 +56,21 @@
 
 但大多数"AI 炒股"演示会跳过下面这一段 👇
 
-## 🪞 它会给自己打分 —— 而且承认自己在亏
+## 🪞 它按策略 episode 打分，不拿每日重复 call 凑样本
 
-每份简报不只是嘴上说说。它会提交一个结构化的 **`plan.json`**:每个判断都带触发条件、置信度、模拟入场价。第二天早上,系统读回它,核对哪些触发条件真的命中、模拟盈亏,把结果记进一张滚动战绩表。
+每份简报提交 v2 `plan.json`。同一股票可以同时存在多个策略，例如长期 `core_position`、日内 `intraday_t` 与组合层 `risk_rebalance`；不同时间尺度同日结论不同是正常的，不再被压成一条综合动作。
 
-所以我能拿着账本告诉你,这个 AI *实际上*表现如何:
+唯一权威账本是 `memory/decisions.jsonl`。每条决策都有稳定 ID、策略、条件、仓位、置信度、驱动源、执行状态和评估状态。只有条件实际触发才结算；同一策略/动作的连续重申合并成一个 episode，因此连续五天写 hold 不会伪造五个样本。
 
-| AI 做了什么 | 样本 | 命中率 | 诚实结论 |
-|---|---:|---:|---|
-| **cut / trim / 加仓**(主动判断) | n=166 | **50%** | 基本就是掷硬币 |
-| 高信心判断(置信度 ≥ 0.75) | n=14 | **43%** | 仍然过度自信 |
-| **只是 `hold`** | n=188 | **60%** | 这是 β,不是 α |
-| 🔴「追高」警示 | n=58 | 57% | 能标出动作,择不准时点 |
-| 🟡「超卖,或许反弹」 | n=140 | 36% | 在接飞刀 |
+Reflect 仪表盘展示：
 
-> 再读一遍:在这个样本上,**模型的主动信号跑输了单纯持有。** 系统*自己公开说了*,因为这张战绩表是用 Python 算的,LLM 没权限作弊。诚实本身就是功能 —— 一个"AI 分析师"大半的价值,在于知道什么时候该无视它。
+- 按策略、动作、条件和驱动源拆分的主动/被动 benefit；
+- 已结算 episode 的 Brier 校准；
+- 按日期聚类的 bootstrap 区间，避免把同日 call 当独立证据；
+- 执行与建议质量分开统计；
+- 按资金权重计算每日 benefit 并逐日复合，绝不跨仓位直接累加百分点。
 
-**现在还有一条曲线。** 一个**「如果你全听它」**的反事实回测(LLM 只给建议,执行权始终在我),复用战绩表已经记的方向化 benefit%,在 **Reflect** tab 上对着一条 `不动 = 0` 基线画出**三条**:**我实际执行的**、**仅听主动**、**全听 AI**。**仅主动**那条一路在 0 以下、累计 **−33pp**(T+1;T+5 是 −46pp);**全听 AI** 那条 +474pp 几乎全是 `hold` = 市场 β;而**我实际做的**基本贴着那条 β 跑(我大多在持有)——所以你能把自己的真实路径同时跟两种无脑策略对比,亲眼看着主动操作相对躺平怎么一点点失血。
-
-<p align="center"><img src="docs/shadow-backtest.png" alt="影子回测:我实际执行 vs 仅听主动 vs 全听 AI,各自相对「不动」基线" width="760"></p>
-
-<sub>数字来自 `memory/calibration.csv`、`quant_signal_review.json`、`t0_setup_review.json`,随样本增长而变动。n < 20 的因子只展示、**禁止进入决策**,直到它用命中率挣到话语权。</sub>
-
-> 💸 **那真实的账本呢?** 截至 2026 年 7 月,按峰值净本金口径,这个在场的组合合计 **−22%** —— 美股腿 **+41%**、港股腿 **−37%**,杠杆两头都在割(已实现 +\$2.9k、浮亏 −\$5.8k;30 日 Sharpe −6.5)。仪表盘上实时可见。*这* 才是"诚实"真正指向的数字 —— 不是一个我能重跑的回测,而是我唯一得真金白银扛下去的账本。
-
-**这张战绩表被设计成「骗不了自己」。** 三道闸挡住"噪音冒充 edge":
-
-- **每个命中率都带 95% 置信区间。** "catalyst 70%" 在 n=84 下其实是 `[63–90]` —— 唯一区间清过 50% 的驱动源。任何区间跨过 50% 的(macro、peer)都被标 `edge_significant: false`,统计上和掷硬币没区别。
-- **风险调整后的判决,不只看命中率。** 按*频率*,LLM 的判断看着比持有 **+4.4pp**;按*收益*只剩 **+0.42pp** —— 和 0 没有统计差别 —— 而组合 β 高达 **3.4**。所以**杠杆 β 的"赢"永远不会被当成技巧**。
-- **catalyst-gate 纪律。** 只有 `catalyst` 有 CI 证明的 edge,所以每个主动 cut/trim/加仓必须点名**支撑它的硬催化**(以及**会推翻其论点的那个催化** = thesis 失效条件)。dashboard 记录有多少真做到了 —— 目前约 7%,即大多数主动 call 还是无 edge 的技术面操作。
+所有数字由账本和真实快照生成。LLM 负责写决策；ID、触发判断、episode 分组、指标和回测全部由 Python 掌管。
 
 ---
 
@@ -92,14 +78,7 @@
 
 人格背后是一套**固定的决策框架,不是凭感觉**。每个判断在被允许"算数"之前,都要经过归因、闸门、归桶三道。
 
-**1. 归因优先 —— 而且边际是被量化的。** 每个判断都标注*由什么驱动*,再长期打分。真实战绩:
-
-| 驱动源 | 命中率 | 怎么用 |
-|---|---:|---|
-| **催化剂**(财报、FOMC、有日期的事件) | **70%**(n=84) | 唯一被允许*发起*操作的驱动源 |
-| **技术面**(趋势 / RSI / 关键位) | **52%**(n=231) | 当过滤器,绝不当 thesis |
-| 宏观 | 50%(n=20) | 背景;单独看就是掷硬币 |
-| **同业 / 抱团联想** | **31%**(n=13) | 最差 —— 抱团式推理被刻意不信任 |
+**1. 归因优先 —— 而且 edge 动态计算。** 每条决策标注唯一主导源；当前样本数、平均 benefit、胜率和日期聚类区间全部来自 `decision_metrics.by_driver`，README 不再写死某个时点的命中率。
 
 **2. 硬催化 vs 软情绪。** 软情绪(Reddit、氛围、一条推)只能微调*置信度*数字,**永远翻不动操作分桶**。只有有日期的硬催化才能。
 
@@ -111,7 +90,7 @@
 
 **6. 量化信号必须挣到话语权。** 一层因子(双均线、12-1 动量、RSI-14、z-score、ATR 吊灯止损、波动目标仓位)在 Python 里跑 —— 但**每个因子在清过 n≥20 并证明命中率之前,禁止进入决策**。没证过的因子只展示、绝不照做。
 
-所有东西最终落进一个带明确触发条件的操作分桶 —— `cut` / `trim-on-rebound` / `hold` / `T-only` / `add-only-on-trigger`。这张分桶清单*就是*次日被打分的 `plan.json`:**策略和成绩单是同一个对象。**
+所有东西最终落进一条或多条带明确条件的策略决策。同股的 `core_position`、`risk_rebalance`、`intraday_t`、`event_trade`、`tactical_entry` 可以并存，并在各自 episode 中结算。
 
 ---
 
@@ -121,7 +100,7 @@
 
 - **Tier 1 —— 4 个分析师视角。** 基本面 / 技术面 / 情绪面 / 板块轮动,各自读*同一份* `context.json`,合并成一张大表。只准用数字,不准 vibes。
 - **Tier 2 —— Bull vs Bear。** 两个研究员组装对立的案子(持有/加仓 vs 减仓/砍仓),各自至少引 2 个具体的 Tier-1 数据点。硬规则:**至少要在 1 个仓位上真分歧** —— 一致同意 = 辩论失败,直接作废。
-- **Tier 3 —— 3 个风险声音 + 一个 Judge。** Aggressive、Conservative、Neutral 各自争自己那一方;一个 **Judge** 给它们称重、点名每个决策由哪个 strategy frame 驱动,把争论收敛成带触发条件的具体分桶动作。
+- **Tier 3 —— 3 个风险声音 + 一个 Judge。** Aggressive、Conservative、Neutral 各自争自己那一方;一个 **Judge** 给它们称重、点名每个决策由哪个 strategy frame 驱动,把争论收敛成带条件的策略决策。
 
 目的不是达成共识 —— 是**逼着一个真实的空头案在任何持仓被保留之前先存在**,这样这张组合永远不会只是自己把自己说服进自己的仓位。Judge 的裁决*就是*次日被打分的 `plan.json`。
 
@@ -241,7 +220,7 @@
 - **5 · 宏观/情绪** — `fetch_macro` VIX+宏观速读 ✅ · `fetch_sentiment` Reddit 情绪 🟡 · `fetch_influencer_feed` Trump/Musk 言论 🟡 · `fetch_peers` 同业现价+5日P&L ✅
 - **6 · 量化因子**(纯算术零外部依赖) — `compute_quant_signals` 双均线/动量/RSI/ATR/vol-target ✅ · `compute_regime` 杠杆刻度盘(200DMA+波动带) ✅ · `compute_t0_setups` T+0牌面评级+追高检测 ✅ · `portfolio_risk_metrics` β/Cov-Var/回撤/集中度 ✅
 - **7 · 汇率/校验** — `fetch_fx` USDHKD 3路fallback ✅ · `preflight_integrity` 钱守恒硬闸(TCV/PNL/FX/cash) ✅
-- **8 · 回测/自省** — `backtest_hstech_regime` · `backtest_us_leverage` · `backtest_combined_regime` · `shadow_backtest`(「全听AI」反事实) · `quant_signal_review` + `t0_setup_review`(T+1/T+5 命中率自检) ✅
+- **8 · 回测/自省** — `decision_v2` episode 回测 · `backtest_hstech_regime` · `backtest_us_leverage` · `backtest_combined_regime` · `quant_signal_review` + `t0_setup_review` ✅
 
 **防封** — 所有东财调用统一走 `_em_http.em_get()`：进程内串行(≥1s + 随机抖动)、单 `Session` 复用、3 次重试后优雅 `None`。完整逐文件目录见 [`scripts/data/README.md`](scripts/data/README.md)。
 
@@ -261,11 +240,11 @@ clawock/
 │   ├─ quant_signals.json  quant_signal_review.json     ← 因子战绩表
 │   └─ t0_setups.json  t0_setup_review.json             ← 盘中牌面战绩表
 ├─ portfolio.json                           ← 唯一真值源(原子写入)
-├─ tests/                                    ← pytest:资金守恒派生(CI 闸)
+├─ tests/                                    ← decision-v2 + 资金守恒回归闸
 ├─ MEMORY.md  DREAMS.md                      ← 铁律 + 每夜「做梦」提升
 ├─ memory/
 │   ├─ {date}-pre-open.md  {date}-plan.json  ← 简报输出 + 结构化计划
-│   ├─ calibration.csv                       ← 自我打分的战绩表
+│   ├─ decisions.jsonl                       ← v2 决策/episode 权威账本
 │   └─ snapshots/{date}.json
 ├─ scripts/
 │   ├─ data/      抓取器 · build_dashboard.py · risk/quant/regime/t0 计算 · safe_push.sh

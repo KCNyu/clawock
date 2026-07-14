@@ -11,7 +11,6 @@ Used by:
   • CI weekly-health.yml      (full check)
   • Manual: `python3 scripts/system_check.py`
 """
-import csv
 import glob
 import json
 import os
@@ -108,31 +107,15 @@ def check_plan_json_schema(r):
         r.add('plan.json schema', OK, '0 plans yet')
         return
     bad = []
-    VALID_BUCKETS = {'cut','trim_on_rebound','hold_and_watch','t_only','add_only_on_trigger'}
-    VALID_TRIGGERS = {'open','price_above','price_below','index_breakdown','event','manual'}
-    VALID_DRIVERS = {'technical','catalyst','sentiment','influencer','macro','peer'}
+    sys.path.insert(0, str(WS / 'scripts' / 'data'))
+    import decision_v2
     for p in plans:
         try:
             d = json.loads(open(p).read())
         except Exception as e:
             bad.append(f'{Path(p).name}: parse fail'); continue
-        if 'date' not in d:
-            bad.append(f'{Path(p).name}: missing date')
-        for a in (d.get('actions') or []):
-            if a.get('bucket') and a['bucket'] not in VALID_BUCKETS:
-                bad.append(f'{Path(p).name}: bad bucket "{a["bucket"]}"')
-            if a.get('trigger_type') and a['trigger_type'] not in VALID_TRIGGERS:
-                bad.append(f'{Path(p).name}: bad trigger_type "{a["trigger_type"]}"')
-            if a.get('driven_by') and a['driven_by'] not in VALID_DRIVERS:
-                bad.append(f'{Path(p).name}: bad driven_by "{a["driven_by"]}"')
-            c = a.get('confidence')
-            if c is not None:
-                try:
-                    cf = float(c)
-                    if not (0 <= cf <= 1):
-                        bad.append(f'{Path(p).name}: confidence {cf} out of [0,1]')
-                except Exception:
-                    bad.append(f'{Path(p).name}: confidence not numeric')
+        errors = decision_v2.validate_plan(d)
+        bad.extend(f'{Path(p).name}: {e}' for e in errors)
     if bad:
         r.add('plan.json schema', CRITICAL, '; '.join(bad[:3]))
     else:
@@ -259,32 +242,30 @@ def check_openclaw_doctor(r):
         r.add('openclaw config', OK, f'valid; primary={primary}')
 
 
-def check_calibration_csv(r):
-    """calibration.csv parseable + bounded."""
-    p = WS / 'memory' / 'calibration.csv'
+def check_decision_ledger(r):
+    """V2 decision ledger is parseable, unique and schema-valid."""
+    p = WS / 'memory' / 'decisions.jsonl'
     if not p.exists():
-        r.add('calibration.csv', OK, 'no log yet (first runs)')
+        r.add('decisions.jsonl', OK, 'no ledger yet (first runs)')
         return
     try:
-        rows = list(csv.DictReader(open(p, encoding='utf-8')))
+        sys.path.insert(0, str(WS / 'scripts' / 'data'))
+        import decision_v2
+        rows = decision_v2.load_decisions(p)
     except Exception as e:
-        r.add('calibration.csv', CRITICAL, f'parse fail: {e}')
+        r.add('decisions.jsonl', CRITICAL, f'parse fail: {e}')
         return
-    if len(rows) > 5000:
-        r.add('calibration.csv size', WARNING, f'{len(rows)} rows — retention may not be working')
-        return
-    # Schema check: should have new 'followed' column (Tier 1.1)
-    if rows and 'followed' not in rows[0]:
-        r.add('calibration.csv schema', WARNING, "missing 'followed' column (run a brief or backfill)")
-        return
-    # Count followed status
-    from collections import Counter
-    if rows:
-        c = Counter((row.get('followed') or 'unknown').lower() for row in rows)
-        msg = f'{len(rows)} rows (followed: {c.get("true",0)}t/{c.get("false",0)}f/{c.get("unknown",0)}u)'
-        r.add('calibration.csv', OK, msg)
+    errors = []
+    seen = set()
+    for row in rows:
+        errors.extend(decision_v2.validate_decision(row))
+        did = row.get('decision_id')
+        if did in seen: errors.append(f'duplicate decision_id {did}')
+        seen.add(did)
+    if errors:
+        r.add('decisions.jsonl', CRITICAL, '; '.join(errors[:3]))
     else:
-        r.add('calibration.csv', OK, '0 rows')
+        r.add('decisions.jsonl', OK, f'{len(rows)} decisions · {len({x.get("episode_id") for x in rows})} episodes')
 
 
 def check_cron_paths_exist(r):
@@ -332,7 +313,7 @@ def main():
         check_peer_map_coverage,
         check_no_leaked_secrets,
         check_openclaw_doctor,
-        check_calibration_csv,
+        check_decision_ledger,
         check_cron_paths_exist,
     ]
     for c in checks:

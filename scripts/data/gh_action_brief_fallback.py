@@ -16,6 +16,7 @@ from pathlib import Path
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from xiaomi_llm import chat
+import decision_v2
 
 
 def main():
@@ -61,10 +62,16 @@ def main():
     try:
         plan = json.loads(json_part)
     except Exception as e:
-        print(f'  warn: plan.json parse failed: {e}', file=sys.stderr)
-        plan = {'date': today, 'actions': [], 'fx_rate_usdhkd': 7.83, 'error': str(e)}
+        raise SystemExit(f'plan.json parse failed: {e}')
+    if 'actions' in plan:
+        raise SystemExit('LLM returned forbidden v1 actions field')
+    plan['date'] = plan.get('date') or today
+    plan = decision_v2.normalize_authored_plan(plan)
+    errors = decision_v2.validate_plan(plan)
+    if errors:
+        raise SystemExit('plan.json v2 validation failed: ' + '; '.join(errors))
     Path(f'memory/{today}-plan.json').write_text(json.dumps(plan, ensure_ascii=False, indent=2))
-    print(f'  wrote pre-open.md + plan.json ({len(plan.get("actions", []))} actions)')
+    print(f'  wrote pre-open.md + plan.json ({len(plan.get("decisions", []))} decisions)')
 
 
 if __name__ == '__main__':

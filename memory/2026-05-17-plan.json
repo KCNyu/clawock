@@ -12,67 +12,303 @@
     "hk_leg_hkd": -4935.84,
     "us_leg_usd": 513.2
   },
-  "actions": [
-    {
-      "ticker": "ROBN",
-      "bucket": "cut",
-      "size_pct": 50,
-      "size_shares": 20,
-      "trigger_type": "price_below",
-      "trigger_price": 18.5,
-      "trigger_condition": "周一 HK 09:30 开盘后若 ROBN < $18.5，cut 50% (20股)；若开盘 > $18.5 也减 20 股（derisk 优先）",
-      "confidence": 0.75,
-      "rationale": "HOOD pre-market -9% + ROBN -17.5% 浮亏 = 结构性恶化概率高；ROBN 2x 杠杆放大 crypto rev 萎缩风险；derisk 优先于等反弹"
-    },
-    {
-      "ticker": "00100",
-      "bucket": "trim_on_rebound",
-      "size_pct": 33,
-      "size_shares": 20,
-      "trigger_type": "price_below",
-      "trigger_price": 730.0,
-      "trigger_condition": "周一 HK 09:30 开盘后若 00100 跌破 HK$730，减 20 股；若无此触发且在 $750+ 区间运行，持仓",
-      "confidence": 0.65,
-      "rationale": "-6.6% 日跌幅远超同行智云健康 -0.2%，alpha 在丢失；$700 支撑强（4/27 加仓价）；trigger 过紧则失去做T机会"
-    },
-    {
-      "ticker": "MSFU",
-      "bucket": "hold_and_watch",
-      "size_pct": 0,
-      "size_shares": 0,
-      "trigger_type": "price_above",
-      "trigger_price": 31.0,
-      "trigger_condition": "MSFU 若突破 $31，T-only 持有；跌破 $27.5 则考虑 cut",
-      "confidence": 0.7,
-      "rationale": "MSFT 财报后 +6.1% 动量延续；MSFU 2x 放大上涨；cost basis $29.13 平价，风险有限"
-    },
-    {
-      "ticker": "SOXL",
-      "bucket": "hold_and_watch",
-      "size_pct": 0,
-      "size_shares": 0,
-      "trigger_type": "manual",
-      "trigger_price": null,
-      "trigger_condition": "SOXL 若日间 +5% 且 QQQ 确认反弹，可持有；恒科/HK macro 差时减",
-      "confidence": 0.65,
-      "rationale": "+78.7% 浮盈保护垫厚；3x 半导体杠杆在趋势中放大；HK trending down 不利但 US tech narrative 强"
-    },
-    {
-      "ticker": "07226",
-      "bucket": "t_only",
-      "size_pct": 0,
-      "size_shares": 0,
-      "trigger_type": "index_breakdown",
-      "trigger_price": 4800.0,
-      "trigger_condition": "HSTECH 若跌破 4800 且无反弹迹象，07226 只 T-only（不留隔夜），不买新",
-      "confidence": 0.55,
-      "rationale": "恒科 trending down，2x 杠杆 decay 每日消耗；题材- 自己- 合理持有等轮回，但信心低"
-    }
-  ],
   "watch_levels": {
     "hstech_breakdown": 4800,
     "hk_book_force_derisk_hkd": -6000,
     "robn_open_price": 18.5,
     "msfu_target": 31.0
-  }
+  },
+  "schema_version": 2,
+  "decisions": [
+    {
+      "schema_version": 2,
+      "decision_id": "dec-3cb9ca7755d5",
+      "episode_id": "ep-65313d24451f",
+      "decision_group_id": "2026-05-17:ROBN",
+      "plan_date": "2026-05-17",
+      "created_at": "2026-05-17T08:00:00+08:00",
+      "ticker": "ROBN",
+      "name": "",
+      "leg": "US",
+      "strategy_id": "core_position",
+      "thesis_id": "robn-core_position",
+      "action": "cut",
+      "condition": {
+        "type": "price_below",
+        "price": 18.5,
+        "description": "周一 HK 09:30 开盘后若 ROBN < $18.5，cut 50% (20股)；若开盘 > $18.5 也减 20 股（derisk 优先）"
+      },
+      "size": {
+        "shares": 20,
+        "pct": 50.0,
+        "note": ""
+      },
+      "confidence": 0.75,
+      "driven_by": "technical",
+      "rationale": "HOOD pre-market -9% + ROBN -17.5% 浮亏 = 结构性恶化概率高；ROBN 2x 杠杆放大 crypto rev 萎缩风险；derisk 优先于等反弹",
+      "simulated_entry_price": 19.45,
+      "horizon_sessions": 1,
+      "override": {
+        "status": "none",
+        "reason": "",
+        "expires_on": null,
+        "revisit_condition": ""
+      },
+      "evaluation": {
+        "status": "not_triggered",
+        "triggered": false,
+        "trigger_session": null,
+        "execution_price": 18.5,
+        "underlying_return_t1_pct": null,
+        "benefit_t1_pct": null,
+        "benefit_t5_pct": null,
+        "outcome": "not_triggered",
+        "capital": 370.0
+      },
+      "execution": {
+        "status": "not_followed",
+        "detected_at": "2026-05-21T23:37:25.396638 (auto)",
+        "source": "calibration_v1_migration"
+      },
+      "migration": {
+        "source": "calibration_v1",
+        "legacy_outcome": "loss",
+        "legacy_benefit_t1_pct": "-0.0",
+        "legacy_benefit_t5_pct": "9.31",
+        "legacy_updated_at": "2026-05-30T18:24:12.043174"
+      }
+    },
+    {
+      "schema_version": 2,
+      "decision_id": "dec-9a8c454130f2",
+      "episode_id": "ep-9eb6423c6a2f",
+      "decision_group_id": "2026-05-17:00100",
+      "plan_date": "2026-05-17",
+      "created_at": "2026-05-17T08:00:00+08:00",
+      "ticker": "00100",
+      "name": "",
+      "leg": "HK",
+      "strategy_id": "intraday_t",
+      "thesis_id": "00100-intraday_t",
+      "action": "trim_on_rebound",
+      "condition": {
+        "type": "price_below",
+        "price": 730.0,
+        "description": "周一 HK 09:30 开盘后若 00100 跌破 HK$730，减 20 股；若无此触发且在 $750+ 区间运行，持仓"
+      },
+      "size": {
+        "shares": 20,
+        "pct": 33.0,
+        "note": ""
+      },
+      "confidence": 0.65,
+      "driven_by": "technical",
+      "rationale": "-6.6% 日跌幅远超同行智云健康 -0.2%，alpha 在丢失；$700 支撑强（4/27 加仓价）；trigger 过紧则失去做T机会",
+      "simulated_entry_price": 794.0,
+      "horizon_sessions": 1,
+      "override": {
+        "status": "none",
+        "reason": "",
+        "expires_on": null,
+        "revisit_condition": ""
+      },
+      "evaluation": {
+        "status": "not_triggered",
+        "triggered": false,
+        "trigger_session": null,
+        "execution_price": 730.0,
+        "underlying_return_t1_pct": null,
+        "benefit_t1_pct": null,
+        "benefit_t5_pct": null,
+        "outcome": "not_triggered",
+        "capital": 14600.0
+      },
+      "execution": {
+        "status": "not_followed",
+        "detected_at": "2026-05-21T23:37:25.422473 (auto)",
+        "source": "calibration_v1_migration"
+      },
+      "migration": {
+        "source": "calibration_v1",
+        "legacy_outcome": "loss",
+        "legacy_benefit_t1_pct": "-0.0",
+        "legacy_benefit_t5_pct": "5.67",
+        "legacy_updated_at": "2026-05-30T18:24:12.043817"
+      }
+    },
+    {
+      "schema_version": 2,
+      "decision_id": "dec-3402c8e9331f",
+      "episode_id": "ep-6540fa6cf2f8",
+      "decision_group_id": "2026-05-17:MSFU",
+      "plan_date": "2026-05-17",
+      "created_at": "2026-05-17T08:00:00+08:00",
+      "ticker": "MSFU",
+      "name": "",
+      "leg": "US",
+      "strategy_id": "core_position",
+      "thesis_id": "msfu-core_position",
+      "action": "hold_and_watch",
+      "condition": {
+        "type": "price_above",
+        "price": 31.0,
+        "description": "MSFU 若突破 $31，T-only 持有；跌破 $27.5 则考虑 cut"
+      },
+      "size": {
+        "shares": 0,
+        "pct": 0.0,
+        "note": ""
+      },
+      "confidence": 0.7,
+      "driven_by": "technical",
+      "rationale": "MSFT 财报后 +6.1% 动量延续；MSFU 2x 放大上涨；cost basis $29.13 平价，风险有限",
+      "simulated_entry_price": 29.24,
+      "horizon_sessions": 1,
+      "override": {
+        "status": "none",
+        "reason": "",
+        "expires_on": null,
+        "revisit_condition": ""
+      },
+      "evaluation": {
+        "status": "settled",
+        "triggered": true,
+        "trigger_session": "2026-05-17",
+        "execution_price": 29.24,
+        "underlying_return_t1_pct": 0.0,
+        "benefit_t1_pct": 0.0,
+        "benefit_t5_pct": -1.4706,
+        "outcome": "loss",
+        "capital": null
+      },
+      "execution": {
+        "status": "followed",
+        "detected_at": "2026-05-21T23:37:25.449517 (auto)",
+        "source": "calibration_v1_migration"
+      },
+      "migration": {
+        "source": "calibration_v1",
+        "legacy_outcome": "loss",
+        "legacy_benefit_t1_pct": "0.0",
+        "legacy_benefit_t5_pct": "-1.47",
+        "legacy_updated_at": "2026-05-30T18:24:12.044364"
+      }
+    },
+    {
+      "schema_version": 2,
+      "decision_id": "dec-5196e397f89a",
+      "episode_id": "ep-ad9cb980b4c0",
+      "decision_group_id": "2026-05-17:SOXL",
+      "plan_date": "2026-05-17",
+      "created_at": "2026-05-17T08:00:00+08:00",
+      "ticker": "SOXL",
+      "name": "",
+      "leg": "US",
+      "strategy_id": "core_position",
+      "thesis_id": "soxl-core_position",
+      "action": "hold_and_watch",
+      "condition": {
+        "type": "manual",
+        "price": null,
+        "description": "SOXL 若日间 +5% 且 QQQ 确认反弹，可持有；恒科/HK macro 差时减"
+      },
+      "size": {
+        "shares": 0,
+        "pct": 0.0,
+        "note": ""
+      },
+      "confidence": 0.65,
+      "driven_by": "technical",
+      "rationale": "+78.7% 浮盈保护垫厚；3x 半导体杠杆在趋势中放大；HK trending down 不利但 US tech narrative 强",
+      "simulated_entry_price": 164.18,
+      "horizon_sessions": 1,
+      "override": {
+        "status": "none",
+        "reason": "",
+        "expires_on": null,
+        "revisit_condition": ""
+      },
+      "evaluation": {
+        "status": "settled",
+        "triggered": true,
+        "trigger_session": "2026-05-17",
+        "execution_price": 164.18,
+        "underlying_return_t1_pct": 0.0,
+        "benefit_t1_pct": 0.0,
+        "benefit_t5_pct": 15.9764,
+        "outcome": "loss",
+        "capital": null
+      },
+      "execution": {
+        "status": "followed",
+        "detected_at": "2026-05-21T23:37:25.484926 (auto)",
+        "source": "calibration_v1_migration"
+      },
+      "migration": {
+        "source": "calibration_v1",
+        "legacy_outcome": "loss",
+        "legacy_benefit_t1_pct": "0.0",
+        "legacy_benefit_t5_pct": "15.98",
+        "legacy_updated_at": "2026-05-30T18:24:12.044911"
+      }
+    },
+    {
+      "schema_version": 2,
+      "decision_id": "dec-4eea7733957e",
+      "episode_id": "ep-c0d19ba614f5",
+      "decision_group_id": "2026-05-17:07226",
+      "plan_date": "2026-05-17",
+      "created_at": "2026-05-17T08:00:00+08:00",
+      "ticker": "07226",
+      "name": "",
+      "leg": "HK",
+      "strategy_id": "intraday_t",
+      "thesis_id": "07226-intraday_t",
+      "action": "t_only",
+      "condition": {
+        "type": "index_breakdown",
+        "price": 4800.0,
+        "description": "HSTECH 若跌破 4800 且无反弹迹象，07226 只 T-only（不留隔夜），不买新"
+      },
+      "size": {
+        "shares": 0,
+        "pct": 0.0,
+        "note": ""
+      },
+      "confidence": 0.55,
+      "driven_by": "technical",
+      "rationale": "恒科 trending down，2x 杠杆 decay 每日消耗；题材- 自己- 合理持有等轮回，但信心低",
+      "simulated_entry_price": 3.87,
+      "horizon_sessions": 1,
+      "override": {
+        "status": "none",
+        "reason": "",
+        "expires_on": null,
+        "revisit_condition": ""
+      },
+      "evaluation": {
+        "status": "not_evaluable",
+        "triggered": null,
+        "trigger_session": null,
+        "execution_price": null,
+        "underlying_return_t1_pct": null,
+        "benefit_t1_pct": null,
+        "benefit_t5_pct": null,
+        "outcome": "unknown",
+        "capital": null
+      },
+      "execution": {
+        "status": "followed",
+        "detected_at": "2026-05-21T23:37:25.520764 (auto)",
+        "source": "calibration_v1_migration"
+      },
+      "migration": {
+        "source": "calibration_v1",
+        "legacy_outcome": "loss",
+        "legacy_benefit_t1_pct": "0.0",
+        "legacy_benefit_t5_pct": "-3.05",
+        "legacy_updated_at": "2026-05-30T18:24:12.045433"
+      }
+    }
+  ]
 }

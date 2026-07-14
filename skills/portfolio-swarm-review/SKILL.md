@@ -124,7 +124,7 @@ Final synthesis. Weighs the three risk voices given:
 - Current regime (from regime detection above)
 - Data freshness — any stale leg downgrades confidence
 
-Output buckets per ticker:
+Output strategy decisions per ticker. The same ticker may have separate `core_position`, `intraday_t`, and `risk_rebalance` decisions on the same day:
 - **Hold and watch** — thesis intact, no action
 - **Trim on rebound** — thesis weakening, wait for strength
 - **T-only** — no overnight conviction, fade extremes
@@ -135,17 +135,7 @@ Each item: ticker + concrete reason + concrete trigger/level if applicable.
 
 ### Signal-source weighting (driven_by edge — REQUIRED)
 
-Not every signal source has earned the right to flip a bucket. Empirical edge from 118 calibration rows (2026-06-04, scored by *action direction*: a cut/trim is "right" only if the name then fell; an add only if it rose):
-
-| Source | Active direction-correct | How the Judge must weight it |
-|---|---|---|
-| **catalyst** (hard event) | **58%** (n=19) — only source above coin-flip; the one that actually caught the PLTU selloff in the drawdown | **The only source allowed to drive a directional call on its own.** A catalyst-driven cut/trim/add is fine. |
-| peer (rotation) | 56% (n=9) — small sample | Corroborates; don't size up on it alone. |
-| **technical** (pure chart) | **39%** (n=23) — worse than a coin; this is the ROBN/SOXL "cut every day" broken clock that never predicted the drawdown, just stayed short and got lucky on the crash | **A pure-technical cut/trim must be gated:** require a catalyst co-sign, or cap confidence ≤0.5 and label it "pure-technical, 39% hist, watch-only". Never flip to `cut` on chart alone. |
-| macro | 0/2 active — only ever justified holds | Regime/context backdrop only; does not drive a single-name bucket. |
-| **sentiment / influencer** (soft) | **never drove a signal (n=0)** — shows up in the brief but never became a bucket | **Never steers direction.** Confidence nudge ±10pp only (see the brief's 硬催化 vs 软情绪 rule). |
-
-**Core lesson the Judge must carry:** the recent large drawdown was mostly **HK beta** — *none* of the three faces called it ahead of time (HK was hold/macro throughout). The only predictable slice was the leveraged-ETF leg, and there **only catalyst did real work, technical was noise, sentiment never showed up.** So: **news/hard-catalyst steers, technical is a filter not a trigger, sentiment only adjusts temperature.** catalyst's 58% is still a small sample (n=19, wide interval) — keep accumulating, refill this table monthly. Mirror of the canonical rule in `skills/daily-deep-brief/SKILL.md` → 「📊 driven_by 实测 edge 三档」; keep both in sync.
+Not every signal source has earned the right to drive a decision. Read the current v2 ledger metrics (`decision_metrics.by_driver`, `by_strategy`, and `by_condition`) and compare `n_episodes`, average benefit, and date-cluster CI. Never copy a point-in-time rate from an old report. If n is small or the CI crosses zero, call it directional evidence only. Hard catalysts may drive an event/tactical decision; soft sentiment only nudges confidence. Policy-based deleveraging is a separate `risk_rebalance` decision with `driven_by=risk_rule`, not a claim of timing edge.
 
 ### Position / leverage hard caps (REQUIRED — overrides signal logic AND regime)
 
@@ -192,7 +182,7 @@ Two paragraphs, side by side framing.
 - Neutral voice (paragraph)
 
 ### Judge synthesis
-Five action buckets with tickers and reasons.
+Strategy decisions with ticker, strategy_id, action, condition, driver, and reason. Preserve simultaneous strategies instead of forcing one blended verdict.
 
 ### Confidence calls
 Bullet list: "{Action} {Ticker} — confidence XX% — {one-line reason}"

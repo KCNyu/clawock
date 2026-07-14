@@ -2,12 +2,11 @@
 """
 gh_action_weekly_review.py — Sunday 22:00 HKT weekly portfolio review via Xiaomi.
 
-Bundles past 7 days of plans / calibration rows / snapshots / current risk
+Bundles past 7 days of plans / decision episodes / snapshots / current risk
 into a single prompt, calls Xiaomi, writes memory/weekly/{ISO-week}.md.
 
 Env: XIAOMI_API_KEY required
 """
-import csv
 import glob
 import json
 import os
@@ -17,6 +16,7 @@ from pathlib import Path
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from xiaomi_llm import chat
+import decision_v2
 
 
 def aggregate_week():
@@ -35,11 +35,8 @@ def aggregate_week():
         except Exception:
             pass
 
-    calib_rows = []
-    if os.path.exists('memory/calibration.csv'):
-        for r in csv.DictReader(open('memory/calibration.csv')):
-            if r.get('plan_date', '') >= start.isoformat():
-                calib_rows.append(r)
+    decision_episodes = [r for r in decision_v2.episode_representatives(decision_v2.load_decisions(), 't1')
+                         if r.get('plan_date', '') >= start.isoformat()]
 
     snapshots = []
     for f in sorted(glob.glob('memory/snapshots/*.json')):
@@ -59,7 +56,8 @@ def aggregate_week():
         'week': week_id,
         'window': f'{start.isoformat()} -> {today.isoformat()}',
         'plans': plans,
-        'calibration_rows': calib_rows,
+        'decision_episodes': decision_episodes,
+        'decision_metrics': decision_v2.compute_metrics(decision_v2.load_decisions()),
         'snapshots': snapshots[-7:],
         'current_risk': risk,
     }
@@ -72,15 +70,14 @@ def main():
     system = "You are Rick, kcn's HK+US stock analyst. Write a weekly portfolio review."
 
     user = (
-        f"根据这一周（{week_id}）的 brief / plan / calibration / risk 数据, "
+        f"根据这一周（{week_id}）的 brief / plan / decision v2 / risk 数据, "
         f"写一篇 markdown 周复盘。长度 1500-2500 字。"
         "\n\n"
         "重点回答 4 个问题:\n"
         "1. **本周净值**: 总市值 USD-base 周初 vs 周末, "
-        "涪跌 + 主要贡献者 + 主要拖累\n"
-        "2. **plan 兌现**: calibration_rows 里 followed=true/false 各几条? "
-        "哪些 outcome=win? 哪些 outcome=loss? 本周 brier 趋势\n"
-        "3. **风险演变**: 当前 risk.json 数值, ɫ/Vol/Max DD/Sharpe 怎么走?\n"
+        "涨跌 + 主要贡献者 + 主要拖累\n"
+        "2. **决策兑现**: 按 strategy episode 汇总触发、执行和 win/loss；不要把每日重复 call 当独立样本\n"
+        "3. **风险演变**: 当前 risk.json 数值, β/Vol/Max DD/Sharpe 怎么走?\n"
         "4. **下周关注 3 条**: actionable (ticker + 触发条件 + 仓位影响)\n\n"
         f"数据 bundle (JSON):\n```json\n{json.dumps(bundle, ensure_ascii=False)[:40000]}\n```\n\n"
         "直接出 markdown, 不要客套."

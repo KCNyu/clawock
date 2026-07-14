@@ -61,6 +61,13 @@ LOOP_THRESHOLD = 5         # transcript loop_score ≥ this ⇒ mimo repeat-loop
 MARKER_FRESH_MS = 25 * 60 * 1000  # postflight send-marker older than this ⇒ treat as not-this-slot
 
 
+def deterministic_fallback(raw_block, tag, reason):
+    """Pure formatter used by the watchdog and regression tests."""
+    return (f'🧯 {tag} 确定性兜底（LLM {reason}）\n'
+            '以下内容由 preflight 数据直接生成，未经过模型改写：\n\n'
+            + raw_block.strip())
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--job-name', required=True, help='intraday cron job name')
@@ -91,12 +98,13 @@ def main():
 
     # --- Healthy-report gate: never re-send a stall/garbage turn --------------
     summary = last.get('summary', '')
+    raw_block = ''
     raw_block_first = None
     ctx_path = WS / 'memory' / '.tmp' / f'intraday-context-{args.market}-latest.json'
     if ctx_path.exists():
         try:
-            raw = (json.loads(ctx_path.read_text()).get('raw_wechat_block') or '').strip()
-            raw_block_first = raw.splitlines()[0] if raw else None
+            raw_block = (json.loads(ctx_path.read_text()).get('raw_wechat_block') or '').strip()
+            raw_block_first = raw_block.splitlines()[0] if raw_block else None
         except Exception:
             pass
     sent_via_tool = bool((last.get('delivery') or {}).get('messageToolSentTo'))
@@ -105,10 +113,16 @@ def main():
     loop_score, _ = transcript_loop_score(session_id)
     looped = loop_score >= LOOP_THRESHOLD
     if not delivered_clean or looped:
-        # Report itself failed/looped — that's report_watchdog's territory, not a
-        # long-turn drop. Don't re-send garbage; just record it.
-        log({'tag': tag, 'action': 'skip', 'reason': 'run unhealthy (stall/loop) — not a long-turn drop',
-             'delivered_clean': delivered_clean, 'loop_score': loop_score, 'run_at': run_at})
+        reason = '循环' if looped else '未完成'
+        body = deterministic_fallback(raw_block, tag, reason)
+        tg_ok, tg_out = send_telegram(KCN_TELEGRAM, body, args.dry_run)
+        log({'tag': tag, 'action': 'deterministic-fallback', 'sent_ok': tg_ok,
+             'delivered_clean': delivered_clean, 'loop_score': loop_score, 'run_at': run_at,
+             'target': KCN_TELEGRAM, 'out': tg_out})
+        if tg_ok and not args.dry_run:
+            flag.write_text(datetime.now(HKT).isoformat())
+        print(json.dumps({'tag': tag, 'deterministic_fallback': tg_ok,
+                          'dry_run': args.dry_run}, ensure_ascii=False))
         return 0
 
     # --- Delivery backstop: Telegram only (no WeChat resend) ------------------

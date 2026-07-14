@@ -44,15 +44,15 @@ PY
 fi
 
 # ──────────────────────────────────────────────────────────────────────────
-# 2. memory/*-plan.json — schema (date / actions / bucket enum)
+# 2. memory/*-plan.json — v2 decision schema
 # ──────────────────────────────────────────────────────────────────────────
 PLAN_FILES=$(echo "$STAGED" | grep -E '^memory/.*-plan\.json$' || true)
 if [ -n "$PLAN_FILES" ]; then
   echo "  ▸ validating staged plan.json files…"
   python3 - "$PLAN_FILES" <<'PY' || exit 1
-import json, sys, re
-VALID_BUCKETS = {'cut','trim_on_rebound','hold_and_watch','t_only','add_only_on_trigger'}
-VALID_TRIGGERS = {'open','price_above','price_below','index_breakdown','event','manual'}
+import json, sys
+sys.path.insert(0, 'scripts/data')
+import decision_v2
 files = sys.argv[1].split('\n') if len(sys.argv) > 1 else []
 bad = 0
 for f in files:
@@ -61,16 +61,8 @@ for f in files:
         d = json.loads(open(f).read())
     except Exception as e:
         print(f'    ✗ {f}: bad JSON ({e})', file=sys.stderr); bad += 1; continue
-    if 'date' not in d:
-        print(f'    ✗ {f}: missing "date"', file=sys.stderr); bad += 1
-    for action in (d.get('actions') or []):
-        if 'bucket' in action and action['bucket'] not in VALID_BUCKETS:
-            print(f'    ✗ {f}: bad bucket "{action["bucket"]}" (must be one of {VALID_BUCKETS})', file=sys.stderr); bad += 1
-        if 'trigger_type' in action and action['trigger_type'] not in VALID_TRIGGERS:
-            print(f'    ✗ {f}: bad trigger_type "{action["trigger_type"]}"', file=sys.stderr); bad += 1
-        c = action.get('confidence')
-        if c is not None and not (0 <= c <= 1):
-            print(f'    ✗ {f}: confidence={c} outside [0,1]', file=sys.stderr); bad += 1
+    for error in decision_v2.validate_plan(d):
+        print(f'    ✗ {f}: {error}', file=sys.stderr); bad += 1
 print(f'    ✓ {len([f for f in files if f.strip()])} plan(s) OK' if bad == 0 else f'    ✗ {bad} issues', file=sys.stderr if bad else sys.stdout)
 sys.exit(1 if bad else 0)
 PY

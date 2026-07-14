@@ -30,8 +30,8 @@ same body to Telegram (cold-proof, no contextToken-expiry drop), the WeChat retr
 bought nothing but duplicates, so it's gone. Telegram is the sole backstop channel:
 a report kcn didn't get on WeChat still reaches him on Telegram, without the dupes.
 
-Healthy-report gate: only re-send a report produced cleanly (block first-line
-present AND not a mimo repeat-loop) — never re-send a stall. Dedupe per slot.
+If the LLM stalls or loops after preflight, the watchdog sends the deterministic
+preflight block to Telegram. WeChat remains untouched to avoid duplicate sends.
 
 (Shared run-record / target / send helpers live in _watchdog_common.py.)
 
@@ -55,6 +55,13 @@ from _watchdog_common import (  # noqa: E402
 
 LOOP_THRESHOLD = 5                 # transcript loop_score ≥ this ⇒ mimo repeat-loop ⇒ garbage
 MARKER_FRESH_MS = 120 * 60 * 1000  # postflight send-marker older than this ⇒ treat as not-this-slot
+
+
+def deterministic_fallback(raw_block, tag, reason):
+    """Pure formatter used by the watchdog and regression tests."""
+    return (f'🧯 {tag} 确定性兜底（LLM {reason}）\n'
+            '以下内容由 preflight 数据直接生成，未经过模型改写：\n\n'
+            + raw_block.strip())
 
 
 def main():
@@ -92,11 +99,12 @@ def main():
     # The clean report block's first line comes from the preflight context. If the
     # context is missing, preflight never ran → nothing to resend.
     ctx_path = WS / 'memory' / '.tmp' / f'report-context-{args.market}-{args.phase}-{today}.json'
+    raw_block = ''
     raw_block_first = None
     if ctx_path.exists():
         try:
-            raw = (json.loads(ctx_path.read_text()).get('raw_wechat_block') or '').strip()
-            raw_block_first = raw.splitlines()[0] if raw else None
+            raw_block = (json.loads(ctx_path.read_text()).get('raw_wechat_block') or '').strip()
+            raw_block_first = raw_block.splitlines()[0] if raw_block else None
         except Exception:
             pass
     if not raw_block_first:
@@ -107,10 +115,16 @@ def main():
     loop_score, _ = transcript_loop_score(session_id)
     looped = loop_score >= LOOP_THRESHOLD
     if not block_present or looped:
-        # Report itself failed/looped — that's a generation failure, not a
-        # long-turn delivery drop. Don't fabricate a resend of garbage.
-        log({'tag': tag, 'action': 'skip', 'reason': 'run unhealthy (stall/loop) — not a long-turn drop',
-             'block_present': block_present, 'loop_score': loop_score, 'run_at': run_at})
+        reason = '循环' if looped else '未完成'
+        body = deterministic_fallback(raw_block, tag, reason)
+        tg_ok, tg_out = send_telegram(KCN_TELEGRAM, body, args.dry_run)
+        log({'tag': tag, 'action': 'deterministic-fallback', 'sent_ok': tg_ok,
+             'block_present': block_present, 'loop_score': loop_score, 'run_at': run_at,
+             'target': KCN_TELEGRAM, 'out': tg_out})
+        if tg_ok and not args.dry_run:
+            flag.write_text(datetime.now(HKT).isoformat())
+        print(json.dumps({'tag': tag, 'deterministic_fallback': tg_ok,
+                          'dry_run': args.dry_run}, ensure_ascii=False))
         return 0
 
     # --- Delivery backstop: Telegram only (no WeChat resend) ------------------
