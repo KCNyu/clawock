@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-13T15:38:29.550989",
+  "generated_at": "2026-07-14T14:42:20.859004",
   "lookback_hours": 48,
   "tickers": [
     "CRCL",
@@ -10,7 +10,7 @@
     "MSFU",
     "SKHY"
   ],
-  "digest_markdown": "## Top 移动信号\n- **CRCL**: 获 OCC 联邦银行牌照, 成首家持牌稳定币银行 → 结构性护城河加固, \"strong buy\" 叙事出笼, 估值已部分反映\n- **SKHY**: 分析师首次覆盖 Buy, ADR 目标 $300, 强调 HBM 领导地位与 NVDA/TSMC 绑定 → AI 内存周期 alpha 仍在\n- **SPCX/SPCH**: SpaceX 自 $75B IPO 峰值已跌 35%, 分析师目标价仍乐观但动能转弱 → post-IPO profit-taking, 对冲/减仓窗口\n- **Starlink 威胁**: Bernstein 因 Starlink 竞争下调 T/VZ/TMUS 目标价 → SpaceX 商业模式获验证, 长期利好 SPCX\n- **TSLA Q2 财报 7/22**: 近端 catalyst, TSLA 波动将传导 SpaceX 情绪\n\n## Per-ticker 简报\n- **CRCL**: OCC national trust bank 获批 + Seeking Alpha 强推 - 监管催化剂兑现, 利好 core 持仓\n- **SKHY**: Buy 评级 $300 首次覆盖, HBM/AI 内存纯 beta - 加注理由强化\n- **SPCX/SPCH**: SpaceX IPO 后 -35%, 情绪转弱但分析师仍 bullish - 短期承压\n- **MSFU/PLTU/RKLX**: 仅有 ETF 营销稿、散户帖、纯技术分析, 无 ticker-specific catalyst - 忽略\n\n## Risk watch\n- SpaceX post-IPO 回撤 35%, 持仓 SPCX/SPCH 敞口需重估\n- Starlink 竞争叙事扩散, 电信大盘股遭 Bernstein 下调\n- CRCL 利好已 priced in, \"buy rumor sell news\" 风险\n- EM 美元走强 + 中东能源通胀背景, 对新兴市场敞口 (SKHY) 形成宏观逆风",
+  "digest_markdown": "## Top 移动信号\n- **CRCL**: Baird 将目标价从 $138 砍至 $100 (-28%), 仍维持 Outperform → 共识下修, 短期承压但非看空, kcn 若持有留意下一波定级\n- **SPCX**: SpaceX 据报下跌 30%, Starship Flight 13 是关键 reset event; Frontier 签约成首家 ULCC 用 Starlink 航司 (2027 安装) → 双重 catalyst: 短期下行 + 商业合同验证现金流\n- **SKHY**: HBM 市场份额 Q1 估 56-58%, 多家机构维持 Strong Buy → AI 内存周期龙头地位再确认, 基本面 catalyst 持续\n- **SPCH**: SPCX (SpaceX) 上市被称 \"史上最大 IPO\", 重塑美国 ETF 指数生态 → SPCH 作为敞口工具的结构性事件, 流动性溢价可能持续\n- **MSFU**: MSFT 2x long YTD -40%, daily reset 拖累显著 → 高 beta 杠杆 ETF 风险信号, 警惕 decay\n\n## Per-ticker 简报\n- **CRCL**: Baird PT 砍至 $100 (从 $138) - 估值重估压力, 但评级仍 Outperform\n- **SPCX**: Frontier Airlines 加盟 Starlink (首家 ULCC, 2027 fleet rollout) + Starship 13 临近 - 商业化里程碑 + 关键测试\n- **SPCH**: 围绕 SPCX IPO 结构性叙事 - 流动性主题而非短期催化剂\n- **SKHY**: HBM 龙头 56-58% 份额, 现金流强劲 - 持续 AI 内存顺风\n- **PLTU**: Palantir Q4 beat, 杠杆 ETF 重获关注 - 底层资产催化, PLTU 弹性放大\n- **MSFU**: MSFT 2x 杠杆 YTD -40%, reset drag 显化 - 杠杆产品警示\n- **RKLX**: 无实质催化剂, 多为 ETF profile/营销稿 - 忽略\n\n## 风险 watch\n- **CRCL**: 分析师 PT 大幅下调 (-28%) - 估值/预期下行风险\n- **SPCX**: 30% 回撤 + Starship 测试失败风险 - 关键 binary event\n- **MSFU/MSFT**: 2x 杠杆 ETF daily reset 在弱势市放大损失 - 持有成本风险\n- **PLTU**: Palantir 估值高位 + 杠杆叠加 - 高 beta 风险",
   "raw_news_counts": {
     "CRCL": 2,
     "PLTU": 5,
@@ -18,7 +18,7 @@
     "SPCX": 5,
     "SPCH": 1,
     "MSFU": 5,
-    "SKHY": 2
+    "SKHY": 5
   },
   "news_source_per_ticker": {
     "CRCL": "finnhub",
