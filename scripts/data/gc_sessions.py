@@ -153,6 +153,20 @@ def main():
     total_files += f
     total_bytes += b
 
+    # Tombstones like *.jsonl.deleted.2026-06-14T19-00-50.702Z / *.jsonl.reset.<iso>.
+    # The suffix is an ISO timestamp ending in "Z", so it matches none of the
+    # predicates above (not .jsonl/.json/.bak, and "702Z" is not .isdigit()) —
+    # these accumulated unbounded until 2026-07-15 (78 files back to 06-13).
+    # The live transcript is already gone by the time one is written, so they
+    # age out on the same clock as a plain session.
+    f, b = gc_files(
+        lambda n: '.jsonl.deleted.' in n or '.jsonl.reset.' in n,
+        now - KEEP_SESSION_DAYS * 86400,
+        'deleted / reset tombstone', args.dry_run,
+    )
+    total_files += f
+    total_bytes += b
+
     # workspace memory/.tmp — preflight contexts / sidecars / scratch PNGs.
     # Everything here is per-date scratch that builders read by "newest mtime"
     # or with a max-age guard (load_tmp_sidecar), so anything ≥ KEEP_TMP_DAYS
