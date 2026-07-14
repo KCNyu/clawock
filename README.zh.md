@@ -64,17 +64,21 @@
 
 Reflect 仪表盘展示：
 
-- 按策略、动作、条件和驱动源拆分的主动/被动 benefit；
+- **听主动 call 到底赚了还是亏了，用钱说话** —— `成交价 × 股数 × benefit`，按腿以本币累加（港币美元绝不相加），并与同期真实盈亏振幅对照；
+- 累计 episode 胜率对 50% 方向命中线 —— 和金额是两个正交的问题，所以单独一张图；
 - 已结算 episode 的 Brier 校准；
 - 按日期聚类的 bootstrap 区间，避免把同日 call 当独立证据；
-- 执行与建议质量分开统计；
-- 按资金权重计算每日 benefit 并逐日复合，绝不跨仓位直接累加百分点。
+- 执行与建议质量分开统计。
+
+金额是头条，因为单看 benefit 会骗人：对卖出它是标的涨跌的**相反数**，你亏钱时它照样一路走高。再把它复利（本仪表盘此前的做法）——108 个反事实评分被复利成一条比在险资金大两个数量级的曲线。每个 call 是**一次性下注**，不是滚仓头寸，所以金额只**相加**、绝不复利；零点诚实地表示「AI 的建议没给你带来任何钱」。
+
+它只量择时。风控硬闸和 HOLD 纪律不在里面，而在这个组合上恰恰是它们在真正干活 —— `assets/data/guardrail_history.jsonl` 从 2026-07-15 起开始积累证据。没填股数的 call 根本无法折算金额；覆盖率直接标在数字旁边，不悄悄抹平。
 
 所有数字由账本和真实快照生成。LLM 负责写决策；确定性的 Python Backtester/Auditor 负责 ID、触发判断、episode 分组、指标和回测，模型不能改自己的分数。
 
-<p align="center"><img src="docs/shadow-backtest.png" alt="decision v2 反事实回测：实际采纳、含 hold 的完整迁移 AI 历史、主动 AI 策略、零判断线与累计胜率" width="760"></p>
+<p align="center"><img src="docs/shadow-backtest.png" alt="decision v2：主动 call 的累计金额影响（按腿、本币）、零影响线与累计胜率" width="760"></p>
 
-<sub>Benefit 图展示：实际采纳 · 含 HOLD/市场 β 的完整 AI 历史 · 隔离 alpha 的主动 AI · 无方向判断的零分线（不是 buy-and-hold 组合）。另设真正的累计胜率图，以 50% 为方向命中参考线。v1 历史已迁入 v2 episode 账本；由 GitHub Actions 每周刷新。</sub>
+<sub>金额图展示：听 AI 主动 call 的累计盈亏（本币），零线表示「没影响」——不是 buy-and-hold 组合。另设真正的累计胜率图，以 50% 为方向命中参考线。v1 历史已迁入 v2 episode 账本；由 GitHub Actions 每周刷新。</sub>
 
 ---
 
@@ -242,7 +246,8 @@ clawock/
 │   ├─ dashboard.json  risk.json  catalysts.json  fx.json
 │   ├─ macro.json  sentiment.json  influencer_feed.json  us_news_digest.json  ← scan 子文件,前端直接 fetch
 │   ├─ quant_signals.json  quant_signal_review.json     ← 因子战绩表
-│   └─ t0_setups.json  t0_setup_review.json             ← 盘中牌面战绩表
+│   ├─ t0_setups.json  t0_setup_review.json             ← 盘中牌面战绩表
+│   └─ guardrail_history.jsonl                          ← 每份简报里风控闸拦下了什么(2026-07-15 起积累)
 ├─ portfolio.json                           ← 唯一真值源(原子写入)
 ├─ tests/                                    ← decision-v2 + 资金守恒回归闸
 ├─ MEMORY.md  DREAMS.md                      ← 铁律 + 每夜「做梦」提升

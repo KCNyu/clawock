@@ -86,6 +86,54 @@ class DecisionV2Test(unittest.TestCase):
         self.assertEqual(bt["all_win_rate_curve"][-1]["win_rate"], 0.5)
         self.assertEqual(bt["active_win_rate_curve"][-1]["win_rate"], 0.0)
 
+    def test_money_impact_is_added_not_compounded(self):
+        # Two +10% calls on 1000 of capital are worth 200, not 1000*1.1^2-1000=210.
+        # Compounding is what let the old benefit curve reach -26% on a book that
+        # never had that much at risk.
+        rows = [decision("2026-07-01", action="cut", benefit=10, capital=1000),
+                decision("2026-07-02", ticker="BBB", action="cut", benefit=10, capital=1000)]
+        for r in rows:
+            r["leg"] = "US"
+        dv2.assign_episode_ids(rows)
+        leg = dv2.compute_money_impact(rows)["legs"]["US"]
+        self.assertAlmostEqual(leg["all_active"]["money"], 200.0)
+        self.assertEqual([p["cumulative_money"] for p in leg["curve"]], [100.0, 200.0])
+        self.assertEqual(leg["currency"], "USD")
+
+    def test_money_impact_reports_unpriced_calls_rather_than_hiding_them(self):
+        priced = decision("2026-07-01", action="cut", benefit=10, capital=1000)
+        unpriced = decision("2026-07-01", ticker="BBB", action="cut", benefit=10, capital=None)
+        for r in (priced, unpriced):
+            r["leg"] = "US"
+        dv2.assign_episode_ids([priced, unpriced])
+        leg = dv2.compute_money_impact([priced, unpriced])["legs"]["US"]
+        self.assertEqual(leg["all_active"]["n_episodes"], 2)
+        self.assertEqual(leg["all_active"]["n_priced"], 1)
+        self.assertEqual(leg["coverage_pct"], 50.0)
+        self.assertAlmostEqual(leg["all_active"]["money"], 100.0)
+
+    def test_money_impact_never_sums_across_currencies(self):
+        us = decision("2026-07-01", action="cut", benefit=10, capital=1000)
+        us["leg"] = "US"
+        hk = decision("2026-07-01", ticker="00700", action="cut", benefit=10, capital=1000)
+        hk["leg"] = "HK"
+        dv2.assign_episode_ids([us, hk])
+        legs = dv2.compute_money_impact([us, hk])["legs"]
+        self.assertEqual(legs["US"]["currency"], "USD")
+        self.assertEqual(legs["HK"]["currency"], "HKD")
+        self.assertAlmostEqual(legs["US"]["all_active"]["money"], 100.0)
+        self.assertAlmostEqual(legs["HK"]["all_active"]["money"], 100.0)
+
+    def test_plan_date_must_match_filename(self):
+        plan = {"schema_version": 2, "date": "2026-06-02",
+                "decisions": [decision("2026-06-02")]}
+        self.assertFalse([e for e in dv2.validate_plan(plan, "memory/2026-06-02-plan.json")
+                          if "filename" in e])
+        errors = dv2.validate_plan(plan, "memory/2026-06-01-plan.json")
+        self.assertTrue(any("must match filename" in e for e in errors))
+        # Without a path the check cannot run and must not invent a failure.
+        self.assertFalse([e for e in dv2.validate_plan(plan) if "filename" in e])
+
     def test_v1_actions_are_rejected(self):
         self.assertIn("v1 actions field is forbidden", dv2.validate_plan({
             "schema_version": 2, "date": "2026-07-01", "actions": [], "decisions": []

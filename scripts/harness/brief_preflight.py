@@ -311,6 +311,47 @@ def compute_risk_guardrail(hk_holdings, us_holdings, hk_conc, us_conc, risk, lev
             'lev_regime': lev_regime, 'eff_lev_caps': eff_caps}
 
 
+GUARDRAIL_HISTORY = WS / 'assets' / 'data' / 'guardrail_history.jsonl'
+
+
+def _append_guardrail_history(today, guardrail, hk_conc, us_conc, risk):
+    """Persist the day's guardrail verdict so its value becomes measurable.
+
+    The caps are the part of this system that demonstrably works — the 2026-06
+    drawdown was a construction problem, and they exist to stop it recurring. But
+    they were recomputed into gitignored tmp every morning and thrown away, so
+    "what did the guardrail prevent?" had no data behind it while every timing
+    call was scored to four decimals. One row per brief, appended, idempotent by
+    date. Nothing can be reconstructed retroactively, so this starts today and
+    accrues; do not expect a verdict from it for some weeks.
+    """
+    try:
+        row = {
+            'date': today,
+            'breach_count': guardrail.get('breach_count'),
+            'breaches': [{k: b.get(k) for k in ('type', 'leg', 'ticker', 'severity', 'detail')}
+                         for b in (guardrail.get('breaches') or [])],
+            'hard_stop_watch': [{k: h.get(k) for k in ('ticker', 'leg', 'pnl_pct')}
+                                for h in (guardrail.get('hard_stop_watch') or [])],
+            'eff_lev_caps': guardrail.get('eff_lev_caps'),
+            'lev_regime_tier': ((guardrail.get('lev_regime') or {}).get('tier')),
+            'hk_top2_pct': (hk_conc or {}).get('top2_pct'),
+            'us_top2_pct': (us_conc or {}).get('top2_pct'),
+            'us_beta_spx': ((risk or {}).get('us') or {}).get('beta_spx'),
+        }
+        existing = []
+        if GUARDRAIL_HISTORY.exists():
+            existing = [l for l in GUARDRAIL_HISTORY.read_text().splitlines()
+                        if l.strip() and json.loads(l).get('date') != today]
+        GUARDRAIL_HISTORY.parent.mkdir(parents=True, exist_ok=True)
+        GUARDRAIL_HISTORY.write_text(
+            ''.join(l + '\n' for l in existing)
+            + json.dumps(row, ensure_ascii=False, sort_keys=True) + '\n')
+        print(f'  guardrail_history: {today} ({row["breach_count"]} breaches)')
+    except Exception as e:  # never block the brief on bookkeeping
+        print(f'warn: guardrail history append failed: {e}', file=sys.stderr)
+
+
 def compute_breakeven_math(hk_holdings, us_holdings, lev_regime=None):
     """解套数学（纯算术，零观点）：每只浮亏持仓回本所需涨幅；2x 另算横盘 decay 成本
     与含 drag 的等效标的涨幅。k 倍日内重置 ETF 的波动拖累（lognormal 近似）=
@@ -1314,6 +1355,7 @@ def main():
     }
     ctx_path = TMP_DIR / f'brief-context-{today}.json'
     ctx_path.write_text(json.dumps(context, ensure_ascii=False, indent=2))
+    _append_guardrail_history(today, guardrail, hk_conc, us_conc, risk)
 
     print(f'\n═════ preflight done | {len(issues)} issues ═════')
     print(f'context: {ctx_path}')

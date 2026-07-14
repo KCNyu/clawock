@@ -64,17 +64,21 @@ The authoritative ledger is `memory/decisions.jsonl`. Each decision has a stable
 
 The Reflect dashboard reports:
 
-- active/passive benefit by strategy, action, condition, and driver;
+- **what following the active calls was actually worth, in money** — `capital x benefit`, summed per leg in native currency (HKD and USD are never added), sized against the real P&L swing it was competing with;
+- cumulative episode win rate against a 50% directional-hit line — a different claim from money, so it gets its own chart;
 - Brier calibration over settled episodes;
-- date-cluster bootstrap intervals, so same-day calls are not treated as independent evidence;
-- execution separately from advice quality; and
-- capital-weighted daily benefit compounded through time — never an arithmetic sum of percentage points across positions.
+- date-cluster bootstrap intervals, so same-day calls are not treated as independent evidence; and
+- execution separately from advice quality.
+
+The money view is the headline because `benefit` alone misleads: for a sell it is the negation of the underlying move, so it climbs while the account bleeds. Compounding it — as this dashboard used to — inflated 108 counterfactual scores into a curve two orders of magnitude past the cash ever at risk. Each call is a one-shot bet that is entered and settled, not a reinvested balance, so money is **added**, never compounded, and zero honestly means "the AI's calls made you nothing".
+
+It prices timing only. The risk caps and the HOLD discipline are not in it, and on this book they are the parts that carry their weight — `assets/data/guardrail_history.jsonl` started accruing the evidence for them on 2026-07-15. Calls authored without a share count cannot be priced at all; coverage is published next to the number rather than quietly rounded away.
 
 All figures are generated from the ledger and live snapshots. The LLM writes decisions; a deterministic Python Backtester/Auditor owns IDs, trigger evaluation, episode grouping, metrics, and the backtest.
 
-<p align="center"><img src="docs/shadow-backtest.png" alt="decision v2 counterfactual: accepted calls, the complete migrated AI history including holds, active AI strategies, a neutral score line, and cumulative win rates" width="760"></p>
+<p align="center"><img src="docs/shadow-backtest.png" alt="decision v2: cumulative money impact of the AI's active calls per leg, against a zero no-impact line, plus cumulative episode win rates" width="760"></p>
 
-<sub>The benefit chart shows accepted calls · complete AI history including HOLD/market beta · active AI calls isolating alpha · a neutral-score zero line (not a buy-and-hold portfolio). A separate cumulative win-rate chart uses 50% as its directional-hit reference. Migrated v1 calls remain in the v2 episode ledger. Refreshed weekly by GitHub Actions.</sub>
+<sub>The money chart shows the cumulative P&L of following the AI's active calls, in currency, with zero meaning no impact — not a buy-and-hold portfolio. A separate cumulative win-rate chart uses 50% as its directional-hit reference. Migrated v1 calls remain in the v2 episode ledger. Refreshed weekly by GitHub Actions.</sub>
 
 ---
 
@@ -242,7 +246,8 @@ clawock/
 │   ├─ dashboard.json  risk.json  catalysts.json  fx.json
 │   ├─ macro.json  sentiment.json  influencer_feed.json  us_news_digest.json  ← scan sidecars, fetched straight by the frontend
 │   ├─ quant_signals.json  quant_signal_review.json     ← factor scorecard
-│   └─ t0_setups.json  t0_setup_review.json             ← intraday setup scorecard
+│   ├─ t0_setups.json  t0_setup_review.json             ← intraday setup scorecard
+│   └─ guardrail_history.jsonl                          ← what the risk caps flagged, per brief (accruing since 2026-07-15)
 ├─ portfolio.json                           ← single source of truth (atomic writes)
 ├─ tests/                                    ← decision-v2 + money-conservation regression gates
 ├─ MEMORY.md  DREAMS.md                      ← iron rules + nightly "dreaming" promotion

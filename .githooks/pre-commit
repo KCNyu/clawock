@@ -61,7 +61,7 @@ for f in files:
         d = json.loads(open(f).read())
     except Exception as e:
         print(f'    ✗ {f}: bad JSON ({e})', file=sys.stderr); bad += 1; continue
-    for error in decision_v2.validate_plan(d):
+    for error in decision_v2.validate_plan(d, f):
         print(f'    ✗ {f}: {error}', file=sys.stderr); bad += 1
 print(f'    ✓ {len([f for f in files if f.strip()])} plan(s) OK' if bad == 0 else f'    ✗ {bad} issues', file=sys.stderr if bad else sys.stdout)
 sys.exit(1 if bad else 0)

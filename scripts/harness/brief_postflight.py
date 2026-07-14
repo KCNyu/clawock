@@ -51,8 +51,10 @@ def validate_plan_json(path, context=None):
     except json.JSONDecodeError as e:
         return [f'plan.json 解析失败: {e}']
 
-    issues = [f'plan.json v2: {x}' for x in decision_v2.validate_plan(plan)]
+    issues = [f'plan.json v2: {x}' for x in decision_v2.validate_plan(plan, path)]
     decisions = plan.get('decisions', []) if isinstance(plan.get('decisions'), list) else []
+    # Unpriceable calls score for direction but never reach the money chart.
+    issues += [f'plan.json size: {x}' for x in decision_v2.missing_size_warnings(decisions)]
     for i, d in enumerate(decisions):
         tag = f'plan.json decision[{i}] ({d.get("ticker", "?")}/{d.get("strategy_id", "?")})'
         # Active timing calls need a hard catalyst. Deterministic risk-rebalance is

@@ -1843,8 +1843,8 @@ layout: null
     </div>
 
     <div class="card" id="shadow-card" style="display:none">
-      <h3>🔬 AI 全历史 vs 实际采纳 <span class="muted" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:11px">反事实回测 · 复合 benefit % · T+1</span></h3>
-      <p class="chart-hint">累计 benefit 得分：<b style="color:var(--accent)">实际采纳的建议</b>、<b>全量 AI（含 HOLD/β，承接迁移后的 v1 历史）</b>、<b>主动 AI（cut/trim/add/T，隔离 alpha）</b>。灰色 0 是<b>无方向判断得分线</b>，不是你的真实 buy-and-hold 组合。按 episode 去重、按计划资金权重逐日复合；未触发条件不进入回测。</p>
+      <h3>💰 听 AI 的,到底赚了还是亏了 <span class="muted" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:11px">主动 call 累计金额 · T+1</span></h3>
+      <p class="chart-hint">纵轴是<b>钱</b>,不是分数：每条触发的主动 call 按 <b>成交价 × 股数 × benefit</b> 折回金额,逐日<b>相加</b>(不是复利——每个 call 是一次性下注,不是滚仓头寸,复利会凭空放大两个数量级)。<b>0 = AI 的主动建议没给你带来任何钱</b>。<b style="color:var(--accent)">实际采纳</b>的部分已经体现在你真实的总利润曲线里;<b>未采纳</b>的是活的反事实。港币美元不相加(合并视图按 FX 折算)。只量择时——风控闸和 HOLD 纪律不在这张图里。</p>
       <div id="chart-shadow" class="chart-box"></div>
       <div id="shadow-note" class="muted" style="font-size:11px;margin-top:6px"></div>
       <div class="trig-title" style="font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-dim);margin:16px 0 4px;font-weight:600">AI cumulative episode win rate — v1 migrated + v2</div>
@@ -4402,80 +4402,102 @@ layout: null
     }
   }
 
-  // Episode 回测曲线：触发后才计入，按日资金加权并复合。
+  // 主动 call 的累计金额影响。Money, added — not a compounded score. The benefit
+  // curve this replaced compounded a counterfactual: a sell's benefit is the
+  // negation of the underlying move, so it climbed through a losing quarter and
+  // 108 episodes compounded to -26%, two orders of magnitude past the cash ever
+  // at risk. capital × benefit puts the same calls back into currency.
   function renderShadowChart() {
     const el = document.getElementById("chart-shadow");
     const card = el ? el.closest(".card") : null;
     if (!el || !window.echarts) return;
-    const sb = safe(DATA, "episode_backtest");
-    const t1 = safe(sb, "horizons", "t1") || {};
-    const allCurve = t1.all_curve || [];
-    const activeCurve = t1.active_curve || [];
-    const followedCurve = t1.followed_curve || [];
-    const dates = [...new Set([...allCurve, ...activeCurve, ...followedCurve].map(p => p.date))].sort();
+    const mi = safe(DATA, "decision_money_impact");
+    const legs = safe(mi, "legs") || {};
+    const view = MARKET_VIEW;                       // 'combined' | 'us' | 'hk'
+    const fx = safe(DATA, "fx", "usdhkd") || 7.8;
+    // HKD and USD are never summed raw; combined converts HK at the live rate.
+    const wanted = view === "us" ? [["US", 1]] : view === "hk" ? [["HK", 1]]
+                                              : [["US", 1], ["HK", 1 / fx]];
+    const unit = view === "hk" ? "HKD" : "USD";
+    const pts = {};
+    let dates = [];
+    for (const [leg, k] of wanted) {
+      const curve = safe(legs, leg, "curve") || [];
+      dates = dates.concat(curve.map(p => p.date));
+      for (const p of curve) pts[leg] = Object.assign(pts[leg] || {}, { [p.date]: p.cumulative_money * k });
+    }
+    dates = [...new Set(dates)].sort();
     if (dates.length < 2) { if (card) card.style.display = "none"; return; }
     if (card) card.style.display = "";
     if (!charts.shadow) charts.shadow = echarts.init(el, null, { renderer: "canvas" });
-    const seriesFor = curve => {
-      const map = Object.fromEntries(curve.map(p => [p.date, p.compounded_benefit_pct]));
-      let last = null;
-      return dates.map(d => { if (map[d] != null) last = map[d]; return last; });
-    };
-    const allAI = seriesFor(allCurve);
-    const active = seriesFor(activeCurve);
-    const followed = seriesFor(followedCurve);
+    // Each leg's cumulative line is a step: carry the last value forward, and
+    // treat "before this leg's first call" as 0 rather than dropping the point.
+    const money = dates.map(d => {
+      let total = 0;
+      for (const [leg] of wanted) {
+        const m = pts[leg] || {};
+        let last = 0;
+        for (const dd of dates) { if (dd > d) break; if (m[dd] != null) last = m[dd]; }
+        total += last;
+      }
+      return Math.round(total * 100) / 100;
+    });
     const green = getCSS("--green") || "#34d399";
     const red = getCSS("--red") || "#f87171";
     const dim = getCSS("--text-dim") || "#9aa4b8";
-    const accent = getCSS("--accent") || "#5b8def";
     const isMobile = window.innerWidth < 1024;
-    const actEnd = active.filter(v => v != null).slice(-1)[0] || 0;
-    const actColor = actEnd >= 0 ? green : red;
+    const end = money.filter(v => v != null).slice(-1)[0] || 0;
+    const color = end >= 0 ? green : red;
+    const fmt = v => (v == null ? "—" : (v >= 0 ? "+" : "") + v.toLocaleString(undefined, { maximumFractionDigits: 0 }) + " " + unit);
     charts.shadow.setOption({
       backgroundColor: "transparent",
-      grid: { left: isMobile ? 46 : 58, right: isMobile ? 16 : 24, top: isMobile ? 46 : 30, bottom: dates.length > 6 ? 52 : 32 },
-      legend: { data: ["实际采纳", "全量AI·含HOLD", "主动AI·alpha", "零判断线"], top: 0,
+      grid: { left: isMobile ? 52 : 66, right: isMobile ? 16 : 24, top: isMobile ? 46 : 30, bottom: dates.length > 6 ? 52 : 32 },
+      legend: { data: ["听 AI 主动 call 的累计盈亏", "没影响"], top: 0,
         textStyle: { color: chartTextColor(), fontSize: isMobile ? 9 : 10 } },
-      tooltip: { trigger: "axis",
-        valueFormatter: v => (v == null ? "—" : (v >= 0 ? "+" : "") + v.toFixed(2) + "%") },
+      tooltip: { trigger: "axis", valueFormatter: fmt },
       xAxis: { type: "category", data: dates, boundaryGap: false,
         axisLine: { lineStyle: { color: chartGridColor() } },
         axisLabel: { color: chartTextColor(), fontSize: 9, rotate: dates.length > 6 ? 35 : 0 } },
-      yAxis: { type: "value",
+      yAxis: { type: "value", name: unit,
+        nameTextStyle: { color: chartTextColor(), fontSize: 9 },
         axisLabel: { color: chartTextColor(), fontSize: 9, formatter: v => (v > 0 ? "+" : "") + v },
         axisLine: { lineStyle: { color: chartGridColor() } },
         splitLine: { lineStyle: { color: chartGridColor() } } },
       series: [
-        { name: "实际采纳", type: "line", data: followed, smooth: true, showSymbol: false,
-          itemStyle: { color: accent }, lineStyle: { width: 2.4, color: accent }, z: 5 },
-        { name: "全量AI·含HOLD", type: "line", data: allAI, smooth: true, showSymbol: false,
-          itemStyle: { color: green }, lineStyle: { width: 2.2, color: green }, z: 4 },
-        { name: "主动AI·alpha", type: "line", data: active, smooth: true, showSymbol: false,
-          itemStyle: { color: actColor }, lineStyle: { width: 2.2, color: actColor },
-          areaStyle: { color: actColor, opacity: 0.07 }, z: 3 },
-        { name: "零判断线", type: "line", data: dates.map(() => 0), showSymbol: false,
+        { name: "听 AI 主动 call 的累计盈亏", type: "line", data: money, smooth: true, showSymbol: false,
+          itemStyle: { color }, lineStyle: { width: 2.4, color },
+          areaStyle: { color, opacity: 0.08 }, z: 4 },
+        { name: "没影响", type: "line", data: dates.map(() => 0), showSymbol: false,
           itemStyle: { color: dim }, lineStyle: { width: 1.4, color: dim, type: "dotted", opacity: 0.9 }, z: 2 },
       ],
     });
     const note = document.getElementById("shadow-note");
     if (note) {
-      const all = t1.all || {};
-      const a = t1.active || {};
-      const ci = a.cluster_ci95;
-      const verdict = ci && ci[0] <= 0 && ci[1] >= 0
-        ? "尚未证明稳定 alpha（CI 跨 0，不等于证明 AI 永远无用）"
-        : ci && ci[0] > 0 ? "当前样本显示正 edge" : ci ? "当前样本显示负 edge" : "样本不足";
-      note.textContent = `全量 AI ${all.win_rate == null ? "—" : (all.win_rate * 100).toFixed(1) + "%"}胜率 (n=${all.n_episodes || 0})`
-        + ` · 主动 AI ${a.win_rate == null ? "—" : (a.win_rate * 100).toFixed(1) + "%"}胜率 (n=${a.n_episodes || 0})`
-        + `${a.avg_benefit_pct == null ? "" : ` · 主动 avg ${a.avg_benefit_pct >= 0 ? "+" : ""}${a.avg_benefit_pct.toFixed(2)}%`}`
-        + `${ci ? ` · cluster CI [${ci[0].toFixed(2)}, ${ci[1].toFixed(2)}]` : ""} · ${verdict}`;
+      // Money with no denominator is unreadable, so anchor it to the P&L it was
+      // competing with: a call worth 0.2% of the swing did not matter, whatever
+      // its win rate. Per leg — this is the one number kcn actually asked for.
+      const parts = [];
+      for (const [leg] of wanted) {
+        const n = legs[leg];
+        if (!n) continue;
+        const a = n.all_active || {};
+        const share = n.share_of_pnl_swing_pct;
+        parts.push(`${leg} ${a.money >= 0 ? "+" : ""}${Math.round(a.money).toLocaleString()} ${n.currency}`
+          + ` (${a.n_priced}/${a.n_episodes} 可定价`
+          + `${share != null ? ` · 仅占同期真实盈亏振幅 ${share}%` : ""})`);
+      }
+      const cov = wanted.map(([l]) => legs[l]).filter(Boolean).map(n => n.coverage_pct);
+      note.textContent = parts.join(" · ")
+        + (cov.length ? ` · 股数覆盖 ${Math.min(...cov)}–${Math.max(...cov)}%（无股数的 call 无法折算金额）` : "");
     }
 
-    // A separate chart because win rate and compounded benefit are different
-    // quantities. The 50% line is a directional-hit reference, not P&L.
+    // A separate chart because win rate and money are different quantities: being
+    // right often and being right when it is worth something are not the same
+    // claim. The 50% line is a directional-hit reference, not P&L.
     const wrEl = document.getElementById("chart-ai-winrate");
     if (wrEl) {
       if (!charts.aiWinRate) charts.aiWinRate = echarts.init(wrEl, null, { renderer: "canvas" });
+      const t1 = safe(DATA, "episode_backtest", "horizons", "t1") || {};
       const allWrCurve = t1.all_win_rate_curve || [];
       const activeWrCurve = t1.active_win_rate_curve || [];
       const wrDates = [...new Set([...allWrCurve, ...activeWrCurve].map(p => p.date))].sort();
@@ -4484,6 +4506,10 @@ layout: null
         let last = null;
         return wrDates.map(d => { if (map[d] != null) last = map[d]; return last; });
       };
+      // Colour this line by its own claim — coin-flip or better — not by the money
+      // chart's sign; being right often and being right profitably are different.
+      const activeWrEnd = wrSeries(activeWrCurve).filter(v => v != null).slice(-1)[0];
+      const activeWrColor = activeWrEnd == null || activeWrEnd >= 50 ? green : red;
       charts.aiWinRate.setOption({
         backgroundColor: "transparent",
         grid: { left: isMobile ? 42 : 52, right: isMobile ? 16 : 24, top: 34, bottom: wrDates.length > 6 ? 48 : 26 },
@@ -4500,7 +4526,7 @@ layout: null
           { name: "全量AI胜率", type: "line", data: wrSeries(allWrCurve), smooth: true, showSymbol: false,
             itemStyle: { color: green }, lineStyle: { width: 2.2, color: green } },
           { name: "主动AI胜率", type: "line", data: wrSeries(activeWrCurve), smooth: true, showSymbol: false,
-            itemStyle: { color: actColor }, lineStyle: { width: 2.2, color: actColor } },
+            itemStyle: { color: activeWrColor }, lineStyle: { width: 2.2, color: activeWrColor } },
           { name: "50%参考", type: "line", data: wrDates.map(() => 50), showSymbol: false,
             itemStyle: { color: dim }, lineStyle: { width: 1.2, color: dim, type: "dashed" } },
         ],

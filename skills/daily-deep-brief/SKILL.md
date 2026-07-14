@@ -550,7 +550,7 @@ postflight 严格 schema 校验：
       "ticker": "ROBN",
       "action": "t_only",
       "condition": {"type": "price_above", "price": 16.2, "note": "冲高缩量时做 T"},
-      "size": {"pct": 15},
+      "size": {"pct": 15, "shares": 6},
       "confidence": 0.61,
       "driven_by": "technical",
       "contested": false,
@@ -571,6 +571,7 @@ postflight 严格 schema 校验：
 - `condition.type` ∈ {`open`, `price_above`, `price_below`, `index_breakdown`, `event`, `manual`}
 - `driven_by` ∈ {`technical`, `catalyst`, `sentiment`, `influencer`, `macro`, `peer`, `risk_rule`}（每个 decision 必填）
 - `confidence` ∈ [0.0, 1.0]
+- `size.shares`（整数，**主动 call（`cut`/`trim_on_rebound`/`t_only`/`add_only_on_trigger`/`add_on_breakout`）必填**；`hold_and_watch`/`watch` 不需要)：没有股数就折算不出金额,那条 call 只能进胜率、进不了 dashboard 上「听 AI 到底赚了还是亏了」的钱曲线 —— 而**那条才是唯一有业务含义的**(benefit% 对卖出是标的涨跌的相反数,会在你亏钱时一路走高)。宁可给保守估数也别留空。填**你真的会动的股数**,不是仓位上限。
 - `contested` ∈ {`true`, `false`}（每个 decision 必填）：Tier 2 的 Bull 与 Bear 是否真的在该策略上分歧。
 - `thesis_invalidation`（string，主动 cut/trim/add 必填；hold 选填）：**借鉴 UZI-Skill 的 thesis-tracking**——这个仓位的论点**会被什么具体催化推翻**？把 catalyst-gate(cut #1)落地成「论点+失效条件」：你只在这个**失效催化真的发生**时动手，而不是技术面波动。例：「crypto rev 环比转正则停止减仓」。这逼着每个主动 call 绑定一个可被证伪的硬催化，而非"看着toppy"。
 

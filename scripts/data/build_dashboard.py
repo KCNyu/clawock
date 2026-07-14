@@ -379,6 +379,28 @@ def compute_debate_metrics(recent=20):
     }
 
 
+def _attach_pnl_swing(impact, snapshots):
+    """Size each leg's AI money impact against the P&L it was competing with.
+
+    On its own "-200 USD" is unreadable — small next to a fortune, huge next to
+    pocket change. The real profit series (cost-basis-netted, so it moves only on
+    P&L and not on deploying capital) is what these calls were up against, and its
+    peak-to-trough swing is the honest denominator: a call worth 0.1% of it did
+    not matter, whatever its benefit score compounded to.
+    """
+    for leg, key in (('US', 'us_profit'), ('HK', 'hk_profit')):
+        node = (impact.get('legs') or {}).get(leg)
+        if not node:
+            continue
+        vals = [s[key] for s in snapshots if s.get(key) is not None]
+        swing = round(max(vals) - min(vals), 2) if len(vals) > 1 else None
+        money = (node.get('all_active') or {}).get('money')
+        node['pnl_swing'] = swing
+        node['share_of_pnl_swing_pct'] = (
+            round(100 * abs(money) / swing, 2) if swing and money else None)
+    return impact
+
+
 def total_snapshots_count():
     return sum(
         1 for p in glob.glob(str(WS_ROOT / 'memory' / 'snapshots' / '*.json'))
@@ -1787,6 +1809,13 @@ def main():
     out['decision_schema_version'] = 2
     out['decision_metrics'] = decision_v2.compute_metrics(_decisions)
     out['episode_backtest'] = decision_v2.compute_backtest(_decisions)
+    # The compounded benefit curve is a counterfactual score, not money: a sell's
+    # benefit is the negation of the underlying move, so it can climb through a
+    # losing quarter. This puts the same calls back into currency and sizes them
+    # against the P&L they were supposed to move, which is the only form of the
+    # question anyone actually asks — "what did listening to it cost me?".
+    out['decision_money_impact'] = _attach_pnl_swing(
+        decision_v2.compute_money_impact(_decisions), snapshots)
     out['decision_delta'] = decision_v2.decision_delta(_decisions)
     out['recent_decisions'] = decision_v2.recent_decisions(_decisions, limit=20)
     out['debate_metrics'] = compute_debate_metrics()

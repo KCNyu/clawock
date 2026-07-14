@@ -208,12 +208,40 @@ def validate_decision(d: dict) -> list[str]:
     return errors
 
 
-def validate_plan(plan: dict) -> list[str]:
+def missing_size_warnings(decisions: list[dict]) -> list[str]:
+    """Active calls with no share count. A warning, never an error.
+
+    Without shares there is no capital, so the call can be scored for direction
+    but never priced — it silently vanishes from the only chart that answers
+    "what did listening to it cost me?". Migrated v1 rows often lack it and must
+    not be rejected retroactively, so this stays advisory and is reported by
+    postflight against newly authored plans.
+    """
+    out = []
+    for d in decisions:
+        if d.get("action") in ACTIVE_ACTIONS and _int((d.get("size") or {}).get("shares")) is None:
+            out.append(f"{d.get('ticker')} {d.get('action')}: size.shares missing → unpriceable")
+    return out
+
+
+def validate_plan(plan: dict, path: str | Path | None = None) -> list[str]:
+    """Validate an authored plan. Pass ``path`` to also enforce date == filename.
+
+    2026-06-01-plan.json once shipped with date="2026-06-02". Every id downstream
+    is derived from that field, so both days minted the same decision_ids: six
+    collided, the later day's thesis was silently dropped, and the survivors were
+    graded against the wrong session. Nothing caught it for six weeks — the rows
+    were individually valid. Callers holding a filename must pass it.
+    """
     errors = []
     if plan.get("schema_version") != SCHEMA_VERSION:
         errors.append("top-level schema_version must be 2")
     if not plan.get("date"):
         errors.append("missing date")
+    if path is not None:
+        expected = Path(path).name[:10]
+        if plan.get("date") and plan.get("date") != expected:
+            errors.append(f"date {plan.get('date')!r} must match filename ({expected!r})")
     if "actions" in plan:
         errors.append("v1 actions field is forbidden")
     decisions = plan.get("decisions")
@@ -549,6 +577,89 @@ def compute_metrics(decisions: list[dict], window_days: int = 30) -> dict:
         "by_condition": _breakdown(reps, lambda r: (r.get("condition") or {}).get("type"), "benefit_t1_pct"),
         "execution": dict(execution),
         "active_overrides": len(overrides),
+    }
+
+
+def compute_money_impact(decisions: list[dict], horizon: str = "t1") -> dict:
+    """What the AI's active calls were actually worth, in money, per leg.
+
+    ``benefit_pct`` only answers "was the call directionally right": for a sell it
+    is the negation of the underlying move, so it climbs while the account bleeds.
+    Compounding it (``compute_backtest``) makes that gap worse — it is a
+    counterfactual score, not a return, and 108 episodes of it compound into a
+    number two orders of magnitude larger than the cash ever at risk.
+
+    ``capital`` (execution_price x shares) turns each call back into money:
+    capital x benefit/100 is the cash that call moved versus not acting. Summing
+    those is honest because each is an independent one-shot bet, not a reinvested
+    position. HKD and USD are never added (FX rule); callers render per leg.
+
+    Decisions without a share count cannot be priced, so ``coverage_pct`` reports
+    how much of the record this view can actually see.
+    """
+    reps = episode_representatives(decisions, horizon)
+    key = "benefit_t1_pct" if horizon == "t1" else "benefit_t5_pct"
+    active = [r for r in reps if r.get("action") in ACTIVE_ACTIONS]
+
+    def _priced(rows):
+        return [r for r in rows
+                if _float((r.get("evaluation") or {}).get("capital"))
+                and _float((r.get("evaluation") or {}).get(key)) is not None]
+
+    def _money(r):
+        return _float(r["evaluation"]["capital"]) * _float(r["evaluation"][key]) / 100
+
+    def bucket(rows):
+        priced = _priced(rows)
+        return {
+            "money": round(sum(_money(r) for r in priced), 2),
+            "n_episodes": len(rows),
+            "n_priced": len(priced),
+            "capital_at_risk": round(sum(_float(r["evaluation"]["capital"]) for r in priced), 2),
+        }
+
+    def curve(rows):
+        """Cumulative money, added — never compounded.
+
+        Each call is an independent one-shot bet that is entered and settled, not
+        a reinvested balance, so compounding them (as the benefit curve does)
+        invents growth that no capital ever experienced. Addition is the honest
+        operator here, and it keeps the y-axis in currency.
+        """
+        by_date = defaultdict(float)
+        for r in _priced(rows):
+            by_date[r.get("plan_date")] += _money(r)
+        out, total = [], 0.0
+        for day in sorted(by_date):
+            total += by_date[day]
+            out.append({"date": day, "daily_money": round(by_date[day], 2),
+                        "cumulative_money": round(total, 2)})
+        return out
+
+    legs = {}
+    for leg, currency in (("US", "USD"), ("HK", "HKD")):
+        rows = [r for r in active if (r.get("leg") or "") == leg]
+        if not rows:
+            continue
+        followed = [r for r in rows if (r.get("execution") or {}).get("status") == "followed"]
+        not_followed = [r for r in rows if (r.get("execution") or {}).get("status") == "not_followed"]
+        agg = bucket(rows)
+        legs[leg] = {
+            "currency": currency,
+            "all_active": agg,
+            # Already reflected in the real P&L curve — kcn acted on these.
+            "followed": bucket(followed),
+            # The live counterfactual: what ignoring the AI cost or saved.
+            "not_followed": bucket(not_followed),
+            "coverage_pct": round(100 * agg["n_priced"] / len(rows), 1) if rows else None,
+            "curve": curve(rows),
+        }
+    return {
+        "schema_version": SCHEMA_VERSION,
+        "horizon": horizon,
+        "method": ("capital x benefit per triggered active episode, summed in native currency; "
+                   "positive = following the AI beat not acting"),
+        "legs": legs,
     }
 
 

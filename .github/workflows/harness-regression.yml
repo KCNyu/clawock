@@ -74,15 +74,44 @@ jobs:
           import decision_v2
           for p in sorted(glob.glob('memory/*-plan.json')):
               with open(p) as f: d = json.load(f)
-              errors = decision_v2.validate_plan(d)
+              errors = decision_v2.validate_plan(d, p)
               assert not errors, f'{p}: {errors}'
               print(f'{p}: OK')
           PY
 
-      - name: Decision v2 unit tests and migration audit
+      - name: Decision v2 unit tests and ledger audit
         run: |
           python3 -m unittest discover -s tests -p 'test_decision_v2.py' -v
-          python3 scripts/data/migrate_decisions_v2.py
+          python3 << 'PY'
+          import json, glob, sys
+          sys.path.insert(0, 'scripts/data')
+          import decision_v2
+          led = decision_v2.load_decisions()
+          ids = [d['decision_id'] for d in led]
+          dupes = len(ids) - len(set(ids))
+          assert not dupes, f'{dupes} duplicate decision_id in ledger'
+          errors = [f"{d['decision_id']}: {e}" for d in led for e in decision_v2.validate_decision(d)]
+          assert not errors, errors[:10]
+          # Every scored decision must trace back to a plan somebody authored. The
+          # v1 migration fabricated 25 that did not, inflating the episode count
+          # and the published curve for six weeks; each was individually valid, so
+          # only this cross-check catches the class.
+          authored = set()
+          for p in glob.glob('memory/*-plan.json'):
+              with open(p) as f:
+                  authored |= {x['decision_id'] for x in (json.load(f).get('decisions') or [])}
+          orphans = sorted(set(ids) - authored)
+          assert not orphans, f'{len(orphans)} ledger decisions authored by no plan: {orphans[:5]}'
+          # settle must be a pure recompute from snapshots, not a ratchet. Compare
+          # settle-twice, never against the stored ledger: build_dashboard settles
+          # in memory without writing back, so on disk it legitimately trails the
+          # intraday snapshot and a freshness check here would just flake.
+          decision_v2.settle_decisions(led)
+          once = json.dumps(led, sort_keys=True)
+          decision_v2.settle_decisions(led)
+          assert json.dumps(led, sort_keys=True) == once, 'settle_decisions is not idempotent'
+          print(f'ledger OK: {len(led)} decisions · {len({d["episode_id"] for d in led})} episodes · 0 orphans')
+          PY
 
       - name: Rebuild dashboard.json and validate
         run: |

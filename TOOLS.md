@@ -143,14 +143,14 @@ python3 scripts/data/fetch_us_stocks.py     # 仅刷美股价格
 - 盘中 Mode 7：`intraday_preflight.py --market {hk|us}` / `intraday_postflight.py …`（**不 commit**，高频）
 - 共通：preflight 出 `raw_wechat_block`(LLM **verbatim** 拷) + `anomalies`(必提≥1票)；postflight 出 `wechat_prefix`；context 全落 `memory/.tmp/`(gitignore)
 
-**Dashboard/发布**：`build_dashboard.py`(聚合 portfolio+snapshots+plan+calibration+risk+sidecar → `assets/data/dashboard.json`；含 LLM 叙事卡/driven_by/status_banner；brief/report postflight 自动调) · `safe_push.sh`(统一 push,rebase.autoStash 容脏树)
+**Dashboard/发布**：`build_dashboard.py`(聚合 portfolio+snapshots+plan+decisions.jsonl+risk+sidecar → `assets/data/dashboard.json`；含 LLM 叙事卡/driven_by/status_banner；brief/report postflight 自动调) · `safe_push.sh`(统一 push,rebase.autoStash 容脏树)
 
 **LLM-free 兜底哨兵（系统 crontab，非 openclaw cron；postflight 抓不到 LLM 早死）**
 - `report_watchdog.py --market {hk|us} --phase {…} --job-name "…"`：报告 cron 后几分钟，run summary 不含 raw_wechat_block 首行 ⇒ 补发数据块
 - `brief_watchdog.py`（08:30）：brief run summary 无 `盘前深度简报`/`▎核心结论`/`▎今日动作` marker ⇒ 补发紧凑卡(plan.json book+动作)+全文链接
 - 均从 job 历史 `delivery.resolved` 解析目标 + `.tmp/watchdog-*.done` 防重复
 
-**其它**：`mark_followed.py`(calibration ground-truth) · `xiaomi_llm.py`(GH Action 直调小米绕 gateway,Xiaomi→MiniMax fallback) · `gh_action_*.py` · `update_portfolio.py`。**每脚本详细说明 + 已废弃 legacy → `TOOLS_SCRIPTS.md`**。
+**其它**：`mark_followed.py`(标 `decisions.jsonl` 的 execution.status) · `xiaomi_llm.py`(GH Action 直调小米绕 gateway,Xiaomi→MiniMax fallback) · `gh_action_*.py` · `update_portfolio.py`。**每脚本详细说明 + 已废弃 legacy → `TOOLS_SCRIPTS.md`**。
 
 ### Cron map（**11 job**，存 SQLite 经 `openclaw cron list` 读；时间 HKT）
 
