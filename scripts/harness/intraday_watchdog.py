@@ -33,8 +33,8 @@ still returns sent_ok=true). Since intraday_postflight now ALWAYS co-sends the s
 body to Telegram (cold-proof, no contextToken drop), the WeChat retry bought nothing
 but duplicates, so it's gone. Telegram is the sole backstop channel.
 
-Healthy-report gate: only re-send a report produced cleanly (block first-line
-present AND not a mimo repeat-loop) — never re-send a stall. Dedupe per slot.
+Healthy runs use their generated report; stalled/looped runs fall back to the
+deterministic preflight block on Telegram. Dedupe remains per slot.
 
 (Shared run-record / send helpers live in _watchdog_common.py.)
 
@@ -96,7 +96,7 @@ def main():
         log({'tag': tag, 'action': 'skip', 'reason': 'already handled this slot (dedupe flag)'})
         return 0
 
-    # --- Healthy-report gate: never re-send a stall/garbage turn --------------
+    # --- Generation gate: generated report or deterministic fallback ----------
     summary = last.get('summary', '')
     raw_block = ''
     raw_block_first = None

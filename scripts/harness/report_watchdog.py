@@ -95,7 +95,7 @@ def main():
         log({'tag': tag, 'action': 'skip', 'reason': 'already handled this slot (dedupe flag)'})
         return 0
 
-    # --- Healthy-report gate: never re-send a stall/garbage turn --------------
+    # --- Generation gate: generated report or deterministic fallback ----------
     # The clean report block's first line comes from the preflight context. If the
     # context is missing, preflight never ran → nothing to resend.
     ctx_path = WS / 'memory' / '.tmp' / f'report-context-{args.market}-{args.phase}-{today}.json'
