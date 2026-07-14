@@ -4506,10 +4506,10 @@ layout: null
         let last = null;
         return wrDates.map(d => { if (map[d] != null) last = map[d]; return last; });
       };
-      // Colour this line by its own claim — coin-flip or better — not by the money
-      // chart's sign; being right often and being right profitably are different.
-      const activeWrEnd = wrSeries(activeWrCurve).filter(v => v != null).slice(-1)[0];
-      const activeWrColor = activeWrEnd == null || activeWrEnd >= 50 ? green : red;
+      // Colour encodes which line you're reading, not whether it's any good: 全量 carries
+      // HOLD/β, 主动 isolates alpha. Tying it to the line's own end value collides with
+      // 全量 whenever active sits above 50 — the 50% line is what reads good from bad.
+      const activeWrColor = getCSS("--accent") || "#5b8def";
       charts.aiWinRate.setOption({
         backgroundColor: "transparent",
         grid: { left: isMobile ? 42 : 52, right: isMobile ? 16 : 24, top: 34, bottom: wrDates.length > 6 ? 48 : 26 },
