@@ -1,67 +1,72 @@
 {
-  "generated_at": "2026-07-13T22:37:34.873145+00:00",
+  "generated_at": "2026-07-14T22:38:53.562947+00:00",
   "vix": {
     "symbol": "^VIX",
-    "price": 17.16,
-    "prev": 15.03,
-    "change_pct": 14.17,
-    "as_of": 1783973701,
+    "price": 16.5,
+    "prev": 17.16,
+    "change_pct": -3.85,
+    "as_of": 1784060101,
     "source": "yahoo"
   },
   "treasury_10y": {
     "symbol": "^TNX",
-    "price": 4.609,
-    "prev": 4.569,
-    "change_pct": 0.88,
-    "as_of": 1783969192,
+    "price": 4.585,
+    "prev": 4.609,
+    "change_pct": -0.52,
+    "as_of": 1784055594,
     "source": "yahoo",
-    "yield_pct": 4.609
+    "yield_pct": 4.585
   },
   "dxy": {
     "symbol": "DX-Y.NYB",
-    "price": 101.277,
-    "prev": 100.952,
-    "change_pct": 0.32,
-    "as_of": 1783980289,
+    "price": 100.941,
+    "prev": 101.235,
+    "change_pct": -0.29,
+    "as_of": 1784066699,
     "source": "yahoo"
   },
   "fear_greed": {
-    "score": 43.7,
+    "score": 43.1,
     "rating": "fear",
-    "prev_close": 49.5,
-    "prev_1_week": 44.0,
-    "as_of": "2026-07-13T22:17:38+00:00"
+    "prev_close": 43.7,
+    "prev_1_week": 43.7,
+    "as_of": "2026-07-14T22:19:53+00:00"
   },
   "hsi": {
     "symbol": "^HSI",
-    "price": 24213.72,
-    "prev": 24175.12,
-    "change_pct": 0.16,
+    "price": 24340.73,
+    "prev": 24213.72,
+    "change_pct": 0.52,
     "source": "tencent"
   },
   "hstech": {
     "symbol": "^HSTECH",
-    "price": 4676.43,
-    "prev": 4721.66,
-    "change_pct": -0.96,
+    "price": 4679.46,
+    "prev": 4676.43,
+    "change_pct": 0.06,
     "source": "tencent"
   },
   "spx": {
     "symbol": "^GSPC",
-    "price": 7515.34,
-    "prev": 7575.39,
-    "change_pct": -0.79,
-    "as_of": 1783977552,
+    "price": 7543.59,
+    "prev": 7515.34,
+    "change_pct": 0.38,
+    "as_of": 1784062596,
     "source": "yahoo"
   },
   "nasdaq": {
     "symbol": "^IXIC",
-    "price": 25873.18,
-    "prev": 26281.61,
-    "change_pct": -1.55,
+    "price": 26107.01,
+    "prev": 25873.18,
+    "change_pct": 0.9,
     "source": "tencent"
   },
   "fed_press": [
+    {
+      "date": "2026-07-14",
+      "title": "Minutes of the Board's discount rate meetings on June 8 and June 17, 2026",
+      "url": "https://www.federalreserve.gov/newsevents/pressreleases/monetary20260714a.htm"
+    },
     {
       "date": "2026-07-09",
       "title": "Federal Reserve announces the leadership and objectives of its task forces to advance the conduct of monetary policy",
@@ -76,11 +81,6 @@
       "date": "2026-07-08",
       "title": "Minutes of the Federal Open Market Committee, June 16-17, 2026",
       "url": "https://www.federalreserve.gov/newsevents/pressreleases/monetary20260708a.htm"
-    },
-    {
-      "date": "2026-07-07",
-      "title": "Federal Reserve Board requests comment on a proposal to amend its requirements for banks to maintain anti-money laundering programs",
-      "url": "https://www.federalreserve.gov/newsevents/pressreleases/bcreg20260707a.htm"
     }
   ]
 }
