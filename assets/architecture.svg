@@ -44,7 +44,7 @@
 <rect x="56" y="262" width="4" height="56" rx="2" fill="#5aa2ff"/>
 <rect x="56" y="262" width="4" height="56" rx="2" fill="#5aa2ff"/>
 <text x="72" y="287" font-family="ui-sans-serif, -apple-system, Segoe UI, Roboto, Helvetica, Arial" font-size="15" font-weight="600" fill="#e6edf3" text-anchor="start">preflight.py</text>
-<text x="72" y="307" font-family="ui-sans-serif, -apple-system, Segoe UI, Roboto, Helvetica, Arial" font-size="12.5" font-weight="400" fill="#8b98b0" text-anchor="start">prices · FX · HHI · signals</text>
+<text x="72" y="307" font-family="ui-sans-serif, -apple-system, Segoe UI, Roboto, Helvetica, Arial" font-size="12.5" font-weight="400" fill="#8b98b0" text-anchor="start">prices · trigger settlement · metrics</text>
 <rect x="328.0" y="256" width="250.0" height="68" rx="10" fill="#33280c" stroke="#f0b429" stroke-width="1.8"/>
 <text x="344.0" y="278" font-family="ui-sans-serif, -apple-system, Segoe UI, Roboto, Helvetica, Arial" font-size="15" font-weight="700" fill="#f0b429" text-anchor="start">LLM agent turn — Rick</text>
 <text x="344.0" y="297" font-family="ui-sans-serif, -apple-system, Segoe UI, Roboto, Helvetica, Arial" font-size="12.5" font-weight="400" fill="#e8d9a8" text-anchor="start">writes the opinion only</text>
@@ -52,7 +52,7 @@
 <rect x="600.0" y="262" width="4" height="56" rx="2" fill="#5aa2ff"/>
 <rect x="600.0" y="262" width="4" height="56" rx="2" fill="#5aa2ff"/>
 <text x="616.0" y="287" font-family="ui-sans-serif, -apple-system, Segoe UI, Roboto, Helvetica, Arial" font-size="15" font-weight="600" fill="#e6edf3" text-anchor="start">postflight.py</text>
-<text x="616.0" y="307" font-family="ui-sans-serif, -apple-system, Segoe UI, Roboto, Helvetica, Arial" font-size="12.5" font-weight="400" fill="#8b98b0" text-anchor="start">validate · commit · deliver</text>
+<text x="616.0" y="307" font-family="ui-sans-serif, -apple-system, Segoe UI, Roboto, Helvetica, Arial" font-size="12.5" font-weight="400" fill="#8b98b0" text-anchor="start">validate · IDs/episode · commit</text>
 <path d="M 306.0 290.0 L 328.0 290.0" stroke="#8b98b0" stroke-width="1.6" fill="none" marker-end="url(#arw)"/>
 <path d="M 578.0 290.0 L 600.0 290.0" stroke="#8b98b0" stroke-width="1.6" fill="none" marker-end="url(#arw)"/>
 <text x="453.0" y="346" font-family="ui-sans-serif, -apple-system, Segoe UI, Roboto, Helvetica, Arial" font-size="12" font-weight="400" fill="#8b98b0" text-anchor="middle">The model produces judgment; everything factual (data in · money math · delivery) is code.</text>
@@ -66,18 +66,18 @@
 <rect x="248.0" y="412" width="198.0" height="64" rx="10" fill="#161d2e" stroke="#2b3550" stroke-width="1.3"/>
 <rect x="248.0" y="412" width="4" height="64" rx="2" fill="#9aa7bf"/>
 <rect x="248.0" y="412" width="4" height="64" rx="2" fill="#9aa7bf"/>
-<text x="264.0" y="437" font-family="ui-sans-serif, -apple-system, Segoe UI, Roboto, Helvetica, Arial" font-size="15" font-weight="600" fill="#e6edf3" text-anchor="start">plan.json</text>
-<text x="264.0" y="457" font-family="ui-sans-serif, -apple-system, Segoe UI, Roboto, Helvetica, Arial" font-size="12.5" font-weight="400" fill="#8b98b0" text-anchor="start">today&#x27;s bucketed actions</text>
+<text x="264.0" y="437" font-family="ui-sans-serif, -apple-system, Segoe UI, Roboto, Helvetica, Arial" font-size="15" font-weight="600" fill="#e6edf3" text-anchor="start">plan v2 · decisions[]</text>
+<text x="264.0" y="457" font-family="ui-sans-serif, -apple-system, Segoe UI, Roboto, Helvetica, Arial" font-size="12.5" font-weight="400" fill="#8b98b0" text-anchor="start">same stock · many strategies</text>
 <rect x="460.0" y="412" width="198.0" height="64" rx="10" fill="#161d2e" stroke="#2b3550" stroke-width="1.3"/>
 <rect x="460.0" y="412" width="4" height="64" rx="2" fill="#9aa7bf"/>
 <rect x="460.0" y="412" width="4" height="64" rx="2" fill="#9aa7bf"/>
-<text x="476.0" y="437" font-family="ui-sans-serif, -apple-system, Segoe UI, Roboto, Helvetica, Arial" font-size="15" font-weight="600" fill="#e6edf3" text-anchor="start">memory/.tmp</text>
-<text x="476.0" y="457" font-family="ui-sans-serif, -apple-system, Segoe UI, Roboto, Helvetica, Arial" font-size="12.5" font-weight="400" fill="#8b98b0" text-anchor="start">context sidecars</text>
+<text x="476.0" y="437" font-family="ui-sans-serif, -apple-system, Segoe UI, Roboto, Helvetica, Arial" font-size="15" font-weight="600" fill="#e6edf3" text-anchor="start">decisions.jsonl</text>
+<text x="476.0" y="457" font-family="ui-sans-serif, -apple-system, Segoe UI, Roboto, Helvetica, Arial" font-size="12.5" font-weight="400" fill="#8b98b0" text-anchor="start">triggered strategy episodes</text>
 <rect x="672.0" y="412" width="198.0" height="64" rx="10" fill="#161d2e" stroke="#2b3550" stroke-width="1.3"/>
 <rect x="672.0" y="412" width="4" height="64" rx="2" fill="#9aa7bf"/>
 <rect x="672.0" y="412" width="4" height="64" rx="2" fill="#9aa7bf"/>
 <text x="688.0" y="437" font-family="ui-sans-serif, -apple-system, Segoe UI, Roboto, Helvetica, Arial" font-size="15" font-weight="600" fill="#e6edf3" text-anchor="start">assets/data/*.json</text>
-<text x="688.0" y="457" font-family="ui-sans-serif, -apple-system, Segoe UI, Roboto, Helvetica, Arial" font-size="12.5" font-weight="400" fill="#8b98b0" text-anchor="start">dashboard + scans</text>
+<text x="688.0" y="457" font-family="ui-sans-serif, -apple-system, Segoe UI, Roboto, Helvetica, Arial" font-size="12.5" font-weight="400" fill="#8b98b0" text-anchor="start">context · metrics · backtest</text>
 <path d="M 135.0 476 L 135.0 506" stroke="#8b98b0" stroke-width="1.6" fill="none" marker-end="url(#arw)"/>
 <text x="36" y="518" font-family="ui-sans-serif, -apple-system, Segoe UI, Roboto, Helvetica, Arial" font-size="12" font-weight="700" fill="#3fb950" text-anchor="start" letter-spacing="1.5">④ INTEGRITY GATES — AN EDIT CAN&#x27;T REACH THE WORLD UNLESS THE BOOKS BALANCE</text>
 <rect x="36" y="530" width="409.0" height="64" rx="10" fill="#161d2e" stroke="#2b3550" stroke-width="1.3"/>
@@ -121,13 +121,13 @@
 <circle cx="926" cy="258" r="3" fill="#f0b429"/>
 <text x="936" y="262" font-family="ui-sans-serif, -apple-system, Segoe UI, Roboto, Helvetica, Arial" font-size="12" font-weight="500" fill="#e6edf3" text-anchor="start">Tier 2 · Bull vs Bear</text>
 <circle cx="926" cy="280" r="3" fill="#f0b429"/>
-<text x="936" y="284" font-family="ui-sans-serif, -apple-system, Segoe UI, Roboto, Helvetica, Arial" font-size="12" font-weight="500" fill="#e6edf3" text-anchor="start">Tier 3 + Judge → plan.json</text>
+<text x="936" y="284" font-family="ui-sans-serif, -apple-system, Segoe UI, Roboto, Helvetica, Arial" font-size="12" font-weight="500" fill="#e6edf3" text-anchor="start">Judge → multi-strategy plan v2</text>
 <rect x="910" y="328" width="218" height="70" rx="10" fill="#161d2e" stroke="#2b3550" stroke-width="1"/>
 <text x="924" y="352" font-family="ui-sans-serif, -apple-system, Segoe UI, Roboto, Helvetica, Arial" font-size="13" font-weight="700" fill="#e6edf3" text-anchor="start">Watchdogs (supervisor)</text>
 <text x="924" y="372" font-family="ui-sans-serif, -apple-system, Segoe UI, Roboto, Helvetica, Arial" font-size="12" font-weight="400" fill="#8b98b0" text-anchor="start">stalled turn → Telegram, always</text>
 <rect x="910" y="410" width="218" height="70" rx="10" fill="#161d2e" stroke="#2b3550" stroke-width="1"/>
 <text x="924" y="434" font-family="ui-sans-serif, -apple-system, Segoe UI, Roboto, Helvetica, Arial" font-size="13" font-weight="700" fill="#e6edf3" text-anchor="start">Self-learning loop  ↺</text>
-<text x="924" y="454" font-family="ui-sans-serif, -apple-system, Segoe UI, Roboto, Helvetica, Arial" font-size="12" font-weight="400" fill="#8b98b0" text-anchor="start">plan.json graded → next brief</text>
+<text x="924" y="454" font-family="ui-sans-serif, -apple-system, Segoe UI, Roboto, Helvetica, Arial" font-size="12" font-weight="400" fill="#8b98b0" text-anchor="start">episode CI/backtest → next brief</text>
 <path d="M 578.0 265 L 882 265 L 882 254 L 908 254" stroke="#f0b429" stroke-width="1.4" fill="none" stroke-linejoin="round" stroke-dasharray="5 4" marker-end="url(#arwB)"/>
 <text x="744" y="260" font-family="ui-sans-serif, -apple-system, Segoe UI, Roboto, Helvetica, Arial" font-size="11" font-weight="600" fill="#f0b429" text-anchor="start">brief only</text>
 <path d="M 894 363 L 881 363 L 881 680.0 L 870.0 680.0" stroke="#8b98b0" stroke-width="1.4" fill="none" stroke-linejoin="round" stroke-dasharray="5 4" marker-end="url(#arw)"/>

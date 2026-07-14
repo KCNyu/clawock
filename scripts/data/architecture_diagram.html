@@ -76,7 +76,7 @@
 <body>
   <div class="head">
     <h1>claw<span class="mk">ock</span> · harness pipeline</h1>
-    <span class="sub">deterministic Python · LLM synthesis · validated commit</span>
+    <span class="sub">strategy decisions · triggered episodes · audited delivery</span>
     <span class="tag">HK + US dual-leg</span>
   </div>
 
@@ -95,7 +95,8 @@
       <div class="chip io">prices · US 7-route / HK 3-route</div>
       <div class="chip io">FX USDHKD · snapshots</div>
       <div class="chip io">GHA data · macro / sentiment / radar / news</div>
-      <div class="chip io">decisions.jsonl · peer-map</div>
+      <div class="chip io">portfolio · snapshots · peer-map</div>
+      <div class="chip io">v2 decision ledger</div>
     </div>
     <div class="arrow">▸</div>
 
@@ -104,7 +105,7 @@
       <div class="role">python · 0% LLM</div>
       <div class="chip">refresh prices &amp; <b>FX</b></div>
       <div class="chip">compute <b>HHI</b> · signals · RSI/MA</div>
-      <div class="chip">retrospective vs yesterday's plan</div>
+      <div class="chip">settle fired conditions · episode metrics</div>
       <div class="out">→ brief-context-{date}.json</div>
     </div>
     <div class="arrow">▸</div>
@@ -113,17 +114,17 @@
       <h3>LLM swarm</h3>
       <div class="role">Rick · synthesis only</div>
       <div class="chip">Tier 1/2/3 + <b>Judge</b></div>
-      <div class="chip">Bull vs Bear · next-session plan</div>
+      <div class="chip">Bull vs Bear · preserve multi-strategy views</div>
       <div class="chip">fallback xiaomi→minimax→…</div>
-      <div class="out">→ {date}-pre-open.md + plan.json</div>
+      <div class="out">→ plan v2 · decisions[]</div>
     </div>
     <div class="arrow">▸</div>
 
     <div class="col lead s-post">
       <h3>Postflight</h3>
       <div class="role">python · gate</div>
-      <div class="chip">snapshot? <b>FX</b>? &gt;3% movers?</div>
-      <div class="chip">banned phrases · schema</div>
+      <div class="chip">validate strategy · condition · override</div>
+      <div class="chip">stable IDs · assign <b>episode</b> · upsert ledger</div>
       <div class="chip">pass → <b>commit</b> + rebuild dashboard</div>
       <div class="out">safe_push.sh · rebase.autoStash</div>
     </div>
@@ -133,15 +134,15 @@
       <h3>Outputs</h3>
       <div class="role">delivered</div>
       <div class="chip io"><b>›</b> WeChat brief</div>
-      <div class="chip io"><b>›</b> dashboard.json → Pages</div>
-      <div class="chip io"><b>›</b> memory + plan.json</div>
+      <div class="chip io"><b>›</b> dashboard · metrics · backtest</div>
+      <div class="chip io"><b>›</b> plan v2 + decisions.jsonl</div>
     </div>
   </div>
 
   <div class="loop">
-    <span class="lbl">↩ self-learning</span>
-    <span class="txt">tomorrow's preflight reads back <b>plan.json</b> → did triggers fire? · simulate P&amp;L · log confidence calibration</span>
-    <span class="ret">plan.json → preflight (day N+1)</span>
+    <span class="lbl">↩ decision v2 audit</span>
+    <span class="txt"><b>condition fired?</b> → one representative per strategy episode → date-cluster CI → capital-weighted daily compounding</span>
+    <span class="ret">ledger → metrics/backtest → next brief</span>
   </div>
 
   <div class="band">
@@ -151,7 +152,7 @@
       <div class="arrow">▸</div>
       <div class="layer l2"><h4>2 · GH Action backstop</h4><p>brief-fallback regenerates via Xiaomi if cron didn't</p></div>
       <div class="arrow">▸</div>
-      <div class="layer l3"><h4>3 · crontab watchdogs</h4><p>report_watchdog ×6 direct-to-WeChat · commit_dreaming</p></div>
+      <div class="layer l3"><h4>3 · crontab watchdogs</h4><p>generated report or deterministic preflight block → Telegram</p></div>
       <div class="arrow">▸</div>
       <div class="layer l4"><h4>4 · health sentinels</h4><p>cron-health (daily) · weekly-health · red badge on drift</p></div>
     </div>

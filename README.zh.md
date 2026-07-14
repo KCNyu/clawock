@@ -72,6 +72,10 @@ Reflect 仪表盘展示：
 
 所有数字由账本和真实快照生成。LLM 负责写决策；ID、触发判断、episode 分组、指标和回测全部由 Python 掌管。
 
+<p align="center"><img src="docs/shadow-backtest.png" alt="decision v2 反事实回测：实际执行、全听已触发主动 AI 策略、显式不动基线" width="760"></p>
+
+<sub>三根同口径曲线：实际执行 · 全听已触发主动 AI 策略 · 不动=0。图下直接打印 episode n、平均 benefit 和日期聚类 CI；CI 跨 0 表示“尚未证明 alpha”，不等于“AI 永远没用”。由 GitHub Actions 每周刷新。</sub>
+
 ---
 
 ## 🎯 它到底怎么决策
@@ -125,7 +129,7 @@ Reflect 仪表盘展示：
 
 不只是"一个 cron 在调脚本"。**确定性**那一半确实是——报价、汇率、投递、对账,绝不能押在模型的心情上。而 **agent** 那一半,是被脚本包住的十一个独立 LLM turn、简报里的辩论 swarm、监督它们的 watchdog,以及仲裁共享状态的对账层。**确定性脚手架 + 需要判断处的 agent —— 这个切分本身就是架构:**
 
-![clawock 架构 —— 确定性的 preflight→LLM→postflight harness,包住十一个 agent 化的 LLM turn、简报时的辩论 swarm、监督型 watchdog,与对账闸](assets/architecture.svg)
+![clawock 架构 —— preflight 确定性结算触发和指标，LLM 写同股多策略 decision，postflight 分配稳定 ID/episode，ledger 回流 dashboard 与回测](assets/architecture.svg)
 
 **实线路径**(调度器 → harness → 共享状态 → 闸 → 发布)是不管模型乖不乖都照跑的确定性骨架。**agent**——十一个 `LLM turn` 加那个 `swarm`——只往共享状态里写**观点**,事实性的东西全由代码仲裁。**虚线边**是大家容易忘的部分:捕捉卡死 turn 的 watchdog,以及给昨天 `plan.json` 打分再喂回来的自学习闭环。这些才让它是一张 multi-agent 交易桌,而不是脚本化的报告机。
 

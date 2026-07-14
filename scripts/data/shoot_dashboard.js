@@ -14,6 +14,8 @@
  * Outputs (all refresh weekly via the Action, so nothing drifts):
  *   docs/dashboard-preview.png   desktop hero shot (README)
  *   docs/dashboard-mobile.png    mobile full-page shot
+ *   docs/shadow-backtest.png     v2 three-line counterfactual card
+ *   docs/architecture.png        current pipeline diagram
  *   assets/social-card.png       1200x630 OG / Twitter card (headline + shot)
  *   .gifframes/f{0..5}.png       per-tab mobile frames → assemble_dashboard_gif.py
  *
@@ -27,6 +29,7 @@
 const { chromium, devices } = require('playwright');
 const fs = require('fs');
 const path = require('path');
+const { pathToFileURL } = require('url');
 
 const URL = process.env.URL || 'https://kcnyu.github.io/clawock/';
 const ROOT = path.resolve(__dirname, '../..');
@@ -112,6 +115,11 @@ function cardHTML(shotDataUri) {
     await dp.goto(URL, { waitUntil: 'networkidle', timeout: 45000 });
     await settle(dp);
     await dp.screenshot({ path: `${OUT_DIR}/dashboard-preview.png`, fullPage: false });
+    const shadow = dp.locator('#shadow-card');
+    await shadow.waitFor({ state: 'visible', timeout: 45000 });
+    await shadow.scrollIntoViewIfNeeded();
+    await dp.waitForTimeout(900);
+    await shadow.screenshot({ path: `${OUT_DIR}/shadow-backtest.png` });
     await desk.close();
 
     // 2) Social card (1200x630) — embeds the fresh desktop shot as a data-URI
@@ -178,9 +186,18 @@ function cardHTML(shotDataUri) {
       counts.push(steps + 1);
     }
     await gifCtx.close();
+
+    // 5) Render the version-controlled architecture HTML in the same Chromium
+    // run so the published diagram cannot drift from the weekly screenshots.
+    const archCtx = await browser.newContext({ viewport: { width: 1320, height: 812 }, deviceScaleFactor: 2 });
+    const ap = await archCtx.newPage();
+    await ap.goto(pathToFileURL(path.join(ROOT, 'scripts/data/architecture_diagram.html')).href, { waitUntil: 'networkidle' });
+    await ap.waitForTimeout(400);
+    await ap.screenshot({ path: `${OUT_DIR}/architecture.png` });
+    await archCtx.close();
     console.log('gif frames per tab:', counts.join(','));
 
-    console.log(`✓ desktop+card+mobile shot; ${TABS.length} gif frames → ${FRAME_DIR}`);
+    console.log(`✓ dashboard + v2 backtest + architecture; ${TABS.length} gif frames → ${FRAME_DIR}`);
   } finally {
     await browser.close();
   }

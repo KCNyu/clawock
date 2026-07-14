@@ -72,6 +72,10 @@ The Reflect dashboard reports:
 
 All figures are generated from the ledger and live snapshots. The LLM writes decisions; Python owns IDs, trigger evaluation, episode grouping, metrics, and the backtest.
 
+<p align="center"><img src="docs/shadow-backtest.png" alt="decision v2 counterfactual: actual execution, follow every triggered active AI strategy, and the explicit do-nothing baseline" width="760"></p>
+
+<sub>Three comparable lines: actual execution · all triggered active AI strategies · do nothing = 0. The chart prints episode n, average benefit and date-cluster CI underneath; a CI crossing zero means “alpha not yet proven,” not “AI can never help.” Refreshed weekly by GitHub Actions.</sub>
+
 ---
 
 ## 🎯 How it actually decides
@@ -125,7 +129,7 @@ All times HKT. Markets closed? A **holiday + weekend gate** skips the run instea
 
 Not just "a cron daemon calling scripts." The *deterministic* half is — prices, FX, delivery and reconciliation should never ride on a model's mood. The **agent** half is eleven independent LLM turns wrapped inside those scripts, the brief's debate swarm, watchdogs supervising them, and a reconciliation layer arbitrating shared state. **Deterministic scaffolding, agentic judgment — that split *is* the architecture:**
 
-![clawock architecture — a deterministic preflight→LLM→postflight harness wrapping eleven agentic LLM turns, a brief-time debate swarm, supervisor watchdogs, and a reconciliation gate](assets/architecture.svg)
+![clawock architecture — deterministic preflight settles triggers and metrics, the LLM writes multi-strategy decisions, postflight assigns stable IDs and episodes, and the ledger feeds the dashboard/backtest](assets/architecture.svg)
 
 The **solid path** (schedulers → harness → shared state → gates → publish) is the deterministic backbone that runs whether or not a model behaves. The **agents** — eleven `LLM turn` instances plus the `swarm` — only ever write *opinions* into shared state; everything factual is arbitrated by code. The **dotted edges** are the parts people forget: the watchdog that catches a stalled turn, and the self-learning loop that grades yesterday's `plan.json` and feeds the score back in. That's what makes it a multi-agent desk, not a scripted report generator.
 
