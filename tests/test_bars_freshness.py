@@ -81,13 +81,99 @@ def test_stored_bars_are_raw_and_never_hold_an_open_session():
             assert bar['low'] <= bar['close'] <= bar['high'], f'{p.name} {d}: close outside range'
 
 
-def test_staleness_reports_a_per_ticker_hole():
-    """The leg reducer is max(), so one frozen ticker hides behind the others — the
-    first version of this check passed a store with 00100's newest bar removed.
-    Laggards are what make a single-ticker outage visible."""
-    real = brief_preflight.bars_staleness()
-    assert real, 'staleness returned nothing — the store is unreadable'
-    for leg, st in real.items():
-        assert st['newest_bar'] <= (st['last_closed_session'] or '9999'), (
-            f'{leg}: newest bar is ahead of the last closed session')
-        assert isinstance(st.get('laggards'), dict), f'{leg}: laggards missing'
+def _write_store(root, docs):
+    """Build a throwaway bar store: {ticker: (leg, [dates])}."""
+    d = root / 'memory' / 'bars'
+    d.mkdir(parents=True)
+    for ticker, (leg, dates) in docs.items():
+        (d / f'{ticker}.json').write_text(json.dumps({
+            'schema_version': 1, 'ticker': ticker, 'leg': leg, 'adjustment': 'raw',
+            'bars': {x: {'open': 1.0, 'high': 1.0, 'low': 1.0, 'close': 1.0} for x in dates},
+        }))
+    return root
+
+
+def test_staleness_reports_a_per_ticker_hole(tmp_path, monkeypatch):
+    """One frozen ticker must stay visible behind a healthy leg.
+
+    The leg reducer is max(), so a fresh sibling hides a frozen ticker completely —
+    an earlier version of this test only asserted `laggards` was a dict, which passed
+    even with the value hardcoded to {} and never actually created a hole. This one
+    builds a store with a real hole and asserts the frozen ticker is named.
+    """
+    fresh = brief_preflight._last_closed_session('hk').isoformat()
+    _write_store(tmp_path, {
+        'HEALTHY': ('HK', [fresh]),
+        'FROZEN': ('HK', ['2026-06-01']),
+    })
+    monkeypatch.setattr(brief_preflight, 'WS', tmp_path)
+    hk = brief_preflight.bars_staleness()['HK']
+
+    assert hk['newest_bar'] == fresh
+    assert hk['missing_sessions'] == [], 'a healthy leg must not report leg-level gaps'
+    assert hk['laggards'] == {'FROZEN': '2026-06-01'}, (
+        'a frozen ticker vanished behind its healthy sibling — this is exactly the '
+        'outage the laggard list exists to surface')
+
+
+def test_retirement_is_declared_never_inferred(tmp_path, monkeypatch):
+    """A frozen writer and a retired instrument look identical from the bars alone.
+
+    Settling used to decide it with `sess > max(bars)`, which is also the exact
+    signature of a ticker whose writer stopped: its decisions would be filed
+    `instrument_inactive` and drop out of the denominator with nothing reported. Only
+    a declaration in fetch_daily_bars' MANIFEST may say an instrument is retired.
+    """
+    import decision_v2
+
+    d = tmp_path / 'memory' / 'bars'
+    d.mkdir(parents=True)
+    for ticker, retired in (('RETIRED', True), ('FROZEN', False)):
+        (d / f'{ticker}.json').write_text(json.dumps({
+            'ticker': ticker, 'leg': 'US', 'adjustment': 'raw', 'retired': retired,
+            'bars': {'2026-06-01': {'open': 1.0, 'high': 1.0, 'low': 1.0, 'close': 1.0}},
+        }))
+    monkeypatch.setattr(decision_v2, 'BARS_DIR', d)
+
+    assert decision_v2.ticker_retired('RETIRED') is True
+    assert decision_v2.ticker_retired('FROZEN') is False, (
+        'a ticker whose bars merely stop early was reported as retired — that is a '
+        'data outage being laundered into a fact about the instrument')
+    assert decision_v2.ticker_retired('NEVER_HEARD_OF') is False
+
+
+def test_manifest_declares_retirement_for_the_known_retired_line(tmp_path):
+    """SKHYV is the one instrument that legitimately has no session to grade; if the
+    declaration is dropped its decisions silently become `bar_missing` instead."""
+    import fetch_daily_bars
+    assert fetch_daily_bars.MANIFEST['SKHYV'].get('retired') is True
+    assert not any(m.get('retired') for t, m in fetch_daily_bars.MANIFEST.items()
+                   if t != 'SKHYV'), 'an active instrument is declared retired'
+
+
+def test_incremental_fetch_anchors_to_each_tickers_own_newest_bar():
+    """A fixed window off today turns any outage longer than it into a permanent
+    hole: the writer resumes, appends the tail, and the middle is never refetched
+    while freshness — which only looks after the newest bar — reads as current."""
+    import fetch_daily_bars
+
+    src = inspect.getsource(fetch_daily_bars.main)
+    assert 'incremental_beg(' in src, (
+        'main() no longer derives the fetch start per ticker; a fixed lookback '
+        'silently fossilises any outage longer than the window.')
+    assert 'timedelta(days=10)' not in src, 'the fixed 10-day window is back'
+
+
+def test_staleness_flags_a_whole_leg_falling_behind(tmp_path, monkeypatch):
+    """The leg-level alarm: every ticker stale means the writer itself is dead,
+    which is the condition that went unnoticed for a month."""
+    _write_store(tmp_path, {'A': ('HK', ['2026-06-01']), 'B': ('HK', ['2026-06-01'])})
+    monkeypatch.setattr(brief_preflight, 'WS', tmp_path)
+    hk = brief_preflight.bars_staleness()['HK']
+
+    assert hk['missing_sessions'], 'a leg stuck at 2026-06-01 reported no missing sessions'
+    assert hk['laggards'] == {}, 'uniformly stale is a leg outage, not a laggard'
+    # Real sessions only — a naive date walk would list weekends and holidays.
+    for d in hk['missing_sessions']:
+        assert trading_calendar.is_trading_day('hk', date.fromisoformat(d)), (
+            f'{d} is not an HK trading day but was reported as a missing session')

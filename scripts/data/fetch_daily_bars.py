@@ -50,7 +50,7 @@ import argparse
 import json
 import os
 import sys
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
@@ -89,7 +89,16 @@ MANIFEST: dict[str, dict] = {
     # "SK海力士-WI" — a when-issued line that stopped trading once SKHY listed. Its only
     # bar is 2026-07-10; a 07-13 decision on it has no session to grade against, and that
     # is a real fact about the instrument, not a data gap to paper over.
-    "SKHYV": {"leg": "US", "tencent": "usSKHYV.OQ", "em": "105.SKHYV", "name": "SK海力士-WI (when-issued, retired)"},
+    # `retired` is declared here and nowhere else. It is the one fact that lets the
+    # ledger say "this instrument has no session to grade" instead of "we are missing
+    # data", and the two must never be inferred from each other: settling used to
+    # decide it by asking whether the requested session was past the ticker's newest
+    # bar, which is also exactly what a broken writer looks like. A frozen *active*
+    # ticker would then have had its decisions filed as instrument_inactive and drop
+    # out of the denominator silently — the same quiet-shrinkage bug the store exists
+    # to prevent. Pinned, never guessed, like the suffixes above.
+    "SKHYV": {"leg": "US", "tencent": "usSKHYV.OQ", "em": "105.SKHYV",
+              "name": "SK海力士-WI (when-issued, retired)", "retired": True},
     "SOXL":  {"leg": "US", "tencent": "usSOXL.AM",  "em": "107.SOXL",  "name": "SOXL 3x"},
     "SPCH":  {"leg": "US", "tencent": "usSPCH.AM",  "em": "107.SPCH",  "name": "SpaceX hold (listed 06-15)"},
     "SPCX":  {"leg": "US", "tencent": "usSPCX.OQ",  "em": "107.SPCX",  "name": "SpaceX 2x (listed 06-12)"},
@@ -106,7 +115,8 @@ def load_bars(ticker: str) -> dict:
         m = MANIFEST.get(ticker, {})
         return {"schema_version": SCHEMA_VERSION, "ticker": ticker, "leg": m.get("leg"),
                 "tencent": m.get("tencent"), "em_audit_secid": m.get("em"),
-                "adjustment": "raw", "source": "tencent", "bars": {}}
+                "adjustment": "raw", "source": "tencent",
+                "retired": bool(m.get("retired", False)), "bars": {}}
     return json.loads(p.read_text())
 
 
@@ -202,6 +212,8 @@ def sane(b: dict) -> bool:
 def merge(ticker: str, fresh: list[dict], repair: bool) -> tuple[int, int, list[str]]:
     doc = load_bars(ticker)
     doc.setdefault("tencent", MANIFEST[ticker]["tencent"])
+    # The manifest is the declaration; docs written before it existed get it here.
+    doc["retired"] = bool(MANIFEST[ticker].get("retired", False))
     bars = doc["bars"]
     last_closed = _last_closed_session(doc.get("leg") or MANIFEST[ticker]["leg"])
     now = datetime.now(HKT).isoformat(timespec="seconds")
@@ -240,6 +252,29 @@ def merge(ticker: str, fresh: list[dict], repair: bool) -> tuple[int, int, list[
     return added, revised, conflicts
 
 
+def incremental_beg(ticker: str) -> str:
+    """Where an incremental fetch should start for one ticker: just before its own
+    newest bar, never a fixed window off today.
+
+    A fixed 10-day lookback silently turns any outage longer than the window into a
+    permanent hole: the writer resumes, appends only the recent tail, and the store
+    ends up `06-01, 07-06…07-15`. Nothing then reports it — freshness only ever looks
+    *after* the newest bar, so the store reads as current while a month of sessions
+    is missing, and every decision in that month settles as `bar_missing` forever.
+    Anchoring to the ticker's own newest bar means the gap is simply fetched. Merging
+    is immutable and idempotent, so an overlapping range costs one request and
+    changes nothing.
+    """
+    doc = load_bars(ticker)
+    bars = doc.get("bars") or {}
+    if not bars:
+        return START_DATE
+    # Two days of overlap so a provider revision to the last stored session is still
+    # seen (and reported as a conflict) rather than skipped past.
+    return max(START_DATE,
+               (date.fromisoformat(max(bars)) - timedelta(days=2)).isoformat())
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--backfill", action="store_true", help=f"fetch from {START_DATE}")
@@ -253,12 +288,12 @@ def main() -> int:
         print(f"not in manifest (add it explicitly, never guess): {unknown}", file=sys.stderr)
         return 2
 
-    beg = START_DATE if args.backfill else (datetime.now(HKT).date() - timedelta(days=10)).isoformat()
     end = datetime.now(HKT).date().isoformat()
     total_add = total_rev = 0
     all_conflicts: list[str] = []
     for t in tickers:
         m = MANIFEST[t]
+        beg = START_DATE if args.backfill else incremental_beg(t)
         fresh = fetch_tencent(m["tencent"], beg, end)
         if not fresh:
             print(f"  {t:6} ✗ tencent returned nothing ({m['tencent']})")

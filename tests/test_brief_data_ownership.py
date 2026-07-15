@@ -85,6 +85,23 @@ def test_gha_synced_files_are_actually_gha_produced():
             f'GHA_DATA_FILES.')
 
 
+def test_every_gha_owned_file_is_synced_before_the_brief_reads_it():
+    """The reverse inclusion, which the one-way check above cannot see.
+
+    influencer_feed.json sat in exactly this blind spot: influencer-scan.yml builds
+    and commits it, preflight reads it, but it was missing from GHA_DATA_FILES — so
+    the sync never pulled the workflow's fresh copy and the brief read whatever stale
+    version happened to be in the working tree. That is the 2026-05-22 sentiment bug
+    (brief embedded 5-21 data because the sync hadn't fetched) which is the very
+    reason sync_gha_data_files exists.
+    """
+    missing = sorted(set(GHA_OWNED) - set(_harness_common.GHA_DATA_FILES))
+    assert not missing, (
+        f'{missing} are produced by a workflow and read by the brief, but are not in '
+        f'GHA_DATA_FILES — the brief will read a stale local copy instead of the '
+        f"workflow's fresh one.")
+
+
 def test_gha_owned_files_are_not_committed_by_the_brief():
     """The other direction: two writers is the same bug wearing a different hat."""
     staged = _postflight_add_list()

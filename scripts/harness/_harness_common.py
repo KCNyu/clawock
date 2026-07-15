@@ -117,7 +117,8 @@ def snapshot_date_for_now():
 # the sync clobbered each freshly-fetched copy with origin's older one, and since
 # it wasn't committed either, origin only moved when an unrelated commit happened
 # to sweep it up — a loop that kept it stale from both ends.
-GHA_DATA_FILES = ['sentiment.json', 'macro.json', 'us_news_digest.json']
+GHA_DATA_FILES = ['sentiment.json', 'macro.json', 'us_news_digest.json',
+                  'influencer_feed.json']
 
 
 def sync_gha_data_files(ws=None):

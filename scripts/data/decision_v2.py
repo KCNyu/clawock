@@ -426,6 +426,23 @@ def bar(ticker: str, day: str) -> dict | None:
     return load_ticker_bars(ticker).get(day)
 
 
+def ticker_retired(ticker: str) -> bool:
+    """Whether the store *declares* this instrument retired — never an inference.
+
+    This has to be a fact someone wrote down (fetch_daily_bars' MANIFEST), because
+    the obvious shortcut — "the session we want is past this ticker's newest bar" —
+    cannot tell a retired line apart from a writer that stopped running for it. Under
+    that shortcut a frozen active ticker had its decisions filed as
+    instrument_inactive and quietly left the denominator, which is the same
+    silent-shrinkage failure `leg_sessions` above refuses to commit.
+    """
+    p = BARS_DIR / f"{ticker}.json"
+    try:
+        return bool(json.loads(p.read_text()).get("retired", False)) if p.exists() else False
+    except Exception:
+        return False
+
+
 def leg_sessions(leg: str) -> list[str]:
     """Sessions this leg's bar store actually holds data for.
 
@@ -638,7 +655,7 @@ def settle_decisions(decisions: list[dict], now_date: str | None = None) -> int:
                 ev.update({"triggered": None, "status": "pending", "outcome": "pending",
                            "pending_reason": "session_not_final", "trigger_session": sess})
             else:
-                inactive = bool(load_ticker_bars(ticker)) and sess > max(load_ticker_bars(ticker))
+                inactive = ticker_retired(ticker)
                 ev.update({"triggered": None, "status": "not_evaluable", "outcome": "unknown",
                            "not_evaluable_reason": "instrument_inactive" if inactive else "bar_missing",
                            "trigger_session": sess})

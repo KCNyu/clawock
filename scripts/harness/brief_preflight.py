@@ -833,7 +833,13 @@ def bars_staleness():
         newest = max(per_ticker.values())
         expected = _last_closed_session(market)
         missing = []
-        if expected:
+        # Past the holiday table's horizon `is_trading_day` has no data and answers
+        # True for everything, so it would file 2027-01-01 as a missing session every
+        # January until someone extends the table. Unlike `closed_reason` it does not
+        # fail open. The table is extended each December by convention; until then the
+        # honest report is "the calendar expired", not an invented list of holes.
+        expired = bool(expected and expected.year > trading_calendar.LATEST_YEAR)
+        if expected and not expired:
             cur = date.fromisoformat(newest) + timedelta(days=1)
             while cur <= expected:
                 if trading_calendar.is_trading_day(market, cur):
@@ -842,6 +848,7 @@ def bars_staleness():
         out[leg] = {'newest_bar': newest,
                     'last_closed_session': expected.isoformat() if expected else None,
                     'missing_sessions': missing,
+                    'calendar_expired': expired,
                     'laggards': {t: d for t, d in sorted(per_ticker.items()) if d < newest}}
     return out
 
@@ -1229,7 +1236,15 @@ def main():
         print(f'   +{bars.get("added", 0)} bars, {bars.get("revised", 0)} revised')
     for leg, st in (bars.get('stale') or {}).items():
         miss = st.get('missing_sessions') or []
-        if miss:
+        if st.get('calendar_expired'):
+            # Actionable and specific: the check is blind, rather than quietly
+            # inventing a holiday-shaped hole every January.
+            print(f'   ⚠ {leg}: trading calendar table ends at '
+                  f'{trading_calendar.LATEST_YEAR}; freshness unverifiable')
+            issues.append(f'trading_calendar table expired past '
+                          f'{trading_calendar.LATEST_YEAR} — extend it; {leg} bar '
+                          f'freshness cannot be checked')
+        elif miss:
             # "+0 bars" and "the store has no writer" print identically; only the
             # calendar tells them apart, so an unfetched session is an issue here.
             print(f'   ⚠ {leg}: newest bar {st["newest_bar"]}, last close '
