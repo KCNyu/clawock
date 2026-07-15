@@ -20,13 +20,13 @@
   <img src="assets/social-card.png" alt="clawock — an autonomous AI trading desk that grades its own calls" width="820">
 </a>
 
-<sub>Real positions. Real P&L. The card + screenshots refresh weekly via a <a href="https://github.com/KCNyu/clawock/actions/workflows/screenshot-refresh.yml">GitHub Action</a> so they never drift.</sub>
+<sub>Real positions. Real P&L. The social card + live scorecard image refresh weekly via a <a href="https://github.com/KCNyu/clawock/actions/workflows/screenshot-refresh.yml">GitHub Action</a>.</sub>
 
 <br>
 
 <a href="https://kcnyu.github.io/clawock/"><img src="assets/dashboard.gif" alt="clawock dashboard cycling through its six tabs" width="300"></a>
 
-<sub>📱 Cycling all six tabs — Hero · Holdings · Risk · Signals · Plan · <b>Reflect</b> (the self-grading scorecard). Regenerated weekly alongside the screenshot.</sub>
+<sub>📱 Cycling all six tabs — Hero · Holdings · Risk · Signals · Plan · <b>Reflect</b> (the self-grading scorecard). The 8MB product demo is regenerated manually when the UI changes; weekly runs refresh only the two live PNGs.</sub>
 
 <br><br>
 
@@ -46,7 +46,7 @@ I gave an LLM a real brokerage portfolio — a Hong Kong leg and a US leg, actua
 
 Every trading day, on its own, the system:
 
-- 🌅 wakes up **~10 times** (HK open, mid, close → US open, intraday, overnight, close),
+- 🌅 runs **10 market automation lanes** (brief + HK/US reports + split intraday monitors), with high-frequency lanes firing every 30 minutes,
 - 📥 pulls fresh prices, FX, volatility, earnings calendars, macro (VIX/DXY/10Y), Reddit + news sentiment, even **Trump/Musk market-movers**,
 - 🧠 hands the clean data to the best-available LLM — playing a blunt persona named **Rick** — to write the take,
 - 📲 pushes a briefing to my **WeChat**, and
@@ -120,8 +120,9 @@ The goal isn't consensus — it's **forcing a real bear case to exist before any
 08:00  📊  daily deep brief   — multi-tier analysis + a judge model, ships to WeChat
 09:30  🇭🇰  HK open  → 10:00–11:30 / 14:00–15:30 intraday → 12:00 mid → 16:00 close
 21:30  🇺🇸  US open  → 22:00–02:30 intraday (incl. overnight) → 04:00 close
-            ↑ every run also refreshes the public dashboard
-weekend 🛰️  macro / sentiment / influencer / news scans keep the page warm
+            ↑ every successful reporting postflight publishes dashboard changes
+off-host 🛰️  pre-brief macro / sentiment / influencer scans + pre-US-open news digest
+weekly  🧪  archive / health / review / visual refresh jobs
 ```
 
 All times HKT. Markets closed? A **holiday + weekend gate** skips the run instead of burning tokens and writing a stale price as if it were live.
@@ -130,11 +131,11 @@ All times HKT. Markets closed? A **holiday + weekend gate** skips the run instea
 
 ## 🏗️ The whole machine on one page
 
-Not just "a cron daemon calling scripts." The *deterministic* half is — prices, FX, delivery and reconciliation should never ride on a model's mood. The **agent** half is eleven independent LLM turns wrapped inside those scripts, the brief's debate swarm, watchdogs supervising them, and a reconciliation layer arbitrating shared state. **Deterministic scaffolding, agentic judgment — that split *is* the architecture:**
+Not just "a cron daemon calling scripts." The *deterministic* half is — prices, FX, delivery and reconciliation should never ride on a model's mood. Ten scheduled market jobs run as isolated agent turns; the eleventh scheduled agent job promotes memory and sits outside the trading harness. The morning brief then fans into its debate swarm, while watchdogs and reconciliation code supervise shared state. **Deterministic scaffolding, agentic judgment — that split *is* the architecture:**
 
 ![clawock architecture — deterministic preflight settles triggers and metrics, the LLM writes multi-strategy decisions, postflight assigns stable IDs and episodes, and the ledger feeds the dashboard/backtest](assets/architecture.svg)
 
-The **solid path** (schedulers → harness → shared state → gates → publish) is the deterministic backbone that runs whether or not a model behaves. The **agents** — eleven `LLM turn` instances plus the `swarm` — only ever write *opinions* into shared state; everything factual is arbitrated by code. The **dotted edges** are the parts people forget: the watchdog that catches a stalled turn, and the self-learning loop that grades yesterday's `plan.json` and feeds the score back in. That's what makes it a multi-agent desk, not a scripted report generator.
+The **solid path** (schedulers → harness → shared state → gates → publish) is the deterministic backbone that runs whether or not a model behaves. Market agents write *opinions*; code owns prices, IDs, settlement, delivery markers and publication. The **dotted edges** are the parts people forget: the watchdog that catches a stalled turn, and the self-learning loop that grades yesterday's `plan.json` and feeds the score back in. That's what makes it a multi-agent desk, not a scripted report generator.
 
 ---
 
@@ -147,7 +148,7 @@ Running real automation for months taught me that the hard part isn't the prompt
 
 **1. Harness pattern**
 
-Every job is `preflight (Python) → LLM → postflight (Python)`. Deterministic work — prices, FX, HHI, signal counting — runs 100% in code. The LLM only writes the *opinion*. Forget FX, miss a snapshot, skip a >3% mover → postflight catches it and flags the report. The money math is **unit-tested**, and a **pre-push gate refuses to publish a book that doesn't reconcile**. That catches a ledger contradicting itself; it does not make the market data feeding it correct.
+Every **market-reporting** job is `preflight (Python) → LLM → postflight (Python)`. Deterministic work — prices, FX, HHI, signal counting — runs 100% in code. The LLM only writes the *opinion*. Forget FX, miss a snapshot, skip a >3% mover → postflight catches it and flags the report. The money math is **unit-tested**, and a **pre-push gate refuses to publish a book that doesn't reconcile**. That catches a ledger contradicting itself; it does not make the market data feeding it correct.
 
 </td><td width="33%" valign="top">
 
@@ -159,7 +160,7 @@ Every job is `preflight (Python) → LLM → postflight (Python)`. Deterministic
 
 **3. Defense in depth**
 
-Four independent layers — cron → GitHub Action backstop → system-crontab watchdogs → health sentinels. A single LLM stall, a missed cron, or a flaky data source **never silently drops a report**.
+Four overlapping layers — OpenClaw schedules the primary jobs; a GitHub Action can replace a missing morning brief; system-crontab watchdogs mirror confirmed misses to Telegram; health workflows make schedule/data drift visible. They do not promise delivery under every multi-channel outage, but a single LLM stall is no longer silent.
 
 </td></tr>
 </table>
@@ -169,12 +170,13 @@ Four independent layers — cron → GitHub Action backstop → system-crontab w
 
 <br>
 
-**Models.** Interactive chat runs on Claude (via the `claude-cli` runtime, reusing my Claude Code login — no key in the repo). The unattended briefs/reports run on a pinned **`MiniMax-M3`** with a fallback chain behind it (`GLM → DeepSeek → GPT → Claude → Haiku`). Mixed protocols: Claude/MiniMax speak `anthropic-messages` (thinking is its own block); GLM/DeepSeek/OpenAI speak `openai-completions`. A third-party reasoning model **must** be registered with `"reasoning": true` or its thinking silently locks off — a trap I paid for once.
+**Models.** Interactive chat currently runs on Claude; unattended market jobs pin **`MiniMax-M3`**. Provider credentials and the runtime fallback policy live outside this public repository and can change without rewriting the harness. Off-host LLM workflows call MiniMax M3 over Anthropic Messages and can fall back to Xiaomi MiMo while that optional key remains available. No provider key is stored here.
 
-**Write reconciliation (the one genuinely hard part).** `dashboard.json` is 100% derived, yet many jobs touch `master` — the cron daemon, ~11 GitHub Actions, system-crontab backstops, ad-hoc sessions. Months of race-condition incidents converged on one rule: **one writer per file.**
+**Write reconciliation (the one genuinely hard part).** `dashboard.json` is 100% derived, yet many actors touch `master` — the cron daemon, off-host workflows, system-crontab publishers and ad-hoc sessions. Months of race-condition incidents converged on one rule: **one writer per file.**
 
 - **The frontend reads the scan sidecars directly.** `macro / sentiment / influencer_feed / us_news_digest / em_news` are no longer embedded into `dashboard.json`; `index.html` fetches each file itself at load. So a GitHub Action only ever commits its *own* disjoint sidecar — those writers can't conflict, and a scan appears on the page the instant its commit lands, with no rebuild. (GH Actions still serialize among themselves via `concurrency: group: data-write`.)
 - **`dashboard.json` has exactly one publisher path.** Only the local harness postflights and a flock-guarded `publish_dashboard.sh` crontab rebuild it; both hold the same `/tmp/dashboard_publish.lock`, so two rebuilds can never interleave. The publisher re-commits **only on a semantic diff** (wall-clock fields stripped), so a freshness tick alone never spams a no-op commit.
+- **Schedules have a checked contract.** Runtime truth comes from `openclaw cron list --json`; [`config/cron-schedules.json`](config/cron-schedules.json) is the CI mirror, and the pre-push system check rejects drift between them. GitHub's health workflow consumes that same tracked file instead of maintaining a second handwritten stub.
 - **Everyone pushes through `safe_push.sh`** — rebase-retry, abort (don't loop) on a real conflict; a committed conflict marker is **rejected at the push hook** so a broken `dashboard.json` can never reach Pages.
 - **Portfolio numbers are gated at the door.** `portfolio.json` — the single source of truth — is written under an advisory `flock` + read-fresh-then-overlay (`mutate_json`, atomic `os.replace`), closing the load-modify-write race class. A **pre-push hook blocks any push whose book fails a money-conservation identity** (`TCV = Σ value`, `cash = baseline + trades + adjustments`, `cost = moving-weighted`), so an un-reconciled edit can't reach Pages — and those pure derivations are pinned by a `pytest` suite in CI.
 

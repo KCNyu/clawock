@@ -1,4 +1,4 @@
-name: Weekly Portfolio Review (Xiaomi)
+name: Weekly Portfolio Review (off-host LLM)
 
 # Sunday 22:00 HKT = 14:00 UTC
 on:
@@ -28,7 +28,7 @@ jobs:
 
       - run: pip install --quiet requests
 
-      - name: Run weekly review (Xiaomi)
+      - name: Run weekly review
         env:
           XIAOMI_API_KEY: ${{ secrets.XIAOMI_API_KEY }}
           MINIMAX_API_KEY: ${{ secrets.MINIMAX_API_KEY }}
@@ -40,6 +40,6 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add memory/weekly/
           if ! git diff --cached --quiet; then
-            git commit -m "memory: weekly review (xiaomi) $(date -u +%Y-W%V)"
+            git commit -m "memory: weekly review $(date -u +%Y-W%V)"
             bash scripts/data/safe_push.sh
           fi

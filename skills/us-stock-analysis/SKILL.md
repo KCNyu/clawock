@@ -77,7 +77,10 @@ Pick the smallest mode that answers the question. Default to **Quick Read** unle
 7. Output: executive summary + bull case + bear case + valuation + technical setup + sentiment read + risk + catalyst calendar + concrete entry/exit levels
 
 ### Mode 7 — Intraday Check-in (cron-driven, every 30 min, harness 化 ✨)
-**When:** US 盘中盯盘 cron (`*/30 10-15 * * 1-5 America/New_York`，共 12 次/天，已错开 09:30/16:00 阶段性报告)，比 Mode 6 更轻量、更高频。
+**When:** US 盘中由两个 HKT cron 拼接（`*/30 22-23 * * 1-5` +
+`*/30 0-2 * * 2-6 Asia/Shanghai`，当前 EDT 季共 10 次/交易日，最晚 02:30 HKT），
+比 Mode 6 更轻量、更高频。采用 HKT 是为绕过 daemon 的 ET timezone 解析问题；
+美东冬令时切换时必须同步调整 tracked cron contract 与 live schedule。
 
 **Harness 4-step**：
 
@@ -98,7 +101,7 @@ python3 /root/.openclaw/workspace/scripts/harness/intraday_preflight.py --market
   - 必须包含：今天该看/该等/该减 + 引用至少 1 个具体数字（票现价 / 异动幅度 / 信号 / RSI）
   - ⚡ **板块全景鼓励 tavily-search**：板块名读 `memory/peer-map.json` 各 ticker 的 `theme` 字段（持仓变了自动跟变，不要写死任何 ticker），search 对应 sector ETF / 主题板块今日成分涨跌 + 你持仓位置 + 1 句归因；持仓自己的数字仍从 context.json
   - 禁止"无异动，观望"这种敷衍 1 句话
-- ≤ 1200 字软上限 / ≤ 1500 字硬上限
+- 目标 ≤1200 字；>2000 字 postflight warn，>2500 字 fail
 
 #### Step 2.5: 写 dashboard 状态横幅 sidecar
 
@@ -109,13 +112,15 @@ python3 /root/.openclaw/workspace/scripts/harness/intraday_preflight.py --market
 ```bash
 python3 /root/.openclaw/workspace/scripts/harness/intraday_postflight.py --market us <<< "{报告}"
 ```
-**不 git commit**（高频触发避免 commit log 刷屏）。
+**不提交 `portfolio.json`**；若 dashboard 有语义变化，postflight 会重建并提交
+`assets/data/dashboard.json`。
 
 #### Step 4: 输出报告（仅存档；微信已由 postflight 主发，禁用 message 工具）
 微信投递已在 **Step 3 的 `intraday_postflight` 用 fresh-token 短连接发出**（cron `--no-deliver`，不 announce）——唯一路径。拼 `wechat_prefix` + 报告，**无标题**，作为**本回合最终文本回复**直接输出（仅存档）。
-- ❌ **禁止调用 `message`/send 工具** — postflight 已发，手动再调会**双发**；真漏由 `intraday_watchdog` 读 marker 兜底。整轮只输出一次，发完即停。
+- ❌ **禁止调用 `message`/send 工具** — postflight 已发，手动再调会**双发**；`intraday_watchdog` 只在 Telegram marker 缺失/失败时补投 Telegram，不重发微信。整轮只输出一次，发完即停。
 
-**和 Mode 6 的区别**：单段 `▎我的看法` 取代三段；无 ▎风险提示；无 git commit；holdings 用 markdown 表格（Mode 6 briefing 仍 ASCII）。
+**和 Mode 6 的区别**：单段 `▎我的看法` 取代三段；无 ▎风险提示；不提交
+`portfolio.json`（但会发布 dashboard 语义变化）；holdings 用 markdown 表格。
 
 ### Mode 6 — WeChat Briefing (cron-driven, harness 化 ✨)
 **When:** 美股开盘 / 美股收盘 两个 cron 走这个 mode。
@@ -156,22 +161,26 @@ python3 /root/.openclaw/workspace/scripts/harness/report_preflight.py --market u
 ```bash
 python3 /root/.openclaw/workspace/scripts/harness/report_postflight.py --market us --phase {phase} <<< "{报告}"
 ```
-pass/warn 自动 `git commit portfolio.json`。
+pass/warn 自动刷新 snapshot/dashboard，提交 scoped 产物并经 `safe_push.sh` 推送。
 
 #### Step 4: 输出报告（仅存档；微信已由 postflight 主发，禁用 message 工具）
 
-微信投递已在 **Step 3 的 `report_postflight` 用 fresh-token 短连接发出**——这是**唯一**发送路径（cron 设 `--no-deliver`，不再 announce）。拼 `wechat_prefix` + 报告作为**本回合最终文本回复**直接输出即可（**仅供留痕/存档**，不会被投递）。**不要自己调 `message`/send 工具**（postflight 已发，再调会双发）；真没送到由 `report_watchdog` 读 marker 兜底。
+微信投递已在 **Step 3 的 `report_postflight` 用 fresh-token 短连接发出**——这是
+**唯一微信路径**（cron 设 `--no-deliver`，不再 announce），同时会镜像 Telegram。
+拼 `wechat_prefix` + 报告作为**本回合最终文本回复**直接输出即可（仅留痕）。
+**不要自己调 `message`/send 工具**；`report_watchdog` 只在 Telegram marker 缺失/失败时
+补投 Telegram，不重发微信。
 
 **Title template**（preflight 已生成）：
-- 开盘 09:30 ET：`🌅 美股开盘快报｜{date} 21:30 CST`
+- 开盘 09:30 ET：`🌅 美股开盘快报｜{date} 09:30 ET`
 - 收盘 16:00 ET：`🌙 美股收盘日报｜{date}`
 
 **Hard rules:**
 - ⚠️ data gaps must be stated explicitly, never fabricate (postflight 扫敷衍词)
-- ❌ **禁止调用 `message`/send 工具发报告** — 微信由 Step 3 的 `report_postflight` 用 fresh-token 主发（cron `--no-deliver`，不 announce），手动再调 message 会**和 postflight 撞成双发**（2026-06-03 美股开盘连发两次的根因：模型在"已完成"叙述的同一 turn 又调了一次 send）。整轮只输出一次，发完即停，别因"不确定送达没"而重发（真漏由 report_watchdog 兜底）
+- ❌ **禁止调用 `message`/send 工具发报告** — 微信由 Step 3 的 `report_postflight` 用 fresh-token 主发（cron `--no-deliver`，不 announce），手动再调 message 会**和 postflight 撞成双发**（2026-06-03 美股开盘连发两次的根因：模型在"已完成"叙述的同一 turn 又调了一次 send）。整轮只输出一次，发完即停；`report_watchdog` 只在 Telegram marker 缺失/失败时补投 Telegram，不重发微信。
 - No simple number recitation — model must add interpretation
 - 异动票 (anomalies) **必须在报告里提到** (postflight 强制)
-- 报告长度 ≤ 1200 字软上限 / ≤ 1500 字硬上限
+- 目标 ≤1200 字；>2000 字 postflight warn，>2500 字 fail
 
 ### Mode 5 — Sentiment Read
 **When:** "市场情绪怎么样" / "推上怎么说 X" / "Reddit 怎么聊 X" / before a sizing decision

@@ -10,9 +10,9 @@ first-class block (no reasoning_content replay 400s, no empty-turn ambiguity).
 Used by brief-fallback / weekly-review / news-digest / influencer-scan — none of
 which can reach the local openclaw gateway, so they call the vendor API directly.
 
-Why a fallback (2026-05-30, kcn 要求): Xiaomi has had empty-turn / sensitive-content
-/ rate-limit hiccups that can blank a scheduled job's output. If Xiaomi fails all
-retries, we transparently retry on MiniMax so the cron still produces something.
+Why a fallback (2026-05-30, kcn 要求): one vendor can hit empty-turn,
+sensitive-content or rate-limit failures that blank a scheduled job. MiniMax is now
+primary; while the optional Xiaomi key remains usable it provides a second route.
 
 Migration (2026-06-01, kcn "都改吧变成稳妥的anthropic的"): switched off the old
 OpenAI /v1/chat/completions transport. MiniMax M2.7 + openai-completions is dead

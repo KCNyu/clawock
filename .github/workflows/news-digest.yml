@@ -1,4 +1,4 @@
-name: US News Digest (Xiaomi)
+name: US News Digest (off-host LLM)
 
 # 工作日 21:00 HKT = 13:00 UTC, 美股开盘前 30 分钟
 on:
@@ -27,7 +27,7 @@ jobs:
 
       - run: pip install --quiet requests
 
-      - name: Fetch news + Xiaomi distill
+      - name: Fetch news + LLM distill
         env:
           FINNHUB_API_KEY: ${{ secrets.FINNHUB_API_KEY }}
           XIAOMI_API_KEY: ${{ secrets.XIAOMI_API_KEY }}
@@ -40,6 +40,6 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add assets/data/us_news_digest.json
           if ! git diff --cached --quiet; then
-            git commit -m "news: US digest (xiaomi) $(TZ=Asia/Hong_Kong date +%Y-%m-%d)"
+            git commit -m "news: US digest $(TZ=Asia/Hong_Kong date +%Y-%m-%d)"
             bash scripts/data/safe_push.sh
           fi

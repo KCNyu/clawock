@@ -11,10 +11,10 @@
  * Env overrides: URL (default live Pages), OUT_DIR (assets/), FRAME_DIR (.gifframes/),
  *                TMP_DIR (intermediates), CHROME_EXE (explicit browser binary).
  *
- * Outputs (all refresh weekly via the Action, so nothing drifts):
+ * Outputs:
  *   assets/shadow-backtest.png   v2 cumulative win-rate chart (all / active / 50% ref)
  *   assets/social-card.png       1280x640 OG / Twitter card (headline + shot)
- *   assets/dashboard.gif         built from FRAME_DIR by assemble_dashboard_gif.py
+ *   assets/dashboard.gif         manual dispatch only; built from FRAME_DIR
  *   TMP_DIR/dashboard-preview.png  intermediate — embedded into the social card, not shipped
  *   .gifframes/f{0..5}.png       per-tab mobile frames → assemble_dashboard_gif.py
  *
@@ -43,6 +43,7 @@ const FRAME_DIR = process.env.FRAME_DIR || path.join(ROOT, '.gifframes');
 // Intermediate only: the social card inlines it as a data-URI, so it never ships.
 const TMP_DIR = process.env.TMP_DIR || path.join(ROOT, '.gifframes');
 const CHROME_EXE = process.env.CHROME_EXE || undefined;
+const CAPTURE_GIF = process.env.CAPTURE_GIF !== '0';
 const TABS = ['hero', 'drill', 'risk', 'market', 'plan', 'reflect'];
 
 async function settle(page) {
@@ -146,19 +147,20 @@ function cardHTML(shotDataUri) {
     await cp.screenshot({ path: `${OUT_DIR}/social-card.png` });
     await cardCtx.close();
 
-    // 4) Per-tab mobile frames for the animated GIF (assembled by the python step).
+    // 3) Per-tab mobile frames for the animated GIF (manual refresh only).
     //    The panels scroll inside an internal container (body is fixed, so fullPage ==
     //    viewport). So we locate that container and screenshot the viewport at several
     //    scroll positions top→bottom → real vertical-scroll frames, then move to the
     //    next tab (the assembler adds the horizontal swipe between tabs).
-    const VSCROLL = 5;   // scroll frames per tab (skipped when the tab barely scrolls)
-    const gifCtx = await browser.newContext({ viewport: { width: 400, height: 860 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true });
-    const gp = await gifCtx.newPage();
-    await gp.goto(URL, { waitUntil: 'networkidle', timeout: 45000 });
-    await gp.waitForFunction(() => { const h = document.querySelector('[data-panel=hero]'); return h && h.textContent.trim().length > 200; }, { timeout: 45000 }).catch(() => {});
-    await gp.waitForTimeout(1500);
-    const counts = [];
-    for (let i = 0; i < TABS.length; i++) {
+    if (CAPTURE_GIF) {
+      const VSCROLL = 5;   // scroll frames per tab (skipped when the tab barely scrolls)
+      const gifCtx = await browser.newContext({ viewport: { width: 400, height: 860 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true });
+      const gp = await gifCtx.newPage();
+      await gp.goto(URL, { waitUntil: 'networkidle', timeout: 45000 });
+      await gp.waitForFunction(() => { const h = document.querySelector('[data-panel=hero]'); return h && h.textContent.trim().length > 200; }, { timeout: 45000 }).catch(() => {});
+      await gp.waitForTimeout(1500);
+      const counts = [];
+      for (let i = 0; i < TABS.length; i++) {
       await gp.click(`[data-tab=${TABS[i]}]`).catch(() => {});
       await gp.waitForTimeout(400);
       await gp.waitForFunction((tab) => {
@@ -187,13 +189,14 @@ function cardHTML(shotDataUri) {
         await gp.waitForTimeout(320);
         await gp.screenshot({ path: `${FRAME_DIR}/f${i}_${j}.png` });
       }
-      counts.push(steps + 1);
+        counts.push(steps + 1);
+      }
+      await gifCtx.close();
+      console.log('gif frames per tab:', counts.join(','));
+      console.log(`✓ win-rate chart + social card; ${TABS.length} gif tabs → ${FRAME_DIR}`);
+    } else {
+      console.log('✓ win-rate chart + social card; GIF frame capture skipped');
     }
-    await gifCtx.close();
-
-    console.log('gif frames per tab:', counts.join(','));
-
-    console.log(`✓ win-rate chart + social card; ${TABS.length} gif frames → ${FRAME_DIR}`);
   } finally {
     await browser.close();
   }

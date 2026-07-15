@@ -2,11 +2,11 @@
 """
 gh_action_brief_fallback.py — called by .github/workflows/brief-fallback.yml.
 
-Single-turn Xiaomi MiMo call to generate today's brief if openclaw cron failed
-to produce one by 08:05 HKT. Reads brief-context-{date}.json from preflight,
-writes pre-open.md + plan.json.
+Single-turn vendor call (MiniMax M3 primary, optional Xiaomi fallback) to generate
+today's brief if openclaw cron failed to produce one by the 08:25 HKT check. Reads
+brief-context-{date}.json from preflight, writes pre-open.md + plan.json.
 
-Env: XIAOMI_API_KEY required
+Env: MINIMAX_API_KEY required; XIAOMI_API_KEY optional fallback
 """
 import json
 import os
@@ -53,7 +53,7 @@ def main():
     desc = (f"clawock 盘前深度简报 {today}：港股 + 美股真实持仓的多空辩论、量化因子、"
             f"风控硬闸与 AI 自评战绩（诚实公开，主动建议平均方向分为负）。")
     md_with_fm = (
-        f"---\nlayout: default\ntitle: 盘前深度简报 · {today} (xiaomi fallback)\n"
+        f"---\nlayout: default\ntitle: 盘前深度简报 · {today} (off-host fallback)\n"
         f'description: "{desc}"\n---\n\n'
         + md_part.strip()
     )

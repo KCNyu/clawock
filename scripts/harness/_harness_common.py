@@ -209,9 +209,10 @@ def rebuild_dashboard(ws=None):
     sync_gha_data_files(ws)
     try:
         # Single-publisher lock (2026-07-04): dashboard.json now has exactly two
-        # writer categories — the host harness (here) and the weekend
-        # publish_dashboard.sh crontab. GH Actions no longer rebuild it at all
-        # (see gha_commit_push.sh). flock serializes the build so a host run and
+        # writer categories — this harness path and the scheduled
+        # publish_dashboard.sh crontab. Data-scan Actions commit sidecars only;
+        # the rare off-host brief fallback reuses this same harness path.
+        # flock serializes the build so a harness run and
         # the publisher can't interleave writes to the same generated file.
         r = subprocess.run(
             ['flock', DASHBOARD_PUBLISH_LOCK,

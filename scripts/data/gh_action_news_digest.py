@@ -1,16 +1,17 @@
 #!/usr/bin/env python3
 """
-gh_action_news_digest.py — daily 21:00 HKT US news digest via Xiaomi.
+gh_action_news_digest.py — daily 21:00 HKT US news digest.
 
-Fetches news for 7 active US holdings (past 48h), calls Xiaomi to distill into
-actionable bullets, writes assets/data/us_news_digest.json.
+Fetches news for active US holdings (past 48h), calls MiniMax M3 with an optional
+Xiaomi fallback to distill actionable bullets, and writes
+assets/data/us_news_digest.json.
 
 News source chain (per-ticker fallback):
   1. Finnhub company-news (rich: headline + summary + source attribution)
   2. Google News RSS (free, no key; title-only; used when Finnhub key absent
      or returns empty for a ticker)
 
-Env: XIAOMI_API_KEY required; FINNHUB_API_KEY optional (digest still runs).
+Env: MINIMAX_API_KEY required; XIAOMI_API_KEY and FINNHUB_API_KEY optional.
 """
 import json
 import os

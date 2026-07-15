@@ -59,7 +59,7 @@ context.json 的决策/自进化字段，**必须用上**：
 ### C. 输出约束
 
 - **段标记必须用全角竖线**：`▎情绪面` `▎技术面` `▎操作建议` `▎风险提示` `▎我的看法`
-- 报告长度：Mode 6 ≤ 800 字 / Mode 7 ≤ 600 字 / brief 无上限但段要齐
+- 报告长度：Mode 6 / Mode 7 目标 ≤1200 字；>2000 字 warn，>2500 字 fail；brief 无固定上限但段要齐
 - **禁止敷衍词**：`数据待获取`、`等待数据`、`TODO`、`TBD` — postflight 会拦截
 - **禁止 hedging 免责声明**：跳过 `this is not investment advice` 之类，铁律已注册
 - 持仓回答**默认表格**（≥3 数据点必须表格化）
@@ -71,7 +71,7 @@ context.json 的决策/自进化字段，**必须用上**：
 | 跑了刷价脚本 | `portfolio.json` 已被脚本写，不要手改 |
 | daily-deep-brief 完成 | `memory/{date}-pre-open.md` + `memory/{date}-plan.json` |
 | Mode 6 报告 | 不写新文件；postflight 自动 commit portfolio.json + dashboard.json |
-| Mode 7 盯盘 | **不写文件**，不 commit（高频，避免 commit log 刷屏） |
+| Mode 7 盯盘 | 写 `.tmp` context/insights；不提交 `portfolio.json`，dashboard 有语义变化才由 postflight 提交 |
 | 手动复盘 | `memory/{date}.md`（用户手写的，agent 别擅自填） |
 | 新仓位 / 平仓 | `update_portfolio.py` 后由 postflight commit |
 
@@ -81,7 +81,8 @@ context.json 的决策/自进化字段，**必须用上**：
 
 - 编造数据；fallback 链全挂了就明说"数据获取失败"
 - 从 chat / Telegram 触发的 session 不要直接 `git push` — 先问用户。harness postflight 跑完会自动 push（带 rebase+retry），不用 LLM 操心
-- 改 `~/.openclaw/cron/jobs.json` 或 `~/.openclaw/openclaw.json` 不备份（先 `cp -p X X.bak.$(date +%Y%m%d-%H%M)`）— 自动化 LLM 也要遵守
+- 绕过 `openclaw cron edit` 直接改 cron SQLite/旧 `jobs.json`；schedule 改动必须同步 `config/cron-schedules.json` 并跑 `scripts/system_check.py`
+- 改 `~/.openclaw/openclaw.json` 不备份（先 `cp -p X X.bak.$(date +%Y%m%d-%H%M)`）— 自动化 LLM 也要遵守
 - 跑 `scripts/legacy/` 下任何脚本当主路径（仅供参考阅读）
 - 在 group chat / WeChat 简报里加 emoji 烟花（标题 1 个 emoji 上限）
 

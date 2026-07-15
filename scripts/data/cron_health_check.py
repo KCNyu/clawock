@@ -2,8 +2,9 @@
 """
 cron_health_check.py — EOD 巡检：今日 cron 应该跑了几次 vs 实际跑了几次。
 
-读 `/root/.openclaw/cron/jobs.json` 的每个 cron schedule，跟今天日期对照算出"应该跑次数"。
-然后读 git commit log 数实际今日的产出（每个 Mode 6 cron 都会产出 portfolio commit）。
+本机通过 OpenClaw CLI/SQLite 读取 live schedule；GitHub Actions 通过
+`config/cron-schedules.json` 读取同一份受版本控制的 schedule contract。然后按
+HKT（不是 runner 本地时区）读取 git commit log，核对该产出的报告是否落盘。
 
 输出：缺失/告警/正常 列表。可作为 GH Action 跑 EOD 一次，或者手动运行。
 
@@ -16,6 +17,7 @@ Usage:
   python3 scripts/data/cron_health_check.py            # human report
   python3 scripts/data/cron_health_check.py --json     # machine-readable
   python3 scripts/data/cron_health_check.py --silent   # 仅 exit code
+  python3 scripts/data/cron_health_check.py --jobs-file config/cron-schedules.json
 """
 import argparse
 import json
@@ -23,10 +25,12 @@ import os
 import re
 import subprocess
 import sys
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
+from pathlib import Path
+from zoneinfo import ZoneInfo
 
-WS = '/root/.openclaw/workspace'
-JOBS_PATH = '/root/.openclaw/cron/jobs.json'
+WS = Path(__file__).resolve().parents[2]
+HKT = ZoneInfo('Asia/Hong_Kong')
 
 # Cron name → identifying commit msg patterns
 COMMIT_PATTERNS = {
@@ -37,8 +41,9 @@ COMMIT_PATTERNS = {
     '美股开盘报告': r'美股开盘',
     '美股收盘报告': r'美股收盘',
     '盘前深度简报': r'daily deep brief',
-    '盘中盯盘': None,        # Mode 7 不 commit
-    '美股盘中盯盘': None,    # Mode 7 不 commit
+    '盘中盯盘': None,        # Mode 7 dashboard commit 不是 one-per-slot contract
+    '美股盘中盯盘': None,    # same
+    '美股盘中盯盘-overnight': None,
     'Memory Dreaming Promotion': None,  # 不 commit
 }
 
@@ -100,48 +105,51 @@ def parse_cron_slots(expr, tz_name, target_date_utc):
     return [f"{h:02d}:{m:02d}" for h in hours for m in mins]
 
 
-def fired_slots_today_from_log(tz_name='Asia/Hong_Kong'):
-    """Read openclaw log file for today, count 'embedded run agent end' events."""
-    try:
-        from zoneinfo import ZoneInfo
-        tz = ZoneInfo(tz_name)
-    except Exception:
-        tz = timezone.utc
-    today_local = datetime.now(tz).strftime('%Y-%m-%d')
-    log_path = f'/tmp/openclaw/openclaw-{today_local}.log'
-    if not os.path.exists(log_path):
-        return []
-    times = []
-    with open(log_path) as f:
-        for line in f:
-            try:
-                d = json.loads(line)
-                if 'embedded run agent end' in d.get('message',''):
-                    ts = d.get('time','')[:19]
-                    if ts:
-                        times.append(ts)
-            except Exception:
-                continue
-    return times
-
-
 def commit_count_today(commit_pattern):
-    """Count today's commits matching pattern. Use LC_ALL=C.UTF-8 for grep CJK."""
+    """Count matching commits whose committer date falls on today in HKT.
+
+    GitHub runners use UTC. `git log --since=<today> 00:00` therefore dropped the
+    04:00-HKT US-close commit (20:00 UTC on the prior date) and reported a false
+    miss every day. Parse the ISO offset carried by each commit instead.
+    """
     if not commit_pattern:
         return None  # Mode 7 / dream don't commit
-    today = datetime.now().strftime('%Y-%m-%d')
-    env = os.environ.copy()
-    env['LC_ALL'] = 'C.UTF-8'
-    env['LANG'] = 'C.UTF-8'
+    today = datetime.now(HKT).date()
     try:
-        r = subprocess.run(['git', '-C', WS, 'log', f'--since={today} 00:00',
-                            f'--grep={commit_pattern}', '--oneline'],
-                           capture_output=True, text=True, timeout=15, env=env)
+        r = subprocess.run(
+            ['git', '-C', str(WS), 'log', '-n', '500', '--format=%cI%x00%s'],
+            capture_output=True, text=True, timeout=15,
+        )
         if r.returncode != 0:
             return 0
-        return len([l for l in r.stdout.splitlines() if l.strip()])
+        count = 0
+        for line in r.stdout.splitlines():
+            if '\x00' not in line:
+                continue
+            stamp, subject = line.split('\x00', 1)
+            try:
+                commit_day = datetime.fromisoformat(stamp).astimezone(HKT).date()
+            except ValueError:
+                continue
+            if commit_day == today and re.search(commit_pattern, subject):
+                count += 1
+        return count
     except Exception:
         return 0
+
+
+def load_runtime_jobs(jobs_file=None):
+    """Load cron jobs from an explicit tracked contract or the live CLI layer."""
+    if jobs_file:
+        data = json.loads(Path(jobs_file).read_text())
+        return data.get('jobs', [])
+
+    sys.path.insert(0, str(WS / 'scripts' / 'harness'))
+    from _watchdog_common import load_jobs
+    jobs = load_jobs()
+    if not jobs:
+        raise RuntimeError('OpenClaw CLI returned no cron jobs; run `openclaw doctor --fix`')
+    return jobs
 
 
 def check_dashboard_build():
@@ -151,12 +159,12 @@ def check_dashboard_build():
     detail, ok, warn_count, age_hours. A 'failed' build means dashboard.json is
     frozen while commits keep flowing — the silent-freeze case this guards against.
     """
-    path = os.path.join(WS, 'logs', 'dashboard_build_status.json')
-    if not os.path.exists(path):
+    path = WS / 'logs' / 'dashboard_build_status.json'
+    if not path.exists():
         return {'state': 'absent', 'detail': 'no build status file yet', 'ok': None,
                 'warn_count': 0, 'age_hours': None}
     try:
-        st = json.load(open(path))
+        st = json.loads(path.read_text())
     except Exception as e:
         return {'state': 'failed', 'detail': f'status file unreadable: {e}', 'ok': False,
                 'warn_count': 0, 'age_hours': None}
@@ -196,27 +204,29 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--json', action='store_true')
     ap.add_argument('--silent', action='store_true')
+    ap.add_argument('--jobs-file', help='tracked cron contract (used by CI)')
     args = ap.parse_args()
 
-    if not os.path.exists(JOBS_PATH):
+    try:
+        jobs = load_runtime_jobs(args.jobs_file)
+    except Exception as e:
         if not args.silent:
-            print('FATAL: openclaw cron jobs.json not found', file=sys.stderr)
+            print(f'FATAL: cron schedules unavailable: {e}', file=sys.stderr)
         sys.exit(1)
 
     now = datetime.now(timezone.utc)
-    jobs = json.load(open(JOBS_PATH))['jobs']
-    log_fires = fired_slots_today_from_log()
-    log_fires_hhmm = [t[11:16] for t in log_fires]  # extract HH:MM
 
     report = []
     has_missing = False
     has_warn = False
 
     for job in jobs:
+        if not job.get('enabled', True):
+            continue
         name = job.get('name', job.get('id','?'))
         sched = job.get('schedule', {})
         expr = sched.get('expr','')
-        tz = sched.get('tz', 'UTC')
+        tz = sched.get('tz') or 'Asia/Shanghai'
         expected = parse_cron_slots(expr, tz, now)
         # Only check slots already past
         try:
@@ -232,11 +242,15 @@ def main():
         # holiday — preflight skips the run by design (the 6-19 端午+Juneteenth double
         # close was a false red). 港股→hk, 美股→us; other jobs (brief/dream) unaffected.
         mkt = 'hk' if name.startswith('港股') else ('us' if name.startswith('美股') else None)
-        if mkt and expected_past and _market_closed_today(mkt):
+        both_closed = name == '盘前深度简报' and all(
+            _market_closed_today(m) for m in ('hk', 'us')
+        )
+        if expected_past and ((mkt and _market_closed_today(mkt)) or both_closed):
+            label = f'{mkt.upper()} 休市' if mkt else 'HK + US 均休市'
             report.append({
                 'name': name, 'schedule': expr, 'tz': tz,
                 'expected_today': 0, 'commits_today': commit_n,
-                'status': 'holiday', 'detail': f'{mkt.upper()} 休市 · 跳过(无需 commit)',
+                'status': 'holiday', 'detail': f'{label} · 跳过(无需 commit)',
             })
             continue
 
@@ -254,8 +268,8 @@ def main():
             else:
                 detail = f'{commit_n}/{len(expected_past)} commits OK'
         else:
-            # Mode 7 / dream — 不 commit，只能看 log
-            detail = f'{len(expected_past)} slots expected (Mode 7: no commit tracking)'
+            # Intraday/dream jobs do not have a one-commit-per-slot contract.
+            detail = f'{len(expected_past)} slots expected (no commit-count contract)'
             status = 'ok-no-track'
 
         report.append({
@@ -276,7 +290,7 @@ def main():
 
     summary = {
         'generated_at': now.isoformat(),
-        'now_hkt': now.astimezone().strftime('%Y-%m-%d %H:%M HKT'),
+        'now_hkt': now.astimezone(HKT).strftime('%Y-%m-%d %H:%M HKT'),
         'jobs': report,
         'dashboard_build': dash,
         'has_missing': has_missing,

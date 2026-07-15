@@ -20,13 +20,13 @@
   <img src="assets/social-card.png" alt="clawock — 会给自己打分的自主 AI 投研台" width="820">
 </a>
 
-<sub>真实持仓,真实盈亏。这张卡片和截图每周由 <a href="https://github.com/KCNyu/clawock/actions/workflows/screenshot-refresh.yml">GitHub Action</a> 自动刷新,永不过期。</sub>
+<sub>真实持仓,真实盈亏。社交卡片和实时战绩截图每周由 <a href="https://github.com/KCNyu/clawock/actions/workflows/screenshot-refresh.yml">GitHub Action</a> 自动刷新。</sub>
 
 <br>
 
 <a href="https://kcnyu.github.io/clawock/"><img src="assets/dashboard.gif" alt="clawock 仪表盘循环六个标签页" width="300"></a>
 
-<sub>📱 循环六个标签页 — 总览 · 持仓 · 风控 · 信号 · 计划 · <b>诚实</b>(自评战绩卡)。跟截图一起每周自动重生。</sub>
+<sub>📱 循环六个标签页 — 总览 · 持仓 · 风控 · 信号 · 计划 · <b>诚实</b>(自评战绩卡)。8MB 产品演示只在 UI 变化后手动重生成；每周任务只刷新两张实时 PNG。</sub>
 
 <br><br>
 
@@ -46,7 +46,7 @@
 
 每个交易日,它自己:
 
-- 🌅 醒来 **约 10 次**(港股开盘、午盘、收盘 → 美股开盘、盘中、隔夜、收盘),
+- 🌅 跑 **10 条市场自动化任务线**(简报 + 港美报告 + 拆分后的盘中监控)，其中高频任务每 30 分钟触发,
 - 📥 抓最新价格、汇率、波动率、财报日历、宏观(VIX/DXY/10Y)、Reddit + 新闻舆情,甚至 **Trump/Musk 的市场异动**,
 - 🧠 把洗干净的数据交给当前可用的最佳 LLM —— 扮演一个嘴很直的人格 **Rick** —— 写出观点,
 - 📲 把简报推到我的**微信**,并
@@ -120,8 +120,9 @@ LLM 只提交决策，不能写入或修改评估结果；ID、触发、分组�
 08:00  📊  每日深度简报 —— 多层分析 + 一个裁判模型,推送到微信
 09:30  🇭🇰  港股开盘 → 10:00–11:30 / 14:00–15:30 盘中 → 12:00 午盘 → 16:00 收盘
 21:30  🇺🇸  美股开盘 → 22:00–02:30 盘中(含隔夜)→ 04:00 收盘
-            ↑ 每次运行都会顺手刷新公开仪表盘
-周末   🛰️  宏观 / 舆情 / 影响力 / 新闻扫描,让页面保持新鲜
+            ↑ 每次成功完成的 reporting postflight 都会发布仪表盘语义变化
+远端   🛰️  盘前宏观 / 舆情 / 影响力扫描 + 美股开盘前新闻摘要
+每周   🧪  归档 / 健康检查 / 周复盘 / 视觉刷新
 ```
 
 全部 HKT。休市怎么办?一道**节假日 + 周末闸**会跳过运行,而不是烧 token、把一个隔夜旧价当成实时价写进去。
@@ -130,11 +131,11 @@ LLM 只提交决策，不能写入或修改评估结果；ID、触发、分组�
 
 ## 🏗️ 一页看懂整台机器
 
-不只是"一个 cron 在调脚本"。**确定性**那一半确实是——报价、汇率、投递、对账,绝不能押在模型的心情上。而 **agent** 那一半,是被脚本包住的十一个独立 LLM turn、简报里的辩论 swarm、监督它们的 watchdog,以及仲裁共享状态的对账层。**确定性脚手架 + 需要判断处的 agent —— 这个切分本身就是架构:**
+不只是"一个 cron 在调脚本"。**确定性**那一半确实是——报价、汇率、投递、对账,绝不能押在模型的心情上。十个市场任务作为隔离 agent turn 调度；第十一个任务是独立于交易 harness 的记忆晋升。晨间简报再展开辩论 swarm，watchdog 与对账层监督共享状态。**确定性脚手架 + 需要判断处的 agent —— 这个切分本身就是架构:**
 
 ![clawock 架构 —— preflight 确定性结算触发和指标，LLM 写同股多策略 decision，postflight 分配稳定 ID/episode，ledger 回流 dashboard 与回测](assets/architecture.svg)
 
-**实线路径**(调度器 → harness → 共享状态 → 闸 → 发布)是不管模型乖不乖都照跑的确定性骨架。**agent**——十一个 `LLM turn` 加那个 `swarm`——只往共享状态里写**观点**,事实性的东西全由代码仲裁。**虚线边**是大家容易忘的部分:捕捉卡死 turn 的 watchdog,以及给昨天 `plan.json` 打分再喂回来的自学习闭环。这些才让它是一张 multi-agent 交易桌,而不是脚本化的报告机。
+**实线路径**(调度器 → harness → 共享状态 → 闸 → 发布)是不管模型乖不乖都照跑的确定性骨架。市场 agent 只写**观点**；价格、ID、结算、投递 marker 与发布都由代码持有。**虚线边**是大家容易忘的部分:捕捉卡死 turn 的 watchdog,以及给昨天 `plan.json` 打分再喂回来的自学习闭环。这些才让它是一张 multi-agent 交易桌,而不是脚本化的报告机。
 
 ---
 
@@ -147,7 +148,7 @@ LLM 只提交决策，不能写入或修改评估结果；ID、触发、分组�
 
 **1. Harness 模式**
 
-每个 job 都是 `preflight(Python)→ LLM → postflight(Python)`。确定性的活 —— 价格、FX、HHI、信号计数 —— 100% 在代码里跑。LLM 只负责写*观点*。忘了 FX、漏了快照、跳过 >3% 异动 → postflight 抓出来并给报告打标记。算账函数有**单元测试**;**pre-push 闸会拒绝发布违反资金守恒的组合账本**。它挡的是账本自相矛盾,不保证行情口径正确。
+每个**市场报告类** job 都是 `preflight(Python)→ LLM → postflight(Python)`。确定性的活 —— 价格、FX、HHI、信号计数 —— 100% 在代码里跑。LLM 只负责写*观点*。忘了 FX、漏了快照、跳过 >3% 异动 → postflight 抓出来并给报告打标记。算账函数有**单元测试**;**pre-push 闸会拒绝发布违反资金守恒的组合账本**。它挡的是账本自相矛盾,不保证行情口径正确。
 
 </td><td width="33%" valign="top">
 
@@ -159,7 +160,7 @@ LLM 只提交决策，不能写入或修改评估结果；ID、触发、分组�
 
 **3. 纵深防御**
 
-四层独立兜底 —— cron → GitHub Action 兜底 → 系统 crontab 看门狗 → 健康哨兵。单点 LLM stall、漏跑的 cron、抽风的数据源,**都不会让一份报告被静默丢掉**。
+四层重叠保障 —— OpenClaw 跑主任务；GitHub Action 可接管缺失的晨间简报；系统 crontab watchdog 把确认漏投镜像到 Telegram；健康 workflow 把调度/数据漂移显性化。它不承诺多通道同时故障时仍必达，但单个 LLM stall 不再静默。
 
 </td></tr>
 </table>
@@ -169,12 +170,13 @@ LLM 只提交决策，不能写入或修改评估结果；ID、触发、分组�
 
 <br>
 
-**模型。** 交互式聊天跑在 Claude 上(走 `claude-cli` runtime,复用我的 Claude Code 登录态 —— 仓库里没有 key)。无人值守的简报/报告跑在 pin 死的 **`MiniMax-M3`** 上,后面挂一条 fallback 链(`GLM → DeepSeek → GPT → Claude → Haiku`)。协议混合:Claude/MiniMax 走 `anthropic-messages`(thinking 是独立 block);GLM/DeepSeek/OpenAI 走 `openai-completions`。第三方 reasoning 模型**必须**注册 `"reasoning": true`,否则 thinking 会静默锁 off —— 这个坑我踩过一次。
+**模型。** 交互式聊天当前跑 Claude；无人值守市场任务 pin **`MiniMax-M3`**。provider 凭证和 runtime fallback 策略在公开仓库之外，可独立变化而不改 harness。远端 LLM workflow 通过 Anthropic Messages 直调 MiniMax M3，并在可选 Xiaomi key 仍有效时退到 MiMo。仓库不存任何 provider key。
 
-**写入对账(唯一真正难的地方)。** `dashboard.json` 是 100% 派生产物,却有一堆 job 在动 `master` —— cron 守护进程、约 11 个 GitHub Actions、系统 crontab 兜底、临时 session。几个月的竞态事故最后收敛成一条铁律:**一个文件只有一个写者。**
+**写入对账(唯一真正难的地方)。** `dashboard.json` 是 100% 派生产物,却有多类 actor 在动 `master` —— cron 守护进程、远端 workflow、系统 crontab publisher、临时 session。几个月的竞态事故最后收敛成一条铁律:**一个文件只有一个写者。**
 
 - **前端直接读 scan 子文件。** `macro / sentiment / influencer_feed / us_news_digest / em_news` 不再被嵌进 `dashboard.json`,`index.html` 加载时各自 fetch。于是一个 GitHub Action 永远只提交它*自己*那个互不相交的子文件 —— 这些写者不可能冲突,而且一次 scan 的 commit 一落地就立刻上页面,无需任何重建。(GH Actions 之间仍靠 `concurrency: group: data-write` 串行。)
 - **`dashboard.json` 只有唯一一条发布路径。** 只有本地 harness 的 postflight 和一个 flock 守护的 `publish_dashboard.sh` crontab 会重建它;两者抢同一把 `/tmp/dashboard_publish.lock`,所以两次重建绝不会交错。发布者**只在语义 diff 时**才重新提交(墙钟字段全部剥掉),所以单纯的新鲜度跳动永远不会刷出空提交。
+- **调度也有可校验契约。** runtime 真值来自 `openclaw cron list --json`;[`config/cron-schedules.json`](config/cron-schedules.json) 是 CI mirror，pre-push system check 会拒绝两者漂移。GitHub 健康巡检直接消费它，不再另手写一份 stub。
 - **所有人都经 `safe_push.sh` push** —— rebase 重试、遇真冲突 abort(不死循环);提交进来的冲突标记会在 **push hook 被拒**,坏掉的 `dashboard.json` 永远到不了 Pages。
 - **组合数字在门口就被闸住。** `portfolio.json` —— 唯一真值源 —— 写入走 advisory `flock` + 锁内重读再覆盖(`mutate_json`,原子 `os.replace`),根治 load-modify-write 竞态。**pre-push hook 会拦下任何账本违反资金守恒恒等式的 push**(`TCV = Σ 市值`、`现金 = 基线 + 成交 + 存取款`、`成本 = 移动加权`),所以没对账的改动到不了 Pages —— 而这些纯派生函数由 CI 里的 `pytest` 套件钉死。
 

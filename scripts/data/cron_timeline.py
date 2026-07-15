@@ -5,7 +5,7 @@ three schedulers, normalized to HKT.
 
 Unlike cron_runs.py (which tails *run history*), this answers "what fires when, on
 which day" — by merging:
-  1. openclaw  ~/.openclaw/cron/jobs.json        (tz = Asia/Shanghai ≈ HKT, or none → HKT)
+  1. openclaw  CLI / SQLite runtime state         (tz = Asia/Shanghai ≈ HKT, or none → HKT)
   2. GitHub Actions  .github/workflows/*.yml      (cron is ALWAYS UTC → +8h to HKT)
   3. system crontab  `crontab -l`                 (host local = HKT)
 
@@ -27,7 +27,6 @@ import sys
 from pathlib import Path
 
 WS = Path(__file__).resolve().parents[2]
-JOBS_PATH = Path.home() / '.openclaw' / 'cron' / 'jobs.json'
 WORKFLOWS = WS / '.github' / 'workflows'
 
 DOW_SHORT = ['日', '一', '二', '三', '四', '五', '六']  # 0=Sun .. 6=Sat
@@ -109,7 +108,13 @@ def days_label(dow):
 
 def time_label(mins, hours):
     if hours is None:
-        return '每小时' if mins else '— 事件触发'
+        if not mins:
+            return '— 事件触发'
+        if len(mins) > 1:
+            step = mins[1] - mins[0]
+            if all(b - a == step for a, b in zip(mins, mins[1:])):
+                return f'每{step}分钟'
+        return '每小时 ' + ','.join(f':{m:02d}' for m in mins)
     # contiguous-range + step-minute → compact "HH:MM–HH:MM /Nm"
     is_step = mins is not None and len(mins) > 1
     if is_step and len(hours) > 1:
@@ -213,10 +218,25 @@ def load_crontab():
             ph = re.search(r'--phase (\w+)', cmd)
             mk = re.search(r'--market (\w+)', cmd)
             name = f"watchdog {mk.group(1) if mk else '?'} {ph.group(1) if ph else '?'}"
+        elif 'intraday_watchdog' in cmd:
+            mk = re.search(r'--market (\w+)', cmd)
+            name = f"watchdog {mk.group(1) if mk else '?'} intraday"
+        elif 'brief_watchdog' in cmd:
+            name = 'watchdog brief'
         elif 'commit_dreaming' in cmd:
             name = 'commit_dreaming'
         elif 'gc_sessions' in cmd:
             name = 'gc_sessions'
+        elif 'publish_dashboard' in cmd:
+            name = 'publish_dashboard'
+        elif 'gold_dca_refresh' in cmd:
+            name = 'gold_dca_refresh'
+        elif 'rick_broadcast_nostr' in cmd:
+            name = 'nostr_broadcast'
+        elif 'indexnow_submit' in cmd:
+            name = 'indexnow_submit'
+        elif re.search(r'(^|/)git\b', cmd) and re.search(r'\bgc\b', cmd):
+            name = 'git gc'
         else:
             name = (cmd.split('/')[-1])[:24]
         rows.append(('crontab', name, expr, 'HKT', *parsed))

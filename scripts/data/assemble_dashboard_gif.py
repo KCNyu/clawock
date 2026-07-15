@@ -10,8 +10,9 @@ shoot_dashboard.js writes, per tab i, a sequence .gifframes/f{i}_{0..n}.png capt
 while scrolling that tab's content top→bottom. This script plays each tab as: hold at
 top → scroll down (the captured vertical frames) → SWIPE LEFT to the next tab
 (horizontal slide, composited here). Both axes match the dashboard's own scrollable
-panels + "‹ 左右滑动切换 ›". Quantized to a small palette to keep the file modest;
-refreshed weekly by the screenshot Action so it never drifts.
+panels + "‹ 左右滑动切换 ›". Quantized to a small palette to keep the file modest.
+The workflow builds it only on manual dispatch after a UI change; scheduled weekly
+runs refresh the two live PNGs and skip these expensive frames.
 """
 import glob
 import os

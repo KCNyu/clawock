@@ -19,7 +19,7 @@ Sources:
                her FREE public Substack posts. Low-frequency but primary-source.)
 
 Pipeline:
-  fetch → cheap keyword pre-filter (drop obvious noise) → ONE xiaomi LLM call
+  fetch → cheap keyword pre-filter (drop obvious noise) → ONE vendor LLM call
   that extracts {tickers, stance, relevance, held vs new-idea, CN summary} →
   split into held_hits / new_ideas → write assets/data/influencer_feed.json.
 
@@ -27,8 +27,8 @@ Merge-not-overwrite: if a source returns empty (rate-limit / outage) we keep the
 previous run's items for that source so one bad fetch can't blank the card
 (see memory/openclaw-fetcher-merge-not-overwrite.md).
 
-Env: XIAOMI_API_KEY required (LLM relevance filter). Without it, falls back to
-keyword-only items with relevance=null (still renders, just noisier).
+Env: MINIMAX_API_KEY primary; XIAOMI_API_KEY optional fallback. Without either,
+falls back to keyword-only items with relevance=null (still renders, just noisier).
 """
 import html
 import json
@@ -304,8 +304,8 @@ def llm_filter(candidates, held):
     """Returns dict {idx: {tickers, held, new_ideas, stance, relevance, summary_cn}}."""
     if not candidates:
         return {}
-    if not os.environ.get('XIAOMI_API_KEY'):
-        print('  ⚠️ XIAOMI_API_KEY unset — skipping LLM filter (keyword-only)', file=sys.stderr)
+    if not (os.environ.get('MINIMAX_API_KEY') or os.environ.get('XIAOMI_API_KEY')):
+        print('  ⚠️ no LLM provider key — skipping relevance filter (keyword-only)', file=sys.stderr)
         return {}
     from xiaomi_llm import chat
     held_lines = '\n'.join(f"  - {h['ticker']} ({h['name']}, {h['region']})" for h in held)

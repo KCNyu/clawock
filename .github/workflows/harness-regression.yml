@@ -10,6 +10,7 @@ on:
       - 'memory/**-plan.json'
       - 'assets/data/dashboard.json'
       - '.github/workflows/harness-regression.yml'
+      - 'config/cron-schedules.json'
   pull_request:
   workflow_dispatch:
 

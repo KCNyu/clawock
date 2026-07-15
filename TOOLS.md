@@ -27,17 +27,20 @@
 | `harness-regression.yml` | push to master | (read-only) | 每次 push 跑 schema/import 校验 |
 | `weekly-health.yml` | 周日 23:00 UTC | (read-only) | 综合健康检查（含公网数据源活体） |
 | `eod-archive.yml` | 周五 22:00 UTC | `memory/archive/eod-history.csv` | 每周持仓快照 audit trail |
-| `sentiment-scan.yml` | 工作日 23:30 UTC | `assets/data/sentiment.json` | Reddit mention 统计 |
-| `brief-fallback.yml` | 工作日 00:05 UTC (08:05 HKT) | `memory/{date}-pre-open.md` + `-plan.json` | **Xiaomi LLM** 兜底：openclaw cron 没跑出今日 brief 时接管 |
-| `weekly-review.yml` | 周日 14:00 UTC (Sun 22:00 HKT) | `memory/weekly/{ISO-week}.md` | **Xiaomi LLM** 周复盘 (净值 + plan 兑现 + 风险演变 + 下周关注) |
-| `news-digest.yml` | 工作日 13:00 UTC (21:00 HKT) | `assets/data/us_news_digest.json` | **Xiaomi LLM** 提炼 7 US holding 过去 48h Finnhub news |
-| `influencer-scan.yml` | 工作日 23:40 + 12:50 UTC | `assets/data/influencer_feed.json` | **Xiaomi LLM** Trump 原帖(trumpstruth RSS)+Musk(新闻代理) 市场相关性筛 + 撞持仓/新机会/板块交叉匹配 |
-| `cron-health.yml` | 工作日 09:00 UTC (17:00 HKT) | (issue auto-open on miss) | 巡检今日 openclaw cron 漏跑 |
+| `sentiment-scan.yml` | 周日–四 21:30 UTC | `assets/data/sentiment.json` | 05:30 HKT 盘前 Reddit + Google News 扫描 |
+| `macro-scan.yml` | 周日–四 21:45 UTC | `assets/data/macro.json` | 05:45 HKT 盘前宏观扫描 |
+| `brief-fallback.yml` | 工作日 00:25 UTC (08:25 HKT) | brief/plan + harness 产物 | 主 brief 缺失且未晚于 10:00 HKT 才由远端 LLM 接管 |
+| `weekly-review.yml` | 周日 14:00 UTC (22:00 HKT) | `memory/weekly/{ISO-week}.md` | MiniMax 主、Xiaomi 可选 fallback 的周复盘 |
+| `news-digest.yml` | 工作日 13:00 UTC (21:00 HKT) | `assets/data/us_news_digest.json` | 美股开盘前 48h 新闻提炼 |
+| `influencer-scan.yml` | 周日–四 21:40 + 工作日 12:50 UTC | `assets/data/influencer_feed.json` | 盘前 + 美股盘前两班影响力雷达 |
+| `cron-health.yml` | 工作日 09:00 UTC (17:00 HKT) | (read-only) | 用 tracked cron contract + HKT commit date 巡检漏跑 |
+| `screenshot-refresh.yml` | 周日 22:00 UTC | `social-card.png` + `shadow-backtest.png` | 每周两张 PNG；GIF 只在手动 dispatch 时生成 |
 
-**Xiaomi GH Action 路径**: 需在 repo secrets 配 `XIAOMI_API_KEY` (token-plan-cn endpoint) + `MINIMAX_API_KEY` (兜底) + 已有 `FINNHUB_API_KEY`。本地 cron 跑 MiniMax primary，远端 GH Action 跑 Xiaomi primary。**所有走 `xiaomi_llm.chat()` 的 GH Action（news-digest / weekly-review / brief-fallback / influencer-scan）现已内置 Xiaomi→MiniMax M2.7 自动 fallback**：Xiaomi 三次重试全挂(401/429/timeout/空)即透明切 MiniMax，两家都挂才 raise。4 个 workflow env 均已带 `MINIMAX_API_KEY`。
+**远端 LLM 路径**: 本地市场 cron 与远端 `xiaomi_llm.chat()` 都以 MiniMax M3 为主；远端在可选 `XIAOMI_API_KEY` 仍有效时可 fallback 到 MiMo v2.5-pro。4 个 LLM workflow（news-digest / weekly-review / brief-fallback / influencer-scan）均只从 repo secrets 读 key，仓库不落 key。
 
-**没有 GH Action 写 `assets/data/dashboard.json`** — 那是 openclaw cron 的 postflight 独占。
-其他 GH Action 只写各自专属文件，零冲突面。本地 cron 和 远端 Action 不会撞车。
+**数据扫描 GH Action 不写 `assets/data/dashboard.json`**，只写各自 sidecar；dashboard
+只由 harness postflight（含远端 brief fallback 复用同一 postflight）和 host 上加锁的
+`publish_dashboard.sh` 发布。
 
 ## 推荐工作流
 
@@ -140,17 +143,16 @@ python3 scripts/data/fetch_us_stocks.py     # 仅刷美股价格
 **Harness（三明治：preflight 确定性 → LLM 合成 → postflight 校验+commit）**
 - brief：`brief_preflight.py` / `brief_postflight.py`（写 `memory/{date}-pre-open.md` + `-plan.json`；postflight 自动跑 build_dashboard + push）
 - 报告 Mode 6：`report_preflight.py --market {hk|us} --phase {open|mid|pm|close}` / `report_postflight.py …`
-- 盘中 Mode 7：`intraday_preflight.py --market {hk|us}` / `intraday_postflight.py …`（**不 commit**，高频）
+- 盘中 Mode 7：`intraday_preflight.py --market {hk|us}` / `intraday_postflight.py …`（不提交 `portfolio.json`；dashboard 有语义变化才提交）
 - 共通：preflight 出 `raw_wechat_block`(LLM **verbatim** 拷) + `anomalies`(必提≥1票)；postflight 出 `wechat_prefix`；context 全落 `memory/.tmp/`(gitignore)
 
-**Dashboard/发布**：`build_dashboard.py`(聚合 portfolio+snapshots+plan+decisions.jsonl+risk+sidecar → `assets/data/dashboard.json`；含 LLM 叙事卡/driven_by/status_banner；brief/report postflight 自动调) · `safe_push.sh`(统一 push,rebase.autoStash 容脏树)
+**Dashboard/发布**：`build_dashboard.py`(聚合 portfolio+snapshots+plan+decisions.jsonl+risk+sidecar → `assets/data/dashboard.json`；含 LLM 叙事卡/driven_by/status_banner；三类 postflight 都会自动调) · `safe_push.sh`(统一 push,rebase.autoStash 容脏树)
 
-**LLM-free 兜底哨兵（系统 crontab，非 openclaw cron；postflight 抓不到 LLM 早死）**
-- `report_watchdog.py --market {hk|us} --phase {…} --job-name "…"`：报告 cron 后几分钟，run summary 不含 raw_wechat_block 首行 ⇒ 补发数据块
-- `brief_watchdog.py`（08:30）：brief run summary 无 `盘前深度简报`/`▎核心结论`/`▎今日动作` marker ⇒ 补发紧凑卡(plan.json book+动作)+全文链接
-- 均从 job 历史 `delivery.resolved` 解析目标 + `.tmp/watchdog-*.done` 防重复
+**LLM-free Telegram 兜底哨兵（系统 crontab，非 openclaw cron）**
+- report / brief / intraday postflight 主发 WeChat 并同步 Telegram；watchdog 读真实 delivery marker，只在 Telegram marker 缺失或失败时补投，不再猜 run summary、也不重发 WeChat。
+- `.tmp/*-sent-*.json` + slot key 做幂等，避免长 turn / cron retry 双发。
 
-**其它**：`mark_followed.py`(标 `decisions.jsonl` 的 execution.status) · `xiaomi_llm.py`(GH Action 直调小米绕 gateway,Xiaomi→MiniMax fallback) · `gh_action_*.py` · `update_portfolio.py`。**每脚本详细说明 + 已废弃 legacy → `TOOLS_SCRIPTS.md`**。
+**其它**：`mark_followed.py`(标 `decisions.jsonl` 的 execution.status) · `xiaomi_llm.py`(GH Action 直连 vendor，MiniMax→可选 Xiaomi fallback) · `gh_action_*.py` · `update_portfolio.py`。**每脚本详细说明 + 已废弃 legacy → `TOOLS_SCRIPTS.md`**。
 
 ### Cron map（**11 job**，存 SQLite 经 `openclaw cron list` 读；时间 HKT）
 
@@ -168,7 +170,7 @@ python3 scripts/data/fetch_us_stocks.py     # 仅刷美股价格
 | 美股收盘报告 | 04:00 (DOW 2-6) | Mode 6 | report --us close |
 | Memory Dreaming Promotion | 03:00 daily | memory-core | — |
 
-系统 crontab（`crontab -l`）：6×report_watchdog + brief_watchdog(08:30) + commit_dreaming.sh(03:20) + gc_sessions.py(03:30) + **gold_dca_refresh.sh(23:30 工作日，黄金定投 000217 净值刷新→build_dashboard→bot提交→safe_push，纯数据无LLM)** + **git gc(周日04:00,防 dashboard.json 每30min提交撑大 .git；2026-05-31 首次 gc 45M→14M)**。**`openclaw cron`/`gateway status` 在 agent 沙箱会卡** → 直接读 `~/.openclaw/cron/jobs.json` 或 `curl http://127.0.0.1:18789/health`。
+系统 crontab（`crontab -l`）：6×report watchdog + brief watchdog + 3×intraday watchdog、dreaming commit、session GC、git GC、黄金 DCA(23:50 工作日)、Nostr 周播、IndexNow，以及每 20 分钟一次的 dashboard single-publisher。OpenClaw cron 真值只经 `openclaw cron list --json` 读取；`config/cron-schedules.json` 是受 system check 约束的 CI mirror。
 
 ## Skill 安装顺序（重要）
 

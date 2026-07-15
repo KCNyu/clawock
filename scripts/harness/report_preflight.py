@@ -4,7 +4,7 @@ report_preflight.py — Mode 6 (briefing) harness preflight.
 
 Runs deterministic work for the 6 briefing crons:
   HK: 开盘 09:30 / 午盘 12:00 / 午后 13:30 / 收盘 16:00
-  US: 开盘 09:30 ET / 收盘 16:00 ET
+  US: 开盘 09:30 ET / 收盘 16:00 ET (runtime schedules are expressed in HKT)
 
 Each invocation:
   1. Runs analyze_{hk,us}_stocks.py --wechat (refreshes prices, writes portfolio.json)
@@ -53,7 +53,7 @@ TITLE_TEMPLATES = {
     ('hk', 'mid'):   '☕ 港股午盘快报｜{date} 12:00',
     ('hk', 'pm'):    '🌤 港股午后快报｜{date} 13:30',
     ('hk', 'close'): '🔔 港股收盘日报｜{date}',
-    ('us', 'open'):  '🌅 美股开盘快报｜{date} 21:30 CST',
+    ('us', 'open'):  '🌅 美股开盘快报｜{date} 09:30 ET',
     ('us', 'close'): '🌙 美股收盘日报｜{date}',
 }
 

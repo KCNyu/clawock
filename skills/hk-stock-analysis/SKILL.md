@@ -100,7 +100,7 @@ python3 /root/.openclaw/workspace/scripts/harness/intraday_preflight.py --market
   - 必须包含：今天该看/该等/该减 + 引用至少 1 个具体数字（票现价 / 异动幅度 / 信号）
   - ⚡ **板块全景鼓励 tavily-search**：板块名读 `memory/peer-map.json` 各 ticker 的 `theme` 字段（持仓变了自动跟变，不要写死任何 ticker）；search 拿板块今日 Top 涨幅 + 你持仓在榜单里的位置 + 1 句归因；持仓自己的数字仍从 context.json
   - 禁止"无异动，观望"这种敷衍 1 句话
-- ≤ 1200 字软上限 / ≤ 1500 字硬上限
+- 目标 ≤1200 字；>2000 字 postflight warn，>2500 字 fail
 
 #### Step 2.5: 写 dashboard 状态横幅 sidecar
 
@@ -111,12 +111,14 @@ python3 /root/.openclaw/workspace/scripts/harness/intraday_preflight.py --market
 ```bash
 python3 /root/.openclaw/workspace/scripts/harness/intraday_postflight.py --market hk <<< "{报告}"
 ```
-校验段标记 + 长度 + 异动票提及。**不 git commit**（高频触发，避免 commit log 刷屏）。
+校验段标记 + 长度 + 异动票提及。**不提交 `portfolio.json`**；若 dashboard
+有语义变化，postflight 会重建并提交 `assets/data/dashboard.json`。
 
 #### Step 4: 输出报告（仅存档；微信已由 postflight 主发，禁用 message 工具）
-微信投递已在 **Step 3 的 `intraday_postflight` 用 fresh-token 短连接发出**（cron `--no-deliver`，不 announce）——唯一路径。拼 `wechat_prefix` + 报告，**无标题**（高频推送避免刷屏），作为**本回合最终文本回复**输出（仅存档）。**不要调 `message`/send 工具**（postflight 已发，再调会双发）；真漏由 `intraday_watchdog` 兜底。
+微信投递已在 **Step 3 的 `intraday_postflight` 用 fresh-token 短连接发出**（cron `--no-deliver`，不 announce）——唯一路径。拼 `wechat_prefix` + 报告，**无标题**（高频推送避免刷屏），作为**本回合最终文本回复**输出（仅存档）。**不要调 `message`/send 工具**（postflight 已发，再调会双发）；`intraday_watchdog` 只在 Telegram marker 缺失/失败时补投 Telegram，不重发微信。
 
-**和 Mode 6 的区别**：单段 `▎我的看法` 取代三段；无 ▎风险提示；无 git commit；holdings 用 markdown 表格（Mode 6 briefing 仍 ASCII）。
+**和 Mode 6 的区别**：单段 `▎我的看法` 取代三段；无 ▎风险提示；不提交
+`portfolio.json`（但会发布 dashboard 语义变化）；holdings 用 markdown 表格。
 
 ### Mode 6 — WeChat Briefing (cron-driven, harness 化 ✨)
 **When:** 港股开盘/午盘/午后/收盘 4 个 cron job 全部走这个 mode。
@@ -161,10 +163,15 @@ context.json 关键字段：
 ```bash
 python3 /root/.openclaw/workspace/scripts/harness/report_postflight.py --market hk --phase {phase} <<< "{完整报告文本}"
 ```
-返回 JSON 含 `status` (pass/warn/fail) + `wechat_prefix`。pass/warn 自动 `git commit portfolio.json`。
+返回 JSON 含 `status` (pass/warn/fail) + `wechat_prefix`。pass/warn 自动刷新
+snapshot/dashboard，提交 scoped 产物并经 `safe_push.sh` 推送。
 
 #### Step 4: 输出报告（仅存档；微信已由 postflight 主发，禁用 message 工具）
-微信投递已在 **Step 3 的 `report_postflight` 用 fresh-token 短连接发出**——这是**唯一**路径（cron 设 `--no-deliver`，不再 announce）。把 `wechat_prefix` 拼到完整报告前面作为**本回合最终文本回复**输出即可（**仅供留痕/存档**，不会被投递）。**不要调 `message`/send 工具**（postflight 已发，再调会双发）；真漏由 `report_watchdog` 读 marker 兜底。
+微信投递已在 **Step 3 的 `report_postflight` 用 fresh-token 短连接发出**——这是
+**唯一微信路径**（cron 设 `--no-deliver`，不再 announce），同时会镜像 Telegram。
+把 `wechat_prefix` 拼到完整报告前面作为**本回合最终文本回复**输出即可（仅留痕）。
+**不要调 `message`/send 工具**；`report_watchdog` 只在 Telegram marker 缺失/失败时
+补投 Telegram，不重发微信。
 
 **标题模板**（preflight 已生成在 context.json，直接用）：
 - 开盘 09:30 HKT：`📊 港股开盘快报｜{date} 09:30`
@@ -178,7 +185,7 @@ python3 /root/.openclaw/workspace/scripts/harness/report_postflight.py --market 
 - 不用 `message` 工具 — 微信由 Step 3 的 `report_postflight` fresh-token 主发（cron `--no-deliver`），手动再调会和 postflight 双发；本回合回复文本仅存档
 - 不简单复述数字，必须做模型自己的解读
 - 异动票（anomalies 字段）**必须在报告里被提到**（postflight 强制）
-- 报告长度 ≤ 1200 字软上限 / ≤ 1500 字硬上限
+- 目标 ≤1200 字；>2000 字 postflight warn，>2500 字 fail
 
 ### Mode 5 — Sentiment / 情绪面 Read
 **When:** "市场怎么看 X" / "雪球怎么聊 00100" / "港股情绪" / before sizing

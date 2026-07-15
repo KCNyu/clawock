@@ -46,7 +46,7 @@ import trading_calendar  # noqa: E402
 
 REQUIRED_SECTION = '▎我的看法'
 FORBIDDEN_PHRASES = ['数据待获取', '等待数据', 'TODO', 'TBD']
-CRITICAL_KEYWORDS = ['缺段标记', '未包含原始数据块', '> 1000', '敷衍词', '表格行未 verbatim']
+CRITICAL_KEYWORDS = ['缺段标记', '未包含原始数据块', '敷衍词', '表格行未 verbatim']
 
 
 def load_context(market):
@@ -103,7 +103,12 @@ def validate(text, ctx):
 
 
 def categorize(issues):
-    return categorize_issues(issues, CRITICAL_KEYWORDS, warn_max=2)
+    def is_hard_char_limit(issue):
+        return '字 >' in issue and '上限' in issue and '软上限' not in issue
+
+    return categorize_issues(
+        issues, CRITICAL_KEYWORDS, warn_max=2, extra_critical=is_hard_char_limit,
+    )
 
 
 def main():

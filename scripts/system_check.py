@@ -273,7 +273,7 @@ def check_decision_ledger(r):
 
 
 def check_cron_paths_exist(r):
-    """All scripts referenced from openclaw cron payloads exist.
+    """Live cron schedules match the tracked contract and payload scripts exist.
 
     6.1 migrated cron storage from cron/jobs.json into state/openclaw.sqlite, so
     direct file reads silently return nothing. Read via _watchdog_common.load_jobs
@@ -295,6 +295,49 @@ def check_cron_paths_exist(r):
         else:
             r.add('cron paths', WARNING, 'openclaw CLI returned 0 cron jobs (storage regression? run doctor --fix)')
         return
+
+    contract_path = WS / 'config' / 'cron-schedules.json'
+    try:
+        contract = json.loads(contract_path.read_text()).get('jobs', [])
+        expected = {
+            j['name']: (
+                (j.get('schedule') or {}).get('expr'),
+                (j.get('schedule') or {}).get('tz'),
+                j.get('enabled', True),
+            )
+            for j in contract
+        }
+        actual = {
+            j['name']: (
+                (j.get('schedule') or {}).get('expr'),
+                (j.get('schedule') or {}).get('tz'),
+                j.get('enabled', True),
+            )
+            for j in jobs
+        }
+        missing = sorted(set(expected) - set(actual))
+        extra = sorted(set(actual) - set(expected))
+        changed = sorted(
+            name for name in set(expected) & set(actual)
+            if expected[name] != actual[name]
+        )
+        if missing or extra or changed:
+            detail = []
+            if missing:
+                detail.append(f'missing={missing}')
+            if extra:
+                detail.append(f'extra={extra}')
+            if changed:
+                detail.append(
+                    'changed=' + str({n: {'expected': expected[n], 'actual': actual[n]}
+                                      for n in changed})
+                )
+            r.add('cron schedule contract', CRITICAL, '; '.join(detail))
+        else:
+            r.add('cron schedule contract', OK, f'{len(actual)} live jobs match tracked config')
+    except Exception as e:
+        r.add('cron schedule contract', CRITICAL, f'cannot validate: {e}')
+
     refs = set()
     for j in jobs:
         msg = ((j.get('payload') or {}).get('message')) or j.get('message') or ''

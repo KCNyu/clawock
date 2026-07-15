@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "description": "Tracked schedule contract for the 11 live OpenClaw jobs. Runtime truth is still `openclaw cron list --json`; system_check.py rejects drift from this mirror.",
+  "jobs": [
+    {
+      "name": "美股盘中盯盘-overnight",
+      "enabled": true,
+      "schedule": {"kind": "cron", "expr": "*/30 0-2 * * 2-6", "tz": "Asia/Shanghai"}
+    },
+    {
+      "name": "Memory Dreaming Promotion",
+      "enabled": true,
+      "schedule": {"kind": "cron", "expr": "0 3 * * *"}
+    },
+    {
+      "name": "美股收盘报告",
+      "enabled": true,
+      "schedule": {"kind": "cron", "expr": "0 4 * * 2-6", "tz": "Asia/Shanghai"}
+    },
+    {
+      "name": "盘前深度简报",
+      "enabled": true,
+      "schedule": {"kind": "cron", "expr": "0 8 * * 1-5", "tz": "Asia/Shanghai"}
+    },
+    {
+      "name": "港股开盘报告",
+      "enabled": true,
+      "schedule": {"kind": "cron", "expr": "30 9 * * 1-5", "tz": "Asia/Shanghai"}
+    },
+    {
+      "name": "盘中盯盘",
+      "enabled": true,
+      "schedule": {"kind": "cron", "expr": "*/30 10-11,14-15 * * 1-5", "tz": "Asia/Shanghai"}
+    },
+    {
+      "name": "港股午盘报告",
+      "enabled": true,
+      "schedule": {"kind": "cron", "expr": "0 12 * * 1-5", "tz": "Asia/Shanghai"}
+    },
+    {
+      "name": "港股午后快报",
+      "enabled": true,
+      "schedule": {"kind": "cron", "expr": "30 13 * * 1-5", "tz": "Asia/Shanghai"}
+    },
+    {
+      "name": "港股收盘报告",
+      "enabled": true,
+      "schedule": {"kind": "cron", "expr": "0 16 * * 1-5", "tz": "Asia/Shanghai"}
+    },
+    {
+      "name": "美股开盘报告",
+      "enabled": true,
+      "schedule": {"kind": "cron", "expr": "30 21 * * 1-5", "tz": "Asia/Shanghai"}
+    },
+    {
+      "name": "美股盘中盯盘",
+      "enabled": true,
+      "schedule": {"kind": "cron", "expr": "*/30 22-23 * * 1-5", "tz": "Asia/Shanghai"}
+    }
+  ]
+}

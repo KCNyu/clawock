@@ -61,7 +61,7 @@ context.json 关键字段：
 - `concentration` — `{hk: {hhi, top2_pct, weights, verdict}, us: {...}}`
 - `edgar_summaries` — 单股最新 quarter 财报关键数字
 - `retrospective` — 上次 plan.json 每个 strategy decision 的触发结果 + 模拟 benefit
-- `macro` — VIX / DXY / 10Y / F&G / HSI / HSTECH / SPX / NASDAQ + Fed press top 3（GH Action 每个工作日 23:30 UTC 刷）
+- `macro` — VIX / DXY / 10Y / F&G / HSI / HSTECH / SPX / NASDAQ + Fed press top 3（GH Action 周日–四 21:45 UTC，即工作日 05:45 HKT 名义刷新）
 - `sentiment` — 每个持仓票的 Reddit 提及数 + Reddit top 3 + Google News top 3（无 signal 的票已被剔）
 - `em_news` — **东财中文消息源**（`holdings_news` 逐 HK 持仓近 3 条公司新闻 + `market_724` 大盘 7x24 快讯）。clawock 英文 news 薄在港股/中文面,这里补上。**HK 持仓找硬催化优先看这个**——回购/公告/事件多在中文源先出。命中硬催化 → `driven_by=catalyst` 并在 rationale 引日期+标题;只是情绪/涨跌色 → 不构成主动操作依据(见 catalyst-gate 铁律)。杠杆 ETF 已自动剔除(看标的不看公司新闻)。
 
@@ -677,11 +677,14 @@ python3 /root/.openclaw/workspace/scripts/harness/brief_postflight.py
 - `fail` — 缺文件/JSON 解析错/critical 字段缺失，**不 commit**、**不投递**
 - `wechat_sent` — postflight 自动投递结果（见下）
 
-### Step 6: 投递（已自动化，你什么都不用做）
+### 投递（Step 5 postflight 内自动，你什么都不用做）
 
 > **🔒 投递已解耦——你绝不要手动发微信、绝不调任何 message/send 工具、也不要把卡片当回复文本贴出来。**
 >
-> pass/warn 时 **`brief_postflight` 自己**会用一个 **fresh token 的短命 `openclaw message send`** 把 Step 4-D 的 `brief-card-{date}.txt` 投到 kcn 微信（cron 已设 `delivery=none`，这是**唯一**投递路径），并把真实结果记到 `memory/.tmp/brief-sent-{date}.json`。`brief_watchdog`（08:30）读这个 marker，只在 postflight 投递确认失败/缺失时才补发一次（绝不重复）。
+> pass/warn 时 **`brief_postflight` 自己**会用 fresh-token 短连接把 Step 4-D 的
+> `brief-card-{date}.txt` 投到 kcn 微信（cron 已设 `delivery=none`，这是唯一微信路径），
+> 并同步 Telegram，把两路结果记到 `memory/.tmp/brief-sent-{date}.json`。
+> `brief_watchdog`（08:30）只在 Telegram marker 缺失/失败时补投 Telegram，不重发微信。
 >
 > **为什么这样改（2026-06-08）**：旧的 `delivery=announce` 在长 turn 末尾用 turn 起点抓的 token 投递，brief turn 恒 >160s（173–975s）→ token 必过期 → 静默丢、`delivered=true` 是假信号（见 memory: openclaw-wechat-longturn-token-expiry）。短命 message send 每次抓新 token，且独立于 turn 时长，kcn 实测可靠（同 intraday 架构）。
 >

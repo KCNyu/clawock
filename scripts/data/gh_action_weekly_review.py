@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 """
-gh_action_weekly_review.py — Sunday 22:00 HKT weekly portfolio review via Xiaomi.
+gh_action_weekly_review.py — Sunday 22:00 HKT weekly portfolio review.
 
 Bundles past 7 days of plans / decision episodes / snapshots / current risk
-into a single prompt, calls Xiaomi, writes memory/weekly/{ISO-week}.md.
+into a single prompt, calls MiniMax M3 (optional Xiaomi fallback), and writes
+memory/weekly/{ISO-week}.md.
 
-Env: XIAOMI_API_KEY required
+Env: MINIMAX_API_KEY required; XIAOMI_API_KEY optional fallback
 """
 import glob
 import json

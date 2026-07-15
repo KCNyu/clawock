@@ -5,9 +5,13 @@ title: clawock decouple plan
 
 # Clawock decouple-from-openclaw plan
 
-**Status**: planned, not started  
+**Status**: archived / superseded; do not execute as an operations runbook
 **Created**: 2026-05-19  
 **Goal**: clawock 变成 self-contained agent，context 不再被 openclaw 全局 bootstrap 注入；LLM 调用自接以规避 openclaw 上游 bug（xiaomi thinking hard-guard、minimax adaptive 解析等）
+
+> 这是一份 2026-05-19 的历史设计草案。里面的 `cron/jobs.json`、MiniMax M2.7、
+> fallback 顺序和迁移命令都已过期。当前运行说明以 `TOOLS.md` / `TOOLS_SCRIPTS.md`、
+> `openclaw cron list --json` 和 `config/cron-schedules.json` 为准。
 
 ---
 

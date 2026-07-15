@@ -1,10 +1,10 @@
-name: Brief Fallback (Xiaomi)
+name: Brief Fallback (off-host LLM)
 
 # 08:25 HKT = 00:25 UTC 工作日, 晚 openclaw 25 分钟兜底
 # 窗口从 5min 拉宽到 25min (2026-05-30): 主 cron 08:00 启动但 LLM 生成常要几分钟,
 # 5min 太窄会在主 brief 落地前误判"没出"→重复生成→push 撞主 cron commit 的 rebase 冲突
-# 如果今天 git log 已有 'daily deep brief YYYY-MM-DD' commit → skip
-# 否则用 Xiaomi 直跑 brief
+# 如果今天的 pre-open.md 已存在（git log 只作兜底）→ skip
+# 否则用远端 MiniMax（可选 Xiaomi fallback）直跑 brief
 on:
   schedule:
     - cron: '25 0 * * 1-5'
@@ -70,7 +70,7 @@ jobs:
           FINNHUB_API_KEY: ${{ secrets.FINNHUB_API_KEY }}
         run: python3 scripts/harness/brief_preflight.py 2>&1 | tail -50
 
-      - name: Call Xiaomi to generate brief
+      - name: Call off-host LLM to generate brief
         if: steps.check.outputs.skip != 'true'
         env:
           XIAOMI_API_KEY: ${{ secrets.XIAOMI_API_KEY }}
@@ -88,6 +88,6 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add memory/ portfolio.json assets/data/ 2>/dev/null || true
           if ! git diff --cached --quiet; then
-            git commit -m "memory: brief-fallback (xiaomi) $TODAY"
+            git commit -m "memory: brief-fallback (off-host-llm) $TODAY"
             bash scripts/data/safe_push.sh
           fi

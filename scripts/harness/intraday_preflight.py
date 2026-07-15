@@ -2,9 +2,10 @@
 """
 intraday_preflight.py — Mode 7 (intraday) harness preflight.
 
-Runs deterministic work for the 2 intraday crons (every 30 min):
-  HK 盘中盯盘:  */30 9-15 * * 1-5  Asia/Shanghai
-  US 盘中盯盘:  */30 9-15 * * 1-5  America/New_York
+Runs deterministic work for the 3 intraday cron jobs (every 30 min):
+  HK 盘中盯盘:              */30 10-11,14-15 * * 1-5  Asia/Shanghai
+  US 盘中盯盘:              */30 22-23 * * 1-5        Asia/Shanghai
+  US 盘中盯盘-overnight:    */30 0-2 * * 2-6          Asia/Shanghai
 
 Each invocation:
   1. Runs analyze_{hk,us}_stocks.py --wechat
@@ -13,8 +14,9 @@ Each invocation:
   4. Decides should_alert: bool (true if any anomaly OR ≥2 signals)
   5. Writes memory/.tmp/intraday-context-{market}-{HHMM}.json
 
-NB: Mode 7 is lightweight on purpose (every 30 min × 7 hrs × 2 markets = 28 runs/day).
-    No git commit, no rich news block. Just data refresh + anomaly trigger.
+NB: Mode 7 is lightweight on purpose (8 HK + 10 US slots per trading day).
+    The preflight itself does not commit and has no rich news block. A successful
+    postflight publishes a semantic dashboard change, if any.
 """
 
 import argparse

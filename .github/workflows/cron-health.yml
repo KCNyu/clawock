@@ -22,31 +22,12 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Build a stub jobs.json mirroring local cron schedule
-        run: |
-          # GH Action 没法访问本机 ~/.openclaw/cron/jobs.json，把 schedule mirror 进来
-          mkdir -p /tmp/openclaw-mock/cron
-          cat > /tmp/openclaw-mock/cron/jobs.json <<'JSON'
-          {
-            "jobs": [
-              {"id":"hk-open","name":"港股开盘报告","schedule":{"expr":"30 9 * * 1-5","tz":"Asia/Shanghai"}},
-              {"id":"hk-mid","name":"港股午盘报告","schedule":{"expr":"0 12 * * 1-5","tz":"Asia/Shanghai"}},
-              {"id":"hk-pm","name":"港股午后快报","schedule":{"expr":"30 13 * * 1-5","tz":"Asia/Shanghai"}},
-              {"id":"hk-close","name":"港股收盘报告","schedule":{"expr":"0 16 * * 1-5","tz":"Asia/Shanghai"}},
-              {"id":"us-open","name":"美股开盘报告","schedule":{"expr":"30 9 * * 1-5","tz":"America/New_York"}},
-              {"id":"us-close","name":"美股收盘报告","schedule":{"expr":"0 16 * * 1-5","tz":"America/New_York"}},
-              {"id":"brief","name":"盘前深度简报","schedule":{"expr":"0 8 * * 1-5","tz":"Asia/Shanghai"}}
-            ]
-          }
-          JSON
-
       - name: Run cron health check
         id: health
         run: |
-          # Patch JOBS_PATH to point at our mock
-          sed -i "s|JOBS_PATH = '/root/.openclaw/cron/jobs.json'|JOBS_PATH = '/tmp/openclaw-mock/cron/jobs.json'|" scripts/data/cron_health_check.py
-          sed -i "s|WS = '/root/.openclaw/workspace'|WS = '.'|" scripts/data/cron_health_check.py
-          python3 scripts/data/cron_health_check.py
+          # CI cannot query the host's SQLite, so it consumes the tracked mirror.
+          # system_check.py compares this contract with the live CLI on the host.
+          python3 scripts/data/cron_health_check.py --jobs-file config/cron-schedules.json
           # On a miss this exits non-zero → workflow red (README badge). We deliberately
           # do NOT open an issue: per kcn's "no per-cron alerts" preference the daily review
-          # covers it, and the mock jobs.json above is an approximation prone to false reds.
+          # covers it.

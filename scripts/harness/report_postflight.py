@@ -16,7 +16,8 @@ Validates:
   6. 没有"等待数据/数据待获取"等敷衍词
 
 Side effects:
-  - status=pass/warn: git add portfolio.json && git commit -m "{commit_msg}"
+  - status=pass/warn: refresh snapshot/dashboard, commit the scoped generated
+    state, push through safe_push.sh, then send WeChat + Telegram mirror
   - status=fail: no commit, return non-zero
 
 Outputs JSON to stdout:

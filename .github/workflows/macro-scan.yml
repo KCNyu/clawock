@@ -40,7 +40,7 @@ jobs:
         run: python3 scripts/data/fetch_macro.py
 
       - name: Commit
-        # shared helper: rebuild dashboard + bot commit + safe_push, with deterministic
-        # retry when the push loses a dashboard.json race (2026-06-10 macro-vs-influence).
+        # Shared helper commits only this workflow's sidecar. The host's single
+        # publisher folds it into dashboard.json on the next <=20-minute tick.
         run: |
-          bash scripts/data/gha_commit_push.sh "macro: daily snapshot $(date -u +%Y-%m-%d) + dashboard rebuild" assets/data/macro.json
+          bash scripts/data/gha_commit_push.sh "macro: daily snapshot $(date -u +%Y-%m-%d)" assets/data/macro.json

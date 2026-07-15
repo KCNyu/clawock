@@ -14,9 +14,9 @@ Outputs JSON to stdout:
   {"status": "pass|warn|fail", "issues": [...], "wechat_prefix": "..."}
 
 Side effects:
-  - status=pass: git add memory/ portfolio.json + commit
+  - status=pass: rebuild dashboard, commit scoped report artifacts, deliver WeChat + Telegram
   - status=warn: same as pass but commit msg flags validation warnings
-  - status=fail: no commit (preserve commit history clean); print issues
+  - status=fail: no commit or delivery (preserve commit history clean); print issues
 """
 
 import json
@@ -114,7 +114,7 @@ def validate_markdown(path, context=None):
     if 'USDHKD' not in text and 'FX' not in text and '汇率' not in text:
         issues.append('pre-open.md 未提及 FX rate / 汇率')
 
-    # 体量卫生 (2026-05-31): WeChat 只发紧凑结论卡（Step 6），pre-open.md 仅作 dashboard
+    # 体量卫生 (2026-05-31): WeChat 只发紧凑结论卡（Step 4-D），pre-open.md 仅作 dashboard
     # 全文，不再受 16KB 微信上限约束 → 不 fail。但过长 briefs 页难读，>24KB 给个 warn 提醒精简。
     nbytes = len(text.encode('utf-8'))
     if nbytes > 24000:

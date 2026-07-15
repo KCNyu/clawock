@@ -38,12 +38,12 @@ title: clawock · scripts 详细参考
 
 **Mode 6 briefing**（HK 开/午/午后/收盘 + US 开/收盘 — 6 个 cron 共享）
 - **`scripts/harness/report_preflight.py --market {hk|us} --phase {open|mid|pm|close}`**：跑 analyze_*.py + 抽信号 (WATCH/STOP/TRIM 计数) + 异动 (≥3% 涨跌) + 指数方向；输出 `memory/.tmp/report-context-{market}-{phase}-{date}.json`，含 `raw_wechat_block`（LLM verbatim 用）+ `title` + `needs_risk_section`
-- **`scripts/harness/report_postflight.py --market {hk|us} --phase {phase}`**：校验三段标记 / 原始数据块 verbatim / 异动票必须被提及 / 长度 / 敷衍词；pass/warn 自动 commit portfolio.json
-- **`scripts/harness/report_watchdog.py --market {hk|us} --phase close --job-name "{cron名}"`**：**LLM-free 兜底哨兵**（2026-05-29 加，见下方事件）。**系统 crontab** 跑（不是 openclaw cron），收盘报告 cron 预期完成后几分钟触发：读该 job 今日最后一条 run 的 `summary`，若不含 preflight `raw_wechat_block` 首行 ⇒ 判定 LLM stall/失败未送出 ⇒ 用 `openclaw message send` 直送 `raw_wechat_block`（带 `📨 自动补发` banner，纯数据无分析段）。发送目标从该 job 历史 `delivery.resolved` 自动解析（不硬编码账号）；`memory/.tmp/watchdog-{tag}-{date}.done` flag 防重复。**postflight 抓不到这类失败**——LLM 死在 Step 2 远早于 postflight，故必须 out-of-band。当前覆盖 HK/US 收盘（`15 16 * * 1-5` / `20 4 * * 2-6`）；扩展到开/午盘只需在系统 crontab 加同样格式行。
+- **`scripts/harness/report_postflight.py --market {hk|us} --phase {phase}`**：校验三段标记 / 原始数据块 verbatim / 异动票必须被提及 / 长度 / 敷衍词；pass/warn 自动刷新 snapshot/dashboard、scoped commit + push，并主发 WeChat + 镜像 Telegram。
+- **`scripts/harness/report_watchdog.py --market {hk|us} --phase {phase} --job-name "{cron名}"`**：系统 crontab 的 LLM-free Telegram-only backstop。覆盖 HK 4 班 + US 开/收 2 班；读取 postflight delivery marker，只有 Telegram 未确认时才补投，绝不重发 WeChat。
 
-**Mode 7 intraday**（HK + US 盘中盯盘 — 2 个 cron 共享，每 30 分钟；HK 8 次/天，US 12 次/天，已错开阶段性报告）
+**Mode 7 intraday**（HK + US 盘中盯盘 — 3 个 cron job 共享同一套脚本；HK 8 slots，US 当前 EDT 季 10 slots，最晚 02:30 HKT）
 - **`scripts/harness/intraday_preflight.py --market {hk|us}`**：跑 analyze_*.py + 异动检测 + `should_alert` 决策；输出 `memory/.tmp/intraday-context-{market}-latest.json`
-- **`scripts/harness/intraday_postflight.py --market {hk|us}`**：校验 ▎我的看法 / 长度 / should_alert 触发时报告必须提异动票；**不 commit**（高频触发避免 commit log 刷屏）
+- **`scripts/harness/intraday_postflight.py --market {hk|us}`**：校验 ▎我的看法 / 长度 / should_alert 触发时报告必须提异动票；不提交 `portfolio.json`，dashboard 仅在语义变化时 commit + push。
 
 **共通设计点**：
 - preflight 输出 `raw_wechat_block` 字段，LLM **必须 verbatim 拷贝**（不改时间戳/数字），postflight 用首行匹配验证
@@ -53,18 +53,18 @@ title: clawock · scripts 详细参考
 
 ### 辅助
 - **Scrapling**：自适应爬虫框架，绕过反爬（Cloudflare 等），支持 JS 渲染。`pip3 install scrapling --break-system-packages`。详见 `skills/scrapling/SKILL.md`
-- **`scripts/data/build_dashboard.py`**：聚合 `portfolio.json` + snapshots + v2 plans + `memory/decisions.jsonl` + risk/peer/context sidecars → `assets/data/dashboard.json`。决策字段统一为 `decision_metrics` / `episode_backtest` / `decision_delta` / `recent_decisions`；只计**被判定触发**的 episode，date-cluster CI，并公示判不了的条数(`coverage_active`)。⚠️ **`decision_money_impact` 已于 2026-07-15 停止发布**(函数仍在,供日后重建对照账本用):它把从没执行过的 call 也算进去,不是任何真实交易序列的累计金额 —— 见 README「不发布金额指标」段。brief/report postflight 自动刷新；size cap 200KB。
+- **`scripts/data/build_dashboard.py`**：聚合 `portfolio.json` + snapshots + v2 plans + `memory/decisions.jsonl` + risk/peer/context sidecars → `assets/data/dashboard.json`。决策字段统一为 `decision_metrics` / `episode_backtest` / `decision_delta` / `recent_decisions`；只计**被判定触发**的 episode，date-cluster CI，并公示判不了的条数(`coverage_active`)。⚠️ **`decision_money_impact` 已于 2026-07-15 停止发布**：它把从没执行过的 call 也算进去,不是任何真实交易序列的累计金额。三类 postflight 都自动刷新；size cap 200KB。
 - **`scripts/data/portfolio_risk_metrics.py`**：算 β/Vol/Max DD/Sharpe/margin_at_risk → `assets/data/risk.json`。每日 brief preflight `[10/10]` 自动跑。Yahoo v8 429 限速 → 改用 Tencent gtimg primary + Polygon/AlphaVantage fallback。alert 类型：high_beta(>3) / high_vol(>50%) / deep_dd(<-10%) / high_leverage(>2.0) / negative_sharpe(<0)
 - **`scripts/data/compute_regime.py`**：杠杆刻度盘 → `assets/data/lev_regime.json`。HSTECH 200日线趋势 + 20d 波动 → HK 杠杆ETF腿上限乘子(green×1 / amber×0.5 / red×0)；US 逐名(2x单股ETF 各自 200日线，趋势off+vol>70% 才强砍)。**2026-07 新增 `regime_history`**：逐日 regime(hk←HSTECH 全历史含200DMA+近10日动量；us←benchmark.json SPY 序列，仅动量因样本<200)，供 build_dashboard 把 `vs_baseline` 按 regime 分桶。brief preflight 自动跑；tencent 空 fetch 保留旧文件。
 - **`scripts/data/mark_followed.py`**：v2 execution ground-truth 工具。`--list` 列出已触发但执行未知的 decision；`mark_followed.py DECISION_ID [--no]` 写 `execution.status`。Brier 衡量建议置信度，执行率单独展示。
 - **`scripts/data/fetch_catalysts.py`**：未来 14d catalysts → `assets/data/catalysts.json`（7 US holding 财报 Finnhub + 2026 FOMC 硬编码 + 经济日历 NFP/CPI 规则）。brief_preflight `[11/11]` 自动跑。`catalysts.alerts` 触发时 LLM brief 必须 ▎事件日历 段提及。
-- **`scripts/data/fetch_influencer_feed.py`**：高影响力人物市场异动 → `assets/data/influencer_feed.json`。Trump 原帖(trumpstruth.org/feed RSS, 全文)+ Musk(Google News RSS 代理, X 无可靠免费 RSS)。关键词预筛 → 单次 Xiaomi LLM(`thinking_disabled` 结构化抽取, ~2.5K token)提相关性/stance/ticker/板块 → 代码交叉匹配持仓分三档：`held_hits`(撞持仓告警) / `new_ideas`(他们点名但 kcn 没持有的选股线索) / `sector_hits`(板块软关联, 非直接点名)。merge-not-overwrite: 源**抓取失败**才保留旧条目（被 LLM 筛掉≠失败）。env `XIAOMI_API_KEY`(缺则降级关键词-only)。dashboard「影响力雷达」卡 + brief `▎名人异动/政策风向` 段消费。
-- **`scripts/data/xiaomi_llm.py`**：OpenAI-compat LLM client，供 GH Action 直调（绕过 openclaw gateway）。**Primary Xiaomi MiMo v2.5-pro → fallback MiniMax M3（Anthropic 协议，2026-06-01 起 M2.7+openai-completions 作废）**（Xiaomi 三次重试全挂即透明切 MiniMax，两家全挂才 raise）。**单轮默认 thinking enabled + max_tokens 32K**；多轮传 `thinking_disabled=True` 避 reasoning 400。`_clean()` 统一剥内联 `<think>…</think>` + markdown fence，json.loads 两家通用。retry 3 + 429 handling。env `XIAOMI_API_KEY` + `MINIMAX_API_KEY`(缺则跳过 fallback)。`chat(fallback=False)` 可关兜底。
-- **`scripts/data/gh_action_*.py`**：3 个 GH Action 入口脚本（brief_fallback / weekly_review / news_digest），都用 xiaomi_llm.chat() 直调小米。
+- **`scripts/data/fetch_influencer_feed.py`**：高影响力人物市场异动 → `assets/data/influencer_feed.json`。Trump 原帖(trumpstruth.org/feed RSS, 全文)+ Musk(Google News RSS 代理, X 无可靠免费 RSS)。关键词预筛 → 单次 vendor LLM(`thinking_disabled` 结构化抽取)提相关性/stance/ticker/板块 → 代码交叉匹配持仓分三档：`held_hits` / `new_ideas` / `sector_hits`。merge-not-overwrite: 源**抓取失败**才保留旧条目（被 LLM 筛掉≠失败）。`MINIMAX_API_KEY` 主、`XIAOMI_API_KEY` 可选 fallback；两者都缺才降级 keyword-only。dashboard「影响力雷达」卡 + brief `▎名人异动/政策风向` 段消费。
+- **`scripts/data/xiaomi_llm.py`**：Anthropic-Messages client，供 GH Action 直调（绕过 openclaw gateway）。**Primary MiniMax M3 → optional fallback Xiaomi MiMo v2.5-pro**；M2.7 + openai-completions 已废。单轮默认 thinking enabled + max_tokens 32K；结构化抽取传 `thinking_disabled=True`。`_clean()` 统一剥内联 `<think>…</think>` + markdown fence。retry 3 + 429 handling。env `MINIMAX_API_KEY` 必需；`XIAOMI_API_KEY` 可选且失效后自动跳过；`chat(fallback=False)` 可关 Xiaomi fallback。
+- **`scripts/data/gh_action_*.py`**：3 个 GH Action 入口脚本（brief_fallback / weekly_review / news_digest），都用 `xiaomi_llm.chat()` 走 MiniMax M3 主路径。
 - **`scripts/data/safe_push.sh`**：共享 git push 防 conflict 死循环工具。3 次 retry + 每次 rebase 失败 → `git rebase --abort` + exit 2（不死循环 push）。所有写文件的 GH Action workflow 用 `bash scripts/data/safe_push.sh` 替代原本的 push loop；harness 端 `scripts/harness/_harness_common.push_with_rebase_retry` **直接委托本脚本**（2026-06-10 统一，自动获得 rebase.autoStash + 冲突标记硬闸），全体 committer 单一 push 路径。
 - **`scripts/data/update_portfolio.py`** / **`update_us_portfolio.js`**：手动调仓后写 portfolio.json 的辅助
 
-### Cron map（**11 个 job，6.1 起存 SQLite `~/.openclaw/state/openclaw.sqlite`，用 `openclaw cron list --json` 读——`cron/jobs.json` 已是死文件**）
+### Cron map（**11 个 job，runtime 真值经 `openclaw cron list --json` 读取；CI mirror 为 `config/cron-schedules.json`，system check 强制两者一致**）
 
 | Job 名 | Schedule | Mode | Preflight | Postflight |
 |---|---|---|---|---|
@@ -77,13 +77,15 @@ title: clawock · scripts 详细参考
 | 港股收盘报告 | 16:00 HKT 工作日 | Mode 6 | `report_preflight.py --market hk --phase close` | `report_postflight.py --market hk --phase close` |
 | 美股开盘报告 | **21:30 HKT** 工作日 (= 09:30 ET EDT, **HKT 表达式绕过 daemon ET tz bug**) | Mode 6 | `report_preflight.py --market us --phase open` | `report_postflight.py --market us --phase open` |
 | 美股盘中盯盘 (evening) | **22:00-23:30 HKT** 工作日 (= ET 10:00-11:30 EDT, 拆分跨日 part 1) | Mode 7 | `intraday_preflight.py --market us` | `intraday_postflight.py --market us` |
-| 美股盘中盯盘-overnight | **00:00-03:30 HKT 次日** DOW 2-6 (= ET 12:00-15:30 EDT, 拆分跨日 part 2) | Mode 7 | 同上 | 同上 |
+| 美股盘中盯盘-overnight | **00:00-02:30 HKT 次日** DOW 2-6 (= ET 12:00-14:30 EDT, 隔夜上限留出 03:00 dreaming 窗口) | Mode 7 | 同上 | 同上 |
 | 美股收盘报告 | **04:00 HKT 次日** 工作日 DOW 2-6 (= 16:00 ET EDT, 同上) | Mode 6 | `report_preflight.py --market us --phase close` | `report_postflight.py --market us --phase close` |
 
-所有 harness preflight/postflight 都在 `scripts/harness/`。Mode 6 / brief 的 postflight 会在 pass/warn 时
-自动跑 `scripts/data/build_dashboard.py` 刷新 `assets/data/dashboard.json` 并一起 commit，保证 Pages 同步。
+所有 harness preflight/postflight 都在 `scripts/harness/`。Mode 6 / brief / Mode 7 的 postflight
+都会重建 dashboard；Mode 7 不提交 `portfolio.json`，只有 dashboard 出现语义变化才发布。
 
-cron prompt 已精简成"按 skill 的 harness 4-step 跑"+ 自包含 fallback 指令，改格式时**只改 SKILL.md 里的 Mode 段**，payload 不重复 SKILL 细节（例外：Step 2.5 sidecar 必须在 payload 里点名——2026-06-04 重写 payload 时漏了它，status_banner 断供 6 天，LLM 只跟 payload 的步骤编号走）。
+cron payload 是真实执行面，会为隔离 session 自包含关键步骤；SKILL.md 是详细规范。改格式时
+必须同时 diff payload 与对应 Mode，尤其 Step 2.5 sidecar。schedule 的 runtime 真值来自 CLI，
+tracked mirror 在 `config/cron-schedules.json`，两者漂移会被 `scripts/system_check.py` 拦截。
 
 **改 cron prompt 的安全步骤**（6.1 后只走 CLI，不碰文件）：
 ```bash
@@ -106,12 +108,12 @@ cron prompt 已精简成"按 skill 的 harness 4-step 跑"+ 自包含 fallback �
 ./check_crons.sh --json          # JSON 输出（喂给后续 pipeline）
 ```
 
-底层数据 `~/.openclaw/cron/runs/{jobId}.jsonl`；`runId` 以 `manual:` 开头是手动 trigger，
-其余空 runId 是 cron daemon 自动调度。脚本本体 `scripts/data/cron_runs.py`。
+运行历史同样优先经 OpenClaw CLI 读取；旧 `cron/runs/*.jsonl` 只作为迁移前 fallback。
+脚本本体 `scripts/data/cron_runs.py`。
 
 ### 已废弃（不作为调用入口，但作为参考代码可读）
 > 这些脚本**不要直接调起来跑**当主路径，但里面的 URL、header、fallback 思路、解析片段在调试或场景超出现役脚本时仍有参考价值。
-- `scripts/legacy/stock_analyzer.py` — 被 `scripts/data/analyze_us_stocks.py` + `analyze_hk_stocks.py` 取代；早期 fallback 顺序的来源（`check_portfolio.sh` 仍引用）
+- `scripts/legacy/stock_analyzer.py` — 被 `scripts/data/analyze_us_stocks.py` + `analyze_hk_stocks.py` 取代；仅保留早期 fallback 顺序作参考
 - **完全删掉** (2026-05-16 大扫除)：`monday_signal.py` (含硬编码 key)、`api_retry_wrapper.py`、`baidu_search_wrapper.py`、`deep_analysis.py`、`final_analysis.py`、`find_opportunities.py`、`hk_ai_monitor.py`、`multi_agent_stock_analysis.py`、`price_alert_monitor.py`、`TradingAgents/` 整目录
 - **完全删掉** (2026-07-04 清理)：`scripts/legacy/{hk_monitor,hk_open_monitor,hk_stock_fetcher,portfolio_monitor,portfolio_table,portfolio_visualization}.py`（无代码/cron 引用的死参考）、`scripts/data/brief_fallback_send.py`（被 `gh_action_brief_fallback.py` 取代）
 

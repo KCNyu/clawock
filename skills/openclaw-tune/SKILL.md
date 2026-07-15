@@ -112,7 +112,8 @@ Red flags:
 
 ### 4. Cron jobs
 
-`~/.openclaw/cron/jobs.json` — check each enabled job's `payload.message`:
+`openclaw cron list --json` — check each enabled job's `payload.message` and compare
+its schedule with `config/cron-schedules.json`:
 
 - Does it reference scripts that still exist? (e.g. removed `scripts/legacy/stock_analyzer.py` but cron still calls it)
 - Does it reference dead APIs? (e.g. "优先东方财富" but Eastmoney is 502 from this server)
@@ -157,7 +158,8 @@ grep -i "deprecated\|suppress.*model\|stop advertising" "$PKG/CHANGELOG.md" | he
 # 4. Re-run the disk + prompt + fallback chain checks above
 ```
 
-If openclaw introduced a new default model (e.g. M2.8 supersedes M2.7), suggest the user update `primary` in `openclaw.json`.
+If OpenClaw introduced a new default model, verify the configured provider with a real
+smoke call before proposing any change; do not infer upgrades from an old model example.
 
 ### 7. Verification before reporting done
 
@@ -211,6 +213,6 @@ End with a structured report:
 
 ## Inputs / Outputs
 
-- **Reads**: `~/.openclaw/openclaw.json`, `~/.openclaw/cron/jobs.json`, `~/.openclaw/workspace/{AGENTS,MEMORY,TOOLS,USER,SOUL}.md`, `~/.openclaw/workspace/memory/.dreams/short-term-recall.json`, disk usage of `~/.openclaw/`
-- **Writes**: trimmed `*.md` workspace files (with bak), `~/.openclaw/cron/jobs.json` (with bak), eventual `portfolio.json` if data refresh happens; everything else archived to `/tmp/openclaw-cleanup-<date>/`
+- **Reads**: `~/.openclaw/openclaw.json`, live cron state via `openclaw cron list --json`, `config/cron-schedules.json`, workspace canonical MD files, short-term recall state, and disk usage of `~/.openclaw/`
+- **Writes**: trimmed `*.md` workspace files (with bak), cron fields only through `openclaw cron edit` plus the tracked schedule contract when needed, eventual `portfolio.json` if data refresh happens; everything else archived to `/tmp/openclaw-cleanup-<date>/`
 - **Side effects**: may suggest gateway restart at the end (user-confirmed)

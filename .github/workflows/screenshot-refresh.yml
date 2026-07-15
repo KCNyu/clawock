@@ -1,7 +1,7 @@
 name: Dashboard Screenshot Refresh
 
 # Re-screenshot the live dashboard each week so README preview never drifts >7 days.
-# Sundays 22:00 UTC (= 06:00 Mon HKT, just before Monday's first cron).
+# Sundays 22:00 UTC (= 06:00 Mon HKT, before Monday's 08:00 brief).
 # Scheduled runs refresh the two small PNGs only. The 8MB GIF rebuilds on manual
 # dispatch, when the UI it demos has actually changed.
 on:
@@ -35,10 +35,14 @@ jobs:
           npm install --silent playwright@1.60.0
           npx playwright install --with-deps chromium
 
-      - name: Capture win-rate chart + social card + gif frames
+      - name: Capture win-rate chart + social card
         run: |
           mkdir -p assets
-          NODE_PATH="$GITHUB_WORKSPACE/node_modules" node scripts/data/shoot_dashboard.js
+          # Weekly runs skip the expensive uncommitted GIF frames. A manual
+          # dispatch captures frames because the next step will assemble them.
+          CAPTURE_GIF=${{ github.event_name == 'workflow_dispatch' && '1' || '0' }} \
+            NODE_PATH="$GITHUB_WORKSPACE/node_modules" \
+            node scripts/data/shoot_dashboard.js
 
       # The GIF is a product demo of the tab layout, not a price feed — it does not
       # need to track today's quotes. At ~8MB a weekly rebuild had already put 11
