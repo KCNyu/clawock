@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-14T14:42:20.859004",
+  "generated_at": "2026-07-15T14:41:53.991581",
   "lookback_hours": 48,
   "tickers": [
     "CRCL",
@@ -10,14 +10,14 @@
     "MSFU",
     "SKHY"
   ],
-  "digest_markdown": "## Top 移动信号\n- **CRCL**: Baird 将目标价从 $138 砍至 $100 (-28%), 仍维持 Outperform → 共识下修, 短期承压但非看空, kcn 若持有留意下一波定级\n- **SPCX**: SpaceX 据报下跌 30%, Starship Flight 13 是关键 reset event; Frontier 签约成首家 ULCC 用 Starlink 航司 (2027 安装) → 双重 catalyst: 短期下行 + 商业合同验证现金流\n- **SKHY**: HBM 市场份额 Q1 估 56-58%, 多家机构维持 Strong Buy → AI 内存周期龙头地位再确认, 基本面 catalyst 持续\n- **SPCH**: SPCX (SpaceX) 上市被称 \"史上最大 IPO\", 重塑美国 ETF 指数生态 → SPCH 作为敞口工具的结构性事件, 流动性溢价可能持续\n- **MSFU**: MSFT 2x long YTD -40%, daily reset 拖累显著 → 高 beta 杠杆 ETF 风险信号, 警惕 decay\n\n## Per-ticker 简报\n- **CRCL**: Baird PT 砍至 $100 (从 $138) - 估值重估压力, 但评级仍 Outperform\n- **SPCX**: Frontier Airlines 加盟 Starlink (首家 ULCC, 2027 fleet rollout) + Starship 13 临近 - 商业化里程碑 + 关键测试\n- **SPCH**: 围绕 SPCX IPO 结构性叙事 - 流动性主题而非短期催化剂\n- **SKHY**: HBM 龙头 56-58% 份额, 现金流强劲 - 持续 AI 内存顺风\n- **PLTU**: Palantir Q4 beat, 杠杆 ETF 重获关注 - 底层资产催化, PLTU 弹性放大\n- **MSFU**: MSFT 2x 杠杆 YTD -40%, reset drag 显化 - 杠杆产品警示\n- **RKLX**: 无实质催化剂, 多为 ETF profile/营销稿 - 忽略\n\n## 风险 watch\n- **CRCL**: 分析师 PT 大幅下调 (-28%) - 估值/预期下行风险\n- **SPCX**: 30% 回撤 + Starship 测试失败风险 - 关键 binary event\n- **MSFU/MSFT**: 2x 杠杆 ETF daily reset 在弱势市放大损失 - 持有成本风险\n- **PLTU**: Palantir 估值高位 + 杠杆叠加 - 高 beta 风险",
+  "digest_markdown": "## Top 移动信号\n\n- **CRCL**: Mizuho 下调至 Underperform, PT $85→$50; JPM 同步砍盈利预期, 称 Circle-Coinbase 因 Hyperliquid 合作陷入\"囚徒困境\", USDC 收入被侵蚀. → CRCL 仓位承压, 短期下行风险高\n- **SKHY**: 多空撕裂. Seeking Alpha 看多 HBM 短缺 + $26.5B Nasdaq 募资; 另一篇 SA 给 Sell, 称 Q2 财报前\"profit-taking\"风险. 2x 杠杆 ETF HYNX 新上市放大波动. → 财报前减仓或对冲更稳\n- **SPCX**: 估值撕裂 — Raymond James 给 SpaceX $800 PT 隐含 $10T+ 估值, 但股价接近历史低点, 技术形态看 $158 反弹. → 双向波动, 控仓位\n- **CRCL (offset)**: Circle 获批联邦信托银行, 成首家直接管理稳定币储备的美国数字资产公司; Trump 推 CLARITY Act. → 长期利好但被分析师下调掩盖\n- **PLTU**: Palantir Q4 beat + 杠杆 ETF 资金面博弈, 财报预期高. → 警惕预期透支\n\n## Per-ticker\n- **CRCL**: Mizuho/JPM 双下调 - 偏空\n- **SKHY**: HBM 叙事 vs Q2 回吐 - 财报前震荡\n- **SPCX**: $10T 估值争议 vs 极低股价 - 高波动\n- **PLTU**: 财报后动能延续但杠杆 ETF 拥挤 - 谨慎追高\n- **MSFU / RKLX / SPCH**: 无有效 catalyst, 忽略\n\n## Risk Watch\n- **CRCL**: Hyperliquid 收入结构性侵蚀 + 连环降级, PT $50\n- **SKHY**: Q2 财报\"profit-taking\"风险 (SA Sell 论)\n- **SPCX**: $10T 估值泡沫质疑 vs 近 ATL 价格, 双向敞口",
   "raw_news_counts": {
-    "CRCL": 2,
+    "CRCL": 5,
     "PLTU": 5,
     "RKLX": 5,
     "SPCX": 5,
     "SPCH": 1,
-    "MSFU": 5,
+    "MSFU": 1,
     "SKHY": 5
   },
   "news_source_per_ticker": {
@@ -26,7 +26,7 @@
     "RKLX": "gnews-rss",
     "SPCX": "finnhub",
     "SPCH": "finnhub",
-    "MSFU": "gnews-rss",
+    "MSFU": "finnhub",
     "SKHY": "finnhub"
   }
 }
