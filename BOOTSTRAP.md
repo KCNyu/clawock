@@ -73,7 +73,7 @@ context.json 的决策/自进化字段，**必须用上**：
 | Mode 6 报告 | 不写新文件；postflight 自动 commit portfolio.json + dashboard.json |
 | Mode 7 盯盘 | 写 `.tmp` context/insights/heartbeat；不提交 `portfolio.json`，dashboard 仅语义变化提交，heartbeat 每 slot 发布 |
 | 手动复盘 | `memory/{date}.md`（用户手写的，agent 别擅自填） |
-| 新仓位 / 平仓 | `update_portfolio.py` 后由 postflight commit |
+| 新仓位 / 加减仓 / 平仓 | 手工记录 `holdings[].trades[]`（`action/date/shares/price`，卖出另记 `realized_pnl`），同步 broker 真值叶子（`shares` / `cost_basis`；平仓行保留、`shares=0`），再跑 `bash scripts/data/reconcile.sh`；存取款另记 `cash_adjustments[]` |
 
 ---
 

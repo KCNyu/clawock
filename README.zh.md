@@ -218,7 +218,7 @@ LLM 只提交决策，不能写入或修改评估结果；ID、触发、分组�
 | 3 · 资金面 | 1 | 东财 push2his |
 | 4 · 消息面 | 3 | 东财 · Finnhub · Google News |
 | 5 · 宏观/情绪 | 4 | Yahoo · Reddit · Truth Social |
-| 6 · 量化因子 | 4 | 派生(纯算术) |
+| 6 · 量化与风险 | 4 | 确定性计算 + 外部行情历史 |
 | 7 · 汇率/校验 | 2 | Frankfurter · 本地不变量 |
 | 8 · 回测/自省 | 5 | 本地快照 + 日线 |
 
@@ -227,11 +227,11 @@ LLM 只提交决策，不能写入或修改评估结果；ID、触发、分组�
 - **3 · 资金面** — `fetch_fundflow_em` 日级主力/超大/大/中/小单净流入 🟡
 - **4 · 消息面** — `fetch_em_news` 港股个股中文新闻+7×24快讯 ✅ · `gh_action_news_digest` 美股持仓新闻→可执行要点 ✅ · `fetch_catalysts` 未来14天财报/事件 🟡
 - **5 · 宏观/情绪** — `fetch_macro` VIX+宏观速读 ✅ · `fetch_sentiment` Reddit 情绪 🟡 · `fetch_influencer_feed` Trump/Musk 言论 🟡 · `fetch_peers` 同业现价+5日P&L ✅
-- **6 · 量化因子**(纯算术零外部依赖) — `compute_quant_signals` 双均线/动量/RSI/ATR/vol-target ✅ · `compute_regime` 杠杆刻度盘(200DMA+波动带) ✅ · `compute_t0_setups` T+0牌面评级+追高检测 ✅ · `portfolio_risk_metrics` β/Cov-Var/回撤/集中度 ✅
+- **6 · 量化与风险**(对外部行情历史做确定性计算，不含 LLM 判断) — `compute_quant_signals` 双均线/动量/RSI/ATR/vol-target ✅ · `compute_regime` 杠杆刻度盘(200DMA+波动带) ✅ · `compute_t0_setups` T+0牌面评级+追高检测 ✅ · `portfolio_risk_metrics` β/Cov-Var/回撤/集中度 ✅
 - **7 · 汇率/校验** — `fetch_fx` USDHKD 3路fallback ✅ · `preflight_integrity` 钱守恒硬闸(TCV/PNL/FX/cash) ✅
 - **8 · 回测/自省** — `decision_v2` episode 回测 · `backtest_hstech_regime` · `backtest_us_leverage` · `backtest_combined_regime` · `quant_signal_review` + `t0_setup_review` ✅
 
-**防封** — 所有东财调用统一走 `_em_http.em_get()`：进程内串行(≥1s + 随机抖动)、单 `Session` 复用、3 次重试后优雅 `None`。完整逐文件目录见 [`scripts/data/README.md`](scripts/data/README.md)。
+**防封** — 所有现役东财调用统一走 `_em_http.em_get()`：进程内串行(≥1s + 随机抖动)、单 `Session` 复用、3 次重试后优雅 `None`。完整逐文件目录见 [`scripts/data/README.md`](scripts/data/README.md)。
 
 </details>
 
@@ -244,7 +244,7 @@ LLM 只提交决策，不能写入或修改评估结果；ID、触发、分组�
 clawock/
 ├─ index.html  briefs.md                    ← Pages 着陆页
 ├─ assets/data/        由 harness + GH Actions 生成,绝不手改
-│   ├─ dashboard.json  risk.json  catalysts.json  fx.json
+│   ├─ dashboard.json  risk.json  catalysts.json
 │   ├─ macro.json  sentiment.json  influencer_feed.json  us_news_digest.json  ← scan 子文件,前端直接 fetch
 │   ├─ quant_signals.json  quant_signal_review.json     ← 因子战绩表
 │   ├─ t0_setups.json  t0_setup_review.json             ← 盘中牌面战绩表

@@ -153,7 +153,7 @@ python3 scripts/data/fetch_us_stocks.py     # 仅刷美股价格
 - report / brief / intraday postflight 主发 WeChat 并同步 Telegram；watchdog 读真实 delivery marker，只在 Telegram marker 缺失或失败时补投，不再猜 run summary、也不重发 WeChat。
 - `.tmp/*-sent-*.json` + slot key 做幂等，避免长 turn / cron retry 双发。
 
-**其它**：`mark_followed.py`(标 `decisions.jsonl` 的 execution.status) · `xiaomi_llm.py`(GH Action 直连 vendor，MiniMax→可选 Xiaomi fallback) · `gh_action_*.py` · `update_portfolio.py`。**每脚本详细说明 + 已废弃 legacy → `TOOLS_SCRIPTS.md`**。
+**其它**：`mark_followed.py`(标 `decisions.jsonl` 的 execution.status) · `xiaomi_llm.py`(GH Action 直连 vendor，MiniMax→可选 Xiaomi fallback) · `gh_action_*.py` · `reconcile.sh`(手工记录 `holdings[].trades[]` 与 broker 真值叶子后，统一重算 aggregates/cash/realized 并过完整性闸)。**每脚本详细说明 + 已废弃 legacy → `TOOLS_SCRIPTS.md`**。
 
 ### Cron map
 
@@ -224,7 +224,7 @@ clawhub install <slug>
 ---
 
 ## 维护建议
-- 交易发生后：更新 `portfolio.json` + 当天 `memory/YYYY-MM-DD.md`
+- 交易发生后：记录 `holdings[].trades[]` + broker 真值叶子，跑 `bash scripts/data/reconcile.sh`，再更新当天 `memory/YYYY-MM-DD.md`
 - 规则变化后：更新 `MEMORY.md`
 - 持仓结构明显变化后：更新 `memory/current-portfolio-summary.md`
 - 脚本数据源变化后：同步更新 `TOOLS.md` 与 `MEMORY.md`

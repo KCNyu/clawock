@@ -29,15 +29,23 @@ SESSION = requests.Session()
 SESSION.headers.update({'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) openclaw-fx/1.0'})
 
 
-def _from_cache() -> Optional[Dict]:
+def _from_cache(allow_stale: bool = False) -> Optional[Dict]:
     if not os.path.exists(CACHE_PATH):
         return None
     age_h = (time.time() - os.path.getmtime(CACHE_PATH)) / 3600
-    if age_h > CACHE_TTL_HOURS:
+    if age_h > CACHE_TTL_HOURS and not allow_stale:
         return None
     try:
         with open(CACHE_PATH) as f:
-            return json.load(f)
+            data = dict(json.load(f))
+        # Old cache entries predate the explicit provenance flag. A fresh cached
+        # provider quote is not itself a fallback; an expired one is.
+        data.setdefault('fallback_used', False)
+        if age_h > CACHE_TTL_HOURS:
+            data['fallback_used'] = True
+            data['source'] = f"{data.get('source', 'cache')} (stale cache; all live sources failed)"
+            data['warning'] = 'all live sources failed; using stale cached USDHKD rate'
+        return data
     except Exception:
         return None
 
@@ -86,11 +94,12 @@ def get_usdhkd(force_refresh: bool = False) -> Dict:
         if cached:
             return cached
 
-    for name, fn in (
+    providers = (
         ('Frankfurter',         _get_frankfurter),
         ('exchangerate.host',   _get_exchangerate_host),
         ('Yahoo HKD=X',         _get_yahoo),
-    ):
+    )
+    for provider_index, (name, fn) in enumerate(providers):
         rate = fn()
         if rate and 7.0 < rate < 9.0:   # sanity check (HKD pegged ~7.75-7.85)
             from datetime import datetime, timezone
@@ -99,14 +108,14 @@ def get_usdhkd(force_refresh: bool = False) -> Dict:
                 'source':     name,
                 'fetched_at': datetime.now(timezone.utc).isoformat(),
                 'pair':       'USDHKD',
+                'fallback_used': provider_index > 0,
             }
             _save_cache(data)
             return data
 
     # All providers failed — fall back to cached even if stale
-    cached = _from_cache()
+    cached = _from_cache(allow_stale=True)
     if cached:
-        cached['source'] += ' (stale, all live failed)'
         return cached
 
     # Last-resort hard-coded peg midpoint
@@ -116,6 +125,7 @@ def get_usdhkd(force_refresh: bool = False) -> Dict:
         'source':     'HARDCODED_PEG_FALLBACK',
         'fetched_at': datetime.now(timezone.utc).isoformat(),
         'pair':       'USDHKD',
+        'fallback_used': True,
         'warning':    'all live sources failed; using hard-coded HKD peg midpoint',
     }
 

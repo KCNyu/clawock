@@ -1,8 +1,3 @@
----
-layout: default
-title: clawock decouple plan
----
-
 # Clawock decouple-from-openclaw plan
 
 **Status**: archived / superseded; do not execute as an operations runbook

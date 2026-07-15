@@ -1,55 +1,64 @@
 {
-  "generated_at": "2026-07-15T00:04:45.734209+00:00",
+  "generated_at": "2026-07-15T19:48:33.972471+00:00",
   "as_of": "2026-07-15",
   "us": {
-    "beta_spx": 3.293,
-    "vol_30d_annualized": 1.0647,
-    "max_dd_30d": -0.3866,
-    "sharpe_30d": -5.1452,
-    "current_value_usd": 2978.01
+    "beta_spx": 3.2875,
+    "vol_30d_annualized": 1.0302,
+    "max_dd_30d": -0.3837,
+    "sharpe_30d": -5.0115,
+    "current_value_usd": 2969.39
   },
   "hk": {
-    "beta_hsi": 1.5068,
-    "vol_30d_annualized": 0.782,
-    "max_dd_30d": -0.429,
-    "sharpe_30d": -5.8559,
-    "current_value_hkd": 53592.0
+    "beta_hsi": 1.73,
+    "vol_30d_annualized": 0.8563,
+    "max_dd_30d": -0.4476,
+    "sharpe_30d": -4.4715,
+    "current_value_hkd": 58419.6
   },
   "combined": {
-    "vol_30d_annualized": 0.6072,
-    "max_dd_30d": -0.2608,
-    "sharpe_30d": -6.4927
+    "vol_30d_annualized": 0.6704,
+    "max_dd_30d": -0.2838,
+    "sharpe_30d": -4.7236
   },
   "leveraged_exposure": {
-    "us_leverage_factor_avg": 1.4024,
-    "hk_leverage_factor_avg": 1.3964,
-    "combined_avg": 1.3982,
-    "margin_at_risk_pct": 13.9817
+    "us_leverage_factor_avg": 1.4052,
+    "hk_leverage_factor_avg": 1.3715,
+    "combined_avg": 1.3811,
+    "margin_at_risk_pct": 13.8106
   },
   "alerts": [
     {
       "type": "high_beta",
       "severity": "high",
-      "detail": "US β vs S&P 500 = 3.293 (> 3.0)"
+      "detail": "US β vs S&P 500 = 3.2875 (> 3.0)"
     },
     {
       "type": "high_vol",
       "severity": "high",
-      "detail": "Combined 30d annualised vol = 60.7% (> 50%)"
+      "detail": "Combined 30d annualised vol = 67.0% (> 50%)"
     },
     {
       "type": "deep_dd",
       "severity": "medium",
-      "detail": "Combined 30d max DD = -26.1% (< -10%)"
+      "detail": "Combined 30d max DD = -28.4% (< -10%)"
     },
     {
       "type": "negative_sharpe",
       "severity": "medium",
-      "detail": "Combined 30d Sharpe = -6.4927 (< 0)"
+      "detail": "Combined 30d Sharpe = -4.7236 (< 0)"
     }
   ],
   "meta": {
-    "fx_hkd_to_usd_used": 0.128205,
+    "fx_hkd_to_usd_used": 0.127567,
+    "fx": {
+      "pair": "USDHKD",
+      "rate": 7.839,
+      "source": "Frankfurter",
+      "fetched_at": "2026-07-15T19:48:33.964959+00:00",
+      "fallback_used": false,
+      "warning": null,
+      "hkd_to_usd": 0.12756729
+    },
     "risk_free_annual": 0.045,
     "window_days": 30,
     "trading_days_per_year": 252,
@@ -69,9 +78,9 @@
       "failed": [
         "SKHY"
       ],
-      "n_returns": 19,
+      "n_returns": 20,
       "dates_first": "2026-06-15",
-      "dates_last": "2026-07-14",
+      "dates_last": "2026-07-15",
       "stale": false
     },
     "hk_fetch": {
@@ -84,8 +93,8 @@
       ],
       "failed": [],
       "n_returns": 30,
-      "dates_first": "2026-05-29",
-      "dates_last": "2026-07-14",
+      "dates_first": "2026-06-01",
+      "dates_last": "2026-07-15",
       "stale": false
     }
   }

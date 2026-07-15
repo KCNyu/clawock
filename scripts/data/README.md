@@ -36,7 +36,7 @@ clawock 是**美股 + 港股 + 黄金定投**的实盘组合，工具包只做�
 | 3 | 资金面 Capital Flow | 1 | 东财 push2his |
 | 4 | 消息面 News | 3 | 东财 · Finnhub · Google News |
 | 5 | 宏观/情绪 Macro & Sentiment | 4 | Yahoo · Reddit · TruthSocial |
-| 6 | 量化因子 Quant Signals | 4 | 派生(纯算术, 零外部依赖) |
+| 6 | 量化与风险 Quant & Risk | 4 | 确定性计算 + 外部行情历史 |
 | 7 | 汇率/校验 FX & Integrity | 2 | Frankfurter · 本地不变量 |
 | 8 | 回测/自省 Backtest & Calibration | 5 | 本地历史快照 + 日线 |
 
@@ -82,7 +82,7 @@ clawock 是**美股 + 港股 + 黄金定投**的实盘组合，工具包只做�
 | `fetch_influencer_feed.py` | Trump / Musk 市场级言论 | TruthSocial feed / GNews | 🟡 |
 | `fetch_peers.py` | 同业股现价 + 5 日 P&L | 多源(同行情链) | ✅ |
 
-## Layer 6 · 量化因子 Quant Signals · 纯算术零外部依赖
+## Layer 6 · 量化与风险 Quant & Risk · 确定性计算 + 外部行情输入
 
 | 端点 | 数据 | 源 | 可达 |
 |---|---|---|:---:|
@@ -112,7 +112,7 @@ clawock 是**美股 + 港股 + 黄金定投**的实盘组合，工具包只做�
 
 ## 🛡️ 防封与降级
 
-**东财统一出口 `_em_http.em_get()`** — 东财对同 IP 高频请求阶梯式惩罚(先 000 空响应, 后短时 ban)，所有东财调用(`_em_symbols` / `fetch_fundamentals_em` / `fetch_fundflow_em` / `fetch_em_news`)统一走它:
+**东财统一出口 `_em_http.em_get()`** — 东财对同 IP 高频请求阶梯式惩罚(先 000 空响应, 后短时 ban)，所有现役东财调用（包括行情、基金、基本面、资金流与新闻 fetcher）统一走它:
 
 - **进程内串行** — 相邻请求间隔 ≥ `EM_MIN_INTERVAL`(默认 1.0s), 线程锁保护;
 - **随机抖动** — 每次额外 0..`EM_JITTER`(默认 0.5s), 打散固定节律指纹;

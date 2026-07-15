@@ -218,7 +218,7 @@ Every fetcher is **no-key-first** (public endpoints before any API key; the one 
 | 3 · Capital flow | 1 | Eastmoney push2his |
 | 4 · News | 3 | Eastmoney · Finnhub · Google News |
 | 5 · Macro & sentiment | 4 | Yahoo · Reddit · Truth Social |
-| 6 · Quant signals | 4 | derived (pure arithmetic) |
+| 6 · Quant & risk | 4 | deterministic math + fetched price history |
 | 7 · FX & integrity | 2 | Frankfurter · local invariants |
 | 8 · Backtest & calibration | 5 | local snapshots + daily bars |
 
@@ -227,11 +227,11 @@ Every fetcher is **no-key-first** (public endpoints before any API key; the one 
 - **3 · Capital flow** — `fetch_fundflow_em` daily main/large/mid/small net order flow 🟡
 - **4 · News** — `fetch_em_news` HK company news + 7×24 flash (Chinese) ✅ · `gh_action_news_digest` US holdings news → actionable bullets ✅ · `fetch_catalysts` next-14-day earnings/events 🟡
 - **5 · Macro & sentiment** — `fetch_macro` VIX + macro read ✅ · `fetch_sentiment` Reddit WSB/stocks/investing 🟡 · `fetch_influencer_feed` Trump/Musk market-movers 🟡 · `fetch_peers` peer prices + 5-day P&L ✅
-- **6 · Quant signals** (pure arithmetic, zero external deps) — `compute_quant_signals` dual-MA/momentum/RSI/ATR/vol-target ✅ · `compute_regime` leverage dial (200DMA + vol band) ✅ · `compute_t0_setups` T+0 setup grading + chase detection ✅ · `portfolio_risk_metrics` β / Cov-Var / drawdown / concentration ✅
+- **6 · Quant & risk** (deterministic math over fetched price histories; no LLM) — `compute_quant_signals` dual-MA/momentum/RSI/ATR/vol-target ✅ · `compute_regime` leverage dial (200DMA + vol band) ✅ · `compute_t0_setups` T+0 setup grading + chase detection ✅ · `portfolio_risk_metrics` β / Cov-Var / drawdown / concentration ✅
 - **7 · FX & integrity** — `fetch_fx` USDHKD, 3-route fallback ✅ · `preflight_integrity` money-conservation gate (TCV/PNL/FX/cash) ✅
 - **8 · Backtest & decision audit** — `decision_v2` episode backtest · `backtest_hstech_regime` · `backtest_us_leverage` · `backtest_combined_regime` · `quant_signal_review` + `t0_setup_review` ✅
 
-**Anti-ban** — all Eastmoney calls route through one wrapper `_em_http.em_get()`: in-process serialization (≥1s gap + random jitter), single reused `Session`, 3 retries then graceful `None`. Full per-file catalog: [`scripts/data/README.md`](scripts/data/README.md).
+**Anti-ban** — all live Eastmoney calls route through one wrapper `_em_http.em_get()`: in-process serialization (≥1s gap + random jitter), single reused `Session`, 3 retries then graceful `None`. Full per-file catalog: [`scripts/data/README.md`](scripts/data/README.md).
 
 </details>
 
@@ -244,7 +244,7 @@ Every fetcher is **no-key-first** (public endpoints before any API key; the one 
 clawock/
 ├─ index.html  briefs.md                    ← Pages landing
 ├─ assets/data/        built by harness + GH Actions, never hand-edited
-│   ├─ dashboard.json  risk.json  catalysts.json  fx.json
+│   ├─ dashboard.json  risk.json  catalysts.json
 │   ├─ macro.json  sentiment.json  influencer_feed.json  us_news_digest.json  ← scan sidecars, fetched straight by the frontend
 │   ├─ quant_signals.json  quant_signal_review.json     ← factor scorecard
 │   ├─ t0_setups.json  t0_setup_review.json             ← intraday setup scorecard

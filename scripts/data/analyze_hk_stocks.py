@@ -21,6 +21,9 @@ from typing import Dict, List, Optional
 
 import requests
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from _em_http import em_get  # noqa: E402
+
 WS_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 PORTFOLIO_PATH = os.path.join(WS_ROOT, 'portfolio.json')
 API_KEYS_PATH  = os.path.join(WS_ROOT, '.api_keys')
@@ -91,7 +94,7 @@ def _fetch_eastmoney_hk(codes: List[str]) -> Dict[str, Dict]:
         return {}
     secids = ','.join(f"116.{c}" for c in codes)
     try:
-        r = SESSION.get(
+        r = em_get(
             'https://push2.eastmoney.com/api/qt/ulist.np/get',
             params={
                 'fltt': 2, 'invt': 2,
@@ -101,8 +104,10 @@ def _fetch_eastmoney_hk(codes: List[str]) -> Dict[str, Dict]:
             },
             headers={'Referer': 'https://quote.eastmoney.com/'},
             timeout=TIMEOUT,
+            label='HK quote batch',
         )
-        r.raise_for_status()
+        if r is None:
+            raise RuntimeError('shared Eastmoney client exhausted retries')
         out: Dict[str, Dict] = {}
         for item in (r.json().get('data') or {}).get('diff') or []:
             t = item.get('f12')

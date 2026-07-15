@@ -25,6 +25,9 @@ from datetime import datetime, timezone, timedelta
 from typing import Dict, List, Optional
 import requests
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from _em_http import em_get  # noqa: E402
+
 WS_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 PORTFOLIO_PATH = os.path.join(WS_ROOT, 'portfolio.json')
 API_KEYS_PATH  = os.path.join(WS_ROOT, '.api_keys')
@@ -173,7 +176,7 @@ def get_nasdaq_quote(ticker: str) -> Optional[Dict]:
 
 
 def get_eastmoney_batch(tickers: List[str]) -> Dict[str, Dict]:
-    """Eastmoney push2 batch – no rate limit, CN source."""
+    """Eastmoney push2 batch through the shared serialized anti-ban client."""
     if not tickers:
         return {}
     # Try known prefix first; also build a fallback list with swapped prefix
@@ -188,8 +191,10 @@ def get_eastmoney_batch(tickers: List[str]) -> Dict[str, Dict]:
     headers = {'Referer': 'https://quote.eastmoney.com/'}
     results: Dict[str, Dict] = {}
     try:
-        r = SESSION.get(url, params=params, headers=headers, timeout=TIMEOUT)
-        r.raise_for_status()
+        r = em_get(url, params=params, headers=headers, timeout=TIMEOUT,
+                   label='US quote batch')
+        if r is None:
+            raise RuntimeError('shared Eastmoney client exhausted retries')
         for item in r.json().get('data', {}).get('diff', []):
             ticker = item.get('f12')
             current = item.get('f2')
@@ -224,8 +229,10 @@ def get_eastmoney_batch(tickers: List[str]) -> Dict[str, Dict]:
         try:
             params2 = dict(params)
             params2['secids'] = ','.join(swapped)
-            r2 = SESSION.get(url, params=params2, headers=headers, timeout=TIMEOUT)
-            r2.raise_for_status()
+            r2 = em_get(url, params=params2, headers=headers, timeout=TIMEOUT,
+                        label='US quote alt-prefix batch')
+            if r2 is None:
+                raise RuntimeError('shared Eastmoney client exhausted retries')
             for item in r2.json().get('data', {}).get('diff', []):
                 ticker = item.get('f12')
                 current = item.get('f2')

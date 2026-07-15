@@ -23,6 +23,9 @@ from datetime import datetime, timezone
 import numpy as np
 import requests
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from fetch_fx import get_usdhkd  # noqa: E402
+
 WS_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 PORTFOLIO_FILE = os.path.join(WS_ROOT, 'portfolio.json')
 OUT_FILE = os.path.join(WS_ROOT, 'assets', 'data', 'risk.json')
@@ -464,8 +467,10 @@ def compute_combined(us_meta, hk_meta, holdings_all, fx_hkd_to_usd=None):
         us_value_usd = sum(h['current_value'] for h in holdings_all['us'])
         series_list.append(('us', us_meta['aligned_dates'], us_meta['port_rets'], us_value_usd))
     if hk_meta and 'port_rets' in hk_meta and hk_meta.get('aligned_dates'):
+        if fx_hkd_to_usd is None or fx_hkd_to_usd <= 0:
+            raise ValueError('USDHKD rate required to combine HKD and USD risk buckets')
         hk_value_hkd = sum(h['current_value'] for h in holdings_all['hk'])
-        hk_value_usd = hk_value_hkd * (fx_hkd_to_usd or (1.0 / 7.8))
+        hk_value_usd = hk_value_hkd * fx_hkd_to_usd
         series_list.append(('hk', hk_meta['aligned_dates'], hk_meta['port_rets'], hk_value_usd))
 
     if not series_list:
@@ -578,6 +583,22 @@ def build_alerts(us, hk, combined, leverage):
     return alerts
 
 
+def load_canonical_fx():
+    """Return HKD→USD plus provenance from the shared fetch_fx source."""
+    fx = get_usdhkd()
+    rate = float(fx.get('rate') or 0)
+    if not 7.0 < rate < 9.0:
+        raise ValueError(f'invalid USDHKD rate from fetch_fx: {rate!r}')
+    return 1.0 / rate, {
+        'pair': fx.get('pair') or 'USDHKD',
+        'rate': rate,
+        'source': fx.get('source') or 'unknown',
+        'fetched_at': fx.get('fetched_at'),
+        'fallback_used': bool(fx.get('fallback_used', False)),
+        'warning': fx.get('warning'),
+    }
+
+
 # ----------------------------------------------------------------------------
 # Main
 # ----------------------------------------------------------------------------
@@ -654,24 +675,10 @@ def main():
         print('  WARN: HK risk fetch empty — kept previous β/vol block (stale), '
               'value refreshed from holdings', file=sys.stderr)
 
-    # Try to pick up an FX rate from existing fx.json if present, else 1/7.8
-    fx_hkd_to_usd = 1.0 / 7.8
-    fx_file = os.path.join(WS_ROOT, 'assets', 'data', 'fx.json')
-    if os.path.exists(fx_file):
-        try:
-            fx_data = json.load(open(fx_file, 'r', encoding='utf-8'))
-            # tolerate a couple of common shapes
-            for key in ('HKDUSD', 'hkd_usd', 'HKD_USD'):
-                if key in fx_data and fx_data[key]:
-                    fx_hkd_to_usd = float(fx_data[key])
-                    break
-            else:
-                usd_hkd = (fx_data.get('USDHKD') or fx_data.get('usd_hkd')
-                           or (fx_data.get('rates') or {}).get('USDHKD'))
-                if usd_hkd:
-                    fx_hkd_to_usd = 1.0 / float(usd_hkd)
-        except Exception as e:
-            print(f'  WARN reading fx.json: {e}', file=sys.stderr)
+    # Canonical USDHKD source: fetch_fx owns cache, provider order and fallback.
+    fx_hkd_to_usd, fx_meta = load_canonical_fx()
+    if fx_meta['fallback_used']:
+        print(f'  WARN: FX fallback in use: {fx_meta["source"]}', file=sys.stderr)
 
     combined_out = compute_combined(us_meta, hk_meta,
                                     holdings_all={'us': us_holdings, 'hk': hk_holdings},
@@ -690,6 +697,10 @@ def main():
         'alerts': alerts,
         'meta': {
             'fx_hkd_to_usd_used': round(fx_hkd_to_usd, 6),
+            'fx': {
+                **fx_meta,
+                'hkd_to_usd': round(fx_hkd_to_usd, 8),
+            },
             'risk_free_annual': RISK_FREE_ANNUAL,
             'window_days': WINDOW_DAYS,
             'trading_days_per_year': TRADING_DAYS,

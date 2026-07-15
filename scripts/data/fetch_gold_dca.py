@@ -30,7 +30,6 @@ import subprocess
 import sys
 import os
 import bisect
-import time
 from datetime import date, datetime, timezone
 
 GRAMS_PER_OZ = 31.1035  # 1 金衡盎司(troy oz) = 31.1035 克
@@ -38,6 +37,7 @@ GRAMS_PER_OZ = 31.1035  # 1 金衡盎司(troy oz) = 31.1035 克
 WS_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.insert(0, os.path.join(WS_ROOT, 'scripts', 'data'))
 from safe_io import safe_write_json  # noqa: E402
+from _em_http import em_get  # noqa: E402  东财统一防封出口
 
 PORTFOLIO = os.path.join(WS_ROOT, 'portfolio.json')
 
@@ -82,13 +82,23 @@ def _curl(url, referer):
     return ''
 
 
+def _em_text(url, referer, *, params=None, label='gold DCA'):
+    """Eastmoney text response through the shared serialized anti-ban client."""
+    r = em_get(url, params=params, headers={'Referer': referer}, timeout=15,
+               label=label)
+    return r.text if r is not None else ''
+
+
 def fetch_nav_history(code, pages=HISTORY_PAGES):
     """返回 [(date, nav, change_pct)] 升序。抓空返回 []（调用方保留旧值）。"""
     rows = {}
     for p in range(1, pages + 1):
-        url = (f'https://api.fund.eastmoney.com/f10/lsjz?fundCode={code}'
-               f'&pageIndex={p}&pageSize=20')
-        raw = _curl(url, 'https://fundf10.eastmoney.com/')
+        raw = _em_text(
+            'https://api.fund.eastmoney.com/f10/lsjz',
+            'https://fundf10.eastmoney.com/',
+            params={'fundCode': code, 'pageIndex': p, 'pageSize': 20},
+            label=f'gold NAV page {p}',
+        )
         try:
             d = json.loads(raw)
             lst = (d.get('Data') or {}).get('LSJZList') or []
@@ -105,7 +115,8 @@ def fetch_nav_history(code, pages=HISTORY_PAGES):
 
 def fetch_realtime(code):
     """fundgz 实时估值；净值未出时的当日估算，仅展示。返回 dict 或 None。"""
-    raw = _curl(f'https://fundgz.1234567.com.cn/js/{code}.js', 'https://fund.eastmoney.com/')
+    raw = _em_text(f'https://fundgz.1234567.com.cn/js/{code}.js',
+                   'https://fund.eastmoney.com/', label='gold realtime estimate')
     if 'jsonpgz(' not in raw:
         return None
     try:
@@ -193,18 +204,20 @@ def fetch_xau_history(start):
     except Exception:
         pass
     # ② 兜底 东财 GC00Y（限流时退避重试）
-    url = ('https://push2his.eastmoney.com/api/qt/stock/kline/get?'
-           'secid=101.GC00Y&fields1=f1&fields2=f51,f53&klt=101&fqt=1&end=20991231&lmt=200')
-    for attempt in range(4):
-        raw = _curl(url, 'https://quote.eastmoney.com/')
-        try:
-            kl = (json.loads(raw).get('data') or {}).get('klines') or []
-        except Exception:
-            kl = []
-        if kl:
-            return sorted((p[0], float(p[1])) for p in (r.split(',') for r in kl)
-                          if len(p) >= 2 and p[0] >= s and p[1])
-        time.sleep(1.5 * (attempt + 1))
+    raw = _em_text(
+        'https://push2his.eastmoney.com/api/qt/stock/kline/get',
+        'https://quote.eastmoney.com/',
+        params={'secid': '101.GC00Y', 'fields1': 'f1', 'fields2': 'f51,f53',
+                'klt': 101, 'fqt': 1, 'end': '20991231', 'lmt': 200},
+        label='gold XAU history fallback',
+    )
+    try:
+        kl = (json.loads(raw).get('data') or {}).get('klines') or []
+    except Exception:
+        kl = []
+    if kl:
+        return sorted((p[0], float(p[1])) for p in (r.split(',') for r in kl)
+                      if len(p) >= 2 and p[0] >= s and p[1])
     return []
 
 
