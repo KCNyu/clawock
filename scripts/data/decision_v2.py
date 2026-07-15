@@ -159,9 +159,19 @@ def legacy_action_to_decision(action: dict, plan_date: str, ordinal: int = 0) ->
 def assign_episode_ids(decisions: list[dict]) -> list[dict]:
     """Assign episodes across consecutive reaffirmations of the same strategy/action.
 
-    A strategy action change starts a new episode. A gap over four calendar days
-    also starts a new episode. Different strategy_id values never collide, so a
-    core HOLD and a risk-rebalance TRIM can coexist on the same ticker/day.
+    An episode is tracked per (ticker, strategy, ACTION), so each standing view
+    keeps its own thread and they may overlap. Before 2026-07-15 the thread was
+    per (ticker, strategy) and *any* later decision overwrote it, which meant one
+    interleaved hold_and_watch silently shattered a running cut thesis: 00100
+    said cut 05-18, hold 05-19, cut 05-20 and scored as two independent cut bets.
+    That happened at 20 boundaries and is v1's disease — reaffirmations inflating
+    n — surviving inside v2 through a mechanism nobody checked. The model shouts
+    cut for two months while wobbling into hold on the quiet days; that is one
+    opinion it never got two independent chances to be right about.
+
+    A gap over four calendar days still starts a new episode. Different
+    strategy_id values never collide, so a core HOLD and a risk-rebalance TRIM
+    can coexist on the same ticker/day.
 
     Condition, trigger price, confidence and size are deliberately NOT in the
     key, and 2026-07-15 is why: adding them looks more precise and quietly
@@ -173,17 +183,16 @@ def assign_episode_ids(decisions: list[dict]) -> list[dict]:
     when it is re-anchored to where the stock has since moved.
     """
     ordered = sorted(enumerate(decisions), key=lambda x: (x[1].get("plan_date", ""), x[0]))
-    state: dict[tuple[str, str], dict] = {}
+    state: dict[tuple[str, str, str], dict] = {}
     for _, d in ordered:
-        key = (d.get("ticker", ""), d.get("strategy_id", "legacy_unknown"))
+        key = (d.get("ticker", ""), d.get("strategy_id", "legacy_unknown"), d.get("action"))
         cur_date = datetime.strptime(d["plan_date"], "%Y-%m-%d").date()
         if d.get("episode_id"):
-            state[key] = {"action": d.get("action"), "date": cur_date,
-                          "episode_id": d.get("episode_id")}
+            state[key] = {"date": cur_date, "episode_id": d.get("episode_id")}
             continue
         prev = state.get(key)
         continue_episode = False
-        if prev and prev["action"] == d.get("action"):
+        if prev:
             gap = (cur_date - prev["date"]).days
             continue_episode = 0 <= gap <= 4
         if continue_episode:
@@ -193,7 +202,7 @@ def assign_episode_ids(decisions: list[dict]) -> list[dict]:
                 "ep", d.get("ticker"), d.get("strategy_id"), d.get("action"), d.get("plan_date"), d.get("decision_id")
             )
         d["episode_id"] = episode_id
-        state[key] = {"action": d.get("action"), "date": cur_date, "episode_id": episode_id}
+        state[key] = {"date": cur_date, "episode_id": episode_id}
     return decisions
 
 

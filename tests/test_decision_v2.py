@@ -83,6 +83,22 @@ class DecisionV2Test(unittest.TestCase):
         self.assertEqual(rows[0]["episode_id"], rows[1]["episode_id"])
         self.assertNotEqual(rows[1]["episode_id"], rows[2]["episode_id"])
 
+    def test_an_interleaved_hold_does_not_shatter_a_running_cut(self):
+        # The model shouts cut for weeks and wobbles into hold on the quiet days.
+        # That is one opinion, not two independent bets (v1's disease).
+        rows = [decision("2026-07-01", action="cut"),
+                decision("2026-07-02", action="hold_and_watch"),
+                decision("2026-07-03", action="cut")]
+        dv2.assign_episode_ids(rows)
+        self.assertEqual(rows[0]["episode_id"], rows[2]["episode_id"])
+        self.assertNotEqual(rows[0]["episode_id"], rows[1]["episode_id"])
+
+    def test_a_reissued_action_after_a_long_silence_is_a_new_episode(self):
+        rows = [decision("2026-07-01", action="cut"),
+                decision("2026-07-20", action="cut")]
+        dv2.assign_episode_ids(rows)
+        self.assertNotEqual(rows[0]["episode_id"], rows[1]["episode_id"])
+
     def test_existing_episode_is_continued_by_new_decision(self):
         first = decision("2026-07-01")
         dv2.assign_episode_ids([first])
