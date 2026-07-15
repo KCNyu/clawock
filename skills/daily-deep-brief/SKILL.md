@@ -451,15 +451,18 @@ context.json 的 `decision_metrics` 是 v2 唯一口径：只结算**条件实�
 ```
 ▎Decision v2 校准
 
-过去 30 天：已结算 {settled_episodes} 个 episode，Brier = X.XXX
+过去 30 天：已结算 {settled_episodes} 个 episode
 - 主动决策：n=N，平均 benefit=X%，date-cluster CI=[L,U]
+- 信心校准：嘴上平均 {mean_confidence}，实际胜率 {base_rate}；Brier {brier} vs 闭眼总报 {base_rate} 的 {brier_baseline_loo}
 - 按 strategy / action / driven_by 点出最强与最弱各一项
-- 执行状态：followed / not_followed / unknown；执行率不等于建议质量
+- 执行状态：**要动手的** {execution_by_kind.active.rate}（{followed}/{known}）与 **不用动的** {execution_by_kind.passive.rate} 分开写；执行率不等于建议质量
 ```
 
 规则：
 - `settled_episodes < 5`：明确写样本未填满，只作方向性参考。
 - 主动 `cluster_ci95` 跨 0：不许声称有稳定 edge。
+- **Brier 禁止裸报**。`0.295` 单独写会被读成「接近 0，还行」。只准写成对 `brier_baseline_loo`（闭眼总报基准率的留一法常数预测）的比较。`brier_beats_baseline=false` 时说「信心值校准不合格」或「过度自信」，**不许说「信心值没有信息量」**——Brier 分解里 resolution 仍 >0，是 reliability 把它吃掉了，说「没信息量」是过度指控。
+- **禁止报「听 AI 赚了多少钱」类金额**。`decision_money_impact` 已于 2026-07-15 从面板撤下：它把从没执行过的 call 也算进去，参考价随抓取时点漂移，触发判断还建立在会串日的快照高低价上。口径重建前，任何「多赚/少赚 X 元」都是编的。
 - confidence 必须参考同 strategy/action 的 episode 战绩；样本小则收敛到中性，不得因同一股票连续多日重复 call 而虚增信心。
 - 同一天同一股票可以有多个 strategy；分别写、分别触发、分别评估，禁止压成一条综合 action。
 - `event` / `manual` 条件若无可验证触发证据，状态为 `not_evaluable`，不进入胜率和 Brier。
@@ -571,7 +574,7 @@ postflight 严格 schema 校验：
 - `condition.type` ∈ {`open`, `price_above`, `price_below`, `index_breakdown`, `event`, `manual`}
 - `driven_by` ∈ {`technical`, `catalyst`, `sentiment`, `influencer`, `macro`, `peer`, `risk_rule`}（每个 decision 必填）
 - `confidence` ∈ [0.0, 1.0]
-- `size.shares`（整数，**主动 call（`cut`/`trim_on_rebound`/`t_only`/`add_only_on_trigger`/`add_on_breakout`）必填**；`hold_and_watch`/`watch` 不需要)：没有股数就折算不出金额,那条 call 只能进胜率、进不了 dashboard 上「听 AI 到底赚了还是亏了」的钱曲线 —— 而**那条才是唯一有业务含义的**(benefit% 对卖出是标的涨跌的相反数,会在你亏钱时一路走高)。宁可给保守估数也别留空。填**你真的会动的股数**,不是仓位上限。
+- `size.shares`（整数，**主动 call（`cut`/`trim_on_rebound`/`t_only`/`add_only_on_trigger`/`add_on_breakout`）必填**；`hold_and_watch`/`watch` 不需要)：股数是这条 call 日后唯一能被折算成钱的凭据。面板上那条金额曲线已撤（见上条铁律），但**重建一套可信对照账本必须有股数，当天没填就永远补不回来**。宁可给保守估数也别留空。填**你真的会动的股数**,不是仓位上限。
 - `contested` ∈ {`true`, `false`}（每个 decision 必填）：Tier 2 的 Bull 与 Bear 是否真的在该策略上分歧。
 - `thesis_invalidation`（string，主动 cut/trim/add 必填；hold 选填）：**借鉴 UZI-Skill 的 thesis-tracking**——这个仓位的论点**会被什么具体催化推翻**？把 catalyst-gate(cut #1)落地成「论点+失效条件」：你只在这个**失效催化真的发生**时动手，而不是技术面波动。例：「crypto rev 环比转正则停止减仓」。这逼着每个主动 call 绑定一个可被证伪的硬催化，而非"看着toppy"。
 

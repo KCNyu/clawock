@@ -1114,8 +1114,13 @@ def main():
     # [9] V2 episode metrics — triggered-only, strategy-aware, cluster-bootstrap
     print('[9/11] Decision metrics v2')
     decision_metrics = compute_decision_metrics()
+    # Brier is never printed bare: alone it reads as "0.295, close enough to 0".
+    # It only means something against the constant-forecast baseline it has to beat.
     print(f'   {decision_metrics.get("settled_episodes", 0)} settled episodes / '
-          f'{decision_metrics.get("raw_decisions", 0)} raw decisions; Brier={decision_metrics.get("brier")}')
+          f'{decision_metrics.get("raw_decisions", 0)} raw decisions; '
+          f'Brier={decision_metrics.get("brier")} vs constant-forecast baseline '
+          f'{decision_metrics.get("brier_baseline_loo")} '
+          f'({"beats" if decision_metrics.get("brier_beats_baseline") else "LOSES to"} it)')
     active_v2 = decision_metrics.get('active') or {}
     print(f'   active: n={active_v2.get("n_episodes", 0)} '
           f'avg benefit={active_v2.get("avg_benefit_pct")}%, '

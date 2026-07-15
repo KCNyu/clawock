@@ -64,15 +64,14 @@ The authoritative ledger is `memory/decisions.jsonl`. Each decision has a stable
 
 The Reflect dashboard reports:
 
-- **what following the active calls was actually worth, in money** — `capital x benefit`, summed per leg in native currency (HKD and USD are never added), sized against the real P&L swing it was competing with;
-- cumulative episode win rate against a 50% directional-hit line — a different claim from money, so it gets its own chart;
-- Brier calibration over settled episodes;
+- cumulative episode win rate against a 50% directional-hit line;
+- stated confidence against the realised rate, graded against a leave-one-out constant forecast — the bar a confidence field has to clear before it means anything;
 - date-cluster bootstrap intervals, so same-day calls are not treated as independent evidence; and
-- execution separately from advice quality.
+- follow-through split into the calls that asked for an action and the ones that asked for nothing, because "following" a HOLD is sitting still and scores itself ~97%. Blended, the two averaged into a ~50% that described nobody.
 
-The money view is the headline because `benefit` alone misleads: for a sell it is the negation of the underlying move, so it climbs while the account bleeds. Compounding it — as this dashboard used to — inflated 108 counterfactual scores into a curve two orders of magnitude past the cash ever at risk. Each call is a one-shot bet that is entered and settled, not a reinvested balance, so money is **added**, never compounded, and zero honestly means "the AI's calls made you nothing".
+**There is no "what listening to the AI earned" chart, and its absence is deliberate.** One shipped until 2026-07-15, plotting `shares x (trigger price − next recorded price)`. The algebra was sound and the caption was not: 110 of the 113 action calls in it were never executed, over half the "next recorded price" marks are not closes but quotes drifting with fetch time, and the trigger verdicts behind it come from snapshot day ranges that carry across sessions — which has both invented triggers that never fired and dropped ones that did. Relabelling could not rescue it. Answering the question needs immutable official closes, real fills, and a parallel sell-at-close book to difference against; until those exist the number is not published.
 
-It prices timing only. The risk caps and the HOLD discipline are not in it, and on this book they are the parts that carry their weight — `assets/data/guardrail_history.jsonl` started accruing the evidence for them on 2026-07-15. Calls authored without a share count cannot be priced at all; coverage is published next to the number rather than quietly rounded away.
+The record prices timing only. The risk caps and the HOLD discipline are not in it, and on this book they are the parts that carry their weight — `assets/data/guardrail_history.jsonl` started accruing the evidence for them on 2026-07-15.
 
 All figures are generated from the ledger and live snapshots. The LLM writes decisions; a deterministic Python Backtester/Auditor owns IDs, trigger evaluation, episode grouping, metrics, and the backtest.
 

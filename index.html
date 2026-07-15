@@ -1220,6 +1220,20 @@ layout: null
     font-size: 11px; color: var(--text-faint);
     margin: -4px 0 8px; line-height: 1.4;
   }
+  /* A chart pulled for being wrong leaves a hole; the hole has to explain itself,
+     or it reads as a bug and the question quietly goes unanswered. */
+  .retired-note {
+    font-size: 12px; line-height: 1.6; color: var(--text-dim);
+    border: 1px dashed var(--border); border-radius: 8px;
+    padding: 12px 14px; margin: 4px 0 12px;
+  }
+  .retired-note .retired-title {
+    font-weight: 600; color: var(--text); font-size: 12.5px; margin-bottom: 6px;
+  }
+  .retired-note p { margin: 6px 0; }
+  .retired-note ul { margin: 6px 0 6px 0; padding-left: 18px; }
+  .retired-note li { margin: 3px 0; }
+  .retired-note b { color: var(--text); }
 
   /* KPI strip — broker-style summary cards (Reflect tab top row) */
   .kpi-grid {
@@ -1803,15 +1817,15 @@ layout: null
 
     <div class="card">
       <h3>Plan Review <span class="muted" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:11px">(last 30d)</span></h3>
-      <p class="chart-hint">每天 08:00 brief 写的 plan，T+1 起检测执行率，T+5 起算输赢。Brier 越接近 0 越准。</p>
+      <p class="chart-hint">每天 08:00 brief 写的建议，次日起看你有没有照做。<b>已知缺陷</b>：输赢按之后第一个快照的报价算，那个报价不保证是收盘价；是否触发拿快照里的当日最高/最低价判，而它会串日 —— 已查实个别判错（两个方向都有）。方向性结论（低于 50%）不受影响，但这些数字不必细究到小数点。正在换成官方逐日行情。</p>
       <div class="kpi-grid" style="margin-bottom:14px">
         <div class="kpi-cell">
-          <div class="lbl">Plans logged</div>
+          <div class="lbl">AI 出的主意</div>
           <div class="val" id="plan-total">—</div>
-          <div class="sub muted">30d</div>
+          <div class="sub muted" id="plan-total-sub">—</div>
         </div>
         <div class="kpi-cell">
-          <div class="lbl">Followed rate</div>
+          <div class="lbl">让你动手的，你照做了</div>
           <div class="val" id="plan-followed">—</div>
           <div class="sub" id="plan-followed-sub">—</div>
         </div>
@@ -1821,9 +1835,9 @@ layout: null
           <div class="sub muted" id="plan-winrate-sub">triggered active episodes</div>
         </div>
         <div class="kpi-cell">
-          <div class="lbl">Brier score</div>
+          <div class="lbl">AI 说的把握 vs 实际</div>
           <div class="val" id="plan-brier">—</div>
-          <div class="sub muted">0 = perfect</div>
+          <div class="sub" id="plan-brier-sub">—</div>
         </div>
       </div>
       <div class="trig-title" style="font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-dim);margin:4px 0 10px;font-weight:600">By Bucket — 各类动作 30d 胜率（与建议徽章同源）</div>
@@ -1843,10 +1857,17 @@ layout: null
     </div>
 
     <div class="card" id="shadow-card" style="display:none">
-      <h3>💰 听 AI 的,到底赚了还是亏了 <span class="muted" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:11px">主动 call 累计金额 · T+1</span></h3>
-      <p class="chart-hint">纵轴是<b>钱</b>,不是分数：每条触发的主动 call 按 <b>成交价 × 股数 × benefit</b> 折回金额,逐日<b>相加</b>(不是复利——每个 call 是一次性下注,不是滚仓头寸,复利会凭空放大两个数量级)。<b>0 = AI 的主动建议没给你带来任何钱</b>。<b style="color:var(--accent)">实际采纳</b>的部分已经体现在你真实的总利润曲线里;<b>未采纳</b>的是活的反事实。港币美元不相加(合并视图按 FX 折算)。只量择时——风控闸和 HOLD 纪律不在这张图里。</p>
-      <div id="chart-shadow" class="chart-box"></div>
-      <div id="shadow-note" class="muted" style="font-size:11px;margin-top:6px"></div>
+      <h3>AI 主动建议的战绩</h3>
+      <div class="retired-note">
+        <div class="retired-title">「听 AI 累计多赚了多少钱」这张图已撤下</div>
+        <p>原来那条线画的是 <b>AI 喊的价</b> 和 <b>之后第一个记录到的价</b> 之间的差，按建议股数折成钱。它不能当作「你多赚的钱」，因为：</p>
+        <ul>
+          <li>那 113 条要动手的建议，你只执行了 <b>3 条</b>——其余的交易从没发生过，那条线却把它们全算进去了；</li>
+          <li>「之后第一个记录到的价」超过一半<b>不是收盘价</b>，是随抓取时点漂移的报价；</li>
+          <li>是否触发，是拿快照里的当日最高/最低价判的，而那个高低价<b>会串日</b>——已查实既误判过没发生的触发，也漏掉过真发生的。</li>
+        </ul>
+        <p>要真回答这个问题，得先有逐日官方收盘价、你的真实成交记录，以及一套「同股数、当天收盘就卖」的对照账本，两套账本比净值。<b>在那之前，这个数不发。</b></p>
+      </div>
       <div class="trig-title" style="font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-dim);margin:16px 0 4px;font-weight:600">AI cumulative episode win rate — v1 migrated + v2</div>
       <div id="chart-ai-winrate" class="chart-box" style="height:210px;min-height:210px"></div>
     </div>
@@ -3410,13 +3431,27 @@ layout: null
       return;
     }
     const b = cal.brier;
+    // Grade against the leave-one-out constant forecast, not the in-sample b(1-b):
+    // the latter is fitted on these same rows and would be too easy a bar. Absolute
+    // tiers ("Fair" at 0.24) rated the score against nothing at all.
+    const bl = cal.brier_baseline_loo != null ? cal.brier_baseline_loo : cal.brier_baseline_constant;
+    const br = cal.base_rate;
+    const mc = cal.mean_confidence;
     brierEl.textContent = b.toFixed(3);
-    metaEl.textContent = `Brier · episodes n=${cal.settled_episodes ?? DASH}`;
+    metaEl.textContent = (bl != null && br != null)
+      ? `准度 ${b.toFixed(3)} · 闭眼总报 ${Math.round(br * 100)}% = ${bl.toFixed(3)} · n=${cal.settled_episodes ?? DASH}`
+      : `Brier · episodes n=${cal.settled_episodes ?? DASH}`;
     let tier, cls;
-    if (b < 0.15) { tier = "Excellent"; cls = "excellent"; }
-    else if (b < 0.20) { tier = "Good"; cls = "good"; }
-    else if (b < 0.25) { tier = "Fair"; cls = "fair"; }
-    else { tier = "Poor"; cls = "poor"; }
+    // "没信息量" would overclaim: the score still shows a little resolution, it is
+    // the calibration that is broken. Name the actual defect.
+    if (bl == null) { tier = "n/a"; cls = ""; }
+    else if (b >= bl) {
+      tier = (mc != null && br != null && mc > br + 0.05) ? "过度自信" : "不如基准";
+      cls = "poor";
+    }
+    else if (bl - b < 0.02) { tier = "勉强打平"; cls = "fair"; }
+    else if (bl - b < 0.05) { tier = "略有信息量"; cls = "good"; }
+    else { tier = "有信息量"; cls = "excellent"; }
     tierEl.textContent = tier;
     tierEl.className = "tier " + cls;
   }
@@ -4404,94 +4439,27 @@ layout: null
     }
   }
 
-  // 主动 call 的累计金额影响。Money, added — not a compounded score. The benefit
-  // curve this replaced compounded a counterfactual: a sell's benefit is the
-  // negation of the underlying move, so it climbed through a losing quarter and
-  // 108 episodes compounded to -26%, two orders of magnitude past the cash ever
-  // at risk. capital × benefit puts the same calls back into currency.
+  // The money chart this used to draw is retired, not restyled. It plotted
+  // shares x (trigger price - next recorded price) and captioned it "what
+  // listening to the AI earned", but 110 of the 113 active calls in it were never
+  // executed, over half of the "next recorded price" marks are not closes, and the
+  // trigger verdicts behind it come from day ranges that carry across sessions.
+  // The algebra was fine; the claim on top of it was not, and a relabel would not
+  // fix it — answering "how much more did I make by listening" needs official
+  // closes, real fills, and a parallel sell-at-close book. The card now says so.
+  // The win-rate chart below it is a different quantity and stays.
   function renderShadowChart() {
-    const el = document.getElementById("chart-shadow");
-    const card = el ? el.closest(".card") : null;
-    if (!el || !window.echarts) return;
+    const card = document.getElementById("shadow-card");
+    if (!card) return;
     const mi = safe(DATA, "decision_money_impact");
-    const legs = safe(mi, "legs") || {};
-    const view = MARKET_VIEW;                       // 'combined' | 'us' | 'hk'
-    const fx = safe(DATA, "fx", "usdhkd") || 7.8;
-    // HKD and USD are never summed raw; combined converts HK at the live rate.
-    const wanted = view === "us" ? [["US", 1]] : view === "hk" ? [["HK", 1]]
-                                              : [["US", 1], ["HK", 1 / fx]];
-    const unit = view === "hk" ? "HKD" : "USD";
-    const pts = {};
-    let dates = [];
-    for (const [leg, k] of wanted) {
-      const curve = safe(legs, leg, "curve") || [];
-      dates = dates.concat(curve.map(p => p.date));
-      for (const p of curve) pts[leg] = Object.assign(pts[leg] || {}, { [p.date]: p.cumulative_money * k });
-    }
-    dates = [...new Set(dates)].sort();
-    if (dates.length < 2) { if (card) card.style.display = "none"; return; }
-    if (card) card.style.display = "";
-    if (!charts.shadow) charts.shadow = echarts.init(el, null, { renderer: "canvas" });
-    // Each leg's cumulative line is a step: carry the last value forward, and
-    // treat "before this leg's first call" as 0 rather than dropping the point.
-    const money = dates.map(d => {
-      let total = 0;
-      for (const [leg] of wanted) {
-        const m = pts[leg] || {};
-        let last = 0;
-        for (const dd of dates) { if (dd > d) break; if (m[dd] != null) last = m[dd]; }
-        total += last;
-      }
-      return Math.round(total * 100) / 100;
-    });
+    // Keep the card (and its win-rate chart) only while there is a record at all.
+    const hasRecord = Object.keys(safe(mi, "legs") || {}).length > 0
+      || (safe(DATA, "episode_backtest") != null);
+    card.style.display = hasRecord ? "" : "none";
+    if (!window.echarts) return;
     const green = getCSS("--green") || "#34d399";
-    const red = getCSS("--red") || "#f87171";
     const dim = getCSS("--text-dim") || "#9aa4b8";
     const isMobile = window.innerWidth < 1024;
-    const end = money.filter(v => v != null).slice(-1)[0] || 0;
-    const color = end >= 0 ? green : red;
-    const fmt = v => (v == null ? "—" : (v >= 0 ? "+" : "") + v.toLocaleString(undefined, { maximumFractionDigits: 0 }) + " " + unit);
-    charts.shadow.setOption({
-      backgroundColor: "transparent",
-      grid: { left: isMobile ? 52 : 66, right: isMobile ? 16 : 24, top: isMobile ? 46 : 30, bottom: dates.length > 6 ? 52 : 32 },
-      legend: { data: ["听 AI 主动 call 的累计盈亏", "没影响"], top: 0,
-        textStyle: { color: chartTextColor(), fontSize: isMobile ? 9 : 10 } },
-      tooltip: { trigger: "axis", valueFormatter: fmt },
-      xAxis: { type: "category", data: dates, boundaryGap: false,
-        axisLine: { lineStyle: { color: chartGridColor() } },
-        axisLabel: { color: chartTextColor(), fontSize: 9, rotate: dates.length > 6 ? 35 : 0 } },
-      yAxis: { type: "value", name: unit,
-        nameTextStyle: { color: chartTextColor(), fontSize: 9 },
-        axisLabel: { color: chartTextColor(), fontSize: 9, formatter: v => (v > 0 ? "+" : "") + v },
-        axisLine: { lineStyle: { color: chartGridColor() } },
-        splitLine: { lineStyle: { color: chartGridColor() } } },
-      series: [
-        { name: "听 AI 主动 call 的累计盈亏", type: "line", data: money, smooth: true, showSymbol: false,
-          itemStyle: { color }, lineStyle: { width: 2.4, color },
-          areaStyle: { color, opacity: 0.08 }, z: 4 },
-        { name: "没影响", type: "line", data: dates.map(() => 0), showSymbol: false,
-          itemStyle: { color: dim }, lineStyle: { width: 1.4, color: dim, type: "dotted", opacity: 0.9 }, z: 2 },
-      ],
-    });
-    const note = document.getElementById("shadow-note");
-    if (note) {
-      // Money with no denominator is unreadable, so anchor it to the P&L it was
-      // competing with: a call worth 0.2% of the swing did not matter, whatever
-      // its win rate. Per leg — this is the one number kcn actually asked for.
-      const parts = [];
-      for (const [leg] of wanted) {
-        const n = legs[leg];
-        if (!n) continue;
-        const a = n.all_active || {};
-        const share = n.share_of_pnl_swing_pct;
-        parts.push(`${leg} ${a.money >= 0 ? "+" : ""}${Math.round(a.money).toLocaleString()} ${n.currency}`
-          + ` (${a.n_priced}/${a.n_episodes} 可定价`
-          + `${share != null ? ` · 仅占同期真实盈亏振幅 ${share}%` : ""})`);
-      }
-      const cov = wanted.map(([l]) => legs[l]).filter(Boolean).map(n => n.coverage_pct);
-      note.textContent = parts.join(" · ")
-        + (cov.length ? ` · 股数覆盖 ${Math.min(...cov)}–${Math.max(...cov)}%（无股数的 call 无法折算金额）` : "");
-    }
 
     // A separate chart because win rate and money are different quantities: being
     // right often and being right when it is worth something are not the same
@@ -5068,11 +5036,14 @@ layout: null
 
   function renderPlanReview() {
     const calib = safe(DATA, "decision_metrics") || {};
-    const total = calib.settled_episodes || 0;
-    const ex = calib.execution || {};
-    const followedTrue = ex.followed || 0;
-    const followedKnown = followedTrue + (ex.not_followed || 0);
-    const followedPct = followedKnown ? Math.round(followedTrue / followedKnown * 100) : null;
+    const settled = calib.settled_episodes || 0;
+    const raw = calib.raw_decisions || 0;
+    // Only the active leg is a real follow-through decision: "following" a hold
+    // means sitting still, which scores itself ~97% and dragged the blended
+    // number to a meaningless ~50%. See decision_v2.compute_metrics.
+    const byKind = calib.execution_by_kind || {};
+    const act = byKind.active || {};
+    const pas = byKind.passive || {};
     const active = calib.active || {};
     const brier = calib.brier;
 
@@ -5083,16 +5054,24 @@ layout: null
       if (el) { el.classList.remove("pos","neg","neutral"); el.classList.add(c); }
     };
 
-    setVal("plan-total", total > 0 ? String(total) : DASH);
+    // 44 was labelled "plans logged" but is settled_episodes — settled strategy
+    // threads, not plans, and not the same unit as the execution counts beside it.
+    setVal("plan-total", raw > 0 ? String(raw) : DASH);
+    setSub("plan-total-sub", settled > 0 ? `30 天 · 其中 ${settled} 条已能算输赢` : "30 天");
 
-    if (followedPct == null) {
+    if (act.rate == null) {
       setVal("plan-followed", DASH);
-      setSub("plan-followed-sub", "no known execution yet");
+      setSub("plan-followed-sub", "还没有已知执行");
       setClass("plan-followed", "neutral");
     } else {
-      setVal("plan-followed", followedPct + "%");
-      setSub("plan-followed-sub", `${followedTrue}/${followedKnown} known`);
-      setClass("plan-followed", followedPct >= 60 ? "pos" : followedPct >= 30 ? "neutral" : "neg");
+      // Deliberately neutral, never red: ignoring these calls is not a failure —
+      // the win-rate cell right next door says acting on them averaged -3%.
+      setVal("plan-followed", (act.rate * 100).toFixed(1) + "%");
+      const passiveNote = pas.rate != null
+        ? ` · 不用动的 hold ${Math.round(pas.rate * 100)}% 是坐着没动自动算听了`
+        : "";
+      setSub("plan-followed-sub", `${act.followed}/${act.known} 条要动手的${passiveNote}`);
+      setClass("plan-followed", "neutral");
     }
 
     if (active.win_rate == null) {
@@ -5110,11 +5089,26 @@ layout: null
 
     if (brier == null) {
       setVal("plan-brier", DASH);
+      setSub("plan-brier-sub", "—");
       setClass("plan-brier", "neutral");
     } else {
-      setVal("plan-brier", brier.toFixed(3));
-      // Brier: 0=perfect, 0.25=coin-flip, 1=worst. Good < 0.20.
-      setClass("plan-brier", brier < 0.20 ? "pos" : brier < 0.30 ? "neutral" : "neg");
+      // A bare Brier under a "0 = perfect" caption reads as "0.295, not bad".
+      // Stated-vs-actual is the version a human can check, and the high-confidence
+      // split is where the damage actually is. The score itself lives on the
+      // calibration card with its baseline.
+      const mc = calib.mean_confidence, br = calib.base_rate;
+      const hc = calib.high_confidence;
+      setVal("plan-brier", (mc != null && br != null)
+        ? `${Math.round(mc * 100)}% → ${Math.round(br * 100)}%`
+        : brier.toFixed(3));
+      const hcNote = hc && hc.n
+        ? ` · 最有把握的 ${hc.n} 次只对了 ${hc.wins} 次`
+        : "";
+      setSub("plan-brier-sub", (mc != null && br != null)
+        ? `说自己 ${Math.round(mc * 100)}% 把握，实际对 ${Math.round(br * 100)}%${hcNote}`
+        : `准度 ${brier.toFixed(3)}`);
+      setClass("plan-brier", calib.brier_beats_baseline === true ? "pos"
+                           : calib.brier_beats_baseline === false ? "neg" : "neutral");
     }
 
     // Per-action episode metrics

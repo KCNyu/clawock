@@ -622,6 +622,28 @@ def _cumulative_win_rate_curve(rows: list[dict], benefit_key: str) -> list[dict]
     return curve
 
 
+def _exec_rate(rows: list[dict]) -> dict:
+    """Follow-through over rows whose execution is actually known.
+
+    ``unknown`` means unverified, not ignored — marking is partly manual
+    (``mark_followed.py``), so an unknown row is a gap in the record rather than
+    evidence of a miss, and it stays out of the denominator. That censoring does
+    not manufacture the result: every unknown row is from the last three days,
+    and counting them all as misses moves the active rate 2.65% -> 2.26%.
+    ``known`` is emitted so the coverage is visible next to the rate.
+    """
+    c = Counter((r.get("execution") or {}).get("status", "unknown") for r in rows)
+    known = c["followed"] + c["not_followed"]
+    return {
+        "n": len(rows),
+        "followed": c["followed"],
+        "not_followed": c["not_followed"],
+        "unknown": c["unknown"],
+        "known": known,
+        "rate": round(c["followed"] / known, 4) if known else None,
+    }
+
+
 def compute_metrics(decisions: list[dict], window_days: int = 30) -> dict:
     """The scorecard the UI labels "30d" — so every field here must BE 30d.
 
@@ -637,10 +659,27 @@ def compute_metrics(decisions: list[dict], window_days: int = 30) -> dict:
     in_window = [d for d in decisions if (d.get("plan_date") or "") >= cutoff]
     reps = [r for r in episode_representatives(decisions, "t1") if r.get("plan_date", "") >= cutoff]
     conf_rows = [r for r in reps if _float(r.get("confidence")) is not None]
-    brier = None
+    brier = base_rate = mean_conf = brier_loo = None
+    high_conf = None
     if conf_rows:
-        brier = sum((float(r["confidence"]) - (1 if (r.get("evaluation") or {}).get("outcome") == "win" else 0)) ** 2
-                    for r in conf_rows) / len(conf_rows)
+        outcomes = [1 if (r.get("evaluation") or {}).get("outcome") == "win" else 0 for r in conf_rows]
+        confs = [float(r["confidence"]) for r in conf_rows]
+        n = len(outcomes)
+        brier = sum((p - y) ** 2 for p, y in zip(confs, outcomes)) / n
+        base_rate = sum(outcomes) / n
+        mean_conf = sum(confs) / n
+        # Scoring the constant forecast at the base rate fitted from these same
+        # points hands it an in-sample edge, so grade it leave-one-out instead:
+        # each row is predicted by the rate of the OTHER rows. It is the stricter
+        # bar and the confidence field still loses to it.
+        if n > 1:
+            brier_loo = sum(((sum(outcomes) - y) / (n - 1) - y) ** 2 for y in outcomes) / n
+        # Where the damage concentrates: the calls it was surest about.
+        hi = [(p, y) for p, y in zip(confs, outcomes) if p >= 0.60]
+        if hi:
+            high_conf = {"threshold": 0.60, "n": len(hi),
+                         "wins": sum(y for _, y in hi),
+                         "win_rate": round(sum(y for _, y in hi) / len(hi), 4)}
     execution = Counter((r.get("execution") or {}).get("status", "unknown") for r in in_window)
     overrides = [r for r in in_window if (r.get("override") or {}).get("status") == "active"]
     active = [r for r in reps if r.get("action") in ACTIVE_ACTIONS]
@@ -653,6 +692,31 @@ def compute_metrics(decisions: list[dict], window_days: int = 30) -> dict:
         "episodes": len({d.get("episode_id") for d in in_window}),
         "settled_episodes": len(reps),
         "brier": round(brier, 4) if brier is not None else None,
+        # A Brier score alone is unreadable: 0.295 looks close to a "0 = perfect"
+        # scale, but the only question it answers is whether the stated confidence
+        # beats a forecaster who ignores the market and always says the same number.
+        # Shipping the score without that baseline flatters it. Grade against the
+        # leave-one-out constant — the in-sample b(1-b) is kept only for reference.
+        # NB this says the confidence is badly *calibrated*, not that it is empty:
+        # a Brier decomposition still shows some resolution (~0.03), swamped by a
+        # reliability penalty (~0.09). "Worse than a fool" overclaims; "worse than
+        # always saying 39%" is what the number supports.
+        "brier_baseline_loo": round(brier_loo, 4) if brier_loo is not None else None,
+        "brier_baseline_constant": round(base_rate * (1 - base_rate), 4) if base_rate is not None else None,
+        "brier_baseline_coinflip": round(sum((0.5 - y) ** 2 for y in outcomes) / len(outcomes), 4) if conf_rows else None,
+        "base_rate": round(base_rate, 4) if base_rate is not None else None,
+        "mean_confidence": round(mean_conf, 4) if mean_conf is not None else None,
+        "brier_beats_baseline": (brier < brier_loo) if brier_loo is not None else None,
+        "high_confidence": high_conf,
+        # The headline "followed rate" averaged two populations that mean opposite
+        # things: acting on a cut/trim/add is a decision, while "following" a hold
+        # is just not moving — it scores itself. Averaged they produced a ~50% that
+        # described nobody. Split, so the only real number (did kcn act when told
+        # to act) can be shown on its own.
+        "execution_by_kind": {
+            "active": _exec_rate([d for d in in_window if d.get("action") in ACTIVE_ACTIONS]),
+            "passive": _exec_rate([d for d in in_window if d.get("action") in ("hold_and_watch", "watch")]),
+        },
         "active": _aggregate(active, "benefit_t1_pct"),
         "passive": _aggregate(passive, "benefit_t1_pct"),
         "by_action": _breakdown(reps, lambda r: r.get("action"), "benefit_t1_pct"),
