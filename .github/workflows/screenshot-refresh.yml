@@ -67,5 +67,5 @@ jobs:
             echo "no visual change"
             exit 0
           fi
-          git commit -m "docs: weekly dashboard screenshot refresh $(date -u +%Y-%m-%d)"
+          git commit -m "docs: dashboard visual refresh $(date -u +%Y-%m-%d)"
           bash scripts/data/safe_push.sh
