@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """
 build_dashboard.py — aggregates portfolio.json + snapshots + plans into a single
-JSON the static dashboard (docs/ via Jekyll Pages) consumes.
+JSON the static dashboard (index.html at the repo root, served by Jekyll Pages)
+consumes.
 
 Output: assets/data/dashboard.json
 

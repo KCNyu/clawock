@@ -33,9 +33,9 @@ jobs:
           npm install --silent playwright@1.60.0
           npx playwright install --with-deps chromium
 
-      - name: Capture dashboard + v2 backtest + architecture + gif frames
+      - name: Capture win-rate chart + social card + gif frames
         run: |
-          mkdir -p docs assets
+          mkdir -p assets
           NODE_PATH="$GITHUB_WORKSPACE/node_modules" node scripts/data/shoot_dashboard.js
 
       - name: Assemble tab-cycle GIF
@@ -47,7 +47,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add docs/dashboard-preview.png docs/dashboard-mobile.png docs/shadow-backtest.png docs/architecture.png assets/social-card.png assets/dashboard.gif
+          git add assets/shadow-backtest.png assets/social-card.png assets/dashboard.gif
           if git diff --cached --quiet; then
             echo "no visual change"
             exit 0

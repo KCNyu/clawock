@@ -30,7 +30,7 @@
 
 <br><br>
 
-🪞 **Grades its own calls** — and publishes a hit rate under 50% &nbsp;·&nbsp; 💸 **Real money**, not a paper sim &nbsp;·&nbsp; 🗣️ **Bull-vs-bear AI debate** every morning &nbsp;·&nbsp; 🛡️ **Python scores it, not the LLM** — the model can't grade itself &nbsp;·&nbsp; 🌏 **Bilingual** HK + US &nbsp;·&nbsp; 🌐 **Live public dashboard**
+🪞 **Grades its own calls** — and publishes the number unedited, daily &nbsp;·&nbsp; 💸 **Real money**, not a paper sim &nbsp;·&nbsp; 🗣️ **Bull-vs-bear AI debate** every morning &nbsp;·&nbsp; 🛡️ **Python scores it, not the LLM** — the model can't grade itself &nbsp;·&nbsp; 🌏 **Bilingual** HK + US &nbsp;·&nbsp; 🌐 **Live public dashboard**
 
 <sub>If "an AI that's honest about being wrong" is your kind of thing — ⭐ it.</sub>
 
@@ -38,7 +38,7 @@
 
 ---
 
-> **TL;DR** — A multi-agent LLM runs a real Hong-Kong + US stock portfolio, debates bull-vs-bear each morning, and back-tests its own calls every night. Its verdict on itself, in public: the active calls hit the right direction *less than half the time*. The honesty is the point.
+> **TL;DR** — A multi-agent LLM runs a real Hong-Kong + US stock portfolio, debates bull-vs-bear each morning, and back-tests its own calls every night. Its verdict on itself is public, updates every session, and is not edited when it stings — the active calls have yet to show an edge. The honesty is the point.
 
 ## 🎰 The 60-second version
 
@@ -60,7 +60,7 @@ But here's the part most "AI trader" demos skip 👇
 
 Every brief commits a v2 `plan.json`. A stock may carry several simultaneous decisions — for example a long-term `core_position`, an `intraday_t`, and a `risk_rebalance` — because different horizons can legitimately disagree on the same day.
 
-The authoritative ledger is `memory/decisions.jsonl`. Each decision has a stable ID, strategy, condition, size, confidence, driver, execution state, and evaluation state. Triggers and marks come from `memory/bars/` — unadjusted official daily bars, counted on each market's own trading calendar, and an unfinished session never grades anything. A gap straight through a trigger fills at the open, not at the trigger: pretending otherwise hands the call a move that was never available. Sessions that were shut, conditions needing human evidence, and instruments that did not trade are published as ungradeable rather than dropped from the denominator. Consecutive reaffirmations of the same strategy/action form one episode, so repeating “hold” for five mornings does not manufacture five samples — and re-anchoring a trigger to where the stock has since moved is still a reaffirmation, not a new call. An episode scores as the mean of its own settled calls rather than an elected member of them — episodes that made several calls routinely disagree with themselves, and letting the first or last one speak for the group swings the active win rate across the 50% line on nothing but the choice of member.
+The authoritative ledger is `memory/decisions.jsonl`. Each decision has a stable ID, strategy, condition, size, confidence, driver, execution state, and evaluation state. Triggers and marks come from `memory/bars/` — unadjusted daily bars from a single canonical vendor feed (not an exchange feed), counted on each market's own trading calendar, and an unfinished session never grades anything. A gap straight through a trigger fills at the open, not at the trigger: pretending otherwise hands the call a move that was never available. Sessions that were shut, conditions needing human evidence, and instruments that did not trade are published as ungradeable rather than dropped from the denominator. Consecutive reaffirmations of the same strategy/action form one episode, so repeating “hold” for five mornings does not manufacture five samples — and re-anchoring a trigger to where the stock has since moved is still a reaffirmation, not a new call. An episode scores as the mean of its own settled calls rather than an elected member of them — episodes that made several calls routinely disagree with themselves, and letting the first or last one speak for the group swings the active win rate across the 50% line on nothing but the choice of member.
 
 The Reflect dashboard reports:
 
@@ -69,13 +69,13 @@ The Reflect dashboard reports:
 - date-cluster bootstrap intervals, so same-day calls are not treated as independent evidence; and
 - follow-through split into the calls that asked for an action and the ones that asked for nothing, because "following" a HOLD is sitting still and scores itself ~97%. Blended, the two averaged into a ~50% that described nobody.
 
-**No "what listening to the AI earned" figure is published.** The snapshots lack a stable price vintage, intraday highs and lows can carry across sessions, and most calls have no real fill to check against — so executed and counterfactual outcomes cannot be reliably told apart. The money view returns once there are immutable per-session bars, real fills, and an explicit sell-at-close book to difference against.
+**No "what listening to the AI earned" figure is published.** The snapshots lack a stable price vintage, intraday highs and lows can carry across sessions, and most calls have no real fill to check against — so executed and counterfactual outcomes cannot be reliably told apart. The bars now exist; what is still missing is real fill records and an explicit sell-at-close book to difference against, so the money view stays unpublished.
 
 The record prices timing only. The risk caps and the HOLD discipline are not in it, and on this book they are the parts that carry their weight — `assets/data/guardrail_history.jsonl` started accruing the evidence for them on 2026-07-15.
 
 The LLM only submits decisions; it cannot write or amend its own evaluation. IDs, triggers, grouping and metrics are computed mechanically by Python from the recorded data. That isolation stops the model from grading itself — it does **not** make the market inputs, the trigger verdicts, or the metric definitions correct. Treat the record as a diagnostic, not as proof of return.
 
-<p align="center"><img src="docs/shadow-backtest.png" alt="decision v2: cumulative episode win rate against a 50% directional-hit line" width="760"></p>
+<p align="center"><img src="assets/shadow-backtest.png" alt="decision v2: cumulative episode win rate against a 50% directional-hit line" width="760"></p>
 
 <sub>Cumulative episode win rate against a 50% directional-hit reference — how often the direction was right, not what it earned. Migrated v1 calls remain in the v2 episode ledger. Refreshed weekly by GitHub Actions.</sub>
 
@@ -253,6 +253,7 @@ clawock/
 ├─ memory/
 │   ├─ {date}-pre-open.md  {date}-plan.json  ← brief output + structured plan
 │   ├─ decisions.jsonl                       ← authoritative v2 decision/episode ledger
+│   ├─ bars/{ticker}.json                    ← canonical unadjusted OHLC — what settles triggers
 │   └─ snapshots/{date}.json
 ├─ scripts/
 │   ├─ data/      fetchers · build_dashboard.py · risk/quant/regime/t0 compute · safe_push.sh
@@ -266,7 +267,7 @@ clawock/
 
 ## ⚠️ Disclaimer
 
-This repo contains **real, live trading positions** — that's the whole point of sharing it, and also the reason to take everything in it with a fistful of salt. It is a personal record and a portable workspace. It is **not investment advice**, not a recommendation, and **not something you should copy** — the scorecard above literally shows the active calls underperforming a hold. Every number is point-in-time and may be stale by the time you read it. `Rick` is opinionated by design; that doesn't make him right.
+This repo contains **real, live trading positions** — that's the whole point of sharing it, and also the reason to take everything in it with a fistful of salt. It is a personal record and a portable workspace. It is **not investment advice**, not a recommendation, and **not something you should copy** — the live scorecard above is not edited to flatter the model, and the active calls have yet to show an edge. Every number is point-in-time and may be stale by the time you read it. `Rick` is opinionated by design; that doesn't make him right.
 
 ## 📄 License
 

@@ -61,7 +61,7 @@
     <text x="18" y="60" class="title white">Schedule + inputs</text>
     <g transform="translate(16 78)"><rect class="chip" width="232" height="44" rx="9"/><text x="14" y="19" class="small white">openclaw cron</text><text x="14" y="35" class="small dim">11 HKT jobs</text></g>
     <g transform="translate(16 132)"><rect class="chip" width="232" height="58" rx="9"/><text x="14" y="19" class="small white">market fabric</text><text x="14" y="36" class="small dim">prices · FX · macro</text><text x="14" y="51" class="small dim">signals · news</text></g>
-    <g transform="translate(16 200)"><rect class="chip" width="232" height="72" rx="9"/><text x="14" y="19" class="small white">source of truth</text><text x="14" y="36" class="small dim">portfolio.json · snapshots</text><text x="14" y="51" class="small dim">decisions.jsonl</text><text x="14" y="66" class="small dim">bars/ (official OHLC)</text></g>
+    <g transform="translate(16 200)"><rect class="chip" width="232" height="72" rx="9"/><text x="14" y="19" class="small white">source of truth</text><text x="14" y="36" class="small dim">portfolio.json · snapshots</text><text x="14" y="51" class="small dim">decisions.jsonl</text><text x="14" y="66" class="small dim">bars/ (canonical OHLC)</text></g>
   </g>
 
   <g transform="translate(318 158)" filter="url(#shadow)">
@@ -72,7 +72,7 @@
     <text x="18" y="80" class="body dim">Facts enter; opinions do not.</text>
     <g transform="translate(16 96)"><rect class="chip" width="232" height="44" rx="9"/><text x="14" y="19" class="small white">refresh + reconcile</text><text x="14" y="35" class="small dim">prices · FX · positions</text></g>
     <g transform="translate(16 150)"><rect class="chip" width="232" height="58" rx="9"/><text x="14" y="19" class="small white">derive risk state</text><text x="14" y="36" class="small dim">HHI · beta · regime</text><text x="14" y="51" class="small dim">hard caps · integrity</text></g>
-    <g transform="translate(16 218)"><rect class="chip" width="232" height="54" rx="9"/><text x="14" y="19" class="small white">settle v2 episodes</text><text x="14" y="36" class="small dim">official bars · trading</text><text x="14" y="51" class="small dim">calendar · gap-aware fill</text></g>
+    <g transform="translate(16 218)"><rect class="chip" width="232" height="54" rx="9"/><text x="14" y="19" class="small white">settle v2 episodes</text><text x="14" y="36" class="small dim">canonical bars · trading</text><text x="14" y="51" class="small dim">calendar · gap-aware fill</text></g>
   </g>
 
   <g transform="translate(606 158)" filter="url(#shadow)">
@@ -148,7 +148,7 @@
     <rect width="840" height="106" rx="16" fill="#11142a" stroke="#5b48a4" stroke-width="1.4"/>
     <text x="18" y="28" class="stage" fill="#c4b5fd">PYTHON BACKTESTER / AUDITOR</text>
     <text x="18" y="54" class="body white">condition judged fired? → episode mean → next-session close</text>
-    <text x="18" y="76" class="small dim">official bars · per-leg trading calendar · gap-aware fill · date-cluster CI · confidence vs baseline</text>
+    <text x="18" y="76" class="small dim">canonical bars · per-leg trading calendar · gap-aware fill · date-cluster CI · confidence vs baseline</text>
     <text x="18" y="94" class="small" fill="#9cf5d2">evidence feeds the next brief; the LLM cannot rewrite outcomes</text>
   </g>
 

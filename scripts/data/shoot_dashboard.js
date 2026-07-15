@@ -8,16 +8,22 @@
  *   node scripts/data/shoot_dashboard.js
  *   python3 scripts/data/assemble_dashboard_gif.py   # assembles the GIF from frames
  *
- * Env overrides: URL (default live Pages), OUT_DIR (docs/), ASSET_DIR (assets/),
- *                FRAME_DIR (.gifframes/), CHROME_EXE (explicit browser binary).
+ * Env overrides: URL (default live Pages), OUT_DIR (assets/), FRAME_DIR (.gifframes/),
+ *                TMP_DIR (intermediates), CHROME_EXE (explicit browser binary).
  *
  * Outputs (all refresh weekly via the Action, so nothing drifts):
- *   docs/dashboard-preview.png   desktop hero shot (README)
- *   docs/dashboard-mobile.png    mobile full-page shot
- *   docs/shadow-backtest.png     v2 cumulative win-rate chart (all / active / 50% ref)
- *   docs/architecture.png        current pipeline diagram
- *   assets/social-card.png       1200x630 OG / Twitter card (headline + shot)
+ *   assets/shadow-backtest.png   v2 cumulative win-rate chart (all / active / 50% ref)
+ *   assets/social-card.png       1280x640 OG / Twitter card (headline + shot)
+ *   assets/dashboard.gif         built from FRAME_DIR by assemble_dashboard_gif.py
+ *   TMP_DIR/dashboard-preview.png  intermediate — embedded into the social card, not shipped
  *   .gifframes/f{0..5}.png       per-tab mobile frames → assemble_dashboard_gif.py
+ *
+ * assets/ is the one place shipped images live: README, Pages and the OG card all
+ * point there, and _config.yml includes it. docs/ used to hold four PNGs of which
+ * two were orphans re-committed weekly (architecture.png alone was 1.4MB) and one
+ * was only ever an input to the social card. The architecture diagram is authored
+ * as assets/architecture.svg and README embeds that SVG directly, so rendering it
+ * to PNG produced a file nobody read.
  *
  * Notes:
  *   • deviceScaleFactor 2 → retina-crisp PNGs.
@@ -29,13 +35,13 @@
 const { chromium, devices } = require('playwright');
 const fs = require('fs');
 const path = require('path');
-const { pathToFileURL } = require('url');
 
 const URL = process.env.URL || 'https://kcnyu.github.io/clawock/';
 const ROOT = path.resolve(__dirname, '../..');
-const OUT_DIR = process.env.OUT_DIR || path.join(ROOT, 'docs');
-const ASSET_DIR = process.env.ASSET_DIR || path.join(ROOT, 'assets');
+const OUT_DIR = process.env.OUT_DIR || path.join(ROOT, 'assets');
 const FRAME_DIR = process.env.FRAME_DIR || path.join(ROOT, '.gifframes');
+// Intermediate only: the social card inlines it as a data-URI, so it never ships.
+const TMP_DIR = process.env.TMP_DIR || path.join(ROOT, '.gifframes');
 const CHROME_EXE = process.env.CHROME_EXE || undefined;
 const TABS = ['hero', 'drill', 'risk', 'market', 'plan', 'reflect'];
 
@@ -96,7 +102,7 @@ function cardHTML(shotDataUri) {
   <div class="left">
     <div class="brand"><span class="dot"></span><span class="name">clawock</span><span class="tag">autonomous AI trading desk</span></div>
     <h1>It argues both sides, gates the risk — then <span class="hl">grades its own calls.</span></h1>
-    <div class="sub">A daily bull-vs-bear LLM debate on <b>real HK + US money</b> — and a scorecard that <b>publishes its own sub-50% hit rate.</b></div>
+    <div class="sub">A daily bull-vs-bear LLM debate on <b>real HK + US money</b> — and a scorecard that <b>publishes its own record, unedited.</b></div>
     <div class="chips"><span class="chip">🗣️ bull-vs-bear swarm</span><span class="chip">🛡️ hard risk gates</span><span class="chip">🪞 self-grading</span><span class="chip">🤖 fully autonomous</span></div>
     <div class="repo"><span class="star">★</span> github.com/KCNyu/clawock</div>
   </div>
@@ -106,7 +112,7 @@ function cardHTML(shotDataUri) {
 }
 
 (async () => {
-  [OUT_DIR, ASSET_DIR, FRAME_DIR].forEach(d => fs.mkdirSync(d, { recursive: true }));
+  [OUT_DIR, FRAME_DIR, TMP_DIR].forEach(d => fs.mkdirSync(d, { recursive: true }));
   const browser = await chromium.launch(CHROME_EXE ? { executablePath: CHROME_EXE, args: ['--no-sandbox'] } : {});
   try {
     // 1) Desktop 1440x900 @2x
@@ -114,7 +120,7 @@ function cardHTML(shotDataUri) {
     const dp = await desk.newPage();
     await dp.goto(URL, { waitUntil: 'networkidle', timeout: 45000 });
     await settle(dp);
-    await dp.screenshot({ path: `${OUT_DIR}/dashboard-preview.png`, fullPage: false });
+    await dp.screenshot({ path: `${TMP_DIR}/dashboard-preview.png`, fullPage: false });
     // Shoot the win-rate chart, not the whole card. The card used to be a money
     // curve and this shot was its portrait; the money view is gone (it summed
     // calls that were never executed against drifting marks) and what remains of
@@ -127,8 +133,9 @@ function cardHTML(shotDataUri) {
     await shadow.screenshot({ path: `${OUT_DIR}/shadow-backtest.png` });
     await desk.close();
 
-    // 2) Social card (1200x630) — embeds the fresh desktop shot as a data-URI
-    const shotUri = 'data:image/png;base64,' + fs.readFileSync(`${OUT_DIR}/dashboard-preview.png`).toString('base64');
+    // 2) Social card (1280x640, matching index.html's og:image:width/height) —
+    //    embeds the fresh desktop shot as a data-URI
+    const shotUri = 'data:image/png;base64,' + fs.readFileSync(`${TMP_DIR}/dashboard-preview.png`).toString('base64');
     // dsf 1 → exactly 1280x640 (GitHub Social preview's ideal size + its 1MB limit;
     // 2x doubled it to 2560x1280 / >1MB and the upload wouldn't fit). Still crisp: the
     // embedded dashboard shot is downscaled from the 2x desktop capture.
@@ -136,16 +143,8 @@ function cardHTML(shotDataUri) {
     const cp = await cardCtx.newPage();
     await cp.setContent(cardHTML(shotUri), { waitUntil: 'networkidle' });
     await cp.waitForTimeout(300);
-    await cp.screenshot({ path: `${ASSET_DIR}/social-card.png` });
+    await cp.screenshot({ path: `${OUT_DIR}/social-card.png` });
     await cardCtx.close();
-
-    // 3) Mobile iPhone 12 full-page shot
-    const mob = await browser.newContext({ ...devices['iPhone 12'] });
-    const mp = await mob.newPage();
-    await mp.goto(URL, { waitUntil: 'networkidle', timeout: 45000 });
-    await settle(mp);
-    await mp.screenshot({ path: `${OUT_DIR}/dashboard-mobile.png`, fullPage: true });
-    await mob.close();
 
     // 4) Per-tab mobile frames for the animated GIF (assembled by the python step).
     //    The panels scroll inside an internal container (body is fixed, so fullPage ==
@@ -192,17 +191,9 @@ function cardHTML(shotDataUri) {
     }
     await gifCtx.close();
 
-    // 5) Render the version-controlled architecture HTML in the same Chromium
-    // run so the published diagram cannot drift from the weekly screenshots.
-    const archCtx = await browser.newContext({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: 2 });
-    const ap = await archCtx.newPage();
-    await ap.goto(pathToFileURL(path.join(ROOT, 'scripts/data/architecture_diagram.html')).href, { waitUntil: 'networkidle' });
-    await ap.waitForTimeout(400);
-    await ap.screenshot({ path: `${OUT_DIR}/architecture.png` });
-    await archCtx.close();
     console.log('gif frames per tab:', counts.join(','));
 
-    console.log(`✓ dashboard + v2 backtest + architecture; ${TABS.length} gif frames → ${FRAME_DIR}`);
+    console.log(`✓ win-rate chart + social card; ${TABS.length} gif frames → ${FRAME_DIR}`);
   } finally {
     await browser.close();
   }

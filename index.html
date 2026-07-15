@@ -10,10 +10,10 @@ layout: null
 <meta name="theme-color" content="#0a0e1a" media="(prefers-color-scheme: dark)">
 <meta name="theme-color" content="#f7f8fb" media="(prefers-color-scheme: light)">
 <title>clawock — autonomous AI that debates &amp; grades its own stock picks (HK + US)</title>
-<meta name="description" content="Multi-agent LLM analysis on a real HK + US stock portfolio: a daily bull-vs-bear debate, hard risk gates, and a scorecard that grades the AI's own calls — and publishes a directional hit rate under 50%. Live dashboard, fully autonomous.">
+<meta name="description" content="Multi-agent LLM analysis on a real HK + US stock portfolio: a daily bull-vs-bear debate, hard risk gates, and a scorecard that grades the AI's own calls and publishes the result unedited. Live dashboard, fully autonomous.">
 <!-- link-share preview card (WeChat / Telegram / iMessage) -->
 <meta property="og:title" content="clawock — autonomous AI that grades its own stock picks">
-<meta property="og:description" content="A daily bull-vs-bear debate on a real HK + US portfolio, hard risk gates, and a scorecard that publishes the AI's own sub-50% hit rate. 多空辩论 · 风控硬闸 · 自评战绩 · 全自动。">
+<meta property="og:description" content="A daily bull-vs-bear debate on a real HK + US portfolio, hard risk gates, and a scorecard that publishes the AI's own record unedited. 多空辩论 · 风控硬闸 · 自评战绩 · 全自动。">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://kcnyu.github.io/clawock/">
 <meta property="og:image" content="https://kcnyu.github.io/clawock/assets/social-card.png">
@@ -22,7 +22,7 @@ layout: null
 <link rel="canonical" href="https://kcnyu.github.io/clawock/">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="clawock — autonomous AI that grades its own stock picks">
-<meta name="twitter:description" content="A daily bull-vs-bear debate on a real HK + US portfolio, hard risk gates, and a scorecard that publishes the AI's own sub-50% hit rate.">
+<meta name="twitter:description" content="A daily bull-vs-bear debate on a real HK + US portfolio, hard risk gates, and a scorecard that publishes the AI's own record unedited.">
 <meta name="twitter:image" content="https://kcnyu.github.io/clawock/assets/social-card.png">
 <script type="application/ld+json">
 {
@@ -33,7 +33,7 @@ layout: null
   "applicationCategory": "FinanceApplication",
   "operatingSystem": "Web",
   "inLanguage": ["en", "zh-CN"],
-  "description": "Multi-agent LLM analysis on a real HK + US stock portfolio: a daily bull-vs-bear debate, hard risk gates, and a scorecard that grades the AI's own calls — and publishes a directional hit rate under 50%.",
+  "description": "Multi-agent LLM analysis on a real HK + US stock portfolio: a daily bull-vs-bear debate, hard risk gates, and a scorecard that grades the AI's own calls and publishes the result unedited.",
   "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
   "author": { "@type": "Person", "name": "kcn", "url": "https://github.com/KCNyu" }
 }
@@ -1341,8 +1341,8 @@ layout: null
 </head>
 <body>
 <noscript><div style="padding:14px;max-width:680px;margin:0 auto;color:#9aa4b8;font-size:13px;line-height:1.6">
-  <p><strong>clawock</strong> is a fully autonomous, multi-agent LLM analyst running on a real Hong Kong + US stock portfolio. Every morning it stages a bull-vs-bear debate, enforces hard risk gates (concentration, leverage, beta, stop-loss), and keeps a public scorecard that grades the AI's own calls — and openly publishes a directional hit rate under 50%.</p>
-  <p>clawock 是一个全自动多智能体投研系统，跑在真实的港股 + 美股组合上：每早多空辩论、风控硬闸、公开给自己打分，并诚实公布不到 50% 的方向命中率。</p>
+  <p><strong>clawock</strong> is a fully autonomous, multi-agent LLM analyst running on a real Hong Kong + US stock portfolio. Every morning it stages a bull-vs-bear debate, enforces hard risk gates (concentration, leverage, beta, stop-loss), and keeps a public scorecard that grades the AI's own calls and publishes the result unedited.</p>
+  <p>clawock 是一个全自动多智能体投研系统，跑在真实的港股 + 美股组合上：每早多空辩论、风控硬闸、公开给自己打分，数字难看也不改。</p>
   <p>This dashboard renders with JavaScript · raw data: <a href="assets/data/dashboard.json" style="color:#5b8def">dashboard.json</a> · source: <a href="https://github.com/KCNyu/clawock" style="color:#5b8def">github.com/KCNyu/clawock</a></p>
 </div></noscript>
 
@@ -1818,10 +1818,10 @@ layout: null
 
     <div class="card">
       <h3>Plan Review <span class="muted" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:11px">(last 30d)</span></h3>
-      <p class="chart-hint">每天 08:00 brief 写的建议，次日起看你有没有照做。输赢和触发判断走官方逐日行情（未复权、按各自市场的交易日），休市或需人工核实的不计入胜率，条数标在下面。</p>
+      <p class="chart-hint">每天 08:00 brief 写的建议，次日起看你有没有照做。输赢和触发判断走未复权的逐日行情（单一行情源、按各自市场的交易日），休市或需人工核实的不计入胜率，条数标在下面。</p>
       <div class="revision-note">
-        <b>2026-07-15 数据修订</b>：触发与结算已从会漂移的持仓快照改为各市场官方逐日行情（未复权）。
-        30 天主动胜率由 5/16（31.3%）修订为 7/15（46.7%）；样本仍小，平均方向分 −0.32%，区间跨零。旧口径作废。
+        <b>2026-07-15 数据修订</b>：触发与结算已从会漂移的持仓快照改为未复权的逐日行情，按各市场交易日历计算，
+        并区分「休市 / 未收盘 / 需人工核实」。旧口径下的胜负已全部作废重算 —— 下面是重算后的实时值，每个交易日会变。
       </div>
       <div class="kpi-grid" style="margin-bottom:14px">
         <div class="kpi-cell">
@@ -4445,8 +4445,8 @@ layout: null
   // executed, over half of the "next recorded price" marks are not closes, and the
   // trigger verdicts behind it come from day ranges that carry across sessions.
   // The algebra was fine; the claim on top of it was not, and a relabel would not
-  // fix it — answering "how much more did I make by listening" needs official
-  // closes, real fills, and a parallel sell-at-close book. The card now says so.
+  // fix it — answering "how much more did I make by listening" needs real fills
+  // and a parallel sell-at-close book to difference against. The card now says so.
   // The win-rate chart below it is a different quantity and stays.
   function renderShadowChart() {
     const card = document.getElementById("shadow-card");

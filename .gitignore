@@ -22,8 +22,12 @@ assets/data/integrity_report.json
 media/
 
 # Images / generated output
-# Allow images under docs/ for README screenshots; ignore everywhere else
+# assets/ is the one place shipped visuals live (README / OG card / Pages all point
+# there). Everything else is scratch. These negations matter: without them the
+# shipped PNGs survive only by already being tracked, so a single `git rm --cached`
+# would make them unaddable.
 *.png
+!assets/*.png
 !assets/icons/*.png
 *.jpg
 !docs/*.png

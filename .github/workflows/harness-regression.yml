@@ -102,7 +102,7 @@ jobs:
                   authored |= {x['decision_id'] for x in (json.load(f).get('decisions') or [])}
           orphans = sorted(set(ids) - authored)
           assert not orphans, f'{len(orphans)} ledger decisions authored by no plan: {orphans[:5]}'
-          # settle must be a pure recompute from snapshots, not a ratchet. Compare
+          # settle must be a pure recompute from canonical bars, not a ratchet. Compare
           # settle-twice, never against the stored ledger: build_dashboard settles
           # in memory without writing back, so on disk it legitimately trails the
           # intraday snapshot and a freshness check here would just flake.
