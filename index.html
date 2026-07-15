@@ -2565,7 +2565,7 @@ layout: null
     });
     if (fe.length) rows.push(row("消息源 edge", fe.join(" · "), "var(--text-dim)"));
     el.innerHTML = rows.join("")
-      + `<div style="color:var(--text-dim);font-size:10px;margin-top:6px">算账在 Python：同策略连续决策按 episode 去重；条件未触发不结算；执行与建议收益分开。</div>`;
+      + `<div style="color:var(--text-dim);font-size:10px;margin-top:6px">算账在 Python：同策略连续决策按 episode 去重；一个 episode 只出一个样本、取其内部平均而非选某一条；条件未触发不结算；执行与建议收益分开。</div>`;
     card.style.display = "";
   }
 

@@ -3,15 +3,19 @@
 
 The legacy scorecard treated every plan row as an independent prediction and
 added percentage points across positions.  V2 keeps the raw decision events but
-evaluates one representative per strategy episode, only after its condition
-actually fired.  Multiple decisions for one ticker/day remain valid when they
-belong to different strategies (core position, intraday T, risk rebalance, …).
+scores one representative per strategy episode, only after its condition
+actually fired.  That representative carries the episode's mean benefit rather
+than an elected member, because the choice of member moves the answer across the
+50% line on its own (see ``episode_representatives``).  Multiple decisions for
+one ticker/day remain valid when they belong to different strategies (core
+position, intraday T, risk rebalance, …).
 
 Authoritative persisted store: ``memory/decisions.jsonl``.
 Plan contract: ``schema_version=2`` + top-level ``decisions``.
 """
 from __future__ import annotations
 
+import copy
 import hashlib
 import json
 import math
@@ -155,6 +159,15 @@ def assign_episode_ids(decisions: list[dict]) -> list[dict]:
     A strategy action change starts a new episode. A gap over four calendar days
     also starts a new episode. Different strategy_id values never collide, so a
     core HOLD and a risk-rebalance TRIM can coexist on the same ticker/day.
+
+    Condition, trigger price, confidence and size are deliberately NOT in the
+    key, and 2026-07-15 is why: adding them looks more precise and quietly
+    rebuilds v1's disease. 00100 spent 06-17..07-15 restating one "trim into any
+    bounce" thesis while walking its trigger 460 -> 265 down a crash and drifting
+    price_above/open/manual. Keying on those fields split that single thesis into
+    8-10 episodes and booked each restatement as its own settled winning bet —
+    +4,419 HKD conjured out of one call. A reaffirmation is a reaffirmation even
+    when it is re-anchored to where the stock has since moved.
     """
     ordered = sorted(enumerate(decisions), key=lambda x: (x[1].get("plan_date", ""), x[0]))
     state: dict[tuple[str, str], dict] = {}
@@ -435,8 +448,28 @@ def settle_decisions(decisions: list[dict], now_date: str | None = None) -> int:
     return changed
 
 
+def _episode_settled(rows: list[dict], benefit_key: str) -> list[dict]:
+    """The calls in an episode that actually fired and have a settled number."""
+    return [d for d in rows
+            if (d.get("evaluation") or {}).get("triggered") is True
+            and _float((d.get("evaluation") or {}).get(benefit_key)) is not None]
+
+
 def episode_representatives(decisions: list[dict], horizon: str = "t1") -> list[dict]:
-    """One actually-triggered representative per episode; reaffirmations do not add n."""
+    """One synthetic representative per episode, carrying the episode's MEAN benefit.
+
+    Reaffirmations must not add n — that was v1's disease. But electing a single
+    member to speak for the episode discards the others, and the choice of member
+    silently decides the answer: on 2026-07-15, first-vs-last member moved the
+    active win rate 51.4% -> 48.6%, across the 50% line, and "first" flatters by
+    ~3pp under every merge rule tried. 53 of 135 episodes had several settled
+    calls; 29 of those disagreed with themselves. Neither "first" nor "last" has
+    a statistical claim on being right.
+
+    Averaging has one: it spends every settled call in the episode while still
+    contributing exactly one sample, which is the entire point of an episode.
+    The rep is a copy — the ledger keeps the real per-decision numbers.
+    """
     benefit_key = "benefit_t1_pct" if horizon == "t1" else "benefit_t5_pct"
     groups = defaultdict(list)
     for d in decisions:
@@ -444,12 +477,30 @@ def episode_representatives(decisions: list[dict], horizon: str = "t1") -> list[
     reps = []
     for _, rows in groups.items():
         rows.sort(key=lambda x: (x.get("created_at", ""), x.get("decision_id", "")))
-        triggered = [d for d in rows if (d.get("evaluation") or {}).get("triggered") is True]
-        if not triggered:
+        settled = _episode_settled(rows, benefit_key)
+        if not settled:
             continue
-        rep = triggered[0]
-        if _float((rep.get("evaluation") or {}).get(benefit_key)) is not None:
-            reps.append(rep)
+        rep = copy.deepcopy(settled[0])
+        ev = rep.setdefault("evaluation", {})
+        benefits = [_float(d["evaluation"][benefit_key]) for d in settled]
+        caps = [c for c in (_float((d.get("evaluation") or {}).get("capital")) for d in settled) if c]
+        mean_benefit = sum(benefits) / len(benefits)
+        ev[benefit_key] = round(mean_benefit, 4)
+        # Money asks the same question of the same episode, so it rides the same
+        # average: the capital an average call in this episode put at risk.
+        ev["capital"] = round(sum(caps) / len(caps), 2) if caps else None
+        # mean(capital) x mean(benefit) is not mean(capital x benefit) once the
+        # size moves mid-episode — worth 159 HKD on one 00100 episode alone. Money
+        # gets the average of the real per-call products, not a product of averages.
+        priced = [(c, b) for c, b in
+                  ((_float((d.get("evaluation") or {}).get("capital")),
+                    _float(d["evaluation"][benefit_key])) for d in settled) if c]
+        ev["episode_mean_money"] = (round(sum(c * b / 100 for c, b in priced) / len(priced), 4)
+                                    if priced else None)
+        # rick_broadcast reads outcome, not the number — keep them the same fact.
+        ev["outcome"] = "win" if mean_benefit > 0 else "loss"
+        ev["episode_n_settled"] = len(settled)
+        reps.append(rep)
     reps.sort(key=lambda x: (x.get("plan_date", ""), x.get("decision_id", "")))
     return reps
 
@@ -607,6 +658,11 @@ def compute_money_impact(decisions: list[dict], horizon: str = "t1") -> dict:
                 and _float((r.get("evaluation") or {}).get(key)) is not None]
 
     def _money(r):
+        # Averaged per-call products when the rep carries them (see
+        # episode_representatives); the plain product is the single-call case.
+        pre = _float((r.get("evaluation") or {}).get("episode_mean_money"))
+        if pre is not None:
+            return pre
         return _float(r["evaluation"]["capital"]) * _float(r["evaluation"][key]) / 100
 
     def bucket(rows):
@@ -686,7 +742,8 @@ def compute_backtest(decisions: list[dict]) -> dict:
         }
     return {
         "schema_version": SCHEMA_VERSION,
-        "method": ("one triggered representative per strategy episode; same-day decisions cluster together; "
+        "method": ("one synthetic representative per strategy episode carrying that episode's mean benefit; "
+                   "a moved trigger starts a new episode; same-day decisions cluster together; "
                    "daily capital-weighted benefit is compounded, never arithmetically summed across calls"),
         "horizons": horizons,
     }
