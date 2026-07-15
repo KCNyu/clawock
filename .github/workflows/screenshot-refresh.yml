@@ -2,6 +2,8 @@ name: Dashboard Screenshot Refresh
 
 # Re-screenshot the live dashboard each week so README preview never drifts >7 days.
 # Sundays 22:00 UTC (= 06:00 Mon HKT, just before Monday's first cron).
+# Scheduled runs refresh the two small PNGs only. The 8MB GIF rebuilds on manual
+# dispatch, when the UI it demos has actually changed.
 on:
   schedule:
     - cron: '0 22 * * 0'
@@ -38,7 +40,12 @@ jobs:
           mkdir -p assets
           NODE_PATH="$GITHUB_WORKSPACE/node_modules" node scripts/data/shoot_dashboard.js
 
+      # The GIF is a product demo of the tab layout, not a price feed — it does not
+      # need to track today's quotes. At ~8MB a weekly rebuild had already put 11
+      # blobs / ~48MB into a 109MB repo. Rebuild it only when asked (i.e. when the
+      # UI actually changed); the two small PNGs still refresh every week.
       - name: Assemble tab-cycle GIF
+        if: github.event_name == 'workflow_dispatch'
         run: |
           python3 -m pip install --quiet --upgrade Pillow
           python3 scripts/data/assemble_dashboard_gif.py
@@ -47,7 +54,11 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add assets/shadow-backtest.png assets/social-card.png assets/dashboard.gif
+          git add assets/shadow-backtest.png assets/social-card.png
+          # Only a manual run rebuilds the GIF, so only a manual run may commit it.
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            git add assets/dashboard.gif
+          fi
           if git diff --cached --quiet; then
             echo "no visual change"
             exit 0
