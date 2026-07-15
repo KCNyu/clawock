@@ -489,8 +489,8 @@ context.json 的 `decision_metrics` 是 v2 唯一口径：只结算**条件实�
 包含：
 - HK 开盘前 09:00 HKT 查什么消息
 - HK 开盘后 09:30 HKT 关注哪个票什么价位
-- US 盘前 16:00 HKT 之前查什么
-- US 开盘后 21:30 HKT 关注什么
+- US 盘前（09:30 ET 之前）查什么
+- US 开盘后 09:30 ET 关注什么
 - Book-level metric 红线（例：港股浮亏到 X% 触发 forced derisk）
 
 ### Step 4: 写输出文件（A 报告 / B plan / C insights sidecar / D 微信卡）

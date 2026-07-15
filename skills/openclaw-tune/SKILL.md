@@ -112,8 +112,9 @@ Red flags:
 
 ### 4. Cron jobs
 
-`openclaw cron list --json` — check each enabled job's `payload.message` and compare
-its schedule with `config/cron-schedules.json`:
+`openclaw cron list --json` — check each enabled job against
+`config/cron-schedules.json`（schedule + payload profile + delivery）；system crontab
+watchdog 和 EDT/EST 切换也由同一 contract 管：
 
 - Does it reference scripts that still exist? (e.g. removed `scripts/legacy/stock_analyzer.py` but cron still calls it)
 - Does it reference dead APIs? (e.g. "优先东方财富" but Eastmoney is 502 from this server)
@@ -214,5 +215,5 @@ End with a structured report:
 ## Inputs / Outputs
 
 - **Reads**: `~/.openclaw/openclaw.json`, live cron state via `openclaw cron list --json`, `config/cron-schedules.json`, workspace canonical MD files, short-term recall state, and disk usage of `~/.openclaw/`
-- **Writes**: trimmed `*.md` workspace files (with bak), cron fields only through `openclaw cron edit` plus the tracked schedule contract when needed, eventual `portfolio.json` if data refresh happens; everything else archived to `/tmp/openclaw-cleanup-<date>/`
+- **Writes**: trimmed `*.md` workspace files (with bak), cron fields only through `openclaw cron edit` / `sync_us_cron_dst.py` plus the tracked contract and regenerated `CRON_SCHEDULES.md`, eventual `portfolio.json` if data refresh happens; everything else archived to `/tmp/openclaw-cleanup-<date>/`
 - **Side effects**: may suggest gateway restart at the end (user-confirmed)

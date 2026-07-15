@@ -25,6 +25,7 @@
 | Workflow | 触发 | 写文件 | 备注 |
 |---|---|---|---|
 | `harness-regression.yml` | push to master | (read-only) | 每次 push 跑 schema/import 校验 |
+| `actionlint.yml` | workflow 变更的 push/PR | (read-only) | pinned actionlint 校验 GHA expression/YAML/shell |
 | `weekly-health.yml` | 周日 23:00 UTC | (read-only) | 综合健康检查（含公网数据源活体） |
 | `eod-archive.yml` | 周五 22:00 UTC | `memory/archive/eod-history.csv` | 每周持仓快照 audit trail |
 | `sentiment-scan.yml` | 周日–四 21:30 UTC | `assets/data/sentiment.json` | 05:30 HKT 盘前 Reddit + Google News 扫描 |
@@ -143,7 +144,7 @@ python3 scripts/data/fetch_us_stocks.py     # 仅刷美股价格
 **Harness（三明治：preflight 确定性 → LLM 合成 → postflight 校验+commit）**
 - brief：`brief_preflight.py` / `brief_postflight.py`（写 `memory/{date}-pre-open.md` + `-plan.json`；postflight 自动跑 build_dashboard + push）
 - 报告 Mode 6：`report_preflight.py --market {hk|us} --phase {open|mid|pm|close}` / `report_postflight.py …`
-- 盘中 Mode 7：`intraday_preflight.py --market {hk|us}` / `intraday_postflight.py …`（不提交 `portfolio.json`；dashboard 有语义变化才提交）
+- 盘中 Mode 7：`intraday_preflight.py --market {hk|us}` / `intraday_postflight.py …`（不提交 `portfolio.json`；dashboard 仅语义变化提交，逐 slot heartbeat 必发布）
 - 共通：preflight 出 `raw_wechat_block`(LLM **verbatim** 拷) + `anomalies`(必提≥1票)；postflight 出 `wechat_prefix`；context 全落 `memory/.tmp/`(gitignore)
 
 **Dashboard/发布**：`build_dashboard.py`(聚合 portfolio+snapshots+plan+decisions.jsonl+risk+sidecar → `assets/data/dashboard.json`；含 LLM 叙事卡/driven_by/status_banner；三类 postflight 都会自动调) · `safe_push.sh`(统一 push,rebase.autoStash 容脏树)
@@ -154,23 +155,13 @@ python3 scripts/data/fetch_us_stocks.py     # 仅刷美股价格
 
 **其它**：`mark_followed.py`(标 `decisions.jsonl` 的 execution.status) · `xiaomi_llm.py`(GH Action 直连 vendor，MiniMax→可选 Xiaomi fallback) · `gh_action_*.py` · `update_portfolio.py`。**每脚本详细说明 + 已废弃 legacy → `TOOLS_SCRIPTS.md`**。
 
-### Cron map（**11 job**，存 SQLite 经 `openclaw cron list` 读；时间 HKT）
+### Cron map
 
-| Job | Schedule | Mode | Harness |
-|---|---|---|---|
-| 📊 盘前深度简报 | 08:00 工作日 | daily-deep-brief | brief_* |
-| 港股开盘报告 | 09:30 工作日 | Mode 6 | report --hk open |
-| 港股盘中盯盘 | `*/30 10-11,14-15` 工作日 | Mode 7 | intraday --hk |
-| 港股午盘报告 | 12:00 工作日 | Mode 6 | report --hk mid |
-| 港股午后快报 | 13:30 工作日 | Mode 6 | report --hk pm |
-| 港股收盘报告 | 16:00 工作日 | Mode 6 | report --hk close |
-| 美股开盘报告 | 21:30 工作日 (=09:30 ET) | Mode 6 | report --us open |
-| 美股盘中盯盘 | `*/30 22-23` 工作日 | Mode 7 | intraday --us |
-| 美股盘中盯盘-overnight | `*/30 0-2` 次日 (DOW 2-6) | Mode 7 | intraday --us |
-| 美股收盘报告 | 04:00 (DOW 2-6) | Mode 6 | report --us close |
-| Memory Dreaming Promotion | 03:00 daily | memory-core | — |
-
-系统 crontab（`crontab -l`）：6×report watchdog + brief watchdog + 3×intraday watchdog、dreaming commit、session GC、git GC、黄金 DCA(23:50 工作日)、Nostr 周播、IndexNow，以及每 20 分钟一次的 dashboard single-publisher。OpenClaw cron 真值只经 `openclaw cron list --json` 读取；`config/cron-schedules.json` 是受 system check 约束的 CI mirror。
+11 个 OpenClaw job、10 个 watchdog、EDT/EST 两季表达式和 harness 映射只在
+[`config/cron-schedules.json`](config/cron-schedules.json) 维护；人读表由
+[`CRON_SCHEDULES.md`](CRON_SCHEDULES.md) 自动生成。每日 06:20 HKT 的同步器按
+`America/New_York` 自动调整美股 live cron + watchdog；system check 同时校验 schedule、
+payload 语义和 crontab。Mode 7 的逐 slot 结果发布到 `assets/data/cron-heartbeats.json`。
 
 ## Skill 安装顺序（重要）
 

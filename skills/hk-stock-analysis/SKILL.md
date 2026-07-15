@@ -112,13 +112,14 @@ python3 /root/.openclaw/workspace/scripts/harness/intraday_preflight.py --market
 python3 /root/.openclaw/workspace/scripts/harness/intraday_postflight.py --market hk <<< "{报告}"
 ```
 校验段标记 + 长度 + 异动票提及。**不提交 `portfolio.json`**；若 dashboard
-有语义变化，postflight 会重建并提交 `assets/data/dashboard.json`。
+有语义变化，postflight 会重建并提交 `assets/data/dashboard.json`。每个 slot 的
+完成/投递状态另写 heartbeat，由 single publisher 发布。
 
 #### Step 4: 输出报告（仅存档；微信已由 postflight 主发，禁用 message 工具）
 微信投递已在 **Step 3 的 `intraday_postflight` 用 fresh-token 短连接发出**（cron `--no-deliver`，不 announce）——唯一路径。拼 `wechat_prefix` + 报告，**无标题**（高频推送避免刷屏），作为**本回合最终文本回复**输出（仅存档）。**不要调 `message`/send 工具**（postflight 已发，再调会双发）；`intraday_watchdog` 只在 Telegram marker 缺失/失败时补投 Telegram，不重发微信。
 
 **和 Mode 6 的区别**：单段 `▎我的看法` 取代三段；无 ▎风险提示；不提交
-`portfolio.json`（但会发布 dashboard 语义变化）；holdings 用 markdown 表格。
+`portfolio.json`（但会发布 dashboard 语义变化 + slot heartbeat）；holdings 用 markdown 表格。
 
 ### Mode 6 — WeChat Briefing (cron-driven, harness 化 ✨)
 **When:** 港股开盘/午盘/午后/收盘 4 个 cron job 全部走这个 mode。

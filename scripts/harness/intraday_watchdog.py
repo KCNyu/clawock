@@ -57,6 +57,9 @@ from _watchdog_common import (  # noqa: E402
     transcript_loop_score, last_report_text, send_telegram,
 )
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'data'))
+import cron_heartbeat  # noqa: E402
+
 LOOP_THRESHOLD = 5         # transcript loop_score ≥ this ⇒ mimo repeat-loop ⇒ garbage
 MARKER_FRESH_MS = 25 * 60 * 1000  # postflight send-marker older than this ⇒ treat as not-this-slot
 
@@ -89,6 +92,9 @@ def main():
     last = runs_today[-1]
     run_at = last.get('runAtMs')
     session_id = last.get('sessionId')
+    run_dt = (datetime.fromtimestamp(run_at / 1000, HKT)
+              if isinstance(run_at, (int, float)) else datetime.now(HKT))
+    heartbeat_job, heartbeat_slot = cron_heartbeat.slot_for(args.market, run_dt)
 
     # Dedupe per slot (one re-send per intraday run, keyed by runAtMs).
     flag = WS / 'memory' / '.tmp' / f'watchdog-{tag}-{run_at}.done'
@@ -121,6 +127,11 @@ def main():
              'target': KCN_TELEGRAM, 'out': tg_out})
         if tg_ok and not args.dry_run:
             flag.write_text(datetime.now(HKT).isoformat())
+            cron_heartbeat.record(
+                args.market, 'watchdog_backstop', at=run_dt,
+                job_name=heartbeat_job, slot=heartbeat_slot,
+                watchdog_state='deterministic_fallback', telegram_sent=True,
+            )
         print(json.dumps({'tag': tag, 'deterministic_fallback': tg_ok,
                           'dry_run': args.dry_run}, ensure_ascii=False))
         return 0
@@ -149,6 +160,11 @@ def main():
     # TG is covered iff postflight's cosend confirmably delivered this report to
     # Telegram this slot (fresh marker, matching first line, tg_ok=true).
     if marker and marker.get('tg_ok') and fresh and matches:
+        cron_heartbeat.record(
+            args.market, 'completed', at=run_dt,
+            job_name=heartbeat_job, slot=heartbeat_slot,
+            watchdog_state='ok', telegram_sent=True,
+        )
         log({'tag': tag, 'action': 'ok',
              'reason': 'postflight cosend already delivered Telegram this slot — no backstop',
              'run_at': run_at})
@@ -172,6 +188,17 @@ def main():
     # Slot handled once Telegram landed — don't keep retrying a report kcn has.
     if tg_ok and not args.dry_run:
         flag.write_text(datetime.now(HKT).isoformat())
+        cron_heartbeat.record(
+            args.market, 'watchdog_backstop', at=run_dt,
+            job_name=heartbeat_job, slot=heartbeat_slot,
+            watchdog_state='telegram_mirror', telegram_sent=True,
+        )
+    elif not args.dry_run:
+        cron_heartbeat.record(
+            args.market, 'watchdog_failed', at=run_dt,
+            job_name=heartbeat_job, slot=heartbeat_slot,
+            watchdog_state='telegram_mirror_failed', telegram_sent=False,
+        )
 
     print(json.dumps({'tag': tag, 'mirrored_telegram': tg_ok,
                       'reason': reason, 'dry_run': args.dry_run}, ensure_ascii=False))

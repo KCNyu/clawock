@@ -1,7 +1,7 @@
 name: Cron Health Check
 
 # 17:00 HKT = 09:00 UTC 工作日 — 港股收盘后、美股开盘前 一窗口
-# 检查今日 cron 应该跑了几次 vs git log 实际 commit 数
+# 报告任务对 git 产物；盘中任务对逐 slot heartbeat
 # 缺漏 → workflow fail（README badge 红 + 邮件通知 GH owner）
 on:
   schedule:
@@ -27,7 +27,9 @@ jobs:
         run: |
           # CI cannot query the host's SQLite, so it consumes the tracked mirror.
           # system_check.py compares this contract with the live CLI on the host.
-          python3 scripts/data/cron_health_check.py --jobs-file config/cron-schedules.json
+          python3 scripts/data/cron_health_check.py \
+            --jobs-file config/cron-schedules.json \
+            --heartbeats-file assets/data/cron-heartbeats.json
           # On a miss this exits non-zero → workflow red (README badge). We deliberately
           # do NOT open an issue: per kcn's "no per-cron alerts" preference the daily review
           # covers it.

@@ -15,9 +15,8 @@ fi
 echo "▸ running clawock system_check.py before push…"
 # NOTE: `set -e` above means a non-zero exit here would abort the hook BEFORE we
 # inspect RC — which is exactly what we must NOT do for RC=2 (warnings, allow).
-# So capture the rc without letting set -e kill us. (2026-06-05: a 6.1 SQLite
-# migration warning — cron jobs.json moved → system_check returns 2 — was
-# silently turning every push into "failed to push some refs".)
+# So capture the rc without letting set -e kill us. Warning-only checks use RC=2
+# and must never become a generic "failed to push some refs" error.
 RC=0
 python3 "$WS/scripts/system_check.py" || RC=$?
 

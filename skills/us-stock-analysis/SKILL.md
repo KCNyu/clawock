@@ -77,10 +77,10 @@ Pick the smallest mode that answers the question. Default to **Quick Read** unle
 7. Output: executive summary + bull case + bear case + valuation + technical setup + sentiment read + risk + catalyst calendar + concrete entry/exit levels
 
 ### Mode 7 — Intraday Check-in (cron-driven, every 30 min, harness 化 ✨)
-**When:** US 盘中由两个 HKT cron 拼接（`*/30 22-23 * * 1-5` +
-`*/30 0-2 * * 2-6 Asia/Shanghai`，当前 EDT 季共 10 次/交易日，最晚 02:30 HKT），
-比 Mode 6 更轻量、更高频。采用 HKT 是为绕过 daemon 的 ET timezone 解析问题；
-美东冬令时切换时必须同步调整 tracked cron contract 与 live schedule。
+**When:** US 盘中由 evening + overnight 两个 HKT cron 拼接，比 Mode 6 更轻量、更高频。
+精确 EDT/EST 表达式只读 `config/cron-schedules.json` / 生成的 `CRON_SCHEDULES.md`；
+每日 DST 同步器会同时调整 live cron 与 watchdog。隔夜始终最晚 02:30 HKT，给 03:00
+dreaming 留独占窗口，所以 EST 季比 EDT 季少两个 slot。
 
 **Harness 4-step**：
 
@@ -113,14 +113,15 @@ python3 /root/.openclaw/workspace/scripts/harness/intraday_preflight.py --market
 python3 /root/.openclaw/workspace/scripts/harness/intraday_postflight.py --market us <<< "{报告}"
 ```
 **不提交 `portfolio.json`**；若 dashboard 有语义变化，postflight 会重建并提交
-`assets/data/dashboard.json`。
+`assets/data/dashboard.json`。每个 slot 的完成/投递状态另写 heartbeat，由 single
+publisher 发布。
 
 #### Step 4: 输出报告（仅存档；微信已由 postflight 主发，禁用 message 工具）
 微信投递已在 **Step 3 的 `intraday_postflight` 用 fresh-token 短连接发出**（cron `--no-deliver`，不 announce）——唯一路径。拼 `wechat_prefix` + 报告，**无标题**，作为**本回合最终文本回复**直接输出（仅存档）。
 - ❌ **禁止调用 `message`/send 工具** — postflight 已发，手动再调会**双发**；`intraday_watchdog` 只在 Telegram marker 缺失/失败时补投 Telegram，不重发微信。整轮只输出一次，发完即停。
 
 **和 Mode 6 的区别**：单段 `▎我的看法` 取代三段；无 ▎风险提示；不提交
-`portfolio.json`（但会发布 dashboard 语义变化）；holdings 用 markdown 表格。
+`portfolio.json`（但会发布 dashboard 语义变化 + slot heartbeat）；holdings 用 markdown 表格。
 
 ### Mode 6 — WeChat Briefing (cron-driven, harness 化 ✨)
 **When:** 美股开盘 / 美股收盘 两个 cron 走这个 mode。

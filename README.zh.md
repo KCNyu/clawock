@@ -119,13 +119,13 @@ LLM 只提交决策，不能写入或修改评估结果；ID、触发、分组�
 03:00  🌙  记忆「做梦」—— 把昨天的教训提升进长期笔记
 08:00  📊  每日深度简报 —— 多层分析 + 一个裁判模型,推送到微信
 09:30  🇭🇰  港股开盘 → 10:00–11:30 / 14:00–15:30 盘中 → 12:00 午盘 → 16:00 收盘
-21:30  🇺🇸  美股开盘 → 22:00–02:30 盘中(含隔夜)→ 04:00 收盘
+09:30 ET 🇺🇸  美股开盘 → 拆分盘中盯盘 → 16:00 ET 收盘
             ↑ 每次成功完成的 reporting postflight 都会发布仪表盘语义变化
 远端   🛰️  盘前宏观 / 舆情 / 影响力扫描 + 美股开盘前新闻摘要
 每周   🧪  归档 / 健康检查 / 周复盘 / 视觉刷新
 ```
 
-全部 HKT。休市怎么办?一道**节假日 + 周末闸**会跳过运行,而不是烧 token、把一个隔夜旧价当成实时价写进去。
+港股时间为 HKT；美股按 ET 表示，对应 HKT cron 会随纽约冬夏令时自动切换。精确生成表见 [CRON_SCHEDULES.md](CRON_SCHEDULES.md)。休市怎么办?一道**节假日 + 周末闸**会跳过运行,而不是烧 token、把一个隔夜旧价当成实时价写进去。
 
 ---
 
@@ -175,8 +175,8 @@ LLM 只提交决策，不能写入或修改评估结果；ID、触发、分组�
 **写入对账(唯一真正难的地方)。** `dashboard.json` 是 100% 派生产物,却有多类 actor 在动 `master` —— cron 守护进程、远端 workflow、系统 crontab publisher、临时 session。几个月的竞态事故最后收敛成一条铁律:**一个文件只有一个写者。**
 
 - **前端直接读 scan 子文件。** `macro / sentiment / influencer_feed / us_news_digest / em_news` 不再被嵌进 `dashboard.json`,`index.html` 加载时各自 fetch。于是一个 GitHub Action 永远只提交它*自己*那个互不相交的子文件 —— 这些写者不可能冲突,而且一次 scan 的 commit 一落地就立刻上页面,无需任何重建。(GH Actions 之间仍靠 `concurrency: group: data-write` 串行。)
-- **`dashboard.json` 只有唯一一条发布路径。** 只有本地 harness 的 postflight 和一个 flock 守护的 `publish_dashboard.sh` crontab 会重建它;两者抢同一把 `/tmp/dashboard_publish.lock`,所以两次重建绝不会交错。发布者**只在语义 diff 时**才重新提交(墙钟字段全部剥掉),所以单纯的新鲜度跳动永远不会刷出空提交。
-- **调度也有可校验契约。** runtime 真值来自 `openclaw cron list --json`;[`config/cron-schedules.json`](config/cron-schedules.json) 是 CI mirror，pre-push system check 会拒绝两者漂移。GitHub 健康巡检直接消费它，不再另手写一份 stub。
+- **`dashboard.json` 只有唯一一条发布路径。** 只有本地 harness 的 postflight 和一个 flock 守护的 `publish_dashboard.sh` crontab 会重建它;两者抢同一把 `/tmp/dashboard_publish.lock`,所以两次重建绝不会交错。发布者**只在语义 diff 时**才提交 dashboard；盘中 heartbeat 可以产生独立的小 sidecar commit，但不会把纯墙钟变化的 dashboard 偷带进去。
+- **调度也有可校验契约。** runtime 真值来自 `openclaw cron list --json`;[`config/cron-schedules.json`](config/cron-schedules.json) 同时驱动[生成调度表](CRON_SCHEDULES.md)、DST 自动同步、payload/watchdog 检查和 CI health。Mode 7 会发布逐 slot heartbeat，不再是不可追踪的黑箱。
 - **所有人都经 `safe_push.sh` push** —— rebase 重试、遇真冲突 abort(不死循环);提交进来的冲突标记会在 **push hook 被拒**,坏掉的 `dashboard.json` 永远到不了 Pages。
 - **组合数字在门口就被闸住。** `portfolio.json` —— 唯一真值源 —— 写入走 advisory `flock` + 锁内重读再覆盖(`mutate_json`,原子 `os.replace`),根治 load-modify-write 竞态。**pre-push hook 会拦下任何账本违反资金守恒恒等式的 push**(`TCV = Σ 市值`、`现金 = 基线 + 成交 + 存取款`、`成本 = 移动加权`),所以没对账的改动到不了 Pages —— 而这些纯派生函数由 CI 里的 `pytest` 套件钉死。
 

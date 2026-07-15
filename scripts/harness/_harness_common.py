@@ -68,7 +68,7 @@ def refresh_today_snapshot(ws=None):
 
     Date selection (HKT-aware):
       - Mon-Fri:      write today (HK + US markets active)
-      - Sat 00-06:    write Fri (US close at ~04:00 HKT belongs to Fri)
+      - Sat 00-06:    write Fri (US close at ~04:00/05:00 HKT belongs to Fri)
       - Sun / Sat 07+: skip (no market activity, would create stale snapshot)
 
     Returns (ok, snapshot_filename_or_message). On skip returns (False, msg)

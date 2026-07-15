@@ -229,6 +229,8 @@ def load_crontab():
             name = 'gc_sessions'
         elif 'publish_dashboard' in cmd:
             name = 'publish_dashboard'
+        elif 'sync_us_cron_dst' in cmd:
+            name = 'sync_us_dst'
         elif 'gold_dca_refresh' in cmd:
             name = 'gold_dca_refresh'
         elif 'rick_broadcast_nostr' in cmd:

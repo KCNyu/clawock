@@ -483,8 +483,8 @@ def last_closed_session(leg: str) -> str | None:
 def evaluation_session(decision: dict) -> tuple[str | None, str]:
     """Which session actually grades this decision, and why.
 
-    The brief is authored 08:00 HKT, before HK opens (09:30) and long before the US
-    does (21:30 HKT) — so on a normal trading day both legs are graded by
+    The brief is authored 08:00 HKT, before HK opens (09:30 HKT) and long before the
+    US does (09:30 ET) — so on a normal trading day both legs are graded by
     `plan_date`'s own session.
 
     Three things break that:

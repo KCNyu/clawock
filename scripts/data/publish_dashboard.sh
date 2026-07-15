@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# publish_dashboard.sh — the single scheduled publisher for dashboard.json
+# publish_dashboard.sh — the single scheduled publisher for dashboard.json and
+# the Mode 7 heartbeat sidecar
 # (Option 1, 2026-07-04). GH Action scans now commit ONLY their sidecar files
 # (macro/sentiment/influencer/…); they no longer rebuild the dashboard. This
 # crontab-run publisher re-embeds those sidecars into dashboard.json and pushes,
@@ -36,6 +37,7 @@ git fetch -q origin master || true
 git merge -q --ff-only origin/master 2>/dev/null || true
 
 python3 scripts/data/build_dashboard.py
+python3 scripts/data/cron_heartbeat.py --publish
 
 # Only publish on a SEMANTIC change. build_dashboard bumps wall-clock fields on
 # every run — generated_at, and the freshness block's age_hours / days_behind
@@ -44,6 +46,7 @@ python3 scripts/data/build_dashboard.py
 # tick. Strip ALL clock fields recursively and compare; meaningful state (stale
 # booleans, stale_files, prices, cards) still triggers a publish. If nothing real
 # changed, discard the rebuild and stop.
+dashboard_semantic_changed=1
 if python3 - <<'PY'
 import json, subprocess, sys
 CLOCK = {'generated_at', 'age_hours', 'days_behind'}
@@ -63,14 +66,30 @@ except Exception:
 sys.exit(0 if new == old else 1)   # exit 0 == unchanged
 PY
 then
-  echo "publish_dashboard: no semantic change"
+  dashboard_semantic_changed=0
   git checkout -- assets/data/dashboard.json
+fi
+
+heartbeat_changed=1
+if git diff --quiet -- assets/data/cron-heartbeats.json; then
+  heartbeat_changed=0
+fi
+
+if [ "$dashboard_semantic_changed" -eq 0 ] && [ "$heartbeat_changed" -eq 0 ]; then
+  echo "publish_dashboard: no semantic or heartbeat change"
   exit 0
 fi
 
-git add assets/data/dashboard.json
+paths=()
+if [ "$dashboard_semantic_changed" -eq 1 ]; then
+  paths+=(assets/data/dashboard.json)
+fi
+if [ "$heartbeat_changed" -eq 1 ]; then
+  paths+=(assets/data/cron-heartbeats.json)
+fi
+git add -- "${paths[@]}"
 # Scope the commit to dashboard.json with an explicit pathspec: a bare `git commit`
 # would also sweep in anything ELSE already staged in the index (e.g. a human mid-edit
 # staging files at publish time), mislabeling them "scheduled publish" — happened once.
-git "${BOT_ID[@]}" commit -q -m "dashboard: scheduled publish $(date -u +%Y-%m-%dT%H:%MZ)" -- assets/data/dashboard.json
+git "${BOT_ID[@]}" commit -q -m "dashboard: scheduled publish $(date -u +%Y-%m-%dT%H:%MZ)" -- "${paths[@]}"
 bash scripts/data/safe_push.sh

@@ -11,6 +11,8 @@ on:
       - 'assets/data/dashboard.json'
       - '.github/workflows/harness-regression.yml'
       - 'config/cron-schedules.json'
+      - 'CRON_SCHEDULES.md'
+      - '.github/workflows/**'
   pull_request:
   workflow_dispatch:
 
@@ -31,6 +33,9 @@ jobs:
 
       - name: Unit tests — money-integrity derivations
         run: python3 -m pytest tests/ -q
+
+      - name: Generated cron docs match contract
+        run: python3 scripts/data/generate_cron_docs.py --check
 
       - name: Import-check all scripts
         run: |

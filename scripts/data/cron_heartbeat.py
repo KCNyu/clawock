@@ -1,0 +1,136 @@
+#!/usr/bin/env python3
+"""Local-to-public heartbeat ledger for intraday cron slots.
+
+Harness/watchdog processes only update the ignored local ledger. The existing
+single dashboard publisher copies it into a tracked public sidecar under the
+same lock, avoiding another independent git writer.
+"""
+from __future__ import annotations
+
+import argparse
+import json
+import os
+from datetime import datetime, timedelta, timezone
+from pathlib import Path
+from zoneinfo import ZoneInfo
+
+WS = Path(__file__).resolve().parents[2]
+LOCAL_PATH = WS / "memory" / ".tmp" / "cron-heartbeats.json"
+PUBLIC_PATH = WS / "assets" / "data" / "cron-heartbeats.json"
+HKT = ZoneInfo("Asia/Hong_Kong")
+SCHEMA_VERSION = 1
+KEEP_HOURS = 72
+
+
+def _now(at: datetime | None = None) -> datetime:
+    at = at or datetime.now(timezone.utc)
+    return at if at.tzinfo else at.replace(tzinfo=timezone.utc)
+
+
+def slot_for(market: str, at: datetime | None = None) -> tuple[str, str]:
+    local = _now(at).astimezone(HKT)
+    minute = 30 if local.minute >= 30 else 0
+    slot = local.replace(minute=minute, second=0, microsecond=0)
+    if market == "hk":
+        name = "盘中盯盘"
+    elif local.hour <= 3:
+        name = "美股盘中盯盘-overnight"
+    else:
+        name = "美股盘中盯盘"
+    return name, slot.isoformat()
+
+
+def _empty(at: datetime | None = None) -> dict:
+    now = _now(at)
+    return {
+        "schema_version": SCHEMA_VERSION,
+        "monitoring_started_at": now.isoformat(),
+        "updated_at": now.isoformat(),
+        "events": [],
+    }
+
+
+def load_ledger() -> dict:
+    for path in (LOCAL_PATH, PUBLIC_PATH):
+        try:
+            data = json.loads(path.read_text())
+            if data.get("schema_version") == SCHEMA_VERSION:
+                return data
+        except (FileNotFoundError, json.JSONDecodeError, OSError):
+            continue
+    return _empty()
+
+
+def _atomic_write(path: Path, data: dict) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    tmp = path.with_suffix(path.suffix + f".tmp.{os.getpid()}")
+    tmp.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n")
+    os.replace(tmp, path)
+
+
+def record(market: str, state: str, *, at: datetime | None = None,
+           job_name: str | None = None, slot: str | None = None, **details) -> dict:
+    now = _now(at)
+    derived_name, derived_slot = slot_for(market, now)
+    job_name = job_name or derived_name
+    slot = slot or derived_slot
+    ledger = load_ledger()
+    cutoff = now - timedelta(hours=KEEP_HOURS)
+    events = []
+    current = None
+    for event in ledger.get("events", []):
+        try:
+            event_time = datetime.fromisoformat(event["slot"])
+            if event_time.tzinfo is None:
+                event_time = event_time.replace(tzinfo=HKT)
+        except Exception:
+            continue
+        if event_time.astimezone(timezone.utc) < cutoff:
+            continue
+        if event.get("job") == job_name and event.get("slot") == slot:
+            current = dict(event)
+        else:
+            events.append(event)
+    current = current or {"job": job_name, "market": market, "slot": slot}
+    current.update({"state": state, "updated_at": now.isoformat()})
+    for key, value in details.items():
+        if value is not None:
+            current[key] = value
+    events.append(current)
+    events.sort(key=lambda e: (e.get("slot", ""), e.get("job", "")))
+    ledger["schema_version"] = SCHEMA_VERSION
+    ledger.setdefault("monitoring_started_at", now.isoformat())
+    ledger["updated_at"] = now.isoformat()
+    ledger["events"] = events
+    _atomic_write(LOCAL_PATH, ledger)
+    return current
+
+
+def publish() -> bool:
+    ledger = load_ledger()
+    before = PUBLIC_PATH.read_text() if PUBLIC_PATH.exists() else None
+    payload = json.dumps(ledger, ensure_ascii=False, indent=2) + "\n"
+    if before == payload:
+        return False
+    _atomic_write(PUBLIC_PATH, ledger)
+    return True
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--publish", action="store_true")
+    parser.add_argument("--market", choices=["hk", "us"])
+    parser.add_argument("--state")
+    args = parser.parse_args()
+    if args.publish:
+        changed = publish()
+        print(json.dumps({"published": changed, "path": str(PUBLIC_PATH)}))
+        return 0
+    if not args.market or not args.state:
+        parser.error("--market and --state are required unless --publish is used")
+    print(json.dumps(record(args.market, args.state), ensure_ascii=False, indent=2))
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

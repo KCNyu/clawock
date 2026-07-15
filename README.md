@@ -119,13 +119,13 @@ The goal isn't consensus — it's **forcing a real bear case to exist before any
 03:00  🌙  memory "dreaming" — promote yesterday's lessons into long-term notes
 08:00  📊  daily deep brief   — multi-tier analysis + a judge model, ships to WeChat
 09:30  🇭🇰  HK open  → 10:00–11:30 / 14:00–15:30 intraday → 12:00 mid → 16:00 close
-21:30  🇺🇸  US open  → 22:00–02:30 intraday (incl. overnight) → 04:00 close
+09:30 ET 🇺🇸  US open → split intraday monitors → 16:00 ET close
             ↑ every successful reporting postflight publishes dashboard changes
 off-host 🛰️  pre-brief macro / sentiment / influencer scans + pre-US-open news digest
 weekly  🧪  archive / health / review / visual refresh jobs
 ```
 
-All times HKT. Markets closed? A **holiday + weekend gate** skips the run instead of burning tokens and writing a stale price as if it were live.
+HK times are HKT; US session times are ET and their HKT cron expressions switch automatically with New York DST. The exact generated table is in [CRON_SCHEDULES.md](CRON_SCHEDULES.md). Markets closed? A **holiday + weekend gate** skips the run instead of burning tokens and writing a stale price as if it were live.
 
 ---
 
@@ -175,8 +175,8 @@ Four overlapping layers — OpenClaw schedules the primary jobs; a GitHub Action
 **Write reconciliation (the one genuinely hard part).** `dashboard.json` is 100% derived, yet many actors touch `master` — the cron daemon, off-host workflows, system-crontab publishers and ad-hoc sessions. Months of race-condition incidents converged on one rule: **one writer per file.**
 
 - **The frontend reads the scan sidecars directly.** `macro / sentiment / influencer_feed / us_news_digest / em_news` are no longer embedded into `dashboard.json`; `index.html` fetches each file itself at load. So a GitHub Action only ever commits its *own* disjoint sidecar — those writers can't conflict, and a scan appears on the page the instant its commit lands, with no rebuild. (GH Actions still serialize among themselves via `concurrency: group: data-write`.)
-- **`dashboard.json` has exactly one publisher path.** Only the local harness postflights and a flock-guarded `publish_dashboard.sh` crontab rebuild it; both hold the same `/tmp/dashboard_publish.lock`, so two rebuilds can never interleave. The publisher re-commits **only on a semantic diff** (wall-clock fields stripped), so a freshness tick alone never spams a no-op commit.
-- **Schedules have a checked contract.** Runtime truth comes from `openclaw cron list --json`; [`config/cron-schedules.json`](config/cron-schedules.json) is the CI mirror, and the pre-push system check rejects drift between them. GitHub's health workflow consumes that same tracked file instead of maintaining a second handwritten stub.
+- **`dashboard.json` has exactly one publisher path.** Only the local harness postflights and a flock-guarded `publish_dashboard.sh` crontab rebuild it; both hold the same `/tmp/dashboard_publish.lock`, so two rebuilds can never interleave. The publisher re-commits the dashboard **only on a semantic diff** (wall-clock fields stripped); an intraday heartbeat may produce its own small sidecar-only commit without smuggling in a clock-only dashboard change.
+- **Schedules have a checked contract.** Runtime truth comes from `openclaw cron list --json`; [`config/cron-schedules.json`](config/cron-schedules.json) drives the [generated schedule table](CRON_SCHEDULES.md), DST synchronization, payload/watchdog checks and CI health. Mode 7 publishes a slot heartbeat, so health no longer treats intraday as untrackable.
 - **Everyone pushes through `safe_push.sh`** — rebase-retry, abort (don't loop) on a real conflict; a committed conflict marker is **rejected at the push hook** so a broken `dashboard.json` can never reach Pages.
 - **Portfolio numbers are gated at the door.** `portfolio.json` — the single source of truth — is written under an advisory `flock` + read-fresh-then-overlay (`mutate_json`, atomic `os.replace`), closing the load-modify-write race class. A **pre-push hook blocks any push whose book fails a money-conservation identity** (`TCV = Σ value`, `cash = baseline + trades + adjustments`, `cost = moving-weighted`), so an un-reconciled edit can't reach Pages — and those pure derivations are pinned by a `pytest` suite in CI.
 

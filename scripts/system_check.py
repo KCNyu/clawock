@@ -296,47 +296,36 @@ def check_cron_paths_exist(r):
             r.add('cron paths', WARNING, 'openclaw CLI returned 0 cron jobs (storage regression? run doctor --fix)')
         return
 
-    contract_path = WS / 'config' / 'cron-schedules.json'
     try:
-        contract = json.loads(contract_path.read_text()).get('jobs', [])
-        expected = {
-            j['name']: (
-                (j.get('schedule') or {}).get('expr'),
-                (j.get('schedule') or {}).get('tz'),
-                j.get('enabled', True),
-            )
-            for j in contract
-        }
-        actual = {
-            j['name']: (
-                (j.get('schedule') or {}).get('expr'),
-                (j.get('schedule') or {}).get('tz'),
-                j.get('enabled', True),
-            )
-            for j in jobs
-        }
-        missing = sorted(set(expected) - set(actual))
-        extra = sorted(set(actual) - set(expected))
-        changed = sorted(
-            name for name in set(expected) & set(actual)
-            if expected[name] != actual[name]
+        sys.path.insert(0, str(WS / 'scripts' / 'data'))
+        from cron_contract import (  # type: ignore
+            load_contract, next_us_dst_transition, us_season,
+            validate_live_jobs, validate_watchdogs,
         )
-        if missing or extra or changed:
-            detail = []
-            if missing:
-                detail.append(f'missing={missing}')
-            if extra:
-                detail.append(f'extra={extra}')
-            if changed:
-                detail.append(
-                    'changed=' + str({n: {'expected': expected[n], 'actual': actual[n]}
-                                      for n in changed})
-                )
-            r.add('cron schedule contract', CRITICAL, '; '.join(detail))
+        contract = load_contract()
+        errors = validate_live_jobs(contract, jobs)
+        if errors:
+            r.add('cron runtime contract', CRITICAL, '; '.join(errors[:8]))
         else:
-            r.add('cron schedule contract', OK, f'{len(actual)} live jobs match tracked config')
+            transition = next_us_dst_transition()
+            next_label = transition.date().isoformat() if transition else 'unknown'
+            r.add('cron runtime contract', OK,
+                  f'{len(jobs)} jobs · schedule+payload match · US={us_season()} next={next_label}')
+        crontab = subprocess.run(
+            ['crontab', '-l'], capture_output=True, text=True, timeout=10,
+        )
+        if crontab.returncode != 0:
+            r.add('watchdog cron contract', CRITICAL, 'crontab -l failed')
+        else:
+            watchdog_errors = validate_watchdogs(contract, crontab.stdout)
+            if watchdog_errors:
+                r.add('watchdog cron contract', CRITICAL, '; '.join(watchdog_errors[:8]))
+            else:
+                n_watchdogs = sum(bool(j.get('watchdog')) for j in contract['jobs'])
+                r.add('watchdog cron contract', OK,
+                      f'{n_watchdogs} watchdogs + daily DST sync match tracked config')
     except Exception as e:
-        r.add('cron schedule contract', CRITICAL, f'cannot validate: {e}')
+        r.add('cron runtime contract', CRITICAL, f'cannot validate: {e}')
 
     refs = set()
     for j in jobs:
@@ -347,6 +336,19 @@ def check_cron_paths_exist(r):
         r.add('cron paths', CRITICAL, f'missing: {missing}')
     else:
         r.add('cron paths', OK, f'{len(jobs)} jobs · {len(refs)} referenced scripts present')
+
+
+def check_generated_cron_docs(r):
+    """Generated schedule documentation must exactly match the contract."""
+    result = subprocess.run(
+        ['python3', str(WS / 'scripts' / 'data' / 'generate_cron_docs.py'), '--check'],
+        capture_output=True, text=True, timeout=15, cwd=str(WS),
+    )
+    if result.returncode == 0:
+        r.add('generated cron docs', OK, 'CRON_SCHEDULES.md matches contract')
+    else:
+        r.add('generated cron docs', CRITICAL,
+              (result.stdout + result.stderr).strip()[-300:])
 
 
 def main():
@@ -362,6 +364,7 @@ def main():
         check_openclaw_doctor,
         check_decision_ledger,
         check_cron_paths_exist,
+        check_generated_cron_docs,
     ]
     for c in checks:
         try:

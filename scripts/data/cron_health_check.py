@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 """
-cron_health_check.py — EOD 巡检：今日 cron 应该跑了几次 vs 实际跑了几次。
+cron_health_check.py — EOD 巡检：报告产出 commit + 盘中逐 slot heartbeat。
 
 本机通过 OpenClaw CLI/SQLite 读取 live schedule；GitHub Actions 通过
 `config/cron-schedules.json` 读取同一份受版本控制的 schedule contract。然后按
-HKT（不是 runner 本地时区）读取 git commit log，核对该产出的报告是否落盘。
+HKT（不是 runner 本地时区）读取 git commit log；Mode 7 则读取公开 heartbeat
+ledger，核对每个已过 slot 是否完成或由 watchdog 接管。
 
 输出：缺失/告警/正常 列表。可作为 GH Action 跑 EOD 一次，或者手动运行。
 
@@ -25,12 +26,14 @@ import os
 import re
 import subprocess
 import sys
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
 WS = Path(__file__).resolve().parents[2]
 HKT = ZoneInfo('Asia/Hong_Kong')
+TERMINAL_HEARTBEAT_STATES = {'completed', 'watchdog_backstop', 'market_closed'}
+HEARTBEAT_GRACE_MINUTES = 25
 
 # Cron name → identifying commit msg patterns
 COMMIT_PATTERNS = {
@@ -113,7 +116,7 @@ def commit_count_today(commit_pattern):
     miss every day. Parse the ISO offset carried by each commit instead.
     """
     if not commit_pattern:
-        return None  # Mode 7 / dream don't commit
+        return None  # Mode 7 uses heartbeats; dream has no output contract
     today = datetime.now(HKT).date()
     try:
         r = subprocess.run(
@@ -141,8 +144,14 @@ def commit_count_today(commit_pattern):
 def load_runtime_jobs(jobs_file=None):
     """Load cron jobs from an explicit tracked contract or the live CLI layer."""
     if jobs_file:
-        data = json.loads(Path(jobs_file).read_text())
-        return data.get('jobs', [])
+        from cron_contract import effective_schedule, load_contract
+        data = load_contract(jobs_file)
+        jobs = []
+        for job in data['jobs']:
+            resolved = dict(job)
+            resolved['schedule'] = effective_schedule(job)
+            jobs.append(resolved)
+        return jobs
 
     sys.path.insert(0, str(WS / 'scripts' / 'harness'))
     from _watchdog_common import load_jobs
@@ -150,6 +159,78 @@ def load_runtime_jobs(jobs_file=None):
     if not jobs:
         raise RuntimeError('OpenClaw CLI returned no cron jobs; run `openclaw doctor --fix`')
     return jobs
+
+
+def load_heartbeats(path=None):
+    """Load the host-local ledger when present, otherwise the tracked public copy."""
+    candidates = ([Path(path)] if path else [
+        WS / 'memory' / '.tmp' / 'cron-heartbeats.json',
+        WS / 'assets' / 'data' / 'cron-heartbeats.json',
+    ])
+    for candidate in candidates:
+        try:
+            data = json.loads(candidate.read_text())
+            if data.get('schema_version') == 1:
+                return data
+        except (FileNotFoundError, json.JSONDecodeError, OSError):
+            continue
+    return None
+
+
+def heartbeat_coverage(job_name, slots, tz_name, now, ledger):
+    """Return monitored/healthy/missing slot sets for one intraday job."""
+    if not ledger:
+        return {'monitored': slots, 'healthy': [], 'missing': slots,
+                'failed': [], 'pending': []}
+    try:
+        started = datetime.fromisoformat(ledger['monitoring_started_at'])
+        if started.tzinfo is None:
+            started = started.replace(tzinfo=HKT)
+    except Exception:
+        started = datetime.min.replace(tzinfo=timezone.utc)
+    tz = ZoneInfo(tz_name)
+    local_day = now.astimezone(tz).date()
+    monitored = []
+    for slot in slots:
+        hour, minute = map(int, slot.split(':'))
+        slot_dt = datetime.combine(local_day, datetime.min.time(), tzinfo=tz).replace(
+            hour=hour, minute=minute
+        )
+        if slot_dt.astimezone(timezone.utc) >= started.astimezone(timezone.utc):
+            monitored.append(slot)
+    events = {}
+    for event in ledger.get('events', []):
+        if event.get('job') != job_name:
+            continue
+        try:
+            event_dt = datetime.fromisoformat(event['slot'])
+            if event_dt.tzinfo is None:
+                event_dt = event_dt.replace(tzinfo=HKT)
+            event_local = event_dt.astimezone(tz)
+        except Exception:
+            continue
+        if event_local.date() == local_day:
+            events[event_local.strftime('%H:%M')] = event
+    healthy, failed, missing, pending = [], [], [], []
+    for slot in monitored:
+        hour, minute = map(int, slot.split(':'))
+        slot_dt = datetime.combine(local_day, datetime.min.time(), tzinfo=tz).replace(
+            hour=hour, minute=minute
+        )
+        within_grace = now.astimezone(tz) - slot_dt < timedelta(
+            minutes=HEARTBEAT_GRACE_MINUTES
+        )
+        event = events.get(slot)
+        if not event:
+            (pending if within_grace else missing).append(slot)
+        elif event.get('state') in TERMINAL_HEARTBEAT_STATES:
+            healthy.append(slot)
+        elif within_grace:
+            pending.append(f"{slot}:{event.get('state', '?')}")
+        else:
+            failed.append(f"{slot}:{event.get('state', '?')}")
+    return {'monitored': monitored, 'healthy': healthy, 'missing': missing,
+            'failed': failed, 'pending': pending}
 
 
 def check_dashboard_build():
@@ -205,6 +286,7 @@ def main():
     ap.add_argument('--json', action='store_true')
     ap.add_argument('--silent', action='store_true')
     ap.add_argument('--jobs-file', help='tracked cron contract (used by CI)')
+    ap.add_argument('--heartbeats-file', help='published heartbeat ledger (used by CI)')
     args = ap.parse_args()
 
     try:
@@ -215,6 +297,7 @@ def main():
         sys.exit(1)
 
     now = datetime.now(timezone.utc)
+    heartbeat_ledger = load_heartbeats(args.heartbeats_file)
 
     report = []
     has_missing = False
@@ -267,9 +350,29 @@ def main():
                 has_missing = True
             else:
                 detail = f'{commit_n}/{len(expected_past)} commits OK'
+        elif name in ('盘中盯盘', '美股盘中盯盘', '美股盘中盯盘-overnight'):
+            coverage = heartbeat_coverage(name, expected_past, tz, now, heartbeat_ledger)
+            if not coverage['monitored']:
+                detail = f'{len(expected_past)} slot(s) before heartbeat monitoring start'
+                status = 'monitoring-grace'
+            elif coverage['missing'] or coverage['failed']:
+                status = 'missing'
+                bits = []
+                if coverage['missing']:
+                    bits.append('missing=' + ','.join(coverage['missing']))
+                if coverage['failed']:
+                    bits.append('failed=' + ','.join(coverage['failed']))
+                detail = (f"heartbeat {len(coverage['healthy'])}/{len(coverage['monitored'])}; "
+                          + '; '.join(bits))
+                has_missing = True
+            elif coverage['pending']:
+                status = 'running'
+                detail = 'heartbeat pending within grace: ' + ','.join(coverage['pending'])
+            else:
+                status = 'ok-heartbeat'
+                detail = f"heartbeat {len(coverage['healthy'])}/{len(coverage['monitored'])} slots OK"
         else:
-            # Intraday/dream jobs do not have a one-commit-per-slot contract.
-            detail = f'{len(expected_past)} slots expected (no commit-count contract)'
+            detail = f'{len(expected_past)} slots expected (no output contract)'
             status = 'ok-no-track'
 
         report.append({
@@ -302,7 +405,9 @@ def main():
     elif not args.silent:
         print(f"═══ cron health @ {summary['now_hkt']} ═══")
         for r in report:
-            icon = {'ok':'✓','idle':'·','missing':'✗','ok-no-track':'~','holiday':'🏖'}.get(r['status'], '·')
+            icon = {'ok':'✓','idle':'·','missing':'✗','ok-no-track':'~',
+                    'ok-heartbeat':'✓','monitoring-grace':'·','running':'…',
+                    'holiday':'🏖'}.get(r['status'], '·')
             print(f"  {icon} {r['name']:25s}  {r['detail']}")
         dash_icon = {'ok':'✓','degraded':'⚠','stale':'⚠','failed':'✗','absent':'·'}[dash['state']]
         print(f"  {dash_icon} {'dashboard build':25s}  {dash['detail']}")

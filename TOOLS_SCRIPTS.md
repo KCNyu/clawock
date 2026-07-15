@@ -41,9 +41,9 @@ title: clawock · scripts 详细参考
 - **`scripts/harness/report_postflight.py --market {hk|us} --phase {phase}`**：校验三段标记 / 原始数据块 verbatim / 异动票必须被提及 / 长度 / 敷衍词；pass/warn 自动刷新 snapshot/dashboard、scoped commit + push，并主发 WeChat + 镜像 Telegram。
 - **`scripts/harness/report_watchdog.py --market {hk|us} --phase {phase} --job-name "{cron名}"`**：系统 crontab 的 LLM-free Telegram-only backstop。覆盖 HK 4 班 + US 开/收 2 班；读取 postflight delivery marker，只有 Telegram 未确认时才补投，绝不重发 WeChat。
 
-**Mode 7 intraday**（HK + US 盘中盯盘 — 3 个 cron job 共享同一套脚本；HK 8 slots，US 当前 EDT 季 10 slots，最晚 02:30 HKT）
+**Mode 7 intraday**（HK + US 盘中盯盘 — 3 个 cron job 共享同一套脚本；季节化 slot 数和精确时间只看生成调度表，隔夜始终最晚 02:30 HKT）
 - **`scripts/harness/intraday_preflight.py --market {hk|us}`**：跑 analyze_*.py + 异动检测 + `should_alert` 决策；输出 `memory/.tmp/intraday-context-{market}-latest.json`
-- **`scripts/harness/intraday_postflight.py --market {hk|us}`**：校验 ▎我的看法 / 长度 / should_alert 触发时报告必须提异动票；不提交 `portfolio.json`，dashboard 仅在语义变化时 commit + push。
+- **`scripts/harness/intraday_postflight.py --market {hk|us}`**：校验 ▎我的看法 / 长度 / should_alert 触发时报告必须提异动票；不提交 `portfolio.json`，dashboard 仅在语义变化时 commit + push；无论有无 dashboard diff 都更新本地 slot heartbeat，交 single publisher 发布。
 
 **共通设计点**：
 - preflight 输出 `raw_wechat_block` 字段，LLM **必须 verbatim 拷贝**（不改时间戳/数字），postflight 用首行匹配验证
@@ -64,28 +64,21 @@ title: clawock · scripts 详细参考
 - **`scripts/data/safe_push.sh`**：共享 git push 防 conflict 死循环工具。3 次 retry + 每次 rebase 失败 → `git rebase --abort` + exit 2（不死循环 push）。所有写文件的 GH Action workflow 用 `bash scripts/data/safe_push.sh` 替代原本的 push loop；harness 端 `scripts/harness/_harness_common.push_with_rebase_retry` **直接委托本脚本**（2026-06-10 统一，自动获得 rebase.autoStash + 冲突标记硬闸），全体 committer 单一 push 路径。
 - **`scripts/data/update_portfolio.py`** / **`update_us_portfolio.js`**：手动调仓后写 portfolio.json 的辅助
 
-### Cron map（**11 个 job，runtime 真值经 `openclaw cron list --json` 读取；CI mirror 为 `config/cron-schedules.json`，system check 强制两者一致**）
+### Cron map
 
-| Job 名 | Schedule | Mode | Preflight | Postflight |
-|---|---|---|---|---|
-| Memory Dreaming Promotion | 03:00 daily | (system) | — | — |
-| 📊 盘前深度简报 | **08:00 HKT 工作日** | `daily-deep-brief` (全 swarm + FX + SEC EDGAR) | `brief_preflight.py` | `brief_postflight.py` |
-| 港股开盘报告 | 09:30 HKT 工作日 | Mode 6 | `report_preflight.py --market hk --phase open` | `report_postflight.py --market hk --phase open` |
-| 港股盘中盯盘 | 10-11,14-15 每 30 分 HKT 工作日（共 8 次，错开 09:30/12:00/13:30/16:00 报告） | Mode 7 | `intraday_preflight.py --market hk` | `intraday_postflight.py --market hk` |
-| 港股午盘报告 | 12:00 HKT 工作日 | Mode 6 | `report_preflight.py --market hk --phase mid` | `report_postflight.py --market hk --phase mid` |
-| 港股午后快报 | 13:30 HKT 工作日 | Mode 6 | `report_preflight.py --market hk --phase pm` | `report_postflight.py --market hk --phase pm` |
-| 港股收盘报告 | 16:00 HKT 工作日 | Mode 6 | `report_preflight.py --market hk --phase close` | `report_postflight.py --market hk --phase close` |
-| 美股开盘报告 | **21:30 HKT** 工作日 (= 09:30 ET EDT, **HKT 表达式绕过 daemon ET tz bug**) | Mode 6 | `report_preflight.py --market us --phase open` | `report_postflight.py --market us --phase open` |
-| 美股盘中盯盘 (evening) | **22:00-23:30 HKT** 工作日 (= ET 10:00-11:30 EDT, 拆分跨日 part 1) | Mode 7 | `intraday_preflight.py --market us` | `intraday_postflight.py --market us` |
-| 美股盘中盯盘-overnight | **00:00-02:30 HKT 次日** DOW 2-6 (= ET 12:00-14:30 EDT, 隔夜上限留出 03:00 dreaming 窗口) | Mode 7 | 同上 | 同上 |
-| 美股收盘报告 | **04:00 HKT 次日** 工作日 DOW 2-6 (= 16:00 ET EDT, 同上) | Mode 6 | `report_preflight.py --market us --phase close` | `report_postflight.py --market us --phase close` |
+精确的 11-job schedule、EDT/EST 表达式、Mode/harness 和 10 条 watchdog 映射由
+`config/cron-schedules.json` 单源维护，生成的人读表见 [`CRON_SCHEDULES.md`](CRON_SCHEDULES.md)。
+`sync_us_cron_dst.py --apply` 每日自动对齐美股 live cron + system watchdog；
+`cron_heartbeat.py` 维护 Mode 7 slot ledger，由现有 single publisher 发布。
 
 所有 harness preflight/postflight 都在 `scripts/harness/`。Mode 6 / brief / Mode 7 的 postflight
-都会重建 dashboard；Mode 7 不提交 `portfolio.json`，只有 dashboard 出现语义变化才发布。
+都会重建 dashboard；Mode 7 不提交 `portfolio.json`，dashboard 只发布语义变化，但每个
+受监控 slot 的 heartbeat 都会发布并由 cron health 对账。
 
 cron payload 是真实执行面，会为隔离 session 自包含关键步骤；SKILL.md 是详细规范。改格式时
 必须同时 diff payload 与对应 Mode，尤其 Step 2.5 sidecar。schedule 的 runtime 真值来自 CLI，
-tracked mirror 在 `config/cron-schedules.json`，两者漂移会被 `scripts/system_check.py` 拦截。
+tracked contract 在 `config/cron-schedules.json`；schedule、payload、watchdog 或生成文档漂移
+都会被 `scripts/system_check.py` / CI 拦截。
 
 **改 cron prompt 的安全步骤**（6.1 后只走 CLI，不碰文件）：
 ```bash

@@ -13,9 +13,9 @@ Validates:
   4. 若 preflight should_alert=true：报告必须提到至少一个异动票或 alert_reason
   5. 无敷衍 phrases
 
-Note: Mode 7 does NOT commit portfolio.json (cron runs */30 too noisy to commit
-each refresh). But it DOES rebuild + commit dashboard.json so the public Pages
-front-end shows the latest 30-min prices instead of stale brief/report snapshots.
+Note: Mode 7 does NOT commit portfolio.json. It rebuilds dashboard.json and commits
+only semantic changes; every slot also updates the local heartbeat ledger, which
+the existing single publisher exposes without introducing another git writer.
 """
 
 import argparse
@@ -43,6 +43,7 @@ TMP = WS / 'memory' / '.tmp'
 
 sys.path.insert(0, str(WS / 'scripts' / 'data'))
 import trading_calendar  # noqa: E402
+import cron_heartbeat  # noqa: E402
 
 REQUIRED_SECTION = '▎我的看法'
 FORBIDDEN_PHRASES = ['数据待获取', '等待数据', 'TODO', 'TBD']
@@ -131,6 +132,9 @@ def main():
 
     ctx, err = load_context(args.market)
     if ctx is None:
+        cron_heartbeat.record(
+            args.market, 'postflight_failed', failure_stage='context_load',
+        )
         result = {
             'status': 'fail',
             'issues': [err],
@@ -173,6 +177,7 @@ def main():
     # record the real send result to a marker so intraday_watchdog only re-sends on
     # a CONFIRMED failure (never doubles a report that went out here).
     wechat_sent = None
+    tg_ok = None
     marker = TMP / f'intraday-sent-{args.market}.json'
     # Idempotency: if openclaw auto-retried this run (post-turn summary-gen failure),
     # the report already went out on the prior attempt — skip the re-send. Intraday's
@@ -180,6 +185,12 @@ def main():
     # few-min retry gap) to tell a retry from the next legit slot. See already_delivered.
     if status in ('pass', 'warn') and already_delivered(marker, within_ms=20 * 60 * 1000):
         print('idempotency: intraday already delivered this slot — skip re-send', file=sys.stderr)
+        try:
+            prior = json.loads(marker.read_text())
+            wechat_sent = prior.get('sent_ok')
+            tg_ok = prior.get('tg_ok')
+        except Exception:
+            pass
     elif status in ('pass', 'warn'):
         block_first = (ctx.get('raw_wechat_block', '') or '').strip().splitlines()
         block_first = block_first[0] if block_first else ''
@@ -236,8 +247,22 @@ def main():
         'wechat_prefix': wechat_prefix,
         'n_chars':       len(text),
         'wechat_sent':   wechat_sent,
+        'telegram_sent': tg_ok,
         'dashboard_published': dashboard_published,
         'insights_sidecar': insights_written,
+    }
+    heartbeat = ctx.get('heartbeat') or {}
+    cron_heartbeat.record(
+        args.market,
+        'completed' if status in ('pass', 'warn') else 'postflight_failed',
+        job_name=heartbeat.get('job'), slot=heartbeat.get('slot'),
+        postflight_status=status, wechat_sent=wechat_sent,
+        telegram_sent=tg_ok, dashboard_published=dashboard_published,
+        insights_sidecar=insights_written, issue_count=len(issues),
+    )
+    result['heartbeat'] = {
+        'job': heartbeat.get('job'), 'slot': heartbeat.get('slot'),
+        'state': 'completed' if status in ('pass', 'warn') else 'postflight_failed',
     }
     print(json.dumps(result, ensure_ascii=False, indent=2))
     return 0 if status == 'pass' else (1 if status == 'warn' else 2)

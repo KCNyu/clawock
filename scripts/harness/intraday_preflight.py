@@ -35,6 +35,7 @@ TMP = WS / 'memory' / '.tmp'
 
 sys.path.insert(0, str(DATA_DIR))
 import trading_calendar  # noqa: E402
+import cron_heartbeat  # noqa: E402
 
 
 def run_analyze(market):
@@ -119,13 +120,19 @@ def main():
 
     now = datetime.now()
     stamp = now.strftime('%Y-%m-%d_%H%M')
+    heartbeat = cron_heartbeat.record(args.market, 'started')
 
     # Holiday/weekend gate (before fetch): closed market → no stale price write,
     # emit a market_closed sentinel (no alert), exit 0.
     reason = trading_calendar.closed_reason(args.market)
     if reason:
+        cron_heartbeat.record(
+            args.market, 'market_closed', job_name=heartbeat['job'],
+            slot=heartbeat['slot'], reason=reason,
+        )
         result = {'status': 'market_closed', 'market': args.market,
-                  'reason': reason, 'should_alert': False, 'skip': True}
+                  'reason': reason, 'should_alert': False, 'skip': True,
+                  'heartbeat': {'job': heartbeat['job'], 'slot': heartbeat['slot']}}
         TMP.mkdir(parents=True, exist_ok=True)
         payload = json.dumps(result, ensure_ascii=False, indent=2)
         (TMP / f'intraday-context-{args.market}-{stamp}.json').write_text(payload)
@@ -141,10 +148,15 @@ def main():
     rc, stdout, stderr = run_analyze(args.market)
 
     if rc != 0:
+        cron_heartbeat.record(
+            args.market, 'preflight_failed', job_name=heartbeat['job'],
+            slot=heartbeat['slot'], failure_stage='preflight', return_code=rc,
+        )
         result = {
             'status': 'preflight_failed',
             'market': args.market,
             'error':  stderr[-500:] if stderr else f'rc={rc}',
+            'heartbeat': {'job': heartbeat['job'], 'slot': heartbeat['slot']},
         }
         TMP.mkdir(parents=True, exist_ok=True)
         (TMP / f'intraday-context-{args.market}-{stamp}.json').write_text(
@@ -192,7 +204,14 @@ def main():
         'should_alert':     should_alert,
         'alert_reasons':    alert_reasons,
         't0_setups':        t0_setups,
+        'heartbeat':        {'job': heartbeat['job'], 'slot': heartbeat['slot']},
     }
+
+    cron_heartbeat.record(
+        args.market, 'preflight_ok', job_name=heartbeat['job'],
+        slot=heartbeat['slot'], should_alert=should_alert,
+        anomaly_count=len(anomalies),
+    )
 
     TMP.mkdir(parents=True, exist_ok=True)
     out_path = TMP / f'intraday-context-{args.market}-{stamp}.json'
