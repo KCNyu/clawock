@@ -2,6 +2,7 @@ import copy
 import sys
 import unittest
 from pathlib import Path
+from unittest import mock
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts" / "data"))
@@ -26,6 +27,46 @@ def decision(day, ticker="AAA", strategy="core_position", action="hold_and_watch
         "capital": capital,
     }
     return d
+
+
+def _snapshot(price):
+    return {"portfolios": {
+        "us_stocks": {"holdings": [{"ticker": "AAA", "current_price": price,
+                                    "day_open": price, "day_high": price, "day_low": price}]},
+        "hk_stocks": {"holdings": []}}}
+
+
+def _settle_against(now_date, t1_price):
+    """Settle one 07-01 call when 07-02's snapshot prints ``t1_price``."""
+    row = dv2.legacy_action_to_decision({
+        "ticker": "AAA", "strategy_id": "core_position", "action": "cut",
+        "condition": {"type": "open"}, "confidence": 0.6, "driven_by": "technical",
+    }, "2026-07-01")
+    snaps = {"2026-07-01": _snapshot(10.0), "2026-07-02": _snapshot(t1_price)}
+    with mock.patch.object(dv2, "snapshot_dates", return_value=sorted(snaps)), \
+         mock.patch.object(dv2, "load_snapshot", side_effect=snaps.get):
+        dv2.settle_decisions([row], now_date=now_date)
+    return row["evaluation"]
+
+
+class LiveSnapshotTest(unittest.TestCase):
+    """Today's snapshot is rewritten every ~30min; it must not score a session."""
+
+    def test_todays_snapshot_never_settles(self):
+        self.assertEqual(_settle_against("2026-07-02", 9.0)["outcome"], "pending")
+
+    def test_the_tape_cannot_move_a_settled_record(self):
+        # The bug: 07-02 intraday, this call read 'win' at one print and 'loss'
+        # at the next. Pending at both is the whole point.
+        up = _settle_against("2026-07-02", 9.0)     # cut, stock down -> would win
+        down = _settle_against("2026-07-02", 11.0)  # cut, stock up   -> would lose
+        self.assertEqual(up["outcome"], down["outcome"])
+        self.assertIsNone(up["benefit_t1_pct"])
+
+    def test_a_finalised_session_still_settles(self):
+        ev = _settle_against("2026-07-03", 9.0)
+        self.assertEqual(ev["outcome"], "win")       # cut before a 10 -> 9 drop
+        self.assertEqual(ev["benefit_t1_pct"], 10.0)
 
 
 class DecisionV2Test(unittest.TestCase):

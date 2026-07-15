@@ -32,6 +32,9 @@ LEDGER = WS / "memory" / "decisions.jsonl"
 SNAP_DIR = WS / "memory" / "snapshots"
 
 SCHEMA_VERSION = 2
+# Snapshots and plan_dates are both named on the HK calendar day; comparing them
+# against a UTC "today" slips a day for the eight hours after HK midnight.
+HKT = timezone(timedelta(hours=8))
 ACTIONS = {
     "cut", "trim_on_rebound", "hold_and_watch", "t_only",
     "add_only_on_trigger", "add_on_breakout", "watch",
@@ -402,9 +405,19 @@ def _benefit(action: str, entry: float | None, later: float | None) -> tuple[flo
 
 
 def settle_decisions(decisions: list[dict], now_date: str | None = None) -> int:
-    """Recompute trigger and T+1/T+5 outcomes from snapshots in-place."""
+    """Recompute trigger and T+1/T+5 outcomes from snapshots in-place.
+
+    Today's snapshot never scores a session. The intraday cron rewrites it every
+    ~30 minutes, so grading T+1 against it lets a *settled* outcome churn with
+    the tape: on 2026-07-15 the active win rate read 45.9% at 10:02 HKT and 48.6%
+    two hours later, on nothing but a HK morning it had already called. At n=37
+    one flipped episode is 2.7pp, and the whole question is which side of 50% the
+    record sits on. A session grades only once its snapshot is final, so the
+    newest calls stay ``pending`` for a day rather than reporting a number that
+    disagrees with itself by lunchtime.
+    """
     dates = snapshot_dates()
-    today = now_date or datetime.now(timezone.utc).date().isoformat()
+    today = now_date or datetime.now(HKT).date().isoformat()
     changed = 0
     for d in decisions:
         plan_date = d.get("plan_date")
@@ -413,7 +426,7 @@ def settle_decisions(decisions: list[dict], now_date: str | None = None) -> int:
         before = json.dumps(d.get("evaluation"), sort_keys=True)
         same = load_snapshot(plan_date)
         fired, execution_price = condition_execution(d, same)
-        sessions = [x for x in dates if x > plan_date]
+        sessions = [x for x in dates if plan_date < x < today]
         ev = d.setdefault("evaluation", {})
         ev.update({
             "triggered": fired,
@@ -601,23 +614,34 @@ def _cumulative_win_rate_curve(rows: list[dict], benefit_key: str) -> list[dict]
 
 
 def compute_metrics(decisions: list[dict], window_days: int = 30) -> dict:
-    cutoff = (datetime.now(timezone.utc).date() - timedelta(days=window_days)).isoformat()
+    """The scorecard the UI labels "30d" — so every field here must BE 30d.
+
+    ``execution`` and the override count used to be tallied over the whole
+    ledger while the win rates beside them were windowed, which rendered an
+    all-time follow-through rate under a card headed "Plan Review (last 30d)".
+    Episodes are still built from the full ledger and filtered afterwards: an
+    episode that straddles the cutoff keeps its real mean, and the window only
+    decides membership. The lifetime record lives in the money and win-rate
+    curves, which are deliberately unwindowed.
+    """
+    cutoff = (datetime.now(HKT).date() - timedelta(days=window_days)).isoformat()
+    in_window = [d for d in decisions if (d.get("plan_date") or "") >= cutoff]
     reps = [r for r in episode_representatives(decisions, "t1") if r.get("plan_date", "") >= cutoff]
     conf_rows = [r for r in reps if _float(r.get("confidence")) is not None]
     brier = None
     if conf_rows:
         brier = sum((float(r["confidence"]) - (1 if (r.get("evaluation") or {}).get("outcome") == "win" else 0)) ** 2
                     for r in conf_rows) / len(conf_rows)
-    execution = Counter((r.get("execution") or {}).get("status", "unknown") for r in decisions)
-    overrides = [r for r in decisions if (r.get("override") or {}).get("status") == "active"]
+    execution = Counter((r.get("execution") or {}).get("status", "unknown") for r in in_window)
+    overrides = [r for r in in_window if (r.get("override") or {}).get("status") == "active"]
     active = [r for r in reps if r.get("action") in ACTIVE_ACTIONS]
     passive = [r for r in reps if r.get("action") in ("hold_and_watch", "watch")]
     return {
         "schema_version": SCHEMA_VERSION,
         "method": "episode-level; triggered-only; date-cluster bootstrap; capital-weighted where size exists",
         "window_days": window_days,
-        "raw_decisions": len(decisions),
-        "episodes": len({d.get("episode_id") for d in decisions}),
+        "raw_decisions": len(in_window),
+        "episodes": len({d.get("episode_id") for d in in_window}),
         "settled_episodes": len(reps),
         "brier": round(brier, 4) if brier is not None else None,
         "active": _aggregate(active, "benefit_t1_pct"),

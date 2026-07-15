@@ -1437,7 +1437,7 @@ layout: null
     </div>
 
     <div class="card" id="honesty-card" style="display:none">
-      <h3>🪞 诚实自评 · self-grading</h3>
+      <h3>🪞 诚实自评 · self-grading <span class="muted" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:11px">(30d)</span></h3>
       <div id="honesty-body" style="font-size:12px"></div>
     </div>
 
@@ -2535,7 +2535,6 @@ layout: null
     const el = document.getElementById("honesty-body");
     if (!card || !el) return;
     const metrics = safe(DATA, "decision_metrics") || {};
-    const backtest = safe(DATA, "episode_backtest", "horizons", "t1") || {};
     const delta = safe(DATA, "decision_delta") || {};
     const dm = safe(DATA, "debate_metrics");
     const drv = metrics.by_driver || {};
@@ -2551,9 +2550,12 @@ layout: null
       rows.push(row("主动 episode 平均收益", `${active.avg_benefit_pct >= 0 ? "+" : ""}${active.avg_benefit_pct.toFixed(2)}%${ci} · n=${active.n_episodes}`,
         active.avg_benefit_pct >= 0 ? "var(--green)" : "var(--red)"));
     }
-    if (backtest.active && backtest.active.capital_weighted_benefit_pct != null)
-      rows.push(row("资金加权平均收益", `${backtest.active.capital_weighted_benefit_pct >= 0 ? "+" : ""}${backtest.active.capital_weighted_benefit_pct.toFixed(2)}%`,
-        backtest.active.capital_weighted_benefit_pct >= 0 ? "var(--green)" : "var(--red)"));
+    // 同一队列的两行:这里曾把 30d 的平均收益和 episode_backtest 的**全量**资金加权
+    // 并排显示,窗口不同、符号相反(-2.36% vs +0.83%),读者会当成"大仓位的 call 更准"。
+    // 两行必须同源同窗;全量口径归金额曲线,那张图自己标了。
+    if (active.capital_weighted_benefit_pct != null)
+      rows.push(row("资金加权平均收益", `${active.capital_weighted_benefit_pct >= 0 ? "+" : ""}${active.capital_weighted_benefit_pct.toFixed(2)}%`,
+        active.capital_weighted_benefit_pct >= 0 ? "var(--green)" : "var(--red)"));
     rows.push(row("今日决策变化", `新增 ${(delta.new || []).length} · 修改 ${(delta.changed || []).length} · 触发 ${(delta.triggered || []).length} · override ${(delta.active_overrides || []).length}`, "var(--text-dim)"));
     if (dm && dm.decisiveness_pct != null)
       rows.push(row("辩论决断率", `${dm.decisiveness_pct}% · 其余=默认 HOLD`, "var(--text-dim)"));
