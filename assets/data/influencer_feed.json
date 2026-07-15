@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-14T22:34:36.832889+00:00",
+  "generated_at": "2026-07-15T14:29:58.712103+00:00",
   "lookback_hours": 48,
   "sources": {
     "trump": "trumpstruth.org/feed (primary)",
@@ -8,12 +8,57 @@
   },
   "llm_filtered": true,
   "counts": {
-    "total": 17,
+    "total": 11,
     "held_hits": 3,
-    "new_ideas": 2,
-    "sector_hits": 5
+    "new_ideas": 0,
+    "sector_hits": 3
   },
   "items": [
+    {
+      "author": "Musk",
+      "text": "J.P. Morgan Called a Potential Elon Musk SpaceX-Tesla Merger \"Strategically Coherent\"",
+      "url": "",
+      "published": "Sun, 12 Jul 2026 20:50:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Yahoo Finance",
+      "tickers": [],
+      "held": [
+        "SPCH",
+        "SPCX"
+      ],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "电动车",
+        "AI"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 75,
+      "summary_cn": "JPMorgan认为SpaceX与Tesla潜在合并具有'战略一致性'，直接利好kcn持有的SpaceX相关标的。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk's xAI is now officially called SpaceXAI",
+      "url": "",
+      "published": "Wed, 15 Jul 2026 09:23:35 GMT",
+      "origin": "gnews-rss",
+      "source": "Mashable",
+      "tickers": [],
+      "held": [
+        "SPCH",
+        "SPCX"
+      ],
+      "new_ideas": [],
+      "sectors": [
+        "AI",
+        "航天"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 72,
+      "summary_cn": "Musk宣布xAI正式更名为SpaceXAI，xAI与SpaceX进一步整合，利好持有的SpaceX相关标的。"
+    },
     {
       "author": "Musk",
       "text": "Musk’s Net Worth Drops Below $900 Billion With SpaceX Nearing IPO Value",
@@ -32,29 +77,8 @@
       ],
       "sector_holdings": [],
       "stance": "neutral",
-      "relevance": 82,
-      "summary_cn": "Musk净资产跌破9000亿美元，SpaceX接近IPO估值，对持有的SpaceX ETF为关键定价参考。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk's xAI is now officially called SpaceXAI",
-      "url": "",
-      "published": "Tue, 14 Jul 2026 11:41:54 GMT",
-      "origin": "gnews-rss",
-      "source": "Mashable",
-      "tickers": [],
-      "held": [
-        "SPCH",
-        "SPCX"
-      ],
-      "new_ideas": [],
-      "sectors": [
-        "AI"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 80,
-      "summary_cn": "Musk宣布xAI正式更名为SpaceXAI，与SpaceX品牌整合，强化SpaceX生态叙事，利好持有的SpaceX相关仓位。"
+      "relevance": 70,
+      "summary_cn": "Musk净资产跌破9000亿美元，SpaceX接近IPO估值，对持有的SpaceX杠杆/正股ETF是直接定价信号。"
     },
     {
       "author": "Musk",
@@ -63,115 +87,39 @@
       "published": "Mon, 13 Jul 2026 19:42:00 GMT",
       "origin": "gnews-rss",
       "source": "Fortune",
-      "tickers": [
-        "MSFT"
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "AI"
       ],
-      "held": [
+      "sector_holdings": [
         "MSFU"
       ],
-      "new_ideas": [
-        "MSFT"
-      ],
-      "sectors": [
-        "AI"
-      ],
-      "sector_holdings": [],
       "stance": "attack",
-      "relevance": 70,
-      "summary_cn": "Musk与Altman互指对方欺诈投资者，AI行业舆论战升级，间接影响Microsoft/OpenAI生态，牵动MSFU持仓。"
+      "relevance": 60,
+      "summary_cn": "Musk与Sam Altman互相指控对方在AI愿景上欺骗投资者，AI行业叙事冲突升级。"
     },
     {
       "author": "Musk",
-      "text": "Better Elon Musk Buy: SpaceX’s Ascent or Tesla’s Robotics Revolution?",
+      "text": "Elon Musk quietly buys a $1 billion gas turbine company to power Grok",
       "url": "",
-      "published": "Tue, 14 Jul 2026 12:33:52 GMT",
+      "published": "Tue, 14 Jul 2026 23:32:00 GMT",
       "origin": "gnews-rss",
-      "source": "24/7 Wall St.",
-      "tickers": [
-        "TSLA"
-      ],
+      "source": "Electrek",
+      "tickers": [],
       "held": [],
-      "new_ideas": [
-        "TSLA"
-      ],
+      "new_ideas": [],
       "sectors": [
-        "航天",
-        "电动车",
-        "AI"
+        "AI",
+        "能源"
       ],
       "sector_holdings": [
-        "SPCH",
-        "SPCX"
+        "MSFU"
       ],
       "stance": "neutral",
-      "relevance": 72,
-      "summary_cn": "媒体比较SpaceX IPO与Tesla机器人前景，Tesla作为可买入选项被讨论，提供SpaceX之外的'Musk篮子'对标。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk's Tesla Posts Best Quarter in Two Years",
-      "url": "",
-      "published": "Tue, 14 Jul 2026 21:57:45 GMT",
-      "origin": "gnews-rss",
-      "source": "The Motley Fool",
-      "tickers": [
-        "TSLA"
-      ],
-      "held": [],
-      "new_ideas": [
-        "TSLA"
-      ],
-      "sectors": [
-        "电动车"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 62,
-      "summary_cn": "Tesla公布两年来最强季度业绩，作为电动车/机器人龙头业绩拐点信号。"
-    },
-    {
-      "author": "Trump",
-      "text": "In honor of Senator Lindsey Graham, a big supporter, the U.S. Senate should pass the Clarity Act. China, and many other countries, would like to take complete and total control of this major financial “happening,” as well as A.I., where we are now leading, but where they are fighting hard. Don’t let China win on either subject!!! President DONALD J. TRUMP",
-      "url": "https://trumpstruth.org/statuses/40007",
-      "published": "2026-07-13T14:26:03+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "加密货币",
-        "AI"
-      ],
-      "sector_holdings": [
-        "CRCL"
-      ],
-      "stance": "endorse",
-      "relevance": 72,
-      "summary_cn": "Trump呼吁参议院通过Clarity Act(加密/AI监管立法)，对抗中国，间接利好合规稳定币与AI领导地位。"
-    },
-    {
-      "author": "Trump",
-      "text": "Labor Department reports annual inflation in June was 3.5%, biggest monthly drop in over six years: https://justthenews.com/nation/economy/labor-department-reports-annual-inflation-june-was-35-biggest-monthly-drop-over-six",
-      "url": "https://trumpstruth.org/statuses/40021",
-      "published": "2026-07-14T13:24:56+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "宏观经济/通胀"
-      ],
-      "sector_holdings": [
-        "03032",
-        "03033",
-        "07226",
-        "MSFU",
-        "PLTU",
-        "RKLX"
-      ],
-      "stance": "endorse",
-      "relevance": 70,
-      "summary_cn": "6月年度通胀3.5%，月度降幅创六年新高，Trump将此作为施政成绩，对风险资产偏多。"
+      "relevance": 55,
+      "summary_cn": "Musk悄悄以10亿美元收购一家燃气轮机公司为Grok供电，AI算力电力供应主题。"
     },
     {
       "author": "Musk",
@@ -185,60 +133,32 @@
       "new_ideas": [],
       "sectors": [
         "AI",
-        "能源/电力"
+        "环保/监管"
       ],
       "sector_holdings": [
-        "MSFU",
-        "SPCH",
-        "SPCX"
+        "MSFU"
       ],
       "stance": "attack",
-      "relevance": 58,
-      "summary_cn": "Musk未经许可的xAI电力项目污染问题曝光，加剧AI算力扩张的监管与ESG风险。"
+      "relevance": 52,
+      "summary_cn": "Musk未获许可的xAI发电项目污染对黑人社区影响最大，可能引发监管/舆论风险。"
     },
     {
       "author": "Trump",
-      "text": "RT @realDonaldTrump59% Approval Rating. Prices coming down along with the lowering of oil and gas. Thank you! President DJT",
-      "url": "https://trumpstruth.org/statuses/40005",
-      "published": "2026-07-13T13:20:10+00:00",
+      "text": "Labor Department reports annual inflation in June was 3.5%, biggest monthly drop in over six years: https://justthenews.com/nation/economy/labor-department-reports-annual-inflation-june-was-35-biggest-monthly-drop-over-six",
+      "url": "https://trumpstruth.org/statuses/40021",
+      "published": "2026-07-14T13:24:56+00:00",
       "origin": "truthsocial",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
         "宏观经济",
-        "原油/能源"
+        "通胀"
       ],
-      "sector_holdings": [
-        "03032",
-        "03033",
-        "07226"
-      ],
+      "sector_holdings": [],
       "stance": "endorse",
       "relevance": 58,
-      "summary_cn": "Trump自夸民调59%、油价气价下行，作为施政成绩背书，宏观情绪偏多。"
-    },
-    {
-      "author": "Trump",
-      "text": "59% Approval Rating. Prices coming down along with the lowering of oil and gas. Thank you! President DJT",
-      "url": "https://trumpstruth.org/statuses/39966",
-      "published": "2026-07-13T01:03:05+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "宏观经济",
-        "原油/能源"
-      ],
-      "sector_holdings": [
-        "03032",
-        "03033",
-        "07226"
-      ],
-      "stance": "endorse",
-      "relevance": 58,
-      "summary_cn": "Trump重申油价气价走低与高支持率，对宏观与能源消费者偏多。"
+      "summary_cn": "美国6月年化通胀3.5%，月度降幅创六年新高，宏观面影响利率预期与风险资产。"
     },
     {
       "author": "Trump",
@@ -250,50 +170,14 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "原油/能源",
-        "军工/国防"
+        "能源",
+        "军工",
+        "地缘政治"
       ],
       "sector_holdings": [],
       "stance": "neutral",
-      "relevance": 68,
-      "summary_cn": "Trump宣称霍尔木兹海峡已开放，美国对伊朗实施封锁，油气供应/价格政策利好能源板块。"
-    },
-    {
-      "author": "Trump",
-      "text": "The Hormuz Strait is OPEN, and will remain OPEN, with or without Iran. We are reinstating the THE IRANIAN BLOCKADE, so named because it is only stopping Iran’s ships or customers from entering or leaving. All other countries will have fair and open use of the Strait. The U.S.A. will be, from this point forward, known as “THE GUARDIAN OF THE HORMUZ STRAIT,” but as such, and as a matter of FAIRNESS, will be reimbursed, at the rate of 20% on all cargo shipped, for any and all costs necessary to do the job of providing safety and security to this very volatile section of the World. The process and",
-      "url": "https://trumpstruth.org/statuses/40006",
-      "published": "2026-07-13T14:16:44+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "原油/能源",
-        "军工/国防"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 65,
-      "summary_cn": "Trump宣布对伊朗重启封锁，美方以'霍尔木兹海峡守护者'身份对过境货物征20%费用，影响全球油运与油价。"
-    },
-    {
-      "author": "Trump",
-      "text": "Trump claims military victory, points to economic progress in the wake of first-stage Iran deal: https://www.washingtontimes.com/news/2026/jun/23/trump-claims-military-victory-points-economic-progress-wake-first/",
-      "url": "https://trumpstruth.org/statuses/40032",
-      "published": "2026-07-14T14:34:11+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "宏观经济",
-        "军工/国防",
-        "原油/能源"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 60,
-      "summary_cn": "Trump在伊朗一阶段协议后宣称军事胜利并强调经济进展，影响油价与避险资产。"
+      "relevance": 55,
+      "summary_cn": "Trump称霍尔木兹海峡已对所有国家开放（伊朗除外），并对伊朗实施全面封锁，暗示油价供应受军事支撑，能源/宏观面利好。"
     },
     {
       "author": "Trump",
@@ -306,67 +190,97 @@
       "new_ideas": [],
       "sectors": [
         "宏观经济",
-        "原油/能源"
+        "能源"
       ],
       "sector_holdings": [],
       "stance": "endorse",
       "relevance": 55,
-      "summary_cn": "Trump在宾州中期选举拉票活动中吹捧美国经济和油价，影响宏观情绪。"
+      "summary_cn": "Trump在宾州中期选举造势中吹捧美国经济和油价，宏观信心表态。"
     },
     {
       "author": "Trump",
-      "text": "It is my Great Honor to endorse Porter County Commissioner, Barb Regnitz, who is running to represent the incredible people of Indiana’s 1st Congressional District!   A very successful Businesswoman, Software Engineer, and Civic Leader, prior to becoming a distinguished Porter County Commissioner, Barb is a Proven Leader who has dedicated her life to serving her Community. Her opponent, Frank Mrvan, strongly opposed our Great STEEL TARIFFS and Workers that made all of these Jobs, and currently built Factories and Plants that are going up right now, possible. We increased Union Jobs and Votes b",
-      "url": "https://trumpstruth.org/statuses/40015",
-      "published": "2026-07-13T21:05:11+00:00",
+      "text": "Trump claims military victory, points to economic progress in the wake of first-stage Iran deal: https://www.washingtontimes.com/news/2026/jun/23/trump-claims-military-victory-points-economic-progress-wake-first/",
+      "url": "https://trumpstruth.org/statuses/40032",
+      "published": "2026-07-14T14:34:11+00:00",
       "origin": "truthsocial",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "关税/钢铁"
+        "宏观经济",
+        "能源",
+        "军工"
       ],
       "sector_holdings": [],
       "stance": "endorse",
-      "relevance": 52,
-      "summary_cn": "Trump背书印第安纳候选人，再次力挺钢铝关税及相关制造业回流政策。"
+      "relevance": 55,
+      "summary_cn": "Trump在伊朗一阶段协议后宣称军事胜利并强调经济进展，宏观面利好叙事。"
     },
     {
-      "author": "Trump",
-      "text": "BIG WIN at the Supreme Court, in the Slaughter Case, confirming Presidential Power in our Country to remove Executive Branch Officers and Agency Appointees, or Representatives, under Article II. This Decision was long sought by United States Presidents, dating all the way back to the 1930s. It is such an Honor to be the sitting President who won this Historic and Unprecedented Ruling, one of the most important ever given with respect to Presidential Powers. Thank you for your attention to this matter! President DONALD J. TRUMP",
-      "url": "https://trumpstruth.org/statuses/39992",
-      "published": "2026-07-13T13:19:19+00:00",
-      "origin": "truthsocial",
+      "author": "Musk",
+      "text": "Elon Musk's Tesla Posts Best Quarter in Two Years",
+      "url": "",
+      "published": "Tue, 14 Jul 2026 22:33:00 GMT",
+      "origin": "gnews-rss",
+      "source": "The Motley Fool",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "监管/行政权力"
+        "电动车"
       ],
       "sector_holdings": [],
       "stance": "endorse",
       "relevance": 50,
-      "summary_cn": "最高法院在Slaughter案中确认总统可依宪法第二条移除行政官员，扩大总统对独立机构的权力。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk likely broke the law by giving voters $1 million, Wisconsin board says - ABC News",
-      "url": "",
-      "published": "Tue, 14 Jul 2026 20:06:05 GMT",
-      "origin": "gnews-rss",
-      "source": "ABC News - Breaking News, Latest News and Videos",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "监管/政治"
-      ],
-      "sector_holdings": [],
-      "stance": "attack",
-      "relevance": 45,
-      "summary_cn": "威斯康星委员会指控Musk给选民发100万美元可能违法，加剧其个人监管风险。"
+      "summary_cn": "Tesla交出两年来最佳季度业绩，但非kcn直接持仓，仅板块层面参考。"
     }
   ],
   "held_hits": [
+    {
+      "author": "Musk",
+      "text": "J.P. Morgan Called a Potential Elon Musk SpaceX-Tesla Merger \"Strategically Coherent\"",
+      "url": "",
+      "published": "Sun, 12 Jul 2026 20:50:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Yahoo Finance",
+      "tickers": [],
+      "held": [
+        "SPCH",
+        "SPCX"
+      ],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "电动车",
+        "AI"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 75,
+      "summary_cn": "JPMorgan认为SpaceX与Tesla潜在合并具有'战略一致性'，直接利好kcn持有的SpaceX相关标的。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk's xAI is now officially called SpaceXAI",
+      "url": "",
+      "published": "Wed, 15 Jul 2026 09:23:35 GMT",
+      "origin": "gnews-rss",
+      "source": "Mashable",
+      "tickers": [],
+      "held": [
+        "SPCH",
+        "SPCX"
+      ],
+      "new_ideas": [],
+      "sectors": [
+        "AI",
+        "航天"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 72,
+      "summary_cn": "Musk宣布xAI正式更名为SpaceXAI，xAI与SpaceX进一步整合，利好持有的SpaceX相关标的。"
+    },
     {
       "author": "Musk",
       "text": "Musk’s Net Worth Drops Below $900 Billion With SpaceX Nearing IPO Value",
@@ -385,30 +299,12 @@
       ],
       "sector_holdings": [],
       "stance": "neutral",
-      "relevance": 82,
-      "summary_cn": "Musk净资产跌破9000亿美元，SpaceX接近IPO估值，对持有的SpaceX ETF为关键定价参考。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk's xAI is now officially called SpaceXAI",
-      "url": "",
-      "published": "Tue, 14 Jul 2026 11:41:54 GMT",
-      "origin": "gnews-rss",
-      "source": "Mashable",
-      "tickers": [],
-      "held": [
-        "SPCH",
-        "SPCX"
-      ],
-      "new_ideas": [],
-      "sectors": [
-        "AI"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 80,
-      "summary_cn": "Musk宣布xAI正式更名为SpaceXAI，与SpaceX品牌整合，强化SpaceX生态叙事，利好持有的SpaceX相关仓位。"
-    },
+      "relevance": 70,
+      "summary_cn": "Musk净资产跌破9000亿美元，SpaceX接近IPO估值，对持有的SpaceX杠杆/正股ETF是直接定价信号。"
+    }
+  ],
+  "new_ideas": [],
+  "sector_hits": [
     {
       "author": "Musk",
       "text": "Elon Musk and Sam Altman accuse each other of scamming investors as each pitches their AI vision",
@@ -416,119 +312,39 @@
       "published": "Mon, 13 Jul 2026 19:42:00 GMT",
       "origin": "gnews-rss",
       "source": "Fortune",
-      "tickers": [
-        "MSFT"
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "AI"
       ],
-      "held": [
+      "sector_holdings": [
         "MSFU"
       ],
-      "new_ideas": [
-        "MSFT"
-      ],
-      "sectors": [
-        "AI"
-      ],
-      "sector_holdings": [],
       "stance": "attack",
-      "relevance": 70,
-      "summary_cn": "Musk与Altman互指对方欺诈投资者，AI行业舆论战升级，间接影响Microsoft/OpenAI生态，牵动MSFU持仓。"
-    }
-  ],
-  "new_ideas": [
+      "relevance": 60,
+      "summary_cn": "Musk与Sam Altman互相指控对方在AI愿景上欺骗投资者，AI行业叙事冲突升级。"
+    },
     {
       "author": "Musk",
-      "text": "Better Elon Musk Buy: SpaceX’s Ascent or Tesla’s Robotics Revolution?",
+      "text": "Elon Musk quietly buys a $1 billion gas turbine company to power Grok",
       "url": "",
-      "published": "Tue, 14 Jul 2026 12:33:52 GMT",
+      "published": "Tue, 14 Jul 2026 23:32:00 GMT",
       "origin": "gnews-rss",
-      "source": "24/7 Wall St.",
-      "tickers": [
-        "TSLA"
-      ],
+      "source": "Electrek",
+      "tickers": [],
       "held": [],
-      "new_ideas": [
-        "TSLA"
-      ],
+      "new_ideas": [],
       "sectors": [
-        "航天",
-        "电动车",
-        "AI"
+        "AI",
+        "能源"
       ],
       "sector_holdings": [
-        "SPCH",
-        "SPCX"
+        "MSFU"
       ],
       "stance": "neutral",
-      "relevance": 72,
-      "summary_cn": "媒体比较SpaceX IPO与Tesla机器人前景，Tesla作为可买入选项被讨论，提供SpaceX之外的'Musk篮子'对标。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk's Tesla Posts Best Quarter in Two Years",
-      "url": "",
-      "published": "Tue, 14 Jul 2026 21:57:45 GMT",
-      "origin": "gnews-rss",
-      "source": "The Motley Fool",
-      "tickers": [
-        "TSLA"
-      ],
-      "held": [],
-      "new_ideas": [
-        "TSLA"
-      ],
-      "sectors": [
-        "电动车"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 62,
-      "summary_cn": "Tesla公布两年来最强季度业绩，作为电动车/机器人龙头业绩拐点信号。"
-    }
-  ],
-  "sector_hits": [
-    {
-      "author": "Trump",
-      "text": "In honor of Senator Lindsey Graham, a big supporter, the U.S. Senate should pass the Clarity Act. China, and many other countries, would like to take complete and total control of this major financial “happening,” as well as A.I., where we are now leading, but where they are fighting hard. Don’t let China win on either subject!!! President DONALD J. TRUMP",
-      "url": "https://trumpstruth.org/statuses/40007",
-      "published": "2026-07-13T14:26:03+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "加密货币",
-        "AI"
-      ],
-      "sector_holdings": [
-        "CRCL"
-      ],
-      "stance": "endorse",
-      "relevance": 72,
-      "summary_cn": "Trump呼吁参议院通过Clarity Act(加密/AI监管立法)，对抗中国，间接利好合规稳定币与AI领导地位。"
-    },
-    {
-      "author": "Trump",
-      "text": "Labor Department reports annual inflation in June was 3.5%, biggest monthly drop in over six years: https://justthenews.com/nation/economy/labor-department-reports-annual-inflation-june-was-35-biggest-monthly-drop-over-six",
-      "url": "https://trumpstruth.org/statuses/40021",
-      "published": "2026-07-14T13:24:56+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "宏观经济/通胀"
-      ],
-      "sector_holdings": [
-        "03032",
-        "03033",
-        "07226",
-        "MSFU",
-        "PLTU",
-        "RKLX"
-      ],
-      "stance": "endorse",
-      "relevance": 70,
-      "summary_cn": "6月年度通胀3.5%，月度降幅创六年新高，Trump将此作为施政成绩，对风险资产偏多。"
+      "relevance": 55,
+      "summary_cn": "Musk悄悄以10亿美元收购一家燃气轮机公司为Grok供电，AI算力电力供应主题。"
     },
     {
       "author": "Musk",
@@ -542,60 +358,14 @@
       "new_ideas": [],
       "sectors": [
         "AI",
-        "能源/电力"
+        "环保/监管"
       ],
       "sector_holdings": [
-        "MSFU",
-        "SPCH",
-        "SPCX"
+        "MSFU"
       ],
       "stance": "attack",
-      "relevance": 58,
-      "summary_cn": "Musk未经许可的xAI电力项目污染问题曝光，加剧AI算力扩张的监管与ESG风险。"
-    },
-    {
-      "author": "Trump",
-      "text": "RT @realDonaldTrump59% Approval Rating. Prices coming down along with the lowering of oil and gas. Thank you! President DJT",
-      "url": "https://trumpstruth.org/statuses/40005",
-      "published": "2026-07-13T13:20:10+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "宏观经济",
-        "原油/能源"
-      ],
-      "sector_holdings": [
-        "03032",
-        "03033",
-        "07226"
-      ],
-      "stance": "endorse",
-      "relevance": 58,
-      "summary_cn": "Trump自夸民调59%、油价气价下行，作为施政成绩背书，宏观情绪偏多。"
-    },
-    {
-      "author": "Trump",
-      "text": "59% Approval Rating. Prices coming down along with the lowering of oil and gas. Thank you! President DJT",
-      "url": "https://trumpstruth.org/statuses/39966",
-      "published": "2026-07-13T01:03:05+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "宏观经济",
-        "原油/能源"
-      ],
-      "sector_holdings": [
-        "03032",
-        "03033",
-        "07226"
-      ],
-      "stance": "endorse",
-      "relevance": 58,
-      "summary_cn": "Trump重申油价气价走低与高支持率，对宏观与能源消费者偏多。"
+      "relevance": 52,
+      "summary_cn": "Musk未获许可的xAI发电项目污染对黑人社区影响最大，可能引发监管/舆论风险。"
     }
   ]
 }
