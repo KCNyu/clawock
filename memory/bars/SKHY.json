@@ -1,0 +1,38 @@
+{
+ "schema_version": 1,
+ "ticker": "SKHY",
+ "leg": "US",
+ "tencent": "usSKHY.OQ",
+ "em_audit_secid": "105.SKHY",
+ "adjustment": "raw",
+ "source": "tencent",
+ "bars": {
+  "2026-07-10": {
+   "open": 170.0,
+   "high": 177.0,
+   "low": 166.19,
+   "close": 168.01,
+   "source": "tencent",
+   "adjustment": "raw",
+   "fetched_at": "2026-07-15T23:39:08+08:00"
+  },
+  "2026-07-13": {
+   "open": 152.62,
+   "high": 162.28,
+   "low": 151.3,
+   "close": 152.35,
+   "source": "tencent",
+   "adjustment": "raw",
+   "fetched_at": "2026-07-15T23:39:08+08:00"
+  },
+  "2026-07-14": {
+   "open": 168.11,
+   "high": 194.8,
+   "low": 165.5,
+   "close": 193.92,
+   "source": "tencent",
+   "adjustment": "raw",
+   "fetched_at": "2026-07-15T23:39:08+08:00"
+  }
+ }
+}

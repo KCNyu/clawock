@@ -22,16 +22,24 @@ import math
 import os
 import random
 import re
+import sys
 import tempfile
 from collections import Counter, defaultdict
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+# The calendar is the authority on whether a market was open. Never infer that from
+# whether a bar exists — an unfinished session has no bar either.
+import trading_calendar as _cal  # noqa: E402
 
 WS = Path(__file__).resolve().parents[2]
 LEDGER = WS / "memory" / "decisions.jsonl"
 SNAP_DIR = WS / "memory" / "snapshots"
 
 SCHEMA_VERSION = 2
+# Bumped when the meaning of an evaluation changes, so a stale row is identifiable.
+EVAL_SCHEMA_VERSION = 3
 # Snapshots and plan_dates are both named on the HK calendar day; comparing them
 # against a UTC "today" slips a day for the eight hours after HK midnight.
 HKT = timezone(timedelta(hours=8))
@@ -381,28 +389,177 @@ def _price(snapshot: dict | None, ticker: str, field: str = "current_price"):
     return _float((holding_from_snapshot(snapshot, ticker) or {}).get(field))
 
 
-def condition_execution(decision: dict, snap: dict | None) -> tuple[bool | None, float | None]:
+# ---------------------------------------------------------------------------
+# Canonical bars — the only thing allowed to decide whether a condition fired.
+#
+# Settlement used to read `memory/snapshots/{date}.json`, a *portfolio* file whose
+# prices carry the vintage of whatever cron fetched them. Measured on 00100 across
+# 15 snapshots, `current_price` was the previous close 7 times, that day's close 3
+# times, and an intraday print 5 times — so "T+1" was really "the next snapshot's
+# quote". Worse, `day_high`/`day_low` are carried forward for live positions: 00100
+# showed the identical (738.0, 744.5, 731.0) on four consecutive sessions. Judging
+# `price_above` against that invented triggers that never fired (07226 2026-05-27
+# read a stored high of 4.192 against a real 3.96) and discarded ones that did
+# (00100 2026-05-18 read 744.5 against a real 827.5, dropping a winner).
+#
+# `memory/bars/` is session-dated, unadjusted, and never contains an unfinished
+# session. See scripts/data/fetch_daily_bars.py for the store's contract.
+# ---------------------------------------------------------------------------
+
+BARS_DIR = WS / "memory" / "bars"
+_BAR_CACHE: dict[str, dict] = {}
+_SESSION_CACHE: dict[str, list[str]] = {}
+
+
+def load_ticker_bars(ticker: str) -> dict:
+    """{date: {open, high, low, close, ...}} for one ticker. Empty if unknown."""
+    if ticker not in _BAR_CACHE:
+        p = BARS_DIR / f"{ticker}.json"
+        try:
+            _BAR_CACHE[ticker] = (json.loads(p.read_text()).get("bars") or {}) if p.exists() else {}
+        except Exception:
+            _BAR_CACHE[ticker] = {}
+    return _BAR_CACHE[ticker]
+
+
+def bar(ticker: str, day: str) -> dict | None:
+    return load_ticker_bars(ticker).get(day)
+
+
+def leg_sessions(leg: str) -> list[str]:
+    """Sessions this leg's bar store actually holds data for.
+
+    NB this answers "do we have the data", never "was the market open" — those are
+    different questions and conflating them is a bug: on 2026-07-15 the US market is
+    open and simply has not closed yet, so no bar exists. Reading that absence as a
+    holiday would file 10 live decisions as "market_closed" and quietly drop them
+    from the denominator. `trading_calendar` is the authority on open/closed.
+    """
+    if leg not in _SESSION_CACHE:
+        days: set[str] = set()
+        for p in BARS_DIR.glob("*.json"):
+            try:
+                doc = json.loads(p.read_text())
+            except Exception:
+                continue
+            if doc.get("leg") == leg:
+                days.update(doc.get("bars") or {})
+        _SESSION_CACHE[leg] = sorted(days)
+    return _SESSION_CACHE[leg]
+
+
+def is_session(leg: str, day: str) -> bool:
+    """Was this market open on this date? Calendar only — never inferred from data."""
+    try:
+        return _cal.is_trading_day(leg.lower(), date.fromisoformat(day))
+    except Exception:
+        return False
+
+
+def next_sessions(leg: str, after: str, count: int = 1) -> list[str]:
+    """The next ``count`` trading sessions strictly after ``after``, per the calendar.
+
+    Counting sessions rather than calendar days is what makes T+1 mean T+1 across a
+    weekend or a holiday — and a leg never borrows the other leg's calendar.
+    """
+    out: list[str] = []
+    d = date.fromisoformat(after)
+    for _ in range(40):
+        d += timedelta(days=1)
+        iso = d.isoformat()
+        if is_session(leg, iso):
+            out.append(iso)
+            if len(out) == count:
+                break
+    return out
+
+
+def last_closed_session(leg: str) -> str | None:
+    """Newest session whose bar we would expect to exist by now."""
+    sess = leg_sessions(leg)
+    return sess[-1] if sess else None
+
+
+def evaluation_session(decision: dict) -> tuple[str | None, str]:
+    """Which session actually grades this decision, and why.
+
+    The brief is authored 08:00 HKT, before HK opens (09:30) and long before the US
+    does (21:30 HKT) — so on a normal trading day both legs are graded by
+    `plan_date`'s own session.
+
+    Three things break that:
+
+    * **Weekend briefs.** 15 decisions carry a Sunday plan_date (2026-05-17 and
+      2026-05-31); they were written for the Monday and there is no Sunday session.
+      They map forward to the next session explicitly.
+    * **Weekday holidays.** A weekday with no session is NOT rolled forward. Rolling
+      would re-point ROBN's 2026-07-03 call (US shut for Independence Day) at 07-06
+      and grade it against three days of information its author never had.
+    * **Corrupt authoring timestamps.** 10 decisions claim `plan_date=2026-06-01`
+      but were written `2026-06-02T08:00`. They cannot be graded on 06-01 (the
+      author had not written them yet) and must not be moved to 06-02 either, where
+      a real 06-02 brief already exists and would be double-counted.
+    """
+    pd = decision.get("plan_date")
+    leg = decision.get("leg") or ("HK" if str(decision.get("ticker", "")).isdigit() else "US")
+    if not pd:
+        return None, "no_plan_date"
+    try:
+        date.fromisoformat(pd)
+    except ValueError:
+        return None, "bad_plan_date"
+
+    created = (decision.get("created_at") or "")[:10]
+    if created and created > pd:
+        return None, "invalid_authored_timestamp"
+
+    if not is_session(leg, pd):
+        if date.fromisoformat(pd).weekday() >= 5:
+            nxt = next_sessions(leg, pd, 1)
+            return (nxt[0], "weekend_brief_graded_next_session") if nxt else (None, "no_session_after_weekend")
+        return None, "market_closed"
+    return pd, "plan_date"
+
+
+def condition_execution(decision: dict, day_bar: dict | None) -> tuple[bool | None, float | None, str]:
+    """(fired, fill_price, reason) for one decision against one canonical bar.
+
+    Fills are gap-aware. A stop at 100 that gaps open to 92 does not fill at 100 —
+    assuming it did would hand every gapped trigger a free 8%. So a crossing inside
+    the session fills at the trigger, and a gap straight through it fills at the
+    open. Still assumes zero slippage and available liquidity, which is why the
+    evaluation records ``fill_assumed``.
+    """
     cond = decision.get("condition") or {}
     ctype = cond.get("type") or "manual"
     action = decision.get("action")
-    ticker = decision.get("ticker")
-    h = holding_from_snapshot(snap, ticker) or {}
-    recorded = _float((decision.get("evaluation") or {}).get("execution_price"))
-    recorded = recorded or _float(decision.get("simulated_entry_price"))
-    current = _float(h.get("current_price"))
+    if day_bar is None:
+        return None, None, "no_bar"
+
+    o, h, l = day_bar["open"], day_bar["high"], day_bar["low"]
+
+    # hold/watch take no action. There is no fill: the position is simply carried,
+    # so the open is a *reference* price, not an execution. Their `condition` is
+    # normally an exit/invalidation level rather than an entry trigger, and it is
+    # deliberately NOT evaluated here — grading a stop as if it were an entry is
+    # what let `by_condition` mix two opposite meanings.
     if action in ("hold_and_watch", "watch"):
-        return True, recorded or current
+        return True, o, "stance_at_open"
     if ctype in ("always", "open"):
-        return True, _float(h.get("day_open")) or recorded or current
+        return True, o, "session_open"
+
     trigger = _float(cond.get("price"))
     if ctype == "price_above" and trigger is not None:
-        high = _float(h.get("day_high"))
-        return ((high >= trigger), trigger) if high is not None else (None, None)
+        if h < trigger:
+            return False, None, "high_below_trigger"
+        return True, max(o, trigger), ("gap_through" if o >= trigger else "intraday_cross")
     if ctype == "price_below" and trigger is not None:
-        low = _float(h.get("day_low"))
-        return ((low <= trigger), trigger) if low is not None else (None, None)
-    # event/manual/index need explicit human evidence; never fabricate a trigger.
-    return None, None
+        if l > trigger:
+            return False, None, "low_above_trigger"
+        return True, min(o, trigger), ("gap_through" if o <= trigger else "intraday_cross")
+
+    # event / manual / index need human evidence; never fabricate a trigger.
+    return None, None, "needs_human_evidence"
 
 
 def _benefit(action: str, entry: float | None, later: float | None) -> tuple[float | None, float | None]:
@@ -413,19 +570,34 @@ def _benefit(action: str, entry: float | None, later: float | None) -> tuple[flo
     return round(underlying, 4), round(advantage, 4)
 
 
-def settle_decisions(decisions: list[dict], now_date: str | None = None) -> int:
-    """Recompute trigger and T+1/T+5 outcomes from snapshots in-place.
+def _outcome(benefit: float | None) -> str:
+    """win / loss / flat.
 
-    Today's snapshot never scores a session. The intraday cron rewrites it every
-    ~30 minutes, so grading T+1 against it lets a *settled* outcome churn with
-    the tape: on 2026-07-15 the active win rate read 45.9% at 10:02 HKT and 48.6%
-    two hours later, on nothing but a HK morning it had already called. At n=37
-    one flipped episode is 2.7pp, and the whole question is which side of 50% the
-    record sits on. A session grades only once its snapshot is final, so the
-    newest calls stay ``pending`` for a day rather than reporting a number that
-    disagrees with itself by lunchtime.
+    Zero used to fall through to "loss", and the value was rounded to 4dp before the
+    comparison — so a call that moved nothing, or moved less than 0.00005%, was
+    recorded as wrong. Exact-zero is its own thing.
     """
-    dates = snapshot_dates()
+    if benefit is None:
+        return "pending"
+    if benefit > 0:
+        return "win"
+    if benefit < 0:
+        return "loss"
+    return "flat"
+
+
+def settle_decisions(decisions: list[dict], now_date: str | None = None) -> int:
+    """Recompute trigger and T+1/T+5 outcomes from canonical bars, in place.
+
+    Every price here is a session-dated close from `memory/bars/`. An unfinished
+    session is never in that store, so today cannot score anything — the intraday
+    cron rewriting today's snapshot used to flip settled calls between win and loss
+    on nothing but the tape.
+
+    Preserves `episode_id`, `execution` and `override`: this recomputes the
+    evaluation only. Mixing an episode-rule change into the same pass would make the
+    resulting metric shift impossible to attribute.
+    """
     today = now_date or datetime.now(HKT).date().isoformat()
     changed = 0
     for d in decisions:
@@ -433,38 +605,120 @@ def settle_decisions(decisions: list[dict], now_date: str | None = None) -> int:
         if not plan_date or plan_date > today:
             continue
         before = json.dumps(d.get("evaluation"), sort_keys=True)
-        same = load_snapshot(plan_date)
-        fired, execution_price = condition_execution(d, same)
-        sessions = [x for x in dates if plan_date < x < today]
+        ticker = d.get("ticker")
+        leg = d.get("leg") or ("HK" if str(ticker or "").isdigit() else "US")
         ev = d.setdefault("evaluation", {})
-        ev.update({
-            "triggered": fired,
-            "trigger_session": plan_date if fired else None,
-            "execution_price": execution_price,
-        })
+        # Wipe derived fields so a stale value can never survive a rule change.
+        for k in ("triggered", "trigger_session", "execution_price", "capital", "status",
+                  "outcome", "underlying_return_t1_pct", "benefit_t1_pct", "benefit_t5_pct",
+                  "fill_reason", "fill_assumed", "fill_model", "session_reason",
+                  "not_evaluable_reason", "mark_t1_session", "mark_t5_session",
+                  "evaluation_mode", "reference_price", "reference_reason",
+                  "condition_role", "pending_reason", "mark_horizon",
+                  "evaluation_schema_version"):
+            ev.pop(k, None)
+
+        sess, sess_reason = evaluation_session(d)
+        ev["session_reason"] = sess_reason
+        if sess is None:
+            ev.update({"triggered": None, "status": "not_evaluable", "outcome": "unknown",
+                       "not_evaluable_reason": sess_reason})
+            if json.dumps(ev, sort_keys=True) != before:
+                changed += 1
+            continue
+
+        day_bar = bar(ticker, sess)
+        if day_bar is None:
+            # The market WAS open (the calendar said so) but we have no bar. Either
+            # the session has not closed yet — which is pending, not unevaluable —
+            # or this instrument genuinely did not trade (not yet listed, halted, or
+            # retired, like the SKHYV when-issued line that stopped once SKHY listed).
+            last = last_closed_session(leg) or ""
+            if sess > last:
+                ev.update({"triggered": None, "status": "pending", "outcome": "pending",
+                           "pending_reason": "session_not_final", "trigger_session": sess})
+            else:
+                inactive = bool(load_ticker_bars(ticker)) and sess > max(load_ticker_bars(ticker))
+                ev.update({"triggered": None, "status": "not_evaluable", "outcome": "unknown",
+                           "not_evaluable_reason": "instrument_inactive" if inactive else "bar_missing",
+                           "trigger_session": sess})
+            if json.dumps(ev, sort_keys=True) != before:
+                changed += 1
+            continue
+
+        fired, fill, fill_reason = condition_execution(d, day_bar)
         shares = _int((d.get("size") or {}).get("shares"))
-        ev["capital"] = round(execution_price * shares, 2) if execution_price and shares else None
+        passive = d.get("action") in ("hold_and_watch", "watch")
+        ev["evaluation_schema_version"] = EVAL_SCHEMA_VERSION
+        if passive:
+            # No trade happened, so nothing may look like one. `reference_price` is
+            # the first tradable price after publication; execution_price/fill_model
+            # stay absent so a stance can never be counted as a fill.
+            ev.update({
+                "triggered": True,
+                "trigger_session": sess,
+                "evaluation_mode": "passive_stance",
+                "reference_price": fill,
+                "reference_reason": "first_tradable_price_after_publication",
+                "condition_role": "invalidation",
+                "fill_assumed": False,
+            })
+        else:
+            ev.update({
+                "triggered": fired,
+                "trigger_session": sess if fired else None,
+                "evaluation_mode": "active_fill",
+                "condition_role": "entry",
+                "execution_price": fill,
+                "capital": round(fill * shares, 2) if fill and shares else None,
+                "fill_reason": fill_reason,
+                "fill_assumed": bool(fired),
+                "fill_model": "daily_ohlc_gap_aware_v1" if fired else None,
+            })
         if fired is False:
-            ev.update({"status": "not_triggered", "outcome": "not_triggered",
-                       "underlying_return_t1_pct": None, "benefit_t1_pct": None, "benefit_t5_pct": None})
+            ev.update({"status": "not_triggered", "outcome": "not_triggered"})
         elif fired is None:
             ev.update({"status": "not_evaluable", "outcome": "unknown",
-                       "underlying_return_t1_pct": None, "benefit_t1_pct": None, "benefit_t5_pct": None})
-        elif sessions:
-            u1, b1 = _benefit(d.get("action"), execution_price, _price(load_snapshot(sessions[0]), d.get("ticker")))
-            _, b5 = (None, None)
-            if len(sessions) >= 5:
-                _, b5 = _benefit(d.get("action"), execution_price, _price(load_snapshot(sessions[4]), d.get("ticker")))
+                       "not_evaluable_reason": fill_reason})
+        else:
+            entry = fill
+            marks = next_sessions(leg, sess, 5)
+            b1 = b5 = u1 = None
+            m1 = m5 = None
+            reason = None
+            if marks:
+                m1 = marks[0]
+                nb = bar(ticker, m1)
+                if m1 >= today:
+                    # Belt and braces: the bar store never holds an unfinished
+                    # session, but a mark dated today must not score regardless of
+                    # where the price came from. This is the defect that let a
+                    # settled call flip win/loss with the intraday tape.
+                    reason = "session_not_final"
+                elif nb is None:
+                    # "Has not closed yet" vs "this instrument had no bar for a
+                    # session that did happen" are different facts.
+                    reason = ("mark_pending" if m1 > (last_closed_session(leg) or "")
+                              else "mark_bar_missing")
+                else:
+                    u1, b1 = _benefit(d.get("action"), entry, nb["close"])
+            if len(marks) >= 5:
+                m5 = marks[4]
+                nb5 = bar(ticker, m5)
+                if nb5 is not None and m5 < today:
+                    _, b5 = _benefit(d.get("action"), entry, nb5["close"])
             ev.update({
                 "status": "settled" if b1 is not None else "pending",
-                "outcome": ("win" if b1 > 0 else "loss") if b1 is not None else "pending",
+                "outcome": _outcome(b1),
                 "underlying_return_t1_pct": u1,
                 "benefit_t1_pct": b1,
                 "benefit_t5_pct": b5,
+                "mark_t1_session": m1 if b1 is not None else None,
+                "mark_t5_session": m5 if b5 is not None else None,
+                "mark_horizon": "open_of_session_to_close_of_next_session",
             })
-        else:
-            ev.update({"status": "pending", "outcome": "pending",
-                       "underlying_return_t1_pct": None, "benefit_t1_pct": None, "benefit_t5_pct": None})
+            if b1 is None and reason:
+                ev["pending_reason"] = reason
         if json.dumps(ev, sort_keys=True) != before:
             changed += 1
     return changed
@@ -658,32 +912,78 @@ def compute_metrics(decisions: list[dict], window_days: int = 30) -> dict:
     cutoff = (datetime.now(HKT).date() - timedelta(days=window_days)).isoformat()
     in_window = [d for d in decisions if (d.get("plan_date") or "") >= cutoff]
     reps = [r for r in episode_representatives(decisions, "t1") if r.get("plan_date", "") >= cutoff]
-    conf_rows = [r for r in reps if _float(r.get("confidence")) is not None]
-    brier = base_rate = mean_conf = brier_loo = None
-    high_conf = None
-    if conf_rows:
-        outcomes = [1 if (r.get("evaluation") or {}).get("outcome") == "win" else 0 for r in conf_rows]
-        confs = [float(r["confidence"]) for r in conf_rows]
-        n = len(outcomes)
-        brier = sum((p - y) ** 2 for p, y in zip(confs, outcomes)) / n
-        base_rate = sum(outcomes) / n
-        mean_conf = sum(confs) / n
-        # Scoring the constant forecast at the base rate fitted from these same
-        # points hands it an in-sample edge, so grade it leave-one-out instead:
-        # each row is predicted by the rate of the OTHER rows. It is the stricter
-        # bar and the confidence field still loses to it.
-        if n > 1:
-            brier_loo = sum(((sum(outcomes) - y) / (n - 1) - y) ** 2 for y in outcomes) / n
-        # Where the damage concentrates: the calls it was surest about.
-        hi = [(p, y) for p, y in zip(confs, outcomes) if p >= 0.60]
-        if hi:
-            high_conf = {"threshold": 0.60, "n": len(hi),
-                         "wins": sum(y for _, y in hi),
-                         "win_rate": round(sum(y for _, y in hi) / len(hi), 4)}
+    def _calib(rows: list[dict]) -> dict:
+        """Brier + the baselines that make it readable, over one population.
+
+        Kept separate for active vs passive: a HOLD's confidence is a claim about
+        carrying a position, an active call's is a claim about a trade firing. Mixing
+        them into one score answers neither question.
+        """
+        cr = [r for r in rows if _float(r.get("confidence")) is not None
+              and (r.get("evaluation") or {}).get("outcome") in ("win", "loss", "flat")]
+        if not cr:
+            return {"n": 0, "brier": None, "baseline_loo": None, "base_rate": None,
+                    "mean_confidence": None, "beats_baseline": None, "high_confidence": None}
+        ys = [1 if (r.get("evaluation") or {}).get("outcome") == "win" else 0 for r in cr]
+        ps = [float(r["confidence"]) for r in cr]
+        n = len(ys)
+        br = sum((p - y) ** 2 for p, y in zip(ps, ys)) / n
+        base = sum(ys) / n
+        loo = (sum(((sum(ys) - y) / (n - 1) - y) ** 2 for y in ys) / n) if n > 1 else None
+        hi = [(p, y) for p, y in zip(ps, ys) if p >= 0.60]
+        return {
+            "n": n,
+            "brier": round(br, 4),
+            "baseline_loo": round(loo, 4) if loo is not None else None,
+            "baseline_constant": round(base * (1 - base), 4),
+            "baseline_coinflip": round(sum((0.5 - y) ** 2 for y in ys) / n, 4),
+            "base_rate": round(base, 4),
+            "mean_confidence": round(sum(ps) / n, 4),
+            "beats_baseline": (br < loo) if loo is not None else None,
+            "high_confidence": ({"threshold": 0.60, "n": len(hi), "wins": sum(y for _, y in hi),
+                                 "win_rate": round(sum(y for _, y in hi) / len(hi), 4)} if hi else None),
+        }
+
+    active_reps = [r for r in reps if r.get("action") in ACTIVE_ACTIONS]
+    passive_reps = [r for r in reps if r.get("action") in ("hold_and_watch", "watch")]
+    cal_active = _calib(active_reps)
+    cal_passive = _calib(passive_reps)
+    cal_all = _calib(reps)
     execution = Counter((r.get("execution") or {}).get("status", "unknown") for r in in_window)
     overrides = [r for r in in_window if (r.get("override") or {}).get("status") == "active"]
-    active = [r for r in reps if r.get("action") in ACTIVE_ACTIONS]
-    passive = [r for r in reps if r.get("action") in ("hold_and_watch", "watch")]
+    active, passive = active_reps, passive_reps
+
+    def _coverage(rows: list[dict]) -> dict:
+        """How much of the record the headline rate can actually see.
+
+        The rate's denominator is episodes, so coverage is counted in episodes too.
+        Publishing it next to the rate is the point: 30 of these are unresolvable
+        because the market was shut or the condition needs human evidence, and
+        silently dropping them is how a scorecard gets prettier for free.
+        """
+        by_ep = defaultdict(list)
+        for d in rows:
+            if d.get("episode_id"):
+                by_ep[d["episode_id"]].append(d)
+        graded = partial = unresolved = 0
+        for members in by_ep.values():
+            ok = [r for r in members if _float((r.get("evaluation") or {}).get("benefit_t1_pct")) is not None]
+            bad = [r for r in members if (r.get("evaluation") or {}).get("status") == "not_evaluable"]
+            if not ok:
+                unresolved += 1
+            elif bad:
+                partial += 1
+            else:
+                graded += 1
+        total = len(by_ep)
+        return {"episodes_total": total, "episodes_graded": graded,
+                "episodes_partial": partial, "episodes_unresolved": unresolved,
+                "graded_pct": round(100 * (graded + partial) / total, 1) if total else None,
+                "unresolved_reasons": dict(Counter(
+                    (d.get("evaluation") or {}).get("not_evaluable_reason")
+                    for d in rows if (d.get("evaluation") or {}).get("status") == "not_evaluable"))}
+
+    coverage_active = _coverage([d for d in in_window if d.get("action") in ACTIVE_ACTIONS])
     return {
         "schema_version": SCHEMA_VERSION,
         "method": "episode-level; triggered-only; date-cluster bootstrap; capital-weighted where size exists",
@@ -691,23 +991,19 @@ def compute_metrics(decisions: list[dict], window_days: int = 30) -> dict:
         "raw_decisions": len(in_window),
         "episodes": len({d.get("episode_id") for d in in_window}),
         "settled_episodes": len(reps),
-        "brier": round(brier, 4) if brier is not None else None,
-        # A Brier score alone is unreadable: 0.295 looks close to a "0 = perfect"
-        # scale, but the only question it answers is whether the stated confidence
-        # beats a forecaster who ignores the market and always says the same number.
-        # Shipping the score without that baseline flatters it. Grade against the
-        # leave-one-out constant — the in-sample b(1-b) is kept only for reference.
-        # NB this says the confidence is badly *calibrated*, not that it is empty:
-        # a Brier decomposition still shows some resolution (~0.03), swamped by a
-        # reliability penalty (~0.09). "Worse than a fool" overclaims; "worse than
-        # always saying 39%" is what the number supports.
-        "brier_baseline_loo": round(brier_loo, 4) if brier_loo is not None else None,
-        "brier_baseline_constant": round(base_rate * (1 - base_rate), 4) if base_rate is not None else None,
-        "brier_baseline_coinflip": round(sum((0.5 - y) ** 2 for y in outcomes) / len(outcomes), 4) if conf_rows else None,
-        "base_rate": round(base_rate, 4) if base_rate is not None else None,
-        "mean_confidence": round(mean_conf, 4) if mean_conf is not None else None,
-        "brier_beats_baseline": (brier < brier_loo) if brier_loo is not None else None,
-        "high_confidence": high_conf,
+        # Headline calibration = ACTIVE only. A HOLD's confidence is a different
+        # claim and used to be averaged in, which is how 191 passive stances ended up
+        # grading the model's ability to call a trade.
+        "brier": cal_active["brier"],
+        "brier_baseline_loo": cal_active["baseline_loo"],
+        "brier_baseline_constant": cal_active["baseline_constant"],
+        "brier_baseline_coinflip": cal_active["baseline_coinflip"],
+        "base_rate": cal_active["base_rate"],
+        "mean_confidence": cal_active["mean_confidence"],
+        "brier_beats_baseline": cal_active["beats_baseline"],
+        "high_confidence": cal_active["high_confidence"],
+        "calibration": {"active": cal_active, "passive": cal_passive, "all": cal_all},
+        "coverage_active": coverage_active,
         # The headline "followed rate" averaged two populations that mean opposite
         # things: acting on a cut/trim/add is a decision, while "following" a hold
         # is just not moving — it scores itself. Averaged they produced a ~50% that

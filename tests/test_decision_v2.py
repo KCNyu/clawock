@@ -29,34 +29,48 @@ def decision(day, ticker="AAA", strategy="core_position", action="hold_and_watch
     return d
 
 
-def _snapshot(price):
-    return {"portfolios": {
-        "us_stocks": {"holdings": [{"ticker": "AAA", "current_price": price,
-                                    "day_open": price, "day_high": price, "day_low": price}]},
-        "hk_stocks": {"holdings": []}}}
+def _bar(o, h=None, l=None, c=None):
+    o = float(o)
+    return {"open": o, "high": float(h if h is not None else o),
+            "low": float(l if l is not None else o), "close": float(c if c is not None else o)}
 
 
-def _settle_against(now_date, t1_price):
-    """Settle one 07-01 call when 07-02's snapshot prints ``t1_price``."""
+def _with_bars(bars, sessions=None, leg="US"):
+    """Patch the canonical bar store. ``bars`` is {date: bar}."""
+    days = sorted(sessions or bars)
+    return (mock.patch.object(dv2, "load_ticker_bars", return_value=bars),
+            mock.patch.object(dv2, "leg_sessions", return_value=days),
+            mock.patch.object(dv2, "is_session", side_effect=lambda lg, d: d in days))
+
+
+def _settle_against(now_date, t1_price, action="cut", condition=None, bars=None,
+                    plan_date="2026-07-01", ticker="AAA"):
+    """Settle one call against canonical bars rather than a portfolio snapshot."""
     row = dv2.legacy_action_to_decision({
-        "ticker": "AAA", "strategy_id": "core_position", "action": "cut",
-        "condition": {"type": "open"}, "confidence": 0.6, "driven_by": "technical",
-    }, "2026-07-01")
-    snaps = {"2026-07-01": _snapshot(10.0), "2026-07-02": _snapshot(t1_price)}
-    with mock.patch.object(dv2, "snapshot_dates", return_value=sorted(snaps)), \
-         mock.patch.object(dv2, "load_snapshot", side_effect=snaps.get):
+        "ticker": ticker, "strategy_id": "core_position", "action": action,
+        "condition": condition or {"type": "open"}, "confidence": 0.6,
+        "driven_by": "technical",
+    }, plan_date)
+    store = bars or {"2026-07-01": _bar(10.0), "2026-07-02": _bar(t1_price)}
+    patches = _with_bars(store)
+    for p in patches:
+        p.start()
+    try:
         dv2.settle_decisions([row], now_date=now_date)
+    finally:
+        for p in patches:
+            p.stop()
     return row["evaluation"]
 
 
-class LiveSnapshotTest(unittest.TestCase):
-    """Today's snapshot is rewritten every ~30min; it must not score a session."""
+class UnfinishedSessionTest(unittest.TestCase):
+    """A session that has not closed must never score a call."""
 
-    def test_todays_snapshot_never_settles(self):
+    def test_todays_session_never_settles(self):
         self.assertEqual(_settle_against("2026-07-02", 9.0)["outcome"], "pending")
 
     def test_the_tape_cannot_move_a_settled_record(self):
-        # The bug: 07-02 intraday, this call read 'win' at one print and 'loss'
+        # The bug: on 07-02 intraday this call read 'win' at one print and 'loss'
         # at the next. Pending at both is the whole point.
         up = _settle_against("2026-07-02", 9.0)     # cut, stock down -> would win
         down = _settle_against("2026-07-02", 11.0)  # cut, stock up   -> would lose
@@ -65,8 +79,127 @@ class LiveSnapshotTest(unittest.TestCase):
 
     def test_a_finalised_session_still_settles(self):
         ev = _settle_against("2026-07-03", 9.0)
-        self.assertEqual(ev["outcome"], "win")       # cut before a 10 -> 9 drop
+        self.assertEqual(ev["outcome"], "win")       # cut at 10, next close 9
         self.assertEqual(ev["benefit_t1_pct"], 10.0)
+
+
+class CanonicalBarSettlementTest(unittest.TestCase):
+    """The defects that made snapshot-based settlement wrong, as fixtures."""
+
+    def test_gap_through_a_sell_trigger_fills_at_the_open_not_the_trigger(self):
+        # 00100 2026-06-22: trigger 'rebound above 480', real bar opened at 520.
+        # Assuming a 480 fill invents a worse sale than was ever available and
+        # booked a real winner as a loss.
+        ev = _settle_against("2026-07-03", None, action="trim_on_rebound",
+                             condition={"type": "price_above", "price": 480.0},
+                             bars={"2026-07-01": _bar(520, 637.5, 502, 616.5),
+                                   "2026-07-02": _bar(515, 515, 515, 515)})
+        self.assertEqual(ev["execution_price"], 520.0)
+        self.assertEqual(ev["fill_reason"], "gap_through")
+        self.assertEqual(ev["outcome"], "win")
+
+    def test_intraday_cross_fills_at_the_trigger(self):
+        ev = _settle_against("2026-07-03", None, action="trim_on_rebound",
+                             condition={"type": "price_above", "price": 480.0},
+                             bars={"2026-07-01": _bar(470, 500, 465, 495),
+                                   "2026-07-02": _bar(460, 460, 460, 460)})
+        self.assertEqual(ev["execution_price"], 480.0)
+        self.assertEqual(ev["fill_reason"], "intraday_cross")
+
+    def test_touching_the_trigger_exactly_counts_as_fired(self):
+        ev = _settle_against("2026-07-03", None, action="trim_on_rebound",
+                             condition={"type": "price_above", "price": 500.0},
+                             bars={"2026-07-01": _bar(470, 500.0, 465, 495),
+                                   "2026-07-02": _bar(460, 460, 460, 460)})
+        self.assertIs(ev["triggered"], True)
+
+    def test_a_high_below_the_trigger_is_not_triggered(self):
+        # 07226 2026-05-27: stored day_high 4.192 was carried over from an earlier
+        # session and said TRIGGERED; the real high was 3.96 and it never fired.
+        ev = _settle_against("2026-07-03", None, action="cut",
+                             condition={"type": "price_above", "price": 4.10},
+                             bars={"2026-07-01": _bar(3.934, 3.96, 3.776, 3.808),
+                                   "2026-07-02": _bar(3.8, 3.8, 3.8, 3.8)})
+        self.assertIs(ev["triggered"], False)
+        self.assertEqual(ev["status"], "not_triggered")
+
+    def test_a_sell_below_trigger_gap_fills_at_the_open(self):
+        ev = _settle_against("2026-07-03", None, action="cut",
+                             condition={"type": "price_below", "price": 100.0},
+                             bars={"2026-07-01": _bar(92, 95, 90, 93),
+                                   "2026-07-02": _bar(94, 94, 94, 94)})
+        self.assertEqual(ev["execution_price"], 92.0)   # never 100
+        self.assertEqual(ev["fill_reason"], "gap_through")
+
+    def test_zero_benefit_is_flat_not_loss(self):
+        ev = _settle_against("2026-07-03", 10.0)   # cut at 10, next close 10
+        self.assertEqual(ev["outcome"], "flat")
+
+    def test_a_hold_records_a_reference_price_never_a_fill(self):
+        ev = _settle_against("2026-07-03", 11.0, action="hold_and_watch")
+        self.assertEqual(ev["evaluation_mode"], "passive_stance")
+        self.assertEqual(ev["reference_price"], 10.0)
+        self.assertIsNone(ev.get("execution_price"))
+        self.assertFalse(ev["fill_assumed"])
+        self.assertEqual(ev["condition_role"], "invalidation")
+
+    def test_t1_skips_a_closed_session_instead_of_borrowing_it(self):
+        # 2026-06-19 was closed on both legs; the old code graded 06-18 calls
+        # against its snapshot, which had not moved.
+        bars = {"2026-06-18": _bar(19.74, 20.07, 16.27, 18.97),
+                "2026-06-22": _bar(13.0, 13.0, 12.0, 12.68)}
+        ev = _settle_against("2026-07-03", None, action="cut", plan_date="2026-06-18",
+                             bars=bars)
+        self.assertEqual(ev["mark_t1_session"], "2026-06-22")
+        self.assertEqual(ev["outcome"], "win")
+
+    def test_a_weekday_holiday_is_not_rolled_forward(self):
+        row = dv2.legacy_action_to_decision({
+            "ticker": "AAA", "strategy_id": "core_position", "action": "cut",
+            "condition": {"type": "open"}, "confidence": 0.6, "driven_by": "technical",
+        }, "2026-07-03")
+        with mock.patch.object(dv2, "is_session", side_effect=lambda lg, d: d != "2026-07-03"):
+            sess, reason = dv2.evaluation_session(row)
+        self.assertIsNone(sess)
+        self.assertEqual(reason, "market_closed")
+
+    def test_a_weekend_brief_is_graded_on_the_next_session(self):
+        row = dv2.legacy_action_to_decision({
+            "ticker": "AAA", "strategy_id": "core_position", "action": "cut",
+            "condition": {"type": "open"}, "confidence": 0.6, "driven_by": "technical",
+        }, "2026-05-17")   # a Sunday
+        with mock.patch.object(dv2, "is_session", side_effect=lambda lg, d: d == "2026-05-18"):
+            sess, reason = dv2.evaluation_session(row)
+        self.assertEqual(sess, "2026-05-18")
+        self.assertEqual(reason, "weekend_brief_graded_next_session")
+
+    def test_a_decision_authored_after_its_plan_date_is_quarantined(self):
+        row = dv2.legacy_action_to_decision({
+            "ticker": "AAA", "strategy_id": "core_position", "action": "cut",
+            "condition": {"type": "open"}, "confidence": 0.6, "driven_by": "technical",
+            "created_at": "2026-06-02T08:00:00+08:00",
+        }, "2026-06-01")
+        sess, reason = dv2.evaluation_session(row)
+        self.assertIsNone(sess)
+        self.assertEqual(reason, "invalid_authored_timestamp")
+
+    def test_resettling_twice_is_idempotent(self):
+        bars = {"2026-07-01": _bar(10.0), "2026-07-02": _bar(9.0)}
+        row = dv2.legacy_action_to_decision({
+            "ticker": "AAA", "strategy_id": "core_position", "action": "cut",
+            "condition": {"type": "open"}, "confidence": 0.6, "driven_by": "technical",
+        }, "2026-07-01")
+        patches = _with_bars(bars)
+        for p in patches:
+            p.start()
+        try:
+            dv2.settle_decisions([row], now_date="2026-07-03")
+            first = copy.deepcopy(row["evaluation"])
+            dv2.settle_decisions([row], now_date="2026-07-03")
+        finally:
+            for p in patches:
+                p.stop()
+        self.assertEqual(first, row["evaluation"])
 
 
 class DecisionV2Test(unittest.TestCase):
@@ -121,7 +254,8 @@ class DecisionV2Test(unittest.TestCase):
             "ticker": "AAA", "strategy_id": "event_trade", "action": "cut",
             "condition": {"type": "manual"}, "confidence": .5, "driven_by": "catalyst"
         }, "2026-07-01")
-        self.assertEqual(dv2.condition_execution(manual, {}), (None, None))
+        self.assertEqual(dv2.condition_execution(manual, _bar(10.0)),
+                         (None, None, "needs_human_evidence"))
 
     def test_backtest_is_capital_weighted_and_compounded(self):
         rows = [decision("2026-07-01", action="cut", benefit=10, capital=900),

@@ -1,0 +1,191 @@
+{
+ "schema_version": 1,
+ "ticker": "SPCH",
+ "leg": "US",
+ "tencent": "usSPCH.AM",
+ "em_audit_secid": "107.SPCH",
+ "adjustment": "raw",
+ "source": "tencent",
+ "bars": {
+  "2026-06-15": {
+   "open": 18.23,
+   "high": 21.88,
+   "low": 16.4,
+   "close": 20.88,
+   "source": "tencent",
+   "adjustment": "raw",
+   "fetched_at": "2026-07-15T23:39:09+08:00"
+  },
+  "2026-06-16": {
+   "open": 22.63,
+   "high": 28.01,
+   "low": 21.43,
+   "close": 22.95,
+   "source": "tencent",
+   "adjustment": "raw",
+   "fetched_at": "2026-07-15T23:39:09+08:00"
+  },
+  "2026-06-17": {
+   "open": 24.86,
+   "high": 25.54,
+   "low": 19.48,
+   "close": 20.69,
+   "source": "tencent",
+   "adjustment": "raw",
+   "fetched_at": "2026-07-15T23:39:09+08:00"
+  },
+  "2026-06-18": {
+   "open": 19.74,
+   "high": 20.07,
+   "low": 16.27,
+   "close": 18.97,
+   "source": "tencent",
+   "adjustment": "raw",
+   "fetched_at": "2026-07-15T23:39:09+08:00"
+  },
+  "2026-06-22": {
+   "open": 17.16,
+   "high": 17.27,
+   "low": 12.62,
+   "close": 12.68,
+   "source": "tencent",
+   "adjustment": "raw",
+   "fetched_at": "2026-07-15T23:39:09+08:00"
+  },
+  "2026-06-23": {
+   "open": 12.14,
+   "high": 14.52,
+   "low": 11.5,
+   "close": 12.99,
+   "source": "tencent",
+   "adjustment": "raw",
+   "fetched_at": "2026-07-15T23:39:09+08:00"
+  },
+  "2026-06-24": {
+   "open": 12.65,
+   "high": 13.59,
+   "low": 12.07,
+   "close": 12.66,
+   "source": "tencent",
+   "adjustment": "raw",
+   "fetched_at": "2026-07-15T23:39:09+08:00"
+  },
+  "2026-06-25": {
+   "open": 13.03,
+   "high": 13.69,
+   "low": 11.96,
+   "close": 12.35,
+   "source": "tencent",
+   "adjustment": "raw",
+   "fetched_at": "2026-07-15T23:39:09+08:00"
+  },
+  "2026-06-26": {
+   "open": 12.01,
+   "high": 13.29,
+   "low": 11.69,
+   "close": 12.31,
+   "source": "tencent",
+   "adjustment": "raw",
+   "fetched_at": "2026-07-15T23:39:09+08:00"
+  },
+  "2026-06-29": {
+   "open": 13.09,
+   "high": 14.54,
+   "low": 12.2,
+   "close": 14.17,
+   "source": "tencent",
+   "adjustment": "raw",
+   "fetched_at": "2026-07-15T23:39:09+08:00"
+  },
+  "2026-06-30": {
+   "open": 14.06,
+   "high": 15.62,
+   "low": 13.76,
+   "close": 15.32,
+   "source": "tencent",
+   "adjustment": "raw",
+   "fetched_at": "2026-07-15T23:39:09+08:00"
+  },
+  "2026-07-01": {
+   "open": 15.56,
+   "high": 15.56,
+   "low": 12.71,
+   "close": 12.98,
+   "source": "tencent",
+   "adjustment": "raw",
+   "fetched_at": "2026-07-15T23:39:09+08:00"
+  },
+  "2026-07-02": {
+   "open": 13.31,
+   "high": 13.68,
+   "low": 12.65,
+   "close": 13.6,
+   "source": "tencent",
+   "adjustment": "raw",
+   "fetched_at": "2026-07-15T23:39:09+08:00"
+  },
+  "2026-07-06": {
+   "open": 14.3,
+   "high": 14.64,
+   "low": 12.49,
+   "close": 13.36,
+   "source": "tencent",
+   "adjustment": "raw",
+   "fetched_at": "2026-07-15T23:39:09+08:00"
+  },
+  "2026-07-07": {
+   "open": 13.13,
+   "high": 13.2,
+   "low": 11.5,
+   "close": 11.6,
+   "source": "tencent",
+   "adjustment": "raw",
+   "fetched_at": "2026-07-15T23:39:09+08:00"
+  },
+  "2026-07-08": {
+   "open": 12.0,
+   "high": 12.07,
+   "low": 10.89,
+   "close": 11.4,
+   "source": "tencent",
+   "adjustment": "raw",
+   "fetched_at": "2026-07-15T23:39:09+08:00"
+  },
+  "2026-07-09": {
+   "open": 11.67,
+   "high": 12.16,
+   "low": 11.26,
+   "close": 11.93,
+   "source": "tencent",
+   "adjustment": "raw",
+   "fetched_at": "2026-07-15T23:39:09+08:00"
+  },
+  "2026-07-10": {
+   "open": 11.61,
+   "high": 11.67,
+   "low": 10.83,
+   "close": 10.88,
+   "source": "tencent",
+   "adjustment": "raw",
+   "fetched_at": "2026-07-15T23:39:09+08:00"
+  },
+  "2026-07-13": {
+   "open": 10.73,
+   "high": 10.79,
+   "low": 9.58,
+   "close": 9.95,
+   "source": "tencent",
+   "adjustment": "raw",
+   "fetched_at": "2026-07-15T23:39:09+08:00"
+  },
+  "2026-07-14": {
+   "open": 10.18,
+   "high": 10.52,
+   "low": 9.49,
+   "close": 9.51,
+   "source": "tencent",
+   "adjustment": "raw",
+   "fetched_at": "2026-07-15T23:39:09+08:00"
+  }
+ }
+}

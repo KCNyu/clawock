@@ -51,7 +51,7 @@ def main():
         json_part = '{}'
 
     desc = (f"clawock 盘前深度简报 {today}：港股 + 美股真实持仓的多空辩论、量化因子、"
-            f"风控硬闸与 AI 自评战绩（诚实公开，承认主动操作跑输躺平）。")
+            f"风控硬闸与 AI 自评战绩（诚实公开，主动建议平均方向分为负）。")
     md_with_fm = (
         f"---\nlayout: default\ntitle: 盘前深度简报 · {today} (xiaomi fallback)\n"
         f'description: "{desc}"\n---\n\n'
