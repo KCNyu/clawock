@@ -29,7 +29,11 @@ jobs:
           python-version: '3.11'
 
       - name: Install minimal deps
-        run: pip install --quiet requests pytest
+        # numpy is required to *collect* tests/, not just to run one of them:
+        # portfolio_risk_metrics imports it at module level, so without it pytest
+        # aborts the whole run with a collection error and all 78 tests silently
+        # stop being enforced — a green-looking local run hides this completely.
+        run: pip install --quiet requests pytest numpy
 
       - name: Unit tests — money-integrity derivations
         run: python3 -m pytest tests/ -q

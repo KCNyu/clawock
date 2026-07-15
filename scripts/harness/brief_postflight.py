@@ -242,12 +242,27 @@ def maybe_commit(status, today):
     # guardrail / 🧭 regime / benchmark curve to day-old values until the next
     # local push overwrote them again (found 2026-06-10; same class as the
     # 06-05 sidecar-strip bug). The daily brief commit is their natural ride.
+    # The rest of preflight's write set, added 2026-07-16 for the same reason and
+    # found the same way: each is built fresh every morning and was never committed,
+    # so origin only moved when an unrelated commit happened to sweep it up
+    # (t0_setups/em_news last rode in on a docs commit, 940aaa9). Between those
+    # accidents the public dashboard served stale Chinese news and a T0 history with
+    # holes, and guardrail_history — which README leans on for the "风控纪律" claim —
+    # silently lost samples on every fresh checkout. macro/sentiment/influencer/
+    # us_news_digest are deliberately NOT here: GH Actions own those, preflight only
+    # reads them, and committing them from this side would fight the workflow.
     add_ok, add_out = _git('add', 'memory/', 'portfolio.json', 'assets/data/dashboard.json',
                             'memory/decisions.jsonl', 'assets/data/risk.json',
                             'assets/data/lev_regime.json', 'assets/data/benchmark.json',
                             'assets/data/quant_signals.json',
                             'assets/data/quant_signals_history.jsonl',
                             'assets/data/quant_signal_review.json',
+                            'assets/data/catalysts.json',
+                            'assets/data/em_news.json',
+                            'assets/data/guardrail_history.jsonl',
+                            'assets/data/t0_setups.json',
+                            'assets/data/t0_setups_history.jsonl',
+                            'assets/data/t0_setup_review.json',
                             'logs/dashboard_build_status.json')
     if not add_ok:
         return False, f'git add failed: {add_out[-200:]}'

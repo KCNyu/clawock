@@ -111,7 +111,13 @@ def snapshot_date_for_now():
     return None
 
 
-GHA_DATA_FILES = ['sentiment.json', 'macro.json', 'us_news_digest.json', 'catalysts.json']
+# Only files a GH Action actually produces belong here — this list is checked out
+# from origin, so anything local wins. `catalysts.json` was in it but no workflow
+# has ever built it: fetch_catalysts.py runs in brief preflight [12/14] alone. So
+# the sync clobbered each freshly-fetched copy with origin's older one, and since
+# it wasn't committed either, origin only moved when an unrelated commit happened
+# to sweep it up — a loop that kept it stale from both ends.
+GHA_DATA_FILES = ['sentiment.json', 'macro.json', 'us_news_digest.json']
 
 
 def sync_gha_data_files(ws=None):

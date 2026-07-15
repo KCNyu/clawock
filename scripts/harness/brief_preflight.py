@@ -29,10 +29,12 @@ Exit: 0 if no issues, 1 if any data leg failed.
 import json
 import math
 import os
+import re
 import subprocess
 import sys
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, date, timezone, timedelta
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 # Resolve workspace root from this file's location, NOT a hardcoded path: this
 # script runs both under openclaw cron (local /root/.openclaw/workspace) AND on
@@ -746,6 +748,104 @@ def compute_decision_metrics():
     return decision_v2.compute_metrics(decisions)
 
 
+def refresh_daily_bars():
+    """Append newly closed sessions to `memory/bars/` before anything settles.
+
+    The canonical bar store is what decision_v2 settles against, and settling only
+    *reads* it — nothing in the ledger path ever fetches. The store was backfilled
+    once (8aad505, every bar stamped 2026-07-15T23:39) and then had no writer at
+    all: no cron, no contract entry, no workflow called fetch_daily_bars.py. So each
+    new session was invisible to the ledger, its decisions stayed `pending`
+    forever, and the dashboard kept refreshing around a win rate that could no
+    longer move. This is that writer, and it has to run ahead of [10].
+
+    Non-fatal by design: a stale store degrades to `pending`, which is bad but
+    honest — losing the whole morning brief to a provider hiccup is worse. A
+    non-zero exit means the provider now disagrees with a bar the ledger already
+    settled against; fetch_daily_bars never overwrites one, so that surfaces as an
+    issue for a human to resolve with --repair rather than being applied here.
+    """
+    cmd = ['python3', str(WS / 'scripts' / 'data' / 'fetch_daily_bars.py')]
+    try:
+        r = subprocess.run(cmd, capture_output=True, text=True, timeout=300)
+    except Exception as e:
+        return {'ok': False, 'error': f'{type(e).__name__}: {e}'}
+    out = (r.stdout or '') + (r.stderr or '')
+    res = {'ok': r.returncode == 0, 'returncode': r.returncode}
+    m = re.search(r'(\d+) bars added, (\d+) revised', out)
+    if m:
+        res['added'], res['revised'] = int(m.group(1)), int(m.group(2))
+    if r.returncode != 0:
+        res['conflicts'] = [ln.strip() for ln in out.splitlines()
+                            if ' vs fetched ' in ln or 'insane OHLC' in ln][:10]
+    res['stale'] = bars_staleness()
+    return res
+
+
+def _last_closed_session(market):
+    """The newest date `market` actually traded and has since closed (17:00 local).
+
+    Walks back through trading_calendar rather than subtracting a day: a missing bar
+    is not a closed market. Conflating the two is what once deleted 10 live US rows,
+    and on any Monday a naive "yesterday" would report the whole weekend as missing.
+    """
+    d = datetime.now(ZoneInfo(trading_calendar.MARKET_TZ[market]))
+    cur = d.date() if d.hour >= 17 else d.date() - timedelta(days=1)
+    for _ in range(14):  # a two-week hole is a broken store, not a holiday
+        if trading_calendar.is_trading_day(market, cur):
+            return cur
+        cur -= timedelta(days=1)
+    return None
+
+
+def bars_staleness():
+    """Per-leg gap between the newest stored bar and the last session that closed.
+
+    Reported per leg, never as one number: HK and US close on different days, so a
+    shared cutoff would flag one of them as stale every single morning. This is the
+    check that would have caught the store going a month without a writer — the
+    fetch reporting "+0 bars" looks identical to "nothing to do".
+
+    Two levels, because they mean different things and only one is an alarm:
+
+    * leg — the leg's newest bar vs its calendar. The whole leg falling behind means
+      the writer is dead or the provider is blocked. That is the regression guard.
+    * `laggards` — tickers behind their own leg, reported but never raised. A thin
+      name legitimately prints no bar on a day it never traded (SKHYV has one bar in
+      the store), so flagging those would cry wolf every morning until nobody reads
+      the warnings. A real per-ticker outage shows up as a laggard that keeps
+      growing, which is a question for a human, not an exit code.
+    """
+    bars_dir = WS / 'memory' / 'bars'
+    out = {}
+    for leg, market in (('HK', 'hk'), ('US', 'us')):
+        per_ticker = {}
+        for p in bars_dir.glob('*.json'):
+            try:
+                doc = json.loads(p.read_text())
+            except (OSError, json.JSONDecodeError):
+                continue
+            if (doc.get('leg') or '') != leg or not doc.get('bars'):
+                continue
+            per_ticker[doc.get('ticker') or p.stem] = max(doc['bars'])
+        if not per_ticker:
+            continue
+        newest = max(per_ticker.values())
+        expected = _last_closed_session(market)
+        missing = []
+        if expected:
+            cur = date.fromisoformat(newest) + timedelta(days=1)
+            while cur <= expected:
+                if trading_calendar.is_trading_day(market, cur):
+                    missing.append(cur.isoformat())
+                cur += timedelta(days=1)
+        out[leg] = {'newest_bar': newest,
+                    'last_closed_session': expected.isoformat() if expected else None,
+                    'missing_sessions': missing,
+                    'laggards': {t: d for t, d in sorted(per_ticker.items()) if d < newest}}
+    return out
+
+
 def _classify_regime(macro_trim):
     """Derive a coarse risk regime from the macro snapshot so the brief can make it
     EXPLICIT and stop fighting the tape (2026-05-30). calibration shows hold=76% in
@@ -1025,7 +1125,7 @@ def main():
     print(f'═════ brief_preflight.py | {today} ═════')
 
     # [1] Refresh prices
-    print('\n[1/11] Refresh US prices')
+    print('\n[1/14] Refresh US prices')
     us_out, us_ok = _run('scripts/data/analyze_us_stocks.py', ['--no-news'])
     if not us_ok:
         issues.append(f'US refresh failed: {us_out[-200:]}')
@@ -1033,7 +1133,7 @@ def main():
     else:
         print('   ✓ done')
 
-    print('[2/11] Refresh HK prices')
+    print('[2/14] Refresh HK prices')
     hk_out, hk_ok = _run('scripts/data/analyze_hk_stocks.py', ['--no-news'])
     if not hk_ok:
         issues.append(f'HK refresh failed: {hk_out[-200:]}')
@@ -1042,14 +1142,14 @@ def main():
         print('   ✓ done')
 
     # [3] FX
-    print('[3/11] FX rate')
+    print('[3/14] FX rate')
     fx = fetch_fx_rate()
     if 'error' in fx:
         issues.append(f'FX fallback used: {fx["error"][-200:]}')
     print(f'   USDHKD = {fx["rate"]}  ({fx["source"]})')
 
     # [4] Snapshot
-    print('[4/11] Portfolio snapshot')
+    print('[4/14] Portfolio snapshot')
     portfolio_path = WS / 'portfolio.json'
     snapshot_path  = SNAPSHOT_DIR / f'{today}.json'
     snapshot_path.write_bytes(portfolio_path.read_bytes())
@@ -1059,7 +1159,7 @@ def main():
     portfolio = json.loads(portfolio_path.read_text())
 
     # [5] Concentration
-    print('[5/11] Concentration')
+    print('[5/14] Concentration')
     hk_conc = compute_concentration(portfolio['portfolios']['hk_stocks']['holdings'])
     us_conc = compute_concentration(portfolio['portfolios']['us_stocks']['holdings'])
     print(f'   HK: HHI={hk_conc.get("hhi"):.3f} {hk_conc.get("verdict")} '
@@ -1080,7 +1180,7 @@ def main():
     }
 
     # [6] SEC EDGAR
-    print('[6/11] SEC EDGAR US singles')
+    print('[6/14] SEC EDGAR US singles')
     us_fund = collect_us_fundamentals(portfolio)
     for t, data in us_fund.items():
         if 'error' in data:
@@ -1091,7 +1191,7 @@ def main():
             print(f'   ✓ {t}: {len(kf)} concepts')
 
     # [7] Retrospective
-    print('[7/11] Retrospective')
+    print('[7/14] Retrospective')
     prior_plan = find_prior_plan(today)
     retro = compute_retrospective(prior_plan, portfolio)
     if retro.get('prior_plan_date'):
@@ -1107,12 +1207,44 @@ def main():
         print(f'   first run (no prior plan)')
 
     # [8] Peer scan — for each active holding, fetch peer prices + flag divergence
-    print('[8/11] Peer scan')
+    print('[8/14] Peer scan')
     peer_scan = collect_peer_scan(portfolio)
     print(f'   {len(peer_scan)} holdings with peer data; {sum(1 for h in peer_scan.values() if h.get("divergence_signal"))} divergence signals')
 
-    # [9] V2 episode metrics — triggered-only, strategy-aware, cluster-bootstrap
-    print('[9/11] Decision metrics v2')
+    # [9] Canonical bars — must precede [10]: settling only reads this store.
+    print('[9/14] Refresh canonical daily bars')
+    bars = refresh_daily_bars()
+    if not bars.get('ok'):
+        if bars.get('conflicts'):
+            # Stored bars the ledger already settled against now disagree with the
+            # provider. Never auto-applied — see fetch_daily_bars.py --repair.
+            print(f'   ⚠ {len(bars["conflicts"])} provider conflicts, nothing overwritten:')
+            for c in bars['conflicts'][:5]:
+                print(f'     {c}')
+            issues.append(f'{len(bars["conflicts"])} bar conflicts need --repair')
+        else:
+            print(f'   ⚠ bar refresh failed: {bars.get("error", "")[:150]}')
+            issues.append('daily bar refresh failed')
+    else:
+        print(f'   +{bars.get("added", 0)} bars, {bars.get("revised", 0)} revised')
+    for leg, st in (bars.get('stale') or {}).items():
+        miss = st.get('missing_sessions') or []
+        if miss:
+            # "+0 bars" and "the store has no writer" print identically; only the
+            # calendar tells them apart, so an unfetched session is an issue here.
+            print(f'   ⚠ {leg}: newest bar {st["newest_bar"]}, last close '
+                  f'{st["last_closed_session"]} — {len(miss)} session(s) missing: {miss}')
+            issues.append(f'{leg} bars missing {len(miss)} session(s); '
+                          f'those decisions cannot settle')
+        else:
+            print(f'   ✓ {leg}: current through {st["newest_bar"]}')
+        if st.get('laggards'):
+            # Informational: thin names skip sessions legitimately. See bars_staleness.
+            print(f'     {leg} behind leg: '
+                  + ', '.join(f'{t}@{d}' for t, d in st['laggards'].items()))
+
+    # [10] V2 episode metrics — triggered-only, strategy-aware, cluster-bootstrap
+    print('[10/14] Decision metrics v2')
     decision_metrics = compute_decision_metrics()
     # Brier is never printed bare: alone it reads as "0.295, close enough to 0".
     # It only means something against the constant-forecast baseline it has to beat.
@@ -1132,7 +1264,7 @@ def main():
         print(f'[9b/11] Reflections: {len(reflections)} held tickers with prior-call history')
 
     # [10] Risk metrics — Tier 2: β / vol / DD / Sharpe / margin sim
-    print('[10/11] Risk metrics')
+    print('[11/14] Risk metrics')
     risk = {}
     try:
         r = subprocess.run(['python3', str(WS / 'scripts' / 'data' / 'portfolio_risk_metrics.py')],
@@ -1272,7 +1404,7 @@ def main():
     print(f'   breakeven: {len(breakeven["rows"])} 只浮亏持仓入表')
 
     # [11] Catalyst calendar — next 14d earnings + FOMC + macro
-    print('[11/11] Fetch catalysts')
+    print('[12/14] Fetch catalysts')
     catalysts = {}
     try:
         cat_out, cat_ok = _run('scripts/data/fetch_catalysts.py', ['--json'], timeout=60)
@@ -1296,7 +1428,7 @@ def main():
 
     # Benchmark history (SPY + HSI/HSTECH) for the Equity Curve overlay.
     # Refreshed once per day at brief time; consumed by build_dashboard.
-    print('[12/13] Fetch benchmark history')
+    print('[13/14] Fetch benchmark history')
     try:
         bm_out, bm_ok = _run('scripts/data/fetch_benchmark_history.py', timeout=30)
         if not bm_ok:
@@ -1313,7 +1445,7 @@ def main():
     # [13] Macro + sentiment snapshots — written by GH Action (macro-scan / sentiment-scan).
     # Read-only here; brief LLM consumes the trimmed subset so "▎大盘速读" and
     # "▎社交舆情速读" sections aren't flying blind.
-    print('[13/13] Load macro + sentiment + influencer snapshots')
+    print('[14/14] Load macro + sentiment + influencer snapshots')
     macro_trim, sentiment_trim = load_macro_and_sentiment(today, issues)
     influencer_trim = load_influencer_feed(issues)
     em_news_trim = load_em_news(issues)
