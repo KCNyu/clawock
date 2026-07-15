@@ -10,10 +10,10 @@ layout: null
 <meta name="theme-color" content="#0a0e1a" media="(prefers-color-scheme: dark)">
 <meta name="theme-color" content="#f7f8fb" media="(prefers-color-scheme: light)">
 <title>clawock — autonomous AI that debates &amp; grades its own stock picks (HK + US)</title>
-<meta name="description" content="Multi-agent LLM analysis on a real HK + US stock portfolio: a daily bull-vs-bear debate, hard risk gates, and a scorecard that grades the AI's own calls — and admits it loses to buy-and-hold. Live dashboard, fully autonomous.">
+<meta name="description" content="Multi-agent LLM analysis on a real HK + US stock portfolio: a daily bull-vs-bear debate, hard risk gates, and a scorecard that grades the AI's own calls — and publishes a directional hit rate under 50%. Live dashboard, fully autonomous.">
 <!-- link-share preview card (WeChat / Telegram / iMessage) -->
 <meta property="og:title" content="clawock — autonomous AI that grades its own stock picks">
-<meta property="og:description" content="A daily bull-vs-bear debate on a real HK + US portfolio, hard risk gates, and a scorecard that admits the AI loses to buy-and-hold. 多空辩论 · 风控硬闸 · 自评战绩 · 全自动。">
+<meta property="og:description" content="A daily bull-vs-bear debate on a real HK + US portfolio, hard risk gates, and a scorecard that publishes the AI's own sub-50% hit rate. 多空辩论 · 风控硬闸 · 自评战绩 · 全自动。">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://kcnyu.github.io/clawock/">
 <meta property="og:image" content="https://kcnyu.github.io/clawock/assets/social-card.png">
@@ -22,7 +22,7 @@ layout: null
 <link rel="canonical" href="https://kcnyu.github.io/clawock/">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="clawock — autonomous AI that grades its own stock picks">
-<meta name="twitter:description" content="A daily bull-vs-bear debate on a real HK + US portfolio, hard risk gates, and a scorecard that admits the AI loses to buy-and-hold.">
+<meta name="twitter:description" content="A daily bull-vs-bear debate on a real HK + US portfolio, hard risk gates, and a scorecard that publishes the AI's own sub-50% hit rate.">
 <meta name="twitter:image" content="https://kcnyu.github.io/clawock/assets/social-card.png">
 <script type="application/ld+json">
 {
@@ -33,7 +33,7 @@ layout: null
   "applicationCategory": "FinanceApplication",
   "operatingSystem": "Web",
   "inLanguage": ["en", "zh-CN"],
-  "description": "Multi-agent LLM analysis on a real HK + US stock portfolio: a daily bull-vs-bear debate, hard risk gates, and a scorecard that grades the AI's own calls — and admits it loses to buy-and-hold.",
+  "description": "Multi-agent LLM analysis on a real HK + US stock portfolio: a daily bull-vs-bear debate, hard risk gates, and a scorecard that grades the AI's own calls — and publishes a directional hit rate under 50%.",
   "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
   "author": { "@type": "Person", "name": "kcn", "url": "https://github.com/KCNyu" }
 }
@@ -1220,19 +1220,14 @@ layout: null
     font-size: 11px; color: var(--text-faint);
     margin: -4px 0 8px; line-height: 1.4;
   }
-  /* A chart pulled for being wrong leaves a hole; the hole has to explain itself,
-     or it reads as a bug and the question quietly goes unanswered. */
+  /* Says why a number is absent, in two lines. Not a post-mortem: the audit trail
+     for why the money view came down belongs in the repo, not on kcn's dashboard. */
   .retired-note {
     font-size: 12px; line-height: 1.6; color: var(--text-dim);
     border: 1px dashed var(--border); border-radius: 8px;
-    padding: 12px 14px; margin: 4px 0 12px;
+    padding: 11px 13px; margin: 4px 0 12px;
   }
-  .retired-note .retired-title {
-    font-weight: 600; color: var(--text); font-size: 12.5px; margin-bottom: 6px;
-  }
-  .retired-note p { margin: 6px 0; }
-  .retired-note ul { margin: 6px 0 6px 0; padding-left: 18px; }
-  .retired-note li { margin: 3px 0; }
+  .retired-note p { margin: 0; }
   .retired-note b { color: var(--text); }
 
   /* KPI strip — broker-style summary cards (Reflect tab top row) */
@@ -1340,8 +1335,8 @@ layout: null
 </head>
 <body>
 <noscript><div style="padding:14px;max-width:680px;margin:0 auto;color:#9aa4b8;font-size:13px;line-height:1.6">
-  <p><strong>clawock</strong> is a fully autonomous, multi-agent LLM analyst running on a real Hong Kong + US stock portfolio. Every morning it stages a bull-vs-bear debate, enforces hard risk gates (concentration, leverage, beta, stop-loss), and keeps a public scorecard that grades the AI's own calls — and openly admits it loses to buy-and-hold.</p>
-  <p>clawock 是一个全自动多智能体投研系统，跑在真实的港股 + 美股组合上：每早多空辩论、风控硬闸、公开给自己打分，并诚实承认跑输 buy-and-hold。</p>
+  <p><strong>clawock</strong> is a fully autonomous, multi-agent LLM analyst running on a real Hong Kong + US stock portfolio. Every morning it stages a bull-vs-bear debate, enforces hard risk gates (concentration, leverage, beta, stop-loss), and keeps a public scorecard that grades the AI's own calls — and openly publishes a directional hit rate under 50%.</p>
+  <p>clawock 是一个全自动多智能体投研系统，跑在真实的港股 + 美股组合上：每早多空辩论、风控硬闸、公开给自己打分，并诚实公布不到 50% 的方向命中率。</p>
   <p>This dashboard renders with JavaScript · raw data: <a href="assets/data/dashboard.json" style="color:#5b8def">dashboard.json</a> · source: <a href="https://github.com/KCNyu/clawock" style="color:#5b8def">github.com/KCNyu/clawock</a></p>
 </div></noscript>
 
@@ -1817,7 +1812,7 @@ layout: null
 
     <div class="card">
       <h3>Plan Review <span class="muted" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:11px">(last 30d)</span></h3>
-      <p class="chart-hint">每天 08:00 brief 写的建议，次日起看你有没有照做。<b>已知缺陷</b>：输赢按之后第一个快照的报价算，那个报价不保证是收盘价；是否触发拿快照里的当日最高/最低价判，而它会串日 —— 已查实个别判错（两个方向都有）。方向性结论（低于 50%）不受影响，但这些数字不必细究到小数点。正在换成官方逐日行情。</p>
+      <p class="chart-hint">每天 08:00 brief 写的建议，次日起看你有没有照做。<b>⚠️ 输赢和是否触发都基于快照报价，时点不稳定、个别判错</b> —— 方向性结论（低于 50%）不受影响，但数字不必细究到小数点。</p>
       <div class="kpi-grid" style="margin-bottom:14px">
         <div class="kpi-cell">
           <div class="lbl">AI 出的主意</div>
@@ -1859,14 +1854,7 @@ layout: null
     <div class="card" id="shadow-card" style="display:none">
       <h3>AI 主动建议的战绩</h3>
       <div class="retired-note">
-        <div class="retired-title">「听 AI 累计多赚了多少钱」这张图已撤下</div>
-        <p>原来那条线画的是 <b>AI 喊的价</b> 和 <b>之后第一个记录到的价</b> 之间的差，按建议股数折成钱。它不能当作「你多赚的钱」，因为：</p>
-        <ul>
-          <li>那 113 条要动手的建议，你只执行了 <b>3 条</b>——其余的交易从没发生过，那条线却把它们全算进去了；</li>
-          <li>「之后第一个记录到的价」超过一半<b>不是收盘价</b>，是随抓取时点漂移的报价；</li>
-          <li>是否触发，是拿快照里的当日最高/最低价判的，而那个高低价<b>会串日</b>——已查实既误判过没发生的触发，也漏掉过真发生的。</li>
-        </ul>
-        <p>要真回答这个问题，得先有逐日官方收盘价、你的真实成交记录，以及一套「同股数、当天收盘就卖」的对照账本，两套账本比净值。<b>在那之前，这个数不发。</b></p>
+        <p>「听 AI 多赚多少」目前<b>算不出可靠的数</b>：现有记录对不上真实成交、可核验行情和统一的对照口径，所以不展示金额。下面只显示<b>方向判断的命中情况，不代表实际收益</b>。</p>
       </div>
       <div class="trig-title" style="font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-dim);margin:16px 0 4px;font-weight:600">AI cumulative episode win rate — v1 migrated + v2</div>
       <div id="chart-ai-winrate" class="chart-box" style="height:210px;min-height:210px"></div>
@@ -2568,14 +2556,14 @@ layout: null
     const active = metrics.active || {};
     if (active.avg_benefit_pct != null) {
       const ci = active.cluster_ci95 ? ` [${active.cluster_ci95[0].toFixed(2)}, ${active.cluster_ci95[1].toFixed(2)}]` : "";
-      rows.push(row("主动 episode 平均收益", `${active.avg_benefit_pct >= 0 ? "+" : ""}${active.avg_benefit_pct.toFixed(2)}%${ci} · n=${active.n_episodes}`,
+      rows.push(row("主动 episode 平均方向分", `${active.avg_benefit_pct >= 0 ? "+" : ""}${active.avg_benefit_pct.toFixed(2)}%${ci} · n=${active.n_episodes}`,
         active.avg_benefit_pct >= 0 ? "var(--green)" : "var(--red)"));
     }
     // 同一队列的两行:这里曾把 30d 的平均收益和 episode_backtest 的**全量**资金加权
     // 并排显示,窗口不同、符号相反(-2.36% vs +0.83%),读者会当成"大仓位的 call 更准"。
     // 两行必须同源同窗;全量口径归金额曲线,那张图自己标了。
     if (active.capital_weighted_benefit_pct != null)
-      rows.push(row("资金加权平均收益", `${active.capital_weighted_benefit_pct >= 0 ? "+" : ""}${active.capital_weighted_benefit_pct.toFixed(2)}%`,
+      rows.push(row("资金加权平均方向分", `${active.capital_weighted_benefit_pct >= 0 ? "+" : ""}${active.capital_weighted_benefit_pct.toFixed(2)}%`,
         active.capital_weighted_benefit_pct >= 0 ? "var(--green)" : "var(--red)"));
     rows.push(row("今日决策变化", `新增 ${(delta.new || []).length} · 修改 ${(delta.changed || []).length} · 触发 ${(delta.triggered || []).length} · override ${(delta.active_overrides || []).length}`, "var(--text-dim)"));
     if (dm && dm.decisiveness_pct != null)
@@ -2588,7 +2576,7 @@ layout: null
     });
     if (fe.length) rows.push(row("消息源 edge", fe.join(" · "), "var(--text-dim)"));
     el.innerHTML = rows.join("")
-      + `<div style="color:var(--text-dim);font-size:10px;margin-top:6px">算账在 Python：同策略连续决策按 episode 去重；一个 episode 只出一个样本、取其内部平均而非选某一条；条件未触发不结算；执行与建议收益分开。</div>`;
+      + `<div style="color:var(--text-dim);font-size:10px;margin-top:6px">算账在 Python：同策略连续决策按 episode 去重；一个 episode 只出一个样本、取其内部平均而非选某一条；被判定未触发的不结算；执行与建议质量分开统计。</div>`;
     card.style.display = "";
   }
 
@@ -4157,7 +4145,7 @@ layout: null
           </div>
           <div>
             <div>${a.action || DASH}${bucketWinBadge(a.action)}${driverChip(a.driven_by)}</div>
-            <div class="meta">${a.strategy_id || DASH} · conf ${conf} · ${cond.type || DASH} · T+1 ${pnl}</div>
+            <div class="meta">${a.strategy_id || DASH} · conf ${conf} · ${cond.type || DASH} · 方向分 ${pnl}</div>
           </div>
           <div class="outcome ${oc}">${oc}</div>
         </div>
@@ -4451,10 +4439,9 @@ layout: null
   function renderShadowChart() {
     const card = document.getElementById("shadow-card");
     if (!card) return;
-    const mi = safe(DATA, "decision_money_impact");
-    // Keep the card (and its win-rate chart) only while there is a record at all.
-    const hasRecord = Object.keys(safe(mi, "legs") || {}).length > 0
-      || (safe(DATA, "episode_backtest") != null);
+    // decision_money_impact is no longer published at all — not just unplotted — so
+    // the card's visibility keys off the win-rate record that it still shows.
+    const hasRecord = safe(DATA, "episode_backtest", "horizons", "t1") != null;
     card.style.display = hasRecord ? "" : "none";
     if (!window.echarts) return;
     const green = getCSS("--green") || "#34d399";
@@ -5171,7 +5158,7 @@ layout: null
       if (p == null) return "";
       const cls = p >= 0 ? "pos" : "neg";
       const s = p >= 0 ? "+" : "";
-      return `<div class="pt-pnl ${cls}" title="已触发 episode 的 T+1 benefit；正值表示该决策有利">T+1 ${s}${p.toFixed(2)}%</div>`;
+      return `<div class="pt-pnl ${cls}" title="对下一个快照报价的方向分：正值表示这条建议的方向对了。报价时点不稳定，不等于 T+1 收益">方向分 ${s}${p.toFixed(2)}%</div>`;
     };
     wrap.innerHTML = list.map(a => {
       const oc = a.outcome || "pending";

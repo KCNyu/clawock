@@ -1809,13 +1809,12 @@ def main():
     out['decision_schema_version'] = 2
     out['decision_metrics'] = decision_v2.compute_metrics(_decisions)
     out['episode_backtest'] = decision_v2.compute_backtest(_decisions)
-    # The compounded benefit curve is a counterfactual score, not money: a sell's
-    # benefit is the negation of the underlying move, so it can climb through a
-    # losing quarter. This puts the same calls back into currency and sizes them
-    # against the P&L they were supposed to move, which is the only form of the
-    # question anyone actually asks — "what did listening to it cost me?".
-    out['decision_money_impact'] = _attach_pnl_swing(
-        decision_v2.compute_money_impact(_decisions), snapshots)
+    # decision_money_impact is deliberately NOT published (2026-07-15). Pulling the
+    # chart while still shipping the numbers would be a distinction only a reader of
+    # this file could make: dashboard.json is public, so the retired figure was still
+    # one fetch away, still carrying "positive = following the AI beat not acting".
+    # It summed calls that were never executed, priced against a drifting mark. The
+    # function stays for the rebuild (see the official-bars task) — the field goes.
     out['decision_delta'] = decision_v2.decision_delta(_decisions)
     out['recent_decisions'] = decision_v2.recent_decisions(_decisions, limit=20)
     out['debate_metrics'] = compute_debate_metrics()

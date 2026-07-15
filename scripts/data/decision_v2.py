@@ -729,21 +729,26 @@ def compute_metrics(decisions: list[dict], window_days: int = 30) -> dict:
 
 
 def compute_money_impact(decisions: list[dict], horizon: str = "t1") -> dict:
-    """What the AI's active calls were actually worth, in money, per leg.
+    """NOT PUBLISHED — kept only for the rebuild. Do not put this on a dashboard.
 
-    ``benefit_pct`` only answers "was the call directionally right": for a sell it
-    is the negation of the underlying move, so it climbs while the account bleeds.
-    Compounding it (``compute_backtest``) makes that gap worse — it is a
-    counterfactual score, not a return, and 108 episodes of it compound into a
-    number two orders of magnitude larger than the cash ever at risk.
+    This used to be the headline, described as "what following the AI was worth".
+    It is not, and the claim did not survive review:
 
-    ``capital`` (execution_price x shares) turns each call back into money:
-    capital x benefit/100 is the cash that call moved versus not acting. Summing
-    those is honest because each is an independent one-shot bet, not a reinvested
-    position. HKD and USD are never added (FX rule); callers render per leg.
+    - it sums every active call, but 110 of 113 were never executed — the trades
+      it prices did not happen;
+    - ``execution_price`` is the *trigger* price, assumed filled the moment a
+      snapshot's day range crosses it — and those ranges carry across sessions,
+      which has both invented fills and missed real ones;
+    - the later mark is "the next snapshot's quote", whose vintage drifts between
+      the prior close, that day's close, and an intraday print;
+    - per-episode means are added across episodes, which is not the cumulative
+      cash of any real sequence of trades.
 
-    Decisions without a share count cannot be priced, so ``coverage_pct`` reports
-    how much of the record this view can actually see.
+    The algebra (capital x benefit == shares x (entry - later)) is sound; the
+    economic meaning is not. Answering "what did listening earn" needs immutable
+    per-session bars, real fills, and a parallel sell-at-close book to difference
+    against. Until then this stays out of ``dashboard.json`` — publishing the
+    number while retiring the chart would just move it one fetch away.
     """
     reps = episode_representatives(decisions, horizon)
     key = "benefit_t1_pct" if horizon == "t1" else "benefit_t5_pct"

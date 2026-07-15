@@ -14,7 +14,7 @@
  * Outputs (all refresh weekly via the Action, so nothing drifts):
  *   docs/dashboard-preview.png   desktop hero shot (README)
  *   docs/dashboard-mobile.png    mobile full-page shot
- *   docs/shadow-backtest.png     v2 three-line counterfactual card
+ *   docs/shadow-backtest.png     v2 cumulative win-rate chart (all / active / 50% ref)
  *   docs/architecture.png        current pipeline diagram
  *   assets/social-card.png       1200x630 OG / Twitter card (headline + shot)
  *   .gifframes/f{0..5}.png       per-tab mobile frames → assemble_dashboard_gif.py
@@ -96,7 +96,7 @@ function cardHTML(shotDataUri) {
   <div class="left">
     <div class="brand"><span class="dot"></span><span class="name">clawock</span><span class="tag">autonomous AI trading desk</span></div>
     <h1>It argues both sides, gates the risk — then <span class="hl">grades its own calls.</span></h1>
-    <div class="sub">A daily bull-vs-bear LLM debate on <b>real HK + US money</b> — and a scorecard that <b>admits it loses to buy-and-hold.</b></div>
+    <div class="sub">A daily bull-vs-bear LLM debate on <b>real HK + US money</b> — and a scorecard that <b>publishes its own sub-50% hit rate.</b></div>
     <div class="chips"><span class="chip">🗣️ bull-vs-bear swarm</span><span class="chip">🛡️ hard risk gates</span><span class="chip">🪞 self-grading</span><span class="chip">🤖 fully autonomous</span></div>
     <div class="repo"><span class="star">★</span> github.com/KCNyu/clawock</div>
   </div>
@@ -115,7 +115,12 @@ function cardHTML(shotDataUri) {
     await dp.goto(URL, { waitUntil: 'networkidle', timeout: 45000 });
     await settle(dp);
     await dp.screenshot({ path: `${OUT_DIR}/dashboard-preview.png`, fullPage: false });
-    const shadow = dp.locator('#shadow-card');
+    // Shoot the win-rate chart, not the whole card. The card used to be a money
+    // curve and this shot was its portrait; the money view is gone (it summed
+    // calls that were never executed against drifting marks) and what remains of
+    // the card is mostly the note explaining its absence — a paragraph of prose
+    // is not a README preview. The directional hit rate is the live claim.
+    const shadow = dp.locator('#chart-ai-winrate');
     await shadow.waitFor({ state: 'visible', timeout: 45000 });
     await shadow.scrollIntoViewIfNeeded();
     await dp.waitForTimeout(900);

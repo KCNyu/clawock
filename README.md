@@ -30,7 +30,7 @@
 
 <br><br>
 
-🪞 **Grades its own trades** — and admits they lose to buy-and-hold &nbsp;·&nbsp; 💸 **Real money**, not a paper sim &nbsp;·&nbsp; 🗣️ **Bull-vs-bear AI debate** every morning &nbsp;·&nbsp; 🛡️ **Python does the math** — unit-tested, so the LLM can't fudge the score &nbsp;·&nbsp; 🌏 **Bilingual** HK + US &nbsp;·&nbsp; 🌐 **Live public dashboard**
+🪞 **Grades its own calls** — and publishes a hit rate under 50% &nbsp;·&nbsp; 💸 **Real money**, not a paper sim &nbsp;·&nbsp; 🗣️ **Bull-vs-bear AI debate** every morning &nbsp;·&nbsp; 🛡️ **Python scores it, not the LLM** — the model can't grade itself &nbsp;·&nbsp; 🌏 **Bilingual** HK + US &nbsp;·&nbsp; 🌐 **Live public dashboard**
 
 <sub>If "an AI that's honest about being wrong" is your kind of thing — ⭐ it.</sub>
 
@@ -38,7 +38,7 @@
 
 ---
 
-> **TL;DR** — A multi-agent LLM runs a real Hong-Kong + US stock portfolio, debates bull-vs-bear each morning, and back-tests its own calls every night. Its verdict on itself, in public: the active calls *lose to simply holding*. The honesty is the point.
+> **TL;DR** — A multi-agent LLM runs a real Hong-Kong + US stock portfolio, debates bull-vs-bear each morning, and back-tests its own calls every night. Its verdict on itself, in public: the active calls hit the right direction *less than half the time*. The honesty is the point.
 
 ## 🎰 The 60-second version
 
@@ -60,7 +60,7 @@ But here's the part most "AI trader" demos skip 👇
 
 Every brief commits a v2 `plan.json`. A stock may carry several simultaneous decisions — for example a long-term `core_position`, an `intraday_t`, and a `risk_rebalance` — because different horizons can legitimately disagree on the same day.
 
-The authoritative ledger is `memory/decisions.jsonl`. Each decision has a stable ID, strategy, condition, size, confidence, driver, execution state, and evaluation state. Only conditions that actually fire are scored, and only once the session they are graded against has closed — the intraday job rewrites today's snapshot every half hour, so scoring against it let a settled call read win at one print and loss at the next. Consecutive reaffirmations of the same strategy/action form one episode, so repeating “hold” for five mornings does not manufacture five samples — and re-anchoring a trigger to where the stock has since moved is still a reaffirmation, not a new call. An episode scores as the mean of its own settled calls rather than an elected member of them — episodes that made several calls routinely disagree with themselves, and letting the first or last one speak for the group swings the active win rate across the 50% line on nothing but the choice of member.
+The authoritative ledger is `memory/decisions.jsonl`. Each decision has a stable ID, strategy, condition, size, confidence, driver, execution state, and evaluation state. Only conditions the system judges to have fired are scored, and today's snapshot never grades anything — the intraday job rewrites it every half hour, which let a settled call read win at one print and loss at the next. Both the trigger and the later mark come from snapshots, whose price vintage is not stable, so treat the record as a diagnostic. Consecutive reaffirmations of the same strategy/action form one episode, so repeating “hold” for five mornings does not manufacture five samples — and re-anchoring a trigger to where the stock has since moved is still a reaffirmation, not a new call. An episode scores as the mean of its own settled calls rather than an elected member of them — episodes that made several calls routinely disagree with themselves, and letting the first or last one speak for the group swings the active win rate across the 50% line on nothing but the choice of member.
 
 The Reflect dashboard reports:
 
@@ -69,15 +69,15 @@ The Reflect dashboard reports:
 - date-cluster bootstrap intervals, so same-day calls are not treated as independent evidence; and
 - follow-through split into the calls that asked for an action and the ones that asked for nothing, because "following" a HOLD is sitting still and scores itself ~97%. Blended, the two averaged into a ~50% that described nobody.
 
-**There is no "what listening to the AI earned" chart, and its absence is deliberate.** One shipped until 2026-07-15, plotting `shares x (trigger price − next recorded price)`. The algebra was sound and the caption was not: 110 of the 113 action calls in it were never executed, over half the "next recorded price" marks are not closes but quotes drifting with fetch time, and the trigger verdicts behind it come from snapshot day ranges that carry across sessions — which has both invented triggers that never fired and dropped ones that did. Relabelling could not rescue it. Answering the question needs immutable official closes, real fills, and a parallel sell-at-close book to difference against; until those exist the number is not published.
+**No "what listening to the AI earned" figure is published.** The snapshots lack a stable price vintage, intraday highs and lows can carry across sessions, and most calls have no real fill to check against — so executed and counterfactual outcomes cannot be reliably told apart. The money view returns once there are immutable per-session bars, real fills, and an explicit sell-at-close book to difference against.
 
 The record prices timing only. The risk caps and the HOLD discipline are not in it, and on this book they are the parts that carry their weight — `assets/data/guardrail_history.jsonl` started accruing the evidence for them on 2026-07-15.
 
-All figures are generated from the ledger and live snapshots. The LLM writes decisions; a deterministic Python Backtester/Auditor owns IDs, trigger evaluation, episode grouping, metrics, and the backtest.
+The LLM only submits decisions; it cannot write or amend its own evaluation. IDs, triggers, grouping and metrics are computed mechanically by Python from the recorded data. That isolation stops the model from grading itself — it does **not** make the market inputs, the trigger verdicts, or the metric definitions correct. Treat the record as a diagnostic, not as proof of return.
 
-<p align="center"><img src="docs/shadow-backtest.png" alt="decision v2: cumulative money impact of the AI's active calls per leg, against a zero no-impact line, plus cumulative episode win rates" width="760"></p>
+<p align="center"><img src="docs/shadow-backtest.png" alt="decision v2: cumulative episode win rate against a 50% directional-hit line" width="760"></p>
 
-<sub>The money chart shows the cumulative P&L of following the AI's active calls, in currency, with zero meaning no impact — not a buy-and-hold portfolio. A separate cumulative win-rate chart uses 50% as its directional-hit reference. Migrated v1 calls remain in the v2 episode ledger. Refreshed weekly by GitHub Actions.</sub>
+<sub>Cumulative episode win rate against a 50% directional-hit reference — how often the direction was right, not what it earned. Migrated v1 calls remain in the v2 episode ledger. Refreshed weekly by GitHub Actions.</sub>
 
 ---
 
@@ -147,7 +147,7 @@ Running real automation for months taught me that the hard part isn't the prompt
 
 **1. Harness pattern**
 
-Every job is `preflight (Python) → LLM → postflight (Python)`. Deterministic work — prices, FX, HHI, signal counting — runs 100% in code. The LLM only writes the *opinion*. Forget FX, miss a snapshot, skip a >3% mover → postflight catches it and flags the report. The money math is **unit-tested**, and a **pre-push gate refuses to publish a book that doesn't reconcile** — the numbers can't silently drift.
+Every job is `preflight (Python) → LLM → postflight (Python)`. Deterministic work — prices, FX, HHI, signal counting — runs 100% in code. The LLM only writes the *opinion*. Forget FX, miss a snapshot, skip a >3% mover → postflight catches it and flags the report. The money math is **unit-tested**, and a **pre-push gate refuses to publish a book that doesn't reconcile**. That catches a ledger contradicting itself; it does not make the market data feeding it correct.
 
 </td><td width="33%" valign="top">
 
