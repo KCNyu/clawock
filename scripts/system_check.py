@@ -184,7 +184,11 @@ def check_no_leaked_secrets(r):
     try:
         out = subprocess.check_output(
             ['git', '-C', str(WS), 'grep', '-nE',
-             r'(sk-[a-zA-Z0-9_-]{20,}|tp-[a-zA-Z0-9_-]{20,}|FINNHUB_API_KEY\s*=\s*[a-zA-Z0-9]+|POLYGON_API_KEY\s*=\s*[a-zA-Z0-9]+)',
+             # \b or the prefix matches mid-word: the charset includes '-', so
+             # "risk-on-with-trend-conflict" in a plan.json reads as sk- + 21 legal
+             # chars and blocked every push on 2026-07-15. A real key's sk-/tp- always
+             # starts a word (line start, quote, '=', whitespace).
+             r'(\bsk-[a-zA-Z0-9_-]{20,}|\btp-[a-zA-Z0-9_-]{20,}|FINNHUB_API_KEY\s*=\s*[a-zA-Z0-9]+|POLYGON_API_KEY\s*=\s*[a-zA-Z0-9]+)',
              '--', ':!*.md', ':!.gitignore', ':!openclaw.json*', ':!.githooks/*', ':!scripts/system_check.py'],
             text=True, timeout=10, stderr=subprocess.DEVNULL,
         )
