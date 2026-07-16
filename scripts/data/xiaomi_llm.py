@@ -117,9 +117,10 @@ def _split_system(messages):
 
 
 def _call_provider(label, base_url, api_key, model, messages, max_tokens,
-                   temperature, json_response, thinking):
+                   temperature, json_response, thinking, timeout=None):
     """One provider over Anthropic Messages, with retries. Returns content str
     or raises RuntimeError."""
+    timeout = timeout or TIMEOUT
     system_str, msgs = _split_system(messages)
 
     thinking_on = bool(thinking) and thinking.get('type') == 'enabled'
@@ -155,7 +156,7 @@ def _call_provider(label, base_url, api_key, model, messages, max_tokens,
     for attempt in range(1, MAX_RETRIES + 1):
         try:
             r = requests.post(f'{base_url}/v1/messages',
-                              json=body, headers=headers, timeout=TIMEOUT)
+                              json=body, headers=headers, timeout=timeout)
             if r.status_code == 200:
                 data = r.json()
                 blocks = data.get('content', []) or []
@@ -192,10 +193,17 @@ def chat(system: str = '', user: str = '', messages: list = None,
          max_tokens: int = 32000, temperature: float = 0.7,
          model: str = DEFAULT_MODEL, base_url: str = DEFAULT_BASE,
          api_key: str = None, thinking_disabled: bool = False,
-         json_response: bool = False, fallback: bool = True) -> str:
+         json_response: bool = False, fallback: bool = True,
+         timeout: int = None) -> str:
     """Call MiniMax M3; on total failure fall back to Xiaomi MiMo (both Anthropic
     Messages). Returns assistant content string, or raises if BOTH providers fail.
     Set fallback=False to use MiniMax only (no Xiaomi fallback).
+
+    timeout: per-attempt seconds, default TIMEOUT (180). Big jobs need more: the
+    daily brief prefills ~100KB of context and generates ~20K tokens with thinking
+    on, which blew straight through 180s x3 on 2026-07-16 (callers see the retries
+    as "timeout after 180s (attempt N)"). Raise it rather than shrink the prompt —
+    trimming the brief's context is what made it blind to half the book.
     """
     if messages is None:
         messages = []
@@ -216,7 +224,7 @@ def chat(system: str = '', user: str = '', messages: list = None,
         try:
             return _call_provider('minimax', MINIMAX_BASE, mm_key, MINIMAX_MODEL,
                                   messages, min(max_tokens, MINIMAX_MAX_TOKENS),
-                                  temperature, json_response, thinking)
+                                  temperature, json_response, thinking, timeout)
         except Exception as e:
             errors.append(f'minimax[{e}]')
             print('  ⚠️ minimax exhausted — falling back to Xiaomi MiMo', file=sys.stderr)
@@ -228,7 +236,8 @@ def chat(system: str = '', user: str = '', messages: list = None,
     if fallback and xiaomi_key:
         try:
             return _call_provider('xiaomi', base_url, xiaomi_key, model, messages,
-                                  max_tokens, temperature, json_response, thinking)
+                                  max_tokens, temperature, json_response, thinking,
+                                  timeout)
         except Exception as e:
             errors.append(f'xiaomi[{e}]')
     elif fallback and not xiaomi_key:

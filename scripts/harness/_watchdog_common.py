@@ -211,6 +211,29 @@ def send_telegram(target, message, dry_run):
     return r.returncode == 0, (r.stdout + r.stderr)[-400:]
 
 
+def dispatch_brief_fallback(dry_run=False):
+    """Fire .github/workflows/brief-fallback.yml on demand. Returns (ok, tail_of_output).
+
+    Why the on-box watchdog triggers this instead of leaving it to the workflow's own
+    `cron: 25 0 * * 1-5` (08:25 HKT): GHA scheduled crons routinely fire 1-3h late
+    (2026-07-15 landed 11:41 HKT), and the workflow refuses to build a pre-open brief
+    once HKT hour >= 10 — so its own schedule lands AFTER its own lateness gate and it
+    skips. Every fallback run through 2026-07-15 was such a skip; the path had never
+    once generated a brief until it was dispatched by hand on 2026-07-16.
+    workflow_dispatch has no such delay (observed: job started 9s after the call).
+
+    Off-host on purpose: the box is what dies under the 08:00 brief, so the recovery
+    path must not need the box to be healthy — only alive enough to make one API call."""
+    cmd = ['gh', 'workflow', 'run', 'brief-fallback.yml']
+    if dry_run:
+        return True, '(dry-run) ' + ' '.join(cmd)
+    try:
+        r = subprocess.run(cmd, capture_output=True, text=True, timeout=60, cwd=str(WS))
+        return r.returncode == 0, (r.stdout + r.stderr)[-400:]
+    except Exception as e:
+        return False, str(e)[:300]
+
+
 def cosend_telegram(message, tag, dry_run=False):
     """Unconditional Telegram co-send for high-value cron reports (brief / staged
     report / intraday). Called from each postflight RIGHT AFTER the WeChat send.

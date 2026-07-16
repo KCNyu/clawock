@@ -228,9 +228,16 @@ def log_decisions(today):
     print(f'  decisions.jsonl: +{inserted}, updated {updated}, settled {settled} ({len(ledger)} total)')
 
 
-def maybe_commit(status, today):
+def maybe_commit(status, today, dry_run=False):
     if status == 'fail':
         return False, 'skipped (status=fail)'
+    # --dry-run used to reach ONLY send_wechat/cosend_telegram, so `postflight --dry-run`
+    # still ran log_decisions + rebuilt the dashboard + committed + PUSHED — i.e. it
+    # published for real while reporting itself as a dry run (2026-07-16: a --dry-run
+    # meant as a validation check pushed the day's brief to origin). A dry run must not
+    # write to the ledger or to origin.
+    if dry_run:
+        return False, 'skipped (dry-run)'
 
     log_decisions(today)   # upsert today's v2 plan (idempotent)
     rebuild_dashboard()  # refresh dashboard.json before commit
@@ -357,7 +364,7 @@ def main():
                          + ('\n- ...' if len(issues) > 5 else '')
                          + '\n\n')
 
-    commit_ok, commit_msg = maybe_commit(status, today)
+    commit_ok, commit_msg = maybe_commit(status, today, dry_run=args.dry_run)
 
     # ── WeChat delivery (decoupled from the cron's announce) ──────────────────
     # The cron now runs delivery=none. The announce used to fire at the END of a
@@ -391,17 +398,28 @@ def main():
         # Record the Telegram result: it's the sole backstop brief_watchdog now uses
         # (no more WeChat resend), so it needs to know if TG already got this card.
         tg_ok, _tg_out = cosend_telegram(message, 'brief', dry_run=args.dry_run)
-        try:
-            brief_marker.parent.mkdir(parents=True, exist_ok=True)
-            brief_marker.write_text(json.dumps({
-                'ts': int(datetime.now().timestamp() * 1000),
-                'sent_ok': bool(wechat_sent),
-                'tg_ok': bool(tg_ok),
-                'first_line': first_line,
-                'out': (send_out or '')[-200:],
-            }, ensure_ascii=False))
-        except Exception as e:
-            print(f'warn: brief-sent marker write failed: {e}', file=sys.stderr)
+        # NEVER write the marker on a dry run (2026-07-16). send_wechat/cosend_telegram
+        # return ok=True for a dry run (the CLI exits 0 without sending), so this used to
+        # record sent_ok/tg_ok=true for a delivery that never happened. brief_watchdog
+        # treats a fresh marker with tg_ok as its SOLE proof the card landed, so one
+        # dry run silently disabled that day's backstop — exactly the "card never
+        # arrived and nothing noticed" hole the watchdog exists to close. Hit for real:
+        # a --dry-run postflight at 10:14 today wrote a marker claiming delivery while
+        # kcn got nothing.
+        if args.dry_run:
+            print('dry-run: skipping brief-sent marker write', file=sys.stderr)
+        else:
+            try:
+                brief_marker.parent.mkdir(parents=True, exist_ok=True)
+                brief_marker.write_text(json.dumps({
+                    'ts': int(datetime.now().timestamp() * 1000),
+                    'sent_ok': bool(wechat_sent),
+                    'tg_ok': bool(tg_ok),
+                    'first_line': first_line,
+                    'out': (send_out or '')[-200:],
+                }, ensure_ascii=False))
+            except Exception as e:
+                print(f'warn: brief-sent marker write failed: {e}', file=sys.stderr)
         if not wechat_sent:
             print(f'warn: WeChat send failed (watchdog will retry): {str(send_out)[:200]}',
                   file=sys.stderr)
