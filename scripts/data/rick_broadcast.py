@@ -45,9 +45,10 @@ def scorecard():
     rows = decision_v2.episode_representatives(decision_v2.load_decisions(), "t1")
     def pct(group):
         return (round(100 * sum((r.get("evaluation") or {}).get("outcome") == "win" for r in group) / len(group)), len(group)) if group else (None, 0)
-    active_pct, active_n = pct([r for r in rows if r.get("action") in ACTIVE])
+    active_rows = [r for r in rows if r.get("action") in ACTIVE]
+    active_pct, active_n = pct(active_rows)
     hold_pct, hold_n = pct([r for r in rows if r.get("action") in PASSIVE])
-    hi_pct, hi_n = pct([r for r in rows if float(r.get("confidence") or 0) >= 0.75])
+    hi_pct, hi_n = pct([r for r in active_rows if float(r.get("confidence") or 0) >= 0.75])
 
     out = {
         "active_hit": active_pct, "active_n": active_n,
@@ -80,13 +81,13 @@ def scorecard():
 
 
 def render_en(s):
-    lines = ["📈 Rick's report card — an AI grading itself on real money:", ""]
+    lines = ["📈 Rick's recommendation report card — directional hit rates, graded by Python:", ""]
     if s["active_hit"] is not None:
         lines.append(f"• active calls: {s['active_hit']}% (n={s['active_n']})")
     if s["hold_hit"] is not None:
         lines.append(f"• just holding: {s['hold_hit']}% (n={s['hold_n']})")
     if s["high_conf_hit"] is not None:
-        lines.append(f"• my \"high-conviction\" calls: {s['high_conf_hit']}%")
+        lines.append(f"• high-conviction active calls: {s['high_conf_hit']}% (n={s['high_conf_n']})")
     # Active calls and passive holds are different claim types over different sample
     # pools (decision_v2.compute_metrics treats them as separate), so ranking one
     # against the other is not a valid read — publish both, rank neither. "Python
@@ -98,13 +99,13 @@ def render_en(s):
 
 
 def render_zh(s):
-    lines = ["📈 Rick 的成绩单 —— 一个跑真金白银、给自己打分的 AI:", ""]
+    lines = ["📈 Rick 的建议成绩单 —— Python 统计判断方向命中率:", ""]
     if s["active_hit"] is not None:
         lines.append(f"• 主动操作(cut/trim/加仓):命中 {s['active_hit']}%(n={s['active_n']})")
     if s["hold_hit"] is not None:
         lines.append(f"• 只是躺着 hold:{s['hold_hit']}%(n={s['hold_n']})")
     if s["high_conf_hit"] is not None:
-        lines.append(f"• 我自称高信心的判断:{s['high_conf_hit']}%")
+        lines.append(f"• 高信心主动判断:{s['high_conf_hit']}%(n={s['high_conf_n']})")
     # 主动操作与被动持有是两类不同的赌注、不同的样本池,不做高下排名(见
     # decision_v2.compute_metrics 把两者当不同 claim)。
     verdict = ("主动操作和被动持有是两类不同的赌注、不同的样本 —— 两个数都摆出来,不做高下排名。"
