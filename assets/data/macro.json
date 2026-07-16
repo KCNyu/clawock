@@ -1,81 +1,81 @@
 {
-  "generated_at": "2026-07-15T22:39:24.161471+00:00",
+  "generated_at": "2026-07-16T22:37:34.537234+00:00",
   "vix": {
     "symbol": "^VIX",
-    "price": 15.67,
-    "prev": 16.5,
-    "change_pct": -5.03,
-    "as_of": 1784146501,
+    "price": 16.73,
+    "prev": 15.67,
+    "change_pct": 6.76,
+    "as_of": 1784232901,
     "source": "yahoo"
   },
   "treasury_10y": {
     "symbol": "^TNX",
-    "price": 4.545,
-    "prev": 4.585,
-    "change_pct": -0.87,
-    "as_of": 1784141994,
+    "price": 4.569,
+    "prev": 4.545,
+    "change_pct": 0.53,
+    "as_of": 1784228395,
     "source": "yahoo",
-    "yield_pct": 4.545
+    "yield_pct": 4.569
   },
   "dxy": {
     "symbol": "DX-Y.NYB",
-    "price": 100.495,
-    "prev": 100.919,
-    "change_pct": -0.42,
-    "as_of": 1784153099,
+    "price": 100.708,
+    "prev": 100.485,
+    "change_pct": 0.22,
+    "as_of": 1784239499,
     "source": "yahoo"
   },
   "fear_greed": {
-    "score": 46.3,
-    "rating": "neutral",
-    "prev_close": 43.3,
-    "prev_1_week": 44.1,
-    "as_of": "2026-07-15T22:21:53+00:00"
+    "score": 41.7,
+    "rating": "fear",
+    "prev_close": 41.1,
+    "prev_1_week": 44.7,
+    "as_of": "2026-07-16T22:18:51+00:00"
   },
   "hsi": {
     "symbol": "^HSI",
-    "price": 24681.1,
-    "prev": 24340.73,
-    "change_pct": 1.4,
+    "price": 25008.6,
+    "prev": 24681.1,
+    "change_pct": 1.33,
     "source": "tencent"
   },
   "hstech": {
     "symbol": "^HSTECH",
-    "price": 4740.49,
-    "prev": 4679.46,
-    "change_pct": 1.3,
+    "price": 4834.44,
+    "prev": 4740.49,
+    "change_pct": 1.98,
     "source": "tencent"
   },
   "spx": {
     "symbol": "^GSPC",
-    "price": 7572.4,
-    "prev": 7543.59,
-    "change_pct": 0.38,
-    "as_of": 1784150326,
+    "price": 7533.77,
+    "prev": 7572.4,
+    "change_pct": -0.51,
+    "as_of": 1784237638,
     "source": "yahoo"
   },
   "nasdaq": {
     "symbol": "^IXIC",
-    "price": 26269.23,
-    "prev": 26107.01,
-    "change_pct": 0.62,
+    "price": 25881.95,
+    "prev": 26269.23,
+    "change_pct": -1.47,
     "source": "tencent"
   },
   "fed_press": [
     {
+      "date": "2026-07-16",
+      "title": "Agencies issue joint statement on handling of highly sensitive information during bank examinations",
+      "url": "https://www.federalreserve.gov/newsevents/pressreleases/bcreg20260716a.htm"
+    },
+    {
+      "date": "2026-07-16",
+      "title": "Federal Reserve Board issues enforcement action with former chief lending officer of Heritage State Bank",
+      "url": "https://www.federalreserve.gov/newsevents/pressreleases/enforcement20260716a.htm"
+    },
+    {
       "date": "2026-07-14",
       "title": "Minutes of the Board's discount rate meetings on June 8 and June 17, 2026",
       "url": "https://www.federalreserve.gov/newsevents/pressreleases/monetary20260714a.htm"
-    },
-    {
-      "date": "2026-07-09",
-      "title": "Federal Reserve announces the leadership and objectives of its task forces to advance the conduct of monetary policy",
-      "url": "https://www.federalreserve.gov/newsevents/pressreleases/monetary20260709a.htm"
-    },
-    {
-      "date": "2026-07-09",
-      "title": "Federal Reserve Board issues enforcement action with TS Banking Group, Inc. and TS Contrarian Bancshares, Inc.",
-      "url": "https://www.federalreserve.gov/newsevents/pressreleases/enforcement20260709a.htm"
     }
   ]
 }
