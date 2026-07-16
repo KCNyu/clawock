@@ -1,6 +1,6 @@
 {
   "owner": "kcn",
-  "last_updated": "2026/07/16 21:33 HKT",
+  "last_updated": "2026/07/16 23:32 HKT",
   "portfolios": {
     "us_stocks": {
       "currency": "USD",
@@ -84,10 +84,10 @@
           "ticker": "CRCL",
           "shares": 2,
           "cost_basis": 87,
-          "current_price": 62.78,
-          "today_change_pct": -4.4299,
-          "pnl_percent": -27.8391,
-          "data_source": "Nasdaq API (stocks) Jul 16, 2026 09:33 ET",
+          "current_price": 62.54,
+          "today_change_pct": -4.7953,
+          "pnl_percent": -28.1149,
+          "data_source": "Nasdaq API (stocks) Jul 16, 2026 11:32 ET",
           "note": "2026-02-26/03-02 共买入14股(@88.35+@86.45,均价≈87);2026-03-04 卖4股@103.21(+64.84);03-11 卖5股@120(+165);03-23 卖3股@127(+120);剩余2股长期持有(看好稳定币+agent支付赛道)",
           "trades": [
             {
@@ -130,12 +130,12 @@
             }
           ],
           "day_high": 64.16,
-          "day_low": 62.78,
+          "day_low": 62.54,
           "day_open": 64.16,
           "prev_close": 65.69,
-          "current_value": 125.56,
-          "pnl_abs": -48.44,
-          "today_change": -5.82,
+          "current_value": 125.08,
+          "pnl_abs": -48.92,
+          "today_change": -6.3,
           "name": "Circle Internet Group Inc-A",
           "volume": 8165939,
           "prev_close_date": "2026-07-15",
@@ -296,17 +296,17 @@
           "ticker": "PLTU",
           "shares": 14,
           "cost_basis": 40.957142857142856,
-          "current_price": 31.1,
-          "today_change_pct": -4.7765,
-          "pnl_percent": -24.067,
-          "data_source": "Nasdaq API (etf) Jul 16, 2026 09:33 ET",
+          "current_price": 32.09,
+          "today_change_pct": -1.7453,
+          "pnl_percent": -21.6498,
+          "data_source": "Nasdaq API (etf) Jul 16, 2026 11:32 ET",
           "day_high": 32.31,
           "day_low": 31.1,
           "day_open": 32.31,
           "prev_close": 32.66,
-          "current_value": 435.4,
-          "pnl_abs": -138.0,
-          "today_change": -21.84,
+          "current_value": 449.26,
+          "pnl_abs": -124.14,
+          "today_change": -7.98,
           "note": "2026-04-16 按用户截图记录买入,做 PLTR 2x 杠杆短线仓",
           "trades": [
             {
@@ -386,17 +386,17 @@
           "ticker": "RKLX",
           "shares": 10,
           "cost_basis": 49.69,
-          "current_price": 21.7895,
-          "today_change_pct": -9.512,
-          "pnl_percent": -56.1491,
-          "data_source": "Nasdaq API (etf) Jul 16, 2026 09:33 ET",
+          "current_price": 19.13,
+          "today_change_pct": -20.5565,
+          "pnl_percent": -61.5013,
+          "data_source": "Nasdaq API (etf) Jul 16, 2026 11:32 ET",
           "day_high": 22.48,
-          "day_low": 21.7895,
+          "day_low": 19.13,
           "day_open": 22.48,
           "prev_close": 24.08,
-          "current_value": 217.9,
-          "pnl_abs": -279.0,
-          "today_change": -22.9,
+          "current_value": 191.3,
+          "pnl_abs": -305.6,
+          "today_change": -49.5,
           "note": "2x RKLB杠杆ETF,纳指100入指波段仓(生效日6/22),$49.69建仓,目标$60-68,止损$46",
           "trades": [
             {
@@ -522,13 +522,13 @@
           "name": "SpaceX",
           "shares": 1,
           "cost_basis": 147.5,
-          "current_price": 137.06,
-          "current_value": 137.06,
-          "pnl_abs": -10.44,
-          "pnl_percent": -7.078,
-          "today_change": 1.79,
-          "today_change_pct": 1.3233,
-          "data_source": "Nasdaq API (stocks) Jul 16, 2026 09:33 ET",
+          "current_price": 135.385,
+          "current_value": 135.38,
+          "pnl_abs": -12.12,
+          "pnl_percent": -8.2136,
+          "today_change": 0.11,
+          "today_change_pct": 0.085,
+          "data_source": "Nasdaq API (stocks) Jul 16, 2026 11:32 ET",
           "trades": [
             {
               "date": "2026-06-12",
@@ -556,7 +556,7 @@
           "prev_close": 135.27,
           "prev_close_date": "2026-07-15",
           "day_high": 137.06,
-          "day_low": 134.92,
+          "day_low": 134.7501,
           "day_open": 134.92,
           "day_session_date": "2026-07-16"
         },
@@ -565,13 +565,13 @@
           "name": "Leverage Shares 2X Long SpaceX Daily ETF",
           "shares": 140,
           "cost_basis": 16.2907,
-          "current_price": 9.6,
-          "current_value": 1344.0,
-          "pnl_abs": -936.7,
-          "pnl_percent": -41.0707,
-          "data_source": "Nasdaq API (etf) Jul 16, 2026 09:33 ET",
-          "today_change": 30.8,
-          "today_change_pct": 2.3454,
+          "current_price": 9.37,
+          "current_value": 1311.8,
+          "pnl_abs": -968.9,
+          "pnl_percent": -42.4825,
+          "data_source": "Nasdaq API (etf) Jul 16, 2026 11:32 ET",
+          "today_change": -1.4,
+          "today_change_pct": -0.1066,
           "trades": [
             {
               "date": "2026-07-13",
@@ -669,7 +669,7 @@
           "note": "SPCX(SpaceX) 2x做多ETF，已七次加仓摊本（6/22同日两次），FTSE/CRSP入指利好兑现当天反跌+8月解禁悬云(最多44%股份)未出清，逻辑持续弱化\n2026-07-02 凌晨 02:03 HKT 第八次加仓 10 股 @$13.89（盘中），累计加仓金额触发 P0 风险升级 → 详见 strategy_note。\n2026-06-24 凌晨挂限价单 $13.50 成交10股 → 净 100 股,加权均成本 $17.888。当晚先放量冲高至$14.30+(50M+股,Benzinga报道frenzy级)后回落到限价位成交,符合\"等回踩不追涨\"的纪律。\n2026-06-23 加仓 10 股 @$13.13 → 净 90 股,加权均成本 $18.3756 (vs 旧 19.0312（注：旧值含已 T+0 卖出的 20 股 @16.68，已剔除））。逆硬止损线操作第 6 次,minimax 立场=反对但 kcn 选择执行。\n2026-06-23 用户声明无限子弹流策略：持续加仓摊本直到 SPCX 正股反弹或 8 月解禁落地。minimax 不再每条盯盘喊砍，仅在 (a)单日跌幅 >15% (b)累计加仓金额 > $3000 (c)SPCX 正股单周 -25% 时升级为 P0 风险提示。\n2026-07-02 02:03 HKT 触发 P0：(b) 累计加仓金额已突破 $3000 (按 cash-flow 累加 $1,946.5USD，但若含手续费+滑点已逼近阈值)。minimax 升级为 P0 风险提示，但 kcn 持续执行。\n2026-07-02 02:09 HKT 第九次加仓 10 股 @$13.89 → 净 110 股,加权均成本 $17.5245 (按 cash-flow 加权 vs 旧 $17.888 摊本交易成本加全量),浮亏 -21.76% / -$419.6 (现价 $13.71)。\n⚠️ P0 持续:US 现金余额仅剩 ~$134.35,累计加仓金额 $1,946.5 / $3,000 阈值(差 $1,053.5 才升级);弹药已见底,再无追加空间除非变现其他仓位。",
           "prev_close": 9.38,
           "day_high": 9.6,
-          "day_low": 9.35,
+          "day_low": 9.29,
           "day_open": 9.35,
           "prev_close_date": "2026-07-15",
           "day_session_date": "2026-07-16",
@@ -686,12 +686,12 @@
           "name": "二倍做多微软ETF-Direxion",
           "shares": 20,
           "cost_basis": 29.130000000000003,
-          "current_price": 24.67,
-          "current_value": 493.4,
-          "pnl_abs": -89.2,
-          "pnl_percent": -15.3107,
-          "today_change": -0.59,
-          "today_change_pct": -0.1198,
+          "current_price": 25.1,
+          "current_value": 502.0,
+          "pnl_abs": -80.6,
+          "pnl_percent": -13.8345,
+          "today_change": 8.0,
+          "today_change_pct": 1.6198,
           "trades": [
             {
               "date": "2026-04-24",
@@ -702,11 +702,11 @@
             }
           ],
           "note": "2026-04-24 按用户截图记录买入,微软 2x 杠杆 ETF,财报前修复短线仓",
-          "prev_close": 24.6996,
-          "day_high": 24.94,
-          "day_low": 24.67,
+          "prev_close": 24.6999,
+          "day_high": 25.1,
+          "day_low": 24.52,
           "day_open": 24.94,
-          "data_source": "Nasdaq API (etf) Jul 16, 2026 09:33 ET",
+          "data_source": "Nasdaq API (etf) Jul 16, 2026 11:32 ET",
           "volume": 1331449,
           "prev_close_date": "2026-07-16",
           "day_session_date": "2026-07-16"
@@ -716,13 +716,13 @@
           "name": "SK海力士 ADR",
           "shares": 1,
           "cost_basis": 169.185,
-          "current_price": 165.6999,
-          "current_value": 165.7,
-          "pnl_abs": -3.49,
-          "pnl_percent": -2.0599,
-          "data_source": "Nasdaq API (stocks) Jul 16, 2026 09:33 ET",
+          "current_price": 162.87,
+          "current_value": 162.87,
+          "pnl_abs": -6.31,
+          "pnl_percent": -3.7326,
+          "data_source": "Nasdaq API (stocks) Jul 16, 2026 11:32 ET",
           "day_high": 165.91,
-          "day_low": 165.6999,
+          "day_low": 161.8268,
           "note": "2026-07-10 IPO首日(发行价$149,史上第二大全球股票发行仅次于SpaceX)169.185买入1股,用户报告成交。临时代码SKHYV已于2026-07-13转为正式代码SKHY",
           "trades": [
             {
@@ -733,45 +733,45 @@
               "note": "IPO首日买入,用户报告成交"
             }
           ],
-          "prev_close": 176.4642,
+          "prev_close": 176.4572,
           "prev_close_date": "2026-07-16",
-          "today_change_pct": -6.1,
+          "today_change_pct": -7.7,
           "day_session_date": "2026-07-16",
-          "today_change": -10.76,
+          "today_change": -13.59,
           "day_open": 165.91
         }
       ],
       "total_cost": 4424.28,
-      "total_current_value": 2919.02,
-      "total_pnl": -1505.26,
-      "total_pnl_percent": -34.0228,
-      "today_total_change": -29.32,
+      "total_current_value": 2877.69,
+      "total_pnl": -1546.59,
+      "total_pnl_percent": -34.9569,
+      "today_total_change": -70.66,
       "realized_pnl": 2139.53,
       "realized_note": "NVDA 3股@197.5(+29.19) + CRCL 4股@103.21(+64.84) + CRCL 5股@120(+165) + CRCL 3股@127(+120) + NVDA 3股@199.41(+34.92) + QQQ 1股@631.3(+9.03) + TQQQ 8股@54.45(+69.76) + HOOD 5股@88.36(+74.3) + OKLO 2股@68(+10.34) + TCOM 5股@53.86(+5.6) + SOXL 5股@112(+100.65) + RKLX 4股@75(+113.2) + RKLX 2股@91.03(+88.66) + SOXL 3股@170.8(+236.79) + SOXL 2股@217.17(+250.6) + RKLB 5股@100.17(+145.85) + SPCX 5股@168(+48.5) + RKLX 10股@53.93(+7.3) + SPCH 20股@18.42(+34.8) + ROBN 20股@35.175(+231.85) + ROBN 10股@40(+164.17) + ROBN 10股@37(+134.18)",
       "last_updated": "Jun 24, 2026 16:00 ET close",
       "last_close_attempted": "May 7, 2026 16:00 ET close",
-      "last_open_attempted": "2026-07-16 09:33 UTC-04:00",
+      "last_open_attempted": "2026-07-16 11:32 UTC-04:00",
       "indices_snapshot": {
         "SPX": {
           "name": "S&P 500",
-          "price": 7554.0,
+          "price": 7567.17,
           "prev_close": 7572.4,
-          "change_pct": -0.243,
-          "source": "Tencent usINX index @ 2026-07-16 09:33 ET"
+          "change_pct": -0.069,
+          "source": "Tencent usINX index @ 2026-07-16 11:32 ET"
         },
         "NDX": {
           "name": "Nasdaq 100",
-          "price": 29299.46,
+          "price": 29239.03,
           "prev_close": 29502.6,
-          "change_pct": -0.689,
-          "source": "Tencent usNDX index @ 2026-07-16 09:33 ET"
+          "change_pct": -0.893,
+          "source": "Tencent usNDX index @ 2026-07-16 11:32 ET"
         },
         "DJI": {
           "name": "Dow Jones",
-          "price": 52728.92,
+          "price": 52810.05,
           "prev_close": 52658.64,
-          "change_pct": 0.134,
-          "source": "Tencent usDJI index @ 2026-07-16 09:33 ET"
+          "change_pct": 0.287,
+          "source": "Tencent usDJI index @ 2026-07-16 11:32 ET"
         }
       },
       "last_trade_update": "2026-06-13 00:02 HKT",
@@ -832,7 +832,7 @@
           "Nasdaq API (stocks)": 3,
           "Nasdaq API (etf)": 4
         },
-        "updated_at": "2026-07-16 09:33 UTC-04:00",
+        "updated_at": "2026-07-16 11:32 UTC-04:00",
         "note": "Multi-provider fetch. Sources: 3x Nasdaq API (stocks), 4x Nasdaq API (etf)"
       },
       "afterhours_fetch_status": {
@@ -1291,36 +1291,36 @@
   },
   "market_context": {},
   "gold_dca": {
-    "units_held": 4854.55,
-    "currency": "CNY",
-    "principal_note": "对账基线(自动累加模式)。2026-06-09 kcn 对账:现值 15470 + 盈亏 -1829 → 本金 17299,份额 = 15470/净值3.1867 = 4854.55。此后每个 A 股交易日自动 +200@当日净值。补投对账:把 principal_invested/units_held 改成新真实数字、reconciled_date 改成对账当天即可,自动累加归零重算。",
     "daily_amount": 200,
-    "fund_code": "000217",
+    "units_held": 4854.55,
     "principal_invested": 17299.0,
+    "fund_code": "000217",
+    "currency": "CNY",
     "reconciled_date": "2026-06-09",
-    "fund_name": "华安黄金ETF联接C",
     "start_date": "2026-01-22",
-    "nav": 2.9591,
-    "nav_date": "2026-07-15",
-    "nav_change_pct": -0.15,
+    "fund_name": "华安黄金ETF联接C",
+    "principal_note": "对账基线(自动累加模式)。2026-06-09 kcn 对账:现值 15470 + 盈亏 -1829 → 本金 17299,份额 = 15470/净值3.1867 = 4854.55。此后每个 A 股交易日自动 +200@当日净值。补投对账:把 principal_invested/units_held 改成新真实数字、reconciled_date 改成对账当天即可,自动累加归零重算。",
+    "nav": 2.9559,
+    "nav_date": "2026-07-16",
+    "nav_change_pct": -0.11,
     "realtime": {
-      "est_nav": 2.9858,
-      "est_change_pct": 0.9,
-      "est_time": "2026-07-15 22:28",
-      "nav_date": "2026-07-15"
+      "est_nav": 2.9477,
+      "est_change_pct": -0.28,
+      "est_time": "2026-07-16 22:29",
+      "nav_date": "2026-07-16"
     },
-    "principal_effective": 22299.0,
-    "units_effective": 6502.22,
-    "auto_added_days": 25,
-    "auto_added_amount": 5000.0,
-    "avg_cost": 3.4294,
-    "current_value": 19240.72,
-    "pnl_abs": -3058.28,
-    "pnl_percent": -13.71,
-    "breakeven_nav": 3.4294,
-    "breakeven_upside_pct": 15.89,
-    "days_invested": 114,
-    "installments_est": 111,
+    "principal_effective": 22499.0,
+    "units_effective": 6569.88,
+    "auto_added_days": 26,
+    "auto_added_amount": 5200.0,
+    "avg_cost": 3.4246,
+    "current_value": 19419.91,
+    "pnl_abs": -3079.09,
+    "pnl_percent": -13.69,
+    "breakeven_nav": 3.4246,
+    "breakeven_upside_pct": 15.86,
+    "days_invested": 115,
+    "installments_est": 112,
     "window_high": {
       "date": "2026-01-29",
       "nav": 4.1882
@@ -1332,45 +1332,41 @@
     "projection": [
       {
         "days": 20,
-        "invested": 26299.0,
-        "avg_cost": 3.3485,
-        "pnl_pct": -11.63,
-        "breakeven_upside_pct": 13.16
+        "invested": 26499.0,
+        "avg_cost": 3.3445,
+        "pnl_pct": -11.62,
+        "breakeven_upside_pct": 13.15
       },
       {
         "days": 40,
-        "invested": 30299.0,
-        "avg_cost": 3.2913,
-        "pnl_pct": -10.09,
+        "invested": 30499.0,
+        "avg_cost": 3.2878,
+        "pnl_pct": -10.1,
         "breakeven_upside_pct": 11.23
       },
       {
         "days": 60,
-        "invested": 34299.0,
-        "avg_cost": 3.2488,
-        "pnl_pct": -8.92,
-        "breakeven_upside_pct": 9.79
+        "invested": 34499.0,
+        "avg_cost": 3.2456,
+        "pnl_pct": -8.93,
+        "breakeven_upside_pct": 9.8
       },
       {
         "days": 120,
-        "invested": 46299.0,
-        "avg_cost": 3.1684,
-        "pnl_pct": -6.61,
-        "breakeven_upside_pct": 7.07
+        "invested": 46499.0,
+        "avg_cost": 3.1655,
+        "pnl_pct": -6.62,
+        "breakeven_upside_pct": 7.09
       },
       {
         "days": 250,
-        "invested": 72299.0,
-        "avg_cost": 3.0898,
-        "pnl_pct": -4.23,
-        "breakeven_upside_pct": 4.42
+        "invested": 72499.0,
+        "avg_cost": 3.087,
+        "pnl_pct": -4.25,
+        "breakeven_upside_pct": 4.44
       }
     ],
     "nav_history": [
-      [
-        "2025-12-15",
-        3.3086
-      ],
       [
         "2025-12-16",
         3.2695
@@ -1926,26 +1922,25 @@
       [
         "2026-07-15",
         2.9591
+      ],
+      [
+        "2026-07-16",
+        2.9559
       ]
     ],
-    "last_updated": "2026-07-15T15:50:26.159041Z",
+    "last_updated": "2026-07-16T15:50:17.509402Z",
     "london": {
-      "xau_usd": 4049.64,
-      "xau_change_pct": -0.07,
-      "xau_high": 4073.96,
-      "xau_low": 4017.33,
-      "xau_prev_close": 4052.64,
-      "xau_date": "2026-07-15",
-      "usdcny": 6.7743,
-      "oz_equiv": 0.701,
-      "grams_equiv": 21.8,
-      "intl_value_usd": 2840.25,
+      "xau_usd": 4010.6,
+      "xau_change_pct": -1.22,
+      "xau_high": 4065.74,
+      "xau_low": 3974.12,
+      "xau_prev_close": 4060.28,
+      "xau_date": "2026-07-16",
+      "usdcny": 6.7669,
+      "oz_equiv": 0.716,
+      "grams_equiv": 22.3,
+      "intl_value_usd": 2869.84,
       "compare_series": [
-        [
-          "2026-03-05",
-          106.0,
-          102.93
-        ],
         [
           "2026-03-06",
           105.08,
@@ -2389,51 +2384,56 @@
         [
           "2026-07-15",
           80.79,
-          82.02
+          82.26
+        ],
+        [
+          "2026-07-16",
+          80.7,
+          81.32
         ]
       ],
       "dca_equiv": {
-        "principal_cny": 22800.0,
-        "oz_held": 0.7238,
-        "grams_held": 22.5,
-        "avg_cost_usd_oz": 4604.53,
-        "avg_cost_cny_g": 1012.75,
-        "spot_usd_oz": 4049.64,
-        "breakeven_upside_pct": 13.7,
-        "current_value_cny": 19856.59,
-        "pnl_abs": -2943.41,
-        "pnl_pct": -12.91,
-        "days": 114,
-        "daily_grams": 0.227,
+        "principal_cny": 23000.0,
+        "oz_held": 0.7312,
+        "grams_held": 22.7,
+        "avg_cost_usd_oz": 4598.71,
+        "avg_cost_cny_g": 1011.37,
+        "spot_usd_oz": 4010.6,
+        "breakeven_upside_pct": 14.66,
+        "current_value_cny": 19842.96,
+        "pnl_abs": -3157.04,
+        "pnl_pct": -13.73,
+        "days": 115,
+        "daily_grams": 0.229,
         "projection": [
           {
             "days": 20,
-            "avg_cost_usd_oz": 4511.49,
-            "breakeven_upside_pct": 11.4
+            "avg_cost_usd_oz": 4500.04,
+            "breakeven_upside_pct": 12.2
           },
           {
             "days": 40,
-            "avg_cost_usd_oz": 4445.17,
-            "breakeven_upside_pct": 9.77
+            "avg_cost_usd_oz": 4429.73,
+            "breakeven_upside_pct": 10.45
           },
           {
             "days": 60,
-            "avg_cost_usd_oz": 4395.51,
-            "breakeven_upside_pct": 8.54
+            "avg_cost_usd_oz": 4377.08,
+            "breakeven_upside_pct": 9.14
           },
           {
             "days": 120,
-            "avg_cost_usd_oz": 4300.87,
-            "breakeven_upside_pct": 6.2
+            "avg_cost_usd_oz": 4276.77,
+            "breakeven_upside_pct": 6.64
           },
           {
             "days": 250,
-            "avg_cost_usd_oz": 4207.37,
-            "breakeven_upside_pct": 3.89
+            "avg_cost_usd_oz": 4177.69,
+            "breakeven_upside_pct": 4.17
           }
         ]
       },
-      "last_updated": "2026-07-15T15:50:26.159394Z"
+      "last_updated": "2026-07-16T15:50:17.509836Z"
     }
   }
 }
