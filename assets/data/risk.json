@@ -1,51 +1,51 @@
 {
-  "generated_at": "2026-07-15T19:48:33.972471+00:00",
-  "as_of": "2026-07-15",
+  "generated_at": "2026-07-16T01:40:03.589149+00:00",
+  "as_of": "2026-07-16",
   "us": {
-    "beta_spx": 3.2875,
-    "vol_30d_annualized": 1.0302,
-    "max_dd_30d": -0.3837,
-    "sharpe_30d": -5.0115,
-    "current_value_usd": 2969.39
+    "beta_spx": 3.2767,
+    "vol_30d_annualized": 1.0297,
+    "max_dd_30d": -0.3839,
+    "sharpe_30d": -5.0146,
+    "current_value_usd": 2948.35
   },
   "hk": {
-    "beta_hsi": 1.73,
-    "vol_30d_annualized": 0.8563,
-    "max_dd_30d": -0.4476,
-    "sharpe_30d": -4.4715,
-    "current_value_hkd": 58419.6
+    "beta_hsi": 1.8187,
+    "vol_30d_annualized": 0.8203,
+    "max_dd_30d": -0.4208,
+    "sharpe_30d": -4.5437,
+    "current_value_hkd": 57348.8
   },
   "combined": {
-    "vol_30d_annualized": 0.6704,
-    "max_dd_30d": -0.2838,
-    "sharpe_30d": -4.7236
+    "vol_30d_annualized": 0.6457,
+    "max_dd_30d": -0.2677,
+    "sharpe_30d": -4.7824
   },
   "leveraged_exposure": {
-    "us_leverage_factor_avg": 1.4052,
-    "hk_leverage_factor_avg": 1.3715,
-    "combined_avg": 1.3811,
-    "margin_at_risk_pct": 13.8106
+    "us_leverage_factor_avg": 1.4043,
+    "hk_leverage_factor_avg": 1.3963,
+    "combined_avg": 1.3986,
+    "margin_at_risk_pct": 13.9862
   },
   "alerts": [
     {
       "type": "high_beta",
       "severity": "high",
-      "detail": "US β vs S&P 500 = 3.2875 (> 3.0)"
+      "detail": "US β vs S&P 500 = 3.2767 (> 3.0)"
     },
     {
       "type": "high_vol",
       "severity": "high",
-      "detail": "Combined 30d annualised vol = 67.0% (> 50%)"
+      "detail": "Combined 30d annualised vol = 64.6% (> 50%)"
     },
     {
       "type": "deep_dd",
       "severity": "medium",
-      "detail": "Combined 30d max DD = -28.4% (< -10%)"
+      "detail": "Combined 30d max DD = -26.8% (< -10%)"
     },
     {
       "type": "negative_sharpe",
       "severity": "medium",
-      "detail": "Combined 30d Sharpe = -4.7236 (< 0)"
+      "detail": "Combined 30d Sharpe = -4.7824 (< 0)"
     }
   ],
   "meta": {
@@ -54,7 +54,7 @@
       "pair": "USDHKD",
       "rate": 7.839,
       "source": "Frankfurter",
-      "fetched_at": "2026-07-15T19:48:33.964959+00:00",
+      "fetched_at": "2026-07-16T00:04:08.726332+00:00",
       "fallback_used": false,
       "warning": null,
       "hkd_to_usd": 0.12756729
@@ -93,8 +93,8 @@
       ],
       "failed": [],
       "n_returns": 30,
-      "dates_first": "2026-06-01",
-      "dates_last": "2026-07-15",
+      "dates_first": "2026-06-02",
+      "dates_last": "2026-07-16",
       "stale": false
     }
   }

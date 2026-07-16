@@ -456,6 +456,15 @@
    "source": "tencent",
    "adjustment": "raw",
    "fetched_at": "2026-07-15T23:39:08+08:00"
+  },
+  "2026-07-15": {
+   "open": 38.72,
+   "high": 39.99,
+   "low": 37.0,
+   "close": 39.33,
+   "source": "tencent",
+   "adjustment": "raw",
+   "fetched_at": "2026-07-16T08:04:35+08:00"
   }
  },
  "retired": false
