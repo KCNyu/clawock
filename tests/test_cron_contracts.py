@@ -117,12 +117,16 @@ def test_payload_semantic_contract_detects_deprecated_or_missing_rules():
 def _crontab_from_contract(data, at):
     rows = []
     for index, job in enumerate(data['jobs']):
-        watchdog = job.get('watchdog')
-        if not watchdog:
-            continue
-        expr = cron_contract.effective_schedule(watchdog, at)['expr']
-        tokens = ' '.join(watchdog['command_contains'])
-        rows.append(f'{expr} run-{index} {tokens}')
+        # Mirror validate_watchdogs: a job may declare a primary `watchdog` plus
+        # optional `extra_watchdogs` (盘前深度简报 has a second 09:05 miss-detector
+        # pass). Synthesising only the primary made this fixture claim the extra pass
+        # was missing from crontab.
+        for watchdog in [job.get('watchdog')] + list(job.get('extra_watchdogs') or []):
+            if not watchdog:
+                continue
+            expr = cron_contract.effective_schedule(watchdog, at)['expr']
+            tokens = ' '.join(watchdog['command_contains'])
+            rows.append(f'{expr} run-{index} {tokens}')
     sync = data['dst_sync']
     rows.append(
         f"{cron_contract.effective_schedule(sync, at)['expr']} "

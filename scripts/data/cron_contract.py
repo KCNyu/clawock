@@ -175,19 +175,26 @@ def validate_watchdogs(contract: dict, crontab_text: str,
     rows = parse_crontab_lines(crontab_text)
     errors = []
     for job in contract["jobs"]:
-        watchdog = job.get("watchdog")
-        if not watchdog:
-            continue
-        tokens = watchdog.get("command_contains") or []
-        row = find_crontab_row(rows, tokens)
-        if not row:
-            errors.append(f"{job['name']} watchdog missing or ambiguous: {tokens}")
-            continue
-        expected = effective_schedule(watchdog, at).get("expr")
-        if row["expr"] != expected:
-            errors.append(
-                f"{job['name']} watchdog expected {expected!r}, got {row['expr']!r}"
-            )
+        # `watchdog` is the job's primary backstop; `extra_watchdogs` (optional list)
+        # declares additional passes over the same job. 盘前深度简报 needs two: the
+        # 08:30 delivery backstop, and a 09:05 miss detector — 08:30 falls inside the
+        # brief's own 08:13-08:49 landing window, so it cannot tell a slow brief from
+        # a dead one and a second pass after the window is the only place to judge.
+        # Each entry must still match EXACTLY ONE crontab row, so their
+        # command_contains have to be mutually exclusive, not just present.
+        for watchdog in [job.get("watchdog")] + list(job.get("extra_watchdogs") or []):
+            if not watchdog:
+                continue
+            tokens = watchdog.get("command_contains") or []
+            row = find_crontab_row(rows, tokens)
+            if not row:
+                errors.append(f"{job['name']} watchdog missing or ambiguous: {tokens}")
+                continue
+            expected = effective_schedule(watchdog, at).get("expr")
+            if row["expr"] != expected:
+                errors.append(
+                    f"{job['name']} watchdog expected {expected!r}, got {row['expr']!r}"
+                )
     sync = contract.get("dst_sync") or {}
     if sync:
         tokens = sync.get("command_contains") or []

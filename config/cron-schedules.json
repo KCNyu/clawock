@@ -3,8 +3,15 @@
   "description": "Single tracked contract for live OpenClaw schedules, watchdog schedules, and payload semantics. Seasonal US schedules are derived from America/New_York DST; runtime truth is checked through the OpenClaw CLI and crontab.",
   "timezone": "Asia/Hong_Kong",
   "dst_sync": {
-    "schedule": {"kind": "cron", "expr": "20 6 * * *", "tz": "Asia/Hong_Kong"},
-    "command_contains": ["scripts/data/sync_us_cron_dst.py", "--apply"]
+    "schedule": {
+      "kind": "cron",
+      "expr": "20 6 * * *",
+      "tz": "Asia/Hong_Kong"
+    },
+    "command_contains": [
+      "scripts/data/sync_us_cron_dst.py",
+      "--apply"
+    ]
   },
   "payload_profiles": {
     "report": {
@@ -24,7 +31,13 @@
         "禁用 message",
         "--no-deliver"
       ],
-      "forbidden_substrings": ["≤ 800", "≤800", "≤ 600", "≤600", "唯一发送路径"]
+      "forbidden_substrings": [
+        "≤ 800",
+        "≤800",
+        "≤ 600",
+        "≤600",
+        "唯一发送路径"
+      ]
     },
     "intraday": {
       "payload_kind": "agentTurn",
@@ -45,7 +58,13 @@
         "禁用 message",
         "--no-deliver"
       ],
-      "forbidden_substrings": ["≤ 800", "≤800", "≤ 600", "≤600", "唯一发送路径"]
+      "forbidden_substrings": [
+        "≤ 800",
+        "≤800",
+        "≤ 600",
+        "≤600",
+        "唯一发送路径"
+      ]
     },
     "brief": {
       "payload_kind": "agentTurn",
@@ -62,7 +81,9 @@
         "绝不要",
         "message"
       ],
-      "forbidden_substrings": ["唯一投递路径"]
+      "forbidden_substrings": [
+        "唯一投递路径"
+      ]
     },
     "memory": {
       "payload_kind": "agentTurn",
@@ -79,11 +100,26 @@
       "mode": "Mode 7",
       "harness": "intraday --us",
       "payload_profile": "intraday",
-      "payload_vars": {"market": "us", "skill": "us-stock-analysis"},
-      "schedule": {"kind": "cron", "expr": "*/30 0-2 * * 2-6", "tz": "Asia/Shanghai"},
+      "payload_vars": {
+        "market": "us",
+        "skill": "us-stock-analysis"
+      },
+      "schedule": {
+        "kind": "cron",
+        "expr": "*/30 0-2 * * 2-6",
+        "tz": "Asia/Shanghai"
+      },
       "watchdog": {
-        "schedule": {"kind": "cron", "expr": "10,40 0-2 * * 2-6", "tz": "Asia/Hong_Kong"},
-        "command_contains": ["intraday_watchdog.py", "--job-name \"美股盘中盯盘-overnight\"", "--market us"]
+        "schedule": {
+          "kind": "cron",
+          "expr": "10,40 0-2 * * 2-6",
+          "tz": "Asia/Hong_Kong"
+        },
+        "command_contains": [
+          "intraday_watchdog.py",
+          "--job-name \"美股盘中盯盘-overnight\"",
+          "--market us"
+        ]
       }
     },
     {
@@ -92,7 +128,10 @@
       "mode": "memory-core",
       "harness": "—",
       "payload_profile": "memory",
-      "schedule": {"kind": "cron", "expr": "0 3 * * *"}
+      "schedule": {
+        "kind": "cron",
+        "expr": "0 3 * * *"
+      }
     },
     {
       "name": "美股收盘报告",
@@ -102,17 +141,41 @@
       "mode": "Mode 6",
       "harness": "report --us close",
       "payload_profile": "report",
-      "payload_vars": {"market": "us", "phase": "close", "skill": "us-stock-analysis"},
+      "payload_vars": {
+        "market": "us",
+        "phase": "close",
+        "skill": "us-stock-analysis"
+      },
       "seasonal_schedules": {
-        "daylight": {"kind": "cron", "expr": "0 4 * * 2-6", "tz": "Asia/Shanghai"},
-        "standard": {"kind": "cron", "expr": "0 5 * * 2-6", "tz": "Asia/Shanghai"}
+        "daylight": {
+          "kind": "cron",
+          "expr": "0 4 * * 2-6",
+          "tz": "Asia/Shanghai"
+        },
+        "standard": {
+          "kind": "cron",
+          "expr": "0 5 * * 2-6",
+          "tz": "Asia/Shanghai"
+        }
       },
       "watchdog": {
         "seasonal_schedules": {
-          "daylight": {"kind": "cron", "expr": "20 4 * * 2-6", "tz": "Asia/Hong_Kong"},
-          "standard": {"kind": "cron", "expr": "20 5 * * 2-6", "tz": "Asia/Hong_Kong"}
+          "daylight": {
+            "kind": "cron",
+            "expr": "20 4 * * 2-6",
+            "tz": "Asia/Hong_Kong"
+          },
+          "standard": {
+            "kind": "cron",
+            "expr": "20 5 * * 2-6",
+            "tz": "Asia/Hong_Kong"
+          }
         },
-        "command_contains": ["report_watchdog.py", "--market us", "--phase close"]
+        "command_contains": [
+          "report_watchdog.py",
+          "--market us",
+          "--phase close"
+        ]
       }
     },
     {
@@ -121,11 +184,34 @@
       "mode": "daily-deep-brief",
       "harness": "brief_*",
       "payload_profile": "brief",
-      "schedule": {"kind": "cron", "expr": "0 8 * * 1-5", "tz": "Asia/Shanghai"},
+      "schedule": {
+        "kind": "cron",
+        "expr": "0 8 * * 1-5",
+        "tz": "Asia/Shanghai"
+      },
       "watchdog": {
-        "schedule": {"kind": "cron", "expr": "30 8 * * 1-5", "tz": "Asia/Hong_Kong"},
-        "command_contains": ["brief_watchdog.py"]
-      }
+        "schedule": {
+          "kind": "cron",
+          "expr": "30 8 * * 1-5",
+          "tz": "Asia/Hong_Kong"
+        },
+        "command_contains": [
+          "brief_watchdog.py >>"
+        ]
+      },
+      "extra_watchdogs": [
+        {
+          "purpose": "miss-detector: brief never written (08:30 is inside the landing window)",
+          "schedule": {
+            "kind": "cron",
+            "expr": "5 9 * * 1-5",
+            "tz": "Asia/Hong_Kong"
+          },
+          "command_contains": [
+            "brief_watchdog.py --check-missing"
+          ]
+        }
+      ]
     },
     {
       "name": "港股开盘报告",
@@ -135,11 +221,27 @@
       "mode": "Mode 6",
       "harness": "report --hk open",
       "payload_profile": "report",
-      "payload_vars": {"market": "hk", "phase": "open", "skill": "hk-stock-analysis"},
-      "schedule": {"kind": "cron", "expr": "30 9 * * 1-5", "tz": "Asia/Shanghai"},
+      "payload_vars": {
+        "market": "hk",
+        "phase": "open",
+        "skill": "hk-stock-analysis"
+      },
+      "schedule": {
+        "kind": "cron",
+        "expr": "30 9 * * 1-5",
+        "tz": "Asia/Shanghai"
+      },
       "watchdog": {
-        "schedule": {"kind": "cron", "expr": "45 9 * * 1-5", "tz": "Asia/Hong_Kong"},
-        "command_contains": ["report_watchdog.py", "--market hk", "--phase open"]
+        "schedule": {
+          "kind": "cron",
+          "expr": "45 9 * * 1-5",
+          "tz": "Asia/Hong_Kong"
+        },
+        "command_contains": [
+          "report_watchdog.py",
+          "--market hk",
+          "--phase open"
+        ]
       }
     },
     {
@@ -149,11 +251,26 @@
       "mode": "Mode 7",
       "harness": "intraday --hk",
       "payload_profile": "intraday",
-      "payload_vars": {"market": "hk", "skill": "hk-stock-analysis"},
-      "schedule": {"kind": "cron", "expr": "*/30 10-11,14-15 * * 1-5", "tz": "Asia/Shanghai"},
+      "payload_vars": {
+        "market": "hk",
+        "skill": "hk-stock-analysis"
+      },
+      "schedule": {
+        "kind": "cron",
+        "expr": "*/30 10-11,14-15 * * 1-5",
+        "tz": "Asia/Shanghai"
+      },
       "watchdog": {
-        "schedule": {"kind": "cron", "expr": "4,34 10-11,14-15 * * 1-5", "tz": "Asia/Hong_Kong"},
-        "command_contains": ["intraday_watchdog.py", "--job-name \"盘中盯盘\"", "--market hk"]
+        "schedule": {
+          "kind": "cron",
+          "expr": "4,34 10-11,14-15 * * 1-5",
+          "tz": "Asia/Hong_Kong"
+        },
+        "command_contains": [
+          "intraday_watchdog.py",
+          "--job-name \"盘中盯盘\"",
+          "--market hk"
+        ]
       }
     },
     {
@@ -164,11 +281,27 @@
       "mode": "Mode 6",
       "harness": "report --hk mid",
       "payload_profile": "report",
-      "payload_vars": {"market": "hk", "phase": "mid", "skill": "hk-stock-analysis"},
-      "schedule": {"kind": "cron", "expr": "0 12 * * 1-5", "tz": "Asia/Shanghai"},
+      "payload_vars": {
+        "market": "hk",
+        "phase": "mid",
+        "skill": "hk-stock-analysis"
+      },
+      "schedule": {
+        "kind": "cron",
+        "expr": "0 12 * * 1-5",
+        "tz": "Asia/Shanghai"
+      },
       "watchdog": {
-        "schedule": {"kind": "cron", "expr": "12 12 * * 1-5", "tz": "Asia/Hong_Kong"},
-        "command_contains": ["report_watchdog.py", "--market hk", "--phase mid"]
+        "schedule": {
+          "kind": "cron",
+          "expr": "12 12 * * 1-5",
+          "tz": "Asia/Hong_Kong"
+        },
+        "command_contains": [
+          "report_watchdog.py",
+          "--market hk",
+          "--phase mid"
+        ]
       }
     },
     {
@@ -179,11 +312,27 @@
       "mode": "Mode 6",
       "harness": "report --hk pm",
       "payload_profile": "report",
-      "payload_vars": {"market": "hk", "phase": "pm", "skill": "hk-stock-analysis"},
-      "schedule": {"kind": "cron", "expr": "30 13 * * 1-5", "tz": "Asia/Shanghai"},
+      "payload_vars": {
+        "market": "hk",
+        "phase": "pm",
+        "skill": "hk-stock-analysis"
+      },
+      "schedule": {
+        "kind": "cron",
+        "expr": "30 13 * * 1-5",
+        "tz": "Asia/Shanghai"
+      },
       "watchdog": {
-        "schedule": {"kind": "cron", "expr": "42 13 * * 1-5", "tz": "Asia/Hong_Kong"},
-        "command_contains": ["report_watchdog.py", "--market hk", "--phase pm"]
+        "schedule": {
+          "kind": "cron",
+          "expr": "42 13 * * 1-5",
+          "tz": "Asia/Hong_Kong"
+        },
+        "command_contains": [
+          "report_watchdog.py",
+          "--market hk",
+          "--phase pm"
+        ]
       }
     },
     {
@@ -194,11 +343,27 @@
       "mode": "Mode 6",
       "harness": "report --hk close",
       "payload_profile": "report",
-      "payload_vars": {"market": "hk", "phase": "close", "skill": "hk-stock-analysis"},
-      "schedule": {"kind": "cron", "expr": "0 16 * * 1-5", "tz": "Asia/Shanghai"},
+      "payload_vars": {
+        "market": "hk",
+        "phase": "close",
+        "skill": "hk-stock-analysis"
+      },
+      "schedule": {
+        "kind": "cron",
+        "expr": "0 16 * * 1-5",
+        "tz": "Asia/Shanghai"
+      },
       "watchdog": {
-        "schedule": {"kind": "cron", "expr": "15 16 * * 1-5", "tz": "Asia/Hong_Kong"},
-        "command_contains": ["report_watchdog.py", "--market hk", "--phase close"]
+        "schedule": {
+          "kind": "cron",
+          "expr": "15 16 * * 1-5",
+          "tz": "Asia/Hong_Kong"
+        },
+        "command_contains": [
+          "report_watchdog.py",
+          "--market hk",
+          "--phase close"
+        ]
       }
     },
     {
@@ -209,17 +374,41 @@
       "mode": "Mode 6",
       "harness": "report --us open",
       "payload_profile": "report",
-      "payload_vars": {"market": "us", "phase": "open", "skill": "us-stock-analysis"},
+      "payload_vars": {
+        "market": "us",
+        "phase": "open",
+        "skill": "us-stock-analysis"
+      },
       "seasonal_schedules": {
-        "daylight": {"kind": "cron", "expr": "30 21 * * 1-5", "tz": "Asia/Shanghai"},
-        "standard": {"kind": "cron", "expr": "30 22 * * 1-5", "tz": "Asia/Shanghai"}
+        "daylight": {
+          "kind": "cron",
+          "expr": "30 21 * * 1-5",
+          "tz": "Asia/Shanghai"
+        },
+        "standard": {
+          "kind": "cron",
+          "expr": "30 22 * * 1-5",
+          "tz": "Asia/Shanghai"
+        }
       },
       "watchdog": {
         "seasonal_schedules": {
-          "daylight": {"kind": "cron", "expr": "45 21 * * 1-5", "tz": "Asia/Hong_Kong"},
-          "standard": {"kind": "cron", "expr": "45 22 * * 1-5", "tz": "Asia/Hong_Kong"}
+          "daylight": {
+            "kind": "cron",
+            "expr": "45 21 * * 1-5",
+            "tz": "Asia/Hong_Kong"
+          },
+          "standard": {
+            "kind": "cron",
+            "expr": "45 22 * * 1-5",
+            "tz": "Asia/Hong_Kong"
+          }
         },
-        "command_contains": ["report_watchdog.py", "--market us", "--phase open"]
+        "command_contains": [
+          "report_watchdog.py",
+          "--market us",
+          "--phase open"
+        ]
       }
     },
     {
@@ -229,17 +418,40 @@
       "mode": "Mode 7",
       "harness": "intraday --us",
       "payload_profile": "intraday",
-      "payload_vars": {"market": "us", "skill": "us-stock-analysis"},
+      "payload_vars": {
+        "market": "us",
+        "skill": "us-stock-analysis"
+      },
       "seasonal_schedules": {
-        "daylight": {"kind": "cron", "expr": "*/30 22-23 * * 1-5", "tz": "Asia/Shanghai"},
-        "standard": {"kind": "cron", "expr": "*/30 23 * * 1-5", "tz": "Asia/Shanghai"}
+        "daylight": {
+          "kind": "cron",
+          "expr": "*/30 22-23 * * 1-5",
+          "tz": "Asia/Shanghai"
+        },
+        "standard": {
+          "kind": "cron",
+          "expr": "*/30 23 * * 1-5",
+          "tz": "Asia/Shanghai"
+        }
       },
       "watchdog": {
         "seasonal_schedules": {
-          "daylight": {"kind": "cron", "expr": "10,40 22-23 * * 1-5", "tz": "Asia/Hong_Kong"},
-          "standard": {"kind": "cron", "expr": "10,40 23 * * 1-5", "tz": "Asia/Hong_Kong"}
+          "daylight": {
+            "kind": "cron",
+            "expr": "10,40 22-23 * * 1-5",
+            "tz": "Asia/Hong_Kong"
+          },
+          "standard": {
+            "kind": "cron",
+            "expr": "10,40 23 * * 1-5",
+            "tz": "Asia/Hong_Kong"
+          }
         },
-        "command_contains": ["intraday_watchdog.py", "--job-name \"美股盘中盯盘\"", "--market us"]
+        "command_contains": [
+          "intraday_watchdog.py",
+          "--job-name \"美股盘中盯盘\"",
+          "--market us"
+        ]
       }
     }
   ]
