@@ -1,175 +1,46 @@
 {
-  "generated_at": "2026-07-15T22:33:51.552013+00:00",
+  "generated_at": "2026-07-16T14:49:45.598824+00:00",
   "lookback_hours": 48,
   "sources": {
     "trump": "trumpstruth.org/feed (primary)",
     "musk": "google-news-rss (proxy)",
     "serenity": "aleabitoreddit.substack.com/feed (public posts)"
   },
-  "llm_filtered": true,
+  "llm_filtered": false,
   "counts": {
-    "total": 13,
+    "total": 18,
     "held_hits": 0,
-    "new_ideas": 1,
-    "sector_hits": 7
+    "new_ideas": 0,
+    "sector_hits": 0
   },
   "items": [
     {
       "author": "Musk",
-      "text": "J.P. Morgan Called a Potential Elon Musk SpaceX-Tesla Merger \"Strategically Coherent\"",
+      "text": "SpaceX Briefly Falls Below I.P.O. Price of $135",
       "url": "",
-      "published": "Sun, 12 Jul 2026 20:50:00 GMT",
+      "published": "Wed, 15 Jul 2026 20:12:53 GMT",
       "origin": "gnews-rss",
-      "source": "Yahoo Finance",
-      "tickers": [
-        "TSLA"
-      ],
+      "source": "The New York Times",
+      "tickers": [],
       "held": [],
-      "new_ideas": [
-        "TSLA"
-      ],
-      "sectors": [
-        "航天",
-        "电动车",
-        "AI"
-      ],
-      "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "endorse",
-      "relevance": 78,
-      "summary_cn": "摩根大通称Musk旗下SpaceX与Tesla的潜在合并具有'战略一致性'，涉及TSLA及SpaceX相关持仓。"
+      "new_ideas": [],
+      "stance": "neutral",
+      "relevance": null,
+      "summary_cn": ""
     },
     {
       "author": "Musk",
-      "text": "SpaceX sell-off wipes $1tn from Elon Musk’s rocket group",
+      "text": "Elon Musk quietly buys a $1 billion gas turbine company to power Grok",
       "url": "",
-      "published": "Wed, 15 Jul 2026 16:15:30 GMT",
+      "published": "Tue, 14 Jul 2026 23:32:00 GMT",
       "origin": "gnews-rss",
-      "source": "Financial Times",
+      "source": "Electrek",
       "tickers": [],
       "held": [],
       "new_ideas": [],
-      "sectors": [
-        "航天",
-        "AI"
-      ],
-      "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "attack",
-      "relevance": 80,
-      "summary_cn": "SpaceX二级市场抛售抹去Musk火箭集团1万亿美元估值，SpaceX概念杠杆ETF（SPCX/SPCH）短期承压。"
-    },
-    {
-      "author": "Musk",
-      "text": "Musk’s Net Worth Drops Below $900 Billion With SpaceX Nearing IPO Value",
-      "url": "",
-      "published": "Mon, 13 Jul 2026 16:19:54 GMT",
-      "origin": "gnews-rss",
-      "source": "Forbes",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "AI"
-      ],
-      "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
       "stance": "neutral",
-      "relevance": 75,
-      "summary_cn": "Musk净资产跌破9000亿美元，SpaceX临近IPO估值——SpaceX虽未上市但IPO预期升温，与kcn持有的SPCX/SPCH（SpaceX概念杠杆ETF）直接相关。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk's xAI is now officially called SpaceXAI",
-      "url": "",
-      "published": "Wed, 15 Jul 2026 09:23:35 GMT",
-      "origin": "gnews-rss",
-      "source": "Mashable",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "AI",
-        "航天"
-      ],
-      "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "neutral",
-      "relevance": 68,
-      "summary_cn": "Musk的xAI正式更名为SpaceXAI，AI与航天进一步整合（均为未上市公司，无可交易代码）。"
-    },
-    {
-      "author": "Trump",
-      "text": "One of the biggest Driving Forces in the Future for Jobs, are Data Centers. They are big, strong, bold, and Money Machines for the State in which they are built. Governor Kathy Hochul, for political reasons, has terminated all Data Centers being built, or to be built, in New York State. These Companies are now being sought in Alabama, Florida, Texas, Arizona, and many other States. Both the Taxes and the Jobs amount to LIQUID GOLD! New York State has made a terrible decision. All of this Income, and other Benefits, will be going to Red States, and some Blue, where Data Centers are sought as Ca",
-      "url": "https://trumpstruth.org/statuses/40064",
-      "published": "2026-07-15T16:39:53+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "数据中心",
-        "AI",
-        "基础设施"
-      ],
-      "sector_holdings": [
-        "MSFU"
-      ],
-      "stance": "neutral",
-      "relevance": 62,
-      "summary_cn": "Trump抨击纽约州长Hochul终止数据中心建设，称公司将流向德州/佛州等红州，涉及AI基础设施主题。"
-    },
-    {
-      "author": "Trump",
-      "text": "Labor Department reports annual inflation in June was 3.5%, biggest monthly drop in over six years: https://justthenews.com/nation/economy/labor-department-reports-annual-inflation-june-was-35-biggest-monthly-drop-over-six",
-      "url": "https://trumpstruth.org/statuses/40021",
-      "published": "2026-07-14T13:24:56+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "宏观经济",
-        "通胀",
-        "利率"
-      ],
-      "sector_holdings": [
-        "03032",
-        "03033",
-        "07226"
-      ],
-      "stance": "endorse",
-      "relevance": 60,
-      "summary_cn": "6月美国年化通胀3.5%，月度降幅创六年新高，宏观通胀/利率利好信号。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk and Sam Altman accuse each other of scamming investors as each pitches their AI vision",
-      "url": "",
-      "published": "Mon, 13 Jul 2026 19:42:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Fortune",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "AI"
-      ],
-      "sector_holdings": [
-        "MSFU"
-      ],
-      "stance": "neutral",
-      "relevance": 58,
-      "summary_cn": "Musk与Sam Altman互指对方欺骗投资者，AI行业领军人物口水战，关注AI板块情绪。"
+      "relevance": null,
+      "summary_cn": ""
     },
     {
       "author": "Musk",
@@ -181,16 +52,196 @@
       "tickers": [],
       "held": [],
       "new_ideas": [],
-      "sectors": [
-        "AI",
-        "能源"
-      ],
-      "sector_holdings": [
-        "MSFU"
-      ],
-      "stance": "attack",
-      "relevance": 52,
-      "summary_cn": "Musk旗下未获许可的xAI发电项目污染问题，对黑人社区影响最大，涉及AI数据中心能源争议。"
+      "stance": "neutral",
+      "relevance": null,
+      "summary_cn": ""
+    },
+    {
+      "author": "Musk",
+      "text": "Musk’s xAI sues man accused of using Grok to create explicit material",
+      "url": "",
+      "published": "Thu, 16 Jul 2026 14:42:00 GMT",
+      "origin": "gnews-rss",
+      "source": "The Hill",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "stance": "neutral",
+      "relevance": null,
+      "summary_cn": ""
+    },
+    {
+      "author": "Musk",
+      "text": "The Identity Crisis at Elon Musk’s Chaotic AI Outfit",
+      "url": "",
+      "published": "Thu, 16 Jul 2026 10:30:22 GMT",
+      "origin": "gnews-rss",
+      "source": "Bloomberg.com",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "stance": "neutral",
+      "relevance": null,
+      "summary_cn": ""
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk loses trillionaire status as SpaceX stock deflates",
+      "url": "",
+      "published": "Thu, 16 Jul 2026 10:15:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Fortune",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "stance": "neutral",
+      "relevance": null,
+      "summary_cn": ""
+    },
+    {
+      "author": "Musk",
+      "text": "Tesla Q2 Earnings: Elon Musk's Pay Package, Cybercab and Optimus Lead Top Investor Questions",
+      "url": "",
+      "published": "Thu, 16 Jul 2026 07:33:59 GMT",
+      "origin": "gnews-rss",
+      "source": "Yahoo Finance UK",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "stance": "neutral",
+      "relevance": null,
+      "summary_cn": ""
+    },
+    {
+      "author": "Musk",
+      "text": "Musk’s Net Worth Drops Below $900 Billion With SpaceX Nearing IPO Value",
+      "url": "",
+      "published": "Mon, 13 Jul 2026 16:19:54 GMT",
+      "origin": "gnews-rss",
+      "source": "Forbes",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "stance": "neutral",
+      "relevance": null,
+      "summary_cn": ""
+    },
+    {
+      "author": "Trump",
+      "text": "https://www.breitbart.com/politics/2026/07/15/exclusive-azerbaijani-president-ilham-aliyev-lauds-trump-as-man-peace-credits-him-armenia-azerbaijan-deal/",
+      "url": "https://trumpstruth.org/statuses/40084",
+      "published": "2026-07-16T05:06:24+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "stance": "neutral",
+      "relevance": null,
+      "summary_cn": ""
+    },
+    {
+      "author": "Trump",
+      "text": "https://www.breitbart.com/politics/2026/07/15/trump-announces-nearly-10-billion-in-defense-industrial-base-investments-in-pennsylvania-at-mccormicks-summit/",
+      "url": "https://trumpstruth.org/statuses/40085",
+      "published": "2026-07-16T05:05:17+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "stance": "neutral",
+      "relevance": null,
+      "summary_cn": ""
+    },
+    {
+      "author": "Trump",
+      "text": "It is my Great Honor to endorse MAGA Warrior, Michael Alfonso, a young “STAR” who is running to represent the incredible people of Wisconsin’s 7th Congressional District.   Michael is the son-in-law of our GREAT Secretary of Transportation, Sean Duffy, and the wonderful Rachel Campos-Duffy, of FoxNews, one of the most popular (and talented!) anchors in all of Television. His family has been fierce advocates for our Movement to, MAKE AMERICA GREAT AGAIN! As your next Congressman, Michael will work tirelessly to Grow our Economy, Cut Taxes and Regulations, Champion our Amazing Farmers and Ranche",
+      "url": "https://trumpstruth.org/statuses/40065",
+      "published": "2026-07-15T17:01:12+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "stance": "neutral",
+      "relevance": null,
+      "summary_cn": ""
+    },
+    {
+      "author": "Trump",
+      "text": "One of the biggest Driving Forces in the Future for Jobs, are Data Centers. They are big, strong, bold, and Money Machines for the State in which they are built. Governor Kathy Hochul, for political reasons, has terminated all Data Centers being built, or to be built, in New York State. These Companies are now being sought in Alabama, Florida, Texas, Arizona, and many other States. Both the Taxes and the Jobs amount to LIQUID GOLD! New York State has made a terrible decision. All of this Income, and other Benefits, will be going to Red States, and some Blue, where Data Centers are sought as Ca",
+      "url": "https://trumpstruth.org/statuses/40064",
+      "published": "2026-07-15T16:39:53+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "stance": "neutral",
+      "relevance": null,
+      "summary_cn": ""
+    },
+    {
+      "author": "Trump",
+      "text": "So cool!!! President DJT",
+      "url": "https://trumpstruth.org/statuses/40062",
+      "published": "2026-07-15T11:34:26+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "stance": "neutral",
+      "relevance": null,
+      "summary_cn": ""
+    },
+    {
+      "author": "Trump",
+      "text": "Mike Lindell, the “Pillow Man,” and one of America’s greatest and most hard working Patriots, is running to be GOVERNOR OF MINNESOTA, replacing one of the worst and most incompetent governors in the history of the U.S.A. Early Primary Voting has begun and, if given the chance, Mike will be SPECTACULAR!!! He truly loves Minnesota, as do I, and wants to bring it back from oblivion and embarrassment. He can do it! Nobody has sacrificed more than Mike Lindell in fighting for our country, especially when it comes to Election Integrity. He truly deserves everything he gets - He will MAKE MINNESOTA G",
+      "url": "https://trumpstruth.org/statuses/40063",
+      "published": "2026-07-15T11:31:15+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "stance": "neutral",
+      "relevance": null,
+      "summary_cn": ""
+    },
+    {
+      "author": "Trump",
+      "text": "The men and women of ICE are doing a GREAT job, one that has to be done. CRIME IS WAY DOWN IN AMERICA, in many cases with numbers that haven’t been seen in decades. The Open Border Policy of Sleepy Joe Biden allowed 25,000,000 people to pour into our Country, unchecked and unvetted. Many were Criminals, and we have to get them out. In order to do this, we must be strong, tough, and smart, and we CANNOT give up one of I.C.E.’s most important and effective Crime Fighting tools, THE TRAFFIC STOP! Once we do, we are playing right into the criminal’s hands. The Radical Left Dumocrats would like to ",
+      "url": "https://trumpstruth.org/statuses/40060",
+      "published": "2026-07-15T10:45:34+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "stance": "neutral",
+      "relevance": null,
+      "summary_cn": ""
+    },
+    {
+      "author": "Trump",
+      "text": "Great News America! The  Dumocrat caused inflation is way down from what it had been, and we will bring it down still further. MAGA!",
+      "url": "https://trumpstruth.org/statuses/40058",
+      "published": "2026-07-15T10:16:36+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "stance": "neutral",
+      "relevance": null,
+      "summary_cn": ""
+    },
+    {
+      "author": "Trump",
+      "text": "Todd Blanche is doing a PHENOMENAL job as Acting Attorney General of the United States. Under Todd’s incredible leadership at DOJ, Murder is down to the LOWEST level since 1900, and we just saw the biggest one year drop in RECORDED HISTORY. Violent Crime arrests are UP 100%. Robberies, Carjackings, and Assaults, are all CRASHING. More than 500 million deadly doses of Drugs have already been seized, saving countless innocent lives. This is what happens when you unleash LAW AND ORDER on our streets, instead of protecting vicious Criminal Thugs, and releasing dangerous Illegal Aliens into our Com",
+      "url": "https://trumpstruth.org/statuses/40052",
+      "published": "2026-07-14T18:37:42+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "stance": "neutral",
+      "relevance": null,
+      "summary_cn": ""
     },
     {
       "author": "Trump",
@@ -201,274 +252,12 @@
       "tickers": [],
       "held": [],
       "new_ideas": [],
-      "sectors": [
-        "石油",
-        "军工",
-        "地缘政治",
-        "能源"
-      ],
-      "sector_holdings": [],
       "stance": "neutral",
-      "relevance": 58,
-      "summary_cn": "Trump称霍尔木兹海峡已对除伊朗外所有船只开放，美国对伊朗实施全面封锁，国际油价/能源供给受关注。"
-    },
-    {
-      "author": "Trump",
-      "text": "Trump claims military victory, points to economic progress in the wake of first-stage Iran deal: https://www.washingtontimes.com/news/2026/jun/23/trump-claims-military-victory-points-economic-progress-wake-first/",
-      "url": "https://trumpstruth.org/statuses/40032",
-      "published": "2026-07-14T14:34:11+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "宏观经济",
-        "石油",
-        "军工",
-        "地缘政治"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 58,
-      "summary_cn": "Trump声称在伊朗第一阶段协议后取得军事胜利并强调经济进展，宏观利好信号。"
-    },
-    {
-      "author": "Trump",
-      "text": "Trump touts U.S. economy and oil prices in a midterm pitch in Pennsylvania: https://www.nbcnews.com/politics/donald-trump/trump-touts-us-economy-oil-prices-midterm-pitch-pennsylvania-rcna351414",
-      "url": "https://trumpstruth.org/statuses/40028",
-      "published": "2026-07-14T14:35:03+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "宏观经济",
-        "石油",
-        "能源"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 55,
-      "summary_cn": "Trump在宾州中期选举造势中吹捧美国经济和油价，宏观正面信号。"
-    },
-    {
-      "author": "Trump",
-      "text": "Trump tells Pa. truck workers ‘fat drug’ prices coming down next week: ‘That alone should win the midterms’: https://nypost.com/2026/06/23/us-news/trump-tells-pa-truck-workers-fat-drug-prices-coming-down-next-week-that-alone-should-win-the-midterms/",
-      "url": "https://trumpstruth.org/statuses/40031",
-      "published": "2026-07-14T14:34:24+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "医药",
-        "医疗保健"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 50,
-      "summary_cn": "Trump称下周将降低肥胖药物价格，药价/医保板块关注。"
-    },
-    {
-      "author": "Trump",
-      "text": "Trump visits Mack Trucks plant in battleground Pennsylvania district to tout economic agenda as midterms loom: https://www.foxbusiness.com/politics/trump-visits-mack-trucks-plant-battleground-pennsylvania-district-to-tout-economic-agenda-midterms-loom",
-      "url": "https://trumpstruth.org/statuses/40033",
-      "published": "2026-07-14T14:33:59+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "制造业",
-        "宏观经济"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 50,
-      "summary_cn": "Trump访问宾州Mack Trucks工厂宣传经济议程，制造/就业主题。"
+      "relevance": null,
+      "summary_cn": ""
     }
   ],
   "held_hits": [],
-  "new_ideas": [
-    {
-      "author": "Musk",
-      "text": "J.P. Morgan Called a Potential Elon Musk SpaceX-Tesla Merger \"Strategically Coherent\"",
-      "url": "",
-      "published": "Sun, 12 Jul 2026 20:50:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Yahoo Finance",
-      "tickers": [
-        "TSLA"
-      ],
-      "held": [],
-      "new_ideas": [
-        "TSLA"
-      ],
-      "sectors": [
-        "航天",
-        "电动车",
-        "AI"
-      ],
-      "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "endorse",
-      "relevance": 78,
-      "summary_cn": "摩根大通称Musk旗下SpaceX与Tesla的潜在合并具有'战略一致性'，涉及TSLA及SpaceX相关持仓。"
-    }
-  ],
-  "sector_hits": [
-    {
-      "author": "Musk",
-      "text": "SpaceX sell-off wipes $1tn from Elon Musk’s rocket group",
-      "url": "",
-      "published": "Wed, 15 Jul 2026 16:15:30 GMT",
-      "origin": "gnews-rss",
-      "source": "Financial Times",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "AI"
-      ],
-      "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "attack",
-      "relevance": 80,
-      "summary_cn": "SpaceX二级市场抛售抹去Musk火箭集团1万亿美元估值，SpaceX概念杠杆ETF（SPCX/SPCH）短期承压。"
-    },
-    {
-      "author": "Musk",
-      "text": "Musk’s Net Worth Drops Below $900 Billion With SpaceX Nearing IPO Value",
-      "url": "",
-      "published": "Mon, 13 Jul 2026 16:19:54 GMT",
-      "origin": "gnews-rss",
-      "source": "Forbes",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "AI"
-      ],
-      "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "neutral",
-      "relevance": 75,
-      "summary_cn": "Musk净资产跌破9000亿美元，SpaceX临近IPO估值——SpaceX虽未上市但IPO预期升温，与kcn持有的SPCX/SPCH（SpaceX概念杠杆ETF）直接相关。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk's xAI is now officially called SpaceXAI",
-      "url": "",
-      "published": "Wed, 15 Jul 2026 09:23:35 GMT",
-      "origin": "gnews-rss",
-      "source": "Mashable",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "AI",
-        "航天"
-      ],
-      "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "neutral",
-      "relevance": 68,
-      "summary_cn": "Musk的xAI正式更名为SpaceXAI，AI与航天进一步整合（均为未上市公司，无可交易代码）。"
-    },
-    {
-      "author": "Trump",
-      "text": "One of the biggest Driving Forces in the Future for Jobs, are Data Centers. They are big, strong, bold, and Money Machines for the State in which they are built. Governor Kathy Hochul, for political reasons, has terminated all Data Centers being built, or to be built, in New York State. These Companies are now being sought in Alabama, Florida, Texas, Arizona, and many other States. Both the Taxes and the Jobs amount to LIQUID GOLD! New York State has made a terrible decision. All of this Income, and other Benefits, will be going to Red States, and some Blue, where Data Centers are sought as Ca",
-      "url": "https://trumpstruth.org/statuses/40064",
-      "published": "2026-07-15T16:39:53+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "数据中心",
-        "AI",
-        "基础设施"
-      ],
-      "sector_holdings": [
-        "MSFU"
-      ],
-      "stance": "neutral",
-      "relevance": 62,
-      "summary_cn": "Trump抨击纽约州长Hochul终止数据中心建设，称公司将流向德州/佛州等红州，涉及AI基础设施主题。"
-    },
-    {
-      "author": "Trump",
-      "text": "Labor Department reports annual inflation in June was 3.5%, biggest monthly drop in over six years: https://justthenews.com/nation/economy/labor-department-reports-annual-inflation-june-was-35-biggest-monthly-drop-over-six",
-      "url": "https://trumpstruth.org/statuses/40021",
-      "published": "2026-07-14T13:24:56+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "宏观经济",
-        "通胀",
-        "利率"
-      ],
-      "sector_holdings": [
-        "03032",
-        "03033",
-        "07226"
-      ],
-      "stance": "endorse",
-      "relevance": 60,
-      "summary_cn": "6月美国年化通胀3.5%，月度降幅创六年新高，宏观通胀/利率利好信号。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk and Sam Altman accuse each other of scamming investors as each pitches their AI vision",
-      "url": "",
-      "published": "Mon, 13 Jul 2026 19:42:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Fortune",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "AI"
-      ],
-      "sector_holdings": [
-        "MSFU"
-      ],
-      "stance": "neutral",
-      "relevance": 58,
-      "summary_cn": "Musk与Sam Altman互指对方欺骗投资者，AI行业领军人物口水战，关注AI板块情绪。"
-    },
-    {
-      "author": "Musk",
-      "text": "Pollution from Musk’s unpermitted xAI power project hits hardest in Black communities",
-      "url": "",
-      "published": "Tue, 14 Jul 2026 10:16:06 GMT",
-      "origin": "gnews-rss",
-      "source": "Reuters",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "AI",
-        "能源"
-      ],
-      "sector_holdings": [
-        "MSFU"
-      ],
-      "stance": "attack",
-      "relevance": 52,
-      "summary_cn": "Musk旗下未获许可的xAI发电项目污染问题，对黑人社区影响最大，涉及AI数据中心能源争议。"
-    }
-  ]
+  "new_ideas": [],
+  "sector_hits": []
 }
