@@ -246,6 +246,35 @@ class DecisionV2Test(unittest.TestCase):
         self.assertEqual(len(reps), 1)
         self.assertEqual(reps[0]["plan_date"], "2026-07-01")
 
+    def test_zero_mean_episode_is_flat_not_loss(self):
+        # An episode whose settled calls average to exactly zero is a wash, not a
+        # loss — the per-decision contract (_outcome) already draws that line and the
+        # episode representative must reuse it, not reintroduce the old fall-through.
+        rows = [decision("2026-07-01", benefit=1), decision("2026-07-02", benefit=-1)]
+        dv2.assign_episode_ids(rows)
+        reps = dv2.episode_representatives(rows)
+        self.assertEqual(len(reps), 1)
+        self.assertEqual(reps[0]["evaluation"]["benefit_t1_pct"], 0.0)
+        self.assertEqual(reps[0]["evaluation"]["outcome"], "flat")
+
+    def test_active_passive_split_is_single_sourced_with_broadcaster(self):
+        # The Nostr broadcast and the dashboard must classify active vs passive the
+        # same way, or they publish two different "active win rate"s. `watch` is a
+        # standing stance and settles passively, so it must not count as active.
+        import rick_broadcast
+        self.assertIs(rick_broadcast.ACTIVE, dv2.ACTIVE_ACTIONS)
+        self.assertIs(rick_broadcast.PASSIVE, dv2.PASSIVE_ACTIONS)
+        self.assertNotIn("watch", dv2.ACTIVE_ACTIONS)
+        self.assertIn("watch", dv2.PASSIVE_ACTIONS)
+
+    def test_backtest_method_matches_the_real_episode_rule(self):
+        # The published method string must describe how episodes are actually formed;
+        # it used to claim a moved trigger starts a new one, which is the rejected
+        # design that fabricated independent wins.
+        method = dv2.compute_backtest([decision("2026-07-01", action="cut", benefit=1)])["method"]
+        self.assertNotIn("a moved trigger starts a new episode", method)
+        self.assertIn("ticker, strategy, action", method)
+
     def test_untriggered_and_manual_are_not_scored(self):
         row = decision("2026-07-01", triggered=False)
         dv2.assign_episode_ids([row])

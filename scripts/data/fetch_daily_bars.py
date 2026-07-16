@@ -86,19 +86,14 @@ MANIFEST: dict[str, dict] = {
     "RKLX":  {"leg": "US", "tencent": "usRKLX.OQ",  "em": "107.RKLX",  "name": "RKLB 2x"},
     "ROBN":  {"leg": "US", "tencent": "usROBN.AM",  "em": "107.ROBN",  "name": "HOOD 2x"},
     "SKHY":  {"leg": "US", "tencent": "usSKHY.OQ",  "em": "105.SKHY",  "name": "SK海力士 (listed 07-10)"},
-    # "SK海力士-WI" — a when-issued line that stopped trading once SKHY listed. Its only
-    # bar is 2026-07-10; a 07-13 decision on it has no session to grade against, and that
-    # is a real fact about the instrument, not a data gap to paper over.
-    # `retired` is declared here and nowhere else. It is the one fact that lets the
-    # ledger say "this instrument has no session to grade" instead of "we are missing
-    # data", and the two must never be inferred from each other: settling used to
-    # decide it by asking whether the requested session was past the ticker's newest
-    # bar, which is also exactly what a broken writer looks like. A frozen *active*
-    # ticker would then have had its decisions filed as instrument_inactive and drop
-    # out of the denominator silently — the same quiet-shrinkage bug the store exists
-    # to prevent. Pinned, never guessed, like the suffixes above.
-    "SKHYV": {"leg": "US", "tencent": "usSKHYV.OQ", "em": "105.SKHYV",
-              "name": "SK海力士-WI (when-issued, retired)", "retired": True},
+    # A retired/delisted line is declared with `"retired": True` here and nowhere
+    # else — the one fact that lets settlement say "this instrument has no session to
+    # grade" (instrument_inactive) instead of "we are missing data" (bar_missing). The
+    # two must never be inferred from each other: deciding it by "the requested session
+    # is past the ticker's newest bar" is also exactly what a broken writer looks like,
+    # so a frozen *active* ticker would silently drop out of the denominator. Pinned,
+    # never guessed, like the suffixes above. (No instrument currently carries it: the
+    # SKHYV when-issued line was folded into its common SKHY once that listed.)
     "SOXL":  {"leg": "US", "tencent": "usSOXL.AM",  "em": "107.SOXL",  "name": "SOXL 3x"},
     "SPCH":  {"leg": "US", "tencent": "usSPCH.AM",  "em": "107.SPCH",  "name": "SpaceX hold (listed 06-15)"},
     "SPCX":  {"leg": "US", "tencent": "usSPCX.OQ",  "em": "107.SPCX",  "name": "SpaceX 2x (listed 06-12)"},
@@ -124,6 +119,19 @@ def write_bars(ticker: str, doc: dict) -> None:
     BARS_DIR.mkdir(parents=True, exist_ok=True)
     doc["bars"] = dict(sorted(doc["bars"].items()))
     bars_path(ticker).write_text(json.dumps(doc, indent=1, ensure_ascii=False) + "\n")
+
+
+def _sync_manifest_flags(ticker: str) -> None:
+    """Persist manifest-declared flags (currently `retired`) into an existing bar JSON
+    without needing a successful fetch. merge() already does this on a non-empty fetch;
+    this covers the empty-fetch path so a newly declared retirement is not lost."""
+    if not bars_path(ticker).exists():
+        return
+    doc = load_bars(ticker)
+    want = bool(MANIFEST[ticker].get("retired", False))
+    if bool(doc.get("retired", False)) != want:
+        doc["retired"] = want
+        write_bars(ticker, doc)
 
 
 def _last_closed_session(leg: str) -> str:
@@ -297,6 +305,10 @@ def main() -> int:
         fresh = fetch_tencent(m["tencent"], beg, end)
         if not fresh:
             print(f"  {t:6} ✗ tencent returned nothing ({m['tencent']})")
+            # A retirement declaration must still land: a retired line usually returns
+            # an empty fetch — the very case `retired` exists for — and settlement reads
+            # it only from the bar JSON, which merge() (skipped here) is what writes.
+            _sync_manifest_flags(t)
             continue
         added, revised, conflicts = merge(t, fresh, args.repair)
         total_add += added

@@ -142,13 +142,29 @@ def test_retirement_is_declared_never_inferred(tmp_path, monkeypatch):
     assert decision_v2.ticker_retired('NEVER_HEARD_OF') is False
 
 
-def test_manifest_declares_retirement_for_the_known_retired_line(tmp_path):
-    """SKHYV is the one instrument that legitimately has no session to grade; if the
-    declaration is dropped its decisions silently become `bar_missing` instead."""
+def test_no_active_instrument_is_declared_retired():
+    """`retired` is a hand-pinned fact, never inferred; no live line may carry it."""
     import fetch_daily_bars
-    assert fetch_daily_bars.MANIFEST['SKHYV'].get('retired') is True
-    assert not any(m.get('retired') for t, m in fetch_daily_bars.MANIFEST.items()
-                   if t != 'SKHYV'), 'an active instrument is declared retired'
+    assert not any(m.get('retired') for m in fetch_daily_bars.MANIFEST.values()), \
+        'an active instrument is declared retired'
+
+
+def test_retirement_declaration_survives_an_empty_fetch(tmp_path, monkeypatch):
+    """The one case `retired` exists for — a delisted line the provider no longer
+    returns — must still reach the bar JSON, which settlement reads. merge() writes it
+    on a non-empty fetch; the empty-fetch path must sync it too, or a newly declared
+    retirement is silently lost and the decision settles as bar_missing forever."""
+    import fetch_daily_bars as fdb
+    # main() must actually invoke the sync on the empty branch, not merely define it.
+    assert '_sync_manifest_flags(' in inspect.getsource(fdb.main), \
+        'the empty-fetch path no longer persists a retirement declaration'
+    # and the helper must flip an existing store's flag to match the manifest.
+    monkeypatch.setattr(fdb, 'BARS_DIR', tmp_path)
+    (tmp_path / 'FOO.json').write_text(json.dumps({'ticker': 'FOO', 'retired': False, 'bars': {}}))
+    monkeypatch.setitem(fdb.MANIFEST, 'FOO',
+                        {'leg': 'US', 'tencent': 'usFOO', 'em': '105.FOO', 'retired': True})
+    fdb._sync_manifest_flags('FOO')
+    assert json.loads((tmp_path / 'FOO.json').read_text())['retired'] is True
 
 
 def test_incremental_fetch_anchors_to_each_tickers_own_newest_bar():

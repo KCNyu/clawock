@@ -811,8 +811,8 @@ def bars_staleness():
     * leg — the leg's newest bar vs its calendar. The whole leg falling behind means
       the writer is dead or the provider is blocked. That is the regression guard.
     * `laggards` — tickers behind their own leg, reported but never raised. A thin
-      name legitimately prints no bar on a day it never traded (SKHYV has one bar in
-      the store), so flagging those would cry wolf every morning until nobody reads
+      name legitimately prints no bar on a day it never traded (a freshly listed line
+      may have only one bar), so flagging those would cry wolf every morning until nobody reads
       the warnings. A real per-ticker outage shows up as a laggard that keeps
       growing, which is a question for a human, not an exit code.
     """

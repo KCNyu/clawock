@@ -58,6 +58,11 @@ STRATEGIES = {
 }
 ACTIVE_ACTIONS = {"cut", "trim_on_rebound", "t_only", "add_only_on_trigger", "add_on_breakout"}
 SELL_ACTIONS = {"cut", "trim_on_rebound", "t_only"}
+# `watch` is a standing stance, not a directional call — it is graded passively
+# (stance_at_open) exactly like hold_and_watch. This is the one place the active/
+# passive split is defined; every surface (dashboard, rick_broadcast) must read it
+# from here so the two can never disagree on what "active" means.
+PASSIVE_ACTIONS = {"hold_and_watch", "watch"}
 
 
 def _slug(value: object, fallback: str = "unknown") -> str:
@@ -560,7 +565,7 @@ def condition_execution(decision: dict, day_bar: dict | None) -> tuple[bool | No
     # normally an exit/invalidation level rather than an entry trigger, and it is
     # deliberately NOT evaluated here — grading a stop as if it were an entry is
     # what let `by_condition` mix two opposite meanings.
-    if action in ("hold_and_watch", "watch"):
+    if action in PASSIVE_ACTIONS:
         return True, o, "stance_at_open"
     if ctype in ("always", "open"):
         return True, o, "session_open"
@@ -649,7 +654,7 @@ def settle_decisions(decisions: list[dict], now_date: str | None = None) -> int:
             # The market WAS open (the calendar said so) but we have no bar. Either
             # the session has not closed yet — which is pending, not unevaluable —
             # or this instrument genuinely did not trade (not yet listed, halted, or
-            # retired, like the SKHYV when-issued line that stopped once SKHY listed).
+            # retired — an instrument declared `retired` in fetch_daily_bars' MANIFEST).
             last = last_closed_session(leg) or ""
             if sess > last:
                 ev.update({"triggered": None, "status": "pending", "outcome": "pending",
@@ -665,7 +670,7 @@ def settle_decisions(decisions: list[dict], now_date: str | None = None) -> int:
 
         fired, fill, fill_reason = condition_execution(d, day_bar)
         shares = _int((d.get("size") or {}).get("shares"))
-        passive = d.get("action") in ("hold_and_watch", "watch")
+        passive = d.get("action") in PASSIVE_ACTIONS
         ev["evaluation_schema_version"] = EVAL_SCHEMA_VERSION
         if passive:
             # No trade happened, so nothing may look like one. `reference_price` is
@@ -791,7 +796,10 @@ def episode_representatives(decisions: list[dict], horizon: str = "t1") -> list[
         ev["episode_mean_money"] = (round(sum(c * b / 100 for c, b in priced) / len(priced), 4)
                                     if priced else None)
         # rick_broadcast reads outcome, not the number — keep them the same fact.
-        ev["outcome"] = "win" if mean_benefit > 0 else "loss"
+        # Reuse the per-decision contract so an exact-zero episode is `flat`, not a
+        # loss: _outcome already fixed that fall-through once; the episode layer must
+        # not quietly reintroduce it.
+        ev["outcome"] = _outcome(mean_benefit)
         ev["episode_n_settled"] = len(settled)
         reps.append(rep)
     reps.sort(key=lambda x: (x.get("plan_date", ""), x.get("decision_id", "")))
@@ -962,7 +970,7 @@ def compute_metrics(decisions: list[dict], window_days: int = 30) -> dict:
         }
 
     active_reps = [r for r in reps if r.get("action") in ACTIVE_ACTIONS]
-    passive_reps = [r for r in reps if r.get("action") in ("hold_and_watch", "watch")]
+    passive_reps = [r for r in reps if r.get("action") in PASSIVE_ACTIONS]
     cal_active = _calib(active_reps)
     cal_passive = _calib(passive_reps)
     cal_all = _calib(reps)
@@ -1028,7 +1036,7 @@ def compute_metrics(decisions: list[dict], window_days: int = 30) -> dict:
         # to act) can be shown on its own.
         "execution_by_kind": {
             "active": _exec_rate([d for d in in_window if d.get("action") in ACTIVE_ACTIONS]),
-            "passive": _exec_rate([d for d in in_window if d.get("action") in ("hold_and_watch", "watch")]),
+            "passive": _exec_rate([d for d in in_window if d.get("action") in PASSIVE_ACTIONS]),
         },
         "active": _aggregate(active, "benefit_t1_pct"),
         "passive": _aggregate(passive, "benefit_t1_pct"),
@@ -1158,7 +1166,8 @@ def compute_backtest(decisions: list[dict]) -> dict:
     return {
         "schema_version": SCHEMA_VERSION,
         "method": ("one synthetic representative per strategy episode carrying that episode's mean benefit; "
-                   "a moved trigger starts a new episode; same-day decisions cluster together; "
+                   "an episode is consecutive reaffirmations of the same (ticker, strategy, action) within a "
+                   "4-calendar-day gap — a moved trigger or changed condition does NOT start a new episode; "
                    "daily capital-weighted benefit is compounded, never arithmetically summed across calls"),
         "horizons": horizons,
     }

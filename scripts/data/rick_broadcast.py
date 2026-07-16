@@ -25,9 +25,11 @@ T0 = os.path.join(ROOT, "assets", "data", "t0_setup_review.json")
 REPO = "github.com/KCNyu/clawock"
 DASH = "kcnyu.github.io/clawock"   # live dashboard — the clickable landing (has the card + links back to the repo)
 
-# The model's *active* directional calls vs. just sitting on a position.
-ACTIVE = {"cut", "trim_on_rebound", "add_only_on_trigger", "add_on_breakout", "t_only", "watch"}
-PASSIVE = {"hold_and_watch"}
+# The model's *active* directional calls vs. just sitting on a position. Read the
+# split from decision_v2 so the broadcast and the dashboard can never disagree on
+# what "active" means — `watch` is a standing stance and belongs with the passives.
+ACTIVE = decision_v2.ACTIVE_ACTIONS
+PASSIVE = decision_v2.PASSIVE_ACTIONS
 
 
 def _rate(rows):
