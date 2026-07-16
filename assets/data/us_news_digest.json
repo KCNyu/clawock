@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-15T14:41:53.991581",
+  "generated_at": "2026-07-16T14:52:44.541450",
   "lookback_hours": 48,
   "tickers": [
     "CRCL",
@@ -10,13 +10,13 @@
     "MSFU",
     "SKHY"
   ],
-  "digest_markdown": "## Top 移动信号\n\n- **CRCL**: Mizuho 下调至 Underperform, PT $85→$50; JPM 同步砍盈利预期, 称 Circle-Coinbase 因 Hyperliquid 合作陷入\"囚徒困境\", USDC 收入被侵蚀. → CRCL 仓位承压, 短期下行风险高\n- **SKHY**: 多空撕裂. Seeking Alpha 看多 HBM 短缺 + $26.5B Nasdaq 募资; 另一篇 SA 给 Sell, 称 Q2 财报前\"profit-taking\"风险. 2x 杠杆 ETF HYNX 新上市放大波动. → 财报前减仓或对冲更稳\n- **SPCX**: 估值撕裂 — Raymond James 给 SpaceX $800 PT 隐含 $10T+ 估值, 但股价接近历史低点, 技术形态看 $158 反弹. → 双向波动, 控仓位\n- **CRCL (offset)**: Circle 获批联邦信托银行, 成首家直接管理稳定币储备的美国数字资产公司; Trump 推 CLARITY Act. → 长期利好但被分析师下调掩盖\n- **PLTU**: Palantir Q4 beat + 杠杆 ETF 资金面博弈, 财报预期高. → 警惕预期透支\n\n## Per-ticker\n- **CRCL**: Mizuho/JPM 双下调 - 偏空\n- **SKHY**: HBM 叙事 vs Q2 回吐 - 财报前震荡\n- **SPCX**: $10T 估值争议 vs 极低股价 - 高波动\n- **PLTU**: 财报后动能延续但杠杆 ETF 拥挤 - 谨慎追高\n- **MSFU / RKLX / SPCH**: 无有效 catalyst, 忽略\n\n## Risk Watch\n- **CRCL**: Hyperliquid 收入结构性侵蚀 + 连环降级, PT $50\n- **SKHY**: Q2 财报\"profit-taking\"风险 (SA Sell 论)\n- **SPCX**: $10T 估值泡沫质疑 vs 近 ATL 价格, 双向敞口",
+  "digest_markdown": "### 移动信号 (跨 ticker 排序)\n- **SPCX**: 回吐所有 post-IPO 涨幅跌至 $135 offer 价; 周四第 13 次 Starship 试飞 (含 Starlink 首批 + SDA 卫星) 成双向催化剂 — 失败则 IPO 后二次破发, 成功即反弹抓手\n- **SKHY**: ASML Q2 超预期 + 上调 2026 指引验证 HBM/AI capex 链条; 但 lockup 解禁与 DRAM/HBM 供给过剩风险并存 — 持有逻辑完整, 关注解禁日历做减仓择时\n- **CRCL**: Mizuho 降级 + JPMorgan 指 Hyperliquid 近端冲击 USDC, 短线承压 — 但 ARK 逆势加仓 + Trump 加密议程是中期反向因子, 政策落地前易跌难涨\n- **SPCH**: 上市首日 $500M+ 交易量, 散户杠杆资金对 SpaceX 主题高度饥渴 — 与 SPCX 同向放大波动, 但拥挤度高\n- **PLTU**: PLTR Q4 财报在即, 杠杆 ETF 沦为情绪放大器 — 财报 beat/miss 直接 ×2 反映\n\n### Per-ticker 简报\n- **CRCL**: 降级 vs 抄底资金分歧拉大 — 短线承压, 中期看政策节奏\n- **SPCX**: 跌破 offer + 试飞临近 — 高赔率双向事件, 期权 IV 显然偏高\n- **SPCH**: 首日巨量但产品透明度低 — 杠杆工具属性重, 持仓而非持有\n- **SKHY**: 估值修复 + 解禁压力对峙 — 基本面派耐心要够\n- **PLTU**: 财报前最后情绪博弈 — 催化点 100% 取决于 PLTR\n\n### 风险 watch\n- **CRCL**: 稳定币竞争 (Hyperliquid/Open USD) + Mizuho 降级 + 政策推进节奏不达预期\n- **SPCX**: Starship 13 号试飞失败 = 二次抛压; 试飞前已隐含在 $135 价位\n- **SKHY**: Lockup unlock + HBM/DRAM 供给侧反转 — 估值便宜不等于立刻涨\n- **SPCH / PLTU**: 杠杆产品拥挤 + 标的波动放大 = 减仓时的滑点与盯市风险",
   "raw_news_counts": {
     "CRCL": 5,
     "PLTU": 5,
     "RKLX": 5,
     "SPCX": 5,
-    "SPCH": 1,
+    "SPCH": 5,
     "MSFU": 1,
     "SKHY": 5
   },
@@ -25,7 +25,7 @@
     "PLTU": "gnews-rss",
     "RKLX": "gnews-rss",
     "SPCX": "finnhub",
-    "SPCH": "finnhub",
+    "SPCH": "gnews-rss",
     "MSFU": "finnhub",
     "SKHY": "finnhub"
   }
