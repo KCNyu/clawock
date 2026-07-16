@@ -9,12 +9,34 @@ publish gate the workflow consults; these tests pin both halves.
 Run: python3 -m pytest tests/test_brief_fallback_gate.py -q
 """
 import json
+import re
 import sys
+import textwrap
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'scripts' / 'harness'))
 import brief_postflight
+
+
+WORKFLOW = ROOT / '.github' / 'workflows' / 'brief-fallback.yml'
+
+
+def _workflow_step_run(name):
+    """Return the actual `run: |` shell body for a named workflow step."""
+    lines = WORKFLOW.read_text().splitlines()
+    step_start = next(i for i, line in enumerate(lines)
+                      if line.lstrip() == f'- name: {name}')
+    step_indent = len(lines[step_start]) - len(lines[step_start].lstrip())
+    step_end = next((i for i in range(step_start + 1, len(lines))
+                     if lines[i].startswith(' ' * step_indent + '- ')), len(lines))
+    run_start = next(i for i in range(step_start + 1, step_end)
+                     if lines[i].strip() == 'run: |')
+    run_indent = len(lines[run_start]) - len(lines[run_start].lstrip())
+    body = '\n'.join(lines[run_start + 1:step_end])
+    assert all(not line.strip() or len(line) - len(line.lstrip()) > run_indent
+               for line in lines[run_start + 1:step_end]), f'{name} run block ended unexpectedly'
+    return textwrap.dedent(body)
 
 
 def test_publish_gate_releases_only_a_non_failing_brief(tmp_path, monkeypatch):
@@ -39,14 +61,23 @@ def test_postflight_writes_the_gate_before_it_can_raise():
 
 
 def test_fallback_workflow_consults_the_gate_and_does_not_swallow_failure():
-    yml = (ROOT / '.github' / 'workflows' / 'brief-fallback.yml').read_text()
+    commit_run = _workflow_step_run('Commit + push')
     # The committer must gate on the publish decision, fail-closed.
-    assert 'brief_postflight_status.json' in yml, 'commit step no longer reads the publish gate'
-    assert 'publish_ok' in yml, 'commit step no longer checks publish_ok'
+    assert 'brief_postflight_status.json' in commit_run, 'commit step no longer reads the publish gate'
+    assert 'publish_ok' in commit_run, 'commit step no longer checks publish_ok'
+    # Exit 1 is deliberate: exit 0 would publish nothing but leave a crash-before-gate
+    # indistinguishable from a legitimate warning in the Actions result.
+    missing_gate_guard = re.search(
+        r'if\s+\[\s*!\s+-f\s+["\']?logs/brief_postflight_status\.json["\']?\s*\]\s*;\s*then'
+        r'(?P<body>.*?)\bfi\b', commit_run, re.DOTALL)
+    assert missing_gate_guard, 'commit step does not guard a missing postflight gate file'
+    assert re.search(r'\bexit\s+1\b', missing_gate_guard.group('body')), (
+        'missing postflight gate file does not fail the job')
     # The postflight step must not swallow its own failure into a silent publish...
-    invocations = [l for l in yml.splitlines()
+    postflight_run = _workflow_step_run('Postflight validation')
+    invocations = [l for l in postflight_run.splitlines()
                    if 'brief_postflight.py' in l and not l.strip().startswith('#')]
     assert invocations, 'postflight invocation not found'
     assert all('|| true' not in l for l in invocations), 'postflight failure is being swallowed again'
     # ...but a publishable warn (exit 1) must NOT fail the job; only fail (>=2)/crash does.
-    assert '-lt 2' in yml, 'postflight step no longer tolerates a publishable warn (exit 1)'
+    assert '-lt 2' in postflight_run, 'postflight step no longer tolerates a publishable warn (exit 1)'

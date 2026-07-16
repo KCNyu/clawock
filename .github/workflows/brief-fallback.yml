@@ -80,10 +80,10 @@ jobs:
       - name: Postflight validation
         if: steps.check.outputs.skip != 'true'
         # postflight exits 0=pass, 1=warn (both publishable), 2=fail. pass/warn keep the
-        # job green; a real fail (2) or a crash fails it so the problem is visible — and,
-        # via GH-Action's implicit success() on the next step, blocks the commit. NOT
-        # `|| true`, which swallowed every failure into a silent publish, and NOT a bare
-        # pipe either, which would (with default pipefail) turn a publishable warn red.
+        # job green; a real fail (2) blocks the commit. Exit 1 can also mean an uncaught
+        # Python exception, so the next step requires the gate file that a legitimate
+        # warn wrote. NOT `|| true`, which swallowed every failure into a silent publish,
+        # and NOT a bare pipe, which would turn a publishable warn red under pipefail.
         run: |
           set +e
           python3 scripts/harness/brief_postflight.py > "${RUNNER_TEMP:-/tmp}/postflight.log" 2>&1
@@ -92,13 +92,15 @@ jobs:
           [ "$code" -lt 2 ] || exit "$code"
 
       - name: Commit + push
-        # Reached only when postflight was pass/warn — a fail/crash fails the previous
-        # step and GH-Action's implicit success() skips this one. Still consults the
-        # publish gate as the single source of truth, fail-closed on a missing file, so
-        # an unvalidated brief is never committed even though this step is its own
-        # committer on the fresh checkout.
+        # Reached when postflight exits <2: pass/warn, or an uncaught exception (exit 1).
+        # The publish gate distinguishes a legitimate warn from a crash-before-gate;
+        # missing gate fails the job, while explicit publish_ok=false publishes nothing.
         if: steps.check.outputs.skip != 'true'
         run: |
+          if [ ! -f "logs/brief_postflight_status.json" ]; then
+            echo "postflight crashed before writing the publish gate (logs/brief_postflight_status.json) — refusing to publish"
+            exit 1
+          fi
           ok=$(python3 -c "import json;print(json.load(open('logs/brief_postflight_status.json'))['publish_ok'])" 2>/dev/null || echo "None")
           if [ "$ok" != "True" ]; then
             echo "publish gate: publish_ok=$ok — refusing to commit a non-passing (or crashed) brief"
