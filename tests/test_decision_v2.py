@@ -332,6 +332,27 @@ class DecisionV2Test(unittest.TestCase):
         self.assertEqual(leg["coverage_pct"], 50.0)
         self.assertAlmostEqual(leg["all_active"]["money"], 100.0)
 
+    def test_unresolved_reason_counts_distinct_episodes_not_reaffirmation_rows(self):
+        reaffirmations = [decision(f"2026-07-0{day}", action="cut") for day in (1, 2, 3)]
+        for row in reaffirmations:
+            row["evaluation"] = {
+                "status": "not_evaluable",
+                "not_evaluable_reason": "needs_human_evidence",
+                "triggered": False,
+                "benefit_t1_pct": None,
+                "benefit_t5_pct": None,
+                "outcome": "pending",
+            }
+        # A settled control keeps compute_metrics' unrelated calibration fields
+        # populated while coverage exercises the three-row unresolved episode.
+        rows = reaffirmations + [decision("2026-07-01", ticker="BBB", action="cut")]
+        dv2.assign_episode_ids(rows)
+        self.assertEqual(len({row["episode_id"] for row in reaffirmations}), 1)
+
+        coverage = dv2.compute_metrics(rows, window_days=365)["coverage_active"]
+        self.assertEqual(coverage["episodes_unresolved"], 1)
+        self.assertEqual(coverage["unresolved_reasons"]["needs_human_evidence"], 1)
+
     def test_money_impact_never_sums_across_currencies(self):
         us = decision("2026-07-01", action="cut", benefit=10, capital=1000)
         us["leg"] = "US"

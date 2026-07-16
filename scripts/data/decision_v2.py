@@ -1005,8 +1005,13 @@ def compute_metrics(decisions: list[dict], window_days: int = 30) -> dict:
                 "episodes_partial": partial, "episodes_unresolved": unresolved,
                 "graded_pct": round(100 * (graded + partial) / total, 1) if total else None,
                 "unresolved_reasons": dict(Counter(
-                    (d.get("evaluation") or {}).get("not_evaluable_reason")
-                    for d in rows if (d.get("evaluation") or {}).get("status") == "not_evaluable"))}
+                    reason
+                    for members in by_ep.values()
+                    for reason in {
+                        (d.get("evaluation") or {}).get("not_evaluable_reason")
+                        for d in members
+                        if (d.get("evaluation") or {}).get("status") == "not_evaluable"
+                    }))}
 
     coverage_active = _coverage([d for d in in_window if d.get("action") in ACTIVE_ACTIONS])
     return {
