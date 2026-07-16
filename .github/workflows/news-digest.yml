@@ -34,6 +34,30 @@ jobs:
           MINIMAX_API_KEY: ${{ secrets.MINIMAX_API_KEY }}
         run: python3 scripts/data/gh_action_news_digest.py
 
+      - name: Validate generated digest
+        run: |
+          python3 << 'PY'
+          import json
+          from datetime import datetime
+
+          path = 'assets/data/us_news_digest.json'
+          with open(path, encoding='utf-8') as f:
+              data = json.load(f)
+
+          generated_at = data.get('generated_at')
+          assert isinstance(generated_at, str), 'generated_at missing'
+          datetime.fromisoformat(generated_at.replace('Z', '+00:00'))
+
+          tickers = data.get('tickers')
+          counts = data.get('raw_news_counts')
+          digest = data.get('digest_markdown')
+          assert isinstance(tickers, list) and tickers, 'tickers missing or empty'
+          assert isinstance(counts, dict) and sum(counts.values()) > 0, 'no source news in generated digest'
+          assert isinstance(digest, str) and len(digest.strip()) >= 100, 'LLM digest empty or implausibly short'
+          assert '### ' in digest, 'LLM digest is not the requested markdown structure'
+          print(f'digest validation OK: {len(digest)} chars, {sum(counts.values())} source items')
+          PY
+
       - name: Commit + push
         run: |
           git config user.name "github-actions[bot]"
