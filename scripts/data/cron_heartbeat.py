@@ -50,15 +50,21 @@ def _empty(at: datetime | None = None) -> dict:
     }
 
 
-def load_ledger() -> dict:
+def _load() -> tuple[dict, bool]:
+    """Return (ledger, from_disk). from_disk is False only when no valid ledger
+    file exists yet and a blank one was synthesised."""
     for path in (LOCAL_PATH, PUBLIC_PATH):
         try:
             data = json.loads(path.read_text())
             if data.get("schema_version") == SCHEMA_VERSION:
-                return data
+                return data, True
         except (FileNotFoundError, json.JSONDecodeError, OSError):
             continue
-    return _empty()
+    return _empty(), False
+
+
+def load_ledger() -> dict:
+    return _load()[0]
 
 
 def _atomic_write(path: Path, data: dict) -> None:
@@ -74,7 +80,14 @@ def record(market: str, state: str, *, at: datetime | None = None,
     derived_name, derived_slot = slot_for(market, now)
     job_name = job_name or derived_name
     slot = slot or derived_slot
-    ledger = load_ledger()
+    ledger, from_disk = _load()
+    # A brand-new ledger gets stamped with real wall-clock now inside _empty();
+    # anchor monitoring_started_at to this first record's slot boundary instead,
+    # otherwise the current slot (crons fire a few minutes past the boundary)
+    # is judged as "before monitoring began" and silently dropped from coverage.
+    # Only re-anchor when no ledger existed on disk — a valid ledger that merely
+    # has no live events keeps its real monitoring epoch (don't erase earlier gaps).
+    was_fresh = not from_disk
     cutoff = now - timedelta(hours=KEEP_HOURS)
     events = []
     current = None
@@ -99,6 +112,8 @@ def record(market: str, state: str, *, at: datetime | None = None,
     events.append(current)
     events.sort(key=lambda e: (e.get("slot", ""), e.get("job", "")))
     ledger["schema_version"] = SCHEMA_VERSION
+    if was_fresh:
+        ledger["monitoring_started_at"] = slot
     ledger.setdefault("monitoring_started_at", now.isoformat())
     ledger["updated_at"] = now.isoformat()
     ledger["events"] = events

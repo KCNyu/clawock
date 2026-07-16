@@ -186,6 +186,27 @@ def test_intraday_heartbeat_is_slot_keyed_published_and_health_checked(tmp_path,
     assert cron_heartbeat.publish() is False
 
 
+def test_record_keeps_existing_monitoring_epoch_for_valid_empty_ledger(tmp_path, monkeypatch):
+    # A ledger that exists on disk with a real (earlier) monitoring epoch but no
+    # live events must NOT be re-anchored to the first later slot — doing so would
+    # erase evidence that the earlier slots were missed.
+    local = tmp_path / 'local.json'
+    public = tmp_path / 'public.json'
+    local.write_text(json.dumps({
+        'schema_version': cron_heartbeat.SCHEMA_VERSION,
+        'monitoring_started_at': '2026-07-16T09:00:00+08:00',
+        'updated_at': '2026-07-16T09:00:00+08:00',
+        'events': [],
+    }))
+    monkeypatch.setattr(cron_heartbeat, 'LOCAL_PATH', local)
+    monkeypatch.setattr(cron_heartbeat, 'PUBLIC_PATH', public)
+    hkt = ZoneInfo('Asia/Hong_Kong')
+    at = datetime(2026, 7, 16, 10, 4, tzinfo=hkt)
+    cron_heartbeat.record('hk', 'started', at=at)
+    ledger = json.loads(local.read_text())
+    assert ledger['monitoring_started_at'] == '2026-07-16T09:00:00+08:00'
+
+
 def test_heartbeat_health_distinguishes_missing_and_failed_slots():
     hkt = ZoneInfo('Asia/Hong_Kong')
     now = datetime(2026, 7, 16, 12, 0, tzinfo=hkt)
