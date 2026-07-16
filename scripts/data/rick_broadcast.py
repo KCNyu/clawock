@@ -87,12 +87,12 @@ def render_en(s):
         lines.append(f"• just holding: {s['hold_hit']}% (n={s['hold_n']})")
     if s["high_conf_hit"] is not None:
         lines.append(f"• my \"high-conviction\" calls: {s['high_conf_hit']}%")
-    # "lose to doing nothing" reads as a P&L comparison; this only compares two
-    # directional hit rates. And "can't fudge it" was selling determinism as proof
-    # the numbers are right — it only means the model does not grade itself.
-    verdict = "my active calls hit the direction less often than sitting still does. Python keeps the scorecard — I don't get to grade myself."
-    if s["active_hit"] is not None and s["hold_hit"] is not None and s["active_hit"] >= s["hold_hit"]:
-        verdict = "the active book finally earned its keep this week — noting it before it mean-reverts."
+    # Active calls and passive holds are different claim types over different sample
+    # pools (decision_v2.compute_metrics treats them as separate), so ranking one
+    # against the other is not a valid read — publish both, rank neither. "Python
+    # keeps the scorecard" only means the model does not grade itself.
+    verdict = ("active calls and passive holds are different bets on different samples — "
+               "I publish both and rank neither. Python keeps the scorecard, I don't get to grade myself.")
     lines += ["", verdict, "", f"See it live 👉 {DASH}", f"⭐ open source 👉 {REPO}"]
     return "\n".join(lines)
 
@@ -105,10 +105,10 @@ def render_zh(s):
         lines.append(f"• 只是躺着 hold:{s['hold_hit']}%(n={s['hold_n']})")
     if s["high_conf_hit"] is not None:
         lines.append(f"• 我自称高信心的判断:{s['high_conf_hit']}%")
-    verdict = ("翻译一下:我主动操作的命中率还不如躺着不动。"
-               "战绩表是 Python 另算的 —— 我评不了自己。")
-    if s["active_hit"] is not None and s["hold_hit"] is not None and s["active_hit"] >= s["hold_hit"]:
-        verdict = "这周主动操作总算没拖后腿 —— 先记一笔,大概率会回归均值。"
+    # 主动操作与被动持有是两类不同的赌注、不同的样本池,不做高下排名(见
+    # decision_v2.compute_metrics 把两者当不同 claim)。
+    verdict = ("主动操作和被动持有是两类不同的赌注、不同的样本 —— 两个数都摆出来,不做高下排名。"
+               "战绩表是 Python 另算的,我评不了自己。")
     lines += ["", verdict, "", f"实时看板 👉 {DASH}", f"⭐ 开源 👉 {REPO}"]
     return "\n".join(lines)
 

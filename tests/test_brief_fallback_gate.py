@@ -43,7 +43,10 @@ def test_fallback_workflow_consults_the_gate_and_does_not_swallow_failure():
     # The committer must gate on the publish decision, fail-closed.
     assert 'brief_postflight_status.json' in yml, 'commit step no longer reads the publish gate'
     assert 'publish_ok' in yml, 'commit step no longer checks publish_ok'
-    # The postflight step must not swallow its own failure into a silent publish.
-    post_line = next(l for l in yml.splitlines()
-                     if 'brief_postflight.py' in l and 'run:' in l)
-    assert '|| true' not in post_line, 'postflight failure is being swallowed again'
+    # The postflight step must not swallow its own failure into a silent publish...
+    invocations = [l for l in yml.splitlines()
+                   if 'brief_postflight.py' in l and not l.strip().startswith('#')]
+    assert invocations, 'postflight invocation not found'
+    assert all('|| true' not in l for l in invocations), 'postflight failure is being swallowed again'
+    # ...but a publishable warn (exit 1) must NOT fail the job; only fail (>=2)/crash does.
+    assert '-lt 2' in yml, 'postflight step no longer tolerates a publishable warn (exit 1)'

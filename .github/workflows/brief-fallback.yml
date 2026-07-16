@@ -79,15 +79,24 @@ jobs:
 
       - name: Postflight validation
         if: steps.check.outputs.skip != 'true'
-        # No `|| true`: a crash must fail the job (GH-Action `run:` is pipefail by
-        # default), not be swallowed into a silent publish of an unvalidated brief.
-        run: python3 scripts/harness/brief_postflight.py 2>&1 | tail -20
+        # postflight exits 0=pass, 1=warn (both publishable), 2=fail. pass/warn keep the
+        # job green; a real fail (2) or a crash fails it so the problem is visible — and,
+        # via GH-Action's implicit success() on the next step, blocks the commit. NOT
+        # `|| true`, which swallowed every failure into a silent publish, and NOT a bare
+        # pipe either, which would (with default pipefail) turn a publishable warn red.
+        run: |
+          set +e
+          python3 scripts/harness/brief_postflight.py > "${RUNNER_TEMP:-/tmp}/postflight.log" 2>&1
+          code=$?
+          tail -20 "${RUNNER_TEMP:-/tmp}/postflight.log"
+          [ "$code" -lt 2 ] || exit "$code"
 
       - name: Commit + push
-        # Runs even if postflight failed (own `if:` overrides the success gate), so it
-        # MUST consult the publish gate itself. Fail-closed: a missing file or any
-        # verdict other than publish_ok=true refuses to commit — that is the whole fix
-        # for a failing off-host brief being published anyway.
+        # Reached only when postflight was pass/warn — a fail/crash fails the previous
+        # step and GH-Action's implicit success() skips this one. Still consults the
+        # publish gate as the single source of truth, fail-closed on a missing file, so
+        # an unvalidated brief is never committed even though this step is its own
+        # committer on the fresh checkout.
         if: steps.check.outputs.skip != 'true'
         run: |
           ok=$(python3 -c "import json;print(json.load(open('logs/brief_postflight_status.json'))['publish_ok'])" 2>/dev/null || echo "None")
