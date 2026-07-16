@@ -428,13 +428,26 @@ def compute_bucket(holdings: list, bench_series, label: str, sleep_between: floa
             bench_beta = beta(port_rets, bench_rets)
 
     current_value = sum(h['current_value'] for h in holdings)
-
+    fetched_value = sum(h['current_value'] for h in holdings if h['ticker'] in aligned_closes)
+    excluded_tickers = [h['ticker'] for h in holdings if h['ticker'] not in aligned_closes]
     bucket_out = {
         f'beta_{"spx" if label == "us" else "hsi"}': round(bench_beta, 4) if bench_beta is not None else None,
         'vol_30d_annualized': round(vol_ann, 4),
         'max_dd_30d': round(mdd, 4),
         'sharpe_30d': round(sh, 4),
         'current_value': round(current_value, 2),
+        # A fetch miss changes the population: weights above are deliberately
+        # renormalized over the names with history, so the resulting beta/vol is
+        # not a full-book statistic. Publish the value-weighted denominator and
+        # exclusions beside the number; build_alerts turns this into a dashboard
+        # caveat instead of leaving it buried in meta.failed.
+        'history_coverage': {
+            'holdings_fetched': len(aligned_closes),
+            'holdings_total': len(holdings),
+            'current_value_pct': (round(100 * fetched_value / current_value, 1)
+                                  if current_value > 0 else None),
+            'excluded_tickers': excluded_tickers,
+        },
     }
     # naming detail: US uses USD field name
     if label == 'us':
@@ -462,11 +475,23 @@ def compute_combined(us_meta, hk_meta, holdings_all, fx_hkd_to_usd=None):
     We treat both buckets as independent return streams weighted by their
     USD-equivalent current value. HKD value is converted using fx_hkd_to_usd.
     """
+    def has_current_stream(meta):
+        return bool(meta and 'port_rets' in meta and meta.get('aligned_dates'))
+
+    # A one-leg portfolio is valid; a two-leg portfolio with one failed return
+    # stream is not. The old fallback silently returned the surviving leg's vol
+    # and Sharpe under the public label "combined", which can sharply understate
+    # risk when the missing leg is the volatile one.
+    if holdings_all.get('us') and not has_current_stream(us_meta):
+        return None
+    if holdings_all.get('hk') and not has_current_stream(hk_meta):
+        return None
+
     series_list = []  # list of (port_rets, usd_weight)
-    if us_meta and 'port_rets' in us_meta and us_meta.get('aligned_dates'):
+    if has_current_stream(us_meta):
         us_value_usd = sum(h['current_value'] for h in holdings_all['us'])
         series_list.append(('us', us_meta['aligned_dates'], us_meta['port_rets'], us_value_usd))
-    if hk_meta and 'port_rets' in hk_meta and hk_meta.get('aligned_dates'):
+    if has_current_stream(hk_meta):
         if fx_hkd_to_usd is None or fx_hkd_to_usd <= 0:
             raise ValueError('USDHKD rate required to combine HKD and USD risk buckets')
         hk_value_hkd = sum(h['current_value'] for h in holdings_all['hk'])
@@ -565,6 +590,27 @@ def compute_leverage(holdings_all, fx_hkd_to_usd):
 
 def build_alerts(us, hk, combined, leverage):
     alerts = []
+    for label, block in (('US', us), ('HK', hk)):
+        if not isinstance(block, dict):
+            continue
+        coverage = block.get('history_coverage') or {}
+        pct = coverage.get('current_value_pct')
+        excluded = coverage.get('excluded_tickers') or []
+        if block.get('stale'):
+            alerts.append({
+                'type': 'risk_data_stale',
+                'severity': 'high',
+                'detail': (f'{label} 30d risk history fetch failed; showing the previous '
+                           f'block from {block.get("stale_since") or "unknown"}. '
+                           'Combined vol/Sharpe are withheld.'),
+            })
+        elif pct is not None and pct < 100:
+            alerts.append({
+                'type': 'risk_data_coverage',
+                'severity': 'medium',
+                'detail': (f'{label} beta/vol history covers {pct:.1f}% of current position '
+                           f'value; excludes {", ".join(excluded) or "unknown ticker(s)"}.'),
+            })
     if us and us.get('beta_spx') is not None and us['beta_spx'] > 3.0:
         alerts.append({'type': 'high_beta', 'severity': 'high',
                        'detail': f'US β vs S&P 500 = {us["beta_spx"]} (> 3.0)'})
