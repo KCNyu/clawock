@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "monitoring_started_at": "2026-07-16T02:17:00+08:00",
-  "updated_at": "2026-07-16T07:04:59.719112+00:00",
+  "updated_at": "2026-07-16T15:30:00.012000+08:00",
   "events": [
     {
       "job": "美股盘中盯盘-overnight",
@@ -128,6 +128,22 @@
       "dashboard_published": true,
       "insights_sidecar": true,
       "issue_count": 0
+    },
+    {
+      "job": "盘中盯盘",
+      "market": "hk",
+      "slot": "2026-07-16T15:30:00+08:00",
+      "state": "completed",
+      "updated_at": "2026-07-16T15:30:00.012000+08:00",
+      "should_alert": true,
+      "anomaly_count": 1,
+      "postflight_status": "pass",
+      "wechat_sent": true,
+      "telegram_sent": true,
+      "dashboard_published": true,
+      "insights_sidecar": true,
+      "issue_count": 0,
+      "watchdog_state": "ok"
     }
   ]
 }
