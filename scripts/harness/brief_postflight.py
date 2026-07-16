@@ -228,6 +228,22 @@ def log_decisions(today):
     print(f'  decisions.jsonl: +{inserted}, updated {updated}, settled {settled} ({len(ledger)} total)')
 
 
+def write_publish_gate(status, today):
+    """Machine-readable publish gate the off-host fallback workflow reads before it
+    commits. The fallback runs on a fresh GH-Action checkout where a broad
+    `git add … && commit && push` is its own committer and cannot see maybe_commit's
+    `status == 'fail'` refusal — so a failing brief was published anyway. This file
+    carries the same verdict across the process boundary. Fail-closed by contract:
+    the workflow must treat a MISSING file (postflight crashed before here) as
+    do-not-publish, so only an explicit publish_ok=true releases a commit."""
+    gate = {'today': today, 'status': status, 'publish_ok': status != 'fail',
+            'written_at': datetime.now().isoformat()}
+    p = WS / 'logs' / 'brief_postflight_status.json'
+    p.parent.mkdir(parents=True, exist_ok=True)
+    p.write_text(json.dumps(gate, ensure_ascii=False) + '\n')
+    return gate
+
+
 def maybe_commit(status, today, dry_run=False):
     if status == 'fail':
         return False, 'skipped (status=fail)'
@@ -350,6 +366,10 @@ def main():
     issues += validate_plan_json(plan_path, context=context)
 
     status = categorize(issues)
+    # Emit the cross-process publish gate BEFORE anything else can raise, so the
+    # off-host workflow's committer has an explicit verdict (and a crash leaves no
+    # file → fail-closed).
+    write_publish_gate(status, today)
 
     if status == 'pass':
         wechat_prefix = ''
