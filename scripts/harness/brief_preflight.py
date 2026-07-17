@@ -150,7 +150,7 @@ def compute_concentration(holdings):
 # leveraged ETFs, HK 85% one factor), not a signal problem — no driven_by face
 # called it ahead. These caps turn risk.json + concentration from read-only
 # dashboard cards into actionable, capped trim/cut directives the brief MUST act
-# on. The trims are driven_by=technical (disciplinary rebalancing), which the
+# on. The trims are driven_by=risk_rule (disciplinary rebalancing), which the
 # 证伪 rule explicitly exempts from the risk_on HOLD default.
 GUARDRAIL_CAPS = {
     'single_name_pct':   35,    # any one name within a leg
@@ -282,7 +282,7 @@ def compute_risk_guardrail(hk_holdings, us_holdings, hk_conc, us_conc, risk, lev
                     'type': 'regime_delever', 'leg': 'US', 'ticker': nm['etf'], 'severity': 'high',
                     'detail': (f"🧭 {nm['etf']}=2x{nm['underlying']} 标的破200线 "
                                f"({nm.get('dist_ma_pct')}%)+波动 {vol_pct:.0f}% 过热 → 杠杆制度 red"),
-                    'action': (f"{nm['etf']} 2x→{nm['underlying']} 现货换仓(driven_by=technical,规则非择时)：标的趋势off "
+                    'action': (f"{nm['etf']} 2x→{nm['underlying']} 现货换仓(driven_by=risk_rule,规则非择时)：标的趋势off "
                                f"且波动>{int(nm.get('vol_hot_cap',0.7)*100)}%，2x 日内重置在下杀里放大衰减；"
                                f"{nm['underlying']} 收复200线(green)再换回 2x"),
                 })
@@ -299,7 +299,7 @@ def compute_risk_guardrail(hk_holdings, us_holdings, hk_conc, us_conc, risk, lev
     n = len(breaches) + len(hard_stops)
     if n:
         directive = (f"⛔ {len(breaches)} 仓位硬闸 + {len(hard_stops)} 杠杆止损触发。"
-                     "每条必须在 Judge 段出一个对应动作(driven_by=technical,纪律性再平衡,"
+                     "每条必须在 Judge 段出一个对应动作(driven_by=risk_rule,纪律性再平衡,"
                      "不算听消息、不受 risk_on HOLD 默认约束)；其余主动 call 仍按 regime guard。"
                      "杠杆腿解套口径=2x→1x 同因子换仓而非清仓(见各 action)。")
     else:

@@ -149,7 +149,7 @@ The drawdown was a **construction** problem (US β≈4.4, 73% leveraged ETFs, HK
 | US β vs S&P | **≤3.0** | De-lever (cut leveraged ETFs first, not the high-conviction single) |
 | Single leveraged ETF stop | **−18% vs cost** | Hard stop → swap 2x→1x same factor (keep exposure, stop decay) |
 
-Rules: every breach **must** produce a concrete action in Judge synthesis (no "watch"). Tag these `driven_by=technical` (disciplinary rebalancing, not news). This is the **one exemption from a trending-up/risk-on HOLD default** — in a melt-up you trim leverage *into* strength, not after the drawdown. De-lever by cutting leveraged ETFs (the β source), never by gutting a high-conviction single's thesis. Leveraged-leg directives use the **2x→1x same-factor swap** (not liquidation) per `brief_preflight.LEV_1X_SWAP`; 1x→2x re-entry only on 🧭 regime green. These caps mirror `brief_preflight.compute_risk_guardrail` / the brief's 「🚦 仓位/杠杆硬闸」 — keep thresholds in sync.
+Rules: every breach **must** produce a concrete action in Judge synthesis (no "watch"). Tag these `driven_by=risk_rule` (disciplinary rebalancing, not news). This is the **one exemption from a trending-up/risk-on HOLD default** — in a melt-up you trim leverage *into* strength, not after the drawdown. De-lever by cutting leveraged ETFs (the β source), never by gutting a high-conviction single's thesis. Leveraged-leg directives use the **2x→1x same-factor swap** (not liquidation) per `brief_preflight.LEV_1X_SWAP`; 1x→2x re-entry only on 🧭 regime green. These caps mirror `brief_preflight.compute_risk_guardrail` / the brief's 「🚦 仓位/杠杆硬闸」 — keep thresholds in sync.
 
 ## Confidence scoring
 
