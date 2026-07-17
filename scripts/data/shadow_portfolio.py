@@ -17,11 +17,13 @@ import os
 import re
 from collections import Counter, defaultdict
 from copy import deepcopy
-from datetime import datetime
+from datetime import date, datetime, timedelta
 from pathlib import Path
 from typing import Callable
+from zoneinfo import ZoneInfo
 
 import decision_v2
+import trading_calendar
 
 WS = Path(__file__).resolve().parents[2]
 OUT = WS / "assets" / "data" / "shadow_portfolio.json"
@@ -366,19 +368,34 @@ def _mark(
     return (None if missing else round(value, 6), missing)
 
 
-def _all_relevant_dates(
+def _market_as_of_date(as_of: str | None, leg: str) -> str | None:
+    """Convert a build timestamp to the leg's local market date."""
+    if not as_of:
+        return None
+    if re.fullmatch(r"\d{4}-\d{2}-\d{2}", as_of):
+        return as_of
+    parsed = datetime.fromisoformat(as_of.replace("Z", "+00:00"))
+    if parsed.tzinfo is not None:
+        market = leg.lower()
+        parsed = parsed.astimezone(ZoneInfo(trading_calendar.MARKET_TZ[market]))
+    return parsed.date().isoformat()
+
+
+def _expected_trading_dates(
     leg: str,
     start_date: str,
-    tickers: set[str],
-    bar_map_loader: Callable[[str], dict],
+    end_date: str,
 ) -> list[str]:
-    dates = set()
-    for ticker in tickers:
-        dates.update(
-            day for day in (bar_map_loader(ticker) or {})
-            if day >= start_date
-        )
-    return sorted(dates)
+    """Return every calendar-expected session, independent of bar availability."""
+    market = leg.lower()
+    current = date.fromisoformat(start_date)
+    end = date.fromisoformat(end_date)
+    dates = []
+    while current <= end:
+        if trading_calendar.is_trading_day(market, current):
+            dates.append(current.isoformat())
+        current += timedelta(days=1)
+    return dates
 
 
 def simulate_leg(
@@ -387,6 +404,7 @@ def simulate_leg(
     leg: str,
     *,
     start_date: str | None = None,
+    as_of_date: str | None = None,
     bar_loader: Callable[[str, str], dict | None] = decision_v2.bar,
     bar_map_loader: Callable[[str], dict] = decision_v2.load_ticker_bars,
     matched: dict[str, dict] | None = None,
@@ -417,11 +435,24 @@ def simulate_leg(
         str(decision.get("ticker") or "") for _, decision in active
     }
     tickers = set(seed["inventory"]) | event_tickers
-    dates = _all_relevant_dates(leg, start_date, tickers, bar_map_loader)
-    for session in by_session_group:
-        if session not in dates:
-            dates.append(session)
-    dates.sort()
+    available_dates = {
+        day
+        for ticker in tickers
+        for day in (bar_map_loader(ticker) or {})
+        if day >= start_date
+    }
+    event_dates = {
+        session for session in by_session_group if session >= start_date
+    }
+    end_date = as_of_date or max(
+        available_dates | event_dates | {start_date})
+    expected_dates = set(_expected_trading_dates(leg, start_date, end_date))
+    # Event sessions remain replayable for backward compatibility with already
+    # authored ledgers, but only calendar-expected sessions count toward mark
+    # coverage.  Future events beyond the build's as-of date are never replayed.
+    dates = sorted(expected_dates | {
+        session for session in event_dates if session <= end_date
+    })
 
     adjustments_by_date = defaultdict(list)
     ignored_corporate_actions = []
@@ -435,7 +466,6 @@ def simulate_leg(
 
     events = []
     fill_counts = Counter()
-    missing_marks = []
     unpaired_swap_like = 0
     swap_pattern = re.compile(r"(?:换仓|全换|换1x|换 1x|→)")
     for day in dates:
@@ -522,10 +552,6 @@ def simulate_leg(
 
         followed_value, followed_missing = _mark(followed, day, bar_loader)
         baseline_value, baseline_missing = _mark(buy_hold, day, bar_loader)
-        missing = sorted(set(followed_missing) | set(baseline_missing))
-        if missing:
-            missing_marks.append({"date": day, "tickers": missing})
-            continue
         if followed_value is None or baseline_value is None:
             continue
         # A point is written only when both books use exact same-date closes.
@@ -545,6 +571,7 @@ def simulate_leg(
     for event in events:
         events_by_date[event["date"]].append(event)
     curve = []
+    missing_marks = []
     for day in dates:
         for adjustment in adjustments_by_date.get(day, []):
             _apply_external_flow(followed, adjustment["amount"])
@@ -566,7 +593,32 @@ def simulate_leg(
                     followed["cash"] -= notional
         followed_value, followed_missing = _mark(followed, day, bar_loader)
         baseline_value, baseline_missing = _mark(buy_hold, day, bar_loader)
-        if followed_missing or baseline_missing:
+        missing = sorted(set(followed_missing) | set(baseline_missing))
+        if missing:
+            if day in expected_dates:
+                required = {
+                    ticker
+                    for state in (followed, buy_hold)
+                    for ticker, qty in state["inventory"].items()
+                    if qty > 0
+                }
+                available = {
+                    ticker for ticker in required
+                    if (_number((bar_loader(ticker, day) or {}).get("close")) or 0) > 0
+                }
+                reason = "no_bar" if required and not available else "partial_coverage"
+                missing_marks.append({
+                    "date": day,
+                    "reason": reason,
+                    "tickers": missing,
+                })
+                curve.append({
+                    "date": day,
+                    "followed_sim": None,
+                    "buy_and_hold": None,
+                    "cumulative_diff": None,
+                    "gap_reason": reason,
+                })
             continue
         curve.append({
             "date": day,
@@ -575,18 +627,22 @@ def simulate_leg(
             "cumulative_diff": round(followed_value - baseline_value, 2),
         })
 
-    final_diff = curve[-1]["cumulative_diff"] if curve else None
+    published = [
+        point for point in curve if point.get("cumulative_diff") is not None
+    ]
+    final_point = published[-1] if published else None
+    final_diff = final_point["cumulative_diff"] if final_point else None
     return {
         "leg": leg,
         "currency": LEG_CONFIG[leg]["currency"],
         "start_date": start_date,
-        "end_date": curve[-1]["date"] if curve else None,
+        "end_date": final_point["date"] if final_point else None,
         "initial": seed,
         "curve": curve,
         "cumulative_diff": final_diff,
         "final": {
-            "followed_sim": curve[-1]["followed_sim"] if curve else None,
-            "buy_and_hold": curve[-1]["buy_and_hold"] if curve else None,
+            "followed_sim": final_point["followed_sim"] if final_point else None,
+            "buy_and_hold": final_point["buy_and_hold"] if final_point else None,
         },
         "events": events,
         "counts": {
@@ -602,7 +658,8 @@ def simulate_leg(
             },
         },
         "mark_coverage": {
-            "published_points": len(curve),
+            "expected_sessions": len(expected_dates),
+            "published_points": len(published),
             "skipped_dates": missing_marks,
             "rule": "publish only when both books can be marked to exact same-date canonical closes",
         },
@@ -624,6 +681,7 @@ def build_shadow_portfolio(
     matched: dict[str, dict] | None = None,
 ) -> dict:
     """Build the public sidecar. USD and HKD are intentionally never combined."""
+    as_of = as_of or datetime.now().astimezone().isoformat(timespec="seconds")
     matched = matched if matched is not None else decision_v2.match_real_executions(
         decisions, portfolio)
     curves = {}
@@ -633,13 +691,13 @@ def build_shadow_portfolio(
             decisions,
             leg,
             start_date=(start_dates or {}).get(leg),
+            as_of_date=_market_as_of_date(as_of, leg),
             bar_loader=bar_loader,
             bar_map_loader=bar_map_loader,
             matched=matched,
         )
         if result:
             curves[result["currency"]] = result
-    as_of = as_of or datetime.now().astimezone().isoformat(timespec="seconds")
     return {
         "schema_version": SCHEMA_VERSION,
         "as_of": as_of,
@@ -750,7 +808,10 @@ def main() -> int:
     decision_v2.settle_decisions(decisions)
     out_path = Path(os.environ.get("SHADOW_PORTFOLIO_OUT") or OUT)
     result = write_shadow_portfolio(portfolio, decisions, out_path)
-    points = sum(len(book["curve"]) for book in result["curves"].values())
+    points = sum(
+        (book.get("mark_coverage") or {}).get("published_points", 0)
+        for book in result["curves"].values()
+    )
     print(f"✓ wrote {out_path} ({points} marked points; 模拟·非实盘)")
     return 0
 

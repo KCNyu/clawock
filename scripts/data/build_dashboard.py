@@ -76,6 +76,35 @@ def compute_guardrail_outputs(portfolio, risk, lev_regime=None):
         }
 
 
+def write_shadow_sidecar(portfolio, decisions, shadow_file):
+    """Build the shadow sidecar, replacing stale results with an explicit failure.
+
+    A failed refresh must never leave the previous curves looking current.  Keep
+    the last successful ``as_of`` only as provenance on the failure marker; a
+    later successful full write naturally removes ``computed: false`` again.
+    """
+    shadow_file = Path(shadow_file)
+    try:
+        import shadow_portfolio
+        result = shadow_portfolio.write_shadow_portfolio(
+            portfolio, decisions, shadow_file)
+        print(f'✓ wrote {shadow_file} (shadow portfolio sidecar, 模拟·非实盘)')
+        return result
+    except Exception as e:
+        previous = load_json(shadow_file) if shadow_file.exists() else None
+        failure = {'computed': False, 'error': str(e)}
+        if isinstance(previous, dict):
+            stale_as_of = previous.get('as_of') or previous.get('stale_as_of')
+            if stale_as_of:
+                failure['stale_as_of'] = stale_as_of
+        from safe_io import safe_write_text
+        safe_write_text(
+            str(shadow_file),
+            json.dumps(failure, ensure_ascii=False, indent=2) + '\n')
+        print(f'  warn: shadow_portfolio build fail: {e}', file=sys.stderr)
+        return failure
+
+
 def trim_holding(h, currency):
     """Trim a holding dict to UI-relevant fields."""
     return {
@@ -1849,14 +1878,9 @@ def main():
     # in dashboard.json. Two cash+inventory ledgers (follow-all-triggered vs
     # same-seed buy-and-hold) marked to canonical closes; cumulative diff is a
     # simulated timing alpha, never live/broker performance.
-    try:
-        import shadow_portfolio
-        shadow_file = Path(os.environ.get('SHADOW_PORTFOLIO_OUT')
-                           or (out_file.parent / 'shadow_portfolio.json'))
-        shadow_portfolio.write_shadow_portfolio(portfolio, _decisions, shadow_file)
-        print(f'✓ wrote {shadow_file} (shadow portfolio sidecar, 模拟·非实盘)')
-    except Exception as e:
-        print(f'  warn: shadow_portfolio build fail: {e}', file=sys.stderr)
+    shadow_file = Path(os.environ.get('SHADOW_PORTFOLIO_OUT')
+                       or (out_file.parent / 'shadow_portfolio.json'))
+    write_shadow_sidecar(portfolio, _decisions, shadow_file)
     out['decision_schema_version'] = 2
     out['decision_metrics'] = decision_v2.compute_metrics(_decisions)
     out['episode_backtest'] = decision_v2.compute_backtest(_decisions)

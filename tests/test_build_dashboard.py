@@ -4,6 +4,7 @@ All inputs are synthetic in-memory values.  The module has no heavy third-party
 imports and its filesystem orchestration is guarded by ``main()``, so importing
 it does not read snapshots, portfolio data, or the network.
 """
+import json
 from pathlib import Path
 import sys
 from types import SimpleNamespace
@@ -53,6 +54,59 @@ def test_guardrail_compute_exception_is_an_explicit_failure_dict(monkeypatch):
     assert result["risk_guardrail"]["computed"] is False
     assert result["risk_guardrail"]["error"] == "synthetic guardrail failure"
     assert result["breakeven_math"] == {"computed": False}
+
+
+def test_shadow_failure_replaces_stale_result_and_success_clears_marker(
+    monkeypatch, tmp_path,
+):
+    sidecar = tmp_path / "shadow_portfolio.json"
+    sidecar.write_text(json.dumps({
+        "as_of": "2026-07-16T23:00:00+08:00",
+        "cumulative_diff": {"HKD": 26428.93},
+        "curves": {"HKD": {"curve": [{"date": "2026-07-16"}]}},
+    }), encoding="utf-8")
+
+    def explode(*_args, **_kwargs):
+        raise RuntimeError("synthetic shadow failure")
+
+    monkeypatch.setitem(
+        sys.modules,
+        "shadow_portfolio",
+        SimpleNamespace(write_shadow_portfolio=explode),
+    )
+    failed = dashboard.write_shadow_sidecar({}, [], sidecar)
+    written_failure = json.loads(sidecar.read_text(encoding="utf-8"))
+
+    assert failed == written_failure == {
+        "computed": False,
+        "error": "synthetic shadow failure",
+        "stale_as_of": "2026-07-16T23:00:00+08:00",
+    }
+    assert "curves" not in written_failure
+    assert "cumulative_diff" not in written_failure
+    assert all(value is not None for value in written_failure.values())
+
+    def succeed(_portfolio, _decisions, out_path):
+        result = {
+            "as_of": "2026-07-17T23:00:00+08:00",
+            "curves": {},
+            "cumulative_diff": {},
+        }
+        Path(out_path).write_text(json.dumps(result), encoding="utf-8")
+        return result
+
+    monkeypatch.setitem(
+        sys.modules,
+        "shadow_portfolio",
+        SimpleNamespace(write_shadow_portfolio=succeed),
+    )
+    succeeded = dashboard.write_shadow_sidecar({}, [], sidecar)
+    written_success = json.loads(sidecar.read_text(encoding="utf-8"))
+
+    assert succeeded == written_success
+    assert "computed" not in written_success
+    assert "error" not in written_success
+    assert "stale_as_of" not in written_success
 
 
 def test_profit_curve_max_drawdown_matches_known_peak_and_trough():

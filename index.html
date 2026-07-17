@@ -1260,6 +1260,10 @@ layout: null
     margin: 8px 0; color: var(--red); font-size: 11px;
     font-weight: 650; line-height: 1.45;
   }
+  .shadow-coverage-note {
+    margin: 8px 0; color: var(--amber); font-size: 11px;
+    font-weight: 700; line-height: 1.45;
+  }
   .shadow-limitations {
     margin-top: 10px; padding-top: 9px; border-top: 1px dashed var(--border);
     color: var(--text-faint); font-size: 10px; line-height: 1.55;
@@ -1689,6 +1693,7 @@ layout: null
         <div class="shadow-sim-label">⚠ 模拟·非实盘</div>
         <p class="shadow-estimand"><b>跟随全部已触发建议的政策模拟 vs 同起点买入持有；累计差=模拟 timing alpha</b></p>
         <div class="empty-state" id="shadow-portfolio-empty">数据不足</div>
+        <div class="shadow-coverage-note" id="shadow-coverage-note" style="display:none"></div>
         <div id="shadow-portfolio-content" style="display:none">
           <div class="shadow-diff-grid">
             <div class="shadow-stat">
@@ -3761,11 +3766,32 @@ layout: null
     const content = document.getElementById("shadow-portfolio-content");
     if (!empty || !content) return;
     const sidecar = safe(DATA, "shadow_portfolio");
+    const summary = document.getElementById("shadow-portfolio-summary");
+    const coverageNote = document.getElementById("shadow-coverage-note");
+    if (sidecar && sidecar.computed === false) {
+      if (summary) summary.textContent = "⚠️ 政策模拟本次无法计算";
+      empty.textContent = "⚠️ 政策模拟本次无法计算";
+      empty.style.display = "";
+      content.style.display = "none";
+      if (coverageNote) coverageNote.style.display = "none";
+      return;
+    }
+    empty.textContent = "数据不足";
     const signedMoney = (value, currency) => {
       if (value == null || !isFinite(value)) return DASH;
       const sign = value > 0 ? "+" : value < 0 ? "−" : "";
       return sign + fmtMoney(Math.abs(value), currency);
     };
+    const curves = (sidecar && sidecar.curves) || {};
+    const skippedMarks = Object.values(curves).flatMap(
+      book => safe(book, "mark_coverage", "skipped_dates") || []
+    );
+    if (coverageNote) {
+      coverageNote.textContent = skippedMarks.length
+        ? `⚠️ ${skippedMarks.length} 个市场交易日缺行情未计价`
+        : "";
+      coverageNote.style.display = skippedMarks.length ? "" : "none";
+    }
     const counts = (sidecar && sidecar.fill_counts) || {};
     const countValue = key => counts[key] != null && Number.isFinite(Number(counts[key]))
       ? Number(counts[key]) : null;
@@ -3775,17 +3801,20 @@ layout: null
     const skippedCount = countValue("skipped");
     const assumedCount = ohlcCount == null && closeCount == null
       ? null : (ohlcCount || 0) + (closeCount || 0);
-    const summary = document.getElementById("shadow-portfolio-summary");
     if (summary) {
       const countText = value => value == null ? DASH : value.toLocaleString("en-US");
       summary.textContent = `⚠模拟·非实盘 · USD差 ${signedMoney(safe(sidecar, "cumulative_diff", "USD"), "USD")}`
         + ` · HKD差 ${signedMoney(safe(sidecar, "cumulative_diff", "HKD"), "HKD")}`
-        + ` · real ${countText(realCount)} / assumed ${countText(assumedCount)} / skipped ${countText(skippedCount)}`;
+        + ` · real ${countText(realCount)} / assumed ${countText(assumedCount)} / skipped ${countText(skippedCount)}`
+        + (skippedMarks.length ? ` · 缺行情 ${skippedMarks.length}` : "");
     }
-    const curves = (sidecar && sidecar.curves) || {};
     const hasData = ["USD", "HKD"].some(
       ccy => Array.isArray(safe(curves, ccy, "curve"))
-        && safe(curves, ccy, "curve").length > 0
+        && safe(curves, ccy, "curve").some(
+          row => row && row.followed_sim != null && row.buy_and_hold != null
+            && Number.isFinite(Number(row.followed_sim))
+            && Number.isFinite(Number(row.buy_and_hold))
+        )
     );
     empty.style.display = hasData ? "none" : "";
     content.style.display = hasData ? "" : "none";
@@ -3829,8 +3858,13 @@ layout: null
     const expanded = document.getElementById("shadow-portfolio-expanded");
     if (!expanded || expanded.hidden) return;
     const sidecar = safe(DATA, "shadow_portfolio") || {};
+    if (sidecar.computed === false) return;
     const hasData = ["USD", "HKD"].some(
-      currency => (safe(sidecar, "curves", currency, "curve") || []).length > 0
+      currency => (safe(sidecar, "curves", currency, "curve") || []).some(
+        row => row && row.followed_sim != null && row.buy_and_hold != null
+          && Number.isFinite(Number(row.followed_sim))
+          && Number.isFinite(Number(row.buy_and_hold))
+      )
     );
     // The card's non-chart renderer already shows "数据不足". Avoid initializing
     // ECharts inside its hidden content when the sidecar is missing or empty.

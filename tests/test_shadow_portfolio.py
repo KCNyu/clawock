@@ -328,3 +328,72 @@ def test_cumulative_diff_is_followed_minus_buy_hold_with_both_signs():
 
     assert final_diff(5) == 50
     assert final_diff(15) == -50
+
+
+def test_expected_sessions_disclose_missing_marks_and_emit_curve_gaps():
+    days = [
+        "2026-07-13",
+        "2026-07-14",
+        "2026-07-15",
+        "2026-07-16",
+    ]
+    portfolio = _portfolio(
+        us_holdings=[_holding("AAA", 1), _holding("BBB", 1)],
+    )
+    decisions = [
+        _decision("sell-aaa", "AAA", "cut", 1, day=days[0], price=10),
+    ]
+    bars = {
+        "AAA": {
+            days[0]: {"close": 10},
+            days[1]: {"close": 11},  # BBB missing: partial coverage
+            days[3]: {"close": 12},
+        },
+        "BBB": {
+            days[0]: {"close": 20},
+            # Both required books have no usable bar on 07-15.
+            days[3]: {"close": 22},
+        },
+    }
+    bar_loader, bar_map_loader = _loaders(bars)
+
+    result = shadow.build_shadow_portfolio(
+        portfolio,
+        decisions,
+        as_of=days[-1],
+        bar_loader=bar_loader,
+        bar_map_loader=bar_map_loader,
+        matched={},
+    )
+    usd = result["curves"]["USD"]
+
+    assert usd["mark_coverage"]["expected_sessions"] == 4
+    assert usd["mark_coverage"]["skipped_dates"] == [
+        {
+            "date": days[1],
+            "reason": "partial_coverage",
+            "tickers": ["BBB"],
+        },
+        {
+            "date": days[2],
+            "reason": "no_bar",
+            "tickers": ["AAA", "BBB"],
+        },
+    ]
+    assert [point["date"] for point in usd["curve"]] == days
+    assert usd["curve"][1]["followed_sim"] is None
+    assert usd["curve"][1]["buy_and_hold"] is None
+    assert usd["curve"][1]["gap_reason"] == "partial_coverage"
+    assert usd["curve"][2]["followed_sim"] is None
+    assert usd["curve"][2]["gap_reason"] == "no_bar"
+    assert usd["curve"][3]["followed_sim"] is not None
+
+
+def test_shadow_frontend_fails_closed_and_discloses_mark_gaps():
+    html = (ROOT / "index.html").read_text(encoding="utf-8")
+
+    assert 'sidecar && sidecar.computed === false' in html
+    assert 'summary.textContent = "⚠️ 政策模拟本次无法计算"' in html
+    assert 'id="shadow-coverage-note"' in html
+    assert "个市场交易日缺行情未计价" in html
+    assert "connectNulls: false" in html
