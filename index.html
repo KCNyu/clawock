@@ -1147,16 +1147,18 @@ layout: null
   /* 8d Return Heatmap (Drill) */
   .ret-heatmap {
     display: grid; gap: 6px;
-    grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(104px, 1fr));
   }
   .ret-cell {
-    padding: 10px 8px; border-radius: var(--radius-sm);
+    padding: 9px 8px; border-radius: var(--radius-sm);
     display: flex; flex-direction: column; gap: 2px;
     min-height: 64px; justify-content: center; align-items: center;
     text-align: center;
     border: 1px solid var(--border);
     transition: transform 0.15s;
   }
+  .ret-cell .rc-spark { line-height: 0; width: 100%; margin: 1px 0 2px; }
+  .ret-cell .rc-spark svg { width: 100%; height: 22px; display: block; opacity: 0.92; }
   .ret-cell:hover { transform: translateY(-1px); }
   .ret-cell .rc-ticker {
     font-family: var(--mono); font-weight: 700; font-size: 13px;
@@ -1661,8 +1663,8 @@ layout: null
     </div>
 
     <div class="card">
-      <h3>8天涨跌热力 <span class="muted" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:11px">(近 8 日收益 · 按强弱排序)</span></h3>
-      <p class="chart-hint">把最近 8 个持仓快照的价格序列折算成回报率：绿色 = 在跑、红色 = 在拖。每格下方小字 = 各自市场 leg 内权重（不是组合权重）；重仓 + 大红块 = 优先审视。</p>
+      <h3>8日走势热力 <span class="muted" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:11px">(近 8 日走势 + 收益 · 按强弱排序)</span></h3>
+      <p class="chart-hint">每格一只持仓：<b>背景色</b> = 8 日回报（绿 = 在跑、红 = 在拖），<b>白色折线</b> = 这 8 日的价格走势形状，下方小字 = 各自市场 leg 内权重（不是组合权重）。颜色看强弱、折线看路径，重仓 + 大红块 = 优先审视。</p>
       <div class="ret-heatmap" id="ret-heatmap">
         <div class="empty-state">No price history.</div>
       </div>
@@ -5923,6 +5925,7 @@ layout: null
         ret,
         weight: weightMap[h.ticker] ?? null,
         n: series.length,
+        series,
       };
     }).filter(Boolean);
 
@@ -5963,6 +5966,7 @@ layout: null
       return `
         <div class="ret-cell" style="background:${fill}; color:${text}; border-color:transparent">
           <div class="rc-ticker" style="color:${text}">${escapeHtml(r.ticker)}</div>
+          <div class="rc-spark">${sparklineSVG(r.series, 84, 22)}</div>
           <div class="rc-ret" style="color:${text}">${sign}${r.ret.toFixed(2)}%</div>
           <div class="rc-meta" style="color:rgba(255,255,255,0.75)">${meta}</div>
         </div>`;
