@@ -45,7 +45,7 @@ jobs:
           import json
           import math
           import sys
-          from datetime import datetime
+          from datetime import datetime, timedelta, timezone
           from pathlib import Path
 
           path = Path('assets/data/macro.json')
@@ -67,9 +67,15 @@ jobs:
               generated_at = data.get('generated_at')
               assert isinstance(generated_at, str), 'generated_at missing'
               try:
-                  datetime.fromisoformat(generated_at.replace('Z', '+00:00'))
+                  generated = datetime.fromisoformat(generated_at.replace('Z', '+00:00'))
               except ValueError:
                   raise AssertionError('generated_at is not a valid ISO timestamp') from None
+              if generated.tzinfo is None:
+                  generated = generated.replace(tzinfo=timezone.utc)
+              age = datetime.now(timezone.utc) - generated.astimezone(timezone.utc)
+              freshness_limit = timedelta(hours=18)
+              assert age <= freshness_limit, (
+                  f'generated_at is stale: age {age.total_seconds() / 3600:.2f}h exceeds 18h')
 
               def finite_number(value):
                   return (isinstance(value, (int, float))
@@ -94,7 +100,8 @@ jobs:
                   successful.append('fed_press')
 
               assert successful, 'snapshot has zero successfully populated fields'
-              print(f'macro coverage validation OK: {", ".join(successful)}')
+              print(f'macro coverage validation OK: {", ".join(successful)}; '
+                    f'age={age.total_seconds() / 3600:.2f}h')
 
           try:
               validate()

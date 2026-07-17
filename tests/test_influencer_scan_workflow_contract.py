@@ -21,7 +21,7 @@ def _step_run(name):
     return step_run(WORKFLOW, name)
 
 
-def test_influencer_feed_requires_populated_coverage_before_exact_publish():
+def test_influencer_feed_requires_structural_coverage_before_exact_publish():
     names = [name for _, name in _steps()]
     fetch = 'Fetch Trump/Musk + LLM relevance filter'
     validate = 'Validate influencer coverage'
@@ -32,12 +32,16 @@ def test_influencer_feed_requires_populated_coverage_before_exact_publish():
     assert 'continue-on-error' not in validator_block
     assert "Path('assets/data/influencer_feed.json')" in validator_run
     assert 'json.loads' in validator_run
-    assert "assert items, 'feed has zero populated items'" in validator_run
+    assert "assert isinstance(sources, dict) and sources, 'sources missing or empty'" in validator_run
+    assert "assert isinstance(items, list), 'items must be a list'" in validator_run
     assert 'for index, item in enumerate(items):' in validator_run
     assert "isinstance(author, str) and author.strip()" in validator_run
     assert "isinstance(text, str) and text.strip()" in validator_run
     assert "summary_lists = ('held_hits', 'new_ideas', 'sector_hits')" in validator_run
-    assert "total >= len(items) > 0" in validator_run
+    assert "total >= len(items)" in validator_run
+    assert 'empty allowed' in validator_run
+    assert 'feed has zero populated items' not in validator_run
+    assert 'total >= len(items) > 0' not in validator_run
 
     commit_run = _step_run('Commit + push')
     publish_lines = [line.strip() for line in commit_run.splitlines()

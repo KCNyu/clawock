@@ -33,8 +33,15 @@ def test_eod_archive_requires_current_snapshot_coverage_before_publish():
     assert 'csv.DictReader' in validator_run
     assert "'date', 'ticker', 'name', 'currency', 'shares', 'cost_basis'," in validator_run
     assert "'current_price', 'pnl_pct', 'current_value'," in validator_run
+    assert "Path('portfolio.json')" in validator_run
+    assert "for region in ('us_stocks', 'hk_stocks')" in validator_run
+    assert "if holding.get('shares', 0) > 0" in validator_run
+    assert 'if not expected:' in validator_run
+    assert 'all-cash portfolio, 0 rows' in validator_run
     assert "today_rows = [row for row in rows if row['date'] == snapshot_date]" in validator_run
-    assert "assert today_rows, f'EOD archive has no rows for {snapshot_date}'" in validator_run
+    assert "today_tickers = {row['ticker'] for row in today_rows}" in validator_run
+    assert 'missing = sorted(expected - today_tickers)' in validator_run
+    assert "f'EOD archive missing active tickers for {snapshot_date}:" in validator_run
     assert "if not isinstance(ticker, str) or not ticker.strip():" in validator_run
     assert "f'ASSERTION FAILED: EOD archive {path}: malformed row {index} '" in validator_run
     assert "len(keys) == len(set(keys))" in validator_run

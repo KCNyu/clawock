@@ -30,6 +30,12 @@ def test_macro_snapshot_requires_coverage_before_exact_publish():
     assert 'continue-on-error' not in validator_block
     assert "Path('assets/data/macro.json')" in validator_run
     assert 'json.loads' in validator_run
+    assert 'if generated.tzinfo is None:' in validator_run
+    assert 'generated.replace(tzinfo=timezone.utc)' in validator_run
+    assert 'generated.astimezone(timezone.utc)' in validator_run
+    assert 'freshness_limit = timedelta(hours=18)' in validator_run
+    assert 'assert age <= freshness_limit' in validator_run
+    assert 'generated_at is stale:' in validator_run
     assert "quote_fields = ('vix', 'treasury_10y', 'dxy', 'hsi', 'hstech', 'spx', 'nasdaq')" in validator_run
     assert "quote_sources = ('stooq', 'tencent', 'yahoo')" in validator_run
     assert "data[field]['price'] > 0" in validator_run

@@ -39,7 +39,7 @@ jobs:
           python3 << 'PY'
           import json
           import sys
-          from datetime import datetime
+          from datetime import datetime, timedelta, timezone
           from pathlib import Path
 
           path = Path('assets/data/us_news_digest.json')
@@ -61,9 +61,15 @@ jobs:
               generated_at = data.get('generated_at')
               assert isinstance(generated_at, str), 'generated_at missing'
               try:
-                  datetime.fromisoformat(generated_at.replace('Z', '+00:00'))
+                  generated = datetime.fromisoformat(generated_at.replace('Z', '+00:00'))
               except ValueError:
                   raise AssertionError('generated_at is not a valid ISO timestamp') from None
+              if generated.tzinfo is None:
+                  generated = generated.replace(tzinfo=timezone.utc)
+              age = datetime.now(timezone.utc) - generated.astimezone(timezone.utc)
+              freshness_limit = timedelta(hours=18)
+              assert age <= freshness_limit, (
+                  f'generated_at is stale: age {age.total_seconds() / 3600:.2f}h exceeds 18h')
 
               tickers = data.get('tickers')
               counts = data.get('raw_news_counts')
@@ -79,7 +85,8 @@ jobs:
               assert isinstance(digest, str) and len(digest.strip()) >= 100, (
                   'LLM digest empty or implausibly short')
               assert '### ' in digest, 'LLM digest is not the requested markdown structure'
-              print(f'digest validation OK: {len(digest)} chars, {total_news} source items')
+              print(f'digest validation OK: {len(digest)} chars, {total_news} source items; '
+                    f'age={age.total_seconds() / 3600:.2f}h')
 
           try:
               validate()

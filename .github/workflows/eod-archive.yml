@@ -70,10 +70,26 @@ jobs:
         run: |
           python3 << 'PY'
           import csv
+          import json
           import math
           import sys
           from datetime import date
           from pathlib import Path
+
+          portfolio_path = Path('portfolio.json')
+          snapshot_date = str(date.today())
+          expected = None
+          if portfolio_path.is_file():
+              portfolio = json.loads(portfolio_path.read_text(encoding='utf-8'))
+              expected = {
+                  holding['ticker']
+                  for region in ('us_stocks', 'hk_stocks')
+                  for holding in portfolio['portfolios'].get(region, {}).get('holdings', [])
+                  if holding.get('shares', 0) > 0
+              }
+              if not expected:
+                  print(f'EOD archive coverage validation OK: all-cash portfolio, 0 rows for {snapshot_date}')
+                  raise SystemExit(0)
 
           path = Path('memory/archive/eod-history.csv')
           assert path.is_file(), f'EOD archive missing: {path}'
@@ -87,9 +103,7 @@ jobs:
                   f'EOD archive schema mismatch: {reader.fieldnames}')
               rows = list(reader)
 
-          snapshot_date = str(date.today())
           today_rows = [row for row in rows if row['date'] == snapshot_date]
-          assert today_rows, f'EOD archive has no rows for {snapshot_date}'
           for index, row in enumerate(today_rows, start=1):
               ticker = row.get('ticker')
               if not isinstance(ticker, str) or not ticker.strip():
@@ -99,6 +113,11 @@ jobs:
                       file=sys.stderr,
                   )
                   raise SystemExit(1)
+          assert expected is not None, f'portfolio missing: {portfolio_path}'
+          today_tickers = {row['ticker'] for row in today_rows}
+          missing = sorted(expected - today_tickers)
+          assert not missing, (
+              f'EOD archive missing active tickers for {snapshot_date}: {", ".join(missing)}')
           keys = [(row['ticker'], row['currency']) for row in today_rows]
           assert len(keys) == len(set(keys)), f'duplicate EOD rows for {snapshot_date}'
 

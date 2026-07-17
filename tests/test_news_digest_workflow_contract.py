@@ -29,6 +29,12 @@ def test_news_digest_is_validated_before_publish():
     assert 'continue-on-error' not in workflow.split('- name: Validate generated digest', 1)[1].split('- name:', 1)[0]
     assert "assets/data/us_news_digest.json" in validator_run
     assert 'json.loads' in validator_run
+    assert 'if generated.tzinfo is None:' in validator_run
+    assert 'generated.replace(tzinfo=timezone.utc)' in validator_run
+    assert 'generated.astimezone(timezone.utc)' in validator_run
+    assert 'freshness_limit = timedelta(hours=18)' in validator_run
+    assert 'assert age <= freshness_limit' in validator_run
+    assert 'generated_at is stale:' in validator_run
     assert "data.get('digest_markdown')" in validator_run
     assert "assert isinstance(counts, dict), 'raw_news_counts must be an object'" in validator_run
     assert 'invalid_counts = [key for key, value in counts.items()' in validator_run

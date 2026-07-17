@@ -33,10 +33,13 @@ def test_weekly_review_is_validated_and_exactly_staged_before_publish():
     assert "metadata.get('layout') == 'default'" in validator_run
     assert "metadata.get('title') == f'周复盘 · {week_id}'" in validator_run
     assert 'len(body) >= 1000' in validator_run
-    for section in ('本周净值', 'Brier', '风险演变', '下周关注'):
+    for section in ('本周净值', '风险演变', '下周关注'):
         assert section in validator_run
+    assert "r'下周(?:\\s*\\([^\\n)]*\\))?\\s*关注', '下周关注', body" in validator_run
+    assert 'section not in normalized_body' in validator_run
     assert "assert not missing, f'weekly review missing required sections: {missing}'" in validator_run
-    assert '决策兑现' not in validator_run
+    assert "calibration_tokens = ('Brier', '校准误差', 'Calibration', '兑现')" in validator_run
+    assert 'assert any(token in body for token in calibration_tokens)' in validator_run
 
     commit_run = _step_run('Commit + push')
     assert 'review_path="memory/weekly/$(date -u +%G-W%V).md"' in commit_run

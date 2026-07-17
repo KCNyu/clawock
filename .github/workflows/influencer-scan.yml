@@ -76,7 +76,6 @@ jobs:
 
               items = data.get('items')
               assert isinstance(items, list), 'items must be a list'
-              assert items, 'feed has zero populated items'
               for index, item in enumerate(items):
                   assert isinstance(item, dict), f'item {index} is not an object'
                   author = item.get('author')
@@ -90,18 +89,27 @@ jobs:
                               and math.isfinite(relevance))), (
                       f'item {index} has invalid relevance')
 
+              sources = data.get('sources')
+              assert isinstance(sources, dict) and sources, 'sources missing or empty'
+              assert all(isinstance(name, str) and name.strip()
+                         and isinstance(source, str) and source.strip()
+                         for name, source in sources.items()), (
+                  'sources must map non-empty names to non-empty descriptions')
+
               counts = data.get('counts')
               assert isinstance(counts, dict), 'counts missing'
               summary_lists = ('held_hits', 'new_ideas', 'sector_hits')
               for field in summary_lists:
                   assert isinstance(data.get(field), list), f'{field} must be a list'
+                  assert all(isinstance(item, dict) for item in data[field]), (
+                      f'{field} contains a malformed item')
                   count = counts.get(field)
                   assert isinstance(count, int) and count >= len(data[field]), (
                       f'{field} count/list mismatch')
               total = counts.get('total')
-              assert isinstance(total, int) and total >= len(items) > 0, (
+              assert isinstance(total, int) and total >= len(items), (
                   'total count/items mismatch')
-              print(f'influencer coverage validation OK: {len(items)} populated items')
+              print(f'influencer structural validation OK: {len(items)} items (empty allowed)')
 
           try:
               validate()

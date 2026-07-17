@@ -68,26 +68,46 @@ jobs:
                   datetime.fromisoformat(generated_at.replace('Z', '+00:00'))
               except ValueError:
                   raise AssertionError('generated_at is not a valid ISO timestamp') from None
-              assert isinstance(data.get('sources'), list) and data['sources'], 'sources missing'
+              sources = data.get('sources')
+              assert isinstance(sources, list) and sources, 'sources missing or empty'
+              assert all(isinstance(source, str) and source.strip() for source in sources), (
+                  'sources must contain non-empty strings')
+
+              portfolio_path = Path('portfolio.json')
+              assert portfolio_path.is_file(), f'portfolio missing: {portfolio_path}'
+              portfolio = json.loads(portfolio_path.read_text(encoding='utf-8'))
+              expected = {
+                  holding['ticker']
+                  for region in ('us_stocks', 'hk_stocks')
+                  for holding in portfolio['portfolios'].get(region, {}).get('holdings', [])
+                  if holding.get('shares', 0) > 0
+              }
 
               tickers = data.get('tickers')
-              assert isinstance(tickers, list) and tickers, 'ticker results missing or empty'
-              successful = []
-              for row in tickers:
-                  assert isinstance(row, dict), 'malformed ticker result'
+              assert isinstance(tickers, list), 'tickers must be a list'
+              scanned = set()
+              for index, row in enumerate(tickers):
+                  assert isinstance(row, dict), f'ticker result {index} is not an object'
                   ticker = row.get('ticker')
-                  assert isinstance(ticker, str) and ticker.strip(), 'ticker missing'
-                  mentions = row.get('reddit_mentions_7d', 0)
-                  has_mentions = (isinstance(mentions, (int, float))
-                                  and not isinstance(mentions, bool) and mentions > 0)
+                  assert isinstance(ticker, str) and ticker.strip(), (
+                      f'ticker result {index} missing ticker')
+                  assert isinstance(row.get('name'), str), f'{ticker} name must be a string'
+                  assert row.get('region') in ('us_stocks', 'hk_stocks'), (
+                      f'{ticker} has invalid region')
+                  mentions = row.get('reddit_mentions_7d')
+                  assert (isinstance(mentions, int) and not isinstance(mentions, bool)
+                          and mentions >= 0), f'{ticker} has invalid reddit mention count'
                   result_fields = ('reddit_posts', 'google_news_en', 'google_news_zh')
-                  has_results = any(isinstance(row.get(field), list) and row[field]
-                                    for field in result_fields)
-                  if has_mentions or has_results:
-                      successful.append(ticker)
+                  for field in result_fields:
+                      results = row.get(field)
+                      assert isinstance(results, list), f'{ticker} {field} must be a list'
+                      assert all(isinstance(item, dict) for item in results), (
+                          f'{ticker} {field} contains a malformed item')
+                  scanned.add(ticker)
 
-              assert successful, 'snapshot has zero populated source results'
-              print(f'sentiment coverage validation OK: {len(successful)} tickers')
+              missing = sorted(expected - scanned)
+              assert not missing, f'sentiment snapshot missing active tickers: {", ".join(missing)}'
+              print(f'sentiment structural validation OK: {len(scanned)} tickers (zero results allowed)')
 
           try:
               validate()
