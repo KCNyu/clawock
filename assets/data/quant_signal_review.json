@@ -1,25 +1,25 @@
 {
-  "as_of": "2026-07-16",
-  "days_logged": 26,
+  "as_of": "2026-07-17",
+  "days_logged": 27,
   "min_n": 20,
   "factors": {
     "trend_on_follow": {
-      "n": 25,
-      "hit_rate": 0.04,
+      "n": 26,
+      "hit_rate": 0.038,
       "ci95": [
         0.007,
-        0.195
+        0.189
       ],
       "edge_significant": false,
       "usable": true,
       "note": ""
     },
     "trend_off_avoid": {
-      "n": 187,
-      "hit_rate": 0.545,
+      "n": 196,
+      "hit_rate": 0.536,
       "ci95": [
-        0.474,
-        0.615
+        0.466,
+        0.604
       ],
       "edge_significant": false,
       "usable": true,
@@ -59,17 +59,17 @@
       "note": "样本不足，brief 不得引用方向结论"
     },
     "stop_breach_continue": {
-      "n": 202,
-      "hit_rate": 0.54,
+      "n": 207,
+      "hit_rate": 0.546,
       "ci95": [
-        0.471,
-        0.607
+        0.478,
+        0.612
       ],
       "edge_significant": false,
       "usable": true,
       "note": ""
     }
   },
-  "summary": "trend_on_follow 4%[1–20](n=25)、trend_off_avoid 55%[47–62](n=187)、rsi_oversold_bounce 67%[47–82](n=24)、stop_breach_continue 54%[47–61](n=202)",
+  "summary": "trend_on_follow 4%[1–19](n=26)、trend_off_avoid 54%[47–60](n=196)、rsi_oversold_bounce 67%[47–82](n=24)、stop_breach_continue 55%[48–61](n=207)",
   "discipline": "自迭代规则：hit_rate 是因子话语权的唯一来源。usable=false 的因子只展示不入决策；usable 后 <50% 的因子方向结论按反向警示处理（同 driven_by technical 39% 降权为过滤器的先例）。"
 }

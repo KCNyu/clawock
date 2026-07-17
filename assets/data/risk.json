@@ -1,63 +1,57 @@
 {
-  "generated_at": "2026-07-16T01:40:03.589149+00:00",
-  "as_of": "2026-07-16",
+  "generated_at": "2026-07-17T00:03:55.076169+00:00",
+  "as_of": "2026-07-17",
   "us": {
     "beta_spx": 3.2767,
     "vol_30d_annualized": 1.0297,
     "max_dd_30d": -0.3839,
     "sharpe_30d": -5.0146,
-    "current_value_usd": 2948.35
+    "current_value_usd": 2773.2,
+    "stale": true,
+    "stale_since": "2026-07-16T01:40:03.589149+00:00"
   },
   "hk": {
-    "beta_hsi": 1.8187,
-    "vol_30d_annualized": 0.8203,
-    "max_dd_30d": -0.4208,
-    "sharpe_30d": -4.5437,
-    "current_value_hkd": 57348.8
+    "beta_hsi": 1.8605,
+    "vol_30d_annualized": 0.8283,
+    "max_dd_30d": -0.4242,
+    "sharpe_30d": -4.4797,
+    "history_coverage": {
+      "holdings_fetched": 5,
+      "holdings_total": 5,
+      "current_value_pct": 100.0,
+      "excluded_tickers": []
+    },
+    "current_value_hkd": 57740.0
   },
-  "combined": {
-    "vol_30d_annualized": 0.6457,
-    "max_dd_30d": -0.2677,
-    "sharpe_30d": -4.7824
-  },
+  "combined": null,
   "leveraged_exposure": {
-    "us_leverage_factor_avg": 1.4043,
-    "hk_leverage_factor_avg": 1.3963,
-    "combined_avg": 1.3986,
-    "margin_at_risk_pct": 13.9862
+    "us_leverage_factor_avg": 1.4111,
+    "hk_leverage_factor_avg": 1.3902,
+    "combined_avg": 1.3959,
+    "margin_at_risk_pct": 13.9593
   },
   "alerts": [
+    {
+      "type": "risk_data_stale",
+      "severity": "high",
+      "detail": "US 30d risk history fetch failed; showing the previous block from 2026-07-16T01:40:03.589149+00:00. Combined vol/Sharpe are withheld."
+    },
     {
       "type": "high_beta",
       "severity": "high",
       "detail": "US β vs S&P 500 = 3.2767 (> 3.0)"
-    },
-    {
-      "type": "high_vol",
-      "severity": "high",
-      "detail": "Combined 30d annualised vol = 64.6% (> 50%)"
-    },
-    {
-      "type": "deep_dd",
-      "severity": "medium",
-      "detail": "Combined 30d max DD = -26.8% (< -10%)"
-    },
-    {
-      "type": "negative_sharpe",
-      "severity": "medium",
-      "detail": "Combined 30d Sharpe = -4.7824 (< 0)"
     }
   ],
   "meta": {
-    "fx_hkd_to_usd_used": 0.127567,
+    "fx_hkd_to_usd_used": 0.127556,
     "fx": {
       "pair": "USDHKD",
-      "rate": 7.839,
+      "rate": 7.8397,
       "source": "Frankfurter",
-      "fetched_at": "2026-07-16T00:04:08.726332+00:00",
+      "fetched_at": "2026-07-17T00:03:25.717927+00:00",
       "fallback_used": false,
       "warning": null,
-      "hkd_to_usd": 0.12756729
+      "hkd_to_usd": 0.1275559
     },
     "risk_free_annual": 0.045,
     "window_days": 30,
@@ -73,15 +67,14 @@
         "RKLX",
         "SPCX",
         "SPCH",
-        "MSFU"
-      ],
-      "failed": [
+        "MSFU",
         "SKHY"
       ],
-      "n_returns": 20,
-      "dates_first": "2026-06-15",
-      "dates_last": "2026-07-15",
-      "stale": false
+      "failed": [],
+      "n_returns": null,
+      "dates_first": null,
+      "dates_last": null,
+      "stale": true
     },
     "hk_fetch": {
       "fetched": [

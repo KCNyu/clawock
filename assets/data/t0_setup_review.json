@@ -1,49 +1,49 @@
 {
-  "as_of": "2026-07-16",
-  "days_logged": 49,
+  "as_of": "2026-07-17",
+  "days_logged": 50,
   "min_n": 20,
   "horizon": 1,
   "grades": {
     "chase_low_quality": {
       "label": "🔴 追高低质",
-      "n": 78,
-      "hit_rate": 0.551,
+      "n": 79,
+      "hit_rate": 0.544,
       "ci95": [
-        0.441,
-        0.657
+        0.435,
+        0.65
       ],
       "edge_significant": false,
-      "avg_dir_fwd_pct": 0.69,
+      "avg_dir_fwd_pct": 0.66,
       "usable": true,
       "note": ""
     },
     "elevated": {
       "label": "🟡 偏高位",
-      "n": 32,
-      "hit_rate": 0.625,
+      "n": 33,
+      "hit_rate": 0.606,
       "ci95": [
-        0.453,
-        0.771
+        0.437,
+        0.753
       ],
       "edge_significant": false,
-      "avg_dir_fwd_pct": 1.55,
+      "avg_dir_fwd_pct": 1.42,
       "usable": true,
       "note": ""
     },
     "oversold_low": {
       "label": "🟡 低位/超卖",
-      "n": 170,
-      "hit_rate": 0.394,
+      "n": 172,
+      "hit_rate": 0.378,
       "ci95": [
-        0.324,
-        0.469
+        0.309,
+        0.452
       ],
       "edge_significant": false,
-      "avg_dir_fwd_pct": -0.42,
+      "avg_dir_fwd_pct": -0.6,
       "usable": true,
       "note": ""
     }
   },
-  "summary": "🔴 追高低质 命中55%[44–66](n=78)、🟡 偏高位 命中62%[45–77](n=32)、🟡 低位/超卖 命中39%[32–47](n=170)",
+  "summary": "🔴 追高低质 命中54%[44–65](n=79)、🟡 偏高位 命中61%[44–75](n=33)、🟡 低位/超卖 命中38%[31–45](n=172)",
   "discipline": "自迭代：命中率是牌面话语权的唯一来源。usable=false 只展示不下结论；「命中」= 评级方向警示被次日价格证实（追高→跌 / 超卖→涨），不是「能赚钱」。"
 }
