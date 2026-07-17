@@ -1301,6 +1301,12 @@ layout: null
   .audit-stat .n, .timing-zone .median {
     font: 700 18px var(--mono); color: var(--text);
   }
+  .sect-divider {
+    display: flex; align-items: center; gap: 10px;
+    font: 700 12px var(--mono); letter-spacing: 0.04em;
+    color: var(--text-dim); margin: 2px 2px 4px; padding-top: 4px;
+  }
+  .sect-divider::after { content: ""; flex: 1; height: 1px; background: var(--border); }
   .audit-list { display: flex; flex-direction: column; gap: 7px; margin-top: 10px; }
   .audit-row {
     border: 1px solid var(--border); border-radius: var(--radius-sm);
@@ -1944,6 +1950,8 @@ layout: null
   <section class="panel" data-panel="reflect">
     <h2>Reflect</h2>
 
+    <div class="sect-divider">🎯 决策质量 · 自评</div>
+
     <div class="card llm-card" id="behavioral-review-card" style="display:none">
       <h3>行为复盘 <span class="muted llm-tag">🧠 LLM · 每日 brief 刷新</span></h3>
       <p class="chart-hint">基于 v2 decision episode 的复盘：触发、执行、策略收益分别计算，避免把同股不同策略混在一起。</p>
@@ -2024,6 +2032,8 @@ layout: null
       <div class="trig-title" style="font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-dim);margin:16px 0 4px;font-weight:600">AI cumulative episode win rate — v1 migrated + v2</div>
       <div id="chart-ai-winrate" class="chart-box" style="height:210px;min-height:210px"></div>
     </div>
+
+    <div class="sect-divider">📈 净值表现 · portfolio</div>
 
     <div class="card">
       <h3>Track Record <span class="muted" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:11px">(USD-eq · 全期)</span></h3>
