@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-16T14:52:44.541450",
+  "generated_at": "2026-07-17T14:24:51.886888",
   "lookback_hours": 48,
   "tickers": [
     "CRCL",
@@ -10,7 +10,7 @@
     "MSFU",
     "SKHY"
   ],
-  "digest_markdown": "### 移动信号 (跨 ticker 排序)\n- **SPCX**: 回吐所有 post-IPO 涨幅跌至 $135 offer 价; 周四第 13 次 Starship 试飞 (含 Starlink 首批 + SDA 卫星) 成双向催化剂 — 失败则 IPO 后二次破发, 成功即反弹抓手\n- **SKHY**: ASML Q2 超预期 + 上调 2026 指引验证 HBM/AI capex 链条; 但 lockup 解禁与 DRAM/HBM 供给过剩风险并存 — 持有逻辑完整, 关注解禁日历做减仓择时\n- **CRCL**: Mizuho 降级 + JPMorgan 指 Hyperliquid 近端冲击 USDC, 短线承压 — 但 ARK 逆势加仓 + Trump 加密议程是中期反向因子, 政策落地前易跌难涨\n- **SPCH**: 上市首日 $500M+ 交易量, 散户杠杆资金对 SpaceX 主题高度饥渴 — 与 SPCX 同向放大波动, 但拥挤度高\n- **PLTU**: PLTR Q4 财报在即, 杠杆 ETF 沦为情绪放大器 — 财报 beat/miss 直接 ×2 反映\n\n### Per-ticker 简报\n- **CRCL**: 降级 vs 抄底资金分歧拉大 — 短线承压, 中期看政策节奏\n- **SPCX**: 跌破 offer + 试飞临近 — 高赔率双向事件, 期权 IV 显然偏高\n- **SPCH**: 首日巨量但产品透明度低 — 杠杆工具属性重, 持仓而非持有\n- **SKHY**: 估值修复 + 解禁压力对峙 — 基本面派耐心要够\n- **PLTU**: 财报前最后情绪博弈 — 催化点 100% 取决于 PLTR\n\n### 风险 watch\n- **CRCL**: 稳定币竞争 (Hyperliquid/Open USD) + Mizuho 降级 + 政策推进节奏不达预期\n- **SPCX**: Starship 13 号试飞失败 = 二次抛压; 试飞前已隐含在 $135 价位\n- **SKHY**: Lockup unlock + HBM/DRAM 供给侧反转 — 估值便宜不等于立刻涨\n- **SPCH / PLTU**: 杠杆产品拥挤 + 标的波动放大 = 减仓时的滑点与盯市风险",
+  "digest_markdown": "### Top 移动信号\n- **SPCX**: Starship 第13次测试因发动机点火故障自动中止,股价连跌5日,盘前跌4%开于$126(低于6月IPO价) → 拖累杠杆ETF SPCH 及太空板块情绪,kcn 短期减仓 SPCH 敞口。\n- **CRCL**: Q2 储备收入预计环比稳定,但 USDC 流通量从 Q1 末$77B 降至~$73B,收益率捕获承压;ARK 逆势加仓表明长线看好基础设施 → 财报前中性偏多,关注 USDC 流通量回升信号。\n- **SKHY**: HBM 市占 ~58% 居首,AI 需求仍处供给受限状态 → 芯片板块普跌中 SKHY 具结构性 alpha,基本面催化优于同业。\n- **代币化主题**: DTCC 完成首次链上股票/国债实盘交易(JPMorgan、BlackRock、近40家机构参与),BTC 因软 CPI 走强 → 利好 CRCL 生态叙事,但短期不直接驱动业绩。\n- **芯片板块轮动**: 多数芯片股近月下跌,仅 NVDA 例外 → SKHY 需警惕板块 beta 拖累,但 HBM 供需逻辑独立。\n\n### Per-ticker 简报\n- **CRCL**: Q2 财报前瞻 — 收入稳定但 USDC 流通萎缩 + Open USD 竞争施压,ARK 增持为长线信心票。\n- **SPCX**: Starship 测试连续中止 + 5 日连跌 — 执行风险显化,杠杆产品 SPCH 波动放大。\n- **SKHY**: HBM 龙头 + AI 供给紧张 — 基本面催化清晰,适合逢板块回调加仓。\n\n### 风险 watch\n- **SPCX/SPCH**: Starship 反复失败 → 短期下行压力,杠杆 ETF 减仓优先。\n- **CRCL**: USDC 流通量环比下滑 + 稳定币竞争(Open USD) → 收益率模型承压风险。\n- **SKHY**: 芯片板块系统性回调风险,但 HBM 供需独立性强,核心敞口不受影响。\n- **PLTU/RKLX/MSFU**: 无 ticker-specific catalyst,纯 ETF 噪声或宏观杂讯,忽略。",
   "raw_news_counts": {
     "CRCL": 5,
     "PLTU": 5,
