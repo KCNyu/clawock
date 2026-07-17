@@ -1844,6 +1844,18 @@ def main():
         json.dumps(
             decision_v2.build_audit_sidecar(_decisions, portfolio),
             ensure_ascii=False, separators=(',', ':')))
+    # Shadow-portfolio policy simulation (模拟·非实盘): fetched sidecar, NOT embedded
+    # in dashboard.json. Two cash+inventory ledgers (follow-all-triggered vs
+    # same-seed buy-and-hold) marked to canonical closes; cumulative diff is a
+    # simulated timing alpha, never live/broker performance.
+    try:
+        import shadow_portfolio
+        shadow_file = Path(os.environ.get('SHADOW_PORTFOLIO_OUT')
+                           or (out_file.parent / 'shadow_portfolio.json'))
+        shadow_portfolio.write_shadow_portfolio(portfolio, _decisions, shadow_file)
+        print(f'✓ wrote {shadow_file} (shadow portfolio sidecar, 模拟·非实盘)')
+    except Exception as e:
+        print(f'  warn: shadow_portfolio build fail: {e}', file=sys.stderr)
     out['decision_schema_version'] = 2
     out['decision_metrics'] = decision_v2.compute_metrics(_decisions)
     out['episode_backtest'] = decision_v2.compute_backtest(_decisions)

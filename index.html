@@ -1207,6 +1207,61 @@ layout: null
   .wc-legend .lg-com::before { background: #34d399; }
   .wc-legend .lg-nod::before { background: #6b7691; }
 
+  /* Shadow portfolio policy simulation (Drill) */
+  .shadow-sim-label {
+    display: inline-flex; align-items: center; gap: 6px;
+    margin: -2px 0 10px; padding: 5px 10px;
+    border: 1px solid rgba(229,72,77,.55); border-radius: 999px;
+    background: rgba(229,72,77,.14); color: var(--red);
+    font-size: 12px; font-weight: 800; letter-spacing: .08em;
+  }
+  .shadow-estimand {
+    margin: 0 0 12px; padding: 10px 12px;
+    border-left: 3px solid var(--amber); border-radius: 0 7px 7px 0;
+    background: rgba(245,158,11,.07); color: var(--text-dim);
+    font-size: 12px; line-height: 1.55;
+  }
+  .shadow-diff-grid, .shadow-fill-grid {
+    display: grid; gap: 8px; margin: 10px 0;
+  }
+  .shadow-diff-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .shadow-fill-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .shadow-stat {
+    min-width: 0; padding: 10px; border: 1px solid var(--border);
+    border-radius: var(--radius-sm); background: var(--card-2);
+  }
+  .shadow-stat .lbl {
+    color: var(--text-faint); font-size: 10px; line-height: 1.3;
+    overflow-wrap: anywhere;
+  }
+  .shadow-stat .val {
+    margin-top: 4px; color: var(--text); font: 700 18px var(--mono);
+  }
+  .shadow-stat .val.pos { color: var(--green); }
+  .shadow-stat .val.neg { color: var(--red); }
+  .shadow-stat.skipped {
+    border-color: rgba(229,72,77,.42); background: rgba(229,72,77,.08);
+  }
+  .shadow-chart-unit {
+    margin-top: 10px; border: 1px solid var(--border);
+    border-radius: var(--radius-sm); padding: 9px 8px 3px;
+  }
+  .shadow-chart-title {
+    padding-left: 4px; color: var(--text); font: 700 12px var(--mono);
+  }
+  .shadow-chart-box { width: 100%; height: 235px; min-height: 235px; }
+  .shadow-constraint-note {
+    margin: 8px 0; color: var(--red); font-size: 11px;
+    font-weight: 650; line-height: 1.45;
+  }
+  .shadow-limitations {
+    margin-top: 10px; padding-top: 9px; border-top: 1px dashed var(--border);
+    color: var(--text-faint); font-size: 10px; line-height: 1.55;
+  }
+  @media (max-width: 600px) {
+    .shadow-fill-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+
   /* =========================================================
      Reflect: charts
      ========================================================= */
@@ -1596,6 +1651,56 @@ layout: null
         <div>
           <div class="extremes-label">Bottom 3 losers</div>
           <div class="extremes-list" id="extremes-losers"><div class="empty-state">—</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" id="shadow-portfolio-card">
+      <div class="shadow-sim-label">⚠ 模拟·非实盘</div>
+      <h3>Shadow Portfolio · Policy Replay</h3>
+      <p class="shadow-estimand"><b>跟随全部已触发建议的政策模拟 vs 同起点买入持有；累计差=模拟 timing alpha</b></p>
+      <div class="empty-state" id="shadow-portfolio-empty">数据不足</div>
+      <div id="shadow-portfolio-content" style="display:none">
+        <div class="shadow-diff-grid">
+          <div class="shadow-stat">
+            <div class="lbl">累计差 · USD</div>
+            <div class="val neutral" id="shadow-diff-usd">—</div>
+          </div>
+          <div class="shadow-stat">
+            <div class="lbl">累计差 · HKD</div>
+            <div class="val neutral" id="shadow-diff-hkd">—</div>
+          </div>
+        </div>
+        <div class="shadow-chart-unit">
+          <div class="shadow-chart-title">USD · 独立净值轴</div>
+          <div id="chart-shadow-usd" class="shadow-chart-box"></div>
+        </div>
+        <div class="shadow-chart-unit">
+          <div class="shadow-chart-title">HKD · 独立净值轴</div>
+          <div id="chart-shadow-hkd" class="shadow-chart-box"></div>
+        </div>
+        <div class="shadow-fill-grid">
+          <div class="shadow-stat">
+            <div class="lbl">real_trade</div>
+            <div class="val" id="shadow-fill-real">0</div>
+          </div>
+          <div class="shadow-stat">
+            <div class="lbl">ohlc_assumption</div>
+            <div class="val" id="shadow-fill-ohlc">0</div>
+          </div>
+          <div class="shadow-stat">
+            <div class="lbl">canonical_close_fallback</div>
+            <div class="val" id="shadow-fill-close">0</div>
+          </div>
+          <div class="shadow-stat skipped">
+            <div class="lbl">skipped</div>
+            <div class="val" id="shadow-fill-skipped">0</div>
+          </div>
+        </div>
+        <div class="shadow-constraint-note" id="shadow-constraint-note"></div>
+        <div class="shadow-limitations">
+          USD 与 HKD 分图展示，不合并、不做跨币种裸加。政策模拟并非真实账户业绩；未执行建议也会按库存、现金和成交价约束进入模拟。Canonical 行情为不复权，缺少权威拆股/股息调整，长期买入持有基线可能有偏。
+          <span id="shadow-asof"></span>
         </div>
       </div>
     </div>
@@ -2241,7 +2346,11 @@ layout: null
   // =========================================================
   let DATA = null;
   let holdingsSort = { key: "current_value", dir: "desc" };
-  const charts = { equity: null, dailyPnl: null, realized: null, sector: null, weightConf: null, shadow: null, aiWinRate: null };
+  const charts = {
+    equity: null, dailyPnl: null, realized: null, sector: null,
+    weightConf: null, shadow: null, aiWinRate: null,
+    shadowPortfolioUsd: null, shadowPortfolioHkd: null,
+  };
 
   // ── Lazy chart init (perf) ──────────────────────────────────────────────
   // ECharts canvas init+setOption for these 5 charts is the bulk of first paint,
@@ -2251,7 +2360,7 @@ layout: null
   // theme flip keep them live. (Before: boot() blocked first paint polling for
   // echarts, then render() init'd all 5 charts up front even on Hero.)
   const CHART_FNS = {
-    drill:   () => { renderWeightConfidence(); },
+    drill:   () => { renderShadowPortfolioChart(); renderWeightConfidence(); },
     risk:    () => { renderSectorChart(); },
     reflect: () => { renderShadowChart(); renderEquityChart(); renderRealizedChart(); renderDailyPnlChart(); },
   };
@@ -2373,7 +2482,7 @@ layout: null
       // Parallel + failure-tolerant: a missing/parse-failed sidecar renders as
       // absent (same `null` contract the old build_dashboard _embed used). Each is
       // a separate conditional GET → 304 headers-only when unchanged.
-      const SIDECARS = ["macro", "sentiment", "influencer_feed", "us_news_digest", "em_news", "decision_audit"];
+      const SIDECARS = ["macro", "sentiment", "influencer_feed", "us_news_digest", "em_news", "decision_audit", "shadow_portfolio"];
       const _cache = triggeredByUser ? "no-store" : "no-cache";
       const _bust = triggeredByUser ? "?t=" + Date.now() : "";
       await Promise.all(SIDECARS.map(async (k) => {
@@ -2679,6 +2788,7 @@ layout: null
     renderCalibBadge();
     renderDecisionMatrix();
     renderHoldings();
+    renderShadowPortfolioCard();
     renderTodayRange();
     renderExtremes();
     renderPlanActions();
@@ -3661,6 +3771,142 @@ layout: null
         });
         renderHoldings();
       };
+    });
+  }
+
+  function renderShadowPortfolioCard() {
+    const empty = document.getElementById("shadow-portfolio-empty");
+    const content = document.getElementById("shadow-portfolio-content");
+    if (!empty || !content) return;
+    const sidecar = safe(DATA, "shadow_portfolio");
+    const curves = (sidecar && sidecar.curves) || {};
+    const hasData = ["USD", "HKD"].some(
+      ccy => Array.isArray(safe(curves, ccy, "curve"))
+        && safe(curves, ccy, "curve").length > 0
+    );
+    empty.style.display = hasData ? "none" : "";
+    content.style.display = hasData ? "" : "none";
+    if (!hasData) return;
+
+    const signedMoney = (value, currency) => {
+      if (value == null || !isFinite(value)) return DASH;
+      const sign = value > 0 ? "+" : value < 0 ? "−" : "";
+      return sign + fmtMoney(Math.abs(value), currency);
+    };
+    ["USD", "HKD"].forEach(currency => {
+      const el = document.getElementById(`shadow-diff-${currency.toLowerCase()}`);
+      if (!el) return;
+      const value = safe(sidecar, "cumulative_diff", currency);
+      el.textContent = signedMoney(value, currency);
+      el.className = `val ${pnlClass(value)}`;
+    });
+
+    const counts = sidecar.fill_counts || {};
+    const countMap = {
+      "shadow-fill-real": counts.real_trade,
+      "shadow-fill-ohlc": counts.ohlc_assumption,
+      "shadow-fill-close": counts.canonical_close_fallback,
+      "shadow-fill-skipped": counts.skipped,
+    };
+    Object.entries(countMap).forEach(([id, value]) => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = Number.isFinite(Number(value)) ? Number(value).toLocaleString("en-US") : "0";
+    });
+    const filled = ["real_trade", "ohlc_assumption", "canonical_close_fallback"]
+      .reduce((sum, key) => sum + (Number(counts[key]) || 0), 0);
+    const skipped = Number(counts.skipped) || 0;
+    const total = filled + skipped;
+    const constraint = document.getElementById("shadow-constraint-note");
+    if (constraint) {
+      const skippedPct = total ? Math.round(skipped / total * 100) : 0;
+      constraint.textContent = total
+        ? `受库存、现金或成交价约束：${skipped}/${total} 条腿未成交（${skippedPct}%）${skipped > filled ? "；绝大多数建议受约束未成交。" : "。"}`
+        : "暂无可统计的模拟成交腿。";
+    }
+    const asof = document.getElementById("shadow-asof");
+    if (asof) asof.textContent = sidecar.as_of ? ` · 数据 ${sidecar.as_of}` : "";
+  }
+
+  function renderShadowPortfolioChart() {
+    if (!window.echarts) return;
+    const sidecar = safe(DATA, "shadow_portfolio") || {};
+    const hasData = ["USD", "HKD"].some(
+      currency => (safe(sidecar, "curves", currency, "curve") || []).length > 0
+    );
+    // The card's non-chart renderer already shows "数据不足". Avoid initializing
+    // ECharts inside its hidden content when the sidecar is missing or empty.
+    if (!hasData) return;
+    const accent = getCSS("--accent") || "#5b8def";
+    const baseline = getCSS("--amber") || "#f59e0b";
+    const isMobile = window.innerWidth < 1024;
+    const configs = [
+      { currency: "USD", id: "chart-shadow-usd", key: "shadowPortfolioUsd" },
+      { currency: "HKD", id: "chart-shadow-hkd", key: "shadowPortfolioHkd" },
+    ];
+
+    configs.forEach(({ currency, id, key }) => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      if (!charts[key]) charts[key] = echarts.init(el, null, { renderer: "canvas" });
+      const rows = (safe(sidecar, "curves", currency, "curve") || [])
+        .filter(row => row && row.date);
+      const dates = rows.map(row => row.date);
+      const option = {
+        backgroundColor: "transparent",
+        animationDuration: 300,
+        grid: { left: isMobile ? 55 : 66, right: 14, top: 38, bottom: dates.length > 8 ? 48 : 28 },
+        legend: {
+          data: ["followed 模拟净值", "buy-hold 基线"], top: 2,
+          textStyle: { color: chartTextColor(), fontSize: 10 },
+        },
+        tooltip: {
+          trigger: "axis",
+          valueFormatter: value => value == null ? DASH : fmtMoney(value, currency),
+        },
+        xAxis: {
+          type: "category", data: dates, boundaryGap: false,
+          axisLine: { lineStyle: { color: chartGridColor() } },
+          axisLabel: {
+            color: chartTextColor(), fontSize: 9,
+            rotate: dates.length > 8 ? 35 : 0,
+          },
+        },
+        yAxis: {
+          type: "value", scale: true,
+          axisLine: { lineStyle: { color: chartGridColor() } },
+          splitLine: { lineStyle: { color: chartGridColor() } },
+          axisLabel: {
+            color: chartTextColor(), fontSize: 9,
+            formatter: value => {
+              const symbol = currency === "USD" ? "$" : "HK$";
+              return symbol + (Math.abs(value) >= 1000 ? (value / 1000).toFixed(1) + "k" : Math.round(value));
+            },
+          },
+        },
+        series: [
+          {
+            name: "followed 模拟净值", type: "line",
+            data: rows.map(row => row.followed_sim),
+            showSymbol: dates.length <= 20, symbolSize: 4, smooth: false,
+            connectNulls: false,
+            itemStyle: { color: accent }, lineStyle: { color: accent, width: 2.4 },
+          },
+          {
+            name: "buy-hold 基线", type: "line",
+            data: rows.map(row => row.buy_and_hold),
+            showSymbol: false, smooth: false, connectNulls: false,
+            itemStyle: { color: baseline },
+            lineStyle: { color: baseline, width: 1.8, type: "dashed" },
+          },
+        ],
+      };
+      if (!rows.length) {
+        option.graphic = [{
+          type: "text", left: "center", top: "middle",
+          style: { text: "数据不足", fill: chartTextColor(), fontSize: 13, opacity: .55 },
+        }];
+      }
+      charts[key].setOption(option, true);
     });
   }
 
@@ -5799,6 +6045,7 @@ layout: null
       renderDailyPnlChart();
       renderPlanReview();
       renderWeightConfidence();
+      renderShadowPortfolioChart();
       renderShadowChart();
     }
   });
