@@ -71,7 +71,9 @@ Reflect 仪表盘展示：
 
 **这份战绩只量择时——现在是字面意义上的择时。** 单事件诊断回答「触发价比同日收盘执行好或差多少」：同票、同日、同方向、同股数严格配对，再报告 median bps 与按 date × ticker 聚类的 paired CI。它刻意不画累计金额曲线。
 
-**Shadow Portfolio · Policy Replay** 回答更宽的反事实问题。两本 cash + inventory 账本从同一个 seed 沿时间重放：一本跟随全部已触发的主动建议，另一本买入后持有；两者都按 canonical 收盘计价，累计差记为**模拟 timing alpha**。现金与库存约束会挡掉重复建议卖同一批仓位的双计。Drill 卡片显眼标注**模拟 · 非实盘**，公开 `fill_counts.real_trade`——因为绝大多数建议并没有真实执行——USD 与 HKD 分账、绝不裸加，同时披露未复权日线带来的基线偏差。数据来自 sidecar `assets/data/shadow_portfolio.json`；这是政策模拟，不是实盘「听 AI 多赚多少」。
+### 🧪 Shadow Portfolio · Policy Replay（政策模拟）
+
+它回答更宽的反事实问题。两本 cash + inventory 账本从同一个 seed 沿时间重放：一本跟随全部已触发的主动建议，另一本买入后持有；两者都按 canonical 收盘计价，累计差记为**模拟 timing alpha**。现金与库存约束会挡掉重复建议卖同一批仓位的双计。Drill 卡片显眼标注**模拟 · 非实盘**，公开 `fill_counts.real_trade`——因为绝大多数建议并没有真实执行——USD 与 HKD 分账、绝不裸加，同时披露未复权日线带来的基线偏差。数据来自 sidecar `assets/data/shadow_portfolio.json`；这是政策模拟，不是实盘「听 AI 多赚多少」。
 
 风控硬闸和 HOLD 纪律不在这两项择时诊断里，而在这个组合上恰恰是它们在真正干活 —— `assets/data/guardrail_history.jsonl` 持续积累证据。
 
