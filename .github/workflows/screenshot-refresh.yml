@@ -54,14 +54,44 @@ jobs:
           python3 -m pip install --quiet --upgrade Pillow
           python3 scripts/data/assemble_dashboard_gif.py
 
+      - name: Validate screenshots
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import struct
+
+          PNG_MAGIC = b'\x89PNG\r\n\x1a\n'
+          screenshots = (
+              ('assets/shadow-backtest.png', 20_000, 400, 200),
+              ('assets/social-card.png', 150_000, 1_000, 500),
+          )
+
+          for filename, min_size, min_width, min_height in screenshots:
+              path = Path(filename)
+              assert path.is_file(), f'missing screenshot: {filename}'
+              size = path.stat().st_size
+              assert size >= min_size, (
+                  f'screenshot too small: {filename} is {size} bytes; expected >= {min_size}'
+              )
+              header = path.read_bytes()[:24]
+              assert header[:8] == PNG_MAGIC, f'invalid PNG magic: {filename}'
+              assert header[12:16] == b'IHDR', f'missing PNG IHDR: {filename}'
+              width, height = struct.unpack('>II', header[16:24])
+              assert width >= min_width and height >= min_height, (
+                  f'implausible screenshot dimensions: {filename} is {width}x{height}; '
+                  f'expected >= {min_width}x{min_height}'
+              )
+              print(f'validated {filename}: {size} bytes, {width}x{height}')
+          PY
+
       - name: Commit if changed
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add assets/shadow-backtest.png assets/social-card.png
+          git add -- assets/shadow-backtest.png assets/social-card.png
           # Only a manual run rebuilds the GIF, so only a manual run may commit it.
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            git add assets/dashboard.gif
+            git add -- assets/dashboard.gif
           fi
           if git diff --cached --quiet; then
             echo "no visual change"
