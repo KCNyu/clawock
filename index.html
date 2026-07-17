@@ -1301,6 +1301,14 @@ layout: null
   .audit-stat .n, .timing-zone .median {
     font: 700 18px var(--mono); color: var(--text);
   }
+  .audit-collapse { margin-top: 10px; }
+  .audit-collapse-sum {
+    cursor: pointer; list-style: none; font: 600 11px var(--mono);
+    color: var(--accent); padding: 7px 0; user-select: none;
+  }
+  .audit-collapse-sum::-webkit-details-marker { display: none; }
+  .audit-collapse-sum::before { content: "▸ "; }
+  .audit-collapse[open] > .audit-collapse-sum::before { content: "▾ "; }
   .audit-list { display: flex; flex-direction: column; gap: 7px; margin-top: 10px; }
   .audit-row {
     border: 1px solid var(--border); border-radius: var(--radius-sm);
@@ -1962,7 +1970,10 @@ layout: null
         <div class="timing-zones" id="timing-zones"></div>
         <div class="timing-events" id="timing-events"></div>
       </div>
-      <div class="audit-list" id="decision-audit-list"></div>
+      <details class="audit-collapse">
+        <summary class="audit-collapse-sum" id="decision-audit-toggle">展开逐条决策审计</summary>
+        <div class="audit-list" id="decision-audit-list"></div>
+      </details>
     </div>
 
     <div class="card">
@@ -4511,6 +4522,8 @@ layout: null
     const records = (audit && audit.records) || [];
     if (!records.length) { card.style.display = "none"; return; }
     card.style.display = "";
+    const auditToggle = document.getElementById("decision-audit-toggle");
+    if (auditToggle) auditToggle.textContent = `展开逐条决策审计（全部 ${records.length} 条）`;
 
     const counts = audit.state_counts || {};
     const states = [
