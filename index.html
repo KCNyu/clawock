@@ -1301,14 +1301,6 @@ layout: null
   .audit-stat .n, .timing-zone .median {
     font: 700 18px var(--mono); color: var(--text);
   }
-  .audit-collapse { margin-top: 10px; }
-  .audit-collapse-sum {
-    cursor: pointer; list-style: none; font: 600 11px var(--mono);
-    color: var(--accent); padding: 7px 0; user-select: none;
-  }
-  .audit-collapse-sum::-webkit-details-marker { display: none; }
-  .audit-collapse-sum::before { content: "▸ "; }
-  .audit-collapse[open] > .audit-collapse-sum::before { content: "▾ "; }
   .audit-list { display: flex; flex-direction: column; gap: 7px; margin-top: 10px; }
   .audit-row {
     border: 1px solid var(--border); border-radius: var(--radius-sm);
@@ -1961,19 +1953,10 @@ layout: null
     </div>
 
     <div class="card" id="decision-audit-card" style="display:none">
-      <h3>当时依据与事后路径</h3>
-      <p class="chart-hint">按 decision_id 展示全部状态，不挑赢家。依据保留发布时原文；路径只用未复权 canonical bars。真实成交与日线 OHLC 假设成交分开标注，日线无法还原盘中先后。</p>
-      <div class="audit-summary" id="decision-audit-summary"></div>
-      <div class="trig-block">
-        <div class="trig-title">单事件择时诊断</div>
-        <p class="chart-hint">只回答「触发价 vs 同日收盘执行好多少」；同票、同日、同方向、同股数严格配对。换仓不跨票比较，HKD/USD 分区，不画累计金额。</p>
-        <div class="timing-zones" id="timing-zones"></div>
-        <div class="timing-events" id="timing-events"></div>
-      </div>
-      <details class="audit-collapse">
-        <summary class="audit-collapse-sum" id="decision-audit-toggle">展开逐条决策审计</summary>
-        <div class="audit-list" id="decision-audit-list"></div>
-      </details>
+      <h3>单事件择时诊断</h3>
+      <p class="chart-hint">只回答「触发价 vs 同日收盘执行好多少」；同票、同日、同方向、同股数严格配对。换仓不跨票比较，HKD/USD 分区，不画累计金额。完整逐条审计见 <code>assets/data/decision_audit.json</code>。</p>
+      <div class="timing-zones" id="timing-zones"></div>
+      <div class="timing-events" id="timing-events"></div>
     </div>
 
     <div class="card">
@@ -4519,24 +4502,10 @@ layout: null
     const audit = safe(DATA, "decision_audit");
     const card = document.getElementById("decision-audit-card");
     if (!card) return;
-    const records = (audit && audit.records) || [];
-    if (!records.length) { card.style.display = "none"; return; }
-    card.style.display = "";
-    const auditToggle = document.getElementById("decision-audit-toggle");
-    if (auditToggle) auditToggle.textContent = `展开逐条决策审计（全部 ${records.length} 条）`;
-
-    const counts = audit.state_counts || {};
-    const states = [
-      ["settled", "已结算"], ["not_triggered", "未触发"],
-      ["not_evaluable", "无法判断"], ["pending", "待结算"],
-    ];
-    document.getElementById("decision-audit-summary").innerHTML = states.map(([key, label]) =>
-      `<div class="audit-stat"><div class="n">${counts[key] || 0}</div>`
-      + `<div class="muted">${label}</div></div>`
-    ).join("");
-
-    const timing = audit.timing_diagnostic || {};
+    const timing = (audit && audit.timing_diagnostic) || {};
     const byCcy = timing.by_currency || {};
+    if (!audit || !["HKD", "USD"].some(c => byCcy[c])) { card.style.display = "none"; return; }
+    card.style.display = "";
     document.getElementById("timing-zones").innerHTML = ["HKD", "USD"].map(ccy => {
       const z = byCcy[ccy] || {};
       const ci = z.paired_ci95_bps;
@@ -4562,53 +4531,6 @@ layout: null
         </tr>`).join("")
         + `</tbody></table>`
       : '<div class="empty-state">暂无能按同票/同日/同方向/同股数唯一匹配的真实成交；不会拿 OHLC 假设成交冒充。</div>';
-
-    const pathSvg = path => {
-      const values = (path || []).map(p => p.close).filter(v => v != null && isFinite(v));
-      if (values.length < 2) return '<div class="muted">canonical path 不足 2 个 session</div>';
-      const w = 300, h = 52, lo = Math.min(...values), hi = Math.max(...values);
-      const span = hi - lo || 1;
-      const points = values.map((v, i) => {
-        const x = 4 + i * (w - 8) / (values.length - 1);
-        const y = h - 4 - (v - lo) / span * (h - 8);
-        return `${x.toFixed(1)},${y.toFixed(1)}`;
-      }).join(" ");
-      return `<svg class="audit-path" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" aria-label="canonical close path">
-        <polyline points="${points}" fill="none" stroke="var(--accent)" stroke-width="2" vector-effect="non-scaling-stroke"/>
-      </svg>`;
-    };
-    const stateLabel = s => ({
-      settled: "settled", not_triggered: "not-triggered",
-      not_evaluable: "not-evaluable", pending: "pending",
-    }[s] || s || "pending");
-    document.getElementById("decision-audit-list").innerHTML = records.map(r => {
-      const authored = r.authored || {}, cond = authored.condition || {};
-      const execution = r.execution || {}, actual = execution.actual || {};
-      const assumed = execution.ohlc_assumption || {};
-      const mark = r.mark_session || {}, coverage = r.coverage || {};
-      const actualText = actual.matched
-        ? `真实 ${actual.session} · ${actual.shares} 股 @ ${actual.price} · ${actual.source}`
-        : `真实执行状态 ${actual.status || "unknown"}；成交价未能唯一匹配`;
-      const assumedText = assumed.fill_assumed
-        ? `OHLC 假设 @ ${assumed.price} · ${assumed.fill_model} · ${assumed.fill_reason}`
-        : "无 OHLC 假设成交";
-      return `<details class="audit-row">
-        <summary>
-          <span><b>${escapeHtml(r.ticker)}</b><div class="muted">${escapeHtml(r.plan_date)}</div></span>
-          <span class="audit-title">${escapeHtml(r.action)} · ${escapeHtml(cond.type)}${cond.price == null ? "" : ` @ ${cond.price}`}</span>
-          <span class="audit-state">${stateLabel(r.state)}</span>
-        </summary>
-        <div class="audit-detail">
-          <div class="audit-detail-grid">
-            <div><b>当时依据（原文）</b><br>${escapeHtml(authored.rationale || "—")}<br><span class="muted">${escapeHtml(cond.description || "")}</span></div>
-            <div><b>执行：真实 vs 假设</b><br>${escapeHtml(actualText)}<br>${escapeHtml(assumedText)}</div>
-            <div><b>覆盖与标记</b><br>coverage ${coverage.path_points || 0}/${coverage.expected_points || 0} · raw canonical<br>trigger ${mark.trigger || "—"} · T+1 ${mark.t1 || "—"} · T+5 ${mark.t5 || "—"}${mark.right_censored ? " · 右删失" : ""}</div>
-          </div>
-          ${pathSvg(r.path)}
-          <div class="muted">decision_id ${escapeHtml(r.decision_id)} · episode 仅分组 ${escapeHtml(r.episode_id)}</div>
-        </div>
-      </details>`;
-    }).join("");
   }
 
   function renderBearCases() {
