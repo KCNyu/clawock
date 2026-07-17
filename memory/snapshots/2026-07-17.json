@@ -1,6 +1,6 @@
 {
   "owner": "kcn",
-  "last_updated": "2026/07/17 16:02 HKT",
+  "last_updated": "2026/07/17 21:32 HKT",
   "portfolios": {
     "us_stocks": {
       "currency": "USD",
@@ -84,10 +84,10 @@
           "ticker": "CRCL",
           "shares": 2,
           "cost_basis": 87,
-          "current_price": 60.66,
-          "today_change_pct": -7.6572,
-          "pnl_percent": -30.2759,
-          "data_source": "Nasdaq API (stocks) Jul 16, 2026 20:03 ET",
+          "current_price": 59.84,
+          "today_change_pct": -1.3193,
+          "pnl_percent": -31.2184,
+          "data_source": "Nasdaq API (stocks) Jul 17, 2026 09:32 ET",
           "note": "2026-02-26/03-02 共买入14股(@88.35+@86.45,均价≈87);2026-03-04 卖4股@103.21(+64.84);03-11 卖5股@120(+165);03-23 卖3股@127(+120);剩余2股长期持有(看好稳定币+agent支付赛道)",
           "trades": [
             {
@@ -129,17 +129,17 @@
               "note": "按用户记录卖出"
             }
           ],
-          "day_high": 64.16,
-          "day_low": 60.56,
-          "day_open": 64.16,
-          "prev_close": 65.69,
-          "current_value": 121.32,
-          "pnl_abs": -52.68,
-          "today_change": -10.06,
+          "day_high": 59.84,
+          "day_low": 59.84,
+          "day_open": 59.84,
+          "prev_close": 60.64,
+          "current_value": 119.68,
+          "pnl_abs": -54.32,
+          "today_change": -1.6,
           "name": "Circle Internet Group Inc-A",
           "volume": 8165939,
-          "prev_close_date": "2026-07-15",
-          "day_session_date": "2026-07-16"
+          "prev_close_date": "2026-07-16",
+          "day_session_date": "2026-07-17"
         },
         {
           "ticker": "OKLO",
@@ -296,17 +296,17 @@
           "ticker": "PLTU",
           "shares": 14,
           "cost_basis": 40.957142857142856,
-          "current_price": 32.98,
-          "today_change_pct": 0.9798,
-          "pnl_percent": -19.4768,
-          "data_source": "Nasdaq API (etf) Jul 16, 2026 20:03 ET",
-          "day_high": 32.98,
-          "day_low": 31.1,
-          "day_open": 32.31,
-          "prev_close": 32.66,
-          "current_value": 461.72,
-          "pnl_abs": -111.68,
-          "today_change": 4.48,
+          "current_price": 31.7213,
+          "today_change_pct": -3.8166,
+          "pnl_percent": -22.55,
+          "data_source": "Nasdaq API (etf) Jul 17, 2026 09:32 ET",
+          "day_high": 31.7213,
+          "day_low": 31.7213,
+          "day_open": 31.7213,
+          "prev_close": 32.98,
+          "current_value": 444.1,
+          "pnl_abs": -129.3,
+          "today_change": -17.62,
           "note": "2026-04-16 按用户截图记录买入,做 PLTR 2x 杠杆短线仓",
           "trades": [
             {
@@ -326,8 +326,8 @@
           ],
           "name": "二倍做多PLTR ETF-Direxion",
           "volume": 786207,
-          "prev_close_date": "2026-07-15",
-          "day_session_date": "2026-07-16"
+          "prev_close_date": "2026-07-16",
+          "day_session_date": "2026-07-17"
         },
         {
           "ticker": "SOXL",
@@ -386,17 +386,17 @@
           "ticker": "RKLX",
           "shares": 10,
           "cost_basis": 49.69,
-          "current_price": 18.44,
-          "today_change_pct": -23.4219,
-          "pnl_percent": -62.8899,
-          "data_source": "Nasdaq API (etf) Jul 16, 2026 20:03 ET",
-          "day_high": 24.08,
-          "day_low": 18.08,
-          "day_open": 22.48,
-          "prev_close": 24.08,
-          "current_value": 184.4,
-          "pnl_abs": -312.5,
-          "today_change": -56.4,
+          "current_price": 17.8,
+          "today_change_pct": -3.4707,
+          "pnl_percent": -64.1779,
+          "data_source": "Nasdaq API (etf) Jul 17, 2026 09:32 ET",
+          "day_high": 17.8,
+          "day_low": 17.8,
+          "day_open": 17.8,
+          "prev_close": 18.44,
+          "current_value": 178.0,
+          "pnl_abs": -318.9,
+          "today_change": -6.4,
           "note": "2x RKLB杠杆ETF,纳指100入指波段仓(生效日6/22),$49.69建仓,目标$60-68,止损$46",
           "trades": [
             {
@@ -447,8 +447,8 @@
           ],
           "name": "Defiance Daily Target 2X Long R",
           "volume": 1280305,
-          "prev_close_date": "2026-07-15",
-          "day_session_date": "2026-07-16"
+          "prev_close_date": "2026-07-16",
+          "day_session_date": "2026-07-17"
         },
         {
           "ticker": "ROBN",
@@ -522,13 +522,13 @@
           "name": "SpaceX",
           "shares": 1,
           "cost_basis": 147.5,
-          "current_price": 131.11,
-          "current_value": 131.11,
-          "pnl_abs": -16.39,
-          "pnl_percent": -11.1119,
-          "today_change": -4.16,
-          "today_change_pct": -3.0753,
-          "data_source": "Nasdaq API (stocks) Jul 16, 2026 20:03 ET",
+          "current_price": 125.825,
+          "current_value": 125.83,
+          "pnl_abs": -21.67,
+          "pnl_percent": -14.6949,
+          "today_change": -5.29,
+          "today_change_pct": -4.031,
+          "data_source": "Nasdaq API (stocks) Jul 17, 2026 09:32 ET",
           "trades": [
             {
               "date": "2026-06-12",
@@ -553,25 +553,25 @@
               "note": "按用户记录买入"
             }
           ],
-          "prev_close": 135.27,
-          "prev_close_date": "2026-07-15",
-          "day_high": 137.06,
-          "day_low": 126.95,
-          "day_open": 134.92,
-          "day_session_date": "2026-07-16"
+          "prev_close": 131.11,
+          "prev_close_date": "2026-07-16",
+          "day_high": 125.825,
+          "day_low": 125.825,
+          "day_open": 125.825,
+          "day_session_date": "2026-07-17"
         },
         {
           "ticker": "SPCH",
           "name": "Leverage Shares 2X Long SpaceX Daily ETF",
           "shares": 140,
           "cost_basis": 16.2907,
-          "current_price": 8.77,
-          "current_value": 1227.8,
-          "pnl_abs": -1052.9,
-          "pnl_percent": -46.1656,
-          "data_source": "Nasdaq API (etf) Jul 16, 2026 20:03 ET",
-          "today_change": -85.4,
-          "today_change_pct": -6.5032,
+          "current_price": 8.06,
+          "current_value": 1128.4,
+          "pnl_abs": -1152.3,
+          "pnl_percent": -50.5239,
+          "data_source": "Nasdaq API (etf) Jul 17, 2026 09:32 ET",
+          "today_change": -102.2,
+          "today_change_pct": -8.3049,
           "trades": [
             {
               "date": "2026-07-13",
@@ -667,12 +667,12 @@
             }
           ],
           "note": "SPCX(SpaceX) 2x做多ETF，已七次加仓摊本（6/22同日两次），FTSE/CRSP入指利好兑现当天反跌+8月解禁悬云(最多44%股份)未出清，逻辑持续弱化\n2026-07-02 凌晨 02:03 HKT 第八次加仓 10 股 @$13.89（盘中），累计加仓金额触发 P0 风险升级 → 详见 strategy_note。\n2026-06-24 凌晨挂限价单 $13.50 成交10股 → 净 100 股,加权均成本 $17.888。当晚先放量冲高至$14.30+(50M+股,Benzinga报道frenzy级)后回落到限价位成交,符合\"等回踩不追涨\"的纪律。\n2026-06-23 加仓 10 股 @$13.13 → 净 90 股,加权均成本 $18.3756 (vs 旧 19.0312（注：旧值含已 T+0 卖出的 20 股 @16.68，已剔除））。逆硬止损线操作第 6 次,minimax 立场=反对但 kcn 选择执行。\n2026-06-23 用户声明无限子弹流策略：持续加仓摊本直到 SPCX 正股反弹或 8 月解禁落地。minimax 不再每条盯盘喊砍，仅在 (a)单日跌幅 >15% (b)累计加仓金额 > $3000 (c)SPCX 正股单周 -25% 时升级为 P0 风险提示。\n2026-07-02 02:03 HKT 触发 P0：(b) 累计加仓金额已突破 $3000 (按 cash-flow 累加 $1,946.5USD，但若含手续费+滑点已逼近阈值)。minimax 升级为 P0 风险提示，但 kcn 持续执行。\n2026-07-02 02:09 HKT 第九次加仓 10 股 @$13.89 → 净 110 股,加权均成本 $17.5245 (按 cash-flow 加权 vs 旧 $17.888 摊本交易成本加全量),浮亏 -21.76% / -$419.6 (现价 $13.71)。\n⚠️ P0 持续:US 现金余额仅剩 ~$134.35,累计加仓金额 $1,946.5 / $3,000 阈值(差 $1,053.5 才升级);弹药已见底,再无追加空间除非变现其他仓位。",
-          "prev_close": 9.38,
-          "day_high": 9.6,
-          "day_low": 8.76,
-          "day_open": 9.35,
-          "prev_close_date": "2026-07-15",
-          "day_session_date": "2026-07-16",
+          "prev_close": 8.79,
+          "day_high": 8.06,
+          "day_low": 8.06,
+          "day_open": 8.06,
+          "prev_close_date": "2026-07-16",
+          "day_session_date": "2026-07-17",
           "strategy": "infinite_ammo_dca",
           "strategy_note": "2026-06-23 用户声明无限子弹流策略:持续加仓摊本直到 SPCX 正股反弹或 8 月解禁落地。minimax 不再每条盯盘喊砍,仅在 (a)单日跌幅 >15% (b)累计加仓金额 > $3000 (c)SPCX 正股单周 -25% 时升级为 P0 风险提示。",
           "risk_escalation_triggers": [
@@ -686,12 +686,12 @@
           "name": "二倍做多微软ETF-Direxion",
           "shares": 20,
           "cost_basis": 29.130000000000003,
-          "current_price": 24.7,
-          "current_value": 494.0,
-          "pnl_abs": -88.6,
-          "pnl_percent": -15.2077,
-          "today_change": 25.4,
-          "today_change_pct": 5.42,
+          "current_price": 24.505,
+          "current_value": 490.1,
+          "pnl_abs": -92.5,
+          "pnl_percent": -15.8771,
+          "today_change": -17.72,
+          "today_change_pct": -3.4902,
           "trades": [
             {
               "date": "2026-04-24",
@@ -702,27 +702,27 @@
             }
           ],
           "note": "2026-04-24 按用户截图记录买入,微软 2x 杠杆 ETF,财报前修复短线仓",
-          "prev_close": 23.4301,
-          "day_high": 25.8201,
-          "day_low": 24.52,
-          "day_open": 24.94,
-          "data_source": "Nasdaq API (etf) Jul 16, 2026 20:03 ET",
+          "prev_close": 25.3912,
+          "day_high": 24.505,
+          "day_low": 24.505,
+          "day_open": 24.505,
+          "data_source": "Nasdaq API (etf) Jul 17, 2026 09:32 ET",
           "volume": 1331449,
-          "prev_close_date": "2026-07-16",
-          "day_session_date": "2026-07-16"
+          "prev_close_date": "2026-07-17",
+          "day_session_date": "2026-07-17"
         },
         {
           "ticker": "SKHY",
           "name": "SK海力士 ADR",
           "shares": 1,
           "cost_basis": 169.185,
-          "current_price": 152.8495,
-          "current_value": 152.85,
-          "pnl_abs": -16.34,
-          "pnl_percent": -9.6554,
-          "data_source": "Nasdaq API (stocks) Jul 16, 2026 20:03 ET",
-          "day_high": 165.91,
-          "day_low": 152.5,
+          "current_price": 149.57,
+          "current_value": 149.57,
+          "pnl_abs": -19.62,
+          "pnl_percent": -11.5938,
+          "data_source": "Nasdaq API (stocks) Jul 17, 2026 09:32 ET",
+          "day_high": 149.57,
+          "day_low": 149.57,
           "note": "2026-07-10 IPO首日(发行价$149,史上第二大全球股票发行仅次于SpaceX)169.185买入1股,用户报告成交。临时代码SKHYV已于2026-07-13转为正式代码SKHY",
           "trades": [
             {
@@ -733,45 +733,45 @@
               "note": "IPO首日买入,用户报告成交"
             }
           ],
-          "prev_close": 152.3164,
-          "prev_close_date": "2026-07-16",
-          "today_change_pct": 0.35,
-          "day_session_date": "2026-07-16",
-          "today_change": 0.53,
-          "day_open": 165.91
+          "prev_close": 152.3116,
+          "prev_close_date": "2026-07-17",
+          "today_change_pct": -1.8,
+          "day_session_date": "2026-07-17",
+          "today_change": -2.74,
+          "day_open": 149.57
         }
       ],
       "total_cost": 4424.28,
-      "total_current_value": 2773.2,
-      "total_pnl": -1651.08,
-      "total_pnl_percent": -37.3187,
-      "today_total_change": -125.61,
+      "total_current_value": 2635.68,
+      "total_pnl": -1788.6,
+      "total_pnl_percent": -40.427,
+      "today_total_change": -153.57,
       "realized_pnl": 2139.53,
       "realized_note": "NVDA 3股@197.5(+29.19) + CRCL 4股@103.21(+64.84) + CRCL 5股@120(+165) + CRCL 3股@127(+120) + NVDA 3股@199.41(+34.92) + QQQ 1股@631.3(+9.03) + TQQQ 8股@54.45(+69.76) + HOOD 5股@88.36(+74.3) + OKLO 2股@68(+10.34) + TCOM 5股@53.86(+5.6) + SOXL 5股@112(+100.65) + RKLX 4股@75(+113.2) + RKLX 2股@91.03(+88.66) + SOXL 3股@170.8(+236.79) + SOXL 2股@217.17(+250.6) + RKLB 5股@100.17(+145.85) + SPCX 5股@168(+48.5) + RKLX 10股@53.93(+7.3) + SPCH 20股@18.42(+34.8) + ROBN 20股@35.175(+231.85) + ROBN 10股@40(+164.17) + ROBN 10股@37(+134.18)",
       "last_updated": "Jun 24, 2026 16:00 ET close",
       "last_close_attempted": "May 7, 2026 16:00 ET close",
-      "last_open_attempted": "2026-07-16 14:32 UTC-04:00",
+      "last_open_attempted": "2026-07-17 09:32 UTC-04:00",
       "indices_snapshot": {
         "SPX": {
           "name": "S&P 500",
-          "price": 7533.77,
-          "prev_close": 7572.4,
-          "change_pct": -0.51,
-          "source": "Tencent usINX index @ 2026-07-16 20:03 ET"
+          "price": 7444.6,
+          "prev_close": 7533.77,
+          "change_pct": -1.184,
+          "source": "Tencent usINX index @ 2026-07-17 09:32 ET"
         },
         "NDX": {
           "name": "Nasdaq 100",
-          "price": 29025.77,
-          "prev_close": 29502.6,
-          "change_pct": -1.616,
-          "source": "Tencent usNDX index @ 2026-07-16 20:03 ET"
+          "price": 28463.4,
+          "prev_close": 29025.77,
+          "change_pct": -1.938,
+          "source": "Tencent usNDX index @ 2026-07-17 09:32 ET"
         },
         "DJI": {
           "name": "Dow Jones",
-          "price": 52552.97,
-          "prev_close": 52658.64,
-          "change_pct": -0.201,
-          "source": "Tencent usDJI index @ 2026-07-16 20:03 ET"
+          "price": 52105.34,
+          "prev_close": 52552.97,
+          "change_pct": -0.852,
+          "source": "Tencent usDJI index @ 2026-07-17 09:32 ET"
         }
       },
       "last_trade_update": "2026-06-13 00:02 HKT",
@@ -832,7 +832,7 @@
           "Nasdaq API (stocks)": 3,
           "Nasdaq API (etf)": 4
         },
-        "updated_at": "2026-07-16 14:32 UTC-04:00",
+        "updated_at": "2026-07-17 09:32 UTC-04:00",
         "note": "Multi-provider fetch. Sources: 3x Nasdaq API (stocks), 4x Nasdaq API (etf)"
       },
       "afterhours_fetch_status": {
