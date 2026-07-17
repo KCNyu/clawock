@@ -56,60 +56,10 @@ jobs:
 
       - name: Validate tab-cycle GIF
         if: github.event_name == 'workflow_dispatch'
-        run: |
-          python3 - <<'PY'
-          from pathlib import Path
-          import struct
-
-          GIF_MAGICS = (b'GIF89a', b'GIF87a')
-          MIN_GIF_SIZE = 300_000
-          path = Path('assets/dashboard.gif')
-
-          assert path.is_file(), f'missing GIF: {path}'
-          size = path.stat().st_size
-          assert size >= MIN_GIF_SIZE, (
-              f'GIF too small: {path} is {size} bytes; expected >= {MIN_GIF_SIZE}'
-          )
-          with path.open('rb') as gif:
-              header = gif.read(10)
-          assert header[:6] in GIF_MAGICS, f'invalid GIF magic: {path}'
-          width, height = struct.unpack('<HH', header[6:10])
-          assert width >= 300 and height >= 500, (
-              f'implausible GIF dimensions: {path} is {width}x{height}; '
-              'expected >= 300x500'
-          )
-          print(f'validated {path}: {size} bytes, {width}x{height}')
-          PY
+        run: python3 scripts/data/validate_sidecars.py gif
 
       - name: Validate screenshots
-        run: |
-          python3 - <<'PY'
-          from pathlib import Path
-          import struct
-
-          PNG_MAGIC = b'\x89PNG\r\n\x1a\n'
-          screenshots = (
-              ('assets/shadow-backtest.png', 20_000, 400, 200),
-              ('assets/social-card.png', 150_000, 1_000, 500),
-          )
-
-          for filename, min_size, min_width, min_height in screenshots:
-              path = Path(filename)
-              assert path.is_file(), f'missing screenshot: {filename}'
-              size = path.stat().st_size
-              assert size >= min_size, (
-                  f'screenshot too small: {filename} is {size} bytes; expected >= {min_size}'
-              )
-              header = path.read_bytes()[:24]
-              assert header[:8] == PNG_MAGIC, f'invalid PNG magic: {filename}'
-              assert header[12:16] == b'IHDR', f'missing PNG IHDR: {filename}'
-              width, height = struct.unpack('>II', header[16:24])
-              assert width >= min_width and height >= min_height, (
-                  f'implausible screenshot dimensions: {filename} is {width}x{height}; '
-                  f'expected >= {min_width}x{min_height}'
-              )
-              print(f'validated {filename}: {size} bytes, {width}x{height}')
-          PY
+        run: python3 scripts/data/validate_sidecars.py screenshots
 
       - name: Commit if changed
         run: |

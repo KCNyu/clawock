@@ -35,44 +35,7 @@ jobs:
         run: python3 scripts/data/gh_action_weekly_review.py
 
       - name: Validate generated review
-        run: |
-          python3 << 'PY'
-          import re
-          from datetime import date
-          from pathlib import Path
-
-          iso_year, iso_week, _ = date.today().isocalendar()
-          week_id = f'{iso_year}-W{iso_week:02d}'
-          path = Path(f'memory/weekly/{week_id}.md')
-          assert path.is_file(), f'weekly review missing: {path}'
-
-          raw = path.read_text(encoding='utf-8')
-          assert raw.startswith('---\n'), 'weekly review front matter missing'
-          parts = raw.split('---', 2)
-          assert len(parts) == 3, 'weekly review front matter is malformed'
-          front_matter, body = parts[1], parts[2].strip()
-          metadata = {}
-          for line in front_matter.strip().splitlines():
-              key, separator, value = line.partition(':')
-              assert separator, f'malformed front matter line: {line!r}'
-              metadata[key.strip()] = value.strip()
-
-          assert metadata.get('layout') == 'default', 'unexpected weekly review layout'
-          assert metadata.get('title') == f'周复盘 · {week_id}', 'weekly review title/week mismatch'
-          assert len(body) >= 1000, f'weekly review implausibly short: {len(body)} chars'
-          required_sections = ('本周净值', '风险演变', '下周关注')
-          normalized_body = re.sub(
-              r'下周(?:\s*\([^\n)]*\))?\s*关注', '下周关注', body)
-          missing = [section for section in required_sections if section not in normalized_body]
-          assert not missing, f'weekly review missing required sections: {missing}'
-          calibration_tokens = ('Brier', '校准误差', 'Calibration', '兑现')
-          assert any(token in body for token in calibration_tokens), (
-              f'weekly review missing decisions/calibration section; expected any of: '
-              f'{calibration_tokens}')
-          headings = [line for line in body.splitlines() if line.lstrip().startswith('#')]
-          assert len(headings) >= 4, 'weekly review does not contain four markdown sections'
-          print(f'weekly review validation OK: {path} ({len(body)} chars)')
-          PY
+        run: python3 scripts/data/validate_sidecars.py weekly-review
 
       - name: Commit + push
         run: |

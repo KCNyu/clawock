@@ -2,7 +2,7 @@
 import re
 from pathlib import Path
 
-from workflow_contract_helpers import step_block, step_run, steps
+from workflow_contract_helpers import assert_validator_step, step_run, steps
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -11,10 +11,6 @@ WORKFLOW = ROOT / '.github' / 'workflows' / 'influencer-scan.yml'
 
 def _steps():
     return steps(WORKFLOW)
-
-
-def _step_block(name):
-    return step_block(WORKFLOW, name)
 
 
 def _step_run(name):
@@ -27,21 +23,7 @@ def test_influencer_feed_requires_structural_coverage_before_exact_publish():
     validate = 'Validate influencer coverage'
     assert names.index(fetch) < names.index(validate) < names.index('Commit + push')
 
-    validator_block = _step_block(validate)
-    validator_run = _step_run(validate)
-    assert 'continue-on-error' not in validator_block
-    assert "Path('assets/data/influencer_feed.json')" in validator_run
-    assert 'json.loads' in validator_run
-    assert "assert isinstance(sources, dict) and sources, 'sources missing or empty'" in validator_run
-    assert "assert isinstance(items, list), 'items must be a list'" in validator_run
-    assert 'for index, item in enumerate(items):' in validator_run
-    assert "isinstance(author, str) and author.strip()" in validator_run
-    assert "isinstance(text, str) and text.strip()" in validator_run
-    assert "summary_lists = ('held_hits', 'new_ideas', 'sector_hits')" in validator_run
-    assert "total >= len(items)" in validator_run
-    assert 'empty allowed' in validator_run
-    assert 'feed has zero populated items' not in validator_run
-    assert 'total >= len(items) > 0' not in validator_run
+    assert_validator_step(WORKFLOW, validate, 'influencer')
 
     commit_run = _step_run('Commit + push')
     publish_lines = [line.strip() for line in commit_run.splitlines()

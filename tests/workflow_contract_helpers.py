@@ -5,6 +5,9 @@ import textwrap
 from pathlib import Path
 
 
+VALIDATOR_COMMAND = 'python3 scripts/data/validate_sidecars.py'
+
+
 def steps(workflow: Path):
     lines = workflow.read_text().splitlines()
     return [
@@ -54,6 +57,14 @@ def strip_hash_comments(text: str) -> str:
 
 def step_run(workflow: Path, name: str) -> str:
     block = step_block(workflow, name).splitlines()
+    inline = next(
+        (line.split('run:', 1)[1].strip()
+         for line in block if line.strip().startswith('run: ')
+         and line.strip() != 'run: |'),
+        None,
+    )
+    if inline is not None:
+        return strip_hash_comments(inline)
     run_start = next(
         (i for i, line in enumerate(block) if line.strip() == 'run: |'),
         None,
@@ -61,3 +72,9 @@ def step_run(workflow: Path, name: str) -> str:
     assert run_start is not None, f'{name} has no multiline run block'
     run = textwrap.dedent('\n'.join(block[run_start + 1:]))
     return strip_hash_comments(run)
+
+
+def assert_validator_step(workflow: Path, step_name: str, validator_name: str) -> None:
+    block = step_block(workflow, step_name)
+    assert 'continue-on-error' not in block
+    assert step_run(workflow, step_name) == f'{VALIDATOR_COMMAND} {validator_name}'
