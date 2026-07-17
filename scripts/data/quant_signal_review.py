@@ -113,8 +113,9 @@ def main():
     out = {'as_of': date.today().isoformat(), 'days_logged': len(days),
            'min_n': MIN_N, 'factors': factors, 'summary': summary,
            'discipline': ('自迭代规则：hit_rate 是因子话语权的唯一来源。usable=false 的因子只展示'
-                          '不入决策；usable 后 <50% 的因子方向结论按反向警示处理（同 driven_by '
-                          'technical 39% 降权为过滤器的先例）。')}
+                          '不入决策；usable 后 <50% 的因子方向结论按反向警示处理。driven_by='
+                          'technical 的整体战绩以 dashboard 的实时 decision_metrics.by_driver.technical '
+                          '为准，不使用固定百分比。')}
     safe_write_json(OUT, out)
     print(f'  review: {len(days)} days, summary: {summary}')
 

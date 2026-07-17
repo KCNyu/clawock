@@ -17,6 +17,9 @@ Side effects:
   - status=pass: rebuild dashboard, commit scoped report artifacts, deliver WeChat + Telegram
   - status=warn: same as pass but commit msg flags validation warnings
   - status=fail: no commit or delivery (preserve commit history clean); print issues
+  - --dry-run: validate, add missing Jekyll front matter, and write the publish-gate status;
+    do not write the decision ledger, rebuild/commit the dashboard, push, deliver messages,
+    or write the delivery marker
 """
 
 import json
@@ -332,8 +335,9 @@ def main():
     import argparse
     ap = argparse.ArgumentParser()
     ap.add_argument('--dry-run', action='store_true',
-                    help='validate + commit as usual, but do NOT actually send WeChat '
-                         '(message send runs with --dry-run). For testing / GH fallback.')
+                    help='validate without ledger writes, dashboard rebuild/commit, push, '
+                         'message delivery, or delivery-marker writes; still adds missing '
+                         'Jekyll front matter and writes the publish-gate status')
     args = ap.parse_args()
 
     today = datetime.now().strftime('%Y-%m-%d')
