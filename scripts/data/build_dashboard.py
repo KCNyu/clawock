@@ -419,9 +419,9 @@ def _pct_change(curr, prev):
         if prev is None or curr is None:
             return None
         prev = float(prev)
-        if prev == 0:
+        if prev <= 0:
             return None
-        return round((float(curr) - prev) / abs(prev) * 100, 2)
+        return round((float(curr) - prev) / prev * 100, 2)
     except Exception:
         return None
 
