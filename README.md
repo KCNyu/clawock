@@ -69,9 +69,11 @@ The Reflect dashboard reports:
 - date-cluster bootstrap intervals, so same-day calls are not treated as independent evidence; and
 - follow-through split into the calls that asked for an action and the ones that asked for nothing, because "following" a HOLD is sitting still and mechanically inflates the blended rate. The dashboard renders the current active, passive, and blended values separately.
 
-**No "what listening to the AI earned" figure is published.** The snapshots lack a stable price vintage, intraday highs and lows can carry across sessions, and most calls have no real fill to check against — so executed and counterfactual outcomes cannot be reliably told apart. The bars now exist; what is still missing is real fill records and an explicit sell-at-close book to difference against, so the money view stays unpublished.
+**The record prices timing only — now literally.** A single-event diagnostic asks how much better or worse the trigger fill was than executing at that session's close. It strictly pairs the same ticker, date, direction and share count, then reports median bps with a paired confidence interval clustered by date × ticker. It deliberately never draws a cumulative money curve.
 
-The record prices timing only. The risk caps and the HOLD discipline are not in it, and on this book they are the parts that carry their weight — `assets/data/guardrail_history.jsonl` started accruing the evidence for them on 2026-07-15.
+**Shadow Portfolio · Policy Replay** asks the broader counterfactual. Two cash + inventory books replay the same timeline from the same seed: one follows every triggered active recommendation; the other buys and holds. Both are marked at the canonical close, and their cumulative difference is reported as **simulated timing alpha**. Cash and inventory constraints prevent repeated recommendations from selling the same lot twice. The Drill card is explicitly labelled **simulated · not live**, exposes `fill_counts.real_trade` because most recommendations were never actually executed, keeps USD and HKD books separate, and discloses the bias from unadjusted bars. Its source is the sidecar `assets/data/shadow_portfolio.json`; it is a policy simulation, not a claim about what the live account earned.
+
+The risk caps and the HOLD discipline are outside both timing diagnostics, and on this book they are the parts that carry their weight — `assets/data/guardrail_history.jsonl` accumulates the evidence for them.
 
 The LLM only submits decisions; it cannot write or amend its own evaluation. IDs, triggers, grouping and metrics are computed mechanically by Python from the recorded data. That isolation stops the model from grading itself — it does **not** make the market inputs, the trigger verdicts, or the metric definitions correct. Treat the record as a diagnostic, not as proof of return.
 
@@ -164,6 +166,12 @@ Four overlapping layers — OpenClaw schedules the primary jobs; a GitHub Action
 
 </td></tr>
 </table>
+
+**Fail closed, in code:**
+
+- If portfolio risk cannot be computed, the risk card renders **“⚠️ can't compute”**, never a green “✅ none.”
+- The 09:05 brief judge validates `plan.json`; a file that merely exists does not count as a valid plan.
+- The off-host brief fallback trims whole structured sections and publishes a manifest. If a required ledger is missing, it emits zero actions instead of improvising from partial context.
 
 <details>
 <summary><b>🔧 Under the hood</b> — model chain, write reconciliation, the genuinely tricky bits</summary>
