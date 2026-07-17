@@ -11,6 +11,7 @@ Env: MINIMAX_API_KEY required; XIAOMI_API_KEY optional fallback
 import json
 import os
 import sys
+from copy import deepcopy
 from datetime import date
 from pathlib import Path
 
@@ -28,6 +29,169 @@ import decision_v2
 # MiniMax M3 takes 1M context and accepted the full body at 23.9K input tokens, so the
 # cap only needs to be a sanity bound, not a budget.
 CONTEXT_CAP = 400_000
+REQUIRED_SECTIONS = ('portfolio', 'hk_stocks', 'us_stocks')
+# Least decision-critical first.  These sections may contain long prose copied
+# from feeds; deterministic portfolio state is never placed in this list.
+TRIMMABLE_SECTIONS = (
+    'news', 'em_news', 'sentiment', 'influencer', 'retrospective',
+    'reflections', 'peer_scan', 'us_fundamentals', 'macro', 'catalysts',
+)
+
+
+def _compact(value):
+    return json.dumps(value, ensure_ascii=False, separators=(',', ':'))
+
+
+def _required_section(context, name):
+    if name == 'portfolio':
+        return context.get('portfolio')
+    direct = context.get(name)
+    if direct is not None:
+        return direct
+    portfolio = context.get('portfolio')
+    if not isinstance(portfolio, dict):
+        return None
+    return ((portfolio.get('portfolios') or {}).get(name))
+
+
+def prepare_context(raw_context, cap=CONTEXT_CAP):
+    """Parse and structurally trim context; never cut a serialized JSON string.
+
+    Returns a dict with the compact JSON, parsed payload, manifest and completeness
+    decision.  Logical HK/US sections live inside ``portfolio.portfolios`` in the
+    current preflight schema, but are reported separately in the manifest because
+    they are independently required for safe cross-market advice.
+    """
+    try:
+        original = json.loads(raw_context) if isinstance(raw_context, str) else deepcopy(raw_context)
+    except Exception as e:
+        manifest = {
+            name: {'status': 'missing', 'required': True}
+            for name in REQUIRED_SECTIONS
+        }
+        return {
+            'payload': {},
+            'serialized': '{}',
+            'manifest': manifest,
+            'complete': False,
+            'errors': [f'context JSON 无法解析: {e}'],
+        }
+    if not isinstance(original, dict):
+        return {
+            'payload': {},
+            'serialized': '{}',
+            'manifest': {
+                name: {'status': 'missing', 'required': True}
+                for name in REQUIRED_SECTIONS
+            },
+            'complete': False,
+            'errors': ['context 顶层不是 object'],
+        }
+
+    payload = deepcopy(original)
+    manifest = {}
+    errors = []
+    for name in REQUIRED_SECTIONS:
+        value = _required_section(original, name)
+        present = isinstance(value, dict)
+        manifest[name] = {
+            'status': 'included' if present else 'missing',
+            'required': True,
+            'bytes': len(_compact(value)) if present else 0,
+        }
+        if not present:
+            errors.append(f'必需 section 缺失: {name}')
+
+    for name in payload:
+        if name not in manifest:
+            manifest[name] = {
+                'status': 'included',
+                'required': False,
+                'bytes': len(_compact(payload[name])),
+            }
+
+    def serialize_with_manifest():
+        candidate = deepcopy(payload)
+        candidate['_section_manifest'] = manifest
+        return candidate, _compact(candidate)
+
+    candidate, serialized = serialize_with_manifest()
+    if len(serialized) > cap:
+        for name in TRIMMABLE_SECTIONS:
+            if name not in payload:
+                continue
+            before = len(_compact(payload[name]))
+            payload[name] = {
+                '_trimmed': True,
+                'reason': 'context_cap',
+                'original_bytes': before,
+            }
+            manifest[name].update({
+                'status': 'trimmed',
+                'bytes_before': before,
+                'bytes': len(_compact(payload[name])),
+            })
+            candidate, serialized = serialize_with_manifest()
+            if len(serialized) <= cap:
+                break
+
+    # If optional structured sections still make the payload too large, omit the
+    # largest non-required sections as whole JSON values.  Required state remains
+    # byte-for-byte equal to the parsed input.
+    if len(serialized) > cap:
+        optional = [
+            (len(_compact(value)), name)
+            for name, value in payload.items()
+            if name not in REQUIRED_SECTIONS and name != 'portfolio'
+        ]
+        for before, name in sorted(optional, reverse=True):
+            payload.pop(name, None)
+            manifest[name].update({'status': 'omitted', 'bytes_before': before, 'bytes': 0})
+            candidate, serialized = serialize_with_manifest()
+            if len(serialized) <= cap:
+                break
+
+    if len(serialized) > cap:
+        errors.append(
+            f'必需 section 保全后仍超过 CONTEXT_CAP ({len(serialized)}>{cap})')
+
+    # Mutation guard: a future refactor must not "solve" the cap by changing a
+    # required section.  This also detects accidental loss of nested HK/US legs.
+    for name in REQUIRED_SECTIONS:
+        before = _required_section(original, name)
+        after = _required_section(candidate, name)
+        if before != after:
+            manifest[name]['status'] = 'trimmed'
+            errors.append(f'必需 section 被改写: {name}')
+
+    return {
+        'payload': candidate,
+        'serialized': serialized,
+        'manifest': manifest,
+        'complete': not errors,
+        'errors': errors,
+    }
+
+
+def fail_closed_artifacts(today, prepared):
+    """Deterministic no-action output for incomplete required data."""
+    missing = '；'.join(prepared.get('errors') or ['必需数据不完整'])
+    md = (
+        f"---\nlayout: default\ntitle: 盘前深度简报 · {today} (数据不完整)\n"
+        f"description: \"必需持仓数据不完整；本次不生成交易动作。\"\n---\n\n"
+        f"# ⚠️ 数据不完整，本次不生成交易动作\n\n"
+        f"{missing}。为避免在港股或美股账本盲区下下单，所有买入、卖出、加减仓动作均已禁止。\n\n"
+        f"section manifest：\n```json\n"
+        f"{json.dumps(prepared.get('manifest') or {}, ensure_ascii=False, indent=2)}\n```\n"
+    )
+    plan = {
+        'schema_version': 2,
+        'date': today,
+        'data_complete': False,
+        'decisions': [],
+        'section_manifest': prepared.get('manifest') or {},
+    }
+    return md, plan
 
 
 def main():
@@ -36,14 +200,15 @@ def main():
     if not ctx_path.exists():
         print(f'FATAL: no preflight context at {ctx_path}', file=sys.stderr)
         sys.exit(1)
-    # Re-serialize compact. Preflight writes the context pretty-printed, which is 194KB
-    # on disk but 116KB as one line — 40% of the prompt was indentation, and under the
-    # old character cap that whitespace was displacing real data.
-    context = ctx_path.read_text()
-    try:
-        context = json.dumps(json.loads(context), ensure_ascii=False, separators=(',', ':'))
-    except Exception:
-        pass  # malformed context: send it raw and let the LLM/validator complain
+    prepared = prepare_context(ctx_path.read_text())
+    if not prepared['complete']:
+        md, plan = fail_closed_artifacts(today, prepared)
+        Path(f'memory/{today}-pre-open.md').write_text(md)
+        Path(f'memory/{today}-plan.json').write_text(
+            json.dumps(plan, ensure_ascii=False, indent=2))
+        print('  fail-closed: required context incomplete; wrote zero-action artifacts')
+        return
+    context = prepared['serialized']
 
     skill = Path('skills/daily-deep-brief/SKILL.md').read_text()
     soul = Path('SOUL.md').read_text()
@@ -53,7 +218,8 @@ def main():
     user = (
         f"按下面 SKILL.md 规则跑 daily-deep-brief, 输出完整 markdown + 末尾 ```json``` block 给 plan.json schema.\n\n"
         f"SKILL.md:\n{skill}\n\n"
-        f"Preflight context (deterministic data, 数字以此为准):\n```json\n{context[:CONTEXT_CAP]}\n```\n\n"
+        f"Preflight context (deterministic data, 数字以此为准；含 section manifest):\n"
+        f"```json\n{context}\n```\n\n"
         f"格式: 1) 完整 brief markdown (按 SKILL); 2) 末尾 ```json``` plan.json. 直接出 brief, 不要客套."
     )
 

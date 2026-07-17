@@ -28,6 +28,7 @@ SNAPSHOT_FNAME_RE = re.compile(r'^\d{4}-\d{2}-\d{2}\.json$')
 WS_ROOT = Path(__file__).resolve().parent.parent.parent
 OUT_DIR = WS_ROOT / 'assets' / 'data'
 OUT_FILE = OUT_DIR / 'dashboard.json'
+AUDIT_FILE = OUT_DIR / 'decision_audit.json'
 
 # ── Anti-bloat caps ──────────────────────────────────────────────────────
 # Dashboard only embeds the most recent snapshots + plan summaries.
@@ -45,6 +46,34 @@ def load_json(path):
     except Exception as e:
         print(f'  warn: failed to load {path}: {e}', file=sys.stderr)
         return None
+
+
+def compute_guardrail_outputs(portfolio, risk, lev_regime=None):
+    """Compute the two live risk cards without ever failing the dashboard build.
+
+    The frontend must be able to distinguish "computed and no breaches" from
+    "could not compute".  Returning ``None`` erased that distinction because the
+    renderer normalized it to ``{}`` and painted a green all-clear.
+    """
+    try:
+        sys.path.insert(0, str(WS_ROOT / 'scripts' / 'harness'))
+        from brief_preflight import (compute_risk_guardrail, compute_concentration,
+                                     compute_breakeven_math)
+        hk_holdings = portfolio['portfolios']['hk_stocks']['holdings']
+        us_holdings = portfolio['portfolios']['us_stocks']['holdings']
+        guardrail = compute_risk_guardrail(
+            hk_holdings, us_holdings,
+            compute_concentration(hk_holdings), compute_concentration(us_holdings),
+            risk or {}, lev_regime=lev_regime)
+        breakeven = compute_breakeven_math(
+            hk_holdings, us_holdings, lev_regime=lev_regime)
+        return {'risk_guardrail': guardrail, 'breakeven_math': breakeven}
+    except Exception as e:
+        print(f'  warn: risk_guardrail compute fail: {e}', file=sys.stderr)
+        return {
+            'risk_guardrail': {'error': str(e), 'computed': False},
+            'breakeven_math': {'computed': False},
+        }
 
 
 def trim_holding(h, currency):
@@ -1807,6 +1836,14 @@ def main():
     # compatibility keys are emitted: frontend, README and harness share this.
     _decisions = decision_v2.load_decisions()
     decision_v2.settle_decisions(_decisions)
+    audit_file = Path(os.environ.get('DECISION_AUDIT_OUT')
+                      or (out_file.parent / AUDIT_FILE.name))
+    from safe_io import safe_write_text
+    safe_write_text(
+        str(audit_file),
+        json.dumps(
+            decision_v2.build_audit_sidecar(_decisions, portfolio),
+            ensure_ascii=False, separators=(',', ':')))
     out['decision_schema_version'] = 2
     out['decision_metrics'] = decision_v2.compute_metrics(_decisions)
     out['episode_backtest'] = decision_v2.compute_backtest(_decisions)
@@ -1852,20 +1889,8 @@ def main():
     out['lev_regime'] = lev_regime
     out['reentry_radar'] = compute_reentry_radar(lev_regime, portfolio)
 
-    try:
-        sys.path.insert(0, str(WS_ROOT / 'scripts' / 'harness'))
-        from brief_preflight import (compute_risk_guardrail, compute_concentration,
-                                     compute_breakeven_math)
-        _gr_hk = portfolio['portfolios']['hk_stocks']['holdings']
-        _gr_us = portfolio['portfolios']['us_stocks']['holdings']
-        out['risk_guardrail'] = compute_risk_guardrail(
-            _gr_hk, _gr_us, compute_concentration(_gr_hk), compute_concentration(_gr_us),
-            out.get('risk') or {}, lev_regime=lev_regime)
-        out['breakeven_math'] = compute_breakeven_math(_gr_hk, _gr_us, lev_regime=lev_regime)
-    except Exception as e:
-        print(f'  warn: risk_guardrail compute fail: {e}', file=sys.stderr)
-        out['risk_guardrail'] = None
-        out['breakeven_math'] = None
+    out.update(compute_guardrail_outputs(
+        portfolio, out.get('risk') or {}, lev_regime=lev_regime))
 
     # Embed GH Action outputs into dashboard.json so the static page can render them
     def _embed(key, fname):
@@ -1972,10 +1997,10 @@ def main():
         payload = json.dumps(out, ensure_ascii=False)
         size_bytes = len(payload.encode('utf-8'))
 
-    from safe_io import safe_write_text
     safe_write_text(str(out_file), payload)
 
     print(f'✓ wrote {out_file} ({size_bytes:,} bytes)')
+    print(f'✓ wrote {audit_file} (decision audit sidecar)')
     print(f'  US: {len(us_h)} holdings, {len([h for h in us_h if h["is_active"]])} active, value ${us_conc["total"]:.0f}')
     print(f'  HK: {len(hk_h)} holdings, {len([h for h in hk_h if h["is_active"]])} active, value HK${hk_conc["total"]:.0f}')
     print(f'  Snapshots: {len(snapshots)} embedded / {out["snapshots_total"]} on disk')

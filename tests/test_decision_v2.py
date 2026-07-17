@@ -183,6 +183,131 @@ class CanonicalBarSettlementTest(unittest.TestCase):
         self.assertIsNone(sess)
         self.assertEqual(reason, "invalid_authored_timestamp")
 
+
+class DecisionAuditSidecarTest(unittest.TestCase):
+    def _executed(self, ticker, leg, action, shares, price, close, day="2026-07-01"):
+        row = dv2.legacy_action_to_decision({
+            "ticker": ticker,
+            "leg": leg,
+            "strategy_id": "core_position",
+            "action": action,
+            "condition": {"type": "open", "description": "authored condition"},
+            "size": {"shares": shares},
+            "confidence": 0.7,
+            "driven_by": "technical",
+            "rationale": "authored rationale",
+        }, day)
+        row["evaluation"] = {
+            "status": "settled",
+            "outcome": "win",
+            "triggered": True,
+            "trigger_session": day,
+            "execution_price": price + 99,  # OHLC assumption, deliberately not real
+            "fill_assumed": True,
+            "fill_reason": "intraday_cross",
+            "fill_model": "daily_ohlc_gap_aware_v1",
+            "mark_t1_session": "2026-07-02",
+            "mark_t5_session": "2026-07-03",
+        }
+        row["execution"] = {"status": "followed", "source": "manual"}
+        trade_action = "sell" if action in dv2.SELL_ACTIONS else "buy"
+        holding = {
+            "ticker": ticker,
+            "trades": [{
+                "date": day, "action": trade_action, "shares": shares, "price": price,
+            }],
+        }
+        bars = {
+            day: _bar(close, close + 1, close - 1, close),
+            "2026-07-02": _bar(close + 1),
+            "2026-07-03": _bar(close + 2),
+        }
+        return row, holding, bars
+
+    def test_audit_preserves_authored_text_all_states_and_canonical_path(self):
+        settled, holding, bars = self._executed(
+            "00100", "HK", "cut", 20, 105, 100)
+        rows = [settled]
+        for state in ("not_triggered", "not_evaluable", "pending"):
+            row = copy.deepcopy(settled)
+            row["decision_id"] = f"dec-{state}"
+            row["evaluation"] = {"status": state, "outcome": state}
+            row["execution"] = {"status": "unknown"}
+            rows.append(row)
+        portfolio = {
+            "portfolios": {
+                "hk_stocks": {"holdings": [holding]},
+                "us_stocks": {"holdings": []},
+            }
+        }
+
+        with mock.patch.object(dv2, "load_ticker_bars", return_value=bars):
+            sidecar = dv2.build_audit_sidecar(
+                rows, portfolio, as_of="2026-07-17T12:00:00+08:00")
+
+        self.assertEqual(sidecar["schema_version"], 1)
+        self.assertEqual(sidecar["primary_key"], "decision_id")
+        self.assertEqual(
+            set(sidecar["state_counts"]),
+            {"settled", "not_triggered", "not_evaluable", "pending"})
+        record = next(r for r in sidecar["records"]
+                      if r["decision_id"] == settled["decision_id"])
+        self.assertEqual(record["authored"]["rationale"], "authored rationale")
+        self.assertEqual(
+            record["authored"]["condition"]["description"], "authored condition")
+        self.assertEqual(record["execution"]["actual"]["price"], 105.0)
+        self.assertEqual(
+            record["execution"]["ohlc_assumption"]["price"], 204.0)
+        self.assertEqual(record["fill_model"], "real_portfolio_trade")
+        self.assertTrue(record["coverage"]["canonical_only"])
+        self.assertEqual(
+            [point["close"] for point in record["path"]],
+            [100.0, 101.0, 102.0])
+
+    def test_timing_diagnostic_uses_real_fill_vs_same_day_close_per_currency(self):
+        hk, hk_holding, hk_bars = self._executed(
+            "00100", "HK", "cut", 20, 105, 100)
+        us, us_holding, us_bars = self._executed(
+            "MSFT", "US", "add_only_on_trigger", 2, 95, 100)
+        portfolio = {
+            "portfolios": {
+                "hk_stocks": {"holdings": [hk_holding]},
+                "us_stocks": {"holdings": [us_holding]},
+            }
+        }
+
+        def bars_for(ticker):
+            return hk_bars if ticker == "00100" else us_bars
+
+        with mock.patch.object(dv2, "load_ticker_bars", side_effect=bars_for):
+            diagnostic = dv2.compute_timing_diagnostic([hk, us], portfolio)
+
+        hk_event = diagnostic["by_currency"]["HKD"]["events"][0]
+        us_event = diagnostic["by_currency"]["USD"]["events"][0]
+        self.assertEqual(hk_event["improvement_amount"], 100.0)
+        self.assertEqual(hk_event["improvement_bps"], 500.0)
+        self.assertEqual(us_event["improvement_amount"], 10.0)
+        self.assertEqual(us_event["improvement_bps"], 500.0)
+        self.assertEqual(diagnostic["by_currency"]["HKD"]["median_bps"], 500.0)
+        self.assertEqual(diagnostic["by_currency"]["USD"]["median_bps"], 500.0)
+        self.assertNotIn("combined", diagnostic)
+        self.assertTrue(diagnostic["cross_ticker_swaps_excluded"])
+
+    def test_ambiguous_trade_is_not_attributed_without_transaction_id(self):
+        first, holding, bars = self._executed(
+            "00100", "HK", "cut", 20, 105, 100)
+        second = copy.deepcopy(first)
+        second["decision_id"] = "dec-second"
+        portfolio = {
+            "portfolios": {
+                "hk_stocks": {"holdings": [holding]},
+                "us_stocks": {"holdings": []},
+            }
+        }
+        with mock.patch.object(dv2, "load_ticker_bars", return_value=bars):
+            diagnostic = dv2.compute_timing_diagnostic([first, second], portfolio)
+        self.assertEqual(diagnostic["by_currency"]["HKD"]["n_events"], 0)
+
     def test_resettling_twice_is_idempotent(self):
         bars = {"2026-07-01": _bar(10.0), "2026-07-02": _bar(9.0)}
         row = dv2.legacy_action_to_decision({

@@ -6,6 +6,7 @@ it does not read snapshots, portfolio data, or the network.
 """
 from pathlib import Path
 import sys
+from types import SimpleNamespace
 
 import pytest
 
@@ -33,6 +34,25 @@ def _snapshot(day, *, us_equity, hk_equity, us_profit=None, hk_profit=None):
         "us_profit": us_profit,
         "hk_profit": hk_profit,
     }
+
+
+def test_guardrail_compute_exception_is_an_explicit_failure_dict(monkeypatch):
+    def explode(*_args, **_kwargs):
+        raise RuntimeError("synthetic guardrail failure")
+
+    fake_preflight = SimpleNamespace(
+        compute_risk_guardrail=explode,
+        compute_concentration=lambda _holdings: {},
+        compute_breakeven_math=lambda *_args, **_kwargs: {"rows": []},
+    )
+    monkeypatch.setitem(sys.modules, "brief_preflight", fake_preflight)
+
+    result = dashboard.compute_guardrail_outputs(_portfolio(), risk={})
+
+    assert isinstance(result["risk_guardrail"], dict)
+    assert result["risk_guardrail"]["computed"] is False
+    assert result["risk_guardrail"]["error"] == "synthetic guardrail failure"
+    assert result["breakeven_math"] == {"computed": False}
 
 
 def test_profit_curve_max_drawdown_matches_known_peak_and_trough():

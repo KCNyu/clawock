@@ -1,75 +1,99 @@
 {
   "as_of": "2026-07-17",
   "days_logged": 27,
-  "min_n": 20,
+  "unlock_rule": "cluster_ci_entirely_above_or_below_50pct",
   "factors": {
     "trend_on_follow": {
-      "n": 26,
+      "n_events": 26,
+      "n_dates": 26,
+      "n_tickers": 1,
       "hit_rate": 0.038,
-      "ci95": [
-        0.007,
-        0.189
-      ],
+      "ci95": null,
+      "ci_method": "date_ticker_two_way_cluster_bootstrap",
       "edge_significant": false,
-      "usable": true,
-      "note": ""
+      "reverse_edge_significant": false,
+      "decision_direction": null,
+      "usable": false,
+      "note": "date/ticker 聚类不足，方向结论不入决策"
     },
     "trend_off_avoid": {
-      "n": 196,
+      "n_events": 196,
+      "n_dates": 22,
+      "n_tickers": 9,
       "hit_rate": 0.536,
       "ci95": [
-        0.466,
-        0.604
+        0.349,
+        0.708
       ],
+      "ci_method": "date_ticker_two_way_cluster_bootstrap",
       "edge_significant": false,
-      "usable": true,
-      "note": ""
+      "reverse_edge_significant": false,
+      "decision_direction": null,
+      "usable": false,
+      "note": "聚类 CI 跨 50%，方向结论不入决策"
     },
     "rsi_oversold_bounce": {
-      "n": 24,
+      "n_events": 24,
+      "n_dates": 14,
+      "n_tickers": 7,
       "hit_rate": 0.667,
       "ci95": [
-        0.467,
-        0.82
-      ],
-      "edge_significant": false,
-      "usable": true,
-      "note": ""
-    },
-    "rsi_overbought_fade": {
-      "n": 2,
-      "hit_rate": 1.0,
-      "ci95": [
-        0.342,
+        0.333,
         1.0
       ],
+      "ci_method": "date_ticker_two_way_cluster_bootstrap",
       "edge_significant": false,
+      "reverse_edge_significant": false,
+      "decision_direction": null,
       "usable": false,
-      "note": "样本不足，brief 不得引用方向结论"
+      "note": "聚类 CI 跨 50%，方向结论不入决策"
+    },
+    "rsi_overbought_fade": {
+      "n_events": 2,
+      "n_dates": 2,
+      "n_tickers": 1,
+      "hit_rate": 1.0,
+      "ci95": null,
+      "ci_method": "date_ticker_two_way_cluster_bootstrap",
+      "edge_significant": false,
+      "reverse_edge_significant": false,
+      "decision_direction": null,
+      "usable": false,
+      "note": "date/ticker 聚类不足，方向结论不入决策"
     },
     "zscore_extreme_revert": {
-      "n": 9,
+      "n_events": 9,
+      "n_dates": 5,
+      "n_tickers": 5,
       "hit_rate": 0.889,
       "ci95": [
-        0.565,
-        0.98
+        0.25,
+        1.0
       ],
-      "edge_significant": true,
+      "ci_method": "date_ticker_two_way_cluster_bootstrap",
+      "edge_significant": false,
+      "reverse_edge_significant": false,
+      "decision_direction": null,
       "usable": false,
-      "note": "样本不足，brief 不得引用方向结论"
+      "note": "聚类 CI 跨 50%，方向结论不入决策"
     },
     "stop_breach_continue": {
-      "n": 207,
+      "n_events": 207,
+      "n_dates": 22,
+      "n_tickers": 10,
       "hit_rate": 0.546,
       "ci95": [
-        0.478,
-        0.612
+        0.352,
+        0.715
       ],
+      "ci_method": "date_ticker_two_way_cluster_bootstrap",
       "edge_significant": false,
-      "usable": true,
-      "note": ""
+      "reverse_edge_significant": false,
+      "decision_direction": null,
+      "usable": false,
+      "note": "聚类 CI 跨 50%，方向结论不入决策"
     }
   },
-  "summary": "trend_on_follow 4%[1–19](n=26)、trend_off_avoid 54%[47–60](n=196)、rsi_oversold_bounce 67%[47–82](n=24)、stop_breach_continue 55%[48–61](n=207)",
-  "discipline": "自迭代规则：hit_rate 是因子话语权的唯一来源。usable=false 的因子只展示不入决策；usable 后 <50% 的因子方向结论按反向警示处理（同 driven_by technical 39% 降权为过滤器的先例）。"
+  "summary": "没有因子通过聚类 CI 50% 闸（27 天留痕）——结论未解锁",
+  "discipline": "自迭代规则：公开 n_events/n_dates/n_tickers；date×ticker 双向聚类 CI 跨 50% 不入决策；只有反向 CI 整体低于 50% 才允许反向解读。driven_by=technical 的整体战绩以 dashboard 的实时 decision_metrics.by_driver.technical 为准，不使用固定百分比。"
 }

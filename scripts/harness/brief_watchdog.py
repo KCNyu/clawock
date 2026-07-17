@@ -56,23 +56,60 @@ from _watchdog_common import (  # noqa: E402
 MARKER_FRESH_MS = 30 * 60 * 1000  # postflight send-marker older than this ⇒ not this slot
 
 
-def alert_brief_missing(today, dry_run):
-    """09:05 HKT: window closed, still no brief ⇒ a real miss. Page kcn + self-heal.
+def inspect_brief_artifacts(today):
+    """Return concrete 09:05 artifact failures; an empty list means usable.
+
+    Current plans are v2 and store action records under ``decisions``.  The
+    legacy ``actions`` spelling is accepted here only so the miss detector can
+    describe old artifacts accurately; postflight remains the schema authority.
+    """
+    brief_path = WS / 'memory' / f'{today}-pre-open.md'
+    plan_path = WS / 'memory' / f'{today}-plan.json'
+    issues = []
+    if not brief_path.exists():
+        issues.append('brief_missing')
+    if not plan_path.exists():
+        issues.append('plan_missing')
+        return issues
+    try:
+        plan = json.loads(plan_path.read_text())
+    except Exception:
+        issues.append('plan_invalid')
+        return issues
+    actions = plan.get('decisions')
+    if actions is None:
+        actions = plan.get('actions')
+    if (not isinstance(actions, list) or not actions
+            or not all(isinstance(row, dict) and row.get('action') for row in actions)):
+        issues.append('plan_invalid')
+    return issues
+
+
+def alert_brief_missing(today, dry_run, issues=None):
+    """09:05 HKT: landing artifacts are incomplete ⇒ page kcn + self-heal.
 
     Dispatch has to happen before 10:00 HKT — brief-fallback.yml refuses to generate a
     pre-open brief after HK open. That is why this pass runs at 09:05 and not later.
     We alert even when the dispatch succeeds: the fallback is a single-turn vendor call
     that can itself fail, so kcn should know the 08:00 swarm missed regardless."""
+    issues = issues if issues is not None else inspect_brief_artifacts(today)
+    if not issues:
+        return 0
     flag = WS / 'memory' / '.tmp' / f'watchdog-brief-missing-{today}.done'
     if flag.exists():
         log({'tag': 'brief', 'action': 'skip', 'reason': 'brief-missing already handled today'})
         return 0
 
     dispatched, out = dispatch_brief_fallback(dry_run)
+    labels = {
+        'brief_missing': f'brief 缺失：memory/{today}-pre-open.md 不存在',
+        'plan_missing': f'plan 缺失：memory/{today}-plan.json 不存在',
+        'plan_invalid': f'plan 无效：memory/{today}-plan.json 无法解析或没有非空动作数组',
+    }
+    issue_text = '\n'.join(f'- {labels[x]}' for x in issues)
     alert = (
-        f'🔴 盘前深度简报缺失 — {today}\n\n'
-        f'08:00 的 cron 没有产出 memory/{today}-pre-open.md，plan.json 同样没有。'
-        f'到 09:05 仍然没有 = 今天没有 plan。\n\n'
+        f'🔴 盘前深度简报产物不完整 — {today}\n\n'
+        f'09:05 检查结果：\n{issue_text}\n\n'
         + ('✅ 已自动 dispatch off-host 兜底 (brief-fallback.yml)，约 5-10 分钟落盘并 push。\n'
            if dispatched else
            '⚠️ 自动 dispatch 兜底失败，需要手动：gh workflow run brief-fallback.yml\n'
@@ -82,12 +119,14 @@ def alert_brief_missing(today, dry_run):
     )
     tg_ok, tg_out = send_telegram(KCN_TELEGRAM, alert, dry_run)
     log({'tag': 'brief', 'action': 'alert-brief-missing', 'dry_run': dry_run,
+         'issues': issues,
          'dispatched_fallback': dispatched, 'dispatch_out': out,
          'sent_ok': tg_ok, 'target': KCN_TELEGRAM, 'out': tg_out})
     if tg_ok and not dry_run:
         flag.parent.mkdir(parents=True, exist_ok=True)
         flag.write_text(datetime.now(HKT).isoformat())
-    print(json.dumps({'tag': 'brief', 'reason': 'brief never written',
+    print(json.dumps({'tag': 'brief', 'reason': 'brief artifacts incomplete',
+                      'issues': issues,
                       'dispatched_fallback': dispatched, 'alerted_telegram': tg_ok,
                       'dry_run': dry_run}, ensure_ascii=False))
     return 0
@@ -103,12 +142,18 @@ def main():
     today = datetime.now(HKT).strftime('%Y-%m-%d')
     tag = 'brief'
 
+    if args.check_missing:
+        issues = inspect_brief_artifacts(today)
+        if issues:
+            return alert_brief_missing(today, args.dry_run, issues)
+        log({'tag': tag, 'action': 'ok',
+             'reason': '09:05 brief and non-empty valid plan both present'})
+        return 0
+
     # No brief on disk. There is no card to mirror either way — what differs is whether
     # we can yet call it a miss. At 08:30 we are inside the landing window (08:13-08:49
     # observed) so silence is correct; at 09:05 the window has closed, so it is a miss.
     if not (WS / 'memory' / f'{today}-pre-open.md').exists():
-        if args.check_missing:
-            return alert_brief_missing(today, args.dry_run)
         log({'tag': tag, 'action': 'skip',
              'reason': 'no pre-open.md yet (inside 08:13-08:49 landing window; '
                        '09:05 --check-missing pass judges the miss)'})

@@ -11,37 +11,20 @@
   zscore20<=-2    → 极端偏离后 T+5 回归比例
   stop_breached   → 破吊灯线后 T+5 继续跌的比例（止损线是否值得执行）
 
-写 assets/data/quant_signal_review.json。样本 n<MIN_N 的因子标「样本不足」，brief 不得引用
-其方向结论——这就是自迭代：哪个因子可信由数据决定并随样本自动更新，不靠手调。
+写 assets/data/quant_signal_review.json。公开 events/dates/tickers 三种样本数并使用
+date×ticker 双向聚类 bootstrap CI。CI 跨 50% 不入决策；低于 50% 也只有在反向
+CI 整体成立时才允许反向解读，不按 raw n 自动解锁。
 纯本地文件运算，无网络请求，brief preflight 每日顺跑。
 """
 import json
-import math
+import random
 import sys
 from datetime import date
 from pathlib import Path
 
-
-def wilson_ci(hits, n, z=1.96):
-    """95% Wilson score interval for a proportion. Returns [lo, hi] rounded, or None.
-
-    Why: a raw hit-rate like 69% on n=61 hides huge uncertainty. The Wilson band
-    makes the false precision explicit — and if the band straddles 0.5 the
-    'edge' is statistically indistinguishable from a coin flip.
-    """
-    if not n:
-        return None
-    p = hits / n
-    denom = 1 + z * z / n
-    center = (p + z * z / (2 * n)) / denom
-    half = z * math.sqrt(p * (1 - p) / n + z * z / (4 * n * n)) / denom
-    return [round(max(0.0, center - half), 3), round(min(1.0, center + half), 3)]
-
 WS = Path(__file__).resolve().parents[2]
 HIST = WS / 'assets' / 'data' / 'quant_signals_history.jsonl'
 OUT = WS / 'assets' / 'data' / 'quant_signal_review.json'
-
-MIN_N = 20   # 因子结论可被 brief 引用的最小样本量
 
 sys.path.insert(0, str(WS / 'scripts' / 'data'))
 try:
@@ -61,6 +44,39 @@ FACTOR_TESTS = {
 }
 
 
+def clustered_ci(observations, samples=2000):
+    """Two-way pigeonhole bootstrap over date and ticker clusters."""
+    if not observations:
+        return None
+    dates = sorted({row['date'] for row in observations})
+    tickers = sorted({row['ticker'] for row in observations})
+    if len(dates) < 2 or len(tickers) < 2:
+        return None
+    rnd = random.Random(20260717)
+    draws = []
+    for _ in range(samples):
+        date_counts = {d: 0 for d in dates}
+        ticker_counts = {t: 0 for t in tickers}
+        for _ in dates:
+            date_counts[rnd.choice(dates)] += 1
+        for _ in tickers:
+            ticker_counts[rnd.choice(tickers)] += 1
+        hits = total = 0
+        for row in observations:
+            weight = date_counts[row['date']] * ticker_counts[row['ticker']]
+            hits += weight * int(row['hit'])
+            total += weight
+        if total:
+            draws.append(hits / total)
+    if not draws:
+        return None
+    draws.sort()
+    return [
+        round(draws[int(.025 * (len(draws) - 1))], 3),
+        round(draws[int(.975 * (len(draws) - 1))], 3),
+    ]
+
+
 def main():
     if not HIST.exists():
         print('  no history yet — skip')
@@ -74,7 +90,7 @@ def main():
                 continue
     days.sort(key=lambda d: d['as_of'])
 
-    stats = {k: {'n': 0, 'hits': 0} for k in FACTOR_TESTS}
+    stats = {k: {'n': 0, 'hits': 0, 'observations': []} for k in FACTOR_TESTS}
     for i, day in enumerate(days):
         for sym, sig in (day.get('rows') or {}).items():
             c0 = sig.get('close')
@@ -90,30 +106,58 @@ def main():
                     continue
                 fwd = c1 / c0 - 1
                 stats[name]['n'] += 1
-                stats[name]['hits'] += 1 if fwd * direction > 0 else 0
+                hit = fwd * direction > 0
+                stats[name]['hits'] += 1 if hit else 0
+                stats[name]['observations'].append({
+                    'date': day['as_of'], 'ticker': sym, 'hit': hit,
+                })
 
     factors = {}
     usable = []
     for name, s in stats.items():
         wr = round(s['hits'] / s['n'], 3) if s['n'] else None
-        ci = wilson_ci(s['hits'], s['n'])          # 95% Wilson 区间，量化"假精度"
-        # 真有方向 edge = 整个 95% 区间都在掷硬币(50%)之上；否则命中率与随机不可区分
+        observations = s['observations']
+        dates = {row['date'] for row in observations}
+        tickers = {row['ticker'] for row in observations}
+        ci = clustered_ci(observations)
         edge_sig = ci is not None and ci[0] > 0.5
-        factors[name] = {'n': s['n'], 'hit_rate': wr,
+        reverse_sig = ci is not None and ci[1] < 0.5
+        direction = ('original' if edge_sig else
+                     'reverse' if reverse_sig else None)
+        usable_now = direction is not None
+        if ci is None:
+            note = 'date/ticker 聚类不足，方向结论不入决策'
+        elif not usable_now:
+            note = '聚类 CI 跨 50%，方向结论不入决策'
+        elif reverse_sig:
+            note = '反向聚类 CI 完全低于 50%，仅允许反向解读'
+        else:
+            note = ''
+        factors[name] = {'n_events': s['n'],
+                         'n_dates': len(dates),
+                         'n_tickers': len(tickers),
+                         'hit_rate': wr,
                          'ci95': ci,
+                         'ci_method': 'date_ticker_two_way_cluster_bootstrap',
                          'edge_significant': edge_sig,
-                         'usable': s['n'] >= MIN_N,
-                         'note': '样本不足，brief 不得引用方向结论' if s['n'] < MIN_N else ''}
-        if s['n'] >= MIN_N and wr is not None:
+                         'reverse_edge_significant': reverse_sig,
+                         'decision_direction': direction,
+                         'usable': usable_now,
+                         'note': note}
+        if usable_now and wr is not None:
             band = f"[{ci[0]*100:.0f}–{ci[1]*100:.0f}]" if ci else ''
-            usable.append(f"{name} {wr*100:.0f}%{band}(n={s['n']})")
+            label = '原向' if edge_sig else '反向'
+            usable.append(
+                f"{name} {label} {wr*100:.0f}%{band}"
+                f"(events={s['n']}, dates={len(dates)}, tickers={len(tickers)})")
 
     summary = ('、'.join(usable) if usable
-               else f'全部因子样本 <{MIN_N}，累积中（{len(days)} 天留痕）——结论未解锁')
+               else f'没有因子通过聚类 CI 50% 闸（{len(days)} 天留痕）——结论未解锁')
     out = {'as_of': date.today().isoformat(), 'days_logged': len(days),
-           'min_n': MIN_N, 'factors': factors, 'summary': summary,
-           'discipline': ('自迭代规则：hit_rate 是因子话语权的唯一来源。usable=false 的因子只展示'
-                          '不入决策；usable 后 <50% 的因子方向结论按反向警示处理。driven_by='
+           'unlock_rule': 'cluster_ci_entirely_above_or_below_50pct',
+           'factors': factors, 'summary': summary,
+           'discipline': ('自迭代规则：公开 n_events/n_dates/n_tickers；date×ticker 双向聚类 '
+                          'CI 跨 50% 不入决策；只有反向 CI 整体低于 50% 才允许反向解读。driven_by='
                           'technical 的整体战绩以 dashboard 的实时 decision_metrics.by_driver.technical '
                           '为准，不使用固定百分比。')}
     safe_write_json(OUT, out)

@@ -22,6 +22,7 @@ import math
 import os
 import random
 import re
+import statistics
 import sys
 import tempfile
 from collections import Counter, defaultdict
@@ -63,6 +64,8 @@ SELL_ACTIONS = {"cut", "trim_on_rebound", "t_only"}
 # passive split is defined; every surface (dashboard, rick_broadcast) must read it
 # from here so the two can never disagree on what "active" means.
 PASSIVE_ACTIONS = {"hold_and_watch", "watch"}
+ADD_ACTIONS = ACTIVE_ACTIONS - SELL_ACTIONS
+AUDIT_SCHEMA_VERSION = 1
 
 
 def _slug(value: object, fallback: str = "unknown") -> str:
@@ -744,6 +747,302 @@ def settle_decisions(decisions: list[dict], now_date: str | None = None) -> int:
         if json.dumps(ev, sort_keys=True) != before:
             changed += 1
     return changed
+
+
+def _portfolio_trades(portfolio: dict) -> list[dict]:
+    """Flatten the broker-truth trade ledger with stable in-document identities."""
+    out = []
+    for region, leg in (("hk_stocks", "HK"), ("us_stocks", "US")):
+        holdings = ((portfolio.get("portfolios") or {}).get(region) or {}).get("holdings") or []
+        for holding_index, holding in enumerate(holdings):
+            ticker = str(holding.get("ticker") or holding.get("code") or "")
+            for trade_index, trade in enumerate(holding.get("trades") or []):
+                row = copy.deepcopy(trade)
+                row.update({
+                    "ticker": ticker,
+                    "leg": leg,
+                    "_trade_id": f"{region}:{holding_index}:{trade_index}",
+                })
+                out.append(row)
+    return out
+
+
+def match_real_executions(decisions: list[dict], portfolio: dict) -> dict[str, dict]:
+    """Strict one-to-one ledger matches for actual fills.
+
+    A match requires same ticker, session date, direction and share count.  If one
+    trade could satisfy several decisions (or vice versa), no fill is attributed:
+    without a transaction/group id, choosing one would be hindsight fabrication.
+    """
+    trades = _portfolio_trades(portfolio)
+    candidates: dict[str, list[dict]] = {}
+    reverse: dict[str, list[str]] = defaultdict(list)
+    for decision in decisions:
+        did = decision.get("decision_id")
+        ev = decision.get("evaluation") or {}
+        execution = decision.get("execution") or {}
+        shares = _int((decision.get("size") or {}).get("shares"))
+        if (not did or execution.get("status") != "followed"
+                or ev.get("triggered") is not True or not shares
+                or decision.get("action") not in ACTIVE_ACTIONS):
+            continue
+        direction = "sell" if decision.get("action") in SELL_ACTIONS else "buy"
+        session = ev.get("trigger_session")
+        rows = [
+            t for t in trades
+            if t.get("ticker") == decision.get("ticker")
+            and t.get("date") == session
+            and str(t.get("action") or "").lower() == direction
+            and _int(t.get("shares")) == shares
+            and _float(t.get("price")) is not None
+        ]
+        candidates[did] = rows
+        for trade in rows:
+            reverse[trade["_trade_id"]].append(did)
+
+    matched = {}
+    for did, rows in candidates.items():
+        if len(rows) == 1 and len(reverse[rows[0]["_trade_id"]]) == 1:
+            matched[did] = rows[0]
+    return matched
+
+
+def _audit_path(decision: dict, max_sessions: int = 6) -> tuple[list[dict], dict]:
+    """Canonical post-authoring OHLC path, never a portfolio snapshot."""
+    ev = decision.get("evaluation") or {}
+    start = ev.get("trigger_session")
+    if not start:
+        start, _ = evaluation_session(decision)
+    bars = load_ticker_bars(str(decision.get("ticker") or ""))
+    dates = [day for day in sorted(bars) if start and day >= start]
+    end = ev.get("mark_t5_session")
+    if end:
+        dates = [day for day in dates if day <= end]
+    dates = dates[:max_sessions]
+    path = []
+    for day in dates:
+        raw = bars[day]
+        path.append({
+            "session": day,
+            "open": _float(raw.get("open")),
+            "high": _float(raw.get("high")),
+            "low": _float(raw.get("low")),
+            "close": _float(raw.get("close")),
+        })
+    expected = max_sessions if start else 0
+    coverage = {
+        "canonical_only": True,
+        "adjustment": "raw",
+        "path_points": len(path),
+        "expected_points": expected,
+        "path_complete": bool(path) and (bool(end) or len(path) >= expected),
+        "start_session": start,
+        "end_session": path[-1]["session"] if path else None,
+    }
+    return path, coverage
+
+
+def _event_quantiles(values: list[float]) -> dict | None:
+    if not values:
+        return None
+    ordered = sorted(values)
+
+    def q(frac):
+        pos = frac * (len(ordered) - 1)
+        lo = int(math.floor(pos))
+        hi = int(math.ceil(pos))
+        if lo == hi:
+            return ordered[lo]
+        return ordered[lo] + (ordered[hi] - ordered[lo]) * (pos - lo)
+
+    return {
+        "min": round(ordered[0], 2),
+        "p10": round(q(.10), 2),
+        "p25": round(q(.25), 2),
+        "median": round(statistics.median(ordered), 2),
+        "p75": round(q(.75), 2),
+        "p90": round(q(.90), 2),
+        "max": round(ordered[-1], 2),
+    }
+
+
+def _paired_block_ci(events: list[dict], samples: int = 2000) -> list[float] | None:
+    """Paired bootstrap of median bps over ticker/date/episode blocks."""
+    groups: dict[tuple, list[float]] = defaultdict(list)
+    for event in events:
+        groups[(
+            event.get("ticker"), event.get("session"), event.get("episode_id")
+        )].append(float(event["improvement_bps"]))
+    blocks = sorted(groups)
+    if len(blocks) < 3:
+        return None
+    rnd = random.Random(20260717)
+    draws = []
+    for _ in range(samples):
+        values = []
+        for _ in blocks:
+            values.extend(groups[rnd.choice(blocks)])
+        draws.append(statistics.median(values))
+    draws.sort()
+    return [
+        round(draws[int(.025 * (len(draws) - 1))], 2),
+        round(draws[int(.975 * (len(draws) - 1))], 2),
+    ]
+
+
+def compute_timing_diagnostic(decisions: list[dict], portfolio: dict,
+                              matched: dict[str, dict] | None = None) -> dict:
+    """Single-event close benchmark for uniquely matched real executions.
+
+    Sell: shares × (actual fill − same-day close)
+    Buy:  shares × (same-day close − actual fill)
+
+    Different tickers are never paired as a swap.  HKD and USD are never summed.
+    """
+    matched = matched if matched is not None else match_real_executions(decisions, portfolio)
+    events = []
+    for decision in decisions:
+        trade = matched.get(decision.get("decision_id"))
+        if not trade:
+            continue
+        ev = decision.get("evaluation") or {}
+        session = ev.get("trigger_session")
+        close_bar = bar(str(decision.get("ticker") or ""), session) if session else None
+        close = _float((close_bar or {}).get("close"))
+        price = _float(trade.get("price"))
+        shares = _int(trade.get("shares"))
+        if close is None or close <= 0 or price is None or not shares:
+            continue
+        sell = decision.get("action") in SELL_ACTIONS
+        per_share = (price - close) if sell else (close - price)
+        currency = "HKD" if decision.get("leg") == "HK" else "USD"
+        events.append({
+            "decision_id": decision.get("decision_id"),
+            "episode_id": decision.get("episode_id"),
+            "ticker": decision.get("ticker"),
+            "session": session,
+            "direction": "sell" if sell else "buy",
+            "shares": shares,
+            "ai_execution_price": price,
+            "same_day_close": close,
+            "improvement_amount": round(shares * per_share, 2),
+            "currency": currency,
+            "improvement_bps": round(per_share / close * 10000, 2),
+            "pair_key": {
+                "ticker": decision.get("ticker"),
+                "date": session,
+                "episode_id": decision.get("episode_id"),
+                "direction": "sell" if sell else "buy",
+                "shares": shares,
+            },
+        })
+
+    by_currency = {}
+    for currency in ("HKD", "USD"):
+        rows = [row for row in events if row["currency"] == currency]
+        blocks = {
+            (row["ticker"], row["session"], row["episode_id"])
+            for row in rows
+        }
+        by_currency[currency] = {
+            "n_events": len(rows),
+            "n_blocks": len(blocks),
+            "median_bps": (
+                round(statistics.median(row["improvement_bps"] for row in rows), 2)
+                if rows else None
+            ),
+            "paired_ci95_bps": _paired_block_ci(rows),
+            "distribution_bps": _event_quantiles(
+                [row["improvement_bps"] for row in rows]),
+            "events": rows,
+        }
+    return {
+        "method": "same_ticker_same_day_same_direction_same_shares_close_benchmark",
+        "claim": "触发价 vs 同日收盘执行好多少",
+        "ci_method": "paired block bootstrap by ticker/date/episode",
+        "cross_ticker_swaps_excluded": True,
+        "swap_pairing_requires_transaction_group_id": True,
+        "by_currency": by_currency,
+    }
+
+
+def build_audit_sidecar(decisions: list[dict], portfolio: dict,
+                        as_of: str | None = None) -> dict:
+    """Immutable-authorship audit view keyed by decision_id, with all states."""
+    matched = match_real_executions(decisions, portfolio)
+    records = []
+    for decision in sorted(
+            decisions, key=lambda d: (d.get("plan_date", ""), d.get("decision_id", "")),
+            reverse=True):
+        ev = decision.get("evaluation") or {}
+        trade = matched.get(decision.get("decision_id"))
+        path, coverage = _audit_path(decision)
+        actual = {
+            "status": (decision.get("execution") or {}).get("status", "unknown"),
+            "matched": bool(trade),
+            "price": _float((trade or {}).get("price")),
+            "shares": _int((trade or {}).get("shares")),
+            "session": (trade or {}).get("date"),
+            "source": "portfolio.trades" if trade else None,
+        }
+        records.append({
+            "decision_id": decision.get("decision_id"),
+            "episode_id": decision.get("episode_id"),
+            "plan_date": decision.get("plan_date"),
+            "ticker": decision.get("ticker"),
+            "leg": decision.get("leg"),
+            "action": decision.get("action"),
+            "authored": {
+                "created_at": decision.get("created_at"),
+                "condition": copy.deepcopy(decision.get("condition") or {}),
+                "rationale": decision.get("rationale") or "",
+                "size": copy.deepcopy(decision.get("size") or {}),
+                "confidence": _float(decision.get("confidence")),
+                "driven_by": decision.get("driven_by"),
+                "strategy_id": decision.get("strategy_id"),
+            },
+            "state": ev.get("status") or "pending",
+            "outcome": ev.get("outcome"),
+            "execution": {
+                "actual": actual,
+                "ohlc_assumption": {
+                    "price": _float(ev.get("execution_price")),
+                    "fill_assumed": bool(ev.get("fill_assumed")),
+                    "fill_reason": ev.get("fill_reason"),
+                    "fill_model": ev.get("fill_model"),
+                },
+            },
+            "path": path,
+            "coverage": {
+                **coverage,
+                "execution_match": (
+                    "unique_exact" if trade else
+                    "unmatched_or_ambiguous"
+                ),
+            },
+            "fill_model": (
+                "real_portfolio_trade" if trade else
+                ev.get("fill_model") or "none"
+            ),
+            "mark_session": {
+                "trigger": ev.get("trigger_session"),
+                "t1": ev.get("mark_t1_session"),
+                "t5": ev.get("mark_t5_session"),
+                "right_censored": ev.get("status") == "pending",
+                "horizon": ev.get("mark_horizon"),
+            },
+        })
+    return {
+        "schema_version": AUDIT_SCHEMA_VERSION,
+        "as_of": as_of or datetime.now(HKT).isoformat(timespec="seconds"),
+        "primary_key": "decision_id",
+        "episode_role": "grouping_only",
+        "price_source": "memory/bars canonical raw OHLC only",
+        "records": records,
+        "state_counts": dict(Counter(row["state"] for row in records)),
+        "timing_diagnostic": compute_timing_diagnostic(
+            decisions, portfolio, matched=matched),
+    }
 
 
 def _episode_settled(rows: list[dict], benefit_key: str) -> list[dict]:
