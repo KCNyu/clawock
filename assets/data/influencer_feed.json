@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-16T22:32:24.220582+00:00",
+  "generated_at": "2026-07-17T14:21:31.360511+00:00",
   "lookback_hours": 48,
   "sources": {
     "trump": "trumpstruth.org/feed (primary)",
@@ -9,44 +9,18 @@
   "llm_filtered": true,
   "counts": {
     "total": 8,
-    "held_hits": 1,
+    "held_hits": 0,
     "new_ideas": 1,
-    "sector_hits": 1
+    "sector_hits": 6
   },
   "items": [
     {
       "author": "Musk",
-      "text": "Elon Musk and Sam Altman accuse each other of scamming investors as each pitches their AI vision",
+      "text": "Elon Musk Has Never Sold His Tesla Vision. Should You Buy the Dip Before July 22?",
       "url": "",
-      "published": "Mon, 13 Jul 2026 19:42:00 GMT",
+      "published": "Fri, 17 Jul 2026 07:25:00 GMT",
       "origin": "gnews-rss",
-      "source": "Fortune",
-      "tickers": [
-        "MSFT"
-      ],
-      "held": [
-        "MSFU"
-      ],
-      "new_ideas": [
-        "MSFT"
-      ],
-      "sectors": [
-        "AI"
-      ],
-      "sector_holdings": [
-        "PLTU"
-      ],
-      "stance": "attack",
-      "relevance": 72,
-      "summary_cn": "Musk与Sam Altman互斥对方欺骗投资人并各自推销AI愿景，AI行业口水战升级，间接影响kcn持有的MSFU/PLTU。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk says Tesla's Cybercab has started production",
-      "url": "",
-      "published": "Thu, 16 Jul 2026 16:28:26 GMT",
-      "origin": "gnews-rss",
-      "source": "Mashable",
+      "source": "Yahoo Finance",
       "tickers": [
         "TSLA"
       ],
@@ -56,54 +30,33 @@
       ],
       "sectors": [
         "电动车",
-        "AI",
-        "自动驾驶"
+        "AI"
       ],
       "sector_holdings": [],
       "stance": "endorse",
-      "relevance": 70,
-      "summary_cn": "Musk宣布特斯拉Cybercab已开始生产，利好TSLA。"
+      "relevance": 58,
+      "summary_cn": "Musk从未放弃特斯拉愿景的叙事，分析建议在7月22日前逢低买入TSLA。"
     },
     {
-      "author": "Musk",
-      "text": "Elon Musk's Net Worth Is Plummeting -- Here's What That Means for SpaceX Stock",
-      "url": "",
-      "published": "Thu, 16 Jul 2026 19:25:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Yahoo Finance",
+      "author": "Trump",
+      "text": "One of the biggest Driving Forces in the Future for Jobs, are Data Centers. They are big, strong, bold, and Money Machines for the State in which they are built. Governor Kathy Hochul, for political reasons, has terminated all Data Centers being built, or to be built, in New York State. These Companies are now being sought in Alabama, Florida, Texas, Arizona, and many other States. Both the Taxes and the Jobs amount to LIQUID GOLD! New York State has made a terrible decision. All of this Income, and other Benefits, will be going to Red States, and some Blue, where Data Centers are sought as Ca",
+      "url": "https://trumpstruth.org/statuses/40064",
+      "published": "2026-07-15T16:39:53+00:00",
+      "origin": "truthsocial",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "航天"
+        "数据中心",
+        "AI",
+        "州际竞争"
       ],
       "sector_holdings": [
-        "SPCH",
-        "SPCX"
+        "MSFU"
       ],
-      "stance": "neutral",
-      "relevance": 60,
-      "summary_cn": "Musk身价缩水影响SpaceX估值预期，间接利空kcn持有的SpaceX相关标的SPCX/SPCH。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk quietly buys a $1 billion gas turbine company to power Grok",
-      "url": "",
-      "published": "Tue, 14 Jul 2026 23:32:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Electrek",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "AI",
-        "电力",
-        "燃气轮机"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 58,
-      "summary_cn": "Musk悄悄收购10亿美元燃气轮机公司为Grok供电，反映AI算力电力紧缺主题升温。"
+      "stance": "endorse",
+      "relevance": 62,
+      "summary_cn": "Trump抨击纽约州长Hochul叫停数据中心建设，称这些公司将转向红州，利好AI/数据中心板块。"
     },
     {
       "author": "Musk",
@@ -116,134 +69,67 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "AI",
-        "数据中心"
-      ],
-      "sector_holdings": [],
-      "stance": "attack",
-      "relevance": 55,
-      "summary_cn": "Musk在孟菲斯的AI数据中心成为社区反弹的震中，数据中心建设阻力上升。"
-    },
-    {
-      "author": "Musk",
-      "text": "Texas school boards sign off on tax cuts for Musk's Terafab project",
-      "url": "",
-      "published": "Thu, 16 Jul 2026 14:57:43 GMT",
-      "origin": "gnews-rss",
-      "source": "Austin American-Statesman",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "AI",
-        "半导体"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 55,
-      "summary_cn": "德州学区批准Musk Terafab项目税收减免，利好AI制造/半导体本地化主题。"
-    },
-    {
-      "author": "Trump",
-      "text": "One of the biggest Driving Forces in the Future for Jobs, are Data Centers. They are big, strong, bold, and Money Machines for the State in which they are built. Governor Kathy Hochul, for political reasons, has terminated all Data Centers being built, or to be built, in New York State. These Companies are now being sought in Alabama, Florida, Texas, Arizona, and many other States. Both the Taxes and the Jobs amount to LIQUID GOLD! New York State has made a terrible decision. All of this Income, and other Benefits, will be going to Red States, and some Blue, where Data Centers are sought as Ca",
-      "url": "https://trumpstruth.org/statuses/40064",
-      "published": "2026-07-15T16:39:53+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "AI",
         "数据中心",
-        "电力"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 55,
-      "summary_cn": "Trump抨击纽约州长Hochul取消数据中心建设，称相关税收和就业将流向德州、亚利桑那等红州。"
-    },
-    {
-      "author": "Musk",
-      "text": "Mississippi homeowners blame a noisy data center plant for sleepless nights. The mayor's advice? \"Consider selling.\"",
-      "url": "",
-      "published": "Thu, 16 Jul 2026 17:39:13 GMT",
-      "origin": "gnews-rss",
-      "source": "CBS News",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
         "AI",
-        "数据中心"
+        "能源"
       ],
-      "sector_holdings": [],
-      "stance": "attack",
-      "relevance": 52,
-      "summary_cn": "密西西比数据中心噪音引发居民抗议，市长建议卖房搬迁，反映数据中心社区抵触情绪加剧。"
-    }
-  ],
-  "held_hits": [
-    {
-      "author": "Musk",
-      "text": "Elon Musk and Sam Altman accuse each other of scamming investors as each pitches their AI vision",
-      "url": "",
-      "published": "Mon, 13 Jul 2026 19:42:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Fortune",
-      "tickers": [
-        "MSFT"
-      ],
-      "held": [
+      "sector_holdings": [
         "MSFU"
       ],
-      "new_ideas": [
-        "MSFT"
-      ],
+      "stance": "neutral",
+      "relevance": 60,
+      "summary_cn": "Musk在孟菲斯的xAI数据中心成为全美数据中心反弹情绪的风暴眼，涉及AI算力与电力矛盾议题。"
+    },
+    {
+      "author": "Musk",
+      "text": "SpaceX Investors Rip $565 Billion Out Of Elon Musk's Hands",
+      "url": "",
+      "published": "Fri, 17 Jul 2026 11:22:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Investor's Business Daily",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
       "sectors": [
+        "航天",
+        "私募融资"
+      ],
+      "sector_holdings": [
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "neutral",
+      "relevance": 55,
+      "summary_cn": "SpaceX投资人从Musk手中回购/剥离5650亿美元估值的相关权益，SpaceX为非上市标的，仅作宏观叙事参考。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk secretly acquires $1B energy company to power the AI future",
+      "url": "",
+      "published": "Fri, 17 Jul 2026 01:31:33 GMT",
+      "origin": "gnews-rss",
+      "source": "Teslarati",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "能源",
         "AI"
       ],
       "sector_holdings": [
-        "PLTU"
+        "MSFU"
       ],
-      "stance": "attack",
-      "relevance": 72,
-      "summary_cn": "Musk与Sam Altman互斥对方欺骗投资人并各自推销AI愿景，AI行业口水战升级，间接影响kcn持有的MSFU/PLTU。"
-    }
-  ],
-  "new_ideas": [
+      "stance": "neutral",
+      "relevance": 55,
+      "summary_cn": "Musk秘密收购10亿美元能源公司以支撑AI未来电力需求，指向AI数据中心电力紧缺主题。"
+    },
     {
       "author": "Musk",
-      "text": "Elon Musk says Tesla's Cybercab has started production",
+      "text": "Elon Musk's SpaceX IPO Reset the Entire Space Sector. Here Are 2 Space Stocks I Would Buy the Dip On Without Hesitation.",
       "url": "",
-      "published": "Thu, 16 Jul 2026 16:28:26 GMT",
+      "published": "Fri, 17 Jul 2026 11:15:26 GMT",
       "origin": "gnews-rss",
-      "source": "Mashable",
-      "tickers": [
-        "TSLA"
-      ],
-      "held": [],
-      "new_ideas": [
-        "TSLA"
-      ],
-      "sectors": [
-        "电动车",
-        "AI",
-        "自动驾驶"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 70,
-      "summary_cn": "Musk宣布特斯拉Cybercab已开始生产，利好TSLA。"
-    }
-  ],
-  "sector_hits": [
-    {
-      "author": "Musk",
-      "text": "Elon Musk's Net Worth Is Plummeting -- Here's What That Means for SpaceX Stock",
-      "url": "",
-      "published": "Thu, 16 Jul 2026 19:25:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Yahoo Finance",
+      "source": "The Motley Fool",
       "tickers": [],
       "held": [],
       "new_ideas": [],
@@ -255,8 +141,203 @@
         "SPCX"
       ],
       "stance": "neutral",
+      "relevance": 52,
+      "summary_cn": "Musk旗下SpaceX的IPO重新定价整个航天板块，分析列出两只可逢低布局的航天股，但未直接点名具体可交易标的与kcn持仓重叠。"
+    },
+    {
+      "author": "Musk",
+      "text": "A physicist explains the overlooked problem that could doom Elon Musk’s Mars colonization plans: dust",
+      "url": "",
+      "published": "Fri, 17 Jul 2026 08:11:01 GMT",
+      "origin": "gnews-rss",
+      "source": "Business Insider",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天"
+      ],
+      "sector_holdings": [
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "neutral",
+      "relevance": 48,
+      "summary_cn": "物理学家指出火星尘埃问题可能威胁Musk的火星殖民计划，间接利空SpaceX叙事。"
+    },
+    {
+      "author": "Trump",
+      "text": "https://www.breitbart.com/politics/2026/07/15/trump-announces-nearly-10-billion-in-defense-industrial-base-investments-in-pennsylvania-at-mccormicks-summit/",
+      "url": "https://trumpstruth.org/statuses/40085",
+      "published": "2026-07-16T05:05:17+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "国防工业",
+        "制造业"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 52,
+      "summary_cn": "Trump宣布在宾州近100亿美元国防工业基础投资，涉及国防板块利好但未点名具体上市公司。"
+    }
+  ],
+  "held_hits": [],
+  "new_ideas": [
+    {
+      "author": "Musk",
+      "text": "Elon Musk Has Never Sold His Tesla Vision. Should You Buy the Dip Before July 22?",
+      "url": "",
+      "published": "Fri, 17 Jul 2026 07:25:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Yahoo Finance",
+      "tickers": [
+        "TSLA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "TSLA"
+      ],
+      "sectors": [
+        "电动车",
+        "AI"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 58,
+      "summary_cn": "Musk从未放弃特斯拉愿景的叙事，分析建议在7月22日前逢低买入TSLA。"
+    }
+  ],
+  "sector_hits": [
+    {
+      "author": "Trump",
+      "text": "One of the biggest Driving Forces in the Future for Jobs, are Data Centers. They are big, strong, bold, and Money Machines for the State in which they are built. Governor Kathy Hochul, for political reasons, has terminated all Data Centers being built, or to be built, in New York State. These Companies are now being sought in Alabama, Florida, Texas, Arizona, and many other States. Both the Taxes and the Jobs amount to LIQUID GOLD! New York State has made a terrible decision. All of this Income, and other Benefits, will be going to Red States, and some Blue, where Data Centers are sought as Ca",
+      "url": "https://trumpstruth.org/statuses/40064",
+      "published": "2026-07-15T16:39:53+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "数据中心",
+        "AI",
+        "州际竞争"
+      ],
+      "sector_holdings": [
+        "MSFU"
+      ],
+      "stance": "endorse",
+      "relevance": 62,
+      "summary_cn": "Trump抨击纽约州长Hochul叫停数据中心建设，称这些公司将转向红州，利好AI/数据中心板块。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk's Memphis AI empire is the epicenter of the data center backlash",
+      "url": "",
+      "published": "Thu, 16 Jul 2026 22:09:55 GMT",
+      "origin": "gnews-rss",
+      "source": "CNBC",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "数据中心",
+        "AI",
+        "能源"
+      ],
+      "sector_holdings": [
+        "MSFU"
+      ],
+      "stance": "neutral",
       "relevance": 60,
-      "summary_cn": "Musk身价缩水影响SpaceX估值预期，间接利空kcn持有的SpaceX相关标的SPCX/SPCH。"
+      "summary_cn": "Musk在孟菲斯的xAI数据中心成为全美数据中心反弹情绪的风暴眼，涉及AI算力与电力矛盾议题。"
+    },
+    {
+      "author": "Musk",
+      "text": "SpaceX Investors Rip $565 Billion Out Of Elon Musk's Hands",
+      "url": "",
+      "published": "Fri, 17 Jul 2026 11:22:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Investor's Business Daily",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "私募融资"
+      ],
+      "sector_holdings": [
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "neutral",
+      "relevance": 55,
+      "summary_cn": "SpaceX投资人从Musk手中回购/剥离5650亿美元估值的相关权益，SpaceX为非上市标的，仅作宏观叙事参考。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk secretly acquires $1B energy company to power the AI future",
+      "url": "",
+      "published": "Fri, 17 Jul 2026 01:31:33 GMT",
+      "origin": "gnews-rss",
+      "source": "Teslarati",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "能源",
+        "AI"
+      ],
+      "sector_holdings": [
+        "MSFU"
+      ],
+      "stance": "neutral",
+      "relevance": 55,
+      "summary_cn": "Musk秘密收购10亿美元能源公司以支撑AI未来电力需求，指向AI数据中心电力紧缺主题。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk's SpaceX IPO Reset the Entire Space Sector. Here Are 2 Space Stocks I Would Buy the Dip On Without Hesitation.",
+      "url": "",
+      "published": "Fri, 17 Jul 2026 11:15:26 GMT",
+      "origin": "gnews-rss",
+      "source": "The Motley Fool",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天"
+      ],
+      "sector_holdings": [
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "neutral",
+      "relevance": 52,
+      "summary_cn": "Musk旗下SpaceX的IPO重新定价整个航天板块，分析列出两只可逢低布局的航天股，但未直接点名具体可交易标的与kcn持仓重叠。"
+    },
+    {
+      "author": "Musk",
+      "text": "A physicist explains the overlooked problem that could doom Elon Musk’s Mars colonization plans: dust",
+      "url": "",
+      "published": "Fri, 17 Jul 2026 08:11:01 GMT",
+      "origin": "gnews-rss",
+      "source": "Business Insider",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天"
+      ],
+      "sector_holdings": [
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "neutral",
+      "relevance": 48,
+      "summary_cn": "物理学家指出火星尘埃问题可能威胁Musk的火星殖民计划，间接利空SpaceX叙事。"
     }
   ]
 }
