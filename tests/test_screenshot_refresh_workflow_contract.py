@@ -62,3 +62,24 @@ def test_screenshots_are_validated_and_exactly_staged_before_publish():
         'git add -- assets/dashboard.gif',
     ]
     assert not re.search(r'(?m)^\s*git add\s+(?:--\s+)?assets/?\s*$', commit_run)
+
+
+def test_gif_is_validated_only_on_manual_dispatch_before_publish():
+    names = [name for _, name in _steps()]
+    assemble = 'Assemble tab-cycle GIF'
+    validate = 'Validate tab-cycle GIF'
+    commit = 'Commit if changed'
+    assert names.index(assemble) < names.index(validate) < names.index(commit)
+
+    validator_block = _step_block(validate)
+    validator_run = _step_run(validate)
+    assert "if: github.event_name == 'workflow_dispatch'" in validator_block
+    assert 'continue-on-error' not in validator_block
+    assert "path = Path('assets/dashboard.gif')" in validator_run
+    assert "assert path.is_file(), f'missing GIF: {path}'" in validator_run
+    assert 'MIN_GIF_SIZE = 300_000' in validator_run
+    assert 'assert size >= MIN_GIF_SIZE' in validator_run
+    assert "GIF_MAGICS = (b'GIF89a', b'GIF87a')" in validator_run
+    assert 'header = gif.read(10)' in validator_run
+    assert 'assert header[:6] in GIF_MAGICS' in validator_run
+    assert "struct.unpack('<HH', header[6:10])" in validator_run

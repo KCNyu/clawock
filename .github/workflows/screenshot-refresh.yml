@@ -54,6 +54,33 @@ jobs:
           python3 -m pip install --quiet --upgrade Pillow
           python3 scripts/data/assemble_dashboard_gif.py
 
+      - name: Validate tab-cycle GIF
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import struct
+
+          GIF_MAGICS = (b'GIF89a', b'GIF87a')
+          MIN_GIF_SIZE = 300_000
+          path = Path('assets/dashboard.gif')
+
+          assert path.is_file(), f'missing GIF: {path}'
+          size = path.stat().st_size
+          assert size >= MIN_GIF_SIZE, (
+              f'GIF too small: {path} is {size} bytes; expected >= {MIN_GIF_SIZE}'
+          )
+          with path.open('rb') as gif:
+              header = gif.read(10)
+          assert header[:6] in GIF_MAGICS, f'invalid GIF magic: {path}'
+          width, height = struct.unpack('<HH', header[6:10])
+          assert width >= 300 and height >= 500, (
+              f'implausible GIF dimensions: {path} is {width}x{height}; '
+              'expected >= 300x500'
+          )
+          print(f'validated {path}: {size} bytes, {width}x{height}')
+          PY
+
       - name: Validate screenshots
         run: |
           python3 - <<'PY'
