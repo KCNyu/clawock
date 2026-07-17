@@ -128,14 +128,15 @@ def hhi_verdict(hhi, top2):
     return {'level': 'danger', 'label': '危险集中', 'color': '#ef4444'}
 
 
-def build_holdings_history(snapshot_paths, days=10):
+def build_holdings_history(snapshot_paths, days=8):
     """Extract per-ticker current_price series from the last N snapshots.
 
     Returns { ticker: [price_or_null, ...] } in chronological order. Tickers
     that are missing from a given day get null, so the array length is constant
     and the frontend can simply slice it.
 
-    Used by the holdings table to render a 7d sparkline next to each row.
+    Used by the holdings table for its trailing 7d sparkline and by the Drill
+    panel for the explicitly labelled trailing 8-snapshot return heatmap.
     """
     paths = snapshot_paths[-days:]
     out = {}
@@ -1382,7 +1383,7 @@ def compute_leveraged_etf_exposure(portfolio, fx_rate):
     return out
 
 
-def compute_all_time_extremes(portfolio, top_n=3):
+def compute_current_holdings_extremes(portfolio, top_n=3):
     """Top-N winners + bottom-N losers across all active holdings (by pnl_percent)."""
     out = {'winners': [], 'losers': []}
     try:
@@ -1407,7 +1408,7 @@ def compute_all_time_extremes(portfolio, top_n=3):
         out['winners'] = rows[:top_n]
         out['losers']  = sorted(rows, key=lambda x: x['pnl_percent'])[:top_n]
     except Exception as e:
-        print(f'  warn: compute_all_time_extremes failed: {e}', file=sys.stderr)
+        print(f'  warn: compute_current_holdings_extremes failed: {e}', file=sys.stderr)
     return out
 
 
@@ -1745,7 +1746,7 @@ def main():
                 p for p in glob.glob(str(WS_ROOT / 'memory' / 'snapshots' / '*.json'))
                 if SNAPSHOT_FNAME_RE.match(os.path.basename(p))
             ),
-            days=10,
+            days=8,
         ),
     }
 
@@ -1968,7 +1969,7 @@ def main():
     except Exception as e:
         print(f'  warn: regime classify failed: {e}', file=sys.stderr)
 
-    out['all_time_extremes'] = compute_all_time_extremes(portfolio, top_n=3)
+    out['current_holdings_extremes'] = compute_current_holdings_extremes(portfolio, top_n=3)
     out['today_ranges'] = compute_today_ranges(portfolio, top_n=8)
     out['realized_vs_unrealized'] = compute_realized_vs_unrealized(portfolio, fx_rate)
     out['capital_deployed'] = compute_capital_deployed(portfolio, fx_rate)

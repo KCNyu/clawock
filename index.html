@@ -402,26 +402,6 @@ layout: null
   .rs-row b.pos { color: var(--green); }
   .rs-row b.neg { color: var(--red); }
 
-  /* Holdings 7d sparkline grid (one card per active ticker) */
-  .hold-trend-grid {
-    display: grid; grid-template-columns: repeat(auto-fit, minmax(135px, 1fr)); gap: 8px;
-  }
-  .hold-trend-cell {
-    background: var(--card-2); border-radius: var(--radius-sm);
-    padding: 8px 10px; font-variant-numeric: tabular-nums;
-    display: flex; flex-direction: column; gap: 4px;
-  }
-  .hold-trend-cell .row {
-    display: flex; justify-content: space-between; align-items: baseline; gap: 6px;
-  }
-  .hold-trend-cell .tk {
-    font-weight: 700; font-family: ui-monospace, "Menlo", monospace; font-size: 13px;
-  }
-  .hold-trend-cell .px { font-size: 13px; font-weight: 600; }
-  .hold-trend-cell .pct { font-size: 11px; font-weight: 600; }
-  .hold-trend-cell .spark-wrap { line-height: 0; margin-top: 2px; }
-  .hold-trend-cell .spark-wrap svg { width: 100%; height: 32px; }
-
   /* =========================================================
      Hero: 总资产卡
      ========================================================= */
@@ -857,8 +837,7 @@ layout: null
   /* Sparkline column is dense; hide it whenever the holdings table sits in a narrow
    * column. The dashboard uses a 3-column grid ≥1024px (each column ≈ 1/3 of the
    * viewport), so Drill only has room for the sparkline once the viewport is wider
-   * than ~1440px. The standalone "Holdings 7d Trend" card on the Hero panel covers
-   * the visual gap on narrower screens. */
+   * than ~1440px; wide desktop keeps the 7d shape column. */
   @media (max-width: 1440px) {
     .holdings-table .spark-col, .holdings-table .spark-cell { display: none; }
   }
@@ -1208,9 +1187,34 @@ layout: null
   .wc-legend .lg-nod::before { background: #6b7691; }
 
   /* Shadow portfolio policy simulation (Drill) */
+  .shadow-toggle {
+    width: 100%; margin: 0; padding: 0; border: 0; background: transparent;
+    color: inherit; text-align: left; cursor: pointer;
+    display: grid; grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center; gap: 8px 12px;
+    font: inherit; -webkit-tap-highlight-color: transparent;
+  }
+  .shadow-toggle:focus-visible {
+    outline: 2px solid var(--accent); outline-offset: 5px; border-radius: 4px;
+  }
+  .shadow-toggle-title {
+    color: var(--text-dim); font-size: 12px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.06em;
+  }
+  .shadow-toggle::after {
+    content: "›"; grid-column: 2; grid-row: 1 / span 2;
+    color: var(--text-faint); font-size: 18px;
+    transform: rotate(90deg); transition: transform .15s;
+  }
+  .shadow-toggle[aria-expanded="true"]::after { transform: rotate(-90deg); }
+  .shadow-summary {
+    grid-column: 1; color: var(--text); font: 650 11px/1.5 var(--mono);
+    overflow-wrap: anywhere;
+  }
+  .shadow-expanded { margin-top: 12px; }
   .shadow-sim-label {
     display: inline-flex; align-items: center; gap: 6px;
-    margin: -2px 0 10px; padding: 5px 10px;
+    margin: 0 0 10px; padding: 5px 10px;
     border: 1px solid rgba(229,72,77,.55); border-radius: 999px;
     background: rgba(229,72,77,.14); color: var(--red);
     font-size: 12px; font-weight: 800; letter-spacing: .08em;
@@ -1581,6 +1585,8 @@ layout: null
   <section class="panel" data-panel="drill">
     <h2>Holdings</h2>
 
+    <div class="sect-divider">📋 持仓明细</div>
+
     <div class="card" id="decision-matrix-card">
       <h3>🎯 持仓决策矩阵 <span class="muted" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:11px">每持仓一行 · 价/量化/52w位置/硬闸 汇总</span></h3>
       <div class="table-wrap">
@@ -1619,101 +1625,22 @@ layout: null
     </div>
 
     <div class="card">
-      <h3>Today's Movers <span class="muted" style="text-transform:none;letter-spacing:0;font-weight:500">(≥3%)</span></h3>
-      <div class="movers-scroll" id="movers-scroll">
-        <div class="empty-state">No movers ≥3% today.</div>
-      </div>
-    </div>
-
-    <div class="card">
-      <h3>Holdings 7d Trend <span class="muted" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:11px">(active 持仓 · 价格走势)</span></h3>
-      <div class="hold-trend-grid" id="hold-trend-grid">
-        <div class="empty-state">No price history.</div>
-      </div>
-    </div>
-
-    <div class="card">
-      <h3>8天涨跌热力 <span class="muted" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:11px">(近 8 日收益 · 按强弱排序)</span></h3>
-      <p class="chart-hint">把 holdings_history 8 天价格序列折算成回报率：绿色 = 在跑、红色 = 在拖。每格下方小字 = 当前仓位权重，重仓 + 大红块 = 优先审视。</p>
-      <div class="ret-heatmap" id="ret-heatmap">
-        <div class="empty-state">No price history.</div>
-      </div>
-    </div>
-
-    <div class="card">
-      <h3>Today's Range <span class="muted" style="text-transform:none;letter-spacing:0;font-weight:500">(high-low ÷ price)</span></h3>
-      <div class="range-list" id="range-list">
-        <div class="empty-state">No range data yet.</div>
-      </div>
-    </div>
-
-    <div class="card">
-      <h3>All-time Winners &amp; Losers</h3>
+      <h3>Current Holdings · Best &amp; Worst <span class="muted" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:11px">当前持仓·最强/最弱</span></h3>
       <div class="extremes-grid">
         <div>
-          <div class="extremes-label">Top 3 winners</div>
+          <div class="extremes-label">Best 3 current holdings</div>
           <div class="extremes-list" id="extremes-winners"><div class="empty-state">—</div></div>
         </div>
         <div>
-          <div class="extremes-label">Bottom 3 losers</div>
+          <div class="extremes-label">Weakest 3 current holdings</div>
           <div class="extremes-list" id="extremes-losers"><div class="empty-state">—</div></div>
         </div>
       </div>
     </div>
 
-    <div class="card" id="shadow-portfolio-card">
-      <div class="shadow-sim-label">⚠ 模拟·非实盘</div>
-      <h3>Shadow Portfolio · Policy Replay</h3>
-      <p class="shadow-estimand"><b>跟随全部已触发建议的政策模拟 vs 同起点买入持有；累计差=模拟 timing alpha</b></p>
-      <div class="empty-state" id="shadow-portfolio-empty">数据不足</div>
-      <div id="shadow-portfolio-content" style="display:none">
-        <div class="shadow-diff-grid">
-          <div class="shadow-stat">
-            <div class="lbl">累计差 · USD</div>
-            <div class="val neutral" id="shadow-diff-usd">—</div>
-          </div>
-          <div class="shadow-stat">
-            <div class="lbl">累计差 · HKD</div>
-            <div class="val neutral" id="shadow-diff-hkd">—</div>
-          </div>
-        </div>
-        <div class="shadow-chart-unit">
-          <div class="shadow-chart-title">USD · 独立净值轴</div>
-          <div id="chart-shadow-usd" class="shadow-chart-box"></div>
-        </div>
-        <div class="shadow-chart-unit">
-          <div class="shadow-chart-title">HKD · 独立净值轴</div>
-          <div id="chart-shadow-hkd" class="shadow-chart-box"></div>
-        </div>
-        <div class="shadow-fill-grid">
-          <div class="shadow-stat">
-            <div class="lbl">real_trade</div>
-            <div class="val" id="shadow-fill-real">0</div>
-          </div>
-          <div class="shadow-stat">
-            <div class="lbl">ohlc_assumption</div>
-            <div class="val" id="shadow-fill-ohlc">0</div>
-          </div>
-          <div class="shadow-stat">
-            <div class="lbl">canonical_close_fallback</div>
-            <div class="val" id="shadow-fill-close">0</div>
-          </div>
-          <div class="shadow-stat skipped">
-            <div class="lbl">skipped</div>
-            <div class="val" id="shadow-fill-skipped">0</div>
-          </div>
-        </div>
-        <div class="shadow-constraint-note" id="shadow-constraint-note"></div>
-        <div class="shadow-limitations">
-          USD 与 HKD 分图展示，不合并、不做跨币种裸加。政策模拟并非真实账户业绩；未执行建议也会按库存、现金和成交价约束进入模拟。Canonical 行情为不复权，缺少权威拆股/股息调整，长期买入持有基线可能有偏。
-          <span id="shadow-asof"></span>
-        </div>
-      </div>
-    </div>
-
     <div class="card">
-      <h3>Position × Conviction <span class="muted" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:11px">(weight vs 30d avg confidence)</span></h3>
-      <p class="chart-hint">右下角 (高仓位 + 低置信) = 红色 = 需要审视：仓位重但你自己最近也没那么确定。圆点大小 = 仓位权重。</p>
+      <h3>Position × Conviction <span class="muted" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:11px">Weight within US/HK leg（分母=各自市场）· 30d avg confidence</span></h3>
+      <p class="chart-hint">横轴和圆点大小均为各自 US/HK 市场 leg 内权重，不是全组合 USD-eq 权重；跨市场百分比不可直接当作同一分母比较。右下角（高仓位 + 低置信）= 需要审视。</p>
       <div id="chart-weight-conf" class="wc-chart-box"></div>
       <div class="wc-legend">
         <span class="lg-high">High risk (≥20% & conf&lt;0.65)</span>
@@ -1721,6 +1648,88 @@ layout: null
         <span class="lg-low">Low-conv small (&lt;20% & conf&lt;0.65)</span>
         <span class="lg-com">Comfort (&lt;20% & conf≥0.65)</span>
         <span class="lg-nod">No settled decision episodes</span>
+      </div>
+    </div>
+
+    <div class="sect-divider">📊 价格动态 <span class="muted" style="font-weight:500;letter-spacing:0">latest local session · US / HK 各取最近本地交易时段</span></div>
+
+    <div class="card">
+      <h3>Today's Movers <span class="muted" style="text-transform:none;letter-spacing:0;font-weight:500">(≥3% · latest local session)</span></h3>
+      <div class="movers-scroll" id="movers-scroll">
+        <div class="empty-state">No movers ≥3% today.</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>8天涨跌热力 <span class="muted" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:11px">(近 8 日收益 · 按强弱排序)</span></h3>
+      <p class="chart-hint">把最近 8 个持仓快照的价格序列折算成回报率：绿色 = 在跑、红色 = 在拖。每格下方小字 = 各自市场 leg 内权重（不是组合权重）；重仓 + 大红块 = 优先审视。</p>
+      <div class="ret-heatmap" id="ret-heatmap">
+        <div class="empty-state">No price history.</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Today's Range <span class="muted" style="text-transform:none;letter-spacing:0;font-weight:500">(high-low ÷ price · latest local session)</span></h3>
+      <div class="range-list" id="range-list">
+        <div class="empty-state">No range data yet.</div>
+      </div>
+    </div>
+
+    <div class="sect-divider">🧪 政策模拟</div>
+
+    <div class="card" id="shadow-portfolio-card">
+      <button type="button" class="shadow-toggle" id="shadow-portfolio-toggle"
+              aria-expanded="false" aria-controls="shadow-portfolio-expanded">
+        <span class="shadow-toggle-title">Shadow Portfolio · Policy Replay</span>
+        <span class="shadow-summary" id="shadow-portfolio-summary">⚠模拟·非实盘 · USD差 — · HKD差 — · real — / assumed — / skipped —</span>
+      </button>
+      <div class="shadow-expanded" id="shadow-portfolio-expanded" hidden>
+        <div class="shadow-sim-label">⚠ 模拟·非实盘</div>
+        <p class="shadow-estimand"><b>跟随全部已触发建议的政策模拟 vs 同起点买入持有；累计差=模拟 timing alpha</b></p>
+        <div class="empty-state" id="shadow-portfolio-empty">数据不足</div>
+        <div id="shadow-portfolio-content" style="display:none">
+          <div class="shadow-diff-grid">
+            <div class="shadow-stat">
+              <div class="lbl">累计差 · USD</div>
+              <div class="val neutral" id="shadow-diff-usd">—</div>
+            </div>
+            <div class="shadow-stat">
+              <div class="lbl">累计差 · HKD</div>
+              <div class="val neutral" id="shadow-diff-hkd">—</div>
+            </div>
+          </div>
+          <div class="shadow-chart-unit">
+            <div class="shadow-chart-title">USD · 独立净值轴</div>
+            <div id="chart-shadow-usd" class="shadow-chart-box"></div>
+          </div>
+          <div class="shadow-chart-unit">
+            <div class="shadow-chart-title">HKD · 独立净值轴</div>
+            <div id="chart-shadow-hkd" class="shadow-chart-box"></div>
+          </div>
+          <div class="shadow-fill-grid">
+            <div class="shadow-stat">
+              <div class="lbl">real_trade</div>
+              <div class="val" id="shadow-fill-real">0</div>
+            </div>
+            <div class="shadow-stat">
+              <div class="lbl">ohlc_assumption</div>
+              <div class="val" id="shadow-fill-ohlc">0</div>
+            </div>
+            <div class="shadow-stat">
+              <div class="lbl">canonical_close_fallback</div>
+              <div class="val" id="shadow-fill-close">0</div>
+            </div>
+            <div class="shadow-stat skipped">
+              <div class="lbl">skipped</div>
+              <div class="val" id="shadow-fill-skipped">0</div>
+            </div>
+          </div>
+          <div class="shadow-constraint-note" id="shadow-constraint-note"></div>
+          <div class="shadow-limitations">
+            USD 与 HKD 分图展示，不合并、不做跨币种裸加。政策模拟并非真实账户业绩；未执行建议也会按库存、现金和成交价约束进入模拟。Canonical 行情为不复权，缺少权威拆股/股息调整，长期买入持有基线可能有偏。
+            <span id="shadow-asof"></span>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -2400,6 +2409,32 @@ layout: null
   }
   DESKTOP_MQ.addEventListener("change", () => { if (DATA) ensureVisibleCharts(); });
 
+  // Shadow is deliberately collapsed on every load, on both desktop and mobile.
+  // Do not initialize ECharts while its body is hidden: that creates 0-width
+  // canvases and makes the mobile GIF capture wait forever. Expanding paints after
+  // layout, then explicitly resizes any existing instances.
+  function setShadowPortfolioExpanded(open) {
+    const toggle = document.getElementById("shadow-portfolio-toggle");
+    const expanded = document.getElementById("shadow-portfolio-expanded");
+    if (!toggle || !expanded) return;
+    toggle.setAttribute("aria-expanded", open ? "true" : "false");
+    expanded.hidden = !open;
+    if (!open) return;
+    whenEcharts(() => {
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        renderShadowPortfolioChart();
+        charts.shadowPortfolioUsd && charts.shadowPortfolioUsd.resize();
+        charts.shadowPortfolioHkd && charts.shadowPortfolioHkd.resize();
+      }));
+    });
+  }
+  const shadowPortfolioToggle = document.getElementById("shadow-portfolio-toggle");
+  if (shadowPortfolioToggle) {
+    shadowPortfolioToggle.addEventListener("click", () => {
+      setShadowPortfolioExpanded(shadowPortfolioToggle.getAttribute("aria-expanded") !== "true");
+    });
+  }
+
   // Instant re-theme on OS dark/light flip (phones auto-switch at sunset): CSS vars
   // flip immediately but cached ECharts instances keep the old palette until the
   // next 60s poll. Dispose them so render() re-inits with the new theme colors.
@@ -2766,7 +2801,6 @@ layout: null
     renderTodayHighlights();
     renderHonesty();
     renderMarketSnapshot();
-    renderHoldingsTrend();
     renderTotals();
     renderTodayPnl();
     renderDelta();
@@ -2976,64 +3010,6 @@ layout: null
       }
       rsRow.innerHTML = parts.length ? "RS: " + parts.join(" · ") : "";
     }
-  }
-
-  function renderHoldingsTrend() {
-    const el = document.getElementById("hold-trend-grid");
-    if (!el) return;
-    const hist = safe(DATA, "holdings_history") || {};
-    const active = [
-      ...(safe(DATA, "holdings", "us") || []),
-      ...(safe(DATA, "holdings", "hk") || []),
-    ].filter(h => h.is_active !== false && (h.shares ?? 0) > 0);
-
-    if (!active.length) {
-      el.innerHTML = `<div class="empty-state">No active holdings.</div>`;
-      return;
-    }
-
-    // Sort by current_value desc — biggest holdings first
-    active.sort((a, b) => {
-      // Normalize to USD-eq for comparable sort across regions
-      const fx = safe(DATA, "fx", "usdhkd") || 7.83;
-      const va = (a.currency === "HKD") ? (a.current_value || 0) / fx : (a.current_value || 0);
-      const vb = (b.currency === "HKD") ? (b.current_value || 0) / fx : (b.current_value || 0);
-      return vb - va;
-    });
-
-    el.innerHTML = active.map(h => {
-      const series = hist[h.ticker] || [];
-      const ccy = h.currency === "HKD" ? "HK$" : "$";
-      const pxTxt = h.current_price != null
-        ? `${ccy}${h.current_price.toLocaleString("en-US", { maximumFractionDigits: h.current_price < 10 ? 3 : 2 })}`
-        : DASH;
-      const pctTxt = h.today_change_pct != null
-        ? `${h.today_change_pct > 0 ? "+" : ""}${h.today_change_pct.toFixed(2)}%`
-        : "";
-      const pctCls = pnlClass(h.today_change_pct);
-      // 7d change vs ~7 days ago (first non-null in 7-len trailing window)
-      const last7 = series.slice(-7);
-      const firstReal = last7.find(v => v != null);
-      const last = [...last7].reverse().find(v => v != null);
-      let trend7 = "";
-      if (firstReal != null && last != null && firstReal > 0) {
-        const chg = ((last - firstReal) / firstReal) * 100;
-        const cls = pnlClass(chg);
-        trend7 = `<span class="${cls}" style="font-size:10px;opacity:0.8">7d ${chg > 0 ? "+" : ""}${chg.toFixed(1)}%</span>`;
-      }
-      return `
-        <div class="hold-trend-cell">
-          <div class="row">
-            <span class="tk">${escapeHtml(h.ticker || "")}</span>
-            <span class="px">${pxTxt}</span>
-          </div>
-          <div class="row">
-            <span class="${pctCls} pct">${pctTxt}</span>
-            ${trend7}
-          </div>
-          <div class="spark-wrap">${sparklineSVG(last7, 120, 32)}</div>
-        </div>`;
-    }).join("");
   }
 
   function renderTotals() {
@@ -3783,6 +3759,27 @@ layout: null
     const content = document.getElementById("shadow-portfolio-content");
     if (!empty || !content) return;
     const sidecar = safe(DATA, "shadow_portfolio");
+    const signedMoney = (value, currency) => {
+      if (value == null || !isFinite(value)) return DASH;
+      const sign = value > 0 ? "+" : value < 0 ? "−" : "";
+      return sign + fmtMoney(Math.abs(value), currency);
+    };
+    const counts = (sidecar && sidecar.fill_counts) || {};
+    const countValue = key => counts[key] != null && Number.isFinite(Number(counts[key]))
+      ? Number(counts[key]) : null;
+    const realCount = countValue("real_trade");
+    const ohlcCount = countValue("ohlc_assumption");
+    const closeCount = countValue("canonical_close_fallback");
+    const skippedCount = countValue("skipped");
+    const assumedCount = ohlcCount == null && closeCount == null
+      ? null : (ohlcCount || 0) + (closeCount || 0);
+    const summary = document.getElementById("shadow-portfolio-summary");
+    if (summary) {
+      const countText = value => value == null ? DASH : value.toLocaleString("en-US");
+      summary.textContent = `⚠模拟·非实盘 · USD差 ${signedMoney(safe(sidecar, "cumulative_diff", "USD"), "USD")}`
+        + ` · HKD差 ${signedMoney(safe(sidecar, "cumulative_diff", "HKD"), "HKD")}`
+        + ` · real ${countText(realCount)} / assumed ${countText(assumedCount)} / skipped ${countText(skippedCount)}`;
+    }
     const curves = (sidecar && sidecar.curves) || {};
     const hasData = ["USD", "HKD"].some(
       ccy => Array.isArray(safe(curves, ccy, "curve"))
@@ -3792,11 +3789,6 @@ layout: null
     content.style.display = hasData ? "" : "none";
     if (!hasData) return;
 
-    const signedMoney = (value, currency) => {
-      if (value == null || !isFinite(value)) return DASH;
-      const sign = value > 0 ? "+" : value < 0 ? "−" : "";
-      return sign + fmtMoney(Math.abs(value), currency);
-    };
     ["USD", "HKD"].forEach(currency => {
       const el = document.getElementById(`shadow-diff-${currency.toLowerCase()}`);
       if (!el) return;
@@ -3805,7 +3797,6 @@ layout: null
       el.className = `val ${pnlClass(value)}`;
     });
 
-    const counts = sidecar.fill_counts || {};
     const countMap = {
       "shadow-fill-real": counts.real_trade,
       "shadow-fill-ohlc": counts.ohlc_assumption,
@@ -3833,6 +3824,8 @@ layout: null
 
   function renderShadowPortfolioChart() {
     if (!window.echarts) return;
+    const expanded = document.getElementById("shadow-portfolio-expanded");
+    if (!expanded || expanded.hidden) return;
     const sidecar = safe(DATA, "shadow_portfolio") || {};
     const hasData = ["USD", "HKD"].some(
       currency => (safe(sidecar, "curves", currency, "curve") || []).length > 0
@@ -3850,7 +3843,7 @@ layout: null
 
     configs.forEach(({ currency, id, key }) => {
       const el = document.getElementById(id);
-      if (!el) return;
+      if (!el || el.clientWidth < 50) return;
       if (!charts[key]) charts[key] = echarts.init(el, null, { renderer: "canvas" });
       const rows = (safe(sidecar, "curves", currency, "curve") || [])
         .filter(row => row && row.date);
@@ -4403,7 +4396,8 @@ layout: null
   }
 
   function renderExtremes() {
-    const ext = safe(DATA, "all_time_extremes") || {};
+    // Old-key fallback keeps the card populated during a staggered HTML/JSON deploy.
+    const ext = safe(DATA, "current_holdings_extremes") || safe(DATA, "all_time_extremes") || {};
     const render = (rows, elId) => {
       const el = document.getElementById(elId);
       if (!rows || !rows.length) {
@@ -5710,14 +5704,14 @@ layout: null
                   : p.data._quad === "comfort" ? "Comfort"
                   : "No data";
           return `<b>${p.data.name}</b> (${p.data._region.toUpperCase()})<br>
-            weight: ${p.value[0]}%<br>
+            weight within ${p.data._region.toUpperCase()} leg: ${p.value[0]}%<br>
             conf: ${p.value[1] == null ? "n/a" : p.value[1].toFixed(1) + "%"}<br>
             n_actions: ${p.value[2]}<br>
             <span style="color:${p.color}">${q}</span>`;
         },
       },
       xAxis: {
-        name: "Weight %", nameLocation: "middle", nameGap: 28,
+        name: "Weight within US/HK leg %", nameLocation: "middle", nameGap: 28,
         // 70 leaves buffer for the 00100 bubble (weight ~57% + symbol radius ~42px)
         type: "value", min: 0, max: 70,
         axisLine: { lineStyle: { color: chartGridColor() } },
@@ -5918,7 +5912,8 @@ layout: null
       // holdings_history pads missing days with null (e.g. a freshly-bought name
       // has null before entry) — filter to finite numbers so a null base doesn't
       // divide to Infinity (null===0 is false, then x/null → x/0 → Infinity).
-      const series = (hh[h.ticker] || []).filter(v => typeof v === "number" && isFinite(v));
+      const series = (hh[h.ticker] || []).slice(-8)
+        .filter(v => typeof v === "number" && isFinite(v));
       if (series.length < 2 || series[0] <= 0) return null;
       const ret = (series[series.length - 1] - series[0]) / series[0] * 100;
       if (!isFinite(ret)) return null;
@@ -5963,7 +5958,7 @@ layout: null
       const { fill, text } = colorFor(r.ret);
       const sign = r.ret >= 0 ? "+" : "";
       const meta = r.weight != null
-        ? `${r.weight.toFixed(1)}%仓 · ${r.region}`
+        ? `${r.weight.toFixed(1)}% ${r.region} leg内`
         : `${r.region}`;
       return `
         <div class="ret-cell" style="background:${fill}; color:${text}; border-color:transparent">
