@@ -23,12 +23,34 @@ def schedule_text(item: dict) -> str:
 
 
 def watchdog_text(job: dict) -> str:
-    watchdogs = [job.get("watchdog"), *(job.get("extra_watchdogs") or [])]
     rendered = []
-    for watchdog in watchdogs:
-        if not watchdog:
+    watchdogs = []
+    if "watchdog" in job:
+        watchdogs.append(("primary watchdog", job["watchdog"]))
+
+    extra_watchdogs = job.get("extra_watchdogs")
+    if extra_watchdogs is None:
+        pass
+    elif not isinstance(extra_watchdogs, list):
+        rendered.append("⚠ malformed extra_watchdogs: expected a list")
+    else:
+        watchdogs.extend(
+            (f"extra watchdog {index}", watchdog)
+            for index, watchdog in enumerate(extra_watchdogs, start=1)
+        )
+
+    for label, watchdog in watchdogs:
+        if not isinstance(watchdog, dict):
+            rendered.append(f"⚠ malformed {label}: expected an object")
             continue
-        text = schedule_text(watchdog)
+        if "schedule" not in watchdog and not watchdog.get("seasonal_schedules"):
+            rendered.append(f"⚠ malformed {label}: missing schedule")
+            continue
+        try:
+            text = schedule_text(watchdog)
+        except (AttributeError, KeyError, TypeError) as exc:
+            rendered.append(f"⚠ malformed {label}: invalid schedule ({exc})")
+            continue
         if purpose := watchdog.get("purpose"):
             text += f" · {purpose}"
         rendered.append(text)

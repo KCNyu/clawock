@@ -1,7 +1,8 @@
 """Publication contract for the off-host LLM news digest workflow."""
 import re
-import textwrap
 from pathlib import Path
+
+from workflow_contract_helpers import step_run, steps
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -9,31 +10,11 @@ WORKFLOW = ROOT / '.github' / 'workflows' / 'news-digest.yml'
 
 
 def _steps():
-    lines = WORKFLOW.read_text().splitlines()
-    return [
-        (i, line.strip().removeprefix('- name: '))
-        for i, line in enumerate(lines)
-        if line.lstrip().startswith('- name: ')
-    ]
+    return steps(WORKFLOW)
 
 
 def _step_run(name):
-    lines = WORKFLOW.read_text().splitlines()
-    starts = [i for i, step_name in _steps() if step_name == name]
-    assert starts, f'workflow step missing: {name}'
-    start = starts[0]
-    indent = len(lines[start]) - len(lines[start].lstrip())
-    end = next(
-        (i for i in range(start + 1, len(lines))
-         if lines[i].startswith(' ' * indent + '- ')),
-        len(lines),
-    )
-    run_start = next(
-        (i for i in range(start + 1, end) if lines[i].strip() == 'run: |'),
-        None,
-    )
-    assert run_start is not None, f'{name} has no multiline run block'
-    return textwrap.dedent('\n'.join(lines[run_start + 1:end]))
+    return step_run(WORKFLOW, name)
 
 
 def test_news_digest_is_validated_before_publish():
@@ -47,8 +28,11 @@ def test_news_digest_is_validated_before_publish():
     validator_run = _step_run('Validate generated digest')
     assert 'continue-on-error' not in workflow.split('- name: Validate generated digest', 1)[1].split('- name:', 1)[0]
     assert "assets/data/us_news_digest.json" in validator_run
-    assert 'json.load' in validator_run
+    assert 'json.loads' in validator_run
     assert "data.get('digest_markdown')" in validator_run
+    assert "assert isinstance(counts, dict), 'raw_news_counts must be an object'" in validator_run
+    assert 'invalid_counts = [key for key, value in counts.items()' in validator_run
+    assert 'total_news = sum(counts.values())' in validator_run
     assert 'len(digest.strip()) >= 100' in validator_run
     assert "'### ' in digest" in validator_run
 

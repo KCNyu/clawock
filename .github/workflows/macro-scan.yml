@@ -44,39 +44,63 @@ jobs:
           python3 << 'PY'
           import json
           import math
+          import sys
           from datetime import datetime
           from pathlib import Path
 
           path = Path('assets/data/macro.json')
-          assert path.is_file(), f'macro snapshot missing: {path}'
-          data = json.loads(path.read_text(encoding='utf-8'))
-          generated_at = data.get('generated_at')
-          assert isinstance(generated_at, str), 'macro generated_at missing'
-          datetime.fromisoformat(generated_at.replace('Z', '+00:00'))
 
-          def finite_number(value):
-              return (isinstance(value, (int, float))
-                      and not isinstance(value, bool) and math.isfinite(value))
+          def validate():
+              assert path.is_file(), f'macro snapshot missing: {path}'
+              try:
+                  raw = path.read_text(encoding='utf-8')
+              except UnicodeDecodeError:
+                  raise AssertionError('file is not valid UTF-8') from None
+              assert raw.strip(), 'file is empty'
+              try:
+                  data = json.loads(raw)
+              except json.JSONDecodeError as exc:
+                  raise AssertionError(
+                      f'invalid JSON at line {exc.lineno} column {exc.colno}') from None
+              assert isinstance(data, dict), 'top-level JSON must be an object'
 
-          quote_fields = ('vix', 'treasury_10y', 'dxy', 'hsi', 'hstech', 'spx', 'nasdaq')
-          successful = [
-              field for field in quote_fields
-              if isinstance(data.get(field), dict)
-              and finite_number(data[field].get('price'))
-              and isinstance(data[field].get('source'), str)
-              and data[field]['source'].strip()
-          ]
-          fear_greed = data.get('fear_greed')
-          if isinstance(fear_greed, dict) and finite_number(fear_greed.get('score')):
-              successful.append('fear_greed')
-          fed_press = data.get('fed_press')
-          if (isinstance(fed_press, list)
-                  and any(isinstance(item, dict) and str(item.get('title', '')).strip()
-                          for item in fed_press)):
-              successful.append('fed_press')
+              generated_at = data.get('generated_at')
+              assert isinstance(generated_at, str), 'generated_at missing'
+              try:
+                  datetime.fromisoformat(generated_at.replace('Z', '+00:00'))
+              except ValueError:
+                  raise AssertionError('generated_at is not a valid ISO timestamp') from None
 
-          assert successful, 'macro snapshot has zero successfully populated fields'
-          print(f'macro coverage validation OK: {", ".join(successful)}')
+              def finite_number(value):
+                  return (isinstance(value, (int, float))
+                          and not isinstance(value, bool) and math.isfinite(value))
+
+              quote_fields = ('vix', 'treasury_10y', 'dxy', 'hsi', 'hstech', 'spx', 'nasdaq')
+              quote_sources = ('stooq', 'tencent', 'yahoo')
+              successful = [
+                  field for field in quote_fields
+                  if isinstance(data.get(field), dict)
+                  and finite_number(data[field].get('price'))
+                  and data[field]['price'] > 0
+                  and data[field].get('source') in quote_sources
+              ]
+              fear_greed = data.get('fear_greed')
+              if isinstance(fear_greed, dict) and finite_number(fear_greed.get('score')):
+                  successful.append('fear_greed')
+              fed_press = data.get('fed_press')
+              if (isinstance(fed_press, list)
+                      and any(isinstance(item, dict) and str(item.get('title', '')).strip()
+                              for item in fed_press)):
+                  successful.append('fed_press')
+
+              assert successful, 'snapshot has zero successfully populated fields'
+              print(f'macro coverage validation OK: {", ".join(successful)}')
+
+          try:
+              validate()
+          except Exception as exc:
+              print(f'ASSERTION FAILED: macro snapshot {path}: {exc}', file=sys.stderr)
+              raise SystemExit(1)
           PY
 
       - name: Commit

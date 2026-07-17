@@ -1,7 +1,8 @@
 """Publication contract for the macro sidecar workflow."""
 import re
-import textwrap
 from pathlib import Path
+
+from workflow_contract_helpers import step_block, step_run, steps
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -9,30 +10,15 @@ WORKFLOW = ROOT / '.github' / 'workflows' / 'macro-scan.yml'
 
 
 def _steps():
-    lines = WORKFLOW.read_text().splitlines()
-    return [
-        (i, line.strip().removeprefix('- name: '))
-        for i, line in enumerate(lines)
-        if line.lstrip().startswith('- name: ')
-    ]
+    return steps(WORKFLOW)
 
 
 def _step_block(name):
-    lines = WORKFLOW.read_text().splitlines()
-    start = next(i for i, step_name in _steps() if step_name == name)
-    indent = len(lines[start]) - len(lines[start].lstrip())
-    end = next(
-        (i for i in range(start + 1, len(lines))
-         if lines[i].startswith(' ' * indent + '- ')),
-        len(lines),
-    )
-    return '\n'.join(lines[start:end])
+    return step_block(WORKFLOW, name)
 
 
 def _step_run(name):
-    block = _step_block(name).splitlines()
-    run_start = next(i for i, line in enumerate(block) if line.strip() == 'run: |')
-    return textwrap.dedent('\n'.join(block[run_start + 1:]))
+    return step_run(WORKFLOW, name)
 
 
 def test_macro_snapshot_requires_coverage_before_exact_publish():
@@ -45,9 +31,12 @@ def test_macro_snapshot_requires_coverage_before_exact_publish():
     assert "Path('assets/data/macro.json')" in validator_run
     assert 'json.loads' in validator_run
     assert "quote_fields = ('vix', 'treasury_10y', 'dxy', 'hsi', 'hstech', 'spx', 'nasdaq')" in validator_run
+    assert "quote_sources = ('stooq', 'tencent', 'yahoo')" in validator_run
+    assert "data[field]['price'] > 0" in validator_run
+    assert "data[field].get('source') in quote_sources" in validator_run
     assert "successful.append('fear_greed')" in validator_run
     assert "successful.append('fed_press')" in validator_run
-    assert "assert successful, 'macro snapshot has zero successfully populated fields'" in validator_run
+    assert "assert successful, 'snapshot has zero successfully populated fields'" in validator_run
 
     commit_run = _step_run('Commit')
     publish_lines = [line.strip() for line in commit_run.splitlines()

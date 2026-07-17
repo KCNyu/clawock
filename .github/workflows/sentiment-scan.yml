@@ -42,35 +42,58 @@ jobs:
         run: |
           python3 << 'PY'
           import json
+          import sys
           from datetime import datetime
           from pathlib import Path
 
           path = Path('assets/data/sentiment.json')
-          assert path.is_file(), f'sentiment snapshot missing: {path}'
-          data = json.loads(path.read_text(encoding='utf-8'))
-          generated_at = data.get('generated_at')
-          assert isinstance(generated_at, str), 'sentiment generated_at missing'
-          datetime.fromisoformat(generated_at.replace('Z', '+00:00'))
-          assert isinstance(data.get('sources'), list) and data['sources'], 'sentiment sources missing'
 
-          tickers = data.get('tickers')
-          assert isinstance(tickers, list) and tickers, 'sentiment ticker results missing or empty'
-          successful = []
-          for row in tickers:
-              assert isinstance(row, dict), 'malformed sentiment ticker result'
-              ticker = row.get('ticker')
-              assert isinstance(ticker, str) and ticker.strip(), 'sentiment ticker missing'
-              mentions = row.get('reddit_mentions_7d', 0)
-              has_mentions = (isinstance(mentions, (int, float))
-                              and not isinstance(mentions, bool) and mentions > 0)
-              result_fields = ('reddit_posts', 'google_news_en', 'google_news_zh')
-              has_results = any(isinstance(row.get(field), list) and row[field]
-                                for field in result_fields)
-              if has_mentions or has_results:
-                  successful.append(ticker)
+          def validate():
+              assert path.is_file(), f'sentiment snapshot missing: {path}'
+              try:
+                  raw = path.read_text(encoding='utf-8')
+              except UnicodeDecodeError:
+                  raise AssertionError('file is not valid UTF-8') from None
+              assert raw.strip(), 'file is empty'
+              try:
+                  data = json.loads(raw)
+              except json.JSONDecodeError as exc:
+                  raise AssertionError(
+                      f'invalid JSON at line {exc.lineno} column {exc.colno}') from None
+              assert isinstance(data, dict), 'top-level JSON must be an object'
 
-          assert successful, 'sentiment snapshot has zero populated source results'
-          print(f'sentiment coverage validation OK: {len(successful)} tickers')
+              generated_at = data.get('generated_at')
+              assert isinstance(generated_at, str), 'generated_at missing'
+              try:
+                  datetime.fromisoformat(generated_at.replace('Z', '+00:00'))
+              except ValueError:
+                  raise AssertionError('generated_at is not a valid ISO timestamp') from None
+              assert isinstance(data.get('sources'), list) and data['sources'], 'sources missing'
+
+              tickers = data.get('tickers')
+              assert isinstance(tickers, list) and tickers, 'ticker results missing or empty'
+              successful = []
+              for row in tickers:
+                  assert isinstance(row, dict), 'malformed ticker result'
+                  ticker = row.get('ticker')
+                  assert isinstance(ticker, str) and ticker.strip(), 'ticker missing'
+                  mentions = row.get('reddit_mentions_7d', 0)
+                  has_mentions = (isinstance(mentions, (int, float))
+                                  and not isinstance(mentions, bool) and mentions > 0)
+                  result_fields = ('reddit_posts', 'google_news_en', 'google_news_zh')
+                  has_results = any(isinstance(row.get(field), list) and row[field]
+                                    for field in result_fields)
+                  if has_mentions or has_results:
+                      successful.append(ticker)
+
+              assert successful, 'snapshot has zero populated source results'
+              print(f'sentiment coverage validation OK: {len(successful)} tickers')
+
+          try:
+              validate()
+          except Exception as exc:
+              print(f'ASSERTION FAILED: sentiment snapshot {path}: {exc}', file=sys.stderr)
+              raise SystemExit(1)
           PY
 
       - name: Commit

@@ -38,24 +38,54 @@ jobs:
         run: |
           python3 << 'PY'
           import json
+          import sys
           from datetime import datetime
+          from pathlib import Path
 
-          path = 'assets/data/us_news_digest.json'
-          with open(path, encoding='utf-8') as f:
-              data = json.load(f)
+          path = Path('assets/data/us_news_digest.json')
 
-          generated_at = data.get('generated_at')
-          assert isinstance(generated_at, str), 'generated_at missing'
-          datetime.fromisoformat(generated_at.replace('Z', '+00:00'))
+          def validate():
+              assert path.is_file(), f'news digest missing: {path}'
+              try:
+                  raw = path.read_text(encoding='utf-8')
+              except UnicodeDecodeError:
+                  raise AssertionError('file is not valid UTF-8') from None
+              assert raw.strip(), 'file is empty'
+              try:
+                  data = json.loads(raw)
+              except json.JSONDecodeError as exc:
+                  raise AssertionError(
+                      f'invalid JSON at line {exc.lineno} column {exc.colno}') from None
+              assert isinstance(data, dict), 'top-level JSON must be an object'
 
-          tickers = data.get('tickers')
-          counts = data.get('raw_news_counts')
-          digest = data.get('digest_markdown')
-          assert isinstance(tickers, list) and tickers, 'tickers missing or empty'
-          assert isinstance(counts, dict) and sum(counts.values()) > 0, 'no source news in generated digest'
-          assert isinstance(digest, str) and len(digest.strip()) >= 100, 'LLM digest empty or implausibly short'
-          assert '### ' in digest, 'LLM digest is not the requested markdown structure'
-          print(f'digest validation OK: {len(digest)} chars, {sum(counts.values())} source items')
+              generated_at = data.get('generated_at')
+              assert isinstance(generated_at, str), 'generated_at missing'
+              try:
+                  datetime.fromisoformat(generated_at.replace('Z', '+00:00'))
+              except ValueError:
+                  raise AssertionError('generated_at is not a valid ISO timestamp') from None
+
+              tickers = data.get('tickers')
+              counts = data.get('raw_news_counts')
+              digest = data.get('digest_markdown')
+              assert isinstance(tickers, list) and tickers, 'tickers missing or empty'
+              assert isinstance(counts, dict), 'raw_news_counts must be an object'
+              invalid_counts = [key for key, value in counts.items()
+                                if not isinstance(value, int) or isinstance(value, bool)]
+              assert not invalid_counts, (
+                  f'raw_news_counts values must be integers: {invalid_counts}')
+              total_news = sum(counts.values())
+              assert total_news > 0, 'no source news in generated digest'
+              assert isinstance(digest, str) and len(digest.strip()) >= 100, (
+                  'LLM digest empty or implausibly short')
+              assert '### ' in digest, 'LLM digest is not the requested markdown structure'
+              print(f'digest validation OK: {len(digest)} chars, {total_news} source items')
+
+          try:
+              validate()
+          except Exception as exc:
+              print(f'ASSERTION FAILED: news digest {path}: {exc}', file=sys.stderr)
+              raise SystemExit(1)
           PY
 
       - name: Commit + push

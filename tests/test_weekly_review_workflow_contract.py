@@ -1,7 +1,8 @@
 """Publication contract for the off-host LLM weekly review workflow."""
 import re
-import textwrap
 from pathlib import Path
+
+from workflow_contract_helpers import step_block, step_run, steps
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -9,30 +10,15 @@ WORKFLOW = ROOT / '.github' / 'workflows' / 'weekly-review.yml'
 
 
 def _steps():
-    lines = WORKFLOW.read_text().splitlines()
-    return [
-        (i, line.strip().removeprefix('- name: '))
-        for i, line in enumerate(lines)
-        if line.lstrip().startswith('- name: ')
-    ]
+    return steps(WORKFLOW)
 
 
 def _step_block(name):
-    lines = WORKFLOW.read_text().splitlines()
-    start = next(i for i, step_name in _steps() if step_name == name)
-    indent = len(lines[start]) - len(lines[start].lstrip())
-    end = next(
-        (i for i in range(start + 1, len(lines))
-         if lines[i].startswith(' ' * indent + '- ')),
-        len(lines),
-    )
-    return '\n'.join(lines[start:end])
+    return step_block(WORKFLOW, name)
 
 
 def _step_run(name):
-    block = _step_block(name).splitlines()
-    run_start = next(i for i, line in enumerate(block) if line.strip() == 'run: |')
-    return textwrap.dedent('\n'.join(block[run_start + 1:]))
+    return step_run(WORKFLOW, name)
 
 
 def test_weekly_review_is_validated_and_exactly_staged_before_publish():
@@ -49,6 +35,7 @@ def test_weekly_review_is_validated_and_exactly_staged_before_publish():
     assert 'len(body) >= 1000' in validator_run
     for section in ('本周净值', 'Brier', '风险演变', '下周关注'):
         assert section in validator_run
+    assert "assert not missing, f'weekly review missing required sections: {missing}'" in validator_run
     assert '决策兑现' not in validator_run
 
     commit_run = _step_run('Commit + push')

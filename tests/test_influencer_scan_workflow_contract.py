@@ -1,7 +1,8 @@
 """Publication contract for the influencer sidecar workflow."""
 import re
-import textwrap
 from pathlib import Path
+
+from workflow_contract_helpers import step_block, step_run, steps
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -9,30 +10,15 @@ WORKFLOW = ROOT / '.github' / 'workflows' / 'influencer-scan.yml'
 
 
 def _steps():
-    lines = WORKFLOW.read_text().splitlines()
-    return [
-        (i, line.strip().removeprefix('- name: '))
-        for i, line in enumerate(lines)
-        if line.lstrip().startswith('- name: ')
-    ]
+    return steps(WORKFLOW)
 
 
 def _step_block(name):
-    lines = WORKFLOW.read_text().splitlines()
-    start = next(i for i, step_name in _steps() if step_name == name)
-    indent = len(lines[start]) - len(lines[start].lstrip())
-    end = next(
-        (i for i in range(start + 1, len(lines))
-         if lines[i].startswith(' ' * indent + '- ')),
-        len(lines),
-    )
-    return '\n'.join(lines[start:end])
+    return step_block(WORKFLOW, name)
 
 
 def _step_run(name):
-    block = _step_block(name).splitlines()
-    run_start = next(i for i, line in enumerate(block) if line.strip() == 'run: |')
-    return textwrap.dedent('\n'.join(block[run_start + 1:]))
+    return step_run(WORKFLOW, name)
 
 
 def test_influencer_feed_requires_populated_coverage_before_exact_publish():
@@ -46,7 +32,10 @@ def test_influencer_feed_requires_populated_coverage_before_exact_publish():
     assert 'continue-on-error' not in validator_block
     assert "Path('assets/data/influencer_feed.json')" in validator_run
     assert 'json.loads' in validator_run
-    assert "assert items, 'influencer feed has zero populated items'" in validator_run
+    assert "assert items, 'feed has zero populated items'" in validator_run
+    assert 'for index, item in enumerate(items):' in validator_run
+    assert "isinstance(author, str) and author.strip()" in validator_run
+    assert "isinstance(text, str) and text.strip()" in validator_run
     assert "summary_lists = ('held_hits', 'new_ideas', 'sector_hits')" in validator_run
     assert "total >= len(items) > 0" in validator_run
 
@@ -55,4 +44,3 @@ def test_influencer_feed_requires_populated_coverage_before_exact_publish():
                      if line.strip().startswith('bash scripts/data/gha_commit_push.sh')]
     assert len(publish_lines) == 1
     assert re.search(r'\sassets/data/influencer_feed\.json$', publish_lines[0])
-

@@ -47,43 +47,67 @@ jobs:
           python3 << 'PY'
           import json
           import math
+          import sys
           from datetime import datetime
           from pathlib import Path
 
           path = Path('assets/data/influencer_feed.json')
-          assert path.is_file(), f'influencer feed missing: {path}'
-          data = json.loads(path.read_text(encoding='utf-8'))
 
-          generated_at = data.get('generated_at')
-          assert isinstance(generated_at, str), 'influencer generated_at missing'
-          datetime.fromisoformat(generated_at.replace('Z', '+00:00'))
+          def validate():
+              assert path.is_file(), f'influencer feed missing: {path}'
+              try:
+                  raw = path.read_text(encoding='utf-8')
+              except UnicodeDecodeError:
+                  raise AssertionError('file is not valid UTF-8') from None
+              assert raw.strip(), 'file is empty'
+              try:
+                  data = json.loads(raw)
+              except json.JSONDecodeError as exc:
+                  raise AssertionError(
+                      f'invalid JSON at line {exc.lineno} column {exc.colno}') from None
+              assert isinstance(data, dict), 'top-level JSON must be an object'
 
-          items = data.get('items')
-          assert isinstance(items, list), 'influencer items must be a list'
-          assert items, 'influencer feed has zero populated items'
-          for index, item in enumerate(items):
-              assert isinstance(item, dict), f'influencer item {index} is not an object'
-              assert str(item.get('author', '')).strip(), f'influencer item {index} missing author'
-              assert str(item.get('text', '')).strip(), f'influencer item {index} missing text'
-              relevance = item.get('relevance')
-              assert (relevance is None
-                      or (isinstance(relevance, (int, float))
-                          and not isinstance(relevance, bool)
-                          and math.isfinite(relevance))), (
-                  f'influencer item {index} has invalid relevance')
+              generated_at = data.get('generated_at')
+              assert isinstance(generated_at, str), 'generated_at missing'
+              try:
+                  datetime.fromisoformat(generated_at.replace('Z', '+00:00'))
+              except ValueError:
+                  raise AssertionError('generated_at is not a valid ISO timestamp') from None
 
-          counts = data.get('counts')
-          assert isinstance(counts, dict), 'influencer counts missing'
-          summary_lists = ('held_hits', 'new_ideas', 'sector_hits')
-          for field in summary_lists:
-              assert isinstance(data.get(field), list), f'influencer {field} must be a list'
-              count = counts.get(field)
-              assert isinstance(count, int) and count >= len(data[field]), (
-                  f'influencer {field} count/list mismatch')
-          total = counts.get('total')
-          assert isinstance(total, int) and total >= len(items) > 0, (
-              'influencer total count/items mismatch')
-          print(f'influencer coverage validation OK: {len(items)} populated items')
+              items = data.get('items')
+              assert isinstance(items, list), 'items must be a list'
+              assert items, 'feed has zero populated items'
+              for index, item in enumerate(items):
+                  assert isinstance(item, dict), f'item {index} is not an object'
+                  author = item.get('author')
+                  assert isinstance(author, str) and author.strip(), f'item {index} missing author'
+                  text = item.get('text')
+                  assert isinstance(text, str) and text.strip(), f'item {index} missing text'
+                  relevance = item.get('relevance')
+                  assert (relevance is None
+                          or (isinstance(relevance, (int, float))
+                              and not isinstance(relevance, bool)
+                              and math.isfinite(relevance))), (
+                      f'item {index} has invalid relevance')
+
+              counts = data.get('counts')
+              assert isinstance(counts, dict), 'counts missing'
+              summary_lists = ('held_hits', 'new_ideas', 'sector_hits')
+              for field in summary_lists:
+                  assert isinstance(data.get(field), list), f'{field} must be a list'
+                  count = counts.get(field)
+                  assert isinstance(count, int) and count >= len(data[field]), (
+                      f'{field} count/list mismatch')
+              total = counts.get('total')
+              assert isinstance(total, int) and total >= len(items) > 0, (
+                  'total count/items mismatch')
+              print(f'influencer coverage validation OK: {len(items)} populated items')
+
+          try:
+              validate()
+          except Exception as exc:
+              print(f'ASSERTION FAILED: influencer feed {path}: {exc}', file=sys.stderr)
+              raise SystemExit(1)
           PY
 
       - name: Commit + push

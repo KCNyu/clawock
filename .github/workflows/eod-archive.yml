@@ -71,6 +71,7 @@ jobs:
           python3 << 'PY'
           import csv
           import math
+          import sys
           from datetime import date
           from pathlib import Path
 
@@ -89,6 +90,15 @@ jobs:
           snapshot_date = str(date.today())
           today_rows = [row for row in rows if row['date'] == snapshot_date]
           assert today_rows, f'EOD archive has no rows for {snapshot_date}'
+          for index, row in enumerate(today_rows, start=1):
+              ticker = row.get('ticker')
+              if not isinstance(ticker, str) or not ticker.strip():
+                  print(
+                      f'ASSERTION FAILED: EOD archive {path}: malformed row {index} '
+                      f'for {snapshot_date}: ticker missing',
+                      file=sys.stderr,
+                  )
+                  raise SystemExit(1)
           keys = [(row['ticker'], row['currency']) for row in today_rows]
           assert len(keys) == len(set(keys)), f'duplicate EOD rows for {snapshot_date}'
 
@@ -99,7 +109,6 @@ jobs:
                   return False
 
           for row in today_rows:
-              assert row['ticker'].strip(), 'EOD row missing ticker'
               assert row['currency'] in ('USD', 'HKD'), (
                   f"unexpected EOD currency for {row['ticker']}: {row['currency']}")
               for field in ('shares', 'cost_basis', 'current_price', 'current_value'):
