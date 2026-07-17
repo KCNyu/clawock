@@ -39,6 +39,46 @@ jobs:
       - name: Fetch macro
         run: python3 scripts/data/fetch_macro.py
 
+      - name: Validate macro coverage
+        run: |
+          python3 << 'PY'
+          import json
+          import math
+          from datetime import datetime
+          from pathlib import Path
+
+          path = Path('assets/data/macro.json')
+          assert path.is_file(), f'macro snapshot missing: {path}'
+          data = json.loads(path.read_text(encoding='utf-8'))
+          generated_at = data.get('generated_at')
+          assert isinstance(generated_at, str), 'macro generated_at missing'
+          datetime.fromisoformat(generated_at.replace('Z', '+00:00'))
+
+          def finite_number(value):
+              return (isinstance(value, (int, float))
+                      and not isinstance(value, bool) and math.isfinite(value))
+
+          quote_fields = ('vix', 'treasury_10y', 'dxy', 'hsi', 'hstech', 'spx', 'nasdaq')
+          successful = [
+              field for field in quote_fields
+              if isinstance(data.get(field), dict)
+              and finite_number(data[field].get('price'))
+              and isinstance(data[field].get('source'), str)
+              and data[field]['source'].strip()
+          ]
+          fear_greed = data.get('fear_greed')
+          if isinstance(fear_greed, dict) and finite_number(fear_greed.get('score')):
+              successful.append('fear_greed')
+          fed_press = data.get('fed_press')
+          if (isinstance(fed_press, list)
+                  and any(isinstance(item, dict) and str(item.get('title', '')).strip()
+                          for item in fed_press)):
+              successful.append('fed_press')
+
+          assert successful, 'macro snapshot has zero successfully populated fields'
+          print(f'macro coverage validation OK: {", ".join(successful)}')
+          PY
+
       - name: Commit
         # Shared helper commits only this workflow's sidecar. The host's single
         # publisher folds it into dashboard.json on the next <=20-minute tick.

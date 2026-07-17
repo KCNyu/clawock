@@ -42,6 +42,50 @@ jobs:
           MINIMAX_API_KEY: ${{ secrets.MINIMAX_API_KEY }}
         run: python3 scripts/data/fetch_influencer_feed.py
 
+      - name: Validate influencer coverage
+        run: |
+          python3 << 'PY'
+          import json
+          import math
+          from datetime import datetime
+          from pathlib import Path
+
+          path = Path('assets/data/influencer_feed.json')
+          assert path.is_file(), f'influencer feed missing: {path}'
+          data = json.loads(path.read_text(encoding='utf-8'))
+
+          generated_at = data.get('generated_at')
+          assert isinstance(generated_at, str), 'influencer generated_at missing'
+          datetime.fromisoformat(generated_at.replace('Z', '+00:00'))
+
+          items = data.get('items')
+          assert isinstance(items, list), 'influencer items must be a list'
+          assert items, 'influencer feed has zero populated items'
+          for index, item in enumerate(items):
+              assert isinstance(item, dict), f'influencer item {index} is not an object'
+              assert str(item.get('author', '')).strip(), f'influencer item {index} missing author'
+              assert str(item.get('text', '')).strip(), f'influencer item {index} missing text'
+              relevance = item.get('relevance')
+              assert (relevance is None
+                      or (isinstance(relevance, (int, float))
+                          and not isinstance(relevance, bool)
+                          and math.isfinite(relevance))), (
+                  f'influencer item {index} has invalid relevance')
+
+          counts = data.get('counts')
+          assert isinstance(counts, dict), 'influencer counts missing'
+          summary_lists = ('held_hits', 'new_ideas', 'sector_hits')
+          for field in summary_lists:
+              assert isinstance(data.get(field), list), f'influencer {field} must be a list'
+              count = counts.get(field)
+              assert isinstance(count, int) and count >= len(data[field]), (
+                  f'influencer {field} count/list mismatch')
+          total = counts.get('total')
+          assert isinstance(total, int) and total >= len(items) > 0, (
+              'influencer total count/items mismatch')
+          print(f'influencer coverage validation OK: {len(items)} populated items')
+          PY
+
       - name: Commit + push
         # Shared helper commits only this workflow's sidecar. The host's single
         # publisher folds it into dashboard.json on the next <=20-minute tick.

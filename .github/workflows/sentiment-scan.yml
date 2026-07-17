@@ -38,6 +38,41 @@ jobs:
       - name: Scan sentiment (Reddit + Google News)
         run: python3 scripts/data/fetch_sentiment.py
 
+      - name: Validate sentiment coverage
+        run: |
+          python3 << 'PY'
+          import json
+          from datetime import datetime
+          from pathlib import Path
+
+          path = Path('assets/data/sentiment.json')
+          assert path.is_file(), f'sentiment snapshot missing: {path}'
+          data = json.loads(path.read_text(encoding='utf-8'))
+          generated_at = data.get('generated_at')
+          assert isinstance(generated_at, str), 'sentiment generated_at missing'
+          datetime.fromisoformat(generated_at.replace('Z', '+00:00'))
+          assert isinstance(data.get('sources'), list) and data['sources'], 'sentiment sources missing'
+
+          tickers = data.get('tickers')
+          assert isinstance(tickers, list) and tickers, 'sentiment ticker results missing or empty'
+          successful = []
+          for row in tickers:
+              assert isinstance(row, dict), 'malformed sentiment ticker result'
+              ticker = row.get('ticker')
+              assert isinstance(ticker, str) and ticker.strip(), 'sentiment ticker missing'
+              mentions = row.get('reddit_mentions_7d', 0)
+              has_mentions = (isinstance(mentions, (int, float))
+                              and not isinstance(mentions, bool) and mentions > 0)
+              result_fields = ('reddit_posts', 'google_news_en', 'google_news_zh')
+              has_results = any(isinstance(row.get(field), list) and row[field]
+                                for field in result_fields)
+              if has_mentions or has_results:
+                  successful.append(ticker)
+
+          assert successful, 'sentiment snapshot has zero populated source results'
+          print(f'sentiment coverage validation OK: {len(successful)} tickers')
+          PY
+
       - name: Commit
         # Shared helper commits only this workflow's sidecar. The host's single
         # publisher folds it into dashboard.json on the next <=20-minute tick.

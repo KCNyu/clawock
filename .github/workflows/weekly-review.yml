@@ -34,11 +34,45 @@ jobs:
           MINIMAX_API_KEY: ${{ secrets.MINIMAX_API_KEY }}
         run: python3 scripts/data/gh_action_weekly_review.py
 
+      - name: Validate generated review
+        run: |
+          python3 << 'PY'
+          from datetime import date
+          from pathlib import Path
+
+          iso_year, iso_week, _ = date.today().isocalendar()
+          week_id = f'{iso_year}-W{iso_week:02d}'
+          path = Path(f'memory/weekly/{week_id}.md')
+          assert path.is_file(), f'weekly review missing: {path}'
+
+          raw = path.read_text(encoding='utf-8')
+          assert raw.startswith('---\n'), 'weekly review front matter missing'
+          parts = raw.split('---', 2)
+          assert len(parts) == 3, 'weekly review front matter is malformed'
+          front_matter, body = parts[1], parts[2].strip()
+          metadata = {}
+          for line in front_matter.strip().splitlines():
+              key, separator, value = line.partition(':')
+              assert separator, f'malformed front matter line: {line!r}'
+              metadata[key.strip()] = value.strip()
+
+          assert metadata.get('layout') == 'default', 'unexpected weekly review layout'
+          assert metadata.get('title') == f'周复盘 · {week_id}', 'weekly review title/week mismatch'
+          assert len(body) >= 1000, f'weekly review implausibly short: {len(body)} chars'
+          required_sections = ('本周净值', 'Brier', '风险演变', '下周关注')
+          missing = [section for section in required_sections if section not in body]
+          assert not missing, f'weekly review missing required sections: {missing}'
+          headings = [line for line in body.splitlines() if line.lstrip().startswith('#')]
+          assert len(headings) >= 4, 'weekly review does not contain four markdown sections'
+          print(f'weekly review validation OK: {path} ({len(body)} chars)')
+          PY
+
       - name: Commit + push
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add memory/weekly/
+          review_path="memory/weekly/$(date -u +%G-W%V).md"
+          git add -- "$review_path"
           if ! git diff --cached --quiet; then
             git commit -m "memory: weekly review $(date -u +%Y-W%V)"
             bash scripts/data/safe_push.sh
