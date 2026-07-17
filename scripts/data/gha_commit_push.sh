@@ -3,11 +3,12 @@
 # (macro / sentiment / influencer). Stages the job's data file(s), commits as
 # the bot, pushes via safe_push.sh — and on a lost push race, retries.
 #
-# SINGLE-PUBLISHER (Option 1, 2026-07-04): GH Actions NO LONGER rebuild
-# dashboard.json. They only commit their own disjoint sidecar (macro.json /
-# sentiment.json / influencer_feed.json …). dashboard.json is rebuilt solely by
-# the host harness postflights + the flock-guarded publish_dashboard.sh crontab,
-# which re-embeds these sidecars within ≤20 min. This eliminates the entire class
+# DECOUPLED SIDECARS (2026-07-04): GH Actions NO LONGER rebuild dashboard.json.
+# They only commit their own disjoint sidecar (macro.json / sentiment.json /
+# influencer_feed.json …), which index.html fetches directly. The host harness
+# postflights + flock-guarded publish_dashboard.sh remain the only dashboard.json
+# rebuilders, but no rebuild is needed for scan sidecars to reach the page. This
+# eliminates the entire class
 # of failures that this script used to work around:
 #   • sidecar-strip regression — GHA rebuilt dashboard on a fresh checkout with an
 #     empty memory/.tmp and published blanked-out narrative cards.

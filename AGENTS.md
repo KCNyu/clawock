@@ -50,7 +50,7 @@ After any of the following changes, run a git commit automatically — no need t
 | Workspace docs changed (SOUL/AGENTS/TOOLS/USER/CLAUDE/README) | `docs: <what changed>` |
 
 Message style: `<type>: <concise description>`, Chinese is fine.
-**Never commit:** `.api_keys`, `*.png`/`*.jpg`, `.openclaw/`, `.clawhub/`, `memory/.dreams/`, `memory/.tmp/` (all gitignored).
+**Never commit:** `.api_keys`, scratch `*.png`/`*.jpg` outside the shipped `assets/`/`docs/` allowlists, `.openclaw/`, `.clawhub/`, `memory/.dreams/`, `memory/.tmp/` (gitignored). Shipped `assets/*.png` are committed; `screenshot-refresh.yml` commits `assets/shadow-backtest.png` and `assets/social-card.png`, plus `assets/dashboard.gif` on manual dispatch.
 
 Push: harness postflight now **auto-pushes** after commit (rebase+retry on race). 
 `git push` from chat / Telegram should still ask first — that's intentional human gating.

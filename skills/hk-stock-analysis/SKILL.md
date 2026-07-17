@@ -1,6 +1,6 @@
 ---
 name: hk-stock-analysis
-description: Workspace-aware Hong Kong stock analysis for kcn. Routes through scripts/data/analyze_hk_stocks.py (Tencent → stooq → yfinance fallback chain) for price/技术指标/news, layered with HK-specific concepts — 南向资金, HSTECH 方向, 杠杆 ETF 衰减, 老千股警惕, T+0 无涨跌幅. Use when user asks about a HK ticker (e.g. "分析 00100", "07226 怎么样", "恒科今天"), HK book performance, or HK sector view.
+description: Workspace-aware Hong Kong stock analysis for kcn. Routes through scripts/data/analyze_hk_stocks.py (Tencent primary + Eastmoney full-batch independent cross-check/fallback → stooq → yfinance) for price/技术指标/news, layered with HK-specific concepts — 南向资金, HSTECH 方向, 杠杆 ETF 衰减, 老千股警惕, T+0 无涨跌幅. Use when user asks about a HK ticker (e.g. "分析 00100", "07226 怎么样", "恒科今天"), HK book performance, or HK sector view.
 triggers:
   - "分析 {5位港股代码}"
   - "港股 {ticker}"
@@ -33,15 +33,15 @@ python3 /root/.openclaw/workspace/scripts/data/analyze_hk_stocks.py --no-fetch  
 ```
 
 **HK fallback chain (inside script):**
-1. **Tencent** `qt.gtimg.cn/q=r_hk{CODE}` — primary, best coverage
-2. **stooq.com** CSV — same-day OHLCV; **caveat**: new IPOs (e.g. 00100) not covered, `prev_close` approximated from `open`
-3. **yfinance** — frequently rate-limited, last-resort fallback
+1. **Tencent** `qt.gtimg.cn/q=r_hk{CODE}` — primary; batch first, then single-code retry for misses
+2. **Eastmoney HK** `push2.eastmoney.com/.../ulist.np/get` (secid prefix 116) — requested for **every ticker** as an independent batch, even when Tencent succeeded. When both succeed, prefer Tencent but compare `c` and `pc`; divergence >1% is stored in `_divergence` and warned on stdout. When Tencent misses, Eastmoney is the first fallback.
+3. **stooq.com** CSV — only for tickers still unresolved; same-day OHLCV; **caveat**: new IPOs (e.g. 00100) not covered, `prev_close` approximated from `open`
+4. **yfinance** — only for tickers still unresolved; frequently rate-limited, last-resort fallback
 
 **Removed routes (do not retry):**
-- ❌ Eastmoney `push2.eastmoney.com` — 502 from this server, removed from chain
 - ❌ AAStocks / 富途网页 — anti-scraping, not worth the fight; use Tencent
 
-**基本面路由（行情之外，2026-06-14 接入）：** 港股财报/关键指标走东财 datacenter — `fetch_fundamentals_em.py`（datacenter-web + searchapi 子域实测稳定，与被封的 push2/push2his 不同域）。详见 Mode 3。⚠️ 资金流 `fetch_fundflow_em.py` 写好但 push2his 在本服务器 IP 被封，暂不可用。
+**基本面路由（行情之外，2026-06-14 接入）：** 港股财报/关键指标走东财 datacenter — `fetch_fundamentals_em.py`（datacenter-web + searchapi 子域实测稳定；行情链的 push2 由共享客户端独立尝试）。详见 Mode 3。⚠️ 资金流 `fetch_fundflow_em.py` 写好但 push2his 在本服务器 IP 被封，暂不可用。
 
 **Critical trap — 00100 MINIMAX has only Tencent.** As a new IPO it has no stooq/yfinance coverage. If Tencent fails on 00100, say so explicitly before falling back — do not silently use yesterday's cache.
 
@@ -268,6 +268,6 @@ Output:
 
 ## Companion tools
 
-- `../scrapling/SKILL.md` — 当 Tencent/stooq/yfinance 全挂 或需要抓雪球/富途社区时
+- `../scrapling/SKILL.md` — 当 Tencent/Eastmoney/stooq/yfinance 全挂 或需要抓雪球/富途社区时
 - `../tavily-search/SKILL.md` — 中文新闻 / 南向资金数据 / 政策搜索的首选 web 搜索
 - `/root/.openclaw/workspace/TradingAgents/` — 用户已克隆的 TauricResearch 多 agent 框架。深度分析需要 bull/bear debate 时可参考其 agent 角色设计

@@ -52,8 +52,8 @@ Step 2  read context  inside that .json: raw_wechat_block, anomalies, title, sig
 Step 3  LLM synthesis you write the report + (brief only) plan.json
                       following the SKILL.md Mode template, MUST quote raw_wechat_block verbatim
 Step 4  postflight    scripts/harness/{brief|report|intraday}_postflight.py [args]
-                      validates report, computes wechat_prefix, pass/warn → auto-commit
-                      (brief/report also auto-runs build_dashboard.py to keep Pages in sync)
+                      validates report, computes wechat_prefix, then handles its scoped publish
+                      (all three auto-run build_dashboard.py; intraday commits only semantic diffs)
 ```
 
 Don't ask permission for internal reads/edits. Action over confirmation.

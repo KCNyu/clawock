@@ -74,7 +74,7 @@ jobs:
           PY
 
       - name: Commit
-        # Shared helper commits only this workflow's sidecar. The host's single
-        # publisher folds it into dashboard.json on the next <=20-minute tick.
+        # Shared helper commits only this workflow's sidecar. The frontend fetches
+        # it directly; dashboard.json is not rebuilt for it.
         run: |
           bash scripts/data/gha_commit_push.sh "sentiment: daily Reddit + Google News scan $(date -u +%Y-%m-%d)" assets/data/sentiment.json

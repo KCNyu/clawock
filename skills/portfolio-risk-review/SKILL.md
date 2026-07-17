@@ -25,7 +25,7 @@ In this order:
 python3 /root/.openclaw/workspace/scripts/data/analyze_us_stocks.py
 python3 /root/.openclaw/workspace/scripts/data/analyze_us_stocks.py --no-news    # skip news
 
-# HK: Tencent → stooq → yfinance fallback
+# HK: Tencent primary + Eastmoney full-batch independent cross-check/fallback → stooq → yfinance
 python3 /root/.openclaw/workspace/scripts/data/analyze_hk_stocks.py
 python3 /root/.openclaw/workspace/scripts/data/analyze_hk_stocks.py --no-news
 ```

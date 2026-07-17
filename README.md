@@ -67,7 +67,7 @@ The Reflect dashboard reports:
 - cumulative episode win rate against a 50% directional-hit line;
 - stated confidence against the realised rate, graded against a leave-one-out constant forecast — the bar a confidence field has to clear before it means anything;
 - date-cluster bootstrap intervals, so same-day calls are not treated as independent evidence; and
-- follow-through split into the calls that asked for an action and the ones that asked for nothing, because "following" a HOLD is sitting still and scores itself ~97%. Blended, the two averaged into a ~50% that described nobody.
+- follow-through split into the calls that asked for an action and the ones that asked for nothing, because "following" a HOLD is sitting still and mechanically inflates the blended rate. The dashboard renders the current active, passive, and blended values separately.
 
 **No "what listening to the AI earned" figure is published.** The snapshots lack a stable price vintage, intraday highs and lows can carry across sessions, and most calls have no real fill to check against — so executed and counterfactual outcomes cannot be reliably told apart. The bars now exist; what is still missing is real fill records and an explicit sell-at-close book to difference against, so the money view stays unpublished.
 

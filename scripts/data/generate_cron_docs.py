@@ -22,13 +22,25 @@ def schedule_text(item: dict) -> str:
     return f"`{schedule['expr']}` · {tz}"
 
 
+def watchdog_text(job: dict) -> str:
+    watchdogs = [job.get("watchdog"), *(job.get("extra_watchdogs") or [])]
+    rendered = []
+    for watchdog in watchdogs:
+        if not watchdog:
+            continue
+        text = schedule_text(watchdog)
+        if purpose := watchdog.get("purpose"):
+            text += f" · {purpose}"
+        rendered.append(text)
+    return "<br>".join(rendered) or "—"
+
+
 def render(contract: dict) -> str:
     rows = []
     for job in contract["jobs"]:
-        watchdog = schedule_text(job["watchdog"]) if job.get("watchdog") else "—"
         rows.append(
             f"| {job['name']} | {schedule_text(job)} | {job.get('mode', '—')} | "
-            f"`{job.get('harness', '—')}` | {watchdog} |"
+            f"`{job.get('harness', '—')}` | {watchdog_text(job)} |"
         )
     return "\n".join([
         "# Cron schedule contract / 调度契约",
@@ -65,7 +77,8 @@ def render(contract: dict) -> str:
         "## Operational invariants / 运维不变量",
         "",
         "- Exactly 11 enabled OpenClaw jobs; 10 market jobs plus memory promotion.",
-        "- Six report, three intraday, and one brief watchdog are Telegram-only backstops.",
+        "- Six report, three intraday, and two brief watchdog passes are tracked; the brief",
+        "  uses an 08:30 delivery backstop plus a 09:05 post-window miss detector.",
         "- Market payloads use deterministic preflight/postflight, `delivery.mode=none`,",
         "  MiniMax M3, the shared length limits, a unique WeChat path, and Telegram mirror.",
         "- Mode 7 writes the public `assets/data/cron-heartbeats.json` ledger through the",

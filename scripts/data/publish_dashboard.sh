@@ -1,11 +1,10 @@
 #!/usr/bin/env bash
 # publish_dashboard.sh — the single scheduled publisher for dashboard.json and
-# the Mode 7 heartbeat sidecar
-# (Option 1, 2026-07-04). GH Action scans now commit ONLY their sidecar files
-# (macro/sentiment/influencer/…); they no longer rebuild the dashboard. This
-# crontab-run publisher re-embeds those sidecars into dashboard.json and pushes,
-# so the live page never lags the latest scan — including weekends/holidays when
-# the host harness (weekday market crons) isn't rebuilding it.
+# the Mode 7 heartbeat sidecar (Option 1, 2026-07-04). GH Action scans commit ONLY
+# their sidecar files (macro/sentiment/influencer/…); index.html fetches those
+# directly, so this publisher does not embed them. This crontab-run publisher
+# rebuilds portfolio-derived dashboard data, publishes the heartbeat sidecar, and
+# pushes any semantic change.
 #
 # Concurrency: holds /tmp/dashboard_publish.lock (the same lock the host harness
 # rebuild takes, see _harness_common.DASHBOARD_PUBLISH_LOCK) for the WHOLE

@@ -34,17 +34,17 @@ python3 /root/.openclaw/workspace/scripts/harness/brief_preflight.py
 这一步内部做了：
 
 1. `scripts/data/analyze_us_stocks.py` — US 价格刷新（7-route fallback + RSI/MA）
-2. `scripts/data/analyze_hk_stocks.py` — HK 价格刷新（Tencent → stooq → yfinance + 恒指 + 信号）
+2. `scripts/data/analyze_hk_stocks.py` — HK 价格刷新（Tencent 主源 + Eastmoney 全量独立对账/兜底 → stooq → yfinance + 恒指 + 信号）
 3. `scripts/data/fetch_fx.py --json` — USDHKD 实时汇率（Frankfurter → exchangerate.host → Yahoo）
 4. `cp portfolio.json memory/snapshots/{date}.json` — 每日快照（longitudinal 基础设施）
    - **为什么**：`portfolio.json` 是滚动覆盖的 ground truth，每次刷价就丢前一刻状态。
      有 snapshot 历史才能做 Rolling P&L 曲线 / Alpha vs benchmark / Drawdown 分析 / Position 变化追溯。
    - ⚠️ **不可补做** — 每过一天少一份永远拿不回来的数据。
 5. **HHI / Top2 集中度算法**（HK + US leg 分开）
-6. **SEC EDGAR fundamentals** — 对每个 `is_leveraged_etf=false` 的 US 单股跑 `scripts/data/fetch_us_filings.py`
+6. **SEC EDGAR fundamentals** — 从当天 `portfolio.json` 动态筛选 `shares > 0` 的 US 持仓；跳过 `is_leveraged_etf=true` 或被名称启发式识别为杠杆 ETF 的标的，其余单股逐一跑 `scripts/data/fetch_us_filings.py`
    - 杠杆 ETF 检测启发式（name 关键词）：'倍', 'Direxion', 'T-Rex', 'Defiance', 'ProShares',
      '2X Long', '3X Long', 'Daily Target'
-   - 当前实际跑 EDGAR 的票：RKLB / CRCL（其他 5 个 US 持仓都是杠杆 ETF）
+   - 不在文档硬编码 ticker；实际名单以当天持仓和上述动态过滤结果为准
 7. **Retrospective**：读 prior v2 plan，对每个 decision 按 strategy 检查 condition 是否触发、模拟 benefit 与 confidence calibration
 
 输出：`memory/.tmp/brief-context-{date}.json` —— 所有数据准备好的单一 JSON。

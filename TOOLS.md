@@ -35,7 +35,7 @@
 | `news-digest.yml` | 工作日 13:00 UTC (21:00 HKT) | `assets/data/us_news_digest.json` | 美股开盘前 48h 新闻提炼 |
 | `influencer-scan.yml` | 周日–四 21:40 + 工作日 12:50 UTC | `assets/data/influencer_feed.json` | 盘前 + 美股盘前两班影响力雷达 |
 | `cron-health.yml` | 工作日 09:00 UTC (17:00 HKT) | (read-only) | 用 tracked cron contract + HKT commit date 巡检漏跑 |
-| `screenshot-refresh.yml` | 周日 22:00 UTC | `social-card.png` + `shadow-backtest.png` | 每周两张 PNG；GIF 只在手动 dispatch 时生成 |
+| `screenshot-refresh.yml` | 周日 22:00 UTC | `assets/social-card.png` + `assets/shadow-backtest.png` | 每周两张 PNG；`assets/dashboard.gif` 只在手动 dispatch 时生成 |
 
 **远端 LLM 路径**: 本地市场 cron 与远端 `xiaomi_llm.chat()` 都以 MiniMax M3 为主；远端在可选 `XIAOMI_API_KEY` 仍有效时可 fallback 到 MiMo v2.5-pro。4 个 LLM workflow（news-digest / weekly-review / brief-fallback / influencer-scan）均只从 repo secrets 读 key，仓库不落 key。
 
@@ -157,7 +157,7 @@ python3 scripts/data/fetch_us_stocks.py     # 仅刷美股价格
 
 ### Cron map
 
-11 个 OpenClaw job、10 个 watchdog、EDT/EST 两季表达式和 harness 映射只在
+11 个 OpenClaw job、11 个 watchdog pass（6 report + 3 intraday + 08:30 brief 投递兜底 + 09:05 brief miss-detector）、EDT/EST 两季表达式和 harness 映射只在
 [`config/cron-schedules.json`](config/cron-schedules.json) 维护；人读表由
 [`CRON_SCHEDULES.md`](CRON_SCHEDULES.md) 自动生成。每日 06:20 HKT 的同步器按
 `America/New_York` 自动调整美股 live cron + watchdog；system check 同时校验 schedule、

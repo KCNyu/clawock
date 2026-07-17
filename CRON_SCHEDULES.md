@@ -30,7 +30,7 @@ keeps an exclusive window; standard time therefore has two fewer US intraday slo
 | 美股盘中盯盘-overnight | `*/30 0-2 * * 2-6` · Asia/Shanghai | Mode 7 | `intraday --us` | `10,40 0-2 * * 2-6` · Asia/Hong_Kong |
 | Memory Dreaming Promotion | `0 3 * * *` · host HKT | memory-core | `—` | — |
 | 美股收盘报告 | EDT `0 4 * * 2-6`<br>EST `0 5 * * 2-6` | Mode 6 | `report --us close` | EDT `20 4 * * 2-6`<br>EST `20 5 * * 2-6` |
-| 盘前深度简报 | `0 8 * * 1-5` · Asia/Shanghai | daily-deep-brief | `brief_*` | `30 8 * * 1-5` · Asia/Hong_Kong |
+| 盘前深度简报 | `0 8 * * 1-5` · Asia/Shanghai | daily-deep-brief | `brief_*` | `30 8 * * 1-5` · Asia/Hong_Kong<br>`5 9 * * 1-5` · Asia/Hong_Kong · miss-detector: brief never written (08:30 is inside the landing window) |
 | 港股开盘报告 | `30 9 * * 1-5` · Asia/Shanghai | Mode 6 | `report --hk open` | `45 9 * * 1-5` · Asia/Hong_Kong |
 | 盘中盯盘 | `*/30 10-11,14-15 * * 1-5` · Asia/Shanghai | Mode 7 | `intraday --hk` | `4,34 10-11,14-15 * * 1-5` · Asia/Hong_Kong |
 | 港股午盘报告 | `0 12 * * 1-5` · Asia/Shanghai | Mode 6 | `report --hk mid` | `12 12 * * 1-5` · Asia/Hong_Kong |
@@ -42,7 +42,8 @@ keeps an exclusive window; standard time therefore has two fewer US intraday slo
 ## Operational invariants / 运维不变量
 
 - Exactly 11 enabled OpenClaw jobs; 10 market jobs plus memory promotion.
-- Six report, three intraday, and one brief watchdog are Telegram-only backstops.
+- Six report, three intraday, and two brief watchdog passes are tracked; the brief
+  uses an 08:30 delivery backstop plus a 09:05 post-window miss detector.
 - Market payloads use deterministic preflight/postflight, `delivery.mode=none`,
   MiniMax M3, the shared length limits, a unique WeChat path, and Telegram mirror.
 - Mode 7 writes the public `assets/data/cron-heartbeats.json` ledger through the
