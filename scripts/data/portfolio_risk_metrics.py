@@ -282,7 +282,9 @@ def max_drawdown(returns: np.ndarray) -> float:
     """Max drawdown over the cumulative-return path. Returns a negative float."""
     if returns.size == 0:
         return 0.0
-    cum = np.cumprod(1.0 + returns)
+    # Anchor the wealth path to the pre-return baseline (1.0) so a drawdown that
+    # begins on the first period — i.e. day 0 is the peak — is counted, not lost.
+    cum = np.concatenate(([1.0], np.cumprod(1.0 + returns)))
     peak = np.maximum.accumulate(cum)
     dd = (cum - peak) / peak
     return float(dd.min())
