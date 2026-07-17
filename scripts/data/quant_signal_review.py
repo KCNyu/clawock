@@ -54,8 +54,8 @@ except Exception:
 FACTOR_TESTS = {
     'trend_on_follow':    (lambda r: r.get('trend_on') is True,  +1, 1),
     'trend_off_avoid':    (lambda r: r.get('trend_on') is False, -1, 5),
-    'rsi_oversold_bounce':(lambda r: (r.get('rsi14') or 50) <= 30, +1, 5),
-    'rsi_overbought_fade':(lambda r: (r.get('rsi14') or 50) >= 70, -1, 5),
+    'rsi_oversold_bounce':(lambda r: (r.get('rsi14') if r.get('rsi14') is not None else 50) <= 30, +1, 5),
+    'rsi_overbought_fade':(lambda r: (r.get('rsi14') if r.get('rsi14') is not None else 50) >= 70, -1, 5),
     'zscore_extreme_revert': (lambda r: (r.get('zscore20') if r.get('zscore20') is not None else 0) <= -2, +1, 5),
     'stop_breach_continue':  (lambda r: (r.get('stop_distance_pct') if r.get('stop_distance_pct') is not None else 1) < 0, -1, 5),
 }
