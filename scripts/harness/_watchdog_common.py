@@ -50,8 +50,12 @@ def _cron_cli_json(cli_args):
     This is the storage-agnostic path — 6.1 migrated cron from jobs.json/runs/*.jsonl
     into state/openclaw.sqlite, so direct file reads silently return nothing."""
     try:
+        # `cron list --json` round-trips through the gateway and has been observed
+        # at ~42s on a loaded host. A tight timeout here trips TimeoutExpired →
+        # None → silent fossil fallback in load_jobs(), which once masked a healthy
+        # fleet as "drifted" and blocked every push. Keep this well above real p99.
         r = subprocess.run([OPENCLAW_BIN, 'cron', *cli_args],
-                           capture_output=True, text=True, timeout=30)
+                           capture_output=True, text=True, timeout=120)
         txt = r.stdout
         i = txt.find('{')
         if i < 0:
@@ -61,17 +65,35 @@ def _cron_cli_json(cli_args):
         return None
 
 
+# Set by load_jobs() to record which source served the last call:
+#   'cli'    — live gateway (authoritative for payload/model/delivery)
+#   'fossil' — pre-6.1 jobs.json[.migrated] (STALE for payload — schedule only)
+#   'empty'  — nothing readable
+# Callers that assert on live payload state (e.g. the cron-contract check) MUST
+# consult this and refuse to report failures off a fossil.
+LAST_LOAD_SOURCE = None
+
+
 def load_jobs():
     # Primary: CLI (works on 6.1 SQLite). Fallback: pre-migration jobs.json[.migrated].
+    global LAST_LOAD_SOURCE
     d = _cron_cli_json(['list', '--json'])
     if isinstance(d, dict) and isinstance(d.get('jobs'), list):
+        LAST_LOAD_SOURCE = 'cli'
         return d['jobs']
+    # CLI unreadable (gateway slow/unreachable). The fallback files are 6.1-era
+    # fossils — fine for schedule shape, but STALE for model/delivery/message.
+    # Surface loudly so no caller mistakes fossil state for live state.
     for p in (JOBS_JSON, JOBS_JSON.with_suffix('.json.migrated')):
         try:
             data = json.loads(p.read_text())
+            LAST_LOAD_SOURCE = 'fossil'
+            print(f'warn: cron CLI unreadable; falling back to STALE {p.name} '
+                  '(pre-6.1 fossil — do not trust model/delivery/message)', file=sys.stderr)
             return data if isinstance(data, list) else data.get('jobs', data.get('items', []))
         except Exception:
             continue
+    LAST_LOAD_SOURCE = 'empty'
     return []
 
 
