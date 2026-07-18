@@ -13,9 +13,9 @@
  *
  * Outputs:
  *   assets/shadow-backtest.png   v2 cumulative win-rate chart (all / active / 50% ref)
- *   assets/social-card.png       1280x640 dark editorial card + fresh Hero dashboard
+ *   assets/social-card.png       1280x640 light editorial card + fresh Hero dashboard
  *   assets/dashboard.gif         manual dispatch only; built from FRAME_DIR
- *   TMP_DIR/dashboard-preview.png  focused dark Hero crop embedded into the social card
+ *   TMP_DIR/dashboard-preview.png  focused light Hero crop embedded into the social card
  *   .gifframes/f{0..5}.png       per-tab mobile frames → assemble_dashboard_gif.py
  *
  * assets/ is the one place shipped images live: README, Pages and the OG card all
@@ -44,7 +44,6 @@ const FRAME_DIR = process.env.FRAME_DIR || path.join(ROOT, '.gifframes');
 const TMP_DIR = process.env.TMP_DIR || path.join(ROOT, '.gifframes');
 const CHROME_EXE = process.env.CHROME_EXE || undefined;
 const CAPTURE_GIF = process.env.CAPTURE_GIF !== '0';
-const SOCIAL_TEMPLATE = path.join(ROOT, 'assets', 'social-card-template.png');
 const TABS = ['hero', 'drill', 'risk', 'market', 'plan', 'reflect'];
 
 async function settle(page) {
@@ -68,8 +67,8 @@ async function settle(page) {
   await page.waitForTimeout(2500);
 }
 
-// Pre-ImageGen fallback retained for archaeology; current output uses
-// compositeCardHTML() below so the generated brand artwork and live UI stay unified.
+// Retained only as an earlier code-native fallback; socialCardHTML() below owns
+// the current light editorial card and embeds the live UI directly.
 function legacyCardHTML(shotDataUri) {
   void shotDataUri;
   return `<!doctype html><html><head><meta charset="utf-8"><style>
@@ -181,78 +180,91 @@ function legacyCardHTML(shotDataUri) {
 </body></html>`;
 }
 
-function compositeCardHTML(templateDataUri, shotDataUri) {
+function socialCardHTML(shotDataUri) {
   return `<!doctype html><html><head><meta charset="utf-8"><style>
-    * { box-sizing:border-box; }
-    html,body { margin:0; width:1280px; height:640px; overflow:hidden; background:#071018; }
-    .template { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
-    .browser {
-      position:absolute; left:800px; top:52px; width:420px; height:536px;
-      overflow:hidden; border:1px solid #344555; border-radius:14px;
-      background:#09131d; box-shadow:0 28px 70px rgba(0,0,0,.38);
-      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Helvetica Neue",sans-serif;
-    }
-    .chrome {
-      height:45px; display:flex; align-items:center; gap:7px; padding:0 14px;
-      border-bottom:1px solid #263847; background:#0b1721;
-    }
-    .dot { width:8px; height:8px; border-radius:50%; background:#324555; }
-    .dot:first-child { background:#36a3ff; }
-    .address {
-      width:126px; height:8px; margin-left:15px; border-radius:99px;
-      background:#1d2d3b;
-    }
-    .protocol-label {
-      margin-left:auto; padding:7px 10px; color:#071018; background:#63dfce;
-      font:850 9px/1 ui-monospace,SFMono-Regular,Menlo,monospace; letter-spacing:.12em;
-    }
-    .live {
-      position:absolute; left:14px; top:59px; width:390px; height:244px;
-      overflow:hidden; border:1px solid #263847; border-radius:9px; background:#070a0f;
-    }
-    .live img { width:100%; height:100%; display:block; object-fit:cover; object-position:left top; }
-    .live::after {
-      content:""; position:absolute; inset:0; pointer-events:none;
-      box-shadow:inset 0 0 0 1px rgba(142,208,255,.05);
-    }
-    .protocol {
-      position:absolute; left:14px; right:14px; top:317px; bottom:14px;
-      border:1px solid #263847; border-radius:9px; overflow:hidden; background:#0b1721;
-    }
-    .step {
-      height:56px; display:grid; grid-template-columns:26px 72px 1fr;
-      align-items:center; padding:0 13px; border-bottom:1px solid #20313f;
-    }
-    .step:last-of-type { border-bottom:0; }
-    .node {
-      width:18px; height:18px; border:1px solid currentColor; border-radius:50%;
-      position:relative; color:#79a7ff;
-    }
-    .node::after { content:""; position:absolute; inset:5px; border-radius:50%; background:currentColor; }
-    .gate .node { color:#f3c969; }
-    .grade .node { color:#63dfce; }
-    .verb { color:#f3f6f8; font-size:16px; font-weight:780; letter-spacing:-.2px; }
-    .desc { color:#879ba4; font-size:10px; font-weight:560; letter-spacing:.02em; }
-    .micro {
-      position:absolute; left:13px; right:13px; bottom:7px; text-align:right;
-      color:#60757e; font:650 8px/1 ui-monospace,SFMono-Regular,Menlo,monospace;
-      letter-spacing:.12em;
-    }
-  </style></head><body>
-    <img class="template" src="${templateDataUri}" alt="">
-    <div class="browser">
-      <div class="chrome">
-        <span class="dot"></span><span class="dot"></span><span class="dot"></span>
-        <span class="address"></span><span class="protocol-label">HONESTY PROTOCOL</span>
-      </div>
-      <div class="live"><img src="${shotDataUri}" alt=""></div>
-      <div class="protocol">
-        <div class="step argue"><span class="node"></span><span class="verb">ARGUE</span><span class="desc">bull thesis meets bear thesis</span></div>
-        <div class="step gate"><span class="node"></span><span class="verb">GATE</span><span class="desc">risk rules decide what survives</span></div>
-        <div class="step grade"><span class="node"></span><span class="verb">GRADE</span><span class="desc">every call returns to the record</span></div>
-        <div class="micro">DEBATE / DISCIPLINE / RECEIPTS</div>
-      </div>
-    </div>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html,body { width:1280px; height:640px; overflow:hidden; }
+  body {
+    font-family:-apple-system,"Segoe UI","Helvetica Neue","Noto Sans CJK SC",sans-serif;
+    background:
+      radial-gradient(65% 95% at 8% 5%,rgba(255,255,255,.96),transparent 72%),
+      linear-gradient(128deg,#f7f5ef 0%,#eef3ef 58%,#e3ece7 100%);
+    color:#132325; display:flex; align-items:center; position:relative;
+  }
+  body::before {
+    content:""; position:absolute; inset:0; opacity:.12; pointer-events:none;
+    background-image:
+      linear-gradient(rgba(69,104,98,.16) 1px,transparent 1px),
+      linear-gradient(90deg,rgba(69,104,98,.16) 1px,transparent 1px);
+    background-size:42px 42px;
+    mask-image:linear-gradient(90deg,#000,transparent 52%);
+  }
+  body::after {
+    content:""; position:absolute; z-index:0; right:-150px; top:-112px;
+    width:800px; height:850px; border-radius:46% 0 0 54%;
+    transform:rotate(-4deg);
+    background:
+      radial-gradient(circle at 78% 78%,rgba(224,145,71,.54),transparent 30%),
+      linear-gradient(145deg,#174f4c 0%,#1e7469 58%,#3d8977 100%);
+    box-shadow:inset 1px 0 rgba(255,255,255,.16);
+  }
+  .left { width:560px; padding:58px 0 64px 70px; flex:none; z-index:3; }
+  .brand { display:flex; align-items:center; gap:12px; margin-bottom:28px; }
+  .brand .dot { width:16px; height:16px; border-radius:50%;
+    background:radial-gradient(circle at 35% 30%,#6af2b0,#1f9d63);
+    box-shadow:0 0 20px rgba(47,189,122,.58); }
+  .brand .name { font-size:30px; font-weight:800; letter-spacing:-.5px; }
+  .brand .tag { font-size:15px; color:#657b78; font-weight:650; }
+  h1 { font-size:45px; line-height:1.13; font-weight:800; letter-spacing:-1px;
+    margin-bottom:20px; max-width:490px; }
+  h1 .hl {
+    color:#c97835;
+    background:linear-gradient(90deg,#d6933f,#b96234);
+    -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;
+  }
+  .sub { font-size:18px; line-height:1.5; color:#586d69; font-weight:520; max-width:465px; }
+  .sub b { color:#172b2d; font-weight:750; }
+  .chips { display:flex; gap:9px; margin-top:31px; flex-wrap:wrap; max-width:470px; }
+  .chip { font-size:14px; font-weight:680; color:#35514d;
+    background:linear-gradient(180deg,rgba(255,255,255,.90),rgba(255,255,255,.55));
+    border:1px solid rgba(69,111,104,.24); padding:7px 12px; border-radius:999px;
+    box-shadow:0 3px 12px rgba(40,73,68,.06),inset 0 1px rgba(255,255,255,.72); }
+  .repo { position:absolute; left:68px; bottom:40px; font-size:18px; font-weight:700;
+    color:#176f66; display:flex; align-items:center; gap:9px; }
+  .repo .star { color:#c97835; }
+  .shot {
+    position:absolute; right:-34px; top:50%; transform:translateY(-50%) rotate(-2deg);
+    width:700px; height:508px; border-radius:17px; overflow:hidden;
+    box-shadow:
+      0 42px 100px rgba(0,0,0,.62),
+      0 0 0 1px rgba(255,255,255,.36),
+      0 0 72px rgba(35,104,94,.20);
+    background:#fff; z-index:2;
+  }
+  .shot .bar { height:36px; background:linear-gradient(180deg,#f8fafc,#e9eef5);
+    display:flex; align-items:center; gap:8px; padding:0 15px;
+    border-bottom:1px solid #dfe5ed; }
+  .shot .bar i { width:11px; height:11px; border-radius:50%; display:inline-block; }
+  .shot .bar i:nth-child(1){background:#ff5f57}
+  .shot .bar i:nth-child(2){background:#febc2e}
+  .shot .bar i:nth-child(3){background:#28c840}
+  .shot .address { width:165px; height:8px; margin-left:12px; border-radius:99px;
+    background:#d7dee8; }
+  .shot img { width:100%; height:472px; object-fit:cover; object-position:left top; display:block; }
+  .shot::after { content:""; position:absolute; inset:36px 0 0; pointer-events:none;
+    box-shadow:inset 0 0 0 1px rgba(30,63,95,.08); }
+  .fade { position:absolute; right:0; top:0; bottom:0; width:100px; z-index:4;
+    background:linear-gradient(90deg,rgba(23,79,76,0),rgba(23,79,76,.16)); pointer-events:none; }
+</style></head><body>
+  <div class="left">
+    <div class="brand"><span class="dot"></span><span class="name">clawock</span><span class="tag">autonomous AI trading desk</span></div>
+    <h1>It argues both sides, gates the risk — then <span class="hl">grades its own calls.</span></h1>
+    <div class="sub">A bull-vs-bear desk on <b>real HK + US money</b>, with hard risk gates and a public scorecard that <b>publishes the record unedited.</b></div>
+    <div class="chips"><span class="chip">🗣️ bull vs bear</span><span class="chip">🛡️ hard risk gates</span><span class="chip">🪞 public scorecard</span><span class="chip">⚙️ autonomous</span></div>
+    <div class="repo"><span class="star">★</span> github.com/KCNyu/clawock</div>
+  </div>
+  <div class="shot"><div class="bar"><i></i><i></i><i></i><span class="address"></span></div><img src="${shotDataUri}" alt=""></div>
+  <div class="fade"></div>
   </body></html>`;
 }
 
@@ -283,28 +295,27 @@ function compositeCardHTML(templateDataUri, shotDataUri) {
     await shadow.screenshot({ path: `${OUT_DIR}/shadow-backtest.png` });
     await desk.close();
 
-    // 2) Social card: keep the original all-dark editorial identity, then make the
-    //    right rail a real browser — focused live dashboard above, honesty protocol
-    //    below. Shrinking an entire desktop made both the browser and data illegible.
+    // 2) Social card: restore the original launch composition — light editorial
+    //    copy, a restrained petrol/amber contrast field, and a real light dashboard
+    //    in a visibly tilted browser window.
     const socialDesk = await browser.newContext({
       viewport: { width: 1200, height: 760 },
       deviceScaleFactor: 2,
-      colorScheme: 'dark',
+      colorScheme: 'light',
     });
     const sp = await socialDesk.newPage();
     await sp.goto(URL, { waitUntil: 'networkidle', timeout: 45000 });
     await settle(sp);
     await sp.screenshot({
       path: `${TMP_DIR}/dashboard-preview.png`,
-      clip: { x: 0, y: 0, width: 1100, height: 620 },
+      clip: { x: 0, y: 0, width: 1200, height: 760 },
     });
     await socialDesk.close();
 
-    const templateUri = 'data:image/png;base64,' + fs.readFileSync(SOCIAL_TEMPLATE).toString('base64');
     const shotUri = 'data:image/png;base64,' + fs.readFileSync(`${TMP_DIR}/dashboard-preview.png`).toString('base64');
     const cardCtx = await browser.newContext({ viewport: { width: 1280, height: 640 }, deviceScaleFactor: 1 });
     const cp = await cardCtx.newPage();
-    await cp.setContent(compositeCardHTML(templateUri, shotUri), { waitUntil: 'networkidle' });
+    await cp.setContent(socialCardHTML(shotUri), { waitUntil: 'networkidle' });
     await cp.waitForTimeout(300);
     await cp.screenshot({ path: `${OUT_DIR}/social-card.png` });
     await cardCtx.close();

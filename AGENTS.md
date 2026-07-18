@@ -51,7 +51,7 @@ After any of the following changes, run a git commit automatically — no need t
 | Workspace docs changed (SOUL/AGENTS/TOOLS/USER/CLAUDE/README) | `docs: <what changed>` |
 
 Message style: `<type>: <concise description>`, Chinese is fine.
-**Never commit:** `.api_keys`, scratch `*.png`/`*.jpg` outside the shipped `assets/`/`docs/` allowlists, `.openclaw/`, `.clawhub/`, `memory/.dreams/`, `memory/.tmp/` (gitignored). Shipped `assets/*.png` are committed; `screenshot-refresh.yml` refreshes `assets/shadow-backtest.png` and the live dashboard window in `assets/social-card.png`, plus `assets/dashboard.gif` on manual dispatch. `assets/social-card-template.png` is the static ImageGen-authored base and must not be overwritten by the screenshot job.
+**Never commit:** `.api_keys`, scratch `*.png`/`*.jpg` outside the shipped `assets/`/`docs/` allowlists, `.openclaw/`, `.clawhub/`, `memory/.dreams/`, `memory/.tmp/` (gitignored). Shipped `assets/*.png` are committed; `screenshot-refresh.yml` generates `assets/social-card.png` directly from the light editorial HTML/CSS composition plus a fresh dashboard capture, refreshes `assets/shadow-backtest.png`, and updates `assets/dashboard.gif` only on manual dispatch.
 
 Push: harness postflight now **auto-pushes** after commit (rebase+retry on race). 
 `git push` from chat / Telegram should still ask first — that's intentional human gating.
