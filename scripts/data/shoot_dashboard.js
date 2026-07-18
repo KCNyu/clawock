@@ -52,12 +52,15 @@ async function settle(page) {
     () => { const h = document.querySelector('[data-panel=hero]'); return h && h.textContent.trim().length > 200; },
     { timeout: 45000 },
   ).catch(() => {});
-  // 2) Desktop shows every panel at once → all charts draw on load; wait for real size.
+  // 2) Both desktop and mobile now show ONE tab at a time (2026-07 redesign), so
+  //    only the active panel's charts are drawn. Wait for the active panel's
+  //    canvases to have real size — and pass immediately when it has none (Hero).
   await page.waitForFunction(
     () => {
-      if (!window.matchMedia('(min-width: 1024px)').matches) return true;
-      const cs = [...document.querySelectorAll('canvas')];
-      return cs.length > 0 && cs.every(c => c.width > 50);
+      const active = document.querySelector('.panel.active');
+      if (!active) return false;
+      const cs = [...active.querySelectorAll('canvas')];
+      return cs.length === 0 || cs.every(c => c.width > 50);
     },
     { timeout: 15000 },
   ).catch(() => {});
@@ -121,12 +124,20 @@ function cardHTML(shotDataUri) {
     const dp = await desk.newPage();
     await dp.goto(URL, { waitUntil: 'networkidle', timeout: 45000 });
     await settle(dp);
+    // Preview for the social card = the default Hero tab. Capture it BEFORE
+    // navigating away (desktop now shows one tab at a time).
     await dp.screenshot({ path: `${TMP_DIR}/dashboard-preview.png`, fullPage: false });
     // Shoot the win-rate chart, not the whole card. The card used to be a money
     // curve and this shot was its portrait; the money view is gone (it summed
     // calls that were never executed against drifting marks) and what remains of
     // the card is mostly the note explaining its absence — a paragraph of prose
     // is not a README preview. The directional hit rate is the live claim.
+    // It lives on the Reflect tab, which desktop renders lazily now → open it first.
+    await dp.click('[data-tab=reflect]').catch(() => {});
+    await dp.waitForFunction(() => {
+      const c = document.querySelector('#chart-ai-winrate canvas');
+      return c && c.width > 50;
+    }, { timeout: 45000 }).catch(() => {});
     const shadow = dp.locator('#chart-ai-winrate');
     await shadow.waitFor({ state: 'visible', timeout: 45000 });
     await shadow.scrollIntoViewIfNeeded();

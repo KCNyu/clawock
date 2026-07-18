@@ -231,6 +231,24 @@ layout: null
   }
   .tab-btn:focus-visible { outline: 2px solid var(--focus); outline-offset: -2px; }
 
+  /* Desktop tab bar — a real underline nav, not the mobile edge-fade scroller. */
+  @media (min-width: 1024px) {
+    .tabs {
+      gap: 2px; margin-top: 14px; overflow: visible;
+      -webkit-mask-image: none; mask-image: none;
+      border-bottom: 1px solid var(--border);
+    }
+    .tab-btn {
+      padding: 10px 18px; min-height: 40px; font-size: 13.5px; font-weight: 550;
+      border-radius: 8px 8px 0 0; transition: color .15s, background .15s;
+    }
+    .tab-btn:hover { color: var(--text); background: var(--surface-1); }
+    .tab-btn.active { color: var(--accent); }
+    .tab-btn.active::after {
+      width: 100%; height: 2px; left: 0; bottom: -1px; transform: none; border-radius: 0;
+    }
+  }
+
   /* Per-market segmented control (broker-app style) for Equity / Daily P&L */
   .card-head { display: flex; align-items: center; justify-content: space-between;
     gap: 8px 12px; flex-wrap: wrap; margin-bottom: 12px; }
@@ -292,7 +310,7 @@ layout: null
       padding: 0;
       display: flex; flex-direction: column;   /* banner (auto) + pager (flex) */
     }
-    .status-banner { flex: 0 0 auto; margin: 8px 16px 0; }
+    .desk-rail { flex: 0 0 auto; margin: 8px 16px 0; }
     .pager {
       display: flex; flex: 1 1 auto;
       min-height: 0; min-width: 0;              /* don't let wide content expand the pager */
@@ -323,27 +341,60 @@ layout: null
     .movers-scroll, .table-wrap { overscroll-behavior-x: contain; }
   }
 
+  /* ── Desktop (≥1024px): focused tabbed editorial layout ──
+     One tab visible at a time (same IA as mobile) so the page is a composed
+     ~2-3 column view per question — NOT the former 48-card wall. Each panel is
+     its own 12-column grid; cards opt into width via .lead/.wide/.narrow. The
+     desk rail is a full-width summary above the panels, shared across tabs.
+     Desktop-only display:none — the mobile scroll-snap pager needs ALL panels
+     laid out, so this override must never leak below 1024px. */
   @media (min-width: 1024px) {
-    .tabs, .swipe-hint { display: none; }
+    .swipe-hint { display: none; }
     main {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr);
-      gap: 20px;
-      padding: 20px;
+      display: block;
+      max-width: 1280px; margin: 0 auto;
+      padding: 24px 28px 40px;
     }
-    /* The status banner is a full-width strip across the top — NOT a grid cell.
-       `.pager{display:contents}` dissolves the pager so the 6 panels become direct
-       grid items; without this the (visible) banner would take column 1 and get
-       stretched to the row height, leaving a huge blank box under a one-line banner
-       and shoving Hero into column 2 (2026-07-03 screenshot regression). */
-    .status-banner { grid-column: 1 / -1; margin: 0; }
-    .panel > h2 {
-      margin: 0 0 12px;
-      font-size: 13px; font-weight: 600;
-      color: var(--text-dim); text-transform: uppercase;
-      letter-spacing: 0.08em;
+    .pager { display: block; }
+    .panel { display: none; }
+    .panel.active {
+      display: grid;
+      grid-template-columns: repeat(12, minmax(0, 1fr));
+      gap: 20px;
+      align-content: start;
+      grid-auto-flow: row dense;   /* backfill gaps left by tall neighbours */
+      animation: panelIn 0.28s ease both;
+    }
+    /* Default: children span the full row; cards default to a comfortable two-up,
+       then focal objects (tables, charts, verdicts) claim more width. align-self:start
+       keeps a short card its natural height instead of stretching to a tall neighbour
+       (that stretch was leaving big empty bordered boxes). */
+    .panel.active > * { grid-column: 1 / -1; min-width: 0; }
+    .panel.active > .card { grid-column: span 6; margin-bottom: 0; align-self: start; }
+    .panel.active > .card.lead   { grid-column: 1 / -1; }
+    .panel.active > .card.wide   { grid-column: span 8; }
+    .panel.active > .card.narrow { grid-column: span 4; }
+    .panel.active > .sect-divider { grid-column: 1 / -1; margin-top: 8px; }
+    /* Tab already names the view → panel <h2> stays in the a11y tree only. */
+    .panel.active > h2 { width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%);
+      white-space: nowrap; margin: 0; padding: 0; font-size: 1px; }
+    /* A full-width lead card with a long vertical list (e.g. hard-gate breaches)
+       flows that list into 2 balanced columns so it reads as a compact band, not a
+       1000px tower that unbalances the whole tab. */
+    .panel.active > .card.lead .risk-alerts,
+    .panel.active > .card.lead .plan-timeline,
+    .panel.active > .card.lead .sector-context,
+    .panel.active > .card.lead .sentiment-drill {
+      display: block; column-count: 2; column-gap: 24px;
+    }
+    .panel.active > .card.lead .risk-alerts > .risk-alert,
+    .panel.active > .card.lead .plan-timeline > *,
+    .panel.active > .card.lead .sector-context > *,
+    .panel.active > .card.lead .sentiment-drill > * {
+      break-inside: avoid; margin-bottom: var(--space-2);
     }
   }
+  @keyframes panelIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
 
   /* =========================================================
      Card primitives
@@ -1061,6 +1112,34 @@ layout: null
   }
   .status-banner .sb-text { flex: 1 1 auto; font-weight: 500; color: var(--text); }
   .status-banner .sb-time { flex: 0 0 auto; font-size: 10px; color: var(--text-faint); font-family: var(--mono); white-space: nowrap; }
+
+  /* ── Desk rail — shared summary strip (narrative + headline KPIs) ── */
+  .desk-rail { display: flex; align-items: center; gap: 12px 16px; flex-wrap: wrap; }
+  .desk-rail .dr-narrative { margin: 0; flex: 1 1 300px; min-width: 0; }
+  .desk-rail:has(.dr-narrative[style*="display:none"]) .dr-kpis,
+  .desk-rail:has(.dr-narrative[style*="display: none"]) .dr-kpis { flex: 1 1 auto; }
+  .dr-kpis {
+    display: flex; align-items: stretch; flex: 0 0 auto;
+    border: 1px solid var(--border); border-radius: var(--radius-sm);
+    background: var(--surface-1); overflow-x: auto; scrollbar-width: none;
+  }
+  .dr-kpis::-webkit-scrollbar { display: none; }
+  .dr-kpi {
+    display: flex; flex-direction: column; justify-content: center; gap: 2px;
+    padding: 7px 15px; border-left: 1px solid var(--border);
+  }
+  .dr-kpi:first-child { border-left: none; }
+  .dr-k { font-size: 9.5px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase;
+    color: var(--text-tertiary); white-space: nowrap; }
+  .dr-v { font-family: var(--mono); font-size: 14.5px; font-weight: 700; color: var(--text);
+    font-variant-numeric: tabular-nums; white-space: nowrap; line-height: 1.2; }
+  @media (max-width: 1023px) {
+    .desk-rail { align-items: stretch; gap: 8px; }
+    .desk-rail .dr-narrative { flex: 1 1 auto; }
+    .dr-kpis { border-radius: var(--radius-sm); }
+    .dr-kpi { padding: 6px 13px; flex: 1 0 auto; }
+    .dr-v { font-size: 13.5px; }
+  }
   /* mover attribution note */
   .mover-card.has-note { min-height: auto; }
   .mover-note {
@@ -1578,11 +1657,22 @@ layout: null
 
 <main>
 
-  <!-- LLM 状态横幅 — intraday 每 30min 刷新；跨 tab 常驻顶部 -->
-  <div class="status-banner" id="status-banner" style="display:none">
-    <span class="sb-pulse" aria-hidden="true"></span>
-    <span class="sb-text" id="sb-text"></span>
-    <span class="sb-time" id="sb-time"></span>
+  <!-- Desk rail — one shared summary above every tab (narrative + headline KPIs).
+       The narrative keeps id="status-banner" so renderStatusBanner() drives it;
+       the KPI row is mirrored from the canonical cells by syncDeskRail(). -->
+  <div class="desk-rail" id="desk-rail">
+    <div class="status-banner dr-narrative" id="status-banner" style="display:none">
+      <span class="sb-pulse" aria-hidden="true"></span>
+      <span class="sb-text" id="sb-text"></span>
+      <span class="sb-time" id="sb-time"></span>
+    </div>
+    <div class="dr-kpis" aria-label="Portfolio summary">
+      <div class="dr-kpi"><span class="dr-k">Book · USD-eq</span><span class="dr-v" id="dr-book">—</span></div>
+      <div class="dr-kpi"><span class="dr-k">Today · US</span><span class="dr-v" id="dr-pnl-us">—</span></div>
+      <div class="dr-kpi"><span class="dr-k">Today · HK</span><span class="dr-v" id="dr-pnl-hk">—</span></div>
+      <div class="dr-kpi"><span class="dr-k">Followed · 30d</span><span class="dr-v" id="dr-followed">—</span></div>
+      <div class="dr-kpi" title="Brier score vs leave-one-out baseline — lower is better"><span class="dr-k">Brier · 30d</span><span class="dr-v" id="dr-grade">—</span></div>
+    </div>
   </div>
 
   <!-- ============================================
@@ -1649,7 +1739,7 @@ layout: null
       </div>
     </div>
 
-    <div class="card" id="guardrail-card">
+    <div class="card lead" id="guardrail-card">
       <h3>仓位/杠杆硬闸 <span class="badge muted" id="guardrail-count"></span></h3>
       <div class="muted" id="guardrail-directive" style="font-size:12px;margin-bottom:8px;line-height:1.5"></div>
       <div class="risk-alerts" id="guardrail-list"></div>
@@ -1988,7 +2078,7 @@ layout: null
       </div>
     </div>
 
-    <div class="card">
+    <div class="card lead">
       <h3>Macro · Sentiment</h3>
       <div id="regime-badge" class="regime-badge" style="display:none"></div>
       <div id="risk-banner" class="risk-banner" style="display:none"></div>
@@ -2005,7 +2095,7 @@ layout: null
       </div>
     </div>
 
-    <div class="card">
+    <div class="card lead">
       <h3>板块全景 <span class="muted" id="sector-context-asof" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:11px">—</span></h3>
       <p class="chart-hint" id="sector-narrative" style="display:none"></p>
       <div class="sector-context" id="sector-context">
@@ -2030,7 +2120,7 @@ layout: null
       </div>
     </div>
 
-    <div class="card">
+    <div class="card lead">
       <h3>Plan Timeline <span class="muted" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:11px">(last 15 actions · 包含 rationale)</span></h3>
       <p class="chart-hint">每条卡片 = 一个策略决策；同一股票同一天可有多个策略。只有条件触发的 episode 才结算，是否执行单独统计。</p>
       <div class="plan-timeline" id="plan-timeline">
@@ -2347,7 +2437,14 @@ layout: null
     document.querySelectorAll(".panel").forEach(p => {
       p.classList.toggle("active", p.dataset.panel === t);
     });
-    if (DATA) ensureTabCharts(t);   // lazy: draw this tab's charts the first time it's shown
+    if (DATA) {
+      ensureTabCharts(t);           // lazy: draw this tab's charts the first time it's shown
+      // Desktop shows one panel at a time now: the newly-visible panel may have
+      // initialized its charts at a container size that only just settled → nudge
+      // ECharts to fill it. (Mobile does this off the pager scroll-settle instead.)
+      if (!pagerLive()) requestAnimationFrame(() =>
+        requestAnimationFrame(() => window.dispatchEvent(new Event("resize"))));
+    }
     const btn = document.querySelector(`.tab-btn[data-tab="${t}"]`);
     if (btn) btn.scrollIntoView({ block: "nearest", inline: "center", behavior: SCROLL_BEHAVIOR });
     // Deep-link: keep the URL hash in sync (replaceState → no history spam while
@@ -2496,14 +2593,13 @@ layout: null
     _chartTabsShown.add(t);
     paintCharts(t);
   }
-  // At ≥1024px the pager is display:contents and ALL panels show at once as a grid
-  // (not one tab at a time), so every chart is visible immediately — lazy-by-active-tab
-  // would leave the Sector/Position/equity/shadow charts blank on desktop. Render the
-  // visible set: all tabs on desktop, just the current tab on the mobile pager.
+  // Desktop and mobile now both show ONE tab at a time, so only the active tab's
+  // charts need drawing on load. Initializing a chart inside a display:none panel
+  // yields a zero-width canvas, so we defer to the tab that's actually visible;
+  // ensureTabCharts fires again on every tab switch (see setActiveButton).
   const DESKTOP_MQ = window.matchMedia("(min-width: 1024px)");
   function ensureVisibleCharts() {
-    if (DESKTOP_MQ.matches) Object.keys(CHART_FNS).forEach(ensureTabCharts);
-    else ensureTabCharts(currentTab());
+    ensureTabCharts(currentTab());
   }
   DESKTOP_MQ.addEventListener("change", () => { if (DATA) ensureVisibleCharts(); });
 
@@ -2892,6 +2988,24 @@ layout: null
     card.style.display = "";
   }
 
+  // Desk rail KPIs are mirrored from the canonical cells the panel renderers
+  // already computed (text + resolved color), so there is one source of truth and
+  // no reformatting drift. Runs at the end of render(), after those cells are set.
+  function syncDeskRail() {
+    const mirror = (dstId, srcId) => {
+      const s = document.getElementById(srcId), d = document.getElementById(dstId);
+      if (!s || !d) return;
+      const txt = (s.textContent || "").trim();
+      d.textContent = txt && txt !== DASH ? txt : DASH;
+      d.style.color = txt && txt !== DASH ? getComputedStyle(s).color : "";
+    };
+    mirror("dr-book", "combined-usd");
+    mirror("dr-pnl-us", "today-pnl-us");
+    mirror("dr-pnl-hk", "today-pnl-hk");
+    mirror("dr-followed", "plan-followed");
+    mirror("dr-grade", "brier-val");
+  }
+
   function render() {
     if (!DATA) return;
     renderHeader();
@@ -2941,6 +3055,7 @@ layout: null
     renderCalibByDriver();
     renderBuildStatus();
     updateFoldPeeks();
+    syncDeskRail();
     // Charts are lazy (see CHART_FNS): repaint tabs already shown with the fresh
     // DATA, then ensure the current tab's charts get drawn.
     _chartTabsShown.forEach(paintCharts);
