@@ -24,9 +24,9 @@ def test_vector_brand_sources_are_valid_and_keep_the_canonical_geometry():
     assert app_root.attrib["viewBox"] == "0 0 64 64"
     for source in (mark.read_text(), app.read_text()):
         assert "M49.8 15.9A24 24" in source
-        assert "M20 23C24 23 28 32 32 32" in source
-        assert "M20 41C24 41 28 32 32 32" in source
-        assert "M32 32C36.7 32 41.3 21 46 21" in source
+        assert "M22 24C30 24 42 32 42 32C42 32 30 40 22 40" in source
+        assert 'rotate(-8 32 32)' in source
+        assert 'id="cusp"' in source
         assert 'id="brand"' in source
 
 

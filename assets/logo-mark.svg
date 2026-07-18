@@ -1,23 +1,26 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" role="img" aria-labelledby="title desc">
   <title id="title">clawock mark</title>
-  <desc id="desc">A Clawock record loop frames two logistic arguments converging into one rising decision.</desc>
+  <desc id="desc">A Clawock record loop frames a two-branch cusp converging at a market regime decision.</desc>
   <defs>
     <linearGradient id="brand" x1="9" y1="53" x2="54" y2="12" gradientUnits="userSpaceOnUse">
       <stop class="s0" offset="0"/>
       <stop class="s1" offset=".58"/>
       <stop class="s2" offset="1"/>
     </linearGradient>
+    <linearGradient id="cusp" x1="22" y1="32" x2="42" y2="32" gradientUnits="userSpaceOnUse">
+      <stop class="c0" offset="0"/>
+      <stop class="c1" offset=".64"/>
+      <stop class="c2" offset="1"/>
+    </linearGradient>
   </defs>
   <style>
     .s0{stop-color:#10141a}.s1{stop-color:#2b353e}.s2{stop-color:#4b91c8}
-    .argument-a{stroke:#1b232b}.argument-b{stroke:#687985}.decision{stroke:#397eae}
+    .c0{stop-color:#151b22}.c1{stop-color:#263c4c}.c2{stop-color:#4b91c8}
     @media (prefers-color-scheme:dark){
       .s0{stop-color:#edf2f5}.s1{stop-color:#91a3b0}.s2{stop-color:#67b5e8}
-      .argument-a{stroke:#dce5eb}.argument-b{stroke:#91a3b0}.decision{stroke:#67b5e8}
+      .c0{stop-color:#e3eaf0}.c1{stop-color:#7895a8}.c2{stop-color:#67b5e8}
     }
   </style>
   <path d="M49.8 15.9A24 24 0 1 0 49.8 48.1L44.6 43.4A17 17 0 1 1 44.6 20.6Z" fill="url(#brand)"/>
-  <path class="argument-a" d="M20 23C24 23 28 32 32 32" fill="none" stroke-width="4.2" stroke-linecap="round"/>
-  <path class="argument-b" d="M20 41C24 41 28 32 32 32" fill="none" stroke-width="4.2" stroke-linecap="round"/>
-  <path class="decision" d="M32 32C36.7 32 41.3 21 46 21" fill="none" stroke-width="4.2" stroke-linecap="round"/>
+  <path d="M22 24C30 24 42 32 42 32C42 32 30 40 22 40" transform="rotate(-8 32 32)" fill="none" stroke="url(#cusp)" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>
