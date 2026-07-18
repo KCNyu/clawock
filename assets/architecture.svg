@@ -40,11 +40,9 @@
   <g class="sans">
     <g transform="translate(20 17) scale(.34)">
       <path d="M49.8 15.9A24 24 0 1 0 49.8 48.1L44.6 43.4A17 17 0 1 1 44.6 20.6Z" fill="url(#brand-mark)"/>
-      <g transform="rotate(-12 32 32)">
-        <path d="M20 25.8L28.8 32L20 38.2Z" fill="#1b232b"/>
-        <path d="M44 25.8L35.2 32L44 38.2Z" fill="#397eae"/>
-        <path d="M32 28.8L35.2 32L32 35.2L28.8 32Z" fill="#cbd9e2"/>
-      </g>
+      <path d="M20 23C24 23 28 32 32 32" fill="none" stroke="#1b232b" stroke-width="4.2" stroke-linecap="round"/>
+      <path d="M20 41C24 41 28 32 32 32" fill="none" stroke="#687985" stroke-width="4.2" stroke-linecap="round"/>
+      <path d="M32 32C36.7 32 41.3 21 46 21" fill="none" stroke="#397eae" stroke-width="4.2" stroke-linecap="round"/>
     </g>
     <text x="47" y="36" font-size="20" font-weight="800" class="ink">clawock</text>
     <text x="875" y="34" text-anchor="end" class="kicker blue">SYSTEM ARCHITECTURE · HK + US</text>
