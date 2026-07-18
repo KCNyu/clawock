@@ -67,51 +67,117 @@ async function settle(page) {
   await page.waitForTimeout(2500);
 }
 
-// Social card: dark panel with the honesty hook on the left, the screenshot framed on
-// the right. Screenshot passed in as a base64 data-URI so no file:// read is needed.
+// Social card: editorial product mark. The screenshot URI stays in the signature for
+// the capture pipeline, but this concept deliberately avoids a tiny dashboard inset:
+// the honesty protocol is the product, so ARGUE → GATE → GRADE becomes the visual.
 function cardHTML(shotDataUri) {
+  void shotDataUri;
   return `<!doctype html><html><head><meta charset="utf-8"><style>
   * { margin:0; padding:0; box-sizing:border-box; }
   html,body { width:1280px; height:640px; overflow:hidden; }
-  body { font-family:-apple-system,"Segoe UI","Helvetica Neue","Noto Sans CJK SC",sans-serif;
-    background:radial-gradient(120% 120% at 0% 0%,#16203a 0%,#0b1020 55%,#070a14 100%);
-    color:#eef2fb; display:flex; align-items:center; position:relative; }
-  .left { width:560px; padding:64px 0 64px 70px; flex:none; z-index:2; }
-  .brand { display:flex; align-items:center; gap:12px; margin-bottom:30px; }
-  .brand .dot { width:16px; height:16px; border-radius:50%;
-    background:radial-gradient(circle at 35% 30%,#4fd18b,#1f9d63); box-shadow:0 0 18px #2fbd7a88; }
-  .brand .name { font-size:30px; font-weight:800; letter-spacing:-.5px; }
-  .brand .tag { font-size:15px; color:#8aa0c6; font-weight:600; }
-  h1 { font-size:45px; line-height:1.13; font-weight:800; letter-spacing:-1px; margin-bottom:20px; max-width:490px; }
-  h1 .hl { color:#ffca4a; }
-  .sub { font-size:19px; line-height:1.5; color:#aebbd6; font-weight:500; max-width:455px; }
-  .sub b { color:#e7edf9; font-weight:700; }
-  .chips { display:flex; gap:10px; margin-top:34px; flex-wrap:wrap; }
-  .chip { font-size:14.5px; font-weight:650; color:#cdd8ee; background:#ffffff12;
-    border:1px solid #ffffff22; padding:7px 13px; border-radius:999px; }
-  .repo { position:absolute; left:68px; bottom:44px; font-size:19px; font-weight:700; color:#7fb2ff;
-    display:flex; align-items:center; gap:9px; }
-  .repo .star { color:#ffca4a; }
-  .shot { position:absolute; right:-30px; top:50%; transform:translateY(-50%) rotate(-2deg);
-    width:690px; height:500px; border-radius:16px; overflow:hidden;
-    box-shadow:0 40px 90px #000a,0 0 0 1px #ffffff1a; background:#fff; }
-  .shot .bar { height:34px; background:#eef1f6; display:flex; align-items:center; gap:8px; padding:0 14px;
-    border-bottom:1px solid #e2e6ee; }
-  .shot .bar i { width:11px; height:11px; border-radius:50%; display:inline-block; }
-  .shot .bar i:nth-child(1){background:#ff5f57} .shot .bar i:nth-child(2){background:#febc2e} .shot .bar i:nth-child(3){background:#28c840}
-  .shot img { width:100%; height:466px; object-fit:cover; object-position:0 0; display:block; }
-  .fade { position:absolute; right:0; top:0; bottom:0; width:180px; z-index:1;
-    background:linear-gradient(90deg,rgba(11,16,32,0) 0%,rgba(7,10,20,0.4) 100%); pointer-events:none; }
+  body {
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Helvetica Neue","PingFang SC",sans-serif;
+    background:
+      radial-gradient(circle at 86% 14%,rgba(92,222,203,.16),transparent 25%),
+      radial-gradient(circle at 17% 104%,rgba(83,119,255,.14),transparent 34%),
+      #071018;
+    color:#f3f6f8; position:relative;
+  }
+  body::before {
+    content:""; position:absolute; inset:0; pointer-events:none; opacity:.18;
+    background-image:
+      linear-gradient(rgba(184,217,225,.12) 1px,transparent 1px),
+      linear-gradient(90deg,rgba(184,217,225,.12) 1px,transparent 1px);
+    background-size:40px 40px;
+    mask-image:linear-gradient(90deg,transparent 0%,#000 50%,#000 100%);
+  }
+  .frame { position:absolute; inset:30px; border:1px solid rgba(184,217,225,.17); }
+  .brand {
+    position:absolute; left:70px; top:56px; display:flex; align-items:center; gap:13px;
+    font-size:28px; font-weight:780; letter-spacing:-.7px;
+  }
+  .mark { width:23px; height:23px; position:relative; }
+  .mark i { position:absolute; display:block; border-radius:99px; }
+  .mark i:nth-child(1) { width:23px; height:7px; left:0; top:0; background:#63dfce; }
+  .mark i:nth-child(2) { width:15px; height:7px; left:0; top:8px; background:#79a7ff; }
+  .mark i:nth-child(3) { width:8px; height:7px; left:0; top:16px; background:#f3c969; }
+  .eyebrow {
+    position:absolute; left:70px; top:129px; color:#8fa5ae;
+    font-size:12px; font-weight:750; letter-spacing:.2em; text-transform:uppercase;
+  }
+  h1 {
+    position:absolute; left:68px; top:166px; width:720px;
+    font-size:58px; line-height:1.055; font-weight:760; letter-spacing:-2.8px;
+  }
+  h1 .quiet { color:#9aabb2; }
+  h1 .honest { color:#63dfce; }
+  .sub {
+    position:absolute; left:72px; top:425px; width:660px;
+    color:#aab9bf; font-size:17px; line-height:1.55; font-weight:470;
+  }
+  .sub b { color:#e9f0f2; font-weight:680; }
+  .repo {
+    position:absolute; left:70px; bottom:57px; display:flex; align-items:center; gap:12px;
+    color:#dce7ea; font-size:16px; font-weight:680; letter-spacing:.01em;
+  }
+  .repo::before { content:""; width:32px; height:1px; background:#63dfce; }
+  .protocol {
+    position:absolute; right:72px; top:72px; width:372px; height:496px;
+    border:1px solid rgba(184,217,225,.22); background:rgba(8,20,29,.72);
+    box-shadow:0 28px 80px rgba(0,0,0,.3); backdrop-filter:blur(8px);
+  }
+  .protocol::before {
+    content:"HONESTY PROTOCOL"; position:absolute; top:-1px; right:-1px;
+    padding:9px 13px; background:#63dfce; color:#071018;
+    font-size:10px; font-weight:850; letter-spacing:.16em;
+  }
+  .rail { position:absolute; left:51px; top:69px; bottom:57px; width:1px; background:rgba(184,217,225,.26); }
+  .step {
+    position:relative; height:144px; padding:45px 31px 22px 88px;
+    border-bottom:1px solid rgba(184,217,225,.14);
+  }
+  .step:last-child { border-bottom:0; }
+  .node {
+    position:absolute; left:37px; top:55px; width:29px; height:29px;
+    border:1px solid currentColor; border-radius:50%; background:#0a1720;
+    box-shadow:0 0 0 6px #0a1720;
+  }
+  .node::after { content:""; position:absolute; inset:8px; border-radius:50%; background:currentColor; }
+  .argue { color:#79a7ff; }
+  .gate { color:#f3c969; }
+  .grade { color:#63dfce; }
+  .verb { color:#f4f7f8; font-size:30px; line-height:1; font-weight:770; letter-spacing:-1px; }
+  .desc { margin-top:9px; color:#879ba4; font-size:13px; font-weight:560; letter-spacing:.025em; }
+  .opposition { display:flex; align-items:center; gap:8px; margin-top:12px; width:192px; }
+  .opposition span { height:4px; border-radius:4px; flex:1; }
+  .opposition span:first-child { background:#79a7ff; }
+  .opposition span:last-child { background:#ec7f88; }
+  .opposition i { width:7px; height:7px; border:1px solid #d6e1e4; transform:rotate(45deg); }
+  .gate-line { display:flex; gap:5px; margin-top:12px; }
+  .gate-line i { width:8px; height:8px; border:1px solid rgba(243,201,105,.7); }
+  .gate-line i:nth-child(3) { background:#f3c969; }
+  .loop { width:56px; height:12px; margin-top:10px; border:1px solid #63dfce;
+    border-top-color:transparent; border-radius:0 0 30px 30px; position:relative; }
+  .loop::after { content:""; position:absolute; right:-2px; top:-4px; width:7px; height:7px;
+    border-top:2px solid #63dfce; border-right:2px solid #63dfce; transform:rotate(18deg); }
+  .micro {
+    position:absolute; right:18px; bottom:15px; color:#60757e;
+    font:650 9px/1 ui-monospace,SFMono-Regular,Menlo,monospace; letter-spacing:.12em;
+  }
 </style></head><body>
-  <div class="left">
-    <div class="brand"><span class="dot"></span><span class="name">clawock</span><span class="tag">autonomous AI trading desk</span></div>
-    <h1>It argues both sides, gates the risk — then <span class="hl">grades its own calls.</span></h1>
-    <div class="sub">A daily bull-vs-bear LLM debate on <b>real HK + US money</b> — and a scorecard that <b>publishes its own record, unedited.</b></div>
-    <div class="chips"><span class="chip">🗣️ bull-vs-bear swarm</span><span class="chip">🛡️ hard risk gates</span><span class="chip">🪞 self-grading</span><span class="chip">🤖 fully autonomous</span></div>
-    <div class="repo"><span class="star">★</span> github.com/KCNyu/clawock</div>
+  <div class="frame"></div>
+  <div class="brand"><span class="mark"><i></i><i></i><i></i></span>clawock</div>
+  <div class="eyebrow">a transparent, autonomous AI desk</div>
+  <h1>It argues both sides,<br><span class="quiet">gates the risk — then</span><br><span class="honest">grades its own calls.</span></h1>
+  <div class="sub">A bull-vs-bear desk on <b>real HK + US money</b>, with hard risk gates and a public scorecard that <b>publishes the record unedited.</b></div>
+  <div class="repo">github.com/KCNyu/clawock</div>
+  <div class="protocol">
+    <div class="rail"></div>
+    <div class="step argue"><span class="node"></span><div class="verb">ARGUE</div><div class="desc">bull thesis meets bear thesis</div><div class="opposition"><span></span><i></i><span></span></div></div>
+    <div class="step gate"><span class="node"></span><div class="verb">GATE</div><div class="desc">risk rules decide what survives</div><div class="gate-line"><i></i><i></i><i></i><i></i><i></i></div></div>
+    <div class="step grade"><span class="node"></span><div class="verb">GRADE</div><div class="desc">every call returns to the record</div><div class="loop"></div></div>
+    <div class="micro">DEBATE / DISCIPLINE / RECEIPTS</div>
   </div>
-  <div class="shot"><div class="bar"><i></i><i></i><i></i></div><img src="${shotDataUri}"></div>
-  <div class="fade"></div>
 </body></html>`;
 }
 

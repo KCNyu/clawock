@@ -357,24 +357,25 @@ layout: null
     }
     .pager { display: block; }
     .panel { display: none; }
+    /* Balanced masonry (CSS multi-column) instead of a rigid 2-col grid: cards
+       flow to equalize column heights, so a tall card no longer leaves the other
+       column half-empty (the old "歪" / lopsided look). Focal leads and section
+       dividers break out full-width via column-span:all, which also carves the
+       tab into clear editorial sections rather than a uniform box wall. */
     .panel.active {
-      display: grid;
-      grid-template-columns: repeat(12, minmax(0, 1fr));
-      gap: 20px;
-      align-content: start;
-      grid-auto-flow: row dense;   /* backfill gaps left by tall neighbours */
+      display: block;
+      column-count: 2;
+      column-gap: 22px;
       animation: panelIn 0.28s ease both;
     }
-    /* Default: children span the full row; cards default to a comfortable two-up,
-       then focal objects (tables, charts, verdicts) claim more width. align-self:start
-       keeps a short card its natural height instead of stretching to a tall neighbour
-       (that stretch was leaving big empty bordered boxes). */
-    .panel.active > * { grid-column: 1 / -1; min-width: 0; }
-    .panel.active > .card { grid-column: span 6; margin-bottom: 0; align-self: start; }
-    .panel.active > .card.lead   { grid-column: 1 / -1; }
-    .panel.active > .card.wide   { grid-column: span 8; }
-    .panel.active > .card.narrow { grid-column: span 4; }
-    .panel.active > .sect-divider { grid-column: 1 / -1; margin-top: 8px; }
+    .panel.active > * { break-inside: avoid; }
+    .panel.active > .card { margin: 0 0 22px; }
+    .panel.active > .card.lead,
+    .panel.active > .sect-divider,
+    .panel.active > .today-highlights,
+    .panel.active > h2 { column-span: all; }
+    .panel.active > .sect-divider { margin: 6px 0 18px; }
+    .panel.active > .today-highlights { margin-bottom: 20px; }
     /* Tab already names the view → panel <h2> stays in the a11y tree only. */
     .panel.active > h2 { width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%);
       white-space: nowrap; margin: 0; padding: 0; font-size: 1px; }
@@ -383,12 +384,14 @@ layout: null
        1000px tower that unbalances the whole tab. */
     .panel.active > .card.lead .risk-alerts,
     .panel.active > .card.lead .plan-timeline,
+    .panel.active > .card.lead .plan-actions,
     .panel.active > .card.lead .sector-context,
     .panel.active > .card.lead .sentiment-drill {
       display: block; column-count: 2; column-gap: 24px;
     }
     .panel.active > .card.lead .risk-alerts > .risk-alert,
     .panel.active > .card.lead .plan-timeline > *,
+    .panel.active > .card.lead .plan-actions > *,
     .panel.active > .card.lead .sector-context > *,
     .panel.active > .card.lead .sentiment-drill > * {
       break-inside: avoid; margin-bottom: var(--space-2);
@@ -401,10 +404,17 @@ layout: null
      ========================================================= */
   .card {
     background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
+    /* Border blends into the fill on dark → cards read as soft raised panels, not
+       outlined boxes (the "card wall" look). Light mode keeps a hairline for
+       definition against the near-white page. */
+    border: 1px solid var(--card);
+    border-radius: 12px;
     padding: var(--space-4);
     margin-bottom: var(--gap);
+  }
+  .card.is-pending { visibility: hidden; }
+  @media (prefers-color-scheme: light) {
+    .card { border-color: var(--border-subtle); }
   }
   .card h3 {
     margin: 0 0 var(--space-3);
@@ -456,6 +466,7 @@ layout: null
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
     gap: 0;
+    min-height: 76px;
     border-top: 1px solid var(--border-subtle);
   }
   .market-cell {
@@ -471,6 +482,7 @@ layout: null
     column-gap: var(--space-2);
     border-right: 1px solid var(--border-subtle);
     border-bottom: 1px solid var(--border-subtle);
+    min-height: 76px;
   }
   .market-cell .lbl {
     grid-column: 1 / -1;
@@ -495,7 +507,7 @@ layout: null
   @media (max-width: 560px) {
     .market-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   }
-  .rs-row { line-height: 1.4; }
+  .rs-row { line-height: 1.4; min-height: 16px; }
   .rs-row b.pos { color: var(--green); }
   .rs-row b.neg { color: var(--red); }
 
@@ -517,6 +529,7 @@ layout: null
     padding: var(--space-3);
     border-right: 1px solid var(--border-subtle);
     border-bottom: 1px solid var(--border-subtle);
+    min-height: 82px;
   }
   .total-leg .lbl { font-size: 11px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.06em; }
   .total-leg .val { font-size: 24px; font-weight: 700; margin: var(--space-1) 0 0; font-variant-numeric: tabular-nums; }
@@ -529,7 +542,7 @@ layout: null
     display: flex; flex-wrap: wrap; gap: var(--space-4);
     border-bottom: 1px solid var(--border-subtle);
   }
-  .total-combined > div { flex: 1 1 130px; min-width: 0; }
+  .total-combined > div { flex: 1 1 130px; min-width: 0; min-height: 66px; }
   .total-combined .lbl { font-size: 11px; color: var(--text-dim); }
   .total-combined .val {
     font-size: 32px; line-height: 1.15; font-weight: 700;
@@ -740,6 +753,7 @@ layout: null
     font-variant-numeric: tabular-nums;
     border-right: 1px solid var(--border-subtle);
     border-bottom: 1px solid var(--border-subtle);
+    min-height: 86px;
   }
   .today-pnl-cell .lbl { font-size: 11px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; margin-bottom: 4px; }
   .today-pnl-cell .val { font-size: 20px; font-weight: 700; letter-spacing: -0.01em; }
@@ -1112,9 +1126,13 @@ layout: null
   }
   .status-banner .sb-text { flex: 1 1 auto; font-weight: 500; color: var(--text); }
   .status-banner .sb-time { flex: 0 0 auto; font-size: 10px; color: var(--text-faint); font-family: var(--mono); white-space: nowrap; }
+  .status-banner.is-pending { visibility: hidden; }
 
   /* ── Desk rail — shared summary strip (narrative + headline KPIs) ── */
-  .desk-rail { display: flex; align-items: center; gap: 12px 16px; flex-wrap: wrap; }
+  .desk-rail {
+    display: flex; align-items: center; gap: 12px 16px; flex-wrap: wrap;
+    min-height: 54px;
+  }
   .desk-rail .dr-narrative { margin: 0; flex: 1 1 300px; min-width: 0; }
   .desk-rail:has(.dr-narrative[style*="display:none"]) .dr-kpis,
   .desk-rail:has(.dr-narrative[style*="display: none"]) .dr-kpis { flex: 1 1 auto; }
@@ -1127,6 +1145,7 @@ layout: null
   .dr-kpi {
     display: flex; flex-direction: column; justify-content: center; gap: 2px;
     padding: 7px 15px; border-left: 1px solid var(--border);
+    min-height: 48px;
   }
   .dr-kpi:first-child { border-left: none; }
   .dr-k { font-size: 9.5px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase;
@@ -1134,11 +1153,22 @@ layout: null
   .dr-v { font-family: var(--mono); font-size: 14.5px; font-weight: 700; color: var(--text);
     font-variant-numeric: tabular-nums; white-space: nowrap; line-height: 1.2; }
   @media (max-width: 1023px) {
-    .desk-rail { align-items: stretch; gap: 8px; }
+    /* Stack narrative over the KPIs, and lay the KPIs as a wrapping 3-col grid so
+       all five are fully visible (the horizontal scroll used to clip Brier). */
+    .desk-rail {
+      flex-direction: column; align-items: stretch; gap: 8px;
+      min-height: 158px;
+    }
     .desk-rail .dr-narrative { flex: 1 1 auto; }
-    .dr-kpis { border-radius: var(--radius-sm); }
-    .dr-kpi { padding: 6px 13px; flex: 1 0 auto; }
-    .dr-v { font-size: 13.5px; }
+    .dr-kpis {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px;
+      border: none; background: transparent; overflow: visible;
+    }
+    .dr-kpi {
+      border: 1px solid var(--border); border-radius: var(--radius-sm);
+      background: var(--surface-1); padding: 6px 10px;
+    }
+    .dr-v { font-size: 13px; }
   }
   /* mover attribution note */
   .mover-card.has-note { min-height: auto; }
@@ -1443,6 +1473,9 @@ layout: null
   .chart-box {
     width: 100%; min-height: 280px; height: 280px;
   }
+  .chart-box, .wc-chart-box, .shadow-chart-box {
+    contain: layout;
+  }
   @media (min-width: 1024px) {
     .chart-box { min-height: 360px; height: 360px; }
   }
@@ -1529,6 +1562,7 @@ layout: null
     text-align: left;
     border-right: 1px solid var(--border-subtle);
     border-bottom: 1px solid var(--border-subtle);
+    min-height: 82px;
   }
   .kpi-cell .lbl {
     font-size: 11px; color: var(--text-dim);
@@ -1606,8 +1640,20 @@ layout: null
   .nowrap { white-space: nowrap; }
 
   /* Hero top "今日要点" triage strip */
-  .today-highlights { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 var(--space-4); }
-  .today-highlights:empty { display: none; }
+  .today-highlights {
+    display: flex; flex-wrap: wrap; align-content: flex-start; gap: 8px;
+    margin: 0 0 var(--space-4); min-height: 34px;
+  }
+  /* Above-the-fold data arrives after the scaffold has painted. These floors
+     match the populated Hero geometry closely enough to keep multi-column
+     balancing from moving visible cards while renderers fill them. */
+  .hero-market-card { min-height: 150px; }
+  .hero-book-card { min-height: 238px; }
+  .hero-pnl-card { min-height: 140px; }
+  #guardrail-card { min-height: 560px; }
+  .hero-honesty-card { min-height: 220px; }
+  .hero-anomalies-card { min-height: 430px; }
+  .hero-gold-card { min-height: 760px; }
   .hl-chip {
     display: inline-flex; align-items: center; gap: var(--space-2);
     padding: 8px 12px; border-radius: 999px;
@@ -1659,9 +1705,9 @@ layout: null
 
   <!-- Desk rail — one shared summary above every tab (narrative + headline KPIs).
        The narrative keeps id="status-banner" so renderStatusBanner() drives it;
-       the KPI row is mirrored from the canonical cells by syncDeskRail(). -->
+       syncDeskRail() formats the KPI row directly from the current DATA payload. -->
   <div class="desk-rail" id="desk-rail">
-    <div class="status-banner dr-narrative" id="status-banner" style="display:none">
+    <div class="status-banner dr-narrative is-pending" id="status-banner">
       <span class="sb-pulse" aria-hidden="true"></span>
       <span class="sb-text" id="sb-text"></span>
       <span class="sb-time" id="sb-time"></span>
@@ -1687,7 +1733,7 @@ layout: null
 
     <div id="today-highlights" class="today-highlights"></div>
 
-    <div class="card market-card">
+    <div class="card market-card hero-market-card">
       <h3>Market Snapshot <span class="muted" id="market-asof" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:11px">—</span></h3>
       <div class="market-grid" id="market-grid">
         <div class="empty-state">No index data.</div>
@@ -1695,7 +1741,7 @@ layout: null
       <div class="rs-row muted" id="market-rs" style="margin-top:var(--space-3);font-size:11px"></div>
     </div>
 
-    <div class="card">
+    <div class="card hero-book-card">
       <h3>Total Book</h3>
       <div class="totals-grid">
         <div class="total-leg">
@@ -1723,7 +1769,7 @@ layout: null
       </div>
     </div>
 
-    <div class="card">
+    <div class="card hero-pnl-card">
       <h3>Today's P&amp;L</h3>
       <div class="today-pnl-grid">
         <div class="today-pnl-cell">
@@ -1745,19 +1791,19 @@ layout: null
       <div class="risk-alerts" id="guardrail-list"></div>
     </div>
 
-    <div class="card" id="honesty-card" style="display:none">
+    <div class="card hero-honesty-card is-pending" id="honesty-card">
       <h3>诚实自评 · self-grading <span class="muted" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:11px">(30d)</span></h3>
       <div id="honesty-body" style="font-size:12px"></div>
     </div>
 
-    <div class="card">
+    <div class="card hero-anomalies-card">
       <h3>Anomalies <span class="badge muted" id="anom-count"></span></h3>
       <div class="anomaly-list" id="anomaly-list">
         <div class="empty-state">No anomalies detected.</div>
       </div>
     </div>
 
-    <div class="card" id="gold-dca-card" style="display:none">
+    <div class="card hero-gold-card is-pending" id="gold-dca-card">
       <h3>Gold DCA <span class="muted" id="gold-sub" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:11px"></span></h3>
       <div id="gold-hero"></div>
       <div id="gold-stats"></div>
@@ -2113,7 +2159,7 @@ layout: null
       <div class="watch-levels" id="watch-levels-list"></div>
     </div>
 
-    <div class="card">
+    <div class="card lead">
       <h3>Recent Plan Actions <span class="muted" style="text-transform:none;letter-spacing:0;font-weight:500">(last 5d)</span></h3>
       <div class="plan-actions" id="plan-actions">
         <div class="empty-state">No recent plan actions.</div>
@@ -2412,14 +2458,16 @@ layout: null
   };
 
   // =========================================================
-  // Tab switching (mobile only — desktop shows all panels as columns)
+  // Tab switching
   // =========================================================
-  // Tab order follows the button order in the tablist (hero/drill/market/plan/reflect).
+  // Tab order follows the button order in the tablist.
   const TAB_ORDER = Array.from(document.querySelectorAll(".tab-btn")).map(b => b.dataset.tab);
 
   const pager = document.getElementById("pager");
-  const pagerLive = () =>                       // pager is a real scroller only on mobile
-    pager && getComputedStyle(pager).display === "flex";
+  const DESKTOP_MQ = window.matchMedia("(min-width: 1024px)");
+  // The CSS breakpoint is the source of truth; matchMedia avoids a forced style
+  // calculation after setActiveButton() has just changed panel classes.
+  const pagerLive = () => !!pager && !DESKTOP_MQ.matches;
 
   // Respect OS-level reduced-motion: swap every smooth scroll for an instant one.
   const REDUCED_MOTION = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -2438,6 +2486,7 @@ layout: null
       p.classList.toggle("active", p.dataset.panel === t);
     });
     if (DATA) {
+      renderTab(t);                 // a fast switch can beat the idle renderer
       ensureTabCharts(t);           // lazy: draw this tab's charts the first time it's shown
       // Desktop shows one panel at a time now: the newly-visible panel may have
       // initialized its charts at a container size that only just settled → nudge
@@ -2544,7 +2593,22 @@ layout: null
   // Theme detection — for ECharts dark/light
   // =========================================================
   const isDark = () => window.matchMedia("(prefers-color-scheme: dark)").matches;
-  const getCSS = (varName) => getComputedStyle(document.documentElement).getPropertyValue(varName).trim();
+  const THEME_CSS_KEYS = [
+    "--accent", "--accent-strong", "--border-subtle", "--focus", "--font",
+    "--mono", "--negative", "--neutral", "--positive", "--surface-1",
+    "--text-primary", "--text-tertiary", "--warning",
+  ];
+  let _themeCSS = null;
+  function readThemeCSS() {
+    if (_themeCSS) return _themeCSS;
+    const styles = getComputedStyle(document.documentElement);
+    _themeCSS = Object.fromEntries(
+      THEME_CSS_KEYS.map(k => [k, styles.getPropertyValue(k).trim()])
+    );
+    return _themeCSS;
+  }
+  const getCSS = (varName) => readThemeCSS()[varName] || "";
+  const invalidateThemeCSS = () => { _themeCSS = null; };
   const chartTextColor = () => getCSS("--text-primary") || (isDark() ? "#F2F6FB" : "#101821");
   const chartLabelColor = () => getCSS("--text-tertiary") || (isDark() ? "#6E7D90" : "#788798");
   const chartGridColor = () => getCSS("--border-subtle") || (isDark() ? "#1D2937" : "#D8E0E8");
@@ -2586,7 +2650,11 @@ layout: null
   }
   function paintCharts(t) {
     if (!CHART_FNS[t] || !DATA) return;
-    whenEcharts(() => { if (DATA) CHART_FNS[t](); });
+    whenEcharts(() => {
+      if (!DATA) return;
+      readThemeCSS();               // one style read before any ECharts DOM writes
+      CHART_FNS[t]();
+    });
   }
   function ensureTabCharts(t) {
     if (!CHART_FNS[t]) return;
@@ -2597,7 +2665,6 @@ layout: null
   // charts need drawing on load. Initializing a chart inside a display:none panel
   // yields a zero-width canvas, so we defer to the tab that's actually visible;
   // ensureTabCharts fires again on every tab switch (see setActiveButton).
-  const DESKTOP_MQ = window.matchMedia("(min-width: 1024px)");
   function ensureVisibleCharts() {
     ensureTabCharts(currentTab());
   }
@@ -2633,6 +2700,7 @@ layout: null
   // flip immediately but cached ECharts instances keep the old palette until the
   // next 60s poll. Dispose them so render() re-inits with the new theme colors.
   window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => {
+    invalidateThemeCSS();
     Object.keys(charts).forEach(k => {
       try { if (charts[k]) charts[k].dispose(); } catch (e) {}
       charts[k] = null;
@@ -2940,7 +3008,11 @@ layout: null
     (cat.fomc||[]).forEach(e => { if (String(e.date||"").slice(0,10) === today) todays.push(`FOMC ${e.detail||""}`); });
     if (todays.length) chips.push({ cls:"hl-info", icon:"📅", txt:`今日事件 · ${escapeHtml(todays[0])}` });
 
-    if (!chips.length) { el.style.display = "none"; return; }
+    if (!chips.length) {
+      el.style.display = "";
+      el.replaceChildren();
+      return;
+    }
     el.style.display = "";
     el.innerHTML = chips.map(c =>
       `<span class="hl-chip ${c.cls}"><span class="hl-ic">${c.icon}</span>${c.txt}</span>`).join("");
@@ -2951,6 +3023,7 @@ layout: null
     const card = document.getElementById("honesty-card");
     const el = document.getElementById("honesty-body");
     if (!card || !el) return;
+    card.classList.remove("is-pending");
     const metrics = safe(DATA, "decision_metrics") || {};
     const delta = safe(DATA, "decision_delta") || {};
     const dm = safe(DATA, "debate_metrics");
@@ -2988,78 +3061,117 @@ layout: null
     card.style.display = "";
   }
 
-  // Desk rail KPIs are mirrored from the canonical cells the panel renderers
-  // already computed (text + resolved color), so there is one source of truth and
-  // no reformatting drift. Runs at the end of render(), after those cells are set.
+  // Desk rail KPIs come straight from DATA so deep-linked/non-active panels never
+  // have to render just to replace a rail dash. Formatting matches their canonical
+  // cells, and the entire read/compute phase finishes before the DOM write phase.
   function syncDeskRail() {
-    const mirror = (dstId, srcId) => {
-      const s = document.getElementById(srcId), d = document.getElementById(dstId);
-      if (!s || !d) return;
-      const txt = (s.textContent || "").trim();
-      d.textContent = txt && txt !== DASH ? txt : DASH;
-      d.style.color = txt && txt !== DASH ? getComputedStyle(s).color : "";
+    const us = safe(DATA, "totals", "us") || {};
+    const hk = safe(DATA, "totals", "hk") || {};
+    const fx = safe(DATA, "fx", "usdhkd");
+    const metrics = safe(DATA, "decision_metrics") || {};
+    const activeExec = safe(metrics, "execution_by_kind", "active") || {};
+    const totalUsd = fx && us.value_usd != null && hk.value_hkd != null
+      ? us.value_usd + hk.value_hkd / fx : null;
+    const values = [
+      ["dr-book", fmtMoney(totalUsd, "USD"), ""],
+      ["dr-pnl-us", fmtMoney(us.today_change_usd, "USD"), pnlClass(us.today_change_usd)],
+      ["dr-pnl-hk", fmtMoney(hk.today_change_hkd, "HKD"), pnlClass(hk.today_change_hkd)],
+      ["dr-followed", activeExec.rate == null ? DASH : (activeExec.rate * 100).toFixed(1) + "%", "neutral"],
+      ["dr-grade", metrics.brier == null ? DASH : metrics.brier.toFixed(3), ""],
+    ];
+    // Values and semantic classes are computed first, then committed together.
+    // The old mirror alternated writes with getComputedStyle() five times, forcing
+    // layout after the entire dashboard had just been mutated.
+    values.forEach(([id, text, cls]) => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.textContent = text;
+      el.className = "dr-v" + (cls ? " " + cls : "");
+    });
+  }
+
+  const TAB_RENDERERS = {
+    hero: [
+      renderTodayHighlights, renderHonesty, renderMarketSnapshot, renderTotals,
+      renderTodayPnl, renderRiskGuardrail, renderGoldDca, renderAnomalies,
+    ],
+    drill: [
+      renderDecisionMatrix, renderHoldings, renderExtremes, renderMovers,
+      render8dHeatmap, renderTodayRange, renderShadowPortfolioCard,
+    ],
+    risk: [
+      renderHHI, renderLeveragedETF, renderRiskMetrics, renderLevRegime,
+      renderReentryRadar, renderBreakevenMath, renderHistoricalExtremes,
+    ],
+    market: [
+      renderQuantSignals, renderT0Setups, renderCatalysts, renderInfluencer,
+      renderNewsDigest, renderMacro, renderPeerDivergence, renderSectorContext,
+    ],
+    plan: [
+      renderWatchLevels, renderPlanActions, renderPlanTimeline,
+      renderBearCases, renderHiddenConcentration,
+    ],
+    reflect: [
+      renderBehavioralReview, renderDecisionAudit, renderCalibBadge,
+      renderPlanReview, renderCalibByTrigger, renderCalibByDriver,
+      renderReflectKpi, renderDelta,
+    ],
+  };
+  let RENDER_VERSION = 0;
+  const _tabRenderVersion = new Map();
+
+  function renderTab(t, version = RENDER_VERSION) {
+    if (!DATA || !TAB_RENDERERS[t] || _tabRenderVersion.get(t) === version) return;
+    TAB_RENDERERS[t].forEach(fn => fn());
+    _tabRenderVersion.set(t, version);
+    if (t === "risk" || t === "market") updateFoldPeeks();
+  }
+
+  function scheduleDeferredTabs(version, activeTab) {
+    const jobs = TAB_ORDER
+      .filter(t => t !== activeTab)
+      .flatMap(t => TAB_RENDERERS[t].map(fn => ({ t, fn })));
+    const remaining = new Map(
+      TAB_ORDER.filter(t => t !== activeTab).map(t => [t, TAB_RENDERERS[t].length])
+    );
+    const schedule = window.requestIdleCallback
+      ? cb => requestIdleCallback(cb, { timeout: 2000 })
+      : cb => setTimeout(() => cb({ didTimeout: true, timeRemaining: () => 0 }), 32);
+    const runOne = () => {
+      if (version !== RENDER_VERSION || !DATA) return;
+      const job = jobs.shift();
+      if (job && _tabRenderVersion.get(job.t) !== version) {
+        job.fn();
+        const left = (remaining.get(job.t) || 1) - 1;
+        remaining.set(job.t, left);
+        if (left === 0) {
+          _tabRenderVersion.set(job.t, version);
+          if (job.t === "risk" || job.t === "market") updateFoldPeeks();
+        }
+      }
+      if (jobs.length) {
+        // One renderer per idle slice. A whole hidden tab used to become a second
+        // long task even after render() was split by tab.
+        schedule(runOne);
+      } else {
+        syncDeskRail();             // refresh after all canonical cells exist
+      }
     };
-    mirror("dr-book", "combined-usd");
-    mirror("dr-pnl-us", "today-pnl-us");
-    mirror("dr-pnl-hk", "today-pnl-hk");
-    mirror("dr-followed", "plan-followed");
-    mirror("dr-grade", "brier-val");
+    if (jobs.length) schedule(runOne);
   }
 
   function render() {
     if (!DATA) return;
+    const version = ++RENDER_VERSION;
+    const activeTab = currentTab();
     renderHeader();
     renderStatusBanner();
-    renderTodayHighlights();
-    renderHonesty();
-    renderMarketSnapshot();
-    renderTotals();
-    renderTodayPnl();
-    renderDelta();
-    renderHHI();
-    renderLeveragedETF();
-    renderRiskMetrics();
-    renderRiskGuardrail();
-    renderBreakevenMath();
-    renderQuantSignals();
-    renderT0Setups();
-    renderLevRegime();
-    renderReentryRadar();
-    renderGoldDca();
-    renderWatchLevels();
-    renderAnomalies();
-    renderMovers();
-    renderSectorContext();
-    renderCatalysts();
-    renderInfluencer();
-    renderPeerDivergence();
-    renderNewsDigest();
-    renderMacro();
-    renderCalibBadge();
-    renderDecisionMatrix();
-    renderHoldings();
-    renderShadowPortfolioCard();
-    renderTodayRange();
-    renderExtremes();
-    renderPlanActions();
-    renderBehavioralReview();
-    renderDecisionAudit();
-    renderBearCases();
-    renderHiddenConcentration();
-    render8dHeatmap();
-    renderReflectKpi();
-    renderHistoricalExtremes();
-    renderPlanTimeline();
-    renderPlanReview();
-    renderCalibByTrigger();
-    renderCalibByDriver();
+    syncDeskRail();                 // direct DATA path: never waits for Reflect
+    renderTab(activeTab, version);  // first paint only pays for the visible tab
     renderBuildStatus();
-    updateFoldPeeks();
     syncDeskRail();
-    // Charts are lazy (see CHART_FNS): repaint tabs already shown with the fresh
-    // DATA, then ensure the current tab's charts get drawn.
-    _chartTabsShown.forEach(paintCharts);
     ensureVisibleCharts();
+    scheduleDeferredTabs(version, activeTab);
   }
 
   // ── A2 系统健康卡（页脚）──
@@ -4095,11 +4207,17 @@ layout: null
     const configs = [
       { currency: "USD", id: "chart-shadow-usd", key: "shadowPortfolioUsd" },
       { currency: "HKD", id: "chart-shadow-hkd", key: "shadowPortfolioHkd" },
-    ];
+    ].map(config => ({
+      ...config,
+      el: document.getElementById(config.id),
+    }));
+    // Measure both containers before echarts.init() mutates either one. The old
+    // forEach read the HKD width after the USD canvas write, forcing a sync reflow.
+    const visibleConfigs = configs.filter(config =>
+      config.el && config.el.clientWidth >= 50
+    );
 
-    configs.forEach(({ currency, id, key }) => {
-      const el = document.getElementById(id);
-      if (!el || el.clientWidth < 50) return;
+    visibleConfigs.forEach(({ currency, key, el }) => {
       if (!charts[key]) charts[key] = echarts.init(el, null, { renderer: "canvas" });
       const rows = (safe(sidecar, "curves", currency, "curve") || [])
         .filter(row => row && row.date);
@@ -4429,6 +4547,7 @@ layout: null
     const g = safe(DATA, "gold_dca");
     const card = document.getElementById('gold-dca-card');
     if (!card) return;
+    card.classList.remove("is-pending");
     if (!g || g.nav == null || g.principal_invested == null) { card.style.display = 'none'; return; }
     card.style.display = '';
     const num = (v, d = 0) => (v == null ? DASH : Number(v).toLocaleString('zh-CN', { minimumFractionDigits: d, maximumFractionDigits: d }));
@@ -4832,8 +4951,13 @@ layout: null
     const txt = safe(DATA, "status_banner");
     const banner = document.getElementById("status-banner");
     if (!banner) return;
-    if (!txt) { banner.style.display = "none"; return; }
-    banner.style.display = "";
+    if (!txt) {
+      banner.classList.add("is-pending");
+      banner.setAttribute("aria-hidden", "true");
+      return;
+    }
+    banner.classList.remove("is-pending");
+    banner.removeAttribute("aria-hidden");
     document.getElementById("sb-text").textContent = txt;
     const meta = safe(DATA, "status_banner_meta") || {};
     let t = "";
@@ -6283,26 +6407,11 @@ layout: null
   }
 
   // =========================================================
-  // Wire up resize + theme change
+  // Wire up resize (theme changes are handled by the cache/dispose listener above)
   // =========================================================
   window.addEventListener("resize", () => {
     Object.values(charts).forEach(c => c && c.resize());
   });
-  window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => {
-    // Re-render charts with new theme colors
-    if (DATA) {
-      renderReflectKpi();
-      renderSectorChart();
-      renderEquityChart();
-      renderRealizedChart();
-      renderDailyPnlChart();
-      renderPlanReview();
-      renderWeightConfidence();
-      renderShadowPortfolioChart();
-      renderShadowChart();
-    }
-  });
-
   document.getElementById("refresh-btn").addEventListener("click", () => loadData(true));
 
   // =========================================================
