@@ -61,12 +61,47 @@ jobs:
           fi
           echo "PR file policy OK: ${#files[@]} changed paths"
 
+      - name: Detect code changes
+        # Scope the heavy Python steps to what a PR actually touches. This job
+        # (and the required `validate` context) always runs; a docs/markdown-only
+        # PR just skips the expensive steps and still reports green in seconds.
+        # We must NOT path-filter the pull_request trigger itself: a required
+        # check that is filtered out never reports and blocks the PR forever
+        # (see actionlint.yml). Skipped *steps* count as success, so we gate here.
+        # Only runs on PRs; non-PR events force the steps on via the `if:` below.
+        #
+        # Keep this path set in sync with the `push:` trigger `paths:` at the top
+        # of this file — both answer "does this change affect validate?".
+        id: changes
+        if: github.event_name == 'pull_request'
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          # No --diff-filter: a deletion or rename of a script/test must also run
+          # the suite (it can break imports), same as the push trigger's paths.
+          mapfile -t files < <(git diff --name-only "$BASE_SHA" "$HEAD_SHA")
+          code=false
+          for f in "${files[@]}"; do
+            case "$f" in
+              scripts/*|tests/*|portfolio.json|memory/*-plan.json|assets/data/dashboard.json|config/cron-schedules.json|CRON_SCHEDULES.md|.github/workflows/*)
+                code=true
+                break
+                ;;
+            esac
+          done
+          echo "code=$code" >> "$GITHUB_OUTPUT"
+          echo "code changed: $code (${#files[@]} changed paths)"
+
       - name: Set up Python
+        if: github.event_name != 'pull_request' || steps.changes.outputs.code == 'true'
         uses: actions/setup-python@v6
         with:
           python-version: '3.11'
 
       - name: Install minimal deps
+        if: github.event_name != 'pull_request' || steps.changes.outputs.code == 'true'
         # numpy is required to *collect* tests/, not just to run one of them:
         # portfolio_risk_metrics imports it at module level, so without it pytest
         # aborts the whole run with a collection error and all 78 tests silently
@@ -74,12 +109,15 @@ jobs:
         run: pip install --quiet requests pytest numpy
 
       - name: Unit tests — money-integrity derivations
+        if: github.event_name != 'pull_request' || steps.changes.outputs.code == 'true'
         run: python3 -m pytest tests/ -q
 
       - name: Generated cron docs match contract
+        if: github.event_name != 'pull_request' || steps.changes.outputs.code == 'true'
         run: python3 scripts/data/generate_cron_docs.py --check
 
       - name: Import-check all scripts
+        if: github.event_name != 'pull_request' || steps.changes.outputs.code == 'true'
         run: |
           set -e
           for f in scripts/data/*.py scripts/harness/*.py; do
@@ -88,6 +126,7 @@ jobs:
           done
 
       - name: argparse-check harness CLIs
+        if: github.event_name != 'pull_request' || steps.changes.outputs.code == 'true'
         run: |
           set -e
           python3 scripts/harness/report_preflight.py --help > /dev/null
@@ -99,6 +138,7 @@ jobs:
           echo "OK: all argparse parsers loadable"
 
       - name: Schema-validate portfolio.json
+        if: github.event_name != 'pull_request' || steps.changes.outputs.code == 'true'
         run: |
           python3 << 'PY'
           import json, sys
@@ -115,6 +155,7 @@ jobs:
           PY
 
       - name: Schema-validate memory/*-plan.json
+        if: github.event_name != 'pull_request' || steps.changes.outputs.code == 'true'
         run: |
           python3 << 'PY'
           import json, glob, sys
@@ -128,6 +169,7 @@ jobs:
           PY
 
       - name: Decision v2 unit tests and ledger audit
+        if: github.event_name != 'pull_request' || steps.changes.outputs.code == 'true'
         run: |
           python3 -m unittest discover -s tests -p 'test_decision_v2.py' -v
           python3 << 'PY'
@@ -162,6 +204,7 @@ jobs:
           PY
 
       - name: Rebuild dashboard.json and validate
+        if: github.event_name != 'pull_request' || steps.changes.outputs.code == 'true'
         run: |
           python3 scripts/data/build_dashboard.py
           python3 << 'PY'
@@ -180,6 +223,7 @@ jobs:
           PY
 
       - name: Run build_dashboard sanity
+        if: github.event_name != 'pull_request' || steps.changes.outputs.code == 'true'
         run: |
           # confirm it runs idempotently
           python3 scripts/data/build_dashboard.py
