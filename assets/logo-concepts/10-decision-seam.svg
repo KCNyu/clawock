@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" role="img" aria-labelledby="t d" shape-rendering="geometricPrecision">
+  <title id="t">Decision seam</title>
+  <desc id="d">Two proof fields carve a lightning-like verdict seam without a third object.</desc>
+  <defs><linearGradient id="b" x1="29" y1="54" x2="54" y2="14" gradientUnits="userSpaceOnUse"><stop stop-color="#245574"/><stop offset="1" stop-color="#559ed1"/></linearGradient></defs>
+  <path d="M8 10H37L28 25L32 32L28 39L37 54H8Z" fill="#10141a"/>
+  <path d="M56 10H43L34 25L38 32L34 39L43 54H56Z" fill="url(#b)"/>
+</svg>

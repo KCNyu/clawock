@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" role="img" aria-labelledby="t d" shape-rendering="geometricPrecision">
+  <title id="t">Hourglass gap</title>
+  <desc id="d">Opposing fields carve an hourglass decision corridor from negative space.</desc>
+  <defs><linearGradient id="b" x1="34" y1="52" x2="54" y2="12" gradientUnits="userSpaceOnUse"><stop stop-color="#245574"/><stop offset="1" stop-color="#559ed1"/></linearGradient></defs>
+  <path d="M28 8H20C12 8 8 12 8 20V44C8 52 12 56 20 56H28C24 48 29 39 30 35C31 33 31 31 30 29C29 25 24 16 28 8Z" fill="#10141a"/>
+  <path d="M36 8H44C52 8 56 12 56 20V44C56 52 52 56 44 56H36C40 48 35 39 34 35C33 33 33 31 34 29C35 25 40 16 36 8Z" fill="url(#b)"/>
+</svg>

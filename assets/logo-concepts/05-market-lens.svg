@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" role="img" aria-labelledby="t d" shape-rendering="geometricPrecision">
+  <title id="t">Market lens</title>
+  <desc id="d">Bull and bear horizons leave a lens-shaped evidence window in negative space.</desc>
+  <defs><linearGradient id="b" x1="14" y1="48" x2="50" y2="32" gradientUnits="userSpaceOnUse"><stop stop-color="#245574"/><stop offset="1" stop-color="#559ed1"/></linearGradient></defs>
+  <path d="M7 31C18 12 46 10 57 31C45 25 19 25 7 31Z" fill="#10141a"/>
+  <path d="M7 33C18 52 46 54 57 33C45 39 19 39 7 33Z" fill="url(#b)"/>
+</svg>

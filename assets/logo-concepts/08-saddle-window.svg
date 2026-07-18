@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" role="img" aria-labelledby="t d" shape-rendering="geometricPrecision">
+  <title id="t">Saddle window</title>
+  <desc id="d">Opposing saddle surfaces leave a mathematical decision window between them.</desc>
+  <defs><linearGradient id="b" x1="14" y1="50" x2="51" y2="31" gradientUnits="userSpaceOnUse"><stop stop-color="#245574"/><stop offset="1" stop-color="#559ed1"/></linearGradient></defs>
+  <path d="M8 13C22 9 40 16 55 28C42 24 28 25 17 32C12 27 9 21 8 13Z" fill="#10141a"/>
+  <path d="M56 51C42 55 24 48 9 36C22 40 36 39 47 32C52 37 55 43 56 51Z" fill="url(#b)"/>
+</svg>

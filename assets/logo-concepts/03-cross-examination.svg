@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" role="img" aria-labelledby="t d" shape-rendering="geometricPrecision">
+  <title id="t">Cross examination</title>
+  <desc id="d">Two opposing evidence surfaces leave one rising decision seam.</desc>
+  <defs><linearGradient id="b" x1="14" y1="52" x2="51" y2="29" gradientUnits="userSpaceOnUse"><stop stop-color="#245574"/><stop offset="1" stop-color="#559ed1"/></linearGradient></defs>
+  <path d="M7 12C24 7 42 16 55 29L47 35C37 25 24 22 12 28C9 23 7 18 7 12Z" fill="#10141a"/>
+  <path d="M57 52C40 57 22 48 9 35L17 29C27 39 40 42 52 36C55 41 57 46 57 52Z" fill="url(#b)"/>
+</svg>
