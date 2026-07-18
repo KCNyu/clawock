@@ -4,14 +4,7 @@
 
 **clawock 的多市场行情数据工具包 — 美股 · 港股 · 黄金**
 
-![layers](https://img.shields.io/badge/架构-8层-blue)
-![endpoints](https://img.shields.io/badge/端点-26-green)
-![sources](https://img.shields.io/badge/数据源-10-orange)
-![markets](https://img.shields.io/badge/市场-US·HK·Gold-purple)
-![key](https://img.shields.io/badge/无key优先-✓-brightgreen)
-![antiban](https://img.shields.io/badge/东财防封-em__get()-red)
-
-*行情 / 基本面 / 资金面 / 消息面 / 宏观情绪 / 量化因子 / 汇率校验 / 回测自省 全覆盖 · 多源 fallback · 每源标注本机实测可达性*
+*行情 · 基本面 · 资金面 · 消息面 · 宏观情绪 · 量化因子 · 汇率校验 · 回测自省*
 
 </div>
 
@@ -19,11 +12,11 @@
 
 ## 定位
 
-clawock 是**美股 + 港股 + 黄金定投**的实盘组合，工具包只做实盘真正用得到的数据，且每一条都在服务器 IP 上实测过可达性。设计三原则:
+clawock 是**美股 + 港股 + 黄金定投**的实盘组合。工具包遵循三条规则：
 
-- **无 key 优先** — 能用公开端点绝不要 API key；需 key 的（Finnhub）都有免 key fallback。
+- **Provider-aware** — 优先使用有文档的公开端点；需要认证的来源遵守其认证和使用条款。
 - **多源降级** — 关键路径都是 provider chain，主源挂了自动落下一个，抓空保留旧值不整片覆盖。
-- **诚实可达** — 下表 `可达` 列是本机实测：✅ 稳定 · 🟡 flaky/限流 · 🔴 本机被封（保留代码，换 IP 可用）。
+- **可达性实测** — 下表 `可达` 列来自当前服务器：✅ 稳定 · 🟡 flaky/限流 · 🔴 本机不可用。
 
 ---
 
@@ -110,16 +103,19 @@ clawock 是**美股 + 港股 + 黄金定投**的实盘组合，工具包只做�
 
 ---
 
-## 🛡️ 防封与降级
+## 🛡️ 请求节流与降级
 
-**东财统一出口 `_em_http.em_get()`** — 东财对同 IP 高频请求阶梯式惩罚(先 000 空响应, 后短时 ban)，所有现役东财调用（包括行情、基金、基本面、资金流与新闻 fetcher）统一走它:
+**东财统一出口 `_em_http.em_get()`** — 所有现役东财调用（行情、基金、基本面、资金流与新闻 fetcher）统一经过节流器：
 
 - **进程内串行** — 相邻请求间隔 ≥ `EM_MIN_INTERVAL`(默认 1.0s), 线程锁保护;
-- **随机抖动** — 每次额外 0..`EM_JITTER`(默认 0.5s), 打散固定节律指纹;
-- **Session 复用** — 单 `requests.Session`, 复用 TCP/TLS 降可疑度;
+- **请求抖动** — 每次额外 0..`EM_JITTER`(默认 0.5s)，分散突发请求;
+- **Session 复用** — 单 `requests.Session`，复用 TCP/TLS 降低连接开销;
 - **重试 + 优雅降级** — 3 次重试耗尽返回 `None`, 调用方一律降级为空 `[]`, 永不抛。
 
 **多源 fallback 链** — 行情、FX 等关键路径主源挂了自动落下一个;多 series fetcher 抓空**保留旧值**不整片覆盖(避免限流丢线)。
+
+运行抓取器或再分发生成内容前，请阅读仓库根目录的
+[`THIRD_PARTY_DATA.md`](../../THIRD_PARTY_DATA.md) 与 [`NOTICE`](../../NOTICE)。
 
 ---
 

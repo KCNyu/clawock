@@ -2,7 +2,7 @@ name: Cron Health Check
 
 # 17:00 HKT = 09:00 UTC 工作日 — 港股收盘后、美股开盘前 一窗口
 # 报告任务对 git 产物；盘中任务对逐 slot heartbeat
-# 缺漏 → workflow fail（README badge 红 + 邮件通知 GH owner）
+# 缺漏 → workflow fail（Actions 可见；不做 README 首屏 badge）
 on:
   schedule:
     - cron: '0 9 * * 1-5'
@@ -33,6 +33,6 @@ jobs:
           python3 scripts/data/cron_health_check.py \
             --jobs-file config/cron-schedules.json \
             --heartbeats-file assets/data/cron-heartbeats.json
-          # On a miss this exits non-zero → workflow red (README badge). We deliberately
+          # On a miss this exits non-zero and remains visible in Actions. We deliberately
           # do NOT open an issue: per kcn's "no per-cron alerts" preference the daily review
           # covers it.

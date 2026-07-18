@@ -1,13 +1,12 @@
 #!/usr/bin/env python3
 """
-_em_http.py — 东财 (Eastmoney) 统一 HTTP 出口:进程内串行限速 + 随机抖动 + Session 复用。
+_em_http.py — 东财 (Eastmoney) 统一 HTTP 出口：串行节流 + 抖动 + Session 复用。
 
-抄自 simonlin1212/a-stock-data 的 em_get() 防封思路 (Apache-2.0):东财对同一 IP 的
-高频请求会阶梯式惩罚 —— 先返回 000 / 空响应,再短时 IP ban。所有东财调用统一走本模块,
-即可得到:
+参考 simonlin1212/a-stock-data 的 em_get() 请求节流结构（Apache-2.0），并由
+clawock contributors 修改；署名与许可证见仓库 NOTICE。所有东财调用统一走本模块：
   1) 进程内串行 —— 相邻请求间隔 >= MIN_INTERVAL 秒 (线程锁保护, 多线程也安全);
-  2) 随机抖动 —— 每次额外 0..JITTER 秒, 打散固定节律指纹;
-  3) 单 Session 连接复用 —— 复用 TCP/TLS, 少握手少可疑度。
+  2) 请求抖动 —— 每次额外 0..JITTER 秒，避免固定时刻形成突发流量;
+  3) 单 Session 连接复用 —— 复用 TCP/TLS，减少连接开销。
 
 用法:
     from _em_http import em_get
@@ -88,7 +87,7 @@ def em_get(url, params=None, headers=None, timeout=TIMEOUT,
 
 
 if __name__ == "__main__":
-    # 冒烟:连打 3 次,肉眼确认间隔 >= MIN_INTERVAL + 抖动
+    # 冒烟：连打 3 次，确认间隔 >= MIN_INTERVAL + 抖动
     import json as _json
     t0 = time.time()
     for i in range(3):

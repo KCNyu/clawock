@@ -259,7 +259,7 @@ function socialCardHTML(shotDataUri) {
 </style></head><body>
   <div class="left">
     <div class="brand"><span class="dot"></span><span class="name">clawock</span></div>
-    <div class="eyebrow">OPEN-SOURCE · MULTI-AGENT LLM STOCK DESK</div>
+    <div class="eyebrow">AUTONOMOUS · MULTI-AGENT LLM STOCK DESK</div>
     <h1>AI agents debate.<br><span class="hl">Code controls the risk.</span></h1>
     <div class="sub">Built on a <b>real HK + US portfolio</b>, with every call returned to a public scorecard and <b>published unedited.</b></div>
     <div class="proof"><span>DEBATE</span><i></i><span>GATE</span><i></i><span>GRADE</span></div>

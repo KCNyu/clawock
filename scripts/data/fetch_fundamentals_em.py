@@ -2,7 +2,8 @@
 """
 fetch_fundamentals_em.py - 东财 datacenter 基本面 (美股 + 港股, 无 key)
 
-Adapted from global-stock-data (https://github.com/simonlin1212/global-stock-data, Apache-2.0).
+Adapted and modified from global-stock-data
+(https://github.com/simonlin1212/global-stock-data, Apache-2.0). See NOTICE.
 
 补 openclaw 数据空白: 港股财报/关键指标 (analyze_hk_stocks.py 只有价格+技术+新闻)。
 美股基本面优先走 fetch_us_filings.py (SEC, 更全); 此处提供中文科目/关键指标作补充。
@@ -23,7 +24,7 @@ from typing import Dict, List
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from _em_symbols import resolve  # noqa: E402
-from _em_http import em_get  # noqa: E402  统一防封出口(串行+抖动+session)
+from _em_http import em_get  # noqa: E402  统一请求节流出口
 
 DATACENTER_URL = "https://datacenter-web.eastmoney.com/api/data/v1/get"
 
