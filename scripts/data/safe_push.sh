@@ -14,6 +14,20 @@ set -e
 MAX_RETRIES=3
 REMOTE="${1:-origin}"
 BRANCH="${2:-master}"
+TEMP_SSH_KEY=""
+
+# A protected master must still accept scheduled data writers. GitHub-hosted
+# workflows receive a write-enabled deploy key through this secret; using the
+# deploy key lets the repository ruleset distinguish automation from the shared
+# KCNyu identity used by interactive Codex/Claude sessions.
+if [ -n "${CLAWOCK_PUBLISH_SSH_KEY:-}" ]; then
+  TEMP_SSH_KEY=$(mktemp)
+  chmod 600 "$TEMP_SSH_KEY"
+  printf '%s\n' "$CLAWOCK_PUBLISH_SSH_KEY" > "$TEMP_SSH_KEY"
+  export GIT_SSH_COMMAND="ssh -i $TEMP_SSH_KEY -o IdentitiesOnly=yes -o StrictHostKeyChecking=accept-new"
+  REMOTE="${CLAWOCK_PUBLISH_REMOTE:-git@github.com:KCNyu/clawock.git}"
+  trap 'test -z "$TEMP_SSH_KEY" || { : > "$TEMP_SSH_KEY"; unlink "$TEMP_SSH_KEY"; }' EXIT
+fi
 
 # ── Conflict-marker guard (2026-06-03) ───────────────────────────────────────
 # A "merge fix" once committed dashboard.json WITH unresolved <<<<<<< / ======= /

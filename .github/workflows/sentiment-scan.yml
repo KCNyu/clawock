@@ -25,6 +25,8 @@ jobs:
     timeout-minutes: 5
     permissions:
       contents: write
+    env:
+      CLAWOCK_PUBLISH_SSH_KEY: ${{ secrets.CLAWOCK_PUBLISH_SSH_KEY }}
     steps:
       - uses: actions/checkout@v5
 
