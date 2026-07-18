@@ -37,7 +37,7 @@ GRAMS_PER_OZ = 31.1035  # 1 金衡盎司(troy oz) = 31.1035 克
 WS_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.insert(0, os.path.join(WS_ROOT, 'scripts', 'data'))
 from safe_io import safe_write_json  # noqa: E402
-from _em_http import em_get  # noqa: E402  东财统一防封出口
+from _em_http import em_get  # noqa: E402  东财统一请求节流出口
 
 PORTFOLIO = os.path.join(WS_ROOT, 'portfolio.json')
 

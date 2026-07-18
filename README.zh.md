@@ -2,13 +2,11 @@
 
 # 📈 clawock
 
-### 一群 LLM,每个交易日盯着我**真金白银**的港股 + 美股仓位 —— 而且第二天早上会给自己打分。
+### 多个 LLM Agent 分析一个**真实港股 + 美股组合**，风控由代码执行。
 
-[![Pages](https://img.shields.io/github/deployments/KCNyu/clawock/github-pages?label=live%20dashboard&logo=github&color=4fa8ff)](https://kcnyu.github.io/clawock/)
-[![Harness Regression](https://img.shields.io/github/actions/workflow/status/KCNyu/clawock/harness-regression.yml?label=harness&logo=githubactions&color=26a69a)](https://github.com/KCNyu/clawock/actions/workflows/harness-regression.yml)
-[![Cron Health](https://img.shields.io/github/actions/workflow/status/KCNyu/clawock/cron-health.yml?label=cron%20health&logo=githubactions&color=26a69a)](https://github.com/KCNyu/clawock/actions/workflows/cron-health.yml)
-[![Weekly Health](https://img.shields.io/github/actions/workflow/status/KCNyu/clawock/weekly-health.yml?label=weekly%20health&logo=githubactions&color=26a69a)](https://github.com/KCNyu/clawock/actions/workflows/weekly-health.yml)
-[![License: Personal](https://img.shields.io/badge/license-personal--use-orange?color=ef5350)](#-许可)
+[![Dashboard](https://img.shields.io/github/deployments/KCNyu/clawock/github-pages?label=DASHBOARD&style=flat-square&logo=githubpages&logoColor=white&labelColor=173f3b&color=2a8c78)](https://kcnyu.github.io/clawock/)
+[![CI](https://img.shields.io/github/actions/workflow/status/KCNyu/clawock/harness-regression.yml?label=CI&style=flat-square&logo=githubactions&logoColor=white&labelColor=173f3b&color=2a8c78)](https://github.com/KCNyu/clawock/actions/workflows/harness-regression.yml)
+[![License](https://img.shields.io/badge/LICENSE-MIT-c97835?style=flat-square&labelColor=173f3b)](LICENSE)
 
 [**🎯 实时仪表盘**](https://kcnyu.github.io/clawock/) · [**📅 每日简报**](https://kcnyu.github.io/clawock/briefs.html) · [**它怎么跑的 ↓**](#-60-秒看懂)
 
@@ -20,41 +18,36 @@
   <img src="assets/social-card.png" alt="clawock — 会给自己打分的自主 AI 投研台" width="820">
 </a>
 
-<sub>真实持仓,真实盈亏。社交卡里的 dashboard 窗口和下方实时战绩截图每周由 <a href="https://github.com/KCNyu/clawock/actions/workflows/screenshot-refresh.yml">GitHub Action</a> 自动刷新。</sub>
+<sub>真实持仓 · 真实盈亏 · 每周刷新</sub>
 
 <br>
 
 <a href="https://kcnyu.github.io/clawock/"><img src="assets/dashboard.gif" alt="clawock 仪表盘循环六个标签页" width="300"></a>
 
-<sub>📱 循环六个标签页 — 总览 · 持仓 · 风控 · 信号 · 计划 · <b>诚实</b>(自评战绩卡)。8MB 产品演示只在 UI 变化后手动重生成；每周任务只刷新两张实时 PNG。</sub>
+<sub>总览 · 持仓 · 风控 · 信号 · 计划 · <b>诚实</b>。界面变化时更新。</sub>
 
 <br><br>
 
-🪞 **给自己打分**——数字什么样就公开什么样,每天更新 &nbsp;·&nbsp; 💸 **真金白银**,不是模拟盘 &nbsp;·&nbsp; 🗣️ 每天早上一场 **AI 牛熊辩论** &nbsp;·&nbsp; 🛡️ **成绩由 Python 另算**——模型评不了自己 &nbsp;·&nbsp; 🌏 **双语** 港股 + 美股 &nbsp;·&nbsp; 🌐 **实时公开仪表盘**
-
-<sub>如果"一个敢承认自己错的 AI"对你胃口 —— ⭐ 一下。</sub>
+**多 Agent 股票分析** &nbsp;·&nbsp; **代码风控硬闸** &nbsp;·&nbsp; **公开自评战绩** &nbsp;·&nbsp; **真实港股 + 美股组合**
 
 </div>
 
 ---
 
-> **一句话** —— 一群 LLM 跑着一个真实的港股 + 美股组合,每天早上牛熊辩论,每晚回测自己的判断。它对自己的判决**每个交易日更新、公开可查,难看也不改**——主动建议至今没显出优势。诚实本身就是卖点。
+> **一句话** —— 多个 LLM Agent 分析一个真实港股 + 美股组合；Python 执行风控、结算每条判断并发布未经人工修改的战绩。主动建议至今没显出优势。
 
 ## 🎰 60 秒看懂
 
-我把一个真实的券商组合 —— 一条港股腿、一条美股腿,真金白银 —— 交给一个 LLM,然后在它周围搭了台小机器。
+clawock 是一套接入真实券商组合的自主多 Agent LLM 系统，港股与美股分账运行。
 
-每个交易日,它自己:
+每个交易日，系统会：
 
-- 🌅 跑 **10 条市场自动化任务线**(简报 + 港美报告 + 拆分后的盘中监控)，其中高频任务每 30 分钟触发,
+- 🌅 定时运行简报、港美市场报告和盘中监控，
 - 📥 抓最新价格、汇率、波动率、财报日历、宏观(VIX/DXY/10Y)、Reddit + 新闻舆情,甚至 **Trump/Musk 的市场异动**,
-- 🧠 把洗干净的数据交给当前可用的最佳 LLM —— 扮演一个嘴很直的人格 **Rick** —— 写出观点,
-- 📲 把简报推到我的**微信**,并
-- 🌐 刷新一个**公开仪表盘**(你现在就能打开)。
-
-这就是噱头所在:*一整张永不打烊、和我一起盯盘的 AI 交易台。*
-
-但大多数"AI 炒股"演示会跳过下面这一段 👇
+- 🧠 将标准化上下文交给多 Agent 分析与辩论流程，
+- 🛡️ 由 Python 执行风控、schema 和账本校验，
+- 📲 将简报发送到**微信**，
+- 🌐 更新**公开仪表盘**。
 
 ## 🪞 它按策略 episode 打分，不拿每日重复 call 凑样本
 
@@ -85,9 +78,9 @@ LLM 只提交决策，不能写入或修改评估结果；ID、触发、分组�
 
 ---
 
-## 🎯 它到底怎么决策
+## 🎯 决策规则
 
-人格背后是一套**固定的决策框架,不是凭感觉**。每个判断在被允许"算数"之前,都要经过归因、闸门、归桶三道。
+每条判断都使用相同的归因、风控闸与策略分桶规则。
 
 **1. 归因优先 —— 而且 edge 动态计算。** 每条决策标注唯一主导源；当前样本数、平均 benefit、胜率和日期聚类区间全部来自 `decision_metrics.by_driver`，README 不再写死某个时点的命中率。
 
@@ -105,19 +98,19 @@ LLM 只提交决策，不能写入或修改评估结果；ID、触发、分组�
 
 ---
 
-## 🗣️ 每天早上，这张桌子自己跟自己吵
+## 🗣️ 多 Agent 决策台
 
-08:00 的深度简报不是单个模型的独白 —— 是一场结构化的**多智能体辩论**,借鉴 [TradingAgents](https://github.com/TauricResearch/TradingAgents) 并针对双腿组合改造:
+08:00 深度简报使用结构化**多智能体辩论**，借鉴 [TradingAgents](https://github.com/TauricResearch/TradingAgents)，并针对港股与美股分账组合调整：
 
-- **Tier 1 —— 4 个分析师视角。** 基本面 / 技术面 / 情绪面 / 板块轮动,各自读*同一份* `context.json`,合并成一张大表。只准用数字,不准 vibes。
+- **Tier 1 —— 4 个分析师视角。** 基本面 / 技术面 / 情绪面 / 板块轮动各自读取*同一份* `context.json` 并合并；每个观点都必须引用数字上下文。
 - **Tier 2 —— Bull vs Bear。** 两个研究员组装对立的案子(持有/加仓 vs 减仓/砍仓),各自至少引 2 个具体的 Tier-1 数据点。硬规则:**至少要在 1 个仓位上真分歧** —— 一致同意 = 辩论失败,直接作废。
 - **Tier 3 —— 3 个风险声音 + 一个 Judge。** Aggressive、Conservative、Neutral 各自争自己那一方;一个 **Judge** 给它们称重、点名每个决策由哪个 strategy frame 驱动,把争论收敛成带条件的策略决策。
 
-目的不是达成共识 —— 是**逼着一个真实的空头案在任何持仓被保留之前先存在**,这样这张组合永远不会只是自己把自己说服进自己的仓位。Judge 的裁决*就是*次日被打分的 `plan.json`。
+至少一个持仓必须得到实质性的反方意见。Judge 将辩论结果写入 `plan.json`，并在下一交易日进入评分流程。
 
 ---
 
-## 📅 一天到底长什么样
+## 📅 每日运行时间表
 
 ```
 03:00  🌙  记忆「做梦」—— 把昨天的教训提升进长期笔记
@@ -129,23 +122,23 @@ LLM 只提交决策，不能写入或修改评估结果；ID、触发、分组�
 每周   🧪  归档 / 健康检查 / 周复盘 / 视觉刷新
 ```
 
-港股时间为 HKT；美股按 ET 表示，对应 HKT cron 会随纽约冬夏令时自动切换。精确生成表见 [CRON_SCHEDULES.md](CRON_SCHEDULES.md)。休市怎么办?一道**节假日 + 周末闸**会跳过运行,而不是烧 token、把一个隔夜旧价当成实时价写进去。
+港股时间为 HKT；美股按 ET 表示，对应 HKT cron 会随纽约冬夏令时自动切换。精确生成表见 [CRON_SCHEDULES.md](CRON_SCHEDULES.md)。**节假日 + 周末闸**会跳过休市时段。
 
 ---
 
-## 🏗️ 一页看懂整台机器
+## 🏗️ 系统架构
 
-不只是"一个 cron 在调脚本"。**确定性**那一半确实是——报价、汇率、投递、对账,绝不能押在模型的心情上。十个市场任务作为隔离 agent turn 调度；第十一个任务是独立于交易 harness 的记忆晋升。晨间简报再展开辩论 swarm，watchdog 与对账层监督共享状态。**确定性脚手架 + 需要判断处的 agent —— 这个切分本身就是架构:**
+Clawock 将概率性判断与确定性控制分开：Agent 分析组合并提出决策；Python 负责价格、风险上限、账本身份、结算、评分和发布。
 
-![clawock 架构 —— preflight 确定性结算触发和指标，LLM 写同股多策略 decision，postflight 分配稳定 ID/episode，ledger 回流 dashboard 与回测](assets/architecture.svg)
+![clawock 架构 —— Python 构建已对账的市场上下文，多 Agent LLM 进行辩论，代码记录决策，公开战绩表闭环评分](assets/architecture.svg)
 
-**实线路径**(调度器 → harness → 共享状态 → 闸 → 发布)是不管模型乖不乖都照跑的确定性骨架。市场 agent 只写**观点**；价格、ID、结算、投递 marker 与发布都由代码持有。**虚线边**是大家容易忘的部分:捕捉卡死 turn 的 watchdog,以及给昨天 `plan.json` 打分再喂回来的自学习闭环。这些才让它是一张 multi-agent 交易桌,而不是脚本化的报告机。
+上层路径将已对账的市场状态转成版本化决策；下层闭环使用 canonical bars 结算并评分，再将结果送回下一份简报。Watchdog、对账、投递兜底和安全发布均在模型之外运行。
 
 ---
 
-## 🛡️ 为什么它不会悄悄崩
+## 🛡️ 可靠性控制
 
-把真实自动化跑了几个月,我学到:难的不是 prompt,而是它*周围*所有会出错的东西。三个想法撑起了整套系统:
+系统完整性由三层控制：
 
 <table>
 <tr><td width="33%" valign="top">
@@ -158,7 +151,7 @@ LLM 只提交决策，不能写入或修改评估结果；ID、触发、分组�
 
 **2. 自学习闭环**
 
-今天的 `plan.json` → 明天被打分。战绩表把置信度校准反馈回下一份简报,让模型不断被自己的真实战绩打脸,而不是永远凭感觉。
+今天的 `plan.json` → 明天被打分。战绩表将置信度校准与实际结果送回下一份简报。
 
 </td><td width="33%" valign="top">
 
@@ -176,13 +169,13 @@ LLM 只提交决策，不能写入或修改评估结果；ID、触发、分组�
 - off-host 简报兜底按完整结构化 section 裁剪并发布 manifest；必需账本缺失时产出零动作，不拿残缺上下文临场发挥。
 
 <details>
-<summary><b>🔧 引擎盖下面</b> —— 模型链、写入对账、真正棘手的部分</summary>
+<summary><b>🔧 引擎盖下面</b> —— 运行时、写入协调与完整性闸门</summary>
 
 <br>
 
 **模型。** 交互式聊天当前跑 Claude；无人值守市场任务 pin **`MiniMax-M3`**。provider 凭证和 runtime fallback 策略在公开仓库之外，可独立变化而不改 harness。远端 LLM workflow 通过 Anthropic Messages 直调 MiniMax M3，并在可选 Xiaomi key 仍有效时退到 MiMo。仓库不存任何 provider key。
 
-**写入对账(唯一真正难的地方)。** dashboard 构建一次产出三份 100% 派生文件：`dashboard.json`、`decision_audit.json`、`shadow_portfolio.json`；与此同时 cron 守护进程、远端 workflow、系统 crontab publisher、临时 session 都会动 `master`。几个月的竞态事故最后收敛成一条更准确的规则：**隔离 scan sidecar 写者，并串行化同一 host 上的 dashboard builder。**
+**写入对账。** dashboard 构建一次产出三份派生文件：`dashboard.json`、`decision_audit.json`、`shadow_portfolio.json`；cron 守护进程、远端 workflow、系统 crontab publisher、临时 session 都可能更新 `master`。所有权规则是：**隔离 scan sidecar 写者，并串行化同一 host 上的 dashboard builder。**
 
 - **前端直接读 scan 子文件。** `macro / sentiment / influencer_feed / us_news_digest / em_news` 不再被嵌进 `dashboard.json`,`index.html` 加载时各自 fetch。于是一个 GitHub Action 永远只提交它*自己*那个互不相交的子文件 —— 这些写者不可能冲突,而且一次 scan 的 commit 一落地就立刻上页面,无需任何重建。(GH Actions 之间仍靠 `concurrency: group: data-write` 串行。)
 - **三份 dashboard 构建产物共用一份 ownership 契约和同一把 host 锁。** 本地 harness postflight 和 flock 守护的 `publish_dashboard.sh` crontab 共用 host 上的 `/tmp/dashboard_publish.lock`，因此这些 host 内重建不会交错。所有 builder 都调用同一个语义 diff helper：纯构建时间变化会还原，任一生成文件出现真实变化就一起进入精确 staging pathspec。off-host `brief-fallback` 也复用同一 helper，但同名锁只存在于 GitHub runner 本地，无法与 host 上的锁互斥。
@@ -196,7 +189,7 @@ LLM 只提交决策，不能写入或修改评估结果；ID、触发、分组�
 
 ## 📐 代码强制的「铁律」
 
-`postflight` 不允许模型违反的约束。量化的读者一看就懂每条为什么存在:
+以下约束由 `postflight` 强制执行：
 
 - **🪙 FX —— HKD 和 USD 绝不直接相加。** 总额永远以两种口径展示,并盖上汇率 + 时间戳(`USDHKD = 7.83,来源 Frankfurter,<ts>`)。两种货币裸加是个毫无意义的数。
 - **🔢 手填值 fat-finger 闸。** 少数手敲的值(现金余额、黄金定投对账)带笔误检测:现金较上一快照跳变 ≥5×、或黄金隐含均价偏离 NAV,会在静默污染总资产前被标出来。
@@ -212,14 +205,14 @@ LLM 只提交决策，不能写入或修改评估结果；ID、触发、分组�
 
 **公开数据** 腾讯 · stooq · yfinance · Frankfurter · SEC EDGAR · Finnhub · Nasdaq · 东财 · Polygon · Alpha Vantage · Reddit JSON · Google News RSS · Trump Truth Social feed
 
-<sub>消息层刻意**双语**:Finnhub + Google News(英文/美股)*和* 东财公司新闻 + 7×24 快讯(中文/港股)——半个组合在香港,港股催化常在中文源先出。**信息广度是唯一刻意做宽的轴**(LLM 最擅长信息收集),与刻意收窄的决策层分开。</sub>
+<sub>消息层为**双语**：Finnhub + Google News 覆盖美股，东财公司新闻 + 7×24 快讯覆盖港股。信息收集保持广度，决策层保持约束。</sub>
 
 <details>
 <summary><b>📊 数据工具包 — 8 层 26 端点，含每源本机可达性</b></summary>
 
 <br>
 
-每个 fetcher **无 key 优先**（能用公开端点绝不要 key；唯一需 key 的 Finnhub 有免 key fallback）+ **多源降级**（主源挂了自动落下一个；抓空保留旧值不整片覆盖）。**可达** 列是本机服务器 IP 实测，不是文档宣称：✅ 稳定 · 🟡 flaky/限流 · 🔴 本机被封（保留代码，换 IP 可用）。
+Fetcher 优先使用有文档的公开端点，并在可用时采用**多源降级**；抓空会保留旧值，不整片覆盖。各数据源的条款和访问要求仍然适用。**可达**列来自服务器 IP 实测：✅ 稳定 · 🟡 flaky/限流 · 🔴 本机不可用。
 
 | 层 | 端点 | 主数据源 |
 |---|:---:|---|
@@ -241,7 +234,7 @@ LLM 只提交决策，不能写入或修改评估结果；ID、触发、分组�
 - **7 · 汇率/校验** — `fetch_fx` USDHKD 3路fallback ✅ · `preflight_integrity` 钱守恒硬闸(TCV/PNL/FX/cash) ✅
 - **8 · 回测/自省** — `decision_v2` episode 回测 · `backtest_hstech_regime` · `backtest_us_leverage` · `backtest_combined_regime` · `quant_signal_review` + `t0_setup_review` ✅
 
-**防封** — 所有现役东财调用统一走 `_em_http.em_get()`：进程内串行(≥1s + 随机抖动)、单 `Session` 复用、3 次重试后优雅 `None`。完整逐文件目录见 [`scripts/data/README.md`](scripts/data/README.md)。
+**请求节流** — 所有现役东财调用统一走 `_em_http.em_get()`：进程内串行（≥1s + 抖动）、单 `Session` 复用、有限重试后返回 `None`。运行抓取器或再分发内容前，请阅读[第三方数据与服务条款](THIRD_PARTY_DATA.md)。完整逐文件目录见 [`scripts/data/README.md`](scripts/data/README.md)。
 
 </details>
 
@@ -278,17 +271,17 @@ clawock/
 
 ## ⚠️ 免责声明
 
-本仓库包含**真实、在场的交易持仓** —— 这正是分享它的意义所在,也正是你该对里面一切持保留态度的原因。它是一份个人记录、一个可移植的工作区。它**不是投资建议**、不是推荐、**更不是你该照抄的东西** —— 上面那张实时战绩表不会为了好看被改,而主动判断至今没显出优势。每个数字都是时点值,你读到时可能已经过期。`Rick` 生来就爱下断言;那不代表他是对的。
+本仓库包含**真实交易持仓**。它是一份个人记录和可移植工作区，不是投资建议、推荐或自动跟单系统。公开战绩未经人工修改，主动判断至今没显出优势；所有数字都可能在你阅读时已经过期。
 
-## 📄 许可
+## 📄 许可与第三方数据
 
-个人使用仓库。不授予任何衍生交易系统、自动跟单或商业用途的许可。其中的*模式*(harness 结构、fallback 链设计、HHI 公式、原子 IO、自我打分闭环)若独立复用,可在任意兼容的开源许可下改编。
+原创代码采用 [MIT License](LICENSE)。改编的第三方代码继续保留原许可证与署名，见 [NOTICE](NOTICE) 和 [`THIRD_PARTY_LICENSES/`](THIRD_PARTY_LICENSES/)。第三方行情、新闻、社交帖子、申报文件、商标与 API 访问权不随 MIT 再授权；详见[第三方数据与服务](THIRD_PARTY_DATA.md)。本项目不是自动跟单服务。
 
 ---
 
 <div align="center">
 
-### ⭐ 如果"一个敢承认自己错的 AI"对你胃口,点个 star。
+### ⭐ 关注这场实时实验
 
 [**🎯 实时仪表盘**](https://kcnyu.github.io/clawock/) &nbsp;·&nbsp; [**📅 每日简报**](https://kcnyu.github.io/clawock/briefs.html) &nbsp;·&nbsp; [**English**](README.md)
 

@@ -29,7 +29,7 @@ UA = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36'
 TIMEOUT = 12
 
 sys.path.insert(0, str(WS / 'scripts' / 'data'))
-from _em_http import em_get  # noqa: E402  统一防封出口(串行+抖动+session)
+from _em_http import em_get  # noqa: E402  统一请求节流出口
 try:
     from safe_io import safe_write_json
 except Exception:

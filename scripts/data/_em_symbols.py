@@ -3,7 +3,8 @@
 _em_symbols.py - 东财 (Eastmoney) ticker/代码 → secid / SECUCODE 解析
 
 Shared helper for fetch_fundamentals_em.py + fetch_fundflow_em.py.
-Adapted from global-stock-data (https://github.com/simonlin1212/global-stock-data, Apache-2.0).
+Adapted and modified from global-stock-data
+(https://github.com/simonlin1212/global-stock-data, Apache-2.0). See NOTICE.
 
 Resolution priority:
   1. 显式后缀直接解析: "AAPL.O" / "BABA.N" / "00700.HK"
@@ -24,7 +25,7 @@ import sys
 from typing import Dict, List, Optional
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from _em_http import em_get  # noqa: E402  统一防封出口(串行+抖动+session)
+from _em_http import em_get  # noqa: E402  统一请求节流出口
 
 SEARCH_URL = "https://searchapi.eastmoney.com/api/suggest/get"
 # 公开 token(满网皆是,非密钥); 若失效会自动回退到启发式

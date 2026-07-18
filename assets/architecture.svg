@@ -1,177 +1,151 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="900" height="1236" viewBox="0 0 900 1236" role="img" aria-labelledby="title desc">
-  <title id="title">clawock decision operating system</title>
-  <desc id="desc">A deterministic data and audit plane surrounds an LLM decision mesh, with strategy episodes, canonical-bar settlement, watchdogs, and delivery gates.</desc>
-  <!--
-    Authored at 900px wide, NOT 1440. GitHub renders a README image into an ~830px
-    column, so a 1440px canvas is downscaled to 0.58x and every 11px label lands at
-    ~6px — legible in an editor, mush in the README. At 900 the scale is ~0.92 and
-    labels stay ~11px. Width is the scarce axis here; height is free, because the
-    page scrolls. That is why this is three columns stacked, not five across.
-  -->
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="780" viewBox="0 0 900 780" role="img" aria-labelledby="title desc">
+  <title id="title">clawock system architecture</title>
+  <desc id="desc">A three-stage system: deterministic Python builds market context, a multi-agent LLM debates stock decisions, and deterministic code validates and publishes the record. Canonical bars and a Python grader close the public scorecard loop.</desc>
   <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#f8fafc"/><stop offset=".55" stop-color="#f3f6f9"/><stop offset="1" stop-color="#edf5fa"/>
+    <linearGradient id="page" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#fbfaf6"/>
+      <stop offset=".6" stop-color="#f1f5f1"/>
+      <stop offset="1" stop-color="#e8f0eb"/>
     </linearGradient>
-    <radialGradient id="haloA"><stop stop-color="#087dd1" stop-opacity=".09"/><stop offset="1" stop-color="#087dd1" stop-opacity="0"/></radialGradient>
-    <radialGradient id="haloB"><stop stop-color="#8b5cf6" stop-opacity=".07"/><stop offset="1" stop-color="#8b5cf6" stop-opacity="0"/></radialGradient>
-    <pattern id="grid" width="32" height="32" patternUnits="userSpaceOnUse"><path d="M32 0H0V32" fill="none" stroke="#94a3b8" stroke-width=".6" opacity=".16"/></pattern>
-    <linearGradient id="bus" x1="0" y1="0" x2="1" y2="0"><stop stop-color="#087dd1"/><stop offset=".5" stop-color="#8b5cf6"/><stop offset="1" stop-color="#138b66"/></linearGradient>
-    <filter id="glow" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation=".7" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-    <marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0L8 4L0 8Z" fill="#64748b"/></marker>
+    <linearGradient id="agent" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#174f4c"/>
+      <stop offset="1" stop-color="#257568"/>
+    </linearGradient>
+    <linearGradient id="warm" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#d79749"/>
+      <stop offset="1" stop-color="#bd6538"/>
+    </linearGradient>
+    <pattern id="grid" width="36" height="36" patternUnits="userSpaceOnUse">
+      <path d="M36 0H0V36" fill="none" stroke="#42655f" stroke-width=".6" opacity=".10"/>
+    </pattern>
+    <marker id="arrow" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto">
+      <path d="M0 0L9 4.5L0 9Z" fill="#627873"/>
+    </marker>
+    <marker id="arrowGreen" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto">
+      <path d="M0 0L9 4.5L0 9Z" fill="#247064"/>
+    </marker>
     <style>
       .sans{font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif}
       .mono{font-family:"SFMono-Regular",Consolas,"Liberation Mono",monospace}
-      /* Sized for the 0.92x the README will apply — small is 12, not 11. */
-      .stage{font:700 12px "SFMono-Regular",Consolas,monospace;letter-spacing:1.5px}
-      .title{font:700 18px Inter,-apple-system,"Segoe UI",Arial,sans-serif}
-      .body{font:500 12.5px Inter,-apple-system,"Segoe UI",Arial,sans-serif}
-      .small{font:500 12px "SFMono-Regular",Consolas,monospace}
-      .dim{fill:#64748b}.white{fill:#101821}
-      .card{fill:#ffffff;stroke:#d8e0e8;stroke-width:1.2}
-      .chip{fill:#f8fafc;stroke:#d8e0e8;stroke-width:1}
-      .wire{fill:none;stroke:#788798;stroke-width:1.6;marker-end:url(#arrow)}
+      .ink{fill:#132325}.muted{fill:#657b78}.green{fill:#176f66}.amber{fill:#bd6538}
+      .eyebrow{font:800 11px "SFMono-Regular",Consolas,monospace;letter-spacing:1.45px}
+      .heading{font:800 23px Inter,-apple-system,"Segoe UI",Arial,sans-serif;letter-spacing:-.4px}
+      .body{font:500 13px Inter,-apple-system,"Segoe UI",Arial,sans-serif}
+      .item{font:700 13px Inter,-apple-system,"Segoe UI",Arial,sans-serif}
+      .micro{font:600 11px "SFMono-Regular",Consolas,monospace}
+      .card{fill:#fff;stroke:#d3ded8;stroke-width:1.2}
+      .wire{fill:none;stroke:#627873;stroke-width:1.7;marker-end:url(#arrow)}
     </style>
   </defs>
 
-  <rect width="900" height="1236" fill="url(#bg)"/>
-  <rect width="900" height="1236" fill="url(#grid)"/>
-  <ellipse cx="150" cy="70" rx="360" ry="220" fill="url(#haloA)"/>
-  <ellipse cx="500" cy="430" rx="420" ry="300" fill="url(#haloB)"/>
+  <rect width="900" height="780" fill="url(#page)"/>
+  <rect width="900" height="780" fill="url(#grid)"/>
+  <path d="M710-40C825 28 886 112 944 242V-40Z" fill="#176f66" opacity=".10"/>
+  <circle cx="838" cy="82" r="126" fill="#d79749" opacity=".08"/>
 
-  <!-- header -->
   <g class="sans">
-    <text x="30" y="52" font-size="27" font-weight="800" fill="#101821">claw<tspan fill="#087dd1">ock</tspan></text>
-    <text x="30" y="76" class="mono" font-size="12" fill="#64748b" letter-spacing="1.3">DECISION OPERATING SYSTEM · HK + US</text>
-    <g transform="translate(452 34)"><rect width="126" height="32" rx="16" fill="#eaf5ff" stroke="#8fc5ea"/><circle cx="17" cy="16" r="4" fill="#087dd1" filter="url(#glow)"/><text x="29" y="20" class="small" fill="#0567b1">DATA LIVE</text></g>
-    <g transform="translate(588 34)"><rect width="146" height="32" rx="16" fill="#f4f0ff" stroke="#c9bdf4"/><circle cx="17" cy="16" r="4" fill="#8b5cf6" filter="url(#glow)"/><text x="29" y="20" class="small" fill="#6941c6">LLM SANDBOXED</text></g>
-    <g transform="translate(744 34)"><rect width="126" height="32" rx="16" fill="#e9f8f2" stroke="#9ed8c4"/><circle cx="17" cy="16" r="4" fill="#138b66" filter="url(#glow)"/><text x="29" y="20" class="small" fill="#0d6b4e">AUDIT ON</text></g>
+    <circle cx="39" cy="42" r="7" fill="#28b978"/>
+    <text x="55" y="51" font-size="25" font-weight="800" class="ink">clawock</text>
+    <text x="870" y="47" text-anchor="end" class="eyebrow green">SYSTEM MAP · HK + US STOCKS</text>
+
+    <text x="30" y="104" class="heading ink">Agentic judgment. Deterministic control.</text>
+    <text x="30" y="128" class="body muted">Agents form opinions; code owns data, risk, scoring and publication.</text>
   </g>
 
-  <text x="30" y="122" class="stage" fill="#64748b">01 · LIVE DECISION PIPELINE</text>
-  <path d="M30 136H870" stroke="#d8e0e8"/>
-
-  <!-- row 1: orchestrator → preflight → llm mesh -->
-  <path d="M294 300H314M582 300H602" class="wire"/>
+  <!-- main runtime -->
+  <path d="M290 302H316" class="wire"/>
+  <path d="M584 302H610" class="wire"/>
 
   <g transform="translate(30 158)">
-    <rect class="card" width="264" height="286" rx="16"/>
-    <rect width="264" height="5" rx="3" fill="#64748b"/>
-    <text x="18" y="32" class="stage" fill="#94a3b8">ORCHESTRATOR</text>
-    <text x="18" y="60" class="title white">Schedule + inputs</text>
-    <g transform="translate(16 78)"><rect class="chip" width="232" height="44" rx="9"/><text x="14" y="19" class="small white">openclaw cron</text><text x="14" y="35" class="small dim">tracked HKT jobs</text></g>
-    <g transform="translate(16 132)"><rect class="chip" width="232" height="58" rx="9"/><text x="14" y="19" class="small white">market fabric</text><text x="14" y="36" class="small dim">prices · FX · macro</text><text x="14" y="51" class="small dim">signals · news</text></g>
-    <g transform="translate(16 200)"><rect class="chip" width="232" height="72" rx="9"/><text x="14" y="19" class="small white">source of truth</text><text x="14" y="36" class="small dim">portfolio.json · snapshots</text><text x="14" y="51" class="small dim">decisions.jsonl</text><text x="14" y="66" class="small dim">bars/ (canonical OHLC)</text></g>
+    <rect x="7" y="9" width="260" height="292" rx="18" fill="#173d39" opacity=".08"/>
+    <rect class="card" width="260" height="292" rx="18"/>
+    <rect width="260" height="5" rx="3" fill="#176f66"/>
+    <text x="20" y="36" class="eyebrow green">DETERMINISTIC · PYTHON</text>
+    <text x="20" y="72" class="heading ink">Build the facts</text>
+    <text x="20" y="96" class="body muted">Market state enters clean and reconciled.</text>
+    <path d="M20 116H240" stroke="#e1e8e3"/>
+    <circle cx="24" cy="148" r="4" fill="#176f66"/>
+    <text x="38" y="152" class="item ink">Refresh + reconcile</text>
+    <text x="38" y="172" class="micro muted">prices · FX · positions</text>
+    <circle cx="24" cy="207" r="4" fill="#176f66"/>
+    <text x="38" y="211" class="item ink">Derive risk state</text>
+    <text x="38" y="231" class="micro muted">exposure · regime · hard caps</text>
+    <circle cx="24" cy="266" r="4" fill="#176f66"/>
+    <text x="38" y="270" class="item ink">Settle prior calls</text>
+    <text x="38" y="290" class="micro muted">canonical bars · calendar</text>
   </g>
 
-  <g transform="translate(318 158)">
-    <rect class="card" width="264" height="286" rx="16"/>
-    <rect width="264" height="5" rx="3" fill="#087dd1" filter="url(#glow)"/>
-    <text x="18" y="32" class="stage" fill="#0567b1">DETERMINISTIC · PYTHON</text>
-    <text x="18" y="60" class="title white">Preflight engine</text>
-    <text x="18" y="80" class="body dim">Facts enter; opinions do not.</text>
-    <g transform="translate(16 96)"><rect class="chip" width="232" height="44" rx="9"/><text x="14" y="19" class="small white">refresh + reconcile</text><text x="14" y="35" class="small dim">prices · FX · positions</text></g>
-    <g transform="translate(16 150)"><rect class="chip" width="232" height="58" rx="9"/><text x="14" y="19" class="small white">derive risk state</text><text x="14" y="36" class="small dim">HHI · beta · regime</text><text x="14" y="51" class="small dim">hard caps · integrity</text></g>
-    <g transform="translate(16 218)"><rect class="chip" width="232" height="54" rx="9"/><text x="14" y="19" class="small white">settle v2 episodes</text><text x="14" y="36" class="small dim">canonical bars · trading</text><text x="14" y="51" class="small dim">calendar · gap-aware fill</text></g>
+  <g transform="translate(320 158)">
+    <rect x="7" y="9" width="260" height="292" rx="18" fill="#132325" opacity=".15"/>
+    <rect width="260" height="292" rx="18" fill="url(#agent)" stroke="#113f3b" stroke-width="1.2"/>
+    <rect width="260" height="5" rx="3" fill="url(#warm)"/>
+    <text x="20" y="36" class="eyebrow" fill="#b7e1d7">MULTI-AGENT LLM</text>
+    <text x="20" y="72" class="heading" fill="#fff">Debate the trade</text>
+    <text x="20" y="96" class="body" fill="#c5dbd6">Judgment only. No money math.</text>
+    <path d="M20 116H240" stroke="#fff" opacity=".18"/>
+    <circle cx="24" cy="148" r="4" fill="#f0ae61"/>
+    <text x="38" y="152" class="item" fill="#fff">Four analyst lenses</text>
+    <text x="38" y="172" class="micro" fill="#b7d0ca">fund · tech · sentiment · sector</text>
+    <circle cx="24" cy="207" r="4" fill="#f0ae61"/>
+    <text x="38" y="211" class="item" fill="#fff">Bull ↔ Bear</text>
+    <text x="38" y="231" class="micro" fill="#b7d0ca">mandatory disagreement</text>
+    <circle cx="24" cy="266" r="4" fill="#f0ae61"/>
+    <text x="38" y="270" class="item" fill="#fff">Risk voices + Judge</text>
+    <text x="38" y="290" class="micro" fill="#f0c28e">→ plan.json / decisions[]</text>
   </g>
 
-  <g transform="translate(606 158)">
-    <rect class="card" width="264" height="286" rx="16" stroke="#6048a8"/>
-    <rect width="264" height="5" rx="3" fill="#8b5cf6" filter="url(#glow)"/>
-    <text x="18" y="32" class="stage" fill="#6941c6">LLM DECISION MESH</text>
-    <text x="18" y="60" class="title white">Debate, then decide</text>
-    <text x="18" y="80" class="body dim">Judgment only · no money math</text>
-    <g transform="translate(16 96)"><rect class="chip" width="232" height="46" rx="10"/><circle cx="16" cy="17" r="4" fill="#087dd1"/><text x="29" y="21" class="small white">TIER 1 · 4 lenses</text><text x="14" y="38" class="small dim">fund · tech · sent · sector</text></g>
-    <g transform="translate(16 152)"><rect class="chip" width="232" height="46" rx="10"/><circle cx="16" cy="17" r="4" fill="#f472b6"/><text x="29" y="21" class="small white">TIER 2 · BULL ↔ BEAR</text><text x="14" y="38" class="small dim">mandatory disagreement</text></g>
-    <g transform="translate(16 208)"><rect class="chip" width="232" height="64" rx="10"/><circle cx="16" cy="17" r="4" fill="#8b5cf6"/><text x="29" y="21" class="small white">TIER 3 · RISK + JUDGE</text><text x="14" y="38" class="small dim">aggr · neutral · conserv</text><text x="14" y="54" class="small" fill="#6941c6">→ multi-strategy decisions[]</text></g>
+  <g transform="translate(610 158)">
+    <rect x="7" y="9" width="260" height="292" rx="18" fill="#6e3b24" opacity=".08"/>
+    <rect class="card" width="260" height="292" rx="18"/>
+    <rect width="260" height="5" rx="3" fill="url(#warm)"/>
+    <text x="20" y="36" class="eyebrow amber">DETERMINISTIC · CODE GATE</text>
+    <text x="20" y="72" class="heading ink">Record the decision</text>
+    <text x="20" y="96" class="body muted">The model cannot edit the evidence.</text>
+    <path d="M20 116H240" stroke="#e1e8e3"/>
+    <circle cx="24" cy="148" r="4" fill="#c97835"/>
+    <text x="38" y="152" class="item ink">Validate the contract</text>
+    <text x="38" y="172" class="micro muted">conditions · size · risk rules</text>
+    <circle cx="24" cy="207" r="4" fill="#c97835"/>
+    <text x="38" y="211" class="item ink">Assign identity</text>
+    <text x="38" y="231" class="micro muted">stable ID · strategy · episode</text>
+    <circle cx="24" cy="266" r="4" fill="#c97835"/>
+    <text x="38" y="270" class="item ink">Publish the record</text>
+    <text x="38" y="290" class="micro muted">brief · dashboard · ledger</text>
   </g>
 
-  <!-- row 2: the mesh's decisions[] flow down into the gate, then out to publish -->
-  <path d="M738 450V464H234V482" class="wire"/>
-  <path d="M438 588H458" class="wire"/>
-
-  <g transform="translate(30 486)">
-    <rect class="card" width="408" height="200" rx="16"/>
-    <rect width="408" height="5" rx="3" fill="#138b66" filter="url(#glow)"/>
-    <text x="18" y="32" class="stage" fill="#0d6b4e">DETERMINISTIC · GATE</text>
-    <text x="18" y="60" class="title white">Postflight commit</text>
-    <text x="18" y="80" class="body dim">The model cannot grade itself.</text>
-    <g transform="translate(16 96)"><rect class="chip" width="376" height="42" rx="9"/><text x="14" y="18" class="small white">validate contract</text><text x="14" y="33" class="small dim">strategy · condition · size · shares required</text></g>
-    <g transform="translate(16 146)"><rect class="chip" width="376" height="40" rx="9"/><text x="14" y="18" class="small white">assign identity</text><text x="14" y="33" class="small dim">stable ID · episode · upsert · override ledger</text></g>
+  <!-- evidence loop -->
+  <g class="sans">
+    <text x="30" y="500" class="eyebrow green">CLOSED-LOOP EVIDENCE</text>
+    <text x="870" y="500" text-anchor="end" class="micro muted">settled calls return to the next brief</text>
   </g>
+  <rect x="30" y="520" width="840" height="116" rx="18" fill="#fff" stroke="#d3ded8" stroke-width="1.2"/>
+  <path d="M266 578H318M582 578H634" class="wire"/>
 
-  <g transform="translate(462 486)">
-    <rect class="card" width="408" height="200" rx="16"/>
-    <rect width="408" height="5" rx="3" fill="#e3a640" filter="url(#glow)"/>
-    <text x="18" y="32" class="stage" fill="#a66f08">PUBLISH + OBSERVE</text>
-    <text x="18" y="60" class="title white">Human-facing outputs</text>
-    <text x="18" y="80" class="body dim">Atomic commit · safe push · rebuild.</text>
-    <g transform="translate(16 96)"><rect class="chip" width="376" height="42" rx="9"/><text x="14" y="18" class="small white">WeChat brief · Telegram fallback</text><text x="14" y="33" class="small dim">postflight is the only delivery path</text></g>
-    <g transform="translate(16 146)"><rect class="chip" width="376" height="40" rx="9"/><text x="14" y="18" class="small white">public dashboard · versioned evidence</text><text x="14" y="33" class="small dim">metrics · win rate · coverage · deltas</text></g>
-  </g>
+  <g class="sans">
+    <circle cx="66" cy="565" r="17" fill="#e3f0eb"/>
+    <path d="M59 565h14M66 558v14" stroke="#176f66" stroke-width="1.8"/>
+    <text x="94" y="563" class="eyebrow green">CANONICAL BARS</text>
+    <text x="94" y="586" class="body muted">session-dated market truth</text>
 
-  <text x="30" y="740" class="stage" fill="#64748b">02 · VERSIONED STATE + CLOSED-LOOP AUDIT</text>
-  <path d="M30 754H870" stroke="#d8e0e8"/>
-  <path d="M162 900V920M450 900V920M738 900V920" stroke="#64748b" stroke-width="1.4" opacity=".5"/>
+    <circle cx="356" cy="565" r="17" fill="#f8eadb"/>
+    <path d="M349 565h14M356 558v14" stroke="#bd6538" stroke-width="1.8"/>
+    <text x="384" y="563" class="eyebrow amber">PYTHON GRADER</text>
+    <text x="384" y="586" class="body muted">episodes · timing · calibration</text>
 
-  <g transform="translate(30 776)">
-    <rect class="card" width="264" height="124" rx="14"/>
-    <text x="16" y="26" class="stage" fill="#0567b1">MARKET STATE</text>
-    <text x="16" y="52" class="small white">portfolio + snapshots</text>
-    <text x="16" y="72" class="small white">bars/ · unadjusted OHLC</text>
-    <text x="16" y="92" class="small dim">session-dated · immutable</text>
-    <text x="16" y="110" class="small dim">atomic · reconciled</text>
-    <circle cx="240" cy="26" r="4" fill="#087dd1" filter="url(#glow)"/>
+    <circle cx="672" cy="565" r="17" fill="#e3f0eb"/>
+    <path d="M665 565h14M672 558v14" stroke="#176f66" stroke-width="1.8"/>
+    <text x="700" y="563" class="eyebrow green">PUBLIC SCORECARD</text>
+    <text x="700" y="586" class="body muted">unedited outcomes + coverage</text>
   </g>
 
-  <g transform="translate(318 776)">
-    <rect class="card" width="264" height="124" rx="14"/>
-    <text x="16" y="26" class="stage" fill="#6941c6">DECISION V2 LEDGER</text>
-    <text x="16" y="52" class="small white">v1 migrated + native v2</text>
-    <text x="16" y="72" class="small dim">stable ID · strategy episode</text>
-    <text x="16" y="92" class="small dim">execution ≠ advice quality</text>
-    <text x="16" y="110" class="small dim">ungradeable rows kept, not hidden</text>
-    <circle cx="240" cy="26" r="4" fill="#8b5cf6" filter="url(#glow)"/>
-  </g>
+  <rect x="395" y="650" width="110" height="26" rx="13" fill="#e3f0eb"/>
+  <text x="450" y="667" text-anchor="middle" class="micro green">↺ NEXT BRIEF</text>
 
-  <g transform="translate(606 776)">
-    <rect class="card" width="264" height="124" rx="14"/>
-    <text x="16" y="26" class="stage" fill="#0d6b4e">DASHBOARD STATE</text>
-    <text x="16" y="52" class="small white">metrics + curves + deltas</text>
-    <text x="16" y="72" class="small dim">static · public · reproducible</text>
-    <text x="16" y="92" class="small dim">single publisher</text>
-    <text x="16" y="110" class="small dim">no money view (see README)</text>
-    <circle cx="240" cy="26" r="4" fill="#138b66" filter="url(#glow)"/>
-  </g>
-
-  <g transform="translate(30 920)">
-    <rect width="840" height="106" rx="16" fill="#f4f0ff" stroke="#b9a8ed" stroke-width="1.4"/>
-    <text x="18" y="28" class="stage" fill="#6941c6">PYTHON BACKTESTER / AUDITOR</text>
-    <text x="18" y="54" class="body white">condition judged fired? → episode mean → next-session close</text>
-    <text x="18" y="76" class="small dim">canonical bars · per-leg trading calendar · gap-aware fill · date-cluster CI · confidence vs baseline</text>
-    <text x="18" y="94" class="small" fill="#0d6b4e">evidence feeds the next brief; the LLM cannot rewrite outcomes</text>
-  </g>
-
-  <text x="30" y="1076" class="stage" fill="#64748b">03 · DEFENCE IN DEPTH</text>
-  <path d="M30 1090H870" stroke="#d8e0e8"/>
-
-  <g transform="translate(30 1112)">
-    <rect class="card" width="408" height="46" rx="12"/>
-    <text x="16" y="20" class="stage" fill="#94a3b8">01 / PRIMARY</text>
-    <text x="16" y="37" class="small dim">openclaw cron · tracked jobs</text>
-  </g>
-  <g transform="translate(462 1112)">
-    <rect class="card" width="408" height="46" rx="12"/>
-    <text x="16" y="20" class="stage" fill="#94a3b8">02 / BACKSTOP</text>
-    <text x="16" y="37" class="small dim">GitHub Actions · reproducible refresh</text>
-  </g>
-  <g transform="translate(30 1170)">
-    <rect class="card" width="408" height="46" rx="12"/>
-    <text x="16" y="20" class="stage" fill="#94a3b8">03 / SUPERVISOR</text>
-    <text x="16" y="37" class="small dim">watchdog · deterministic Telegram fallback</text>
-  </g>
-  <g transform="translate(462 1170)">
-    <rect class="card" width="408" height="46" rx="12"/>
-    <text x="16" y="20" class="stage" fill="#94a3b8">04 / INTEGRITY</text>
-    <text x="16" y="37" class="small dim">schema · ledger · test suite · health sentinels</text>
-  </g>
+  <!-- controls outside the model -->
+  <rect x="30" y="704" width="840" height="48" rx="14" fill="#173f3b"/>
+  <circle cx="52" cy="728" r="4" fill="#f0ae61"/>
+  <text x="68" y="732" class="eyebrow" fill="#f5f1e9">WATCHDOGS</text>
+  <text x="228" y="732" class="eyebrow" fill="#a9c9c2">RECONCILIATION</text>
+  <text x="438" y="732" class="eyebrow" fill="#a9c9c2">DELIVERY FALLBACK</text>
+  <text x="690" y="732" class="eyebrow" fill="#a9c9c2">SAFE PUBLISH</text>
 </svg>
