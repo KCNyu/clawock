@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" role="img" aria-labelledby="title desc">
+  <title id="title">clawock mark</title>
+  <desc id="desc">An open C-shaped record loop with balanced ten-ten clock hands.</desc>
+  <defs>
+    <linearGradient id="brand" x1="10" y1="54" x2="53" y2="10" gradientUnits="userSpaceOnUse">
+      <stop class="s0" offset="0"/>
+      <stop class="s1" offset=".42"/>
+      <stop class="s2" offset=".73"/>
+      <stop class="s3" offset="1"/>
+    </linearGradient>
+  </defs>
+  <style>
+    .s0{stop-color:#090b10}.s1{stop-color:#28323c}.s2{stop-color:#1d5f96}.s3{stop-color:#6bc0f4}
+    @media (prefers-color-scheme:dark){
+      .s0{stop-color:#f7fafc}.s1{stop-color:#aebdcc}.s2{stop-color:#5eaee7}.s3{stop-color:#9bdcff}
+    }
+  </style>
+  <path d="M46.8 15.3A22.5 22.5 0 1 0 46.8 48.7" fill="none" stroke="url(#brand)" stroke-width="6.5" stroke-linecap="round"/>
+  <path d="M23.4 24.2L32 32l11.8-11.2" fill="none" stroke="url(#brand)" stroke-width="5.25" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="32" cy="32" r="2.15" fill="#eef4f8" stroke="#29485f" stroke-width="1.15"/>
+</svg>
