@@ -13,7 +13,7 @@
  *
  * Outputs:
  *   assets/shadow-backtest.png   v2 cumulative win-rate chart (all / active / 50% ref)
- *   assets/social-card.png       1280x640 ImageGen template + fresh Hero dashboard
+ *   assets/social-card.png       1280x640 dark editorial card + fresh Hero dashboard
  *   assets/dashboard.gif         manual dispatch only; built from FRAME_DIR
  *   TMP_DIR/dashboard-preview.png  focused dark Hero crop embedded into the social card
  *   .gifframes/f{0..5}.png       per-tab mobile frames → assemble_dashboard_gif.py
@@ -184,23 +184,75 @@ function legacyCardHTML(shotDataUri) {
 function compositeCardHTML(templateDataUri, shotDataUri) {
   return `<!doctype html><html><head><meta charset="utf-8"><style>
     * { box-sizing:border-box; }
-    html,body { margin:0; width:1280px; height:640px; overflow:hidden; background:#f7f9fb; }
+    html,body { margin:0; width:1280px; height:640px; overflow:hidden; background:#071018; }
     .template { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
+    .browser {
+      position:absolute; left:800px; top:52px; width:420px; height:536px;
+      overflow:hidden; border:1px solid #344555; border-radius:14px;
+      background:#09131d; box-shadow:0 28px 70px rgba(0,0,0,.38);
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Helvetica Neue",sans-serif;
+    }
+    .chrome {
+      height:45px; display:flex; align-items:center; gap:7px; padding:0 14px;
+      border-bottom:1px solid #263847; background:#0b1721;
+    }
+    .dot { width:8px; height:8px; border-radius:50%; background:#324555; }
+    .dot:first-child { background:#36a3ff; }
+    .address {
+      width:126px; height:8px; margin-left:15px; border-radius:99px;
+      background:#1d2d3b;
+    }
+    .protocol-label {
+      margin-left:auto; padding:7px 10px; color:#071018; background:#63dfce;
+      font:850 9px/1 ui-monospace,SFMono-Regular,Menlo,monospace; letter-spacing:.12em;
+    }
     .live {
-      position:absolute; left:590px; top:108px; width:620px; height:468px;
-      overflow:hidden; border:1px solid #2d3e52; border-radius:0 0 12px 12px;
-      background:#070a0f; box-shadow:0 24px 54px rgba(0,0,0,.34);
+      position:absolute; left:14px; top:59px; width:390px; height:244px;
+      overflow:hidden; border:1px solid #263847; border-radius:9px; background:#070a0f;
     }
-    .live img {
-      width:100%; height:100%; display:block; object-fit:cover; object-position:left top;
-    }
+    .live img { width:100%; height:100%; display:block; object-fit:cover; object-position:left top; }
     .live::after {
       content:""; position:absolute; inset:0; pointer-events:none;
-      box-shadow:inset 0 0 0 1px rgba(142,208,255,.06);
+      box-shadow:inset 0 0 0 1px rgba(142,208,255,.05);
+    }
+    .protocol {
+      position:absolute; left:14px; right:14px; top:317px; bottom:14px;
+      border:1px solid #263847; border-radius:9px; overflow:hidden; background:#0b1721;
+    }
+    .step {
+      height:56px; display:grid; grid-template-columns:26px 72px 1fr;
+      align-items:center; padding:0 13px; border-bottom:1px solid #20313f;
+    }
+    .step:last-of-type { border-bottom:0; }
+    .node {
+      width:18px; height:18px; border:1px solid currentColor; border-radius:50%;
+      position:relative; color:#79a7ff;
+    }
+    .node::after { content:""; position:absolute; inset:5px; border-radius:50%; background:currentColor; }
+    .gate .node { color:#f3c969; }
+    .grade .node { color:#63dfce; }
+    .verb { color:#f3f6f8; font-size:16px; font-weight:780; letter-spacing:-.2px; }
+    .desc { color:#879ba4; font-size:10px; font-weight:560; letter-spacing:.02em; }
+    .micro {
+      position:absolute; left:13px; right:13px; bottom:7px; text-align:right;
+      color:#60757e; font:650 8px/1 ui-monospace,SFMono-Regular,Menlo,monospace;
+      letter-spacing:.12em;
     }
   </style></head><body>
     <img class="template" src="${templateDataUri}" alt="">
-    <div class="live"><img src="${shotDataUri}" alt=""></div>
+    <div class="browser">
+      <div class="chrome">
+        <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+        <span class="address"></span><span class="protocol-label">HONESTY PROTOCOL</span>
+      </div>
+      <div class="live"><img src="${shotDataUri}" alt=""></div>
+      <div class="protocol">
+        <div class="step argue"><span class="node"></span><span class="verb">ARGUE</span><span class="desc">bull thesis meets bear thesis</span></div>
+        <div class="step gate"><span class="node"></span><span class="verb">GATE</span><span class="desc">risk rules decide what survives</span></div>
+        <div class="step grade"><span class="node"></span><span class="verb">GRADE</span><span class="desc">every call returns to the record</span></div>
+        <div class="micro">DEBATE / DISCIPLINE / RECEIPTS</div>
+      </div>
+    </div>
   </body></html>`;
 }
 
@@ -231,9 +283,9 @@ function compositeCardHTML(templateDataUri, shotDataUri) {
     await shadow.screenshot({ path: `${OUT_DIR}/shadow-backtest.png` });
     await desk.close();
 
-    // 2) Social card: light editorial message on the left, real dark-mode product
-    //    crop on the right. A focused 1000×760 crop keeps Book / P&L / equity /
-    //    verdict legible; shrinking an entire 1440px desktop made every detail noise.
+    // 2) Social card: keep the original all-dark editorial identity, then make the
+    //    right rail a real browser — focused live dashboard above, honesty protocol
+    //    below. Shrinking an entire desktop made both the browser and data illegible.
     const socialDesk = await browser.newContext({
       viewport: { width: 1200, height: 760 },
       deviceScaleFactor: 2,
@@ -244,7 +296,7 @@ function compositeCardHTML(templateDataUri, shotDataUri) {
     await settle(sp);
     await sp.screenshot({
       path: `${TMP_DIR}/dashboard-preview.png`,
-      clip: { x: 0, y: 0, width: 1000, height: 760 },
+      clip: { x: 0, y: 0, width: 1100, height: 620 },
     });
     await socialDesk.close();
 
