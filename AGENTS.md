@@ -72,9 +72,13 @@ documentation:
 2. Make and commit the change in that worktree, then push the task branch and open a PR.
 3. Let GitHub Actions run the full test suite. Local full-suite runs are optional; the
    required remote checks are the merge gate.
-4. Do not merge while any required check is pending or failing. Fix the branch, push,
+4. The authoring agent must not merge its own PR. The other agent reviews the diff,
+   leaves a final `AI-REVIEW: PASS` comment only after findings are resolved, and owns
+   the merge: Claude reviews/merges Codex PRs; Codex reviews/merges Claude PRs.
+5. Do not merge while any required check is pending or failing. Fix the branch, push,
    and let the PR rerun its checks.
-5. Squash-merge only after required checks pass, then remove the task worktree/branch.
+6. The reviewing agent squash-merges only after required checks pass, then removes the
+   task worktree/branch.
 
 Runtime-generated market data, snapshots, reports, ledgers, and dashboard artifacts
 remain on the existing direct-to-`master` bot path. They do not open high-frequency PRs.

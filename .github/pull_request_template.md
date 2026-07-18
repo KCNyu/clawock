@@ -10,4 +10,4 @@
 
 - [ ] Required GitHub Actions checks pass
 - [ ] No secrets, scratch files, or unrelated generated data are included
-- [ ] High-risk logic received a second-agent review, or is marked not applicable
+- [ ] The non-authoring agent posted `AI-REVIEW: PASS` and owns the merge
