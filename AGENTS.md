@@ -36,6 +36,8 @@ Override with `--no-verify` if false positive (rare).
 
 The workspace is a local git repo. **`origin` is the public repo `github.com/KCNyu/clawock`** — the
 contents (positions, plans, memory logs) are intentionally public per kcn's instruction.
+This table governs the live runtime workspace and its scheduled writers. Interactive
+Codex/Claude code changes follow the PR workflow in the next section.
 After any of the following changes, run a git commit automatically — no need to ask:
 
 | Change | Commit |
@@ -52,8 +54,31 @@ After any of the following changes, run a git commit automatically — no need t
 Message style: `<type>: <concise description>`, Chinese is fine.
 **Never commit:** `.api_keys`, scratch `*.png`/`*.jpg` outside the shipped `assets/`/`docs/` allowlists, `.openclaw/`, `.clawhub/`, `memory/.dreams/`, `memory/.tmp/` (gitignored). Shipped `assets/*.png` are committed; `screenshot-refresh.yml` commits `assets/shadow-backtest.png` and `assets/social-card.png`, plus `assets/dashboard.gif` on manual dispatch.
 
-Push: harness postflight now **auto-pushes** after commit (rebase+retry on race). 
-`git push` from chat / Telegram should still ask first — that's intentional human gating.
+Push: harness postflight now **auto-pushes** after commit (rebase+retry on race).
+Interactive Codex/Claude work must never push `master`; it may push only its task
+branch to create or update a PR.
+
+## Interactive Codex/Claude PR workflow
+
+The live checkout `/root/.openclaw/workspace` must stay on `master` because cron and
+OpenClaw write runtime data there throughout the day. Never switch that checkout to a
+feature branch and never make interactive code edits in it.
+
+For changes to code, scripts, workflows, skills, UI, configuration, or repository
+documentation:
+
+1. Create an isolated worktree from current `origin/master`, using a branch named
+   `codex/<task>` or `claude/<task>`.
+2. Make and commit the change in that worktree, then push the task branch and open a PR.
+3. Let GitHub Actions run the full test suite. Local full-suite runs are optional; the
+   required remote checks are the merge gate.
+4. Do not merge while any required check is pending or failing. Fix the branch, push,
+   and let the PR rerun its checks.
+5. Squash-merge only after required checks pass, then remove the task worktree/branch.
+
+Runtime-generated market data, snapshots, reports, ledgers, and dashboard artifacts
+remain on the existing direct-to-`master` bot path. They do not open high-frequency PRs.
+Never use the repository-admin bypass for an interactive code change.
 
 ## Memory
 
