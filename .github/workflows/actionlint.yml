@@ -5,9 +5,9 @@ on:
     branches: [master]
     paths:
       - '.github/workflows/**'
+  # Run on every PR so `lint` is a stable required check. Scanning all workflow
+  # files is cheap and avoids a path-filtered required check waiting forever.
   pull_request:
-    paths:
-      - '.github/workflows/**'
   workflow_dispatch:
 
 permissions:

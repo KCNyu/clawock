@@ -36,6 +36,7 @@ Entry pointer for Claude Code in kcn's investment workspace. Same workflow as `A
 | Startup sequence | `INVESTMENT_SOP.md` |
 | Heartbeat workflow | `HEARTBEAT.md` (heartbeat poll only) |
 | Auto-commit rules | `AGENTS.md` |
+| Interactive code PR/worktree rules | `AGENTS.md` § Interactive Codex/Claude PR workflow |
 | Pages dashboard input | `assets/data/dashboard.json` (built by `scripts/data/build_dashboard.py`) |
 | Risk metrics snapshot | `assets/data/risk.json` (built by `scripts/data/portfolio_risk_metrics.py`, refreshed daily via brief preflight) |
 | Decision execution marking | `memory/decisions.jsonl` `execution.status`; manual override via `scripts/data/mark_followed.py DECISION_ID [--no]` |
