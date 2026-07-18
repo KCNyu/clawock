@@ -1,8 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" role="img" aria-labelledby="t d" shape-rendering="geometricPrecision">
-  <title id="t">08.5 Compact</title><desc id="d">A compact silhouette holds up as a favicon without losing the counterform.</desc>
-  <defs>
-    <linearGradient id="b" x1="13" y1="50" x2="51" y2="31" gradientUnits="userSpaceOnUse"><stop stop-color="#245574"/><stop offset=".58" stop-color="#347eae"/><stop offset="1" stop-color="#559ed1"/></linearGradient>
-    <path id="r" d="M10 16C23 11 39 16 51 25.5Q54.5 28 51 30.5C40 29.5 29 30 19 33C15 28 12 22 10 16Z"/>
-  </defs>
-  <use href="#r" fill="#10141a"/><use href="#r" fill="url(#b)" transform="rotate(180 32 32)"/>
-</svg>

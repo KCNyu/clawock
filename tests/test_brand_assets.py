@@ -23,8 +23,8 @@ def test_vector_brand_sources_are_valid_and_keep_the_canonical_geometry():
     assert mark_root.attrib["viewBox"] == "0 0 64 64"
     assert app_root.attrib["viewBox"] == "0 0 64 64"
     for source in (mark.read_text(), app.read_text()):
-        assert '<circle cx="32" cy="32" r="24"' in source
-        assert "M32 8A24 24 0 0 0 32 56C17 44 47 20 32 8Z" in source
+        assert "M8 13C22 9 40 16 55 28C42 24 28 25 17 32C12 27 9 21 8 13Z" in source
+        assert "M56 51C42 55 24 48 9 36C22 40 36 39 47 32C52 37 55 43 56 51Z" in source
         assert 'shape-rendering="geometricPrecision"' in source
         assert 'id="bull-blue"' in source
 

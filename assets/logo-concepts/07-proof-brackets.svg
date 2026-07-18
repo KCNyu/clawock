@@ -1,7 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" role="img" aria-labelledby="t d" shape-rendering="geometricPrecision">
-  <title id="t">Proof brackets</title>
-  <desc id="d">Two proof brackets debate across a narrow negative-space verdict axis.</desc>
-  <defs><linearGradient id="b" x1="36" y1="52" x2="55" y2="12" gradientUnits="userSpaceOnUse"><stop stop-color="#245574"/><stop offset="1" stop-color="#559ed1"/></linearGradient></defs>
-  <path d="M11 16C11 10 15 7 21 7H29V16H24C21 16 20 18 20 22V26C20 30 18 32 14 32C18 32 20 34 20 38V42C20 46 21 48 24 48H29V57H21C15 57 11 54 11 48V40C11 36 13 33 16 32C13 31 11 28 11 24Z" fill="#10141a"/>
-  <path d="M53 16C53 10 49 7 43 7H35V16H40C43 16 44 18 44 22V26C44 30 46 32 50 32C46 32 44 34 44 38V42C44 46 43 48 40 48H35V57H43C49 57 53 54 53 48V40C53 36 51 33 48 32C51 31 53 28 53 24Z" fill="url(#b)"/>
-</svg>

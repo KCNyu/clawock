@@ -11,7 +11,7 @@
       <stop offset="0" stop-color="#fafbfc"/>
       <stop offset="1" stop-color="#edf2f6"/>
     </linearGradient>
-    <linearGradient id="brand-bull" x1="16" y1="52" x2="48" y2="12" gradientUnits="userSpaceOnUse">
+    <linearGradient id="brand-bull" x1="14" y1="50" x2="51" y2="31" gradientUnits="userSpaceOnUse">
       <stop offset="0" stop-color="#245574"/>
       <stop offset="1" stop-color="#559ed1"/>
     </linearGradient>
@@ -38,8 +38,8 @@
 
   <g class="sans">
     <g transform="translate(20 17) scale(.34)">
-      <circle cx="32" cy="32" r="24" fill="url(#brand-bull)"/>
-      <path d="M32 8A24 24 0 0 0 32 56C17 44 47 20 32 8Z" fill="#10141a"/>
+      <path d="M8 13C22 9 40 16 55 28C42 24 28 25 17 32C12 27 9 21 8 13Z" fill="#10141a"/>
+      <path d="M56 51C42 55 24 48 9 36C22 40 36 39 47 32C52 37 55 43 56 51Z" fill="url(#brand-bull)"/>
     </g>
     <text x="47" y="36" font-size="20" font-weight="800" class="ink">clawock</text>
     <text x="875" y="34" text-anchor="end" class="kicker blue">SYSTEM ARCHITECTURE · HK + US</text>

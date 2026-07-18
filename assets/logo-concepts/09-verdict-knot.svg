@@ -1,7 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" role="img" aria-labelledby="t d" shape-rendering="geometricPrecision">
-  <title id="t">Verdict knot</title>
-  <desc id="d">Two argument ribbons pass one another while a clean break preserves the verdict.</desc>
-  <defs><linearGradient id="b" x1="13" y1="49" x2="51" y2="15" gradientUnits="userSpaceOnUse"><stop stop-color="#245574"/><stop offset="1" stop-color="#559ed1"/></linearGradient></defs>
-  <path d="M12 18C23 8 38 11 52 25L46 31C35 20 26 17 18 25C13 30 13 38 19 44L13 50C3 40 3 27 12 18Z" fill="#10141a"/>
-  <path d="M52 39C41 53 26 56 12 46L18 39C27 46 36 43 46 33C51 28 51 20 45 14L51 8C61 18 61 30 52 39Z" fill="url(#b)"/>
-</svg>

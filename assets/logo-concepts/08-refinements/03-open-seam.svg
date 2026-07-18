@@ -1,8 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" role="img" aria-labelledby="t d" shape-rendering="geometricPrecision">
-  <title id="t">08.3 Open seam</title><desc id="d">A wider counterform emphasizes the independent judge between agents.</desc>
-  <defs>
-    <linearGradient id="b" x1="11" y1="53" x2="53" y2="30" gradientUnits="userSpaceOnUse"><stop stop-color="#245574"/><stop offset=".58" stop-color="#347eae"/><stop offset="1" stop-color="#559ed1"/></linearGradient>
-    <path id="r" d="M8 13C22 8.5 40 14.5 53 25Q57 27.5 53 29C42 26.5 29 27 17 31C13 26 10 20 8 13Z"/>
-  </defs>
-  <use href="#r" fill="#10141a"/><use href="#r" fill="url(#b)" transform="rotate(180 32 32)"/>
-</svg>

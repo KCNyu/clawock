@@ -1,7 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" role="img" aria-labelledby="t d" shape-rendering="geometricPrecision">
-  <title id="t">Hidden X</title>
-  <desc id="d">Four argument wings leave an undecided X in the counterform.</desc>
-  <defs><linearGradient id="b" x1="30" y1="48" x2="56" y2="16" gradientUnits="userSpaceOnUse"><stop stop-color="#245574"/><stop offset="1" stop-color="#559ed1"/></linearGradient></defs>
-  <path d="M9 17C18 9 29 12 37 24L31 29C25 21 20 20 15 25ZM9 47C18 55 29 52 37 40L31 35C25 43 20 44 15 39Z" fill="#10141a"/>
-  <path d="M55 17C46 9 35 12 27 24L33 29C39 21 44 20 49 25ZM55 47C46 55 35 52 27 40L33 35C39 43 44 44 49 39Z" fill="url(#b)"/>
-</svg>

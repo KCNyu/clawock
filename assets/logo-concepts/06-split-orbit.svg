@@ -1,7 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" role="img" aria-labelledby="t d" shape-rendering="geometricPrecision">
-  <title id="t">Split orbit</title>
-  <desc id="d">Two scored arcs chase one another around a protected decision center.</desc>
-  <defs><linearGradient id="b" x1="14" y1="48" x2="50" y2="14" gradientUnits="userSpaceOnUse"><stop stop-color="#245574"/><stop offset="1" stop-color="#559ed1"/></linearGradient></defs>
-  <path d="M48.5 18A22 22 0 0 0 18 48.5" fill="none" stroke="#10141a" stroke-width="8" stroke-linecap="round"/>
-  <path d="M15.5 46A22 22 0 0 0 46 15.5" fill="none" stroke="url(#b)" stroke-width="8" stroke-linecap="round"/>
-</svg>
