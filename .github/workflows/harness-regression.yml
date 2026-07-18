@@ -16,12 +16,50 @@ on:
   pull_request:
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   validate:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v5
+        with:
+          # PR file-policy checks compare the exact base and head commits.
+          fetch-depth: 0
+
+      - name: Reject conflict markers
+        run: |
+          if git grep -nE '^(<<<<<<< |>>>>>>> )' HEAD --; then
+            echo "::error::Tracked files contain unresolved git conflict markers"
+            exit 1
+          fi
+
+      - name: PR file safety policy
+        if: github.event_name == 'pull_request'
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          mapfile -t files < <(git diff --name-only --diff-filter=ACMR "$BASE_SHA" "$HEAD_SHA")
+          bad=()
+          for f in "${files[@]}"; do
+            case "$f" in
+              .api_keys|*/.api_keys|.openclaw/*|*/.openclaw/*|.clawhub/*|*/.clawhub/*|memory/.dreams/*|memory/.tmp/*)
+                bad+=("$f")
+                ;;
+              *.png|*.jpg|*.jpeg)
+                [[ "$f" == assets/* ]] || bad+=("$f")
+                ;;
+            esac
+          done
+          if ((${#bad[@]})); then
+            printf '::error::Forbidden PR path: %s\n' "${bad[@]}"
+            exit 1
+          fi
+          echo "PR file policy OK: ${#files[@]} changed paths"
 
       - name: Set up Python
         uses: actions/setup-python@v6

@@ -45,5 +45,7 @@ jobs:
       - name: Commit
         # Shared helper commits only this workflow's sidecar. The frontend fetches
         # it directly; dashboard.json is not rebuilt for it.
+        env:
+          CLAWOCK_PUBLISH_SSH_KEY: ${{ secrets.CLAWOCK_PUBLISH_SSH_KEY }}
         run: |
           bash scripts/data/gha_commit_push.sh "macro: daily snapshot $(date -u +%Y-%m-%d)" assets/data/macro.json
