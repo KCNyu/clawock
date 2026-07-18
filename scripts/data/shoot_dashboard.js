@@ -209,26 +209,27 @@ function socialCardHTML(shotDataUri) {
     box-shadow:inset 1px 0 rgba(255,255,255,.16);
   }
   .left { width:560px; padding:58px 0 64px 70px; flex:none; z-index:3; }
-  .brand { display:flex; align-items:center; gap:12px; margin-bottom:28px; }
+  .brand { display:flex; align-items:center; gap:12px; margin-bottom:32px; }
   .brand .dot { width:16px; height:16px; border-radius:50%;
     background:radial-gradient(circle at 35% 30%,#6af2b0,#1f9d63);
     box-shadow:0 0 20px rgba(47,189,122,.58); }
   .brand .name { font-size:30px; font-weight:800; letter-spacing:-.5px; }
-  .brand .tag { font-size:15px; color:#657b78; font-weight:650; }
-  h1 { font-size:45px; line-height:1.13; font-weight:800; letter-spacing:-1px;
-    margin-bottom:20px; max-width:490px; }
+  .eyebrow { margin-bottom:15px; color:#51706b; font-size:12px; font-weight:800;
+    letter-spacing:.16em; }
+  h1 { font-size:48px; line-height:1.08; font-weight:800; letter-spacing:-1.25px;
+    margin-bottom:22px; max-width:500px; }
   h1 .hl {
     color:#c97835;
     background:linear-gradient(90deg,#d6933f,#b96234);
     -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;
   }
-  .sub { font-size:18px; line-height:1.5; color:#586d69; font-weight:520; max-width:465px; }
+  .sub { font-size:18px; line-height:1.5; color:#586d69; font-weight:520; max-width:440px; }
   .sub b { color:#172b2d; font-weight:750; }
-  .chips { display:flex; gap:9px; margin-top:31px; flex-wrap:wrap; max-width:470px; }
-  .chip { font-size:14px; font-weight:680; color:#35514d;
-    background:linear-gradient(180deg,rgba(255,255,255,.90),rgba(255,255,255,.55));
-    border:1px solid rgba(69,111,104,.24); padding:7px 12px; border-radius:999px;
-    box-shadow:0 3px 12px rgba(40,73,68,.06),inset 0 1px rgba(255,255,255,.72); }
+  .proof { display:flex; align-items:center; gap:13px; margin-top:31px;
+    color:#31534e; font:800 12px/1 ui-monospace,SFMono-Regular,Menlo,monospace;
+    letter-spacing:.13em; }
+  .proof i { width:25px; height:1px; background:linear-gradient(90deg,#72a49c,#d39352);
+    opacity:.72; }
   .repo { position:absolute; left:68px; bottom:40px; font-size:18px; font-weight:700;
     color:#176f66; display:flex; align-items:center; gap:9px; }
   .repo .star { color:#c97835; }
@@ -257,10 +258,11 @@ function socialCardHTML(shotDataUri) {
     background:linear-gradient(90deg,rgba(23,79,76,0),rgba(23,79,76,.16)); pointer-events:none; }
 </style></head><body>
   <div class="left">
-    <div class="brand"><span class="dot"></span><span class="name">clawock</span><span class="tag">autonomous AI trading desk</span></div>
-    <h1>It argues both sides, gates the risk — then <span class="hl">grades its own calls.</span></h1>
-    <div class="sub">A bull-vs-bear desk on <b>real HK + US money</b>, with hard risk gates and a public scorecard that <b>publishes the record unedited.</b></div>
-    <div class="chips"><span class="chip">🗣️ bull vs bear</span><span class="chip">🛡️ hard risk gates</span><span class="chip">🪞 public scorecard</span><span class="chip">⚙️ autonomous</span></div>
+    <div class="brand"><span class="dot"></span><span class="name">clawock</span></div>
+    <div class="eyebrow">OPEN-SOURCE · MULTI-AGENT LLM STOCK DESK</div>
+    <h1>AI agents debate.<br><span class="hl">Code controls the risk.</span></h1>
+    <div class="sub">Built on a <b>real HK + US portfolio</b>, with every call returned to a public scorecard and <b>published unedited.</b></div>
+    <div class="proof"><span>DEBATE</span><i></i><span>GATE</span><i></i><span>GRADE</span></div>
     <div class="repo"><span class="star">★</span> github.com/KCNyu/clawock</div>
   </div>
   <div class="shot"><div class="bar"><i></i><i></i><i></i><span class="address"></span></div><img src="${shotDataUri}" alt=""></div>
