@@ -62,7 +62,7 @@
     <rect width="260" height="5" rx="3" fill="#176f66"/>
     <text x="20" y="36" class="eyebrow green">DETERMINISTIC · PYTHON</text>
     <text x="20" y="72" class="heading ink">Build the facts</text>
-    <text x="20" y="96" class="body muted">Market state enters clean and reconciled.</text>
+    <text x="20" y="96" class="body muted">Clean, reconciled market state.</text>
     <path d="M20 116H240" stroke="#e1e8e3"/>
     <circle cx="24" cy="148" r="4" fill="#176f66"/>
     <text x="38" y="152" class="item ink">Refresh + reconcile</text>
@@ -119,7 +119,7 @@
     <text x="870" y="500" text-anchor="end" class="micro muted">settled calls return to the next brief</text>
   </g>
   <rect x="30" y="520" width="840" height="116" rx="18" fill="#fff" stroke="#d3ded8" stroke-width="1.2"/>
-  <path d="M266 578H318M582 578H634" class="wire"/>
+  <path d="M272 578H317M565 578H597" class="wire"/>
 
   <g class="sans">
     <circle cx="66" cy="565" r="17" fill="#e3f0eb"/>
@@ -127,15 +127,15 @@
     <text x="94" y="563" class="eyebrow green">CANONICAL BARS</text>
     <text x="94" y="586" class="body muted">session-dated market truth</text>
 
-    <circle cx="356" cy="565" r="17" fill="#f8eadb"/>
-    <path d="M349 565h14M356 558v14" stroke="#bd6538" stroke-width="1.8"/>
-    <text x="384" y="563" class="eyebrow amber">PYTHON GRADER</text>
-    <text x="384" y="586" class="body muted">episodes · timing · calibration</text>
+    <circle cx="346" cy="565" r="17" fill="#f8eadb"/>
+    <path d="M339 565h14M346 558v14" stroke="#bd6538" stroke-width="1.8"/>
+    <text x="374" y="563" class="eyebrow amber">PYTHON GRADER</text>
+    <text x="374" y="586" class="body muted">episodes · timing · calibration</text>
 
-    <circle cx="672" cy="565" r="17" fill="#e3f0eb"/>
-    <path d="M665 565h14M672 558v14" stroke="#176f66" stroke-width="1.8"/>
-    <text x="700" y="563" class="eyebrow green">PUBLIC SCORECARD</text>
-    <text x="700" y="586" class="body muted">unedited outcomes + coverage</text>
+    <circle cx="626" cy="565" r="17" fill="#e3f0eb"/>
+    <path d="M619 565h14M626 558v14" stroke="#176f66" stroke-width="1.8"/>
+    <text x="654" y="563" class="eyebrow green">PUBLIC SCORECARD</text>
+    <text x="654" y="586" class="body muted">unedited outcomes + coverage</text>
   </g>
 
   <rect x="395" y="650" width="110" height="26" rx="13" fill="#e3f0eb"/>
