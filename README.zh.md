@@ -182,10 +182,10 @@ LLM 只提交决策，不能写入或修改评估结果；ID、触发、分组�
 
 **模型。** 交互式聊天当前跑 Claude；无人值守市场任务 pin **`MiniMax-M3`**。provider 凭证和 runtime fallback 策略在公开仓库之外，可独立变化而不改 harness。远端 LLM workflow 通过 Anthropic Messages 直调 MiniMax M3，并在可选 Xiaomi key 仍有效时退到 MiMo。仓库不存任何 provider key。
 
-**写入对账(唯一真正难的地方)。** `dashboard.json` 是 100% 派生产物,却有多类 actor 在动 `master` —— cron 守护进程、远端 workflow、系统 crontab publisher、临时 session。几个月的竞态事故最后收敛成一条更准确的规则:**隔离 sidecar 写者，并串行化同一 host 上的 dashboard 写者。**
+**写入对账(唯一真正难的地方)。** dashboard 构建一次产出三份 100% 派生文件：`dashboard.json`、`decision_audit.json`、`shadow_portfolio.json`；与此同时 cron 守护进程、远端 workflow、系统 crontab publisher、临时 session 都会动 `master`。几个月的竞态事故最后收敛成一条更准确的规则：**隔离 scan sidecar 写者，并串行化同一 host 上的 dashboard builder。**
 
 - **前端直接读 scan 子文件。** `macro / sentiment / influencer_feed / us_news_digest / em_news` 不再被嵌进 `dashboard.json`,`index.html` 加载时各自 fetch。于是一个 GitHub Action 永远只提交它*自己*那个互不相交的子文件 —— 这些写者不可能冲突,而且一次 scan 的 commit 一落地就立刻上页面,无需任何重建。(GH Actions 之间仍靠 `concurrency: group: data-write` 串行。)
-- **`dashboard.json` 只有 host 内发布锁，不是跨环境全局锁。** 本地 harness postflight 和 flock 守护的 `publish_dashboard.sh` crontab 共用 host 上的 `/tmp/dashboard_publish.lock`，因此这些 host 内重建不会交错。off-host `brief-fallback` workflow 也会通过同一个 harness helper 重建并提交 `dashboard.json`，但同名锁只存在于 GitHub runner 本地，无法与 host 上的锁互斥。host publisher **只在语义 diff 时**才提交 dashboard；盘中 heartbeat 可以产生独立的小 sidecar commit，但不会把纯墙钟变化的 dashboard 偷带进去。
+- **三份 dashboard 构建产物共用一份 ownership 契约和同一把 host 锁。** 本地 harness postflight 和 flock 守护的 `publish_dashboard.sh` crontab 共用 host 上的 `/tmp/dashboard_publish.lock`，因此这些 host 内重建不会交错。所有 builder 都调用同一个语义 diff helper：纯构建时间变化会还原，任一生成文件出现真实变化就一起进入精确 staging pathspec。off-host `brief-fallback` 也复用同一 helper，但同名锁只存在于 GitHub runner 本地，无法与 host 上的锁互斥。
 - **调度也有可校验契约。** runtime 真值来自 `openclaw cron list --json`;[`config/cron-schedules.json`](config/cron-schedules.json) 同时驱动[生成调度表](CRON_SCHEDULES.md)、DST 自动同步、payload/watchdog 检查和 CI health。Mode 7 会发布逐 slot heartbeat，不再是不可追踪的黑箱。
 - **所有人都经 `safe_push.sh` push** —— rebase 重试、遇真冲突 abort(不死循环);提交进来的冲突标记会在 **push hook 被拒**,坏掉的 `dashboard.json` 永远到不了 Pages。
 - **组合数字在门口就被闸住。** `portfolio.json` —— 唯一真值源 —— 写入走 advisory `flock` + 锁内重读再覆盖(`mutate_json`,原子 `os.replace`),根治 load-modify-write 竞态。**pre-push hook 会拦下任何账本违反资金守恒恒等式的 push**(`TCV = Σ 市值`、`现金 = 基线 + 成交 + 存取款`、`成本 = 移动加权`),所以没对账的改动到不了 Pages —— 而这些纯派生函数由 CI 里的 `pytest` 套件钉死。

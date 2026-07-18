@@ -69,13 +69,19 @@ PY
 fi
 
 # ──────────────────────────────────────────────────────────────────────────
-# 3. assets/data/dashboard.json — auto-rebuild if portfolio.json staged
-#    (Prevents drift between portfolio + dashboard. Stages the rebuild too.)
+# 3. Dashboard public outputs — auto-rebuild if portfolio.json staged
+#    (Prevents drift between portfolio + all generated views. Stages only
+#    semantic changes; build-clock-only rewrites are restored.)
 # ──────────────────────────────────────────────────────────────────────────
 if echo "$STAGED" | grep -qE '^portfolio\.json$'; then
-  echo "  ▸ rebuilding dashboard.json (portfolio.json was staged)…"
+  echo "  ▸ rebuilding dashboard outputs (portfolio.json was staged)…"
   python3 scripts/data/build_dashboard.py > /dev/null
-  git add assets/data/dashboard.json
+  dashboard_paths_output="$(python3 scripts/data/dashboard_outputs.py)"
+  dashboard_paths=()
+  if [ -n "$dashboard_paths_output" ]; then
+    mapfile -t dashboard_paths <<< "$dashboard_paths_output"
+    git add -- "${dashboard_paths[@]}"
+  fi
 fi
 
 # ──────────────────────────────────────────────────────────────────────────

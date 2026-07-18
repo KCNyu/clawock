@@ -171,6 +171,7 @@ def categorize(issues):
 sys.path.insert(0, str(Path(__file__).parent))
 from _harness_common import (  # noqa: E402
     categorize_issues,
+    dashboard_output_changes,
     git_cmd as _git,
     push_with_rebase_retry,
     rebuild_dashboard,
@@ -259,7 +260,8 @@ def maybe_commit(status, today, dry_run=False):
         return False, 'skipped (dry-run)'
 
     log_decisions(today)   # upsert today's v2 plan (idempotent)
-    rebuild_dashboard()  # refresh dashboard.json before commit
+    rebuild_dashboard()
+    dashboard_paths = dashboard_output_changes()
 
     msg_suffix = ' (validation warnings)' if status == 'warn' else ''
     # risk.json / lev_regime.json / benchmark.json are rebuilt fresh by this
@@ -277,7 +279,7 @@ def maybe_commit(status, today, dry_run=False):
     # silently lost samples on every fresh checkout. macro/sentiment/influencer/
     # us_news_digest are deliberately NOT here: GH Actions own those, preflight only
     # reads them, and committing them from this side would fight the workflow.
-    add_ok, add_out = _git('add', 'memory/', 'portfolio.json', 'assets/data/dashboard.json',
+    add_ok, add_out = _git('add', 'memory/', 'portfolio.json', *dashboard_paths,
                             'memory/decisions.jsonl', 'assets/data/risk.json',
                             'assets/data/lev_regime.json', 'assets/data/benchmark.json',
                             'assets/data/quant_signals.json',

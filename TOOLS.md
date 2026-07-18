@@ -9,7 +9,7 @@
 - 数据脚本（被 harness / 手动调用）：`scripts/data/`
 - Harness 脚本（cron 调起）：`scripts/harness/`
 - 历史/参考脚本：`scripts/legacy/`
-- Dashboard 入口：`index.html` (落到 `kcnyu.github.io/clawock`)；数据 `assets/data/dashboard.json` 由 `scripts/data/build_dashboard.py` 聚合
+- Dashboard 入口：`index.html` (落到 `kcnyu.github.io/clawock`)；`scripts/data/build_dashboard.py` 一次生成 `dashboard.json` + `decision_audit.json` + `shadow_portfolio.json`
 - 快速查看：`check_portfolio.sh`
 
 ## 公共发布层（仓库 = `github.com/KCNyu/clawock`）
@@ -147,7 +147,7 @@ python3 scripts/data/fetch_us_stocks.py     # 仅刷美股价格
 - 盘中 Mode 7：`intraday_preflight.py --market {hk|us}` / `intraday_postflight.py …`（不提交 `portfolio.json`；dashboard 仅语义变化提交，逐 slot heartbeat 必发布）
 - 共通：preflight 出 `raw_wechat_block`(LLM **verbatim** 拷) + `anomalies`(必提≥1票)；postflight 出 `wechat_prefix`；context 全落 `memory/.tmp/`(gitignore)
 
-**Dashboard/发布**：`build_dashboard.py`(聚合 portfolio+snapshots+plan+decisions.jsonl+risk+sidecar → `assets/data/dashboard.json`；含 LLM 叙事卡/driven_by/status_banner；三类 postflight 都会自动调) · `safe_push.sh`(统一 push,rebase.autoStash 容脏树)
+**Dashboard/发布**：`build_dashboard.py`(聚合 portfolio+snapshots+plan+decisions.jsonl+risk+sidecar → `dashboard.json` + 决策审计/影子组合两个公开 sidecar；三类 postflight 都会自动调) · `dashboard_outputs.py`(统一 ownership + 语义 diff，忽略纯构建时间并给出精确 staging pathspec) · `safe_push.sh`(统一 push,rebase.autoStash 容脏树)
 
 **LLM-free Telegram 兜底哨兵（系统 crontab，非 openclaw cron）**
 - report / brief / intraday postflight 主发 WeChat 并同步 Telegram；watchdog 读真实 delivery marker，只在 Telegram marker 缺失或失败时补投，不再猜 run summary、也不重发 WeChat。

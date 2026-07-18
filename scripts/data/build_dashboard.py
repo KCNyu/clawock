@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 """
-build_dashboard.py — aggregates portfolio.json + snapshots + plans into a single
-JSON the static dashboard (index.html at the repo root, served by Jekyll Pages)
-consumes.
+build_dashboard.py — aggregates portfolio.json + snapshots + plans into the
+public JSON state consumed by the static dashboard (index.html at the repo root,
+served by Jekyll Pages).
 
-Output: assets/data/dashboard.json
+Outputs: assets/data/dashboard.json, assets/data/decision_audit.json,
+         assets/data/shadow_portfolio.json
 
 Run after each portfolio mutation (cron commit) so Pages stays fresh.
 """

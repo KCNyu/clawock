@@ -15,10 +15,12 @@ from pathlib import Path
 # parents[2] = scripts/harness/<this> → workspace root. Identical to the old
 # hardcoded /root path locally, but correct on a runner too. (2026-05-30)
 WS = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(WS / 'scripts' / 'data'))
+from dashboard_outputs import semantic_changed_paths as dashboard_output_changes  # noqa: E402
 
-# Single-publisher mutex for dashboard.json (Option 1, 2026-07-04). Shared by the
-# host harness rebuild and the weekend publish_dashboard.sh crontab so the two
-# never build/write the generated file concurrently.
+# Single-publisher mutex for all dashboard build outputs (Option 1, 2026-07-04).
+# Shared by the host harness rebuild and publish_dashboard.sh crontab so the two
+# never build/write the generated files concurrently.
 DASHBOARD_PUBLISH_LOCK = '/tmp/dashboard_publish.lock'
 
 # Where rebuild_dashboard records its last outcome so the daily cron health
@@ -199,7 +201,7 @@ def _record_dashboard_build(ok, output, ws=None):
 
 
 def rebuild_dashboard(ws=None):
-    """Re-run build_dashboard.py to refresh assets/data/dashboard.json.
+    """Re-run build_dashboard.py to refresh its three public dashboard outputs.
 
     Refreshes today's snapshot AND syncs GH Action-managed data files first, so
     the equity curve reflects latest portfolio state and the embedded sentiment/
@@ -215,7 +217,7 @@ def rebuild_dashboard(ws=None):
     refresh_today_snapshot(ws)
     sync_gha_data_files(ws)
     try:
-        # Single-publisher lock (2026-07-04): dashboard.json now has exactly two
+        # Single-publisher lock (2026-07-04): dashboard outputs now have exactly two
         # writer categories — this harness path and the scheduled
         # publish_dashboard.sh crontab. Data-scan Actions commit sidecars only;
         # the rare off-host brief fallback reuses this same harness path.

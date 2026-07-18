@@ -27,7 +27,8 @@ git config core.hooksPath .githooks
 `.githooks/pre-commit` enforces on every commit (openclaw cron / GH Action / manual):
 - portfolio.json valid JSON + required structure
 - memory/*-plan.json schema (bucket enum, trigger_type enum, confidence ∈ [0,1])
-- dashboard.json auto-rebuild + re-stage when portfolio.json staged (prevents drift)
+- dashboard.json + decision_audit.json + shadow_portfolio.json auto-rebuild and
+  semantic re-stage when portfolio.json is staged (prevents generated-view drift)
 - paranoid scan for leaked API keys (`sk-…`, `tp-…`, `FINNHUB_API_KEY=`, etc.)
 
 Override with `--no-verify` if false positive (rare).
@@ -43,7 +44,7 @@ After any of the following changes, run a git commit automatically — no need t
 | `portfolio.json` updated (price refresh / buy / sell) | `portfolio: <brief>` |
 | `memory/YYYY-MM-DD.md` created or updated | `memory: daily notes YYYY-MM-DD` |
 | Harness produced new `memory/{date}-pre-open.md` + `-plan.json` | `memory: daily deep brief <date>` (postflight auto-commits) |
-| `assets/data/dashboard.json` refreshed via `build_dashboard.py` | bundled with the relevant data commit |
+| Any dashboard output refreshed via `build_dashboard.py` | semantic changes to `dashboard.json` / `decision_audit.json` / `shadow_portfolio.json` are bundled with the relevant data commit |
 | `assets/data/risk.json` refreshed via `portfolio_risk_metrics.py` | bundled with brief commit (preflight [10/10]) |
 | `memory/decisions.jsonl` execution status marked via `mark_followed.py` | `decisions: mark execution` |
 | Any script added or modified | `script: <what changed>` |

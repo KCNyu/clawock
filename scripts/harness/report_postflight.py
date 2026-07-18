@@ -131,6 +131,7 @@ sys.path.insert(0, str(Path(__file__).parent))
 from _harness_common import (  # noqa: E402
     categorize_issues,
     check_raw_tables_verbatim,
+    dashboard_output_changes,
     git_cmd as _git,
     push_with_rebase_retry,
     rebuild_dashboard,
@@ -190,11 +191,12 @@ def maybe_commit(status, commit_msg):
     if status == 'fail':
         return False, 'skipped (status=fail)'
     rebuild_dashboard()
+    dashboard_paths = dashboard_output_changes()
     suffix = ' (validation warnings)' if status == 'warn' else ''
     snap_date = snapshot_date_for_now()
     # logs/dashboard_build_status.json rides along: its only scheduled reader is
     # the GHA cron-health runner (fresh checkout), so it must reach origin.
-    add_args = ['add', 'portfolio.json', 'assets/data/dashboard.json',
+    add_args = ['add', 'portfolio.json', *dashboard_paths,
                 'logs/dashboard_build_status.json']
     if snap_date:
         add_args.append(f'memory/snapshots/{snap_date}.json')

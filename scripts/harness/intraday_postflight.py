@@ -28,6 +28,7 @@ sys.path.insert(0, str(Path(__file__).parent))
 from _harness_common import (  # noqa: E402
     categorize_issues,
     check_raw_tables_verbatim,
+    dashboard_output_changes,
     git_cmd,
     push_with_rebase_retry,
     rebuild_dashboard,
@@ -223,7 +224,7 @@ def main():
         try:
             ok, _ = rebuild_dashboard()
             if ok:
-                paths = ['assets/data/dashboard.json', 'logs/dashboard_build_status.json']
+                paths = [*dashboard_output_changes(), 'logs/dashboard_build_status.json']
                 snap = snapshot_date_for_now()
                 if snap:
                     paths.append(f'memory/snapshots/{snap}.json')

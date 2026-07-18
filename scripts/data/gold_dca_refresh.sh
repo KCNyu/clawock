@@ -16,13 +16,18 @@ cd "$WS" || exit 1
 
 python3 scripts/data/fetch_gold_dca.py        || { echo "$(date -Is) gold fetch 失败"; exit 1; }
 python3 scripts/data/build_dashboard.py       || { echo "$(date -Is) gold build_dashboard 失败"; exit 1; }
+dashboard_paths_output="$(python3 scripts/data/dashboard_outputs.py)"
+dashboard_paths=()
+if [ -n "$dashboard_paths_output" ]; then
+  mapfile -t dashboard_paths <<< "$dashboard_paths_output"
+fi
 
 # 自动任务 → 用 bot 身份提交,但走 `git -c`(单次注入)而非 `git config`(持久),
 # 否则会污染交互 Claude-Code 会话的提交身份(kcn 要那些 = KCNyu)。
 BOT_NAME="github-actions[bot]"
 BOT_EMAIL="41898282+github-actions[bot]@users.noreply.github.com"
 
-git add portfolio.json assets/data/dashboard.json
+git add portfolio.json "${dashboard_paths[@]}"
 if git diff --cached --quiet; then
   echo "$(date -Is) gold-refresh: 净值无变化,跳过"
   exit 0
