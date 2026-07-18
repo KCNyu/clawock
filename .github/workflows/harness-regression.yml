@@ -79,20 +79,29 @@ jobs:
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: |
           set -euo pipefail
-          # No --diff-filter: a deletion or rename of a script/test must also run
-          # the suite (it can break imports), same as the push trigger's paths.
-          mapfile -t files < <(git diff --name-only "$BASE_SHA" "$HEAD_SHA")
+          # --no-renames: a rename OUT of a watched dir (e.g. scripts/x.py ->
+          # docs/x.py) must still surface the old path and run the suite, since it
+          # can break imports. No --diff-filter, so deletions count too, matching
+          # the push trigger's paths. Capture separately (not via process
+          # substitution) so a git failure fails this step — fail-closed, validate
+          # goes red — instead of being read as an empty, docs-only diff and
+          # silently skipping the suite.
+          changed="$(git diff --name-only --no-renames "$BASE_SHA" "$HEAD_SHA")"
+          # memory/decisions.jsonl is intentionally absent: like the push trigger,
+          # the ledger is automation-committed runtime data, not edited via
+          # interactive PRs.
           code=false
-          for f in "${files[@]}"; do
+          while IFS= read -r f; do
+            [ -n "$f" ] || continue
             case "$f" in
               scripts/*|tests/*|portfolio.json|memory/*-plan.json|assets/data/dashboard.json|config/cron-schedules.json|CRON_SCHEDULES.md|.github/workflows/*)
                 code=true
                 break
                 ;;
             esac
-          done
+          done <<< "$changed"
           echo "code=$code" >> "$GITHUB_OUTPUT"
-          echo "code changed: $code (${#files[@]} changed paths)"
+          echo "code changed: $code"
 
       - name: Set up Python
         if: github.event_name != 'pull_request' || steps.changes.outputs.code == 'true'
