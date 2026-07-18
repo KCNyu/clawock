@@ -38,6 +38,8 @@ const path = require('path');
 
 const URL = process.env.URL || 'https://kcnyu.github.io/clawock/';
 const ROOT = path.resolve(__dirname, '../..');
+const BRAND_MARK_SVG = fs.readFileSync(path.join(ROOT, 'assets/logo-mark.svg'), 'utf8')
+  .replace('<svg ', '<svg class="brand-mark" ');
 const OUT_DIR = process.env.OUT_DIR || path.join(ROOT, 'assets');
 const FRAME_DIR = process.env.FRAME_DIR || path.join(ROOT, '.gifframes');
 // Intermediate only: the social card inlines it as a data-URI, so it never ships.
@@ -256,19 +258,7 @@ function socialCardHTML(shotDataUri) {
 </style></head><body>
   <div class="left">
     <div class="brand">
-      <svg class="brand-mark" viewBox="0 0 64 64" aria-hidden="true">
-        <defs>
-          <linearGradient id="card-brand" x1="10" y1="54" x2="53" y2="10" gradientUnits="userSpaceOnUse">
-            <stop offset="0" stop-color="#090b10"/>
-            <stop offset=".42" stop-color="#28323c"/>
-            <stop offset=".73" stop-color="#1d5f96"/>
-            <stop offset="1" stop-color="#6bc0f4"/>
-          </linearGradient>
-        </defs>
-        <path d="M46.8 15.3A22.5 22.5 0 1 0 46.8 48.7" fill="none" stroke="url(#card-brand)" stroke-width="6.5" stroke-linecap="round"/>
-        <path d="M23.4 24.2L32 32l11.8-11.2" fill="none" stroke="url(#card-brand)" stroke-width="5.25" stroke-linecap="round" stroke-linejoin="round"/>
-        <circle cx="32" cy="32" r="2.15" fill="#eef4f8" stroke="#29485f" stroke-width="1.15"/>
-      </svg>
+      ${BRAND_MARK_SVG}
       <span class="name">clawock</span>
     </div>
     <div class="eyebrow">AUTONOMOUS · MULTI-AGENT LLM STOCK DESK</div>

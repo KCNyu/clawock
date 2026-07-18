@@ -1,21 +1,54 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" role="img" aria-labelledby="title desc">
   <title id="title">clawock mark</title>
-  <desc id="desc">An open C-shaped record loop with balanced ten-ten clock hands.</desc>
+  <desc id="desc">A faceted record loop surrounds two opposing ten-ten arguments converging at an AI judge.</desc>
   <defs>
-    <linearGradient id="brand" x1="10" y1="54" x2="53" y2="10" gradientUnits="userSpaceOnUse">
-      <stop class="s0" offset="0"/>
-      <stop class="s1" offset=".42"/>
-      <stop class="s2" offset=".73"/>
-      <stop class="s3" offset="1"/>
+    <linearGradient id="brand-metal" x1="8" y1="54" x2="56" y2="10" gradientUnits="userSpaceOnUse">
+      <stop class="m0" offset="0"/>
+      <stop class="m1" offset=".24"/>
+      <stop class="m2" offset=".46"/>
+      <stop class="m3" offset=".56"/>
+      <stop class="m4" offset=".615"/>
+      <stop class="m5" offset=".68"/>
+      <stop class="m6" offset=".84"/>
+      <stop class="m7" offset=".94"/>
+      <stop class="m8" offset="1"/>
+    </linearGradient>
+    <linearGradient id="left-argument" x1="18" y1="18" x2="35" y2="35" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#080b10"/>
+      <stop offset=".52" stop-color="#26333e"/>
+      <stop offset=".82" stop-color="#718797"/>
+      <stop offset="1" stop-color="#293e4e"/>
+    </linearGradient>
+    <linearGradient id="right-argument" x1="46" y1="18" x2="30" y2="35" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#79d1f7"/>
+      <stop offset=".24" stop-color="#2c87bd"/>
+      <stop offset=".7" stop-color="#174f78"/>
+      <stop offset="1" stop-color="#243743"/>
+    </linearGradient>
+    <linearGradient id="judge-core" x1="29" y1="29" x2="35" y2="36" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#edf8ff"/>
+      <stop offset=".36" stop-color="#8fc8e8"/>
+      <stop offset=".72" stop-color="#315b76"/>
+      <stop offset="1" stop-color="#14232d"/>
     </linearGradient>
   </defs>
   <style>
-    .s0{stop-color:#090b10}.s1{stop-color:#28323c}.s2{stop-color:#1d5f96}.s3{stop-color:#6bc0f4}
+    .m0{stop-color:#07090d}.m1{stop-color:#151b23}.m2{stop-color:#394754}
+    .m3{stop-color:#8196a6}.m4{stop-color:#d0e1eb}.m5{stop-color:#3c637e}
+    .m6{stop-color:#155a8b}.m7{stop-color:#66c4f2}.m8{stop-color:#1b425e}
     @media (prefers-color-scheme:dark){
-      .s0{stop-color:#f7fafc}.s1{stop-color:#aebdcc}.s2{stop-color:#5eaee7}.s3{stop-color:#9bdcff}
+      .m0{stop-color:#f5f8fa}.m1{stop-color:#b8c5ce}.m2{stop-color:#526675}
+      .m3{stop-color:#9fb4c2}.m4{stop-color:#eefaff}.m5{stop-color:#4d7793}
+      .m6{stop-color:#2475aa}.m7{stop-color:#88dcff}.m8{stop-color:#31566f}
     }
   </style>
-  <path d="M46.8 15.3A22.5 22.5 0 1 0 46.8 48.7" fill="none" stroke="url(#brand)" stroke-width="6.5" stroke-linecap="round"/>
-  <path d="M23.4 24.2L32 32l11.8-11.2" fill="none" stroke="url(#brand)" stroke-width="5.25" stroke-linecap="round" stroke-linejoin="round"/>
-  <circle cx="32" cy="32" r="2.15" fill="#eef4f8" stroke="#29485f" stroke-width="1.15"/>
+  <path d="M49.8 15.9A24 24 0 1 0 49.8 48.1L44.6 43.4A17 17 0 1 1 44.6 20.6Z" fill="url(#brand-metal)"/>
+  <path d="M49.8 15.9A24 24 0 1 0 49.8 48.1" fill="none" stroke="#d9edf8" stroke-opacity=".48" stroke-width=".8"/>
+  <path d="M44.6 43.4A17 17 0 1 1 44.6 20.6" fill="none" stroke="#02070b" stroke-opacity=".34" stroke-width=".9"/>
+
+  <path d="M20.4 17.8L17.4 20.8L29.7 33.4L33.5 29.7Z" fill="url(#left-argument)"/>
+  <path d="M43.6 17.8L46.6 20.8L34.3 33.4L30.5 29.7Z" fill="url(#right-argument)"/>
+  <path d="M19.4 20.1L31.1 32" fill="none" stroke="#dceaf2" stroke-opacity=".34" stroke-width=".72"/>
+  <path d="M44.6 20.1L32.9 32" fill="none" stroke="#eefbff" stroke-opacity=".52" stroke-width=".72"/>
+  <path d="M32 28.4L35.4 30.35V34.25L32 36.2L28.6 34.25V30.35Z" fill="url(#judge-core)" stroke="#142734" stroke-width=".85" stroke-linejoin="miter"/>
 </svg>
