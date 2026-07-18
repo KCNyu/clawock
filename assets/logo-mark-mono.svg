@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" role="img" aria-labelledby="title desc" shape-rendering="geometricPrecision" fill="currentColor">
+  <title id="title">clawock mark</title>
+  <desc id="desc">Single-color lockup: opposing bull and bear saddle surfaces leave a mathematical decision window between them. Inherits its color from the surrounding text via currentColor.</desc>
+  <path d="M8 13C22 9 40 16 55 28C42 24 28 25 17 32C12 27 9 21 8 13Z"/>
+  <path d="M56 51C42 55 24 48 9 36C22 40 36 39 47 32C52 37 55 43 56 51Z"/>
+</svg>

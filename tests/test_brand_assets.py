@@ -29,6 +29,18 @@ def test_vector_brand_sources_are_valid_and_keep_the_canonical_geometry():
         assert 'id="bull-blue"' in source
 
 
+def test_mono_lockup_keeps_the_canonical_geometry_and_inherits_color():
+    mono = ROOT / "assets/logo-mark-mono.svg"
+    root = ET.parse(mono).getroot()
+    source = mono.read_text()
+    assert root.attrib["viewBox"] == "0 0 64 64"
+    # Single-color lockup: same saddle paths, no gradient, colored via currentColor.
+    assert "M8 13C22 9 40 16 55 28C42 24 28 25 17 32C12 27 9 21 8 13Z" in source
+    assert "M56 51C42 55 24 48 9 36C22 40 36 39 47 32C52 37 55 43 56 51Z" in source
+    assert 'fill="currentColor"' in source
+    assert "linearGradient" not in source
+
+
 def test_raster_derivatives_have_exact_declared_sizes():
     expected = {
         "favicon-64.png": (64, 64),
@@ -46,7 +58,11 @@ def test_all_public_shells_use_the_vector_mark():
     layout = (ROOT / "_layouts/default.html").read_text()
     readmes = (ROOT / "README.md").read_text() + (ROOT / "README.zh.md").read_text()
 
-    assert 'type="image/svg+xml" href="assets/logo-mark.svg"' in index
+    # Header wordmark uses the adaptive two-tone mark; the SVG favicon uses the
+    # self-contained squircle so it reads on any tab color (Chrome ignores
+    # prefers-color-scheme in favicons, which would strand a black bear on a dark tab).
+    assert 'type="image/svg+xml" href="assets/icons/app-icon.svg"' in index
     assert 'class="brand-mark" src="assets/logo-mark.svg"' in index
     assert "/assets/logo-mark.svg" in layout
+    assert "/assets/icons/app-icon.svg" in layout
     assert readmes.count('src="assets/logo-mark.svg"') == 2
