@@ -11,34 +11,10 @@
       <stop offset="0" stop-color="#fafbfc"/>
       <stop offset="1" stop-color="#edf2f6"/>
     </linearGradient>
-    <linearGradient id="brand-metal" x1="8" y1="54" x2="56" y2="10" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#07090d"/>
-      <stop offset=".24" stop-color="#151b23"/>
-      <stop offset=".46" stop-color="#394754"/>
-      <stop offset=".56" stop-color="#8196a6"/>
-      <stop offset=".615" stop-color="#d0e1eb"/>
-      <stop offset=".68" stop-color="#3c637e"/>
-      <stop offset=".84" stop-color="#155a8b"/>
-      <stop offset=".94" stop-color="#66c4f2"/>
-      <stop offset="1" stop-color="#1b425e"/>
-    </linearGradient>
-    <linearGradient id="left-argument" x1="18" y1="18" x2="35" y2="35" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#080b10"/>
-      <stop offset=".52" stop-color="#26333e"/>
-      <stop offset=".82" stop-color="#718797"/>
-      <stop offset="1" stop-color="#293e4e"/>
-    </linearGradient>
-    <linearGradient id="right-argument" x1="46" y1="18" x2="30" y2="35" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#79d1f7"/>
-      <stop offset=".24" stop-color="#2c87bd"/>
-      <stop offset=".7" stop-color="#174f78"/>
-      <stop offset="1" stop-color="#243743"/>
-    </linearGradient>
-    <linearGradient id="judge-core" x1="29" y1="29" x2="35" y2="36" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#edf8ff"/>
-      <stop offset=".36" stop-color="#8fc8e8"/>
-      <stop offset=".72" stop-color="#315b76"/>
-      <stop offset="1" stop-color="#14232d"/>
+    <linearGradient id="brand-mark" x1="9" y1="53" x2="54" y2="12" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#10141a"/>
+      <stop offset=".58" stop-color="#2b353e"/>
+      <stop offset="1" stop-color="#4b91c8"/>
     </linearGradient>
     <marker id="arrow-blue" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
       <path d="M0 0L8 4L0 8Z" fill="#65798a"/>
@@ -63,14 +39,12 @@
 
   <g class="sans">
     <g transform="translate(20 17) scale(.34)">
-      <path d="M49.8 15.9A24 24 0 1 0 49.8 48.1L44.6 43.4A17 17 0 1 1 44.6 20.6Z" fill="url(#brand-metal)"/>
-      <path d="M49.8 15.9A24 24 0 1 0 49.8 48.1" fill="none" stroke="#d9edf8" stroke-opacity=".48" stroke-width=".8"/>
-      <path d="M44.6 43.4A17 17 0 1 1 44.6 20.6" fill="none" stroke="#02070b" stroke-opacity=".34" stroke-width=".9"/>
-      <path d="M20.4 17.8L17.4 20.8L29.7 33.4L33.5 29.7Z" fill="url(#left-argument)"/>
-      <path d="M43.6 17.8L46.6 20.8L34.3 33.4L30.5 29.7Z" fill="url(#right-argument)"/>
-      <path d="M19.4 20.1L31.1 32" fill="none" stroke="#dceaf2" stroke-opacity=".34" stroke-width=".72"/>
-      <path d="M44.6 20.1L32.9 32" fill="none" stroke="#eefbff" stroke-opacity=".52" stroke-width=".72"/>
-      <path d="M32 28.4L35.4 30.35V34.25L32 36.2L28.6 34.25V30.35Z" fill="url(#judge-core)" stroke="#142734" stroke-width=".85" stroke-linejoin="miter"/>
+      <path d="M49.8 15.9A24 24 0 1 0 49.8 48.1L44.6 43.4A17 17 0 1 1 44.6 20.6Z" fill="url(#brand-mark)"/>
+      <g transform="rotate(-12 32 32)">
+        <path d="M20 25.8L28.8 32L20 38.2Z" fill="#1b232b"/>
+        <path d="M44 25.8L35.2 32L44 38.2Z" fill="#397eae"/>
+        <path d="M32 28.8L35.2 32L32 35.2L28.8 32Z" fill="#cbd9e2"/>
+      </g>
     </g>
     <text x="47" y="36" font-size="20" font-weight="800" class="ink">clawock</text>
     <text x="875" y="34" text-anchor="end" class="kicker blue">SYSTEM ARCHITECTURE · HK + US</text>

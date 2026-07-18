@@ -24,10 +24,11 @@ def test_vector_brand_sources_are_valid_and_keep_the_canonical_geometry():
     assert app_root.attrib["viewBox"] == "0 0 64 64"
     for source in (mark.read_text(), app.read_text()):
         assert "M49.8 15.9A24 24" in source
-        assert "M20.4 17.8L17.4 20.8" in source
-        assert "M43.6 17.8L46.6 20.8" in source
-        assert "M32 28.4L35.4 30.35" in source
-        assert 'id="brand-metal"' in source
+        assert "M20 25.8L28.8 32" in source
+        assert "M44 25.8L35.2 32" in source
+        assert "M32 28.8L35.2 32" in source
+        assert 'rotate(-12 32 32)' in source
+        assert 'id="brand"' in source
 
 
 def test_raster_derivatives_have_exact_declared_sizes():
