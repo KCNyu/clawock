@@ -121,3 +121,18 @@
 - Retrospective（对照 2026-07-10 plan）: | RKLX | cut → 换 RKLB | ✅ | ❌ 未执行 | 0 USD | | MSFU | cut → 换 MSFT | ✅ | ❌ 未执行 | 0 USD | | SPCH | cut → 换 SPCX | ✅ | ❌ 未执行 | 0 USD | [score=0.803 recalls=0 avg=0.620 source=memory/2026-07-13-pre-open.md:26-28]
 <!-- openclaw-memory-promotion:memory:memory/2026-07-13-pre-open.md:30:30 -->
 - Retrospective（对照 2026-07-10 plan）: **5 plans fired, 0 executed。连续第二日未落地。** 高置信度历史胜率 75%，但所有触发动作均为纪律规则——今日必须无条件执行，不再是选择。 [score=0.803 recalls=0 avg=0.620 source=memory/2026-07-13-pre-open.md:30-30]
+
+## Promoted From Short-Term Memory (2026-07-19)
+
+<!-- openclaw-memory-promotion:memory:memory/2026-07-14-pre-open.md:17:17 -->
+- Header: **今日主基调**：纪律换仓日 + CPI前夜静默模式。00100连续三日崩盘，解禁抛压未竭；4只杠杆ETF硬止损全员触发多日未执行；明日Jun CPI(7/15 20:30 HKT)是本周最关键催化。今日首要任务是执行已触发的规则性动作，减少alpha决策，等CPI方向再定US加/减节奏。 [score=0.815 recalls=0 avg=0.620 source=memory/2026-07-14-pre-open.md:17-17]
+<!-- openclaw-memory-promotion:memory:memory/2026-07-14-pre-open.md:19:19 -->
+- Header: **Book 总览**（资产视角）: [score=0.815 recalls=0 avg=0.620 source=memory/2026-07-14-pre-open.md:19-19]
+<!-- openclaw-memory-promotion:memory:memory/2026-07-14-pre-open.md:2:4 -->
+- layout: default title: 盘前深度简报 · 2026-07-14 description: "clawock 盘前深度简报 2026-07-14：港股 + 美股真实持仓的多空辩论、量化因子、风控硬闸与 AI 自评战绩（诚实公开，承认主动操作跑输躺平）。" [score=0.815 recalls=0 avg=0.620 source=memory/2026-07-14-pre-open.md:2-4]
+<!-- openclaw-memory-promotion:memory:memory/2026-07-14-pre-open.md:21:24 -->
+- Header: | 维度 | 金额 | |---|---| | **HK leg 合计** | 74,976 HKD（市值52,779 + 现金22,197）| | **US leg 合计** | 3,208 USD（市值2,971 + 现金237）| [score=0.815 recalls=0 avg=0.620 source=memory/2026-07-14-pre-open.md:21-24]
+<!-- openclaw-memory-promotion:memory:memory/2026-07-14-pre-open.md:25:28 -->
+- Header: | **组合总计（USD base）** | **~12,773 USD** | | **组合总计（HKD base）** | **~100,131 HKD** | | HK 未实现P&L | -47,897 HKD（-47.6%）| | US 未实现P&L | -1,453 USD（-32.8%）| [score=0.815 recalls=0 avg=0.620 source=memory/2026-07-14-pre-open.md:25-28]
+<!-- openclaw-memory-promotion:memory:memory/2026-07-14-pre-open.md:9:11 -->
+- 盘前深度简报 | 2026-07-14 周二: **生成时间**: 08:00 HKT | **USDHKD**: 7.8386 (Frankfurter) **HK开盘**: 09:30 HKT（距今约90分钟）| **US下次开盘**: 21:30 HKT **模型自校准**: Brier=0.259(marginal), LLM vs Hold +7pp alpha, 高置信过度自信 +18pp [score=0.815 recalls=0 avg=0.620 source=memory/2026-07-14-pre-open.md:9-11]
