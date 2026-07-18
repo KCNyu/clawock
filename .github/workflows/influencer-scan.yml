@@ -25,8 +25,6 @@ jobs:
     timeout-minutes: 8
     permissions:
       contents: write
-    env:
-      CLAWOCK_PUBLISH_SSH_KEY: ${{ secrets.CLAWOCK_PUBLISH_SSH_KEY }}
     steps:
       - uses: actions/checkout@v5
         with:
@@ -50,5 +48,7 @@ jobs:
       - name: Commit + push
         # Shared helper commits only this workflow's sidecar. The frontend fetches
         # it directly; dashboard.json is not rebuilt for it.
+        env:
+          CLAWOCK_PUBLISH_SSH_KEY: ${{ secrets.CLAWOCK_PUBLISH_SSH_KEY }}
         run: |
           bash scripts/data/gha_commit_push.sh "influence: Trump/Musk radar $(TZ=Asia/Hong_Kong date +%Y-%m-%d_%H:%M)" assets/data/influencer_feed.json

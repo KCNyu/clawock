@@ -20,8 +20,6 @@ jobs:
     timeout-minutes: 15
     permissions:
       contents: write
-    env:
-      CLAWOCK_PUBLISH_SSH_KEY: ${{ secrets.CLAWOCK_PUBLISH_SSH_KEY }}
     steps:
       - uses: actions/checkout@v5
         with:
@@ -98,6 +96,8 @@ jobs:
         # The publish gate distinguishes a legitimate warn from a crash-before-gate;
         # missing gate fails the job, while explicit publish_ok=false publishes nothing.
         if: steps.check.outputs.skip != 'true'
+        env:
+          CLAWOCK_PUBLISH_SSH_KEY: ${{ secrets.CLAWOCK_PUBLISH_SSH_KEY }}
         run: |
           if [ ! -f "logs/brief_postflight_status.json" ]; then
             echo "postflight crashed before writing the publish gate (logs/brief_postflight_status.json) — refusing to publish"
