@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" role="img" aria-labelledby="t d" shape-rendering="geometricPrecision">
+  <title id="t">08.10 Monoline</title><desc id="d">The saddle is reduced to two equal-weight evidence trajectories.</desc>
+  <defs>
+    <linearGradient id="b" x1="10" y1="50" x2="54" y2="27" gradientUnits="userSpaceOnUse"><stop stop-color="#245574"/><stop offset=".58" stop-color="#347eae"/><stop offset="1" stop-color="#559ed1"/></linearGradient>
+    <path id="r" d="M10 18C24 9 43 15 54 27"/>
+  </defs>
+  <use href="#r" fill="none" stroke="#10141a" stroke-width="8" stroke-linecap="round"/>
+  <use href="#r" fill="none" stroke="url(#b)" stroke-width="8" stroke-linecap="round" transform="rotate(180 32 32)"/>
+</svg>

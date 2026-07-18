@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" role="img" aria-labelledby="t d" shape-rendering="geometricPrecision">
+  <title id="t">08.9 Phase curve</title><desc id="d">A stronger phase trajectory makes the negative sigmoid more distinctive.</desc>
+  <defs>
+    <linearGradient id="b" x1="10" y1="53" x2="55" y2="30" gradientUnits="userSpaceOnUse"><stop stop-color="#245574"/><stop offset=".58" stop-color="#347eae"/><stop offset="1" stop-color="#559ed1"/></linearGradient>
+    <path id="r" d="M8 14C20 8 38 12 52 23C55 25.5 56.5 27 57 29C45 26 31 26.5 18 33C13 28 10 21 8 14Z"/>
+  </defs>
+  <use href="#r" fill="#10141a"/><use href="#r" fill="url(#b)" transform="rotate(180 32 32)"/>
+</svg>

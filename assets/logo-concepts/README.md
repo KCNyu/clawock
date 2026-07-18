@@ -4,6 +4,8 @@ Ten temporary 64×64 vector directions. Black is Bear / counterargument, blue is
 
 ![Ten Clawock negative-space logo concepts](contact-sheet.png)
 
+**Selected for refinement:** 08 · Saddle window. [Compare ten focused 08 refinements](08-refinements/README.md).
+
 <table>
   <tr>
     <td align="center"><img src="01-hourglass-gap.svg" width="128"><br><b>01 · Hourglass gap</b></td>
