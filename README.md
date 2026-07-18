@@ -1,12 +1,14 @@
 <div align="center">
 
-# 📈 clawock
+<img src="assets/logo-mark.svg" alt="clawock logo" width="58">
+
+# clawock
 
 ### Multi-agent LLMs debate a **real HK + US stock portfolio**. Code controls the risk.
 
-[![Dashboard](https://img.shields.io/github/deployments/KCNyu/clawock/github-pages?label=DASHBOARD&style=flat-square&logo=githubpages&logoColor=white&labelColor=0b5688&color=36a3ff)](https://kcnyu.github.io/clawock/)
-[![CI](https://img.shields.io/github/actions/workflow/status/KCNyu/clawock/harness-regression.yml?label=CI&style=flat-square&logo=githubactions&logoColor=white&labelColor=0b5688&color=5b91e8)](https://github.com/KCNyu/clawock/actions/workflows/harness-regression.yml)
-[![License](https://img.shields.io/badge/LICENSE-MIT-8ed0ff?style=flat-square&labelColor=0b5688)](LICENSE)
+[![Dashboard](https://img.shields.io/github/deployments/KCNyu/clawock/github-pages?label=DASHBOARD&style=flat-square&logo=githubpages&logoColor=white&labelColor=252b35&color=4b91c8)](https://kcnyu.github.io/clawock/)
+[![CI](https://img.shields.io/github/actions/workflow/status/KCNyu/clawock/harness-regression.yml?label=CI&style=flat-square&logo=githubactions&logoColor=white&labelColor=252b35&color=738391)](https://github.com/KCNyu/clawock/actions/workflows/harness-regression.yml)
+[![License](https://img.shields.io/badge/LICENSE-MIT-aab5bf?style=flat-square&labelColor=252b35)](LICENSE)
 
 [**🎯 Live Dashboard**](https://kcnyu.github.io/clawock/) · [**📅 Daily Briefs**](https://kcnyu.github.io/clawock/briefs.html) · [**How it works ↓**](#-the-60-second-version)
 

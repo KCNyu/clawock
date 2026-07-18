@@ -13,7 +13,7 @@
  *
  * Outputs:
  *   assets/shadow-backtest.png   v2 cumulative win-rate chart (all / active / 50% ref)
- *   assets/social-card.png       1280x640 light-blue dashboard card + fresh Hero dashboard
+ *   assets/social-card.png       1280x640 pearl editorial card + fresh Hero dashboard
  *   assets/dashboard.gif         manual dispatch only; built from FRAME_DIR
  *   TMP_DIR/dashboard-preview.png  focused light Hero crop embedded into the social card
  *   .gifframes/f{0..5}.png       per-tab mobile frames → assemble_dashboard_gif.py
@@ -38,6 +38,8 @@ const path = require('path');
 
 const URL = process.env.URL || 'https://kcnyu.github.io/clawock/';
 const ROOT = path.resolve(__dirname, '../..');
+const BRAND_MARK_SVG = fs.readFileSync(path.join(ROOT, 'assets/logo-mark.svg'), 'utf8')
+  .replace('<svg ', '<svg class="brand-mark" ');
 const OUT_DIR = process.env.OUT_DIR || path.join(ROOT, 'assets');
 const FRAME_DIR = process.env.FRAME_DIR || path.join(ROOT, '.gifframes');
 // Intermediate only: the social card inlines it as a data-URI, so it never ships.
@@ -68,7 +70,7 @@ async function settle(page) {
 }
 
 // Retained only as an earlier code-native fallback; socialCardHTML() below owns
-// the current light-blue dashboard card and embeds the live UI directly.
+// the current pearl editorial card and embeds the live UI directly.
 function legacyCardHTML(shotDataUri) {
   void shotDataUri;
   return `<!doctype html><html><head><meta charset="utf-8"><style>
@@ -186,88 +188,72 @@ function socialCardHTML(shotDataUri) {
   html,body { width:1280px; height:640px; overflow:hidden; }
   body {
     font-family:-apple-system,"Segoe UI","Helvetica Neue","Noto Sans CJK SC",sans-serif;
+    color:#141a21; display:flex; align-items:center; position:relative;
     background:
-      radial-gradient(62% 92% at 8% 5%,rgba(255,255,255,.98),transparent 72%),
-      linear-gradient(128deg,#f8fbff 0%,#edf6ff 55%,#dceeff 100%);
-    color:#101821; display:flex; align-items:center; position:relative;
+      radial-gradient(42% 60% at 84% 6%, rgba(110,170,220,.22), transparent 68%),
+      radial-gradient(46% 58% at 4% 0%, rgba(255,255,255,.96), transparent 66%),
+      radial-gradient(70% 90% at 26% 128%, rgba(206,220,232,.55), transparent 60%),
+      linear-gradient(125deg,#fcfdfe 0%,#f4f6f9 54%,#e8eef3 100%);
   }
+  /* hairline inner frame + faint top sheen for depth */
   body::before {
-    content:""; position:absolute; inset:0; opacity:.34; pointer-events:none;
-    background-image:
-      linear-gradient(rgba(8,125,209,.09) 1px,transparent 1px),
-      linear-gradient(90deg,rgba(8,125,209,.09) 1px,transparent 1px);
-    background-size:42px 42px;
-    mask-image:linear-gradient(90deg,#000,transparent 52%);
+    content:""; position:absolute; inset:0; pointer-events:none; z-index:5;
+    box-shadow: inset 0 0 0 1px rgba(120,140,158,.10);
+    background: linear-gradient(180deg, rgba(255,255,255,.35), transparent 12%);
   }
-  body::after {
-    content:""; position:absolute; z-index:0; right:-180px; top:-178px;
-    width:880px; height:900px; border-radius:48%;
-    transform:rotate(-6deg);
-    background:
-      radial-gradient(circle at 76% 74%,rgba(112,190,244,.42),transparent 28%),
-      linear-gradient(145deg,rgba(231,245,255,.82),rgba(187,222,247,.92));
-    border:1px solid rgba(8,125,209,.10);
-    box-shadow:inset 1px 0 rgba(255,255,255,.72);
-  }
-  .left { width:560px; padding:58px 0 64px 70px; flex:none; z-index:3; }
-  .brand { display:flex; align-items:center; gap:12px; margin-bottom:32px; }
-  .brand .dot { width:16px; height:16px; border-radius:50%;
-    background:radial-gradient(circle at 35% 30%,#8ed0ff,#087dd1);
-    box-shadow:0 0 20px rgba(54,163,255,.44); }
+  .left { width:588px; padding:56px 0 60px 72px; flex:none; z-index:3; }
+  .brand { display:flex; align-items:center; gap:12px; margin-bottom:30px; }
+  .brand-mark { width:30px; height:30px; flex:none; }
   .brand .name { font-size:30px; font-weight:800; letter-spacing:-.5px; }
-  .eyebrow { margin-bottom:15px; color:#4e6d86; font-size:12px; font-weight:800;
-    letter-spacing:.16em; }
-  h1 { font-size:48px; line-height:1.08; font-weight:800; letter-spacing:-1.25px;
-    margin-bottom:22px; max-width:500px; }
+  .eyebrow { margin-bottom:16px; color:#6a7885; font-size:12px; font-weight:800;
+    letter-spacing:.17em; }
+  h1 { font-size:42px; line-height:1.1; font-weight:820; letter-spacing:-1.2px;
+    margin-bottom:22px; }
   h1 .hl {
-    color:#087dd1;
-    background:linear-gradient(90deg,#0567b1,#36a3ff);
+    background:linear-gradient(92deg,#1f2a34 8%,#4d708a 96%);
     -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;
   }
-  .sub { font-size:18px; line-height:1.5; color:#526170; font-weight:520; max-width:440px; }
-  .sub b { color:#152536; font-weight:750; }
-  .proof { display:flex; align-items:center; gap:13px; margin-top:31px;
-    color:#315d7c; font:800 12px/1 ui-monospace,SFMono-Regular,Menlo,monospace;
-    letter-spacing:.13em; }
-  .proof i { width:25px; height:1px; background:linear-gradient(90deg,#8ed0ff,#1687e8);
-    opacity:.72; }
-  .repo { position:absolute; left:68px; bottom:40px; font-size:18px; font-weight:700;
-    color:#0567b1; display:flex; align-items:center; gap:9px; }
-  .repo .star { color:#36a3ff; }
+  .sub { font-size:18px; line-height:1.5; color:#5f6d79; font-weight:500; max-width:452px; }
+  .sub b { color:#1e2831; font-weight:750; }
+  .proof { display:flex; align-items:center; gap:12px; margin-top:30px;
+    color:#4c5d6b; font:800 12px/1 ui-monospace,SFMono-Regular,Menlo,monospace;
+    letter-spacing:.14em; }
+  .proof i { width:22px; height:1px; background:linear-gradient(90deg,#aeb9c3,#6ea0c6); }
+  .repo { position:absolute; left:72px; bottom:38px; font-size:17px; font-weight:700;
+    color:#334653; display:flex; align-items:center; gap:11px; }
+  .repo::before { content:""; width:22px; height:2px; border-radius:2px; background:#6d9fc5; }
   .shot {
-    position:absolute; right:-34px; top:50%; transform:translateY(-50%) rotate(-2deg);
-    width:700px; height:508px; border-radius:17px; overflow:hidden;
+    position:absolute; right:-30px; top:50%; transform:translateY(-50%) rotate(-2deg);
+    width:706px; height:512px; border-radius:16px; overflow:hidden;
     box-shadow:
-      0 34px 80px rgba(35,79,115,.25),
-      0 0 0 1px rgba(82,141,187,.18),
-      0 0 72px rgba(54,163,255,.18);
+      0 40px 90px rgba(41,58,73,.20),
+      0 0 0 1px rgba(88,110,128,.14),
+      0 2px 10px rgba(41,58,73,.08);
     background:#fff; z-index:2;
   }
-  .shot .bar { height:36px; background:linear-gradient(180deg,#f8fafc,#e9eef5);
-    display:flex; align-items:center; gap:8px; padding:0 15px;
-    border-bottom:1px solid #dfe5ed; }
-  .shot .bar i { width:11px; height:11px; border-radius:50%; display:inline-block; }
+  .shot .bar { height:34px; background:linear-gradient(180deg,#fafbfc,#eef2f6);
+    display:flex; align-items:center; gap:7px; padding:0 15px;
+    border-bottom:1px solid #e3e8ee; }
+  .shot .bar i { width:10px; height:10px; border-radius:50%; display:inline-block; }
   .shot .bar i:nth-child(1){background:#ff5f57}
   .shot .bar i:nth-child(2){background:#febc2e}
   .shot .bar i:nth-child(3){background:#28c840}
-  .shot .address { width:165px; height:8px; margin-left:12px; border-radius:99px;
-    background:#d7dee8; }
-  .shot img { width:100%; height:472px; object-fit:cover; object-position:left top; display:block; }
-  .shot::after { content:""; position:absolute; inset:36px 0 0; pointer-events:none;
-    box-shadow:inset 0 0 0 1px rgba(30,63,95,.08); }
-  .fade { position:absolute; right:0; top:0; bottom:0; width:100px; z-index:4;
-    background:linear-gradient(90deg,rgba(220,238,255,0),rgba(166,211,244,.18)); pointer-events:none; }
+  .shot .address { width:150px; height:8px; margin-left:12px; border-radius:99px;
+    background:#dae1ea; }
+  .shot img { width:100%; height:478px; object-fit:cover; object-position:left top; display:block; }
 </style></head><body>
   <div class="left">
-    <div class="brand"><span class="dot"></span><span class="name">clawock</span></div>
-    <div class="eyebrow">AUTONOMOUS · MULTI-AGENT LLM STOCK DESK</div>
+    <div class="brand">
+      ${BRAND_MARK_SVG}
+      <span class="name">clawock</span>
+    </div>
+    <div class="eyebrow">AUTONOMOUS · MULTI-AGENT · REAL MONEY</div>
     <h1>AI agents debate.<br><span class="hl">Code controls the risk.</span></h1>
-    <div class="sub">Built on a <b>real HK + US portfolio</b>, with every call returned to a public scorecard and <b>published unedited.</b></div>
+    <div class="sub">A real <b>HK + US portfolio</b>, where every call is settled on a public scorecard and <b>published unedited.</b></div>
     <div class="proof"><span>DEBATE</span><i></i><span>GATE</span><i></i><span>GRADE</span></div>
-    <div class="repo"><span class="star">★</span> github.com/KCNyu/clawock</div>
+    <div class="repo">github.com/KCNyu/clawock</div>
   </div>
   <div class="shot"><div class="bar"><i></i><i></i><i></i><span class="address"></span></div><img src="${shotDataUri}" alt=""></div>
-  <div class="fade"></div>
   </body></html>`;
 }
 
@@ -298,8 +284,8 @@ function socialCardHTML(shotDataUri) {
     await shadow.screenshot({ path: `${OUT_DIR}/shadow-backtest.png` });
     await desk.close();
 
-    // 2) Social card: match the dashboard's light theme — pale-blue gradient,
-    //    dashboard-blue accents, and a real light dashboard in a tilted browser.
+    // 2) Social card: a pearl/graphite editorial field with one restrained blue
+    //    accent and a real light dashboard in a tilted browser.
     const socialDesk = await browser.newContext({
       viewport: { width: 1200, height: 760 },
       deviceScaleFactor: 2,
