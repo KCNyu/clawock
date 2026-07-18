@@ -188,87 +188,72 @@ function socialCardHTML(shotDataUri) {
   html,body { width:1280px; height:640px; overflow:hidden; }
   body {
     font-family:-apple-system,"Segoe UI","Helvetica Neue","Noto Sans CJK SC",sans-serif;
+    color:#141a21; display:flex; align-items:center; position:relative;
     background:
-      radial-gradient(65% 95% at 7% 4%,rgba(255,255,255,.98),transparent 72%),
-      linear-gradient(128deg,#fcfcfd 0%,#f5f6f8 56%,#edf2f5 100%);
-    color:#151a21; display:flex; align-items:center; position:relative;
+      radial-gradient(42% 60% at 84% 6%, rgba(110,170,220,.22), transparent 68%),
+      radial-gradient(46% 58% at 4% 0%, rgba(255,255,255,.96), transparent 66%),
+      radial-gradient(70% 90% at 26% 128%, rgba(206,220,232,.55), transparent 60%),
+      linear-gradient(125deg,#fcfdfe 0%,#f4f6f9 54%,#e8eef3 100%);
   }
+  /* hairline inner frame + faint top sheen for depth */
   body::before {
-    content:""; position:absolute; inset:0; pointer-events:none;
-    background:
-      radial-gradient(circle at 84% 16%,rgba(121,181,225,.22),transparent 28%),
-      radial-gradient(circle at 48% 88%,rgba(255,255,255,.82),transparent 34%);
+    content:""; position:absolute; inset:0; pointer-events:none; z-index:5;
+    box-shadow: inset 0 0 0 1px rgba(120,140,158,.10);
+    background: linear-gradient(180deg, rgba(255,255,255,.35), transparent 12%);
   }
-  body::after {
-    content:""; position:absolute; z-index:0; right:-215px; top:-205px;
-    width:900px; height:920px; border-radius:48%;
-    transform:rotate(-7deg);
-    background:
-      radial-gradient(circle at 72% 70%,rgba(127,184,226,.22),transparent 28%),
-      linear-gradient(145deg,rgba(255,255,255,.82),rgba(216,227,236,.72));
-    border:1px solid rgba(91,115,135,.10);
-    box-shadow:inset 1px 0 rgba(255,255,255,.88);
-  }
-  .left { width:560px; padding:58px 0 64px 70px; flex:none; z-index:3; }
-  .brand { display:flex; align-items:center; gap:12px; margin-bottom:32px; }
-  .brand-mark { width:29px; height:29px; flex:none; }
+  .left { width:588px; padding:56px 0 60px 72px; flex:none; z-index:3; }
+  .brand { display:flex; align-items:center; gap:12px; margin-bottom:30px; }
+  .brand-mark { width:30px; height:30px; flex:none; }
   .brand .name { font-size:30px; font-weight:800; letter-spacing:-.5px; }
-  .eyebrow { margin-bottom:15px; color:#667582; font-size:12px; font-weight:800;
-    letter-spacing:.16em; }
-  h1 { font-size:48px; line-height:1.08; font-weight:800; letter-spacing:-1.25px;
-    margin-bottom:22px; max-width:500px; }
+  .eyebrow { margin-bottom:16px; color:#6a7885; font-size:12px; font-weight:800;
+    letter-spacing:.17em; }
+  h1 { font-size:42px; line-height:1.1; font-weight:820; letter-spacing:-1.2px;
+    margin-bottom:22px; }
   h1 .hl {
-    color:#293844;
-    background:linear-gradient(90deg,#202b35,#586f81);
+    background:linear-gradient(92deg,#1f2a34 8%,#4d708a 96%);
     -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;
   }
-  .sub { font-size:18px; line-height:1.5; color:#64717c; font-weight:520; max-width:440px; }
-  .sub b { color:#202a33; font-weight:750; }
-  .proof { display:flex; align-items:center; gap:13px; margin-top:31px;
-    color:#4f606e; font:800 12px/1 ui-monospace,SFMono-Regular,Menlo,monospace;
-    letter-spacing:.13em; }
-  .proof i { width:25px; height:1px; background:linear-gradient(90deg,#b9c4cd,#6d9fc5);
-    opacity:.72; }
-  .repo { position:absolute; left:68px; bottom:40px; font-size:18px; font-weight:700;
-    color:#344754; display:flex; align-items:center; gap:11px; }
+  .sub { font-size:18px; line-height:1.5; color:#5f6d79; font-weight:500; max-width:452px; }
+  .sub b { color:#1e2831; font-weight:750; }
+  .proof { display:flex; align-items:center; gap:12px; margin-top:30px;
+    color:#4c5d6b; font:800 12px/1 ui-monospace,SFMono-Regular,Menlo,monospace;
+    letter-spacing:.14em; }
+  .proof i { width:22px; height:1px; background:linear-gradient(90deg,#aeb9c3,#6ea0c6); }
+  .repo { position:absolute; left:72px; bottom:38px; font-size:17px; font-weight:700;
+    color:#334653; display:flex; align-items:center; gap:11px; }
   .repo::before { content:""; width:22px; height:2px; border-radius:2px; background:#6d9fc5; }
   .shot {
-    position:absolute; right:-34px; top:50%; transform:translateY(-50%) rotate(-2deg);
-    width:700px; height:508px; border-radius:17px; overflow:hidden;
+    position:absolute; right:-30px; top:50%; transform:translateY(-50%) rotate(-2deg);
+    width:706px; height:512px; border-radius:16px; overflow:hidden;
     box-shadow:
-      0 34px 80px rgba(38,53,65,.20),
-      0 0 0 1px rgba(82,105,123,.16),
-      0 0 72px rgba(109,159,197,.12);
+      0 40px 90px rgba(41,58,73,.20),
+      0 0 0 1px rgba(88,110,128,.14),
+      0 2px 10px rgba(41,58,73,.08);
     background:#fff; z-index:2;
   }
-  .shot .bar { height:36px; background:linear-gradient(180deg,#f8fafc,#e9eef5);
-    display:flex; align-items:center; gap:8px; padding:0 15px;
-    border-bottom:1px solid #dfe5ed; }
-  .shot .bar i { width:11px; height:11px; border-radius:50%; display:inline-block; }
+  .shot .bar { height:34px; background:linear-gradient(180deg,#fafbfc,#eef2f6);
+    display:flex; align-items:center; gap:7px; padding:0 15px;
+    border-bottom:1px solid #e3e8ee; }
+  .shot .bar i { width:10px; height:10px; border-radius:50%; display:inline-block; }
   .shot .bar i:nth-child(1){background:#ff5f57}
   .shot .bar i:nth-child(2){background:#febc2e}
   .shot .bar i:nth-child(3){background:#28c840}
-  .shot .address { width:165px; height:8px; margin-left:12px; border-radius:99px;
-    background:#d7dee8; }
-  .shot img { width:100%; height:472px; object-fit:cover; object-position:left top; display:block; }
-  .shot::after { content:""; position:absolute; inset:36px 0 0; pointer-events:none;
-    box-shadow:inset 0 0 0 1px rgba(30,63,95,.08); }
-  .fade { position:absolute; right:0; top:0; bottom:0; width:100px; z-index:4;
-    background:linear-gradient(90deg,rgba(237,242,245,0),rgba(190,206,218,.14)); pointer-events:none; }
+  .shot .address { width:150px; height:8px; margin-left:12px; border-radius:99px;
+    background:#dae1ea; }
+  .shot img { width:100%; height:478px; object-fit:cover; object-position:left top; display:block; }
 </style></head><body>
   <div class="left">
     <div class="brand">
       ${BRAND_MARK_SVG}
       <span class="name">clawock</span>
     </div>
-    <div class="eyebrow">AUTONOMOUS · MULTI-AGENT LLM STOCK DESK</div>
+    <div class="eyebrow">AUTONOMOUS · MULTI-AGENT · REAL MONEY</div>
     <h1>AI agents debate.<br><span class="hl">Code controls the risk.</span></h1>
-    <div class="sub">Built on a <b>real HK + US portfolio</b>, with every call returned to a public scorecard and <b>published unedited.</b></div>
+    <div class="sub">A real <b>HK + US portfolio</b>, where every call is settled on a public scorecard and <b>published unedited.</b></div>
     <div class="proof"><span>DEBATE</span><i></i><span>GATE</span><i></i><span>GRADE</span></div>
     <div class="repo">github.com/KCNyu/clawock</div>
   </div>
   <div class="shot"><div class="bar"><i></i><i></i><i></i><span class="address"></span></div><img src="${shotDataUri}" alt=""></div>
-  <div class="fade"></div>
   </body></html>`;
 }
 

@@ -1,185 +1,164 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="900" height="560" viewBox="0 0 900 560" role="img" aria-labelledby="title desc">
   <title id="title">How clawock turns evidence into a public investment record</title>
-  <desc id="desc">Python assembles an immutable evidence pack. Independent agent lenses form bull and bear cases, three risk voices challenge them, and a judge writes a proposed strategy. Python validates the decision contract and publishes the brief, ledger, and dashboard. Canonical market bars settle every call and feed a public scorecard back into the next brief.</desc>
+  <desc id="desc">A closed loop. Python assembles one immutable evidence pack. Independent agent lenses argue bull versus bear, three risk voices stress every call, and a judge writes a proposed strategy. Python validates the decision contract and publishes the brief, ledger, and dashboard. Canonical market bars settle every call, grading feeds a public scorecard, and the scorecard feeds the next brief.</desc>
   <defs>
-    <linearGradient id="page-blue" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#fbfbfc"/>
+    <linearGradient id="page" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#fcfcfd"/>
       <stop offset=".58" stop-color="#f5f6f8"/>
       <stop offset="1" stop-color="#eef2f5"/>
     </linearGradient>
-    <linearGradient id="decision-blue" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#fafbfc"/>
-      <stop offset="1" stop-color="#edf2f6"/>
+    <linearGradient id="core" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#fbfcfd"/>
+      <stop offset="1" stop-color="#eaf1f6"/>
     </linearGradient>
     <linearGradient id="brand-bull" x1="14" y1="50" x2="51" y2="31" gradientUnits="userSpaceOnUse">
       <stop offset="0" stop-color="#245574"/>
       <stop offset="1" stop-color="#559ed1"/>
     </linearGradient>
-    <marker id="arrow-blue" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
-      <path d="M0 0L8 4L0 8Z" fill="#65798a"/>
+    <marker id="arrow" markerWidth="9" markerHeight="9" refX="6.5" refY="4" orient="auto">
+      <path d="M0 0L8 4L0 8Z" fill="#7c8b99"/>
     </marker>
     <style>
       .sans{font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif}
-      .mono{font-family:"SFMono-Regular",Consolas,"Liberation Mono",monospace}
       .ink{fill:#151a21}.muted{fill:#61707e}.blue{fill:#4b83ad}.green{fill:#138b66}.warm{fill:#b8524a}
-      .kicker{font:700 10.5px "SFMono-Regular",Consolas,monospace;letter-spacing:1.2px}
-      .title{font:800 25px Inter,-apple-system,"Segoe UI",Arial,sans-serif;letter-spacing:-.55px}
-      .stage{font:800 20px Inter,-apple-system,"Segoe UI",Arial,sans-serif;letter-spacing:-.35px}
+      .kicker{font:700 10px "SFMono-Regular",Consolas,monospace;letter-spacing:1.3px}
+      .title{font:800 26px Inter,-apple-system,"Segoe UI",Arial,sans-serif;letter-spacing:-.6px}
+      .stage{font:800 20px Inter,-apple-system,"Segoe UI",Arial,sans-serif;letter-spacing:-.4px}
       .body{font:500 12.5px Inter,-apple-system,"Segoe UI",Arial,sans-serif}
       .label{font:750 12px Inter,-apple-system,"Segoe UI",Arial,sans-serif}
       .micro{font:600 10.5px "SFMono-Regular",Consolas,monospace}
-      .card{fill:#fff;stroke:#d8e0e8;stroke-width:1.2}
-      .chip{fill:#f2f5f8;stroke:#d8e0e8;stroke-width:1}
-      .wire{fill:none;stroke:#65798a;stroke-width:1.8;marker-end:url(#arrow-blue)}
+      .card{fill:#fff;stroke:#dde4eb;stroke-width:1.2}
+      .chip{fill:#f2f5f8;stroke:#dde4eb;stroke-width:1}
+      .wire{fill:none;stroke:#8593a1;stroke-width:1.8;marker-end:url(#arrow)}
     </style>
   </defs>
 
-  <rect width="900" height="560" fill="url(#page-blue)"/>
+  <rect width="900" height="560" fill="url(#page)"/>
 
+  <!-- Header -->
   <g class="sans">
-    <g transform="translate(20 17) scale(.34)">
+    <g transform="translate(24 18) scale(.34)">
       <path d="M8 13C22 9 40 16 55 28C42 24 28 25 17 32C12 27 9 21 8 13Z" fill="#10141a"/>
       <path d="M56 51C42 55 24 48 9 36C22 40 36 39 47 32C52 37 55 43 56 51Z" fill="url(#brand-bull)"/>
     </g>
-    <text x="47" y="36" font-size="20" font-weight="800" class="ink">clawock</text>
-    <text x="875" y="34" text-anchor="end" class="kicker blue">SYSTEM ARCHITECTURE · HK + US</text>
-
-    <text x="24" y="66" class="title ink">How one claim becomes a public record</text>
-    <text x="24" y="87" class="body muted">Agents may argue. They cannot rewrite facts, limits or outcomes.</text>
+    <text x="52" y="36" font-size="20" font-weight="800" class="ink">clawock</text>
+    <text x="876" y="34" text-anchor="end" class="kicker blue">SYSTEM ARCHITECTURE · HK + US</text>
+    <text x="24" y="74" class="title ink">How one claim becomes a public record</text>
+    <text x="24" y="95" class="body muted">Agents argue the call. Code settles the outcome — and the record feeds the next call.</text>
   </g>
 
-  <!-- Main execution rail -->
-  <path d="M204 254H222" class="wire"/>
-  <path d="M588 254H606" class="wire"/>
-
-  <!-- 01 Evidence -->
-  <g transform="translate(24 108)" class="sans">
-    <rect class="card" width="180" height="292" rx="15"/>
-    <rect width="5" height="292" rx="2.5" fill="#6d9fc5"/>
-    <text x="20" y="28" class="kicker blue">01 · PYTHON</text>
-    <text x="20" y="59" class="stage ink">Evidence pack</text>
-    <text x="20" y="80" class="body muted">One reconciled input.</text>
-
-    <path d="M20 96H160" stroke="#e1e9f0"/>
-
-    <text x="20" y="115" class="kicker blue">BOOK</text>
-    <text x="20" y="133" class="label ink">holdings · cash · FX</text>
-
-    <text x="20" y="153" class="kicker blue">MARKET</text>
-    <text x="20" y="171" class="label ink">prices · regime · signals</text>
-
-    <text x="20" y="191" class="kicker blue">RISK</text>
-    <text x="20" y="209" class="label ink">exposure · caps · stops</text>
-
-    <text x="20" y="229" class="kicker blue">EVENTS</text>
-    <text x="20" y="247" class="label ink">filings · catalysts · news</text>
-
-    <rect x="18" y="260" width="144" height="24" rx="12" fill="#e9eef2"/>
-    <text x="90" y="276" text-anchor="middle" class="micro blue">IMMUTABLE CONTEXT</text>
-  </g>
-
-  <!-- 02 Agent decision room -->
-  <g transform="translate(222 108)" class="sans">
-    <rect width="366" height="292" rx="15" fill="url(#decision-blue)" stroke="#cbd5dd" stroke-width="1.2"/>
-    <rect width="366" height="5" rx="2.5" fill="#7aa7c8"/>
-    <text x="20" y="28" class="kicker blue">02 · MULTI-AGENT LLM</text>
-    <text x="20" y="59" class="stage ink">Decision room</text>
-    <text x="346" y="58" text-anchor="end" class="body muted">Disagreement is the feature.</text>
-
-    <text x="20" y="91" class="kicker blue">INDEPENDENT LENSES</text>
-    <g transform="translate(20 102)">
-      <rect width="153" height="28" rx="7" fill="#fff" opacity=".78"/>
-      <text x="76.5" y="18" text-anchor="middle" class="label ink">Fundamentals</text>
-      <rect x="173" width="153" height="28" rx="7" fill="#fff" opacity=".78"/>
-      <text x="249.5" y="18" text-anchor="middle" class="label ink">Market + quant</text>
-      <rect y="36" width="153" height="28" rx="7" fill="#fff" opacity=".78"/>
-      <text x="76.5" y="54" text-anchor="middle" class="label ink">Sentiment + events</text>
-      <rect x="173" y="36" width="153" height="28" rx="7" fill="#fff" opacity=".78"/>
-      <text x="249.5" y="54" text-anchor="middle" class="label ink">Cross-market</text>
-    </g>
-
-    <text x="20" y="185" class="kicker blue">FORCED CONTEST</text>
-    <rect x="20" y="196" width="136" height="31" rx="8" fill="#e8f6f1" stroke="#c9e7dc"/>
-    <text x="88" y="216" text-anchor="middle" class="label green">BULL CASE</text>
-    <text x="183" y="216" text-anchor="middle" class="kicker blue">VS</text>
-    <rect x="210" y="196" width="136" height="31" rx="8" fill="#fff0ef" stroke="#f0d1cf"/>
-    <text x="278" y="216" text-anchor="middle" class="label warm">BEAR CASE</text>
-
-    <text x="20" y="242" class="kicker blue">RISK VOICES</text>
-    <text x="116" y="242" class="micro ink">AGGRESSIVE</text>
-    <circle cx="187" cy="238" r="2.5" fill="#7aa7c8"/>
-    <text x="199" y="242" class="micro ink">NEUTRAL</text>
-    <circle cx="251" cy="238" r="2.5" fill="#7aa7c8"/>
-    <text x="263" y="242" class="micro ink">CONSERVATIVE</text>
-
-    <rect x="20" y="251" width="326" height="34" rx="9" fill="#26323d"/>
-    <text x="35" y="265" class="kicker" fill="#c8d9e6">JUDGE</text>
-    <text x="35" y="279" class="micro" fill="#fff">strategy + action + trigger + confidence</text>
-  </g>
-
-  <!-- 03 Deterministic decision contract -->
-  <g transform="translate(606 108)" class="sans">
-    <rect class="card" width="270" height="292" rx="15"/>
-    <rect width="5" height="292" rx="2.5" fill="#6d9fc5"/>
-    <text x="20" y="28" class="kicker blue">03 · PYTHON CODE GATE</text>
-    <text x="20" y="59" class="stage ink">Decision contract</text>
-    <text x="20" y="80" class="body muted">Only valid records get published.</text>
-
-    <path d="M20 96H250" stroke="#e1e9f0"/>
-
-    <circle cx="31" cy="122" r="11" fill="#e9eef2"/>
-    <path d="M26 122l3 3 6-7" fill="none" stroke="#4b83ad" stroke-width="1.8"/>
-    <text x="51" y="120" class="label ink">Validate required fields</text>
-    <text x="51" y="137" class="micro muted">condition · size · rationale</text>
-
-    <circle cx="31" cy="166" r="11" fill="#f5e6dd"/>
-    <path d="M31 159v8M31 171v1" stroke="#b95f3a" stroke-width="1.8"/>
-    <text x="51" y="164" class="label ink">Require hard-limit actions</text>
-    <text x="51" y="181" class="micro muted">reject omitted risk breaches</text>
-
-    <circle cx="31" cy="210" r="11" fill="#e9eef2"/>
-    <text x="31" y="214" text-anchor="middle" class="micro blue">#</text>
-    <text x="51" y="208" class="label ink">Assign stable identity</text>
-    <text x="51" y="225" class="micro muted">strategy · decision · episode</text>
-
-    <text x="20" y="250" class="kicker blue">VERSIONED OUTPUT</text>
-    <g transform="translate(20 260)">
-      <rect class="chip" width="68" height="27" rx="7"/>
-      <text x="34" y="18" text-anchor="middle" class="micro ink">BRIEF</text>
-      <rect x="76" class="chip" width="76" height="27" rx="7"/>
-      <text x="114" y="18" text-anchor="middle" class="micro ink">LEDGER</text>
-      <rect x="160" class="chip" width="90" height="27" rx="7"/>
-      <text x="205" y="18" text-anchor="middle" class="micro ink">DASHBOARD</text>
-    </g>
-  </g>
-
-  <!-- Evidence loop -->
+  <!-- Loop connectors (clockwise ring) -->
   <g class="sans">
-    <text x="24" y="426" class="kicker blue">THE SYSTEM HAS TO FACE ITS OWN RECORD</text>
-    <text x="876" y="426" text-anchor="end" class="micro muted">no model edits after publication</text>
+    <path d="M288 197H314" class="wire"/>
+    <path d="M582 197H608" class="wire"/>
+    <path d="M744 282V370" class="wire"/>
+    <path d="M612 437H586" class="wire"/>
+    <path d="M318 437H292" class="wire"/>
+    <path d="M156 372V284" class="wire"/>
 
-    <rect x="24" y="442" width="852" height="90" rx="15" fill="#fff" stroke="#d8e0e8" stroke-width="1.2"/>
-    <path d="M225 487H257" class="wire"/>
-    <path d="M465 487H497" class="wire"/>
-    <path d="M697 487H729" class="wire"/>
+    <!-- publish token on the right connector -->
+    <g transform="translate(744 327)">
+      <rect x="-52" y="-13" width="104" height="26" rx="13" fill="#26323d"/>
+      <text x="0" y="4" text-anchor="middle" class="kicker" fill="#eaf2f8">PUBLISH</text>
+    </g>
+    <!-- return token on the left connector -->
+    <g transform="translate(156 328)">
+      <rect x="-56" y="-13" width="112" height="26" rx="13" fill="#fff" stroke="#cbd9e4"/>
+      <text x="0" y="4" text-anchor="middle" class="kicker blue">&#8634; NEXT BRIEF</text>
+    </g>
+  </g>
 
-    <circle cx="51" cy="487" r="17" fill="#e9eef2"/>
-    <path d="M43 487h16M51 479v16" stroke="#5d7487" stroke-width="1.6"/>
-    <text x="78" y="482" class="kicker blue">CANONICAL BARS</text>
-    <text x="78" y="501" class="body muted">session-dated truth</text>
+  <!-- 01 Evidence pack -->
+  <g transform="translate(24 112)" class="sans">
+    <rect class="card" width="264" height="170" rx="15"/>
+    <rect width="5" height="170" rx="2.5" fill="#6d9fc5"/>
+    <text x="20" y="30" class="kicker blue">01 · PYTHON</text>
+    <text x="20" y="60" class="stage ink">Evidence pack</text>
+    <text x="20" y="80" class="body muted">One reconciled, immutable input.</text>
+    <path d="M20 94H244" stroke="#e6ecf1"/>
+    <g transform="translate(20 108)">
+      <rect width="106" height="26" rx="8" class="chip"/>
+      <text x="53" y="17" text-anchor="middle" class="label ink">Book</text>
+      <rect x="118" width="106" height="26" rx="8" class="chip"/>
+      <text x="171" y="17" text-anchor="middle" class="label ink">Market</text>
+      <rect y="34" width="106" height="26" rx="8" class="chip"/>
+      <text x="53" y="51" text-anchor="middle" class="label ink">Risk</text>
+      <rect x="118" y="34" width="106" height="26" rx="8" class="chip"/>
+      <text x="171" y="51" text-anchor="middle" class="label ink">Events</text>
+    </g>
+  </g>
 
-    <circle cx="284" cy="487" r="17" fill="#e9eef2"/>
-    <path d="M277 487h14M284 480v14" stroke="#5d7487" stroke-width="1.6"/>
-    <text x="311" y="482" class="kicker blue">SETTLE + GRADE</text>
-    <text x="311" y="501" class="body muted">episodes · timing · calibration</text>
+  <!-- 02 Decision room -->
+  <g transform="translate(318 112)" class="sans">
+    <rect width="264" height="170" rx="15" fill="url(#core)" stroke="#cbd8e2" stroke-width="1.2"/>
+    <rect width="5" height="170" rx="2.5" fill="#7aa7c8"/>
+    <text x="20" y="30" class="kicker blue">02 · MULTI-AGENT LLM</text>
+    <text x="20" y="60" class="stage ink">Decision room</text>
+    <text x="20" y="80" class="body muted">Independent lenses argue bull vs bear;</text>
+    <text x="20" y="96" class="body muted">three risk voices stress every call.</text>
+    <rect x="20" y="108" width="98" height="30" rx="8" fill="#e8f6f1" stroke="#c9e7dc"/>
+    <text x="69" y="128" text-anchor="middle" class="label green">BULL</text>
+    <text x="132" y="128" text-anchor="middle" class="kicker blue">VS</text>
+    <rect x="146" y="108" width="98" height="30" rx="8" fill="#fff0ef" stroke="#f0d1cf"/>
+    <text x="195" y="128" text-anchor="middle" class="label warm">BEAR</text>
+    <rect x="20" y="146" width="224" height="30" rx="9" fill="#26323d"/>
+    <text x="34" y="165" class="kicker" fill="#c8d9e6">JUDGE</text>
+    <text x="80" y="165" fill="#eef4f8" font-size="8.5" font-family="'SFMono-Regular',Consolas,monospace">action · trigger · confidence</text>
+  </g>
 
-    <circle cx="524" cy="487" r="17" fill="#e9eef2"/>
-    <path d="M517 491l4-5 4 3 7-9" fill="none" stroke="#5d7487" stroke-width="1.6"/>
-    <text x="551" y="482" class="kicker blue">PUBLIC SCORECARD</text>
-    <text x="551" y="501" class="body muted">outcomes + coverage</text>
+  <!-- 03 Decision contract -->
+  <g transform="translate(612 112)" class="sans">
+    <rect class="card" width="264" height="170" rx="15"/>
+    <rect width="5" height="170" rx="2.5" fill="#6d9fc5"/>
+    <text x="20" y="30" class="kicker blue">03 · PYTHON CODE GATE</text>
+    <text x="20" y="60" class="stage ink">Decision contract</text>
+    <text x="20" y="80" class="body muted">Only valid records get published.</text>
+    <path d="M20 94H244" stroke="#e6ecf1"/>
 
-    <rect x="736" y="467" width="122" height="40" rx="20" fill="#26323d"/>
-    <text x="797" y="483" text-anchor="middle" class="kicker" fill="#c8d9e6">FEEDBACK</text>
-    <text x="797" y="498" text-anchor="middle" class="micro" fill="#fff">↺ NEXT BRIEF</text>
+    <circle cx="31" cy="116" r="11" fill="#e9eef2"/>
+    <path d="M26 116l3 3 6-7" fill="none" stroke="#4b83ad" stroke-width="1.8"/>
+    <text x="51" y="120" class="label ink">Required fields validated</text>
+
+    <circle cx="31" cy="146" r="11" fill="#f5e6dd"/>
+    <path d="M31 139v8M31 151v1" stroke="#b95f3a" stroke-width="1.8"/>
+    <text x="51" y="150" class="label ink">Hard-limit actions enforced</text>
+    <text x="20" y="166" class="micro muted">&#8594; brief · ledger · dashboard</text>
+  </g>
+
+  <!-- Settlement loop (bottom row, flows right to left) -->
+  <!-- Public scorecard -->
+  <g transform="translate(24 374)" class="sans">
+    <rect class="card" width="264" height="126" rx="15"/>
+    <circle cx="34" cy="40" r="15" fill="#e9eef2"/>
+    <path d="M27 45l4-5 4 3 7-9" fill="none" stroke="#5d7487" stroke-width="1.7"/>
+    <text x="60" y="36" class="kicker blue">PUBLIC SCORECARD</text>
+    <text x="60" y="55" class="body muted">outcomes + coverage</text>
+    <path d="M20 78H244" stroke="#e6ecf1"/>
+    <text x="20" y="102" class="body ink">Every call graded in the open,</text>
+    <text x="20" y="118" class="label ink">win rate · Brier · timing edge</text>
+  </g>
+
+  <!-- Settle + grade -->
+  <g transform="translate(318 374)" class="sans">
+    <rect class="card" width="264" height="126" rx="15"/>
+    <circle cx="34" cy="40" r="15" fill="#e9eef2"/>
+    <path d="M27 40h14M34 33v14" stroke="#5d7487" stroke-width="1.6"/>
+    <text x="60" y="36" class="kicker blue">SETTLE + GRADE</text>
+    <text x="60" y="55" class="body muted">episodes · timing · calibration</text>
+    <path d="M20 78H244" stroke="#e6ecf1"/>
+    <text x="20" y="102" class="body ink">Each episode scored on the</text>
+    <text x="20" y="118" class="label ink">move that actually happened</text>
+  </g>
+
+  <!-- Canonical bars -->
+  <g transform="translate(612 374)" class="sans">
+    <rect class="card" width="264" height="126" rx="15"/>
+    <circle cx="34" cy="40" r="15" fill="#e9eef2"/>
+    <path d="M27 47l4-6 3 4 3-8 4 5" fill="none" stroke="#5d7487" stroke-width="1.6"/>
+    <text x="60" y="36" class="kicker blue">CANONICAL BARS</text>
+    <text x="60" y="55" class="body muted">session-dated market truth</text>
+    <path d="M20 78H244" stroke="#e6ecf1"/>
+    <text x="20" y="102" class="body ink">One settled price series,</text>
+    <text x="20" y="118" class="label ink">no post-hoc adjustment</text>
   </g>
 </svg>
