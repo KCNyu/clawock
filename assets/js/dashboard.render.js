@@ -124,6 +124,20 @@
         txt: `Regime ${escapeHtml(rg.label.replace("_"," "))} · ${escapeHtml(r.stance)}` });
     }
 
+    // What changed since the previous decision set. Counts are dynamic and come
+    // from the canonical delta payload; no live number is baked into static copy.
+    const dd = safe(DATA, "decision_delta") || {};
+    const changedN = (dd.changed || []).length;
+    const newN = (dd.new || []).length;
+    const triggeredN = (dd.triggered || []).length;
+    if (dd.has_material_change || changedN || newN || triggeredN) {
+      chips.push({
+        cls: triggeredN ? "hl-alert" : "hl-info",
+        icon: triggeredN ? "⚡" : "↻",
+        txt: `决策变化 · 新增 ${newN} · 修改 ${changedN} · 触发 ${triggeredN}`,
+      });
+    }
+
     // (30d 自评指标 — 主动 vs 持有 alpha + catalyst 纪律 — 不再在此重复;
     //  它们是回顾性统计,归属正下方的 🪞 诚实自评卡,不属于「今日速读」。)
 
@@ -173,7 +187,10 @@
       return;
     }
     el.style.display = "";
-    el.innerHTML = chips.map(c =>
+    // The verdict column is intentionally compact. Movers/anomalies have their
+    // own linked strip below and catalysts live in Signals, so the first three
+    // decision-driving changes are the overview payload.
+    el.innerHTML = chips.slice(0, 3).map(c =>
       `<span class="hl-chip ${c.cls}"><span class="hl-ic">${c.icon}</span>${c.txt}</span>`).join("");
   }
 
@@ -247,19 +264,82 @@
       el.textContent = text;
       el.className = "dr-v" + (cls ? " " + cls : "");
     });
+    const compact = document.getElementById("dr-compact");
+    if (compact) {
+      compact.textContent = `Book ${values[0][1]} · US ${values[1][1]} · HK ${values[2][1]} · Followed ${values[3][1]} · Brier ${values[4][1]}`;
+      compact.title = compact.textContent;
+    }
+
+    // Hero promotion: rate includes its known execution sample; calibration
+    // explicitly compares against the leave-one-out baseline and names n.
+    const followed = document.getElementById("overview-followed");
+    const followedMeta = document.getElementById("overview-followed-meta");
+    const brier = document.getElementById("overview-brier");
+    const brierMeta = document.getElementById("overview-brier-meta");
+    const activeCal = safe(metrics, "calibration", "active") || {};
+    if (followed) {
+      followed.textContent = values[3][1];
+      followed.className = "overview-discipline-value neutral";
+    }
+    if (followedMeta) {
+      followedMeta.textContent = activeExec.known == null ? "known sample —" : `known n=${activeExec.known}`;
+    }
+    if (brier) {
+      brier.textContent = metrics.brier == null ? DASH : metrics.brier.toFixed(3);
+      brier.className = "overview-discipline-value " +
+        (metrics.brier_beats_baseline === true ? "pos" :
+          metrics.brier_beats_baseline === false ? "neg" : "neutral");
+    }
+    if (brierMeta) {
+      const baseline = metrics.brier_baseline_loo ?? activeCal.baseline_loo;
+      const n = activeCal.n;
+      brierMeta.textContent = `vs LOO ${baseline == null ? DASH : baseline.toFixed(3)} · active n=${n == null ? DASH : n}`;
+    }
+  }
+
+  function renderOverviewSummaries() {
+    const moverEl = document.getElementById("overview-mover-summary");
+    const anomalyCount = document.getElementById("overview-anomaly-count");
+    const anomalySummary = document.getElementById("overview-anomaly-summary");
+    const movers = (safe(DATA, "today_movers") || []).slice().sort((a, b) =>
+      Math.abs(b.today_change_pct || 0) - Math.abs(a.today_change_pct || 0)
+    );
+    const anomalies = safe(DATA, "anomalies") || [];
+    if (moverEl) {
+      if (!movers.length) {
+        moverEl.textContent = "No ≥3% movers";
+        moverEl.className = "overview-mover-summary neutral";
+      } else {
+        const m = movers[0];
+        moverEl.innerHTML = `<span class="tk">${escapeHtml(m.ticker || DASH)}</span>${fmtPct(m.today_change_pct, 1)}`;
+        moverEl.className = "overview-mover-summary " + pnlClass(m.today_change_pct);
+      }
+    }
+    if (anomalyCount) {
+      anomalyCount.textContent = String(anomalies.length);
+      anomalyCount.className = "overview-anomaly-count " +
+        (anomalies.some(a => a.severity === "high") ? "neg" : anomalies.length ? "warn-text" : "pos");
+    }
+    if (anomalySummary) {
+      const highN = anomalies.filter(a => a.severity === "high").length;
+      const top = anomalies.find(a => a.severity === "high") || anomalies[0];
+      anomalySummary.textContent = !anomalies.length
+        ? "No anomalies detected."
+        : `${highN} high · ${top?.ticker || DASH} ${top?.detail || ""}`;
+    }
   }
 
   const TAB_RENDERERS = {
     hero: [
       renderTodayHighlights, renderHonesty, renderMarketSnapshot, renderTotals,
-      renderTodayPnl, renderRiskGuardrail, renderGoldDca, renderAnomalies,
+      renderTodayPnl, renderRiskGuardrail, renderOverviewSummaries, renderGoldDca,
     ],
     drill: [
       renderDecisionMatrix, renderHoldings, renderExtremes, renderMovers,
-      render8dHeatmap, renderTodayRange, renderShadowPortfolioCard,
+      renderAnomalies, render8dHeatmap, renderTodayRange, renderShadowPortfolioCard,
     ],
     risk: [
-      renderHHI, renderLeveragedETF, renderRiskMetrics, renderLevRegime,
+      renderRiskGuardrail, renderHHI, renderLeveragedETF, renderRiskMetrics, renderLevRegime,
       renderReentryRadar, renderBreakevenMath, renderHistoricalExtremes,
     ],
     market: [
@@ -283,6 +363,11 @@
     if (!DATA || !TAB_RENDERERS[t] || _tabRenderVersion.get(t) === version) return;
     TAB_RENDERERS[t].forEach(fn => fn());
     _tabRenderVersion.set(t, version);
+    // Reservation stays in CSS for CLS, but an active panel must never retain a
+    // stale visibility:hidden marker after its synchronous renderer pass.
+    const panel = document.querySelector(`.panel[data-panel="${t}"]`);
+    if (panel) panel.querySelectorAll(".card.is-pending").forEach(card =>
+      card.classList.remove("is-pending"));
     if (t === "risk" || t === "market") updateFoldPeeks();
   }
 
@@ -489,6 +574,7 @@
     const us = safe(DATA, "totals", "us") || {};
     const hk = safe(DATA, "totals", "hk") || {};
     const fx = safe(DATA, "fx", "usdhkd");
+    const fxMeta = safe(DATA, "fx") || {};
 
     document.getElementById("us-value").textContent = fmtMoney(us.value_usd, "USD");
     const usPnl = us.pnl_usd;
@@ -509,11 +595,19 @@
       const totalHkd = us.value_usd * fx + hk.value_hkd;
       document.getElementById("combined-usd").textContent = fmtMoney(totalUsd, "USD");
       document.getElementById("combined-hkd").textContent = fmtMoney(totalHkd, "HKD");
-      document.getElementById("fx-rate-usd").textContent = "@ USDHKD " + fmtNum(fx, 4);
-      document.getElementById("fx-rate-hkd").textContent = "@ USDHKD " + fmtNum(fx, 4);
+      const fetchedAt = fxMeta.fetched_at ? new Date(fxMeta.fetched_at) : null;
+      const fetched = fetchedAt && !isNaN(fetchedAt)
+        ? fetchedAt.toISOString().replace("T", " ").slice(0, 16) + "Z" : "";
+      const fxLine = `USDHKD ${fmtNum(fx, 4)}`
+        + (fxMeta.source ? ` · ${fxMeta.source}` : "")
+        + (fetched ? ` · ${fetched}` : "");
+      document.getElementById("fx-rate-usd").textContent = fxLine;
+      document.getElementById("fx-rate-hkd").textContent = fxLine;
     } else {
       document.getElementById("combined-usd").textContent = DASH;
       document.getElementById("combined-hkd").textContent = DASH;
+      document.getElementById("fx-rate-usd").textContent = "FX unavailable";
+      document.getElementById("fx-rate-hkd").textContent = "";
     }
   }
 
@@ -1375,33 +1469,56 @@
 
   function renderRiskGuardrail() {
     const g = safe(DATA, "risk_guardrail") || {};
-    const countEl = document.getElementById('guardrail-count');
-    const dirEl = document.getElementById('guardrail-directive');
-    const listEl = document.getElementById('guardrail-list');
-    if (!countEl || !listEl) return;
+    const targets = [
+      {
+        countEl: document.getElementById("guardrail-count"),
+        dirEl: document.getElementById("guardrail-directive"),
+        listEl: document.getElementById("guardrail-list"),
+        compact: false,
+      },
+      {
+        countEl: document.getElementById("overview-guardrail-count"),
+        dirEl: document.getElementById("overview-guardrail-directive"),
+        listEl: document.getElementById("overview-guardrail-list"),
+        compact: true,
+      },
+    ].filter(t => t.countEl && t.listEl);
+    if (!targets.length) return;
     if (g.computed === false || g.error) {
-      countEl.textContent = '⚠️ 算不出';
-      countEl.style.color = 'var(--warning)';
-      if (dirEl) dirEl.textContent = '风控数据计算失败，本次不作“无触发”判断。';
-      listEl.innerHTML = '<div class="risk-alert medium"><span class="icon">⚠️</span>'
-        + '<div><strong>风控卡不可用</strong><div class="muted" style="font-size:11px;margin-top:2px">'
-        + '等待下次数据刷新重算</div></div></div>';
+      targets.forEach(({ countEl, dirEl, listEl }) => {
+        countEl.textContent = '⚠️ 算不出';
+        countEl.style.color = 'var(--warning)';
+        if (dirEl) dirEl.textContent = '风控数据计算失败，本次不作“无触发”判断。';
+        listEl.innerHTML = '<div class="risk-alert medium"><span class="icon">⚠️</span>'
+          + '<div><strong>风控卡不可用</strong><div class="muted" style="font-size:11px;margin-top:2px">'
+          + '等待下次数据刷新重算</div></div></div>';
+      });
       return;
     }
     const breaches = g.breaches || [], stops = g.hard_stop_watch || [];
     const n = g.breach_count || 0;
-    countEl.textContent = n ? `${n} 触发` : '✅ 无';
-    countEl.style.color = n ? 'var(--negative)' : 'var(--positive)';
-    if (dirEl) dirEl.textContent = [g.directive, g.reentry_rule].filter(Boolean).join(' ');
     const ICON = { single_name: '🎯', factor_concentration: '🧬', leveraged_exposure: '⚡', beta: '📈', regime_delever: '🧭' };
     const row = (icon, sev, detail, action) =>
       `<div class="risk-alert ${sev || 'high'}">
          <span class="icon">${icon}</span>
          <div><strong>${detail || ''}</strong>${action ? `<div class="muted" style="font-size:11px;margin-top:2px">→ ${action}</div>` : ''}</div>
        </div>`;
-    let html = breaches.map(b => row(ICON[b.type] || '⚠️', b.severity, b.detail, b.action)).join('');
-    html += stops.map(s => row('🛑', 'high', s.detail, s.action)).join('');
-    listEl.innerHTML = html || '<div class="muted" style="font-size:12px">仓位/单因子/杠杆均在阈值内 ✅</div>';
+    const rows = [
+      ...breaches.map(b => ({ icon: ICON[b.type] || '⚠️', severity: b.severity, detail: b.detail, action: b.action })),
+      ...stops.map(s => ({ icon: '🛑', severity: 'high', detail: s.detail, action: s.action })),
+    ];
+    const compactRows = rows.slice().sort((a, b) =>
+      Number(b.severity === "high") - Number(a.severity === "high"));
+    targets.forEach(({ countEl, dirEl, listEl, compact }) => {
+      countEl.textContent = n ? `${n} 触发` : '✅ 无';
+      countEl.style.color = n ? 'var(--negative)' : 'var(--positive)';
+      if (dirEl) dirEl.textContent = compact
+        ? (g.directive || "")
+        : [g.directive, g.reentry_rule].filter(Boolean).join(' ');
+      const visibleRows = compact ? compactRows.slice(0, 3) : rows;
+      const html = visibleRows.map(r => row(r.icon, r.severity, r.detail, compact ? "" : r.action)).join('');
+      listEl.innerHTML = html || '<div class="muted" style="font-size:12px">仓位/单因子/杠杆均在阈值内 ✅</div>';
+    });
   }
 
   function renderBreakevenMath() {
@@ -2005,16 +2122,26 @@
 
   function renderStatusBanner() {
     const txt = safe(DATA, "status_banner");
-    const banner = document.getElementById("status-banner");
-    if (!banner) return;
+    const targets = [
+      {
+        banner: document.getElementById("status-banner"),
+        text: document.getElementById("sb-text"),
+        time: document.getElementById("sb-time"),
+      },
+      {
+        banner: document.getElementById("overview-status-banner"),
+        text: document.getElementById("overview-sb-text"),
+        time: document.getElementById("overview-sb-time"),
+      },
+    ].filter(t => t.banner);
+    if (!targets.length) return;
     if (!txt) {
-      banner.classList.add("is-pending");
-      banner.setAttribute("aria-hidden", "true");
+      targets.forEach(({ banner }) => {
+        banner.classList.add("is-pending");
+        banner.setAttribute("aria-hidden", "true");
+      });
       return;
     }
-    banner.classList.remove("is-pending");
-    banner.removeAttribute("aria-hidden");
-    document.getElementById("sb-text").textContent = txt;
     const meta = safe(DATA, "status_banner_meta") || {};
     let t = "";
     if (meta.generated_at) {
@@ -2023,7 +2150,12 @@
         hour: "2-digit", minute: "2-digit", timeZone: "Asia/Hong_Kong",
       }) + " HKT";
     }
-    document.getElementById("sb-time").textContent = t;
+    targets.forEach(({ banner, text, time }) => {
+      banner.classList.remove("is-pending");
+      banner.removeAttribute("aria-hidden");
+      if (text) text.textContent = txt;
+      if (time) time.textContent = t;
+    });
   }
 
   function renderReflectKpi() {
@@ -2702,4 +2834,3 @@
         </div>`;
     }).join("");
   }
-

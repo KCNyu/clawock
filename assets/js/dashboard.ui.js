@@ -14,10 +14,38 @@
   const REDUCED_MOTION = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const SCROLL_BEHAVIOR = REDUCED_MOTION ? "auto" : "smooth";
 
+  // Detail-tab desk rail: collapsed is the default at every breakpoint, with
+  // the user's explicit disclosure choice persisted. Hero hides it because the
+  // command center already promotes the same canonical KPIs.
+  const DESK_RAIL_KEY = "clawock:desk-rail";
+  const deskRail = document.getElementById("desk-rail");
+  const deskRailToggle = document.getElementById("desk-rail-toggle");
+  const deskRailExpanded = document.getElementById("desk-rail-expanded");
+  function setDeskRailExpanded(open, persist = false) {
+    if (!deskRail || !deskRailToggle || !deskRailExpanded) return;
+    deskRail.classList.toggle("is-collapsed", !open);
+    deskRailToggle.setAttribute("aria-expanded", open ? "true" : "false");
+    deskRailExpanded.hidden = !open;
+    if (persist) {
+      try { localStorage.setItem(DESK_RAIL_KEY, open ? "open" : "closed"); } catch (e) {}
+    }
+  }
+  function setDeskRailTab(t) {
+    if (deskRail) deskRail.classList.toggle("is-overview", t === TAB_ORDER[0]);
+  }
+  let deskRailOpen = false;
+  try { deskRailOpen = localStorage.getItem(DESK_RAIL_KEY) === "open"; } catch (e) {}
+  setDeskRailExpanded(deskRailOpen);
+  if (deskRailToggle) {
+    deskRailToggle.addEventListener("click", () =>
+      setDeskRailExpanded(deskRailToggle.getAttribute("aria-expanded") !== "true", true));
+  }
+
   // Reflect the active tab in the button bar + a11y + desktop CSS. Does NOT move
   // the pager (the scroll position is the source of truth on mobile).
   function setActiveButton(t) {
     if (!TAB_ORDER.includes(t)) return;
+    setDeskRailTab(t);
     document.querySelectorAll(".tab-btn").forEach(b => {
       const on = b.dataset.tab === t;
       b.classList.toggle("active", on);
@@ -28,6 +56,9 @@
     });
     if (DATA) {
       renderTab(t);                 // a fast switch can beat the idle renderer
+      const activePanel = document.querySelector(`.panel[data-panel="${t}"]`);
+      if (activePanel) activePanel.querySelectorAll(".card.is-pending").forEach(card =>
+        card.classList.remove("is-pending"));
       ensureTabCharts(t);           // lazy: draw this tab's charts the first time it's shown
       // Desktop shows one panel at a time now: the newly-visible panel may have
       // initialized its charts at a container size that only just settled → nudge
@@ -154,6 +185,8 @@
   document.addEventListener("click", (e) => {
     const b = e.target.closest(".mkt-seg-btn");
     if (b && b.dataset.mkt) setMarketView(b.dataset.mkt);
+    const jump = e.target.closest("[data-jump-tab]");
+    if (jump && jump.dataset.jumpTab) goToTab(jump.dataset.jumpTab);
   });
 
   // =========================================================
@@ -286,9 +319,9 @@
   // Boot — wait for ECharts to load (it's deferred)
   // =========================================================
   function boot() {
-    // No longer blocks on echarts: Hero has no charts, and drill/reflect charts
-    // are lazy (whenEcharts waits for the deferred lib per-tab). First paint of
-    // the data no longer waits for the ~1MB echarts bundle to download+parse.
+    // No longer blocks on ECharts: Hero requests only its Equity anchor, while
+    // every detail canvas remains tab-lazy. Data text paints immediately and the
+    // ~1MB chart bundle loads in parallel only for a chart-owning landing tab.
     // Land on the deep-linked tab BEFORE first paint of data (instant, no animation).
     const t0 = tabFromHash();
     if (t0) goToTab(t0, false);

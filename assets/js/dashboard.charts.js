@@ -1,14 +1,12 @@
   // ── Lazy chart init (perf) ──────────────────────────────────────────────
-  // ECharts canvas init+setOption for these 5 charts is the bulk of first paint,
-  // yet they ALL live on the drill/reflect tabs — never the default Hero. Defer
-  // each tab's charts until it's first reached AND the deferred echarts lib has
-  // loaded; render() still repaints already-shown tabs so the 60s data refresh /
-  // theme flip keep them live. (Before: boot() blocked first paint polling for
-  // echarts, then render() init'd all 5 charts up front even on Hero.)
+  // ECharts remains tab-lazy. Hero now owns the single Equity instance as its
+  // visual anchor, so landing triggers only that chart; the other canvases still
+  // wait for their detail tabs. Never initialize a chart in display:none.
   const CHART_FNS = {
+    hero:    () => { renderEquityChart(); },
     drill:   () => { renderShadowPortfolioChart(); renderWeightConfidence(); },
     risk:    () => { renderSectorChart(); },
-    reflect: () => { renderShadowChart(); renderEquityChart(); renderRealizedChart(); renderDailyPnlChart(); },
+    reflect: () => { renderShadowChart(); renderRealizedChart(); renderDailyPnlChart(); },
   };
   const _chartTabsShown = new Set();
   let _echartsLoading = false;
@@ -73,7 +71,10 @@
     const dt = document.getElementById("dailypnl-title");
     if (et) et.textContent = `Equity Curve ${sfx}`;
     if (dt) dt.textContent = `Daily P&L + Cumulative ${sfx}`;
-    renderEquityChart();
+    // A deep link can land on Reflect before Hero has ever been visible. In that
+    // case do not create Equity inside the hidden Hero panel at zero width; Hero's
+    // lazy paint will pick up MARKET_VIEW when it is eventually opened.
+    if (charts.equity || currentTab() === "hero") renderEquityChart();
     renderDailyPnlChart();
     requestAnimationFrame(() => {
       charts.equity && charts.equity.resize();
@@ -929,5 +930,4 @@
     }
     charts.weightConf.setOption(opt, true);
   }
-
 

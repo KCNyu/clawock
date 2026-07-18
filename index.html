@@ -76,7 +76,7 @@ layout: null
     </div>
   </div>
   <nav class="tabs" role="tablist">
-    <button class="tab-btn active" data-tab="hero" role="tab" aria-selected="true">Hero</button>
+    <button class="tab-btn active" data-tab="hero" role="tab" aria-selected="true">Overview</button>
     <button class="tab-btn" data-tab="drill" role="tab">Holdings</button>
     <button class="tab-btn" data-tab="risk" role="tab">Risk</button>
     <button class="tab-btn" data-tab="market" role="tab">Signals</button>
@@ -88,21 +88,29 @@ layout: null
 
 <main>
 
-  <!-- Desk rail — one shared summary above every tab (narrative + headline KPIs).
-       The narrative keeps id="status-banner" so renderStatusBanner() drives it;
-       syncDeskRail() formats the KPI row directly from the current DATA payload. -->
-  <div class="desk-rail" id="desk-rail">
-    <div class="status-banner dr-narrative is-pending" id="status-banner">
-      <span class="sb-pulse" aria-hidden="true"></span>
-      <span class="sb-text" id="sb-text"></span>
-      <span class="sb-time" id="sb-time"></span>
-    </div>
-    <div class="dr-kpis" aria-label="Portfolio summary">
-      <div class="dr-kpi"><span class="dr-k">Book · USD-eq</span><span class="dr-v" id="dr-book">—</span></div>
-      <div class="dr-kpi"><span class="dr-k">Today · US</span><span class="dr-v" id="dr-pnl-us">—</span></div>
-      <div class="dr-kpi"><span class="dr-k">Today · HK</span><span class="dr-v" id="dr-pnl-hk">—</span></div>
-      <div class="dr-kpi"><span class="dr-k">Followed · 30d</span><span class="dr-v" id="dr-followed">—</span></div>
-      <div class="dr-kpi" title="Brier score vs leave-one-out baseline — lower is better"><span class="dr-k">Brier · 30d</span><span class="dr-v" id="dr-grade">—</span></div>
+  <!-- Detail-tab desk rail. Hero promotes these values into the command center,
+       so the rail disappears there. On detail tabs it is a one-line, persisted
+       disclosure; expanding reveals the canonical narrative + KPI summary. -->
+  <div class="desk-rail is-overview is-collapsed" id="desk-rail">
+    <button class="desk-rail-toggle" id="desk-rail-toggle" type="button"
+            aria-expanded="false" aria-controls="desk-rail-expanded">
+      <span class="dr-toggle-label">Desk pulse</span>
+      <span class="dr-compact" id="dr-compact">Book — · US — · HK —</span>
+      <span class="dr-chevron" aria-hidden="true"></span>
+    </button>
+    <div class="desk-rail-expanded" id="desk-rail-expanded" hidden>
+      <div class="status-banner dr-narrative is-pending" id="status-banner">
+        <span class="sb-pulse" aria-hidden="true"></span>
+        <span class="sb-text" id="sb-text"></span>
+        <span class="sb-time" id="sb-time"></span>
+      </div>
+      <div class="dr-kpis" aria-label="Portfolio summary">
+        <div class="dr-kpi"><span class="dr-k">Book · USD-eq</span><span class="dr-v" id="dr-book">—</span></div>
+        <div class="dr-kpi"><span class="dr-k">Today · US</span><span class="dr-v" id="dr-pnl-us">—</span></div>
+        <div class="dr-kpi"><span class="dr-k">Today · HK</span><span class="dr-v" id="dr-pnl-hk">—</span></div>
+        <div class="dr-kpi"><span class="dr-k">Followed · 30d</span><span class="dr-v" id="dr-followed">—</span></div>
+        <div class="dr-kpi" title="Brier score vs leave-one-out baseline — lower is better"><span class="dr-k">Brier · 30d</span><span class="dr-v" id="dr-grade">—</span></div>
+      </div>
     </div>
   </div>
 
@@ -114,88 +122,139 @@ layout: null
   <div class="pager" id="pager">
 
   <section class="panel active" data-panel="hero">
-    <h2>Hero</h2>
+    <h2>Overview</h2>
 
-    <div id="today-highlights" class="today-highlights"></div>
-
-    <div class="card market-card hero-market-card">
-      <h3>Market Snapshot <span class="muted" id="market-asof" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:11px">—</span></h3>
-      <div class="market-grid" id="market-grid">
-        <div class="empty-state">No index data.</div>
+    <div class="overview-command">
+      <div class="card overview-book hero-book-card">
+        <div class="overview-card-kicker">Total book</div>
+        <div class="overview-book-primary" id="combined-usd">—</div>
+        <div class="overview-book-secondary" id="combined-hkd">—</div>
+        <div class="overview-fx" id="fx-rate-usd">—</div>
+        <div class="overview-leg-grid">
+          <div class="overview-leg">
+            <div class="lbl">US leg</div>
+            <div class="val" id="us-value">—</div>
+            <div class="sub" id="us-pnl">—</div>
+          </div>
+          <div class="overview-leg">
+            <div class="lbl">HK leg</div>
+            <div class="val" id="hk-value">—</div>
+            <div class="sub" id="hk-pnl">—</div>
+          </div>
+        </div>
+        <span class="overview-fx-mirror" id="fx-rate-hkd" aria-hidden="true"></span>
       </div>
-      <div class="rs-row muted" id="market-rs" style="margin-top:var(--space-3);font-size:11px"></div>
-    </div>
 
-    <div class="card hero-book-card">
-      <h3>Total Book</h3>
-      <div class="totals-grid">
-        <div class="total-leg">
-          <div class="lbl">US</div>
-          <div class="val" id="us-value">—</div>
-          <div class="sub" id="us-pnl">—</div>
-        </div>
-        <div class="total-leg">
-          <div class="lbl">HK</div>
-          <div class="val" id="hk-value">—</div>
-          <div class="sub" id="hk-pnl">—</div>
-        </div>
-      </div>
-      <div class="total-combined">
-        <div>
-          <div class="lbl">合计 (USD-base)</div>
-          <div class="val" id="combined-usd">—</div>
-          <div class="fx" id="fx-rate-usd">—</div>
-        </div>
-        <div>
-          <div class="lbl">合计 (HKD-base)</div>
-          <div class="val" id="combined-hkd">—</div>
-          <div class="fx" id="fx-rate-hkd">—</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="card hero-pnl-card">
-      <h3>Today's P&amp;L</h3>
-      <div class="today-pnl-grid">
-        <div class="today-pnl-cell">
-          <div class="lbl">US</div>
-          <div class="val" id="today-pnl-us">—</div>
-          <div class="pct muted" id="today-pnl-us-pct">—</div>
-        </div>
-        <div class="today-pnl-cell">
-          <div class="lbl">HK</div>
-          <div class="val" id="today-pnl-hk">—</div>
-          <div class="pct muted" id="today-pnl-hk-pct">—</div>
+      <div class="card overview-today hero-pnl-card">
+        <div class="overview-card-kicker">Today's P&amp;L</div>
+        <div class="overview-today-grid">
+          <div class="overview-today-cell">
+            <div class="lbl">US</div>
+            <div class="val" id="today-pnl-us">—</div>
+            <div class="pct muted" id="today-pnl-us-pct">—</div>
+          </div>
+          <div class="overview-today-cell">
+            <div class="lbl">HK</div>
+            <div class="val" id="today-pnl-hk">—</div>
+            <div class="pct muted" id="today-pnl-hk-pct">—</div>
+          </div>
         </div>
       </div>
-    </div>
 
-    <div class="card lead" id="guardrail-card">
-      <h3>仓位/杠杆硬闸 <span class="badge muted" id="guardrail-count"></span></h3>
-      <div class="muted" id="guardrail-directive" style="font-size:12px;margin-bottom:8px;line-height:1.5"></div>
-      <div class="risk-alerts" id="guardrail-list"></div>
-    </div>
-
-    <div class="card hero-honesty-card is-pending" id="honesty-card">
-      <h3>诚实自评 · self-grading <span class="muted" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:11px">(30d)</span></h3>
-      <div id="honesty-body" style="font-size:12px"></div>
-    </div>
-
-    <div class="card hero-anomalies-card">
-      <h3>Anomalies <span class="badge muted" id="anom-count"></span></h3>
-      <div class="anomaly-list" id="anomaly-list">
-        <div class="empty-state">No anomalies detected.</div>
+      <div class="overview-discipline" aria-label="30-day discipline and calibration">
+        <div class="overview-discipline-cell">
+          <div class="overview-card-kicker">Followed · 30d</div>
+          <div class="overview-discipline-value" id="overview-followed">—</div>
+          <div class="overview-discipline-meta" id="overview-followed-meta">—</div>
+        </div>
+        <div class="overview-discipline-cell" title="Brier score vs leave-one-out baseline — lower is better">
+          <div class="overview-card-kicker">Self-grade · Brier</div>
+          <div class="overview-discipline-value" id="overview-brier">—</div>
+          <div class="overview-discipline-meta" id="overview-brier-meta">—</div>
+        </div>
       </div>
-    </div>
 
-    <div class="card hero-gold-card is-pending" id="gold-dca-card">
-      <h3>Gold DCA <span class="muted" id="gold-sub" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:11px"></span></h3>
-      <div id="gold-hero"></div>
-      <div id="gold-stats"></div>
-      <div id="gold-london"></div>
-      <div id="gold-spark"></div>
-      <div id="gold-proj"></div>
-      <div class="muted" id="gold-asof" style="font-size:10px;margin-top:var(--space-2);opacity:0.7"></div>
+      <div class="card overview-equity">
+        <div class="card-head">
+          <div>
+            <div class="overview-card-kicker">Track record · visual anchor</div>
+            <h3 id="equity-title">Equity Curve · USD-eq</h3>
+          </div>
+          <span id="benchmark-stale" class="muted" style="display:none;font-size:11px;color:var(--amber)"></span>
+          <div class="mkt-seg" role="group" aria-label="市场切换">
+            <button class="mkt-seg-btn active" data-mkt="combined"><span class="seg-dot"></span>总览</button>
+            <button class="mkt-seg-btn" data-mkt="us"><span class="seg-dot us"></span>美股</button>
+            <button class="mkt-seg-btn" data-mkt="hk"><span class="seg-dot hk"></span>港股</button>
+          </div>
+        </div>
+        <p class="chart-hint overview-equity-hint">粗绿线 = 总利润（浮盈 + 已实现，净化本金）；蓝线 = 真实总资产（持仓市值 + 现金）；虚线 = 成本及动态基准。切换总览 / 美股 / 港股查看各自口径。</p>
+        <div id="chart-equity" class="chart-box overview-equity-chart"></div>
+      </div>
+
+      <aside class="card overview-verdict" aria-labelledby="overview-verdict-title">
+        <div class="overview-verdict-head">
+          <div>
+            <div class="overview-card-kicker">Decision panel</div>
+            <h3 id="overview-verdict-title">Today's verdict</h3>
+          </div>
+          <button class="overview-jump" type="button" data-jump-tab="risk">Open Risk</button>
+        </div>
+        <div class="status-banner overview-status is-pending" id="overview-status-banner">
+          <span class="sb-pulse" aria-hidden="true"></span>
+          <span class="sb-text" id="overview-sb-text"></span>
+          <span class="sb-time" id="overview-sb-time"></span>
+        </div>
+        <div id="today-highlights" class="today-highlights"></div>
+        <div class="overview-gates">
+          <div class="overview-gates-head">
+            <span>Top hard gates</span>
+            <span class="badge muted" id="overview-guardrail-count"></span>
+          </div>
+          <div class="overview-gates-directive" id="overview-guardrail-directive"></div>
+          <div class="risk-alerts" id="overview-guardrail-list"></div>
+        </div>
+      </aside>
+
+      <div class="overview-strip" aria-label="Secondary overview">
+        <section class="overview-strip-cell overview-market">
+          <button class="overview-strip-link" type="button" data-jump-tab="market">
+            <span>Market snapshot</span><span aria-hidden="true">Signals →</span>
+          </button>
+          <span class="muted overview-asof" id="market-asof">—</span>
+          <div class="market-grid" id="market-grid">
+            <div class="empty-state">No index data.</div>
+          </div>
+          <div class="rs-row muted" id="market-rs"></div>
+        </section>
+        <section class="overview-strip-cell">
+          <button class="overview-strip-link" type="button" data-jump-tab="drill">
+            <span>Top movers</span><span aria-hidden="true">Holdings →</span>
+          </button>
+          <div class="overview-mover-summary" id="overview-mover-summary">—</div>
+        </section>
+        <section class="overview-strip-cell">
+          <button class="overview-strip-link" type="button" data-jump-tab="drill">
+            <span>Anomalies</span><span aria-hidden="true">Holdings →</span>
+          </button>
+          <div class="overview-anomaly-count" id="overview-anomaly-count">—</div>
+          <div class="overview-anomaly-summary" id="overview-anomaly-summary">—</div>
+        </section>
+      </div>
+
+      <div class="card hero-honesty-card is-pending" id="honesty-card">
+        <h3>诚实自评 · self-grading <span class="muted" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:11px">(30d)</span></h3>
+        <div id="honesty-body" style="font-size:12px"></div>
+      </div>
+
+      <div class="card hero-gold-card is-pending" id="gold-dca-card">
+        <h3>Gold DCA <span class="muted" id="gold-sub" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:11px"></span></h3>
+        <div id="gold-hero"></div>
+        <div id="gold-stats"></div>
+        <div id="gold-london"></div>
+        <div id="gold-spark"></div>
+        <div id="gold-proj"></div>
+        <div class="muted" id="gold-asof" style="font-size:10px;margin-top:var(--space-2);opacity:0.7"></div>
+      </div>
     </div>
 
   </section>
@@ -278,6 +337,13 @@ layout: null
     </div>
 
     <div class="card">
+      <h3>Anomalies <span class="badge muted" id="anom-count"></span></h3>
+      <div class="anomaly-list" id="anomaly-list">
+        <div class="empty-state">No anomalies detected.</div>
+      </div>
+    </div>
+
+    <div class="card">
       <h3>8日走势热力 <span class="muted" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:11px">(近 8 日走势 + 收益 · 按强弱排序)</span></h3>
       <p class="chart-hint">每格一只持仓：<b>背景色</b> = 8 日回报（绿 = 在跑、红 = 在拖），<b>白色折线</b> = 这 8 日的价格走势形状，下方小字 = 各自市场 leg 内权重（不是组合权重）。颜色看强弱、折线看路径，重仓 + 大红块 = 优先审视。</p>
       <div class="ret-heatmap" id="ret-heatmap">
@@ -354,6 +420,14 @@ layout: null
   </section>
   <section class="panel" data-panel="risk">
     <h2>Risk</h2>
+
+    <div class="sect-divider">敞口 · 杠杆 · 硬闸</div>
+
+    <div class="card lead" id="guardrail-card">
+      <h3>仓位/杠杆硬闸 <span class="badge muted" id="guardrail-count"></span></h3>
+      <div class="muted" id="guardrail-directive" style="font-size:12px;margin-bottom:8px;line-height:1.5"></div>
+      <div class="risk-alerts" id="guardrail-list"></div>
+    </div>
 
     <div class="card fold-m" data-fold-id="conc">
       <h3>Concentration (HHI)<span class="peek" id="peek-conc"></span></h3>
@@ -718,20 +792,6 @@ layout: null
 
     <div class="card">
       <div class="card-head">
-        <h3 id="equity-title">Equity Curve · USD-eq</h3>
-        <span id="benchmark-stale" class="muted" style="display:none;font-size:11px;color:var(--amber)"></span>
-        <div class="mkt-seg" role="group" aria-label="市场切换">
-          <button class="mkt-seg-btn active" data-mkt="combined"><span class="seg-dot"></span>总览</button>
-          <button class="mkt-seg-btn" data-mkt="us"><span class="seg-dot us"></span>美股</button>
-          <button class="mkt-seg-btn" data-mkt="hk"><span class="seg-dot hk"></span>港股</button>
-        </div>
-      </div>
-      <p class="chart-hint"><b style="color:var(--positive)">粗绿线 = 总利润（主）</b>（浮盈 + 已实现 = 净值 − 成本，<b>净化掉投入本金；加减仓不影响它</b>，它的峰值才是"真·赚最多"那天；可为负 = 账面亏损）；<b>蓝线 = 真实总资产</b>（持仓市值 ＋ 现金 = 真·身家，<b>加减仓不影响</b>）—— 已替换掉旧的"净值"线（旧线对现金视而不见、被加仓虚抬，没用）；<b>注意：现金 US 自 6/12、港股/合计自 6/18 才开始记录，更早没有 → 蓝线只从有现金那天起画</b>；灰虚线 = 累计成本基础；<b>基准线 = SPY 等值</b>（"当初同等美元 all-in SPY 到今天的账面"，非美股交易日延用前值）；<b style="color:var(--warning)">警示线 = 恒科等值</b> + <b style="color:var(--warning)">恒科200日线触发位</b>；<b>红色填充 = 利润口径的历史峰值回撤</b>（与下方"历史利润极值"卡同口径，利润为负的区域无填充）。<br><b>切换上方〔总览 / 美股 / 港股〕看分市场曲线</b>：总览=USD-eq 合并（HK 按现汇折美元）；美股=$ 计、对标 SPY；港股=HK$ 计、对标恒科。</p>
-      <div id="chart-equity" class="chart-box"></div>
-    </div>
-
-    <div class="card">
-      <div class="card-head">
         <h3 id="dailypnl-title">Daily P&amp;L + Cumulative · USD-eq</h3>
         <div class="mkt-seg" role="group" aria-label="市场切换">
           <button class="mkt-seg-btn active" data-mkt="combined"><span class="seg-dot"></span>总览</button>
@@ -751,14 +811,16 @@ layout: null
 
     <div class="card">
       <h3>Delta</h3>
-      <table class="delta-table">
-        <thead>
-          <tr><th>Period</th><th>US</th><th>HK</th></tr>
-        </thead>
-        <tbody id="delta-tbody">
-          <tr><td colspan="3" class="muted">—</td></tr>
-        </tbody>
-      </table>
+      <div class="table-wrap">
+        <table class="delta-table">
+          <thead>
+            <tr><th>Period</th><th>US</th><th>HK</th></tr>
+          </thead>
+          <tbody id="delta-tbody">
+            <tr><td colspan="3" class="muted">—</td></tr>
+          </tbody>
+        </table>
+      </div>
     </div>
 
   </section>
