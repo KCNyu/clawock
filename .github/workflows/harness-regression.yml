@@ -24,7 +24,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
         with:
           # PR file-policy checks compare the exact base and head commits.
           fetch-depth: 0
@@ -192,7 +192,7 @@ jobs:
     needs: validate
     continue-on-error: true  # data sources can be flaky; don't fail the pipeline
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
       - name: Set up Python
         uses: actions/setup-python@v6
