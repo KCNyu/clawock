@@ -20,7 +20,7 @@
   <img src="assets/social-card.png" alt="clawock — 会给自己打分的自主 AI 投研台" width="820">
 </a>
 
-<sub>真实持仓,真实盈亏。社交卡片和实时战绩截图每周由 <a href="https://github.com/KCNyu/clawock/actions/workflows/screenshot-refresh.yml">GitHub Action</a> 自动刷新。</sub>
+<sub>真实持仓,真实盈亏。社交卡里的 dashboard 窗口和下方实时战绩截图每周由 <a href="https://github.com/KCNyu/clawock/actions/workflows/screenshot-refresh.yml">GitHub Action</a> 自动刷新。</sub>
 
 <br>
 

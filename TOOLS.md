@@ -35,7 +35,7 @@
 | `news-digest.yml` | 工作日 13:00 UTC (21:00 HKT) | `assets/data/us_news_digest.json` | 美股开盘前 48h 新闻提炼 |
 | `influencer-scan.yml` | 周日–四 21:40 + 工作日 12:50 UTC | `assets/data/influencer_feed.json` | 盘前 + 美股盘前两班影响力雷达 |
 | `cron-health.yml` | 工作日 09:00 UTC (17:00 HKT) | (read-only) | 用 tracked cron contract + HKT commit date 巡检漏跑 |
-| `screenshot-refresh.yml` | 周日 22:00 UTC | `assets/social-card.png` + `assets/shadow-backtest.png` | 每周两张 PNG；`assets/dashboard.gif` 只在手动 dispatch 时生成 |
+| `screenshot-refresh.yml` | 周日 22:00 UTC | `assets/social-card.png` + `assets/shadow-backtest.png` | 每周刷新社交卡里的 Hero 截图和实时战绩图；`assets/dashboard.gif` 只在手动 dispatch 时生成 |
 
 **远端 LLM 路径**: 本地市场 cron 与远端 `xiaomi_llm.chat()` 都以 MiniMax M3 为主；远端在可选 `XIAOMI_API_KEY` 仍有效时可 fallback 到 MiMo v2.5-pro。4 个 LLM workflow（news-digest / weekly-review / brief-fallback / influencer-scan）均只从 repo secrets 读 key，仓库不落 key。
 

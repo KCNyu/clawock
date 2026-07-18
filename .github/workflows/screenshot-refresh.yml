@@ -1,6 +1,6 @@
 name: Dashboard Screenshot Refresh
 
-# Re-screenshot the live dashboard each week so README preview never drifts >7 days.
+# Re-screenshot the live dashboard each week so README visuals never drift >7 days.
 # Sundays 22:00 UTC (= 06:00 Mon HKT, before Monday's 08:00 brief).
 # Scheduled runs refresh the two small PNGs only. The 8MB GIF rebuilds on manual
 # dispatch, when the UI it demos has actually changed.

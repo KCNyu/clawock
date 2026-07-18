@@ -13,9 +13,9 @@
  *
  * Outputs:
  *   assets/shadow-backtest.png   v2 cumulative win-rate chart (all / active / 50% ref)
- *   assets/social-card.png       1280x640 OG / Twitter card (headline + shot)
+ *   assets/social-card.png       1280x640 ImageGen template + fresh Hero dashboard
  *   assets/dashboard.gif         manual dispatch only; built from FRAME_DIR
- *   TMP_DIR/dashboard-preview.png  intermediate — embedded into the social card, not shipped
+ *   TMP_DIR/dashboard-preview.png  intermediate embedded into the social card
  *   .gifframes/f{0..5}.png       per-tab mobile frames → assemble_dashboard_gif.py
  *
  * assets/ is the one place shipped images live: README, Pages and the OG card all
@@ -44,6 +44,7 @@ const FRAME_DIR = process.env.FRAME_DIR || path.join(ROOT, '.gifframes');
 const TMP_DIR = process.env.TMP_DIR || path.join(ROOT, '.gifframes');
 const CHROME_EXE = process.env.CHROME_EXE || undefined;
 const CAPTURE_GIF = process.env.CAPTURE_GIF !== '0';
+const SOCIAL_TEMPLATE = path.join(ROOT, 'assets', 'social-card-template.png');
 const TABS = ['hero', 'drill', 'risk', 'market', 'plan', 'reflect'];
 
 async function settle(page) {
@@ -67,10 +68,9 @@ async function settle(page) {
   await page.waitForTimeout(2500);
 }
 
-// Social card: editorial product mark. The screenshot URI stays in the signature for
-// the capture pipeline, but this concept deliberately avoids a tiny dashboard inset:
-// the honesty protocol is the product, so ARGUE → GATE → GRADE becomes the visual.
-function cardHTML(shotDataUri) {
+// Pre-ImageGen fallback retained for archaeology; current output uses
+// compositeCardHTML() below so the generated brand artwork and live UI stay unified.
+function legacyCardHTML(shotDataUri) {
   void shotDataUri;
   return `<!doctype html><html><head><meta charset="utf-8"><style>
   * { margin:0; padding:0; box-sizing:border-box; }
@@ -181,6 +181,35 @@ function cardHTML(shotDataUri) {
 </body></html>`;
 }
 
+function compositeCardHTML(templateDataUri, shotDataUri) {
+  return `<!doctype html><html><head><meta charset="utf-8"><style>
+    * { box-sizing:border-box; }
+    html,body { margin:0; width:1280px; height:640px; overflow:hidden; background:#f7f9fb; }
+    .template { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
+    .live {
+      position:absolute; left:586px; top:62px; width:628px; height:520px;
+      overflow:hidden; border:1px solid #cbd6df; border-radius:13px;
+      background:#f3f6f9; box-shadow:0 18px 48px rgba(18,33,48,.12);
+    }
+    .live img {
+      width:100%; height:100%; display:block; object-fit:cover; object-position:left top;
+    }
+    .live::after {
+      content:""; position:absolute; inset:0; pointer-events:none;
+      box-shadow:inset 0 0 0 1px rgba(255,255,255,.55);
+    }
+    .edge {
+      position:absolute; left:570px; top:44px; width:28px; height:556px;
+      background:linear-gradient(90deg,rgba(247,249,251,.72),rgba(247,249,251,0));
+      pointer-events:none;
+    }
+  </style></head><body>
+    <img class="template" src="${templateDataUri}" alt="">
+    <div class="live"><img src="${shotDataUri}" alt=""></div>
+    <div class="edge"></div>
+  </body></html>`;
+}
+
 (async () => {
   [OUT_DIR, FRAME_DIR, TMP_DIR].forEach(d => fs.mkdirSync(d, { recursive: true }));
   const browser = await chromium.launch(CHROME_EXE ? { executablePath: CHROME_EXE, args: ['--no-sandbox'] } : {});
@@ -190,8 +219,8 @@ function cardHTML(shotDataUri) {
     const dp = await desk.newPage();
     await dp.goto(URL, { waitUntil: 'networkidle', timeout: 45000 });
     await settle(dp);
-    // Preview for the social card = the default Hero tab. Capture it BEFORE
-    // navigating away (desktop now shows one tab at a time).
+    // Capture the default Hero before navigating away. It becomes the fresh product
+    // window inside the static ImageGen-authored social-card template.
     await dp.screenshot({ path: `${TMP_DIR}/dashboard-preview.png`, fullPage: false });
     // Shoot the win-rate chart, not the whole card. The card used to be a money
     // curve and this shot was its portrait; the money view is gone (it summed
@@ -211,15 +240,13 @@ function cardHTML(shotDataUri) {
     await shadow.screenshot({ path: `${OUT_DIR}/shadow-backtest.png` });
     await desk.close();
 
-    // 2) Social card (1280x640, matching index.html's og:image:width/height) —
-    //    embeds the fresh desktop shot as a data-URI
+    // 2) Social card: preserve the generated editorial brand system, but replace its
+    //    right-hand mock window with the current Hero dashboard on every refresh.
+    const templateUri = 'data:image/png;base64,' + fs.readFileSync(SOCIAL_TEMPLATE).toString('base64');
     const shotUri = 'data:image/png;base64,' + fs.readFileSync(`${TMP_DIR}/dashboard-preview.png`).toString('base64');
-    // dsf 1 → exactly 1280x640 (GitHub Social preview's ideal size + its 1MB limit;
-    // 2x doubled it to 2560x1280 / >1MB and the upload wouldn't fit). Still crisp: the
-    // embedded dashboard shot is downscaled from the 2x desktop capture.
     const cardCtx = await browser.newContext({ viewport: { width: 1280, height: 640 }, deviceScaleFactor: 1 });
     const cp = await cardCtx.newPage();
-    await cp.setContent(cardHTML(shotUri), { waitUntil: 'networkidle' });
+    await cp.setContent(compositeCardHTML(templateUri, shotUri), { waitUntil: 'networkidle' });
     await cp.waitForTimeout(300);
     await cp.screenshot({ path: `${OUT_DIR}/social-card.png` });
     await cardCtx.close();

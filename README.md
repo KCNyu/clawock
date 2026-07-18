@@ -20,7 +20,7 @@
   <img src="assets/social-card.png" alt="clawock — an autonomous AI trading desk that grades its own calls" width="820">
 </a>
 
-<sub>Real positions. Real P&L. The social card + live scorecard image refresh weekly via a <a href="https://github.com/KCNyu/clawock/actions/workflows/screenshot-refresh.yml">GitHub Action</a>.</sub>
+<sub>Real positions. Real P&L. The social card's dashboard window + live scorecard refresh weekly via a <a href="https://github.com/KCNyu/clawock/actions/workflows/screenshot-refresh.yml">GitHub Action</a>.</sub>
 
 <br>
 
