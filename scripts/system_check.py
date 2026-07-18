@@ -283,6 +283,7 @@ def check_cron_paths_exist(r):
     import re
     sys.path.insert(0, str(WS / 'scripts' / 'harness'))
     try:
+        import _watchdog_common as wc  # type: ignore
         from _watchdog_common import OPENCLAW_BIN, load_jobs  # type: ignore
         jobs = load_jobs()
     except Exception as e:
@@ -294,6 +295,16 @@ def check_cron_paths_exist(r):
             r.add('cron paths', OK, 'skipped (no openclaw CLI on this host)')
         else:
             r.add('cron paths', WARNING, 'openclaw CLI returned 0 cron jobs (storage regression? run doctor --fix)')
+        return
+    if getattr(wc, 'LAST_LOAD_SOURCE', None) == 'fossil':
+        # The live gateway was unreadable (slow/timeout) and load_jobs() served a
+        # pre-6.1 fossil that is STALE for model/delivery/message. Asserting the
+        # payload contract against it produces phantom CRITICALs that block every
+        # push (2026-07-18 incident). Report a WARNING and skip the assertion —
+        # a stale view must never fail the gate as if it were live.
+        r.add('cron runtime contract', WARNING,
+              'cron CLI unreadable (gateway slow?) — jobs came from a stale fallback; '
+              'skipping contract assertion, re-run when the gateway responds')
         return
 
     try:
