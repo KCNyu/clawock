@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0a0e1a" media="(prefers-color-scheme: dark)">
 <meta name="theme-color" content="#f7f8fb" media="(prefers-color-scheme: light)">
+<link rel="icon" type="image/svg+xml" href="{{ '/assets/logo-mark.svg' | relative_url }}">
+<link rel="icon" type="image/png" sizes="64x64" href="{{ '/assets/icons/favicon-64.png' | relative_url }}">
+<link rel="apple-touch-icon" href="{{ '/assets/icons/apple-touch-icon.png' | relative_url }}">
 {% seo %}
 <style>
   /* Match dashboard v2 design tokens (self-contained, no external CSS) */
@@ -60,8 +63,9 @@
     gap: 12px; max-width: 980px; margin: 0 auto;
   }
   .brand {
-    display: flex; align-items: baseline; gap: 8px; min-width: 0; text-decoration: none;
+    display: flex; align-items: center; gap: 8px; min-width: 0; text-decoration: none;
   }
+  .brand-mark { width: 24px; height: 24px; flex: 0 0 auto; display: block; }
   .brand h1 { margin: 0; font-size: 18px; font-weight: 700; color: var(--text); letter-spacing: -0.01em; }
   .brand .tag { font-size: 11px; color: var(--text-dim); }
   .topbar-actions { display: inline-flex; align-items: center; gap: 6px; flex-wrap: wrap; }
@@ -72,6 +76,7 @@
   .nav-link:hover { color: var(--text); background: var(--card-2); }
   .nav-link.active { color: var(--accent); background: var(--card-2); }
   @media (max-width: 480px) {
+    .brand-mark { width: 22px; height: 22px; }
     .brand h1 { font-size: 16px; }
     .brand .tag { display: none; }
     .nav-link { padding: 5px 7px; font-size: 12px; }
@@ -164,6 +169,7 @@
 <header class="topbar">
   <div class="topbar-row">
     <a class="brand" href="{{ '/' | relative_url }}">
+      <img class="brand-mark" src="{{ '/assets/logo-mark.svg' | relative_url }}" alt="" width="24" height="24">
       <h1>clawock</h1>
       <span class="tag">harness · HK + US portfolio</span>
     </a>

@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" role="img" aria-labelledby="title desc" shape-rendering="geometricPrecision">
+  <title id="title">clawock mark</title>
+  <desc id="desc">Opposing bull and bear saddle surfaces leave a mathematical decision window between them.</desc>
+  <defs>
+    <linearGradient id="bull-blue" x1="14" y1="50" x2="51" y2="31" gradientUnits="userSpaceOnUse">
+      <stop class="b0" offset="0"/>
+      <stop class="b1" offset="1"/>
+    </linearGradient>
+  </defs>
+  <style>
+    .bear{fill:#10141a}.b0{stop-color:#245574}.b1{stop-color:#559ed1}
+    @media (prefers-color-scheme:dark){
+      .bear{fill:#edf2f5}.b0{stop-color:#4b91c8}.b1{stop-color:#78c5f3}
+    }
+  </style>
+  <path class="bear" d="M8 13C22 9 40 16 55 28C42 24 28 25 17 32C12 27 9 21 8 13Z"/>
+  <path d="M56 51C42 55 24 48 9 36C22 40 36 39 47 32C52 37 55 43 56 51Z" fill="url(#bull-blue)"/>
+</svg>
