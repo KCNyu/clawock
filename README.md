@@ -2,13 +2,11 @@
 
 # 📈 clawock
 
-### An LLM swarm that watches my **real** HK + US money every trading day — and grades itself the next morning.
+### Multi-agent LLMs debate a **real HK + US stock portfolio**. Code controls the risk.
 
-[![Pages](https://img.shields.io/github/deployments/KCNyu/clawock/github-pages?label=live%20dashboard&logo=github&color=4fa8ff)](https://kcnyu.github.io/clawock/)
-[![Harness Regression](https://img.shields.io/github/actions/workflow/status/KCNyu/clawock/harness-regression.yml?label=harness&logo=githubactions&color=26a69a)](https://github.com/KCNyu/clawock/actions/workflows/harness-regression.yml)
-[![Cron Health](https://img.shields.io/github/actions/workflow/status/KCNyu/clawock/cron-health.yml?label=cron%20health&logo=githubactions&color=26a69a)](https://github.com/KCNyu/clawock/actions/workflows/cron-health.yml)
-[![Weekly Health](https://img.shields.io/github/actions/workflow/status/KCNyu/clawock/weekly-health.yml?label=weekly%20health&logo=githubactions&color=26a69a)](https://github.com/KCNyu/clawock/actions/workflows/weekly-health.yml)
-[![License: Personal](https://img.shields.io/badge/license-personal--use-orange?color=ef5350)](#-license)
+[![Dashboard](https://img.shields.io/github/deployments/KCNyu/clawock/github-pages?label=DASHBOARD&style=flat-square&logo=githubpages&logoColor=white&labelColor=173f3b&color=2a8c78)](https://kcnyu.github.io/clawock/)
+[![CI](https://img.shields.io/github/actions/workflow/status/KCNyu/clawock/harness-regression.yml?label=CI&style=flat-square&logo=githubactions&logoColor=white&labelColor=173f3b&color=2a8c78)](https://github.com/KCNyu/clawock/actions/workflows/harness-regression.yml)
+[![License](https://img.shields.io/badge/LICENSE-MIT-c97835?style=flat-square&labelColor=173f3b)](LICENSE)
 
 [**🎯 Live Dashboard**](https://kcnyu.github.io/clawock/) · [**📅 Daily Briefs**](https://kcnyu.github.io/clawock/briefs.html) · [**How it works ↓**](#-the-60-second-version)
 
@@ -20,41 +18,36 @@
   <img src="assets/social-card.png" alt="clawock — an autonomous AI trading desk that grades its own calls" width="820">
 </a>
 
-<sub>Real positions. Real P&L. The social card's dashboard window + live scorecard refresh weekly via a <a href="https://github.com/KCNyu/clawock/actions/workflows/screenshot-refresh.yml">GitHub Action</a>.</sub>
+<sub>Real positions · real P&amp;L · refreshed weekly</sub>
 
 <br>
 
 <a href="https://kcnyu.github.io/clawock/"><img src="assets/dashboard.gif" alt="clawock dashboard cycling through its six tabs" width="300"></a>
 
-<sub>📱 Cycling all six tabs — Hero · Holdings · Risk · Signals · Plan · <b>Reflect</b> (the self-grading scorecard). The 8MB product demo is regenerated manually when the UI changes; weekly runs refresh only the two live PNGs.</sub>
+<sub>Hero · Holdings · Risk · Signals · Plan · <b>Reflect</b>. Updated when the interface changes.</sub>
 
 <br><br>
 
-🪞 **Grades its own calls** — and publishes the number unedited, daily &nbsp;·&nbsp; 💸 **Real money**, not a paper sim &nbsp;·&nbsp; 🗣️ **Bull-vs-bear AI debate** every morning &nbsp;·&nbsp; 🛡️ **Python scores it, not the LLM** — the model can't grade itself &nbsp;·&nbsp; 🌏 **Bilingual** HK + US &nbsp;·&nbsp; 🌐 **Live public dashboard**
-
-<sub>If "an AI that's honest about being wrong" is your kind of thing — ⭐ it.</sub>
+**Multi-agent stock analysis** &nbsp;·&nbsp; **Code-enforced risk gates** &nbsp;·&nbsp; **Public self-grading** &nbsp;·&nbsp; **Real HK + US portfolio**
 
 </div>
 
 ---
 
-> **TL;DR** — A multi-agent LLM runs a real Hong-Kong + US stock portfolio, debates bull-vs-bear each morning, and back-tests its own calls every night. Its verdict on itself is public, updates every session, and is not edited when it stings — the active calls have yet to show an edge. The honesty is the point.
+> **TL;DR** — Multi-agent LLMs analyze a real Hong Kong + US stock portfolio. Python enforces the risk rules, settles each call, and publishes the scorecard without manual edits. Active calls have yet to show an edge.
 
 ## 🎰 The 60-second version
 
-I gave an LLM a real brokerage portfolio — a Hong Kong leg and a US leg, actual money — and wired up a small machine around it.
+clawock is an autonomous multi-agent LLM desk attached to a real brokerage portfolio with separate Hong Kong and US books.
 
-Every trading day, on its own, the system:
+Every trading day, the system:
 
-- 🌅 runs **10 market automation lanes** (brief + HK/US reports + split intraday monitors), with high-frequency lanes firing every 30 minutes,
+- 🌅 runs scheduled briefs, market reports, and intraday monitors,
 - 📥 pulls fresh prices, FX, volatility, earnings calendars, macro (VIX/DXY/10Y), Reddit + news sentiment, even **Trump/Musk market-movers**,
-- 🧠 hands the clean data to the best-available LLM — playing a blunt persona named **Rick** — to write the take,
-- 📲 pushes a briefing to my **WeChat**, and
-- 🌐 refreshes a **public dashboard** you can open right now.
-
-That's the gimmick: *a whole AI desk that trades alongside me and never sleeps.*
-
-But here's the part most "AI trader" demos skip 👇
+- 🧠 gives the normalized context to a multi-agent analysis and debate workflow,
+- 🛡️ applies deterministic risk, schema, and ledger gates in Python,
+- 📲 delivers the brief to **WeChat**, and
+- 🌐 updates the **public dashboard**.
 
 ## 🪞 It grades strategy episodes, not repeated daily calls
 
@@ -85,9 +78,9 @@ The LLM only submits decisions; it cannot write or amend its own evaluation. IDs
 
 ---
 
-## 🎯 How it actually decides
+## 🎯 Decision policy
 
-Behind the persona is a fixed decision framework — not freeform vibes. Every call is attributed, gated, and bucketed before it's allowed to count.
+Every call follows the same attributed, gated, and strategy-specific decision framework.
 
 **1. Attribution-first — and the edge is measured dynamically.** Every decision is tagged by its dominant driver. Current sample size, average benefit, win rate, and date-cluster interval come from `decision_metrics.by_driver`; no point-in-time hit rate is hard-coded here.
 
@@ -105,19 +98,19 @@ Everything resolves into one or more strategy decisions with explicit conditions
 
 ---
 
-## 🗣️ Every morning, the desk argues with itself
+## 🗣️ Multi-agent decision desk
 
-The 08:00 deep brief isn't one model's monologue — it's a structured **multi-agent debate**, borrowed from [TradingAgents](https://github.com/TauricResearch/TradingAgents) and adapted for a dual-leg book:
+The 08:00 deep brief uses a structured **multi-agent debate**, adapted from [TradingAgents](https://github.com/TauricResearch/TradingAgents) for separate Hong Kong and US books:
 
-- **Tier 1 — four analyst lenses.** Fundamental / technical / sentiment / sector-rotation each read the *same* `context.json` and merge into one table. Numbers only, no vibes.
+- **Tier 1 — four analyst lenses.** Fundamental / technical / sentiment / sector-rotation each read the *same* `context.json` and merge into one table. Every claim must cite numeric context.
 - **Tier 2 — Bull vs Bear.** Two researchers build opposing cases (hold/add vs trim/cut), each citing ≥2 concrete Tier-1 data points. The hard rule: **they must genuinely disagree on at least one position** — unanimous agreement means the debate failed and is thrown out.
 - **Tier 3 — three risk voices + a Judge.** Aggressive, Conservative and Neutral each argue their corner; a **Judge** weighs them, names which strategy frame is driving each decision, and resolves the argument into concrete strategy decisions with conditions.
 
-The goal isn't consensus — it's **forcing a real bear case to exist before anything is held**, so the book never just talks itself into its own positions. The Judge's verdict *is* the `plan.json` that gets graded the next morning.
+At least one position must receive a substantive opposing case. The Judge resolves the debate into `plan.json`, which enters the next session's grading pipeline.
 
 ---
 
-## 📅 What a day actually looks like
+## 📅 Daily operating schedule
 
 ```
 03:00  🌙  memory "dreaming" — promote yesterday's lessons into long-term notes
@@ -129,23 +122,23 @@ off-host 🛰️  pre-brief macro / sentiment / influencer scans + pre-US-open n
 weekly  🧪  archive / health / review / visual refresh jobs
 ```
 
-HK times are HKT; US session times are ET and their HKT cron expressions switch automatically with New York DST. The exact generated table is in [CRON_SCHEDULES.md](CRON_SCHEDULES.md). Markets closed? A **holiday + weekend gate** skips the run instead of burning tokens and writing a stale price as if it were live.
+HK times are HKT; US session times are ET and their HKT cron expressions switch automatically with New York DST. The exact generated table is in [CRON_SCHEDULES.md](CRON_SCHEDULES.md). A **holiday + weekend gate** skips closed sessions.
 
 ---
 
-## 🏗️ The whole machine on one page
+## 🏗️ System architecture
 
-Not just "a cron daemon calling scripts." The *deterministic* half is — prices, FX, delivery and reconciliation should never ride on a model's mood. Ten scheduled market jobs run as isolated agent turns; the eleventh scheduled agent job promotes memory and sits outside the trading harness. The morning brief then fans into its debate swarm, while watchdogs and reconciliation code supervise shared state. **Deterministic scaffolding, agentic judgment — that split *is* the architecture:**
+Clawock separates probabilistic judgment from deterministic control. Agents analyze the portfolio and propose decisions; Python owns prices, risk limits, ledger identity, settlement, scoring, and publication.
 
-![clawock architecture — deterministic preflight settles triggers and metrics, the LLM writes multi-strategy decisions, postflight assigns stable IDs and episodes, and the ledger feeds the dashboard/backtest](assets/architecture.svg)
+![clawock architecture — Python builds reconciled market context, a multi-agent LLM debates the trade, code records the decision, and a public scorecard closes the loop](assets/architecture.svg)
 
-The **solid path** (schedulers → harness → shared state → gates → publish) is the deterministic backbone that runs whether or not a model behaves. Market agents write *opinions*; code owns prices, IDs, settlement, delivery markers and publication. The **dotted edges** are the parts people forget: the watchdog that catches a stalled turn, and the self-learning loop that grades yesterday's `plan.json` and feeds the score back in. That's what makes it a multi-agent desk, not a scripted report generator.
+The upper path turns reconciled market state into a versioned decision. The lower loop grades settled calls against canonical bars and returns the score to the next brief. Watchdogs, reconciliation, delivery fallback, and safe publication operate outside the model.
 
 ---
 
-## 🛡️ Why it doesn't quietly break
+## 🛡️ Reliability controls
 
-Running real automation for months taught me that the hard part isn't the prompt — it's everything that goes wrong *around* it. Three ideas carry the whole thing:
+Three controls keep model output separate from system integrity:
 
 <table>
 <tr><td width="33%" valign="top">
@@ -158,7 +151,7 @@ Every **market-reporting** job is `preflight (Python) → LLM → postflight (Py
 
 **2. Self-learning loop**
 
-`plan.json` today → graded tomorrow. The scorecard feeds confidence calibration back into the next brief, so the model is continuously confronted with its own track record instead of vibing forever.
+`plan.json` today → graded tomorrow. The scorecard returns confidence calibration and realised outcomes to the next brief.
 
 </td><td width="33%" valign="top">
 
@@ -176,13 +169,13 @@ Four overlapping layers — OpenClaw schedules the primary jobs; a GitHub Action
 - The off-host brief fallback trims whole structured sections and publishes a manifest. If a required ledger is missing, it emits zero actions instead of improvising from partial context.
 
 <details>
-<summary><b>🔧 Under the hood</b> — model chain, write reconciliation, the genuinely tricky bits</summary>
+<summary><b>🔧 Under the hood</b> — runtime, write coordination, and integrity gates</summary>
 
 <br>
 
 **Models.** Interactive chat currently runs on Claude; unattended market jobs pin **`MiniMax-M3`**. Provider credentials and the runtime fallback policy live outside this public repository and can change without rewriting the harness. Off-host LLM workflows call MiniMax M3 over Anthropic Messages and can fall back to Xiaomi MiMo while that optional key remains available. No provider key is stored here.
 
-**Write reconciliation (the one genuinely hard part).** The three dashboard-build outputs — `dashboard.json`, `decision_audit.json`, and `shadow_portfolio.json` — are 100% derived, yet many actors touch `master`: the cron daemon, off-host workflows, system-crontab publishers and ad-hoc sessions. Months of race-condition incidents converged on a narrower rule: **isolate scan-sidecar writers, and serialize dashboard builders that share a host.**
+**Write reconciliation.** The three dashboard-build outputs — `dashboard.json`, `decision_audit.json`, and `shadow_portfolio.json` — are derived, while the cron daemon, off-host workflows, system-crontab publishers and ad-hoc sessions can all update `master`. The ownership rule is: **isolate scan-sidecar writers, and serialize dashboard builders that share a host.**
 
 - **The frontend reads the scan sidecars directly.** `macro / sentiment / influencer_feed / us_news_digest / em_news` are no longer embedded into `dashboard.json`; `index.html` fetches each file itself at load. So a GitHub Action only ever commits its *own* disjoint sidecar — those writers can't conflict, and a scan appears on the page the instant its commit lands, with no rebuild. (GH Actions still serialize among themselves via `concurrency: group: data-write`.)
 - **The dashboard-build outputs share one ownership contract and one on-host lock.** Local harness postflights and the flock-guarded `publish_dashboard.sh` crontab share the host's `/tmp/dashboard_publish.lock`, so those on-host rebuilds cannot interleave. Every builder runs the same semantic-diff helper: clock-only rewrites are restored, while real changes to any of the three generated files are staged together. The off-host `brief-fallback` workflow reuses the same helper, but its identically named lock is runner-local and cannot serialize against the host lock.
@@ -196,7 +189,7 @@ Four overlapping layers — OpenClaw schedules the primary jobs; a GitHub Action
 
 ## 📐 House rules the code enforces
 
-The constraints `postflight` won't let the model violate. Quant readers will recognize why each exists:
+The following constraints are enforced by `postflight`:
 
 - **🪙 FX — HKD and USD never sum directly.** Totals are always shown in both views with the rate + timestamp stamped (`USDHKD = 7.83, source Frankfurter, <ts>`). Adding two currencies naively is a meaningless number.
 - **🔢 Manual-entry guards.** The few hand-typed values (cash balances, gold-fund reconciliation) get fat-finger checks: a cash number that jumps ≥5× vs the last snapshot, or a gold avg-cost that diverges from NAV, is flagged before it silently corrupts total assets.
@@ -212,14 +205,14 @@ The constraints `postflight` won't let the model violate. Quant readers will rec
 
 **Public data** Tencent · stooq · yfinance · Frankfurter · SEC EDGAR · Finnhub · Nasdaq · Eastmoney · Polygon · Alpha Vantage · Reddit JSON · Google News RSS · Trump Truth Social feed
 
-<sub>The news layer is deliberately **bilingual**: Finnhub + Google News (English/US) *and* Eastmoney company news + 7×24 快讯 (Chinese/HK), since half the book is Hong Kong and HK catalysts surface in Chinese sources first. Information breadth is the one axis kept wide on purpose — it's what an LLM is best at — separate from the deliberately-narrow decision layer.</sub>
+<sub>The news layer is **bilingual**: Finnhub + Google News for US coverage, and Eastmoney company news + 7×24 快讯 for Hong Kong coverage. Information collection stays broad; the decision layer stays constrained.</sub>
 
 <details>
 <summary><b>📊 Data toolkit — 26 endpoints across 8 layers, with per-host reachability</b></summary>
 
 <br>
 
-Every fetcher is **no-key-first** (public endpoints before any API key; the one that needs a key — Finnhub — has a key-free fallback) and **multi-source** (a dead primary falls through to the next; an empty fetch keeps the prior value instead of overwriting). The **Reach** marks are measured on the live server IP, not claimed: ✅ stable · 🟡 flaky / rate-limited · 🔴 IP-banned here (code kept — works from another IP).
+Fetchers prefer documented public endpoints and use **multi-source fallback** where available; an empty fetch keeps the prior value instead of overwriting it. Provider terms and access requirements still apply. The **Reach** marks are measured on the live server IP: ✅ stable · 🟡 flaky / rate-limited · 🔴 unavailable from this host.
 
 | Layer | Endpoints | Primary sources |
 |---|:---:|---|
@@ -241,7 +234,7 @@ Every fetcher is **no-key-first** (public endpoints before any API key; the one 
 - **7 · FX & integrity** — `fetch_fx` USDHKD, 3-route fallback ✅ · `preflight_integrity` money-conservation gate (TCV/PNL/FX/cash) ✅
 - **8 · Backtest & decision audit** — `decision_v2` episode backtest · `backtest_hstech_regime` · `backtest_us_leverage` · `backtest_combined_regime` · `quant_signal_review` + `t0_setup_review` ✅
 
-**Anti-ban** — all live Eastmoney calls route through one wrapper `_em_http.em_get()`: in-process serialization (≥1s gap + random jitter), single reused `Session`, 3 retries then graceful `None`. Full per-file catalog: [`scripts/data/README.md`](scripts/data/README.md).
+**Request hygiene** — all live Eastmoney calls route through one wrapper `_em_http.em_get()`: in-process serialization (≥1s gap + jitter), one reused `Session`, bounded retries, then graceful `None`. See [third-party data and service terms](THIRD_PARTY_DATA.md) before operating or redistributing any fetched content. Full per-file catalog: [`scripts/data/README.md`](scripts/data/README.md).
 
 </details>
 
@@ -279,17 +272,17 @@ clawock/
 
 ## ⚠️ Disclaimer
 
-This repo contains **real, live trading positions** — that's the whole point of sharing it, and also the reason to take everything in it with a fistful of salt. It is a personal record and a portable workspace. It is **not investment advice**, not a recommendation, and **not something you should copy** — the live scorecard above is not edited to flatter the model, and the active calls have yet to show an edge. Every number is point-in-time and may be stale by the time you read it. `Rick` is opinionated by design; that doesn't make him right.
+This repository contains **real trading positions**. It is a personal record and portable workspace, not investment advice, a recommendation, or a copy-trading system. The public scorecard is not manually edited, active calls have yet to show an edge, and every number may be stale by the time you read it.
 
-## 📄 License
+## 📄 License and third-party data
 
-Personal-use repository. No license granted for derivative trading systems, automated copy-trading, or commercial use. The *patterns* (harness layout, fallback-chain design, HHI formulation, atomic IO, the self-grading loop) may be adapted under any compatible open-source license if reused independently.
+Original code is licensed under the [MIT License](LICENSE). Adapted third-party code retains its original license and attribution in [NOTICE](NOTICE) and [`THIRD_PARTY_LICENSES/`](THIRD_PARTY_LICENSES/). Third-party market data, news, social posts, filings, trademarks, and API access are not relicensed by MIT; see [Third-party data and services](THIRD_PARTY_DATA.md). This project is not an automated copy-trading service.
 
 ---
 
 <div align="center">
 
-### ⭐ Star it if "an AI that's honest about being wrong" is your kind of thing.
+### ⭐ Follow the live experiment
 
 [**🎯 Live Dashboard**](https://kcnyu.github.io/clawock/) &nbsp;·&nbsp; [**📅 Daily Briefs**](https://kcnyu.github.io/clawock/briefs.html) &nbsp;·&nbsp; [**简体中文**](README.zh.md)
 

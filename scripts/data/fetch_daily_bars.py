@@ -55,7 +55,7 @@ from pathlib import Path
 from zoneinfo import ZoneInfo
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from _em_http import em_get  # noqa: E402  统一防封出口(串行+抖动+session)
+from _em_http import em_get  # noqa: E402  统一请求节流出口
 
 WS = Path(__file__).resolve().parents[2]
 BARS_DIR = WS / "memory" / "bars"

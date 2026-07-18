@@ -1,0 +1,13 @@
+clawock
+Copyright 2026 Shengyu Li
+
+This product includes modified code adapted from:
+
+  global-stock-data and a-stock-data
+  Copyright 2026 Simon Lin
+  https://github.com/simonlin1212/global-stock-data
+  https://github.com/simonlin1212/a-stock-data
+  Licensed under the Apache License, Version 2.0.
+
+The affected files identify their origin in their source headers. A copy of
+the Apache License 2.0 is provided at THIRD_PARTY_LICENSES/Apache-2.0.txt.

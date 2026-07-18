@@ -2,7 +2,7 @@ name: Weekly Health Check
 
 # Sundays 23:00 UTC (Monday 07:00 HKT, before the 08:00 brief and HK open).
 # Catches drift: scripts that no longer compile, schemas that diverged, missing baselines,
-# data sources gone offline. Failures show as a red ✗ on the README badge.
+# data sources gone offline. Failures remain visible in Actions and the daily review.
 on:
   schedule:
     - cron: '0 23 * * 0'
