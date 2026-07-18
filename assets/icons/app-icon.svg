@@ -1,6 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 64 64" role="img" aria-labelledby="title desc">
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 64 64" role="img" aria-labelledby="title desc" shape-rendering="geometricPrecision">
   <title id="title">clawock app icon</title>
-  <desc id="desc">The Clawock record loop and two-branch cusp converge at a market regime decision.</desc>
+  <desc id="desc">Bull and bear fields divide a Clawock decision clock along one sigmoid boundary.</desc>
   <defs>
     <linearGradient id="pearl" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0" stop-color="#ffffff"/>
@@ -11,20 +11,14 @@
       <stop offset="0" stop-color="#ffffff" stop-opacity=".92"/>
       <stop offset="1" stop-color="#b8c2cb" stop-opacity=".62"/>
     </linearGradient>
-    <linearGradient id="brand" x1="9" y1="53" x2="54" y2="12" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#10141a"/>
-      <stop offset=".58" stop-color="#2b353e"/>
-      <stop offset="1" stop-color="#4b91c8"/>
-    </linearGradient>
-    <linearGradient id="cusp" x1="22" y1="32" x2="42" y2="32" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#151b22"/>
-      <stop offset=".64" stop-color="#263c4c"/>
-      <stop offset="1" stop-color="#4b91c8"/>
+    <linearGradient id="bull-blue" x1="16" y1="52" x2="48" y2="12" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#245574"/>
+      <stop offset="1" stop-color="#559ed1"/>
     </linearGradient>
   </defs>
   <path d="M32 2C10 2 2 10 2 32s8 30 30 30 30-8 30-30S54 2 32 2Z" fill="url(#pearl)" stroke="url(#edge)" stroke-width=".7"/>
   <g transform="translate(9.5 9.5) scale(.703125)">
-    <path d="M49.8 15.9A24 24 0 1 0 49.8 48.1L44.6 43.4A17 17 0 1 1 44.6 20.6Z" fill="url(#brand)"/>
-    <path d="M22 24C30 24 42 32 42 32C42 32 30 40 22 40" transform="rotate(-8 32 32)" fill="none" stroke="url(#cusp)" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="32" cy="32" r="24" fill="url(#bull-blue)"/>
+    <path d="M32 8A24 24 0 0 0 32 56C17 44 47 20 32 8Z" fill="#10141a"/>
   </g>
 </svg>

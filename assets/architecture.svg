@@ -11,15 +11,9 @@
       <stop offset="0" stop-color="#fafbfc"/>
       <stop offset="1" stop-color="#edf2f6"/>
     </linearGradient>
-    <linearGradient id="brand-mark" x1="9" y1="53" x2="54" y2="12" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#10141a"/>
-      <stop offset=".58" stop-color="#2b353e"/>
-      <stop offset="1" stop-color="#4b91c8"/>
-    </linearGradient>
-    <linearGradient id="brand-cusp" x1="22" y1="32" x2="42" y2="32" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#151b22"/>
-      <stop offset=".64" stop-color="#263c4c"/>
-      <stop offset="1" stop-color="#4b91c8"/>
+    <linearGradient id="brand-bull" x1="16" y1="52" x2="48" y2="12" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#245574"/>
+      <stop offset="1" stop-color="#559ed1"/>
     </linearGradient>
     <marker id="arrow-blue" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
       <path d="M0 0L8 4L0 8Z" fill="#65798a"/>
@@ -44,8 +38,8 @@
 
   <g class="sans">
     <g transform="translate(20 17) scale(.34)">
-      <path d="M49.8 15.9A24 24 0 1 0 49.8 48.1L44.6 43.4A17 17 0 1 1 44.6 20.6Z" fill="url(#brand-mark)"/>
-      <path d="M22 24C30 24 42 32 42 32C42 32 30 40 22 40" transform="rotate(-8 32 32)" fill="none" stroke="url(#brand-cusp)" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="32" cy="32" r="24" fill="url(#brand-bull)"/>
+      <path d="M32 8A24 24 0 0 0 32 56C17 44 47 20 32 8Z" fill="#10141a"/>
     </g>
     <text x="47" y="36" font-size="20" font-weight="800" class="ink">clawock</text>
     <text x="875" y="34" text-anchor="end" class="kicker blue">SYSTEM ARCHITECTURE · HK + US</text>

@@ -23,11 +23,10 @@ def test_vector_brand_sources_are_valid_and_keep_the_canonical_geometry():
     assert mark_root.attrib["viewBox"] == "0 0 64 64"
     assert app_root.attrib["viewBox"] == "0 0 64 64"
     for source in (mark.read_text(), app.read_text()):
-        assert "M49.8 15.9A24 24" in source
-        assert "M22 24C30 24 42 32 42 32C42 32 30 40 22 40" in source
-        assert 'rotate(-8 32 32)' in source
-        assert 'id="cusp"' in source
-        assert 'id="brand"' in source
+        assert '<circle cx="32" cy="32" r="24"' in source
+        assert "M32 8A24 24 0 0 0 32 56C17 44 47 20 32 8Z" in source
+        assert 'shape-rendering="geometricPrecision"' in source
+        assert 'id="bull-blue"' in source
 
 
 def test_raster_derivatives_have_exact_declared_sizes():
