@@ -390,7 +390,15 @@ def test_expected_sessions_disclose_missing_marks_and_emit_curve_gaps():
 
 
 def test_shadow_frontend_fails_closed_and_discloses_mark_gaps():
-    html = (ROOT / "index.html").read_text(encoding="utf-8")
+    html = (ROOT / "index.html").read_text(encoding="utf-8") + "".join(
+        (ROOT / "assets" / "js" / name).read_text(encoding="utf-8")
+        for name in (
+            "dashboard.core.js",
+            "dashboard.charts.js",
+            "dashboard.render.js",
+            "dashboard.ui.js",
+        )
+    )
 
     assert 'sidecar && sidecar.computed === false' in html
     assert 'summary.textContent = "⚠️ 政策模拟本次无法计算"' in html

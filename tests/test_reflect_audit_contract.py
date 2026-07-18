@@ -2,7 +2,15 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-HTML = (ROOT / "index.html").read_text()
+HTML = (ROOT / "index.html").read_text() + "".join(
+    (ROOT / "assets" / "js" / name).read_text()
+    for name in (
+        "dashboard.core.js",
+        "dashboard.charts.js",
+        "dashboard.render.js",
+        "dashboard.ui.js",
+    )
+)
 BUILD = (ROOT / "scripts" / "data" / "build_dashboard.py").read_text()
 
 
