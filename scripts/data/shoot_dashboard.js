@@ -15,7 +15,7 @@
  *   assets/shadow-backtest.png   v2 cumulative win-rate chart (all / active / 50% ref)
  *   assets/social-card.png       1280x640 ImageGen template + fresh Hero dashboard
  *   assets/dashboard.gif         manual dispatch only; built from FRAME_DIR
- *   TMP_DIR/dashboard-preview.png  intermediate embedded into the social card
+ *   TMP_DIR/dashboard-preview.png  focused dark Hero crop embedded into the social card
  *   .gifframes/f{0..5}.png       per-tab mobile frames → assemble_dashboard_gif.py
  *
  * assets/ is the one place shipped images live: README, Pages and the OG card all
@@ -187,26 +187,20 @@ function compositeCardHTML(templateDataUri, shotDataUri) {
     html,body { margin:0; width:1280px; height:640px; overflow:hidden; background:#f7f9fb; }
     .template { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
     .live {
-      position:absolute; left:586px; top:62px; width:628px; height:520px;
-      overflow:hidden; border:1px solid #cbd6df; border-radius:13px;
-      background:#f3f6f9; box-shadow:0 18px 48px rgba(18,33,48,.12);
+      position:absolute; left:590px; top:108px; width:620px; height:468px;
+      overflow:hidden; border:1px solid #2d3e52; border-radius:0 0 12px 12px;
+      background:#070a0f; box-shadow:0 24px 54px rgba(0,0,0,.34);
     }
     .live img {
       width:100%; height:100%; display:block; object-fit:cover; object-position:left top;
     }
     .live::after {
       content:""; position:absolute; inset:0; pointer-events:none;
-      box-shadow:inset 0 0 0 1px rgba(255,255,255,.55);
-    }
-    .edge {
-      position:absolute; left:570px; top:44px; width:28px; height:556px;
-      background:linear-gradient(90deg,rgba(247,249,251,.72),rgba(247,249,251,0));
-      pointer-events:none;
+      box-shadow:inset 0 0 0 1px rgba(142,208,255,.06);
     }
   </style></head><body>
     <img class="template" src="${templateDataUri}" alt="">
     <div class="live"><img src="${shotDataUri}" alt=""></div>
-    <div class="edge"></div>
   </body></html>`;
 }
 
@@ -219,9 +213,6 @@ function compositeCardHTML(templateDataUri, shotDataUri) {
     const dp = await desk.newPage();
     await dp.goto(URL, { waitUntil: 'networkidle', timeout: 45000 });
     await settle(dp);
-    // Capture the default Hero before navigating away. It becomes the fresh product
-    // window inside the static ImageGen-authored social-card template.
-    await dp.screenshot({ path: `${TMP_DIR}/dashboard-preview.png`, fullPage: false });
     // Shoot the win-rate chart, not the whole card. The card used to be a money
     // curve and this shot was its portrait; the money view is gone (it summed
     // calls that were never executed against drifting marks) and what remains of
@@ -240,8 +231,23 @@ function compositeCardHTML(templateDataUri, shotDataUri) {
     await shadow.screenshot({ path: `${OUT_DIR}/shadow-backtest.png` });
     await desk.close();
 
-    // 2) Social card: preserve the generated editorial brand system, but replace its
-    //    right-hand mock window with the current Hero dashboard on every refresh.
+    // 2) Social card: light editorial message on the left, real dark-mode product
+    //    crop on the right. A focused 1000×760 crop keeps Book / P&L / equity /
+    //    verdict legible; shrinking an entire 1440px desktop made every detail noise.
+    const socialDesk = await browser.newContext({
+      viewport: { width: 1200, height: 760 },
+      deviceScaleFactor: 2,
+      colorScheme: 'dark',
+    });
+    const sp = await socialDesk.newPage();
+    await sp.goto(URL, { waitUntil: 'networkidle', timeout: 45000 });
+    await settle(sp);
+    await sp.screenshot({
+      path: `${TMP_DIR}/dashboard-preview.png`,
+      clip: { x: 0, y: 0, width: 1000, height: 760 },
+    });
+    await socialDesk.close();
+
     const templateUri = 'data:image/png;base64,' + fs.readFileSync(SOCIAL_TEMPLATE).toString('base64');
     const shotUri = 'data:image/png;base64,' + fs.readFileSync(`${TMP_DIR}/dashboard-preview.png`).toString('base64');
     const cardCtx = await browser.newContext({ viewport: { width: 1280, height: 640 }, deviceScaleFactor: 1 });
