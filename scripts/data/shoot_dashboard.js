@@ -13,7 +13,7 @@
  *
  * Outputs:
  *   assets/shadow-backtest.png   v2 cumulative win-rate chart (all / active / 50% ref)
- *   assets/social-card.png       1280x640 light-blue dashboard card + fresh Hero dashboard
+ *   assets/social-card.png       1280x640 pearl editorial card + fresh Hero dashboard
  *   assets/dashboard.gif         manual dispatch only; built from FRAME_DIR
  *   TMP_DIR/dashboard-preview.png  focused light Hero crop embedded into the social card
  *   .gifframes/f{0..5}.png       per-tab mobile frames → assemble_dashboard_gif.py
@@ -68,7 +68,7 @@ async function settle(page) {
 }
 
 // Retained only as an earlier code-native fallback; socialCardHTML() below owns
-// the current light-blue dashboard card and embeds the live UI directly.
+// the current pearl editorial card and embeds the live UI directly.
 function legacyCardHTML(shotDataUri) {
   void shotDataUri;
   return `<!doctype html><html><head><meta charset="utf-8"><style>
@@ -187,60 +187,56 @@ function socialCardHTML(shotDataUri) {
   body {
     font-family:-apple-system,"Segoe UI","Helvetica Neue","Noto Sans CJK SC",sans-serif;
     background:
-      radial-gradient(62% 92% at 8% 5%,rgba(255,255,255,.98),transparent 72%),
-      linear-gradient(128deg,#f8fbff 0%,#edf6ff 55%,#dceeff 100%);
-    color:#101821; display:flex; align-items:center; position:relative;
+      radial-gradient(65% 95% at 7% 4%,rgba(255,255,255,.98),transparent 72%),
+      linear-gradient(128deg,#fcfcfd 0%,#f5f6f8 56%,#edf2f5 100%);
+    color:#151a21; display:flex; align-items:center; position:relative;
   }
   body::before {
-    content:""; position:absolute; inset:0; opacity:.34; pointer-events:none;
-    background-image:
-      linear-gradient(rgba(8,125,209,.09) 1px,transparent 1px),
-      linear-gradient(90deg,rgba(8,125,209,.09) 1px,transparent 1px);
-    background-size:42px 42px;
-    mask-image:linear-gradient(90deg,#000,transparent 52%);
+    content:""; position:absolute; inset:0; pointer-events:none;
+    background:
+      radial-gradient(circle at 84% 16%,rgba(121,181,225,.22),transparent 28%),
+      radial-gradient(circle at 48% 88%,rgba(255,255,255,.82),transparent 34%);
   }
   body::after {
-    content:""; position:absolute; z-index:0; right:-180px; top:-178px;
-    width:880px; height:900px; border-radius:48%;
-    transform:rotate(-6deg);
+    content:""; position:absolute; z-index:0; right:-215px; top:-205px;
+    width:900px; height:920px; border-radius:48%;
+    transform:rotate(-7deg);
     background:
-      radial-gradient(circle at 76% 74%,rgba(112,190,244,.42),transparent 28%),
-      linear-gradient(145deg,rgba(231,245,255,.82),rgba(187,222,247,.92));
-    border:1px solid rgba(8,125,209,.10);
-    box-shadow:inset 1px 0 rgba(255,255,255,.72);
+      radial-gradient(circle at 72% 70%,rgba(127,184,226,.22),transparent 28%),
+      linear-gradient(145deg,rgba(255,255,255,.82),rgba(216,227,236,.72));
+    border:1px solid rgba(91,115,135,.10);
+    box-shadow:inset 1px 0 rgba(255,255,255,.88);
   }
   .left { width:560px; padding:58px 0 64px 70px; flex:none; z-index:3; }
   .brand { display:flex; align-items:center; gap:12px; margin-bottom:32px; }
-  .brand .dot { width:16px; height:16px; border-radius:50%;
-    background:radial-gradient(circle at 35% 30%,#8ed0ff,#087dd1);
-    box-shadow:0 0 20px rgba(54,163,255,.44); }
+  .brand-mark { width:29px; height:29px; flex:none; }
   .brand .name { font-size:30px; font-weight:800; letter-spacing:-.5px; }
-  .eyebrow { margin-bottom:15px; color:#4e6d86; font-size:12px; font-weight:800;
+  .eyebrow { margin-bottom:15px; color:#667582; font-size:12px; font-weight:800;
     letter-spacing:.16em; }
   h1 { font-size:48px; line-height:1.08; font-weight:800; letter-spacing:-1.25px;
     margin-bottom:22px; max-width:500px; }
   h1 .hl {
-    color:#087dd1;
-    background:linear-gradient(90deg,#0567b1,#36a3ff);
+    color:#293844;
+    background:linear-gradient(90deg,#202b35,#586f81);
     -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;
   }
-  .sub { font-size:18px; line-height:1.5; color:#526170; font-weight:520; max-width:440px; }
-  .sub b { color:#152536; font-weight:750; }
+  .sub { font-size:18px; line-height:1.5; color:#64717c; font-weight:520; max-width:440px; }
+  .sub b { color:#202a33; font-weight:750; }
   .proof { display:flex; align-items:center; gap:13px; margin-top:31px;
-    color:#315d7c; font:800 12px/1 ui-monospace,SFMono-Regular,Menlo,monospace;
+    color:#4f606e; font:800 12px/1 ui-monospace,SFMono-Regular,Menlo,monospace;
     letter-spacing:.13em; }
-  .proof i { width:25px; height:1px; background:linear-gradient(90deg,#8ed0ff,#1687e8);
+  .proof i { width:25px; height:1px; background:linear-gradient(90deg,#b9c4cd,#6d9fc5);
     opacity:.72; }
   .repo { position:absolute; left:68px; bottom:40px; font-size:18px; font-weight:700;
-    color:#0567b1; display:flex; align-items:center; gap:9px; }
-  .repo .star { color:#36a3ff; }
+    color:#344754; display:flex; align-items:center; gap:11px; }
+  .repo::before { content:""; width:22px; height:2px; border-radius:2px; background:#6d9fc5; }
   .shot {
     position:absolute; right:-34px; top:50%; transform:translateY(-50%) rotate(-2deg);
     width:700px; height:508px; border-radius:17px; overflow:hidden;
     box-shadow:
-      0 34px 80px rgba(35,79,115,.25),
-      0 0 0 1px rgba(82,141,187,.18),
-      0 0 72px rgba(54,163,255,.18);
+      0 34px 80px rgba(38,53,65,.20),
+      0 0 0 1px rgba(82,105,123,.16),
+      0 0 72px rgba(109,159,197,.12);
     background:#fff; z-index:2;
   }
   .shot .bar { height:36px; background:linear-gradient(180deg,#f8fafc,#e9eef5);
@@ -256,15 +252,22 @@ function socialCardHTML(shotDataUri) {
   .shot::after { content:""; position:absolute; inset:36px 0 0; pointer-events:none;
     box-shadow:inset 0 0 0 1px rgba(30,63,95,.08); }
   .fade { position:absolute; right:0; top:0; bottom:0; width:100px; z-index:4;
-    background:linear-gradient(90deg,rgba(220,238,255,0),rgba(166,211,244,.18)); pointer-events:none; }
+    background:linear-gradient(90deg,rgba(237,242,245,0),rgba(190,206,218,.14)); pointer-events:none; }
 </style></head><body>
   <div class="left">
-    <div class="brand"><span class="dot"></span><span class="name">clawock</span></div>
+    <div class="brand">
+      <svg class="brand-mark" viewBox="0 0 64 64" aria-hidden="true">
+        <path d="M46 15.7A22.5 22.5 0 1 0 46.8 48" fill="none" stroke="#151a21" stroke-width="6.5" stroke-linecap="round"/>
+        <path d="M21.5 31.5l8.8 7.8 17.2-18.8" fill="none" stroke="#151a21" stroke-width="6.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="47.5" cy="20.5" r="3.25" fill="#4b91c8"/>
+      </svg>
+      <span class="name">clawock</span>
+    </div>
     <div class="eyebrow">AUTONOMOUS · MULTI-AGENT LLM STOCK DESK</div>
     <h1>AI agents debate.<br><span class="hl">Code controls the risk.</span></h1>
     <div class="sub">Built on a <b>real HK + US portfolio</b>, with every call returned to a public scorecard and <b>published unedited.</b></div>
     <div class="proof"><span>DEBATE</span><i></i><span>GATE</span><i></i><span>GRADE</span></div>
-    <div class="repo"><span class="star">★</span> github.com/KCNyu/clawock</div>
+    <div class="repo">github.com/KCNyu/clawock</div>
   </div>
   <div class="shot"><div class="bar"><i></i><i></i><i></i><span class="address"></span></div><img src="${shotDataUri}" alt=""></div>
   <div class="fade"></div>
@@ -298,8 +301,8 @@ function socialCardHTML(shotDataUri) {
     await shadow.screenshot({ path: `${OUT_DIR}/shadow-backtest.png` });
     await desk.close();
 
-    // 2) Social card: match the dashboard's light theme — pale-blue gradient,
-    //    dashboard-blue accents, and a real light dashboard in a tilted browser.
+    // 2) Social card: a pearl/graphite editorial field with one restrained blue
+    //    accent and a real light dashboard in a tilted browser.
     const socialDesk = await browser.newContext({
       viewport: { width: 1200, height: 760 },
       deviceScaleFactor: 2,

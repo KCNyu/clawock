@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" role="img" aria-labelledby="title desc">
+  <title id="title">clawock mark</title>
+  <desc id="desc">An open circular record loop containing a rising verdict check.</desc>
+  <style>
+    .ink{stroke:#151a21}
+    @media (prefers-color-scheme:dark){.ink{stroke:#f4f6f8}}
+  </style>
+  <path class="ink" d="M46 15.7A22.5 22.5 0 1 0 46.8 48" fill="none" stroke-width="6.5" stroke-linecap="round"/>
+  <path class="ink" d="M21.5 31.5l8.8 7.8 17.2-18.8" fill="none" stroke-width="6.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="47.5" cy="20.5" r="3.25" fill="#4b91c8"/>
+</svg>

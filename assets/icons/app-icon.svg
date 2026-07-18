@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 64 64" role="img" aria-labelledby="title desc">
+  <title id="title">clawock app icon</title>
+  <desc id="desc">The clawock open record loop and verdict mark on a pearl squircle.</desc>
+  <defs>
+    <linearGradient id="pearl" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset=".52" stop-color="#f4f6f8"/>
+      <stop offset="1" stop-color="#e6ebef"/>
+    </linearGradient>
+    <linearGradient id="edge" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff" stop-opacity=".92"/>
+      <stop offset="1" stop-color="#b8c2cb" stop-opacity=".62"/>
+    </linearGradient>
+  </defs>
+  <path d="M32 2C10 2 2 10 2 32s8 30 30 30 30-8 30-30S54 2 32 2Z" fill="url(#pearl)" stroke="url(#edge)" stroke-width=".7"/>
+  <g transform="translate(9.5 9.5) scale(.703125)">
+    <path d="M46 15.7A22.5 22.5 0 1 0 46.8 48" fill="none" stroke="#151a21" stroke-width="6.5" stroke-linecap="round"/>
+    <path d="M21.5 31.5l8.8 7.8 17.2-18.8" fill="none" stroke="#151a21" stroke-width="6.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="47.5" cy="20.5" r="3.25" fill="#4b91c8"/>
+  </g>
+</svg>
