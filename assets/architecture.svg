@@ -1,151 +1,172 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="900" height="780" viewBox="0 0 900 780" role="img" aria-labelledby="title desc">
-  <title id="title">clawock system architecture</title>
-  <desc id="desc">A three-stage system: deterministic Python builds market context, a multi-agent LLM debates stock decisions, and deterministic code validates and publishes the record. Canonical bars and a Python grader close the public scorecard loop.</desc>
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="560" viewBox="0 0 900 560" role="img" aria-labelledby="title desc">
+  <title id="title">How clawock turns evidence into a public investment record</title>
+  <desc id="desc">Python assembles an immutable evidence pack. Independent agent lenses form bull and bear cases, three risk voices challenge them, and a judge writes a proposed strategy. Python validates the decision contract and publishes the brief, ledger, and dashboard. Canonical market bars settle every call and feed a public scorecard back into the next brief.</desc>
   <defs>
-    <linearGradient id="page" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#fbfaf6"/>
-      <stop offset=".6" stop-color="#f1f5f1"/>
-      <stop offset="1" stop-color="#e8f0eb"/>
-    </linearGradient>
-    <linearGradient id="agent" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#174f4c"/>
-      <stop offset="1" stop-color="#257568"/>
-    </linearGradient>
-    <linearGradient id="warm" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0" stop-color="#d79749"/>
-      <stop offset="1" stop-color="#bd6538"/>
-    </linearGradient>
-    <pattern id="grid" width="36" height="36" patternUnits="userSpaceOnUse">
-      <path d="M36 0H0V36" fill="none" stroke="#42655f" stroke-width=".6" opacity=".10"/>
-    </pattern>
-    <marker id="arrow" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto">
-      <path d="M0 0L9 4.5L0 9Z" fill="#627873"/>
+    <marker id="arrow-green" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+      <path d="M0 0L8 4L0 8Z" fill="#2d6f67"/>
     </marker>
-    <marker id="arrowGreen" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto">
-      <path d="M0 0L9 4.5L0 9Z" fill="#247064"/>
+    <marker id="arrow-warm" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+      <path d="M0 0L8 4L0 8Z" fill="#c46d43"/>
     </marker>
     <style>
       .sans{font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif}
       .mono{font-family:"SFMono-Regular",Consolas,"Liberation Mono",monospace}
-      .ink{fill:#132325}.muted{fill:#657b78}.green{fill:#176f66}.amber{fill:#bd6538}
-      .eyebrow{font:800 11px "SFMono-Regular",Consolas,monospace;letter-spacing:1.45px}
-      .heading{font:800 23px Inter,-apple-system,"Segoe UI",Arial,sans-serif;letter-spacing:-.4px}
-      .body{font:500 13px Inter,-apple-system,"Segoe UI",Arial,sans-serif}
-      .item{font:700 13px Inter,-apple-system,"Segoe UI",Arial,sans-serif}
-      .micro{font:600 11px "SFMono-Regular",Consolas,monospace}
-      .card{fill:#fff;stroke:#d3ded8;stroke-width:1.2}
-      .wire{fill:none;stroke:#627873;stroke-width:1.7;marker-end:url(#arrow)}
+      .ink{fill:#172827}.muted{fill:#62736f}.green{fill:#286c64}.warm{fill:#b95f3a}
+      .kicker{font:700 10.5px "SFMono-Regular",Consolas,monospace;letter-spacing:1.2px}
+      .title{font:800 25px Inter,-apple-system,"Segoe UI",Arial,sans-serif;letter-spacing:-.55px}
+      .stage{font:800 20px Inter,-apple-system,"Segoe UI",Arial,sans-serif;letter-spacing:-.35px}
+      .body{font:500 12.5px Inter,-apple-system,"Segoe UI",Arial,sans-serif}
+      .label{font:750 12px Inter,-apple-system,"Segoe UI",Arial,sans-serif}
+      .micro{font:600 10.5px "SFMono-Regular",Consolas,monospace}
+      .card{fill:#fff;stroke:#d6ddd8;stroke-width:1.2}
+      .chip{fill:#f4f6f2;stroke:#d8e0da;stroke-width:1}
+      .wire{fill:none;stroke:#2d6f67;stroke-width:1.8;marker-end:url(#arrow-green)}
     </style>
   </defs>
 
-  <rect width="900" height="780" fill="url(#page)"/>
-  <rect width="900" height="780" fill="url(#grid)"/>
-  <path d="M710-40C825 28 886 112 944 242V-40Z" fill="#176f66" opacity=".10"/>
-  <circle cx="838" cy="82" r="126" fill="#d79749" opacity=".08"/>
+  <rect width="900" height="560" fill="#f7f5ee"/>
 
   <g class="sans">
-    <circle cx="39" cy="42" r="7" fill="#28b978"/>
-    <text x="55" y="51" font-size="25" font-weight="800" class="ink">clawock</text>
-    <text x="870" y="47" text-anchor="end" class="eyebrow green">SYSTEM MAP · HK + US STOCKS</text>
+    <circle cx="31" cy="31" r="6" fill="#2d6f67"/>
+    <text x="45" y="36" font-size="20" font-weight="800" class="ink">clawock</text>
+    <text x="875" y="34" text-anchor="end" class="kicker green">SYSTEM ARCHITECTURE · HK + US</text>
 
-    <text x="30" y="104" class="heading ink">Agentic judgment. Deterministic control.</text>
-    <text x="30" y="128" class="body muted">Agents form opinions; code owns data, risk, scoring and publication.</text>
+    <text x="24" y="66" class="title ink">How one claim becomes a public record</text>
+    <text x="24" y="87" class="body muted">Agents may argue. They cannot rewrite facts, limits or outcomes.</text>
   </g>
 
-  <!-- main runtime -->
-  <path d="M290 302H316" class="wire"/>
-  <path d="M584 302H610" class="wire"/>
+  <!-- Main execution rail -->
+  <path d="M204 254H222" class="wire"/>
+  <path d="M588 254H606" class="wire"/>
 
-  <g transform="translate(30 158)">
-    <rect x="7" y="9" width="260" height="292" rx="18" fill="#173d39" opacity=".08"/>
-    <rect class="card" width="260" height="292" rx="18"/>
-    <rect width="260" height="5" rx="3" fill="#176f66"/>
-    <text x="20" y="36" class="eyebrow green">DETERMINISTIC · PYTHON</text>
-    <text x="20" y="72" class="heading ink">Build the facts</text>
-    <text x="20" y="96" class="body muted">Clean, reconciled market state.</text>
-    <path d="M20 116H240" stroke="#e1e8e3"/>
-    <circle cx="24" cy="148" r="4" fill="#176f66"/>
-    <text x="38" y="152" class="item ink">Refresh + reconcile</text>
-    <text x="38" y="172" class="micro muted">prices · FX · positions</text>
-    <circle cx="24" cy="207" r="4" fill="#176f66"/>
-    <text x="38" y="211" class="item ink">Derive risk state</text>
-    <text x="38" y="231" class="micro muted">exposure · regime · hard caps</text>
-    <circle cx="24" cy="266" r="4" fill="#176f66"/>
-    <text x="38" y="270" class="item ink">Settle prior calls</text>
-    <text x="38" y="290" class="micro muted">canonical bars · calendar</text>
+  <!-- 01 Evidence -->
+  <g transform="translate(24 108)" class="sans">
+    <rect class="card" width="180" height="292" rx="15"/>
+    <rect width="5" height="292" rx="2.5" fill="#2d6f67"/>
+    <text x="20" y="28" class="kicker green">01 · PYTHON</text>
+    <text x="20" y="59" class="stage ink">Evidence pack</text>
+    <text x="20" y="80" class="body muted">One reconciled input.</text>
+
+    <path d="M20 96H160" stroke="#e2e7e2"/>
+
+    <text x="20" y="115" class="kicker green">BOOK</text>
+    <text x="20" y="133" class="label ink">holdings · cash · FX</text>
+
+    <text x="20" y="153" class="kicker green">MARKET</text>
+    <text x="20" y="171" class="label ink">prices · regime · signals</text>
+
+    <text x="20" y="191" class="kicker green">RISK</text>
+    <text x="20" y="209" class="label ink">exposure · caps · stops</text>
+
+    <text x="20" y="229" class="kicker green">EVENTS</text>
+    <text x="20" y="247" class="label ink">filings · catalysts · news</text>
+
+    <rect x="18" y="260" width="144" height="24" rx="12" fill="#e5efeb"/>
+    <text x="90" y="276" text-anchor="middle" class="micro green">IMMUTABLE CONTEXT</text>
   </g>
 
-  <g transform="translate(320 158)">
-    <rect x="7" y="9" width="260" height="292" rx="18" fill="#132325" opacity=".15"/>
-    <rect width="260" height="292" rx="18" fill="url(#agent)" stroke="#113f3b" stroke-width="1.2"/>
-    <rect width="260" height="5" rx="3" fill="url(#warm)"/>
-    <text x="20" y="36" class="eyebrow" fill="#b7e1d7">MULTI-AGENT LLM</text>
-    <text x="20" y="72" class="heading" fill="#fff">Debate the trade</text>
-    <text x="20" y="96" class="body" fill="#c5dbd6">Judgment only. No money math.</text>
-    <path d="M20 116H240" stroke="#fff" opacity=".18"/>
-    <circle cx="24" cy="148" r="4" fill="#f0ae61"/>
-    <text x="38" y="152" class="item" fill="#fff">Four analyst lenses</text>
-    <text x="38" y="172" class="micro" fill="#b7d0ca">fund · tech · sentiment · sector</text>
-    <circle cx="24" cy="207" r="4" fill="#f0ae61"/>
-    <text x="38" y="211" class="item" fill="#fff">Bull ↔ Bear</text>
-    <text x="38" y="231" class="micro" fill="#b7d0ca">mandatory disagreement</text>
-    <circle cx="24" cy="266" r="4" fill="#f0ae61"/>
-    <text x="38" y="270" class="item" fill="#fff">Risk voices + Judge</text>
-    <text x="38" y="290" class="micro" fill="#f0c28e">→ plan.json / decisions[]</text>
+  <!-- 02 Agent decision room -->
+  <g transform="translate(222 108)" class="sans">
+    <rect width="366" height="292" rx="15" fill="#234f4b" stroke="#183f3b" stroke-width="1.2"/>
+    <rect width="366" height="5" rx="2.5" fill="#cf774b"/>
+    <text x="20" y="28" class="kicker" fill="#b9d7d1">02 · MULTI-AGENT LLM</text>
+    <text x="20" y="59" class="stage" fill="#fff">Decision room</text>
+    <text x="346" y="58" text-anchor="end" class="body" fill="#c1d5d1">Disagreement is the feature.</text>
+
+    <text x="20" y="91" class="kicker" fill="#b9d7d1">INDEPENDENT LENSES</text>
+    <g transform="translate(20 102)">
+      <rect width="153" height="28" rx="7" fill="#fff" opacity=".10"/>
+      <text x="76.5" y="18" text-anchor="middle" class="label" fill="#fff">Fundamentals</text>
+      <rect x="173" width="153" height="28" rx="7" fill="#fff" opacity=".10"/>
+      <text x="249.5" y="18" text-anchor="middle" class="label" fill="#fff">Market + quant</text>
+      <rect y="36" width="153" height="28" rx="7" fill="#fff" opacity=".10"/>
+      <text x="76.5" y="54" text-anchor="middle" class="label" fill="#fff">Sentiment + events</text>
+      <rect x="173" y="36" width="153" height="28" rx="7" fill="#fff" opacity=".10"/>
+      <text x="249.5" y="54" text-anchor="middle" class="label" fill="#fff">Cross-market</text>
+    </g>
+
+    <text x="20" y="185" class="kicker" fill="#f0bb9e">FORCED CONTEST</text>
+    <rect x="20" y="196" width="136" height="31" rx="8" fill="#e8f1ed"/>
+    <text x="88" y="216" text-anchor="middle" class="label green">BULL CASE</text>
+    <text x="183" y="216" text-anchor="middle" class="kicker" fill="#f0bb9e">VS</text>
+    <rect x="210" y="196" width="136" height="31" rx="8" fill="#f5e6dd"/>
+    <text x="278" y="216" text-anchor="middle" class="label warm">BEAR CASE</text>
+
+    <text x="20" y="242" class="kicker" fill="#b9d7d1">RISK VOICES</text>
+    <text x="116" y="242" class="micro" fill="#fff">AGGRESSIVE</text>
+    <circle cx="187" cy="238" r="2.5" fill="#cf774b"/>
+    <text x="199" y="242" class="micro" fill="#fff">NEUTRAL</text>
+    <circle cx="251" cy="238" r="2.5" fill="#cf774b"/>
+    <text x="263" y="242" class="micro" fill="#fff">CONSERVATIVE</text>
+
+    <rect x="20" y="251" width="326" height="34" rx="9" fill="#172f2d"/>
+    <text x="35" y="265" class="kicker" fill="#f0bb9e">JUDGE</text>
+    <text x="35" y="279" class="micro" fill="#fff">strategy + action + trigger + confidence</text>
   </g>
 
-  <g transform="translate(610 158)">
-    <rect x="7" y="9" width="260" height="292" rx="18" fill="#6e3b24" opacity=".08"/>
-    <rect class="card" width="260" height="292" rx="18"/>
-    <rect width="260" height="5" rx="3" fill="url(#warm)"/>
-    <text x="20" y="36" class="eyebrow amber">DETERMINISTIC · CODE GATE</text>
-    <text x="20" y="72" class="heading ink">Record the decision</text>
-    <text x="20" y="96" class="body muted">The model cannot edit the evidence.</text>
-    <path d="M20 116H240" stroke="#e1e8e3"/>
-    <circle cx="24" cy="148" r="4" fill="#c97835"/>
-    <text x="38" y="152" class="item ink">Validate the contract</text>
-    <text x="38" y="172" class="micro muted">conditions · size · risk rules</text>
-    <circle cx="24" cy="207" r="4" fill="#c97835"/>
-    <text x="38" y="211" class="item ink">Assign identity</text>
-    <text x="38" y="231" class="micro muted">stable ID · strategy · episode</text>
-    <circle cx="24" cy="266" r="4" fill="#c97835"/>
-    <text x="38" y="270" class="item ink">Publish the record</text>
-    <text x="38" y="290" class="micro muted">brief · dashboard · ledger</text>
+  <!-- 03 Deterministic decision contract -->
+  <g transform="translate(606 108)" class="sans">
+    <rect class="card" width="270" height="292" rx="15"/>
+    <rect width="5" height="292" rx="2.5" fill="#c46d43"/>
+    <text x="20" y="28" class="kicker warm">03 · PYTHON CODE GATE</text>
+    <text x="20" y="59" class="stage ink">Decision contract</text>
+    <text x="20" y="80" class="body muted">Only valid records get published.</text>
+
+    <path d="M20 96H250" stroke="#e2e7e2"/>
+
+    <circle cx="31" cy="122" r="11" fill="#e5efeb"/>
+    <path d="M26 122l3 3 6-7" fill="none" stroke="#2d6f67" stroke-width="1.8"/>
+    <text x="51" y="120" class="label ink">Validate required fields</text>
+    <text x="51" y="137" class="micro muted">condition · size · rationale</text>
+
+    <circle cx="31" cy="166" r="11" fill="#f5e6dd"/>
+    <path d="M31 159v8M31 171v1" stroke="#b95f3a" stroke-width="1.8"/>
+    <text x="51" y="164" class="label ink">Require hard-limit actions</text>
+    <text x="51" y="181" class="micro muted">reject omitted risk breaches</text>
+
+    <circle cx="31" cy="210" r="11" fill="#e5efeb"/>
+    <text x="31" y="214" text-anchor="middle" class="micro green">#</text>
+    <text x="51" y="208" class="label ink">Assign stable identity</text>
+    <text x="51" y="225" class="micro muted">strategy · decision · episode</text>
+
+    <text x="20" y="250" class="kicker warm">VERSIONED OUTPUT</text>
+    <g transform="translate(20 260)">
+      <rect class="chip" width="68" height="27" rx="7"/>
+      <text x="34" y="18" text-anchor="middle" class="micro ink">BRIEF</text>
+      <rect x="76" class="chip" width="76" height="27" rx="7"/>
+      <text x="114" y="18" text-anchor="middle" class="micro ink">LEDGER</text>
+      <rect x="160" class="chip" width="90" height="27" rx="7"/>
+      <text x="205" y="18" text-anchor="middle" class="micro ink">DASHBOARD</text>
+    </g>
   </g>
 
-  <!-- evidence loop -->
+  <!-- Evidence loop -->
   <g class="sans">
-    <text x="30" y="500" class="eyebrow green">CLOSED-LOOP EVIDENCE</text>
-    <text x="870" y="500" text-anchor="end" class="micro muted">settled calls return to the next brief</text>
+    <text x="24" y="426" class="kicker green">THE SYSTEM HAS TO FACE ITS OWN RECORD</text>
+    <text x="876" y="426" text-anchor="end" class="micro muted">no model edits after publication</text>
+
+    <rect x="24" y="442" width="852" height="90" rx="15" fill="#fff" stroke="#d6ddd8" stroke-width="1.2"/>
+    <path d="M225 487H257" class="wire"/>
+    <path d="M465 487H497" class="wire"/>
+    <path d="M697 487H729" fill="none" stroke="#c46d43" stroke-width="1.8" marker-end="url(#arrow-warm)"/>
+
+    <circle cx="51" cy="487" r="17" fill="#e5efeb"/>
+    <path d="M43 487h16M51 479v16" stroke="#2d6f67" stroke-width="1.6"/>
+    <text x="78" y="482" class="kicker green">CANONICAL BARS</text>
+    <text x="78" y="501" class="body muted">session-dated truth</text>
+
+    <circle cx="284" cy="487" r="17" fill="#f5e6dd"/>
+    <path d="M277 487h14M284 480v14" stroke="#b95f3a" stroke-width="1.6"/>
+    <text x="311" y="482" class="kicker warm">SETTLE + GRADE</text>
+    <text x="311" y="501" class="body muted">episodes · timing · calibration</text>
+
+    <circle cx="524" cy="487" r="17" fill="#e5efeb"/>
+    <path d="M517 491l4-5 4 3 7-9" fill="none" stroke="#2d6f67" stroke-width="1.6"/>
+    <text x="551" y="482" class="kicker green">PUBLIC SCORECARD</text>
+    <text x="551" y="501" class="body muted">outcomes + coverage</text>
+
+    <rect x="736" y="467" width="122" height="40" rx="20" fill="#234f4b"/>
+    <text x="797" y="483" text-anchor="middle" class="kicker" fill="#f0bb9e">FEEDBACK</text>
+    <text x="797" y="498" text-anchor="middle" class="micro" fill="#fff">↺ NEXT BRIEF</text>
   </g>
-  <rect x="30" y="520" width="840" height="116" rx="18" fill="#fff" stroke="#d3ded8" stroke-width="1.2"/>
-  <path d="M272 578H317M565 578H597" class="wire"/>
-
-  <g class="sans">
-    <circle cx="66" cy="565" r="17" fill="#e3f0eb"/>
-    <path d="M59 565h14M66 558v14" stroke="#176f66" stroke-width="1.8"/>
-    <text x="94" y="563" class="eyebrow green">CANONICAL BARS</text>
-    <text x="94" y="586" class="body muted">session-dated market truth</text>
-
-    <circle cx="346" cy="565" r="17" fill="#f8eadb"/>
-    <path d="M339 565h14M346 558v14" stroke="#bd6538" stroke-width="1.8"/>
-    <text x="374" y="563" class="eyebrow amber">PYTHON GRADER</text>
-    <text x="374" y="586" class="body muted">episodes · timing · calibration</text>
-
-    <circle cx="626" cy="565" r="17" fill="#e3f0eb"/>
-    <path d="M619 565h14M626 558v14" stroke="#176f66" stroke-width="1.8"/>
-    <text x="654" y="563" class="eyebrow green">PUBLIC SCORECARD</text>
-    <text x="654" y="586" class="body muted">unedited outcomes + coverage</text>
-  </g>
-
-  <rect x="395" y="650" width="110" height="26" rx="13" fill="#e3f0eb"/>
-  <text x="450" y="667" text-anchor="middle" class="micro green">↺ NEXT BRIEF</text>
-
-  <!-- controls outside the model -->
-  <rect x="30" y="704" width="840" height="48" rx="14" fill="#173f3b"/>
-  <circle cx="52" cy="728" r="4" fill="#f0ae61"/>
-  <text x="68" y="732" class="eyebrow" fill="#f5f1e9">WATCHDOGS</text>
-  <text x="228" y="732" class="eyebrow" fill="#a9c9c2">RECONCILIATION</text>
-  <text x="438" y="732" class="eyebrow" fill="#a9c9c2">DELIVERY FALLBACK</text>
-  <text x="690" y="732" class="eyebrow" fill="#a9c9c2">SAFE PUBLISH</text>
 </svg>
