@@ -2,34 +2,40 @@
   <title id="title">How clawock turns evidence into a public investment record</title>
   <desc id="desc">Python assembles an immutable evidence pack. Independent agent lenses form bull and bear cases, three risk voices challenge them, and a judge writes a proposed strategy. Python validates the decision contract and publishes the brief, ledger, and dashboard. Canonical market bars settle every call and feed a public scorecard back into the next brief.</desc>
   <defs>
-    <marker id="arrow-green" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
-      <path d="M0 0L8 4L0 8Z" fill="#2d6f67"/>
-    </marker>
-    <marker id="arrow-warm" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
-      <path d="M0 0L8 4L0 8Z" fill="#c46d43"/>
+    <linearGradient id="page-blue" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f8fbff"/>
+      <stop offset=".58" stop-color="#f1f7fc"/>
+      <stop offset="1" stop-color="#e5f2fc"/>
+    </linearGradient>
+    <linearGradient id="decision-blue" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#edf7ff"/>
+      <stop offset="1" stop-color="#dceeff"/>
+    </linearGradient>
+    <marker id="arrow-blue" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+      <path d="M0 0L8 4L0 8Z" fill="#087dd1"/>
     </marker>
     <style>
       .sans{font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif}
       .mono{font-family:"SFMono-Regular",Consolas,"Liberation Mono",monospace}
-      .ink{fill:#172827}.muted{fill:#62736f}.green{fill:#286c64}.warm{fill:#b95f3a}
+      .ink{fill:#101821}.muted{fill:#526170}.blue{fill:#087dd1}.green{fill:#138b66}.warm{fill:#b8524a}
       .kicker{font:700 10.5px "SFMono-Regular",Consolas,monospace;letter-spacing:1.2px}
       .title{font:800 25px Inter,-apple-system,"Segoe UI",Arial,sans-serif;letter-spacing:-.55px}
       .stage{font:800 20px Inter,-apple-system,"Segoe UI",Arial,sans-serif;letter-spacing:-.35px}
       .body{font:500 12.5px Inter,-apple-system,"Segoe UI",Arial,sans-serif}
       .label{font:750 12px Inter,-apple-system,"Segoe UI",Arial,sans-serif}
       .micro{font:600 10.5px "SFMono-Regular",Consolas,monospace}
-      .card{fill:#fff;stroke:#d6ddd8;stroke-width:1.2}
-      .chip{fill:#f4f6f2;stroke:#d8e0da;stroke-width:1}
-      .wire{fill:none;stroke:#2d6f67;stroke-width:1.8;marker-end:url(#arrow-green)}
+      .card{fill:#fff;stroke:#d8e0e8;stroke-width:1.2}
+      .chip{fill:#f2f5f8;stroke:#d8e0e8;stroke-width:1}
+      .wire{fill:none;stroke:#087dd1;stroke-width:1.8;marker-end:url(#arrow-blue)}
     </style>
   </defs>
 
-  <rect width="900" height="560" fill="#f7f5ee"/>
+  <rect width="900" height="560" fill="url(#page-blue)"/>
 
   <g class="sans">
-    <circle cx="31" cy="31" r="6" fill="#2d6f67"/>
+    <circle cx="31" cy="31" r="6" fill="#36a3ff"/>
     <text x="45" y="36" font-size="20" font-weight="800" class="ink">clawock</text>
-    <text x="875" y="34" text-anchor="end" class="kicker green">SYSTEM ARCHITECTURE · HK + US</text>
+    <text x="875" y="34" text-anchor="end" class="kicker blue">SYSTEM ARCHITECTURE · HK + US</text>
 
     <text x="24" y="66" class="title ink">How one claim becomes a public record</text>
     <text x="24" y="87" class="body muted">Agents may argue. They cannot rewrite facts, limits or outcomes.</text>
@@ -42,80 +48,80 @@
   <!-- 01 Evidence -->
   <g transform="translate(24 108)" class="sans">
     <rect class="card" width="180" height="292" rx="15"/>
-    <rect width="5" height="292" rx="2.5" fill="#2d6f67"/>
-    <text x="20" y="28" class="kicker green">01 · PYTHON</text>
+    <rect width="5" height="292" rx="2.5" fill="#1687e8"/>
+    <text x="20" y="28" class="kicker blue">01 · PYTHON</text>
     <text x="20" y="59" class="stage ink">Evidence pack</text>
     <text x="20" y="80" class="body muted">One reconciled input.</text>
 
-    <path d="M20 96H160" stroke="#e2e7e2"/>
+    <path d="M20 96H160" stroke="#e1e9f0"/>
 
-    <text x="20" y="115" class="kicker green">BOOK</text>
+    <text x="20" y="115" class="kicker blue">BOOK</text>
     <text x="20" y="133" class="label ink">holdings · cash · FX</text>
 
-    <text x="20" y="153" class="kicker green">MARKET</text>
+    <text x="20" y="153" class="kicker blue">MARKET</text>
     <text x="20" y="171" class="label ink">prices · regime · signals</text>
 
-    <text x="20" y="191" class="kicker green">RISK</text>
+    <text x="20" y="191" class="kicker blue">RISK</text>
     <text x="20" y="209" class="label ink">exposure · caps · stops</text>
 
-    <text x="20" y="229" class="kicker green">EVENTS</text>
+    <text x="20" y="229" class="kicker blue">EVENTS</text>
     <text x="20" y="247" class="label ink">filings · catalysts · news</text>
 
-    <rect x="18" y="260" width="144" height="24" rx="12" fill="#e5efeb"/>
-    <text x="90" y="276" text-anchor="middle" class="micro green">IMMUTABLE CONTEXT</text>
+    <rect x="18" y="260" width="144" height="24" rx="12" fill="#dceeff"/>
+    <text x="90" y="276" text-anchor="middle" class="micro blue">IMMUTABLE CONTEXT</text>
   </g>
 
   <!-- 02 Agent decision room -->
   <g transform="translate(222 108)" class="sans">
-    <rect width="366" height="292" rx="15" fill="#234f4b" stroke="#183f3b" stroke-width="1.2"/>
-    <rect width="366" height="5" rx="2.5" fill="#cf774b"/>
-    <text x="20" y="28" class="kicker" fill="#b9d7d1">02 · MULTI-AGENT LLM</text>
-    <text x="20" y="59" class="stage" fill="#fff">Decision room</text>
-    <text x="346" y="58" text-anchor="end" class="body" fill="#c1d5d1">Disagreement is the feature.</text>
+    <rect width="366" height="292" rx="15" fill="url(#decision-blue)" stroke="#b9d7ee" stroke-width="1.2"/>
+    <rect width="366" height="5" rx="2.5" fill="#36a3ff"/>
+    <text x="20" y="28" class="kicker blue">02 · MULTI-AGENT LLM</text>
+    <text x="20" y="59" class="stage ink">Decision room</text>
+    <text x="346" y="58" text-anchor="end" class="body muted">Disagreement is the feature.</text>
 
-    <text x="20" y="91" class="kicker" fill="#b9d7d1">INDEPENDENT LENSES</text>
+    <text x="20" y="91" class="kicker blue">INDEPENDENT LENSES</text>
     <g transform="translate(20 102)">
-      <rect width="153" height="28" rx="7" fill="#fff" opacity=".10"/>
-      <text x="76.5" y="18" text-anchor="middle" class="label" fill="#fff">Fundamentals</text>
-      <rect x="173" width="153" height="28" rx="7" fill="#fff" opacity=".10"/>
-      <text x="249.5" y="18" text-anchor="middle" class="label" fill="#fff">Market + quant</text>
-      <rect y="36" width="153" height="28" rx="7" fill="#fff" opacity=".10"/>
-      <text x="76.5" y="54" text-anchor="middle" class="label" fill="#fff">Sentiment + events</text>
-      <rect x="173" y="36" width="153" height="28" rx="7" fill="#fff" opacity=".10"/>
-      <text x="249.5" y="54" text-anchor="middle" class="label" fill="#fff">Cross-market</text>
+      <rect width="153" height="28" rx="7" fill="#fff" opacity=".78"/>
+      <text x="76.5" y="18" text-anchor="middle" class="label ink">Fundamentals</text>
+      <rect x="173" width="153" height="28" rx="7" fill="#fff" opacity=".78"/>
+      <text x="249.5" y="18" text-anchor="middle" class="label ink">Market + quant</text>
+      <rect y="36" width="153" height="28" rx="7" fill="#fff" opacity=".78"/>
+      <text x="76.5" y="54" text-anchor="middle" class="label ink">Sentiment + events</text>
+      <rect x="173" y="36" width="153" height="28" rx="7" fill="#fff" opacity=".78"/>
+      <text x="249.5" y="54" text-anchor="middle" class="label ink">Cross-market</text>
     </g>
 
-    <text x="20" y="185" class="kicker" fill="#f0bb9e">FORCED CONTEST</text>
-    <rect x="20" y="196" width="136" height="31" rx="8" fill="#e8f1ed"/>
+    <text x="20" y="185" class="kicker blue">FORCED CONTEST</text>
+    <rect x="20" y="196" width="136" height="31" rx="8" fill="#e8f6f1" stroke="#c9e7dc"/>
     <text x="88" y="216" text-anchor="middle" class="label green">BULL CASE</text>
-    <text x="183" y="216" text-anchor="middle" class="kicker" fill="#f0bb9e">VS</text>
-    <rect x="210" y="196" width="136" height="31" rx="8" fill="#f5e6dd"/>
+    <text x="183" y="216" text-anchor="middle" class="kicker blue">VS</text>
+    <rect x="210" y="196" width="136" height="31" rx="8" fill="#fff0ef" stroke="#f0d1cf"/>
     <text x="278" y="216" text-anchor="middle" class="label warm">BEAR CASE</text>
 
-    <text x="20" y="242" class="kicker" fill="#b9d7d1">RISK VOICES</text>
-    <text x="116" y="242" class="micro" fill="#fff">AGGRESSIVE</text>
-    <circle cx="187" cy="238" r="2.5" fill="#cf774b"/>
-    <text x="199" y="242" class="micro" fill="#fff">NEUTRAL</text>
-    <circle cx="251" cy="238" r="2.5" fill="#cf774b"/>
-    <text x="263" y="242" class="micro" fill="#fff">CONSERVATIVE</text>
+    <text x="20" y="242" class="kicker blue">RISK VOICES</text>
+    <text x="116" y="242" class="micro ink">AGGRESSIVE</text>
+    <circle cx="187" cy="238" r="2.5" fill="#36a3ff"/>
+    <text x="199" y="242" class="micro ink">NEUTRAL</text>
+    <circle cx="251" cy="238" r="2.5" fill="#36a3ff"/>
+    <text x="263" y="242" class="micro ink">CONSERVATIVE</text>
 
-    <rect x="20" y="251" width="326" height="34" rx="9" fill="#172f2d"/>
-    <text x="35" y="265" class="kicker" fill="#f0bb9e">JUDGE</text>
+    <rect x="20" y="251" width="326" height="34" rx="9" fill="#0b5688"/>
+    <text x="35" y="265" class="kicker" fill="#bee5ff">JUDGE</text>
     <text x="35" y="279" class="micro" fill="#fff">strategy + action + trigger + confidence</text>
   </g>
 
   <!-- 03 Deterministic decision contract -->
   <g transform="translate(606 108)" class="sans">
     <rect class="card" width="270" height="292" rx="15"/>
-    <rect width="5" height="292" rx="2.5" fill="#c46d43"/>
-    <text x="20" y="28" class="kicker warm">03 · PYTHON CODE GATE</text>
+    <rect width="5" height="292" rx="2.5" fill="#1687e8"/>
+    <text x="20" y="28" class="kicker blue">03 · PYTHON CODE GATE</text>
     <text x="20" y="59" class="stage ink">Decision contract</text>
     <text x="20" y="80" class="body muted">Only valid records get published.</text>
 
-    <path d="M20 96H250" stroke="#e2e7e2"/>
+    <path d="M20 96H250" stroke="#e1e9f0"/>
 
-    <circle cx="31" cy="122" r="11" fill="#e5efeb"/>
-    <path d="M26 122l3 3 6-7" fill="none" stroke="#2d6f67" stroke-width="1.8"/>
+    <circle cx="31" cy="122" r="11" fill="#dceeff"/>
+    <path d="M26 122l3 3 6-7" fill="none" stroke="#087dd1" stroke-width="1.8"/>
     <text x="51" y="120" class="label ink">Validate required fields</text>
     <text x="51" y="137" class="micro muted">condition · size · rationale</text>
 
@@ -124,12 +130,12 @@
     <text x="51" y="164" class="label ink">Require hard-limit actions</text>
     <text x="51" y="181" class="micro muted">reject omitted risk breaches</text>
 
-    <circle cx="31" cy="210" r="11" fill="#e5efeb"/>
-    <text x="31" y="214" text-anchor="middle" class="micro green">#</text>
+    <circle cx="31" cy="210" r="11" fill="#dceeff"/>
+    <text x="31" y="214" text-anchor="middle" class="micro blue">#</text>
     <text x="51" y="208" class="label ink">Assign stable identity</text>
     <text x="51" y="225" class="micro muted">strategy · decision · episode</text>
 
-    <text x="20" y="250" class="kicker warm">VERSIONED OUTPUT</text>
+    <text x="20" y="250" class="kicker blue">VERSIONED OUTPUT</text>
     <g transform="translate(20 260)">
       <rect class="chip" width="68" height="27" rx="7"/>
       <text x="34" y="18" text-anchor="middle" class="micro ink">BRIEF</text>
@@ -142,31 +148,31 @@
 
   <!-- Evidence loop -->
   <g class="sans">
-    <text x="24" y="426" class="kicker green">THE SYSTEM HAS TO FACE ITS OWN RECORD</text>
+    <text x="24" y="426" class="kicker blue">THE SYSTEM HAS TO FACE ITS OWN RECORD</text>
     <text x="876" y="426" text-anchor="end" class="micro muted">no model edits after publication</text>
 
-    <rect x="24" y="442" width="852" height="90" rx="15" fill="#fff" stroke="#d6ddd8" stroke-width="1.2"/>
+    <rect x="24" y="442" width="852" height="90" rx="15" fill="#fff" stroke="#d8e0e8" stroke-width="1.2"/>
     <path d="M225 487H257" class="wire"/>
     <path d="M465 487H497" class="wire"/>
-    <path d="M697 487H729" fill="none" stroke="#c46d43" stroke-width="1.8" marker-end="url(#arrow-warm)"/>
+    <path d="M697 487H729" class="wire"/>
 
-    <circle cx="51" cy="487" r="17" fill="#e5efeb"/>
-    <path d="M43 487h16M51 479v16" stroke="#2d6f67" stroke-width="1.6"/>
-    <text x="78" y="482" class="kicker green">CANONICAL BARS</text>
+    <circle cx="51" cy="487" r="17" fill="#dceeff"/>
+    <path d="M43 487h16M51 479v16" stroke="#087dd1" stroke-width="1.6"/>
+    <text x="78" y="482" class="kicker blue">CANONICAL BARS</text>
     <text x="78" y="501" class="body muted">session-dated truth</text>
 
-    <circle cx="284" cy="487" r="17" fill="#f5e6dd"/>
-    <path d="M277 487h14M284 480v14" stroke="#b95f3a" stroke-width="1.6"/>
-    <text x="311" y="482" class="kicker warm">SETTLE + GRADE</text>
+    <circle cx="284" cy="487" r="17" fill="#dceeff"/>
+    <path d="M277 487h14M284 480v14" stroke="#087dd1" stroke-width="1.6"/>
+    <text x="311" y="482" class="kicker blue">SETTLE + GRADE</text>
     <text x="311" y="501" class="body muted">episodes · timing · calibration</text>
 
-    <circle cx="524" cy="487" r="17" fill="#e5efeb"/>
-    <path d="M517 491l4-5 4 3 7-9" fill="none" stroke="#2d6f67" stroke-width="1.6"/>
-    <text x="551" y="482" class="kicker green">PUBLIC SCORECARD</text>
+    <circle cx="524" cy="487" r="17" fill="#dceeff"/>
+    <path d="M517 491l4-5 4 3 7-9" fill="none" stroke="#087dd1" stroke-width="1.6"/>
+    <text x="551" y="482" class="kicker blue">PUBLIC SCORECARD</text>
     <text x="551" y="501" class="body muted">outcomes + coverage</text>
 
-    <rect x="736" y="467" width="122" height="40" rx="20" fill="#234f4b"/>
-    <text x="797" y="483" text-anchor="middle" class="kicker" fill="#f0bb9e">FEEDBACK</text>
+    <rect x="736" y="467" width="122" height="40" rx="20" fill="#0b5688"/>
+    <text x="797" y="483" text-anchor="middle" class="kicker" fill="#bee5ff">FEEDBACK</text>
     <text x="797" y="498" text-anchor="middle" class="micro" fill="#fff">↺ NEXT BRIEF</text>
   </g>
 </svg>
