@@ -8,7 +8,7 @@
 
 Multi-agent LLMs debate a real Hong Kong + US stock portfolio. Python checks the risk limits, settles each call against the tape, and publishes the scorecard — recommendations only, and no outcome is hand-picked.
 
-**The finding so far: the active calls have yet to beat buy-and-hold — and the dashboard says so out loud.**
+**The result so far: the active calls have yet to beat buy-and-hold. The dashboard shows it plainly.**
 
 [![Dashboard](https://img.shields.io/github/deployments/KCNyu/clawock/github-pages?label=DASHBOARD&style=flat-square&logo=githubpages&logoColor=white&labelColor=252b35&color=4b91c8)](https://kcnyu.github.io/clawock/)
 [![Tests](https://img.shields.io/github/actions/workflow/status/KCNyu/clawock/harness-regression.yml?label=TESTS&style=flat-square&logo=githubactions&logoColor=white&labelColor=252b35&color=738391)](https://github.com/KCNyu/clawock/actions/workflows/harness-regression.yml)
@@ -34,16 +34,17 @@ Multi-agent LLMs debate a real Hong Kong + US stock portfolio. Python checks the
 
 ## What this is
 
-clawock is a public experiment in **disciplined, self-grading** automated investing — not a get-rich bot and not a copy-trading service.
+clawock is a continuously running, public experiment in **disciplined, self-grading** AI investing — not a get-rich bot, and not a copy-trading service.
 
-An autonomous multi-agent desk analyzes a real brokerage account with separate Hong Kong and US books. It monitors, debates, and proposes trades on its own; it does **not** place orders or move your money. The honesty layer is the whole point: the model proposes, but Python owns the prices, the risk limits, the ledger, the settlement, and the scoreboard.
+A multi-agent desk monitors a real brokerage account with separate Hong Kong and US books, debates the evidence, and proposes trades; execution stays with the account owner. The product is the live record: real positions, an accumulating decision history, and a public scorecard. The model proposes; Python owns the prices, the risk limits, the ledger, the settlement, and the grading.
 
 ### What makes it different
 
-- **Real money, graded in public.** One live Hong Kong + US brokerage account, with a self-graded scorecard that reports the losses too — including that the active calls haven't beaten buy-and-hold. No paper trading, no cherry-picked backtest.
-- **The model proposes; code disposes.** An LLM can argue for a trade but can never grade it — Python owns settlement and scoring, so the desk cannot mark its own homework.
-- **Episodes, not calls.** Repeated opinions collapse into one graded episode, so conviction can't be laundered into a bigger sample.
-- **A book that can't drift.** A money-conservation identity is a pre-push gate — an un-reconciled portfolio never reaches the page.
+- **Real money, graded in public.** One live Hong Kong + US brokerage account, with a public scorecard that keeps every eligible result — the losses included, and the fact that the active calls haven't beaten buy-and-hold.
+- **The model can't grade itself.** LLMs propose trades; Python settles them and computes the scorecard.
+- **One thesis, one episode.** Repeated opinions on the same thesis count once. Each episode is settled from canonical vendor bars, with declared gap-fill rules when a session is missing.
+- **The ledger has to reconcile.** A money-conservation check runs before every push; if cash, positions, and P&L don't balance, nothing is published.
+- **Built to keep running.** Scheduled Hong Kong and US sessions produce bilingual briefs and refresh the live dashboard through the trading day.
 
 ## How it works
 

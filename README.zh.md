@@ -8,7 +8,7 @@
 
 多个 LLM Agent 辩论一个真实的港股 + 美股组合。Python 核查风控上限、逐条对着行情结算,并发布战绩 —— 只出建议、不下单,任何一条结果都不是人工挑选的。
 
-**目前的结论:主动判断尚未跑赢买入持有 —— 而仪表盘把这句话明明白白写着。**
+**目前的结果:主动判断尚未跑赢买入持有。仪表盘把这点如实摆出来。**
 
 [![Dashboard](https://img.shields.io/github/deployments/KCNyu/clawock/github-pages?label=DASHBOARD&style=flat-square&logo=githubpages&logoColor=white&labelColor=252b35&color=4b91c8)](https://kcnyu.github.io/clawock/)
 [![Tests](https://img.shields.io/github/actions/workflow/status/KCNyu/clawock/harness-regression.yml?label=TESTS&style=flat-square&logo=githubactions&logoColor=white&labelColor=252b35&color=738391)](https://github.com/KCNyu/clawock/actions/workflows/harness-regression.yml)
@@ -34,16 +34,17 @@
 
 ## 这是什么
 
-clawock 是一个关于**纪律与自评**的公开自动投资实验 —— 不是一夜暴富的机器人,也不是跟单服务。
+clawock 是一个持续运行的、公开的**纪律化、自评式** AI 投资实验 —— 不是一夜暴富的机器人,也不是跟单服务。
 
-一套自主多 Agent 投研台分析一个真实券商账户,港股与美股分账。它自己监控、辩论、给出交易建议;但它**不**下单、也不动你的钱。诚实机制才是重点:模型只负责提议,而价格、风控上限、账本、结算、记分牌 —— 全归 Python 管。
+一套多 Agent 投研台监控一个真实券商账户(港股与美股分账)、辩论证据、给出交易建议;执行留给账户所有者。这个项目的核心产品就是这份实时记录:真实持仓、不断累积的决策历史,以及公开战绩。模型负责提议;价格、风控上限、账本、结算与评分,全部由 Python 负责。
 
 ### 有什么不一样
 
-- **真金白银,公开打分。** 一个在跑的港股 + 美股真实券商账户,自评战绩连亏损一起报 —— 包括主动判断至今没跑赢买入持有。没有纸面交易,没有挑好看的回测。
-- **模型提议,代码裁决。** LLM 能为一笔交易辩护,却永远不能给它打分 —— 结算与评分归 Python,投研台没法给自己的作业判分。
-- **按 episode,不按单条。** 重复的观点收敛成一个被打分的 episode,信念没法被洗成更大的样本量。
-- **账目漂不了。** 资金守恒恒等式是 push 前的闸门 —— 一本对不上的组合到不了页面。
+- **真金白银,公开打分。** 一个在跑的港股 + 美股真实券商账户,公开战绩保留每一条符合条件的结果 —— 亏损也在内,包括主动判断至今没跑赢买入持有。
+- **模型不能给自己打分。** LLM 提出交易建议;Python 独立结算并计算战绩。
+- **一个论点,只算一个 episode。** 同一论点的重复意见只计一次。每个 episode 都用指定基准供应商的行情结算;缺 session 时按公开的补齐规则处理。
+- **账本必须对得上。** 每次 push 前都检查资金守恒;现金、持仓与盈亏不平,就什么都不发布。
+- **为持续运行而建。** 定时的港股与美股 session 产出双语简报,并在交易日里刷新实时仪表盘。
 
 ## 怎么跑的
 
