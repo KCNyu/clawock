@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-17T14:21:31.360511+00:00",
+  "generated_at": "2026-07-19T22:29:34.257290+00:00",
   "lookback_hours": 48,
   "sources": {
     "trump": "trumpstruth.org/feed (primary)",
@@ -8,17 +8,17 @@
   },
   "llm_filtered": true,
   "counts": {
-    "total": 8,
+    "total": 13,
     "held_hits": 0,
     "new_ideas": 1,
-    "sector_hits": 6
+    "sector_hits": 3
   },
   "items": [
     {
       "author": "Musk",
-      "text": "Elon Musk Has Never Sold His Tesla Vision. Should You Buy the Dip Before July 22?",
+      "text": "Elon Musk's Tesla Remains One of the Last Great Founder-Led Tech Giants. Is the Stock a Buy Before July 22?",
       "url": "",
-      "published": "Fri, 17 Jul 2026 07:25:00 GMT",
+      "published": "Sun, 19 Jul 2026 19:25:00 GMT",
       "origin": "gnews-rss",
       "source": "Yahoo Finance",
       "tickers": [
@@ -34,51 +34,29 @@
       ],
       "sector_holdings": [],
       "stance": "endorse",
-      "relevance": 58,
-      "summary_cn": "Musk从未放弃特斯拉愿景的叙事，分析建议在7月22日前逢低买入TSLA。"
-    },
-    {
-      "author": "Trump",
-      "text": "One of the biggest Driving Forces in the Future for Jobs, are Data Centers. They are big, strong, bold, and Money Machines for the State in which they are built. Governor Kathy Hochul, for political reasons, has terminated all Data Centers being built, or to be built, in New York State. These Companies are now being sought in Alabama, Florida, Texas, Arizona, and many other States. Both the Taxes and the Jobs amount to LIQUID GOLD! New York State has made a terrible decision. All of this Income, and other Benefits, will be going to Red States, and some Blue, where Data Centers are sought as Ca",
-      "url": "https://trumpstruth.org/statuses/40064",
-      "published": "2026-07-15T16:39:53+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "数据中心",
-        "AI",
-        "州际竞争"
-      ],
-      "sector_holdings": [
-        "MSFU"
-      ],
-      "stance": "endorse",
       "relevance": 62,
-      "summary_cn": "Trump抨击纽约州长Hochul叫停数据中心建设，称这些公司将转向红州，利好AI/数据中心板块。"
+      "summary_cn": "Musk旗下Tesla被讨论为创始人领导的科技巨头，是否值得在7月22日前买入，间接背书看多。"
     },
     {
       "author": "Musk",
-      "text": "Elon Musk's Memphis AI empire is the epicenter of the data center backlash",
+      "text": "Elon Musk loses trillionaire status as SpaceX stock deflates",
       "url": "",
-      "published": "Thu, 16 Jul 2026 22:09:55 GMT",
+      "published": "Thu, 16 Jul 2026 10:15:00 GMT",
       "origin": "gnews-rss",
-      "source": "CNBC",
+      "source": "Fortune",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "数据中心",
-        "AI",
-        "能源"
+        "航天"
       ],
       "sector_holdings": [
-        "MSFU"
+        "SPCH",
+        "SPCX"
       ],
-      "stance": "neutral",
-      "relevance": 60,
-      "summary_cn": "Musk在孟菲斯的xAI数据中心成为全美数据中心反弹情绪的风暴眼，涉及AI算力与电力矛盾议题。"
+      "stance": "attack",
+      "relevance": 75,
+      "summary_cn": "Musk因SpaceX股价缩水失去万亿富翁地位，SpaceX估值承压，对其持仓SPCX/SPCH偏负面。"
     },
     {
       "author": "Musk",
@@ -92,44 +70,23 @@
       "new_ideas": [],
       "sectors": [
         "航天",
-        "私募融资"
+        "私募估值"
       ],
       "sector_holdings": [
         "SPCH",
         "SPCX"
       ],
-      "stance": "neutral",
-      "relevance": 55,
-      "summary_cn": "SpaceX投资人从Musk手中回购/剥离5650亿美元估值的相关权益，SpaceX为非上市标的，仅作宏观叙事参考。"
+      "stance": "attack",
+      "relevance": 72,
+      "summary_cn": "SpaceX投资者从Musk手中剥离5650亿美元估值，SpaceX估值面临重估压力，对其持仓SPCX/SPCH构成负面信号。"
     },
     {
       "author": "Musk",
-      "text": "Elon Musk secretly acquires $1B energy company to power the AI future",
+      "text": "Elon Musk Says If SpaceX Accomplishes Its Goals, ‘It Will Be Worth More Than The Rest of Earth’ — Though He’s Also Said ‘Money Will Stop Being Relevant’",
       "url": "",
-      "published": "Fri, 17 Jul 2026 01:31:33 GMT",
+      "published": "Sun, 19 Jul 2026 15:00:02 GMT",
       "origin": "gnews-rss",
-      "source": "Teslarati",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "能源",
-        "AI"
-      ],
-      "sector_holdings": [
-        "MSFU"
-      ],
-      "stance": "neutral",
-      "relevance": 55,
-      "summary_cn": "Musk秘密收购10亿美元能源公司以支撑AI未来电力需求，指向AI数据中心电力紧缺主题。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk's SpaceX IPO Reset the Entire Space Sector. Here Are 2 Space Stocks I Would Buy the Dip On Without Hesitation.",
-      "url": "",
-      "published": "Fri, 17 Jul 2026 11:15:26 GMT",
-      "origin": "gnews-rss",
-      "source": "The Motley Fool",
+      "source": "Barchart.com",
       "tickers": [],
       "held": [],
       "new_ideas": [],
@@ -140,57 +97,178 @@
         "SPCH",
         "SPCX"
       ],
-      "stance": "neutral",
-      "relevance": 52,
-      "summary_cn": "Musk旗下SpaceX的IPO重新定价整个航天板块，分析列出两只可逢低布局的航天股，但未直接点名具体可交易标的与kcn持仓重叠。"
-    },
-    {
-      "author": "Musk",
-      "text": "A physicist explains the overlooked problem that could doom Elon Musk’s Mars colonization plans: dust",
-      "url": "",
-      "published": "Fri, 17 Jul 2026 08:11:01 GMT",
-      "origin": "gnews-rss",
-      "source": "Business Insider",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天"
-      ],
-      "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "neutral",
-      "relevance": 48,
-      "summary_cn": "物理学家指出火星尘埃问题可能威胁Musk的火星殖民计划，间接利空SpaceX叙事。"
+      "stance": "endorse",
+      "relevance": 68,
+      "summary_cn": "Musk称SpaceX若成功将比地球其余部分更有价值，强力背书，利好kcn持有的SPCX/SPCH。"
     },
     {
       "author": "Trump",
-      "text": "https://www.breitbart.com/politics/2026/07/15/trump-announces-nearly-10-billion-in-defense-industrial-base-investments-in-pennsylvania-at-mccormicks-summit/",
-      "url": "https://trumpstruth.org/statuses/40085",
-      "published": "2026-07-16T05:05:17+00:00",
+      "text": "PRESIDENT TRUMP HIGHLIGHTS NEARLY $10 BILLION IN DEFENSE INVESTMENTS AT PENNSYLVANIA SUMMIT: https://www.rsbnetwork.com/news/president-trump-highlights-nearly-10-billion-in-defense-investments-at-pennsylvania-summit/",
+      "url": "https://trumpstruth.org/statuses/40111",
+      "published": "2026-07-19T18:09:13+00:00",
       "origin": "truthsocial",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "国防工业",
-        "制造业"
+        "国防军工"
       ],
       "sector_holdings": [],
       "stance": "endorse",
+      "relevance": 58,
+      "summary_cn": "Trump在宾州峰会宣布约100亿美元国防投资，利好国防军工板块。"
+    },
+    {
+      "author": "Trump",
+      "text": "RT @realDonaldTrumpRepublicans should add Iran to the Russian Sanctions Bill. That’s what Lindsey wanted to do, and it was going to happen. IMPORTANT!!! President DJT",
+      "url": "https://trumpstruth.org/statuses/40144",
+      "published": "2026-07-19T18:27:47+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "地缘政治",
+        "能源",
+        "制裁"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 55,
+      "summary_cn": "Trump推动将伊朗纳入俄罗斯制裁法案，地缘政治紧张升级，间接影响油价/能源板块。"
+    },
+    {
+      "author": "Trump",
+      "text": "Newly declassified documents show that over a period of years starting during the 2020 election cycle, the People’s Republic of China carried out what is believed to be the largest compromise of election data in history — resulting in China’s illicit acquisition of 220 million U.S. voter files.That information includes names, addresses, phone numbers, political party preferences, and other sensitive data that would be needed to register to vote, and engage in other nefarious activities.This data loss presents an unprecedented election security nightmare. The intelligence even shows that China ",
+      "url": "https://trumpstruth.org/statuses/40103",
+      "published": "2026-07-18T02:01:14+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "中美关系",
+        "选举安全"
+      ],
+      "sector_holdings": [],
+      "stance": "attack",
       "relevance": 52,
-      "summary_cn": "Trump宣布在宾州近100亿美元国防工业基础投资，涉及国防板块利好但未点名具体上市公司。"
+      "summary_cn": "Trump解密文件指控中国窃取2.2亿美国人选民数据，渲染中国威胁论，间接影响中概股/中美科技板块情绪。"
+    },
+    {
+      "author": "Trump",
+      "text": "RT @realDonaldTrumpThe People of Aberdeen, in Scotland, are dancing in the streets because the new Prime Minister, Andy Burnham, has stated that he will be opening up, all the way, the invaluable North Sea Oil! It is one of the Greatest Sources of quality Oil on Earth, has hundreds of years of Capacity left, with much not even found yet, and will make the United Kingdom, from a Poverty Stricken Disaster, to one of the Richest Countries anywhere in the World! Britain pays Norway Billions of Dollars a year to buy its Oil, which they get from a less valuable part of the North Sea — How ridiculous",
+      "url": "https://trumpstruth.org/statuses/40143",
+      "published": "2026-07-19T18:27:51+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "石油",
+        "能源"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 50,
+      "summary_cn": "Trump力挺北海石油开发，利好能源/石油板块。"
+    },
+    {
+      "author": "Trump",
+      "text": "Pennsylvania defense summit leads to nearly $10 billion in defense contracts that will create thousands of jobs: https://www.washingtonexaminer.com/policy/defense/4650426/pennsylvania-defense-summit-trump-contracts-jobs/",
+      "url": "https://trumpstruth.org/statuses/40112",
+      "published": "2026-07-19T18:08:59+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "国防军工"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 50,
+      "summary_cn": "宾州峰会带来近100亿美元国防合同，重复报道。"
+    },
+    {
+      "author": "Trump",
+      "text": "Trump Announces Nearly $10 Billion in Defense Industrial Base Investments in Pennsylvania at McCormick’s Summit: https://www.breitbart.com/politics/2026/07/15/trump-announces-nearly-10-billion-in-defense-industrial-base-investments-in-pennsylvania-at-mccormicks-summit/",
+      "url": "https://trumpstruth.org/statuses/40117",
+      "published": "2026-07-19T18:07:45+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "国防军工"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 50,
+      "summary_cn": "Trump在McCormick峰会宣布近100亿美元国防工业基础投资（宾州），重复报道。"
+    },
+    {
+      "author": "Trump",
+      "text": "Republicans should add Iran to the Russian Sanctions Bill. That’s what Lindsey wanted to do, and it was going to happen. IMPORTANT!!! President DJT",
+      "url": "https://trumpstruth.org/statuses/40107",
+      "published": "2026-07-19T11:54:33+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "地缘政治",
+        "制裁"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 50,
+      "summary_cn": "Trump再推伊朗纳入对俄制裁法案，与第1条重复。"
+    },
+    {
+      "author": "Trump",
+      "text": "The People of Aberdeen, in Scotland, are dancing in the streets because the new Prime Minister, Andy Burnham, has stated that he will be opening up, all the way, the invaluable North Sea Oil! It is one of the Greatest Sources of quality Oil on Earth, has hundreds of years of Capacity left, with much not even found yet, and will make the United Kingdom, from a Poverty Stricken Disaster, to one of the Richest Countries anywhere in the World! Britain pays Norway Billions of Dollars a year to buy its Oil, which they get from a less valuable part of the North Sea — How ridiculous is that! Also, wor",
+      "url": "https://trumpstruth.org/statuses/40108",
+      "published": "2026-07-19T14:05:05+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "石油",
+        "能源"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 48,
+      "summary_cn": "Trump再谈北海石油开发，与第0条重复报道。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk likely broke the law by promising voters $1 million payouts, Wisconsin board says",
+      "url": "",
+      "published": "Wed, 15 Jul 2026 22:16:41 GMT",
+      "origin": "gnews-rss",
+      "source": "ABC7 New York",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "政治风险"
+      ],
+      "sector_holdings": [],
+      "stance": "attack",
+      "relevance": 45,
+      "summary_cn": "威斯康星州委员会称Musk承诺百万美元选票可能违法，涉及Musk个人法律风险。"
     }
   ],
   "held_hits": [],
   "new_ideas": [
     {
       "author": "Musk",
-      "text": "Elon Musk Has Never Sold His Tesla Vision. Should You Buy the Dip Before July 22?",
+      "text": "Elon Musk's Tesla Remains One of the Last Great Founder-Led Tech Giants. Is the Stock a Buy Before July 22?",
       "url": "",
-      "published": "Fri, 17 Jul 2026 07:25:00 GMT",
+      "published": "Sun, 19 Jul 2026 19:25:00 GMT",
       "origin": "gnews-rss",
       "source": "Yahoo Finance",
       "tickers": [
@@ -206,53 +284,31 @@
       ],
       "sector_holdings": [],
       "stance": "endorse",
-      "relevance": 58,
-      "summary_cn": "Musk从未放弃特斯拉愿景的叙事，分析建议在7月22日前逢低买入TSLA。"
+      "relevance": 62,
+      "summary_cn": "Musk旗下Tesla被讨论为创始人领导的科技巨头，是否值得在7月22日前买入，间接背书看多。"
     }
   ],
   "sector_hits": [
     {
-      "author": "Trump",
-      "text": "One of the biggest Driving Forces in the Future for Jobs, are Data Centers. They are big, strong, bold, and Money Machines for the State in which they are built. Governor Kathy Hochul, for political reasons, has terminated all Data Centers being built, or to be built, in New York State. These Companies are now being sought in Alabama, Florida, Texas, Arizona, and many other States. Both the Taxes and the Jobs amount to LIQUID GOLD! New York State has made a terrible decision. All of this Income, and other Benefits, will be going to Red States, and some Blue, where Data Centers are sought as Ca",
-      "url": "https://trumpstruth.org/statuses/40064",
-      "published": "2026-07-15T16:39:53+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "数据中心",
-        "AI",
-        "州际竞争"
-      ],
-      "sector_holdings": [
-        "MSFU"
-      ],
-      "stance": "endorse",
-      "relevance": 62,
-      "summary_cn": "Trump抨击纽约州长Hochul叫停数据中心建设，称这些公司将转向红州，利好AI/数据中心板块。"
-    },
-    {
       "author": "Musk",
-      "text": "Elon Musk's Memphis AI empire is the epicenter of the data center backlash",
+      "text": "Elon Musk loses trillionaire status as SpaceX stock deflates",
       "url": "",
-      "published": "Thu, 16 Jul 2026 22:09:55 GMT",
+      "published": "Thu, 16 Jul 2026 10:15:00 GMT",
       "origin": "gnews-rss",
-      "source": "CNBC",
+      "source": "Fortune",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "数据中心",
-        "AI",
-        "能源"
+        "航天"
       ],
       "sector_holdings": [
-        "MSFU"
+        "SPCH",
+        "SPCX"
       ],
-      "stance": "neutral",
-      "relevance": 60,
-      "summary_cn": "Musk在孟菲斯的xAI数据中心成为全美数据中心反弹情绪的风暴眼，涉及AI算力与电力矛盾议题。"
+      "stance": "attack",
+      "relevance": 75,
+      "summary_cn": "Musk因SpaceX股价缩水失去万亿富翁地位，SpaceX估值承压，对其持仓SPCX/SPCH偏负面。"
     },
     {
       "author": "Musk",
@@ -266,44 +322,23 @@
       "new_ideas": [],
       "sectors": [
         "航天",
-        "私募融资"
+        "私募估值"
       ],
       "sector_holdings": [
         "SPCH",
         "SPCX"
       ],
-      "stance": "neutral",
-      "relevance": 55,
-      "summary_cn": "SpaceX投资人从Musk手中回购/剥离5650亿美元估值的相关权益，SpaceX为非上市标的，仅作宏观叙事参考。"
+      "stance": "attack",
+      "relevance": 72,
+      "summary_cn": "SpaceX投资者从Musk手中剥离5650亿美元估值，SpaceX估值面临重估压力，对其持仓SPCX/SPCH构成负面信号。"
     },
     {
       "author": "Musk",
-      "text": "Elon Musk secretly acquires $1B energy company to power the AI future",
+      "text": "Elon Musk Says If SpaceX Accomplishes Its Goals, ‘It Will Be Worth More Than The Rest of Earth’ — Though He’s Also Said ‘Money Will Stop Being Relevant’",
       "url": "",
-      "published": "Fri, 17 Jul 2026 01:31:33 GMT",
+      "published": "Sun, 19 Jul 2026 15:00:02 GMT",
       "origin": "gnews-rss",
-      "source": "Teslarati",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "能源",
-        "AI"
-      ],
-      "sector_holdings": [
-        "MSFU"
-      ],
-      "stance": "neutral",
-      "relevance": 55,
-      "summary_cn": "Musk秘密收购10亿美元能源公司以支撑AI未来电力需求，指向AI数据中心电力紧缺主题。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk's SpaceX IPO Reset the Entire Space Sector. Here Are 2 Space Stocks I Would Buy the Dip On Without Hesitation.",
-      "url": "",
-      "published": "Fri, 17 Jul 2026 11:15:26 GMT",
-      "origin": "gnews-rss",
-      "source": "The Motley Fool",
+      "source": "Barchart.com",
       "tickers": [],
       "held": [],
       "new_ideas": [],
@@ -314,30 +349,9 @@
         "SPCH",
         "SPCX"
       ],
-      "stance": "neutral",
-      "relevance": 52,
-      "summary_cn": "Musk旗下SpaceX的IPO重新定价整个航天板块，分析列出两只可逢低布局的航天股，但未直接点名具体可交易标的与kcn持仓重叠。"
-    },
-    {
-      "author": "Musk",
-      "text": "A physicist explains the overlooked problem that could doom Elon Musk’s Mars colonization plans: dust",
-      "url": "",
-      "published": "Fri, 17 Jul 2026 08:11:01 GMT",
-      "origin": "gnews-rss",
-      "source": "Business Insider",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天"
-      ],
-      "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "neutral",
-      "relevance": 48,
-      "summary_cn": "物理学家指出火星尘埃问题可能威胁Musk的火星殖民计划，间接利空SpaceX叙事。"
+      "stance": "endorse",
+      "relevance": 68,
+      "summary_cn": "Musk称SpaceX若成功将比地球其余部分更有价值，强力背书，利好kcn持有的SPCX/SPCH。"
     }
   ]
 }
