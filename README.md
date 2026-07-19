@@ -4,9 +4,7 @@
 
 ### An autonomous AI trading desk that grades its own calls — and publishes the losses.
 
-Multi-agent LLMs debate a real Hong Kong + US stock portfolio. Python checks the risk limits, settles each call against the tape, and publishes the scorecard — recommendations only, and no outcome is hand-picked.
-
-**The result so far: the active calls have yet to beat buy-and-hold. The dashboard shows it plainly.**
+Multi-agent LLMs debate a real HK + US stock portfolio; Python settles each call against the tape and publishes the scorecard. **So far the active calls have yet to beat buy-and-hold — the dashboard shows it plainly.**
 
 [![Dashboard](https://img.shields.io/github/deployments/KCNyu/clawock/github-pages?label=DASHBOARD&style=flat-square&logo=githubpages&logoColor=white&labelColor=252b35&color=4b91c8)](https://kcnyu.github.io/clawock/)
 [![Tests](https://img.shields.io/github/actions/workflow/status/KCNyu/clawock/harness-regression.yml?label=TESTS&style=flat-square&logo=githubactions&logoColor=white&labelColor=252b35&color=738391)](https://github.com/KCNyu/clawock/actions/workflows/harness-regression.yml)

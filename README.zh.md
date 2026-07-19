@@ -4,9 +4,7 @@
 
 ### 一个会给自己打分、并把亏损一起公开的自主 AI 投研台。
 
-多个 LLM Agent 辩论一个真实的港股 + 美股组合。Python 核查风控上限、逐条对着行情结算,并发布战绩 —— 只出建议、不下单,任何一条结果都不是人工挑选的。
-
-**目前的结果:主动判断尚未跑赢买入持有。仪表盘把这点如实摆出来。**
+多个 LLM Agent 辩论一个真实的港股 + 美股组合;Python 逐条对着行情结算并发布战绩。**目前主动判断尚未跑赢买入持有 —— 仪表盘把这点如实摆出来。**
 
 [![Dashboard](https://img.shields.io/github/deployments/KCNyu/clawock/github-pages?label=DASHBOARD&style=flat-square&logo=githubpages&logoColor=white&labelColor=252b35&color=4b91c8)](https://kcnyu.github.io/clawock/)
 [![Tests](https://img.shields.io/github/actions/workflow/status/KCNyu/clawock/harness-regression.yml?label=TESTS&style=flat-square&logo=githubactions&logoColor=white&labelColor=252b35&color=738391)](https://github.com/KCNyu/clawock/actions/workflows/harness-regression.yml)
