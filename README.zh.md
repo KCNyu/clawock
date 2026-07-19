@@ -18,7 +18,7 @@
   <img src="assets/social-card.png" alt="clawock — 会给自己打分的自主 AI 投研台" width="820">
 </a>
 
-<sub><i>“公开争辩，代码结算。”</i></sub>
+<sub><i>“观点廉价，行情才算数。”</i></sub>
 
 <a href="https://kcnyu.github.io/clawock/"><img src="assets/dashboard.gif" alt="clawock 仪表盘循环切换各标签页" width="300"></a>
 
