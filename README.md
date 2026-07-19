@@ -6,12 +6,12 @@
 
 ### An autonomous AI trading desk that grades its own calls — and publishes the losses.
 
-Multi-agent LLMs debate a real Hong Kong + US stock portfolio. Python enforces every risk limit, settles each call against the tape, and ships the scorecard with no manual edits.
+Multi-agent LLMs debate a real Hong Kong + US stock portfolio. Python checks the risk limits, settles each call against the tape, and publishes the scorecard — recommendations only, and no outcome is hand-picked.
 
 **The finding so far: the active calls have yet to beat buy-and-hold — and the dashboard says so out loud.**
 
 [![Dashboard](https://img.shields.io/github/deployments/KCNyu/clawock/github-pages?label=DASHBOARD&style=flat-square&logo=githubpages&logoColor=white&labelColor=252b35&color=4b91c8)](https://kcnyu.github.io/clawock/)
-[![CI](https://img.shields.io/github/actions/workflow/status/KCNyu/clawock/harness-regression.yml?label=CI&style=flat-square&logo=githubactions&logoColor=white&labelColor=252b35&color=738391)](https://github.com/KCNyu/clawock/actions/workflows/harness-regression.yml)
+[![Tests](https://img.shields.io/github/actions/workflow/status/KCNyu/clawock/harness-regression.yml?label=TESTS&style=flat-square&logo=githubactions&logoColor=white&labelColor=252b35&color=738391)](https://github.com/KCNyu/clawock/actions/workflows/harness-regression.yml)
 [![License](https://img.shields.io/badge/LICENSE-MIT-aab5bf?style=flat-square&labelColor=252b35)](LICENSE)
 
 [**Live dashboard**](https://kcnyu.github.io/clawock/) &nbsp;·&nbsp; [**Daily briefs**](https://kcnyu.github.io/clawock/briefs.html) &nbsp;·&nbsp; [**简体中文**](README.zh.md)
@@ -36,14 +36,14 @@ Multi-agent LLMs debate a real Hong Kong + US stock portfolio. Python enforces e
 
 clawock is a public experiment in **disciplined, self-grading** automated investing — not a get-rich bot and not a copy-trading service.
 
-An autonomous multi-agent desk analyzes a real brokerage account with separate Hong Kong and US books. It monitors, debates, and proposes trades on its own; it does **not** place orders or move your money. The point of the project is the honesty layer around it: the model can argue for a trade, but it cannot grade its own homework. Python owns the prices, the risk limits, the ledger, the settlement, and the scoreboard.
+An autonomous multi-agent desk analyzes a real brokerage account with separate Hong Kong and US books. It monitors, debates, and proposes trades on its own; it does **not** place orders or move your money. The honesty layer is the whole point: the model proposes, but Python owns the prices, the risk limits, the ledger, the settlement, and the scoreboard.
 
 ### What makes it different
 
 - **The model proposes; code disposes.** An LLM can argue for a trade but can never grade it — Python owns settlement and scoring, so the desk cannot mark its own homework.
 - **Episodes, not calls.** Repeated opinions collapse into one graded episode, so conviction can't be laundered into a bigger sample.
-- **Disagreement is required.** A debate where everyone agrees is thrown out — consensus is treated as a failure mode, not a result.
-- **A book that can't drift.** A money-conservation identity is a pre-push gate; an un-reconciled portfolio never reaches the page.
+- **Disagreement is on the record.** The debate protocol asks for opposing cases and records where they disagreed; unanimous agreement is treated as a flag, not a clean result.
+- **A book that can't drift.** A money-conservation identity is a pre-push gate — an un-reconciled portfolio never reaches the page.
 
 ## How it works
 
@@ -55,9 +55,9 @@ Every trading day the system pulls fresh prices, FX, volatility, earnings and ma
 
 ## The information layer
 
-An LLM is only as good as what it can see — so the widest part of the system is data collection. Every brief is assembled from **26 endpoints across 8 layers**, with **bilingual Hong Kong + US coverage**: live quotes, SEC + Eastmoney filings, capital flow, earnings calendars, macro (VIX / DXY / 10Y), Reddit and news sentiment, and market-moving social feeds. Collection stays broad; the decision layer stays constrained.
+Reading the market is most of what the LLM does, so the widest part of the system is data collection. The repository catalogs **26 fetch and compute modules across 8 layers**, with **bilingual Hong Kong + US coverage** — live quotes, SEC + Eastmoney filings, capital flow, earnings calendars, macro (VIX / DXY / 10Y), Reddit and news sentiment, and market-moving social feeds. Each brief consumes the subset relevant to that market and session. Collection stays broad; the decision layer stays constrained.
 
-| Layer | Endpoints | Primary sources |
+| Layer | Modules | Primary sources |
 |---|:---:|---|
 | 1 · Market | 5 | Tencent · Yahoo · Eastmoney |
 | 2 · Fundamentals & filings | 2 | SEC EDGAR · Eastmoney datacenter |
@@ -68,7 +68,7 @@ An LLM is only as good as what it can see — so the widest part of the system i
 | 7 · FX & integrity | 2 | Frankfurter · local invariants |
 | 8 · Backtest & calibration | 5 | local snapshots + canonical bars |
 
-Engineered to stay standing: every live Eastmoney call routes through **one throttled gateway**, critical paths (quotes, FX) use **multi-source fallback**, and an empty fetch **keeps the prior value** instead of overwriting a good series with a blank. Public sources include Tencent, stooq, yfinance, Frankfurter, SEC EDGAR, Finnhub, Nasdaq, Eastmoney, Polygon, Alpha Vantage, Reddit, and Google News — full per-endpoint catalog with per-host reachability in [`scripts/data/README.md`](scripts/data/README.md).
+The fetch layer degrades gracefully: every live Eastmoney call routes through **one throttled gateway**, critical paths (quotes, FX) use **multi-source fallback**, and an empty fetch **keeps the prior value** instead of overwriting a good series with a blank. Public sources include Tencent, stooq, yfinance, Frankfurter, SEC EDGAR, Finnhub, Nasdaq, Eastmoney, Polygon, Alpha Vantage, Reddit, and Google News — full per-endpoint catalog with per-host reachability in [`scripts/data/README.md`](scripts/data/README.md).
 
 ## How it decides
 
@@ -81,12 +81,12 @@ Analysis resolves into explicit, gated strategy decisions — and one stock can 
 
 ## The debate
 
-The daily deep brief runs a structured **multi-agent debate**, adapted from [TradingAgents](https://github.com/TauricResearch/TradingAgents) for separate Hong Kong and US books. The novelty isn't more agents — it's that **disagreement is required** and the **resolution is attributed**.
+The daily deep brief runs a structured **multi-agent debate**, adapted from [TradingAgents](https://github.com/TauricResearch/TradingAgents) for separate Hong Kong and US books. More agents isn't the point: the protocol **demands an opposing case**, and the Judge **attributes each resolution** to a named strategy frame.
 
-![clawock's multi-agent debate — one evidence pack feeds four analyst lenses; two researchers argue a bull and bear case and must genuinely disagree; three risk voices and a judge name the strategy frame and resolve it into plan.json, which enters the next session's grading loop](assets/debate-flow.svg)
+![clawock's multi-agent debate — one evidence pack feeds four analyst lenses; two researchers argue opposing bull and bear cases and record where they disagree; three risk voices and a judge name the strategy frame and resolve it into plan.json, which enters the next session's grading loop](assets/debate-flow.svg)
 
-- **Analyst lenses.** Fundamental, technical, sentiment, and sector-rotation agents read the *same* context and merge into one table. Every claim must cite numeric context — no vibes.
-- **Bull vs Bear, forced to clash.** Two researchers build opposing cases, each citing concrete analyst data points. They **must genuinely disagree on at least one position**; unanimous agreement means the debate failed and is thrown out, so the record can't fill with lazy consensus.
+- **Analyst lenses.** Fundamental, technical, sentiment, and sector-rotation agents read the *same* context and merge into one table. Every claim must cite numeric context.
+- **Bull vs Bear.** Two researchers build opposing cases, each citing concrete analyst data points. The protocol asks them to **genuinely disagree on at least one position** and to record it, so unanimous agreement reads as a flag rather than evidence.
 - **Risk voices + a Judge.** Aggressive, Conservative, and Neutral each argue their corner. A Judge weighs them, **names the strategy frame driving each decision**, and resolves the argument into `plan.json` — which enters the next session's grading pipeline.
 
 ## The public scorecard
@@ -96,13 +96,13 @@ Every call is settled mechanically and published — wins, losses, and the cases
 1. **Record** — the model submits a versioned decision with its strategy, condition, size, and confidence. The authoritative ledger is `memory/decisions.jsonl`.
 2. **Trigger** — Python evaluates it against canonical unadjusted daily bars, counted on each market's own calendar. An unfinished session grades nothing, and a gap straight through a trigger fills at the open — never at a price that was never available.
 3. **Group** — repeated calls of the same strategy collapse into one *episode*, so holding a position for five mornings does not manufacture five samples.
-4. **Grade & publish** — code settles the outcome, scores it against a plain directional baseline, and renders it. Shut sessions, calls that need human evidence, and instruments that didn't trade are shown as ungradeable, not dropped from the denominator.
+4. **Grade & publish** — code settles the outcome, scores it against a plain directional baseline, and renders it. Shut sessions, calls that need human evidence, and instruments that didn't trade are published as ungradeable — out of the win-rate denominator, but kept visible in the coverage count instead of silently dropped.
 
 The model submits decisions; it can never write or amend its own evaluation. That isolation stops the desk from grading itself — it does **not** make the market data or the metric definitions correct. **Treat the record as a diagnostic, not as proof of return.**
 
 <p align="center"><img src="assets/shadow-backtest.png" alt="cumulative episode win rate against a 50% directional-hit line" width="760"></p>
 
-<sub>Cumulative episode win rate against a 50% directional-hit line — how often the direction was right, not what it earned. Refreshed weekly by GitHub Actions; live figures live on the <a href="https://kcnyu.github.io/clawock/">Reflect tab</a>.</sub>
+<sub>Cumulative episode win rate against a 50% directional-hit line — how often the direction was right, not what it earned. The buy-and-hold comparison is the shadow portfolio (in the details below and on Reflect); this is a different question. Refreshed weekly by GitHub Actions; live figures live on the <a href="https://kcnyu.github.io/clawock/">Reflect tab</a>.</sub>
 
 <details>
 <summary><b>How the grading handles the hard cases</b></summary>
@@ -120,19 +120,19 @@ The model submits decisions; it can never write or amend its own evaluation. Tha
 
 ## What the code enforces
 
-The model writes opinions. Everything that could corrupt the record runs in Python, is unit-tested, and fails closed.
+The model writes opinions. The arithmetic that could corrupt the record runs in Python and is unit-tested.
 
 | Rule | What the code does |
 |---|---|
 | **Currencies never sum** | HKD and USD are shown in both views with the rate + timestamp stamped; adding them naively is a meaningless number. |
-| **Risk caps by construction** | Single name ≤35%, Top-2 ≤70%, leverage-ETF sleeve ≤50%, portfolio β ≤3.0, stop at −18%. Size is bounded by code, not by conviction. |
+| **Risk caps, checked every brief** | Single name ≤35%, Top-2 ≤70%, leverage-ETF sleeve ≤50%, portfolio β ≤3.0, stop at −18%. Python computes each breach and flags any plan that doesn't answer it with a trim/cut or an explicit override. Execution stays human. |
 | **Concentration per leg** | `HHI = Σ wᵢ²` per book: `<0.15` ✅ · `0.15–0.25` 🟡 · `0.25–0.40` 🟠 · `>0.40` 🔴. Never blended across currencies. |
 | **Leverage judged by regime** | A 200-day-trend × volatility dial caps the leverage-ETF sleeve (×1 / ×0.5 / ×0); daily-reset 2×/3× products skip fundamentals entirely. |
 | **Return on peak principal** | Return % uses peak net deposits from the cash-flow ledger, not `cost − realized` — a realized win must not fake a higher return. |
 | **Soft sentiment can't flip a trade** | A tweet or a mood only nudges a confidence number; only a hard, dated catalyst can change the action. In a risk-on tape the default is HOLD. |
 | **Unproven signals are shown, never obeyed** | A quant factor layer runs in code but is barred from influencing a decision until it clears a minimum sample and proves a hit rate. |
 
-Reliability rides on the same principle. Every market-reporting job is **preflight (Python) → LLM → postflight (Python)**: deterministic work runs entirely in code, and postflight refuses to publish a book that doesn't reconcile. If risk can't be computed, the card renders **"⚠️ can't compute,"** never a green "none." Overlapping schedulers, a fallback workflow, and watchdogs mean a single LLM stall is no longer silent — though nothing here promises delivery under every outage.
+Reliability rides on the same principle. Every market-reporting job is **preflight (Python) → LLM → postflight (Python)**: the deterministic work runs in code, and a pre-push gate refuses to publish a book that doesn't reconcile. If risk can't be computed, the card says **"risk unavailable,"** never a green "none." Overlapping schedulers, a fallback workflow, and watchdogs mean a single LLM stall is no longer silent — though nothing here promises delivery under every outage.
 
 ## Daily rhythm
 
@@ -206,7 +206,7 @@ clawock/
 
 ## Scope, disclaimer, and license
 
-This repository holds **real trading positions**. It is a personal record and portable workspace — **not investment advice, a recommendation, or a copy-trading system**. The desk analyzes and proposes; it does not place orders for you. The public scorecard is not manually edited, the active calls have yet to show an edge, and every number may be stale by the time you read it.
+This repository holds **real trading positions**. It is a personal record and portable workspace — **not investment advice, a recommendation, or a copy-trading system**. The desk analyzes and proposes; it does not place orders for you. No individual outcome is hand-picked — settlement rules and methodology changes are versioned in code — the active calls have yet to show an edge, and every number may be stale by the time you read it.
 
 Original code is under the [MIT License](LICENSE). Adapted third-party code keeps its own license and attribution in [NOTICE](NOTICE) and [`THIRD_PARTY_LICENSES/`](THIRD_PARTY_LICENSES/). Third-party market data, news, social posts, filings, trademarks, and API access are **not** relicensed by MIT — see [Third-party data and services](THIRD_PARTY_DATA.md).
 

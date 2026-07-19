@@ -13,12 +13,23 @@ ROOT = Path(__file__).resolve().parents[1]
 EN = (ROOT / "README.md").read_text(encoding="utf-8")
 ZH = (ROOT / "README.zh.md").read_text(encoding="utf-8")
 
-# Emoji-ish codepoints (pictographs, symbols, flags, dingbats). Deliberately does
-# NOT include the CJK range, so Chinese text is fine.
+# Pictographic emoji: symbols, pictographs, flags, dingbats, variation selector.
+# Deliberately excludes the arrow block (←↑→ are legitimate typography used in the
+# schedule and repo-layout blocks) and the CJK range (Chinese prose is fine).
 EMOJI = re.compile(
     "[\U0001F300-\U0001FAFF\U00002600-\U000027BF\U0001F1E6-\U0001F1FF"
-    "\U00002190-\U000021FF\U00002B00-\U00002BFF️]"
+    "\U00002B00-\U00002BFF\U0000FE0F]"
 )
+
+EN_H2 = [
+    "What this is", "How it works", "The information layer", "How it decides",
+    "The debate", "The public scorecard", "What the code enforces", "Daily rhythm",
+    "Explore the system", "Scope, disclaimer, and license",
+]
+ZH_H2 = [
+    "这是什么", "怎么跑的", "信息层", "怎么做决策", "辩论", "公开战绩",
+    "代码强制执行的规矩", "每日节奏", "逛一逛这套系统", "范围、免责与许可",
+]
 
 
 def _h2(md):
@@ -64,11 +75,30 @@ def test_language_switch_links_cross():
     assert "README.md" in ZH
 
 
-def test_no_decorative_emoji_in_headings():
-    # Headings stay clean in both languages (the redesign killed one-emoji-per-H2).
+def test_explicit_h2_sequences():
+    # Lock both languages' section order (and their 1:1 correspondence by position),
+    # not just the count — so a section can't be added/reordered in one language only.
+    assert [h[3:].strip() for h in _h2(EN)] == EN_H2
+    assert [h[3:].strip() for h in _h2(ZH)] == ZH_H2
+
+
+def test_emoji_only_in_the_hhi_bucket_row():
+    # The single place emoji are allowed is the HHI concentration row, where the
+    # ✅🟡🟠🔴 markers mirror the dashboard's actual bucket colors. Nowhere else — no
+    # decorative heading emoji, no ⚠️ leaking into prose. Whole-document scan.
     for md, name in ((EN, "README.md"), (ZH, "README.zh.md")):
-        for line in _h2(md):
-            assert not EMOJI.search(line), f"decorative emoji in heading: {line!r} ({name})"
+        for i, line in enumerate(md.splitlines(), 1):
+            if "HHI" in line and "0.15" in line:
+                continue  # the allowed bucket legend
+            m = EMOJI.search(line)
+            assert not m, f"emoji outside the HHI row at {name}:{i}: {m.group(0)!r}"
+
+
+def test_zh_uses_benchmark_vendor_not_official_bars():
+    # Iron rule: settlement bars come from a canonical VENDOR feed (Tencent/etc.),
+    # never an exchange/official feed. ZH must not resurrect the 官方 phrasings.
+    for banned in ("官方行情", "官方源", "官方不复权", "官方逐日"):
+        assert banned not in ZH, f"disallowed official-market-data claim in ZH: {banned!r}"
 
 
 def test_no_live_numbers_in_evergreen_copy():
