@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-18T10:55:13.162931+00:00",
+  "generated_at": "2026-07-19T22:34:11.532868+00:00",
   "vix": {
     "symbol": "^VIX",
     "price": 18.77,
@@ -13,16 +13,16 @@
     "price": 4.541,
     "prev": 4.569,
     "change_pct": -0.61,
-    "as_of": 1784314794,
+    "as_of": 1784314795,
     "source": "yahoo",
     "yield_pct": 4.541
   },
   "dxy": {
     "symbol": "DX-Y.NYB",
-    "price": 100.755,
+    "price": 100.84,
     "prev": 100.765,
-    "change_pct": -0.01,
-    "as_of": 1784321999,
+    "change_pct": 0.07,
+    "as_of": 1784499850,
     "source": "yahoo"
   },
   "fear_greed": {
