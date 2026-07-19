@@ -4,15 +4,17 @@
 
 # clawock
 
-### 多个 LLM Agent 分析一个**真实港股 + 美股组合**，风控由代码执行。
+### 一个会给自己打分、并把亏损一起公开的自主 AI 投研台。
+
+多个 LLM Agent 辩论一个真实的港股 + 美股组合。Python 执行每一道风控、逐条对着行情结算，并把战绩原样发布、绝不人工修改。
+
+**目前的结论:主动判断尚未跑赢买入持有 —— 而仪表盘把这句话明明白白写着。**
 
 [![Dashboard](https://img.shields.io/github/deployments/KCNyu/clawock/github-pages?label=DASHBOARD&style=flat-square&logo=githubpages&logoColor=white&labelColor=252b35&color=4b91c8)](https://kcnyu.github.io/clawock/)
 [![CI](https://img.shields.io/github/actions/workflow/status/KCNyu/clawock/harness-regression.yml?label=CI&style=flat-square&logo=githubactions&logoColor=white&labelColor=252b35&color=738391)](https://github.com/KCNyu/clawock/actions/workflows/harness-regression.yml)
 [![License](https://img.shields.io/badge/LICENSE-MIT-aab5bf?style=flat-square&labelColor=252b35)](LICENSE)
 
-[**🎯 实时仪表盘**](https://kcnyu.github.io/clawock/) · [**📅 每日简报**](https://kcnyu.github.io/clawock/briefs.html) · [**它怎么跑的 ↓**](#-60-秒看懂)
-
-[**English**](README.md) · **简体中文**
+[**实时仪表盘**](https://kcnyu.github.io/clawock/) &nbsp;·&nbsp; [**每日简报**](https://kcnyu.github.io/clawock/briefs.html) &nbsp;·&nbsp; [**English**](README.md)
 
 <br>
 
@@ -20,249 +22,145 @@
   <img src="assets/social-card.png" alt="clawock — 会给自己打分的自主 AI 投研台" width="820">
 </a>
 
-<sub>真实持仓 · 真实盈亏 · 每周刷新</sub>
-
 <br>
 
-<a href="https://kcnyu.github.io/clawock/"><img src="assets/dashboard.gif" alt="clawock 仪表盘循环六个标签页" width="300"></a>
+<a href="https://kcnyu.github.io/clawock/"><img src="assets/dashboard.gif" alt="clawock 仪表盘循环切换各标签页" width="300"></a>
 
-<sub>总览 · 持仓 · 风控 · 信号 · 计划 · <b>诚实</b>。界面变化时更新。</sub>
-
-<br><br>
-
-**多 Agent 股票分析** &nbsp;·&nbsp; **代码风控硬闸** &nbsp;·&nbsp; **公开自评战绩** &nbsp;·&nbsp; **真实港股 + 美股组合**
+<sub>真实持仓、真实盈亏、公开打分。预览图每周刷新;实时仪表盘随交易日更新。</sub>
 
 </div>
 
 ---
 
-> **一句话** —— 多个 LLM Agent 分析一个真实港股 + 美股组合；Python 执行风控、结算每条判断并发布未经人工修改的战绩。主动建议至今没显出优势。
+## 这是什么
 
-## 🎰 60 秒看懂
+clawock 是一个关于**纪律与自评**的公开自动投资实验 —— 不是一夜暴富的机器人,也不是跟单服务。
 
-clawock 是一套接入真实券商组合的自主多 Agent LLM 系统，港股与美股分账运行。
+一套自主多 Agent 投研台分析一个真实券商账户,港股与美股分账。它自己监控、辩论、给出交易建议;但它**不**下单、也不动你的钱。项目的重点是它外面那层诚实机制:模型可以为一笔交易辩护,却不能给自己的作业打分。价格、风控上限、账本、结算、记分牌 —— 全归 Python 管。
 
-每个交易日，系统会：
+## 怎么跑的
 
-- 🌅 定时运行简报、港美市场报告和盘中监控，
-- 📥 抓最新价格、汇率、波动率、财报日历、宏观(VIX/DXY/10Y)、Reddit + 新闻舆情,甚至 **Trump/Musk 的市场异动**,
-- 🧠 将标准化上下文交给多 Agent 分析与辩论流程，
-- 🛡️ 由 Python 执行风控、schema 和账本校验，
-- 📲 将简报发送到**微信**，
-- 🌐 更新**公开仪表盘**。
+这套系统把**概率性判断**和**确定性控制**分开:LLM 读市场、吵交易;代码决定什么被允许、实际发生了什么、记录上写什么。
 
-## 🪞 它按策略 episode 打分，不拿每日重复 call 凑样本
+![clawock 架构 —— Python 构建对账后的市场上下文,多 Agent LLM 辩论提出交易,代码记录并把关决策,公开战绩闭环](assets/architecture.svg)
 
-每份简报提交 v2 `plan.json`。同一股票可以同时存在多个策略，例如长期 `core_position`、日内 `intraday_t` 与组合层 `risk_rebalance`；不同时间尺度同日结论不同是正常的，不再被压成一条综合动作。
+每个交易日,系统拉取最新价格、汇率、波动率、财报与宏观上下文,以及新闻与社交情绪;把这份归一化的上下文交给多 Agent 辩论;在 Python 里施加确定性的风控、schema 与账本闸门;把简报送到微信;并更新公开仪表盘。
 
-唯一权威账本是 `memory/decisions.jsonl`。每条决策都有稳定 ID、策略、条件、仓位、置信度、驱动源、执行状态和评估状态。触发与结算走 `memory/bars/` 里**未复权的逐日行情**（单一 canonical 行情源，非交易所直连），按各自市场的交易日历计算——未收盘的 session 永远不参与打分。跳空穿过触发价的按开盘价成交，不按触发价：假装能在跳空前的价位成交，等于白送一段收益。休市、需人工核实、或标的当日无交易的，标为无法评分并公示条数，而不是悄悄从分母里消失。同一策略/动作的连续重申合并成一个 episode，因此连续五天写 hold 不会伪造五个样本——把触发价重锚到股价已经跑到的位置，仍然是重申，不是新的 call。一个 episode 的成绩取其内部已结算 call 的**平均值**，而不是推选其中某一条——做过多次 call 的 episode 经常自己跟自己矛盾，让首条或末条代表全组，能仅凭这个选择就把主动 call 胜率推过 50% 线。
+## 公开战绩
 
-Reflect 仪表盘展示：
+每条判断都被机械地结算并发布 —— 赢的、输的、以及没法打分的,一并公开。事后绝不手工调。
 
-- 累计 episode 胜率对 50% 方向命中线；
-- 嘴上说的把握 vs 实际胜率，并与「留一法常数预测」对照 —— 这是信心值想有意义必须先跨过的门槛；
-- 按日期聚类的 bootstrap 区间，避免把同日 call 当独立证据；
-- 执行率拆成「要动手的」和「不用动的」两类分别统计 —— 因为「照做 HOLD」＝坐着没动，会机械性抬高综合执行率。仪表盘分别渲染实时的主动、被动和综合数值。
+1. **记录** —— 模型提交一条带版本的决策,含策略、条件、仓位、置信度。权威账本是 `memory/decisions.jsonl`。
+2. **触发** —— Python 用官方逐日不复权行情、按各市场自己的交易日历评判。未完成的 session 不打分;缺口直接穿过触发价的按开盘价成交 —— 绝不给它一个从未出现过的价。
+3. **归组** —— 同一策略的重复判断收敛成一个 *episode*,所以连喊五个早上「持有」不会凭空变出五个样本。
+4. **打分并发布** —— 代码结算结果、对着一条朴素的方向基线评分、再渲染。休市 session、需要人工证据的判断、当天没成交的标的,会显示为「不可评」,而不是从分母里剔除。
 
-**这份战绩只量择时——现在是字面意义上的择时。** 单事件诊断回答「触发价比同日收盘执行好或差多少」：同票、同日、同方向、同股数严格配对，再报告 median bps 与按 date × ticker 聚类的 paired CI。它刻意不画累计金额曲线。
+模型只提交决策;它永远不能写或改自己的评估。这种隔离让投研台没法给自己打分 —— 但它**并不**让市场数据或指标定义变得正确。**把这份记录当诊断,而不是收益的证明。**
 
-### 🧪 Shadow Portfolio · Policy Replay（政策模拟）
+<p align="center"><img src="assets/shadow-backtest.png" alt="累计 episode 胜率对 50% 方向命中基线" width="760"></p>
 
-它回答更宽的反事实问题。两本 cash + inventory 账本从同一个 seed 沿时间重放：一本跟随全部已触发的主动建议，另一本买入后持有；两者都按 canonical 收盘计价，累计差记为**模拟 timing alpha**。现金与库存约束会挡掉重复建议卖同一批仓位的双计。Drill 卡片显眼标注**模拟 · 非实盘**，公开 `fill_counts.real_trade`——因为绝大多数建议并没有真实执行——USD 与 HKD 分账、绝不裸加，同时披露未复权日线带来的基线偏差。数据来自 sidecar `assets/data/shadow_portfolio.json`；这是政策模拟，不是实盘「听 AI 多赚多少」。
-
-风控硬闸和 HOLD 纪律不在这两项择时诊断里，而在这个组合上恰恰是它们在真正干活 —— `assets/data/guardrail_history.jsonl` 持续积累证据。
-
-LLM 只提交决策，不能写入或修改评估结果；ID、触发、分组和指标由 Python 流程按已记录的数据机械计算。这个隔离防止模型自评，但**不保证行情输入、触发判断或指标口径正确**；当前战绩仅作诊断，不作收益证明。
-
-<p align="center"><img src="assets/shadow-backtest.png" alt="decision v2：累计 episode 胜率对 50% 方向命中参考线" width="760"></p>
-
-<sub>累计 episode 胜率，50% 为方向命中参考线；只是方向判断的命中率，不代表收益。v1 历史已迁入 v2 episode 账本；由 GitHub Actions 每周刷新。</sub>
-
----
-
-## 🎯 决策规则
-
-每条判断都使用相同的归因、风控闸与策略分桶规则。
-
-**1. 归因优先 —— 而且 edge 动态计算。** 每条决策标注唯一主导源；当前样本数、平均 benefit、胜率和日期聚类区间全部来自 `decision_metrics.by_driver`，README 不再写死某个时点的命中率。
-
-**2. 硬催化 vs 软情绪。** 软情绪(Reddit、氛围、一条推)只能微调*置信度*数字,**永远翻不动操作分桶**。只有有日期的硬催化才能。
-
-**3. 证伪,不证实。** risk-on 行情里默认 `HOLD`。一条*印证*利好的消息**不触发买入**;模型得先过一道证伪检查 + 一道"是不是已经 price in 了?"(近 5 日涨跌)测试。
-
-**4. 信心被硬风控闸封顶。** 不管多笃定:单票 ≤35%、Top-2 ≤70%、杠杆 ETF 腿 ≤50%、组合 β ≤3.0、止损 −18%。仓位由结构约束,不由情绪。
-
-**5. 杠杆按 regime 拨档,不择时。** 一个"200 日趋势 × 波动率"的刻度盘给杠杆 ETF 上限一个乘子(×1 / ×0.5 / ×0)。背后的回测教训:alpha 在*在错的 regime 里降杠杆*,不在抄顶。
-
-**6. 量化信号必须挣到话语权。** 一层因子(双均线、12-1 动量、RSI-14、z-score、ATR 吊灯止损、波动目标仓位)在 Python 里跑 —— 但**每个因子在清过 n≥20 并证明命中率之前,禁止进入决策**。没证过的因子只展示、绝不照做。
-
-所有东西最终落进一条或多条带明确条件的策略决策。同股的 `core_position`、`risk_rebalance`、`intraday_t`、`event_trade`、`tactical_entry` 可以并存，并在各自 episode 中结算。
-
----
-
-## 🗣️ 多 Agent 决策台
-
-08:00 深度简报使用结构化**多智能体辩论**，借鉴 [TradingAgents](https://github.com/TauricResearch/TradingAgents)，并针对港股与美股分账组合调整：
-
-- **Tier 1 —— 4 个分析师视角。** 基本面 / 技术面 / 情绪面 / 板块轮动各自读取*同一份* `context.json` 并合并；每个观点都必须引用数字上下文。
-- **Tier 2 —— Bull vs Bear。** 两个研究员组装对立的案子(持有/加仓 vs 减仓/砍仓),各自至少引 2 个具体的 Tier-1 数据点。硬规则:**至少要在 1 个仓位上真分歧** —— 一致同意 = 辩论失败,直接作废。
-- **Tier 3 —— 3 个风险声音 + 一个 Judge。** Aggressive、Conservative、Neutral 各自争自己那一方;一个 **Judge** 给它们称重、点名每个决策由哪个 strategy frame 驱动,把争论收敛成带条件的策略决策。
-
-至少一个持仓必须得到实质性的反方意见。Judge 将辩论结果写入 `plan.json`，并在下一交易日进入评分流程。
-
----
-
-## 📅 每日运行时间表
-
-```
-03:00  🌙  记忆「做梦」—— 把昨天的教训提升进长期笔记
-08:00  📊  每日深度简报 —— 多层分析 + 一个裁判模型,推送到微信
-09:30  🇭🇰  港股开盘 → 10:00–11:30 / 14:00–15:30 盘中 → 12:00 午盘 → 16:00 收盘
-09:30 ET 🇺🇸  美股开盘 → 拆分盘中盯盘 → 16:00 ET 收盘
-            ↑ 每次成功完成的 reporting postflight 都会发布仪表盘语义变化
-远端   🛰️  盘前宏观 / 舆情 / 影响力扫描 + 美股开盘前新闻摘要
-每周   🧪  归档 / 健康检查 / 周复盘 / 视觉刷新
-```
-
-港股时间为 HKT；美股按 ET 表示，对应 HKT cron 会随纽约冬夏令时自动切换。精确生成表见 [CRON_SCHEDULES.md](CRON_SCHEDULES.md)。**节假日 + 周末闸**会跳过休市时段。
-
----
-
-## 🏗️ 系统架构
-
-Clawock 将概率性判断与确定性控制分开：Agent 分析组合并提出决策；Python 负责价格、风险上限、账本身份、结算、评分和发布。
-
-![clawock 架构 —— Python 构建已对账的市场上下文，多 Agent LLM 进行辩论，代码记录决策，公开战绩表闭环评分](assets/architecture.svg)
-
-上层路径将已对账的市场状态转成版本化决策；下层闭环使用 canonical bars 结算并评分，再将结果送回下一份简报。Watchdog、对账、投递兜底和安全发布均在模型之外运行。
-
----
-
-## 🛡️ 可靠性控制
-
-系统完整性由三层控制：
-
-<table>
-<tr><td width="33%" valign="top">
-
-**1. Harness 模式**
-
-每个**市场报告类** job 都是 `preflight(Python)→ LLM → postflight(Python)`。确定性的活 —— 价格、FX、HHI、信号计数 —— 100% 在代码里跑。LLM 只负责写*观点*。忘了 FX、漏了快照、跳过 >3% 异动 → postflight 抓出来并给报告打标记。算账函数有**单元测试**;**pre-push 闸会拒绝发布违反资金守恒的组合账本**。它挡的是账本自相矛盾,不保证行情口径正确。
-
-</td><td width="33%" valign="top">
-
-**2. 自学习闭环**
-
-今天的 `plan.json` → 明天被打分。战绩表将置信度校准与实际结果送回下一份简报。
-
-</td><td width="33%" valign="top">
-
-**3. 纵深防御**
-
-四层重叠保障 —— OpenClaw 跑主任务；GitHub Action 可接管缺失的晨间简报；系统 crontab watchdog 把确认漏投镜像到 Telegram；健康 workflow 把调度/数据漂移显性化。它不承诺多通道同时故障时仍必达，但单个 LLM stall 不再静默。
-
-</td></tr>
-</table>
-
-**代码强制 fail-closed：**
-
-- 组合风险算不出时，风险卡显示 **「⚠️ 算不出」**，绝不显示绿色「✅ 无」。
-- 09:05 简报判官校验 `plan.json` 有效性；文件仅仅存在，不算有效计划。
-- off-host 简报兜底按完整结构化 section 裁剪并发布 manifest；必需账本缺失时产出零动作，不拿残缺上下文临场发挥。
+<sub>累计 episode 胜率对 50% 方向命中基线 —— 衡量的是方向对了多少次,不是赚了多少。由 GitHub Actions 每周刷新;实时数字见<a href="https://kcnyu.github.io/clawock/">诚实(Reflect)标签页</a>。</sub>
 
 <details>
-<summary><b>🔧 引擎盖下面</b> —— 运行时、写入协调与完整性闸门</summary>
+<summary><b>打分怎么处理那些难缠的边界情况</b></summary>
 
 <br>
 
-**模型。** 交互式聊天当前跑 Claude；无人值守市场任务 pin **`MiniMax-M3`**。provider 凭证和 runtime fallback 策略在公开仓库之外，可独立变化而不改 harness。远端 LLM workflow 通过 Anthropic Messages 直调 MiniMax M3，并在可选 Xiaomi key 仍有效时退到 MiMo。仓库不存任何 provider key。
-
-**写入对账。** dashboard 构建一次产出三份派生文件：`dashboard.json`、`decision_audit.json`、`shadow_portfolio.json`；cron 守护进程、远端 workflow、系统 crontab publisher、临时 session 都可能更新 `master`。所有权规则是：**隔离 scan sidecar 写者，并串行化同一 host 上的 dashboard builder。**
-
-- **前端直接读 scan 子文件。** `macro / sentiment / influencer_feed / us_news_digest / em_news` 不再被嵌进 `dashboard.json`,`index.html` 加载时各自 fetch。于是一个 GitHub Action 永远只提交它*自己*那个互不相交的子文件 —— 这些写者不可能冲突,而且一次 scan 的 commit 一落地就立刻上页面,无需任何重建。(GH Actions 之间仍靠 `concurrency: group: data-write` 串行。)
-- **三份 dashboard 构建产物共用一份 ownership 契约和同一把 host 锁。** 本地 harness postflight 和 flock 守护的 `publish_dashboard.sh` crontab 共用 host 上的 `/tmp/dashboard_publish.lock`，因此这些 host 内重建不会交错。所有 builder 都调用同一个语义 diff helper：纯构建时间变化会还原，任一生成文件出现真实变化就一起进入精确 staging pathspec。off-host `brief-fallback` 也复用同一 helper，但同名锁只存在于 GitHub runner 本地，无法与 host 上的锁互斥。
-- **调度也有可校验契约。** runtime 真值来自 `openclaw cron list --json`;[`config/cron-schedules.json`](config/cron-schedules.json) 同时驱动[生成调度表](CRON_SCHEDULES.md)、DST 自动同步、payload/watchdog 检查和 CI health。Mode 7 会发布逐 slot heartbeat，不再是不可追踪的黑箱。
-- **所有人都经 `safe_push.sh` push** —— rebase 重试、遇真冲突 abort(不死循环);提交进来的冲突标记会在 **push hook 被拒**,坏掉的 `dashboard.json` 永远到不了 Pages。
-- **组合数字在门口就被闸住。** `portfolio.json` —— 唯一真值源 —— 写入走 advisory `flock` + 锁内重读再覆盖(`mutate_json`,原子 `os.replace`),根治 load-modify-write 竞态。**pre-push hook 会拦下任何账本违反资金守恒恒等式的 push**(`TCV = Σ 市值`、`现金 = 基线 + 成交 + 存取款`、`成本 = 移动加权`),所以没对账的改动到不了 Pages —— 而这些纯派生函数由 CI 里的 `pytest` 套件钉死。
+- **未完成 session 与缺失行情。** 触发与标记来自 `memory/bars/` —— 单一官方源的逐日不复权行情,不是交易所直连。未完成的 session 永不打分。
+- **重申(reaffirmation)。** 对同一策略/动作的连续重申算一个 episode。把触发价重新锚到股票现在的位置,仍是重申,不是一条新判断。
+- **episode 聚合。** 一个 episode 取它自己已结算判断的*均值*,而不是选出一条代表 —— 让第一条或最后一条代言整组,能仅凭这个选择就把主动胜率在 50% 线两侧来回甩。
+- **置信度校准。** 声称的置信度对着「留一法常数预测」评判 —— 那是一个置信度字段在有意义之前必须先跨过的门槛 —— 并用按日期聚类的 bootstrap 区间,这样同一天的判断不会被当作独立证据。
+- **择时,单独计价。** 一个单事件诊断只问:触发成交比当日收盘执行好或差多少,严格按同票/同日/同方向/同股数配对。它有意从不画累计金额曲线。
+- **影子组合(模拟 · 非实盘)。** 两本现金+库存账重放同一条时间线:一本跟每一条触发的主动建议,另一本买入持有。两者的累计差被报为*模拟择时 alpha*。它把美元与港币分开、暴露真正被执行过的建议有多少、并披露不复权行情的偏差。来源:`assets/data/shadow_portfolio.json`。它是策略模拟,不是对实盘赚了多少的声称。
 
 </details>
 
----
+## 决策室
 
-## 📐 代码强制的「铁律」
+每日深度简报跑一场结构化的**多 Agent 辩论**,改编自 [TradingAgents](https://github.com/TauricResearch/TradingAgents),为港股与美股分账适配。
 
-以下约束由 `postflight` 强制执行：
+- **分析师视角。** 基本面、技术面、情绪面、板块轮动 Agent 读*同一份*上下文,汇成一张表。每个论点都必须引用数值上下文。
+- **多头 vs 空头。** 两名研究员建立对立论点,各自引用具体的分析师数据点。他们必须在至少一个仓位上真正分歧 —— 一致同意意味着辩论失败、整场作废。
+- **风险声音 + 一位裁判。** 激进、保守、中性各自陈词;一位裁判权衡他们、点名驱动每条决策的策略框架,并把争论收敛成 `plan.json`,进入下一场的打分流水线。
 
-- **🪙 FX —— HKD 和 USD 绝不直接相加。** 总额永远以两种口径展示,并盖上汇率 + 时间戳(`USDHKD = 7.83,来源 Frankfurter,<ts>`)。两种货币裸加是个毫无意义的数。
-- **🔢 手填值 fat-finger 闸。** 少数手敲的值(现金余额、黄金定投对账)带笔误检测:现金较上一快照跳变 ≥5×、或黄金隐含均价偏离 NAV,会在静默污染总资产前被标出来。
-- **📊 集中度 —— 每条腿单独算 HHI。** `HHI = Σ wᵢ²`,外加 Top-2 权重。分档:`<0.15` ✅ · `0.15–0.25` 🟡 · `0.25–0.40` 🟠 · `>0.40` 🔴。逐腿计算,绝不混算。
-- **🎲 杠杆 ETF —— 看标的本身。** 名字带杠杆标记(`倍`、`Direxion`、`T-Rex`、`ProShares`、`2X/3X Long`……)的标的直接跳过基本面 —— 对每日重置的 2×/3× 产品,基本面是噪音;改用一个**杠杆刻度盘**(200 日趋势 × 波动率)来限制允许的杠杆上限。
-- **💵 回报口径 —— 峰值净本金。** 回报 % 用 `true_principal` = 现金流账本里的峰值净投入,*不是* `cost − realized`。一笔已实现盈利会缩小 `cost − realized`、虚抬回报;账本口径不动。
+## 代码强制执行的规矩
 
----
+模型只写观点。任何可能污染记录的事都跑在 Python 里、有单元测试、并且失败即关闭。
 
-## 🧬 技术栈与数据源
+| 规矩 | 代码做的事 |
+|---|---|
+| **两种货币不直接相加** | 港币与美元同时以两种口径展示,并盖上汇率+时间戳;把两种货币生硬相加是个没意义的数。 |
+| **风控上限由构造决定** | 单一标的 ≤35%、Top-2 ≤70%、杠杆 ETF 仓位 ≤50%、组合 β ≤3.0、−18% 止损。仓位由代码封顶,不由信念。 |
+| **集中度按腿计算** | 每本账 `HHI = Σ wᵢ²`:`<0.15` ✅ · `0.15–0.25` 🟡 · `0.25–0.40` 🟠 · `>0.40` 🔴。绝不跨币种混算。 |
+| **杠杆按 regime 拨挡** | 200 日趋势 × 波动率的拨盘给杠杆 ETF 仓位封顶(×1 / ×0.5 / ×0);每日重置的 2×/3× 产品完全跳过基本面。 |
+| **回报基于峰值本金** | 回报率用现金流账本里的峰值净投入,而不是 `成本 − 已实现` —— 一笔已实现盈利不该伪造出更高的回报。 |
+| **软情绪不能翻转交易** | 一条推文或一种情绪只能微调置信度数字;只有硬的、带日期的催化剂才能改动作。风偏向上的行情里默认 HOLD。 |
+| **未验证的信号只展示、绝不遵从** | 一层量化因子跑在代码里,但在它跨过最小样本量并证明命中率之前,被禁止影响任何决策。 |
 
-[Claude Code](https://claude.com/claude-code) · [openclaw](https://openclaw.com)(cron 守护进程)· [ECharts 5.5](https://echarts.apache.org/) · Jekyll + GitHub Pages · Python 3.11 · 纯静态前端
+可靠性走同一条原则。每个市场播报任务都是 **preflight(Python)→ LLM → postflight(Python)**:确定性工作全在代码里,postflight 拒绝发布一本对不上账的账。若风险算不出来,卡片渲染 **「⚠️ 无法计算」**,绝不显示绿色的「无」。多层排程、一个兜底 workflow、加上看门狗,意味着单个 LLM 卡死不再是无声的 —— 尽管这里不承诺在任何故障下都能送达。
 
-**公开数据** 腾讯 · stooq · yfinance · Frankfurter · SEC EDGAR · Finnhub · Nasdaq · 东财 · Polygon · Alpha Vantage · Reddit JSON · Google News RSS · Trump Truth Social feed
+## 每日节奏
 
-<sub>消息层为**双语**：Finnhub + Google News 覆盖美股，东财公司新闻 + 7×24 快讯覆盖港股。信息收集保持广度，决策层保持约束。</sub>
+```
+凌晨    记忆「做梦」—— 把昨天的教训提炼进长期笔记
+早上    深度简报 —— 多层辩论 + 一位裁判,推送到微信
+港股    开盘 → 定时盘中监控 → 收盘
+美股    开盘 → 拆分盘中监控 → 收盘
+             ↑ 每次成功的播报都会发布仪表盘变更
+穿插    盘前宏观 / 情绪 / 事件扫描,再加一份美股盘前新闻摘要
+每周    归档、体检、复盘与视觉刷新任务
+```
+
+港股时间按 HKT;美股 session 时间按 ET,其 cron 表达式随纽约夏令时自动切换。节假日 + 周末闸门跳过休市 session。精确的生成表见 [CRON_SCHEDULES.md](CRON_SCHEDULES.md)。
+
+## 逛一逛这套系统
+
+- [**实时仪表盘**](https://kcnyu.github.io/clawock/) —— 持仓、风控,以及自评战绩。
+- [**每日简报**](https://kcnyu.github.io/clawock/briefs.html) —— 已发布的早读。
+- [**排程表**](CRON_SCHEDULES.md) —— 生成的 cron 表。
+- [**数据脚本**](scripts/data/README.md) —— fetcher 与计算目录。
+
+用 [Claude Code](https://claude.com/claude-code)、[openclaw](https://openclaw.com) cron 守护进程、纯静态 Jekyll + GitHub Pages 前端,以及 Python 构建。行情、新闻、宏观、情绪来自有文档的公开源并带多源兜底;复用任何抓取内容前请先看[第三方数据与服务条款](THIRD_PARTY_DATA.md)。
 
 <details>
-<summary><b>📊 数据工具包 — 8 层 26 端点，含每源本机可达性</b></summary>
+<summary><b>底层细节</b> —— 模型、写入协调与完整性闸门</summary>
 
 <br>
 
-Fetcher 优先使用有文档的公开端点，并在可用时采用**多源降级**；抓空会保留旧值，不整片覆盖。各数据源的条款和访问要求仍然适用。**可达**列来自服务器 IP 实测：✅ 稳定 · 🟡 flaky/限流 · 🔴 本机不可用。
+**模型。** 交互式聊天目前跑在 Claude 上;无人值守的市场任务通过 Anthropic Messages API 固定一个模型,并带一个可选兜底。供应商凭据与兜底策略放在这个公开仓库之外,可以在不改 harness 的情况下变更。这里不存任何供应商密钥。
 
-| 层 | 端点 | 主数据源 |
-|---|:---:|---|
-| 1 · 行情 | 5 | 腾讯 gtimg · Yahoo v8 · 东财基金 |
-| 2 · 基本面/申报 | 2 | SEC EDGAR · 东财 datacenter |
-| 3 · 资金面 | 1 | 东财 push2his |
-| 4 · 消息面 | 3 | 东财 · Finnhub · Google News |
-| 5 · 宏观/情绪 | 4 | Yahoo · Reddit · Truth Social |
-| 6 · 量化与风险 | 4 | 确定性计算 + 外部行情历史 |
-| 7 · 汇率/校验 | 2 | Frankfurter · 本地不变量 |
-| 8 · 回测/自省 | 5 | 本地快照 + 日线 |
+**写入对账。** dashboard 构建产物 —— `dashboard.json`、`decision_audit.json`、`shadow_portfolio.json` —— 都是派生的,而 cron 守护进程、远端 workflow、crontab publisher 和临时 session 都可能更新 `master`。规则是:隔离 scan-sidecar 写者,并串行化同一 host 上的 dashboard builder。
 
-- **1 · 行情** — `fetch_us_stocks` 美股实时价·多provider链 ✅ · `analyze_us_stocks` 美股刷新+RSI ✅ · `analyze_hk_stocks` 港股实时+HSI/HSTECH+新闻+信号 ✅ · `fetch_benchmark_history` SPY/HSI/HSTECH 日线 ✅ · `fetch_gold_dca` 黄金定投 000217 净值 ✅
-- **2 · 基本面** — `fetch_us_filings` 10-K/10-Q·Form4·13F·XBRL(SEC) ✅ · `fetch_fundamentals_em` 美/港财报三表+关键指标 ✅
-- **3 · 资金面** — `fetch_fundflow_em` 日级主力/超大/大/中/小单净流入 🟡
-- **4 · 消息面** — `fetch_em_news` 港股个股中文新闻+7×24快讯 ✅ · `gh_action_news_digest` 美股持仓新闻→可执行要点 ✅ · `fetch_catalysts` 未来14天财报/事件 🟡
-- **5 · 宏观/情绪** — `fetch_macro` VIX+宏观速读 ✅ · `fetch_sentiment` Reddit 情绪 🟡 · `fetch_influencer_feed` Trump/Musk 言论 🟡 · `fetch_peers` 同业现价+5日P&L ✅
-- **6 · 量化与风险**(对外部行情历史做确定性计算，不含 LLM 判断) — `compute_quant_signals` 双均线/动量/RSI/ATR/vol-target ✅ · `compute_regime` 杠杆刻度盘(200DMA+波动带) ✅ · `compute_t0_setups` T+0牌面评级+追高检测 ✅ · `portfolio_risk_metrics` β/Cov-Var/回撤/集中度 ✅
-- **7 · 汇率/校验** — `fetch_fx` USDHKD 3路fallback ✅ · `preflight_integrity` 钱守恒硬闸(TCV/PNL/FX/cash) ✅
-- **8 · 回测/自省** — `decision_v2` episode 回测 · `backtest_hstech_regime` · `backtest_us_leverage` · `backtest_combined_regime` · `quant_signal_review` + `t0_setup_review` ✅
-
-**请求节流** — 所有现役东财调用统一走 `_em_http.em_get()`：进程内串行（≥1s + 抖动）、单 `Session` 复用、有限重试后返回 `None`。运行抓取器或再分发内容前，请阅读[第三方数据与服务条款](THIRD_PARTY_DATA.md)。完整逐文件目录见 [`scripts/data/README.md`](scripts/data/README.md)。
+- **前端直接读 scan sidecar。** 宏观 / 情绪 / 新闻 / 影响者 feed 在加载时逐文件抓取,所以一个 GitHub Action 只提交它自己那份不相交的 sidecar —— 写者之间不会冲突,一份扫描在它的 commit 落地那一刻就出现在页面上,无需重建。
+- **dashboard builder 共用一把锁、一份契约。** on-host 重建在一把共享 `flock` 上串行;每个 builder 跑同一个语义-diff 助手,所以只改时钟的重写被还原,而三份生成文件的真实变更被一起 stage。
+- **所有人都走 `safe_push.sh`** —— rebase 重试、真冲突即中止,提交进来的冲突标记在 push hook 处被拒,所以一份坏掉的 `dashboard.json` 永远到不了 Pages。
+- **组合数字在门口就被把关。** `portfolio.json` —— 唯一真源 —— 在一把 advisory `flock` 下、以「读最新再覆盖 + 原子替换」写入。一个 pre-push hook 拦下任何账目对不上资金守恒恒等式(`TCV = Σ value`、`cash = baseline + trades + adjustments`、`cost = 移动加权`)的 push,这些纯派生由 CI 里的 `pytest` 套件钉死。
+- **排程有受检契约。** 运行时真源来自实时 cron 列表;一份被追踪的配置驱动生成的排程表、夏令时同步、payload/看门狗检查与 CI 体检。
 
 </details>
 
 <details>
-<summary><b>📂 仓库结构</b></summary>
+<summary><b>仓库结构</b></summary>
 
 <br>
 
 ```
 clawock/
-├─ index.html  briefs.md                    ← Pages 着陆页
-├─ assets/data/        由 harness + GH Actions 生成,绝不手改
+├─ index.html  briefs.md                    ← Pages 落地页
+├─ assets/data/        由 harness + GH Actions 构建,从不手改
 │   ├─ dashboard.json  risk.json  catalysts.json
-│   ├─ macro.json  sentiment.json  influencer_feed.json  us_news_digest.json  ← scan 子文件,前端直接 fetch
-│   ├─ quant_signals.json  quant_signal_review.json     ← 因子战绩表
-│   ├─ t0_setups.json  t0_setup_review.json             ← 盘中牌面战绩表
-│   └─ guardrail_history.jsonl                          ← 每份简报里风控闸拦下了什么(2026-07-15 起积累)
-├─ portfolio.json                           ← 唯一真值源(原子写入)
+│   ├─ macro.json  sentiment.json  *_news*.json  influencer_feed.json  ← scan sidecar,前端直接抓
+│   └─ *_review.json  guardrail_history.jsonl                          ← 因子 / setup 记分卡 + 风控闸拦下了什么
+├─ portfolio.json                           ← 唯一真源(原子写入)
 ├─ tests/                                    ← decision-v2 + 资金守恒回归闸
-├─ MEMORY.md  DREAMS.md                      ← 铁律 + 每夜「做梦」提升
+├─ MEMORY.md  DREAMS.md                      ← 铁律 + 每夜「做梦」提炼
 ├─ memory/
-│   ├─ {date}-pre-open.md  {date}-plan.json  ← 简报输出 + 结构化计划
-│   ├─ decisions.jsonl                       ← v2 决策/episode 权威账本
+│   ├─ {date}-pre-open.md  {date}-plan.json  ← 简报产出 + 结构化 plan
+│   ├─ decisions.jsonl                       ← 权威决策/episode 账本
+│   ├─ bars/{ticker}.json                    ← 官方不复权 OHLC —— 结算触发的依据
 │   └─ snapshots/{date}.json
 ├─ scripts/
-│   ├─ data/      抓取器 · build_dashboard.py · risk/quant/regime/t0 计算 · safe_push.sh
+│   ├─ data/      fetcher · build_dashboard.py · 风控/量化/regime 计算 · safe_push.sh
 │   └─ harness/   {brief,report,intraday}_{pre,post}flight.py · 看门狗
 └─ skills/{name}/SKILL.md
 ```
@@ -271,21 +169,16 @@ clawock/
 
 ---
 
-## ⚠️ 免责声明
+## 范围、免责与许可
 
-本仓库包含**真实交易持仓**。它是一份个人记录和可移植工作区，不是投资建议、推荐或自动跟单系统。公开战绩未经人工修改，主动判断至今没显出优势；所有数字都可能在你阅读时已经过期。
+本仓库包含**真实交易持仓**。它是一份个人记录和可携带的工作区 —— **不是投资建议、不是推荐、也不是跟单系统**。这套投研台只分析和建议;它不替你下单。公开战绩不经人工修改,主动判断至今没显出优势,而你读到时每个数字都可能已经过时。
 
-## 📄 许可与第三方数据
-
-原创代码采用 [MIT License](LICENSE)。改编的第三方代码继续保留原许可证与署名，见 [NOTICE](NOTICE) 和 [`THIRD_PARTY_LICENSES/`](THIRD_PARTY_LICENSES/)。第三方行情、新闻、社交帖子、申报文件、商标与 API 访问权不随 MIT 再授权；详见[第三方数据与服务](THIRD_PARTY_DATA.md)。本项目不是自动跟单服务。
-
----
+原创代码采用 [MIT 许可证](LICENSE)。改编的第三方代码保留其原有许可与署名,见 [NOTICE](NOTICE) 与 [`THIRD_PARTY_LICENSES/`](THIRD_PARTY_LICENSES/)。第三方行情、新闻、社交内容、文件、商标与 API 访问**不**被 MIT 重新授权 —— 见[第三方数据与服务](THIRD_PARTY_DATA.md)。
 
 <div align="center">
+<br>
 
-### ⭐ 关注这场实时实验
-
-[**🎯 实时仪表盘**](https://kcnyu.github.io/clawock/) &nbsp;·&nbsp; [**📅 每日简报**](https://kcnyu.github.io/clawock/briefs.html) &nbsp;·&nbsp; [**English**](README.md)
+**[实时仪表盘](https://kcnyu.github.io/clawock/)** &nbsp;·&nbsp; **[每日简报](https://kcnyu.github.io/clawock/briefs.html)** &nbsp;·&nbsp; **[English](README.md)**
 
 <sub>由 <a href="https://github.com/KCNyu">Shengyu Li (kcn)</a> 与 Rick 构建维护 · 2026</sub>
 
