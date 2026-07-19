@@ -18,7 +18,7 @@ A real Hong Kong + US stock portfolio, debated by multiple LLMs and graded by Py
   <img src="assets/social-card.png" alt="clawock — an autonomous AI trading desk that grades its own calls" width="820">
 </a>
 
-<sub><i>“Opinions are cheap; the tape keeps score.”</i></sub>
+<sub><i>“The market doesn't care how confident the model was.”</i></sub>
 
 <a href="https://kcnyu.github.io/clawock/"><img src="assets/dashboard.gif" alt="clawock dashboard cycling through its tabs" width="300"></a>
 
