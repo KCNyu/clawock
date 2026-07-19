@@ -404,6 +404,23 @@
     if (jobs.length) schedule(runOne);
   }
 
+  // Re-render ONE tab's DOM in place after a sidecar it depends on arrives, without
+  // bumping the global RENDER_VERSION or touching any other tab. Overview (hero) has
+  // no sidecar dependency, so a background sidecar can never re-render or re-animate
+  // it — its equity chart stays put. If the refreshed tab happens to be the visible
+  // one (a deep link that landed before its data, or a poll on that tab), its charts
+  // repaint; animationDurationUpdate:0 keeps that repaint flicker-free.
+  function refreshTab(t) {
+    if (!DATA || !TAB_RENDERERS[t]) return;
+    TAB_RENDERERS[t].forEach(fn => fn());
+    _tabRenderVersion.set(t, RENDER_VERSION);
+    const panel = document.querySelector(`.panel[data-panel="${t}"]`);
+    if (panel) panel.querySelectorAll(".card.is-pending").forEach(card =>
+      card.classList.remove("is-pending"));
+    if (t === "risk" || t === "market") updateFoldPeeks();
+    if (currentTab() === t) ensureTabCharts(t);
+  }
+
   function render() {
     if (!DATA) return;
     const version = ++RENDER_VERSION;

@@ -24,12 +24,14 @@ def test_reflect_loads_audit_as_sidecar_and_not_dashboard_field():
 def test_reflect_card_keeps_timing_claims_narrow():
     # The per-decision audit wall was retired from the card (kcn); what stays
     # inline is the single-event timing diagnostic. Its honesty framing must
-    # remain narrow, and the full audit trail must still be linked as a sidecar.
+    # remain narrow. The full per-decision `records` trail is no longer published
+    # (dead weight, nobody read it) and its "完整逐条审计" link was removed with it;
+    # `records` stays fully recomputable from decisions via build_audit_sidecar.
     assert "单事件择时诊断" in HTML
     assert "触发价 vs 同日收盘执行好多少" in HTML
     assert "换仓不跨票比较" in HTML
     assert "HKD/USD 分区" in HTML
-    assert "decision_audit.json" in HTML
+    assert "完整逐条审计" not in HTML
     assert "听 AI 多赚" not in HTML
     assert "portfolio alpha" not in HTML.lower()
 

@@ -83,7 +83,7 @@
   const getCSS = (varName) => readThemeCSS()[varName] || "";
   const invalidateThemeCSS = () => { _themeCSS = null; };
   const chartTextColor = () => getCSS("--text-primary") || (isDark() ? "#F2F6FB" : "#101821");
-  const chartLabelColor = () => getCSS("--text-tertiary") || (isDark() ? "#6E7D90" : "#788798");
+  const chartLabelColor = () => getCSS("--text-tertiary") || (isDark() ? "#818EA0" : "#5E6D7D");
   const chartGridColor = () => getCSS("--border-subtle") || (isDark() ? "#1D2937" : "#D8E0E8");
 
   // =========================================================
