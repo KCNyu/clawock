@@ -1,8 +1,6 @@
 <div align="center">
 
-<img src="assets/logo-mark.svg" alt="clawock 标志" width="58">
-
-# clawock
+<h1><img src="assets/logo-mark.svg" alt="clawock 标志" height="52">&nbsp;&nbsp;clawock</h1>
 
 ### 一个会给自己打分、并把亏损一起公开的自主 AI 投研台。
 
@@ -22,7 +20,7 @@
   <img src="assets/social-card.png" alt="clawock — 会给自己打分的自主 AI 投研台" width="820">
 </a>
 
-<br>
+<sub><i>“公开争辩，代码结算。”</i></sub>
 
 <a href="https://kcnyu.github.io/clawock/"><img src="assets/dashboard.gif" alt="clawock 仪表盘循环切换各标签页" width="300"></a>
 
