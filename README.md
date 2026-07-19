@@ -38,11 +38,13 @@ clawock is a public experiment in **disciplined, self-grading** automated invest
 
 An autonomous multi-agent desk analyzes a real brokerage account with separate Hong Kong and US books. It monitors, debates, and proposes trades on its own; it does **not** place orders or move your money. The honesty layer is the whole point: the model proposes, but Python owns the prices, the risk limits, the ledger, the settlement, and the scoreboard.
 
-### What makes it different
+### How it's different from the usual AI-trading repos
 
+Most open-source AI-trading projects are frameworks, backtests, or famous-investor persona demos — you run them yourself, usually on paper or historical data, and several say plainly they're educational, not for real trading. clawock is the opposite bet:
+
+- **Real money, graded in public.** One live Hong Kong + US brokerage account, with a self-graded scorecard that reports the losses too — including that the active calls haven't beaten buy-and-hold. No paper trading, no cherry-picked backtest.
 - **The model proposes; code disposes.** An LLM can argue for a trade but can never grade it — Python owns settlement and scoring, so the desk cannot mark its own homework.
 - **Episodes, not calls.** Repeated opinions collapse into one graded episode, so conviction can't be laundered into a bigger sample.
-- **Disagreement is on the record.** The debate protocol asks for opposing cases and records where they disagreed; unanimous agreement is treated as a flag, not a clean result.
 - **A book that can't drift.** A money-conservation identity is a pre-push gate — an un-reconciled portfolio never reaches the page.
 
 ## How it works
