@@ -1,8 +1,6 @@
 <div align="center">
 
-<img src="assets/logo-mark.svg" alt="clawock logo" width="58">
-
-# clawock
+<h1><img src="assets/logo-mark.svg" alt="clawock logo" height="52">&nbsp;&nbsp;clawock</h1>
 
 ### An autonomous AI trading desk that grades its own calls — and publishes the losses.
 
@@ -22,7 +20,7 @@ Multi-agent LLMs debate a real Hong Kong + US stock portfolio. Python checks the
   <img src="assets/social-card.png" alt="clawock — an autonomous AI trading desk that grades its own calls" width="820">
 </a>
 
-<br>
+<sub><i>“Argue in public, settle in code.”</i></sub>
 
 <a href="https://kcnyu.github.io/clawock/"><img src="assets/dashboard.gif" alt="clawock dashboard cycling through its tabs" width="300"></a>
 
