@@ -1,6 +1,6 @@
 <div align="center">
 
-<h1><img src="assets/logo-mark.svg" alt="clawock 标志" height="52">&nbsp;&nbsp;clawock</h1>
+<h1><img src="assets/logo-lockup.svg" alt="clawock" height="44"></h1>
 
 ### AI 争辩。代码结算。连亏损都摆在明面上。
 
