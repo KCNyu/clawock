@@ -13,13 +13,23 @@ ROOT = Path(__file__).resolve().parents[1]
 EN = (ROOT / "README.md").read_text(encoding="utf-8")
 ZH = (ROOT / "README.zh.md").read_text(encoding="utf-8")
 
-# Pictographic emoji: symbols, pictographs, flags, dingbats, variation selector.
+# Pictographic emoji codepoints (symbols, pictographs, flags, dingbats, variation
+# selector), checked as explicit ranges instead of a regex character class — it reads
+# clearly and avoids flagging the wide unicode ranges as a suspicious regex range.
 # Deliberately excludes the arrow block (←↑→ are legitimate typography used in the
 # schedule and repo-layout blocks) and the CJK range (Chinese prose is fine).
-EMOJI = re.compile(
-    "[\U0001F300-\U0001FAFF\U00002600-\U000027BF\U0001F1E6-\U0001F1FF"
-    "\U00002B00-\U00002BFF\U0000FE0F]"
+_EMOJI_RANGES = (
+    (0x1F300, 0x1FAFF), (0x2600, 0x27BF), (0x1F1E6, 0x1F1FF),
+    (0x2B00, 0x2BFF), (0xFE0F, 0xFE0F),
 )
+
+
+def _first_emoji(text):
+    for ch in text:
+        o = ord(ch)
+        if any(lo <= o <= hi for lo, hi in _EMOJI_RANGES):
+            return ch
+    return None
 
 EN_H2 = [
     "What this is", "How it works", "The information layer", "How it decides",
@@ -90,8 +100,8 @@ def test_emoji_only_in_the_hhi_bucket_row():
         for i, line in enumerate(md.splitlines(), 1):
             if "HHI" in line and "0.15" in line:
                 continue  # the allowed bucket legend
-            m = EMOJI.search(line)
-            assert not m, f"emoji outside the HHI row at {name}:{i}: {m.group(0)!r}"
+            ch = _first_emoji(line)
+            assert ch is None, f"emoji outside the HHI row at {name}:{i}: {ch!r}"
 
 
 def test_zh_uses_benchmark_vendor_not_official_bars():
