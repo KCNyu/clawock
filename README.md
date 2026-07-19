@@ -1,6 +1,6 @@
 <div align="center">
 
-<h1><img src="assets/logo-lockup.svg" alt="clawock" height="44"></h1>
+<h1><img src="assets/logo-lockup.svg" alt="clawock" height="48"></h1>
 
 ### AI argues. Code settles. The losses stay on the page.
 
