@@ -2,11 +2,9 @@
 
 <h1><img src="assets/logo-mark.svg" alt="clawock logo" height="52">&nbsp;&nbsp;clawock</h1>
 
-### An autonomous AI trading desk that grades its own calls — and publishes the losses.
+### AI argues. Code settles. The losses stay on the page.
 
-Multi-agent LLMs debate a real Hong Kong + US stock portfolio. Python checks the risk limits, settles each call against the tape, and publishes the scorecard — recommendations only, and no outcome is hand-picked.
-
-**The result so far: the active calls have yet to beat buy-and-hold. The dashboard shows it plainly.**
+A real Hong Kong + US stock portfolio, debated by multiple LLMs and graded by Python — every call scored in the open, and the active ones still behind buy-and-hold.
 
 [![Dashboard](https://img.shields.io/github/deployments/KCNyu/clawock/github-pages?label=DASHBOARD&style=flat-square&logo=githubpages&logoColor=white&labelColor=252b35&color=4b91c8)](https://kcnyu.github.io/clawock/)
 [![Tests](https://img.shields.io/github/actions/workflow/status/KCNyu/clawock/harness-regression.yml?label=TESTS&style=flat-square&logo=githubactions&logoColor=white&labelColor=252b35&color=738391)](https://github.com/KCNyu/clawock/actions/workflows/harness-regression.yml)
@@ -20,7 +18,7 @@ Multi-agent LLMs debate a real Hong Kong + US stock portfolio. Python checks the
   <img src="assets/social-card.png" alt="clawock — an autonomous AI trading desk that grades its own calls" width="820">
 </a>
 
-<sub><i>“Argue in public, settle in code.”</i></sub>
+<sub><i>“The market doesn't care how confident the model was.”</i></sub>
 
 <a href="https://kcnyu.github.io/clawock/"><img src="assets/dashboard.gif" alt="clawock dashboard cycling through its tabs" width="300"></a>
 
