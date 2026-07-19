@@ -2,9 +2,9 @@
 
 <h1><img src="assets/logo-mark.svg" alt="clawock 标志" height="52">&nbsp;&nbsp;clawock</h1>
 
-### 一个会给自己打分、并把亏损一起公开的自主 AI 投研台。
+### AI 争辩。代码结算。连亏损都摆在明面上。
 
-多个 LLM Agent 辩论一个真实的港股 + 美股组合;Python 逐条对着行情结算并发布战绩。**目前主动判断尚未跑赢买入持有 —— 仪表盘把这点如实摆出来。**
+一个真实的港股 + 美股组合,由多个 LLM 辩论、交给 Python 打分 —— 每条判断都在明面上结算,而主动判断至今仍落后于买入持有。
 
 [![Dashboard](https://img.shields.io/github/deployments/KCNyu/clawock/github-pages?label=DASHBOARD&style=flat-square&logo=githubpages&logoColor=white&labelColor=252b35&color=4b91c8)](https://kcnyu.github.io/clawock/)
 [![Tests](https://img.shields.io/github/actions/workflow/status/KCNyu/clawock/harness-regression.yml?label=TESTS&style=flat-square&logo=githubactions&logoColor=white&labelColor=252b35&color=738391)](https://github.com/KCNyu/clawock/actions/workflows/harness-regression.yml)
