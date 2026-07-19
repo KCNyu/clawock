@@ -83,6 +83,8 @@ Analysis resolves into explicit, gated strategy decisions — and one stock can 
 
 The daily deep brief runs a structured **multi-agent debate**, adapted from [TradingAgents](https://github.com/TauricResearch/TradingAgents) for separate Hong Kong and US books. The novelty isn't more agents — it's that **disagreement is required** and the **resolution is attributed**.
 
+![clawock's multi-agent debate — one evidence pack feeds four analyst lenses; two researchers argue a bull and bear case and must genuinely disagree; three risk voices and a judge name the strategy frame and resolve it into plan.json, which enters the next session's grading loop](assets/debate-flow.svg)
+
 - **Analyst lenses.** Fundamental, technical, sentiment, and sector-rotation agents read the *same* context and merge into one table. Every claim must cite numeric context — no vibes.
 - **Bull vs Bear, forced to clash.** Two researchers build opposing cases, each citing concrete analyst data points. They **must genuinely disagree on at least one position**; unanimous agreement means the debate failed and is thrown out, so the record can't fill with lazy consensus.
 - **Risk voices + a Judge.** Aggressive, Conservative, and Neutral each argue their corner. A Judge weighs them, **names the strategy frame driving each decision**, and resolves the argument into `plan.json` — which enters the next session's grading pipeline.
