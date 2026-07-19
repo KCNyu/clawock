@@ -38,6 +38,13 @@ clawock is a public experiment in **disciplined, self-grading** automated invest
 
 An autonomous multi-agent desk analyzes a real brokerage account with separate Hong Kong and US books. It monitors, debates, and proposes trades on its own; it does **not** place orders or move your money. The point of the project is the honesty layer around it: the model can argue for a trade, but it cannot grade its own homework. Python owns the prices, the risk limits, the ledger, the settlement, and the scoreboard.
 
+### What makes it different
+
+- **The model proposes; code disposes.** An LLM can argue for a trade but can never grade it — Python owns settlement and scoring, so the desk cannot mark its own homework.
+- **Episodes, not calls.** Repeated opinions collapse into one graded episode, so conviction can't be laundered into a bigger sample.
+- **Disagreement is required.** A debate where everyone agrees is thrown out — consensus is treated as a failure mode, not a result.
+- **A book that can't drift.** A money-conservation identity is a pre-push gate; an un-reconciled portfolio never reaches the page.
+
 ## How it works
 
 The desk separates **probabilistic judgment** from **deterministic control**. LLMs read the market and argue the trade; code decides what is allowed, what actually happened, and what the record says.
@@ -62,6 +69,23 @@ An LLM is only as good as what it can see — so the widest part of the system i
 | 8 · Backtest & calibration | 5 | local snapshots + canonical bars |
 
 Engineered to stay standing: every live Eastmoney call routes through **one throttled gateway**, critical paths (quotes, FX) use **multi-source fallback**, and an empty fetch **keeps the prior value** instead of overwriting a good series with a blank. Public sources include Tencent, stooq, yfinance, Frankfurter, SEC EDGAR, Finnhub, Nasdaq, Eastmoney, Polygon, Alpha Vantage, Reddit, and Google News — full per-endpoint catalog with per-host reachability in [`scripts/data/README.md`](scripts/data/README.md).
+
+## How it decides
+
+Analysis resolves into explicit, gated strategy decisions — and one stock can carry several at once.
+
+- **Several strategies, graded separately.** `core_position`, `risk_rebalance`, `intraday_t`, `event_trade`, and `tactical_entry` can coexist on the same name, because a long-term thesis and an intraday trade can legitimately disagree. Each is graded in its own episode.
+- **Attribution-first.** Every decision is tagged by its dominant driver, and that driver's edge is measured *dynamically* from the record — no hit rate is hard-coded into the logic.
+- **Falsify, don't confirm.** In a risk-on tape the default is HOLD. A bullish story doesn't trigger a buy until it clears a disconfirming check and an "is this already priced in?" test on the last few days' move.
+- **Regime over timing.** Leverage isn't timed; a 200-day-trend × volatility dial sets the cap. The backtested lesson: the edge was in *de-leveraging in the wrong regime*, not in calling tops.
+
+## The debate
+
+The daily deep brief runs a structured **multi-agent debate**, adapted from [TradingAgents](https://github.com/TauricResearch/TradingAgents) for separate Hong Kong and US books. The novelty isn't more agents — it's that **disagreement is required** and the **resolution is attributed**.
+
+- **Analyst lenses.** Fundamental, technical, sentiment, and sector-rotation agents read the *same* context and merge into one table. Every claim must cite numeric context — no vibes.
+- **Bull vs Bear, forced to clash.** Two researchers build opposing cases, each citing concrete analyst data points. They **must genuinely disagree on at least one position**; unanimous agreement means the debate failed and is thrown out, so the record can't fill with lazy consensus.
+- **Risk voices + a Judge.** Aggressive, Conservative, and Neutral each argue their corner. A Judge weighs them, **names the strategy frame driving each decision**, and resolves the argument into `plan.json` — which enters the next session's grading pipeline.
 
 ## The public scorecard
 
@@ -91,14 +115,6 @@ The model submits decisions; it can never write or amend its own evaluation. Tha
 - **Shadow portfolio (simulated · not live).** Two cash + inventory books replay the same timeline: one follows every triggered active call, the other buys and holds. Their cumulative difference is reported as *simulated timing alpha*. It keeps USD and HKD separate, exposes how few calls were ever actually executed, and discloses the unadjusted-bar bias. Source: `assets/data/shadow_portfolio.json`. It is a policy simulation, not a claim about what the live account earned.
 
 </details>
-
-## The decision room
-
-The daily deep brief runs a structured **multi-agent debate**, adapted from [TradingAgents](https://github.com/TauricResearch/TradingAgents) for separate Hong Kong and US books.
-
-- **Analyst lenses.** Fundamental, technical, sentiment, and sector-rotation agents read the *same* context and merge into one table. Every claim must cite numeric context.
-- **Bull vs Bear.** Two researchers build opposing cases, each citing concrete analyst data points. They must genuinely disagree on at least one position — unanimous agreement means the debate failed and is thrown out.
-- **Risk voices + a Judge.** Aggressive, Conservative, and Neutral each argue their corner; a Judge weighs them, names the strategy frame driving each decision, and resolves the argument into `plan.json`, which enters the next session's grading pipeline.
 
 ## What the code enforces
 
