@@ -245,7 +245,11 @@
       textStyle: { color: chartTextColor(), fontFamily: getCSS("--font") },
       backgroundColor: "transparent",
       animationDuration: 200,
-      animationDurationUpdate: 200,
+      // Animate the FIRST paint only. Data-only updates (the 60s background poll, a
+      // scoped sidecar refresh, a US/HK toggle) reapply the option on the existing
+      // instance; a non-zero update duration re-runs the intro animation and reads as
+      // a periodic flicker. 0 = the chart just snaps to the new data, no replay.
+      animationDurationUpdate: 0,
       animationEasing: "cubicOut",
       animationEasingUpdate: "cubicOut",
       grid: { left: 50, right: 20, top: 30, bottom: 40, containLabel: true },

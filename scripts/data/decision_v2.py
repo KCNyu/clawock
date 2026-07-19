@@ -967,8 +967,18 @@ def compute_timing_diagnostic(decisions: list[dict], portfolio: dict,
 
 
 def build_audit_sidecar(decisions: list[dict], portfolio: dict,
-                        as_of: str | None = None) -> dict:
-    """Immutable-authorship audit view keyed by decision_id, with all states."""
+                        as_of: str | None = None,
+                        include_records: bool = True) -> dict:
+    """Immutable-authorship audit view keyed by decision_id, with all states.
+
+    ``records`` is the full per-decision audit trail (~700KB). It is a pure
+    derivation of ``decisions`` — recomputed on every build — so it is fully
+    reversible and does not need to be shipped. The published dashboard sidecar
+    passes ``include_records=False``: the dashboard only reads
+    ``timing_diagnostic``, so sending the whole trail to every visitor was dead
+    weight. Callers that actually want the trail (tests, ad-hoc recompute) keep
+    the default and get it back with no recomputation cost.
+    """
     matched = match_real_executions(decisions, portfolio)
     records = []
     for decision in sorted(
@@ -1032,17 +1042,19 @@ def build_audit_sidecar(decisions: list[dict], portfolio: dict,
                 "horizon": ev.get("mark_horizon"),
             },
         })
-    return {
+    out = {
         "schema_version": AUDIT_SCHEMA_VERSION,
         "as_of": as_of or datetime.now(HKT).isoformat(timespec="seconds"),
         "primary_key": "decision_id",
         "episode_role": "grouping_only",
         "price_source": "memory/bars canonical raw OHLC only",
-        "records": records,
         "state_counts": dict(Counter(row["state"] for row in records)),
         "timing_diagnostic": compute_timing_diagnostic(
             decisions, portfolio, matched=matched),
     }
+    if include_records:
+        out["records"] = records
+    return out
 
 
 def _episode_settled(rows: list[dict], benefit_key: str) -> list[dict]:

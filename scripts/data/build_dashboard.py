@@ -1870,10 +1870,15 @@ def main():
     audit_file = Path(os.environ.get('DECISION_AUDIT_OUT')
                       or (out_file.parent / AUDIT_FILE.name))
     from safe_io import safe_write_text
+    # The dashboard only reads timing_diagnostic from this sidecar; the full
+    # per-decision `records` trail (~700KB, recomputable from decisions) is not
+    # rendered or linked anywhere, so it is dropped from the published file to keep
+    # the payload tiny. Flip include_records back on to republish the full trail.
     safe_write_text(
         str(audit_file),
         json.dumps(
-            decision_v2.build_audit_sidecar(_decisions, portfolio),
+            decision_v2.build_audit_sidecar(
+                _decisions, portfolio, include_records=False),
             ensure_ascii=False, separators=(',', ':')))
     # Shadow-portfolio policy simulation (模拟·非实盘): fetched sidecar, NOT embedded
     # in dashboard.json. Two cash+inventory ledgers (follow-all-triggered vs
