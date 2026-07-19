@@ -102,26 +102,6 @@
 - **单一来源：`portfolio.json`**，不在此维护副本
 - ticker 列表：`memory/current-portfolio-summary.md`（提高检索命中）
 
-## Promoted From Short-Term Memory (2026-07-14)
-
-<!-- openclaw-memory-promotion:memory:memory/2026-07-09-pre-open.md:32:35 -->
-- Book 总览: | **HK leg 合计** | **HK$87,570** | | | US 持仓 | $2,971 | 6 只活跃仓 | | US 现金 | $504 | 几乎耗尽 | | **US leg 合计** | **$3,475** | | [score=0.843 recalls=0 avg=0.620 source=memory/2026-07-09-pre-open.md:32-35]
-
-## Promoted From Short-Term Memory (2026-07-18)
-
-<!-- openclaw-memory-promotion:memory:memory/2026-07-13-pre-open.md:11:14 -->
-- Header: **FX** USDHKD = 7.84 (Frankfurter) **Regime** HK: 🟡 AMBER_LEV（HSTECH -12.1% vs MA200，趋势OFF，vol 33%<50%，lev cap ×0.5）| US: 🔴 RED（SPCH/SPCX 5DMA 以下 -3.9%，lev 降杠杆） **Book** USD ~$13,601 | HK leg 80,367 HKD (持仓 58,170 + 现金 22,197) | US leg ~$3,350 USD (持仓 3,016 + 现金 335) **HHI** HK: 0.362 ⚠️ 集中风险 (Top2 83.1% = 00100 46.2% + 07226 37.0%) | US: 0.278 ⚠️ (Top2 62.5% = SPCH 46.9% + MSFU 15.6%) [score=0.803 recalls=0 avg=0.620 source=memory/2026-07-13-pre-open.md:11-14]
-<!-- openclaw-memory-promotion:memory:memory/2026-07-13-pre-open.md:15:16 -->
-- Header: **Breaches** ⛔ 8 仓位硬闸 + 🛑 5 杠杆止损触发（今日全部必须落地） **Today** HK OPEN · US CLOSED（周末休市，US动作押今晚 21:30 HKT） [score=0.803 recalls=0 avg=0.620 source=memory/2026-07-13-pre-open.md:15-16]
-<!-- openclaw-memory-promotion:memory:memory/2026-07-13-pre-open.md:2:4 -->
-- layout: default title: 盘前深度简报 · 2026-07-13 description: "clawock 盘前深度简报 2026-07-13：港股 + 美股真实持仓的多空辩论、量化因子、风控硬闸与 AI 自评战绩（诚实公开，承认主动操作跑输躺平）。" [score=0.803 recalls=0 avg=0.620 source=memory/2026-07-13-pre-open.md:2-4]
-<!-- openclaw-memory-promotion:memory:memory/2026-07-13-pre-open.md:22:25 -->
-- Retrospective（对照 2026-07-10 plan）: | Ticker | 计划 | 触发? | 是否执行 | 模拟P&L | |--------|------|-------|---------|---------| | 07226 | cut → 换 03033 | ✅ | ❌ 未执行 | +347 HKD（若3.524开执行） | | PLTU | cut → 换 PLTR | ✅ | ❌ 未执行 | 0 USD | [score=0.803 recalls=0 avg=0.620 source=memory/2026-07-13-pre-open.md:22-25]
-<!-- openclaw-memory-promotion:memory:memory/2026-07-13-pre-open.md:26:28 -->
-- Retrospective（对照 2026-07-10 plan）: | RKLX | cut → 换 RKLB | ✅ | ❌ 未执行 | 0 USD | | MSFU | cut → 换 MSFT | ✅ | ❌ 未执行 | 0 USD | | SPCH | cut → 换 SPCX | ✅ | ❌ 未执行 | 0 USD | [score=0.803 recalls=0 avg=0.620 source=memory/2026-07-13-pre-open.md:26-28]
-<!-- openclaw-memory-promotion:memory:memory/2026-07-13-pre-open.md:30:30 -->
-- Retrospective（对照 2026-07-10 plan）: **5 plans fired, 0 executed。连续第二日未落地。** 高置信度历史胜率 75%，但所有触发动作均为纪律规则——今日必须无条件执行，不再是选择。 [score=0.803 recalls=0 avg=0.620 source=memory/2026-07-13-pre-open.md:30-30]
-
 ## Promoted From Short-Term Memory (2026-07-19)
 
 <!-- openclaw-memory-promotion:memory:memory/2026-07-14-pre-open.md:17:17 -->
@@ -136,3 +116,18 @@
 - Header: | **组合总计（USD base）** | **~12,773 USD** | | **组合总计（HKD base）** | **~100,131 HKD** | | HK 未实现P&L | -47,897 HKD（-47.6%）| | US 未实现P&L | -1,453 USD（-32.8%）| [score=0.815 recalls=0 avg=0.620 source=memory/2026-07-14-pre-open.md:25-28]
 <!-- openclaw-memory-promotion:memory:memory/2026-07-14-pre-open.md:9:11 -->
 - 盘前深度简报 | 2026-07-14 周二: **生成时间**: 08:00 HKT | **USDHKD**: 7.8386 (Frankfurter) **HK开盘**: 09:30 HKT（距今约90分钟）| **US下次开盘**: 21:30 HKT **模型自校准**: Brier=0.259(marginal), LLM vs Hold +7pp alpha, 高置信过度自信 +18pp [score=0.815 recalls=0 avg=0.620 source=memory/2026-07-14-pre-open.md:9-11]
+
+## Promoted From Short-Term Memory (2026-07-20)
+
+<!-- openclaw-memory-promotion:memory:memory/2026-07-15-pre-open.md:14:17 -->
+- Retrospective — 昨日 plan 兑现度（2026-07-14）: | Action | Plan | 实际/触发 | 模拟 ± | 评 | |---|---|---|---:|---| | 07226 risk_rebalance cut | 开盘卖6200股 | 3.382触发，收3.426 | -272.80 HKD vs hold | ✗ 当日择时差；长期硬闸仍成立 | | 03033 risk_rebalance add | 开盘承接1x | 4.576触发，收4.600 | 无股数不可结算 | ⊘ | [score=0.803 recalls=0 avg=0.620 source=memory/2026-07-15-pre-open.md:14-17]
+<!-- openclaw-memory-promotion:memory:memory/2026-07-15-pre-open.md:18:21 -->
+- Retrospective — 昨日 plan 兑现度（2026-07-14）: | PLTU risk_rebalance cut | ≥29卖14股 | 触发后收32.6383 | -50.94 USD | ✗ 反弹触发过早 | | RKLX risk_rebalance cut | 开盘卖10股 | 26.4218触发，收25.79 | +6.32 USD | ✓ | | SPCH risk_rebalance cut | 开盘卖140股 | 10.29触发，收9.51 | +109.20 USD | ✓ | | 00100 risk trim | ≥265卖15股 | 高235，未触发 | — | ✗ trigger过远 | [score=0.803 recalls=0 avg=0.620 source=memory/2026-07-15-pre-open.md:18-21]
+<!-- openclaw-memory-promotion:memory:memory/2026-07-15-pre-open.md:2:4 -->
+- layout: default title: 盘前深度简报 · 2026-07-15 description: "clawock 盘前深度简报 2026-07-15：risk-on表面下执行2x换1x，港股超卖修复不等于趋势反转。" [score=0.803 recalls=0 avg=0.620 source=memory/2026-07-15-pre-open.md:2-4]
+<!-- openclaw-memory-promotion:memory:memory/2026-07-15-pre-open.md:22:25 -->
+- Retrospective — 昨日 plan 兑现度（2026-07-14）: | 00100 core hold | ≥265再评估 | 高235，未触发 | — | ⊘ | | 02208 tactical add | ≤9.50买200股 | 低9.03，触发后收9.53 | +6.00 HKD | ✓但edge太小 | | MSFU / CRCL / SKHY event | 等事件 | event不可结构化验证 | — | ⊘ | | SPCX hold | ≥148再评估 | 高142.86，未触发 | — | ✗ | [score=0.803 recalls=0 avg=0.620 source=memory/2026-07-15-pre-open.md:22-25]
+<!-- openclaw-memory-promotion:memory:memory/2026-07-15-pre-open.md:26:26 -->
+- Retrospective — 昨日 plan 兑现度（2026-07-14）: | 03032 hold | event条件 | 不可验证 | — | ⊘ | [score=0.803 recalls=0 avg=0.620 source=memory/2026-07-15-pre-open.md:26-26]
+<!-- openclaw-memory-promotion:memory:memory/2026-07-15-pre-open.md:9:10 -->
+- 盘前深度简报 | 2026-07-15 周三: **生成时间**：08:00 HKT（context 08:05） | **USDHKD**：7.8375（Frankfurter，2026-07-15 00:03:52 UTC） **一句话**：大盘是 `risk_on`，持仓内部却是趋势OFF+杠杆超限；今天不是追CPI利好，而是借强把 07226/PLTU/RKLX/SPCH/MSFU 的 2x 换成 1x。 [score=0.803 recalls=0 avg=0.620 source=memory/2026-07-15-pre-open.md:9-10]
