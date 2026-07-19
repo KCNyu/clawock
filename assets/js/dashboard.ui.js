@@ -240,20 +240,45 @@
       // Parallel + failure-tolerant: a missing/parse-failed sidecar renders as
       // absent (same `null` contract the old build_dashboard _embed used). Each is
       // a separate conditional GET → 304 headers-only when unchanged.
-      const SIDECARS = ["macro", "sentiment", "influencer_feed", "us_news_digest", "em_news", "decision_audit", "shadow_portfolio"];
+      //
+      // Scoped to the tab that consumes each one (map below). The big one,
+      // decision_audit.json (~700KB), only feeds Reflect; awaiting all seven before
+      // the first render used to block Overview — which reads none of them — on that
+      // download+parse. Now we await only the sidecars the LANDING tab needs (so a
+      // deep-linked #market/#reflect/#drill still shows a COMPLETE tab, never a
+      // partial shell), render, then load the rest in the background and refresh only
+      // their own tab. Overview has no sidecar dependency, so a background arrival
+      // never re-renders or re-animates it.
+      const SIDECAR_TAB = {
+        macro: "market", sentiment: "market", influencer_feed: "market",
+        us_news_digest: "market", em_news: "market",
+        decision_audit: "reflect", shadow_portfolio: "drill",
+      };
       const _cache = triggeredByUser ? "no-store" : "no-cache";
       const _bust = triggeredByUser ? "?t=" + Date.now() : "";
-      await Promise.all(SIDECARS.map(async (k) => {
+      const fetchSidecar = async (k) => {
         try {
           const r = await fetch("assets/data/" + k + ".json" + _bust, { cache: _cache });
           json[k] = r.ok ? await r.json() : null;
         } catch (_e) { json[k] = null; }
-      }));
+      };
+      const landing = currentTab();
+      const critical = [], deferred = [];
+      for (const k of Object.keys(SIDECAR_TAB)) {
+        (SIDECAR_TAB[k] === landing ? critical : deferred).push(k);
+      }
+      await Promise.all(critical.map(fetchSidecar));
       const newAt = json.generated_at;
       const hasNew = newAt && newAt !== LAST_LOADED_AT;
       DATA = json;
       render();
       _updateAgeLabel();
+      if (deferred.length) {
+        Promise.all(deferred.map(fetchSidecar)).then(() => {
+          if (DATA !== json) return;   // a newer load superseded this payload
+          new Set(deferred.map((k) => SIDECAR_TAB[k])).forEach((t) => refreshTab(t));
+        });
+      }
       if (btn) {
         btn.classList.remove("is-loading");
         if (triggeredByUser) {
