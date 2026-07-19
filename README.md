@@ -46,6 +46,23 @@ The desk separates **probabilistic judgment** from **deterministic control**. LL
 
 Every trading day the system pulls fresh prices, FX, volatility, earnings and macro context plus news and social sentiment; hands that normalized context to a multi-agent debate; applies deterministic risk, schema, and ledger gates in Python; delivers a brief to WeChat; and updates the public dashboard.
 
+## The information layer
+
+An LLM is only as good as what it can see — so the widest part of the system is data collection. Every brief is assembled from **26 endpoints across 8 layers**, with **bilingual Hong Kong + US coverage**: live quotes, SEC + Eastmoney filings, capital flow, earnings calendars, macro (VIX / DXY / 10Y), Reddit and news sentiment, and market-moving social feeds. Collection stays broad; the decision layer stays constrained.
+
+| Layer | Endpoints | Primary sources |
+|---|:---:|---|
+| 1 · Market | 5 | Tencent · Yahoo · Eastmoney |
+| 2 · Fundamentals & filings | 2 | SEC EDGAR · Eastmoney datacenter |
+| 3 · Capital flow | 1 | Eastmoney push2his |
+| 4 · News (bilingual) | 3 | Eastmoney · Finnhub · Google News |
+| 5 · Macro & sentiment | 4 | Yahoo · Reddit · social feeds |
+| 6 · Quant & risk | 4 | deterministic math over price history |
+| 7 · FX & integrity | 2 | Frankfurter · local invariants |
+| 8 · Backtest & calibration | 5 | local snapshots + canonical bars |
+
+Engineered to stay standing: every live Eastmoney call routes through **one throttled gateway**, critical paths (quotes, FX) use **multi-source fallback**, and an empty fetch **keeps the prior value** instead of overwriting a good series with a blank. Public sources include Tencent, stooq, yfinance, Frankfurter, SEC EDGAR, Finnhub, Nasdaq, Eastmoney, Polygon, Alpha Vantage, Reddit, and Google News — full per-endpoint catalog with per-host reachability in [`scripts/data/README.md`](scripts/data/README.md).
+
 ## The public scorecard
 
 Every call is settled mechanically and published — wins, losses, and the cases that can't be graded. Nothing is hand-tuned after the fact.
