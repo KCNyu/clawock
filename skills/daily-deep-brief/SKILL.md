@@ -121,7 +121,7 @@ context.json 关键字段：
 每日 Tier 1 后必做一段板块横向扫描，目标回答："你持仓在板块里**领涨/落后/中位**？归因是什么？"
 
 - 板块来源是动态的：读 `memory/peer-map.json`，**每个 active ticker 的 `theme` 字段就是它的板块名**（如 "HK AI 大模型" / "HK 科技指数 2x leveraged (HSTECH 标的)" / "商业航天"）。持仓变了，板块自动跟变 — 不要在 SKILL.md / 报告里写死任何特定 ticker
-- 对每个去重后的 theme 跑一次 **tavily-search**（或等价 web search 工具）：
+- 对每个去重后的 theme 跑一次 web search — **优先用你的内置 web search 工具**；`tavily-search` 仅在 `TAVILY_API_KEY` 已配置时才用（当前未配，脚本会返回 unavailable，别把它当报错）：
   - HK 板块 → 搜 "今日 HK {theme} 涨幅榜 / 板块异动"
   - US 板块 → 搜对应 sector ETF（如 SOXX/QQQ/ARK） + 今日成分涨跌
 - 每个板块输出：Top 3-5 涨幅 + 你持仓票在榜单中的位置（领涨/落后/中位）
