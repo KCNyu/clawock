@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-17T14:24:51.886888",
+  "generated_at": "2026-07-20T15:02:16.272642",
   "lookback_hours": 48,
   "tickers": [
     "CRCL",
@@ -10,14 +10,14 @@
     "MSFU",
     "SKHY"
   ],
-  "digest_markdown": "### Top 移动信号\n- **SPCX**: Starship 第13次测试因发动机点火故障自动中止,股价连跌5日,盘前跌4%开于$126(低于6月IPO价) → 拖累杠杆ETF SPCH 及太空板块情绪,kcn 短期减仓 SPCH 敞口。\n- **CRCL**: Q2 储备收入预计环比稳定,但 USDC 流通量从 Q1 末$77B 降至~$73B,收益率捕获承压;ARK 逆势加仓表明长线看好基础设施 → 财报前中性偏多,关注 USDC 流通量回升信号。\n- **SKHY**: HBM 市占 ~58% 居首,AI 需求仍处供给受限状态 → 芯片板块普跌中 SKHY 具结构性 alpha,基本面催化优于同业。\n- **代币化主题**: DTCC 完成首次链上股票/国债实盘交易(JPMorgan、BlackRock、近40家机构参与),BTC 因软 CPI 走强 → 利好 CRCL 生态叙事,但短期不直接驱动业绩。\n- **芯片板块轮动**: 多数芯片股近月下跌,仅 NVDA 例外 → SKHY 需警惕板块 beta 拖累,但 HBM 供需逻辑独立。\n\n### Per-ticker 简报\n- **CRCL**: Q2 财报前瞻 — 收入稳定但 USDC 流通萎缩 + Open USD 竞争施压,ARK 增持为长线信心票。\n- **SPCX**: Starship 测试连续中止 + 5 日连跌 — 执行风险显化,杠杆产品 SPCH 波动放大。\n- **SKHY**: HBM 龙头 + AI 供给紧张 — 基本面催化清晰,适合逢板块回调加仓。\n\n### 风险 watch\n- **SPCX/SPCH**: Starship 反复失败 → 短期下行压力,杠杆 ETF 减仓优先。\n- **CRCL**: USDC 流通量环比下滑 + 稳定币竞争(Open USD) → 收益率模型承压风险。\n- **SKHY**: 芯片板块系统性回调风险,但 HBM 供需独立性强,核心敞口不受影响。\n- **PLTU/RKLX/MSFU**: 无 ticker-specific catalyst,纯 ETF 噪声或宏观杂讯,忽略。",
+  "digest_markdown": "## KCN US Holdings — 48h Digest\n\n### Top 移动信号 (跨 ticker)\n- **SPCX / SPCH**: SpaceX 据 WSJ 报道与五角大楼谈判出售 AI 算力,叠加 Starship Flight 13 因发动机故障延期至周四。**Implication**: 国防 AI 合约是 SPCX/SPCH 的潜在重估催化剂,短期看 Starship 延期抑制情绪,但中长期 DoD 收入流或打开估值上限。\n- **SKHY**: Seeking Alpha 维持 Strong Buy,但警示 ADR 溢价与周期顶;同时 Micron 公开宣示瞄准 ~22% HBM 份额,正面挤压 SK Hynix。**Implication**: HBM 龙头地位未动摇但护城河在收窄,持有需密切跟踪 NVIDIA HBM4 配额分配。\n- **CRCL**: Stripe 据报接洽 PayPal,稳定币格局重塑;Trump 入局 CLARITY Act 立法战,USDC 仍握 20%+ 市占且合规护城河突出。**Implication**: 监管明朗化是 CRCL 的关键重估事件,Stripe 整合可能改变分发渠道话语权。\n- **PLTU**: Palantir Q4 财报超预期,正向催化 PLTU 杠杆敞口。**Implication**: 财报后已有 ETF 资金追逐,杠杆 ETF 短期波动放大,需注意回调风险。\n- **SPCX**: AST SpaceMobile(关联标的)增发 $1B 但股价较高点回撤 50%。**Implication**: SPCX 间接受 ASTS 稀释叙事拖累,资金面负面信号强于基本面。\n\n### Per-ticker 简报\n- **CRCL**: 监管+竞争对手双重叙事,定价权向分发端转移 — 中性偏多。\n- **PLTU**: Q4 beat 驱动 ETF 溢价,杠杆产品情绪过热的回调风险上升 — 中性。\n- **RKLX**: 全部为杠杆 ETF 机制/资金流噪音,无 RKLB 业务面催化 — 持有观望。\n- **SPCH / SPCX**: DoD AI 合约 + 新一批 SpaceX 杠杆 ETF 上市,事件驱动窗口期 — 多头叙事强化。\n- **MSFU**: 纯 ETF 营销稿,无 MSFT 业务面新催化 — 噪声,忽略。\n- **SKHY**: HBM 周期仍强但 ADR 溢价 + AI CapEx 担忧 + Micron 蚕食三重压力 — 多单需要管理。\n\n### 风险 Watch\n- **AI 泡沫论**: Seeking Alpha 警示 Big Tech AI CapEx 已破 $700B,半导体板块本周剧烈反转,SKHY 直接暴露。\n- **美股空头创纪录**: S&P 自 3 月底涨 18% 但空头仓位同创新高,杠杆 ETF(PLTU/RKLX/MSFU)波动率风险陡升。\n- **ASTS 稀释**: $1B 增发对应 50% 回撤,SPCX 间接折价风险。\n- **Starship 延期**: 发动机故障可能推迟 Starlink 节奏,SPCX/SPCH 短期情绪负面。\n- **监管不确定**: CRCL 受 CLARITY Act 立法节奏直接影响,事件型波动。",
   "raw_news_counts": {
-    "CRCL": 5,
+    "CRCL": 2,
     "PLTU": 5,
     "RKLX": 5,
     "SPCX": 5,
     "SPCH": 5,
-    "MSFU": 1,
+    "MSFU": 5,
     "SKHY": 5
   },
   "news_source_per_ticker": {
@@ -26,7 +26,7 @@
     "RKLX": "gnews-rss",
     "SPCX": "finnhub",
     "SPCH": "gnews-rss",
-    "MSFU": "finnhub",
+    "MSFU": "gnews-rss",
     "SKHY": "finnhub"
   }
 }
