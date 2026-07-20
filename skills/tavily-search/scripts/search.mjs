@@ -41,8 +41,15 @@ for (let i = 1; i < args.length; i++) {
 
 const apiKey = (process.env.TAVILY_API_KEY ?? "").trim();
 if (!apiKey) {
-  console.error("Missing TAVILY_API_KEY");
-  process.exit(1);
+  // Graceful degradation: Tavily is not configured (skill disabled / no key).
+  // Exit 0 with a notice so a faithful call does NOT mark the whole cron run as
+  // "Bash failed" / status=error. Callers should fall back to built-in web search.
+  console.log(
+    "## Web search unavailable\n\n" +
+      "Tavily is not configured (TAVILY_API_KEY unset). " +
+      "Skip this source and use your built-in web search instead.",
+  );
+  process.exit(0);
 }
 
 const body = {
