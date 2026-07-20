@@ -1,0 +1,2434 @@
+{
+  "owner": "kcn",
+  "last_updated": "2026/07/21 00:04 HKT",
+  "portfolios": {
+    "us_stocks": {
+      "currency": "USD",
+      "true_principal": 2471.12,
+      "true_principal_note": "自掏现金真实本金(USD)= 全部交易流水按时间轴走一遍的峰值净投入 @2026-05-06。初始 QQQ 1@622.27 + NVDA 6@187.77 ≈ $1749,卖出回笼再投不重复计,外加后续补入。回报率用它当分母(≈72%),而非 cost-realized(=1255 会把分母做小、虚高到142%)。来源:2026-05-29 与 kcn 对账确认。改持仓/补流水后须按现金流账本重算此值。",
+      "holdings": [
+        {
+          "ticker": "NVDA",
+          "shares": 0,
+          "cost_basis": 187.77,
+          "current_price": 213.0,
+          "today_change_pct": 0,
+          "pnl_percent": 0,
+          "data_source": "Eastmoney push2 realtime quote May 7, 2026 09:30 ET open",
+          "day_high": 208.43,
+          "day_low": 206.5,
+          "day_open": 208.315,
+          "prev_close": 207.83,
+          "current_value": 0.0,
+          "pnl_abs": 0.0,
+          "today_change": -0.0,
+          "trades": [
+            {
+              "date": "2026-01-17",
+              "action": "buy",
+              "shares": 6,
+              "price": 187.77,
+              "note": "用户补录原始买入流水(截图 1/17 @187.77)"
+            },
+            {
+              "date": "2026-02-26",
+              "action": "sell",
+              "shares": 3,
+              "price": 197.5,
+              "realized_pnl": 29.19,
+              "note": "用户补录漏记卖出(截图 2/26 @197.5)"
+            },
+            {
+              "date": "2026-04-15",
+              "action": "sell",
+              "shares": 3,
+              "price": 199.41,
+              "realized_pnl": 34.92,
+              "note": "按用户截图记录清仓"
+            }
+          ],
+          "name": "英伟达",
+          "volume": 13413078.0
+        },
+        {
+          "ticker": "RKLB",
+          "shares": 0,
+          "cost_basis": 71,
+          "current_price": 100.1708,
+          "today_change_pct": 0,
+          "pnl_percent": 0.0,
+          "data_source": "Nasdaq API (stocks) Jun 12, 2026 12:01 ET",
+          "day_high": 118.34,
+          "day_low": 99.87,
+          "day_open": 118.34,
+          "prev_close": 114.78,
+          "current_value": 0.0,
+          "pnl_abs": 0.0,
+          "today_change": 0.0,
+          "name": "Rocket Lab Corp",
+          "volume": 5773156,
+          "trades": [
+            {
+              "date": "2026-06-13",
+              "action": "sell",
+              "shares": 5,
+              "price": 100.17,
+              "realized_pnl": 145.85,
+              "note": "清仓,RKLB 被 SpaceX IPO 吸血,止盈离场"
+            }
+          ],
+          "prev_close_date": "2026-06-11",
+          "day_session_date": "2026-06-12"
+        },
+        {
+          "ticker": "CRCL",
+          "shares": 2,
+          "cost_basis": 87,
+          "current_price": 65.07,
+          "today_change_pct": 7.6249,
+          "pnl_percent": -25.2069,
+          "data_source": "Nasdaq API (stocks) Jul 20, 2026 12:04 ET",
+          "note": "2026-02-26/03-02 共买入14股(@88.35+@86.45,均价≈87);2026-03-04 卖4股@103.21(+64.84);03-11 卖5股@120(+165);03-23 卖3股@127(+120);剩余2股长期持有(看好稳定币+agent支付赛道)",
+          "trades": [
+            {
+              "date": "2026-02-26",
+              "action": "buy",
+              "shares": 4,
+              "price": 88.35,
+              "note": "用户补录原始买入流水(截图 2/26;股数按均价≈87 反推拆分)"
+            },
+            {
+              "date": "2026-03-02",
+              "action": "buy",
+              "shares": 10,
+              "price": 86.45,
+              "note": "用户补录原始买入流水(截图 3/2;股数按均价≈87 反推拆分)"
+            },
+            {
+              "date": "2026-03-04",
+              "action": "sell",
+              "shares": 4,
+              "price": 103.21,
+              "realized_pnl": 64.84,
+              "note": "用户补录漏记卖出(截图 3/4 @103.21)"
+            },
+            {
+              "date": "2026-03-11",
+              "action": "sell",
+              "shares": 5,
+              "price": 120,
+              "realized_pnl": 165,
+              "note": "按用户记录卖出"
+            },
+            {
+              "date": "2026-03-23",
+              "action": "sell",
+              "shares": 3,
+              "price": 127,
+              "realized_pnl": 120,
+              "note": "按用户记录卖出"
+            }
+          ],
+          "day_high": 65.255,
+          "day_low": 60.7,
+          "day_open": 60.7,
+          "prev_close": 60.46,
+          "current_value": 130.14,
+          "pnl_abs": -43.86,
+          "today_change": 9.22,
+          "name": "Circle Internet Group Inc-A",
+          "volume": 8165939,
+          "prev_close_date": "2026-07-17",
+          "day_session_date": "2026-07-20"
+        },
+        {
+          "ticker": "OKLO",
+          "shares": 0,
+          "cost_basis": 62.83,
+          "current_price": 72.39,
+          "today_change_pct": 0,
+          "pnl_percent": 0,
+          "data_source": "Eastmoney push2 realtime quote May 7, 2026 09:30 ET open",
+          "day_high": 79.5,
+          "day_low": 77.22,
+          "day_open": 78.0,
+          "prev_close": 79.62,
+          "current_value": 0.0,
+          "pnl_abs": 0.0,
+          "today_change": -0.0,
+          "name": "Oklo Inc-A",
+          "trades": [
+            {
+              "date": "2026-04-22",
+              "action": "sell",
+              "shares": 2,
+              "price": 68.0,
+              "realized_pnl": 10.34,
+              "note": "按用户今晚成交记录清仓"
+            }
+          ],
+          "volume": 1242827.0
+        },
+        {
+          "ticker": "QQQ",
+          "shares": 0,
+          "cost_basis": 622.27,
+          "current_price": 694.41,
+          "today_change_pct": 0,
+          "pnl_percent": 0,
+          "data_source": "Eastmoney push2 realtime quote May 7, 2026 09:30 ET open",
+          "day_high": 697.03,
+          "day_low": 695.92,
+          "day_open": 696.59,
+          "prev_close": 695.77,
+          "current_value": 0.0,
+          "pnl_abs": 0.0,
+          "today_change": 0.0,
+          "trades": [
+            {
+              "date": "2025-12-24",
+              "action": "buy",
+              "shares": 1,
+              "price": 622.27,
+              "note": "用户补录原始买入流水(截图 12/24 @622.27)"
+            },
+            {
+              "date": "2026-04-15",
+              "action": "sell",
+              "shares": 1,
+              "price": 631.3,
+              "realized_pnl": 9.03,
+              "note": "按用户截图记录清仓"
+            }
+          ],
+          "name": "纳斯达克100ETF-Invesco",
+          "volume": 2458212.0
+        },
+        {
+          "ticker": "TCOM",
+          "shares": 0,
+          "cost_basis": 52.74,
+          "current_price": 53.328,
+          "today_change_pct": 0,
+          "pnl_percent": 0,
+          "data_source": "Eastmoney push2 realtime quote May 7, 2026 09:30 ET open",
+          "note": "2026-03-16 买入5股 @$52.74,中线看旅游复苏逻辑",
+          "day_high": 54.48,
+          "day_low": 54.12,
+          "day_open": 54.34,
+          "prev_close": 54.45,
+          "current_value": 0.0,
+          "pnl_abs": 0.0,
+          "today_change": 0.0,
+          "name": "携程",
+          "trades": [
+            {
+              "date": "2026-04-22",
+              "action": "sell",
+              "shares": 5,
+              "price": 53.86,
+              "realized_pnl": 5.6,
+              "note": "按用户今晚成交记录清仓"
+            }
+          ],
+          "volume": 170074.0
+        },
+        {
+          "ticker": "TQQQ",
+          "shares": 0,
+          "cost_basis": 45.73,
+          "current_price": 71.17,
+          "today_change_pct": 0,
+          "pnl_percent": 0,
+          "data_source": "Eastmoney push2 realtime quote May 7, 2026 09:30 ET open",
+          "note": "2026-03-23 买入8股 @$45.73,纳指反弹趋势押注",
+          "day_high": 72.0,
+          "day_low": 71.66,
+          "day_open": 71.865,
+          "prev_close": 71.57,
+          "current_value": 0.0,
+          "pnl_abs": 0.0,
+          "today_change": 0.0,
+          "trades": [
+            {
+              "date": "2026-04-16",
+              "action": "sell",
+              "shares": 8,
+              "price": 54.45,
+              "realized_pnl": 69.76,
+              "note": "按用户记录清仓"
+            }
+          ],
+          "name": "三倍做多纳斯达克100ETF-ProShare",
+          "volume": 6698866.0
+        },
+        {
+          "ticker": "HOOD",
+          "shares": 0,
+          "cost_basis": 73.5,
+          "current_price": 75.4,
+          "today_change_pct": 0,
+          "pnl_percent": 0,
+          "data_source": "Nasdaq API (stocks) May 20, 2026 11:57 ET",
+          "note": "2026-03-26 买入5股 @$73.5,布林下轨反弹+加密情绪+散户平台逻辑",
+          "day_high": 75.4,
+          "day_low": 75.4,
+          "day_open": 75.4,
+          "prev_close": 74.16,
+          "current_value": 0.0,
+          "pnl_abs": 0.0,
+          "today_change": 0.0,
+          "name": "Robinhood Markets Inc-A",
+          "trades": [
+            {
+              "date": "2026-04-22",
+              "action": "sell",
+              "shares": 5,
+              "price": 88.36,
+              "realized_pnl": 74.3,
+              "note": "按用户今晚成交记录清仓"
+            }
+          ],
+          "volume": 1056321.0,
+          "prev_close_date": "2026-05-19"
+        },
+        {
+          "ticker": "PLTU",
+          "shares": 14,
+          "cost_basis": 40.957142857142856,
+          "current_price": 32.82,
+          "today_change_pct": 2.8518,
+          "pnl_percent": -19.8675,
+          "data_source": "Nasdaq API (etf) Jul 20, 2026 12:04 ET",
+          "day_high": 32.82,
+          "day_low": 31.67,
+          "day_open": 31.67,
+          "prev_close": 31.91,
+          "current_value": 459.48,
+          "pnl_abs": -113.92,
+          "today_change": 12.74,
+          "note": "2026-04-16 按用户截图记录买入,做 PLTR 2x 杠杆短线仓",
+          "trades": [
+            {
+              "date": "2026-04-16",
+              "action": "buy",
+              "shares": 11,
+              "price": 42.32,
+              "note": "按用户截图记录买入"
+            },
+            {
+              "date": "2026-05-06",
+              "action": "buy",
+              "shares": 3,
+              "price": 35.96,
+              "note": "用户记录:35.96 买入 3 股 PLTU,加仓摊低成本"
+            }
+          ],
+          "name": "二倍做多PLTR ETF-Direxion",
+          "volume": 786207,
+          "prev_close_date": "2026-07-17",
+          "day_session_date": "2026-07-20"
+        },
+        {
+          "ticker": "SOXL",
+          "shares": 0,
+          "cost_basis": 91.87,
+          "current_price": 182.54,
+          "today_change_pct": 0.0,
+          "pnl_percent": 0,
+          "data_source": "Nasdaq API (etf) Jun 06, 2026 06:19 ET",
+          "day_high": 182.54,
+          "day_low": 182.54,
+          "day_open": 182.54,
+          "prev_close": 182.54,
+          "current_value": 0.0,
+          "pnl_abs": 0.0,
+          "today_change": 0.0,
+          "note": "2026-04-17 按用户截图记录买入,做半导体 3x 杠杆短线仓",
+          "trades": [
+            {
+              "date": "2026-04-17",
+              "action": "buy",
+              "shares": 10,
+              "price": 91.87,
+              "note": "按用户截图记录买入"
+            },
+            {
+              "date": "2026-04-23",
+              "action": "sell",
+              "shares": 5,
+              "price": 112.0,
+              "realized_pnl": 100.65,
+              "note": "按用户截图记录卖出,SOXL 减仓一半"
+            },
+            {
+              "date": "2026-05-20",
+              "action": "sell",
+              "shares": 3,
+              "price": 170.8,
+              "realized_pnl": 236.79,
+              "note": "SOXL 减仓,锁利留 2 股"
+            },
+            {
+              "date": "2026-05-27",
+              "action": "sell",
+              "shares": 2,
+              "price": 217.17,
+              "realized_pnl": 250.6,
+              "note": "AI板块出货,今日市价清仓"
+            }
+          ],
+          "name": "三倍做多半导体ETF-Direxion",
+          "volume": 10791457,
+          "prev_close_date": "2026-06-05"
+        },
+        {
+          "ticker": "RKLX",
+          "shares": 10,
+          "cost_basis": 49.69,
+          "current_price": 18.07,
+          "today_change_pct": -2.5351,
+          "pnl_percent": -63.6345,
+          "data_source": "Nasdaq API (etf) Jul 20, 2026 12:04 ET",
+          "day_high": 19.04,
+          "day_low": 17.93,
+          "day_open": 19.04,
+          "prev_close": 18.54,
+          "current_value": 180.7,
+          "pnl_abs": -316.2,
+          "today_change": -4.7,
+          "note": "2x RKLB杠杆ETF,纳指100入指波段仓(生效日6/22),$49.69建仓,目标$60-68,止损$46",
+          "trades": [
+            {
+              "date": "2026-04-21",
+              "action": "buy",
+              "shares": 6,
+              "price": 46.7,
+              "note": "按用户截图记录买入"
+            },
+            {
+              "date": "2026-05-11",
+              "action": "sell",
+              "shares": 4,
+              "price": 75.0,
+              "realized_pnl": 113.2,
+              "note": "限价挂单 $75 卖出 4 股"
+            },
+            {
+              "date": "2026-05-20",
+              "action": "sell",
+              "shares": 2,
+              "price": 91.03,
+              "realized_pnl": 88.66,
+              "note": "RKLX 全清,兑现利润"
+            },
+            {
+              "date": "2026-06-13",
+              "action": "buy",
+              "shares": 10,
+              "price": 53.2,
+              "note": "RKLB 2x杠杆ETF,重新建仓"
+            },
+            {
+              "date": "2026-06-15",
+              "action": "sell",
+              "shares": 10,
+              "price": 53.93,
+              "realized_pnl": 7.3,
+              "note": "T+0做T清仓,等回踩再建"
+            },
+            {
+              "date": "2026-06-16",
+              "action": "buy",
+              "shares": 10,
+              "price": 49.69,
+              "note": "纳指100入指波段仓,RKLB 6/22生效,回踩建仓"
+            }
+          ],
+          "name": "Defiance Daily Target 2X Long R",
+          "volume": 1280305,
+          "prev_close_date": "2026-07-17",
+          "day_session_date": "2026-07-20"
+        },
+        {
+          "ticker": "ROBN",
+          "shares": 0,
+          "cost_basis": 23.582500000000003,
+          "current_price": 37.15,
+          "today_change_pct": 0,
+          "data_source": "Nasdaq API (etf) Jul 08, 2026 14:14 ET",
+          "day_high": 37.67,
+          "day_low": 35.47,
+          "day_open": 37.67,
+          "prev_close": 37.67,
+          "current_value": 0.0,
+          "pnl_abs": 0.0,
+          "today_change": 0,
+          "name": "二倍做多HOOD ETF-T-Rex",
+          "trades": [
+            {
+              "date": "2026-04-22",
+              "action": "buy",
+              "shares": 20,
+              "price": 26.68,
+              "note": "按用户今晚成交记录买入,替代 HOOD 方向为 2x 杠杆仓"
+            },
+            {
+              "date": "2026-05-04",
+              "action": "buy",
+              "shares": 10,
+              "price": 19.67,
+              "note": "按用户记录买入,加仓摊低 ROBN 成本"
+            },
+            {
+              "date": "2026-05-12",
+              "action": "buy",
+              "shares": 10,
+              "price": 21.3,
+              "note": "用 RKLX 卖出资金加仓 ROBN"
+            },
+            {
+              "date": "2026-06-18",
+              "action": "sell",
+              "shares": 20,
+              "price": 35.175,
+              "realized_pnl": 231.85,
+              "note": "FOMC决议后HOOD大涨,ROBN+24.6%,分批止盈卖一半"
+            },
+            {
+              "date": "2026-07-06",
+              "action": "sell",
+              "shares": 10,
+              "price": 40.0,
+              "realized_pnl": 164.17,
+              "note": "按用户成交记录卖出,洞察目标价位成交,剩余 10 股"
+            },
+            {
+              "date": "2026-07-08",
+              "action": "sell",
+              "shares": 10,
+              "price": 37.0,
+              "realized_pnl": 134.18,
+              "note": "按用户成交记录清仓,$37 卖出最后 10 股,ROBN 全部平仓"
+            }
+          ],
+          "pnl_percent": 0,
+          "volume": 239400,
+          "prev_close_date": "2026-07-07",
+          "day_session_date": "2026-07-08"
+        },
+        {
+          "ticker": "SPCX",
+          "name": "SpaceX",
+          "shares": 1,
+          "cost_basis": 147.5,
+          "current_price": 123.42,
+          "current_value": 123.42,
+          "pnl_abs": -24.08,
+          "pnl_percent": -16.3254,
+          "today_change": -0.57,
+          "today_change_pct": -0.4597,
+          "data_source": "Nasdaq API (stocks) Jul 20, 2026 12:04 ET",
+          "trades": [
+            {
+              "date": "2026-06-12",
+              "action": "buy",
+              "shares": 5,
+              "price": 158.3,
+              "note": "IPO首日买入,$158.3 成交"
+            },
+            {
+              "date": "2026-06-13",
+              "action": "sell",
+              "shares": 5,
+              "price": 168,
+              "realized_pnl": 48.5,
+              "note": "IPO首日+6%止盈,68卖出"
+            },
+            {
+              "date": "2026-07-08",
+              "action": "buy",
+              "shares": 1,
+              "price": 147.5,
+              "note": "按用户记录买入"
+            }
+          ],
+          "prev_close": 123.99,
+          "prev_close_date": "2026-07-17",
+          "day_high": 125.44,
+          "day_low": 120.555,
+          "day_open": 125.44,
+          "day_session_date": "2026-07-20"
+        },
+        {
+          "ticker": "SPCH",
+          "name": "Leverage Shares 2X Long SpaceX Daily ETF",
+          "shares": 140,
+          "cost_basis": 16.2907,
+          "current_price": 7.745,
+          "current_value": 1084.3,
+          "pnl_abs": -1196.4,
+          "pnl_percent": -52.4575,
+          "data_source": "Nasdaq API (etf) Jul 20, 2026 12:04 ET",
+          "today_change": -11.9,
+          "today_change_pct": -1.0856,
+          "trades": [
+            {
+              "date": "2026-07-13",
+              "action": "buy",
+              "shares": 10,
+              "price": 10.0,
+              "note": "用户报告成交,$10买入10股"
+            },
+            {
+              "date": "2026-06-15",
+              "action": "buy",
+              "shares": 20,
+              "price": 16.68,
+              "note": "SpaceX IPO后第3天,2x杠杆ETF,$16.68买入,今日低点附近"
+            },
+            {
+              "date": "2026-06-15",
+              "action": "sell",
+              "shares": 20,
+              "price": 18.42,
+              "realized_pnl": 34.8,
+              "note": "T+0做T,今日高点附近出,+10.3%,等回踩$17.00-17.20再买"
+            },
+            {
+              "date": "2026-06-17",
+              "action": "buy",
+              "shares": 20,
+              "price": 21.83,
+              "note": "SPCX回落抄底,FOMC决议前(02:00 HKT)买入,高风险"
+            },
+            {
+              "date": "2026-06-18",
+              "action": "buy",
+              "shares": 20,
+              "price": 21.25,
+              "note": "FOMC决议前1.5小时再补20股,加倍下注,均成本摊到21.54"
+            },
+            {
+              "date": "2026-06-19",
+              "action": "buy",
+              "shares": 20,
+              "price": 17.31,
+              "note": "继续摊低,跌势未止时三度加仓,均成本降到20.13,逆建议操作"
+            },
+            {
+              "date": "2026-06-22",
+              "action": "buy",
+              "shares": 10,
+              "price": 15.3,
+              "note": "第五次加仓摊本,同日内二次加仓;8月解禁悬云未出清,逆建议操作"
+            },
+            {
+              "date": "2026-06-22",
+              "action": "buy",
+              "shares": 10,
+              "price": 16.17,
+              "note": "第四次加仓摊本(补记,原记录被盘中价格刷新覆盖)"
+            },
+            {
+              "date": "2026-06-23",
+              "action": "buy",
+              "shares": 10,
+              "price": 13.13,
+              "note": "用户口头补记:2026-06-23 加仓 10 股 @13.13 (conversation info 22:24 HKT,盘中操作)"
+            },
+            {
+              "date": "2026-06-24",
+              "action": "buy",
+              "shares": 10,
+              "price": 13.5,
+              "note": "挂限价单成交,第7次加仓摊本,均成本 17.888"
+            },
+            {
+              "date": "2026-07-02",
+              "action": "buy",
+              "shares": 10,
+              "price": 13.89,
+              "note": "凌晨补仓(02:09 HKT):SPCH 现货 $13.71,13.89 成交 10 股(高出 1.3%)。累计加仓金额 = 6/17 20@$21.83 + 6/18 20@$21.25 + 6/19 20@$17.31 + 6/22 10@$15.30 + 6/22 10@$16.17 + 6/23 10@$13.13 + 6/24 10@$13.50 + 7/02 10@$13.89 = $1,946.5 (cash-flow 累加,6/15 buy+sell T+0 抵消不计),离 P0 阈值 $3000 还差 $1053.5。minimax 立场=反对该次加仓,但 kcn 持续执行无限子弹 DCA。"
+            },
+            {
+              "date": "2026-07-06",
+              "action": "buy",
+              "shares": 10,
+              "price": 13.47,
+              "note": "第10次加仓摊本(用户成交记录),当日SPCX利好回吐转跌后接刀,均成本 17.1866"
+            },
+            {
+              "date": "2026-07-07",
+              "action": "buy",
+              "shares": 10,
+              "price": 11.83,
+              "note": "第11次加仓摊本(用户成交记录,22:47 HKT),当日AI/半导体全线重挫(SOXX -5.44%/SMH -4.05%)带崩SPCH,现价刷年内新低,均成本降至16.7746。累计加仓金额(cash-flow)≈$2,199.5,仍低于P0 $3000阈值。"
+            }
+          ],
+          "note": "SPCX(SpaceX) 2x做多ETF，已七次加仓摊本（6/22同日两次），FTSE/CRSP入指利好兑现当天反跌+8月解禁悬云(最多44%股份)未出清，逻辑持续弱化\n2026-07-02 凌晨 02:03 HKT 第八次加仓 10 股 @$13.89（盘中），累计加仓金额触发 P0 风险升级 → 详见 strategy_note。\n2026-06-24 凌晨挂限价单 $13.50 成交10股 → 净 100 股,加权均成本 $17.888。当晚先放量冲高至$14.30+(50M+股,Benzinga报道frenzy级)后回落到限价位成交,符合\"等回踩不追涨\"的纪律。\n2026-06-23 加仓 10 股 @$13.13 → 净 90 股,加权均成本 $18.3756 (vs 旧 19.0312（注：旧值含已 T+0 卖出的 20 股 @16.68，已剔除））。逆硬止损线操作第 6 次,minimax 立场=反对但 kcn 选择执行。\n2026-06-23 用户声明无限子弹流策略：持续加仓摊本直到 SPCX 正股反弹或 8 月解禁落地。minimax 不再每条盯盘喊砍，仅在 (a)单日跌幅 >15% (b)累计加仓金额 > $3000 (c)SPCX 正股单周 -25% 时升级为 P0 风险提示。\n2026-07-02 02:03 HKT 触发 P0：(b) 累计加仓金额已突破 $3000 (按 cash-flow 累加 $1,946.5USD，但若含手续费+滑点已逼近阈值)。minimax 升级为 P0 风险提示，但 kcn 持续执行。\n2026-07-02 02:09 HKT 第九次加仓 10 股 @$13.89 → 净 110 股,加权均成本 $17.5245 (按 cash-flow 加权 vs 旧 $17.888 摊本交易成本加全量),浮亏 -21.76% / -$419.6 (现价 $13.71)。\n⚠️ P0 持续:US 现金余额仅剩 ~$134.35,累计加仓金额 $1,946.5 / $3,000 阈值(差 $1,053.5 才升级);弹药已见底,再无追加空间除非变现其他仓位。",
+          "prev_close": 7.83,
+          "day_high": 7.9403,
+          "day_low": 7.39,
+          "day_open": 7.9403,
+          "prev_close_date": "2026-07-17",
+          "day_session_date": "2026-07-20",
+          "strategy": "infinite_ammo_dca",
+          "strategy_note": "2026-06-23 用户声明无限子弹流策略:持续加仓摊本直到 SPCX 正股反弹或 8 月解禁落地。minimax 不再每条盯盘喊砍,仅在 (a)单日跌幅 >15% (b)累计加仓金额 > $3000 (c)SPCX 正股单周 -25% 时升级为 P0 风险提示。",
+          "risk_escalation_triggers": [
+            "SPCH 单日跌幅 > 15%",
+            "SPCH 累计加仓成本 > $3000 USD",
+            "SPCX 正股单周跌幅 > 25%"
+          ]
+        },
+        {
+          "ticker": "MSFU",
+          "name": "二倍做多微软ETF-Direxion",
+          "shares": 20,
+          "cost_basis": 29.130000000000003,
+          "current_price": 25.1,
+          "current_value": 502.0,
+          "pnl_abs": -80.6,
+          "pnl_percent": -13.8345,
+          "today_change": 13.2,
+          "today_change_pct": 2.7001,
+          "trades": [
+            {
+              "date": "2026-04-24",
+              "action": "buy",
+              "shares": 20,
+              "price": 29.13,
+              "note": "按用户截图记录买入,已成交"
+            }
+          ],
+          "note": "2026-04-24 按用户截图记录买入,微软 2x 杠杆 ETF,财报前修复短线仓",
+          "prev_close": 24.4401,
+          "day_high": 25.115,
+          "day_low": 24.03,
+          "day_open": 24.115,
+          "data_source": "Nasdaq API (etf) Jul 20, 2026 12:04 ET",
+          "volume": 1331449,
+          "prev_close_date": "2026-07-20",
+          "day_session_date": "2026-07-20"
+        },
+        {
+          "ticker": "SKHY",
+          "name": "SK海力士 ADR",
+          "shares": 1,
+          "cost_basis": 169.185,
+          "current_price": 158.685,
+          "current_value": 158.69,
+          "pnl_abs": -10.5,
+          "pnl_percent": -6.2062,
+          "data_source": "Nasdaq API (stocks) Jul 20, 2026 12:04 ET",
+          "day_high": 162.89,
+          "day_low": 155.07,
+          "note": "2026-07-10 IPO首日(发行价$149,史上第二大全球股票发行仅次于SpaceX)169.185买入1股,用户报告成交。临时代码SKHYV已于2026-07-13转为正式代码SKHY",
+          "trades": [
+            {
+              "date": "2026-07-10",
+              "action": "buy",
+              "shares": 1,
+              "price": 169.185,
+              "note": "IPO首日买入,用户报告成交"
+            }
+          ],
+          "prev_close": 154.0332,
+          "prev_close_date": "2026-07-20",
+          "today_change_pct": 3.02,
+          "day_session_date": "2026-07-20",
+          "today_change": 4.65,
+          "day_open": 162.89
+        }
+      ],
+      "total_cost": 4424.28,
+      "total_current_value": 2638.73,
+      "total_pnl": -1785.55,
+      "total_pnl_percent": -40.358,
+      "today_total_change": 22.64,
+      "realized_pnl": 2139.53,
+      "realized_note": "NVDA 3股@197.5(+29.19) + CRCL 4股@103.21(+64.84) + CRCL 5股@120(+165) + CRCL 3股@127(+120) + NVDA 3股@199.41(+34.92) + QQQ 1股@631.3(+9.03) + TQQQ 8股@54.45(+69.76) + HOOD 5股@88.36(+74.3) + OKLO 2股@68(+10.34) + TCOM 5股@53.86(+5.6) + SOXL 5股@112(+100.65) + RKLX 4股@75(+113.2) + RKLX 2股@91.03(+88.66) + SOXL 3股@170.8(+236.79) + SOXL 2股@217.17(+250.6) + RKLB 5股@100.17(+145.85) + SPCX 5股@168(+48.5) + RKLX 10股@53.93(+7.3) + SPCH 20股@18.42(+34.8) + ROBN 20股@35.175(+231.85) + ROBN 10股@40(+164.17) + ROBN 10股@37(+134.18)",
+      "last_updated": "Jun 24, 2026 16:00 ET close",
+      "last_close_attempted": "May 7, 2026 16:00 ET close",
+      "last_open_attempted": "2026-07-20 12:04 UTC-04:00",
+      "indices_snapshot": {
+        "SPX": {
+          "name": "S&P 500",
+          "price": 7486.94,
+          "prev_close": 7457.69,
+          "change_pct": 0.392,
+          "source": "Tencent usINX index @ 2026-07-20 12:04 ET"
+        },
+        "NDX": {
+          "name": "Nasdaq 100",
+          "price": 28881.86,
+          "prev_close": 28592.66,
+          "change_pct": 1.011,
+          "source": "Tencent usNDX index @ 2026-07-20 12:04 ET"
+        },
+        "DJI": {
+          "name": "Dow Jones",
+          "price": 52037.42,
+          "prev_close": 52146.42,
+          "change_pct": -0.209,
+          "source": "Tencent usDJI index @ 2026-07-20 12:04 ET"
+        }
+      },
+      "last_trade_update": "2026-06-13 00:02 HKT",
+      "last_afterhours_attempted": "2026-07-17 16:02 UTC-04:00",
+      "last_closed_attempted": "2026-07-19 20:02 UTC-04:00",
+      "last_premarket_attempted": "2026-06-06 06:23 UTC-04:00",
+      "premarket_fetch_status": {
+        "attempted_all_holdings": [
+          "RKLB",
+          "CRCL",
+          "PLTU",
+          "ROBN",
+          "MSFU"
+        ],
+        "active_holdings": [
+          "ROBN"
+        ],
+        "updated": [
+          "ROBN"
+        ],
+        "missing_after_fallback": [],
+        "source_counts": {
+          "Nasdaq API (etf)": 1
+        },
+        "updated_at": "2026-06-06 06:23 UTC-04:00",
+        "note": "Multi-provider fetch. Sources: 1x Nasdaq API (etf)"
+      },
+      "open_fetch_status": {
+        "attempted_all_holdings": [
+          "CRCL",
+          "PLTU",
+          "RKLX",
+          "SPCX",
+          "SPCH",
+          "MSFU",
+          "SKHY"
+        ],
+        "active_holdings": [
+          "CRCL",
+          "PLTU",
+          "RKLX",
+          "SPCX",
+          "SPCH",
+          "MSFU",
+          "SKHY"
+        ],
+        "updated": [
+          "CRCL",
+          "PLTU",
+          "RKLX",
+          "SPCX",
+          "SPCH",
+          "MSFU",
+          "SKHY"
+        ],
+        "missing_after_fallback": [],
+        "source_counts": {
+          "Nasdaq API (stocks)": 3,
+          "Nasdaq API (etf)": 4
+        },
+        "updated_at": "2026-07-20 12:04 UTC-04:00",
+        "note": "Multi-provider fetch. Sources: 3x Nasdaq API (stocks), 4x Nasdaq API (etf)"
+      },
+      "afterhours_fetch_status": {
+        "attempted_all_holdings": [
+          "CRCL",
+          "PLTU",
+          "RKLX",
+          "SPCX",
+          "SPCH",
+          "MSFU",
+          "SKHY"
+        ],
+        "active_holdings": [
+          "CRCL",
+          "PLTU",
+          "RKLX",
+          "SPCX",
+          "SPCH",
+          "MSFU",
+          "SKHY"
+        ],
+        "updated": [
+          "CRCL",
+          "PLTU",
+          "RKLX",
+          "SPCX",
+          "SPCH",
+          "MSFU",
+          "SKHY"
+        ],
+        "missing_after_fallback": [],
+        "source_counts": {
+          "Nasdaq API (stocks)": 3,
+          "Nasdaq API (etf)": 4
+        },
+        "updated_at": "2026-07-17 16:02 UTC-04:00",
+        "note": "Multi-provider fetch. Sources: 3x Nasdaq API (stocks), 4x Nasdaq API (etf)"
+      },
+      "closed_fetch_status": {
+        "attempted_all_holdings": [
+          "CRCL",
+          "PLTU",
+          "RKLX",
+          "SPCX",
+          "SPCH",
+          "MSFU",
+          "SKHY"
+        ],
+        "active_holdings": [
+          "CRCL",
+          "PLTU",
+          "RKLX",
+          "SPCX",
+          "SPCH",
+          "MSFU",
+          "SKHY"
+        ],
+        "updated": [
+          "CRCL",
+          "PLTU",
+          "RKLX",
+          "SPCX",
+          "SPCH",
+          "MSFU",
+          "SKHY"
+        ],
+        "missing_after_fallback": [],
+        "source_counts": {
+          "Nasdaq API (stocks)": 3,
+          "Nasdaq API (etf)": 4
+        },
+        "updated_at": "2026-07-19 20:02 UTC-04:00",
+        "note": "Multi-provider fetch. Sources: 3x Nasdaq API (stocks), 4x Nasdaq API (etf)"
+      },
+      "cash_usd": 237.43,
+      "cash_reconciled": 854.25,
+      "cash_reconciled_date": "2026-06-19",
+      "cash_reconciled_note": "与券商对账确认的现金基线(截至该日收盘)。现金不再手填:cash_usd = cash_reconciled + Σ(此日之后 trades 的 sells-buys) + Σ(cash_adjustments)。改/补 trades 后跑 `recompute_cash.py` 自动重算 cash_usd,CASH_RECON 闸(ERROR)校验二者一致。存取款记进 cash_adjustments[] 或直接抬高 cash_reconciled+date 重新对账。",
+      "cash_adjustments": [
+        {
+          "date": "2026-06-30",
+          "amount": 2.77,
+          "note": "PLTU 14股股息入账(HSBC通知书,2026 dividend,gross $3.08扣10%预提税$0.31,净$2.77,payment date 2026-06-30)"
+        }
+      ],
+      "cash_usd_note": "(历史台账，仅供追溯；现金权威值已改为从 cash_reconciled 基线派生) …2026-06-19 SPCH 20@$17.31→$854.25(基线); 2026-06-22 SPCH 10@$15.3+10@$16.17-$314.7→$539.55; 2026-06-23 SPCH 10@$13.13-$131.3→$408.25; 2026-06-24 SPCH 10@$13.5-$135→$273.25; 2026-07-02 02:09 HKT SPCH 10@$13.89-$138.9→$134.35 (含手续费可能再低 ~$5-10)。⚠️ US 现金余额仅剩 ~$134,触及 SPCH 加仓地板——再无弹药支持后续加仓,除非 a) 港股 AI 拉升兑现 b) 减仓其他杠杆 ETF(ROBN 浮盈 +47%,可考虑) c) 等待下笔入金。"
+    },
+    "hk_stocks": {
+      "currency": "HKD",
+      "holdings": [
+        {
+          "ticker": "00100",
+          "name": "MINIMAX-W",
+          "ticker_finnhub": "0100.HK",
+          "shares": 100,
+          "cost_basis": 617.7,
+          "current_price": 193.1,
+          "current_value": 19310.0,
+          "pnl_percent": -68.74,
+          "data_source": "Tencent Jul 20 22:16 HKT",
+          "today_change": -2290.0,
+          "today_change_pct": -10.6,
+          "pnl_abs": -42460.0,
+          "day_open": 220.0,
+          "day_high": 224.8,
+          "day_low": 191.0,
+          "prev_close": 216.0,
+          "volume": 38060,
+          "lot_size": 20,
+          "note": "2026-04-16 买入 20 股,2026-04-24 869 加仓 20 股,2026-04-27 700 加仓 20 股,2026-07-09 360 T+0加仓20股(解禁日回踩),2026-07-10 260 加仓20股(解禁二次探底),做 MiniMax 短线仓",
+          "trades": [
+            {
+              "date": "2026-04-16",
+              "action": "buy",
+              "shares": 20,
+              "price": 899.5,
+              "note": "按用户记录买入"
+            },
+            {
+              "date": "2026-04-24",
+              "action": "buy",
+              "shares": 20,
+              "price": 869.0,
+              "note": "按用户记录加仓"
+            },
+            {
+              "date": "2026-04-27",
+              "action": "buy",
+              "shares": 20,
+              "price": 700.0,
+              "note": "按用户截图记录加仓"
+            },
+            {
+              "date": "2026-07-09",
+              "action": "buy",
+              "shares": 20,
+              "price": 360.0,
+              "note": "解禁日回踩T+0加仓,用户报告成交"
+            },
+            {
+              "date": "2026-07-10",
+              "action": "buy",
+              "shares": 20,
+              "price": 260.0,
+              "note": "解禁二次探底加仓,用户报告成交"
+            }
+          ],
+          "turnover": 28080650.0,
+          "today_change_abs": -4.0,
+          "prev_close_date": "2026-07-20",
+          "stock_name": "MINIMAX-W"
+        },
+        {
+          "ticker": "02208",
+          "name": "金风科技",
+          "ticker_finnhub": "2208.HK",
+          "shares": 400,
+          "cost_basis": 14.084,
+          "current_price": 9.4,
+          "current_value": 3760.0,
+          "pnl_percent": -33.26,
+          "data_source": "Tencent Jul 20 22:16 HKT",
+          "today_change": 56.0,
+          "today_change_pct": 1.51,
+          "pnl_abs": -1873.6,
+          "day_open": 9.35,
+          "day_high": 9.43,
+          "day_low": 9.16,
+          "prev_close": 9.26,
+          "volume": 889000,
+          "trades": [
+            {
+              "date": "2026-04-27",
+              "action": "sell",
+              "shares": 200,
+              "price": 16.68,
+              "realized_pnl": 519.2,
+              "note": "按用户截图记录减仓200股"
+            }
+          ],
+          "turnover": 14936588.0,
+          "today_change_abs": -0.15,
+          "prev_close_date": "2026-07-20",
+          "stock_name": "金风科技"
+        },
+        {
+          "ticker": "03032",
+          "name": "恒生科技ETF",
+          "ticker_finnhub": "3032.HK",
+          "shares": 200,
+          "cost_basis": 5.405,
+          "current_price": 4.744,
+          "current_value": 948.8,
+          "pnl_percent": -12.23,
+          "data_source": "Tencent Jul 20 22:16 HKT",
+          "today_change": 27.6,
+          "today_change_pct": 3.0,
+          "pnl_abs": -132.2,
+          "day_open": 4.71,
+          "day_high": 4.784,
+          "day_low": 4.698,
+          "prev_close": 4.606,
+          "volume": 2690000,
+          "turnover": 13722674.0,
+          "today_change_abs": 0.02,
+          "prev_close_date": "2026-07-20",
+          "stock_name": "恒生科技ETF"
+        },
+        {
+          "ticker": "07226",
+          "name": "XL二南方恒科",
+          "ticker_finnhub": "7226.HK",
+          "shares": 6200,
+          "cost_basis": 4.3632,
+          "current_price": 3.498,
+          "current_value": 21687.6,
+          "pnl_percent": -19.83,
+          "data_source": "Tencent Jul 20 22:16 HKT",
+          "trades": [
+            {
+              "date": "2026-03-24",
+              "action": "buy",
+              "shares": 1000,
+              "price": 3.666,
+              "note": "加仓补摊,摊低成本至4.3632"
+            }
+          ],
+          "today_change": 1153.2,
+          "today_change_pct": 5.62,
+          "pnl_abs": -5364.24,
+          "day_open": 3.466,
+          "day_high": 3.558,
+          "day_low": 3.434,
+          "prev_close": 3.312,
+          "volume": 10798200,
+          "turnover": 45110333.4,
+          "today_change_abs": 0.034,
+          "prev_close_date": "2026-07-20",
+          "stock_name": "XL二南方恒科"
+        },
+        {
+          "ticker": "03033",
+          "name": "南方恒生科技",
+          "ticker_finnhub": "3033.HK",
+          "shares": 1000,
+          "cost_basis": 5.14,
+          "current_price": 4.65,
+          "current_value": 4650.0,
+          "pnl_percent": -9.53,
+          "data_source": "Tencent Jul 20 22:16 HKT",
+          "today_change": 116.0,
+          "today_change_pct": 2.56,
+          "pnl_abs": -490.0,
+          "day_open": 4.614,
+          "day_high": 4.698,
+          "day_low": 4.614,
+          "prev_close": 4.534,
+          "volume": 25157240,
+          "turnover": 126176969.0,
+          "today_change_abs": 0.022,
+          "prev_close_date": "2026-07-20",
+          "stock_name": "南方恒生科技"
+        },
+        {
+          "ticker": "07709",
+          "name": "XL二南方海力士",
+          "shares": 0,
+          "cost_basis": 29.5347875,
+          "note": "已清仓 - 历史 sells 保留用于 realized_pnl 汇总(trades 来自 5bb41ea^)",
+          "trades": [
+            {
+              "date": "2026-03-11",
+              "action": "buy",
+              "shares": 100,
+              "price": 29.6,
+              "note": "补仓,摊低成本"
+            },
+            {
+              "date": "2026-03-18",
+              "action": "sell",
+              "shares": 100,
+              "price": 33.14,
+              "realized_pnl": 144.86,
+              "note": "美光财报前减仓止盈"
+            },
+            {
+              "date": "2026-03-18",
+              "action": "sell",
+              "shares": 100,
+              "price": 34.2,
+              "realized_pnl": 250.86,
+              "note": "下午挂单止盈"
+            },
+            {
+              "date": "2026-03-23",
+              "action": "buy",
+              "shares": 100,
+              "price": 27.94,
+              "note": "韩股暴跌日抄底补仓"
+            },
+            {
+              "date": "2026-03-25",
+              "action": "sell",
+              "shares": 100,
+              "price": 33.5,
+              "realized_pnl": 243.38,
+              "note": "止盈减仓"
+            },
+            {
+              "date": "2026-03-31",
+              "action": "buy",
+              "shares": 100,
+              "price": 22,
+              "note": "低位补仓,摊低成本至29.5552"
+            },
+            {
+              "date": "2026-04-08",
+              "action": "buy",
+              "shares": 100,
+              "price": 29.12,
+              "note": "按用户记录买入"
+            },
+            {
+              "date": "2026-04-08",
+              "action": "sell",
+              "shares": 100,
+              "price": 31.76,
+              "realized_pnl": 226.7,
+              "note": "按用户记录卖出"
+            },
+            {
+              "date": "2026-04-08",
+              "action": "buy",
+              "shares": 100,
+              "price": 30.5,
+              "note": "按用户记录买回"
+            },
+            {
+              "date": "2026-04-09",
+              "action": "buy",
+              "shares": 100,
+              "price": 28.82,
+              "note": "按用户记录买入"
+            },
+            {
+              "date": "2026-04-10",
+              "action": "sell",
+              "shares": 100,
+              "price": 31.5,
+              "realized_pnl": 196.52,
+              "note": "按用户记录卖出"
+            },
+            {
+              "date": "2026-04-14",
+              "action": "sell",
+              "shares": 100,
+              "price": 36.0,
+              "realized_pnl": 646.52,
+              "note": "按用户记录卖出"
+            },
+            {
+              "date": "2026-04-14",
+              "action": "sell",
+              "shares": 100,
+              "price": 36.02,
+              "realized_pnl": 648.52,
+              "note": "按用户记录卖出"
+            },
+            {
+              "date": "2026-04-15",
+              "action": "sell",
+              "shares": 100,
+              "price": 38.7,
+              "realized_pnl": 916.52,
+              "note": "按用户更正卖出"
+            },
+            {
+              "date": "2026-04-15",
+              "action": "sell",
+              "shares": 400,
+              "price": 36.98,
+              "realized_pnl": 2978.08,
+              "note": "按用户补充记录清仓"
+            }
+          ]
+        },
+        {
+          "ticker": "07747",
+          "name": "XL二南三星",
+          "shares": 0,
+          "cost_basis": 81.85,
+          "note": "已清仓 - 历史 sells 保留用于 realized_pnl 汇总(trades 来自 5bb41ea^)",
+          "trades": [
+            {
+              "date": "2026-03-18",
+              "action": "sell",
+              "shares": 100,
+              "price": 85,
+              "realized_pnl": 315,
+              "note": "美光财报前减半仓止盈"
+            },
+            {
+              "date": "2026-04-08",
+              "action": "sell",
+              "shares": 100,
+              "price": 83.58,
+              "realized_pnl": 173.0,
+              "note": "按用户记录卖出"
+            }
+          ]
+        }
+      ],
+      "total_cost": 100676.44,
+      "total_current_value": 50356.4,
+      "cash_hkd": 22197.0,
+      "cash_reconciled": 34597,
+      "cash_reconciled_date": "2026-07-07",
+      "cash_reconciled_note": "与 kcn 对账确认的港股现金基线(截至该日)。现金不再裸填:cash_hkd = cash_reconciled + Σ(此日之后 HK trades 的 sells-buys) + Σ(cash_adjustments)。存取款记进 cash_adjustments[](CASH_SANITY 用它解释跳变、不误报),或直接抬高 cash_reconciled+date 重新对账。改/补 trades 后跑 `recompute_cash.py`,CASH_RECON 闸(ERROR)校验二者一致。基线于本次入金后重锚(4,597 旧基线截至 2026-06-18)。",
+      "cash_adjustments": [
+        {
+          "date": "2026-07-07",
+          "amount": 30000,
+          "note": "HK 入金 HK$30,000(kcn 口头确认 2026-07-07 22:51 HKT,券商流水待补)→ 4,597+30,000=34,597。基线同步重锚至该日。"
+        }
+      ],
+      "cash_hkd_note": "港股现金余额(HKD)。权威值改为从 cash_reconciled 基线派生(见 cash_reconciled_note),此字段仅供展示。真实总资产 = total_current_value + cash_hkd。",
+      "total_pnl": -50320.04,
+      "total_pnl_percent": -49.98,
+      "realized_pnl": 7259.16,
+      "realized_note": "07709 100股@33.14(+144.86) + 07709 100股@34.2(+250.86) + 07747 100股@85(+315) + 07709 100股@33.5(+243.38) + 07709 100股@31.76(+226.7) + 07747 100股@83.58(+173) + 07709 100股@31.5(+196.52) + 07709 100股@36(+646.52) + 07709 100股@36.02(+648.52) + 07709 100股@38.7(+916.52) + 07709 400股@36.98(+2978.08) + 02208 200股@16.68(+519.2)",
+      "today_total_change": -937.2,
+      "last_updated": "2026/06/18 16:00 HKT (close; Jun 19 休市)",
+      "last_close_attempted": "2026/05/11 16:00 HKT",
+      "indices_snapshot": {
+        "HSI": {
+          "name": "恒生指数",
+          "price": 25143.05,
+          "prev_close": 24562.24,
+          "chg_pct": 2.36,
+          "source": "Tencent qt.gtimg.cn 2026/07/20 22:16 HKT"
+        },
+        "HSTECH": {
+          "name": "恒生科技",
+          "price": 4752.15,
+          "prev_close": 4623.17,
+          "chg_pct": 2.79,
+          "source": "Tencent qt.gtimg.cn 2026/07/20 22:16 HKT"
+        }
+      },
+      "last_midday_attempted": "2026-05-07 12:00:00 HKT",
+      "last_open_attempted": "2026-05-11 09:30 HKT",
+      "close_report_generated_at": "2026-05-07 16:00 HKT",
+      "open_report_generated_at": "2026-05-11 09:30 HKT",
+      "midday_report_generated_at": "2026-05-07 12:00 HKT"
+    }
+  },
+  "market_context": {},
+  "gold_dca": {
+    "fund_name": "华安黄金ETF联接C",
+    "start_date": "2026-01-22",
+    "principal_invested": 17299.0,
+    "units_held": 4854.55,
+    "currency": "CNY",
+    "principal_note": "对账基线(自动累加模式)。2026-06-09 kcn 对账:现值 15470 + 盈亏 -1829 → 本金 17299,份额 = 15470/净值3.1867 = 4854.55。此后每个 A 股交易日自动 +200@当日净值。补投对账:把 principal_invested/units_held 改成新真实数字、reconciled_date 改成对账当天即可,自动累加归零重算。",
+    "reconciled_date": "2026-06-09",
+    "daily_amount": 200,
+    "fund_code": "000217",
+    "nav": 2.9401,
+    "nav_date": "2026-07-20",
+    "nav_change_pct": 0.06,
+    "realtime": null,
+    "principal_effective": 22899.0,
+    "units_effective": 6705.97,
+    "auto_added_days": 28,
+    "auto_added_amount": 5600.0,
+    "avg_cost": 3.4147,
+    "current_value": 19716.23,
+    "pnl_abs": -3182.77,
+    "pnl_percent": -13.9,
+    "breakeven_nav": 3.4147,
+    "breakeven_upside_pct": 16.14,
+    "days_invested": 117,
+    "installments_est": 114,
+    "window_high": {
+      "date": "2026-01-29",
+      "nav": 4.1882
+    },
+    "window_low": {
+      "date": "2026-07-01",
+      "nav": 2.9282
+    },
+    "projection": [
+      {
+        "days": 20,
+        "invested": 26899.0,
+        "avg_cost": 3.3347,
+        "pnl_pct": -11.83,
+        "breakeven_upside_pct": 13.42
+      },
+      {
+        "days": 40,
+        "invested": 30899.0,
+        "avg_cost": 3.2777,
+        "pnl_pct": -10.3,
+        "breakeven_upside_pct": 11.48
+      },
+      {
+        "days": 60,
+        "invested": 34899.0,
+        "avg_cost": 3.2351,
+        "pnl_pct": -9.12,
+        "breakeven_upside_pct": 10.04
+      },
+      {
+        "days": 120,
+        "invested": 46899.0,
+        "avg_cost": 3.1542,
+        "pnl_pct": -6.79,
+        "breakeven_upside_pct": 7.28
+      },
+      {
+        "days": 250,
+        "invested": 72899.0,
+        "avg_cost": 3.0743,
+        "pnl_pct": -4.37,
+        "breakeven_upside_pct": 4.57
+      }
+    ],
+    "nav_history": [
+      [
+        "2025-12-18",
+        3.304
+      ],
+      [
+        "2025-12-19",
+        3.3036
+      ],
+      [
+        "2025-12-22",
+        3.3599
+      ],
+      [
+        "2025-12-23",
+        3.4091
+      ],
+      [
+        "2025-12-24",
+        3.4125
+      ],
+      [
+        "2025-12-25",
+        3.3958
+      ],
+      [
+        "2025-12-26",
+        3.4103
+      ],
+      [
+        "2025-12-29",
+        3.4003
+      ],
+      [
+        "2025-12-30",
+        3.325
+      ],
+      [
+        "2025-12-31",
+        3.3015
+      ],
+      [
+        "2026-01-05",
+        3.3622
+      ],
+      [
+        "2026-01-06",
+        3.3936
+      ],
+      [
+        "2026-01-07",
+        3.3835
+      ],
+      [
+        "2026-01-08",
+        3.3712
+      ],
+      [
+        "2026-01-09",
+        3.3946
+      ],
+      [
+        "2026-01-12",
+        3.4624
+      ],
+      [
+        "2026-01-13",
+        3.4683
+      ],
+      [
+        "2026-01-14",
+        3.5108
+      ],
+      [
+        "2026-01-15",
+        3.4986
+      ],
+      [
+        "2026-01-16",
+        3.4934
+      ],
+      [
+        "2026-01-19",
+        3.536
+      ],
+      [
+        "2026-01-20",
+        3.5712
+      ],
+      [
+        "2026-01-21",
+        3.6753
+      ],
+      [
+        "2026-01-22",
+        3.6627
+      ],
+      [
+        "2026-01-23",
+        3.7498
+      ],
+      [
+        "2026-01-26",
+        3.8623
+      ],
+      [
+        "2026-01-27",
+        3.8629
+      ],
+      [
+        "2026-01-28",
+        3.993
+      ],
+      [
+        "2026-01-29",
+        4.1882
+      ],
+      [
+        "2026-01-30",
+        3.9355
+      ],
+      [
+        "2026-02-02",
+        3.4881
+      ],
+      [
+        "2026-02-03",
+        3.708
+      ],
+      [
+        "2026-02-04",
+        3.8513
+      ],
+      [
+        "2026-02-05",
+        3.7382
+      ],
+      [
+        "2026-02-06",
+        3.6964
+      ],
+      [
+        "2026-02-09",
+        3.7734
+      ],
+      [
+        "2026-02-10",
+        3.7763
+      ],
+      [
+        "2026-02-11",
+        3.7969
+      ],
+      [
+        "2026-02-12",
+        3.7956
+      ],
+      [
+        "2026-02-13",
+        3.7482
+      ],
+      [
+        "2026-02-24",
+        3.8765
+      ],
+      [
+        "2026-02-25",
+        3.8695
+      ],
+      [
+        "2026-02-26",
+        3.8656
+      ],
+      [
+        "2026-02-27",
+        3.8607
+      ],
+      [
+        "2026-03-02",
+        4.0434
+      ],
+      [
+        "2026-03-03",
+        3.9925
+      ],
+      [
+        "2026-03-04",
+        3.894
+      ],
+      [
+        "2026-03-05",
+        3.8825
+      ],
+      [
+        "2026-03-06",
+        3.8486
+      ],
+      [
+        "2026-03-09",
+        3.8509
+      ],
+      [
+        "2026-03-10",
+        3.8664
+      ],
+      [
+        "2026-03-11",
+        3.8853
+      ],
+      [
+        "2026-03-12",
+        3.8711
+      ],
+      [
+        "2026-03-13",
+        3.8211
+      ],
+      [
+        "2026-03-16",
+        3.7651
+      ],
+      [
+        "2026-03-17",
+        3.7684
+      ],
+      [
+        "2026-03-18",
+        3.7545
+      ],
+      [
+        "2026-03-19",
+        3.5878
+      ],
+      [
+        "2026-03-20",
+        3.5172
+      ],
+      [
+        "2026-03-23",
+        3.1365
+      ],
+      [
+        "2026-03-24",
+        3.3094
+      ],
+      [
+        "2026-03-25",
+        3.4296
+      ],
+      [
+        "2026-03-26",
+        3.3535
+      ],
+      [
+        "2026-03-27",
+        3.3582
+      ],
+      [
+        "2026-03-30",
+        3.4072
+      ],
+      [
+        "2026-03-31",
+        3.4424
+      ],
+      [
+        "2026-04-01",
+        3.5376
+      ],
+      [
+        "2026-04-02",
+        3.4731
+      ],
+      [
+        "2026-04-03",
+        3.4941
+      ],
+      [
+        "2026-04-07",
+        3.4733
+      ],
+      [
+        "2026-04-08",
+        3.579
+      ],
+      [
+        "2026-04-09",
+        3.5012
+      ],
+      [
+        "2026-04-10",
+        3.5371
+      ],
+      [
+        "2026-04-13",
+        3.5197
+      ],
+      [
+        "2026-04-14",
+        3.5398
+      ],
+      [
+        "2026-04-15",
+        3.564
+      ],
+      [
+        "2026-04-16",
+        3.5737
+      ],
+      [
+        "2026-04-17",
+        3.5555
+      ],
+      [
+        "2026-04-20",
+        3.5592
+      ],
+      [
+        "2026-04-21",
+        3.5473
+      ],
+      [
+        "2026-04-22",
+        3.5411
+      ],
+      [
+        "2026-04-23",
+        3.5035
+      ],
+      [
+        "2026-04-24",
+        3.4888
+      ],
+      [
+        "2026-04-27",
+        3.5016
+      ],
+      [
+        "2026-04-28",
+        3.4477
+      ],
+      [
+        "2026-04-29",
+        3.4097
+      ],
+      [
+        "2026-04-30",
+        3.4197
+      ],
+      [
+        "2026-05-06",
+        3.4644
+      ],
+      [
+        "2026-05-07",
+        3.5048
+      ],
+      [
+        "2026-05-08",
+        3.484
+      ],
+      [
+        "2026-05-11",
+        3.4618
+      ],
+      [
+        "2026-05-12",
+        3.4721
+      ],
+      [
+        "2026-05-13",
+        3.4751
+      ],
+      [
+        "2026-05-14",
+        3.4704
+      ],
+      [
+        "2026-05-15",
+        3.395
+      ],
+      [
+        "2026-05-18",
+        3.372
+      ],
+      [
+        "2026-05-19",
+        3.3673
+      ],
+      [
+        "2026-05-20",
+        3.3229
+      ],
+      [
+        "2026-05-21",
+        3.3459
+      ],
+      [
+        "2026-05-22",
+        3.3471
+      ],
+      [
+        "2026-05-25",
+        3.3631
+      ],
+      [
+        "2026-05-26",
+        3.3468
+      ],
+      [
+        "2026-05-27",
+        3.3147
+      ],
+      [
+        "2026-05-28",
+        3.2447
+      ],
+      [
+        "2026-05-29",
+        3.3211
+      ],
+      [
+        "2026-06-01",
+        3.309
+      ],
+      [
+        "2026-06-02",
+        3.3279
+      ],
+      [
+        "2026-06-03",
+        3.2817
+      ],
+      [
+        "2026-06-04",
+        3.2864
+      ],
+      [
+        "2026-06-05",
+        3.2852
+      ],
+      [
+        "2026-06-08",
+        3.1747
+      ],
+      [
+        "2026-06-09",
+        3.1867
+      ],
+      [
+        "2026-06-10",
+        3.0873
+      ],
+      [
+        "2026-06-11",
+        3.0203
+      ],
+      [
+        "2026-06-12",
+        3.0598
+      ],
+      [
+        "2026-06-15",
+        3.1592
+      ],
+      [
+        "2026-06-16",
+        3.171
+      ],
+      [
+        "2026-06-17",
+        3.1668
+      ],
+      [
+        "2026-06-18",
+        3.1561
+      ],
+      [
+        "2026-06-22",
+        3.082
+      ],
+      [
+        "2026-06-23",
+        3.0313
+      ],
+      [
+        "2026-06-24",
+        3.0142
+      ],
+      [
+        "2026-06-25",
+        2.9485
+      ],
+      [
+        "2026-06-26",
+        2.9766
+      ],
+      [
+        "2026-06-29",
+        2.9887
+      ],
+      [
+        "2026-06-30",
+        2.9601
+      ],
+      [
+        "2026-07-01",
+        2.9282
+      ],
+      [
+        "2026-07-02",
+        2.989
+      ],
+      [
+        "2026-07-03",
+        3.0688
+      ],
+      [
+        "2026-07-06",
+        3.0592
+      ],
+      [
+        "2026-07-07",
+        3.0412
+      ],
+      [
+        "2026-07-08",
+        3.0365
+      ],
+      [
+        "2026-07-09",
+        3.0262
+      ],
+      [
+        "2026-07-10",
+        3.0233
+      ],
+      [
+        "2026-07-13",
+        2.9868
+      ],
+      [
+        "2026-07-14",
+        2.9634
+      ],
+      [
+        "2026-07-15",
+        2.9591
+      ],
+      [
+        "2026-07-16",
+        2.9559
+      ],
+      [
+        "2026-07-17",
+        2.9383
+      ],
+      [
+        "2026-07-20",
+        2.9401
+      ]
+    ],
+    "last_updated": "2026-07-20T15:50:48.317181Z",
+    "london": {
+      "xau_usd": 4014.72,
+      "xau_change_pct": -0.04,
+      "xau_high": 4040.52,
+      "xau_low": 3982.83,
+      "xau_prev_close": 4016.36,
+      "xau_date": "2026-07-20",
+      "usdcny": 6.7669,
+      "oz_equiv": 0.726,
+      "grams_equiv": 22.6,
+      "intl_value_usd": 2913.63,
+      "compare_series": [
+        [
+          "2026-03-10",
+          105.56,
+          105.2
+        ],
+        [
+          "2026-03-11",
+          106.08,
+          104.86
+        ],
+        [
+          "2026-03-12",
+          105.69,
+          102.9
+        ],
+        [
+          "2026-03-13",
+          104.32,
+          101.72
+        ],
+        [
+          "2026-03-16",
+          102.8,
+          101.42
+        ],
+        [
+          "2026-03-17",
+          102.89,
+          101.4
+        ],
+        [
+          "2026-03-18",
+          102.51,
+          97.62
+        ],
+        [
+          "2026-03-19",
+          97.96,
+          94.21
+        ],
+        [
+          "2026-03-20",
+          96.03,
+          91.1
+        ],
+        [
+          "2026-03-23",
+          85.63,
+          89.27
+        ],
+        [
+          "2026-03-24",
+          90.35,
+          90.64
+        ],
+        [
+          "2026-03-25",
+          93.64,
+          91.3
+        ],
+        [
+          "2026-03-26",
+          91.56,
+          88.69
+        ],
+        [
+          "2026-03-27",
+          91.69,
+          91.07
+        ],
+        [
+          "2026-03-30",
+          93.02,
+          91.39
+        ],
+        [
+          "2026-03-31",
+          93.99,
+          94.55
+        ],
+        [
+          "2026-04-01",
+          96.58,
+          96.39
+        ],
+        [
+          "2026-04-02",
+          94.82,
+          94.73
+        ],
+        [
+          "2026-04-03",
+          95.4,
+          94.73
+        ],
+        [
+          "2026-04-07",
+          94.83,
+          95.33
+        ],
+        [
+          "2026-04-08",
+          97.71,
+          95.6
+        ],
+        [
+          "2026-04-09",
+          95.59,
+          96.54
+        ],
+        [
+          "2026-04-10",
+          96.57,
+          96.21
+        ],
+        [
+          "2026-04-13",
+          96.1,
+          96.03
+        ],
+        [
+          "2026-04-14",
+          96.64,
+          98.08
+        ],
+        [
+          "2026-04-15",
+          97.31,
+          97.05
+        ],
+        [
+          "2026-04-16",
+          97.57,
+          97.05
+        ],
+        [
+          "2026-04-17",
+          97.07,
+          97.93
+        ],
+        [
+          "2026-04-20",
+          97.17,
+          97.66
+        ],
+        [
+          "2026-04-21",
+          96.85,
+          95.62
+        ],
+        [
+          "2026-04-22",
+          96.68,
+          96.03
+        ],
+        [
+          "2026-04-23",
+          95.65,
+          95.1
+        ],
+        [
+          "2026-04-24",
+          95.25,
+          95.38
+        ],
+        [
+          "2026-04-27",
+          95.6,
+          94.84
+        ],
+        [
+          "2026-04-28",
+          94.13,
+          93.13
+        ],
+        [
+          "2026-04-29",
+          93.09,
+          92.04
+        ],
+        [
+          "2026-04-30",
+          93.37,
+          93.63
+        ],
+        [
+          "2026-05-06",
+          94.59,
+          95.03
+        ],
+        [
+          "2026-05-07",
+          95.69,
+          94.95
+        ],
+        [
+          "2026-05-08",
+          95.12,
+          95.52
+        ],
+        [
+          "2026-05-11",
+          94.51,
+          95.92
+        ],
+        [
+          "2026-05-12",
+          94.8,
+          95.52
+        ],
+        [
+          "2026-05-13",
+          94.88,
+          94.99
+        ],
+        [
+          "2026-05-14",
+          94.75,
+          94.25
+        ],
+        [
+          "2026-05-15",
+          92.69,
+          91.94
+        ],
+        [
+          "2026-05-18",
+          92.06,
+          92.5
+        ],
+        [
+          "2026-05-19",
+          91.93,
+          90.8
+        ],
+        [
+          "2026-05-20",
+          90.72,
+          92.05
+        ],
+        [
+          "2026-05-21",
+          91.35,
+          92.04
+        ],
+        [
+          "2026-05-22",
+          91.38,
+          91.3
+        ],
+        [
+          "2026-05-25",
+          91.82,
+          92.6
+        ],
+        [
+          "2026-05-26",
+          91.38,
+          91.31
+        ],
+        [
+          "2026-05-27",
+          90.5,
+          90.27
+        ],
+        [
+          "2026-05-28",
+          88.59,
+          91.08
+        ],
+        [
+          "2026-05-29",
+          90.67,
+          91.97
+        ],
+        [
+          "2026-06-01",
+          90.34,
+          90.85
+        ],
+        [
+          "2026-06-02",
+          90.86,
+          90.92
+        ],
+        [
+          "2026-06-03",
+          89.6,
+          89.83
+        ],
+        [
+          "2026-06-04",
+          89.73,
+          90.66
+        ],
+        [
+          "2026-06-05",
+          89.69,
+          87.67
+        ],
+        [
+          "2026-06-08",
+          86.68,
+          87.71
+        ],
+        [
+          "2026-06-09",
+          87.0,
+          86.29
+        ],
+        [
+          "2026-06-10",
+          84.29,
+          82.48
+        ],
+        [
+          "2026-06-11",
+          82.46,
+          85.3
+        ],
+        [
+          "2026-06-12",
+          83.54,
+          85.43
+        ],
+        [
+          "2026-06-15",
+          86.25,
+          87.3
+        ],
+        [
+          "2026-06-16",
+          86.58,
+          87.74
+        ],
+        [
+          "2026-06-17",
+          86.46,
+          86.25
+        ],
+        [
+          "2026-06-18",
+          86.17,
+          85.27
+        ],
+        [
+          "2026-06-22",
+          84.15,
+          84.91
+        ],
+        [
+          "2026-06-23",
+          82.76,
+          83.26
+        ],
+        [
+          "2026-06-24",
+          82.29,
+          81.01
+        ],
+        [
+          "2026-06-25",
+          80.5,
+          81.57
+        ],
+        [
+          "2026-06-26",
+          81.27,
+          82.68
+        ],
+        [
+          "2026-06-29",
+          81.6,
+          81.37
+        ],
+        [
+          "2026-06-30",
+          80.82,
+          81.18
+        ],
+        [
+          "2026-07-01",
+          79.95,
+          81.66
+        ],
+        [
+          "2026-07-02",
+          81.61,
+          83.54
+        ],
+        [
+          "2026-07-03",
+          83.79,
+          84.58
+        ],
+        [
+          "2026-07-06",
+          83.52,
+          84.37
+        ],
+        [
+          "2026-07-07",
+          83.03,
+          83.18
+        ],
+        [
+          "2026-07-08",
+          82.9,
+          82.6
+        ],
+        [
+          "2026-07-09",
+          82.62,
+          83.54
+        ],
+        [
+          "2026-07-10",
+          82.54,
+          83.45
+        ],
+        [
+          "2026-07-13",
+          81.55,
+          81.05
+        ],
+        [
+          "2026-07-14",
+          80.91,
+          82.1
+        ],
+        [
+          "2026-07-15",
+          80.79,
+          82.26
+        ],
+        [
+          "2026-07-16",
+          80.7,
+          80.55
+        ],
+        [
+          "2026-07-17",
+          80.22,
+          81.37
+        ],
+        [
+          "2026-07-20",
+          80.27,
+          81.26
+        ]
+      ],
+      "dca_equiv": {
+        "principal_cny": 23400.0,
+        "oz_held": 0.7459,
+        "grams_held": 23.2,
+        "avg_cost_usd_oz": 4586.74,
+        "avg_cost_cny_g": 1008.57,
+        "spot_usd_oz": 4014.72,
+        "breakeven_upside_pct": 14.25,
+        "current_value_cny": 20265.02,
+        "pnl_abs": -3134.98,
+        "pnl_pct": -13.4,
+        "days": 117,
+        "daily_grams": 0.229,
+        "projection": [
+          {
+            "days": 20,
+            "avg_cost_usd_oz": 4492.44,
+            "breakeven_upside_pct": 11.9
+          },
+          {
+            "days": 40,
+            "avg_cost_usd_oz": 4424.84,
+            "breakeven_upside_pct": 10.22
+          },
+          {
+            "days": 60,
+            "avg_cost_usd_oz": 4373.99,
+            "breakeven_upside_pct": 8.95
+          },
+          {
+            "days": 120,
+            "avg_cost_usd_oz": 4276.6,
+            "breakeven_upside_pct": 6.52
+          },
+          {
+            "days": 250,
+            "avg_cost_usd_oz": 4179.69,
+            "breakeven_upside_pct": 4.11
+          }
+        ]
+      },
+      "last_updated": "2026-07-20T15:50:48.317626Z"
+    }
+  }
+}
