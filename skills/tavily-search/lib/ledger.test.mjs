@@ -40,19 +40,30 @@ reserve("brief", 1); let l = read(); l.total_used = 949; l.buckets.brief.used = 
 ok(!reserve("brief", 2).allowed, "global cap: 949+2>950 denied");
 ok(reserve("brief", 1).allowed && read().total_used === 950, "global cap boundary: 949+1=950 allowed");
 
-// refund
+// refund (with month guard)
 wipe();
-reserve("report", 2); refund("report", 2);
+let g = reserve("report", 2); refund("report", 2, g.month);
 l = read(); ok(l.total_used === 0 && l.buckets.report.used === 0, "refund restores total+bucket");
-refund("report", 5); ok(read().total_used === 0, "refund floors at 0 (never negative)");
+refund("report", 5, g.month); ok(read().total_used === 0, "refund floors at 0 (never negative)");
+reserve("report", 2); refund("report", 2, "1999-01");
+ok(read().total_used === 2, "refund with a different month is a no-op (no cross-month deduction)");
 
-// corrupt ledger -> fail-closed, quarantined, NOT zeroed
+// corrupt ledger -> poisoned, quarantined, and stays fail-closed on EVERY call
 wipe();
 reserve("brief", 5);
 writeFileSync(LP, "{ not json ");
 r = reserve("brief", 1);
-ok(!r.allowed && /ledger unavailable/.test(r.reason), "corrupt ledger -> deny (fail-closed)");
+ok(!r.allowed && /poison/.test(r.reason), "corrupt ledger -> deny (poisoned, fail-closed)");
 ok(readdirSync(DIR).some(f => f.includes("corrupt")), "corrupt ledger quarantined (not silently zeroed)");
+r = reserve("brief", 1);
+ok(!r.allowed && /poison|budget/.test(r.reason), "corrupt ledger stays fail-closed on the SECOND call too");
+ok(read().total_used >= read().monthly_limit - read().reserve, "poisoned ledger reads as exhausted, not reset to 0");
+
+// semantically invalid ledger (parses fine, bad numbers) -> poisoned too
+wipe();
+reserve("brief", 1); l = read(); l.total_used = -999; writeFileSync(LP, JSON.stringify(l));
+r = reserve("brief", 1);
+ok(!r.allowed && /poison/.test(r.reason), "invalid schema (negative total) -> poisoned (fail-closed)");
 
 // stale lock reclaimed
 wipe();

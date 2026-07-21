@@ -90,24 +90,20 @@ if (topic === "news" && days) {
   body.days = days;
 }
 
-let resp;
-try {
-  resp = await fetch("https://api.tavily.com/search", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(body),
-  });
-} catch (err) {
-  // Network error → Tavily charged nothing, so give the reservation back.
-  refund(gate.bucket, cost);
-  throw err;
-}
+// Ambiguous network failures (ECONNRESET etc.) may have arrived AFTER Tavily
+// billed, so we do NOT refund them — keeping the reservation is the safe
+// (conservative over-count) direction for a hard cap. Only a definite HTTP
+// error response is a guaranteed non-billed outcome and gets refunded.
+const resp = await fetch("https://api.tavily.com/search", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify(body),
+});
 
 if (!resp.ok) {
-  // A failed request does not consume Tavily credits, so refund the reservation.
-  refund(gate.bucket, cost);
+  refund(gate.bucket, cost, gate.month);
   const text = await resp.text().catch(() => "");
   throw new Error(`Tavily Search failed (${resp.status}): ${text}`);
 }

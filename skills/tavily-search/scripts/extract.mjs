@@ -21,7 +21,10 @@ for (let i = 0; i < args.length; i++) {
     i++;
     continue;
   }
-  if (a.startsWith("-")) continue; // ignore unknown flags
+  if (a.startsWith("-")) {
+    console.error(`Unknown arg: ${a}`);
+    usage();
+  }
   urls.push(a);
 }
 
@@ -53,25 +56,21 @@ if (!gate.allowed) {
   process.exit(0);
 }
 
-let resp;
-try {
-  resp = await fetch("https://api.tavily.com/extract", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      api_key: apiKey,
-      urls: urls,
-    }),
-  });
-} catch (err) {
-  refund(gate.bucket, cost);
-  throw err;
-}
+// Ambiguous network failures are NOT refunded (may have billed); only a
+// definite HTTP error response is refunded. See search.mjs for the rationale.
+const resp = await fetch("https://api.tavily.com/extract", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    api_key: apiKey,
+    urls: urls,
+  }),
+});
 
 if (!resp.ok) {
-  refund(gate.bucket, cost);
+  refund(gate.bucket, cost, gate.month);
   const text = await resp.text().catch(() => "");
   throw new Error(`Tavily Extract failed (${resp.status}): ${text}`);
 }

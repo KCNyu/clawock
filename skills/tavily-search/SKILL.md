@@ -33,8 +33,10 @@ basic 搜索 1 credit，`--deep` 2，extract 1/5 URL。硬护栏在 `lib/ledger.
 ## Extract content from URL
 
 ```bash
-node {baseDir}/scripts/extract.mjs "https://example.com/article"
+node {baseDir}/scripts/extract.mjs "https://example.com/article" --bucket extract
 ```
+
+`--bucket` works the same as for search (charges that monthly bucket; omit → `default`). extract costs 1 credit per 5 URLs.
 
 Notes:
 - Needs `TAVILY_API_KEY` from https://tavily.com

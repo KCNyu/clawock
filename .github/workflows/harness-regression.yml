@@ -13,6 +13,7 @@ on:
       - 'config/cron-schedules.json'
       - 'CRON_SCHEDULES.md'
       - '.github/workflows/**'
+      - 'skills/tavily-search/**'
   pull_request:
   workflow_dispatch:
 
@@ -35,6 +36,12 @@ jobs:
             echo "::error::Tracked files contain unresolved git conflict markers"
             exit 1
           fi
+
+      - name: Tavily credit-ledger unit tests
+        # Always runs (no path gate) so the hard-budget guardrail's assertions
+        # are enforced on every PR and master push — a skills-only change must
+        # not skip them. Pure Node, no deps; Node is preinstalled on the runner.
+        run: node skills/tavily-search/lib/ledger.test.mjs
 
       - name: PR file safety policy
         if: github.event_name == 'pull_request'
