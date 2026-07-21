@@ -99,7 +99,7 @@ python3 /root/.openclaw/workspace/scripts/harness/intraday_preflight.py --market
 - 加 `▎我的看法` 段：**至少 60 字（postflight 软下限），目标 2-3 行**
   - 若 `should_alert=true`，**必须**提 `anomalies` 中至少一个票
   - 必须包含：今天该看/该等/该减 + 引用至少 1 个具体数字（票现价 / 异动幅度 / 信号 / RSI）
-  - ⚡ **板块全景鼓励 tavily-search**：板块名读 `memory/peer-map.json` 各 ticker 的 `theme` 字段（持仓变了自动跟变，不要写死任何 ticker），search 对应 sector ETF / 主题板块今日成分涨跌 + 你持仓位置 + 1 句归因；持仓自己的数字仍从 context.json
+  - ⚡ **板块全景**：板块名读 `memory/peer-map.json` 各 ticker 的 `theme` 字段（持仓变了自动跟变，不要写死任何 ticker），给对应 sector ETF / 主题板块今日成分涨跌 + 你持仓位置 + 1 句归因；持仓自己的数字仍从 context.json。板块行情**优先用内置 web search**；`tavily-search` 仅在**开盘/收盘报告**或盘中真事件时才用，且必带 `--bucket report`/`--bucket intraday`（见 Mode 5 的 Budget rule）——盘中每 30 分钟的常规盯盘**不要**烧 Tavily
   - 禁止"无异动，观望"这种敷衍 1 句话
 - 目标 ≤1200 字；>2000 字 postflight warn，>2500 字 fail
 
@@ -149,7 +149,7 @@ python3 /root/.openclaw/workspace/scripts/harness/report_preflight.py --market u
 {raw_wechat_block 原样}
 
 ▎情绪面
-{Finnhub news + 纳指 tone → market direction；⚡ **板块全景鼓励 tavily-search**：板块名读 peer-map.json `theme`（持仓动态），search 对应 sector ETF / 主题成分今日 Top 5 + 你持仓位置 + 1 句归因}
+{Finnhub news + 纳指 tone → market direction；⚡ **板块全景**：板块名读 peer-map.json `theme`（持仓动态），对应 sector ETF / 主题成分今日 Top 5 + 你持仓位置 + 1 句归因。行情优先内置 web search；tavily 仅开盘/收盘或真事件用，带 `--bucket report`/`intraday`，盘中常规盯盘不烧 Tavily}
 
 ▎技术面
 {RSI / MA stance → overbought/oversold/breakout}
@@ -188,11 +188,12 @@ pass/warn 自动刷新 snapshot/dashboard，提交 scoped 产物并经 `safe_pus
 
 Sources, in order:
 1. **Finnhub news (in script)** — `scripts/data/analyze_us_stocks.py {TICKER}` without `--no-news` already pulls last 7 days with keyword sentiment scoring. **This is the first source — read it before anything else.**
-2. **Tavily (news + X)** — for trending discussions, analyst notes, X/Twitter sentiment:
+2. **Tavily (news + X)** — for trending discussions, analyst notes, X/Twitter sentiment. ⚠️ **Budget rule** (免费档 1000 credits/月，全局共享): 盘中盯盘(每 30 分钟)**默认不调 Tavily**，用 Finnhub + Reddit JSON 就够；只有**开盘/收盘报告**、或盘中出现**真事件**(异常波动跑输基准 / 停牌 / 财报预警 / 监管公告 / 有大标题但价格无法解释)才用。调用必须带 `--bucket`：开盘/收盘用 `--bucket report`，盘中事件用 `--bucket intraday`(不带 bucket 会落 60/月的 default 桶很快被挡):
    ```bash
-   node /root/.openclaw/workspace/skills/tavily-search/scripts/search.mjs "{TICKER} stock sentiment" --topic news --days 3
-   node /root/.openclaw/workspace/skills/tavily-search/scripts/search.mjs "{TICKER} reddit wallstreetbets"
+   node /root/.openclaw/workspace/skills/tavily-search/scripts/search.mjs "{TICKER} stock sentiment" --topic news --days 3 --bucket report
+   node /root/.openclaw/workspace/skills/tavily-search/scripts/search.mjs "{TICKER} reddit wallstreetbets" --bucket report
    ```
+   护栏是硬闸：额度用尽脚本返回 "Web search unavailable" 且 exit 0，别当报错，退回 Reddit/内置搜索。
 3. **Reddit JSON (no auth needed)** — direct fetch:
    ```bash
    curl -sH "User-Agent: openclaw/1.0" \
