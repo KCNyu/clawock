@@ -1,0 +1,440 @@
+{
+  "schema_version": 2,
+  "date": "2026-07-21",
+  "plan_date": "2026-07-21",
+  "created_at": "2026-07-21T08:00:00+08:00",
+  "decisions": [
+    {
+      "schema_version": 2,
+      "decision_id": "dec-a7f3b2c91d04",
+      "episode_id": "ep-1e8c4a72f356",
+      "decision_group_id": "2026-07-21:RKLX",
+      "plan_date": "2026-07-21",
+      "created_at": "2026-07-21T08:00:00+08:00",
+      "ticker": "RKLX",
+      "name": "Defiance 2X Long RKLB ETF",
+      "leg": "US",
+      "strategy_id": "risk_rebalance",
+      "thesis_id": "rklb-direction-1x-swap",
+      "action": "cut",
+      "condition": {
+        "type": "open",
+        "price": null,
+        "description": "全清10股 → 用约$175买入1-2股RKLB保留商业航天方向"
+      },
+      "size": {
+        "shares": 10,
+        "pct": null,
+        "note": "全仓，RKLB RSI50趋势ON可换1x保方向"
+      },
+      "confidence": 0.91,
+      "driven_by": "risk_rule",
+      "rationale": "浮亏-64.7%穿越硬止损-18%，2x decay已无意义；RKLB趋势ON，换1x停止日内复位损耗。",
+      "simulated_entry_price": 17.55,
+      "horizon_sessions": 1,
+      "override": {
+        "status": "none",
+        "reason": "",
+        "expires_on": null,
+        "revisit_condition": ""
+      },
+      "evaluation": {
+        "status": "pending",
+        "triggered": null,
+        "trigger_session": null,
+        "execution_price": null,
+        "underlying_return_t1_pct": null,
+        "benefit_t1_pct": null,
+        "benefit_t5_pct": null,
+        "outcome": "pending",
+        "capital": null
+      },
+      "execution": {
+        "status": "unknown",
+        "detected_at": null,
+        "source": null
+      },
+      "migration": {
+        "source": "plan_v1"
+      }
+    },
+    {
+      "schema_version": 2,
+      "decision_id": "dec-b8e5c3d02f15",
+      "episode_id": "ep-2f9d5b83e467",
+      "decision_group_id": "2026-07-21:SPCH",
+      "plan_date": "2026-07-21",
+      "created_at": "2026-07-21T08:00:00+08:00",
+      "ticker": "SPCH",
+      "name": "Leverage Shares 2X Long SpaceX Daily ETF",
+      "leg": "US",
+      "strategy_id": "risk_rebalance",
+      "thesis_id": "spacex-2x-to-1x-swap",
+      "action": "cut",
+      "condition": {
+        "type": "open",
+        "price": null,
+        "description": "卖140股SPCH → 买约8股SPCX，保留SpaceX方向，停止2x日内decay"
+      },
+      "size": {
+        "shares": 140,
+        "pct": null,
+        "note": "全仓 → 换成SPCX约8股（$1019 / $120 ≈ 8）"
+      },
+      "confidence": 0.9,
+      "driven_by": "risk_rule",
+      "rationale": "硬止损-55.3% + 制度red（标的SPCX破200线-7.3%）；Starship 7/23是催化保留方向；1x停止decay，regime转green再换回2x。",
+      "simulated_entry_price": 7.28,
+      "horizon_sessions": 1,
+      "override": {
+        "status": "none",
+        "reason": "",
+        "expires_on": null,
+        "revisit_condition": ""
+      },
+      "evaluation": {
+        "status": "pending",
+        "triggered": null,
+        "trigger_session": null,
+        "execution_price": null,
+        "underlying_return_t1_pct": null,
+        "benefit_t1_pct": null,
+        "benefit_t5_pct": null,
+        "outcome": "pending",
+        "capital": null
+      },
+      "execution": {
+        "status": "unknown",
+        "detected_at": null,
+        "source": null
+      },
+      "migration": {
+        "source": "plan_v1"
+      }
+    },
+    {
+      "schema_version": 2,
+      "decision_id": "dec-c9f6d4e13a26",
+      "episode_id": "ep-3a0e6c94f578",
+      "decision_group_id": "2026-07-21:PLTU",
+      "plan_date": "2026-07-21",
+      "created_at": "2026-07-21T08:00:00+08:00",
+      "ticker": "PLTU",
+      "name": "Direxion Daily PLTR Bull 2X Shares",
+      "leg": "US",
+      "strategy_id": "risk_rebalance",
+      "thesis_id": "pltr-2x-to-1x-swap",
+      "action": "cut",
+      "condition": {
+        "type": "open",
+        "price": null,
+        "description": "卖14股PLTU → 买约3股PLTR，保留Palantir方向，停止2x日内decay"
+      },
+      "size": {
+        "shares": 14,
+        "pct": null,
+        "note": "全仓 → 换PLTR约3股（$464 / $134.85 ≈ 3）"
+      },
+      "confidence": 0.88,
+      "driven_by": "risk_rule",
+      "rationale": "硬止损-19.2%；PLTR RSI55.8趋势尚稳，保方向有价值；2x decay 2.58%/月，趋势OFF时损耗无补偿。",
+      "simulated_entry_price": 33.11,
+      "horizon_sessions": 1,
+      "override": {
+        "status": "none",
+        "reason": "",
+        "expires_on": null,
+        "revisit_condition": ""
+      },
+      "evaluation": {
+        "status": "pending",
+        "triggered": null,
+        "trigger_session": null,
+        "execution_price": null,
+        "underlying_return_t1_pct": null,
+        "benefit_t1_pct": null,
+        "benefit_t5_pct": null,
+        "outcome": "pending",
+        "capital": null
+      },
+      "execution": {
+        "status": "unknown",
+        "detected_at": null,
+        "source": null
+      },
+      "migration": {
+        "source": "plan_v1"
+      }
+    },
+    {
+      "schema_version": 2,
+      "decision_id": "dec-d0a7e5f24b37",
+      "episode_id": "ep-4b1f7d05a689",
+      "decision_group_id": "2026-07-21:07226-stop",
+      "plan_date": "2026-07-21",
+      "created_at": "2026-07-21T08:00:00+08:00",
+      "ticker": "07226",
+      "name": "CSOP Hang Seng TECH Index Daily (2x) Leveraged Product",
+      "leg": "HK",
+      "strategy_id": "risk_rebalance",
+      "thesis_id": "hstech-2x-to-1x-swap",
+      "action": "cut",
+      "condition": {
+        "type": "open",
+        "price": null,
+        "description": "2x→1x换仓：卖07226全部或减至35%上限（约1162股），买入等值03033；开盘≥3.50执行，开盘<3.45则分批"
+      },
+      "size": {
+        "shares": 1162,
+        "pct": null,
+        "note": "目标持仓HK$17,624(35%×HK$50,356)；当前HK$21,688→减HK$4,064/3.50≈1162股；或全仓换03033"
+      },
+      "confidence": 0.85,
+      "driven_by": "risk_rule",
+      "rationale": "硬止损-19.8%穿越-18% + 单名43.07%>35%；2x→1x换仓保HSTECH方向停decay；HSTECH昨反弹+2.79%提供窗口；🧭转green再换回2x。",
+      "simulated_entry_price": 3.498,
+      "horizon_sessions": 1,
+      "override": {
+        "status": "none",
+        "reason": "",
+        "expires_on": null,
+        "revisit_condition": ""
+      },
+      "evaluation": {
+        "status": "pending",
+        "triggered": null,
+        "trigger_session": null,
+        "execution_price": null,
+        "underlying_return_t1_pct": null,
+        "benefit_t1_pct": null,
+        "benefit_t5_pct": null,
+        "outcome": "pending",
+        "capital": null
+      },
+      "execution": {
+        "status": "unknown",
+        "detected_at": null,
+        "source": null
+      },
+      "migration": {
+        "source": "plan_v1"
+      }
+    },
+    {
+      "schema_version": 2,
+      "decision_id": "dec-e1b8f6a35c48",
+      "episode_id": "ep-5c2a8e16b790",
+      "decision_group_id": "2026-07-21:00100-trim",
+      "plan_date": "2026-07-21",
+      "created_at": "2026-07-21T08:00:00+08:00",
+      "ticker": "00100",
+      "name": "MiniMax Group",
+      "leg": "HK",
+      "strategy_id": "risk_rebalance",
+      "thesis_id": "minimax-single-name-trim",
+      "action": "trim_on_rebound",
+      "condition": {
+        "type": "price_above",
+        "price": 200.0,
+        "description": "若00100反弹至200+，减约4股至35%上限（HK$17,624÷193=91股→当前100→减9股）"
+      },
+      "size": {
+        "shares": 9,
+        "pct": null,
+        "note": "目标90-91股使单名≤35%；现货等待不强制当日执行，借反弹分批"
+      },
+      "confidence": 0.62,
+      "driven_by": "risk_rule",
+      "rationale": "单名38.35%>35%上限；现货按kcn方针不强制清仓，借技术反弹分批减至合规。RSI28.6超卖，190-200区间等待机会。",
+      "simulated_entry_price": 193.1,
+      "horizon_sessions": 3,
+      "override": {
+        "status": "none",
+        "reason": "",
+        "expires_on": null,
+        "revisit_condition": ""
+      },
+      "evaluation": {
+        "status": "pending",
+        "triggered": null,
+        "trigger_session": null,
+        "execution_price": null,
+        "underlying_return_t1_pct": null,
+        "benefit_t1_pct": null,
+        "benefit_t5_pct": null,
+        "outcome": "pending",
+        "capital": null
+      },
+      "execution": {
+        "status": "unknown",
+        "detected_at": null,
+        "source": null
+      },
+      "migration": {
+        "source": "plan_v1"
+      }
+    },
+    {
+      "schema_version": 2,
+      "decision_id": "dec-f2c9a7b46d59",
+      "episode_id": "ep-6d3b9f27c801",
+      "decision_group_id": "2026-07-21:00100-core",
+      "plan_date": "2026-07-21",
+      "created_at": "2026-07-21T08:00:00+08:00",
+      "ticker": "00100",
+      "name": "MiniMax Group",
+      "leg": "HK",
+      "strategy_id": "core_position",
+      "thesis_id": "minimax-core-hold-52w-low",
+      "action": "hold_and_watch",
+      "condition": {
+        "type": "price_below",
+        "price": 190.0,
+        "description": "若破190则评估是否加速trim；RSI28.6守52w低191支撑"
+      },
+      "size": {
+        "shares": null,
+        "pct": null,
+        "note": "不主动操作"
+      },
+      "confidence": 0.65,
+      "driven_by": "technical",
+      "rationale": "RSI28.6技术超卖+52w低191支撑；A股第五套listing是medium-term催化；JPM TP400但$2B融资刚关闭；历史11ep胜率55%，不追空。",
+      "simulated_entry_price": 193.1,
+      "horizon_sessions": 2,
+      "override": {
+        "status": "none",
+        "reason": "",
+        "expires_on": null,
+        "revisit_condition": ""
+      },
+      "evaluation": {
+        "status": "pending",
+        "triggered": null,
+        "trigger_session": null,
+        "execution_price": null,
+        "underlying_return_t1_pct": null,
+        "benefit_t1_pct": null,
+        "benefit_t5_pct": null,
+        "outcome": "pending",
+        "capital": null
+      },
+      "execution": {
+        "status": "unknown",
+        "detected_at": null,
+        "source": null
+      },
+      "migration": {
+        "source": "plan_v1"
+      }
+    },
+    {
+      "schema_version": 2,
+      "decision_id": "dec-a3d0b8c57e60",
+      "episode_id": "ep-7e4c0a38d912",
+      "decision_group_id": "2026-07-21:MSFU",
+      "plan_date": "2026-07-21",
+      "created_at": "2026-07-21T08:00:00+08:00",
+      "ticker": "MSFU",
+      "name": "Direxion Daily MSFT Bull 2X Shares",
+      "leg": "US",
+      "strategy_id": "risk_rebalance",
+      "thesis_id": "msft-2x-stop-watch",
+      "action": "hold_and_watch",
+      "condition": {
+        "type": "price_below",
+        "price": 23.55,
+        "description": "若MSFU跌破$23.55（对应pnl=-19%）则触发2x→1x换仓至MSFT"
+      },
+      "size": {
+        "shares": null,
+        "pct": null,
+        "note": "20股持仓，若触发则全换MSFT约3股"
+      },
+      "confidence": 0.78,
+      "driven_by": "risk_rule",
+      "rationale": "当前-16.1%接近-18%硬止损线；MSFT RSI56趋势尚可；提前设好触发价，避免盘中漏反应。",
+      "simulated_entry_price": 24.44,
+      "horizon_sessions": 1,
+      "override": {
+        "status": "none",
+        "reason": "",
+        "expires_on": null,
+        "revisit_condition": ""
+      },
+      "evaluation": {
+        "status": "pending",
+        "triggered": null,
+        "trigger_session": null,
+        "execution_price": null,
+        "underlying_return_t1_pct": null,
+        "benefit_t1_pct": null,
+        "benefit_t5_pct": null,
+        "outcome": "pending",
+        "capital": null
+      },
+      "execution": {
+        "status": "unknown",
+        "detected_at": null,
+        "source": null
+      },
+      "migration": {
+        "source": "plan_v1"
+      }
+    },
+    {
+      "schema_version": 2,
+      "decision_id": "dec-b4e1c9d68f71",
+      "episode_id": "ep-8f5d1b49e023",
+      "decision_group_id": "2026-07-21:CRCL",
+      "plan_date": "2026-07-21",
+      "created_at": "2026-07-21T08:00:00+08:00",
+      "ticker": "CRCL",
+      "name": "Circle Internet Group",
+      "leg": "US",
+      "strategy_id": "event_trade",
+      "thesis_id": "circle-bank-approval-catalyst",
+      "action": "hold_and_watch",
+      "condition": {
+        "type": "price_above",
+        "price": 70.0,
+        "description": "若CRCL站上$70且持续，持有等待进一步银行扩张消息"
+      },
+      "size": {
+        "shares": null,
+        "pct": null,
+        "note": "2股极小仓位，观察即可"
+      },
+      "confidence": 0.52,
+      "driven_by": "catalyst",
+      "rationale": "银行牌照批准+Q1净利转正是硬催化；但高管减持$30.8M为负面信号；仓位极小不值大动。",
+      "simulated_entry_price": 65.45,
+      "horizon_sessions": 3,
+      "override": {
+        "status": "none",
+        "reason": "",
+        "expires_on": null,
+        "revisit_condition": ""
+      },
+      "evaluation": {
+        "status": "pending",
+        "triggered": null,
+        "trigger_session": null,
+        "execution_price": null,
+        "underlying_return_t1_pct": null,
+        "benefit_t1_pct": null,
+        "benefit_t5_pct": null,
+        "outcome": "pending",
+        "capital": null
+      },
+      "execution": {
+        "status": "unknown",
+        "detected_at": null,
+        "source": null
+      },
+      "migration": {
+        "source": "plan_v1"
+      }
+    }
+  ]
+}
