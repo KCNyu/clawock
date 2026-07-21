@@ -36,6 +36,7 @@ import {
   closeSync,
   fsyncSync,
   renameSync,
+  copyFileSync,
   existsSync,
   unlinkSync,
   statSync,
@@ -76,6 +77,34 @@ function resolveBucket(name) {
 
 const isFiniteNum = (v) => typeof v === "number" && Number.isFinite(v);
 
+// Is the current lockfile a crash leftover? True if its owner PID is dead
+// (precise on this host) or — when the token can't be read — if it's far older
+// than any critical section. A live owner is never reported dead.
+function lockLooksDead() {
+  let token = "";
+  try {
+    token = readFileSync(LOCK_PATH, "utf8");
+  } catch {
+    return false; // vanished — not ours to reclaim; just retry
+  }
+  const pid = Number.parseInt(token.split(":")[0], 10);
+  if (Number.isInteger(pid) && pid > 0) {
+    try {
+      process.kill(pid, 0); // no signal sent; throws if the process is gone
+      return false; // owner alive
+    } catch (err) {
+      if (err.code === "ESRCH") return true; // owner is gone
+      if (err.code === "EPERM") return false; // exists but not ours to signal
+    }
+  }
+  // Unparseable token → fall back to age.
+  try {
+    return Date.now() - statSync(LOCK_PATH).mtimeMs > LOCK_STALE_MS;
+  } catch {
+    return false;
+  }
+}
+
 // Cross-process mutex. Token-owned so we only ever release our OWN lock; a
 // crashed-owner (stale) lock is reclaimed race-free via atomic rename-steal
 // (only one process can rename the path away). If the lock can't be taken we
@@ -93,23 +122,25 @@ function withLock(fn) {
         // EACCES / EMFILE / etc. are real problems — do not run unlocked.
         throw new LedgerUnavailable(`lock error: ${err.code || err.message}`);
       }
-      // Lock held. Reclaim it ONLY if it's a crash leftover, and do so
-      // atomically: renaming the path away has exactly one winner; the loser
-      // gets ENOENT and simply retries.
-      let stale = false;
-      try {
-        stale = Date.now() - statSync(LOCK_PATH).mtimeMs > LOCK_STALE_MS;
-      } catch {
-        /* vanished — just retry */
-      }
-      if (stale) {
+      // Lock held. Reclaim it only if it's a genuine crash leftover: the owner
+      // PID is dead (precise on this single host) or, failing that, the lock is
+      // far older than any critical section could last. Liveness makes a false
+      // steal of a LIVE owner essentially impossible.
+      //
+      // Residual (documented, accepted): if the owner is truly dead, two
+      // reclaimers can in principle both steal in the same instant and both
+      // enter. That needs a SIGKILL'd holder plus two processes racing reclaim
+      // within the same millisecond — not reachable by this staggered-cron,
+      // low-concurrency, $0 tool. Even then atomicWrite bounds the damage to at
+      // most one lost charge, absorbed by the reserve cushion.
+      if (lockLooksDead()) {
         const aside = `${LOCK_PATH}.stale.${token}`;
         try {
           renameSync(LOCK_PATH, aside);
           unlinkSync(aside);
-          continue; // we won the steal — retry the exclusive create
+          continue; // reclaimed — retry the exclusive create
         } catch {
-          /* someone else stole it first — fall through to wait/retry */
+          /* someone else reclaimed first — fall through to wait/retry */
         }
       }
       if (Date.now() > deadline) {
@@ -149,10 +180,16 @@ function atomicWrite(obj) {
 }
 
 function freshLedger(prev) {
+  // Inherit prior config ONLY if it's valid and in range; otherwise fall back
+  // to DEFAULTS, so a malformed prior month can't seed an invalid new month.
+  const limit =
+    isFiniteNum(prev?.monthly_limit) && prev.monthly_limit > 0 ? prev.monthly_limit : DEFAULTS.monthly_limit;
+  const reserve =
+    isFiniteNum(prev?.reserve) && prev.reserve >= 0 && prev.reserve < limit ? prev.reserve : DEFAULTS.reserve;
   return {
     month: currentMonth(),
-    monthly_limit: isFiniteNum(prev?.monthly_limit) ? prev.monthly_limit : DEFAULTS.monthly_limit,
-    reserve: isFiniteNum(prev?.reserve) ? prev.reserve : DEFAULTS.reserve,
+    monthly_limit: limit,
+    reserve,
     total_used: 0,
     buckets: JSON.parse(JSON.stringify(DEFAULTS.buckets)),
   };
@@ -177,7 +214,9 @@ function isSaneLedger(led) {
   if (!isFiniteNum(led.total_used) || led.total_used < 0) return false;
   if (!isFiniteNum(led.monthly_limit) || led.monthly_limit <= 0) return false;
   if (!isFiniteNum(led.reserve) || led.reserve < 0 || led.reserve >= led.monthly_limit) return false;
-  if (!led.buckets || typeof led.buckets !== "object") return false;
+  // typeof [] === "object", so reject arrays explicitly: bucket lookups by name
+  // would otherwise attach as un-serialized array props and reset to 0 forever.
+  if (!led.buckets || typeof led.buckets !== "object" || Array.isArray(led.buckets)) return false;
   for (const name of Object.keys(DEFAULTS.buckets)) {
     const b = led.buckets[name];
     if (b !== undefined) {
@@ -206,9 +245,12 @@ function loadLocked() {
     console.error("[tavily] ledger unreadable — poisoned (fail-closed) until month rollover or manual reset");
     return poisonLedger();
   }
-  // A cleanly-parsed prior month is safe to roll over to zero.
-  if (led && typeof led === "object" && led.month !== month && isFiniteNum(led.total_used)) {
-    const rolled = freshLedger(led);
+  // A cleanly-parsed prior month rolls over to zero. Inherit its config ONLY if
+  // the whole prior ledger is sane; otherwise start the new month from DEFAULTS,
+  // so a malformed old month (reserve:-1, absurd monthly_limit, …) can't carry
+  // an invalid/loosened config forward.
+  if (led && typeof led === "object" && !Array.isArray(led) && led.month !== month && isFiniteNum(led.total_used)) {
+    const rolled = freshLedger(isSaneLedger(led) ? led : null);
     atomicWrite(rolled);
     return rolled;
   }
@@ -225,9 +267,14 @@ function loadLocked() {
   return poisonLedger();
 }
 
+// Save a copy of the bad ledger for debugging WITHOUT moving the original —
+// callers immediately overwrite LEDGER_PATH with a poisoned ledger via
+// atomicWrite. This keeps the main path present at every crash point (it is
+// always either the bad ledger or the poisoned one, never missing — which
+// would let the next call recreate a zeroed ledger and re-open the cap).
 function quarantine() {
   try {
-    renameSync(LEDGER_PATH, `${LEDGER_PATH}.corrupt.${Date.now()}`);
+    copyFileSync(LEDGER_PATH, `${LEDGER_PATH}.corrupt.${Date.now()}`);
   } catch {
     /* ignore */
   }

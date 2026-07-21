@@ -65,6 +65,20 @@ reserve("brief", 1); l = read(); l.total_used = -999; writeFileSync(LP, JSON.str
 r = reserve("brief", 1);
 ok(!r.allowed && /poison/.test(r.reason), "invalid schema (negative total) -> poisoned (fail-closed)");
 
+// array `buckets` parses as object but must be rejected (would reset caps to 0)
+wipe();
+reserve("brief", 1); l = read(); l.buckets = []; writeFileSync(LP, JSON.stringify(l));
+r = reserve("brief", 1);
+ok(!r.allowed && /poison/.test(r.reason), "array buckets -> poisoned (not silently cap-reset)");
+
+// malformed PRIOR-month config must NOT carry into the new month
+wipe();
+reserve("brief", 1); l = read(); l.month = "1999-01"; l.reserve = -1; l.monthly_limit = 999999; writeFileSync(LP, JSON.stringify(l));
+r = reserve("brief", 1);
+ok(r.allowed, "prior-month rollover proceeds");
+l = read();
+ok(l.reserve === 50 && l.monthly_limit === 1000, "malformed prior-month config clamped to DEFAULTS on rollover");
+
 // stale lock reclaimed
 wipe();
 reserve("brief", 1);
