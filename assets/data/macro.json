@@ -1,64 +1,64 @@
 {
-  "generated_at": "2026-07-20T22:38:27.928958+00:00",
+  "generated_at": "2026-07-21T22:34:54.898365+00:00",
   "vix": {
     "symbol": "^VIX",
-    "price": 18.65,
-    "prev": 18.77,
-    "change_pct": -0.64,
-    "as_of": 1784578501,
+    "price": 17.05,
+    "prev": 18.65,
+    "change_pct": -8.58,
+    "as_of": 1784664901,
     "source": "yahoo"
   },
   "treasury_10y": {
     "symbol": "^TNX",
-    "price": 4.598,
-    "prev": 4.541,
-    "change_pct": 1.26,
-    "as_of": 1784573993,
+    "price": 4.628,
+    "prev": 4.598,
+    "change_pct": 0.65,
+    "as_of": 1784660395,
     "source": "yahoo",
-    "yield_pct": 4.598
+    "yield_pct": 4.628
   },
   "dxy": {
     "symbol": "DX-Y.NYB",
-    "price": 100.999,
-    "prev": 100.765,
-    "change_pct": 0.23,
-    "as_of": 1784585099,
+    "price": 101.192,
+    "prev": 100.949,
+    "change_pct": 0.24,
+    "as_of": 1784671492,
     "source": "yahoo"
   },
   "fear_greed": {
-    "score": 37.5,
+    "score": 41.0,
     "rating": "fear",
-    "prev_close": 37.1,
-    "prev_1_week": 40.9,
-    "as_of": "2026-07-20T22:20:42+00:00"
+    "prev_close": 37.5,
+    "prev_1_week": 41.1,
+    "as_of": "2026-07-21T22:17:26+00:00"
   },
   "hsi": {
     "symbol": "^HSI",
-    "price": 25143.05,
-    "prev": 24562.24,
-    "change_pct": 2.36,
+    "price": 25132.29,
+    "prev": 25143.05,
+    "change_pct": -0.04,
     "source": "tencent"
   },
   "hstech": {
     "symbol": "^HSTECH",
-    "price": 4752.15,
-    "prev": 4623.17,
-    "change_pct": 2.79,
+    "price": 4814.83,
+    "prev": 4752.15,
+    "change_pct": 1.32,
     "source": "tencent"
   },
   "spx": {
     "symbol": "^GSPC",
-    "price": 7443.28,
-    "prev": 7457.69,
-    "change_pct": -0.19,
-    "as_of": 1784581698,
+    "price": 7509.2,
+    "prev": 7443.28,
+    "change_pct": 0.89,
+    "as_of": 1784666399,
     "source": "yahoo"
   },
   "nasdaq": {
     "symbol": "^IXIC",
-    "price": 25508.07,
-    "prev": 25520.24,
-    "change_pct": -0.05,
+    "price": 25837.21,
+    "prev": 25508.07,
+    "change_pct": 1.29,
     "source": "tencent"
   },
   "fed_press": [
@@ -71,11 +71,6 @@
       "date": "2026-07-16",
       "title": "Federal Reserve Board issues enforcement action with former chief lending officer of Heritage State Bank",
       "url": "https://www.federalreserve.gov/newsevents/pressreleases/enforcement20260716a.htm"
-    },
-    {
-      "date": "2026-07-14",
-      "title": "Minutes of the Board's discount rate meetings on June 8 and June 17, 2026",
-      "url": "https://www.federalreserve.gov/newsevents/pressreleases/monetary20260714a.htm"
     }
   ]
 }
