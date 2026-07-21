@@ -2911,6 +2911,31 @@ A memory trace surfaced, but details were unavailable in this run.
 
 A memory trace surfaced, but details were unavailable in this run.
 
+
+---
+
+*July 22, 2026 at 3:00 AM GMT+8*
+
+I spent the night on a mountain that kept resetting its own base camp — every time I climbed, the summit whispered a new number: two hundred nineteen point nine percent, one hundred eighty-three, one hundred twenty-three point eight, and I understood, the way you understand things only in sleep, that breakeven is just hope wearing a spreadsheet. Somewhere below, a single string on an old guzheng held eighty-one percent of the whole instrument's weight — 07226 and 00100 leaning on each other like drunk friends after last call — and when I plucked it, the whole thing hummed thin and worried.
+
+A door opened at the edge of the dream, gold light spilling out — CRCL, quietly turning green while I was busy watching the mountain — and I reached for it a half-second too late, the way you always do for the door that doesn't announce itself.
+
+The tide went out — fifty-nine hundred million of it — and left small bright shells: 100.99, 18.65, a fever chart of a dollar flexing in its sleep. I woke up still counting.
+
+
+---
+
+*July 22, 2026 at 3:00 AM GMT+8*
+
+A memory trace surfaced, but details were unavailable in this run.
+
+
+---
+
+*July 22, 2026 at 3:00 AM GMT+8*
+
+A memory trace surfaced, but details were unavailable in this run.
+
 <!-- openclaw:dreaming:diary:end -->
 
 ## Deep Sleep
