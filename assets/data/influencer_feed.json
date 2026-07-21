@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-20T22:32:41.618760+00:00",
+  "generated_at": "2026-07-21T14:51:23.857894+00:00",
   "lookback_hours": 48,
   "sources": {
     "trump": "trumpstruth.org/feed (primary)",
@@ -8,19 +8,19 @@
   },
   "llm_filtered": true,
   "counts": {
-    "total": 18,
-    "held_hits": 2,
+    "total": 16,
+    "held_hits": 4,
     "new_ideas": 0,
-    "sector_hits": 4
+    "sector_hits": 2
   },
   "items": [
     {
       "author": "Musk",
-      "text": "SPCX Stock Rises Overnight Even As Elon Musk Shoots Down Report Of $52B Foxconn-Nvidia Order As 'Fake News'",
+      "text": "Elon Musk: \"SpaceX will be worth more than the rest of Earth\"",
       "url": "",
-      "published": "Mon, 20 Jul 2026 07:31:00 GMT",
+      "published": "Tue, 21 Jul 2026 08:10:00 GMT",
       "origin": "gnews-rss",
-      "source": "Stocktwits",
+      "source": "The Jerusalem Post",
       "tickers": [
         "SPCX",
         "SPCH"
@@ -31,117 +31,148 @@
       ],
       "new_ideas": [],
       "sectors": [
-        "航天",
-        "半导体"
+        "航天"
       ],
       "sector_holdings": [],
-      "stance": "attack",
-      "relevance": 85,
-      "summary_cn": "Musk 亲自否认关于 SpaceX-富士康-英伟达 520 亿美元订单的报道为'假新闻'，但 SPCX 隔夜仍上涨，kcn 持仓 SPCX/SPCH 直接受影响。"
+      "stance": "endorse",
+      "relevance": 90,
+      "summary_cn": "Musk放话'SpaceX的市值将超过地球上其他所有公司总和'，极端看多SpaceX。"
     },
     {
       "author": "Musk",
-      "text": "Even With Elon Musk's SpaceX Stock (SPCX) Down Below Its IPO Price, I'd Still Rather Buy This Dividend Stock in July",
+      "text": "Elon Musk Has a Dire Warning for SpaceX Stock Short Sellers",
       "url": "",
-      "published": "Sun, 19 Jul 2026 22:58:00 GMT",
+      "published": "Tue, 21 Jul 2026 13:42:00 GMT",
       "origin": "gnews-rss",
-      "source": "Yahoo Finance",
+      "source": "Barron's",
       "tickers": [
-        "SPCX"
+        "SPCX",
+        "SPCH"
       ],
       "held": [
+        "SPCH",
         "SPCX"
       ],
       "new_ideas": [],
       "sectors": [
         "航天"
       ],
-      "sector_holdings": [
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 88,
+      "summary_cn": "Musk对SpaceX股票做空者发出严厉警告，强烈看多SpaceX，直接利好kcn持有的SPCX与SPCH。"
+    },
+    {
+      "author": "Musk",
+      "text": "Musk’s Fortune Falls Under $800 Billion After Aborted Starship Launch",
+      "url": "",
+      "published": "Fri, 17 Jul 2026 14:12:20 GMT",
+      "origin": "gnews-rss",
+      "source": "Forbes",
+      "tickers": [
+        "SPCX",
         "SPCH"
       ],
+      "held": [
+        "SPCH",
+        "SPCX"
+      ],
+      "new_ideas": [],
+      "sectors": [
+        "航天"
+      ],
+      "sector_holdings": [],
       "stance": "neutral",
       "relevance": 78,
-      "summary_cn": "报道标题提及 Musk 的 SpaceX 股票 SPCX 已跌破 IPO 价，分析师认为仍是买入机会，间接对 kcn 的 SPCX/SPCH 持仓偏多。"
+      "summary_cn": "Starship发射失败后Musk净资产跌破8000亿美元，反映短期航天估值波动，直接影响SPCX/SPCH。"
     },
     {
-      "author": "Trump",
-      "text": "RT @realDonaldTrumpThe People of Aberdeen, in Scotland, are dancing in the streets because the new Prime Minister, Andy Burnham, has stated that he will be opening up, all the way, the invaluable North Sea Oil! It is one of the Greatest Sources of quality Oil on Earth, has hundreds of years of Capacity left, with much not even found yet, and will make the United Kingdom, from a Poverty Stricken Disaster, to one of the Richest Countries anywhere in the World! Britain pays Norway Billions of Dollars a year to buy its Oil, which they get from a less valuable part of the North Sea — How ridiculous",
-      "url": "https://trumpstruth.org/statuses/40143",
-      "published": "2026-07-19T18:27:51+00:00",
-      "origin": "truthsocial",
+      "author": "Musk",
+      "text": "SpaceX Is Learning a Nasty Lesson About Going Public When Your Main Product Is Experimental",
+      "url": "",
+      "published": "Mon, 20 Jul 2026 22:30:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Futurism",
+      "tickers": [
+        "SPCX",
+        "SPCH"
+      ],
+      "held": [
+        "SPCH",
+        "SPCX"
+      ],
+      "new_ideas": [],
+      "sectors": [
+        "航天"
+      ],
+      "sector_holdings": [],
+      "stance": "attack",
+      "relevance": 72,
+      "summary_cn": "报道质疑SpaceX在主营产品仍处实验阶段时上市的风险，对SPCX/SPCH持有者构成警示。"
+    },
+    {
+      "author": "Musk",
+      "text": "Tesla Investors Want Answers About a Potential Merger With SpaceX",
+      "url": "",
+      "published": "Tue, 21 Jul 2026 10:16:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Business Insider",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "油气/能源"
+        "航天",
+        "电动车"
       ],
       "sector_holdings": [
-        "02208"
+        "SPCH",
+        "SPCX"
       ],
-      "stance": "endorse",
-      "relevance": 60,
-      "summary_cn": "Trump转发称英国新首相将全面开放北海石油，利好全球油气板块（含金风科技可再生能源替代逻辑较弱，但仍属能源主题）。"
+      "stance": "neutral",
+      "relevance": 68,
+      "summary_cn": "报道Tesla投资者要求Musk澄清Tesla与SpaceX潜在合并的可能性，涉两家公司资本运作。"
     },
     {
-      "author": "Trump",
-      "text": "The People of Aberdeen, in Scotland, are dancing in the streets because the new Prime Minister, Andy Burnham, has stated that he will be opening up, all the way, the invaluable North Sea Oil! It is one of the Greatest Sources of quality Oil on Earth, has hundreds of years of Capacity left, with much not even found yet, and will make the United Kingdom, from a Poverty Stricken Disaster, to one of the Richest Countries anywhere in the World! Britain pays Norway Billions of Dollars a year to buy its Oil, which they get from a less valuable part of the North Sea — How ridiculous is that! Also, wor",
-      "url": "https://trumpstruth.org/statuses/40108",
-      "published": "2026-07-19T14:05:05+00:00",
-      "origin": "truthsocial",
+      "author": "Musk",
+      "text": "What Construction Of Elon Musk's Terafab Would Mean For Tesla, SpaceX",
+      "url": "",
+      "published": "Tue, 21 Jul 2026 13:57:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Investor's Business Daily",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "油气/能源"
+        "AI",
+        "航天",
+        "电动车",
+        "半导体"
       ],
       "sector_holdings": [
-        "02208"
+        "SPCH",
+        "SPCX"
       ],
-      "stance": "endorse",
-      "relevance": 60,
-      "summary_cn": "Trump再次力挺英国全面开发北海石油，看多油气资源开发。"
+      "stance": "neutral",
+      "relevance": 65,
+      "summary_cn": "报道Musk推进'Terafab'建设，涉AI算力/制造，对Tesla、SpaceX及上游供应链具想象空间。"
     },
     {
-      "author": "Trump",
-      "text": "I had a very good conversation with the new Prime Minister of the United Kingdom, Andy Burnham. We discussed many subjects, including the outstanding relationship we have had with the UK. We will be meeting in the not too distant future for topics of mutual interest. The Prime Minister has got a big job ahead of him, but he will be able to do it and, of course, the U.S.A. will be there to help! We discussed North Sea Oil, Trade, the Military Alliance, Demining of the Hormuz Strait, and many other topics. The call was interesting, and went very well. I wished Prime Minister Burnham, GOOD LUCK A",
-      "url": "https://trumpstruth.org/statuses/40161",
-      "published": "2026-07-20T22:18:52+00:00",
-      "origin": "truthsocial",
+      "author": "Musk",
+      "text": "Elon Musk's Tesla Delivered 480,126 Vehicles in Its Best Quarter in 2 Years",
+      "url": "",
+      "published": "Tue, 21 Jul 2026 05:30:00 GMT",
+      "origin": "gnews-rss",
+      "source": "The Motley Fool",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "油气/能源",
-        "军事/国防",
-        "贸易"
+        "电动车"
       ],
-      "sector_holdings": [
-        "02208"
-      ],
+      "sector_holdings": [],
       "stance": "endorse",
-      "relevance": 55,
-      "summary_cn": "Trump与英国新首相通话，讨论北海石油、贸易及军事联盟，挺油气与国防主题。"
-    },
-    {
-      "author": "Trump",
-      "text": "Wonderful news! I have just been informed that Giant Eagle, a GREAT American Grocery Company, will be lowering Prices, by a lot, across more than 300 products this Summer, through Labor Day, to help hardworking American families. Giant Eagle, like Walmart, is stepping up in a big and bold way to answer my call to lower costs for working families. We will continue to bring Prices DOWN, just like Oil, Gas, Eggs, and Prescription Drugs, all of which are dropping FAST after the disaster we inherited from Sleepy Joe Biden. Other Grocery Chains must immediately follow the lead of these absolute Patr",
-      "url": "https://trumpstruth.org/statuses/40147",
-      "published": "2026-07-20T00:34:45+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "消费/零售",
-        "油气/能源",
-        "通胀/物价"
-      ],
-      "sector_holdings": [
-        "02208"
-      ],
-      "stance": "endorse",
-      "relevance": 50,
-      "summary_cn": "Trump称赞Giant Eagle大幅降价，并称油价、气价、蛋价、药价快速下降，宏观上利好消费与能源板块情绪。"
+      "relevance": 62,
+      "summary_cn": "Tesla季度交付480,126辆，创两年新高，基本面强劲。"
     },
     {
       "author": "Trump",
@@ -153,12 +184,12 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "军工/国防"
+        "国防军工"
       ],
       "sector_holdings": [],
       "stance": "endorse",
-      "relevance": 62,
-      "summary_cn": "Trump高调宣传宾州近100亿美元国防投资，利好美国国防工业板块。"
+      "relevance": 60,
+      "summary_cn": "Trump在宾州国防峰会上宣布近100亿美元国防投资，将创造数千就业。"
     },
     {
       "author": "Trump",
@@ -170,80 +201,32 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "军工/国防"
+        "国防军工"
       ],
       "sector_holdings": [],
       "stance": "endorse",
-      "relevance": 62,
-      "summary_cn": "宾州国防峰会带来约100亿美元国防合同，利好国防承包商。"
+      "relevance": 60,
+      "summary_cn": "宾州国防峰会达成近100亿美元国防合同，强调军工产业投资与就业。"
     },
     {
-      "author": "Trump",
-      "text": "Trump Touts $10 Billion Pa. Defense Investment: https://www.newsmax.com/newsfront/donald-trump-defense-summit-pennsylvania/2026/07/15/id/1262982/",
-      "url": "https://trumpstruth.org/statuses/40114",
-      "published": "2026-07-19T18:08:30+00:00",
-      "origin": "truthsocial",
+      "author": "Musk",
+      "text": "Elon Musk Says AI and Robots Will Do ‘So Much Stuff’ We Run Out of Things for Humans to Do — But ‘We’ll Basically Just Issue Money to People’",
+      "url": "",
+      "published": "Mon, 20 Jul 2026 22:30:15 GMT",
+      "origin": "gnews-rss",
+      "source": "Yahoo Finance",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "军工/国防"
+        "AI",
+        "机器人",
+        "UBI"
       ],
       "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 62,
-      "summary_cn": "Trump宣传宾州100亿美元国防投资，利好美国军工板块。"
-    },
-    {
-      "author": "Trump",
-      "text": "Trump announces $10 billion for defense projects in Pennsylvania: https://www.washingtontimes.com/news/2026/jul/15/trump-announces-10-billion-defense-projects-pennsylvania/",
-      "url": "https://trumpstruth.org/statuses/40115",
-      "published": "2026-07-19T18:08:16+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "军工/国防"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 62,
-      "summary_cn": "Trump宣布宾州100亿美元国防项目，强化国防工业基础。"
-    },
-    {
-      "author": "Trump",
-      "text": "Trump calls Pennsylvania ‘key’ to national defense renaissance: https://justthenews.com/nation/states/center-square/pennsylvania-called-key-national-defense-renaissance-trump-says",
-      "url": "https://trumpstruth.org/statuses/40116",
-      "published": "2026-07-19T18:08:01+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "军工/国防"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 62,
-      "summary_cn": "Trump称宾州为'国防复兴关键'，持续看多美国国防工业。"
-    },
-    {
-      "author": "Trump",
-      "text": "Trump Announces Nearly $10 Billion in Defense Industrial Base Investments in Pennsylvania at McCormick’s Summit: https://www.breitbart.com/politics/2026/07/15/trump-announces-nearly-10-billion-in-defense-industrial-base-investments-in-pennsylvania-at-mccormicks-summit/",
-      "url": "https://trumpstruth.org/statuses/40117",
-      "published": "2026-07-19T18:07:45+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "军工/国防"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 62,
-      "summary_cn": "Trump在McCormick峰会宣布宾州近100亿美元国防工业基础投资，利好国防板块（与9-13为同一事件多条重复报道，信息量同质）。"
+      "stance": "neutral",
+      "relevance": 58,
+      "summary_cn": "Musk预言AI与机器人将取代大部分人类工作，政府可能需要向民众直接发钱，暗示AI颠覆性及潜在UBI政策。"
     },
     {
       "author": "Trump",
@@ -255,197 +238,13 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "地缘政治/制裁",
-        "军工/国防"
+        "地缘政治",
+        "制裁"
       ],
       "sector_holdings": [],
       "stance": "endorse",
-      "relevance": 60,
-      "summary_cn": "Trump呼吁共和党将对伊朗制裁纳入俄罗斯制裁法案，强化对伊施压，间接利好国防与制裁相关板块。"
-    },
-    {
-      "author": "Trump",
-      "text": "Republicans should add Iran to the Russian Sanctions Bill. That’s what Lindsey wanted to do, and it was going to happen. IMPORTANT!!! President DJT",
-      "url": "https://trumpstruth.org/statuses/40107",
-      "published": "2026-07-19T11:54:33+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "地缘政治/制裁",
-        "军工/国防"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 60,
-      "summary_cn": "Trump再次主张将对伊制裁纳入俄制裁法案，地缘紧张升级利好国防板块。"
-    },
-    {
-      "author": "Musk",
-      "text": "Musk Says Tesla’s Will Remember How You Drive. Why That Matters for the Stock.",
-      "url": "",
-      "published": "Mon, 20 Jul 2026 12:07:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Barron's",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "电动车",
-        "AI"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 48,
-      "summary_cn": "Musk 称 Tesla 将记忆驾驶员驾驶习惯，涉及 FSD 数据优势叙事，被解读为利好 Tesla 股价（kcn 未持有）。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk's Tesla Remains One of the Last Great Founder-Led Tech Giants. Is the Stock a Buy Before July 22?",
-      "url": "",
-      "published": "Sun, 19 Jul 2026 20:05:00 GMT",
-      "origin": "gnews-rss",
-      "source": "The Motley Fool",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "电动车"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 45,
-      "summary_cn": "分析称 Musk 的 Tesla 是少数仍由创始人领导的科技巨头之一，问 Q2 财报前是否值得买入（kcn 未持仓）。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk sheds details on Tesla FSD’s upcoming improvements",
-      "url": "",
-      "published": "Mon, 20 Jul 2026 14:37:52 GMT",
-      "origin": "gnews-rss",
-      "source": "Teslarati",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "电动车",
-        "AI"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 45,
-      "summary_cn": "Musk 透露 Tesla FSD 即将到来的改进细节，偏多 Tesla 但 kcn 未持仓。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk's Tesla Releases Wall Street Estimates Ahead of Q2 Earnings: Here's What Analysts Expect",
-      "url": "",
-      "published": "Mon, 20 Jul 2026 08:20:31 GMT",
-      "origin": "gnews-rss",
-      "source": "Benzinga",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "电动车"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 45,
-      "summary_cn": "Musk 的 Tesla 发布 Q2 业绩前华尔街预期摘要，财报催化事件（kcn 无 Tesla 敞口）。"
-    }
-  ],
-  "held_hits": [
-    {
-      "author": "Musk",
-      "text": "SPCX Stock Rises Overnight Even As Elon Musk Shoots Down Report Of $52B Foxconn-Nvidia Order As 'Fake News'",
-      "url": "",
-      "published": "Mon, 20 Jul 2026 07:31:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Stocktwits",
-      "tickers": [
-        "SPCX",
-        "SPCH"
-      ],
-      "held": [
-        "SPCH",
-        "SPCX"
-      ],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "半导体"
-      ],
-      "sector_holdings": [],
-      "stance": "attack",
-      "relevance": 85,
-      "summary_cn": "Musk 亲自否认关于 SpaceX-富士康-英伟达 520 亿美元订单的报道为'假新闻'，但 SPCX 隔夜仍上涨，kcn 持仓 SPCX/SPCH 直接受影响。"
-    },
-    {
-      "author": "Musk",
-      "text": "Even With Elon Musk's SpaceX Stock (SPCX) Down Below Its IPO Price, I'd Still Rather Buy This Dividend Stock in July",
-      "url": "",
-      "published": "Sun, 19 Jul 2026 22:58:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Yahoo Finance",
-      "tickers": [
-        "SPCX"
-      ],
-      "held": [
-        "SPCX"
-      ],
-      "new_ideas": [],
-      "sectors": [
-        "航天"
-      ],
-      "sector_holdings": [
-        "SPCH"
-      ],
-      "stance": "neutral",
-      "relevance": 78,
-      "summary_cn": "报道标题提及 Musk 的 SpaceX 股票 SPCX 已跌破 IPO 价，分析师认为仍是买入机会，间接对 kcn 的 SPCX/SPCH 持仓偏多。"
-    }
-  ],
-  "new_ideas": [],
-  "sector_hits": [
-    {
-      "author": "Trump",
-      "text": "RT @realDonaldTrumpThe People of Aberdeen, in Scotland, are dancing in the streets because the new Prime Minister, Andy Burnham, has stated that he will be opening up, all the way, the invaluable North Sea Oil! It is one of the Greatest Sources of quality Oil on Earth, has hundreds of years of Capacity left, with much not even found yet, and will make the United Kingdom, from a Poverty Stricken Disaster, to one of the Richest Countries anywhere in the World! Britain pays Norway Billions of Dollars a year to buy its Oil, which they get from a less valuable part of the North Sea — How ridiculous",
-      "url": "https://trumpstruth.org/statuses/40143",
-      "published": "2026-07-19T18:27:51+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "油气/能源"
-      ],
-      "sector_holdings": [
-        "02208"
-      ],
-      "stance": "endorse",
-      "relevance": 60,
-      "summary_cn": "Trump转发称英国新首相将全面开放北海石油，利好全球油气板块（含金风科技可再生能源替代逻辑较弱，但仍属能源主题）。"
-    },
-    {
-      "author": "Trump",
-      "text": "The People of Aberdeen, in Scotland, are dancing in the streets because the new Prime Minister, Andy Burnham, has stated that he will be opening up, all the way, the invaluable North Sea Oil! It is one of the Greatest Sources of quality Oil on Earth, has hundreds of years of Capacity left, with much not even found yet, and will make the United Kingdom, from a Poverty Stricken Disaster, to one of the Richest Countries anywhere in the World! Britain pays Norway Billions of Dollars a year to buy its Oil, which they get from a less valuable part of the North Sea — How ridiculous is that! Also, wor",
-      "url": "https://trumpstruth.org/statuses/40108",
-      "published": "2026-07-19T14:05:05+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "油气/能源"
-      ],
-      "sector_holdings": [
-        "02208"
-      ],
-      "stance": "endorse",
-      "relevance": 60,
-      "summary_cn": "Trump再次力挺英国全面开发北海石油，看多油气资源开发。"
+      "relevance": 58,
+      "summary_cn": "Trump呼吁共和党将对伊朗制裁纳入对俄制裁法案，强化对伊施压。"
     },
     {
       "author": "Trump",
@@ -457,16 +256,14 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "油气/能源",
-        "军事/国防",
-        "贸易"
+        "能源",
+        "贸易",
+        "军事"
       ],
-      "sector_holdings": [
-        "02208"
-      ],
-      "stance": "endorse",
+      "sector_holdings": [],
+      "stance": "neutral",
       "relevance": 55,
-      "summary_cn": "Trump与英国新首相通话，讨论北海石油、贸易及军事联盟，挺油气与国防主题。"
+      "summary_cn": "Trump与英国新首相通话，讨论北海石油、贸易、军事联盟及霍尔木兹海峡排雷，涉能源与地缘政策。"
     },
     {
       "author": "Trump",
@@ -478,16 +275,214 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "消费/零售",
-        "油气/能源",
-        "通胀/物价"
+        "消费",
+        "通胀"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 55,
+      "summary_cn": "Trump表扬Giant Eagle与Walmart等超市响应其号召下调数百种商品价格，强调油价、气价、蛋价、药价下行。"
+    },
+    {
+      "author": "Trump",
+      "text": "RT @realDonaldTrumpThe People of Aberdeen, in Scotland, are dancing in the streets because the new Prime Minister, Andy Burnham, has stated that he will be opening up, all the way, the invaluable North Sea Oil! It is one of the Greatest Sources of quality Oil on Earth, has hundreds of years of Capacity left, with much not even found yet, and will make the United Kingdom, from a Poverty Stricken Disaster, to one of the Richest Countries anywhere in the World! Britain pays Norway Billions of Dollars a year to buy its Oil, which they get from a less valuable part of the North Sea — How ridiculous",
+      "url": "https://trumpstruth.org/statuses/40143",
+      "published": "2026-07-19T18:27:51+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "能源",
+        "石油"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 55,
+      "summary_cn": "Trump转发并力挺英国新首相开放北海石油，称其储量丰富，可让英国由穷变富、摆脱对挪威石油的依赖。"
+    },
+    {
+      "author": "Trump",
+      "text": "Across the nation, Trump’s long-predicted high-tax exodus has a Midwest sequel: https://justthenews.com/government/white-house/california-illinois-trumps-predicted-tax-apocalypse-has-midwest-sequel",
+      "url": "https://trumpstruth.org/statuses/40162",
+      "published": "2026-07-21T12:22:52+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "税收",
+        "州际移民"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 52,
+      "summary_cn": "报道跟进Trump关于加州/伊利诺伊等高税州出现'税收末日'式人口与企业外流的叙事。"
+    },
+    {
+      "author": "Trump",
+      "text": "RT: https://truthsocial.com/users/realDonaldTrump/statuses/116957942431800428Rich people and Companies are pouring out of Dumocrat run Blue States at levels never seen before! If this trend continues, these States will become the “Ghettos” of the Future — No people, no money, no hope. MAKE AMERICA GREAT AGAIN! President DONALD J. TRUMP",
+      "url": "https://trumpstruth.org/statuses/40163",
+      "published": "2026-07-21T12:27:09+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "税收",
+        "州际移民"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 50,
+      "summary_cn": "Trump称富人与企业正以历史性规模逃离高税蓝州，暗示税收/监管政策驱动资本外流。"
+    }
+  ],
+  "held_hits": [
+    {
+      "author": "Musk",
+      "text": "Elon Musk: \"SpaceX will be worth more than the rest of Earth\"",
+      "url": "",
+      "published": "Tue, 21 Jul 2026 08:10:00 GMT",
+      "origin": "gnews-rss",
+      "source": "The Jerusalem Post",
+      "tickers": [
+        "SPCX",
+        "SPCH"
+      ],
+      "held": [
+        "SPCH",
+        "SPCX"
+      ],
+      "new_ideas": [],
+      "sectors": [
+        "航天"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 90,
+      "summary_cn": "Musk放话'SpaceX的市值将超过地球上其他所有公司总和'，极端看多SpaceX。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk Has a Dire Warning for SpaceX Stock Short Sellers",
+      "url": "",
+      "published": "Tue, 21 Jul 2026 13:42:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Barron's",
+      "tickers": [
+        "SPCX",
+        "SPCH"
+      ],
+      "held": [
+        "SPCH",
+        "SPCX"
+      ],
+      "new_ideas": [],
+      "sectors": [
+        "航天"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 88,
+      "summary_cn": "Musk对SpaceX股票做空者发出严厉警告，强烈看多SpaceX，直接利好kcn持有的SPCX与SPCH。"
+    },
+    {
+      "author": "Musk",
+      "text": "Musk’s Fortune Falls Under $800 Billion After Aborted Starship Launch",
+      "url": "",
+      "published": "Fri, 17 Jul 2026 14:12:20 GMT",
+      "origin": "gnews-rss",
+      "source": "Forbes",
+      "tickers": [
+        "SPCX",
+        "SPCH"
+      ],
+      "held": [
+        "SPCH",
+        "SPCX"
+      ],
+      "new_ideas": [],
+      "sectors": [
+        "航天"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 78,
+      "summary_cn": "Starship发射失败后Musk净资产跌破8000亿美元，反映短期航天估值波动，直接影响SPCX/SPCH。"
+    },
+    {
+      "author": "Musk",
+      "text": "SpaceX Is Learning a Nasty Lesson About Going Public When Your Main Product Is Experimental",
+      "url": "",
+      "published": "Mon, 20 Jul 2026 22:30:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Futurism",
+      "tickers": [
+        "SPCX",
+        "SPCH"
+      ],
+      "held": [
+        "SPCH",
+        "SPCX"
+      ],
+      "new_ideas": [],
+      "sectors": [
+        "航天"
+      ],
+      "sector_holdings": [],
+      "stance": "attack",
+      "relevance": 72,
+      "summary_cn": "报道质疑SpaceX在主营产品仍处实验阶段时上市的风险，对SPCX/SPCH持有者构成警示。"
+    }
+  ],
+  "new_ideas": [],
+  "sector_hits": [
+    {
+      "author": "Musk",
+      "text": "Tesla Investors Want Answers About a Potential Merger With SpaceX",
+      "url": "",
+      "published": "Tue, 21 Jul 2026 10:16:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Business Insider",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "电动车"
       ],
       "sector_holdings": [
-        "02208"
+        "SPCH",
+        "SPCX"
       ],
-      "stance": "endorse",
-      "relevance": 50,
-      "summary_cn": "Trump称赞Giant Eagle大幅降价，并称油价、气价、蛋价、药价快速下降，宏观上利好消费与能源板块情绪。"
+      "stance": "neutral",
+      "relevance": 68,
+      "summary_cn": "报道Tesla投资者要求Musk澄清Tesla与SpaceX潜在合并的可能性，涉两家公司资本运作。"
+    },
+    {
+      "author": "Musk",
+      "text": "What Construction Of Elon Musk's Terafab Would Mean For Tesla, SpaceX",
+      "url": "",
+      "published": "Tue, 21 Jul 2026 13:57:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Investor's Business Daily",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "AI",
+        "航天",
+        "电动车",
+        "半导体"
+      ],
+      "sector_holdings": [
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "neutral",
+      "relevance": 65,
+      "summary_cn": "报道Musk推进'Terafab'建设，涉AI算力/制造，对Tesla、SpaceX及上游供应链具想象空间。"
     }
   ]
 }
