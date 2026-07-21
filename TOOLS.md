@@ -188,7 +188,7 @@ clawhub install <slug>
 | "用 Serenity 的方式看 X" / 产业链卡点深挖 / AI半导体瓶颈选股 / thesis 压力测试 | `serenity-skill` | 供应链 chokepoint 框架（8 因子评分卡 `skills/serenity-skill/scripts/serenity_scorecard.py`）；**重、手动深挖、不进 cron**；证据阶梯把 KOL/社媒判弱证据 → 对冲追微盘 pump |
 | 教育性问题（"什么是 MACD"、"position sizing 怎么算"） | `trading`（clawhub 装的） | guardrails 重、不给具体买卖判断；具体判断走上面 4 个 |
 | 抓需 JS 渲染 / 反爬的页面（雪球评论 / Futu 社区 / Reddit 深页） | `scrapling` | 配合上面的 stock-analysis Mode 5 调用 |
-| Web 搜索（新闻 / X / 中文社区 / 政策） | `tavily-search` | 不要让模型自己改用 Yahoo/Google 临时拼搜索 |
+| Web 搜索（新闻 / X / 中文社区 / 政策） | `tavily-search` | 不要让模型自己改用 Yahoo/Google 临时拼搜索。**免费档 1000 credits/月全局共享**，调用必带 `--bucket`（brief/report/intraday/research/extract）；盘中常规盯盘别烧、超限自动优雅降级回内置搜索 |
 | openclaw 升级后健康检查 / 磁盘膨胀 | `openclaw-tune` | 不动股票 |
 
 ⚠️ **不要做的 routing 错误**：
@@ -202,7 +202,7 @@ clawhub install <slug>
 
 ### 美股
 1. **Finnhub news** —— `scripts/data/analyze_us_stocks.py` 默认拉取，主英文媒体 + 关键词情绪打分
-2. **Tavily** —— 新闻 + X/Twitter trending（`node skills/tavily-search/scripts/search.mjs "{TICKER} sentiment" --topic news`）
+2. **Tavily** —— 新闻 + X/Twitter trending（`node skills/tavily-search/scripts/search.mjs "{TICKER} sentiment" --topic news --bucket report`）；⚠️ 仅开/收盘报告或盘中真事件用，带 `--bucket report`/`intraday`，盘中常规盯盘不烧 Tavily
 3. **Reddit JSON**（无需 auth）—— r/wallstreetbets（散户动量）+ r/stocks（理性）：
    ```bash
    curl -sH "User-Agent: openclaw/1.0" "https://www.reddit.com/r/wallstreetbets/search.json?q={TICKER}&restrict_sr=1&sort=new&limit=25"

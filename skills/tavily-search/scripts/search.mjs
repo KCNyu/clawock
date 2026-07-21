@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { precheck, commit } from "../lib/ledger.mjs";
+import { reserve, refund } from "../lib/ledger.mjs";
 
 function usage() {
   console.error(`Usage: search.mjs "query" [-n 5] [--deep] [--topic general|news] [--days 7] [--bucket name]`);
@@ -61,8 +61,10 @@ if (!apiKey) {
 }
 
 // Budget gate (hard guardrail). basic = 1 credit, advanced = 2.
+// reserve() charges up front and atomically, so concurrent callers can't blow
+// past the cap on a stale snapshot; a definite failure below refunds.
 const cost = searchDepth === "advanced" ? 2 : 1;
-const gate = precheck(bucket, cost);
+const gate = reserve(bucket, cost);
 if (!gate.allowed) {
   // Graceful degradation, same contract as the no-key path: exit 0 so a
   // faithful cron call is NOT marked failed; caller falls back to built-in search.
@@ -88,25 +90,32 @@ if (topic === "news" && days) {
   body.days = days;
 }
 
-const resp = await fetch("https://api.tavily.com/search", {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json",
-  },
-  body: JSON.stringify(body),
-});
+let resp;
+try {
+  resp = await fetch("https://api.tavily.com/search", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(body),
+  });
+} catch (err) {
+  // Network error → Tavily charged nothing, so give the reservation back.
+  refund(gate.bucket, cost);
+  throw err;
+}
 
 if (!resp.ok) {
-  // A failed request does not consume Tavily credits, so we do not charge.
+  // A failed request does not consume Tavily credits, so refund the reservation.
+  refund(gate.bucket, cost);
   const text = await resp.text().catch(() => "");
   throw new Error(`Tavily Search failed (${resp.status}): ${text}`);
 }
 
-// Success → charge the ledger and log remaining budget to stderr (not stdout,
+// Success → the reservation stands. Log remaining budget to stderr (not stdout,
 // so the report body stays clean).
-const led = commit(bucket, cost);
 console.error(
-  `[tavily] charged ${cost} to "${bucket}" — month ${led.total_used} used, ${led.remaining} left`,
+  `[tavily] charged ${cost} to "${gate.bucket}" — month ${gate.total_used} used, ${gate.remaining} left`,
 );
 
 const data = await resp.json();

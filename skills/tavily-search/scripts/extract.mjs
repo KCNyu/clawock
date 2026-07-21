@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { precheck, commit } from "../lib/ledger.mjs";
+import { reserve, refund } from "../lib/ledger.mjs";
 
 function usage() {
   console.error(`Usage: extract.mjs "url1" ["url2" ...] [--bucket name]`);
@@ -10,12 +10,20 @@ function usage() {
 const args = process.argv.slice(2);
 if (args.length === 0 || args[0] === "-h" || args[0] === "--help") usage();
 
-const urls = args.filter(a => !a.startsWith("-"));
-
-// Optional --bucket <name>; defaults to "extract".
+// Parse args explicitly so the --bucket VALUE is consumed and never mistaken
+// for a URL (that would inflate the extract cost and POST a junk URL to Tavily).
 let bucket = "extract";
-const bi = args.indexOf("--bucket");
-if (bi !== -1 && args[bi + 1]) bucket = args[bi + 1];
+const urls = [];
+for (let i = 0; i < args.length; i++) {
+  const a = args[i];
+  if (a === "--bucket") {
+    bucket = args[i + 1] ?? bucket;
+    i++;
+    continue;
+  }
+  if (a.startsWith("-")) continue; // ignore unknown flags
+  urls.push(a);
+}
 
 if (urls.length === 0) {
   console.error("No URLs provided");
@@ -33,9 +41,10 @@ if (!apiKey) {
   process.exit(0);
 }
 
-// Budget gate. Tavily bills extract at 1 credit per 5 URLs (basic).
+// Budget gate. Tavily bills extract at 1 credit per 5 URLs (basic). reserve()
+// charges up front and atomically; a definite failure below refunds.
 const cost = Math.max(1, Math.ceil(urls.length / 5));
-const gate = precheck(bucket, cost);
+const gate = reserve(bucket, cost);
 if (!gate.allowed) {
   console.log(
     "## Content extraction unavailable\n\n" +
@@ -44,25 +53,31 @@ if (!gate.allowed) {
   process.exit(0);
 }
 
-const resp = await fetch("https://api.tavily.com/extract", {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json",
-  },
-  body: JSON.stringify({
-    api_key: apiKey,
-    urls: urls,
-  }),
-});
+let resp;
+try {
+  resp = await fetch("https://api.tavily.com/extract", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      api_key: apiKey,
+      urls: urls,
+    }),
+  });
+} catch (err) {
+  refund(gate.bucket, cost);
+  throw err;
+}
 
 if (!resp.ok) {
+  refund(gate.bucket, cost);
   const text = await resp.text().catch(() => "");
   throw new Error(`Tavily Extract failed (${resp.status}): ${text}`);
 }
 
-const led = commit(bucket, cost);
 console.error(
-  `[tavily] extract charged ${cost} to "${bucket}" — month ${led.total_used} used, ${led.remaining} left`,
+  `[tavily] extract charged ${cost} to "${gate.bucket}" — month ${gate.total_used} used, ${gate.remaining} left`,
 );
 
 const data = await resp.json();
