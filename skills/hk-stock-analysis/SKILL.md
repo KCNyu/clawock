@@ -98,7 +98,7 @@ python3 /root/.openclaw/workspace/scripts/harness/intraday_preflight.py --market
 - 加 `▎我的看法` 段：**至少 60 字（postflight 软下限），目标 2-3 行**
   - 若 `should_alert=true`，**必须**提到 `anomalies` 里至少一个票
   - 必须包含：今天该看/该等/该减 + 引用至少 1 个具体数字（票现价 / 异动幅度 / 信号）
-  - ⚡ **板块全景鼓励 tavily-search**：板块名读 `memory/peer-map.json` 各 ticker 的 `theme` 字段（持仓变了自动跟变，不要写死任何 ticker）；search 拿板块今日 Top 涨幅 + 你持仓在榜单里的位置 + 1 句归因；持仓自己的数字仍从 context.json
+  - ⚡ **板块全景**：板块名读 `memory/peer-map.json` 各 ticker 的 `theme` 字段（持仓变了自动跟变，不要写死任何 ticker）；给板块今日 Top 涨幅 + 你持仓在榜单里的位置 + 1 句归因；持仓自己的数字仍从 context.json。板块行情**优先用内置 web search**；`tavily-search` 仅在**开盘/收盘报告**或盘中真事件时才用，且必带 `--bucket report`/`--bucket intraday`——盘中每 30 分钟的常规盯盘**不要**烧 Tavily（免费档 1000/月全局共享）
   - 禁止"无异动，观望"这种敷衍 1 句话
 - 目标 ≤1200 字；>2000 字 postflight warn，>2500 字 fail
 
@@ -151,7 +151,7 @@ context.json 关键字段：
 {raw_wechat_block 原样}
 
 ▎情绪面
-{Finnhub 新闻 + 恒指/恒科方向 → 大盘判断（2-3 行）；⚡ **板块全景鼓励 tavily-search**：板块名读 peer-map.json `theme`（持仓动态），search 今日板块 Top 5 + 你持仓位置 + 1 句归因}
+{Finnhub 新闻 + 恒指/恒科方向 → 大盘判断（2-3 行）；⚡ **板块全景**：板块名读 peer-map.json `theme`（持仓动态），今日板块 Top 5 + 你持仓位置 + 1 句归因。行情优先内置 web search；tavily 仅开盘/收盘或真事件用，带 `--bucket report`/`intraday`，盘中常规盯盘不烧 Tavily}
 
 ▎技术面
 {结合 anomalies + signals → 超买/超卖/突破（2-3 行）}
@@ -194,10 +194,10 @@ snapshot/dashboard，提交 scoped 产物并经 `safe_push.sh` 推送。
 港股情绪面跟美股不同 — 主战场是中文社区（雪球/富途牛牛/同花顺论坛/微博），不在 Reddit/X。源使用顺序：
 
 1. **Finnhub news（脚本带）** — `scripts/data/analyze_hk_stocks.py {TICKER}` 默认拉 Finnhub 7 天新闻。港股覆盖比美股稀疏，但能拿到主要英文媒体（Reuters / Bloomberg / SCMP）
-2. **Tavily 中文搜索** — 主要的中文新闻聚合：
+2. **Tavily 中文搜索** — 主要的中文新闻聚合。⚠️ **Budget rule**(免费档 1000/月全局共享)：盘中每 30 分钟盯盘**默认不调**；仅**开盘/收盘报告**或盘中真事件(异常波动/停牌/财报预警/政策公告)才用，必带 `--bucket report`(开/收盘) 或 `--bucket intraday`(盘中事件)；额度尽时脚本 exit 0 返回 unavailable 别当报错：
    ```bash
-   node /root/.openclaw/workspace/skills/tavily-search/scripts/search.mjs "{TICKER} 港股 最新" --topic news --days 3
-   node /root/.openclaw/workspace/skills/tavily-search/scripts/search.mjs "{中文公司名} 雪球 讨论"
+   node /root/.openclaw/workspace/skills/tavily-search/scripts/search.mjs "{TICKER} 港股 最新" --topic news --days 3 --bucket report
+   node /root/.openclaw/workspace/skills/tavily-search/scripts/search.mjs "{中文公司名} 雪球 讨论" --bucket report
    ```
 3. **雪球 HK 评论区（scrapling）** — 港股零售情绪核心，5 位代码格式 `HK{TICKER}`：
    ```python

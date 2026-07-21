@@ -1,7 +1,9 @@
 #!/usr/bin/env node
 
+import { reserve, refund } from "../lib/ledger.mjs";
+
 function usage() {
-  console.error(`Usage: search.mjs "query" [-n 5] [--deep] [--topic general|news] [--days 7]`);
+  console.error(`Usage: search.mjs "query" [-n 5] [--deep] [--topic general|news] [--days 7] [--bucket name]`);
   process.exit(2);
 }
 
@@ -13,6 +15,7 @@ let n = 5;
 let searchDepth = "basic";
 let topic = "general";
 let days = null;
+let bucket = "default"; // unbucketed calls are throttled hard on purpose
 
 for (let i = 1; i < args.length; i++) {
   const a = args[i];
@@ -35,6 +38,11 @@ for (let i = 1; i < args.length; i++) {
     i++;
     continue;
   }
+  if (a === "--bucket") {
+    bucket = args[i + 1] ?? "default";
+    i++;
+    continue;
+  }
   console.error(`Unknown arg: ${a}`);
   usage();
 }
@@ -47,6 +55,22 @@ if (!apiKey) {
   console.log(
     "## Web search unavailable\n\n" +
       "Tavily is not configured (TAVILY_API_KEY unset). " +
+      "Skip this source and use your built-in web search instead.",
+  );
+  process.exit(0);
+}
+
+// Budget gate (hard guardrail). basic = 1 credit, advanced = 2.
+// reserve() charges up front and atomically, so concurrent callers can't blow
+// past the cap on a stale snapshot; a definite failure below refunds.
+const cost = searchDepth === "advanced" ? 2 : 1;
+const gate = reserve(bucket, cost);
+if (!gate.allowed) {
+  // Graceful degradation, same contract as the no-key path: exit 0 so a
+  // faithful cron call is NOT marked failed; caller falls back to built-in search.
+  console.log(
+    "## Web search unavailable\n\n" +
+      `Tavily budget guardrail: ${gate.reason}. ` +
       "Skip this source and use your built-in web search instead.",
   );
   process.exit(0);
@@ -66,6 +90,10 @@ if (topic === "news" && days) {
   body.days = days;
 }
 
+// Ambiguous network failures (ECONNRESET etc.) may have arrived AFTER Tavily
+// billed, so we do NOT refund them — keeping the reservation is the safe
+// (conservative over-count) direction for a hard cap. Only a definite HTTP
+// error response is a guaranteed non-billed outcome and gets refunded.
 const resp = await fetch("https://api.tavily.com/search", {
   method: "POST",
   headers: {
@@ -75,9 +103,16 @@ const resp = await fetch("https://api.tavily.com/search", {
 });
 
 if (!resp.ok) {
+  refund(gate.bucket, cost, gate.month);
   const text = await resp.text().catch(() => "");
   throw new Error(`Tavily Search failed (${resp.status}): ${text}`);
 }
+
+// Success → the reservation stands. Log remaining budget to stderr (not stdout,
+// so the report body stays clean).
+console.error(
+  `[tavily] charged ${cost} to "${gate.bucket}" — month ${gate.total_used} used, ${gate.remaining} left`,
+);
 
 const data = await resp.json();
 
