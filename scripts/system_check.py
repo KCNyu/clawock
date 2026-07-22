@@ -178,28 +178,79 @@ def check_peer_map_coverage(r):
         r.add('peer-map coverage', OK, 'all active holdings mapped')
 
 
-def check_no_leaked_secrets(r):
-    """Tracked files must not contain raw API keys."""
-    bad = []
+# Loose key-ish shapes. These can collide with ordinary prose/slugs, so they skip
+# *.md — see the 2026-07-15 note below.
+SECRET_PATTERNS_LOOSE = (
+    # \b or the prefix matches mid-word: the charset includes '-', so
+    # "risk-on-with-trend-conflict" in a plan.json reads as sk- + 21 legal
+    # chars and blocked every push on 2026-07-15. A real key's sk-/tp- always
+    # starts a word (line start, quote, '=', whitespace).
+    r'\bsk-[a-zA-Z0-9_-]{20,}'
+    r'|\btp-[a-zA-Z0-9_-]{20,}'
+    r'|FINNHUB_API_KEY\s*=\s*[a-zA-Z0-9]+'
+    r'|POLYGON_API_KEY\s*=\s*[a-zA-Z0-9]+'
+)
+
+# Structurally unambiguous credential markers. A PEM header or a vendor key with a
+# fixed prefix + fixed length cannot plausibly occur in prose, so these also scan
+# *.md — which is exactly where the memory-promotion cron writes, and where a
+# credential pasted into a session could otherwise land in the public repo.
+SECRET_PATTERNS_STRICT = (
+    r'-----BEGIN [A-Z ]*PRIVATE KEY-----'          # any PEM private key
+    r'|"type"\s*:\s*"service_account"'              # GCP service-account JSON
+    r'|\bAIza[0-9A-Za-z_-]{35}\b'                   # Google/Gemini API key
+    r'|\b[0-9]{8,10}:AA[A-Za-z0-9_-]{33}\b'         # Telegram bot token
+    r'|\bgh[pousr]_[A-Za-z0-9]{36}\b'               # GitHub PAT
+    r'|\bAKIA[0-9A-Z]{16}\b'                        # AWS access key id
+    r'|\bxox[baprs]-[A-Za-z0-9-]{10,}'              # Slack token
+)
+
+# Never scan the pattern definitions themselves, the ignore list, or the local
+# runtime config (openclaw.json legitimately holds live keys and is untracked).
+_SCAN_EXCLUDES = [':!.gitignore', ':!openclaw.json*', ':!.githooks/*',
+                  ':!scripts/system_check.py']
+
+
+def _grep_tracked(pattern, extra_excludes=()):
+    """Run `git grep -nE` over tracked files.
+
+    Returns (lines, failure). `failure` is None on a real answer; on anything that
+    stops the scan from running it carries a reason. The distinction matters: a
+    security check that swallows its own errors reports OK while scanning nothing.
+    That is not hypothetical — the strict tier's PEM pattern starts with '-', which
+    git parsed as an option flag until `-e` was added below, and the old blanket
+    `except` turned that into a silent pass.
+    """
     try:
-        out = subprocess.check_output(
-            ['git', '-C', str(WS), 'grep', '-nE',
-             # \b or the prefix matches mid-word: the charset includes '-', so
-             # "risk-on-with-trend-conflict" in a plan.json reads as sk- + 21 legal
-             # chars and blocked every push on 2026-07-15. A real key's sk-/tp- always
-             # starts a word (line start, quote, '=', whitespace).
-             r'(\bsk-[a-zA-Z0-9_-]{20,}|\btp-[a-zA-Z0-9_-]{20,}|FINNHUB_API_KEY\s*=\s*[a-zA-Z0-9]+|POLYGON_API_KEY\s*=\s*[a-zA-Z0-9]+)',
-             '--', ':!*.md', ':!.gitignore', ':!openclaw.json*', ':!.githooks/*', ':!scripts/system_check.py'],
-            text=True, timeout=10, stderr=subprocess.DEVNULL,
+        p = subprocess.run(
+            # -e is required: a pattern starting with '-' is otherwise read as a flag.
+            ['git', '-C', str(WS), 'grep', '-nE', '-e', pattern,
+             '--', *_SCAN_EXCLUDES, *extra_excludes],
+            capture_output=True, text=True, timeout=10,
         )
-        if out.strip():
-            bad = out.strip().splitlines()[:3]
-    except subprocess.CalledProcessError:
-        pass  # git grep returns 1 when no match — that's the OK case
-    except Exception:
-        pass
+    except Exception as e:  # timeout, git missing, …
+        return [], f'{type(e).__name__}: {e}'
+    if p.returncode == 0:
+        return p.stdout.strip().splitlines(), None
+    if p.returncode == 1:
+        return [], None  # git grep returns 1 when no match — that's the OK case
+    return [], f'git grep rc={p.returncode}: {p.stderr.strip()[:160]}'
+
+
+def check_no_leaked_secrets(r):
+    """Tracked files must not contain raw API keys or private credentials."""
+    loose, err_loose = _grep_tracked(SECRET_PATTERNS_LOOSE,
+                                     extra_excludes=(':!*.md',))
+    strict, err_strict = _grep_tracked(SECRET_PATTERNS_STRICT)
+    failures = [e for e in (err_loose, err_strict) if e]
+    bad = loose + strict
     if bad:
-        r.add('secret leak scan', CRITICAL, f'{len(bad)} potential leaks: {bad}')
+        r.add('secret leak scan', CRITICAL,
+              f'{len(bad)} potential leaks: {bad[:3]}')
+    elif failures:
+        # Fail closed: an unusable scanner must never read as "no secrets found".
+        r.add('secret leak scan', CRITICAL,
+              f'scan did not run, cannot certify: {failures}')
     else:
         r.add('secret leak scan', OK, 'no leaked secrets in tracked files')
 
