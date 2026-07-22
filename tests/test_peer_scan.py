@@ -120,13 +120,23 @@ def test_skills_only_claim_peer_scan_where_a_preflight_emits_it(skill):
     read a `peer_scan` that a preflight does not write would recreate exactly that
     footgun in a quieter form.
     """
+    import ast
+
     body = (WS / "skills" / skill / "SKILL.md").read_text()
     if "peer_scan" not in body:
         pytest.skip("skill does not reference peer_scan")
+
+    def emitted_keys(path):
+        """Keys of every dict literal in the module — a comment or a dead string
+        mentioning peer_scan must not satisfy this test."""
+        tree = ast.parse(path.read_text())
+        return {k.value for node in ast.walk(tree) if isinstance(node, ast.Dict)
+                for k in node.keys if isinstance(k, ast.Constant) and isinstance(k.value, str)}
+
     for name in ("report_preflight", "intraday_preflight"):
-        src = (WS / "scripts" / "harness" / f"{name}.py").read_text()
-        assert "'peer_scan':" in src, f"{skill} promises peer_scan but {name} never writes it"
-        assert "peer_scan.collect" in src
+        path = WS / "scripts" / "harness" / f"{name}.py"
+        assert "peer_scan" in emitted_keys(path), \
+            f"{skill} promises peer_scan but {name} never writes that key"
 
 
 def test_flat_peer_outranks_losers(wired, monkeypatch):

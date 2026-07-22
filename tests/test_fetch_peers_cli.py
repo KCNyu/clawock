@@ -203,6 +203,46 @@ def test_a_slow_worker_cannot_overrun_the_budget(fp, monkeypatch):
     assert elapsed < fp.TIMEOUT / 2, f'worker overran the budget: {elapsed:.2f}s'
 
 
+def test_process_exits_despite_an_uncooperative_worker():
+    """The budget must hold at PROCESS level, not just inside fetch_all.
+
+    `requests`' timeout is an inactivity timeout, so a provider that trickles
+    bytes outlives its clamp; and executor threads are non-daemon, so the
+    interpreter joins them at exit. The caller reads our stdout to EOF, so a
+    lingering thread holds *its* 120s timeout open and discards JSON we already
+    wrote. This worker ignores the deadline entirely — the previous cooperative
+    test (it slept exactly `_req_timeout`) could not catch that.
+    """
+    import subprocess
+    import textwrap
+    import time
+
+    program = textwrap.dedent(f"""
+        import sys, time
+        sys.path.insert(0, {DATA_SCRIPTS!r})
+        import fetch_peers as fp
+
+        def uncooperative(ticker, deadline=None):
+            time.sleep(30)                      # never looks at the deadline
+            return {{'ticker': ticker, 'region': 'hk', 'price': 1.0}}
+
+        fp.fetch_hk_one = uncooperative
+        req = [{{'ticker': 'T%d' % i, 'region': 'hk'}} for i in range(4)]
+        results = fp.fetch_all(req, deadline_s=0.05, workers=4)
+        print('DONE', len(results), flush=True)
+        fp.hard_exit(0)
+    """)
+
+    started = time.monotonic()
+    r = subprocess.run([sys.executable, '-c', program],
+                       capture_output=True, text=True, timeout=25)
+    elapsed = time.monotonic() - started
+
+    assert r.returncode == 0
+    assert 'DONE 4' in r.stdout, 'partial results must still reach the caller'
+    assert elapsed < 10, f'process did not exit on time: {elapsed:.2f}s'
+
+
 def test_duplicate_tickers_resolve_deterministically(fp, monkeypatch):
     """Results are keyed by ticker; concurrency must not decide who wins."""
     peers = [{'ticker': 'A', 'region': 'us'}, {'ticker': 'A', 'region': 'hk'},

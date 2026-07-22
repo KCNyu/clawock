@@ -20,7 +20,9 @@ Three traps this file has already paid for:
     which stores raw bars because a historical trigger price must stay nominal. A
     split inside the window would otherwise read as a phantom ±50% move.
   * The batch budget must clamp each request's own timeout, or it is advisory
-    only — see `_req_timeout`.
+    only — see `_req_timeout`. Even clamped it is not a hard stop: `requests`
+    times out on inactivity, not total elapsed time, and executor threads are
+    non-daemon, so the process leaves via `hard_exit`.
 
 Exit codes:
   0  results produced (including an explicit empty `[]` request), or --help
@@ -29,6 +31,7 @@ Exit codes:
 Fatal diagnostics go to stderr; stdout stays machine-readable.
 """
 import json
+import os
 import sys
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -395,5 +398,22 @@ def main(argv=None):
     return 0
 
 
+def hard_exit(code: int):
+    """Leave the process now, even if a provider thread is still trickling.
+
+    Two things conspire to make `fetch_all` returning on time insufficient:
+    `requests`' `timeout=` is an *inactivity* timeout rather than a total
+    wall-clock one, so a provider that dribbles bytes can outlive its clamp; and
+    `ThreadPoolExecutor` threads are non-daemon, so the interpreter joins them at
+    exit no matter what `shutdown(wait=False, cancel_futures=True)` asked for. The
+    caller reads our stdout to EOF, so a lingering thread holds *its* 120s
+    timeout open and the JSON we already finished writing gets discarded. Flush
+    what we produced, then stop the process outright.
+    """
+    sys.stdout.flush()
+    sys.stderr.flush()
+    os._exit(code)
+
+
 if __name__ == '__main__':
-    sys.exit(main())
+    hard_exit(main())
