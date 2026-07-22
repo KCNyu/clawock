@@ -51,9 +51,14 @@ def _names_agree(fetched, configured):
     return bool(a) and bool(b) and (a in b or b in a)
 
 
-def collect(portfolio, log=print):
+def collect(portfolio, log=print, legs=None):
     """For each active holding with a peer entry in peer-map.json, fetch peer
-    prices and flag divergence (peer up significantly while holding flat/down)."""
+    prices and flag divergence (peer up significantly while holding flat/down).
+
+    `legs` limits which portfolio legs are scanned ('hk_stocks'/'us_stocks'). A
+    single-market caller must pass its own leg: filtering the *result* instead
+    would still pay the full cross-market network fan-out first.
+    """
     peer_map_path = WS / 'memory' / 'peer-map.json'
     if not peer_map_path.exists():
         return {}
@@ -65,7 +70,7 @@ def collect(portfolio, log=print):
 
     # Index holdings by ticker for self-pct lookup
     h_by_ticker = {}
-    for region in ('hk_stocks', 'us_stocks'):
+    for region in (legs or ('hk_stocks', 'us_stocks')):
         for h in portfolio['portfolios'].get(region, {}).get('holdings', []):
             if h.get('shares', 0) > 0:
                 h_by_ticker[h['ticker']] = {
@@ -144,8 +149,11 @@ def collect(portfolio, log=print):
                           f'configured {p["name"]} vs feed {fetched_name}')
                 peer_results.append(entry)
 
-        # Sort by 1d pct desc
-        peer_results.sort(key=lambda x: x.get('pct_1d') or -999, reverse=True)
+        # Sort by 1d pct desc, unpriced last. NOT `or -999`: a genuinely flat
+        # peer (0.0) would sort below every loser.
+        peer_results.sort(
+            key=lambda x: x['pct_1d'] if x.get('pct_1d') is not None else float('-inf'),
+            reverse=True)
 
         # Divergence: best peer outperformed holding by ≥3% today
         best_peer = peer_results[0] if peer_results else None

@@ -160,17 +160,17 @@ def collect_peers(market):
     numbers, so the agent had to improvise a peer fetch at report time. Peer
     trouble must never fail the report: any problem degrades to an empty scan.
     """
+    leg = 'hk_stocks' if market == 'hk' else 'us_stocks'
     try:
         portfolio = json.loads((WS / 'portfolio.json').read_text())
+        # Scope to this market's leg *before* fetching: filtering the result
+        # afterwards would still pay the full cross-market network fan-out.
         # stdout is the context JSON the agent parses; diagnostics go to stderr.
-        scan = peer_scan.collect(portfolio, log=lambda m: print(m, file=sys.stderr))
+        return peer_scan.collect(portfolio, log=lambda m: print(m, file=sys.stderr),
+                                 legs=(leg,))
     except Exception as e:
         print(f'   ⚠️  peer scan skipped: {e}', file=sys.stderr)
         return {}
-    leg = 'hk_stocks' if market == 'hk' else 'us_stocks'
-    tickers = {h['ticker'] for h in portfolio['portfolios'].get(leg, {}).get('holdings', [])
-               if h.get('shares', 0) > 0}
-    return {t: v for t, v in scan.items() if t in tickers}
 
 
 def main():

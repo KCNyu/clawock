@@ -88,7 +88,7 @@ dreaming 留独占窗口，所以 EST 季比 EDT 季少两个 slot。
 ```bash
 python3 /root/.openclaw/workspace/scripts/harness/intraday_preflight.py --market us
 ```
-输出 `memory/.tmp/intraday-context-us-latest.json`，关键字段：`should_alert` + `alert_reasons`。
+输出 `memory/.tmp/intraday-context-us-latest.json`，关键字段：`should_alert` + `alert_reasons`，另有 `peer_scan`（本腿持仓的板块+同业涨跌，已排序）。
 
 #### Step 2: 写报告
 - 拷贝 `raw_wechat_block` 到消息开头（**verbatim — 不许改格式不许 trim**）

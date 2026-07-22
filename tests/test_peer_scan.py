@@ -111,6 +111,62 @@ def test_agreeing_name_carries_no_mismatch_flag(wired):
     assert "name_mismatch" not in zhipu
 
 
+@pytest.mark.parametrize("skill", ["hk-stock-analysis", "us-stock-analysis"])
+def test_skills_only_claim_peer_scan_where_a_preflight_emits_it(skill):
+    """Doc-code contract: a SKILL that says "preflight gives you X" must be true.
+
+    The 2026-07-22 cron went red because the SKILL asked for a sector Top 5 while
+    no preflight supplied the data, so the agent improvised a fetch. Telling it to
+    read a `peer_scan` that a preflight does not write would recreate exactly that
+    footgun in a quieter form.
+    """
+    body = (WS / "skills" / skill / "SKILL.md").read_text()
+    if "peer_scan" not in body:
+        pytest.skip("skill does not reference peer_scan")
+    for name in ("report_preflight", "intraday_preflight"):
+        src = (WS / "scripts" / "harness" / f"{name}.py").read_text()
+        assert "'peer_scan':" in src, f"{skill} promises peer_scan but {name} never writes it"
+        assert "peer_scan.collect" in src
+
+
+def test_flat_peer_outranks_losers(wired, monkeypatch):
+    """`or -999` would bury a genuinely flat peer below every loser."""
+    fetched = {
+        "02513": {"price": 1.0, "pct_1d": 0.0, "pct_5d": 0.0, "name": "智谱"},
+        "09999": {"price": 1.0, "pct_1d": -5.0, "pct_5d": 0.0, "name": "完全不同的公司"},
+        "00001": {"price": 1.0, "pct_1d": -1.0, "pct_5d": 0.0, "name": "退市了"},
+    }
+
+    class FakeCompleted:
+        returncode = 0
+        stdout = json.dumps({"peers": fetched})
+        stderr = ""
+
+    import subprocess as sp
+    monkeypatch.setattr(sp, "run", lambda *a, **kw: FakeCompleted())
+    scan = wired.collect(PORTFOLIO, log=lambda m: None)
+    order = [p["ticker"] for p in scan["00100"]["listed_peers"]]
+    assert order == ["02513", "00001", "09999"], "0.0 must sort above -1.0 and -5.0"
+
+
+def test_legs_scopes_the_scan_before_fetching(wired):
+    """A single-market caller must not pay the cross-market fan-out."""
+    portfolio = {
+        "portfolios": {
+            "hk_stocks": {"holdings": [
+                {"ticker": "00100", "shares": 100, "today_change_pct": -3.0, "pnl_percent": -65.1},
+            ]},
+            "us_stocks": {"holdings": [
+                {"ticker": "SOLD", "shares": 5, "today_change_pct": 1.0, "pnl_percent": 1.0},
+            ]},
+        }
+    }
+    both = wired.collect(portfolio, log=lambda m: None)
+    assert {"00100", "SOLD"} <= set(both)
+    hk_only = wired.collect(portfolio, log=lambda m: None, legs=("hk_stocks",))
+    assert set(hk_only) == {"00100"}
+
+
 def test_peers_are_sorted_and_divergence_is_flagged(wired):
     scan = wired.collect(PORTFOLIO, log=lambda m: None)
     entry = scan["00100"]

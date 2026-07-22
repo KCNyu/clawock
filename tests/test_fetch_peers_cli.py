@@ -120,8 +120,12 @@ def test_quote_age_accepts_a_fresh_line_in_either_format(fp):
         assert out['quote_time']
 
 
-def test_five_day_move_uses_the_unadjusted_series(fp, monkeypatch):
-    """qfq bars would silently re-price the comparison through later splits."""
+def test_five_day_move_uses_the_adjusted_series(fp, monkeypatch):
+    """A split inside the window would read as a phantom ±50% move on raw bars.
+
+    Opposite of fetch_daily_bars.py, which stores raw bars because a historical
+    trigger price must stay nominal. This is a return, so it needs qfq.
+    """
     captured = {}
 
     def fake_get(url, **kw):
@@ -131,9 +135,91 @@ def test_five_day_move_uses_the_unadjusted_series(fp, monkeypatch):
     monkeypatch.setattr(fp.requests, 'get', fake_get)
     out = {}
     fp._apply_pct_5d(out, 'hk00700')
-    assert 'kline/kline' in captured['url']
-    assert 'fqkline' not in captured['url'] and 'qfq' not in captured['url']
+    assert 'fqkline/get' in captured['url'] and captured['url'].endswith(',qfq')
     assert out['error_kline']
+
+
+def test_closes_prefer_qfqday_over_day(fp, monkeypatch):
+    """Tencent only emits qfqday when an adjustment actually happened."""
+    class R:
+        @staticmethod
+        def json():
+            return {'data': {'hk00700': {
+                'qfqday': [['d', '1', '10.0'], ['d', '1', '11.0']],
+                'day':    [['d', '1', '99.0'], ['d', '1', '98.0']],
+            }}}
+
+    monkeypatch.setattr(fp.requests, 'get', lambda *a, **kw: R())
+    assert fp.tencent_closes('hk00700') == [10.0, 11.0]
+
+
+def test_budget_is_enforced_not_advisory(fp):
+    """Executor shutdown waits for running workers, so the clamp is load-bearing.
+
+    Without `_req_timeout` narrowing each in-flight request, an already-started
+    worker runs its full TIMEOUT past the budget and the caller's own 120s
+    subprocess timeout is what actually fires.
+    """
+    import time
+    req = [{'ticker': f'0000{i}', 'region': 'hk'} for i in range(10)]
+    started = time.monotonic()
+    results = fp.fetch_all(req, deadline_s=0.05)
+    elapsed = time.monotonic() - started
+    assert elapsed < 2.0, f'budget not enforced: took {elapsed:.2f}s'
+    assert len(results) == 10
+    assert all('error_deadline' in r for r in results.values())
+
+
+def test_exhausted_budget_raises_before_issuing_a_request(fp):
+    import time
+    with pytest.raises(fp.BudgetExhausted):
+        fp._req_timeout(time.monotonic() - 1)
+    assert fp._req_timeout(None) == fp.TIMEOUT
+    assert fp._req_timeout(time.monotonic() + 1000) == fp.TIMEOUT
+
+
+def test_request_timeout_shrinks_to_the_remaining_budget(fp):
+    """The clamp is the whole enforcement — returning TIMEOUT flat re-breaks it."""
+    import time
+    left = fp._req_timeout(time.monotonic() + 0.5)
+    assert left < fp.TIMEOUT, 'per-request timeout must shrink near the deadline'
+    assert 0 < left <= 0.5
+
+
+def test_a_slow_worker_cannot_overrun_the_budget(fp, monkeypatch):
+    """Executor shutdown waits for running workers, so this is not hypothetical."""
+    import time
+
+    def slow(ticker, deadline=None):
+        # Mimics a provider that hangs: sleeps for whatever timeout it is handed.
+        time.sleep(fp._req_timeout(deadline))
+        return {'ticker': ticker, 'region': 'hk', 'price': 1.0}
+
+    monkeypatch.setattr(fp, 'fetch_hk_one', slow)
+    req = [{'ticker': f'T{i}', 'region': 'hk'} for i in range(4)]
+    started = time.monotonic()
+    fp.fetch_all(req, deadline_s=0.3, workers=2)
+    elapsed = time.monotonic() - started
+    assert elapsed < fp.TIMEOUT / 2, f'worker overran the budget: {elapsed:.2f}s'
+
+
+def test_duplicate_tickers_resolve_deterministically(fp, monkeypatch):
+    """Results are keyed by ticker; concurrency must not decide who wins."""
+    peers = [{'ticker': 'A', 'region': 'us'}, {'ticker': 'A', 'region': 'hk'},
+             {'ticker': 'B', 'region': 'us'}]
+    unique, dropped = fp.dedupe(peers)
+    assert [p['ticker'] for p in unique] == ['A', 'B']
+    assert unique[0]['region'] == 'us', 'first occurrence must win'
+    assert dropped == ['A']
+
+    # …and fetch_all must actually apply it, not just expose the helper.
+    monkeypatch.setattr(fp, 'fetch_hk_one',
+                        lambda t, deadline=None: {'ticker': t, 'region': 'hk'})
+    monkeypatch.setattr(fp, 'fetch_us_one',
+                        lambda t, deadline=None: {'ticker': t, 'region': 'us'})
+    results = fp.fetch_all(peers)
+    assert list(results) == ['A', 'B']
+    assert results['A']['region'] == 'us', 'the later duplicate must not win the key'
 
 
 def test_five_day_move_needs_six_bars(fp, monkeypatch):
