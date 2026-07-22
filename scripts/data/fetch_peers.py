@@ -27,6 +27,8 @@ Fatal diagnostics go to stderr; stdout stays machine-readable.
 """
 import json
 import sys
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from concurrent.futures import TimeoutError as FuturesTimeout
 from datetime import datetime, timezone
 from typing import Dict
 
@@ -37,6 +39,10 @@ HEADERS = {'User-Agent': UA}
 TIMEOUT = 8
 VALID_REGIONS = ('hk', 'us')
 STALE_QUOTE_DAYS = 7
+# The only caller runs this as a subprocess under a 120s timeout, so the batch
+# must finish comfortably inside that or it returns nothing at all.
+DEADLINE_SECONDS = 90
+MAX_WORKERS = 8
 
 USAGE = """\
 usage: fetch_peers.py [-h]
@@ -214,6 +220,52 @@ def fetch_us_one(ticker: str) -> Dict:
     return out
 
 
+def fetch_all(peers, deadline_s: float = DEADLINE_SECONDS, workers: int = MAX_WORKERS):
+    """Fetches every peer under one shared wall-clock budget.
+
+    Sequentially, each ticker could burn two TIMEOUT-second requests, so a bad
+    provider day used to blow past the caller's own 120s subprocess timeout and
+    discard the whole batch — the failure mode being that *nobody* gets peer data
+    because one provider was slow. Whatever has landed when the budget runs out
+    is returned; the rest carry `error_deadline` and the batch still exits 0.
+
+    Results keep request order regardless of completion order.
+    """
+    results = {p['ticker']: None for p in peers}
+    if not peers:
+        return {}
+
+    def one(p):
+        if p.get('region', 'us') == 'hk':
+            return fetch_hk_one(p['ticker'])
+        return fetch_us_one(p['ticker'])
+
+    with ThreadPoolExecutor(max_workers=min(workers, len(peers))) as pool:
+        futures = {pool.submit(one, p): p for p in peers}
+        try:
+            for fut in as_completed(futures, timeout=deadline_s):
+                p = futures[fut]
+                try:
+                    results[p['ticker']] = fut.result()
+                except Exception as e:
+                    results[p['ticker']] = {'ticker': p['ticker'],
+                                            'region': p.get('region', 'us'),
+                                            'error_fetch': str(e)[:80]}
+        except FuturesTimeout:
+            for fut, p in futures.items():
+                fut.cancel()
+
+    late = [t for t, r in results.items() if r is None]
+    for t in late:
+        p = next(p for p in peers if p['ticker'] == t)
+        results[t] = {'ticker': t, 'region': p.get('region', 'us'),
+                      'error_deadline': f'not returned within {deadline_s:.0f}s budget'}
+    if late:
+        print(f'fetch_peers.py: warning: {len(late)}/{len(peers)} tickers hit the '
+              f'{deadline_s:.0f}s budget: {",".join(late)}', file=sys.stderr)
+    return results
+
+
 def parse_request(raw: str):
     """Returns (peers, error). `error` is a human-readable string when invalid."""
     if not raw.strip():
@@ -254,13 +306,7 @@ def main(argv=None):
         print(f'fetch_peers.py: {err}', file=sys.stderr)
         return 1
 
-    results = {}
-    for p in peers:
-        t = p['ticker']
-        if p.get('region', 'us') == 'hk':
-            results[t] = fetch_hk_one(t)
-        else:
-            results[t] = fetch_us_one(t)
+    results = fetch_all(peers)
 
     priced = [t for t, r in results.items() if 'price' in r]
     if peers and not priced:
