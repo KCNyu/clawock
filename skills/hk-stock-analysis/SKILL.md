@@ -87,7 +87,7 @@ python3 /root/.openclaw/workspace/scripts/data/analyze_hk_stocks.py --no-fetch  
 python3 /root/.openclaw/workspace/scripts/harness/intraday_preflight.py --market hk
 ```
 跑 `scripts/data/analyze_hk_stocks.py --wechat --md-table` + 抽信号 + 异动，输出 `memory/.tmp/intraday-context-hk-latest.json`。
-关键字段：`should_alert` (bool) + `alert_reasons` (异动票/STOP 计数等)。
+关键字段：`should_alert` (bool) + `alert_reasons` (异动票/STOP 计数等)。另有 `peer_scan`（本腿持仓的板块+同业涨跌，已排序）。
 
 #### Step 2: 写报告
 - 拷贝 `raw_wechat_block` 到消息开头（**verbatim — 不许改格式不许 trim**）
@@ -98,7 +98,7 @@ python3 /root/.openclaw/workspace/scripts/harness/intraday_preflight.py --market
 - 加 `▎我的看法` 段：**至少 60 字（postflight 软下限），目标 2-3 行**
   - 若 `should_alert=true`，**必须**提到 `anomalies` 里至少一个票
   - 必须包含：今天该看/该等/该减 + 引用至少 1 个具体数字（票现价 / 异动幅度 / 信号）
-  - ⚡ **板块全景**：板块名读 `memory/peer-map.json` 各 ticker 的 `theme` 字段（持仓变了自动跟变，不要写死任何 ticker）；给板块今日 Top 涨幅 + 你持仓在榜单里的位置 + 1 句归因；持仓自己的数字仍从 context.json。板块行情**优先用内置 web search**；`tavily-search` 仅在**开盘/收盘报告**或盘中真事件时才用，且必带 `--bucket report`/`--bucket intraday`——盘中每 30 分钟的常规盯盘**不要**烧 Tavily（免费档 1000/月全局共享）
+  - ⚡ **板块全景**：数据**已由 preflight 备好**在 context.json 的 `peer_scan` 里（每个 active ticker 一项：`theme` 板块名、`listed_peers` 已按今日涨幅降序、含 `pct_1d`/`pct_5d`、`divergence_signal`、`self_pct_1d`）。**直接引用它,不要自己去读 peer-map.json、也不要自己调 `fetch_peers.py`**；给板块今日 Top 5 + 你持仓在榜单里的位置 + 1 句归因;`peer_scan` 为空或缺项时才回退 web search。若某条带 `name_mismatch`,以 feed 名为准并在报告里提一句。持仓自己的数字仍从 context.json。板块行情**优先用内置 web search**；`tavily-search` 仅在**开盘/收盘报告**或盘中真事件时才用，且必带 `--bucket report`/`--bucket intraday`——盘中每 30 分钟的常规盯盘**不要**烧 Tavily（免费档 1000/月全局共享）
   - 禁止"无异动，观望"这种敷衍 1 句话
 - 目标 ≤1200 字；>2000 字 postflight warn，>2500 字 fail
 
@@ -141,6 +141,7 @@ context.json 关键字段：
 - `raw_wechat_block` — 脚本数据块，**verbatim 拷贝到消息开头**。⚠️ 若含 markdown 表格（7 列 holdings），**表头/分隔/数据三类行每字符 1:1 复制**，不要重写分隔行 — 列数必须一致，postflight 会 fail。
 - `title` — WeChat 标题（按 phase 自动选）
 - `signal_count` / `anomalies` / `index_direction` — 用于写分析段
+- `peer_scan` — 每持仓的板块 + 同业今日/5日涨跌(已排序)+ 背离信号,**板块全景段直接用它**
 - `needs_risk_section` — STOP+TRIM ≥ 2 时为 true，必须加 ▎风险提示 段
 - `commit_msg` — postflight 用
 
@@ -151,7 +152,7 @@ context.json 关键字段：
 {raw_wechat_block 原样}
 
 ▎情绪面
-{Finnhub 新闻 + 恒指/恒科方向 → 大盘判断（2-3 行）；⚡ **板块全景**：板块名读 peer-map.json `theme`（持仓动态），今日板块 Top 5 + 你持仓位置 + 1 句归因。行情优先内置 web search；tavily 仅开盘/收盘或真事件用，带 `--bucket report`/`intraday`，盘中常规盯盘不烧 Tavily}
+{Finnhub 新闻 + 恒指/恒科方向 → 大盘判断（2-3 行）；⚡ **板块全景**：读 context.json 的 `peer_scan`（已含 theme + 排好序的同业涨跌），今日板块 Top 5 + 你持仓位置 + 1 句归因。行情优先内置 web search；tavily 仅开盘/收盘或真事件用，带 `--bucket report`/`intraday`，盘中常规盯盘不烧 Tavily}
 
 ▎技术面
 {结合 anomalies + signals → 超买/超卖/突破（2-3 行）}

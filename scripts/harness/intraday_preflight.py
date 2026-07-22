@@ -12,6 +12,8 @@ Each invocation:
   2. Captures stdout (LLM uses verbatim)
   3. Detects anomalies (≥3% move, RSI extremes from script signals)
   4. Decides should_alert: bool (true if any anomaly OR ≥2 signals)
+  4b. Collects peer/rotation data for this leg (`peer_scan`), free Tencent feed
+      only, so the 板块全景 line has real numbers instead of an improvised fetch
   5. Writes memory/.tmp/intraday-context-{market}-{HHMM}.json
 
 NB: Mode 7 is lightweight on purpose (8 HK + 10 US slots per trading day).
@@ -36,6 +38,7 @@ TMP = WS / 'memory' / '.tmp'
 sys.path.insert(0, str(DATA_DIR))
 import trading_calendar  # noqa: E402
 import cron_heartbeat  # noqa: E402
+import peer_scan  # noqa: E402
 
 
 def run_analyze(market):
@@ -111,6 +114,24 @@ def parse_anomalies(stdout):
             'severity': 'high' if pct >= 5 else 'medium',
         })
     return anomalies
+
+
+def collect_peers(market):
+    """Peer/rotation data for this market's holdings (板块全景 section).
+
+    Scoped to the leg being watched so a HK check-in never fans out to US
+    tickers. Only hits the free Tencent feed and shares fetch_peers' 90s budget;
+    peers must never delay or fail a check-in, so anything wrong degrades to {}.
+    """
+    leg = 'hk_stocks' if market == 'hk' else 'us_stocks'
+    try:
+        portfolio = json.loads((WS / 'portfolio.json').read_text())
+        # stdout carries the context JSON the agent parses; logs go to stderr.
+        return peer_scan.collect(portfolio, log=lambda m: print(m, file=sys.stderr),
+                                 legs=(leg,))
+    except Exception as e:
+        print(f'   ⚠️  peer scan skipped: {e}', file=sys.stderr)
+        return {}
 
 
 def main():
@@ -204,6 +225,7 @@ def main():
         'should_alert':     should_alert,
         'alert_reasons':    alert_reasons,
         't0_setups':        t0_setups,
+        'peer_scan':        collect_peers(args.market),
         'heartbeat':        {'job': heartbeat['job'], 'slot': heartbeat['slot']},
     }
 
