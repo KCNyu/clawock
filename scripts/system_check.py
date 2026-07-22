@@ -185,10 +185,16 @@ SECRET_PATTERNS_LOOSE = (
     # "risk-on-with-trend-conflict" in a plan.json reads as sk- + 21 legal
     # chars and blocked every push on 2026-07-15. A real key's sk-/tp- always
     # starts a word (line start, quote, '=', whitespace).
-    r'\bsk-[a-zA-Z0-9_-]{20,}'
-    r'|\btp-[a-zA-Z0-9_-]{20,}'
-    r'|FINNHUB_API_KEY\s*=\s*[a-zA-Z0-9]+'
-    r'|POLYGON_API_KEY\s*=\s*[a-zA-Z0-9]+'
+    r'\bsk-[a-zA-Z0-9_-]{20,}'          # OpenAI-style, incl. MiniMax sk-cp-…
+    r'|\btp-[a-zA-Z0-9_-]{20,}'         # Xiaomi tp-…
+    # Vendors whose keys carry no distinguishing prefix (Alpha Vantage, Mistral)
+    # can only be caught by the variable they are assigned to. Bound to '=' so a
+    # bare mention of the variable name in prose or a `${{ secrets.X }}` reference
+    # does not fire.
+    r'|(FINNHUB|POLYGON|ALPHA_VANTAGE|MISTRAL|TAVILY|MINIMAX|XIAOMI)_API_KEY\s*=\s*[A-Za-z0-9_-]{8,}'
+    # Nostr accepts a bare 64-hex private key. Raw 64-hex is far too common
+    # (sha256 sums, lockfiles) to match on its own, so require the variable name.
+    r'|NOSTR_PRIVATE_KEY\s*=\s*[0-9a-fA-F]{64}'
 )
 
 # Structurally unambiguous credential markers. A PEM header or a vendor key with a
@@ -203,6 +209,10 @@ SECRET_PATTERNS_STRICT = (
     r'|\bgh[pousr]_[A-Za-z0-9]{36}\b'               # GitHub PAT
     r'|\bAKIA[0-9A-Z]{16}\b'                        # AWS access key id
     r'|\bxox[baprs]-[A-Za-z0-9-]{10,}'              # Slack token
+    r'|\btvly-[A-Za-z0-9_-]{20,}'                   # Tavily search key
+    # Nostr nsec (bech32: fixed prefix, fixed length, no b/i/o/1 in the charset).
+    # nostr_publish.js signs with this — a leak lets anyone post as Rick.
+    r'|\bnsec1[02-9ac-hj-np-z]{58}\b'
 )
 
 # Never scan the pattern definitions themselves, the ignore list, or the local
