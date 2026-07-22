@@ -1,0 +1,693 @@
+{
+  "schema_version": 2,
+  "date": "2026-07-22",
+  "plan_date": "2026-07-22",
+  "created_at": "2026-07-22T08:05:00+08:00",
+  "fx_rate_usdhkd": 7.8407,
+  "fx_source": "Frankfurter",
+  "fx_fetched_at": "2026-07-22T00:02:22+00:00",
+  "regime": {
+    "us": "risk_on",
+    "hk": "neutral"
+  },
+  "book": {
+    "usd_total_pnl": -7707.2,
+    "hkd_total_pnl": -60429.83,
+    "hk_leg_hkd": -46590.84,
+    "us_leg_usd": -1765.02,
+    "hk_leg_usd_equiv": -5942.18,
+    "us_leg_hkd_equiv": -13838.99
+  },
+  "concentration": {
+    "hk": {
+      "hhi": 0.352,
+      "top2_pct": 82.3,
+      "verdict": "⚠️ 集中风险"
+    },
+    "us": {
+      "hhi": 0.243,
+      "top2_pct": 59.4,
+      "verdict": "偏集中"
+    }
+  },
+  "decisions": [
+    {
+      "schema_version": 2,
+      "decision_id": "dec-b67c5ec6c864",
+      "episode_id": "ep-1e8c4a72f356",
+      "decision_group_id": "2026-07-22:RKLX",
+      "plan_date": "2026-07-22",
+      "created_at": "2026-07-22T08:00:00+08:00",
+      "ticker": "RKLX",
+      "name": "",
+      "leg": "US",
+      "strategy_id": "risk_rebalance",
+      "thesis_id": "rklx-2x-to-1x-swap",
+      "action": "cut",
+      "condition": {
+        "type": "open",
+        "price": null,
+        "description": ""
+      },
+      "size": {
+        "shares": 10,
+        "pct": 100.0,
+        "note": ""
+      },
+      "confidence": 0.9,
+      "driven_by": "risk_rule",
+      "rationale": "硬止损 -61.1% ≪ -18%；2x decay 已在浮亏深处暴露无意义；swap 1x RKLB（买 2-3 sh @市价 ≈ $230）保商业航天方向，停 2x 日内重置损耗。🧭RKLX 收复吊灯止损线 (ch=35.4) + regime 转 green 才换回 2x。",
+      "simulated_entry_price": 19.33,
+      "horizon_sessions": 1,
+      "override": {
+        "status": "none",
+        "reason": "",
+        "expires_on": null,
+        "revisit_condition": ""
+      },
+      "evaluation": {
+        "status": "pending",
+        "triggered": null,
+        "trigger_session": null,
+        "execution_price": null,
+        "underlying_return_t1_pct": null,
+        "benefit_t1_pct": null,
+        "benefit_t5_pct": null,
+        "outcome": "pending",
+        "capital": null
+      },
+      "execution": {
+        "status": "unknown",
+        "detected_at": null,
+        "source": null
+      },
+      "migration": {
+        "source": "plan_v1"
+      }
+    },
+    {
+      "schema_version": 2,
+      "decision_id": "dec-391dbca595e5",
+      "episode_id": "ep-2f9d5b83e467",
+      "decision_group_id": "2026-07-22:SPCH",
+      "plan_date": "2026-07-22",
+      "created_at": "2026-07-22T08:00:00+08:00",
+      "ticker": "SPCH",
+      "name": "",
+      "leg": "US",
+      "strategy_id": "risk_rebalance",
+      "thesis_id": "spch-2x-to-1x-swap-regime-red",
+      "action": "cut",
+      "condition": {
+        "type": "open",
+        "price": null,
+        "description": ""
+      },
+      "size": {
+        "shares": 140,
+        "pct": 100.0,
+        "note": ""
+      },
+      "confidence": 0.88,
+      "driven_by": "risk_rule",
+      "rationale": "🧭制度red（SPCX 破200线 -2.5%）+ 硬止损 -52.6% ≪ -18%；SPCH 单名 40.67% > 35% cap；US 杠杆 ETF 83.5% > 50% cap，三重触发；swap 1x SPCX 保 SpaceX 方向（8/4 首份财报 + 限售解禁是潜在硬催化）。🧭SPCX 收复 200MA + regime 转 green 才换回 2x。",
+      "simulated_entry_price": 7.725,
+      "horizon_sessions": 1,
+      "override": {
+        "status": "none",
+        "reason": "",
+        "expires_on": null,
+        "revisit_condition": ""
+      },
+      "evaluation": {
+        "status": "pending",
+        "triggered": null,
+        "trigger_session": null,
+        "execution_price": null,
+        "underlying_return_t1_pct": null,
+        "benefit_t1_pct": null,
+        "benefit_t5_pct": null,
+        "outcome": "pending",
+        "capital": null
+      },
+      "execution": {
+        "status": "unknown",
+        "detected_at": null,
+        "source": null
+      },
+      "migration": {
+        "source": "plan_v1"
+      }
+    },
+    {
+      "schema_version": 2,
+      "decision_id": "dec-87d73b0dfd7d",
+      "episode_id": "ep-3a0e6c94f578",
+      "decision_group_id": "2026-07-22:PLTU",
+      "plan_date": "2026-07-22",
+      "created_at": "2026-07-22T08:00:00+08:00",
+      "ticker": "PLTU",
+      "name": "",
+      "leg": "US",
+      "strategy_id": "risk_rebalance",
+      "thesis_id": "pltu-2x-to-1x-swap",
+      "action": "cut",
+      "condition": {
+        "type": "open",
+        "price": null,
+        "description": ""
+      },
+      "size": {
+        "shares": 14,
+        "pct": 100.0,
+        "note": ""
+      },
+      "confidence": 0.85,
+      "driven_by": "risk_rule",
+      "rationale": "硬止损 -21.8% ≪ -18%；PLTR 趋势 OFF 但 RSI 52.8 横盘稳健；PLTR 2x decay 2.02%/月 + 浮亏深处，2x 已无 edge；swap 1x PLTR 保 AI 应用方向。🧭PLTR 收复 200MA + 趋势转 ON 才换回 2x。",
+      "simulated_entry_price": 32.02,
+      "horizon_sessions": 1,
+      "override": {
+        "status": "none",
+        "reason": "",
+        "expires_on": null,
+        "revisit_condition": ""
+      },
+      "evaluation": {
+        "status": "pending",
+        "triggered": null,
+        "trigger_session": null,
+        "execution_price": null,
+        "underlying_return_t1_pct": null,
+        "benefit_t1_pct": null,
+        "benefit_t5_pct": null,
+        "outcome": "pending",
+        "capital": null
+      },
+      "execution": {
+        "status": "unknown",
+        "detected_at": null,
+        "source": null
+      },
+      "migration": {
+        "source": "plan_v1"
+      }
+    },
+    {
+      "schema_version": 2,
+      "decision_id": "dec-c5abb5610c85",
+      "episode_id": "ep-4b1f7d05a689",
+      "decision_group_id": "2026-07-22:07226",
+      "plan_date": "2026-07-22",
+      "created_at": "2026-07-22T08:00:00+08:00",
+      "ticker": "07226",
+      "name": "",
+      "leg": "HK",
+      "strategy_id": "risk_rebalance",
+      "thesis_id": "07226-2x-to-1x-swap-amber-regime",
+      "action": "cut",
+      "condition": {
+        "type": "open",
+        "price": null,
+        "description": ""
+      },
+      "size": {
+        "shares": 1162,
+        "pct": 19.0,
+        "note": ""
+      },
+      "confidence": 0.85,
+      "driven_by": "risk_rule",
+      "rationale": "🧭HK 制度 amber（趋势 OFF）×0.5 → 杠杆 ETF cap 25%；当前 41.2% 超 cap 16pp；单名 41.15% > 35%；HSTECH 4800 支撑确认借强换 1x 03033，保方向停 2x decay。🧭HSTECH 突破 5000 + 趋势转 ON 才换回 2x。Bull/Bear 真分歧点：Bull 想借反弹保底仓，Bear 想借反弹 trim 至 35%——纪律先，thesis 后。",
+      "simulated_entry_price": 3.59,
+      "horizon_sessions": 1,
+      "override": {
+        "status": "none",
+        "reason": "",
+        "expires_on": null,
+        "revisit_condition": ""
+      },
+      "evaluation": {
+        "status": "pending",
+        "triggered": null,
+        "trigger_session": null,
+        "execution_price": null,
+        "underlying_return_t1_pct": null,
+        "benefit_t1_pct": null,
+        "benefit_t5_pct": null,
+        "outcome": "pending",
+        "capital": null
+      },
+      "execution": {
+        "status": "unknown",
+        "detected_at": null,
+        "source": null
+      },
+      "migration": {
+        "source": "plan_v1"
+      }
+    },
+    {
+      "schema_version": 2,
+      "decision_id": "dec-d529a77a3200",
+      "episode_id": "ep-5c2a8e16b790",
+      "decision_group_id": "2026-07-22:00100",
+      "plan_date": "2026-07-22",
+      "created_at": "2026-07-22T08:00:00+08:00",
+      "ticker": "00100",
+      "name": "",
+      "leg": "HK",
+      "strategy_id": "risk_rebalance",
+      "thesis_id": "00100-trim-single-name-cap",
+      "action": "trim_on_rebound",
+      "condition": {
+        "type": "price_above",
+        "price": 230.0,
+        "description": ""
+      },
+      "size": {
+        "shares": 15,
+        "pct": 15.0,
+        "note": ""
+      },
+      "confidence": 0.62,
+      "driven_by": "risk_rule",
+      "rationale": "单名 41.12% > 35% cap 6pp；昨天 trim 区间 190-200 设错（现价 222），今天挂 230+ 区间；trim 15 sh ≈ HKD 3,336 → 单名降至 ~35%；这是组合政策型再平衡，不是看空 thesis（摩根士丹利 7/16 减持 7.36%→4.09% 是 disconfirming soft，但 trim 不因此触发）。",
+      "simulated_entry_price": 222.4,
+      "horizon_sessions": 1,
+      "override": {
+        "status": "none",
+        "reason": "",
+        "expires_on": null,
+        "revisit_condition": ""
+      },
+      "evaluation": {
+        "status": "pending",
+        "triggered": null,
+        "trigger_session": null,
+        "execution_price": null,
+        "underlying_return_t1_pct": null,
+        "benefit_t1_pct": null,
+        "benefit_t5_pct": null,
+        "outcome": "pending",
+        "capital": null
+      },
+      "execution": {
+        "status": "unknown",
+        "detected_at": null,
+        "source": null
+      },
+      "migration": {
+        "source": "plan_v1"
+      }
+    },
+    {
+      "schema_version": 2,
+      "decision_id": "dec-e7257be62d44",
+      "episode_id": "ep-c2339dd5865d",
+      "decision_group_id": "2026-07-22:MSFU",
+      "plan_date": "2026-07-22",
+      "created_at": "2026-07-22T08:00:00+08:00",
+      "ticker": "MSFU",
+      "name": "",
+      "leg": "US",
+      "strategy_id": "core_position",
+      "thesis_id": "msfu-near-hard-stop-watch",
+      "action": "hold_and_watch",
+      "condition": {
+        "type": "price_below",
+        "price": 20.5,
+        "description": ""
+      },
+      "size": {
+        "shares": null,
+        "pct": null,
+        "note": "hold 中, 不主动 cut；触发后 swap 全仓 20 sh MSFU → ~1 sh MSFT"
+      },
+      "confidence": 0.65,
+      "driven_by": "risk_rule",
+      "rationale": "浮亏 -14.5% 离 -18% 硬止损线仅 3.5pp；MSFT 397.75 RSI 53.4 趋势平，杠杆 ETF 在横盘暴露无 edge；不主动 cut（history MSFU 主动 call win 45% 偏弱），但硬止损线必须执行——收盘破 20.5 立即 swap 1x MSFT。",
+      "simulated_entry_price": 24.9,
+      "horizon_sessions": 1,
+      "override": {
+        "status": "none",
+        "reason": "",
+        "expires_on": null,
+        "revisit_condition": ""
+      },
+      "evaluation": {
+        "status": "pending",
+        "triggered": null,
+        "trigger_session": null,
+        "execution_price": null,
+        "underlying_return_t1_pct": null,
+        "benefit_t1_pct": null,
+        "benefit_t5_pct": null,
+        "outcome": "pending",
+        "capital": null
+      },
+      "execution": {
+        "status": "unknown",
+        "detected_at": null,
+        "source": null
+      },
+      "migration": {
+        "source": "plan_v1"
+      }
+    },
+    {
+      "schema_version": 2,
+      "decision_id": "dec-f2aa1fe3fc4c",
+      "episode_id": "ep-381dbca8b2bc",
+      "decision_group_id": "2026-07-22:CRCL",
+      "plan_date": "2026-07-22",
+      "created_at": "2026-07-22T08:00:00+08:00",
+      "ticker": "CRCL",
+      "name": "",
+      "leg": "US",
+      "strategy_id": "core_position",
+      "thesis_id": "crcl-occ-bank-license-position-too-small",
+      "action": "hold_and_watch",
+      "condition": {
+        "type": "manual",
+        "price": null,
+        "description": ""
+      },
+      "size": {
+        "shares": null,
+        "pct": null,
+        "note": "仓位 5.3% US leg 太小, 不值大动"
+      },
+      "confidence": 0.55,
+      "driven_by": "catalyst",
+      "rationale": "OCC 银行牌照获批（7/20 CNBC 独家）+ 8/5 股东大会是潜在 [confirming] 催化；但近 5 日已涨 9.2% — 已在价；history 主动 call win 43% 偏弱；仓位 5.3% 太小, 不值主动 trim；hold 让 catalyst 自然兑现。",
+      "simulated_entry_price": 70.82,
+      "horizon_sessions": 1,
+      "override": {
+        "status": "none",
+        "reason": "",
+        "expires_on": null,
+        "revisit_condition": ""
+      },
+      "evaluation": {
+        "status": "pending",
+        "triggered": null,
+        "trigger_session": null,
+        "execution_price": null,
+        "underlying_return_t1_pct": null,
+        "benefit_t1_pct": null,
+        "benefit_t5_pct": null,
+        "outcome": "pending",
+        "capital": null
+      },
+      "execution": {
+        "status": "unknown",
+        "detected_at": null,
+        "source": null
+      },
+      "migration": {
+        "source": "plan_v1"
+      }
+    },
+    {
+      "schema_version": 2,
+      "decision_id": "dec-4e6155ba38f2",
+      "episode_id": "ep-c9ad0269088c",
+      "decision_group_id": "2026-07-22:02208",
+      "plan_date": "2026-07-22",
+      "created_at": "2026-07-22T08:00:00+08:00",
+      "ticker": "02208",
+      "name": "",
+      "leg": "HK",
+      "strategy_id": "core_position",
+      "thesis_id": "02208-blackrock-addition-history-cautions",
+      "action": "hold_and_watch",
+      "condition": {
+        "type": "manual",
+        "price": null,
+        "description": ""
+      },
+      "size": {
+        "shares": null,
+        "pct": null,
+        "note": "history 主动 call win 27% (11 ep) — 多半没跑赢持有, hold"
+      },
+      "confidence": 0.6,
+      "driven_by": "catalyst",
+      "rationale": "贝莱德增持 + 中期票据注册 [confirming]；昨日反弹 +3.83% 弱于东方电气 +6.35%；history 主动 call win 27% (持×9 胜2, 加×2 胜1) — 加仓多半没跑赢持有；拍 hold 让机构资金效应自然展开，**若 RSI 跌破 35 再考虑 add_only_on_trigger**。",
+      "simulated_entry_price": 9.76,
+      "horizon_sessions": 1,
+      "override": {
+        "status": "none",
+        "reason": "",
+        "expires_on": null,
+        "revisit_condition": ""
+      },
+      "evaluation": {
+        "status": "pending",
+        "triggered": null,
+        "trigger_session": null,
+        "execution_price": null,
+        "underlying_return_t1_pct": null,
+        "benefit_t1_pct": null,
+        "benefit_t5_pct": null,
+        "outcome": "pending",
+        "capital": null
+      },
+      "execution": {
+        "status": "unknown",
+        "detected_at": null,
+        "source": null
+      },
+      "migration": {
+        "source": "plan_v1"
+      }
+    },
+    {
+      "schema_version": 2,
+      "decision_id": "dec-7427b9d39975",
+      "episode_id": "ep-030b05031ced",
+      "decision_group_id": "2026-07-22:03033",
+      "plan_date": "2026-07-22",
+      "created_at": "2026-07-22T08:00:00+08:00",
+      "ticker": "03033",
+      "name": "",
+      "leg": "HK",
+      "strategy_id": "core_position",
+      "thesis_id": "03033-1x-hstech-hold",
+      "action": "hold_and_watch",
+      "condition": {
+        "type": "manual",
+        "price": null,
+        "description": ""
+      },
+      "size": {
+        "shares": null,
+        "pct": null,
+        "note": "hold 中, 不增不减"
+      },
+      "confidence": 0.7,
+      "driven_by": "technical",
+      "rationale": "1x HSTECH 替代 07226 的接盘标的；HSTECH 4800 区域支撑确认；RSI 56.4 中位偏强，无明确反转信号；history 主动 call win 38% — hold 是默认。",
+      "simulated_entry_price": 4.722,
+      "horizon_sessions": 1,
+      "override": {
+        "status": "none",
+        "reason": "",
+        "expires_on": null,
+        "revisit_condition": ""
+      },
+      "evaluation": {
+        "status": "pending",
+        "triggered": null,
+        "trigger_session": null,
+        "execution_price": null,
+        "underlying_return_t1_pct": null,
+        "benefit_t1_pct": null,
+        "benefit_t5_pct": null,
+        "outcome": "pending",
+        "capital": null
+      },
+      "execution": {
+        "status": "unknown",
+        "detected_at": null,
+        "source": null
+      },
+      "migration": {
+        "source": "plan_v1"
+      }
+    },
+    {
+      "schema_version": 2,
+      "decision_id": "dec-57c87e2efe34",
+      "episode_id": "ep-77857969f965",
+      "decision_group_id": "2026-07-22:03032",
+      "plan_date": "2026-07-22",
+      "created_at": "2026-07-22T08:00:00+08:00",
+      "ticker": "03032",
+      "name": "",
+      "leg": "HK",
+      "strategy_id": "core_position",
+      "thesis_id": "03032-1x-hstech-hold",
+      "action": "hold_and_watch",
+      "condition": {
+        "type": "manual",
+        "price": null,
+        "description": ""
+      },
+      "size": {
+        "shares": null,
+        "pct": null,
+        "note": "hold 中, 不增不减"
+      },
+      "confidence": 0.7,
+      "driven_by": "technical",
+      "rationale": "1x HSTECH 替代品；与 03033 跟踪同指数；RSI 56.4 中位；history 主动 call win 44% — 偏弱, hold。",
+      "simulated_entry_price": 4.808,
+      "horizon_sessions": 1,
+      "override": {
+        "status": "none",
+        "reason": "",
+        "expires_on": null,
+        "revisit_condition": ""
+      },
+      "evaluation": {
+        "status": "pending",
+        "triggered": null,
+        "trigger_session": null,
+        "execution_price": null,
+        "underlying_return_t1_pct": null,
+        "benefit_t1_pct": null,
+        "benefit_t5_pct": null,
+        "outcome": "pending",
+        "capital": null
+      },
+      "execution": {
+        "status": "unknown",
+        "detected_at": null,
+        "source": null
+      },
+      "migration": {
+        "source": "plan_v1"
+      }
+    },
+    {
+      "schema_version": 2,
+      "decision_id": "dec-0915bc9f7fa8",
+      "episode_id": "ep-b92680c2c8af",
+      "decision_group_id": "2026-07-22:SPCX",
+      "plan_date": "2026-07-22",
+      "created_at": "2026-07-22T08:00:00+08:00",
+      "ticker": "SPCX",
+      "name": "",
+      "leg": "US",
+      "strategy_id": "core_position",
+      "thesis_id": "spcx-8-4-earnings-catalyst-hold",
+      "action": "hold_and_watch",
+      "condition": {
+        "type": "event",
+        "price": null,
+        "description": ""
+      },
+      "size": {
+        "shares": null,
+        "pct": null,
+        "note": "1 股; 财报前不增"
+      },
+      "confidence": 0.65,
+      "driven_by": "catalyst",
+      "rationale": "8/4 首份财报 + 限售解禁 = 硬催化；Cathie Wood 7/13-17 加仓 $56.9M [confirming]；Musk 警告空头 [confirming] sector hit；history SPCX 主动 call win 0% (n=3) — 不主动加仓；仓位 1 股保留底仓，让 8/4 催化自然展开。",
+      "simulated_entry_price": 123.54,
+      "horizon_sessions": 1,
+      "override": {
+        "status": "none",
+        "reason": "",
+        "expires_on": null,
+        "revisit_condition": ""
+      },
+      "evaluation": {
+        "status": "pending",
+        "triggered": null,
+        "trigger_session": null,
+        "execution_price": null,
+        "underlying_return_t1_pct": null,
+        "benefit_t1_pct": null,
+        "benefit_t5_pct": null,
+        "outcome": "pending",
+        "capital": null
+      },
+      "execution": {
+        "status": "unknown",
+        "detected_at": null,
+        "source": null
+      },
+      "migration": {
+        "source": "plan_v1"
+      }
+    },
+    {
+      "schema_version": 2,
+      "decision_id": "dec-70d298d72307",
+      "episode_id": "ep-c485477dce11",
+      "decision_group_id": "2026-07-22:SKHY",
+      "plan_date": "2026-07-22",
+      "created_at": "2026-07-22T08:00:00+08:00",
+      "ticker": "SKHY",
+      "name": "",
+      "leg": "US",
+      "strategy_id": "core_position",
+      "thesis_id": "skhy-only-positive-pnl-no-touch",
+      "action": "hold_and_watch",
+      "condition": {
+        "type": "manual",
+        "price": null,
+        "description": ""
+      },
+      "size": {
+        "shares": null,
+        "pct": null,
+        "note": "1 股; 不增不减"
+      },
+      "confidence": 0.55,
+      "driven_by": "technical",
+      "rationale": "SKHY 173.0 vs cost 169.19 = +2.25% 唯一正浮盈；仓位 6.5% US leg, 中等；昨天 +0.62% 横盘；T0 牌面 range_pos 100 🔴追高低质但浮盈小——不动。",
+      "simulated_entry_price": 173.0,
+      "horizon_sessions": 1,
+      "override": {
+        "status": "none",
+        "reason": "",
+        "expires_on": null,
+        "revisit_condition": ""
+      },
+      "evaluation": {
+        "status": "pending",
+        "triggered": null,
+        "trigger_session": null,
+        "execution_price": null,
+        "underlying_return_t1_pct": null,
+        "benefit_t1_pct": null,
+        "benefit_t5_pct": null,
+        "outcome": "pending",
+        "capital": null
+      },
+      "execution": {
+        "status": "unknown",
+        "detected_at": null,
+        "source": null
+      },
+      "migration": {
+        "source": "plan_v1"
+      }
+    }
+  ],
+  "watch_levels": {
+    "hstech_breakdown": 4500,
+    "msfu_hard_stop": 20.5,
+    "fomc_date": "2026-07-29",
+    "spcx_earnings_date": "2026-08-04",
+    "rklb_earnings_date": "2026-08-05",
+    "book_force_derisk_hkd_pnl_pct": -50,
+    "us_beta_red_line": 4.5
+  },
+  "narrative_summary": "今天 5 个 risk_rebalance 全部 discipline-driven（driven_by=risk_rule）：RKLX/SPCH/PLTU/07226 swap 1x 同因子 + 00100 trim 15sh 至 ≤35% 单名。6 个 core_position hold_and_watch：MSFU 设硬止损触发价，CRCL/02208 让催化自然展开，03032/03033/SPCX/SKHY 不动。regime=risk_on 不构成 HOLD 默认豁免 risk_rebalance。Execution gap 是最大问题：active 执行率 0.75% → 5 个 cut 必须真挂单。"
+}
