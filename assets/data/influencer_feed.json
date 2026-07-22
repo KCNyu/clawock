@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-22T14:49:16.758629+00:00",
+  "generated_at": "2026-07-22T22:37:15.863734+00:00",
   "lookback_hours": 48,
   "sources": {
     "trump": "trumpstruth.org/feed (primary)",
@@ -8,12 +8,38 @@
   },
   "llm_filtered": true,
   "counts": {
-    "total": 16,
-    "held_hits": 0,
+    "total": 12,
+    "held_hits": 3,
     "new_ideas": 0,
-    "sector_hits": 6
+    "sector_hits": 0
   },
   "items": [
+    {
+      "author": "Musk",
+      "text": "Will SpaceX buy Tesla? Musk may soon offer clues on his plans",
+      "url": "",
+      "published": "Wed, 22 Jul 2026 11:00:25 GMT",
+      "origin": "gnews-rss",
+      "source": "CNN",
+      "tickers": [
+        "SPCX",
+        "SPCH"
+      ],
+      "held": [
+        "SPCH",
+        "SPCX"
+      ],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "电动车/特斯拉",
+        "公司并购"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 88,
+      "summary_cn": "Musk可能即将透露SpaceX是否会收购Tesla，重大事件催化剂，直接关联kcn持有的SpaceX相关标的。"
+    },
     {
       "author": "Musk",
       "text": "Bets against SpaceX grow to 32% of float as Elon Musk warns short sellers won't survive",
@@ -21,84 +47,24 @@
       "published": "Tue, 21 Jul 2026 14:28:52 GMT",
       "origin": "gnews-rss",
       "source": "CNBC",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天/SpaceX"
+      "tickers": [
+        "SPCX",
+        "SPCH"
       ],
-      "sector_holdings": [
+      "held": [
         "SPCH",
         "SPCX"
       ],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "私募/未上市资产",
+        "做空/对冲"
+      ],
+      "sector_holdings": [],
       "stance": "endorse",
-      "relevance": 75,
-      "summary_cn": "Musk警告空头：SpaceX空头头寸已增至流通盘的32%，暗示空头将无法存活；强看多信号。"
-    },
-    {
-      "author": "Musk",
-      "text": "SpaceX stock slides for a week straight. What happens next?",
-      "url": "",
-      "published": "Wed, 22 Jul 2026 13:07:30 GMT",
-      "origin": "gnews-rss",
-      "source": "Mashable",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天/SpaceX"
-      ],
-      "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "attack",
-      "relevance": 65,
-      "summary_cn": "SpaceX股价连续一周下跌，技术面走弱，直接影响kcn持有的SPCX/SPCH。"
-    },
-    {
-      "author": "Musk",
-      "text": "Tesla earnings train spotlight on SpaceX plans and AI investments",
-      "url": "",
-      "published": "Wed, 22 Jul 2026 11:13:45 GMT",
-      "origin": "gnews-rss",
-      "source": "Axios",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天/SpaceX",
-        "AI"
-      ],
-      "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "neutral",
-      "relevance": 65,
-      "summary_cn": "Tesla财报被市场关注SpaceX相关进展与AI投资计划，对SpaceX叙事形成间接催化。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk, Tesla and SpaceX face serious questions from investors",
-      "url": "",
-      "published": "Wed, 22 Jul 2026 11:37:00 GMT",
-      "origin": "gnews-rss",
-      "source": "thestreet.com",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天/SpaceX",
-        "电动车/Tesla"
-      ],
-      "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "attack",
-      "relevance": 60,
-      "summary_cn": "投资者对Musk、Tesla与SpaceX的治理与多元化结构提出严肃质疑，对持仓偏负面信号。"
+      "relevance": 82,
+      "summary_cn": "Musk警告SpaceX空头：空头头寸升至流通盘的32%，不会存活；Musk公开威胁空头，强看多信号。"
     },
     {
       "author": "Musk",
@@ -107,77 +73,23 @@
       "published": "Wed, 22 Jul 2026 10:40:00 GMT",
       "origin": "gnews-rss",
       "source": "Fortune",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天/SpaceX"
+      "tickers": [
+        "SPCX",
+        "SPCH"
       ],
-      "sector_holdings": [
+      "held": [
         "SPCH",
         "SPCX"
       ],
-      "stance": "neutral",
-      "relevance": 60,
-      "summary_cn": "Ray Dalio透露曾警告Musk不要All in SpaceX和火星探索，反映外部对SpaceX估值/战略的质疑。"
-    },
-    {
-      "author": "Musk",
-      "text": "What Construction Of Elon Musk's Terafab Would Mean For Tesla, SpaceX",
-      "url": "",
-      "published": "Tue, 21 Jul 2026 20:04:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Investor's Business Daily",
-      "tickers": [],
-      "held": [],
       "new_ideas": [],
       "sectors": [
-        "航天/SpaceX",
-        "AI",
-        "半导体"
-      ],
-      "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "neutral",
-      "relevance": 55,
-      "summary_cn": "Musk的Terafab项目讨论对Tesla、SpaceX潜在影响，AI算力/制造主题。"
-    },
-    {
-      "author": "Trump",
-      "text": "Trump Announces Nearly $10 Billion in Defense Industrial Base Investments in Pennsylvania at McCormick’s Summit: https://www.breitbart.com/politics/2026/07/15/trump-announces-nearly-10-billion-in-defense-industrial-base-investments-in-pennsylvania-at-mccormicks-summit/",
-      "url": "https://trumpstruth.org/statuses/40171",
-      "published": "2026-07-21T15:00:31+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "国防军工"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 60,
-      "summary_cn": "Trump宣布在宾州投资近100亿美元用于国防工业基础，国防军工板块利好。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk's posts about making an espresso in FSD are being scrutinized in a Tesla investigation",
-      "url": "",
-      "published": "Wed, 22 Jul 2026 14:31:30 GMT",
-      "origin": "gnews-rss",
-      "source": "Business Insider",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "电动车/Tesla"
+        "航天",
+        "私募/未上市资产"
       ],
       "sector_holdings": [],
       "stance": "attack",
-      "relevance": 55,
-      "summary_cn": "Tesla因Musk在FSD状态下制作浓缩咖啡的相关帖子受到监管调查，特斯拉FSD/自动驾驶合规风险。"
+      "relevance": 70,
+      "summary_cn": "Ray Dalio透露曾警告Musk不要All in SpaceX和火星探索，对SpaceX估值/前景构成间接质疑。"
     },
     {
       "author": "Trump",
@@ -189,100 +101,89 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "医药/仿制药",
-        "关税"
+        "医药/制药",
+        "关税",
+        "美国制造业回流"
       ],
       "sector_holdings": [],
       "stance": "neutral",
-      "relevance": 55,
-      "summary_cn": "Trump宣布仿制药关税豁免两年后续阶梯式大幅上调（100%/200%），意在逼迫药企将生产回流美国；涉及医药板块与关税政策。"
-    },
-    {
-      "author": "Trump",
-      "text": "I had a very good conversation with the new Prime Minister of the United Kingdom, Andy Burnham. We discussed many subjects, including the outstanding relationship we have had with the UK. We will be meeting in the not too distant future for topics of mutual interest. The Prime Minister has got a big job ahead of him, but he will be able to do it and, of course, the U.S.A. will be there to help! We discussed North Sea Oil, Trade, the Military Alliance, Demining of the Hormuz Strait, and many other topics. The call was interesting, and went very well. I wished Prime Minister Burnham, GOOD LUCK A",
-      "url": "https://trumpstruth.org/statuses/40161",
-      "published": "2026-07-20T22:18:52+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "能源/石油",
-        "贸易/外交"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 55,
-      "summary_cn": "Trump与英国新首相通话，议题涉及北海石油、贸易、霍尔木兹海峡排雷等，能源与地缘政治主题。"
-    },
-    {
-      "author": "Trump",
-      "text": "RT: https://truthsocial.com/users/realDonaldTrump/statuses/116957942431800428Rich people and Companies are pouring out of Dumocrat run Blue States at levels never seen before! If this trend continues, these States will become the “Ghettos” of the Future — No people, no money, no hope. MAKE AMERICA GREAT AGAIN! President DONALD J. TRUMP",
-      "url": "https://trumpstruth.org/statuses/40163",
-      "published": "2026-07-21T12:27:09+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "州税收/财政"
-      ],
-      "sector_holdings": [],
-      "stance": "attack",
-      "relevance": 50,
-      "summary_cn": "Trump抨击民主党高税州导致富人与企业大规模出走，蓝州经济前景看空。"
-    },
-    {
-      "author": "Trump",
-      "text": "Across the nation, Trump’s long-predicted high-tax exodus has a Midwest sequel: https://justthenews.com/government/white-house/california-illinois-trumps-predicted-tax-apocalypse-has-midwest-sequel",
-      "url": "https://trumpstruth.org/statuses/40162",
-      "published": "2026-07-21T12:22:52+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "州税收/财政"
-      ],
-      "sector_holdings": [],
-      "stance": "attack",
-      "relevance": 50,
-      "summary_cn": "报道印证Trump关于高税州出走的预测，中西部也出现类似加州/伊州的税收外流现象。"
-    },
-    {
-      "author": "Trump",
-      "text": "Benjamin Netanyahu will not be arrested, in any way, shape, or form, while in the United States of America. He is fighting against the Islamic Republic of Iran, which recently killed 52,000 innocent protestors, and has spent the last 47 years killing American Soldiers, and others. The only ones that should be arrested are the people that led Iran into this unprecedented SPIRAL OF DEATH AND DESTRUCTION, something that should have been dealt with years ago, by previous Presidents! President DONALD J. TRUMP",
-      "url": "https://trumpstruth.org/statuses/40159",
-      "published": "2026-07-20T16:50:58+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "中东地缘政治"
-      ],
-      "sector_holdings": [],
-      "stance": "attack",
-      "relevance": 50,
-      "summary_cn": "Trump表态内塔尼亚胡在美国不会被捕，强烈抨击伊朗，升级中东对抗立场。"
+      "relevance": 72,
+      "summary_cn": "Trump宣布仿制药关税政策：2026年8月起先零关税两年逼企业回流美国建厂，之后升至100%/200%，旨在重塑美国制药供应链。"
     },
     {
       "author": "Musk",
-      "text": "Elon Musk expands political reach with millions in Texas donations",
+      "text": "Tesla Profit Misses Estimates as Elon Musk Looks Beyond the Car Business",
       "url": "",
-      "published": "Wed, 22 Jul 2026 10:07:25 GMT",
+      "published": "Wed, 22 Jul 2026 21:32:03 GMT",
       "origin": "gnews-rss",
-      "source": "Austin American-Statesman",
+      "source": "Bloomberg.com",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "政治献金"
+        "电动车/特斯拉",
+        "AI/机器人"
+      ],
+      "sector_holdings": [],
+      "stance": "attack",
+      "relevance": 55,
+      "summary_cn": "Tesla利润不及预期，Musk重心已超越造车业务转向AI/机器人。"
+    },
+    {
+      "author": "Trump",
+      "text": "Trump Announces Nearly $10 Billion in Defense Industrial Base Investments in Pennsylvania at McCormick’s Summit: https://www.breitbart.com/politics/2026/07/15/trump-announces-nearly-10-billion-in-defense-industrial-base-investments-in-pennsylvania-at-mccormicks-summit/",
+      "url": "https://trumpstruth.org/statuses/40171",
+      "published": "2026-07-21T15:00:31+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "国防军工",
+        "美国制造业"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 55,
+      "summary_cn": "Trump在宾州McCormick峰会上宣布近100亿美元国防工业基础投资，利好军工板块。"
+    },
+    {
+      "author": "Musk",
+      "text": "Earnings at Musk's car company fall as research spending cuts into profit from selling cars - ABC News",
+      "url": "",
+      "published": "Wed, 22 Jul 2026 21:31:49 GMT",
+      "origin": "gnews-rss",
+      "source": "ABC News - Breaking News, Latest News and Videos",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "电动车/特斯拉",
+        "AI/机器人"
+      ],
+      "sector_holdings": [],
+      "stance": "attack",
+      "relevance": 52,
+      "summary_cn": "Tesla财报：研究投入挤压汽车销售利润，盈利下滑。"
+    },
+    {
+      "author": "Musk",
+      "text": "Tesla’s profits slide despite growing revenue as it pivots to robotics and AI",
+      "url": "",
+      "published": "Wed, 22 Jul 2026 21:39:00 GMT",
+      "origin": "gnews-rss",
+      "source": "The Guardian",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "电动车/特斯拉",
+        "AI/机器人"
       ],
       "sector_holdings": [],
       "stance": "neutral",
-      "relevance": 45,
-      "summary_cn": "Musk在德州扩大政治捐款，扩张政治影响力；与市场无直接关联。"
+      "relevance": 50,
+      "summary_cn": "Tesla营收增长但利润下滑，正转型机器人/AI，研发开支挤压汽车利润。"
     },
     {
       "author": "Trump",
@@ -294,34 +195,95 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "医药/处方药"
+        "医药/制药",
+        "医保/药价"
       ],
       "sector_holdings": [],
       "stance": "endorse",
-      "relevance": 45,
-      "summary_cn": "Trump宣传Trump Rx项目大幅降低处方药价格，属政策宣传，与市场板块关联有限。"
+      "relevance": 50,
+      "summary_cn": "Trump Rx计划大幅降低处方药价格，行政手段压制药价。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk's posts about making an espresso in FSD are being scrutinized in a Tesla investigation",
+      "url": "",
+      "published": "Wed, 22 Jul 2026 14:31:35 GMT",
+      "origin": "gnews-rss",
+      "source": "Business Insider",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "电动车/特斯拉",
+        "自动驾驶监管"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 48,
+      "summary_cn": "Musk在Tesla FSD状态下做espresso的帖子被纳入Tesla调查，FSD面临监管审视。"
     },
     {
       "author": "Trump",
-      "text": "Great words of wisdom from Highly Respected James Carafano. Thank you James!   “Our position in the Region is the strongest that it’s been since the end of World War II. We have been dealing with this from Jimmy Carter. Since the days of Jimmy Carter, we have never had a position in the Region this strong to create a better future for the Region and then, that means a safer America, and I think that this is the price we are paying — Trust me, it’s going to pay off for decades!”",
-      "url": "https://trumpstruth.org/statuses/40160",
-      "published": "2026-07-20T17:56:00+00:00",
+      "text": "RT: https://truthsocial.com/users/realDonaldTrump/statuses/116957942431800428Rich people and Companies are pouring out of Dumocrat run Blue States at levels never seen before! If this trend continues, these States will become the “Ghettos” of the Future — No people, no money, no hope. MAKE AMERICA GREAT AGAIN! President DONALD J. TRUMP",
+      "url": "https://trumpstruth.org/statuses/40163",
+      "published": "2026-07-21T12:27:09+00:00",
       "origin": "truthsocial",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "中东地缘政治"
+        "州税/人口迁移"
+      ],
+      "sector_holdings": [],
+      "stance": "attack",
+      "relevance": 45,
+      "summary_cn": "Trump称富人和企业正以创纪录速度逃离民主党蓝州，蓝州将成为未来'贫民窟'。"
+    },
+    {
+      "author": "Trump",
+      "text": "Across the nation, Trump’s long-predicted high-tax exodus has a Midwest sequel: https://justthenews.com/government/white-house/california-illinois-trumps-predicted-tax-apocalypse-has-midwest-sequel",
+      "url": "https://trumpstruth.org/statuses/40162",
+      "published": "2026-07-21T12:22:52+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "州税/人口迁移"
       ],
       "sector_holdings": [],
       "stance": "endorse",
       "relevance": 45,
-      "summary_cn": "Trump转引评论称赞美国在中东地区自二战以来最强的战略位置，宏观地缘信号。"
+      "summary_cn": "报道：Trump长期预言的高税率人口外逃趋势在中西部继续上演，从加州/伊利诺伊扩散。"
     }
   ],
-  "held_hits": [],
-  "new_ideas": [],
-  "sector_hits": [
+  "held_hits": [
+    {
+      "author": "Musk",
+      "text": "Will SpaceX buy Tesla? Musk may soon offer clues on his plans",
+      "url": "",
+      "published": "Wed, 22 Jul 2026 11:00:25 GMT",
+      "origin": "gnews-rss",
+      "source": "CNN",
+      "tickers": [
+        "SPCX",
+        "SPCH"
+      ],
+      "held": [
+        "SPCH",
+        "SPCX"
+      ],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "电动车/特斯拉",
+        "公司并购"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 88,
+      "summary_cn": "Musk可能即将透露SpaceX是否会收购Tesla，重大事件催化剂，直接关联kcn持有的SpaceX相关标的。"
+    },
     {
       "author": "Musk",
       "text": "Bets against SpaceX grow to 32% of float as Elon Musk warns short sellers won't survive",
@@ -329,84 +291,24 @@
       "published": "Tue, 21 Jul 2026 14:28:52 GMT",
       "origin": "gnews-rss",
       "source": "CNBC",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天/SpaceX"
+      "tickers": [
+        "SPCX",
+        "SPCH"
       ],
-      "sector_holdings": [
+      "held": [
         "SPCH",
         "SPCX"
       ],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "私募/未上市资产",
+        "做空/对冲"
+      ],
+      "sector_holdings": [],
       "stance": "endorse",
-      "relevance": 75,
-      "summary_cn": "Musk警告空头：SpaceX空头头寸已增至流通盘的32%，暗示空头将无法存活；强看多信号。"
-    },
-    {
-      "author": "Musk",
-      "text": "SpaceX stock slides for a week straight. What happens next?",
-      "url": "",
-      "published": "Wed, 22 Jul 2026 13:07:30 GMT",
-      "origin": "gnews-rss",
-      "source": "Mashable",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天/SpaceX"
-      ],
-      "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "attack",
-      "relevance": 65,
-      "summary_cn": "SpaceX股价连续一周下跌，技术面走弱，直接影响kcn持有的SPCX/SPCH。"
-    },
-    {
-      "author": "Musk",
-      "text": "Tesla earnings train spotlight on SpaceX plans and AI investments",
-      "url": "",
-      "published": "Wed, 22 Jul 2026 11:13:45 GMT",
-      "origin": "gnews-rss",
-      "source": "Axios",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天/SpaceX",
-        "AI"
-      ],
-      "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "neutral",
-      "relevance": 65,
-      "summary_cn": "Tesla财报被市场关注SpaceX相关进展与AI投资计划，对SpaceX叙事形成间接催化。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk, Tesla and SpaceX face serious questions from investors",
-      "url": "",
-      "published": "Wed, 22 Jul 2026 11:37:00 GMT",
-      "origin": "gnews-rss",
-      "source": "thestreet.com",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天/SpaceX",
-        "电动车/Tesla"
-      ],
-      "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "attack",
-      "relevance": 60,
-      "summary_cn": "投资者对Musk、Tesla与SpaceX的治理与多元化结构提出严肃质疑，对持仓偏负面信号。"
+      "relevance": 82,
+      "summary_cn": "Musk警告SpaceX空头：空头头寸升至流通盘的32%，不会存活；Musk公开威胁空头，强看多信号。"
     },
     {
       "author": "Musk",
@@ -415,42 +317,25 @@
       "published": "Wed, 22 Jul 2026 10:40:00 GMT",
       "origin": "gnews-rss",
       "source": "Fortune",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天/SpaceX"
+      "tickers": [
+        "SPCX",
+        "SPCH"
       ],
-      "sector_holdings": [
+      "held": [
         "SPCH",
         "SPCX"
       ],
-      "stance": "neutral",
-      "relevance": 60,
-      "summary_cn": "Ray Dalio透露曾警告Musk不要All in SpaceX和火星探索，反映外部对SpaceX估值/战略的质疑。"
-    },
-    {
-      "author": "Musk",
-      "text": "What Construction Of Elon Musk's Terafab Would Mean For Tesla, SpaceX",
-      "url": "",
-      "published": "Tue, 21 Jul 2026 20:04:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Investor's Business Daily",
-      "tickers": [],
-      "held": [],
       "new_ideas": [],
       "sectors": [
-        "航天/SpaceX",
-        "AI",
-        "半导体"
+        "航天",
+        "私募/未上市资产"
       ],
-      "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "neutral",
-      "relevance": 55,
-      "summary_cn": "Musk的Terafab项目讨论对Tesla、SpaceX潜在影响，AI算力/制造主题。"
+      "sector_holdings": [],
+      "stance": "attack",
+      "relevance": 70,
+      "summary_cn": "Ray Dalio透露曾警告Musk不要All in SpaceX和火星探索，对SpaceX估值/前景构成间接质疑。"
     }
-  ]
+  ],
+  "new_ideas": [],
+  "sector_hits": []
 }
