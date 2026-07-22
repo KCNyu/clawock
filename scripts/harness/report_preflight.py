@@ -11,6 +11,7 @@ Each invocation:
   2. Captures full script output (LLM uses this VERBATIM as the data block)
   3. Parses signals (WATCH/STOP/TRIM counts) and direction hints
   4. Detects anomalies (≥3% intraday moves, big floating losses)
+  4b. Collects peer/rotation data so the 板块全景 section has real numbers
   5. Writes memory/.tmp/report-context-{market}-{phase}-{date}.json
 
 Output keys:
@@ -22,6 +23,8 @@ Output keys:
   signal_count:       {watch, stop, trim}
   anomalies:          list of {ticker, move_pct, reason}
   index_direction:    {hk_index_pct, hstech_pct} for HK; null for US
+  peer_scan:          {ticker: {theme, listed_peers[], divergence_signal, ...}}
+                      for this market's active holdings (板块全景 section)
   needs_risk_section: bool (true if STOP+TRIM >= 2)
 """
 
@@ -41,6 +44,7 @@ TMP = WS / 'memory' / '.tmp'
 
 sys.path.insert(0, str(DATA_DIR))
 import trading_calendar  # noqa: E402
+import peer_scan  # noqa: E402
 
 
 def _market_closed_reason(market, phase):
@@ -149,6 +153,26 @@ def parse_hk_indices(stdout):
     return None
 
 
+def collect_peers(market):
+    """Peer/rotation data for this market's holdings, for the 板块全景 section.
+
+    The Mode 6 SKILL asks for a sector Top 5 but preflight never supplied the
+    numbers, so the agent had to improvise a peer fetch at report time. Peer
+    trouble must never fail the report: any problem degrades to an empty scan.
+    """
+    leg = 'hk_stocks' if market == 'hk' else 'us_stocks'
+    try:
+        portfolio = json.loads((WS / 'portfolio.json').read_text())
+        # Scope to this market's leg *before* fetching: filtering the result
+        # afterwards would still pay the full cross-market network fan-out.
+        # stdout is the context JSON the agent parses; diagnostics go to stderr.
+        return peer_scan.collect(portfolio, log=lambda m: print(m, file=sys.stderr),
+                                 legs=(leg,))
+    except Exception as e:
+        print(f'   ⚠️  peer scan skipped: {e}', file=sys.stderr)
+        return {}
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--market', choices=['hk', 'us'], required=True)
@@ -196,6 +220,7 @@ def main():
     signals = parse_signals(stdout)
     anomalies = parse_anomalies(stdout)
     indices = parse_hk_indices(stdout) if args.market == 'hk' else None
+    peers = collect_peers(args.market)
 
     title = TITLE_TEMPLATES[(args.market, args.phase)].format(date=today)
     market_cn = '港股' if args.market == 'hk' else '美股'
@@ -213,6 +238,7 @@ def main():
         'signal_count':       signals,
         'anomalies':          anomalies,
         'index_direction':    indices,
+        'peer_scan':          peers,
         'needs_risk_section': (signals['stop'] + signals['trim']) >= 2,
     }
 

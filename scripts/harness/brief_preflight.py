@@ -49,6 +49,7 @@ SNAPSHOT_DIR = WS / 'memory' / 'snapshots'
 sys.path.insert(0, str(WS / 'scripts' / 'data'))
 import trading_calendar  # noqa: E402
 import decision_v2  # noqa: E402
+import peer_scan  # noqa: E402
 
 
 def _run(script, args=None, timeout=120):
@@ -518,97 +519,8 @@ def compute_retrospective(prior_plan_path, portfolio):
 
 
 def collect_peer_scan(portfolio):
-    """For each active holding with a peer entry in peer-map.json, fetch peer
-    prices and flag divergence (peer up significantly while holding flat/down)."""
-    peer_map_path = WS / 'memory' / 'peer-map.json'
-    if not peer_map_path.exists():
-        return {}
-    try:
-        pmap = json.loads(peer_map_path.read_text()).get('holdings', {})
-    except Exception as e:
-        print(f'   ⚠️  peer-map.json parse failed: {e}')
-        return {}
-
-    # Index holdings by ticker for self-pct lookup
-    h_by_ticker = {}
-    for region in ('hk_stocks', 'us_stocks'):
-        for h in portfolio['portfolios'].get(region, {}).get('holdings', []):
-            if h.get('shares', 0) > 0:
-                h_by_ticker[h['ticker']] = {
-                    'pct_1d': h.get('today_change_pct', 0),
-                    'pnl_pct': h.get('pnl_percent', 0),
-                    'region': region,
-                }
-
-    # Collect all peer tickers we need
-    peer_request = []
-    seen = set()
-    for ticker, info in pmap.items():
-        if ticker not in h_by_ticker:  # holding inactive, skip
-            continue
-        for p in info.get('listed_peers', []):
-            key = (p['ticker'], p['region'])
-            if key not in seen:
-                seen.add(key)
-                peer_request.append({'ticker': p['ticker'], 'region': p['region']})
-
-    if not peer_request:
-        return {}
-
-    # Call fetch_peers.py via subprocess
-    try:
-        import subprocess as sp
-        r = sp.run(
-            ['python3', str(WS / 'scripts' / 'data' / 'fetch_peers.py')],
-            input=json.dumps(peer_request), capture_output=True, text=True, timeout=120,
-        )
-        if r.returncode != 0:
-            print(f'   ⚠️  fetch_peers.py failed: {r.stderr[-100:]}')
-            return {}
-        fetched = json.loads(r.stdout)['peers']
-    except Exception as e:
-        print(f'   ⚠️  peer fetch error: {e}')
-        return {}
-
-    # Build per-holding peer scan
-    scan = {}
-    for ticker, info in pmap.items():
-        if ticker not in h_by_ticker:
-            continue
-        self_pct = h_by_ticker[ticker]['pct_1d'] or 0
-        peer_results = []
-        for p in info.get('listed_peers', []):
-            pdata = fetched.get(p['ticker'], {})
-            if 'price' in pdata:
-                peer_results.append({
-                    'ticker': p['ticker'],
-                    'name': p['name'],
-                    'rel': p['rel'],
-                    'pct_1d': pdata.get('pct_1d'),
-                    'pct_5d': pdata.get('pct_5d'),
-                })
-
-        # Sort by 1d pct desc
-        peer_results.sort(key=lambda x: x.get('pct_1d') or -999, reverse=True)
-
-        # Divergence: best peer outperformed holding by ≥3% today
-        best_peer = peer_results[0] if peer_results else None
-        divergence = None
-        if best_peer and best_peer.get('pct_1d') is not None:
-            diff = best_peer['pct_1d'] - self_pct
-            if diff >= 3.0:
-                divergence = f'{best_peer["ticker"]} {best_peer["name"]} {best_peer["pct_1d"]:+.1f}% vs self {self_pct:+.1f}% (gap {diff:+.1f}pp)'
-
-        scan[ticker] = {
-            'theme':            info.get('theme'),
-            'self_pct_1d':      round(self_pct, 2),
-            'self_pnl_pct':     h_by_ticker[ticker]['pnl_pct'],
-            'listed_peers':     peer_results,
-            'private_peers':    info.get('private_peers', []),
-            'divergence_signal': divergence,
-            'key_news_keywords': info.get('key_news_keywords', []),
-        }
-    return scan
+    """Delegates to the shared peer scanner (also used by report_preflight)."""
+    return peer_scan.collect(portfolio)
 
 
 def _shares_at_date(ticker, date_iso):

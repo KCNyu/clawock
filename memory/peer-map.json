@@ -2,8 +2,9 @@
   "_meta": {
     "purpose": "Per-holding peer/neighborhood map for rotation detection. Maintained semi-manually; revisit every ~3 months or when adding new positions.",
     "private_peers_handled_by": "Tavily news search in preflight (no price feed)",
-    "listed_peers_handled_by": "scripts/data/fetch_peers.py (Tencent / Nasdaq / yfinance fallback chain)",
-    "last_updated": "2026-07-11"
+    "listed_peers_handled_by": "scripts/data/fetch_peers.py (Tencent quote + Tencent qfq daily bars; Nasdaq is the US price fallback)",
+    "last_updated": "2026-07-22",
+    "ticker_verification": "Tickers verified against the Tencent gtimg feed on 2026-07-22; brief_preflight warns on any configured-name vs fetched-name mismatch."
   },
   "holdings": {
     "00100": {
@@ -11,32 +12,37 @@
       "theme": "HK AI 大模型",
       "listed_peers": [
         {
-          "ticker": "00020",
+          "ticker": "02513",
           "region": "hk",
-          "name": "商汤-W",
-          "rel": "AI 视觉+大模型"
+          "name": "智谱",
+          "rel": "通用大模型直接同业(2026-01 上市)"
+        },
+        {
+          "ticker": "01384",
+          "region": "hk",
+          "name": "滴普科技",
+          "rel": "企业级大模型应用"
+        },
+        {
+          "ticker": "09678",
+          "region": "hk",
+          "name": "云知声",
+          "rel": "语音+垂类大模型"
         },
         {
           "ticker": "06682",
           "region": "hk",
-          "name": "第四范式",
-          "rel": "企业 AI 决策平台"
+          "name": "范式智能",
+          "rel": "企业 AI 决策平台(原第四范式)"
         },
         {
-          "ticker": "02273",
+          "ticker": "00020",
           "region": "hk",
-          "name": "智云健康",
-          "rel": "AI+医疗"
-        },
-        {
-          "ticker": "02469",
-          "region": "hk",
-          "name": "速腾聚创",
-          "rel": "AI+车载"
+          "name": "商汤-W",
+          "rel": "AI 视觉+大模型"
         }
       ],
       "private_peers": [
-        "智谱 Zhipu AI",
         "百川智能 Baichuan",
         "月之暗面 Moonshot Kimi",
         "阶跃星辰 StepFun",
@@ -49,7 +55,7 @@
       "key_news_keywords": [
         "MiniMax 估值",
         "AI 大模型 港股",
-        "智谱 IPO",
+        "智谱 02513 股价",
         "中概 AI"
       ]
     },
@@ -111,10 +117,10 @@
           "rel": "同跟踪 HSTECH"
         },
         {
-          "ticker": "09023",
+          "ticker": "03067",
           "region": "hk",
-          "name": "Premia 港股科技 ETF",
-          "rel": "类似主题"
+          "name": "安硕恒生科技 ETF",
+          "rel": "同赛道 ETF"
         }
       ],
       "key_news_keywords": [
@@ -157,7 +163,7 @@
         {
           "ticker": "00956",
           "region": "hk",
-          "name": "中国新能源集团",
+          "name": "新天绿色能源",
           "rel": "新能源整体"
         },
         {
@@ -329,9 +335,9 @@
           "rel": "基础标的"
         },
         {
-          "ticker": "SQ",
+          "ticker": "XYZ",
           "region": "us",
-          "name": "Block (Square)",
+          "name": "Block (原 Square/SQ)",
           "rel": "fintech+crypto"
         },
         {
