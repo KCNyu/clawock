@@ -100,7 +100,16 @@ def read_report_text(market, text_file):
 
 def input_error(market, err):
     """Exit path for empty/stale/missing input: loud, single-cause, still non-zero."""
-    cron_heartbeat.record(market, 'postflight_failed', failure_stage='input')
+    # Attribute the failure to the slot the preflight context was built for, not to
+    # whatever slot the wall clock happens to be in now. A run that starts at 10:00
+    # and hits empty input at 10:31 would otherwise stamp a phantom 10:30 failure,
+    # and the retry that succeeds would mark 10:00 completed — leaving a slot in the
+    # health ledger that never actually failed. Context is best-effort here: an
+    # input error must still be recorded when the context is missing too.
+    ctx, _ = load_context(market)
+    hb = (ctx or {}).get('heartbeat') or {}
+    cron_heartbeat.record(market, 'postflight_failed', failure_stage='input',
+                          job_name=hb.get('job'), slot=hb.get('slot'))
     print(f'error: {err}', file=sys.stderr)
     result = {
         'status':        'input_error',

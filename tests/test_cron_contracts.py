@@ -298,6 +298,44 @@ def test_intraday_stale_report_file_is_refused(tmp_path):
     assert err_missing and '不存在' in err_missing
 
 
+def test_intraday_main_stops_on_empty_input_and_blames_the_context_slot(monkeypatch, capsys):
+    """End-to-end on main(): empty input must exit 2 without ever reaching content
+    validation or delivery, and the failure must be stamped on the slot the
+    preflight context was built for. A run that starts at 10:00 but hits empty
+    input at 10:31 would otherwise record a phantom 10:30 failure while the
+    successful retry marks 10:00 completed."""
+    import io
+
+    import intraday_postflight
+
+    recorded = {}
+    monkeypatch.setattr(sys, 'stdin', io.StringIO(''))
+    monkeypatch.setattr(sys, 'argv', ['intraday_postflight.py', '--market', 'hk'])
+    monkeypatch.setattr(intraday_postflight.trading_calendar, 'closed_reason', lambda m: None)
+    monkeypatch.setattr(intraday_postflight, 'load_context', lambda m: (
+        {'heartbeat': {'job': '盘中盯盘', 'slot': '2026-07-23T10:00:00+08:00'}}, None))
+    monkeypatch.setattr(intraday_postflight.cron_heartbeat, 'record',
+                        lambda *a, **kw: recorded.update(args=a, kwargs=kw))
+
+    def _never(*a, **kw):
+        raise AssertionError('empty input must not reach content validation/delivery')
+
+    monkeypatch.setattr(intraday_postflight, 'validate', _never)
+    monkeypatch.setattr(intraday_postflight, 'send_wechat', _never)
+
+    assert intraday_postflight.main() == 2
+
+    payload = json.loads(capsys.readouterr().out)
+    assert payload['status'] == 'input_error'
+    assert payload['n_chars'] == 0
+    assert payload['wechat_sent'] is None and payload['dashboard_published'] is False
+
+    assert recorded['args'] == ('hk', 'postflight_failed')
+    assert recorded['kwargs']['slot'] == '2026-07-23T10:00:00+08:00'
+    assert recorded['kwargs']['job_name'] == '盘中盯盘'
+    assert recorded['kwargs']['failure_stage'] == 'input'
+
+
 def test_intraday_payload_contract_bans_heredoc_and_requires_text_file():
     """The live cron payload and the SKILL are two sources of truth for the same
     command. Pin the plumbing in the tracked contract so they cannot drift apart
