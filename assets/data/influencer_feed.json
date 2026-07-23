@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-23T14:55:30.781751+00:00",
+  "generated_at": "2026-07-23T22:33:33.646812+00:00",
   "lookback_hours": 48,
   "sources": {
     "trump": "trumpstruth.org/feed (primary)",
@@ -8,202 +8,136 @@
   },
   "llm_filtered": true,
   "counts": {
-    "total": 12,
-    "held_hits": 4,
-    "new_ideas": 0,
-    "sector_hits": 4
+    "total": 9,
+    "held_hits": 0,
+    "new_ideas": 5,
+    "sector_hits": 0
   },
   "items": [
     {
       "author": "Musk",
-      "text": "Musk keeps Tesla-SpaceX merger speculation alive, cites growing overlap",
+      "text": "Tesla (TSLA) crashes 12%, sheds $140B as Elon Musk’s ‘just trust me’ doesn’t hold anymore",
       "url": "",
-      "published": "Thu, 23 Jul 2026 01:13:00 GMT",
+      "published": "Thu, 23 Jul 2026 14:30:00 GMT",
       "origin": "gnews-rss",
-      "source": "Reuters",
-      "tickers": [],
-      "held": [
-        "SPCH",
-        "SPCX"
+      "source": "Electrek",
+      "tickers": [
+        "TSLA"
       ],
-      "new_ideas": [],
-      "sectors": [
-        "电动车",
-        "航天",
-        "AI"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 88,
-      "summary_cn": "Musk持续暗示Tesla与SpaceX合并可能性并强调业务重叠，直接利好kcn持有的SpaceX相关标的SPCX/SPCH。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk hints Tesla and SpaceX could one day become one company",
-      "url": "",
-      "published": "Thu, 23 Jul 2026 10:01:00 GMT",
-      "origin": "gnews-rss",
-      "source": "calcalistech.com",
-      "tickers": [],
-      "held": [
-        "SPCH",
-        "SPCX"
-      ],
-      "new_ideas": [],
-      "sectors": [
-        "电动车",
-        "航天"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 85,
-      "summary_cn": "Musk公开暗示Tesla和SpaceX未来或合并为一家公司，直接利好kcn持有的SpaceX标的SPCX/SPCH。"
-    },
-    {
-      "author": "Musk",
-      "text": "Musk Says Tesla And SpaceX ‘Can’t Talk About’ Merging On Earnings Call—But Here’s What He Did Say",
-      "url": "",
-      "published": "Wed, 22 Jul 2026 23:04:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Forbes",
-      "tickers": [],
-      "held": [
-        "SPCH",
-        "SPCX"
-      ],
-      "new_ideas": [],
-      "sectors": [
-        "电动车",
-        "航天"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 75,
-      "summary_cn": "Musk称Tesla与SpaceX在财报电话会上'不能谈'合并，但相关讨论持续发酵，市场关注SpaceX估值重估机会。"
-    },
-    {
-      "author": "Musk",
-      "text": "Ray Dalio says he warned Elon Musk against betting all his money on SpaceX and Mars exploration",
-      "url": "",
-      "published": "Wed, 22 Jul 2026 10:40:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Fortune",
-      "tickers": [],
-      "held": [
-        "SPCH",
-        "SPCX"
-      ],
-      "new_ideas": [],
-      "sectors": [
-        "航天"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 68,
-      "summary_cn": "Dalio透露曾警告Musk不要All in SpaceX和火星探索，间接反映市场对SpaceX估值的质疑，但对SPCX/SPCH持有者提示风险。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk Says This Will Be Tesla's 'Biggest Product Ever'—If It Can Solve the Supply Chain Issue",
-      "url": "",
-      "published": "Thu, 23 Jul 2026 00:58:24 GMT",
-      "origin": "gnews-rss",
-      "source": "inc.com",
-      "tickers": [],
       "held": [],
-      "new_ideas": [],
+      "new_ideas": [
+        "TSLA"
+      ],
       "sectors": [
         "电动车",
         "AI",
-        "半导体",
-        "供应链"
+        "自动驾驶"
       ],
-      "sector_holdings": [
-        "SKHY"
-      ],
-      "stance": "endorse",
-      "relevance": 72,
-      "summary_cn": "Musk称Tesla'史上最大产品'取决于供应链问题能否解决，AI/电动车供应链成关键，间接触及半导体供应链；kcn持有SK海力士（SKHY）相关。"
+      "sector_holdings": [],
+      "stance": "attack",
+      "relevance": 78,
+      "summary_cn": "特斯拉单日暴跌12%，市值蒸发1400亿美元，市场对马斯克'相信我'式的AI/自动驾驶承诺彻底失信。"
     },
     {
       "author": "Musk",
-      "text": "Elon Musk Says Tesla Should Be Spending on AI 'As Fast As We Can'",
+      "text": "Tesla Plummets 14%—Costing Elon Musk $18 Billion",
       "url": "",
-      "published": "Thu, 23 Jul 2026 11:00:00 GMT",
+      "published": "Thu, 23 Jul 2026 17:53:09 GMT",
       "origin": "gnews-rss",
-      "source": "Business Insider",
-      "tickers": [],
+      "source": "Forbes",
+      "tickers": [
+        "TSLA"
+      ],
       "held": [],
-      "new_ideas": [],
+      "new_ideas": [
+        "TSLA"
+      ],
       "sectors": [
+        "电动车",
         "AI"
       ],
-      "sector_holdings": [
-        "MSFU"
-      ],
-      "stance": "endorse",
-      "relevance": 70,
-      "summary_cn": "Musk称Tesla应'尽可能快'地投入AI，利好AI基础设施板块；kcn持有MSFU（微软2倍做多）间接受益。"
-    },
-    {
-      "author": "Trump",
-      "text": "The Civil Nuclear Deal (There will be no enrichment of material!) being made between the United States Department of Energy and Saudi Arabia, which pertains only to non-military use such as the ones that Iran and UAE (and others) already have, will be approved, but is totally subject to Saudi Arabia joining the very respected and successful Abraham Accords. The United States is not opposed to Civil (Non-Enriched) Nuclear Facilities. Thank you for your attention to this matter! President DONALD J. TRUMP",
-      "url": "https://trumpstruth.org/statuses/40218",
-      "published": "2026-07-23T11:52:51+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "核能",
-        "中东地缘政治",
-        "关税"
-      ],
-      "sector_holdings": [
-        "02208"
-      ],
-      "stance": "endorse",
-      "relevance": 60,
-      "summary_cn": "Trump宣布美国与沙特民用核能协议以加入亚伯拉罕协议为前提，影响中东能源格局；金风科技作为风电/能源股间接受关注。"
-    },
-    {
-      "author": "Trump",
-      "text": "Exclusive — Cyprus Energy Minister: Trump’s ‘Energy Security’ Engagement ‘Vital’ to Future of West: https://www.breitbart.com/politics/2026/07/22/exclusive-cyprus-energy-minister-trumps-energy-security-engagement-vital-to-future-of-west/",
-      "url": "https://trumpstruth.org/statuses/40215",
-      "published": "2026-07-23T01:40:40+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "能源"
-      ],
-      "sector_holdings": [
-        "02208"
-      ],
-      "stance": "endorse",
-      "relevance": 55,
-      "summary_cn": "塞浦路斯能源部长称Trump'能源安全'参与对西方未来至关重要，利好能源板块。"
+      "sector_holdings": [],
+      "stance": "attack",
+      "relevance": 72,
+      "summary_cn": "特斯拉单日暴跌14%，马斯克身家蒸发180亿美元，市场对Robotaxi/Optimus等AI叙事信心受挫。"
     },
     {
       "author": "Musk",
       "text": "Elon Musk Preaches Patience On Robotaxi, Optimus Rollout. Tesla Stock Plummets.",
       "url": "",
-      "published": "Thu, 23 Jul 2026 14:03:00 GMT",
+      "published": "Thu, 23 Jul 2026 20:03:00 GMT",
       "origin": "gnews-rss",
       "source": "Investor's Business Daily",
-      "tickers": [],
+      "tickers": [
+        "TSLA"
+      ],
       "held": [],
-      "new_ideas": [],
+      "new_ideas": [
+        "TSLA"
+      ],
       "sectors": [
         "电动车",
         "AI",
-        "Robotaxi"
+        "自动驾驶"
       ],
       "sector_holdings": [],
       "stance": "neutral",
-      "relevance": 78,
-      "summary_cn": "Musk对Robotaxi和Optimus推出强调耐心，Tesla股价暴跌，短期负面但长期叙事仍在。"
+      "relevance": 70,
+      "summary_cn": "马斯克呼吁对Robotaxi和Optimus机器人量产保持耐心，但特斯拉股价随即大跌，'信任溢价'正在消退。"
+    },
+    {
+      "author": "Musk",
+      "text": "Will SpaceX buy Tesla? Elon Musk is not revealing his plans",
+      "url": "",
+      "published": "Thu, 23 Jul 2026 21:01:11 GMT",
+      "origin": "gnews-rss",
+      "source": "Scripps News",
+      "tickers": [
+        "TSLA",
+        "SPACEX"
+      ],
+      "held": [],
+      "new_ideas": [
+        "SPACEX",
+        "TSLA"
+      ],
+      "sectors": [
+        "电动车",
+        "航天",
+        "AI"
+      ],
+      "sector_holdings": [
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "neutral",
+      "relevance": 68,
+      "summary_cn": "马斯克被问及SpaceX是否会收购特斯拉但拒绝透露计划，市场猜测其商业帝国整合可能性，间接关联kcn持有的SpaceX相关仓位。"
+    },
+    {
+      "author": "Musk",
+      "text": "Suddenly, as His Empire Crumbles, Elon Musk Admits He Made a Huge Mistake With DOGE",
+      "url": "",
+      "published": "Thu, 23 Jul 2026 18:49:56 GMT",
+      "origin": "gnews-rss",
+      "source": "Futurism",
+      "tickers": [
+        "DOGE"
+      ],
+      "held": [],
+      "new_ideas": [
+        "DOGE"
+      ],
+      "sectors": [
+        "加密货币",
+        "政府效率"
+      ],
+      "sector_holdings": [
+        "CRCL"
+      ],
+      "stance": "neutral",
+      "relevance": 60,
+      "summary_cn": "马斯克罕见承认DOGE（政府效率部门）犯了'巨大错误'，与其加密同名代币及加密板块情绪相关。"
     },
     {
       "author": "Trump",
@@ -220,25 +154,8 @@
       ],
       "sector_holdings": [],
       "stance": "neutral",
-      "relevance": 70,
-      "summary_cn": "Trump宣布8月起仿制药维持零关税两年后再加征100%-200%关税，意在逼迫药企将生产回流美国，重塑美国医药供应链。"
-    },
-    {
-      "author": "Trump",
-      "text": "Trump Announces Nearly $10 Billion in Defense Industrial Base Investments in Pennsylvania at McCormick’s Summit: https://www.breitbart.com/politics/2026/07/15/trump-announces-nearly-10-billion-in-defense-industrial-base-investments-in-pennsylvania-at-mccormicks-summit/",
-      "url": "https://trumpstruth.org/statuses/40171",
-      "published": "2026-07-21T15:00:31+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "国防军工"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
       "relevance": 65,
-      "summary_cn": "Trump宣布在宾州近100亿美元国防工业基础投资，利好美国国防军工板块。"
+      "summary_cn": "特朗普宣布仿制药关税新政：8月起两年内零关税以鼓励在美建厂，之后逐步升至100%/200%；品牌药另行处理，将重塑制药供应链。"
     },
     {
       "author": "Trump",
@@ -257,143 +174,7 @@
       "sector_holdings": [],
       "stance": "neutral",
       "relevance": 55,
-      "summary_cn": "Trump警告若胡塞武装再袭击商船将对伊朗实施重大军事惩罚，暗示中东军事冲突风险上升。"
-    }
-  ],
-  "held_hits": [
-    {
-      "author": "Musk",
-      "text": "Musk keeps Tesla-SpaceX merger speculation alive, cites growing overlap",
-      "url": "",
-      "published": "Thu, 23 Jul 2026 01:13:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Reuters",
-      "tickers": [],
-      "held": [
-        "SPCH",
-        "SPCX"
-      ],
-      "new_ideas": [],
-      "sectors": [
-        "电动车",
-        "航天",
-        "AI"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 88,
-      "summary_cn": "Musk持续暗示Tesla与SpaceX合并可能性并强调业务重叠，直接利好kcn持有的SpaceX相关标的SPCX/SPCH。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk hints Tesla and SpaceX could one day become one company",
-      "url": "",
-      "published": "Thu, 23 Jul 2026 10:01:00 GMT",
-      "origin": "gnews-rss",
-      "source": "calcalistech.com",
-      "tickers": [],
-      "held": [
-        "SPCH",
-        "SPCX"
-      ],
-      "new_ideas": [],
-      "sectors": [
-        "电动车",
-        "航天"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 85,
-      "summary_cn": "Musk公开暗示Tesla和SpaceX未来或合并为一家公司，直接利好kcn持有的SpaceX标的SPCX/SPCH。"
-    },
-    {
-      "author": "Musk",
-      "text": "Musk Says Tesla And SpaceX ‘Can’t Talk About’ Merging On Earnings Call—But Here’s What He Did Say",
-      "url": "",
-      "published": "Wed, 22 Jul 2026 23:04:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Forbes",
-      "tickers": [],
-      "held": [
-        "SPCH",
-        "SPCX"
-      ],
-      "new_ideas": [],
-      "sectors": [
-        "电动车",
-        "航天"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 75,
-      "summary_cn": "Musk称Tesla与SpaceX在财报电话会上'不能谈'合并，但相关讨论持续发酵，市场关注SpaceX估值重估机会。"
-    },
-    {
-      "author": "Musk",
-      "text": "Ray Dalio says he warned Elon Musk against betting all his money on SpaceX and Mars exploration",
-      "url": "",
-      "published": "Wed, 22 Jul 2026 10:40:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Fortune",
-      "tickers": [],
-      "held": [
-        "SPCH",
-        "SPCX"
-      ],
-      "new_ideas": [],
-      "sectors": [
-        "航天"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 68,
-      "summary_cn": "Dalio透露曾警告Musk不要All in SpaceX和火星探索，间接反映市场对SpaceX估值的质疑，但对SPCX/SPCH持有者提示风险。"
-    }
-  ],
-  "new_ideas": [],
-  "sector_hits": [
-    {
-      "author": "Musk",
-      "text": "Elon Musk Says This Will Be Tesla's 'Biggest Product Ever'—If It Can Solve the Supply Chain Issue",
-      "url": "",
-      "published": "Thu, 23 Jul 2026 00:58:24 GMT",
-      "origin": "gnews-rss",
-      "source": "inc.com",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "电动车",
-        "AI",
-        "半导体",
-        "供应链"
-      ],
-      "sector_holdings": [
-        "SKHY"
-      ],
-      "stance": "endorse",
-      "relevance": 72,
-      "summary_cn": "Musk称Tesla'史上最大产品'取决于供应链问题能否解决，AI/电动车供应链成关键，间接触及半导体供应链；kcn持有SK海力士（SKHY）相关。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk Says Tesla Should Be Spending on AI 'As Fast As We Can'",
-      "url": "",
-      "published": "Thu, 23 Jul 2026 11:00:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Business Insider",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "AI"
-      ],
-      "sector_holdings": [
-        "MSFU"
-      ],
-      "stance": "endorse",
-      "relevance": 70,
-      "summary_cn": "Musk称Tesla应'尽可能快'地投入AI，利好AI基础设施板块；kcn持有MSFU（微软2倍做多）间接受益。"
+      "summary_cn": "特朗普警告伊朗/胡塞武装，若再袭击商船将对伊朗实施重大军事惩罚，影响军工与中东地缘风险溢价。"
     },
     {
       "author": "Trump",
@@ -406,15 +187,12 @@
       "new_ideas": [],
       "sectors": [
         "核能",
-        "中东地缘政治",
-        "关税"
+        "中东地缘政治"
       ],
-      "sector_holdings": [
-        "02208"
-      ],
-      "stance": "endorse",
-      "relevance": 60,
-      "summary_cn": "Trump宣布美国与沙特民用核能协议以加入亚伯拉罕协议为前提，影响中东能源格局；金风科技作为风电/能源股间接受关注。"
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 50,
+      "summary_cn": "特朗普宣布美沙民用核能协议（不涉及浓缩铀），与沙特加入亚伯拉罕协议挂钩，影响核能板块及中东外交走向。"
     },
     {
       "author": "Trump",
@@ -426,14 +204,142 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "能源"
+        "能源",
+        "地缘政治"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 50,
+      "summary_cn": "塞浦路斯能源部长称特朗普的'能源安全'参与对西方未来'至关重要'，利好美国能源出口与地缘联盟。"
+    }
+  ],
+  "held_hits": [],
+  "new_ideas": [
+    {
+      "author": "Musk",
+      "text": "Tesla (TSLA) crashes 12%, sheds $140B as Elon Musk’s ‘just trust me’ doesn’t hold anymore",
+      "url": "",
+      "published": "Thu, 23 Jul 2026 14:30:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Electrek",
+      "tickers": [
+        "TSLA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "TSLA"
+      ],
+      "sectors": [
+        "电动车",
+        "AI",
+        "自动驾驶"
+      ],
+      "sector_holdings": [],
+      "stance": "attack",
+      "relevance": 78,
+      "summary_cn": "特斯拉单日暴跌12%，市值蒸发1400亿美元，市场对马斯克'相信我'式的AI/自动驾驶承诺彻底失信。"
+    },
+    {
+      "author": "Musk",
+      "text": "Tesla Plummets 14%—Costing Elon Musk $18 Billion",
+      "url": "",
+      "published": "Thu, 23 Jul 2026 17:53:09 GMT",
+      "origin": "gnews-rss",
+      "source": "Forbes",
+      "tickers": [
+        "TSLA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "TSLA"
+      ],
+      "sectors": [
+        "电动车",
+        "AI"
+      ],
+      "sector_holdings": [],
+      "stance": "attack",
+      "relevance": 72,
+      "summary_cn": "特斯拉单日暴跌14%，马斯克身家蒸发180亿美元，市场对Robotaxi/Optimus等AI叙事信心受挫。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk Preaches Patience On Robotaxi, Optimus Rollout. Tesla Stock Plummets.",
+      "url": "",
+      "published": "Thu, 23 Jul 2026 20:03:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Investor's Business Daily",
+      "tickers": [
+        "TSLA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "TSLA"
+      ],
+      "sectors": [
+        "电动车",
+        "AI",
+        "自动驾驶"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 70,
+      "summary_cn": "马斯克呼吁对Robotaxi和Optimus机器人量产保持耐心，但特斯拉股价随即大跌，'信任溢价'正在消退。"
+    },
+    {
+      "author": "Musk",
+      "text": "Will SpaceX buy Tesla? Elon Musk is not revealing his plans",
+      "url": "",
+      "published": "Thu, 23 Jul 2026 21:01:11 GMT",
+      "origin": "gnews-rss",
+      "source": "Scripps News",
+      "tickers": [
+        "TSLA",
+        "SPACEX"
+      ],
+      "held": [],
+      "new_ideas": [
+        "SPACEX",
+        "TSLA"
+      ],
+      "sectors": [
+        "电动车",
+        "航天",
+        "AI"
       ],
       "sector_holdings": [
-        "02208"
+        "SPCH",
+        "SPCX"
       ],
-      "stance": "endorse",
-      "relevance": 55,
-      "summary_cn": "塞浦路斯能源部长称Trump'能源安全'参与对西方未来至关重要，利好能源板块。"
+      "stance": "neutral",
+      "relevance": 68,
+      "summary_cn": "马斯克被问及SpaceX是否会收购特斯拉但拒绝透露计划，市场猜测其商业帝国整合可能性，间接关联kcn持有的SpaceX相关仓位。"
+    },
+    {
+      "author": "Musk",
+      "text": "Suddenly, as His Empire Crumbles, Elon Musk Admits He Made a Huge Mistake With DOGE",
+      "url": "",
+      "published": "Thu, 23 Jul 2026 18:49:56 GMT",
+      "origin": "gnews-rss",
+      "source": "Futurism",
+      "tickers": [
+        "DOGE"
+      ],
+      "held": [],
+      "new_ideas": [
+        "DOGE"
+      ],
+      "sectors": [
+        "加密货币",
+        "政府效率"
+      ],
+      "sector_holdings": [
+        "CRCL"
+      ],
+      "stance": "neutral",
+      "relevance": 60,
+      "summary_cn": "马斯克罕见承认DOGE（政府效率部门）犯了'巨大错误'，与其加密同名代币及加密板块情绪相关。"
     }
-  ]
+  ],
+  "sector_hits": []
 }
