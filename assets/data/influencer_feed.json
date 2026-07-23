@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-22T22:37:15.863734+00:00",
+  "generated_at": "2026-07-23T14:55:30.781751+00:00",
   "lookback_hours": 48,
   "sources": {
     "trump": "trumpstruth.org/feed (primary)",
@@ -9,62 +9,77 @@
   "llm_filtered": true,
   "counts": {
     "total": 12,
-    "held_hits": 3,
+    "held_hits": 4,
     "new_ideas": 0,
-    "sector_hits": 0
+    "sector_hits": 4
   },
   "items": [
     {
       "author": "Musk",
-      "text": "Will SpaceX buy Tesla? Musk may soon offer clues on his plans",
+      "text": "Musk keeps Tesla-SpaceX merger speculation alive, cites growing overlap",
       "url": "",
-      "published": "Wed, 22 Jul 2026 11:00:25 GMT",
+      "published": "Thu, 23 Jul 2026 01:13:00 GMT",
       "origin": "gnews-rss",
-      "source": "CNN",
-      "tickers": [
-        "SPCX",
-        "SPCH"
-      ],
+      "source": "Reuters",
+      "tickers": [],
       "held": [
         "SPCH",
         "SPCX"
       ],
       "new_ideas": [],
       "sectors": [
+        "电动车",
         "航天",
-        "电动车/特斯拉",
-        "公司并购"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 88,
-      "summary_cn": "Musk可能即将透露SpaceX是否会收购Tesla，重大事件催化剂，直接关联kcn持有的SpaceX相关标的。"
-    },
-    {
-      "author": "Musk",
-      "text": "Bets against SpaceX grow to 32% of float as Elon Musk warns short sellers won't survive",
-      "url": "",
-      "published": "Tue, 21 Jul 2026 14:28:52 GMT",
-      "origin": "gnews-rss",
-      "source": "CNBC",
-      "tickers": [
-        "SPCX",
-        "SPCH"
-      ],
-      "held": [
-        "SPCH",
-        "SPCX"
-      ],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "私募/未上市资产",
-        "做空/对冲"
+        "AI"
       ],
       "sector_holdings": [],
       "stance": "endorse",
-      "relevance": 82,
-      "summary_cn": "Musk警告SpaceX空头：空头头寸升至流通盘的32%，不会存活；Musk公开威胁空头，强看多信号。"
+      "relevance": 88,
+      "summary_cn": "Musk持续暗示Tesla与SpaceX合并可能性并强调业务重叠，直接利好kcn持有的SpaceX相关标的SPCX/SPCH。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk hints Tesla and SpaceX could one day become one company",
+      "url": "",
+      "published": "Thu, 23 Jul 2026 10:01:00 GMT",
+      "origin": "gnews-rss",
+      "source": "calcalistech.com",
+      "tickers": [],
+      "held": [
+        "SPCH",
+        "SPCX"
+      ],
+      "new_ideas": [],
+      "sectors": [
+        "电动车",
+        "航天"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 85,
+      "summary_cn": "Musk公开暗示Tesla和SpaceX未来或合并为一家公司，直接利好kcn持有的SpaceX标的SPCX/SPCH。"
+    },
+    {
+      "author": "Musk",
+      "text": "Musk Says Tesla And SpaceX ‘Can’t Talk About’ Merging On Earnings Call—But Here’s What He Did Say",
+      "url": "",
+      "published": "Wed, 22 Jul 2026 23:04:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Forbes",
+      "tickers": [],
+      "held": [
+        "SPCH",
+        "SPCX"
+      ],
+      "new_ideas": [],
+      "sectors": [
+        "电动车",
+        "航天"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 75,
+      "summary_cn": "Musk称Tesla与SpaceX在财报电话会上'不能谈'合并，但相关讨论持续发酵，市场关注SpaceX估值重估机会。"
     },
     {
       "author": "Musk",
@@ -73,23 +88,122 @@
       "published": "Wed, 22 Jul 2026 10:40:00 GMT",
       "origin": "gnews-rss",
       "source": "Fortune",
-      "tickers": [
-        "SPCX",
-        "SPCH"
-      ],
+      "tickers": [],
       "held": [
         "SPCH",
         "SPCX"
       ],
       "new_ideas": [],
       "sectors": [
-        "航天",
-        "私募/未上市资产"
+        "航天"
       ],
       "sector_holdings": [],
-      "stance": "attack",
+      "stance": "neutral",
+      "relevance": 68,
+      "summary_cn": "Dalio透露曾警告Musk不要All in SpaceX和火星探索，间接反映市场对SpaceX估值的质疑，但对SPCX/SPCH持有者提示风险。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk Says This Will Be Tesla's 'Biggest Product Ever'—If It Can Solve the Supply Chain Issue",
+      "url": "",
+      "published": "Thu, 23 Jul 2026 00:58:24 GMT",
+      "origin": "gnews-rss",
+      "source": "inc.com",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "电动车",
+        "AI",
+        "半导体",
+        "供应链"
+      ],
+      "sector_holdings": [
+        "SKHY"
+      ],
+      "stance": "endorse",
+      "relevance": 72,
+      "summary_cn": "Musk称Tesla'史上最大产品'取决于供应链问题能否解决，AI/电动车供应链成关键，间接触及半导体供应链；kcn持有SK海力士（SKHY）相关。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk Says Tesla Should Be Spending on AI 'As Fast As We Can'",
+      "url": "",
+      "published": "Thu, 23 Jul 2026 11:00:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Business Insider",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "AI"
+      ],
+      "sector_holdings": [
+        "MSFU"
+      ],
+      "stance": "endorse",
       "relevance": 70,
-      "summary_cn": "Ray Dalio透露曾警告Musk不要All in SpaceX和火星探索，对SpaceX估值/前景构成间接质疑。"
+      "summary_cn": "Musk称Tesla应'尽可能快'地投入AI，利好AI基础设施板块；kcn持有MSFU（微软2倍做多）间接受益。"
+    },
+    {
+      "author": "Trump",
+      "text": "The Civil Nuclear Deal (There will be no enrichment of material!) being made between the United States Department of Energy and Saudi Arabia, which pertains only to non-military use such as the ones that Iran and UAE (and others) already have, will be approved, but is totally subject to Saudi Arabia joining the very respected and successful Abraham Accords. The United States is not opposed to Civil (Non-Enriched) Nuclear Facilities. Thank you for your attention to this matter! President DONALD J. TRUMP",
+      "url": "https://trumpstruth.org/statuses/40218",
+      "published": "2026-07-23T11:52:51+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "核能",
+        "中东地缘政治",
+        "关税"
+      ],
+      "sector_holdings": [
+        "02208"
+      ],
+      "stance": "endorse",
+      "relevance": 60,
+      "summary_cn": "Trump宣布美国与沙特民用核能协议以加入亚伯拉罕协议为前提，影响中东能源格局；金风科技作为风电/能源股间接受关注。"
+    },
+    {
+      "author": "Trump",
+      "text": "Exclusive — Cyprus Energy Minister: Trump’s ‘Energy Security’ Engagement ‘Vital’ to Future of West: https://www.breitbart.com/politics/2026/07/22/exclusive-cyprus-energy-minister-trumps-energy-security-engagement-vital-to-future-of-west/",
+      "url": "https://trumpstruth.org/statuses/40215",
+      "published": "2026-07-23T01:40:40+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "能源"
+      ],
+      "sector_holdings": [
+        "02208"
+      ],
+      "stance": "endorse",
+      "relevance": 55,
+      "summary_cn": "塞浦路斯能源部长称Trump'能源安全'参与对西方未来至关重要，利好能源板块。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk Preaches Patience On Robotaxi, Optimus Rollout. Tesla Stock Plummets.",
+      "url": "",
+      "published": "Thu, 23 Jul 2026 14:03:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Investor's Business Daily",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "电动车",
+        "AI",
+        "Robotaxi"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 78,
+      "summary_cn": "Musk对Robotaxi和Optimus推出强调耐心，Tesla股价暴跌，短期负面但长期叙事仍在。"
     },
     {
       "author": "Trump",
@@ -101,33 +215,13 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "医药/制药",
-        "关税",
-        "美国制造业回流"
+        "医药",
+        "关税"
       ],
       "sector_holdings": [],
       "stance": "neutral",
-      "relevance": 72,
-      "summary_cn": "Trump宣布仿制药关税政策：2026年8月起先零关税两年逼企业回流美国建厂，之后升至100%/200%，旨在重塑美国制药供应链。"
-    },
-    {
-      "author": "Musk",
-      "text": "Tesla Profit Misses Estimates as Elon Musk Looks Beyond the Car Business",
-      "url": "",
-      "published": "Wed, 22 Jul 2026 21:32:03 GMT",
-      "origin": "gnews-rss",
-      "source": "Bloomberg.com",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "电动车/特斯拉",
-        "AI/机器人"
-      ],
-      "sector_holdings": [],
-      "stance": "attack",
-      "relevance": 55,
-      "summary_cn": "Tesla利润不及预期，Musk重心已超越造车业务转向AI/机器人。"
+      "relevance": 70,
+      "summary_cn": "Trump宣布8月起仿制药维持零关税两年后再加征100%-200%关税，意在逼迫药企将生产回流美国，重塑美国医药供应链。"
     },
     {
       "author": "Trump",
@@ -139,176 +233,100 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "国防军工",
-        "美国制造业"
+        "国防军工"
       ],
       "sector_holdings": [],
       "stance": "endorse",
+      "relevance": 65,
+      "summary_cn": "Trump宣布在宾州近100亿美元国防工业基础投资，利好美国国防军工板块。"
+    },
+    {
+      "author": "Trump",
+      "text": "A year ago the United States of America attacked, very powerfully, the Houthis, for their interference with commerce and trade, by shooting at ships. Since that time, and during our conflict with Iran, they have acted very responsibly. Unfortunately, now they are starting up again, shooting at two Saudi Arabian ships last night. Please let this TRUTH serve to represent that if they do this again, the U.S. will hold Iran responsible, in that the Houthis are a Surrogate and/or Proxy of Iran, and major military punishment will be inflicted upon Iran and, of course, the Houthis, themselves, who I ",
+      "url": "https://trumpstruth.org/statuses/40219",
+      "published": "2026-07-23T12:16:49+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "军工",
+        "能源",
+        "中东地缘政治"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
       "relevance": 55,
-      "summary_cn": "Trump在宾州McCormick峰会上宣布近100亿美元国防工业基础投资，利好军工板块。"
-    },
-    {
-      "author": "Musk",
-      "text": "Earnings at Musk's car company fall as research spending cuts into profit from selling cars - ABC News",
-      "url": "",
-      "published": "Wed, 22 Jul 2026 21:31:49 GMT",
-      "origin": "gnews-rss",
-      "source": "ABC News - Breaking News, Latest News and Videos",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "电动车/特斯拉",
-        "AI/机器人"
-      ],
-      "sector_holdings": [],
-      "stance": "attack",
-      "relevance": 52,
-      "summary_cn": "Tesla财报：研究投入挤压汽车销售利润，盈利下滑。"
-    },
-    {
-      "author": "Musk",
-      "text": "Tesla’s profits slide despite growing revenue as it pivots to robotics and AI",
-      "url": "",
-      "published": "Wed, 22 Jul 2026 21:39:00 GMT",
-      "origin": "gnews-rss",
-      "source": "The Guardian",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "电动车/特斯拉",
-        "AI/机器人"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 50,
-      "summary_cn": "Tesla营收增长但利润下滑，正转型机器人/AI，研发开支挤压汽车利润。"
-    },
-    {
-      "author": "Trump",
-      "text": "Trump Rx Delivers Massive Price Relief on Prescription Drug Costs: https://amac.us/newsline/economy/trumprx-prescription-drug-savings-deliver-lower-costs-for-americans/",
-      "url": "https://trumpstruth.org/statuses/40170",
-      "published": "2026-07-21T15:00:57+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "医药/制药",
-        "医保/药价"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 50,
-      "summary_cn": "Trump Rx计划大幅降低处方药价格，行政手段压制药价。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk's posts about making an espresso in FSD are being scrutinized in a Tesla investigation",
-      "url": "",
-      "published": "Wed, 22 Jul 2026 14:31:35 GMT",
-      "origin": "gnews-rss",
-      "source": "Business Insider",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "电动车/特斯拉",
-        "自动驾驶监管"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 48,
-      "summary_cn": "Musk在Tesla FSD状态下做espresso的帖子被纳入Tesla调查，FSD面临监管审视。"
-    },
-    {
-      "author": "Trump",
-      "text": "RT: https://truthsocial.com/users/realDonaldTrump/statuses/116957942431800428Rich people and Companies are pouring out of Dumocrat run Blue States at levels never seen before! If this trend continues, these States will become the “Ghettos” of the Future — No people, no money, no hope. MAKE AMERICA GREAT AGAIN! President DONALD J. TRUMP",
-      "url": "https://trumpstruth.org/statuses/40163",
-      "published": "2026-07-21T12:27:09+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "州税/人口迁移"
-      ],
-      "sector_holdings": [],
-      "stance": "attack",
-      "relevance": 45,
-      "summary_cn": "Trump称富人和企业正以创纪录速度逃离民主党蓝州，蓝州将成为未来'贫民窟'。"
-    },
-    {
-      "author": "Trump",
-      "text": "Across the nation, Trump’s long-predicted high-tax exodus has a Midwest sequel: https://justthenews.com/government/white-house/california-illinois-trumps-predicted-tax-apocalypse-has-midwest-sequel",
-      "url": "https://trumpstruth.org/statuses/40162",
-      "published": "2026-07-21T12:22:52+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "州税/人口迁移"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 45,
-      "summary_cn": "报道：Trump长期预言的高税率人口外逃趋势在中西部继续上演，从加州/伊利诺伊扩散。"
+      "summary_cn": "Trump警告若胡塞武装再袭击商船将对伊朗实施重大军事惩罚，暗示中东军事冲突风险上升。"
     }
   ],
   "held_hits": [
     {
       "author": "Musk",
-      "text": "Will SpaceX buy Tesla? Musk may soon offer clues on his plans",
+      "text": "Musk keeps Tesla-SpaceX merger speculation alive, cites growing overlap",
       "url": "",
-      "published": "Wed, 22 Jul 2026 11:00:25 GMT",
+      "published": "Thu, 23 Jul 2026 01:13:00 GMT",
       "origin": "gnews-rss",
-      "source": "CNN",
-      "tickers": [
-        "SPCX",
-        "SPCH"
-      ],
+      "source": "Reuters",
+      "tickers": [],
       "held": [
         "SPCH",
         "SPCX"
       ],
       "new_ideas": [],
       "sectors": [
+        "电动车",
         "航天",
-        "电动车/特斯拉",
-        "公司并购"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 88,
-      "summary_cn": "Musk可能即将透露SpaceX是否会收购Tesla，重大事件催化剂，直接关联kcn持有的SpaceX相关标的。"
-    },
-    {
-      "author": "Musk",
-      "text": "Bets against SpaceX grow to 32% of float as Elon Musk warns short sellers won't survive",
-      "url": "",
-      "published": "Tue, 21 Jul 2026 14:28:52 GMT",
-      "origin": "gnews-rss",
-      "source": "CNBC",
-      "tickers": [
-        "SPCX",
-        "SPCH"
-      ],
-      "held": [
-        "SPCH",
-        "SPCX"
-      ],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "私募/未上市资产",
-        "做空/对冲"
+        "AI"
       ],
       "sector_holdings": [],
       "stance": "endorse",
-      "relevance": 82,
-      "summary_cn": "Musk警告SpaceX空头：空头头寸升至流通盘的32%，不会存活；Musk公开威胁空头，强看多信号。"
+      "relevance": 88,
+      "summary_cn": "Musk持续暗示Tesla与SpaceX合并可能性并强调业务重叠，直接利好kcn持有的SpaceX相关标的SPCX/SPCH。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk hints Tesla and SpaceX could one day become one company",
+      "url": "",
+      "published": "Thu, 23 Jul 2026 10:01:00 GMT",
+      "origin": "gnews-rss",
+      "source": "calcalistech.com",
+      "tickers": [],
+      "held": [
+        "SPCH",
+        "SPCX"
+      ],
+      "new_ideas": [],
+      "sectors": [
+        "电动车",
+        "航天"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 85,
+      "summary_cn": "Musk公开暗示Tesla和SpaceX未来或合并为一家公司，直接利好kcn持有的SpaceX标的SPCX/SPCH。"
+    },
+    {
+      "author": "Musk",
+      "text": "Musk Says Tesla And SpaceX ‘Can’t Talk About’ Merging On Earnings Call—But Here’s What He Did Say",
+      "url": "",
+      "published": "Wed, 22 Jul 2026 23:04:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Forbes",
+      "tickers": [],
+      "held": [
+        "SPCH",
+        "SPCX"
+      ],
+      "new_ideas": [],
+      "sectors": [
+        "电动车",
+        "航天"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 75,
+      "summary_cn": "Musk称Tesla与SpaceX在财报电话会上'不能谈'合并，但相关讨论持续发酵，市场关注SpaceX估值重估机会。"
     },
     {
       "author": "Musk",
@@ -317,25 +335,105 @@
       "published": "Wed, 22 Jul 2026 10:40:00 GMT",
       "origin": "gnews-rss",
       "source": "Fortune",
-      "tickers": [
-        "SPCX",
-        "SPCH"
-      ],
+      "tickers": [],
       "held": [
         "SPCH",
         "SPCX"
       ],
       "new_ideas": [],
       "sectors": [
-        "航天",
-        "私募/未上市资产"
+        "航天"
       ],
       "sector_holdings": [],
-      "stance": "attack",
-      "relevance": 70,
-      "summary_cn": "Ray Dalio透露曾警告Musk不要All in SpaceX和火星探索，对SpaceX估值/前景构成间接质疑。"
+      "stance": "neutral",
+      "relevance": 68,
+      "summary_cn": "Dalio透露曾警告Musk不要All in SpaceX和火星探索，间接反映市场对SpaceX估值的质疑，但对SPCX/SPCH持有者提示风险。"
     }
   ],
   "new_ideas": [],
-  "sector_hits": []
+  "sector_hits": [
+    {
+      "author": "Musk",
+      "text": "Elon Musk Says This Will Be Tesla's 'Biggest Product Ever'—If It Can Solve the Supply Chain Issue",
+      "url": "",
+      "published": "Thu, 23 Jul 2026 00:58:24 GMT",
+      "origin": "gnews-rss",
+      "source": "inc.com",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "电动车",
+        "AI",
+        "半导体",
+        "供应链"
+      ],
+      "sector_holdings": [
+        "SKHY"
+      ],
+      "stance": "endorse",
+      "relevance": 72,
+      "summary_cn": "Musk称Tesla'史上最大产品'取决于供应链问题能否解决，AI/电动车供应链成关键，间接触及半导体供应链；kcn持有SK海力士（SKHY）相关。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk Says Tesla Should Be Spending on AI 'As Fast As We Can'",
+      "url": "",
+      "published": "Thu, 23 Jul 2026 11:00:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Business Insider",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "AI"
+      ],
+      "sector_holdings": [
+        "MSFU"
+      ],
+      "stance": "endorse",
+      "relevance": 70,
+      "summary_cn": "Musk称Tesla应'尽可能快'地投入AI，利好AI基础设施板块；kcn持有MSFU（微软2倍做多）间接受益。"
+    },
+    {
+      "author": "Trump",
+      "text": "The Civil Nuclear Deal (There will be no enrichment of material!) being made between the United States Department of Energy and Saudi Arabia, which pertains only to non-military use such as the ones that Iran and UAE (and others) already have, will be approved, but is totally subject to Saudi Arabia joining the very respected and successful Abraham Accords. The United States is not opposed to Civil (Non-Enriched) Nuclear Facilities. Thank you for your attention to this matter! President DONALD J. TRUMP",
+      "url": "https://trumpstruth.org/statuses/40218",
+      "published": "2026-07-23T11:52:51+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "核能",
+        "中东地缘政治",
+        "关税"
+      ],
+      "sector_holdings": [
+        "02208"
+      ],
+      "stance": "endorse",
+      "relevance": 60,
+      "summary_cn": "Trump宣布美国与沙特民用核能协议以加入亚伯拉罕协议为前提，影响中东能源格局；金风科技作为风电/能源股间接受关注。"
+    },
+    {
+      "author": "Trump",
+      "text": "Exclusive — Cyprus Energy Minister: Trump’s ‘Energy Security’ Engagement ‘Vital’ to Future of West: https://www.breitbart.com/politics/2026/07/22/exclusive-cyprus-energy-minister-trumps-energy-security-engagement-vital-to-future-of-west/",
+      "url": "https://trumpstruth.org/statuses/40215",
+      "published": "2026-07-23T01:40:40+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "能源"
+      ],
+      "sector_holdings": [
+        "02208"
+      ],
+      "stance": "endorse",
+      "relevance": 55,
+      "summary_cn": "塞浦路斯能源部长称Trump'能源安全'参与对西方未来至关重要，利好能源板块。"
+    }
+  ]
 }
