@@ -257,6 +257,109 @@ def test_intraday_hard_length_limit_is_a_failure():
     ) == 'warn'
 
 
+def test_intraday_empty_input_is_an_input_error_not_a_content_failure(monkeypatch):
+    """2026-07-23 10:00 HK: postflight was called with no stdin at all. The empty
+    read went straight into validate() and produced four "you wrote the report
+    wrong" issues, hiding the real cause (missing plumbing). Empty input must be
+    reported as its own class, and must never reach content validation."""
+    import io
+    import intraday_postflight
+
+    monkeypatch.setattr(sys, 'stdin', io.StringIO(''))
+    text, err = intraday_postflight.read_report_text('hk', None)
+    assert text == ''
+    assert '空输入' in err and '--text-file' in err
+
+    monkeypatch.setattr(sys, 'stdin', io.StringIO('   \n\n  '))
+    _, err_ws = intraday_postflight.read_report_text('hk', None)
+    assert err_ws, 'whitespace-only input must be rejected too'
+
+
+def test_intraday_stale_report_file_is_refused(tmp_path):
+    """A forgotten Step 3 rewrite must not silently republish the previous slot's
+    report — the failure mode --text-file would otherwise introduce."""
+    import os
+
+    import intraday_postflight
+
+    report = tmp_path / 'intraday-report-hk.md'
+    report.write_text('🇭🇰 港股盯盘 | 07/23 10:03 HKT\n▎我的看法\n' + 'x' * 80)
+
+    text, err = intraday_postflight.read_report_text('hk', str(report))
+    assert err is None and text, 'a freshly written report must pass'
+
+    stale = (datetime.now().timestamp()
+             - (intraday_postflight.REPORT_MAX_AGE_MIN + 5) * 60)
+    os.utime(report, (stale, stale))
+    _, err_stale = intraday_postflight.read_report_text('hk', str(report))
+    assert err_stale and '旧报告' in err_stale
+
+    _, err_missing = intraday_postflight.read_report_text('hk', str(tmp_path / 'nope.md'))
+    assert err_missing and '不存在' in err_missing
+
+
+def test_intraday_main_stops_on_empty_input_and_blames_the_context_slot(monkeypatch, capsys):
+    """End-to-end on main(): empty input must exit 2 without ever reaching content
+    validation or delivery, and the failure must be stamped on the slot the
+    preflight context was built for. A run that starts at 10:00 but hits empty
+    input at 10:31 would otherwise record a phantom 10:30 failure while the
+    successful retry marks 10:00 completed."""
+    import io
+
+    import intraday_postflight
+
+    recorded = {}
+    monkeypatch.setattr(sys, 'stdin', io.StringIO(''))
+    monkeypatch.setattr(sys, 'argv', ['intraday_postflight.py', '--market', 'hk'])
+    monkeypatch.setattr(intraday_postflight.trading_calendar, 'closed_reason', lambda m: None)
+    monkeypatch.setattr(intraday_postflight, 'load_context', lambda m: (
+        {'heartbeat': {'job': '盘中盯盘', 'slot': '2026-07-23T10:00:00+08:00'}}, None))
+    monkeypatch.setattr(intraday_postflight.cron_heartbeat, 'record',
+                        lambda *a, **kw: recorded.update(args=a, kwargs=kw))
+
+    def _never(*a, **kw):
+        raise AssertionError('empty input must not reach content validation/delivery')
+
+    monkeypatch.setattr(intraday_postflight, 'validate', _never)
+    monkeypatch.setattr(intraday_postflight, 'send_wechat', _never)
+
+    assert intraday_postflight.main() == 2
+
+    payload = json.loads(capsys.readouterr().out)
+    assert payload['status'] == 'input_error'
+    assert payload['n_chars'] == 0
+    assert payload['wechat_sent'] is None and payload['dashboard_published'] is False
+
+    assert recorded['args'] == ('hk', 'postflight_failed')
+    assert recorded['kwargs']['slot'] == '2026-07-23T10:00:00+08:00'
+    assert recorded['kwargs']['job_name'] == '盘中盯盘'
+    assert recorded['kwargs']['failure_stage'] == 'input'
+
+
+def test_intraday_payload_contract_bans_heredoc_and_requires_text_file():
+    """The live cron payload and the SKILL are two sources of truth for the same
+    command. Pin the plumbing in the tracked contract so they cannot drift apart
+    again."""
+    profile = contract()['payload_profiles']['intraday']
+    assert '--text-file' in profile['required_substrings']
+    assert 'intraday-report-{market}.md' in profile['required_substrings']
+    assert '<<<' in profile['forbidden_substrings']
+
+    vars_ = {'market': 'hk', 'skill': 'hk-stock-analysis'}
+    data = contract()
+    expected = {job['name']: job for job in data['jobs']}['盘中盯盘']
+    message = '\n'.join(s.format(**vars_) for s in profile['required_substrings'])
+    live = {
+        'payload': {'message': message, 'kind': 'agentTurn',
+                    'model': profile['model'], 'thinking': profile['thinking']},
+        'delivery': {'mode': 'none'},
+    }
+    assert cron_contract.payload_errors(data, expected, live) == []
+
+    live['payload']['message'] = message + '\nintraday_postflight.py --market hk <<< "{报告}"'
+    assert cron_contract.payload_errors(data, expected, live) != []
+
+
 def test_every_twenty_minutes_timeline_label_is_not_every_hour():
     timeline_spec = importlib.util.spec_from_file_location(
         'cron_timeline', ROOT / 'scripts' / 'data' / 'cron_timeline.py'

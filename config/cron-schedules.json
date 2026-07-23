@@ -49,6 +49,8 @@
         "skills/{skill}/SKILL.md",
         "intraday_preflight.py --market {market}",
         "intraday_postflight.py --market {market}",
+        "--text-file",
+        "intraday-report-{market}.md",
         "intraday-insights-",
         "目标 ≤ 1200 字",
         ">2000 字 warn",
@@ -63,7 +65,8 @@
         "≤800",
         "≤ 600",
         "≤600",
-        "唯一发送路径"
+        "唯一发送路径",
+        "<<<"
       ]
     },
     "brief": {
