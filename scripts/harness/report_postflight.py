@@ -10,7 +10,7 @@ Usage: read the briefing text from stdin (preferred for cron),
 Validates:
   1. ▎情绪面 / ▎技术面 / ▎操作建议 三段标记齐全
   2. 若 preflight needs_risk_section=true, 必须有 ▎风险提示 段
-  3. 总长度 ≤ 2000 字 (warn) / ≤ 2500 字 (fail) — HK + US 统一（2026-05-27 调升）
+  3. 总长度 ≤ 3000 字 (warn) / ≤ 3500 字 (fail) — HK + US 统一（2026-07-23 调升）
   4. 必须以 raw_wechat_block 开头（脚本数据块 verbatim，禁止编造）
   5. 如果 preflight 有 anomalies，报告必须提到至少一个 anomaly 票
   6. 没有"等待数据/数据待获取"等敷衍词
@@ -53,10 +53,11 @@ FORBIDDEN_PHRASES = ['数据待获取', '等待数据', '数据缺失（占位�
 # degenerate-input case BEFORE send/commit so a broken pipe never reaches WeChat.
 MIN_REPORT_CHARS = 50
 
-# Char limits — HK + US 统一 2000/2500（2026-05-27 起，1200 太紧报告频繁 warn）
+# Char limits — HK + US 统一 3000/3500（2026-07-23 起，各档在 2000/2500 基础上 +1000；
+# 更早一版 1200 太紧、2000 仍让正常长度的报告频繁 warn）
 CHAR_LIMITS = {
-    'hk': {'soft': 2000, 'hard': 2500},
-    'us': {'soft': 2000, 'hard': 2500},
+    'hk': {'soft': 3000, 'hard': 3500},
+    'us': {'soft': 3000, 'hard': 3500},
 }
 
 
@@ -117,7 +118,7 @@ CRITICAL_KEYWORDS = ['缺段标记', '未包含原始数据块', '敷衍词', '�
 
 
 def _is_hard_char_limit(issue):
-    """Hard char limit (e.g. '字 > 2500 上限') is critical; soft is not."""
+    """Hard char limit (e.g. '字 > 3500 上限') is critical; soft is not."""
     return '字 >' in issue and '上限' in issue and '软上限' not in issue
 
 
