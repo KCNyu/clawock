@@ -250,11 +250,54 @@ def test_intraday_hard_length_limit_is_a_failure():
     import intraday_postflight
 
     assert intraday_postflight.categorize(
-        ['报告长度 2501 字 > 2500 上限']
+        ['报告长度 3501 字 > 3500 上限']
     ) == 'fail'
     assert intraday_postflight.categorize(
-        ['报告长度 2100 字 > 2000 软上限 (warn)']
+        ['报告长度 3100 字 > 3000 软上限 (warn)']
     ) == 'warn'
+
+
+def test_length_thresholds_are_the_relaxed_3000_3500_pair():
+    """2026-07-23: every tier was raised by 1000 字 (target 1200→2200, warn
+    2000→3000, fail 2500→3500). categorize() alone can't catch a threshold
+    regression — it only reads the issue *string* — so assert the boundaries
+    through the real validate() of both postflights, and keep the tracked cron
+    contract pinned to the same numbers (live payloads are checked against it)."""
+    import intraday_postflight
+    import report_postflight
+
+    body = '▎我的看法\n' + '判' * 200 + '\n'
+
+    def intraday_len(n):
+        text = body + '填' * (n - len(body))
+        assert len(text) == n
+        return [i for i in intraday_postflight.validate(text, {}) if '报告长度' in i]
+
+    assert intraday_len(3000) == []
+    assert intraday_len(3001) == ['报告长度 3001 字 > 3000 软上限 (warn)']
+    assert intraday_len(3500) == ['报告长度 3500 字 > 3000 软上限 (warn)']
+    assert intraday_len(3501) == ['报告长度 3501 字 > 3500 上限']
+    assert intraday_postflight.categorize(['报告长度 3501 字 > 3500 上限']) == 'fail'
+
+    for market in ('hk', 'us'):
+        def report_len(n, market=market):
+            text = '填' * n
+            return [i for i in report_postflight.validate(text, {'market': market})
+                    if '报告长度' in i]
+
+        assert report_len(3000) == []
+        assert report_len(3001) == ['报告长度 3001 字 > 3000 软上限 (warn)']
+        assert report_len(3500) == ['报告长度 3500 字 > 3000 软上限 (warn)']
+        assert report_len(3501) == ['报告长度 3501 字 > 3500 上限']
+        assert report_postflight.categorize(['报告长度 3501 字 > 3500 上限']) == 'fail'
+
+    for profile in ('report', 'intraday'):
+        required = contract()['payload_profiles'][profile]['required_substrings']
+        forbidden = contract()['payload_profiles'][profile]['forbidden_substrings']
+        assert '>3000 字 warn' in required and '>3500 字 fail' in required
+        assert '目标 ≤ 2200 字' in required
+        # the pre-relaxation numbers must not survive in a live payload
+        assert '>2000 字 warn' in forbidden and '>2500 字 fail' in forbidden
 
 
 def test_intraday_empty_input_is_an_input_error_not_a_content_failure(monkeypatch):

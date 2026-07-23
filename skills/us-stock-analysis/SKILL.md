@@ -101,7 +101,7 @@ python3 /root/.openclaw/workspace/scripts/harness/intraday_preflight.py --market
   - 必须包含：今天该看/该等/该减 + 引用至少 1 个具体数字（票现价 / 异动幅度 / 信号 / RSI）
   - ⚡ **板块全景**：数据**已由 preflight 备好**在 context.json 的 `peer_scan` 里（每个 active ticker 一项：`theme` 板块名、`listed_peers` 已按今日涨幅降序、含 `pct_1d`/`pct_5d`、`divergence_signal`、`self_pct_1d`）。**直接引用它,不要自己去读 peer-map.json、也不要自己调 `fetch_peers.py`**；给对应主题成分今日 Top 5 + 你持仓位置 + 1 句归因;`peer_scan` 为空或缺项时才回退 web search。若某条带 `name_mismatch`,以 feed 名为准并在报告里提一句。持仓自己的数字仍从 context.json。板块行情**优先用内置 web search**；`tavily-search` 仅在**开盘/收盘报告**或盘中真事件时才用，且必带 `--bucket report`/`--bucket intraday`（见 Mode 5 的 Budget rule）——盘中每 30 分钟的常规盯盘**不要**烧 Tavily
   - 禁止"无异动，观望"这种敷衍 1 句话
-- 目标 ≤1200 字；>2000 字 postflight warn，>2500 字 fail
+- 目标 ≤2200 字；>3000 字 postflight warn，>3500 字 fail
 
 #### Step 2.5: 写 dashboard 状态横幅 sidecar
 
@@ -190,7 +190,7 @@ pass/warn 自动刷新 snapshot/dashboard，提交 scoped 产物并经 `safe_pus
 - ❌ **禁止调用 `message`/send 工具发报告** — 微信由 Step 3 的 `report_postflight` 用 fresh-token 主发（cron `--no-deliver`，不 announce），手动再调 message 会**和 postflight 撞成双发**（2026-06-03 美股开盘连发两次的根因：模型在"已完成"叙述的同一 turn 又调了一次 send）。整轮只输出一次，发完即停；`report_watchdog` 只在 Telegram marker 缺失/失败时补投 Telegram，不重发微信。
 - No simple number recitation — model must add interpretation
 - 异动票 (anomalies) **必须在报告里提到** (postflight 强制)
-- 目标 ≤1200 字；>2000 字 postflight warn，>2500 字 fail
+- 目标 ≤2200 字；>3000 字 postflight warn，>3500 字 fail
 
 ### Mode 5 — Sentiment Read
 **When:** "市场情绪怎么样" / "推上怎么说 X" / "Reddit 怎么聊 X" / before a sizing decision
