@@ -1,76 +1,65 @@
 {
-  "generated_at": "2026-07-22T22:40:08.022543+00:00",
+  "generated_at": "2026-07-23T22:37:21.460498+00:00",
   "vix": {
     "symbol": "^VIX",
-    "price": 16.64,
-    "prev": 17.05,
-    "change_pct": -2.4,
-    "as_of": 1784751301,
+    "price": 18.7,
+    "prev": 16.64,
+    "change_pct": 12.38,
+    "as_of": 1784837701,
     "source": "yahoo"
   },
   "treasury_10y": {
     "symbol": "^TNX",
-    "price": 4.657,
-    "prev": 4.628,
-    "change_pct": 0.63,
-    "as_of": 1784746794,
+    "price": 4.703,
+    "prev": 4.657,
+    "change_pct": 0.99,
+    "as_of": 1784833195,
     "source": "yahoo",
-    "yield_pct": 4.657
+    "yield_pct": 4.703
   },
   "dxy": {
     "symbol": "DX-Y.NYB",
-    "price": 101.141,
-    "prev": 101.173,
-    "change_pct": -0.03,
-    "as_of": 1784757899,
+    "price": 101.437,
+    "prev": 101.125,
+    "change_pct": 0.31,
+    "as_of": 1784844299,
     "source": "yahoo"
   },
   "fear_greed": {
-    "score": 42.8,
+    "score": 39.6,
     "rating": "fear",
-    "prev_close": 41.0,
-    "prev_1_week": 41.1,
-    "as_of": "2026-07-22T22:19:41+00:00"
+    "prev_close": 43.0,
+    "prev_1_week": 41.2,
+    "as_of": "2026-07-23T22:19:10+00:00"
   },
   "hsi": {
     "symbol": "^HSI",
-    "price": 24892.66,
-    "prev": 25132.29,
-    "change_pct": -0.95,
+    "price": 25210.81,
+    "prev": 24892.66,
+    "change_pct": 1.28,
     "source": "tencent"
   },
   "hstech": {
     "symbol": "^HSTECH",
-    "price": 4668.23,
-    "prev": 4814.83,
-    "change_pct": -3.04,
+    "price": 4698.48,
+    "prev": 4668.23,
+    "change_pct": 0.65,
     "source": "tencent"
   },
   "spx": {
     "symbol": "^GSPC",
-    "price": 7498.96,
-    "prev": 7509.2,
-    "change_pct": -0.14,
-    "as_of": 1784752934,
+    "price": 7408.3,
+    "prev": 7498.96,
+    "change_pct": -1.21,
+    "as_of": 1784839147,
     "source": "yahoo"
   },
   "nasdaq": {
     "symbol": "^IXIC",
-    "price": 25690.9,
-    "prev": 25837.21,
-    "change_pct": -0.57,
+    "price": 25137.69,
+    "prev": 25690.9,
+    "change_pct": -2.15,
     "source": "tencent"
   },
-  "fed_press": [
-    {
-      "date": "2026-07-16",
-      "title": "Agencies issue joint statement on handling of highly sensitive information during bank examinations",
-      "url": "https://www.federalreserve.gov/newsevents/pressreleases/bcreg20260716a.htm"
-    },
-    {
-      "date": "2026-07-16",
-      "title": "Federal Reserve Board issues enforcement action with former chief lending officer of Heritage State Bank",
-      "url": "https://www.federalreserve.gov/newsevents/pressreleases/enforcement20260716a.htm"
-    }
-  ]
+  "fed_press": []
 }
