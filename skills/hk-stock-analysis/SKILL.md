@@ -100,7 +100,7 @@ python3 /root/.openclaw/workspace/scripts/harness/intraday_preflight.py --market
   - 必须包含：今天该看/该等/该减 + 引用至少 1 个具体数字（票现价 / 异动幅度 / 信号）
   - ⚡ **板块全景**：数据**已由 preflight 备好**在 context.json 的 `peer_scan` 里（每个 active ticker 一项：`theme` 板块名、`listed_peers` 已按今日涨幅降序、含 `pct_1d`/`pct_5d`、`divergence_signal`、`self_pct_1d`）。**直接引用它,不要自己去读 peer-map.json、也不要自己调 `fetch_peers.py`**；给板块今日 Top 5 + 你持仓在榜单里的位置 + 1 句归因;`peer_scan` 为空或缺项时才回退 web search。若某条带 `name_mismatch`,以 feed 名为准并在报告里提一句。持仓自己的数字仍从 context.json。板块行情**优先用内置 web search**；`tavily-search` 仅在**开盘/收盘报告**或盘中真事件时才用，且必带 `--bucket report`/`--bucket intraday`——盘中每 30 分钟的常规盯盘**不要**烧 Tavily（免费档 1000/月全局共享）
   - 禁止"无异动，观望"这种敷衍 1 句话
-- 目标 ≤1200 字；>2000 字 postflight warn，>2500 字 fail
+- 目标 ≤2200 字；>3000 字 postflight warn，>3500 字 fail
 
 #### Step 2.5: 写 dashboard 状态横幅 sidecar
 
@@ -196,7 +196,7 @@ snapshot/dashboard，提交 scoped 产物并经 `safe_push.sh` 推送。
 - 不用 `message` 工具 — 微信由 Step 3 的 `report_postflight` fresh-token 主发（cron `--no-deliver`），手动再调会和 postflight 双发；本回合回复文本仅存档
 - 不简单复述数字，必须做模型自己的解读
 - 异动票（anomalies 字段）**必须在报告里被提到**（postflight 强制）
-- 目标 ≤1200 字；>2000 字 postflight warn，>2500 字 fail
+- 目标 ≤2200 字；>3000 字 postflight warn，>3500 字 fail
 
 ### Mode 5 — Sentiment / 情绪面 Read
 **When:** "市场怎么看 X" / "雪球怎么聊 00100" / "港股情绪" / before sizing

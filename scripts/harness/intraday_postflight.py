@@ -17,7 +17,7 @@ the delivery gate, and a false green is worse than a false red.
 
 Validates:
   1. ▎我的看法 段必须存在 + 段内容 ≥ 60 字（防敷衍 1 句话）
-  2. 总长度 ≤ 2000 字 (warn), ≤ 2500 字 (fail) — 与 Mode 6 US 对齐
+  2. 总长度 ≤ 3000 字 (warn), ≤ 3500 字 (fail) — 与 Mode 6 US 对齐
   3. 必须以 raw_wechat_block 开头 (verbatim)
   4. 若 preflight should_alert=true：报告必须提到至少一个异动票或 alert_reason
   5. 无敷衍 phrases
@@ -153,10 +153,10 @@ def validate(text, ctx):
             )
 
     n = len(text)
-    if n > 2500:
-        issues.append(f'报告长度 {n} 字 > 2500 上限')
-    elif n > 2000:
-        issues.append(f'报告长度 {n} 字 > 2000 软上限 (warn)')
+    if n > 3500:
+        issues.append(f'报告长度 {n} 字 > 3500 上限')
+    elif n > 3000:
+        issues.append(f'报告长度 {n} 字 > 3000 软上限 (warn)')
 
     if ctx.get('should_alert'):
         anomaly_tickers = [a['ticker'] for a in ctx.get('anomalies', [])]
