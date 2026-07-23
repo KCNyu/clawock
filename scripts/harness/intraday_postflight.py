@@ -4,7 +4,16 @@ intraday_postflight.py — Mode 7 (intraday) harness postflight.
 
 Validates the LLM-generated intraday check-in.
 
-Usage: pipe brief text via stdin, or --text-file PATH.
+Usage: `--text-file PATH` (canonical — write the report to a file first, then call
+this). Stdin is still accepted for manual runs, but the cron/SKILL path must use
+--text-file: heredoc/`<<<` plumbing has repeatedly failed (2026-07-23 10:00 HK:
+the model called postflight with no stdin at all, the empty read produced four
+misleading content issues, and the run was flagged error even though the retry
+delivered fine).
+
+Empty or stale input is reported as `status: input_error` — a plumbing failure,
+distinct from `fail` (the report itself is bad). It still exits non-zero: this is
+the delivery gate, and a false green is worse than a false red.
 
 Validates:
   1. ▎我的看法 段必须存在 + 段内容 ≥ 60 字（防敷衍 1 句话）
@@ -46,6 +55,11 @@ sys.path.insert(0, str(WS / 'scripts' / 'data'))
 import trading_calendar  # noqa: E402
 import cron_heartbeat  # noqa: E402
 
+# A report file older than this is assumed to be a previous slot's leftover. Kept
+# below the 30min slot cadence (and aligned with the already_delivered window) so a
+# forgotten write is refused instead of silently re-publishing a stale report.
+REPORT_MAX_AGE_MIN = 20
+
 REQUIRED_SECTION = '▎我的看法'
 FORBIDDEN_PHRASES = ['数据待获取', '等待数据', 'TODO', 'TBD']
 CRITICAL_KEYWORDS = ['缺段标记', '未包含原始数据块', '敷衍词', '表格行未 verbatim']
@@ -59,6 +73,57 @@ def load_context(market):
         return json.loads(path.read_text()), None
     except Exception as e:
         return None, f'context 解析失败: {e}'
+
+
+def read_report_text(market, text_file):
+    """Return (text, input_error). Plumbing failures never reach validate()."""
+    hint = (f'Step 3 应先把报告写入 memory/.tmp/intraday-report-{market}.md，'
+            f'再用 --text-file 调用 postflight；不要用 heredoc/<<< 喂 stdin')
+    if text_file:
+        path = Path(text_file)
+        if not path.exists():
+            return '', f'报告文件不存在: {path} — {hint}'
+        age_min = (datetime.now().timestamp() - path.stat().st_mtime) / 60
+        if age_min > REPORT_MAX_AGE_MIN:
+            return '', (f'报告文件 {path.name} 已 {age_min:.0f} 分钟未更新 '
+                        f'(> {REPORT_MAX_AGE_MIN} 分钟上限) — 疑似上一个 slot 的旧报告，'
+                        f'拒绝投递；{hint}')
+        text = path.read_text()
+    else:
+        text = sys.stdin.read()
+
+    if not text.strip():
+        src = f'--text-file {text_file}' if text_file else 'stdin'
+        return '', f'空输入 ({src}) — postflight 没收到任何报告文本；{hint}'
+    return text, None
+
+
+def input_error(market, err):
+    """Exit path for empty/stale/missing input: loud, single-cause, still non-zero."""
+    # Attribute the failure to the slot the preflight context was built for, not to
+    # whatever slot the wall clock happens to be in now. A run that starts at 10:00
+    # and hits empty input at 10:31 would otherwise stamp a phantom 10:30 failure,
+    # and the retry that succeeds would mark 10:00 completed — leaving a slot in the
+    # health ledger that never actually failed. Context is best-effort here: an
+    # input error must still be recorded when the context is missing too.
+    ctx, _ = load_context(market)
+    hb = (ctx or {}).get('heartbeat') or {}
+    cron_heartbeat.record(market, 'postflight_failed', failure_stage='input',
+                          job_name=hb.get('job'), slot=hb.get('slot'))
+    print(f'error: {err}', file=sys.stderr)
+    result = {
+        'status':        'input_error',
+        'market':        market,
+        'time':          datetime.now().strftime('%H:%M'),
+        'issues':        [err],
+        'wechat_prefix': '',
+        'n_chars':       0,
+        'wechat_sent':   None,
+        'telegram_sent': None,
+        'dashboard_published': False,
+    }
+    print(json.dumps(result, ensure_ascii=False, indent=2))
+    return 2
 
 
 def validate(text, ctx):
@@ -116,7 +181,8 @@ def categorize(issues):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--market', choices=['hk', 'us'], required=True)
-    parser.add_argument('--text-file', help='briefing text file (default: stdin)')
+    parser.add_argument('--text-file',
+                        help='report text file (canonical path; stdin only for manual runs)')
     args = parser.parse_args()
 
     # Holiday/weekend gate: no send/publish on a closed market.
@@ -129,7 +195,9 @@ def main():
         print(json.dumps(result, ensure_ascii=False, indent=2))
         return 0
 
-    text = Path(args.text_file).read_text() if args.text_file else sys.stdin.read()
+    text, in_err = read_report_text(args.market, args.text_file)
+    if in_err:
+        return input_error(args.market, in_err)
 
     ctx, err = load_context(args.market)
     if ctx is None:
