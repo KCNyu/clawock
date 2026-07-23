@@ -108,10 +108,19 @@ python3 /root/.openclaw/workspace/scripts/harness/intraday_preflight.py --market
 **规范见 `skills/_shared/intraday-status-sidecar.md`**（hk/us 共用单一来源）—— 写 `memory/.tmp/intraday-insights-{date}.json`（status_banner + 每个异动票 movers 归因，只文本无 key）。
 - 本市场杠杆 ETF：**ROBN/PLTU/MSFU/SOXL/TQQQ** 等（2x 标的），归因要点明"杠杆放大"、区分标的真涨还是纯 beta。
 
-#### Step 3: postflight
+#### Step 3: postflight（先写文件，再调用 —— 禁用 heredoc/`<<<`）
+**必须两步、按顺序**：先用文件写入工具把 Step 2 的报告原样写到
+`memory/.tmp/intraday-report-us.md`，确认写入成功后再调用：
 ```bash
-python3 /root/.openclaw/workspace/scripts/harness/intraday_postflight.py --market us <<< "{报告}"
+python3 /root/.openclaw/workspace/scripts/harness/intraday_postflight.py \
+  --market us --text-file /root/.openclaw/workspace/memory/.tmp/intraday-report-us.md
 ```
+❌ **不要用 `<<<` / heredoc 把报告塞进 stdin** —— 报告含 emoji、`$`、`|` 表格和换行，
+shell 引号极脆；2026-07-23 10:00 就因为模型漏喂 stdin，postflight 读到空串后吐出
+4 条"报告写错了"的假 issue，run 被标红（实际重试后投递正常）。
+postflight 现在把空输入/旧文件单独判成 `status: input_error`（不是 `fail`），并要求
+文件 20 分钟内更新过 —— **忘了重写文件就会被拒**，不会把上一个 slot 的旧报告重发。
+
 **不提交 `portfolio.json`**；若 dashboard 有语义变化，postflight 会重建并提交
 `assets/data/dashboard.json`。每个 slot 的完成/投递状态另写 heartbeat，由 single
 publisher 发布。
