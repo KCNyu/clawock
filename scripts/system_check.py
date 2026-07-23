@@ -178,30 +178,138 @@ def check_peer_map_coverage(r):
         r.add('peer-map coverage', OK, 'all active holdings mapped')
 
 
-def check_no_leaked_secrets(r):
-    """Tracked files must not contain raw API keys."""
-    bad = []
+# Loose key-ish shapes: vendor prefixes and named assignments.
+SECRET_PATTERNS_LOOSE = (
+    # \b is not a usable left anchor here: the charset includes '-', which is
+    # itself a non-word char, so \b sits inside every hyphenated slug.
+    # "risk-on-with-trend-conflict" in a plan.json read as sk- + 21 legal chars
+    # and blocked every push on 2026-07-15, and a news URL slug
+    # (".../update-5-sk-hynix-plunges-after-…") does the same inside *.md.
+    # A real key's prefix always opens a token: line start, whitespace, quote,
+    # '=', ':' or an opening bracket. Anchoring there is what lets this tier
+    # scan *.md at all — see the 2026-07-22 note on check_no_leaked_secrets.
+    r'(^|\s|["\'=:,({[])(sk|tp)-[a-zA-Z0-9_-]{20,}'   # OpenAI/MiniMax sk-, Xiaomi tp-
+    # Vendors whose keys carry no distinguishing prefix (Alpha Vantage, Mistral)
+    # can only be caught by the variable they are assigned to. Bound to '=' so a
+    # bare mention of the variable name in prose or a `${{ secrets.X }}` reference
+    # does not fire. The optional quote matters: FINNHUB_API_KEY="…" in a .env,
+    # a JS config or a YAML value is the common shape, and without it the value
+    # started at a quote and never matched.
+    r'|(FINNHUB|POLYGON|ALPHA_VANTAGE|MISTRAL|TAVILY|MINIMAX|XIAOMI)_API_KEY\s*=\s*["\']?[A-Za-z0-9_-]{8,}'
+    # Nostr accepts a bare 64-hex private key. Raw 64-hex is far too common
+    # (sha256 sums, lockfiles) to match on its own, so require the variable name.
+    r'|NOSTR_PRIVATE_KEY\s*=\s*["\']?[0-9a-fA-F]{64}'
+)
+
+# Structurally unambiguous credential markers. A PEM header or a vendor key with a
+# fixed prefix + fixed length cannot plausibly occur in prose, so these also scan
+# *.md — which is exactly where the memory-promotion cron writes, and where a
+# credential pasted into a session could otherwise land in the public repo.
+SECRET_PATTERNS_STRICT = (
+    r'-----BEGIN [A-Z ]*PRIVATE KEY-----'          # any PEM private key
+    # GCP service-account JSON. Keyed on private_key_id, not on
+    # "type": "service_account": that field is plain metadata that any setup doc
+    # or fixture may legitimately quote, while a real key file always carries a
+    # 40-hex private_key_id (and a PEM the line above catches anyway).
+    r'|"private_key_id"\s*:\s*"[0-9a-f]{40}"'
+    # No trailing \b on the two below: their charsets include '-' and '_', so a
+    # key ending in one had no word boundary after it and silently never matched.
+    r'|\bAIza[0-9A-Za-z_-]{35}'                     # Google/Gemini API key
+    r'|\b[0-9]{8,10}:AA[A-Za-z0-9_-]{33}'           # Telegram bot token
+    r'|\bgh[pousr]_[A-Za-z0-9]{36}\b'               # GitHub PAT
+    r'|\bAKIA[0-9A-Z]{16}\b'                        # AWS access key id
+    r'|\bxox[baprs]-[A-Za-z0-9-]{10,}'              # Slack token
+    r'|\btvly-[A-Za-z0-9_-]{20,}'                   # Tavily search key
+    # Nostr nsec (bech32: fixed prefix, fixed length, no b/i/o/1 in the charset).
+    # nostr_publish.js signs with this — a leak lets anyone post as Rick.
+    r'|\bnsec1[02-9ac-hj-np-z]{58}\b'
+)
+
+# Never scan the pattern definitions themselves or the ignore list. The local
+# runtime config (/root/.openclaw/openclaw.json) legitimately holds live keys but
+# is not in the repo, so git grep cannot see it anyway — it is deliberately NOT
+# excluded here: an exclusion would only ever take effect on the one day someone
+# accidentally commits that file, which is precisely the day it must be caught.
+_SCAN_EXCLUDES = [':!.gitignore', ':!.githooks/*', ':!scripts/system_check.py']
+
+
+def _grep_tracked(pattern, extra_excludes=(), rev=None):
+    """Run `git grep -nE` over tracked files, or over `rev` when given.
+
+    Returns (lines, failure). `failure` is None on a real answer; on anything that
+    stops the scan from running it carries a reason. The distinction matters: a
+    security check that swallows its own errors reports OK while scanning nothing.
+    That is not hypothetical — the strict tier's PEM pattern starts with '-', which
+    git parsed as an option flag until `-e` was added below, and the old blanket
+    `except` turned that into a silent pass.
+    """
     try:
-        out = subprocess.check_output(
-            ['git', '-C', str(WS), 'grep', '-nE',
-             # \b or the prefix matches mid-word: the charset includes '-', so
-             # "risk-on-with-trend-conflict" in a plan.json reads as sk- + 21 legal
-             # chars and blocked every push on 2026-07-15. A real key's sk-/tp- always
-             # starts a word (line start, quote, '=', whitespace).
-             r'(\bsk-[a-zA-Z0-9_-]{20,}|\btp-[a-zA-Z0-9_-]{20,}|FINNHUB_API_KEY\s*=\s*[a-zA-Z0-9]+|POLYGON_API_KEY\s*=\s*[a-zA-Z0-9]+)',
-             '--', ':!*.md', ':!.gitignore', ':!openclaw.json*', ':!.githooks/*', ':!scripts/system_check.py'],
-            text=True, timeout=10, stderr=subprocess.DEVNULL,
+        p = subprocess.run(
+            # -e is required: a pattern starting with '-' is otherwise read as a flag.
+            ['git', '-C', str(WS), 'grep', '-nE', '-e', pattern,
+             *([rev] if rev else []),
+             '--', *_SCAN_EXCLUDES, *extra_excludes],
+            capture_output=True, text=True, timeout=10,
         )
-        if out.strip():
-            bad = out.strip().splitlines()[:3]
-    except subprocess.CalledProcessError:
-        pass  # git grep returns 1 when no match — that's the OK case
+    except Exception as e:  # timeout, git missing, …
+        return [], f'{type(e).__name__}: {e}'
+    if p.returncode == 0:
+        return p.stdout.strip().splitlines(), None
+    if p.returncode == 1:
+        return [], None  # git grep returns 1 when no match — that's the OK case
+    return [], f'git grep rc={p.returncode}: {p.stderr.strip()[:160]}'
+
+
+def _head_exists():
+    """False in a repo with no commits — nothing committed can leak there.
+
+    Also False if git itself is unusable; that path is not swallowed, because the
+    worktree scans below then fail on the same cause and report CRITICAL.
+    """
+    try:
+        p = subprocess.run(['git', '-C', str(WS), 'rev-parse', '--verify', '-q', 'HEAD'],
+                           capture_output=True, text=True, timeout=10)
     except Exception:
-        pass
+        return False
+    return p.returncode == 0
+
+
+def check_no_leaked_secrets(r):
+    """Tracked files must not contain raw API keys or private credentials.
+
+    Scans both tiers over *.md too (2026-07-22). Markdown was previously exempt
+    from the loose tier because of hyphen-slug collisions, but memory/*.md is the
+    dreaming-write path straight into a public repo — the single most likely place
+    for a pasted credential to land. The prefix anchor in SECRET_PATTERNS_LOOSE
+    replaces the exemption: it is what makes slugs and URLs stop matching.
+
+    Scans the working tree *and* HEAD. `git grep` without a revision only sees the
+    working tree, so a credential that was committed and then edited out locally
+    would be pushed while the scan reported clean.
+    """
+    # The two tiers now cover the same files, so one grep per revision does the
+    # work of two. They stay separate constants because they are reasoned about
+    # and tested separately — only the scan is merged.
+    pattern = f'{SECRET_PATTERNS_LOOSE}|{SECRET_PATTERNS_STRICT}'
+    revs = [None] + (['HEAD'] if _head_exists() else [])
+
+    bad, failures = [], []
+    for rev in revs:
+        lines, err = _grep_tracked(pattern, rev=rev)
+        bad += lines
+        if err:
+            failures.append(err)
+
     if bad:
-        r.add('secret leak scan', CRITICAL, f'{len(bad)} potential leaks: {bad}')
+        r.add('secret leak scan', CRITICAL,
+              f'{len(bad)} potential leaks: {bad[:3]}')
+    elif failures:
+        # Fail closed: an unusable scanner must never read as "no secrets found".
+        r.add('secret leak scan', CRITICAL,
+              f'scan did not run, cannot certify: {failures}')
     else:
-        r.add('secret leak scan', OK, 'no leaked secrets in tracked files')
+        r.add('secret leak scan', OK,
+              'no leaked secrets in tracked files (worktree + HEAD)')
 
 
 def check_openclaw_doctor(r):
