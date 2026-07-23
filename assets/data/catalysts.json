@@ -1,8 +1,8 @@
 {
-  "generated_at": "2026-07-22T08:03:04.886992+08:00",
+  "generated_at": "2026-07-23T08:03:01.551520+08:00",
   "lookback_window_days": 14,
-  "window_start": "2026-07-22",
-  "window_end": "2026-08-05",
+  "window_start": "2026-07-23",
+  "window_end": "2026-08-06",
   "earnings_queried": [
     "RKLB",
     "CRCL"
@@ -16,6 +16,17 @@
       "eps_estimate": -0.0765,
       "eps_actual": null,
       "revenue_estimate_m": 235.97,
+      "quarter": 2,
+      "year": 2026
+    },
+    {
+      "ticker": "CRCL",
+      "name": "CRCL",
+      "date": "2026-08-05",
+      "time": "unknown",
+      "eps_estimate": 0.2226,
+      "eps_actual": null,
+      "revenue_estimate_m": 743.33,
       "quarter": 2,
       "year": 2026
     }
@@ -40,7 +51,7 @@
     }
   ],
   "summary": {
-    "earnings_count": 1,
+    "earnings_count": 2,
     "fomc_in_window": 1,
     "macro_count": 2,
     "highest_impact_within_7d": "FOMC 2026-07-29 (rate decision)"
