@@ -32,7 +32,7 @@ keeps an exclusive window; standard time therefore has two fewer US intraday slo
 | 美股收盘报告 | EDT `0 4 * * 2-6`<br>EST `0 5 * * 2-6` | Mode 6 | `report --us close` | EDT `20 4 * * 2-6`<br>EST `20 5 * * 2-6` |
 | 盘前深度简报 | `0 8 * * 1-5` · Asia/Shanghai | daily-deep-brief | `brief_*` | `30 8 * * 1-5` · Asia/Hong_Kong<br>`5 9 * * 1-5` · Asia/Hong_Kong · miss-detector: brief never written (08:30 is inside the landing window) |
 | 港股开盘报告 | `30 9 * * 1-5` · Asia/Shanghai | Mode 6 | `report --hk open` | `45 9 * * 1-5` · Asia/Hong_Kong |
-| 盘中盯盘 | `*/30 10-11,14-15 * * 1-5` · Asia/Shanghai | Mode 7 | `intraday --hk` | `4,34 10-11,14-15 * * 1-5` · Asia/Hong_Kong |
+| 盘中盯盘 | `*/30 10-11,14-15 * * 1-5` · Asia/Shanghai | Mode 7 | `intraday --hk` | `10,40 10-11,14-15 * * 1-5` · Asia/Hong_Kong |
 | 港股午盘报告 | `0 12 * * 1-5` · Asia/Shanghai | Mode 6 | `report --hk mid` | `12 12 * * 1-5` · Asia/Hong_Kong |
 | 港股午后快报 | `30 13 * * 1-5` · Asia/Shanghai | Mode 6 | `report --hk pm` | `42 13 * * 1-5` · Asia/Hong_Kong |
 | 港股收盘报告 | `0 16 * * 1-5` · Asia/Shanghai | Mode 6 | `report --hk close` | `15 16 * * 1-5` · Asia/Hong_Kong |

@@ -48,7 +48,7 @@ Exit 0 always (non-fatal cron); actions logged to logs/watchdog.jsonl.
 import argparse
 import json
 import sys
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -62,6 +62,7 @@ import cron_heartbeat  # noqa: E402
 
 LOOP_THRESHOLD = 5         # transcript loop_score ≥ this ⇒ mimo repeat-loop ⇒ garbage
 MARKER_FRESH_MS = 25 * 60 * 1000  # postflight send-marker older than this ⇒ treat as not-this-slot
+WATCHDOG_DELAY_MINUTES = 10
 
 
 def deterministic_fallback(raw_block, tag, reason):
@@ -69,6 +70,56 @@ def deterministic_fallback(raw_block, tag, reason):
     return (f'🧯 {tag} 确定性兜底（LLM {reason}）\n'
             '以下内容由 preflight 数据直接生成，未经过模型改写：\n\n'
             + raw_block.strip())
+
+
+def watchdog_target(market, now=None):
+    """Return the exact cron slot this watchdog invocation owns.
+
+    Watchdogs run ten minutes after each half-hour Mode 7 slot. Subtracting that
+    delay before applying the canonical slot mapping also handles midnight and a
+    modestly delayed system-cron invocation without selecting an adjacent run.
+    """
+    wall_now = now or datetime.now(HKT)
+    target_at = wall_now - timedelta(minutes=WATCHDOG_DELAY_MINUTES)
+    job_name, slot = cron_heartbeat.slot_for(market, target_at)
+    return wall_now, job_name, slot
+
+
+def run_for_slot(runs, market, job_name, slot):
+    """Select the newest completed run belonging to exactly ``job_name/slot``."""
+    matches = []
+    for run in runs:
+        run_at = run.get('runAtMs')
+        if not isinstance(run_at, (int, float)):
+            continue
+        run_dt = datetime.fromtimestamp(run_at / 1000, HKT)
+        if cron_heartbeat.slot_for(market, run_dt) == (job_name, slot):
+            matches.append(run)
+    return matches[-1] if matches else None
+
+
+def context_for_slot(path, job_name, slot):
+    """Load a preflight context only when its heartbeat identifies this slot."""
+    try:
+        context = json.loads(path.read_text())
+    except (OSError, json.JSONDecodeError):
+        return None
+    heartbeat = context.get('heartbeat') or {}
+    if (heartbeat.get('job'), heartbeat.get('slot')) != (job_name, slot):
+        return None
+    return context
+
+
+def marker_covers_slot(marker, job_name, slot, raw_block_first, now_ms):
+    """Whether postflight confirmed Telegram delivery for this exact slot."""
+    if not isinstance(marker, dict) or not marker.get('tg_ok'):
+        return False
+    if (marker.get('job'), marker.get('slot')) != (job_name, slot):
+        return False
+    ts = marker.get('ts')
+    if not isinstance(ts, (int, float)) or now_ms - ts >= MARKER_FRESH_MS:
+        return False
+    return not raw_block_first or marker.get('first_line') == raw_block_first
 
 
 def main():
@@ -79,6 +130,12 @@ def main():
     args = ap.parse_args()
 
     tag = f'intraday-{args.market}'
+    watchdog_now, expected_job, expected_slot = watchdog_target(args.market)
+    if expected_job != args.job_name:
+        log({'tag': tag, 'action': 'skip', 'reason': 'watchdog invoked outside job window',
+             'expected_job': expected_job, 'configured_job': args.job_name,
+             'expected_slot': expected_slot})
+        return 0
 
     job_id = find_job_id(args.job_name)
     if not job_id:
@@ -89,30 +146,38 @@ def main():
     if not runs_today:
         log({'tag': tag, 'action': 'skip', 'reason': 'no run today yet'})
         return 0
-    last = runs_today[-1]
+    last = run_for_slot(runs_today, args.market, expected_job, expected_slot)
+    if not last:
+        log({'tag': tag, 'action': 'skip', 'reason': 'expected slot has no completed run',
+             'expected_job': expected_job, 'expected_slot': expected_slot})
+        return 0
     run_at = last.get('runAtMs')
     session_id = last.get('sessionId')
-    run_dt = (datetime.fromtimestamp(run_at / 1000, HKT)
-              if isinstance(run_at, (int, float)) else datetime.now(HKT))
-    heartbeat_job, heartbeat_slot = cron_heartbeat.slot_for(args.market, run_dt)
 
-    # Dedupe per slot (one re-send per intraday run, keyed by runAtMs).
-    flag = WS / 'memory' / '.tmp' / f'watchdog-{tag}-{run_at}.done'
+    # Dedupe by the schedule slot, not by retry attempt/runAtMs.
+    slot_key = datetime.fromisoformat(expected_slot).strftime('%Y%m%d-%H%M')
+    flag = WS / 'memory' / '.tmp' / f'watchdog-{tag}-{slot_key}.done'
     if flag.exists():
         log({'tag': tag, 'action': 'skip', 'reason': 'already handled this slot (dedupe flag)'})
         return 0
 
     # --- Generation gate: generated report or deterministic fallback ----------
     summary = last.get('summary', '')
-    raw_block = ''
-    raw_block_first = None
     ctx_path = WS / 'memory' / '.tmp' / f'intraday-context-{args.market}-latest.json'
-    if ctx_path.exists():
-        try:
-            raw_block = (json.loads(ctx_path.read_text()).get('raw_wechat_block') or '').strip()
-            raw_block_first = raw_block.splitlines()[0] if raw_block else None
-        except Exception:
-            pass
+    context = context_for_slot(ctx_path, expected_job, expected_slot)
+    if context is None:
+        cron_heartbeat.record(
+            args.market, 'watchdog_rejected', at=watchdog_now,
+            job_name=expected_job, slot=expected_slot,
+            watchdog_state='stale_context_rejected', telegram_sent=False,
+        )
+        log({'tag': tag, 'action': 'stale-backstop-rejected',
+             'reason': 'latest preflight context does not match expected slot',
+             'expected_job': expected_job, 'expected_slot': expected_slot,
+             'run_at': run_at})
+        return 0
+    raw_block = (context.get('raw_wechat_block') or '').strip()
+    raw_block_first = raw_block.splitlines()[0] if raw_block else None
     sent_via_tool = bool((last.get('delivery') or {}).get('messageToolSentTo'))
     block_present = bool(raw_block_first and raw_block_first in summary)
     delivered_clean = sent_via_tool or block_present
@@ -126,10 +191,10 @@ def main():
              'delivered_clean': delivered_clean, 'loop_score': loop_score, 'run_at': run_at,
              'target': KCN_TELEGRAM, 'out': tg_out})
         if tg_ok and not args.dry_run:
-            flag.write_text(datetime.now(HKT).isoformat())
+            flag.write_text(watchdog_now.isoformat())
             cron_heartbeat.record(
-                args.market, 'watchdog_backstop', at=run_dt,
-                job_name=heartbeat_job, slot=heartbeat_slot,
+                args.market, 'watchdog_backstop', at=watchdog_now,
+                job_name=expected_job, slot=expected_slot,
                 watchdog_state='deterministic_fallback', telegram_sent=True,
             )
         print(json.dumps({'tag': tag, 'deterministic_fallback': tg_ok,
@@ -152,17 +217,14 @@ def main():
             marker = json.loads(marker_path.read_text())
         except Exception:
             marker = None
-    now_ms = int(datetime.now(HKT).timestamp() * 1000)
-    fresh   = bool(marker) and (now_ms - marker.get('ts', 0)) < MARKER_FRESH_MS
-    # first_line guards against a stale marker from a previous slot; if we can't read
-    # the block, trust recency alone (avoid false-double).
-    matches = bool(marker) and (not raw_block_first or marker.get('first_line') == raw_block_first)
+    now_ms = int(watchdog_now.timestamp() * 1000)
     # TG is covered iff postflight's cosend confirmably delivered this report to
-    # Telegram this slot (fresh marker, matching first line, tg_ok=true).
-    if marker and marker.get('tg_ok') and fresh and matches:
+    # Telegram this exact slot (slot identity, freshness, first line, tg_ok=true).
+    if marker_covers_slot(
+            marker, expected_job, expected_slot, raw_block_first, now_ms):
         cron_heartbeat.record(
-            args.market, 'completed', at=run_dt,
-            job_name=heartbeat_job, slot=heartbeat_slot,
+            args.market, 'completed', at=watchdog_now,
+            job_name=expected_job, slot=expected_slot,
             watchdog_state='ok', telegram_sent=True,
         )
         log({'tag': tag, 'action': 'ok',
@@ -178,7 +240,7 @@ def main():
 
     reason = ('postflight marker missing' if not marker
               else 'postflight cosend failed' if not marker.get('tg_ok')
-              else 'marker stale/mismatch')
+              else 'marker slot stale/mismatch')
     tg_banner = f'📲 补投（{reason}，Telegram 兜底一份）\n\n'
     tg_ok, tg_out = send_telegram(KCN_TELEGRAM, tg_banner + report.strip(), args.dry_run)
     log({'tag': tag, 'action': 'mirror-telegram', 'dry_run': args.dry_run, 'sent_ok': tg_ok,
@@ -187,16 +249,16 @@ def main():
 
     # Slot handled once Telegram landed — don't keep retrying a report kcn has.
     if tg_ok and not args.dry_run:
-        flag.write_text(datetime.now(HKT).isoformat())
+        flag.write_text(watchdog_now.isoformat())
         cron_heartbeat.record(
-            args.market, 'watchdog_backstop', at=run_dt,
-            job_name=heartbeat_job, slot=heartbeat_slot,
+            args.market, 'watchdog_backstop', at=watchdog_now,
+            job_name=expected_job, slot=expected_slot,
             watchdog_state='telegram_mirror', telegram_sent=True,
         )
     elif not args.dry_run:
         cron_heartbeat.record(
-            args.market, 'watchdog_failed', at=run_dt,
-            job_name=heartbeat_job, slot=heartbeat_slot,
+            args.market, 'watchdog_failed', at=watchdog_now,
+            job_name=expected_job, slot=expected_slot,
             watchdog_state='telegram_mirror_failed', telegram_sent=False,
         )
 

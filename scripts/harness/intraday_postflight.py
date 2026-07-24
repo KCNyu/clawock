@@ -178,6 +178,21 @@ def categorize(issues):
     )
 
 
+def delivery_marker_payload(ctx, *, ts, sent_ok, tg_ok, first_line, market, out):
+    """Build the watchdog marker with the preflight slot as its identity."""
+    heartbeat = ctx.get('heartbeat') or {}
+    return {
+        'ts': ts,
+        'sent_ok': bool(sent_ok),
+        'tg_ok': bool(tg_ok),
+        'first_line': first_line,
+        'market': market,
+        'job': heartbeat.get('job'),
+        'slot': heartbeat.get('slot'),
+        'out': (out or '')[-200:],
+    }
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--market', choices=['hk', 'us'], required=True)
@@ -274,14 +289,15 @@ def main():
         # uses (no more WeChat resend), so it needs to know if TG already got this.
         tg_ok, _tg_out = cosend_telegram(message, f'intraday-{args.market}')
         try:
-            marker.write_text(json.dumps({
-                'ts': int(datetime.now().timestamp() * 1000),
-                'sent_ok': bool(wechat_sent),
-                'tg_ok': bool(tg_ok),
-                'first_line': block_first,
-                'market': args.market,
-                'out': (send_out or '')[-200:],
-            }, ensure_ascii=False))
+            marker.write_text(json.dumps(delivery_marker_payload(
+                ctx,
+                ts=int(datetime.now().timestamp() * 1000),
+                sent_ok=wechat_sent,
+                tg_ok=tg_ok,
+                first_line=block_first,
+                market=args.market,
+                out=send_out,
+            ), ensure_ascii=False))
         except Exception as e:
             print(f'warn: marker write failed: {e}', file=sys.stderr)
         if not wechat_sent:
