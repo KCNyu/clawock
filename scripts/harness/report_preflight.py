@@ -70,7 +70,8 @@ def context_path(market, phase, date):
 
 
 def drop_stale_contexts(market, phase, today):
-    """Delete this market+phase's context files from any OTHER date.
+    """Delete this market+phase's context files AND per-date delivery ephemera
+    (send markers, upgrade claims) from any OTHER date.
 
     WHY (2026-07-24 美股收盘报告): the cron payload names the file as
     `report-context-us-close-{date}.json` and the agent resolved `{date}` to the
@@ -83,17 +84,29 @@ def drop_stale_contexts(market, phase, today):
 
     Retention would not help — the file that got misread was one day old.
     """
+    # Per-date ephemera for this market+phase, cleared for every date but today's.
+    # Context files are the footgun above; the send marker and the upgrade claim
+    # are per-date delivery state that nothing reads across days, so left alone
+    # they just accumulate in memory/.tmp forever (the report-sent-* markers from
+    # 07-21 onward were all still there). Same one-run-per-day keying, same rule:
+    # today's are written LATER by postflight, so dropping other-date ones is safe.
+    patterns = [
+        (f'report-context-{market}-{phase}-*.json', context_path(market, phase, today).name),
+        (f'report-sent-{market}-{phase}-*.json',    f'report-sent-{market}-{phase}-{today}.json'),
+        (f'report-upgrade-{market}-{phase}-*.claim', f'report-upgrade-{market}-{phase}-{today}.claim'),
+    ]
     dropped = []
-    for path in TMP.glob(f'report-context-{market}-{phase}-*.json'):
-        if path.name != context_path(market, phase, today).name:
-            try:
-                path.unlink()
-                dropped.append(path.name)
-            except OSError as e:
-                print(f'   ⚠️  stale context cleanup failed for {path.name}: {e}',
-                      file=sys.stderr)
+    for glob, keep in patterns:
+        for path in TMP.glob(glob):
+            if path.name != keep:
+                try:
+                    path.unlink()
+                    dropped.append(path.name)
+                except OSError as e:
+                    print(f'   ⚠️  stale tmp cleanup failed for {path.name}: {e}',
+                          file=sys.stderr)
     if dropped:
-        print(f'   🧹 dropped {len(dropped)} stale context file(s): {", ".join(sorted(dropped))}',
+        print(f'   🧹 dropped {len(dropped)} stale report tmp file(s): {", ".join(sorted(dropped))}',
               file=sys.stderr)
     return dropped
 

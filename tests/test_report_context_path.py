@@ -63,12 +63,15 @@ def test_drop_stale_contexts_removes_other_dates_only(preflight, tmp_context_dir
     """The exact file the agent misread (yesterday's us/close) must be gone,
     and nothing else may be touched."""
     names = [
-        'report-context-us-close-2026-07-22.json',   # stale — the footgun
-        'report-context-us-close-2026-07-23.json',   # stale — what was misread
-        'report-context-us-close-2026-07-24.json',   # today — keep
-        'report-context-us-open-2026-07-23.json',    # other phase — keep
-        'report-context-hk-close-2026-07-23.json',   # other market — keep
-        'report-sent-us-close-2026-07-23.json',      # different artifact — keep
+        'report-context-us-close-2026-07-22.json',      # stale — the footgun
+        'report-context-us-close-2026-07-23.json',      # stale — what was misread
+        'report-context-us-close-2026-07-24.json',      # today — keep
+        'report-context-us-open-2026-07-23.json',       # other phase — keep
+        'report-context-hk-close-2026-07-23.json',      # other market — keep
+        'report-sent-us-close-2026-07-23.json',         # stale send marker — drop
+        'report-sent-us-close-2026-07-24.json',         # today's marker — keep
+        'report-upgrade-us-close-2026-07-23.claim',     # stale upgrade claim — drop
+        'report-sent-hk-close-2026-07-23.json',         # other market marker — keep
     ]
     for name in names:
         (tmp_context_dir / name).write_text('{}')
@@ -78,13 +81,16 @@ def test_drop_stale_contexts_removes_other_dates_only(preflight, tmp_context_dir
     assert sorted(dropped) == [
         'report-context-us-close-2026-07-22.json',
         'report-context-us-close-2026-07-23.json',
+        'report-sent-us-close-2026-07-23.json',
+        'report-upgrade-us-close-2026-07-23.claim',
     ]
     survivors = sorted(p.name for p in tmp_context_dir.iterdir())
     assert survivors == [
         'report-context-hk-close-2026-07-23.json',
         'report-context-us-close-2026-07-24.json',
         'report-context-us-open-2026-07-23.json',
-        'report-sent-us-close-2026-07-23.json',
+        'report-sent-hk-close-2026-07-23.json',
+        'report-sent-us-close-2026-07-24.json',
     ]
 
 
