@@ -384,3 +384,54 @@ def test_empty_or_all_cash_portfolio_has_no_breaches_and_no_crash(
     assert result["breach_count"] == 0
     assert result["eff_lev_caps"] == {}
     assert result["directive"] == "✅ 无仓位/杠杆硬闸触发，按常规决策。"
+
+
+# ── freshness must come from generated_at, not tracked-file mtime (2026-07 audit) ──
+
+def test_payload_age_uses_generated_at_not_file_mtime(preflight):
+    from datetime import datetime, timezone, timedelta
+    now = datetime.now(timezone.utc)
+    age = preflight._payload_age_hours(
+        {'generated_at': (now - timedelta(hours=50)).isoformat()})
+    assert 49 < age < 51
+
+
+def test_payload_age_is_none_for_missing_or_bad_stamp(preflight):
+    # None => callers treat as STALE; an unprovable age is not a fresh one.
+    assert preflight._payload_age_hours({}) is None
+    assert preflight._payload_age_hours({'generated_at': 'not-a-date'}) is None
+    assert preflight._payload_age_hours({'generated_at': ''}) is None
+
+
+def test_payload_age_accepts_zulu_and_naive_timestamps(preflight):
+    from datetime import datetime, timezone, timedelta
+    now = datetime.now(timezone.utc)
+    zulu = preflight._payload_age_hours(
+        {'generated_at': (now - timedelta(hours=3)).isoformat().replace('+00:00', 'Z')})
+    assert 2.5 < zulu < 3.5
+    # a naive stamp is assumed UTC, not crashed
+    naive = preflight._payload_age_hours(
+        {'generated_at': (now - timedelta(hours=3)).replace(tzinfo=None).isoformat()})
+    assert 2.5 < naive < 3.5
+
+
+def test_stale_committed_sidecar_with_fresh_mtime_is_flagged(preflight, tmp_path, monkeypatch):
+    """The integration bug: a sidecar committed days ago but freshly checked out
+    (current mtime) must be judged by its generated_at, not the file clock. Also
+    a sidecar with NO generated_at is treated as stale, never silently fresh."""
+    import json
+    from datetime import datetime, timezone, timedelta
+    data = tmp_path / 'assets' / 'data'
+    data.mkdir(parents=True)
+    old = (datetime.now(timezone.utc) - timedelta(hours=72)).isoformat()
+    # macro: old generated_at, but the file itself is written now (fresh mtime)
+    (data / 'macro.json').write_text(json.dumps({'generated_at': old, 'vix': None}))
+    # sentiment: NO generated_at at all
+    (data / 'sentiment.json').write_text(json.dumps({'tickers': [], 'sources': []}))
+    monkeypatch.setattr(preflight, 'WS', tmp_path)
+
+    issues = []
+    preflight.load_macro_and_sentiment('2026-07-24', issues)
+
+    assert any('macro snapshot stale' in i for i in issues), issues
+    assert any('sentiment snapshot stale' in i and 'unknown-age' in i for i in issues), issues

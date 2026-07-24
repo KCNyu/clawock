@@ -861,6 +861,29 @@ def load_em_news(issues):
         return {}
 
 
+def _payload_age_hours(payload):
+    """Age in hours from the payload's own `generated_at`, or None if absent/unparseable.
+
+    WHY NOT file mtime (2026-07 audit): `actions/checkout` stamps every tracked
+    file with a fresh checkout time, so a committed-days-ago sidecar reads as
+    seconds old. The off-host brief fallback used st_mtime and therefore fed
+    stale macro/sentiment/influencer into a live trading brief while labelling it
+    fresh. The producer stamps `generated_at`; that is the only honest clock.
+    Callers treat None (missing/bad stamp) as STALE — an unprovable age is not a
+    fresh one.
+    """
+    gen = (payload or {}).get('generated_at')
+    if not gen:
+        return None
+    try:
+        t = datetime.fromisoformat(str(gen).replace('Z', '+00:00'))
+    except ValueError:
+        return None
+    if t.tzinfo is None:
+        t = t.replace(tzinfo=timezone.utc)
+    return (datetime.now(timezone.utc) - t).total_seconds() / 3600
+
+
 def load_macro_and_sentiment(today, issues):
     """Read GH-Action-produced macro.json + sentiment.json; trim to LLM-friendly subset.
 
@@ -874,21 +897,14 @@ def load_macro_and_sentiment(today, issues):
     sent_path  = WS / 'assets' / 'data' / 'sentiment.json'
     stale_cutoff_h = 36
 
-    def _age_hours(path):
-        try:
-            mtime = datetime.fromtimestamp(path.stat().st_mtime, tz=timezone.utc)
-            return (datetime.now(timezone.utc) - mtime).total_seconds() / 3600
-        except Exception:
-            return None
-
     macro_trim = {}
     try:
         if not macro_path.exists():
             print(f'   ⚠ macro.json missing — sentiment-scan never ran')
             issues.append('macro snapshot missing')
         else:
-            age = _age_hours(macro_path)
             m = json.loads(macro_path.read_text())
+            age = _payload_age_hours(m)
             def _q(k):
                 v = m.get(k)
                 if not v: return None
@@ -908,9 +924,10 @@ def load_macro_and_sentiment(today, issues):
                 'fed_press':    (m.get('fed_press') or [])[:3],
             }
             macro_trim['regime'] = _classify_regime(macro_trim)  # risk_on/neutral/risk_off
-            if age and age > stale_cutoff_h:
-                print(f'   ⚠ macro stale ({age:.1f}h old, cutoff {stale_cutoff_h}h)')
-                issues.append(f'macro snapshot stale {age:.0f}h')
+            if age is None or age > stale_cutoff_h:
+                shown = f'{age:.0f}h' if age is not None else 'unknown-age (no generated_at)'
+                print(f'   ⚠ macro stale ({shown}, cutoff {stale_cutoff_h}h)')
+                issues.append(f'macro snapshot stale {shown}')
             else:
                 fg = macro_trim['fear_greed'] or {}
                 print(f'   macro: VIX {(macro_trim["vix"] or {}).get("price","?")}, '
@@ -926,8 +943,8 @@ def load_macro_and_sentiment(today, issues):
             print(f'   ⚠ sentiment.json missing — sentiment-scan never ran')
             issues.append('sentiment snapshot missing')
         else:
-            age = _age_hours(sent_path)
             s = json.loads(sent_path.read_text())
+            age = _payload_age_hours(s)
             # price-in lens: recent 5-session move per signalled ticker (priced-in check)
             signalled = [t.get('ticker') for t in s.get('tickers', [])
                          if t.get('reddit_mentions_7d', 0) or t.get('google_news_en')
@@ -958,9 +975,10 @@ def load_macro_and_sentiment(today, issues):
                 'sources':     s.get('sources', []),
                 'tickers':     tickers_out,
             }
-            if age and age > stale_cutoff_h:
-                print(f'   ⚠ sentiment stale ({age:.1f}h old, cutoff {stale_cutoff_h}h)')
-                issues.append(f'sentiment snapshot stale {age:.0f}h')
+            if age is None or age > stale_cutoff_h:
+                shown = f'{age:.0f}h' if age is not None else 'unknown-age (no generated_at)'
+                print(f'   ⚠ sentiment stale ({shown}, cutoff {stale_cutoff_h}h)')
+                issues.append(f'sentiment snapshot stale {shown}')
             else:
                 with_signal = sum(1 for t in tickers_out if t['reddit_mentions_7d'] or t['news_top'])
                 print(f'   sentiment: {with_signal}/{len(s.get("tickers",[]))} tickers '
@@ -984,9 +1002,8 @@ def load_influencer_feed(issues):
             print('   ⚠ influencer_feed.json missing — influencer-scan never ran')
             issues.append('influencer feed missing')
             return {}
-        mtime = datetime.fromtimestamp(path.stat().st_mtime, tz=timezone.utc)
-        age = (datetime.now(timezone.utc) - mtime).total_seconds() / 3600
         d = json.loads(path.read_text())
+        age = _payload_age_hours(d)
         # Trim each item to the fields the brief needs.
         def _trim(it):
             return {k: it.get(k) for k in
@@ -994,15 +1011,16 @@ def load_influencer_feed(issues):
                      'sector_holdings', 'sectors', 'summary_cn')}
         out = {
             'as_of':     d.get('generated_at'),
-            'age_hours': round(age, 1),
+            'age_hours': round(age, 1) if age is not None else None,
             'counts':    d.get('counts', {}),
             'held_hits': [_trim(x) for x in d.get('held_hits', [])][:6],
             'new_ideas': [_trim(x) for x in d.get('new_ideas', [])][:6],
             'sector_hits': [_trim(x) for x in d.get('sector_hits', [])][:4],
         }
-        if age > 36:
-            print(f'   ⚠ influencer feed stale ({age:.1f}h old)')
-            issues.append(f'influencer feed stale {age:.0f}h')
+        if age is None or age > 36:
+            shown = f'{age:.0f}h' if age is not None else 'unknown-age (no generated_at)'
+            print(f'   ⚠ influencer feed stale ({shown})')
+            issues.append(f'influencer feed stale {shown}')
         else:
             c = out['counts']
             print(f'   influencer: {c.get("held_hits",0)} held-hits, '
