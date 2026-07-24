@@ -114,6 +114,7 @@ def validate_sentiment(
     tickers = data.get('tickers')
     assert isinstance(tickers, list), 'tickers must be a list'
     scanned = set()
+    result_count = 0
     for index, row in enumerate(tickers):
         assert isinstance(row, dict), f'ticker result {index} is not an object'
         ticker = row.get('ticker')
@@ -125,16 +126,23 @@ def validate_sentiment(
         mentions = row.get('reddit_mentions_7d')
         assert (isinstance(mentions, int) and not isinstance(mentions, bool)
                 and mentions >= 0), f'{ticker} has invalid reddit mention count'
+        result_count += mentions
         result_fields = ('reddit_posts', 'google_news_en', 'google_news_zh')
         for field in result_fields:
             results = row.get(field)
             assert isinstance(results, list), f'{ticker} {field} must be a list'
             assert all(isinstance(item, dict) for item in results), (
                 f'{ticker} {field} contains a malformed item')
+            result_count += len(results)
         scanned.add(ticker)
 
     missing = sorted(expected - scanned)
     assert not missing, f'sentiment snapshot missing active tickers: {", ".join(missing)}'
+    source_status = data.get('source_status')
+    if scanned and result_count == 0 and source_status is not None:
+        healthy = (isinstance(source_status, dict)
+                   and any(status == 'ok' for status in source_status.values()))
+        assert healthy, 'sentiment: all sources failed'
     print(f'sentiment structural validation OK: {len(scanned)} tickers (zero results allowed)')
 
 

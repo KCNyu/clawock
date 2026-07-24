@@ -238,6 +238,25 @@ def test_json_artifacts_fail_clearly(
 
 def test_sentiment_quiet_day_with_zero_results_passes(tmp_path):
     portfolio = write_portfolio(tmp_path / 'portfolio.json', ('AAPL',))
+    payload = sentiment_payload(('AAPL',))
+    payload['source_status'] = {'reddit': 'ok', 'google_news': 'failed'}
+    snapshot = write_json(tmp_path / 'sentiment.json', payload)
+
+    validators.validate_sentiment(snapshot, portfolio)
+
+
+def test_sentiment_all_source_outage_with_zero_results_fails(tmp_path):
+    portfolio = write_portfolio(tmp_path / 'portfolio.json', ('AAPL',))
+    payload = sentiment_payload(('AAPL',))
+    payload['source_status'] = {'reddit': 'failed', 'google_news': 'failed'}
+    snapshot = write_json(tmp_path / 'sentiment.json', payload)
+
+    with pytest.raises(AssertionError, match='sentiment: all sources failed'):
+        validators.validate_sentiment(snapshot, portfolio)
+
+
+def test_sentiment_legacy_snapshot_without_source_status_still_passes(tmp_path):
+    portfolio = write_portfolio(tmp_path / 'portfolio.json', ('AAPL',))
     snapshot = write_json(tmp_path / 'sentiment.json', sentiment_payload(('AAPL',)))
 
     validators.validate_sentiment(snapshot, portfolio)
