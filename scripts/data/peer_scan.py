@@ -21,6 +21,8 @@ import json
 import re
 from pathlib import Path
 
+from suggest_peers import suggest_auto_peers
+
 WS = Path(__file__).resolve().parents[2]
 
 
@@ -51,6 +53,15 @@ def _names_agree(fetched, configured):
     return bool(a) and bool(b) and (a in b or b in a)
 
 
+def _run_fetch(peer_request):
+    """Price curated and auto peers in one existing-budget subprocess."""
+    import subprocess as sp
+    return sp.run(
+        ['python3', str(WS / 'scripts' / 'data' / 'fetch_peers.py')],
+        input=json.dumps(peer_request), capture_output=True, text=True, timeout=120,
+    )
+
+
 def collect(portfolio, log=print, legs=None):
     """For each active holding with a peer entry in peer-map.json, fetch peer
     prices and flag divergence (peer up significantly while holding flat/down).
@@ -79,7 +90,27 @@ def collect(portfolio, log=print, legs=None):
                     'region': region,
                 }
 
-    # Collect all peer tickers we need
+    # Suggest first, then price curated + auto peers in ONE fetch_peers.py batch.
+    # Curated requests remain first, so the existing 8-worker/90s budget gives
+    # the hand-maintained map priority if the combined list is large.
+    auto_by_ticker = {}
+    for ticker, info in pmap.items():
+        if ticker not in h_by_ticker:
+            continue
+        region = 'hk' if h_by_ticker[ticker]['region'] == 'hk_stocks' else 'us'
+        curated = [p.get('ticker') for p in info.get('listed_peers', [])]
+        try:
+            suggested = suggest_auto_peers(ticker, region, curated)
+            auto_by_ticker[ticker] = suggested if isinstance(suggested, list) else []
+            if not isinstance(suggested, list):
+                log(f'   ⚠️  auto peers {ticker} returned {type(suggested).__name__}, ignored')
+        except Exception as e:
+            # suggest_auto_peers itself is fail-safe; this second guard protects
+            # the curated scan from import/test/provider regressions around it.
+            log(f'   ⚠️  auto peers {ticker} failed: {e}')
+            auto_by_ticker[ticker] = []
+
+    # Collect all peer tickers we need.
     peer_request = []
     seen = set()
     for ticker, info in pmap.items():
@@ -90,17 +121,19 @@ def collect(portfolio, log=print, legs=None):
             if key not in seen:
                 seen.add(key)
                 peer_request.append({'ticker': p['ticker'], 'region': p['region']})
+    for ticker, suggestions in auto_by_ticker.items():
+        for p in suggestions:
+            key = (p['ticker'], p['region'])
+            if key not in seen:
+                seen.add(key)
+                peer_request.append({'ticker': p['ticker'], 'region': p['region']})
 
     if not peer_request:
         return {}
 
     # Call fetch_peers.py via subprocess
     try:
-        import subprocess as sp
-        r = sp.run(
-            ['python3', str(WS / 'scripts' / 'data' / 'fetch_peers.py')],
-            input=json.dumps(peer_request), capture_output=True, text=True, timeout=120,
-        )
+        r = _run_fetch(peer_request)
         if r.returncode != 0:
             # Old versions of the script printed their error to stdout, not stderr.
             log(f'   ⚠️  fetch_peers.py failed (rc={r.returncode}): {(r.stderr or r.stdout)[-300:]}')
@@ -163,11 +196,33 @@ def collect(portfolio, log=print, legs=None):
             if diff >= 3.0:
                 divergence = f'{best_peer["ticker"]} {best_peer["name"]} {best_peer["pct_1d"]:+.1f}% vs self {self_pct:+.1f}% (gap {diff:+.1f}pp)'
 
+        auto_results = []
+        for p in auto_by_ticker.get(ticker, []):
+            pdata = fetched.get(p['ticker'], {})
+            if pdata.get('stale_quote'):
+                log(f'   ⚠️  auto peer {p["ticker"]} quote is stale '
+                    f'({pdata["stale_quote"]}), dropped')
+                continue
+            if 'price' not in pdata:
+                continue
+            auto_results.append({
+                'ticker': p['ticker'],
+                'name': pdata.get('name') or p.get('name') or p['ticker'],
+                'label': '同行业·自动',
+                'source': p.get('source'),
+                'pct_1d': pdata.get('pct_1d'),
+                'pct_5d': pdata.get('pct_5d'),
+            })
+        auto_results.sort(
+            key=lambda x: x['pct_1d'] if x.get('pct_1d') is not None else float('-inf'),
+            reverse=True)
+
         scan[ticker] = {
             'theme':            info.get('theme'),
             'self_pct_1d':      round(self_pct, 2),
             'self_pnl_pct':     h_by_ticker[ticker]['pnl_pct'],
             'listed_peers':     peer_results,
+            'auto_peers':       auto_results,
             'private_peers':    info.get('private_peers', []),
             'divergence_signal': divergence,
             'key_news_keywords': info.get('key_news_keywords', []),
