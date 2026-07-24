@@ -19,10 +19,12 @@
       "model": "minimax/MiniMax-M3",
       "delivery_mode": "none",
       "required_substrings": [
-        "trading_calendar.py {market}",
         "skills/{skill}/SKILL.md",
         "report_preflight.py --market {market} --phase {phase}",
-        "report_postflight.py --market {market} --phase {phase}",
+        "context_id",
+        "report_postflight.py --market {market} --phase {phase} --context-id",
+        "--text-file",
+        "report-prose-{market}-{phase}.md",
         "目标 ≤ 2200 字",
         ">3000 字 warn",
         ">3500 字 fail",
@@ -39,7 +41,10 @@
         "目标 ≤ 1200 字",
         ">2000 字 warn",
         ">2500 字 fail",
-        "唯一发送路径"
+        "唯一发送路径",
+        "report-context-",
+        "verbatim",
+        "trading_calendar.py"
       ]
     },
     "intraday": {

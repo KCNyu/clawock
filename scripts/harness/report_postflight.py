@@ -2,30 +2,38 @@
 """
 report_postflight.py — Mode 6 (briefing) harness postflight.
 
-Validates the LLM-generated WeChat briefing AFTER it's been written.
+Assembles, validates and publishes the Mode 6 briefing.
 
-Usage: read the briefing text from stdin (preferred for cron),
-       or pass --text-file PATH.
+Two input modes:
+  prose  (--context-id ID --text-file PATH)  the model supplies ONLY the analysis
+         sections; this script prepends ctx['title'] + ctx['raw_wechat_block'].
+         ID must equal the context's `context_id` or the run is rejected.
+  legacy (no --context-id)                   the model supplies the whole report
+         including its own copy of the data block, which is then verbatim-checked.
+         Kept so a master deploy that lands before the cron payloads are updated
+         still delivers; remove once every payload passes --context-id.
 
-Validates:
+Validates (on the assembled message):
   1. ▎情绪面 / ▎技术面 / ▎操作建议 三段标记齐全
   2. 若 preflight needs_risk_section=true, 必须有 ▎风险提示 段
   3. 总长度 ≤ 3000 字 (warn) / ≤ 3500 字 (fail) — HK + US 统一（2026-07-23 调升）
-  4. 必须以 raw_wechat_block 开头（脚本数据块 verbatim，禁止编造）
+  4. legacy only: 必须以 raw_wechat_block 开头（prose 模式由本脚本拼，无需校验）
   5. 如果 preflight 有 anomalies，报告必须提到至少一个 anomaly 票
   6. 没有"等待数据/数据待获取"等敷衍词
 
-Side effects:
-  - status=pass/warn: refresh snapshot/dashboard, commit the scoped generated
-    state, push through safe_push.sh, then send WeChat + Telegram mirror
-  - status=fail: no commit, return non-zero
+Delivery is fail-closed (2026-07-24): pass/warn send the full body and commit;
+fail sends the data block ALONE — never the rejected prose — and does not commit;
+a closed market or a missing context sends nothing. A slot whose only delivery was
+a fail-closed data block may be superseded exactly once by a validated report
+(see claim_upgrade).
 
 Outputs JSON to stdout:
-  {"status": "pass|warn|fail", "issues": [...], "wechat_prefix": "..."}
+  {"status": "pass|warn|fail", "mode": "prose|legacy", "issues": [...], ...}
 """
 
 import argparse
 import json
+import os
 import re
 import subprocess
 import sys
@@ -53,6 +61,10 @@ FORBIDDEN_PHRASES = ['数据待获取', '等待数据', '数据缺失（占位�
 # degenerate-input case BEFORE send/commit so a broken pipe never reaches WeChat.
 MIN_REPORT_CHARS = 50
 
+# Report slots are hours apart (open/mid/pm/close), so a prose file older than
+# this is the previous slot's, not this one's. See read_prose_text.
+PROSE_MAX_AGE_MIN = 30
+
 # Char limits — HK + US 统一 3000/3500（2026-07-23 起，各档在 2000/2500 基础上 +1000；
 # 更早一版 1200 太紧、2000 仍让正常长度的报告频繁 warn）
 CHAR_LIMITS = {
@@ -71,12 +83,38 @@ def load_context(market, phase, date):
         return None, f'preflight context 解析失败: {e}'
 
 
-def validate(text, ctx):
+def assemble_message(ctx, prose):
+    """Build the delivered report from harness-owned data + model-owned prose.
+
+    The 2026-07-24 incident happened because the deterministic data block made a
+    round trip through the LLM: preflight put it in the context, the payload
+    ordered the model to copy it verbatim, and validate() checked the copy. A
+    model that read the wrong context therefore published wrong numbers, and the
+    verbatim check could only notice *after* the send.
+
+    Prepending it here removes the round trip: the numbers in the delivered
+    message come from the context file at send time, so they cannot be stale,
+    paraphrased, or table-mangled — no instruction and no validation rule needed.
+    """
+    parts = [ctx.get('title', '').strip(),
+             (ctx.get('raw_wechat_block') or '').strip(),
+             prose.strip()]
+    return '\n\n'.join(p for p in parts if p)
+
+
+def validate(text, ctx, prose_only=False):
+    """Validate the ASSEMBLED message. `text` is the full delivered body.
+
+    With prose_only the block was prepended by assemble_message, so the verbatim
+    and table checks are dead by construction and are skipped — keeping them
+    would assert that the harness can copy its own string. Every remaining rule
+    is a property of what the MODEL wrote, which is the only thing left to judge.
+    """
     issues = []
 
-    # 1. raw block 必须 verbatim 出现
+    # 1. raw block 必须 verbatim 出现（legacy path only — see docstring）
     raw = ctx.get('raw_wechat_block', '').strip()
-    if raw:
+    if raw and not prose_only:
         first_line = raw.splitlines()[0]
         if first_line not in text:
             issues.append(f'报告未包含原始数据块首行 "{first_line[:40]}..." (verbatim 验证失败)')
@@ -142,7 +180,76 @@ from _harness_common import (  # noqa: E402
 from _watchdog_common import resolve_wechat_target, send_wechat, cosend_telegram, already_delivered  # noqa: E402
 
 
-def deliver_wechat(market, phase, date, wechat_prefix, text):
+def read_prose_text(market, phase, text_file):
+    """Return (text, input_error). Plumbing failures never reach validate().
+
+    The prose-mode move to --text-file buys us out of heredoc quoting (the report
+    is full of emoji, `$` and `|` table pipes), but it opens the failure PR #22
+    hit on intraday: the model forgets to rewrite the file and postflight happily
+    republishes the previous slot's prose. `context_id` does NOT catch that — the
+    model passes the CURRENT id on the command line while the file holds old text.
+    So the file's own mtime is the gate. Report slots are hours apart, so 30
+    minutes is generous and still far below the gap to the previous slot.
+    """
+    hint = (f'Step 2 应先把散文写入 memory/.tmp/report-prose-{market}-{phase}.md，'
+            f'再用 --text-file 调用 postflight')
+    if not text_file:
+        text = sys.stdin.read()
+        return (text, None) if text.strip() else ('', f'空输入 (stdin) — {hint}')
+
+    path = Path(text_file)
+    if not path.exists():
+        return '', f'散文文件不存在: {path} — {hint}'
+    age_min = (datetime.now().timestamp() - path.stat().st_mtime) / 60
+    if age_min > PROSE_MAX_AGE_MIN:
+        return '', (f'散文文件 {path.name} 已 {age_min:.0f} 分钟未更新 '
+                    f'(> {PROSE_MAX_AGE_MIN} 分钟上限) — 疑似上一个 slot 的旧文本，'
+                    f'拒绝投递；{hint}')
+    text = path.read_text()
+    if not text.strip():
+        return '', f'空输入 (--text-file {path.name}) — {hint}'
+    return text, None
+
+
+def _marker_state(marker_path):
+    """'delivered' | 'failed' | None. Markers written before this field existed
+    are treated as full deliveries — the conservative read, since assuming
+    'failed' would let an old marker unlock a re-send."""
+    try:
+        return json.loads(Path(marker_path).read_text()).get('delivery_state', 'delivered')
+    except Exception:
+        return None
+
+
+def claim_upgrade(market, phase, date):
+    """Atomically claim the one allowed failed→delivered re-send. True = it's ours.
+
+    Fail-closed means a rejected report is delivered as the data block alone. If
+    the model then fixes its prose, that corrected report MUST be able to reach
+    kcn — otherwise fail-closed is strictly worse than 2026-07-24, where at least
+    the numbers were eventually right on disk. But an unlimited re-send window
+    reopens the 2026-06-03 duplicate-send class, and openclaw's auto-retry of a
+    run can fire the same postflight several times.
+
+    O_EXCL create is the whole lock: the first caller to create the claim file
+    wins and sends, every later one loses and skips. One upgrade, no counting, no
+    read-then-write race between concurrent retries.
+    """
+    claim = TMP / f'report-upgrade-{market}-{phase}-{date}.claim'
+    try:
+        fd = os.open(claim, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
+    except FileExistsError:
+        return False
+    except OSError as e:
+        print(f'warn: upgrade claim failed ({e}) — not re-sending', file=sys.stderr)
+        return False
+    with os.fdopen(fd, 'w') as f:
+        f.write(datetime.now().isoformat(timespec='seconds'))
+    return True
+
+
+def deliver_wechat(market, phase, date, wechat_prefix, text, delivery_state='delivered',
+                   context_id=None):
     """Primary WeChat send for staged reports — fresh-token `openclaw message send`,
     decoupled from the cron's announce.
 
@@ -187,6 +294,11 @@ def deliver_wechat(market, phase, date, wechat_prefix, text):
             'sent_ok': bool(sent_ok),
             'tg_ok': bool(tg_ok),
             'first_line': sent_first,
+            'delivery_state': delivery_state,
+            # Exact slot identity for report_watchdog. In prose mode the sent body
+            # starts with the title, so first_line no longer matches the context's
+            # block and a string compare would mirror a duplicate to Telegram.
+            'context_id': context_id,
             'market': market,
             'phase': phase,
             'out': (out or '')[-200:],
@@ -232,6 +344,11 @@ def main():
     parser.add_argument('--market', choices=['hk', 'us'], required=True)
     parser.add_argument('--phase', choices=['open', 'mid', 'pm', 'close'], required=True)
     parser.add_argument('--text-file', help='briefing text file (default: stdin)')
+    parser.add_argument('--context-id',
+                        help='context_id echoed from preflight. Its presence selects '
+                             'prose mode: the input is the analysis sections only and '
+                             'this script prepends title + raw_wechat_block itself. '
+                             'Omit for the legacy full-report input.')
     args = parser.parse_args()
 
     # Holiday/weekend gate: never send/commit on a closed market — even if the
@@ -246,13 +363,24 @@ def main():
         print(json.dumps(result, ensure_ascii=False, indent=2))
         return 0
 
-    if args.text_file:
-        text = Path(args.text_file).read_text()
-    else:
-        text = sys.stdin.read()
+    text, in_err = read_prose_text(args.market, args.phase, args.text_file)
+    if in_err:
+        # Classified apart from `fail`: this is a broken caller, not a bad report.
+        # Nothing is sent — a stale or missing file must never be republished —
+        # and the non-zero exit keeps the run record honest (a false green here is
+        # worse than a false red: it would hide a silently skipped report).
+        print(f'error: {in_err}', file=sys.stderr)
+        result = {
+            'status': 'input_error', 'market': args.market, 'phase': args.phase,
+            'issues': [in_err], 'wechat_prefix': '', 'wechat_sent': False,
+            'commit_ok': False, 'commit_msg': 'skipped (input error)', 'n_chars': 0,
+        }
+        print(json.dumps(result, ensure_ascii=False, indent=2))
+        return 2
 
     today = datetime.now().strftime('%Y-%m-%d')
     ctx, ctx_err = load_context(args.market, args.phase, today)
+    prose_only = args.context_id is not None
 
     if ctx is None:
         result = {
@@ -286,8 +414,22 @@ def main():
         print(json.dumps(result, ensure_ascii=False, indent=2))
         return 2
 
-    issues = validate(text, ctx)
-    status = categorize(issues)
+    # ── Generation gate (prose mode only) ────────────────────────────────────
+    # The model echoes the context_id it wrote against. A mismatch means the
+    # context on disk was replaced after the prose was written — exactly what
+    # happened on 2026-07-24, where the agent ran preflight a second time
+    # mid-turn. Assembling fresh numbers under stale prose would produce an
+    # internally contradictory report that LOOKS clean, which is worse than the
+    # loud banner we got, so refuse to assemble and fall back to data-only.
+    stale_generation = prose_only and args.context_id != ctx.get('context_id')
+
+    if prose_only and not stale_generation:
+        text = assemble_message(ctx, text)
+
+    issues = ([f'context_id 不匹配: 模型基于 {args.context_id}，当前 context 是 '
+               f'{ctx.get("context_id")} — 散文与数据不同代，拒绝拼装']
+              if stale_generation else validate(text, ctx, prose_only=prose_only))
+    status = categorize(issues) if not stale_generation else 'fail'
 
     if status == 'pass':
         wechat_prefix = ''
@@ -297,27 +439,51 @@ def main():
                          + ('; ...' if len(issues) > 3 else '')
                          + '\n\n')
     else:
-        wechat_prefix = (f'🔴 Validation FAILED ({len(issues)} issues), 报告仍发布但未 commit:\n'
+        wechat_prefix = (f'🔴 Validation FAILED ({len(issues)} issues), 仅发布数据块、未 commit:\n'
                          + '\n'.join('- ' + i for i in issues[:5])
                          + ('\n- ...' if len(issues) > 5 else '')
                          + '\n\n')
 
+    # ── Fail-closed body selection ───────────────────────────────────────────
+    # A rejected report used to be delivered in full behind its banner, which is
+    # how 07/22 numbers reached kcn on 2026-07-24. But silence is also wrong: a
+    # market day with no message is indistinguishable from a dead cron. So a
+    # failure delivers the harness-owned data block ALONE — every number in it is
+    # trustworthy by construction — and drops the prose that failed validation.
+    # This is the same shape report_watchdog already uses as its deterministic
+    # fallback. pass/warn deliver the full body.
+    if status == 'fail':
+        body = assemble_message(ctx, '')
+    else:
+        body = text
+
     # ── Primary WeChat send (fresh token, decoupled from the cron announce) ───
-    # Send on ALL statuses incl. fail — a fail report is still published to kcn
-    # with its banner (matches the old announce behavior); only the commit is
-    # gated on not-fail. The staged crons run --no-deliver so this is the sole
-    # send. See deliver_wechat() docstring for the #61174 long-turn-drop rationale.
     # Idempotency: this phase's marker is per market+phase+date and fires once/day,
     # so if it already shows a delivery this is an openclaw auto-retry of a run that
     # errored only in post-turn summary-gen — the report already went out. Skip the
     # re-send (watchdog still backstops a genuine miss). See already_delivered.
     report_marker = TMP / f'report-sent-{args.market}-{args.phase}-{today}.json'
-    if already_delivered(report_marker):
+    delivery_state = 'failed' if status == 'fail' else 'delivered'
+    blocked = already_delivered(report_marker)
+
+    # One exception to the idempotency lock: the slot's only delivery so far was a
+    # fail-closed data block, and this run has a report that actually validates.
+    # claim_upgrade() makes it exactly one. Everything else — a second failure, a
+    # retry of an already-good send — stays blocked.
+    if blocked and delivery_state == 'delivered' and _marker_state(report_marker) == 'failed':
+        if claim_upgrade(args.market, args.phase, today):
+            print(f'upgrade: {args.market}-{args.phase} superseding the fail-closed '
+                  f'data block with the validated report', file=sys.stderr)
+            blocked = False
+
+    if blocked:
         print(f'idempotency: {args.market}-{args.phase} already delivered today — skip re-send',
               file=sys.stderr)
         wechat_sent = True
     else:
-        wechat_sent, _ = deliver_wechat(args.market, args.phase, today, wechat_prefix, text)
+        wechat_sent, _ = deliver_wechat(args.market, args.phase, today, wechat_prefix, body,
+                                        delivery_state=delivery_state,
+                                        context_id=ctx.get('context_id'))
 
     commit_ok, commit_msg = maybe_commit(status, ctx['commit_msg'])
 
@@ -326,12 +492,14 @@ def main():
         'market':        args.market,
         'phase':         args.phase,
         'date':          today,
+        'mode':          'prose' if prose_only else 'legacy',
         'issues':        issues,
         'wechat_prefix': wechat_prefix,
         'wechat_sent':   wechat_sent,
+        'delivered':     'data-block only (prose rejected)' if status == 'fail' else 'full report',
         'commit_ok':     commit_ok,
         'commit_msg':    commit_msg,
-        'n_chars':       len(text),
+        'n_chars':       len(body),
     }
     print(json.dumps(result, ensure_ascii=False, indent=2))
     return 0 if status == 'pass' else (1 if status == 'warn' else 2)

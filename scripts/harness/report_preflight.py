@@ -8,18 +8,25 @@ Runs deterministic work for the 6 briefing crons:
 
 Each invocation:
   1. Runs analyze_{hk,us}_stocks.py --wechat (refreshes prices, writes portfolio.json)
-  2. Captures full script output (LLM uses this VERBATIM as the data block)
+  2. Captures full script output (the data block report_postflight will PREPEND;
+     the model never copies it — see report_postflight.assemble_message)
   3. Parses signals (WATCH/STOP/TRIM counts) and direction hints
   4. Detects anomalies (≥3% intraday moves, big floating losses)
   4b. Collects peer/rotation data so the 板块全景 section has real numbers
   5. Writes memory/.tmp/report-context-{market}-{phase}-{date}.json, where {date}
-     is the RUN date (not the market-session date), drops this market+phase's
-     contexts from every other date, and prints the absolute path as the final
-     stdout line (`context_path: ...`) — Step 2 must read THAT path, never a
-     reconstructed filename.
+     is the RUN date (not the market-session date), and drops this market+phase's
+     contexts from every other date
+  6. Prints that context to stdout, then the absolute path as the final line
+
+stdout and the file are the SAME JSON — no abridged second view to drift. It is
+small because peer_scan is trimmed at the source (see trim_peer_scan), not
+because the print is truncated. The model writes prose only and echoes
+`context_id` back to postflight, which refuses to assemble prose against a
+context that has since been replaced.
 
 Output keys:
-  raw_wechat_block:   str (script stdout, paste verbatim)
+  raw_wechat_block:   str (script stdout; postflight prepends it verbatim)
+  context_id:         str (sha256[:12] of the context, minus generated_at)
   market:             "hk" | "us"
   phase:              "open" | "mid" | "pm" | "close"
   title:              suggested WeChat title
@@ -27,12 +34,13 @@ Output keys:
   signal_count:       {watch, stop, trim}
   anomalies:          list of {ticker, move_pct, reason}
   index_direction:    {hk_index_pct, hstech_pct} for HK; null for US
-  peer_scan:          {ticker: {theme, listed_peers[], divergence_signal, ...}}
-                      for this market's active holdings (板块全景 section)
+  peer_scan:          {ticker: {theme, self_pct_1d, divergence_signal,
+                      listed_peers[<=5]}} for this market's active holdings
   needs_risk_section: bool (true if STOP+TRIM >= 2)
 """
 
 import argparse
+import hashlib
 import json
 import re
 import subprocess
@@ -90,13 +98,74 @@ def drop_stale_contexts(market, phase, today):
     return dropped
 
 
+def compute_context_id(result):
+    """Stable short digest of the context the model is about to work from.
+
+    The model echoes it back to postflight (`--context-id`), which refuses to
+    assemble prose against a context that has since been replaced. This is the
+    guard the 2026-07-24 incident needed: the agent ran preflight a SECOND time
+    mid-turn, so disk held generation B while its prose described generation A —
+    'one context per run' is not something the harness can assume.
+
+    Deliberately excludes `generated_at`: a rerun that produces identical numbers
+    should keep the same id (no spurious rejection), while any change to the data
+    the model reasons about changes it.
+    """
+    material = {k: v for k, v in result.items() if k != 'generated_at'}
+    blob = json.dumps(material, ensure_ascii=False, sort_keys=True)
+    return hashlib.sha256(blob.encode()).hexdigest()[:12]
+
+
+PEER_TOP_N = 5
+
+
+def trim_peer_scan(peers):
+    """Keep the peer fields a report actually cites; drop the rest at the source.
+
+    peer_scan was 298 of the context's ~330 lines, and that bulk is what made the
+    agent pipe preflight through `| tail -80` on 2026-07-24 — which cut off the
+    `date` field and started the incident. The fix is to make the context small,
+    NOT to print an abridged view of a fat file: nothing but the model reads
+    peer_scan from a report context (report_postflight never touches it), so a
+    second representation would only be one more thing to keep in sync, and the
+    printed JSON would no longer be what is on disk.
+
+    `listed_peers` is already sorted by today's move, so the head is the 板块 Top N
+    the report asks for. private_peers / key_news_keywords are dropped: they are
+    the長 tail nobody cites in a 4-6 line briefing.
+    """
+    out = {}
+    for ticker, scan in (peers or {}).items():
+        out[ticker] = {
+            'theme': scan.get('theme'),
+            'self_pct_1d': scan.get('self_pct_1d'),
+            'divergence_signal': scan.get('divergence_signal'),
+            'listed_peers': [_peer_line(p)
+                             for p in (scan.get('listed_peers') or [])[:PEER_TOP_N]],
+        }
+    return out
+
+
+def _peer_line(peer):
+    """'RKLB 火箭实验室 +0.34% (5d +3.92%)' — one string per peer.
+
+    A nested dict costs six JSON lines per peer and the report only ever quotes
+    the name and the two moves. Flattening takes the context from 332 lines to
+    ~90, which is the difference between an agent reading it and an agent piping
+    it through `tail`.
+    """
+    def pct(v):
+        return f'{v:+.2f}%' if isinstance(v, (int, float)) else 'n/a'
+    name = ' '.join(x for x in (peer.get('ticker'), peer.get('name')) if x)
+    return f'{name} {pct(peer.get("pct_1d"))} (5d {pct(peer.get("pct_5d"))})'
+
+
 def announce_context_path(out_path):
     """Print the canonical context path as the FINAL stdout line.
 
-    WHY: the agent pipes preflight through `| tail -80` (the JSON is ~350 lines
-    with peer_scan), which cut off the `date` field and left it guessing the
-    filename — see drop_stale_contexts. Printing the absolute path last means it
-    survives any `tail`, so Step 2 never has to reconstruct the name.
+    The model works from the printed JSON and echoes `context_id`, so it never
+    needs to open the file; postflight resolves the same path itself. Kept for
+    humans debugging a run, and printed last so it survives any `tail`.
     """
     print(f'context_path: {out_path}')
 
@@ -291,9 +360,10 @@ def main():
         'signal_count':       signals,
         'anomalies':          anomalies,
         'index_direction':    indices,
-        'peer_scan':          peers,
+        'peer_scan':          trim_peer_scan(peers),
         'needs_risk_section': (signals['stop'] + signals['trim']) >= 2,
     }
+    result['context_id'] = compute_context_id(result)
 
     TMP.mkdir(parents=True, exist_ok=True)
     drop_stale_contexts(args.market, args.phase, today)

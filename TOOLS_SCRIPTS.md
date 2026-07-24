@@ -37,8 +37,8 @@ title: clawock · scripts 详细参考
 - **`scripts/harness/brief_postflight.py`**：校验 `memory/{date}-pre-open.md` + `memory/{date}-plan.json`（段标记 / plan schema / HHI / FX / HKD+USD bug pattern）；pass/warn 自动 commit
 
 **Mode 6 briefing**（HK 开/午/午后/收盘 + US 开/收盘 — 6 个 cron 共享）
-- **`scripts/harness/report_preflight.py --market {hk|us} --phase {open|mid|pm|close}`**：跑 analyze_*.py + 抽信号 (WATCH/STOP/TRIM 计数) + 异动 (≥3% 涨跌) + 指数方向；输出 `memory/.tmp/report-context-{market}-{phase}-{date}.json`（`{date}` = 跑批当天），含 `raw_wechat_block`（LLM verbatim 用）+ `title` + `needs_risk_section`。**末行打印 `context_path: <绝对路径>`——读 context 一律照抄这行，别拼文件名**；同时清掉该 market+phase 其它日期的残留 context
-- **`scripts/harness/report_postflight.py --market {hk|us} --phase {phase}`**：校验三段标记 / 原始数据块 verbatim / 异动票必须被提及 / 长度 / 敷衍词；pass/warn 自动刷新 snapshot/dashboard、scoped commit + push，并主发 WeChat + 镜像 Telegram。
+- **`scripts/harness/report_preflight.py --market {hk|us} --phase {open|mid|pm|close}`**：跑 analyze_*.py + 抽信号 (WATCH/STOP/TRIM 计数) + 异动 (≥3% 涨跌) + 指数方向；写 `memory/.tmp/report-context-{market}-{phase}-{date}.json`（`{date}` = 跑批当天）并清掉该 market+phase 其它日期的残留；**stdout 与文件是同一份 JSON**（含 `context_id`，末行 `context_path:`），靠 `peer_scan` 在源头裁剪保持小体积。`raw_wechat_block` 不再经模型手 —— postflight 自己拼进消息
+- **`scripts/harness/report_postflight.py --market {hk|us} --phase {phase} --context-id ID --text-file PATH`**：拼 `title + raw_wechat_block + 模型散文`，校验三段标记 / 异动票必须被提及 / 长度 / 敷衍词；`--context-id` 不匹配或散文文件 >30min 未更新则拒发。**fail-closed**：pass/warn 发全文 + scoped commit/push，fail 只发数据块（绝不发被拒散文）且不 commit，休市/缺 context 不发。失败过的 slot 之后可被合格报告**补发一次**。主发 WeChat + 镜像 Telegram。
 - **`scripts/harness/report_watchdog.py --market {hk|us} --phase {phase} --job-name "{cron名}"`**：系统 crontab 的 LLM-free Telegram-only backstop。覆盖 HK 4 班 + US 开/收 2 班；读取 postflight delivery marker，只有 Telegram 未确认时才补投，绝不重发 WeChat。
 
 **Mode 7 intraday**（HK + US 盘中盯盘 — 3 个 cron job 共享同一套脚本；季节化 slot 数和精确时间只看生成调度表，隔夜始终最晚 02:30 HKT）
