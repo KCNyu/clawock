@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-20T15:02:16.272642",
+  "generated_at": "2026-07-24T14:45:02.125412",
   "lookback_hours": 48,
   "tickers": [
     "CRCL",
@@ -10,9 +10,9 @@
     "MSFU",
     "SKHY"
   ],
-  "digest_markdown": "## KCN US Holdings — 48h Digest\n\n### Top 移动信号 (跨 ticker)\n- **SPCX / SPCH**: SpaceX 据 WSJ 报道与五角大楼谈判出售 AI 算力,叠加 Starship Flight 13 因发动机故障延期至周四。**Implication**: 国防 AI 合约是 SPCX/SPCH 的潜在重估催化剂,短期看 Starship 延期抑制情绪,但中长期 DoD 收入流或打开估值上限。\n- **SKHY**: Seeking Alpha 维持 Strong Buy,但警示 ADR 溢价与周期顶;同时 Micron 公开宣示瞄准 ~22% HBM 份额,正面挤压 SK Hynix。**Implication**: HBM 龙头地位未动摇但护城河在收窄,持有需密切跟踪 NVIDIA HBM4 配额分配。\n- **CRCL**: Stripe 据报接洽 PayPal,稳定币格局重塑;Trump 入局 CLARITY Act 立法战,USDC 仍握 20%+ 市占且合规护城河突出。**Implication**: 监管明朗化是 CRCL 的关键重估事件,Stripe 整合可能改变分发渠道话语权。\n- **PLTU**: Palantir Q4 财报超预期,正向催化 PLTU 杠杆敞口。**Implication**: 财报后已有 ETF 资金追逐,杠杆 ETF 短期波动放大,需注意回调风险。\n- **SPCX**: AST SpaceMobile(关联标的)增发 $1B 但股价较高点回撤 50%。**Implication**: SPCX 间接受 ASTS 稀释叙事拖累,资金面负面信号强于基本面。\n\n### Per-ticker 简报\n- **CRCL**: 监管+竞争对手双重叙事,定价权向分发端转移 — 中性偏多。\n- **PLTU**: Q4 beat 驱动 ETF 溢价,杠杆产品情绪过热的回调风险上升 — 中性。\n- **RKLX**: 全部为杠杆 ETF 机制/资金流噪音,无 RKLB 业务面催化 — 持有观望。\n- **SPCH / SPCX**: DoD AI 合约 + 新一批 SpaceX 杠杆 ETF 上市,事件驱动窗口期 — 多头叙事强化。\n- **MSFU**: 纯 ETF 营销稿,无 MSFT 业务面新催化 — 噪声,忽略。\n- **SKHY**: HBM 周期仍强但 ADR 溢价 + AI CapEx 担忧 + Micron 蚕食三重压力 — 多单需要管理。\n\n### 风险 Watch\n- **AI 泡沫论**: Seeking Alpha 警示 Big Tech AI CapEx 已破 $700B,半导体板块本周剧烈反转,SKHY 直接暴露。\n- **美股空头创纪录**: S&P 自 3 月底涨 18% 但空头仓位同创新高,杠杆 ETF(PLTU/RKLX/MSFU)波动率风险陡升。\n- **ASTS 稀释**: $1B 增发对应 50% 回撤,SPCX 间接折价风险。\n- **Starship 延期**: 发动机故障可能推迟 Starlink 节奏,SPCX/SPCH 短期情绪负面。\n- **监管不确定**: CRCL 受 CLARITY Act 立法节奏直接影响,事件型波动。",
+  "digest_markdown": "## Top 移动信号 (跨 ticker)\n\n- **SPCX/SPCH**: HSBC 首次覆盖 SpaceX 给予 Hold, PT $115 与现价基本持平, 明确点名 AI 与垂直整合存在 execution risk. 对 2x 杠杆 ETF 是估值天花板信号.\n- **SKHY**: 周五 Seagate/Sandisk/Micron 同步走弱 (AI 支出轮换 + 半导体普跌), 但 Morgan Stanley 维持多年期 memory tailwind 判断; Sandisk 8/5 财报是关键.\n- **SPCX**: SpaceX 今夜 Starship 重大测试, 同时正让出 Falcon 客户给 Starship — 单一事件双向风险.\n- **CRCL**: Raymond James 首次覆盖 Market Perform (中性), 缺乏明确 catalyst, BTC 情绪面有 Scaramucci 喊底但无基本面催化.\n- **PLTU**: Palantir Q4 beat 驱动 ETF 关注度回升, 但本周为情绪面而非新基本面.\n\n## Per-ticker 简报\n\n- **CRCL**: RJ Market Perform 启动覆盖, 无 PT 增量信息 — 中性, 不动.\n- **PLTU**: 仅为 Palantir Q4 beat 余波 + ETF 营销稿, 无独立 catalyst.\n- **RKLX**: 全部为 ETF 行情/科普稿, 无 RKLB 公司层新闻.\n- **SPCX**: HSBC Hold $115 + Starship 今夜测试 + 让出 Falcon 客户 — 短期波动放大.\n- **SPCH**: 新上市 2x SpaceX ETF 单日成交 $1.3B, BlackRock/ProShares 跟进发同类 — 散户投机情绪高, 适合观察不适合追.\n- **MSFU**: MSFT 周五涨 6.4%, 媒体反向喊\"低吸机会\", 无新 catalyst.\n- **SKHY**: 内存板块周五回撤但周中曾大涨; Morgan Stanley 多年看多, Sandisk 8/5 财报 — 板块 β 而非个股 α.\n\n## 风险 Watch\n\n- **SPCX/SPCH**: HSBC 明确点出 AI 野心 + 垂直整合面临技术与执行风险, PT 与现价持平 = 短期无上行空间.\n- **SKHY**: 内存股周五普跌, 警惕 AI capex 轮换叙事; Sandisk 8/5 财报若 miss 会拖累板块.\n- **SPCX**: Starship 今夜测试若失败, 杠杆 ETF 双倍回撤; 同时让 Falcon 客户是结构性风险.\n- **SPCH**: 新上市杠杆 ETF 高成交 = 投机资金, 易出现流动性回撤时的剧烈折溢价.",
   "raw_news_counts": {
-    "CRCL": 2,
+    "CRCL": 4,
     "PLTU": 5,
     "RKLX": 5,
     "SPCX": 5,
@@ -28,5 +28,36 @@
     "SPCH": "gnews-rss",
     "MSFU": "gnews-rss",
     "SKHY": "finnhub"
-  }
+  },
+  "source_status": {
+    "CRCL": {
+      "finnhub": "success",
+      "google_news": "not_attempted"
+    },
+    "PLTU": {
+      "finnhub": "success_empty",
+      "google_news": "success"
+    },
+    "RKLX": {
+      "finnhub": "success_empty",
+      "google_news": "success"
+    },
+    "SPCX": {
+      "finnhub": "success",
+      "google_news": "not_attempted"
+    },
+    "SPCH": {
+      "finnhub": "success_empty",
+      "google_news": "success"
+    },
+    "MSFU": {
+      "finnhub": "success_empty",
+      "google_news": "success"
+    },
+    "SKHY": {
+      "finnhub": "success",
+      "google_news": "not_attempted"
+    }
+  },
+  "no_material_news": false
 }
