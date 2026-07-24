@@ -112,7 +112,7 @@ def drop_stale_contexts(market, phase, today):
 
 
 def compute_context_id(result):
-    """Stable short digest of the context the model is about to work from.
+    """A per-GENERATION id for this preflight output.
 
     The model echoes it back to postflight (`--context-id`), which refuses to
     assemble prose against a context that has since been replaced. This is the
@@ -120,12 +120,15 @@ def compute_context_id(result):
     mid-turn, so disk held generation B while its prose described generation A —
     'one context per run' is not something the harness can assume.
 
-    Deliberately excludes `generated_at`: a rerun that produces identical numbers
-    should keep the same id (no spurious rejection), while any change to the data
-    the model reasons about changes it.
+    NOT a digest of the underlying data: `raw_wechat_block` embeds the fetch
+    minute, so any re-run yields a fresh id even with identical portfolio numbers.
+    That is the intended contract — the id pins prose to THIS exact preflight
+    output, and the failure mode is always fail-safe (a mismatch drops to the
+    data block, never marries fresh numbers to stale prose). The only way to get
+    a rejection is for prose to carry an id from a superseded generation, which is
+    exactly what we want caught. `context_id` itself is not yet in `result`.
     """
-    material = {k: v for k, v in result.items() if k != 'generated_at'}
-    blob = json.dumps(material, ensure_ascii=False, sort_keys=True)
+    blob = json.dumps(result, ensure_ascii=False, sort_keys=True)
     return hashlib.sha256(blob.encode()).hexdigest()[:12]
 
 

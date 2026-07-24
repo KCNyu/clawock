@@ -89,7 +89,7 @@ def test_verbatim_and_table_rules_are_skipped_in_prose_mode(pf):
     ctx = _ctx()
     assembled = pf.assemble_message(ctx, PROSE)
 
-    assert pf.validate(assembled, ctx, prose_only=True) == []
+    assert pf.validate(assembled, ctx, prose_only=True, model_text=PROSE) == []
     # the same prose WITHOUT the block still fails the legacy rules
     legacy_issues = pf.validate(PROSE, ctx, prose_only=False)
     assert any('verbatim' in i for i in legacy_issues)
@@ -98,12 +98,30 @@ def test_verbatim_and_table_rules_are_skipped_in_prose_mode(pf):
 def test_prose_mode_still_judges_what_the_model_actually_wrote(pf):
     ctx = _ctx(needs_risk_section=True)
     thin = '▎情绪面\n数据待获取\n'
-    issues = pf.validate(pf.assemble_message(ctx, thin), ctx, prose_only=True)
+    issues = pf.validate(pf.assemble_message(ctx, thin), ctx, prose_only=True, model_text=thin)
 
     assert any('缺段标记 "▎技术面"' in i for i in issues)
     assert any('▎风险提示' in i for i in issues)
     assert any('敷衍词' in i for i in issues)
     assert pf.categorize(issues) == 'fail'
+
+
+def test_content_rules_run_on_prose_not_the_prepended_block(pf):
+    """2026-07-24 review, blocking #1: the assembled body starts with the data
+    table, which contains the anomaly ticker (CRCL) and could contain
+    section-looking tokens. A prose that mentions NO mover must still fail —
+    validating the body would let the table answer for the model."""
+    ctx = _ctx()  # anomalies = [CRCL]
+    prose = ('▎情绪面\n大盘今天很平静，没什么可说的。\n\n'
+             '▎技术面\n指数横盘。\n\n▎操作建议\n继续持有。\n')
+    assert 'CRCL' not in prose
+    assembled = pf.assemble_message(ctx, prose)
+    assert 'CRCL' in assembled  # the table carries it
+
+    issues = pf.validate(assembled, ctx, prose_only=True, model_text=prose)
+    assert any('异动票' in i and 'CRCL' in i for i in issues)
+    # and the bug: validating the assembled body would MISS it
+    assert not any('异动票' in i for i in pf.validate(assembled, ctx, prose_only=True))
 
 
 def test_length_is_measured_on_the_assembled_message(pf):
@@ -117,23 +135,29 @@ def test_length_is_measured_on_the_assembled_message(pf):
     assembled = pf.assemble_message(ctx, prose)
     assert len(prose) < 3000 < len(assembled)
 
-    assert [i for i in pf.validate(prose, ctx, prose_only=True) if '报告长度' in i] == []
-    assert [i for i in pf.validate(assembled, ctx, prose_only=True) if '报告长度' in i] == [
-        f'报告长度 {len(assembled)} 字 > 3000 软上限 (warn)']
+    assert [i for i in pf.validate(prose, ctx, prose_only=True, model_text=prose)
+            if '报告长度' in i] == []
+    assert [i for i in pf.validate(assembled, ctx, prose_only=True, model_text=prose)
+            if '报告长度' in i] == [f'报告长度 {len(assembled)} 字 > 3000 软上限 (warn)']
 
 
 # ── generation binding ─────────────────────────────────────────────────────
 
-def test_context_id_changes_with_the_data_and_not_with_the_clock(pre):
-    """A second preflight producing identical numbers must not invalidate prose
-    already written; one producing different numbers must."""
+def test_context_id_is_per_generation(pre):
+    """The id pins prose to THIS preflight output. Two runs differ (raw_wechat_block
+    carries the fetch minute, and generated_at differs), and any change to the data
+    the model reasons about also differs — so a mismatch always means "prose was
+    written against a superseded context", which is what postflight rejects."""
     base = {k: v for k, v in _ctx().items() if k != 'context_id'}
-    first = pre.compute_context_id({**base, 'generated_at': '2026-07-24T04:00:33'})
-    rerun_same = pre.compute_context_id({**base, 'generated_at': '2026-07-24T04:06:11'})
-    rerun_moved = pre.compute_context_id({**base, 'raw_wechat_block': STALE_BLOCK})
+    run_a = pre.compute_context_id({**base, 'generated_at': '2026-07-24T04:00:33'})
+    run_b = pre.compute_context_id({**base, 'generated_at': '2026-07-24T04:06:11'})
+    moved = pre.compute_context_id({**base, 'raw_wechat_block': STALE_BLOCK,
+                                    'generated_at': '2026-07-24T04:00:33'})
 
-    assert first == rerun_same
-    assert first != rerun_moved
+    assert run_a != run_b            # a re-run is a new generation
+    assert run_a != moved            # changed data is a new generation
+    # deterministic: same dict in, same id out (no dict-ordering / float wobble)
+    assert run_a == pre.compute_context_id({**base, 'generated_at': '2026-07-24T04:00:33'})
 
 
 def test_peer_scan_is_trimmed_at_the_source_not_in_a_second_view(pre):
@@ -231,6 +255,19 @@ def test_stale_prose_file_is_refused_because_context_id_cannot_see_it(pf, tmp_pa
 def datetime_minus_minutes(minutes):
     import time
     return time.time() - minutes * 60
+
+
+def test_a_terse_but_valid_prose_under_50_chars_is_not_broken_pipe_rejected(run_main, sent):
+    """2026-07-24 review: the 50-字 floor is a legacy full-report broken-pipe guard.
+    A valid three-section prose can sit under it; read_prose_text already rejects
+    empty/missing/stale files, so the floor must not apply to prose."""
+    terse = '▎情绪面\n跌\n▎技术面\n弱\n▎操作建议\n等\n'
+    assert len(terse.strip()) < 50
+    rc, out = run_main(terse, context_id='abc123def456',
+                       ctx=_ctx(anomalies=[]))  # no mover to require
+
+    assert out['status'] == 'pass' and rc == 0
+    assert sent['messages'][0].startswith('🌙 美股收盘日报')
 
 
 @pytest.mark.parametrize('setup, marker', [
@@ -333,7 +370,42 @@ def test_main_refuses_to_publish_a_stale_prose_file(run_main, sent, pf, tmp_path
 
     assert rc == 2 and out['status'] == 'input_error'
     assert out['wechat_sent'] is False and out['commit_ok'] is False
-    assert 'messages' not in sent
+
+
+@pytest.mark.parametrize('ctx, why', [
+    ({'status': 'preflight_failed', 'market': 'us', 'phase': 'close',
+      'error': 'analyze_us_stocks.py rc=1'}, 'preflight_failed sentinel'),
+    ({'status': 'ok', 'market': 'us', 'phase': 'close', 'title': 't',
+      'commit_msg': 'm', 'context_id': 'abc123def456', 'raw_wechat_block': ''},
+     'ok status but empty data block'),
+])
+def test_main_rejects_an_unusable_context_without_sending_or_crashing(
+    run_main, sent, ctx, why
+):
+    """2026-07-24 review, blocking #2: preflight writes a blockless sentinel on a
+    fetch failure. Assembling against it sent a banner-only message and then
+    crashed on ctx['commit_msg']. It must be rejected before any send/commit."""
+    rc, out = run_main(PROSE, context_id='abc123def456', ctx=ctx)
+
+    assert rc == 2, why
+    assert out['status'] == 'preflight_error'
+    assert out['wechat_sent'] is False and out['commit_ok'] is False
+    assert 'messages' not in sent  # nothing delivered
+
+
+def test_legacy_failed_report_also_ships_the_data_block_only(run_main, sent):
+    """Dual-stack: a legacy (no --context-id) run that fails validation must ALSO
+    fall back to the data block, not deliver the model's rejected full text —
+    this closes 07-24 on the legacy path during the migration window."""
+    legacy_bad = f'{FRESH_BLOCK}\n\n▎情绪面\n数据待获取\n'  # missing 技术面/操作建议
+    rc, out = run_main(legacy_bad, context_id=None)
+
+    assert out['status'] == 'fail' and out['mode'] == 'legacy'
+    body = sent['messages'][0]
+    # ends at the data block ⇒ the model's rejected text is gone (数据待获取 still
+    # appears once, in the banner, which is expected — it names the failure)
+    assert body.endswith(FRESH_BLOCK.strip())
+    assert '▎情绪面' not in body
 
 
 # ── watchdog must not mistake prose mode for a dead run ────────────────────
@@ -362,16 +434,26 @@ def test_watchdog_still_backstops_a_different_generation(wd):
                              '🇺🇸 美股盯盘 | 07/23 16:00 ET', 1_000_100) is False
 
 
+def test_watchdog_context_id_match_ignores_the_age_window(wd):
+    """2026-07-24 review, non-blocking: both ids are per market+phase+date, so an
+    exact match is proof of THIS slot regardless of marker age. A delayed watchdog
+    must not re-mirror a confirmed delivery just because the marker is >2h old."""
+    old = 1_000_000 + wd.MARKER_FRESH_MS + 1
+    assert wd.slot_delivered(_marker(), 'abc123def456', 'x', old) is True
+
+
 def test_watchdog_falls_back_to_first_line_for_legacy_markers(wd):
     legacy = _marker(first_line='🇺🇸 美股盯盘 | 07/23 16:00 ET')
     legacy.pop('context_id')
     assert wd.slot_delivered(legacy, None, '🇺🇸 美股盯盘 | 07/23 16:00 ET', 1_000_100) is True
     assert wd.slot_delivered(legacy, None, '🇺🇸 美股盯盘 | 07/22 16:02 ET', 1_000_100) is False
-
-
-def test_watchdog_ignores_a_stale_or_undelivered_marker(wd):
+    # freshness still gates the FUZZY legacy path — an old first-line match could
+    # belong to an earlier day
     old = 1_000_000 + wd.MARKER_FRESH_MS
-    assert wd.slot_delivered(_marker(), 'abc123def456', 'x', old) is False
+    assert wd.slot_delivered(legacy, None, '🇺🇸 美股盯盘 | 07/23 16:00 ET', old) is False
+
+
+def test_watchdog_ignores_an_undelivered_marker(wd):
     assert wd.slot_delivered(_marker(tg_ok=False), 'abc123def456', 'x', 1_000_100) is False
     assert wd.slot_delivered(None, 'abc123def456', 'x', 1_000_100) is False
 
@@ -405,6 +487,63 @@ def test_watchdog_falls_back_to_the_legacy_first_line_when_no_context_id(wd):
     assert not wd.slot_delivered({**legacy, 'first_line': 'something else'}, None, first, now)
     assert not wd.slot_delivered({**legacy, 'tg_ok': False}, None, first, now)
     assert not wd.slot_delivered({**legacy, 'ts': 0}, None, first, now)
+
+
+@pytest.fixture
+def wd_main(wd, tmp_path, monkeypatch):
+    """Drive report_watchdog.main() with the run/session lookups mocked out, so the
+    reordered generation gate (transcript extracted BEFORE block_present) is under
+    test — codex flagged it as covered only at the slot_delivered() helper level."""
+    tmp = tmp_path / '.tmp'
+    tmp.mkdir()
+    monkeypatch.setattr(wd, 'WS', tmp_path)
+    (tmp_path / 'memory').mkdir(exist_ok=True)
+    monkeypatch.setattr(wd, 'WS', tmp_path, raising=True)
+    # WS/memory/.tmp is where main() reads ctx + marker and writes the dedupe flag
+    (tmp_path / 'memory' / '.tmp').mkdir(parents=True, exist_ok=True)
+
+    sent = {}
+    monkeypatch.setattr(wd, 'find_job_id', lambda name: 'jid')
+    monkeypatch.setattr(wd, 'today_runs',
+                        lambda jid: [{'runAtMs': 1, 'sessionId': 'sess', 'summary': SUMMARY[0]}])
+    monkeypatch.setattr(wd, 'transcript_loop_score', lambda s: (0, {}))
+    def _tg(target, msg, dry):
+        sent.setdefault('msgs', []).append(msg)
+        return True, 'sent'
+    monkeypatch.setattr(wd, 'send_telegram', _tg)
+    monkeypatch.setattr(wd, 'last_report_text', lambda s, first: TRANSCRIPT[0])
+
+    ctx = _ctx()
+    (tmp_path / 'memory' / '.tmp' / 'report-context-us-close-'
+     f'{__import__("datetime").datetime.now(wd.HKT):%Y-%m-%d}.json'
+     ).write_text(json.dumps(ctx, ensure_ascii=False))
+
+    def run(*, summary, transcript):
+        SUMMARY[0], TRANSCRIPT[0] = summary, transcript
+        monkeypatch.setattr(sys, 'argv',
+                            ['report_watchdog.py', '--market', 'us', '--phase', 'close',
+                             '--job-name', '美股收盘报告'])
+        wd.main()
+        return sent
+
+    return run
+
+
+SUMMARY = ['']
+TRANSCRIPT = [None]
+FRESH_FIRST = FRESH_BLOCK.splitlines()[0]
+
+
+def test_watchdog_mirrors_the_real_report_when_summary_truncated_it(wd_main):
+    """Summary lacks the data block but the transcript holds the real report. The
+    old gate (block_present = raw in summary) would fire the deterministic
+    data-block fallback and drop the full report; the fix must mirror the real one."""
+    real = f'{FRESH_BLOCK}\n\n▎情绪面\n完整报告正文……\n'
+    sent = wd_main(summary='（summary truncated, no block）', transcript=real)
+
+    assert sent['msgs'], 'watchdog sent nothing'
+    body = sent['msgs'][-1]
+    assert '▎情绪面\n完整报告正文' in body      # the real report, not the block-only fallback
 
 
 def test_marker_state_defaults_to_delivered_for_pre_field_markers(pf, sent):

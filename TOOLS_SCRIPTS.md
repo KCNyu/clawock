@@ -46,9 +46,9 @@ title: clawock · scripts 详细参考
 - **`scripts/harness/intraday_postflight.py --market {hk|us} --text-file memory/.tmp/intraday-report-{hk|us}.md`**（**先写文件再调用，禁 heredoc/`<<<`**；空输入/超 20 分钟的旧文件判 `status: input_error` 并拒投）：校验 ▎我的看法 / 长度 / should_alert 触发时报告必须提异动票；不提交 `portfolio.json`，dashboard 仅在语义变化时 commit + push；无论有无 dashboard diff 都更新本地 slot heartbeat，交 single publisher 发布。
 
 **共通设计点**：
-- preflight 输出 `raw_wechat_block` 字段，LLM **必须 verbatim 拷贝**（不改时间戳/数字），postflight 用首行匹配验证
-- preflight 输出 `anomalies` 字段，LLM 必须在报告里至少提一个 anomaly 票
-- postflight 输出 `wechat_prefix`（pass=空串，warn=黄 banner，fail=红 banner），LLM 拼到 WeChat 输出前
+- `raw_wechat_block`：**Mode 6 报告**（report_postflight）由 harness 自己拼进消息，LLM 只写散文、不碰数据块；**intraday** 仍是 LLM verbatim 拷贝 + postflight 首行验证
+- preflight 输出 `anomalies` 字段，LLM 必须在报告里至少提一个 anomaly 票（report 按**模型散文**校验，数据块里的票代码不算数）
+- `wechat_prefix`（pass=空串，warn=黄 banner，fail=红 banner）：report_postflight 自己发，不再回给 LLM 拼；intraday 仍回给 LLM
 - 所有 context.json 都放 `memory/.tmp/`（gitignore 排除）
 
 ### 辅助

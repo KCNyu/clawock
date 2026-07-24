@@ -79,10 +79,15 @@ def slot_delivered(marker, ctx_id, raw_block_first, now_ms):
     """
     if not marker or not marker.get('tg_ok'):
         return False
-    if now_ms - (marker.get('ts') or 0) >= MARKER_FRESH_MS:
-        return False
+    # An exact context_id match is proof this slot was delivered regardless of age:
+    # both ids are per market+phase+date, so a delayed watchdog must NOT re-mirror a
+    # confirmed delivery just because the marker is >2h old (2026-07-24 review). The
+    # freshness window only guards the fuzzy legacy first-line compare, where a
+    # matching first line could otherwise belong to an earlier day's report.
     if marker.get('context_id') and ctx_id:
         return marker['context_id'] == ctx_id
+    if now_ms - (marker.get('ts') or 0) >= MARKER_FRESH_MS:
+        return False
     return (marker.get('first_line') or '').strip() == (raw_block_first or '').strip()
 
 
@@ -161,7 +166,13 @@ def main():
              'run_at': run_at})
         return 0
 
-    block_present = raw_block_first in summary
+    # Extract the real report from the transcript BEFORE the generation gate: the
+    # run summary can omit the data block while the actual report sits in the last
+    # assistant turn (long runs truncate the summary). Treating "not in summary" as
+    # "never generated" would fire the deterministic fallback and drop a report kcn
+    # could have received in full (2026-07-24 review). Either source counts.
+    report = last_report_text(session_id, raw_block_first)
+    block_present = (raw_block_first in summary) or bool(report)
     loop_score, _ = transcript_loop_score(session_id)
     looped = loop_score >= LOOP_THRESHOLD
     if not block_present or looped:
@@ -188,7 +199,7 @@ def main():
     # guarantee Telegram has this report — never touch WeChat.
     # Not delivered this slot (checked above) ⇒ postflight's cosend never ran,
     # failed, or the marker belongs to a different generation → mirror it now.
-    report = last_report_text(session_id, raw_block_first)
+    # `report` was already extracted from the transcript above.
     if not report and raw_block_first in summary:
         # Legacy mode: the run summary holds the full report after the "---" checklist.
         report = summary.split('\n---\n', 1)[1].strip() if '\n---\n' in summary else summary.strip()

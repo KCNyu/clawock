@@ -71,6 +71,9 @@ def test_drop_stale_contexts_removes_other_dates_only(preflight, tmp_context_dir
         'report-sent-us-close-2026-07-23.json',         # stale send marker — drop
         'report-sent-us-close-2026-07-24.json',         # today's marker — keep
         'report-upgrade-us-close-2026-07-23.claim',     # stale upgrade claim — drop
+        'report-upgrade-us-close-2026-07-24.claim',     # today's claim — keep
+        'report-sent-us-open-2026-07-23.json',          # other phase marker — keep
+        'report-upgrade-us-open-2026-07-23.claim',      # other phase claim — keep
         'report-sent-hk-close-2026-07-23.json',         # other market marker — keep
     ]
     for name in names:
@@ -91,6 +94,9 @@ def test_drop_stale_contexts_removes_other_dates_only(preflight, tmp_context_dir
         'report-context-us-open-2026-07-23.json',
         'report-sent-hk-close-2026-07-23.json',
         'report-sent-us-close-2026-07-24.json',
+        'report-sent-us-open-2026-07-23.json',
+        'report-upgrade-us-close-2026-07-24.claim',
+        'report-upgrade-us-open-2026-07-23.claim',
     ]
 
 

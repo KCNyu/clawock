@@ -83,6 +83,24 @@ def load_context(market, phase, date):
         return None, f'preflight context 解析失败: {e}'
 
 
+def _unusable_context(ctx, prose_only):
+    """Reason string if the context can't back a report, else None.
+
+    preflight writes blockless sentinels (status preflight_failed / market_closed)
+    that carry none of the deterministic fields postflight assembles from. Anything
+    but a 'ok' status with a nonempty raw block + title + commit_msg — plus a
+    context_id in prose mode — is not a report context.
+    """
+    if ctx.get('status') != 'ok':
+        return f'context status={ctx.get("status")!r}（preflight 未产出可用数据），跳过投递+commit'
+    missing = [k for k in ('raw_wechat_block', 'title', 'commit_msg') if not (ctx.get(k) or '').strip()]
+    if prose_only and not (ctx.get('context_id') or '').strip():
+        missing.append('context_id')
+    if missing:
+        return f'context 缺字段 {missing}，跳过投递+commit'
+    return None
+
+
 def assemble_message(ctx, prose):
     """Build the delivered report from harness-owned data + model-owned prose.
 
@@ -102,35 +120,41 @@ def assemble_message(ctx, prose):
     return '\n\n'.join(p for p in parts if p)
 
 
-def validate(text, ctx, prose_only=False):
-    """Validate the ASSEMBLED message. `text` is the full delivered body.
+def validate(body, ctx, prose_only=False, model_text=None):
+    """Validate the delivered message.
 
-    With prose_only the block was prepended by assemble_message, so the verbatim
-    and table checks are dead by construction and are skipped — keeping them
-    would assert that the harness can copy its own string. Every remaining rule
-    is a property of what the MODEL wrote, which is the only thing left to judge.
+    `body` is what gets sent. `model_text` is the part the MODEL wrote; in prose
+    mode that is the prose alone, in legacy mode it is the whole report (== body).
+
+    The content rules — sections, risk section, anomaly mention, forbidden phrases
+    — MUST run against model_text, never body. In prose mode assemble_message has
+    already prepended the raw data block, and that block itself contains the
+    anomaly tickers and (potentially) section-looking tokens: checking body would
+    let prose that mentions none of the movers pass because the table does. Only
+    the length limit is a property of the assembled body. (2026-07-24 review.)
     """
     issues = []
+    checked = body if model_text is None else model_text
 
     # 1. raw block 必须 verbatim 出现（legacy path only — see docstring）
     raw = ctx.get('raw_wechat_block', '').strip()
     if raw and not prose_only:
         first_line = raw.splitlines()[0]
-        if first_line not in text:
+        if first_line not in body:
             issues.append(f'报告未包含原始数据块首行 "{first_line[:40]}..." (verbatim 验证失败)')
-        issues.extend(check_raw_tables_verbatim(text, raw))
+        issues.extend(check_raw_tables_verbatim(body, raw))
 
-    # 2. 必有三段标记
+    # 2. 必有三段标记（模型文本）
     for sec in REQUIRED_SECTIONS:
-        if sec not in text:
+        if sec not in checked:
             issues.append(f'缺段标记 "{sec}"')
 
-    # 3. 风险提示段（若 preflight 标了 needs）
-    if ctx.get('needs_risk_section') and '▎风险提示' not in text:
+    # 3. 风险提示段（若 preflight 标了 needs；模型文本）
+    if ctx.get('needs_risk_section') and '▎风险提示' not in checked:
         issues.append('preflight 标 needs_risk_section=true 但未见 "▎风险提示" 段')
 
-    # 4. 长度 (per-market)
-    n_chars = len(text)
+    # 4. 长度 —— 按投递全文 (per-market)
+    n_chars = len(body)
     limits = CHAR_LIMITS.get(ctx.get('market', 'hk'), CHAR_LIMITS['hk'])
     soft, hard = limits['soft'], limits['hard']
     if n_chars > hard:
@@ -138,16 +162,16 @@ def validate(text, ctx, prose_only=False):
     elif n_chars > soft:
         issues.append(f'报告长度 {n_chars} 字 > {soft} 软上限 (warn)')
 
-    # 5. 异动票必须被提到
+    # 5. 异动票必须被提到（模型文本 —— 数据块里本就有票代码，不能拿它顶）
     anomalies = ctx.get('anomalies', [])
     if anomalies:
-        mentioned = [a['ticker'] for a in anomalies if a['ticker'] in text]
+        mentioned = [a['ticker'] for a in anomalies if a['ticker'] in checked]
         if not mentioned:
             tickers = ', '.join(a['ticker'] for a in anomalies)
             issues.append(f'preflight 标了 {len(anomalies)} 个 ≥3% 异动票 ({tickers}) 但报告全部未提及')
 
-    # 6. 敷衍 phrases
-    issues.extend(validate_forbidden_phrases(text, FORBIDDEN_PHRASES))
+    # 6. 敷衍 phrases（模型文本）
+    issues.extend(validate_forbidden_phrases(checked, FORBIDDEN_PHRASES))
 
     return issues
 
@@ -382,22 +406,30 @@ def main():
     ctx, ctx_err = load_context(args.market, args.phase, today)
     prose_only = args.context_id is not None
 
-    if ctx is None:
+    # A missing OR unusable context both mean "preflight did not produce data to
+    # assemble". preflight writes a blockless sentinel on a fetch failure
+    # (status=preflight_failed / market_closed) with no raw_wechat_block, title,
+    # commit_msg or context_id; assembling against it would send a banner-only
+    # message and then crash on ctx['commit_msg']. Reject before any send/commit,
+    # non-zero, so the run record shows preflight is the breakage. (2026-07-24 review.)
+    ctx_bad = ctx_err or _unusable_context(ctx, prose_only)
+    if ctx_bad:
         result = {
-            'status': 'fail',
-            'issues': [ctx_err],
-            'wechat_prefix': f'🔴 postflight 异常: {ctx_err}\n\n',
-            'commit_ok': False,
-            'commit_msg': 'skipped (no preflight context)',
+            'status': 'preflight_error',
+            'market': args.market, 'phase': args.phase, 'date': today,
+            'issues': [ctx_bad],
+            'wechat_prefix': '', 'wechat_sent': False,
+            'commit_ok': False, 'commit_msg': 'skipped (no usable preflight context)',
         }
         print(json.dumps(result, ensure_ascii=False, indent=2))
         return 2
 
-    # Degenerate/empty stdin = broken pipe (see MIN_REPORT_CHARS note). Bail out
-    # BEFORE deliver_wechat so kcn never gets an empty-bodied FAILED banner; exit
-    # non-zero so the run record shows the breakage. The model's retry (serial
-    # `< file`) or report_watchdog's raw-block fallback delivers the real report.
-    if len(text.strip()) < MIN_REPORT_CHARS:
+    # Degenerate/empty input = broken pipe. Legacy input is a whole report so the
+    # 50-字 floor is a real broken-pipe signal there; prose is a few sections and
+    # a terse-but-valid one can sit under 50 chars, so read_prose_text's own
+    # empty/missing/stale gate already covers the prose plumbing failure. Apply
+    # the char floor to legacy input only. (2026-07-24 review.)
+    if not prose_only and len(text.strip()) < MIN_REPORT_CHARS:
         result = {
             'status': 'fail',
             'market': args.market,
@@ -423,12 +455,17 @@ def main():
     # loud banner we got, so refuse to assemble and fall back to data-only.
     stale_generation = prose_only and args.context_id != ctx.get('context_id')
 
+    # Keep the model's own text for the content rules; assemble the delivered body
+    # separately. Validating the assembled body would let the prepended data block
+    # satisfy the anomaly/section rules on the model's behalf. (2026-07-24 review.)
+    model_text = text if prose_only else None
     if prose_only and not stale_generation:
         text = assemble_message(ctx, text)
 
     issues = ([f'context_id 不匹配: 模型基于 {args.context_id}，当前 context 是 '
                f'{ctx.get("context_id")} — 散文与数据不同代，拒绝拼装']
-              if stale_generation else validate(text, ctx, prose_only=prose_only))
+              if stale_generation
+              else validate(text, ctx, prose_only=prose_only, model_text=model_text))
     status = categorize(issues) if not stale_generation else 'fail'
 
     if status == 'pass':
