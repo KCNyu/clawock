@@ -114,14 +114,17 @@ jobs:
           if ! git diff --cached --quiet; then
             git commit -m "memory: brief-fallback (off-host-llm) $TODAY"
           fi
-          # Push whenever HEAD is ahead of origin/master, NOT only on a dirty index.
+          # Push whenever HEAD is ahead of the remote, NOT only on a dirty index.
           # postflight's maybe_commit already commits here, and its push can FAIL on
           # this ephemeral runner while still returning commit_ok=true; gating the
           # push on a dirty index then leaves that commit unpushed and the runner
           # discards it — green but nothing published (2026-07 audit finding #4).
-          git fetch origin master -q || true
-          if [ -n "$(git rev-list origin/master..HEAD 2>/dev/null)" ]; then
+          # Compare against FETCH_HEAD (always set by the fetch) rather than the
+          # remote-tracking ref origin/master, which `git fetch origin master` only
+          # updates opportunistically.
+          if git fetch origin master -q && \
+             [ -n "$(git rev-list FETCH_HEAD..HEAD 2>/dev/null)" ]; then
             bash scripts/data/safe_push.sh
           else
-            echo "nothing to push — HEAD not ahead of origin/master"
+            echo "nothing to push — HEAD not ahead of origin/master (or fetch failed)"
           fi

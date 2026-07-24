@@ -89,7 +89,7 @@ def test_fallback_pushes_any_commit_ahead_of_origin_not_only_a_dirty_index():
     workflow push on a dirty index then discards that commit (green, unpublished).
     The commit step must push whenever HEAD is ahead of origin/master."""
     commit_run = _workflow_step_run('Commit + push')
-    assert 'rev-list origin/master..HEAD' in commit_run, (
-        'commit step does not push a commit that is ahead of origin (maybe_commit '
+    assert 'rev-list FETCH_HEAD..HEAD' in commit_run, (
+        'commit step does not push a commit that is ahead of the remote (maybe_commit '
         'push-failure would be discarded)')
     assert 'safe_push.sh' in commit_run, 'commit step no longer pushes via safe_push'
