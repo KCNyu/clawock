@@ -43,6 +43,11 @@ jobs:
         # not skip them. Pure Node, no deps; Node is preinstalled on the runner.
         run: node skills/tavily-search/lib/ledger.test.mjs
 
+      - name: Tavily search degrade tests
+        # Guards the fail-safe: a Tavily runtime failure must exit 0 (graceful
+        # degrade), never a non-zero that reds the whole cron. Offline + pure Node.
+        run: node skills/tavily-search/scripts/search.test.mjs
+
       - name: PR file safety policy
         if: github.event_name == 'pull_request'
         env:

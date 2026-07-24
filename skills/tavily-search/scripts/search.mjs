@@ -90,22 +90,49 @@ if (topic === "news" && days) {
   body.days = days;
 }
 
-// Ambiguous network failures (ECONNRESET etc.) may have arrived AFTER Tavily
-// billed, so we do NOT refund them — keeping the reservation is the safe
-// (conservative over-count) direction for a hard cap. Only a definite HTTP
-// error response is a guaranteed non-billed outcome and gets refunded.
-const resp = await fetch("https://api.tavily.com/search", {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json",
-  },
-  body: JSON.stringify(body),
-});
+// A Tavily runtime failure (network error, HTTP error, or unparseable body)
+// must NOT exit non-zero: this script is invoked mid-turn as OPTIONAL search
+// enrichment, so a non-zero exit gets upgraded to a run-level "Bash failed" and
+// reds the whole cron (e.g. the 2026-07-20 08:19 盘前深度简报). Degrade with the
+// same stdout contract as the no-key / budget paths and exit 0 so the caller
+// falls back to its built-in web search.
+const degrade = (stdoutReason, stderrLine) => {
+  console.log(
+    "## Web search unavailable\n\n" +
+      stdoutReason +
+      " Skip this source and use your built-in web search instead.",
+  );
+  console.error(stderrLine);
+  process.exit(0);
+};
+
+let resp;
+try {
+  resp = await fetch("https://api.tavily.com/search", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(body),
+  });
+} catch (err) {
+  // Ambiguous network failure (ECONNRESET/DNS/timeout) may have arrived AFTER
+  // Tavily billed, so we do NOT refund — keeping the reservation is the safe
+  // (conservative over-count) direction for a hard cap.
+  degrade(
+    `Tavily network error: ${err?.message ?? err}.`,
+    `[tavily] network failure (reservation kept): ${err?.message ?? err}`,
+  );
+}
 
 if (!resp.ok) {
+  // A definite HTTP error response is a guaranteed non-billed outcome → refund.
   refund(gate.bucket, cost, gate.month);
   const text = await resp.text().catch(() => "");
-  throw new Error(`Tavily Search failed (${resp.status}): ${text}`);
+  degrade(
+    `Tavily API returned HTTP ${resp.status}.`,
+    `[tavily] HTTP ${resp.status} (refunded ${cost}): ${text.slice(0, 200)}`,
+  );
 }
 
 // Success → the reservation stands. Log remaining budget to stderr (not stdout,
@@ -114,7 +141,17 @@ console.error(
   `[tavily] charged ${cost} to "${gate.bucket}" — month ${gate.total_used} used, ${gate.remaining} left`,
 );
 
-const data = await resp.json();
+let data;
+try {
+  data = await resp.json();
+} catch (err) {
+  // Body already delivered (billed) → keep the reservation, but still degrade
+  // rather than crash the caller mid-turn.
+  degrade(
+    "Tavily returned an unparseable response body.",
+    `[tavily] malformed JSON (reservation kept): ${err?.message ?? err}`,
+  );
+}
 
 // Print AI-generated answer if available
 if (data.answer) {
