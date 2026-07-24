@@ -146,15 +146,17 @@ def validate_markdown(path, context=None):
     if context and context.get('macro'):
         m = context['macro']
         age = m.get('age_hours')
-        # Only enforce when macro is reasonably fresh
-        if (age is None or age <= STALE_H) and m.get('vix') and '▎大盘速读' not in text:
+        # Only enforce when macro is known-fresh. age None = unknown/stale (preflight
+        # now omits stale sidecars, but if one reaches here, don't demand the section
+        # off unprovable-fresh data — that would fail a correctly-omitted section).
+        if (age is not None and age <= STALE_H) and m.get('vix') and '▎大盘速读' not in text:
             issues.append('pre-open.md 缺 ▎大盘速读 段（context.macro 有 fresh 数据 '
                           f'age={age}h 但 LLM 没写）')
     if context and context.get('sentiment'):
         s = context['sentiment']
         age = s.get('age_hours')
         tickers = s.get('tickers') or []
-        if (age is None or age <= STALE_H) and tickers and '▎社交舆情' not in text:
+        if (age is not None and age <= STALE_H) and tickers and '▎社交舆情' not in text:
             issues.append(f'pre-open.md 缺 ▎社交舆情速读 段（context.sentiment '
                           f'{len(tickers)} 个 ticker 有信号 age={age}h 但 LLM 没写）')
 
