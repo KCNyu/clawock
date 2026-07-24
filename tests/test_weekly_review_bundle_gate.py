@@ -80,6 +80,50 @@ def test_weekly_bundle_with_valid_minimum_inputs_passes(
     ]
 
 
+def test_weekly_nav_uses_boundary_and_nearest_fx_when_interior_fx_missing(
+        tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    _stub_decisions(monkeypatch)
+    _write_json(tmp_path / 'memory/2026-07-20-plan.json',
+                _plan('2026-07-20', fx=7.80))
+    _write_json(tmp_path / 'memory/2026-07-22-plan.json',
+                _plan('2026-07-22', fx=None,
+                      decisions=[{'action': 'hold'}]))
+    _write_json(tmp_path / 'memory/2026-07-24-plan.json',
+                _plan('2026-07-24', fx=7.84))
+    for day in ('2026-07-20', '2026-07-22', '2026-07-24'):
+        _write_json(tmp_path / f'memory/snapshots/{day}.json', _snapshot())
+    _write_json(tmp_path / 'assets/data/risk.json',
+                {'combined': {'beta': 1.2}})
+
+    bundle = weekly.aggregate_week(today=date(2026, 7, 28))
+    evidence = weekly.validate_bundle(bundle)
+
+    assert [point['date'] for point in evidence['nav_points']] == [
+        '2026-07-20', '2026-07-22', '2026-07-24',
+    ]
+    assert [point['fx_rate_usdhkd'] for point in evidence['nav_points']] == [
+        7.80, 7.80, 7.84,
+    ]
+
+
+def test_weekly_nav_still_fails_when_no_valid_fx_exists(
+        tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    _stub_decisions(monkeypatch)
+    for day in ('2026-07-22', '2026-07-24'):
+        _write_json(tmp_path / f'memory/{day}-plan.json',
+                    _plan(day, fx=None, decisions=[{'action': 'hold'}]))
+        _write_json(tmp_path / f'memory/snapshots/{day}.json', _snapshot())
+    _write_json(tmp_path / 'assets/data/risk.json',
+                {'combined': {'beta': 1.2}})
+
+    bundle = weekly.aggregate_week(today=date(2026, 7, 28))
+
+    with pytest.raises(RuntimeError, match='start/end NAV from two dated snapshots'):
+        weekly.validate_bundle(bundle)
+
+
 def test_weekly_malformed_snapshot_names_missing_nav_before_llm(
         tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)

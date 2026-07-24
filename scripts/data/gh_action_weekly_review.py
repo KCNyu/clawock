@@ -46,7 +46,7 @@ def _snapshot_nav(snapshot, fx_rate):
             and not isinstance(fx_rate, bool)
             and math.isfinite(fx_rate)
             and fx_rate > 0):
-        raise ValueError('same-day plan FX rate missing or invalid')
+        raise ValueError('plan FX rate missing or invalid')
     portfolios = snapshot.get('portfolios')
     if not isinstance(portfolios, dict):
         raise ValueError('portfolios missing')
@@ -75,14 +75,30 @@ def _snapshot_nav(snapshot, fx_rate):
     }
 
 
+def _nearest_plan_fx(snapshot_date, plan_fx):
+    if snapshot_date in plan_fx:
+        return plan_fx[snapshot_date]
+    if not plan_fx:
+        return None
+    target = date.fromisoformat(snapshot_date)
+    _, fx_rate = min(
+        ((date.fromisoformat(plan_date), fx_rate)
+         for plan_date, fx_rate in plan_fx.items()),
+        key=lambda item: (abs((item[0] - target).days), item[0]),
+    )
+    return fx_rate
+
+
 def aggregate_week(today=None):
     today = today or date.today()
     iso_year, iso_week, _ = today.isocalendar()
     week_id = f"{iso_year}-W{iso_week:02d}"
     start = today - timedelta(days=7)
+    boundary = start - timedelta(days=1)
     input_errors = []
 
     plans = []
+    plan_fx = {}
     for f in sorted(glob.glob('memory/*-plan.json')):
         d_str = os.path.basename(f).split('-plan.json')[0]
         try:
@@ -90,10 +106,17 @@ def aggregate_week(today=None):
         except ValueError:
             input_errors.append(f'plan {f}: invalid date in filename')
             continue
-        if d >= start:
+        if boundary <= d <= today:
             plan = _load_json(f, 'plan', input_errors)
             if plan is not None:
-                plans.append({'date': d_str, 'data': plan})
+                fx_rate = plan.get('fx_rate_usdhkd')
+                if (isinstance(fx_rate, (int, float))
+                        and not isinstance(fx_rate, bool)
+                        and math.isfinite(fx_rate)
+                        and fx_rate > 0):
+                    plan_fx[d_str] = fx_rate
+                if d >= start:
+                    plans.append({'date': d_str, 'data': plan})
 
     decisions = decision_v2.load_decisions()
     decision_episodes = [r for r in decision_v2.episode_representatives(decisions, 't1')
@@ -108,7 +131,7 @@ def aggregate_week(today=None):
         except ValueError:
             input_errors.append(f'snapshot {f}: invalid date in filename')
             continue
-        if d >= start - timedelta(days=1):
+        if boundary <= d <= today:
             snapshot = _load_json(f, 'snapshot', input_errors)
             if snapshot is not None:
                 snapshots.append(snapshot)
@@ -120,7 +143,6 @@ def aggregate_week(today=None):
     else:
         input_errors.append('risk assets/data/risk.json: missing')
 
-    plan_fx = {}
     plan_decisions = 0
     valid_plan_days = 0
     for plan in plans:
@@ -132,17 +154,11 @@ def aggregate_week(today=None):
             continue
         valid_plan_days += 1
         plan_decisions += len(decisions_for_day)
-        fx_rate = data.get('fx_rate_usdhkd')
-        if (isinstance(fx_rate, (int, float))
-                and not isinstance(fx_rate, bool)
-                and math.isfinite(fx_rate)
-                and fx_rate > 0):
-            plan_fx[plan['date']] = fx_rate
 
     nav_points = []
     for d_str, snapshot in snapshot_records:
         try:
-            nav = _snapshot_nav(snapshot, plan_fx.get(d_str))
+            nav = _snapshot_nav(snapshot, _nearest_plan_fx(d_str, plan_fx))
         except ValueError as exc:
             input_errors.append(f'snapshot memory/snapshots/{d_str}.json: {exc}')
             continue
