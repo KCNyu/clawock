@@ -1,26 +1,31 @@
 {
-  "generated_at": "2026-07-23T22:33:33.646812+00:00",
+  "generated_at": "2026-07-24T14:28:14.954665+00:00",
   "lookback_hours": 48,
   "sources": {
     "trump": "trumpstruth.org/feed (primary)",
     "musk": "google-news-rss (proxy)",
     "serenity": "aleabitoreddit.substack.com/feed (public posts)"
   },
+  "source_status": {
+    "trump": "success",
+    "musk": "success",
+    "serenity": "failed"
+  },
   "llm_filtered": true,
   "counts": {
-    "total": 9,
+    "total": 11,
     "held_hits": 0,
-    "new_ideas": 5,
-    "sector_hits": 0
+    "new_ideas": 6,
+    "sector_hits": 2
   },
   "items": [
     {
       "author": "Musk",
-      "text": "Tesla (TSLA) crashes 12%, sheds $140B as Elon Musk’s ‘just trust me’ doesn’t hold anymore",
+      "text": "Elon Musk Has Lost $650 Billion In 5 Weeks As Tesla And SpaceX Plummet",
       "url": "",
-      "published": "Thu, 23 Jul 2026 14:30:00 GMT",
+      "published": "Fri, 24 Jul 2026 09:52:11 GMT",
       "origin": "gnews-rss",
-      "source": "Electrek",
+      "source": "Yahoo Finance",
       "tickers": [
         "TSLA"
       ],
@@ -30,13 +35,35 @@
       ],
       "sectors": [
         "电动车",
-        "AI",
-        "自动驾驶"
+        "航天"
       ],
       "sector_holdings": [],
       "stance": "attack",
-      "relevance": 78,
-      "summary_cn": "特斯拉单日暴跌12%，市值蒸发1400亿美元，市场对马斯克'相信我'式的AI/自动驾驶承诺彻底失信。"
+      "relevance": 75,
+      "summary_cn": "Musk身价5周蒸发6500亿美元，Tesla与SpaceX同步暴跌，空头信号。"
+    },
+    {
+      "author": "Musk",
+      "text": "Reality Bites Elon Musk and His Tesla, SpaceX Believers",
+      "url": "",
+      "published": "Thu, 23 Jul 2026 21:04:00 GMT",
+      "origin": "gnews-rss",
+      "source": "WSJ",
+      "tickers": [
+        "TSLA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "TSLA"
+      ],
+      "sectors": [
+        "电动车",
+        "航天"
+      ],
+      "sector_holdings": [],
+      "stance": "attack",
+      "relevance": 72,
+      "summary_cn": "报道指出Musk及其Tesla、SpaceX信徒遭遇现实打击，整体看空Musk系资产。"
     },
     {
       "author": "Musk",
@@ -53,13 +80,34 @@
         "TSLA"
       ],
       "sectors": [
-        "电动车",
-        "AI"
+        "电动车"
       ],
       "sector_holdings": [],
       "stance": "attack",
       "relevance": 72,
-      "summary_cn": "特斯拉单日暴跌14%，马斯克身家蒸发180亿美元，市场对Robotaxi/Optimus等AI叙事信心受挫。"
+      "summary_cn": "Tesla单日暴跌14%，Musk身价蒸发180亿美元，短期强烈看空信号。"
+    },
+    {
+      "author": "Musk",
+      "text": "Tesla stock suffers double-digit drop on carmaker’s worst day in years",
+      "url": "",
+      "published": "Fri, 24 Jul 2026 03:19:00 GMT",
+      "origin": "gnews-rss",
+      "source": "The Guardian",
+      "tickers": [
+        "TSLA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "TSLA"
+      ],
+      "sectors": [
+        "电动车"
+      ],
+      "sector_holdings": [],
+      "stance": "attack",
+      "relevance": 70,
+      "summary_cn": "Tesla股价双位数下跌，创多年来最差单日表现。"
     },
     {
       "author": "Musk",
@@ -77,85 +125,78 @@
       ],
       "sectors": [
         "电动车",
-        "AI",
-        "自动驾驶"
+        "AI/自动驾驶"
       ],
       "sector_holdings": [],
       "stance": "neutral",
-      "relevance": 70,
-      "summary_cn": "马斯克呼吁对Robotaxi和Optimus机器人量产保持耐心，但特斯拉股价随即大跌，'信任溢价'正在消退。"
+      "relevance": 68,
+      "summary_cn": "Musk呼吁对Robotaxi与Optimus机器人的耐心，但Tesla股价应声大跌，看空信号。"
     },
     {
       "author": "Musk",
       "text": "Will SpaceX buy Tesla? Elon Musk is not revealing his plans",
       "url": "",
-      "published": "Thu, 23 Jul 2026 21:01:11 GMT",
+      "published": "Thu, 23 Jul 2026 21:31:36 GMT",
       "origin": "gnews-rss",
       "source": "Scripps News",
       "tickers": [
-        "TSLA",
-        "SPACEX"
+        "TSLA"
       ],
       "held": [],
       "new_ideas": [
-        "SPACEX",
         "TSLA"
       ],
       "sectors": [
         "电动车",
-        "航天",
-        "AI"
+        "航天"
       ],
-      "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
+      "sector_holdings": [],
       "stance": "neutral",
-      "relevance": 68,
-      "summary_cn": "马斯克被问及SpaceX是否会收购特斯拉但拒绝透露计划，市场猜测其商业帝国整合可能性，间接关联kcn持有的SpaceX相关仓位。"
+      "relevance": 65,
+      "summary_cn": "市场猜测SpaceX是否收购Tesla，Musk不予置评，事件驱动型不确定性。"
     },
     {
       "author": "Musk",
-      "text": "Suddenly, as His Empire Crumbles, Elon Musk Admits He Made a Huge Mistake With DOGE",
+      "text": "AI superintelligence, DOGE, and getting 'carried away' with politics: 5 key takeaways from Elon Musk's latest interview",
       "url": "",
-      "published": "Thu, 23 Jul 2026 18:49:56 GMT",
+      "published": "Fri, 24 Jul 2026 10:41:24 GMT",
       "origin": "gnews-rss",
-      "source": "Futurism",
-      "tickers": [
-        "DOGE"
-      ],
+      "source": "Business Insider",
+      "tickers": [],
       "held": [],
-      "new_ideas": [
-        "DOGE"
-      ],
+      "new_ideas": [],
       "sectors": [
+        "AI",
         "加密货币",
-        "政府效率"
+        "政府效率(DOGE)"
       ],
       "sector_holdings": [
         "CRCL"
       ],
       "stance": "neutral",
       "relevance": 60,
-      "summary_cn": "马斯克罕见承认DOGE（政府效率部门）犯了'巨大错误'，与其加密同名代币及加密板块情绪相关。"
+      "summary_cn": "Musk访谈谈到AI超级智能、DOGE与过度参政，对加密/AI板块情绪中性偏负(DOGE争议)。"
     },
     {
-      "author": "Trump",
-      "text": "Effective August 1st, 2026, all Generic Drugs being brought into the United States will continue to have a TARIFF of ZERO PERCENT for a two year period of time, after which the TARIFF will be raised to 100% for a one year period of time, and 200% thereafter. This is done in order to RESHORE Generic Pharmaceutical Production into America, with a penalty to those Companies that decide not to build Plant and Equipment within the stated period of time given to them. The objective of this Policy is to protect the people of the United States. The Policy on Patented, Branded, or Innovative Drugs, whi",
-      "url": "https://trumpstruth.org/statuses/40182",
-      "published": "2026-07-21T22:54:15+00:00",
-      "origin": "truthsocial",
+      "author": "Musk",
+      "text": "Elon Musk says he ‘got carried away’ in politics, defends DOGE",
+      "url": "",
+      "published": "Fri, 24 Jul 2026 00:04:00 GMT",
+      "origin": "gnews-rss",
+      "source": "USA Today",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "医药",
-        "关税"
+        "政府效率(DOGE)",
+        "加密货币"
       ],
-      "sector_holdings": [],
+      "sector_holdings": [
+        "CRCL"
+      ],
       "stance": "neutral",
-      "relevance": 65,
-      "summary_cn": "特朗普宣布仿制药关税新政：8月起两年内零关税以鼓励在美建厂，之后逐步升至100%/200%；品牌药另行处理，将重塑制药供应链。"
+      "relevance": 50,
+      "summary_cn": "Musk承认参政'过了头'，但仍为DOGE辩护，对加密板块间接影响有限。"
     },
     {
       "author": "Trump",
@@ -167,14 +208,14 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "军工",
+        "国防军工",
         "能源",
         "中东地缘政治"
       ],
       "sector_holdings": [],
       "stance": "neutral",
       "relevance": 55,
-      "summary_cn": "特朗普警告伊朗/胡塞武装，若再袭击商船将对伊朗实施重大军事惩罚，影响军工与中东地缘风险溢价。"
+      "summary_cn": "Trump警告若胡塞武装再袭商船将惩罚伊朗，涉及中东地缘与能源/航运风险。"
     },
     {
       "author": "Trump",
@@ -186,13 +227,13 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "核能",
+        "核能/民用核技术",
         "中东地缘政治"
       ],
       "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 50,
-      "summary_cn": "特朗普宣布美沙民用核能协议（不涉及浓缩铀），与沙特加入亚伯拉罕协议挂钩，影响核能板块及中东外交走向。"
+      "stance": "endorse",
+      "relevance": 52,
+      "summary_cn": "Trump表态将批准美沙民用核合作(以沙特加入亚伯拉罕协议为前提)，民用核电/能源板块间接利好。"
     },
     {
       "author": "Trump",
@@ -204,24 +245,23 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "能源",
-        "地缘政治"
+        "能源"
       ],
       "sector_holdings": [],
       "stance": "endorse",
       "relevance": 50,
-      "summary_cn": "塞浦路斯能源部长称特朗普的'能源安全'参与对西方未来'至关重要'，利好美国能源出口与地缘联盟。"
+      "summary_cn": "塞浦路斯能源部长称赞Trump'能源安全'参与对西方未来至关重要，间接利好能源板块情绪。"
     }
   ],
   "held_hits": [],
   "new_ideas": [
     {
       "author": "Musk",
-      "text": "Tesla (TSLA) crashes 12%, sheds $140B as Elon Musk’s ‘just trust me’ doesn’t hold anymore",
+      "text": "Elon Musk Has Lost $650 Billion In 5 Weeks As Tesla And SpaceX Plummet",
       "url": "",
-      "published": "Thu, 23 Jul 2026 14:30:00 GMT",
+      "published": "Fri, 24 Jul 2026 09:52:11 GMT",
       "origin": "gnews-rss",
-      "source": "Electrek",
+      "source": "Yahoo Finance",
       "tickers": [
         "TSLA"
       ],
@@ -231,13 +271,35 @@
       ],
       "sectors": [
         "电动车",
-        "AI",
-        "自动驾驶"
+        "航天"
       ],
       "sector_holdings": [],
       "stance": "attack",
-      "relevance": 78,
-      "summary_cn": "特斯拉单日暴跌12%，市值蒸发1400亿美元，市场对马斯克'相信我'式的AI/自动驾驶承诺彻底失信。"
+      "relevance": 75,
+      "summary_cn": "Musk身价5周蒸发6500亿美元，Tesla与SpaceX同步暴跌，空头信号。"
+    },
+    {
+      "author": "Musk",
+      "text": "Reality Bites Elon Musk and His Tesla, SpaceX Believers",
+      "url": "",
+      "published": "Thu, 23 Jul 2026 21:04:00 GMT",
+      "origin": "gnews-rss",
+      "source": "WSJ",
+      "tickers": [
+        "TSLA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "TSLA"
+      ],
+      "sectors": [
+        "电动车",
+        "航天"
+      ],
+      "sector_holdings": [],
+      "stance": "attack",
+      "relevance": 72,
+      "summary_cn": "报道指出Musk及其Tesla、SpaceX信徒遭遇现实打击，整体看空Musk系资产。"
     },
     {
       "author": "Musk",
@@ -254,13 +316,34 @@
         "TSLA"
       ],
       "sectors": [
-        "电动车",
-        "AI"
+        "电动车"
       ],
       "sector_holdings": [],
       "stance": "attack",
       "relevance": 72,
-      "summary_cn": "特斯拉单日暴跌14%，马斯克身家蒸发180亿美元，市场对Robotaxi/Optimus等AI叙事信心受挫。"
+      "summary_cn": "Tesla单日暴跌14%，Musk身价蒸发180亿美元，短期强烈看空信号。"
+    },
+    {
+      "author": "Musk",
+      "text": "Tesla stock suffers double-digit drop on carmaker’s worst day in years",
+      "url": "",
+      "published": "Fri, 24 Jul 2026 03:19:00 GMT",
+      "origin": "gnews-rss",
+      "source": "The Guardian",
+      "tickers": [
+        "TSLA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "TSLA"
+      ],
+      "sectors": [
+        "电动车"
+      ],
+      "sector_holdings": [],
+      "stance": "attack",
+      "relevance": 70,
+      "summary_cn": "Tesla股价双位数下跌，创多年来最差单日表现。"
     },
     {
       "author": "Musk",
@@ -278,68 +361,80 @@
       ],
       "sectors": [
         "电动车",
-        "AI",
-        "自动驾驶"
+        "AI/自动驾驶"
       ],
       "sector_holdings": [],
       "stance": "neutral",
-      "relevance": 70,
-      "summary_cn": "马斯克呼吁对Robotaxi和Optimus机器人量产保持耐心，但特斯拉股价随即大跌，'信任溢价'正在消退。"
+      "relevance": 68,
+      "summary_cn": "Musk呼吁对Robotaxi与Optimus机器人的耐心，但Tesla股价应声大跌，看空信号。"
     },
     {
       "author": "Musk",
       "text": "Will SpaceX buy Tesla? Elon Musk is not revealing his plans",
       "url": "",
-      "published": "Thu, 23 Jul 2026 21:01:11 GMT",
+      "published": "Thu, 23 Jul 2026 21:31:36 GMT",
       "origin": "gnews-rss",
       "source": "Scripps News",
       "tickers": [
-        "TSLA",
-        "SPACEX"
+        "TSLA"
       ],
       "held": [],
       "new_ideas": [
-        "SPACEX",
         "TSLA"
       ],
       "sectors": [
         "电动车",
-        "航天",
-        "AI"
+        "航天"
       ],
-      "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
+      "sector_holdings": [],
       "stance": "neutral",
-      "relevance": 68,
-      "summary_cn": "马斯克被问及SpaceX是否会收购特斯拉但拒绝透露计划，市场猜测其商业帝国整合可能性，间接关联kcn持有的SpaceX相关仓位。"
-    },
+      "relevance": 65,
+      "summary_cn": "市场猜测SpaceX是否收购Tesla，Musk不予置评，事件驱动型不确定性。"
+    }
+  ],
+  "sector_hits": [
     {
       "author": "Musk",
-      "text": "Suddenly, as His Empire Crumbles, Elon Musk Admits He Made a Huge Mistake With DOGE",
+      "text": "AI superintelligence, DOGE, and getting 'carried away' with politics: 5 key takeaways from Elon Musk's latest interview",
       "url": "",
-      "published": "Thu, 23 Jul 2026 18:49:56 GMT",
+      "published": "Fri, 24 Jul 2026 10:41:24 GMT",
       "origin": "gnews-rss",
-      "source": "Futurism",
-      "tickers": [
-        "DOGE"
-      ],
+      "source": "Business Insider",
+      "tickers": [],
       "held": [],
-      "new_ideas": [
-        "DOGE"
-      ],
+      "new_ideas": [],
       "sectors": [
+        "AI",
         "加密货币",
-        "政府效率"
+        "政府效率(DOGE)"
       ],
       "sector_holdings": [
         "CRCL"
       ],
       "stance": "neutral",
       "relevance": 60,
-      "summary_cn": "马斯克罕见承认DOGE（政府效率部门）犯了'巨大错误'，与其加密同名代币及加密板块情绪相关。"
+      "summary_cn": "Musk访谈谈到AI超级智能、DOGE与过度参政，对加密/AI板块情绪中性偏负(DOGE争议)。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk says he ‘got carried away’ in politics, defends DOGE",
+      "url": "",
+      "published": "Fri, 24 Jul 2026 00:04:00 GMT",
+      "origin": "gnews-rss",
+      "source": "USA Today",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "政府效率(DOGE)",
+        "加密货币"
+      ],
+      "sector_holdings": [
+        "CRCL"
+      ],
+      "stance": "neutral",
+      "relevance": 50,
+      "summary_cn": "Musk承认参政'过了头'，但仍为DOGE辩护，对加密板块间接影响有限。"
     }
-  ],
-  "sector_hits": []
+  ]
 }
