@@ -26,7 +26,7 @@ context that has since been replaced.
 
 Output keys:
   raw_wechat_block:   str (script stdout; postflight prepends it verbatim)
-  context_id:         str (sha256[:12] of the context, minus generated_at)
+  context_id:         str (sha256[:12] of the whole context; per-generation)
   market:             "hk" | "us"
   phase:              "open" | "mid" | "pm" | "close"
   title:              suggested WeChat title
@@ -369,7 +369,9 @@ def main():
         'market':             args.market,
         'phase':              args.phase,
         'date':               today,
-        'generated_at':       datetime.now().isoformat(timespec='seconds'),
+        # microseconds so two runs in the same wall-clock second still get distinct
+        # context_ids — the id is strictly per-invocation (2026-07-24 review).
+        'generated_at':       datetime.now().isoformat(timespec='microseconds'),
         'raw_wechat_block':   stdout.strip(),
         'title':              title,
         'commit_msg':         commit_msg,
