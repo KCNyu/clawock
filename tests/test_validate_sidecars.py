@@ -404,16 +404,48 @@ def test_weekly_accepts_bold_labels_without_hash_headings(tmp_path):
 def test_weekly_rejects_inline_bold_counterfeit_without_real_section_markers(tmp_path):
     """2026-07 review: aliases matched anywhere in the body let a counterfeit with
     four inline mentions pass. Each concept must tie to a DISTINCT section marker
-    (line-start heading or bold label). A word like 'navigation' must not satisfy
-    the 'nav' alias (word boundary)."""
+    (line-start heading or bold label). Real `**bold**` labels used inline
+    mid-sentence must not count."""
     body = '\n'.join((
         '# Summary',
-        'This week we discussed navigation of the portfolio and calibration of risk '
-        'appetite, with a nav overview woven into next week thoughts.',  # inline only
+        'This week we discussed **navigation** of the portfolio and **calibration** '
+        'of risk appetite, a **nav** overview woven into **next week** thoughts.',
         'x' * 1100))
     path = tmp_path / '2026-W40.md'
     path.write_text(_weekly('2026-W40', body), encoding='utf-8')
     with pytest.raises(AssertionError, match='missing required section marker'):
+        validators.validate_weekly_review(path)
+
+
+def test_weekly_rejects_generic_headings_that_are_not_the_required_sections(tmp_path):
+    """2026-07 re-review: bare 净值/校准/风险/下周 fragments matched unrelated
+    headings. `## 风险提示` (risk warning) is not 风险演变; `## 净值口径说明` is not
+    the NAV section; `## Next Week Calendar` is not necessarily 下周关注."""
+    body = '\n'.join((
+        '## 净值口径说明', 'p',
+        '## Model Calibration Method', 'p',
+        '## 风险提示', 'p',
+        '## Next Week Calendar', 'p',
+        'x' * 1100))
+    path = tmp_path / '2026-W44.md'
+    path.write_text(_weekly('2026-W44', body), encoding='utf-8')
+    # fails on NAV/净值 and 风险演变 (neither generic heading is the real section)
+    with pytest.raises(AssertionError, match='NAV/净值|风险演变'):
+        validators.validate_weekly_review(path)
+
+
+def test_weekly_risk_warning_heading_alone_does_not_satisfy_risk_evolution(tmp_path):
+    """Pin the 风险 tightening: a review that is otherwise complete but has only a
+    `## 风险提示` (risk warning) instead of a risk-evolution section fails on it."""
+    body = '\n'.join((
+        '## 本周净值', 'p',
+        '## 决策校准', 'Brier',
+        '## 风险提示', 'p',      # NOT 风险演变
+        '## 下周关注', 'p',
+        'x' * 1100))
+    path = tmp_path / '2026-W45.md'
+    path.write_text(_weekly('2026-W45', body), encoding='utf-8')
+    with pytest.raises(AssertionError, match='风险演变'):
         validators.validate_weekly_review(path)
 
 

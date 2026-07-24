@@ -354,30 +354,31 @@ def validate_weekly_review(
     # line ties each concept to a real section. Aliases are ZH/EN because the model
     # drifts language (the committed 2026-W24.md uses English headers); ASCII
     # aliases are word-bounded so 'nav' matches "NAV" but not "navigation".
-    section_aliases = {
-        'NAV/净值':   ('本周净值', '周净值', '净值', 'weekly nav', 'nav'),
-        '决策/校准':  ('决策兑现', '决策校准', '校准', 'brier', 'calibration',
-                      'adherence'),
-        '风险演变':   ('风险演变', '风险', 'risk evolution', 'risk trend'),
-        '下周关注':   ('下周关注', '下周', "next week's focus", 'next week', 'next-week'),
+    # Each concept is a set of regex patterns matched against a marker line
+    # (IGNORECASE). Patterns are FULL section phrases, not bare fragments: a bare
+    # 风险/净值/校准/下周 matched unrelated headings like `## 风险提示` or
+    # `## 净值口径说明` (2026-07 re-review). CJK phrases are literal; English uses
+    # `\b…\b` word boundaries so 'nav' ≠ 'navigation'. `下周…关注` allows an inline
+    # date range (`下周 (07/20-07/24) 关注`).
+    section_patterns = {
+        'NAV/净值':   (r'本周净值', r'周净值', r'\bweekly nav\b', r'\bnav\b'),
+        '决策/校准':  (r'决策兑现', r'决策校准', r'\bbrier\b', r'\bcalibration\b',
+                      r'\badherence\b'),
+        '风险演变':   (r'风险演变', r'\brisk evolution\b', r'\brisk trend\b'),
+        '下周关注':   (r'下周.{0,15}关注', r"\bnext week'?s? focus\b", r'\bnext week\b'),
     }
-
-    def _marker_matches(marker, alias):
-        if alias.isascii():  # word-bounded, case-insensitive (no CJK boundaries)
-            return re.search(rf'\b{re.escape(alias)}\b', marker, re.IGNORECASE) is not None
-        return alias in marker
 
     markers = [ln.strip() for ln in body.splitlines()
                if re.match(r'^\s{0,3}#{1,6} \S', ln) or re.match(r'^\s{0,3}\*\*\S', ln)]
-    matched = {}  # concept -> the marker line that satisfied it (must be distinct)
-    for concept, aliases in section_aliases.items():
-        for m in markers:
-            if m in matched.values():
-                continue  # one marker can't cover two concepts
-            if any(_marker_matches(m, a) for a in aliases):
-                matched[concept] = m
+    matched = {}  # concept -> index of the marker line that satisfied it (distinct)
+    for concept, patterns in section_patterns.items():
+        for i, m in enumerate(markers):
+            if i in matched.values():
+                continue  # one marker line can't cover two concepts
+            if any(re.search(p, m, re.IGNORECASE) for p in patterns):
+                matched[concept] = i
                 break
-    missing = [c for c in section_aliases if c not in matched]
+    missing = [c for c in section_patterns if c not in matched]
     assert not missing, (
         f'weekly review missing required section marker(s): {missing}; '
         f'section markers found: {markers[:12]}')
