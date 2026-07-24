@@ -347,18 +347,48 @@ def validate_weekly_review(
     assert metadata.get('layout') == 'default', 'unexpected weekly review layout'
     assert metadata.get('title') == f'周复盘 · {week_id}', 'weekly review title/week mismatch'
     assert len(body) >= 1000, f'weekly review implausibly short: {len(body)} chars'
-    required_sections = ('本周净值', '风险演变', '下周关注')
-    normalized_body = re.sub(
-        r'下周(?:\s*\([^\n)]*\))?\s*关注', '下周关注', body)
-    missing = [section for section in required_sections if section not in normalized_body]
-    assert not missing, f'weekly review missing required sections: {missing}'
-    calibration_tokens = ('Brier', '校准误差', 'Calibration', '兑现')
-    assert any(token in body for token in calibration_tokens), (
-        f'weekly review missing decisions/calibration section; expected any of: '
-        f'{calibration_tokens}')
-    headings = [line for line in body.splitlines() if line.lstrip().startswith('#')]
-    assert len(headings) >= 4, 'weekly review does not contain four markdown sections'
-    print(f'weekly review validation OK: {path} ({len(body)} chars)')
+    # Four required sections, each proven by a distinct SECTION MARKER (a markdown
+    # heading `## …` OR a bold label `**…**` — the prompt asks for bold, MiniMax
+    # drifts to headings). Matching an alias anywhere in the body would let a
+    # counterfeit with four inline bold mentions pass; matching a distinct marker
+    # line ties each concept to a real section. Aliases are ZH/EN because the model
+    # drifts language (the committed 2026-W24.md uses English headers); ASCII
+    # aliases are word-bounded so 'nav' matches "NAV" but not "navigation".
+    # Each concept is a set of regex patterns matched against a marker line
+    # (IGNORECASE). Patterns are FULL section phrases, not bare fragments: a bare
+    # 风险/净值/校准/下周 matched unrelated headings like `## 风险提示` or
+    # `## 净值口径说明` (2026-07 re-review). CJK phrases are literal; English uses
+    # `\b…\b` word boundaries so 'nav' ≠ 'navigation'. `下周…关注` allows an inline
+    # date range (`下周 (07/20-07/24) 关注`).
+    # English aliases are CONTEXTUAL phrases, not bare words: bare nav/calibration/
+    # next week/risk trend let a fully-English counterfeit pass (`NAV Methodology /
+    # Model Calibration Method / Risk Trend Definitions / Next Week Calendar`,
+    # 2026-07 re-review). Calibration requires plan/decision context so
+    # `Plan Adherence & Calibration` passes but `Model Calibration Method` does not.
+    section_patterns = {
+        'NAV/净值':   (r'本周净值', r'周净值', r'\bweekly nav\b'),
+        '决策/校准':  (r'决策兑现', r'决策校准',
+                      r'\b(?:plan|decisions?)\b.{0,24}\b(?:adherence|calibration|brier)\b'),
+        '风险演变':   (r'风险演变', r'\brisk evolution\b'),
+        '下周关注':   (r'下周.{0,15}关注', r"\bnext week'?s? focus\b"),
+    }
+
+    markers = [ln.strip() for ln in body.splitlines()
+               if re.match(r'^\s{0,3}#{1,6} \S', ln) or re.match(r'^\s{0,3}\*\*\S', ln)]
+    matched = {}  # concept -> index of the marker line that satisfied it (distinct)
+    for concept, patterns in section_patterns.items():
+        for i, m in enumerate(markers):
+            if i in matched.values():
+                continue  # one marker line can't cover two concepts
+            if any(re.search(p, m, re.IGNORECASE) for p in patterns):
+                matched[concept] = i
+                break
+    missing = [c for c in section_patterns if c not in matched]
+    assert not missing, (
+        f'weekly review missing required section marker(s): {missing}; '
+        f'section markers found: {markers[:12]}')
+    print(f'weekly review validation OK: {path} ({len(body)} chars, '
+          f'{len(markers)} section markers)')
 
 
 DEFAULT_SCREENSHOTS = (

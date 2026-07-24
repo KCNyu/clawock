@@ -366,6 +366,159 @@ def test_weekly_calibration_token_and_next_week_variants_pass(tmp_path, token):
     validators.validate_weekly_review(path)
 
 
+def _weekly(week_id, body):
+    return f'---\nlayout: default\ntitle: 周复盘 · {week_id}\n---\n{body}\n'
+
+
+def test_weekly_accepts_all_english_headers(tmp_path):
+    """2026-07 audit: MiniMax M3 drifted to English section headers; the committed
+    2026-W24.md uses `## Weekly NAV / Plan Adherence & Calibration / Risk Evolution
+    / Next Week's Focus` and the old literal-ZH-token gate rejected it."""
+    body = '\n'.join((
+        '## Executive Summary', 'Overview.',
+        '## 1. Weekly NAV: Drawdown', 'Start vs end NAV analysis.',
+        '## 2. Plan Adherence & Calibration', 'Brier score and adherence.',
+        '## 3. Risk Evolution', 'Beta/Vol/Sharpe trend.',
+        "## 4. Next Week's Focus", 'Three actionable triggers.',
+        'x' * 1100))
+    path = tmp_path / '2026-W24.md'
+    path.write_text(_weekly('2026-W24', body), encoding='utf-8')
+    validators.validate_weekly_review(path)
+
+
+def test_weekly_accepts_bold_labels_without_hash_headings(tmp_path):
+    """The generator prompt asks for `**本周净值**`-style BOLD labels, not `#`
+    headings — a review that follows the prompt literally must not be failed by a
+    heading-count check."""
+    body = '\n'.join((
+        '**本周净值**', '组合回顾与净值。',
+        '**决策兑现**', 'Brier 与决策回看。',
+        '**风险演变**', '风险与仓位演变。',
+        '**下周关注**', '下周触发条件。',
+        'x' * 1100))
+    path = tmp_path / '2026-W30.md'
+    path.write_text(_weekly('2026-W30', body), encoding='utf-8')
+    validators.validate_weekly_review(path)
+
+
+def test_weekly_rejects_inline_bold_counterfeit_without_real_section_markers(tmp_path):
+    """2026-07 review: aliases matched anywhere in the body let a counterfeit with
+    four inline mentions pass. Each concept must tie to a DISTINCT section marker
+    (line-start heading or bold label). Real `**bold**` labels used inline
+    mid-sentence must not count."""
+    body = '\n'.join((
+        '# Summary',
+        'This week we discussed **navigation** of the portfolio and **calibration** '
+        'of risk appetite, a **nav** overview woven into **next week** thoughts.',
+        'x' * 1100))
+    path = tmp_path / '2026-W40.md'
+    path.write_text(_weekly('2026-W40', body), encoding='utf-8')
+    with pytest.raises(AssertionError, match='missing required section marker'):
+        validators.validate_weekly_review(path)
+
+
+def test_weekly_rejects_generic_headings_that_are_not_the_required_sections(tmp_path):
+    """2026-07 re-review: bare 净值/校准/风险/下周 fragments matched unrelated
+    headings. `## 风险提示` (risk warning) is not 风险演变; `## 净值口径说明` is not
+    the NAV section; `## Next Week Calendar` is not necessarily 下周关注."""
+    body = '\n'.join((
+        '## 净值口径说明', 'p',
+        '## Model Calibration Method', 'p',
+        '## 风险提示', 'p',
+        '## Next Week Calendar', 'p',
+        'x' * 1100))
+    path = tmp_path / '2026-W44.md'
+    path.write_text(_weekly('2026-W44', body), encoding='utf-8')
+    # fails on NAV/净值 and 风险演变 (neither generic heading is the real section)
+    with pytest.raises(AssertionError, match='NAV/净值|风险演变'):
+        validators.validate_weekly_review(path)
+
+
+def test_weekly_rejects_fully_english_generic_counterfeit(tmp_path):
+    """2026-07 round-3 review: bare English aliases (nav/calibration/next week/
+    risk trend) let an all-English counterfeit pass. English aliases are now
+    contextual phrases."""
+    body = '\n'.join((
+        '## NAV Methodology', 'p',
+        '## Model Calibration Method', 'p',
+        '## Risk Trend Definitions', 'p',
+        '## Next Week Calendar', 'p',
+        'x' * 1100))
+    path = tmp_path / '2026-W46.md'
+    path.write_text(_weekly('2026-W46', body), encoding='utf-8')
+    with pytest.raises(AssertionError, match='missing required section marker'):
+        validators.validate_weekly_review(path)
+
+
+def test_weekly_nav_requires_weekly_context_not_bare_nav(tmp_path):
+    """A review valid except a `## NAV Methodology` heading fails on NAV — the real
+    section is 'Weekly NAV', bare 'nav' matched unrelated headings."""
+    body = '\n'.join(('## NAV Methodology', 'p', '## Plan Adherence & Calibration', 'p',
+                      '## Risk Evolution', 'p', "## Next Week's Focus", 'p', 'x' * 1100))
+    p = tmp_path / '2026-W49.md'
+    p.write_text(_weekly('2026-W49', body), encoding='utf-8')
+    with pytest.raises(AssertionError, match='NAV/净值'):
+        validators.validate_weekly_review(p)
+
+
+def test_weekly_calibration_requires_plan_or_decision_context(tmp_path):
+    """`Plan Adherence & Calibration` passes; a bare `Model Calibration Method`
+    heading does not satisfy the 决策/校准 section."""
+    def review(cal_heading, week):
+        body = '\n'.join(('## Weekly NAV', 'p', f'## {cal_heading}', 'p',
+                          '## Risk Evolution', 'p', "## Next Week's Focus", 'p', 'x' * 1100))
+        p = tmp_path / f'{week}.md'
+        p.write_text(_weekly(week, body), encoding='utf-8')
+        return p
+
+    validators.validate_weekly_review(review('Plan Adherence & Calibration', '2026-W47'))
+    with pytest.raises(AssertionError, match='决策/校准'):
+        validators.validate_weekly_review(review('Model Calibration Method', '2026-W48'))
+
+
+def test_weekly_risk_warning_heading_alone_does_not_satisfy_risk_evolution(tmp_path):
+    """Pin the 风险 tightening: a review that is otherwise complete but has only a
+    `## 风险提示` (risk warning) instead of a risk-evolution section fails on it."""
+    body = '\n'.join((
+        '## 本周净值', 'p',
+        '## 决策校准', 'Brier',
+        '## 风险提示', 'p',      # NOT 风险演变
+        '## 下周关注', 'p',
+        'x' * 1100))
+    path = tmp_path / '2026-W45.md'
+    path.write_text(_weekly('2026-W45', body), encoding='utf-8')
+    with pytest.raises(AssertionError, match='风险演变'):
+        validators.validate_weekly_review(path)
+
+
+def test_weekly_word_boundary_navigation_does_not_satisfy_nav(tmp_path):
+    """'navigation' in a heading must not count as the NAV section."""
+    body = '\n'.join((
+        '## Portfolio Navigation Notes', 'Prose.',
+        '## Plan Adherence & Calibration', 'Brier prose.',
+        '## Risk Evolution', 'Prose.',
+        "## Next Week's Focus", 'Prose.',
+        'x' * 1100))
+    path = tmp_path / '2026-W41.md'
+    path.write_text(_weekly('2026-W41', body), encoding='utf-8')
+    with pytest.raises(AssertionError, match='NAV/净值'):
+        validators.validate_weekly_review(path)
+
+
+def test_weekly_still_rejects_a_genuinely_missing_section(tmp_path):
+    """Loosening the language must not loosen the requirement: a review with no
+    risk section (any language) still fails, and the error names it."""
+    body = '\n'.join((
+        '## Weekly NAV', 'NAV analysis.',
+        '## Plan Adherence & Calibration', 'Brier and adherence.',
+        "## Next Week's Focus", 'Triggers.',
+        'x' * 1100))  # no risk-evolution section at all
+    path = tmp_path / '2026-W31.md'
+    path.write_text(_weekly('2026-W31', body), encoding='utf-8')
+    with pytest.raises(AssertionError, match='风险演变'):
+        validators.validate_weekly_review(path)
+
+
 def test_header_only_png_is_rejected_by_size_floor(tmp_path):
     path = tmp_path / 'image.png'
     path.write_bytes(
