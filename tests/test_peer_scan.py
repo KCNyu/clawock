@@ -77,8 +77,7 @@ def wired(ps, tmp_path, monkeypatch):
         stderr = ""
 
     monkeypatch.setattr(ps, "_run_fetch", lambda req: FakeCompleted(), raising=False)
-    import subprocess as sp
-    monkeypatch.setattr(sp, "run", lambda *a, **kw: FakeCompleted())
+    monkeypatch.setattr(ps, "suggest_auto_peers", lambda ticker, region, curated: [])
     return ps
 
 
@@ -152,8 +151,7 @@ def test_flat_peer_outranks_losers(wired, monkeypatch):
         stdout = json.dumps({"peers": fetched})
         stderr = ""
 
-    import subprocess as sp
-    monkeypatch.setattr(sp, "run", lambda *a, **kw: FakeCompleted())
+    monkeypatch.setattr(wired, "_run_fetch", lambda req: FakeCompleted())
     scan = wired.collect(PORTFOLIO, log=lambda m: None)
     order = [p["ticker"] for p in scan["00100"]["listed_peers"]]
     assert order == ["02513", "00001", "09999"], "0.0 must sort above -1.0 and -5.0"
@@ -185,3 +183,83 @@ def test_peers_are_sorted_and_divergence_is_flagged(wired):
     # best peer +8.0 vs holding -3.0 = 11pp gap, well over the 3pp threshold
     assert entry["divergence_signal"] and "02513" in entry["divergence_signal"]
     assert entry["theme"] == "HK AI 大模型"
+
+
+def test_auto_source_outage_keeps_curated_scan_byte_identical(wired, monkeypatch):
+    """The auto bucket is additive: an outage cannot perturb curated fields."""
+    monkeypatch.setattr(wired, "suggest_auto_peers", lambda *args: [])
+
+    scan = wired.collect(PORTFOLIO, log=lambda m: None)
+    entry = scan["00100"]
+    curated = {key: value for key, value in entry.items() if key != "auto_peers"}
+    expected = {
+        "theme": "HK AI 大模型",
+        "self_pct_1d": -3.0,
+        "self_pnl_pct": -65.1,
+        "listed_peers": [
+            {"ticker": "02513", "name": "智谱", "rel": "大模型同业",
+             "pct_1d": 8.0, "pct_5d": -31.2},
+            {"ticker": "09999", "name": "完全不同的公司", "rel": "改过名的",
+             "pct_1d": 1.0, "pct_5d": 2.0,
+             "name_mismatch": "peer-map says 旧名字, feed says 完全不同的公司"},
+        ],
+        "private_peers": [],
+        "divergence_signal": "02513 智谱 +8.0% vs self -3.0% (gap +11.0pp)",
+        "key_news_keywords": [],
+    }
+
+    assert json.dumps(curated, ensure_ascii=False) == json.dumps(expected, ensure_ascii=False)
+    assert entry["auto_peers"] == []
+
+
+def test_unpriced_auto_peer_drops_only_auto_bucket(wired, monkeypatch):
+    monkeypatch.setattr(wired, "suggest_auto_peers", lambda *args: [{
+        "ticker": "AUTO", "region": "hk", "name": "自动同行", "source": "eastmoney",
+    }])
+
+    class FakeCompleted:
+        returncode = 0
+        stdout = json.dumps({"peers": {
+            **FETCHED,
+            "AUTO": {"ticker": "AUTO", "region": "hk", "error_tencent": "offline"},
+        }})
+        stderr = ""
+
+    monkeypatch.setattr(wired, "_run_fetch", lambda req: FakeCompleted())
+    scan = wired.collect(PORTFOLIO, log=lambda m: None)
+
+    assert scan["00100"]["auto_peers"] == []
+    assert [p["ticker"] for p in scan["00100"]["listed_peers"]] == ["02513", "09999"]
+
+
+def test_auto_peers_share_pricing_batch_and_stay_labeled(wired, monkeypatch):
+    requests_seen = []
+    monkeypatch.setattr(wired, "suggest_auto_peers", lambda *args: [{
+        "ticker": "AUTO", "region": "hk", "name": "自动同行", "source": "eastmoney",
+    }])
+
+    class FakeCompleted:
+        returncode = 0
+        stdout = json.dumps({"peers": {
+            **FETCHED,
+            "AUTO": {"price": 12.0, "pct_1d": 4.0, "pct_5d": 5.0, "name": "真实自动同行"},
+        }})
+        stderr = ""
+
+    def fake_fetch(request):
+        requests_seen.append(request)
+        return FakeCompleted()
+
+    monkeypatch.setattr(wired, "_run_fetch", fake_fetch)
+    scan = wired.collect(PORTFOLIO, log=lambda m: None)
+
+    assert len(requests_seen) == 1
+    assert requests_seen[0][-1] == {"ticker": "AUTO", "region": "hk"}
+    assert scan["00100"]["auto_peers"] == [{
+        "ticker": "AUTO",
+        "name": "真实自动同行",
+        "label": "同行业·自动",
+        "source": "eastmoney",
+        "pct_1d": 4.0,
+        "pct_5d": 5.0,
+    }]

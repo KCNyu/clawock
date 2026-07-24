@@ -133,6 +133,7 @@ def compute_context_id(result):
 
 
 PEER_TOP_N = 5
+AUTO_PEER_TOP_N = 3
 
 
 def trim_peer_scan(peers):
@@ -146,9 +147,10 @@ def trim_peer_scan(peers):
     second representation would only be one more thing to keep in sync, and the
     printed JSON would no longer be what is on disk.
 
-    `listed_peers` is already sorted by today's move, so the head is the 板块 Top N
-    the report asks for. private_peers / key_news_keywords are dropped: they are
-    the長 tail nobody cites in a 4-6 line briefing.
+    `listed_peers` and `auto_peers` are already sorted by today's move, so their
+    heads are the compact 板块 views the report asks for. private_peers /
+    key_news_keywords are dropped: they are the長 tail nobody cites in a 4-6
+    line briefing.
     """
     out = {}
     for ticker, scan in (peers or {}).items():
@@ -158,6 +160,10 @@ def trim_peer_scan(peers):
             'divergence_signal': scan.get('divergence_signal'),
             'listed_peers': [_peer_line(p)
                              for p in (scan.get('listed_peers') or [])[:PEER_TOP_N]],
+            'auto_peers': [
+                f'{p.get("label") or "同行业·自动"}｜{_peer_line(p)}'
+                for p in (scan.get('auto_peers') or [])[:AUTO_PEER_TOP_N]
+            ],
         }
     return out
 
