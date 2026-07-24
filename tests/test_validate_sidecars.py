@@ -641,3 +641,70 @@ def test_png_decode_wraps_all_pillow_failure_types(tmp_path, monkeypatch, exc):
     else:
         with pytest.raises(AssertionError, match='PNG does not decode'):
             validators.validate_screenshots(((real, 100, 1000, 500),))
+
+
+def _portfolio_with_sources(path, holdings):
+    """holdings: list of (ticker, data_source). Builds a us_stocks portfolio."""
+    return write_json(path, {'portfolios': {
+        'us_stocks': {'holdings': [
+            {'ticker': t, 'shares': 1, 'data_source': ds} for t, ds in holdings]},
+        'hk_stocks': {'holdings': []}}})
+
+
+def test_eod_rejects_a_held_holding_whose_quote_is_stale(tmp_path):
+    """2026-07 audit #9: the archive copies portfolio.json current_price with no
+    refresh, so a holding whose quote fetch broke is archived as this week's close.
+    A held holding priced >5 days before the snapshot must fail, naming it."""
+    snap = '2026-07-24'
+    archive = write_eod(tmp_path / 'eod.csv', snap, ('CRCL', 'NVDA'))
+    portfolio = _portfolio_with_sources(tmp_path / 'pf.json', [
+        ('CRCL', 'Nasdaq API (stocks) Jul 23, 2026 20:01 ET'),   # fresh
+        ('NVDA', 'Eastmoney realtime quote May 7, 2026 09:30 ET'),  # 2.5 months stale
+    ])
+    with pytest.raises(AssertionError, match=r'stale.*NVDA'):
+        validators.validate_eod_archive(archive, portfolio, snapshot_date=snap)
+
+
+def test_eod_accepts_fresh_quotes_including_no_year_hk_format(tmp_path):
+    snap = '2026-07-25'  # Saturday archive after Fri Jul 24 close
+    archive = write_eod(tmp_path / 'eod.csv', snap, ('CRCL', '00100'))
+    portfolio = _portfolio_with_sources(tmp_path / 'pf.json', [
+        ('CRCL', 'Nasdaq API (stocks) Jul 24, 2026 20:01 ET'),
+        ('00100', 'Tencent Jul 24 16:00 HKT'),   # no year — must resolve to snapshot year
+    ])
+    validators.validate_eod_archive(archive, portfolio, snapshot_date=snap)
+
+
+def test_eod_skips_freshness_when_data_source_is_unparseable(tmp_path):
+    """Fail-safe: an unparseable data_source must never fail the archive (a parse
+    miss is not evidence of staleness)."""
+    snap = '2026-07-24'
+    archive = write_eod(tmp_path / 'eod.csv', snap, ('CRCL',))
+    portfolio = _portfolio_with_sources(tmp_path / 'pf.json', [
+        ('CRCL', 'some source with no recognizable date'),
+    ])
+    validators.validate_eod_archive(archive, portfolio, snapshot_date=snap)
+
+
+def test_eod_holiday_weekend_gap_within_window_passes(tmp_path):
+    """A 3-day gap (long weekend) is within PRICE_STALE_DAYS and must pass."""
+    snap = '2026-07-27'  # Monday
+    archive = write_eod(tmp_path / 'eod.csv', snap, ('CRCL',))
+    portfolio = _portfolio_with_sources(tmp_path / 'pf.json', [
+        ('CRCL', 'Nasdaq API (stocks) Jul 24, 2026 20:01 ET'),  # 3 days
+    ])
+    validators.validate_eod_archive(archive, portfolio, snapshot_date=snap)
+
+
+@pytest.mark.parametrize('ds,ref,expected', [
+    ('Nasdaq API Jul 23, 2026 20:01 ET', '2026-07-25', '2026-07-23'),
+    ('Tencent Jul 24 16:00 HKT', '2026-07-25', '2026-07-24'),
+    ('quote 2026-07-17', '2026-07-25', '2026-07-17'),
+    ('Tencent Jan 2 16:00 HKT', '2026-12-30', '2026-01-02'),  # no year, same year
+    ('Tencent Dec 31 16:00 HKT', '2026-01-02', '2025-12-31'),  # no year → prior year
+    ('no date at all', '2026-07-25', None),
+])
+def test_quote_date_parser(ds, ref, expected):
+    from datetime import date
+    got = validators._quote_date(ds, date.fromisoformat(ref))
+    assert got == (date.fromisoformat(expected) if expected else None)
