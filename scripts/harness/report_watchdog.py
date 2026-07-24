@@ -145,7 +145,11 @@ def main():
             marker = None
     now_ms = int(datetime.now(HKT).timestamp() * 1000)
     fresh = bool(marker) and (now_ms - marker.get('ts', 0)) < MARKER_FRESH_MS
-    matches = bool(marker) and (marker.get('first_line') == raw_block_first)
+    # `first_line` is the first line of the body postflight actually sent, so this
+    # catches a report built from a stale context (2026-07-24 美股收盘报告) as well
+    # as a leftover marker from an earlier slot. Compare stripped: postflight
+    # records a stripped line, the context block may carry trailing whitespace.
+    matches = bool(marker) and ((marker.get('first_line') or '').strip() == raw_block_first.strip())
     # TG is covered iff postflight's cosend confirmably delivered THIS report to
     # Telegram this slot (fresh marker, matching first line, tg_ok=true).
     if marker and marker.get('tg_ok') and fresh and matches:

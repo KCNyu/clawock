@@ -12,7 +12,11 @@ Each invocation:
   3. Parses signals (WATCH/STOP/TRIM counts) and direction hints
   4. Detects anomalies (≥3% intraday moves, big floating losses)
   4b. Collects peer/rotation data so the 板块全景 section has real numbers
-  5. Writes memory/.tmp/report-context-{market}-{phase}-{date}.json
+  5. Writes memory/.tmp/report-context-{market}-{phase}-{date}.json, where {date}
+     is the RUN date (not the market-session date), drops this market+phase's
+     contexts from every other date, and prints the absolute path as the final
+     stdout line (`context_path: ...`) — Step 2 must read THAT path, never a
+     reconstructed filename.
 
 Output keys:
   raw_wechat_block:   str (script stdout, paste verbatim)
@@ -51,6 +55,51 @@ def _market_closed_reason(market, phase):
     """None if the market trades now; else short reason (holiday/weekend)."""
     session = trading_calendar.phase_session(market, phase)
     return trading_calendar.closed_reason(market, session=session)
+
+
+def context_path(market, phase, date):
+    return TMP / f'report-context-{market}-{phase}-{date}.json'
+
+
+def drop_stale_contexts(market, phase, today):
+    """Delete this market+phase's context files from any OTHER date.
+
+    WHY (2026-07-24 美股收盘报告): the cron payload names the file as
+    `report-context-us-close-{date}.json` and the agent resolved `{date}` to the
+    *market close* date (07/23) instead of the *run* date (07/24). Yesterday's
+    leftover context sat at exactly that name, so the read succeeded and a
+    day-old portfolio was written into the report and pushed to WeChat. Nothing
+    reads a past-date context (postflight/watchdog both key on today), so the
+    leftovers are pure footgun ammunition: with them gone, the same mistake is a
+    loud `FileNotFoundError` instead of silently stale numbers.
+
+    Retention would not help — the file that got misread was one day old.
+    """
+    dropped = []
+    for path in TMP.glob(f'report-context-{market}-{phase}-*.json'):
+        if path.name != context_path(market, phase, today).name:
+            try:
+                path.unlink()
+                dropped.append(path.name)
+            except OSError as e:
+                print(f'   ⚠️  stale context cleanup failed for {path.name}: {e}',
+                      file=sys.stderr)
+    if dropped:
+        print(f'   🧹 dropped {len(dropped)} stale context file(s): {", ".join(sorted(dropped))}',
+              file=sys.stderr)
+    return dropped
+
+
+def announce_context_path(out_path):
+    """Print the canonical context path as the FINAL stdout line.
+
+    WHY: the agent pipes preflight through `| tail -80` (the JSON is ~350 lines
+    with peer_scan), which cut off the `date` field and left it guessing the
+    filename — see drop_stale_contexts. Printing the absolute path last means it
+    survives any `tail`, so Step 2 never has to reconstruct the name.
+    """
+    print(f'context_path: {out_path}')
+
 
 TITLE_TEMPLATES = {
     ('hk', 'open'):  '📊 港股开盘快报｜{date} 09:30',
@@ -194,12 +243,14 @@ def main():
         result = {'status': 'market_closed', 'market': args.market,
                   'phase': args.phase, 'date': today, 'reason': reason, 'skip': True}
         TMP.mkdir(parents=True, exist_ok=True)
-        (TMP / f'report-context-{args.market}-{args.phase}-{today}.json').write_text(
-            json.dumps(result, ensure_ascii=False, indent=2))
+        drop_stale_contexts(args.market, args.phase, today)
+        out_path = context_path(args.market, args.phase, today)
+        out_path.write_text(json.dumps(result, ensure_ascii=False, indent=2))
         market_cn = '港股' if args.market == 'hk' else '美股'
         print(f'=== MARKET CLOSED — {market_cn}今日{reason} ({today}) ===')
         print('SKIP：不要生成报告、不要调用任何 send/postflight、本回合到此结束。')
         print(json.dumps(result, ensure_ascii=False, indent=2))
+        announce_context_path(out_path)
         return 0
 
     rc, stdout, stderr = run_analyze(args.market)
@@ -212,9 +263,11 @@ def main():
             'error':  stderr[-500:] if stderr else f'rc={rc}',
         }
         TMP.mkdir(parents=True, exist_ok=True)
-        (TMP / f'report-context-{args.market}-{args.phase}-{today}.json').write_text(
-            json.dumps(result, ensure_ascii=False, indent=2))
+        drop_stale_contexts(args.market, args.phase, today)
+        out_path = context_path(args.market, args.phase, today)
+        out_path.write_text(json.dumps(result, ensure_ascii=False, indent=2))
         print(json.dumps(result, ensure_ascii=False, indent=2))
+        announce_context_path(out_path)
         return 1
 
     signals = parse_signals(stdout)
@@ -243,10 +296,12 @@ def main():
     }
 
     TMP.mkdir(parents=True, exist_ok=True)
-    out_path = TMP / f'report-context-{args.market}-{args.phase}-{today}.json'
+    drop_stale_contexts(args.market, args.phase, today)
+    out_path = context_path(args.market, args.phase, today)
     out_path.write_text(json.dumps(result, ensure_ascii=False, indent=2))
 
     print(json.dumps(result, ensure_ascii=False, indent=2))
+    announce_context_path(out_path)
     return 0
 
 

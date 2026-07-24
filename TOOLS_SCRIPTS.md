@@ -37,7 +37,7 @@ title: clawock · scripts 详细参考
 - **`scripts/harness/brief_postflight.py`**：校验 `memory/{date}-pre-open.md` + `memory/{date}-plan.json`（段标记 / plan schema / HHI / FX / HKD+USD bug pattern）；pass/warn 自动 commit
 
 **Mode 6 briefing**（HK 开/午/午后/收盘 + US 开/收盘 — 6 个 cron 共享）
-- **`scripts/harness/report_preflight.py --market {hk|us} --phase {open|mid|pm|close}`**：跑 analyze_*.py + 抽信号 (WATCH/STOP/TRIM 计数) + 异动 (≥3% 涨跌) + 指数方向；输出 `memory/.tmp/report-context-{market}-{phase}-{date}.json`，含 `raw_wechat_block`（LLM verbatim 用）+ `title` + `needs_risk_section`
+- **`scripts/harness/report_preflight.py --market {hk|us} --phase {open|mid|pm|close}`**：跑 analyze_*.py + 抽信号 (WATCH/STOP/TRIM 计数) + 异动 (≥3% 涨跌) + 指数方向；输出 `memory/.tmp/report-context-{market}-{phase}-{date}.json`（`{date}` = 跑批当天），含 `raw_wechat_block`（LLM verbatim 用）+ `title` + `needs_risk_section`。**末行打印 `context_path: <绝对路径>`——读 context 一律照抄这行，别拼文件名**；同时清掉该 market+phase 其它日期的残留 context
 - **`scripts/harness/report_postflight.py --market {hk|us} --phase {phase}`**：校验三段标记 / 原始数据块 verbatim / 异动票必须被提及 / 长度 / 敷衍词；pass/warn 自动刷新 snapshot/dashboard、scoped commit + push，并主发 WeChat + 镜像 Telegram。
 - **`scripts/harness/report_watchdog.py --market {hk|us} --phase {phase} --job-name "{cron名}"`**：系统 crontab 的 LLM-free Telegram-only backstop。覆盖 HK 4 班 + US 开/收 2 班；读取 postflight delivery marker，只有 Telegram 未确认时才补投，绝不重发 WeChat。
 
