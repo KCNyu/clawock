@@ -415,23 +415,50 @@ def test_payload_age_accepts_zulu_and_naive_timestamps(preflight):
     assert 2.5 < naive < 3.5
 
 
-def test_stale_committed_sidecar_with_fresh_mtime_is_flagged(preflight, tmp_path, monkeypatch):
+def test_stale_committed_sidecar_is_omitted_not_fed_and_never_hard_fails(
+        preflight, tmp_path, monkeypatch):
     """The integration bug: a sidecar committed days ago but freshly checked out
-    (current mtime) must be judged by its generated_at, not the file clock. Also
-    a sidecar with NO generated_at is treated as stale, never silently fresh."""
+    (current mtime) must be judged by generated_at, not the file clock. Stale /
+    no-generated_at data is OMITTED (not fed as fresh) and, critically, appends
+    NOTHING to `issues` — main() returns exit 1 on any issue and the fallback
+    workflow runs under pipefail, so a fatal stale-issue would hard-fail the whole
+    brief (2026-07 review, blocking #1)."""
     import json
     from datetime import datetime, timezone, timedelta
     data = tmp_path / 'assets' / 'data'
     data.mkdir(parents=True)
     old = (datetime.now(timezone.utc) - timedelta(hours=72)).isoformat()
-    # macro: old generated_at, but the file itself is written now (fresh mtime)
-    (data / 'macro.json').write_text(json.dumps({'generated_at': old, 'vix': None}))
-    # sentiment: NO generated_at at all
-    (data / 'sentiment.json').write_text(json.dumps({'tickers': [], 'sources': []}))
+    # macro: old generated_at, file written now (fresh mtime) → must read as stale
+    (data / 'macro.json').write_text(json.dumps({'generated_at': old, 'vix': {'price': 20}}))
+    # sentiment: NO generated_at at all → unknown age → stale
+    (data / 'sentiment.json').write_text(
+        json.dumps({'tickers': [{'ticker': 'X', 'reddit_mentions_7d': 5}], 'sources': ['reddit']}))
     monkeypatch.setattr(preflight, 'WS', tmp_path)
 
     issues = []
-    preflight.load_macro_and_sentiment('2026-07-24', issues)
+    macro_trim, sentiment_trim = preflight.load_macro_and_sentiment('2026-07-24', issues)
 
-    assert any('macro snapshot stale' in i for i in issues), issues
-    assert any('sentiment snapshot stale' in i and 'unknown-age' in i for i in issues), issues
+    assert macro_trim == {} and sentiment_trim == {}      # omitted, not fed as fresh
+    assert issues == []                                   # non-fatal → brief still runs
+
+
+def test_fresh_sidecar_is_fed_with_real_age(preflight, tmp_path, monkeypatch):
+    import json
+    from datetime import datetime, timezone, timedelta
+    data = tmp_path / 'assets' / 'data'
+    data.mkdir(parents=True)
+    fresh = (datetime.now(timezone.utc) - timedelta(hours=2)).isoformat()
+    (data / 'macro.json').write_text(json.dumps({'generated_at': fresh, 'vix': {'price': 20}}))
+    (data / 'sentiment.json').write_text(json.dumps({'generated_at': fresh, 'tickers': [], 'sources': []}))
+    monkeypatch.setattr(preflight, 'WS', tmp_path)
+
+    macro_trim, sentiment_trim = preflight.load_macro_and_sentiment('2026-07-24', [])
+    assert macro_trim.get('vix') == {'price': 20, 'change_pct': None, 'source': None}
+    assert 1.5 < macro_trim['age_hours'] < 2.5
+
+
+def test_future_timestamp_beyond_skew_is_stale(preflight):
+    from datetime import datetime, timezone, timedelta
+    future = (datetime.now(timezone.utc) + timedelta(hours=10)).isoformat()
+    age = preflight._payload_age_hours({'generated_at': future})
+    assert age < 0 and preflight._is_stale(age, 36)  # negative age must not read as fresh

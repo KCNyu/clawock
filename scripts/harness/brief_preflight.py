@@ -884,6 +884,21 @@ def _payload_age_hours(payload):
     return (datetime.now(timezone.utc) - t).total_seconds() / 3600
 
 
+# A materially future generated_at (beyond clock skew) is as untrustworthy as an
+# old one — it means a broken producer clock, not fresh data.
+_CLOCK_SKEW_H = 2
+
+
+def _is_stale(age, cutoff_h):
+    """True if age (hours, or None) is unusable: unknown, too old, or from the
+    future beyond clock skew. Callers omit stale data rather than feed it."""
+    return age is None or age > cutoff_h or age < -_CLOCK_SKEW_H
+
+
+def _age_str(age):
+    return f'{age:.0f}h' if age is not None else 'unknown-age (no generated_at)'
+
+
 def load_macro_and_sentiment(today, issues):
     """Read GH-Action-produced macro.json + sentiment.json; trim to LLM-friendly subset.
 
@@ -905,30 +920,34 @@ def load_macro_and_sentiment(today, issues):
         else:
             m = json.loads(macro_path.read_text())
             age = _payload_age_hours(m)
-            def _q(k):
-                v = m.get(k)
-                if not v: return None
-                return {'price': v.get('price'), 'change_pct': v.get('change_pct'),
-                        'source': v.get('source')}
-            macro_trim = {
-                'as_of':        m.get('generated_at'),
-                'age_hours':    round(age, 1) if age is not None else None,
-                'vix':          _q('vix'),
-                'dxy':          _q('dxy'),
-                'treasury_10y_yield_pct': (m.get('treasury_10y') or {}).get('yield_pct'),
-                'fear_greed':   m.get('fear_greed'),
-                'hsi':          _q('hsi'),
-                'hstech':       _q('hstech'),
-                'spx':          _q('spx'),
-                'nasdaq':       _q('nasdaq'),
-                'fed_press':    (m.get('fed_press') or [])[:3],
-            }
-            macro_trim['regime'] = _classify_regime(macro_trim)  # risk_on/neutral/risk_off
-            if age is None or age > stale_cutoff_h:
-                shown = f'{age:.0f}h' if age is not None else 'unknown-age (no generated_at)'
-                print(f'   ⚠ macro stale ({shown}, cutoff {stale_cutoff_h}h)')
-                issues.append(f'macro snapshot stale {shown}')
+            if _is_stale(age, stale_cutoff_h):
+                # OMIT stale/unknown-age data — do NOT feed it as fresh, and do NOT
+                # append to `issues` (main() returns exit 1 on any issue, which
+                # under the fallback workflow's pipefail would hard-fail the entire
+                # brief — a worse outage than a missing macro section). The brief
+                # runs without macro; downstream postflight sees no macro context.
+                print(f'   ⚠ macro stale/unknown ({_age_str(age)}, cutoff '
+                      f'{stale_cutoff_h}h) — omitting from brief (non-fatal)')
             else:
+                def _q(k):
+                    v = m.get(k)
+                    if not v: return None
+                    return {'price': v.get('price'), 'change_pct': v.get('change_pct'),
+                            'source': v.get('source')}
+                macro_trim = {
+                    'as_of':        m.get('generated_at'),
+                    'age_hours':    round(age, 1),
+                    'vix':          _q('vix'),
+                    'dxy':          _q('dxy'),
+                    'treasury_10y_yield_pct': (m.get('treasury_10y') or {}).get('yield_pct'),
+                    'fear_greed':   m.get('fear_greed'),
+                    'hsi':          _q('hsi'),
+                    'hstech':       _q('hstech'),
+                    'spx':          _q('spx'),
+                    'nasdaq':       _q('nasdaq'),
+                    'fed_press':    (m.get('fed_press') or [])[:3],
+                }
+                macro_trim['regime'] = _classify_regime(macro_trim)  # risk_on/neutral/risk_off
                 fg = macro_trim['fear_greed'] or {}
                 print(f'   macro: VIX {(macro_trim["vix"] or {}).get("price","?")}, '
                       f'F&G {fg.get("score","?")} ({fg.get("rating","?")}), '
@@ -945,41 +964,41 @@ def load_macro_and_sentiment(today, issues):
         else:
             s = json.loads(sent_path.read_text())
             age = _payload_age_hours(s)
-            # price-in lens: recent 5-session move per signalled ticker (priced-in check)
-            signalled = [t.get('ticker') for t in s.get('tickers', [])
-                         if t.get('reddit_mentions_7d', 0) or t.get('google_news_en')
-                         or t.get('google_news_zh')]
-            moves = _recent_price_moves(signalled)
-            tickers_out = []
-            for t in s.get('tickers', []):
-                reddit_n  = t.get('reddit_mentions_7d', 0)
-                gn_en     = t.get('google_news_en') or []
-                gn_zh     = t.get('google_news_zh') or []
-                # Skip noise: 0 mention + 0 news
-                if reddit_n == 0 and not gn_en and not gn_zh:
-                    continue
-                tickers_out.append({
-                    'ticker': t.get('ticker'),
-                    'name':   t.get('name'),
-                    'region': t.get('region'),
-                    'reddit_mentions_7d': reddit_n,
-                    'reddit_top': [{'title': p.get('title'), 'score': p.get('score'),
-                                    'comments': p.get('num_comments')}
-                                   for p in (t.get('reddit_posts') or [])[:3]],
-                    'news_top':   [n.get('title') for n in (gn_en + gn_zh)[:3] if n.get('title')],
-                    'recent_move': moves.get(t.get('ticker')),  # {px_pct, n_sessions} or None — priced-in check
-                })
-            sentiment_trim = {
-                'as_of':       s.get('generated_at'),
-                'age_hours':   round(age, 1) if age is not None else None,
-                'sources':     s.get('sources', []),
-                'tickers':     tickers_out,
-            }
-            if age is None or age > stale_cutoff_h:
-                shown = f'{age:.0f}h' if age is not None else 'unknown-age (no generated_at)'
-                print(f'   ⚠ sentiment stale ({shown}, cutoff {stale_cutoff_h}h)')
-                issues.append(f'sentiment snapshot stale {shown}')
+            if _is_stale(age, stale_cutoff_h):
+                # Omit stale/unknown sentiment (non-fatal — see macro note above).
+                print(f'   ⚠ sentiment stale/unknown ({_age_str(age)}, cutoff '
+                      f'{stale_cutoff_h}h) — omitting from brief (non-fatal)')
             else:
+                # price-in lens: recent 5-session move per signalled ticker (priced-in check)
+                signalled = [t.get('ticker') for t in s.get('tickers', [])
+                             if t.get('reddit_mentions_7d', 0) or t.get('google_news_en')
+                             or t.get('google_news_zh')]
+                moves = _recent_price_moves(signalled)
+                tickers_out = []
+                for t in s.get('tickers', []):
+                    reddit_n  = t.get('reddit_mentions_7d', 0)
+                    gn_en     = t.get('google_news_en') or []
+                    gn_zh     = t.get('google_news_zh') or []
+                    # Skip noise: 0 mention + 0 news
+                    if reddit_n == 0 and not gn_en and not gn_zh:
+                        continue
+                    tickers_out.append({
+                        'ticker': t.get('ticker'),
+                        'name':   t.get('name'),
+                        'region': t.get('region'),
+                        'reddit_mentions_7d': reddit_n,
+                        'reddit_top': [{'title': p.get('title'), 'score': p.get('score'),
+                                        'comments': p.get('num_comments')}
+                                       for p in (t.get('reddit_posts') or [])[:3]],
+                        'news_top':   [n.get('title') for n in (gn_en + gn_zh)[:3] if n.get('title')],
+                        'recent_move': moves.get(t.get('ticker')),  # {px_pct, n_sessions} or None — priced-in check
+                    })
+                sentiment_trim = {
+                    'as_of':       s.get('generated_at'),
+                    'age_hours':   round(age, 1),
+                    'sources':     s.get('sources', []),
+                    'tickers':     tickers_out,
+                }
                 with_signal = sum(1 for t in tickers_out if t['reddit_mentions_7d'] or t['news_top'])
                 print(f'   sentiment: {with_signal}/{len(s.get("tickers",[]))} tickers '
                       f'have reddit/news signal')
@@ -1004,6 +1023,12 @@ def load_influencer_feed(issues):
             return {}
         d = json.loads(path.read_text())
         age = _payload_age_hours(d)
+        if _is_stale(age, 36):
+            # Omit stale/unknown influencer feed (non-fatal — see macro note above);
+            # brief runs without the 名人异动 section rather than on stale statements.
+            print(f'   ⚠ influencer feed stale/unknown ({_age_str(age)}) '
+                  f'— omitting from brief (non-fatal)')
+            return {}
         # Trim each item to the fields the brief needs.
         def _trim(it):
             return {k: it.get(k) for k in
@@ -1011,20 +1036,15 @@ def load_influencer_feed(issues):
                      'sector_holdings', 'sectors', 'summary_cn')}
         out = {
             'as_of':     d.get('generated_at'),
-            'age_hours': round(age, 1) if age is not None else None,
+            'age_hours': round(age, 1),
             'counts':    d.get('counts', {}),
             'held_hits': [_trim(x) for x in d.get('held_hits', [])][:6],
             'new_ideas': [_trim(x) for x in d.get('new_ideas', [])][:6],
             'sector_hits': [_trim(x) for x in d.get('sector_hits', [])][:4],
         }
-        if age is None or age > 36:
-            shown = f'{age:.0f}h' if age is not None else 'unknown-age (no generated_at)'
-            print(f'   ⚠ influencer feed stale ({shown})')
-            issues.append(f'influencer feed stale {shown}')
-        else:
-            c = out['counts']
-            print(f'   influencer: {c.get("held_hits",0)} held-hits, '
-                  f'{c.get("new_ideas",0)} new-ideas, {c.get("sector_hits",0)} sector')
+        c = out['counts']
+        print(f'   influencer: {c.get("held_hits",0)} held-hits, '
+              f'{c.get("new_ideas",0)} new-ideas, {c.get("sector_hits",0)} sector')
         return out
     except Exception as e:
         print(f'   ⚠ influencer feed load failed: {e}')
