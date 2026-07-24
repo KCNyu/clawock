@@ -341,7 +341,21 @@ def test_macro_quote_failure_markers_do_not_count_as_coverage(tmp_path, quote):
 
     with pytest.raises(
             AssertionError,
-            match='snapshot has zero successfully populated fields'):
+            match='snapshot has zero successful market quotes'):
+        validators.validate_macro(
+            path, now=datetime(2026, 7, 17, 1, tzinfo=timezone.utc))
+
+
+def test_macro_supplemental_sources_cannot_replace_market_quotes(tmp_path):
+    payload = macro_payload()
+    payload['vix'] = None
+    payload['fear_greed'] = {'score': 55}
+    payload['fed_press'] = [{'title': 'Federal Reserve press release'}]
+    path = write_json(tmp_path / 'macro.json', payload)
+
+    with pytest.raises(
+            AssertionError,
+            match='snapshot has zero successful market quotes'):
         validators.validate_macro(
             path, now=datetime(2026, 7, 17, 1, tzinfo=timezone.utc))
 

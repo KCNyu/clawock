@@ -51,23 +51,25 @@ def validate_macro(path: Path | str, *, now: datetime | None = None) -> None:
 
     quote_fields = ('vix', 'treasury_10y', 'dxy', 'hsi', 'hstech', 'spx', 'nasdaq')
     quote_sources = ('stooq', 'tencent', 'yahoo')
-    successful = [
+    market_quotes = [
         field for field in quote_fields
         if isinstance(data.get(field), dict)
         and finite_number(data[field].get('price'))
         and data[field]['price'] > 0
         and data[field].get('source') in quote_sources
     ]
+    supplemental = []
     fear_greed = data.get('fear_greed')
     if isinstance(fear_greed, dict) and finite_number(fear_greed.get('score')):
-        successful.append('fear_greed')
+        supplemental.append('fear_greed')
     fed_press = data.get('fed_press')
     if (isinstance(fed_press, list)
             and any(isinstance(item, dict) and str(item.get('title', '')).strip()
                     for item in fed_press)):
-        successful.append('fed_press')
+        supplemental.append('fed_press')
 
-    assert successful, 'snapshot has zero successfully populated fields'
+    assert market_quotes, 'snapshot has zero successful market quotes'
+    successful = market_quotes + supplemental
     print(f'macro coverage validation OK: {", ".join(successful)}; '
           f'age={age.total_seconds() / 3600:.2f}h')
 
