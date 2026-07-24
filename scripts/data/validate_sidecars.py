@@ -382,12 +382,29 @@ def validate_screenshots(
         header = path.read_bytes()[:24]
         assert header[:8] == PNG_MAGIC, f'invalid PNG magic: {filename}'
         assert header[12:16] == b'IHDR', f'missing PNG IHDR: {filename}'
-        width, height = struct.unpack('>II', header[16:24])
+        # Fully decode, not just parse the header: a valid PNG header + IHDR
+        # dimensions on top of zero/garbage chunks passes the byte checks but is
+        # an unopenable image (2026-07 audit). Pillow verify() walks every chunk.
+        width, height = _decoded_png_size(path, filename)
         assert width >= min_width and height >= min_height, (
             f'implausible screenshot dimensions: {filename} is {width}x{height}; '
             f'expected >= {min_width}x{min_height}'
         )
         print(f'validated {filename}: {size} bytes, {width}x{height}')
+
+
+def _decoded_png_size(path, label):
+    """(width, height) from a FULLY-decoded PNG, or AssertionError. verify()
+    consumes the file object, so re-open for the size read."""
+    from PIL import Image, UnidentifiedImageError
+    try:
+        with Image.open(path) as im:
+            im.verify()
+        with Image.open(path) as im:
+            assert im.format == 'PNG', f'{label}: not a PNG after decode ({im.format})'
+            return im.size
+    except (UnidentifiedImageError, OSError, SyntaxError) as e:
+        raise AssertionError(f'{label}: PNG does not decode ({type(e).__name__}: {e})') from None
 
 
 def validate_gif(path: Path | str = 'assets/dashboard.gif') -> None:
@@ -403,12 +420,24 @@ def validate_gif(path: Path | str = 'assets/dashboard.gif') -> None:
     with path.open('rb') as gif:
         header = gif.read(10)
     assert header[:6] in GIF_MAGICS, f'invalid GIF magic: {path}'
-    width, height = struct.unpack('<HH', header[6:10])
+    # Decode for real + count frames: a valid GIF header on padding passes the
+    # magic/dimension byte checks but has no decodable frames (2026-07 audit). The
+    # dashboard GIF is an animation, so require at least 2 frames.
+    from PIL import Image, UnidentifiedImageError
+    try:
+        with Image.open(path) as im:
+            assert im.format == 'GIF', f'{path}: not a GIF after decode ({im.format})'
+            width, height = im.size
+            frames = getattr(im, 'n_frames', 1)
+            im.seek(frames - 1)  # force-decode to the last frame
+    except (UnidentifiedImageError, OSError, SyntaxError, EOFError) as e:
+        raise AssertionError(f'{path}: GIF does not decode ({type(e).__name__}: {e})') from None
+    assert frames >= 2, f'{path}: GIF has {frames} frame(s), expected an animation (>= 2)'
     assert width >= 300 and height >= 500, (
         f'implausible GIF dimensions: {path} is {width}x{height}; '
         'expected >= 300x500'
     )
-    print(f'validated {path}: {size} bytes, {width}x{height}')
+    print(f'validated {path}: {size} bytes, {width}x{height}, {frames} frames')
 
 
 def _dispatch(name: str) -> None:
