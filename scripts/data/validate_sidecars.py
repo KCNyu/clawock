@@ -239,7 +239,16 @@ def validate_news_digest(
     assert total_news > 0, 'no source news in generated digest'
     assert isinstance(digest, str) and len(digest.strip()) >= 100, (
         'LLM digest empty or implausibly short')
-    assert '### ' in digest, 'LLM digest is not the requested markdown structure'
+    # Structure proxy: a real digest is markdown headers + bullets, not a prose
+    # wall / refusal / JSON echo. Accept h2 OR h3 (`## ` / `### `) — pinning the
+    # literal `### ` broke the digest for 3 days from 2026-07-21 when MiniMax M3
+    # started emitting `## ` section headers with otherwise perfect content. The
+    # header level is cosmetic (build_dashboard renders the markdown either way);
+    # what the gate must catch is "no structure at all", so also require a bullet.
+    assert re.search(r'(?m)^#{2,3} ', digest), (
+        'LLM digest has no h2/h3 markdown header (## or ###)')
+    assert re.search(r'(?m)^\s*[-*] ', digest), (
+        'LLM digest has no bullet points')
     print(f'digest validation OK: {len(digest)} chars, {total_news} source items; '
           f'age={age.total_seconds() / 3600:.2f}h')
 
