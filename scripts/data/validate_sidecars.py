@@ -403,7 +403,7 @@ def _decoded_png_size(path, label):
         with Image.open(path) as im:
             assert im.format == 'PNG', f'{label}: not a PNG after decode ({im.format})'
             return im.size
-    except (UnidentifiedImageError, OSError, SyntaxError) as e:
+    except (UnidentifiedImageError, OSError, SyntaxError, EOFError) as e:
         raise AssertionError(f'{label}: PNG does not decode ({type(e).__name__}: {e})') from None
 
 

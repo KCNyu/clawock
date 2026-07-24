@@ -467,3 +467,24 @@ def test_real_multiframe_gif_and_real_png_decode_and_pass(tmp_path):
     with gif.open('ab') as f:
         f.write(b'\x00' * 300_000)  # clear the size floor
     validators.validate_gif(gif)
+
+
+@pytest.mark.parametrize('exc', [EOFError, OSError, SyntaxError, ValueError])
+def test_png_decode_wraps_all_pillow_failure_types(tmp_path, monkeypatch, exc):
+    """2026-07 review: EOFError from a truncated PNG must become AssertionError like
+    the other decode failures, not escape raw (the GIF handler already caught it).
+    ValueError is expected to still escape (not a decode error) — see below."""
+    from PIL import Image
+    real = tmp_path / 'ok.png'
+    Image.new('RGB', (1200, 630), 'white').save(real, 'PNG')
+
+    def boom(*a, **k):
+        raise exc('boom')
+    monkeypatch.setattr('PIL.Image.open', boom)
+
+    if exc is ValueError:  # not in the caught set — must not be silently swallowed
+        with pytest.raises(ValueError):
+            validators.validate_screenshots(((real, 100, 1000, 500),))
+    else:
+        with pytest.raises(AssertionError, match='PNG does not decode'):
+            validators.validate_screenshots(((real, 100, 1000, 500),))
