@@ -102,21 +102,6 @@
 - **单一来源：`portfolio.json`**，不在此维护副本
 - ticker 列表：`memory/current-portfolio-summary.md`（提高检索命中）
 
-## Promoted From Short-Term Memory (2026-07-21)
-
-<!-- openclaw-memory-promotion:memory:memory/2026-07-16-pre-open.md:17:20 -->
-- ▎Header — Book 双视角: 真实总浮盈亏: USD$-7,003.12 ≈ HKD$-54,897.46 (USDHKD = 7.839, 来源 Frankfurter, 抓取于 2026-07-16T00:04:08 UTC) ├─ HK 段: HKD$-43,327.64 ≈ USD$-5,527.30 └─ US 段: USD$-1,475.93 ≈ HKD$-11,571.27 [score=0.803 recalls=0 avg=0.620 source=memory/2026-07-16-pre-open.md:17-20]
-<!-- openclaw-memory-promotion:memory:memory/2026-07-16-pre-open.md:2:4 -->
-- layout: default title: 盘前深度简报 · 2026-07-16 (off-host fallback) description: "clawock 盘前深度简报 2026-07-16：港股 + 美股真实持仓的多空辩论、量化因子、风控硬闸与 AI 自评战绩（诚实公开，主动建议平均方向分为负）。" [score=0.803 recalls=0 avg=0.620 source=memory/2026-07-16-pre-open.md:2-4]
-<!-- openclaw-memory-promotion:memory:memory/2026-07-16-pre-open.md:23:23 -->
-- ▎Header — Book 双视角: 持仓市值合计:HK 57,348.8 HKD + US 2,948.35 USD ≈ 10,264 USD;HK cash 22,197 HKD ≈ 2,832 USD,US cash 237.43 USD。 [score=0.803 recalls=0 avg=0.620 source=memory/2026-07-16-pre-open.md:23-23]
-<!-- openclaw-memory-promotion:memory:memory/2026-07-16-pre-open.md:29:32 -->
-- ▎仓位明细 (HK): | 代码 | 股 | 成本 | 现价 | 今日 | 浮% | 浮$ | |---|---|---|---|---|---|---| | 00100 | 100 | 617.70 | 250.80 | -3.76% | -59.40% | -36,690.0 | | 07226 | 6,200 | 4.363 | 3.666 | +4.92% | -15.98% | -4,322.6 | [score=0.803 recalls=0 avg=0.620 source=memory/2026-07-16-pre-open.md:29-32]
-<!-- openclaw-memory-promotion:memory:memory/2026-07-16-pre-open.md:33:35 -->
-- ▎仓位明细 (HK): | 03033 | 1,000 | 5.140 | 4.762 | +2.45% | -7.35% | -378.0 | | 02208 | 400 | 14.084 | 9.52 | -0.94% | -32.41% | -1,825.6 | | 03032 | 200 | 5.405 | 4.848 | +2.32% | -10.31% | -111.4 | [score=0.803 recalls=0 avg=0.620 source=memory/2026-07-16-pre-open.md:33-35]
-<!-- openclaw-memory-promotion:memory:memory/2026-07-16-pre-open.md:9:10 -->
-- 📊 盘前深度简报｜2026-07-16 周四 08:00 HKT: > 🧭 **Regime: choppy/risk_on** (macro VIX 15.67 calm + F&G 46.3 neutral; HK 🧭amber `HSTECH -9.2% from 200DMA`; US 🧭red `SPCH 5日均线 -4.5%`) > → 今日所有主动操作均为纪律性 `risk_rule` swap,**不算择时预测**;core 持有不受 regime 切换驱动。 [score=0.803 recalls=0 avg=0.620 source=memory/2026-07-16-pre-open.md:9-10]
-
 ## Promoted From Short-Term Memory (2026-07-22)
 
 <!-- openclaw-memory-promotion:memory:memory/2026-07-17-pre-open.md:10:10 -->
@@ -131,3 +116,20 @@
 - ▎昨日 plan 兑现度（2026-07-16）: | Action | Plan | 实际行情 | 模拟 ± | 评 | |---|---|---|---:|---| | SPCH risk swap | 开盘卖100股 | 开9.35→收8.77 | +$58.00 | ✓ 条件触发 | | SPCX swap接收 | 开盘买7股 | 开134.92→收131.11 | -$26.67 | ✗ 接收腿当日亏 | [score=0.803 recalls=0 avg=0.620 source=memory/2026-07-17-pre-open.md:20-23]
 <!-- openclaw-memory-promotion:memory:memory/2026-07-17-pre-open.md:24:27 -->
 - ▎昨日 plan 兑现度（2026-07-16）: | PLTU→PLTR | 开盘卖14股 | 32.31→32.98 | -$9.38 | ✗ 当日卖早 | | RKLX→RKLB | 开盘卖10股 | 22.48→18.44 | +$40.40 | ✓ 避开尾盘下杀 | | MSFU→MSFT | 开盘卖20股 | 24.94→24.70 | +$4.80 | ✓ 小幅有效 | | 07226→03033 | 开盘卖2289股 | 3.518→3.634 | -HK$265.52 | ✗ 2x当日继续强 | [score=0.803 recalls=0 avg=0.620 source=memory/2026-07-17-pre-open.md:24-27]
+
+## Promoted From Short-Term Memory (2026-07-25)
+
+<!-- openclaw-memory-promotion:memory:memory/2026-07-20-pre-open.md:10:10 -->
+- Header: **Regime US：risk-off**（SPX -1.01%、Nasdaq -1.40%、VIX 18.77 +12.19%、F&G 37.1 fear）｜**Regime HK：trending-down / risk-off**（HSI -1.78%、HSTECH -4.37%，且HSTECH低于200日线13.3%）｜**USDHKD=7.8402**。 [score=0.803 recalls=0 avg=0.620 source=memory/2026-07-20-pre-open.md:10-10]
+<!-- openclaw-memory-promotion:memory:memory/2026-07-20-pre-open.md:12:12 -->
+- Header: **核心结论：** 今天不抄底、不追新闻。12条仓位硬闸优先于任何叙事：07226/SPCH/PLTU/RKLX/MSFU按同因子从2x换1x，00100只在反弹到HK$230时减20股；现货core不在新低追砍。 [score=0.803 recalls=0 avg=0.620 source=memory/2026-07-20-pre-open.md:12-12]
+<!-- openclaw-memory-promotion:memory:memory/2026-07-20-pre-open.md:14:14 -->
+- Header: ⚠️ **数据口径：** preflight完整产出context，但发现RKLX 2026-07-16日线low跨源相差0.01；7只US持仓被integrity标为周末session日期异常。持仓数字仍只取context，相关US判断统一下调约10pp。Tavily按9组主题调用，环境缺`TAVILY_API_KEY`，板块扫描已回退公开Web/S&P Global行情；不把缺失值编成0涨跌。 [score=0.803 recalls=0 avg=0.620 source=memory/2026-07-20-pre-open.md:14-14]
+<!-- openclaw-memory-promotion:memory:memory/2026-07-20-pre-open.md:2:3 -->
+- layout: default title: 盘前深度简报 2026-07-20 [score=0.803 recalls=0 avg=0.620 source=memory/2026-07-20-pre-open.md:2-3]
+<!-- openclaw-memory-promotion:memory:memory/2026-07-20-pre-open.md:20:20 -->
+- ▎上次 plan 兑现度（2026-07-17）: 上次14条decision中10条条件触发、3条未触发、1条无法结构化核验。下表为**模拟相对持有结果**，不是实际成交，也不汇总成“听AI赚了多少钱”。 [score=0.803 recalls=0 avg=0.620 source=memory/2026-07-20-pre-open.md:20-20]
+<!-- openclaw-memory-promotion:memory:memory/2026-07-20-pre-open.md:22:25 -->
+- ▎上次 plan 兑现度（2026-07-17）: | Action | Plan | 实际 | 模拟 ± | 评 | |---|---|---|---:|---| | 00100反弹减 | ≥265减20股 | 高248.8，未触发 | — | ✗ trigger过高 | | 00100 core | <242复核 | 低210，触发 | — | ⊘ 仅复核 | [score=0.803 recalls=0 avg=0.620 source=memory/2026-07-20-pre-open.md:22-25]
+<!-- openclaw-memory-promotion:memory:memory/2026-07-20-pre-open.md:26:29 -->
+- ▎上次 plan 兑现度（2026-07-17）: | 07226降2x | 开盘卖2300股 | 开3.608→收3.312 | +HK$680.80 | ✓ | | 03033接收 | 开盘买1700股 | 开4.730→收4.534 | -HK$333.20 | ✗ 接收腿下跌 | | SPCH降2x | 开盘卖140股 | 7.83横盘 | $0.00 | ⊘ | | SPCX接收 | 开盘买9股 | 123.99横盘 | $0.00 | ⊘ | [score=0.803 recalls=0 avg=0.620 source=memory/2026-07-20-pre-open.md:26-29]
