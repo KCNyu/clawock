@@ -139,12 +139,10 @@ postflight 现在把空输入/旧文件单独判成 `status: input_error`（不�
 ```bash
 python3 /root/.openclaw/workspace/scripts/harness/report_preflight.py --market hk --phase {open|mid|pm|close}
 ```
-内部跑 `scripts/data/analyze_hk_stocks.py --wechat`，抽信号 (WATCH/STOP/TRIM 计数) + 异动 (≥3% 涨跌) + 恒指/恒科方向，输出 `memory/.tmp/report-context-hk-{phase}-{date}.json`。
+内部跑 `scripts/data/analyze_hk_stocks.py --wechat`，抽信号 (WATCH/STOP/TRIM 计数) + 异动 (≥3% 涨跌) + 恒指/恒科方向，输出 context JSON。
 
 #### Step 2: 读 context，写报告
-```bash
-cat /root/.openclaw/workspace/memory/.tmp/report-context-hk-{phase}-$(date +%Y-%m-%d).json
-```
+⚠️ **context 路径只认 preflight 最后一行打印的 `context_path: <绝对路径>`**，照抄它去 read，不要自己拼文件名。文件名里的日期是**跑批当天**，不是行情 session 那天 —— 2026-07-24 美股收盘就因为猜错日期读到隔夜残留、把一天前的数字发进了微信。`context_path:` 是最后一行，`| tail -N` 也切不掉。
 
 context.json 关键字段：
 - `raw_wechat_block` — 脚本数据块，**verbatim 拷贝到消息开头**。⚠️ 若含 markdown 表格（7 列 holdings），**表头/分隔/数据三类行每字符 1:1 复制**，不要重写分隔行 — 列数必须一致，postflight 会 fail。

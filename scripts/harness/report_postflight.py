@@ -142,7 +142,7 @@ from _harness_common import (  # noqa: E402
 from _watchdog_common import resolve_wechat_target, send_wechat, cosend_telegram, already_delivered  # noqa: E402
 
 
-def deliver_wechat(market, phase, date, wechat_prefix, text, block_first):
+def deliver_wechat(market, phase, date, wechat_prefix, text):
     """Primary WeChat send for staged reports — fresh-token `openclaw message send`,
     decoupled from the cron's announce.
 
@@ -157,8 +157,18 @@ def deliver_wechat(market, phase, date, wechat_prefix, text, block_first):
     CONFIRMED failure (never doubles a report that went out here).
 
     Returns (sent_ok, out). Writes marker report-sent-{market}-{phase}-{date}.json.
+
+    The marker's `first_line` records the first line of the report body WE
+    ACTUALLY SENT — not the block the context expected. report_watchdog compares
+    it against the fresh context's `raw_wechat_block` first line to decide whether
+    Telegram already has *this* report; recording the expected line made that
+    comparison tautological, so a body built from a stale context still looked
+    delivered (2026-07-24 美股收盘报告: WeChat got 07/22 numbers and no backstop
+    ever fired). Deriving it from `text` makes the mismatch detectable.
     """
     message = (wechat_prefix + text).strip()
+    body_lines = text.strip().splitlines()
+    sent_first = body_lines[0].strip() if body_lines else ''
     try:
         channel, to, account = resolve_wechat_target(market)
         sent_ok, out = send_wechat(channel, to, account, message, dry_run=False)
@@ -176,7 +186,7 @@ def deliver_wechat(market, phase, date, wechat_prefix, text, block_first):
             'ts': int(datetime.now().timestamp() * 1000),
             'sent_ok': bool(sent_ok),
             'tg_ok': bool(tg_ok),
-            'first_line': block_first,
+            'first_line': sent_first,
             'market': market,
             'phase': phase,
             'out': (out or '')[-200:],
@@ -297,8 +307,6 @@ def main():
     # with its banner (matches the old announce behavior); only the commit is
     # gated on not-fail. The staged crons run --no-deliver so this is the sole
     # send. See deliver_wechat() docstring for the #61174 long-turn-drop rationale.
-    block_first = (ctx.get('raw_wechat_block', '') or '').strip().splitlines()
-    block_first = block_first[0] if block_first else ''
     # Idempotency: this phase's marker is per market+phase+date and fires once/day,
     # so if it already shows a delivery this is an openclaw auto-retry of a run that
     # errored only in post-turn summary-gen — the report already went out. Skip the
@@ -309,7 +317,7 @@ def main():
               file=sys.stderr)
         wechat_sent = True
     else:
-        wechat_sent, _ = deliver_wechat(args.market, args.phase, today, wechat_prefix, text, block_first)
+        wechat_sent, _ = deliver_wechat(args.market, args.phase, today, wechat_prefix, text)
 
     commit_ok, commit_msg = maybe_commit(status, ctx['commit_msg'])
 
