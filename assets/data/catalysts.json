@@ -1,8 +1,8 @@
 {
-  "generated_at": "2026-07-23T08:03:01.551520+08:00",
+  "generated_at": "2026-07-24T08:02:33.547029+08:00",
   "lookback_window_days": 14,
-  "window_start": "2026-07-23",
-  "window_end": "2026-08-06",
+  "window_start": "2026-07-24",
+  "window_end": "2026-08-07",
   "earnings_queried": [
     "RKLB",
     "CRCL"
@@ -48,12 +48,17 @@
       "date": "2026-07-31",
       "type": "PCE",
       "detail": "Jun PCE price index (BEA, Fed preferred inflation gauge)"
+    },
+    {
+      "date": "2026-08-07",
+      "type": "NFP",
+      "detail": "Jul jobs report (Non-Farm Payrolls); BLS 8:30 ET"
     }
   ],
   "summary": {
     "earnings_count": 2,
     "fomc_in_window": 1,
-    "macro_count": 2,
+    "macro_count": 3,
     "highest_impact_within_7d": "FOMC 2026-07-29 (rate decision)"
   }
 }
