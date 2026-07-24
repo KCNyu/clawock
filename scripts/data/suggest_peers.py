@@ -22,6 +22,16 @@ from fetch_us_stocks import load_api_keys
 MAX_AUTO_PEERS = 6
 TIMEOUT = 10
 
+# US same-industry peers via Finnhub are live and verified. HK is NOT wired yet:
+# East Money HK industry boards use ``HK\d+`` codes (00100's 软件服务 board is
+# HK28), not the A-share ``BK\d+``, and the board-constituent endpoint
+# ``clist/get?fs=b:HK28`` returns no rows — the HK constituent query is still
+# unresolved against live data. ``_suggest_hk`` keeps the resolved parts (industry
+# lookup + board match with the corrected code shape) behind this flag so it is
+# ready once the constituent endpoint is confirmed; until then HK holdings get no
+# auto peers and, importantly, make no wasted East Money calls per scan.
+HK_AUTO_PEERS_ENABLED = False
+
 FINNHUB_PEERS_URL = "https://finnhub.io/api/v1/stock/peers"
 EM_STOCK_INFO_URL = "https://push2.eastmoney.com/api/qt/stock/get"
 EM_STOCK_BOARDS_URL = "https://push2.eastmoney.com/api/qt/slist/get"
@@ -150,7 +160,8 @@ def _suggest_hk(ticker: str, curated_tickers: Iterable[object]) -> list[dict]:
 
     board = next((row for row in boards if board_match(row)), None)
     board_code = str((board or {}).get("f12") or "")
-    if not re.fullmatch(r"BK\d+", board_code):
+    # HK industry boards are HK\d+ (e.g. HK28); A-share boards are BK\d+.
+    if not re.fullmatch(r"(?:BK|HK)\d+", board_code):
         _diag(symbol, f"East Money could not map industry {industry!r} to a board")
         return []
 
@@ -213,6 +224,11 @@ def suggest_auto_peers(ticker, region, curated_tickers) -> list[dict]:
         if normalized_region == "us":
             return _suggest_us(ticker, curated_tickers)
         if normalized_region == "hk":
+            if not HK_AUTO_PEERS_ENABLED:
+                _diag(str(ticker),
+                      "HK auto-peers not wired yet (East Money board-constituent "
+                      "endpoint unresolved); skipping")
+                return []
             return _suggest_hk(ticker, curated_tickers)
         _diag(str(ticker), f"unsupported region {region!r}")
         return []

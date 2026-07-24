@@ -56,7 +56,21 @@ def test_us_outage_returns_empty_and_diagnoses(monkeypatch, capsys):
     assert "auto peer source failed" in capsys.readouterr().err
 
 
-def test_hk_resolves_industry_excludes_and_caps_six(monkeypatch):
+def test_hk_gated_off_by_default_makes_no_em_calls(monkeypatch, capsys):
+    # HK auto-peers ship disabled (East Money HK constituent endpoint unresolved).
+    # The gate must short-circuit BEFORE any East Money call so a HK-heavy scan
+    # is not slowed by wasted/failing requests every cycle.
+    calls = []
+    monkeypatch.setattr(sp, "em_get", lambda *a, **kw: calls.append(kw) or None)
+
+    assert sp.suggest_auto_peers("00700", "hk", ["09988"]) == []
+    assert calls == []
+    assert "not wired yet" in capsys.readouterr().err
+
+
+def test_hk_parser_resolves_industry_excludes_and_caps_six(monkeypatch):
+    # Guards `_suggest_hk` (called directly, bypassing the ship gate) so the parser
+    # is correct for when HK is enabled — using a realistic HK\d+ board code.
     calls = []
 
     def fake_em_get(url, **kwargs):
@@ -65,8 +79,8 @@ def test_hk_resolves_industry_excludes_and_caps_six(monkeypatch):
             return FakeResponse({"data": {"f57": "00700", "f58": "腾讯控股", "f127": "互联网服务"}})
         if url == sp.EM_STOCK_BOARDS_URL:
             return FakeResponse({"data": {"diff": [
-                {"f12": "BK9999", "f14": "腾讯概念"},
-                {"f12": "BK0447", "f14": "互联网服务"},
+                {"f12": "HK9999", "f14": "腾讯概念"},
+                {"f12": "HK28", "f14": "互联网服务"},
             ]}})
         assert url == sp.EM_BOARD_CONSTITUENTS_URL
         return FakeResponse({"data": {"diff": [
@@ -84,7 +98,7 @@ def test_hk_resolves_industry_excludes_and_caps_six(monkeypatch):
 
     monkeypatch.setattr(sp, "em_get", fake_em_get)
 
-    peers = sp.suggest_auto_peers("700", "hk", ["09988"])
+    peers = sp._suggest_hk("700", ["09988"])
 
     assert [p["ticker"] for p in peers] == [
         "03690", "01024", "09626", "09888", "09999", "03888"
@@ -93,10 +107,12 @@ def test_hk_resolves_industry_excludes_and_caps_six(monkeypatch):
     assert all(p["region"] == "hk" and p["source"] == "eastmoney" for p in peers)
     assert calls[0][0] == sp.EM_STOCK_INFO_URL
     assert calls[1][0] == sp.EM_STOCK_BOARDS_URL
-    assert calls[2][1]["fs"] == "b:BK0447"
+    assert calls[2][1]["fs"] == "b:HK28"
 
 
-def test_hk_outage_returns_empty_and_diagnoses(monkeypatch, capsys):
+def test_hk_outage_returns_empty_and_diagnoses_when_enabled(monkeypatch, capsys):
+    # When HK is enabled, a source outage must still degrade to [] (never raise).
+    monkeypatch.setattr(sp, "HK_AUTO_PEERS_ENABLED", True)
     monkeypatch.setattr(sp, "em_get", lambda *a, **kw: None)
 
     assert sp.suggest_auto_peers("00700", "hk", []) == []
