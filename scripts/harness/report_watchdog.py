@@ -64,6 +64,33 @@ def deterministic_fallback(raw_block, tag, reason):
             + raw_block.strip())
 
 
+def slot_delivered(marker, ctx_id, raw_block_first, now_ms):
+    """Did report_postflight confirmably deliver THIS slot's report to Telegram?
+
+    Doubles as the generation gate: in prose mode the model's final answer is a
+    postflight status line, not the report, so the transcript no longer contains
+    the data block and `raw_block_first in summary` would read as "never ran" on
+    every healthy run — firing a deterministic fallback that duplicates a report
+    kcn already has.
+
+    Slot identity prefers `context_id` (exact, written by prose mode). Prose-mode
+    bodies start with the TITLE, so the legacy first-line compare would report a
+    false mismatch; it is kept only for markers written before that field existed.
+    """
+    if not marker or not marker.get('tg_ok'):
+        return False
+    # An exact context_id match is proof this slot was delivered regardless of age:
+    # both ids are per market+phase+date, so a delayed watchdog must NOT re-mirror a
+    # confirmed delivery just because the marker is >2h old (2026-07-24 review). The
+    # freshness window only guards the fuzzy legacy first-line compare, where a
+    # matching first line could otherwise belong to an earlier day's report.
+    if marker.get('context_id') and ctx_id:
+        return marker['context_id'] == ctx_id
+    if now_ms - (marker.get('ts') or 0) >= MARKER_FRESH_MS:
+        return False
+    return (marker.get('first_line') or '').strip() == (raw_block_first or '').strip()
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--market', choices=['hk', 'us'], required=True)
@@ -111,7 +138,41 @@ def main():
         log({'tag': tag, 'action': 'skip', 'reason': 'no preflight raw_wechat_block (cron likely never ran)'})
         return 0
 
-    block_present = raw_block_first in summary
+    ctx_id = None
+    if ctx_path.exists():
+        try:
+            ctx_id = json.loads(ctx_path.read_text()).get('context_id')
+        except Exception:
+            pass
+
+    marker_path = WS / 'memory' / '.tmp' / f'report-sent-{args.market}-{args.phase}-{today}.json'
+    marker = None
+    if marker_path.exists():
+        try:
+            marker = json.loads(marker_path.read_text())
+        except Exception:
+            marker = None
+    now_ms = int(datetime.now(HKT).timestamp() * 1000)
+    delivered_this_slot = slot_delivered(marker, ctx_id, raw_block_first, now_ms)
+
+    # --- Generation gate ------------------------------------------------------
+    # In prose mode the model's final answer is a postflight status line, not the
+    # report, so the transcript no longer contains the data block. A confirmed
+    # delivery for this slot IS the proof of generation — check it first, or the
+    # deterministic fallback fires on every healthy prose run.
+    if delivered_this_slot:
+        log({'tag': tag, 'action': 'ok',
+             'reason': 'postflight cosend already delivered Telegram this slot — no backstop',
+             'run_at': run_at})
+        return 0
+
+    # Extract the real report from the transcript BEFORE the generation gate: the
+    # run summary can omit the data block while the actual report sits in the last
+    # assistant turn (long runs truncate the summary). Treating "not in summary" as
+    # "never generated" would fire the deterministic fallback and drop a report kcn
+    # could have received in full (2026-07-24 review). Either source counts.
+    report = last_report_text(session_id, raw_block_first)
+    block_present = (raw_block_first in summary) or bool(report)
     loop_score, _ = transcript_loop_score(session_id)
     looped = loop_score >= LOOP_THRESHOLD
     if not block_present or looped:
@@ -136,34 +197,17 @@ def main():
     # the same body to Telegram (the cold-proof channel, no contextToken drop), the
     # WeChat retry buys nothing but duplicates. So the watchdog's SOLE job is to
     # guarantee Telegram has this report — never touch WeChat.
-    marker_path = WS / 'memory' / '.tmp' / f'report-sent-{args.market}-{args.phase}-{today}.json'
-    marker = None
-    if marker_path.exists():
-        try:
-            marker = json.loads(marker_path.read_text())
-        except Exception:
-            marker = None
-    now_ms = int(datetime.now(HKT).timestamp() * 1000)
-    fresh = bool(marker) and (now_ms - marker.get('ts', 0)) < MARKER_FRESH_MS
-    # `first_line` is the first line of the body postflight actually sent, so this
-    # catches a report built from a stale context (2026-07-24 美股收盘报告) as well
-    # as a leftover marker from an earlier slot. Compare stripped: postflight
-    # records a stripped line, the context block may carry trailing whitespace.
-    matches = bool(marker) and ((marker.get('first_line') or '').strip() == raw_block_first.strip())
-    # TG is covered iff postflight's cosend confirmably delivered THIS report to
-    # Telegram this slot (fresh marker, matching first line, tg_ok=true).
-    if marker and marker.get('tg_ok') and fresh and matches:
-        log({'tag': tag, 'action': 'ok',
-             'reason': 'postflight cosend already delivered Telegram this slot — no backstop',
-             'run_at': run_at})
-        return 0
-
-    # postflight cosend never ran / failed / stale-or-mismatched marker ⇒ Telegram
-    # is not confirmed for this report → mirror it now.
-    report = last_report_text(session_id, raw_block_first)
-    if not report:
-        # Fallback: the run summary holds the full report after the "---" checklist.
+    # Not delivered this slot (checked above) ⇒ postflight's cosend never ran,
+    # failed, or the marker belongs to a different generation → mirror it now.
+    # `report` was already extracted from the transcript above.
+    if not report and raw_block_first in summary:
+        # Legacy mode: the run summary holds the full report after the "---" checklist.
         report = summary.split('\n---\n', 1)[1].strip() if '\n---\n' in summary else summary.strip()
+    if not report:
+        # Prose mode: the transcript holds a postflight status line, not a report —
+        # mirroring `summary` would send kcn a JSON blob. Rebuild from the context
+        # instead; the data block is the part a backstop actually owes him.
+        report = deterministic_fallback(raw_block, tag, '报告文本不在会话里')
 
     reason = ('postflight marker missing' if not marker
               else 'postflight cosend failed' if not marker.get('tg_ok')
