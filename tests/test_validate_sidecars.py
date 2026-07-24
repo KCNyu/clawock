@@ -151,6 +151,36 @@ def test_real_committed_news_digest_passes():
     validators.validate_news_digest(news, now=generated_time(news) + timedelta(hours=1))
 
 
+@pytest.mark.parametrize('header', ['## Top 移动信号', '### Top 移动信号'])
+def test_news_digest_accepts_h2_and_h3_headers(tmp_path, header):
+    """2026-07-21: MiniMax M3 switched the section headers from `### ` to `## `
+    with otherwise-perfect content, and the literal `### ` check failed the digest
+    for 3 days. Both levels must pass."""
+    payload = news_payload()
+    payload['digest_markdown'] = (
+        f'{header}\n'
+        '- SPCX: SpaceX IPO 限售解锁,supply overhang 风险,减仓或对冲\n'
+        '- SKHY: 财报前动能强但预期已高,谨防 buy rumor sell fact\n')
+    snapshot = write_json(tmp_path / 'news.json', payload)
+    validators.validate_news_digest(
+        snapshot, now=generated_time(snapshot) + timedelta(hours=1))
+
+
+@pytest.mark.parametrize('bad,problem', [
+    ('一段没有任何 markdown 结构的散文，' * 8, 'no h2/h3 markdown header'),
+    ('## Only a header\n没有要点，只有一段话。' * 4, 'no bullet points'),
+])
+def test_news_digest_rejects_structureless_output(tmp_path, bad, problem):
+    """The gate must still catch a prose wall / refusal — accepting h2 only
+    loosens the header level, not the requirement for structure."""
+    payload = news_payload()
+    payload['digest_markdown'] = bad
+    snapshot = write_json(tmp_path / 'news.json', payload)
+    with pytest.raises(AssertionError, match=problem):
+        validators.validate_news_digest(
+            snapshot, now=generated_time(snapshot) + timedelta(hours=1))
+
+
 def test_real_committed_eod_archive_passes(tmp_path):
     archive = ROOT / 'memory/archive/eod-history.csv'
     with archive.open(newline='', encoding='utf-8') as handle:
