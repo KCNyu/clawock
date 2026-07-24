@@ -62,3 +62,35 @@ def test_missing_required_section_produces_zero_actions_and_explicit_brief():
     assert plan["data_complete"] is False
     assert "数据不完整，本次不生成交易动作" in markdown
     assert "us_stocks" in markdown
+
+
+import pytest
+
+
+@pytest.mark.parametrize('fence', ['```json', '```JSON', '``` json', '```\tjson'])
+def test_split_brief_and_plan_tolerates_fence_case_and_spacing(fence):
+    """2026-07 audit: pinning the exact lowercase ```json discarded a valid plan
+    the moment the model shifted case/spacing, killing the last brief-recovery."""
+    out = f'# 盘前简报\n正文……\n\n{fence}\n{{"decisions": [], "as_of": "x"}}\n```\n'
+    md, plan = fallback.split_brief_and_plan(out)
+    assert json.loads(plan) == {'decisions': [], 'as_of': 'x'}
+    assert '盘前简报' in md and '```' not in md
+
+
+def test_split_brief_and_plan_uses_last_fence_not_first():
+    """Markdown may itself contain a ```json example; the plan is the LAST fence."""
+    out = ('示例：```json\n{"example": true}\n```\n正文\n\n'
+           '```json\n{"decisions": [1], "as_of": "real"}\n```')
+    _, plan = fallback.split_brief_and_plan(out)
+    assert json.loads(plan) == {'decisions': [1], 'as_of': 'real'}
+
+
+def test_split_brief_and_plan_recovers_a_bare_trailing_plan():
+    out = '# 简报\n正文 {行内 brace 不是 plan}\n\n{"decisions": [], "as_of": "bare"}'
+    _, plan = fallback.split_brief_and_plan(out)
+    assert json.loads(plan)['as_of'] == 'bare'
+
+
+def test_split_brief_and_plan_returns_empty_object_when_no_json():
+    _, plan = fallback.split_brief_and_plan('# 简报\n只有正文，没有计划。')
+    assert plan == '{}'

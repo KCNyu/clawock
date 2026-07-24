@@ -366,6 +366,55 @@ def test_weekly_calibration_token_and_next_week_variants_pass(tmp_path, token):
     validators.validate_weekly_review(path)
 
 
+def _weekly(week_id, body):
+    return f'---\nlayout: default\ntitle: 周复盘 · {week_id}\n---\n{body}\n'
+
+
+def test_weekly_accepts_all_english_headers(tmp_path):
+    """2026-07 audit: MiniMax M3 drifted to English section headers; the committed
+    2026-W24.md uses `## Weekly NAV / Plan Adherence & Calibration / Risk Evolution
+    / Next Week's Focus` and the old literal-ZH-token gate rejected it."""
+    body = '\n'.join((
+        '## Executive Summary', 'Overview.',
+        '## 1. Weekly NAV: Drawdown', 'Start vs end NAV analysis.',
+        '## 2. Plan Adherence & Calibration', 'Brier score and adherence.',
+        '## 3. Risk Evolution', 'Beta/Vol/Sharpe trend.',
+        "## 4. Next Week's Focus", 'Three actionable triggers.',
+        'x' * 1100))
+    path = tmp_path / '2026-W24.md'
+    path.write_text(_weekly('2026-W24', body), encoding='utf-8')
+    validators.validate_weekly_review(path)
+
+
+def test_weekly_accepts_bold_labels_without_hash_headings(tmp_path):
+    """The generator prompt asks for `**本周净值**`-style BOLD labels, not `#`
+    headings — a review that follows the prompt literally must not be failed by a
+    heading-count check."""
+    body = '\n'.join((
+        '**本周净值**', '组合回顾与净值。',
+        '**决策兑现**', 'Brier 与决策回看。',
+        '**风险演变**', '风险与仓位演变。',
+        '**下周关注**', '下周触发条件。',
+        'x' * 1100))
+    path = tmp_path / '2026-W30.md'
+    path.write_text(_weekly('2026-W30', body), encoding='utf-8')
+    validators.validate_weekly_review(path)
+
+
+def test_weekly_still_rejects_a_genuinely_missing_section(tmp_path):
+    """Loosening the language must not loosen the requirement: a review with no
+    risk section (any language) still fails, and the error names it."""
+    body = '\n'.join((
+        '## Weekly NAV', 'NAV analysis.',
+        '## Plan Adherence & Calibration', 'Brier and adherence.',
+        "## Next Week's Focus", 'Triggers.',
+        'x' * 1100))  # no risk-evolution section at all
+    path = tmp_path / '2026-W31.md'
+    path.write_text(_weekly('2026-W31', body), encoding='utf-8')
+    with pytest.raises(AssertionError, match='风险演变'):
+        validators.validate_weekly_review(path)
+
+
 def test_header_only_png_is_rejected_by_size_floor(tmp_path):
     path = tmp_path / 'image.png'
     path.write_bytes(

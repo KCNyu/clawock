@@ -10,6 +10,7 @@ Env: MINIMAX_API_KEY required; XIAOMI_API_KEY optional fallback
 """
 import json
 import os
+import re
 import sys
 from copy import deepcopy
 from datetime import date
@@ -18,6 +19,57 @@ from pathlib import Path
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from xiaomi_llm import chat
 import decision_v2
+
+
+def split_brief_and_plan(out):
+    """(markdown, plan_json_str) from the model output.
+
+    The plan is the LAST fenced block; match the fence tolerantly —
+    `` ```json ``, `` ```JSON ``, `` ``` json `` all count. Pinning the exact
+    lowercase ` ```json ` discarded a valid plan the moment the model shifted case
+    or spacing, defeating the last automatic brief-recovery path (2026-07 audit).
+    With no fence at all, fall back to the last balanced {…}; a wrong grab is
+    rejected downstream by plan schema validation, so this never publishes junk.
+    """
+    fences = list(re.finditer(r'```[ \t]*json\b', out, re.IGNORECASE))
+    if fences:
+        last = fences[-1]
+        return out[:last.start()], out[last.end():].split('```', 1)[0].strip()
+    return out, _extract_last_json(out)
+
+
+def _extract_last_json(text):
+    """Return the last balanced top-level {…} object in text, or '{}' if none.
+
+    The brief plan is the final JSON in the output; a bare (unfenced) plan means
+    scanning from the last object start. Braces inside strings are ignored. A
+    wrong grab is caught downstream by plan schema validation, so this only has to
+    be right for well-formed trailing JSON."""
+    last = None
+    depth = 0
+    start = None
+    in_str = esc = False
+    for i, c in enumerate(text):
+        if in_str:
+            if esc:
+                esc = False
+            elif c == '\\':
+                esc = True
+            elif c == '"':
+                in_str = False
+            continue
+        if c == '"':
+            in_str = True
+        elif c == '{':
+            if depth == 0:
+                start = i
+            depth += 1
+        elif c == '}':
+            if depth > 0:
+                depth -= 1
+                if depth == 0 and start is not None:
+                    last = text[start:i + 1]
+    return last or '{}'
 
 # Send the WHOLE preflight context. This was context[:30000] until 2026-07-16 — a cap
 # sized for an older, smaller context that had since grown to 194KB, so the brief got
@@ -228,13 +280,8 @@ def main():
     # ~20K tokens; the 180s default timed out 3x on 2026-07-16 and killed the run.
     out = chat(system=system, user=user, max_tokens=32000, temperature=0.6, timeout=900)
 
-    # Split markdown + plan.json
-    if '```json' in out:
-        md_part, json_part = out.rsplit('```json', 1)
-        json_part = json_part.split('```', 1)[0].strip()
-    else:
-        md_part = out
-        json_part = '{}'
+    # Split markdown + plan.json (see split_brief_and_plan for the tolerance rules).
+    md_part, json_part = split_brief_and_plan(out)
 
     desc = (f"clawock 盘前深度简报 {today}：港股 + 美股真实持仓的多空辩论、量化因子、"
             f"风控硬闸与 AI 自评战绩（诚实公开，主动建议平均方向分为负）。")
