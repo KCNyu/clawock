@@ -169,6 +169,9 @@ def test_peer_scan_is_trimmed_at_the_source_not_in_a_second_view(pre):
         'divergence_signal': 'MU +3.2% vs self +0.1%',
         'listed_peers': [{'ticker': f'P{i}', 'name': 'x' * 40, 'rel': 'y' * 40,
                           'pct_1d': i, 'pct_5d': i} for i in range(9)],
+        'auto_peers': [{'ticker': f'A{i}', 'name': 'auto',
+                        'label': '同行业·自动', 'pct_1d': i, 'pct_5d': i}
+                       for i in range(7)],
         'private_peers': ['a' * 50] * 6,
         'key_news_keywords': ['k' * 20] * 8,
     }}
@@ -180,6 +183,9 @@ def test_peer_scan_is_trimmed_at_the_source_not_in_a_second_view(pre):
     lines = trimmed['RKLX']['listed_peers']
     assert len(lines) == 5 and lines[0].startswith('P0 ')
     assert '+0.00% (5d +0.00%)' in lines[0]        # both moves stay quotable
+    auto_lines = trimmed['RKLX']['auto_peers']
+    assert len(auto_lines) == 3
+    assert auto_lines[0].startswith('同行业·自动｜A0 auto ')
     # the long tail does not
     assert 'private_peers' not in trimmed['RKLX']
     assert all(isinstance(ln, str) for ln in lines)  # flat: 1 line per peer, not 6
