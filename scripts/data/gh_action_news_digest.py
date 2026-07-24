@@ -53,8 +53,9 @@ def _fetch_finnhub(ticker, since, until, key):
 
 def _fetch_gnews(ticker):
     """Google News RSS fallback. Title-only; no summary."""
-    items = fetch_google_news(f'{ticker} stock', hl='en-US', gl='US', limit=5)
-    return [
+    items, status = fetch_google_news(
+        f'{ticker} stock', hl='en-US', gl='US', limit=5, return_status=True)
+    news = [
         {
             'headline': it.get('title', '')[:200],
             'summary':  '',  # GNews RSS doesn't carry body
@@ -64,6 +65,7 @@ def _fetch_gnews(ticker):
         }
         for it in items
     ]
+    return news, status
 
 
 def fetch_news(tickers, since_days=2):
@@ -72,19 +74,52 @@ def fetch_news(tickers, since_days=2):
     since = (today - timedelta(days=since_days)).isoformat()
     until = today.isoformat()
     out = {}
+    source_status = {}
     for t in tickers:
         items = None
+        statuses = {
+            'finnhub': 'not_configured' if not finnhub_key else 'not_attempted',
+            'google_news': 'not_attempted',
+        }
         if finnhub_key:
             items = _fetch_finnhub(t, since, until, finnhub_key)
+            statuses['finnhub'] = (
+                'failed' if items is None
+                else ('success' if items else 'success_empty')
+            )
         # Fall back to GNews if Finnhub absent, errored, or returned empty list
         if not items:
             why = 'no FINNHUB_KEY' if not finnhub_key else ('error' if items is None else 'empty')
-            gn = _fetch_gnews(t)
+            gn, gn_status = _fetch_gnews(t)
+            statuses['google_news'] = (
+                'success' if gn_status == 'ok' else gn_status)
             print(f'  {t}: 0 finnhub ({why}) → {len(gn)} gnews')
             out[t] = gn
         else:
             print(f'  {t}: {len(items)} finnhub')
             out[t] = items
+        source_status[t] = statuses
+    return out, source_status
+
+
+def _write_artifact(tickers, raw, source_status, *, digest='', no_material_news=False):
+    source_per_ticker = {
+        ticker: (items[0]['origin'] if items else 'none')
+        for ticker, items in raw.items()
+    }
+    out = {
+        'generated_at': datetime.now().isoformat(),
+        'lookback_hours': 48,
+        'tickers': tickers,
+        'digest_markdown': digest.strip(),
+        'raw_news_counts': {ticker: len(items) for ticker, items in raw.items()},
+        'news_source_per_ticker': source_per_ticker,
+        'source_status': source_status,
+        'no_material_news': no_material_news,
+    }
+    os.makedirs('assets/data', exist_ok=True)
+    with open('assets/data/us_news_digest.json', 'w') as handle:
+        json.dump(out, handle, ensure_ascii=False, indent=2)
     return out
 
 
@@ -93,10 +128,19 @@ def main():
     tickers = [h['ticker'] for h in pf['portfolios']['us_stocks']['holdings']
                if h.get('shares', 0) > 0]
 
-    raw = fetch_news(tickers, since_days=2)
+    raw, source_status = fetch_news(tickers, since_days=2)
     if not any(raw.values()):
-        print('all empty news — nothing to digest', file=sys.stderr)
-        return
+        successful_empty = any(
+            status == 'success_empty'
+            for ticker_status in source_status.values()
+            for status in ticker_status.values()
+        )
+        if tickers and not successful_empty:
+            raise RuntimeError('news: all sources failed')
+        _write_artifact(
+            tickers, raw, source_status, no_material_news=True)
+        print('all sources returned no material news — wrote explicit empty digest')
+        return 0
 
     system = "You are Rick, kcn's stock analyst. Distill US holding news into actionable bullets."
 
@@ -124,23 +168,9 @@ def main():
     # News digest: short output but enable thinking helps prioritize signal vs noise
     digest = chat(system=system, user=user, max_tokens=32000, temperature=0.5)
 
-    # Per-ticker provenance so dashboard can show "fallback used"
-    source_per_ticker = {
-        t: (items[0]['origin'] if items else 'none')
-        for t, items in raw.items()
-    }
-    out = {
-        'generated_at': datetime.now().isoformat(),
-        'lookback_hours': 48,
-        'tickers': tickers,
-        'digest_markdown': digest.strip(),
-        'raw_news_counts': {t: len(v) for t, v in raw.items()},
-        'news_source_per_ticker': source_per_ticker,
-    }
-    os.makedirs('assets/data', exist_ok=True)
-    with open('assets/data/us_news_digest.json', 'w') as f:
-        json.dump(out, f, ensure_ascii=False, indent=2)
+    _write_artifact(tickers, raw, source_status, digest=digest)
     print(f'  digest size: {len(digest)} chars')
+    return 0
 
 
 if __name__ == '__main__':

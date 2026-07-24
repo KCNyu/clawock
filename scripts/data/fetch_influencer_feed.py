@@ -99,14 +99,31 @@ def _within_lookback(dt, cutoff):
         return True  # keep if we can't parse the date rather than drop
 
 
+def _source_status(items):
+    return 'success' if items else 'success_empty'
+
+
+def _parse_published(value):
+    if not isinstance(value, str) or not value.strip():
+        return None
+    try:
+        parsed = datetime.fromisoformat(value.replace('Z', '+00:00'))
+    except ValueError:
+        try:
+            parsed = parsedate_to_datetime(value)
+        except (TypeError, ValueError):
+            return None
+    return parsed.replace(tzinfo=parsed.tzinfo or timezone.utc)
+
+
 def fetch_trump(cutoff):
-    """trumpstruth.org RSS — full post text. Returns list of raw items."""
+    """trumpstruth.org RSS — full post text. Returns (items, source status)."""
     out = []
     try:
         r = requests.get('https://trumpstruth.org/feed', headers=HEADERS, timeout=TIMEOUT)
         if r.status_code != 200:
             print(f'  ⚠️ trump feed HTTP {r.status_code}', file=sys.stderr)
-            return out
+            return out, 'failed'
         root = ET.fromstring(r.text)
         for it in root.findall('.//item'):
             title = (it.findtext('title') or '').strip()
@@ -133,7 +150,8 @@ def fetch_trump(cutoff):
             })
     except Exception as e:
         print(f'  ⚠️ trump feed: {e}', file=sys.stderr)
-    return out
+        return out, 'failed'
+    return out, _source_status(out)
 
 
 MUSK_MAX = 8  # second-hand source — cap so SpaceX-IPO rehash doesn't drown Trump
@@ -147,7 +165,9 @@ def fetch_musk():
     """
     out, seen = [], set()
     query = 'Elon Musk (Tesla OR DOGE OR crypto OR stock OR buy OR SpaceX OR xAI)'
-    for it in fetch_google_news(query, hl='en-US', gl='US', limit=20):
+    news, fetch_status = fetch_google_news(
+        query, hl='en-US', gl='US', limit=20, return_status=True)
+    for it in news:
         title = it.get('title', '')
         if not _is_candidate(title) and 'musk' not in title.lower():
             continue
@@ -167,7 +187,9 @@ def fetch_musk():
         })
         if len(out) >= MUSK_MAX:
             break
-    return out
+    if fetch_status == 'failed':
+        return out, 'failed'
+    return out, _source_status(out)
 
 
 # Serenity (@aleabitoreddit) — her X firehose has no free RSS (same Musk dead-end)
@@ -205,7 +227,7 @@ def fetch_serenity(cutoff):
         r = requests.get(SERENITY_FEED, headers=SERENITY_HEADERS, timeout=TIMEOUT)
         if r.status_code != 200:
             print(f'  ⚠️ serenity feed HTTP {r.status_code}', file=sys.stderr)
-            return out
+            return out, 'failed'
         root = ET.fromstring(r.text)
         for it in root.findall('.//item'):
             title = (it.findtext('title') or '').strip()
@@ -233,7 +255,8 @@ def fetch_serenity(cutoff):
             })
     except Exception as e:
         print(f'  ⚠️ serenity feed: {e}', file=sys.stderr)
-    return out
+        return out, 'failed'
+    return out, _source_status(out)
 
 
 def _dedup_sig(text):
@@ -339,11 +362,17 @@ def llm_filter(candidates, held):
 
 
 def main():
-    cutoff = datetime.now(timezone.utc) - timedelta(hours=LOOKBACK_HOURS)
+    generated = datetime.now(timezone.utc)
+    cutoff = generated - timedelta(hours=LOOKBACK_HOURS)
 
-    trump = fetch_trump(cutoff)
-    musk = fetch_musk()
-    serenity = fetch_serenity(cutoff)
+    trump, trump_status = fetch_trump(cutoff)
+    musk, musk_status = fetch_musk()
+    serenity, serenity_status = fetch_serenity(cutoff)
+    source_status = {
+        'trump': trump_status,
+        'musk': musk_status,
+        'serenity': serenity_status,
+    }
     print(f'  raw: trump={len(trump)} musk={len(musk)} serenity={len(serenity)} '
           f'(after keyword pre-filter)')
 
@@ -403,12 +432,21 @@ def main():
     # Serenity is deliberately NOT retained here: she posts publicly so rarely that
     # an empty fetch is her normal state, not an outage — retaining would pin a
     # weeks-old idea on the radar forever. She simply drops off until she posts again.
-    raw_empty = {'Trump': not trump, 'Musk': not musk}
-    for author in ('Trump', 'Musk'):
-        if raw_empty[author]:
-            retained = [it for it in prev_items if it.get('author') == author]
+    author_sources = {'Trump': 'trump', 'Musk': 'musk'}
+    for author, source in author_sources.items():
+        if source_status[source] == 'failed':
+            retained = []
+            for prior in prev_items:
+                if prior.get('author') != author:
+                    continue
+                published = _parse_published(prior.get('published'))
+                if published is None or published < cutoff:
+                    continue
+                item = dict(prior)
+                item['retained_from_previous'] = True
+                retained.append(item)
             if retained:
-                print(f'  ↻ {author} fetch empty — retaining {len(retained)} prior items',
+                print(f'  ↻ {author} fetch failed — retaining {len(retained)} prior items',
                       file=sys.stderr)
                 items.extend(retained)
 
@@ -431,13 +469,14 @@ def main():
                    if it.get('sector_holdings') and not it.get('held') and not it.get('new_ideas')]
 
     out = {
-        'generated_at':  datetime.now(timezone.utc).isoformat(),
+        'generated_at':  generated.isoformat(),
         'lookback_hours': LOOKBACK_HOURS,
         'sources': {
             'trump':    'trumpstruth.org/feed (primary)',
             'musk':     'google-news-rss (proxy)',
             'serenity': 'aleabitoreddit.substack.com/feed (public posts)',
         },
+        'source_status': source_status,
         'llm_filtered':  bool(scored),
         'counts': {
             'total':       len(items),
