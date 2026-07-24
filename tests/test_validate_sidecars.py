@@ -434,6 +434,48 @@ def test_weekly_rejects_generic_headings_that_are_not_the_required_sections(tmp_
         validators.validate_weekly_review(path)
 
 
+def test_weekly_rejects_fully_english_generic_counterfeit(tmp_path):
+    """2026-07 round-3 review: bare English aliases (nav/calibration/next week/
+    risk trend) let an all-English counterfeit pass. English aliases are now
+    contextual phrases."""
+    body = '\n'.join((
+        '## NAV Methodology', 'p',
+        '## Model Calibration Method', 'p',
+        '## Risk Trend Definitions', 'p',
+        '## Next Week Calendar', 'p',
+        'x' * 1100))
+    path = tmp_path / '2026-W46.md'
+    path.write_text(_weekly('2026-W46', body), encoding='utf-8')
+    with pytest.raises(AssertionError, match='missing required section marker'):
+        validators.validate_weekly_review(path)
+
+
+def test_weekly_nav_requires_weekly_context_not_bare_nav(tmp_path):
+    """A review valid except a `## NAV Methodology` heading fails on NAV — the real
+    section is 'Weekly NAV', bare 'nav' matched unrelated headings."""
+    body = '\n'.join(('## NAV Methodology', 'p', '## Plan Adherence & Calibration', 'p',
+                      '## Risk Evolution', 'p', "## Next Week's Focus", 'p', 'x' * 1100))
+    p = tmp_path / '2026-W49.md'
+    p.write_text(_weekly('2026-W49', body), encoding='utf-8')
+    with pytest.raises(AssertionError, match='NAV/净值'):
+        validators.validate_weekly_review(p)
+
+
+def test_weekly_calibration_requires_plan_or_decision_context(tmp_path):
+    """`Plan Adherence & Calibration` passes; a bare `Model Calibration Method`
+    heading does not satisfy the 决策/校准 section."""
+    def review(cal_heading, week):
+        body = '\n'.join(('## Weekly NAV', 'p', f'## {cal_heading}', 'p',
+                          '## Risk Evolution', 'p', "## Next Week's Focus", 'p', 'x' * 1100))
+        p = tmp_path / f'{week}.md'
+        p.write_text(_weekly(week, body), encoding='utf-8')
+        return p
+
+    validators.validate_weekly_review(review('Plan Adherence & Calibration', '2026-W47'))
+    with pytest.raises(AssertionError, match='决策/校准'):
+        validators.validate_weekly_review(review('Model Calibration Method', '2026-W48'))
+
+
 def test_weekly_risk_warning_heading_alone_does_not_satisfy_risk_evolution(tmp_path):
     """Pin the 风险 tightening: a review that is otherwise complete but has only a
     `## 风险提示` (risk warning) instead of a risk-evolution section fails on it."""

@@ -360,12 +360,17 @@ def validate_weekly_review(
     # `## 净值口径说明` (2026-07 re-review). CJK phrases are literal; English uses
     # `\b…\b` word boundaries so 'nav' ≠ 'navigation'. `下周…关注` allows an inline
     # date range (`下周 (07/20-07/24) 关注`).
+    # English aliases are CONTEXTUAL phrases, not bare words: bare nav/calibration/
+    # next week/risk trend let a fully-English counterfeit pass (`NAV Methodology /
+    # Model Calibration Method / Risk Trend Definitions / Next Week Calendar`,
+    # 2026-07 re-review). Calibration requires plan/decision context so
+    # `Plan Adherence & Calibration` passes but `Model Calibration Method` does not.
     section_patterns = {
-        'NAV/净值':   (r'本周净值', r'周净值', r'\bweekly nav\b', r'\bnav\b'),
-        '决策/校准':  (r'决策兑现', r'决策校准', r'\bbrier\b', r'\bcalibration\b',
-                      r'\badherence\b'),
-        '风险演变':   (r'风险演变', r'\brisk evolution\b', r'\brisk trend\b'),
-        '下周关注':   (r'下周.{0,15}关注', r"\bnext week'?s? focus\b", r'\bnext week\b'),
+        'NAV/净值':   (r'本周净值', r'周净值', r'\bweekly nav\b'),
+        '决策/校准':  (r'决策兑现', r'决策校准',
+                      r'\b(?:plan|decisions?)\b.{0,24}\b(?:adherence|calibration|brier)\b'),
+        '风险演变':   (r'风险演变', r'\brisk evolution\b'),
+        '下周关注':   (r'下周.{0,15}关注', r"\bnext week'?s? focus\b"),
     }
 
     markers = [ln.strip() for ln in body.splitlines()
