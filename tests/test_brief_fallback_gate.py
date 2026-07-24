@@ -81,3 +81,15 @@ def test_fallback_workflow_consults_the_gate_and_does_not_swallow_failure():
     assert all('|| true' not in l for l in invocations), 'postflight failure is being swallowed again'
     # ...but a publishable warn (exit 1) must NOT fail the job; only fail (>=2)/crash does.
     assert '-lt 2' in postflight_run, 'postflight step no longer tolerates a publishable warn (exit 1)'
+
+
+def test_fallback_pushes_any_commit_ahead_of_origin_not_only_a_dirty_index():
+    """2026-07 audit finding #4: postflight's maybe_commit already commits on the
+    ephemeral runner and its push can fail while reporting success; gating the
+    workflow push on a dirty index then discards that commit (green, unpublished).
+    The commit step must push whenever HEAD is ahead of origin/master."""
+    commit_run = _workflow_step_run('Commit + push')
+    assert 'rev-list FETCH_HEAD..HEAD' in commit_run, (
+        'commit step does not push a commit that is ahead of the remote (maybe_commit '
+        'push-failure would be discarded)')
+    assert 'safe_push.sh' in commit_run, 'commit step no longer pushes via safe_push'
