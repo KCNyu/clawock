@@ -262,14 +262,16 @@ def validate_eod_archive(
     portfolio_path = Path(portfolio_path)
     snapshot_date = snapshot_date or str(date.today())
     expected = None
+    held = []
     if portfolio_path.is_file():
         portfolio = json.loads(portfolio_path.read_text(encoding='utf-8'))
-        expected = {
-            holding['ticker']
+        held = [
+            holding
             for region in ('us_stocks', 'hk_stocks')
             for holding in portfolio['portfolios'].get(region, {}).get('holdings', [])
             if holding.get('shares', 0) > 0
-        }
+        ]
+        expected = {h['ticker'] for h in held}
         if not expected:
             print(f'EOD archive coverage validation OK: all-cash portfolio, 0 rows for {snapshot_date}')
             return
@@ -321,7 +323,60 @@ def validate_eod_archive(
                 f"invalid EOD {field} for {row['ticker']}: {row[field]!r}")
         assert finite_number(row['pnl_pct']), (
             f"invalid EOD pnl_pct for {row['ticker']}: {row['pnl_pct']!r}")
+
+    # Price freshness: the archive copies portfolio.json's current_price with no
+    # refresh, so a held holding whose price hasn't updated (a broken quote fetch)
+    # gets archived as this week's close (2026-07 audit finding #9). Each holding's
+    # data_source embeds the quote date; a held holding priced more than
+    # PRICE_STALE_DAYS before the snapshot is rejected. Fail-safe: a data_source
+    # whose date can't be parsed is skipped (never a false archive failure), and
+    # the window is generous enough to clear a long holiday weekend.
+    PRICE_STALE_DAYS = 5
+    snap = date.fromisoformat(snapshot_date)
+    stale = []
+    for h in held:
+        qd = _quote_date(h.get('data_source', ''), snap)
+        if qd is not None and (snap - qd).days > PRICE_STALE_DAYS:
+            stale.append(f"{h['ticker']} ({(snap - qd).days}d old: {h.get('data_source','')[:48]!r})")
+    assert not stale, (
+        f'EOD archive price is stale for {snapshot_date} — quote not refreshed for: '
+        + '; '.join(stale))
     print(f'EOD archive coverage validation OK: {len(today_rows)} rows for {snapshot_date}')
+
+
+_MONTHS = {m: i for i, m in enumerate(
+    ('Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+     'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'), start=1)}
+
+
+def _quote_date(data_source, ref):
+    """Best-effort quote date from a free-text data_source, or None if unparseable.
+
+    Handles the two live shapes — `... Jul 23, 2026 20:01 ET` and `Tencent Jul 24
+    16:00 HKT` (no year) — plus `YYYY/MM/DD` / `YYYY-MM-DD`. A missing year is
+    resolved to the most recent `Mon Day` at or before `ref` (so a Jan quote read
+    on a late-Dec snapshot doesn't jump a year forward). None on any failure —
+    callers must treat unparseable as 'skip', never 'stale'."""
+    if not data_source:
+        return None
+    iso = re.search(r'(\d{4})[/-](\d{2})[/-](\d{2})', data_source)
+    if iso:
+        try:
+            return date(int(iso[1]), int(iso[2]), int(iso[3]))
+        except ValueError:
+            return None
+    m = re.search(r'\b(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+(\d{1,2})'
+                  r'(?:,\s*(\d{4}))?', data_source)
+    if not m:
+        return None
+    mon, day = _MONTHS[m[1]], int(m[2])
+    try:
+        if m[3]:
+            return date(int(m[3]), mon, day)
+        cand = date(ref.year, mon, day)
+        return cand if cand <= ref else date(ref.year - 1, mon, day)
+    except ValueError:
+        return None
 
 
 def validate_weekly_review(
