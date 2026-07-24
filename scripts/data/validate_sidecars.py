@@ -274,13 +274,34 @@ def validate_news_digest(
     tickers = data.get('tickers')
     counts = data.get('raw_news_counts')
     digest = data.get('digest_markdown')
-    assert isinstance(tickers, list) and tickers, 'tickers missing or empty'
+    assert isinstance(tickers, list), 'tickers must be a list'
     assert isinstance(counts, dict), 'raw_news_counts must be an object'
     invalid_counts = [key for key, value in counts.items()
                       if not isinstance(value, int) or isinstance(value, bool)]
     assert not invalid_counts, (
         f'raw_news_counts values must be integers: {invalid_counts}')
     total_news = sum(counts.values())
+    if data.get('no_material_news') is True:
+        assert total_news == 0, 'no_material_news digest contains source news'
+        assert isinstance(digest, str) and not digest.strip(), (
+            'no_material_news digest must not fabricate a narrative')
+        if tickers:
+            source_status = data.get('source_status')
+            assert isinstance(source_status, dict), (
+                'no_material_news source_status must be an object')
+            statuses = [
+                status
+                for per_ticker in source_status.values()
+                if isinstance(per_ticker, dict)
+                for status in per_ticker.values()
+            ]
+            assert 'success_empty' in statuses, (
+                'no_material_news has no successful empty source')
+        print(f'digest validation OK: explicit no-material-news artifact; '
+              f'age={age.total_seconds() / 3600:.2f}h')
+        return
+
+    assert tickers, 'tickers missing or empty'
     assert total_news > 0, 'no source news in generated digest'
     assert isinstance(digest, str) and len(digest.strip()) >= 100, (
         'LLM digest empty or implausibly short')

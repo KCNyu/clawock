@@ -185,6 +185,49 @@ def test_news_digest_rejects_structureless_output(tmp_path, bad, problem):
             snapshot, now=generated_time(snapshot) + timedelta(hours=1))
 
 
+def test_news_digest_accepts_explicit_no_material_news(tmp_path):
+    payload = {
+        'generated_at': GENERATED,
+        'lookback_hours': 48,
+        'tickers': ['AAPL'],
+        'raw_news_counts': {'AAPL': 0},
+        'digest_markdown': '',
+        'news_source_per_ticker': {'AAPL': 'none'},
+        'source_status': {
+            'AAPL': {
+                'finnhub': 'failed',
+                'google_news': 'success_empty',
+            },
+        },
+        'no_material_news': True,
+    }
+    snapshot = write_json(tmp_path / 'news.json', payload)
+
+    validators.validate_news_digest(
+        snapshot, now=generated_time(snapshot) + timedelta(hours=1))
+
+
+def test_no_material_news_without_successful_empty_source_fails(tmp_path):
+    payload = {
+        'generated_at': GENERATED,
+        'lookback_hours': 48,
+        'tickers': ['AAPL'],
+        'raw_news_counts': {'AAPL': 0},
+        'digest_markdown': '',
+        'source_status': {
+            'AAPL': {'finnhub': 'failed', 'google_news': 'failed'},
+        },
+        'no_material_news': True,
+    }
+    snapshot = write_json(tmp_path / 'news.json', payload)
+
+    with pytest.raises(
+            AssertionError,
+            match='no_material_news has no successful empty source'):
+        validators.validate_news_digest(
+            snapshot, now=generated_time(snapshot) + timedelta(hours=1))
+
+
 def test_real_committed_eod_archive_passes(tmp_path):
     archive = ROOT / 'memory/archive/eod-history.csv'
     with archive.open(newline='', encoding='utf-8') as handle:
