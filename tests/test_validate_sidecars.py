@@ -55,10 +55,11 @@ def sentiment_payload(tickers: tuple[str, ...]) -> dict:
     }
 
 
-def influencer_payload(*, items=None) -> dict:
+def influencer_payload(*, items=None, source_status=None) -> dict:
     items = [] if items is None else items
-    return {
+    payload = {
         'generated_at': GENERATED,
+        'lookback_hours': 48,
         'items': items,
         'sources': {'truth_social': 'RSS feed'},
         'counts': {
@@ -71,6 +72,9 @@ def influencer_payload(*, items=None) -> dict:
         'new_ideas': [],
         'sector_hits': [],
     }
+    if source_status is not None:
+        payload['source_status'] = source_status
+    return payload
 
 
 def macro_payload(generated_at: str = GENERATED) -> dict:
@@ -263,9 +267,48 @@ def test_sentiment_legacy_snapshot_without_source_status_still_passes(tmp_path):
 
 
 def test_influencer_quiet_day_with_zero_items_passes(tmp_path):
-    feed = write_json(tmp_path / 'influencer.json', influencer_payload())
+    feed = write_json(tmp_path / 'influencer.json', influencer_payload(
+        source_status={
+            'trump': 'success_empty',
+            'musk': 'success_empty',
+            'serenity': 'failed',
+        }))
 
     validators.validate_influencer(feed)
+
+
+def test_influencer_all_source_outage_with_zero_items_fails(tmp_path):
+    feed = write_json(tmp_path / 'influencer.json', influencer_payload(
+        source_status={
+            'trump': 'failed',
+            'musk': 'failed',
+            'serenity': 'failed',
+        }))
+
+    with pytest.raises(AssertionError, match='influencer: all sources failed'):
+        validators.validate_influencer(feed)
+
+
+def test_influencer_stale_retained_item_fails(tmp_path):
+    item = {
+        'author': 'Trump',
+        'text': 'market statement',
+        'published': '2026-07-14T23:00:00+00:00',
+        'retained_from_previous': True,
+        'relevance': None,
+    }
+    feed = write_json(tmp_path / 'influencer.json', influencer_payload(
+        items=[item],
+        source_status={
+            'trump': 'failed',
+            'musk': 'failed',
+            'serenity': 'failed',
+        }))
+
+    with pytest.raises(
+            AssertionError,
+            match='retained item 0 exceeds declared lookback window'):
+        validators.validate_influencer(feed)
 
 
 def test_sentiment_missing_active_ticker_fails(tmp_path):

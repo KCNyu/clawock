@@ -10,6 +10,7 @@ import re
 import struct
 import sys
 from datetime import date, datetime, timedelta, timezone
+from email.utils import parsedate_to_datetime
 from pathlib import Path
 
 
@@ -164,9 +165,10 @@ def validate_influencer(path: Path | str) -> None:
     generated_at = data.get('generated_at')
     assert isinstance(generated_at, str), 'generated_at missing'
     try:
-        datetime.fromisoformat(generated_at.replace('Z', '+00:00'))
+        generated = datetime.fromisoformat(generated_at.replace('Z', '+00:00'))
     except ValueError:
         raise AssertionError('generated_at is not a valid ISO timestamp') from None
+    generated = generated.replace(tzinfo=generated.tzinfo or timezone.utc)
 
     items = data.get('items')
     assert isinstance(items, list), 'items must be a list'
@@ -182,6 +184,29 @@ def validate_influencer(path: Path | str) -> None:
                     and not isinstance(relevance, bool)
                     and math.isfinite(relevance))), (
             f'item {index} has invalid relevance')
+        if item.get('retained_from_previous'):
+            lookback_hours = data.get('lookback_hours')
+            assert (isinstance(lookback_hours, (int, float))
+                    and not isinstance(lookback_hours, bool)
+                    and math.isfinite(lookback_hours)
+                    and lookback_hours > 0), 'lookback_hours missing or invalid'
+            published = item.get('published')
+            assert isinstance(published, str) and published.strip(), (
+                f'retained item {index} missing published timestamp')
+            try:
+                try:
+                    published_at = datetime.fromisoformat(
+                        published.replace('Z', '+00:00'))
+                except ValueError:
+                    published_at = parsedate_to_datetime(published)
+            except (TypeError, ValueError):
+                raise AssertionError(
+                    f'retained item {index} has invalid published timestamp') from None
+            published_at = published_at.replace(
+                tzinfo=published_at.tzinfo or timezone.utc)
+            age = generated.astimezone(timezone.utc) - published_at.astimezone(timezone.utc)
+            assert age <= timedelta(hours=lookback_hours), (
+                f'retained item {index} exceeds declared lookback window')
 
     sources = data.get('sources')
     assert isinstance(sources, dict) and sources, 'sources missing or empty'
@@ -189,6 +214,16 @@ def validate_influencer(path: Path | str) -> None:
                and isinstance(source, str) and source.strip()
                for name, source in sources.items()), (
         'sources must map non-empty names to non-empty descriptions')
+    source_status = data.get('source_status')
+    if source_status is not None:
+        allowed_statuses = {'success', 'success_empty', 'failed'}
+        assert isinstance(source_status, dict) and source_status, (
+            'source_status must be a non-empty object')
+        assert all(status in allowed_statuses for status in source_status.values()), (
+            'source_status contains an invalid status')
+        if not items:
+            assert any(status != 'failed' for status in source_status.values()), (
+                'influencer: all sources failed')
 
     counts = data.get('counts')
     assert isinstance(counts, dict), 'counts missing'

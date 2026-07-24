@@ -2,9 +2,11 @@
 from __future__ import annotations
 
 import json
+from datetime import datetime, timedelta, timezone
 
 import pytest
 
+from scripts.data import fetch_influencer_feed
 from scripts.data import fetch_sentiment
 from scripts.data import validate_sidecars
 
@@ -67,3 +69,70 @@ def test_sentiment_producer_marks_total_http_outage_failed(
     with pytest.raises(AssertionError, match='sentiment: all sources failed'):
         validate_sidecars.validate_sentiment(
             output, _portfolio(tmp_path / 'portfolio.json'))
+
+
+def _run_influencer(tmp_path, monkeypatch, statuses, previous=None):
+    output = tmp_path / 'influencer.json'
+    if previous is not None:
+        output.write_text(json.dumps(previous), encoding='utf-8')
+    monkeypatch.setattr(fetch_influencer_feed, 'OUT_FILE', str(output))
+    monkeypatch.setattr(
+        fetch_influencer_feed, 'fetch_trump',
+        lambda _cutoff: ([], statuses['trump']))
+    monkeypatch.setattr(
+        fetch_influencer_feed, 'fetch_musk',
+        lambda: ([], statuses['musk']))
+    monkeypatch.setattr(
+        fetch_influencer_feed, 'fetch_serenity',
+        lambda _cutoff: ([], statuses['serenity']))
+    monkeypatch.setattr(fetch_influencer_feed, 'load_holdings', lambda: [])
+    monkeypatch.setattr(
+        fetch_influencer_feed, 'llm_filter',
+        lambda _candidates, _held: {})
+    fetch_influencer_feed.main()
+    return output, json.loads(output.read_text(encoding='utf-8'))
+
+
+def test_influencer_producer_quiet_success_empty_passes(tmp_path, monkeypatch):
+    output, payload = _run_influencer(tmp_path, monkeypatch, {
+        'trump': 'success_empty',
+        'musk': 'success_empty',
+        'serenity': 'failed',
+    })
+
+    assert payload['items'] == []
+    validate_sidecars.validate_influencer(output)
+
+
+def test_influencer_producer_total_outage_is_rejected(tmp_path, monkeypatch):
+    output, payload = _run_influencer(tmp_path, monkeypatch, {
+        'trump': 'failed',
+        'musk': 'failed',
+        'serenity': 'failed',
+    })
+
+    assert payload['items'] == []
+    with pytest.raises(AssertionError, match='influencer: all sources failed'):
+        validate_sidecars.validate_influencer(output)
+
+
+def test_influencer_retains_only_fresh_items_with_original_timestamp(
+        tmp_path, monkeypatch):
+    fresh = (datetime.now(timezone.utc) - timedelta(hours=2)).isoformat()
+    stale = (datetime.now(timezone.utc) - timedelta(hours=72)).isoformat()
+    previous = {
+        'items': [
+            {'author': 'Trump', 'text': 'fresh statement', 'published': fresh},
+            {'author': 'Musk', 'text': 'stale statement', 'published': stale},
+        ],
+    }
+    output, payload = _run_influencer(
+        tmp_path, monkeypatch,
+        {'trump': 'failed', 'musk': 'failed', 'serenity': 'failed'},
+        previous=previous)
+
+    assert [(item['text'], item['published']) for item in payload['items']] == [
+        ('fresh statement', fresh),
+    ]
+    assert payload['items'][0]['retained_from_previous'] is True
+    validate_sidecars.validate_influencer(output)
