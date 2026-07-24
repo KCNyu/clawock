@@ -141,45 +141,40 @@ publisher 发布。
 ```bash
 python3 /root/.openclaw/workspace/scripts/harness/report_preflight.py --market us --phase {open|close}
 ```
-跑 `scripts/data/analyze_us_stocks.py --wechat --md-table` + 抽信号 + 异动，输出 context JSON。
+跑 `scripts/data/analyze_us_stocks.py --wechat --md-table` + 抽信号 + 异动，写 context 文件，并把**同一份 JSON** 打到 stdout（含 `context_id`；末行是 `context_path:`）。若输出 `market_closed`，本回合到此结束。
 
-#### Step 2: 读 context，写报告
-⚠️ **context 路径只认 preflight 最后一行打印的 `context_path: <绝对路径>`**，照抄它去 read，不要自己拼文件名。文件名里的日期是**跑批当天**（美股收盘 cron 在 HKT 次日凌晨触发），不是行情 session 那天 —— 2026-07-24 就因为把它猜成 07-23，读到隔夜残留、把一天前的数字发进了微信。`context_path:` 是最后一行，`| tail -N` 也切不掉。
+#### Step 2: 只写分析散文
 
-关键字段：
-- `raw_wechat_block` — 脚本输出，**verbatim 拷贝到消息开头**。holdings 是 **markdown 表格** (7 列：代码/股/成本/现价/今日/浮%/浮$；2026-05-21 起 visual-width-aware 渲染走 `_wechat_table.py`，去 $ 前缀加 浮$ 金额列，mobile WeChat 不渲染表格但每行视觉宽度精确一致)。⚠️ **表头/分隔/数据三类行每字符 1:1 复制**，不要重写分隔行 — 列数必须一致，postflight 会 fail。
-- `title` — 自动选好
-- `signal_count` / `anomalies` — 用于分析段
-- `needs_risk_section` — STOP+TRIM ≥ 2 时为 true
-- `commit_msg` — postflight 用
+**你不写数据块、不写表格、不写标题** —— postflight 自己从 context 拼。2026-07-24 之前是让模型 verbatim 拷贝数据块，结果模型读错 context 就把一天前的数字发了出去；现在那条回路已经拆掉，数字在发送时刻直接取自 context 文件。
 
-报告结构（postflight 校验）：
+用 stdout 里的字段：`signal_count` / `anomalies` / `index_direction` / `needs_risk_section` / `peer_scan`（板块 + 同业 Top 5 今日/5日涨跌 + 背离信号，板块全景段直接用它）；`raw_wechat_block` 是给你参考数字用的，**不要抄进散文**。
+
+写这几段，**存成 `memory/.tmp/report-prose-us-{phase}.md`**：
 ```
-{title}
-
-{raw_wechat_block 原样}
-
 ▎情绪面
-{Finnhub news + 纳指 tone → market direction；⚡ **板块全景**：读 context.json 的 `peer_scan`（已含 theme + 排好序的同业涨跌），对应主题成分今日 Top 5 + 你持仓位置 + 1 句归因。行情优先内置 web search；tavily 仅开盘/收盘或真事件用，带 `--bucket report`/`intraday`，盘中常规盯盘不烧 Tavily}
+{Finnhub news + 纳指 tone → market direction；⚡ **板块全景**：用 peer_scan 写对应主题今日 Top 5 + 你持仓位置 + 1 句归因。行情优先内置 web search；tavily 仅开盘/收盘或真事件用，带 `--bucket report`，盘中常规盯盘不烧 Tavily}
 
 ▎技术面
 {RSI / MA stance → overbought/oversold/breakout}
 
 ▎操作建议
-{具体票 + 价位；如 needs_risk_section 加 ▎风险提示}
+{具体票 + 价位}
+
+▎风险提示（仅当 needs_risk_section=true）
 ```
 
 #### Step 3: 跑 postflight
 ```bash
-python3 /root/.openclaw/workspace/scripts/harness/report_postflight.py --market us --phase {phase} <<< "{报告}"
+python3 /root/.openclaw/workspace/scripts/harness/report_postflight.py --market us --phase {phase} --context-id {Step 1 的 context_id} --text-file /root/.openclaw/workspace/memory/.tmp/report-prose-us-{phase}.md
 ```
+`--context-id` 必须是 Step 1 打印的那个：不匹配说明 context 已被换代（散文和数据不同代），postflight 拒绝拼装、只发数据块。散文文件超过 30 分钟没更新同样拒发（防重发上个 slot 的旧文本）。
 pass/warn 自动刷新 snapshot/dashboard，提交 scoped 产物并经 `safe_push.sh` 推送。
 
 #### Step 4: 输出报告（仅存档；微信已由 postflight 主发，禁用 message 工具）
 
 微信投递已在 **Step 3 的 `report_postflight` 用 fresh-token 短连接发出**——这是
 **唯一微信路径**（cron 设 `--no-deliver`，不再 announce），同时会镜像 Telegram。
-拼 `wechat_prefix` + 报告作为**本回合最终文本回复**直接输出即可（仅留痕）。
+把 postflight 返回的 `status` + `issues` 作为**本回合最终文本回复**输出即可（仅留痕）。
 **不要自己调 `message`/send 工具**；`report_watchdog` 只在 Telegram marker 缺失/失败时
 补投 Telegram，不重发微信。
 

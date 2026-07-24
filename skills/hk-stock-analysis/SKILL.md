@@ -133,52 +133,44 @@ postflight 现在把空输入/旧文件单独判成 `status: input_error`（不�
 ### Mode 6 — WeChat Briefing (cron-driven, harness 化 ✨)
 **When:** 港股开盘/午盘/午后/收盘 4 个 cron job 全部走这个 mode。
 
-**Harness 4-step**（preflight → LLM → postflight → wechat）：
+**Harness 4-step**（preflight → 散文 → postflight 拼装+投递 → 存档）：
 
 #### Step 1: 跑 preflight
 ```bash
 python3 /root/.openclaw/workspace/scripts/harness/report_preflight.py --market hk --phase {open|mid|pm|close}
 ```
-内部跑 `scripts/data/analyze_hk_stocks.py --wechat`，抽信号 (WATCH/STOP/TRIM 计数) + 异动 (≥3% 涨跌) + 恒指/恒科方向，输出 context JSON。
+内部跑 `scripts/data/analyze_hk_stocks.py --wechat`，抽信号 (WATCH/STOP/TRIM 计数) + 异动 (≥3% 涨跌) + 恒指/恒科方向，写 context 文件，并把**同一份 JSON** 打到 stdout（含 `context_id`；末行是 `context_path:`）。若输出 `market_closed`，本回合到此结束。
 
-#### Step 2: 读 context，写报告
-⚠️ **context 路径只认 preflight 最后一行打印的 `context_path: <绝对路径>`**，照抄它去 read，不要自己拼文件名。文件名里的日期是**跑批当天**，不是行情 session 那天 —— 2026-07-24 美股收盘就因为猜错日期读到隔夜残留、把一天前的数字发进了微信。`context_path:` 是最后一行，`| tail -N` 也切不掉。
+#### Step 2: 只写分析散文
 
-context.json 关键字段：
-- `raw_wechat_block` — 脚本数据块，**verbatim 拷贝到消息开头**。⚠️ 若含 markdown 表格（7 列 holdings），**表头/分隔/数据三类行每字符 1:1 复制**，不要重写分隔行 — 列数必须一致，postflight 会 fail。
-- `title` — WeChat 标题（按 phase 自动选）
-- `signal_count` / `anomalies` / `index_direction` — 用于写分析段
-- `peer_scan` — 每持仓的板块 + 同业今日/5日涨跌(已排序)+ 背离信号,**板块全景段直接用它**
-- `needs_risk_section` — STOP+TRIM ≥ 2 时为 true，必须加 ▎风险提示 段
-- `commit_msg` — postflight 用
+**你不写数据块、不写表格、不写标题** —— postflight 自己从 context 拼。2026-07-24 之前是让模型 verbatim 拷贝数据块，结果模型读错 context 就把一天前的数字发了出去；现在那条回路已经拆掉，数字在发送时刻直接取自 context 文件。
 
-报告结构（postflight 会校验）：
+用 stdout 里的字段：`signal_count` / `anomalies` / `index_direction` / `needs_risk_section` / `peer_scan`（板块 + 同业 Top 5 今日/5日涨跌 + 背离信号，板块全景段直接用它）；`raw_wechat_block` 是给你参考数字用的，**不要抄进散文**。
+
+写这几段，**存成 `memory/.tmp/report-prose-hk-{phase}.md`**：
 ```
-{title}
-
-{raw_wechat_block 原样}
-
 ▎情绪面
-{Finnhub 新闻 + 恒指/恒科方向 → 大盘判断（2-3 行）；⚡ **板块全景**：读 context.json 的 `peer_scan`（已含 theme + 排好序的同业涨跌），今日板块 Top 5 + 你持仓位置 + 1 句归因。行情优先内置 web search；tavily 仅开盘/收盘或真事件用，带 `--bucket report`/`intraday`，盘中常规盯盘不烧 Tavily}
+{Finnhub 新闻 + 恒指/恒科方向 → 大盘判断（2-3 行）；⚡ **板块全景**：用 peer_scan 写今日板块 Top 5 + 你持仓位置 + 1 句归因。行情优先内置 web search；tavily 仅开盘/收盘或真事件用，带 `--bucket report`，盘中常规盯盘不烧 Tavily}
 
 ▎技术面
 {结合 anomalies + signals → 超买/超卖/突破（2-3 行）}
 
 ▎操作建议
-{具体票 + 价位；如 needs_risk_section 加 ▎风险提示}
+{具体票 + 价位}
+
+▎风险提示（仅当 needs_risk_section=true）
 ```
 
 #### Step 3: 跑 postflight
 ```bash
-python3 /root/.openclaw/workspace/scripts/harness/report_postflight.py --market hk --phase {phase} <<< "{完整报告文本}"
+python3 /root/.openclaw/workspace/scripts/harness/report_postflight.py --market hk --phase {phase} --context-id {Step 1 的 context_id} --text-file /root/.openclaw/workspace/memory/.tmp/report-prose-hk-{phase}.md
 ```
-返回 JSON 含 `status` (pass/warn/fail) + `wechat_prefix`。pass/warn 自动刷新
-snapshot/dashboard，提交 scoped 产物并经 `safe_push.sh` 推送。
+`--context-id` 必须是 Step 1 打印的那个：不匹配说明 context 已被换代（散文和数据不同代），postflight 拒绝拼装、只发数据块。散文文件超过 30 分钟没更新同样拒发。返回 JSON 含 `status` (pass/warn/fail)。pass/warn 自动拼装+发送+刷新 snapshot/dashboard，提交 scoped 产物并经 `safe_push.sh` 推送。
 
 #### Step 4: 输出报告（仅存档；微信已由 postflight 主发，禁用 message 工具）
 微信投递已在 **Step 3 的 `report_postflight` 用 fresh-token 短连接发出**——这是
 **唯一微信路径**（cron 设 `--no-deliver`，不再 announce），同时会镜像 Telegram。
-把 `wechat_prefix` 拼到完整报告前面作为**本回合最终文本回复**输出即可（仅留痕）。
+把 postflight 返回的 `status` + `issues` 作为**本回合最终文本回复**输出即可（仅留痕）。
 **不要调 `message`/send 工具**；`report_watchdog` 只在 Telegram marker 缺失/失败时
 补投 Telegram，不重发微信。
 
