@@ -58,6 +58,14 @@ jobs:
         if: github.event_name == 'workflow_dispatch'
         run: python3 scripts/data/validate_sidecars.py gif
 
+      # validate_screenshots now fully decodes the PNGs (finding #12), and this
+      # runs on BOTH schedule and dispatch — the GIF steps above install Pillow
+      # only on workflow_dispatch, so install it unconditionally here. Kept as a
+      # separate step so the validate step's command stays exactly the validator
+      # invocation (workflow-contract test).
+      - name: Install Pillow for screenshot decode
+        run: python3 -m pip install --quiet --upgrade Pillow
+
       - name: Validate screenshots
         run: python3 scripts/data/validate_sidecars.py screenshots
 
