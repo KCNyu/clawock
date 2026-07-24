@@ -23,6 +23,7 @@ Side effects:
 """
 
 import json
+import re
 import sys
 import subprocess
 from datetime import datetime, timedelta
@@ -37,13 +38,51 @@ sys.path.insert(0, str(WS / 'scripts' / 'data'))
 import trading_calendar  # noqa: E402
 import decision_v2  # noqa: E402
 
-REQUIRED_MARKDOWN_TOKENS = [
-    'Header', 'Tier 1', 'Tier 2', 'Tier 3', 'Judge', 'Confidence', 'Next-Session',
-    '同行扫描',  # NEW: peer rotation section
-]
+# Required concepts and the section labels the brief model may legitimately emit.
+# The canonical keys preserve the existing missing-section issue text.  The aliases
+# come from the prompt that is sent verbatim to the model:
+#   skills/daily-deep-brief/SKILL.md
+#   - Header / Tier 1 / Tier 2 / Tier 3 / Confidence / Next-Session: lines 503-515
+#   - the Chinese Tier/Judge/Confidence/next-session semantics: lines 94, 155-174,
+#     296-306, and 480-495
+#   - 同行扫描 / Peer Rotation: lines 332-358 and 509
+# The Chinese labels are the direct localized renderings of those named concepts;
+# 盘前深度简报 is also the prompt's own report name (lines 3 and 635).
+REQUIRED_MARKDOWN_SECTIONS = {
+    'Header': ('Header', '盘前摘要', '盘前深度简报'),
+    'Tier 1': ('Tier 1', '第一层'),
+    'Tier 2': ('Tier 2', '第二层'),
+    'Tier 3': ('Tier 3', '第三层'),
+    'Judge': ('Judge', '裁决'),
+    'Confidence': ('Confidence', '信心'),
+    'Next-Session': ('Next-Session', 'Next Session', '下一交易时段'),
+    '同行扫描': ('同行扫描', 'Peer Rotation'),
+}
 HKD_USD_BUG_PATTERNS = [
     '合计 -4423', '合计 -4,423', '合计 -4423.0',
 ]
+
+
+def _section_markers(text):
+    """Return real section-marker lines, not incidental aliases in prose."""
+    return [
+        line.strip()
+        for line in text.splitlines()
+        if (re.match(r'^\s{0,3}#{1,6}\s+\S', line)
+            or re.match(r'^\s{0,3}\*\*\S', line)
+            or re.match(r'^\s{0,3}▎\s*\S', line))
+    ]
+
+
+def _marker_has_alias(marker, alias):
+    """Match ASCII labels as words and CJK labels as literal phrases."""
+    if alias.isascii():
+        return re.search(
+            rf'(?<![A-Za-z0-9]){re.escape(alias)}(?![A-Za-z0-9])',
+            marker,
+            re.IGNORECASE,
+        ) is not None
+    return alias in marker
 
 
 def validate_plan_json(path, context=None):
@@ -103,9 +142,11 @@ def validate_markdown(path, context=None):
         return [f'pre-open.md 读取失败: {e}']
 
     issues = []
-    for token in REQUIRED_MARKDOWN_TOKENS:
-        if token not in text:
-            issues.append(f'pre-open.md 缺段标记 "{token}"')
+    markers = _section_markers(text)
+    for concept, aliases in REQUIRED_MARKDOWN_SECTIONS.items():
+        if not any(_marker_has_alias(marker, alias)
+                   for marker in markers for alias in aliases):
+            issues.append(f'pre-open.md 缺段标记 "{concept}"')
 
     for bug in HKD_USD_BUG_PATTERNS:
         if bug in text:
