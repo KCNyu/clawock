@@ -55,10 +55,11 @@ def sentiment_payload(tickers: tuple[str, ...]) -> dict:
     }
 
 
-def influencer_payload(*, items=None) -> dict:
+def influencer_payload(*, items=None, source_status=None) -> dict:
     items = [] if items is None else items
-    return {
+    payload = {
         'generated_at': GENERATED,
+        'lookback_hours': 48,
         'items': items,
         'sources': {'truth_social': 'RSS feed'},
         'counts': {
@@ -71,6 +72,9 @@ def influencer_payload(*, items=None) -> dict:
         'new_ideas': [],
         'sector_hits': [],
     }
+    if source_status is not None:
+        payload['source_status'] = source_status
+    return payload
 
 
 def macro_payload(generated_at: str = GENERATED) -> dict:
@@ -181,6 +185,49 @@ def test_news_digest_rejects_structureless_output(tmp_path, bad, problem):
             snapshot, now=generated_time(snapshot) + timedelta(hours=1))
 
 
+def test_news_digest_accepts_explicit_no_material_news(tmp_path):
+    payload = {
+        'generated_at': GENERATED,
+        'lookback_hours': 48,
+        'tickers': ['AAPL'],
+        'raw_news_counts': {'AAPL': 0},
+        'digest_markdown': '',
+        'news_source_per_ticker': {'AAPL': 'none'},
+        'source_status': {
+            'AAPL': {
+                'finnhub': 'failed',
+                'google_news': 'success_empty',
+            },
+        },
+        'no_material_news': True,
+    }
+    snapshot = write_json(tmp_path / 'news.json', payload)
+
+    validators.validate_news_digest(
+        snapshot, now=generated_time(snapshot) + timedelta(hours=1))
+
+
+def test_no_material_news_without_successful_empty_source_fails(tmp_path):
+    payload = {
+        'generated_at': GENERATED,
+        'lookback_hours': 48,
+        'tickers': ['AAPL'],
+        'raw_news_counts': {'AAPL': 0},
+        'digest_markdown': '',
+        'source_status': {
+            'AAPL': {'finnhub': 'failed', 'google_news': 'failed'},
+        },
+        'no_material_news': True,
+    }
+    snapshot = write_json(tmp_path / 'news.json', payload)
+
+    with pytest.raises(
+            AssertionError,
+            match='no_material_news has no successful empty source'):
+        validators.validate_news_digest(
+            snapshot, now=generated_time(snapshot) + timedelta(hours=1))
+
+
 def test_real_committed_eod_archive_passes(tmp_path):
     archive = ROOT / 'memory/archive/eod-history.csv'
     with archive.open(newline='', encoding='utf-8') as handle:
@@ -238,15 +285,73 @@ def test_json_artifacts_fail_clearly(
 
 def test_sentiment_quiet_day_with_zero_results_passes(tmp_path):
     portfolio = write_portfolio(tmp_path / 'portfolio.json', ('AAPL',))
+    payload = sentiment_payload(('AAPL',))
+    payload['source_status'] = {'reddit': 'ok', 'google_news': 'failed'}
+    snapshot = write_json(tmp_path / 'sentiment.json', payload)
+
+    validators.validate_sentiment(snapshot, portfolio)
+
+
+def test_sentiment_all_source_outage_with_zero_results_fails(tmp_path):
+    portfolio = write_portfolio(tmp_path / 'portfolio.json', ('AAPL',))
+    payload = sentiment_payload(('AAPL',))
+    payload['source_status'] = {'reddit': 'failed', 'google_news': 'failed'}
+    snapshot = write_json(tmp_path / 'sentiment.json', payload)
+
+    with pytest.raises(AssertionError, match='sentiment: all sources failed'):
+        validators.validate_sentiment(snapshot, portfolio)
+
+
+def test_sentiment_legacy_snapshot_without_source_status_still_passes(tmp_path):
+    portfolio = write_portfolio(tmp_path / 'portfolio.json', ('AAPL',))
     snapshot = write_json(tmp_path / 'sentiment.json', sentiment_payload(('AAPL',)))
 
     validators.validate_sentiment(snapshot, portfolio)
 
 
 def test_influencer_quiet_day_with_zero_items_passes(tmp_path):
-    feed = write_json(tmp_path / 'influencer.json', influencer_payload())
+    feed = write_json(tmp_path / 'influencer.json', influencer_payload(
+        source_status={
+            'trump': 'success_empty',
+            'musk': 'success_empty',
+            'serenity': 'failed',
+        }))
 
     validators.validate_influencer(feed)
+
+
+def test_influencer_all_source_outage_with_zero_items_fails(tmp_path):
+    feed = write_json(tmp_path / 'influencer.json', influencer_payload(
+        source_status={
+            'trump': 'failed',
+            'musk': 'failed',
+            'serenity': 'failed',
+        }))
+
+    with pytest.raises(AssertionError, match='influencer: all sources failed'):
+        validators.validate_influencer(feed)
+
+
+def test_influencer_stale_retained_item_fails(tmp_path):
+    item = {
+        'author': 'Trump',
+        'text': 'market statement',
+        'published': '2026-07-14T23:00:00+00:00',
+        'retained_from_previous': True,
+        'relevance': None,
+    }
+    feed = write_json(tmp_path / 'influencer.json', influencer_payload(
+        items=[item],
+        source_status={
+            'trump': 'failed',
+            'musk': 'failed',
+            'serenity': 'failed',
+        }))
+
+    with pytest.raises(
+            AssertionError,
+            match='retained item 0 exceeds declared lookback window'):
+        validators.validate_influencer(feed)
 
 
 def test_sentiment_missing_active_ticker_fails(tmp_path):
@@ -341,7 +446,21 @@ def test_macro_quote_failure_markers_do_not_count_as_coverage(tmp_path, quote):
 
     with pytest.raises(
             AssertionError,
-            match='snapshot has zero successfully populated fields'):
+            match='snapshot has zero successful market quotes'):
+        validators.validate_macro(
+            path, now=datetime(2026, 7, 17, 1, tzinfo=timezone.utc))
+
+
+def test_macro_supplemental_sources_cannot_replace_market_quotes(tmp_path):
+    payload = macro_payload()
+    payload['vix'] = None
+    payload['fear_greed'] = {'score': 55}
+    payload['fed_press'] = [{'title': 'Federal Reserve press release'}]
+    path = write_json(tmp_path / 'macro.json', payload)
+
+    with pytest.raises(
+            AssertionError,
+            match='snapshot has zero successful market quotes'):
         validators.validate_macro(
             path, now=datetime(2026, 7, 17, 1, tzinfo=timezone.utc))
 

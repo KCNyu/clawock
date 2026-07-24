@@ -28,6 +28,7 @@ HEADERS = {'User-Agent': UA}
 
 REDDIT_SUBS = ['wallstreetbets', 'stocks', 'investing']
 TIMEOUT = 10
+SOURCE_STATUS = {'reddit': 'failed', 'google_news': 'failed'}
 
 
 def load_tickers():
@@ -56,6 +57,7 @@ def fetch_reddit(ticker, mentions_only=False):
             r = requests.get(url, headers=HEADERS, timeout=TIMEOUT)
             if r.status_code != 200:
                 continue
+            SOURCE_STATUS['reddit'] = 'ok'
             children = r.json().get('data', {}).get('children', [])
             total += len(children)
             if mentions_only:
@@ -75,13 +77,14 @@ def fetch_reddit(ticker, mentions_only=False):
     return total, posts[:6]
 
 
-def fetch_google_news(query, hl='en-US', gl='US', limit=8):
+def fetch_google_news(query, hl='en-US', gl='US', limit=8, return_status=False):
     """Returns up to `limit` recent headlines from Google News RSS."""
     try:
         url = f'https://news.google.com/rss/search?q={quote(query)}&hl={hl}&gl={gl}&ceid={gl}:{hl.split("-")[0]}'
         r = requests.get(url, headers=HEADERS, timeout=TIMEOUT)
         if r.status_code != 200:
-            return []
+            return ([], 'failed') if return_status else []
+        SOURCE_STATUS['google_news'] = 'ok'
         root = ET.fromstring(r.text)
         items = []
         for it in root.findall('.//item')[:limit]:
@@ -95,10 +98,12 @@ def fetch_google_news(query, hl='en-US', gl='US', limit=8):
             if ' - ' in title:
                 title = title.rsplit(' - ', 1)[0]
             items.append({'title': title, 'source': src, 'published': pub})
+        if return_status:
+            return items, ('ok' if items else 'success_empty')
         return items
     except Exception as e:
         print(f'  ⚠️ google-news {query}: {e}', file=sys.stderr)
-        return []
+        return ([], 'failed') if return_status else []
 
 
 def scan_ticker(t):
@@ -134,6 +139,7 @@ def scan_ticker(t):
 
 
 def main():
+    SOURCE_STATUS.update(reddit='failed', google_news='failed')
     tickers = load_tickers()
     print(f'Scanning {len(tickers)} active tickers …')
 
@@ -146,6 +152,7 @@ def main():
     for t in tickers:
         out['tickers'].append(scan_ticker(t))
         time.sleep(0.3)  # global rate-limit safety
+    out['source_status'] = dict(SOURCE_STATUS)
 
     os.makedirs(os.path.dirname(OUT_FILE), exist_ok=True)
     # Atomic write

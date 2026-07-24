@@ -10,6 +10,7 @@ import re
 import struct
 import sys
 from datetime import date, datetime, timedelta, timezone
+from email.utils import parsedate_to_datetime
 from pathlib import Path
 
 
@@ -51,23 +52,25 @@ def validate_macro(path: Path | str, *, now: datetime | None = None) -> None:
 
     quote_fields = ('vix', 'treasury_10y', 'dxy', 'hsi', 'hstech', 'spx', 'nasdaq')
     quote_sources = ('stooq', 'tencent', 'yahoo')
-    successful = [
+    market_quotes = [
         field for field in quote_fields
         if isinstance(data.get(field), dict)
         and finite_number(data[field].get('price'))
         and data[field]['price'] > 0
         and data[field].get('source') in quote_sources
     ]
+    supplemental = []
     fear_greed = data.get('fear_greed')
     if isinstance(fear_greed, dict) and finite_number(fear_greed.get('score')):
-        successful.append('fear_greed')
+        supplemental.append('fear_greed')
     fed_press = data.get('fed_press')
     if (isinstance(fed_press, list)
             and any(isinstance(item, dict) and str(item.get('title', '')).strip()
                     for item in fed_press)):
-        successful.append('fed_press')
+        supplemental.append('fed_press')
 
-    assert successful, 'snapshot has zero successfully populated fields'
+    assert market_quotes, 'snapshot has zero successful market quotes'
+    successful = market_quotes + supplemental
     print(f'macro coverage validation OK: {", ".join(successful)}; '
           f'age={age.total_seconds() / 3600:.2f}h')
 
@@ -112,6 +115,7 @@ def validate_sentiment(
     tickers = data.get('tickers')
     assert isinstance(tickers, list), 'tickers must be a list'
     scanned = set()
+    result_count = 0
     for index, row in enumerate(tickers):
         assert isinstance(row, dict), f'ticker result {index} is not an object'
         ticker = row.get('ticker')
@@ -123,16 +127,23 @@ def validate_sentiment(
         mentions = row.get('reddit_mentions_7d')
         assert (isinstance(mentions, int) and not isinstance(mentions, bool)
                 and mentions >= 0), f'{ticker} has invalid reddit mention count'
+        result_count += mentions
         result_fields = ('reddit_posts', 'google_news_en', 'google_news_zh')
         for field in result_fields:
             results = row.get(field)
             assert isinstance(results, list), f'{ticker} {field} must be a list'
             assert all(isinstance(item, dict) for item in results), (
                 f'{ticker} {field} contains a malformed item')
+            result_count += len(results)
         scanned.add(ticker)
 
     missing = sorted(expected - scanned)
     assert not missing, f'sentiment snapshot missing active tickers: {", ".join(missing)}'
+    source_status = data.get('source_status')
+    if scanned and result_count == 0 and source_status is not None:
+        healthy = (isinstance(source_status, dict)
+                   and any(status == 'ok' for status in source_status.values()))
+        assert healthy, 'sentiment: all sources failed'
     print(f'sentiment structural validation OK: {len(scanned)} tickers (zero results allowed)')
 
 
@@ -154,9 +165,10 @@ def validate_influencer(path: Path | str) -> None:
     generated_at = data.get('generated_at')
     assert isinstance(generated_at, str), 'generated_at missing'
     try:
-        datetime.fromisoformat(generated_at.replace('Z', '+00:00'))
+        generated = datetime.fromisoformat(generated_at.replace('Z', '+00:00'))
     except ValueError:
         raise AssertionError('generated_at is not a valid ISO timestamp') from None
+    generated = generated.replace(tzinfo=generated.tzinfo or timezone.utc)
 
     items = data.get('items')
     assert isinstance(items, list), 'items must be a list'
@@ -172,6 +184,29 @@ def validate_influencer(path: Path | str) -> None:
                     and not isinstance(relevance, bool)
                     and math.isfinite(relevance))), (
             f'item {index} has invalid relevance')
+        if item.get('retained_from_previous'):
+            lookback_hours = data.get('lookback_hours')
+            assert (isinstance(lookback_hours, (int, float))
+                    and not isinstance(lookback_hours, bool)
+                    and math.isfinite(lookback_hours)
+                    and lookback_hours > 0), 'lookback_hours missing or invalid'
+            published = item.get('published')
+            assert isinstance(published, str) and published.strip(), (
+                f'retained item {index} missing published timestamp')
+            try:
+                try:
+                    published_at = datetime.fromisoformat(
+                        published.replace('Z', '+00:00'))
+                except ValueError:
+                    published_at = parsedate_to_datetime(published)
+            except (TypeError, ValueError):
+                raise AssertionError(
+                    f'retained item {index} has invalid published timestamp') from None
+            published_at = published_at.replace(
+                tzinfo=published_at.tzinfo or timezone.utc)
+            age = generated.astimezone(timezone.utc) - published_at.astimezone(timezone.utc)
+            assert age <= timedelta(hours=lookback_hours), (
+                f'retained item {index} exceeds declared lookback window')
 
     sources = data.get('sources')
     assert isinstance(sources, dict) and sources, 'sources missing or empty'
@@ -179,6 +214,16 @@ def validate_influencer(path: Path | str) -> None:
                and isinstance(source, str) and source.strip()
                for name, source in sources.items()), (
         'sources must map non-empty names to non-empty descriptions')
+    source_status = data.get('source_status')
+    if source_status is not None:
+        allowed_statuses = {'success', 'success_empty', 'failed'}
+        assert isinstance(source_status, dict) and source_status, (
+            'source_status must be a non-empty object')
+        assert all(status in allowed_statuses for status in source_status.values()), (
+            'source_status contains an invalid status')
+        if not items:
+            assert any(status != 'failed' for status in source_status.values()), (
+                'influencer: all sources failed')
 
     counts = data.get('counts')
     assert isinstance(counts, dict), 'counts missing'
@@ -229,13 +274,34 @@ def validate_news_digest(
     tickers = data.get('tickers')
     counts = data.get('raw_news_counts')
     digest = data.get('digest_markdown')
-    assert isinstance(tickers, list) and tickers, 'tickers missing or empty'
+    assert isinstance(tickers, list), 'tickers must be a list'
     assert isinstance(counts, dict), 'raw_news_counts must be an object'
     invalid_counts = [key for key, value in counts.items()
                       if not isinstance(value, int) or isinstance(value, bool)]
     assert not invalid_counts, (
         f'raw_news_counts values must be integers: {invalid_counts}')
     total_news = sum(counts.values())
+    if data.get('no_material_news') is True:
+        assert total_news == 0, 'no_material_news digest contains source news'
+        assert isinstance(digest, str) and not digest.strip(), (
+            'no_material_news digest must not fabricate a narrative')
+        if tickers:
+            source_status = data.get('source_status')
+            assert isinstance(source_status, dict), (
+                'no_material_news source_status must be an object')
+            statuses = [
+                status
+                for per_ticker in source_status.values()
+                if isinstance(per_ticker, dict)
+                for status in per_ticker.values()
+            ]
+            assert 'success_empty' in statuses, (
+                'no_material_news has no successful empty source')
+        print(f'digest validation OK: explicit no-material-news artifact; '
+              f'age={age.total_seconds() / 3600:.2f}h')
+        return
+
+    assert tickers, 'tickers missing or empty'
     assert total_news > 0, 'no source news in generated digest'
     assert isinstance(digest, str) and len(digest.strip()) >= 100, (
         'LLM digest empty or implausibly short')
