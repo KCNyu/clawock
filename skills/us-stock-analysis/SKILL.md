@@ -141,9 +141,11 @@ publisher 发布。
 ```bash
 python3 /root/.openclaw/workspace/scripts/harness/report_preflight.py --market us --phase {open|close}
 ```
-跑 `scripts/data/analyze_us_stocks.py --wechat --md-table` + 抽信号 + 异动，输出 `memory/.tmp/report-context-us-{phase}-{date}.json`。
+跑 `scripts/data/analyze_us_stocks.py --wechat --md-table` + 抽信号 + 异动，输出 context JSON。
 
 #### Step 2: 读 context，写报告
+⚠️ **context 路径只认 preflight 最后一行打印的 `context_path: <绝对路径>`**，照抄它去 read，不要自己拼文件名。文件名里的日期是**跑批当天**（美股收盘 cron 在 HKT 次日凌晨触发），不是行情 session 那天 —— 2026-07-24 就因为把它猜成 07-23，读到隔夜残留、把一天前的数字发进了微信。`context_path:` 是最后一行，`| tail -N` 也切不掉。
+
 关键字段：
 - `raw_wechat_block` — 脚本输出，**verbatim 拷贝到消息开头**。holdings 是 **markdown 表格** (7 列：代码/股/成本/现价/今日/浮%/浮$；2026-05-21 起 visual-width-aware 渲染走 `_wechat_table.py`，去 $ 前缀加 浮$ 金额列，mobile WeChat 不渲染表格但每行视觉宽度精确一致)。⚠️ **表头/分隔/数据三类行每字符 1:1 复制**，不要重写分隔行 — 列数必须一致，postflight 会 fail。
 - `title` — 自动选好
