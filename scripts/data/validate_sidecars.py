@@ -347,33 +347,42 @@ def validate_weekly_review(
     assert metadata.get('layout') == 'default', 'unexpected weekly review layout'
     assert metadata.get('title') == f'周复盘 · {week_id}', 'weekly review title/week mismatch'
     assert len(body) >= 1000, f'weekly review implausibly short: {len(body)} chars'
-    # Four semantic sections, each detected by a ZH/EN alias set rather than one
-    # literal phrase. The generator prompt asks for 本周净值/决策兑现/风险演变/下周关注
-    # as bold labels, but MiniMax M3 drifts to English `## Weekly NAV / Plan
-    # Adherence & Calibration / Risk Evolution / Next Week's Focus` (the committed
-    # 2026-W24.md does exactly this and the old literal-token gate rejected it).
-    # The analysis is present either way, so match concepts, not a fixed language.
-    low = body.lower()
+    # Four required sections, each proven by a distinct SECTION MARKER (a markdown
+    # heading `## …` OR a bold label `**…**` — the prompt asks for bold, MiniMax
+    # drifts to headings). Matching an alias anywhere in the body would let a
+    # counterfeit with four inline bold mentions pass; matching a distinct marker
+    # line ties each concept to a real section. Aliases are ZH/EN because the model
+    # drifts language (the committed 2026-W24.md uses English headers); ASCII
+    # aliases are word-bounded so 'nav' matches "NAV" but not "navigation".
     section_aliases = {
-        'NAV/净值':       ('本周净值', '周净值', 'weekly nav', 'nav'),
-        '决策/校准':      ('决策兑现', '决策校准', 'brier', 'calibration', '校准误差',
-                          'adherence', 'plan adherence'),
-        '风险演变':       ('风险演变', 'risk evolution', 'risk trend', 'β/vol', 'sharpe'),
-        '下周关注':       ('下周关注', '下周', 'next week', "next week's focus"),
+        'NAV/净值':   ('本周净值', '周净值', '净值', 'weekly nav', 'nav'),
+        '决策/校准':  ('决策兑现', '决策校准', '校准', 'brier', 'calibration',
+                      'adherence'),
+        '风险演变':   ('风险演变', '风险', 'risk evolution', 'risk trend'),
+        '下周关注':   ('下周关注', '下周', "next week's focus", 'next week', 'next-week'),
     }
-    missing = [concept for concept, aliases in section_aliases.items()
-               if not any(a in low for a in aliases)]
-    assert not missing, (
-        f'weekly review missing required section(s): {missing}; '
-        f'accepted aliases per section: {section_aliases}')
-    # Structure proxy: >=4 section markers, where a marker is a markdown heading
-    # OR a bold label (the prompt asks for `**本周净值**`-style bold, not `#`).
-    markers = [ln for ln in body.splitlines()
+
+    def _marker_matches(marker, alias):
+        if alias.isascii():  # word-bounded, case-insensitive (no CJK boundaries)
+            return re.search(rf'\b{re.escape(alias)}\b', marker, re.IGNORECASE) is not None
+        return alias in marker
+
+    markers = [ln.strip() for ln in body.splitlines()
                if re.match(r'^\s{0,3}#{1,6} \S', ln) or re.match(r'^\s{0,3}\*\*\S', ln)]
-    assert len(markers) >= 4, (
-        f'weekly review has only {len(markers)} section markers (heading or bold), '
-        f'need >= 4')
-    print(f'weekly review validation OK: {path} ({len(body)} chars)')
+    matched = {}  # concept -> the marker line that satisfied it (must be distinct)
+    for concept, aliases in section_aliases.items():
+        for m in markers:
+            if m in matched.values():
+                continue  # one marker can't cover two concepts
+            if any(_marker_matches(m, a) for a in aliases):
+                matched[concept] = m
+                break
+    missing = [c for c in section_aliases if c not in matched]
+    assert not missing, (
+        f'weekly review missing required section marker(s): {missing}; '
+        f'section markers found: {markers[:12]}')
+    print(f'weekly review validation OK: {path} ({len(body)} chars, '
+          f'{len(markers)} section markers)')
 
 
 DEFAULT_SCREENSHOTS = (

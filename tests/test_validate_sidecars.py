@@ -401,6 +401,36 @@ def test_weekly_accepts_bold_labels_without_hash_headings(tmp_path):
     validators.validate_weekly_review(path)
 
 
+def test_weekly_rejects_inline_bold_counterfeit_without_real_section_markers(tmp_path):
+    """2026-07 review: aliases matched anywhere in the body let a counterfeit with
+    four inline mentions pass. Each concept must tie to a DISTINCT section marker
+    (line-start heading or bold label). A word like 'navigation' must not satisfy
+    the 'nav' alias (word boundary)."""
+    body = '\n'.join((
+        '# Summary',
+        'This week we discussed navigation of the portfolio and calibration of risk '
+        'appetite, with a nav overview woven into next week thoughts.',  # inline only
+        'x' * 1100))
+    path = tmp_path / '2026-W40.md'
+    path.write_text(_weekly('2026-W40', body), encoding='utf-8')
+    with pytest.raises(AssertionError, match='missing required section marker'):
+        validators.validate_weekly_review(path)
+
+
+def test_weekly_word_boundary_navigation_does_not_satisfy_nav(tmp_path):
+    """'navigation' in a heading must not count as the NAV section."""
+    body = '\n'.join((
+        '## Portfolio Navigation Notes', 'Prose.',
+        '## Plan Adherence & Calibration', 'Brier prose.',
+        '## Risk Evolution', 'Prose.',
+        "## Next Week's Focus", 'Prose.',
+        'x' * 1100))
+    path = tmp_path / '2026-W41.md'
+    path.write_text(_weekly('2026-W41', body), encoding='utf-8')
+    with pytest.raises(AssertionError, match='NAV/净值'):
+        validators.validate_weekly_review(path)
+
+
 def test_weekly_still_rejects_a_genuinely_missing_section(tmp_path):
     """Loosening the language must not loosen the requirement: a review with no
     risk section (any language) still fails, and the error names it."""

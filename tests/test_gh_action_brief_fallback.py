@@ -94,3 +94,25 @@ def test_split_brief_and_plan_recovers_a_bare_trailing_plan():
 def test_split_brief_and_plan_returns_empty_object_when_no_json():
     _, plan = fallback.split_brief_and_plan('# 简报\n只有正文，没有计划。')
     assert plan == '{}'
+
+
+def test_split_recovers_bare_plan_after_an_earlier_fenced_example():
+    """2026-07 review: an earlier ```json example must not steal the plan when the
+    real plan is a bare trailing object — the LAST valid object wins."""
+    out = ('示例：\n```json\n{"example": 1}\n```\n正文\n\n'
+           '{"decisions": [], "as_of": "real"}')
+    _, plan = fallback.split_brief_and_plan(out)
+    assert json.loads(plan)['as_of'] == 'real'
+
+
+def test_split_survives_unbalanced_brace_in_prose():
+    """An unmatched { in Markdown must not poison extraction of a valid trailing plan."""
+    out = '正文 { 未闭合花括号\n\n```json\n{"decisions": [], "as_of": "d"}\n```'
+    _, plan = fallback.split_brief_and_plan(out)
+    assert json.loads(plan)['as_of'] == 'd'
+
+
+def test_split_is_string_aware_for_braces_inside_json_values():
+    out = '```json\n{"note": "a } b {", "as_of": "e"}\n```'
+    _, plan = fallback.split_brief_and_plan(out)
+    assert json.loads(plan) == {'note': 'a } b {', 'as_of': 'e'}

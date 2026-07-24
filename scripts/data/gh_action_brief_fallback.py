@@ -24,52 +24,45 @@ import decision_v2
 def split_brief_and_plan(out):
     """(markdown, plan_json_str) from the model output.
 
-    The plan is the LAST fenced block; match the fence tolerantly —
-    `` ```json ``, `` ```JSON ``, `` ``` json `` all count. Pinning the exact
-    lowercase ` ```json ` discarded a valid plan the moment the model shifted case
-    or spacing, defeating the last automatic brief-recovery path (2026-07 audit).
-    With no fence at all, fall back to the last balanced {…}; a wrong grab is
-    rejected downstream by plan schema validation, so this never publishes junk.
+    The plan is the LAST valid JSON object in the output. _extract_last_json finds
+    it regardless of fence case/spacing, an EARLIER ```json example, or unbalanced
+    braces in the prose — the exact lowercase ` ```json ` split discarded a valid
+    plan the moment the model shifted case/spacing, defeating the last automatic
+    brief-recovery path (2026-07 audit). Markdown = everything before the plan,
+    with a trailing ```json/``` fence trimmed. A wrong grab is still rejected
+    downstream by plan schema validation, so this never publishes junk.
     """
-    fences = list(re.finditer(r'```[ \t]*json\b', out, re.IGNORECASE))
-    if fences:
-        last = fences[-1]
-        return out[:last.start()], out[last.end():].split('```', 1)[0].strip()
-    return out, _extract_last_json(out)
+    plan, start = _extract_last_json(out)
+    if start is None:
+        return out, '{}'
+    md = out[:start]
+    md = re.sub(r'```[ \t]*json\b[ \t]*\n?$', '', md, flags=re.IGNORECASE)
+    return md.rstrip().rstrip('`').rstrip(), plan
 
 
 def _extract_last_json(text):
-    """Return the last balanced top-level {…} object in text, or '{}' if none.
+    """(last_valid_top_level_JSON_object_str, start_index) or ('{}', None).
 
-    The brief plan is the final JSON in the output; a bare (unfenced) plan means
-    scanning from the last object start. Braces inside strings are ignored. A
-    wrong grab is caught downstream by plan schema validation, so this only has to
-    be right for well-formed trailing JSON."""
-    last = None
-    depth = 0
-    start = None
-    in_str = esc = False
-    for i, c in enumerate(text):
-        if in_str:
-            if esc:
-                esc = False
-            elif c == '\\':
-                esc = True
-            elif c == '"':
-                in_str = False
+    Uses json.raw_decode at each '{', keeping the LAST that parses — so it is
+    string-aware (braces inside JSON strings are handled by the decoder), skips an
+    earlier ```json example, and is immune to unbalanced braces in the surrounding
+    prose (a hand-rolled depth counter is not — an unmatched '{' in Markdown
+    poisons it; 2026-07 review)."""
+    decoder = json.JSONDecoder()
+    last, last_start = '{}', None
+    idx = 0
+    while True:
+        b = text.find('{', idx)
+        if b == -1:
+            break
+        try:
+            _, end = decoder.raw_decode(text, b)
+        except json.JSONDecodeError:
+            idx = b + 1
             continue
-        if c == '"':
-            in_str = True
-        elif c == '{':
-            if depth == 0:
-                start = i
-            depth += 1
-        elif c == '}':
-            if depth > 0:
-                depth -= 1
-                if depth == 0 and start is not None:
-                    last = text[start:i + 1]
-    return last or '{}'
+        last, last_start = text[b:end], b
+        idx = end
+    return last, last_start
 
 # Send the WHOLE preflight context. This was context[:30000] until 2026-07-16 — a cap
 # sized for an older, smaller context that had since grown to 194KB, so the brief got
