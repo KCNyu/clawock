@@ -122,7 +122,10 @@ jobs:
         # portfolio_risk_metrics imports it at module level, so without it pytest
         # aborts the whole run with a collection error and all 78 tests silently
         # stop being enforced — a green-looking local run hides this completely.
-        run: pip install --quiet requests pytest numpy
+        # Pillow: validate_sidecars now fully-decodes screenshots/GIF (finding #12);
+        # the real asset checks run in screenshot-refresh.yml (which has Pillow) but
+        # the unit tests here exercise the same validators, so pytest needs it too.
+        run: pip install --quiet requests pytest numpy Pillow
 
       - name: Unit tests — money-integrity derivations
         if: github.event_name != 'pull_request' || steps.changes.outputs.code == 'true'
