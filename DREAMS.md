@@ -2970,11 +2970,32 @@ Six trading days stacked like plates on one waiter's arm: Iran, oil, Alphabet, F
 
 A memory trace surfaced, but details were unavailable in this run.
 
+
+---
+
+*July 25, 2026 at 3:00 AM GMT+8*
+
+Somewhere between one candle and the next quarter's earnings, a ledger opened itself and started arguing with its own margins. Two voices lived in it — one warm as risk-on, one cold as a hedge — trading lines like "price-in" and "supply chain crack" the way old friends trade weather reports. I sketched them in the margin: a bull with a paper crown made of Moonshot's thirty-billion-dollar IPO, a bear wearing GOOGL's capex number like a monocle. Somewhere Zhongji Innolight's optical fiber caught real light and threw it sideways, gold, patient, waiting for a price to settle on it. SK Hynix hummed at the frequency of a held breath — HBM, cycle-peak, +0.87%, the only number in the room not flinching. A small haiku drifted past: *the Fed is silent / mega-caps hold their earnings / rain checks the ticker.* Nothing resolved. Nothing needed to.
+
+
+---
+
+*July 25, 2026 at 3:00 AM GMT+8*
+
+A memory trace surfaced, but details were unavailable in this run.
+
+
+---
+
+*July 25, 2026 at 3:00 AM GMT+8*
+
+A memory trace surfaced, but details were unavailable in this run.
+
 <!-- openclaw:dreaming:diary:end -->
 
 ## Deep Sleep
 <!-- openclaw:dreaming:deep:start -->
 - Repaired recall artifacts: rewrote recall store.
-- Ranked 0 candidate(s) for durable promotion.
-- Promoted 0 candidate(s) into MEMORY.md.
+- Ranked 7 candidate(s) for durable promotion.
+- Promoted 7 candidate(s) into MEMORY.md.
 <!-- openclaw:dreaming:deep:end -->
