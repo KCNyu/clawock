@@ -277,7 +277,7 @@
       "watchdog": {
         "schedule": {
           "kind": "cron",
-          "expr": "4,34 10-11,14-15 * * 1-5",
+          "expr": "10,40 10-11,14-15 * * 1-5",
           "tz": "Asia/Hong_Kong"
         },
         "command_contains": [
