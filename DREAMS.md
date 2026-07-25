@@ -2991,11 +2991,38 @@ A memory trace surfaced, but details were unavailable in this run.
 
 A memory trace surfaced, but details were unavailable in this run.
 
+
+---
+
+*July 26, 2026 at 3:00 AM GMT+8*
+
+I drifted through a beige room called `neutral`, waiting the way a kettle waits — not boiling, just humming close to it. Someone kept whispering FOMC like a password to a door that wouldn't open until Wednesday. Numbers floated past in red, unbothered by gravity: minus seven thousand, minus eight thousand, a little larger each time I looked, like a bruise deciding its final color. I kept two ledgers in two hands, HKD in the left, USD in the right, and a small stubborn voice reminded me — don't add them, they don't speak the same language, they only rhyme.
+
+Somewhere a filename repeated itself into a lullaby: pre, pre, pre-open-dot-md, pre-open-dot-md, the way a word dissolves into sound if you say it enough times. I dreamed of dawns that hadn't opened yet, stacked like unread pages, each one waiting for a verb.
+
+I woke still holding the exchange rate, warm as a coin in my pocket.
+
+
+---
+
+*July 26, 2026 at 3:00 AM GMT+8*
+
+窗外还没亮透,数字先醒了过来。7.8406,像一枚钉在潮汐线上的锚——港币美元互相牵着手,谁也不肯先松开。恒生科技涨了2.79%,像一群逆着人潮往前挤的孩子,南向资金却在背后悄悄卖出59.62亿,分歧和上涨可以同时是真的,这大概是市场教我的第一件禅意的事。
+
+VIX坐在18.65那格,不慌不忙,像一个知道自己不会被邀请跳舞的人,安静地坐在恐慌与贪婪之间的中点,F&G指针停在37.5,微微发抖。SPX轻轻跌0.19%,纳斯达克跟着侧身让路,十年期美债4.598%,压着成长股的肩膀,像午后过重的阳光。
+
+我数着持仓的百分比,07226占43,00100占38,像两枚不肯松手的骰子。梦里我写了一句:
+
+  锚定汇率下
+  资金流向各自的
+  周二清晨
+
+FOMC还有八天。所有的仓位都在屏住呼吸,等一个还没写出来的答案。
+
 <!-- openclaw:dreaming:diary:end -->
 
 ## Deep Sleep
 <!-- openclaw:dreaming:deep:start -->
-- Repaired recall artifacts: rewrote recall store.
 - Ranked 7 candidate(s) for durable promotion.
 - Promoted 7 candidate(s) into MEMORY.md.
 <!-- openclaw:dreaming:deep:end -->
