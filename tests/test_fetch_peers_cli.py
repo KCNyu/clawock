@@ -153,21 +153,45 @@ def test_closes_prefer_qfqday_over_day(fp, monkeypatch):
     assert fp.tencent_closes('hk00700') == [10.0, 11.0]
 
 
-def test_budget_is_enforced_not_advisory(fp):
-    """Executor shutdown waits for running workers, so the clamp is load-bearing.
+def test_budget_preserves_fast_results_and_marks_late_workers(
+        fp, monkeypatch):
+    """The batch returns completed work and marks every unfinished request.
 
-    Without `_req_timeout` narrowing each in-flight request, an already-started
-    worker runs its full TIMEOUT past the budget and the caller's own 120s
-    subprocess timeout is what actually fires.
+    Keep this hermetic: real providers can answer before a 50 ms deadline, so
+    using invented tickers makes the expected result depend on network latency.
+    The direct `_req_timeout` and process-level tests below cover the timeout
+    clamp and uncooperative-worker cases separately.
     """
+    import threading
     import time
-    req = [{'ticker': f'0000{i}', 'region': 'hk'} for i in range(10)]
+
+    release = threading.Event()
+
+    def fake_fetch(ticker, deadline=None):
+        if ticker == 'FAST':
+            return {'ticker': ticker, 'region': 'hk', 'price': 1.0}
+        release.wait(timeout=1)
+        return {'ticker': ticker, 'region': 'hk', 'price': 1.0}
+
+    monkeypatch.setattr(fp, 'fetch_hk_one', fake_fetch)
+    req = [
+        {'ticker': 'FAST', 'region': 'hk'},
+        *[{'ticker': f'SLOW{i}', 'region': 'hk'} for i in range(9)],
+    ]
     started = time.monotonic()
-    results = fp.fetch_all(req, deadline_s=0.05)
-    elapsed = time.monotonic() - started
+    try:
+        results = fp.fetch_all(req, deadline_s=0.05, workers=2)
+        elapsed = time.monotonic() - started
+    finally:
+        release.set()
+
     assert elapsed < 2.0, f'budget not enforced: took {elapsed:.2f}s'
     assert len(results) == 10
-    assert all('error_deadline' in r for r in results.values())
+    assert results['FAST']['price'] == 1.0
+    assert all(
+        'error_deadline' in results[f'SLOW{i}']
+        for i in range(9)
+    )
 
 
 def test_exhausted_budget_raises_before_issuing_a_request(fp):
