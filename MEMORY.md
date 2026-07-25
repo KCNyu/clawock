@@ -102,21 +102,6 @@
 - **单一来源：`portfolio.json`**，不在此维护副本
 - ticker 列表：`memory/current-portfolio-summary.md`（提高检索命中）
 
-## Promoted From Short-Term Memory (2026-07-22)
-
-<!-- openclaw-memory-promotion:memory:memory/2026-07-17-pre-open.md:10:10 -->
-- Header: **Regime US：neutral / 偏 risk-off**（SPX -0.51%、Nasdaq -1.47%、VIX 16.73 +6.76%、F&G 41.7 fear）｜**Regime HK：range-bound / amber**（HSI +1.33%、HSTECH +1.98%，但HSTECH仍低于200日线9.5%）｜**USDHKD=7.8397**。 [score=0.803 recalls=0 avg=0.620 source=memory/2026-07-17-pre-open.md:10-10]
-<!-- openclaw-memory-promotion:memory:memory/2026-07-17-pre-open.md:12:12 -->
-- Header: **核心结论：** 今天不追新题材。唯一主动动作是把违规2x腿换成1x同因子，并在00100反弹至HK$265时减20股。宏观只是neutral，真正的压力来自组合构造：HK Top2 83.4%、US杠杆ETF 85.4%、US β 3.2767。 [score=0.803 recalls=0 avg=0.620 source=memory/2026-07-17-pre-open.md:12-12]
-<!-- openclaw-memory-promotion:memory:memory/2026-07-17-pre-open.md:18:18 -->
-- ▎昨日 plan 兑现度（2026-07-16）: 昨日14条decision中10条价格条件触发、3条未触发、1条无法结构化判定；以下均为**模拟执行相对持有**，不是实际成交，也不汇总成“听AI赚了多少钱”。 [score=0.803 recalls=0 avg=0.620 source=memory/2026-07-17-pre-open.md:18-18]
-<!-- openclaw-memory-promotion:memory:memory/2026-07-17-pre-open.md:2:3 -->
-- layout: default title: 盘前深度简报 · 2026-07-17 [score=0.803 recalls=0 avg=0.620 source=memory/2026-07-17-pre-open.md:2-3]
-<!-- openclaw-memory-promotion:memory:memory/2026-07-17-pre-open.md:20:23 -->
-- ▎昨日 plan 兑现度（2026-07-16）: | Action | Plan | 实际行情 | 模拟 ± | 评 | |---|---|---|---:|---| | SPCH risk swap | 开盘卖100股 | 开9.35→收8.77 | +$58.00 | ✓ 条件触发 | | SPCX swap接收 | 开盘买7股 | 开134.92→收131.11 | -$26.67 | ✗ 接收腿当日亏 | [score=0.803 recalls=0 avg=0.620 source=memory/2026-07-17-pre-open.md:20-23]
-<!-- openclaw-memory-promotion:memory:memory/2026-07-17-pre-open.md:24:27 -->
-- ▎昨日 plan 兑现度（2026-07-16）: | PLTU→PLTR | 开盘卖14股 | 32.31→32.98 | -$9.38 | ✗ 当日卖早 | | RKLX→RKLB | 开盘卖10股 | 22.48→18.44 | +$40.40 | ✓ 避开尾盘下杀 | | MSFU→MSFT | 开盘卖20股 | 24.94→24.70 | +$4.80 | ✓ 小幅有效 | | 07226→03033 | 开盘卖2289股 | 3.518→3.634 | -HK$265.52 | ✗ 2x当日继续强 | [score=0.803 recalls=0 avg=0.620 source=memory/2026-07-17-pre-open.md:24-27]
-
 ## Promoted From Short-Term Memory (2026-07-25)
 
 <!-- openclaw-memory-promotion:memory:memory/2026-07-20-pre-open.md:10:10 -->
@@ -133,3 +118,20 @@
 - ▎上次 plan 兑现度（2026-07-17）: | Action | Plan | 实际 | 模拟 ± | 评 | |---|---|---|---:|---| | 00100反弹减 | ≥265减20股 | 高248.8，未触发 | — | ✗ trigger过高 | | 00100 core | <242复核 | 低210，触发 | — | ⊘ 仅复核 | [score=0.803 recalls=0 avg=0.620 source=memory/2026-07-20-pre-open.md:22-25]
 <!-- openclaw-memory-promotion:memory:memory/2026-07-20-pre-open.md:26:29 -->
 - ▎上次 plan 兑现度（2026-07-17）: | 07226降2x | 开盘卖2300股 | 开3.608→收3.312 | +HK$680.80 | ✓ | | 03033接收 | 开盘买1700股 | 开4.730→收4.534 | -HK$333.20 | ✗ 接收腿下跌 | | SPCH降2x | 开盘卖140股 | 7.83横盘 | $0.00 | ⊘ | | SPCX接收 | 开盘买9股 | 123.99横盘 | $0.00 | ⊘ | [score=0.803 recalls=0 avg=0.620 source=memory/2026-07-20-pre-open.md:26-29]
+
+## Promoted From Short-Term Memory (2026-07-26)
+
+<!-- openclaw-memory-promotion:memory:memory/2026-07-21-pre-open.md:12:15 -->
+- Header: |---|---| | **USDHKD** | 7.8406 (Frankfurter) | | **HK leg** | HK$50,356 (07226 43%·00100 38%·03033 9%·02208 7%·03032 2%) | | **US leg** | $2,552 (SPCH 40%·MSFU 19%·PLTU 18%·RKLX 7%·SKHY 6%·CRCL 5%·SPCX 5%) | [score=0.803 recalls=0 avg=0.620 source=memory/2026-07-21-pre-open.md:12-15]
+<!-- openclaw-memory-promotion:memory:memory/2026-07-21-pre-open.md:16:19 -->
+- Header: | **Book (USD-base)** | $8,975 | | **Book (HKD-base)** | HK$70,366 | | **US Regime** | risk_off · SPX -0.19% · VIX 18.65 · F&G 37.5 (Fear) | | **HK Regime** | 技术反弹/资金分歧 · HSTECH +2.79% · 南向净卖出59.62亿 | [score=0.803 recalls=0 avg=0.620 source=memory/2026-07-21-pre-open.md:16-19]
+<!-- openclaw-memory-promotion:memory:memory/2026-07-21-pre-open.md:2:4 -->
+- layout: default title: 盘前深度简报 · 2026-07-21 description: "clawock 盘前深度简报 2026-07-21：港股 + 美股真实持仓的多空辩论、量化因子、风控硬闸与 AI 自评战绩（诚实公开，承认主动操作跑输躺平）。" [score=0.803 recalls=0 avg=0.620 source=memory/2026-07-21-pre-open.md:2-4]
+<!-- openclaw-memory-promotion:memory:memory/2026-07-21-pre-open.md:25:28 -->
+- ▎大盘速读: | 指标 | 值 | 信号 | |------|---|------| | VIX | 18.65 (-0.64%) | 低恐慌区，非系统性风险 | | SPX | 7,443 (-0.19%) | risk_off，F&G=37.5 Fear | [score=0.803 recalls=0 avg=0.620 source=memory/2026-07-21-pre-open.md:25-28]
+<!-- openclaw-memory-promotion:memory:memory/2026-07-21-pre-open.md:29:32 -->
+- ▎大盘速读: | NASDAQ | 25,508 (-0.05%) | 与SPX同向下行 | | HSI | 25,143 (+2.36%) | 港股独立反弹 | | HSTECH | 4,752 (+2.79%) | 科技板块领涨，趋势OFF仍有短线动力 | | 10Y美债 | 4.598% | 压制成长股估值 | [score=0.803 recalls=0 avg=0.620 source=memory/2026-07-21-pre-open.md:29-32]
+<!-- openclaw-memory-promotion:memory:memory/2026-07-21-pre-open.md:33:34 -->
+- ▎大盘速读: | DXY | 101.0 (+0.23%) | 美元微升，HKD联系汇率稳定 | | Fed新闻 | 无重大声明 | 等待7/29 FOMC | [score=0.803 recalls=0 avg=0.620 source=memory/2026-07-21-pre-open.md:33-34]
+<!-- openclaw-memory-promotion:memory:memory/2026-07-21-pre-open.md:9:9 -->
+- Header: 📊 盘前深度简报｜2026-07-21 周二 08:00 HKT [score=0.803 recalls=0 avg=0.620 source=memory/2026-07-21-pre-open.md:9-9]
