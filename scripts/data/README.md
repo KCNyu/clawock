@@ -84,6 +84,7 @@ clawock 是**美股 + 港股 + 黄金定投**的实盘组合。工具包遵循�
 | `compute_t0_setups.py` | T+0 牌面评级 + 追高检测 | 派生 | ✅ |
 | `portfolio_risk_metrics.py` | β / Cov-Var / 回撤 / 集中度 | Yahoo 30d + 派生 | ✅ |
 | `cross_sectional_factor.py` | 同行/1x 标的行业中性排名、杠杆 decay 对比（激活闸前仅研究） | 腾讯 qfq + SEC XBRL | ✅ |
+| `peer_residual_engine.py` | 人工同行篮子等权/流动性权重残差、breadth/dispersion/leadership（HK 禁自动发现） | 腾讯 qfq + peer-map | ✅ |
 
 ## Layer 7 · 汇率/校验 FX & Integrity
 
@@ -102,6 +103,7 @@ clawock 是**美股 + 港股 + 黄金定投**的实盘组合。工具包遵循�
 | `decision_v2.py` | strategy episode 结算、coverage、date-cluster CI、方向命中审计 | decisions ledger + canonical bars | ✅ |
 | `quant_signal_review.py` · `t0_setup_review.py` | 因子 / 牌面 edge 自检(T+1/T+5 命中率) | 本地留痕 | ✅ |
 | `cross_sectional_factor.py` | 预注册 walk-forward + date×ticker 双向聚类 CI；存活偏差未消除即禁止入决策 | 本地留痕 + 调整后日线 | ✅ |
+| `peer_residual_engine.py` | leader 延续 / laggard 规避 / 均值回归分规则 prospective 聚类校准 | 本地留痕 + 人工 taxonomy | ✅ |
 
 ---
 

@@ -78,8 +78,10 @@
   "leveraged_proxies": [
     {"ticker": "07226", "region": "hk", "underlying": "03033", "leverage": 2},
     {"ticker": "RKLX", "region": "us", "underlying": "RKLB", "leverage": 2},
+    {"ticker": "ROBN", "region": "us", "underlying": "HOOD", "leverage": 2},
     {"ticker": "PLTU", "region": "us", "underlying": "PLTR", "leverage": 2},
     {"ticker": "MSFU", "region": "us", "underlying": "MSFT", "leverage": 2},
-    {"ticker": "SPCH", "region": "us", "underlying": "SPCX", "leverage": 2}
+    {"ticker": "SPCH", "region": "us", "underlying": "SPCX", "leverage": 2},
+    {"ticker": "SOXL", "region": "us", "underlying": "SOXX", "leverage": 3}
   ]
 }
