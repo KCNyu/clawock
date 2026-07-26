@@ -66,14 +66,33 @@ def test_only_the_first_few_movers_are_chased():
     assert result["not_chased"] == ["07226"]
 
 
-def test_items_are_capped_and_titles_truncated():
-    long_title = "港交所公告：" + "细节" * 200
+def test_context_items_keep_one_narrow_slot():
+    long_title = "港交所公告：" + "细节" * 200            # unmatched -> context
     rows = [row(f"{long_title} {i}", f"2026-07-24 13:5{i}:00") for i in range(6)]
     result = mn.probe(["00100"], market="hk", now=NOW,
                       http=fake_http({"appstock/news": tencent_payload(rows)}))
     items = result["tickers"]["00100"]["items"]
-    assert len(items) == mn.MAX_ITEMS_PER_TICKER
+    assert len(items) == mn.MAX_CONTEXT_ITEMS
     assert all(len(item["title"]) <= mn.TITLE_CHARS for item in items)
+
+
+def test_interrupts_get_the_slots_and_the_characters():
+    long_notice = ("(1) 根据一般授权完成配售35,600,000股新A类股份；"
+                   "(2) 根据一般授权完成发行6,500百万港元于2027年到期的可转换债券，"
+                   "所得款项净额约为62亿港元，将用于模型训练算力采购与一般营运资金")
+    rows = [row(f"{long_notice}{i}", f"2026-07-24 13:5{i}:00") for i in range(5)]
+    rows.append(row("董事会会议召开日期", "2026-07-24 13:59:00"))
+    def http(url, headers=None, timeout=None):
+        return tencent_payload(rows if "type=0" in url else [])
+
+    entry = mn.probe(["00100"], market="hk", now=NOW, http=http)["tickers"]["00100"]
+    signals = [item["signal"] for item in entry["items"]]
+    assert signals == [mn.INTERRUPT] * mn.MAX_INTERRUPT_ITEMS + [mn.CONTEXT]
+    assert entry["more_interrupts"] == 2
+    # the placement number survives, which is the whole point of the wider limit
+    kept = entry["items"][0]["title"]
+    assert "35,600,000" in kept and "6,500百万" in kept
+    assert mn.TITLE_CHARS < len(kept) <= mn.INTERRUPT_TITLE_CHARS
 
 
 def test_the_time_budget_stops_further_calls():
@@ -375,6 +394,22 @@ HALT_FEED = """<rss><channel>
 </channel></rss>"""
 
 
+def test_halts_are_only_asked_for_when_a_leveraged_fund_moved():
+    """A large-cap halt is too rare to spend a request on every slot."""
+    calls = []
+    def text(url, timeout=None):
+        calls.append(url)
+        return HALT_FEED
+
+    mn.probe(["CRCL"], market="us", now=NOW,
+             http=fake_http({"appstock/news": tencent_payload([])}), http_text=text)
+    assert calls == []                       # issuer-only mover: no halt request
+
+    mn.probe(["PLTU"], market="us", now=NOW,
+             http=fake_http({"appstock/news": tencent_payload([])}), http_text=text)
+    assert len(calls) == 1                   # 2x single-stock ETF: worth asking
+
+
 def test_a_halt_on_a_held_leveraged_etf_surfaces_with_its_reason_code():
     result = mn.halts(["PLTU", "CRCL"], now=NOW, window=240,
                       http_text=lambda url, timeout=None: HALT_FEED)
@@ -418,3 +453,25 @@ def test_hk_slots_do_not_call_the_us_halt_feed():
              http=fake_http({"appstock/news": tencent_payload([])}),
              http_text=lambda url, timeout=None: calls.append(url) or HALT_FEED)
     assert calls == []
+
+
+# --- the report actually consumes it -----------------------------------------
+
+def test_mode_7_requires_attribution_in_the_view_section():
+    for name in ("us-stock-analysis", "hk-stock-analysis"):
+        skill = (ROOT / "skills" / name / "SKILL.md").read_text()
+        view = skill.split("▎我的看法", 1)[1].split("#### Step 2.5", 1)[0]
+        assert "异动归因" in view, name
+        assert "signal=interrupt" in view, name
+        # every honest-failure state has a prescribed sentence
+        for state in ("no_recent_filing", "index_fund_no_issuer", "degraded"):
+            assert state in view, (name, state)
+        # counters stay out of the report
+        assert "suppressed_noise" in view and "不要写进报告" in view, name
+
+
+def test_the_movers_sidecar_quotes_the_same_evidence():
+    spec = (ROOT / "skills" / "_shared" / "intraday-status-sidecar.md").read_text()
+    assert "mover_news" in spec
+    assert "signal=interrupt" in spec
+    assert "no_recent_filing" in spec

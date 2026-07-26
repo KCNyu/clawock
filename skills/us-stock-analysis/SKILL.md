@@ -106,6 +106,13 @@ python3 /root/.openclaw/workspace/scripts/harness/intraday_preflight.py --market
   - **`📉 亏损持仓 X/Y | 杠杆ETF敞口 N%` 必须保留**，不要省
 - 加 `▎我的看法` 段：**至少 60 字（postflight 软下限），目标 2-3 行**
   - 若 `should_alert=true`，**必须**提 `anomalies` 中至少一个票
+  - **异动归因（`should_alert=true` 时必写，占 1 行）**：从 `mover_news.tickers[票].items` 里挑 **`signal=interrupt`** 的第一条，写成
+    「{票} {幅度}% ← {标题要点}（{age_minutes} 分钟前 / {source_class}）」。多只异动票就各写一行，最多 3 行。
+    - `halts` 里有这只票 → **先写停牌**（`reason_code` + 复牌时间），它比任何标题都能解释一次跳动。
+    - 只有 `context` 没有 `interrupt` → 写「无一手催化，{context 标题}仅作背景」。
+    - `status=no_recent_filing` → 直接写「窗口内无一手公告，暂无法归因」，**不许改口编一个理由**；`index_fund_no_issuer` → 写「指数基金无发行人公告，看成分/板块」。
+    - `status=degraded` → 写「催化源未取到」，别把它说成「没有消息」。
+    - 引用**至多两条**、每条一行；`suppressed_noise` / `more_interrupts` 只是计数，不要写进报告。
   - 必须包含：今天该看/该等/该减 + 引用至少 1 个具体数字（票现价 / 异动幅度 / 信号 / RSI）
   - ⚡ **板块全景**：数据**已由 preflight 备好**在 context.json 的 `peer_scan` 里（每个 active ticker 一项：`theme` 板块名、`listed_peers` 已按今日涨幅降序、含 `pct_1d`/`pct_5d`、`divergence_signal`、`self_pct_1d`）。**直接引用它,不要自己去读 peer-map.json、也不要自己调 `fetch_peers.py`**；给对应主题成分今日 Top 5 + 你持仓位置 + 1 句归因;`peer_scan` 为空或缺项时才回退 web search。若某条带 `name_mismatch`,以 feed 名为准并在报告里提一句。持仓自己的数字仍从 context.json。板块行情**优先用内置 web search**；`tavily-search` 仅在**开盘/收盘报告**或盘中真事件时才用，且必带 `--bucket report`/`--bucket intraday`（见 Mode 5 的 Budget rule）——盘中每 30 分钟的常规盯盘**不要**烧 Tavily
   - 禁止"无异动，观望"这种敷衍 1 句话
