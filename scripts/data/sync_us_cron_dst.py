@@ -28,13 +28,6 @@ from cron_contract import (  # noqa: E402
 )
 from _watchdog_common import load_jobs  # noqa: E402
 
-PROVIDER_HEALTH_COMMAND = (
-    "/bin/bash -lc 'cd /root/.openclaw/workspace && "
-    "python3 scripts/data/provider_health.py --apply "
-    ">> logs/provider-health.log 2>&1'"
-)
-
-
 def parse_at(value: str | None) -> datetime:
     if not value:
         return datetime.now(timezone.utc)
@@ -80,28 +73,6 @@ def desired_changes(contract: dict, live_jobs: list[dict], crontab_text: str,
                 "name": job["name"], "line_index": row["index"],
                 "from": row["expr"], "to": desired_expr,
             })
-    # Bootstrap/repair the readiness gate from this already-scheduled 06:20
-    # maintenance job. This avoids a circular dependency where provider_health
-    # can never run because its own crontab row is missing.
-    health = contract.get("provider_health") or {}
-    tokens = health.get("command_contains") or []
-    row = find_crontab_row(cron_rows, tokens)
-    desired_expr = effective_schedule(health, at).get("expr")
-    if not row:
-        watchdog_changes.append({
-            "name": "Provider health",
-            "line_index": None,
-            "from": None,
-            "to": desired_expr,
-            "command": PROVIDER_HEALTH_COMMAND,
-        })
-    elif row["expr"] != desired_expr:
-        watchdog_changes.append({
-            "name": "Provider health",
-            "line_index": row["index"],
-            "from": row["expr"],
-            "to": desired_expr,
-        })
     return openclaw_changes, watchdog_changes, errors
 
 
@@ -128,9 +99,6 @@ def apply_crontab(text: str, changes: list[dict]) -> list[str]:
     lines = text.splitlines()
     for change in changes:
         index = change["line_index"]
-        if index is None:
-            lines.append(f"{change['to']} {change['command']}")
-            continue
         parts = lines[index].split(None, 5)
         if len(parts) < 6:
             return [f"cannot parse crontab line {index + 1}"]
