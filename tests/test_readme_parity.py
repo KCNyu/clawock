@@ -85,6 +85,19 @@ def test_language_switch_links_cross():
     assert "README.md" in ZH
 
 
+def test_research_surfaces_stay_in_both_languages():
+    assert "### Research surfaces" in EN
+    assert "### 研究入口" in ZH
+    for target in (
+        "skills/us-stock-analysis/SKILL.md",
+        "skills/hk-stock-analysis/SKILL.md",
+        "skills/portfolio-risk-review/SKILL.md",
+        "skills/portfolio-swarm-review/SKILL.md",
+        "skills/serenity-skill/SKILL.md",
+    ):
+        assert target in EN and target in ZH, f"{target} missing from a README"
+
+
 def test_explicit_h2_sequences():
     # Lock both languages' section order (and their 1:1 correspondence by position),
     # not just the count — so a section can't be added/reordered in one language only.
