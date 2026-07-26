@@ -107,7 +107,7 @@ def test_only_items_inside_the_window_survive():
 def test_exchange_filings_outrank_broker_notes():
     def http(url, headers=None, timeout=None):
         if "type=0" in url:
-            return tencent_payload([row("翌日披露报表", "2026-07-24 13:00:00")])
+            return tencent_payload([row("二零二六年中期业绩公告", "2026-07-24 13:00:00")])
         return tencent_payload([row("券商研报：维持买入", "2026-07-24 13:55:00")])
 
     items = mn.probe(["00100"], market="hk", now=NOW, http=http)["tickers"]["00100"]["items"]
@@ -250,3 +250,171 @@ def test_both_skills_bound_how_the_block_may_be_used():
 def test_tavily_is_never_called_from_this_module():
     source = (ROOT / "scripts" / "data" / "mover_news.py").read_text().lower()
     assert "tavily" not in source.replace("禁止 tavily", "")
+
+
+# --- filing triage, calibrated on this book's real filings --------------------
+
+@pytest.mark.parametrize("title,market,expected", [
+    ("翌日披露报表", "hk", mn.NOISE),
+    ("股份发行人的证券变动月报表", "hk", mn.NOISE),
+    ("北京市竞天公诚律师事务所关于金风科技的法律意见书", "hk", mn.NOISE),
+    ("Form 4 - Statement of Changes in Beneficial Ownership", "us", mn.NOISE),
+    ("Form 3 - Initial Statement of Beneficial Ownership", "us", mn.NOISE),
+    ("SCHEDULE 13G", "us", mn.NOISE),
+    ("144", "us", mn.NOISE),
+    ("8-K Results of Operations", "us", mn.INTERRUPT),
+    ("10-K/A 10-K/A", "us", mn.INTERRUPT),
+    ("424B5 Prospectus Supplement", "us", mn.INTERRUPT),
+    ("SC 13D", "us", mn.INTERRUPT),
+    ("NT 10-Q Notification of Late Filing", "us", mn.INTERRUPT),
+    ("盈利警告", "hk", mn.INTERRUPT),
+    ("内幕消息 — 收到监管问询", "hk", mn.INTERRUPT),
+    ("(1) 根据一般授权完成配售35,600,000股新A类股份", "hk", mn.INTERRUPT),
+    ("短暂停止买卖", "hk", mn.INTERRUPT),
+    ("二零二六年中期业绩公告", "hk", mn.INTERRUPT),
+    ("董事会会议召开日期", "hk", mn.CONTEXT),
+    ("DEF 14A", "us", mn.CONTEXT),
+    ("某个从未见过的新公告类型", "hk", mn.CONTEXT),
+])
+def test_triage_matches_the_filings_this_book_actually_sees(title, market, expected):
+    signal, rule = mn.classify(title, market)
+    assert signal == expected, (title, rule)
+
+
+def test_an_unknown_title_is_context_never_dropped():
+    assert mn.classify("完全没见过的东西", "hk") == (mn.CONTEXT, None)
+
+
+def test_noise_is_suppressed_but_counted():
+    rows = [
+        row("翌日披露报表", "2026-07-24 13:50:00"),
+        row("盈利警告", "2026-07-24 13:40:00"),
+        row("月报表", "2026-07-24 13:30:00"),
+    ]
+    def http(url, headers=None, timeout=None):
+        return tencent_payload(rows if "type=0" in url else [])
+
+    entry = mn.probe(["00100"], market="hk", now=NOW, http=http)["tickers"]["00100"]
+    assert [item["title"] for item in entry["items"]] == ["盈利警告"]
+    assert entry["suppressed_noise"] == 2
+    assert entry["items"][0]["signal"] == mn.INTERRUPT
+
+
+def test_an_interrupt_outranks_a_fresher_context_item():
+    def http(url, headers=None, timeout=None):
+        if "type=0" in url:
+            return tencent_payload([row("盈利警告", "2026-07-24 13:00:00")])
+        return tencent_payload([row("董事会会议召开日期", "2026-07-24 13:58:00")])
+
+    items = mn.probe(["00100"], market="hk", now=NOW, http=http)["tickers"]["00100"]["items"]
+    assert [item["signal"] for item in items] == [mn.INTERRUPT, mn.CONTEXT]
+
+
+def test_every_triage_rule_is_valid_and_scoped():
+    triage = mn.load_triage()
+    assert triage["default_class"] == mn.CONTEXT
+    seen = set()
+    for rule in triage["rules"]:
+        assert rule["id"] not in seen
+        seen.add(rule["id"])
+        assert rule["class"] in {mn.INTERRUPT, mn.CONTEXT, mn.NOISE}
+        assert rule["market"] in {"us", "hk"}
+        assert rule["why"]
+
+
+# --- fund look-through: eight of twelve positions are funds -------------------
+
+@pytest.mark.parametrize("ticker,market,kind,issuer", [
+    ("PLTU", "us", "look_through", "PLTR"),
+    ("MSFU", "us", "look_through", "MSFT"),
+    ("RKLX", "us", "look_through", "RKLB"),
+    ("SPCH", "us", "look_through", "SPCX"),
+    ("CRCL", "us", "issuer", "CRCL"),
+    ("00100", "hk", "issuer", "00100"),
+    ("SOXL", "us", "index_fund", None),
+    ("TQQQ", "us", "index_fund", None),
+    ("07226", "hk", "index_fund", None),
+    ("03032", "hk", "index_fund", None),
+])
+def test_probe_target_matches_the_actual_book(ticker, market, kind, issuer):
+    target = mn.probe_targets(ticker, market)
+    assert target["kind"] == kind
+    assert target["issuer"] == issuer
+
+
+def test_an_index_fund_is_not_probed_for_issuer_filings():
+    calls = []
+    result = mn.probe(["07226"], market="hk", now=NOW,
+                      http=fake_http({"appstock/news": tencent_payload([])}, calls))
+    entry = result["tickers"]["07226"]
+    assert entry["status"] == "index_fund_no_issuer"
+    assert calls == []
+    assert "HSTECH" in entry["notes"][0]
+
+
+def test_a_leveraged_etf_probes_the_company_it_tracks():
+    calls = []
+    mn.probe(["MSFU"], market="us", now=NOW,
+             http=fake_http({"appstock/news": tencent_payload([])}, calls))
+    assert any("usMSFT" in url for url in calls)
+    assert not any("usMSFU" in url for url in calls)
+
+
+# --- halts -------------------------------------------------------------------
+
+HALT_FEED = """<rss><channel>
+<item><title>PLTU</title>
+<ndaq:HaltDate>07/24/2026</ndaq:HaltDate><ndaq:HaltTime>01:45:00.000</ndaq:HaltTime>
+<ndaq:IssueSymbol>PLTU</ndaq:IssueSymbol><ndaq:ReasonCode>LUDP</ndaq:ReasonCode>
+<ndaq:ResumptionDate>07/24/2026</ndaq:ResumptionDate><ndaq:ResumptionTradeTime>01:50:00</ndaq:ResumptionTradeTime>
+</item>
+<item><title>OTHER</title>
+<ndaq:HaltDate>07/24/2026</ndaq:HaltDate><ndaq:HaltTime>13:45:00.000</ndaq:HaltTime>
+<ndaq:IssueSymbol>OTHER</ndaq:IssueSymbol><ndaq:ReasonCode>T1</ndaq:ReasonCode>
+</item>
+</channel></rss>"""
+
+
+def test_a_halt_on_a_held_leveraged_etf_surfaces_with_its_reason_code():
+    result = mn.halts(["PLTU", "CRCL"], now=NOW, window=240,
+                      http_text=lambda url, timeout=None: HALT_FEED)
+    assert result["status"] == "checked"
+    assert len(result["halted"]) == 1
+    halt = result["halted"][0]
+    assert halt["ticker"] == "PLTU"
+    assert halt["reason_code"] == "LUDP"          # the LULD pause that bites a 2x ETF
+    assert halt["age_minutes"] == 15
+    assert halt["resumption_trade_time"] == "01:50:00"
+
+
+def test_halts_ignore_names_we_do_not_hold():
+    result = mn.halts(["CRCL"], now=NOW, window=240,
+                      http_text=lambda url, timeout=None: HALT_FEED)
+    assert result["halted"] == []
+
+
+def test_no_symbols_means_no_halt_request():
+    calls = []
+    def text(url, timeout=None):
+        calls.append(url)
+        return HALT_FEED
+
+    assert mn.halts([], now=NOW, window=240, http_text=text)["status"] == "not_checked"
+    assert calls == []
+
+
+def test_a_dead_halt_feed_degrades_quietly():
+    def text(url, timeout=None):
+        raise OSError("connection reset")
+
+    result = mn.halts(["PLTU"], now=NOW, window=240, http_text=text)
+    assert result["status"] == "degraded"
+    assert result["halted"] == []
+
+
+def test_hk_slots_do_not_call_the_us_halt_feed():
+    calls = []
+    mn.probe(["00100"], market="hk", now=NOW,
+             http=fake_http({"appstock/news": tencent_payload([])}),
+             http_text=lambda url, timeout=None: calls.append(url) or HALT_FEED)
+    assert calls == []

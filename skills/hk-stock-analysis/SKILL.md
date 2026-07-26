@@ -92,6 +92,9 @@ python3 /root/.openclaw/workspace/scripts/harness/intraday_preflight.py --market
   - `status=no_recent_filing` 是**明确的空**：写「窗口内无一手公告」，不要改口编一个理由；`status=degraded` 说明源没抓到，同样如实写。
   - 用法铁律：异动票必须给出归因或明写「无法归因」。**不要把 `mover_news` 整块抄进报告**——最多引 1–2 条最相关的标题+时间。
   - 一手文件都没有、而异动又很大时，才允许用**内置 web search** 补一次（禁止 Tavily：盘中不烧额度）。
+  - 三级分流（`config/filing-triage.json`）：`signal=interrupt`（8-K/13D/配售/盈警/停牌/业绩…）才可能算硬催化；`context` 只作背景；`noise`（Form 3/4/144/13G、翌日披露报表、月报表、法律意见书）**直接不进上下文**，只留 `suppressed_noise` 计数。没见过的标题一律 `context`，不会被悄悄丢掉。
+  - 基金看穿：2x 单票 ETF 查的是**它跟踪的公司**（`target.kind=look_through`，如 PLTU→PLTR）；指数/板块基金没有发行人，直接标 `index_fund_no_issuer`，不会假装「公司没公告」。
+  - `halts`（仅美股，每 slot 一次共享请求）：持仓或其标的被停牌时给出 `reason_code`（LULD 的 `LUDP` 最常打到 2x ETF）与复牌时间；港股停牌走公告（已在 triage 里判 interrupt）。
 关键字段：`should_alert` (bool) + `alert_reasons` (异动票/STOP 计数等)。另有 `peer_scan`（本腿持仓的板块+同业涨跌，已排序）。
 
 #### Step 2: 写报告
