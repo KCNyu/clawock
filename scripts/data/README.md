@@ -93,6 +93,7 @@ clawock 是**美股 + 港股 + 黄金定投**的实盘组合。工具包遵循�
 |---|---|---|:---:|
 | `fetch_fx.py` | USDHKD 汇率 · 3 路 fallback | Frankfurter(ECB) → 备用 | ✅ |
 | `preflight_integrity.py` | 数据不变量硬闸: TCV / PNL / FX / cash 对账 | 本地 | ✅ |
+| `research_provenance.py` | 研究报告 Decimal 计算、两源数字溯源与 fail-closed 准出 | 结构化 manifest + 本地确定性校验 | ✅ |
 
 ## Layer 8 · 回测/自省 Backtest & Calibration
 
