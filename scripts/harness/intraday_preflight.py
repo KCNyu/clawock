@@ -40,6 +40,7 @@ import trading_calendar  # noqa: E402
 import cron_heartbeat  # noqa: E402
 import peer_scan  # noqa: E402
 import research_surface  # noqa: E402
+import mover_news  # noqa: E402
 
 
 def run_analyze(market):
@@ -220,6 +221,13 @@ def main():
         [a['ticker'] for a in anomalies]
     )
 
+    # What was actually published behind those moves. Mover-scoped, bounded
+    # by a wall-clock budget, and fails soft — a news endpoint must never
+    # slow or red a reporting cron.
+    mover_news_ctx = mover_news.probe(
+        [a['ticker'] for a in anomalies], market=args.market,
+    )
+
     result = {
         'status':           'ok',
         'market':           args.market,
@@ -235,6 +243,7 @@ def main():
         't0_setups':        t0_setups,
         'peer_scan':        collect_peers(args.market),
         'mover_thesis':     mover_thesis,
+        'mover_news':       mover_news_ctx,
         'heartbeat':        {'job': heartbeat['job'], 'slot': heartbeat['slot']},
     }
 
