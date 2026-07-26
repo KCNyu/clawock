@@ -13,7 +13,16 @@ from pathlib import Path
 
 SCHEMA_VERSION = 1
 CURRENCIES = {"USD", "HKD", "CNY", "EUR", "JPY", "NONE"}
+# A manifest cannot authorize its own escape hatch: no metric may declare a
+# looser two-source agreement band than this.
+MAX_TOLERANCE_PCT = Decimal("5")
+# Powers must stay integer and small: a fractional exponent is not exact arithmetic,
+# and a large one pushes the result past Decimal's working precision, which would
+# silently round the "exact" number this module exists to protect.
+MAX_EXPONENT = 6
 _NUMBER = re.compile(r"(?<![\w.])(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?")
+_DECIMAL_TOKEN = re.compile(r"D\('[^']*'\)")
+_OPERATORS_ONLY = re.compile(r"[+\-*/%()\s]*")
 
 
 def decimal_value(value, field: str = "value") -> Decimal:
@@ -28,12 +37,40 @@ def decimal_value(value, field: str = "value") -> Decimal:
     return result
 
 
+def _exponent_value(node) -> Decimal | None:
+    """Return the literal Decimal an already-rewritten `D('n')` node evaluates to."""
+    if (
+        isinstance(node, ast.Call) and isinstance(node.func, ast.Name)
+        and node.func.id == "D" and len(node.args) == 1
+        and isinstance(node.args[0], ast.Constant)
+        and isinstance(node.args[0].value, str)
+    ):
+        try:
+            return Decimal(node.args[0].value)
+        except InvalidOperation:
+            return None
+    return None
+
+
 def exact_calculate(expression: str) -> Decimal:
-    """Evaluate arithmetic after replacing every numeric token with Decimal."""
+    """Evaluate arithmetic after replacing every numeric token with Decimal.
+
+    Every reachable failure raises ValueError so callers — and the CLI, whose
+    contract is one JSON object per run — never see a raw traceback instead of a
+    verdict.
+    """
     if not expression or not re.fullmatch(r"[\d.eE+\-*/()%\s]+", expression):
         raise ValueError("expression contains unsupported characters")
     rewritten = _NUMBER.sub(lambda m: f"D('{m.group(0)}')", expression)
-    tree = ast.parse(rewritten, mode="eval")
+    # `1e` and `ee` survive the character allow-list because `e` is legal inside a
+    # numeric exponent. Anything left over after removing the generated Decimal
+    # tokens must be operators, or the expression carries a bare identifier.
+    if not _OPERATORS_ONLY.fullmatch(_DECIMAL_TOKEN.sub("", rewritten)):
+        raise ValueError("expression contains a non-numeric token")
+    try:
+        tree = ast.parse(rewritten, mode="eval")
+    except SyntaxError as exc:
+        raise ValueError(f"expression is not valid arithmetic: {exc.msg}") from exc
     allowed = (
         ast.Expression, ast.BinOp, ast.UnaryOp, ast.Call, ast.Load, ast.Name,
         ast.Constant, ast.Add, ast.Sub, ast.Mult, ast.Div, ast.Mod, ast.Pow,
@@ -47,8 +84,30 @@ def exact_calculate(expression: str) -> Decimal:
             or len(node.args) != 1 or node.keywords
         ):
             raise ValueError("expression contains an invalid call")
-    return eval(compile(tree, "<decimal-expression>", "eval"),  # noqa: S307
-                {"__builtins__": {}, "D": Decimal}, {})
+        if isinstance(node, ast.BinOp) and isinstance(node.op, ast.Pow):
+            exponent = _exponent_value(node.right)
+            if exponent is None or exponent != exponent.to_integral_value():
+                raise ValueError("exponent must be an integer literal")
+            if abs(exponent) > MAX_EXPONENT:
+                raise ValueError(f"exponent must be within ±{MAX_EXPONENT}")
+    try:
+        return eval(compile(tree, "<decimal-expression>", "eval"),  # noqa: S307
+                    {"__builtins__": {}, "D": Decimal}, {})
+    except ArithmeticError as exc:
+        # decimal.DecimalException (DivisionUndefined, Overflow, InvalidOperation…)
+        # and ZeroDivisionError all land here.
+        raise ValueError(f"expression is not computable: {exc.__class__.__name__}") from exc
+    except NameError as exc:  # defence in depth behind the token check above
+        raise ValueError(f"expression contains an unknown name: {exc}") from exc
+
+
+def _tolerance(value, field: str) -> Decimal:
+    tolerance = decimal_value(value, field)
+    if tolerance < 0:
+        raise ValueError(f"{field} must be non-negative")
+    if tolerance > MAX_TOLERANCE_PCT:
+        raise ValueError(f"{field} must not exceed the {MAX_TOLERANCE_PCT}% cap")
+    return tolerance
 
 
 def market_cap_result(price: str, shares: str, reported: str, currency: str,
@@ -58,8 +117,8 @@ def market_cap_result(price: str, shares: str, reported: str, currency: str,
     p = decimal_value(price, "price")
     s = decimal_value(shares, "shares")
     r = decimal_value(reported, "reported")
-    tolerance = decimal_value(tolerance_pct, "tolerance_pct")
-    if p < 0 or s <= 0 or r <= 0 or tolerance < 0:
+    tolerance = _tolerance(tolerance_pct, "tolerance_pct")
+    if p < 0 or s <= 0 or r <= 0:
         raise ValueError("price must be non-negative; shares/reported positive; tolerance non-negative")
     calculated = p * s
     deviation = abs(calculated - r) / r * Decimal("100")
@@ -101,7 +160,8 @@ def validate_manifest(payload: dict) -> dict:
         metric_id = metric.get("id")
         if not metric_id or metric_id in ids:
             errors.append(f"{prefix}.id must be present and unique")
-        ids.add(metric_id)
+        if metric_id:
+            ids.add(metric_id)
         for field in ("name", "ticker", "period", "as_of", "unit", "basis"):
             if not metric.get(field):
                 errors.append(f"{prefix}.{field} is required")
@@ -135,8 +195,8 @@ def validate_manifest(payload: dict) -> dict:
                     errors.append(f"{prefix}.verification.{field} must match metric {field}")
             try:
                 fetched = decimal_value(check.get("value"), f"{prefix}.verification.value")
-                tolerance = decimal_value(metric.get("tolerance_pct", "1"),
-                                          f"{prefix}.tolerance_pct")
+                tolerance = _tolerance(metric.get("tolerance_pct", "1"),
+                                       f"{prefix}.tolerance_pct")
                 if reported is not None:
                     deviation = (abs(reported - fetched) / abs(reported) * 100
                                  if reported else (Decimal(0) if not fetched else Decimal("Infinity")))
@@ -184,7 +244,7 @@ def main(argv=None) -> int:
             )
         else:
             result = validate_manifest(json.loads(args.path.read_text()))
-    except (ValueError, OSError, json.JSONDecodeError, ZeroDivisionError) as exc:
+    except (ValueError, OSError, json.JSONDecodeError, ArithmeticError) as exc:
         result = {"status": "fail", "errors": [str(exc)]}
     print(json.dumps(result, ensure_ascii=False, sort_keys=True))
     return 0 if result["status"] == "pass" else 1
