@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-07-26T05:16:32.274395+00:00",
+  "generated_at": "2026-07-26T05:26:08.567212+00:00",
   "as_of": "2026-07-24",
   "registered_at": "2026-07-26",
   "universe": {
@@ -1980,6 +1980,36 @@
       "research_only_preference": "prefer_1x_or_no_add",
       "usable_for_decisions": false
     },
+    "ROBN": {
+      "underlying": "HOOD",
+      "leverage": 2,
+      "underlying_sector_neutral_score": 0.08,
+      "horizons": {
+        "1m": {
+          "proxy_return": -0.100559,
+          "underlying_return": -0.023459,
+          "ideal_leveraged_return": -0.046918,
+          "tracking_and_decay_gap": -0.05364,
+          "n_common_returns": 21
+        },
+        "3m": {
+          "proxy_return": 0.076473,
+          "underlying_return": 0.136102,
+          "ideal_leveraged_return": 0.272205,
+          "tracking_and_decay_gap": -0.195732,
+          "n_common_returns": 63
+        },
+        "6m": {
+          "proxy_return": -0.450746,
+          "underlying_return": -0.106729,
+          "ideal_leveraged_return": -0.213459,
+          "tracking_and_decay_gap": -0.237287,
+          "n_common_returns": 126
+        }
+      },
+      "research_only_preference": "underlying_relative_strength_positive",
+      "usable_for_decisions": false
+    },
     "PLTU": {
       "underlying": "PLTR",
       "leverage": 2,
@@ -2052,6 +2082,18 @@
           "tracking_and_decay_gap": 0.036083,
           "n_common_returns": 21
         },
+        "3m": null,
+        "6m": null
+      },
+      "research_only_preference": "prefer_1x_or_no_add",
+      "usable_for_decisions": false
+    },
+    "SOXL": {
+      "underlying": "SOXX",
+      "leverage": 3,
+      "underlying_sector_neutral_score": null,
+      "horizons": {
+        "1m": null,
         "3m": null,
         "6m": null
       },

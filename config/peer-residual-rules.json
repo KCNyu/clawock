@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "registered_at": "2026-07-26",
+  "peer_source": "memory/peer-map.json listed_peers only",
+  "automatic_hk_peer_discovery": false,
+  "basket_weight_cap": 0.4,
+  "forward_horizon_sessions": 5,
+  "activation_criteria": {
+    "min_prospective_dates": 24,
+    "min_prospective_tickers": 4,
+    "min_peer_count": 3,
+    "min_signed_residual_ci95_lower": 0.0,
+    "min_hit_rate_ci95_lower": 0.5
+  },
+  "rules": {
+    "leader_continuation": {
+      "description": "5d and 20d residual leader with non-negative peer breadth continues to outperform",
+      "expected_direction": 1
+    },
+    "laggard_avoidance": {
+      "description": "5d and 20d residual laggard in a rising peer basket continues to underperform",
+      "expected_direction": -1
+    },
+    "mean_reversion": {
+      "description": "one-session downside residual shock beyond 1.5 peer dispersions rebounds",
+      "expected_direction": 1
+    }
+  }
+}

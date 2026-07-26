@@ -1444,6 +1444,47 @@ def main():
     except Exception as e:
         print(f'   ⚠ cross-sectional factor failed: {e}')
 
+    # [10b3c] Curated peer residual/leadership research. HK taxonomy is explicitly
+    # manual-only; leveraged products are folded to 1x before basket construction.
+    # As with the broader cross-sectional layer, inactive rules are display-only.
+    peer_residual_ctx = {}
+    try:
+        subprocess.run(
+            ['python3', str(WS / 'scripts' / 'data' / 'peer_residual_engine.py')],
+            capture_output=True, text=True, timeout=180, check=False,
+        )
+        pr_path = WS / 'assets' / 'data' / 'peer_residual.json'
+        if pr_path.exists():
+            peer_residual = json.loads(pr_path.read_text())
+            peer_live = peer_residual.get('live') or {}
+            held = {
+                h.get('ticker')
+                for leg in ('hk_stocks', 'us_stocks')
+                for h in portfolio.get('portfolios', {}).get(leg, {}).get('holdings', [])
+                if h.get('shares', 0) > 0
+            }
+            peer_residual_ctx = {
+                'as_of': peer_residual.get('as_of'),
+                'taxonomy': peer_residual.get('taxonomy'),
+                'calibration': peer_residual.get('calibration'),
+                'rule_activation': peer_residual.get('rule_activation'),
+                'held': {
+                    ticker: row for ticker, row in peer_live.items()
+                    if ticker in held
+                },
+            }
+            active_peer_rules = [
+                rule for rule, state in
+                (peer_residual.get('rule_activation') or {}).items()
+                if state.get('active')
+            ]
+            print(
+                f'   🧭 peer residual: active_rules='
+                f'{",".join(active_peer_rules) or "none"}, HK_auto=false'
+            )
+    except Exception as e:
+        print(f'   ⚠ peer residual engine failed: {e}')
+
     # [10b4] T+0 牌面评级 — 零额外请求（从已抓字段 + quant ATR 推导），追高检测。
     # 紧跟 quant_signals 之后跑（依赖其 ATR 刷新）。
     t0_setups = {}
@@ -1605,6 +1646,7 @@ def main():
         'quant_signals': quant_signals,
         'quant_signal_review': quant_review,
         'cross_sectional_factor': cross_sectional_factor_ctx,
+        'peer_residual': peer_residual_ctx,
         't0_setups': t0_setups,
         't0_setup_review': t0_review,
         'integrity': integrity,
