@@ -5,9 +5,12 @@ imports and its filesystem orchestration is guarded by ``main()``, so importing
 it does not read snapshots, portfolio data, or the network.
 """
 import json
+import os
 from pathlib import Path
 import sys
 from types import SimpleNamespace
+from datetime import datetime
+from zoneinfo import ZoneInfo
 
 import pytest
 
@@ -358,6 +361,89 @@ def test_hhi_uses_value_weights_and_reports_top_two_concentration():
     assert result["hhi"] == 0.46  # .6^2 + .3^2 + .1^2
     assert result["top2"] == 0.9
     assert [row["ticker"] for row in result["positions"]] == ["A", "B", "C"]
+
+
+def test_latest_completed_session_skips_holiday_weekend_before_close():
+    import trading_calendar
+
+    before_close = datetime(
+        2026, 7, 6, 15, 0, tzinfo=ZoneInfo("America/New_York")
+    )
+    after_close = datetime(
+        2026, 7, 6, 17, 0, tzinfo=ZoneInfo("America/New_York")
+    )
+
+    assert dashboard._latest_completed_session(
+        "us", trading_calendar, before_close
+    ).isoformat() == "2026-07-02"
+    assert dashboard._latest_completed_session(
+        "us", trading_calendar, after_close
+    ).isoformat() == "2026-07-06"
+
+
+def test_market_leg_freshness_exposes_one_frozen_holding():
+    import trading_calendar
+
+    at = datetime(
+        2026, 7, 24, 17, 0, tzinfo=ZoneInfo("America/New_York")
+    )
+    leg = {
+        "last_updated": "Jun 24, 2026 16:00 ET close",
+        "holdings": [
+            {
+                "ticker": "FRESH",
+                "shares": 1,
+                "data_source": "Nasdaq API Jul 24, 2026 16:00 ET",
+            },
+            {
+                "ticker": "FROZEN",
+                "shares": 1,
+                "data_source": "Nasdaq API Jul 23, 2026 16:00 ET",
+            },
+            {"ticker": "EXITED", "shares": 0, "data_source": "old"},
+        ],
+    }
+
+    status = dashboard._market_leg_freshness(
+        leg, "us", trading_calendar, at=at
+    )
+
+    assert status["expected_completed_session"] == "2026-07-24"
+    assert status["fresh"] is False
+    assert status["stale_tickers"] == ["FROZEN"]
+    assert status["quote_sessions"]["FRESH"] == "2026-07-24"
+    assert "EXITED" not in status["quote_sessions"]
+
+
+def test_stale_market_leg_makes_build_unhealthy(monkeypatch, tmp_path):
+    data_dir = tmp_path / "assets" / "data"
+    data_dir.mkdir(parents=True)
+    for name in dashboard._FRESHNESS_SLA_H:
+        path = tmp_path / name if name == "portfolio.json" else data_dir / name
+        path.write_text("{}")
+        os.utime(path, None)
+    monkeypatch.setattr(dashboard, "WS_ROOT", tmp_path)
+    monkeypatch.setitem(
+        sys.modules,
+        "preflight_integrity",
+        SimpleNamespace(check=lambda: {
+            "ok": True, "error_count": 0, "warn_count": 0, "findings": [],
+        }),
+    )
+    portfolio = _portfolio(
+        us={"holdings": [{
+            "ticker": "US", "shares": 1, "data_source": "Nasdaq Jan 01, 2026"
+        }]},
+        hk={"holdings": [{
+            "ticker": "HK", "shares": 1, "data_source": "Tencent Jan 01 2026"
+        }]},
+    )
+
+    status = dashboard.compute_build_status(portfolio, data_dir)
+
+    assert status["stale_files"] == []
+    assert status["stale_markets"] == ["us", "hk"]
+    assert status["healthy"] is False
 
 
 @pytest.mark.parametrize("holdings", [[], [

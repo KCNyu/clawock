@@ -1,0 +1,340 @@
+#!/usr/bin/env python3
+"""Canonical instrument metadata shared by dashboard, risk, quant and brief.
+
+The JSON file is deliberately data-only so exchange suffixes, leverage and
+look-through relationships can be reviewed without importing a consumer.
+Validation is dependency-free because every host-side safety gate imports this
+module and CI intentionally installs only the project's minimal dependencies.
+"""
+
+from __future__ import annotations
+
+import json
+import re
+from pathlib import Path
+from typing import Any
+
+
+WS = Path(__file__).resolve().parents[2]
+REGISTRY_FILE = WS / "config" / "instruments.json"
+SCHEMA_FILE = WS / "config" / "instruments.schema.json"
+SCHEMA_VERSION = 1
+
+REQUIRED_FIELDS = {
+    "name",
+    "region",
+    "currency",
+    "venue",
+    "venue_suffix",
+    "tencent_symbol",
+    "eastmoney_secid",
+    "sector",
+    "themes",
+    "factor",
+    "leverage_multiple",
+    "underlying",
+    "one_x_substitute",
+    "signal_symbol",
+    "listing_date",
+    "peer_bucket",
+    "retired",
+}
+ACTIVE_REQUIRED_VALUES = {
+    "name",
+    "region",
+    "currency",
+    "venue",
+    "tencent_symbol",
+    "sector",
+    "themes",
+    "factor",
+    "leverage_multiple",
+    "peer_bucket",
+}
+_DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
+
+
+def validate_registry(doc: Any) -> list[str]:
+    """Return every schema/relationship error; an empty list means valid."""
+    errors: list[str] = []
+    if not isinstance(doc, dict):
+        return ["registry must be an object"]
+    if doc.get("schema_version") != SCHEMA_VERSION:
+        errors.append(f"schema_version must be {SCHEMA_VERSION}")
+    instruments = doc.get("instruments")
+    if not isinstance(instruments, dict) or not instruments:
+        return errors + ["instruments must be a non-empty object"]
+
+    for symbol, meta in instruments.items():
+        where = f"instruments.{symbol}"
+        if not isinstance(symbol, str) or not symbol:
+            errors.append("instrument symbol must be a non-empty string")
+            continue
+        if not isinstance(meta, dict):
+            errors.append(f"{where} must be an object")
+            continue
+        missing = sorted(REQUIRED_FIELDS - set(meta))
+        extra = sorted(set(meta) - REQUIRED_FIELDS)
+        if missing:
+            errors.append(f"{where} missing fields: {', '.join(missing)}")
+        if extra:
+            errors.append(f"{where} unknown fields: {', '.join(extra)}")
+        if meta.get("region") not in {"US", "HK"}:
+            errors.append(f"{where}.region must be US or HK")
+        expected_currency = {"US": "USD", "HK": "HKD"}.get(meta.get("region"))
+        if expected_currency and meta.get("currency") != expected_currency:
+            errors.append(f"{where}.currency must be {expected_currency}")
+        if meta.get("region") == "US":
+            suffix = meta.get("venue_suffix")
+            if not isinstance(suffix, str) or not suffix.startswith("."):
+                errors.append(f"{where}.venue_suffix must pin a US exchange suffix")
+            expected_tencent = f"us{symbol}{suffix}" if isinstance(suffix, str) else None
+            if meta.get("tencent_symbol") != expected_tencent:
+                errors.append(
+                    f"{where}.tencent_symbol must match pinned venue: {expected_tencent}"
+                )
+        elif meta.get("venue") == "HKEX":
+            if meta.get("venue_suffix") is not None:
+                errors.append(f"{where}.venue_suffix must be null for HKEX")
+            if meta.get("tencent_symbol") != f"hk{symbol}":
+                errors.append(f"{where}.tencent_symbol must be hk{symbol}")
+        secid = meta.get("eastmoney_secid")
+        if secid is not None and (
+            not isinstance(secid, str) or not secid.endswith(f".{symbol}")
+        ):
+            errors.append(f"{where}.eastmoney_secid must end with .{symbol}")
+        if not isinstance(meta.get("themes"), list) or not meta.get("themes"):
+            errors.append(f"{where}.themes must be a non-empty list")
+        elif len(meta["themes"]) != len(set(meta["themes"])):
+            errors.append(f"{where}.themes must not contain duplicates")
+        leverage = meta.get("leverage_multiple")
+        if not isinstance(leverage, (int, float)) or isinstance(leverage, bool) or leverage < 1:
+            errors.append(f"{where}.leverage_multiple must be a number >= 1")
+        listing_date = meta.get("listing_date")
+        if listing_date is not None and (
+            not isinstance(listing_date, str) or not _DATE_RE.fullmatch(listing_date)
+        ):
+            errors.append(f"{where}.listing_date must be YYYY-MM-DD or null")
+        if not isinstance(meta.get("retired"), bool):
+            errors.append(f"{where}.retired must be boolean")
+        for field in ("name", "venue", "sector", "factor", "peer_bucket"):
+            if not isinstance(meta.get(field), str) or not meta.get(field):
+                errors.append(f"{where}.{field} must be a non-empty string")
+
+    for symbol, meta in instruments.items():
+        # ``underlying`` may be an index/private factor with no listed registry
+        # entry. The actionable 1x substitute and quant signal proxy must always
+        # resolve to a concrete registered instrument.
+        for field in ("one_x_substitute", "signal_symbol"):
+            target = meta.get(field)
+            if target and target not in instruments:
+                errors.append(f"instruments.{symbol}.{field} references unknown {target}")
+        if meta.get("leverage_multiple", 1) > 1 and not meta.get("underlying"):
+            errors.append(f"instruments.{symbol} leveraged instrument needs underlying")
+        if meta.get("one_x_substitute"):
+            target = instruments.get(meta["one_x_substitute"], {})
+            if target.get("leverage_multiple") != 1:
+                errors.append(
+                    f"instruments.{symbol}.one_x_substitute must have leverage_multiple=1"
+                )
+            if target.get("factor") != meta.get("factor"):
+                errors.append(
+                    f"instruments.{symbol}.one_x_substitute must share look-through factor"
+                )
+    return errors
+
+
+def load_registry(path: Path | str = REGISTRY_FILE) -> dict[str, dict]:
+    path = Path(path)
+    try:
+        doc = json.loads(path.read_text(encoding="utf-8"))
+    except Exception as exc:
+        raise ValueError(f"cannot read instrument registry {path}: {exc}") from exc
+    errors = validate_registry(doc)
+    if errors:
+        raise ValueError("invalid instrument registry: " + "; ".join(errors))
+    return doc["instruments"]
+
+
+def validate_active_holdings(
+    portfolio: dict, registry: dict[str, dict] | None = None
+) -> list[str]:
+    """Fail closed when a live holding lacks metadata needed by consumers."""
+    registry = registry or load_registry()
+    errors: list[str] = []
+    for bucket, expected_region in (("us_stocks", "US"), ("hk_stocks", "HK")):
+        holdings = portfolio.get("portfolios", {}).get(bucket, {}).get("holdings", [])
+        for holding in holdings:
+            if (holding.get("shares") or 0) <= 0:
+                continue
+            symbol = holding.get("ticker")
+            meta = registry.get(symbol)
+            if not meta:
+                errors.append(f"active {bucket} holding {symbol!r} missing from registry")
+                continue
+            if meta.get("region") != expected_region:
+                errors.append(
+                    f"active {symbol} registry region {meta.get('region')} != {expected_region}"
+                )
+            empty = sorted(
+                field for field in ACTIVE_REQUIRED_VALUES if meta.get(field) in (None, "", [])
+            )
+            if empty:
+                errors.append(f"active {symbol} missing required values: {', '.join(empty)}")
+            if meta.get("retired"):
+                errors.append(f"active {symbol} is declared retired")
+    return errors
+
+
+INSTRUMENTS = load_registry()
+
+
+def get(symbol: str) -> dict | None:
+    return INSTRUMENTS.get(symbol)
+
+
+def require(symbol: str) -> dict:
+    meta = get(symbol)
+    if meta is None:
+        raise KeyError(f"instrument {symbol!r} missing from canonical registry")
+    return meta
+
+
+def is_leveraged(symbol: str) -> bool:
+    meta = get(symbol)
+    return bool(meta and meta["leverage_multiple"] > 1)
+
+
+def canonical_bar_manifest() -> dict[str, dict]:
+    """Compatibility view used by the canonical raw-bar writer."""
+    out: dict[str, dict] = {}
+    for symbol, meta in INSTRUMENTS.items():
+        if not meta.get("tencent_symbol") or not meta.get("eastmoney_secid"):
+            continue
+        out[symbol] = {
+            "leg": meta["region"],
+            "tencent": meta["tencent_symbol"],
+            "em": meta["eastmoney_secid"],
+            "name": meta["name"],
+            "retired": meta["retired"],
+        }
+    return out
+
+
+def leveraged_symbols() -> set[str]:
+    return {s for s, meta in INSTRUMENTS.items() if meta["leverage_multiple"] > 1}
+
+
+def leverage_map() -> dict[str, float]:
+    return {
+        s: meta["leverage_multiple"]
+        for s, meta in INSTRUMENTS.items()
+        if meta["leverage_multiple"] > 1
+    }
+
+
+def one_x_swap_map() -> dict[str, str]:
+    return {
+        s: meta["one_x_substitute"]
+        for s, meta in INSTRUMENTS.items()
+        if meta.get("one_x_substitute")
+    }
+
+
+def compute_lookthrough_exposure(portfolio: dict) -> dict[str, dict]:
+    """Gross exposure and HHI by canonical sector and underlying factor."""
+    result: dict[str, dict] = {"us": {}, "hk": {}}
+    for region in ("us_stocks", "hk_stocks"):
+        key = "us" if region == "us_stocks" else "hk"
+        active = [
+            h
+            for h in portfolio["portfolios"][region].get("holdings", [])
+            if (h.get("shares") or 0) > 0
+        ]
+        by_factor: dict[str, dict] = {}
+        by_sector: dict[str, dict] = {}
+        capital_total = sum(float(h.get("current_value") or 0) for h in active)
+        mapped_capital = 0.0
+        for holding in active:
+            value = float(holding.get("current_value") or 0)
+            meta = get(holding["ticker"])
+            if not meta:
+                factor = f"UNMAPPED:{holding['ticker']}"
+                sector = "Other"
+                multiple = 1.0
+            else:
+                factor = meta["factor"]
+                sector = meta["sector"]
+                multiple = float(meta["leverage_multiple"])
+                mapped_capital += value
+            gross = value * multiple
+            for mapping, label in ((by_factor, factor), (by_sector, sector)):
+                row = mapping.setdefault(
+                    label, {"capital_value": 0.0, "gross_value": 0.0, "tickers": []}
+                )
+                row["capital_value"] += value
+                row["gross_value"] += gross
+                row["tickers"].append(holding["ticker"])
+
+        gross_total = sum(row["gross_value"] for row in by_factor.values())
+
+        def serialize(mapping: dict[str, dict], label_key: str) -> list[dict]:
+            rows = []
+            for label, row in mapping.items():
+                pct = row["gross_value"] / gross_total * 100 if gross_total else 0.0
+                rows.append(
+                    {
+                        label_key: label,
+                        "capital_value": round(row["capital_value"], 2),
+                        "gross_value": round(row["gross_value"], 2),
+                        "gross_pct": round(pct, 2),
+                        "tickers": sorted(row["tickers"]),
+                    }
+                )
+            return sorted(rows, key=lambda row: row["gross_pct"], reverse=True)
+
+        factor_rows = serialize(by_factor, "factor")
+        sector_rows = serialize(by_sector, "sector")
+        result[key] = {
+            "capital_value": round(capital_total, 2),
+            "gross_value": round(gross_total, 2),
+            "metadata_coverage_pct": (
+                round(mapped_capital / capital_total * 100, 2)
+                if capital_total
+                else 100.0
+            ),
+            "factor_hhi": round(
+                sum((row["gross_pct"] / 100) ** 2 for row in factor_rows), 4
+            ),
+            "sector_hhi": round(
+                sum((row["gross_pct"] / 100) ** 2 for row in sector_rows), 4
+            ),
+            "factors": factor_rows,
+            "sectors": sector_rows,
+        }
+    return result
+
+
+def main() -> int:
+    portfolio_path = WS / "portfolio.json"
+    portfolio = json.loads(portfolio_path.read_text(encoding="utf-8"))
+    errors = validate_active_holdings(portfolio)
+    if errors:
+        for error in errors:
+            print(f"ERROR: {error}")
+        return 1
+    active = sum(
+        1
+        for bucket in ("us_stocks", "hk_stocks")
+        for holding in portfolio["portfolios"][bucket]["holdings"]
+        if (holding.get("shares") or 0) > 0
+    )
+    print(
+        f"instrument registry OK: {len(INSTRUMENTS)} instruments, "
+        f"{active} active holdings fully mapped"
+    )
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

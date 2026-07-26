@@ -523,5 +523,137 @@ class DecisionV2Test(unittest.TestCase):
             self.assertTrue(body.endswith(raw))
 
 
+class HierarchicalCalibrationTest(unittest.TestCase):
+    @staticmethod
+    def row(day, ordinal, win=True, action="cut", driver="technical",
+            condition="open", regime="neutral"):
+        row = decision(
+            day, ticker=f"T{ordinal}", action=action,
+            benefit=1.0 if win else -1.0,
+        )
+        row["decision_id"] = f"cal-{day}-{ordinal}"
+        row["episode_id"] = f"cal-ep-{day}-{ordinal}"
+        row["driven_by"] = driver
+        row["condition"]["type"] = condition
+        row["regime"] = regime
+        row["confidence"] = 0.9
+        return row
+
+    def test_same_date_outcomes_cannot_leak_between_predictions(self):
+        rows = [
+            self.row("2026-07-01", 1, win=True),
+            self.row("2026-07-01", 2, win=False),
+        ]
+        predictions = dv2.hierarchical_prequential_calibration(
+            rows)["prequential_predictions"]
+        self.assertEqual(
+            predictions[0]["calibrated_probability"],
+            predictions[1]["calibrated_probability"],
+        )
+        self.assertEqual(predictions[0]["ci95"], predictions[1]["ci95"])
+        self.assertEqual(predictions[0]["prior_episodes"], 0)
+        self.assertEqual(predictions[1]["prior_episodes"], 0)
+
+    def test_future_outcome_cannot_change_an_earlier_prediction(self):
+        past = [
+            self.row("2026-07-01", 1, win=True),
+            self.row("2026-07-02", 2, win=False),
+        ]
+        before = dv2.hierarchical_prequential_calibration(
+            past)["prequential_predictions"]
+        after = dv2.hierarchical_prequential_calibration(
+            past + [self.row("2026-07-03", 3, win=True)]
+        )["prequential_predictions"][:2]
+        self.assertEqual(before, after)
+
+    def test_delayed_episode_outcome_updates_only_when_observable(self):
+        delayed = self.row("2026-07-01", 1, win=True)
+        delayed["evaluation"]["episode_outcome_available_date"] = "2026-07-03"
+        day_two = self.row("2026-07-02", 2, win=False)
+        day_two["evaluation"]["episode_outcome_available_date"] = "2026-07-05"
+        day_four = self.row("2026-07-04", 4, win=True)
+        day_four["evaluation"]["episode_outcome_available_date"] = "2026-07-05"
+
+        predictions = dv2.hierarchical_prequential_calibration(
+            [delayed, day_two, day_four])["prequential_predictions"]
+        by_date = {row["plan_date"]: row for row in predictions}
+        self.assertEqual(by_date["2026-07-02"]["prior_episodes"], 0)
+        self.assertEqual(by_date["2026-07-04"]["prior_episodes"], 1)
+        self.assertEqual(
+            by_date["2026-07-04"]["outcome_available_date"], "2026-07-05")
+
+    def test_sparse_leaf_shrinks_toward_broader_prior(self):
+        rows = [
+            self.row(f"2026-06-{i:02d}", i, win=True)
+            for i in range(1, 21)
+        ]
+        rows.append(self.row(
+            "2026-06-21", 21, win=False, action="t_only",
+            driver="sentiment", condition="price_below", regime="risk_off",
+        ))
+        rows.append(self.row(
+            "2026-06-22", 22, win=False, action="t_only",
+            driver="sentiment", condition="price_below", regime="risk_off",
+        ))
+        last = dv2.hierarchical_prequential_calibration(
+            rows)["prequential_predictions"][-1]
+        self.assertEqual(
+            last["resolved_level"], "action_driver_condition_regime")
+        self.assertEqual(last["resolved_level_n"], 1)
+        self.assertGreater(last["calibrated_probability"], 0.25)
+        self.assertLess(last["calibrated_probability"], 0.8)
+
+    def test_regime_is_a_real_calibration_dimension(self):
+        rows = []
+        for i in range(1, 11):
+            rows.append(self.row(
+                f"2026-05-{i:02d}", i, win=True, regime="risk_on"))
+            rows.append(self.row(
+                f"2026-05-{i:02d}", 100 + i, win=False, regime="risk_off"))
+        rows.extend([
+            self.row("2026-05-20", 201, win=True, regime="risk_on"),
+            self.row("2026-05-20", 202, win=False, regime="risk_off"),
+        ])
+        predictions = dv2.hierarchical_prequential_calibration(
+            rows)["prequential_predictions"][-2:]
+        by_regime = {row["regime"]: row for row in predictions}
+        self.assertGreater(
+            by_regime["risk_on"]["calibrated_probability"],
+            by_regime["risk_off"]["calibrated_probability"],
+        )
+
+    def test_insufficient_history_abstains_but_supported_edge_can_size(self):
+        rows = [
+            self.row(f"2026-04-{i:02d}", i, win=True)
+            for i in range(1, 22)
+        ]
+        predictions = dv2.hierarchical_prequential_calibration(
+            rows)["prequential_predictions"]
+        self.assertTrue(predictions[0]["abstain"])
+        self.assertEqual(predictions[0]["signal_size_multiplier"], 0.0)
+        self.assertFalse(predictions[-1]["abstain"])
+        self.assertTrue(predictions[-1]["edge_supported"])
+        self.assertGreater(predictions[-1]["signal_size_multiplier"], 0.0)
+
+    def test_normalization_records_regime_and_rejects_bad_value(self):
+        row = dv2.legacy_action_to_decision({
+            "ticker": "AAA", "strategy_id": "core_position", "action": "cut",
+            "condition": {"type": "open"}, "confidence": 0.6,
+            "driven_by": "technical", "regime": "risk_off",
+        }, "2026-07-01")
+        row["episode_id"] = "ep-test"
+        self.assertEqual(row["regime"], "risk_off")
+        row["regime"] = "bullish"
+        self.assertIn("bad regime 'bullish'", dv2.validate_decision(row))
+
+    def test_unknown_regime_is_a_prospective_plan_warning(self):
+        row = self.row("2026-07-01", 1)
+        row["regime"] = "unknown"
+        self.assertEqual(
+            dv2.missing_regime_warnings([row]),
+            ["regime missing/unknown for T1/core_position"],
+        )
+
+
 if __name__ == "__main__":
     unittest.main()

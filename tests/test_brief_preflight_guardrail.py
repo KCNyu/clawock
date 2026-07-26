@@ -100,6 +100,13 @@ def test_single_name_above_35_percent_emits_one_medium_hk_trim(preflight):
     assert "trim BIG" in breach["action"]
     assert "≤35%" in breach["action"]
     assert "1.0 HKD" in breach["action"]
+    assert breach["required_reduction"] == {
+        "kind": "market_value",
+        "minimum_value": 1.0,
+        "currency": "HKD",
+        "target_pct": 35,
+        "target_tickers": ["BIG"],
+    }
 
 
 def test_single_name_exactly_35_percent_is_compliant_because_operator_is_strict_gt(preflight):
@@ -188,6 +195,36 @@ def test_us_beta_exactly_3_is_compliant_because_operator_is_strict_gt(preflight)
     assert result["breach_count"] == 0
 
 
+def test_us_beta_action_is_withheld_when_risk_window_is_ineligible(preflight):
+    result = _evaluate(
+        preflight,
+        risk={"us": {
+            "beta_spx": 4.2,
+            "n_returns": 9,
+            "threshold_eligible": False,
+        }},
+    )
+
+    assert result["breaches"] == []
+    assert result["breach_count"] == 0
+
+
+def test_us_beta_action_is_withheld_when_benchmark_overlap_is_ineligible(preflight):
+    result = _evaluate(
+        preflight,
+        risk={"us": {
+            "beta_spx": 4.2,
+            "n_returns": 30,
+            "threshold_eligible": True,
+            "benchmark_n_returns": 7,
+            "beta_threshold_eligible": False,
+        }},
+    )
+
+    assert result["breaches"] == []
+    assert result["breach_count"] == 0
+
+
 def test_leveraged_etf_loss_exactly_minus_18_triggers_inclusive_stop(preflight):
     result = _evaluate(preflight, us=[
         _holding("PLTU", 25, leveraged=True, pnl_pct=-18),
@@ -269,6 +306,33 @@ def test_regime_cut_for_a_held_us_leveraged_etf_emits_forced_delever(preflight):
     assert "driven_by=risk_rule" in breach["action"]
 
 
+def test_new_listing_cut_reports_unavailable_volatility_and_short_ma_basis(preflight):
+    result = _evaluate(
+        preflight,
+        us=[
+            _holding("PLTU", 25, leveraged=True),
+            _holding("A", 25),
+            _holding("B", 25),
+            _holding("C", 25),
+        ],
+        lev_regime={"us": {"names": [{
+            "state": "cut",
+            "etf": "PLTU",
+            "underlying": "PLTR",
+            "dist_ma_pct": -3.5,
+            "ma_window": 5,
+            "vol_annualized": None,
+            "regime_basis": "short_ma_5",
+        }]}},
+    )
+
+    breach = _only_breach(result, "regime_delever")
+    assert "完整波动率不可用" in breach["detail"]
+    assert "short_ma_5" in breach["detail"]
+    assert "波动 0%" not in breach["detail"]
+    assert "波动>70%" not in breach["action"]
+
+
 @pytest.mark.parametrize("state", ["watch", "ok"])
 def test_regime_non_cut_state_is_compliant(preflight, state):
     result = _evaluate(
@@ -327,6 +391,8 @@ def test_every_triggered_directive_is_tagged_as_risk_rule(preflight):
         ("MSFU", "MSFT"),
         ("TQQQ", "QQQ"),
         ("SOXL", "SOXX"),
+        ("RKLX", "RKLB"),
+        ("SPCH", "SPCX"),
     ],
 )
 def test_documented_leveraged_etf_maps_to_its_1x_underlying(
