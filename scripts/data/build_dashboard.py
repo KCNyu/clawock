@@ -1621,6 +1621,7 @@ _FRESHNESS_SLA_H = {
     'portfolio.json': 26,
     'quant_signals.json': 30,
     'quant_signal_review.json': 30,
+    'cross_sectional_factor.json': 30,
     'risk.json': 30,
     'lev_regime.json': 30,
     'benchmark.json': 80,          # 偶发限流，宽容
@@ -2042,6 +2043,21 @@ def main():
 
     _embed('quant_signals', 'quant_signals.json')      # compute_quant_signals.py: 趋势/动量/RSI/ATR吊灯/vol-target
     _embed('quant_signal_review', 'quant_signal_review.json')  # quant_signal_review.py: 因子 edge 自检(T+1/T+5 对账)
+    # Keep only the activation/validation envelope in dashboard.json. The full
+    # 38-name research table is a sidecar (~64KB); embedding it would push the
+    # public payload past its size cap and evict recent plans.
+    _cs_path = WS_ROOT / 'assets' / 'data' / 'cross_sectional_factor.json'
+    try:
+        _cs = json.loads(_cs_path.read_text()) if _cs_path.exists() else {}
+        out['cross_sectional_factor'] = {
+            'as_of': _cs.get('as_of'),
+            'universe': _cs.get('universe'),
+            'validation': _cs.get('validation'),
+            'activation': _cs.get('activation'),
+        } if _cs else None
+    except Exception as e:
+        print(f'  warn: cross_sectional_factor.json parse fail: {e}', file=sys.stderr)
+        out['cross_sectional_factor'] = None
     _embed('t0_setups', 't0_setups.json')              # compute_t0_setups.py: T+0 牌面评级(追高检测)
     _embed('t0_setup_review', 't0_setup_review.json')  # t0_setup_review.py: 牌面命中率背书(T+1对账)
     _embed('catalysts', 'catalysts.json')              # fetch_catalysts.py + brief preflight [11/11]

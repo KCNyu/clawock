@@ -1,0 +1,85 @@
+{
+  "schema_version": 1,
+  "registered_at": "2026-07-26",
+  "purpose": "Pre-registered cross-sectional research universe; never infer live permission from a retrospective backtest.",
+  "membership_history_complete": false,
+  "membership_history_note": "This first version is a curated current peer set. Historical constituent entry/exit dates are not yet available, so survivorship-safe activation is blocked.",
+  "price_adjustment": "Tencent qfq forward-adjusted daily bars",
+  "rebalance_sessions": 5,
+  "forward_horizon_sessions": 21,
+  "factor_weights": {
+    "residual_mom_1m": 0.15,
+    "residual_mom_3m": 0.25,
+    "residual_mom_6m": 0.2,
+    "relative_strength": 0.1,
+    "breadth": 0.05,
+    "liquidity": 0.05,
+    "low_volatility": 0.08,
+    "drawdown_resilience": 0.07,
+    "quality_profitability": 0.05
+  },
+  "activation_criteria": {
+    "min_prospective_dates": 24,
+    "min_prospective_tickers": 12,
+    "min_prospective_sectors": 3,
+    "min_live_price_coverage": 0.8,
+    "min_point_in_time_quality_coverage": 0.6,
+    "signed_return_ci95_lower_gt": 0.0,
+    "membership_history_complete": true,
+    "corporate_actions_adjusted": true
+  },
+  "symbols": [
+    {"ticker": "00100", "region": "hk", "sector": "hk_ai_models"},
+    {"ticker": "02513", "region": "hk", "sector": "hk_ai_models"},
+    {"ticker": "01384", "region": "hk", "sector": "hk_ai_models"},
+    {"ticker": "09678", "region": "hk", "sector": "hk_ai_models"},
+    {"ticker": "06682", "region": "hk", "sector": "hk_ai_models"},
+    {"ticker": "00020", "region": "hk", "sector": "hk_ai_models"},
+
+    {"ticker": "02208", "region": "hk", "sector": "hk_wind"},
+    {"ticker": "00916", "region": "hk", "sector": "hk_wind"},
+    {"ticker": "01798", "region": "hk", "sector": "hk_wind"},
+    {"ticker": "00956", "region": "hk", "sector": "hk_wind"},
+    {"ticker": "01072", "region": "hk", "sector": "hk_wind"},
+
+    {"ticker": "03032", "region": "hk", "sector": "hstech_etf"},
+    {"ticker": "03033", "region": "hk", "sector": "hstech_etf"},
+
+    {"ticker": "RKLB", "region": "us", "sector": "commercial_space"},
+    {"ticker": "ASTS", "region": "us", "sector": "commercial_space"},
+    {"ticker": "BKSY", "region": "us", "sector": "commercial_space"},
+    {"ticker": "IRDM", "region": "us", "sector": "commercial_space"},
+    {"ticker": "LMT", "region": "us", "sector": "commercial_space"},
+    {"ticker": "SPCX", "region": "us", "sector": "commercial_space"},
+
+    {"ticker": "CRCL", "region": "us", "sector": "fintech_crypto"},
+    {"ticker": "COIN", "region": "us", "sector": "fintech_crypto"},
+    {"ticker": "HOOD", "region": "us", "sector": "fintech_crypto"},
+    {"ticker": "PYPL", "region": "us", "sector": "fintech_crypto"},
+    {"ticker": "XYZ", "region": "us", "sector": "fintech_crypto"},
+
+    {"ticker": "PLTR", "region": "us", "sector": "enterprise_ai"},
+    {"ticker": "SNOW", "region": "us", "sector": "enterprise_ai"},
+    {"ticker": "DDOG", "region": "us", "sector": "enterprise_ai"},
+    {"ticker": "NET", "region": "us", "sector": "enterprise_ai"},
+
+    {"ticker": "MSFT", "region": "us", "sector": "mega_cap_tech"},
+    {"ticker": "GOOGL", "region": "us", "sector": "mega_cap_tech"},
+    {"ticker": "AAPL", "region": "us", "sector": "mega_cap_tech"},
+    {"ticker": "META", "region": "us", "sector": "mega_cap_tech"},
+    {"ticker": "ORCL", "region": "us", "sector": "mega_cap_tech"},
+
+    {"ticker": "SKHY", "region": "us", "sector": "memory_semis"},
+    {"ticker": "MU", "region": "us", "sector": "memory_semis"},
+    {"ticker": "WDC", "region": "us", "sector": "memory_semis"},
+    {"ticker": "STX", "region": "us", "sector": "memory_semis"},
+    {"ticker": "NVDA", "region": "us", "sector": "memory_semis"}
+  ],
+  "leveraged_proxies": [
+    {"ticker": "07226", "region": "hk", "underlying": "03033", "leverage": 2},
+    {"ticker": "RKLX", "region": "us", "underlying": "RKLB", "leverage": 2},
+    {"ticker": "PLTU", "region": "us", "underlying": "PLTR", "leverage": 2},
+    {"ticker": "MSFU", "region": "us", "underlying": "MSFT", "leverage": 2},
+    {"ticker": "SPCH", "region": "us", "underlying": "SPCX", "leverage": 2}
+  ]
+}
