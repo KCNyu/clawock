@@ -52,22 +52,10 @@ PORTFOLIO_FILE = Path(__file__).resolve().parents[2] / 'portfolio.json'
 def earnings_issuer(ticker):
     """The company whose earnings moves this holding, or None if there is none.
 
-    A 2x single-stock ETF reports nothing; its underlying does. An index or sector
-    fund has no issuer at all and is skipped rather than queried.
+    Thin wrapper over the registry's canonical look-through so the rule lives in
+    one place (see instrument_registry.look_through).
     """
-    seen = set()
-    current = str(ticker)
-    for _ in range(3):                       # SOXL -> SOXX -> SEMICONDUCTOR
-        meta = instrument_registry.get(current) or {}
-        underlying = meta.get('underlying')
-        if not underlying or underlying in seen:
-            break
-        seen.add(current)
-        current = str(underlying)
-    meta = instrument_registry.get(current)
-    if meta is None or meta.get('venue') == 'INDEX' or (meta or {}).get('underlying'):
-        return None
-    return current
+    return instrument_registry.issuer_for(ticker)
 
 
 def us_earnings_tickers(portfolio=None):

@@ -267,38 +267,26 @@ def probe_targets(ticker: str, market: str) -> dict:
     """Where a mover's catalyst actually lives.
 
     Eight of twelve positions are funds. A 2x single-stock ETF files nothing that
-    explains its own move — the issuer it tracks does, so probe that instead. An
-    index or sector fund has no issuer at all; say so rather than probing a shell
-    and reporting `no_recent_filing` as if a company had gone quiet.
+    explains its own move — the issuer it tracks does. An index or sector fund has
+    no issuer at all; say so rather than probing a shell and reporting
+    `no_recent_filing` as if a company had gone quiet.
 
-    The registry already carries the distinction: `venue: INDEX` for an index, a
-    real venue for a company, and a label like `NASDAQ_100` that resolves to
-    nothing is not a security either.
+    Resolution itself lives in instrument_registry.look_through, shared with the
+    earnings calendar and the news digest.
     """
     try:
         import instrument_registry  # noqa: PLC0415
 
-        get = instrument_registry.get
-    except Exception:  # noqa: BLE001
+        resolved = instrument_registry.look_through(ticker)
+    except Exception:  # noqa: BLE001 — never break a reporting cron
         return {"issuer": ticker, "via": None, "kind": "issuer"}
-
-    chain = []
-    current = str(ticker)
-    for _ in range(3):                      # SOXL -> SOXX -> SEMICONDUCTOR
-        meta = get(current) or {}
-        underlying = meta.get("underlying")
-        if not underlying:
-            break
-        chain.append(current)
-        current = str(underlying)
-    if not chain:
+    if resolved["kind"] == "issuer":
         return {"issuer": ticker, "via": None, "kind": "issuer"}
-
-    final = get(current)
-    is_index = final is None or final.get("venue") == "INDEX" or bool((final or {}).get("underlying"))
-    if is_index:
-        return {"issuer": None, "via": current, "kind": "index_fund", "chain": chain}
-    return {"issuer": current, "via": ticker, "kind": "look_through", "chain": chain}
+    if resolved["kind"] == "index_fund":
+        return {"issuer": None, "via": resolved["tracks"], "kind": "index_fund",
+                "chain": resolved["chain"]}
+    return {"issuer": resolved["issuer"], "via": ticker, "kind": "look_through",
+            "chain": resolved["chain"]}
 
 
 def _parse_halt_time(halt_date, halt_time):
