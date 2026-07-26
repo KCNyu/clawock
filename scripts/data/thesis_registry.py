@@ -271,20 +271,42 @@ def validate_transition(old: dict, new: dict) -> list[str]:
     return errors
 
 
+def _drift_failure(status: str, errors: list[str]) -> dict:
+    """Same result shape as a passing drift run, so callers never key-miss."""
+    return {
+        "status": status, "overall": "unknown", "dimensions": {},
+        "triggered_red_lines": [], "newly_triggered_red_lines": [],
+        "resolved_red_lines": [], "errors": errors,
+    }
+
+
+def _has_fresh_support(supporting, new_evidence, old_checked, label, errors) -> bool:
+    """True when a change is backed by evidence first observed after the baseline."""
+    if not supporting:
+        errors.append(f"{label} without new evidence")
+        return False
+    fresh = False
+    for evidence_id in sorted(supporting):
+        observed_errors = []
+        observed = _parse_time(
+            new_evidence[evidence_id].get("observed_at"),
+            f"evidence {evidence_id}.observed_at", observed_errors,
+        )
+        errors += observed_errors
+        fresh |= bool(observed and old_checked and observed > old_checked)
+    if not fresh:
+        errors.append(f"{label} using stale evidence")
+    return fresh
+
+
 def evaluate_drift(old: dict | None, new: dict, *, now=None) -> dict:
     if old is None:
-        return {
-            "status": "unknown", "overall": "unknown", "dimensions": {},
-            "errors": ["missing historical baseline"],
-        }
+        return _drift_failure("unknown", ["missing historical baseline"])
     errors = validate_thesis(old, now=now) + validate_thesis(new, now=now)
     if isinstance(old, dict) and isinstance(new, dict):
         errors += validate_transition(old, new)
     if errors:
-        return {
-            "status": "fail", "overall": "unknown", "dimensions": {},
-            "triggered_red_lines": [], "errors": errors,
-        }
+        return _drift_failure("fail", errors)
     old_checked_errors = []
     old_checked = _parse_time(old.get("checked_at"), "old.checked_at", old_checked_errors)
     errors += old_checked_errors
@@ -305,23 +327,10 @@ def evaluate_drift(old: dict | None, new: dict, *, now=None) -> dict:
         else:
             direction = "unknown"
         supporting = set(after.get("evidence_ids") or []) & set(new_evidence)
-        if direction != "unchanged":
-            if not supporting:
-                errors.append(f"{name} changed without new evidence")
-                direction = "unknown"
-            else:
-                fresh = False
-                for evidence_id in supporting:
-                    observed_errors = []
-                    observed = _parse_time(
-                        new_evidence[evidence_id].get("observed_at"),
-                        f"evidence {evidence_id}.observed_at", observed_errors,
-                    )
-                    errors += observed_errors
-                    fresh |= bool(observed and old_checked and observed > old_checked)
-                if not fresh:
-                    errors.append(f"{name} changed using stale evidence")
-                    direction = "unknown"
+        if direction != "unchanged" and not _has_fresh_support(
+            supporting, new_evidence, old_checked, f"{name} changed", errors
+        ):
+            direction = "unknown"
         dimensions[name] = {
             "old_state": before_state,
             "new_state": after_state,
@@ -337,26 +346,41 @@ def evaluate_drift(old: dict | None, new: dict, *, now=None) -> dict:
         item.get("id"): item for item in old.get("red_lines", [])
         if isinstance(item, dict)
     }
+    new_red_lines = {
+        item.get("id"): item for item in new.get("red_lines", [])
+        if isinstance(item, dict)
+    }
     newly_triggered = []
     for item in triggered:
         if (old_red_lines.get(item.get("id")) or {}).get("status") == "triggered":
             continue
         newly_triggered.append(item)
         supporting = set(item.get("evidence_ids") or []) & set(new_evidence)
-        if not supporting:
-            errors.append(f"red line {item.get('id')} triggered without new evidence")
+        _has_fresh_support(
+            supporting, new_evidence, old_checked,
+            f"red line {item.get('id')} triggered", errors,
+        )
+
+    # Leaving `triggered` is a judgment too. Without the same evidence rule a
+    # triggered red line could be cleared out of thin air and the drift report
+    # would still say `unchanged`, erasing the most consequential state in the
+    # document.
+    resolved = []
+    for red_line_id, before in old_red_lines.items():
+        if before.get("status") != "triggered":
             continue
-        fresh = False
-        for evidence_id in supporting:
-            observed_errors = []
-            observed = _parse_time(
-                new_evidence[evidence_id].get("observed_at"),
-                f"evidence {evidence_id}.observed_at", observed_errors,
-            )
-            errors += observed_errors
-            fresh |= bool(observed and old_checked and observed > old_checked)
-        if not fresh:
-            errors.append(f"red line {item.get('id')} triggered using stale evidence")
+        after = new_red_lines.get(red_line_id)
+        if after is None:
+            errors.append(f"red line {red_line_id} was dropped while triggered")
+            continue
+        if after.get("status") == "triggered":
+            continue
+        resolved.append(red_line_id)
+        supporting = set(after.get("evidence_ids") or []) & set(new_evidence)
+        _has_fresh_support(
+            supporting, new_evidence, old_checked,
+            f"red line {red_line_id} left triggered", errors,
+        )
 
     directions = {item["direction"] for item in dimensions.values()}
     if triggered:
@@ -387,6 +411,8 @@ def evaluate_drift(old: dict | None, new: dict, *, now=None) -> dict:
         "overall": overall,
         "dimensions": dimensions,
         "triggered_red_lines": [item.get("id") for item in triggered],
+        "newly_triggered_red_lines": [item.get("id") for item in newly_triggered],
+        "resolved_red_lines": sorted(resolved),
         "errors": errors,
     }
 
