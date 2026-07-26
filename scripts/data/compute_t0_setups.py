@@ -33,6 +33,8 @@ HIST = WS / 'assets' / 'data' / 't0_setups_history.jsonl'
 HIST_MAX_LINES = 4000   # 盘中每 30min 一行，封顶约 1 年留痕
 
 sys.path.insert(0, str(WS / 'scripts' / 'data'))
+from instrument_registry import INSTRUMENTS  # noqa: E402
+
 try:
     from safe_io import safe_write_json
 except Exception:
@@ -43,11 +45,11 @@ try:
 except Exception:
     tc = None
 
-# 2x/3x 每日杠杆 ETF → (标的, 倍数)。多日持有有衰减；做 T 当天无所谓但要提示。
+# 2x/3x 每日杠杆 ETF → (标的, 倍数)，由 canonical registry 生成。
 LEVERAGED = {
-    'SOXL': ('SOXX', 3), 'TQQQ': ('QQQ', 3), 'PLTU': ('PLTR', 2),
-    'RKLX': ('RKLB', 2), 'ROBN': ('HOOD', 2), 'MSFU': ('MSFT', 2),
-    'SPCH': ('SPCX', 2), '07226': ('HSTECH', 2),
+    symbol: (meta.get('underlying') or meta.get('signal_symbol'), meta['leverage_multiple'])
+    for symbol, meta in INSTRUMENTS.items()
+    if meta['leverage_multiple'] > 1
 }
 TENCENT_MIN = 'https://web.ifzq.gtimg.cn/appstock/app/minute/query'
 
@@ -188,8 +190,11 @@ def compute(intraday=False):
                 continue
             t = h.get('ticker')
             cur = _num(h.get('current_price'))
+            qrow = quant.get(t, {})
+            if qrow.get('status') not in (None, 'fresh'):
+                qrow = {}
             m = {'market': market}
-            m.update(holding_metrics(h, quant.get(t, {})))
+            m.update(holding_metrics(h, qrow))
             if t in LEVERAGED:
                 u, x = LEVERAGED[t]
                 m['leveraged'] = f'{x}x {u}'

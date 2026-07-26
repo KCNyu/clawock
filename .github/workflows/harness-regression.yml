@@ -11,6 +11,8 @@ on:
       - 'assets/data/dashboard.json'
       - '.github/workflows/harness-regression.yml'
       - 'config/cron-schedules.json'
+      - 'config/instruments.json'
+      - 'config/instruments.schema.json'
       - 'CRON_SCHEDULES.md'
       - '.github/workflows/**'
       - 'skills/tavily-search/**'
@@ -106,7 +108,7 @@ jobs:
           while IFS= read -r f; do
             [ -n "$f" ] || continue
             case "$f" in
-              scripts/*|tests/*|portfolio.json|memory/*-plan.json|assets/data/dashboard.json|config/cron-schedules.json|CRON_SCHEDULES.md|.github/workflows/*)
+              scripts/*|tests/*|portfolio.json|memory/*-plan.json|assets/data/dashboard.json|config/cron-schedules.json|config/instruments.json|config/instruments.schema.json|CRON_SCHEDULES.md|.github/workflows/*)
                 code=true
                 break
                 ;;
@@ -177,6 +179,10 @@ jobs:
                       assert k in h, f'{region} holding missing {k}: {h.get("ticker")}'
           print('portfolio.json: schema OK')
           PY
+
+      - name: Schema-validate canonical instrument registry
+        if: github.event_name != 'pull_request' || steps.changes.outputs.code == 'true'
+        run: python3 scripts/data/instrument_registry.py
 
       - name: Schema-validate memory/*-plan.json
         if: github.event_name != 'pull_request' || steps.changes.outputs.code == 'true'

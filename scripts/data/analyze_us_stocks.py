@@ -24,6 +24,7 @@ from fetch_us_stocks import (
     update_us_portfolio, load_api_keys,
     PORTFOLIO_PATH, SESSION, TIMEOUT
 )
+from instrument_registry import get as get_instrument
 
 ET_TZ  = timezone(timedelta(hours=-4))
 HKT_TZ = timezone(timedelta(hours=8))
@@ -39,6 +40,16 @@ LEV_NAME_KEYWORDS = ('倍', 'Direxion', 'T-Rex', 'Defiance', 'ProShares',
 
 def _is_lev_name(name):
     return any(kw in (name or '') for kw in LEV_NAME_KEYWORDS)
+
+
+def _is_leveraged_holding(holding):
+    meta = get_instrument(holding.get('ticker'))
+    if meta is not None:
+        return meta['leverage_multiple'] > 1
+    name = holding.get('name', '')
+    return _is_lev_name(name) or any(
+        word in name for word in ('Bear', 'Leveraged', '反向', '做空')
+    )
 
 
 # ── technical indicators ─────────────────────────────────────────────────────
@@ -177,8 +188,12 @@ def generate_signal(holding: Dict, tech: Dict, news_items: List[Dict]) -> Tuple[
     ma20      = tech.get('ma20')
     ma50      = tech.get('ma50')
     name      = holding.get('name', holding['ticker'])
-    is_lev    = _is_lev_name(name) or any(x in name for x in ('Bear', 'Leveraged', '反向', '做空'))
-    lev_mult  = 3 if ('3X' in name or '三倍' in name) else 2 if ('2X' in name or '二倍' in name) else 1
+    meta      = get_instrument(holding.get('ticker'))
+    is_lev    = _is_leveraged_holding(holding)
+    lev_mult  = meta['leverage_multiple'] if meta else (
+        3 if ('3X' in name or '三倍' in name) else
+        2 if ('2X' in name or '二倍' in name) else 1
+    )
 
     # RSI signals
     if rsi is not None:
@@ -321,7 +336,7 @@ def print_report(data: Dict, analyses: List[Dict]):
     print(f"  风险摘要")
     active = [h for h in us['holdings'] if h.get('shares', 0) > 0]
     lev_val   = sum(h.get('current_value', 0) for h in active
-                    if _is_lev_name(h.get('name', '')))
+                    if _is_leveraged_holding(h))
     lev_pct   = lev_val / tv * 100 if tv else 0
     losing    = [h for h in active if h.get('pnl_percent', 0) < 0]
     lose_val  = sum(abs(h.get('pnl_abs', 0)) for h in losing)
@@ -418,7 +433,7 @@ def print_wechat_report(data: Dict, analyses: List[Dict], md_table: bool = False
     # Risk
     active = [h for h in us['holdings'] if h.get('shares', 0) > 0]
     lev_val = sum(h.get('current_value', 0) for h in active
-                  if _is_lev_name(h.get('name', '')))
+                  if _is_leveraged_holding(h))
     lev_pct = lev_val / tv * 100 if tv else 0
     losing  = sum(1 for h in active if h.get('pnl_percent', 0) < 0)
     lines.append('')

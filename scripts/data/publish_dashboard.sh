@@ -37,6 +37,7 @@ git merge -q --ff-only origin/master 2>/dev/null || true
 
 python3 scripts/data/build_dashboard.py
 python3 scripts/data/cron_heartbeat.py --publish
+python3 scripts/data/workflow_outcomes.py --publish
 
 # build_dashboard writes three public files. The shared ownership helper compares
 # all three against HEAD, strips only build-clock metadata, restores clock-only
@@ -51,8 +52,12 @@ heartbeat_changed=1
 if git diff --quiet -- assets/data/cron-heartbeats.json; then
   heartbeat_changed=0
 fi
+outcomes_changed=1
+if git diff --quiet -- assets/data/workflow-outcomes.json; then
+  outcomes_changed=0
+fi
 
-if [ "${#dashboard_paths[@]}" -eq 0 ] && [ "$heartbeat_changed" -eq 0 ]; then
+if [ "${#dashboard_paths[@]}" -eq 0 ] && [ "$heartbeat_changed" -eq 0 ] && [ "$outcomes_changed" -eq 0 ]; then
   echo "publish_dashboard: no semantic or heartbeat change"
   exit 0
 fi
@@ -60,6 +65,9 @@ fi
 paths=("${dashboard_paths[@]}")
 if [ "$heartbeat_changed" -eq 1 ]; then
   paths+=(assets/data/cron-heartbeats.json)
+fi
+if [ "$outcomes_changed" -eq 1 ]; then
+  paths+=(assets/data/workflow-outcomes.json)
 fi
 git add -- "${paths[@]}"
 # Scope the commit to generated outputs with an explicit pathspec: a bare `git commit`
