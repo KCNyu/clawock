@@ -207,9 +207,10 @@ def classify_impact(title):
 
 
 def source_type(origin='', source='', url='', title=''):
-    domain = urlparse(url or '').netloc.lower()
+    domain = (urlparse(url or '').hostname or '').lower().rstrip('.')
     joined = f'{origin} {source} {domain}'.lower()
-    if 'sec.gov' in joined or origin == 'sec_filing':
+    is_sec_host = domain == 'sec.gov' or domain.endswith('.sec.gov')
+    if is_sec_host or origin == 'sec_filing':
         return 'sec_filing'
     exchange_cues = (
         'announcement', 'circular', 'notice', 'results', '公告', '通告', '業績',

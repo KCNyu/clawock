@@ -65,6 +65,19 @@ def test_normalize_timestamp_and_event_id_include_event_time():
     assert first['event_id'] != second['event_id']
 
 
+def test_source_type_rejects_sec_domain_substring_spoofing():
+    assert graph.source_type(
+        origin='gnews-rss',
+        source='Untrusted',
+        url='https://sec.gov.attacker.example/story',
+    ) == 'google_news_rss'
+    assert graph.source_type(
+        origin='gnews-rss',
+        source='SEC mirror',
+        url='https://www.sec.gov/Archives/abc.htm',
+    ) == 'sec_filing'
+
+
 def test_deduplicate_prefers_primary_source_and_keeps_corroboration():
     weak = _event(
         origin='gnews-rss',
