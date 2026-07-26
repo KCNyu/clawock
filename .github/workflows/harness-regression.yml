@@ -8,6 +8,11 @@ on:
       - 'tests/**'
       - 'portfolio.json'
       - 'memory/**-plan.json'
+      # Research artifacts are validated by the suite below, so a
+      # bad thesis/earnings/gate artifact must be able to red it.
+      - 'memory/theses/**'
+      - 'memory/earnings/**'
+      - 'memory/entry-gates/**'
       - 'assets/data/dashboard.json'
       - '.github/workflows/harness-regression.yml'
       # Whole directory on purpose: every file here (cron contract, instrument
@@ -110,7 +115,7 @@ jobs:
           while IFS= read -r f; do
             [ -n "$f" ] || continue
             case "$f" in
-              scripts/*|tests/*|portfolio.json|memory/*-plan.json|assets/data/dashboard.json|config/*|docs/operations/cron-schedules.md|.github/workflows/*)
+              scripts/*|tests/*|portfolio.json|memory/*-plan.json|memory/theses/*|memory/earnings/*|memory/entry-gates/*|assets/data/dashboard.json|config/*|docs/operations/cron-schedules.md|.github/workflows/*)
                 code=true
                 break
                 ;;
@@ -143,6 +148,14 @@ jobs:
       - name: Generated cron docs match contract
         if: github.event_name != 'pull_request' || steps.changes.outputs.code == 'true'
         run: python3 scripts/data/generate_cron_docs.py --check
+
+      - name: Validate research lifecycle artifacts
+        # Every thesis, earnings and entry-gate artifact on disk must still be
+        # valid — including that a gate's stated verdict matches the recomputed
+        # one. Work items (a due earnings review, an ungated position) only warn
+        # in system_check; this step fails on integrity alone.
+        if: github.event_name != 'pull_request' || steps.changes.outputs.code == 'true'
+        run: python3 scripts/data/research_surface.py --check
 
       - name: Import-check all scripts
         if: github.event_name != 'pull_request' || steps.changes.outputs.code == 'true'

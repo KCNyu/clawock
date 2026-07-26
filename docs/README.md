@@ -12,6 +12,8 @@ website-root verification files. General documentation belongs here.
   retired polling design.
 - [`skills-store-policy.md`](operations/skills-store-policy.md) — registry
   discovery and installation policy.
+- [`research-cadence.md`](operations/research-cadence.md) — which research
+  question runs daily, which runs on an event, and why.
 
 ## Reference
 

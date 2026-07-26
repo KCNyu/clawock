@@ -50,6 +50,7 @@ sys.path.insert(0, str(WS / 'scripts' / 'data'))
 import trading_calendar  # noqa: E402
 import decision_v2  # noqa: E402
 import thesis_registry  # noqa: E402
+import research_surface  # noqa: E402
 import peer_scan  # noqa: E402
 import workflow_outcomes  # noqa: E402
 import risk_discipline  # noqa: E402
@@ -1707,6 +1708,13 @@ def main():
             retro['decisions'], thesis_docs
         )
 
+    # Research lifecycle work queue: a reported quarter with no primary-source
+    # artifact, a management promise past its due date, a position no gate cleared.
+    # Read-only — the brief reports these, it does not resolve them.
+    research_surface_ctx = research_surface.summarize(
+        portfolio=portfolio, catalysts=catalysts,
+    )
+
     context = {
         'generated_at':  datetime.now(timezone(timedelta(hours=8))).isoformat(),
         'date':          today,
@@ -1736,6 +1744,7 @@ def main():
         'catalysts':     catalysts,
         'news_evidence_graph': news_evidence_ctx,
         'thesis_registry': thesis_registry_ctx,
+        'research_surface': research_surface_ctx,
         'macro':         macro_trim,
         'sentiment':     sentiment_trim,
         'influencer':    influencer_trim,
