@@ -105,6 +105,9 @@ def render(contract: dict) -> str:
         "  MiniMax M3, the shared length limits, a unique WeChat path, and Telegram mirror.",
         "- Mode 7 writes the public `assets/data/cron-heartbeats.json` ledger through the",
         "  existing single publisher; cron health verifies every monitored slot.",
+        "- Mode 7 agent turns are condition-triggered by normalized breach/event/regime",
+        "  hashes and material repricing. Unchanged slots write an LLM-free `no_change`",
+        "  heartbeat; every sixth evaluation forces a reasoning pass.",
         "",
     ])
 
