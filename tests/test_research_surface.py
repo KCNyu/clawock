@@ -483,3 +483,65 @@ def test_system_check_watches_the_calendar_horizon():
     assert "check_trading_calendar_horizon" in _registered_system_checks()
     # the table is hand-maintained, so the gate must escalate rather than assume
     assert "covers_current_year" in check and "covers_next_year" in check
+
+
+# --- earnings look-through: we hold the fund, the company reports -------------
+
+def test_catalyst_tickers_come_from_holdings_not_a_hand_synced_list():
+    import sys
+    sys.path.insert(0, str(ROOT / "scripts" / "data"))
+    import fetch_catalysts
+
+    source = (ROOT / "scripts" / "data" / "fetch_catalysts.py").read_text()
+    assert "US_TICKERS_ACTIVE" not in source, "the hand-synced list is back"
+
+    book = {"portfolios": {"us_stocks": {"holdings": [
+        {"ticker": "MSFU", "shares": 20},     # 2x MSFT
+        {"ticker": "PLTU", "shares": 14},     # 2x PLTR
+        {"ticker": "CRCL", "shares": 2},      # reports itself
+        {"ticker": "SOXL", "shares": 5},      # sector fund: nobody reports
+        {"ticker": "TQQQ", "shares": 3},      # index fund: nobody reports
+        {"ticker": "RKLX", "shares": 0},      # closed position
+    ]}}}
+    assert fetch_catalysts.us_earnings_tickers(book) == ["CRCL", "MSFT", "PLTR"]
+
+
+@pytest.mark.parametrize("ticker,issuer", [
+    ("MSFU", "MSFT"), ("PLTU", "PLTR"), ("RKLX", "RKLB"), ("SPCH", "SPCX"),
+    ("CRCL", "CRCL"), ("SOXL", None), ("TQQQ", None), ("07226", None),
+])
+def test_earnings_issuer_resolution(ticker, issuer):
+    import sys
+    sys.path.insert(0, str(ROOT / "scripts" / "data"))
+    import fetch_catalysts
+
+    assert fetch_catalysts.earnings_issuer(ticker) == issuer
+
+
+def test_a_report_by_a_tracked_company_marks_the_fund_position_due(dirs):
+    book = {"portfolios": {"us_stocks": {"holdings": [
+        {"ticker": "MSFU", "shares": 20,
+         "trades": [{"date": "2026-01-05", "action": "buy", "shares": 20, "price": 40}]},
+    ]}, "hk_stocks": {"holdings": []}}}
+    surface = rs.summarize(
+        portfolio=book,
+        catalysts={"lookback_window_days": 14,
+                   "earnings": [{"ticker": "MSFT", "date": "2026-07-29"}]},
+        today=date(2026, 7, 30), now=datetime(2026, 7, 30, tzinfo=timezone.utc), **dirs,
+    )
+    due = surface["earnings"]["reviews_due"]
+    assert [row["ticker"] for row in due] == ["MSFT"]
+    assert due[0]["held_via"] == "MSFU"
+
+
+def test_a_fund_with_no_issuer_never_becomes_due(dirs):
+    book = {"portfolios": {"us_stocks": {"holdings": [
+        {"ticker": "TQQQ", "shares": 10, "trades": []},
+    ]}, "hk_stocks": {"holdings": []}}}
+    surface = rs.summarize(
+        portfolio=book,
+        catalysts={"lookback_window_days": 14,
+                   "earnings": [{"ticker": "NASDAQ_100", "date": "2026-07-29"}]},
+        today=date(2026, 7, 30), now=datetime(2026, 7, 30, tzinfo=timezone.utc), **dirs,
+    )
+    assert surface["earnings"]["reviews_due"] == []

@@ -149,9 +149,33 @@ def review_window_days(catalysts) -> int:
     return min(window, MAX_REVIEW_WINDOW_DAYS)
 
 
+def earnings_issuers(positions) -> dict:
+    """Held ticker → the issuer whose earnings moves it.
+
+    A catalyst arrives under the company's name (MSFT), while the position is the
+    fund that tracks it (MSFU). Matching on the held ticker alone silently misses
+    every earnings review for the leveraged sleeve.
+    """
+    try:
+        import fetch_catalysts  # noqa: PLC0415
+
+        resolve = fetch_catalysts.earnings_issuer
+    except Exception:  # noqa: BLE001
+        return {position["ticker"]: position["ticker"] for position in positions}
+    out = {}
+    for position in positions:
+        ticker = position["ticker"]
+        issuer = resolve(ticker)
+        if issuer:
+            out[ticker] = issuer
+    return out
+
+
 def earnings_reviews_due(positions, catalysts, artifacts, today: date) -> list[dict]:
     """A reported earnings date with no artifact published after it."""
-    held = {position["ticker"] for position in positions}
+    issuers = earnings_issuers(positions)
+    held = set(issuers.values()) | {position["ticker"] for position in positions}
+    via = {issuer: ticker for ticker, issuer in issuers.items() if issuer != ticker}
     window = review_window_days(catalysts)
     due = []
     for event in (catalysts or {}).get("earnings") or []:
@@ -166,12 +190,15 @@ def earnings_reviews_due(positions, catalysts, artifacts, today: date) -> list[d
         ]
         if any(day and day >= reported for day in published):
             continue
-        due.append({
+        row = {
             "ticker": ticker,
             "reported_on": reported.isoformat(),
             "days_since": (today - reported).days,
             "reason": "earnings reported with no primary-source artifact covering it",
-        })
+        }
+        if ticker in via:
+            row["held_via"] = via[ticker]      # we hold the fund, it reports
+        due.append(row)
     return sorted(due, key=lambda row: (row["ticker"], row["reported_on"]))
 
 
