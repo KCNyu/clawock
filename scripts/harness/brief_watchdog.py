@@ -43,6 +43,7 @@ Usage: brief_watchdog.py [--check-missing] [--dry-run]
 """
 import argparse
 import json
+import os
 import sys
 from datetime import datetime
 from pathlib import Path
@@ -54,6 +55,8 @@ from _watchdog_common import (  # noqa: E402
 )
 
 MARKER_FRESH_MS = 30 * 60 * 1000  # postflight send-marker older than this ⇒ not this slot
+MISSING_STATE_VERSION = 1
+NOTIFICATION_ATTEMPTS_PER_RUN = 2
 
 
 def inspect_brief_artifacts(today):
@@ -85,6 +88,53 @@ def inspect_brief_artifacts(today):
     return issues
 
 
+def missing_state_path(today):
+    return WS / 'memory' / '.tmp' / f'watchdog-brief-missing-{today}.json'
+
+
+def load_missing_state(today):
+    """Load durable 09:05 recovery state without risking a duplicate dispatch."""
+    path = missing_state_path(today)
+    base = {
+        'schema_version': MISSING_STATE_VERSION,
+        'date': today,
+        'issues': [],
+        'fallback_dispatch_attempted': False,
+        'fallback_dispatch_succeeded': False,
+        'dispatch_attempted_at': None,
+        'dispatch_out': None,
+        'notification_attempts': 0,
+        'notification_succeeded': False,
+        'notification_last_attempt_at': None,
+        'notification_out': None,
+    }
+    if not path.exists():
+        return base
+    try:
+        stored = json.loads(path.read_text())
+        if not isinstance(stored, dict) or stored.get('schema_version') != MISSING_STATE_VERSION:
+            raise ValueError('unsupported recovery-state schema')
+        return {**base, **stored}
+    except Exception as e:
+        # The dispatch may already have happened before a torn/corrupt state was
+        # observed. Fail safe against firing a second off-host workflow; the
+        # notification remains retryable and reports the corrupt state.
+        return {
+            **base,
+            'fallback_dispatch_attempted': True,
+            'state_error': f'{type(e).__name__}: {e}',
+        }
+
+
+def write_missing_state(today, state):
+    """Atomically persist recovery state before notification is attempted."""
+    path = missing_state_path(today)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    tmp = path.with_name(f'.{path.name}.{os.getpid()}.tmp')
+    tmp.write_text(json.dumps(state, ensure_ascii=False, indent=2) + '\n')
+    tmp.replace(path)
+
+
 def alert_brief_missing(today, dry_run, issues=None):
     """09:05 HKT: landing artifacts are incomplete ⇒ page kcn + self-heal.
 
@@ -100,7 +150,30 @@ def alert_brief_missing(today, dry_run, issues=None):
         log({'tag': 'brief', 'action': 'skip', 'reason': 'brief-missing already handled today'})
         return 0
 
-    dispatched, out = dispatch_brief_fallback(dry_run)
+    state = load_missing_state(today)
+    if state.get('notification_succeeded'):
+        log({'tag': 'brief', 'action': 'skip',
+             'reason': 'brief-missing notification already succeeded today',
+             'recovery_state': state})
+        return 0
+
+    state['issues'] = list(issues)
+    if not state.get('fallback_dispatch_attempted'):
+        dispatched, out = dispatch_brief_fallback(dry_run)
+        state.update({
+            'fallback_dispatch_attempted': True,
+            'fallback_dispatch_succeeded': bool(dispatched),
+            'dispatch_attempted_at': datetime.now(HKT).isoformat(),
+            'dispatch_out': out,
+        })
+        # This ordering is the core invariant: a Telegram timeout must never
+        # erase the fact that the off-host fallback was already fired.
+        if not dry_run:
+            write_missing_state(today, state)
+    else:
+        dispatched = bool(state.get('fallback_dispatch_succeeded'))
+        out = state.get('dispatch_out') or '(prior dispatch attempt; outcome unavailable)'
+
     labels = {
         'brief_missing': f'brief 缺失：memory/{today}-pre-open.md 不存在',
         'plan_missing': f'plan 缺失：memory/{today}-plan.json 不存在',
@@ -117,11 +190,27 @@ def alert_brief_missing(today, dry_run, issues=None):
         + f'\n查因：openclaw cron runs --id $(openclaw cron list | grep 盘前深度简报) '
           f'/ sar -q 看 08:00 起的 blocked'
     )
-    tg_ok, tg_out = send_telegram(KCN_TELEGRAM, alert, dry_run)
+
+    tg_ok, tg_out = False, ''
+    for _ in range(NOTIFICATION_ATTEMPTS_PER_RUN):
+        try:
+            tg_ok, tg_out = send_telegram(KCN_TELEGRAM, alert, dry_run)
+        except Exception as e:
+            tg_ok, tg_out = False, f'{type(e).__name__}: {e}'[:300]
+        state['notification_attempts'] = int(state.get('notification_attempts') or 0) + 1
+        state['notification_succeeded'] = bool(tg_ok)
+        state['notification_last_attempt_at'] = datetime.now(HKT).isoformat()
+        state['notification_out'] = tg_out
+        if not dry_run:
+            write_missing_state(today, state)
+        if tg_ok:
+            break
+
     log({'tag': 'brief', 'action': 'alert-brief-missing', 'dry_run': dry_run,
          'issues': issues,
          'dispatched_fallback': dispatched, 'dispatch_out': out,
-         'sent_ok': tg_ok, 'target': KCN_TELEGRAM, 'out': tg_out})
+         'sent_ok': tg_ok, 'target': KCN_TELEGRAM, 'out': tg_out,
+         'recovery_state': state})
     if tg_ok and not dry_run:
         flag.parent.mkdir(parents=True, exist_ok=True)
         flag.write_text(datetime.now(HKT).isoformat())
