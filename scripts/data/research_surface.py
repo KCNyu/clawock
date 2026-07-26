@@ -251,6 +251,72 @@ def ungated_positions(positions, gates) -> list[dict]:
     return sorted(out, key=lambda row: row["ticker"])
 
 
+def movers_thesis_context(tickers, *, now=None, thesis_dir=THESIS_DIR,
+                          entry_gate_dir=ENTRY_GATE_DIR) -> dict:
+    """Thesis and gate state for the names a slot already flagged.
+
+    Built for the intraday and report preflights: local JSON only, scoped to the
+    tickers passed in, and silent when nothing moved. What comes back is
+    attribution context — a red line explains *why* a move matters and what the
+    thesis said to do about it. It is not a catalyst: the catalyst gate still
+    decides whether a discretionary action is allowed at all.
+
+    A missing or unreadable baseline reads `unknown`. Nothing here may raise, or a
+    research artifact could take down a market-reporting cron.
+    """
+    wanted = [str(ticker) for ticker in tickers or [] if ticker]
+    if not wanted:
+        return {}
+    try:
+        theses, thesis_errors = thesis_registry.load_registry(thesis_dir)
+        gates, gate_errors = load_entry_gates(entry_gate_dir, now=now)
+    except Exception as exc:  # noqa: BLE001 — last-resort guard, not the main path
+        # Malformed artifacts are already absorbed by the loaders above (they
+        # collect errors instead of raising), so this catches only the
+        # unexpected — a permissions error, a corrupt directory. A research
+        # artifact must never be able to take down a market-reporting cron.
+        return {ticker: {"status": "unknown", "reason": f"registry unreadable: {exc}"}
+                for ticker in wanted}
+    by_ticker = {doc["ticker"]: doc for doc in theses}
+    invalid = bool(thesis_errors or gate_errors)
+    out = {}
+    for ticker in wanted:
+        doc = by_ticker.get(ticker)
+        gate_docs = gates.get(ticker) or []
+        entry = {}
+        if doc is None:
+            entry = {
+                "status": "unknown",
+                "reason": "no canonical thesis baseline"
+                          + (" (some artifacts are invalid)" if invalid else ""),
+            }
+        else:
+            red_lines = [
+                {
+                    "id": line.get("id"),
+                    "status": line.get("status"),
+                    "severity": line.get("severity"),
+                    "required_action": line.get("required_action"),
+                }
+                for line in doc.get("red_lines") or []
+                if line.get("status") in {"triggered", "watch"}
+            ]
+            entry = {
+                "status": "resolved",
+                "thesis_id": doc["thesis_id"],
+                "state": doc["state"],
+                "checked_at": doc["checked_at"],
+                "red_lines": sorted(red_lines, key=lambda row: str(row["id"])),
+                "next_review_trigger": doc["next_review_trigger"],
+            }
+        if gate_docs and gate_docs[-1]["verdict"] == "reject":
+            entry["entry_gate"] = {
+                "verdict": "reject", "gate_id": gate_docs[-1]["gate_id"],
+            }
+        out[ticker] = entry
+    return out
+
+
 def summarize(*, portfolio=None, catalysts=None, today=None, now=None,
               thesis_dir=THESIS_DIR, earnings_dir=EARNINGS_DIR,
               entry_gate_dir=ENTRY_GATE_DIR) -> dict:
