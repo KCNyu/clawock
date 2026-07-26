@@ -53,6 +53,7 @@ CONDITION_TYPES = {
     "event", "manual", "always",
 }
 DRIVERS = {"technical", "catalyst", "sentiment", "influencer", "macro", "peer", "risk_rule"}
+REGIMES = {"risk_on", "neutral", "risk_off", "unknown"}
 STRATEGIES = {
     "core_position", "risk_rebalance", "intraday_t", "event_trade",
     "tactical_entry", "legacy_unknown",
@@ -66,6 +67,14 @@ SELL_ACTIONS = {"cut", "trim_on_rebound", "t_only"}
 PASSIVE_ACTIONS = {"hold_and_watch", "watch"}
 ADD_ACTIONS = ACTIVE_ACTIONS - SELL_ACTIONS
 AUDIT_SCHEMA_VERSION = 1
+
+# Confidence is calibrated prospectively over strategy episodes, never by fitting
+# and scoring the same row. Sparse leaves borrow pseudo-observations from their
+# parent rather than pretending a 1/1 subgroup is a stable 100% signal.
+CALIBRATION_PARENT_STRENGTH = 8.0
+CALIBRATION_MIN_PRIOR_EPISODES = 12
+CALIBRATION_MIN_PRIOR_DATES = 5
+CALIBRATION_MAX_CI_WIDTH = 0.45
 
 
 def _slug(value: object, fallback: str = "unknown") -> str:
@@ -153,6 +162,7 @@ def legacy_action_to_decision(action: dict, plan_date: str, ordinal: int = 0) ->
         },
         "confidence": _float(action.get("confidence")),
         "driven_by": action.get("driven_by") or "technical",
+        "regime": action.get("regime") if action.get("regime") in REGIMES else "unknown",
         "rationale": action.get("rationale") or "",
         "simulated_entry_price": _float(action.get("simulated_entry_price")),
         "horizon_sessions": int(action.get("horizon_sessions") or 1),
@@ -243,6 +253,8 @@ def validate_decision(d: dict) -> list[str]:
         errors.append("confidence must be in [0,1]")
     if d.get("driven_by") not in DRIVERS:
         errors.append(f"bad driven_by {d.get('driven_by')!r}")
+    if d.get("regime", "unknown") not in REGIMES:
+        errors.append(f"bad regime {d.get('regime')!r}")
     override = d.get("override") or {}
     if override.get("status", "none") not in ("none", "active", "expired", "revoked"):
         errors.append(f"bad override.status {override.get('status')!r}")
@@ -263,6 +275,18 @@ def missing_size_warnings(decisions: list[dict]) -> list[str]:
         if d.get("action") in ACTIVE_ACTIONS and _int((d.get("size") or {}).get("shares")) is None:
             out.append(f"{d.get('ticker')} {d.get('action')}: size.shares missing → unpriceable")
     return out
+
+
+def missing_regime_warnings(decisions: list[dict]) -> list[str]:
+    """Prospective plans need an authored regime; legacy rows remain readable."""
+    missing = [
+        f"{d.get('ticker')}/{d.get('strategy_id')}"
+        for d in decisions if d.get("regime", "unknown") == "unknown"
+    ]
+    return (
+        ["regime missing/unknown for " + ", ".join(missing)]
+        if missing else []
+    )
 
 
 def validate_plan(plan: dict, path: str | Path | None = None) -> list[str]:
@@ -1009,6 +1033,7 @@ def build_audit_sidecar(decisions: list[dict], portfolio: dict,
                 "size": copy.deepcopy(decision.get("size") or {}),
                 "confidence": _float(decision.get("confidence")),
                 "driven_by": decision.get("driven_by"),
+                "regime": decision.get("regime", "unknown"),
                 "strategy_id": decision.get("strategy_id"),
             },
             "state": ev.get("status") or "pending",
@@ -1112,6 +1137,22 @@ def episode_representatives(decisions: list[dict], horizon: str = "t1") -> list[
         # not quietly reintroduce it.
         ev["outcome"] = _outcome(mean_benefit)
         ev["episode_n_settled"] = len(settled)
+        # Calibration may predict this episode on its first plan date, but its
+        # mean outcome is not knowable until the last member's T+1 mark closes.
+        # Persist that availability boundary so a prequential run cannot train
+        # on later episode members as though they were known on day one.
+        mark_dates = [
+            str((d.get("evaluation") or {}).get("mark_t1_session"))
+            for d in settled
+            if (d.get("evaluation") or {}).get("mark_t1_session")
+        ]
+        ev["episode_outcome_available_date"] = (
+            max(mark_dates)
+            if mark_dates
+            else max(str(d.get("plan_date") or "") for d in settled)
+        )
+        ev["episode_last_plan_date"] = max(
+            str(d.get("plan_date") or "") for d in settled)
         reps.append(rep)
     reps.sort(key=lambda x: (x.get("plan_date", ""), x.get("decision_id", "")))
     return reps
@@ -1234,6 +1275,306 @@ def _exec_rate(rows: list[dict]) -> dict:
     }
 
 
+def _calibration_dimensions(row: dict) -> dict[str, str]:
+    """Immutable decision dimensions used by the confidence calibrator."""
+    regime = row.get("regime")
+    return {
+        "action": str(row.get("action") or "unknown"),
+        "driver": str(row.get("driven_by") or "unknown"),
+        "condition": str((row.get("condition") or {}).get("type") or "unknown"),
+        "regime": str(regime if regime in REGIMES else "unknown"),
+    }
+
+
+def _calibration_keys(row: dict) -> list[tuple[str, tuple[str, ...]]]:
+    d = _calibration_dimensions(row)
+    return [
+        ("global", ()),
+        ("action", (d["action"],)),
+        ("action_driver", (d["action"], d["driver"])),
+        ("action_driver_condition",
+         (d["action"], d["driver"], d["condition"])),
+        ("action_driver_condition_regime",
+         (d["action"], d["driver"], d["condition"], d["regime"])),
+    ]
+
+
+def _beta_interval(alpha: float, beta: float, seed: str,
+                   samples: int = 2000) -> list[float]:
+    """Deterministic posterior interval without a scipy runtime dependency."""
+    digest = hashlib.sha256(seed.encode("utf-8")).hexdigest()
+    rnd = random.Random(int(digest[:16], 16))
+    draws = sorted(rnd.betavariate(alpha, beta) for _ in range(samples))
+    return [
+        round(draws[int(0.025 * (samples - 1))], 4),
+        round(draws[int(0.975 * (samples - 1))], 4),
+    ]
+
+
+def _hierarchical_posterior(
+        row: dict,
+        counts: dict[tuple[str, tuple[str, ...]], list[int]],
+) -> tuple[float, float, str, int, dict[str, int]]:
+    """Beta-binomial posterior, shrinking each sparse child to sibling evidence.
+
+    Each observation enters once. At every branch, sibling observations update
+    the incoming prior, then the selected child updates that prior. Re-adding the
+    same child's wins at action, driver, condition and regime would manufacture
+    four observations from one episode.
+    """
+    keys = _calibration_keys(row)
+    global_n, global_wins = counts.get(keys[0], [0, 0])
+    alpha = 1.0 + global_wins
+    beta = 1.0 + global_n - global_wins
+    resolved_level = "global"
+    resolved_n = global_n
+    support = {"global": global_n}
+    incoming_prior_mean = 0.5
+    for index, (level, key) in enumerate(keys[1:], 1):
+        n, wins = counts.get((level, key), [0, 0])
+        support[level] = n
+        if not n:
+            continue
+        parent_n, parent_wins = counts.get(keys[index - 1], [0, 0])
+        sibling_n = max(0, parent_n - n)
+        sibling_wins = max(0, parent_wins - wins)
+        branch_prior_mean = (
+            incoming_prior_mean * CALIBRATION_PARENT_STRENGTH + sibling_wins
+        ) / (CALIBRATION_PARENT_STRENGTH + sibling_n)
+        alpha = branch_prior_mean * CALIBRATION_PARENT_STRENGTH + wins
+        beta = (
+            (1.0 - branch_prior_mean) * CALIBRATION_PARENT_STRENGTH
+            + n - wins
+        )
+        resolved_level = level
+        resolved_n = n
+        # The next branch must inherit the prior *before* this child's own data;
+        # otherwise the same episode is counted again at the next dimension.
+        incoming_prior_mean = branch_prior_mean
+    return alpha, beta, resolved_level, resolved_n, support
+
+
+def _calibration_prediction(
+        row: dict,
+        counts: dict[tuple[str, tuple[str, ...]], list[int]],
+        prior_dates: set[str],
+        seed_suffix: str,
+) -> dict:
+    alpha, beta, level, level_n, support = _hierarchical_posterior(row, counts)
+    probability = alpha / (alpha + beta)
+    ci = _beta_interval(alpha, beta, seed_suffix)
+    global_n = support["global"]
+    width = ci[1] - ci[0]
+    if global_n < CALIBRATION_MIN_PRIOR_EPISODES:
+        abstain_reason = (
+            f"prior_episodes<{CALIBRATION_MIN_PRIOR_EPISODES}")
+    elif len(prior_dates) < CALIBRATION_MIN_PRIOR_DATES:
+        abstain_reason = f"prior_dates<{CALIBRATION_MIN_PRIOR_DATES}"
+    elif width > CALIBRATION_MAX_CI_WIDTH:
+        abstain_reason = f"ci_width>{CALIBRATION_MAX_CI_WIDTH}"
+    else:
+        abstain_reason = None
+    abstain = abstain_reason is not None
+    edge_supported = not abstain and ci[0] > 0.5
+    size_multiplier = (
+        min(1.0, max(0.0, (ci[0] - 0.5) / 0.2))
+        if edge_supported else 0.0
+    )
+    return {
+        "calibrated_probability": round(probability, 4),
+        "ci95": ci,
+        "posterior_alpha": round(alpha, 4),
+        "posterior_beta": round(beta, 4),
+        "resolved_level": level,
+        "resolved_level_n": level_n,
+        "support_by_level": support,
+        "prior_episodes": global_n,
+        "prior_dates": len(prior_dates),
+        "evidence_sufficient": not abstain,
+        "abstain": abstain,
+        "abstain_reason": abstain_reason,
+        "edge_supported": edge_supported,
+        "signal_size_multiplier": round(size_multiplier, 3),
+        "sizing_status": (
+            "abstain_insufficient_evidence" if abstain
+            else "edge_supported" if edge_supported
+            else "no_positive_edge"
+        ),
+    }
+
+
+def hierarchical_prequential_calibration(rows: list[dict]) -> dict:
+    """Strictly prequential hierarchical confidence calibration.
+
+    Every episode on a plan date is predicted from earlier dates only. Outcomes
+    from the whole date are added after all predictions for that date, preventing
+    the first same-day call from leaking into the second. The original authored
+    confidence remains an audit comparator; sizing uses the posterior lower bound.
+    """
+    eligible = [
+        r for r in rows
+        if (r.get("evaluation") or {}).get("outcome") in ("win", "loss", "flat")
+    ]
+    by_date: dict[str, list[dict]] = defaultdict(list)
+    updates_by_date: dict[str, list[dict]] = defaultdict(list)
+    for row in eligible:
+        plan_date = str(row.get("plan_date") or "unknown")
+        by_date[plan_date].append(row)
+        evaluation = row.get("evaluation") or {}
+        available_date = str(
+            evaluation.get("episode_outcome_available_date")
+            or evaluation.get("mark_t1_session")
+            or plan_date
+        )
+        updates_by_date[available_date].append(row)
+
+    counts: dict[tuple[str, tuple[str, ...]], list[int]] = {}
+    prior_dates: set[str] = set()
+    traces = []
+    timeline = sorted(set(by_date) | set(updates_by_date))
+    for plan_date in timeline:
+        day_rows = sorted(
+            by_date[plan_date],
+            key=lambda r: (str(r.get("decision_id") or ""),
+                           str(r.get("episode_id") or "")),
+        )
+        for row in day_rows:
+            dimensions = _calibration_dimensions(row)
+            pred = _calibration_prediction(
+                row, counts, prior_dates,
+                f"prequential:{plan_date}:"
+                f"{'|'.join(dimensions.values())}",
+            )
+            global_n, global_wins = counts.get(("global", ()), [0, 0])
+            outcome = 1 if (row.get("evaluation") or {}).get("outcome") == "win" else 0
+            traces.append({
+                "plan_date": plan_date,
+                "decision_id": row.get("decision_id"),
+                "episode_id": row.get("episode_id"),
+                **dimensions,
+                "raw_confidence": _float(row.get("confidence")),
+                "outcome": outcome,
+                "outcome_available_date": (
+                    (row.get("evaluation") or {}).get(
+                        "episode_outcome_available_date")
+                    or (row.get("evaluation") or {}).get("mark_t1_session")
+                    or plan_date
+                ),
+                "prequential_constant_probability": round(
+                    (1 + global_wins) / (2 + global_n), 4),
+                **pred,
+            })
+        # Update only outcomes observable by this date, and only after the entire
+        # date has been predicted. A T+1 close on date D cannot inform a plan
+        # authored before that close on D.
+        for row in updates_by_date[plan_date]:
+            outcome = 1 if (row.get("evaluation") or {}).get("outcome") == "win" else 0
+            for key in _calibration_keys(row):
+                current = counts.setdefault(key, [0, 0])
+                current[0] += 1
+                current[1] += outcome
+            prior_dates.add(str(row.get("plan_date") or "unknown"))
+
+    def _score(scored: list[dict]) -> dict:
+        if not scored:
+            return {
+                "n": 0, "calibrated_brier": None, "raw_brier": None,
+                "prequential_constant_brier": None,
+            }
+        n = len(scored)
+        calibrated = sum(
+            (r["calibrated_probability"] - r["outcome"]) ** 2 for r in scored
+        ) / n
+        raw_rows = [r for r in scored if r["raw_confidence"] is not None]
+        raw = (
+            sum((r["raw_confidence"] - r["outcome"]) ** 2 for r in raw_rows)
+            / len(raw_rows) if raw_rows else None
+        )
+        baseline = sum(
+            (r["prequential_constant_probability"] - r["outcome"]) ** 2
+            for r in scored
+        ) / n
+        return {
+            "n": n,
+            "calibrated_brier": round(calibrated, 4),
+            "raw_brier": round(raw, 4) if raw is not None else None,
+            "prequential_constant_brier": round(baseline, 4),
+            # Verdicts compare the same precision that is published; reporting
+            # 0.2593 vs 0.2593 and then claiming a microscopic "win" is false
+            # precision.
+            "calibrated_beats_raw": (
+                round(calibrated, 4) < round(raw, 4)
+                if raw is not None else None
+            ),
+            "calibrated_beats_constant": (
+                round(calibrated, 4) < round(baseline, 4)),
+        }
+
+    current_groups = []
+    observed_triplets = {
+        (
+            _calibration_dimensions(row)["action"],
+            _calibration_dimensions(row)["driver"],
+            _calibration_dimensions(row)["condition"],
+        )
+        for row in eligible
+    }
+    # Historical rows predate regime authorship and live in `unknown`. Emit every
+    # actionable regime for each observed action/driver/condition triple so a new
+    # plan can still match a row and transparently fall back to the condition
+    # parent until its own regime leaf accumulates evidence.
+    dimensions = {
+        (action, driver, condition, regime): {
+            "action": action, "driver": driver,
+            "condition": condition, "regime": regime,
+        }
+        for action, driver, condition in observed_triplets
+        for regime in ("risk_on", "neutral", "risk_off")
+    }
+    all_dates = {
+        str(row.get("plan_date") or "unknown") for row in eligible
+    }
+    for values, dims in sorted(dimensions.items()):
+        probe = {
+            "action": dims["action"],
+            "driven_by": dims["driver"],
+            "condition": {"type": dims["condition"]},
+            "regime": dims["regime"],
+        }
+        pred = _calibration_prediction(
+            probe, counts, all_dates, f"current:{'|'.join(values)}")
+        current_groups.append({**dims, **pred})
+
+    scored_after_warmup = [r for r in traces if r["evidence_sufficient"]]
+    return {
+        "method": (
+            "strictly prequential by plan_date and outcome availability; "
+            "same-date outcomes update after predictions; beta-binomial hierarchy "
+            "global→action→driver→condition→regime; sparse children shrink "
+            f"to {CALIBRATION_PARENT_STRENGTH:g} parent pseudo-observations"
+        ),
+        "hierarchy": [
+            "global", "action", "action_driver",
+            "action_driver_condition", "action_driver_condition_regime",
+        ],
+        "abstain_rule": {
+            "min_prior_episodes": CALIBRATION_MIN_PRIOR_EPISODES,
+            "min_prior_dates": CALIBRATION_MIN_PRIOR_DATES,
+            "max_ci95_width": CALIBRATION_MAX_CI_WIDTH,
+        },
+        "sizing_rule": (
+            "signal_size_multiplier=max(0,(ci95.lower-0.5)/0.2), capped at 1; "
+            "zero when evidence is insufficient or positive edge is unsupported"
+        ),
+        "all_predictions": _score(traces),
+        "after_warmup": _score(scored_after_warmup),
+        "abstained_predictions": sum(r["abstain"] for r in traces),
+        "edge_supported_predictions": sum(r["edge_supported"] for r in traces),
+        "current_group_calibrators": current_groups,
+        "prequential_predictions": traces,
+    }
+
+
 def compute_metrics(decisions: list[dict], window_days: int = 30) -> dict:
     """The scorecard the UI labels "30d" — so every field here must BE 30d.
 
@@ -1247,7 +1588,8 @@ def compute_metrics(decisions: list[dict], window_days: int = 30) -> dict:
     """
     cutoff = (datetime.now(HKT).date() - timedelta(days=window_days)).isoformat()
     in_window = [d for d in decisions if (d.get("plan_date") or "") >= cutoff]
-    reps = [r for r in episode_representatives(decisions, "t1") if r.get("plan_date", "") >= cutoff]
+    lifetime_reps = episode_representatives(decisions, "t1")
+    reps = [r for r in lifetime_reps if r.get("plan_date", "") >= cutoff]
     def _calib(rows: list[dict]) -> dict:
         """Brier + the baselines that make it readable, over one population.
 
@@ -1285,6 +1627,15 @@ def compute_metrics(decisions: list[dict], window_days: int = 30) -> dict:
     cal_active = _calib(active_reps)
     cal_passive = _calib(passive_reps)
     cal_all = _calib(reps)
+    hierarchical_calibration = hierarchical_prequential_calibration(
+        [r for r in lifetime_reps if r.get("action") in ACTIVE_ACTIONS])
+    # The brief needs current lookup rows and score summaries, not a 47-row audit
+    # trace that consumes tens of thousands of prompt tokens every morning. The
+    # public calibrator function still returns the complete trace for tests and
+    # ad-hoc audits.
+    hierarchical_calibration["prequential_prediction_count"] = len(
+        hierarchical_calibration.get("prequential_predictions") or [])
+    hierarchical_calibration.pop("prequential_predictions", None)
     execution = Counter((r.get("execution") or {}).get("status", "unknown") for r in in_window)
     overrides = [r for r in in_window if (r.get("override") or {}).get("status") == "active"]
     active, passive = active_reps, passive_reps
@@ -1344,6 +1695,7 @@ def compute_metrics(decisions: list[dict], window_days: int = 30) -> dict:
         "brier_beats_baseline": cal_active["beats_baseline"],
         "high_confidence": cal_active["high_confidence"],
         "calibration": {"active": cal_active, "passive": cal_passive, "all": cal_all},
+        "hierarchical_calibration": hierarchical_calibration,
         "coverage_active": coverage_active,
         # The headline "followed rate" averaged two populations that mean opposite
         # things: acting on a cut/trim/add is a decision, while "following" a hold
@@ -1498,7 +1850,8 @@ def recent_decisions(decisions: list[dict], limit: int = 20) -> list[dict]:
             "episode_id": d.get("episode_id"), "ticker": d.get("ticker"),
             "strategy_id": d.get("strategy_id"), "action": d.get("action"),
             "condition": d.get("condition"), "confidence": d.get("confidence"),
-            "driven_by": d.get("driven_by"), "status": ev.get("status"),
+            "driven_by": d.get("driven_by"),
+            "regime": d.get("regime", "unknown"), "status": ev.get("status"),
             "outcome": ev.get("outcome"), "benefit_t1_pct": ev.get("benefit_t1_pct"),
             "execution": (d.get("execution") or {}).get("status", "unknown"),
             "override": d.get("override"),
