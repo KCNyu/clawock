@@ -139,11 +139,34 @@ jobs:
         # Pillow: validate_sidecars now fully-decodes screenshots/GIF (finding #12);
         # the real asset checks run in screenshot-refresh.yml (which has Pillow) but
         # the unit tests here exercise the same validators, so pytest needs it too.
-        run: pip install --quiet requests pytest numpy Pillow
+        run: pip install --quiet requests pytest pytest-cov numpy Pillow
 
       - name: Unit tests — money-integrity derivations
         if: github.event_name != 'pull_request' || steps.changes.outputs.code == 'true'
-        run: python3 -m pytest tests/ -q
+        run: |
+          python3 -m pytest tests/ -q \
+            --cov=scripts \
+            --cov-report=term-missing:skip-covered \
+            --cov-report=json:coverage-report.json
+
+      - name: Coverage floors
+        # Fails the PR when coverage drops below its floors — the badge is only a
+        # readout, this is the part that holds. Runs on PRs too (not just the
+        # publish job) so a regression is caught before merge, not after.
+        if: github.event_name != 'pull_request' || steps.changes.outputs.code == 'true'
+        run: python3 scripts/data/coverage_badge.py --report coverage-report.json --check-only
+
+      - name: Upload coverage report
+        # The suite is measured once, here. publish-coverage consumes this artifact
+        # instead of running the tests again, so the published badge is the same
+        # number this job gated on — not a second, independently drifting
+        # measurement. Only master pushes have a consumer; PR runs skip the upload.
+        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage-report.json
+          retention-days: 1
 
       - name: Generated cron docs match contract
         if: github.event_name != 'pull_request' || steps.changes.outputs.code == 'true'
@@ -274,6 +297,51 @@ jobs:
           python3 scripts/data/build_dashboard.py
           python3 scripts/data/build_dashboard.py
           echo "OK: build_dashboard idempotent"
+
+  publish-coverage:
+    # Master only: the README badge must show what is on master, never a number
+    # from an unmerged branch. PRs still get the floor gate in `validate` above.
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    needs: validate
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    # Serialize with the other commit-pushing workflows (job-scoped, so PR runs of
+    # `validate` are never queued behind a data-write job).
+    concurrency:
+      group: data-write
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+
+      # No dependency install and no second test run: the suite was already
+      # measured in `validate`. Everything below is stdlib.
+      - name: Download coverage report
+        uses: actions/download-artifact@v4
+        with:
+          name: coverage-report
+
+      - name: Coverage floors and badge payload
+        run: python3 scripts/data/coverage_badge.py --report coverage-report.json --out assets/data/coverage.json
+
+      - name: Validate coverage badge
+        # shields.io renders this file verbatim; a malformed payload would show up
+        # as an "invalid" badge on the README instead of failing anything.
+        run: python3 scripts/data/validate_sidecars.py coverage
+
+      - name: Commit
+        # Commits only the badge payload. assets/data/coverage.json is not in this
+        # workflow's `push:` paths, so publishing it cannot retrigger this job.
+        env:
+          CLAWOCK_PUBLISH_SSH_KEY: ${{ secrets.CLAWOCK_PUBLISH_SSH_KEY }}
+        run: |
+          set -euo pipefail
+          pct=$(python3 -c "import json; print(json.load(open('assets/data/coverage.json'))['message'])")
+          bash scripts/data/gha_commit_push.sh "coverage: $pct at $(git rev-parse --short HEAD)" assets/data/coverage.json
 
   smoke-data-fetch:
     runs-on: ubuntu-latest
