@@ -475,3 +475,50 @@ def test_the_movers_sidecar_quotes_the_same_evidence():
     assert "mover_news" in spec
     assert "signal=interrupt" in spec
     assert "no_recent_filing" in spec
+
+
+# --- Mode 6 (open / mid / pm / close, both markets) consumes it too ----------
+
+def _mode_6_prose_section(skill_name):
+    skill = (ROOT / "skills" / skill_name / "SKILL.md").read_text()
+    return skill.split("#### Step 2: 只写分析散文", 1)[1].split("#### Step 3", 1)[0]
+
+
+@pytest.mark.parametrize("skill_name", ["us-stock-analysis", "hk-stock-analysis"])
+def test_mode_6_reports_must_attribute_their_anomalies(skill_name):
+    """Six reports a day (HK open/mid/pm/close, US open/close) had the catalyst
+    context and no instruction to use it — dead context in the reports that
+    matter most."""
+    prose = _mode_6_prose_section(skill_name)
+    assert "mover_news" in prose
+    assert "异动归因" in prose
+    assert "signal=interrupt" in prose
+    for state in ("no_recent_filing", "index_fund_no_issuer", "degraded"):
+        assert state in prose, state
+    # a red line is context for the move, never permission to act
+    assert "mover_thesis" in prose and "catalyst-gate" in prose
+    # and when space runs out, the attribution is not what gets cut
+    assert "先砍板块全景" in prose
+
+
+def test_report_length_limits_are_unchanged_and_still_match_the_payload_contract():
+    """Attribution is ~1 line per mover; the measured worst case (a US close body
+    at 2898 chars) still clears the 3000 soft warn, and the numbers are pinned in
+    nine live cron payloads. Raising them is a live-payload migration, not a code
+    edit, so it is deliberately not done here."""
+    import json
+    import sys
+
+    sys.path.insert(0, str(ROOT / "scripts" / "harness"))
+    import report_postflight
+
+    assert report_postflight.CHAR_LIMITS == {
+        "hk": {"soft": 3000, "hard": 3500},
+        "us": {"soft": 3000, "hard": 3500},
+    }
+    contract = json.loads((ROOT / "config" / "cron-schedules.json").read_text())
+    for profile in ("report", "intraday"):
+        required = contract["payload_profiles"][profile]["required_substrings"]
+        assert "目标 ≤ 2200 字" in required
+        assert ">3000 字 warn" in required
+        assert ">3500 字 fail" in required
