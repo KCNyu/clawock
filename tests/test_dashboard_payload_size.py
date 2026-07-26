@@ -102,3 +102,32 @@ def test_rebuild_is_idempotent_and_keeps_the_trim():
     assert "regime_history" not in rebuilt["lev_regime"]
     assert "current_group_calibrators" not in rebuilt["decision_metrics"]["hierarchical_calibration"]
     assert len(DASHBOARD.read_text()) < SIZE_CAP
+
+
+def test_the_brief_still_gets_the_calibrators_the_dashboard_no_longer_ships():
+    """Cross-PR interaction guard.
+
+    The daily-brief skill requires an active call to match its group in
+    `decision_metrics.hierarchical_calibration.current_group_calibrators` before
+    any size multiplier applies (#62). The public payload stopped shipping that
+    table (#102) because no chart reads it — which is only safe because the brief
+    computes its metrics in-process rather than reading dashboard.json.
+
+    Break either half and sizing silently loses its evidence base.
+    """
+    import sys
+
+    sys.path.insert(0, str(ROOT / "scripts" / "data"))
+    import decision_v2
+
+    metrics = decision_v2.compute_metrics(decision_v2.load_decisions())
+    calibration = metrics.get("hierarchical_calibration") or {}
+    assert isinstance(calibration.get("current_group_calibrators"), list)
+
+    preflight = (ROOT / "scripts" / "harness" / "brief_preflight.py").read_text()
+    computed = preflight.split("def compute_decision_metrics", 1)[1][:1500]
+    assert "decision_v2.compute_metrics" in computed
+    assert "dashboard.json" not in computed, "the brief must not source metrics from the trimmed payload"
+
+    skill = (ROOT / "skills" / "daily-deep-brief" / "SKILL.md").read_text()
+    assert "current_group_calibrators" in skill
