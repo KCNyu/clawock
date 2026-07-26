@@ -64,8 +64,6 @@ def render(contract: dict) -> str:
             f"| {job['name']} | {schedule_text(job)} | {job.get('mode', '—')} | "
             f"`{job.get('harness', '—')}` | {watchdog_text(job)} |"
         )
-    provider_health = contract["provider_health"]
-    provider_health_schedule = schedule_text(provider_health)
     return "\n".join([
         "# Cron schedule contract / 调度契约",
         "",
@@ -92,20 +90,6 @@ def render(contract: dict) -> str:
         "切换。隔夜盯盘无论冬夏令时都在 02:30 HKT 截止，保留 03:00 dreaming 独占窗口；",
         "因此冬令时比夏令时少两个盘中 slot。",
         "",
-        "## Provider readiness / 模型供应商探活",
-        "",
-        f"`provider_health.py --apply` runs at {provider_health_schedule}. It first checks",
-        "configured authentication, then sends bounded one-token probes with exponential",
-        "backoff. Market jobs are rotated to the first healthy candidate plus the remaining",
-        "healthy candidates as ordered fallbacks; unconfigured or failed providers are omitted.",
-        "If every provider is unavailable, the existing rotation is preserved and product",
-        "generation retains deterministic local fallbacks.",
-        "",
-        f"`provider_health.py --apply` 在 {provider_health_schedule} 运行：先检查认证配置，",
-        "再用有界的一 token 探针和指数退避验证可用性。市场任务选择首个健康候选作为主模型，",
-        "其余健康候选作为有序 fallback；未配置或探活失败的供应商不会进入轮转。若所有供应商",
-        "均不可用，则保留现有轮转，并由确定性的本地成品 fallback 托底。",
-        "",
         "## OpenClaw jobs + watchdogs",
         "",
         "| Job | OpenClaw schedule | Mode | Harness | System watchdog |",
@@ -119,7 +103,8 @@ def render(contract: dict) -> str:
         "  uses an 08:30 delivery backstop plus a 09:05 post-window miss detector.",
         "- Market payloads use deterministic preflight/postflight, `delivery.mode=none`,",
         "  a unique WeChat path, Telegram mirror, and an ordered unique subset of the",
-        "  readiness-gated model candidates defined by the contract.",
+        "  fixed model candidates defined by the contract. Runtime rotations must remain",
+        "  a prefix of that order; health checks never reorder or skip candidates.",
         "- Mode 7 writes the public `assets/data/cron-heartbeats.json` ledger through the",
         "  existing single publisher; cron health verifies every monitored slot.",
         "- Mode 7 agent turns are condition-triggered by normalized breach/event/regime",

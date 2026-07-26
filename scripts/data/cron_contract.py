@@ -49,9 +49,6 @@ def load_contract(path: str | Path | None = None) -> dict:
     sync = data.get("dst_sync") or {}
     if not sync.get("schedule") or not sync.get("command_contains"):
         raise ValueError("dst_sync schedule and command matcher are required")
-    health = data.get("provider_health") or {}
-    if not health.get("schedule") or not health.get("command_contains"):
-        raise ValueError("provider_health schedule and command matcher are required")
     return data
 
 
@@ -130,10 +127,10 @@ def payload_errors(contract: dict, expected_job: dict, live_job: dict) -> list[s
         unknown = [model for model in rotation if model not in candidates]
         if unknown:
             errors.append(f"payload model rotation contains unknown models: {unknown}")
-        ordered = [model for model in candidates if model in rotation]
-        if rotation != ordered:
+        fixed_prefix = candidates[:len(rotation)]
+        if rotation != fixed_prefix:
             errors.append(
-                f"payload model rotation must preserve candidate order {candidates!r}"
+                f"payload model rotation must be a fixed prefix of {candidates!r}"
             )
     else:
         fields["model"] = profile.get("model")
@@ -253,16 +250,4 @@ def validate_watchdogs(contract: dict, crontab_text: str,
             expected = effective_schedule(sync, at).get("expr")
             if row["expr"] != expected:
                 errors.append(f"DST sync cron expected {expected!r}, got {row['expr']!r}")
-    health = contract.get("provider_health") or {}
-    if health:
-        tokens = health.get("command_contains") or []
-        row = find_crontab_row(rows, tokens)
-        if not row:
-            errors.append(f"provider health cron missing or ambiguous: {tokens}")
-        else:
-            expected = effective_schedule(health, at).get("expr")
-            if row["expr"] != expected:
-                errors.append(
-                    f"provider health cron expected {expected!r}, got {row['expr']!r}"
-                )
     return errors
