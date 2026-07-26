@@ -1374,8 +1374,12 @@ def main():
         qs_path = WS / 'assets' / 'data' / 'quant_signals.json'
         if qs_path.exists():
             quant_signals = json.loads(qs_path.read_text())
-            tags = {k: v.get('tag') for k, v in (quant_signals.get('rows') or {}).items()}
-            print(f'   📊 quant_signals: {len(tags)} symbols — '
+            tags = {k: v.get('tag') for k, v in (quant_signals.get('rows') or {}).items()
+                    if v.get('status') in (None, 'fresh')}
+            nonfresh = [k for k, v in (quant_signals.get('rows') or {}).items()
+                        if v.get('status') not in (None, 'fresh')]
+            print(f'   📊 quant_signals: {len(tags)} fresh symbols'
+                  f' / {len(nonfresh)} unavailable — '
                   + '; '.join(f'{k}:{v}' for k, v in list(tags.items())[:4]) + ' …')
     except Exception as e:
         print(f'   ⚠ quant_signals compute failed: {e}')

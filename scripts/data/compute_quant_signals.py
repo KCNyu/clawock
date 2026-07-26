@@ -26,8 +26,9 @@ LLM 引用纪律：技术面判断只准引用本表数字，不得自创（SKIL
 import json
 import math
 import sys
-from datetime import date
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 import requests
 
@@ -42,9 +43,12 @@ UA = ('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 '
       '(KHTML, like Gecko) Chrome/121.0 Safari/537.36')
 
 SIGMA_TARGET = 0.25   # vol-target sizing 的组合级目标波动（25% 年化）
+MAX_STALE_DAYS = 7
+RETIRED_RETENTION_DAYS = 7
 
 sys.path.insert(0, str(WS / 'scripts' / 'data'))
 from instrument_registry import require as require_instrument  # noqa: E402
+import trading_calendar  # noqa: E402
 
 try:
     from safe_io import safe_write_json  # type: ignore
@@ -190,14 +194,14 @@ def compute_signals(bars):
     return sig
 
 
-def _universe():
-    """活跃持仓 → [(展示名, canonical Tencent 代码, 备注)]。
+def _universe_details():
+    """活跃持仓 → 去重后的 signal rows，保留每行覆盖的真实持仓。
 
     杠杆产品使用 registry 的 signal_symbol 折到标的/1x proxy；venue 后缀
     同样从 registry 读取，绝不再默认猜成 Nasdaq。
     """
     port = json.loads(PORTFOLIO.read_text())
-    uni, seen = [], set()
+    by_code = {}
     for region in ('hk_stocks', 'us_stocks'):
         for h in port['portfolios'][region]['holdings']:
             if h.get('shares', 0) <= 0:
@@ -211,11 +215,149 @@ def _universe():
             note = f'{t} 的标的/1x proxy' if signal_symbol != t else ''
             if not code:
                 raise ValueError(f'{signal_symbol} has no canonical Tencent symbol')
-            if code in seen:
+            row = by_code.setdefault(code, {
+                'label': label,
+                'code': code,
+                'note': note,
+                'region': signal_meta['region'],
+                'source_holdings': [],
+            })
+            row['source_holdings'].append(t)
+            if note and not row['note']:
+                row['note'] = note
+    return list(by_code.values())
+
+
+def _universe():
+    """Compatibility view used by registry tests and small callers."""
+    return [
+        (row['label'], row['code'], row['note'])
+        for row in _universe_details()
+    ]
+
+
+def _latest_completed_session(region, at=None):
+    market = region.lower()
+    now = at or datetime.now(ZoneInfo(trading_calendar.MARKET_TZ[market]))
+    now = now.astimezone(ZoneInfo(trading_calendar.MARKET_TZ[market]))
+    current = now.date() if now.hour >= 17 else now.date() - timedelta(days=1)
+    for _ in range(14):
+        if trading_calendar.is_trading_day(market, current):
+            return current
+        current -= timedelta(days=1)
+    return None
+
+
+def _as_date(value):
+    try:
+        return date.fromisoformat(str(value))
+    except (TypeError, ValueError):
+        return None
+
+
+def _missing_row(detail, reason, last_good_as_of=None):
+    row = {
+        'code': detail['code'],
+        'source_holdings': sorted(detail['source_holdings']),
+        'status': 'missing',
+        'row_as_of': None,
+        'last_good_as_of': last_good_as_of,
+        'stale_reason': reason,
+        'max_age_days': MAX_STALE_DAYS,
+    }
+    if detail.get('note'):
+        row['note'] = detail['note']
+    return row
+
+
+def refresh_rows(previous, universe, *, run_date=None, previous_as_of=None,
+                 expected_sessions=None, fetcher=fetch_bars):
+    """Refresh current rows, make failures visible, and age out retired rows."""
+    run_date = run_date or date.today()
+    expected_sessions = expected_sessions or {
+        region: _latest_completed_session(region)
+        for region in ('US', 'HK')
+    }
+    rows = {}
+    current_labels = {detail['label'] for detail in universe}
+
+    for detail in universe:
+        label = detail['label']
+        old = dict(previous.get(label) or {})
+        old_as_of = old.get('row_as_of')
+        # Legacy rows predate per-row freshness and may inherit the old top-level
+        # date once. A visible missing marker is not a last-known-good row.
+        if not old_as_of and old and not old.get('status'):
+            old_as_of = previous_as_of
+        last_good_as_of = old_as_of or old.get('last_good_as_of')
+        bars = fetcher(detail['code'])
+        sig = compute_signals(bars) if bars else None
+        if sig is not None:
+            row_as_of = _as_date(bars[-1].get('date'))
+            expected = expected_sessions.get(detail['region'])
+            age_days = (run_date - row_as_of).days if row_as_of else None
+            if row_as_of is None:
+                rows[label] = _missing_row(
+                    detail, 'latest bar has no valid date', last_good_as_of)
                 continue
-            seen.add(code)
-            uni.append((label, code, note))
-    return uni
+            if age_days > MAX_STALE_DAYS:
+                rows[label] = _missing_row(
+                    detail,
+                    f'latest bar {row_as_of} exceeds {MAX_STALE_DAYS}-day max age',
+                    row_as_of.isoformat(),
+                )
+                continue
+            sig.update({
+                'code': detail['code'],
+                'source_holdings': sorted(detail['source_holdings']),
+                'status': 'fresh' if not expected or row_as_of >= expected else 'stale',
+                'row_as_of': row_as_of.isoformat(),
+                'max_age_days': MAX_STALE_DAYS,
+            })
+            if expected and row_as_of < expected:
+                sig['stale_reason'] = (
+                    f'latest bar {row_as_of} before expected session {expected}'
+                )
+            if detail.get('note'):
+                sig['note'] = detail['note']
+            rows[label] = sig
+            continue
+
+        old_date = _as_date(old_as_of)
+        age_days = (run_date - old_date).days if old_date else None
+        if old and age_days is not None and age_days <= MAX_STALE_DAYS:
+            old.update({
+                'code': detail['code'],
+                'source_holdings': sorted(detail['source_holdings']),
+                'status': 'stale',
+                'row_as_of': old_date.isoformat(),
+                'stale_reason': 'fetch failed or returned insufficient bars',
+                'max_age_days': MAX_STALE_DAYS,
+            })
+            if detail.get('note'):
+                old['note'] = detail['note']
+            rows[label] = old
+        else:
+                rows[label] = _missing_row(
+                detail, 'fetch failed and no usable last-known-good row',
+                last_good_as_of)
+
+    for label, old_value in previous.items():
+        if label in current_labels:
+            continue
+        old = dict(old_value or {})
+        retired_since = _as_date(old.get('retired_since')) or run_date
+        if (run_date - retired_since).days >= RETIRED_RETENTION_DAYS:
+            continue
+        old.update({
+            'status': 'retired',
+            'retired_since': retired_since.isoformat(),
+            'retention_days': RETIRED_RETENTION_DAYS,
+            'stale_reason': 'not in current signal universe',
+        })
+        old.setdefault('row_as_of', previous_as_of)
+        rows[label] = old
+    return rows
 
 
 def main():
@@ -225,24 +367,28 @@ def main():
             prev = json.loads(OUT.read_text())
         except Exception:
             prev = {}
-    rows = dict((prev.get('rows') or {}))  # merge-not-overwrite：抓空的票保留旧值
-
-    for label, code, note in _universe():
-        bars = fetch_bars(code)
-        sig = compute_signals(bars) if bars else None
-        if sig is None:
-            print(f'  warn: {label} ({code}) no data — retained prior', file=sys.stderr)
-            continue
-        sig['code'] = code
-        if note:
-            sig['note'] = note
-        rows[label] = sig
-        print(f"  {label:8s} {sig['tag']}  RSI {sig['rsi14']}  z {sig['zscore20']}  "
-              f"距200线 {sig['dist_ma200_pct']}%  吊灯距 {sig['stop_distance_pct']}%")
+    universe = _universe_details()
+    rows = refresh_rows(
+        prev.get('rows') or {},
+        universe,
+        previous_as_of=prev.get('as_of'),
+    )
+    for detail in universe:
+        label = detail['label']
+        sig = rows[label]
+        if sig['status'] == 'fresh':
+            print(f"  {label:8s} {sig['tag']}  RSI {sig['rsi14']}  z {sig['zscore20']}  "
+                  f"距200线 {sig['dist_ma200_pct']}%  吊灯距 {sig['stop_distance_pct']}%")
+        else:
+            print(f"  warn: {label} {sig['status']} — {sig.get('stale_reason')}",
+                  file=sys.stderr)
 
     out = {
         'as_of': date.today().isoformat(),
+        'generated_at': datetime.now(timezone.utc).isoformat(),
         'sigma_target': SIGMA_TARGET,
+        'max_stale_days': MAX_STALE_DAYS,
+        'retired_retention_days': RETIRED_RETENTION_DAYS,
         'rows': rows,
         'formulas': {
             'trend': 'trend_on = close>MA200 且 MA50>MA200（双均线）；golden_cross = MA50>MA200',
@@ -265,7 +411,8 @@ def main():
                             'rows': {k: {f: v.get(f) for f in
                                          ('close', 'trend_on', 'golden_cross', 'rsi14', 'zscore20',
                                           'stop_distance_pct', 'mom_1m', 'dist_ma200_pct')}
-                                     for k, v in rows.items()}}, ensure_ascii=False)
+                                     for k, v in rows.items()
+                                     if v.get('status') == 'fresh'}}, ensure_ascii=False)
     lines = []
     if HIST.exists():
         lines = [l for l in HIST.read_text().splitlines()
