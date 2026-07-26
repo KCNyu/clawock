@@ -50,6 +50,8 @@ sys.path.insert(0, str(WS / 'scripts' / 'data'))
 import trading_calendar  # noqa: E402
 import decision_v2  # noqa: E402
 import peer_scan  # noqa: E402
+import workflow_outcomes  # noqa: E402
+import risk_discipline  # noqa: E402
 from instrument_registry import get as get_instrument  # noqa: E402
 from instrument_registry import compute_lookthrough_exposure  # noqa: E402
 from instrument_registry import one_x_swap_map  # noqa: E402
@@ -220,14 +222,32 @@ def compute_risk_guardrail(hk_holdings, us_holdings, hk_conc, us_conc, risk, lev
                     'detail': f"{w['ticker']} = {w['weight_pct']}% of {leg} (cap {caps['single_name_pct']}%)",
                     'action': (f"纪律性 trim {w['ticker']} → ≤{caps['single_name_pct']}% "
                                f"(减约 {trim_val} {ccy}，借反弹分批、勿在新低日一次砍)"),
+                    'required_reduction': {
+                        'kind': 'market_value',
+                        'minimum_value': trim_val,
+                        'currency': ccy,
+                        'target_pct': caps['single_name_pct'],
+                        'target_tickers': [w['ticker']],
+                    },
                 })
 
         # single-factor proxy = Top2
         if conc.get('top2_pct', 0) > caps['top2_factor_pct']:
+            top2 = ws[:2]
+            factor_trim = max(0, round(
+                sum(w['value'] for w in top2)
+                - caps['top2_factor_pct'] / 100 * total, 2))
             breaches.append({
                 'type': 'factor_concentration', 'leg': leg, 'ticker': None, 'severity': 'high',
                 'detail': f"{leg} Top2 = {conc['top2_pct']}% (cap {caps['top2_factor_pct']}%) — 名义多只实为单因子",
                 'action': f"把 {leg} Top2 降到 ≤{caps['top2_factor_pct']}%：借强减最大那只，别在同因子内换票",
+                'required_reduction': {
+                    'kind': 'factor_market_value',
+                    'minimum_value': factor_trim,
+                    'currency': ccy,
+                    'target_pct': caps['top2_factor_pct'],
+                    'target_tickers': [w['ticker'] for w in top2],
+                },
             })
 
         # leveraged-ETF leg exposure — use the name heuristic, not the unreliable
@@ -253,6 +273,16 @@ def compute_risk_guardrail(hk_holdings, us_holdings, hk_conc, us_conc, risk, lev
                 'action': (f"降杠杆=换仓非清仓：把约 {trim_val} {ccy} 的 2x 换成 1x 同因子"
                            f"({_swap_suggestions(hold) or '同因子 1x/标的现货'})，"
                            f"敞口不变、停 decay；🧭转 green 后可换回 2x"),
+                'required_reduction': {
+                    'kind': 'leveraged_market_value',
+                    'minimum_value': trim_val,
+                    'currency': ccy,
+                    'target_pct': eff_lev_cap,
+                    'target_tickers': [
+                        h.get('ticker') for h in hold
+                        if h.get('shares', 0) > 0 and _is_leveraged_etf(h)
+                    ],
+                },
             })
 
         # hard-stop watch on individual leveraged ETFs
@@ -263,10 +293,21 @@ def compute_risk_guardrail(hk_holdings, us_holdings, hk_conc, us_conc, risk, lev
             if pnl is not None and pnl <= caps['lev_etf_stop_pct']:
                 hard_stops.append({
                     'ticker': h['ticker'], 'leg': leg, 'pnl_pct': pnl,
+                    'severity': 'critical',
                     'detail': f"{h['ticker']} 浮亏 {pnl}% ≤ 硬止损线 {caps['lev_etf_stop_pct']}%",
                     'action': (f"{h['ticker']} 触发杠杆 ETF 硬止损 → 换仓 "
                                f"{('1x 同因子 ' + LEV_1X_SWAP[h['ticker']]) if h.get('ticker') in LEV_1X_SWAP else '同因子 1x/标的现货'}"
                                f"（敞口保留、停 decay，规则非择时）；🧭转 green 再换回 2x"),
+                    'required_reduction': {
+                        'kind': 'full_leveraged_position',
+                        'minimum_shares': h.get('shares'),
+                        'minimum_value': (
+                            h.get('current_value')
+                            or h.get('cost_basis', 0) * h.get('shares', 0)),
+                        'currency': ccy,
+                        'target_tickers': [h['ticker']],
+                        'swap_to': LEV_1X_SWAP.get(h['ticker']),
+                    },
                 })
 
     # US per-name leverage dial (lev_regime['us']) — only the 'cut' state (underlying
@@ -276,23 +317,64 @@ def compute_risk_guardrail(hk_holdings, us_holdings, hk_conc, us_conc, risk, lev
         held_us = {h.get('ticker') for h in us_holdings if h.get('shares', 0) > 0}
         for nm in us_reg.get('names', []):
             if nm.get('state') == 'cut' and nm.get('etf') in held_us:
-                vol_pct = (nm.get('vol_annualized') or 0) * 100
+                vol = nm.get('vol_annualized')
+                if vol is None:
+                    basis = nm.get('regime_basis') or 'short_ma'
+                    detail = (
+                        f"🧭 {nm['etf']}=2x{nm['underlying']} 完整波动率不可用；"
+                        f"{nm.get('ma_window') or '短'}日均线偏离 "
+                        f"{nm.get('dist_ma_pct')}%，按 {basis} 右侧确认制度为 cut"
+                    )
+                    action_reason = (
+                        f"完整波动率不可用，当前仅按 {basis}：标的仍在短均线下，"
+                        "2x 暂换现货；短均线重新确认后再评估"
+                    )
+                else:
+                    vol_pct = vol * 100
+                    detail = (
+                        f"🧭 {nm['etf']}=2x{nm['underlying']} 标的破200线 "
+                        f"({nm.get('dist_ma_pct')}%)+波动 {vol_pct:.0f}% 过热 → 杠杆制度 red"
+                    )
+                    action_reason = (
+                        f"标的趋势off 且波动>{int(nm.get('vol_hot_cap',0.7)*100)}%，"
+                        "2x 日内重置在下杀里放大衰减；"
+                        f"{nm['underlying']} 收复200线(green)再换回 2x"
+                    )
                 breaches.append({
                     'type': 'regime_delever', 'leg': 'US', 'ticker': nm['etf'], 'severity': 'high',
-                    'detail': (f"🧭 {nm['etf']}=2x{nm['underlying']} 标的破200线 "
-                               f"({nm.get('dist_ma_pct')}%)+波动 {vol_pct:.0f}% 过热 → 杠杆制度 red"),
-                    'action': (f"{nm['etf']} 2x→{nm['underlying']} 现货换仓(driven_by=risk_rule,规则非择时)：标的趋势off "
-                               f"且波动>{int(nm.get('vol_hot_cap',0.7)*100)}%，2x 日内重置在下杀里放大衰减；"
-                               f"{nm['underlying']} 收复200线(green)再换回 2x"),
+                    'detail': detail,
+                    'action': (
+                        f"{nm['etf']} 2x→{nm['underlying']} 现货换仓"
+                        f"(driven_by=risk_rule,规则非择时)：{action_reason}"
+                    ),
+                    'required_reduction': {
+                        'kind': 'full_leveraged_position',
+                        'target_tickers': [nm['etf']],
+                        'swap_to': nm['underlying'],
+                    },
                 })
 
     # portfolio-level β from risk.json
-    us_beta = (risk.get('us') or {}).get('beta_spx')
-    if isinstance(us_beta, (int, float)) and us_beta > caps['us_beta_max']:
+    us_risk = risk.get('us') or {}
+    us_beta = us_risk.get('beta_spx')
+    beta_eligible = (
+        us_risk.get('threshold_eligible', True)
+        and us_risk.get('beta_threshold_eligible', True)
+    )
+    if (beta_eligible and isinstance(us_beta, (int, float))
+            and us_beta > caps['us_beta_max']):
         breaches.append({
             'type': 'beta', 'leg': 'US', 'ticker': None, 'severity': 'high',
             'detail': f"US β vs S&P = {us_beta} (cap {caps['us_beta_max']}) — 大盘 −1% 本子约 −{us_beta:.1f}%",
             'action': "降 US β：优先削杠杆 ETF(β 主要来源)，不是砍单票 thesis",
+            'required_reduction': {
+                'kind': 'beta',
+                'target_beta': caps['us_beta_max'],
+                'target_tickers': [
+                    h.get('ticker') for h in us_holdings
+                    if h.get('shares', 0) > 0 and _is_leveraged_etf(h)
+                ],
+            },
         })
 
     n = len(breaches) + len(hard_stops)
@@ -1060,6 +1142,9 @@ def main():
     TMP_DIR.mkdir(parents=True, exist_ok=True)
     SNAPSHOT_DIR.mkdir(parents=True, exist_ok=True)
     issues = []
+    job_name = '盘前深度简报'
+    slot = workflow_outcomes.slot_for_job(job_name)
+    workflow_outcomes.record_stage(job_name, 'preflight', 'pending', slot=slot)
 
     # Holiday/weekend gate: the brief covers both markets, so skip ONLY when both
     # HK and US are closed (still runs if either trades). At 08:00 HKT the relevant
@@ -1068,6 +1153,10 @@ def main():
     hk_closed = trading_calendar.closed_reason('hk')
     us_closed = trading_calendar.closed_reason('us')
     if hk_closed and us_closed:
+        workflow_outcomes.record_stage(
+            job_name, 'preflight', 'skipped', slot=slot,
+            reason=f'港股{hk_closed}+美股{us_closed}',
+        )
         result = {'status': 'market_closed', 'date': today,
                   'reason': f'港股{hk_closed}+美股{us_closed}', 'skip': True}
         (TMP_DIR / f'brief-context-{today}.json').write_text(
@@ -1219,6 +1308,13 @@ def main():
           f'Brier={decision_metrics.get("brier")} vs constant-forecast baseline '
           f'{decision_metrics.get("brier_baseline_loo")} '
           f'({"beats" if decision_metrics.get("brier_beats_baseline") else "LOSES to"} it)')
+    hierarchical = decision_metrics.get('hierarchical_calibration') or {}
+    prequential = hierarchical.get('after_warmup') or {}
+    print(f'   hierarchical prequential: n={prequential.get("n", 0)} '
+          f'Brier={prequential.get("calibrated_brier")} vs raw '
+          f'{prequential.get("raw_brier")}; '
+          f'{hierarchical.get("abstained_predictions", 0)} historical abstentions / '
+          f'{hierarchical.get("edge_supported_predictions", 0)} edge-supported')
     active_v2 = decision_metrics.get('active') or {}
     print(f'   active: n={active_v2.get("n_episodes", 0)} '
           f'avg benefit={active_v2.get("avg_benefit_pct")}%, '
@@ -1301,6 +1397,53 @@ def main():
     except Exception as e:
         print(f'   ⚠ quant_signal_review failed: {e}')
 
+    # [10b3b] Cross-sectional factor research — curated peers + 1x underlyings,
+    # sector-neutral ranks and strictly prospective activation. The full artifact
+    # stays on disk; context gets a compact view to avoid spending brief tokens on
+    # 38 complete research rows. `usable_for_decisions=false` is a hard boundary.
+    cross_sectional_factor = {}
+    cross_sectional_factor_ctx = {}
+    try:
+        subprocess.run(
+            ['python3', str(WS / 'scripts' / 'data' / 'cross_sectional_factor.py')],
+            capture_output=True, text=True, timeout=240, check=False,
+        )
+        cs_path = WS / 'assets' / 'data' / 'cross_sectional_factor.json'
+        if cs_path.exists():
+            cross_sectional_factor = json.loads(cs_path.read_text())
+            activation = cross_sectional_factor.get('activation') or {}
+            rankings = cross_sectional_factor.get('live_rankings') or {}
+            held = {
+                h.get('ticker')
+                for leg in ('hk_stocks', 'us_stocks')
+                for h in portfolio.get('portfolios', {}).get(leg, {}).get('holdings', [])
+                if h.get('shares', 0) > 0
+            }
+            held_rows = {
+                ticker: row for ticker, row in rankings.items() if ticker in held
+            }
+            leaders = sorted(
+                rankings.items(),
+                key=lambda item: item[1].get('composite_score') or -999,
+                reverse=True,
+            )[:8]
+            cross_sectional_factor_ctx = {
+                'as_of': cross_sectional_factor.get('as_of'),
+                'activation': activation,
+                'validation': cross_sectional_factor.get('validation'),
+                'held_rankings': held_rows,
+                'sector_leaders': dict(leaders),
+                'leveraged_proxy_decay': cross_sectional_factor.get(
+                    'leveraged_proxy_decay'
+                ),
+            }
+            print(
+                f'   🧪 cross-sectional: active={activation.get("active", False)}, '
+                f'blockers={",".join(activation.get("blockers") or [])}'
+            )
+    except Exception as e:
+        print(f'   ⚠ cross-sectional factor failed: {e}')
+
     # [10b4] T+0 牌面评级 — 零额外请求（从已抓字段 + quant ATR 推导），追高检测。
     # 紧跟 quant_signals 之后跑（依赖其 ATR 刷新）。
     t0_setups = {}
@@ -1361,7 +1504,22 @@ def main():
         portfolio['portfolios']['hk_stocks']['holdings'],
         portfolio['portfolios']['us_stocks']['holdings'],
         hk_conc, us_conc, risk, lev_regime=lev_regime)
+    guardrail = risk_discipline.attach_breach_ids(guardrail)
+    _append_guardrail_history(today, guardrail, hk_conc, us_conc, risk)
+    discipline = {}
+    try:
+        discipline = risk_discipline.reconcile_guardrail(
+            guardrail, portfolio)
+    except Exception as e:
+        discipline = {'error': f'{type(e).__name__}: {e}', 'records': []}
+        issues.append(f'risk discipline reconcile failed: {type(e).__name__}')
     print(f'   guardrail: {guardrail["breach_count"]} breaches/stops — {guardrail["directive"][:64]}')
+    if discipline.get('error'):
+        print(f'   🔴 durable risk ledger failed: {discipline["error"]}')
+    else:
+        print(f'   durable risk ledger: {discipline.get("open_count", 0)} open / '
+              f'{discipline.get("overridden_count", 0)} overridden / '
+              f'oldest {discipline.get("oldest_open_days", 0)}d')
     for b in guardrail['breaches']:
         print(f'   ⛔ {b["type"]:20s} ({b["severity"]:6s}) {b["detail"][:78]}')
     for s in guardrail['hard_stop_watch']:
@@ -1442,9 +1600,11 @@ def main():
         'concentration': {'hk': hk_conc, 'us': us_conc},
         'lookthrough_exposure': lookthrough,
         'risk_guardrail': guardrail,
+        'risk_discipline': discipline,
         'breakeven_math': breakeven,
         'quant_signals': quant_signals,
         'quant_signal_review': quant_review,
+        'cross_sectional_factor': cross_sectional_factor_ctx,
         't0_setups': t0_setups,
         't0_setup_review': t0_review,
         'integrity': integrity,
@@ -1463,13 +1623,20 @@ def main():
     }
     ctx_path = TMP_DIR / f'brief-context-{today}.json'
     ctx_path.write_text(json.dumps(context, ensure_ascii=False, indent=2))
-    _append_guardrail_history(today, guardrail, hk_conc, us_conc, risk)
 
     print(f'\n═════ preflight done | {len(issues)} issues ═════')
     print(f'context: {ctx_path}')
     if issues:
         for i in issues:
             print(f'  ⚠️  {i}')
+    workflow_outcomes.record_stage(
+        job_name,
+        'preflight',
+        'success' if not issues else 'warning',
+        slot=slot,
+        issue_count=len(issues),
+        context_path=str(ctx_path),
+    )
     return 0 if not issues else 1
 
 

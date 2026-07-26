@@ -16,6 +16,7 @@ import json
 import os
 import subprocess
 import sys
+from datetime import datetime, timezone
 from pathlib import Path
 
 WS = Path(__file__).resolve().parent.parent
@@ -406,9 +407,9 @@ def check_cron_paths_exist(r):
     """Live cron schedules match the tracked contract and payload scripts exist.
 
     6.1 migrated cron storage from cron/jobs.json into state/openclaw.sqlite, so
-    direct file reads silently return nothing. Read via _watchdog_common.load_jobs
-    (storage-agnostic: CLI `cron list --json` primary, pre-migration files fallback)
-    — the same path the watchdogs were fixed to use on 2026-06-04.
+    direct file reads silently return nothing. Read via _watchdog_common.load_jobs:
+    CLI first, then the live SQLite DB read-only, with pre-migration files kept
+    only as an explicitly rejected last-resort fossil.
     """
     import re
     sys.path.insert(0, str(WS / 'scripts' / 'harness'))
@@ -427,14 +428,12 @@ def check_cron_paths_exist(r):
             r.add('cron paths', WARNING, 'openclaw CLI returned 0 cron jobs (storage regression? run doctor --fix)')
         return
     if getattr(wc, 'LAST_LOAD_SOURCE', None) == 'fossil':
-        # The live gateway was unreadable (slow/timeout) and load_jobs() served a
-        # pre-6.1 fossil that is STALE for model/delivery/message. Asserting the
-        # payload contract against it produces phantom CRITICALs that block every
-        # push (2026-07-18 incident). Report a WARNING and skip the assertion —
-        # a stale view must never fail the gate as if it were live.
-        r.add('cron runtime contract', WARNING,
-              'cron CLI unreadable (gateway slow?) — jobs came from a stale fallback; '
-              'skipping contract assertion, re-run when the gateway responds')
+        # Both live sources were unreadable and load_jobs() served a pre-6.1
+        # fossil that is STALE for model/delivery/message. Refuse validation:
+        # passing or failing the payload contract against this view is a lie.
+        r.add('cron runtime contract', CRITICAL,
+              'live CLI + SQLite unreadable — jobs came from a stale pre-6.1 fossil; '
+              'contract validation refused')
         return
 
     try:
@@ -492,6 +491,42 @@ def check_generated_cron_docs(r):
               (result.stdout + result.stderr).strip()[-300:])
 
 
+def check_provider_health(r):
+    """Daily readiness probe must be fresh and leave a usable unique rotation."""
+    path = WS / 'memory' / '.tmp' / 'provider-health.json'
+    if not path.exists():
+        if not Path('/root/.local/share/pnpm/openclaw').exists():
+            r.add('provider health', OK, 'skipped (OpenClaw not installed on this host)')
+        else:
+            r.add('provider health', WARNING, 'no readiness state yet; run provider_health.py')
+        return
+    try:
+        state = json.loads(path.read_text())
+        config = json.loads((WS / 'config' / 'provider-health.json').read_text())
+        max_age_h = float(config['probe']['max_age_hours'])
+        checked = datetime.fromisoformat(state['checked_at'].replace('Z', '+00:00'))
+        if checked.tzinfo is None:
+            checked = checked.replace(tzinfo=timezone.utc)
+        age_h = (datetime.now(timezone.utc) - checked).total_seconds() / 3600
+    except Exception as e:
+        r.add('provider health', CRITICAL, f'unreadable readiness state: {e}')
+        return
+    rotation = state.get('rotation') or []
+    if not rotation or len(rotation) != len(set(rotation)):
+        r.add('provider health', CRITICAL, 'no usable unique provider rotation')
+    elif age_h > max_age_h:
+        r.add('provider health', CRITICAL, f'readiness probe stale ({age_h:.1f}h)')
+    elif state.get('status') == 'degraded':
+        bad = [row.get('provider') for row in state.get('providers', [])
+               if not row.get('healthy')]
+        r.add('provider health', WARNING,
+              f'rotation={rotation}; unavailable={bad}; age={age_h:.1f}h')
+    elif state.get('status') == 'error':
+        r.add('provider health', CRITICAL, '; '.join(state.get('errors') or ['probe error']))
+    else:
+        r.add('provider health', OK, f'{len(rotation)} healthy provider(s); age={age_h:.1f}h')
+
+
 def main():
     r = Result()
     checks = [
@@ -506,6 +541,7 @@ def main():
         check_openclaw_doctor,
         check_decision_ledger,
         check_cron_paths_exist,
+        check_provider_health,
         check_generated_cron_docs,
     ]
     for c in checks:

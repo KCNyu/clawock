@@ -17,6 +17,7 @@ session transcript. transcript_loop_score detects that directly and cleanly
 (observed: looped run score≈7 on a 97KB assistant blob; clean run score≈2 on 3KB).
 """
 import json
+import sqlite3
 import subprocess
 import sys
 from collections import Counter
@@ -27,6 +28,7 @@ WS = Path(__file__).resolve().parents[2]
 OC = Path('/root/.openclaw')
 RUNS_DIR = OC / 'cron' / 'runs'
 JOBS_JSON = OC / 'cron' / 'jobs.json'
+STATE_DB = OC / 'state' / 'openclaw.sqlite'
 SESSIONS_DIR = OC / 'agents' / 'main' / 'sessions'
 LOG = WS / 'logs' / 'watchdog.jsonl'
 HKT = timezone(timedelta(hours=8))
@@ -42,6 +44,46 @@ def log(event):
             f.write(json.dumps(event, ensure_ascii=False) + '\n')
     except Exception as e:
         print(f'(watchdog log failed: {e})', file=sys.stderr)
+    try:
+        _record_watchdog_outcome(event)
+    except Exception as e:
+        print(f'(watchdog outcome record failed: {e})', file=sys.stderr)
+
+
+def _record_watchdog_outcome(event):
+    """Project watchdog delivery evidence into the independent outcome ledger."""
+    if event.get('dry_run'):
+        return
+    tag = event.get('tag')
+    if not isinstance(tag, str) or tag.startswith('intraday-'):
+        # Intraday has an exact slot-aware cron_heartbeat bridge.
+        return
+    if tag == 'brief':
+        job = '盘前深度简报'
+    else:
+        parts = tag.split('-', 1)
+        if len(parts) != 2:
+            return
+        market, phase = parts
+        sys.path.insert(0, str(WS / 'scripts' / 'data'))
+        import workflow_outcomes
+        job = workflow_outcomes.job_for(market, phase)
+    sys.path.insert(0, str(WS / 'scripts' / 'data'))
+    import workflow_outcomes
+    action = event.get('action')
+    if action == 'ok':
+        status = 'not_required'
+    elif action in {'mirror-telegram', 'deterministic-fallback', 'alert-brief-missing'}:
+        status = 'success' if event.get('sent_ok') else 'failed'
+    else:
+        return
+    workflow_outcomes.record_stage(
+        job,
+        'watchdog_delivery',
+        status,
+        action=action,
+        reason=event.get('reason') or event.get('fail_reason'),
+    )
 
 
 def _cron_cli_json(cli_args):
@@ -67,32 +109,102 @@ def _cron_cli_json(cli_args):
 
 # Set by load_jobs() to record which source served the last call:
 #   'cli'    — live gateway (authoritative for payload/model/delivery)
+#   'sqlite' — live read-only state DB (authoritative, independent of gateway/temp dir)
 #   'fossil' — pre-6.1 jobs.json[.migrated] (STALE for payload — schedule only)
 #   'empty'  — nothing readable
 # Callers that assert on live payload state (e.g. the cron-contract check) MUST
 # consult this and refuse to report failures off a fossil.
 LAST_LOAD_SOURCE = None
+LAST_RUNS_SOURCE = None
 
 
-def load_jobs():
-    # Primary: CLI (works on 6.1 SQLite). Fallback: pre-migration jobs.json[.migrated].
-    global LAST_LOAD_SOURCE
-    d = _cron_cli_json(['list', '--json'])
-    if isinstance(d, dict) and isinstance(d.get('jobs'), list):
-        LAST_LOAD_SOURCE = 'cli'
-        return d['jobs']
-    # CLI unreadable (gateway slow/unreachable). The fallback files are 6.1-era
-    # fossils — fine for schedule shape, but STALE for model/delivery/message.
-    # Surface loudly so no caller mistakes fossil state for live state.
+def _open_state_db():
+    """Open the OpenClaw state DB read-only, including its live WAL."""
+    return sqlite3.connect(f'file:{STATE_DB}?mode=ro', uri=True, timeout=5)
+
+
+def _sqlite_store_key(conn):
+    row = conn.execute(
+        'SELECT store_key FROM cron_jobs '
+        'GROUP BY store_key ORDER BY MAX(updated_at) DESC LIMIT 1'
+    ).fetchone()
+    return row[0] if row else None
+
+
+def _sqlite_jobs():
+    """Return live cron jobs from SQLite, or None when the DB/schema is unreadable."""
+    try:
+        with _open_state_db() as conn:
+            conn.execute('PRAGMA query_only = ON')
+            store_key = _sqlite_store_key(conn)
+            if store_key is None:
+                return []
+            rows = conn.execute(
+                'SELECT job_json, state_json FROM cron_jobs '
+                'WHERE store_key = ? ORDER BY sort_order, job_id',
+                (store_key,),
+            ).fetchall()
+        jobs = []
+        for raw_job, raw_state in rows:
+            job = json.loads(raw_job)
+            state = json.loads(raw_state or '{}')
+            if not isinstance(job, dict) or not isinstance(state, dict):
+                raise ValueError('cron SQLite row is not a JSON object')
+            # Runtime state is maintained separately from the declarative job
+            # JSON. Merge it so callers see the same current view as the CLI.
+            job['state'] = {**(job.get('state') or {}), **state}
+            jobs.append(job)
+        return jobs
+    except Exception:
+        return None
+
+
+def _fossil_jobs():
     for p in (JOBS_JSON, JOBS_JSON.with_suffix('.json.migrated')):
         try:
             data = json.loads(p.read_text())
-            LAST_LOAD_SOURCE = 'fossil'
-            print(f'warn: cron CLI unreadable; falling back to STALE {p.name} '
+            jobs = data if isinstance(data, list) else data.get('jobs', data.get('items', []))
+            if not isinstance(jobs, list):
+                continue
+            print(f'warn: live cron state unreadable; falling back to STALE {p.name} '
                   '(pre-6.1 fossil — do not trust model/delivery/message)', file=sys.stderr)
-            return data if isinstance(data, list) else data.get('jobs', data.get('items', []))
+            return jobs
         except Exception:
             continue
+    return None
+
+
+def load_jobs(source='auto'):
+    """Load cron jobs from auto|cli|sqlite|fossil.
+
+    Auto prefers the public CLI, then the same live SQLite state read-only. The
+    pre-6.1 JSON is retained only for watchdog compatibility and is explicitly
+    marked stale; contract/operator tools must reject it.
+    """
+    global LAST_LOAD_SOURCE
+    if source not in {'auto', 'cli', 'sqlite', 'fossil'}:
+        raise ValueError(f'unsupported cron source: {source}')
+    if source in {'auto', 'cli'}:
+        d = _cron_cli_json(['list', '--json'])
+        if isinstance(d, dict) and isinstance(d.get('jobs'), list):
+            LAST_LOAD_SOURCE = 'cli'
+            return d['jobs']
+        if source == 'cli':
+            LAST_LOAD_SOURCE = 'empty'
+            return []
+    if source in {'auto', 'sqlite'}:
+        jobs = _sqlite_jobs()
+        if jobs is not None:
+            LAST_LOAD_SOURCE = 'sqlite'
+            return jobs
+        if source == 'sqlite':
+            LAST_LOAD_SOURCE = 'empty'
+            return []
+    if source in {'auto', 'fossil'}:
+        jobs = _fossil_jobs()
+        if jobs is not None:
+            LAST_LOAD_SOURCE = 'fossil'
+            return jobs
     LAST_LOAD_SOURCE = 'empty'
     return []
 
@@ -104,15 +216,28 @@ def find_job_id(job_name):
     return None
 
 
-def read_runs(job_id):
-    """Finished-run records for a job, OLDEST→NEWEST (so callers' [-1] = newest).
-    Primary: `openclaw cron runs` CLI (SQLite-backed on 6.1). Fallback: the old
-    per-job JSONL (now *.jsonl.migrated after the 6.1 migration)."""
-    d = _cron_cli_json(['runs', '--id', job_id])
-    if isinstance(d, dict) and isinstance(d.get('entries'), list):
-        finished = [e for e in d['entries'] if e.get('action') in (None, 'finished')]
-        # CLI returns newest-first; reverse to match the old append-order contract.
-        return list(reversed(finished))
+def _sqlite_runs(job_id):
+    """Return one job's finished runs oldest→newest, or None if SQLite is unreadable."""
+    try:
+        with _open_state_db() as conn:
+            conn.execute('PRAGMA query_only = ON')
+            store_key = _sqlite_store_key(conn)
+            if store_key is None:
+                return []
+            rows = conn.execute(
+                'SELECT entry_json FROM cron_run_logs '
+                'WHERE store_key = ? AND job_id = ? ORDER BY ts, seq',
+                (store_key, job_id),
+            ).fetchall()
+        entries = [json.loads(row[0]) for row in rows]
+        if not all(isinstance(entry, dict) for entry in entries):
+            raise ValueError('cron run SQLite row is not a JSON object')
+        return [entry for entry in entries if entry.get('action') in (None, 'finished')]
+    except Exception:
+        return None
+
+
+def _fossil_runs(job_id):
     out = []
     for cand in (RUNS_DIR / f'{job_id}.jsonl', RUNS_DIR / f'{job_id}.jsonl.migrated'):
         if not cand.exists():
@@ -125,8 +250,43 @@ def read_runs(job_id):
                 out.append(json.loads(line))
             except Exception:
                 continue
-        break
-    return out
+        return out
+    return None
+
+
+def read_runs(job_id, source='auto'):
+    """Finished-run records for a job, OLDEST→NEWEST (so callers' [-1] = newest).
+    Auto uses CLI → read-only SQLite → migrated JSONL fossil."""
+    global LAST_RUNS_SOURCE
+    if source not in {'auto', 'cli', 'sqlite', 'fossil'}:
+        raise ValueError(f'unsupported cron source: {source}')
+    if source in {'auto', 'cli'}:
+        d = _cron_cli_json(['runs', '--id', job_id])
+        if isinstance(d, dict) and isinstance(d.get('entries'), list):
+            finished = [e for e in d['entries'] if e.get('action') in (None, 'finished')]
+            LAST_RUNS_SOURCE = 'cli'
+            # CLI returns newest-first; reverse to match the old append-order contract.
+            return list(reversed(finished))
+        if source == 'cli':
+            LAST_RUNS_SOURCE = 'empty'
+            return []
+    if source in {'auto', 'sqlite'}:
+        entries = _sqlite_runs(job_id)
+        if entries is not None:
+            LAST_RUNS_SOURCE = 'sqlite'
+            return entries
+        if source == 'sqlite':
+            LAST_RUNS_SOURCE = 'empty'
+            return []
+    if source in {'auto', 'fossil'}:
+        entries = _fossil_runs(job_id)
+        if entries is not None:
+            LAST_RUNS_SOURCE = 'fossil'
+            print(f'warn: live cron runs unreadable; using STALE migrated JSONL '
+                  f'for {job_id}', file=sys.stderr)
+            return entries
+    LAST_RUNS_SOURCE = 'empty'
+    return []
 
 
 def is_today_hkt(ts_ms):

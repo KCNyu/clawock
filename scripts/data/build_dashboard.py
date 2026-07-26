@@ -16,8 +16,9 @@ import os
 import re
 import sys
 import time
-from datetime import datetime, timezone
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 import decision_v2
 import instrument_registry
@@ -1620,6 +1621,7 @@ _FRESHNESS_SLA_H = {
     'portfolio.json': 26,
     'quant_signals.json': 30,
     'quant_signal_review.json': 30,
+    'cross_sectional_factor.json': 30,
     'risk.json': 30,
     'lev_regime.json': 30,
     'benchmark.json': 80,          # 偶发限流，宽容
@@ -1630,6 +1632,95 @@ _FRESHNESS_SLA_H = {
     'em_news.json': 30,
     'influencer_feed.json': 30,
 }
+
+
+def _latest_completed_session(market, calendar, at=None):
+    """Newest trading session that has conservatively finished in market time."""
+    tz = ZoneInfo(calendar.MARKET_TZ[market])
+    now = at.astimezone(tz) if at else datetime.now(tz)
+    current = now.date() if now.hour >= 17 else now.date() - timedelta(days=1)
+    for _ in range(14):
+        if calendar.is_trading_day(market, current):
+            return current
+        current -= timedelta(days=1)
+    return None
+
+
+def _quote_session(holding, reference):
+    """Extract the holding's own quote date, never a shared file/region timestamp."""
+    values = [
+        holding.get('quote_time'),
+        holding.get('as_of'),
+        holding.get('last_updated'),
+        holding.get('data_source'),
+    ]
+    parsed = []
+    for raw in values:
+        if not raw:
+            continue
+        text = str(raw)
+        match = re.search(r'(\d{4})[/-](\d{1,2})[/-](\d{1,2})', text)
+        if match:
+            try:
+                parsed.append(date(*(int(part) for part in match.groups())))
+            except ValueError:
+                pass
+            continue
+        match = re.search(
+            r'\b([A-Za-z]{3,9})\s+(\d{1,2})(?:,\s*|\s+)?(\d{4})?\b',
+            text,
+        )
+        if not match or reference is None:
+            continue
+        month, day, year = match.groups()
+        try:
+            candidate = datetime.strptime(
+                f'{month} {day} {year or reference.year}', '%b %d %Y'
+            ).date()
+        except ValueError:
+            try:
+                candidate = datetime.strptime(
+                    f'{month} {day} {year or reference.year}', '%B %d %Y'
+                ).date()
+            except ValueError:
+                continue
+        # A yearless Dec quote inspected in early Jan belongs to the prior year.
+        if year is None and candidate > reference + timedelta(days=7):
+            candidate = candidate.replace(year=candidate.year - 1)
+        parsed.append(candidate)
+    return max(parsed) if parsed else None
+
+
+def _market_leg_freshness(portfolio_leg, market, calendar, at=None):
+    expected = _latest_completed_session(market, calendar, at=at)
+    active = [
+        holding for holding in portfolio_leg.get('holdings', [])
+        if (holding.get('shares') or 0) > 0
+    ]
+    quotes = {}
+    missing = []
+    stale = []
+    for holding in active:
+        ticker = holding.get('ticker') or holding.get('code') or '?'
+        session = _quote_session(holding, expected)
+        quotes[ticker] = session.isoformat() if session else None
+        if session is None:
+            missing.append(ticker)
+        elif expected and session < expected:
+            stale.append(ticker)
+    dated = [value for value in quotes.values() if value]
+    fresh = expected is not None and not missing and not stale
+    return {
+        'last_updated': portfolio_leg.get('last_updated'),
+        'expected_completed_session': expected.isoformat() if expected else None,
+        'oldest_quote_session': min(dated) if dated else None,
+        'newest_quote_session': max(dated) if dated else None,
+        'active_holdings': len(active),
+        'missing_quote_timestamps': sorted(missing),
+        'stale_tickers': sorted(stale),
+        'quote_sessions': quotes,
+        'fresh': fresh,
+    }
 
 
 def compute_build_status(portfolio, data_dir):
@@ -1651,7 +1742,8 @@ def compute_build_status(portfolio, data_dir):
         else:
             files.append({'name': name, 'present': False, 'stale': True, 'sla_hours': sla})
 
-    # 每市场数据时点（用 trading_calendar 比上一交易日）
+    # 每市场数据时点：逐只活跃持仓的报价日期 vs 最近已完成 session。
+    # 不能信 region.last_updated 或 portfolio.json mtime；两者都会被另一条写入刷新。
     markets = {}
     try:
         sys.path.insert(0, str(WS_ROOT / 'scripts' / 'data'))
@@ -1660,8 +1752,15 @@ def compute_build_status(portfolio, data_dir):
         _tc = None
     for region, mkt in (('us_stocks', 'us'), ('hk_stocks', 'hk')):
         pf = portfolio.get('portfolios', {}).get(region, {})
-        markets[mkt] = {'last_updated': pf.get('last_updated'),
-                        'closed_today': (_tc.closed_reason(mkt) is not None) if _tc else None}
+        if _tc:
+            markets[mkt] = _market_leg_freshness(pf, mkt, _tc)
+            markets[mkt]['closed_today'] = _tc.closed_reason(mkt) is not None
+        else:
+            markets[mkt] = {
+                'last_updated': pf.get('last_updated'),
+                'fresh': False,
+                'error': 'trading_calendar unavailable',
+            }
 
     # 体检结论（A1）——纯文件运算，安全内联
     integrity = None
@@ -1677,10 +1776,25 @@ def compute_build_status(portfolio, data_dir):
         print(f'  warn: integrity check in build_status failed: {e}', file=sys.stderr)
 
     stale_files = [f['name'] for f in files if f.get('stale')]
-    healthy = (not stale_files) and (integrity is None or integrity.get('ok'))
+    stale_markets = [market for market, state in markets.items()
+                     if not state.get('fresh')]
+    healthy = (not stale_files) and (not stale_markets) and (
+        integrity is None or integrity.get('ok'))
     return {'generated_at': now.isoformat(timespec='seconds'), 'healthy': healthy,
-            'stale_files': stale_files, 'files': files, 'markets': markets,
+            'stale_files': stale_files, 'stale_markets': stale_markets,
+            'files': files, 'markets': markets,
             'integrity': integrity}
+
+
+def compute_workflow_outcomes():
+    """Expose raw execution and final product status as separate dashboard data."""
+    try:
+        sys.path.insert(0, str(WS_ROOT / 'scripts' / 'data'))
+        import workflow_outcomes
+        return workflow_outcomes.summarize(reconcile=True)
+    except Exception as e:
+        print(f'  warn: workflow outcome summary failed: {e}', file=sys.stderr)
+        return None
 
 
 def main():
@@ -1940,6 +2054,21 @@ def main():
 
     _embed('quant_signals', 'quant_signals.json')      # compute_quant_signals.py: 趋势/动量/RSI/ATR吊灯/vol-target
     _embed('quant_signal_review', 'quant_signal_review.json')  # quant_signal_review.py: 因子 edge 自检(T+1/T+5 对账)
+    # Keep only the activation/validation envelope in dashboard.json. The full
+    # 38-name research table is a sidecar (~64KB); embedding it would push the
+    # public payload past its size cap and evict recent plans.
+    _cs_path = WS_ROOT / 'assets' / 'data' / 'cross_sectional_factor.json'
+    try:
+        _cs = json.loads(_cs_path.read_text()) if _cs_path.exists() else {}
+        out['cross_sectional_factor'] = {
+            'as_of': _cs.get('as_of'),
+            'universe': _cs.get('universe'),
+            'validation': _cs.get('validation'),
+            'activation': _cs.get('activation'),
+        } if _cs else None
+    except Exception as e:
+        print(f'  warn: cross_sectional_factor.json parse fail: {e}', file=sys.stderr)
+        out['cross_sectional_factor'] = None
     _embed('t0_setups', 't0_setups.json')              # compute_t0_setups.py: T+0 牌面评级(追高检测)
     _embed('t0_setup_review', 't0_setup_review.json')  # t0_setup_review.py: 牌面命中率背书(T+1对账)
     _embed('catalysts', 'catalysts.json')              # fetch_catalysts.py + brief preflight [11/11]
@@ -2014,6 +2143,7 @@ def main():
     except Exception as e:
         print(f'  warn: compute_build_status failed: {e}', file=sys.stderr)
         out['build_status'] = None
+    out['workflow_outcomes'] = compute_workflow_outcomes()
 
     if brief_ctx_path:
         print(f'  brief-context source: {os.path.basename(brief_ctx_path)}')

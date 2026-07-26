@@ -65,6 +65,8 @@ fix_stock_analyzer.py
 # Runtime state files (cron / heartbeat output, not source data)
 memory/heartbeat-state.json
 memory/.tmp/cron-heartbeats.json
+memory/.tmp/workflow-outcomes.json
+memory/.tmp/workflow-outcomes.lock
 memory/last_hk_monitoring.json
 # openclaw bootstrap/setup state — machine-local runtime artifact, never source
 openclaw-workspace-state.json

@@ -443,18 +443,30 @@
     if (!el) return;
     const bs = safe(DATA, 'build_status');
     if (!bs) { el.style.display = 'none'; return; }
+    const wf = safe(DATA, 'workflow_outcomes') || {};
+    const wfCounts = wf.counts || {};
     el.style.display = '';
     const ig = bs.integrity || {};
     const stale = bs.stale_files || [];
+    const recovered = (wfCounts.recovered || 0) + (wfCounts.degraded || 0);
+    const artifactOnly = wfCounts.artifact_only || 0;
     let dot, label;
-    if (ig.error_count > 0) { dot = '🔴'; label = `体检 ${ig.error_count} ERROR`; }
-    else if (stale.length || ig.warn_count > 0) {
+    if ((wfCounts.failed || 0) > 0) {
+      dot = '🔴'; label = `成品流程 ${wfCounts.failed} FAILED`;
+    }
+    else if (ig.error_count > 0) { dot = '🔴'; label = `体检 ${ig.error_count} ERROR`; }
+    else if (stale.length || ig.warn_count > 0 || recovered || artifactOnly) {
       dot = '🟡';
       const bits = [];
       if (stale.length) bits.push(`${stale.length} 文件 stale`);
       if (ig.warn_count > 0) bits.push(`体检 ${ig.warn_count} WARN`);
+      if (recovered) bits.push(`${recovered} 成品恢复/降级`);
+      if (artifactOnly) bits.push(`${artifactOnly} 仅产物未确认投递`);
       label = bits.join(' · ');
     } else { dot = '🟢'; label = '数据健康 · 体检 ✓'; }
+    if (wf.raw_error_but_product_usable) {
+      label += ` · ${wf.raw_error_but_product_usable} 执行红/成品可用`;
+    }
     // tooltip：逐文件年龄 + 体检 top + 每市场时点
     const lines = [];
     (bs.files || []).forEach(f => {
@@ -466,6 +478,12 @@
       Object.entries(bs.markets).forEach(([m, v]) =>
         lines.push(`${m.toUpperCase()}: ${v.last_updated || '?'}${v.closed_today ? ' (休市)' : ''}`));
     }
+    (wf.recent || []).slice(0, 8).forEach(r => {
+      const raw = (r.raw_execution || {}).status || 'unknown';
+      const final = (r.final_product || {}).status || 'pending';
+      const slot = (r.slot || '').replace('T', ' ').slice(5, 16);
+      lines.push(`流程 ${r.job} ${slot}: 执行=${raw} / 成品=${final}`);
+    });
     const gen = bs.generated_at ? bs.generated_at.replace('T', ' ').slice(0, 16) : '';
     el.innerHTML = `<span class="bs-dot">${dot}</span> <span class="bs-label">${label}</span>` +
       `<span class="bs-gen">构建 ${gen}</span>`;
