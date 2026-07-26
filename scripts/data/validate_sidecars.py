@@ -621,6 +621,48 @@ def validate_gif(path: Path | str = 'assets/dashboard.gif') -> None:
     print(f'validated {path}: {size} bytes, {width}x{height}, {frames} frames')
 
 
+def validate_coverage_badge(path: Path | str = 'assets/data/coverage.json') -> None:
+    """The README badge is rendered by shields.io straight from this file.
+
+    A malformed payload does not break the build — it silently renders as an
+    "invalid" badge on the front page, which is the exact failure this gate
+    exists to catch before the commit.
+    """
+    path = Path(path)
+    assert path.is_file(), f'coverage badge missing: {path}'
+    try:
+        raw = path.read_text(encoding='utf-8')
+    except UnicodeDecodeError:
+        raise AssertionError('file is not valid UTF-8') from None
+    assert raw.strip(), 'file is empty'
+    try:
+        data = json.loads(raw)
+    except json.JSONDecodeError as exc:
+        raise AssertionError(
+            f'invalid JSON at line {exc.lineno} column {exc.colno}') from None
+    assert isinstance(data, dict), 'top-level JSON must be an object'
+
+    # Strict shields endpoint schema: extra keys are not part of the contract, so
+    # reject them here rather than discover the rendering failure on the README.
+    assert set(data) == {'schemaVersion', 'label', 'message', 'color'}, (
+        f'unexpected badge fields: {sorted(data)}')
+    assert data['schemaVersion'] == 1, f'unsupported schemaVersion {data["schemaVersion"]!r}'
+    label = data['label']
+    assert isinstance(label, str) and label.strip(), 'label missing'
+    color = data['color']
+    assert isinstance(color, str) and color.strip(), 'color missing'
+
+    message = data['message']
+    assert isinstance(message, str), 'message must be a string'
+    match = re.fullmatch(r'(\d{1,3})%', message)
+    assert match, f'message is not a percentage: {message!r}'
+    percent = int(match.group(1))
+    # 0% and 100% are both real signals that the measurement broke rather than
+    # results worth publishing (nothing instrumented / everything ignored).
+    assert 0 < percent < 100, f'implausible coverage percentage: {percent}%'
+    print(f'validated {path}: {label} {message}')
+
+
 def _dispatch(name: str) -> None:
     os.chdir(ROOT)
     if name == 'macro':
@@ -644,9 +686,12 @@ def _dispatch(name: str) -> None:
         ))
     elif name == 'gif':
         validate_gif('assets/dashboard.gif')
+    elif name == 'coverage':
+        validate_coverage_badge('assets/data/coverage.json')
     else:
         choices = ('macro', 'sentiment', 'influencer', 'news-digest',
-                   'eod-archive', 'weekly-review', 'screenshots', 'gif')
+                   'eod-archive', 'weekly-review', 'screenshots', 'gif',
+                   'coverage')
         raise SystemExit(f'unknown validator {name!r}; choose one of: {", ".join(choices)}')
 
 
@@ -669,6 +714,7 @@ def main(argv: list[str] | None = None) -> int:
             'weekly-review': 'weekly review',
             'screenshots': 'screenshots',
             'gif': 'GIF assets/dashboard.gif',
+            'coverage': 'coverage badge assets/data/coverage.json',
         }
         label = failure_labels.get(argv[0], argv[0])
         print(f'ASSERTION FAILED: {label}: {exc}', file=sys.stderr)

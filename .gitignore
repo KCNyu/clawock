@@ -12,6 +12,13 @@ env/
 venv/
 .venv
 
+# Coverage measurement artifacts. The shields badge payload
+# (assets/data/coverage.json) IS tracked — it is what the README renders.
+.coverage
+.coverage.*
+/coverage-report.json
+htmlcov/
+
 # Data cache / temp
 data_cache/
 *.cache
