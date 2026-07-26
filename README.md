@@ -67,6 +67,29 @@ Reading the market is most of what the LLM does, so the widest part of the syste
 
 The fetch layer degrades gracefully: every live Eastmoney call routes through **one throttled gateway**, critical paths (quotes, FX) use **multi-source fallback**, and an empty fetch **keeps the prior value** instead of overwriting a good series with a blank. Public sources include Tencent, stooq, yfinance, Frankfurter, SEC EDGAR, Finnhub, Nasdaq, Eastmoney, Polygon, Alpha Vantage, Reddit, and Google News — full per-endpoint catalog with per-host reachability in [`scripts/data/README.md`](scripts/data/README.md).
 
+### What each run actually receives
+
+Collection is broad, but no run gets everything. Each scheduled job's preflight assembles only the blocks that job can act on, writes them to a context file, and the model reads that file rather than fetching for itself.
+
+```
+sources ──► preflight (Python, deterministic) ──► context.json ──► LLM prose ──► postflight (Python) ──► publish
+```
+
+| | Pre-open brief | Open / midday / afternoon / close | Intraday check-in |
+|---|---|---|---|
+| **When** | 08:00 HKT, weekdays | HK 09:30 · 12:00 · 13:30 · 16:00 · US open and close | every 30 min while a market is open |
+| **Blocks** | 36 | 15 | 18 |
+| **Position truth** | holdings, book totals, concentration, leverage look-through | fresh quote block | fresh quote block |
+| **Risk** | guardrail, discipline ledger, β/vol/drawdown, breakeven math | risk section only when signals demand it | signal counts and detail |
+| **Signals** | quant factors and their hit-rate review, cross-sectional factor, peer residual, T+0 setups | peer/sector scan | peer/sector scan, T+0 setups, anomaly flags |
+| **News and events** | evidence graph, Chinese-language company news, catalyst calendar, macro, Reddit and social feeds | catalyst probe on flagged names | catalyst probe on flagged names |
+| **Research state** | thesis registry, research work queue (reviews due, overdue promises, ungated positions) | thesis and red lines for flagged names | thesis and red lines for flagged names |
+| **History** | retrospective, decision metrics, reflections, data-integrity report | — | heartbeat slot state |
+
+The catalyst probe is the narrow, time-sensitive one: it fires **only for names that already moved**, reads exchange and regulator filings first (SEC acceptance timestamps, HKEX announcements), classifies each item as interrupt, context or noise, and states `no_recent_filing` explicitly rather than letting an empty block read as "nothing happened".
+
+What is deliberately absent matters as much: no research production inside an intraday loop, no paid search on a 30-minute cadence, and no evidence graph rebuild intraday — it is a daily artifact and would be stale by construction.
+
 ## How it decides
 
 Analysis resolves into explicit, gated strategy decisions — and one stock can carry several at once.
