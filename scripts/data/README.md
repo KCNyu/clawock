@@ -99,6 +99,7 @@ clawock 是**美股 + 港股 + 黄金定投**的实盘组合。工具包遵循�
 | `backtest_us_leverage.py` | 美股 2x ETF regime 回测 | 日线模拟 | ✅ |
 | `backtest_combined_regime.py` | 全组合 regime vs buy&hold vs 全 1x | 因子代理历史 | ✅ |
 | `decision_v2.py` | strategy episode 结算、coverage、严格前向分层 confidence 校准、方向命中审计 | decisions ledger + canonical bars | ✅ |
+| `risk_discipline.py` | 持久 breach 账本、确认/限时 override、成交证据与同风险增仓冻结 | guardrail + portfolio trades | ✅ |
 | `quant_signal_review.py` · `t0_setup_review.py` | 因子 / 牌面 edge 自检(T+1/T+5 命中率) | 本地留痕 | ✅ |
 
 ---

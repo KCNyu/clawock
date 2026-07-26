@@ -100,6 +100,13 @@ def test_single_name_above_35_percent_emits_one_medium_hk_trim(preflight):
     assert "trim BIG" in breach["action"]
     assert "≤35%" in breach["action"]
     assert "1.0 HKD" in breach["action"]
+    assert breach["required_reduction"] == {
+        "kind": "market_value",
+        "minimum_value": 1.0,
+        "currency": "HKD",
+        "target_pct": 35,
+        "target_tickers": ["BIG"],
+    }
 
 
 def test_single_name_exactly_35_percent_is_compliant_because_operator_is_strict_gt(preflight):
