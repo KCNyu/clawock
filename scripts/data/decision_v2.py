@@ -162,6 +162,7 @@ def legacy_action_to_decision(action: dict, plan_date: str, ordinal: int = 0) ->
         },
         "confidence": _float(action.get("confidence")),
         "driven_by": action.get("driven_by") or "technical",
+        "evidence_event_id": action.get("evidence_event_id"),
         "regime": action.get("regime") if action.get("regime") in REGIMES else "unknown",
         "rationale": action.get("rationale") or "",
         "simulated_entry_price": _float(action.get("simulated_entry_price")),
@@ -253,6 +254,11 @@ def validate_decision(d: dict) -> list[str]:
         errors.append("confidence must be in [0,1]")
     if d.get("driven_by") not in DRIVERS:
         errors.append(f"bad driven_by {d.get('driven_by')!r}")
+    evidence_event_id = d.get("evidence_event_id")
+    if (evidence_event_id is not None
+            and (not isinstance(evidence_event_id, str)
+                 or not evidence_event_id.startswith("evt_"))):
+        errors.append("evidence_event_id must be null or an evt_ id")
     if d.get("regime", "unknown") not in REGIMES:
         errors.append(f"bad regime {d.get('regime')!r}")
     override = d.get("override") or {}
