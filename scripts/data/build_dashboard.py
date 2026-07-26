@@ -1622,6 +1622,7 @@ _FRESHNESS_SLA_H = {
     'quant_signals.json': 30,
     'quant_signal_review.json': 30,
     'cross_sectional_factor.json': 30,
+    'peer_residual.json': 30,
     'risk.json': 30,
     'lev_regime.json': 30,
     'benchmark.json': 80,          # 偶发限流，宽容
@@ -2069,6 +2070,18 @@ def main():
     except Exception as e:
         print(f'  warn: cross_sectional_factor.json parse fail: {e}', file=sys.stderr)
         out['cross_sectional_factor'] = None
+    _peer_path = WS_ROOT / 'assets' / 'data' / 'peer_residual.json'
+    try:
+        _peer = json.loads(_peer_path.read_text()) if _peer_path.exists() else {}
+        out['peer_residual'] = {
+            'as_of': _peer.get('as_of'),
+            'taxonomy': _peer.get('taxonomy'),
+            'calibration': _peer.get('calibration'),
+            'rule_activation': _peer.get('rule_activation'),
+        } if _peer else None
+    except Exception as e:
+        print(f'  warn: peer_residual.json parse fail: {e}', file=sys.stderr)
+        out['peer_residual'] = None
     _embed('t0_setups', 't0_setups.json')              # compute_t0_setups.py: T+0 牌面评级(追高检测)
     _embed('t0_setup_review', 't0_setup_review.json')  # t0_setup_review.py: 牌面命中率背书(T+1对账)
     _embed('catalysts', 'catalysts.json')              # fetch_catalysts.py + brief preflight [11/11]
