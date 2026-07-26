@@ -23,6 +23,7 @@ import requests
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from _em_http import em_get  # noqa: E402
+from instrument_registry import INSTRUMENTS  # noqa: E402
 
 WS_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 PORTFOLIO_PATH = os.path.join(WS_ROOT, 'portfolio.json')
@@ -31,8 +32,11 @@ TIMEOUT = 10
 SESSION = requests.Session()
 SESSION.headers.update({'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36'})
 
-# Known 2x/3x leveraged ETFs for risk labeling
-LEVERAGED = {'07226', '03032X', '07709', '07747'}
+# Canonical HK 2x/3x products for risk labeling.
+LEVERAGED = {
+    symbol for symbol, meta in INSTRUMENTS.items()
+    if meta['region'] == 'HK' and meta['leverage_multiple'] > 1
+}
 
 # HK ticker → Finnhub symbol candidates
 def _finnhub_syms(code: str) -> List[str]:
