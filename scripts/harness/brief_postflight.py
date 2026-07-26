@@ -113,6 +113,34 @@ def validate_plan_json(path, context=None):
             issues.append(f'{tag}: catalyst-gate — 主动 {d.get("action")} 必须 driven_by=catalyst；'
                           'risk_rebalance 才允许 risk_rule/technical')
 
+        # When the deterministic evidence graph is present, "catalyst" is no
+        # longer a free-text escape hatch. An active discretionary call must cite
+        # a current, primary/reliable, novel, price/volume-confirmed negative
+        # event that the graph explicitly admitted.
+        graph = (context or {}).get('news_evidence_graph') or {}
+        if (graph and d.get('action') in decision_v2.ACTIVE_ACTIONS
+                and d.get('strategy_id') != 'risk_rebalance'
+                and d.get('driven_by') == 'catalyst'):
+            event_id = d.get('evidence_event_id')
+            actionable = {
+                event.get('event_id'): event
+                for event in graph.get('events') or []
+                if event.get('actionable_escalation')
+            }
+            event = actionable.get(event_id)
+            if not event:
+                issues.append(
+                    f'{tag}: news-evidence-gate — 主动 catalyst 动作必须填写 '
+                    'evidence_event_id，且对应事件 actionable_escalation=true'
+                )
+            elif d.get('ticker') not in (
+                    event.get('ticker'), event.get('reported_ticker')):
+                issues.append(
+                    f'{tag}: news-evidence-gate — {event_id} 属于 '
+                    f'{event.get("reported_ticker") or event.get("ticker")}，'
+                    f'不能驱动 {d.get("ticker")}'
+                )
+
     # 仓位/杠杆硬闸闭环 (warn): context.risk_guardrail 的每条 breach / hard_stop
     # 必须在 plan 里有对应的减仓动作，否则 LLM 忽略了硬闸。见 SKILL「🚦 仓位/杠杆硬闸」。
     gr = (context or {}).get('risk_guardrail') or {}
@@ -355,6 +383,8 @@ def maybe_commit(status, today, dry_run=False):
                             'assets/data/peer_residual.json',
                             'assets/data/peer_residual_history.jsonl',
                             'assets/data/catalysts.json',
+                            'assets/data/news_evidence_graph.json',
+                            'assets/data/news_evidence_history.jsonl',
                             'assets/data/em_news.json',
                             'assets/data/guardrail_history.jsonl',
                             'assets/data/t0_setups.json',

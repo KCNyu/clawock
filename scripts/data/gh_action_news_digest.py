@@ -44,6 +44,7 @@ def _fetch_finnhub(ticker, since, until, key):
                 'datetime': it.get('datetime'),
                 'source':   it.get('source', ''),
                 'origin':   'finnhub',
+                'url':      it.get('url', ''),
             }
             for it in items[:5]
         ]
@@ -59,9 +60,10 @@ def _fetch_gnews(ticker):
         {
             'headline': it.get('title', '')[:200],
             'summary':  '',  # GNews RSS doesn't carry body
-            'datetime': None,  # pubDate string available via it['published'] but format varies
+            'datetime': it.get('published'),
             'source':   it.get('source', '') or 'Google News',
             'origin':   'gnews-rss',
+            'url':      it.get('url', ''),
         }
         for it in items
     ]
@@ -113,6 +115,20 @@ def _write_artifact(tickers, raw, source_status, *, digest='', no_material_news=
         'tickers': tickers,
         'digest_markdown': digest.strip(),
         'raw_news_counts': {ticker: len(items) for ticker, items in raw.items()},
+        # Persist only licensable evidence metadata. Summaries/article bodies stay
+        # in-memory for digest generation and are deliberately excluded here.
+        'raw_news_evidence': {
+            ticker: [
+                {
+                    key: item.get(key)
+                    for key in (
+                        'headline', 'datetime', 'source', 'origin', 'url'
+                    )
+                }
+                for item in items
+            ]
+            for ticker, items in raw.items()
+        },
         'news_source_per_ticker': source_per_ticker,
         'source_status': source_status,
         'no_material_news': no_material_news,

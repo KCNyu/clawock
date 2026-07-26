@@ -65,6 +65,7 @@ clawock 是**美股 + 港股 + 黄金定投**的实盘组合。工具包遵循�
 | `fetch_em_news.py` | 港股个股中文新闻(催化级, 带日期) + 7x24 快讯 | 东财 search / newsapi | ✅ |
 | `gh_action_news_digest.py` | 美股持仓新闻蒸馏为可执行要点 | Finnhub + Google News | ✅ |
 | `fetch_catalysts.py` | 未来 14 天财报/事件日历 | Finnhub earnings | 🟡 |
+| `news_evidence_graph.py` | 公告/SEC/新闻/日历去重事件图；来源、新颖度、到期与价量/同行确认硬闸 | 元数据/标题 + 本地行情 | ✅ |
 
 ## Layer 5 · 宏观/情绪 Macro & Sentiment
 
@@ -105,6 +106,7 @@ clawock 是**美股 + 港股 + 黄金定投**的实盘组合。工具包遵循�
 | `quant_signal_review.py` · `t0_setup_review.py` | 因子 / 牌面 edge 自检(T+1/T+5 命中率) | 本地留痕 | ✅ |
 | `cross_sectional_factor.py` | 预注册 walk-forward + date×ticker 双向聚类 CI；存活偏差未消除即禁止入决策 | 本地留痕 + 调整后日线 | ✅ |
 | `peer_residual_engine.py` | leader 延续 / laggard 规避 / 均值回归分规则 prospective 聚类校准 | 本地留痕 + 人工 taxonomy | ✅ |
+| `news_evidence_graph.py` | 重复新闻衰减、事件到期与 catalyst actionable 权限审计 | 本地留痕 + 预注册 policy | ✅ |
 
 ---
 

@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "registered_at": "2026-07-26",
+  "minimum_actionable_reliability": 0.8,
+  "minimum_actionable_novelty": 0.7,
+  "price_confirmation_abs_pct": 2.0,
+  "volume_confirmation_ratio": 1.5,
+  "peer_residual_sigma": 1.5,
+  "novelty_lookback_days": 30,
+  "expiry_days": {
+    "filing_10k": 30,
+    "filing_10q": 14,
+    "filing_8k": 7,
+    "regulatory": 14,
+    "financing": 7,
+    "contract": 7,
+    "product": 5,
+    "analyst_rating": 3,
+    "ownership": 5,
+    "earnings_schedule": 1,
+    "macro_schedule": 1,
+    "price_move": 1,
+    "sector_flow": 1,
+    "other": 2
+  },
+  "source_reliability": {
+    "sec_filing": 0.99,
+    "exchange_announcement": 0.97,
+    "issuer_announcement": 0.95,
+    "official_macro_schedule": 0.95,
+    "reuters_bloomberg_wire": 0.88,
+    "finnhub_syndication": 0.7,
+    "eastmoney_company": 0.62,
+    "google_news_rss": 0.5,
+    "market_fast_news": 0.45,
+    "llm_digest_legacy": 0.3
+  },
+  "tavily_policy": "Only unresolved high-impact events emitted in tavily_resolution_queue may consume Tavily news search."
+}

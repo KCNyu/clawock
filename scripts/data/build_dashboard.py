@@ -1623,6 +1623,7 @@ _FRESHNESS_SLA_H = {
     'quant_signal_review.json': 30,
     'cross_sectional_factor.json': 30,
     'peer_residual.json': 30,
+    'news_evidence_graph.json': 30,
     'risk.json': 30,
     'lev_regime.json': 30,
     'benchmark.json': 80,          # 偶发限流，宽容
@@ -2082,6 +2083,33 @@ def main():
     except Exception as e:
         print(f'  warn: peer_residual.json parse fail: {e}', file=sys.stderr)
         out['peer_residual'] = None
+    _news_graph_path = (
+        WS_ROOT / 'assets' / 'data' / 'news_evidence_graph.json'
+    )
+    try:
+        _news_graph = (
+            json.loads(_news_graph_path.read_text())
+            if _news_graph_path.exists() else {}
+        )
+        _news_events = _news_graph.get('events') or []
+        out['news_evidence_graph'] = {
+            'as_of': _news_graph.get('as_of'),
+            'summary': _news_graph.get('summary'),
+            'actionable_events': [
+                event for event in _news_events
+                if event.get('actionable_escalation')
+            ],
+            'tavily_resolution_queue': (
+                _news_graph.get('tavily_resolution_queue') or []
+            ),
+            'policy': _news_graph.get('policy'),
+        } if _news_graph else None
+    except Exception as e:
+        print(
+            f'  warn: news_evidence_graph.json parse fail: {e}',
+            file=sys.stderr,
+        )
+        out['news_evidence_graph'] = None
     _embed('t0_setups', 't0_setups.json')              # compute_t0_setups.py: T+0 牌面评级(追高检测)
     _embed('t0_setup_review', 't0_setup_review.json')  # t0_setup_review.py: 牌面命中率背书(T+1对账)
     _embed('catalysts', 'catalysts.json')              # fetch_catalysts.py + brief preflight [11/11]

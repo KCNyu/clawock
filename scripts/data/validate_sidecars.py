@@ -280,6 +280,36 @@ def validate_news_digest(
                       if not isinstance(value, int) or isinstance(value, bool)]
     assert not invalid_counts, (
         f'raw_news_counts values must be integers: {invalid_counts}')
+    evidence = data.get('raw_news_evidence')
+    if evidence is not None:
+        assert isinstance(evidence, dict), (
+            'raw_news_evidence must be an object'
+        )
+        assert set(evidence) == set(counts), (
+            'raw_news_evidence ticker coverage must match raw_news_counts'
+        )
+        allowed = {'headline', 'datetime', 'source', 'origin', 'url'}
+        forbidden = {'summary', 'body', 'content', 'description'}
+        for ticker, items in evidence.items():
+            assert isinstance(items, list), (
+                f'raw_news_evidence[{ticker}] must be a list'
+            )
+            assert len(items) == counts[ticker], (
+                f'raw_news_evidence[{ticker}] count mismatch'
+            )
+            for index, item in enumerate(items):
+                assert isinstance(item, dict), (
+                    f'raw_news_evidence[{ticker}][{index}] must be an object'
+                )
+                assert not (set(item) & forbidden), (
+                    'raw_news_evidence must not persist article summaries/bodies'
+                )
+                assert set(item) <= allowed, (
+                    f'raw_news_evidence[{ticker}][{index}] has unknown fields'
+                )
+                assert str(item.get('headline') or '').strip(), (
+                    f'raw_news_evidence[{ticker}][{index}] headline missing'
+                )
     total_news = sum(counts.values())
     if data.get('no_material_news') is True:
         assert total_news == 0, 'no_material_news digest contains source news'

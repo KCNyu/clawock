@@ -94,10 +94,16 @@ def fetch_google_news(query, hl='en-US', gl='US', limit=8, return_status=False):
             src_el = it.find('source')
             if src_el is not None:
                 src = (src_el.text or '').strip()
+            link = (it.findtext('link') or '').strip()
             # Strip " - source" suffix in title
             if ' - ' in title:
                 title = title.rsplit(' - ', 1)[0]
-            items.append({'title': title, 'source': src, 'published': pub})
+            items.append({
+                'title': title,
+                'source': src,
+                'published': pub,
+                'url': link,
+            })
         if return_status:
             return items, ('ok' if items else 'success_empty')
         return items
