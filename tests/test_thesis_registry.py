@@ -260,3 +260,101 @@ def test_preflight_and_review_skills_are_read_only_registry_consumers():
     assert "'thesis_id':                action.get('thesis_id')" in preflight
     assert "daily brief 不在每天晨报里重写 canonical baseline" in daily
     assert "registry is read-only" in review
+
+
+def _triggered_baseline():
+    """A thesis whose severe red line is already triggered."""
+    old = thesis()
+    old["state"] = "damaged"
+    old["red_lines"][0]["severity"] = "severe"
+    old["red_lines"][0]["status"] = "triggered"
+    old["red_lines"][0]["evidence_ids"] = ["fund-1"]
+    assert tr.validate_thesis(old, now=NOW) == []
+    return old
+
+
+def test_clearing_a_red_line_without_new_evidence_fails():
+    old = _triggered_baseline()
+    new = copy.deepcopy(old)
+    new["checked_at"] = "2026-07-05T11:00:00+00:00"
+    new["red_lines"][0]["status"] = "clear"
+    new["red_lines"][0]["evidence_ids"] = []
+
+    result = tr.evaluate_drift(old, new, now=NOW)
+    assert result["status"] == "fail"
+    assert any(
+        "red line solvency left triggered without new evidence" in error
+        for error in result["errors"]
+    )
+
+
+def test_clearing_a_red_line_with_stale_evidence_fails():
+    old = _triggered_baseline()
+    new = copy.deepcopy(old)
+    new["checked_at"] = "2026-07-05T11:00:00+00:00"
+    new["red_lines"][0]["status"] = "clear"
+    # observed before the baseline's checked_at, so it proves nothing new
+    new["evidence"].append(evidence("late-id-old-fact", "2026-07-01T12:00:00+00:00", "filing"))
+    new["red_lines"][0]["evidence_ids"] = ["late-id-old-fact"]
+
+    result = tr.evaluate_drift(old, new, now=NOW)
+    assert result["status"] == "fail"
+    assert any("left triggered using stale evidence" in e for e in result["errors"])
+
+
+def test_resolved_red_line_with_fresh_evidence_passes_and_is_reported():
+    old = _triggered_baseline()
+    new = copy.deepcopy(old)
+    new["checked_at"] = "2026-07-05T11:00:00+00:00"
+    new["evidence"].append(evidence("refinanced-2", "2026-07-04T10:00:00+00:00", "filing"))
+    new["red_lines"][0]["status"] = "clear"
+    new["red_lines"][0]["evidence_ids"] = ["refinanced-2"]
+
+    result = tr.evaluate_drift(old, new, now=NOW)
+    assert result["status"] == "pass", result["errors"]
+    assert result["resolved_red_lines"] == ["solvency"]
+    assert result["triggered_red_lines"] == []
+    assert result["newly_triggered_red_lines"] == []
+
+
+def test_dropping_a_triggered_red_line_is_not_a_resolution():
+    old = _triggered_baseline()
+    new = copy.deepcopy(old)
+    new["checked_at"] = "2026-07-05T11:00:00+00:00"
+    new["red_lines"] = [
+        {
+            "id": "other",
+            "condition": "Customer concentration exceeds 40%",
+            "severity": "warning",
+            "status": "clear",
+            "required_action": "Reassess sizing",
+            "evidence_ids": [],
+        }
+    ]
+
+    result = tr.evaluate_drift(old, new, now=NOW)
+    assert result["status"] == "fail"
+    assert any("dropped while triggered" in error for error in result["errors"])
+
+
+def test_newly_triggered_red_line_is_reported_separately():
+    old = thesis()
+    new = copy.deepcopy(old)
+    new["state"] = "broken"
+    new["checked_at"] = "2026-07-05T11:00:00+00:00"
+    new["evidence"].append(evidence("runway-2", "2026-07-04T10:00:00+00:00", "filing"))
+    new["red_lines"][0]["status"] = "triggered"
+    new["red_lines"][0]["evidence_ids"] = ["runway-2"]
+    new["dimensions"]["business"] = {"state": "broken", "evidence_ids": ["fund-1", "runway-2"]}
+
+    result = tr.evaluate_drift(old, new, now=NOW)
+    assert result["status"] == "pass", result["errors"]
+    assert result["newly_triggered_red_lines"] == ["solvency"]
+    assert result["resolved_red_lines"] == []
+    assert result["overall"] == "weakened"
+
+
+def test_failure_results_keep_the_full_drift_shape():
+    keys = set(tr.evaluate_drift(None, thesis(), now=NOW))
+    assert keys == set(tr.evaluate_drift([], {}, now=NOW))
+    assert {"resolved_red_lines", "newly_triggered_red_lines", "triggered_red_lines"} <= keys

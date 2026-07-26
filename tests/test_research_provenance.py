@@ -1,7 +1,14 @@
 import json
+import subprocess
+import sys
 from decimal import Decimal
+from pathlib import Path
+
+import pytest
 
 from scripts.data import research_provenance as rp
+
+SCRIPT = Path(__file__).resolve().parents[1] / "scripts" / "data" / "research_provenance.py"
 
 
 def metric():
@@ -104,3 +111,49 @@ def test_cli_returns_nonzero_for_failed_gate(tmp_path):
     path = tmp_path / "manifest.json"
     path.write_text(json.dumps(manifest([])))
     assert rp.main(["verify-manifest", str(path)]) == 1
+
+
+@pytest.mark.parametrize(
+    "expression",
+    ["1e", "ee", "0/0", "5%0", "1/0", "9**999999999", "2**1.5", "(", "1+"],
+)
+def test_hostile_expressions_fail_closed_with_one_json_object(expression, capsys):
+    """A gate whose failure mode is a traceback cannot be parsed by its caller."""
+    assert rp.main(["calc", "--expr", expression]) == 1
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["status"] == "fail"
+    assert payload["errors"]
+
+
+def test_calc_cli_subprocess_prints_json_and_no_traceback():
+    result = subprocess.run(
+        [sys.executable, str(SCRIPT), "calc", "--expr", "0/0"],
+        capture_output=True, text=True, check=False,
+    )
+    assert result.returncode == 1
+    assert "Traceback" not in result.stderr
+    assert json.loads(result.stdout)["status"] == "fail"
+
+
+def test_small_exponents_still_evaluate_exactly():
+    assert rp.exact_calculate("1.1**2") == Decimal("1.21")
+
+
+def test_metric_cannot_authorize_its_own_tolerance():
+    loose = metric()
+    loose["tolerance_pct"] = "500"
+    loose["verification"]["value"] = "400"  # 300% away from reported "100.00"
+    result = rp.validate_manifest(manifest([loose]))
+    assert result["status"] == "fail"
+    assert result["verified_metrics"] == 0
+    assert any(f"{rp.MAX_TOLERANCE_PCT}% cap" in error for error in result["errors"])
+
+
+def test_market_cap_rejects_tolerance_above_cap():
+    assert rp.market_cap_result("10", "10", "100", "USD", "5")["status"] == "pass"
+    try:
+        rp.market_cap_result("10", "10", "10000", "USD", "500")
+    except ValueError as exc:
+        assert "cap" in str(exc)
+    else:
+        raise AssertionError("an out-of-cap tolerance was honored")
