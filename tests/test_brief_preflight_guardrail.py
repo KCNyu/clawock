@@ -327,6 +327,8 @@ def test_every_triggered_directive_is_tagged_as_risk_rule(preflight):
         ("MSFU", "MSFT"),
         ("TQQQ", "QQQ"),
         ("SOXL", "SOXX"),
+        ("RKLX", "RKLB"),
+        ("SPCH", "SPCX"),
     ],
 )
 def test_documented_leveraged_etf_maps_to_its_1x_underlying(

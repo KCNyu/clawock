@@ -20,6 +20,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 import decision_v2
+import instrument_registry
 
 # Strict YYYY-MM-DD.json — rejects baselines/backups/archives that share the
 # snapshots dir (e.g. 2026-05-16-saturday-baseline.json caused duplicate 5-16
@@ -737,7 +738,7 @@ def validate_intraday_insights(data, known_tickers):
 
 
 # Tickers we treat as leveraged ETFs even when context doesn't tag them.
-_LEVERAGED_TICKERS = {'SOXL', 'TQQQ', 'MSFU', 'PLTU', 'ROBN', 'RKLX', '07226'}
+_LEVERAGED_TICKERS = instrument_registry.leveraged_symbols()
 
 
 def extract_anomalies(brief_ctx, us_h, hk_h):
@@ -1276,28 +1277,8 @@ def compute_drawdown(snapshots, fx_rate=None):
 # v2.1: broker-style analytics
 # ───────────────────────────────────────────────────────────────────────────
 
-# Sector / theme map (hardcoded — peer-map.json doesn't carry sector explicitly)
-SECTOR_MAP = {
-    # US
-    'NVDA': 'Semiconductor',  'SOXL': 'Semiconductor ETF',
-    'RKLB': 'Aerospace',      'RKLX': 'Aerospace',
-    'CRCL': 'Crypto / Stablecoin',
-    'OKLO': 'Nuclear / Energy',
-    'QQQ':  'Index ETF',      'TQQQ': 'Index ETF',
-    'TCOM': 'Travel / Online',
-    'HOOD': 'Fintech',        'ROBN': 'Fintech',
-    'PLTU': 'AI / Defense',
-    'MSFU': 'Tech Mega-cap',
-    # HK
-    '00100': 'AI / 大模型',
-    '02208': '新能源',
-    '03032': '恒生科技 ETF', '07226': '恒生科技 ETF',
-    '03033': '恒生科技 ETF',
-    '07709': 'KR ADR (旧仓)', '07747': 'KR ADR (旧仓)',
-}
-
-# 2x/3x leveraged ETF set
-LEVERAGED_TICKERS = {'SOXL', 'TQQQ', 'PLTU', 'RKLX', 'ROBN', 'MSFU', '07226'}
+# Compatibility view for older imports; config/instruments.json owns the set.
+LEVERAGED_TICKERS = instrument_registry.leveraged_symbols()
 
 
 def compute_sector_exposure(portfolio):
@@ -1313,7 +1294,8 @@ def compute_sector_exposure(portfolio):
                 continue
             by_sector = {}
             for h in active:
-                sec = SECTOR_MAP.get(h['ticker'], 'Other')
+                meta = instrument_registry.get(h['ticker'])
+                sec = meta['sector'] if meta else 'Other'
                 bucket = by_sector.setdefault(sec, {'value': 0.0, 'tickers': []})
                 bucket['value'] += (h.get('current_value') or 0)
                 bucket['tickers'].append(h['ticker'])
@@ -1328,6 +1310,15 @@ def compute_sector_exposure(portfolio):
     except Exception as e:
         print(f'  warn: compute_sector_exposure failed: {e}', file=sys.stderr)
     return result
+
+
+def compute_lookthrough_exposure(portfolio):
+    """Dashboard-safe wrapper around the canonical exposure computation."""
+    try:
+        return instrument_registry.compute_lookthrough_exposure(portfolio)
+    except Exception as e:
+        print(f'  warn: compute_lookthrough_exposure failed: {e}', file=sys.stderr)
+        return {'us': {}, 'hk': {}}
 
 
 def compute_reentry_radar(lev_regime, portfolio):
@@ -1905,6 +1896,7 @@ def main():
     fx_rate = (out.get('fx') or {}).get('usdhkd')
     out['drawdown'] = compute_drawdown(snapshots, fx_rate)
     out['sector_exposure'] = compute_sector_exposure(portfolio)
+    out['lookthrough_exposure'] = compute_lookthrough_exposure(portfolio)
     out['leveraged_etf'] = compute_leveraged_etf_exposure(portfolio, fx_rate)
     # Tier 2: pull pre-computed risk metrics (from portfolio_risk_metrics.py)
     risk_path = WS_ROOT / 'assets' / 'data' / 'risk.json'
