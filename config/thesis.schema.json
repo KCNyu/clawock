@@ -1,0 +1,164 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/KCNyu/clawock/config/thesis.schema.json",
+  "title": "clawock canonical investment thesis",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "thesis_id",
+    "ticker",
+    "strategy_scope",
+    "summary",
+    "created_at",
+    "checked_at",
+    "state",
+    "dimensions",
+    "assumptions",
+    "red_lines",
+    "valuation_anchors",
+    "evidence",
+    "next_review_trigger"
+  ],
+  "properties": {
+    "schema_version": {"const": 1},
+    "thesis_id": {"type": "string", "minLength": 1},
+    "ticker": {"type": "string", "minLength": 1},
+    "strategy_scope": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {"type": "string", "minLength": 1}
+    },
+    "summary": {"type": "string", "minLength": 1, "maxLength": 400},
+    "created_at": {"type": "string", "format": "date-time"},
+    "checked_at": {"type": "string", "format": "date-time"},
+    "state": {"$ref": "#/$defs/thesis_state"},
+    "dimensions": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["business", "moat", "management", "valuation"],
+      "properties": {
+        "business": {"$ref": "#/$defs/dimension"},
+        "moat": {"$ref": "#/$defs/dimension"},
+        "management": {"$ref": "#/$defs/dimension"},
+        "valuation": {"$ref": "#/$defs/dimension"}
+      }
+    },
+    "assumptions": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 7,
+      "items": {"$ref": "#/$defs/assumption"}
+    },
+    "red_lines": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"$ref": "#/$defs/red_line"}
+    },
+    "valuation_anchors": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/valuation_anchor"}
+    },
+    "evidence": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/evidence"}
+    },
+    "next_review_trigger": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "description"],
+      "properties": {
+        "type": {"type": "string", "minLength": 1},
+        "description": {"type": "string", "minLength": 1}
+      }
+    }
+  },
+  "$defs": {
+    "thesis_state": {
+      "enum": ["intact", "weakening", "damaged", "broken", "unknown"]
+    },
+    "evidence_ids": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {"type": "string", "minLength": 1}
+    },
+    "dimension": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["state", "evidence_ids"],
+      "properties": {
+        "state": {"$ref": "#/$defs/thesis_state"},
+        "evidence_ids": {"$ref": "#/$defs/evidence_ids"}
+      }
+    },
+    "assumption": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "claim", "test", "cadence", "status", "evidence_ids"],
+      "properties": {
+        "id": {"type": "string", "minLength": 1},
+        "claim": {"type": "string", "minLength": 1},
+        "test": {"type": "string", "minLength": 1},
+        "cadence": {"type": "string", "minLength": 1},
+        "status": {
+          "enum": ["unknown", "supported", "weakening", "damaged", "broken"]
+        },
+        "evidence_ids": {"$ref": "#/$defs/evidence_ids"}
+      }
+    },
+    "red_line": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "condition",
+        "severity",
+        "status",
+        "required_action",
+        "evidence_ids"
+      ],
+      "properties": {
+        "id": {"type": "string", "minLength": 1},
+        "condition": {"type": "string", "minLength": 1},
+        "severity": {"enum": ["warning", "severe", "fatal"]},
+        "status": {"enum": ["clear", "watch", "triggered", "unknown"]},
+        "required_action": {"type": "string", "minLength": 1},
+        "evidence_ids": {"$ref": "#/$defs/evidence_ids"}
+      }
+    },
+    "valuation_anchor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "metric", "value", "currency", "period", "evidence_ids"],
+      "properties": {
+        "id": {"type": "string", "minLength": 1},
+        "metric": {"type": "string", "minLength": 1},
+        "value": {"type": ["string", "number"]},
+        "currency": {"type": "string", "minLength": 1},
+        "period": {"type": "string", "minLength": 1},
+        "evidence_ids": {"$ref": "#/$defs/evidence_ids"}
+      }
+    },
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "evidence_id",
+        "observed_at",
+        "source_class",
+        "locator",
+        "kind",
+        "summary"
+      ],
+      "properties": {
+        "evidence_id": {"type": "string", "minLength": 1},
+        "observed_at": {"type": "string", "format": "date-time"},
+        "source_class": {"type": "string", "minLength": 1},
+        "locator": {"type": "string", "minLength": 1},
+        "kind": {"type": "string", "minLength": 1},
+        "summary": {"type": "string", "minLength": 1}
+      }
+    }
+  }
+}

@@ -13,8 +13,13 @@ In this order:
 1. `/root/.openclaw/workspace/MEMORY.md` — rules, traps, user preferences
 2. `/root/.openclaw/workspace/portfolio.json` — authoritative holdings
 3. `/root/.openclaw/workspace/memory/current-portfolio-summary.md` — active ticker list (also lists exited names so you know what NOT to analyze)
-4. Recent `memory/YYYY-MM-DD.md` entries when recent trades matter
-5. `/root/.openclaw/workspace/TOOLS.md` — data chain reference if anything fails
+4. `/root/.openclaw/workspace/memory/theses/*.json` — canonical thesis state when present
+5. Recent `memory/YYYY-MM-DD.md` entries when recent trades matter
+6. `/root/.openclaw/workspace/TOOLS.md` — data chain reference if anything fails
+
+The thesis registry is read-only during a portfolio review. Missing files mean
+`unknown`, not permission to reconstruct a baseline from prior prose. Price moves
+may change valuation but cannot by themselves change business, moat, or management.
 
 ## Fresh data rule
 
