@@ -156,6 +156,23 @@ def payload_errors(contract: dict, expected_job: dict, live_job: dict) -> list[s
     for forbidden in profile.get("forbidden_substrings", []):
         if forbidden in message:
             errors.append(f"payload contains deprecated {forbidden!r}")
+    expected_trigger = profile.get("trigger")
+    trigger = live_job.get("trigger")
+    if expected_trigger:
+        variables = expected_job.get("payload_vars") or {}
+        script_path = _format_required(expected_trigger["script_path"], variables)
+        expected_script = (WS / script_path).read_text().strip()
+        if not isinstance(trigger, dict):
+            errors.append("condition trigger missing")
+        else:
+            if (trigger.get("script") or "").strip() != expected_script:
+                errors.append(f"condition trigger does not match {script_path}")
+            if bool(trigger.get("once", False)) != bool(expected_trigger.get("once", False)):
+                errors.append(
+                    f"condition trigger once expected {expected_trigger.get('once', False)!r}"
+                )
+    elif trigger:
+        errors.append("unexpected condition trigger")
     return errors
 
 
