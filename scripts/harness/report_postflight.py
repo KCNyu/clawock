@@ -47,6 +47,7 @@ TMP = WS / 'memory' / '.tmp'
 
 sys.path.insert(0, str(WS / 'scripts' / 'data'))
 import trading_calendar  # noqa: E402
+import workflow_outcomes  # noqa: E402
 
 REQUIRED_SECTIONS = ['▎情绪面', '▎技术面', '▎操作建议']
 FORBIDDEN_PHRASES = ['数据待获取', '等待数据', '数据缺失（占位）', 'TODO', 'TBD']
@@ -374,12 +375,17 @@ def main():
                              'this script prepends title + raw_wechat_block itself. '
                              'Omit for the legacy full-report input.')
     args = parser.parse_args()
+    job_name = workflow_outcomes.job_for(args.market, args.phase)
+    slot = workflow_outcomes.slot_for_job(job_name)
 
     # Holiday/weekend gate: never send/commit on a closed market — even if the
     # model produced a report off stale data. Mirrors the preflight gate.
     session = trading_calendar.phase_session(args.market, args.phase)
     closed = trading_calendar.closed_reason(args.market, session=session)
     if closed:
+        workflow_outcomes.record_stage(
+            job_name, 'preflight', 'skipped', slot=slot, reason=closed
+        )
         market_cn = '港股' if args.market == 'hk' else '美股'
         result = {'status': 'market_closed', 'market': args.market, 'phase': args.phase,
                   'reason': closed, 'wechat_sent': False, 'commit_ok': False,
@@ -389,6 +395,12 @@ def main():
 
     text, in_err = read_prose_text(args.market, args.phase, args.text_file)
     if in_err:
+        workflow_outcomes.record_stage(
+            job_name, 'llm', 'failed', slot=slot, reason=in_err
+        )
+        workflow_outcomes.record_stage(
+            job_name, 'postflight', 'failed', slot=slot, reason='input_error'
+        )
         # Classified apart from `fail`: this is a broken caller, not a bad report.
         # Nothing is sent — a stale or missing file must never be republished —
         # and the non-zero exit keeps the run record honest (a false green here is
@@ -414,6 +426,12 @@ def main():
     # non-zero, so the run record shows preflight is the breakage. (2026-07-24 review.)
     ctx_bad = ctx_err or _unusable_context(ctx, prose_only)
     if ctx_bad:
+        workflow_outcomes.record_stage(
+            job_name, 'preflight', 'failed', slot=slot, reason=ctx_bad
+        )
+        workflow_outcomes.record_stage(
+            job_name, 'postflight', 'failed', slot=slot, reason='unusable_context'
+        )
         result = {
             'status': 'preflight_error',
             'market': args.market, 'phase': args.phase, 'date': today,
@@ -430,6 +448,12 @@ def main():
     # empty/missing/stale gate already covers the prose plumbing failure. Apply
     # the char floor to legacy input only. (2026-07-24 review.)
     if not prose_only and len(text.strip()) < MIN_REPORT_CHARS:
+        workflow_outcomes.record_stage(
+            job_name, 'llm', 'failed', slot=slot, reason='degenerate_input'
+        )
+        workflow_outcomes.record_stage(
+            job_name, 'postflight', 'failed', slot=slot, reason='degenerate_input'
+        )
         result = {
             'status': 'fail',
             'market': args.market,
@@ -467,6 +491,14 @@ def main():
               if stale_generation
               else validate(text, ctx, prose_only=prose_only, model_text=model_text))
     status = categorize(issues) if not stale_generation else 'fail'
+    workflow_outcomes.record_stage(
+        job_name,
+        'llm',
+        'success' if status == 'pass' else ('warning' if status == 'warn' else 'failed'),
+        slot=slot,
+        context_id=ctx.get('context_id'),
+        issue_count=len(issues),
+    )
 
     if status == 'pass':
         wechat_prefix = ''
@@ -538,6 +570,33 @@ def main():
         'commit_msg':    commit_msg,
         'n_chars':       len(body),
     }
+    # Even a rejected prose report can have a successful postflight: the harness
+    # deliberately delivers its deterministic data block. Preserve that degraded
+    # product instead of collapsing it into the LLM's failure.
+    workflow_outcomes.record_stage(
+        job_name,
+        'postflight',
+        'success' if status == 'pass' else 'warning',
+        slot=slot,
+        delivered=result['delivered'],
+        issue_count=len(issues),
+    )
+    primary_delivery_ok = bool(wechat_sent)
+    try:
+        primary_delivery_ok = (
+            primary_delivery_ok
+            or json.loads(report_marker.read_text()).get('tg_ok') is True
+        )
+    except Exception:
+        pass
+    workflow_outcomes.record_stage(
+        job_name,
+        'primary_delivery',
+        'success' if primary_delivery_ok else 'failed',
+        slot=slot,
+        channel='wechat_or_telegram',
+        deterministic_fallback=(status == 'fail'),
+    )
     print(json.dumps(result, ensure_ascii=False, indent=2))
     return 0 if status == 'pass' else (1 if status == 'warn' else 2)
 

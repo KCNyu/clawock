@@ -141,6 +141,9 @@ def test_active_holdings_filters_nonpositive_shares_and_maps_leverage_and_symbol
         {
             "ticker": "PLTU",
             "current_value": 120.0,
+            "current_price": 24.0,
+            "shares": 5.0,
+            "trades": [],
             "leverage": 2,
             "yahoo_symbol": "PLTU",
         }
@@ -149,6 +152,9 @@ def test_active_holdings_filters_nonpositive_shares_and_maps_leverage_and_symbol
         {
             "ticker": "07226",
             "current_value": 400.0,
+            "current_price": 40.0,
+            "shares": 10.0,
+            "trades": [],
             "leverage": 2,
             "yahoo_symbol": "7226.HK",
         }
@@ -256,3 +262,75 @@ def test_build_alerts_does_not_fire_at_the_strict_threshold_boundaries():
     leverage = {"combined_avg": 2.0}
 
     assert risk.build_alerts(us, None, combined, leverage) == []
+
+
+def test_dynamic_stream_does_not_let_a_new_listing_truncate_established_names():
+    holdings = [
+        {
+            "ticker": "OLD",
+            "shares": 10.0,
+            "current_value": 1300.0,
+            "current_price": 130.0,
+            "trades": [],
+        },
+        {
+            "ticker": "NEW",
+            "shares": 5.0,
+            "current_value": 250.0,
+            "current_price": 50.0,
+            "trades": [{"date": "2026-01-25", "action": "buy", "shares": 5}],
+        },
+    ]
+    old = [(_utc_epoch(f"2026-01-{day:02d}"), 100.0 + day)
+           for day in range(1, 32)]
+    new = [(_utc_epoch(f"2026-01-{day:02d}"), 40.0 + day)
+           for day in range(25, 32)]
+
+    stream = risk.build_dynamic_return_stream(
+        holdings, {"OLD": old, "NEW": new}
+    )
+
+    assert len(stream["return_by_date"]) == 30
+    assert min(stream["coverage_by_date"].values()) == pytest.approx(1.0)
+
+
+def test_dynamic_weights_reverse_later_trades_instead_of_using_current_weight():
+    holding = {
+        "ticker": "AAA",
+        "shares": 5.0,
+        "current_value": 100.0,
+        "current_price": 20.0,
+        "trades": [{"date": "2026-01-03", "action": "sell", "shares": 5}],
+    }
+
+    assert risk._shares_on(holding, "2026-01-02") == 10.0
+    assert risk._shares_on(holding, "2026-01-03") == 5.0
+
+
+def test_alert_thresholds_are_withheld_when_window_is_not_eligible():
+    us = {"beta_spx": 4.0, "threshold_eligible": False, "n_returns": 9,
+          "threshold_min_returns": 20}
+    combined = {
+        "vol_30d_annualized": 0.9,
+        "max_dd_30d": -0.3,
+        "sharpe_30d": -4.0,
+        "threshold_eligible": False,
+    }
+
+    alerts = risk.build_alerts(us, None, combined, {"combined_avg": 1.0})
+
+    assert [a["type"] for a in alerts] == ["insufficient_observations"]
+
+
+def test_beta_alert_is_withheld_when_benchmark_overlap_is_too_short():
+    us = {
+        "beta_spx": 4.0,
+        "threshold_eligible": True,
+        "beta_threshold_eligible": False,
+        "benchmark_n_returns": 7,
+    }
+
+    alerts = risk.build_alerts(us, None, None, {})
+
+    assert [a["type"] for a in alerts] == ["insufficient_observations"]
+    assert "7 aligned returns" in alerts[0]["detail"]

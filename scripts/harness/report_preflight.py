@@ -57,6 +57,7 @@ TMP = WS / 'memory' / '.tmp'
 sys.path.insert(0, str(DATA_DIR))
 import trading_calendar  # noqa: E402
 import peer_scan  # noqa: E402
+import workflow_outcomes  # noqa: E402
 
 
 def _market_closed_reason(market, phase):
@@ -324,6 +325,9 @@ def main():
         return 2
 
     today = datetime.now().strftime('%Y-%m-%d')
+    job_name = workflow_outcomes.job_for(args.market, args.phase)
+    slot = workflow_outcomes.slot_for_job(job_name)
+    workflow_outcomes.record_stage(job_name, 'preflight', 'pending', slot=slot)
 
     # --- Holiday/weekend gate (before any fetch): on a closed market, skip the
     # price refresh entirely (stale closes must NOT be written as a new session)
@@ -331,6 +335,9 @@ def main():
     # watchdog treats a blockless context as "never ran" and won't re-send. ---
     reason = _market_closed_reason(args.market, args.phase)
     if reason:
+        workflow_outcomes.record_stage(
+            job_name, 'preflight', 'skipped', slot=slot, reason=reason
+        )
         result = {'status': 'market_closed', 'market': args.market,
                   'phase': args.phase, 'date': today, 'reason': reason, 'skip': True}
         TMP.mkdir(parents=True, exist_ok=True)
@@ -347,6 +354,10 @@ def main():
     rc, stdout, stderr = run_analyze(args.market)
 
     if rc != 0:
+        workflow_outcomes.record_stage(
+            job_name, 'preflight', 'failed', slot=slot,
+            return_code=rc,
+        )
         result = {
             'status': 'preflight_failed',
             'market': args.market,
@@ -393,6 +404,10 @@ def main():
     drop_stale_contexts(args.market, args.phase, today)
     out_path = context_path(args.market, args.phase, today)
     out_path.write_text(json.dumps(result, ensure_ascii=False, indent=2))
+    workflow_outcomes.record_stage(
+        job_name, 'preflight', 'success', slot=slot,
+        context_id=result['context_id'],
+    )
 
     print(json.dumps(result, ensure_ascii=False, indent=2))
     announce_context_path(out_path)

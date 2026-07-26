@@ -55,6 +55,8 @@ PORTFOLIO = WS / 'portfolio.json'
 OUT = WS / 'assets' / 'data' / 'integrity_report.json'
 
 sys.path.insert(0, str(WS / 'scripts' / 'data'))
+from instrument_registry import INSTRUMENTS  # noqa: E402
+
 try:
     from safe_io import safe_write_json
 except Exception:  # pragma: no cover
@@ -66,8 +68,11 @@ try:
 except Exception:
     tc = None
 
-# 同标的 1x/2x 对，用于方向交叉验证（两只都在持仓时才比）
-HSTECH_SIBLINGS = {'07226', '03033', '03032'}  # 2x / 1x / 1x 同为恒科
+# 同标的 1x/2x 对，用于方向交叉验证（两只都在持仓时才比）。
+HSTECH_SIBLINGS = {
+    symbol for symbol, meta in INSTRUMENTS.items()
+    if meta['region'] == 'HK' and meta['venue'] == 'HKEX' and meta['factor'] == 'HSTECH'
+}
 
 # 容差
 TCV_TOL = 1.0      # 货币单位（HKD/USD），手工记账小数误差

@@ -46,25 +46,28 @@ MA_WINDOW = 200      # slower MA = fewer falling-knife re-entries (verified vs 1
 VOL_WINDOW = 20
 VOL_CAP = 0.50       # HSTECH 20d annualised realised-vol ceiling for "vol-ok"
 
+sys.path.insert(0, str(WS / 'scripts' / 'data'))
+from instrument_registry import INSTRUMENTS  # noqa: E402
+
 # US 2x single-stock ETF → (underlying ticker, Tencent fqkline symbol). The US dial is
 # PER-NAME (each ETF tracks one stock) and — verified in backtest_us_leverage.py — must
 # be LIGHT on low-vol names (MSFT regime-filter whipsawed and hurt returns). So a US name
 # only triggers a forced CUT when its underlying is trend-off AND vol is hot (>70%);
 # trend-off-but-calm is a soft 'watch', not a cut.
 US_2X_MAP = {
-    'PLTU': ('PLTR', 'usPLTR.OQ'),
-    'ROBN': ('HOOD', 'usHOOD.OQ'),
-    'MSFU': ('MSFT', 'usMSFT.OQ'),
-    # SPCH = 2x SpaceX daily ETF. SpaceX 未上市、无 200日线可用 → 拿 1x 代理 SPCX 做趋势
-    # 确认。SPCX 本身 2026-06 才上市 (~8 bars)，远不够 200DMA → 走短均线「右侧」回退规则
-    # (见 compute_us)。把 41% 的盲区接上：逆市 2x 做多 = 左侧，短均线之下即判 cut。
-    'SPCH': ('SPCX', 'usSPCX.OQ'),
+    symbol: (
+        meta['signal_symbol'],
+        INSTRUMENTS[meta['signal_symbol']]['tencent_symbol'],
+    )
+    for symbol, meta in INSTRUMENTS.items()
+    if meta['region'] == 'US'
+    and meta['leverage_multiple'] == 2
+    and meta.get('signal_symbol')
 }
 US_VOL_HOT = 0.70    # single stocks run hot; only >70% annualised counts as "过热"
 SHORT_MA_WINDOW = 5  # 新上市杠杆名不足 200DMA 时的「右侧确认」短均线（仅趋势方向、非完整 regime）
 SHORT_MA_MIN = 5     # 短均线至少需要的 bar 数，再少则 unknown
 
-sys.path.insert(0, str(WS / 'scripts' / 'data'))
 try:
     from safe_io import safe_write_json  # type: ignore
 except Exception:
@@ -166,8 +169,9 @@ def compute_us():
             'close': round(close, 2), 'ma': round(ma, 2), 'ma_window': MA_WINDOW,
             'dist_ma_pct': round((close / ma - 1) * 100, 1),
             'vol_annualized': round(vol, 4) if vol else None,
+            'vol_n_returns': min(VOL_WINDOW, len(closes) - 1),
             'vol_hot_cap': US_VOL_HOT, 'trend_on': trend_on, 'vol_hot': vol_hot,
-            'state': state,
+            'state': state, 'regime_basis': 'ma_200_and_20d_realized_vol',
         })
     cuts = [n for n in names if n.get('state') == 'cut']
     watches = [n for n in names if n.get('state') == 'watch']
@@ -320,8 +324,14 @@ def main():
     print(f'  lev_regime US: {us["tier"]} — {us["label"]}')
     for n in us['names']:
         if n.get('state') in ('cut', 'watch'):
+            vol = n.get('vol_annualized')
+            vol_text = f'{vol*100:.0f}%' if vol is not None else 'N/A'
+            basis = n.get('regime_basis') or (
+                f'ma_{n.get("ma_window")}' if n.get('ma_window') else 'unknown'
+            )
             print(f'     {n["etf"]}=2x{n["underlying"]}: {n["state"]} '
-                  f'({n.get("dist_ma_pct")}% vs 200线, vol {(n.get("vol_annualized") or 0)*100:.0f}%)')
+                  f'({n.get("dist_ma_pct")}% vs {n.get("ma_window") or "?"}线, '
+                  f'vol {vol_text}, basis {basis})')
 
 
 if __name__ == '__main__':
