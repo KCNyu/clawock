@@ -330,3 +330,127 @@ def test_cli_check_exits_nonzero_only_on_integrity_failure(tmp_path, capsys, mon
     assert payload["status"] in {"pass", "warn"}
     assert rs.main([]) == 0
     assert json.loads(capsys.readouterr().out)["status"] == "ready"
+
+
+# --- mover-scoped thesis context (intraday + report paths) -------------------
+
+def _thesis(ticker="USTEST", state=None, red_line_status="triggered"):
+    # A triggered *severe* red line forces state damaged/broken — the registry
+    # validator enforces that, so the fixture has to respect it.
+    state = state or ("damaged" if red_line_status == "triggered" else "weakening")
+    return {
+        "schema_version": 1,
+        "thesis_id": f"{ticker.lower()}-core",
+        "ticker": ticker,
+        "strategy_scope": ["core_position"],
+        "summary": "Platform economics carry the position.",
+        "created_at": "2026-01-01T00:00:00+00:00",
+        "checked_at": "2026-04-26T00:00:00+00:00",
+        "state": state,
+        "dimensions": {
+            name: {"state": "unknown", "evidence_ids": []}
+            for name in ("business", "moat", "management", "valuation")
+        },
+        "assumptions": [
+            {"id": f"a-{i}", "claim": f"Assumption {i}", "test": "Metric holds",
+             "cadence": "quarterly", "status": "unknown", "evidence_ids": []}
+            for i in range(1, 4)
+        ],
+        "red_lines": [
+            {"id": "cash-conversion",
+             "condition": "OCF/net income below 0.8 for two periods",
+             "severity": "severe", "status": red_line_status,
+             "required_action": "Cut the position by half",
+             "evidence_ids": ["ev-1"] if red_line_status == "triggered" else []},
+            {"id": "dormant", "condition": "Customer concentration above 40%",
+             "severity": "warning", "status": "clear",
+             "required_action": "Reassess sizing", "evidence_ids": []},
+        ],
+        "valuation_anchors": [],
+        "evidence": [{
+            "evidence_id": "ev-1", "observed_at": "2026-04-25T00:00:00+00:00",
+            "source_class": "issuer_filing", "locator": "filing:ev-1",
+            "kind": "fundamental", "summary": "Cash conversion below threshold.",
+        }],
+        "next_review_trigger": {"type": "earnings", "description": "Next filing"},
+    }
+
+
+def test_nothing_moved_means_no_lookup(dirs):
+    assert rs.movers_thesis_context([], now=NOW, thesis_dir=dirs["thesis_dir"],
+                                    entry_gate_dir=dirs["entry_gate_dir"]) == {}
+    assert rs.movers_thesis_context(None, now=NOW) == {}
+
+
+def test_a_moving_name_surfaces_its_triggered_red_line_and_required_action(dirs):
+    (dirs["thesis_dir"] / "USTEST.json").write_text(json.dumps(_thesis()))
+    out = rs.movers_thesis_context(["USTEST"], now=NOW, thesis_dir=dirs["thesis_dir"],
+                                   entry_gate_dir=dirs["entry_gate_dir"])
+    entry = out["USTEST"]
+    assert entry["status"] == "resolved"
+    assert entry["state"] == "damaged"
+    assert entry["red_lines"] == [{
+        "id": "cash-conversion", "status": "triggered", "severity": "severe",
+        "required_action": "Cut the position by half",
+    }]
+    assert entry["next_review_trigger"]["type"] == "earnings"
+
+
+def test_clear_red_lines_are_left_out_of_a_report_sized_block(dirs):
+    (dirs["thesis_dir"] / "USTEST.json").write_text(
+        json.dumps(_thesis(red_line_status="watch")))
+    entry = rs.movers_thesis_context(["USTEST"], now=NOW, thesis_dir=dirs["thesis_dir"],
+                                     entry_gate_dir=dirs["entry_gate_dir"])["USTEST"]
+    assert [row["id"] for row in entry["red_lines"]] == ["cash-conversion"]
+    assert entry["red_lines"][0]["status"] == "watch"
+
+
+def test_a_mover_without_a_baseline_reads_unknown(dirs):
+    out = rs.movers_thesis_context(["NOBASELINE"], now=NOW,
+                                   thesis_dir=dirs["thesis_dir"],
+                                   entry_gate_dir=dirs["entry_gate_dir"])
+    assert out["NOBASELINE"]["status"] == "unknown"
+    assert "no canonical thesis baseline" in out["NOBASELINE"]["reason"]
+
+
+def test_a_rejected_gate_is_flagged_on_the_moving_name(dirs):
+    (dirs["thesis_dir"] / "USTEST.json").write_text(json.dumps(_thesis()))
+    doc = json.loads(GATE_FIXTURE.read_text())
+    doc["checks"][0]["verdict"] = "fail"
+    doc["verdict"] = "reject"
+    write_gate(dirs, doc)
+    entry = rs.movers_thesis_context(["USTEST"], now=NOW, thesis_dir=dirs["thesis_dir"],
+                                     entry_gate_dir=dirs["entry_gate_dir"])["USTEST"]
+    assert entry["entry_gate"] == {"verdict": "reject", "gate_id": "entry-USTEST-2026-07-20"}
+
+
+def test_a_broken_artifact_degrades_to_unknown_and_never_raises(dirs):
+    (dirs["thesis_dir"] / "USTEST.json").write_text("{not json")
+    out = rs.movers_thesis_context(["USTEST"], now=NOW, thesis_dir=dirs["thesis_dir"],
+                                   entry_gate_dir=dirs["entry_gate_dir"])
+    assert out["USTEST"]["status"] == "unknown"
+    assert "invalid" in out["USTEST"]["reason"]
+
+
+def test_a_missing_registry_directory_never_breaks_a_reporting_cron(tmp_path):
+    out = rs.movers_thesis_context(["USTEST"], now=NOW,
+                                   thesis_dir=tmp_path / "gone",
+                                   entry_gate_dir=tmp_path / "gone")
+    assert out["USTEST"]["status"] == "unknown"
+
+
+def test_intraday_and_report_preflights_carry_mover_thesis():
+    for name in ("intraday_preflight.py", "report_preflight.py"):
+        source = (ROOT / "scripts" / "harness" / name).read_text()
+        assert "import research_surface" in source, name
+        assert "research_surface.movers_thesis_context(" in source, name
+        assert "'mover_thesis'" in source, name
+        # scoped to the names the slot already flagged, never the whole book
+        assert "[a['ticker'] for a in anomalies]" in source, name
+
+
+def test_both_stock_skills_frame_it_as_attribution_not_a_trigger():
+    for name in ("us-stock-analysis", "hk-stock-analysis"):
+        skill = (ROOT / "skills" / name / "SKILL.md").read_text()
+        assert "mover_thesis" in skill, name
+        assert "catalyst-gate" in skill, name

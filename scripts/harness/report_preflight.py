@@ -57,6 +57,7 @@ TMP = WS / 'memory' / '.tmp'
 sys.path.insert(0, str(DATA_DIR))
 import trading_calendar  # noqa: E402
 import peer_scan  # noqa: E402
+import research_surface  # noqa: E402
 import workflow_outcomes  # noqa: E402
 
 
@@ -381,6 +382,10 @@ def main():
     market_cn = '港股' if args.market == 'hk' else '美股'
     commit_msg = f'portfolio: {market_cn}{COMMIT_PHASE_CN[args.phase]}价格更新'
 
+    mover_thesis = research_surface.movers_thesis_context(
+        [a['ticker'] for a in anomalies]
+    )
+
     result = {
         'status':             'ok',
         'market':             args.market,
@@ -396,6 +401,7 @@ def main():
         'anomalies':          anomalies,
         'index_direction':    indices,
         'peer_scan':          trim_peer_scan(peers),
+        'mover_thesis':       mover_thesis,
         'needs_risk_section': (signals['stop'] + signals['trim']) >= 2,
     }
     result['context_id'] = compute_context_id(result)
