@@ -60,6 +60,11 @@ TENCENT_FILINGS_TYPE = 0
 TENCENT_NEWS_TYPE = 1
 PRIMARY = "primary"
 SUPPORTING = "supporting"
+TRIAGE_FILE = WS / "config" / "filing-triage.json"
+NASDAQ_HALTS = "https://www.nasdaqtrader.com/rss.aspx?feed=tradehalts"
+INTERRUPT = "interrupt"
+CONTEXT = "context"
+NOISE = "noise"
 
 
 def _http_json(url: str, *, headers=None, timeout=PER_REQUEST_TIMEOUT_S):
@@ -69,6 +74,13 @@ def _http_json(url: str, *, headers=None, timeout=PER_REQUEST_TIMEOUT_S):
     )
     with urllib.request.urlopen(request, timeout=timeout) as response:
         return json.loads(response.read().decode("utf-8", "ignore"))
+
+
+def _http_text(url: str, *, timeout=PER_REQUEST_TIMEOUT_S) -> str:
+    """Text seam for feeds that are not JSON (the halt RSS)."""
+    request = urllib.request.Request(url, headers={"User-Agent": UA})
+    with urllib.request.urlopen(request, timeout=timeout) as response:
+        return response.read().decode("utf-8", "ignore")
 
 
 def _truncate(text) -> str:
@@ -210,8 +222,133 @@ def holding_names(tickers) -> dict:
         return {}
 
 
+def load_triage(path: Path = TRIAGE_FILE) -> dict:
+    doc = json.loads(path.read_text())
+    for rule in doc["rules"]:
+        rule["_re"] = re.compile(rule["pattern"])
+    return doc
+
+
+try:
+    TRIAGE = load_triage()
+except (OSError, json.JSONDecodeError, re.error):  # pragma: no cover - config guard
+    TRIAGE = {"default_class": CONTEXT, "rules": []}
+
+
+def classify(title: str, market: str, triage: dict | None = None) -> tuple[str, str | None]:
+    """First matching rule wins; an unmatched title stays `context`, never dropped.
+
+    The book is mostly funds and large caps, so the win here is subtraction: the
+    live probes came back full of `翌日披露报表` and `Form 4`, which explain no
+    intraday move and were crowding out anything that does.
+    """
+    triage = triage or TRIAGE
+    text = str(title or "")
+    for rule in triage.get("rules", []):
+        if rule.get("market") not in (None, market):
+            continue
+        matcher = rule.get("_re") or re.compile(rule["pattern"])
+        if matcher.search(text):
+            return rule["class"], rule["id"]
+    return triage.get("default_class", CONTEXT), None
+
+
+def probe_targets(ticker: str, market: str) -> dict:
+    """Where a mover's catalyst actually lives.
+
+    Eight of twelve positions are funds. A 2x single-stock ETF files nothing that
+    explains its own move — the issuer it tracks does, so probe that instead. An
+    index or sector fund has no issuer at all; say so rather than probing a shell
+    and reporting `no_recent_filing` as if a company had gone quiet.
+
+    The registry already carries the distinction: `venue: INDEX` for an index, a
+    real venue for a company, and a label like `NASDAQ_100` that resolves to
+    nothing is not a security either.
+    """
+    try:
+        import instrument_registry  # noqa: PLC0415
+
+        get = instrument_registry.get
+    except Exception:  # noqa: BLE001
+        return {"issuer": ticker, "via": None, "kind": "issuer"}
+
+    chain = []
+    current = str(ticker)
+    for _ in range(3):                      # SOXL -> SOXX -> SEMICONDUCTOR
+        meta = get(current) or {}
+        underlying = meta.get("underlying")
+        if not underlying:
+            break
+        chain.append(current)
+        current = str(underlying)
+    if not chain:
+        return {"issuer": ticker, "via": None, "kind": "issuer"}
+
+    final = get(current)
+    is_index = final is None or final.get("venue") == "INDEX" or bool((final or {}).get("underlying"))
+    if is_index:
+        return {"issuer": None, "via": current, "kind": "index_fund", "chain": chain}
+    return {"issuer": current, "via": ticker, "kind": "look_through", "chain": chain}
+
+
+def _parse_halt_time(halt_date, halt_time):
+    """Nasdaq publishes halt times in US market time, so read them as ET."""
+    try:
+        naive = datetime.strptime(
+            f"{halt_date.strip()} {str(halt_time).strip()[:8]}", "%m/%d/%Y %H:%M:%S"
+        )
+    except (TypeError, ValueError, AttributeError):
+        return None
+    try:
+        from zoneinfo import ZoneInfo  # noqa: PLC0415
+
+        return naive.replace(tzinfo=ZoneInfo("America/New_York")).astimezone(timezone.utc)
+    except Exception:  # noqa: BLE001 — tz database missing; UTC beats dropping the halt
+        return naive.replace(tzinfo=timezone.utc)
+
+
+def halts(symbols, *, now, window, http_text=None) -> dict:
+    """US trading halts for held names — one shared request for the whole book.
+
+    Nasdaq publishes every US halt (including LULD pauses, which is what actually
+    bites a 2x single-stock ETF) as a structured feed. HK has no free equivalent
+    wired: an HK suspension arrives as an announcement instead, and the triage
+    rules mark those `interrupt`.
+    """
+    wanted = {str(s).upper() for s in symbols if s}
+    if not wanted:
+        return {"status": "not_checked", "halted": []}
+    fetch = http_text or _http_text
+    try:
+        raw = fetch(NASDAQ_HALTS)
+    except Exception as exc:  # noqa: BLE001
+        return {"status": "degraded", "reason": type(exc).__name__, "halted": []}
+    halted = []
+    for chunk in re.findall(r"<item>(.*?)</item>", raw, re.S):
+        def field(name, text=chunk):
+            found = re.search(rf"<ndaq:{name}>(.*?)</ndaq:{name}>", text, re.S)
+            return found.group(1).strip() if found else ""
+
+        symbol = field("IssueSymbol").upper()
+        if symbol not in wanted:
+            continue
+        when = _parse_halt_time(field("HaltDate"), field("HaltTime"))
+        age = _age_minutes(when, now) if when else None
+        if age is not None and (age < 0 or age > window):
+            continue
+        halted.append({
+            "ticker": symbol,
+            "halted_at": when.isoformat() if when else None,
+            "age_minutes": age,
+            "reason_code": field("ReasonCode"),
+            "resumption_date": field("ResumptionDate") or None,
+            "resumption_trade_time": field("ResumptionTradeTime") or None,
+        })
+    return {"status": "checked", "halted": halted}
+
+
 def probe(movers, *, market, now=None, window_minutes=WINDOW_MINUTES,
-          budget_s=TOTAL_BUDGET_S, http=None, clock=None) -> dict:
+          budget_s=TOTAL_BUDGET_S, http=None, http_text=None, clock=None) -> dict:
     """Catalyst evidence for the flagged tickers. Never raises."""
     tickers = [str(t) for t in (movers or []) if t]
     if not tickers:
@@ -226,12 +363,22 @@ def probe(movers, *, market, now=None, window_minutes=WINDOW_MINUTES,
     results = {}
     for ticker in chased:
         entry = {"status": "no_recent_filing", "items": [], "notes": []}
-        symbol = tencent_symbol(ticker, market)
+        target = probe_targets(ticker, market)
+        if target["kind"] == "index_fund":
+            # No issuer behind an index or sector fund: chasing filings here would
+            # manufacture a "no_recent_filing" that reads like a company gone quiet.
+            entry["status"] = "index_fund_no_issuer"
+            entry["notes"].append(f"tracks {target['via']}; no issuer files for it")
+            entry["target"] = target
+            results[ticker] = entry
+            continue
+        issuer = target["issuer"]
+        symbol = tencent_symbol(issuer, market)
         # On the US leg SEC and Tencent report the same filing twice ("SCHEDULE
         # 13G" / "Form SC 13G"). SEC is the authority, so Tencent's filing feed is
         # only consulted when SEC produced nothing — one event, one line.
         for label, call in (
-            ("sec", (lambda t=ticker: _sec_items(t, now=now, window=window_minutes, http=http))
+            ("sec", (lambda t=issuer: _sec_items(t, now=now, window=window_minutes, http=http))
              if market == "us" else None),
             ("filings", (lambda s=symbol: (_tencent_items(
                 s, TENCENT_FILINGS_TYPE, PRIMARY, "exchange_filing",
@@ -258,23 +405,45 @@ def probe(movers, *, market, now=None, window_minutes=WINDOW_MINUTES,
             if note:
                 entry["notes"].append(f"{label}: {note}")
             entry["items"].extend(items)
-        entry["items"].sort(key=lambda row: (row["tier"] != PRIMARY, row["age_minutes"]))
-        entry["items"] = entry["items"][:MAX_ITEMS_PER_TICKER]
+        kept, suppressed = [], 0
+        for item in entry["items"]:
+            signal, rule = classify(item["title"], market)
+            if signal == NOISE:
+                suppressed += 1
+                continue
+            item["signal"], item["triage_rule"] = signal, rule
+            kept.append(item)
+        # interrupt first, then context, each newest first
+        kept.sort(key=lambda row: (
+            row["signal"] != INTERRUPT, row["tier"] != PRIMARY, row["age_minutes"]
+        ))
+        entry["items"] = kept[:MAX_ITEMS_PER_TICKER]
+        if suppressed:
+            entry["suppressed_noise"] = suppressed
         if entry["items"]:
             entry["status"] = "found"
         elif entry["status"] != "degraded":
             entry["status"] = "no_recent_filing"
+        entry["target"] = target
         results[ticker] = entry
 
     flashes, flash_note = _market_flashes(
         [name for name in names.values() if name], now=now, window=window_minutes
     )
+    halt_symbols = []
+    if market == "us":
+        halt_symbols = sorted({
+            symbol for ticker in chased
+            for symbol in (ticker, (results.get(ticker, {}).get("target") or {}).get("issuer"))
+            if symbol
+        })
     payload = {
         "as_of": now.isoformat(),
         "window_minutes": window_minutes,
         "elapsed_s": round(clock() - started, 2),
         "tickers": results,
         "market_flashes": flashes,
+        "halts": halts(halt_symbols, now=now, window=window_minutes, http_text=http_text),
     }
     if skipped:
         payload["not_chased"] = skipped

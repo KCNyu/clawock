@@ -88,6 +88,28 @@ def _today_in_market(market: str) -> date:
     return datetime.now(ZoneInfo(MARKET_TZ[market])).date()
 
 
+def covered_years(market: str) -> set[int]:
+    """Years the hand-maintained holiday table actually has data for."""
+    market = market.lower()
+    if market not in HOLIDAYS:
+        raise ValueError(f"unknown market {market!r} (use 'hk' or 'us')")
+    return {int(day[:4]) for day in HOLIDAYS[market]}
+
+
+def coverage(today: date | None = None) -> dict:
+    """Calendar coverage per market, for the pre-push and CI gates."""
+    today = today or date.today()
+    out = {}
+    for market in HOLIDAYS:
+        years = covered_years(market)
+        out[market] = {
+            "years": sorted(years),
+            "covers_current_year": today.year in years,
+            "covers_next_year": (today.year + 1) in years,
+        }
+    return out
+
+
 def is_trading_day(market: str, d: date | None = None, session: str = "full") -> bool:
     """True if `market` trades on date `d` (defaults to today in market TZ).
 

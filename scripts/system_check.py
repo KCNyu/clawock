@@ -16,7 +16,7 @@ import json
 import os
 import subprocess
 import sys
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 from pathlib import Path
 
 WS = Path(__file__).resolve().parent.parent
@@ -491,6 +491,37 @@ def check_generated_cron_docs(r):
               (result.stdout + result.stderr).strip()[-300:])
 
 
+def check_trading_calendar_horizon(r):
+    """The holiday table is hand-extended each December; warn before it lapses.
+
+    Past its horizon the calendar deliberately fails OPEN so a real trading day is
+    never skipped — which means an unextended table quietly turns every 2027 public
+    holiday into a session. The table cannot be auto-generated (HK dates are
+    gazetted, US ones move), so the only safe mechanism is a loud deadline.
+    """
+    sys.path.insert(0, str(WS / 'scripts' / 'data'))
+    try:
+        import trading_calendar
+        coverage = trading_calendar.coverage()
+    except Exception as e:  # noqa: BLE001
+        r.add('trading calendar', CRITICAL, f'cannot read coverage: {e}')
+        return
+    today = date.today()
+    missing_now = sorted(m for m, c in coverage.items() if not c['covers_current_year'])
+    missing_next = sorted(m for m, c in coverage.items() if not c['covers_next_year'])
+    horizon = f"through {trading_calendar.LATEST_YEAR}"
+    if missing_now:
+        r.add('trading calendar', CRITICAL,
+              f"no holiday data for {today.year} ({', '.join(missing_now)}) — "
+              "every public holiday now reads as a trading day")
+    elif missing_next and today.month >= 10:
+        r.add('trading calendar', WARNING,
+              f"{', '.join(missing_next)} table stops {horizon}; extend it before "
+              f"{today.year + 1} begins")
+    else:
+        r.add('trading calendar', OK, f'{horizon} · both markets')
+
+
 def check_research_artifacts(r):
     """Thesis, earnings and entry-gate artifacts must stay valid.
 
@@ -533,6 +564,7 @@ def main():
         check_cron_paths_exist,
         check_generated_cron_docs,
         check_research_artifacts,
+        check_trading_calendar_horizon,
     ]
     for c in checks:
         try:
