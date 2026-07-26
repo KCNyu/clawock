@@ -1,0 +1,146 @@
+{
+  "schema_version": 1,
+  "gate_id": "entry-USTEST-2026-07-20",
+  "ticker": "USTEST",
+  "market": "US",
+  "instrument_kind": "company",
+  "sector": "software",
+  "assessed_at": "2026-07-20T14:00:00+00:00",
+  "quote": {
+    "price": "12.34",
+    "currency": "USD",
+    "as_of": "2026-07-20T13:35:00+00:00",
+    "source_class": "analyze_us_stocks"
+  },
+  "information": {
+    "grade": "A",
+    "gaps": [
+      "media or analyst material is present and ranks below issuer sources"
+    ],
+    "source_classes": ["news_media", "sec_filing", "sec_xbrl"]
+  },
+  "mechanism": "Mid-market operators pay a recurring per-seat fee to keep their scheduling and payroll in one system, and they keep paying because the payroll record lives in it.",
+  "key_variables": [
+    {
+      "id": "kv-seats",
+      "variable": "Net seat additions per quarter",
+      "why_it_decides": "Revenue is per-seat, so seats decide growth more than pricing does."
+    },
+    {
+      "id": "kv-churn",
+      "variable": "Gross logo churn among sub-100-seat customers",
+      "why_it_decides": "The smallest cohort churns first and sets the floor on net retention."
+    },
+    {
+      "id": "kv-payroll-attach",
+      "variable": "Payroll module attach rate",
+      "why_it_decides": "Attach is what turns a schedule tool into a system of record and lifts switching cost."
+    },
+    {
+      "id": "kv-cash",
+      "variable": "Operating cash conversion",
+      "why_it_decides": "The story only works if collected cash follows booked revenue."
+    }
+  ],
+  "checks": [
+    {
+      "id": "business_quality",
+      "verdict": "pass",
+      "finding": "Recurring subscription revenue with disclosed seat counts and a stated retention figure in the latest filing.",
+      "evidence_ids": ["ev-10q", "ev-xbrl"]
+    },
+    {
+      "id": "moat",
+      "verdict": "fail",
+      "finding": "Switching cost is real but shallow; the filing names three competitors offering migration credits.",
+      "evidence_ids": ["ev-10q"]
+    },
+    {
+      "id": "management_governance",
+      "verdict": "pass",
+      "finding": "No restatement, no auditor change, related-party note is limited to a disclosed lease.",
+      "evidence_ids": ["ev-10q"]
+    },
+    {
+      "id": "valuation",
+      "verdict": "fail",
+      "finding": "Trades above its own three-year multiple range on structured data; expensive, not unintelligible.",
+      "evidence_ids": ["ev-xbrl"]
+    },
+    {
+      "id": "dilution",
+      "verdict": "pass",
+      "finding": "Diluted share count up about 1% year over year, consistent with disclosed SBC.",
+      "evidence_ids": ["ev-xbrl"]
+    },
+    {
+      "id": "downside",
+      "verdict": "pass",
+      "finding": "Net cash position covers more than two years of the current burn rate at the reported cash figure.",
+      "evidence_ids": ["ev-xbrl"]
+    }
+  ],
+  "vetoes": [
+    {
+      "id": "integrity_or_governance_red_flag",
+      "status": "clear",
+      "finding": "No enforcement action or restatement in the filing history reviewed.",
+      "evidence_ids": ["ev-10q"],
+      "exception": null
+    },
+    {
+      "id": "unintelligible_revenue_mechanism",
+      "status": "clear",
+      "finding": "Per-seat subscription pricing is stated in the filing.",
+      "evidence_ids": ["ev-10q"],
+      "exception": null
+    },
+    {
+      "id": "persistent_negative_cash_generation",
+      "status": "clear",
+      "finding": "Operating cash flow positive in each of the four reported periods.",
+      "evidence_ids": ["ev-xbrl"],
+      "exception": null
+    },
+    {
+      "id": "destructive_dilution",
+      "status": "clear",
+      "finding": "Share growth is roughly 1% against double-digit revenue growth.",
+      "evidence_ids": ["ev-xbrl"],
+      "exception": null
+    }
+  ],
+  "mirror_test": [
+    "It sells one subscription that mid-market operators use to schedule staff and run payroll.",
+    "It earns because the payroll record of employment lives inside the product and moving it is disruptive.",
+    "For the position to work, seat growth has to stay positive while the smallest customers keep renewing.",
+    "It breaks if a competitor's migration credit makes switching cheap enough that the payroll record stops being sticky.",
+    "If that happens the position is exited rather than averaged down, because the entire thesis was the switching cost."
+  ],
+  "evidence": [
+    {
+      "evidence_id": "ev-10q",
+      "observed_at": "2026-07-19T10:00:00+00:00",
+      "source_class": "sec_filing",
+      "locator": "sec:USTEST/10-Q/FY2026Q1",
+      "summary": "Latest quarterly filing: revenue recognition policy, seat disclosure, competitor discussion, related-party lease note."
+    },
+    {
+      "evidence_id": "ev-xbrl",
+      "observed_at": "2026-07-19T10:05:00+00:00",
+      "source_class": "sec_xbrl",
+      "locator": "sec-xbrl:USTEST/companyconcept/FY2026Q1",
+      "summary": "Structured four-period series for revenue, net income, operating cash flow, cash and diluted shares."
+    },
+    {
+      "evidence_id": "ev-news",
+      "observed_at": "2026-07-18T21:00:00+00:00",
+      "source_class": "news_media",
+      "locator": "news:USTEST/competitor-migration-credits",
+      "summary": "Trade press reports a competitor offering migration credits; read as context, not as a filing fact."
+    }
+  ],
+  "next_evidence": [],
+  "verdict": "pass_to_deep_research",
+  "routing": "us_full_report"
+}

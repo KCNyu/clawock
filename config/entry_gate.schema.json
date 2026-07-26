@@ -1,0 +1,204 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/KCNyu/clawock/config/entry_gate.schema.json",
+  "title": "clawock pre-investment entry gate artifact",
+  "description": "One assessment per file under memory/entry-gates/<TICKER>-<date>.json. scripts/data/entry_gate.py is the enforcing validator and recomputes verdict, routing and information grade; this document is the published shape. Hard vetoes and their encoded exceptions live in config/entry-gate-vetoes.json.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "gate_id",
+    "ticker",
+    "market",
+    "instrument_kind",
+    "sector",
+    "assessed_at",
+    "quote",
+    "information",
+    "mechanism",
+    "key_variables",
+    "checks",
+    "vetoes",
+    "mirror_test",
+    "evidence",
+    "next_evidence",
+    "verdict",
+    "routing"
+  ],
+  "properties": {
+    "schema_version": {"const": 1},
+    "gate_id": {"type": "string", "minLength": 1},
+    "ticker": {"type": "string", "minLength": 1},
+    "market": {"enum": ["US", "HK"]},
+    "instrument_kind": {"enum": ["company", "leveraged_etf"]},
+    "sector": {"type": "string", "minLength": 1},
+    "assessed_at": {"type": "string", "format": "date-time"},
+    "quote": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["price", "currency", "as_of", "source_class"],
+      "properties": {
+        "price": {"type": "string", "minLength": 1},
+        "currency": {"enum": ["USD", "HKD", "CNY"]},
+        "as_of": {"type": "string", "format": "date-time"},
+        "source_class": {
+          "description": "Workspace quote pipelines only; a generic web price is rejected.",
+          "enum": [
+            "analyze_us_stocks",
+            "analyze_hk_stocks",
+            "tencent_quote",
+            "eastmoney_quote",
+            "canonical_daily_bars"
+          ]
+        }
+      }
+    },
+    "information": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["grade", "gaps", "source_classes"],
+      "properties": {
+        "grade": {"enum": ["A", "B", "C"]},
+        "gaps": {"type": "array", "items": {"type": "string"}},
+        "source_classes": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "mechanism": {
+      "description": "One sentence: who pays, why, and what makes it repeat.",
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 300
+    },
+    "key_variables": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 7,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "variable", "why_it_decides"],
+        "properties": {
+          "id": {"type": "string", "minLength": 1},
+          "variable": {"type": "string", "minLength": 1},
+          "why_it_decides": {"type": "string", "minLength": 1}
+        }
+      }
+    },
+    "checks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "verdict", "finding", "evidence_ids"],
+        "properties": {
+          "id": {
+            "enum": [
+              "business_quality",
+              "moat",
+              "management_governance",
+              "valuation",
+              "dilution",
+              "downside",
+              "underlying_exposure",
+              "decay_and_regime",
+              "sizing_limit",
+              "liquidity"
+            ]
+          },
+          "verdict": {"enum": ["pass", "fail", "unknown"]},
+          "finding": {"type": "string", "minLength": 1, "maxLength": 600},
+          "evidence_ids": {"type": "array", "items": {"type": "string", "minLength": 1}}
+        }
+      }
+    },
+    "vetoes": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "status", "finding", "evidence_ids", "exception"],
+        "properties": {
+          "id": {
+            "enum": [
+              "integrity_or_governance_red_flag",
+              "unintelligible_revenue_mechanism",
+              "persistent_negative_cash_generation",
+              "destructive_dilution"
+            ]
+          },
+          "status": {"enum": ["clear", "triggered", "unknown"]},
+          "finding": {"type": "string", "minLength": 1, "maxLength": 600},
+          "evidence_ids": {"type": "array", "items": {"type": "string", "minLength": 1}},
+          "exception": {
+            "oneOf": [
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["reason", "evidence_id"],
+                "properties": {
+                  "reason": {"type": "string", "minLength": 1},
+                  "evidence_id": {"type": "string", "minLength": 1}
+                }
+              },
+              {"type": "null"}
+            ]
+          }
+        }
+      }
+    },
+    "mirror_test": {
+      "description": "Exactly five sentences: what it does, why it earns, what must stay true, what would break it, what you would do then.",
+      "type": "array",
+      "minItems": 5,
+      "maxItems": 5,
+      "items": {"type": "string", "minLength": 1, "maxLength": 300}
+    },
+    "evidence": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["evidence_id", "observed_at", "source_class", "locator", "summary"],
+        "properties": {
+          "evidence_id": {"type": "string", "minLength": 1},
+          "observed_at": {"type": "string", "format": "date-time"},
+          "source_class": {
+            "enum": [
+              "sec_filing",
+              "hkex_announcement",
+              "issuer_ir",
+              "sec_xbrl",
+              "eastmoney_fundamentals",
+              "earnings_review_artifact",
+              "regulatory_database",
+              "exchange_data",
+              "workspace_dataset",
+              "news_media",
+              "third_party_summary",
+              "analyst_note"
+            ]
+          },
+          "locator": {"type": "string", "minLength": 1},
+          "summary": {"type": "string", "minLength": 1, "maxLength": 600}
+        }
+      }
+    },
+    "next_evidence": {
+      "description": "Required whenever the verdict is gray_needs_evidence.",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["question", "where_to_look"],
+        "properties": {
+          "question": {"type": "string", "minLength": 1},
+          "where_to_look": {"type": "string", "minLength": 1}
+        }
+      }
+    },
+    "verdict": {"enum": ["pass_to_deep_research", "reject", "gray_needs_evidence"]},
+    "routing": {"enum": ["us_full_report", "hk_full_report", "leverage_look_through"]}
+  }
+}

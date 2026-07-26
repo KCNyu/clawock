@@ -162,6 +162,7 @@ Hong Kong times run on HKT; US session times follow ET and their cron expression
 | Review the current portfolio | [`portfolio-risk-review`](skills/portfolio-risk-review/SKILL.md) for one pass; [`portfolio-swarm-review`](skills/portfolio-swarm-review/SKILL.md) for debate | `portfolio.json`, fresh quotes, risk and decision ledgers | Specific to the configured portfolio |
 | Stress-test a supply-chain thesis | [`serenity-skill`](skills/serenity-skill/SKILL.md) | Current public evidence plus its local scorecard | Reusable as a manual research framework |
 | Review a reported quarter and hold management to account | [`earnings-review`](skills/earnings-review/SKILL.md) | First-party filings/HKEX announcements, structured XBRL or Eastmoney verification, provenance gate | Reusable; artifacts live in `memory/earnings/` |
+| Decide whether a new name is worth researching | [`entry-gate`](skills/entry-gate/SKILL.md) | Workspace quote pipelines, instrument registry, evidence source grading, deterministic hard vetoes | Reusable; artifacts live in `memory/entry-gates/` |
 
 These are workspace-native research routes, not standalone one-command products. They expect clawock's scripts, data contracts, and memory/SOP files; the published portfolio and its operating history remain specific to this deployment.
 
