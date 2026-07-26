@@ -143,16 +143,22 @@ def sort_key(mins, hours):
 
 # ── source loaders ──────────────────────────────────────────────────────────
 
-def load_openclaw():
+LAST_OPENCLAW_SOURCE = None
+
+
+def load_openclaw(backend='auto'):
+    global LAST_OPENCLAW_SOURCE
     rows = []
     try:
         # 6.1 moved cron storage into SQLite — read via the storage-agnostic CLI
         # layer (the dead jobs.json silently returned [] and dropped all 11
         # openclaw jobs from the timeline, found 2026-06-10).
         sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'harness'))
-        from _watchdog_common import load_jobs
-        jobs = load_jobs()
+        import _watchdog_common as watchdog_common
+        jobs = watchdog_common.load_jobs(backend)
+        LAST_OPENCLAW_SOURCE = watchdog_common.LAST_LOAD_SOURCE
     except Exception:
+        LAST_OPENCLAW_SOURCE = 'empty'
         return rows
     for j in jobs:
         sch = j.get('schedule') or {}
@@ -253,12 +259,18 @@ TAG = {'openclaw': '🦞 openclaw', 'gha': '🐙 GH Action', 'crontab': '🛡 cr
 def main():
     p = argparse.ArgumentParser(description='Merged HKT schedule timeline (openclaw + GHA + crontab)')
     p.add_argument('--source', choices=['openclaw', 'gha', 'crontab', 'all'], default='all')
+    p.add_argument(
+        '--openclaw-backend',
+        choices=['auto', 'cli', 'sqlite', 'fossil'],
+        default='auto',
+        help='OpenClaw state backend (sqlite is a read-only gateway-independent view)',
+    )
     p.add_argument('--json', action='store_true')
     args = p.parse_args()
 
     rows = []
     if args.source in ('all', 'openclaw'):
-        rows += load_openclaw()
+        rows += load_openclaw(args.openclaw_backend)
     if args.source in ('all', 'gha'):
         rows += load_gha()
     if args.source in ('all', 'crontab'):
@@ -271,6 +283,11 @@ def main():
             'source': r[0], 'name': r[1], 'expr': r[2], 'tz': r[3],
             'hkt_time': time_label(r[4], r[5]), 'hkt_days': days_label(r[6]),
         } for r in rows], ensure_ascii=False, indent=2))
+        if LAST_OPENCLAW_SOURCE in {'fossil', 'empty'}:
+            detail = ('stale pre-6.1 fossil' if LAST_OPENCLAW_SOURCE == 'fossil'
+                      else 'no live CLI/SQLite state')
+            print(f'error: OpenClaw schedule unavailable ({detail})', file=sys.stderr)
+            return 2
         return 0
 
     print('📆 合并调度时间线（全部归一到 HKT，按当日触发时刻排序）')
@@ -286,6 +303,13 @@ def main():
         print(f'{vpad(time_label(mins, hours), 22)}  {vpad(TAG[src], 12)}  '
               f'{vpad(name, 22)}  {vpad(days_label(dow), 12)}  {expr}')
     print(f'\n共 {len(rows)} 个调度项。GH Action cron 是 UTC，已 +8h 折算并修正跨日星期。')
+    if LAST_OPENCLAW_SOURCE in {'fossil', 'empty'}:
+        detail = ('rows came from a stale pre-6.1 fossil'
+                  if LAST_OPENCLAW_SOURCE == 'fossil'
+                  else 'live CLI and SQLite state were both unavailable')
+        print(f'❌ OpenClaw schedule unavailable: {detail}; '
+              'contract/model/delivery inspection is invalid.', file=sys.stderr)
+        return 2
     return 0
 
 
