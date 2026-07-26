@@ -27,6 +27,7 @@ import requests
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from _em_http import em_get  # noqa: E402
+from instrument_registry import INSTRUMENTS  # noqa: E402
 
 WS_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 PORTFOLIO_PATH = os.path.join(WS_ROOT, 'portfolio.json')
@@ -44,6 +45,12 @@ EASTMONEY_PREFIX: Dict[str, str] = {
     'ROBN': '106', 'MSFU': '106', 'FNGU': '106', 'TECL': '106', 'LABU': '106',
     'LABD': '106', 'NVDL': '106', 'NVDS': '106', 'TSLL': '106', 'TSLS': '106',
 }
+# Registry entries override the broad fallback table for held/canonical names.
+EASTMONEY_PREFIX.update({
+    symbol: meta['eastmoney_secid'].split('.', 1)[0]
+    for symbol, meta in INSTRUMENTS.items()
+    if meta['region'] == 'US' and meta.get('eastmoney_secid')
+})
 
 TIMEOUT = 12
 SESSION = requests.Session()

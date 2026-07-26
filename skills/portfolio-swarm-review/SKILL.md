@@ -137,6 +137,8 @@ Each item: ticker + concrete reason + concrete trigger/level if applicable.
 
 Not every signal source has earned the right to drive a decision. Read the current v2 ledger metrics (`decision_metrics.by_driver`, `by_strategy`, and `by_condition`) and compare `n_episodes`, average benefit, and date-cluster CI. Never copy a point-in-time rate from an old report. If n is small or the CI crosses zero, call it directional evidence only. Hard catalysts may drive an event/tactical decision; soft sentiment only nudges confidence. Policy-based deleveraging is a separate `risk_rebalance` decision with `driven_by=risk_rule`, not a claim of timing edge.
 
+For active-call sizing, the authored confidence is an audit field, not a win probability. Match the proposed `action + driver + condition + regime` against `decision_metrics.hierarchical_calibration.current_group_calibrators`. A missing exact row, `abstain=true`, or `edge_supported=false` means the signal contributes zero incremental size; otherwise multiply proposed signal size by `signal_size_multiplier` and show the calibrated probability, CI, and resolved hierarchy level. This never cancels a mandatory `risk_rebalance + risk_rule` hard-cap action, because that is policy rather than a timing forecast.
+
 ### Position / leverage hard caps (REQUIRED — overrides signal logic AND regime)
 
 The drawdown was a **construction** problem (US β≈4.4, 73% leveraged ETFs, HK 85% one factor), not a signal problem. Before signal-source weighting even applies, the Judge must check these hard caps against the live book and emit a disciplinary trim/cut for any breach:

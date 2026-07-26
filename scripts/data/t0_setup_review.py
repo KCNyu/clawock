@@ -13,7 +13,8 @@
 
 铁律（同 quant_signal_review）：
   • 纯本地文件运算，零网络（绝不每分钟抓价——结算用的是后续 preflight 已留痕的 close）
-  • 样本 n<MIN_N 的牌面标「样本不足」，不得当结论引用方向
+  • sample_sufficient 只回答样本够不够；edge_supported 只回答 Wilson CI
+    是否完整高于 50%。两者同时为真才 usable，禁止再用 raw n 自动解锁
   • 结算按 (日期, 标的) 去重取当日最后一条（端午盘中多条 → 取收盘牌面）
 
 输出 assets/data/t0_setup_review.json。brief preflight 每日顺跑，dashboard🎯卡展示。
@@ -117,23 +118,43 @@ def main():
         wr = round(s['hits'] / s['n'], 3) if s['n'] else None
         avg = round(s['fwd_sum'] / s['n'] * 100, 2) if s['n'] else None
         ci = wilson_ci(s['hits'], s['n'])      # 95% Wilson — 让样本不确定性显形
-        edge_sig = ci is not None and ci[0] > 0.5   # 整个区间 > 掷硬币才算真方向 edge
+        sample_sufficient = s['n'] >= MIN_N
+        edge_supported = ci is not None and ci[0] > 0.5
+        reverse_edge_supported = ci is not None and ci[1] < 0.5
+        usable_now = sample_sufficient and edge_supported
+        if not sample_sufficient:
+            note = '样本不足，不得当结论引用方向'
+        elif reverse_edge_supported:
+            note = 'Wilson CI 支持相反方向；原牌面禁用，不自动反向交易'
+        elif not edge_supported:
+            note = 'Wilson CI 跨 50%，正向 edge 未获支持'
+        else:
+            note = ''
         grades[name] = {
             'label': GRADE_CN[name], 'n': s['n'], 'hit_rate': wr,
-            'ci95': ci, 'edge_significant': edge_sig,
-            'avg_dir_fwd_pct': avg, 'usable': s['n'] >= MIN_N,
-            'note': '样本不足，不得当结论引用方向' if s['n'] < MIN_N else '',
+            'ci95': ci,
+            # edge_significant is retained for old dashboard readers.
+            'edge_significant': edge_supported,
+            'sample_sufficient': sample_sufficient,
+            'edge_supported': edge_supported,
+            'reverse_edge_supported': reverse_edge_supported,
+            'decision_direction': 'original' if usable_now else None,
+            'avg_dir_fwd_pct': avg,
+            'usable': usable_now,
+            'note': note,
         }
-        if s['n'] >= MIN_N and wr is not None:
+        if usable_now and wr is not None:
             band = f"[{ci[0]*100:.0f}–{ci[1]*100:.0f}]" if ci else ''
             usable.append(f"{GRADE_CN[name]} 命中{wr*100:.0f}%{band}(n={s['n']})")
 
     summary = ('、'.join(usable) if usable
-               else f'各牌面样本 <{MIN_N}，累积中（{len(days)} 交易日留痕）——结论未解锁')
+               else f'没有牌面同时通过样本与正向 edge 闸（{len(days)} 交易日留痕）——结论未解锁')
     out = {
         'as_of': date.today().isoformat(), 'days_logged': len(days),
         'min_n': MIN_N, 'horizon': HORIZON, 'grades': grades, 'summary': summary,
-        'discipline': ('自迭代：命中率是牌面话语权的唯一来源。usable=false 只展示不下结论；'
+        'unlock_rule': 'sample_sufficient AND Wilson_ci95_lower>50pct',
+        'discipline': ('自迭代：usable 需要样本量与正向 Wilson edge 同时成立；'
+                       '样本够多但方向错误也只展示不下结论；'
                        '「命中」= 评级方向警示被次日价格证实（追高→跌 / 超卖→涨），不是「能赚钱」。'),
     }
     safe_write_json(str(OUT), out)

@@ -98,6 +98,10 @@ def validate_plan_json(path, context=None):
     decisions = plan.get('decisions', []) if isinstance(plan.get('decisions'), list) else []
     # Unpriceable calls score for direction but never reach the money chart.
     issues += [f'plan.json size: {x}' for x in decision_v2.missing_size_warnings(decisions)]
+    issues += [
+        f'plan.json calibration: {x}'
+        for x in decision_v2.missing_regime_warnings(decisions)
+    ]
     for i, d in enumerate(decisions):
         tag = f'plan.json decision[{i}] ({d.get("ticker", "?")}/{d.get("strategy_id", "?")})'
         # Active timing calls need a hard catalyst. Deterministic risk-rebalance is

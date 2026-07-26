@@ -32,7 +32,9 @@ from zoneinfo import ZoneInfo
 
 WS = Path(__file__).resolve().parents[2]
 HKT = ZoneInfo('Asia/Hong_Kong')
-TERMINAL_HEARTBEAT_STATES = {'completed', 'watchdog_backstop', 'market_closed'}
+TERMINAL_HEARTBEAT_STATES = {
+    'completed', 'watchdog_backstop', 'market_closed', 'no_change'
+}
 HEARTBEAT_GRACE_MINUTES = 25
 
 # Cron name → identifying commit msg patterns
