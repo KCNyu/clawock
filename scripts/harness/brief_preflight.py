@@ -1479,6 +1479,66 @@ def main():
         print(f'   ⚠ catalysts step failed: {e}')
         issues.append(f'catalysts step exception: {type(e).__name__}')
 
+    # [11b] News evidence graph — normalize filings/news/calendar nodes, expire
+    # repeated summaries and apply deterministic source/novelty/confirmation
+    # gates. Only a compact decision envelope enters the LLM context.
+    news_evidence_ctx = {}
+    try:
+        graph_out, graph_ok = _run(
+            'scripts/data/news_evidence_graph.py', timeout=150
+        )
+        graph_path = WS / 'assets' / 'data' / 'news_evidence_graph.json'
+        if not graph_ok:
+            print(f'   ⚠ news evidence graph failed: {graph_out[-150:]}')
+            issues.append('news evidence graph failed')
+        elif graph_path.exists():
+            graph = json.loads(graph_path.read_text())
+            current_events = [
+                event for event in graph.get('events') or []
+                if event.get('status') in ('active', 'upcoming')
+            ]
+            current_events.sort(
+                key=lambda event: (
+                    bool(event.get('actionable_escalation')),
+                    bool(event.get('high_impact')),
+                    event.get('source_reliability') or 0,
+                    event.get('publication_time', {}).get('iso') or '',
+                ),
+                reverse=True,
+            )
+            decision_fields = (
+                'event_id', 'ticker', 'reported_ticker', 'event_type',
+                'title', 'publication_time', 'event_time', 'source_type',
+                'source_reliability', 'novelty_score', 'novelty_reason',
+                'status', 'expires_at', 'impact_direction', 'confirmation',
+                'high_impact', 'actionable_escalation',
+                'actionable_blockers', 'decision_permission',
+            )
+            news_evidence_ctx = {
+                'as_of': graph.get('as_of'),
+                'summary': graph.get('summary'),
+                'events': [
+                    {key: event.get(key) for key in decision_fields}
+                    for event in current_events[:40]
+                ],
+                'actionable_events': graph.get('actionable_events') or [],
+                'tavily_resolution_queue': (
+                    graph.get('tavily_resolution_queue') or []
+                ),
+                'policy': graph.get('policy'),
+            }
+            summary = graph.get('summary') or {}
+            print(
+                f'   🧾 news evidence: {summary.get("events", 0)} events, '
+                f'{summary.get("actionable_escalations", 0)} actionable, '
+                f'{summary.get("tavily_resolution_queue", 0)} unresolved'
+            )
+    except Exception as e:
+        print(f'   ⚠ news evidence graph step failed: {e}')
+        issues.append(
+            f'news evidence graph exception: {type(e).__name__}'
+        )
+
     # Benchmark history (SPY + HSI/HSTECH) for the Equity Curve overlay.
     # Refreshed once per day at brief time; consumed by build_dashboard.
     print('[13/14] Fetch benchmark history')
@@ -1539,6 +1599,7 @@ def main():
         'reflections':   reflections,
         'risk_metrics':  risk,
         'catalysts':     catalysts,
+        'news_evidence_graph': news_evidence_ctx,
         'macro':         macro_trim,
         'sentiment':     sentiment_trim,
         'influencer':    influencer_trim,

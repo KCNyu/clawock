@@ -64,6 +64,7 @@ context.json 关键字段：
 - `macro` — VIX / DXY / 10Y / F&G / HSI / HSTECH / SPX / NASDAQ + Fed press top 3（GH Action 周日–四 21:45 UTC，即工作日 05:45 HKT 名义刷新）
 - `sentiment` — 每个持仓票的 Reddit 提及数 + Reddit top 3 + Google News top 3（无 signal 的票已被剔）
 - `em_news` — **东财中文消息源**（`holdings_news` 逐 HK 持仓近 3 条公司新闻 + `market_724` 大盘 7x24 快讯）。clawock 英文 news 薄在港股/中文面,这里补上。**HK 持仓找硬催化优先看这个**——回购/公告/事件多在中文源先出。命中硬催化 → `driven_by=catalyst` 并在 rationale 引日期+标题;只是情绪/涨跌色 → 不构成主动操作依据(见 catalyst-gate 铁律)。杠杆 ETF 已自动剔除(看标的不看公司新闻)。
+- `news_evidence_graph` — 新闻/公告/SEC/事件日历的去重证据图。`events` 已带来源可靠度、新颖度、到期状态、价量/已验证同行确认与 `actionable_escalation`。**它是 catalyst 权限的唯一事实源**；原始摘要仅供阅读。
 
 ### Step 3: Swarm 分析（你的创造性工作）
 
@@ -247,6 +248,9 @@ preflight 已算好,直接读 `context.risk_guardrail`:
 | **软情绪** (soft) | Reddit 提及数/热度、Google News 标题情绪、散户温度、Trump/Musk 喊话(无落地)、"看好/看空"类口风 | **只能动 confidence ±10pp,不能单独翻 bucket** |
 
 硬性规则:
+- **`context.news_evidence_graph` 存在时，只有 `actionable_escalation=true` 的事件能驱动主动 catalyst 动作**，并把其 `event_id` 原样写入 plan 的 `evidence_event_id`。事件必须是一手/可靠、仍有效、足够新颖、负面证伪且获价量或已校准同行残差确认；任一 blocker 存在就只能 display/watch。
+- 同一 novelty cluster 的重复摘要不会增加 conviction；过期事件不能复活。`positive/confirming` 事件一律 hold-only。
+- Tavily 新闻搜索只准处理 `tavily_resolution_queue` 里列出的 event ID 和 query；队列外的日常旧闻/低影响摘要不得消耗 Tavily。未解决不等于可交易，搜索结果仍需下一轮图谱门控。
 - **软情绪单独存在时,bucket 必须维持技术面/基本面给出的那个**;软情绪只允许把该 action 的 confidence 上下微调最多 ±10pp,且要在 rationale 写明"软情绪佐证/背离,confidence ±X"。
 - **只有硬催化能驱动一次 bucket 翻转**(尤其翻成 cut/trim/add)。若你想下主动 call 但手里只有软情绪 → 降级为 `hold_and_watch` + 设触发价观察,别直接动手。
 - influencer(Trump/Musk/Serenity)默认归 **软情绪**;仅当其言论对应**已落地的政策/行政令/具体合同**才升级为硬催化。Serenity 是 KOL 选股(常为微盘/光通信小票),按 [[serenity-skill]] 的证据阶梯属"弱证据线索",只动 confidence、需一手来源(财报/合同/公告)证实后才可加权。
@@ -561,6 +565,7 @@ postflight 严格 schema 校验：
       "size": {"pct": 15, "shares": 6},
       "confidence": 0.61,
       "driven_by": "technical",
+      "evidence_event_id": null,
       "contested": false,
       "rationale": "与 core/risk_rebalance 分开的日内策略"
     }
@@ -578,6 +583,7 @@ postflight 严格 schema 校验：
 - `action` ∈ {`cut`, `trim_on_rebound`, `hold_and_watch`, `t_only`, `add_only_on_trigger`, `watch`}
 - `condition.type` ∈ {`open`, `price_above`, `price_below`, `index_breakdown`, `event`, `manual`}
 - `driven_by` ∈ {`technical`, `catalyst`, `sentiment`, `influencer`, `macro`, `peer`, `risk_rule`}（每个 decision 必填）
+- `evidence_event_id`：主动且 `driven_by=catalyst` 时必填，必须精确匹配 `context.news_evidence_graph.events` 中同 ticker 且 `actionable_escalation=true` 的事件；其余 decision 填 `null`。
 - `confidence` ∈ [0.0, 1.0]
 - `size.shares`（整数，**主动 call（`cut`/`trim_on_rebound`/`t_only`/`add_only_on_trigger`/`add_on_breakout`）必填**；`hold_and_watch`/`watch` 不需要)：股数是这条 call 日后唯一能被折算成钱的凭据。面板上那条金额曲线已撤（见上条铁律），但**重建一套可信对照账本必须有股数，当天没填就永远补不回来**。宁可给保守估数也别留空。填**你真的会动的股数**,不是仓位上限。
 - `contested` ∈ {`true`, `false`}（每个 decision 必填）：Tier 2 的 Bull 与 Bear 是否真的在该策略上分歧。
