@@ -169,8 +169,9 @@ def compute_us():
             'close': round(close, 2), 'ma': round(ma, 2), 'ma_window': MA_WINDOW,
             'dist_ma_pct': round((close / ma - 1) * 100, 1),
             'vol_annualized': round(vol, 4) if vol else None,
+            'vol_n_returns': min(VOL_WINDOW, len(closes) - 1),
             'vol_hot_cap': US_VOL_HOT, 'trend_on': trend_on, 'vol_hot': vol_hot,
-            'state': state,
+            'state': state, 'regime_basis': 'ma_200_and_20d_realized_vol',
         })
     cuts = [n for n in names if n.get('state') == 'cut']
     watches = [n for n in names if n.get('state') == 'watch']
@@ -323,8 +324,14 @@ def main():
     print(f'  lev_regime US: {us["tier"]} — {us["label"]}')
     for n in us['names']:
         if n.get('state') in ('cut', 'watch'):
+            vol = n.get('vol_annualized')
+            vol_text = f'{vol*100:.0f}%' if vol is not None else 'N/A'
+            basis = n.get('regime_basis') or (
+                f'ma_{n.get("ma_window")}' if n.get('ma_window') else 'unknown'
+            )
             print(f'     {n["etf"]}=2x{n["underlying"]}: {n["state"]} '
-                  f'({n.get("dist_ma_pct")}% vs 200线, vol {(n.get("vol_annualized") or 0)*100:.0f}%)')
+                  f'({n.get("dist_ma_pct")}% vs {n.get("ma_window") or "?"}线, '
+                  f'vol {vol_text}, basis {basis})')
 
 
 if __name__ == '__main__':
