@@ -37,6 +37,7 @@ WS = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(WS / 'scripts' / 'data'))
 import trading_calendar  # noqa: E402
 import decision_v2  # noqa: E402
+import workflow_outcomes  # noqa: E402
 
 # Required concepts and the section labels the brief model may legitimately emit.
 # The canonical keys preserve the existing missing-section issue text.  The aliases
@@ -386,10 +387,16 @@ def main():
     args = ap.parse_args()
 
     today = datetime.now().strftime('%Y-%m-%d')
+    job_name = '盘前深度简报'
+    slot = workflow_outcomes.slot_for_job(job_name)
 
     # Holiday/weekend gate: skip send/commit only when BOTH markets are closed
     # (mirrors brief_preflight; brief still ships if either market trades).
     if trading_calendar.closed_reason('hk') and trading_calendar.closed_reason('us'):
+        workflow_outcomes.record_stage(
+            job_name, 'preflight', 'skipped', slot=slot, dry_run=args.dry_run,
+            reason='both markets closed',
+        )
         result = {'status': 'market_closed', 'date': today, 'wechat_sent': False,
                   'issues': ['港股+美股均休市，跳过简报投递+commit']}
         print(json.dumps(result, ensure_ascii=False, indent=2))
@@ -415,6 +422,22 @@ def main():
     issues += validate_plan_json(plan_path, context=context)
 
     status = categorize(issues)
+    workflow_outcomes.record_stage(
+        job_name,
+        'preflight',
+        'success' if context else 'failed',
+        slot=slot,
+        dry_run=args.dry_run,
+        context_present=bool(context),
+    )
+    workflow_outcomes.record_stage(
+        job_name,
+        'llm',
+        'success' if status == 'pass' else ('warning' if status == 'warn' else 'failed'),
+        slot=slot,
+        dry_run=args.dry_run,
+        issue_count=len(issues),
+    )
     # Emit the cross-process publish gate BEFORE anything else can raise, so the
     # off-host workflow's committer has an explicit verdict (and a crash leaves no
     # file → fail-closed).
@@ -446,6 +469,7 @@ def main():
     # re-sends on a CONFIRMED miss. Card = LLM's brief-card-{date}.txt, else a
     # deterministic compact card from plan.json (build_brief_card).
     wechat_sent = None
+    tg_ok = None
     brief_marker = WS / 'memory' / '.tmp' / f'brief-sent-{today}.json'
     # Idempotency: brief marker is per-date, fires once/day. If it already shows a
     # delivery this run is an openclaw auto-retry of a turn that errored only in
@@ -454,6 +478,10 @@ def main():
     if status in ('pass', 'warn') and already_delivered(brief_marker):
         print('idempotency: brief already delivered today — skip re-send', file=sys.stderr)
         wechat_sent = True
+        try:
+            tg_ok = json.loads(brief_marker.read_text()).get('tg_ok')
+        except Exception:
+            pass
     elif status in ('pass', 'warn'):
         card = build_brief_card(today)
         message = (wechat_prefix + card).strip()
@@ -506,6 +534,24 @@ def main():
             'plan_json':    str(plan_path),
         },
     }
+    workflow_outcomes.record_stage(
+        job_name,
+        'postflight',
+        'success' if status == 'pass' else ('warning' if status == 'warn' else 'failed'),
+        slot=slot,
+        dry_run=args.dry_run,
+        issue_count=len(issues),
+        commit_ok=commit_ok,
+    )
+    workflow_outcomes.record_stage(
+        job_name,
+        'primary_delivery',
+        ('success' if (wechat_sent or tg_ok) else
+         ('not_required' if status == 'fail' else 'failed')),
+        slot=slot,
+        dry_run=args.dry_run,
+        channel='wechat_or_telegram',
+    )
     print(json.dumps(result, ensure_ascii=False, indent=2))
     return 0 if status == 'pass' else (1 if status == 'warn' else 2)
 

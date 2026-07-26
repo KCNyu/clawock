@@ -1692,6 +1692,17 @@ def compute_build_status(portfolio, data_dir):
             'integrity': integrity}
 
 
+def compute_workflow_outcomes():
+    """Expose raw execution and final product status as separate dashboard data."""
+    try:
+        sys.path.insert(0, str(WS_ROOT / 'scripts' / 'data'))
+        import workflow_outcomes
+        return workflow_outcomes.summarize(reconcile=True)
+    except Exception as e:
+        print(f'  warn: workflow outcome summary failed: {e}', file=sys.stderr)
+        return None
+
+
 def main():
     # BUILD_DASHBOARD_OUT: redirect the WRITE target only. Verification callers
     # (system_check's buildability gate, run by the pre-push hook) build to a
@@ -2022,6 +2033,7 @@ def main():
     except Exception as e:
         print(f'  warn: compute_build_status failed: {e}', file=sys.stderr)
         out['build_status'] = None
+    out['workflow_outcomes'] = compute_workflow_outcomes()
 
     if brief_ctx_path:
         print(f'  brief-context source: {os.path.basename(brief_ctx_path)}')

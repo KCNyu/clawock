@@ -50,6 +50,7 @@ sys.path.insert(0, str(WS / 'scripts' / 'data'))
 import trading_calendar  # noqa: E402
 import decision_v2  # noqa: E402
 import peer_scan  # noqa: E402
+import workflow_outcomes  # noqa: E402
 
 
 def _run(script, args=None, timeout=120):
@@ -1062,6 +1063,9 @@ def main():
     TMP_DIR.mkdir(parents=True, exist_ok=True)
     SNAPSHOT_DIR.mkdir(parents=True, exist_ok=True)
     issues = []
+    job_name = '盘前深度简报'
+    slot = workflow_outcomes.slot_for_job(job_name)
+    workflow_outcomes.record_stage(job_name, 'preflight', 'pending', slot=slot)
 
     # Holiday/weekend gate: the brief covers both markets, so skip ONLY when both
     # HK and US are closed (still runs if either trades). At 08:00 HKT the relevant
@@ -1070,6 +1074,10 @@ def main():
     hk_closed = trading_calendar.closed_reason('hk')
     us_closed = trading_calendar.closed_reason('us')
     if hk_closed and us_closed:
+        workflow_outcomes.record_stage(
+            job_name, 'preflight', 'skipped', slot=slot,
+            reason=f'港股{hk_closed}+美股{us_closed}',
+        )
         result = {'status': 'market_closed', 'date': today,
                   'reason': f'港股{hk_closed}+美股{us_closed}', 'skip': True}
         (TMP_DIR / f'brief-context-{today}.json').write_text(
@@ -1464,6 +1472,14 @@ def main():
     if issues:
         for i in issues:
             print(f'  ⚠️  {i}')
+    workflow_outcomes.record_stage(
+        job_name,
+        'preflight',
+        'success' if not issues else 'warning',
+        slot=slot,
+        issue_count=len(issues),
+        context_path=str(ctx_path),
+    )
     return 0 if not issues else 1
 
 
