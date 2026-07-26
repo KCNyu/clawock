@@ -58,6 +58,7 @@ sys.path.insert(0, str(DATA_DIR))
 import trading_calendar  # noqa: E402
 import peer_scan  # noqa: E402
 import research_surface  # noqa: E402
+import mover_news  # noqa: E402
 import workflow_outcomes  # noqa: E402
 
 
@@ -386,6 +387,13 @@ def main():
         [a['ticker'] for a in anomalies]
     )
 
+    # What was actually published behind those moves. Mover-scoped, bounded
+    # by a wall-clock budget, and fails soft — a news endpoint must never
+    # slow or red a reporting cron.
+    mover_news_ctx = mover_news.probe(
+        [a['ticker'] for a in anomalies], market=args.market,
+    )
+
     result = {
         'status':             'ok',
         'market':             args.market,
@@ -402,6 +410,7 @@ def main():
         'index_direction':    indices,
         'peer_scan':          trim_peer_scan(peers),
         'mover_thesis':       mover_thesis,
+        'mover_news':         mover_news_ctx,
         'needs_risk_section': (signals['stop'] + signals['trim']) >= 2,
     }
     result['context_id'] = compute_context_id(result)
