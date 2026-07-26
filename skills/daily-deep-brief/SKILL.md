@@ -66,7 +66,7 @@ context.json 关键字段：
 - `em_news` — **东财中文消息源**（`holdings_news` 逐 HK 持仓近 3 条公司新闻 + `market_724` 大盘 7x24 快讯）。clawock 英文 news 薄在港股/中文面,这里补上。**HK 持仓找硬催化优先看这个**——回购/公告/事件多在中文源先出。命中硬催化 → `driven_by=catalyst` 并在 rationale 引日期+标题;只是情绪/涨跌色 → 不构成主动操作依据(见 catalyst-gate 铁律)。杠杆 ETF 已自动剔除(看标的不看公司新闻)。
 - `news_evidence_graph` — 新闻/公告/SEC/事件日历的去重证据图。`events` 已带来源可靠度、新颖度、到期状态、价量/已验证同行确认与 `actionable_escalation`。**它是 catalyst 权限的唯一事实源**；原始摘要仅供阅读。
 - `thesis_registry` — `memory/theses/*.json` 的只读摘要：当前 state、最近检查时间、下一次 review trigger；未建基线的持仓明确为 `unknown`。
-- `research_surface` — 研究生命周期的**待办队列**（只读）：`earnings.reviews_due`（已披露财报但没有一手 artifact 覆盖）、`earnings.overdue_commitments`（管理层承诺过期且没结果）、`entry_gates.ungated_positions`（建仓后没有 gate 或 gate 判 reject 仍在持有）、`entry_gates.open_questions`（gray 判定还缺的证据）。`errors` 非空 = 有 artifact 失效，先说这件事。
+- `research_surface` — 研究生命周期的**待办队列**（只读）：`earnings.hk_results_expected`（港股已公告董事会会议→业绩临近；**只有「临近」没有日期**，日期在公告文件里，任何免费源都没有，别编一个出来）、`earnings.reviews_due`（已披露财报但没有一手 artifact 覆盖）、`earnings.overdue_commitments`（管理层承诺过期且没结果）、`entry_gates.ungated_positions`（建仓后没有 gate 或 gate 判 reject 仍在持有）、`entry_gates.open_questions`（gray 判定还缺的证据）。`errors` 非空 = 有 artifact 失效，先说这件事。
 
 ### Step 3: Swarm 分析（你的创造性工作）
 

@@ -202,6 +202,69 @@ def earnings_reviews_due(positions, catalysts, artifacts, today: date) -> list[d
     return sorted(due, key=lambda row: (row["ticker"], row["reported_on"]))
 
 
+# HK issuers announce a board meeting before publishing results — for 00100 the
+# notice led the annual results by about three weeks. It is the only free advance
+# signal found (see issue #99: no free HK results calendar exists, and the notice
+# row carries no meeting date), so this says "results are near", never a date.
+HK_BOARD_MEETING_PATTERN = "董事会会议"
+HK_RESULTS_NOTICE_WINDOW_DAYS = 45
+
+
+def hk_results_expected(positions, today: date, *, artifacts=None, fetch=None) -> list[dict]:
+    """HK holdings whose board-meeting notice is not yet answered by an artifact."""
+    artifacts = artifacts or {}
+    hk = [p for p in positions if p.get("region") == "hk_stocks"]
+    if not hk:
+        return []
+    if fetch is None:
+        try:
+            import mover_news  # noqa: PLC0415
+
+            def fetch(ticker):
+                symbol = mover_news.tencent_symbol(ticker, "hk")
+                if not symbol:
+                    return []
+                payload = mover_news._http_json(
+                    f"{mover_news.TENCENT_NEWS}?symbol={symbol}&n=20&page=1&type=0"
+                )
+                return ((payload or {}).get("data") or {}).get("data") or []
+        except Exception:  # noqa: BLE001
+            return []
+    out = []
+    for position in hk:
+        ticker = position["ticker"]
+        try:
+            rows = fetch(ticker) or []
+        except Exception as exc:  # noqa: BLE001 — a feed hiccup is not a finding
+            out.append({"ticker": ticker, "status": "unknown",
+                        "reason": f"notice feed unavailable: {type(exc).__name__}"})
+            continue
+        notices = []
+        for row in rows:
+            if HK_BOARD_MEETING_PATTERN not in str(row.get("title") or ""):
+                continue
+            announced = _parse_date(str(row.get("time") or "")[:10])
+            if announced and 0 <= (today - announced).days <= HK_RESULTS_NOTICE_WINDOW_DAYS:
+                notices.append(announced)
+        if not notices:
+            continue
+        announced = max(notices)
+        published = [
+            _parse_date(doc.get("published_at")) for doc in artifacts.get(ticker) or []
+        ]
+        if any(day and day >= announced for day in published):
+            continue
+        out.append({
+            "ticker": ticker,
+            "status": "expected",
+            "notice_date": announced.isoformat(),
+            "days_since_notice": (today - announced).days,
+            "reason": "board-meeting notice published; results follow, date is in the "
+                      "announcement document and not in any free feed",
+        })
+    return sorted(out, key=lambda row: row["ticker"])
+
+
 def stale_ledgers(positions, artifacts, today: date) -> list[dict]:
     """Artifacts left behind by more than the issuer's own reporting cadence."""
     held = {position["ticker"] for position in positions}
@@ -346,7 +409,7 @@ def movers_thesis_context(tickers, *, now=None, thesis_dir=THESIS_DIR,
 
 def summarize(*, portfolio=None, catalysts=None, today=None, now=None,
               thesis_dir=THESIS_DIR, earnings_dir=EARNINGS_DIR,
-              entry_gate_dir=ENTRY_GATE_DIR) -> dict:
+              entry_gate_dir=ENTRY_GATE_DIR, hk_watch=False) -> dict:
     """The compact block the daily brief context carries."""
     now = now or datetime.now(timezone.utc)
     today = today or now.date()
@@ -364,6 +427,7 @@ def summarize(*, portfolio=None, catalysts=None, today=None, now=None,
 
     due = earnings_reviews_due(positions, catalysts, earnings, today)
     stale = stale_ledgers(positions, earnings, today)
+    hk_expected = hk_results_expected(positions, today, artifacts=earnings) if hk_watch else []
     overdue = overdue_commitments(earnings, today)
     ungated = ungated_positions(positions, gates)
     verdicts: dict[str, int] = {}
@@ -389,6 +453,7 @@ def summarize(*, portfolio=None, catalysts=None, today=None, now=None,
             "reviews_due": due,
             "detection_window_days": review_window_days(catalysts),
             "stale_ledgers": stale,
+            "hk_results_expected": hk_expected,
             "overdue_commitments": overdue,
         },
         "entry_gates": {
@@ -411,6 +476,9 @@ def check(*, now=None, **kwargs) -> dict:
     warnings = (
         [f"earnings review due: {row['ticker']} ({row['reported_on']})"
          for row in surface["earnings"]["reviews_due"]]
+        + [f"HK results expected: {row['ticker']} (notice {row.get('notice_date')})"
+           for row in surface["earnings"]["hk_results_expected"]
+           if row.get("status") == "expected"]
         + [f"earnings ledger {row['days_behind']}d behind: {row['ticker']} "
            f"(last {row['latest_period']})"
            for row in surface["earnings"]["stale_ledgers"]]

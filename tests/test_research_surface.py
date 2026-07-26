@@ -545,3 +545,63 @@ def test_a_fund_with_no_issuer_never_becomes_due(dirs):
         today=date(2026, 7, 30), now=datetime(2026, 7, 30, tzinfo=timezone.utc), **dirs,
     )
     assert surface["earnings"]["reviews_due"] == []
+
+
+# --- HK results watch: the only free advance signal (issue #99) ---------------
+
+def _hk_positions():
+    return [{"ticker": "00100", "region": "hk_stocks", "first_buy": "2026-01-05"},
+            {"ticker": "CRCL", "region": "us_stocks", "first_buy": "2026-01-05"}]
+
+
+def test_a_board_meeting_notice_flags_results_as_expected():
+    feed = {"00100": [{"title": "董事会会议召开日期", "time": "2026-07-20 16:31:29"}]}
+    out = rs.hk_results_expected(_hk_positions(), date(2026, 7, 26),
+                                 fetch=lambda t: feed.get(t, []))
+    assert out == [{
+        "ticker": "00100", "status": "expected", "notice_date": "2026-07-20",
+        "days_since_notice": 6,
+        "reason": "board-meeting notice published; results follow, date is in the "
+                  "announcement document and not in any free feed",
+    }]
+
+
+def test_us_holdings_are_not_probed_by_the_hk_watch():
+    calls = []
+    rs.hk_results_expected(
+        [{"ticker": "CRCL", "region": "us_stocks"}], date(2026, 7, 26),
+        fetch=lambda t: calls.append(t) or [],
+    )
+    assert calls == []
+
+
+def test_an_artifact_after_the_notice_clears_the_expectation():
+    feed = {"00100": [{"title": "董事会会议召开日期", "time": "2026-07-20 16:31:29"}]}
+    artifacts = {"00100": [{"published_at": "2026-07-24T09:00:00+00:00"}]}
+    assert rs.hk_results_expected(_hk_positions(), date(2026, 7, 26),
+                                  artifacts=artifacts,
+                                  fetch=lambda t: feed.get(t, [])) == []
+
+
+def test_an_old_notice_falls_out_of_the_window():
+    feed = {"00100": [{"title": "董事会会议召开日期", "time": "2026-01-05 16:31:29"}]}
+    assert rs.hk_results_expected(_hk_positions(), date(2026, 7, 26),
+                                  fetch=lambda t: feed.get(t, [])) == []
+
+
+def test_a_dead_notice_feed_reports_unknown_rather_than_silence():
+    def boom(ticker):
+        raise OSError("connection reset")
+
+    out = rs.hk_results_expected(_hk_positions(), date(2026, 7, 26), fetch=boom)
+    assert out[0]["status"] == "unknown"
+    assert "notice feed unavailable" in out[0]["reason"]
+
+
+def test_the_watch_is_opt_in_and_the_daily_brief_opts_in():
+    surface = rs.summarize(portfolio={"portfolios": {"hk_stocks": {"holdings": []},
+                                                     "us_stocks": {"holdings": []}}},
+                           catalysts={"earnings": []}, today=TODAY, now=NOW)
+    assert surface["earnings"]["hk_results_expected"] == []
+    preflight = (ROOT / "scripts" / "harness" / "brief_preflight.py").read_text()
+    assert "hk_watch=True" in preflight

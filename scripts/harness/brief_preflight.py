@@ -1711,8 +1711,10 @@ def main():
     # Research lifecycle work queue: a reported quarter with no primary-source
     # artifact, a management promise past its due date, a position no gate cleared.
     # Read-only — the brief reports these, it does not resolve them.
+    # hk_watch costs two Tencent calls a day (HK operating companies only) and is
+    # the only advance warning we have that HK results are near — see issue #99.
     research_surface_ctx = research_surface.summarize(
-        portfolio=portfolio, catalysts=catalysts,
+        portfolio=portfolio, catalysts=catalysts, hk_watch=True,
     )
 
     context = {
