@@ -161,6 +161,7 @@ Hong Kong times run on HKT; US session times follow ET and their cron expression
 | Analyze a Hong Kong company | [`hk-stock-analysis`](skills/hk-stock-analysis/SKILL.md) | Tencent/Eastmoney quote checks, HK fundamentals, market context | Reusable with the clawock workspace |
 | Review the current portfolio | [`portfolio-risk-review`](skills/portfolio-risk-review/SKILL.md) for one pass; [`portfolio-swarm-review`](skills/portfolio-swarm-review/SKILL.md) for debate | `portfolio.json`, fresh quotes, risk and decision ledgers | Specific to the configured portfolio |
 | Stress-test a supply-chain thesis | [`serenity-skill`](skills/serenity-skill/SKILL.md) | Current public evidence plus its local scorecard | Reusable as a manual research framework |
+| Review a reported quarter and hold management to account | [`earnings-review`](skills/earnings-review/SKILL.md) | First-party filings/HKEX announcements, structured XBRL or Eastmoney verification, provenance gate | Reusable; artifacts live in `memory/earnings/` |
 
 These are workspace-native research routes, not standalone one-command products. They expect clawock's scripts, data contracts, and memory/SOP files; the published portfolio and its operating history remain specific to this deployment.
 
