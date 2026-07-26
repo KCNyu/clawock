@@ -153,6 +153,17 @@ clawock 是一个持续运行的、公开的**纪律化、自评式** AI 投资�
 - [**数据脚本**](scripts/data/README.md) —— fetcher 与计算目录。
 - [**项目文档**](docs/README.md) —— 运维、参考、法律说明与历史设计。
 
+### 研究入口
+
+| 问题 | 入口 | 数据 / 运行契约 | 复用范围 |
+|---|---|---|---|
+| 分析一家美股公司 | [`us-stock-analysis`](skills/us-stock-analysis/SKILL.md) | 本地行情兜底、SEC 文件、基本面、新闻 | 可随 clawock workspace 复用 |
+| 分析一家港股公司 | [`hk-stock-analysis`](skills/hk-stock-analysis/SKILL.md) | 腾讯 / 东财行情对账、港股基本面、市场环境 | 可随 clawock workspace 复用 |
+| 检查当前组合 | 单次走 [`portfolio-risk-review`](skills/portfolio-risk-review/SKILL.md);深度辩论走 [`portfolio-swarm-review`](skills/portfolio-swarm-review/SKILL.md) | `portfolio.json`、新鲜行情、风控与决策账本 | 依赖已配置的真实组合 |
+| 压测一条供应链 thesis | [`serenity-skill`](skills/serenity-skill/SKILL.md) | 当前公开证据 + 本地评分卡 | 可作为手动研究框架复用 |
+
+这些入口原生依赖 workspace,不是一条命令即可独立安装的通用产品。它们要求 clawock 的脚本、数据契约和记忆 / SOP 文件;公开持仓及其运行历史只属于当前这套部署。
+
 用 [Claude Code](https://claude.com/claude-code)、[openclaw](https://openclaw.com) cron 守护进程、纯静态 Jekyll + GitHub Pages 前端,以及 Python 构建。行情、新闻、宏观、情绪来自有文档的公开源并带多源兜底;复用任何抓取内容前请先看[第三方数据与服务条款](docs/legal/third-party-data.md)。
 
 <details>
