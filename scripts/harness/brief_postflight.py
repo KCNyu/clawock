@@ -328,6 +328,8 @@ def maybe_commit(status, today, dry_run=False):
                             'assets/data/quant_signals.json',
                             'assets/data/quant_signals_history.jsonl',
                             'assets/data/quant_signal_review.json',
+                            'assets/data/cross_sectional_factor.json',
+                            'assets/data/cross_sectional_factor_history.jsonl',
                             'assets/data/catalysts.json',
                             'assets/data/em_news.json',
                             'assets/data/guardrail_history.jsonl',

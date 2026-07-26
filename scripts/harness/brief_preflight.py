@@ -1296,6 +1296,53 @@ def main():
     except Exception as e:
         print(f'   ⚠ quant_signal_review failed: {e}')
 
+    # [10b3b] Cross-sectional factor research — curated peers + 1x underlyings,
+    # sector-neutral ranks and strictly prospective activation. The full artifact
+    # stays on disk; context gets a compact view to avoid spending brief tokens on
+    # 38 complete research rows. `usable_for_decisions=false` is a hard boundary.
+    cross_sectional_factor = {}
+    cross_sectional_factor_ctx = {}
+    try:
+        subprocess.run(
+            ['python3', str(WS / 'scripts' / 'data' / 'cross_sectional_factor.py')],
+            capture_output=True, text=True, timeout=240, check=False,
+        )
+        cs_path = WS / 'assets' / 'data' / 'cross_sectional_factor.json'
+        if cs_path.exists():
+            cross_sectional_factor = json.loads(cs_path.read_text())
+            activation = cross_sectional_factor.get('activation') or {}
+            rankings = cross_sectional_factor.get('live_rankings') or {}
+            held = {
+                h.get('ticker')
+                for leg in ('hk_stocks', 'us_stocks')
+                for h in portfolio.get('portfolios', {}).get(leg, {}).get('holdings', [])
+                if h.get('shares', 0) > 0
+            }
+            held_rows = {
+                ticker: row for ticker, row in rankings.items() if ticker in held
+            }
+            leaders = sorted(
+                rankings.items(),
+                key=lambda item: item[1].get('composite_score') or -999,
+                reverse=True,
+            )[:8]
+            cross_sectional_factor_ctx = {
+                'as_of': cross_sectional_factor.get('as_of'),
+                'activation': activation,
+                'validation': cross_sectional_factor.get('validation'),
+                'held_rankings': held_rows,
+                'sector_leaders': dict(leaders),
+                'leveraged_proxy_decay': cross_sectional_factor.get(
+                    'leveraged_proxy_decay'
+                ),
+            }
+            print(
+                f'   🧪 cross-sectional: active={activation.get("active", False)}, '
+                f'blockers={",".join(activation.get("blockers") or [])}'
+            )
+    except Exception as e:
+        print(f'   ⚠ cross-sectional factor failed: {e}')
+
     # [10b4] T+0 牌面评级 — 零额外请求（从已抓字段 + quant ATR 推导），追高检测。
     # 紧跟 quant_signals 之后跑（依赖其 ATR 刷新）。
     t0_setups = {}
@@ -1439,6 +1486,7 @@ def main():
         'breakeven_math': breakeven,
         'quant_signals': quant_signals,
         'quant_signal_review': quant_review,
+        'cross_sectional_factor': cross_sectional_factor_ctx,
         't0_setups': t0_setups,
         't0_setup_review': t0_review,
         'integrity': integrity,
