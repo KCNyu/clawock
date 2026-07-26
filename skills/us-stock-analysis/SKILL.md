@@ -78,7 +78,7 @@ Pick the smallest mode that answers the question. Default to **Quick Read** unle
 
 ### Mode 7 — Intraday Check-in (cron-driven, every 30 min, harness 化 ✨)
 **When:** US 盘中由 evening + overnight 两个 HKT cron 拼接，比 Mode 6 更轻量、更高频。
-精确 EDT/EST 表达式只读 `config/cron-schedules.json` / 生成的 `CRON_SCHEDULES.md`；
+精确 EDT/EST 表达式只读 `config/cron-schedules.json` / 生成的 `docs/operations/cron-schedules.md`；
 每日 DST 同步器会同时调整 live cron 与 watchdog。隔夜始终最晚 02:30 HKT，给 03:00
 dreaming 留独占窗口，所以 EST 季比 EDT 季少两个 slot。
 

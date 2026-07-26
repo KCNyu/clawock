@@ -3,9 +3,9 @@ layout: default
 title: clawock · scripts 详细参考
 ---
 
-# 脚本详细参考（TOOLS_SCRIPTS.md）
+# 脚本详细参考
 
-> 从 TOOLS.md 外移（TOOLS.md 受 openclaw 16K bootstrap 注入上限约束）。
+> 从根目录 `TOOLS.md` 外移（`TOOLS.md` 受 openclaw 16K bootstrap 注入上限约束）。
 > 每个脚本/cron 的**完整说明**在此；TOOLS.md 只留精简索引 + 路由。需要细节时读这里。
 
 ## 现有脚本梳理
@@ -67,7 +67,8 @@ title: clawock · scripts 详细参考
 ### Cron map
 
 精确的 11-job schedule、EDT/EST 表达式、Mode/harness 和 10 条 watchdog 映射由
-`config/cron-schedules.json` 单源维护，生成的人读表见 [`CRON_SCHEDULES.md`](CRON_SCHEDULES.md)。
+`config/cron-schedules.json` 单源维护，生成的人读表见
+[`docs/operations/cron-schedules.md`](../operations/cron-schedules.md)。
 `sync_us_cron_dst.py --apply` 每日自动对齐美股 live cron + system watchdog；
 `cron_heartbeat.py` 维护 Mode 7 slot ledger，由现有 single publisher 发布。
 

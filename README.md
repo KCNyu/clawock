@@ -143,16 +143,17 @@ around it  pre-brief macro / sentiment / event scans, then a pre-US-open news di
 weekly     archive, health, review, and visual-refresh jobs
 ```
 
-Hong Kong times run on HKT; US session times follow ET and their cron expressions shift automatically with New York DST. A holiday + weekend gate skips closed sessions. The exact generated table is in [CRON_SCHEDULES.md](CRON_SCHEDULES.md).
+Hong Kong times run on HKT; US session times follow ET and their cron expressions shift automatically with New York DST. A holiday + weekend gate skips closed sessions. The exact generated table is in [docs/operations/cron-schedules.md](docs/operations/cron-schedules.md).
 
 ## Explore the system
 
 - [**Live dashboard**](https://kcnyu.github.io/clawock/) — positions, risk, and the self-graded scorecard.
 - [**Daily briefs**](https://kcnyu.github.io/clawock/briefs.html) — the published morning reads.
-- [**Schedule**](CRON_SCHEDULES.md) — the generated cron table.
+- [**Schedule**](docs/operations/cron-schedules.md) — the generated cron table.
 - [**Data scripts**](scripts/data/README.md) — the fetcher and compute catalog.
+- [**Project docs**](docs/README.md) — operations, reference, legal notes, and archived designs.
 
-Built with [Claude Code](https://claude.com/claude-code), the [openclaw](https://openclaw.com) cron daemon, a static Jekyll + GitHub Pages frontend, and Python. Market, news, macro, and sentiment come from documented public sources with multi-source fallback; see [third-party data and service terms](THIRD_PARTY_DATA.md) before reusing any fetched content.
+Built with [Claude Code](https://claude.com/claude-code), the [openclaw](https://openclaw.com) cron daemon, a static Jekyll + GitHub Pages frontend, and Python. Market, news, macro, and sentiment come from documented public sources with multi-source fallback; see [third-party data and service terms](docs/legal/third-party-data.md) before reusing any fetched content.
 
 <details>
 <summary><b>Under the hood</b> — models, write coordination, and integrity gates</summary>
@@ -179,6 +180,7 @@ Built with [Claude Code](https://claude.com/claude-code), the [openclaw](https:/
 ```
 clawock/
 ├─ index.html  briefs.md                    ← Pages landing
+├─ docs/                                      ← operations · reference · legal · archive
 ├─ assets/data/        built by harness + GH Actions, never hand-edited
 │   ├─ dashboard.json  risk.json  catalysts.json
 │   ├─ macro.json  sentiment.json  *_news*.json  influencer_feed.json  ← scan sidecars, fetched straight by the frontend
@@ -205,7 +207,7 @@ clawock/
 
 This repository holds **real trading positions**. It is a personal record and portable workspace — **not investment advice, a recommendation, or a copy-trading system**. The desk analyzes and proposes; it does not place orders for you. No individual outcome is hand-picked — settlement rules and methodology changes are versioned in code — the active calls have yet to show an edge, and every number may be stale by the time you read it.
 
-Original code is under the [MIT License](LICENSE). Adapted third-party code keeps its own license and attribution in [NOTICE](NOTICE) and [`THIRD_PARTY_LICENSES/`](THIRD_PARTY_LICENSES/). Third-party market data, news, social posts, filings, trademarks, and API access are **not** relicensed by MIT — see [Third-party data and services](THIRD_PARTY_DATA.md).
+Original code is under the [MIT License](LICENSE). Adapted third-party code keeps its own license and attribution in [NOTICE](NOTICE) and [`THIRD_PARTY_LICENSES/`](THIRD_PARTY_LICENSES/). Third-party market data, news, social posts, filings, trademarks, and API access are **not** relicensed by MIT — see [Third-party data and services](docs/legal/third-party-data.md).
 
 <div align="center">
 <br>

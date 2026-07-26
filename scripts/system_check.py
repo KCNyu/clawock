@@ -485,7 +485,7 @@ def check_generated_cron_docs(r):
         capture_output=True, text=True, timeout=15, cwd=str(WS),
     )
     if result.returncode == 0:
-        r.add('generated cron docs', OK, 'CRON_SCHEDULES.md matches contract')
+        r.add('generated cron docs', OK, 'docs/operations/cron-schedules.md matches contract')
     else:
         r.add('generated cron docs', CRITICAL,
               (result.stdout + result.stderr).strip()[-300:])

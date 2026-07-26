@@ -109,7 +109,7 @@ python3 scripts/data/fetch_us_stocks.py     # 仅刷美股价格
 - fallback：Frankfurter → exchangerate.host → Yahoo HKD=X；4h 本地缓存
 
 ### 美股基本面 / SEC filings
-`fetch_us_filings.py {TICKER}` — SEC EDGAR 免费无 key：10-K/10-Q/8-K、`--financials`(XBRL 13项)、`--form4`(insider)、`--13f`、`--json`。速率 8/sec；非美股票返回 "CIK not found"；**纯基本面补充，不替代 fetch_us_stocks 抓价**。完整参数表+注意事项 → `TOOLS_SCRIPTS.md`。
+`fetch_us_filings.py {TICKER}` — SEC EDGAR 免费无 key：10-K/10-Q/8-K、`--financials`(XBRL 13项)、`--form4`(insider)、`--13f`、`--json`。速率 8/sec；非美股票返回 "CIK not found"；**纯基本面补充，不替代 fetch_us_stocks 抓价**。完整参数表+注意事项 → `docs/reference/scripts.md`。
 
 ### 港股/美股基本面(中文) — 东财 datacenter
 `fetch_fundamentals_em.py {CODE}` — 无 key，**填港股财报空白**：`--indicators`(GMAININDICATOR ROE/EPS/毛利率/资产负债率，美+港) / `--statements income|balance|cashflow`(中文科目行) / `--json`。美股数字以 SEC 为准、此为中文速查。datacenter-web+searchapi 子域实测稳；**资金流 `fetch_fundflow_em.py`(push2his)本机 IP 被封暂不可用**。
@@ -137,7 +137,7 @@ python3 scripts/data/fetch_us_stocks.py     # 仅刷美股价格
 
 ---
 
-## 现有脚本梳理（精简索引 — 完整说明见 `TOOLS_SCRIPTS.md`）
+## 现有脚本梳理（精简索引 — 完整说明见 `docs/reference/scripts.md`）
 
 **数据抓取/分析**：`fetch_us_stocks.py`(美股7路fallback,写回portfolio) · `analyze_us_stocks.py`(刷价+RSI/MA+新闻+信号) · `analyze_hk_stocks.py`(腾讯+东财双源对账→stooq/yf兜底) · `fetch_fx.py`(USDHKD 3路,**book total 必先调**) · `fetch_us_filings.py`(SEC EDGAR) · `fetch_fundamentals_em.py`(东财中文基本面,**港股财报**) · `fetch_catalysts.py`(14d催化→catalysts.json) · `fetch_influencer_feed.py`(Trump/Musk雷达→influencer_feed.json) · `portfolio_risk_metrics.py`(β/Vol/DD/Sharpe→risk.json) · `compute_quant_signals.py`(趋势/动量/RSI/z/ATR吊灯/vol-target→quant_signals.json+history.jsonl留痕,杠杆ETF按标的) · `quant_signal_review.py`(留痕vs前瞻收益→因子edge表,n<20不解锁,brief按edge取信)
 
@@ -153,19 +153,19 @@ python3 scripts/data/fetch_us_stocks.py     # 仅刷美股价格
 - report / brief / intraday postflight 主发 WeChat 并同步 Telegram；watchdog 读真实 delivery marker，只在 Telegram marker 缺失或失败时补投，不再猜 run summary、也不重发 WeChat。
 - `.tmp/*-sent-*.json` + slot key 做幂等，避免长 turn / cron retry 双发。
 
-**其它**：`mark_followed.py`(标 `decisions.jsonl` 的 execution.status) · `xiaomi_llm.py`(GH Action 直连 vendor，MiniMax→可选 Xiaomi fallback) · `gh_action_*.py` · `reconcile.sh`(手工记录 `holdings[].trades[]` 与 broker 真值叶子后，统一重算 aggregates/cash/realized 并过完整性闸)。**每脚本详细说明 + 已废弃 legacy → `TOOLS_SCRIPTS.md`**。
+**其它**：`mark_followed.py`(标 `decisions.jsonl` 的 execution.status) · `xiaomi_llm.py`(GH Action 直连 vendor，MiniMax→可选 Xiaomi fallback) · `gh_action_*.py` · `reconcile.sh`(手工记录 `holdings[].trades[]` 与 broker 真值叶子后，统一重算 aggregates/cash/realized 并过完整性闸)。**每脚本详细说明 + 已废弃 legacy → `docs/reference/scripts.md`**。
 
 ### Cron map
 
 11 个 OpenClaw job、11 个 watchdog pass（6 report + 3 intraday + 08:30 brief 投递兜底 + 09:05 brief miss-detector）、EDT/EST 两季表达式和 harness 映射只在
 [`config/cron-schedules.json`](config/cron-schedules.json) 维护；人读表由
-[`CRON_SCHEDULES.md`](CRON_SCHEDULES.md) 自动生成。每日 06:20 HKT 的同步器按
+[`docs/operations/cron-schedules.md`](docs/operations/cron-schedules.md) 自动生成。每日 06:20 HKT 的同步器按
 `America/New_York` 自动调整美股 live cron + watchdog；system check 同时校验 schedule、
 payload 语义和 crontab。Mode 7 的逐 slot 结果发布到 `assets/data/cron-heartbeats.json`。
 
 ## Skill 安装顺序（重要）
 
-见 `skills-store-policy.md`。**先 `skillhub`（cn-optimized）再 `clawhub`（公开 registry）兜底**：
+见 `docs/operations/skills-store-policy.md`。**先 `skillhub`（cn-optimized）再 `clawhub`（公开 registry）兜底**：
 
 ```bash
 skillhub search <kw>         # 第一选择
