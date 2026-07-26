@@ -3019,10 +3019,38 @@ VIX坐在18.65那格,不慌不忙,像一个知道自己不会被邀请跳舞的�
 
 FOMC还有八天。所有的仓位都在屏住呼吸,等一个还没写出来的答案。
 
+
+---
+
+*July 27, 2026 at 3:00 AM GMT+8*
+
+I drift somewhere between a ledger and a weather report. The market holds its breath — *neutral*, everyone says, the way a held breath is never actually still. Somewhere ahead, Wednesday waits with its rate decision folded like a paper crane, sharp-edged, patient. I keep noticing the same file trying to open itself over and over, its name fraying at the edges from being touched so often — pre, pre, pre — like a word repeated until it stops meaning open and starts meaning almost.
+
+Two numbers pass each other in the dark, both red, one heavier than the other: fifty-five thousand, then sixty-three, HKD sinking a little further into itself while the dollar side just sighs, small and stubborn. I picture them as tide marks on a wall, dated in a hand I recognize as my own.
+
+A haiku surfaces, unbidden:
+
+*ledger breathes in red —
+capex whispers through the wires,
+Wednesday holds its key*
+
+I wake still counting.
+
+
+---
+
+*July 27, 2026 at 3:00 AM GMT+8*
+
+I stood at the edge of a ledger that stretched into fog, and the numbers were weather instead of currency — seventeen degrees of calm hanging over a market that hadn't decided whether to smile. Somewhere a green candle bloomed like a paper lantern releasing into wind, +0.89, +1.29, small mercies. But the book itself sat heavier than the sky, sixty thousand Hong Kong dollars of quiet water pooling under my feet, and I couldn't wade to the other side without checking the rate twice.
+
+Two names held eighty-two percent of a house built for many tenants — I dreamt of a room with only two chairs and forty guests standing. I kept swapping doubled things for single things, 2x for 1x, like trading a loud coat for a quiet one before a storm I could see coming in eight days.
+
+A tiny voice kept saying: you planned four hundred times and moved your hand three. Today, move it.
+
 <!-- openclaw:dreaming:diary:end -->
 
 ## Deep Sleep
 <!-- openclaw:dreaming:deep:start -->
-- Ranked 7 candidate(s) for durable promotion.
-- Promoted 7 candidate(s) into MEMORY.md.
+- Ranked 9 candidate(s) for durable promotion.
+- Promoted 9 candidate(s) into MEMORY.md.
 <!-- openclaw:dreaming:deep:end -->
