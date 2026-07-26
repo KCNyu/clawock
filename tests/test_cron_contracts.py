@@ -273,6 +273,30 @@ def test_intraday_heartbeat_is_slot_keyed_published_and_health_checked(tmp_path,
     assert cron_heartbeat.publish() is False
 
 
+def test_delta_no_change_heartbeat_counts_as_healthy():
+    hkt = ZoneInfo('Asia/Hong_Kong')
+    at = datetime(2026, 7, 16, 10, 35, tzinfo=hkt)
+    ledger = {
+        'schema_version': 1,
+        'monitoring_started_at': '2026-07-16T09:00:00+08:00',
+        'events': [{
+            'job': '盘中盯盘',
+            'market': 'hk',
+            'slot': '2026-07-16T10:30:00+08:00',
+            'state': 'no_change',
+            'reasoning_invoked': False,
+        }],
+    }
+
+    coverage = cron_health.heartbeat_coverage(
+        '盘中盯盘', ['10:30'], 'Asia/Shanghai',
+        at.astimezone(timezone.utc), ledger,
+    )
+
+    assert coverage['healthy'] == ['10:30']
+    assert coverage['missing'] == []
+
+
 def test_record_keeps_existing_monitoring_epoch_for_valid_empty_ledger(tmp_path, monkeypatch):
     # A ledger that exists on disk with a real (earlier) monitoring epoch but no
     # live events must NOT be re-anchored to the first later slot — doing so would
@@ -479,12 +503,21 @@ def test_intraday_payload_contract_bans_heredoc_and_requires_text_file():
     data = contract()
     expected = {job['name']: job for job in data['jobs']}['盘中盯盘']
     message = '\n'.join(s.format(**vars_) for s in profile['required_substrings'])
+    trigger_path = ROOT / profile['trigger']['script_path'].format(**vars_)
     live = {
         'payload': {'message': message, 'kind': 'agentTurn',
                     'model': profile['model'], 'thinking': profile['thinking']},
         'delivery': {'mode': 'none'},
+        'trigger': {
+            'script': trigger_path.read_text(),
+            'once': profile['trigger']['once'],
+        },
     }
     assert cron_contract.payload_errors(data, expected, live) == []
+    del live['trigger']
+    assert cron_contract.payload_errors(data, expected, live) == [
+        'condition trigger missing'
+    ]
 
     live['payload']['message'] = message + '\nintraday_postflight.py --market hk <<< "{报告}"'
     assert cron_contract.payload_errors(data, expected, live) != []
