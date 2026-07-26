@@ -1,6 +1,6 @@
 # Third-party data and services
 
-The [MIT License](LICENSE) covers the original software in this repository. It
+The [MIT License](../../LICENSE) covers the original software in this repository. It
 does **not** grant rights to third-party market data, news, social posts,
 filings, trademarks, APIs, or other material retrieved by the software.
 

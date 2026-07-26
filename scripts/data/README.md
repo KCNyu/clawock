@@ -122,7 +122,7 @@ clawock 是**美股 + 港股 + 黄金定投**的实盘组合。工具包遵循�
 **多源 fallback 链** — 行情、FX 等关键路径主源挂了自动落下一个;多 series fetcher 抓空**保留旧值**不整片覆盖(避免限流丢线)。
 
 运行抓取器或再分发生成内容前，请阅读仓库根目录的
-[`THIRD_PARTY_DATA.md`](../../THIRD_PARTY_DATA.md) 与 [`NOTICE`](../../NOTICE)。
+[`docs/legal/third-party-data.md`](../../docs/legal/third-party-data.md) 与 [`NOTICE`](../../NOTICE)。
 
 ---
 

@@ -13,7 +13,7 @@ on:
       - 'config/cron-schedules.json'
       - 'config/instruments.json'
       - 'config/instruments.schema.json'
-      - 'CRON_SCHEDULES.md'
+      - 'docs/operations/cron-schedules.md'
       - '.github/workflows/**'
       - 'skills/tavily-search/**'
   pull_request:
@@ -108,7 +108,7 @@ jobs:
           while IFS= read -r f; do
             [ -n "$f" ] || continue
             case "$f" in
-              scripts/*|tests/*|portfolio.json|memory/*-plan.json|assets/data/dashboard.json|config/cron-schedules.json|config/instruments.json|config/instruments.schema.json|CRON_SCHEDULES.md|.github/workflows/*)
+              scripts/*|tests/*|portfolio.json|memory/*-plan.json|assets/data/dashboard.json|config/cron-schedules.json|config/instruments.json|config/instruments.schema.json|docs/operations/cron-schedules.md|.github/workflows/*)
                 code=true
                 break
                 ;;
