@@ -13,17 +13,6 @@
       "--apply"
     ]
   },
-  "provider_health": {
-    "schedule": {
-      "kind": "cron",
-      "expr": "45 6 * * *",
-      "tz": "Asia/Hong_Kong"
-    },
-    "command_contains": [
-      "scripts/data/provider_health.py",
-      "--apply"
-    ]
-  },
   "payload_profiles": {
     "report": {
       "payload_kind": "agentTurn",
