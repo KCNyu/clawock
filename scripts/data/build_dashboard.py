@@ -51,6 +51,38 @@ def load_json(path):
         return None
 
 
+def trim_decision_metrics(metrics):
+    """Drop calibrator internals from the public payload, keep every headline.
+
+    `hierarchical_calibration.current_group_calibrators` is 42 rows of posterior
+    state — 27KB, larger than any chart on the page, and read by nothing: no
+    renderer, no chart module, no test. The summary fields above it (method,
+    hierarchy, abstain/sizing rules, counts) are what the calibration card shows.
+    The detail stays reproducible from memory/decisions.jsonl.
+    """
+    if not isinstance(metrics, dict):
+        return metrics
+    hierarchical = metrics.get('hierarchical_calibration')
+    if isinstance(hierarchical, dict) and 'current_group_calibrators' in hierarchical:
+        groups = hierarchical['current_group_calibrators']
+        hierarchical = {k: v for k, v in hierarchical.items()
+                        if k != 'current_group_calibrators'}
+        hierarchical['current_group_calibrator_count'] = (
+            len(groups) if isinstance(groups, list) else None)
+        metrics = {**metrics, 'hierarchical_calibration': hierarchical}
+    return metrics
+
+
+def trim_lev_regime(lev_regime):
+    """The dial as the card needs it: everything except the unrendered history."""
+    if not isinstance(lev_regime, dict):
+        return lev_regime
+    trimmed = {k: v for k, v in lev_regime.items() if k != 'regime_history'}
+    if 'regime_history' in lev_regime:
+        trimmed['regime_history_source'] = 'assets/data/lev_regime.json'
+    return trimmed
+
+
 def compute_guardrail_outputs(portfolio, risk, lev_regime=None):
     """Compute the two live risk cards without ever failing the dashboard build.
 
@@ -70,6 +102,12 @@ def compute_guardrail_outputs(portfolio, risk, lev_regime=None):
             risk or {}, lev_regime=lev_regime)
         breakeven = compute_breakeven_math(
             hk_holdings, us_holdings, lev_regime=lev_regime)
+        # compute_risk_guardrail echoes its lev_regime input back out, so the dial
+        # would ship twice in one document (18KB each, byte-identical). The card
+        # reads the top-level copy; the guardrail only needs the tier it derived.
+        if isinstance(guardrail, dict) and isinstance(guardrail.get('lev_regime'), dict):
+            guardrail['lev_regime_tier'] = guardrail['lev_regime'].get('tier')
+            guardrail.pop('lev_regime')
         return {'risk_guardrail': guardrail, 'breakeven_math': breakeven}
     except Exception as e:
         print(f'  warn: risk_guardrail compute fail: {e}', file=sys.stderr)
@@ -1995,7 +2033,8 @@ def main():
                        or (out_file.parent / 'shadow_portfolio.json'))
     write_shadow_sidecar(portfolio, _decisions, shadow_file)
     out['decision_schema_version'] = 2
-    out['decision_metrics'] = decision_v2.compute_metrics(_decisions)
+    out['decision_metrics'] = trim_decision_metrics(
+        decision_v2.compute_metrics(_decisions))
     out['episode_backtest'] = decision_v2.compute_backtest(_decisions)
     # decision_money_impact is deliberately NOT published (2026-07-15). Pulling the
     # chart while still shipping the numbers would be a distinction only a reader of
@@ -2037,7 +2076,11 @@ def main():
             lev_regime = json.loads(lr_path.read_text())
         except Exception as e:
             print(f'  warn: lev_regime.json parse fail: {e}', file=sys.stderr)
-    out['lev_regime'] = lev_regime
+    # regime_history is ~16KB of per-date series that no chart reads — it exists
+    # for the alpha-by-regime bucket and is still published whole in
+    # assets/data/lev_regime.json. The page pays for it on every first paint
+    # otherwise.
+    out['lev_regime'] = trim_lev_regime(lev_regime)
     out['reentry_radar'] = compute_reentry_radar(lev_regime, portfolio)
 
     out.update(compute_guardrail_outputs(
