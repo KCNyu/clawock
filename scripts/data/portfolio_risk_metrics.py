@@ -15,10 +15,11 @@ Finance v8 for every active ticker + benchmarks (^GSPC, ^HSI), and computes:
 Writes: assets/data/risk.json
 """
 import json
+import math
 import os
 import sys
 import time
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 import numpy as np
 import requests
@@ -66,6 +67,10 @@ LEVERAGED = {
 RISK_FREE_ANNUAL = 0.045
 TRADING_DAYS = 252
 WINDOW_DAYS = 30  # final window we use for stats
+MIN_ACTION_RETURNS = 20
+MIN_DATE_COVERAGE = 0.80
+NEW_LISTING_RETURNS = 20
+EWMA_LAMBDA = 0.94
 
 
 # ----------------------------------------------------------------------------
@@ -316,9 +321,7 @@ def beta(port_rets: np.ndarray, bench_rets: np.ndarray) -> float:
 # ----------------------------------------------------------------------------
 
 def active_holdings(portfolio: dict, key: str):
-    """Return [(ticker, current_value, leverage_factor, yahoo_symbol), ...] for
-    holdings with shares > 0 in the given portfolio bucket (us_stocks / hk_stocks).
-    """
+    """Return the live positions plus the ledger needed for historical weights."""
     bucket = portfolio.get('portfolios', {}).get(key, {})
     out = []
     for h in bucket.get('holdings', []):
@@ -335,6 +338,9 @@ def active_holdings(portfolio: dict, key: str):
         out.append({
             'ticker': ticker,
             'current_value': float(cv),
+            'current_price': float(h.get('current_price') or (cv / shares)),
+            'shares': float(shares),
+            'trades': list(h.get('trades') or []),
             'leverage': lev,
             'yahoo_symbol': yahoo_sym,
         })
@@ -365,10 +371,224 @@ def align_to_dates(series_by_ticker: dict):
     return dates, aligned
 
 
-def compute_bucket(holdings: list, bench_series, label: str, sleep_between: float = 0.3):
-    """Fetch each holding's history, build value-weighted portfolio daily returns,
-    and compute β/vol/DD/sharpe for the bucket.
+def _date_close_map(series):
+    return {
+        datetime.fromtimestamp(ts, tz=timezone.utc).strftime('%Y-%m-%d'): float(close)
+        for ts, close in (series or [])
+    }
+
+
+def _shares_on(holding: dict, as_of: str) -> float:
+    """Reconstruct close-of-day shares from today's shares and later trades."""
+    shares = float(holding.get('shares') or 0)
+    for trade in holding.get('trades') or []:
+        trade_date = str(trade.get('date') or '')[:10]
+        if not trade_date or trade_date <= as_of:
+            continue
+        qty = float(trade.get('shares') or 0)
+        action = str(trade.get('action') or '').lower()
+        if action in ('buy', 'bought'):
+            shares -= qty
+        elif action in ('sell', 'sold'):
+            shares += qty
+    return max(shares, 0.0)
+
+
+def _return_map(series):
+    closes = _date_close_map(series)
+    dates = sorted(closes)
+    out = {}
+    for previous, current in zip(dates, dates[1:]):
+        if closes[previous] > 0:
+            out[current] = {
+                'return': closes[current] / closes[previous] - 1,
+                'previous_date': previous,
+                'previous_close': closes[previous],
+                'close': closes[current],
+            }
+    return out
+
+
+def ewma_volatility(returns: np.ndarray, decay: float = EWMA_LAMBDA):
+    if returns.size < 2:
+        return None
+    weights = decay ** np.arange(returns.size - 1, -1, -1, dtype=float)
+    weights /= weights.sum()
+    mean = float(np.sum(weights * returns))
+    variance = float(np.sum(weights * (returns - mean) ** 2))
+    return math.sqrt(max(variance, 0.0) * TRADING_DAYS)
+
+
+def expected_shortfall(returns: np.ndarray, confidence: float = 0.95):
+    if returns.size < 2:
+        return None
+    tail_n = max(1, int(math.ceil((1 - confidence) * returns.size)))
+    return float(np.mean(np.sort(returns)[:tail_n]))
+
+
+def ewma_correlation(left: np.ndarray, right: np.ndarray,
+                     decay: float = EWMA_LAMBDA):
+    n = min(left.size, right.size)
+    if n < 5:
+        return None
+    x, y = left[-n:], right[-n:]
+    weights = decay ** np.arange(n - 1, -1, -1, dtype=float)
+    weights /= weights.sum()
+    dx, dy = x - np.sum(weights * x), y - np.sum(weights * y)
+    vx, vy = np.sum(weights * dx * dx), np.sum(weights * dy * dy)
+    if vx <= 0 or vy <= 0:
+        return None
+    return float(np.sum(weights * dx * dy) / math.sqrt(vx * vy))
+
+
+def _stream_stats(return_by_date: dict, coverage_by_date: dict,
+                  benchmark_return_by_date=None):
+    observed_dates = sorted(return_by_date)[-WINDOW_DAYS:]
+    eligible_dates = [
+        date for date in observed_dates
+        if coverage_by_date.get(date, 0.0) >= MIN_DATE_COVERAGE
+    ]
+    returns = np.array([return_by_date[d] for d in eligible_dates], dtype=float)
+    vol = (float(np.std(returns, ddof=1) * np.sqrt(TRADING_DAYS))
+           if returns.size > 1 else None)
+    result = {
+        'n_returns': int(returns.size),
+        'n_returns_observed': len(observed_dates),
+        'actual_window': {
+            'first': eligible_dates[0] if eligible_dates else None,
+            'last': eligible_dates[-1] if eligible_dates else None,
+            'target_returns': WINDOW_DAYS,
+            'observed_returns': len(observed_dates),
+            'used_returns': int(returns.size),
+        },
+        'missingness': {
+            'minimum_date_coverage_required': MIN_DATE_COVERAGE,
+            'mean_value_coverage_pct': (
+                round(100 * float(np.mean([coverage_by_date[d]
+                                           for d in observed_dates])), 1)
+                if observed_dates else None
+            ),
+            'minimum_value_coverage_pct': (
+                round(100 * min(coverage_by_date[d] for d in observed_dates), 1)
+                if observed_dates else None
+            ),
+            'excluded_low_coverage_dates': [
+                d for d in observed_dates if d not in eligible_dates
+            ],
+            'per_date_value_coverage_pct': {
+                d: round(100 * coverage_by_date[d], 1) for d in observed_dates
+            },
+        },
+        'vol_30d_annualized': round(vol, 4) if vol is not None else None,
+        'ewma_vol_annualized': (
+            round(ewma_volatility(returns), 4) if returns.size > 1 else None
+        ),
+        'max_dd_30d': round(max_drawdown(returns), 4) if returns.size else None,
+        'sharpe_30d': (
+            round(sharpe(returns, vol), 4) if vol not in (None, 0) else None
+        ),
+        'expected_shortfall_95': (
+            round(expected_shortfall(returns), 4) if returns.size > 1 else None
+        ),
+        'threshold_eligible': bool(returns.size >= MIN_ACTION_RETURNS),
+        'threshold_min_returns': MIN_ACTION_RETURNS,
+        'regime_basis': (
+            'dynamic_historical_weights'
+            if returns.size >= MIN_ACTION_RETURNS
+            else 'insufficient_observations'
+        ),
+    }
+    if benchmark_return_by_date is not None:
+        common = [d for d in eligible_dates if d in benchmark_return_by_date]
+        port = np.array([return_by_date[d] for d in common], dtype=float)
+        bench = np.array([benchmark_return_by_date[d] for d in common], dtype=float)
+        result['benchmark_n_returns'] = len(common)
+        result['beta_threshold_eligible'] = bool(
+            len(common) >= MIN_ACTION_RETURNS
+        )
+        b = beta(port, bench)
+        c = ewma_correlation(port, bench)
+        result['beta'] = round(b, 4) if b is not None else None
+        result['ewma_benchmark_correlation'] = round(c, 4) if c is not None else None
+    return result
+
+
+def build_dynamic_return_stream(holdings: list, fetched: dict,
+                                include_tickers=None):
+    """Build returns on the union of dates using reconstructed, date-varying weights.
+
+    A missing quote does not become a zero return and does not truncate every other
+    name. Available names are renormalised for that date and the omitted value is
+    published as coverage, so action thresholds can reject weak dates.
     """
+    include = set(include_tickers or fetched)
+    selected = []
+    for holding in holdings:
+        ticker = holding.get('ticker')
+        if ticker not in fetched or ticker not in include:
+            continue
+        normalized = dict(holding)
+        if float(normalized.get('shares') or 0) <= 0:
+            closes = _date_close_map(fetched[ticker])
+            reference_price = (
+                float(normalized.get('current_price') or 0)
+                or (closes[max(closes)] if closes else 0)
+            )
+            normalized['shares'] = (
+                float(normalized.get('current_value') or 0) / reference_price
+                if reference_price > 0 else 0.0
+            )
+            normalized.setdefault('trades', [])
+        selected.append(normalized)
+    return_maps = {h['ticker']: _return_map(fetched[h['ticker']]) for h in selected}
+    close_maps = {h['ticker']: _date_close_map(fetched[h['ticker']]) for h in selected}
+    dates = sorted(set().union(*(set(m) for m in return_maps.values())))[-WINDOW_DAYS:]
+    return_by_date, coverage_by_date, value_by_date = {}, {}, {}
+    for date in dates:
+        available_value = 0.0
+        expected_value = 0.0
+        weighted_return = 0.0
+        for holding in selected:
+            ticker = holding['ticker']
+            row = return_maps[ticker].get(date)
+            prior_dates = [d for d in close_maps[ticker] if d < date]
+            latest_prior = max(prior_dates) if prior_dates else None
+            prior_calendar_date = (
+                datetime.strptime(date, '%Y-%m-%d').date() - timedelta(days=1)
+            ).isoformat()
+            shares = _shares_on(holding, row['previous_date'] if row else
+                                (latest_prior or prior_calendar_date))
+            if shares <= 0:
+                continue
+            if latest_prior:
+                estimated_value = shares * close_maps[ticker][latest_prior]
+            else:
+                current_shares = float(holding.get('shares') or 0)
+                estimated_value = (
+                    holding['current_value'] * shares / current_shares
+                    if current_shares > 0 else 0.0
+                )
+            expected_value += estimated_value
+            if row:
+                value = shares * row['previous_close']
+                available_value += value
+                weighted_return += value * row['return']
+        if available_value <= 0:
+            continue
+        return_by_date[date] = weighted_return / available_value
+        coverage_by_date[date] = (
+            min(1.0, available_value / expected_value) if expected_value > 0 else 1.0
+        )
+        value_by_date[date] = expected_value
+    return {
+        'return_by_date': return_by_date,
+        'coverage_by_date': coverage_by_date,
+        'value_by_date': value_by_date,
+    }
+
+
+def compute_bucket(holdings: list, bench_series, label: str, sleep_between: float = 0.3):
+    """Fetch histories and compute a union-date, historical-weight risk view."""
     if not holdings:
         return None, {'fetched': [], 'failed': []}
 
@@ -389,67 +609,57 @@ def compute_bucket(holdings: list, bench_series, label: str, sleep_between: floa
     if not fetched:
         return None, {'fetched': list(fetched.keys()), 'failed': failed}
 
-    # align all holdings on common dates
-    dates, aligned_closes = align_to_dates(fetched)
-    if len(dates) < 6:
-        return None, {'fetched': list(fetched.keys()), 'failed': failed,
-                      'note': 'too few common dates'}
-
-    # restrict to last WINDOW_DAYS + 1 closes so we get ~WINDOW_DAYS returns
-    take = min(len(dates), WINDOW_DAYS + 1)
-    dates = dates[-take:]
-    aligned_closes = {tk: arr[-take:] for tk, arr in aligned_closes.items()}
-
-    # build weights using current_value of holdings that were successfully fetched
-    weights = {}
-    total_v = sum(h['current_value'] for h in holdings if h['ticker'] in aligned_closes)
-    for h in holdings:
-        if h['ticker'] in aligned_closes and total_v > 0:
-            weights[h['ticker']] = h['current_value'] / total_v
-
-    # daily returns per ticker, then weighted sum
-    rets_by_ticker = {tk: daily_returns(arr) for tk, arr in aligned_closes.items()}
-    # all return arrays now have len = take-1
-    n_rets = take - 1
-    port_rets = np.zeros(n_rets)
-    for tk, r in rets_by_ticker.items():
-        port_rets += weights.get(tk, 0.0) * r
-
-    vol_ann = float(np.std(port_rets, ddof=1) * np.sqrt(TRADING_DAYS)) if port_rets.size > 1 else 0.0
-    mdd = max_drawdown(port_rets)
-    sh = sharpe(port_rets, vol_ann)
-
-    # β vs benchmark — align benchmark on the same dates
-    bench_beta = None
-    if bench_series:
-        bench_map = {datetime.fromtimestamp(t, tz=timezone.utc).strftime('%Y-%m-%d'): c
-                     for t, c in bench_series}
-        bench_closes = np.array([bench_map.get(d, np.nan) for d in dates], dtype=float)
-        if not np.isnan(bench_closes).any():
-            bench_rets = daily_returns(bench_closes)
-            bench_beta = beta(port_rets, bench_rets)
+    stream = build_dynamic_return_stream(holdings, fetched)
+    if len(stream['return_by_date']) < 2:
+        return None, {'fetched': list(fetched), 'failed': failed,
+                      'note': 'too few portfolio return dates'}
+    benchmark_returns = _return_map(bench_series) if bench_series else {}
+    benchmark_return_by_date = {
+        d: row['return'] for d, row in benchmark_returns.items()
+    }
+    stats = _stream_stats(
+        stream['return_by_date'], stream['coverage_by_date'],
+        benchmark_return_by_date,
+    )
 
     current_value = sum(h['current_value'] for h in holdings)
-    fetched_value = sum(h['current_value'] for h in holdings if h['ticker'] in aligned_closes)
-    excluded_tickers = [h['ticker'] for h in holdings if h['ticker'] not in aligned_closes]
+    fetched_value = sum(h['current_value'] for h in holdings if h['ticker'] in fetched)
+    excluded_tickers = [h['ticker'] for h in holdings if h['ticker'] not in fetched]
+    established = [
+        ticker for ticker, series in fetched.items()
+        if len(_return_map(series)) >= NEW_LISTING_RETURNS
+    ]
+    new_listing = [ticker for ticker in fetched if ticker not in established]
+
+    def sleeve(tickers):
+        if not tickers:
+            return None
+        sleeve_stream = build_dynamic_return_stream(
+            holdings, fetched, include_tickers=tickers
+        )
+        sleeve_stats = _stream_stats(
+            sleeve_stream['return_by_date'], sleeve_stream['coverage_by_date']
+        )
+        return {'tickers': tickers, **sleeve_stats}
+
+    beta_key = f'beta_{"spx" if label == "us" else "hsi"}'
     bucket_out = {
-        f'beta_{"spx" if label == "us" else "hsi"}': round(bench_beta, 4) if bench_beta is not None else None,
-        'vol_30d_annualized': round(vol_ann, 4),
-        'max_dd_30d': round(mdd, 4),
-        'sharpe_30d': round(sh, 4),
+        beta_key: stats.pop('beta', None),
+        **stats,
+        'sleeves': {
+            'established': sleeve(established),
+            'new_listing': sleeve(new_listing),
+        },
         'current_value': round(current_value, 2),
-        # A fetch miss changes the population: weights above are deliberately
-        # renormalized over the names with history, so the resulting beta/vol is
-        # not a full-book statistic. Publish the value-weighted denominator and
-        # exclusions beside the number; build_alerts turns this into a dashboard
-        # caveat instead of leaving it buried in meta.failed.
         'history_coverage': {
-            'holdings_fetched': len(aligned_closes),
+            'holdings_fetched': len(fetched),
             'holdings_total': len(holdings),
             'current_value_pct': (round(100 * fetched_value / current_value, 1)
                                   if current_value > 0 else None),
             'excluded_tickers': excluded_tickers,
         },
+        'weight_method': 'date_varying_shares_x_previous_close',
+        'weight_reconstruction': 'current shares reversed through dated trade ledger',
     }
     # naming detail: US uses USD field name
     if label == 'us':
@@ -461,24 +671,22 @@ def compute_bucket(holdings: list, bench_series, label: str, sleep_between: floa
         'fetched': list(fetched.keys()),
         'failed': failed,
         'n_holdings': len(holdings),
-        'n_returns': n_rets,
-        'dates_first': dates[0],
-        'dates_last': dates[-1],
-        'port_rets': port_rets,            # kept for combined calc
-        'weights_within_bucket': weights,  # kept for combined calc
-        'aligned_dates': dates,
+        'n_returns': stats['n_returns'],
+        'dates_first': stats['actual_window']['first'],
+        'dates_last': stats['actual_window']['last'],
+        **stream,
     }
     return bucket_out, meta
 
 
 def compute_combined(us_meta, hk_meta, holdings_all, fx_hkd_to_usd=None):
-    """Build a combined-portfolio daily return series.
+    """Build combined returns on the union of US/HK sessions and dynamic values."""
+    if (holdings_all.get('hk') and hk_meta
+            and (fx_hkd_to_usd is None or fx_hkd_to_usd <= 0)):
+        raise ValueError('USDHKD rate required to combine HKD and USD risk buckets')
 
-    We treat both buckets as independent return streams weighted by their
-    USD-equivalent current value. HKD value is converted using fx_hkd_to_usd.
-    """
     def has_current_stream(meta):
-        return bool(meta and 'port_rets' in meta and meta.get('aligned_dates'))
+        return bool(meta and meta.get('return_by_date'))
 
     # A one-leg portfolio is valid; a two-leg portfolio with one failed return
     # stream is not. The old fallback silently returned the surviving leg's vol
@@ -489,62 +697,40 @@ def compute_combined(us_meta, hk_meta, holdings_all, fx_hkd_to_usd=None):
     if holdings_all.get('hk') and not has_current_stream(hk_meta):
         return None
 
-    series_list = []  # list of (port_rets, usd_weight)
+    series_list = []
     if has_current_stream(us_meta):
-        us_value_usd = sum(h['current_value'] for h in holdings_all['us'])
-        series_list.append(('us', us_meta['aligned_dates'], us_meta['port_rets'], us_value_usd))
+        series_list.append(('us', us_meta, 1.0))
     if has_current_stream(hk_meta):
-        if fx_hkd_to_usd is None or fx_hkd_to_usd <= 0:
-            raise ValueError('USDHKD rate required to combine HKD and USD risk buckets')
-        hk_value_hkd = sum(h['current_value'] for h in holdings_all['hk'])
-        hk_value_usd = hk_value_hkd * fx_hkd_to_usd
-        series_list.append(('hk', hk_meta['aligned_dates'], hk_meta['port_rets'], hk_value_usd))
+        series_list.append(('hk', hk_meta, fx_hkd_to_usd))
 
     if not series_list:
         return None
 
-    # Align on common dates across buckets (or just use one if the other is missing)
-    if len(series_list) == 1:
-        _, dates, rets, _ = series_list[0]
-        port_rets = rets
-    else:
-        common = set(series_list[0][1])
-        for _, d, _, _ in series_list[1:]:
-            common &= set(d)
-        common = sorted(common)
-        # need at least the first date as anchor; first return aligns to second date
-        if len(common) < 6:
-            return None
-        # Build aligned return arrays. Returns correspond to dates[1:] (return_i uses dates[i-1]->dates[i]).
-        def aligned_rets(dates_full, rets, anchor_dates):
-            # Map date -> return (return at date d uses prev date)
-            ret_map = {}
-            for i, d in enumerate(dates_full[1:], start=1):
-                ret_map[d] = rets[i - 1]
-            # anchor_dates is the common date list; first date contributes no return
-            return np.array([ret_map.get(d, 0.0) for d in anchor_dates[1:]], dtype=float)
-
-        ret_arrays = []
-        usd_weights = []
-        for _, d, r, v in series_list:
-            ret_arrays.append(aligned_rets(d, r, common))
-            usd_weights.append(v)
-        total_v = sum(usd_weights)
-        if total_v <= 0:
-            return None
-        ws = [w / total_v for w in usd_weights]
-        port_rets = np.zeros(len(common) - 1)
-        for w, ra in zip(ws, ret_arrays):
-            port_rets += w * ra
-
-    vol_ann = float(np.std(port_rets, ddof=1) * np.sqrt(TRADING_DAYS)) if port_rets.size > 1 else 0.0
-    mdd = max_drawdown(port_rets)
-    sh = sharpe(port_rets, vol_ann)
-    return {
-        'vol_30d_annualized': round(vol_ann, 4),
-        'max_dd_30d': round(mdd, 4),
-        'sharpe_30d': round(sh, 4),
-    }
+    dates = sorted(set().union(*(
+        set(meta['return_by_date']) for _, meta, _ in series_list
+    )))[-WINDOW_DAYS:]
+    combined_returns, combined_coverage = {}, {}
+    for date in dates:
+        weighted_return = total_value = covered_value = 0.0
+        for _, meta, currency_factor in series_list:
+            value_dates = [d for d in meta['value_by_date'] if d <= date]
+            if not value_dates:
+                continue
+            value = meta['value_by_date'][max(value_dates)] * currency_factor
+            total_value += value
+            if date in meta['return_by_date']:
+                weighted_return += value * meta['return_by_date'][date]
+                covered_value += value * meta['coverage_by_date'].get(date, 0.0)
+            else:
+                # A closed market contributes a true zero for that session.
+                covered_value += value
+        if total_value > 0:
+            combined_returns[date] = weighted_return / total_value
+            combined_coverage[date] = min(1.0, covered_value / total_value)
+    out = _stream_stats(combined_returns, combined_coverage)
+    out['weight_method'] = 'date_varying_market_values_on_union_of_market_sessions'
+    out['closed_market_return_treatment'] = 'zero'
+    return out
 
 
 def compute_leverage(holdings_all, fx_hkd_to_usd):
@@ -613,19 +799,48 @@ def build_alerts(us, hk, combined, leverage):
                 'detail': (f'{label} beta/vol history covers {pct:.1f}% of current position '
                            f'value; excludes {", ".join(excluded) or "unknown ticker(s)"}.'),
             })
-    if us and us.get('beta_spx') is not None and us['beta_spx'] > 3.0:
+        if block.get('threshold_eligible') is False:
+            alerts.append({
+                'type': 'insufficient_observations',
+                'severity': 'medium',
+                'detail': (
+                    f'{label} risk window has {block.get("n_returns", 0)} usable '
+                    f'returns; {block.get("threshold_min_returns", MIN_ACTION_RETURNS)} '
+                    'required for beta/volatility threshold actions.'
+                ),
+            })
+        elif (label == 'US'
+              and block.get('beta_threshold_eligible') is False):
+            alerts.append({
+                'type': 'insufficient_observations',
+                'severity': 'medium',
+                'detail': (
+                    f'US beta has {block.get("benchmark_n_returns", 0)} aligned '
+                    f'returns; {MIN_ACTION_RETURNS} required for threshold actions.'
+                ),
+            })
+    combined_eligible = bool(combined and combined.get('threshold_eligible', True))
+    us_eligible = bool(
+        us and us.get('threshold_eligible', True)
+        and us.get('beta_threshold_eligible', True)
+    )
+    if (us_eligible and us.get('beta_spx') is not None
+            and us['beta_spx'] > 3.0):
         alerts.append({'type': 'high_beta', 'severity': 'high',
                        'detail': f'US β vs S&P 500 = {us["beta_spx"]} (> 3.0)'})
-    if combined and combined.get('vol_30d_annualized', 0) > 0.50:
+    if (combined_eligible and combined.get('vol_30d_annualized') is not None
+            and combined['vol_30d_annualized'] > 0.50):
         alerts.append({'type': 'high_vol', 'severity': 'high',
                        'detail': f'Combined 30d annualised vol = {combined["vol_30d_annualized"]*100:.1f}% (> 50%)'})
-    if combined and combined.get('max_dd_30d', 0) < -0.10:
+    if (combined_eligible and combined.get('max_dd_30d') is not None
+            and combined['max_dd_30d'] < -0.10):
         alerts.append({'type': 'deep_dd', 'severity': 'medium',
                        'detail': f'Combined 30d max DD = {combined["max_dd_30d"]*100:.1f}% (< -10%)'})
     if leverage and leverage.get('combined_avg', 0) > 2.0:
         alerts.append({'type': 'high_leverage', 'severity': 'high',
                        'detail': f'Combined avg leverage factor = {leverage["combined_avg"]} (> 2.0)'})
-    if combined and combined.get('sharpe_30d', 0) < 0:
+    if (combined_eligible and combined.get('sharpe_30d') is not None
+            and combined['sharpe_30d'] < 0):
         alerts.append({'type': 'negative_sharpe', 'severity': 'medium',
                        'detail': f'Combined 30d Sharpe = {combined["sharpe_30d"]} (< 0)'})
     return alerts

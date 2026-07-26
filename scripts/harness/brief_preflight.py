@@ -278,19 +278,45 @@ def compute_risk_guardrail(hk_holdings, us_holdings, hk_conc, us_conc, risk, lev
         held_us = {h.get('ticker') for h in us_holdings if h.get('shares', 0) > 0}
         for nm in us_reg.get('names', []):
             if nm.get('state') == 'cut' and nm.get('etf') in held_us:
-                vol_pct = (nm.get('vol_annualized') or 0) * 100
+                vol = nm.get('vol_annualized')
+                if vol is None:
+                    basis = nm.get('regime_basis') or 'short_ma'
+                    detail = (
+                        f"🧭 {nm['etf']}=2x{nm['underlying']} 完整波动率不可用；"
+                        f"{nm.get('ma_window') or '短'}日均线偏离 "
+                        f"{nm.get('dist_ma_pct')}%，按 {basis} 右侧确认制度为 cut"
+                    )
+                    action_reason = (
+                        f"完整波动率不可用，当前仅按 {basis}：标的仍在短均线下，"
+                        "2x 暂换现货；短均线重新确认后再评估"
+                    )
+                else:
+                    vol_pct = vol * 100
+                    detail = (
+                        f"🧭 {nm['etf']}=2x{nm['underlying']} 标的破200线 "
+                        f"({nm.get('dist_ma_pct')}%)+波动 {vol_pct:.0f}% 过热 → 杠杆制度 red"
+                    )
+                    action_reason = (
+                        f"标的趋势off 且波动>{int(nm.get('vol_hot_cap',0.7)*100)}%，"
+                        "2x 日内重置在下杀里放大衰减；"
+                        f"{nm['underlying']} 收复200线(green)再换回 2x"
+                    )
                 breaches.append({
                     'type': 'regime_delever', 'leg': 'US', 'ticker': nm['etf'], 'severity': 'high',
-                    'detail': (f"🧭 {nm['etf']}=2x{nm['underlying']} 标的破200线 "
-                               f"({nm.get('dist_ma_pct')}%)+波动 {vol_pct:.0f}% 过热 → 杠杆制度 red"),
+                    'detail': detail,
                     'action': (f"{nm['etf']} 2x→{nm['underlying']} 现货换仓(driven_by=risk_rule,规则非择时)：标的趋势off "
-                               f"且波动>{int(nm.get('vol_hot_cap',0.7)*100)}%，2x 日内重置在下杀里放大衰减；"
-                               f"{nm['underlying']} 收复200线(green)再换回 2x"),
+                               f"{action_reason}"),
                 })
 
     # portfolio-level β from risk.json
-    us_beta = (risk.get('us') or {}).get('beta_spx')
-    if isinstance(us_beta, (int, float)) and us_beta > caps['us_beta_max']:
+    us_risk = risk.get('us') or {}
+    us_beta = us_risk.get('beta_spx')
+    beta_eligible = (
+        us_risk.get('threshold_eligible', True)
+        and us_risk.get('beta_threshold_eligible', True)
+    )
+    if (beta_eligible and isinstance(us_beta, (int, float))
+            and us_beta > caps['us_beta_max']):
         breaches.append({
             'type': 'beta', 'leg': 'US', 'ticker': None, 'severity': 'high',
             'detail': f"US β vs S&P = {us_beta} (cap {caps['us_beta_max']}) — 大盘 −1% 本子约 −{us_beta:.1f}%",
