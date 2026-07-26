@@ -100,6 +100,38 @@ def test_research_surfaces_stay_in_both_languages():
         assert target in EN and target in ZH, f"{target} missing from a README"
 
 
+def test_per_run_context_layers_documented_in_both_languages():
+    """The layered view must stay honest about counts: it claims a block count per
+    run, and those come from the preflights' own context dicts."""
+    import re
+
+    assert "### What each run actually receives" in EN
+    assert "### 每种运行实际拿到什么" in ZH
+
+    root = Path(__file__).resolve().parents[1]
+    counts = {}
+    for name, path in (
+        ("brief", "scripts/harness/brief_preflight.py"),
+        ("report", "scripts/harness/report_preflight.py"),
+        ("intraday", "scripts/harness/intraday_preflight.py"),
+    ):
+        source = (root / path).read_text()
+        block = re.search(r"\n    (?:context|result) = \{(.*?)\n    \}", source, re.S)
+        assert block, name
+        counts[name] = len(re.findall(r"'([a-z_0-9]+)':", block.group(1)))
+
+    for md, name in ((EN, "README.md"), (ZH, "README.zh.md")):
+        row = next(line for line in md.splitlines()
+                   if line.startswith("| **Blocks**") or line.startswith("| **块数**"))
+        # split, not a shared-delimiter regex: `| 36 | 15 | 18 |` consumes the
+        # middle pipe and silently drops a column
+        stated = [int(cell.strip()) for cell in row.split("|")
+                  if cell.strip().isdigit()]
+        assert stated == [counts["brief"], counts["report"], counts["intraday"]], (
+            f"{name} block counts drifted from the preflights: {stated} vs {counts}"
+        )
+
+
 def test_explicit_h2_sequences():
     # Lock both languages' section order (and their 1:1 correspondence by position),
     # not just the count — so a section can't be added/reordered in one language only.
