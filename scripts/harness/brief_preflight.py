@@ -1218,6 +1218,13 @@ def main():
           f'Brier={decision_metrics.get("brier")} vs constant-forecast baseline '
           f'{decision_metrics.get("brier_baseline_loo")} '
           f'({"beats" if decision_metrics.get("brier_beats_baseline") else "LOSES to"} it)')
+    hierarchical = decision_metrics.get('hierarchical_calibration') or {}
+    prequential = hierarchical.get('after_warmup') or {}
+    print(f'   hierarchical prequential: n={prequential.get("n", 0)} '
+          f'Brier={prequential.get("calibrated_brier")} vs raw '
+          f'{prequential.get("raw_brier")}; '
+          f'{hierarchical.get("abstained_predictions", 0)} historical abstentions / '
+          f'{hierarchical.get("edge_supported_predictions", 0)} edge-supported')
     active_v2 = decision_metrics.get('active') or {}
     print(f'   active: n={active_v2.get("n_episodes", 0)} '
           f'avg benefit={active_v2.get("avg_benefit_pct")}%, '
