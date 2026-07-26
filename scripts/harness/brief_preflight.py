@@ -49,6 +49,7 @@ SNAPSHOT_DIR = WS / 'memory' / 'snapshots'
 sys.path.insert(0, str(WS / 'scripts' / 'data'))
 import trading_calendar  # noqa: E402
 import decision_v2  # noqa: E402
+import thesis_registry  # noqa: E402
 import peer_scan  # noqa: E402
 import workflow_outcomes  # noqa: E402
 import risk_discipline  # noqa: E402
@@ -559,6 +560,7 @@ def compute_retrospective(prior_plan_path, portfolio):
             'ticker':                   ticker,
             'decision_id':              action.get('decision_id'),
             'episode_id':               action.get('episode_id'),
+            'thesis_id':                action.get('thesis_id'),
             'strategy_id':              action.get('strategy_id'),
             'action':                    bucket,
             'plan_trigger_type':        trigger_type,
@@ -1690,6 +1692,21 @@ def main():
         _g_trim['nav_history_omitted'] = len(_g['nav_history'])  # 留计数标记=故意省略非丢失
         portfolio_ctx = {**portfolio, 'gold_dca': _g_trim}
 
+    active_tickers = [
+        str(holding.get('ticker'))
+        for region in ('hk_stocks', 'us_stocks')
+        for holding in portfolio['portfolios'].get(region, {}).get('holdings', [])
+        if holding.get('shares', 0) > 0
+    ]
+    thesis_registry_ctx = thesis_registry.registry_summary(
+        WS / 'memory' / 'theses', active_tickers
+    )
+    thesis_docs, _ = thesis_registry.load_registry(WS / 'memory' / 'theses')
+    if isinstance(retro.get('decisions'), list):
+        retro['decisions'] = thesis_registry.resolve_decision_links(
+            retro['decisions'], thesis_docs
+        )
+
     context = {
         'generated_at':  datetime.now(timezone(timedelta(hours=8))).isoformat(),
         'date':          today,
@@ -1718,6 +1735,7 @@ def main():
         'risk_metrics':  risk,
         'catalysts':     catalysts,
         'news_evidence_graph': news_evidence_ctx,
+        'thesis_registry': thesis_registry_ctx,
         'macro':         macro_trim,
         'sentiment':     sentiment_trim,
         'influencer':    influencer_trim,
