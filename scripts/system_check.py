@@ -491,6 +491,32 @@ def check_generated_cron_docs(r):
               (result.stdout + result.stderr).strip()[-300:])
 
 
+def check_research_artifacts(r):
+    """Thesis, earnings and entry-gate artifacts must stay valid.
+
+    An artifact whose stated verdict no longer matches the computed one, or whose
+    schema broke, is an integrity failure. A due earnings review or an ungated
+    position is the human's work queue, so it warns and never blocks a publish.
+    """
+    sys.path.insert(0, str(WS / 'scripts' / 'data'))
+    try:
+        import research_surface
+        result = research_surface.check()
+    except Exception as e:  # noqa: BLE001 — a broken checker must not fail open
+        r.add('research artifacts', CRITICAL, f'cannot validate: {e}')
+        return
+    counts = result['counts']
+    tally = (f"{counts['theses']} theses · {counts['earnings_artifacts']} earnings · "
+             f"{counts['entry_gates']} gates")
+    if result['status'] == 'fail':
+        r.add('research artifacts', CRITICAL, '; '.join(result['errors'][:4]))
+    elif result['status'] == 'warn':
+        r.add('research artifacts', WARNING,
+              f"{tally} valid; open work: " + '; '.join(result['warnings'][:4]))
+    else:
+        r.add('research artifacts', OK, f'{tally} valid · no open research work')
+
+
 def main():
     r = Result()
     checks = [
@@ -506,6 +532,7 @@ def main():
         check_decision_ledger,
         check_cron_paths_exist,
         check_generated_cron_docs,
+        check_research_artifacts,
     ]
     for c in checks:
         try:

@@ -66,6 +66,7 @@ context.json 关键字段：
 - `em_news` — **东财中文消息源**（`holdings_news` 逐 HK 持仓近 3 条公司新闻 + `market_724` 大盘 7x24 快讯）。clawock 英文 news 薄在港股/中文面,这里补上。**HK 持仓找硬催化优先看这个**——回购/公告/事件多在中文源先出。命中硬催化 → `driven_by=catalyst` 并在 rationale 引日期+标题;只是情绪/涨跌色 → 不构成主动操作依据(见 catalyst-gate 铁律)。杠杆 ETF 已自动剔除(看标的不看公司新闻)。
 - `news_evidence_graph` — 新闻/公告/SEC/事件日历的去重证据图。`events` 已带来源可靠度、新颖度、到期状态、价量/已验证同行确认与 `actionable_escalation`。**它是 catalyst 权限的唯一事实源**；原始摘要仅供阅读。
 - `thesis_registry` — `memory/theses/*.json` 的只读摘要：当前 state、最近检查时间、下一次 review trigger；未建基线的持仓明确为 `unknown`。
+- `research_surface` — 研究生命周期的**待办队列**（只读）：`earnings.reviews_due`（已披露财报但没有一手 artifact 覆盖）、`earnings.overdue_commitments`（管理层承诺过期且没结果）、`entry_gates.ungated_positions`（建仓后没有 gate 或 gate 判 reject 仍在持有）、`entry_gates.open_questions`（gray 判定还缺的证据）。`errors` 非空 = 有 artifact 失效，先说这件事。
 
 ### Step 3: Swarm 分析（你的创造性工作）
 
@@ -79,6 +80,13 @@ context.json 关键字段：
 2. `memory/{昨天 YYYY-MM-DD}-pre-open.md` 如果存在 — 上次 thesis 和 next-session plan
 3. `memory/{昨天 YYYY-MM-DD}.md` 如果存在 — 用户手写笔记
 4. `INVESTMENT_SOP.md` — 启动顺序参考
+
+`context.research_surface` 同样只读，但**必须被消费**：
+- `reviews_due` 非空 → 在简报里点名该票 + 披露日期，并说明下一步走 `earnings-review` skill（不要在简报里现编财报数字）。
+- `overdue_commitments` 非空 → 写成管理层可信度的负面证据，引用 `commitment_id` 与逾期天数。
+- `ungated_positions` 非空 → 明确写「该仓位没有过建仓前研究闸」，这是流程事实不是行情判断。
+- `errors` 非空 → 当作数据完整性问题优先报，不要继续引用失效 artifact 里的任何数字。
+这四类都不要求你去修 artifact；简报只负责让它们不再无声。
 
 当前持仓 thesis 只读 `context.thesis_registry`，daily brief 不在每天晨报里重写 canonical baseline。`status=unknown` 只表示缺基线，不得靠模型记忆或昨天文案补造历史；需要变更时必须走 registry validator/drift evaluator，并为每个 improved/weakened 维度附本次新增 evidence ID。
 

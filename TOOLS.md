@@ -128,18 +128,15 @@ python3 scripts/data/fetch_us_stocks.py     # 仅刷美股价格
 
 **Single source of truth：`portfolio.json`**（不在此重复，避免漂移）
 
-### 持仓结构特征（相对稳定）
-- 风格激进，波动容忍度较高
-- 港股风险集中在 `00100` MiniMax 和 `07226` 两倍恒科
-- `03032/03033` 属于相对更稳的科技敞口
-- 美股偏高弹性成长 + 杠杆短线仓
-- 韩股已完全清仓（07709/07747/000660/005930 不追踪）
+结构特征（风格/集中度/已清仓名单）见 `memory/current-portfolio-summary.md`，不在此重复。
 
 ---
 
 ## 现有脚本梳理（精简索引 — 完整说明见 `docs/reference/scripts.md`）
 
 **数据抓取/分析**：`fetch_us_stocks.py`(美股7路fallback,写回portfolio) · `analyze_us_stocks.py`(刷价+RSI/MA+新闻+信号) · `analyze_hk_stocks.py`(腾讯+东财双源对账→stooq/yf兜底) · `fetch_fx.py`(USDHKD 3路,**book total 必先调**) · `fetch_us_filings.py`(SEC EDGAR) · `fetch_fundamentals_em.py`(东财中文基本面,**港股财报**) · `fetch_catalysts.py`(14d催化→catalysts.json) · `fetch_influencer_feed.py`(Trump/Musk雷达→influencer_feed.json) · `portfolio_risk_metrics.py`(β/Vol/DD/Sharpe→risk.json) · `compute_quant_signals.py`(趋势/动量/RSI/z/ATR吊灯/vol-target→quant_signals.json+history.jsonl留痕,杠杆ETF按标的) · `quant_signal_review.py`(留痕vs前瞻收益→因子edge表,n<20不解锁,brief按edge取信)
+
+**研究生命周期（手动/事件驱动，产物即真源）**：`entry_gate.py`(建仓前研究闸,信息分级≠投资质量,硬否决先于计分→`memory/entry-gates/`) · `earnings_review.py`(一手财报复盘+管理层承诺账本,盈利质量由代码算→`memory/earnings/`) · `thesis_registry.py`(canonical thesis + 只认证据的 drift→`memory/theses/`) · `research_provenance.py`(数字两源+Decimal 精算,准出闸) · `research_surface.py`(把上面三类 artifact 汇成待办队列;brief preflight 读它,`--check` 进 system_check 与 CI)
 
 **Harness（三明治：preflight 确定性 → LLM 合成 → postflight 校验+commit）**
 - brief：`brief_preflight.py` / `brief_postflight.py`（写 `memory/{date}-pre-open.md` + `-plan.json`；postflight 自动跑 build_dashboard + push）
@@ -190,6 +187,15 @@ clawhub install <slug>
 | 抓需 JS 渲染 / 反爬的页面（雪球评论 / Futu 社区 / Reddit 深页） | `scrapling` | 配合上面的 stock-analysis Mode 5 调用 |
 | Web 搜索（新闻 / X / 中文社区 / 政策） | `tavily-search` | 不要让模型自己改用 Yahoo/Google 临时拼搜索。**免费档 1000 credits/月全局共享**，调用必带 `--bucket`（brief/report/intraday/research/extract）；盘中常规盯盘别烧、超限自动优雅降级回内置搜索 |
 | openclaw 升级后健康检查 / 磁盘膨胀 | `openclaw-tune` | 不动股票 |
+| 「这票值不值得研究」/ 建仓前先筛新标的 | `entry-gate` | 信息分级 A/B/C 与投资质量分开;四条硬否决先于任何计分;C 级只判 gray 不判死;产物 `memory/entry-gates/` |
+| 「财报出了 / 复盘这个季度 / 当初承诺兑现了吗」 | `earnings-review` | 一手 filing/港交所公告优先,盈利质量由代码算,承诺账本跨期滚动;事件驱动、不进 cron;产物 `memory/earnings/` |
+| 盘前深度简报（cron #10 自动跑，非人工入口） | `daily-deep-brief` | preflight 出 context → swarm 分析 → plan.json;人工别手动触发,改它先读 SKILL 的 postflight schema |
+| openclaw 升级 / 依赖迁移 | `openclaw-upgrade` | 升级后必数 cron 个数;不动股票 |
+| issue / PR / CI run / gh api | `github` | 走 `gh` CLI;仓库改动仍遵守 AGENTS.md 的 worktree→PR 规矩,别直接推 master |
+
+`skills/_shared/` 不是 skill，是 hk/us 共用的片段（盘中 status sidecar 规范）——改盘中横幅只改那一份。
+
+研究生命周期各环节跑多勤（每天 / 按事件 / 每次 push）见 `docs/operations/research-cadence.md`。
 
 ⚠️ **不要做的 routing 错误**：
 - `trading` skill 默认禁止"直接买卖建议" → 用户问"应该买不买" 时不走它，走 `us/hk-stock-analysis`（用户偏好已写在 MEMORY.md）
