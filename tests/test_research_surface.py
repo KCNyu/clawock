@@ -605,3 +605,51 @@ def test_the_watch_is_opt_in_and_the_daily_brief_opts_in():
     assert surface["earnings"]["hk_results_expected"] == []
     preflight = (ROOT / "scripts" / "harness" / "brief_preflight.py").read_text()
     assert "hk_watch=True" in preflight
+
+
+# --- one look-through rule, three consumers -----------------------------------
+
+@pytest.mark.parametrize("symbol,kind,issuer,tracks", [
+    ("PLTU", "look_through", "PLTR", "PLTR"),
+    ("MSFU", "look_through", "MSFT", "MSFT"),
+    ("SPCH", "look_through", "SPCX", "SPCX"),
+    ("CRCL", "issuer", "CRCL", None),
+    ("00100", "issuer", "00100", None),
+    ("SOXL", "index_fund", None, "SEMICONDUCTOR"),
+    ("TQQQ", "index_fund", None, "NASDAQ_100"),
+    ("07226", "index_fund", None, "HSTECH"),
+    ("", "index_fund", None, None),
+])
+def test_registry_look_through_is_the_single_rule(symbol, kind, issuer, tracks):
+    import sys
+    sys.path.insert(0, str(ROOT / "scripts" / "data"))
+    import instrument_registry
+
+    resolved = instrument_registry.look_through(symbol)
+    assert (resolved["kind"], resolved["issuer"], resolved["tracks"]) == (kind, issuer, tracks)
+    assert instrument_registry.issuer_for(symbol) == issuer
+
+
+def test_all_three_consumers_delegate_to_the_registry():
+    """The rule was reimplemented three times; a fourth copy would drift."""
+    data = ROOT / "scripts" / "data"
+    catalysts = (data / "fetch_catalysts.py").read_text()
+    probe = (data / "mover_news.py").read_text()
+    digest = (data / "gh_action_news_digest.py").read_text()
+
+    assert "instrument_registry.issuer_for(" in catalysts
+    assert "instrument_registry.look_through(" in probe
+    assert "instrument_registry.look_through(" in digest
+    # and none of them keeps a private copy of the chain walk
+    for source, name in ((catalysts, "fetch_catalysts"), (probe, "mover_news")):
+        assert "meta.get('venue') == 'INDEX'" not in source, name
+        assert 'meta.get("venue") == "INDEX"' not in source, name
+
+
+def test_news_digest_queries_issuers_and_records_the_fund_it_reads_for():
+    digest = (ROOT / "scripts" / "data" / "gh_action_news_digest.py").read_text()
+    # index funds are dropped rather than searched
+    assert "if not issuer:\n            continue" in digest
+    # the held fund stays visible in the artifact and in the prompt
+    assert "'held_via': held_via or {}," in digest
+    assert "持仓映射" in digest

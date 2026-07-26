@@ -205,6 +205,51 @@ def is_leveraged(symbol: str) -> bool:
     return bool(meta and meta["leverage_multiple"] > 1)
 
 
+def look_through(symbol: str, *, max_hops: int = 3) -> dict:
+    """Resolve a holding to the issuer whose news, filings and earnings move it.
+
+    A 2x single-stock ETF publishes nothing of its own: PLTU is moved by PLTR,
+    MSFU by MSFT. An index or sector fund has no issuer at all — SOXL follows SOXX
+    follows SEMICONDUCTOR, and none of those file anything — so asking a news or
+    earnings source about it returns either nothing or marketing copy.
+
+    Returns ``kind`` of ``issuer`` (holding reports for itself), ``look_through``
+    (with ``issuer`` set to the company it tracks), or ``index_fund`` (no issuer;
+    ``tracks`` names what it follows).
+
+    This is the single home for the rule: it was independently reimplemented for
+    the intraday catalyst probe, the earnings calendar and the news digest, and a
+    fourth copy would eventually disagree with the other three.
+    """
+    chain: list[str] = []
+    current = str(symbol or "")
+    if not current:
+        return {"kind": "index_fund", "issuer": None, "tracks": None, "chain": chain}
+    for _ in range(max_hops):
+        meta = get(current) or {}
+        underlying = meta.get("underlying")
+        if not underlying or underlying in chain:
+            break
+        chain.append(current)
+        current = str(underlying)
+    if not chain:
+        return {"kind": "issuer", "issuer": str(symbol), "tracks": None, "chain": chain}
+    final = get(current)
+    no_issuer = (
+        final is None                       # a label like NASDAQ_100, not a security
+        or final.get("venue") == "INDEX"    # an index
+        or bool(final.get("underlying"))    # still a fund after max_hops
+    )
+    if no_issuer:
+        return {"kind": "index_fund", "issuer": None, "tracks": current, "chain": chain}
+    return {"kind": "look_through", "issuer": current, "tracks": current, "chain": chain}
+
+
+def issuer_for(symbol: str) -> str | None:
+    """The reporting issuer behind a holding, or None when there is none."""
+    return look_through(symbol)["issuer"]
+
+
 def canonical_bar_manifest() -> dict[str, dict]:
     """Compatibility view used by the canonical raw-bar writer."""
     out: dict[str, dict] = {}

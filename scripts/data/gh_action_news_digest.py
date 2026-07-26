@@ -22,6 +22,7 @@ from pathlib import Path
 import requests
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import instrument_registry
 from xiaomi_llm import chat
 from fetch_sentiment import fetch_google_news
 
@@ -104,7 +105,8 @@ def fetch_news(tickers, since_days=2):
     return out, source_status
 
 
-def _write_artifact(tickers, raw, source_status, *, digest='', no_material_news=False):
+def _write_artifact(tickers, raw, source_status, *, digest='', no_material_news=False,
+                    held_via=None):
     source_per_ticker = {
         ticker: (items[0]['origin'] if items else 'none')
         for ticker, items in raw.items()
@@ -113,6 +115,9 @@ def _write_artifact(tickers, raw, source_status, *, digest='', no_material_news=
         'generated_at': datetime.now().isoformat(),
         'lookback_hours': 48,
         'tickers': tickers,
+        # which held fund each issuer is being read for (PLTR is in the list
+        # because we hold PLTU); empty when the holding reports for itself
+        'held_via': held_via or {},
         'digest_markdown': digest.strip(),
         'raw_news_counts': {ticker: len(items) for ticker, items in raw.items()},
         # Persist only licensable evidence metadata. Summaries/article bodies stay
@@ -141,8 +146,22 @@ def _write_artifact(tickers, raw, source_status, *, digest='', no_material_news=
 
 def main():
     pf = json.load(open('portfolio.json'))
-    tickers = [h['ticker'] for h in pf['portfolios']['us_stocks']['holdings']
-               if h.get('shares', 0) > 0]
+    held = [h['ticker'] for h in pf['portfolios']['us_stocks']['holdings']
+            if h.get('shares', 0) > 0]
+    # Ask about the company, not the fund. A 2x single-stock ETF publishes nothing:
+    # Finnhub returned success_empty for PLTU/RKLX/SPCH every day and Google News
+    # filled the gap with ETF marketing copy, which the digest then dutifully
+    # summarised as "no company-level news". An index fund has no issuer at all.
+    tickers, held_via = [], {}
+    for holding in held:
+        resolved = instrument_registry.look_through(holding)
+        issuer = resolved['issuer']
+        if not issuer:
+            continue                                  # index/sector fund: nobody reports
+        if issuer not in tickers:
+            tickers.append(issuer)
+        if resolved['kind'] == 'look_through':
+            held_via.setdefault(issuer, []).append(holding)
 
     raw, source_status = fetch_news(tickers, since_days=2)
     if not any(raw.values()):
@@ -154,7 +173,7 @@ def main():
         if tickers and not successful_empty:
             raise RuntimeError('news: all sources failed')
         _write_artifact(
-            tickers, raw, source_status, no_material_news=True)
+            tickers, raw, source_status, no_material_news=True, held_via=held_via)
         print('all sources returned no material news — wrote explicit empty digest')
         return 0
 
@@ -177,14 +196,17 @@ def main():
         "- 优先 ticker-specific catalyst (财报 / 合约 / 监管 / 大单)\n"
         "- gnews-rss 项只有标题没 summary, 要靠标题关键词判断, 不要编造细节\n"
         "- 不许说 \"需要进一步研究\" 这种废话\n"
-        "- 直接出 markdown\n\n"
+        + (f"- 持仓映射: 以下公司是通过杠杆 ETF 持有的 {json.dumps(held_via, ensure_ascii=False)};"
+           " 写 implication 时点明持有的是哪只 ETF, 并说明 2x 会放大该消息\n" if held_via else "")
+        + "- 直接出 markdown\n\n"
+        +
         f"Raw news (JSON):\n```json\n{json.dumps(raw, ensure_ascii=False)[:25000]}\n```\n"
     )
 
     # News digest: short output but enable thinking helps prioritize signal vs noise
     digest = chat(system=system, user=user, max_tokens=32000, temperature=0.5)
 
-    _write_artifact(tickers, raw, source_status, digest=digest)
+    _write_artifact(tickers, raw, source_status, digest=digest, held_via=held_via)
     print(f'  digest size: {len(digest)} chars')
     return 0
 
