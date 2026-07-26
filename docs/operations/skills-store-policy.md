@@ -1,4 +1,4 @@
-# Skills Store Policy
+# Skill registry policy
 
 ## Operator Configured Rules
 

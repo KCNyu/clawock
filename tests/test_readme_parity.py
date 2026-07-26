@@ -73,8 +73,8 @@ def test_primary_links_present_in_both():
     for target in (
         "https://kcnyu.github.io/clawock/",
         "https://kcnyu.github.io/clawock/briefs.html",
-        "CRON_SCHEDULES.md",
-        "THIRD_PARTY_DATA.md",
+        "docs/operations/cron-schedules.md",
+        "docs/legal/third-party-data.md",
         "LICENSE",
     ):
         assert target in EN and target in ZH, f"{target} missing from a README"

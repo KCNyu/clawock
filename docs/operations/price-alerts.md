@@ -1,4 +1,4 @@
-# 价格提醒系统说明
+# 价格提醒运行说明
 
 ## 当前在用的系统（2026-05 起）
 
@@ -8,7 +8,7 @@
 触发链路：
 1. 运行态共有 **11 个 OpenClaw cron job**；以 `openclaw cron list --json` 为准，
    受版本控制的 schedule/payload 契约见 `config/cron-schedules.json`，人读表见
-   `CRON_SCHEDULES.md`
+   `docs/operations/cron-schedules.md`
 2. 开盘/午盘/收盘报告走 Mode 6；高频盘中任务走 Mode 7 harness
 3. 分析输出直接标注 STOP / TRIM / BUY / WATCH 信号；信号聚合后追加风险提示
 4. 唯一微信路径是 `openclaw-weixin`，同一结果同步镜像到 Telegram

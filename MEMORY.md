@@ -68,7 +68,7 @@
 ## 时区
 - 港股：HKT 09:30-12:00 / 13:00-16:00（北京时间同）
 - 美股：ET 09:30-16:00；对应北京时间随 EDT/EST 自动切换，禁止写死 21:30~04:00
-- 判断美股阶段优先用 ET；精确 HKT cron 见自动生成的 `CRON_SCHEDULES.md`
+- 判断美股阶段优先用 ET；精确 HKT cron 见自动生成的 `docs/operations/cron-schedules.md`
 - 北京时间 16:02 = 港股刚收盘
 
 ---
@@ -85,7 +85,7 @@
 ### OpenClaw 调度状态
 - 6.1 后 cron runtime state 在 SQLite，旧 `~/.openclaw/cron/jobs.json` 是迁移 fallback，不能当真值。
 - 查 cron / dreaming → `openclaw cron list --json`；跨调度源看 HKT 时间线 → `./check_crons.sh --timeline`。
-- CI 不能访问本机 SQLite，读取 `config/cron-schedules.json`；它同时驱动 DST 同步、payload/watchdog 校验和 `CRON_SCHEDULES.md`，host system check 会对比 live CLI + crontab。
+- CI 不能访问本机 SQLite，读取 `config/cron-schedules.json`；它同时驱动 DST 同步、payload/watchdog 校验和 `docs/operations/cron-schedules.md`，host system check 会对比 live CLI + crontab。
 - 查 gateway → `curl http://127.0.0.1:18789/health`。
 
 ### ⚠️ brief 投递铁律 — WeChat 只发紧凑卡 + 链接，**绝不贴完整 brief 全文**

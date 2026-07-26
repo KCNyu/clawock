@@ -143,16 +143,17 @@ clawock 是一个持续运行的、公开的**纪律化、自评式** AI 投资�
 每周    归档、体检、复盘与视觉刷新任务
 ```
 
-港股时间按 HKT;美股 session 时间按 ET,其 cron 表达式随纽约夏令时自动切换。节假日 + 周末闸门跳过休市 session。精确的生成表见 [CRON_SCHEDULES.md](CRON_SCHEDULES.md)。
+港股时间按 HKT;美股 session 时间按 ET,其 cron 表达式随纽约夏令时自动切换。节假日 + 周末闸门跳过休市 session。精确的生成表见 [docs/operations/cron-schedules.md](docs/operations/cron-schedules.md)。
 
 ## 逛一逛这套系统
 
 - [**实时仪表盘**](https://kcnyu.github.io/clawock/) —— 持仓、风控,以及自评战绩。
 - [**每日简报**](https://kcnyu.github.io/clawock/briefs.html) —— 已发布的早读。
-- [**排程表**](CRON_SCHEDULES.md) —— 生成的 cron 表。
+- [**排程表**](docs/operations/cron-schedules.md) —— 生成的 cron 表。
 - [**数据脚本**](scripts/data/README.md) —— fetcher 与计算目录。
+- [**项目文档**](docs/README.md) —— 运维、参考、法律说明与历史设计。
 
-用 [Claude Code](https://claude.com/claude-code)、[openclaw](https://openclaw.com) cron 守护进程、纯静态 Jekyll + GitHub Pages 前端,以及 Python 构建。行情、新闻、宏观、情绪来自有文档的公开源并带多源兜底;复用任何抓取内容前请先看[第三方数据与服务条款](THIRD_PARTY_DATA.md)。
+用 [Claude Code](https://claude.com/claude-code)、[openclaw](https://openclaw.com) cron 守护进程、纯静态 Jekyll + GitHub Pages 前端,以及 Python 构建。行情、新闻、宏观、情绪来自有文档的公开源并带多源兜底;复用任何抓取内容前请先看[第三方数据与服务条款](docs/legal/third-party-data.md)。
 
 <details>
 <summary><b>底层细节</b> —— 模型、写入协调与完整性闸门</summary>
@@ -179,6 +180,7 @@ clawock 是一个持续运行的、公开的**纪律化、自评式** AI 投资�
 ```
 clawock/
 ├─ index.html  briefs.md                    ← Pages 落地页
+├─ docs/                                      ← 运维 · 参考 · 法律 · 历史归档
 ├─ assets/data/        由 harness + GH Actions 构建,从不手改
 │   ├─ dashboard.json  risk.json  catalysts.json
 │   ├─ macro.json  sentiment.json  *_news*.json  influencer_feed.json  ← scan sidecar,前端直接抓
@@ -205,7 +207,7 @@ clawock/
 
 本仓库包含**真实交易持仓**。它是一份个人记录和可携带的工作区 —— **不是投资建议、不是推荐、也不是跟单系统**。这套投研台只分析和建议;它不替你下单。任何一条结果都不是人工挑选的 —— 结算规则与方法学变更都在代码里版本化 —— 主动判断至今没显出优势,而你读到时每个数字都可能已经过时。
 
-原创代码采用 [MIT 许可证](LICENSE)。改编的第三方代码保留其原有许可与署名,见 [NOTICE](NOTICE) 与 [`THIRD_PARTY_LICENSES/`](THIRD_PARTY_LICENSES/)。第三方行情、新闻、社交内容、文件、商标与 API 访问**不**被 MIT 重新授权 —— 见[第三方数据与服务](THIRD_PARTY_DATA.md)。
+原创代码采用 [MIT 许可证](LICENSE)。改编的第三方代码保留其原有许可与署名,见 [NOTICE](NOTICE) 与 [`THIRD_PARTY_LICENSES/`](THIRD_PARTY_LICENSES/)。第三方行情、新闻、社交内容、文件、商标与 API 访问**不**被 MIT 重新授权 —— 见[第三方数据与服务](docs/legal/third-party-data.md)。
 
 <div align="center">
 <br>
