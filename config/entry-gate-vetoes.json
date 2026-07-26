@@ -1,0 +1,43 @@
+{
+  "schema_version": 1,
+  "description": "Deterministic hard vetoes for the pre-investment entry gate. A veto cannot be outweighed by passing checks. Industry exceptions are encoded here so they are reviewable, never improvised in prose; every exception requires its own evidence row in the artifact.",
+  "vetoes": [
+    {
+      "id": "integrity_or_governance_red_flag",
+      "description": "Documented fraud, restatement, auditor resignation, undisclosed related-party dealing, or a regulator sanctioning management for disclosure conduct.",
+      "exceptions": []
+    },
+    {
+      "id": "unintelligible_revenue_mechanism",
+      "description": "Who pays, for what, and why it repeats cannot be stated in one sentence from primary sources.",
+      "exceptions": []
+    },
+    {
+      "id": "persistent_negative_cash_generation",
+      "description": "Operating cash flow negative across the available comparable history with no funded, dated path to positive.",
+      "exceptions": [
+        {
+          "sector": "biotechnology_clinical_stage",
+          "note": "Pre-approval clinical programs are expected to burn cash; the exception needs a funded runway through the next binary readout.",
+          "requires_evidence": true
+        },
+        {
+          "sector": "pre_revenue_infrastructure",
+          "note": "Capital-intensive build-out before first revenue; the exception needs a committed financing package and a dated commissioning schedule.",
+          "requires_evidence": true
+        }
+      ]
+    },
+    {
+      "id": "destructive_dilution",
+      "description": "Share count growing faster than the business it funds, or repeated below-market issuance without a stated accretive use.",
+      "exceptions": [
+        {
+          "sector": "biotechnology_clinical_stage",
+          "note": "Equity is the standard funding instrument pre-approval; the exception needs the raise tied to a named program milestone.",
+          "requires_evidence": true
+        }
+      ]
+    }
+  ]
+}
