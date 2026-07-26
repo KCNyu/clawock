@@ -10,6 +10,7 @@ on:
 
 permissions:
   contents: read
+  actions: read      # workflow-health rollup reads run history
 
 jobs:
   health:
@@ -57,6 +58,16 @@ jobs:
           q = fetch_hk_quotes(['00700'])
           print('HK 00700 quote:', q.get('00700', {}).get('price'))
           "
+
+      - name: Scheduled workflow health
+        # Report-only rollup. A scheduled workflow fails invisibly — no required
+        # check goes red — so news-digest.yml failed three days running in July
+        # 2026 with nothing surfacing it. This names failures and, just as
+        # important, workflows that quietly stopped firing.
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 scripts/data/workflow_health.py
 
       - name: Peer-map coverage check
         run: |
