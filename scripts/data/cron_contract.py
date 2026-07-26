@@ -24,6 +24,14 @@ def load_contract(path: str | Path | None = None) -> dict:
     if len(names) != len(set(names)) or any(not n for n in names):
         raise ValueError("cron contract job names must be non-empty and unique")
     profiles = data.get("payload_profiles") or {}
+    for profile_name, profile in profiles.items():
+        candidates = profile.get("model_candidates")
+        if candidates and (
+            not isinstance(candidates, list)
+            or len(candidates) != len(set(candidates))
+            or any(not model for model in candidates)
+        ):
+            raise ValueError(f"{profile_name}: model_candidates must be unique models")
     for job in jobs:
         if bool(job.get("schedule")) == bool(job.get("seasonal_schedules")):
             raise ValueError(f"{job['name']}: define exactly one schedule source")
@@ -41,6 +49,9 @@ def load_contract(path: str | Path | None = None) -> dict:
     sync = data.get("dst_sync") or {}
     if not sync.get("schedule") or not sync.get("command_contains"):
         raise ValueError("dst_sync schedule and command matcher are required")
+    health = data.get("provider_health") or {}
+    if not health.get("schedule") or not health.get("command_contains"):
+        raise ValueError("provider_health schedule and command matcher are required")
     return data
 
 
@@ -103,9 +114,29 @@ def payload_errors(contract: dict, expected_job: dict, live_job: dict) -> list[s
     errors = []
     fields = {
         "kind": profile.get("payload_kind"),
-        "model": profile.get("model"),
         "thinking": profile.get("thinking"),
     }
+    candidates = profile.get("model_candidates")
+    if candidates:
+        fallbacks = payload.get("fallbacks") or []
+        if not isinstance(fallbacks, list):
+            errors.append("payload.fallbacks must be a list")
+            fallbacks = []
+        rotation = [payload.get("model"), *fallbacks]
+        if any(not model for model in rotation):
+            errors.append("payload model rotation contains an empty model")
+        if len(rotation) != len(set(rotation)):
+            errors.append("payload model rotation contains duplicates")
+        unknown = [model for model in rotation if model not in candidates]
+        if unknown:
+            errors.append(f"payload model rotation contains unknown models: {unknown}")
+        ordered = [model for model in candidates if model in rotation]
+        if rotation != ordered:
+            errors.append(
+                f"payload model rotation must preserve candidate order {candidates!r}"
+            )
+    else:
+        fields["model"] = profile.get("model")
     for field, expected in fields.items():
         if expected is not None and payload.get(field) != expected:
             errors.append(f"payload.{field} expected {expected!r}, got {payload.get(field)!r}")
@@ -205,4 +236,16 @@ def validate_watchdogs(contract: dict, crontab_text: str,
             expected = effective_schedule(sync, at).get("expr")
             if row["expr"] != expected:
                 errors.append(f"DST sync cron expected {expected!r}, got {row['expr']!r}")
+    health = contract.get("provider_health") or {}
+    if health:
+        tokens = health.get("command_contains") or []
+        row = find_crontab_row(rows, tokens)
+        if not row:
+            errors.append(f"provider health cron missing or ambiguous: {tokens}")
+        else:
+            expected = effective_schedule(health, at).get("expr")
+            if row["expr"] != expected:
+                errors.append(
+                    f"provider health cron expected {expected!r}, got {row['expr']!r}"
+                )
     return errors
