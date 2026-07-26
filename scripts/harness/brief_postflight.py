@@ -38,6 +38,7 @@ sys.path.insert(0, str(WS / 'scripts' / 'data'))
 import trading_calendar  # noqa: E402
 import decision_v2  # noqa: E402
 import workflow_outcomes  # noqa: E402
+import risk_discipline  # noqa: E402
 
 # Required concepts and the section labels the brief model may legitimately emit.
 # The canonical keys preserve the existing missing-section issue text.  The aliases
@@ -98,6 +99,10 @@ def validate_plan_json(path, context=None):
     decisions = plan.get('decisions', []) if isinstance(plan.get('decisions'), list) else []
     # Unpriceable calls score for direction but never reach the money chart.
     issues += [f'plan.json size: {x}' for x in decision_v2.missing_size_warnings(decisions)]
+    issues += [
+        f'plan.json calibration: {x}'
+        for x in decision_v2.missing_regime_warnings(decisions)
+    ]
     for i, d in enumerate(decisions):
         tag = f'plan.json decision[{i}] ({d.get("ticker", "?")}/{d.get("strategy_id", "?")})'
         # Active timing calls need a hard catalyst. Deterministic risk-rebalance is
@@ -111,25 +116,41 @@ def validate_plan_json(path, context=None):
     # 仓位/杠杆硬闸闭环 (warn): context.risk_guardrail 的每条 breach / hard_stop
     # 必须在 plan 里有对应的减仓动作，否则 LLM 忽略了硬闸。见 SKILL「🚦 仓位/杠杆硬闸」。
     gr = (context or {}).get('risk_guardrail') or {}
+    discipline = (context or {}).get('risk_discipline') or {}
+    portfolio = (context or {}).get('portfolio') or {}
+    issues += [
+        f'风险增仓冻结: {issue}'
+        for issue in risk_discipline.validate_exposure_increases(
+            decisions, discipline, portfolio)
+    ]
     if gr.get('breach_count'):
         TRIM = {'trim_on_rebound', 'cut'}
         def _leg(t): return 'HK' if str(t).isdigit() else 'US'
         trims = [d for d in decisions if d.get('action') in TRIM and d.get('strategy_id') == 'risk_rebalance']
         trim_tickers = {d.get('ticker') for d in trims}
         trim_legs = {_leg(d.get('ticker')) for d in trims}
-        overridden = {d.get('ticker') for d in decisions
-                      if (d.get('override') or {}).get('status') == 'active'}
+        durable_overrides = {
+            row.get('breach_id')
+            for row in discipline.get('records') or []
+            if risk_discipline.override_is_active(row)
+        }
         for b in gr.get('breaches', []):
             tk, leg = b.get('ticker'), b.get('leg')
-            if tk and tk not in trim_tickers and tk not in overridden:
+            if b.get('breach_id') in durable_overrides:
+                continue
+            if tk and tk not in trim_tickers:
                 issues.append(f'仓位硬闸未处理: {b["type"]} {tk} ({b["detail"]}) — '
                               f'plan 里 {tk} 没有 trim/cut 动作（SKILL 要求每条 breach 出对应动作）')
             elif not tk and leg and leg not in trim_legs:
                 issues.append(f'仓位硬闸未处理: {b["type"]}/{leg} ({b["detail"]}) — '
                               f'plan 里 {leg} leg 没有任何 trim/cut 动作')
         for s in gr.get('hard_stop_watch', []):
-            if s.get('ticker') not in {d.get('ticker') for d in trims if d.get('action') == 'cut'} \
-                    and s.get('ticker') not in overridden:
+            if s.get('breach_id') in durable_overrides:
+                continue
+            cut_tickers = {
+                d.get('ticker') for d in trims if d.get('action') == 'cut'
+            }
+            if s.get('ticker') not in cut_tickers:
                 issues.append(f'杠杆硬止损未处理: {s["ticker"]} ({s["detail"]}) — plan 里没有对应 cut')
     return issues
 
@@ -329,6 +350,8 @@ def maybe_commit(status, today, dry_run=False):
                             'assets/data/quant_signals.json',
                             'assets/data/quant_signals_history.jsonl',
                             'assets/data/quant_signal_review.json',
+                            'assets/data/cross_sectional_factor.json',
+                            'assets/data/cross_sectional_factor_history.jsonl',
                             'assets/data/catalysts.json',
                             'assets/data/em_news.json',
                             'assets/data/guardrail_history.jsonl',

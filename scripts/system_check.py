@@ -16,6 +16,7 @@ import json
 import os
 import subprocess
 import sys
+from datetime import datetime, timezone
 from pathlib import Path
 
 WS = Path(__file__).resolve().parent.parent
@@ -98,6 +99,28 @@ def check_portfolio_schema(r):
         r.add('portfolio.json schema', CRITICAL, '; '.join(bad[:3]))
     else:
         r.add('portfolio.json schema', OK, 'valid')
+
+
+def check_instrument_registry(r):
+    """Canonical metadata must cover every active holding."""
+    sys.path.insert(0, str(WS / 'scripts' / 'data'))
+    try:
+        import instrument_registry
+        portfolio = json.loads((WS / 'portfolio.json').read_text())
+        errors = instrument_registry.validate_active_holdings(portfolio)
+    except Exception as e:
+        r.add('instrument registry', CRITICAL, f'load/validate failed: {e}')
+        return
+    if errors:
+        r.add('instrument registry', CRITICAL, '; '.join(errors[:3]))
+    else:
+        active = sum(
+            1
+            for bucket in ('us_stocks', 'hk_stocks')
+            for h in portfolio['portfolios'][bucket]['holdings']
+            if (h.get('shares') or 0) > 0
+        )
+        r.add('instrument registry', OK, f'{active} active holdings mapped')
 
 
 def check_plan_json_schema(r):
@@ -468,12 +491,49 @@ def check_generated_cron_docs(r):
               (result.stdout + result.stderr).strip()[-300:])
 
 
+def check_provider_health(r):
+    """Daily readiness probe must be fresh and leave a usable unique rotation."""
+    path = WS / 'memory' / '.tmp' / 'provider-health.json'
+    if not path.exists():
+        if not Path('/root/.local/share/pnpm/openclaw').exists():
+            r.add('provider health', OK, 'skipped (OpenClaw not installed on this host)')
+        else:
+            r.add('provider health', WARNING, 'no readiness state yet; run provider_health.py')
+        return
+    try:
+        state = json.loads(path.read_text())
+        config = json.loads((WS / 'config' / 'provider-health.json').read_text())
+        max_age_h = float(config['probe']['max_age_hours'])
+        checked = datetime.fromisoformat(state['checked_at'].replace('Z', '+00:00'))
+        if checked.tzinfo is None:
+            checked = checked.replace(tzinfo=timezone.utc)
+        age_h = (datetime.now(timezone.utc) - checked).total_seconds() / 3600
+    except Exception as e:
+        r.add('provider health', CRITICAL, f'unreadable readiness state: {e}')
+        return
+    rotation = state.get('rotation') or []
+    if not rotation or len(rotation) != len(set(rotation)):
+        r.add('provider health', CRITICAL, 'no usable unique provider rotation')
+    elif age_h > max_age_h:
+        r.add('provider health', CRITICAL, f'readiness probe stale ({age_h:.1f}h)')
+    elif state.get('status') == 'degraded':
+        bad = [row.get('provider') for row in state.get('providers', [])
+               if not row.get('healthy')]
+        r.add('provider health', WARNING,
+              f'rotation={rotation}; unavailable={bad}; age={age_h:.1f}h')
+    elif state.get('status') == 'error':
+        r.add('provider health', CRITICAL, '; '.join(state.get('errors') or ['probe error']))
+    else:
+        r.add('provider health', OK, f'{len(rotation)} healthy provider(s); age={age_h:.1f}h')
+
+
 def main():
     r = Result()
     checks = [
         check_baseline_files,
         check_scripts_compile,
         check_portfolio_schema,
+        check_instrument_registry,
         check_plan_json_schema,
         check_dashboard_buildable,
         check_peer_map_coverage,
@@ -481,6 +541,7 @@ def main():
         check_openclaw_doctor,
         check_decision_ledger,
         check_cron_paths_exist,
+        check_provider_health,
         check_generated_cron_docs,
     ]
     for c in checks:
