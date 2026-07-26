@@ -1,6 +1,38 @@
 {
   "schema_version": 1,
-  "monitoring_started_at": null,
-  "updated_at": null,
-  "records": []
+  "monitoring_started_at": "2026-07-26T08:00:00+08:00",
+  "updated_at": "2026-07-26T06:57:48.538708+00:00",
+  "records": [
+    {
+      "job": "盘前深度简报",
+      "slot": "2026-07-26T08:00:00+08:00",
+      "stages": {
+        "preflight": {
+          "status": "skipped",
+          "at": "2026-07-26T06:57:48.538708+00:00",
+          "reason": "港股周末休市+美股周末休市"
+        },
+        "llm": {
+          "status": "unknown"
+        },
+        "postflight": {
+          "status": "unknown"
+        },
+        "primary_delivery": {
+          "status": "unknown"
+        },
+        "watchdog_delivery": {
+          "status": "unknown"
+        }
+      },
+      "raw_execution": {
+        "status": "unknown"
+      },
+      "updated_at": "2026-07-26T06:57:48.538708+00:00",
+      "final_product": {
+        "status": "skipped",
+        "reason": "market/session closed"
+      }
+    }
+  ]
 }
