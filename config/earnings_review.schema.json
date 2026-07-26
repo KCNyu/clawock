@@ -1,0 +1,235 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/KCNyu/clawock/config/earnings_review.schema.json",
+  "title": "clawock primary-source earnings review artifact",
+  "description": "One reporting period per file under memory/earnings/<TICKER>/<period>.json. scripts/data/earnings_review.py is the enforcing validator; this document is the published shape.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "artifact_id",
+    "ticker",
+    "market",
+    "cadence",
+    "currency",
+    "unit",
+    "basis",
+    "period",
+    "published_at",
+    "documents",
+    "comparables",
+    "segments",
+    "guidance",
+    "footnotes",
+    "management_commitments",
+    "capital_allocation",
+    "thesis_link",
+    "provenance"
+  ],
+  "properties": {
+    "schema_version": {"const": 1},
+    "artifact_id": {"type": "string", "minLength": 1},
+    "ticker": {"type": "string", "minLength": 1},
+    "market": {"enum": ["US", "HK"]},
+    "cadence": {"enum": ["quarterly", "semiannual", "annual"]},
+    "currency": {"enum": ["USD", "HKD", "CNY", "EUR", "JPY"]},
+    "unit": {"type": "string", "minLength": 1},
+    "basis": {"enum": ["GAAP", "IFRS", "HKFRS", "non_GAAP"]},
+    "period": {"$ref": "#/$defs/period"},
+    "published_at": {"type": "string", "format": "date-time"},
+    "documents": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"$ref": "#/$defs/document"}
+    },
+    "comparables": {
+      "type": "array",
+      "minItems": 3,
+      "items": {"$ref": "#/$defs/comparable"}
+    },
+    "segments": {"type": "array", "items": {"$ref": "#/$defs/segment"}},
+    "guidance": {
+      "oneOf": [{"$ref": "#/$defs/guidance"}, {"type": "null"}]
+    },
+    "footnotes": {"type": "array", "items": {"$ref": "#/$defs/footnote"}},
+    "management_commitments": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/commitment"}
+    },
+    "capital_allocation": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/capital_event"}
+    },
+    "thesis_link": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["thesis_id", "ticker"],
+          "properties": {
+            "thesis_id": {"type": "string", "minLength": 1},
+            "ticker": {"type": "string", "minLength": 1}
+          }
+        },
+        {"type": "null"}
+      ]
+    },
+    "provenance": {
+      "type": "object",
+      "description": "A research_provenance manifest covering every published number; see config/thesis.schema.json's sibling gate in scripts/data/research_provenance.py."
+    }
+  },
+  "$defs": {
+    "decimal_string": {"type": "string", "pattern": "^-?(\\d+(\\.\\d*)?|\\.\\d+)([eE][+-]?\\d+)?$"},
+    "period": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["label", "end_date"],
+      "properties": {
+        "label": {"type": "string", "minLength": 1},
+        "end_date": {"type": "string", "format": "date"}
+      }
+    },
+    "document": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["document_id", "source_class", "locator", "retrieved_at", "covers_period"],
+      "properties": {
+        "document_id": {"type": "string", "minLength": 1},
+        "source_class": {
+          "enum": [
+            "sec_filing",
+            "hkex_announcement",
+            "issuer_ir",
+            "sec_xbrl",
+            "eastmoney_fundamentals",
+            "third_party_summary"
+          ]
+        },
+        "locator": {"type": "string", "minLength": 1},
+        "retrieved_at": {"type": "string", "format": "date-time"},
+        "covers_period": {"type": "boolean"}
+      }
+    },
+    "comparable": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["period", "basis", "currency", "unit", "revenue", "net_income", "ocf"],
+      "properties": {
+        "period": {"$ref": "#/$defs/period"},
+        "basis": {"enum": ["GAAP", "IFRS", "HKFRS", "non_GAAP"]},
+        "currency": {"enum": ["USD", "HKD", "CNY", "EUR", "JPY"]},
+        "unit": {"type": "string", "minLength": 1},
+        "revenue": {"$ref": "#/$defs/decimal_string"},
+        "operating_income": {"$ref": "#/$defs/decimal_string"},
+        "net_income": {"$ref": "#/$defs/decimal_string"},
+        "ocf": {"$ref": "#/$defs/decimal_string"},
+        "capex": {"$ref": "#/$defs/decimal_string"},
+        "receivables": {"$ref": "#/$defs/decimal_string"},
+        "inventory": {"$ref": "#/$defs/decimal_string"},
+        "sbc": {"$ref": "#/$defs/decimal_string"},
+        "diluted_shares": {"$ref": "#/$defs/decimal_string"},
+        "cash": {"$ref": "#/$defs/decimal_string"},
+        "debt": {"$ref": "#/$defs/decimal_string"},
+        "eps_diluted": {"$ref": "#/$defs/decimal_string"}
+      }
+    },
+    "segment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["segment_id", "name", "revenue"],
+      "properties": {
+        "segment_id": {"type": "string", "minLength": 1},
+        "name": {"type": "string", "minLength": 1},
+        "revenue": {"$ref": "#/$defs/decimal_string"},
+        "operating_income": {"$ref": "#/$defs/decimal_string"}
+      }
+    },
+    "guidance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["metric", "basis", "currency", "unit", "guided_low", "guided_high", "actual", "source_document_id"],
+      "properties": {
+        "metric": {"type": "string", "minLength": 1},
+        "basis": {"enum": ["GAAP", "IFRS", "HKFRS", "non_GAAP"]},
+        "currency": {"enum": ["USD", "HKD", "CNY", "EUR", "JPY"]},
+        "unit": {"type": "string", "minLength": 1},
+        "guided_low": {"$ref": "#/$defs/decimal_string"},
+        "guided_high": {"$ref": "#/$defs/decimal_string"},
+        "actual": {"$ref": "#/$defs/decimal_string"},
+        "source_document_id": {"type": "string", "minLength": 1}
+      }
+    },
+    "footnote": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["category", "summary", "source_document_id"],
+      "properties": {
+        "category": {
+          "enum": [
+            "related_party",
+            "contingency",
+            "accounting_policy_change",
+            "goodwill_intangibles",
+            "customer_concentration",
+            "supplier_concentration"
+          ]
+        },
+        "summary": {"type": "string", "minLength": 1, "maxLength": 600},
+        "source_document_id": {"type": "string", "minLength": 1}
+      }
+    },
+    "commitment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "commitment_id",
+        "statement",
+        "source_document_id",
+        "made_at",
+        "due_date",
+        "target_metric",
+        "target_value",
+        "actual_value",
+        "status"
+      ],
+      "properties": {
+        "commitment_id": {"type": "string", "minLength": 1},
+        "statement": {"type": "string", "minLength": 1, "maxLength": 600},
+        "source_document_id": {"type": "string", "minLength": 1},
+        "made_at": {"type": "string", "format": "date"},
+        "due_date": {"type": "string", "format": "date"},
+        "target_metric": {"type": "string", "minLength": 1},
+        "target_value": {"oneOf": [{"$ref": "#/$defs/decimal_string"}, {"type": "string"}]},
+        "actual_value": {
+          "oneOf": [{"$ref": "#/$defs/decimal_string"}, {"type": "string"}, {"type": "null"}]
+        },
+        "status": {"enum": ["met", "partial", "missed", "not_due", "unverifiable"]}
+      }
+    },
+    "capital_event": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["event_id", "type", "amount", "currency", "occurred_at", "source_document_id"],
+      "properties": {
+        "event_id": {"type": "string", "minLength": 1},
+        "type": {
+          "enum": [
+            "buyback",
+            "dividend",
+            "acquisition",
+            "divestiture",
+            "debt_raise",
+            "debt_repayment",
+            "equity_raise",
+            "new_business_spend"
+          ]
+        },
+        "amount": {"$ref": "#/$defs/decimal_string"},
+        "currency": {"enum": ["USD", "HKD", "CNY", "EUR", "JPY"]},
+        "occurred_at": {"type": "string", "format": "date"},
+        "source_document_id": {"type": "string", "minLength": 1}
+      }
+    }
+  }
+}

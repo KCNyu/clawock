@@ -1,0 +1,262 @@
+{
+  "schema_version": 1,
+  "artifact_id": "earnings-USTEST-FY2026Q1",
+  "ticker": "USTEST",
+  "market": "US",
+  "cadence": "quarterly",
+  "currency": "USD",
+  "unit": "million",
+  "basis": "GAAP",
+  "period": {"label": "FY2026Q1", "end_date": "2026-03-31"},
+  "published_at": "2026-04-25T20:05:00+00:00",
+  "documents": [
+    {
+      "document_id": "10q-fy2026q1",
+      "source_class": "sec_filing",
+      "locator": "sec:USTEST/10-Q/FY2026Q1",
+      "retrieved_at": "2026-04-26T01:10:00+00:00",
+      "covers_period": true
+    },
+    {
+      "document_id": "xbrl-fy2026q1",
+      "source_class": "sec_xbrl",
+      "locator": "sec-xbrl:USTEST/companyconcept/FY2026Q1",
+      "retrieved_at": "2026-04-26T01:12:00+00:00",
+      "covers_period": true
+    },
+    {
+      "document_id": "ir-deck-fy2026q1",
+      "source_class": "issuer_ir",
+      "locator": "ir:USTEST/quarterly-deck/FY2026Q1",
+      "retrieved_at": "2026-04-26T01:15:00+00:00",
+      "covers_period": true
+    }
+  ],
+  "comparables": [
+    {
+      "period": {"label": "FY2025Q2", "end_date": "2025-06-30"},
+      "basis": "GAAP",
+      "currency": "USD",
+      "unit": "million",
+      "revenue": "100",
+      "operating_income": "8",
+      "net_income": "6",
+      "ocf": "7",
+      "capex": "3",
+      "receivables": "40",
+      "inventory": "20",
+      "sbc": "9",
+      "diluted_shares": "500",
+      "cash": "120",
+      "debt": "60",
+      "eps_diluted": "0.012"
+    },
+    {
+      "period": {"label": "FY2025Q3", "end_date": "2025-09-30"},
+      "basis": "GAAP",
+      "currency": "USD",
+      "unit": "million",
+      "revenue": "110",
+      "operating_income": "9",
+      "net_income": "7",
+      "ocf": "8",
+      "capex": "3",
+      "receivables": "44",
+      "inventory": "22",
+      "sbc": "10",
+      "diluted_shares": "502",
+      "cash": "125",
+      "debt": "60",
+      "eps_diluted": "0.014"
+    },
+    {
+      "period": {"label": "FY2025Q4", "end_date": "2025-12-31"},
+      "basis": "GAAP",
+      "currency": "USD",
+      "unit": "million",
+      "revenue": "118",
+      "operating_income": "9.5",
+      "net_income": "7.5",
+      "ocf": "8.5",
+      "capex": "4",
+      "receivables": "50",
+      "inventory": "24",
+      "sbc": "11",
+      "diluted_shares": "505",
+      "cash": "128",
+      "debt": "58",
+      "eps_diluted": "0.015"
+    },
+    {
+      "period": {"label": "FY2026Q1", "end_date": "2026-03-31"},
+      "basis": "GAAP",
+      "currency": "USD",
+      "unit": "million",
+      "revenue": "125",
+      "operating_income": "10",
+      "net_income": "8",
+      "ocf": "5",
+      "capex": "4",
+      "receivables": "70",
+      "inventory": "26",
+      "sbc": "12",
+      "diluted_shares": "510",
+      "cash": "126",
+      "debt": "58",
+      "eps_diluted": "0.016"
+    }
+  ],
+  "segments": [
+    {"segment_id": "platform", "name": "Platform", "revenue": "95", "operating_income": "14"},
+    {"segment_id": "services", "name": "Services", "revenue": "30", "operating_income": "-4"}
+  ],
+  "guidance": {
+    "metric": "revenue",
+    "basis": "GAAP",
+    "currency": "USD",
+    "unit": "million",
+    "guided_low": "120",
+    "guided_high": "128",
+    "actual": "125",
+    "source_document_id": "ir-deck-fy2026q1"
+  },
+  "footnotes": [
+    {
+      "category": "customer_concentration",
+      "summary": "Two customers account for a majority of platform revenue; the filing states the concentration increased versus the prior year.",
+      "source_document_id": "10q-fy2026q1"
+    },
+    {
+      "category": "contingency",
+      "summary": "An unresolved commercial dispute is disclosed with no accrual recorded.",
+      "source_document_id": "10q-fy2026q1"
+    }
+  ],
+  "management_commitments": [
+    {
+      "commitment_id": "fcf-positive-fy2026",
+      "statement": "Management committed to positive free cash flow for every quarter of FY2026.",
+      "source_document_id": "ir-deck-fy2026q1",
+      "made_at": "2026-01-28",
+      "due_date": "2026-03-31",
+      "target_metric": "free_cash_flow",
+      "target_value": "0",
+      "actual_value": "1",
+      "status": "met"
+    },
+    {
+      "commitment_id": "services-breakeven",
+      "statement": "Management committed to Services segment operating breakeven by the end of FY2026.",
+      "source_document_id": "ir-deck-fy2026q1",
+      "made_at": "2026-01-28",
+      "due_date": "2026-12-31",
+      "target_metric": "services_operating_income",
+      "target_value": "0",
+      "actual_value": null,
+      "status": "not_due"
+    }
+  ],
+  "capital_allocation": [
+    {
+      "event_id": "buyback-fy2026q1",
+      "type": "buyback",
+      "amount": "15",
+      "currency": "USD",
+      "occurred_at": "2026-03-10",
+      "source_document_id": "10q-fy2026q1"
+    }
+  ],
+  "thesis_link": {"thesis_id": "ustest-core", "ticker": "USTEST"},
+  "provenance": {
+    "schema_version": 1,
+    "artifact_id": "earnings-USTEST-FY2026Q1",
+    "referenced_metric_ids": [
+      "ustest-revenue-fy2026q1",
+      "ustest-net-income-fy2026q1",
+      "ustest-ocf-fy2026q1"
+    ],
+    "metrics": [
+      {
+        "id": "ustest-revenue-fy2026q1",
+        "name": "Revenue",
+        "ticker": "USTEST",
+        "period": "FY2026Q1",
+        "as_of": "2026-03-31",
+        "unit": "million",
+        "currency": "USD",
+        "basis": "GAAP",
+        "reported_value": "125",
+        "tolerance_pct": "1",
+        "source": {
+          "source_class": "sec_filing",
+          "locator": "sec:USTEST/10-Q/FY2026Q1#income-statement",
+          "fetched_at": "2026-04-26T01:10:00+00:00"
+        },
+        "verification": {
+          "value": "125",
+          "source_class": "sec_xbrl",
+          "locator": "sec-xbrl:USTEST/Revenues/FY2026Q1",
+          "fetched_at": "2026-04-26T01:12:00+00:00",
+          "period": "FY2026Q1",
+          "unit": "million",
+          "currency": "USD",
+          "basis": "GAAP"
+        }
+      },
+      {
+        "id": "ustest-net-income-fy2026q1",
+        "name": "Net income",
+        "ticker": "USTEST",
+        "period": "FY2026Q1",
+        "as_of": "2026-03-31",
+        "unit": "million",
+        "currency": "USD",
+        "basis": "GAAP",
+        "reported_value": "8",
+        "tolerance_pct": "1",
+        "source": {
+          "source_class": "sec_filing",
+          "locator": "sec:USTEST/10-Q/FY2026Q1#income-statement",
+          "fetched_at": "2026-04-26T01:10:00+00:00"
+        },
+        "verification": {
+          "value": "8",
+          "source_class": "sec_xbrl",
+          "locator": "sec-xbrl:USTEST/NetIncomeLoss/FY2026Q1",
+          "fetched_at": "2026-04-26T01:12:00+00:00",
+          "period": "FY2026Q1",
+          "unit": "million",
+          "currency": "USD",
+          "basis": "GAAP"
+        }
+      },
+      {
+        "id": "ustest-ocf-fy2026q1",
+        "name": "Operating cash flow",
+        "ticker": "USTEST",
+        "period": "FY2026Q1",
+        "as_of": "2026-03-31",
+        "unit": "million",
+        "currency": "USD",
+        "basis": "GAAP",
+        "reported_value": "5",
+        "tolerance_pct": "1",
+        "source": {
+          "source_class": "sec_filing",
+          "locator": "sec:USTEST/10-Q/FY2026Q1#cash-flow-statement",
+          "fetched_at": "2026-04-26T01:10:00+00:00"
+        },
+        "verification": {
+          "value": "5",
+          "source_class": "sec_xbrl",
+          "locator": "sec-xbrl:USTEST/NetCashProvidedByOperatingActivities/FY2026Q1",
+          "fetched_at": "2026-04-26T01:12:00+00:00",
+          "period": "FY2026Q1",
+          "unit": "million",
+          "currency": "USD",
+          "basis": "GAAP"
+        }
+      }
+    ]
+  }
+}
