@@ -43,17 +43,9 @@ UA = ('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 '
 
 SIGMA_TARGET = 0.25   # vol-target sizing 的组合级目标波动（25% 年化）
 
-# 杠杆 ETF → 信号按标的算（信号属于标的的趋势/动量，ETF 只是放大器）
-LEV_UNDERLYING = {
-    '07226': ('HSTECH', 'hkHSTECH'),
-    'PLTU':  ('PLTR', 'usPLTR.OQ'),
-    'ROBN':  ('HOOD', 'usHOOD.OQ'),
-    'MSFU':  ('MSFT', 'usMSFT.OQ'),
-}
-# 美股现货的 Tencent 代码（.OQ=Nasdaq .N=NYSE），缺的按两种后缀回退尝试
-US_CODE = {'RKLB': 'usRKLB.OQ', 'CRCL': 'usCRCL.N'}
-
 sys.path.insert(0, str(WS / 'scripts' / 'data'))
+from instrument_registry import require as require_instrument  # noqa: E402
+
 try:
     from safe_io import safe_write_json  # type: ignore
 except Exception:
@@ -199,21 +191,26 @@ def compute_signals(bars):
 
 
 def _universe():
-    """活跃持仓 → [(展示名, tencent代码, 备注)]。杠杆 ETF 折到标的。"""
+    """活跃持仓 → [(展示名, canonical Tencent 代码, 备注)]。
+
+    杠杆产品使用 registry 的 signal_symbol 折到标的/1x proxy；venue 后缀
+    同样从 registry 读取，绝不再默认猜成 Nasdaq。
+    """
     port = json.loads(PORTFOLIO.read_text())
     uni, seen = [], set()
-    for region, prefix in (('hk_stocks', 'hk'), ('us_stocks', None)):
+    for region in ('hk_stocks', 'us_stocks'):
         for h in port['portfolios'][region]['holdings']:
             if h.get('shares', 0) <= 0:
                 continue
             t = h.get('ticker')
-            if t in LEV_UNDERLYING:
-                name, code = LEV_UNDERLYING[t]
-                label, note = name, f'{t} 的标的'
-            elif prefix:  # HK 现货
-                label, code, note = t, f'hk{t}', ''
-            else:         # US 现货
-                label, code, note = t, US_CODE.get(t, f'us{t}.OQ'), ''
+            meta = require_instrument(t)
+            signal_symbol = meta.get('signal_symbol') or t
+            signal_meta = require_instrument(signal_symbol)
+            label = signal_symbol
+            code = signal_meta.get('tencent_symbol')
+            note = f'{t} 的标的/1x proxy' if signal_symbol != t else ''
+            if not code:
+                raise ValueError(f'{signal_symbol} has no canonical Tencent symbol')
             if code in seen:
                 continue
             seen.add(code)
@@ -234,13 +231,8 @@ def main():
         bars = fetch_bars(code)
         sig = compute_signals(bars) if bars else None
         if sig is None:
-            # NYSE/Nasdaq 后缀猜错时回退另一边
-            if code.startswith('us') and code.endswith('.OQ'):
-                bars = fetch_bars(code.replace('.OQ', '.N'))
-                sig = compute_signals(bars) if bars else None
-            if sig is None:
-                print(f'  warn: {label} ({code}) no data — retained prior', file=sys.stderr)
-                continue
+            print(f'  warn: {label} ({code}) no data — retained prior', file=sys.stderr)
+            continue
         sig['code'] = code
         if note:
             sig['note'] = note

@@ -100,6 +100,28 @@ def check_portfolio_schema(r):
         r.add('portfolio.json schema', OK, 'valid')
 
 
+def check_instrument_registry(r):
+    """Canonical metadata must cover every active holding."""
+    sys.path.insert(0, str(WS / 'scripts' / 'data'))
+    try:
+        import instrument_registry
+        portfolio = json.loads((WS / 'portfolio.json').read_text())
+        errors = instrument_registry.validate_active_holdings(portfolio)
+    except Exception as e:
+        r.add('instrument registry', CRITICAL, f'load/validate failed: {e}')
+        return
+    if errors:
+        r.add('instrument registry', CRITICAL, '; '.join(errors[:3]))
+    else:
+        active = sum(
+            1
+            for bucket in ('us_stocks', 'hk_stocks')
+            for h in portfolio['portfolios'][bucket]['holdings']
+            if (h.get('shares') or 0) > 0
+        )
+        r.add('instrument registry', OK, f'{active} active holdings mapped')
+
+
 def check_plan_json_schema(r):
     """All memory/*-plan.json must satisfy schema."""
     plans = glob.glob(str(WS / 'memory' / '*-plan.json'))
@@ -476,6 +498,7 @@ def main():
         check_baseline_files,
         check_scripts_compile,
         check_portfolio_schema,
+        check_instrument_registry,
         check_plan_json_schema,
         check_dashboard_buildable,
         check_peer_map_coverage,

@@ -50,6 +50,9 @@ sys.path.insert(0, str(WS / 'scripts' / 'data'))
 import trading_calendar  # noqa: E402
 import decision_v2  # noqa: E402
 import peer_scan  # noqa: E402
+from instrument_registry import get as get_instrument  # noqa: E402
+from instrument_registry import compute_lookthrough_exposure  # noqa: E402
+from instrument_registry import one_x_swap_map  # noqa: E402
 
 
 def _run(script, args=None, timeout=120):
@@ -79,10 +82,12 @@ _LEVERAGED_KEYWORDS = ('倍', 'Direxion', 'T-Rex', 'Defiance', 'ProShares',
 
 
 def _is_leveraged_etf(holding):
-    """Heuristic: portfolio.json doesn't reliably set is_leveraged_etf.
-    Detect via name keywords (Chinese 倍 + known sponsor names)."""
+    """Use canonical leverage metadata; retain an unknown-name fallback."""
     if holding.get('is_leveraged_etf') is True:
         return True
+    meta = get_instrument(holding.get('ticker'))
+    if meta is not None:
+        return meta['leverage_multiple'] > 1
     name = holding.get('name', '')
     return any(kw in name for kw in _LEVERAGED_KEYWORDS)
 
@@ -121,7 +126,7 @@ def compute_concentration(holdings):
             'ticker':     h['ticker'],
             'value':      round(v, 2),
             'weight_pct': round(v / total * 100, 2),
-            'leveraged':  bool(h.get('is_leveraged_etf')),
+            'leveraged':  _is_leveraged_etf(h),
         })
     weights.sort(key=lambda x: -x['weight_pct'])
 
@@ -165,14 +170,7 @@ GUARDRAIL_CAPS = {
 # 套牢不能躺（震荡 decay 让等待持续收费）。所以杠杆腿的硬闸动作一律先给「换仓」而非
 # 「清仓 trim」——换成同因子 1x 后反弹敞口一点不丢、decay 出血停止，不算割肉离场。
 # 换回条件 = 🧭 lev_regime 转 green（标的收复 200 日线且波动正常），1x→2x 只在 green 档执行。
-LEV_1X_SWAP = {
-    '07226': '03033',   # XL二南方恒科 2x → 南方恒生科技 1x（同因子同发行人）
-    'PLTU':  'PLTR',
-    'ROBN':  'HOOD',
-    'MSFU':  'MSFT',
-    'TQQQ':  'QQQ',
-    'SOXL':  'SOXX',
-}
+LEV_1X_SWAP = one_x_swap_map()
 
 
 def _swap_suggestions(holdings):
@@ -1119,10 +1117,13 @@ def main():
     print('[5/14] Concentration')
     hk_conc = compute_concentration(portfolio['portfolios']['hk_stocks']['holdings'])
     us_conc = compute_concentration(portfolio['portfolios']['us_stocks']['holdings'])
+    lookthrough = compute_lookthrough_exposure(portfolio)
     print(f'   HK: HHI={hk_conc.get("hhi"):.3f} {hk_conc.get("verdict")} '
           f'(Top2 {hk_conc.get("top2_pct")}%)')
     print(f'   US: HHI={us_conc.get("hhi"):.3f} {us_conc.get("verdict")} '
           f'(Top2 {us_conc.get("top2_pct")}%)')
+    print(f'   Look-through: HK factor HHI={lookthrough["hk"]["factor_hhi"]:.3f}; '
+          f'US factor HHI={lookthrough["us"]["factor_hhi"]:.3f}')
 
     # Book totals (FX-aware)
     rate = fx['rate']
@@ -1435,6 +1436,7 @@ def main():
         'portfolio':     portfolio_ctx,
         'book_totals':   book,
         'concentration': {'hk': hk_conc, 'us': us_conc},
+        'lookthrough_exposure': lookthrough,
         'risk_guardrail': guardrail,
         'breakeven_math': breakeven,
         'quant_signals': quant_signals,
