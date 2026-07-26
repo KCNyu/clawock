@@ -96,6 +96,7 @@ clawock 是**美股 + 港股 + 黄金定投**的实盘组合。工具包遵循�
 | `research_provenance.py` | 研究报告 Decimal 计算、两源数字溯源与 fail-closed 准出（tolerance 上限 5%，算式异常也只输出结构化 fail） | 结构化 manifest + 本地确定性校验 | ✅ |
 | `thesis_registry.py` | 持久 thesis schema/validator、证据驱动 drift（红线触发/解除对称要证据）与 decision link 解析 | `memory/theses/*.json` + 本地确定性校验 | ✅ |
 | `earnings_review.py` | 一手财报复盘:来源分级、盈利质量数学、管理层承诺账本、provenance 准出与 thesis 证据交接 | `memory/earnings/*/*.json` + 本地确定性校验 | ✅ |
+| `entry_gate.py` | 建仓前研究闸:信息分级与投资质量分离、确定性硬否决(行业例外写进配置)、pass/reject/gray 判定与深研路由 | `memory/entry-gates/*.json` + `config/entry-gate-vetoes.json` | ✅ |
 
 ## Layer 8 · 回测/自省 Backtest & Calibration
 

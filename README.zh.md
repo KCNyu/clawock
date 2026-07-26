@@ -162,6 +162,7 @@ clawock 是一个持续运行的、公开的**纪律化、自评式** AI 投资�
 | 检查当前组合 | 单次走 [`portfolio-risk-review`](skills/portfolio-risk-review/SKILL.md);深度辩论走 [`portfolio-swarm-review`](skills/portfolio-swarm-review/SKILL.md) | `portfolio.json`、新鲜行情、风控与决策账本 | 依赖已配置的真实组合 |
 | 压测一条供应链 thesis | [`serenity-skill`](skills/serenity-skill/SKILL.md) | 当前公开证据 + 本地评分卡 | 可作为手动研究框架复用 |
 | 复盘一个已披露的报告期并追踪管理层承诺 | [`earnings-review`](skills/earnings-review/SKILL.md) | 一手 filing / 港交所公告、XBRL 或东财结构化交叉验证、provenance 准出闸 | 可复用;产物落在 `memory/earnings/` |
+| 判断一个新标的值不值得做深度研究 | [`entry-gate`](skills/entry-gate/SKILL.md) | workspace 行情链、instrument registry、证据来源分级、确定性硬否决 | 可复用;产物落在 `memory/entry-gates/` |
 
 这些入口原生依赖 workspace,不是一条命令即可独立安装的通用产品。它们要求 clawock 的脚本、数据契约和记忆 / SOP 文件;公开持仓及其运行历史只属于当前这套部署。
 

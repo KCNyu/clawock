@@ -95,6 +95,7 @@ def test_research_surfaces_stay_in_both_languages():
         "skills/portfolio-swarm-review/SKILL.md",
         "skills/serenity-skill/SKILL.md",
         "skills/earnings-review/SKILL.md",
+        "skills/entry-gate/SKILL.md",
     ):
         assert target in EN and target in ZH, f"{target} missing from a README"
 
