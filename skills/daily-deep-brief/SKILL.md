@@ -201,6 +201,16 @@ context.json 关键字段：
 
 只读 `context.decision_metrics.by_driver` 与 `by_strategy`，禁止把 README 或旧报告里的点时数字当当前事实。比较 `n_episodes`、`avg_benefit_pct` 和 `cluster_ci95`：n 小或 CI 跨 0 时只能说“方向性”，不能声称显著。`risk_rule` 是政策执行，不当作择时信号夸奖。
 
+#### 🎚️ 分层 confidence 校准与 sizing（REQUIRED）
+
+原始 `confidence` 只保留为作者当时判断的审计字段，不能直接当胜率或仓位倍数。主动 call 必须在 `context.decision_metrics.hierarchical_calibration.current_group_calibrators` 中匹配 `action + driver + condition + regime`；该表由严格按 `plan_date` 前向、同日整体延后更新的 beta-binomial 校准器产生，稀疏小组会收缩到更宽层级。
+
+- `abstain=true`：历史证据不足，`signal_size_multiplier=0`，不得因该信号扩仓；可以降级为 hold/watch。
+- 找不到完全匹配行：按 abstain 处理，不得自行拿相邻小组的点估计冒充。
+- `edge_supported=false`：证据可能够，但 95% 下界未过 50%，同样不得用它扩大主动仓位。
+- 只有 `edge_supported=true` 才能把原拟主动股数乘以 `signal_size_multiplier`；报告同时公开 calibrated probability、CI 和 resolved level。
+- 组合硬闸的 `risk_rebalance + risk_rule` 是政策执行，不是预测；即使校准器 abstain，也必须执行硬闸要求的降集中/降杠杆动作，禁止拿“无择时 edge”否决风控。
+
 #### 🌡️ 牛 / 熊 / 震荡 regime（REQUIRED，保留）
 
 Bull/Bear 是决策框架的一部分，不能因升级账本而删除：
@@ -222,16 +232,20 @@ preflight 已算好,直接读 `context.risk_guardrail`:
 - `breaches[]` — 每条 = 一个超限的硬闸(single_name / factor_concentration / leveraged_exposure / beta),带 `detail` + 现成 `action`(含具体减仓金额)。
 - `hard_stop_watch[]` — 杠杆 ETF 浮亏跌破 −18% 的硬止损触发。
 - `directive` — 本次总指令;`caps` — 当前阈值(单名 35% / Top2 70% / 杠杆 ETF 50% / US β 3.0 / 杠杆止损 −18%)。
+- `context.risk_discipline.records[]` — 同一 breach 的持久状态：`breach_id`、严重度、`age_days`、首次/最后变化、required reduction、acknowledgement、限时 override、execution evidence。每日重新生成的 plan 不是状态账本。
 
 硬性规则:
 - **每一条 breach 和 hard_stop 必须在 Judge 段落出一个对应的具体动作**(trim 到 ≤cap / cut),不准忽略、不准"观望"。直接采用 `action` 文案或给等价方案。
+- 每条 open 记录必须引用 `breach_id + age_days + acknowledgement/execution 状态`；未确认的老 breach 要明确升级，不得每天当新提醒重写。
+- 当天 plan 内的 `override.status=active` **不能**豁免硬闸。只有 durable ledger 里带非空 reason 且未过 TTL 的 `status=overridden` 才有效；创建例外必须由用户明确决定，可用 `python3 scripts/data/risk_discipline.py override BREACH_ID --reason '...' --ttl-hours N`。确认已看见用 `ack ... --note '...'`，成交证据用 `confirm ... --evidence '...'`；这些命令只记账，绝不下单。
+- 任何 critical/high breach 未关闭且未 durable override 时，禁止新增同一标的、杠杆或因子暴露。卖出不受阻；同一份 plan 中可证明净降 factor exposure 的 2x→1x 配对换仓不受阻。
 - 这些减仓 **strategy_id=`risk_rebalance`、driven_by=`risk_rule`**（纪律性再平衡，不是择时预测），并在 rationale 注明组合政策依据。
 - **这是 risk_on HOLD 默认的唯一豁免**:证伪铁律已写明纪律性再平衡正常走;别因为 regime=risk_on 就把降杠杆/降集中也按住。牛市里恰恰要借强减杠杆,不是等回调后。
 - **降 β/降杠杆优先削杠杆 ETF**(β 的主要来源),不要去砍高信念单票的 thesis。
 - **杠杆腿解套口径(kcn 2026-06-11 定)**:杠杆 ETF 的 breach/hard_stop 动作 = **2x→1x 同因子换仓而非清仓**(映射在 `brief_preflight.LEV_1X_SWAP`:07226→03033、PLTU→PLTR、ROBN→HOOD、MSFU→MSFT)——敞口不变、反弹一点不踏空,但停掉日内重置 decay;`context.risk_guardrail.reentry_rule` 满足(🧭转 green,标的收复 200 线)才允许 1x→2x 换回。**现货(非杠杆)套牢 kcn 方针=持有等待合法**(现货等待免费,2x 等待收费),对现货超限的最低要求是"不补仓、借反弹分批",别反复催清仓。
 - 若 `breach_count=0` → 本段写"✅ 仓位硬闸无触发",照常决策。
 - **解套/回本数字只准引用 `context.breakeven_math`**(preflight 已算好:每只浮亏持仓回本所需涨幅、2x 的横盘 decay ≈σ²/12 每月、半年窗含 drag 等效标的涨幅),禁止自己心算或编造。解读纪律见其 `note`:直线涨→2x 回本更快;横盘→2x 每月白付 decay;再跌→2x 双倍挨打——换 1x 买的是后两种情景的保护,不是回本速度,别说反。
-- **技术面判断只准引用 `context.quant_signals`**(每只持仓的趋势/动量/RSI/zscore20/吊灯止损线/vol_target_weight,杠杆 ETF 按标的算),禁止自创"看图"结论。**因子话语权由 `context.quant_signal_review` 决定**(信号每日留痕 vs T+1/T+5 前瞻收益自动对账):必须公示 `n_events/n_dates/n_tickers`;`usable=false` 或聚类 CI 跨 50% 的因子只能当背景展示不入决策；`decision_direction=reverse` 仅在反向 CI 整体低于 50% 时成立，禁止因 raw hit_rate<50% 自动反向。`driven_by=technical` 的整体战绩一律读取 `context.decision_metrics.by_driver.technical` 的实时计算值，禁止引用固定百分比。这是自迭代环——哪个因子可信,数据说了算,每天自动更新。
+- **技术面判断只准引用 `context.quant_signals`**(每只持仓的趋势/动量/RSI/zscore20/吊灯止损线/vol_target_weight,杠杆 ETF 按标的算),禁止自创"看图"结论。**因子话语权由 `context.quant_signal_review` 决定**(信号每日留痕 vs T+1/T+5 前瞻收益自动对账):必须公示 `n_events/n_dates/n_tickers`;`usable=false` 或聚类 CI 跨 50% 的因子只能当背景展示不入决策；`decision_direction=reverse` 仅在反向 CI 整体低于 50% 时成立，禁止因 raw hit_rate<50% 自动反向。T+0 牌面同样只在 `sample_sufficient=true AND edge_supported=true` 时可入决策；样本够多但 Wilson CI 不支持原方向仍是 `usable=false`，不得自动反向交易。`driven_by=technical` 的整体战绩一律读取 `context.decision_metrics.by_driver.technical` 的实时计算值，禁止引用固定百分比。这是自迭代环——哪个因子可信,数据说了算,每天自动更新。
 
 > 心智:driven_by 三档管"该信哪个信号",仓位硬闸管"不管信号多强,单名/单因子/杠杆都不许超过这条线"。后者是回撤的真正解药。
 
@@ -546,6 +560,7 @@ postflight 严格 schema 校验：
       "size": {"pct": 50, "shares": 20, "capital": 3200},
       "confidence": 0.82,
       "driven_by": "risk_rule",
+      "regime": "risk_off",
       "contested": true,
       "rationale": "降低杠杆 beta；这是组合政策型再平衡，不是预测",
       "thesis_invalidation": "若 crypto rev 环比转正 / DAU 回升 → 论点失效，停止减仓"
@@ -559,6 +574,7 @@ postflight 严格 schema 校验：
       "size": {"pct": 15, "shares": 6},
       "confidence": 0.61,
       "driven_by": "technical",
+      "regime": "neutral",
       "contested": false,
       "rationale": "与 core/risk_rebalance 分开的日内策略"
     }
@@ -576,6 +592,7 @@ postflight 严格 schema 校验：
 - `action` ∈ {`cut`, `trim_on_rebound`, `hold_and_watch`, `t_only`, `add_only_on_trigger`, `watch`}
 - `condition.type` ∈ {`open`, `price_above`, `price_below`, `index_breakdown`, `event`, `manual`}
 - `driven_by` ∈ {`technical`, `catalyst`, `sentiment`, `influencer`, `macro`, `peer`, `risk_rule`}（每个 decision 必填）
+- `regime` ∈ {`risk_on`, `neutral`, `risk_off`}（每个 decision 必填；按本报告已判定的当前 regime 留痕，迁移旧数据才允许 `unknown`）
 - `confidence` ∈ [0.0, 1.0]
 - `size.shares`（整数，**主动 call（`cut`/`trim_on_rebound`/`t_only`/`add_only_on_trigger`/`add_on_breakout`）必填**；`hold_and_watch`/`watch` 不需要)：股数是这条 call 日后唯一能被折算成钱的凭据。面板上那条金额曲线已撤（见上条铁律），但**重建一套可信对照账本必须有股数，当天没填就永远补不回来**。宁可给保守估数也别留空。填**你真的会动的股数**,不是仓位上限。
 - `contested` ∈ {`true`, `false`}（每个 decision 必填）：Tier 2 的 Bull 与 Bear 是否真的在该策略上分歧。

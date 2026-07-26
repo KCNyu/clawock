@@ -100,6 +100,13 @@ def test_single_name_above_35_percent_emits_one_medium_hk_trim(preflight):
     assert "trim BIG" in breach["action"]
     assert "≤35%" in breach["action"]
     assert "1.0 HKD" in breach["action"]
+    assert breach["required_reduction"] == {
+        "kind": "market_value",
+        "minimum_value": 1.0,
+        "currency": "HKD",
+        "target_pct": 35,
+        "target_tickers": ["BIG"],
+    }
 
 
 def test_single_name_exactly_35_percent_is_compliant_because_operator_is_strict_gt(preflight):
@@ -384,6 +391,8 @@ def test_every_triggered_directive_is_tagged_as_risk_rule(preflight):
         ("MSFU", "MSFT"),
         ("TQQQ", "QQQ"),
         ("SOXL", "SOXX"),
+        ("RKLX", "RKLB"),
+        ("SPCH", "SPCX"),
     ],
 )
 def test_documented_leveraged_etf_maps_to_its_1x_underlying(

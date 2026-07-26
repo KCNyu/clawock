@@ -27,6 +27,8 @@ from datetime import datetime, timezone, timedelta, date
 
 import requests
 
+from instrument_registry import leveraged_symbols
+
 WS_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 OUT_FILE = os.path.join(WS_ROOT, 'assets', 'data', 'catalysts.json')
 API_KEYS_FILE = os.path.join(WS_ROOT, '.api_keys')
@@ -38,7 +40,7 @@ TIMEOUT = 10
 # Active US holdings (synced from portfolio.json on 2026-05-19)
 # Leveraged ETFs don't issue earnings — skip the Finnhub call for them.
 US_TICKERS_ACTIVE = ['RKLB', 'CRCL', 'PLTU', 'SOXL', 'RKLX', 'ROBN', 'MSFU']
-LEVERAGED_ETFS = {'SOXL', 'TQQQ', 'PLTU', 'RKLX', 'ROBN', 'MSFU'}
+LEVERAGED_ETFS = leveraged_symbols()
 
 # 2026 FOMC meeting dates (rate-decision second day)
 # Source: federalreserve.gov/monetarypolicy/fomccalendars.htm

@@ -64,40 +64,13 @@ ET = ZoneInfo("America/New_York")
 START_DATE = "2026-05-01"          # decisions start 2026-05-17; a margin gives T-n context
 SCHEMA_VERSION = 1
 
-# Pinned identities. `tencent` is canonical; `em` is the cross-audit secid (116=HK,
-# 105=NASDAQ, 106=NYSE, 107=US other) and is best-effort only — push2his is blocked
-# from this host. US suffixes come from Tencent's own qt self-report: .OQ=NASDAQ,
-# .N=NYSE, .AM=NYSE American. They are NOT guessable — SOXL and ROBN are .AM, and
-# asking for `usSOXL` (no suffix) returns exactly one bar rather than an error.
-MANIFEST: dict[str, dict] = {
-    # HK leg
-    "00100": {"leg": "HK", "tencent": "hk00100", "em": "116.00100", "name": "MINIMAX-W"},
-    "02208": {"leg": "HK", "tencent": "hk02208", "em": "116.02208", "name": "金风科技"},
-    "03032": {"leg": "HK", "tencent": "hk03032", "em": "116.03032", "name": "恒生科技ETF"},
-    "03033": {"leg": "HK", "tencent": "hk03033", "em": "116.03033", "name": "南方恒科"},
-    "07226": {"leg": "HK", "tencent": "hk07226", "em": "116.07226", "name": "恒科两倍看多"},
-    # US leg — suffix is load-bearing, see above
-    "CRCL":  {"leg": "US", "tencent": "usCRCL.N",   "em": "106.CRCL",  "name": "Circle"},
-    "MSFT":  {"leg": "US", "tencent": "usMSFT.OQ",  "em": "105.MSFT",  "name": "Microsoft"},
-    "MSFU":  {"leg": "US", "tencent": "usMSFU.OQ",  "em": "107.MSFU",  "name": "MSFT 2x"},
-    "PLTR":  {"leg": "US", "tencent": "usPLTR.OQ",  "em": "105.PLTR",  "name": "Palantir"},
-    "PLTU":  {"leg": "US", "tencent": "usPLTU.OQ",  "em": "107.PLTU",  "name": "PLTR 2x"},
-    "RKLB":  {"leg": "US", "tencent": "usRKLB.OQ",  "em": "105.RKLB",  "name": "Rocket Lab"},
-    "RKLX":  {"leg": "US", "tencent": "usRKLX.OQ",  "em": "107.RKLX",  "name": "RKLB 2x"},
-    "ROBN":  {"leg": "US", "tencent": "usROBN.AM",  "em": "107.ROBN",  "name": "HOOD 2x"},
-    "SKHY":  {"leg": "US", "tencent": "usSKHY.OQ",  "em": "105.SKHY",  "name": "SK海力士 (listed 07-10)"},
-    # A retired/delisted line is declared with `"retired": True` here and nowhere
-    # else — the one fact that lets settlement say "this instrument has no session to
-    # grade" (instrument_inactive) instead of "we are missing data" (bar_missing). The
-    # two must never be inferred from each other: deciding it by "the requested session
-    # is past the ticker's newest bar" is also exactly what a broken writer looks like,
-    # so a frozen *active* ticker would silently drop out of the denominator. Pinned,
-    # never guessed, like the suffixes above. (No instrument currently carries it: the
-    # SKHYV when-issued line was folded into its common SKHY once that listed.)
-    "SOXL":  {"leg": "US", "tencent": "usSOXL.AM",  "em": "107.SOXL",  "name": "SOXL 3x"},
-    "SPCH":  {"leg": "US", "tencent": "usSPCH.AM",  "em": "107.SPCH",  "name": "SpaceX hold (listed 06-15)"},
-    "SPCX":  {"leg": "US", "tencent": "usSPCX.OQ",  "em": "107.SPCX",  "name": "SpaceX 2x (listed 06-12)"},
-}
+# Pinned identities now come from config/instruments.json. `tencent` remains
+# canonical and `em` remains the best-effort cross-audit source. The registry is
+# the one reviewed location for load-bearing .OQ/.N/.AM suffixes, retirement
+# declarations and display names.
+from instrument_registry import canonical_bar_manifest  # noqa: E402
+
+MANIFEST: dict[str, dict] = canonical_bar_manifest()
 
 
 def bars_path(ticker: str) -> Path:

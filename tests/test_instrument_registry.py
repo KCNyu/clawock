@@ -1,0 +1,106 @@
+import copy
+import json
+import sys
+from pathlib import Path
+
+
+WS = Path(__file__).resolve().parents[1]
+sys.path[:0] = [str(WS / "scripts" / "data"), str(WS / "scripts" / "harness")]
+
+import build_dashboard  # noqa: E402
+import compute_quant_signals  # noqa: E402
+import compute_regime  # noqa: E402
+import compute_t0_setups  # noqa: E402
+import fetch_daily_bars  # noqa: E402
+import fetch_us_stocks  # noqa: E402
+import instrument_registry  # noqa: E402
+import portfolio_risk_metrics  # noqa: E402
+import preflight_integrity  # noqa: E402
+import brief_preflight  # noqa: E402
+import analyze_hk_stocks  # noqa: E402
+import analyze_us_stocks  # noqa: E402
+
+
+def _portfolio():
+    return json.loads((WS / "portfolio.json").read_text())
+
+
+def test_registry_schema_and_every_active_holding_are_complete():
+    doc = json.loads((WS / "config" / "instruments.json").read_text())
+    assert instrument_registry.validate_registry(doc) == []
+    assert instrument_registry.validate_active_holdings(_portfolio()) == []
+
+
+def test_active_holding_missing_metadata_fails_closed():
+    portfolio = _portfolio()
+    portfolio["portfolios"]["us_stocks"]["holdings"].append(
+        {"ticker": "UNREGISTERED", "shares": 1, "current_value": 10, "cost_basis": 10}
+    )
+    assert instrument_registry.validate_active_holdings(portfolio) == [
+        "active us_stocks holding 'UNREGISTERED' missing from registry"
+    ]
+
+
+def test_invalid_one_x_substitute_factor_is_rejected():
+    doc = {
+        "schema_version": 1,
+        "instruments": copy.deepcopy(instrument_registry.INSTRUMENTS),
+    }
+    doc["instruments"]["SPCH"]["one_x_substitute"] = "MSFT"
+    errors = instrument_registry.validate_registry(doc)
+    assert any(
+        "SPCH.one_x_substitute must share look-through factor" in error
+        for error in errors
+    )
+
+
+def test_all_consumer_maps_derive_the_missing_audit_symbols_from_registry():
+    assert portfolio_risk_metrics.LEVERAGED["SPCH"] == 2
+    assert brief_preflight.LEV_1X_SWAP["RKLX"] == "RKLB"
+    assert brief_preflight.LEV_1X_SWAP["SPCH"] == "SPCX"
+    assert build_dashboard.LEVERAGED_TICKERS >= {"SPCH", "RKLX", "MSFU", "PLTU"}
+    assert fetch_daily_bars.MANIFEST["SPCH"]["tencent"] == "usSPCH.AM"
+    assert fetch_us_stocks.EASTMONEY_PREFIX["SPCH"] == "107"
+    assert fetch_us_stocks.EASTMONEY_PREFIX["PLTR"] == "105"
+    assert compute_regime.US_2X_MAP["RKLX"] == ("RKLB", "usRKLB.OQ")
+    assert compute_regime.US_2X_MAP["SPCH"] == ("SPCX", "usSPCX.OQ")
+    assert compute_t0_setups.LEVERAGED["SPCH"] == ("SPCX", 2)
+    assert analyze_hk_stocks.LEVERAGED == {"07226", "07709", "07747"}
+    assert analyze_us_stocks._is_leveraged_holding(
+        {"ticker": "SPCH", "name": "name without leverage keywords"}
+    )
+    assert preflight_integrity.HSTECH_SIBLINGS == {"03032", "03033", "07226"}
+
+
+def test_quant_universe_uses_canonical_underlyings_and_venue_suffixes():
+    universe = compute_quant_signals._universe()
+    by_label = {label: (code, note) for label, code, note in universe}
+    assert by_label["RKLB"][0] == "usRKLB.OQ"
+    assert by_label["SPCX"][0] == "usSPCX.OQ"
+    assert by_label["MSFT"][0] == "usMSFT.OQ"
+    assert by_label["HSTECH"][0] == "hkHSTECH"
+    assert "SPCH" not in by_label
+    assert "RKLX" not in by_label
+
+
+def test_live_dashboard_exposure_has_no_other_and_matches_risk_leverage():
+    portfolio = _portfolio()
+    sectors = build_dashboard.compute_sector_exposure(portfolio)
+    assert all(row["sector"] != "Other" for leg in sectors.values() for row in leg)
+    assert {"SPCX", "SPCH", "SKHY"} <= {
+        ticker for row in sectors["us"] for ticker in row["tickers"]
+    }
+
+    leveraged = build_dashboard.compute_leveraged_etf_exposure(portfolio, fx_rate=7.84)
+    assert leveraged["us_pct"] == 83.53
+    assert "SPCH" in leveraged["tickers"]
+
+    lookthrough = build_dashboard.compute_lookthrough_exposure(portfolio)
+    assert lookthrough["us"]["metadata_coverage_pct"] == 100.0
+    spacex = next(
+        row for row in lookthrough["us"]["factors"] if row["factor"] == "SPACEX"
+    )
+    assert spacex["tickers"] == ["SPCH", "SPCX"]
+    assert spacex["gross_value"] > spacex["capital_value"]
+    assert lookthrough["us"]["factor_hhi"] > 0
+    assert lookthrough["us"]["sector_hhi"] > 0

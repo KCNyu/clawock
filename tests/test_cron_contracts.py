@@ -3,6 +3,7 @@ import json
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
+from types import SimpleNamespace
 from zoneinfo import ZoneInfo
 
 
@@ -104,7 +105,12 @@ def test_payload_semantic_contract_detects_deprecated_or_missing_rules():
     vars_ = expected['payload_vars']
     message = '\n'.join(s.format(**vars_) for s in profile['required_substrings'])
     live = {
-        'payload': {'kind': 'agentTurn', 'model': profile['model'], 'message': message},
+        'payload': {
+            'kind': 'agentTurn',
+            'model': profile['model'],
+            'fallbacks': profile['model_candidates'][1:],
+            'message': message,
+        },
         'delivery': {'mode': 'none'},
     }
     assert cron_contract.payload_errors(data, expected, live) == []
@@ -112,6 +118,27 @@ def test_payload_semantic_contract_detects_deprecated_or_missing_rules():
     errors = cron_contract.payload_errors(data, expected, live)
     assert any('missing' in error and '唯一微信路径' in error for error in errors)
     assert any('deprecated' in error and '唯一发送路径' in error for error in errors)
+
+
+def test_provider_rotation_rejects_duplicate_primary_and_unknown_models():
+    data = contract()
+    expected = next(j for j in data['jobs'] if j['name'] == '美股开盘报告')
+    profile = data['payload_profiles']['report']
+    message = '\n'.join(
+        s.format(**expected['payload_vars']) for s in profile['required_substrings']
+    )
+    live = {
+        'payload': {
+            'kind': 'agentTurn',
+            'model': profile['model_candidates'][0],
+            'fallbacks': [profile['model_candidates'][0], 'dead/example'],
+            'message': message,
+        },
+        'delivery': {'mode': 'none'},
+    }
+    errors = cron_contract.payload_errors(data, expected, live)
+    assert any('duplicates' in error for error in errors)
+    assert any('unknown models' in error for error in errors)
 
 
 def _crontab_from_contract(data, at):
@@ -131,6 +158,11 @@ def _crontab_from_contract(data, at):
     rows.append(
         f"{cron_contract.effective_schedule(sync, at)['expr']} "
         + ' '.join(sync['command_contains'])
+    )
+    health = data['provider_health']
+    rows.append(
+        f"{cron_contract.effective_schedule(health, at)['expr']} "
+        + ' '.join(health['command_contains'])
     )
     return '\n'.join(rows) + '\n'
 
@@ -161,6 +193,61 @@ def test_watchdog_contract_and_dst_change_plan_cover_both_schedulers():
     }
 
 
+def test_dst_sync_bootstraps_missing_provider_health_cron():
+    data = contract()
+    july = datetime(2026, 7, 16, 0, tzinfo=timezone.utc)
+    crontab = _crontab_from_contract(data, july)
+    crontab = '\n'.join(
+        line for line in crontab.splitlines()
+        if 'provider_health.py' not in line
+    ) + '\n'
+    live = []
+    for job in data['jobs']:
+        live.append({
+            'id': f"id-{len(live)}", 'name': job['name'],
+            'enabled': job.get('enabled', True),
+            'schedule': cron_contract.effective_schedule(job, july),
+        })
+
+    _, changes, errors = sync_us_cron_dst.desired_changes(
+        data, live, crontab, july
+    )
+
+    assert errors == []
+    health_change = next(change for change in changes
+                         if change['name'] == 'Provider health')
+    assert health_change['line_index'] is None
+    assert health_change['to'] == '45 6 * * *'
+    assert 'provider_health.py --apply' in health_change['command']
+
+
+def test_dst_sync_can_install_provider_health_cron(monkeypatch):
+    captured = {}
+
+    def run(cmd, **kwargs):
+        captured['cmd'] = cmd
+        captured['input'] = kwargs['input']
+        return SimpleNamespace(returncode=0, stdout='', stderr='')
+
+    monkeypatch.setattr(sync_us_cron_dst.subprocess, 'run', run)
+    errors = sync_us_cron_dst.apply_crontab(
+        '20 6 * * * existing-command\n',
+        [{
+            'name': 'Provider health',
+            'line_index': None,
+            'from': None,
+            'to': '45 6 * * *',
+            'command': sync_us_cron_dst.PROVIDER_HEALTH_COMMAND,
+        }],
+    )
+
+    assert errors == []
+    assert captured['cmd'] == ['crontab', '-']
+    assert captured['input'].splitlines()[-1].startswith(
+        '45 6 * * * /bin/bash -lc'
+    )
+
+
 def test_intraday_heartbeat_is_slot_keyed_published_and_health_checked(tmp_path, monkeypatch):
     local = tmp_path / 'local.json'
     public = tmp_path / 'public.json'
@@ -184,6 +271,30 @@ def test_intraday_heartbeat_is_slot_keyed_published_and_health_checked(tmp_path,
         'failed': [], 'pending': []
     }
     assert cron_heartbeat.publish() is False
+
+
+def test_delta_no_change_heartbeat_counts_as_healthy():
+    hkt = ZoneInfo('Asia/Hong_Kong')
+    at = datetime(2026, 7, 16, 10, 35, tzinfo=hkt)
+    ledger = {
+        'schema_version': 1,
+        'monitoring_started_at': '2026-07-16T09:00:00+08:00',
+        'events': [{
+            'job': '盘中盯盘',
+            'market': 'hk',
+            'slot': '2026-07-16T10:30:00+08:00',
+            'state': 'no_change',
+            'reasoning_invoked': False,
+        }],
+    }
+
+    coverage = cron_health.heartbeat_coverage(
+        '盘中盯盘', ['10:30'], 'Asia/Shanghai',
+        at.astimezone(timezone.utc), ledger,
+    )
+
+    assert coverage['healthy'] == ['10:30']
+    assert coverage['missing'] == []
 
 
 def test_record_keeps_existing_monitoring_epoch_for_valid_empty_ledger(tmp_path, monkeypatch):
@@ -392,12 +503,21 @@ def test_intraday_payload_contract_bans_heredoc_and_requires_text_file():
     data = contract()
     expected = {job['name']: job for job in data['jobs']}['盘中盯盘']
     message = '\n'.join(s.format(**vars_) for s in profile['required_substrings'])
+    trigger_path = ROOT / profile['trigger']['script_path'].format(**vars_)
     live = {
         'payload': {'message': message, 'kind': 'agentTurn',
                     'model': profile['model'], 'thinking': profile['thinking']},
         'delivery': {'mode': 'none'},
+        'trigger': {
+            'script': trigger_path.read_text(),
+            'once': profile['trigger']['once'],
+        },
     }
     assert cron_contract.payload_errors(data, expected, live) == []
+    del live['trigger']
+    assert cron_contract.payload_errors(data, expected, live) == [
+        'condition trigger missing'
+    ]
 
     live['payload']['message'] = message + '\nintraday_postflight.py --market hk <<< "{报告}"'
     assert cron_contract.payload_errors(data, expected, live) != []

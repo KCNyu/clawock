@@ -7,8 +7,10 @@
 #   ./check_crons.sh --status error  # only failures
 #   ./check_crons.sh --kind cron     # only auto-scheduled
 #   ./check_crons.sh --full          # no summary truncation
+#   ./check_crons.sh --openclaw-backend sqlite  # read live state without gateway
 #   ./check_crons.sh --timeline      # merged forward SCHEDULE (openclaw+GHA+crontab, HKT)
-#   ./check_crons.sh --timeline --source gha   # one scheduler only
+#   ./check_crons.sh --timeline --source gha    # one scheduler only
+#   ./check_crons.sh --timeline --openclaw-backend sqlite
 DIR="$(dirname "$0")/scripts/data"
 if [ "$1" = "--timeline" ]; then
   shift

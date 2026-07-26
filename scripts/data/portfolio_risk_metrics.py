@@ -26,6 +26,8 @@ import requests
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from fetch_fx import get_usdhkd  # noqa: E402
+from instrument_registry import get as get_instrument  # noqa: E402
+from instrument_registry import leverage_map, require as require_instrument  # noqa: E402
 
 WS_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 PORTFOLIO_FILE = os.path.join(WS_ROOT, 'portfolio.json')
@@ -57,12 +59,8 @@ def _load_api_keys():
 
 API_KEYS = _load_api_keys()
 
-# Leverage factor map (non-listed tickers default to 1)
-LEVERAGED = {
-    'SOXL': 3, 'TQQQ': 3,                              # 3x ETF
-    'PLTU': 2, 'RKLX': 2, 'ROBN': 2, 'MSFU': 2,        # US 2x
-    '07226': 2,                                         # HK 2x 恒科
-}
+# Compatibility view for diagnostics; config/instruments.json owns the values.
+LEVERAGED = leverage_map()
 
 RISK_FREE_ANNUAL = 0.045
 TRADING_DAYS = 252
@@ -124,8 +122,17 @@ def _fetch_tencent_history(market_symbol: str):
 
 
 def _fetch_tencent_us(ticker: str):
-    """Try Nasdaq/NYSE/AMEX suffixes for a US ticker until one returns history."""
+    """Use the pinned venue first, then alternate venues as a data fallback."""
+    meta = get_instrument(ticker)
+    pinned = meta.get('tencent_symbol') if meta and meta.get('region') == 'US' else None
+    if pinned:
+        s = _fetch_tencent_history(pinned)
+        if s and len(s) >= 5:
+            return s
+    pinned_suffix = meta.get('venue_suffix') if meta else None
     for suf in ('.OQ', '.N', '.AM', '.K', '.P'):
+        if suf == pinned_suffix:
+            continue
         s = _fetch_tencent_history(f'us{ticker}{suf}')
         if s and len(s) >= 5:
             return s
@@ -330,7 +337,7 @@ def active_holdings(portfolio: dict, key: str):
         if shares <= 0 or cv <= 0:
             continue
         ticker = h.get('ticker')
-        lev = LEVERAGED.get(ticker, 1)
+        lev = require_instrument(ticker)['leverage_multiple']
         if key == 'hk_stocks':
             yahoo_sym = h.get('ticker_finnhub') or hk_yahoo_symbol(ticker)
         else:
