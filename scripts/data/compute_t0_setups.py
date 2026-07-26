@@ -190,8 +190,11 @@ def compute(intraday=False):
                 continue
             t = h.get('ticker')
             cur = _num(h.get('current_price'))
+            qrow = quant.get(t, {})
+            if qrow.get('status') not in (None, 'fresh'):
+                qrow = {}
             m = {'market': market}
-            m.update(holding_metrics(h, quant.get(t, {})))
+            m.update(holding_metrics(h, qrow))
             if t in LEVERAGED:
                 u, x = LEVERAGED[t]
                 m['leveraged'] = f'{x}x {u}'

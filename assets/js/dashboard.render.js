@@ -1276,8 +1276,9 @@
       return { rank: 5, txt: '—', state: 'neutral' };
     };
     const enriched = holds.map(h => {
-      const direct = qrows[h.ticker];
-      const proxy = !direct && etf2u[h.ticker] && qrows[etf2u[h.ticker]] ? etf2u[h.ticker] : '';
+      const usable = r => r && (!r.status || r.status === 'fresh');
+      const direct = usable(qrows[h.ticker]) ? qrows[h.ticker] : null;
+      const proxy = !direct && etf2u[h.ticker] && usable(qrows[etf2u[h.ticker]]) ? etf2u[h.ticker] : '';
       if (proxy) usedProxy = true;
       const q = direct || (proxy ? qrows[proxy] : {}) || {};
       const a = action[h.ticker];
@@ -1592,8 +1593,11 @@
     const cls = v => v == null ? '' : (v < 0 ? 'style="color:var(--negative)"' : 'style="color:var(--positive)"');
     document.getElementById('quant-tbody').innerHTML = names.map(k => {
       const r = rows[k];
+      const state = r.status && r.status !== 'fresh'
+        ? `<div style="font-size:10px;color:var(--warning)">⚠ ${r.status} · ${r.row_as_of || r.last_good_as_of || '无日期'}${r.stale_reason ? ` · ${r.stale_reason}` : ''}</div>`
+        : '';
       return `<tr><td><strong>${k}</strong>${r.note ? `<div class="muted" style="font-size:10px">${r.note}</div>` : ''}</td>` +
-        `<td style="text-align:left;font-size:11px">${r.tag || ''}</td>` +
+        `<td style="text-align:left;font-size:11px">${r.tag || ''}${state}</td>` +
         `<td class="num">${num(r.rsi14)}</td>` +
         `<td class="num">${num(r.zscore20)}</td>` +
         `<td class="num" ${cls(r.dist_ma200_pct)}>${num(r.dist_ma200_pct, '%')}</td>` +
