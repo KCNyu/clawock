@@ -45,8 +45,16 @@ sys.path.insert(0, str(WS / "scripts" / "data"))
 
 HKT = timezone(timedelta(hours=8))
 MAX_MOVERS = 4
-MAX_ITEMS_PER_TICKER = 3
+# Room is allocated by class, not evenly: an interrupt is what actually gets
+# written into the report, so it gets the slots and the characters. A context item
+# is background and keeps one slot. Titles are the payload — a HK placement notice
+# truncated at 90 characters ("…完成配售35,600,000股新A类股份；(2) 根据一般授权完成发行6,500百万…")
+# loses the number that made it matter.
+MAX_INTERRUPT_ITEMS = 3
+MAX_CONTEXT_ITEMS = 1
+MAX_ITEMS_PER_TICKER = MAX_INTERRUPT_ITEMS + MAX_CONTEXT_ITEMS
 MAX_FLASHES = 3
+INTERRUPT_TITLE_CHARS = 160
 TITLE_CHARS = 90
 WINDOW_MINUTES = 240
 PER_REQUEST_TIMEOUT_S = 5
@@ -83,9 +91,9 @@ def _http_text(url: str, *, timeout=PER_REQUEST_TIMEOUT_S) -> str:
         return response.read().decode("utf-8", "ignore")
 
 
-def _truncate(text) -> str:
+def _truncate(text, limit=TITLE_CHARS) -> str:
     text = re.sub(r"\s+", " ", str(text or "")).strip()
-    return text if len(text) <= TITLE_CHARS else text[: TITLE_CHARS - 1] + "…"
+    return text if len(text) <= limit else text[: limit - 1] + "…"
 
 
 def _age_minutes(when: datetime, now: datetime) -> int:
@@ -134,6 +142,7 @@ def _tencent_items(symbol, feed_type, tier, source_class, *, now, window, http):
             "published_at": when.isoformat(),
             "age_minutes": age,
             "title": _truncate(row.get("title")),
+            "raw_title": str(row.get("title") or ""),
             "tier": tier,
             "source_class": source_class,
             "url": row.get("url") or None,
@@ -171,6 +180,7 @@ def _sec_items(ticker, *, now, window, http):
             "published_at": when.isoformat(),
             "age_minutes": age,
             "title": _truncate(f"{form} {description}".strip()),
+            "raw_title": f"{form} {description}".strip(),
             "tier": PRIMARY,
             "source_class": "sec_filing",
             "url": None,
@@ -405,19 +415,26 @@ def probe(movers, *, market, now=None, window_minutes=WINDOW_MINUTES,
             if note:
                 entry["notes"].append(f"{label}: {note}")
             entry["items"].extend(items)
-        kept, suppressed = [], 0
+        interrupts, context_items, suppressed = [], [], 0
         for item in entry["items"]:
             signal, rule = classify(item["title"], market)
             if signal == NOISE:
                 suppressed += 1
                 continue
             item["signal"], item["triage_rule"] = signal, rule
-            kept.append(item)
-        # interrupt first, then context, each newest first
-        kept.sort(key=lambda row: (
-            row["signal"] != INTERRUPT, row["tier"] != PRIMARY, row["age_minutes"]
-        ))
-        entry["items"] = kept[:MAX_ITEMS_PER_TICKER]
+            if signal == INTERRUPT:
+                # re-truncate at the wider limit: this one goes in the report
+                item["title"] = _truncate(item.get("raw_title") or item["title"],
+                                          INTERRUPT_TITLE_CHARS)
+                interrupts.append(item)
+            else:
+                context_items.append(item)
+        for bucket in (interrupts, context_items):
+            bucket.sort(key=lambda row: (row["tier"] != PRIMARY, row["age_minutes"]))
+        entry["items"] = (interrupts[:MAX_INTERRUPT_ITEMS]
+                          + context_items[:MAX_CONTEXT_ITEMS])
+        if len(interrupts) > MAX_INTERRUPT_ITEMS:
+            entry["more_interrupts"] = len(interrupts) - MAX_INTERRUPT_ITEMS
         if suppressed:
             entry["suppressed_noise"] = suppressed
         if entry["items"]:
@@ -432,8 +449,13 @@ def probe(movers, *, market, now=None, window_minutes=WINDOW_MINUTES,
     )
     halt_symbols = []
     if market == "us":
+        # A halt is a low-probability event for large caps, so this is not worth a
+        # request on every slot. The exception is the leveraged sleeve: a 2x
+        # single-stock ETF gets LULD-paused when its underlying gaps, which is the
+        # only realistic halt path in this book. Ask only then.
         halt_symbols = sorted({
             symbol for ticker in chased
+            if (results.get(ticker, {}).get("target") or {}).get("kind") == "look_through"
             for symbol in (ticker, (results.get(ticker, {}).get("target") or {}).get("issuer"))
             if symbol
         })
