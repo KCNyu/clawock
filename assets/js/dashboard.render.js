@@ -1359,11 +1359,14 @@
         document.querySelectorAll("#holdings-table thead th").forEach(x => {
           const isActive = x.dataset.sort === holdingsSort.key;
           x.classList.toggle("active-sort", isActive);
-          let label = x.textContent.replace(/[▲▼]/g, "").trim();
+          const label = x.textContent.replace(/[▲▼]/g, "").trim();
+          x.replaceChildren();
+          x.append(label);
           if (isActive) {
-            x.innerHTML = label + ' <span class="arr">' + (holdingsSort.dir === "asc" ? "▲" : "▼") + "</span>";
-          } else {
-            x.innerHTML = label;
+            const arrow = document.createElement("span");
+            arrow.className = "arr";
+            arrow.textContent = holdingsSort.dir === "asc" ? "▲" : "▼";
+            x.append(" ", arrow);
           }
         });
         renderHoldings();
