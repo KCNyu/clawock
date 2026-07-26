@@ -44,6 +44,46 @@ def log(event):
             f.write(json.dumps(event, ensure_ascii=False) + '\n')
     except Exception as e:
         print(f'(watchdog log failed: {e})', file=sys.stderr)
+    try:
+        _record_watchdog_outcome(event)
+    except Exception as e:
+        print(f'(watchdog outcome record failed: {e})', file=sys.stderr)
+
+
+def _record_watchdog_outcome(event):
+    """Project watchdog delivery evidence into the independent outcome ledger."""
+    if event.get('dry_run'):
+        return
+    tag = event.get('tag')
+    if not isinstance(tag, str) or tag.startswith('intraday-'):
+        # Intraday has an exact slot-aware cron_heartbeat bridge.
+        return
+    if tag == 'brief':
+        job = '盘前深度简报'
+    else:
+        parts = tag.split('-', 1)
+        if len(parts) != 2:
+            return
+        market, phase = parts
+        sys.path.insert(0, str(WS / 'scripts' / 'data'))
+        import workflow_outcomes
+        job = workflow_outcomes.job_for(market, phase)
+    sys.path.insert(0, str(WS / 'scripts' / 'data'))
+    import workflow_outcomes
+    action = event.get('action')
+    if action == 'ok':
+        status = 'not_required'
+    elif action in {'mirror-telegram', 'deterministic-fallback', 'alert-brief-missing'}:
+        status = 'success' if event.get('sent_ok') else 'failed'
+    else:
+        return
+    workflow_outcomes.record_stage(
+        job,
+        'watchdog_delivery',
+        status,
+        action=action,
+        reason=event.get('reason') or event.get('fail_reason'),
+    )
 
 
 def _cron_cli_json(cli_args):
