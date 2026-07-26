@@ -10,9 +10,11 @@ on:
       - 'memory/**-plan.json'
       - 'assets/data/dashboard.json'
       - '.github/workflows/harness-regression.yml'
-      - 'config/cron-schedules.json'
-      - 'config/instruments.json'
-      - 'config/instruments.schema.json'
+      # Whole directory on purpose: every file here (cron contract, instrument
+      # registry, thesis/earnings schemas, news-evidence policy, peer rules) is
+      # read by the suite, and naming them one by one already left new schemas
+      # ungated — a config-only PR then skipped the tests that guard them.
+      - 'config/**'
       - 'docs/operations/cron-schedules.md'
       - '.github/workflows/**'
       - 'skills/tavily-search/**'
@@ -108,7 +110,7 @@ jobs:
           while IFS= read -r f; do
             [ -n "$f" ] || continue
             case "$f" in
-              scripts/*|tests/*|portfolio.json|memory/*-plan.json|assets/data/dashboard.json|config/cron-schedules.json|config/instruments.json|config/instruments.schema.json|docs/operations/cron-schedules.md|.github/workflows/*)
+              scripts/*|tests/*|portfolio.json|memory/*-plan.json|assets/data/dashboard.json|config/*|docs/operations/cron-schedules.md|.github/workflows/*)
                 code=true
                 break
                 ;;
