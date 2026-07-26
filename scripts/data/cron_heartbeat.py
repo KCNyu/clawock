@@ -118,6 +118,14 @@ def record(market: str, state: str, *, at: datetime | None = None,
     ledger["updated_at"] = now.isoformat()
     ledger["events"] = events
     _atomic_write(LOCAL_PATH, ledger)
+    # Tests and one-off callers redirect LOCAL_PATH to an isolated fixture. Do
+    # not let that write a second ledger in the real workspace.
+    if LOCAL_PATH == WS / "memory" / ".tmp" / "cron-heartbeats.json":
+        try:
+            import workflow_outcomes
+            workflow_outcomes.record_from_heartbeat(current)
+        except Exception as exc:
+            print(f"warn: workflow outcome bridge failed: {exc}", file=sys.stderr)
     return current
 
 
