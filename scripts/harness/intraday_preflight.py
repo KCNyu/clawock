@@ -39,6 +39,7 @@ sys.path.insert(0, str(DATA_DIR))
 import trading_calendar  # noqa: E402
 import cron_heartbeat  # noqa: E402
 import peer_scan  # noqa: E402
+import research_surface  # noqa: E402
 
 
 def run_analyze(market):
@@ -212,6 +213,13 @@ def main():
     if total_signals >= 2:
         alert_reasons.append(f'多重信号 (W{signals["watch"]} S{signals["stop"]} T{signals["trim"]})')
 
+    # Thesis/red-line state for the names this slot already flagged. Local JSON
+    # only, scoped to movers, and attribution context — never an action trigger
+    # on its own (the catalyst gate still decides that).
+    mover_thesis = research_surface.movers_thesis_context(
+        [a['ticker'] for a in anomalies]
+    )
+
     result = {
         'status':           'ok',
         'market':           args.market,
@@ -226,6 +234,7 @@ def main():
         'alert_reasons':    alert_reasons,
         't0_setups':        t0_setups,
         'peer_scan':        collect_peers(args.market),
+        'mover_thesis':     mover_thesis,
         'heartbeat':        {'job': heartbeat['job'], 'slot': heartbeat['slot']},
     }
 
