@@ -23,16 +23,19 @@ from pathlib import Path
 # Storage-agnostic cron readers (6.1 moved jobs.json/runs/*.jsonl into SQLite —
 # direct file reads silently return nothing). Same layer the watchdogs use.
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'harness'))
-from _watchdog_common import load_jobs, read_runs  # noqa: E402
+import _watchdog_common as watchdog_common  # noqa: E402
 
 CRON_DIR = Path.home() / '.openclaw' / 'cron'
 RUNS_DIR = CRON_DIR / 'runs'
 HKT = timezone(timedelta(hours=8))
 
 
-def load_job_map():
+def load_job_map(backend='auto'):
     try:
-        return {j['id']: j.get('name', j['id'][:8]) for j in load_jobs()}
+        return {
+            j['id']: j.get('name', j['id'][:8])
+            for j in watchdog_common.load_jobs(backend)
+        }
     except Exception:
         return {}
 
@@ -42,12 +45,12 @@ def kind_of(entry):
     return 'manual' if rid.startswith('manual:') else 'cron'
 
 
-def load_entries(kind_filter, job_id_filter, status_filter, job_map):
+def load_entries(kind_filter, job_id_filter, status_filter, job_map, backend='auto'):
     out = []
     for job_id in sorted(job_map):
         if job_id_filter and job_id not in job_id_filter:
             continue
-        for d in read_runs(job_id):   # CLI(SQLite) primary, .jsonl[.migrated] fallback
+        for d in watchdog_common.read_runs(job_id, backend):
             if status_filter and d.get('status') != status_filter:
                 continue
             k = kind_of(d)
@@ -95,11 +98,22 @@ def main():
     p.add_argument('--kind', choices=['cron', 'manual', 'both'], default='both')
     p.add_argument('--full', action='store_true', help='no summary truncation')
     p.add_argument('--json', action='store_true', help='emit JSON instead of table')
+    p.add_argument(
+        '--openclaw-backend',
+        choices=['auto', 'cli', 'sqlite', 'fossil'],
+        default='auto',
+        help='state backend (sqlite is read-only and does not require the gateway)',
+    )
     args = p.parse_args()
 
-    jobs = load_job_map()
+    jobs = load_job_map(args.openclaw_backend)
     if not jobs:
-        print('❌ no cron jobs visible (openclaw CLI unavailable?)', file=sys.stderr)
+        print('❌ no live cron jobs visible (OpenClaw CLI/SQLite unavailable)',
+              file=sys.stderr)
+        return 2
+    if watchdog_common.LAST_LOAD_SOURCE == 'fossil':
+        print('❌ refusing stale pre-6.1 job metadata; use live CLI or SQLite',
+              file=sys.stderr)
         return 2
     job_id_filter = None
     if args.job:
@@ -110,7 +124,13 @@ def main():
                   ', '.join(sorted(jobs.values())), file=sys.stderr)
             return 2
 
-    entries = load_entries(args.kind, job_id_filter, args.status, jobs)[: args.n]
+    entries = load_entries(
+        args.kind, job_id_filter, args.status, jobs, args.openclaw_backend
+    )[: args.n]
+    if watchdog_common.LAST_RUNS_SOURCE == 'fossil':
+        print('❌ refusing stale pre-6.1 run history; use live CLI or SQLite',
+              file=sys.stderr)
+        return 2
 
     if args.json:
         slim = [{

@@ -384,9 +384,9 @@ def check_cron_paths_exist(r):
     """Live cron schedules match the tracked contract and payload scripts exist.
 
     6.1 migrated cron storage from cron/jobs.json into state/openclaw.sqlite, so
-    direct file reads silently return nothing. Read via _watchdog_common.load_jobs
-    (storage-agnostic: CLI `cron list --json` primary, pre-migration files fallback)
-    — the same path the watchdogs were fixed to use on 2026-06-04.
+    direct file reads silently return nothing. Read via _watchdog_common.load_jobs:
+    CLI first, then the live SQLite DB read-only, with pre-migration files kept
+    only as an explicitly rejected last-resort fossil.
     """
     import re
     sys.path.insert(0, str(WS / 'scripts' / 'harness'))
@@ -405,14 +405,12 @@ def check_cron_paths_exist(r):
             r.add('cron paths', WARNING, 'openclaw CLI returned 0 cron jobs (storage regression? run doctor --fix)')
         return
     if getattr(wc, 'LAST_LOAD_SOURCE', None) == 'fossil':
-        # The live gateway was unreadable (slow/timeout) and load_jobs() served a
-        # pre-6.1 fossil that is STALE for model/delivery/message. Asserting the
-        # payload contract against it produces phantom CRITICALs that block every
-        # push (2026-07-18 incident). Report a WARNING and skip the assertion —
-        # a stale view must never fail the gate as if it were live.
-        r.add('cron runtime contract', WARNING,
-              'cron CLI unreadable (gateway slow?) — jobs came from a stale fallback; '
-              'skipping contract assertion, re-run when the gateway responds')
+        # Both live sources were unreadable and load_jobs() served a pre-6.1
+        # fossil that is STALE for model/delivery/message. Refuse validation:
+        # passing or failing the payload contract against this view is a lie.
+        r.add('cron runtime contract', CRITICAL,
+              'live CLI + SQLite unreadable — jobs came from a stale pre-6.1 fossil; '
+              'contract validation refused')
         return
 
     try:
