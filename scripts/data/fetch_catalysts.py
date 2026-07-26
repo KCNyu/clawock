@@ -24,9 +24,11 @@ import json
 import os
 import sys
 from datetime import datetime, timezone, timedelta, date
+from pathlib import Path
 
 import requests
 
+import instrument_registry
 from instrument_registry import leveraged_symbols
 
 WS_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -37,10 +39,53 @@ UA = 'clawock-catalysts/1.0 (github.com/KCNyu/clawock)'
 HEADERS = {'User-Agent': UA}
 TIMEOUT = 10
 
-# Active US holdings (synced from portfolio.json on 2026-05-19)
-# Leveraged ETFs don't issue earnings — skip the Finnhub call for them.
-US_TICKERS_ACTIVE = ['RKLB', 'CRCL', 'PLTU', 'SOXL', 'RKLX', 'ROBN', 'MSFU']
+# Earnings tickers are derived from portfolio.json, never hand-synced. The old
+# hardcoded list was stamped 2026-05-19 and had drifted: it still named exited
+# positions and, worse, dropped every leveraged ETF without substituting the
+# company whose earnings actually gaps it. Holding MSFU with MSFT's report date
+# missing is the failure this exists to prevent.
 LEVERAGED_ETFS = leveraged_symbols()
+FALLBACK_US_TICKERS = ['CRCL', 'RKLB']   # only if portfolio.json cannot be read
+PORTFOLIO_FILE = Path(__file__).resolve().parents[2] / 'portfolio.json'
+
+
+def earnings_issuer(ticker):
+    """The company whose earnings moves this holding, or None if there is none.
+
+    A 2x single-stock ETF reports nothing; its underlying does. An index or sector
+    fund has no issuer at all and is skipped rather than queried.
+    """
+    seen = set()
+    current = str(ticker)
+    for _ in range(3):                       # SOXL -> SOXX -> SEMICONDUCTOR
+        meta = instrument_registry.get(current) or {}
+        underlying = meta.get('underlying')
+        if not underlying or underlying in seen:
+            break
+        seen.add(current)
+        current = str(underlying)
+    meta = instrument_registry.get(current)
+    if meta is None or meta.get('venue') == 'INDEX' or (meta or {}).get('underlying'):
+        return None
+    return current
+
+
+def us_earnings_tickers(portfolio=None):
+    """US names to query, looked through to the issuer that actually reports."""
+    if portfolio is None:
+        try:
+            portfolio = json.loads(PORTFOLIO_FILE.read_text())
+        except (OSError, ValueError):
+            return list(FALLBACK_US_TICKERS)
+    holdings = ((portfolio.get('portfolios') or {}).get('us_stocks') or {}).get('holdings') or []
+    out = []
+    for holding in holdings:
+        if (holding.get('shares') or 0) <= 0:
+            continue
+        issuer = earnings_issuer(holding.get('ticker'))
+        if issuer and issuer not in out:
+            out.append(issuer)
+    return sorted(out)
 
 # 2026 FOMC meeting dates (rate-decision second day)
 # Source: federalreserve.gov/monetarypolicy/fomccalendars.htm
@@ -127,9 +172,9 @@ def fetch_earnings(window_start, window_end):
     out_rows = []
     errors = {}
     queried = []
-    for ticker in US_TICKERS_ACTIVE:
+    for ticker in us_earnings_tickers():
         if ticker in LEVERAGED_ETFS:
-            continue  # leveraged ETFs don't have own earnings
+            continue  # a leveraged ETF reports nothing; look-through already ran
         queried.append(ticker)
         rows, err = fetch_earnings_for_ticker(ticker, window_start, window_end, api_key)
         if err:
