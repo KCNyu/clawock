@@ -151,6 +151,8 @@ The drawdown was a **construction** problem (US β≈4.4, 73% leveraged ETFs, HK
 
 Rules: every breach **must** produce a concrete action in Judge synthesis (no "watch"). Tag these `driven_by=risk_rule` (disciplinary rebalancing, not news). This is the **one exemption from a trending-up/risk-on HOLD default** — in a melt-up you trim leverage *into* strength, not after the drawdown. De-lever by cutting leveraged ETFs (the β source), never by gutting a high-conviction single's thesis. Leveraged-leg directives use the **2x→1x same-factor swap** (not liquidation) per `brief_preflight.LEV_1X_SWAP`; 1x→2x re-entry only on 🧭 regime green. These caps mirror `brief_preflight.compute_risk_guardrail` / the brief's 「🚦 仓位/杠杆硬闸」 — keep thresholds in sync.
 
+Read `risk_discipline.records` alongside the detector output and report each open breach's stable ID, age, acknowledgement and execution-evidence state. A plan-local override has no authority; only a durable, reasoned, unexpired override does. While a critical/high record remains open, do not recommend adding the same name, leveraged sleeve or factor. Exits remain legal, as does a same-plan 2×→1× pair whose factor-adjusted exposure decreases.
+
 ## Confidence scoring
 
 End the report with a confidence score per major call, 0-100%:

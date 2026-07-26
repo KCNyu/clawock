@@ -122,7 +122,7 @@ The model writes opinions. The arithmetic that could corrupt the record runs in 
 | Rule | What the code does |
 |---|---|
 | **Currencies never sum** | HKD and USD are shown in both views with the rate + timestamp stamped; adding them naively is a meaningless number. |
-| **Risk caps, checked every brief** | Single name ≤35%, Top-2 ≤70%, leverage-ETF sleeve ≤50%, portfolio β ≤3.0, stop at −18%. Python computes each breach and flags any plan that doesn't answer it with a trim/cut or an explicit override. Execution stays human. |
+| **Risk caps, checked every brief** | Single name ≤35%, Top-2 ≤70%, leverage-ETF sleeve ≤50%, portfolio β ≤3.0, stop at −18%. Each breach has a durable age, acknowledgement, expiring override and execution-evidence record; same-risk adds freeze until compliance. Execution stays human. |
 | **Concentration per leg** | `HHI = Σ wᵢ²` per book: `<0.15` ✅ · `0.15–0.25` 🟡 · `0.25–0.40` 🟠 · `>0.40` 🔴. Never blended across currencies. |
 | **Leverage judged by regime** | A 200-day-trend × volatility dial caps the leverage-ETF sleeve (×1 / ×0.5 / ×0); daily-reset 2×/3× products skip fundamentals entirely. |
 | **Return on peak principal** | Return % uses peak net deposits from the cash-flow ledger, not `cost − realized` — a realized win must not fake a higher return. |
