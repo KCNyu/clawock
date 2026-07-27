@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-27T15:32:39.791123+00:00",
+  "generated_at": "2026-07-27T22:36:56.246375+00:00",
   "lookback_hours": 48,
   "sources": {
     "trump": "trumpstruth.org/feed (primary)",
@@ -8,13 +8,13 @@
   },
   "source_status": {
     "trump": "success",
-    "musk": "success",
+    "musk": "failed",
     "serenity": "failed"
   },
-  "llm_filtered": true,
+  "llm_filtered": false,
   "counts": {
-    "total": 8,
-    "held_hits": 7,
+    "total": 11,
+    "held_hits": 4,
     "new_ideas": 0,
     "sector_hits": 0
   },
@@ -38,7 +38,8 @@
       "sector_holdings": [],
       "stance": "attack",
       "relevance": 78,
-      "summary_cn": "SpaceX股价较IPO高点近乎腰斩，Musk跌出万亿美元俱乐部，对kcn持有的SPCX/SPCH构成显著利空信号。"
+      "summary_cn": "SpaceX股价较IPO高点近乎腰斩，Musk跌出万亿美元俱乐部，对kcn持有的SPCX/SPCH构成显著利空信号。",
+      "retained_from_previous": true
     },
     {
       "author": "Musk",
@@ -60,73 +61,8 @@
       "sector_holdings": [],
       "stance": "attack",
       "relevance": 72,
-      "summary_cn": "SpaceX估值回调拖累Tesla股价下行，Musk帝国双线承压，间接利空kcn持有的SpaceX相关标的。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk Has Lost $650 Billion In 5 Weeks As Tesla And SpaceX Plummet",
-      "url": "",
-      "published": "Fri, 24 Jul 2026 09:52:11 GMT",
-      "origin": "gnews-rss",
-      "source": "Yahoo Finance",
-      "tickers": [],
-      "held": [
-        "SPCH",
-        "SPCX"
-      ],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "电动车"
-      ],
-      "sector_holdings": [],
-      "stance": "attack",
-      "relevance": 70,
-      "summary_cn": "Musk五周内身价蒸发6500亿美元，Tesla与SpaceX双跌，宏观叙事强化对kcn持有的SpaceX ETF的看空压力。"
-    },
-    {
-      "author": "Musk",
-      "text": "Musk's bad week: Tesla suffers worst slump since 2022, SpaceX drops ahead of Starship test flight",
-      "url": "",
-      "published": "Fri, 24 Jul 2026 20:20:05 GMT",
-      "origin": "gnews-rss",
-      "source": "CNBC",
-      "tickers": [],
-      "held": [
-        "SPCH",
-        "SPCX"
-      ],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "电动车"
-      ],
-      "sector_holdings": [],
-      "stance": "attack",
-      "relevance": 68,
-      "summary_cn": "Musk黑色一周：Tesla创2022年以来最大跌幅，SpaceX在Starship试飞前估值下挫，对kcn持有的SPCX/SPCH直接利空。"
-    },
-    {
-      "author": "Musk",
-      "text": "Reality Bites Elon Musk and His Tesla, SpaceX Believers",
-      "url": "",
-      "published": "Thu, 23 Jul 2026 21:04:00 GMT",
-      "origin": "gnews-rss",
-      "source": "WSJ",
-      "tickers": [],
-      "held": [
-        "SPCH",
-        "SPCX"
-      ],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "电动车"
-      ],
-      "sector_holdings": [],
-      "stance": "attack",
-      "relevance": 65,
-      "summary_cn": "媒体看空Tesla与SpaceX估值叙事，Musk信仰受冲击，间接影响kcn的SpaceX敞口。"
+      "summary_cn": "SpaceX估值回调拖累Tesla股价下行，Musk帝国双线承压，间接利空kcn持有的SpaceX相关标的。",
+      "retained_from_previous": true
     },
     {
       "author": "Musk",
@@ -148,7 +84,8 @@
       "sector_holdings": [],
       "stance": "neutral",
       "relevance": 62,
-      "summary_cn": "Musk身价缩水背景下仍为另一家公司（疑为xAI）寻求40亿美元融资，资本运作密集，间接反映Musk系流动性紧张。"
+      "summary_cn": "Musk身价缩水背景下仍为另一家公司（疑为xAI）寻求40亿美元融资，资本运作密集，间接反映Musk系流动性紧张。",
+      "retained_from_previous": true
     },
     {
       "author": "Musk",
@@ -170,7 +107,8 @@
       "sector_holdings": [],
       "stance": "attack",
       "relevance": 60,
-      "summary_cn": "Musk身价跌破7000亿美元关口，财富回撤持续，对SpaceX相关持仓形成估值压制氛围。"
+      "summary_cn": "Musk身价跌破7000亿美元关口，财富回撤持续，对SpaceX相关持仓形成估值压制氛围。",
+      "retained_from_previous": true
     },
     {
       "author": "Musk",
@@ -190,7 +128,86 @@
       "sector_holdings": [],
       "stance": "endorse",
       "relevance": 55,
-      "summary_cn": "Musk表示Tesla Semi自动驾驶距商用约一年，卡车司机短期饭碗保住了，利好Tesla干线物流叙事。"
+      "summary_cn": "Musk表示Tesla Semi自动驾驶距商用约一年，卡车司机短期饭碗保住了，利好Tesla干线物流叙事。",
+      "retained_from_previous": true
+    },
+    {
+      "author": "Trump",
+      "text": "BREAKING NEWS: The Failing New York Times, after 10 years of harassment, slander, and libel, just failed again in their desperate attempt to have our powerful Defamation Lawsuit against them dropped. As we requested, the Highly Respected Judge has called for an updated complaint, which will lay out, in extreme detail, all the ways in which The Times has repeatedly and consistently acted, with actual malice in defaming me, my family, our Great MAGA Movement, and America, itself. We will continue to hold The Times and their “comrades” in the Mainstream Media accountable for publishing, promoting",
+      "url": "https://trumpstruth.org/statuses/40320",
+      "published": "2026-07-27T21:52:33+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "stance": "neutral",
+      "relevance": null,
+      "summary_cn": ""
+    },
+    {
+      "author": "Trump",
+      "text": "John Thune should not allow the United States  Senate to “leave town” until it passes The Save America Act or, far better still, TERMINATES THE FILIBUSTER, where Republicans can then quickly pass everything they ever dreamed of, including a full and deep throated SAVE AMERICA ACT, the Budget, and the ever looming Debt Ceiling disaster, 1929! The Dumocrats will do it on day one, and can’t believe how lucky they got with this Senate leadership. Remember, stupidity always brings LOSING & DEATH! President DJT",
+      "url": "https://trumpstruth.org/statuses/40301",
+      "published": "2026-07-27T13:01:06+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "stance": "neutral",
+      "relevance": null,
+      "summary_cn": ""
+    },
+    {
+      "author": "Trump",
+      "text": "The Midterm Meltdown: https://pro.paradigmnewsletters.org/p/awn_midtermmeltdown_0626/LAWN6750/",
+      "url": "https://trumpstruth.org/statuses/40300",
+      "published": "2026-07-27T05:27:30+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "stance": "neutral",
+      "relevance": null,
+      "summary_cn": ""
+    },
+    {
+      "author": "Trump",
+      "text": "Congressman Brandon  Gill (Texas!) was Fantastic tonight on the Trey Gowdy Show, especially as he talked about Deranged Jack Smith and his illegitimate Witch Hunt. The Deranged One stone cold lied before Congress, and worse. He destroyed many lives. Hopefully he will be treated accordingly! President DJT",
+      "url": "https://trumpstruth.org/statuses/40299",
+      "published": "2026-07-27T01:56:17+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "stance": "neutral",
+      "relevance": null,
+      "summary_cn": ""
+    },
+    {
+      "author": "Trump",
+      "text": "The all Republican Senators! Terminate the Filibuster, which the Dumocrats will do as soon as they get the chance, and PASS THE SAVE AMERICA ACT, and everything else, including the Budget, and upcoming Debt Ceiling. Do it now, before it is too late!!! President DJT",
+      "url": "https://trumpstruth.org/statuses/40242",
+      "published": "2026-07-26T03:48:11+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "stance": "neutral",
+      "relevance": null,
+      "summary_cn": ""
+    },
+    {
+      "author": "Trump",
+      "text": "Congratulations to Alexander Kolodin for his great win in Arizona’s race for Secretary of State. He is tough, smart, and a proven winner. He was with me in my big Presidential Win. We’ll do a fantastic Trump Rally to make sure he WINS. Alexander Kolodin has my complete and total Endorsement. He will never let you down! President Donald J.  Trump",
+      "url": "https://trumpstruth.org/statuses/40241",
+      "published": "2026-07-26T03:41:17+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "stance": "neutral",
+      "relevance": null,
+      "summary_cn": ""
     }
   ],
   "held_hits": [
@@ -213,7 +230,8 @@
       "sector_holdings": [],
       "stance": "attack",
       "relevance": 78,
-      "summary_cn": "SpaceX股价较IPO高点近乎腰斩，Musk跌出万亿美元俱乐部，对kcn持有的SPCX/SPCH构成显著利空信号。"
+      "summary_cn": "SpaceX股价较IPO高点近乎腰斩，Musk跌出万亿美元俱乐部，对kcn持有的SPCX/SPCH构成显著利空信号。",
+      "retained_from_previous": true
     },
     {
       "author": "Musk",
@@ -235,73 +253,8 @@
       "sector_holdings": [],
       "stance": "attack",
       "relevance": 72,
-      "summary_cn": "SpaceX估值回调拖累Tesla股价下行，Musk帝国双线承压，间接利空kcn持有的SpaceX相关标的。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk Has Lost $650 Billion In 5 Weeks As Tesla And SpaceX Plummet",
-      "url": "",
-      "published": "Fri, 24 Jul 2026 09:52:11 GMT",
-      "origin": "gnews-rss",
-      "source": "Yahoo Finance",
-      "tickers": [],
-      "held": [
-        "SPCH",
-        "SPCX"
-      ],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "电动车"
-      ],
-      "sector_holdings": [],
-      "stance": "attack",
-      "relevance": 70,
-      "summary_cn": "Musk五周内身价蒸发6500亿美元，Tesla与SpaceX双跌，宏观叙事强化对kcn持有的SpaceX ETF的看空压力。"
-    },
-    {
-      "author": "Musk",
-      "text": "Musk's bad week: Tesla suffers worst slump since 2022, SpaceX drops ahead of Starship test flight",
-      "url": "",
-      "published": "Fri, 24 Jul 2026 20:20:05 GMT",
-      "origin": "gnews-rss",
-      "source": "CNBC",
-      "tickers": [],
-      "held": [
-        "SPCH",
-        "SPCX"
-      ],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "电动车"
-      ],
-      "sector_holdings": [],
-      "stance": "attack",
-      "relevance": 68,
-      "summary_cn": "Musk黑色一周：Tesla创2022年以来最大跌幅，SpaceX在Starship试飞前估值下挫，对kcn持有的SPCX/SPCH直接利空。"
-    },
-    {
-      "author": "Musk",
-      "text": "Reality Bites Elon Musk and His Tesla, SpaceX Believers",
-      "url": "",
-      "published": "Thu, 23 Jul 2026 21:04:00 GMT",
-      "origin": "gnews-rss",
-      "source": "WSJ",
-      "tickers": [],
-      "held": [
-        "SPCH",
-        "SPCX"
-      ],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "电动车"
-      ],
-      "sector_holdings": [],
-      "stance": "attack",
-      "relevance": 65,
-      "summary_cn": "媒体看空Tesla与SpaceX估值叙事，Musk信仰受冲击，间接影响kcn的SpaceX敞口。"
+      "summary_cn": "SpaceX估值回调拖累Tesla股价下行，Musk帝国双线承压，间接利空kcn持有的SpaceX相关标的。",
+      "retained_from_previous": true
     },
     {
       "author": "Musk",
@@ -323,7 +276,8 @@
       "sector_holdings": [],
       "stance": "neutral",
       "relevance": 62,
-      "summary_cn": "Musk身价缩水背景下仍为另一家公司（疑为xAI）寻求40亿美元融资，资本运作密集，间接反映Musk系流动性紧张。"
+      "summary_cn": "Musk身价缩水背景下仍为另一家公司（疑为xAI）寻求40亿美元融资，资本运作密集，间接反映Musk系流动性紧张。",
+      "retained_from_previous": true
     },
     {
       "author": "Musk",
@@ -345,7 +299,8 @@
       "sector_holdings": [],
       "stance": "attack",
       "relevance": 60,
-      "summary_cn": "Musk身价跌破7000亿美元关口，财富回撤持续，对SpaceX相关持仓形成估值压制氛围。"
+      "summary_cn": "Musk身价跌破7000亿美元关口，财富回撤持续，对SpaceX相关持仓形成估值压制氛围。",
+      "retained_from_previous": true
     }
   ],
   "new_ideas": [],
