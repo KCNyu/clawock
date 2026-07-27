@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-07-26T05:26:19.006463+00:00",
+  "generated_at": "2026-07-27T00:01:30.254993+00:00",
   "as_of": "2026-07-24",
   "registered_at": "2026-07-26",
   "taxonomy": {
@@ -59,8 +59,8 @@
         "02513": 0.4,
         "01384": 0.079625,
         "06682": 0.104903,
-        "09678": 0.070736,
-        "00020": 0.344736
+        "00020": 0.344736,
+        "09678": 0.070736
       },
       "leadership_persistence": 0,
       "laggard_persistence": 3,
@@ -110,9 +110,9 @@
       "liquidity_weights_20d": {
         "00700": 0.4,
         "09999": 0.074002,
-        "09988": 0.350094,
+        "09618": 0.034315,
         "03690": 0.14159,
-        "09618": 0.034315
+        "09988": 0.350094
       },
       "leadership_persistence": 2,
       "laggard_persistence": 1,
@@ -259,8 +259,8 @@
       "liquidity_weights_20d": {
         "01072": 0.4,
         "00916": 0.4,
-        "01798": 0.065709,
-        "00956": 0.134291
+        "00956": 0.134291,
+        "01798": 0.065709
       },
       "leadership_persistence": 1,
       "laggard_persistence": 2,
@@ -462,10 +462,10 @@
       "peer_count_20d": 5,
       "liquidity_weights_20d": {
         "NVDA": 0.4,
-        "TSM": 0.105142,
+        "AMD": 0.246504,
         "AVGO": 0.146423,
-        "SMH": 0.101931,
-        "AMD": 0.246504
+        "TSM": 0.105142,
+        "SMH": 0.101931
       },
       "leadership_persistence": 0,
       "laggard_persistence": 3,
@@ -514,8 +514,8 @@
       "peer_count_20d": 3,
       "liquidity_weights_20d": {
         "COIN": 0.4,
-        "PYPL": 0.389716,
-        "XYZ": 0.210284
+        "XYZ": 0.210284,
+        "PYPL": 0.389716
       },
       "leadership_persistence": 0,
       "laggard_persistence": 3,
@@ -566,10 +566,10 @@
       "peer_dispersion_20d": 0.198973,
       "peer_count_20d": 4,
       "liquidity_weights_20d": {
-        "ORCL": 0.128188,
+        "GOOGL": 0.237446,
         "AAPL": 0.377472,
-        "META": 0.256894,
-        "GOOGL": 0.237446
+        "ORCL": 0.128188,
+        "META": 0.256894
       },
       "leadership_persistence": 3,
       "laggard_persistence": 0,
@@ -619,9 +619,9 @@
       "peer_dispersion_20d": 0.031936,
       "peer_count_20d": 3,
       "liquidity_weights_20d": {
-        "NET": 0.263407,
         "SNOW": 0.382318,
-        "DDOG": 0.354275
+        "DDOG": 0.354275,
+        "NET": 0.263407
       },
       "leadership_persistence": 0,
       "laggard_persistence": 3,
@@ -673,9 +673,9 @@
       "peer_count_20d": 4,
       "liquidity_weights_20d": {
         "HOOD": 0.4,
-        "PYPL": 0.240189,
+        "BKKT": 0.002537,
         "COIN": 0.357273,
-        "BKKT": 0.002537
+        "PYPL": 0.240189
       },
       "leadership_persistence": 2,
       "laggard_persistence": 1,

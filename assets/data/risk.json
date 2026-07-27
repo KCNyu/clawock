@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-07-26T05:04:00.483777+00:00",
-  "as_of": "2026-07-26",
+  "generated_at": "2026-07-27T00:01:06.130139+00:00",
+  "as_of": "2026-07-27",
   "us": {
     "beta_spx": 3.5783,
     "n_returns": 30,
@@ -176,7 +176,7 @@
     },
     "weight_method": "date_varying_shares_x_previous_close",
     "weight_reconstruction": "current shares reversed through dated trade ledger",
-    "current_value_usd": 2394.42
+    "current_value_usd": 2395.96
   },
   "hk": {
     "beta_hsi": 1.7982,
@@ -313,7 +313,7 @@
     },
     "weight_method": "date_varying_shares_x_previous_close",
     "weight_reconstruction": "current shares reversed through dated trade ledger",
-    "current_value_hkd": 49484.4
+    "current_value_hkd": 49566.8
   },
   "combined": {
     "n_returns": 30,
@@ -375,10 +375,10 @@
     "closed_market_return_treatment": "zero"
   },
   "leveraged_exposure": {
-    "us_leverage_factor_avg": 1.4193,
-    "hk_leverage_factor_avg": 1.4157,
-    "combined_avg": 1.4167,
-    "margin_at_risk_pct": 14.1672
+    "us_leverage_factor_avg": 1.8354,
+    "hk_leverage_factor_avg": 1.415,
+    "combined_avg": 1.5306,
+    "margin_at_risk_pct": 15.3058
   },
   "alerts": [
     {
@@ -408,7 +408,7 @@
       "pair": "USDHKD",
       "rate": 7.8426,
       "source": "Frankfurter",
-      "fetched_at": "2026-07-26T05:00:44.913913+00:00",
+      "fetched_at": "2026-07-27T00:00:43.335986+00:00",
       "fallback_used": false,
       "warning": null,
       "hkd_to_usd": 0.12750873
