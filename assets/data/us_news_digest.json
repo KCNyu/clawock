@@ -1,58 +1,289 @@
 {
-  "generated_at": "2026-07-24T14:45:02.125412",
+  "generated_at": "2026-07-27T15:37:18.661608",
   "lookback_hours": 48,
   "tickers": [
     "CRCL",
-    "PLTU",
-    "RKLX",
+    "PLTR",
+    "RKLB",
     "SPCX",
-    "SPCH",
-    "MSFU",
+    "MSFT",
     "SKHY"
   ],
-  "digest_markdown": "## Top 移动信号 (跨 ticker)\n\n- **SPCX/SPCH**: HSBC 首次覆盖 SpaceX 给予 Hold, PT $115 与现价基本持平, 明确点名 AI 与垂直整合存在 execution risk. 对 2x 杠杆 ETF 是估值天花板信号.\n- **SKHY**: 周五 Seagate/Sandisk/Micron 同步走弱 (AI 支出轮换 + 半导体普跌), 但 Morgan Stanley 维持多年期 memory tailwind 判断; Sandisk 8/5 财报是关键.\n- **SPCX**: SpaceX 今夜 Starship 重大测试, 同时正让出 Falcon 客户给 Starship — 单一事件双向风险.\n- **CRCL**: Raymond James 首次覆盖 Market Perform (中性), 缺乏明确 catalyst, BTC 情绪面有 Scaramucci 喊底但无基本面催化.\n- **PLTU**: Palantir Q4 beat 驱动 ETF 关注度回升, 但本周为情绪面而非新基本面.\n\n## Per-ticker 简报\n\n- **CRCL**: RJ Market Perform 启动覆盖, 无 PT 增量信息 — 中性, 不动.\n- **PLTU**: 仅为 Palantir Q4 beat 余波 + ETF 营销稿, 无独立 catalyst.\n- **RKLX**: 全部为 ETF 行情/科普稿, 无 RKLB 公司层新闻.\n- **SPCX**: HSBC Hold $115 + Starship 今夜测试 + 让出 Falcon 客户 — 短期波动放大.\n- **SPCH**: 新上市 2x SpaceX ETF 单日成交 $1.3B, BlackRock/ProShares 跟进发同类 — 散户投机情绪高, 适合观察不适合追.\n- **MSFU**: MSFT 周五涨 6.4%, 媒体反向喊\"低吸机会\", 无新 catalyst.\n- **SKHY**: 内存板块周五回撤但周中曾大涨; Morgan Stanley 多年看多, Sandisk 8/5 财报 — 板块 β 而非个股 α.\n\n## 风险 Watch\n\n- **SPCX/SPCH**: HSBC 明确点出 AI 野心 + 垂直整合面临技术与执行风险, PT 与现价持平 = 短期无上行空间.\n- **SKHY**: 内存股周五普跌, 警惕 AI capex 轮换叙事; Sandisk 8/5 财报若 miss 会拖累板块.\n- **SPCX**: Starship 今夜测试若失败, 杠杆 ETF 双倍回撤; 同时让 Falcon 客户是结构性风险.\n- **SPCH**: 新上市杠杆 ETF 高成交 = 投机资金, 易出现流动性回撤时的剧烈折溢价.",
+  "held_via": {
+    "PLTR": [
+      "PLTU"
+    ],
+    "RKLB": [
+      "RKLX"
+    ],
+    "SPCX": [
+      "SPCH"
+    ],
+    "MSFT": [
+      "MSFU"
+    ]
+  },
+  "digest_markdown": "## US Holdings 48h Digest\n\n### Top 移动信号\n- **RKLB**: 拿下 $266M 美国太空军合同 (12 次亚轨道发射, 公司迄今最大), 盘前 +5% — RKLX 2x 将放大此国防催化, 是本周最强单点 catalyst\n- **CRCL**: 从 IBM 收购近 1,000 项区块链专利, 当日 +2%; Cathie Wood 7/23 逢低买入 $14M — 专利组合强化护城河, 临近 7/28-29 FOMC 构成短期波动风险\n- **PLTR**: Michael Burry 加大 PLTR/NVDA/MU/TSLA 空头仓位, 8 月财报前分析师上调预期 (有人看 $200) — PLTU 2x 多空博弈极强, 财报前 IV 隐含波动放大\n- **MSFT**: 本周 Magnificent 7 财报密集, 被定位为 AI 交易 \"pivotal moment\" — MSFU 2x 对 MSFT 财报结果双向敏感, 风险收益对称\n- **SKHY**: 中国 CXMT IPO 暴涨后市值触及 $500B, Apple 据报测试其 DRAM; Counterpoint 称 HBM 主导地位仍属 SK Hynix/Micron — 中期竞争叙事被点燃, 但 HBM 壁垒短期未破\n\n### Per-ticker 简报\n- **CRCL**: IBM 区块链专利收购 + Cathie Wood 增持构成双催化; FOMC 前不宜追高\n- **PLTR**: Burry 加空 vs 分析师 $200 目标价对峙, 8 月财报成裁判; PLTU 双向波动\n- **RKLB**: $266M Space Force 单 + 6 次后续发射 = 最大单笔合同; RKLX 2x 享受溢价\n- **SPCX**: SpaceX 距高点回撤 48%, 但 ETF 持续建仓, Morgan Stanley 给 Starship Flight 13 \"A-\"; SPCH 2x 受益于 Starship 进展\n- **MSFT**: 大科技财报周核心标的, 关注 Azure AI 增速指引; MSFU 2x 财报杠杆显著\n- **SKHY**: CXMT 崛起 + Apple 测试 = 中期竞争威胁, HBM 仍为防御核心\n\n### 风险 Watch\n- **FOMC 7/28-29**: 直接冲击 CRCL 等高 beta crypto 相关\n- **Burry 加空 PLTR/AI 芯片**: 短期情绪压制, 但财报若超预期将快速反转\n- **CXMT 中国 DRAM 崛起**: SKHY HBM 定价权中长期受挑战, 关注 Apple/客户认证进度\n- **MSFT/AI 资本开支若放缓**: MSFU 2x 双向放大, 警惕财报后回调",
   "raw_news_counts": {
-    "CRCL": 4,
-    "PLTU": 5,
-    "RKLX": 5,
+    "CRCL": 5,
+    "PLTR": 5,
+    "RKLB": 5,
     "SPCX": 5,
-    "SPCH": 5,
-    "MSFU": 5,
+    "MSFT": 5,
     "SKHY": 5
   },
+  "raw_news_evidence": {
+    "CRCL": [
+      {
+        "headline": "CRCL Stock Rallies After Circle Acquires Nearly 1,000 Blockchain Patents From IBM",
+        "datetime": "Mon, 27 Jul 2026 14:05:07 GMT",
+        "source": "Yahoo Finance",
+        "origin": "gnews-rss",
+        "url": "https://news.google.com/rss/articles/CBMioAFBVV95cUxPaVVXVndSYXhWUkpSVjdhb2pjdjVKLTBNQkVCSUdQVnd6TlNmdTF0c0RVX0NKbjVhVDdoSVRJdXVDTTJoOFVKRjM0aHZqMkNNODhrSGlMZi1kb2NZaE00Y1FPZ29MMk1mTjFJWkUyNW52Vkd1UUlhWlZ2cGtsR1l5dlk3RjZMSzJ3cHh4QTdoZlB1Vm50a0VqTjNuenZyRFRU?oc=5"
+      },
+      {
+        "headline": "$CRCL stock is up 2% today. Here's what we see in our data.",
+        "datetime": "Mon, 27 Jul 2026 14:52:00 GMT",
+        "source": "Quiver Quantitative",
+        "origin": "gnews-rss",
+        "url": "https://news.google.com/rss/articles/CBMingFBVV95cUxQN29nQU92WU9jcHN2NkRYMVgxYkRSYjhnTUNfU1Bmb3dzWXhXUDZ1anBmMG13ajhPTXFsUlB6Z0dxcFRyN08yRElQWFdjNmxMbkNiOThkWDJpNWxFeTlVQ1ZZMTFZR1BRTTdTVG9saG1yQnM0N3BTeUNjYkNsMDQzci1QNHBYcmJWRFFiT3NscVA2MWxoUVBkQWdHdFZBQQ?oc=5"
+      },
+      {
+        "headline": "Cathie Wood buys $14M Circle dip as CRCL stock tests key support",
+        "datetime": "Thu, 23 Jul 2026 17:31:00 GMT",
+        "source": "Crypto News",
+        "origin": "gnews-rss",
+        "url": "https://news.google.com/rss/articles/CBMifkFVX3lxTE13ZUFSb1g2VnlnWDkyWjdKSDNMVU9ybnFWLWR2TTY3MkozaGhYTUNiRkVYdUMtY0stTmNlQUZFdU5uRUp5QXFoTnQ4VS02SjRzellKQ3JVZVk0MzE0b0VrWnQ0dDZwZzFsV2pVM3FQVDRNb1FaUlRUbVZsdXJVdw?oc=5"
+      },
+      {
+        "headline": "Circle Internet acquires IBM blockchain patent portfolio (CRCL:NYSE)",
+        "datetime": "Mon, 27 Jul 2026 12:48:42 GMT",
+        "source": "Seeking Alpha",
+        "origin": "gnews-rss",
+        "url": "https://news.google.com/rss/articles/CBMimgFBVV95cUxPZi1yNW82YnRpb2xOdGRIa1A5RUhDTlhkcU1ldkM2d2ZZLWhBbEE0UGVOeXNmVGhHZ2RXSjIzMXdFZnhXLU5XcjAtSEJReHpMMm9tcWJRNUUzTEJnT2x2eExQS1hEaHdRakoydVg3aTI3TFprdUUwa185MS03VUZyLTZOOGQxWnVVUmt0bGpMQktwalRuVmo5N0xn?oc=5"
+      },
+      {
+        "headline": "COIN and CRCL Stock Forecast Ahead of July 28-29 FOMC Meeting",
+        "datetime": "Mon, 27 Jul 2026 11:16:19 GMT",
+        "source": "CoinGape",
+        "origin": "gnews-rss",
+        "url": "https://news.google.com/rss/articles/CBMilgFBVV95cUxQVEhfeWxmVWJzWmFleHR2VG9uelEyRkRXbTBHSmY2VnRFd0MzMG12NV81UVNKWUUzdmFKekptall2TUNBSndZZlhqZEpHWk5nMFhSRUtSR1NFVmlFS0FDaVI0S3dXMlROQmxNZ1JDcWtWZjlBYU9OeFBnc3ZLbWRYLWNOM3o4cUlSd3pjSkx0Mnd3RXVpZ2c?oc=5"
+      }
+    ],
+    "PLTR": [
+      {
+        "headline": "Palantir Stock Could Be Setting Up for a Big Earnings Beat. Why This Pro Thinks $200 is Realistic",
+        "datetime": 1785159051,
+        "source": "Yahoo",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=587e42e20f2024ffc3ce70a00eb56396135b5630deedad0929d278a53ac4534f"
+      },
+      {
+        "headline": "Michael Burry Expands Bets Against Major Chip Stocks",
+        "datetime": 1785156210,
+        "source": "Yahoo",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=1596e806d5b84f5c16a22d9e6abfe4237e3671e0c5e4189f3a6e6ee10e2e192d"
+      },
+      {
+        "headline": "Michael Burry Goes Bigger on Nvidia, Micron, Palantir, and Tesla Shorts",
+        "datetime": 1785155210,
+        "source": "Yahoo",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=eeec4354a4d45b903b603ae8f411bc40db86ba1c592593f43427eaaf04685b19"
+      },
+      {
+        "headline": "Jim Cramer Spots New NVIDIA Narrative as Chipmaker Pushes Open AI Security Alliance",
+        "datetime": 1785154851,
+        "source": "Yahoo",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=e7893919a0e1d90572eb1d2044c6de9c8dfc73012a557d5e521b12137a30141d"
+      },
+      {
+        "headline": "Joins Industry Coalition to Launch Open Source AI Cybersecurity Alliance",
+        "datetime": 1785151435,
+        "source": "Yahoo",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=c2f55e412be34e334c6d16111214f5d6c9f05197748b571ad193dd0376380320"
+      }
+    ],
+    "RKLB": [
+      {
+        "headline": "Rocket Lab Stock Jumps After Securing Largest Launch Contract With Pentagon",
+        "datetime": 1785156523,
+        "source": "Yahoo",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=efedc55c27c67e5c116d2b8a83eb818fd8d94b83583d83a983c2e8746c4e6cd4"
+      },
+      {
+        "headline": "Rocket Lab Secures Biggest Launch Deal Yet as Space Demand Grows",
+        "datetime": 1785152863,
+        "source": "Yahoo",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=f250bf3d60c4ff0ff1b811bbf03ee8d054ef17fdeb3e15cae6a506ea9761b28e"
+      },
+      {
+        "headline": "RKLB Stock Climbs Premarket On Landmark US Space Force Contract – How Is It Different From Commercial Launches?",
+        "datetime": 1785152822,
+        "source": "Yahoo",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=78a4368b2dde4ac1e8c4aeb08bbbe4e890ac4f879d39a3b3b87868d2d854dfee"
+      },
+      {
+        "headline": "Here Are Monday’s Top Wall Street Analyst Research Calls: Alphabet, Clean Harbors, Ford, Huntington Bancshares, Rivian, Rocket Lab, Terawulf, Vale, Warner Bros. Discovery, and More",
+        "datetime": 1785152797,
+        "source": "Yahoo",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=fd3df2c6f0493272999897f2428b5f0b3821e0f7e0b005e84dfe494f335d496d"
+      },
+      {
+        "headline": "Rocket Lab Stock Is Jumping for 2 Reasons",
+        "datetime": 1785150960,
+        "source": "Yahoo",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=83b2100f539d5a41b3f8933a4bbfcbc053a1af74a145f16ce5eb00fdcf3a6ad2"
+      }
+    ],
+    "SPCX": [
+      {
+        "headline": "JPMorgan and Goldman Posted Record Quarters — Their Own CEOs Aren’t Sure It Lasts",
+        "datetime": 1785160216,
+        "source": "Yahoo",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=04d396fbf8f5b5d6ab3bfb22159b5a32096a63095c3b2ceff5ecdd357ee5fecd"
+      },
+      {
+        "headline": "Stock Market Today: Dow Jumps 600 Points On U.S.-Iran Hopes; Oil Prices Plunge (Live Coverage)",
+        "datetime": 1785159775,
+        "source": "Yahoo",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=9c090f66420484387b86e9cadad73271650cd79f08931bf513768af407524d63"
+      },
+      {
+        "headline": "The S&P 500 Is On Track to Post Record Q2 Profits — But There’s a Catch",
+        "datetime": 1785159232,
+        "source": "Yahoo",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=9e815b417e4ad10a2fb739d4274171f09bdec74594f43edd0fd334773fb6db1d"
+      },
+      {
+        "headline": "SpaceX bears should ’consider cryogenic hibernation’ on ship catch: Morgan Stanley",
+        "datetime": 1785158748,
+        "source": "Yahoo",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=364ac6714263bc030a402bdb6ddae71e29a62b509d4f59f36dd8b947bbe6ffca"
+      },
+      {
+        "headline": "SpaceX Stock Is Down 48% From Its High. Here's Why ETFs Are Loading Up Anyway.",
+        "datetime": 1785157560,
+        "source": "Yahoo",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=67d041f699a2df54f6adbdd3d8aac28828a62146061ec3d55702e00a8a6a918e"
+      }
+    ],
+    "MSFT": [
+      {
+        "headline": "Tech stocks today: Big Tech earnings this week mark a pivotal moment for the AI trade",
+        "datetime": 1785159971,
+        "source": "Yahoo",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=a0df9aeb18e38d1d1632d1dedbfa03a70c5ab031f84ec3a282a4e64055f4e09c"
+      },
+      {
+        "headline": "Stock Market Today: Dow Jumps 600 Points On U.S.-Iran Hopes; Oil Prices Plunge (Live Coverage)",
+        "datetime": 1785159775,
+        "source": "Yahoo",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=9c090f66420484387b86e9cadad73271650cd79f08931bf513768af407524d63"
+      },
+      {
+        "headline": "Why I Can’t Stop Buying This 16 P/E Tech Giant: My Biggest August Bet",
+        "datetime": 1785159030,
+        "source": "Yahoo",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=3613c7804e3a3af43f8ae7f95088911b732f904e1258ec79a653666d43e28ab6"
+      },
+      {
+        "headline": "CRWV, NBIS Stocks Climb – Nvidia’s $250B OpenAI Guarantee Is A ‘Constructive’ Signal, Says Analyst",
+        "datetime": 1785158549,
+        "source": "Yahoo",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=3ec4d79ae2fafefa5d2b5c6e756add57c0f726f360080204989ecc3864f2ec36"
+      },
+      {
+        "headline": "Thailand's Foreign Investment Applications Jump 80% to $40.6 Billion on AI Boom",
+        "datetime": 1785157912,
+        "source": "Yahoo",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=806add5aa81ba6a0613fa55dce5ec7e498376dfdb1f9351e1674071d9f237723"
+      }
+    ],
+    "SKHY": [
+      {
+        "headline": "EXCLUSIVE: After Nvidia And SK Hynix, These 3 AI Stocks Could Be The Next Winners, CEO Says",
+        "datetime": 1785147650,
+        "source": "Benzinga",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=dc8f5a3d11ecbaf094c6662287f54de8459f56192c9bfa83784584ab2e055f20"
+      },
+      {
+        "headline": "EXCLUSIVE: China Is Coming For SanDisk—But Not Yet For Micron’s Memory Crown",
+        "datetime": 1785145962,
+        "source": "Benzinga",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=3f26919428f78c3aa8a229940c3387b021b3d8495b69b62c1cfc9f5370435ae8"
+      },
+      {
+        "headline": "Intel’s Earnings Could Quadruple in 4 Years, Analyst Says",
+        "datetime": 1785144425,
+        "source": "Benzinga",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=4716ac297ce5455ba35ebec7a3f396fbc73900f70d9dbcd05a07a230a909d674"
+      },
+      {
+        "headline": "China’s Biggest Chip IPO Creates a $500 Billion Rival for Micron as Apple Reportedly Tests CXMT Memory Chips",
+        "datetime": 1785143326,
+        "source": "Benzinga",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=48a8f517cb0ec876fc7937e627f9a2319c5e3731ded198493c35f15291506d00"
+      },
+      {
+        "headline": "Top Three DRAM ETF Stocks to Watch This Week: Samsung, SK Hynix, Seagate",
+        "datetime": 1785080716,
+        "source": "Benzinga",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=53405f27f46d0f1cc85c5dbba208d3800928d35f1f354c40059a0cb7c2fe2a0f"
+      }
+    ]
+  },
   "news_source_per_ticker": {
-    "CRCL": "finnhub",
-    "PLTU": "gnews-rss",
-    "RKLX": "gnews-rss",
+    "CRCL": "gnews-rss",
+    "PLTR": "finnhub",
+    "RKLB": "finnhub",
     "SPCX": "finnhub",
-    "SPCH": "gnews-rss",
-    "MSFU": "gnews-rss",
+    "MSFT": "finnhub",
     "SKHY": "finnhub"
   },
   "source_status": {
     "CRCL": {
+      "finnhub": "success_empty",
+      "google_news": "success"
+    },
+    "PLTR": {
       "finnhub": "success",
       "google_news": "not_attempted"
     },
-    "PLTU": {
-      "finnhub": "success_empty",
-      "google_news": "success"
-    },
-    "RKLX": {
-      "finnhub": "success_empty",
-      "google_news": "success"
+    "RKLB": {
+      "finnhub": "success",
+      "google_news": "not_attempted"
     },
     "SPCX": {
       "finnhub": "success",
       "google_news": "not_attempted"
     },
-    "SPCH": {
-      "finnhub": "success_empty",
-      "google_news": "success"
-    },
-    "MSFU": {
-      "finnhub": "success_empty",
-      "google_news": "success"
+    "MSFT": {
+      "finnhub": "success",
+      "google_news": "not_attempted"
     },
     "SKHY": {
       "finnhub": "success",
