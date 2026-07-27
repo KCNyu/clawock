@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-26T22:35:06.018861+00:00",
+  "generated_at": "2026-07-27T15:32:39.791123+00:00",
   "lookback_hours": 48,
   "sources": {
     "trump": "trumpstruth.org/feed (primary)",
@@ -13,126 +13,98 @@
   },
   "llm_filtered": true,
   "counts": {
-    "total": 9,
-    "held_hits": 0,
-    "new_ideas": 3,
-    "sector_hits": 5
+    "total": 8,
+    "held_hits": 7,
+    "new_ideas": 0,
+    "sector_hits": 0
   },
   "items": [
     {
       "author": "Musk",
+      "text": "After a record-setting IPO last month, SpaceX’s honeymoon is over. Elon Musk has shed hundreds of billions in wealth, demoting him from trillionaire status, and SpaceX’s stock price has been cut practically in half.",
+      "url": "",
+      "published": "Mon, 27 Jul 2026 14:00:58 GMT",
+      "origin": "gnews-rss",
+      "source": "facebook.com",
+      "tickers": [],
+      "held": [
+        "SPCH",
+        "SPCX"
+      ],
+      "new_ideas": [],
+      "sectors": [
+        "航天"
+      ],
+      "sector_holdings": [],
+      "stance": "attack",
+      "relevance": 78,
+      "summary_cn": "SpaceX股价较IPO高点近乎腰斩，Musk跌出万亿美元俱乐部，对kcn持有的SPCX/SPCH构成显著利空信号。"
+    },
+    {
+      "author": "Musk",
+      "text": "Musk’s SpaceX tumbles back to Earth, dragging Tesla stock down with it",
+      "url": "",
+      "published": "Mon, 27 Jul 2026 15:02:38 GMT",
+      "origin": "gnews-rss",
+      "source": "The Washington Post",
+      "tickers": [],
+      "held": [
+        "SPCH",
+        "SPCX"
+      ],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "电动车"
+      ],
+      "sector_holdings": [],
+      "stance": "attack",
+      "relevance": 72,
+      "summary_cn": "SpaceX估值回调拖累Tesla股价下行，Musk帝国双线承压，间接利空kcn持有的SpaceX相关标的。"
+    },
+    {
+      "author": "Musk",
       "text": "Elon Musk Has Lost $650 Billion In 5 Weeks As Tesla And SpaceX Plummet",
       "url": "",
       "published": "Fri, 24 Jul 2026 09:52:11 GMT",
       "origin": "gnews-rss",
       "source": "Yahoo Finance",
-      "tickers": [
-        "TSLA"
-      ],
-      "held": [],
-      "new_ideas": [
-        "TSLA"
-      ],
-      "sectors": [
-        "电动车",
-        "航天"
-      ],
-      "sector_holdings": [
+      "tickers": [],
+      "held": [
         "SPCH",
         "SPCX"
       ],
-      "stance": "attack",
-      "relevance": 72,
-      "summary_cn": "Musk 5周内个人财富蒸发6500亿美元，Tesla 与 SpaceX 估值大幅下挫，间接压制 SpaceX 相关持仓情绪。"
-    },
-    {
-      "author": "Musk",
-      "text": "Earnings at Musk's Tesla fall as spending on research cuts into profit from selling cars",
-      "url": "",
-      "published": "Thu, 23 Jul 2026 22:56:35 GMT",
-      "origin": "gnews-rss",
-      "source": "PBS",
-      "tickers": [
-        "TSLA"
-      ],
-      "held": [],
-      "new_ideas": [
-        "TSLA"
-      ],
+      "new_ideas": [],
       "sectors": [
+        "航天",
         "电动车"
       ],
       "sector_holdings": [],
       "stance": "attack",
-      "relevance": 62,
-      "summary_cn": "Tesla 盈利下滑，研发开支侵蚀汽车销售利润，业绩面利空。"
-    },
-    {
-      "author": "Musk",
-      "text": "Want to Build Your Own Tesla Model S or X? Elon Musk Will Show You How.",
-      "url": "",
-      "published": "Sun, 26 Jul 2026 16:01:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Barron's",
-      "tickers": [
-        "TSLA"
-      ],
-      "held": [],
-      "new_ideas": [
-        "TSLA"
-      ],
-      "sectors": [
-        "电动车"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 50,
-      "summary_cn": "Musk 称将展示如何自建 Tesla Model S/X，内容偏营销/技术分享，无直接多空信号。"
-    },
-    {
-      "author": "Musk",
-      "text": "Musk keeps Tesla-SpaceX merger speculation alive, cites growing overlap",
-      "url": "",
-      "published": "Fri, 24 Jul 2026 05:43:32 GMT",
-      "origin": "gnews-rss",
-      "source": "Reuters",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "电动车",
-        "航天"
-      ],
-      "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "endorse",
-      "relevance": 78,
-      "summary_cn": "Musk 重提 Tesla-SpaceX 合并猜测，称两者业务重叠加深，若合并将显著利好 SpaceX 相关持仓 SPCX/SPCH。"
-    },
-    {
-      "author": "Musk",
-      "text": "SpaceX and Tesla CEO Elon Musk Issues Stark 2036 Prediction That Could Be About To Blow Up The Bitcoin Price",
-      "url": "",
-      "published": "Sun, 26 Jul 2026 11:30:03 GMT",
-      "origin": "gnews-rss",
-      "source": "Forbes",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "加密货币",
-        "航天"
-      ],
-      "sector_holdings": [
-        "CRCL",
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "endorse",
       "relevance": 70,
-      "summary_cn": "Musk 发表2036年预测并称可能推动比特币价格走高，间接利好加密板块持仓 CRCL。"
+      "summary_cn": "Musk五周内身价蒸发6500亿美元，Tesla与SpaceX双跌，宏观叙事强化对kcn持有的SpaceX ETF的看空压力。"
+    },
+    {
+      "author": "Musk",
+      "text": "Musk's bad week: Tesla suffers worst slump since 2022, SpaceX drops ahead of Starship test flight",
+      "url": "",
+      "published": "Fri, 24 Jul 2026 20:20:05 GMT",
+      "origin": "gnews-rss",
+      "source": "CNBC",
+      "tickers": [],
+      "held": [
+        "SPCH",
+        "SPCX"
+      ],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "电动车"
+      ],
+      "sector_holdings": [],
+      "stance": "attack",
+      "relevance": 68,
+      "summary_cn": "Musk黑色一周：Tesla创2022年以来最大跌幅，SpaceX在Starship试飞前估值下挫，对kcn持有的SPCX/SPCH直接利空。"
     },
     {
       "author": "Musk",
@@ -142,83 +114,129 @@
       "origin": "gnews-rss",
       "source": "WSJ",
       "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "电动车",
-        "航天"
-      ],
-      "sector_holdings": [
+      "held": [
         "SPCH",
         "SPCX"
       ],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "电动车"
+      ],
+      "sector_holdings": [],
       "stance": "attack",
-      "relevance": 60,
-      "summary_cn": "媒体发文质疑 Musk 及 Tesla、SpaceX 信仰者，舆论面利空相关持仓。"
+      "relevance": 65,
+      "summary_cn": "媒体看空Tesla与SpaceX估值叙事，Musk信仰受冲击，间接影响kcn的SpaceX敞口。"
     },
     {
       "author": "Musk",
-      "text": "Elon Musk reflects on DOGE role: ‘I got carried away’",
+      "text": "After Losing 40% Of His Net Worth In A Month, Elon Musk Attempts To Raise $4 Billion For Another Company",
       "url": "",
-      "published": "Fri, 24 Jul 2026 15:35:00 GMT",
+      "published": "Mon, 27 Jul 2026 10:47:46 GMT",
       "origin": "gnews-rss",
-      "source": "CNN",
+      "source": "24/7 Wall St.",
       "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "加密货币"
-      ],
-      "sector_holdings": [
-        "CRCL"
-      ],
-      "stance": "neutral",
-      "relevance": 50,
-      "summary_cn": "Musk 反思 DOGE 经历称'用力过猛'，对其参与的政府效率部门做阶段性回顾，间接影响 Musk 系叙事。"
-    },
-    {
-      "author": "Musk",
-      "text": "Should you be afraid of Elon Musk?",
-      "url": "",
-      "published": "Thu, 23 Jul 2026 09:51:59 GMT",
-      "origin": "gnews-rss",
-      "source": "The Economist",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "电动车",
-        "航天"
-      ],
-      "sector_holdings": [
+      "held": [
         "SPCH",
         "SPCX"
       ],
-      "stance": "neutral",
-      "relevance": 48,
-      "summary_cn": "媒体讨论是否应'害怕'Musk，舆论性文章，对 SpaceX 持仓情绪有间接影响。"
-    },
-    {
-      "author": "Trump",
-      "text": "The all Republican Senators! Terminate the Filibuster, which the Dumocrats will do as soon as they get the chance, and PASS THE SAVE AMERICA ACT, and everything else, including the Budget, and upcoming Debt Ceiling. Do it now, before it is too late!!! President DJT",
-      "url": "https://trumpstruth.org/statuses/40242",
-      "published": "2026-07-26T03:48:11+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
       "new_ideas": [],
       "sectors": [
-        "监管/政治",
-        "宏观政策"
+        "航天",
+        "AI"
       ],
       "sector_holdings": [],
       "stance": "neutral",
-      "relevance": 45,
-      "summary_cn": "Trump 呼吁共和党参议员终止阻挠议事、通过《拯救美国法案》及相关预算/债务上限法案，属国内政治立法层面，与市场间接相关。"
+      "relevance": 62,
+      "summary_cn": "Musk身价缩水背景下仍为另一家公司（疑为xAI）寻求40亿美元融资，资本运作密集，间接反映Musk系流动性紧张。"
+    },
+    {
+      "author": "Musk",
+      "text": "Musk’s Fortune Slips Below $700 Billion",
+      "url": "",
+      "published": "Mon, 27 Jul 2026 15:04:16 GMT",
+      "origin": "gnews-rss",
+      "source": "Forbes",
+      "tickers": [],
+      "held": [
+        "SPCH",
+        "SPCX"
+      ],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "电动车"
+      ],
+      "sector_holdings": [],
+      "stance": "attack",
+      "relevance": 60,
+      "summary_cn": "Musk身价跌破7000亿美元关口，财富回撤持续，对SpaceX相关持仓形成估值压制氛围。"
+    },
+    {
+      "author": "Musk",
+      "text": "Musk says Tesla Semi self-driving is a year away, so truckers are safe",
+      "url": "",
+      "published": "Mon, 27 Jul 2026 10:41:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Electrek",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "电动车",
+        "自动驾驶",
+        "卡车运输"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 55,
+      "summary_cn": "Musk表示Tesla Semi自动驾驶距商用约一年，卡车司机短期饭碗保住了，利好Tesla干线物流叙事。"
     }
   ],
-  "held_hits": [],
-  "new_ideas": [
+  "held_hits": [
+    {
+      "author": "Musk",
+      "text": "After a record-setting IPO last month, SpaceX’s honeymoon is over. Elon Musk has shed hundreds of billions in wealth, demoting him from trillionaire status, and SpaceX’s stock price has been cut practically in half.",
+      "url": "",
+      "published": "Mon, 27 Jul 2026 14:00:58 GMT",
+      "origin": "gnews-rss",
+      "source": "facebook.com",
+      "tickers": [],
+      "held": [
+        "SPCH",
+        "SPCX"
+      ],
+      "new_ideas": [],
+      "sectors": [
+        "航天"
+      ],
+      "sector_holdings": [],
+      "stance": "attack",
+      "relevance": 78,
+      "summary_cn": "SpaceX股价较IPO高点近乎腰斩，Musk跌出万亿美元俱乐部，对kcn持有的SPCX/SPCH构成显著利空信号。"
+    },
+    {
+      "author": "Musk",
+      "text": "Musk’s SpaceX tumbles back to Earth, dragging Tesla stock down with it",
+      "url": "",
+      "published": "Mon, 27 Jul 2026 15:02:38 GMT",
+      "origin": "gnews-rss",
+      "source": "The Washington Post",
+      "tickers": [],
+      "held": [
+        "SPCH",
+        "SPCX"
+      ],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "电动车"
+      ],
+      "sector_holdings": [],
+      "stance": "attack",
+      "relevance": 72,
+      "summary_cn": "SpaceX估值回调拖累Tesla股价下行，Musk帝国双线承压，间接利空kcn持有的SpaceX相关标的。"
+    },
     {
       "author": "Musk",
       "text": "Elon Musk Has Lost $650 Billion In 5 Weeks As Tesla And SpaceX Plummet",
@@ -226,115 +244,42 @@
       "published": "Fri, 24 Jul 2026 09:52:11 GMT",
       "origin": "gnews-rss",
       "source": "Yahoo Finance",
-      "tickers": [
-        "TSLA"
-      ],
-      "held": [],
-      "new_ideas": [
-        "TSLA"
-      ],
-      "sectors": [
-        "电动车",
-        "航天"
-      ],
-      "sector_holdings": [
+      "tickers": [],
+      "held": [
         "SPCH",
         "SPCX"
       ],
-      "stance": "attack",
-      "relevance": 72,
-      "summary_cn": "Musk 5周内个人财富蒸发6500亿美元，Tesla 与 SpaceX 估值大幅下挫，间接压制 SpaceX 相关持仓情绪。"
-    },
-    {
-      "author": "Musk",
-      "text": "Earnings at Musk's Tesla fall as spending on research cuts into profit from selling cars",
-      "url": "",
-      "published": "Thu, 23 Jul 2026 22:56:35 GMT",
-      "origin": "gnews-rss",
-      "source": "PBS",
-      "tickers": [
-        "TSLA"
-      ],
-      "held": [],
-      "new_ideas": [
-        "TSLA"
-      ],
+      "new_ideas": [],
       "sectors": [
+        "航天",
         "电动车"
       ],
       "sector_holdings": [],
       "stance": "attack",
-      "relevance": 62,
-      "summary_cn": "Tesla 盈利下滑，研发开支侵蚀汽车销售利润，业绩面利空。"
-    },
-    {
-      "author": "Musk",
-      "text": "Want to Build Your Own Tesla Model S or X? Elon Musk Will Show You How.",
-      "url": "",
-      "published": "Sun, 26 Jul 2026 16:01:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Barron's",
-      "tickers": [
-        "TSLA"
-      ],
-      "held": [],
-      "new_ideas": [
-        "TSLA"
-      ],
-      "sectors": [
-        "电动车"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 50,
-      "summary_cn": "Musk 称将展示如何自建 Tesla Model S/X，内容偏营销/技术分享，无直接多空信号。"
-    }
-  ],
-  "sector_hits": [
-    {
-      "author": "Musk",
-      "text": "Musk keeps Tesla-SpaceX merger speculation alive, cites growing overlap",
-      "url": "",
-      "published": "Fri, 24 Jul 2026 05:43:32 GMT",
-      "origin": "gnews-rss",
-      "source": "Reuters",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "电动车",
-        "航天"
-      ],
-      "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "endorse",
-      "relevance": 78,
-      "summary_cn": "Musk 重提 Tesla-SpaceX 合并猜测，称两者业务重叠加深，若合并将显著利好 SpaceX 相关持仓 SPCX/SPCH。"
-    },
-    {
-      "author": "Musk",
-      "text": "SpaceX and Tesla CEO Elon Musk Issues Stark 2036 Prediction That Could Be About To Blow Up The Bitcoin Price",
-      "url": "",
-      "published": "Sun, 26 Jul 2026 11:30:03 GMT",
-      "origin": "gnews-rss",
-      "source": "Forbes",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "加密货币",
-        "航天"
-      ],
-      "sector_holdings": [
-        "CRCL",
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "endorse",
       "relevance": 70,
-      "summary_cn": "Musk 发表2036年预测并称可能推动比特币价格走高，间接利好加密板块持仓 CRCL。"
+      "summary_cn": "Musk五周内身价蒸发6500亿美元，Tesla与SpaceX双跌，宏观叙事强化对kcn持有的SpaceX ETF的看空压力。"
+    },
+    {
+      "author": "Musk",
+      "text": "Musk's bad week: Tesla suffers worst slump since 2022, SpaceX drops ahead of Starship test flight",
+      "url": "",
+      "published": "Fri, 24 Jul 2026 20:20:05 GMT",
+      "origin": "gnews-rss",
+      "source": "CNBC",
+      "tickers": [],
+      "held": [
+        "SPCH",
+        "SPCX"
+      ],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "电动车"
+      ],
+      "sector_holdings": [],
+      "stance": "attack",
+      "relevance": 68,
+      "summary_cn": "Musk黑色一周：Tesla创2022年以来最大跌幅，SpaceX在Starship试飞前估值下挫，对kcn持有的SPCX/SPCH直接利空。"
     },
     {
       "author": "Musk",
@@ -344,61 +289,65 @@
       "origin": "gnews-rss",
       "source": "WSJ",
       "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "电动车",
-        "航天"
-      ],
-      "sector_holdings": [
+      "held": [
         "SPCH",
         "SPCX"
       ],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "电动车"
+      ],
+      "sector_holdings": [],
+      "stance": "attack",
+      "relevance": 65,
+      "summary_cn": "媒体看空Tesla与SpaceX估值叙事，Musk信仰受冲击，间接影响kcn的SpaceX敞口。"
+    },
+    {
+      "author": "Musk",
+      "text": "After Losing 40% Of His Net Worth In A Month, Elon Musk Attempts To Raise $4 Billion For Another Company",
+      "url": "",
+      "published": "Mon, 27 Jul 2026 10:47:46 GMT",
+      "origin": "gnews-rss",
+      "source": "24/7 Wall St.",
+      "tickers": [],
+      "held": [
+        "SPCH",
+        "SPCX"
+      ],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "AI"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 62,
+      "summary_cn": "Musk身价缩水背景下仍为另一家公司（疑为xAI）寻求40亿美元融资，资本运作密集，间接反映Musk系流动性紧张。"
+    },
+    {
+      "author": "Musk",
+      "text": "Musk’s Fortune Slips Below $700 Billion",
+      "url": "",
+      "published": "Mon, 27 Jul 2026 15:04:16 GMT",
+      "origin": "gnews-rss",
+      "source": "Forbes",
+      "tickers": [],
+      "held": [
+        "SPCH",
+        "SPCX"
+      ],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "电动车"
+      ],
+      "sector_holdings": [],
       "stance": "attack",
       "relevance": 60,
-      "summary_cn": "媒体发文质疑 Musk 及 Tesla、SpaceX 信仰者，舆论面利空相关持仓。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk reflects on DOGE role: ‘I got carried away’",
-      "url": "",
-      "published": "Fri, 24 Jul 2026 15:35:00 GMT",
-      "origin": "gnews-rss",
-      "source": "CNN",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "加密货币"
-      ],
-      "sector_holdings": [
-        "CRCL"
-      ],
-      "stance": "neutral",
-      "relevance": 50,
-      "summary_cn": "Musk 反思 DOGE 经历称'用力过猛'，对其参与的政府效率部门做阶段性回顾，间接影响 Musk 系叙事。"
-    },
-    {
-      "author": "Musk",
-      "text": "Should you be afraid of Elon Musk?",
-      "url": "",
-      "published": "Thu, 23 Jul 2026 09:51:59 GMT",
-      "origin": "gnews-rss",
-      "source": "The Economist",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "电动车",
-        "航天"
-      ],
-      "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "neutral",
-      "relevance": 48,
-      "summary_cn": "媒体讨论是否应'害怕'Musk，舆论性文章，对 SpaceX 持仓情绪有间接影响。"
+      "summary_cn": "Musk身价跌破7000亿美元关口，财富回撤持续，对SpaceX相关持仓形成估值压制氛围。"
     }
-  ]
+  ],
+  "new_ideas": [],
+  "sector_hits": []
 }
