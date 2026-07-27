@@ -261,3 +261,15 @@ def test_skill_instructs_the_turn_to_reconcile(skill):
     assert text.count("`plan_context`") >= 2, "context key not named in both modes"
     assert "driven_by=risk_rule" in text, "no rule against re-timing a discipline action"
     assert "照抄" in text, "no instruction to quote the plan's own size"
+
+
+@pytest.mark.parametrize("skill", ["hk-stock-analysis", "us-stock-analysis"])
+def test_the_two_share_rules_do_not_read_as_contradictory(skill):
+    """Two rules land in the same file: quote `plan_context.shares`, and never
+    restate a position's share count. On 2026-07-27 those were the same ticker on
+    the same day with different numbers (07226: 6200 held, 1000 swapped), so the
+    prompt has to say which is which or the model picks one at random."""
+    text = (WS / "skills" / skill / "SKILL.md").read_text(encoding="utf-8")
+    assert "禁止重述持仓股数" in text
+    assert "例外且仅此一个" in text, "the exception for plan sizes is not stated"
+    assert "6200" in text and "1000" in text, "the concrete pair is not shown"

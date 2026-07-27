@@ -341,8 +341,12 @@ _SHARE_CLAIM = re.compile(rf'({_NUM})\s*(万|亿)?\s*(?:股|shares?\b)')
 _CURRENCY_CLAIM = re.compile(
     rf'{_CURRENCY}\s*({_NUM})\s*(万|亿)?|({_NUM})\s*(万|亿)?\s*{_CURRENCY}'
 )
-# A range whose endpoints disagree in sign or run backwards describes nothing real.
-_RANGE = re.compile(rf'({_NUM})\s*(?:~|～|-|—|到|至)\s*({_NUM})\s*%')
+# A range whose endpoints run backwards describes nothing real. The ASCII hyphen is
+# deliberately NOT a separator here: HK tickers are numeric, so "07226 -3.5%" —
+# the most common phrase in these reports — parsed as a range from 07226 to 3.5.
+# Checked against 23 real sent reports: that one character was every false
+# positive. `~` is what the observed defect ("+0.3~-0.4%") actually used.
+_RANGE = re.compile(rf'({_NUM})\s*(?:~|～|—|–|到|至)\s*({_NUM})\s*%')
 MAX_NUMERIC_SAMPLES = 4
 # Only book-scale currency figures are checked. US price talk is conventionally
 # written with the symbol — "跌破 $65，下一支撑 $60" is a level, not a claim about
@@ -435,7 +439,23 @@ def check_numeric_claims(text, ctx):
         parts.append(f'区间自相矛盾: {", ".join(impossible[:MAX_NUMERIC_SAMPLES])}')
     if not parts:
         return []
-    return ['；'.join(parts) + ' —— 数字只能引用 context，不许心算 (warn)']
+    return [f'{"；".join(parts)} —— 数字只能引用 context，不许心算 {ADVISORY_MARK}']
+
+
+ADVISORY_MARK = '(advisory)'
+
+
+def is_advisory(issue):
+    """An advisory issue is reported but never escalates.
+
+    Without this, an advisory check still counts toward `warn_max` and can push a
+    report from `warn` (delivered) to `fail` (not delivered) purely by coexisting
+    with two unrelated soft issues — verified: intraday `[soft-length, thin
+    section, numeric]` categorised as `fail` while the same list minus the numeric
+    line categorised as `warn`. An advisory heuristic that can silently cost kcn a
+    report is worse than the cosmetic problem it reports.
+    """
+    return ADVISORY_MARK in issue
 
 
 def categorize_issues(issues, critical_substrings, warn_max=2, extra_critical=None):
@@ -443,21 +463,25 @@ def categorize_issues(issues, critical_substrings, warn_max=2, extra_critical=No
 
     - empty issues → pass
     - any issue containing any critical_substring OR matching extra_critical(i) → fail
-    - otherwise warn if ≤ warn_max issues else fail
+    - advisory issues (see is_advisory) are reported but never counted or escalated
+    - otherwise warn if ≤ warn_max non-advisory issues else fail
 
     extra_critical: optional callable(issue_str) -> bool for compound checks
     (e.g. hard char limit detection that can't be a simple substring).
     """
     if not issues:
         return 'pass'
+    escalating = [i for i in issues if not is_advisory(i)]
     has_critical = any(
         any(c in i for c in critical_substrings)
         or (extra_critical is not None and extra_critical(i))
-        for i in issues
+        for i in escalating
     )
     if has_critical:
         return 'fail'
-    return 'warn' if len(issues) <= warn_max else 'fail'
+    if not escalating:
+        return 'warn'
+    return 'warn' if len(escalating) <= warn_max else 'fail'
 
 
 def safe_write_text(path, text):

@@ -93,16 +93,41 @@ def test_gate_emits_at_most_one_issue(hc):
     assert len(hc.check_numeric_claims(prose, CTX)) == 1
 
 
-def test_gate_is_not_in_the_critical_keyword_list():
-    # Severity is asserted at the boundary the postflights actually use: if the
-    # gate's wording ever matched a critical keyword it would start blocking
-    # delivery, which is exactly what it was designed not to do.
-    for module in ("report_postflight", "intraday_postflight"):
-        if HARNESS not in sys.path:
-            sys.path.insert(0, HARNESS)
-        post = pytest.importorskip(module)
-        issue = "context 里没有的数字: -2万 —— 数字只能引用 context，不许心算 (warn)"
-        assert post.categorize([issue]) == "warn"
+def _gate_issue(hc):
+    return hc.check_numeric_claims("再伤 1.5-2 万 HK$。", CTX)[0]
+
+
+@pytest.mark.parametrize("module_name", ["report_postflight", "intraday_postflight"])
+def test_gate_cannot_turn_a_delivered_report_into_a_blocked_one(hc, module_name):
+    """The severity property, asserted where it actually bites.
+
+    The first version of this gate emitted a plain issue, which still counted
+    toward `warn_max`. Two unrelated soft issues plus the gate categorised as
+    `fail` — not delivered — while the same two without it were `warn`. An
+    advisory line must never be able to cost kcn a report.
+    """
+    if HARNESS not in sys.path:
+        sys.path.insert(0, HARNESS)
+    post = pytest.importorskip(module_name)
+    gate = _gate_issue(hc)
+    soft = "报告长度 3200 字 > 3000 软上限 (warn)"
+    thin = '"▎我的看法" 段仅 40 字，太敷衍'
+
+    assert post.categorize([gate]) == "warn"
+    for existing in ([soft], [soft, thin], [soft, thin, thin]):
+        assert post.categorize(existing + [gate]) == post.categorize(existing), existing
+
+
+def test_advisory_never_masks_a_real_failure(hc):
+    if HARNESS not in sys.path:
+        sys.path.insert(0, HARNESS)
+    post = pytest.importorskip("intraday_postflight")
+    # A critical issue must still fail with the advisory line alongside it.
+    assert post.categorize(['缺段标记 "▎我的看法"', _gate_issue(hc)]) == "fail"
+    # And a genuine over-budget pile must still fail.
+    real = ["报告长度 3200 字 > 3000 软上限 (warn)", "段仅 40 字，太敷衍",
+            "段仅 40 字，太敷衍", "报告长度 3200 字 > 3000 软上限 (warn)"]
+    assert post.categorize(real + [_gate_issue(hc)]) == "fail"
 
 
 def test_known_blind_spot_a_real_number_on_the_wrong_subject(hc):
@@ -153,3 +178,20 @@ def test_price_levels_are_not_treated_as_book_amounts(hc):
 
 def test_book_scale_amounts_are_still_checked(hc):
     assert hc.check_numeric_claims("日内可能再伤 HK$18,000。", CTX)
+
+
+def test_a_numeric_ticker_followed_by_a_negative_percent_is_not_a_range(hc):
+    """HK tickers are numeric, so the ASCII hyphen cannot be a range separator.
+
+    Measured against 23 real sent reports: `07226 -3.5%` parsed as a range from
+    07226 to 3.5 and was every single false positive the gate produced. The
+    observed real defect used `~` ("+0.3~-0.4%"), which still trips.
+    """
+    assert hc.check_numeric_claims("07226 -3.5% 领跌，03032 -2.0%。", CTX) == []
+    assert hc.check_numeric_claims("恒科 -2.04% → 2x 的 07226 放大到 -3.9%。", CTX) == []
+    assert hc.check_numeric_claims("两支 ETF 同步 +0.3~-0.4%。", CTX)
+
+
+def test_a_backwards_range_is_still_caught(hc):
+    assert hc.check_numeric_claims("波动在 5~1% 之间。", CTX)
+    assert hc.check_numeric_claims("波动在 1~5% 之间。", CTX) == []
