@@ -321,7 +321,7 @@ jobs:
       # No dependency install and no second test run: the suite was already
       # measured in `validate`. Everything below is stdlib.
       - name: Download coverage report
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: coverage-report
 
