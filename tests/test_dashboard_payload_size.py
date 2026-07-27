@@ -131,3 +131,50 @@ def test_the_brief_still_gets_the_calibrators_the_dashboard_no_longer_ships():
 
     skill = (ROOT / "skills" / "daily-deep-brief" / "SKILL.md").read_text()
     assert "current_group_calibrators" in skill
+
+
+def test_the_brief_only_ships_calibrator_rows_that_can_move_size():
+    """The brief injects its context on every turn, so an all-abstain posterior
+    table costs far more there than in the once-published payload (#131).
+
+    Two things must hold together: the trim has to actually drop the dead rows,
+    and it must be incapable of dropping a row that would have multiplied size.
+    The second is the one worth a test — decision_v2 defines
+    `edge_supported = not abstain and ci[0] > 0.5` and `evidence_sufficient =
+    not abstain`, so edge-supported is a strict subset. If anyone ever inverts
+    that relationship, sizing loses its evidence base silently.
+    """
+    import sys
+
+    sys.path.insert(0, str(ROOT / "scripts" / "data"))
+    sys.path.insert(0, str(ROOT / "scripts" / "harness"))
+    import decision_v2
+    import brief_preflight
+
+    raw = decision_v2.compute_metrics(decision_v2.load_decisions())
+    rows = raw["hierarchical_calibration"]["current_group_calibrators"]
+
+    trimmed = brief_preflight.trim_abstaining_calibrators(raw)
+    calibration = trimmed["hierarchical_calibration"]
+    kept = calibration["current_group_calibrators"]
+
+    # every dropped row is one both skills already treat as a missing row
+    assert all(r.get("evidence_sufficient") for r in kept)
+    assert all(not r.get("abstain") for r in kept)
+
+    # the invariant that makes the filter safe, asserted on real ledger rows
+    for row in rows:
+        if row.get("edge_supported"):
+            assert row.get("evidence_sufficient"), row
+            assert row in kept, "a size-moving row was dropped"
+
+    # nothing becomes invisible
+    assert calibration["current_group_calibrator_count"] == len(rows)
+    assert calibration["current_group_calibrators_omitted"] == len(rows) - len(kept)
+    assert sum(calibration["omitted_abstain_reasons"].values()) == len(rows) - len(kept)
+    assert calibration["omitted_rule"]
+
+    # headline fields the skills read are untouched by the trim
+    for field in ("method", "hierarchy", "abstain_rule", "sizing_rule",
+                  "all_predictions", "after_warmup"):
+        assert field in calibration, field
