@@ -43,7 +43,6 @@ Output keys:
 """
 
 import argparse
-import hashlib
 import json
 import re
 import subprocess
@@ -56,6 +55,9 @@ from pathlib import Path
 WS = Path(__file__).resolve().parents[2]
 DATA_DIR = WS / 'scripts' / 'data'
 TMP = WS / 'memory' / '.tmp'
+
+sys.path.insert(0, str(Path(__file__).parent))
+from _harness_common import compute_context_id  # noqa: E402,F401 — re-exported for callers/tests
 
 sys.path.insert(0, str(DATA_DIR))
 import trading_calendar  # noqa: E402
@@ -116,27 +118,6 @@ def drop_stale_contexts(market, phase, today):
         print(f'   🧹 dropped {len(dropped)} stale report tmp file(s): {", ".join(sorted(dropped))}',
               file=sys.stderr)
     return dropped
-
-
-def compute_context_id(result):
-    """A per-GENERATION id for this preflight output.
-
-    The model echoes it back to postflight (`--context-id`), which refuses to
-    assemble prose against a context that has since been replaced. This is the
-    guard the 2026-07-24 incident needed: the agent ran preflight a SECOND time
-    mid-turn, so disk held generation B while its prose described generation A —
-    'one context per run' is not something the harness can assume.
-
-    NOT a digest of the underlying data: `raw_wechat_block` embeds the fetch
-    minute, so any re-run yields a fresh id even with identical portfolio numbers.
-    That is the intended contract — the id pins prose to THIS exact preflight
-    output, and the failure mode is always fail-safe (a mismatch drops to the
-    data block, never marries fresh numbers to stale prose). The only way to get
-    a rejection is for prose to carry an id from a superseded generation, which is
-    exactly what we want caught. `context_id` itself is not yet in `result`.
-    """
-    blob = json.dumps(result, ensure_ascii=False, sort_keys=True)
-    return hashlib.sha256(blob.encode()).hexdigest()[:12]
 
 
 PEER_TOP_N = 5

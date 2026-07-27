@@ -9,7 +9,10 @@ Runs deterministic work for the 3 intraday cron jobs (every 30 min):
 
 Each invocation:
   1. Runs analyze_{hk,us}_stocks.py --wechat
-  2. Captures stdout (LLM uses verbatim)
+  2. Captures stdout as `raw_wechat_block` — the harness owns it end to end:
+     intraday_postflight prepends it to the model's prose at send time, so it
+     never makes a round trip through the LLM (see that module's
+     assemble_message docstring for the 2026-07-28 mangling this removed)
   3. Detects anomalies (≥3% move, RSI extremes from script signals)
   4. Decides should_alert: bool (true if any anomaly OR ≥2 signals)
   4b. Collects peer/rotation data for this leg (`peer_scan`), free Tencent feed
@@ -36,6 +39,9 @@ from pathlib import Path
 WS = Path(__file__).resolve().parents[2]
 DATA_DIR = WS / 'scripts' / 'data'
 TMP = WS / 'memory' / '.tmp'
+
+sys.path.insert(0, str(Path(__file__).parent))
+from _harness_common import compute_context_id  # noqa: E402
 
 sys.path.insert(0, str(DATA_DIR))
 import trading_calendar  # noqa: E402
@@ -259,6 +265,10 @@ def main():
         'mover_news':       mover_news_ctx,
         'heartbeat':        {'job': heartbeat['job'], 'slot': heartbeat['slot']},
     }
+    # Last field: the id digests everything above it, and the model echoes it to
+    # postflight so prose can never be assembled onto a context that was
+    # regenerated mid-turn. Must stay after the dict is otherwise complete.
+    result['context_id'] = compute_context_id(result)
 
     cron_heartbeat.record(
         args.market, 'preflight_ok', job_name=heartbeat['job'],

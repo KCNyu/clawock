@@ -439,7 +439,9 @@ def test_intraday_payload_contract_bans_heredoc_and_requires_text_file():
     again."""
     profile = contract()['payload_profiles']['intraday']
     assert '--text-file' in profile['required_substrings']
-    assert 'intraday-report-{market}.md' in profile['required_substrings']
+    assert 'intraday-prose-{market}.md' in profile['required_substrings']
+    assert 'intraday_postflight.py --market {market} --context-id' in profile['required_substrings']
+    assert 'verbatim' in profile['forbidden_substrings']
     assert '<<<' in profile['forbidden_substrings']
 
     vars_ = {'market': 'hk', 'skill': 'hk-stock-analysis'}

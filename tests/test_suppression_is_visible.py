@@ -153,7 +153,7 @@ def _run_postflight(module, tmp_path, monkeypatch, *, prose, issues_status):
     monkeypatch.setattr(module, "load_context", lambda market: (ctx, None))
     monkeypatch.setattr(module, "read_report_text", lambda market, f: (prose, None))
     monkeypatch.setattr(module, "validate",
-                        lambda text, c: [] if issues_status == "pass" else ["缺段标记 ▎我的看法"])
+                        lambda text, c, **kw: [] if issues_status == "pass" else ["缺段标记 ▎我的看法"])
     monkeypatch.setattr(module, "categorize", lambda issues: issues_status)
     monkeypatch.setattr(sys, "argv", ["intraday_postflight.py", "--market", "hk"])
     module.main()

@@ -68,9 +68,10 @@
         "trading_calendar.py {market}",
         "skills/{skill}/SKILL.md",
         "intraday_preflight.py --market {market}",
-        "intraday_postflight.py --market {market}",
+        "context_id",
+        "intraday_postflight.py --market {market} --context-id",
         "--text-file",
-        "intraday-report-{market}.md",
+        "intraday-prose-{market}.md",
         "intraday-insights-",
         "目标 ≤ 2200 字",
         ">3000 字 warn",
@@ -89,7 +90,9 @@
         ">2000 字 warn",
         ">2500 字 fail",
         "唯一发送路径",
-        "<<<"
+        "<<<",
+        "verbatim",
+        "intraday-report-"
       ]
     },
     "brief": {
