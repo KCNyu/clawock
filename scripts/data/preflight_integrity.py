@@ -32,6 +32,13 @@ cost_basis/prev_close/trades[])复原，且都有一道闸守着。计算链：
                  → HKD+USD 不能直接相加（fetch_fx 铁律）
   STALENESS      data_source / last_updated 不早于上一交易日              WARN
                  → 休市日写 stale 价当新 session（cac6222）
+  STALE_PRICE    current_price ≠ 上一交易日 prev_close（四位小数）         WARN
+                 → 上面每一条闸校的都是「内部算术自洽」或「时间戳标签」，
+                   而 stale 报价是自洽的：Nasdaq lastSalePrice 回退到昨收后
+                   today_change==0、TODAY_LEG 精确成立、data_source 戳还是今天
+                   → 全绿放行。2026-07-27 PLTU 账面 0.00%（实为 +6.3%）、
+                   SKHY 账面 -0.31%（实为 -6.2%）就是这么过闸的。
+                   两个独立价格四位小数完全相等 ≈ 不可能，本身即是最强判据。
   REALIZED_SUM   realized_pnl ≈ Σ(trades 里 realized_pnl)                WARN
   COST_BASIS     trades 账本完整(净股==shares)时 cost_basis==移动加权价  ERROR
                  → 算均价漏冲减 T+0 卖出 → 把已卖低价买单留在分母,均价偏低
@@ -381,6 +388,34 @@ def check(portfolio_path=PORTFOLIO):
                     add('STALENESS', 'WARN',
                         f'{t} data_source 日期 {iso} 早于上一交易日 {last}；可能 stale 价当新 session',
                         region, t)
+
+            # STALE_PRICE：现价与上一交易日前收四位小数完全相等
+            # 刻意不复用 opened_this_session 豁免：那条豁免的判据之一是
+            # prev_close_date == day_session_date，而写坏 prev_close_date 恰恰是同一个
+            # bug 的产物 → 会把这道闸对着「正需要拦的行」关掉。这里只认
+            # prev_close_date < day_session_date（真·上一交易日）这一种情况。
+            if (cur is not None and prev is not None and sh
+                    and h.get('prev_close_date') and sess_date
+                    and h['prev_close_date'] < sess_date
+                    and abs(cur - prev) < 1e-4):
+                add('STALE_PRICE', 'WARN',
+                    f'{t} current_price={cur:.4f} 与上一交易日前收 {prev:.4f}'
+                    f'（{h["prev_close_date"]}）四位小数完全相等；报价源大概率停在昨收，'
+                    f'当日涨跌被算成 0（today_change_pct={h.get("today_change_pct")}）',
+                    region, t)
+
+            # 数据源自己声明的质量降级，别让它只留在 stdout 里
+            if h.get('stale_price_repair'):
+                rp = h['stale_price_repair']
+                add('STALE_PRICE', 'WARN',
+                    f'{t} 报价源返回 {rp.get("reported")} == 昨收，已按 {rp.get("basis")} '
+                    f'重建为 {rp.get("repaired")}（{rp.get("source")} @ {rp.get("at")}）',
+                    region, t)
+            if h.get('quote_incomplete'):
+                add('STALE_PRICE', 'WARN',
+                    f'{t} 报价不完整（缺前收/日内区间），所有 provider 都没给全；'
+                    f'day_high/day_low 仅由本地累积器推得，别当真实区间读',
+                    region, t)
 
         # LEV_DIRECTION：恒科族两只以上且方向不一致
         nz = {k: v for k, v in sib_dirs.items() if abs(v) > 0.05}

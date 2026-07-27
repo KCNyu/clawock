@@ -75,6 +75,54 @@ def _pct(c: float, pc: float) -> float:
     return round((c - pc) / pc * 100, 4) if pc else 0.0
 
 
+def _parse_nasdaq_ts(s) -> Optional[str]:
+    """'Jul 27, 2026 9:34 AM ET' / 'Jul 23, 2026' -> '2026-07-27' / '2026-07-23'.
+
+    Nasdaq stamps every quote with the time of the print it is serving, and for
+    thin instruments that print can be days old (verified 2026-07-27 11:12 ET:
+    SPCH was still serving a Jul 22 10:22 ET trade, PLTU and CRCL a Jul 23 one).
+    This is the direct, unambiguous staleness signal and nothing was reading it.
+    """
+    if not s:
+        return None
+    text = str(s).strip().replace(' ET', '')
+    for fmt in ('%b %d, %Y %I:%M %p', '%b %d, %Y'):
+        try:
+            return datetime.strptime(text, fmt).strftime('%Y-%m-%d')
+        except ValueError:
+            continue
+    return None
+
+
+def _quote_is_fresh(q: Optional[Dict], today_et_date: str) -> bool:
+    """False only when the provider itself dates the print before today.
+
+    Deliberately not inferred from the numbers: a provider that tells you the
+    trade is four days old is stating a fact, whereas `current_price ==
+    prev_close` is only a strong hint. Quotes that carry no timestamp are
+    treated as fresh — absence of evidence must not fail a healthy provider.
+    """
+    if not q:
+        return False
+    asof = q.get('asof_date')
+    return not (asof and asof < today_et_date)
+
+
+def _quote_is_complete(q: Optional[Dict]) -> bool:
+    """A quote is usable on its own only if it carries a real prior close AND a
+    real intraday range.
+
+    Nasdaq `/info` returns neither (see get_nasdaq_quote), so before this check
+    existed it always won the provider race at position #1 and Eastmoney /
+    Finnhub — which both return true o/h/l/pc — were never reached. An
+    incomplete quote is still better than nothing, so the caller keeps it as a
+    last resort rather than discarding it.
+    """
+    if not q:
+        return False
+    return q.get('pc') is not None and q.get('h') is not None and q.get('l') is not None
+
+
 def _prev_trading_day(date_str: str) -> str:
     """Calendar prior trading day (skips weekends; ignores holidays — close enough
     for a date label on a reconstructed prev_close)."""
@@ -125,7 +173,23 @@ def load_api_keys() -> Dict[str, str]:
 # ── provider functions ───────────────────────────────────────────────────────
 
 def get_nasdaq_quote(ticker: str) -> Optional[Dict]:
-    """Nasdaq API – JSON, no auth, covers stocks and ETFs."""
+    """Nasdaq API – JSON, no auth, covers stocks and ETFs.
+
+    The `/info` endpoint carries NO `summaryData` block (verified 2026-07-27 for
+    stocks and etf assetclasses: its data keys are symbol/companyName/stockType/
+    exchange/isNasdaqListed/isNasdaq100/isHeld/primaryData/secondaryData/
+    marketStatus/assetClass/keyStats/notifications). PreviousClose / OpenPrice /
+    TodayHighLow live on the separate `/summary` endpoint. The previous
+    `_parse_price(...) or price` fallbacks therefore fired on EVERY call and
+    silently manufactured `o == h == l == c == pc` — which (a) made the
+    degenerate-range alarm fire for 100% of tickers, so it warned about nothing,
+    and (b) let a stale `lastSalePrice` sail through as "unchanged today".
+
+    So: report only what the payload actually contains. Missing fields stay
+    None and the caller decides (see `_quote_is_complete` → try a richer
+    provider). `nc` (netChange) is kept because it is exact and is the only
+    reliable way to rebuild a prior close from this endpoint.
+    """
     headers = {
         'Accept': 'application/json, text/plain, */*',
         'Origin': 'https://www.nasdaq.com',
@@ -146,20 +210,25 @@ def get_nasdaq_quote(ticker: str) -> Optional[Dict]:
             if not price or price <= 0:
                 continue
 
-            pc = _parse_price((summary.get('PreviousClose') or {}).get('value')) or price
-            op = _parse_price((summary.get('OpenPrice') or {}).get('value')) or price
+            # No `or price` fallbacks: absent means absent (see docstring).
+            pc = _parse_price((summary.get('PreviousClose') or {}).get('value'))
+            op = _parse_price((summary.get('OpenPrice') or {}).get('value'))
 
-            high, low = price, price
+            high = low = None
             day_range = (summary.get('TodayHighLow') or {}).get('value') or ''
             if ' - ' in day_range:
                 parts = day_range.split(' - ')
-                h = _parse_price(parts[1]) if len(parts) > 1 else None
-                lo = _parse_price(parts[0]) if parts else None
-                if h:  high = h
-                if lo: low  = lo
+                high = _parse_price(parts[1]) if len(parts) > 1 else None
+                low  = _parse_price(parts[0]) if parts else None
 
+            nc = _parse_price(primary.get('netChange'))
             pct_str = (primary.get('percentageChange') or '').replace('%', '').replace('+', '').strip()
-            dp = float(pct_str) if pct_str and pct_str not in ('N/A', '--') else _pct(price, pc)
+            if pct_str and pct_str not in ('N/A', '--'):
+                dp = float(pct_str)
+            elif pc:
+                dp = _pct(price, pc)
+            else:
+                dp = 0.0
 
             vol_str = (summary.get('ShareVolume') or {}).get('value') or ''
             volume = None
@@ -174,6 +243,11 @@ def get_nasdaq_quote(ticker: str) -> Optional[Dict]:
                 'dp': round(dp, 4),
                 'source': f'Nasdaq API ({assetclass})',
             }
+            if nc is not None:
+                result['nc'] = nc
+            asof = _parse_nasdaq_ts(primary.get('lastTradeTimestamp'))
+            if asof:
+                result['asof_date'] = asof
             if volume:
                 result['volume'] = volume
             return result
@@ -493,8 +567,77 @@ def get_prev_close_polygon(ticker: str, api_key: str) -> Optional[tuple]:
         else:
             date_str = (datetime.now(timezone(timedelta(hours=-4))) - timedelta(days=1)).strftime('%Y-%m-%d')
         return (close, date_str)
-    except Exception:
+    except Exception as e:
+        print(f"  ⚠ Polygon prev-close {ticker} failed: {type(e).__name__}: {e}",
+              file=sys.stderr)
         return None
+
+
+def get_prev_closes_polygon_grouped(
+    tickers: List[str], api_key: str, today_et_date: str, max_lookback: int = 6,
+) -> tuple:
+    """Date-stamped prior closes for every ticker in ONE request.
+
+    Replaces a per-ticker loop over `/v2/aggs/ticker/{t}/prev` that quietly lost
+    most of its tickers: Polygon's free tier allows 5 requests/minute, the loop
+    fired ~15 back-to-back with no pacing, and `except: return None` swallowed
+    the 429s without a single log line. Only the first ~5 tickers ever got a
+    dated prev_close and *which* five drifted with ticker order, so the same bug
+    surfaced on different holdings each run (verified 2026-07-27: MSFU and SKHY
+    were positions 6 and 7 and silently got none).
+
+    `/v2/aggs/grouped/...` returns the whole US session — ~12.4k tickers — in a
+    single call, so the rate limit stops mattering. Walks back day by day
+    because the grouped endpoint returns an empty result set for weekends and
+    holidays rather than the last session.
+
+    Returns ({ticker: (close, date)}, rate_limited). `rate_limited` lets the
+    caller skip a per-ticker retry that would only burn the same exhausted quota.
+    """
+    out: Dict[str, tuple] = {}
+    if not api_key or not tickers:
+        return out, False
+    want = set(tickers)
+    probe = datetime.strptime(today_et_date, '%Y-%m-%d')
+    for _ in range(max_lookback):
+        probe -= timedelta(days=1)
+        if probe.weekday() >= 5:          # skip Sat/Sun without spending a call
+            continue
+        date_str = probe.strftime('%Y-%m-%d')
+        try:
+            r = SESSION.get(
+                f"https://api.polygon.io/v2/aggs/grouped/locale/us/market/stocks/{date_str}",
+                params={'adjusted': 'true', 'apiKey': api_key},
+                timeout=max(TIMEOUT, 30),
+            )
+            if r.status_code == 429:
+                # Quota exhausted, not "this date has no data". Walking further
+                # back would spend the remaining budget on requests that are
+                # certain to fail too, so stop and let the caller know.
+                print(f"  ⚠ Polygon grouped {date_str}: HTTP 429 rate limited — "
+                      f"aborting prior-close lookup (prev_close falls back to the "
+                      f"provider's own field)", file=sys.stderr)
+                return out, True
+            if r.status_code != 200:
+                print(f"  ⚠ Polygon grouped {date_str}: HTTP {r.status_code} "
+                      f"{r.text[:120]}", file=sys.stderr)
+                continue
+            raw = r.json()
+        except Exception as e:
+            print(f"  ⚠ Polygon grouped {date_str} failed: {type(e).__name__}: {e}",
+                  file=sys.stderr)
+            continue
+        results = raw.get('results') or []
+        if not results:
+            continue                       # holiday / not yet published
+        _debug_dump('polygon_grouped', date_str, {'resultsCount': len(results)})
+        for res in results:
+            t = res.get('T')
+            if t in want and res.get('c'):
+                out[t] = (float(res['c']), date_str)
+        if out:
+            return out, False
+    return out, False
 
 
 # ── main fetch logic ─────────────────────────────────────────────────────────
@@ -503,21 +646,49 @@ def fetch_us_quotes(tickers: List[str], keys: Dict[str, str]) -> Dict[str, Dict]
     """
     Fetch US stock quotes using multi-provider fallback.
     Returns {ticker: quote_dict} for all successfully fetched tickers.
+
+    A provider only *wins* a ticker with a complete quote (prior close + real
+    intraday range). Incomplete quotes are parked in `partial` and applied at
+    the end for whatever no richer provider could serve, so Nasdaq's
+    range-less payload no longer blocks Eastmoney/Finnhub.
     """
     results: Dict[str, Dict] = {}
+    partial: Dict[str, Dict] = {}
+    stale: Dict[str, Dict] = {}
+    today_et_date = datetime.now(timezone(timedelta(hours=-4))).strftime('%Y-%m-%d')
     remaining = list(tickers)
 
     def _done(ticker: str, quote: Dict):
         results[ticker] = quote
         remaining.remove(ticker)
 
+    def _offer(ticker: str, quote: Optional[Dict]) -> bool:
+        """Accept a fresh, complete quote; park anything else and keep looking."""
+        if not quote:
+            return False
+        if not _quote_is_fresh(quote, today_et_date):
+            # The provider dated this print before today. Park it far behind an
+            # incomplete-but-current quote: a rangeless price from this session
+            # beats an exact price from four sessions ago.
+            stale.setdefault(ticker, quote)
+            print(f"      ✗ {ticker}: ${quote['c']:.4f} [{quote['source']}] "
+                  f"last trade dated {quote['asof_date']} (< {today_et_date}) "
+                  f"— stale print, rejected", file=sys.stderr)
+            return False
+        if _quote_is_complete(quote):
+            _done(ticker, quote)
+            print(f"      ✓ {ticker}: ${quote['c']:.4f} ({quote['dp']:+.2f}%) [{quote['source']}]")
+            return True
+        partial.setdefault(ticker, quote)
+        missing = [k for k in ('pc', 'h', 'l') if quote.get(k) is None]
+        print(f"      ~ {ticker}: ${quote['c']:.4f} ({quote['dp']:+.2f}%) [{quote['source']}] "
+              f"incomplete (no {'/'.join(missing)}) — trying a richer provider")
+        return False
+
     # 1. Nasdaq API (per-ticker, handles stocks + ETFs without prefix guessing)
     print("  [1] Nasdaq API...")
     for t in list(remaining):
-        q = get_nasdaq_quote(t)
-        if q:
-            _done(t, q)
-            print(f"      ✓ {t}: ${q['c']:.4f} ({q['dp']:+.2f}%) [{q['source']}]")
+        _offer(t, get_nasdaq_quote(t))
     if not remaining:
         return results
 
@@ -526,49 +697,35 @@ def fetch_us_quotes(tickers: List[str], keys: Dict[str, str]) -> Dict[str, Dict]
     em = get_eastmoney_batch(remaining)
     for t in list(remaining):
         if t in em:
-            q = em[t]
-            _done(t, q)
-            print(f"      ✓ {t}: ${q['c']:.4f} ({q['dp']:+.2f}%) [{q['source']}]")
+            _offer(t, em[t])
     if not remaining:
         return results
 
     # 3. Finnhub
     print(f"  [3] Finnhub for: {', '.join(remaining)}")
     for t in list(remaining):
-        q = get_finnhub_quote(t, keys.get('FINNHUB_API_KEY', ''))
-        if q:
-            _done(t, q)
-            print(f"      ✓ {t}: ${q['c']:.4f} ({q['dp']:+.2f}%) [{q['source']}]")
+        _offer(t, get_finnhub_quote(t, keys.get('FINNHUB_API_KEY', '')))
     if not remaining:
         return results
 
     # 4. Yahoo Finance v8 API
     print(f"  [4] Yahoo v8 for: {', '.join(remaining)}")
     for t in list(remaining):
-        q = get_yahoo_v8_quote(t)
-        if q:
-            _done(t, q)
-            print(f"      ✓ {t}: ${q['c']:.4f} ({q['dp']:+.2f}%) [{q['source']}]")
+        _offer(t, get_yahoo_v8_quote(t))
     if not remaining:
         return results
 
     # 5. yfinance library
     print(f"  [5] yfinance for: {', '.join(remaining)}")
     for t in list(remaining):
-        q = get_yfinance_quote(t)
-        if q:
-            _done(t, q)
-            print(f"      ✓ {t}: ${q['c']:.4f} ({q['dp']:+.2f}%) [{q['source']}]")
+        _offer(t, get_yfinance_quote(t))
     if not remaining:
         return results
 
     # 6. Alpha Vantage (slow, rate-limited at 25 calls/day on free tier)
     print(f"  [6] Alpha Vantage for: {', '.join(remaining)}")
     for t in list(remaining):
-        q = get_alpha_vantage_quote(t, keys.get('ALPHA_VANTAGE_API_KEY', ''))
-        if q:
-            _done(t, q)
-            print(f"      ✓ {t}: ${q['c']:.4f} ({q['dp']:+.2f}%) [{q['source']}]")
+        _offer(t, get_alpha_vantage_quote(t, keys.get('ALPHA_VANTAGE_API_KEY', '')))
     if not remaining:
         return results
 
@@ -579,6 +736,25 @@ def fetch_us_quotes(tickers: List[str], keys: Dict[str, str]) -> Dict[str, Dict]
         if q:
             _done(t, q)
             print(f"      ✓ {t}: ${q['c']:.4f} (prev close) [{q['source']}]")
+
+    # 8. fall back to the best quote we had to reject — a price without a range
+    #    still beats no price, but it must be labelled so the caller does not
+    #    read the missing fields as "flat today". Current-but-incomplete first;
+    #    a print from an earlier session is the true last resort.
+    for t in list(remaining):
+        if t in partial:
+            q = dict(partial[t])
+            q['incomplete'] = True
+            _done(t, q)
+            print(f"      ⚠ {t}: ${q['c']:.4f} ({q['dp']:+.2f}%) [{q['source']}] "
+                  f"— incomplete quote, no richer provider answered")
+        elif t in stale:
+            q = dict(stale[t])
+            q['incomplete'] = True
+            q['stale_asof'] = q.get('asof_date')
+            _done(t, q)
+            print(f"      ⚠ {t}: ${q['c']:.4f} [{q['source']}] — every provider "
+                  f"failed; using a print dated {q['stale_asof']}", file=sys.stderr)
 
     if remaining:
         print(f"  ✗ All providers failed: {', '.join(remaining)}")
@@ -645,12 +821,28 @@ def update_us_portfolio(
     prev_closes: Dict[str, tuple] = {}
     polygon_key = keys.get('POLYGON_API_KEY', '')
     if polygon_key:
-        print(f"  [PC] Polygon prev-close...")
-        for t in tickers:
-            result = get_prev_close_polygon(t, polygon_key)
-            if result:
-                prev_closes[t] = result
-                print(f"       ✓ {t}: ${result[0]:.4f} ({result[1]})")
+        print(f"  [PC] Polygon prev-close (grouped)...")
+        prev_closes, rate_limited = get_prev_closes_polygon_grouped(
+            tickers, polygon_key, today_et_date)
+        for t, result in prev_closes.items():
+            print(f"       ✓ {t}: ${result[0]:.4f} ({result[1]})")
+        # Per-ticker fallback for anything the grouped session did not list
+        # (rare: non-NMS venues). Bounded to the misses, so the 5/min free-tier
+        # limit stays out of reach — and skipped entirely once we know the quota
+        # is already gone, since those calls would just 429 as well.
+        missing = [t for t in tickers if t not in prev_closes]
+        if missing and rate_limited:
+            print(f"       ⚠ Polygon rate limited — no dated prior close for "
+                  f"{', '.join(missing)}; prev_close falls back to the quote "
+                  f"provider's own field", file=sys.stderr)
+        elif missing:
+            for t in missing:
+                result = get_prev_close_polygon(t, polygon_key)
+                if result:
+                    prev_closes[t] = result
+                    print(f"       ✓ {t}: ${result[0]:.4f} ({result[1]}) [per-ticker]")
+                else:
+                    print(f"       ✗ {t}: no Polygon prior close", file=sys.stderr)
 
     print(f"\n{'─'*62}")
     updated: List[str] = []
@@ -720,32 +912,88 @@ def update_us_portfolio(
                     pc_date = _prev_trading_day(today_et_date)
                 # else: leave pc = today's close (today_change falls back to 0, safe)
         else:
-            api_pc = q.get('pc', c)
+            # A prior close belongs to the PRIOR session, so it is stamped with
+            # _prev_trading_day() — never today. Stamping today_et_date here (the
+            # old behaviour) produced holdings whose prev_close_date equalled
+            # day_session_date, an impossible state that also tripped
+            # preflight_integrity's `opened_this_session` exemption and switched
+            # off the TODAY_LEG gate for exactly the rows this bug had touched.
+            prev_session = _prev_trading_day(today_et_date)
+            api_pc = q.get('pc')
             existing_pc      = holding.get('prev_close', 0)
             existing_pc_date = holding.get('prev_close_date', '')
             api_dp = q.get('dp', 0)
-            if api_pc != c:
-                pc, pc_date = api_pc, today_et_date
+            if api_pc is not None and api_pc != c:
+                pc, pc_date = api_pc, prev_session
             elif api_dp and abs(api_dp) > 0.01:
                 pc = round(c / (1 + api_dp / 100), 4)
-                pc_date = today_et_date
+                pc_date = prev_session
             elif existing_pc > 0 and existing_pc != c and existing_pc_date >= three_days_ago:
                 pc, pc_date = existing_pc, existing_pc_date
             else:
-                pc, pc_date = c, today_et_date
+                pc, pc_date = c, prev_session
+
+        # ── stale-last guard ④: last price identical to the PRIOR session close ──
+        # Nasdaq's lastSalePrice intermittently reverts to the prior close for
+        # thin / leveraged instruments. When it does, `c == pc` and every derived
+        # number agrees with every other one — today_change is 0, TODAY_LEG's
+        # `today_change == shares*(cur-prev_close)` holds exactly, and STALENESS
+        # passes because the data_source *timestamp* is fresh even though the
+        # *price* is not. A self-consistent lie clears every existing gate.
+        #
+        # Two independent prices matching to four decimals is ~impossible for a
+        # normally traded instrument, so treat it as stale whenever the provider
+        # itself reports a move. netChange rebuilds the true last exactly
+        # (2026-07-27 PLTU: pc 27.35 + nc 1.47 = 28.82, the real print, against a
+        # reported 27.35 that showed the position as flat on a +6.3% day);
+        # percentageChange is the rounder fallback.
+        stale_repair = None
+        api_dp_now = q.get('dp') or 0
+        if (pc and pc_date < today_et_date and abs(c - pc) < 1e-4
+                and abs(api_dp_now) > 0.05):
+            nc = q.get('nc')
+            if nc is not None and abs(nc) > 1e-9:
+                repaired = round(pc + nc, 4)
+                basis = 'netChange'
+            else:
+                repaired = round(pc * (1 + api_dp_now / 100), 4)
+                basis = 'percentageChange'
+            print(f"  ⚠ {t}: last ${c:.4f} == prior close ${pc:.4f} ({pc_date}) but "
+                  f"{q['source']} reports {api_dp_now:+.2f}% → stale last price; "
+                  f"rebuilt to ${repaired:.4f} from {basis} (stale-quote guard ④)",
+                  file=sys.stderr)
+            stale_repair = {'reported': c, 'repaired': repaired, 'basis': basis,
+                            'source': q['source'], 'at': now_et.strftime('%Y-%m-%d %H:%M ET')}
+            c = repaired
 
         # ③ degenerate-range warning: a live regular-session quote with
         # open==high==low==close has no intraday range → likely a stale/frozen
         # quote (the tell-tale signature of the 2026-05-29 swap). Warn-only.
+        # This alarm was dead until now: get_nasdaq_quote defaulted o/h/l to the
+        # last price, so it fired for every ticker on every fetch and meant
+        # nothing. Now that absent fields stay None, a flat range is once again
+        # a real signal from the provider rather than our own fabrication.
         if 9 <= now_et.hour < 16:
             o_, h_, l_ = q.get('o'), q.get('h'), q.get('l')
             if None not in (o_, h_, l_) and o_ == h_ == l_ == q['c']:
                 print(f"  ⚠ {t}: degenerate range (o=h=l=c=${q['c']:.4f}) mid-session "
-                      f"— possible stale quote (run with US_FETCH_DEBUG=1 to capture payload)")
+                      f"— possible stale quote (run with US_FETCH_DEBUG=1 to capture payload)",
+                      file=sys.stderr)
 
         holding['current_price']    = round(c, 4)
         holding['prev_close']       = round(pc, 4)
         holding['prev_close_date']  = pc_date
+        # Quality flags travel with the holding so downstream gates and the
+        # dashboard can see a repaired/incomplete quote instead of inferring
+        # health from numbers that were made to agree with each other.
+        if stale_repair:
+            holding['stale_price_repair'] = stale_repair
+        else:
+            holding.pop('stale_price_repair', None)
+        if q.get('incomplete'):
+            holding['quote_incomplete'] = True
+        else:
+            holding.pop('quote_incomplete', None)
         # Fresh-lot detection: when the ENTIRE current position was acquired
         # today, prev_close belongs to a lot you no longer hold — either an IPO
         # reference price you never got (SPCX 2026-06-12, prev_close was a stale
