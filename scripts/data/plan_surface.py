@@ -154,8 +154,14 @@ def open_decisions_context(*, leg=None, today=None, ledger=None, memory_dir=None
         if exec_mode:
             context["exec_mode"] = exec_mode
         return context
-    except Exception:  # noqa: BLE001 — a plan artifact must never red a report cron
-        return {}
+    except Exception as exc:  # noqa: BLE001 — a plan artifact must never red a report cron
+        # Fail soft, but as a VALUE, not as silence (#136). `{}` is also the
+        # legitimate "no open decisions today" answer, so a read that throws used
+        # to be indistinguishable from a clean day — and the report would write
+        # prose accordingly. That is exactly the #119 defect coming back with no
+        # signal: on 2026-07-27 the 09:30 report advised waiting for a pullback
+        # while the day's plan held the same position as a risk_rule swap.
+        return {"error": f"{type(exc).__name__}: {exc}"[:200]}
 
 
 def main():
