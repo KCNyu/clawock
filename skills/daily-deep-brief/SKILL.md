@@ -715,6 +715,23 @@ python3 /root/.openclaw/workspace/scripts/harness/brief_postflight.py
 - `fail` — 缺文件/JSON 解析错/critical 字段缺失，**不 commit**、**不投递**
 - `wechat_sent` — postflight 自动投递结果（见下）
 
+**status 不是逐条 issue 判的，别自己猜哪条是硬闸。** `fail` 只由 critical 关键词
+（`缺失` / `解析失败` / `表格 #`）或 issues > 4 条触发；其余都是 warn，照样 commit + 投递。
+
+**改完任何一条 issue，立刻重跑一次 postflight 拿新 status，再决定还要不要继续改。**
+不要在一次 `fail` 之后一路埋头修到自己认为"干净"为止 —— 修掉 critical 那条以后往往
+已经是 warn，剩下的 issue 不阻塞交付。
+
+> **2026-07-27 实例**：首跑 `fail`，issues 是「表格 #1 列数不一致」+「pre-open.md 偏长
+> 35853 bytes」。表格那条是 critical，体积那条只是提醒。修好表格后没有重跑，误以为体积
+> 也是硬闸，从 35.8KB 一路裁到 23.7KB —— 多烧 6 分钟 / 约 13M tokens，中途还因为 `edit`
+> 的 `oldText` 打错中文字（`滴`/`滘`、`拉锅`/`拉锯`）连失败 3 次，把整跑染成
+> `status=error`（产物其实已正常交付）。
+
+`pre-open.md 偏长 … bytes` 永远是 warn：这个文件是 dashboard 全文，不受微信 16KB 限制，
+>24KB 只是"页面难读"的提醒。**不要为它裁剪已经写好的正文。** 要控体量就在 Step 4-A 写的
+时候写紧凑，而不是事后返工。
+
 ### 投递（Step 5 postflight 内自动，你什么都不用做）
 
 > **🔒 投递已解耦——你绝不要手动发微信、绝不调任何 message/send 工具、也不要把卡片当回复文本贴出来。**

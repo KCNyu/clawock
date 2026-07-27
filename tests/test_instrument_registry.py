@@ -92,8 +92,32 @@ def test_live_dashboard_exposure_has_no_other_and_matches_risk_leverage():
     }
 
     leveraged = build_dashboard.compute_leveraged_etf_exposure(portfolio, fx_rate=7.84)
-    assert leveraged["us_pct"] == 83.53
-    assert "SPCH" in leveraged["tickers"]
+    # us_pct is a share of live market value, so pinning today's quote (it was
+    # 83.53) goes red at the next close for no reason. Pin the derivation
+    # instead: active-only holdings, current_value denominator, registry-driven
+    # numerator. `compute_leveraged_etf_exposure` swallows exceptions and
+    # returns us_pct=None, so the not-None check is what keeps that fail-open
+    # from passing silently.
+    us_active = [
+        h
+        for h in portfolio["portfolios"]["us_stocks"]["holdings"]
+        if h.get("shares", 0) > 0
+    ]
+    us_total = sum(h.get("current_value", 0) or 0 for h in us_active)
+    us_lev = sum(
+        h.get("current_value", 0) or 0
+        for h in us_active
+        if h["ticker"] in instrument_registry.leveraged_symbols()
+    )
+    assert us_total > 0 and us_lev > 0
+    assert leveraged["us_pct"] is not None
+    assert leveraged["us_pct"] == round(us_lev / us_total * 100, 2)
+    assert set(leveraged["tickers"]) == {
+        h["ticker"]
+        for h in us_active + portfolio["portfolios"]["hk_stocks"]["holdings"]
+        if h.get("shares", 0) > 0
+        and h["ticker"] in instrument_registry.leveraged_symbols()
+    }
 
     lookthrough = build_dashboard.compute_lookthrough_exposure(portfolio)
     assert lookthrough["us"]["metadata_coverage_pct"] == 100.0
@@ -104,3 +128,24 @@ def test_live_dashboard_exposure_has_no_other_and_matches_risk_leverage():
     assert spacex["gross_value"] > spacex["capital_value"]
     assert lookthrough["us"]["factor_hhi"] > 0
     assert lookthrough["us"]["sector_hhi"] > 0
+
+
+def test_leveraged_exposure_ignores_closed_positions_with_stale_values():
+    """Live portfolio.json zeroes current_value on exit, so the active-only
+    filter in compute_leveraged_etf_exposure is unobservable there. Pin it on a
+    synthetic book where a closed leveraged position still carries a value."""
+    portfolio = _portfolio()
+    us = portfolio["portfolios"]["us_stocks"]["holdings"]
+    live = build_dashboard.compute_leveraged_etf_exposure(portfolio, fx_rate=7.84)
+
+    closed = next(h for h in us if (h.get("shares", 0) or 0) <= 0)
+    stale = copy.deepcopy(closed)
+    stale["ticker"] = sorted(instrument_registry.leveraged_symbols())[0]
+    stale["shares"] = 0
+    stale["current_value"] = 1_000_000.0
+    us.append(stale)
+
+    assert build_dashboard.compute_leveraged_etf_exposure(
+        portfolio, fx_rate=7.84
+    ) == live
+
