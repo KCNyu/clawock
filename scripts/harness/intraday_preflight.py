@@ -14,6 +14,8 @@ Each invocation:
   4. Decides should_alert: bool (true if any anomaly OR ≥2 signals)
   4b. Collects peer/rotation data for this leg (`peer_scan`), free Tencent feed
       only, so the 板块全景 line has real numbers instead of an improvised fetch
+  4c. Carries the 08:00 plan's still-open decisions for this leg (`plan_context`)
+      so a slot executes the day's discipline instead of re-deriving it
   5. Writes memory/.tmp/intraday-context-{market}-{HHMM}.json
 
 NB: Mode 7 is lightweight on purpose (8 HK + 10 US slots per trading day).
@@ -39,6 +41,7 @@ sys.path.insert(0, str(DATA_DIR))
 import trading_calendar  # noqa: E402
 import cron_heartbeat  # noqa: E402
 import peer_scan  # noqa: E402
+import plan_surface  # noqa: E402
 import research_surface  # noqa: E402
 import mover_news  # noqa: E402
 
@@ -228,6 +231,15 @@ def main():
         [a['ticker'] for a in anomalies], market=args.market,
     )
 
+    # The 08:00 plan's open orders for this leg. A 30-minute slot's most useful
+    # sentence is usually "the swap you planned has not filled yet" — before this
+    # existed, the 10:05 slot had to shell out six times to find that out and
+    # still misquoted the size (issues #119/#120). Never raises.
+    plan_ctx = plan_surface.open_decisions_context(
+        leg='HK' if args.market == 'hk' else 'US',
+        today=now.strftime('%Y-%m-%d'),
+    )
+
     result = {
         'status':           'ok',
         'market':           args.market,
@@ -242,6 +254,7 @@ def main():
         'alert_reasons':    alert_reasons,
         't0_setups':        t0_setups,
         'peer_scan':        collect_peers(args.market),
+        'plan_context':     plan_ctx,
         'mover_thesis':     mover_thesis,
         'mover_news':       mover_news_ctx,
         'heartbeat':        {'job': heartbeat['job'], 'slot': heartbeat['slot']},

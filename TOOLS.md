@@ -136,13 +136,13 @@ python3 scripts/data/fetch_us_stocks.py     # 仅刷美股价格
 
 **数据抓取/分析**：`fetch_us_stocks.py`(美股7路fallback,写回portfolio) · `analyze_us_stocks.py`(刷价+RSI/MA+新闻+信号) · `analyze_hk_stocks.py`(腾讯+东财双源对账→stooq/yf兜底) · `fetch_fx.py`(USDHKD 3路,**book total 必先调**) · `fetch_us_filings.py`(SEC EDGAR) · `fetch_fundamentals_em.py`(东财中文基本面,**港股财报**) · `fetch_catalysts.py`(14d催化→catalysts.json) · `fetch_influencer_feed.py`(Trump/Musk雷达→influencer_feed.json) · `portfolio_risk_metrics.py`(β/Vol/DD/Sharpe→risk.json) · `compute_quant_signals.py`(趋势/动量/RSI/z/ATR吊灯/vol-target→quant_signals.json+history.jsonl留痕,杠杆ETF按标的) · `quant_signal_review.py`(留痕vs前瞻收益→因子edge表,n<20不解锁,brief按edge取信)
 
-**研究生命周期（手动/事件驱动，产物即真源）**：`entry_gate.py`(建仓前研究闸,信息分级≠投资质量,硬否决先于计分→`memory/entry-gates/`) · `earnings_review.py`(一手财报复盘+管理层承诺账本,盈利质量由代码算→`memory/earnings/`) · `thesis_registry.py`(canonical thesis + 只认证据的 drift→`memory/theses/`) · `research_provenance.py`(数字两源+Decimal 精算,准出闸) · `research_surface.py`(把上面三类 artifact 汇成待办队列;brief preflight 读它,`--check` 进 system_check 与 CI) · `mover_news.py`(盘中异动票的一手催化探针:SEC/港交所公告分钟级,券商研报与 7×24 只作 supporting;有预算上限、失败降级、不碰 Tavily;filing 三级分流 `config/filing-triage.json`、基金看穿到标的、美股停牌 feed)
+**研究生命周期（手动/事件驱动，产物即真源）**：`entry_gate.py`(建仓前研究闸,信息分级≠投资质量,硬否决先于计分→`memory/entry-gates/`) · `earnings_review.py`(一手财报复盘+管理层承诺账本,盈利质量由代码算→`memory/earnings/`) · `thesis_registry.py`(canonical thesis + 只认证据的 drift→`memory/theses/`) · `research_provenance.py`(数字两源+Decimal 精算,准出闸) · `research_surface.py`(把上面三类 artifact 汇成待办队列;brief preflight 读它,`--check` 进 system_check 与 CI) · `cron_token_audit.py`(每 cron 最新一跑的 token 量 vs **同 provider** 滚动中位数,跨 provider 比是假的;只进 daily health 不告警不改 exit code) · `plan_surface.py`(08:00 简报还没成交的决策→report/intraday preflight 的 `plan_context`;真源是 `decisions.jsonl` 不是 plan 文件,因为执行状态只写回账本;永不抛异常) · `mover_news.py`(盘中异动票的一手催化探针:SEC/港交所公告分钟级,券商研报与 7×24 只作 supporting;有预算上限、失败降级、不碰 Tavily;filing 三级分流 `config/filing-triage.json`、基金看穿到标的、美股停牌 feed)
 
 **Harness（三明治：preflight 确定性 → LLM 合成 → postflight 校验+commit）**
 - brief：`brief_preflight.py` / `brief_postflight.py`（写 `memory/{date}-pre-open.md` + `-plan.json`；postflight 自动跑 build_dashboard + push）
 - 报告 Mode 6：`report_preflight.py --market {hk|us} --phase {open|mid|pm|close}` / `report_postflight.py …`
 - 盘中 Mode 7：`intraday_preflight.py --market {hk|us}` / `intraday_postflight.py …`（不提交 `portfolio.json`；dashboard 仅语义变化提交，逐 slot heartbeat 必发布）
-- 共通：preflight 出 `raw_wechat_block`(LLM **verbatim** 拷) + `anomalies`(必提≥1票)；postflight 出 `wechat_prefix`；context 全落 `memory/.tmp/`(gitignore)
+- 共通：preflight 出 `raw_wechat_block`(LLM **verbatim** 拷) + `anomalies`(必提≥1票) + `plan_context`(08:00 未成交决策,散文必须对账、股数照抄不许心算)；postflight 出 `wechat_prefix`；context 全落 `memory/.tmp/`(gitignore)
 
 **Dashboard/发布**：`build_dashboard.py`(聚合 portfolio+snapshots+plan+decisions.jsonl+risk+sidecar → `dashboard.json` + 决策审计/影子组合两个公开 sidecar；三类 postflight 都会自动调) · `dashboard_outputs.py`(统一 ownership + 语义 diff，忽略纯构建时间并给出精确 staging pathspec) · `safe_push.sh`(统一 push,rebase.autoStash 容脏树)
 

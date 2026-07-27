@@ -97,6 +97,7 @@
       ]
     },
     "brief": {
+      "timeout_seconds": 1800,
       "payload_kind": "agentTurn",
       "model": "minimax/MiniMax-M3",
       "model_candidates": [

@@ -475,3 +475,62 @@ def test_every_twenty_minutes_timeline_label_is_not_every_hour():
 
     mins, hours, _ = timeline.parse_cron('*/20 * * * *')
     assert timeline.time_label(mins, hours) == '每20分钟'
+
+
+def _brief_live_payload(data, *, timeout=1800):
+    """A live 盘前深度简报 job that satisfies every other clause of its profile."""
+    expected = next(j for j in data['jobs'] if j['name'] == '盘前深度简报')
+    profile = data['payload_profiles']['brief']
+    vars_ = expected.get('payload_vars') or {}
+    message = '\n'.join(s.format(**vars_) for s in profile['required_substrings'])
+    live = {
+        'payload': {
+            'kind': profile['payload_kind'],
+            'model': profile['model'],
+            'fallbacks': profile['model_candidates'][1:2],
+            'message': message,
+        },
+        'delivery': {'mode': profile['delivery_mode']},
+    }
+    if timeout is not None:
+        live['payload']['timeoutSeconds'] = timeout
+    return expected, live
+
+
+def test_brief_payload_must_declare_a_timeout():
+    # Unbounded, this job ran 71/81/86 minutes on 2026-07-15/16/17 and was stopped
+    # only by an unrelated gateway restart — each time still running minutes before
+    # the 09:30 report's slot (issue #121).
+    data = contract()
+    expected, live = _brief_live_payload(data)
+    assert cron_contract.payload_errors(data, expected, live) == []
+
+    _, no_timeout = _brief_live_payload(data, timeout=None)
+    errors = cron_contract.payload_errors(data, expected, no_timeout)
+    assert any('timeoutSeconds' in error for error in errors), errors
+
+    _, drifted = _brief_live_payload(data, timeout=5400)
+    errors = cron_contract.payload_errors(data, expected, drifted)
+    assert any('timeoutSeconds' in error for error in errors), errors
+
+
+def test_brief_timeout_lands_before_the_next_cron_window():
+    # 08:00 + timeout must finish clear of 港股开盘报告 at 09:30, or a slow brief
+    # is still holding the agent when the next job is due.
+    data = contract()
+    timeout = data['payload_profiles']['brief']['timeout_seconds']
+    brief = next(j for j in data['jobs'] if j['name'] == '盘前深度简报')
+    nxt = next(j for j in data['jobs'] if j['name'] == '港股开盘报告')
+    start_min = int(brief['schedule']['expr'].split()[1]) * 60
+    next_min = (int(nxt['schedule']['expr'].split()[1]) * 60
+                + int(nxt['schedule']['expr'].split()[0]))
+    assert start_min + timeout / 60 <= next_min
+
+
+def test_only_the_brief_profile_pins_a_timeout_for_now():
+    # The reporting profiles have a 558s p100 and no evidence of harm; pinning them
+    # here would assert a bound the live jobs do not have and red the gate.
+    data = contract()
+    pinned = [name for name, profile in data['payload_profiles'].items()
+              if profile.get('timeout_seconds') is not None]
+    assert pinned == ['brief']
