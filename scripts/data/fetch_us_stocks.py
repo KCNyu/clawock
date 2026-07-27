@@ -75,6 +75,39 @@ def _pct(c: float, pc: float) -> float:
     return round((c - pc) / pc * 100, 4) if pc else 0.0
 
 
+def _parse_nasdaq_ts(s) -> Optional[str]:
+    """'Jul 27, 2026 9:34 AM ET' / 'Jul 23, 2026' -> '2026-07-27' / '2026-07-23'.
+
+    Nasdaq stamps every quote with the time of the print it is serving, and for
+    thin instruments that print can be days old (verified 2026-07-27 11:12 ET:
+    SPCH was still serving a Jul 22 10:22 ET trade, PLTU and CRCL a Jul 23 one).
+    This is the direct, unambiguous staleness signal and nothing was reading it.
+    """
+    if not s:
+        return None
+    text = str(s).strip().replace(' ET', '')
+    for fmt in ('%b %d, %Y %I:%M %p', '%b %d, %Y'):
+        try:
+            return datetime.strptime(text, fmt).strftime('%Y-%m-%d')
+        except ValueError:
+            continue
+    return None
+
+
+def _quote_is_fresh(q: Optional[Dict], today_et_date: str) -> bool:
+    """False only when the provider itself dates the print before today.
+
+    Deliberately not inferred from the numbers: a provider that tells you the
+    trade is four days old is stating a fact, whereas `current_price ==
+    prev_close` is only a strong hint. Quotes that carry no timestamp are
+    treated as fresh — absence of evidence must not fail a healthy provider.
+    """
+    if not q:
+        return False
+    asof = q.get('asof_date')
+    return not (asof and asof < today_et_date)
+
+
 def _quote_is_complete(q: Optional[Dict]) -> bool:
     """A quote is usable on its own only if it carries a real prior close AND a
     real intraday range.
@@ -212,6 +245,9 @@ def get_nasdaq_quote(ticker: str) -> Optional[Dict]:
             }
             if nc is not None:
                 result['nc'] = nc
+            asof = _parse_nasdaq_ts(primary.get('lastTradeTimestamp'))
+            if asof:
+                result['asof_date'] = asof
             if volume:
                 result['volume'] = volume
             return result
@@ -618,6 +654,8 @@ def fetch_us_quotes(tickers: List[str], keys: Dict[str, str]) -> Dict[str, Dict]
     """
     results: Dict[str, Dict] = {}
     partial: Dict[str, Dict] = {}
+    stale: Dict[str, Dict] = {}
+    today_et_date = datetime.now(timezone(timedelta(hours=-4))).strftime('%Y-%m-%d')
     remaining = list(tickers)
 
     def _done(ticker: str, quote: Dict):
@@ -625,8 +663,17 @@ def fetch_us_quotes(tickers: List[str], keys: Dict[str, str]) -> Dict[str, Dict]
         remaining.remove(ticker)
 
     def _offer(ticker: str, quote: Optional[Dict]) -> bool:
-        """Accept a complete quote; remember an incomplete one and keep looking."""
+        """Accept a fresh, complete quote; park anything else and keep looking."""
         if not quote:
+            return False
+        if not _quote_is_fresh(quote, today_et_date):
+            # The provider dated this print before today. Park it far behind an
+            # incomplete-but-current quote: a rangeless price from this session
+            # beats an exact price from four sessions ago.
+            stale.setdefault(ticker, quote)
+            print(f"      ✗ {ticker}: ${quote['c']:.4f} [{quote['source']}] "
+                  f"last trade dated {quote['asof_date']} (< {today_et_date}) "
+                  f"— stale print, rejected", file=sys.stderr)
             return False
         if _quote_is_complete(quote):
             _done(ticker, quote)
@@ -690,9 +737,10 @@ def fetch_us_quotes(tickers: List[str], keys: Dict[str, str]) -> Dict[str, Dict]
             _done(t, q)
             print(f"      ✓ {t}: ${q['c']:.4f} (prev close) [{q['source']}]")
 
-    # 8. fall back to the best incomplete quote we saw — a price without a range
+    # 8. fall back to the best quote we had to reject — a price without a range
     #    still beats no price, but it must be labelled so the caller does not
-    #    read the missing fields as "flat today".
+    #    read the missing fields as "flat today". Current-but-incomplete first;
+    #    a print from an earlier session is the true last resort.
     for t in list(remaining):
         if t in partial:
             q = dict(partial[t])
@@ -700,6 +748,13 @@ def fetch_us_quotes(tickers: List[str], keys: Dict[str, str]) -> Dict[str, Dict]
             _done(t, q)
             print(f"      ⚠ {t}: ${q['c']:.4f} ({q['dp']:+.2f}%) [{q['source']}] "
                   f"— incomplete quote, no richer provider answered")
+        elif t in stale:
+            q = dict(stale[t])
+            q['incomplete'] = True
+            q['stale_asof'] = q.get('asof_date')
+            _done(t, q)
+            print(f"      ⚠ {t}: ${q['c']:.4f} [{q['source']}] — every provider "
+                  f"failed; using a print dated {q['stale_asof']}", file=sys.stderr)
 
     if remaining:
         print(f"  ✗ All providers failed: {', '.join(remaining)}")

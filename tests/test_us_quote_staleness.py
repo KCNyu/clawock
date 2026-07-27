@@ -106,6 +106,45 @@ class TestNasdaqParserDoesNotFabricate:
         assert q["volume"] == 2703700
 
 
+class TestLastTradeTimestamp:
+    """The provider states the age of its own print — read it.
+
+    2026-07-27 11:12 ET, live: SPCH was serving a Jul 22 10:22 ET trade, PLTU
+    and CRCL a Jul 23 one. Four and five sessions stale, said out loud in the
+    payload, and nothing in the pipeline looked. `current_price == prev_close`
+    only catches the subset where the frozen print happens to equal the prior
+    close — SPCH's did not, so that heuristic alone would have missed it.
+    """
+
+    @pytest.mark.parametrize("raw,expected", [
+        ("Jul 27, 2026 9:34 AM ET", "2026-07-27"),
+        ("Jul 22, 2026 10:22 AM ET", "2026-07-22"),
+        ("Jul 23, 2026", "2026-07-23"),
+        ("Jan 05, 2026 4:00 PM ET", "2026-01-05"),
+        (None, None),
+        ("", None),
+        ("garbage", None),
+    ])
+    def test_timestamp_parsing(self, raw, expected):
+        assert F._parse_nasdaq_ts(raw) == expected
+
+    def test_quote_from_an_earlier_session_is_not_fresh(self):
+        assert not F._quote_is_fresh({"asof_date": "2026-07-23"}, "2026-07-27")
+
+    def test_todays_quote_is_fresh(self):
+        assert F._quote_is_fresh({"asof_date": "2026-07-27"}, "2026-07-27")
+
+    def test_missing_timestamp_is_treated_as_fresh(self):
+        # Providers that publish no timestamp must not be penalised.
+        assert F._quote_is_fresh({"c": 1.0}, "2026-07-27")
+
+    def test_asof_date_is_captured_from_the_payload(self, monkeypatch):
+        payload = json.loads(json.dumps(NASDAQ_INFO_NO_SUMMARY))
+        payload["data"]["primaryData"]["lastTradeTimestamp"] = "Jul 23, 2026"
+        monkeypatch.setattr(F.SESSION, "get", lambda *a, **k: _FakeResp(payload))
+        assert F.get_nasdaq_quote("PLTU")["asof_date"] == "2026-07-23"
+
+
 class TestQuoteCompleteness:
     def test_missing_range_is_incomplete(self):
         assert not F._quote_is_complete({"c": 1.0, "pc": 1.0, "h": None, "l": None})
@@ -153,6 +192,49 @@ class TestProviderRace:
         # Better than nothing, but it must say so rather than look healthy.
         assert out["PLTU"]["c"] == 28.82
         assert out["PLTU"]["incomplete"] is True
+
+    def test_days_old_print_loses_to_a_current_one(self, monkeypatch):
+        # The exact SPCH shape: Nasdaq's price is precise but five sessions old,
+        # Finnhub's is this session. Recency wins.
+        self._silence(monkeypatch)
+        monkeypatch.setattr(F, "get_nasdaq_quote",
+                            lambda t: {"c": 7.595, "pc": None, "h": None, "l": None,
+                                       "o": None, "dp": 0.0, "asof_date": "2026-07-22",
+                                       "source": "Nasdaq API (etf)"})
+        monkeypatch.setattr(F, "get_finnhub_quote",
+                            lambda t, k: {"c": 6.15, "pc": 6.65, "h": 6.65, "l": 5.9,
+                                          "o": 6.5, "dp": -7.52, "source": "Finnhub"})
+        out = F.fetch_us_quotes(["SPCH"], {"FINNHUB_API_KEY": "x"})
+        assert out["SPCH"]["c"] == 6.15
+        assert out["SPCH"]["source"] == "Finnhub"
+
+    def test_days_old_print_also_loses_to_an_incomplete_current_one(self, monkeypatch):
+        # A rangeless price from this session still beats an exact price from
+        # four sessions ago, so the stale one must rank below `partial`.
+        self._silence(monkeypatch)
+        monkeypatch.setattr(F, "get_nasdaq_quote",
+                            lambda t: {"c": 27.35, "pc": None, "h": None, "l": None,
+                                       "o": None, "dp": 0.0, "asof_date": "2026-07-23",
+                                       "source": "Nasdaq API (etf)"})
+        monkeypatch.setattr(F, "get_yahoo_v8_quote",
+                            lambda t: {"c": 29.52, "pc": None, "h": None, "l": None,
+                                       "o": None, "dp": 7.93, "source": "Yahoo v8"})
+        out = F.fetch_us_quotes(["PLTU"], {})
+        assert out["PLTU"]["c"] == 29.52
+        assert out["PLTU"]["incomplete"] is True
+
+    def test_stale_print_is_last_resort_and_labelled(self, monkeypatch):
+        # Nothing else answered at all -> use it, but say how old it is rather
+        # than let it look like a live quote.
+        self._silence(monkeypatch)
+        monkeypatch.setattr(F, "get_nasdaq_quote",
+                            lambda t: {"c": 7.595, "pc": None, "h": None, "l": None,
+                                       "o": None, "dp": 0.0, "asof_date": "2026-07-22",
+                                       "source": "Nasdaq API (etf)"})
+        out = F.fetch_us_quotes(["SPCH"], {})
+        assert out["SPCH"]["c"] == 7.595
+        assert out["SPCH"]["stale_asof"] == "2026-07-22"
+        assert out["SPCH"]["incomplete"] is True
 
     def test_complete_nasdaq_quote_short_circuits(self, monkeypatch):
         self._silence(monkeypatch)
