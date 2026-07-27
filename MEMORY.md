@@ -102,23 +102,19 @@
 - **单一来源：`portfolio.json`**，不在此维护副本
 - ticker 列表：`memory/current-portfolio-summary.md`（提高检索命中）
 
-## Promoted From Short-Term Memory (2026-07-27)
+## Promoted From Short-Term Memory (2026-07-28)
 
-<!-- openclaw-memory-promotion:memory:memory/2026-07-22-pre-open.md:11:11 -->
-- Header: **Regime** US=risk_on（VIX 17 calm, SPX+0.89%, NDX+1.29% 双双上行） · HK=neutral（HSTECH +1.32% 反弹 / HSI -0.04% 几乎平） · FX=USDHKD 7.8407（Frankfurter, 抓取于 00:02 UTC） · **Book 总浮亏 USD-base -7,707 ≈ HKD-base -60,430** [score=0.803 recalls=0 avg=0.620 source=memory/2026-07-22-pre-open.md:11-11]
-<!-- openclaw-memory-promotion:memory:memory/2026-07-22-pre-open.md:13:13 -->
-- Header: **集中度快照**：HK HHI 0.352 ⚠️ 集中风险 (Top2 82.3%) · US HHI 0.243 偏集中 · HK 杠杆 ETF 41.2% (cap 25%, 🧭amber×0.5) · US 杠杆 ETF 83.5% (cap 50%) · US β 4.71 (cap 3.0) [score=0.803 recalls=0 avg=0.620 source=memory/2026-07-22-pre-open.md:13-13]
-<!-- openclaw-memory-promotion:memory:memory/2026-07-22-pre-open.md:19:22 -->
-- Header: **昨天 plan 5 个 cut 全部触发**（RKLX/SPCH/PLTU/07226/00100-trim），但 book 结构性问题没解——HK Top2 仍 82.3%（cap 70%）、US 杠杆 ETF 仍 83.5%（cap 50%）、US β 4.71（cap 3.0）。今天必须继续纪律性换 1x。; **3 个硬止损 live**：PLTU -21.8% / RKLX -61.1% / SPCH -52.6%——全部换 1x 同因子（PLTR/RKLB/SPCX），保方向停 decay；🧭转 green 才换回 2x。; **regime=risk_on 但 book-level risk_rule 优先**：5 个 risk_rebalance actions 全部 driven_by=risk_rule，不受 risk_on 默认 HOLD 约束；core_position 这边 5 个 hold_and_watch 等不到硬催化就不动。; **VIX 17 偏 calm**，但**FOMC 7/29** 7 天内落地——是 regime 切换的最大事件，今天起算 7d 触不到任何减仓阈值的票就可以安心 hold。 [score=0.803 recalls=0 avg=0.620 source=memory/2026-07-22-pre-open.md:19-22]
-<!-- openclaw-memory-promotion:memory:memory/2026-07-22-pre-open.md:2:4 -->
-- layout: default title: 盘前深度简报 · 2026-07-22 description: "clawock 盘前深度简报 2026-07-22：港股 + 美股真实持仓的多空辩论、量化因子、风控硬闸与 AI 自评战绩（诚实公开，承认主动操作跑输躺平）。" [score=0.803 recalls=0 avg=0.620 source=memory/2026-07-22-pre-open.md:2-4]
-<!-- openclaw-memory-promotion:memory:memory/2026-07-22-pre-open.md:23:23 -->
-- Header: **Execution 现实**：active 执行率 0.75%（过去 152 次主动 call 只动了 1 次），passive 98%。今天的 5 个 cut 都按"开盘任意价"挂，**真挂单才能跑赢模拟**——3 票昨天已"应 cut 而未 cut"，今天再拖一天就再付一天 2x decay。 [score=0.803 recalls=0 avg=0.620 source=memory/2026-07-22-pre-open.md:23-23]
-<!-- openclaw-memory-promotion:memory:memory/2026-07-22-pre-open.md:27:27 -->
-- Header: ▎昨日 plan 兑现度（2026-07-21） [score=0.803 recalls=0 avg=0.620 source=memory/2026-07-22-pre-open.md:27-27]
-<!-- openclaw-memory-promotion:memory:memory/2026-07-22-pre-open.md:29:32 -->
-- Header: | Action | Plan | 实际 | 模拟 ±$ | 评 | |---|---|---|---|---| | Cut 10 RKLX @开盘 → RKLB 1x | swap 10sh | 触发，sim px $18.21 | -$11.23 | ✓ trigger 准；今天再补一刀全清 | | Cut 140 SPCH @开盘 → SPCX | swap 140sh | 触发，sim px $7.39 | -$46.90 | ✓ 但 SPCH 仍超 35% 单名 — 今天续 | [score=0.803 recalls=0 avg=0.620 source=memory/2026-07-22-pre-open.md:29-32]
-<!-- openclaw-memory-promotion:memory:memory/2026-07-21-pre-open.md:36:37 -->
-- ▎大盘速读: FOMC 2026-07-29（8天）+ GDP 7/30 + PCE 7/31 = 本周后段数据密集，今日不宜加仓。 🧭 杠杆制度：**HK amber（×0.5）· US red（SPCX标的破200线-7.3%）** [score=0.803 recalls=0 avg=0.620 source=memory/2026-07-21-pre-open.md:36-37]
-<!-- openclaw-memory-promotion:memory:memory/2026-07-20-pre-open.md:30:33 -->
-- ▎上次 plan 兑现度（2026-07-17）: | PLTU降2x | 开盘卖14股 | 31.91横盘 | $0.00 | ⊘ | | PLTR接收 | 条件于PLTU成交 | 已不在portfolio | 无法核验 | ⊘ | | RKLX降2x | 开盘卖10股 | 18.54横盘 | $0.00 | ⊘ | | RKLB接收 | 开盘买2股 | 118.34→100.17 | -$36.34 | ✗ | [score=0.803 recalls=0 avg=0.620 source=memory/2026-07-20-pre-open.md:30-33]
+<!-- openclaw-memory-promotion:memory:memory/2026-07-22-pre-open.md:17:17 -->
+- Header: ▎TL;DR（先看这 5 行） [score=0.808 recalls=0 avg=0.620 source=memory/2026-07-22-pre-open.md:17-17]
+<!-- openclaw-memory-promotion:memory:memory/2026-07-23-pre-open.md:11:11 -->
+- 📊 盘前深度简报｜2026-07-23 周四 08:00 HKT (USDHKD=7.8404): **Book (双视角)**: [score=0.803 recalls=0 avg=0.620 source=memory/2026-07-23-pre-open.md:11-11]
+<!-- openclaw-memory-promotion:memory:memory/2026-07-23-pre-open.md:12:15 -->
+- 📊 盘前深度简报｜2026-07-23 周四 08:00 HKT (USDHKD=7.8404): USD-base 总浮亏: **-$8,464** (≈ HKD -66,360); USDHKD = 7.8404 (Frankfurter, 抓于 00:02 UTC); ├─ **HK 段**: -50,620 HKD (-50.3%) ≈ -$6,456; └─ **US 段**: -$2,008 USD (-44.6%) ≈ -HKD 15,741 [score=0.803 recalls=0 avg=0.620 source=memory/2026-07-23-pre-open.md:12-15]
+<!-- openclaw-memory-promotion:memory:memory/2026-07-23-pre-open.md:17:17 -->
+- 📊 盘前深度简报｜2026-07-23 周四 08:00 HKT (USDHKD=7.8404): **集中度风险 (HHI)**: [score=0.803 recalls=0 avg=0.620 source=memory/2026-07-23-pre-open.md:17-17]
+<!-- openclaw-memory-promotion:memory:memory/2026-07-23-pre-open.md:18:20 -->
+- 📊 盘前深度简报｜2026-07-23 周四 08:00 HKT (USDHKD=7.8404): HK: HHI 0.345 ⚠️ 集中风险 | 07226 41.84% + 00100 39.36% = **Top2 81.2%**; US: HHI 0.241 偏集中 | SPCH 40.35% + MSFU 19.24% = **Top2 59.6%**; US β = 4.81 (>3.0 cap),Combined vol 92.5%,Sharpe -4.82 [score=0.803 recalls=0 avg=0.620 source=memory/2026-07-23-pre-open.md:18-20]
+<!-- openclaw-memory-promotion:memory:memory/2026-07-23-pre-open.md:2:4 -->
+- layout: default title: 盘前深度简报 · 2026-07-23 description: "clawock 盘前深度简报 2026-07-23：港股 + 美股真实持仓的多空辩论、量化因子、风控硬闸与 AI 自评战绩（诚实公开，承认主动操作跑输躺平）。" [score=0.803 recalls=0 avg=0.620 source=memory/2026-07-23-pre-open.md:2-4]
+<!-- openclaw-memory-promotion:memory:memory/2026-07-23-pre-open.md:9:9 -->
+- 📊 盘前深度简报｜2026-07-23 周四 08:00 HKT (USDHKD=7.8404): **Regime**: US `neutral` (VIX 17 calm 但 SPX/NDX 同向下行) · HK `neutral` (HSTECH 4668 跌穿 4800 支撑,AI 大模型股重创,但大市 HSI 跌幅有限) [score=0.803 recalls=0 avg=0.620 source=memory/2026-07-23-pre-open.md:9-9]
