@@ -1,24 +1,8 @@
 {
   "schema_version": 1,
   "monitoring_started_at": "2026-07-16T02:17:00+08:00",
-  "updated_at": "2026-07-28T02:10:02.393283+08:00",
+  "updated_at": "2026-07-27T18:34:02.570133+00:00",
   "events": [
-    {
-      "job": "美股盘中盯盘-overnight",
-      "market": "us",
-      "slot": "2026-07-25T02:30:00+08:00",
-      "state": "completed",
-      "updated_at": "2026-07-25T02:30:00.026000+08:00",
-      "should_alert": true,
-      "anomaly_count": 4,
-      "postflight_status": "pass",
-      "wechat_sent": true,
-      "telegram_sent": true,
-      "dashboard_published": true,
-      "insights_sidecar": true,
-      "issue_count": 0,
-      "watchdog_state": "ok"
-    },
     {
       "job": "盘中盯盘",
       "market": "hk",
@@ -275,6 +259,21 @@
       "insights_sidecar": true,
       "issue_count": 0,
       "watchdog_state": "ok"
+    },
+    {
+      "job": "美股盘中盯盘-overnight",
+      "market": "us",
+      "slot": "2026-07-28T02:30:00+08:00",
+      "state": "completed",
+      "updated_at": "2026-07-27T18:34:02.570133+00:00",
+      "should_alert": true,
+      "anomaly_count": 5,
+      "postflight_status": "pass",
+      "wechat_sent": true,
+      "telegram_sent": true,
+      "dashboard_published": true,
+      "insights_sidecar": true,
+      "issue_count": 0
     }
   ]
 }

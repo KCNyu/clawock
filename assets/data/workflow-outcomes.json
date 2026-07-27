@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "monitoring_started_at": "2026-07-26T08:00:00+08:00",
-  "updated_at": "2026-07-27T18:20:03.264052+00:00",
+  "updated_at": "2026-07-27T18:40:03.656216+00:00",
   "records": [
     {
       "job": "美股收盘报告",
@@ -1388,6 +1388,77 @@
         "error_present": false
       },
       "updated_at": "2026-07-27T18:10:08.234916+00:00",
+      "final_product": {
+        "status": "success",
+        "reason": "primary delivery succeeded"
+      }
+    },
+    {
+      "job": "美股盘中盯盘-overnight",
+      "slot": "2026-07-28T02:30:00+08:00",
+      "stages": {
+        "preflight": {
+          "status": "success",
+          "at": "2026-07-27T18:32:59.748229+00:00",
+          "market": "us",
+          "updated_at": "2026-07-27T18:32:59.747269+00:00",
+          "should_alert": true,
+          "anomaly_count": 5
+        },
+        "llm": {
+          "status": "success",
+          "at": "2026-07-27T18:34:02.571954+00:00",
+          "market": "us",
+          "updated_at": "2026-07-27T18:34:02.570133+00:00",
+          "should_alert": true,
+          "anomaly_count": 5,
+          "postflight_status": "pass",
+          "wechat_sent": true,
+          "telegram_sent": true,
+          "dashboard_published": true,
+          "insights_sidecar": true,
+          "issue_count": 0
+        },
+        "postflight": {
+          "status": "success",
+          "at": "2026-07-27T18:34:02.574240+00:00",
+          "market": "us",
+          "updated_at": "2026-07-27T18:34:02.570133+00:00",
+          "should_alert": true,
+          "anomaly_count": 5,
+          "postflight_status": "pass",
+          "wechat_sent": true,
+          "telegram_sent": true,
+          "dashboard_published": true,
+          "insights_sidecar": true,
+          "issue_count": 0
+        },
+        "primary_delivery": {
+          "status": "success",
+          "at": "2026-07-27T18:34:02.576467+00:00",
+          "market": "us",
+          "updated_at": "2026-07-27T18:34:02.570133+00:00",
+          "should_alert": true,
+          "anomaly_count": 5,
+          "postflight_status": "pass",
+          "wechat_sent": true,
+          "telegram_sent": true,
+          "dashboard_published": true,
+          "insights_sidecar": true,
+          "issue_count": 0
+        },
+        "watchdog_delivery": {
+          "status": "unknown"
+        }
+      },
+      "raw_execution": {
+        "status": "ok",
+        "run_at_ms": 1785177000010,
+        "finished_at_ms": 1785177253112,
+        "run_id": null,
+        "error_present": false
+      },
+      "updated_at": "2026-07-27T18:34:02.576467+00:00",
       "final_product": {
         "status": "success",
         "reason": "primary delivery succeeded"
