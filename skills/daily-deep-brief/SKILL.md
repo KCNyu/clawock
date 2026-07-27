@@ -218,7 +218,7 @@ context.json 关键字段：
 原始 `confidence` 只保留为作者当时判断的审计字段，不能直接当胜率或仓位倍数。主动 call 必须在 `context.decision_metrics.hierarchical_calibration.current_group_calibrators` 中匹配 `action + driver + condition + regime`；该表由严格按 `plan_date` 前向、同日整体延后更新的 beta-binomial 校准器产生，稀疏小组会收缩到更宽层级。
 
 - `abstain=true`：历史证据不足，`signal_size_multiplier=0`，不得因该信号扩仓；可以降级为 hold/watch。
-- 找不到完全匹配行：按 abstain 处理，不得自行拿相邻小组的点估计冒充。
+- 找不到完全匹配行：按 abstain 处理，不得自行拿相邻小组的点估计冒充。**该表只装 `evidence_sufficient=true` 的行**（证据不足的整批省略，避免每轮重发一张全是 abstain 的后验表）；省略了多少、分别因为什么，看同级的 `current_group_calibrator_count` / `current_group_calibrators_omitted` / `omitted_abstain_reasons`。表变短说明证据变薄，不是数据丢了。
 - `edge_supported=false`：证据可能够，但 95% 下界未过 50%，同样不得用它扩大主动仓位。
 - 只有 `edge_supported=true` 才能把原拟主动股数乘以 `signal_size_multiplier`；报告同时公开 calibrated probability、CI 和 resolved level。
 - 组合硬闸的 `risk_rebalance + risk_rule` 是政策执行，不是预测；即使校准器 abstain，也必须执行硬闸要求的降集中/降杠杆动作，禁止拿“无择时 edge”否决风控。

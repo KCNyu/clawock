@@ -722,6 +722,62 @@ def compute_reflections(portfolio):
     return out
 
 
+def trim_abstaining_calibrators(metrics):
+    """Inject only the calibrator rows that can still change a sizing decision.
+
+    `hierarchical_calibration.current_group_calibrators` is one row of beta-binomial
+    posterior state per `action + driver + condition + regime` group. On 2026-07-27
+    that was 42 rows / 27KB — 10.7% of the whole injected context, re-sent on every
+    turn of a 17-minute multi-turn run. `build_dashboard.trim_decision_metrics`
+    already drops the same block from the public payload (#102); the brief, which
+    pays for it far more often, kept shipping all of it.
+
+    Dropping the abstaining rows is behaviour-preserving because both skills that
+    read this table define a missing row and an abstaining row as the same outcome:
+    "找不到完全匹配行：按 abstain 处理" (daily-deep-brief), "A missing exact row,
+    `abstain=true`, or `edge_supported=false` means the signal contributes zero
+    incremental size" (portfolio-swarm-review).
+
+    The filter is `evidence_sufficient`, not `edge_supported`, on purpose.
+    decision_v2 defines `edge_supported = not abstain and ci[0] > 0.5` while
+    `evidence_sufficient = not abstain`, so evidence-sufficient is the strictly
+    weaker predicate and *cannot* drop a row that would have multiplied size — it
+    also leaves the rows that are one settled episode away from clearing the bar.
+    Filtering on `edge_supported` would ship nothing at all on a day like
+    2026-07-27, and the table would silently reappear as load-bearing later.
+
+    Counts and reasons for everything dropped stay in the payload, so a shrinking
+    table reads as evidence being thin rather than as data going missing.
+    """
+    if not isinstance(metrics, dict):
+        return metrics
+    calibration = metrics.get('hierarchical_calibration')
+    if not isinstance(calibration, dict):
+        return metrics
+    groups = calibration.get('current_group_calibrators')
+    if not isinstance(groups, list):
+        return metrics
+
+    kept = [g for g in groups if isinstance(g, dict) and g.get('evidence_sufficient')]
+    omitted = [g for g in groups if g not in kept]
+    reasons = {}
+    for g in omitted:
+        if isinstance(g, dict):
+            reason = g.get('abstain_reason') or 'unspecified'
+            reasons[reason] = reasons.get(reason, 0) + 1
+
+    trimmed = dict(calibration)
+    trimmed['current_group_calibrators'] = kept
+    trimmed['current_group_calibrator_count'] = len(groups)
+    trimmed['current_group_calibrators_omitted'] = len(omitted)
+    trimmed['omitted_abstain_reasons'] = reasons
+    trimmed['omitted_rule'] = (
+        'Rows with evidence_sufficient=false are omitted; treat any group absent '
+        'from this table as abstain (signal_size_multiplier=0), which is what both '
+        'skills already require for a missing row.')
+    return {**metrics, 'hierarchical_calibration': trimmed}
+
+
 def compute_decision_metrics():
     """Settle the v2 ledger and return episode-level decision metrics."""
     decisions = decision_v2.load_decisions()
@@ -740,7 +796,7 @@ def compute_decision_metrics():
                               'detected_at': datetime.now().isoformat(), 'source': 'git_shares_diff'}
     decision_v2.settle_decisions(decisions)
     decision_v2.write_decisions(decisions)
-    return decision_v2.compute_metrics(decisions)
+    return trim_abstaining_calibrators(decision_v2.compute_metrics(decisions))
 
 
 def refresh_daily_bars():
