@@ -50,6 +50,7 @@ keeps an exclusive window; standard time therefore has two fewer US intraday slo
   a prefix of that order; health checks never reorder or skip candidates.
 - Mode 7 writes the public `assets/data/cron-heartbeats.json` ledger through the
   existing single publisher; cron health verifies every monitored slot.
-- Mode 7 agent turns are condition-triggered by normalized breach/event/regime
-  hashes and material repricing. Unchanged slots write an LLM-free `no_change`
-  heartbeat; every sixth evaluation forces a reasoning pass.
+- Mode 7 agent turns run on every scheduled slot. The pre-model delta trigger
+  was removed on 2026-07-27: model workload is not the binding constraint, and
+  a silently skipped slot is indistinguishable from a dead cron. Closed markets
+  are still handled downstream by the preflight/postflight calendar gate.

@@ -446,24 +446,44 @@ def test_intraday_payload_contract_bans_heredoc_and_requires_text_file():
     data = contract()
     expected = {job['name']: job for job in data['jobs']}['盘中盯盘']
     message = '\n'.join(s.format(**vars_) for s in profile['required_substrings'])
-    trigger_path = ROOT / profile['trigger']['script_path'].format(**vars_)
     live = {
         'payload': {'message': message, 'kind': 'agentTurn',
                     'model': profile['model'], 'thinking': profile['thinking']},
         'delivery': {'mode': 'none'},
-        'trigger': {
-            'script': trigger_path.read_text(),
-            'once': profile['trigger']['once'],
-        },
     }
     assert cron_contract.payload_errors(data, expected, live) == []
-    del live['trigger']
-    assert cron_contract.payload_errors(data, expected, live) == [
-        'condition trigger missing'
-    ]
 
     live['payload']['message'] = message + '\nintraday_postflight.py --market hk <<< "{报告}"'
     assert cron_contract.payload_errors(data, expected, live) != []
+
+
+def test_intraday_slots_are_unconditional_again():
+    """Every Mode 7 slot runs the turn; no pre-model condition gate.
+
+    The delta trigger (#46 / #61) skipped slots where nothing crossed a
+    threshold. It saved model workload, but kcn's constraint is not cost — a
+    silent slot is indistinguishable from a dead cron, and the whole point of
+    the intraday cadence is being able to look at any slot. The contract now
+    carries no trigger, and a live job that still has one is a drift error
+    rather than the expected state.
+    """
+    data = contract()
+    profile = data['payload_profiles']['intraday']
+    assert 'trigger' not in profile
+    assert not (ROOT / 'config' / 'cron-triggers').exists()
+
+    expected = {job['name']: job for job in data['jobs']}['盘中盯盘']
+    vars_ = {'market': 'hk', 'skill': 'hk-stock-analysis'}
+    message = '\n'.join(s.format(**vars_) for s in profile['required_substrings'])
+    live = {
+        'payload': {'message': message, 'kind': 'agentTurn',
+                    'model': profile['model'], 'thinking': profile['thinking']},
+        'delivery': {'mode': 'none'},
+        'trigger': {'script': 'json({ fire: false });', 'once': False},
+    }
+    assert cron_contract.payload_errors(data, expected, live) == [
+        'unexpected condition trigger'
+    ]
 
 
 def test_every_twenty_minutes_timeline_label_is_not_every_hour():
