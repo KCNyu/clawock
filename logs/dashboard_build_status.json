@@ -1,6 +1,6 @@
 {
-  "checked_at": "2026-07-27T17:07:25Z",
+  "checked_at": "2026-07-27T17:32:52Z",
   "ok": true,
   "warn_count": 1,
-  "tail": "f-context source: brief-context-2026-07-27.json\n✓ wrote /root/.openclaw/workspace/assets/data/dashboard.json (204,312 bytes)\n✓ wrote /root/.openclaw/workspace/assets/data/decision_audit.json (decision audit sidecar)\n  US: 16 holdings, 7 active, value $2365\n  HK: 7 holdings, 5 active, value HK$53765\n  Snapshots: 55 embedded / 55 on disk\n  Plans: 5 embedded / 51 on disk\n  Snapshots: 55 | Plans: 5\n  FX USDHKD: 7.8426 (Frankfurter)\n⚠️  payload still 205430 bytes > 200000 cap — dropping recent_plans\n"
+  "tail": "f-context source: brief-context-2026-07-27.json\n✓ wrote /root/.openclaw/workspace/assets/data/dashboard.json (204,326 bytes)\n✓ wrote /root/.openclaw/workspace/assets/data/decision_audit.json (decision audit sidecar)\n  US: 16 holdings, 7 active, value $2377\n  HK: 7 holdings, 5 active, value HK$53765\n  Snapshots: 55 embedded / 55 on disk\n  Plans: 5 embedded / 51 on disk\n  Snapshots: 55 | Plans: 5\n  FX USDHKD: 7.8426 (Frankfurter)\n⚠️  payload still 205444 bytes > 200000 cap — dropping recent_plans\n"
 }
