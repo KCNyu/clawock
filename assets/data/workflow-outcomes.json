@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "monitoring_started_at": "2026-07-26T08:00:00+08:00",
-  "updated_at": "2026-07-27T05:42:29.429105+00:00",
+  "updated_at": "2026-07-27T06:12:20.716698+00:00",
   "records": [
     {
       "job": "美股收盘报告",
@@ -480,6 +480,80 @@
         "error_present": false
       },
       "updated_at": "2026-07-27T05:42:29.429105+00:00",
+      "final_product": {
+        "status": "success",
+        "reason": "primary delivery succeeded"
+      }
+    },
+    {
+      "job": "盘中盯盘",
+      "slot": "2026-07-27T14:00:00+08:00",
+      "stages": {
+        "preflight": {
+          "status": "success",
+          "at": "2026-07-27T06:02:07.474034+00:00",
+          "market": "hk",
+          "updated_at": "2026-07-27T06:02:07.472996+00:00",
+          "should_alert": true,
+          "anomaly_count": 2
+        },
+        "llm": {
+          "status": "success",
+          "at": "2026-07-27T06:10:14.299431+00:00",
+          "market": "hk",
+          "updated_at": "2026-07-27T14:10:02.482615+08:00",
+          "should_alert": true,
+          "anomaly_count": 2,
+          "postflight_status": "pass",
+          "wechat_sent": true,
+          "telegram_sent": true,
+          "dashboard_published": true,
+          "insights_sidecar": true,
+          "issue_count": 0,
+          "watchdog_state": "ok"
+        },
+        "postflight": {
+          "status": "success",
+          "at": "2026-07-27T06:10:14.303202+00:00",
+          "market": "hk",
+          "updated_at": "2026-07-27T14:10:02.482615+08:00",
+          "should_alert": true,
+          "anomaly_count": 2,
+          "postflight_status": "pass",
+          "wechat_sent": true,
+          "telegram_sent": true,
+          "dashboard_published": true,
+          "insights_sidecar": true,
+          "issue_count": 0,
+          "watchdog_state": "ok"
+        },
+        "primary_delivery": {
+          "status": "success",
+          "at": "2026-07-27T06:10:14.305233+00:00",
+          "market": "hk",
+          "updated_at": "2026-07-27T14:10:02.482615+08:00",
+          "should_alert": true,
+          "anomaly_count": 2,
+          "postflight_status": "pass",
+          "wechat_sent": true,
+          "telegram_sent": true,
+          "dashboard_published": true,
+          "insights_sidecar": true,
+          "issue_count": 0,
+          "watchdog_state": "ok"
+        },
+        "watchdog_delivery": {
+          "status": "unknown"
+        }
+      },
+      "raw_execution": {
+        "status": "ok",
+        "run_at_ms": 1785132000052,
+        "finished_at_ms": 1785132224735,
+        "run_id": null,
+        "error_present": false
+      },
+      "updated_at": "2026-07-27T06:10:14.305233+00:00",
       "final_product": {
         "status": "success",
         "reason": "primary delivery succeeded"
