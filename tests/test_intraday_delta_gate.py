@@ -81,13 +81,15 @@ def test_no_change_heartbeat_is_terminal(monkeypatch, tmp_path):
     assert event["should_alert"] is False
 
 
-def test_trigger_scripts_fail_open_and_force_low_frequency_review():
-    for market in ("hk", "us"):
-        script = (
-            ROOT / "config" / "cron-triggers" / f"intraday-{market}.js"
-        ).read_text()
-        assert "fire: true" in script
-        assert "evaluations >= 6" in script
-        assert ">= 0.01" in script
-        assert ">= 1.0" in script
-        assert "--record ${state}" in script
+def test_the_gate_is_no_longer_wired_in_front_of_the_cron():
+    """Kept as a read-only diagnostic, removed as a pre-model gate (2026-07-27).
+
+    `python3 scripts/data/intraday_delta_gate.py --market hk` still prints the
+    current breach/price state, which is useful by hand. What is gone is its
+    power to suppress a slot: no tracked trigger sources, and no job pinned to
+    them. If this ever comes back, it comes back through the contract, not by
+    someone editing a live cron.
+    """
+    assert not (ROOT / "config" / "cron-triggers").exists()
+    contract = json.loads((ROOT / "config" / "cron-schedules.json").read_text())
+    assert "trigger" not in contract["payload_profiles"]["intraday"]

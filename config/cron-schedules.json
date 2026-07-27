@@ -64,10 +64,6 @@
       ],
       "thinking": "medium",
       "delivery_mode": "none",
-      "trigger": {
-        "script_path": "config/cron-triggers/intraday-{market}.js",
-        "once": false
-      },
       "required_substrings": [
         "trading_calendar.py {market}",
         "skills/{skill}/SKILL.md",
