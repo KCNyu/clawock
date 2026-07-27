@@ -458,6 +458,33 @@ def is_advisory(issue):
     return ADVISORY_MARK in issue
 
 
+def split_advisory(issues):
+    """(escalating, advisory) — the banner must count and show them separately.
+
+    Both banners print a truncated list (`issues[:2]` intraday, `issues[:3]`
+    report). While advisory findings shared that list they were the ones most
+    likely to be cut, because they only appear on reports that already have
+    other findings — i.e. exactly the reports where an invented number matters
+    most. They get their own line instead.
+    """
+    return ([i for i in issues if not is_advisory(i)],
+            [i for i in issues if is_advisory(i)])
+
+
+def advisory_prefix(advisories, shown=2):
+    """A visible, non-blocking line for advisory findings ('' when there are none).
+
+    Deliberately not styled as a warning: it must read as information, or the
+    next person to see one will start treating it as a failure and the gate
+    becomes the blocker it was designed not to be.
+    """
+    if not advisories:
+        return ''
+    body = '; '.join(a.replace(ADVISORY_MARK, '').strip() for a in advisories[:shown])
+    more = f'；另 {len(advisories) - shown} 条' if len(advisories) > shown else ''
+    return f'ℹ️ 数字校验（不影响投递）：{body}{more}\n\n'
+
+
 def categorize_issues(issues, critical_substrings, warn_max=2, extra_critical=None):
     """Common pass/warn/fail decision used by all postflights.
 

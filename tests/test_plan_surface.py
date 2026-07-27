@@ -159,11 +159,20 @@ def test_corrupt_line_does_not_blind_the_rest(ledger, call, tmp_path):
     assert [d["ticker"] for d in call(path)["open"]] == ["07226"]
 
 
-def test_a_raising_loader_degrades_to_no_context(ps, monkeypatch, ledger, call):
+def test_a_raising_loader_degrades_to_an_error_not_to_silence(ps, monkeypatch,
+                                                              ledger, call):
+    """Still fail-soft — never raise into a market cron — but say so (#136).
+
+    This asserted `== {}` when it was written. That made a failed read identical
+    to the legitimate "no open decisions today", so the prose would state there
+    was no plan and the #119 contradiction could return unannounced.
+    """
     def boom(_path):
         raise RuntimeError("disk on fire")
     monkeypatch.setattr(ps, "_load_ledger", boom)
-    assert call(ledger([decision()])) == {}
+    context = call(ledger([decision()]))
+    assert context["error"].startswith("RuntimeError: disk on fire")
+    assert "open" not in context, "a failed read must not imply an empty plan"
 
 
 def test_context_is_bounded(ps, ledger, call):

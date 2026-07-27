@@ -196,6 +196,7 @@ def categorize(issues):
 
 sys.path.insert(0, str(Path(__file__).parent))
 from _harness_common import (  # noqa: E402
+    advisory_prefix,
     categorize_issues,
     check_numeric_claims,
     check_raw_tables_verbatim,
@@ -204,6 +205,7 @@ from _harness_common import (  # noqa: E402
     push_with_rebase_retry,
     rebuild_dashboard,
     snapshot_date_for_now,
+    split_advisory,
     validate_forbidden_phrases,
 )
 from _watchdog_common import resolve_wechat_target, send_wechat, cosend_telegram, already_delivered  # noqa: E402
@@ -504,18 +506,22 @@ def main():
         issue_count=len(issues),
     )
 
-    if status == 'pass':
-        wechat_prefix = ''
+    # The banner counts and lists ESCALATING issues only; advisory findings get
+    # their own line below, so a truncated list can never drop them (#134).
+    escalating, advisories = split_advisory(issues)
+    if status == 'pass' or not escalating:
+        banner = ''
     elif status == 'warn':
-        wechat_prefix = (f'⚠️ Validation warnings ({len(issues)}): '
-                         + '; '.join(issues[:3])
-                         + ('; ...' if len(issues) > 3 else '')
-                         + '\n\n')
+        banner = (f'⚠️ Validation warnings ({len(escalating)}): '
+                  + '; '.join(escalating[:3])
+                  + ('; ...' if len(escalating) > 3 else '')
+                  + '\n\n')
     else:
-        wechat_prefix = (f'🔴 Validation FAILED ({len(issues)} issues), 仅发布数据块、未 commit:\n'
-                         + '\n'.join('- ' + i for i in issues[:5])
-                         + ('\n- ...' if len(issues) > 5 else '')
-                         + '\n\n')
+        banner = (f'🔴 Validation FAILED ({len(escalating)} issues), 仅发布数据块、未 commit:\n'
+                  + '\n'.join('- ' + i for i in escalating[:5])
+                  + ('\n- ...' if len(escalating) > 5 else '')
+                  + '\n\n')
+    wechat_prefix = banner + advisory_prefix(advisories)
 
     # ── Fail-closed body selection ───────────────────────────────────────────
     # A rejected report used to be delivered in full behind its banner, which is
