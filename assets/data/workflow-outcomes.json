@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "monitoring_started_at": "2026-07-26T08:00:00+08:00",
-  "updated_at": "2026-07-27T16:40:05.464001+00:00",
+  "updated_at": "2026-07-27T16:40:13.035485+00:00",
   "records": [
     {
       "job": "美股收盘报告",
@@ -1110,13 +1110,10 @@
           "anomaly_count": 5
         },
         "llm": {
-          "status": "unknown"
-        },
-        "postflight": {
-          "status": "failed",
-          "at": "2026-07-27T16:33:26.952492+00:00",
+          "status": "success",
+          "at": "2026-07-27T16:40:13.020328+00:00",
           "market": "us",
-          "updated_at": "2026-07-27T16:33:26.948459+00:00",
+          "updated_at": "2026-07-28T00:40:02.617532+08:00",
           "should_alert": true,
           "anomaly_count": 5,
           "postflight_status": "fail",
@@ -1124,10 +1121,38 @@
           "telegram_sent": true,
           "dashboard_published": false,
           "insights_sidecar": true,
-          "issue_count": 1
+          "issue_count": 1,
+          "watchdog_state": "ok"
+        },
+        "postflight": {
+          "status": "success",
+          "at": "2026-07-27T16:40:13.028584+00:00",
+          "market": "us",
+          "updated_at": "2026-07-28T00:40:02.617532+08:00",
+          "should_alert": true,
+          "anomaly_count": 5,
+          "postflight_status": "fail",
+          "wechat_sent": true,
+          "telegram_sent": true,
+          "dashboard_published": false,
+          "insights_sidecar": true,
+          "issue_count": 1,
+          "watchdog_state": "ok"
         },
         "primary_delivery": {
-          "status": "unknown"
+          "status": "success",
+          "at": "2026-07-27T16:40:13.035485+00:00",
+          "market": "us",
+          "updated_at": "2026-07-28T00:40:02.617532+08:00",
+          "should_alert": true,
+          "anomaly_count": 5,
+          "postflight_status": "fail",
+          "wechat_sent": true,
+          "telegram_sent": true,
+          "dashboard_published": false,
+          "insights_sidecar": true,
+          "issue_count": 1,
+          "watchdog_state": "ok"
         },
         "watchdog_delivery": {
           "status": "unknown"
@@ -1140,10 +1165,10 @@
         "run_id": null,
         "error_present": false
       },
-      "updated_at": "2026-07-27T16:33:26.952492+00:00",
+      "updated_at": "2026-07-27T16:40:13.035485+00:00",
       "final_product": {
-        "status": "failed",
-        "reason": "no successful product recovery stage"
+        "status": "success",
+        "reason": "primary delivery succeeded"
       }
     }
   ]
