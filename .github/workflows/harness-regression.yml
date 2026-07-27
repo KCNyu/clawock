@@ -162,7 +162,7 @@ jobs:
         # number this job gated on — not a second, independently drifting
         # measurement. Only master pushes have a consumer; PR runs skip the upload.
         if: github.event_name == 'push' && github.ref == 'refs/heads/master'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: coverage-report
           path: coverage-report.json
