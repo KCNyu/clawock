@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "monitoring_started_at": "2026-07-26T08:00:00+08:00",
-  "updated_at": "2026-07-27T16:20:05.750599+00:00",
+  "updated_at": "2026-07-27T16:40:05.464001+00:00",
   "records": [
     {
       "job": "美股收盘报告",
@@ -1095,6 +1095,55 @@
       "final_product": {
         "status": "success",
         "reason": "primary delivery succeeded"
+      }
+    },
+    {
+      "job": "美股盘中盯盘-overnight",
+      "slot": "2026-07-28T00:30:00+08:00",
+      "stages": {
+        "preflight": {
+          "status": "success",
+          "at": "2026-07-27T16:31:13.540990+00:00",
+          "market": "us",
+          "updated_at": "2026-07-27T16:31:13.540073+00:00",
+          "should_alert": true,
+          "anomaly_count": 5
+        },
+        "llm": {
+          "status": "unknown"
+        },
+        "postflight": {
+          "status": "failed",
+          "at": "2026-07-27T16:33:26.952492+00:00",
+          "market": "us",
+          "updated_at": "2026-07-27T16:33:26.948459+00:00",
+          "should_alert": true,
+          "anomaly_count": 5,
+          "postflight_status": "fail",
+          "wechat_sent": true,
+          "telegram_sent": true,
+          "dashboard_published": false,
+          "insights_sidecar": true,
+          "issue_count": 1
+        },
+        "primary_delivery": {
+          "status": "unknown"
+        },
+        "watchdog_delivery": {
+          "status": "unknown"
+        }
+      },
+      "raw_execution": {
+        "status": "ok",
+        "run_at_ms": 1785169800033,
+        "finished_at_ms": 1785170022975,
+        "run_id": null,
+        "error_present": false
+      },
+      "updated_at": "2026-07-27T16:33:26.952492+00:00",
+      "final_product": {
+        "status": "failed",
+        "reason": "no successful product recovery stage"
       }
     }
   ]
