@@ -31,6 +31,9 @@ from pathlib import Path
 from zoneinfo import ZoneInfo
 
 WS = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(WS / 'scripts' / 'data'))
+import cron_token_audit  # noqa: E402
+
 HKT = ZoneInfo('Asia/Hong_Kong')
 TERMINAL_HEARTBEAT_STATES = {
     'completed', 'watchdog_backstop', 'market_closed', 'no_change'
@@ -393,11 +396,19 @@ def main():
     elif dash['state'] in ('degraded', 'stale'):
         has_warn = True
 
+    # Token regressions surface in the daily review, never as a per-cron alert
+    # (feedback_no_individual_cron_alerts) and never as a reason to exit non-zero:
+    # a job burning 3x its usual tokens is something to look at, not a failure.
+    # A tracked --jobs-file run is CI, where there is no live run store to read.
+    token_reports = [] if args.jobs_file else cron_token_audit.audit()
+    token_regressions = cron_token_audit.regressions(token_reports)
+
     summary = {
         'generated_at': now.isoformat(),
         'now_hkt': now.astimezone(HKT).strftime('%Y-%m-%d %H:%M HKT'),
         'jobs': report,
         'dashboard_build': dash,
+        'token_usage': token_reports,
         'has_missing': has_missing,
         'has_warn': has_warn,
     }
@@ -413,6 +424,8 @@ def main():
             print(f"  {icon} {r['name']:25s}  {r['detail']}")
         dash_icon = {'ok':'✓','degraded':'⚠','stale':'⚠','failed':'✗','absent':'·'}[dash['state']]
         print(f"  {dash_icon} {'dashboard build':25s}  {dash['detail']}")
+        for line in cron_token_audit.format_lines(token_regressions):
+            print(f"  {line}")
         if has_missing:
             print()
             print('🔴 缺漏 — 检查上面 ✗ 行')

@@ -36,6 +36,9 @@ Output keys:
   index_direction:    {hk_index_pct, hstech_pct} for HK; null for US
   peer_scan:          {ticker: {theme, self_pct_1d, divergence_signal,
                       listed_peers[<=5]}} for this market's active holdings
+  plan_context:       {plan_date, exec_mode, open[<=12], carried_over} — what the
+                      08:00 brief already decided for this leg and has not filled
+                      yet; {} when there is no open decision (see plan_surface)
   needs_risk_section: bool (true if STOP+TRIM >= 2)
 """
 
@@ -57,6 +60,7 @@ TMP = WS / 'memory' / '.tmp'
 sys.path.insert(0, str(DATA_DIR))
 import trading_calendar  # noqa: E402
 import peer_scan  # noqa: E402
+import plan_surface  # noqa: E402
 import research_surface  # noqa: E402
 import mover_news  # noqa: E402
 import workflow_outcomes  # noqa: E402
@@ -394,6 +398,13 @@ def main():
         [a['ticker'] for a in anomalies], market=args.market,
     )
 
+    # What the 08:00 brief already decided for this leg and has not filled yet.
+    # Without it the prose re-derives the day from prices and can contradict the
+    # plan it is supposed to be executing (issue #119). Never raises.
+    plan_ctx = plan_surface.open_decisions_context(
+        leg='HK' if args.market == 'hk' else 'US', today=today,
+    )
+
     result = {
         'status':             'ok',
         'market':             args.market,
@@ -409,6 +420,7 @@ def main():
         'anomalies':          anomalies,
         'index_direction':    indices,
         'peer_scan':          trim_peer_scan(peers),
+        'plan_context':       plan_ctx,
         'mover_thesis':       mover_thesis,
         'mover_news':         mover_news_ctx,
         'needs_risk_section': (signals['stop'] + signals['trim']) >= 2,

@@ -137,6 +137,17 @@ def payload_errors(contract: dict, expected_job: dict, live_job: dict) -> list[s
     for field, expected in fields.items():
         if expected is not None and payload.get(field) != expected:
             errors.append(f"payload.{field} expected {expected!r}, got {payload.get(field)!r}")
+    # An unbounded agent turn is only stopped by something unrelated restarting the
+    # gateway. 盘前深度简报 ran 71, 81 and 86 minutes on 2026-07-15/16/17 that way,
+    # each time still holding the agent minutes before the 09:30 report's slot
+    # (issue #121). Only profiles that declare a bound are checked; a job with no
+    # declared timeout keeps the old behaviour.
+    expected_timeout = profile.get("timeout_seconds")
+    if expected_timeout is not None and payload.get("timeoutSeconds") != expected_timeout:
+        errors.append(
+            f"payload.timeoutSeconds expected {expected_timeout!r}, "
+            f"got {payload.get('timeoutSeconds')!r}"
+        )
     expected_delivery = profile.get("delivery_mode")
     if expected_delivery is not None and delivery.get("mode") != expected_delivery:
         errors.append(
