@@ -21,6 +21,18 @@ from pathlib import Path
 
 WS = Path(__file__).resolve().parent.parent
 
+# Live-box paths for the memory-index check. These are deliberately absolute and
+# not derived from WS: the semantic index only ever covers the live runtime
+# checkout, so an interactive worktree must judge that one, not its own copy.
+# All of them are absent in CI, where the check skips.
+LIVE_WORKSPACE = Path('/root/.openclaw/workspace')
+MEMORY_INDEX_DB = Path('/root/.openclaw/agents/main/agent/openclaw-agent.sqlite')
+OPENCLAW_INSTALL = Path('/root/.local/share/pnpm/global/5/node_modules/openclaw')
+MEMORY_INDEX_LOG = LIVE_WORKSPACE / 'logs' / 'memory_index.log'
+# Nightly reindex is 05:10 HKT; 30h lets one run slip into the next daily review
+# rather than firing on the normal gap between two runs.
+MEMORY_REINDEX_MAX_AGE_HOURS = 30
+
 # Check result severity
 CRITICAL = '✗ CRITICAL'
 WARNING  = '⚠ WARN'
@@ -522,6 +534,126 @@ def check_trading_calendar_horizon(r):
         r.add('trading calendar', OK, f'{horizon} · both markets')
 
 
+def _memory_index_backlog():
+    """(missing, stale, indexed) — what openclaw embeds vs what its index holds.
+
+    Measured from `memory_index_sources` rather than `openclaw memory status`,
+    for two reasons: the CLI call costs ~16s, which is too much for a pre-push
+    hook, and its `Dirty:` line clears after the cheap chunk/FTS pass and before
+    the expensive embed pass — so it reads healthy while vectors are missing.
+    Comparing the recorded size against the file on disk also catches a source
+    that was indexed once and has changed since, which the ratio cannot show.
+    """
+    import sqlite3
+    conn = sqlite3.connect(f'file:{MEMORY_INDEX_DB}?mode=ro', uri=True, timeout=10)
+    try:
+        indexed = {row[0]: int(row[1]) for row in
+                   conn.execute('select path, size from memory_index_sources')}
+    finally:
+        conn.close()
+
+    # openclaw's scope is `MEMORY.md` + every .md under memory/, including the
+    # gitignored .tmp and .dreams trees (verified against a clean 472/472 index).
+    on_disk = {}
+    root_doc = LIVE_WORKSPACE / 'MEMORY.md'
+    if root_doc.exists():
+        on_disk['MEMORY.md'] = root_doc.stat().st_size
+    for path in (LIVE_WORKSPACE / 'memory').rglob('*.md'):
+        try:
+            on_disk[path.relative_to(LIVE_WORKSPACE).as_posix()] = path.stat().st_size
+        except OSError:
+            continue  # written and removed underneath us; not a backlog
+
+    missing = sorted(p for p in on_disk if p not in indexed)
+    stale = sorted(p for p, size in on_disk.items() if p in indexed and indexed[p] != size)
+    return missing, stale, len(indexed)
+
+
+def _memory_index_patch_gaps():
+    """Local dist patches openclaw upgrades wipe, both silent at the point of use."""
+    try:
+        dist = OPENCLAW_INSTALL.resolve() / 'dist'
+    except OSError as e:  # noqa: BLE001
+        return [f'cannot resolve openclaw install: {e}']
+    if not dist.is_dir():
+        return [f'openclaw dist not found at {dist}']
+
+    def contains(pattern, needle):
+        for path in dist.glob(pattern):
+            try:
+                if needle in path.read_text(encoding='utf-8', errors='replace'):
+                    return True
+            except OSError:
+                continue
+        return False
+
+    gaps = []
+    if not contains('embeddings-*.js', 'threads: 1, batchSize: 512'):
+        gaps.append('threads:1 embedding patch missing (local embedding can deadlock)')
+    if contains('tools-*.js', 'MEMORY_SEARCH_TOOL_TIMEOUT_MS = 15e3;'):
+        gaps.append('memory_search deadline back to stock 15s (this box needs ~27s cold)')
+    return gaps
+
+
+def _memory_reindex_age_hours():
+    """Hours since the nightly reindex last finished, or None if it never has."""
+    if not MEMORY_INDEX_LOG.exists():
+        return None
+    last = None
+    for line in MEMORY_INDEX_LOG.read_text(errors='replace').splitlines():
+        # The */15 reaper writes to the same log, so its mtime proves nothing.
+        if 'reindex done' in line:
+            last = line.split(' ', 1)[0]
+    if not last:
+        return None
+    try:
+        when = datetime.fromisoformat(last)
+    except ValueError:
+        return None
+    if when.tzinfo is None:
+        when = when.astimezone()
+    return (datetime.now(timezone.utc) - when).total_seconds() / 3600
+
+
+def check_memory_index(r):
+    """Semantic recall degrades silently; nothing else reports it.
+
+    On 2026-07-27 the index had been 23 files behind for five days — every
+    dreaming note since 07-23 and both recent weekly reviews were invisible to
+    recall — and it surfaced only because someone read `openclaw memory status`
+    by hand while chasing an unrelated bug. Warn, never block: a stale index
+    costs recall quality, and holding a publish over it would be the worse
+    trade.
+    """
+    if not MEMORY_INDEX_DB.exists() or not LIVE_WORKSPACE.is_dir():
+        r.add('memory index', OK, 'no live index on this host (skipped)')
+        return
+    try:
+        missing, stale, indexed = _memory_index_backlog()
+    except Exception as e:  # noqa: BLE001 — an unreadable index is the warning
+        r.add('memory index', WARNING, f'cannot read index: {e}')
+        return
+
+    problems = []
+    if missing:
+        problems.append(f'{len(missing)} file(s) never embedded (e.g. {missing[0]})')
+    if stale:
+        problems.append(f'{len(stale)} file(s) changed since indexing (e.g. {stale[0]})')
+    problems += _memory_index_patch_gaps()
+
+    age = _memory_reindex_age_hours()
+    if age is None:
+        problems.append('nightly reindex has never completed')
+    elif age > MEMORY_REINDEX_MAX_AGE_HOURS:
+        problems.append(f'nightly reindex last completed {age:.0f}h ago')
+
+    if problems:
+        r.add('memory index', WARNING, '; '.join(problems))
+    else:
+        r.add('memory index', OK,
+              f'{indexed} files embedded · patches applied · reindex {age:.0f}h ago')
+
+
 def check_research_artifacts(r):
     """Thesis, earnings and entry-gate artifacts must stay valid.
 
@@ -565,6 +697,7 @@ def main():
         check_generated_cron_docs,
         check_research_artifacts,
         check_trading_calendar_horizon,
+        check_memory_index,
     ]
     for c in checks:
         try:
