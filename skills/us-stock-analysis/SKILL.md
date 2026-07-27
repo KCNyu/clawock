@@ -88,7 +88,7 @@ dreaming 留独占窗口，所以 EST 季比 EDT 季少两个 slot。
 ```bash
 python3 /root/.openclaw/workspace/scripts/harness/intraday_preflight.py --market us
 ```
-输出 `memory/.tmp/intraday-context-us-latest.json`，关键字段：`should_alert` + `alert_reasons`，另有 `peer_scan`（本腿持仓的板块+同业涨跌，已排序）。
+输出 `memory/.tmp/intraday-context-us-latest.json`，关键字段：`should_alert` + `alert_reasons`，另有 `peer_scan`（本腿持仓的板块+同业涨跌，已排序）和 `plan_context`（08:00 简报为本腿定下、尚未成交的决策）。
 - `mover_thesis` — **只对本轮异动票**的 thesis 只读快照：`state`、`triggered`/`watch` 红线（含 severity 与 required_action）、下次 review trigger；最新一次 entry gate 判 `reject` 也会标出来。没有基线就是 `unknown`，不许靠记忆补。**这是归因语境不是催化剂**：红线解释「这个跌为什么要紧、当初说好要怎么做」，但能不能动手仍由 catalyst-gate 决定（软消息/情绪不构成主动操作依据）。
 - `mover_news` — **只对本轮异动票**、有限预算抓回来的「刚发生了什么」：`tier=primary` 是交易所/监管一手文件（港股=港交所公告，美股=SEC filing，带 `age_minutes`），`tier=supporting` 是券商研报/媒体/7×24 快讯。**只有 primary 才可能构成硬催化**（仍要过 catalyst-gate）；supporting 只能当色彩，不能作为主动操作依据。
   - `status=no_recent_filing` 是**明确的空**：写「窗口内无一手公告」，不要改口编一个理由；`status=degraded` 说明源没抓到，同样如实写。
@@ -114,6 +114,8 @@ python3 /root/.openclaw/workspace/scripts/harness/intraday_preflight.py --market
     - `status=degraded` → 写「催化源未取到」，别把它说成「没有消息」。
     - 引用**至多两条**、每条一行；`suppressed_noise` / `more_interrupts` 只是计数，不要写进报告。
   - 必须包含：今天该看/该等/该减 + 引用至少 1 个具体数字（票现价 / 异动幅度 / 信号 / RSI）
+  - 📋 **计划对账（`plan_context` 非空时必写 1 行）**：08:00 定下、还没成交的决策就在 `plan_context.open[]` 里——**不要再去 `cat` plan.json 或 decisions.jsonl**（2026-07-27 10:05 那样手刨 6 次还把 swap 股数说错，issue #119/#120）。写「{票} {action} {shares} 股仍挂着 / 已成交」，股数**照抄 `shares` 字段**；`driven_by=risk_rule` 的纪律动作不许被改写成「等回踩再做」；`carried_over>0` 要点名往日挂单。
+  - 🔢 **数字铁律**：金额/股数一律**照抄 context**，不换算不心算；**别在 `▎我的看法` 里重述持仓股数或市值**（数据块里已经有了，但 `plan_context.open[].shares` 这种「本单动多少股」是要写的）；前瞻性数字要么给算式要么不写。postflight 的 `check_numeric_claims` 会把 context 里没有的数字和自相矛盾的区间标成 warn（issue #120）。
   - ⚡ **板块全景**：数据**已由 preflight 备好**在 context.json 的 `peer_scan` 里（每个 active ticker 一项：`theme` 板块名、`listed_peers` 已按今日涨幅降序、含 `pct_1d`/`pct_5d`、`divergence_signal`、`self_pct_1d`）。**直接引用它,不要自己去读 peer-map.json、也不要自己调 `fetch_peers.py`**；给对应主题成分今日 Top 5 + 你持仓位置 + 1 句归因;`peer_scan` 为空或缺项时才回退 web search。若某条带 `name_mismatch`,以 feed 名为准并在报告里提一句。持仓自己的数字仍从 context.json。板块行情**优先用内置 web search**；`tavily-search` 仅在**开盘/收盘报告**或盘中真事件时才用，且必带 `--bucket report`/`--bucket intraday`（见 Mode 5 的 Budget rule）——盘中每 30 分钟的常规盯盘**不要**烧 Tavily
   - 禁止"无异动，观望"这种敷衍 1 句话
 - 目标 ≤2200 字；>3000 字 postflight warn，>3500 字 fail
@@ -162,7 +164,19 @@ python3 /root/.openclaw/workspace/scripts/harness/report_preflight.py --market u
 
 **你不写数据块、不写表格、不写标题** —— postflight 自己从 context 拼。2026-07-24 之前是让模型 verbatim 拷贝数据块，结果模型读错 context 就把一天前的数字发了出去；现在那条回路已经拆掉，数字在发送时刻直接取自 context 文件。
 
-用 stdout 里的字段：`signal_count` / `anomalies` / `index_direction` / `needs_risk_section` / `peer_scan` / `mover_news`（异动票的一手催化）/ `mover_thesis`（异动票的 thesis 与红线）（板块 + 同业 Top 5 今日/5日涨跌 + 背离信号，板块全景段直接用它）；`raw_wechat_block` 是给你参考数字用的，**不要抄进散文**。
+用 stdout 里的字段：`signal_count` / `anomalies` / `index_direction` / `needs_risk_section` / `peer_scan` / `plan_context`（08:00 简报还没执行完的决策，见下）/ `mover_news`（异动票的一手催化）/ `mover_thesis`（异动票的 thesis 与红线）（板块 + 同业 Top 5 今日/5日涨跌 + 背离信号，板块全景段直接用它）；`raw_wechat_block` 是给你参考数字用的，**不要抄进散文**。
+
+⚠️ **`plan_context` 对账（非空时 ▎操作建议 必写，写在该段最前）**：里面是 08:00 简报为本腿定下、**还没成交**的决策（`open[]`：`ticker`/`action`/`shares`/`pct`/`condition`/`confidence`/`driven_by`/`rationale`，外加 `exec_mode` 当日执行方式、`carried_over` 有几条是往日挂到今天的）。
+- **不许给同一只票提相反的建议**。`driven_by=risk_rule` 的是**纪律动作不是择时**——给它加「等回踩 / 等反弹 / 等站稳」这类条件就是推翻简报（issue #119）。要推翻必须明写理由和新证据。
+- `exec_mode.today_override` 说了 MOO 就不许改写成限价单口径。
+- 股数/比例**照抄 `shares`/`pct`，不许换算也不许心算**；`carried_over>0` 时点一句「{n} 条昨日挂单仍未成交」。
+- `plan_context` 为 `{}` 说明今天本腿没有未完成决策，按正常写，不要编一个计划出来。
+
+🔢 **数字铁律（postflight 会查，见 `check_numeric_claims`）**：散文里出现的每个金额/股数**必须是 context 里已有的数字**，照抄不换算。
+- **禁止重述持仓股数、持仓市值、浮盈金额** —— 这些 postflight 已经拼在消息开头了，重述一遍只会多一次说错的机会（2026-07-27 就把 6200 股的仓位写成 1000 股）。**例外且仅此一个**：`plan_context.open[].shares` 是「这一单要动多少股」，照抄它是被要求的；被禁的是「这只票我持有多少股」。两者不是一回事——07226 持仓 6200 股、当日 swap 单 1000 股，同一天同一只票。
+- 前瞻性数字（「再跌 2% 会亏多少」）要么**别写**，要么写出算式让人能验；拍一个量级出来是 2026-07-27「再伤 1.5-2 万 HK$」（真实约 1 千）那条 issue #120 的原型。
+- 区间必须真实存在：`+0.3~-0.4%` 这种正负打架的区间是编的，postflight 会直接标出来。
+
 
 ▎情绪面 里的**异动归因**（`anomalies` 非空时必写，最多 2 行，写在该段最前）：
 - 每只异动票一行：「{票} {幅度}% ← {mover_news 里 signal=interrupt 的标题要点}（{age_minutes} 分钟前 / {source_class}）」。
@@ -180,7 +194,7 @@ python3 /root/.openclaw/workspace/scripts/harness/report_preflight.py --market u
 {RSI / MA stance → overbought/oversold/breakout}
 
 ▎操作建议
-{具体票 + 价位}
+{plan_context 非空时先写计划对账（哪条已成交/仍挂着 + 今天怎么执行），再写具体票 + 价位}
 
 ▎风险提示（仅当 needs_risk_section=true）
 ```

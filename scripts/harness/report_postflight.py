@@ -174,6 +174,9 @@ def validate(body, ctx, prose_only=False, model_text=None):
     # 6. 敷衍 phrases（模型文本）
     issues.extend(validate_forbidden_phrases(checked, FORBIDDEN_PHRASES))
 
+    # 7. 数字必须来自 context（模型文本）—— 一条聚合 warn，见 check_numeric_claims
+    issues.extend(check_numeric_claims(checked, ctx))
+
     return issues
 
 
@@ -194,6 +197,7 @@ def categorize(issues):
 sys.path.insert(0, str(Path(__file__).parent))
 from _harness_common import (  # noqa: E402
     categorize_issues,
+    check_numeric_claims,
     check_raw_tables_verbatim,
     dashboard_output_changes,
     git_cmd as _git,

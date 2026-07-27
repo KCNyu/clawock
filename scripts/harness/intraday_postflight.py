@@ -36,6 +36,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent))
 from _harness_common import (  # noqa: E402
     categorize_issues,
+    check_numeric_claims,
     check_raw_tables_verbatim,
     dashboard_output_changes,
     git_cmd,
@@ -165,6 +166,9 @@ def validate(text, ctx):
             issues.append(f'should_alert=true 但报告未提任何异动票 ({", ".join(anomaly_tickers)})')
 
     issues.extend(validate_forbidden_phrases(text, FORBIDDEN_PHRASES))
+
+    # 数字必须来自 context —— 一条聚合 warn，见 check_numeric_claims
+    issues.extend(check_numeric_claims(text, ctx))
 
     return issues
 

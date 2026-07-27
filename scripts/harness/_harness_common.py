@@ -6,6 +6,7 @@ across multiple postflight scripts. All functions accept the workspace root
 as path argument or default to the resolved workspace root.
 """
 import json
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -320,26 +321,167 @@ def validate_forbidden_phrases(text, phrases, label='报告'):
     return [f'{label}含敷衍词 "{p}"' for p in phrases if p in text]
 
 
+# --- numeric claims -------------------------------------------------------
+# Prose may quote the context; it may not compute. On 2026-07-27 the 09:30 report
+# shipped "日内可能再伤 1.5-2 万 HK$" for an exposure whose actual -2% impact was
+# about HK$1,000 — off by ~20x — and a "+0.3~-0.4%" range for two ETFs the context
+# put at +0.3% each. Both passed every existing check, because nothing looked at a
+# numeral (issue #120).
+#
+# SCOPE, stated plainly: this catches magnitudes that appear NOWHERE in the
+# context. It cannot catch a real number attached to the wrong thing — the same
+# report's "07226 + 03033 各 1000 股" quotes a share count that genuinely exists
+# (03033 holds 1000), it is simply not 07226's. That class is addressed by not
+# restating position sizes at all (SKILL rule) and by handing the prose the plan's
+# own numbers (plan_context, issue #119), not by a regex.
+_MAGNITUDE = {'万': 10_000, '亿': 100_000_000, 'w': 10_000}
+_CURRENCY = r'(?:HK\$|US\$|RMB|\$|¥|港元|美元|港币)'
+_NUM = r'-?\d[\d,]*(?:\.\d+)?'
+_SHARE_CLAIM = re.compile(rf'({_NUM})\s*(万|亿)?\s*(?:股|shares?\b)')
+_CURRENCY_CLAIM = re.compile(
+    rf'{_CURRENCY}\s*({_NUM})\s*(万|亿)?|({_NUM})\s*(万|亿)?\s*{_CURRENCY}'
+)
+# A range whose endpoints run backwards describes nothing real. The ASCII hyphen is
+# deliberately NOT a separator here: HK tickers are numeric, so "07226 -3.5%" —
+# the most common phrase in these reports — parsed as a range from 07226 to 3.5.
+# Checked against 23 real sent reports: that one character was every false
+# positive. `~` is what the observed defect ("+0.3~-0.4%") actually used.
+_RANGE = re.compile(rf'({_NUM})\s*(?:~|～|—|–|到|至)\s*({_NUM})\s*%')
+MAX_NUMERIC_SAMPLES = 4
+# Only book-scale currency figures are checked. US price talk is conventionally
+# written with the symbol — "跌破 $65，下一支撑 $60" is a level, not a claim about
+# the book, and flagging it would make the gate noise on ordinary technical
+# analysis. Book amounts in this portfolio are five figures; the fabricated
+# estimate this gate exists for (1.5-2 万 HK$ = 20,000) is far above the line.
+MIN_CHECKED_AMOUNT = 1_000
+
+
+def _as_number(raw, magnitude=None):
+    try:
+        value = float(str(raw).replace(',', ''))
+    except (TypeError, ValueError):
+        return None
+    return value * _MAGNITUDE.get(magnitude, 1)
+
+
+def _context_numbers(ctx):
+    """Every number the context states, in every form it states it.
+
+    Walks the whole context rather than a chosen subset: the data block, peer
+    percentages, plan sizes and index levels are all legitimate things for prose
+    to quote, and a hand-picked list would silently make new context fields
+    unquotable the day they are added.
+    """
+    seen = set()
+
+    def add(value):
+        number = _as_number(value)
+        if number is not None:
+            seen.add(round(abs(number), 4))
+
+    def walk(node):
+        if isinstance(node, dict):
+            for value in node.values():
+                walk(value)
+        elif isinstance(node, (list, tuple)):
+            for value in node:
+                walk(value)
+        elif isinstance(node, bool):
+            return
+        elif isinstance(node, (int, float)):
+            add(node)
+        elif isinstance(node, str):
+            for token in re.findall(_NUM, node):
+                add(token)
+
+    walk(ctx)
+    return seen
+
+
+def check_numeric_claims(text, ctx):
+    """Flag share/currency magnitudes the context never states, and impossible
+    percentage ranges.
+
+    Returns at most ONE issue on purpose. Every postflight turns a small number of
+    non-critical issues into `warn` (still delivered) and a larger number into
+    `fail` (not delivered): a chatty new heuristic that pushed a good report over
+    that line would convert a cosmetic problem into a missed report, which is the
+    strictly worse failure. One aggregated line keeps the gate advisory.
+    """
+    known = _context_numbers(ctx)
+    unverified = []
+
+    def check(value, label):
+        if value is None or round(abs(value), 4) in known:
+            return
+        if label not in unverified:
+            unverified.append(label)
+
+    for raw, magnitude in _SHARE_CLAIM.findall(text):
+        check(_as_number(raw, magnitude), f'{raw}{magnitude or ""}股')
+    for cur_num, cur_mag, num_cur, mag_cur in _CURRENCY_CLAIM.findall(text):
+        raw, magnitude = (cur_num, cur_mag) if cur_num else (num_cur, mag_cur)
+        amount = _as_number(raw, magnitude)
+        if amount is not None and abs(amount) >= MIN_CHECKED_AMOUNT:
+            check(amount, f'{raw}{magnitude or ""}')
+
+    impossible = [
+        f'{lo}~{hi}%' for lo, hi in _RANGE.findall(text)
+        if (_as_number(lo) is not None and _as_number(hi) is not None
+            and (_as_number(lo) > _as_number(hi)))
+    ]
+
+    parts = []
+    if unverified:
+        shown = ', '.join(unverified[:MAX_NUMERIC_SAMPLES])
+        parts.append(f'context 里没有的数字: {shown}')
+    if impossible:
+        parts.append(f'区间自相矛盾: {", ".join(impossible[:MAX_NUMERIC_SAMPLES])}')
+    if not parts:
+        return []
+    return [f'{"；".join(parts)} —— 数字只能引用 context，不许心算 {ADVISORY_MARK}']
+
+
+ADVISORY_MARK = '(advisory)'
+
+
+def is_advisory(issue):
+    """An advisory issue is reported but never escalates.
+
+    Without this, an advisory check still counts toward `warn_max` and can push a
+    report from `warn` (delivered) to `fail` (not delivered) purely by coexisting
+    with two unrelated soft issues — verified: intraday `[soft-length, thin
+    section, numeric]` categorised as `fail` while the same list minus the numeric
+    line categorised as `warn`. An advisory heuristic that can silently cost kcn a
+    report is worse than the cosmetic problem it reports.
+    """
+    return ADVISORY_MARK in issue
+
+
 def categorize_issues(issues, critical_substrings, warn_max=2, extra_critical=None):
     """Common pass/warn/fail decision used by all postflights.
 
     - empty issues → pass
     - any issue containing any critical_substring OR matching extra_critical(i) → fail
-    - otherwise warn if ≤ warn_max issues else fail
+    - advisory issues (see is_advisory) are reported but never counted or escalated
+    - otherwise warn if ≤ warn_max non-advisory issues else fail
 
     extra_critical: optional callable(issue_str) -> bool for compound checks
     (e.g. hard char limit detection that can't be a simple substring).
     """
     if not issues:
         return 'pass'
+    escalating = [i for i in issues if not is_advisory(i)]
     has_critical = any(
         any(c in i for c in critical_substrings)
         or (extra_critical is not None and extra_critical(i))
-        for i in issues
+        for i in escalating
     )
     if has_critical:
         return 'fail'
-    return 'warn' if len(issues) <= warn_max else 'fail'
+    if not escalating:
+        return 'warn'
+    return 'warn' if len(escalating) <= warn_max else 'fail'
 
 
 def safe_write_text(path, text):
