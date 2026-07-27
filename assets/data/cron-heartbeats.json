@@ -1,24 +1,8 @@
 {
   "schema_version": 1,
   "monitoring_started_at": "2026-07-16T02:17:00+08:00",
-  "updated_at": "2026-07-27T14:10:02.482615+08:00",
+  "updated_at": "2026-07-27T06:30:02.402735+00:00",
   "events": [
-    {
-      "job": "盘中盯盘",
-      "market": "hk",
-      "slot": "2026-07-24T14:30:00+08:00",
-      "state": "watchdog_backstop",
-      "updated_at": "2026-07-24T14:30:00.014000+08:00",
-      "should_alert": true,
-      "anomaly_count": 3,
-      "postflight_status": "pass",
-      "wechat_sent": true,
-      "telegram_sent": true,
-      "dashboard_published": true,
-      "insights_sidecar": true,
-      "issue_count": 0,
-      "watchdog_state": "deterministic_fallback"
-    },
     {
       "job": "盘中盯盘",
       "market": "hk",
@@ -284,6 +268,17 @@
       "insights_sidecar": true,
       "issue_count": 0,
       "watchdog_state": "ok"
+    },
+    {
+      "job": "盘中盯盘",
+      "market": "hk",
+      "slot": "2026-07-27T14:30:00+08:00",
+      "state": "no_change",
+      "updated_at": "2026-07-27T06:30:02.402735+00:00",
+      "should_alert": false,
+      "reasoning_invoked": false,
+      "trigger_reason": "unchanged",
+      "state_hash": "bcabeff6e5b37482aebf317f914bfe419753ba72389a2d5d9f776b142cdfcde3"
     }
   ]
 }
