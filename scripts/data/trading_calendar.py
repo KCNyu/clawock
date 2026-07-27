@@ -9,10 +9,25 @@ corruption catalogued in memory. This module is the single source of truth both
 layers consult.
 
 Holiday tables are static and hand-maintained (the local IP blocks most data
-sources, and exchange calendars are published a year ahead). Update them each
-December for the next year. Sources:
-  HKEX: https://www.calendarlabs.com/hkex-market-holidays-2026/
-  US (NYSE/Nasdaq): https://www.aarp.org/money/personal-finance/stock-market-holidays/
+sources, and exchange calendars are published a year ahead). Extend them before
+the covered year runs out; `system_check` warns from October and goes critical
+once the current year is uncovered.
+
+US dates are rule-based but must still be read off the exchange calendar: the
+Saturday/Sunday observance shifts are what move them (2027 has two — Juneteenth
+back to Fri 18 Jun, Christmas back to Fri 24 Dec — and one forward, Independence
+Day to Mon 5 Jul). HK dates depend on the gazetted general holidays and the
+lunar calendar and cannot be computed at all: 2027 substitutes the 4th day of
+Lunar New Year because the 2nd falls on a Sunday.
+
+Sources (authoritative, re-checked 2026-07-27):
+  US (NYSE/Nasdaq) 2025-2027 holiday and early-closings calendar:
+    https://ir.theice.com/press/news-details/2024/NYSE-Group-Announces-2025-2026-and-2027-Holiday-and-Early-Closings-Calendar/default.aspx
+  HK general holidays, gazetted:
+    https://www.gov.hk/en/about/abouthk/holiday/2027.htm
+  HKEX half-day sessions (eves of LNY/Christmas/New Year, and the day of the
+  Mid-Autumn Festival — morning session only, no afternoon):
+    https://www.hkex.com.hk/Services/Trading-hours-and-Severe-Weather-Arrangements/Trading-Hours/Securities-Market?sc_lang=en
 
 CLI:
   python3 trading_calendar.py hk            -> prints OPEN/CLOSED, exit 0/1
@@ -47,6 +62,18 @@ US_HOLIDAYS = {
     "2026-09-07",  # Labor Day (Mon)
     "2026-11-26",  # Thanksgiving (Thu)
     "2026-12-25",  # Christmas (Fri)
+
+    # 2027 NYSE/Nasdaq — NYSE Group calendar (see module docstring).
+    "2027-01-01",  # New Year's Day (Fri)
+    "2027-01-18",  # Martin Luther King Jr. Day (Mon)
+    "2027-02-15",  # Washington's Birthday (Mon)
+    "2027-03-26",  # Good Friday (Fri)
+    "2027-05-31",  # Memorial Day (Mon)
+    "2027-06-18",  # Juneteenth observed (Fri; 19 Jun is a Sat)
+    "2027-07-05",  # Independence Day observed (Mon; 4 Jul is a Sun)
+    "2027-09-06",  # Labor Day (Mon)
+    "2027-11-25",  # Thanksgiving (Thu)
+    "2027-12-24",  # Christmas observed (Fri; 25 Dec is a Sat)
 }
 
 HK_HOLIDAYS = {
@@ -68,6 +95,25 @@ HK_HOLIDAYS = {
     "2026-10-19",  # Chung Yeung Festival (Mon)
     "2026-12-25",  # Christmas Day (Fri)
     "2026-12-26",  # Christmas observed (Sat - weekend)
+
+    # 2027 HKEX full-day closures — gazetted general holidays (see docstring).
+    "2027-01-01",  # New Year's Day (Fri)
+    "2027-02-06",  # Lunar New Year's Day (Sat - weekend)
+    "2027-02-08",  # LNY 3rd day (Mon)
+    "2027-02-09",  # LNY 4th day (Tue) — substitutes the 2nd day, which is a Sun
+    "2027-03-26",  # Good Friday (Fri)
+    "2027-03-27",  # Day following Good Friday (Sat - weekend)
+    "2027-03-29",  # Easter Monday (Mon)
+    "2027-04-05",  # Ching Ming Festival (Mon)
+    "2027-05-01",  # Labour Day (Sat - weekend)
+    "2027-05-13",  # Buddha's Birthday (Thu)
+    "2027-06-09",  # Tuen Ng / Dragon Boat (Wed)
+    "2027-07-01",  # HKSAR Establishment Day (Thu)
+    "2027-09-16",  # Day following Mid-Autumn Festival (Thu)
+    "2027-10-01",  # National Day (Fri)
+    "2027-10-08",  # Chung Yeung Festival (Fri)
+    "2027-12-25",  # Christmas Day (Sat - weekend)
+    "2027-12-27",  # First weekday after Christmas (Mon)
 }
 
 # HK half-days: morning session only (afternoon closed). Open for the morning,
@@ -77,11 +123,17 @@ HK_HALF_DAYS = {
     "2026-09-25",  # Day before Mid-Autumn (Fri)
     "2026-12-24",  # Christmas Eve (Thu)
     "2026-12-31",  # New Year's Eve (Thu)
+
+    # 2027
+    "2027-02-05",  # Lunar New Year's Eve (Fri)
+    "2027-09-15",  # Mid-Autumn Festival day (Wed) — the holiday is the day after
+    "2027-12-24",  # Christmas Eve (Fri) — US is shut, HK trades the morning
+    "2027-12-31",  # New Year's Eve (Fri)
 }
 
 MARKET_TZ = {"hk": "Asia/Hong_Kong", "us": "America/New_York"}
 HOLIDAYS = {"hk": HK_HOLIDAYS, "us": US_HOLIDAYS}
-LATEST_YEAR = 2026  # bump when tables are extended; guards warn past this
+LATEST_YEAR = 2027  # bump when tables are extended; guards warn past this
 
 
 def _today_in_market(market: str) -> date:
