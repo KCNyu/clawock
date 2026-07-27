@@ -35,6 +35,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
 from _harness_common import (  # noqa: E402
+    advisory_prefix,
     categorize_issues,
     check_numeric_claims,
     check_raw_tables_verbatim,
@@ -43,6 +44,7 @@ from _harness_common import (  # noqa: E402
     push_with_rebase_retry,
     rebuild_dashboard,
     snapshot_date_for_now,
+    split_advisory,
     validate_forbidden_phrases,
 )
 from _watchdog_common import resolve_wechat_target, send_wechat, cosend_telegram, already_delivered  # noqa: E402
@@ -182,8 +184,14 @@ def categorize(issues):
     )
 
 
-def delivery_marker_payload(ctx, *, ts, sent_ok, tg_ok, first_line, market, out):
-    """Build the watchdog marker with the preflight slot as its identity."""
+def delivery_marker_payload(ctx, *, ts, sent_ok, tg_ok, first_line, market, out,
+                            delivery_state='delivered'):
+    """Build the watchdog marker with the preflight slot as its identity.
+
+    `delivery_state` distinguishes a full report from the fail-closed data block
+    (#135): both are real deliveries — the watchdog must not re-send either —
+    but only one of them carried the model's prose.
+    """
     heartbeat = ctx.get('heartbeat') or {}
     return {
         'ts': ts,
@@ -193,6 +201,7 @@ def delivery_marker_payload(ctx, *, ts, sent_ok, tg_ok, first_line, market, out)
         'market': market,
         'job': heartbeat.get('job'),
         'slot': heartbeat.get('slot'),
+        'delivery_state': delivery_state,
         'out': (out or '')[-200:],
     }
 
@@ -245,16 +254,20 @@ def main():
         print(f'warn: {insights_path.name} 未写 — dashboard status_banner 将过期隐藏 '
               f'(SKILL Mode 7 Step 2.5 / cron payload Step 2.5)', file=sys.stderr)
 
-    if status == 'pass':
-        wechat_prefix = ''
+    # The banner counts and lists ESCALATING issues only; advisory findings get
+    # their own line below, so a truncated list can never drop them (#134).
+    escalating, advisories = split_advisory(issues)
+    if status == 'pass' or not escalating:
+        banner = ''
     elif status == 'warn':
-        wechat_prefix = (f'⚠️ Validation warnings ({len(issues)}): '
-                         + '; '.join(issues[:2])
-                         + '\n\n')
+        banner = (f'⚠️ Validation warnings ({len(escalating)}): '
+                  + '; '.join(escalating[:2])
+                  + '\n\n')
     else:
-        wechat_prefix = (f'🔴 Validation FAILED ({len(issues)} issues):\n'
-                         + '\n'.join('- ' + i for i in issues[:4])
-                         + '\n\n')
+        banner = (f'🔴 Validation FAILED ({len(escalating)} issues), 仅发布数据块:\n'
+                  + '\n'.join('- ' + i for i in escalating[:4])
+                  + '\n\n')
+    wechat_prefix = banner + advisory_prefix(advisories)
 
     # ── WeChat delivery (decoupled from the cron's announce) ──────────────────
     # The cron's announce fires at the END of a long agent turn using a token
@@ -271,7 +284,7 @@ def main():
     # the report already went out on the prior attempt — skip the re-send. Intraday's
     # marker is per-market, so use a 20min window (< the 30min slot cadence, > the
     # few-min retry gap) to tell a retry from the next legit slot. See already_delivered.
-    if status in ('pass', 'warn') and already_delivered(marker, within_ms=20 * 60 * 1000):
+    if already_delivered(marker, within_ms=20 * 60 * 1000):
         print('idempotency: intraday already delivered this slot — skip re-send', file=sys.stderr)
         try:
             prior = json.loads(marker.read_text())
@@ -279,33 +292,51 @@ def main():
             tg_ok = prior.get('tg_ok')
         except Exception:
             pass
-    elif status in ('pass', 'warn'):
-        block_first = (ctx.get('raw_wechat_block', '') or '').strip().splitlines()
+    else:
+        # Fail-closed, not silent (#135). A rejected report used to send nothing
+        # at all, leaving a market slot indistinguishable from a dead cron until
+        # the watchdog mirrored a block to Telegram 10-40 minutes later. Deliver
+        # the harness-owned data block instead — every number in it is
+        # trustworthy by construction — and drop the prose that failed. Same
+        # shape as report_postflight's fail-closed body selection.
+        raw_block = (ctx.get('raw_wechat_block', '') or '').strip()
+        block_first = raw_block.splitlines()
         block_first = block_first[0] if block_first else ''
-        message = (wechat_prefix + text).strip()
-        try:
-            channel, to, account = resolve_wechat_target(args.market)
-            wechat_sent, send_out = send_wechat(channel, to, account, message, dry_run=False)
-        except Exception as e:
-            wechat_sent, send_out = False, str(e)[:300]
-        # Always co-send to Telegram (cold-proof) — WeChat can't confirm real delivery.
-        # Record the Telegram result: it's the sole backstop intraday_watchdog now
-        # uses (no more WeChat resend), so it needs to know if TG already got this.
-        tg_ok, _tg_out = cosend_telegram(message, f'intraday-{args.market}')
-        try:
-            marker.write_text(json.dumps(delivery_marker_payload(
-                ctx,
-                ts=int(datetime.now().timestamp() * 1000),
-                sent_ok=wechat_sent,
-                tg_ok=tg_ok,
-                first_line=block_first,
-                market=args.market,
-                out=send_out,
-            ), ensure_ascii=False))
-        except Exception as e:
-            print(f'warn: marker write failed: {e}', file=sys.stderr)
-        if not wechat_sent:
-            print(f'warn: WeChat send failed (watchdog will retry): {send_out[:200]}', file=sys.stderr)
+        body = raw_block if status == 'fail' else text
+        if status == 'fail' and not raw_block:
+            # Nothing trustworthy to deliver: the banner alone is the scary empty
+            # send this harness already fixed once (2026-06-17). Leave it to the
+            # watchdog rather than push a message with no content.
+            print('warn: validation failed and the context carries no data block — '
+                  'nothing sent, watchdog owns this slot', file=sys.stderr)
+        else:
+            message = (wechat_prefix + body).strip()
+            try:
+                channel, to, account = resolve_wechat_target(args.market)
+                wechat_sent, send_out = send_wechat(channel, to, account, message, dry_run=False)
+            except Exception as e:
+                wechat_sent, send_out = False, str(e)[:300]
+            # Always co-send to Telegram (cold-proof) — WeChat can't confirm real
+            # delivery. Record the Telegram result: it's the sole backstop
+            # intraday_watchdog now uses (no more WeChat resend), so it needs to
+            # know if TG already got this.
+            tg_ok, _tg_out = cosend_telegram(message, f'intraday-{args.market}')
+            try:
+                marker.write_text(json.dumps(delivery_marker_payload(
+                    ctx,
+                    ts=int(datetime.now().timestamp() * 1000),
+                    sent_ok=wechat_sent,
+                    tg_ok=tg_ok,
+                    first_line=block_first,
+                    market=args.market,
+                    out=send_out,
+                    delivery_state='failed' if status == 'fail' else 'delivered',
+                ), ensure_ascii=False))
+            except Exception as e:
+                print(f'warn: marker write failed: {e}', file=sys.stderr)
+            if not wechat_sent:
+                print(f'warn: WeChat send failed (watchdog will retry): {send_out[:200]}',
+                      file=sys.stderr)
 
     dashboard_published = False
     if status in ('pass', 'warn'):
