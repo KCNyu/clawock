@@ -15,10 +15,18 @@ Empty or stale input is reported as `status: input_error` — a plumbing failure
 distinct from `fail` (the report itself is bad). It still exits non-zero: this is
 the delivery gate, and a false green is worse than a false red.
 
+Two input modes, selected by `--context-id`:
+  prose (canonical, with --context-id): the model writes ONLY the ▎我的看法 prose;
+      assemble_message() prepends the harness-owned data block at send time.
+  legacy (no --context-id): the model's text IS the whole message and the data
+      block is checked for a byte-exact copy. Kept so a cron payload that has not
+      been migrated yet still delivers.
+
 Validates:
   1. ▎我的看法 段必须存在 + 段内容 ≥ 60 字（防敷衍 1 句话）
   2. 总长度 ≤ 3000 字 (warn), ≤ 3500 字 (fail) — 与 Mode 6 US 对齐
-  3. 必须以 raw_wechat_block 开头 (verbatim)
+  3. legacy 模式：必须以 raw_wechat_block 开头且表格逐字符复制
+     prose 模式：数据块由 harness 拼装，无往返可校验
   4. 若 preflight should_alert=true：报告必须提到至少一个异动票或 alert_reason
   5. 无敷衍 phrases
 
@@ -80,8 +88,9 @@ def load_context(market):
 
 def read_report_text(market, text_file):
     """Return (text, input_error). Plumbing failures never reach validate()."""
-    hint = (f'Step 3 应先把报告写入 memory/.tmp/intraday-report-{market}.md，'
-            f'再用 --text-file 调用 postflight；不要用 heredoc/<<< 喂 stdin')
+    hint = (f'Step 3 应先把 ▎我的看法 散文写入 memory/.tmp/intraday-prose-{market}.md，'
+            f'再用 --text-file + --context-id 调用 postflight；'
+            f'不要用 heredoc/here-string 重定向喂 stdin')
     if text_file:
         path = Path(text_file)
         if not path.exists():
@@ -129,21 +138,56 @@ def input_error(market, err):
     return 2
 
 
-def validate(text, ctx):
+def assemble_message(ctx, prose):
+    """Build the delivered check-in from harness-owned data + model-owned prose.
+
+    Mode 7 used to make the deterministic data block round-trip through the LLM:
+    preflight put it in the context, the payload ordered the model to retype it
+    character for character, and validate() diffed the copy. Mode 6 dropped that
+    on 2026-07-24; Mode 7 was left behind and kept paying for it — on 2026-07-28
+    00:30 the model padded RKLX's 浮$ cell with one extra space, the strict
+    substring check raised a CRITICAL, and the whole ▎我的看法 段 was dropped in
+    favour of the bare data block. The table was correct; only its whitespace
+    was not.
+
+    Prepending here removes the round trip: the numbers in the delivered message
+    come from the context file at send time, so they cannot be paraphrased or
+    table-mangled — no copy instruction and no verbatim rule needed. Mode 7 has
+    no separate `title`; raw_wechat_block already opens with the titled first
+    line, so the block alone is the prefix.
+    """
+    parts = [(ctx.get('raw_wechat_block') or '').strip(), (prose or '').strip()]
+    return '\n\n'.join(p for p in parts if p)
+
+
+def validate(text, ctx, prose_only=False, model_text=None):
+    """Validate the delivered check-in.
+
+    `text` is what gets sent. `model_text` is the part the MODEL wrote; in prose
+    mode that is the prose alone, in legacy mode it is the whole report.
+
+    The content rules — 我的看法 段, anomaly mention, forbidden phrases, numeric
+    claims — MUST run against model_text, never the assembled body. The prepended
+    block itself contains the anomaly tickers and section-looking tokens, so
+    checking the body would let prose that names none of the movers pass because
+    the table does. Only the length limit is a property of the assembled body.
+    (Same split as report_postflight.validate — see its docstring.)
+    """
     issues = []
+    checked = text if model_text is None else model_text
 
     raw = ctx.get('raw_wechat_block', '').strip()
-    if raw:
+    if raw and not prose_only:
         first_line = raw.splitlines()[0]
         if first_line not in text:
             issues.append(f'报告未包含原始数据块首行 "{first_line[:40]}..." (verbatim 失败)')
         issues.extend(check_raw_tables_verbatim(text, raw))
 
-    if REQUIRED_SECTION not in text:
+    if REQUIRED_SECTION not in checked:
         issues.append(f'缺段标记 "{REQUIRED_SECTION}"')
     else:
         # 我的看法 段必须 ≥ 60 字（否则就是敷衍 1 句结案）
-        section_body = text.split(REQUIRED_SECTION, 1)[1].strip()
+        section_body = checked.split(REQUIRED_SECTION, 1)[1].strip()
         # cut to next section (▎XXX) or end
         next_marker = section_body.find('\n▎')
         if next_marker > 0:
@@ -155,6 +199,8 @@ def validate(text, ctx):
                 f'(< 60 软下限)；需引用具体票 + 一行判断'
             )
 
+    # Length is a property of what actually gets pushed to WeChat, so it — and
+    # only it — measures the assembled body.
     n = len(text)
     if n > 3500:
         issues.append(f'报告长度 {n} 字 > 3500 上限')
@@ -163,14 +209,14 @@ def validate(text, ctx):
 
     if ctx.get('should_alert'):
         anomaly_tickers = [a['ticker'] for a in ctx.get('anomalies', [])]
-        mentioned = [t for t in anomaly_tickers if t in text]
+        mentioned = [t for t in anomaly_tickers if t in checked]
         if anomaly_tickers and not mentioned:
             issues.append(f'should_alert=true 但报告未提任何异动票 ({", ".join(anomaly_tickers)})')
 
-    issues.extend(validate_forbidden_phrases(text, FORBIDDEN_PHRASES))
+    issues.extend(validate_forbidden_phrases(checked, FORBIDDEN_PHRASES))
 
     # 数字必须来自 context —— 一条聚合 warn，见 check_numeric_claims
-    issues.extend(check_numeric_claims(text, ctx))
+    issues.extend(check_numeric_claims(checked, ctx))
 
     return issues
 
@@ -211,6 +257,11 @@ def main():
     parser.add_argument('--market', choices=['hk', 'us'], required=True)
     parser.add_argument('--text-file',
                         help='report text file (canonical path; stdin only for manual runs)')
+    parser.add_argument('--context-id',
+                        help='the context_id printed by intraday_preflight. Passing it '
+                             'selects prose mode: the file holds ONLY the ▎我的看法 prose '
+                             'and the harness prepends the data block. Omit for legacy '
+                             'whole-report input.')
     args = parser.parse_args()
 
     # Holiday/weekend gate: no send/publish on a closed market.
@@ -240,8 +291,28 @@ def main():
         print(json.dumps(result, ensure_ascii=False, indent=2))
         return 2
 
-    issues = validate(text, ctx)
-    status = categorize(issues)
+    prose_only = args.context_id is not None
+
+    # ── Generation gate (prose mode only) ────────────────────────────────────
+    # The model echoes the context_id it wrote against. A mismatch means the
+    # context on disk was replaced after the prose was written — the agent ran
+    # preflight a second time mid-turn. Assembling fresh numbers under stale
+    # prose would produce an internally contradictory check-in that LOOKS clean,
+    # so refuse to assemble and fall through to the data-block-only path.
+    stale_generation = prose_only and args.context_id != ctx.get('context_id')
+
+    # Keep the model's own text for the content rules; assemble the delivered
+    # body separately, so the prepended block never satisfies a rule on the
+    # model's behalf.
+    model_text = text if prose_only else None
+    if prose_only and not stale_generation:
+        text = assemble_message(ctx, text)
+
+    issues = ([f'context_id 不匹配: 模型基于 {args.context_id}，当前 context 是 '
+               f'{ctx.get("context_id")} — 散文与数据不同代，拒绝拼装']
+              if stale_generation
+              else validate(text, ctx, prose_only=prose_only, model_text=model_text))
+    status = 'fail' if stale_generation else categorize(issues)
 
     # Step 2.5 sidecar liveness (warn-only, stderr — NOT in the WeChat report):
     # the dashboard status banner went dark 06-04→06-10 when a payload rewrite
@@ -362,10 +433,12 @@ def main():
     result = {
         'status':        status,
         'market':        args.market,
+        'mode':          'prose' if prose_only else 'legacy',
         'time':          datetime.now().strftime('%H:%M'),
         'issues':        issues,
         'wechat_prefix': wechat_prefix,
         'n_chars':       len(text),
+        'n_chars_model': len(model_text) if model_text is not None else len(text),
         'wechat_sent':   wechat_sent,
         'telegram_sent': tg_ok,
         'dashboard_published': dashboard_published,

@@ -86,7 +86,7 @@ python3 /root/.openclaw/workspace/scripts/data/analyze_hk_stocks.py --no-fetch  
 ```bash
 python3 /root/.openclaw/workspace/scripts/harness/intraday_preflight.py --market hk
 ```
-跑 `scripts/data/analyze_hk_stocks.py --wechat --md-table` + 抽信号 + 异动，输出 `memory/.tmp/intraday-context-hk-latest.json`。
+跑 `scripts/data/analyze_hk_stocks.py --wechat --md-table` + 抽信号 + 异动，输出 `memory/.tmp/intraday-context-hk-latest.json`，并把**同一份 JSON** 打到 stdout（含 `context_id` —— Step 3 要原样回传）。
 - `mover_thesis` — **只对本轮异动票**的 thesis 只读快照：`state`、`triggered`/`watch` 红线（含 severity 与 required_action）、下次 review trigger；最新一次 entry gate 判 `reject` 也会标出来。没有基线就是 `unknown`，不许靠记忆补。**这是归因语境不是催化剂**：红线解释「这个跌为什么要紧、当初说好要怎么做」，但能不能动手仍由 catalyst-gate 决定（软消息/情绪不构成主动操作依据）。
 - `mover_news` — **只对本轮异动票**、有限预算抓回来的「刚发生了什么」：`tier=primary` 是交易所/监管一手文件（港股=港交所公告，美股=SEC filing，带 `age_minutes`），`tier=supporting` 是券商研报/媒体/7×24 快讯。**只有 primary 才可能构成硬催化**（仍要过 catalyst-gate）；supporting 只能当色彩，不能作为主动操作依据。
   - `status=no_recent_filing` 是**明确的空**：写「窗口内无一手公告」，不要改口编一个理由；`status=degraded` 说明源没抓到，同样如实写。
@@ -97,13 +97,11 @@ python3 /root/.openclaw/workspace/scripts/harness/intraday_preflight.py --market
   - `halts`（仅美股，每 slot 一次共享请求）：持仓或其标的被停牌时给出 `reason_code`（LULD 的 `LUDP` 最常打到 2x ETF）与复牌时间；港股停牌走公告（已在 triage 里判 interrupt）。
 关键字段：`should_alert` (bool) + `alert_reasons` (异动票/STOP 计数等)。另有 `peer_scan`（本腿持仓的板块+同业涨跌，已排序）和 `plan_context`（08:00 简报为本腿定下、尚未成交的决策）。
 
-#### Step 2: 写报告
-- 拷贝 `raw_wechat_block` 到消息开头（**verbatim — 不许改格式不许 trim**）
-  - intraday 的 holdings 是 **markdown 表格**（7 列：代码/股/成本/现价/今日/浮%/浮$，右对齐数字。走 `scripts/data/_wechat_table.py` 的 visual-width-aware 渲染，去 HK$ 前缀 + 加 浮$ 金额列）
-  - ⚠️ **表格的 3 类行（表头 / 分隔 `|:--|--:|...|` / 每条数据）每一字符 1:1 复制**，不要数列重写分隔行 — 5/21 后多次因 LLM 自己写分隔行少一段 `--:|` 导致渲染失败（postflight 会 fail）
-  - **市值/浮盈/今日 已经是单行用 `|` 分隔的格式** — 不要拆 3 行
-  - **`📉 亏损持仓 X/Y | 2x杠杆敞口 N%` 必须保留**，不要省
-- 加 `▎我的看法` 段：**至少 60 字（postflight 软下限），目标 2-3 行**
+#### Step 2: 只写 `▎我的看法` 散文（数据块归 harness）
+- ❌ **不要抄 `raw_wechat_block`，不要重画那张表** —— postflight 在发送时自己把它拼在你的散文前面。
+  你抄一遍只会引入排版误差：2026-07-28 00:30 就因为一格多打了一个空格，整段分析被丢掉只发了数据块。
+  数据块里的市值/持仓表/亏损持仓行**已经在消息里了**，你的输出从 `▎我的看法` 开始。
+- 你交付的就是这一段：**至少 60 字（postflight 软下限），目标 2-3 行**
   - 若 `should_alert=true`，**必须**提到 `anomalies` 里至少一个票
   - **异动归因（`should_alert=true` 时必写，占 1 行）**：从 `mover_news.tickers[票].items` 里挑 **`signal=interrupt`** 的第一条，写成
     「{票} {幅度}% ← {标题要点}（{age_minutes} 分钟前 / {source_class}）」。多只异动票就各写一行，最多 3 行。
@@ -117,35 +115,38 @@ python3 /root/.openclaw/workspace/scripts/harness/intraday_preflight.py --market
   - 🔢 **数字铁律**：金额/股数一律**照抄 context**，不换算不心算；**别在 `▎我的看法` 里重述持仓股数或市值**（数据块里已经有了，但 `plan_context.open[].shares` 这种「本单动多少股」是要写的）；前瞻性数字要么给算式要么不写。postflight 的 `check_numeric_claims` 会把 context 里没有的数字和自相矛盾的区间标成 warn（issue #120）。
   - ⚡ **板块全景**：数据**已由 preflight 备好**在 context.json 的 `peer_scan` 里（每个 active ticker 一项：`theme` 板块名、`listed_peers` 已按今日涨幅降序、含 `pct_1d`/`pct_5d`、`divergence_signal`、`self_pct_1d`）。**直接引用它,不要自己去读 peer-map.json、也不要自己调 `fetch_peers.py`**；给板块今日 Top 5 + 你持仓在榜单里的位置 + 1 句归因;`peer_scan` 为空或缺项时才回退 web search。若某条带 `name_mismatch`,以 feed 名为准并在报告里提一句。持仓自己的数字仍从 context.json。板块行情**优先用内置 web search**；`tavily-search` 仅在**开盘/收盘报告**或盘中真事件时才用，且必带 `--bucket report`/`--bucket intraday`——盘中每 30 分钟的常规盯盘**不要**烧 Tavily（免费档 1000/月全局共享）
   - 禁止"无异动，观望"这种敷衍 1 句话
-- 目标 ≤2200 字；>3000 字 postflight warn，>3500 字 fail
+- 目标 ≤2200 字；>3000 字 postflight warn，>3500 字 fail（长度算的是拼装后的整条消息）
 
 #### Step 2.5: 写 dashboard 状态横幅 sidecar
 
 **规范见 `skills/_shared/intraday-status-sidecar.md`**（hk/us 共用单一来源）—— 写 `memory/.tmp/intraday-insights-{date}.json`（status_banner + 每个异动票 movers 归因，只文本无 key）。
 - 本市场杠杆 ETF：**07226**（恒科 2x）等，归因要点明"杠杆放大"。
 
-#### Step 3: 跑 postflight（先写文件，再调用 —— 禁用 heredoc/`<<<`）
-**必须两步、按顺序**：先用文件写入工具把 Step 2 的报告原样写到
-`memory/.tmp/intraday-report-hk.md`，确认写入成功后再调用：
+#### Step 3: 跑 postflight（先写文件，再调用 —— 禁用 heredoc / here-string 重定向）
+**必须两步、按顺序**：先用文件写入工具把 Step 2 的散文写到
+`memory/.tmp/intraday-prose-hk.md`，确认写入成功后再调用（命令写成一行）：
 ```bash
-python3 /root/.openclaw/workspace/scripts/harness/intraday_postflight.py \
-  --market hk --text-file /root/.openclaw/workspace/memory/.tmp/intraday-report-hk.md
+python3 /root/.openclaw/workspace/scripts/harness/intraday_postflight.py --market hk --context-id {Step 1 的 context_id} --text-file /root/.openclaw/workspace/memory/.tmp/intraday-prose-hk.md
 ```
-❌ **不要用 `<<<` / heredoc 把报告塞进 stdin** —— 报告含 emoji、`$`、`|` 表格和换行，
+`--context-id` 必须是 Step 1 打印的那个：不匹配说明 context 已被换代（散文和数据不同代），
+postflight 拒绝拼装、只发数据块。
+
+❌ **不要用 here-string / heredoc 重定向把散文塞进 stdin** —— 内容含 emoji、`$` 和换行，
 shell 引号极脆；2026-07-23 10:00 就因为模型漏喂 stdin，postflight 读到空串后吐出
 4 条"报告写错了"的假 issue，run 被标红（实际重试后投递正常）。
 postflight 现在把空输入/旧文件单独判成 `status: input_error`（不是 `fail`），并要求
-文件 20 分钟内更新过 —— **忘了重写文件就会被拒**，不会把上一个 slot 的旧报告重发。
+文件 20 分钟内更新过 —— **忘了重写文件就会被拒**，不会把上一个 slot 的旧散文重发。
 
-校验段标记 + 长度 + 异动票提及。**不提交 `portfolio.json`**；若 dashboard
-有语义变化，postflight 会重建并提交 `assets/data/dashboard.json`。每个 slot 的
-完成/投递状态另写 heartbeat，由 single publisher 发布。
+校验段标记 + 长度 + 异动票提及（都只校验你写的那段，不校验拼进来的数据块）。
+**不提交 `portfolio.json`**；若 dashboard 有语义变化，postflight 会重建并提交
+`assets/data/dashboard.json`。每个 slot 的完成/投递状态另写 heartbeat，由 single publisher 发布。
 
 #### Step 4: 输出报告（仅存档；微信已由 postflight 主发，禁用 message 工具）
-微信投递已在 **Step 3 的 `intraday_postflight` 用 fresh-token 短连接发出**（cron `--no-deliver`，不 announce）——唯一路径。拼 `wechat_prefix` + 报告，**无标题**（高频推送避免刷屏），作为**本回合最终文本回复**输出（仅存档）。**不要调 `message`/send 工具**（postflight 已发，再调会双发）；`intraday_watchdog` 只在 Telegram marker 缺失/失败时补投 Telegram，不重发微信。
+微信投递已在 **Step 3 的 `intraday_postflight` 用 fresh-token 短连接发出**（cron `--no-deliver`，不 announce）——唯一路径。拼 `wechat_prefix` + 你的散文，**无标题**（高频推送避免刷屏），作为**本回合最终文本回复**输出（仅存档）。**不要调 `message`/send 工具**（postflight 已发，再调会双发）；`intraday_watchdog` 只在 Telegram marker 缺失/失败时补投 Telegram，不重发微信。
 
 **和 Mode 6 的区别**：单段 `▎我的看法` 取代三段；无 ▎风险提示；不提交
 `portfolio.json`（但会发布 dashboard 语义变化 + slot heartbeat）；holdings 用 markdown 表格。
+**相同点**：两者都是散文模式 —— 数据块由 postflight 拼装，你只写分析。
 
 ### Mode 6 — WeChat Briefing (cron-driven, harness 化 ✨)
 **When:** 港股开盘/午盘/午后/收盘 4 个 cron job 全部走这个 mode。
