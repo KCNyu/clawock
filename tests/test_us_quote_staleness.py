@@ -22,6 +22,7 @@ Run: `python3 -m pytest tests/test_us_quote_staleness.py -q`
 import json
 import os
 import sys
+from datetime import date, timedelta
 
 import pytest
 
@@ -30,6 +31,7 @@ sys.path.insert(0, os.path.join(WS, "scripts", "data"))
 
 import fetch_us_stocks as F  # noqa: E402
 import preflight_integrity as pi  # noqa: E402
+import trading_calendar as tc  # noqa: E402
 
 
 # ── 1. the parser must not invent fields the payload does not have ───────────
@@ -414,16 +416,35 @@ def _mini_portfolio(holding):
     }
 
 
+def _session_dates():
+    """The two session dates STALE_PRICE needs, resolved at run time.
+
+    The fixture used to hardcode the incident's own 2026-07-27/24 pair. That
+    made the row genuinely stale one day later: STALENESS compares data_source
+    against `_last_session()`, so from 2026-07-28 the arithmetic-gates test
+    started failing on every branch for a reason that has nothing to do with the
+    branch. A fixture that asserts a wall-clock-relative property has to compute
+    it — see clawock-no-live-numbers-in-static-copy.
+    """
+    today = date.fromisoformat(pi._last_session("us"))
+    prev = today - timedelta(days=1)
+    while not tc.is_trading_day("us", prev):
+        prev -= timedelta(days=1)
+    return today, prev
+
+
+_SESSION, _PREV_SESSION = _session_dates()
+
 PLTU_STALE = {
     "ticker": "PLTU", "shares": 14, "cost_basis": 40.9571,
     "current_price": 27.35, "current_value": 382.9,
     "pnl_abs": round((27.35 - 40.9571) * 14, 2),
     "pnl_percent": -33.2229,
-    "prev_close": 27.35, "prev_close_date": "2026-07-24",
-    "day_session_date": "2026-07-27",
+    "prev_close": 27.35, "prev_close_date": _PREV_SESSION.isoformat(),
+    "day_session_date": _SESSION.isoformat(),
     "day_high": 28.82, "day_low": 27.35, "day_open": 28.82,
     "today_change": 0.0, "today_change_pct": 0.0,
-    "data_source": "Nasdaq API (etf) Jul 27, 2026 10:33 ET",
+    "data_source": f"Nasdaq API (etf) {_SESSION:%b %-d, %Y} 10:33 ET",
     "trades": [{"date": "2026-04-16", "action": "buy", "shares": 14,
                 "price": 40.9571}],
 }
@@ -470,7 +491,7 @@ class TestIntegrityGateCatchesStalePrice:
         # prev_close_date == day_session_date means there is no real prior close
         # (fresh IPO / same-session re-entry). Not a stale print -> stay quiet.
         ipo = dict(PLTU_STALE)
-        ipo["prev_close_date"] = "2026-07-27"
+        ipo["prev_close_date"] = ipo["day_session_date"]
         codes = {f["code"] for f in self._findings(tmp_path, ipo)}
         assert "STALE_PRICE" not in codes
 

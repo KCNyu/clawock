@@ -5,6 +5,7 @@ Extracted to avoid duplicating _git / rebuild_dashboard / push retry logic
 across multiple postflight scripts. All functions accept the workspace root
 as path argument or default to the resolved workspace root.
 """
+import hashlib
 import json
 import re
 import subprocess
@@ -28,6 +29,30 @@ DASHBOARD_PUBLISH_LOCK = '/tmp/dashboard_publish.lock'
 # check can surface silent build failures / degradations (kcn doesn't want
 # per-cron alerts — see feedback_no_individual_cron_alerts).
 DASHBOARD_BUILD_STATUS = 'logs/dashboard_build_status.json'
+
+
+def compute_context_id(result):
+    """A per-GENERATION id for a preflight output.
+
+    The model echoes it back to postflight (`--context-id`), which refuses to
+    assemble prose against a context that has since been replaced. This is the
+    guard the 2026-07-24 incident needed: the agent ran preflight a SECOND time
+    mid-turn, so disk held generation B while its prose described generation A —
+    'one context per run' is not something the harness can assume.
+
+    NOT a digest of the underlying data: `raw_wechat_block` embeds the fetch
+    minute, so any re-run yields a fresh id even with identical portfolio numbers.
+    That is the intended contract — the id pins prose to THIS exact preflight
+    output, and the failure mode is always fail-safe (a mismatch drops to the
+    data block, never marries fresh numbers to stale prose). The only way to get
+    a rejection is for prose to carry an id from a superseded generation, which is
+    exactly what we want caught. `context_id` itself is not yet in `result`.
+
+    Shared by report_preflight (Mode 6) and intraday_preflight (Mode 7) so both
+    legs pin prose the same way.
+    """
+    blob = json.dumps(result, ensure_ascii=False, sort_keys=True)
+    return hashlib.sha256(blob.encode()).hexdigest()[:12]
 
 
 def pct(c, pc):
