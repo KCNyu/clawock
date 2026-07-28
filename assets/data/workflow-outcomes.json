@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "monitoring_started_at": "2026-07-26T08:00:00+08:00",
-  "updated_at": "2026-07-28T18:40:09.653066+00:00",
+  "updated_at": "2026-07-28T20:20:04.659785+00:00",
   "records": [
     {
       "job": "美股收盘报告",
@@ -3234,6 +3234,51 @@
         "error_present": false
       },
       "updated_at": "2026-07-28T18:40:09.653066+00:00",
+      "final_product": {
+        "status": "success",
+        "reason": "primary delivery succeeded"
+      }
+    },
+    {
+      "job": "美股收盘报告",
+      "slot": "2026-07-29T04:00:00+08:00",
+      "stages": {
+        "preflight": {
+          "status": "success",
+          "at": "2026-07-28T20:03:06.465569+00:00",
+          "context_id": "898ff258ff41"
+        },
+        "llm": {
+          "status": "success",
+          "at": "2026-07-28T20:03:32.921980+00:00",
+          "context_id": "898ff258ff41",
+          "issue_count": 0
+        },
+        "postflight": {
+          "status": "success",
+          "at": "2026-07-28T20:04:17.719200+00:00",
+          "delivered": "full report",
+          "data_plane_status": "published",
+          "issue_count": 0
+        },
+        "primary_delivery": {
+          "status": "success",
+          "at": "2026-07-28T20:04:17.723939+00:00",
+          "channel": "wechat_or_telegram",
+          "deterministic_fallback": false
+        },
+        "watchdog_delivery": {
+          "status": "unknown"
+        }
+      },
+      "raw_execution": {
+        "status": "ok",
+        "run_at_ms": 1785268800014,
+        "finished_at_ms": 1785269060526,
+        "run_id": null,
+        "error_present": false
+      },
+      "updated_at": "2026-07-28T20:04:17.723939+00:00",
       "final_product": {
         "status": "success",
         "reason": "primary delivery succeeded"
