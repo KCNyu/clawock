@@ -1,8 +1,8 @@
 {
-  "generated_at": "2026-07-27T08:01:39.760063+08:00",
+  "generated_at": "2026-07-28T08:03:53.793530+08:00",
   "lookback_window_days": 14,
-  "window_start": "2026-07-27",
-  "window_end": "2026-08-10",
+  "window_start": "2026-07-28",
+  "window_end": "2026-08-11",
   "earnings_queried": [
     "CRCL",
     "MSFT",
@@ -17,20 +17,42 @@
       "name": "MSFT",
       "date": "2026-07-29",
       "time": "amc",
-      "eps_estimate": 4.3277,
+      "eps_estimate": 4.3274,
       "eps_actual": null,
-      "revenue_estimate_m": 89378.73,
+      "revenue_estimate_m": 89373.72,
       "quarter": 4,
+      "year": 2026
+    },
+    {
+      "ticker": "SKHY",
+      "name": "000660.KS",
+      "date": "2026-07-29",
+      "time": "unknown",
+      "eps_estimate": 70446.5658,
+      "eps_actual": null,
+      "revenue_estimate_m": 83598109.12,
+      "quarter": 2,
       "year": 2026
     },
     {
       "ticker": "PLTR",
       "name": "PLTR",
       "date": "2026-08-03",
-      "time": "unknown",
-      "eps_estimate": 0.354,
+      "time": "amc",
+      "eps_estimate": 0.3544,
       "eps_actual": null,
-      "revenue_estimate_m": 1839.73,
+      "revenue_estimate_m": 1840.81,
+      "quarter": 2,
+      "year": 2026
+    },
+    {
+      "ticker": "SPCX",
+      "name": "SPCX",
+      "date": "2026-08-04",
+      "time": "unknown",
+      "eps_estimate": -0.2538,
+      "eps_actual": null,
+      "revenue_estimate_m": 7072.53,
       "quarter": 2,
       "year": 2026
     },
@@ -39,31 +61,20 @@
       "name": "CRCL",
       "date": "2026-08-05",
       "time": "unknown",
-      "eps_estimate": 0.2226,
+      "eps_estimate": 0.2161,
       "eps_actual": null,
-      "revenue_estimate_m": 743.33,
+      "revenue_estimate_m": 738.42,
       "quarter": 2,
       "year": 2026
     },
     {
       "ticker": "RKLB",
       "name": "RKLB",
-      "date": "2026-08-05",
+      "date": "2026-08-10",
       "time": "unknown",
       "eps_estimate": -0.0765,
       "eps_actual": null,
       "revenue_estimate_m": 235.97,
-      "quarter": 2,
-      "year": 2026
-    },
-    {
-      "ticker": "SPCX",
-      "name": "SPCX",
-      "date": "2026-08-06",
-      "time": "unknown",
-      "eps_estimate": -0.2538,
-      "eps_actual": null,
-      "revenue_estimate_m": 7124.66,
       "quarter": 2,
       "year": 2026
     }
@@ -93,7 +104,7 @@
     }
   ],
   "summary": {
-    "earnings_count": 5,
+    "earnings_count": 6,
     "fomc_in_window": 1,
     "macro_count": 3,
     "highest_impact_within_7d": "FOMC 2026-07-29 (rate decision)"

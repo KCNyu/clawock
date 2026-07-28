@@ -1,62 +1,62 @@
 {
-  "as_of": "2026-07-27",
-  "days_logged": 58,
+  "as_of": "2026-07-28",
+  "days_logged": 59,
   "min_n": 20,
   "horizon": 1,
   "grades": {
     "chase_low_quality": {
       "label": "🔴 追高低质",
-      "n": 99,
-      "hit_rate": 0.545,
+      "n": 102,
+      "hit_rate": 0.549,
       "ci95": [
-        0.448,
-        0.64
+        0.452,
+        0.642
       ],
       "edge_significant": false,
       "sample_sufficient": true,
       "edge_supported": false,
       "reverse_edge_supported": false,
       "decision_direction": null,
-      "avg_dir_fwd_pct": 0.97,
+      "avg_dir_fwd_pct": 0.94,
       "usable": false,
       "note": "Wilson CI 跨 50%，正向 edge 未获支持"
     },
     "elevated": {
       "label": "🟡 偏高位",
-      "n": 41,
-      "hit_rate": 0.683,
+      "n": 44,
+      "hit_rate": 0.636,
       "ci95": [
-        0.53,
-        0.804
+        0.489,
+        0.762
       ],
-      "edge_significant": true,
+      "edge_significant": false,
       "sample_sufficient": true,
-      "edge_supported": true,
+      "edge_supported": false,
       "reverse_edge_supported": false,
-      "decision_direction": "original",
-      "avg_dir_fwd_pct": 1.72,
-      "usable": true,
-      "note": ""
+      "decision_direction": null,
+      "avg_dir_fwd_pct": 1.57,
+      "usable": false,
+      "note": "Wilson CI 跨 50%，正向 edge 未获支持"
     },
     "oversold_low": {
       "label": "🟡 低位/超卖",
-      "n": 208,
-      "hit_rate": 0.423,
+      "n": 211,
+      "hit_rate": 0.422,
       "ci95": [
-        0.358,
-        0.491
+        0.357,
+        0.489
       ],
       "edge_significant": false,
       "sample_sufficient": true,
       "edge_supported": false,
       "reverse_edge_supported": true,
       "decision_direction": null,
-      "avg_dir_fwd_pct": -0.38,
+      "avg_dir_fwd_pct": -0.4,
       "usable": false,
       "note": "Wilson CI 支持相反方向；原牌面禁用，不自动反向交易"
     }
   },
-  "summary": "🟡 偏高位 命中68%[53–80](n=41)",
+  "summary": "没有牌面同时通过样本与正向 edge 闸（59 交易日留痕）——结论未解锁",
   "unlock_rule": "sample_sufficient AND Wilson_ci95_lower>50pct",
   "discipline": "自迭代：usable 需要样本量与正向 Wilson edge 同时成立；样本够多但方向错误也只展示不下结论；「命中」= 评级方向警示被次日价格证实（追高→跌 / 超卖→涨），不是「能赚钱」。"
 }

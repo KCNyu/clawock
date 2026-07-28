@@ -1,0 +1,455 @@
+{
+  "schema_version": 2,
+  "date": "2026-07-28",
+  "fx_rate_usdhkd": 7.842,
+  "fx_source": "Frankfurter",
+  "regime": {
+    "us": "neutral",
+    "hk": "neutral"
+  },
+  "regime_reasons": {
+    "us": "F&G 39.9 fear + VIX 18.67 + FOMC 7/29 加息可能性上行 (Warsh era) → 中性偏防御；US mega-cap 财报窗口事件驱动，未稳态",
+    "hk": "HSI +0.98% / HSTECH +1.57% 弱回血 + 估值安全边际 (南方基金张其思) → 中性，杠杆需要先治理"
+  },
+  "book": {
+    "usd_total_pnl": -8044.27,
+    "hkd_total_pnl": -63083.19,
+    "hk_leg_hkd": -46968.04,
+    "us_leg_usd": -2054.98,
+    "fx_used": 7.842
+  },
+  "concentration_snapshot": {
+    "hk": {
+      "hhi": 0.352,
+      "top2_pct": 82.2,
+      "verdict": "⚠️ 集中风险"
+    },
+    "us": {
+      "hhi": 0.24,
+      "top2_pct": 59.0,
+      "verdict": "偏集中"
+    }
+  },
+  "decisions": [
+    {
+      "schema_version": 2,
+      "decision_id": "dec-20260728-07226-swap",
+      "episode_id": "ep-20260728-07226-001",
+      "decision_group_id": "2026-07-28:07226",
+      "plan_date": "2026-07-28",
+      "created_at": "2026-07-28T08:00:00+08:00",
+      "ticker": "07226",
+      "name": "XL二南方恒科",
+      "leg": "HK",
+      "strategy_id": "risk_rebalance",
+      "thesis_id": "7226-2x-to-1x-swap-hk",
+      "action": "cut",
+      "condition": {
+        "type": "open",
+        "price": null,
+        "description": "HK 09:30 集合竞价任意价 swap；MOO 市价单不挂限价"
+      },
+      "size": {
+        "shares": 1000,
+        "pct": 16.1,
+        "note": "2x 减 1x 同因子 03033；敞口保留、停 2x 日内重置 decay"
+      },
+      "confidence": 0.85,
+      "driven_by": "risk_rule",
+      "evidence_event_id": null,
+      "regime": "neutral",
+      "rationale": "07226 4 重 breach（single_name 39.5% > 35% / factor_conc Top2 82.2% > 70% / levered_exp 39.5% > 25% / hard_stop -21.6% ≤ -18%）仍全部 open — 7/27 plan swap 未完成（broker 实际未成交已被证），今日重启 swap；🧭 lev_regime amber，转 green 才允许换回 2x",
+      "simulated_entry_price": 3.422,
+      "horizon_sessions": 1,
+      "override": {
+        "status": "none",
+        "reason": "",
+        "expires_on": null,
+        "revisit_condition": ""
+      },
+      "evaluation": {
+        "status": "pending",
+        "triggered": null,
+        "trigger_session": null,
+        "execution_price": null,
+        "underlying_return_t1_pct": null,
+        "benefit_t1_pct": null,
+        "benefit_t5_pct": null,
+        "outcome": "pending",
+        "capital": null
+      },
+      "execution": {
+        "status": "unknown",
+        "detected_at": null,
+        "source": null
+      },
+      "migration": {
+        "source": "plan_v1"
+      }
+    },
+    {
+      "schema_version": 2,
+      "decision_id": "dec-20260728-SPCH-swap",
+      "episode_id": "ep-20260728-spch-001",
+      "decision_group_id": "2026-07-28:SPCH",
+      "plan_date": "2026-07-28",
+      "created_at": "2026-07-28T08:00:00+08:00",
+      "ticker": "SPCH",
+      "name": "Leverage Shares 2x SPCX",
+      "leg": "US",
+      "strategy_id": "risk_rebalance",
+      "thesis_id": "spch-2x-to-spcx-spot-swap",
+      "action": "cut",
+      "condition": {
+        "type": "open",
+        "price": null,
+        "description": "US 21:30 HKT (09:30 ET) 开盘 MOO 市价单 swap → SPCX 现货；不挂限价"
+      },
+      "size": {
+        "shares": 150,
+        "pct": 100.0,
+        "note": "全数 swap SPCX 现货；保留 Starlink 8/6 解禁 alpha，停 2x day-reset decay"
+      },
+      "confidence": 0.85,
+      "driven_by": "risk_rule",
+      "evidence_event_id": null,
+      "regime": "neutral",
+      "rationale": "SPCH 4 重 breach（single_name 39.6% > 35% / levered_exp US 84.1% > 50% / regime_delever 🧭 cut / hard_stop -58.9% ≤ -18%）全 open — 7/27 plan 续；5MA 偏离 -2.8% + cut regime 双重确认；Musk 身价 7000 亿关口 + 8/6 解禁 = 不该再扩 2x",
+      "simulated_entry_price": 6.46,
+      "horizon_sessions": 1,
+      "override": {
+        "status": "none",
+        "reason": "",
+        "expires_on": null,
+        "revisit_condition": ""
+      },
+      "evaluation": {
+        "status": "pending",
+        "triggered": null,
+        "trigger_session": null,
+        "execution_price": null,
+        "underlying_return_t1_pct": null,
+        "benefit_t1_pct": null,
+        "benefit_t5_pct": null,
+        "outcome": "pending",
+        "capital": null
+      },
+      "execution": {
+        "status": "unknown",
+        "detected_at": null,
+        "source": null
+      },
+      "migration": {
+        "source": "plan_v1"
+      }
+    },
+    {
+      "schema_version": 2,
+      "decision_id": "dec-20260728-RKLX-swap",
+      "episode_id": "ep-20260728-rklx-001",
+      "decision_group_id": "2026-07-28:RKLX",
+      "plan_date": "2026-07-28",
+      "created_at": "2026-07-28T08:00:00+08:00",
+      "ticker": "RKLX",
+      "name": "Defiance Daily Target 2x Long RKLB",
+      "leg": "US",
+      "strategy_id": "risk_rebalance",
+      "thesis_id": "rklx-2x-to-1x-swap",
+      "action": "cut",
+      "condition": {
+        "type": "open",
+        "price": null,
+        "description": "US 21:30 HKT 开盘 MOO swap → RKLB 现货"
+      },
+      "size": {
+        "shares": 10,
+        "pct": 100.0,
+        "note": "全数 swap RKLB 现货；保留商业航天方向 + 8/5 RKLB 财报催化"
+      },
+      "confidence": 0.82,
+      "driven_by": "risk_rule",
+      "evidence_event_id": null,
+      "regime": "neutral",
+      "rationale": "RKLX 3 重 breach（regime_delever 🧭 red 破 200MA -14.0% + vol 99% 过热 / levered_exp / hard_stop -64.1% ≤ -18%）全 open — 7/27 plan 续；RKLB 7/27 五角大楼 $266M / Space Force contract 催化在价 +1.83%，再不上 2x；swap 后停 2x 月 decay 8.1%",
+      "simulated_entry_price": 17.83,
+      "horizon_sessions": 1,
+      "override": {
+        "status": "none",
+        "reason": "",
+        "expires_on": null,
+        "revisit_condition": ""
+      },
+      "evaluation": {
+        "status": "pending",
+        "triggered": null,
+        "trigger_session": null,
+        "execution_price": null,
+        "underlying_return_t1_pct": null,
+        "benefit_t1_pct": null,
+        "benefit_t5_pct": null,
+        "outcome": "pending",
+        "capital": null
+      },
+      "execution": {
+        "status": "unknown",
+        "detected_at": null,
+        "source": null
+      },
+      "migration": {
+        "source": "plan_v1"
+      }
+    },
+    {
+      "schema_version": 2,
+      "decision_id": "dec-20260728-PLTU-swap",
+      "episode_id": "ep-20260728-pltu-001",
+      "decision_group_id": "2026-07-28:PLTU",
+      "plan_date": "2026-07-28",
+      "created_at": "2026-07-28T08:00:00+08:00",
+      "ticker": "PLTU",
+      "name": "Direxion Daily PLTR Bull 2X",
+      "leg": "US",
+      "strategy_id": "risk_rebalance",
+      "thesis_id": "pltu-2x-to-pltr-spot-swap",
+      "action": "cut",
+      "condition": {
+        "type": "open",
+        "price": null,
+        "description": "US 21:30 HKT 开盘 MOO swap → PLTR 现货"
+      },
+      "size": {
+        "shares": 14,
+        "pct": 100.0,
+        "note": "全数 swap PLTR 现货；保留 AI 政府合同 alpha，停 2x decay"
+      },
+      "confidence": 0.8,
+      "driven_by": "risk_rule",
+      "evidence_event_id": null,
+      "regime": "neutral",
+      "rationale": "PLTU 5MA 偏离 -3.1% cut regime 确认 + 单名 cap + hard_stop -23.9% ≤ -18% — 7/27 plan 续；PLTR 7/27 +7% 是 AICapex + 政府合同叙事，但 41x sales 估值飘（Seeking Alpha 降评）+ 8/3 PLTR Q2 cRPO 验证 = 任何 2x 升波都是赌",
+      "simulated_entry_price": 31.16,
+      "horizon_sessions": 1,
+      "override": {
+        "status": "none",
+        "reason": "",
+        "expires_on": null,
+        "revisit_condition": ""
+      },
+      "evaluation": {
+        "status": "pending",
+        "triggered": null,
+        "trigger_session": null,
+        "execution_price": null,
+        "underlying_return_t1_pct": null,
+        "benefit_t1_pct": null,
+        "benefit_t5_pct": null,
+        "outcome": "pending",
+        "capital": null
+      },
+      "execution": {
+        "status": "unknown",
+        "detected_at": null,
+        "source": null
+      },
+      "migration": {
+        "source": "plan_v1"
+      }
+    },
+    {
+      "schema_version": 2,
+      "decision_id": "dec-20260728-MSFU-swap",
+      "episode_id": "ep-20260728-msfu-001",
+      "decision_group_id": "2026-07-28:MSFU",
+      "plan_date": "2026-07-28",
+      "created_at": "2026-07-28T08:00:00+08:00",
+      "ticker": "MSFU",
+      "name": "Direxion Daily MSFT Bull 2X",
+      "leg": "US",
+      "strategy_id": "risk_rebalance",
+      "thesis_id": "msfu-2x-to-msft-spot-swap",
+      "action": "cut",
+      "condition": {
+        "type": "open",
+        "price": null,
+        "description": "US 21:30 HKT 开盘 MOO swap → MSFT 现货 — 今晚 MSFT AMC 财报后再决定是否加仓"
+      },
+      "size": {
+        "shares": 20,
+        "pct": 100.0,
+        "note": "全数 swap MSFT 现货；今晨 AMC 财报驱动不参与 2x"
+      },
+      "confidence": 0.78,
+      "driven_by": "risk_rule",
+      "evidence_event_id": null,
+      "regime": "neutral",
+      "rationale": "MSFU 硬止损 -18.4% ≤ -18% + 单名 cap 内但杠杆敞口超 84% — 7/27 plan 续；今晚 MSFT AMC + Azure 加速验证是最大单一 catalyst，但 swap 1x 后不会因今晚财报重设 2x（防止 AMC 后 gap）",
+      "simulated_entry_price": 23.77,
+      "horizon_sessions": 1,
+      "override": {
+        "status": "none",
+        "reason": "",
+        "expires_on": null,
+        "revisit_condition": ""
+      },
+      "evaluation": {
+        "status": "pending",
+        "triggered": null,
+        "trigger_session": null,
+        "execution_price": null,
+        "underlying_return_t1_pct": null,
+        "benefit_t1_pct": null,
+        "benefit_t5_pct": null,
+        "outcome": "pending",
+        "capital": null
+      },
+      "execution": {
+        "status": "unknown",
+        "detected_at": null,
+        "source": null
+      },
+      "migration": {
+        "source": "plan_v1"
+      }
+    },
+    {
+      "schema_version": 2,
+      "decision_id": "dec-20260728-00100-trim",
+      "episode_id": "ep-20260728-00100-001",
+      "decision_group_id": "2026-07-28:00100",
+      "plan_date": "2026-07-28",
+      "created_at": "2026-07-28T08:00:00+08:00",
+      "ticker": "00100",
+      "name": "MINIMAX-W",
+      "leg": "HK",
+      "strategy_id": "risk_rebalance",
+      "thesis_id": "00100-single-name-cap-trim",
+      "action": "trim_on_rebound",
+      "condition": {
+        "type": "price_above",
+        "price": 240.0,
+        "description": "HK 09:30 集合竞价触发：if day_high ≥ 240 THEN trim 20 股市价单；else 不 trim"
+      },
+      "size": {
+        "shares": 20,
+        "pct": 20.0,
+        "note": "trim 20 股 ≈ 4,592 HKD → 把 00100 单名从 42.75% 压至 ≈ 35.5%，未完全到 35% cap 但显著缓解"
+      },
+      "confidence": 0.65,
+      "driven_by": "technical",
+      "evidence_event_id": null,
+      "regime": "neutral",
+      "rationale": "00100 4 重 breach（single_name 42.75% > 35% / factor_conc Top2 82.2% / hard_stop -62.8% ≤ -18% / 趋势 OFF · 已破吊灯）— 但 trim_on_rebound 是 by_action 唯一正向 cluster (n=4 win=100% / +6.44% CI=[3.67,10.54])；今日板块回血 +17% 是 trim 的窗口；等反弹 ≥240 (≈+4.5%) 才 trim，避免在 AI 大票 alpha 还在奔跑时砍掉",
+      "simulated_entry_price": 229.6,
+      "horizon_sessions": 1,
+      "override": {
+        "status": "none",
+        "reason": "",
+        "expires_on": null,
+        "revisit_condition": ""
+      },
+      "evaluation": {
+        "status": "pending",
+        "triggered": null,
+        "trigger_session": null,
+        "execution_price": null,
+        "underlying_return_t1_pct": null,
+        "benefit_t1_pct": null,
+        "benefit_t5_pct": null,
+        "outcome": "pending",
+        "capital": null
+      },
+      "execution": {
+        "status": "unknown",
+        "detected_at": null,
+        "source": null
+      },
+      "migration": {
+        "source": "plan_v1"
+      }
+    },
+    {
+      "schema_version": 2,
+      "decision_id": "dec-20260728-SKHY-hold",
+      "episode_id": "ep-20260728-skhy-001",
+      "decision_group_id": "2026-07-28:SKHY",
+      "plan_date": "2026-07-28",
+      "created_at": "2026-07-28T08:00:00+08:00",
+      "ticker": "SKHY",
+      "name": "SK Hynix ADR",
+      "leg": "US",
+      "strategy_id": "core_position",
+      "thesis_id": "skhy-hbm-long-tail",
+      "action": "hold_and_watch",
+      "condition": {
+        "type": "event",
+        "price": null,
+        "description": "等 7/30 PCE price index 数据后再判（不是 7/29 FOMC 前 alpha call）"
+      },
+      "size": {
+        "shares": 0,
+        "pct": 0.0,
+        "note": "持有 1 股，不增不减；不补仓"
+      },
+      "confidence": 0.7,
+      "driven_by": "macro",
+      "evidence_event_id": null,
+      "regime": "neutral",
+      "rationale": "SKHY 浮亏 -15.5%（最低未触硬止损 -18%），现货 1 股持仓等待合法；长期 NVDA + SK Hynix $500B HBM 协议在价是利多（4d 前 7/25），短期 Yiyi Capital '内存周期接近短期顶部' 是软信号；alpha call 全部暂停到 PCE 后；不补仓（核心是 wait-for-legit-pullback，不追）",
+      "simulated_entry_price": 143.02,
+      "horizon_sessions": 3,
+      "override": {
+        "status": "none",
+        "reason": "",
+        "expires_on": null,
+        "revisit_condition": ""
+      },
+      "evaluation": {
+        "status": "pending",
+        "triggered": null,
+        "trigger_session": null,
+        "execution_price": null,
+        "underlying_return_t1_pct": null,
+        "benefit_t1_pct": null,
+        "benefit_t5_pct": null,
+        "outcome": "pending",
+        "capital": null
+      },
+      "execution": {
+        "status": "unknown",
+        "detected_at": null,
+        "source": null
+      },
+      "migration": {
+        "source": "plan_v1"
+      }
+    }
+  ],
+  "watch_levels": {
+    "hstech_breakdown": 4500,
+    "spx_breakdown": 7300,
+    "us_beta_target_after_swap": 1.5,
+    "book_force_derisk_usd": -10000,
+    "fomc_hike_prob_threshold": 0.5,
+    "spcx_unlock_threshold_pct": -0.1,
+    "msfu_msft_earnings_alert_price_below": 380,
+    "00100_trim_threshold_hkd": 240
+  },
+  "exec_mode": {
+    "today_override": "ALL 5 SWAPS USE MARKET-ON-OPEN (MOO), NOT LIMIT ORDERS — inherits 7/24 0/5 failure lesson (Brier calibration OK with raw 0.79 conf but execution rate 0.83% historical, MOO is the only reliable channel). HK opens 09:30 HKT, US opens 21:30 HKT (09:30 ET).",
+    "eta_hk": "09:30 HKT 集合竞价 execute 5 swaps HK portion",
+    "eta_us": "21:30 HKT (09:30 ET) 集合竞价 execute 5 swaps US portion — MSFT 财报 21:30 ET 同窗口，所以 MSFU swap 必须先执行"
+  },
+  "notes": "5 swap + 1 trim + 1 hold 全部从 7/27 plan 继承 — 7/27 5 swap 在 preflight 标记 fired 但 broker 实际成交未确认（mark 漏读），今日重启。breakeven_math 解读：swap 1x 买的是横盘/下跌保护，不是回本速度（RKLX vol 99% 月 8.1% decay vs swap 后 RKLB 现货 0 decay；PLTU 月 2.12% decay vs PLTR 现货 0 decay）。纪律执行率 0.83% (active) vs 93.7% (passive) 是回撤最大窟窿，今日不再重蹈 — MOO + meta leak check。决策 metrics：68 episodes / Brier 0.2376 vs baseline-LOO 0.2346 (brier_beats_baseline=false, calibration 不合格—over-confident)；risk_rule 类驱动 n=22 win 63.6% +1.48% 是最强 driver；trim_on_rebound n=4 是 current data 唯一 edge_significant=true (win 100% / +6.44% CI=[3.67,10.54])。hierarchical_calibration 6 行全部 edge_supported=false sz_mult=0 = 主动 call 不经过实证校准 → 不得扩仓。所有 swap 是政策执行不是择时，calibration gate 失效不影响政策执行。",
+  "anomalies": [
+    "US cash 见底 $159.93 (P0 持续) — 5 swap 后应不恶化",
+    "US 杠杆 ETF 84% > 50% cap 严重 — 5 swap 后降到 ≤25%（cap-target），但必须执行",
+    "HK Top2 82% 集中度（单因子 AI/HSTECH 暴露 ≈91%） — 00100 trim 完成后仍未完全到 ≤70%",
+    "MSFT 今晚 AMC + FOMC 7/29 = 双重 catalyst — 在 MSFU swap 后不会再因任何 1 个事件切回 2x",
+    "SPCX 8/6 解禁 44% 流通 → 8/4 SPCX 首份 Q2 财报双重事件触发市场流动",
+    "9-12 交易日内有 6 个高影响 catalyst 集中 US leg（8/3 PLTR, 8/4 SPCX, 8/5 CRCL+RKLB, 8/6 SPCX 解禁, 8/7 NFP, 8/10 RKLB）",
+    "00100 trim 触发条件 day_high≥240 是名义 +5%；AI 板块 5d +43% 上方有兑现压力"
+  ],
+  "integrity_issues": [
+    "US 7 个持仓 data_source 日期 2026-07-27 早于 2026-07-28 — 价格口径为美股 7/27 close 不是 7/28 开盘，故今天 21:30 HKT 才会重抓"
+  ]
+}
