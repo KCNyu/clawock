@@ -48,6 +48,7 @@ caller may treat as unremarkable — a file needing repair every day is a produc
 bug, and a silent fixer would hide it forever (shared memory:
 `feedback-detect-but-never-silence`).
 """
+import bisect
 import json
 import re
 
@@ -93,12 +94,21 @@ def _iter_string_spans(text):
 
 
 def _outside_string(text):
-    """Set of indices that are not inside any string literal (quotes included)."""
-    inside = set()
+    """Predicate: is this index outside every string literal (quotes included)?
+
+    Returns a callable over sorted spans rather than a materialised index set —
+    the set cost O(len(text)) memory and dominated the runtime on large inputs.
+    """
+    starts, stops = [], []
     for start, end in _iter_string_spans(text):
-        stop = len(text) if end is None else end + 1
-        inside.update(range(start, stop))
-    return set(range(len(text))) - inside
+        starts.append(start)
+        stops.append(len(text) if end is None else end + 1)
+
+    def outside(i):
+        pos = bisect.bisect_right(starts, i) - 1
+        return pos < 0 or i >= stops[pos]
+
+    return outside
 
 
 def _strip_code_fence(text):
@@ -108,44 +118,64 @@ def _strip_code_fence(text):
 
 
 def _close_unterminated_string(text):
-    """Insert the closing quote the author owed, at the end of that line.
+    """Insert the closing quote the author owed. → every plausible position.
 
     Handles both a span that never closes and a span that swallowed a newline —
-    the two shapes a missing quote produces. Nothing is deleted; the text as
-    written is preserved and only the delimiter is supplied. Declines when the
-    line ends in a backslash, where the author was plainly still mid-value.
+    the two shapes a missing quote produces. Nothing is deleted; only the
+    delimiter is supplied.
+
+    Where the line has trailing whitespace the position is *itself* ambiguous:
+    `{"a":"kept   \\n}` can close before or after the spaces, both parse, and the
+    two disagree about whether the spaces are in the value. Returning only the
+    trimmed candidate silently deleted characters from inside a string — exactly
+    what this module forbids. Both are returned so the caller sees the
+    disagreement and refuses.
+
+    Declines on an *odd* run of trailing backslashes, where the author was still
+    mid-escape. An even run is a finished escaped backslash and is fine.
     """
     for start, end in _iter_string_spans(text):
         if end is not None and '\n' not in text[start:end]:
             continue
         nl = text.find('\n', start + 1)
         tail = text[start:] if nl == -1 else text[start:nl]
-        if tail.rstrip().endswith('\\'):
+        trimmed = tail.rstrip()
+        if (len(trimmed) - len(trimmed.rstrip('\\'))) % 2:
             return None
-        cut = start + len(tail.rstrip())
-        return text[:cut] + '"' + text[cut:]
+        cuts = {start + len(trimmed), start + len(tail)}
+        return [text[:c] + '"' + text[c:] for c in sorted(cuts)]
     return None
 
 
+_SHORT_ESCAPE = {'\n': '\\n', '\r': '\\r', '\t': '\\t',
+                 '\b': '\\b', '\f': '\\f'}
+
+
 def _escape_control_chars(text):
-    """Escape raw newlines/tabs that sit inside a string literal.
+    """Escape every raw U+0000–U+001F that sits inside a string literal.
 
     In place and value-preserving: the character survives as its JSON escape.
     Only characters strictly inside a closed span are touched, so the newlines
     that format the document are untouched.
+
+    All of C0 is covered, not just the three that are easy to picture: JSON
+    forbids the whole range raw, so handling `\\n`/`\\r`/`\\t` alone left NUL,
+    backspace, form feed and the separators reported as unrepairable while the
+    module claimed to escape "a character JSON forbids raw inside a string".
     """
     out, last, changed = [], 0, False
     for start, end in _iter_string_spans(text):
         if end is None:
             break
         body = text[start:end + 1]
-        escaped = (body.replace('\n', '\\n')
-                       .replace('\r', '\\r')
-                       .replace('\t', '\\t'))
-        if escaped != body:
+        if any(ch < ' ' for ch in body):
+            body = ''.join(
+                _SHORT_ESCAPE.get(ch, f'\\u{ord(ch):04x}') if ch < ' ' else ch
+                for ch in body
+            )
             changed = True
         out.append(text[last:start])
-        out.append(escaped)
+        out.append(body)
         last = end + 1
     if not changed:
         return None
@@ -161,19 +191,18 @@ def _drop_trailing_comma(text):
     separator — which is a value deletion, not an artefact removal.
     """
     outside = _outside_string(text)
-    drop = []
+    drop = set()
     for i, ch in enumerate(text):
-        if ch != ',' or i not in outside:
+        if ch != ',' or not outside(i):
             continue
         j = i + 1
         while j < len(text) and text[j] in ' \t\r\n':
             j += 1
-        if j < len(text) and text[j] in ']}' and j in outside:
-            drop.append(i)
+        if j < len(text) and text[j] in ']}' and outside(j):
+            drop.add(i)
     if not drop:
         return None
-    cut = set(drop)
-    return ''.join(c for i, c in enumerate(text) if i not in cut)
+    return ''.join(c for i, c in enumerate(text) if i not in drop)
 
 
 # Tried in this order, but order is only a tiebreak: correctness comes from
@@ -203,8 +232,18 @@ def _json_equal(a, b):
     return a == b
 
 
-def _accepting_branches(text, used, depth, found):
-    """Collect (object, repairs) for every accepting branch within the bound."""
+def _accepting_branches(text, used, depth, found, seen):
+    """Collect (object, repairs) for every accepting branch within the bound.
+
+    A pass may offer several candidates — a missing quote has more than one
+    plausible insertion point — and each is explored, because a disagreement
+    *within* one pass is exactly as much of a guess as a disagreement between
+    two. `seen` dedupes texts so the same document reached by two pass orderings
+    is not enumerated (or reported) twice.
+    """
+    if text in seen:
+        return
+    seen.add(text)
     try:
         found.append((json.loads(text), []))
         return
@@ -216,14 +255,18 @@ def _accepting_branches(text, used, depth, found):
         if name in used:
             continue
         try:
-            candidate = fn(text)
+            produced = fn(text)
         except Exception:
-            candidate = None
-        if candidate is None or candidate == text:
+            produced = None
+        if produced is None:
             continue
-        nested = []
-        _accepting_branches(candidate, used | {name}, depth - 1, nested)
-        found.extend((obj, [name] + rest) for obj, rest in nested)
+        candidates = produced if isinstance(produced, list) else [produced]
+        for candidate in candidates:
+            if candidate == text:
+                continue
+            nested = []
+            _accepting_branches(candidate, used | {name}, depth - 1, nested, seen)
+            found.extend((obj, [name] + rest) for obj, rest in nested)
 
 
 def repair_json(text):
@@ -247,7 +290,7 @@ def repair_json(text):
         pass
 
     found = []
-    _accepting_branches(text, frozenset(), _MAX_DEPTH, found)
+    _accepting_branches(text, frozenset(), _MAX_DEPTH, found, set())
     if not found:
         return None, [], UNREPAIRABLE
     first = found[0][0]

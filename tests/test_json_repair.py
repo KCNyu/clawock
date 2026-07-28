@@ -113,6 +113,56 @@ def test_a_comma_value_survives_alongside_a_real_defect():
 
 # ── Refusal: competing readings ──────────────────────────────────────────────
 
+def test_an_ambiguous_insertion_point_is_refused_too():
+    """Ambiguity inside ONE pass counts, not just between two passes.
+
+    `{"a":"kept   \\n}` can be closed before or after the trailing spaces. Both
+    parse; they disagree about whether the spaces belong to the value. Emitting
+    only the trimmed candidate deleted characters from inside a string literal —
+    the exact thing the module's invariant forbids — while reporting `repaired`.
+    """
+    obj, repairs, status = json_repair.repair_json('{"a":"kept   \n}')
+
+    assert status == AMBIGUOUS
+    assert obj is None
+
+
+def test_a_line_without_trailing_space_has_only_one_insertion_point():
+    """The common case must not become ambiguous just because the search widened."""
+    obj, repairs, status = json_repair.repair_json('{"a": 1, "b": "tail\n}')
+
+    assert status == REPAIRED
+    assert obj == {'a': 1, 'b': 'tail'}
+
+
+@pytest.mark.parametrize('text,expected', [
+    ('{"path":"C:\\\\\n}', {'path': 'C:\\'}),          # even run: escape finished
+    ('{"path":"C:\\\\\\\\\n}', {'path': 'C:\\\\'}),
+])
+def test_an_even_backslash_run_is_a_finished_escape(text, expected):
+    """`endswith('\\\\')` rejected even runs as if mid-escape. Only odd parity is."""
+    obj, repairs, status = json_repair.repair_json(text)
+
+    assert status == REPAIRED
+    assert obj == expected
+
+
+def test_an_odd_backslash_run_still_declines():
+    obj, repairs, status = json_repair.repair_json('{"path":"C:\\\n}')
+
+    assert status == UNREPAIRABLE
+
+
+@pytest.mark.parametrize('raw', ['\x00', '\x08', '\x0b', '\x0c', '\x1f', '\t', '\n', '\r'])
+def test_every_c0_control_character_is_escaped(raw):
+    """JSON forbids all of U+0000–U+001F raw. Handling only \\n/\\r/\\t left NUL,
+    backspace, form feed and the separators reported as unrepairable."""
+    obj, repairs, status = json_repair.repair_json('{"a": "x%sy"}' % raw)
+
+    assert status == REPAIRED
+    assert obj == {'a': f'x{raw}y'}
+
+
 def test_competing_readings_are_refused_not_guessed():
     """A dropped quote and a raw newline are indistinguishable by scanning, and
     here both readings parse to *different* objects. Picking one would be a
@@ -253,3 +303,20 @@ def test_the_full_production_shape_recovers_whole():
                          'data_caveats', 'watchlist_for_kcn_review']
     # The key after the broken array is the one a folding repair would eat.
     assert obj['watchlist_for_kcn_review']
+
+
+def test_the_fixture_keeps_the_defect_where_it_really_was():
+    """The defect must sit in `data_caveats`, with a sibling key still after it.
+
+    An earlier fixture moved it to the final key, which quietly removed the very
+    shape the test above exists to defend — with nothing following the defect,
+    a repair that swallows the rest of the document looks identical to a correct
+    one.
+    """
+    raw = FIXTURE.read_text(encoding='utf-8')
+    defect = next(i for i, line in enumerate(raw.split('\n'))
+                  if line.count('"') % 2)
+    before, after = raw.split('\n')[:defect], raw.split('\n')[defect:]
+
+    assert any('"data_caveats"' in line for line in before)
+    assert any('"watchlist_for_kcn_review"' in line for line in after)

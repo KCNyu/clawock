@@ -111,6 +111,21 @@ def test_an_unusable_sidecar_must_not_look_absent(tmp_path, monkeypatch, capsys)
     capsys.readouterr()
 
 
+def test_an_unreadable_file_is_invalid_not_absent(tmp_path, monkeypatch, capsys):
+    """The exception path, not the parser path: a sidecar that exists but cannot
+    even be decoded used to fall through to `{}` and republish yesterday's card.
+    Bad encoding is exactly as untrustworthy as bad syntax."""
+    tmp = tmp_path / 'memory' / '.tmp'
+    tmp.mkdir(parents=True)
+    (tmp / 'insights-2026-07-28.json').write_bytes(b'{"a": "\xff\xfe not utf-8"}')
+    monkeypatch.setattr(dashboard, 'WS_ROOT', tmp_path)
+
+    data = dashboard.load_tmp_sidecar('insights')
+
+    assert data['_invalid'] is True
+    assert 'warn:' in capsys.readouterr().err
+
+
 def test_a_genuinely_absent_sidecar_is_still_falsy(tmp_path, monkeypatch):
     """The GHA case: memory/.tmp is gitignored, so a fresh checkout has no file
     at all. That one may republish the previous card."""

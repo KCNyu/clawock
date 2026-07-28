@@ -722,6 +722,7 @@ def load_tmp_sidecar(prefix, max_age_days=None):
     — which republishes *yesterday's* card. Doing that for a file that is present
     but unreadable would show stale critique as if it were today's.
     """
+    latest = None
     try:
         paths = glob.glob(str(WS_ROOT / 'memory' / '.tmp' / f'{prefix}-*.json'))
         if not paths:
@@ -747,6 +748,11 @@ def load_tmp_sidecar(prefix, max_age_days=None):
         return data
     except Exception as e:
         print(f'  warn: load_tmp_sidecar({prefix}) failed: {e}', file=sys.stderr)
+        # A file we found but could not read (bad encoding, I/O error) is just as
+        # untrustworthy as one that failed to parse, and must not fall through to
+        # the absent case that republishes the previous day's card.
+        if latest is not None:
+            return {'_source': os.path.basename(latest), '_invalid': True}
         return {}
 
 
