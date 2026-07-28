@@ -180,7 +180,34 @@ def _artifact(path: Path, fields: tuple[str, ...], context: dict, generation_id:
     }
 
 
-def write_run_bundle(context: dict, audit_path: Path) -> tuple[dict, dict]:
+def _tool_artifact(path: Path, payload: dict, generation_id: str):
+    meta = payload.get("_meta") if isinstance(payload, dict) else None
+    if not isinstance(meta, dict) or meta.get("generation_id") != generation_id:
+        raise ValueError(f"brief tool artifact generation mismatch: {path.name}")
+    text = _compact(payload) + "\n"
+    size = len(text.encode("utf-8"))
+    if size > SINGLE_BUNDLE_BUDGET_BYTES:
+        raise ValueError(
+            "daily brief tool artifact exceeds per-query source budget "
+            f"({SINGLE_BUNDLE_BUDGET_BYTES} bytes): {path.name}={size}"
+        )
+    _write_immutable(path, text)
+    return {
+        "path": str(path),
+        "generation_id": generation_id,
+        "schema_version": meta.get("schema_version"),
+        "kind": meta.get("kind"),
+        "bytes": size,
+        "sha256": _sha256_text(text),
+    }
+
+
+def write_run_bundle(
+    context: dict,
+    audit_path: Path,
+    *,
+    tool_artifacts: dict[str, dict] | None = None,
+) -> tuple[dict, dict]:
     """Write full audit JSON plus budgeted model-facing artifacts.
 
     Returns ``(generation-stamped context, manifest)``. Raises ValueError when
@@ -227,6 +254,13 @@ def write_run_bundle(context: dict, audit_path: Path) -> tuple[dict, dict]:
             f"({SINGLE_BUNDLE_BUDGET_BYTES} bytes): {oversized}"
         )
 
+    tools = {
+        name: _tool_artifact(
+            artifact_dir / f"{name}.json", payload, generation_id
+        )
+        for name, payload in (tool_artifacts or {}).items()
+    }
+
     section_bytes = {
         key: _bytes(value)
         for key, value in stamped.items()
@@ -244,6 +278,7 @@ def write_run_bundle(context: dict, audit_path: Path) -> tuple[dict, dict]:
         },
         "core": core,
         "bundles": bundles,
+        "tools": tools,
         "source_section_bytes": section_bytes,
         "budget": {
             "max_always_loaded_bytes": ALWAYS_LOADED_BUDGET_BYTES,
@@ -358,6 +393,21 @@ def validate_run_bundle(audit_path: Path, manifest_path: Path) -> list[str]:
         issues.append(
             f"context generation lazy bundle 已超单次加载预算: {oversized}"
         )
+    for name, entry in (manifest.get("tools") or {}).items():
+        path = Path(entry.get("path") or "")
+        try:
+            text = path.read_text(encoding="utf-8")
+            payload = json.loads(text)
+        except Exception as exc:
+            issues.append(f"context tool artifact 不可读: {name}: {exc}")
+            continue
+        if entry.get("sha256") != _sha256_text(text):
+            issues.append(f"context tool artifact hash 不匹配: {name}")
+        if (
+            entry.get("generation_id") != generation_id
+            or payload.get("_meta", {}).get("generation_id") != generation_id
+        ):
+            issues.append(f"context tool artifact 跨代: {name}")
     return issues
 
 
