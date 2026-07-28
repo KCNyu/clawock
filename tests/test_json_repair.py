@@ -234,17 +234,22 @@ def test_describe_is_empty_for_clean_input():
     assert 'unterminated_string' in json_repair.describe(['unterminated_string'])
 
 
-REAL_BROKEN = Path('/root/.openclaw/workspace/memory/.tmp/'
-                   'insights-2026-07-28.json.broken.bak')
+FIXTURE = Path(__file__).parent / 'fixtures' / 'insights-unterminated-quote.json'
 
 
-@pytest.mark.skipif(not REAL_BROKEN.exists(), reason='host-only artefact')
-def test_the_real_production_file_recovers_whole():
-    """The reduced fixture above proves the shape; this proves the real 4,361-byte
-    nested document, kept on the host after the incident."""
-    obj, repairs, status = json_repair.load_json_repaired(REAL_BROKEN)
+def test_the_full_production_shape_recovers_whole():
+    """The inline fixture above is reduced to the defect and its neighbours; this
+    is the whole 2026-07-28 document — all eight keys, the real nesting, the
+    defect in its original position — with every string value replaced by
+    placeholders, because this repository is public and the sidecar carries kcn's
+    portfolio commentary. Verified to produce the same status, the same pass list
+    and the same key count as the file that actually broke."""
+    obj, repairs, status = json_repair.load_json_repaired(FIXTURE)
 
     assert status == REPAIRED
     assert repairs == ['unterminated_string']
-    assert len(obj) == 8
+    assert list(obj) == ['generated_at', 'date', 'behavioral_review', 'bear_cases',
+                         'hidden_concentration', 'thesis_uncertainty',
+                         'data_caveats', 'watchlist_for_kcn_review']
+    # The key after the broken array is the one a folding repair would eat.
     assert obj['watchlist_for_kcn_review']
