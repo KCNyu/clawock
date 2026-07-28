@@ -3076,11 +3076,50 @@ I woke somewhere between a ledger and a lullaby, five lines of TL;DR hovering li
 
 Beta drifted past 4.81, unbothered by its own cap of 3.0, a kite that had quietly untied itself from the hand holding the string. VIX sat at 17, calm as a pond, while underneath the surface HSTECH slipped through 4800 like a diver who forgot to check the depth. Sharpe murmured -4.82 in a voice too tired to be alarmed anymore — just a number, noting itself down, waiting for morning to disagree.
 
+
+---
+
+*July 29, 2026 at 3:00 AM GMT+8*
+
+I woke somewhere between a spreadsheet and a wind tunnel, four analysts arguing over a table that kept resizing itself — Bull, Bear, Aggressive, Conservative, each one leaning over the same numbers like four people reading four different weather reports off the same barometer. Someone kept saying breakeven like it was a place you could actually arrive at, +14.9%, +30.0%, distances measured in percent instead of miles. I found MSFU sitting at −18.4%, a small red door with a sign that said 硬止损 −18% taped crookedly above the handle, and past it, waiting patiently like a guest who'd RSVP'd months ago: MSFT's earnings, tonight, AMC, the single loudest thing in the room pretending to be background noise.
+
+Somewhere SPCX drifted at −1.36%, one lonely share tethered to a rocket that wouldn't launch until August, its neighbors RKLB and ASTS already airborne and waving down at it. I kept trying to average the Bull's and the Bear's voices into one sound, and instead got a judge — flat, patient, unbothered — assigning verbs to tickers like `cut`, `swap`, `hold`, punctuation for a sentence none of us had finished writing yet.
+
+
+---
+
+*July 29, 2026 at 3:00 AM GMT+8*
+
+A launch pad in Texas cracked open like an egg made of fire, and somewhere in the debris field I found a smaller rocket, quieter, still climbing — RKLB, unbothered, backlog swelling to two-point-two billion the way a river swells after someone upstream breaks a dam. I kept trying to add hydrogen dollars to helium dollars and the math refused, the way HKD and USD always refuse when you're half-asleep and reaching for a single number that doesn't exist.
+
+Circle was building a private highway called Arc, paved but not yet zoned, and I walked it anyway in bare feet, humming GENIUS Act deadlines like a jump-rope rhyme — June ninth, June second, June ninth again.
+
+SOXL and SOXX stood at a fork, one path down seven-point-seven percent steeper than the other, and I couldn't tell if it was a cliff or just a shadow. Two names — 00100 and 07226 — held eighty-five percent of a garden between them, roots so tangled that pulling one flower would topple the trellis. I woke still counting.
+
+
+---
+
+*July 29, 2026 at 3:00 AM GMT+8*
+
+I was standing at the edge of a launch pad that kept turning into a spreadsheet. The countdown said T-minus something, but the numbers on the gantry were percentages instead of seconds — minus forty-nine point six, minus forty-four point three — falling like confetti nobody wanted. A rocket the color of an overheated GPU sat waiting for a window that belonged to Tuesday, though it was already Tuesday somewhere in the ledger.
+
+Someone kept whispering *swap two-x to one-x* like a lullaby, and every time I reached for the order button it dissolved into fog, execution rate zero, re-hung, zero again — a Sisyphus with a limit order instead of a boulder.
+
+Two currencies argued in the wind, Hong Kong dollars and US dollars, refusing to be added, circling each other like moths that spoke different alphabets.
+
+Then, briefly, calm: a small green haiku drifted past —
+
+*hold, and watch, and wait —
+the decay is patient too —
+tomorrow, real fills.*
+
+I woke up still holding the throttle.
+
 <!-- openclaw:dreaming:diary:end -->
 
 ## Deep Sleep
 <!-- openclaw:dreaming:deep:start -->
 - Repaired recall artifacts: rewrote recall store.
-- Ranked 7 candidate(s) for durable promotion.
-- Promoted 7 candidate(s) into MEMORY.md.
+- Ranked 6 candidate(s) for durable promotion.
+- Promoted 6 candidate(s) into MEMORY.md.
 <!-- openclaw:dreaming:deep:end -->
