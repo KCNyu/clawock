@@ -44,7 +44,7 @@ from __future__ import annotations
 
 import argparse
 import sys
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from zoneinfo import ZoneInfo
 
 # --- Full-day market closures (weekday ones are what matter; weekend-falling
@@ -180,6 +180,16 @@ def is_trading_day(market: str, d: date | None = None, session: str = "full") ->
     if market == "hk" and session == "afternoon" and iso in HK_HALF_DAYS:
         return False
     return True
+
+
+def previous_trading_day(market: str, d: date) -> date:
+    """Most recent trading day strictly before ``d``."""
+    probe = d - timedelta(days=1)
+    for _ in range(14):
+        if is_trading_day(market, probe):
+            return probe
+        probe -= timedelta(days=1)
+    raise ValueError(f"no {market} trading day found before {d}")
 
 
 def closed_reason(market: str, d: date | None = None,
