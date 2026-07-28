@@ -83,6 +83,36 @@ def trim_lev_regime(lev_regime):
     return trimmed
 
 
+def trim_workflow_outcomes(summary):
+    """Keep the two fields the build-status dot reads; drop the stage detail.
+
+    `recent[].stages` is five stage objects per slot, each carrying the full
+    heartbeat detail (market, anomaly_count, wechat_sent, …) — 24KB across a
+    36h window, and the renderer touches none of it: the dot reads `counts`
+    and `raw_error_but_product_usable`, the tooltip reads only `job`, `slot`,
+    `raw_execution.status` and `final_product.status`. The complete ledger is
+    published on its own at assets/data/workflow-outcomes.json, so this is the
+    same duplication the calibrator and regime-history trims removed.
+    """
+    if not isinstance(summary, dict):
+        return summary
+    recent = summary.get('recent')
+    if not isinstance(recent, list):
+        return summary
+    trimmed = []
+    dropped = False
+    for record in recent:
+        if not isinstance(record, dict):
+            trimmed.append(record)
+            continue
+        dropped = dropped or 'stages' in record
+        trimmed.append({k: v for k, v in record.items() if k != 'stages'})
+    summary = {**summary, 'recent': trimmed}
+    if dropped:
+        summary['stages_source'] = 'assets/data/workflow-outcomes.json'
+    return summary
+
+
 def compute_guardrail_outputs(portfolio, risk, lev_regime=None):
     """Compute the two live risk cards without ever failing the dashboard build.
 
@@ -1831,7 +1861,7 @@ def compute_workflow_outcomes():
     try:
         sys.path.insert(0, str(WS_ROOT / 'scripts' / 'data'))
         import workflow_outcomes
-        return workflow_outcomes.summarize(reconcile=True)
+        return trim_workflow_outcomes(workflow_outcomes.summarize(reconcile=True))
     except Exception as e:
         print(f'  warn: workflow outcome summary failed: {e}', file=sys.stderr)
         return None
@@ -2245,6 +2275,13 @@ def main():
         out['recent_plans_dropped'] = True
         payload = json.dumps(out, ensure_ascii=False)
         size_bytes = len(payload.encode('utf-8'))
+        if size_bytes > MAX_OUT_BYTES:
+            # Dropping the plans is the only lever here; publishing an oversized
+            # payload still beats not publishing, but say so — on 2026-07-28 the
+            # file shipped 3.7KB over the cap with only the line above to show
+            # for it, which reads as "handled".
+            print(f'⚠️  payload STILL {size_bytes} bytes > {MAX_OUT_BYTES} cap after '
+                  f'dropping recent_plans — publishing over cap', file=sys.stderr)
 
     safe_write_text(str(out_file), payload)
 
