@@ -1,6 +1,6 @@
 {
-  "checked_at": "2026-07-28T13:35:46Z",
+  "checked_at": "2026-07-28T14:03:47Z",
   "ok": true,
   "warn_count": 1,
-  "tail": "ace/assets/data/dashboard.json (151,319 bytes)\n✓ wrote /root/.openclaw/workspace/assets/data/decision_audit.json (decision audit sidecar)\n  US: 16 holdings, 7 active, value $2333\n  HK: 7 holdings, 5 active, value HK$50346\n  Snapshots: 55 embedded / 55 on disk\n  Plans: 5 embedded / 52 on disk\n  Snapshots: 55 | Plans: 5\n  FX USDHKD: 7.842 (Frankfurter)\n  warn: failed to load /root/.openclaw/workspace/memory/.tmp/insights-2026-07-28.json: Invalid control character at: line 48 column 50 (char 3038)\n"
+  "tail": "ace/assets/data/dashboard.json (151,794 bytes)\n✓ wrote /root/.openclaw/workspace/assets/data/decision_audit.json (decision audit sidecar)\n  US: 16 holdings, 7 active, value $2203\n  HK: 7 holdings, 5 active, value HK$50346\n  Snapshots: 55 embedded / 55 on disk\n  Plans: 5 embedded / 52 on disk\n  Snapshots: 55 | Plans: 5\n  FX USDHKD: 7.842 (Frankfurter)\n  warn: failed to load /root/.openclaw/workspace/memory/.tmp/insights-2026-07-28.json: Invalid control character at: line 48 column 50 (char 3038)\n"
 }
