@@ -117,6 +117,51 @@ def test_heartbeat_bridge_maps_completed_and_watchdog_to_separate_stages(
     assert record["final_product"]["status"] == "recovered"
 
 
+def test_heartbeat_bridge_preserves_data_only_fallback_as_degraded(
+    tmp_path, monkeypatch
+):
+    _isolate(tmp_path, monkeypatch)
+    outcomes.record_from_heartbeat(
+        {
+            "job": "美股盘中盯盘",
+            "market": "us",
+            "slot": "2026-07-24T22:00:00+08:00",
+            "state": "completed",
+            "postflight_status": "fail",
+            "data_plane_status": "published",
+            "wechat_sent": True,
+            "telegram_sent": True,
+        }
+    )
+
+    record = outcomes.load_ledger()["records"][0]
+    assert record["stages"]["llm"]["status"] == "failed"
+    assert record["stages"]["postflight"]["status"] == "warning"
+    assert record["stages"]["primary_delivery"]["status"] == "success"
+    assert record["final_product"]["status"] == "degraded"
+
+
+def test_heartbeat_bridge_marks_data_publish_failure_as_postflight_warning(
+    tmp_path, monkeypatch
+):
+    _isolate(tmp_path, monkeypatch)
+    outcomes.record_from_heartbeat(
+        {
+            "job": "美股盘中盯盘",
+            "slot": "2026-07-24T22:00:00+08:00",
+            "state": "completed",
+            "postflight_status": "pass",
+            "data_plane_status": "rebuild_failed",
+            "wechat_sent": True,
+        }
+    )
+
+    record = outcomes.load_ledger()["records"][0]
+    assert record["stages"]["llm"]["status"] == "success"
+    assert record["stages"]["postflight"]["status"] == "warning"
+    assert record["final_product"]["status"] == "degraded"
+
+
 def test_market_closed_is_a_skipped_product_not_a_failure(tmp_path, monkeypatch):
     _isolate(tmp_path, monkeypatch)
     record = outcomes.record_stage(
