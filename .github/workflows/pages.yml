@@ -70,18 +70,16 @@ jobs:
           source: ./
           destination: ./_site
 
-      # jekyll-build-pages runs in a container and leaves _site root-owned.
-      # Return only that disposable output tree to the runner before pruning it.
-      - name: Make built artifact writable
-        run: sudo chown -R "$(id -u):$(id -g)" _site
-
       - name: Prepare consumer-safe artifact
-        run: python3 scripts/build/prepare_pages_artifact.py --site-dir _site
+        run: >-
+          python3 scripts/build/prepare_pages_artifact.py
+          --site-dir _site
+          --output-dir _pages
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v4
         with:
-          path: ./_site
+          path: ./_pages
 
   deploy:
     if: github.event_name == 'push' && github.ref == 'refs/heads/master'

@@ -26,9 +26,13 @@ def test_every_browser_fetch_is_declared_public():
 
 def test_repository_only_patterns_cannot_match_browser_data():
     for path in CONTRACT["browser_data"]:
+        assert any(
+            fnmatch.fnmatch(path, pattern)
+            for pattern in CONTRACT["artifact_include"]
+        )
         assert not any(
             fnmatch.fnmatch(path, pattern)
-            for pattern in CONTRACT["artifact_excludes"]
+            for pattern in CONTRACT["repository_only"]
         )
 
 
@@ -55,16 +59,22 @@ def test_workflow_uses_official_non_committing_pages_flow():
         assert action in WORKFLOW
     assert "pages: write" in WORKFLOW
     assert "id-token: write" in WORKFLOW
-    assert 'sudo chown -R "$(id -u):$(id -g)" _site' in WORKFLOW
     assert "git push" not in WORKFLOW
     assert "CLAWOCK_PUBLISH_SSH_KEY" not in WORKFLOW
     assert "github.event_name == 'push'" in WORKFLOW
 
 
-def test_pruner_only_mutates_built_site(tmp_path):
+def test_builder_stages_only_public_consumers(tmp_path):
     site = tmp_path / "_site"
+    output = tmp_path / "_pages"
     shutil.copytree(ROOT / "assets", site / "assets")
     (site / "index.html").write_text("ok")
+    for path in ("briefs.html", "robots.txt", "sitemap.xml"):
+        (site / path).write_text("ok")
+    (site / "tests").mkdir()
+    (site / "tests/private.txt").write_text("not public")
+    (site / "memory").mkdir()
+    (site / "memory/decisions.jsonl").write_text("{}\n")
     source_gif_size = (ROOT / "assets/dashboard.gif").stat().st_size
     source_jsonl = sorted((ROOT / "assets/data").glob("*.jsonl"))
 
@@ -74,6 +84,8 @@ def test_pruner_only_mutates_built_site(tmp_path):
             str(ROOT / "scripts/build/prepare_pages_artifact.py"),
             "--site-dir",
             str(site),
+            "--output-dir",
+            str(output),
         ],
         cwd=ROOT,
         check=True,
@@ -81,9 +93,13 @@ def test_pruner_only_mutates_built_site(tmp_path):
         text=True,
     )
 
-    assert not (site / "assets/dashboard.gif").exists()
-    assert not list((site / "assets/data").glob("*.jsonl"))
-    assert (site / "assets/data/dashboard.json").is_file()
+    assert (site / "assets/dashboard.gif").is_file()
+    assert list((site / "assets/data").glob("*.jsonl"))
+    assert not (output / "assets/dashboard.gif").exists()
+    assert not list((output / "assets/data").glob("*.jsonl"))
+    assert not (output / "memory/decisions.jsonl").exists()
+    assert not (output / "tests").exists()
+    assert (output / "assets/data/dashboard.json").is_file()
     assert (ROOT / "assets/dashboard.gif").stat().st_size == source_gif_size
     assert all(path.is_file() for path in source_jsonl)
     assert "Pages artifact:" in result.stdout

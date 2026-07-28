@@ -10,8 +10,35 @@
     "assets/data/shadow_portfolio.json",
     "assets/data/brief_projection.json"
   ],
-  "artifact_excludes": [
+  "required_pages": [
+    "index.html",
+    "briefs.html",
+    "robots.txt",
+    "sitemap.xml"
+  ],
+  "artifact_include": [
+    "index.html",
+    "briefs.html",
+    "robots.txt",
+    "sitemap.xml",
+    "404.html",
+    "assets/css/**",
+    "assets/js/**",
+    "assets/icons/**",
+    "assets/data/*.json",
+    "assets/*.png",
+    "assets/*.svg",
+    "memory/*-pre-open.html",
+    "memory/weekly/**",
+    "docs/**",
+    "THIRD_PARTY_LICENSES/**",
+    "LICENSE",
+    "NOTICE"
+  ],
+  "repository_only": [
     "assets/dashboard.gif",
-    "assets/data/*.jsonl"
+    "assets/data/*.jsonl",
+    "memory/*.jsonl",
+    "tests/**"
   ]
 }
