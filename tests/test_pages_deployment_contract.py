@@ -10,6 +10,7 @@ ROOT = Path(__file__).resolve().parents[1]
 CONTRACT = json.loads((ROOT / "config/pages-public.json").read_text())
 WORKFLOW = (ROOT / ".github/workflows/pages.yml").read_text()
 UI = (ROOT / "assets/js/dashboard.ui.js").read_text()
+INDEX = (ROOT / "index.html").read_text()
 
 
 def _sidecar_keys() -> set[str]:
@@ -31,6 +32,16 @@ def test_every_browser_fetch_is_declared_public():
         "assets/js/echarts.min.js",
     ):
         assert asset in CONTRACT["required_pages"]
+
+
+def test_linked_web_manifest_is_required_and_triggers_deploy():
+    manifest = re.search(
+        r'<link\s+rel="manifest"\s+href="([^"]+)"', INDEX
+    ).group(1)
+
+    assert manifest in CONTRACT["required_pages"]
+    assert manifest in CONTRACT["artifact_include"]
+    assert WORKFLOW.count(f"'{manifest}'") == 2
 
 
 def test_repository_only_patterns_cannot_match_browser_data():
@@ -78,7 +89,7 @@ def test_builder_stages_only_public_consumers(tmp_path):
     output = tmp_path / "_pages"
     shutil.copytree(ROOT / "assets", site / "assets")
     (site / "index.html").write_text("ok")
-    for path in ("briefs.html", "robots.txt", "sitemap.xml"):
+    for path in ("briefs.html", "robots.txt", "sitemap.xml", "manifest.webmanifest"):
         (site / path).write_text("ok")
     (site / "tests").mkdir()
     (site / "tests/private.txt").write_text("not public")
