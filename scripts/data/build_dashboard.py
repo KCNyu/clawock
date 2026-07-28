@@ -22,6 +22,7 @@ from zoneinfo import ZoneInfo
 
 import decision_v2
 import instrument_registry
+import json_repair
 
 # Strict YYYY-MM-DD.json — rejects baselines/backups/archives that share the
 # snapshots dir (e.g. 2026-05-16-saturday-baseline.json caused duplicate 5-16
@@ -708,13 +709,25 @@ def load_tmp_sidecar(prefix, max_age_days=None):
     Non-fatal on any error (returns {}). If max_age_days is set, marks _stale=True
     when the file's mtime is older, so the frontend can grey it out instead of
     showing day-old critique as if it were current.
+
+    Hand-authored JSON goes through json_repair: on 2026-07-28 a single missing
+    closing quote cost the whole behavioural-review card. Repairs are reported on
+    stderr as `repair:` — a distinct prefix from `warn:`, because the section did
+    render and is not degraded, but the producer still shipped invalid JSON and
+    that must stay visible in the daily review.
     """
     try:
         paths = glob.glob(str(WS_ROOT / 'memory' / '.tmp' / f'{prefix}-*.json'))
         if not paths:
             return {}
         latest = max(paths, key=os.path.getmtime)
-        data = load_json(latest)
+        data, repairs = json_repair.load_json_repaired(latest)
+        if repairs:
+            print(f'  repair: {os.path.basename(latest)} — '
+                  f'{json_repair.describe(repairs)}', file=sys.stderr)
+        if data is None:
+            print(f'  warn: failed to load {latest}: unrepairable JSON',
+                  file=sys.stderr)
         if not isinstance(data, dict):
             return {}
         data.setdefault('_source', os.path.basename(latest))

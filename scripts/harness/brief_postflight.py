@@ -41,6 +41,7 @@ import workflow_outcomes  # noqa: E402
 import risk_discipline  # noqa: E402
 import brief_context  # noqa: E402
 import brief_decision_packet  # noqa: E402
+import json_repair  # noqa: E402
 
 # Required concepts and the section labels the brief model may legitimately emit.
 # The canonical keys preserve the existing missing-section issue text.  The aliases
@@ -127,12 +128,22 @@ def validate_generation_references(plan, context=None):
 def validate_plan_json(path, context=None, decision_packet=None):
     if not path.exists():
         return ['plan.json 缺失（critical）']
-    try:
-        plan = json.loads(path.read_text())
-    except json.JSONDecodeError as e:
-        return [f'plan.json 解析失败: {e}']
+    # The whole day's plan is hand-written by the model; before json_repair a
+    # dropped quote in one rationale threw away every decision in the file and
+    # the brief died on a syntax error. Repair recovers the decisions, and says
+    # so — advisory, because the plan then validates like any other (an actually
+    # unrepairable plan keeps the original hard failure below).
+    plan, repairs = json_repair.load_json_repaired(path)
+    if plan is None:
+        return ['plan.json 解析失败: 语法错误无法自动修复']
+    if not isinstance(plan, dict):
+        return [f'plan.json 解析失败: 顶层应为 object，实际是 {type(plan).__name__}']
 
-    issues = [f'plan.json v2: {x}' for x in decision_v2.validate_plan(plan, path)]
+    issues = []
+    if repairs:
+        issues.append(f'plan.json JSON 语法有缺陷，已自动修复后校验'
+                      f'（{", ".join(repairs)}）{ADVISORY_MARK}')
+    issues += [f'plan.json v2: {x}' for x in decision_v2.validate_plan(plan, path)]
     issues += validate_generation_references(plan, context)
     if decision_packet:
         issues += [
@@ -311,6 +322,7 @@ def categorize(issues):
 
 sys.path.insert(0, str(Path(__file__).parent))
 from _harness_common import (  # noqa: E402
+    ADVISORY_MARK,
     categorize_issues,
     dashboard_output_changes,
     git_cmd as _git,
