@@ -1,9 +1,11 @@
   // ── Lazy chart init (perf) ──────────────────────────────────────────────
-  // ECharts remains tab-lazy. Hero now owns the single Equity instance as its
-  // visual anchor, so landing triggers only that chart; the other canvases still
-  // wait for their detail tabs. Never initialize a chart in display:none.
+  // Hero's visual anchor is native Canvas, so first paint does not fetch or parse
+  // ECharts. The heavier bundle remains tab-lazy for analytical detail charts.
+  // Never initialize a chart in display:none.
+  const NATIVE_CHART_FNS = {
+    hero: () => { renderEquityChart(); },
+  };
   const CHART_FNS = {
-    hero:    () => { renderEquityChart(); },
     drill:   () => { renderShadowPortfolioChart(); renderWeightConfidence(); },
     risk:    () => { renderSectorChart(); },
     reflect: () => { renderShadowChart(); renderRealizedChart(); renderDailyPnlChart(); },
@@ -21,7 +23,13 @@
     const iv = setInterval(() => { if (window.echarts) { clearInterval(iv); cb(); } }, 50);
   }
   function paintCharts(t) {
-    if (!CHART_FNS[t] || !DATA) return;
+    if (!DATA) return;
+    if (NATIVE_CHART_FNS[t]) {
+      readThemeCSS();
+      NATIVE_CHART_FNS[t]();
+      return;
+    }
+    if (!CHART_FNS[t]) return;
     whenEcharts(() => {
       if (!DATA) return;
       readThemeCSS();               // one style read before any ECharts DOM writes
@@ -38,7 +46,7 @@
       || {};
   }
   function ensureTabCharts(t) {
-    if (!CHART_FNS[t]) return;
+    if (!NATIVE_CHART_FNS[t] && !CHART_FNS[t]) return;
     _chartTabsShown.add(t);
     paintCharts(t);
   }
@@ -84,7 +92,9 @@
     // case do not create Equity inside the hidden Hero panel at zero width; Hero's
     // lazy paint will pick up MARKET_VIEW when it is eventually opened.
     if (charts.equity || currentTab() === "hero") renderEquityChart();
-    renderDailyPnlChart();
+    // Reflect has already loaded ECharts. A market switch on Hero must not fetch
+    // the heavy bundle merely to refresh a hidden detail chart.
+    if (window.echarts) renderDailyPnlChart();
     requestAnimationFrame(() => {
       charts.equity && charts.equity.resize();
       charts.dailyPnl && charts.dailyPnl.resize();
@@ -330,10 +340,298 @@
     }
   }
 
+  function createNativeEquityChart(el) {
+    el.innerHTML = `
+      <canvas class="native-equity-canvas" role="img"
+        aria-label="总利润、真实总资产、成本基础、基准与回撤历史图"></canvas>
+      <div class="native-equity-tooltip" hidden></div>
+      <label class="native-equity-window" hidden>
+        <span>时间窗口</span>
+        <input type="range" min="0" value="0" aria-label="净值图起始日期">
+      </label>`;
+    const canvas = el.querySelector(".native-equity-canvas");
+    const tooltip = el.querySelector(".native-equity-tooltip");
+    const windowControl = el.querySelector(".native-equity-window");
+    const range = windowControl.querySelector("input");
+    const ctx = canvas.getContext("2d");
+    let model = null;
+    let hoverIndex = null;
+    let userWindow = false;
+    let frame = 0;
+
+    const finite = v => v != null && Number.isFinite(Number(v));
+    const moneyAxis = (v, cur) =>
+      cur + (Math.abs(v) >= 1000 ? (v / 1000).toFixed(1) + "k" : Math.round(v));
+    const moneyTip = (v, cur) =>
+      cur + Number(v).toLocaleString("en-US", { maximumFractionDigits: 0 });
+
+    function scheduleDraw() {
+      if (frame) cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(draw);
+    }
+
+    function drawLine(points, xAt, yAt, spec) {
+      ctx.beginPath();
+      let started = false;
+      points.forEach((v, i) => {
+        if (!finite(v)) return;
+        const x = xAt(i), y = yAt(Number(v));
+        if (!started) { ctx.moveTo(x, y); started = true; }
+        else ctx.lineTo(x, y);
+      });
+      if (!started) return;
+      ctx.strokeStyle = spec.color;
+      ctx.lineWidth = spec.width || 1.5;
+      ctx.globalAlpha = spec.opacity == null ? 1 : spec.opacity;
+      ctx.setLineDash(spec.dashed ? [5, 4] : []);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.globalAlpha = 1;
+    }
+
+    function draw() {
+      frame = 0;
+      if (!model) return;
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const sliderHeight = model.dates.length > 30 ? 26 : 0;
+      const width = Math.max(280, el.clientWidth);
+      const height = Math.max(220, el.clientHeight - sliderHeight);
+      if (canvas.width !== Math.round(width * dpr) || canvas.height !== Math.round(height * dpr)) {
+        canvas.width = Math.round(width * dpr);
+        canvas.height = Math.round(height * dpr);
+        canvas.style.width = width + "px";
+        canvas.style.height = height + "px";
+      }
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.clearRect(0, 0, width, height);
+
+      if (!model.dates.length) {
+        ctx.fillStyle = chartTextColor();
+        ctx.globalAlpha = .5;
+        ctx.font = "13px " + (getCSS("--font") || "sans-serif");
+        ctx.textAlign = "center";
+        ctx.fillText("暂无快照历史", width / 2, height / 2);
+        ctx.globalAlpha = 1;
+        return;
+      }
+
+      const start = Math.min(Number(range.value) || 0, Math.max(0, model.dates.length - 2));
+      const dates = model.dates.slice(start);
+      const lines = model.lines.map(line => ({ ...line, values: line.values.slice(start) }));
+      const dd = model.dd.slice(start);
+      const left = width < 640 ? 48 : 68;
+      const right = width < 640 ? 42 : 62;
+      const top = width < 640 ? 58 : 42;
+      const bottom = 28;
+      const plotW = Math.max(1, width - left - right);
+      const plotH = Math.max(1, height - top - bottom);
+      const moneyValues = lines.flatMap(line => line.values.filter(finite).map(Number));
+      if (finite(model.triggerLevel)) moneyValues.push(Number(model.triggerLevel));
+      if (moneyValues.some(v => v <= 0) && moneyValues.some(v => v >= 0)) moneyValues.push(0);
+      let minMoney = moneyValues.length ? Math.min(...moneyValues) : 0;
+      let maxMoney = moneyValues.length ? Math.max(...moneyValues) : 1;
+      const pad = Math.max((maxMoney - minMoney) * .08, 1);
+      minMoney -= pad;
+      maxMoney += pad;
+      const minDd = Math.min(-1, ...dd.filter(finite).map(Number));
+      const xAt = i => left + (dates.length <= 1 ? plotW / 2 : i * plotW / (dates.length - 1));
+      const yMoney = v => top + (maxMoney - v) * plotH / (maxMoney - minMoney || 1);
+      const yDd = v => top + (0 - v) * plotH / (0 - minDd || 1);
+
+      ctx.font = "10px " + (getCSS("--mono") || "monospace");
+      ctx.textBaseline = "middle";
+      for (let i = 0; i <= 4; i++) {
+        const y = top + i * plotH / 4;
+        const value = maxMoney - i * (maxMoney - minMoney) / 4;
+        ctx.strokeStyle = chartGridColor();
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(left, y);
+        ctx.lineTo(width - right, y);
+        ctx.stroke();
+        ctx.fillStyle = chartLabelColor();
+        ctx.textAlign = "right";
+        ctx.fillText(moneyAxis(value, model.cur), left - 7, y);
+        ctx.textAlign = "left";
+        ctx.fillText((i * minDd / 4).toFixed(0) + "%", width - right + 7, y);
+      }
+
+      const labelCount = Math.min(5, dates.length);
+      ctx.textAlign = "center";
+      ctx.textBaseline = "top";
+      for (let i = 0; i < labelCount; i++) {
+        const idx = labelCount === 1 ? 0 : Math.round(i * (dates.length - 1) / (labelCount - 1));
+        ctx.fillStyle = chartLabelColor();
+        ctx.fillText(String(dates[idx] || "").slice(5), xAt(idx), height - bottom + 8);
+      }
+
+      // Drawdown uses the secondary axis and is kept behind all money series.
+      ctx.beginPath();
+      let ddStarted = false;
+      dd.forEach((v, i) => {
+        if (!finite(v)) return;
+        const x = xAt(i), y = yDd(Number(v));
+        if (!ddStarted) { ctx.moveTo(x, y); ddStarted = true; }
+        else ctx.lineTo(x, y);
+      });
+      if (ddStarted) {
+        ctx.lineTo(xAt(dd.length - 1), yDd(0));
+        ctx.lineTo(xAt(0), yDd(0));
+        ctx.closePath();
+        ctx.fillStyle = model.negative;
+        ctx.globalAlpha = .13;
+        ctx.fill();
+        ctx.globalAlpha = 1;
+      }
+
+      // Profit remains the visual anchor with a subtle area to the zero line.
+      const profit = lines[0];
+      const profitPoints = profit.values.map((v, i) => finite(v) ? [xAt(i), yMoney(Number(v))] : null)
+        .filter(Boolean);
+      if (profitPoints.length) {
+        ctx.beginPath();
+        profitPoints.forEach(([x, y], i) => i ? ctx.lineTo(x, y) : ctx.moveTo(x, y));
+        const zeroY = Math.max(top, Math.min(top + plotH, yMoney(0)));
+        ctx.lineTo(profitPoints[profitPoints.length - 1][0], zeroY);
+        ctx.lineTo(profitPoints[0][0], zeroY);
+        ctx.closePath();
+        ctx.fillStyle = profit.color;
+        ctx.globalAlpha = .08;
+        ctx.fill();
+        ctx.globalAlpha = 1;
+      }
+
+      lines.forEach(line => drawLine(line.values, xAt, yMoney, line));
+      if (minMoney <= 0 && maxMoney >= 0) {
+        const y = yMoney(0);
+        ctx.strokeStyle = model.positive;
+        ctx.globalAlpha = .5;
+        ctx.setLineDash([2, 3]);
+        ctx.beginPath();
+        ctx.moveTo(left, y);
+        ctx.lineTo(width - right, y);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.globalAlpha = 1;
+      }
+      if (finite(model.triggerLevel)) {
+        const y = yMoney(Number(model.triggerLevel));
+        if (y >= top && y <= top + plotH) {
+          ctx.strokeStyle = model.warning;
+          ctx.setLineDash([5, 4]);
+          ctx.beginPath();
+          ctx.moveTo(left, y);
+          ctx.lineTo(width - right, y);
+          ctx.stroke();
+          ctx.setLineDash([]);
+          ctx.fillStyle = model.warning;
+          ctx.textAlign = "right";
+          ctx.textBaseline = "bottom";
+          ctx.fillText(model.triggerLabel, width - right, y - 3);
+        }
+      }
+
+      // Compact legend, wrapping naturally on narrow mobile canvases.
+      let lx = 7, ly = 12;
+      ctx.font = (width < 640 ? "9px " : "10px ") + (getCSS("--font") || "sans-serif");
+      ctx.textAlign = "left";
+      ctx.textBaseline = "middle";
+      [...lines, { name: "回撤", color: model.negative }].forEach(item => {
+        const itemWidth = 25 + ctx.measureText(item.name).width;
+        if (lx + itemWidth > width - 6) { lx = 7; ly += 16; }
+        ctx.strokeStyle = item.color;
+        ctx.lineWidth = item.width || 2;
+        ctx.beginPath();
+        ctx.moveTo(lx, ly);
+        ctx.lineTo(lx + 15, ly);
+        ctx.stroke();
+        ctx.fillStyle = chartTextColor();
+        ctx.fillText(item.name, lx + 19, ly);
+        lx += itemWidth + 7;
+      });
+
+      if (hoverIndex != null && hoverIndex >= start) {
+        const local = hoverIndex - start;
+        const x = xAt(local);
+        ctx.strokeStyle = getCSS("--focus") || "#8ED0FF";
+        ctx.globalAlpha = .65;
+        ctx.beginPath();
+        ctx.moveTo(x, top);
+        ctx.lineTo(x, top + plotH);
+        ctx.stroke();
+        ctx.globalAlpha = 1;
+      }
+    }
+
+    function showTooltip(event) {
+      if (!model || !model.dates.length) return;
+      const rect = canvas.getBoundingClientRect();
+      const left = rect.width < 640 ? 48 : 68;
+      const right = rect.width < 640 ? 42 : 62;
+      const start = Number(range.value) || 0;
+      const count = model.dates.length - start;
+      const ratio = Math.max(0, Math.min(1, (event.clientX - rect.left - left) / Math.max(1, rect.width - left - right)));
+      const local = count <= 1 ? 0 : Math.round(ratio * (count - 1));
+      hoverIndex = start + local;
+      const rows = model.lines.map(line => {
+        const v = line.values[hoverIndex];
+        return `<span style="color:${line.color}">●</span> ${escapeHtml(line.name)}: <b>${finite(v) ? moneyTip(v, model.cur) : DASH}</b>`;
+      });
+      const dd = model.dd[hoverIndex];
+      rows.push(`<span style="color:${model.negative}">●</span> 回撤: <b>${finite(dd) ? Number(dd).toFixed(2) + "%" : DASH}</b>`);
+      const change = model.change[hoverIndex];
+      if (finite(change)) {
+        const sign = Number(change) >= 0 ? "+" : "-";
+        const pct = model.changePct[hoverIndex];
+        const pctText = finite(pct) ? ` (${sign}${Math.abs(Number(pct)).toFixed(2)}%)` : "";
+        rows.push(`总利润较昨日: <b>${sign}${moneyTip(Math.abs(change), model.cur)}</b>${pctText}`);
+      } else if (hoverIndex === 0) rows.push("总利润较昨日: <b>首日</b>");
+      tooltip.innerHTML = `<b>${escapeHtml(model.dates[hoverIndex])}</b><br>${rows.join("<br>")}`;
+      tooltip.hidden = false;
+      const x = event.clientX - rect.left;
+      tooltip.style.left = Math.min(Math.max(8, x + 12), Math.max(8, rect.width - tooltip.offsetWidth - 8)) + "px";
+      tooltip.style.top = Math.max(8, event.clientY - rect.top - tooltip.offsetHeight - 10) + "px";
+      scheduleDraw();
+    }
+
+    canvas.addEventListener("pointermove", showTooltip);
+    canvas.addEventListener("pointerleave", () => {
+      hoverIndex = null;
+      tooltip.hidden = true;
+      scheduleDraw();
+    });
+    range.addEventListener("input", () => {
+      userWindow = true;
+      hoverIndex = null;
+      tooltip.hidden = true;
+      scheduleDraw();
+    });
+
+    return {
+      setModel(next) {
+        const marketChanged = model && model.view !== next.view;
+        const lengthChanged = !model || model.dates.length !== next.dates.length;
+        model = next;
+        range.max = String(Math.max(0, next.dates.length - 2));
+        windowControl.hidden = next.dates.length <= 30;
+        if (marketChanged || !userWindow || lengthChanged) {
+          range.value = String(Math.max(0, next.dates.length - 30));
+          userWindow = false;
+        }
+        scheduleDraw();
+      },
+      resize: scheduleDraw,
+      dispose() {
+        if (frame) cancelAnimationFrame(frame);
+        el.innerHTML = "";
+      },
+    };
+  }
+
   function renderEquityChart() {
     const el = document.getElementById("chart-equity");
-    if (!el || !window.echarts) return;
-    if (!charts.equity) charts.equity = echarts.init(el, null, { renderer: "canvas" });
+    if (!el) return;
+    if (!charts.equity) charts.equity = createNativeEquityChart(el);
 
     const view = MARKET_VIEW;                       // 'combined' | 'us' | 'hk'
     const fx = safe(DATA, "fx", "usdhkd") || 7.83;
@@ -473,130 +771,23 @@
     const benchColor = "#7C8CF2";
     const hkColor = getCSS("--warning") || "#E3A640";
 
-    const axisMoney = v => cur + (Math.abs(v) >= 1000 ? (v / 1000).toFixed(1) + "k" : v);
-    const tipMoney = v => cur + v.toLocaleString("en-US", { maximumFractionDigits: 0 });
-
-    const isMobile = window.innerWidth < 1024;
-    // 天数 >30 后启用底部缩放滑块，默认显示最近 ~30 天，可拖动看全程。
-    const manyPts = dates.length > 30;
-    const zoomStart = manyPts ? Math.max(0, (1 - 30 / dates.length) * 100) : 0;
-
-    const legendData = ["总利润", taName, "成本基础"];
-    if (showSPY) legendData.push("SPY 等值");
-    if (showHSTECH) legendData.push("恒科等值");
-    legendData.push("回撤");
-
-    const seriesArr = [
-      // 总利润(净化本金)= 主线：加减仓不影响它，它的峰值才是"真·赚最多"那天，
-      // 与下方"历史利润极值"卡 + 回撤填充同口径。粗线 + 面积填充作视觉重心。
-      { name: "总利润", type: "line", data: profit, yAxisIndex: 0,
-        itemStyle: { color: green }, lineStyle: { width: 2.6, color: green }, smooth: 0.1,
-        symbol: dates.length > 45 ? "none" : "circle", symbolSize: 5,
-        areaStyle: { color: green, opacity: 0.08 }, z: 4, connectNulls: true,
-        markLine: { symbol: "none", silent: true,
-          lineStyle: { color: green, type: "dotted", width: 1, opacity: 0.5 },
-          label: { color: green, fontSize: 9, position: "insideStartTop", formatter: "盈亏线 0" },
-          data: [{ yAxis: 0 }] } },
-      // 真实总资产(市值+现金)= value-scale 参考线，替代旧"净值"线。trade-invariant、
-      // 是真·身家。现金有记录才画(US 6/12+、HK/合计 6/18+)，早期断开。
-      { name: taName, type: "line", data: ta, yAxisIndex: 0,
-        itemStyle: { color: accent }, lineStyle: { width: 1.8, color: accent }, smooth: 0.1,
-        symbol: dates.length > 45 ? "none" : "circle", symbolSize: 4,
-        z: 3, connectNulls: true },
-      { name: "成本基础", type: "line", data: cost, yAxisIndex: 0,
-        itemStyle: { color: dim }, lineStyle: { width: 1, type: "dashed", color: dim },
-        symbol: "none", z: 2, connectNulls: true },
+    const lines = [
+      { name: "总利润", values: profit, color: green, width: 2.6 },
+      { name: taName, values: ta, color: accent, width: 1.8 },
+      { name: "成本基础", values: cost, color: dim, width: 1, dashed: true },
     ];
-    if (showSPY) seriesArr.push(
-      { name: "SPY 等值", type: "line", data: spy.line, yAxisIndex: 0,
-        itemStyle: { color: benchColor }, lineStyle: { width: 1.4, color: benchColor, opacity: 0.85 },
-        symbol: "none", smooth: 0.1, z: 2, connectNulls: true });
-    if (showHSTECH) seriesArr.push(
-      { name: "恒科等值", type: "line", data: hst.line, yAxisIndex: 0,
-        itemStyle: { color: hkColor }, lineStyle: { width: 1.4, color: hkColor, opacity: 0.85 },
-        symbol: "none", smooth: 0.1, z: 2, connectNulls: true,
-        markLine: (triggerLvl == null) ? undefined : {
-          symbol: "none", silent: true,
-          lineStyle: { color: hkColor, type: "dashed", width: 1.2, opacity: 0.9 },
-          label: { color: hkColor, fontSize: 9, position: "insideEndTop",
-            formatter: () => `恒科200线触发 ${Math.round(hstech200)}` +
-              (reclaimPct != null ? `（需${reclaimPct >= 0 ? "+" : ""}${reclaimPct.toFixed(0)}%）` : "") },
-          data: [{ yAxis: triggerLvl }],
-        },
-      });
-    seriesArr.push(
-      { name: "回撤", type: "line", data: ddPct, yAxisIndex: 1,
-        areaStyle: { color: red, opacity: 0.14 }, lineStyle: { color: red, opacity: 0.55, width: 1 },
-        symbol: "none", smooth: 0.1, z: 1 });
-
-    const opt = {
-      ...baseChartOpts(),
-      grid: { left: isMobile ? 48 : 72, right: isMobile ? 40 : 68, top: isMobile ? 56 : 38, bottom: manyPts ? 58 : 36 },
-      legend: { data: legendData,
-        // 总览默认展开恒科等值；分市场视图全部默认显示
-        selected: (view === "combined" && showHSTECH) ? { "恒科等值": true } : {},
-        textStyle: { color: chartTextColor(), fontSize: isMobile ? 9 : 10 },
-        top: 4, itemGap: isMobile ? 8 : 10, itemWidth: isMobile ? 16 : 25, itemHeight: isMobile ? 8 : 14,
-        padding: [0, 4] },
-      tooltip: {
-        ...chartTooltip("axis", "cross"),
-        formatter: (params) => {
-          const date = params[0]?.axisValue || "";
-          const i = params[0]?.dataIndex;
-          const lines = params.map(p => {
-            const v = p.value;
-            const isPct = p.seriesName === "回撤";
-            const fmt = isPct
-              ? (v != null ? `${v.toFixed(2)}%` : "—")
-              : (v != null ? tipMoney(v) : "—");
-            return `${p.marker} ${p.seriesName}: <b>${fmt}</b>`;
-          });
-          // 总利润较昨日 = 总利润两点之差(trade-invariant，不含加减仓噪声)，与"回撤"分列。
-          // 注意：这≠"每日P&L图"的 today_change(今日盘中相对昨收)，两者口径不同。
-          if (i != null && chg[i] != null) {
-            const c = chg[i];
-            const col = c > 0 ? green : c < 0 ? red : dim;
-            const s = c >= 0 ? "+" : "-";
-            const pctStr = chgPct[i] != null ? ` (${s}${Math.abs(chgPct[i]).toFixed(2)}%)` : "";
-            const abs = Math.abs(c).toLocaleString("en-US", { maximumFractionDigits: 0 });
-            lines.push(`<span style="color:${col}">总利润较昨日: <b>${s}${cur}${abs}</b>${pctStr}</span>`);
-          } else if (i === 0) {
-            lines.push(`<span style="color:${dim}">总利润较昨日: <b>首日</b></span>`);
-          }
-          return [date, ...lines].join("<br>");
-        },
-      },
-      xAxis: chartAxis({
-        type: "category", data: dates,
-        axisLabel: { color: chartLabelColor(), fontSize: 10, fontFamily: getCSS("--mono"), rotate: dates.length > 6 ? 35 : 0,
-          hideOverlap: true, formatter: (v) => (v || "").slice(5) },
-      }),
-      dataZoom: manyPts ? [
-        chartDataZoom(zoomStart),
-      ] : undefined,
-      yAxis: [
-        chartAxis({
-          type: "value", name: isMobile ? "" : (view === "hk" ? "HKD" : "USD"),
-          scale: true,
-          // 恒科200线触发位高于净值顶 → 不抬高轴上限会被裁掉看不见。
-          max: (triggerLvl != null) ? (v) => Math.max(v.max, triggerLvl) * 1.03 : undefined,
-          axisLabel: { color: chartLabelColor(), fontSize: 10, fontFamily: getCSS("--mono"), formatter: axisMoney },
-        }),
-        chartAxis({
-          type: "value", name: isMobile ? "" : "DD %", max: 0, position: "right",
-          splitLine: { show: false },
-          axisLabel: { color: chartLabelColor(), fontSize: 10, fontFamily: getCSS("--mono"), formatter: "{value}%" },
-        }),
-      ],
-      series: seriesArr,
-    };
-    if (!dates.length) {
-      opt.graphic = [{
-        type: "text", left: "center", top: "middle",
-        style: { text: "暂无快照历史", fill: chartTextColor(), fontSize: 13, opacity: 0.5 },
-      }];
-    }
-    charts.equity.setOption(opt, true);
+    if (showSPY) lines.push(
+      { name: "SPY 等值", values: spy.line, color: benchColor, width: 1.4, opacity: .85 });
+    if (showHSTECH) lines.push(
+      { name: "恒科等值", values: hst.line, color: hkColor, width: 1.4, opacity: .85 });
+    const triggerLabel = triggerLvl == null ? "" :
+      `恒科200线触发 ${Math.round(hstech200)}` +
+      (reclaimPct != null ? `（需${reclaimPct >= 0 ? "+" : ""}${reclaimPct.toFixed(0)}%）` : "");
+    charts.equity.setModel({
+      view, dates, lines, dd: ddPct, change: chg, changePct: chgPct, cur,
+      positive: green, negative: red, warning: hkColor,
+      triggerLevel: triggerLvl, triggerLabel,
+    });
   }
 
   function renderDailyPnlChart() {
