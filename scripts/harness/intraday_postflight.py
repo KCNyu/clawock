@@ -30,8 +30,9 @@ Validates:
   4. 若 preflight should_alert=true：报告必须提到至少一个异动票或 alert_reason
   5. 无敷衍 phrases
 
-Note: Mode 7 does NOT commit portfolio.json. It rebuilds dashboard.json and commits
-only semantic changes; every slot also updates the local heartbeat ledger, which
+Note: Mode 7 does NOT commit portfolio.json. For every usable preflight context,
+including a slot whose prose is rejected, it rebuilds dashboard.json and commits
+only semantic changes. Every slot also updates the local heartbeat ledger, which
 the existing single publisher exposes without introducing another git writer.
 """
 
@@ -252,6 +253,37 @@ def delivery_marker_payload(ctx, *, ts, sent_ok, tg_ok, first_line, market, out,
     }
 
 
+def publish_data_plane(market):
+    """Publish deterministic dashboard outputs, independent of prose quality."""
+    try:
+        ok, _ = rebuild_dashboard()
+        if not ok:
+            return 'rebuild_failed', False
+        paths = [*dashboard_output_changes(), 'logs/dashboard_build_status.json']
+        snap = snapshot_date_for_now()
+        if snap:
+            paths.append(f'memory/snapshots/{snap}.json')
+        added, _ = git_cmd('add', '--', *paths)
+        if not added:
+            return 'git_add_failed', False
+        # git diff --cached --quiet returns 0 when there is NO diff
+        clean, _ = git_cmd('diff', '--cached', '--quiet', '--', *paths)
+        if clean:
+            return 'current', False
+        msg = (
+            f"dashboard: intraday refresh "
+            f"({market} {datetime.now().strftime('%H:%M HKT')})"
+        )
+        committed, _ = git_cmd('commit', '-m', msg, '--', *paths)
+        if not committed:
+            return 'commit_failed', False
+        pushed, _ = push_with_rebase_retry()
+        return ('published', True) if pushed else ('committed_local', False)
+    except Exception as exc:
+        print(f'warn: dashboard auto-publish failed: {exc}', file=sys.stderr)
+        return 'publish_failed', False
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--market', choices=['hk', 'us'], required=True)
@@ -409,26 +441,12 @@ def main():
                 print(f'warn: WeChat send failed (watchdog will retry): {send_out[:200]}',
                       file=sys.stderr)
 
-    dashboard_published = False
-    if status in ('pass', 'warn'):
-        try:
-            ok, _ = rebuild_dashboard()
-            if ok:
-                paths = [*dashboard_output_changes(), 'logs/dashboard_build_status.json']
-                snap = snapshot_date_for_now()
-                if snap:
-                    paths.append(f'memory/snapshots/{snap}.json')
-                git_cmd('add', '--', *paths)
-                # git diff --cached --quiet returns 0 when there is NO diff
-                clean, _ = git_cmd('diff', '--cached', '--quiet', '--', *paths)
-                if not clean:
-                    msg = f"dashboard: intraday refresh ({args.market} {datetime.now().strftime('%H:%M HKT')})"
-                    c_ok, _ = git_cmd('commit', '-m', msg, '--', *paths)
-                    if c_ok:
-                        push_ok, _ = push_with_rebase_retry()
-                        dashboard_published = push_ok
-        except Exception as e:
-            print(f'warn: dashboard auto-publish failed: {e}', file=sys.stderr)
+    raw_block = (ctx.get('raw_wechat_block', '') or '').strip()
+    data_plane_ready = ctx.get('status') == 'ok' and bool(raw_block)
+    if data_plane_ready:
+        data_plane_status, dashboard_published = publish_data_plane(args.market)
+    else:
+        data_plane_status, dashboard_published = 'unavailable', False
 
     result = {
         'status':        status,
@@ -442,20 +460,26 @@ def main():
         'wechat_sent':   wechat_sent,
         'telegram_sent': tg_ok,
         'dashboard_published': dashboard_published,
+        'data_plane_status': data_plane_status,
+        'narrative_status': {
+            'pass': 'success', 'warn': 'warning', 'fail': 'failed',
+        }[status],
         'insights_sidecar': insights_written,
     }
     heartbeat = ctx.get('heartbeat') or {}
+    heartbeat_state = 'completed' if data_plane_ready else 'postflight_failed'
     cron_heartbeat.record(
         args.market,
-        'completed' if status in ('pass', 'warn') else 'postflight_failed',
+        heartbeat_state,
         job_name=heartbeat.get('job'), slot=heartbeat.get('slot'),
         postflight_status=status, wechat_sent=wechat_sent,
         telegram_sent=tg_ok, dashboard_published=dashboard_published,
+        data_plane_status=data_plane_status,
         insights_sidecar=insights_written, issue_count=len(issues),
     )
     result['heartbeat'] = {
         'job': heartbeat.get('job'), 'slot': heartbeat.get('slot'),
-        'state': 'completed' if status in ('pass', 'warn') else 'postflight_failed',
+        'state': heartbeat_state,
     }
     print(json.dumps(result, ensure_ascii=False, indent=2))
     return 0 if status == 'pass' else (1 if status == 'warn' else 2)

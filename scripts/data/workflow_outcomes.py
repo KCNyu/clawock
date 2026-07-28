@@ -280,12 +280,18 @@ def record_from_heartbeat(event):
         record_stage(job, "postflight", "failed", slot=slot, **details)
     elif state == "completed":
         postflight = event.get("postflight_status")
-        llm_status = "warning" if postflight == "warn" else "success"
+        data_plane = event.get("data_plane_status")
+        data_plane_ok = data_plane in {None, "published", "current"}
+        llm_status = {
+            "pass": "success",
+            "warn": "warning",
+            "fail": "failed",
+        }.get(postflight, "warning")
         record_stage(job, "llm", llm_status, slot=slot, **details)
         record_stage(
             job,
             "postflight",
-            "warning" if postflight == "warn" else "success",
+            "success" if postflight == "pass" and data_plane_ok else "warning",
             slot=slot,
             **details,
         )

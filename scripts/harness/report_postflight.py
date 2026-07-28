@@ -21,11 +21,12 @@ Validates (on the assembled message):
   5. 如果 preflight 有 anomalies，报告必须提到至少一个 anomaly 票
   6. 没有"等待数据/数据待获取"等敷衍词
 
-Delivery is fail-closed (2026-07-24): pass/warn send the full body and commit;
-fail sends the data block ALONE — never the rejected prose — and does not commit;
-a closed market or a missing context sends nothing. A slot whose only delivery was
-a fail-closed data block may be superseded exactly once by a validated report
-(see claim_upgrade).
+Delivery is fail-closed (2026-07-24): pass/warn send the full body; fail sends
+the data block ALONE — never the rejected prose. Deterministic data publication
+is independent of that narrative decision, so every usable context can refresh
+the dashboard and commit. A closed market or a missing context sends/publishes
+nothing. A slot whose only delivery was a fail-closed data block may be
+superseded exactly once by a validated report (see claim_upgrade).
 
 Outputs JSON to stdout:
   {"status": "pass|warn|fail", "mode": "prose|legacy", "issues": [...], ...}
@@ -342,11 +343,12 @@ def deliver_wechat(market, phase, date, wechat_prefix, text, delivery_state='del
 
 
 def maybe_commit(status, commit_msg):
-    if status == 'fail':
-        return False, 'skipped (status=fail)'
-    rebuild_dashboard()
+    rebuild_ok, _ = rebuild_dashboard()
     dashboard_paths = dashboard_output_changes()
-    suffix = ' (validation warnings)' if status == 'warn' else ''
+    suffix = {
+        'warn': ' (validation warnings)',
+        'fail': ' (data only; prose rejected)',
+    }.get(status, '')
     snap_date = snapshot_date_for_now()
     # logs/dashboard_build_status.json rides along: its only scheduled reader is
     # the GHA cron-health runner (fresh checkout), so it must reach origin.
@@ -357,7 +359,8 @@ def maybe_commit(status, commit_msg):
     ok, _ = _git(*add_args)
     if not ok:
         return False, 'git add failed'
-    ok, out = _git('commit', '-m', f'{commit_msg}{suffix}')
+    commit_paths = add_args[1:]
+    ok, out = _git('commit', '-m', f'{commit_msg}{suffix}', '--', *commit_paths)
     if not ok and 'nothing to commit' in out:
         return True, 'nothing to commit (idempotent)'
     if not ok:
@@ -366,8 +369,23 @@ def maybe_commit(status, commit_msg):
     # Push so Pages updates; rebase+retry handles races with GH Action commits
     push_ok, push_out = push_with_rebase_retry()
     if push_ok:
-        return True, 'committed + pushed'
+        if rebuild_ok:
+            return True, 'committed + pushed'
+        return True, 'committed + pushed (dashboard rebuild failed)'
     return True, f'committed (push failed: {push_out[-150:]})'
+
+
+def classify_data_plane(commit_ok, commit_msg):
+    """Return an explicit publication state independent of prose validation."""
+    if not commit_ok:
+        return 'failed'
+    if 'push failed' in commit_msg:
+        return 'committed_local'
+    if 'rebuild failed' in commit_msg:
+        return 'published_degraded'
+    if 'nothing to commit' in commit_msg:
+        return 'current'
+    return 'published'
 
 
 def main():
@@ -565,6 +583,7 @@ def main():
                                         context_id=ctx.get('context_id'))
 
     commit_ok, commit_msg = maybe_commit(status, ctx['commit_msg'])
+    data_plane_status = classify_data_plane(commit_ok, commit_msg)
 
     result = {
         'status':        status,
@@ -578,6 +597,10 @@ def main():
         'delivered':     'data-block only (prose rejected)' if status == 'fail' else 'full report',
         'commit_ok':     commit_ok,
         'commit_msg':    commit_msg,
+        'data_plane_status': data_plane_status,
+        'narrative_status': {
+            'pass': 'success', 'warn': 'warning', 'fail': 'failed',
+        }[status],
         'n_chars':       len(body),
     }
     # Even a rejected prose report can have a successful postflight: the harness
@@ -586,9 +609,12 @@ def main():
     workflow_outcomes.record_stage(
         job_name,
         'postflight',
-        'success' if status == 'pass' else 'warning',
+        'success'
+        if status == 'pass' and data_plane_status in {'published', 'current'}
+        else 'warning',
         slot=slot,
         delivered=result['delivered'],
+        data_plane_status=data_plane_status,
         issue_count=len(issues),
     )
     primary_delivery_ok = bool(wechat_sent)

@@ -295,7 +295,7 @@ def run_main(pf, sent, monkeypatch, tmp_path):
     monkeypatch.setattr(pf.trading_calendar, 'phase_session', lambda m, p: 'x')
     monkeypatch.setattr(pf.trading_calendar, 'closed_reason', lambda m, session=None: None)
     monkeypatch.setattr(pf, 'maybe_commit',
-                        lambda status, msg: (status != 'fail', f'commit({status})'))
+                        lambda status, msg: (True, f'commit({status})'))
 
     def run(prose, *, context_id, ctx=None, age_minutes=0):
         (tmp_path / f'report-context-us-close-{pf.datetime.now():%Y-%m-%d}.json'
@@ -331,7 +331,9 @@ def test_incident_replay_stale_prose_is_refused_not_married_to_fresh_numbers(
 
     assert rc == 2 and out['status'] == 'fail'
     assert any('context_id 不匹配' in i for i in out['issues'])
-    assert out['commit_ok'] is False
+    assert out['commit_ok'] is True
+    assert out['data_plane_status'] == 'published'
+    assert out['narrative_status'] == 'failed'
     body = sent['messages'][0]
     assert FRESH_BLOCK in body and '▎情绪面' not in body and STALE_BLOCK not in body
 
@@ -343,6 +345,34 @@ def test_happy_path_assembles_commits_and_records_delivered(run_main, sent):
     assert out['commit_ok'] is True
     body = sent['messages'][0]
     assert body.startswith('🌙 美股收盘日报') and FRESH_BLOCK in body and '▎情绪面' in body
+
+
+def test_failed_narrative_still_commits_only_the_data_plane_paths(pf, monkeypatch):
+    calls = []
+    monkeypatch.setattr(pf, 'rebuild_dashboard', lambda: (True, 'ok'))
+    monkeypatch.setattr(pf, 'dashboard_output_changes',
+                        lambda: ['assets/data/dashboard.json'])
+    monkeypatch.setattr(pf, 'snapshot_date_for_now', lambda: None)
+    monkeypatch.setattr(pf, 'push_with_rebase_retry', lambda: (True, 'ok'))
+
+    def fake_git(*args):
+        calls.append(args)
+        return True, 'ok'
+
+    monkeypatch.setattr(pf, '_git', fake_git)
+
+    ok, message = pf.maybe_commit('fail', 'portfolio: refresh')
+
+    assert ok is True and message == 'committed + pushed'
+    assert calls[0] == (
+        'add', 'portfolio.json', 'assets/data/dashboard.json',
+        'logs/dashboard_build_status.json',
+    )
+    assert calls[1] == (
+        'commit', '-m', 'portfolio: refresh (data only; prose rejected)', '--',
+        'portfolio.json', 'assets/data/dashboard.json',
+        'logs/dashboard_build_status.json',
+    )
 
 
 def test_a_failed_slot_can_be_superseded_once_then_locks(run_main, sent, pf):
