@@ -15,7 +15,14 @@ import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
 DASHBOARD = ROOT / "assets" / "data" / "dashboard.json"
-SIZE_CAP = 200_000            # the same cap scripts/system_check.py enforces
+# Bytes, not characters — the unit build_dashboard's MAX_OUT_BYTES and
+# system_check both use, and the only one a visitor actually downloads. This
+# file used to measure `len(read_text())`, and because the payload is heavily
+# CJK (3 bytes per character in UTF-8) it read 4.8% low: 186,308 "bytes" for a
+# 195,234-byte file. That made the CI gate the loosest of the three and its
+# headroom number a lie — 2026-07-28 it reported 13.7KB left when 4.7KB
+# remained.
+SIZE_CAP = 200_000            # == build_dashboard.MAX_OUT_BYTES
 RENDERERS = ("dashboard.render.js", "dashboard.charts.js")
 
 
@@ -28,9 +35,35 @@ def _size(obj):
     return len(json.dumps(obj, ensure_ascii=False))
 
 
+def _published_size():
+    """Single source of truth for "how big is it" — see SIZE_CAP on the unit."""
+    return len(DASHBOARD.read_bytes())
+
+
 def test_payload_stays_under_the_published_cap():
-    size = len(DASHBOARD.read_text())
+    size = _published_size()
     assert size < SIZE_CAP, f"{size:,} bytes; trim or move detail to a sidecar"
+
+
+def test_the_cap_is_measured_in_the_same_unit_the_builder_enforces():
+    """Three gates, one unit. The drift here was silent for a reason: on an
+    ASCII payload the two units agree exactly, so nothing catches it until the
+    content is non-ASCII — which this payload has always been."""
+    sys.path.insert(0, str(ROOT / "scripts" / "data"))
+    import build_dashboard
+
+    assert SIZE_CAP == build_dashboard.MAX_OUT_BYTES
+
+    # The payload is CJK-heavy, so the two units are ~5% apart. Pinning the
+    # gate's measurement to the byte count is what stops anyone quietly putting
+    # `read_text()` back: on this content the assertion below can only hold for
+    # the byte reading.
+    characters = len(DASHBOARD.read_text())
+    assert _published_size() > characters
+    assert _published_size() == len(DASHBOARD.read_bytes())
+
+    check = (ROOT / "scripts" / "system_check.py").read_text()
+    assert "out.stat().st_size" in check, "system_check must stay on bytes too"
 
 
 def test_no_sub_object_is_embedded_twice(payload):
@@ -129,7 +162,7 @@ def test_rebuild_is_idempotent_and_keeps_the_trim():
     assert "regime_history" not in rebuilt["lev_regime"]
     assert "current_group_calibrators" not in rebuilt["decision_metrics"]["hierarchical_calibration"]
     assert all("stages" not in r for r in rebuilt["workflow_outcomes"]["recent"])
-    assert len(DASHBOARD.read_text()) < SIZE_CAP
+    assert len(DASHBOARD.read_bytes()) < SIZE_CAP
 
 
 def test_the_brief_still_gets_the_calibrators_the_dashboard_no_longer_ships():
