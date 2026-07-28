@@ -206,10 +206,19 @@ def _record_dashboard_build(ok, output, ws=None):
             1 for ln in (output or '').splitlines()
             if 'warn:' in ln or '⚠' in ln or 'FATAL' in ln
         )
+        # Counted apart from warn_count on purpose: a repaired sidecar rendered
+        # its card, so the build is not degraded and must not ride the health
+        # check's exit 2. But an agent that ships invalid JSON every morning is a
+        # producer bug, and a repair nobody ever sees is the silent fixer this
+        # was explicitly not supposed to become.
+        repair_count = sum(
+            1 for ln in (output or '').splitlines() if 'repair:' in ln
+        )
         status = {
             'checked_at': datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ'),
             'ok': bool(ok),
             'warn_count': warn_count,
+            'repair_count': repair_count,
             'tail': (output or '')[-500:],
         }
         path = ws / DASHBOARD_BUILD_STATUS
@@ -222,6 +231,9 @@ def _record_dashboard_build(ok, output, ws=None):
         elif warn_count:
             print(f'⚠️  build_dashboard ok but {warn_count} degraded section(s) — '
                   f'see {DASHBOARD_BUILD_STATUS}', file=sys.stderr)
+        elif repair_count:
+            print(f'🔧 build_dashboard ok, {repair_count} sidecar(s) needed JSON '
+                  f'repair — see {DASHBOARD_BUILD_STATUS}', file=sys.stderr)
     except Exception as e:
         print(f'(could not record dashboard build status: {e})', file=sys.stderr)
 
