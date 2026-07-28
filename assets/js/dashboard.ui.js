@@ -241,10 +241,10 @@
       // absent (same `null` contract the old build_dashboard _embed used). Each is
       // a separate conditional GET → 304 headers-only when unchanged.
       //
-      // Scoped to the tab that consumes each one (map below). The big one,
-      // decision_audit.json (~700KB), only feeds Reflect; awaiting all seven before
-      // the first render used to block Overview — which reads none of them — on that
-      // download+parse. Now we await only the sidecars the LANDING tab needs (so a
+      // Scoped to the tab that consumes each one (map below). Reflect's audit and
+      // backtest belong in decision_audit.json; awaiting every sidecar before the
+      // first render used to block Overview on data it never reads. Now we await
+      // only the sidecars the LANDING tab needs (so a
       // deep-linked #market/#reflect/#drill still shows a COMPLETE tab, never a
       // partial shell), render, then load the rest in the background and refresh only
       // their own tab. Overview has no sidecar dependency, so a background arrival

@@ -28,6 +28,15 @@
       CHART_FNS[t]();
     });
   }
+
+  // Reflect owns the episode backtest. Prefer its lazy sidecar, with the old
+  // dashboard.json location as a cross-version fallback while a code deploy and
+  // the next cron-generated data deploy can briefly straddle schemas.
+  function episodeBacktest() {
+    return safe(DATA, "decision_audit", "episode_backtest")
+      || safe(DATA, "episode_backtest")
+      || {};
+  }
   function ensureTabCharts(t) {
     if (!CHART_FNS[t]) return;
     _chartTabsShown.add(t);
@@ -273,7 +282,7 @@
     if (!card) return;
     // decision_money_impact is no longer published at all — not just unplotted — so
     // the card's visibility keys off the win-rate record that it still shows.
-    const hasRecord = safe(DATA, "episode_backtest", "horizons", "t1") != null;
+    const hasRecord = safe(episodeBacktest(), "horizons", "t1") != null;
     card.style.display = hasRecord ? "" : "none";
     if (!window.echarts) return;
     const green = getCSS("--positive") || "#28C08D";
@@ -286,7 +295,7 @@
     const wrEl = document.getElementById("chart-ai-winrate");
     if (wrEl) {
       if (!charts.aiWinRate) charts.aiWinRate = echarts.init(wrEl, null, { renderer: "canvas" });
-      const t1 = safe(DATA, "episode_backtest", "horizons", "t1") || {};
+      const t1 = safe(episodeBacktest(), "horizons", "t1") || {};
       const allWrCurve = t1.all_win_rate_curve || [];
       const activeWrCurve = t1.active_win_rate_curve || [];
       const wrDates = [...new Set([...allWrCurve, ...activeWrCurve].map(p => p.date))].sort();
@@ -934,4 +943,3 @@
     }
     charts.weightConf.setOption(opt, true);
   }
-
