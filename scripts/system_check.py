@@ -183,8 +183,16 @@ def check_dashboard_buildable(r):
         r.add('dashboard.json build', CRITICAL, 'no output file')
         return
     size = out.stat().st_size
-    if size > 200_000:
+    # The payload only grows (snapshots, decisions, outcome rows), so the cap is
+    # reached between one publish and the next with no warning: on 2026-07-28 it
+    # crossed 200KB and every push turned red on a test, not here. Warn while
+    # there is still room to trim something.
+    cap, near = 200_000, 180_000
+    if size > cap:
         r.add('dashboard.json size', WARNING, f'{size:,} > 200KB cap')
+    elif size > near:
+        r.add('dashboard.json size', WARNING,
+              f'{size:,} — {cap - size:,} bytes left under the 200KB cap')
     else:
         r.add('dashboard.json build', OK, f'{size:,} bytes')
 
