@@ -253,6 +253,7 @@
         macro: "market", sentiment: "market", influencer_feed: "market",
         us_news_digest: "market", em_news: "market",
         decision_audit: "reflect", shadow_portfolio: "drill",
+        brief_projection: "drill",
       };
       const _cache = triggeredByUser ? "no-store" : "no-cache";
       const _bust = triggeredByUser ? "?t=" + Date.now() : "";

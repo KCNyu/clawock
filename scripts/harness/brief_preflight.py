@@ -56,6 +56,7 @@ import peer_scan  # noqa: E402
 import workflow_outcomes  # noqa: E402
 import risk_discipline  # noqa: E402
 import brief_context  # noqa: E402
+import brief_decision_packet  # noqa: E402
 from instrument_registry import get as get_instrument  # noqa: E402
 from instrument_registry import compute_lookthrough_exposure  # noqa: E402
 from instrument_registry import one_x_swap_map  # noqa: E402
@@ -1815,7 +1816,15 @@ def main():
     }
     ctx_path = TMP_DIR / f'brief-context-{today}.json'
     try:
-        context, bundle_manifest = brief_context.write_run_bundle(context, ctx_path)
+        generation_id = brief_context.compute_generation_id(context)
+        decision_packet = brief_decision_packet.compile_packet(
+            context, generation_id=generation_id
+        )
+        context, bundle_manifest = brief_context.write_run_bundle(
+            context,
+            ctx_path,
+            tool_artifacts={"decision_packet": decision_packet},
+        )
     except Exception as exc:
         print(f'FATAL: brief context boundary failed: {exc}', file=sys.stderr)
         workflow_outcomes.record_stage(

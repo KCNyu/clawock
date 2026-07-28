@@ -1,6 +1,6 @@
 ---
 name: daily-deep-brief
-description: kcn 每个工作日 08:00 HKT 跑一次的盘前全 swarm 深度分析。harness 化：`scripts/harness/brief_preflight.py` 跑所有确定性步骤（刷价 / FX / snapshot / HHI / SEC EDGAR / retrospective），LLM 只做 swarm 创造性（Tier 1/2/3/Judge），`scripts/harness/brief_postflight.py` 验证 + commit + 自动投递微信。**输出**：完整 markdown 落盘 `memory/{date}-pre-open.md` + 结构化 `memory/{date}-plan.json` + 紧凑微信卡 `memory/.tmp/brief-card-{date}.txt`（postflight 用 fresh token 自动投递，cron 设 delivery=none，LLM 不手动发）。**只在每日 8 点 cron 触发时使用；手动深度分析仍走 portfolio-swarm-review。**
+description: kcn 每个工作日 08:00 HKT 跑一次的盘前全 swarm 深度分析。harness 化：`scripts/harness/brief_preflight.py` 计算并编译 typed decision packet，LLM 只做 Tier 1/2/3/Judge 与受限 judgment overlay，`scripts/harness/brief_postflight.py` 验证、生成 Pages projection、commit 并自动投递微信。**输出**：完整 markdown、结构化 plan、受限 judgment JSON 与紧凑微信卡。**只在每日 8 点 cron 触发时使用；手动深度分析仍走 portfolio-swarm-review。**
 ---
 
 # Daily Deep Brief (08:00 HKT, weekday)
@@ -13,11 +13,10 @@ description: kcn 每个工作日 08:00 HKT 跑一次的盘前全 swarm 深度分
 ```
 ┌────────────────────┐     ┌───────────────┐     ┌────────────────────┐
 │ scripts/harness/brief_preflight.py │ ──► │ LLM (你 / Rick)│ ──► │ brief_postflight.py│
-│  (确定性 + 幂等)   │     │  (Tier 1/2/3) │     │ 验证+commit+投递微信│
+│  (确定性 + 幂等)   │     │ (只写判断/反方)│     │ 验证+projection+投递│
 └────────────────────┘     └───────────────┘     └────────────────────┘
-   刷价/FX/snapshot/         读 core + 按需 bundles 校验 md+plan schema，
-   HHI/EDGAR/retro           写 md+plan+            fresh-token 发 brief-card
-                             brief-card 微信卡       (唯一投递, 见 Step 6)
+   指标/因子/风险/evidence   查 packet summary/ticker 校验 md+plan+judgment，
+   编译 typed packet         写判断与解释            Pages 只读稳定 projection
 ```
 
 **为什么这样分**：之前完全交给 LLM，模型可能漏快照、漏 HHI、漏 FX、漏 retrospective。
@@ -47,41 +46,44 @@ python3 /root/.openclaw/workspace/scripts/harness/brief_preflight.py
    - 不在文档硬编码 ticker；实际名单以当天持仓和上述动态过滤结果为准
 7. **Retrospective**：读 prior v2 plan，对每个 decision 按 strategy 检查 condition 是否触发、模拟 benefit 与 confidence calibration
 
-输出分两层：
+输出分三层：
 
 - `memory/.tmp/brief-context-{date}.json` —— 完整、不可裁剪的审计事实；供 postflight 校验，**不要整份 cat 进模型上下文**。
 - `memory/.tmp/brief-context-{date}/manifest.json` + `core.json` + feature bundles —— 同一 `generation_id` 下的模型输入边界。manifest 记录路径、hash、字段、逐 section 大小和预算。
+- manifest 的 `tools.decision_packet` —— harness 编译的 typed 决策边界；技术分类、量化可用性、风险动作、证据 ID 与 action bounds 都由代码拥有。
 
-### Step 2: 读 manifest + core（常驻输入）
+### Step 2: 只读 decision packet summary（唯一常驻输入）
 
 ```bash
-cat /root/.openclaw/workspace/memory/.tmp/brief-context-$(date +%Y-%m-%d)/manifest.json
-python3 /root/.openclaw/workspace/scripts/data/brief_context.py --manifest /root/.openclaw/workspace/memory/.tmp/brief-context-$(date +%Y-%m-%d)/manifest.json --core
+python3 /root/.openclaw/workspace/scripts/data/brief_decision_packet.py \
+  --manifest /root/.openclaw/workspace/memory/.tmp/brief-context-$(date +%Y-%m-%d)/manifest.json \
+  --summary
 ```
 
-`manifest + core` 是唯一常驻输入，合计硬上限 128 KiB；每个 lazy bundle 另有 96 KiB 单次加载上限。preflight 超限就直接失败，绝不静默裁字段。完整 audit 只给 postflight 和排障使用，正常分析禁止 `cat brief-context-{date}.json`。
+summary 包含 book/concentration、每票 deterministic status、技术/因子可用性、风险计数、allowed actions 与 evidence IDs。它不要求模型加载原始持仓交易流水或整张因子表。
 
-core 关键字段：
-- `prices_refreshed_at` / `fx`（`rate`, `source`, `fetched_at`）
-- `book` — `usd_total_pnl`, `hkd_total_pnl`, `hk_leg_hkd`, `us_leg_usd`（FX 已换算）
-- `concentration` — `{hk: {hhi, top2_pct, weights, verdict}, us: {...}}`
-- `portfolio` / `lookthrough_exposure` / `risk_guardrail` / `risk_discipline` —— 行动所需持仓与完整风险规则，按 JSON 值原样保留，不参与裁剪
-- `integrity` / `issues` —— 数据完整性结果
-- `thesis_registry` — `memory/theses/*.json` 的只读摘要：当前 state、最近检查时间、下一次 review trigger；未建基线的持仓明确为 `unknown`。
-- `research_surface` — 研究生命周期的**待办队列**（只读）：`earnings.hk_results_expected`（港股已公告董事会会议→业绩临近；**只有「临近」没有日期**，日期在公告文件里，任何免费源都没有，别编一个出来）、`earnings.reviews_due`（已披露财报但没有一手 artifact 覆盖）、`earnings.overdue_commitments`（管理层承诺过期且没结果）、`entry_gates.ungated_positions`（建仓后没有 gate 或 gate 判 reject 仍在持有）、`entry_gates.open_questions`（gray 判定还缺的证据）。`errors` 非空 = 有 artifact 失效，先说这件事。
+需要分析某票时才查该票；需要单一维度时必须带 `--section`：
+
+```bash
+python3 /root/.openclaw/workspace/scripts/data/brief_decision_packet.py \
+  --manifest /root/.openclaw/workspace/memory/.tmp/brief-context-$(date +%Y-%m-%d)/manifest.json \
+  --ticker 00100 --section technical
+```
+
+可选 section：`facts|technical|quant|sentiment|evidence|risk|constraints`。一次查询硬上限 24 KiB，并同时校验 manifest hash 与 generation。正常分析禁止 `cat brief-context-{date}.json`，也禁止为了省一次查询而整份读 core/research/market bundle。
 
 ### Step 2.5: 按消费者 lazy-load bundles
 
-每个命令会同时校验 manifest hash 与 `generation_id`。**每个 bundle 最多读一次，紧挨着消费它的章节读；不要预先全读，也不要回头重读。** 读出的字段与 core 合并后，下面统称 `context`。
+bundle 是审计深钻，不是默认模型输入。只有 packet 没有提供某个报告必须字段时才加载；每个 bundle 最多一次，紧挨消费者读取。
 
 ```bash
 # 风险情景 / 解套数学使用前
 python3 /root/.openclaw/workspace/scripts/data/brief_context.py --manifest /root/.openclaw/workspace/memory/.tmp/brief-context-$(date +%Y-%m-%d)/manifest.json --bundle risk_detail
-# Tier 1 / 同行扫描 / 因子研究使用前
+# EDGAR / 同行明细确需原始研究记录时
 python3 /root/.openclaw/workspace/scripts/data/brief_context.py --manifest /root/.openclaw/workspace/memory/.tmp/brief-context-$(date +%Y-%m-%d)/manifest.json --bundle research
-# 任何 catalyst 主动动作裁决前（news_evidence_graph 是唯一权限源）
+# 需要查看事件图完整 provenance 时（action 权限仍以 packet constraints 为准）
 python3 /root/.openclaw/workspace/scripts/data/brief_context.py --manifest /root/.openclaw/workspace/memory/.tmp/brief-context-$(date +%Y-%m-%d)/manifest.json --bundle evidence
-# 大盘、舆情、东财、名人段使用前
+# 需要市场级而非 per-ticker 的宏观/名人记录时
 python3 /root/.openclaw/workspace/scripts/data/brief_context.py --manifest /root/.openclaw/workspace/memory/.tmp/brief-context-$(date +%Y-%m-%d)/manifest.json --bundle market
 # Retrospective / Decision v2 校准段使用前
 python3 /root/.openclaw/workspace/scripts/data/brief_context.py --manifest /root/.openclaw/workspace/memory/.tmp/brief-context-$(date +%Y-%m-%d)/manifest.json --bundle calibration
@@ -99,7 +101,7 @@ manifest 若出现 `extras`，表示新 feature 被隔离而没有偷长常驻 c
 
 ### Step 3: Swarm 分析（你的创造性工作）
 
-按下面这个 3-tier 流程做分析。所有数字**只能从本次 generation 的 core / 已加载 bundle 取**，不要凭空造。
+按下面这个 3-tier 流程做分析。所有数字只能从本次 generation 的 packet 查询或确有必要时加载的 bundle 取；技术指标、因子分数、风险分类和 action bounds 一律引用 harness 结果，不重新计算。
 
 #### Required reads (delta vs `AGENTS.md` baseline)
 
@@ -554,7 +556,7 @@ calibration bundle 的 `decision_metrics` 是 v2 唯一口径：只结算**条�
 - US 开盘后 09:30 ET 关注什么
 - Book-level metric 红线（例：港股浮亏到 X% 触发 forced derisk）
 
-### Step 4: 写输出文件（A 报告 / B plan / C insights sidecar / D 微信卡）
+### Step 4: 写输出文件（A 报告 / B plan / C judgment / D insights / E 微信卡）
 
 #### A. Markdown 报告 → `memory/{YYYY-MM-DD}-pre-open.md`
 
@@ -638,6 +640,7 @@ postflight 严格 schema 校验：
 合法 enum：
 - `strategy_id` ∈ {`core_position`, `risk_rebalance`, `intraday_t`, `event_trade`, `tactical_entry`}；迁移历史才允许 `legacy_unknown`
 - `context_generation_id`：必填，逐字符照抄本次 `manifest.generation_id`；postflight 会递归检查 plan 内所有 `*generation_id`，跨代引用直接 fail。
+- 每条 `action` 必须出现在该 ticker packet 的 `constraints.allowed_actions`；卖出股数不得超过 `max_sell_shares`，catalyst 只能引用 `actionable_evidence_ids`。postflight 会二次校验，模型不能扩大边界。
 - `action` ∈ {`cut`, `trim_on_rebound`, `hold_and_watch`, `t_only`, `add_only_on_trigger`, `watch`}
 - `condition.type` ∈ {`open`, `price_above`, `price_below`, `index_breakdown`, `event`, `manual`}
 - `driven_by` ∈ {`technical`, `catalyst`, `sentiment`, `influencer`, `macro`, `peer`, `risk_rule`}（每个 decision 必填）
@@ -662,7 +665,32 @@ postflight 严格 schema 校验：
 
 禁止输出顶层 `actions`。postflight 会生成稳定的 `decision_id` / `episode_id` 并写入 `memory/decisions.jsonl`。同股同日的不同 strategy 必须保留为不同 decision；同策略连续同 action 才可归入同一 episode。
 
-#### C. LLM 复盘 sidecar → `memory/.tmp/insights-{YYYY-MM-DD}.json`
+#### C. 受限判断 overlay → `memory/.tmp/brief-judgment-{YYYY-MM-DD}.json`
+
+先生成模板，再只回填观点字段：
+
+```bash
+python3 /root/.openclaw/workspace/scripts/data/brief_decision_packet.py \
+  --manifest /root/.openclaw/workspace/memory/.tmp/brief-context-$(date +%Y-%m-%d)/manifest.json \
+  --judgment-template
+```
+
+schema 只允许顶层 `schema_version/context_generation_id/portfolio_assessment/portfolio_counterargument/ticker_judgments`；每票只允许：
+
+```json
+{
+  "ticker": "00100",
+  "verdict": "bullish|neutral|bearish|mixed",
+  "confidence": 0.62,
+  "assessment": "你的评价",
+  "counterargument": "最强反方",
+  "rationale": "为何在冲突信号中这样判断"
+}
+```
+
+禁止加入价格、RSI、MA、因子分、股数、action、evidence 内容或其他字段。postflight 严格校验后才会把这些文字并入 `assets/data/brief_projection.json`；overlay 缺失/非法时 Pages 仍发布 deterministic rows，只把 `judgment_status` 标为 missing/invalid。
+
+#### D. LLM 复盘 sidecar → `memory/.tmp/insights-{YYYY-MM-DD}.json`
 
 build_dashboard 会读它，让 dashboard 上 **行为复盘 / 唱反调 Pre-mortem / 隐藏集中度** 三张卡同步刷新（缺失/解析失败容错，卡自动隐藏，不影响 brief 投递）。这是 dashboard 上唯一由你（LLM）写的"对决策本身的反思"层 —— 数字算不出来、只有你能写。
 
@@ -695,7 +723,7 @@ build_dashboard 会读它，让 dashboard 上 **行为复盘 / 唱反调 Pre-mor
 - **hidden_concentration**：看 sector_exposure + leveraged_etf + 持仓权重，识别表面分散实际同因子；`exposure_pct` 给该因子占组合的估算整数。
 - 全部中文，口吻直接、像私人交易教练，指出问题不安慰。
 
-#### D. 微信卡 → `memory/.tmp/brief-card-{YYYY-MM-DD}.txt`
+#### E. 微信卡 → `memory/.tmp/brief-card-{YYYY-MM-DD}.txt`
 
 **这是真正发到 kcn 微信的内容**（投递由 Step 5 的 postflight 自动完成，原样发这个文件），所以必须自洽完整、≤1.5KB。数字全来自 `plan.json` + 本次 generation 的 core/bundles，不现编：
 
@@ -774,7 +802,7 @@ python3 /root/.openclaw/workspace/scripts/harness/brief_postflight.py
 >
 > **为什么这样改（2026-06-08）**：旧的 `delivery=announce` 在长 turn 末尾用 turn 起点抓的 token 投递，brief turn 恒 >160s（173–975s）→ token 必过期 → 静默丢、`delivered=true` 是假信号（见 memory: openclaw-wechat-longturn-token-expiry）。短命 message send 每次抓新 token，且独立于 turn 时长，kcn 实测可靠（同 intraday 架构）。
 >
-> **你的职责到 Step 5 跑完 postflight 为止**：产出 A/B/C/D 四个文件 + 跑 postflight。看到 `wechat_sent: true` 即大功告成，**立即结束本轮，不要再追加任何思考或内容**。
+> **你的职责到 Step 5 跑完 postflight 为止**：产出 A/B/C/D/E 五个文件 + 跑 postflight。看到 `wechat_sent: true` 即大功告成，**立即结束本轮，不要再追加任何思考或内容**。
 
 ## Style rules
 

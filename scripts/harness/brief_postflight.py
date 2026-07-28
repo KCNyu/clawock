@@ -40,6 +40,7 @@ import decision_v2  # noqa: E402
 import workflow_outcomes  # noqa: E402
 import risk_discipline  # noqa: E402
 import brief_context  # noqa: E402
+import brief_decision_packet  # noqa: E402
 
 # Required concepts and the section labels the brief model may legitimately emit.
 # The canonical keys preserve the existing missing-section issue text.  The aliases
@@ -123,7 +124,7 @@ def validate_generation_references(plan, context=None):
     return issues
 
 
-def validate_plan_json(path, context=None):
+def validate_plan_json(path, context=None, decision_packet=None):
     if not path.exists():
         return ['plan.json 缺失（critical）']
     try:
@@ -133,6 +134,13 @@ def validate_plan_json(path, context=None):
 
     issues = [f'plan.json v2: {x}' for x in decision_v2.validate_plan(plan, path)]
     issues += validate_generation_references(plan, context)
+    if decision_packet:
+        issues += [
+            f'plan.json harness: {item}'
+            for item in brief_decision_packet.validate_plan_constraints(
+                plan, decision_packet
+            )
+        ]
     decisions = plan.get('decisions', []) if isinstance(plan.get('decisions'), list) else []
     # Unpriceable calls score for direction but never reach the money chart.
     issues += [f'plan.json size: {x}' for x in decision_v2.missing_size_warnings(decisions)]
@@ -293,6 +301,7 @@ def validate_markdown(path, context=None):
 
 CRITICAL_KEYWORDS = [
     '缺失', '解析失败', '表格 #', 'generation_id',
+    'plan.json harness', 'decision packet 不可用',
 ]  # table mismatch and cross-generation output are critical
 
 
@@ -429,6 +438,7 @@ def maybe_commit(status, today, dry_run=False):
                             'assets/data/t0_setups.json',
                             'assets/data/t0_setups_history.jsonl',
                             'assets/data/t0_setup_review.json',
+                            'assets/data/brief_projection.json',
                             'logs/dashboard_build_status.json')
     if not add_ok:
         return False, f'git add failed: {add_out[-200:]}'
@@ -513,10 +523,17 @@ def main():
 
     issues = []
     manifest_path = ctx_path.with_suffix('') / 'manifest.json'
+    decision_packet = None
     if context and context.get('generation_id'):
         issues += brief_context.validate_run_bundle(ctx_path, manifest_path)
+        try:
+            decision_packet = brief_decision_packet.read_packet(manifest_path)
+        except Exception as exc:
+            issues.append(f'decision packet 不可用: {exc}')
     issues += validate_markdown(md_path, context=context)
-    issues += validate_plan_json(plan_path, context=context)
+    issues += validate_plan_json(
+        plan_path, context=context, decision_packet=decision_packet
+    )
 
     status = categorize(issues)
     workflow_outcomes.record_stage(
@@ -539,6 +556,27 @@ def main():
     # off-host workflow's committer has an explicit verdict (and a crash leaves no
     # file → fail-closed).
     write_publish_gate(status, today)
+
+    # Pages consumes a versioned projection, not the model's raw files.  Missing
+    # or invalid prose is isolated: deterministic technical/risk rows still
+    # publish with judgment_status=missing/invalid, and a projection exception
+    # never blocks the report/plan commit.
+    projection_path = WS / 'assets' / 'data' / 'brief_projection.json'
+    judgment_path = WS / 'memory' / '.tmp' / f'brief-judgment-{today}.json'
+    projection_status = 'skipped'
+    projection_issues = []
+    if status in ('pass', 'warn') and decision_packet and not args.dry_run:
+        try:
+            projection, projection_issues = (
+                brief_decision_packet.write_pages_projection(
+                    decision_packet, judgment_path, projection_path
+                )
+            )
+            projection_status = projection.get('judgment_status') or 'written'
+        except Exception as exc:
+            projection_status = 'failed'
+            projection_issues = [str(exc)]
+            print(f'warn: brief Pages projection failed: {exc}', file=sys.stderr)
 
     if status == 'pass':
         wechat_prefix = ''
@@ -626,9 +664,13 @@ def main():
         'wechat_sent':   wechat_sent,
         'commit_ok':     commit_ok,
         'commit_msg':    commit_msg,
+        'projection_status': projection_status,
+        'projection_issues': projection_issues,
         'files_checked': {
             'pre_open_md':  str(md_path),
             'plan_json':    str(plan_path),
+            'judgment_json': str(judgment_path),
+            'pages_projection': str(projection_path),
         },
     }
     workflow_outcomes.record_stage(

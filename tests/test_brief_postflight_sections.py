@@ -63,3 +63,9 @@ def test_genuinely_omitted_section_still_raises_same_missing_issue(tmp_path):
     # Keep today's warn/fail threshold semantics: one non-critical issue is a warn;
     # five such issues still fail. The section omission itself remains surfaced.
     assert brief_postflight.categorize(issues) == 'warn'
+
+
+def test_harness_action_boundary_is_fail_closed():
+    assert brief_postflight.categorize([
+        "plan.json harness: decision[0] ABC action outside harness allowed_actions"
+    ]) == "fail"
