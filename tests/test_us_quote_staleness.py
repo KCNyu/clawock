@@ -352,7 +352,7 @@ class TestStaleLastGuard:
         h = self._run(monkeypatch, tmp_path,
                       {"c": 27.35, "pc": None, "h": None, "l": None, "o": None,
                        "dp": 5.37, "nc": 1.47, "source": "Nasdaq API (etf)"},
-                      {"PLTU": (27.35, "2026-07-24")})
+                      {"PLTU": (27.35, _fresh_prev_bar_date())})
         assert h["current_price"] == 28.82          # was 27.35 -> "flat today"
         assert h["today_change_pct"] > 5.0          # was 0.0
         assert h["today_change"] != 0
@@ -364,7 +364,7 @@ class TestStaleLastGuard:
         h = self._run(monkeypatch, tmp_path,
                       {"c": 27.35, "pc": None, "h": None, "l": None, "o": None,
                        "dp": 5.37, "source": "Nasdaq API (etf)"},
-                      {"PLTU": (27.35, "2026-07-24")})
+                      {"PLTU": (27.35, _fresh_prev_bar_date())})
         assert h["current_price"] == pytest.approx(28.8187, abs=1e-3)
         assert h["stale_price_repair"]["basis"] == "percentageChange"
 
@@ -375,7 +375,7 @@ class TestStaleLastGuard:
         h = self._run(monkeypatch, tmp_path,
                       {"c": 27.35, "pc": 27.35, "h": 27.40, "l": 27.30,
                        "o": 27.35, "dp": 0.0, "source": "Finnhub"},
-                      {"PLTU": (27.35, "2026-07-24")})
+                      {"PLTU": (27.35, _fresh_prev_bar_date())})
         assert h["current_price"] == 27.35
         assert "stale_price_repair" not in h
 
@@ -383,7 +383,7 @@ class TestStaleLastGuard:
         h = self._run(monkeypatch, tmp_path,
                       {"c": 29.25, "pc": 27.35, "h": 29.81, "l": 28.41,
                        "o": 28.515, "dp": 6.95, "source": "Finnhub"},
-                      {"PLTU": (27.35, "2026-07-24")})
+                      {"PLTU": (27.35, _fresh_prev_bar_date())})
         assert h["current_price"] == 29.25
         assert "stale_price_repair" not in h
 
@@ -434,6 +434,20 @@ def _session_dates():
 
 
 _SESSION, _PREV_SESSION = _session_dates()
+
+
+def _fresh_prev_bar_date():
+    """A Polygon prev-close bar date `update_us_portfolio` will still accept.
+
+    Same class of rot as `_session_dates`, one rule further down: the fetcher
+    drops any prev-close bar older than three calendar days (the SPCX
+    ticker-reuse trap), so the incident's own `2026-07-24` literal stopped
+    being a usable bar on 2026-07-28 — prev_close went `None` and the two
+    repair tests failed with no prior close to repair against. Clamp to the
+    acceptance window so a long weekend or holiday cannot reintroduce it.
+    """
+    return max(_PREV_SESSION, date.today() - timedelta(days=3)).isoformat()
+
 
 PLTU_STALE = {
     "ticker": "PLTU", "shares": 14, "cost_basis": 40.9571,

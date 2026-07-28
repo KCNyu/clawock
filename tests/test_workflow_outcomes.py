@@ -1,5 +1,6 @@
 import json
 import sys
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 
@@ -9,10 +10,26 @@ sys.path.insert(0, str(ROOT / "scripts" / "data"))
 import workflow_outcomes as outcomes  # noqa: E402
 
 
+# Every write prunes the ledger against KEEP_HOURS, so a slot literal is only
+# usable while it is inside that window: from 2026-07-28 these fixed 07-24
+# slots were pruned between one record_stage call and the next, and each test
+# read back a record holding only its own last stage. Freezing "now" beside the
+# slots keeps the fixtures readable and makes the assertions time-independent —
+# see clawock-no-live-numbers-in-static-copy.
+FROZEN_NOW = datetime(2026, 7, 24, 23, 0, tzinfo=outcomes.HKT)
+
+
 def _isolate(tmp_path, monkeypatch):
     monkeypatch.setattr(outcomes, "LOCAL_PATH", tmp_path / "local.json")
     monkeypatch.setattr(outcomes, "PUBLIC_PATH", tmp_path / "public.json")
     monkeypatch.setattr(outcomes, "LOCK_PATH", tmp_path / "outcomes.lock")
+    monkeypatch.setattr(
+        outcomes,
+        "_now",
+        lambda at=None: (at or FROZEN_NOW)
+        if (at or FROZEN_NOW).tzinfo
+        else at.replace(tzinfo=timezone.utc),
+    )
 
 
 def test_stages_remain_independent_and_primary_delivery_can_be_degraded(
@@ -154,6 +171,26 @@ def test_reconcile_adds_raw_error_without_changing_final_product(tmp_path, monke
     }
     assert record["final_product"]["status"] == "success"
     assert "private provider detail" not in outcomes.LOCAL_PATH.read_text()
+
+
+def test_slots_older_than_the_retention_window_are_pruned(tmp_path, monkeypatch):
+    """The behaviour the frozen clock above exists to keep out of the way.
+
+    Pruning on write is what bounds the ledger; it is also what silently ate
+    the stage history of any test whose slot drifted past KEEP_HOURS. Both
+    offsets are derived from KEEP_HOURS deliberately: the claim under test is
+    that a write prunes at all, not that the window is 96 hours, so retuning
+    the window must not turn this red.
+    """
+    _isolate(tmp_path, monkeypatch)
+    fresh = (FROZEN_NOW - timedelta(hours=2)).isoformat()
+    expired = (FROZEN_NOW - timedelta(hours=outcomes.KEEP_HOURS + 2)).isoformat()
+
+    outcomes.record_stage("盘前深度简报", "preflight", "success", slot=expired)
+    outcomes.record_stage("盘中盯盘", "preflight", "success", slot=fresh)
+
+    slots = [record["slot"] for record in outcomes.load_ledger()["records"]]
+    assert slots == [fresh]
 
 
 def test_dashboard_renderer_labels_raw_and_final_status_separately():

@@ -74,10 +74,37 @@ def test_the_unread_history_and_calibrator_blocks_stay_out(payload):
         assert field in calibration
 
 
+def test_the_unread_workflow_stage_detail_stays_out(payload):
+    """`recent[].stages` was 24KB of heartbeat detail with no reader.
+
+    The build-status dot reads `counts` / `raw_error_but_product_usable`; its
+    tooltip reads `job`, `slot`, `raw_execution.status`, `final_product.status`
+    and nothing else. Assert both halves: the detail is gone, and every field
+    the renderer names is still there.
+    """
+    wf = payload["workflow_outcomes"]
+    assert wf["recent"], "the tooltip renders these rows"
+    assert all("stages" not in record for record in wf["recent"])
+    assert wf["stages_source"].endswith("workflow-outcomes.json")
+
+    assert isinstance(wf["counts"], dict)
+    assert "raw_error_but_product_usable" in wf
+    for record in wf["recent"]:
+        for field in ("job", "slot", "raw_execution", "final_product"):
+            assert field in record, field
+        assert record["raw_execution"]["status"]
+        assert record["final_product"]["status"]
+
+
 def test_dropped_blocks_are_still_reachable_elsewhere():
     """Trimming the payload must not lose the data — only relocate it."""
     standalone = json.loads((ROOT / "assets" / "data" / "lev_regime.json").read_text())
     assert standalone["regime_history"]["hk"]
+
+    outcomes = json.loads(
+        (ROOT / "assets" / "data" / "workflow-outcomes.json").read_text()
+    )
+    assert any(record.get("stages") for record in outcomes["records"])
 
 
 def test_what_the_charts_actually_read_is_still_present(payload):
@@ -101,6 +128,7 @@ def test_rebuild_is_idempotent_and_keeps_the_trim():
     rebuilt = json.loads(DASHBOARD.read_text())
     assert "regime_history" not in rebuilt["lev_regime"]
     assert "current_group_calibrators" not in rebuilt["decision_metrics"]["hierarchical_calibration"]
+    assert all("stages" not in r for r in rebuilt["workflow_outcomes"]["recent"])
     assert len(DASHBOARD.read_text()) < SIZE_CAP
 
 
