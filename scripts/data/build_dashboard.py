@@ -22,6 +22,7 @@ from zoneinfo import ZoneInfo
 
 import decision_v2
 import instrument_registry
+import json_repair
 
 # Strict YYYY-MM-DD.json — rejects baselines/backups/archives that share the
 # snapshots dir (e.g. 2026-05-16-saturday-baseline.json caused duplicate 5-16
@@ -705,26 +706,59 @@ def load_tmp_sidecar(prefix, max_age_days=None):
     review / bear cases / status banner / movers attribution). The LLM runs inside
     the gateway/GHA where API keys live — those keys NEVER touch these files or
     dashboard.json (published to public Pages), only the narrative text does.
-    Non-fatal on any error (returns {}). If max_age_days is set, marks _stale=True
-    when the file's mtime is older, so the frontend can grey it out instead of
-    showing day-old critique as if it were current.
+    Non-fatal on any error. If max_age_days is set, marks _stale=True when the
+    file's mtime is older, so the frontend can grey it out instead of showing
+    day-old critique as if it were current.
+
+    Hand-authored JSON goes through json_repair: on 2026-07-28 a single missing
+    closing quote cost the whole behavioural-review card group. A repair is
+    reported on stderr as `repair:` — deliberately not `warn:`, because the
+    section did render and the build is not degraded — but it is still reported,
+    because a producer shipping invalid JSON every morning is a bug.
+
+    Anything short of "there is no sidecar in this checkout" returns
+    `{'_source': ..., '_invalid': True}` rather than `{}`. The difference
+    matters: callers pass `bool(result)` to `_preserve_absent`, and an empty dict
+    means "this checkout has no sidecar" — which republishes *yesterday's* card.
+    Only proven absence may do that. A file we found but could not read, and even
+    a directory listing that failed outright, are both uncertainty, not absence.
     """
+    name = None
     try:
         paths = glob.glob(str(WS_ROOT / 'memory' / '.tmp' / f'{prefix}-*.json'))
-        if not paths:
-            return {}
+    except Exception as e:
+        # Cannot even enumerate: we do not know whether a sidecar exists, so we
+        # must not claim it is absent.
+        print(f'  warn: load_tmp_sidecar({prefix}) could not list: {e}', file=sys.stderr)
+        return {'_source': None, '_invalid': True}
+    if not paths:
+        return {}
+    try:
         latest = max(paths, key=os.path.getmtime)
-        data = load_json(latest)
+        name = os.path.basename(latest)
+        data, repairs, status = json_repair.load_json_repaired(latest)
+        if status == json_repair.REPAIRED:
+            print(f'  repair: {name} — {json_repair.describe(repairs, status)}',
+                  file=sys.stderr)
+        elif status != json_repair.CLEAN:
+            print(f'  warn: failed to load {latest}: '
+                  f'{json_repair.describe(repairs, status)}', file=sys.stderr)
+            return {'_source': name, '_invalid': True}
         if not isinstance(data, dict):
-            return {}
-        data.setdefault('_source', os.path.basename(latest))
+            print(f'  warn: {name}: top level is {type(data).__name__}, not object',
+                  file=sys.stderr)
+            return {'_source': name, '_invalid': True}
+        data.setdefault('_source', name)
         if max_age_days is not None:
             age_days = (time.time() - os.path.getmtime(latest)) / 86400.0
             data['_stale'] = age_days > max_age_days
         return data
     except Exception as e:
         print(f'  warn: load_tmp_sidecar({prefix}) failed: {e}', file=sys.stderr)
-        return {}
+        # Reached only with `paths` non-empty, so a sidecar does exist and we
+        # failed to read it — bad encoding, an I/O error, or an mtime that could
+        # not be stat'd. Every one of those is untrustworthy, never absent.
+        return {'_source': name, '_invalid': True}
 
 
 _REVIEW_TAGS = {'edge', 'bias', 'warning'}
@@ -2020,7 +2054,11 @@ def main():
     # daily insights (brief): behavioral_review / bear_cases / hidden_concentration.
     # 7d stale guard so a missed brief doesn't show week-old critique as current.
     _insights = load_tmp_sidecar('insights', max_age_days=7)
-    insights_present = bool(_insights)  # file existed in this checkout (vs. GHA-absent)
+    # True when the file existed at all — including when it existed but was
+    # unreadable. Only genuine absence (a GHA checkout, where memory/.tmp is
+    # gitignored) may republish the previous card; an unreadable file must let
+    # the card hide rather than show yesterday's critique as today's.
+    insights_present = bool(_insights)
     _ins = validate_insights({} if _insights.get('_stale') else _insights, known_tickers)
     out['behavioral_review'] = _ins['behavioral_review']
     out['bear_cases'] = _ins['bear_cases']
