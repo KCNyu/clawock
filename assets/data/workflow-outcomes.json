@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "monitoring_started_at": "2026-07-26T08:00:00+08:00",
-  "updated_at": "2026-07-28T15:20:04.691434+00:00",
+  "updated_at": "2026-07-28T15:40:07.117664+00:00",
   "records": [
     {
       "job": "美股收盘报告",
@@ -2678,6 +2678,80 @@
       "final_product": {
         "status": "success",
         "reason": "primary delivery succeeded"
+      }
+    },
+    {
+      "job": "美股盘中盯盘",
+      "slot": "2026-07-28T23:30:00+08:00",
+      "stages": {
+        "preflight": {
+          "status": "success",
+          "at": "2026-07-28T15:33:45.032880+00:00",
+          "market": "us",
+          "updated_at": "2026-07-28T15:33:45.030830+00:00",
+          "should_alert": true,
+          "anomaly_count": 5
+        },
+        "llm": {
+          "status": "warning",
+          "at": "2026-07-28T15:36:01.482111+00:00",
+          "market": "us",
+          "updated_at": "2026-07-28T15:36:01.476731+00:00",
+          "should_alert": true,
+          "anomaly_count": 5,
+          "postflight_status": "warn",
+          "wechat_sent": true,
+          "telegram_sent": true,
+          "dashboard_published": true,
+          "data_plane_status": "published",
+          "insights_sidecar": true,
+          "issue_count": 1
+        },
+        "postflight": {
+          "status": "warning",
+          "at": "2026-07-28T15:36:01.490213+00:00",
+          "market": "us",
+          "updated_at": "2026-07-28T15:36:01.476731+00:00",
+          "should_alert": true,
+          "anomaly_count": 5,
+          "postflight_status": "warn",
+          "wechat_sent": true,
+          "telegram_sent": true,
+          "dashboard_published": true,
+          "data_plane_status": "published",
+          "insights_sidecar": true,
+          "issue_count": 1
+        },
+        "primary_delivery": {
+          "status": "success",
+          "at": "2026-07-28T15:36:01.499330+00:00",
+          "market": "us",
+          "updated_at": "2026-07-28T15:36:01.476731+00:00",
+          "should_alert": true,
+          "anomaly_count": 5,
+          "postflight_status": "warn",
+          "wechat_sent": true,
+          "telegram_sent": true,
+          "dashboard_published": true,
+          "data_plane_status": "published",
+          "insights_sidecar": true,
+          "issue_count": 1
+        },
+        "watchdog_delivery": {
+          "status": "unknown"
+        }
+      },
+      "raw_execution": {
+        "status": "ok",
+        "run_at_ms": 1785252600096,
+        "finished_at_ms": 1785252973820,
+        "run_id": null,
+        "error_present": false
+      },
+      "updated_at": "2026-07-28T15:36:01.499330+00:00",
+      "final_product": {
+        "status": "degraded",
+        "reason": "primary delivery succeeded with degraded generation/input"
       }
     }
   ]
