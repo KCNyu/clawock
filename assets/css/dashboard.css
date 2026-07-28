@@ -1733,6 +1733,20 @@
   }
   .overview-equity-hint { max-width: 92%; margin: -3px 0 3px; }
   .overview-equity-chart { min-height: 390px; height: 390px; }
+  .native-equity-canvas { display: block; touch-action: pan-y; }
+  .native-equity-tooltip {
+    position: absolute; z-index: 3; pointer-events: none; max-width: 240px;
+    padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px;
+    background: var(--card); color: var(--text); box-shadow: 0 12px 32px rgba(0,0,0,.28);
+    font: 11px/1.55 var(--mono);
+  }
+  .native-equity-window {
+    display: flex; align-items: center; gap: 8px; height: 26px;
+    color: var(--text-faint); font: 9px var(--mono);
+  }
+  .native-equity-window[hidden] { display: none; }
+  .native-equity-window input { min-width: 0; flex: 1; accent-color: var(--accent); }
+  .overview-equity-chart { position: relative; }
   .overview-verdict {
     grid-column: span 4; min-height: 480px; padding: 18px;
     border-top: 2px solid var(--warning);
