@@ -342,12 +342,11 @@
   document.getElementById("refresh-btn").addEventListener("click", () => loadData(true));
 
   // =========================================================
-  // Boot — wait for ECharts to load (it's deferred)
+  // Boot — text and native Hero chart paint without waiting for ECharts
   // =========================================================
   function boot() {
-    // No longer blocks on ECharts: Hero requests only its Equity anchor, while
-    // every detail canvas remains tab-lazy. Data text paints immediately and the
-    // ~1MB chart bundle loads in parallel only for a chart-owning landing tab.
+    // Hero uses a lightweight native Canvas. The ECharts bundle is fetched only
+    // after a user enters a detail tab that owns an analytical chart.
     // Land on the deep-linked tab BEFORE first paint of data (instant, no animation).
     const t0 = tabFromHash();
     if (t0) goToTab(t0, false);
