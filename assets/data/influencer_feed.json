@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-28T15:07:23.982078+00:00",
+  "generated_at": "2026-07-28T22:37:25.781873+00:00",
   "lookback_hours": 48,
   "sources": {
     "trump": "trumpstruth.org/feed (primary)",
@@ -13,12 +13,180 @@
   },
   "llm_filtered": true,
   "counts": {
-    "total": 12,
-    "held_hits": 0,
-    "new_ideas": 5,
-    "sector_hits": 3
+    "total": 11,
+    "held_hits": 6,
+    "new_ideas": 2,
+    "sector_hits": 1
   },
   "items": [
+    {
+      "author": "Musk",
+      "text": "Elon Musk stocks take $1.5 trillion hit with fresh test in SpaceX lockup ahead",
+      "url": "",
+      "published": "Tue, 28 Jul 2026 18:56:34 GMT",
+      "origin": "gnews-rss",
+      "source": "CNBC",
+      "tickers": [
+        "SPCX",
+        "SPCH"
+      ],
+      "held": [
+        "SPCH",
+        "SPCX"
+      ],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "私募估值"
+      ],
+      "sector_holdings": [
+        "RKLX"
+      ],
+      "stance": "attack",
+      "relevance": 90,
+      "summary_cn": "Musk旗下SpaceX在lockup测试前估值蒸发1.5万亿美元，kcn持仓SPCX和SPCH（2倍做多SpaceX ETF）直接承压。"
+    },
+    {
+      "author": "Musk",
+      "text": "SpaceX stock plunges. Is Elon Musk still the richest person in the world?",
+      "url": "",
+      "published": "Tue, 28 Jul 2026 18:59:59 GMT",
+      "origin": "gnews-rss",
+      "source": "Deseret News",
+      "tickers": [
+        "SPCX",
+        "SPCH"
+      ],
+      "held": [
+        "SPCH",
+        "SPCX"
+      ],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "Tesla",
+        "科技富豪榜"
+      ],
+      "sector_holdings": [
+        "RKLX"
+      ],
+      "stance": "attack",
+      "relevance": 88,
+      "summary_cn": "SpaceX股价大跌，Musk世界首富地位受质疑，kcn持有的SPCX与SPCH（2倍杠杆SpaceX ETF）受直接冲击。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk calls himself ‘former trillionaire’ as billions vanish amid Tesla, SpaceX crash. Why the rich laugh at losses",
+      "url": "",
+      "published": "Tue, 28 Jul 2026 10:55:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Yahoo Finance",
+      "tickers": [
+        "SPCX",
+        "SPCH"
+      ],
+      "held": [
+        "SPCH",
+        "SPCX"
+      ],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "Tesla",
+        "AI"
+      ],
+      "sector_holdings": [
+        "MSFU",
+        "RKLX"
+      ],
+      "stance": "attack",
+      "relevance": 87,
+      "summary_cn": "Musk自嘲'前万亿富翁'，Tesla与SpaceX估值双杀背景下，kcn的SpaceX相关杠杆敞口SPCX/SPCH持续承压。"
+    },
+    {
+      "author": "Musk",
+      "text": "Reality Bites Elon Musk and His Tesla, SpaceX Believers",
+      "url": "",
+      "published": "Thu, 23 Jul 2026 21:04:00 GMT",
+      "origin": "gnews-rss",
+      "source": "WSJ",
+      "tickers": [
+        "SPCX",
+        "SPCH"
+      ],
+      "held": [
+        "SPCH",
+        "SPCX"
+      ],
+      "new_ideas": [],
+      "sectors": [
+        "Tesla",
+        "航天",
+        "AI"
+      ],
+      "sector_holdings": [
+        "MSFU",
+        "RKLX"
+      ],
+      "stance": "attack",
+      "relevance": 85,
+      "summary_cn": "Musk的Tesla与SpaceX'信徒'遭现实打击，估值神话被质疑，kcn的SPCX/SPCH等SpaceX杠杆持仓面临重新定价。"
+    },
+    {
+      "author": "Musk",
+      "text": "Musk’s Wealth Has Taken a Huge SpaceX Hit. He’s Still Worth 45 Times China’s CXMT Billionaire.",
+      "url": "",
+      "published": "Tue, 28 Jul 2026 20:38:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Barron's",
+      "tickers": [
+        "SPCX",
+        "SPCH"
+      ],
+      "held": [
+        "SPCH",
+        "SPCX"
+      ],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "科技富豪榜"
+      ],
+      "sector_holdings": [
+        "RKLX"
+      ],
+      "stance": "attack",
+      "relevance": 84,
+      "summary_cn": "SpaceX估值大幅缩水，Musk身家仍是中国CXMT亿万富翁的45倍——kcn的SpaceX杠杆敞口SPCX/SPCH持续走弱。"
+    },
+    {
+      "author": "Musk",
+      "text": "As SpaceX Sheds a Tesla’s Worth of Value, Elon Musk Is Trying to Sell Investors on Another Company",
+      "url": "",
+      "published": "Tue, 28 Jul 2026 16:30:46 GMT",
+      "origin": "gnews-rss",
+      "source": "Gizmodo",
+      "tickers": [
+        "SPCX",
+        "SPCH"
+      ],
+      "held": [
+        "SPCH",
+        "SPCX"
+      ],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "私募估值",
+        "资本运作"
+      ],
+      "sector_holdings": [
+        "RKLX"
+      ],
+      "stance": "attack",
+      "relevance": 83,
+      "summary_cn": "SpaceX单轮蒸发相当于一整辆Tesla市值的价值，Musk转而向投资者推介其他公司，kcn的SPCX/SPCH持仓承压信号明显。"
+    },
     {
       "author": "Trump",
       "text": "NVIDIA: Building in America, for America: https://www.nvidia.com/en-us/made-in-usa/",
@@ -33,16 +201,19 @@
         "NVDA"
       ],
       "sectors": [
-        "半导体",
         "AI",
-        "制造业回流"
+        "半导体",
+        "制造业回流",
+        "英伟达"
       ],
       "sector_holdings": [
-        "SKHY"
+        "03032",
+        "03033",
+        "07226"
       ],
       "stance": "endorse",
-      "relevance": 78,
-      "summary_cn": "Trump转发NVIDIA'美国制造'宣传，强调AI/半导体产业链回流美国，对NVDA构成背书。"
+      "relevance": 72,
+      "summary_cn": "Trump转发NVIDIA'在美国建、为美国建'宣传内容，间接背书NVDA本土制造叙事，对恒生科技ETF等AI敞口有情绪利好。"
     },
     {
       "author": "Trump",
@@ -58,173 +229,18 @@
         "NVDA"
       ],
       "sectors": [
-        "半导体",
         "AI",
+        "半导体",
         "制造业回流"
       ],
       "sector_holdings": [
-        "SKHY"
+        "03032",
+        "03033",
+        "07226"
       ],
       "stance": "endorse",
-      "relevance": 78,
-      "summary_cn": "Trump转发NVIDIA博客，强调NVIDIA及合作伙伴在美国本土建厂生产，利好AI/半导体本土化。"
-    },
-    {
-      "author": "Musk",
-      "text": "Reality Bites Elon Musk and His Tesla, SpaceX Believers",
-      "url": "",
-      "published": "Thu, 23 Jul 2026 21:04:00 GMT",
-      "origin": "gnews-rss",
-      "source": "WSJ",
-      "tickers": [
-        "TSLA"
-      ],
-      "held": [],
-      "new_ideas": [
-        "TSLA"
-      ],
-      "sectors": [
-        "电动车",
-        "航天"
-      ],
-      "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "attack",
       "relevance": 70,
-      "summary_cn": "媒体文章：Musk的Tesla与SpaceX追随者遭现实打击，两大核心资产估值同步承压。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk Has Lost This Much Money as SpaceX, Tesla Stock Tank",
-      "url": "",
-      "published": "Fri, 24 Jul 2026 20:24:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Barron's",
-      "tickers": [
-        "TSLA"
-      ],
-      "held": [],
-      "new_ideas": [
-        "TSLA"
-      ],
-      "sectors": [
-        "电动车",
-        "航天"
-      ],
-      "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "attack",
-      "relevance": 70,
-      "summary_cn": "Musk因SpaceX与Tesla股价暴跌个人财富大幅缩水，Musk系资产全面承压。"
-    },
-    {
-      "author": "Musk",
-      "text": "As Elon Musk Promises The Future, Tesla Stock Slides Into The Past",
-      "url": "",
-      "published": "Mon, 27 Jul 2026 18:49:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Investor's Business Daily",
-      "tickers": [
-        "TSLA"
-      ],
-      "held": [],
-      "new_ideas": [
-        "TSLA"
-      ],
-      "sectors": [
-        "电动车"
-      ],
-      "sector_holdings": [],
-      "stance": "attack",
-      "relevance": 55,
-      "summary_cn": "媒体标题：Musk承诺未来但Tesla股价持续下滑，暗示市场对其乐观叙事信心动摇。"
-    },
-    {
-      "author": "Musk",
-      "text": "SpaceX has now lost the equivalent of a full Tesla in market capitalization",
-      "url": "",
-      "published": "Mon, 27 Jul 2026 21:26:03 GMT",
-      "origin": "gnews-rss",
-      "source": "CNBC",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天"
-      ],
-      "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "attack",
-      "relevance": 75,
-      "summary_cn": "SpaceX市值蒸发相当于一整家Tesla的市值，未上市但间接影响kcn持有的SpaceX相关标的(SPCX/SPCH)。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk’s Wealth Sinks Below $700 Billion As SpaceX Rout Extends",
-      "url": "",
-      "published": "Mon, 27 Jul 2026 15:04:16 GMT",
-      "origin": "gnews-rss",
-      "source": "Forbes",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天"
-      ],
-      "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "attack",
-      "relevance": 72,
-      "summary_cn": "Musk净资产跌破7000亿美元，SpaceX估值下跌延续，间接利空kcn持有的SpaceX ETF。"
-    },
-    {
-      "author": "Musk",
-      "text": "6 members of Congress have bought SpaceX stock, including one Democrat",
-      "url": "",
-      "published": "Tue, 28 Jul 2026 13:02:56 GMT",
-      "origin": "gnews-rss",
-      "source": "Yahoo Finance",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "政治/内幕交易"
-      ],
-      "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "neutral",
-      "relevance": 58,
-      "summary_cn": "6名国会议员买入SpaceX股票(包括1名民主党人)，反映SpaceX在二级市场关注度上升。"
-    },
-    {
-      "author": "Trump",
-      "text": "John Thune should not allow the United States  Senate to “leave town” until it passes The Save America Act or, far better still, TERMINATES THE FILIBUSTER, where Republicans can then quickly pass everything they ever dreamed of, including a full and deep throated SAVE AMERICA ACT, the Budget, and the ever looming Debt Ceiling disaster, 1929! The Dumocrats will do it on day one, and can’t believe how lucky they got with this Senate leadership. Remember, stupidity always brings LOSING & DEATH! President DJT",
-      "url": "https://trumpstruth.org/statuses/40301",
-      "published": "2026-07-27T13:01:06+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "宏观政策",
-        "国债/债务上限",
-        "立法"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 62,
-      "summary_cn": "Trump施压参议院通过Save America Act并终止Filibuster，涉及预算与债务上限，警告1929式金融灾难。"
+      "summary_cn": "Trump转发NVIDIA与合作伙伴在美国本土建厂博文，强化'美国制造'主题，对AI/半导体板块情绪正面。"
     },
     {
       "author": "Musk",
@@ -238,50 +254,228 @@
       "new_ideas": [],
       "sectors": [
         "AI",
-        "监管"
+        "监管",
+        "xAI/Grok"
       ],
-      "sector_holdings": [],
+      "sector_holdings": [
+        "03032",
+        "03033",
+        "07226",
+        "MSFU"
+      ],
       "stance": "attack",
-      "relevance": 60,
-      "summary_cn": "英国议员起诉Musk旗下xAI并寻求禁令阻止Grok生成性化图像，xAI面临监管/法律风险。"
+      "relevance": 58,
+      "summary_cn": "英国议员起诉xAI并寻求禁令阻止Grok生成色情图像，xAI/AI监管风险上升，对AI板块情绪偏负面。"
     },
     {
       "author": "Trump",
-      "text": "Trump Rallies in Georgia, Touting the Trump Accounts, New Policies, and Key Economic Wins: https://redstate.com/jenniferoo/2026/07/22/trump-campaigns-in-georgia-for-mike-collins-touts-save-america-act-and-trump-accounts-n2204655",
-      "url": "https://trumpstruth.org/statuses/40341",
-      "published": "2026-07-28T13:35:20+00:00",
+      "text": "Tariffs pull, USMCA pushes: Toyota to Texas: https://thehill.com/opinion/white-house/5965989-toyota-texas-tacoma-tariffs-impact/",
+      "url": "https://trumpstruth.org/statuses/40376",
+      "published": "2026-07-28T17:24:57+00:00",
       "origin": "truthsocial",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "宏观政策",
-        "税收"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 55,
-      "summary_cn": "Trump在乔治亚州造势宣传Trump Accounts及Save America Act等经济政策主张。"
-    },
-    {
-      "author": "Trump",
-      "text": "https://www.cnbc.com/video/2026/07/06/watch-cnbcs-full-interview-with-invest-america-founder-brad-gerstner.html",
-      "url": "https://trumpstruth.org/statuses/40329",
-      "published": "2026-07-27T23:20:58+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "投资/资本市场"
+        "关税",
+        "汽车",
+        "制造业回流"
       ],
       "sector_holdings": [],
       "stance": "neutral",
-      "relevance": 48,
-      "summary_cn": "Trump转发CNBC对Invest America创始人Brad Gerstner的采访视频，涉及美国投资/资本市场话题。"
+      "relevance": 62,
+      "summary_cn": "Trump关税推动叠加USMCA，Toyota将Tacoma生产线从墨西哥迁至德州，体现关税政策对汽车制造业回流的影响。"
+    },
+    {
+      "author": "Trump",
+      "text": "John Thune should not allow the United States  Senate to “leave town” until it passes The Save America Act or, far better still, TERMINATES THE FILIBUSTER, where Republicans can then quickly pass everything they ever dreamed of, including a full and deep throated SAVE AMERICA ACT, the Budget, and the ever looming Debt Ceiling disaster, 1929! The Dumocrats will do it on day one, and can’t believe how lucky they got with this Senate leadership. Remember, stupidity always brings LOSING & DEATH! President DJT",
+      "url": "https://trumpstruth.org/statuses/40301",
+      "published": "2026-07-27T13:01:06+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "财政政策",
+        "债务上限",
+        "立法"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 55,
+      "summary_cn": "Trump施压参议院通过《Save America Act》、预算及债务上限法案，警告1929式金融危机，影响财政与利率预期。"
     }
   ],
-  "held_hits": [],
+  "held_hits": [
+    {
+      "author": "Musk",
+      "text": "Elon Musk stocks take $1.5 trillion hit with fresh test in SpaceX lockup ahead",
+      "url": "",
+      "published": "Tue, 28 Jul 2026 18:56:34 GMT",
+      "origin": "gnews-rss",
+      "source": "CNBC",
+      "tickers": [
+        "SPCX",
+        "SPCH"
+      ],
+      "held": [
+        "SPCH",
+        "SPCX"
+      ],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "私募估值"
+      ],
+      "sector_holdings": [
+        "RKLX"
+      ],
+      "stance": "attack",
+      "relevance": 90,
+      "summary_cn": "Musk旗下SpaceX在lockup测试前估值蒸发1.5万亿美元，kcn持仓SPCX和SPCH（2倍做多SpaceX ETF）直接承压。"
+    },
+    {
+      "author": "Musk",
+      "text": "SpaceX stock plunges. Is Elon Musk still the richest person in the world?",
+      "url": "",
+      "published": "Tue, 28 Jul 2026 18:59:59 GMT",
+      "origin": "gnews-rss",
+      "source": "Deseret News",
+      "tickers": [
+        "SPCX",
+        "SPCH"
+      ],
+      "held": [
+        "SPCH",
+        "SPCX"
+      ],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "Tesla",
+        "科技富豪榜"
+      ],
+      "sector_holdings": [
+        "RKLX"
+      ],
+      "stance": "attack",
+      "relevance": 88,
+      "summary_cn": "SpaceX股价大跌，Musk世界首富地位受质疑，kcn持有的SPCX与SPCH（2倍杠杆SpaceX ETF）受直接冲击。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk calls himself ‘former trillionaire’ as billions vanish amid Tesla, SpaceX crash. Why the rich laugh at losses",
+      "url": "",
+      "published": "Tue, 28 Jul 2026 10:55:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Yahoo Finance",
+      "tickers": [
+        "SPCX",
+        "SPCH"
+      ],
+      "held": [
+        "SPCH",
+        "SPCX"
+      ],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "Tesla",
+        "AI"
+      ],
+      "sector_holdings": [
+        "MSFU",
+        "RKLX"
+      ],
+      "stance": "attack",
+      "relevance": 87,
+      "summary_cn": "Musk自嘲'前万亿富翁'，Tesla与SpaceX估值双杀背景下，kcn的SpaceX相关杠杆敞口SPCX/SPCH持续承压。"
+    },
+    {
+      "author": "Musk",
+      "text": "Reality Bites Elon Musk and His Tesla, SpaceX Believers",
+      "url": "",
+      "published": "Thu, 23 Jul 2026 21:04:00 GMT",
+      "origin": "gnews-rss",
+      "source": "WSJ",
+      "tickers": [
+        "SPCX",
+        "SPCH"
+      ],
+      "held": [
+        "SPCH",
+        "SPCX"
+      ],
+      "new_ideas": [],
+      "sectors": [
+        "Tesla",
+        "航天",
+        "AI"
+      ],
+      "sector_holdings": [
+        "MSFU",
+        "RKLX"
+      ],
+      "stance": "attack",
+      "relevance": 85,
+      "summary_cn": "Musk的Tesla与SpaceX'信徒'遭现实打击，估值神话被质疑，kcn的SPCX/SPCH等SpaceX杠杆持仓面临重新定价。"
+    },
+    {
+      "author": "Musk",
+      "text": "Musk’s Wealth Has Taken a Huge SpaceX Hit. He’s Still Worth 45 Times China’s CXMT Billionaire.",
+      "url": "",
+      "published": "Tue, 28 Jul 2026 20:38:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Barron's",
+      "tickers": [
+        "SPCX",
+        "SPCH"
+      ],
+      "held": [
+        "SPCH",
+        "SPCX"
+      ],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "科技富豪榜"
+      ],
+      "sector_holdings": [
+        "RKLX"
+      ],
+      "stance": "attack",
+      "relevance": 84,
+      "summary_cn": "SpaceX估值大幅缩水，Musk身家仍是中国CXMT亿万富翁的45倍——kcn的SpaceX杠杆敞口SPCX/SPCH持续走弱。"
+    },
+    {
+      "author": "Musk",
+      "text": "As SpaceX Sheds a Tesla’s Worth of Value, Elon Musk Is Trying to Sell Investors on Another Company",
+      "url": "",
+      "published": "Tue, 28 Jul 2026 16:30:46 GMT",
+      "origin": "gnews-rss",
+      "source": "Gizmodo",
+      "tickers": [
+        "SPCX",
+        "SPCH"
+      ],
+      "held": [
+        "SPCH",
+        "SPCX"
+      ],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "私募估值",
+        "资本运作"
+      ],
+      "sector_holdings": [
+        "RKLX"
+      ],
+      "stance": "attack",
+      "relevance": 83,
+      "summary_cn": "SpaceX单轮蒸发相当于一整辆Tesla市值的价值，Musk转而向投资者推介其他公司，kcn的SPCX/SPCH持仓承压信号明显。"
+    }
+  ],
   "new_ideas": [
     {
       "author": "Trump",
@@ -297,16 +491,19 @@
         "NVDA"
       ],
       "sectors": [
-        "半导体",
         "AI",
-        "制造业回流"
+        "半导体",
+        "制造业回流",
+        "英伟达"
       ],
       "sector_holdings": [
-        "SKHY"
+        "03032",
+        "03033",
+        "07226"
       ],
       "stance": "endorse",
-      "relevance": 78,
-      "summary_cn": "Trump转发NVIDIA'美国制造'宣传，强调AI/半导体产业链回流美国，对NVDA构成背书。"
+      "relevance": 72,
+      "summary_cn": "Trump转发NVIDIA'在美国建、为美国建'宣传内容，间接背书NVDA本土制造叙事，对恒生科技ETF等AI敞口有情绪利好。"
     },
     {
       "author": "Trump",
@@ -322,156 +519,45 @@
         "NVDA"
       ],
       "sectors": [
-        "半导体",
         "AI",
+        "半导体",
         "制造业回流"
       ],
       "sector_holdings": [
-        "SKHY"
+        "03032",
+        "03033",
+        "07226"
       ],
       "stance": "endorse",
-      "relevance": 78,
-      "summary_cn": "Trump转发NVIDIA博客，强调NVIDIA及合作伙伴在美国本土建厂生产，利好AI/半导体本土化。"
-    },
-    {
-      "author": "Musk",
-      "text": "Reality Bites Elon Musk and His Tesla, SpaceX Believers",
-      "url": "",
-      "published": "Thu, 23 Jul 2026 21:04:00 GMT",
-      "origin": "gnews-rss",
-      "source": "WSJ",
-      "tickers": [
-        "TSLA"
-      ],
-      "held": [],
-      "new_ideas": [
-        "TSLA"
-      ],
-      "sectors": [
-        "电动车",
-        "航天"
-      ],
-      "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "attack",
       "relevance": 70,
-      "summary_cn": "媒体文章：Musk的Tesla与SpaceX追随者遭现实打击，两大核心资产估值同步承压。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk Has Lost This Much Money as SpaceX, Tesla Stock Tank",
-      "url": "",
-      "published": "Fri, 24 Jul 2026 20:24:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Barron's",
-      "tickers": [
-        "TSLA"
-      ],
-      "held": [],
-      "new_ideas": [
-        "TSLA"
-      ],
-      "sectors": [
-        "电动车",
-        "航天"
-      ],
-      "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "attack",
-      "relevance": 70,
-      "summary_cn": "Musk因SpaceX与Tesla股价暴跌个人财富大幅缩水，Musk系资产全面承压。"
-    },
-    {
-      "author": "Musk",
-      "text": "As Elon Musk Promises The Future, Tesla Stock Slides Into The Past",
-      "url": "",
-      "published": "Mon, 27 Jul 2026 18:49:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Investor's Business Daily",
-      "tickers": [
-        "TSLA"
-      ],
-      "held": [],
-      "new_ideas": [
-        "TSLA"
-      ],
-      "sectors": [
-        "电动车"
-      ],
-      "sector_holdings": [],
-      "stance": "attack",
-      "relevance": 55,
-      "summary_cn": "媒体标题：Musk承诺未来但Tesla股价持续下滑，暗示市场对其乐观叙事信心动摇。"
+      "summary_cn": "Trump转发NVIDIA与合作伙伴在美国本土建厂博文，强化'美国制造'主题，对AI/半导体板块情绪正面。"
     }
   ],
   "sector_hits": [
     {
       "author": "Musk",
-      "text": "SpaceX has now lost the equivalent of a full Tesla in market capitalization",
+      "text": "UK lawmaker suing Musk's xAI seeks order to stop Grok generating sexualised images",
       "url": "",
-      "published": "Mon, 27 Jul 2026 21:26:03 GMT",
+      "published": "Tue, 28 Jul 2026 13:19:43 GMT",
       "origin": "gnews-rss",
-      "source": "CNBC",
+      "source": "Reuters",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "航天"
+        "AI",
+        "监管",
+        "xAI/Grok"
       ],
       "sector_holdings": [
-        "SPCH",
-        "SPCX"
+        "03032",
+        "03033",
+        "07226",
+        "MSFU"
       ],
       "stance": "attack",
-      "relevance": 75,
-      "summary_cn": "SpaceX市值蒸发相当于一整家Tesla的市值，未上市但间接影响kcn持有的SpaceX相关标的(SPCX/SPCH)。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk’s Wealth Sinks Below $700 Billion As SpaceX Rout Extends",
-      "url": "",
-      "published": "Mon, 27 Jul 2026 15:04:16 GMT",
-      "origin": "gnews-rss",
-      "source": "Forbes",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天"
-      ],
-      "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "attack",
-      "relevance": 72,
-      "summary_cn": "Musk净资产跌破7000亿美元，SpaceX估值下跌延续，间接利空kcn持有的SpaceX ETF。"
-    },
-    {
-      "author": "Musk",
-      "text": "6 members of Congress have bought SpaceX stock, including one Democrat",
-      "url": "",
-      "published": "Tue, 28 Jul 2026 13:02:56 GMT",
-      "origin": "gnews-rss",
-      "source": "Yahoo Finance",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "政治/内幕交易"
-      ],
-      "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "neutral",
       "relevance": 58,
-      "summary_cn": "6名国会议员买入SpaceX股票(包括1名民主党人)，反映SpaceX在二级市场关注度上升。"
+      "summary_cn": "英国议员起诉xAI并寻求禁令阻止Grok生成色情图像，xAI/AI监管风险上升，对AI板块情绪偏负面。"
     }
   ]
 }
