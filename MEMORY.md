@@ -118,3 +118,18 @@
 - layout: default title: 盘前深度简报 · 2026-07-23 description: "clawock 盘前深度简报 2026-07-23：港股 + 美股真实持仓的多空辩论、量化因子、风控硬闸与 AI 自评战绩（诚实公开，承认主动操作跑输躺平）。" [score=0.803 recalls=0 avg=0.620 source=memory/2026-07-23-pre-open.md:2-4]
 <!-- openclaw-memory-promotion:memory:memory/2026-07-23-pre-open.md:9:9 -->
 - 📊 盘前深度简报｜2026-07-23 周四 08:00 HKT (USDHKD=7.8404): **Regime**: US `neutral` (VIX 17 calm 但 SPX/NDX 同向下行) · HK `neutral` (HSTECH 4668 跌穿 4800 支撑,AI 大模型股重创,但大市 HSI 跌幅有限) [score=0.803 recalls=0 avg=0.620 source=memory/2026-07-23-pre-open.md:9-9]
+
+## Promoted From Short-Term Memory (2026-07-29)
+
+<!-- openclaw-memory-promotion:memory:memory/2026-07-24-pre-open.md:15:18 -->
+- ▎TL;DR: 🧭 **Regime:** neutral（HK amber ×0.5 持续；US 等 FOMC 7/29） 🔥 **催化剂栈：** SpaceX 13 号星舰试飞今天发射窗口（+SPCX 8/4 财报+8/6 解禁三连发）·Moonshot $30B IPO 6 月内+ Zhongji Innolight $7B 港股 IPO · 周二 FOMC 大概率 hold+鹰派措辞 · GOOGL $205B capex 重燃 AI ROI 质疑 ⚠️ **5 条硬止损+7 条仓位闸仍触发**，昨天 5 个 swap 2x→1x/spot **执行率 75%（昨天实际是 0 — 全部失败再挂）**，今天必须真挂单至少 4 个，不然 book 多挨一天。 ✅ **book 总览**：usd_base = **-8,358 USD**（= HK leg -65,540 HKD @7.8413 + US leg -2,000 USD）。HK 浮亏 -49.6%，US 浮亏 -44.3%，**主要靠 SPCH(-55.3%) + RKLX(-60.3%) + 07226(-21.8%) 三个杠杆 ETF**。Hold-and-watch 不再构成默认 — 那三只继续 carry decay。 [score=0.803 recalls=0 avg=0.620 source=memory/2026-07-24-pre-open.md:15-18]
+<!-- openclaw-memory-promotion:memory:memory/2026-07-24-pre-open.md:2:4 -->
+- layout: default title: 盘前深度简报 · 2026-07-24 description: "clawock 盘前深度简报 2026-07-24：港股 + 美股真实持仓的多空辩论、量化因子、风控硬闸与 AI 自评战绩（诚实公开，承认主动操作跑输躺平）。" [score=0.803 recalls=0 avg=0.620 source=memory/2026-07-24-pre-open.md:2-4]
+<!-- openclaw-memory-promotion:memory:memory/2026-07-24-pre-open.md:22:22 -->
+- ▎核心结论（1 句话）: > **纪律优先 day**：7 个仓位闸 + 5 个硬止损全部悬挂，前天决策 1x swap 0/5 执行意味着 book 已多亏一天 — 今天的 active call 90% 是 `risk_rebalance` swap 类，alpha call 只留 SKHY/CRCL hold-and-watch。 [score=0.803 recalls=0 avg=0.620 source=memory/2026-07-24-pre-open.md:22-22]
+<!-- openclaw-memory-promotion:memory:memory/2026-07-24-pre-open.md:26:26 -->
+- ▎Header（book + 持仓集中度）: **book USD-base 总浮亏：$-8,358** (= HK leg -49,916 HKD @ 7.8413 + US leg -1,992 USD) [score=0.803 recalls=0 avg=0.620 source=memory/2026-07-24-pre-open.md:26-26]
+<!-- openclaw-memory-promotion:memory:memory/2026-07-24-pre-open.md:28:31 -->
+- ▎Header（book + 持仓集中度）: | Leg | Currency | 持仓值 | Cash | 总浮亏 | HHI | Top2% | Verdict | |---|---|---|---|---|---|---|---| | HK | HKD | 50,760 | 22,197 HKD | **-49,916 (-49.6%)** | **0.343** ⚠️ | 81.0% | ⚠️ 集中风险 | | US | USD | 2,509 | 134 USD | **-1,992 (-44.3%)** | **0.249** ⚠️ | 60.3% | 偏集中 | [score=0.803 recalls=0 avg=0.620 source=memory/2026-07-24-pre-open.md:28-31]
+<!-- openclaw-memory-promotion:memory:memory/2026-07-24-pre-open.md:9:9 -->
+- 盘前深度简报 · 2026-07-24（周五）: **Author:** Rick · 08:00 HKT（HK 开盘 -90min · US 已收 ~4h） · USDHKD = 7.8413 (Frankfurter) [score=0.803 recalls=0 avg=0.620 source=memory/2026-07-24-pre-open.md:9-9]
