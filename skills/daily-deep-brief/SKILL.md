@@ -15,7 +15,7 @@ description: kcn 每个工作日 08:00 HKT 跑一次的盘前全 swarm 深度分
 │ scripts/harness/brief_preflight.py │ ──► │ LLM (你 / Rick)│ ──► │ brief_postflight.py│
 │  (确定性 + 幂等)   │     │  (Tier 1/2/3) │     │ 验证+commit+投递微信│
 └────────────────────┘     └───────────────┘     └────────────────────┘
-   刷价/FX/snapshot/         读 context.json        校验 md+plan schema，
+   刷价/FX/snapshot/         读 core + 按需 bundles 校验 md+plan schema，
    HHI/EDGAR/retro           写 md+plan+            fresh-token 发 brief-card
                              brief-card 微信卡       (唯一投递, 见 Step 6)
 ```
@@ -47,30 +47,59 @@ python3 /root/.openclaw/workspace/scripts/harness/brief_preflight.py
    - 不在文档硬编码 ticker；实际名单以当天持仓和上述动态过滤结果为准
 7. **Retrospective**：读 prior v2 plan，对每个 decision 按 strategy 检查 condition 是否触发、模拟 benefit 与 confidence calibration
 
-输出：`memory/.tmp/brief-context-{date}.json` —— 所有数据准备好的单一 JSON。
+输出分两层：
 
-### Step 2: 读 context.json
+- `memory/.tmp/brief-context-{date}.json` —— 完整、不可裁剪的审计事实；供 postflight 校验，**不要整份 cat 进模型上下文**。
+- `memory/.tmp/brief-context-{date}/manifest.json` + `core.json` + feature bundles —— 同一 `generation_id` 下的模型输入边界。manifest 记录路径、hash、字段、逐 section 大小和预算。
+
+### Step 2: 读 manifest + core（常驻输入）
 
 ```bash
-cat /root/.openclaw/workspace/memory/.tmp/brief-context-$(date +%Y-%m-%d).json
+cat /root/.openclaw/workspace/memory/.tmp/brief-context-$(date +%Y-%m-%d)/manifest.json
+python3 /root/.openclaw/workspace/scripts/data/brief_context.py --manifest /root/.openclaw/workspace/memory/.tmp/brief-context-$(date +%Y-%m-%d)/manifest.json --core
 ```
 
-context.json 关键字段：
+`manifest + core` 是唯一常驻输入，合计硬上限 128 KiB；每个 lazy bundle 另有 96 KiB 单次加载上限。preflight 超限就直接失败，绝不静默裁字段。完整 audit 只给 postflight 和排障使用，正常分析禁止 `cat brief-context-{date}.json`。
+
+core 关键字段：
 - `prices_refreshed_at` / `fx`（`rate`, `source`, `fetched_at`）
 - `book` — `usd_total_pnl`, `hkd_total_pnl`, `hk_leg_hkd`, `us_leg_usd`（FX 已换算）
 - `concentration` — `{hk: {hhi, top2_pct, weights, verdict}, us: {...}}`
-- `edgar_summaries` — 单股最新 quarter 财报关键数字
-- `retrospective` — 上次 plan.json 每个 strategy decision 的触发结果 + 模拟 benefit
-- `macro` — VIX / DXY / 10Y / F&G / HSI / HSTECH / SPX / NASDAQ + Fed press top 3（GH Action 周日–四 21:45 UTC，即工作日 05:45 HKT 名义刷新）
-- `sentiment` — 每个持仓票的 Reddit 提及数 + Reddit top 3 + Google News top 3（无 signal 的票已被剔）
-- `em_news` — **东财中文消息源**（`holdings_news` 逐 HK 持仓近 3 条公司新闻 + `market_724` 大盘 7x24 快讯）。clawock 英文 news 薄在港股/中文面,这里补上。**HK 持仓找硬催化优先看这个**——回购/公告/事件多在中文源先出。命中硬催化 → `driven_by=catalyst` 并在 rationale 引日期+标题;只是情绪/涨跌色 → 不构成主动操作依据(见 catalyst-gate 铁律)。杠杆 ETF 已自动剔除(看标的不看公司新闻)。
-- `news_evidence_graph` — 新闻/公告/SEC/事件日历的去重证据图。`events` 已带来源可靠度、新颖度、到期状态、价量/已验证同行确认与 `actionable_escalation`。**它是 catalyst 权限的唯一事实源**；原始摘要仅供阅读。
+- `portfolio` / `lookthrough_exposure` / `risk_guardrail` / `risk_discipline` —— 行动所需持仓与完整风险规则，按 JSON 值原样保留，不参与裁剪
+- `integrity` / `issues` —— 数据完整性结果
 - `thesis_registry` — `memory/theses/*.json` 的只读摘要：当前 state、最近检查时间、下一次 review trigger；未建基线的持仓明确为 `unknown`。
 - `research_surface` — 研究生命周期的**待办队列**（只读）：`earnings.hk_results_expected`（港股已公告董事会会议→业绩临近；**只有「临近」没有日期**，日期在公告文件里，任何免费源都没有，别编一个出来）、`earnings.reviews_due`（已披露财报但没有一手 artifact 覆盖）、`earnings.overdue_commitments`（管理层承诺过期且没结果）、`entry_gates.ungated_positions`（建仓后没有 gate 或 gate 判 reject 仍在持有）、`entry_gates.open_questions`（gray 判定还缺的证据）。`errors` 非空 = 有 artifact 失效，先说这件事。
 
+### Step 2.5: 按消费者 lazy-load bundles
+
+每个命令会同时校验 manifest hash 与 `generation_id`。**每个 bundle 最多读一次，紧挨着消费它的章节读；不要预先全读，也不要回头重读。** 读出的字段与 core 合并后，下面统称 `context`。
+
+```bash
+# 风险情景 / 解套数学使用前
+python3 /root/.openclaw/workspace/scripts/data/brief_context.py --manifest /root/.openclaw/workspace/memory/.tmp/brief-context-$(date +%Y-%m-%d)/manifest.json --bundle risk_detail
+# Tier 1 / 同行扫描 / 因子研究使用前
+python3 /root/.openclaw/workspace/scripts/data/brief_context.py --manifest /root/.openclaw/workspace/memory/.tmp/brief-context-$(date +%Y-%m-%d)/manifest.json --bundle research
+# 任何 catalyst 主动动作裁决前（news_evidence_graph 是唯一权限源）
+python3 /root/.openclaw/workspace/scripts/data/brief_context.py --manifest /root/.openclaw/workspace/memory/.tmp/brief-context-$(date +%Y-%m-%d)/manifest.json --bundle evidence
+# 大盘、舆情、东财、名人段使用前
+python3 /root/.openclaw/workspace/scripts/data/brief_context.py --manifest /root/.openclaw/workspace/memory/.tmp/brief-context-$(date +%Y-%m-%d)/manifest.json --bundle market
+# Retrospective / Decision v2 校准段使用前
+python3 /root/.openclaw/workspace/scripts/data/brief_context.py --manifest /root/.openclaw/workspace/memory/.tmp/brief-context-$(date +%Y-%m-%d)/manifest.json --bundle calibration
+```
+
+bundle 路由：
+
+- `risk_detail`: `breakeven_math`, `risk_metrics`
+- `research`: `quant_signals`, `cross_sectional_factor`, `peer_residual`, `t0_setups`, `us_fundamentals`, `peer_scan` 及对应 review
+- `evidence`: `catalysts`, `news_evidence_graph`
+- `market`: `macro`, `sentiment`, `influencer`, `em_news`
+- `calibration`: `retrospective`, `decision_metrics`, `reflections`
+
+manifest 若出现 `extras`，表示新 feature 被隔离而没有偷长常驻 core；只有下面明确要求消费该字段时才读。任一 bundle 的 `_meta.generation_id` 与 manifest 不同，立即停止，不得把不同 preflight run 的事实拼在一起。
+
 ### Step 3: Swarm 分析（你的创造性工作）
 
-按下面这个 3-tier 流程做分析。所有数字**只能从 context.json 取**，不要凭空造。
+按下面这个 3-tier 流程做分析。所有数字**只能从本次 generation 的 core / 已加载 bundle 取**，不要凭空造。
 
 #### Required reads (delta vs `AGENTS.md` baseline)
 
@@ -140,7 +169,7 @@ context.json 关键字段：
 - 每个板块输出：Top 3-5 涨幅 + 你持仓票在榜单中的位置（领涨/落后/中位）
 - **归因句必带**：落后是因为(a) 利好时点（盘后才公布）/ (b) 早盘异常抛压 / (c) β 错配 / (d) 个股逻辑滞后？
 - 输出在 ▎板块全景 段（pre-open.md 必带），引用 ≥3 个具体涨跌幅 + 1 个明确归因
-- ⚠️ **持仓自己的数字** (RSI/MA/PnL) 仍然从 context.json 取，板块这段只 search 板块/同行公开行情
+- ⚠️ **持仓自己的数字** (RSI/MA/PnL) 仍然从 core 取，板块这段只 search 板块/同行公开行情
 - **同时落盘到** `memory/.tmp/sector-scan-{date}.json`（build_dashboard 会读，让 GH Pages dashboard 同步显示）。schema：
   ```json
   {
@@ -338,7 +367,7 @@ preflight 已算好,直接读 `context.risk_guardrail`:
 
 #### Retrospective markdown 模板
 
-把 context.json 的 `retrospective` 字段渲染成下面这段，**插在 brief 顶部**（TL;DR 之后，Header 之前）：
+把 calibration bundle 的 `retrospective` 字段渲染成下面这段，**插在 brief 顶部**（TL;DR 之后，Header 之前）：
 
 ```
 ▎昨日 plan 兑现度（{上次 plan 日期}）
@@ -477,7 +506,7 @@ preflight 已算好,直接读 `context.risk_guardrail`:
 
 #### ▎Confidence / episode 校准（REQUIRED）
 
-context.json 的 `decision_metrics` 是 v2 唯一口径：只结算**条件实际触发**的决策；同一 `ticker + strategy_id` 的连续同类决策合并为一个 episode，只取一次代表样本，避免每日重复建议放大样本量。
+calibration bundle 的 `decision_metrics` 是 v2 唯一口径：只结算**条件实际触发**的决策；同一 `ticker + strategy_id` 的连续同类决策合并为一个 episode，只取一次代表样本，避免每日重复建议放大样本量。
 
 格式：
 ```
@@ -532,8 +561,8 @@ context.json 的 `decision_metrics` 是 v2 唯一口径：只结算**条件实�
 结构（**postflight 会校验这些段标记**，缺哪个 fail）：
 
 - `# Header`（regime US/HK 分开 + FX rate + book USD/HKD 双视角）
-- `## ▎仓位明细` —— HK + US 各一张 7 列 markdown 表 `代码 | 股 | 成本 | 现价 | 今日 | 浮% | 浮$`（与 Mode 6/7 cron 完全一致；数据从 context.json 的 `portfolio.portfolios.{hk,us}_stocks.holdings` 直接取，**只列 shares>0 的**。2026-05-21 起的 visual-width-aware 渲染推荐 import `scripts.data._wechat_table.render_holdings_table`，省得手算 CJK 对齐）
-- `## Retrospective`（来自 context.json 的 retrospective）
+- `## ▎仓位明细` —— HK + US 各一张 7 列 markdown 表 `代码 | 股 | 成本 | 现价 | 今日 | 浮% | 浮$`（与 Mode 6/7 cron 完全一致；数据从 core 的 `portfolio.portfolios.{hk,us}_stocks.holdings` 直接取，**只列 shares>0 的**。2026-05-21 起的 visual-width-aware 渲染推荐 import `scripts.data._wechat_table.render_holdings_table`，省得手算 CJK 对齐）
+- `## Retrospective`（来自 calibration bundle 的 retrospective）
 - `## Tier 1` 大表
 - `## Tier 2` Bull vs Bear
 - `## Tier 3` Aggressive/Conservative/Neutral + Judge
@@ -558,6 +587,7 @@ postflight 严格 schema 校验：
 {
   "schema_version": 2,
   "date": "2026-05-18",
+  "context_generation_id": "照抄 manifest.generation_id",
   "fx_rate_usdhkd": 7.8315,
   "fx_source": "Frankfurter",
   "regime": {"us": "trending-up", "hk": "trending-down"},
@@ -607,6 +637,7 @@ postflight 严格 schema 校验：
 
 合法 enum：
 - `strategy_id` ∈ {`core_position`, `risk_rebalance`, `intraday_t`, `event_trade`, `tactical_entry`}；迁移历史才允许 `legacy_unknown`
+- `context_generation_id`：必填，逐字符照抄本次 `manifest.generation_id`；postflight 会递归检查 plan 内所有 `*generation_id`，跨代引用直接 fail。
 - `action` ∈ {`cut`, `trim_on_rebound`, `hold_and_watch`, `t_only`, `add_only_on_trigger`, `watch`}
 - `condition.type` ∈ {`open`, `price_above`, `price_below`, `index_breakdown`, `event`, `manual`}
 - `driven_by` ∈ {`technical`, `catalyst`, `sentiment`, `influencer`, `macro`, `peer`, `risk_rule`}（每个 decision 必填）
@@ -635,7 +666,7 @@ postflight 严格 schema 校验：
 
 build_dashboard 会读它，让 dashboard 上 **行为复盘 / 唱反调 Pre-mortem / 隐藏集中度** 三张卡同步刷新（缺失/解析失败容错，卡自动隐藏，不影响 brief 投递）。这是 dashboard 上唯一由你（LLM）写的"对决策本身的反思"层 —— 数字算不出来、只有你能写。
 
-**铁律（accuracy）**：所有数字只能引 `brief-context-{date}.json` 里**真实出现过的** win_rate / Brier / 仓位权重 / HHI / pnl%。**绝不编造 context 里没有的具体美元金额或未发生的交易**。宁可不写一条，也不要编数字。
+**铁律（accuracy）**：所有数字只能引本次 manifest 所属的 `core.json` / 已加载 bundle 里**真实出现过的** win_rate / Brier / 仓位权重 / HHI / pnl%。完整 audit 只用于 postflight 交叉校验，不能靠整份 cat 绕过预算。**绝不编造 context 里没有的具体美元金额或未发生的交易**。宁可不写一条，也不要编数字。
 
 ```json
 {
@@ -666,7 +697,7 @@ build_dashboard 会读它，让 dashboard 上 **行为复盘 / 唱反调 Pre-mor
 
 #### D. 微信卡 → `memory/.tmp/brief-card-{YYYY-MM-DD}.txt`
 
-**这是真正发到 kcn 微信的内容**（投递由 Step 5 的 postflight 自动完成，原样发这个文件），所以必须自洽完整、≤1.5KB。数字全来自 `plan.json` + context.json，不现编：
+**这是真正发到 kcn 微信的内容**（投递由 Step 5 的 postflight 自动完成，原样发这个文件），所以必须自洽完整、≤1.5KB。数字全来自 `plan.json` + 本次 generation 的 core/bundles，不现编：
 
 ```
 📊 盘前深度简报｜{日期 周X} 08:00 HKT  (USDHKD={rate})
@@ -753,9 +784,9 @@ python3 /root/.openclaw/workspace/scripts/harness/brief_postflight.py
 - 每个 claim 钉到具体 ticker + 数字，没有泛论
 - Bull/Bear/Aggressive/Conservative 必须真的不同观点
 - Judge 不重复 Bull/Bear，是合成不是复述
-- **FX 换算永远显式标注 source + timestamp**（context.json 里已有）
+- **FX 换算永远显式标注 source + timestamp**（core 里已有）
 
-## 集中度阈值表（解读 context.json `concentration` 字段）
+## 集中度阈值表（解读 core 的 `concentration` 字段）
 
 ### 算法（preflight 已经算了，这里只是参考）
 
@@ -787,7 +818,7 @@ US: HHI 0.171 偏集中 | SOXL 22.2% + ROBN 21.1% = Top2 43.3%
 历史教训：港股 book 双仓集中 86% 是 2026-05-16 之前 brief **漏报的盲点** — preflight 现在
 强制算这个，brief 必须显式引用 `concentration.{hk,us}.verdict`。
 
-## ⚠️ 货币铁律（context.json 已换算，但你输出时仍要双视角）
+## ⚠️ 货币铁律（core 已换算，但你输出时仍要双视角）
 
 港币 + 美元 **不能直接相加**。book 段必须**两个 view 都给**：
 

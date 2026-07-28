@@ -39,6 +39,7 @@ import trading_calendar  # noqa: E402
 import decision_v2  # noqa: E402
 import workflow_outcomes  # noqa: E402
 import risk_discipline  # noqa: E402
+import brief_context  # noqa: E402
 
 # Required concepts and the section labels the brief model may legitimately emit.
 # The canonical keys preserve the existing missing-section issue text.  The aliases
@@ -87,6 +88,41 @@ def _marker_has_alias(marker, alias):
     return alias in marker
 
 
+def validate_generation_references(plan, context=None):
+    """Require every plan generation reference to belong to this preflight run."""
+    expected_generation = (context or {}).get('generation_id')
+    if not expected_generation:
+        return []
+    cited = []
+
+    def collect_generation_ids(value):
+        if isinstance(value, dict):
+            for key, nested in value.items():
+                if key.endswith('generation_id'):
+                    cited.append(nested)
+                collect_generation_ids(nested)
+        elif isinstance(value, list):
+            for nested in value:
+                collect_generation_ids(nested)
+
+    collect_generation_ids(plan)
+    issues = []
+    if plan.get('context_generation_id') != expected_generation:
+        issues.append(
+            'plan.json context generation_id 缺失或跨代: '
+            f'expected={expected_generation}, '
+            f'got={plan.get("context_generation_id")}'
+        )
+    foreign = sorted({
+        str(value) for value in cited if value != expected_generation
+    })
+    if foreign:
+        issues.append(
+            f'plan.json context generation_id 跨代引用: {foreign}'
+        )
+    return issues
+
+
 def validate_plan_json(path, context=None):
     if not path.exists():
         return ['plan.json 缺失（critical）']
@@ -96,6 +132,7 @@ def validate_plan_json(path, context=None):
         return [f'plan.json 解析失败: {e}']
 
     issues = [f'plan.json v2: {x}' for x in decision_v2.validate_plan(plan, path)]
+    issues += validate_generation_references(plan, context)
     decisions = plan.get('decisions', []) if isinstance(plan.get('decisions'), list) else []
     # Unpriceable calls score for direction but never reach the money chart.
     issues += [f'plan.json size: {x}' for x in decision_v2.missing_size_warnings(decisions)]
@@ -254,7 +291,9 @@ def validate_markdown(path, context=None):
     return issues
 
 
-CRITICAL_KEYWORDS = ['缺失', '解析失败', '表格 #']  # table column-mismatch is critical
+CRITICAL_KEYWORDS = [
+    '缺失', '解析失败', '表格 #', 'generation_id',
+]  # table mismatch and cross-generation output are critical
 
 
 def categorize(issues):
@@ -473,6 +512,9 @@ def main():
             pass
 
     issues = []
+    manifest_path = ctx_path.with_suffix('') / 'manifest.json'
+    if context and context.get('generation_id'):
+        issues += brief_context.validate_run_bundle(ctx_path, manifest_path)
     issues += validate_markdown(md_path, context=context)
     issues += validate_plan_json(plan_path, context=context)
 
