@@ -610,8 +610,20 @@ def collect_peer_scan(portfolio):
 
 
 def _shares_at_date(ticker, date_iso):
-    """Get shares of `ticker` from portfolio.json as committed on/before `date_iso`.
-    Returns int shares, or None if can't determine."""
+    """Shares of `ticker` in portfolio.json as committed on/before `date_iso`.
+
+    Returns int shares, or None only when the portfolio genuinely could not be
+    read (no commit that far back, git failure, unparseable file).
+
+    A ticker the portfolio does not list is 0 shares, not an unknown: a position
+    that was never opened and a position that was fully exited are both real,
+    readable states. Conflating them with "could not determine" stranded 9
+    decisions permanently — every `add_only_on_trigger` on PLTR and MSFT from
+    2026-07-15 onward sat unresolved for two weeks, because kcn holds the 2x
+    ETFs (PLTU/MSFU) and the spot tickers appear in no holdings list at all.
+    `_detect_followed` retries every preflight, so an unknown that is really a
+    zero never resolves; it just retries forever.
+    """
     try:
         r = subprocess.run(
             ['git', '-C', str(WS), 'log', '--pretty=%H',
@@ -625,10 +637,15 @@ def _shares_at_date(ticker, date_iso):
         if r.returncode != 0:
             return None
         pf = json.loads(r.stdout)
+        # Read every region before concluding absence, and let a malformed
+        # structure raise into the handler below rather than read as a zero.
+        holdings = []
         for region in ('hk_stocks', 'us_stocks'):
-            for h in pf['portfolios'][region]['holdings']:
-                if h['ticker'] == ticker:
-                    return int(h.get('shares', 0))
+            holdings += pf['portfolios'][region]['holdings']
+        for h in holdings:
+            if h['ticker'] == ticker:
+                return int(h.get('shares', 0))
+        return 0
     except Exception:
         pass
     return None
