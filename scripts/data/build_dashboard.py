@@ -113,6 +113,26 @@ def trim_workflow_outcomes(summary):
     return summary
 
 
+def build_decision_audit_payload(decisions, portfolio):
+    """Compile the complete Reflect sidecar from one settled decision set.
+
+    ``episode_backtest`` is rendered only on Reflect, whose existing
+    ``decision_audit.json`` dependency is already fetched before that tab
+    paints. Keeping it here avoids taxing every other tab while preserving one
+    logical dashboard build and the existing three-output publication contract.
+    """
+    payload = decision_v2.build_audit_sidecar(
+        decisions, portfolio, include_records=False
+    )
+    payload['episode_backtest'] = decision_v2.compute_backtest(decisions)
+    return payload
+
+
+def serialize_dashboard_payload(value):
+    """Serialize the first-paint document without spending headroom on whitespace."""
+    return json.dumps(value, ensure_ascii=False, separators=(',', ':'))
+
+
 def compute_guardrail_outputs(portfolio, risk, lev_regime=None):
     """Compute the two live risk cards without ever failing the dashboard build.
 
@@ -2045,15 +2065,13 @@ def main():
     audit_file = Path(os.environ.get('DECISION_AUDIT_OUT')
                       or (out_file.parent / AUDIT_FILE.name))
     from safe_io import safe_write_text
-    # The dashboard only reads timing_diagnostic from this sidecar; the full
-    # per-decision `records` trail (~700KB, recomputable from decisions) is not
-    # rendered or linked anywhere, so it is dropped from the published file to keep
-    # the payload tiny. Flip include_records back on to republish the full trail.
+    # Reflect reads timing_diagnostic plus its episode backtest from this sidecar.
+    # The full per-decision `records` trail (~700KB, recomputable from decisions)
+    # is not rendered or linked anywhere, so it stays unpublished.
     safe_write_text(
         str(audit_file),
         json.dumps(
-            decision_v2.build_audit_sidecar(
-                _decisions, portfolio, include_records=False),
+            build_decision_audit_payload(_decisions, portfolio),
             ensure_ascii=False, separators=(',', ':')))
     # Shadow-portfolio policy simulation (模拟·非实盘): fetched sidecar, NOT embedded
     # in dashboard.json. Two cash+inventory ledgers (follow-all-triggered vs
@@ -2065,7 +2083,6 @@ def main():
     out['decision_schema_version'] = 2
     out['decision_metrics'] = trim_decision_metrics(
         decision_v2.compute_metrics(_decisions))
-    out['episode_backtest'] = decision_v2.compute_backtest(_decisions)
     # decision_money_impact is deliberately NOT published (2026-07-15). Pulling the
     # chart while still shipping the numbers would be a distinction only a reader of
     # this file could make: dashboard.json is public, so the retired figure was still
@@ -2262,10 +2279,10 @@ def main():
     if brief_ctx_path:
         print(f'  brief-context source: {os.path.basename(brief_ctx_path)}')
 
-    # Serialize with no indentation to save bytes; pretty-print only if under budget
-    payload_min = json.dumps(out, ensure_ascii=False)
-    payload_pretty = json.dumps(out, ensure_ascii=False, indent=2)
-    payload = payload_pretty if len(payload_pretty.encode('utf-8')) <= MAX_OUT_BYTES else payload_min
+    # dashboard.json is a machine-consumed first-paint document. Always keep it
+    # compact: spending newly recovered headroom on indentation made the cap
+    # oscillate without adding user value.
+    payload = serialize_dashboard_payload(out)
     size_bytes = len(payload.encode('utf-8'))
 
     if size_bytes > MAX_OUT_BYTES:
@@ -2273,7 +2290,7 @@ def main():
         print(f'⚠️  payload still {size_bytes} bytes > {MAX_OUT_BYTES} cap — dropping recent_plans', file=sys.stderr)
         out['recent_plans'] = []
         out['recent_plans_dropped'] = True
-        payload = json.dumps(out, ensure_ascii=False)
+        payload = serialize_dashboard_payload(out)
         size_bytes = len(payload.encode('utf-8'))
         if size_bytes > MAX_OUT_BYTES:
             # Dropping the plans is the only lever here; publishing an oversized
