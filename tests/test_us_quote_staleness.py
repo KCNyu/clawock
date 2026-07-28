@@ -22,7 +22,10 @@ Run: `python3 -m pytest tests/test_us_quote_staleness.py -q`
 import json
 import os
 import sys
+import threading
+from concurrent.futures import ThreadPoolExecutor
 from datetime import date, timedelta
+from zoneinfo import ZoneInfo
 
 import pytest
 
@@ -256,6 +259,10 @@ class TestProviderRace:
 
 # ── 3. one grouped request instead of a rate-limited per-ticker loop ─────────
 class TestPolygonGrouped:
+    @pytest.fixture(autouse=True)
+    def isolated_cache(self, monkeypatch, tmp_path):
+        monkeypatch.setattr(F, "POLYGON_PREV_CACHE_DIR", tmp_path)
+
     def _grouped(self, monkeypatch, by_date, status=200):
         seen = []
 
@@ -275,7 +282,7 @@ class TestPolygonGrouped:
             {"T": "RKLX", "c": 16.32}, {"T": "CRCL", "c": 62.36},
             {"T": "NOISE", "c": 1.0},
         ]})
-        out, limited = F.get_prev_closes_polygon_grouped(
+        out, limited, valid = F.get_prev_closes_polygon_grouped(
             ["SPCX", "PLTU", "MSFU", "SKHY", "RKLX", "CRCL"], "key", "2026-07-27")
         # Positions 6 and 7 (MSFU/SKHY) are exactly what the old 5/min loop lost.
         assert set(out) == {"SPCX", "PLTU", "MSFU", "SKHY", "RKLX", "CRCL"}
@@ -283,36 +290,145 @@ class TestPolygonGrouped:
         assert out["SKHY"] == (154.57, "2026-07-24")
         assert len(seen) == 1                      # one call, not one per ticker
         assert limited is False
+        assert valid is True
 
     def test_weekend_is_skipped_without_spending_a_request(self, monkeypatch):
         seen = self._grouped(monkeypatch, {"2026-07-24": [{"T": "SPCX", "c": 115.07}]})
-        out, _ = F.get_prev_closes_polygon_grouped(["SPCX"], "key", "2026-07-27")
+        out, _, _ = F.get_prev_closes_polygon_grouped(["SPCX"], "key", "2026-07-27")
         assert out["SPCX"] == (115.07, "2026-07-24")
         assert "2026-07-25" not in seen and "2026-07-26" not in seen
 
-    def test_walks_back_over_an_empty_holiday_session(self, monkeypatch):
+    def test_empty_expected_session_is_not_replaced_by_an_older_bar(self, monkeypatch):
         seen = self._grouped(monkeypatch, {
             "2026-07-23": [{"T": "SPCX", "c": 120.0}],
-            "2026-07-24": [],                      # holiday / not yet published
+            "2026-07-24": [],
         })
-        out, _ = F.get_prev_closes_polygon_grouped(["SPCX"], "key", "2026-07-27")
-        assert out["SPCX"] == (120.0, "2026-07-23")
-        assert seen == ["2026-07-24", "2026-07-23"]
+        out, _, valid = F.get_prev_closes_polygon_grouped(
+            ["SPCX"], "key", "2026-07-27")
+        assert out == {} and valid is False
+        assert seen == ["2026-07-24"]
 
     def test_rate_limit_aborts_instead_of_burning_the_rest_of_the_quota(
-            self, monkeypatch):
+            self, monkeypatch, tmp_path):
         # A 429 means "no budget left", not "this date has no data". Walking
         # further back would spend the remaining requests on certain failures
         # and starve the per-ticker fallback too.
         seen = self._grouped(monkeypatch, {}, status=429)
-        out, limited = F.get_prev_closes_polygon_grouped(["SPCX"], "key", "2026-07-27")
-        assert out == {} and limited is True
+        out, limited, valid = F.get_prev_closes_polygon_grouped(
+            ["SPCX"], "key", "2026-07-27")
+        assert out == {} and limited is True and valid is False
         assert seen == ["2026-07-24"]              # exactly one attempt
+        assert not (tmp_path / "2026-07-24.json").exists()
+
+    def test_http_error_never_poison_the_cache(
+            self, monkeypatch, tmp_path):
+        seen = self._grouped(monkeypatch, {}, status=503)
+        out, limited, valid = F.get_prev_closes_polygon_grouped(
+            ["SPCX"], "key", "2026-07-27")
+
+        assert out == {} and limited is False and valid is False
+        assert seen == ["2026-07-24"]
+        assert not (tmp_path / "2026-07-24.json").exists()
 
     def test_no_key_makes_no_request(self, monkeypatch):
         seen = self._grouped(monkeypatch, {})
-        assert F.get_prev_closes_polygon_grouped(["SPCX"], "", "2026-07-27") == ({}, False)
+        assert F.get_prev_closes_polygon_grouped(
+            ["SPCX"], "", "2026-07-27") == ({}, False, False)
         assert seen == []
+
+    def test_sequential_callers_download_once_and_emit_cache_metadata(
+            self, monkeypatch, capsys):
+        seen = self._grouped(
+            monkeypatch, {"2026-07-24": [{"T": "SPCX", "c": 115.07}]})
+
+        first = F.get_prev_closes_polygon_grouped(
+            ["SPCX"], "key", "2026-07-27")
+        second = F.get_prev_closes_polygon_grouped(
+            ["SPCX"], "key", "2026-07-27")
+
+        assert first[0] == second[0] == {"SPCX": (115.07, "2026-07-24")}
+        assert seen == ["2026-07-24"]
+        diagnostics = capsys.readouterr().out
+        assert "cache_hit=false session=2026-07-24 source=Polygon grouped" in diagnostics
+        assert "cache_hit=true session=2026-07-24 source=Polygon grouped" in diagnostics
+
+    def test_concurrent_callers_cannot_stampede_polygon(self, monkeypatch):
+        seen = self._grouped(
+            monkeypatch, {"2026-07-24": [{"T": "SPCX", "c": 115.07}]})
+        start = threading.Barrier(2)
+
+        def fetch():
+            start.wait()
+            return F.get_prev_closes_polygon_grouped(
+                ["SPCX"], "key", "2026-07-27")
+
+        with ThreadPoolExecutor(max_workers=2) as pool:
+            results = list(pool.map(lambda _: fetch(), range(2)))
+
+        assert [result[0] for result in results] == [
+            {"SPCX": (115.07, "2026-07-24")},
+            {"SPCX": (115.07, "2026-07-24")},
+        ]
+        assert seen == ["2026-07-24"]
+
+    def test_session_rollover_downloads_exactly_one_new_snapshot(
+            self, monkeypatch):
+        seen = self._grouped(monkeypatch, {
+            "2026-07-24": [{"T": "SPCX", "c": 115.07}],
+            "2026-07-27": [{"T": "SPCX", "c": 116.50}],
+        })
+        F.get_prev_closes_polygon_grouped(["SPCX"], "key", "2026-07-27")
+        monday, _, _ = F.get_prev_closes_polygon_grouped(
+            ["SPCX"], "key", "2026-07-28")
+        again, _, _ = F.get_prev_closes_polygon_grouped(
+            ["SPCX"], "key", "2026-07-28")
+
+        assert monday == again == {"SPCX": (116.50, "2026-07-27")}
+        assert seen == ["2026-07-24", "2026-07-27"]
+
+    def test_corrupt_cache_is_ignored_and_atomically_replaced(
+            self, monkeypatch, tmp_path):
+        (tmp_path / "2026-07-24.json").write_text("{partial")
+        seen = self._grouped(
+            monkeypatch, {"2026-07-24": [{"T": "SPCX", "c": 115.07}]})
+
+        out, _, valid = F.get_prev_closes_polygon_grouped(
+            ["SPCX"], "key", "2026-07-27")
+
+        assert valid is True and out["SPCX"] == (115.07, "2026-07-24")
+        assert seen == ["2026-07-24"]
+        repaired = json.loads((tmp_path / "2026-07-24.json").read_text())
+        assert repaired["session_date"] == "2026-07-24"
+
+    def test_valid_snapshot_can_prove_a_symbol_is_genuinely_absent(
+            self, monkeypatch):
+        self._grouped(
+            monkeypatch, {"2026-07-24": [{"T": "NOISE", "c": 1.0}]})
+
+        out, limited, valid = F.get_prev_closes_polygon_grouped(
+            ["SPCX"], "key", "2026-07-27")
+
+        assert out == {} and limited is False and valid is True
+
+
+def test_quote_and_prior_sessions_are_calendar_aware_before_tuesday_open():
+    at = F.datetime(2026, 7, 28, 0, 15, tzinfo=ZoneInfo("America/New_York"))
+    quote_session = F._us_quote_session_date(at)
+
+    assert quote_session == "2026-07-27"
+    assert F._prev_trading_day(quote_session) == "2026-07-24"
+
+
+def test_tuesday_after_monday_holiday_resolves_real_sessions():
+    before_open = F.datetime(
+        2026, 9, 8, 0, 15, tzinfo=ZoneInfo("America/New_York"))
+    after_open = F.datetime(
+        2026, 9, 8, 10, 0, tzinfo=ZoneInfo("America/New_York"))
+
+    assert F._us_quote_session_date(before_open) == "2026-09-04"
+    assert F._prev_trading_day("2026-09-04") == "2026-09-03"
+    assert F._us_quote_session_date(after_open) == "2026-09-08"
+    assert F._prev_trading_day("2026-09-08") == "2026-09-04"
 
 
 # ── 4 + 5. end-to-end: the PLTU shape through update_us_portfolio ────────────
@@ -338,9 +454,10 @@ class TestStaleLastGuard:
     def _run(self, monkeypatch, tmp_path, quote, prev_closes):
         monkeypatch.setattr(F, "fetch_us_quotes", lambda t, k: {"PLTU": quote})
         monkeypatch.setattr(F, "get_prev_closes_polygon_grouped",
-                            lambda t, k, d, **kw: (prev_closes, False))
+                            lambda t, k, d, **kw: (prev_closes, False, True))
         monkeypatch.setattr(F, "get_prev_close_polygon", lambda t, k: None)
         monkeypatch.setattr(F, "load_api_keys", lambda: {"POLYGON_API_KEY": "key"})
+        monkeypatch.setattr(F, "_us_quote_session_date", lambda at=None: "2026-07-27")
         path = _portfolio(tmp_path, dict(self.BASE))
         data = F.update_us_portfolio(portfolio_path=path, dry_run=True)
         return data["portfolios"]["us_stocks"]["holdings"][0]
@@ -437,16 +554,8 @@ _SESSION, _PREV_SESSION = _session_dates()
 
 
 def _fresh_prev_bar_date():
-    """A Polygon prev-close bar date `update_us_portfolio` will still accept.
-
-    Same class of rot as `_session_dates`, one rule further down: the fetcher
-    drops any prev-close bar older than three calendar days (the SPCX
-    ticker-reuse trap), so the incident's own `2026-07-24` literal stopped
-    being a usable bar on 2026-07-28 — prev_close went `None` and the two
-    repair tests failed with no prior close to repair against. Clamp to the
-    acceptance window so a long weekend or holiday cannot reintroduce it.
-    """
-    return max(_PREV_SESSION, date.today() - timedelta(days=3)).isoformat()
+    """The real prior session for the deterministic Monday quote fixture."""
+    return "2026-07-24"
 
 
 PLTU_STALE = {

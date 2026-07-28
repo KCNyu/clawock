@@ -96,6 +96,15 @@ def test_an_ordinary_2027_weekday_still_trades():
         assert trading_calendar.is_trading_day(market, date(2027, 3, 3))
 
 
+def test_previous_us_session_skips_weekend_and_exchange_holiday():
+    assert trading_calendar.previous_trading_day(
+        "us", date(2026, 7, 27)
+    ) == date(2026, 7, 24)
+    assert trading_calendar.previous_trading_day(
+        "us", date(2026, 9, 8)
+    ) == date(2026, 9, 4)
+
+
 # --------------------------------------------------------------------------
 # coverage + the deliberate fail-open past the horizon
 # --------------------------------------------------------------------------

@@ -19,19 +19,25 @@ Usage:
 """
 
 import json
+import fcntl
 import os
 import sys
-from datetime import datetime, timezone, timedelta
+from datetime import date, datetime, timezone, timedelta
+from pathlib import Path
 from typing import Dict, List, Optional
+from zoneinfo import ZoneInfo
 import requests
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from _em_http import em_get  # noqa: E402
 from instrument_registry import INSTRUMENTS  # noqa: E402
+import trading_calendar  # noqa: E402
 
 WS_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 PORTFOLIO_PATH = os.path.join(WS_ROOT, 'portfolio.json')
 API_KEYS_PATH  = os.path.join(WS_ROOT, '.api_keys')
+POLYGON_PREV_CACHE_DIR = Path(WS_ROOT) / 'memory' / '.tmp' / 'polygon-prev-close'
+POLYGON_CACHE_SCHEMA_VERSION = 1
 
 # Eastmoney exchange prefix: 105=NASDAQ, 106=NYSE/ARCA
 EASTMONEY_PREFIX: Dict[str, str] = {
@@ -124,12 +130,26 @@ def _quote_is_complete(q: Optional[Dict]) -> bool:
 
 
 def _prev_trading_day(date_str: str) -> str:
-    """Calendar prior trading day (skips weekends; ignores holidays — close enough
-    for a date label on a reconstructed prev_close)."""
-    d = datetime.strptime(date_str, '%Y-%m-%d') - timedelta(days=1)
-    while d.weekday() >= 5:  # Sat=5, Sun=6
-        d -= timedelta(days=1)
-    return d.strftime('%Y-%m-%d')
+    """Actual prior US trading session from the shared exchange calendar."""
+    return trading_calendar.previous_trading_day(
+        'us', date.fromisoformat(date_str)
+    ).isoformat()
+
+
+def _us_quote_session_date(at: Optional[datetime] = None) -> str:
+    """US session represented by a live/latest quote at wall-clock ``at``.
+
+    Before 09:30 ET (and on closed days), providers still describe the latest
+    completed session. Treating midnight Tuesday as Tuesday's session stamps a
+    Monday close against Monday itself and rejects Friday's valid prior close.
+    """
+    et = at.astimezone(ZoneInfo('America/New_York')) if at else \
+        datetime.now(ZoneInfo('America/New_York'))
+    current = et.date()
+    regular_open = (et.hour, et.minute) >= (9, 30)
+    if regular_open and trading_calendar.is_trading_day('us', current):
+        return current.isoformat()
+    return trading_calendar.previous_trading_day('us', current).isoformat()
 
 
 # ── debug instrumentation (③) ──────────────────────────────────────────────────
@@ -573,71 +593,159 @@ def get_prev_close_polygon(ticker: str, api_key: str) -> Optional[tuple]:
         return None
 
 
+def _polygon_cache_path(session_date: str, cache_dir: Optional[Path] = None) -> Path:
+    return Path(cache_dir or POLYGON_PREV_CACHE_DIR) / f'{session_date}.json'
+
+
+def _load_polygon_cache(session_date: str, cache_dir: Optional[Path] = None):
+    path = _polygon_cache_path(session_date, cache_dir)
+    try:
+        payload = json.loads(path.read_text(encoding='utf-8'))
+        closes = payload.get('closes')
+        if (
+            payload.get('schema_version') != POLYGON_CACHE_SCHEMA_VERSION
+            or payload.get('session_date') != session_date
+            or payload.get('source') != 'Polygon grouped'
+            or not isinstance(closes, dict)
+            or not closes
+            or payload.get('result_count') != len(closes)
+            or any(not isinstance(value, (int, float)) or value <= 0
+                   for value in closes.values())
+        ):
+            return None
+        datetime.fromisoformat(payload['fetched_at'])
+        return payload
+    except (FileNotFoundError, json.JSONDecodeError, OSError, KeyError, ValueError,
+            TypeError):
+        return None
+
+
+def _write_polygon_cache(payload: Dict, cache_dir: Optional[Path] = None) -> None:
+    path = _polygon_cache_path(payload['session_date'], cache_dir)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    tmp = path.with_suffix(path.suffix + f'.tmp.{os.getpid()}')
+    tmp.write_text(
+        json.dumps(payload, ensure_ascii=False, separators=(',', ':')) + '\n',
+        encoding='utf-8',
+    )
+    os.replace(tmp, path)
+
+
+def _cached_polygon_result(payload: Dict, tickers: List[str], cache_hit: bool):
+    session_date = payload['session_date']
+    fetched = datetime.fromisoformat(payload['fetched_at'])
+    if fetched.tzinfo is None:
+        fetched = fetched.replace(tzinfo=timezone.utc)
+    age = max(0, int((datetime.now(timezone.utc) - fetched).total_seconds()))
+    print(
+        f"  [PC] cache_hit={str(cache_hit).lower()} session={session_date} "
+        f"source={payload['source']} age={age}s "
+        f"rows={payload.get('result_count', len(payload['closes']))} "
+        f"bytes={payload.get('response_bytes', 0)}"
+    )
+    return {
+        ticker: (float(payload['closes'][ticker]), session_date)
+        for ticker in tickers
+        if ticker in payload['closes']
+    }
+
+
 def get_prev_closes_polygon_grouped(
-    tickers: List[str], api_key: str, today_et_date: str, max_lookback: int = 6,
+    tickers: List[str], api_key: str, quote_session_date: str,
+    max_lookback: int = 6, cache_dir: Optional[Path] = None,
 ) -> tuple:
-    """Date-stamped prior closes for every ticker in ONE request.
+    """Return prior closes from one session-keyed grouped snapshot.
 
-    Replaces a per-ticker loop over `/v2/aggs/ticker/{t}/prev` that quietly lost
-    most of its tickers: Polygon's free tier allows 5 requests/minute, the loop
-    fired ~15 back-to-back with no pacing, and `except: return None` swallowed
-    the 429s without a single log line. Only the first ~5 tickers ever got a
-    dated prev_close and *which* five drifted with ticker order, so the same bug
-    surfaced on different holdings each run (verified 2026-07-27: MSFU and SKHY
-    were positions 6 and 7 and silently got none).
+    ``quote_session_date`` is the trading session represented by current quotes,
+    not necessarily today's wall-clock date. Its actual previous US session is
+    resolved before selecting the cache. The cache stores the complete Polygon
+    map (not only today's holdings), so every scheduled/manual caller shares one
+    immutable download.
 
-    `/v2/aggs/grouped/...` returns the whole US session — ~12.4k tickers — in a
-    single call, so the rate limit stops mattering. Walks back day by day
-    because the grouped endpoint returns an empty result set for weekends and
-    holidays rather than the last session.
-
-    Returns ({ticker: (close, date)}, rate_limited). `rate_limited` lets the
-    caller skip a per-ticker retry that would only burn the same exhausted quota.
+    Returns ``(ticker_map, rate_limited, snapshot_valid)``. Per-ticker fallback
+    is allowed only when ``snapshot_valid`` is true and the symbol is genuinely
+    absent from that grouped snapshot.
     """
-    out: Dict[str, tuple] = {}
+    del max_lookback  # retained for call compatibility; calendar owns lookback
     if not api_key or not tickers:
-        return out, False
-    want = set(tickers)
-    probe = datetime.strptime(today_et_date, '%Y-%m-%d')
-    for _ in range(max_lookback):
-        probe -= timedelta(days=1)
-        if probe.weekday() >= 5:          # skip Sat/Sun without spending a call
-            continue
-        date_str = probe.strftime('%Y-%m-%d')
+        return {}, False, False
+    session_date = _prev_trading_day(quote_session_date)
+    cached = _load_polygon_cache(session_date, cache_dir)
+    if cached:
+        return _cached_polygon_result(cached, tickers, True), False, True
+
+    cache_path = _polygon_cache_path(session_date, cache_dir)
+    cache_path.parent.mkdir(parents=True, exist_ok=True)
+    lock_path = cache_path.with_suffix('.lock')
+    with lock_path.open('a+') as lock:
+        fcntl.flock(lock.fileno(), fcntl.LOCK_EX)
+        # Another process may have populated the session while this caller waited.
+        cached = _load_polygon_cache(session_date, cache_dir)
+        if cached:
+            return _cached_polygon_result(cached, tickers, True), False, True
         try:
             r = SESSION.get(
-                f"https://api.polygon.io/v2/aggs/grouped/locale/us/market/stocks/{date_str}",
+                f"https://api.polygon.io/v2/aggs/grouped/locale/us/market/stocks/{session_date}",
                 params={'adjusted': 'true', 'apiKey': api_key},
                 timeout=max(TIMEOUT, 30),
             )
             if r.status_code == 429:
-                # Quota exhausted, not "this date has no data". Walking further
-                # back would spend the remaining budget on requests that are
-                # certain to fail too, so stop and let the caller know.
-                print(f"  ⚠ Polygon grouped {date_str}: HTTP 429 rate limited — "
-                      f"aborting prior-close lookup (prev_close falls back to the "
-                      f"provider's own field)", file=sys.stderr)
-                return out, True
+                print(
+                    f"  ⚠ Polygon grouped {session_date}: HTTP 429 rate limited — "
+                    "cache unchanged",
+                    file=sys.stderr,
+                )
+                return {}, True, False
             if r.status_code != 200:
-                print(f"  ⚠ Polygon grouped {date_str}: HTTP {r.status_code} "
-                      f"{r.text[:120]}", file=sys.stderr)
-                continue
+                print(
+                    f"  ⚠ Polygon grouped {session_date}: HTTP {r.status_code} "
+                    f"{getattr(r, 'text', '')[:120]} — cache unchanged",
+                    file=sys.stderr,
+                )
+                return {}, False, False
             raw = r.json()
-        except Exception as e:
-            print(f"  ⚠ Polygon grouped {date_str} failed: {type(e).__name__}: {e}",
-                  file=sys.stderr)
-            continue
+        except Exception as exc:
+            print(
+                f"  ⚠ Polygon grouped {session_date} failed: "
+                f"{type(exc).__name__}: {exc} — cache unchanged",
+                file=sys.stderr,
+            )
+            return {}, False, False
+
         results = raw.get('results') or []
-        if not results:
-            continue                       # holiday / not yet published
-        _debug_dump('polygon_grouped', date_str, {'resultsCount': len(results)})
-        for res in results:
-            t = res.get('T')
-            if t in want and res.get('c'):
-                out[t] = (float(res['c']), date_str)
-        if out:
-            return out, False
-    return out, False
+        closes = {}
+        for result in results:
+            ticker, close = result.get('T'), result.get('c')
+            try:
+                close = float(close)
+            except (TypeError, ValueError):
+                continue
+            if ticker and close > 0:
+                closes[str(ticker)] = close
+        if not closes:
+            print(
+                f"  ⚠ Polygon grouped {session_date}: empty/invalid snapshot — "
+                "cache unchanged",
+                file=sys.stderr,
+            )
+            return {}, False, False
+
+        try:
+            response_bytes = len(r.content)
+        except Exception:
+            response_bytes = len(json.dumps(raw, separators=(',', ':')).encode())
+        payload = {
+            'schema_version': POLYGON_CACHE_SCHEMA_VERSION,
+            'session_date': session_date,
+            'source': 'Polygon grouped',
+            'fetched_at': datetime.now(timezone.utc).isoformat(),
+            'result_count': len(closes),
+            'response_bytes': response_bytes,
+            'closes': closes,
+        }
+        _write_polygon_cache(payload, cache_dir)
+        _debug_dump('polygon_grouped', session_date, {'resultsCount': len(closes)})
+        return _cached_polygon_result(payload, tickers, False), False, True
 
 
 # ── main fetch logic ─────────────────────────────────────────────────────────
@@ -655,7 +763,7 @@ def fetch_us_quotes(tickers: List[str], keys: Dict[str, str]) -> Dict[str, Dict]
     results: Dict[str, Dict] = {}
     partial: Dict[str, Dict] = {}
     stale: Dict[str, Dict] = {}
-    today_et_date = datetime.now(timezone(timedelta(hours=-4))).strftime('%Y-%m-%d')
+    today_et_date = _us_quote_session_date()
     remaining = list(tickers)
 
     def _done(ticker: str, quote: Dict):
@@ -797,13 +905,16 @@ def update_us_portfolio(
                     h[k] = 0
 
     # Timezone helpers
-    et_tz  = timezone(timedelta(hours=-4))   # EDT; adjust to -5 for EST
-    hkt_tz = timezone(timedelta(hours=8))
+    et_tz  = ZoneInfo('America/New_York')
+    hkt_tz = ZoneInfo('Asia/Hong_Kong')
     now_et  = datetime.now(et_tz)
     now_hkt = datetime.now(hkt_tz)
 
-    today_et_date  = now_et.strftime('%Y-%m-%d')
-    three_days_ago = (now_et - timedelta(days=3)).strftime('%Y-%m-%d')
+    # The quote's session can differ from the wall-clock date before 09:30 ET,
+    # on weekends, and after holidays. Every range/prev-close date below is keyed
+    # to the quote session, never to midnight.
+    today_et_date = _us_quote_session_date(now_et)
+    expected_prev_session = _prev_trading_day(today_et_date)
 
     et_str  = now_et.strftime('%Y-%m-%d %H:%M %Z')
     hkt_str = now_hkt.strftime('%Y/%m/%d %H:%M HKT')
@@ -822,7 +933,7 @@ def update_us_portfolio(
     polygon_key = keys.get('POLYGON_API_KEY', '')
     if polygon_key:
         print(f"  [PC] Polygon prev-close (grouped)...")
-        prev_closes, rate_limited = get_prev_closes_polygon_grouped(
+        prev_closes, rate_limited, snapshot_valid = get_prev_closes_polygon_grouped(
             tickers, polygon_key, today_et_date)
         for t, result in prev_closes.items():
             print(f"       ✓ {t}: ${result[0]:.4f} ({result[1]})")
@@ -835,14 +946,27 @@ def update_us_portfolio(
             print(f"       ⚠ Polygon rate limited — no dated prior close for "
                   f"{', '.join(missing)}; prev_close falls back to the quote "
                   f"provider's own field", file=sys.stderr)
-        elif missing:
+        elif missing and snapshot_valid:
             for t in missing:
                 result = get_prev_close_polygon(t, polygon_key)
-                if result:
+                if result and result[1] == expected_prev_session:
                     prev_closes[t] = result
                     print(f"       ✓ {t}: ${result[0]:.4f} ({result[1]}) [per-ticker]")
+                elif result:
+                    print(
+                        f"       ✗ {t}: per-ticker Polygon bar {result[1]} "
+                        f"does not match expected prior session "
+                        f"{expected_prev_session}",
+                        file=sys.stderr,
+                    )
                 else:
                     print(f"       ✗ {t}: no Polygon prior close", file=sys.stderr)
+        elif missing:
+            print(
+                f"       ⚠ Polygon grouped snapshot unavailable — skip per-ticker "
+                f"fallback because absence of {', '.join(missing)} is unproven",
+                file=sys.stderr,
+            )
 
     print(f"\n{'─'*62}")
     updated: List[str] = []
@@ -876,8 +1000,9 @@ def update_us_portfolio(
         # dated weeks ago is the *old* instrument that used to own this ticker —
         # a day-change computed against it is fiction (SPCX showed +637%).
         poly_pc = prev_closes.get(t)
-        if poly_pc and poly_pc[1] < three_days_ago:
-            print(f"  ⚠ {t}: Polygon prev_close dated {poly_pc[1]} (< {three_days_ago}) "
+        if poly_pc and poly_pc[1] < expected_prev_session:
+            print(f"  ⚠ {t}: Polygon prev_close dated {poly_pc[1]} "
+                  f"(< expected session {expected_prev_session}) "
                   f"— stale bar / ticker reuse, ignoring")
             poly_pc = None
         if poly_pc:
@@ -905,11 +1030,11 @@ def update_us_portfolio(
                 existing_pc_date = holding.get('prev_close_date', '')
                 api_dp           = q.get('dp', 0)
                 if existing_pc > 0 and existing_pc_date and \
-                        three_days_ago <= existing_pc_date < today_et_date:
+                        existing_pc_date == expected_prev_session:
                     pc, pc_date = existing_pc, existing_pc_date
                 elif api_dp and abs(api_dp) > 0.01:
                     pc = round(c / (1 + api_dp / 100), 4)
-                    pc_date = _prev_trading_day(today_et_date)
+                    pc_date = expected_prev_session
                 # else: leave pc = today's close (today_change falls back to 0, safe)
         else:
             # A prior close belongs to the PRIOR session, so it is stamped with
@@ -918,7 +1043,7 @@ def update_us_portfolio(
             # day_session_date, an impossible state that also tripped
             # preflight_integrity's `opened_this_session` exemption and switched
             # off the TODAY_LEG gate for exactly the rows this bug had touched.
-            prev_session = _prev_trading_day(today_et_date)
+            prev_session = expected_prev_session
             api_pc = q.get('pc')
             existing_pc      = holding.get('prev_close', 0)
             existing_pc_date = holding.get('prev_close_date', '')
@@ -928,7 +1053,8 @@ def update_us_portfolio(
             elif api_dp and abs(api_dp) > 0.01:
                 pc = round(c / (1 + api_dp / 100), 4)
                 pc_date = prev_session
-            elif existing_pc > 0 and existing_pc != c and existing_pc_date >= three_days_ago:
+            elif (existing_pc > 0 and existing_pc != c
+                  and existing_pc_date == expected_prev_session):
                 pc, pc_date = existing_pc, existing_pc_date
             else:
                 pc, pc_date = c, prev_session
