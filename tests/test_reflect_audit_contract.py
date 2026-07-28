@@ -1,4 +1,5 @@
 from pathlib import Path
+import sys
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -12,6 +13,9 @@ HTML = (ROOT / "index.html").read_text() + "".join(
     )
 )
 BUILD = (ROOT / "scripts" / "data" / "build_dashboard.py").read_text()
+HARNESS_WORKFLOW = (
+    ROOT / ".github" / "workflows" / "harness-regression.yml"
+).read_text()
 
 
 def test_reflect_loads_audit_as_sidecar_and_not_dashboard_field():
@@ -19,6 +23,42 @@ def test_reflect_loads_audit_as_sidecar_and_not_dashboard_field():
     assert "assets/data/" in HTML
     assert "build_audit_sidecar" in BUILD
     assert "out['decision_audit']" not in BUILD
+    assert "out['episode_backtest']" not in BUILD
+
+
+def test_reflect_sidecar_compiles_backtest_from_the_same_decisions(monkeypatch):
+    sys.path.insert(0, str(ROOT / "scripts" / "data"))
+    import build_dashboard
+
+    decisions = [{"decision_id": "d1"}]
+    monkeypatch.setattr(
+        build_dashboard.decision_v2,
+        "build_audit_sidecar",
+        lambda rows, portfolio, include_records: {
+            "schema_version": 1,
+            "decision_ids": [row["decision_id"] for row in rows],
+            "records_included": include_records,
+        },
+    )
+    monkeypatch.setattr(
+        build_dashboard.decision_v2,
+        "compute_backtest",
+        lambda rows: {"decision_ids": [row["decision_id"] for row in rows]},
+    )
+
+    sidecar = build_dashboard.build_decision_audit_payload(decisions, {})
+    assert sidecar["decision_ids"] == ["d1"]
+    assert sidecar["records_included"] is False
+    assert sidecar["episode_backtest"] == {"decision_ids": ["d1"]}
+
+
+def test_remote_rebuild_gate_validates_the_new_payload_boundary():
+    gate = HARNESS_WORKFLOW.split(
+        "- name: Rebuild dashboard.json and validate", 1
+    )[1].split("- name: Run build_dashboard sanity", 1)[0]
+    assert "assets/data/decision_audit.json" in gate
+    assert "'episode_backtest' not in d" in gate
+    assert "audit.get('episode_backtest'" in gate
 
 
 def test_reflect_card_keeps_timing_claims_narrow():

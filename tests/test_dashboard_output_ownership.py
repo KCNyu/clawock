@@ -110,6 +110,19 @@ def test_real_sidecar_change_is_returned_with_exact_path(tmp_path):
     ) == original["assets/data/decision_audit.json"]
 
 
+def test_reflect_backtest_change_publishes_the_existing_audit_sidecar(tmp_path):
+    original = _repo(tmp_path)
+    _write(tmp_path, "assets/data/decision_audit.json", {
+        **original["assets/data/decision_audit.json"],
+        "as_of": "new",
+        "episode_backtest": {"horizons": {"t1": {"settled": 3}}},
+    })
+
+    assert dashboard_outputs.semantic_changed_paths(tmp_path) == [
+        "assets/data/decision_audit.json"
+    ]
+
+
 def test_every_dashboard_committer_uses_the_shared_contract():
     assert set(dashboard_outputs.DASHBOARD_OUTPUTS) == EXPECTED
 

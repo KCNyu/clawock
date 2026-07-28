@@ -66,6 +66,18 @@ def test_the_cap_is_measured_in_the_same_unit_the_builder_enforces():
     assert "out.stat().st_size" in check, "system_check must stay on bytes too"
 
 
+def test_builder_does_not_spend_recovered_headroom_on_indentation():
+    sys.path.insert(0, str(ROOT / "scripts" / "data"))
+    import build_dashboard
+
+    value = {"中文": {"rows": [1, 2]}, "status": "ok"}
+    serialized = build_dashboard.serialize_dashboard_payload(value)
+    assert serialized == '{"中文":{"rows":[1,2]},"status":"ok"}'
+    assert len(serialized.encode("utf-8")) < len(
+        json.dumps(value, ensure_ascii=False, indent=2).encode("utf-8")
+    )
+
+
 def test_no_sub_object_is_embedded_twice(payload):
     """The dial was embedded at top level and again inside risk_guardrail."""
     import hashlib
@@ -141,12 +153,14 @@ def test_dropped_blocks_are_still_reachable_elsewhere():
 
 
 def test_what_the_charts_actually_read_is_still_present(payload):
-    """Guards against over-trimming: a name-based scan once called
-    `episode_backtest.horizons` unread because it lives in dashboard.charts.js,
-    not the renderer."""
+    """Guards against over-trimming across the main payload/sidecar boundary."""
     js = "".join((ROOT / "assets" / "js" / name).read_text() for name in RENDERERS)
-    assert 'safe(DATA, "episode_backtest", "horizons", "t1")' in js
-    assert payload["episode_backtest"]["horizons"]["t1"]
+    assert 'safe(DATA, "decision_audit", "episode_backtest")' in js
+    assert 'safe(DATA, "episode_backtest")' in js  # rollout fallback
+    # The tracked artifact may still be from the pre-migration cron build on a
+    # feature branch. The builder contract below forbids re-embedding it.
+    if payload.get("episode_backtest"):
+        assert payload["episode_backtest"]["horizons"]["t1"]
     assert payload["snapshots"]
     # the dial card reads these off the trimmed copy
     assert 'safe(DATA, "lev_regime")' in js
