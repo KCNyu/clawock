@@ -166,7 +166,7 @@ def run_main(pf, sent, monkeypatch, tmp_path):
     read_report_text() still went green while main() ignored its error)."""
     monkeypatch.setattr(pf.trading_calendar, 'closed_reason', lambda m: None)
     monkeypatch.setattr(pf.cron_heartbeat, 'record', lambda *a, **k: None)
-    monkeypatch.setattr(pf, 'rebuild_dashboard', lambda *a, **k: (False, 'skipped'))
+    monkeypatch.setattr(pf, 'publish_data_plane', lambda market: ('published', True))
 
     def run(prose, *, context_id, ctx=None):
         (tmp_path / 'intraday-context-us-latest.json').write_text(
@@ -203,6 +203,9 @@ def test_main_refuses_to_marry_stale_prose_to_fresh_numbers(run_main, sent):
 
     assert rc == 2 and out['status'] == 'fail'
     assert any('context_id 不匹配' in i for i in out['issues'])
+    assert out['data_plane_status'] == 'published'
+    assert out['dashboard_published'] is True
+    assert out['heartbeat']['state'] == 'completed'
     body = sent['messages'][0]
     assert BLOCK.splitlines()[0] in body and '▎我的看法' not in body
 
