@@ -1,6 +1,6 @@
 {
-  "checked_at": "2026-07-28T02:34:47Z",
+  "checked_at": "2026-07-28T03:05:08Z",
   "ok": true,
   "warn_count": 2,
-  "tail": "aw/workspace/assets/data/decision_audit.json (decision audit sidecar)\n  US: 16 holdings, 7 active, value $2447\n  HK: 7 holdings, 5 active, value HK$52090\n  Snapshots: 55 embedded / 55 on disk\n  Plans: 5 embedded / 52 on disk\n  Snapshots: 55 | Plans: 5\n  FX USDHKD: 7.842 (Frankfurter)\n  warn: failed to load /root/.openclaw/workspace/memory/.tmp/insights-2026-07-28.json: Invalid control character at: line 48 column 50 (char 3038)\n⚠️  payload still 212890 bytes > 200000 cap — dropping recent_plans\n"
+  "tail": "aw/workspace/assets/data/decision_audit.json (decision audit sidecar)\n  US: 16 holdings, 7 active, value $2447\n  HK: 7 holdings, 5 active, value HK$50614\n  Snapshots: 55 embedded / 55 on disk\n  Plans: 5 embedded / 52 on disk\n  Snapshots: 55 | Plans: 5\n  FX USDHKD: 7.842 (Frankfurter)\n  warn: failed to load /root/.openclaw/workspace/memory/.tmp/insights-2026-07-28.json: Invalid control character at: line 48 column 50 (char 3038)\n⚠️  payload still 213930 bytes > 200000 cap — dropping recent_plans\n"
 }
