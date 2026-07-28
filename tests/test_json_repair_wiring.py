@@ -126,6 +126,39 @@ def test_an_unreadable_file_is_invalid_not_absent(tmp_path, monkeypatch, capsys)
     assert 'warn:' in capsys.readouterr().err
 
 
+def test_an_unstattable_file_is_invalid_not_absent(tmp_path, monkeypatch, capsys):
+    """The failure happens while *selecting* the newest file, before any parse.
+
+    `glob` found a sidecar, so one exists; if `getmtime` then raises we know
+    nothing about its content — and must not answer "absent", which republishes
+    yesterday's card.
+    """
+    tmp = tmp_path / 'memory' / '.tmp'
+    tmp.mkdir(parents=True)
+    (tmp / 'insights-2026-07-28.json').write_text(VALID, encoding='utf-8')
+    monkeypatch.setattr(dashboard, 'WS_ROOT', tmp_path)
+    monkeypatch.setattr(dashboard.os.path, 'getmtime',
+                        lambda p: (_ for _ in ()).throw(OSError('stat failed')))
+
+    data = dashboard.load_tmp_sidecar('insights')
+
+    assert data['_invalid'] is True
+    assert 'warn:' in capsys.readouterr().err
+
+
+def test_an_unlistable_directory_is_invalid_not_absent(tmp_path, monkeypatch, capsys):
+    """Cannot even enumerate: we do not know whether a sidecar exists, so
+    claiming absence — and republishing the old card — is not available."""
+    monkeypatch.setattr(dashboard, 'WS_ROOT', tmp_path)
+    monkeypatch.setattr(dashboard.glob, 'glob',
+                        lambda p: (_ for _ in ()).throw(OSError('listing failed')))
+
+    data = dashboard.load_tmp_sidecar('insights')
+
+    assert data['_invalid'] is True
+    assert 'warn:' in capsys.readouterr().err
+
+
 def test_a_genuinely_absent_sidecar_is_still_falsy(tmp_path, monkeypatch):
     """The GHA case: memory/.tmp is gitignored, so a fresh checkout has no file
     at all. That one may republish the previous card."""

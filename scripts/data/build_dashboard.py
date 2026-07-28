@@ -706,9 +706,9 @@ def load_tmp_sidecar(prefix, max_age_days=None):
     review / bear cases / status banner / movers attribution). The LLM runs inside
     the gateway/GHA where API keys live — those keys NEVER touch these files or
     dashboard.json (published to public Pages), only the narrative text does.
-    Non-fatal on any error (returns {}). If max_age_days is set, marks _stale=True
-    when the file's mtime is older, so the frontend can grey it out instead of
-    showing day-old critique as if it were current.
+    Non-fatal on any error. If max_age_days is set, marks _stale=True when the
+    file's mtime is older, so the frontend can grey it out instead of showing
+    day-old critique as if it were current.
 
     Hand-authored JSON goes through json_repair: on 2026-07-28 a single missing
     closing quote cost the whole behavioural-review card group. A repair is
@@ -716,17 +716,24 @@ def load_tmp_sidecar(prefix, max_age_days=None):
     section did render and the build is not degraded — but it is still reported,
     because a producer shipping invalid JSON every morning is a bug.
 
-    A file that exists but cannot be trusted returns `{'_source': ..., '_invalid':
-    True}` rather than `{}`. The difference matters: callers pass `bool(result)`
-    to `_preserve_absent`, and an empty dict means "this checkout has no sidecar"
-    — which republishes *yesterday's* card. Doing that for a file that is present
-    but unreadable would show stale critique as if it were today's.
+    Anything short of "there is no sidecar in this checkout" returns
+    `{'_source': ..., '_invalid': True}` rather than `{}`. The difference
+    matters: callers pass `bool(result)` to `_preserve_absent`, and an empty dict
+    means "this checkout has no sidecar" — which republishes *yesterday's* card.
+    Only proven absence may do that. A file we found but could not read, and even
+    a directory listing that failed outright, are both uncertainty, not absence.
     """
-    latest = None
+    name = None
     try:
         paths = glob.glob(str(WS_ROOT / 'memory' / '.tmp' / f'{prefix}-*.json'))
-        if not paths:
-            return {}
+    except Exception as e:
+        # Cannot even enumerate: we do not know whether a sidecar exists, so we
+        # must not claim it is absent.
+        print(f'  warn: load_tmp_sidecar({prefix}) could not list: {e}', file=sys.stderr)
+        return {'_source': None, '_invalid': True}
+    if not paths:
+        return {}
+    try:
         latest = max(paths, key=os.path.getmtime)
         name = os.path.basename(latest)
         data, repairs, status = json_repair.load_json_repaired(latest)
@@ -748,12 +755,10 @@ def load_tmp_sidecar(prefix, max_age_days=None):
         return data
     except Exception as e:
         print(f'  warn: load_tmp_sidecar({prefix}) failed: {e}', file=sys.stderr)
-        # A file we found but could not read (bad encoding, I/O error) is just as
-        # untrustworthy as one that failed to parse, and must not fall through to
-        # the absent case that republishes the previous day's card.
-        if latest is not None:
-            return {'_source': os.path.basename(latest), '_invalid': True}
-        return {}
+        # Reached only with `paths` non-empty, so a sidecar does exist and we
+        # failed to read it — bad encoding, an I/O error, or an mtime that could
+        # not be stat'd. Every one of those is untrustworthy, never absent.
+        return {'_source': name, '_invalid': True}
 
 
 _REVIEW_TAGS = {'edge', 'bias', 'warning'}

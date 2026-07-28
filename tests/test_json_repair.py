@@ -163,6 +163,51 @@ def test_every_c0_control_character_is_escaped(raw):
     assert obj == {'a': f'x{raw}y'}
 
 
+# ── Refusal: what the parser accepts but we cannot publish ───────────────────
+
+def test_duplicate_keys_are_rejected_rather_than_collapsed():
+    """`json.loads` keeps the last duplicate and drops the rest without a word.
+
+    That is a value deletion carried out by the parser instead of by a pass, so
+    it slips past every invariant the passes were written to satisfy: the input
+    below would otherwise report a successful repair having thrown away `1`.
+    """
+    obj, repairs, status = json_repair.repair_json('{"a":1,"a":"x\n}')
+
+    assert status == UNREPAIRABLE
+    assert obj is None
+
+
+@pytest.mark.parametrize('text', ['{"a": NaN}', '{"a": Infinity}', '{"a": -Infinity}'])
+def test_non_finite_constants_are_rejected(text):
+    """Python extensions, not JSON. Accepting them writes a token no strict
+    parser can read into the published dashboard payload."""
+    obj, repairs, status = json_repair.repair_json(text)
+
+    assert status == UNREPAIRABLE
+
+
+def test_a_lone_surrogate_is_rejected_before_it_can_abort_the_build():
+    """`"\\ud800"` parses fine, then kills `payload.encode('utf-8')` in
+    build_dashboard — one malformed sidecar aborting the entire build is
+    strictly worse than the missing card this module exists to prevent."""
+    obj, repairs, status = json_repair.repair_json('{"status_banner": "\\ud800"}')
+
+    assert status == UNREPAIRABLE
+    assert obj is None
+
+
+def test_a_valid_surrogate_pair_still_loads():
+    """The rejection must not catch astral characters — kcn's sidecars carry
+    emoji. By this point Python has already combined a valid pair into one
+    character, so anything left in the surrogate range is genuinely unpaired."""
+    obj, repairs, status = json_repair.repair_json('{"a": "\\ud83d\\ude00 ok"}')
+
+    assert status == CLEAN
+    assert obj == {'a': '😀 ok'}
+    json.dumps(obj, ensure_ascii=False).encode('utf-8')   # the call that crashed
+
+
 def test_competing_readings_are_refused_not_guessed():
     """A dropped quote and a raw newline are indistinguishable by scanning, and
     here both readings parse to *different* objects. Picking one would be a
@@ -290,10 +335,12 @@ FIXTURE = Path(__file__).parent / 'fixtures' / 'insights-unterminated-quote.json
 def test_the_full_production_shape_recovers_whole():
     """The inline fixture above is reduced to the defect and its neighbours; this
     is the whole 2026-07-28 document — all eight keys, the real nesting, the
-    defect in its original position — with every string value replaced by
-    placeholders, because this repository is public and the sidecar carries kcn's
-    portfolio commentary. Verified to produce the same status, the same pass list
-    and the same key count as the file that actually broke."""
+    defect in its original position — with every narrative string and every
+    number replaced by placeholders, because this repository is public and the
+    sidecar carries kcn's portfolio commentary. `generated_at` and `date` are
+    kept as schema-shaped literals so the document still looks like what the
+    brief writes. Verified to produce the same status, the same pass list and the
+    same key count as the file that actually broke."""
     obj, repairs, status = json_repair.load_json_repaired(FIXTURE)
 
     assert status == REPAIRED
@@ -314,9 +361,14 @@ def test_the_fixture_keeps_the_defect_where_it_really_was():
     one.
     """
     raw = FIXTURE.read_text(encoding='utf-8')
-    defect = next(i for i, line in enumerate(raw.split('\n'))
-                  if line.count('"') % 2)
-    before, after = raw.split('\n')[:defect], raw.split('\n')[defect:]
+    # Locate the defect the way the repairer does. Counting raw quotes per line
+    # is unsound: a valid string holding one escaped quote also has an odd count,
+    # so that heuristic can point at a healthy line and pass while the real
+    # defect sits somewhere else entirely.
+    start = next(s for s, end in json_repair._iter_string_spans(raw)
+                 if end is None or '\n' in raw[s:end])
+    lines = raw.split('\n')
+    defect = raw[:start].count('\n')
 
-    assert any('"data_caveats"' in line for line in before)
-    assert any('"watchlist_for_kcn_review"' in line for line in after)
+    assert any('"data_caveats"' in line for line in lines[:defect])
+    assert any('"watchlist_for_kcn_review"' in line for line in lines[defect:])

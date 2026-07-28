@@ -5,9 +5,9 @@ json_repair.py — bounded, lossless recovery for hand-authored JSON sidecars.
 Every JSON file an agent writes by hand is one unescaped newline away from being
 unreadable. On 2026-07-28 the brief dropped the closing quote on the last
 `data_caveats` entry of `memory/.tmp/insights-2026-07-28.json`; `json.load`
-raised `Invalid control character at line 48`, `build_dashboard` lost the whole
-behavioural-review card group, and the daily health check went red — for one
-absent byte in 4,361.
+raised `Invalid control character at line 48`; `build_dashboard` fell through to
+its absent-source path and **republished the previous day's** behavioural-review
+cards, and the daily health check went red — for one absent byte in 4,361.
 
 ## The invariant, stated so it can be tested
 
@@ -53,14 +53,69 @@ import json
 import re
 
 # A file can carry more than one defect, so passes compose — but only to this
-# depth, and only through branches the parser accepts. With 4 passes that bounds
-# the search at 4·3·2 = 24 candidates.
+# depth, and only through branches the parser accepts. A pass may offer more than
+# one candidate, so the bound is depth × passes × candidates-per-pass rather than
+# a flat 4·3·2; `seen` keeps repeated texts from being re-explored.
 _MAX_DEPTH = 3
 
 CLEAN = 'clean'
 REPAIRED = 'repaired'
 AMBIGUOUS = 'ambiguous'
 UNREPAIRABLE = 'unrepairable'
+
+
+class _Rejected(ValueError):
+    """Parsed as JSON, but carries something no consumer of ours can accept."""
+
+
+def _no_duplicate_keys(pairs):
+    """`json.loads` keeps the last of duplicate keys and drops the rest silently.
+
+    That is a value deletion performed by the parser rather than by a pass, so it
+    slips past the invariant every pass is written to satisfy: `{"a":1,"a":"x"}`
+    would be reported as a successful repair having thrown away `1`.
+    """
+    seen = set()
+    for key, _ in pairs:
+        if key in seen:
+            raise _Rejected(f'duplicate key {key!r}')
+        seen.add(key)
+    return dict(pairs)
+
+
+def _no_non_finite(token):
+    """`NaN`/`Infinity` are Python extensions, not JSON. Accepting them puts a
+    token no strict parser can read into the published dashboard payload."""
+    raise _Rejected(f'non-finite constant {token}')
+
+
+def _reject_lone_surrogates(value):
+    """A lone surrogate parses fine and then kills `payload.encode('utf-8')`.
+
+    `build_dashboard` encodes the finished payload, so one malformed sidecar
+    could abort the entire build — a strictly worse outcome than the missing
+    card this module exists to prevent. Valid surrogate *pairs* are untouched:
+    Python has already combined them into one astral character by this point, so
+    anything still in the surrogate range is unpaired.
+    """
+    if isinstance(value, str):
+        if any('\ud800' <= ch <= '\udfff' for ch in value):
+            raise _Rejected('lone surrogate')
+    elif isinstance(value, dict):
+        for k, v in value.items():
+            _reject_lone_surrogates(k)
+            _reject_lone_surrogates(v)
+    elif isinstance(value, list):
+        for v in value:
+            _reject_lone_surrogates(v)
+    return value
+
+
+def _strict_loads(text):
+    """`json.loads` plus the three things it accepts that we cannot publish."""
+    return _reject_lone_surrogates(json.loads(
+        text, object_pairs_hook=_no_duplicate_keys, parse_constant=_no_non_finite,
+    ))
 
 _FENCE_RE = re.compile(r'^\s*```(?:json|JSON)?\s*\n(.*?)\n?\s*```\s*$', re.DOTALL)
 
@@ -245,7 +300,7 @@ def _accepting_branches(text, used, depth, found, seen):
         return
     seen.add(text)
     try:
-        found.append((json.loads(text), []))
+        found.append((_strict_loads(text), []))
         return
     except (json.JSONDecodeError, ValueError):
         pass
@@ -285,7 +340,7 @@ def repair_json(text):
     if not isinstance(text, str) or not text.strip():
         return None, [], UNREPAIRABLE
     try:
-        return json.loads(text), [], CLEAN
+        return _strict_loads(text), [], CLEAN
     except (json.JSONDecodeError, ValueError):
         pass
 
