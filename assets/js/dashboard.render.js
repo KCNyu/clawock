@@ -1228,14 +1228,18 @@
     return [...us, ...hk].filter(h => h.is_active !== false && (h.shares ?? 0) > 0);
   }
 
-  // 持仓决策矩阵：每个活跃持仓一行，把散在 Holdings / 量化因子 / 硬闸 三处的
-  // per-name 信号 join 到一张表（纯前端聚合，数据全在 dashboard.json）。
+  // 持仓决策矩阵优先消费 harness 编译的 versioned projection。旧 dashboard
+  // join 仅作跨版本部署期间的 fallback；Pages 不再是投资规则的 owner。
   function renderDecisionMatrix() {
     const card = document.getElementById('decision-matrix-card');
     if (!card) return;
+    const projection = safe(DATA, "brief_projection") || {};
+    const projected = projection.schema_version === 1
+      ? (projection.tickers || [])
+      : [];
     const H = safe(DATA, "holdings") || {};
     const holds = [...(H.us || []), ...(H.hk || [])].filter(h => h && h.is_active);
-    if (!holds.length) { card.style.display = 'none'; return; }
+    if (!projected.length && !holds.length) { card.style.display = 'none'; return; }
     card.style.display = '';
     const qrows = ((safe(DATA, "quant_signals") || {}).rows) || {};
     // 杠杆 ETF→底层标的映射（量化按标的算，ETF 本身无 quant 行）。
@@ -1275,15 +1279,40 @@
       if (q.tag || q.rsi14 != null) return { rank: 3, txt: '趋势off·观望', state: 'neutral' };
       return { rank: 5, txt: '—', state: 'neutral' };
     };
-    const enriched = holds.map(h => {
-      const usable = r => r && (!r.status || r.status === 'fresh');
-      const direct = usable(qrows[h.ticker]) ? qrows[h.ticker] : null;
-      const proxy = !direct && etf2u[h.ticker] && usable(qrows[etf2u[h.ticker]]) ? etf2u[h.ticker] : '';
-      if (proxy) usedProxy = true;
-      const q = direct || (proxy ? qrows[proxy] : {}) || {};
-      const a = action[h.ticker];
-      return { h, q, a, proxy, v: verdict(q, a) };
-    });
+    const enriched = projected.length
+      ? projected.map(row => {
+          const q = row.technical || {};
+          const proxy = q.is_proxy ? q.source_ticker : '';
+          if (proxy) usedProxy = true;
+          const riskAction = (row.risk || {}).action;
+          const a = riskAction ? {
+            txt: riskAction.label,
+            col: riskAction.kind === 'stop' ? 'var(--negative)' : 'var(--warning)',
+            kind: riskAction.kind,
+          } : null;
+          const live = holds.find(h => h.ticker === row.ticker) || {};
+          return {
+            h: {
+              ticker: row.ticker,
+              // Projection owns analysis; current marks remain live intraday.
+              today_change_pct: live.today_change_pct ?? (row.facts || {}).today_change_pct,
+              pnl_percent: live.pnl_percent ?? (row.facts || {}).pnl_pct,
+            },
+            q,
+            a,
+            proxy,
+            v: row.status || verdict(q, a),
+          };
+        })
+      : holds.map(h => {
+          const usable = r => r && (!r.status || r.status === 'fresh');
+          const direct = usable(qrows[h.ticker]) ? qrows[h.ticker] : null;
+          const proxy = !direct && etf2u[h.ticker] && usable(qrows[etf2u[h.ticker]]) ? etf2u[h.ticker] : '';
+          if (proxy) usedProxy = true;
+          const q = direct || (proxy ? qrows[proxy] : {}) || {};
+          const a = action[h.ticker];
+          return { h, q, a, proxy, v: verdict(q, a) };
+        });
     // 排序：需要动作的优先(rank 升序)，同级浮亏深的在前 → 最该看的在最上面
     enriched.sort((x, y) => (x.v.rank - y.v.rank) || ((x.h.pnl_percent ?? 0) - (y.h.pnl_percent ?? 0)));
     document.getElementById('decision-matrix-tbody').innerHTML = enriched.map(({ h, q, a, proxy, v }) => {
@@ -1302,6 +1331,7 @@
     document.getElementById('decision-matrix-note').textContent =
       '综合：止损/减仓=硬闸规则(必动)，观望/趋势ON=技术状态(非买卖建议)。按需动作优先排序。'
       + '52w位置：绿=近一年低位(便宜)、红=高位(追高警惕)。'
+      + (projected.length ? '数据由 harness projection 编译，页面不重算规则。' : '兼容模式：等待 projection。')
       + (usedProxy ? '▵=杠杆ETF量化列取底层标的。' : '');
   }
 

@@ -104,6 +104,25 @@ def test_new_feature_cannot_silently_create_an_unbounded_lazy_load(tmp_path):
         brief_context.write_run_bundle(source, tmp_path / "bundle-oversize.json")
 
 
+def test_tool_artifact_cannot_create_an_unbounded_query_source(tmp_path):
+    source = _fixture()
+    generation_id = brief_context.compute_generation_id(source)
+    tool = {
+        "_meta": {
+            "schema_version": 1,
+            "kind": "test",
+            "generation_id": generation_id,
+        },
+        "payload": "T" * (brief_context.SINGLE_BUNDLE_BUDGET_BYTES + 1),
+    }
+    with pytest.raises(ValueError, match="tool artifact exceeds"):
+        brief_context.write_run_bundle(
+            source,
+            tmp_path / "tool-oversize.json",
+            tool_artifacts={"test": tool},
+        )
+
+
 def test_action_critical_growth_fails_the_final_boundary(tmp_path):
     source = _fixture()
     source["portfolio"]["raw_history"] = "P" * (140 * 1024)
