@@ -1,0 +1,50 @@
+{
+  "browser_data": [
+    "assets/data/dashboard.json",
+    "assets/data/macro.json",
+    "assets/data/sentiment.json",
+    "assets/data/influencer_feed.json",
+    "assets/data/us_news_digest.json",
+    "assets/data/em_news.json",
+    "assets/data/decision_audit.json",
+    "assets/data/shadow_portfolio.json",
+    "assets/data/brief_projection.json"
+  ],
+  "required_pages": [
+    "index.html",
+    "briefs.html",
+    "robots.txt",
+    "sitemap.xml",
+    "assets/css/dashboard.css",
+    "assets/js/dashboard.core.js",
+    "assets/js/dashboard.charts.js",
+    "assets/js/dashboard.render.js",
+    "assets/js/dashboard.ui.js",
+    "assets/js/echarts.min.js"
+  ],
+  "artifact_include": [
+    "index.html",
+    "briefs.html",
+    "robots.txt",
+    "sitemap.xml",
+    "404.html",
+    "assets/css/*",
+    "assets/js/*",
+    "assets/icons/*",
+    "assets/data/*.json",
+    "assets/*.png",
+    "assets/*.svg",
+    "memory/*-pre-open.html",
+    "memory/weekly/*",
+    "docs/**/*",
+    "THIRD_PARTY_LICENSES/*",
+    "LICENSE",
+    "NOTICE"
+  ],
+  "repository_only": [
+    "assets/dashboard.gif",
+    "assets/data/*.jsonl",
+    "memory/*.jsonl",
+    "tests/**"
+  ]
+}

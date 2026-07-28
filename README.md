@@ -21,7 +21,7 @@ A real Hong Kong + US stock portfolio, debated by multiple LLMs and graded by Py
 
 <sub><i>“The market doesn't care how confident the model was.”</i></sub>
 
-<a href="https://kcnyu.github.io/clawock/"><img src="assets/dashboard.gif" alt="clawock dashboard cycling through its tabs" width="300"></a>
+<a href="https://kcnyu.github.io/clawock/"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/assets/dashboard.gif" alt="clawock dashboard cycling through its tabs" width="300"></a>
 
 <sub>Real positions, real P&amp;L, graded in the open. Previews refresh weekly; the live dashboard updates through the trading day.</sub>
 
