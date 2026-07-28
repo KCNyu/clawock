@@ -1,70 +1,67 @@
 #!/usr/bin/env python3
 """
-json_repair.py — bounded, named recovery for LLM-authored JSON.
+json_repair.py — bounded, lossless recovery for hand-authored JSON sidecars.
 
-Every JSON file an agent writes by hand (the daily insights sidecar, the intraday
-status sidecar, plan.json) is one unescaped newline away from being unreadable.
-On 2026-07-28 the brief dropped the closing quote on the last `data_caveats`
-entry; `json.load` raised `Invalid control character at line 48`, build_dashboard
-lost the whole behavioural-review card, and the daily Cron Health Check went red
-for a file that was 3038 of 3039 bytes correct.
+Every JSON file an agent writes by hand is one unescaped newline away from being
+unreadable. On 2026-07-28 the brief dropped the closing quote on the last
+`data_caveats` entry of `memory/.tmp/insights-2026-07-28.json`; `json.load`
+raised `Invalid control character at line 48`, `build_dashboard` lost the whole
+behavioural-review card group, and the daily health check went red — for one
+absent byte in 4,361.
 
-Design rules, in priority order:
+## The invariant, stated so it can be tested
 
-1. **Never touch valid JSON.** Strict `json.loads` runs first; if it succeeds the
-   input is returned untouched with zero repairs. A repair pass can only ever run
-   on text that already failed to parse.
-2. **Never invent data.** Every pass either deletes a syntactic artefact (fence,
-   trailing comma) or closes a structure the author left open, preserving the
-   partial text as written. No pass rewrites, guesses at, or completes a *value*.
-3. **Never repair silently.** `repair_json` returns the list of pass names that
-   fired. Callers must surface it — a file that needs repairing every day is a
-   producer bug, and a silent fixer would hide it forever (see the shared-memory
-   note `feedback-detect-but-never-silence`).
+A pass may only:
 
-Repairs are advisory, not warnings: the section rendered, so it is not degraded.
-See `_record_dashboard_build` (repair_count) and `cron_health_check` for how it
-reaches the daily review without turning the run red.
+  * **insert** a delimiter the author owed (a closing quote), or
+  * **escape**, in place, a character that JSON forbids raw inside a string, or
+  * **delete** a character that is outside every string literal and carries no
+    value (a fence line, a comma before a closer).
+
+No pass may delete a character that is inside a string literal, and no pass may
+delete a *value*. This rules out two tempting repairs that earlier versions of
+this module shipped, both of which silently destroyed data:
+
+  * **prose stripping** — cutting to the outermost balanced value looks lossless
+    but is not: `{"kept": 1}\\n{"lost": 2}` is balanced, and cutting to the first
+    match deletes the second document. Bracket-matching only moves where the
+    deletion ends; it cannot prove the discarded suffix was noise.
+  * **closing a truncated document** — the tail is already gone; appending `]}`
+    converts "this file was cut off" into "a valid document with fewer items".
+    For a plan that is decisions silently disappearing. Truncation must fail
+    loudly, so it is not repaired here.
+
+## Ambiguity is refused, not guessed
+
+A missing quote and a raw newline inside a string are indistinguishable by
+scanning: a dropped quote mispairs every quote after it, so the opener on the
+broken line pairs with the next line's opener. Both readings can parse and yield
+*different objects*, and no amount of parser agreement establishes which one the
+author meant. So every accepting branch is enumerated; if two of them disagree,
+the result is `ambiguous` and no object is returned. Parser acceptance proves
+syntax, never intent.
+
+## Nothing is repaired silently
+
+`repair_json` returns a status alongside the object. `clean` is the only status a
+caller may treat as unremarkable — a file needing repair every day is a producer
+bug, and a silent fixer would hide it forever (shared memory:
+`feedback-detect-but-never-silence`).
 """
 import json
 import re
 
-# A file can carry more than one defect (a fence around a truncated body), so
-# passes compose — but only up to this depth, and a composition is kept only if
-# it parses. With 6 passes that bounds the search at 6·5·4 = 120 candidates,
-# microseconds on files this size, and makes "repaired" mean "the parser
-# accepted it", never "our heuristic liked it".
+# A file can carry more than one defect, so passes compose — but only to this
+# depth, and only through branches the parser accepts. With 4 passes that bounds
+# the search at 4·3·2 = 24 candidates.
 _MAX_DEPTH = 3
 
+CLEAN = 'clean'
+REPAIRED = 'repaired'
+AMBIGUOUS = 'ambiguous'
+UNREPAIRABLE = 'unrepairable'
+
 _FENCE_RE = re.compile(r'^\s*```(?:json|JSON)?\s*\n(.*?)\n?\s*```\s*$', re.DOTALL)
-_TRAILING_COMMA_RE = re.compile(r',(\s*[}\]])')
-
-
-def _strip_code_fence(text):
-    """```json … ``` → the payload. Models fence a file write surprisingly often."""
-    m = _FENCE_RE.match(text)
-    return m.group(1) if m else None
-
-
-def _strip_prose_wrapper(text):
-    """Drop chatter outside the outermost {...} / [...] the document starts with.
-
-    Only trims at the boundaries — the first opening brace/bracket and its last
-    matching partner by character. Interior content is never touched.
-    """
-    starts = [i for i in (text.find('{'), text.find('[')) if i != -1]
-    if not starts:
-        return None
-    start = min(starts)
-    closer = '}' if text[start] == '{' else ']'
-    end = text.rfind(closer)
-    if end <= start:
-        return None
-    # Surrounding whitespace is not prose; treating it as such would burn a pass
-    # (and a reported repair name) on a file whose only sin is a trailing \n.
-    if not text[:start].strip() and not text[end + 1:].strip():
-        return None
-    return text[start:end + 1]
 
 
 def _iter_string_spans(text):
@@ -72,7 +69,7 @@ def _iter_string_spans(text):
 
     Walks the raw text tracking escapes so a `\\"` inside a string does not read
     as a terminator. A trailing None close means the last string was never
-    closed — the truncation/missing-quote case.
+    closed.
     """
     i, n = 0, len(text)
     while i < n:
@@ -95,29 +92,36 @@ def _iter_string_spans(text):
         i = j + 1
 
 
-def _close_unterminated_string(text):
-    """Close a string whose author dropped the final quote before a newline.
+def _outside_string(text):
+    """Set of indices that are not inside any string literal (quotes included)."""
+    inside = set()
+    for start, end in _iter_string_spans(text):
+        stop = len(text) if end is None else end + 1
+        inside.update(range(start, stop))
+    return set(range(len(text))) - inside
 
-    The 2026-07-28 case: `"…决策应等数据真口径` followed by `\n  ],`. Repaired by
-    inserting `"` at the end of that line — the text written stays exactly as
-    written, only the delimiter the author owed is supplied. Refuses when the
-    line looks mid-value (ends in `\\`) so a genuinely multi-line value is left
-    for `_escape_control_chars` instead.
+
+def _strip_code_fence(text):
+    """```json … ``` → the payload. Deletes only the fence lines themselves."""
+    m = _FENCE_RE.match(text)
+    return m.group(1) if m else None
+
+
+def _close_unterminated_string(text):
+    """Insert the closing quote the author owed, at the end of that line.
+
+    Handles both a span that never closes and a span that swallowed a newline —
+    the two shapes a missing quote produces. Nothing is deleted; the text as
+    written is preserved and only the delimiter is supplied. Declines when the
+    line ends in a backslash, where the author was plainly still mid-value.
     """
     for start, end in _iter_string_spans(text):
-        # A span that swallowed a newline is indistinguishable from a missing
-        # quote by scanning alone: the opener on the broken line simply pairs
-        # with the *next* line's opener. Both readings are handled — this pass
-        # takes the missing-quote reading, `_escape_control_chars` takes the
-        # multi-line-value reading, and `repair_json` keeps whichever parses.
         if end is not None and '\n' not in text[start:end]:
             continue
         nl = text.find('\n', start + 1)
         tail = text[start:] if nl == -1 else text[start:nl]
         if tail.rstrip().endswith('\\'):
             return None
-        # Insert the quote after the last non-blank character the author wrote,
-        # so trailing indentation stays outside the string.
         cut = start + len(tail.rstrip())
         return text[:cut] + '"' + text[cut:]
     return None
@@ -126,10 +130,9 @@ def _close_unterminated_string(text):
 def _escape_control_chars(text):
     """Escape raw newlines/tabs that sit inside a string literal.
 
-    A model writing a multi-line quote produces a literal 0x0A between the
-    quotes, which is exactly what `Invalid control character` reports. Only
-    characters strictly inside a span from `_iter_string_spans` are escaped, so
-    the newlines that format the document are untouched.
+    In place and value-preserving: the character survives as its JSON escape.
+    Only characters strictly inside a closed span are touched, so the newlines
+    that format the document are untouched.
     """
     out, last, changed = [], 0, False
     for start, end in _iter_string_spans(text):
@@ -151,71 +154,64 @@ def _escape_control_chars(text):
 
 
 def _drop_trailing_comma(text):
-    """`[1, 2, ]` → `[1, 2]`. Purely artefact removal."""
-    repaired = _TRAILING_COMMA_RE.sub(r'\1', text)
-    return repaired if repaired != text else None
+    """`[1, 2, ]` → `[1, 2]`, for commas that are outside every string.
 
-
-def _close_open_containers(text):
-    """Append the `}`/`]` a truncated document never got to write.
-
-    Counts unclosed containers outside string literals and closes them in the
-    right order. Also drops a dangling `"key":` or trailing comma at the cut
-    point, since neither can be completed without inventing a value.
+    String-aware by construction. A blanket regex deletes the comma in
+    `[\"a\", \",\"]`-shaped input — where the comma is a string's *value*, not a
+    separator — which is a value deletion, not an artefact removal.
     """
-    spans = [(s, e) for s, e in _iter_string_spans(text) if e is not None]
-
-    def in_string(idx):
-        return any(s <= idx <= e for s, e in spans)
-
-    stack = []
+    outside = _outside_string(text)
+    drop = []
     for i, ch in enumerate(text):
-        if in_string(i):
+        if ch != ',' or i not in outside:
             continue
-        if ch in '{[':
-            stack.append(ch)
-        elif ch in '}]':
-            if stack and stack[-1] == ('{' if ch == '}' else '['):
-                stack.pop()
-    if not stack:
+        j = i + 1
+        while j < len(text) and text[j] in ' \t\r\n':
+            j += 1
+        if j < len(text) and text[j] in ']}' and j in outside:
+            drop.append(i)
+    if not drop:
         return None
-    body = text.rstrip()
-    # A cut mid-pair leaves `"k":` or `"k": ` with nothing after it, and a cut
-    # right after an element leaves the separator. Neither is completable.
-    body = re.sub(r',\s*$', '', body)
-    body = re.sub(r'"[^"\n]*"\s*:\s*$', '', body).rstrip().rstrip(',')
-    return body + ''.join('}' if ch == '{' else ']' for ch in reversed(stack))
+    cut = set(drop)
+    return ''.join(c for i, c in enumerate(text) if i not in cut)
 
 
-# Name → pass. Cheapest and most localised first; `unterminated_string` precedes
-# `control_chars_in_string` because it is the likelier authoring slip, but that
-# preference is only a tiebreak. Correctness comes from the parser, not the
-# order: a dropped quote mispairs every quote after it, so the escaping reading
-# of such a file does not parse and the driver backs out of it. Verified by
-# mutation — swapping these two changes no test outcome.
+# Tried in this order, but order is only a tiebreak: correctness comes from
+# enumerating every accepting branch and refusing disagreement, not from
+# guessing well.
 _PASSES = (
     ('code_fence', _strip_code_fence),
-    ('prose_wrapper', _strip_prose_wrapper),
     ('trailing_comma', _drop_trailing_comma),
     ('unterminated_string', _close_unterminated_string),
     ('control_chars_in_string', _escape_control_chars),
-    ('truncated_document', _close_open_containers),
 )
 
 
-def _search(text, used, depth):
-    """Depth-first over unused passes; a branch counts only when it parses.
+def _json_equal(a, b):
+    """Type-sensitive structural equality.
 
-    Returns (obj, repairs) for the first branch the parser accepts, else
-    (None, []) — deliberately not the deepest partial attempt, because a list of
-    repairs that did not produce valid JSON would misreport what happened.
+    Plain `==` calls `True == 1` and `1 == 1.0` equal, which would let two
+    branches that disagree about a value's JSON *type* pass as agreeing.
     """
+    if type(a) is not type(b):
+        return False
+    if isinstance(a, dict):
+        return (a.keys() == b.keys()
+                and all(_json_equal(a[k], b[k]) for k in a))
+    if isinstance(a, list):
+        return len(a) == len(b) and all(_json_equal(x, y) for x, y in zip(a, b))
+    return a == b
+
+
+def _accepting_branches(text, used, depth, found):
+    """Collect (object, repairs) for every accepting branch within the bound."""
     try:
-        return json.loads(text), []
+        found.append((json.loads(text), []))
+        return
     except (json.JSONDecodeError, ValueError):
         pass
     if depth <= 0:
-        return None, []
+        return
     for name, fn in _PASSES:
         if name in used:
             continue
@@ -225,37 +221,55 @@ def _search(text, used, depth):
             candidate = None
         if candidate is None or candidate == text:
             continue
-        obj, rest = _search(candidate, used | {name}, depth - 1)
-        if obj is not None:
-            return obj, [name] + rest
-    return None, []
+        nested = []
+        _accepting_branches(candidate, used | {name}, depth - 1, nested)
+        found.extend((obj, [name] + rest) for obj, rest in nested)
 
 
 def repair_json(text):
-    """Parse `text`, repairing bounded syntax defects. → (obj_or_None, repairs).
+    """Parse `text`, repairing bounded syntax defects. → (obj, repairs, status).
 
-    `repairs` is the ordered list of pass names that fired; it is empty when the
-    input parsed strictly, which is the only case where the caller may stay
-    quiet. A None object means the text was beyond these passes — the caller
-    keeps its existing failure path.
+    status is one of:
+      `clean`        — parsed as written; `repairs` is empty and the caller may
+                       stay quiet. The only status that means "nothing happened".
+      `repaired`     — every accepting branch agreed; `obj` is that object and
+                       `repairs` names the passes that fired.
+      `ambiguous`    — accepting branches disagreed about the resulting object.
+                       No object is returned: the reading cannot be established
+                       from syntax alone, and picking one would be a guess.
+      `unrepairable` — no branch parsed. `obj` is None.
     """
     if not isinstance(text, str) or not text.strip():
-        return None, []
-    # The strict-parse guarantee lives in `_search`'s first statement, so valid
-    # input returns before any pass runs. Do not re-add it here: a duplicate
-    # fast path reads like a safety net while being unreachable, and a mutation
-    # run proved deleting it changed nothing.
-    return _search(text, frozenset(), _MAX_DEPTH)
+        return None, [], UNREPAIRABLE
+    try:
+        return json.loads(text), [], CLEAN
+    except (json.JSONDecodeError, ValueError):
+        pass
+
+    found = []
+    _accepting_branches(text, frozenset(), _MAX_DEPTH, found)
+    if not found:
+        return None, [], UNREPAIRABLE
+    first = found[0][0]
+    if any(not _json_equal(first, obj) for obj, _ in found[1:]):
+        return None, [], AMBIGUOUS
+    return first, found[0][1], REPAIRED
 
 
 def load_json_repaired(path, encoding='utf-8'):
-    """`repair_json` over a file. → (obj_or_None, repairs). Never raises on
-    malformed content; an unreadable path still raises, since that is not a
-    syntax defect and must not be mistaken for one."""
+    """`repair_json` over a file. → (obj, repairs, status). Never raises on
+    malformed content; an unreadable path still raises, since absence is not a
+    syntax defect and must not be reported as one."""
     with open(path, encoding=encoding) as f:
         return repair_json(f.read())
 
 
-def describe(repairs):
-    """One-line advisory text for a repair list ('' when nothing fired)."""
-    return f"repaired JSON ({', '.join(repairs)})" if repairs else ''
+def describe(repairs, status=REPAIRED):
+    """One-line advisory text ('' when there is nothing to report)."""
+    if status == AMBIGUOUS:
+        return 'ambiguous JSON — competing repairs disagree, refusing to guess'
+    if status == UNREPAIRABLE:
+        return 'unrepairable JSON'
+    if not repairs:
+        return ''
+    return f"repaired JSON ({', '.join(repairs)})"

@@ -711,26 +711,36 @@ def load_tmp_sidecar(prefix, max_age_days=None):
     showing day-old critique as if it were current.
 
     Hand-authored JSON goes through json_repair: on 2026-07-28 a single missing
-    closing quote cost the whole behavioural-review card. Repairs are reported on
-    stderr as `repair:` — a distinct prefix from `warn:`, because the section did
-    render and is not degraded, but the producer still shipped invalid JSON and
-    that must stay visible in the daily review.
+    closing quote cost the whole behavioural-review card group. A repair is
+    reported on stderr as `repair:` — deliberately not `warn:`, because the
+    section did render and the build is not degraded — but it is still reported,
+    because a producer shipping invalid JSON every morning is a bug.
+
+    A file that exists but cannot be trusted returns `{'_source': ..., '_invalid':
+    True}` rather than `{}`. The difference matters: callers pass `bool(result)`
+    to `_preserve_absent`, and an empty dict means "this checkout has no sidecar"
+    — which republishes *yesterday's* card. Doing that for a file that is present
+    but unreadable would show stale critique as if it were today's.
     """
     try:
         paths = glob.glob(str(WS_ROOT / 'memory' / '.tmp' / f'{prefix}-*.json'))
         if not paths:
             return {}
         latest = max(paths, key=os.path.getmtime)
-        data, repairs = json_repair.load_json_repaired(latest)
-        if repairs:
-            print(f'  repair: {os.path.basename(latest)} — '
-                  f'{json_repair.describe(repairs)}', file=sys.stderr)
-        if data is None:
-            print(f'  warn: failed to load {latest}: unrepairable JSON',
+        name = os.path.basename(latest)
+        data, repairs, status = json_repair.load_json_repaired(latest)
+        if status == json_repair.REPAIRED:
+            print(f'  repair: {name} — {json_repair.describe(repairs, status)}',
                   file=sys.stderr)
+        elif status != json_repair.CLEAN:
+            print(f'  warn: failed to load {latest}: '
+                  f'{json_repair.describe(repairs, status)}', file=sys.stderr)
+            return {'_source': name, '_invalid': True}
         if not isinstance(data, dict):
-            return {}
-        data.setdefault('_source', os.path.basename(latest))
+            print(f'  warn: {name}: top level is {type(data).__name__}, not object',
+                  file=sys.stderr)
+            return {'_source': name, '_invalid': True}
+        data.setdefault('_source', name)
         if max_age_days is not None:
             age_days = (time.time() - os.path.getmtime(latest)) / 86400.0
             data['_stale'] = age_days > max_age_days
@@ -2033,7 +2043,11 @@ def main():
     # daily insights (brief): behavioral_review / bear_cases / hidden_concentration.
     # 7d stale guard so a missed brief doesn't show week-old critique as current.
     _insights = load_tmp_sidecar('insights', max_age_days=7)
-    insights_present = bool(_insights)  # file existed in this checkout (vs. GHA-absent)
+    # True when the file existed at all — including when it existed but was
+    # unreadable. Only genuine absence (a GHA checkout, where memory/.tmp is
+    # gitignored) may republish the previous card; an unreadable file must let
+    # the card hide rather than show yesterday's critique as today's.
+    insights_present = bool(_insights)
     _ins = validate_insights({} if _insights.get('_stale') else _insights, known_tickers)
     out['behavioral_review'] = _ins['behavioral_review']
     out['bear_cases'] = _ins['bear_cases']

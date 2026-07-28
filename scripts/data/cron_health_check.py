@@ -40,6 +40,14 @@ TERMINAL_HEARTBEAT_STATES = {
 }
 HEARTBEAT_GRACE_MINUTES = 25
 
+# Indexed directly (not .get) so a state added to check_dashboard_build without
+# an icon fails here loudly instead of printing a blank cell. Module-level so the
+# tests can index the real map rather than restate it.
+DASHBOARD_STATE_ICONS = {
+    'ok': '✓', 'repaired': '🔧', 'degraded': '⚠', 'stale': '⚠',
+    'failed': '✗', 'absent': '·',
+}
+
 # Cron name → identifying commit msg patterns
 COMMIT_PATTERNS = {
     '港股开盘报告': r'港股开盘',
@@ -433,8 +441,7 @@ def main():
                     'ok-heartbeat':'✓','monitoring-grace':'·','running':'…',
                     'holiday':'🏖'}.get(r['status'], '·')
             print(f"  {icon} {r['name']:25s}  {r['detail']}")
-        dash_icon = {'ok':'✓','repaired':'🔧','degraded':'⚠','stale':'⚠',
-                     'failed':'✗','absent':'·'}[dash['state']]
+        dash_icon = DASHBOARD_STATE_ICONS[dash['state']]
         print(f"  {dash_icon} {'dashboard build':25s}  {dash['detail']}")
         for line in cron_token_audit.format_lines(token_regressions):
             print(f"  {line}")

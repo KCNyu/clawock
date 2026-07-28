@@ -1,15 +1,19 @@
-"""Where json_repair is actually plugged in, and how a repair stays visible.
+"""Where json_repair is plugged in, and how each outcome stays visible.
 
-A correct repair function that nothing calls fixes nothing, and a repair nobody
-can see is worse than the crash it replaced: the 2026-07-28 sidecar defect was
-only ever noticed *because* it turned the daily health check red. These tests
-pin the three-stage path that keeps it observable without keeping it fatal:
+A correct repairer that nothing calls fixes nothing, and a repair nobody can see
+is worse than the crash it replaced: the 2026-07-28 sidecar defect was noticed
+only *because* it turned the daily health check red. These tests pin the path
+that keeps it observable without keeping it fatal:
 
-    build_dashboard  →  `repair:` on stderr   (distinct from `warn:`)
+    build_dashboard  →  `repair:` on stderr, distinct from `warn:`
     _harness_common  →  repair_count in dashboard_build_status.json
     cron_health_check→  state 'repaired', its own line, exit code unchanged
 
-and the boundary that must NOT move: an unrepairable file still degrades.
+and two boundaries that must not move:
+
+  * an unrepairable or ambiguous file still degrades the build, and
+  * it must NOT look like an absent file, because absence republishes the
+    previous day's card — showing yesterday's critique as today's.
 """
 import json
 import sys
@@ -26,11 +30,11 @@ import cron_health_check  # noqa: E402
 import _harness_common  # noqa: E402
 
 
-# The 2026-07-28 shape: a well-formed document whose last string value lost its
-# closing quote. Everything before the defect must survive the repair.
 BROKEN = ('{\n  "behavioral_review": [{"tag": "bias", "text": "chased"}],\n'
           '  "data_caveats": [\n    "US quotes are yesterday\n  ]\n}\n')
 VALID = '{"behavioral_review": [{"tag": "bias", "text": "chased"}]}'
+AMBIGUOUS_TEXT = '[\n "a\n,",\n "\n]'
+UNREPAIRABLE_TEXT = 'this was never JSON'
 
 
 def _sidecar(tmp_path, monkeypatch, body, name='insights-2026-07-28.json'):
@@ -40,7 +44,7 @@ def _sidecar(tmp_path, monkeypatch, body, name='insights-2026-07-28.json'):
     monkeypatch.setattr(dashboard, 'WS_ROOT', tmp_path)
 
 
-# ── build_dashboard: the card survives, the defect is announced ───────────────
+# ── build_dashboard: the card survives, the defect is announced ──────────────
 
 def test_broken_sidecar_still_yields_its_content(tmp_path, monkeypatch, capsys):
     _sidecar(tmp_path, monkeypatch, BROKEN)
@@ -48,6 +52,7 @@ def test_broken_sidecar_still_yields_its_content(tmp_path, monkeypatch, capsys):
     data = dashboard.load_tmp_sidecar('insights')
 
     assert data['behavioral_review'] == [{'tag': 'bias', 'text': 'chased'}]
+    assert data['data_caveats'] == ['US quotes are yesterday']
     assert data['_source'] == 'insights-2026-07-28.json'
     err = capsys.readouterr().err
     assert 'repair:' in err
@@ -55,13 +60,9 @@ def test_broken_sidecar_still_yields_its_content(tmp_path, monkeypatch, capsys):
 
 
 def test_a_repair_is_not_reported_as_a_warning(tmp_path, monkeypatch, capsys):
-    """`warn:` is what makes the build degraded and the health check red.
-
-    A repaired sidecar rendered every card, so it must not use that prefix — the
-    whole point of the fallback is that a recoverable typo stops costing a red
-    run. This is the assertion that fails if someone 'simplifies' the two
-    prefixes into one.
-    """
+    """`warn:` is what makes the build degraded and the health check red. A
+    repaired sidecar rendered every card, so it must not use that prefix — the
+    whole point is that a recoverable typo stops costing a red run."""
     _sidecar(tmp_path, monkeypatch, BROKEN)
 
     dashboard.load_tmp_sidecar('insights')
@@ -78,17 +79,48 @@ def test_valid_sidecar_stays_silent(tmp_path, monkeypatch, capsys):
     assert capsys.readouterr().err == ''
 
 
-def test_unrepairable_sidecar_still_degrades_the_build(tmp_path, monkeypatch, capsys):
-    """The boundary: repair widens what survives, it must not hide a real loss."""
-    _sidecar(tmp_path, monkeypatch, 'this was never JSON')
+# ── The boundary: unreadable is neither repaired nor absent ──────────────────
+
+@pytest.mark.parametrize('body,marker', [
+    (UNREPAIRABLE_TEXT, 'unrepairable'),
+    (AMBIGUOUS_TEXT, 'ambiguous'),
+    ('[1, 2, 3]', 'top level is list'),
+])
+def test_an_unusable_sidecar_warns_and_is_marked_invalid(tmp_path, monkeypatch,
+                                                         capsys, body, marker):
+    _sidecar(tmp_path, monkeypatch, body)
 
     data = dashboard.load_tmp_sidecar('insights')
 
-    assert data == {}
-    assert 'warn:' in capsys.readouterr().err
+    err = capsys.readouterr().err
+    assert 'warn:' in err
+    assert marker in err
+    assert data['_invalid'] is True
 
 
-# ── _harness_common: repairs counted apart from degradations ─────────────────
+def test_an_unusable_sidecar_must_not_look_absent(tmp_path, monkeypatch, capsys):
+    """`insights_present = bool(load_tmp_sidecar(...))` decides whether
+    `_preserve_absent` republishes the previous day's card. Returning `{}` for a
+    file that exists but is unreadable would show yesterday's critique as today's
+    — this is the assertion that keeps the two cases apart."""
+    _sidecar(tmp_path, monkeypatch, UNREPAIRABLE_TEXT)
+
+    present = bool(dashboard.load_tmp_sidecar('insights'))
+
+    assert present is True
+    capsys.readouterr()
+
+
+def test_a_genuinely_absent_sidecar_is_still_falsy(tmp_path, monkeypatch):
+    """The GHA case: memory/.tmp is gitignored, so a fresh checkout has no file
+    at all. That one may republish the previous card."""
+    (tmp_path / 'memory' / '.tmp').mkdir(parents=True)
+    monkeypatch.setattr(dashboard, 'WS_ROOT', tmp_path)
+
+    assert dashboard.load_tmp_sidecar('insights') == {}
+
+
+# ── _harness_common: repairs counted apart from degradations ────────────────
 
 def test_repairs_and_warnings_are_counted_separately(tmp_path):
     output = (
@@ -96,11 +128,10 @@ def test_repairs_and_warnings_are_counted_separately(tmp_path):
         '  warn: something genuinely degraded\n'
         '  repair: intraday-insights-2026-07-28.json — repaired JSON (trailing_comma)\n'
     )
+
     _harness_common._record_dashboard_build(True, output, ws=tmp_path)
 
-    status = json.loads(
-        (tmp_path / _harness_common.DASHBOARD_BUILD_STATUS).read_text()
-    )
+    status = json.loads((tmp_path / _harness_common.DASHBOARD_BUILD_STATUS).read_text())
     assert status['repair_count'] == 2
     assert status['warn_count'] == 1
 
@@ -108,14 +139,12 @@ def test_repairs_and_warnings_are_counted_separately(tmp_path):
 def test_a_clean_build_records_zero_repairs(tmp_path):
     _harness_common._record_dashboard_build(True, '  wrote dashboard.json\n', ws=tmp_path)
 
-    status = json.loads(
-        (tmp_path / _harness_common.DASHBOARD_BUILD_STATUS).read_text()
-    )
+    status = json.loads((tmp_path / _harness_common.DASHBOARD_BUILD_STATUS).read_text())
     assert status['repair_count'] == 0
     assert status['warn_count'] == 0
 
 
-# ── cron_health_check: reported, never escalated ─────────────────────────────
+# ── cron_health_check: reported, never escalated ────────────────────────────
 
 def _status_file(tmp_path, monkeypatch, **fields):
     logs = tmp_path / 'logs'
@@ -135,7 +164,7 @@ def test_repairs_get_their_own_state_not_a_degradation(tmp_path, monkeypatch):
     assert result['state'] == 'repaired'
     assert result['warn_count'] == 0          # would ride exit 2
     assert result['repair_count'] == 2
-    assert '2 sidecar' in result['detail']    # visible, with a count
+    assert '2 sidecar' in result['detail']
 
 
 def test_a_real_degradation_still_outranks_a_repair(tmp_path, monkeypatch):
@@ -154,8 +183,6 @@ def test_a_real_degradation_still_outranks_a_repair(tmp_path, monkeypatch):
     ({'ok': False}, 'failed'),
 ])
 def test_every_state_carries_the_repair_count_key(tmp_path, monkeypatch, fields, state):
-    """One schema across all branches: a caller reading `repair_count` must never
-    have to guess which branch produced the dict."""
     _status_file(tmp_path, monkeypatch, **fields)
 
     result = cron_health_check.check_dashboard_build()
@@ -164,9 +191,18 @@ def test_every_state_carries_the_repair_count_key(tmp_path, monkeypatch, fields,
     assert 'repair_count' in result
 
 
-def test_the_repaired_state_has_a_console_icon():
-    """`cron_health_check` indexes its icon map directly, so a state without an
-    entry is a KeyError that takes down the whole daily check."""
-    source = (ROOT / 'scripts' / 'data' / 'cron_health_check.py').read_text()
-    icon_line = source[source.index("dash_icon = {"):]
-    assert "'repaired'" in icon_line[:200]
+@pytest.mark.parametrize('fields', [{}, {'repair_count': 1}, {'warn_count': 2},
+                                     {'ok': False}, {'absent': True}])
+def test_every_reachable_state_has_an_icon(tmp_path, monkeypatch, fields):
+    """`cron_health_check` indexes `DASHBOARD_STATE_ICONS` directly, so a state
+    without an entry is a KeyError that takes down the whole daily check. The
+    real map is indexed here — restating it in the test would pass even after
+    the mapping was deleted."""
+    if fields.pop('absent', None):
+        monkeypatch.setattr(cron_health_check, 'WS', tmp_path)
+    else:
+        _status_file(tmp_path, monkeypatch, **fields)
+
+    state = cron_health_check.check_dashboard_build()['state']
+
+    assert cron_health_check.DASHBOARD_STATE_ICONS[state]
