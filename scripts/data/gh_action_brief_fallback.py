@@ -236,6 +236,9 @@ def fail_closed_artifacts(today, prepared):
         'decisions': [],
         'section_manifest': prepared.get('manifest') or {},
     }
+    generation_id = (prepared.get('payload') or {}).get('generation_id')
+    if generation_id:
+        plan['context_generation_id'] = generation_id
     return md, plan
 
 
@@ -298,6 +301,8 @@ def main():
     if 'actions' in plan:
         raise SystemExit('LLM returned forbidden v1 actions field')
     plan['date'] = plan.get('date') or today
+    if prepared['payload'].get('generation_id'):
+        plan['context_generation_id'] = prepared['payload']['generation_id']
     plan = decision_v2.normalize_authored_plan(plan)
     errors = decision_v2.validate_plan(plan)
     if errors:

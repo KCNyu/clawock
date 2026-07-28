@@ -2,9 +2,10 @@
 """
 brief_preflight.py — deterministic data collection for daily-deep-brief harness.
 
-Runs everything that must happen BEFORE LLM analysis. LLM reads the resulting
-brief-context.json to get all deterministic facts (FX rate, concentration,
-retrospective) so it can't forget steps.
+Runs everything that must happen BEFORE LLM analysis. It keeps a complete audit
+context, then emits a budgeted core plus generation-bound lazy bundles for the
+LLM (FX rate, concentration, retrospective, etc.) so it cannot forget steps or
+silently absorb an unbounded monolith.
 
 Steps:
   1. Refresh US + HK prices (mutates portfolio.json)
@@ -20,7 +21,7 @@ Steps:
  11. Catalyst calendar (next 14d earnings + FOMC + macro)
  12. Benchmark history (SPY + HSI/HSTECH) for equity curve overlay
  13. Load macro + sentiment snapshots (read assets/data/{macro,sentiment}.json)
- 14. Write memory/.tmp/brief-context-{date}.json
+ 14. Write the full audit context + model-facing manifest/core/bundles
 
 Output (stdout): step-by-step progress; final summary with issue count.
 Exit: 0 if no issues, 1 if any data leg failed.
@@ -54,6 +55,7 @@ import research_surface  # noqa: E402
 import peer_scan  # noqa: E402
 import workflow_outcomes  # noqa: E402
 import risk_discipline  # noqa: E402
+import brief_context  # noqa: E402
 from instrument_registry import get as get_instrument  # noqa: E402
 from instrument_registry import compute_lookthrough_exposure  # noqa: E402
 from instrument_registry import one_x_swap_map  # noqa: E402
@@ -1738,7 +1740,9 @@ def main():
     influencer_trim = load_influencer_feed(issues)
     em_news_trim = load_em_news(issues)
 
-    # Write context.json
+    # Write the complete audit context plus a budgeted, generation-bound model
+    # boundary. The full JSON remains available for postflight/audit; the skill
+    # reads manifest+core and lazy-loads feature bundles.
     # 简报上下文里的 portfolio 拷贝去掉 gold_dca.nav_history(~140条/3.3KB 黄金每日净值流水):
     # 简报 LLM 不逐日分析黄金(黄金有独立 cron)，dashboard 🥇卡也是直接读 portfolio.json，
     # 都用不到这段 → 纯占 token。浅拷贝只替换 gold_dca 键，不改原始 portfolio(下游仍用全量)。
@@ -1810,10 +1814,29 @@ def main():
         'issues':        issues,
     }
     ctx_path = TMP_DIR / f'brief-context-{today}.json'
-    ctx_path.write_text(json.dumps(context, ensure_ascii=False, indent=2))
+    try:
+        context, bundle_manifest = brief_context.write_run_bundle(context, ctx_path)
+    except Exception as exc:
+        print(f'FATAL: brief context boundary failed: {exc}', file=sys.stderr)
+        workflow_outcomes.record_stage(
+            job_name, 'preflight', 'failed', slot=slot,
+            reason='context_budget', detail=str(exc),
+        )
+        return 2
 
     print(f'\n═════ preflight done | {len(issues)} issues ═════')
     print(f'context: {ctx_path}')
+    print(
+        'model context: '
+        f'{bundle_manifest["budget"]["always_loaded_bytes"]:,} / '
+        f'{bundle_manifest["budget"]["max_always_loaded_bytes"]:,} bytes '
+        f'({bundle_manifest["budget"]["actual_reduction_pct"]}% reduction; '
+        f'≈{bundle_manifest["budget"]["estimated_tokens"]:,} est. tokens)'
+    )
+    for section, size in sorted(
+            bundle_manifest['source_section_bytes'].items(),
+            key=lambda item: item[1], reverse=True):
+        print(f'  context bytes {section}: {size:,}')
     if issues:
         for i in issues:
             print(f'  ⚠️  {i}')
@@ -1824,6 +1847,8 @@ def main():
         slot=slot,
         issue_count=len(issues),
         context_path=str(ctx_path),
+        context_generation_id=context['generation_id'],
+        model_context_bytes=bundle_manifest['budget']['always_loaded_bytes'],
     )
     return 0 if not issues else 1
 
