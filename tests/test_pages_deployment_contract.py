@@ -55,6 +55,7 @@ def test_workflow_uses_official_non_committing_pages_flow():
         assert action in WORKFLOW
     assert "pages: write" in WORKFLOW
     assert "id-token: write" in WORKFLOW
+    assert 'sudo chown -R "$(id -u):$(id -g)" _site' in WORKFLOW
     assert "git push" not in WORKFLOW
     assert "CLAWOCK_PUBLISH_SSH_KEY" not in WORKFLOW
     assert "github.event_name == 'push'" in WORKFLOW
