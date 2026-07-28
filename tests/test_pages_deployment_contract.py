@@ -22,6 +22,15 @@ def test_every_browser_fetch_is_declared_public():
     expected.update(f"assets/data/{key}.json" for key in _sidecar_keys())
 
     assert set(CONTRACT["browser_data"]) == expected
+    for asset in (
+        "assets/css/dashboard.css",
+        "assets/js/dashboard.core.js",
+        "assets/js/dashboard.charts.js",
+        "assets/js/dashboard.render.js",
+        "assets/js/dashboard.ui.js",
+        "assets/js/echarts.min.js",
+    ):
+        assert asset in CONTRACT["required_pages"]
 
 
 def test_repository_only_patterns_cannot_match_browser_data():
