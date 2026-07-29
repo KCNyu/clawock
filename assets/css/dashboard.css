@@ -304,7 +304,7 @@
     .swipe-hint { display: none; }
     main {
       display: block;
-      max-width: 1280px; margin: 0 auto;
+      max-width: 1600px; margin: 0 auto;
       padding: 24px 28px 40px;
     }
     .pager { display: block; }
@@ -322,10 +322,34 @@
     .panel.active > * { break-inside: avoid; }
     .panel.active > .card { margin: 0 0 22px; }
     .panel.active > .card.lead,
+    .panel.active > .card.desktop-wide,
     .panel.active > .sect-divider,
     .panel.active > .today-highlights,
     .panel.active > h2 { column-span: all; }
     .panel.active > .sect-divider { margin: 6px 0 18px; }
+    /* Holdings needs one continuous masonry flow. Full-width dividers used to
+       partition it into rigid mini-flows, leaving a 659px blank band beside the
+       tall tables. Keep the labels in flow so later cards can fill that space. */
+    .panel.active[data-panel="drill"] > .sect-divider {
+      column-span: none;
+      break-after: avoid;
+      margin: 6px 2px 14px;
+    }
+    .panel.active[data-panel="drill"] > .holdings-section-heading {
+      column-span: all;
+    }
+    .panel.active[data-panel="drill"] > .price-section-heading,
+    .panel.active[data-panel="drill"] > .policy-section-heading {
+      display: none;
+    }
+    .panel.active[data-panel="drill"] .desktop-section-kicker {
+      display: block;
+      margin-bottom: 10px;
+      color: var(--text-dim);
+      font: 700 10px var(--mono);
+      letter-spacing: .06em;
+      text-transform: uppercase;
+    }
     .panel.active > .today-highlights { margin-bottom: 20px; }
     /* Tab already names the view → panel <h2> stays in the a11y tree only. */
     .panel.active > h2 { width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%);
@@ -348,6 +372,7 @@
       break-inside: avoid; margin-bottom: var(--space-2);
     }
   }
+  .desktop-section-kicker { display: none; }
   /* =========================================================
      Card primitives
      ========================================================= */
@@ -1633,6 +1658,21 @@
   @media (min-width: 1024px) {
     .panel.active[data-panel="hero"] { column-count: auto; }
     .panel.active[data-panel="hero"] > .overview-command { column-span: all; }
+    .overview-command > .hero-honesty-card { align-self: start; }
+    .profit-extremes-card .ext-row .v {
+      min-width: 0;
+      max-width: 100%;
+      overflow: hidden;
+      white-space: nowrap;
+      overflow-wrap: normal;
+      text-overflow: ellipsis;
+    }
+    .desktop-wide .holdings-table th,
+    .desktop-wide .holdings-table td {
+      height: 36px;
+      padding-top: 6px;
+      padding-bottom: 6px;
+    }
   }
   .overview-command {
     display: grid; grid-template-columns: repeat(12, minmax(0, 1fr));
