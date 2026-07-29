@@ -78,7 +78,10 @@ def test_drift_plan_and_command_patch_only_declared_fields():
     command = sync_cron_payloads.build_edit_command(change)
     assert command[:4] == ["openclaw", "cron", "edit", job["id"]]
     assert command[command.index("--thinking") + 1] == "adaptive"
-    assert command[command.index("--fallbacks") + 1] == "minimax-2/MiniMax-M3"
+    profile = data["payload_profiles"]["intraday"]
+    assert command[command.index("--fallbacks") + 1] == ",".join(
+        profile["fallbacks"]
+    )
     assert "process" in command[command.index("--tools") + 1].split(",")
     assert "--message" in command
     assert "preserve-me" not in command
