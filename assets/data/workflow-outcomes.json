@@ -1,51 +1,8 @@
 {
   "schema_version": 1,
   "monitoring_started_at": "2026-07-26T08:00:00+08:00",
-  "updated_at": "2026-07-29T18:53:27.034552+00:00",
+  "updated_at": "2026-07-29T20:20:08.216876+00:00",
   "records": [
-    {
-      "job": "美股收盘报告",
-      "slot": "2026-07-26T04:00:00+08:00",
-      "stages": {
-        "preflight": {
-          "status": "failed",
-          "at": "2026-07-26T07:04:27.228055+00:00",
-          "return_code": 1
-        },
-        "llm": {
-          "status": "failed",
-          "at": "2026-07-26T07:04:27.172501+00:00",
-          "context_id": "abc123def456",
-          "issue_count": 3
-        },
-        "postflight": {
-          "status": "warning",
-          "at": "2026-07-26T07:04:27.173636+00:00",
-          "delivered": "data-block only (prose rejected)",
-          "issue_count": 3
-        },
-        "primary_delivery": {
-          "status": "success",
-          "at": "2026-07-26T07:04:27.174411+00:00",
-          "channel": "wechat_or_telegram",
-          "deterministic_fallback": true
-        },
-        "watchdog_delivery": {
-          "status": "success",
-          "at": "2026-07-26T07:04:27.195550+00:00",
-          "action": "mirror-telegram",
-          "reason": "postflight marker missing"
-        }
-      },
-      "raw_execution": {
-        "status": "unknown"
-      },
-      "updated_at": "2026-07-26T07:04:27.228055+00:00",
-      "final_product": {
-        "status": "recovered",
-        "reason": "watchdog delivered a usable product"
-      }
-    },
     {
       "job": "盘前深度简报",
       "slot": "2026-07-26T08:00:00+08:00",
@@ -4992,6 +4949,51 @@
       "final_product": {
         "status": "success",
         "reason": "primary delivery succeeded"
+      }
+    },
+    {
+      "job": "美股收盘报告",
+      "slot": "2026-07-30T04:00:00+08:00",
+      "stages": {
+        "preflight": {
+          "status": "success",
+          "at": "2026-07-29T20:01:16.622386+00:00",
+          "context_id": "dac9818a60ff"
+        },
+        "llm": {
+          "status": "warning",
+          "at": "2026-07-29T20:03:36.093495+00:00",
+          "context_id": "dac9818a60ff",
+          "issue_count": 1
+        },
+        "postflight": {
+          "status": "warning",
+          "at": "2026-07-29T20:04:13.733339+00:00",
+          "delivered": "full report",
+          "data_plane_status": "published",
+          "issue_count": 1
+        },
+        "primary_delivery": {
+          "status": "success",
+          "at": "2026-07-29T20:04:13.748987+00:00",
+          "channel": "wechat_or_telegram",
+          "deterministic_fallback": false
+        },
+        "watchdog_delivery": {
+          "status": "unknown"
+        }
+      },
+      "raw_execution": {
+        "status": "ok",
+        "run_at_ms": 1785355200030,
+        "finished_at_ms": 1785355460105,
+        "run_id": null,
+        "error_present": false
+      },
+      "updated_at": "2026-07-29T20:04:13.748987+00:00",
+      "final_product": {
+        "status": "degraded",
+        "reason": "primary delivery succeeded with degraded generation/input"
       }
     }
   ]
