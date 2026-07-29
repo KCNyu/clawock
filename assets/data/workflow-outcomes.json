@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "monitoring_started_at": "2026-07-26T08:00:00+08:00",
-  "updated_at": "2026-07-29T07:40:04.089965+00:00",
+  "updated_at": "2026-07-29T07:40:09.879903+00:00",
   "records": [
     {
       "job": "美股收盘报告",
@@ -4049,9 +4049,9 @@
         },
         "llm": {
           "status": "warning",
-          "at": "2026-07-29T07:34:36.500647+00:00",
+          "at": "2026-07-29T07:40:09.861269+00:00",
           "market": "hk",
-          "updated_at": "2026-07-29T07:34:36.498410+00:00",
+          "updated_at": "2026-07-29T15:40:01.766460+08:00",
           "should_alert": true,
           "anomaly_count": 2,
           "postflight_status": "warn",
@@ -4060,13 +4060,14 @@
           "dashboard_published": true,
           "data_plane_status": "published",
           "insights_sidecar": true,
-          "issue_count": 1
+          "issue_count": 1,
+          "watchdog_state": "ok"
         },
         "postflight": {
           "status": "warning",
-          "at": "2026-07-29T07:34:36.506277+00:00",
+          "at": "2026-07-29T07:40:09.871924+00:00",
           "market": "hk",
-          "updated_at": "2026-07-29T07:34:36.498410+00:00",
+          "updated_at": "2026-07-29T15:40:01.766460+08:00",
           "should_alert": true,
           "anomaly_count": 2,
           "postflight_status": "warn",
@@ -4075,13 +4076,14 @@
           "dashboard_published": true,
           "data_plane_status": "published",
           "insights_sidecar": true,
-          "issue_count": 1
+          "issue_count": 1,
+          "watchdog_state": "ok"
         },
         "primary_delivery": {
           "status": "success",
-          "at": "2026-07-29T07:34:36.511494+00:00",
+          "at": "2026-07-29T07:40:09.879903+00:00",
           "market": "hk",
-          "updated_at": "2026-07-29T07:34:36.498410+00:00",
+          "updated_at": "2026-07-29T15:40:01.766460+08:00",
           "should_alert": true,
           "anomaly_count": 2,
           "postflight_status": "warn",
@@ -4090,7 +4092,8 @@
           "dashboard_published": true,
           "data_plane_status": "published",
           "insights_sidecar": true,
-          "issue_count": 1
+          "issue_count": 1,
+          "watchdog_state": "ok"
         },
         "watchdog_delivery": {
           "status": "unknown"
@@ -4103,7 +4106,7 @@
         "run_id": null,
         "error_present": false
       },
-      "updated_at": "2026-07-29T07:34:36.511494+00:00",
+      "updated_at": "2026-07-29T07:40:09.879903+00:00",
       "final_product": {
         "status": "degraded",
         "reason": "primary delivery succeeded with degraded generation/input"
