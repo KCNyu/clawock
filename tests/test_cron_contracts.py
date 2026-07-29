@@ -108,6 +108,7 @@ def test_payload_semantic_contract_detects_deprecated_or_missing_rules():
             'kind': 'agentTurn',
             'model': profile['model'],
             'fallbacks': profile['model_candidates'][1:],
+            'thinking': profile['thinking'],
             'message': message,
         },
         'delivery': {'mode': 'none'},
@@ -472,6 +473,18 @@ def test_intraday_payload_contract_bans_heredoc_and_requires_text_file():
     assert cron_contract.payload_errors(data, expected, live) != []
 
 
+def test_strategy_crons_explicitly_pin_high_reasoning():
+    profiles = contract()['payload_profiles']
+    assert {
+        name: profiles[name].get('thinking')
+        for name in ('report', 'intraday', 'brief')
+    } == {
+        'report': 'high',
+        'intraday': 'high',
+        'brief': 'high',
+    }
+
+
 def test_intraday_slots_are_unconditional_again():
     """Every Mode 7 slot runs the turn; no pre-model condition gate.
 
@@ -545,6 +558,7 @@ def _brief_live_payload(data, *, timeout=1800):
             'kind': profile['payload_kind'],
             'model': profile['model'],
             'fallbacks': profile['model_candidates'][1:2],
+            'thinking': profile['thinking'],
             'message': message,
         },
         'delivery': {'mode': profile['delivery_mode']},
