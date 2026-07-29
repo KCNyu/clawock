@@ -17,9 +17,9 @@ Side effects:
   - status=pass: rebuild dashboard, commit scoped report artifacts, deliver WeChat + Telegram
   - status=warn: same as pass but commit msg flags validation warnings
   - status=fail: no commit or delivery (preserve commit history clean); print issues
-  - --dry-run: validate, add missing Jekyll front matter, and write the publish-gate status;
-    do not write the decision ledger, rebuild/commit the dashboard, push, deliver messages,
-    or write the delivery marker
+  - --dry-run: normalize the authored plan, validate, add missing Jekyll front matter,
+    and write the publish-gate status; do not write the decision ledger, rebuild/commit
+    the dashboard, push, deliver messages, or write the delivery marker
 """
 
 import json
@@ -122,6 +122,68 @@ def validate_generation_references(plan, context=None):
             f'plan.json context generation_id 跨代引用: {foreign}'
         )
     return issues
+
+
+_NORMALIZATION_OWNED_PLAN_ERRORS = (
+    re.compile(
+        r'^decision\[\d+\] missing '
+        r'(decision_id|episode_id|plan_date|created_at)$'
+    ),
+    re.compile(r'^decision\[\d+\] schema_version must be 2$'),
+)
+
+
+def _normalization_owned_plan_error(issue):
+    """Whether deterministic v2 normalization, rather than the model, owns it."""
+    if issue in ('duplicate decision_id None', 'duplicate decision_id '):
+        return True
+    return any(pattern.fullmatch(issue)
+               for pattern in _NORMALIZATION_OWNED_PLAN_ERRORS)
+
+
+def normalize_plan_json(path, ledger_path=None):
+    """Fill only machine-owned v2 fields before validation.
+
+    ``normalize_authored_plan`` also canonicalizes legacy/default values.  Never
+    run it over an authored semantic error: doing so could turn a bad action or
+    condition into a valid default and let a retry pass without the model
+    actually fixing its plan.  Raw v2 validation therefore runs first and only
+    missing deterministic ids/linkage/timestamps are exempted.
+
+    JSON parse/missing-file diagnostics remain owned by ``validate_plan_json``
+    so callers do not receive duplicate issues.
+    """
+    if not path.exists():
+        return []
+    try:
+        authored = json.loads(path.read_text())
+    except json.JSONDecodeError:
+        return []
+
+    if (authored.get('schema_version') != 2
+            or not isinstance(authored.get('decisions'), list)):
+        return []
+
+    authored_issues = decision_v2.validate_plan(authored, path)
+    semantic_issues = [
+        issue for issue in authored_issues
+        if not _normalization_owned_plan_error(issue)
+    ]
+    if semantic_issues:
+        return [f'plan.json authored: {issue}' for issue in semantic_issues]
+
+    try:
+        normalized = decision_v2.normalize_authored_plan(
+            authored,
+            ledger_path or (WS / 'memory' / 'decisions.jsonl'),
+        )
+        if normalized != authored:
+            path.write_text(
+                json.dumps(normalized, ensure_ascii=False, indent=2) + '\n'
+            )
+    except Exception as exc:
+        return [f'plan.json 标准化失败: {exc}']
+    return []
 
 
 def validate_plan_json(path, context=None, decision_packet=None):
@@ -301,7 +363,7 @@ def validate_markdown(path, context=None):
 
 CRITICAL_KEYWORDS = [
     '缺失', '解析失败', '表格 #', 'generation_id',
-    'plan.json harness', 'decision packet 不可用',
+    'plan.json harness', 'plan.json 标准化失败', 'decision packet 不可用',
 ]  # table mismatch and cross-generation output are critical
 
 
@@ -341,19 +403,9 @@ def _current_price_for(ticker):
 
 
 def log_decisions(today):
-    """Normalize and upsert today's plan into the v2 decision ledger."""
+    """Upsert today's validated, normalized plan into the v2 decision ledger."""
     plan_path = WS / 'memory' / f'{today}-plan.json'
 
-    # V2 authoring keeps semantic fields human/LLM-readable; deterministic ids,
-    # episode linkage and evaluation defaults are filled here before validation.
-    if plan_path.exists():
-        try:
-            authored = json.loads(plan_path.read_text())
-            if authored.get('schema_version') == 2 and isinstance(authored.get('decisions'), list):
-                authored = decision_v2.normalize_authored_plan(authored)
-                plan_path.write_text(json.dumps(authored, ensure_ascii=False, indent=2) + '\n')
-        except Exception as e:
-            print(f'warn: v2 plan normalization failed: {e}', file=sys.stderr)
     if not plan_path.exists():
         return
     try:
@@ -485,9 +537,9 @@ def main():
     import argparse
     ap = argparse.ArgumentParser()
     ap.add_argument('--dry-run', action='store_true',
-                    help='validate without ledger writes, dashboard rebuild/commit, push, '
-                         'message delivery, or delivery-marker writes; still adds missing '
-                         'Jekyll front matter and writes the publish-gate status')
+                    help='normalize/validate without ledger writes, dashboard rebuild/commit, '
+                         'push, message delivery, or delivery-marker writes; still adds '
+                         'missing Jekyll front matter and writes the publish-gate status')
     args = ap.parse_args()
 
     today = datetime.now().strftime('%Y-%m-%d')
@@ -531,6 +583,7 @@ def main():
         except Exception as exc:
             issues.append(f'decision packet 不可用: {exc}')
     issues += validate_markdown(md_path, context=context)
+    issues += normalize_plan_json(plan_path)
     issues += validate_plan_json(
         plan_path, context=context, decision_packet=decision_packet
     )

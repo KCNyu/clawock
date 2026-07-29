@@ -139,6 +139,7 @@
         "skills catalog 只有索引，不含 SKILL.md 正文",
         "brief_preflight.py",
         "brief_postflight.py",
+        "首次生成和 postflight 修复 Step 4 产物都只用 `write` 完整覆盖；禁止 `edit` 精确文本替换",
         "唯一微信路径",
         "同步 Telegram",
         "绝不要",
