@@ -2,6 +2,8 @@
 
 按 `skills/{{skill}}/SKILL.md` Mode 7 **harness 4-step** 流程：
 
+**第一轮强制动作（不能跳过）**：在同一条回复中并行调用 `read` 读取 `/root/.openclaw/workspace/skills/{{skill}}/SKILL.md` 与 Step 1 preflight。`read` 成功前不得生成分析；skills catalog 只有索引，不含 SKILL.md 正文。
+
 **Step 1 - Preflight**
 ```
 python3 /root/.openclaw/workspace/scripts/harness/intraday_preflight.py --market {{market}}
