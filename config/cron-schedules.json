@@ -66,6 +66,7 @@
       "thinking": "high",
       "tools_allow": [
         "exec",
+        "process",
         "read",
         "write",
         "web_search",
@@ -77,6 +78,7 @@
         "intraday_preflight.py --market {market}",
         "market_closed",
         "所有脚本 exec 调用都显式设置 `timeout: 300`",
+        "若 exec 返回 `Command still running`，只用 `process` poll 对应 session；禁止新开 exec 用 sleep/ps/ls/grep 探测进度",
         "context_id",
         "同一条回复内并行发出两个 `write` 工具调用",
         "intraday_postflight.py --market {market} --context-id",
@@ -89,6 +91,7 @@
         "唯一微信路径",
         "同步 Telegram",
         "禁用 message",
+        "postflight 返回 pass/warn 后直接输出其 `wechat_prefix` + 散文并结束；禁止再读、搜或重建临时文件来确认送达",
         "--no-deliver"
       ],
       "forbidden_substrings": [
