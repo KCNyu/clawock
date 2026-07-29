@@ -11,16 +11,25 @@
     reflect: () => { renderShadowChart(); renderRealizedChart(); renderDailyPnlChart(); },
   };
   const _chartTabsShown = new Set();
-  let _echartsLoading = false;
+  let _echartsPromise = null;
   function whenEcharts(cb) {
     if (window.echarts) return cb();
-    if (!_echartsLoading) {  // first chart tab shown → fetch the ~1MB bundle now, once
-      _echartsLoading = true;
-      const s = document.createElement("script");
-      s.src = "assets/js/echarts.min.js";
-      document.head.appendChild(s);
+    if (!_echartsPromise) {  // first chart tab shown → fetch the bundle once
+      _echartsPromise = new Promise((resolve, reject) => {
+        const s = document.createElement("script");
+        s.src = "assets/js/echarts.min.js";
+        s.onload = () => window.echarts
+          ? resolve(true)
+          : reject(new Error("ECharts loaded without a global"));
+        s.onerror = () => reject(new Error("ECharts bundle failed to load"));
+        document.head.appendChild(s);
+      }).catch(error => {
+        console.error(error);
+        _echartsPromise = null;       // a later activation may retry
+        return false;
+      });
     }
-    const iv = setInterval(() => { if (window.echarts) { clearInterval(iv); cb(); } }, 50);
+    _echartsPromise.then(ready => { if (ready && window.echarts) cb(); });
   }
   function paintCharts(t) {
     if (!DATA) return;
