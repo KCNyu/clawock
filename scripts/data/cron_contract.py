@@ -32,6 +32,16 @@ def load_contract(path: str | Path | None = None) -> dict:
             or any(not model for model in candidates)
         ):
             raise ValueError(f"{profile_name}: model_candidates must be unique models")
+        tools_allow = profile.get("tools_allow")
+        if tools_allow is not None and (
+            not isinstance(tools_allow, list)
+            or not tools_allow
+            or len(tools_allow) != len(set(tools_allow))
+            or any(not isinstance(tool, str) or not tool for tool in tools_allow)
+        ):
+            raise ValueError(
+                f"{profile_name}: tools_allow must be non-empty unique tool names"
+            )
     for job in jobs:
         if bool(job.get("schedule")) == bool(job.get("seasonal_schedules")):
             raise ValueError(f"{job['name']}: define exactly one schedule source")
@@ -148,6 +158,19 @@ def payload_errors(contract: dict, expected_job: dict, live_job: dict) -> list[s
             f"payload.timeoutSeconds expected {expected_timeout!r}, "
             f"got {payload.get('timeoutSeconds')!r}"
         )
+    expected_tools = profile.get("tools_allow")
+    if expected_tools is not None:
+        live_tools = payload.get("toolsAllow")
+        if not isinstance(live_tools, list):
+            errors.append(
+                f"payload.toolsAllow expected {expected_tools!r}, got {live_tools!r}"
+            )
+        elif len(live_tools) != len(set(live_tools)):
+            errors.append("payload.toolsAllow contains duplicates")
+        elif set(live_tools) != set(expected_tools):
+            errors.append(
+                f"payload.toolsAllow expected {expected_tools!r}, got {live_tools!r}"
+            )
     expected_delivery = profile.get("delivery_mode")
     if expected_delivery is not None and delivery.get("mode") != expected_delivery:
         errors.append(
