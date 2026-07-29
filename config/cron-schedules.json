@@ -63,12 +63,21 @@
         "anthropic/claude-sonnet-4-6"
       ],
       "thinking": "medium",
+      "tools_allow": [
+        "exec",
+        "read",
+        "write",
+        "web_search",
+        "web_fetch"
+      ],
       "delivery_mode": "none",
       "required_substrings": [
-        "trading_calendar.py {market}",
         "skills/{skill}/SKILL.md",
         "intraday_preflight.py --market {market}",
+        "market_closed",
+        "所有脚本 exec 调用都显式设置 `timeout: 300`",
         "context_id",
+        "同一条回复内并行发出两个 `write` 工具调用",
         "intraday_postflight.py --market {market} --context-id",
         "--text-file",
         "intraday-prose-{market}.md",
@@ -92,7 +101,8 @@
         "唯一发送路径",
         "<<<",
         "verbatim",
-        "intraday-report-"
+        "intraday-report-",
+        "trading_calendar.py"
       ]
     },
     "brief": {
