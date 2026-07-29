@@ -23,7 +23,11 @@
         "openai/gpt-5.6-sol",
         "anthropic/claude-sonnet-4-6"
       ],
+      "fallbacks": [
+        "minimax-2/MiniMax-M3"
+      ],
       "thinking": "adaptive",
+      "message_template": "config/cron-payloads/report.md",
       "delivery_mode": "none",
       "required_substrings": [
         "skills/{skill}/SKILL.md",
@@ -63,7 +67,11 @@
         "openai/gpt-5.6-sol",
         "anthropic/claude-sonnet-4-6"
       ],
+      "fallbacks": [
+        "minimax-2/MiniMax-M3"
+      ],
       "thinking": "adaptive",
+      "message_template": "config/cron-payloads/intraday.md",
       "tools_allow": [
         "exec",
         "process",
@@ -119,7 +127,11 @@
         "openai/gpt-5.6-sol",
         "anthropic/claude-sonnet-4-6"
       ],
+      "fallbacks": [
+        "minimax-2/MiniMax-M3"
+      ],
       "thinking": "adaptive",
+      "message_template": "config/cron-payloads/brief.md",
       "delivery_mode": "none",
       "required_substrings": [
         "trading_calendar.py hk",
@@ -139,6 +151,7 @@
     "memory": {
       "payload_kind": "agentTurn",
       "model": "minimax/MiniMax-M3",
+      "fallbacks": [],
       "delivery_mode": "none",
       "exact_message": "__openclaw_memory_core_short_term_promotion_dream__"
     }
@@ -153,6 +166,7 @@
       "payload_profile": "intraday",
       "payload_vars": {
         "market": "us",
+        "market_name": "美股",
         "skill": "us-stock-analysis"
       },
       "schedule": {
@@ -194,7 +208,10 @@
       "payload_profile": "report",
       "payload_vars": {
         "market": "us",
+        "market_name": "美股",
+        "market_rule": "杠杆 ETF (SOXL/MSFU/RKLX/PLTU) 不读 SEC EDGAR，看 underlying 走势",
         "phase": "close",
+        "session_label": "美股收盘（16:00 ET）",
         "skill": "us-stock-analysis"
       },
       "seasonal_schedules": {
@@ -274,7 +291,10 @@
       "payload_profile": "report",
       "payload_vars": {
         "market": "hk",
+        "market_name": "港股",
+        "market_rule": "00100 MINIMAX 只有 Tencent 一个源，失败必须明说\"实时价获取失败\"",
         "phase": "open",
+        "session_label": "港股开盘（09:30 HKT）",
         "skill": "hk-stock-analysis"
       },
       "schedule": {
@@ -304,6 +324,7 @@
       "payload_profile": "intraday",
       "payload_vars": {
         "market": "hk",
+        "market_name": "港股",
         "skill": "hk-stock-analysis"
       },
       "schedule": {
@@ -334,7 +355,10 @@
       "payload_profile": "report",
       "payload_vars": {
         "market": "hk",
+        "market_name": "港股",
+        "market_rule": "00100 MINIMAX 只有 Tencent 一个源，失败必须明说\"实时价获取失败\"",
         "phase": "mid",
+        "session_label": "港股午盘（12:00 HKT）",
         "skill": "hk-stock-analysis"
       },
       "schedule": {
@@ -365,7 +389,10 @@
       "payload_profile": "report",
       "payload_vars": {
         "market": "hk",
+        "market_name": "港股",
+        "market_rule": "00100 MINIMAX 只有 Tencent 一个源，失败必须明说\"实时价获取失败\"",
         "phase": "pm",
+        "session_label": "港股午后（13:30 HKT）",
         "skill": "hk-stock-analysis"
       },
       "schedule": {
@@ -396,7 +423,10 @@
       "payload_profile": "report",
       "payload_vars": {
         "market": "hk",
+        "market_name": "港股",
+        "market_rule": "00100 MINIMAX 只有 Tencent 一个源，失败必须明说\"实时价获取失败\"",
         "phase": "close",
+        "session_label": "港股收盘（16:00 HKT）",
         "skill": "hk-stock-analysis"
       },
       "schedule": {
@@ -427,7 +457,10 @@
       "payload_profile": "report",
       "payload_vars": {
         "market": "us",
+        "market_name": "美股",
+        "market_rule": "杠杆 ETF (SOXL/MSFU/RKLX/PLTU) 不读 SEC EDGAR，看 underlying 走势",
         "phase": "open",
+        "session_label": "美股开盘（09:30 ET）",
         "skill": "us-stock-analysis"
       },
       "seasonal_schedules": {
@@ -471,6 +504,7 @@
       "payload_profile": "intraday",
       "payload_vars": {
         "market": "us",
+        "market_name": "美股",
         "skill": "us-stock-analysis"
       },
       "seasonal_schedules": {

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import re
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from zoneinfo import ZoneInfo
@@ -11,6 +12,7 @@ WS = Path(__file__).resolve().parents[2]
 DEFAULT_CONTRACT = WS / "config" / "cron-schedules.json"
 HKT = ZoneInfo("Asia/Hong_Kong")
 ET = ZoneInfo("America/New_York")
+TEMPLATE_TOKEN = re.compile(r"\{\{([a-z][a-z0-9_]*)\}\}")
 
 
 def load_contract(path: str | Path | None = None) -> dict:
@@ -32,6 +34,26 @@ def load_contract(path: str | Path | None = None) -> dict:
             or any(not model for model in candidates)
         ):
             raise ValueError(f"{profile_name}: model_candidates must be unique models")
+        fallbacks = profile.get("fallbacks")
+        if fallbacks is not None and (
+            not isinstance(fallbacks, list)
+            or len(fallbacks) != len(set(fallbacks))
+            or any(not isinstance(model, str) or not model for model in fallbacks)
+        ):
+            raise ValueError(f"{profile_name}: fallbacks must be unique models")
+        if fallbacks is not None:
+            rotation = [profile.get("model"), *fallbacks]
+            if any(not model for model in rotation):
+                raise ValueError(
+                    f"{profile_name}: model is required when fallbacks are declared"
+                )
+            if len(rotation) != len(set(rotation)):
+                raise ValueError(f"{profile_name}: model rotation contains duplicates")
+            if candidates and rotation != candidates[:len(rotation)]:
+                raise ValueError(
+                    f"{profile_name}: configured rotation must be a fixed prefix "
+                    f"of model_candidates"
+                )
         tools_allow = profile.get("tools_allow")
         if tools_allow is not None and (
             not isinstance(tools_allow, list)
@@ -42,6 +64,15 @@ def load_contract(path: str | Path | None = None) -> dict:
             raise ValueError(
                 f"{profile_name}: tools_allow must be non-empty unique tool names"
             )
+        template = profile.get("message_template")
+        if template is not None and (
+            not isinstance(template, str)
+            or not template.startswith("config/cron-payloads/")
+            or not template.endswith(".md")
+        ):
+            raise ValueError(
+                f"{profile_name}: message_template must be a config/cron-payloads/*.md path"
+            )
     for job in jobs:
         if bool(job.get("schedule")) == bool(job.get("seasonal_schedules")):
             raise ValueError(f"{job['name']}: define exactly one schedule source")
@@ -50,6 +81,7 @@ def load_contract(path: str | Path | None = None) -> dict:
             raise ValueError(f"{job['name']}: seasonal schedules require daylight+standard")
         if job.get("payload_profile") not in profiles:
             raise ValueError(f"{job['name']}: unknown payload profile")
+        render_payload_message(data, job)
         watchdog = job.get("watchdog")
         if watchdog:
             if bool(watchdog.get("schedule")) == bool(watchdog.get("seasonal_schedules")):
@@ -109,6 +141,44 @@ def _format_required(text: str, variables: dict) -> str:
         raise ValueError(f"missing payload variable {exc.args[0]!r}") from exc
 
 
+def render_payload_message(contract: dict, expected_job: dict) -> str | None:
+    """Render the exact reviewed message for one tracked agent job."""
+    profile_name = expected_job.get("payload_profile")
+    profile = (contract.get("payload_profiles") or {}).get(profile_name) or {}
+    exact = profile.get("exact_message")
+    template_path = profile.get("message_template")
+    if exact is not None and template_path is not None:
+        raise ValueError(f"{profile_name}: use exact_message or message_template, not both")
+    if exact is not None:
+        return str(exact).strip()
+    if template_path is None:
+        return None
+
+    path = (WS / template_path).resolve()
+    try:
+        path.relative_to(WS.resolve())
+    except ValueError as exc:
+        raise ValueError(f"{profile_name}: message template escapes workspace") from exc
+    try:
+        template = path.read_text().rstrip("\n")
+    except OSError as exc:
+        raise ValueError(f"{profile_name}: cannot read message template: {exc}") from exc
+
+    variables = expected_job.get("payload_vars") or {}
+    tokens = set(TEMPLATE_TOKEN.findall(template))
+    missing = sorted(tokens - set(variables))
+    unused = sorted(set(variables) - tokens)
+    if missing:
+        raise ValueError(
+            f"{expected_job['name']}: missing template variables {missing!r}"
+        )
+    if unused:
+        raise ValueError(
+            f"{expected_job['name']}: unused template variables {unused!r}"
+        )
+    return TEMPLATE_TOKEN.sub(lambda match: str(variables[match.group(1)]), template)
+
+
 def payload_errors(contract: dict, expected_job: dict, live_job: dict) -> list[str]:
     profile_name = expected_job.get("payload_profile")
     profiles = contract.get("payload_profiles") or {}
@@ -121,6 +191,7 @@ def payload_errors(contract: dict, expected_job: dict, live_job: dict) -> list[s
     errors = []
     fields = {
         "kind": profile.get("payload_kind"),
+        "model": profile.get("model"),
         "thinking": profile.get("thinking"),
     }
     candidates = profile.get("model_candidates")
@@ -142,8 +213,12 @@ def payload_errors(contract: dict, expected_job: dict, live_job: dict) -> list[s
             errors.append(
                 f"payload model rotation must be a fixed prefix of {candidates!r}"
             )
-    else:
-        fields["model"] = profile.get("model")
+    expected_fallbacks = profile.get("fallbacks")
+    if expected_fallbacks is not None and payload.get("fallbacks", []) != expected_fallbacks:
+        errors.append(
+            f"payload.fallbacks expected {expected_fallbacks!r}, "
+            f"got {payload.get('fallbacks', [])!r}"
+        )
     for field, expected in fields.items():
         if expected is not None and payload.get(field) != expected:
             errors.append(f"payload.{field} expected {expected!r}, got {payload.get(field)!r}")
@@ -176,9 +251,9 @@ def payload_errors(contract: dict, expected_job: dict, live_job: dict) -> list[s
         errors.append(
             f"delivery.mode expected {expected_delivery!r}, got {delivery.get('mode')!r}"
         )
-    exact = profile.get("exact_message")
-    if exact is not None and message.strip() != exact:
-        errors.append("payload message does not match exact contract")
+    rendered = render_payload_message(contract, expected_job)
+    if rendered is not None and message.strip() != rendered:
+        errors.append("payload message does not match rendered contract")
     variables = expected_job.get("payload_vars") or {}
     for raw in profile.get("required_substrings", []):
         required = _format_required(raw, variables)
