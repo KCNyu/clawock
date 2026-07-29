@@ -76,17 +76,20 @@ title: clawock · scripts 详细参考
 都会重建 dashboard；Mode 7 不提交 `portfolio.json`，dashboard 只发布语义变化，但每个
 受监控 slot 的 heartbeat 都会发布并由 cron health 对账。
 
-cron payload 是真实执行面，会为隔离 session 自包含关键步骤；SKILL.md 是详细规范。改格式时
-必须同时 diff payload 与对应 Mode，尤其 Step 2.5 sidecar。schedule 的 runtime 真值来自 CLI，
-tracked contract 在 `config/cron-schedules.json`；schedule、payload、watchdog 或生成文档漂移
-都会被 `scripts/system_check.py` / CI 拦截。
+cron payload 是真实执行面，会为隔离 session 自包含关键步骤；SKILL.md 是详细规范。完整 prompt
+模板在 `config/cron-payloads/`，job 变量、model/fallback/thinking/tools/schedule 则由
+`config/cron-schedules.json` 单源声明；改格式时必须同时 diff payload 与对应 Mode，尤其
+Step 2.5 sidecar。schedule、payload、watchdog 或生成文档漂移都会被
+`scripts/system_check.py` / CI 拦截。
 
-**改 cron prompt 的安全步骤**（6.1 后只走 CLI，不碰文件）：
+**改 cron 配置的安全步骤**（默认只检查，显式 apply；不覆盖投递目标/account/failure alert）：
 ```bash
-# 读：openclaw cron list --json | python3 -c '...'   （JSON 前可能有 Config warnings 噪音，find('{') 起切）
-# 写：openclaw cron edit <job-id> --message "$NEW_MSG"   （只 patch message，schedule/tz 不动）
+python3 scripts/data/sync_cron_payloads.py --json
+python3 scripts/data/sync_cron_payloads.py --apply --json
 ```
-改 `--cron` 表达式时必须同时带 `--tz Asia/Shanghai`（否则 tz 被重置）。升级大版本后先 `openclaw cron list` 数 job 个数（应为 11），少了跑 `openclaw doctor --fix`。
+同步器按精确 job 名/ID 规划最小 patch，发现重复/缺失/额外 job 或目标 job 正在运行时不写，
+逐 job 失败即停，apply 后重新读取验证。升级大版本后仍应先 `openclaw cron list` 数 job 个数
+（应为 11），少了跑 `openclaw doctor --fix`。
 
 ### Cron 运行历史（自动 + 手动跨 job 聚合）
 

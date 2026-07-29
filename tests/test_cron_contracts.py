@@ -101,13 +101,12 @@ def test_payload_semantic_contract_detects_deprecated_or_missing_rules():
     data = contract()
     expected = next(j for j in data['jobs'] if j['name'] == '美股开盘报告')
     profile = data['payload_profiles']['report']
-    vars_ = expected['payload_vars']
-    message = '\n'.join(s.format(**vars_) for s in profile['required_substrings'])
+    message = cron_contract.render_payload_message(data, expected)
     live = {
         'payload': {
             'kind': 'agentTurn',
             'model': profile['model'],
-            'fallbacks': profile['model_candidates'][1:],
+            'fallbacks': profile['fallbacks'],
             'thinking': profile['thinking'],
             'message': message,
         },
@@ -465,13 +464,13 @@ def test_intraday_payload_contract_bans_heredoc_and_requires_text_file():
     # 4–6 minute check-ins before postflight can deliver them.
     assert 'timeout_seconds' not in profile
 
-    vars_ = {'market': 'hk', 'skill': 'hk-stock-analysis'}
     data = contract()
     expected = {job['name']: job for job in data['jobs']}['盘中盯盘']
-    message = '\n'.join(s.format(**vars_) for s in profile['required_substrings'])
+    message = cron_contract.render_payload_message(data, expected)
     live = {
         'payload': {'message': message, 'kind': 'agentTurn',
                     'model': profile['model'], 'thinking': profile['thinking'],
+                    'fallbacks': profile['fallbacks'],
                     'toolsAllow': profile['tools_allow']},
         'delivery': {'mode': 'none'},
     }
@@ -515,11 +514,11 @@ def test_intraday_slots_are_unconditional_again():
     assert not (ROOT / 'config' / 'cron-triggers').exists()
 
     expected = {job['name']: job for job in data['jobs']}['盘中盯盘']
-    vars_ = {'market': 'hk', 'skill': 'hk-stock-analysis'}
-    message = '\n'.join(s.format(**vars_) for s in profile['required_substrings'])
+    message = cron_contract.render_payload_message(data, expected)
     live = {
         'payload': {'message': message, 'kind': 'agentTurn',
                     'model': profile['model'], 'thinking': profile['thinking'],
+                    'fallbacks': profile['fallbacks'],
                     'toolsAllow': profile['tools_allow']},
         'delivery': {'mode': 'none'},
         'trigger': {'script': 'json({ fire: false });', 'once': False},
@@ -533,14 +532,13 @@ def test_intraday_payload_rejects_missing_process_tool():
     data = contract()
     expected = {job['name']: job for job in data['jobs']}['盘中盯盘']
     profile = data['payload_profiles']['intraday']
-    message = '\n'.join(
-        s.format(**expected['payload_vars']) for s in profile['required_substrings']
-    )
+    message = cron_contract.render_payload_message(data, expected)
     live = {
         'payload': {
             'message': message,
             'kind': profile['payload_kind'],
             'model': profile['model'],
+            'fallbacks': profile['fallbacks'],
             'thinking': profile['thinking'],
             'toolsAllow': [
                 tool for tool in profile['tools_allow'] if tool != 'process'
@@ -567,13 +565,12 @@ def _brief_live_payload(data, *, timeout=1800):
     """A live 盘前深度简报 job that satisfies every other clause of its profile."""
     expected = next(j for j in data['jobs'] if j['name'] == '盘前深度简报')
     profile = data['payload_profiles']['brief']
-    vars_ = expected.get('payload_vars') or {}
-    message = '\n'.join(s.format(**vars_) for s in profile['required_substrings'])
+    message = cron_contract.render_payload_message(data, expected)
     live = {
         'payload': {
             'kind': profile['payload_kind'],
             'model': profile['model'],
-            'fallbacks': profile['model_candidates'][1:2],
+            'fallbacks': profile['fallbacks'],
             'thinking': profile['thinking'],
             'message': message,
         },
