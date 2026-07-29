@@ -284,9 +284,9 @@ layout: null
   <section class="panel" data-panel="drill">
     <h2>Holdings</h2>
 
-    <div class="sect-divider">持仓明细</div>
+    <div class="sect-divider holdings-section-heading">持仓明细</div>
 
-    <div class="card" id="decision-matrix-card">
+    <div class="card desktop-wide" id="decision-matrix-card">
       <h3>持仓决策矩阵 <span class="muted" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:11px">每持仓一行 · 价/量化/52w位置/硬闸 汇总</span></h3>
       <div class="table-wrap">
         <table class="holdings-table" id="decision-matrix-table" style="min-width:560px;font-size:12px">
@@ -301,7 +301,7 @@ layout: null
       <div class="muted" id="decision-matrix-note" style="font-size:11px;margin-top:var(--space-2);line-height:1.5"></div>
     </div>
 
-    <div class="card">
+    <div class="card desktop-wide" id="holdings-card">
       <h3>Holdings <span class="muted" id="holdings-count" style="text-transform:none;letter-spacing:0;font-weight:500"></span></h3>
       <div class="table-wrap">
         <table class="holdings-table" id="holdings-table">
@@ -350,16 +350,18 @@ layout: null
       </div>
     </div>
 
-    <div class="sect-divider">价格动态 <span class="muted" style="font-weight:500;letter-spacing:0">latest local session · US / HK 各取最近本地交易时段</span></div>
+    <div class="sect-divider price-section-heading">价格动态 <span class="muted" style="font-weight:500;letter-spacing:0">latest local session · US / HK 各取最近本地交易时段</span></div>
 
-    <div class="card">
+    <div class="card" id="movers-card">
+      <div class="desktop-section-kicker" aria-hidden="true">价格动态 · Price action</div>
       <h3>Today's Movers <span class="muted" style="text-transform:none;letter-spacing:0;font-weight:500">(≥3% · latest local session)</span></h3>
       <div class="movers-scroll" id="movers-scroll">
         <div class="empty-state">No movers ≥3% today.</div>
       </div>
     </div>
 
-    <div class="card">
+    <div class="card" id="anomalies-card">
+      <div class="desktop-section-kicker" aria-hidden="true">价格动态 · Price action</div>
       <h3>Anomalies <span class="badge muted" id="anom-count"></span></h3>
       <div class="anomaly-list" id="anomaly-list">
         <div class="empty-state">No anomalies detected.</div>
@@ -381,9 +383,10 @@ layout: null
       </div>
     </div>
 
-    <div class="sect-divider">政策模拟</div>
+    <div class="sect-divider policy-section-heading">政策模拟</div>
 
     <div class="card" id="shadow-portfolio-card">
+      <div class="desktop-section-kicker" aria-hidden="true">政策模拟 · Policy replay</div>
       <button type="button" class="shadow-toggle" id="shadow-portfolio-toggle"
               aria-expanded="false" aria-controls="shadow-portfolio-expanded">
         <span class="shadow-toggle-title">Shadow Portfolio · Policy Replay</span>
@@ -548,7 +551,7 @@ layout: null
       <div class="muted" id="breakeven-note" style="font-size:11px;margin-top:var(--space-2);line-height:1.5"></div>
     </div>
 
-    <div class="card">
+    <div class="card lead profit-extremes-card">
       <h3>历史利润极值 & 回撤恢复 <span class="muted" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:11px">(峰值 / 谷底 / 最大回撤 / 恢复)</span></h3>
       <p class="chart-hint">主口径 = <b>总利润（浮盈＋已实现，净化本金）</b>：<b>加减仓不会影响它</b>，所以它的<b>峰值才是"真·赚最多"那天</b>。<b>历史最高/最低利润</b> = 有快照以来的利润峰值与谷底；<b>最大回撤</b> = 从利润峰到其后最深谷的跌幅（% 仅在利润全程为正时给出，否则只报金额）；<b>距利润峰值</b> = 今天离它还差多少；<b>恢复%</b> = 从最深处反弹回来多少（100%＝已回峰值，0%＝仍在底部）。<br>下半区灰色 = <b>净值口径（市值＋已实现）</b>，<b>仅供参考</b>：买入会把它抬高（花掉的现金不计入净值），所以它常显示"假新高"——别把它当真峰值。<span id="extremes-window" class="muted"></span></p>
       <div class="ext-grid" id="ext-grid">
