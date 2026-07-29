@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "monitoring_started_at": "2026-07-26T08:00:00+08:00",
-  "updated_at": "2026-07-29T00:30:01.905681+00:00",
+  "updated_at": "2026-07-29T01:05:02.281834+00:00",
   "records": [
     {
       "job": "美股收盘报告",
@@ -3314,9 +3314,9 @@
         },
         "watchdog_delivery": {
           "status": "not_required",
-          "at": "2026-07-29T00:30:01.905681+00:00",
+          "at": "2026-07-29T01:05:02.281834+00:00",
           "action": "ok",
-          "reason": "postflight cosend already delivered Telegram today — no backstop"
+          "reason": "09:05 brief and non-empty valid plan both present"
         }
       },
       "raw_execution": {
@@ -3326,7 +3326,7 @@
         "run_id": null,
         "error_present": true
       },
-      "updated_at": "2026-07-29T00:30:01.905681+00:00",
+      "updated_at": "2026-07-29T01:05:02.281834+00:00",
       "final_product": {
         "status": "degraded",
         "reason": "primary delivery succeeded with degraded generation/input"
