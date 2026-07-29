@@ -65,6 +65,10 @@ SEED = {
 
 HISTORY_PAGES = 8     # 8×20 = 160 交易日，够画迷你图 + 取区间高低
 HISTORY_KEEP = 140    # 写回 portfolio.json 的最大点数（控体积）
+XAU_SETTLEMENT_DAYS = 5
+XAU_SETTLED_DRIFT_PCT = 0.3
+XAU_PRIMARY_SOURCE = 'sina_global_futures_xau'
+XAU_FALLBACK_SOURCE = 'eastmoney_gc00y_fallback'
 
 
 def _curl(url, referer):
@@ -186,7 +190,8 @@ def fetch_usdcny(start):
 
 
 def fetch_xau_history(start):
-    """伦敦金现货 XAU 日线收盘，返回 [(date, usd)] 升序、>= start，抓空 []。
+    """伦敦金现货 XAU 日线收盘，返回 ([(date, usd)], source metadata)。
+
     主源 = 新浪全球期货（真·伦敦金现货，回溯 2006，稳）；兜底 = 东财 101.GC00Y（COMEX 连续，会限流）。"""
     s = start or ''
     # ① 新浪 GlobalFutures XAU
@@ -200,7 +205,8 @@ def fetch_xau_history(start):
         out = [(x['date'], float(x['close'])) for x in arr
                if x.get('date', '') >= s and x.get('close')]
         if out:
-            return sorted(out)
+            out = sorted(out)
+            return out, {'name': XAU_PRIMARY_SOURCE, 'points': len(out)}
     except Exception:
         pass
     # ② 兜底 东财 GC00Y（限流时退避重试）
@@ -216,9 +222,55 @@ def fetch_xau_history(start):
     except Exception:
         kl = []
     if kl:
-        return sorted((p[0], float(p[1])) for p in (r.split(',') for r in kl)
-                      if len(p) >= 2 and p[0] >= s and p[1])
-    return []
+        out = sorted((p[0], float(p[1])) for p in (r.split(',') for r in kl)
+                     if len(p) >= 2 and p[0] >= s and p[1])
+        return out, {'name': XAU_FALLBACK_SOURCE, 'points': len(out)}
+    return [], {'name': 'unavailable', 'points': 0}
+
+
+def stabilize_history(fresh, previous, fresh_source, previous_source=None,
+                      label='伦敦金历史'):
+    """Accept revisions in the latest settlement window; quarantine old outliers.
+
+    A current close can legitimately settle on the next day, so the newest five
+    trading dates always win. Older points may revise normally up to 0.3%; a
+    larger move keeps the prior value and emits an advisory instead of silently
+    changing every historical DCA purchase. When the authoritative Sina XAU feed
+    returns after a GC00Y fallback, it replaces the fallback reference outright.
+    """
+    fresh_map = {str(d): float(v) for d, v in (fresh or []) if d and v is not None}
+    prior_map = {str(d): float(v) for d, v in (previous or []) if d and v is not None}
+    source_name = (fresh_source or {}).get('name', 'unavailable')
+    prior_name = (previous_source or {}).get('name')
+    if not prior_map:
+        advisory = None if fresh_map else f'{label}抓取失败，暂无可用参考点'
+        return sorted(fresh_map.items()), advisory
+    if not fresh_map:
+        return (
+            sorted(prior_map.items()),
+            f'{label}抓取失败，沿用上次 {len(prior_map)} 个参考点',
+        )
+    if source_name == XAU_PRIMARY_SOURCE and prior_name == XAU_FALLBACK_SOURCE:
+        return sorted(fresh_map.items()), None
+
+    recent = set(sorted(fresh_map)[-XAU_SETTLEMENT_DAYS:])
+    merged = dict(prior_map)
+    quarantined = []
+    for day, value in fresh_map.items():
+        old = prior_map.get(day)
+        drift_pct = abs(value / old - 1) * 100 if old else 0
+        if day in recent or old is None or drift_pct <= XAU_SETTLED_DRIFT_PCT:
+            merged[day] = value
+        else:
+            quarantined.append((day, drift_pct))
+    advisory = None
+    if quarantined:
+        worst_day, worst_pct = max(quarantined, key=lambda item: item[1])
+        advisory = (
+            f'{label}校验：沿用 {len(quarantined)} 个已结算点；'
+            f'最大新旧偏差 {worst_pct:.2f}%（{worst_day}，源 {source_name}）'
+        )
+    return sorted(merged.items()), advisory
 
 
 def _xau_at(xau_sorted_dates, xau_vals, d):
@@ -314,7 +366,8 @@ def build_london_dca(nav_history, xau_hist, usdcny_hist, xau_cur, usdcny_cur, st
     }
 
 
-def compute_london(derived, gold, spot, usdcny, usdcny_hist, xau_hist):
+def compute_london(derived, gold, spot, usdcny, usdcny_hist, xau_hist,
+                   hist_source=None, fx_hist_source=None, hist_advisory=None):
     """折算 + 对比线 + DCA 对应现值。任一关键源缺失 → 保留旧 london（merge-not-overwrite）。"""
     if not spot or not spot.get('xau_usd') or not usdcny:
         return gold.get('london')  # 抓空：沿用旧值，绝不清空
@@ -346,6 +399,13 @@ def compute_london(derived, gold, spot, usdcny, usdcny_hist, xau_hist):
         'intl_value_usd': round(intl_usd, 2) if intl_usd else None,
         'compare_series': compare,
         'dca_equiv': dca_equiv,
+        'hist_source': hist_source or {'name': 'unavailable', 'points': 0},
+        'hist_series': [[d, round(v, 4)] for d, v in (xau_hist or [])],
+        'fx_hist_source': fx_hist_source or {'name': 'unavailable', 'points': 0},
+        'fx_hist_series': [
+            [d, round(v, 6)] for d, v in sorted((usdcny_hist or {}).items())
+        ],
+        'hist_advisory': hist_advisory,
         'last_updated': datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%S.%fZ'),
     }
 
@@ -371,7 +431,9 @@ def project_dca(units, principal, nav, daily, horizons=(20, 40, 60, 120, 250)):
     return out
 
 
-def compute(gold, history, realtime, spot=None, usdcny=None, usdcny_hist=None, xau_hist=None):
+def compute(gold, history, realtime, spot=None, usdcny=None, usdcny_hist=None,
+            xau_hist=None, xau_hist_source=None, fx_hist_source=None,
+            hist_advisory=None):
     base_principal = float(gold['principal_invested'])
     base_units = float(gold['units_held'])
     daily = float(gold.get('daily_amount', 200))
@@ -426,7 +488,10 @@ def compute(gold, history, realtime, spot=None, usdcny=None, usdcny_hist=None, x
         'nav_history': [[d, round(n, 4)] for d, n, _ in history[-HISTORY_KEEP:]],
         'last_updated': datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%S.%fZ'),
     }
-    derived['london'] = compute_london(derived, gold, spot, usdcny, usdcny_hist, xau_hist)
+    derived['london'] = compute_london(
+        derived, gold, spot, usdcny, usdcny_hist, xau_hist,
+        xau_hist_source, fx_hist_source, hist_advisory,
+    )
     return derived
 
 
@@ -450,13 +515,43 @@ def main():
     # 伦敦金类比口径（best-effort，抓空各自沿用旧值）
     spot = fetch_london_spot()
     usdcny, usdcny_hist = fetch_usdcny(gold.get('start_date', ''))
-    xau_hist = fetch_xau_history(gold.get('start_date', '')) if spot and usdcny else []
+    if spot and usdcny:
+        xau_fresh, xau_source = fetch_xau_history(gold.get('start_date', ''))
+    else:
+        xau_fresh, xau_source = [], {'name': 'not_attempted', 'points': 0}
+    old_london = gold.get('london') or {}
+    xau_hist, xau_advisory = stabilize_history(
+        xau_fresh,
+        old_london.get('hist_series') or [],
+        xau_source,
+        old_london.get('hist_source') or {},
+    )
+    fx_source = {
+        'name': 'frankfurter_usdcny',
+        'points': len(usdcny_hist or {}),
+    }
+    fx_hist, fx_advisory = stabilize_history(
+        sorted((usdcny_hist or {}).items()),
+        old_london.get('fx_hist_series') or [],
+        fx_source,
+        old_london.get('fx_hist_source') or {},
+        label='USDCNY 历史',
+    )
+    usdcny_hist = dict(fx_hist)
+    history_advisory = '；'.join(
+        advisory for advisory in (xau_advisory, fx_advisory) if advisory
+    ) or None
     if not spot:
         print('  warn: 伦敦金现货(hf_XAU)抓空，沿用旧 london', file=sys.stderr)
-    elif not xau_hist:
+    elif not xau_fresh:
         print('  warn: 伦敦金历史(GC00Y)限流抓空，对比线沿用旧线', file=sys.stderr)
+    if history_advisory:
+        print(f'  advisory: {history_advisory}', file=sys.stderr)
 
-    derived = compute(gold, history, realtime, spot, usdcny, usdcny_hist, xau_hist)
+    derived = compute(
+        gold, history, realtime, spot, usdcny, usdcny_hist, xau_hist,
+        xau_source, fx_source, history_advisory,
+    )
 
     # merge：真值字段原样保留，派生字段更新；nav_history 抓空时不清空
     merged = {k: gold[k] for k in GROUND_TRUTH_FIELDS if k in gold}
@@ -481,6 +576,10 @@ def main():
         print(f"  伦敦金 ${ld.get('xau_usd')}/oz ({(ld.get('xau_change_pct') or 0):+.2f}%) "
               f"USDCNY {ld.get('usdcny')} → 折 {ld.get('grams_equiv')} 克 / {ld.get('oz_equiv')} oz "
               f"(国际口径 ${ld.get('intl_value_usd'):,.0f})  对比线 {len(ld.get('compare_series') or [])} 点")
+        hs = ld.get('hist_source') or {}
+        print(f"  ↳ 历史源 {hs.get('name', 'unknown')} · {hs.get('points', 0)} 点")
+        if ld.get('hist_advisory'):
+            print(f"  ℹ️ {ld['hist_advisory']}")
         de = ld.get('dca_equiv')
         if de:
             print(f"  ↳ 同额定投伦敦金：平均成本 ${de['avg_cost_usd_oz']:,.2f}/oz "
