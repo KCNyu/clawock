@@ -55,16 +55,10 @@
       p.classList.toggle("active", p.dataset.panel === t);
     });
     if (DATA) {
-      renderTab(t);                 // a fast switch can beat the idle renderer
-      const activePanel = document.querySelector(`.panel[data-panel="${t}"]`);
-      if (activePanel) activePanel.querySelectorAll(".card.is-pending").forEach(card =>
-        card.classList.remove("is-pending"));
-      ensureTabCharts(t);           // lazy: draw this tab's charts the first time it's shown
-      // Desktop shows one panel at a time now: the newly-visible panel may have
-      // initialized its charts at a container size that only just settled → nudge
-      // ECharts to fill it. (Mobile does this off the pager scroll-settle instead.)
-      if (!pagerLive()) requestAnimationFrame(() =>
-        requestAnimationFrame(() => window.dispatchEvent(new Event("resize"))));
+      // Activation is the consumer boundary: mapped sidecars load first, then
+      // this tab alone renders. Rapid swipes share in-flight fetches and the last
+      // visible tab wins, so no hidden panel receives runtime DOM.
+      activateTabData(t);
     }
     const btn = document.querySelector(`.tab-btn[data-tab="${t}"]`);
     if (btn) btn.scrollIntoView({ block: "nearest", inline: "center", behavior: SCROLL_BEHAVIOR });
@@ -196,6 +190,101 @@
   // user whether a refresh actually pulled new data vs. they got the same JSON.
   let LAST_LOADED_AT = null;
   let AUTO_REFRESH_TIMER = null;
+  const SIDECAR_TAB = {
+    macro: "market", sentiment: "market", influencer_feed: "market",
+    us_news_digest: "market", em_news: "market",
+    decision_audit: "reflect", shadow_portfolio: "drill",
+    brief_projection: "drill",
+  };
+  const SIDECAR_STATE = new Map();
+  let TAB_ACTIVATION_VERSION = 0;
+
+  function _sidecarsForTab(t) {
+    return Object.keys(SIDECAR_TAB).filter(k => SIDECAR_TAB[k] === t);
+  }
+
+  function _sidecarState(k) {
+    if (!SIDECAR_STATE.has(k)) {
+      SIDECAR_STATE.set(k, {
+        value: null, ready: false, stale: true, inFlight: null,
+      });
+    }
+    return SIDECAR_STATE.get(k);
+  }
+
+  function _applySidecars(target) {
+    Object.keys(SIDECAR_TAB).forEach(k => {
+      const state = _sidecarState(k);
+      target[k] = state.ready ? state.value : null;
+    });
+  }
+
+  function _markLoadedSidecarsStale() {
+    SIDECAR_STATE.forEach(state => {
+      // An in-flight request is already revalidating this consumer. Do not make
+      // a second request race it merely because dashboard.json landed first.
+      if (state.ready && !state.inFlight) state.stale = true;
+    });
+  }
+
+  function _fetchSidecar(k, triggeredByUser, requestStamp) {
+    const state = _sidecarState(k);
+    if (state.inFlight) return state.inFlight;
+    if (state.ready && !state.stale) return Promise.resolve(state.value);
+
+    const bust = triggeredByUser ? "?t=" + requestStamp : "";
+    state.inFlight = fetch("assets/data/" + k + ".json" + bust, {
+      cache: triggeredByUser ? "no-store" : "no-cache",
+    }).then(async response => response.ok ? await response.json() : null)
+      .catch(() => null)
+      .then(value => {
+        state.value = value;
+        state.ready = true;
+        state.stale = false;
+        return value;
+      })
+      .finally(() => { state.inFlight = null; });
+    return state.inFlight;
+  }
+
+  async function _loadTabSidecars(t, triggeredByUser = false) {
+    const keys = _sidecarsForTab(t);
+    if (!keys.length) return;
+    const requestStamp = Date.now();
+    await Promise.all(keys.map(k => _fetchSidecar(k, triggeredByUser, requestStamp)));
+  }
+
+  function _paintActivatedTab(t) {
+    if (!DATA || currentTab() !== t) return;
+    renderTab(t);
+    ensureTabCharts(t);
+    const panel = document.querySelector(`.panel[data-panel="${t}"]`);
+    if (panel) panel.removeAttribute("aria-busy");
+    // Desktop shows one panel at a time. Let its layout settle before resizing
+    // an existing chart; mobile's scroll-settle listener owns the same nudge.
+    if (!pagerLive()) requestAnimationFrame(() =>
+      requestAnimationFrame(() => window.dispatchEvent(new Event("resize"))));
+  }
+
+  function activateTabData(t) {
+    const version = ++TAB_ACTIVATION_VERSION;
+    const keys = _sidecarsForTab(t);
+    const needsFetch = keys.some(k => {
+      const state = _sidecarState(k);
+      return !state.ready || state.stale || state.inFlight;
+    });
+    const panel = document.querySelector(`.panel[data-panel="${t}"]`);
+    if (needsFetch && panel) panel.setAttribute("aria-busy", "true");
+    if (!needsFetch) {
+      _paintActivatedTab(t);
+      return;
+    }
+    _loadTabSidecars(t).then(() => {
+      if (version !== TAB_ACTIVATION_VERSION || !DATA || currentTab() !== t) return;
+      _applySidecars(DATA);
+      _paintActivatedTab(t);
+    });
+  }
 
   function _formatRelative(iso) {
     if (!iso) return "—";
@@ -234,50 +323,35 @@
       const res = await fetch(url, { cache: triggeredByUser ? "no-store" : "no-cache" });
       if (!res.ok) throw new Error("HTTP " + res.status);
       const json = await res.json();
-      // Option 2 decouple (2026-07-04): the GH-Action scan sidecars are no longer
-      // embedded server-side into dashboard.json — fetch them directly here so a
-      // scan shows up the instant its bot commit lands, with no dashboard rebuild.
-      // Parallel + failure-tolerant: a missing/parse-failed sidecar renders as
-      // absent (same `null` contract the old build_dashboard _embed used). Each is
-      // a separate conditional GET → 304 headers-only when unchanged.
-      //
-      // Scoped to the tab that consumes each one (map below). Reflect's audit and
-      // backtest belong in decision_audit.json; awaiting every sidecar before the
-      // first render used to block Overview on data it never reads. Now we await
-      // only the sidecars the LANDING tab needs (so a
-      // deep-linked #market/#reflect/#drill still shows a COMPLETE tab, never a
-      // partial shell), render, then load the rest in the background and refresh only
-      // their own tab. Overview has no sidecar dependency, so a background arrival
-      // never re-renders or re-animates it.
-      const SIDECAR_TAB = {
-        macro: "market", sentiment: "market", influencer_feed: "market",
-        us_news_digest: "market", em_news: "market",
-        decision_audit: "reflect", shadow_portfolio: "drill",
-        brief_projection: "drill",
-      };
-      const _cache = triggeredByUser ? "no-store" : "no-cache";
-      const _bust = triggeredByUser ? "?t=" + Date.now() : "";
-      const fetchSidecar = async (k) => {
-        try {
-          const r = await fetch("assets/data/" + k + ".json" + _bust, { cache: _cache });
-          json[k] = r.ok ? await r.json() : null;
-        } catch (_e) { json[k] = null; }
-      };
-      const landing = currentTab();
-      const critical = [], deferred = [];
-      for (const k of Object.keys(SIDECAR_TAB)) {
-        (SIDECAR_TAB[k] === landing ? critical : deferred).push(k);
+      // Tab activation is the only sidecar consumer boundary. A normal Hero
+      // landing therefore makes no sidecar requests; a deep link waits for its
+      // mapped dependencies before the first render. Later polls retain the
+      // last good inactive-tab values, mark them stale, and revalidate only the
+      // active tab. The next activation refreshes any inactive stale tab.
+      let landing = currentTab();
+      const firstLoad = DATA == null;
+      if (firstLoad) {
+        // A user can click/swipe while dashboard.json is in flight. Keep the
+        // first paint complete for whichever tab is actually visible when its
+        // dependencies finish, rather than rendering a partial new landing tab.
+        do {
+          landing = currentTab();
+          await _loadTabSidecars(landing, triggeredByUser);
+        } while (currentTab() !== landing);
+      } else {
+        _markLoadedSidecarsStale();
       }
-      await Promise.all(critical.map(fetchSidecar));
+      _applySidecars(json);
       const newAt = json.generated_at;
       const hasNew = newAt && newAt !== LAST_LOADED_AT;
       DATA = json;
       render();
       _updateAgeLabel();
-      if (deferred.length) {
-        Promise.all(deferred.map(fetchSidecar)).then(() => {
-          if (DATA !== json) return;   // a newer load superseded this payload
-          new Set(deferred.map((k) => SIDECAR_TAB[k])).forEach((t) => refreshTab(t));
+      if (!firstLoad && _sidecarsForTab(landing).length) {
+        _loadTabSidecars(landing, triggeredByUser).then(() => {
+          if (DATA !== json || currentTab() !== landing) return;
+          _applySidecars(json);
+          refreshTab(landing);
         });
       }
       if (btn) {
