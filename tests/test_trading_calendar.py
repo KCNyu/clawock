@@ -95,6 +95,9 @@ def test_mid_autumn_trades_a_full_day_and_the_day_after_is_closed(festival, holi
     assert trading_calendar.closed_reason(
         "hk", festival_day, session="afternoon"
     ) is None
+    # 2026's gazetted holiday falls on Saturday, so behavior alone would only
+    # prove the weekend branch. Pin both concrete holiday-table entries too.
+    assert holiday in trading_calendar.HK_HOLIDAYS
     assert not trading_calendar.is_trading_day("hk", date.fromisoformat(holiday))
 
 

@@ -27,6 +27,8 @@ Sources (authoritative, re-checked 2026-07-27):
     https://www.gov.hk/en/about/abouthk/holiday/2027.htm
   HKEX Rule 501 half-day sessions (eves of LNY/Christmas/New Year only):
     https://www.hkex.com.hk/-/media/hkex-market/services/trading-hours-and-severe-weather-arrangements/severe-weather-arrangements/trading/chap-5_eng
+  HKEX 2027 holiday/half-day circular (pins the three concrete half-days):
+    https://www.hkex.com.hk/-/media/HKEX-Market/Services/Circulars-and-Notices/Participant-and-Members-Circulars/SEHK/2026/MO_DT_133_26_e1.pdf
 
 CLI:
   python3 trading_calendar.py hk            -> prints OPEN/CLOSED, exit 0/1
@@ -89,7 +91,7 @@ HK_HOLIDAYS = {
     "2026-05-25",  # Buddha's Birthday (Mon)
     "2026-06-19",  # Tuen Ng / Dragon Boat (Fri)
     "2026-07-01",  # HKSAR Establishment Day (Wed)
-    "2026-09-26",  # Mid-Autumn Festival (Sat - weekend)
+    "2026-09-26",  # Day following Mid-Autumn Festival (Sat - weekend)
     "2026-10-01",  # National Day (Thu)
     "2026-10-19",  # Chung Yeung Festival (Mon)
     "2026-12-25",  # Christmas Day (Fri)
