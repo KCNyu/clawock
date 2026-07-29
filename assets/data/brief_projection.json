@@ -1,0 +1,666 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-07-29T08:05:55.304667+08:00",
+  "as_of": "2026-07-29",
+  "context_generation_id": "cedae199a812ba28",
+  "judgment_status": "valid",
+  "judgment_issues": [],
+  "portfolio_judgment": {
+    "assessment": "book 已 -49% HK / -45% US, 12 breach 持续开放; 5 swaps 自 7/27 plan 以来 broker 端连续 3 天未 fill, discipline 故障比信号更糟。regime dual risk_off + 杠杆 hard cap 都亮红灯, 今天必须把纪律线兑现为可执行的 batch MOO",
+    "counterargument": "Aggressive 角度下, FOMC 今晚 02:00 ET + MSFT Q4 AMC + Powell 30 分钟后, 双线 beat 可能触发 1d 大反弹 — 砍完再回来加 MSFT/FOMC 反应 alpha 是 accounting 算得过来的事。但 kcn 风险偏好虽激进, broker 端持续未 fill 是结构问题不是 alpha 判读 — cash $100 已近 0, swap 失败随时让 single 仓位占 50%+"
+  },
+  "tickers": [
+    {
+      "ticker": "RKLX",
+      "name": "Defiance Daily Target 2X Long R",
+      "leg": "US",
+      "facts": {
+        "today_change_pct": -9.2,
+        "pnl_pct": -67.42
+      },
+      "technical": {
+        "source_ticker": "RKLX",
+        "is_proxy": false,
+        "as_of": "2026-07-24",
+        "tag": "趋势OFF · 已破吊灯止损",
+        "trend": "off",
+        "rsi14": 34.0,
+        "rsi_state": "weak",
+        "dist_ma200_pct": -66.5,
+        "pct_52w_range": 1.4,
+        "stop_state": "breached",
+        "usable": false
+      },
+      "quant": {
+        "factor_usable": false,
+        "peer_usable": false
+      },
+      "sentiment": {
+        "source_ticker": "RKLX",
+        "reddit_mentions_7d": 0,
+        "headline_count": 3,
+        "coverage": "available"
+      },
+      "risk": {
+        "count": 4,
+        "severity": "critical",
+        "action": {
+          "kind": "stop",
+          "label": "止损"
+        },
+        "breach_ids": [
+          "risk-80e3b5a6819f",
+          "risk-17fa752f4860",
+          "risk-66b800a6afe2",
+          "risk-0a0af7ae3b3a"
+        ]
+      },
+      "status": {
+        "label": "止损/换1x",
+        "rank": 0,
+        "state": "critical"
+      },
+      "judgment": {
+        "ticker": "RKLX",
+        "verdict": "bearish",
+        "confidence": 0.82,
+        "assessment": "硬止损 -67.42% ≤ -18% + 🧭 regime red (标 RKLB 破 200MA -17.9%) + 8.1% 月 decay; RKLB 7/27 五角大楼 $266M 催化 in price 但持续回吐",
+        "counterargument": "RKLB 5d 同行领涨变 -7.6%, 但 1x RKLB 长期 beta 适配商业航天叙事, swap 是过渡",
+        "rationale": "swap 必须, 反向 1x→2x 条件是标的 RKLB 收复 200MA + 5d"
+      }
+    },
+    {
+      "ticker": "SPCH",
+      "name": "Leverage Shares 2X Long SpaceX Daily ETF",
+      "leg": "US",
+      "facts": {
+        "today_change_pct": 4.8,
+        "pnl_pct": -55.2
+      },
+      "technical": {
+        "source_ticker": "SPCX",
+        "is_proxy": true,
+        "as_of": "2026-07-28",
+        "tag": "趋势OFF · 已破吊灯止损",
+        "trend": "off",
+        "rsi14": 36.4,
+        "rsi_state": "weak",
+        "dist_ma200_pct": null,
+        "pct_52w_range": 3.3,
+        "stop_state": "breached",
+        "usable": true
+      },
+      "quant": {
+        "factor_usable": false,
+        "peer_usable": false
+      },
+      "sentiment": {
+        "source_ticker": "SPCX",
+        "reddit_mentions_7d": 0,
+        "headline_count": 3,
+        "coverage": "available"
+      },
+      "risk": {
+        "count": 4,
+        "severity": "critical",
+        "action": {
+          "kind": "stop",
+          "label": "止损"
+        },
+        "breach_ids": [
+          "risk-66a236e9b7e1",
+          "risk-80e3b5a6819f",
+          "risk-66b800a6afe2",
+          "risk-95ac7f6cd591"
+        ]
+      },
+      "status": {
+        "label": "止损/换1x",
+        "rank": 0,
+        "state": "critical"
+      },
+      "judgment": {
+        "ticker": "SPCH",
+        "verdict": "bearish",
+        "confidence": 0.85,
+        "assessment": "硬止损 -55.20% + SPCX 7 月 -34% 蒸发 $1.5T + 大摩 xAI 估值定零/负 + 8/6 lockup 测试 $100 + Musk 自嘲前万亿富翁",
+        "counterargument": "SPCX 1d +2.56% 是反弹诱饵, 5d -13.5% 月度塌方已事实化; swap 后 SPCX 仍浮亏 -21% 但比 SPCH 慢跌好",
+        "rationale": "swap 1x SPCX 必须; reverse 1x→2x 需 SPCX 站稳 $100+ 5d (本月内不期待)"
+      }
+    },
+    {
+      "ticker": "PLTU",
+      "name": "二倍做多PLTR ETF-Direxion",
+      "leg": "US",
+      "facts": {
+        "today_change_pct": -12.16,
+        "pnl_pct": -33.17
+      },
+      "technical": {
+        "source_ticker": "PLTR",
+        "is_proxy": true,
+        "as_of": "2026-07-28",
+        "tag": "趋势OFF",
+        "trend": "off",
+        "rsi14": 44.5,
+        "rsi_state": "weak",
+        "dist_ma200_pct": -19.7,
+        "pct_52w_range": 16.3,
+        "stop_state": "intact",
+        "usable": true
+      },
+      "quant": {
+        "factor_usable": false,
+        "peer_usable": false
+      },
+      "sentiment": {
+        "source_ticker": "PLTU",
+        "reddit_mentions_7d": 0,
+        "headline_count": 3,
+        "coverage": "available"
+      },
+      "risk": {
+        "count": 3,
+        "severity": "critical",
+        "action": {
+          "kind": "stop",
+          "label": "止损"
+        },
+        "breach_ids": [
+          "risk-80e3b5a6819f",
+          "risk-66b800a6afe2",
+          "risk-9d03345e4a50"
+        ]
+      },
+      "status": {
+        "label": "止损/换1x",
+        "rank": 0,
+        "state": "critical"
+      },
+      "judgment": {
+        "ticker": "PLTU",
+        "verdict": "bearish",
+        "confidence": 0.85,
+        "assessment": "硬止损 -33.17% ≤ -18% + 4-breach 队列 + 41x sales 估值飘 + Seeking Alpha 7/27 降评 + 8/3 PLTR Q2 cRPO 是双向 catalyst",
+        "counterargument": "8/3 beat-and-pop 概率 30% 不可忽视, 但 swap 1x PLTR 比持有 2x PLTU 防下杀更稳",
+        "rationale": "swap 2x→1x PLTR 是 must-execute; risk_rule 而非择时"
+      }
+    },
+    {
+      "ticker": "07226",
+      "name": "XL二南方恒科",
+      "leg": "HK",
+      "facts": {
+        "today_change_pct": 1.17,
+        "pnl_pct": -20.65
+      },
+      "technical": {
+        "source_ticker": "07226",
+        "is_proxy": false,
+        "as_of": null,
+        "tag": null,
+        "trend": "unknown",
+        "rsi14": null,
+        "rsi_state": "unknown",
+        "dist_ma200_pct": null,
+        "pct_52w_range": null,
+        "stop_state": "unknown",
+        "usable": false
+      },
+      "quant": {
+        "factor_usable": false,
+        "peer_usable": false
+      },
+      "sentiment": {
+        "source_ticker": "07226",
+        "reddit_mentions_7d": 0,
+        "headline_count": 3,
+        "coverage": "available"
+      },
+      "risk": {
+        "count": 4,
+        "severity": "critical",
+        "action": {
+          "kind": "stop",
+          "label": "止损"
+        },
+        "breach_ids": [
+          "risk-2e011bb6c67f",
+          "risk-56fb5eebe7cc",
+          "risk-da9861ae6562",
+          "risk-4ab7eff27f15"
+        ]
+      },
+      "status": {
+        "label": "止损/换1x",
+        "rank": 0,
+        "state": "critical"
+      },
+      "judgment": {
+        "ticker": "07226",
+        "verdict": "mixed",
+        "confidence": 0.7,
+        "assessment": "硬止损 -20.65% ≤ -18% + 单名 42.42% > 35% + 杠杆 ETF cap 42.4% > 25% 三重 breach, 同因子 1x swap 03033 是 must-execute; 但 swap 后 03033 仍受 HSTECH 1d/5d liquid 影响, 短期不是 alpha call",
+        "counterargument": "如果今天 FOMC 偏鸽 + Powell 不鹰, HSTECH 5d liquid 转正 persistent, 2x 反弹会显著快于 1x, 砍 = 砍掉反弹 alpha; 但 discipline 已经被 3 天 broker 端失败拖垮, 必须 cut 一次硬止损兑现纪律",
+        "rationale": "swap 2x→1x 是纪律的硬约束, 不是择时; driven_by=risk_rule"
+      }
+    },
+    {
+      "ticker": "00100",
+      "name": "MINIMAX-W",
+      "leg": "HK",
+      "facts": {
+        "today_change_pct": -14.11,
+        "pnl_pct": -68.08
+      },
+      "technical": {
+        "source_ticker": "00100",
+        "is_proxy": false,
+        "as_of": "2026-07-28",
+        "tag": "趋势OFF · 已破吊灯止损",
+        "trend": "off",
+        "rsi14": 34.2,
+        "rsi_state": "weak",
+        "dist_ma200_pct": null,
+        "pct_52w_range": 0.4,
+        "stop_state": "breached",
+        "usable": true
+      },
+      "quant": {
+        "factor_usable": false,
+        "peer_usable": false
+      },
+      "sentiment": {
+        "source_ticker": "00100",
+        "reddit_mentions_7d": 0,
+        "headline_count": 3,
+        "coverage": "available"
+      },
+      "risk": {
+        "count": 2,
+        "severity": "high",
+        "action": {
+          "kind": "trim",
+          "label": "减仓"
+        },
+        "breach_ids": [
+          "risk-2a450e7c896e",
+          "risk-56fb5eebe7cc"
+        ]
+      },
+      "status": {
+        "label": "减仓",
+        "rank": 1,
+        "state": "elevated"
+      },
+      "judgment": {
+        "ticker": "00100",
+        "verdict": "mixed",
+        "confidence": 0.65,
+        "assessment": "单名 38.97% > 35% cap, 浮亏 -68%, 板块塌方 (-14% 1d), 同行商汤 +3.7% 是异类 alpha; 高盛 $860 + Citi 正面 + 7 月 Lockup 63% 已释放边际卖压减弱 — trim 30 @220 是 by_action 唯一正向 cluster (n=5 wins=5)",
+        "counterargument": "Bull/Bear 真分歧 - Bear 要 cut 70% thesis, Aggressive 想 8 月 unlock 全数消化完再战术 add, 中性选 trim 是因为 trim_on_rebound 在 AI 大票赢率最高",
+        "rationale": "trigger 较 7/28 的 240 松绑到 220, 减 5pp 阈值以求 fire, 留 70 股给 thesis; 若 220 始终未到且 close < 180 → 7d 内评估 cut 完整 100 股"
+      }
+    },
+    {
+      "ticker": "02208",
+      "name": "金风科技",
+      "leg": "HK",
+      "facts": {
+        "today_change_pct": -3.82,
+        "pnl_pct": -32.12
+      },
+      "technical": {
+        "source_ticker": "02208",
+        "is_proxy": false,
+        "as_of": "2026-07-28",
+        "tag": "趋势OFF · 已破吊灯止损",
+        "trend": "off",
+        "rsi14": 41.7,
+        "rsi_state": "weak",
+        "dist_ma200_pct": -30.2,
+        "pct_52w_range": 22.8,
+        "stop_state": "breached",
+        "usable": true
+      },
+      "quant": {
+        "factor_usable": false,
+        "peer_usable": false
+      },
+      "sentiment": {
+        "source_ticker": "02208",
+        "reddit_mentions_7d": 0,
+        "headline_count": 3,
+        "coverage": "available"
+      },
+      "risk": {
+        "count": 0,
+        "severity": "none",
+        "action": null,
+        "breach_ids": []
+      },
+      "status": {
+        "label": "趋势off·观望",
+        "rank": 3,
+        "state": "neutral"
+      },
+      "judgment": {
+        "ticker": "02208",
+        "verdict": "neutral",
+        "confidence": 0.55,
+        "assessment": "BlackRock 7/23 增持 274 万 HKD + 15th 五年规划; 同行 (00916 龙源 +2.7% 5d) 5d 已转正但 self 仍弱; 装机季节性回调",
+        "counterargument": "板块弱 + 个股弱 + 装机数据未达预期 → cut 200 留 200 比较稳",
+        "rationale": "thesis 仍在但兑现慢, 不补仓不砍仓等 8 月装机数据"
+      }
+    },
+    {
+      "ticker": "CRCL",
+      "name": "Circle Internet Group Inc-A",
+      "leg": "US",
+      "facts": {
+        "today_change_pct": -2.06,
+        "pnl_pct": -26.07
+      },
+      "technical": {
+        "source_ticker": "CRCL",
+        "is_proxy": false,
+        "as_of": "2026-07-28",
+        "tag": "趋势OFF",
+        "trend": "off",
+        "rsi14": 44.0,
+        "rsi_state": "weak",
+        "dist_ma200_pct": -29.2,
+        "pct_52w_range": 10.0,
+        "stop_state": "intact",
+        "usable": true
+      },
+      "quant": {
+        "factor_usable": false,
+        "peer_usable": false
+      },
+      "sentiment": {
+        "source_ticker": "CRCL",
+        "reddit_mentions_7d": 0,
+        "headline_count": 3,
+        "coverage": "available"
+      },
+      "risk": {
+        "count": 0,
+        "severity": "none",
+        "action": null,
+        "breach_ids": []
+      },
+      "status": {
+        "label": "趋势off·观望",
+        "rank": 3,
+        "state": "neutral"
+      },
+      "judgment": {
+        "ticker": "CRCL",
+        "verdict": "neutral",
+        "confidence": 0.5,
+        "assessment": "2 股 (0.5% book) 浮亏 -26%; Cathie Wood 7/28 抄底 14M 是中偏正; 8/5 Q2 财报是下个 catalyst; 同行 PYPL +4.01% 1d 是 mixed signal",
+        "counterargument": "GENIUS Act 立法 + agent 支付叙事长期利好但短期 price 已部分反映; 1d -2.06% 落后 PYPL -6.1pp 是板块 alpha 在掉",
+        "rationale": "等 8/5 Q2 财报决定; 不补"
+      }
+    },
+    {
+      "ticker": "SPCX",
+      "name": "SpaceX",
+      "leg": "US",
+      "facts": {
+        "today_change_pct": 2.56,
+        "pnl_pct": -21.08
+      },
+      "technical": {
+        "source_ticker": "SPCX",
+        "is_proxy": false,
+        "as_of": "2026-07-28",
+        "tag": "趋势OFF · 已破吊灯止损",
+        "trend": "off",
+        "rsi14": 36.4,
+        "rsi_state": "weak",
+        "dist_ma200_pct": null,
+        "pct_52w_range": 3.3,
+        "stop_state": "breached",
+        "usable": true
+      },
+      "quant": {
+        "factor_usable": false,
+        "peer_usable": false
+      },
+      "sentiment": {
+        "source_ticker": "SPCX",
+        "reddit_mentions_7d": 0,
+        "headline_count": 3,
+        "coverage": "available"
+      },
+      "risk": {
+        "count": 0,
+        "severity": "none",
+        "action": null,
+        "breach_ids": []
+      },
+      "status": {
+        "label": "趋势off·观望",
+        "rank": 3,
+        "state": "neutral"
+      },
+      "judgment": {
+        "ticker": "SPCX",
+        "verdict": "neutral",
+        "confidence": 0.45,
+        "assessment": "1 股 (0.4% book) 浮亏 -21%; SPCH swap 标的; 8/4 首份 Q2 财报 + 8/6 lockup 是两重事件",
+        "counterargument": "若 SPCX 突破 $130 站 5d 或 8/6 后站稳 $100 → 可战术 add 2 股; 否则保持 1 股",
+        "rationale": "swap receive 后 1-2 股; 不主动加"
+      }
+    },
+    {
+      "ticker": "MSFU",
+      "name": "二倍做多微软ETF-Direxion",
+      "leg": "US",
+      "facts": {
+        "today_change_pct": 2.23,
+        "pnl_pct": -16.58
+      },
+      "technical": {
+        "source_ticker": "MSFT",
+        "is_proxy": true,
+        "as_of": "2026-07-28",
+        "tag": "趋势OFF",
+        "trend": "off",
+        "rsi14": 51.7,
+        "rsi_state": "neutral",
+        "dist_ma200_pct": -9.5,
+        "pct_52w_range": 21.4,
+        "stop_state": "intact",
+        "usable": true
+      },
+      "quant": {
+        "factor_usable": false,
+        "peer_usable": false
+      },
+      "sentiment": {
+        "source_ticker": "MSFU",
+        "reddit_mentions_7d": 0,
+        "headline_count": 3,
+        "coverage": "available"
+      },
+      "risk": {
+        "count": 2,
+        "severity": "high",
+        "action": null,
+        "breach_ids": [
+          "risk-80e3b5a6819f",
+          "risk-66b800a6afe2"
+        ]
+      },
+      "status": {
+        "label": "趋势off·观望",
+        "rank": 3,
+        "state": "neutral"
+      },
+      "judgment": {
+        "ticker": "MSFU",
+        "verdict": "mixed",
+        "confidence": 0.7,
+        "assessment": "今晚 MSFT AMC (EPS 估 $4.327 / 营收估 $89.4B) + AMD Helios Azure 部署 + Powell 30 分钟后; risk_off regime 下 beat-and-fade 风险大于 beat-and-pop",
+        "counterargument": "如果 MSFT AMC 收盘 +3% + forward guidance 上修 → next session 应反向 swap 1x→2x; 但今晚不能赌",
+        "rationale": "swap MSFT 1x, 防 beat-and-fade 的双线 catalyst 隐含风险"
+      }
+    },
+    {
+      "ticker": "SKHY",
+      "name": "SK海力士 ADR",
+      "leg": "US",
+      "facts": {
+        "today_change_pct": -8.98,
+        "pnl_pct": -23.06
+      },
+      "technical": {
+        "source_ticker": "SKHY",
+        "is_proxy": false,
+        "as_of": null,
+        "tag": null,
+        "trend": "unknown",
+        "rsi14": null,
+        "rsi_state": "unknown",
+        "dist_ma200_pct": null,
+        "pct_52w_range": null,
+        "stop_state": "unknown",
+        "usable": false
+      },
+      "quant": {
+        "factor_usable": false,
+        "peer_usable": false
+      },
+      "sentiment": {
+        "source_ticker": "SKHY",
+        "reddit_mentions_7d": 0,
+        "headline_count": 3,
+        "coverage": "available"
+      },
+      "risk": {
+        "count": 0,
+        "severity": "none",
+        "action": null,
+        "breach_ids": []
+      },
+      "status": {
+        "label": "数据不足",
+        "rank": 5,
+        "state": "neutral"
+      },
+      "judgment": {
+        "ticker": "SKHY",
+        "verdict": "neutral",
+        "confidence": 0.55,
+        "assessment": "1 股 (0.5% book) 浮亏 -23.06%; HBM 周期见顶信号强 (Yicai 7/27) + 长鑫 Q1 +722% 营收 + Apple 多源化是板块硬信号",
+        "counterargument": "若 SKHY 跌破硬止损 138.7 → cut 1 股 auto; 信号 missing (fetch failed) 也禁止 add",
+        "rationale": "1 股是 free carry, 等硬止损线触发再清; 不补不砍"
+      }
+    },
+    {
+      "ticker": "03032",
+      "name": "恒生科技ETF",
+      "leg": "HK",
+      "facts": {
+        "today_change_pct": 0.51,
+        "pnl_pct": -12.6
+      },
+      "technical": {
+        "source_ticker": "03032",
+        "is_proxy": false,
+        "as_of": "2026-07-24",
+        "tag": "趋势OFF",
+        "trend": "off",
+        "rsi14": 50.7,
+        "rsi_state": "neutral",
+        "dist_ma200_pct": -11.2,
+        "pct_52w_range": 18.1,
+        "stop_state": "intact",
+        "usable": false
+      },
+      "quant": {
+        "factor_usable": false,
+        "peer_usable": false
+      },
+      "sentiment": {
+        "source_ticker": "03032",
+        "reddit_mentions_7d": 0,
+        "headline_count": 3,
+        "coverage": "available"
+      },
+      "risk": {
+        "count": 0,
+        "severity": "none",
+        "action": null,
+        "breach_ids": []
+      },
+      "status": {
+        "label": "数据不足",
+        "rank": 5,
+        "state": "neutral"
+      },
+      "judgment": {
+        "ticker": "03032",
+        "verdict": "neutral",
+        "confidence": 0.5,
+        "assessment": "1x HSTECH 透明 ETF; 同行 liquid +1.32% 5d 是 7 月底第一次正, 但 trend 仍未确认",
+        "counterargument": "趋势 OFF 区间, 任何 1x 都跟跌不跟涨; 但既然已经是低 beta 持仓不动比动好",
+        "rationale": "做 07226 swap receive 候选持有"
+      }
+    },
+    {
+      "ticker": "03033",
+      "name": "南方恒生科技",
+      "leg": "HK",
+      "facts": {
+        "today_change_pct": 0.61,
+        "pnl_pct": -9.65
+      },
+      "technical": {
+        "source_ticker": "03033",
+        "is_proxy": false,
+        "as_of": "2026-07-24",
+        "tag": "趋势OFF",
+        "trend": "off",
+        "rsi14": 50.9,
+        "rsi_state": "neutral",
+        "dist_ma200_pct": -11.2,
+        "pct_52w_range": 18.1,
+        "stop_state": "intact",
+        "usable": false
+      },
+      "quant": {
+        "factor_usable": false,
+        "peer_usable": false
+      },
+      "sentiment": {
+        "source_ticker": "03033",
+        "reddit_mentions_7d": 0,
+        "headline_count": 3,
+        "coverage": "available"
+      },
+      "risk": {
+        "count": 0,
+        "severity": "none",
+        "action": null,
+        "breach_ids": []
+      },
+      "status": {
+        "label": "数据不足",
+        "rank": 5,
+        "state": "neutral"
+      },
+      "judgment": {
+        "ticker": "03033",
+        "verdict": "neutral",
+        "confidence": 0.5,
+        "assessment": "07226 swap 标的; 1x 比 2x 阻 decay; liquid 已 positive 但 trend 未 confirm",
+        "counterargument": "swap 完成后 03033 weight 提升, 若 5d 持续 negative 需 trim 减仓",
+        "rationale": "和 03032 一样属于纪律接收物"
+      }
+    }
+  ]
+}

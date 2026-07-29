@@ -1,6 +1,6 @@
 {
-  "as_of": "2026-07-28",
-  "days_logged": 35,
+  "as_of": "2026-07-29",
+  "days_logged": 36,
   "unlock_rule": "cluster_ci_entirely_above_or_below_50pct",
   "factors": {
     "trend_on_follow": {
@@ -17,12 +17,12 @@
       "note": "date/ticker 聚类不足，方向结论不入决策"
     },
     "trend_off_avoid": {
-      "n_events": 256,
-      "n_dates": 30,
+      "n_events": 261,
+      "n_dates": 31,
       "n_tickers": 9,
-      "hit_rate": 0.531,
+      "hit_rate": 0.533,
       "ci95": [
-        0.374,
+        0.378,
         0.678
       ],
       "ci_method": "date_ticker_two_way_cluster_bootstrap",
@@ -78,13 +78,13 @@
       "note": "聚类 CI 跨 50%，方向结论不入决策"
     },
     "stop_breach_continue": {
-      "n_events": 236,
-      "n_dates": 30,
+      "n_events": 239,
+      "n_dates": 31,
       "n_tickers": 10,
-      "hit_rate": 0.542,
+      "hit_rate": 0.544,
       "ci95": [
-        0.368,
-        0.7
+        0.372,
+        0.703
       ],
       "ci_method": "date_ticker_two_way_cluster_bootstrap",
       "edge_significant": false,
@@ -94,6 +94,6 @@
       "note": "聚类 CI 跨 50%，方向结论不入决策"
     }
   },
-  "summary": "没有因子通过聚类 CI 50% 闸（35 天留痕）——结论未解锁",
+  "summary": "没有因子通过聚类 CI 50% 闸（36 天留痕）——结论未解锁",
   "discipline": "自迭代规则：公开 n_events/n_dates/n_tickers；date×ticker 双向聚类 CI 跨 50% 不入决策；只有反向 CI 整体低于 50% 才允许反向解读。driven_by=technical 的整体战绩以 dashboard 的实时 decision_metrics.by_driver.technical 为准，不使用固定百分比。"
 }

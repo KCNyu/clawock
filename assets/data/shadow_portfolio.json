@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "as_of": "2026-07-29T00:00:03+08:00",
+  "as_of": "2026-07-29T08:12:14+08:00",
   "label": "模拟·非实盘",
   "estimand": "跟随全部已触发主动建议的政策模拟净值，相对同起点、同日收盘计价的买入持有基线；累计差为模拟 timing alpha",
   "curves": {
@@ -8,7 +8,7 @@
       "leg": "US",
       "currency": "USD",
       "start_date": "2026-05-18",
-      "end_date": "2026-07-27",
+      "end_date": "2026-07-28",
       "initial": {
         "cash": 135.205,
         "cash_known": true,
@@ -317,16 +317,15 @@
         },
         {
           "date": "2026-07-28",
-          "followed_sim": null,
-          "buy_and_hold": null,
-          "cumulative_diff": null,
-          "gap_reason": "no_bar"
+          "followed_sim": 2959.39,
+          "buy_and_hold": 3013.36,
+          "cumulative_diff": -53.96
         }
       ],
-      "cumulative_diff": -186.46,
+      "cumulative_diff": -53.96,
       "final": {
-        "followed_sim": 3046.84,
-        "buy_and_hold": 3233.3
+        "followed_sim": 2959.39,
+        "buy_and_hold": 3013.36
       },
       "events": [
         {
@@ -3305,7 +3304,7 @@
           "kind": "decision_group",
           "simulated": true,
           "execution_statuses": [
-            "unknown"
+            "not_followed"
           ],
           "status": "skipped",
           "legs": [
@@ -3327,7 +3326,7 @@
           "kind": "decision_group",
           "simulated": true,
           "execution_statuses": [
-            "unknown"
+            "not_followed"
           ],
           "status": "skipped",
           "legs": [
@@ -3349,7 +3348,7 @@
           "kind": "decision_group",
           "simulated": true,
           "execution_statuses": [
-            "unknown"
+            "not_followed"
           ],
           "status": "skipped",
           "legs": [
@@ -3371,7 +3370,7 @@
           "kind": "decision_group",
           "simulated": true,
           "execution_statuses": [
-            "unknown"
+            "not_followed"
           ],
           "status": "skipped",
           "legs": [
@@ -3392,41 +3391,118 @@
             "buy_and_hold": 3233.3,
             "cumulative_diff": -186.46
           }
+        },
+        {
+          "date": "2026-07-28",
+          "decision_group_id": "2026-07-28:SPCH",
+          "kind": "decision_group",
+          "simulated": true,
+          "execution_statuses": [
+            "unknown"
+          ],
+          "status": "skipped",
+          "legs": [
+            {
+              "ticker": "SPCH",
+              "direction": "sell",
+              "requested_shares": 150,
+              "filled_shares": 0,
+              "price": 5.98,
+              "status": "skipped_no_inventory",
+              "fill_type": "ohlc_assumption",
+              "fill_model": "daily_ohlc_gap_aware_v1"
+            }
+          ]
+        },
+        {
+          "date": "2026-07-28",
+          "decision_group_id": "2026-07-28:RKLX",
+          "kind": "decision_group",
+          "simulated": true,
+          "execution_statuses": [
+            "unknown"
+          ],
+          "status": "skipped",
+          "legs": [
+            {
+              "ticker": "RKLX",
+              "direction": "sell",
+              "requested_shares": 10,
+              "filled_shares": 0,
+              "price": 16.58,
+              "status": "skipped_no_inventory",
+              "fill_type": "ohlc_assumption",
+              "fill_model": "daily_ohlc_gap_aware_v1"
+            }
+          ]
+        },
+        {
+          "date": "2026-07-28",
+          "decision_group_id": "2026-07-28:PLTU",
+          "kind": "decision_group",
+          "simulated": true,
+          "execution_statuses": [
+            "unknown"
+          ],
+          "status": "skipped",
+          "legs": [
+            {
+              "ticker": "PLTU",
+              "direction": "sell",
+              "requested_shares": 14,
+              "filled_shares": 0,
+              "price": 28.44,
+              "status": "skipped_no_inventory",
+              "fill_type": "ohlc_assumption",
+              "fill_model": "daily_ohlc_gap_aware_v1"
+            }
+          ]
+        },
+        {
+          "date": "2026-07-28",
+          "decision_group_id": "2026-07-28:MSFU",
+          "kind": "decision_group",
+          "simulated": true,
+          "execution_statuses": [
+            "unknown"
+          ],
+          "status": "skipped",
+          "legs": [
+            {
+              "ticker": "MSFU",
+              "direction": "sell",
+              "requested_shares": 20,
+              "filled_shares": 0,
+              "price": 24.26,
+              "status": "skipped_no_inventory",
+              "fill_type": "ohlc_assumption",
+              "fill_model": "daily_ohlc_gap_aware_v1"
+            }
+          ],
+          "mark": {
+            "date": "2026-07-28",
+            "followed_sim": 2959.39,
+            "buy_and_hold": 3013.36,
+            "cumulative_diff": -53.96
+          }
         }
       ],
       "counts": {
-        "triggered_active_decisions": 127,
-        "decision_groups": 127,
+        "triggered_active_decisions": 131,
+        "decision_groups": 131,
         "paired_swap_groups": 0,
         "unpaired_swap_like_groups": 60,
         "fill_types": {
           "real_trade": 0,
           "ohlc_assumption": 16,
           "canonical_close_fallback": 0,
-          "skipped": 111
+          "skipped": 115
         }
       },
       "mark_coverage": {
         "expected_sessions": 49,
-        "published_points": 48,
-        "skipped_dates": [
-          {
-            "date": "2026-07-28",
-            "reason": "no_bar",
-            "tickers": [
-              "CRCL",
-              "MSFT",
-              "MSFU",
-              "PLTR",
-              "PLTU",
-              "RKLB",
-              "RKLX",
-              "ROBN",
-              "SOXL",
-              "SPCX"
-            ]
-          }
-        ],
+        "published_points": 49,
+        "skipped_dates": [],
         "rule": "publish only when both books can be marked to exact same-date canonical closes"
       },
       "corporate_actions": {
@@ -3446,7 +3522,7 @@
       "leg": "HK",
       "currency": "HKD",
       "start_date": "2026-05-18",
-      "end_date": "2026-07-27",
+      "end_date": "2026-07-28",
       "initial": {
         "cash": 4597.0,
         "cash_known": true,
@@ -3753,10 +3829,9 @@
         },
         {
           "date": "2026-07-28",
-          "followed_sim": null,
-          "buy_and_hold": null,
-          "cumulative_diff": null,
-          "gap_reason": "no_bar"
+          "followed_sim": 107850.28,
+          "buy_and_hold": 77306.2,
+          "cumulative_diff": 30544.08
         },
         {
           "date": "2026-07-29",
@@ -3766,10 +3841,10 @@
           "gap_reason": "no_bar"
         }
       ],
-      "cumulative_diff": 28763.15,
+      "cumulative_diff": 30544.08,
       "final": {
-        "followed_sim": 107884.55,
-        "buy_and_hold": 79121.4
+        "followed_sim": 107850.28,
+        "buy_and_hold": 77306.2
       },
       "events": [
         {
@@ -5169,7 +5244,7 @@
           "kind": "decision_group",
           "simulated": true,
           "execution_statuses": [
-            "unknown"
+            "not_followed"
           ],
           "status": "skipped",
           "legs": [
@@ -5191,7 +5266,7 @@
           "kind": "decision_group",
           "simulated": true,
           "execution_statuses": [
-            "unknown"
+            "not_followed"
           ],
           "status": "skipped",
           "legs": [
@@ -5212,35 +5287,52 @@
             "buy_and_hold": 79121.4,
             "cumulative_diff": 28763.15
           }
+        },
+        {
+          "date": "2026-07-28",
+          "decision_group_id": "2026-07-28:07226",
+          "kind": "decision_group",
+          "simulated": true,
+          "execution_statuses": [
+            "unknown"
+          ],
+          "status": "skipped",
+          "legs": [
+            {
+              "ticker": "07226",
+              "direction": "sell",
+              "requested_shares": 1000,
+              "filled_shares": 0,
+              "price": 3.46,
+              "status": "skipped_no_inventory",
+              "fill_type": "ohlc_assumption",
+              "fill_model": "daily_ohlc_gap_aware_v1"
+            }
+          ],
+          "mark": {
+            "date": "2026-07-28",
+            "followed_sim": 107850.28,
+            "buy_and_hold": 77306.2,
+            "cumulative_diff": 30544.08
+          }
         }
       ],
       "counts": {
-        "triggered_active_decisions": 57,
-        "decision_groups": 57,
+        "triggered_active_decisions": 58,
+        "decision_groups": 58,
         "paired_swap_groups": 0,
         "unpaired_swap_like_groups": 29,
         "fill_types": {
           "real_trade": 0,
           "ohlc_assumption": 12,
           "canonical_close_fallback": 0,
-          "skipped": 45
+          "skipped": 46
         }
       },
       "mark_coverage": {
         "expected_sessions": 50,
-        "published_points": 48,
+        "published_points": 49,
         "skipped_dates": [
-          {
-            "date": "2026-07-28",
-            "reason": "no_bar",
-            "tickers": [
-              "00100",
-              "02208",
-              "03032",
-              "03033",
-              "07226"
-            ]
-          },
           {
             "date": "2026-07-29",
             "reason": "no_bar",
@@ -5262,14 +5354,14 @@
     }
   },
   "cumulative_diff": {
-    "USD": -186.46,
-    "HKD": 28763.15
+    "USD": -53.96,
+    "HKD": 30544.08
   },
   "fill_counts": {
     "real_trade": 0,
     "ohlc_assumption": 28,
     "canonical_close_fallback": 0,
-    "skipped": 156
+    "skipped": 161
   },
   "fx_policy": {
     "combined_curve": false,

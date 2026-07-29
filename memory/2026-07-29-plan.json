@@ -1,0 +1,755 @@
+{
+  "schema_version": 2,
+  "date": "2026-07-29",
+  "context_generation_id": "cedae199a812ba28",
+  "fx_rate_usdhkd": 7.8416,
+  "fx_source": "Frankfurter",
+  "regime": {
+    "us": "risk_off",
+    "hk": "risk_off"
+  },
+  "book": {
+    "usd_total_pnl": -8458.53,
+    "hkd_total_pnl": -66328.45,
+    "hk_leg_hkd": -50079.24,
+    "us_leg_usd": -2072.18
+  },
+  "decisions": [
+    {
+      "schema_version": 2,
+      "decision_id": "dec-82a0f82e08ae",
+      "episode_id": "ep-20260728-07226-001",
+      "decision_group_id": "2026-07-29:07226",
+      "plan_date": "2026-07-29",
+      "created_at": "2026-07-29T08:00:00+08:00",
+      "ticker": "07226",
+      "name": "",
+      "leg": "HK",
+      "strategy_id": "risk_rebalance",
+      "thesis_id": "7226-2x-to-1x-swap-hk",
+      "action": "cut",
+      "condition": {
+        "type": "open",
+        "price": null,
+        "description": ""
+      },
+      "size": {
+        "shares": 6200,
+        "pct": 100.0,
+        "note": ""
+      },
+      "confidence": 0.88,
+      "driven_by": "risk_rule",
+      "evidence_event_id": null,
+      "regime": "risk_off",
+      "rationale": "3 重 breach (single_name 42.42% > 35% / levered_exp 42.4% > 25% / hard_stop -20.65% ≤ -18%) + 3 天 broker 端未 fill 必须 MOO；swap 同因子 1x 03033 (≈4620股 by notional)，停 2x 日内重置月 decay 8.1%",
+      "simulated_entry_price": 3.462,
+      "horizon_sessions": 1,
+      "override": {
+        "status": "none",
+        "reason": "",
+        "expires_on": null,
+        "revisit_condition": ""
+      },
+      "evaluation": {
+        "status": "pending",
+        "triggered": null,
+        "trigger_session": null,
+        "execution_price": null,
+        "underlying_return_t1_pct": null,
+        "benefit_t1_pct": null,
+        "benefit_t5_pct": null,
+        "outcome": "pending",
+        "capital": null
+      },
+      "execution": {
+        "status": "unknown",
+        "detected_at": null,
+        "source": null
+      },
+      "migration": {
+        "source": "plan_v1"
+      }
+    },
+    {
+      "schema_version": 2,
+      "decision_id": "dec-7140be8166a1",
+      "episode_id": "ep-20260728-07226-001",
+      "decision_group_id": "2026-07-29:07226",
+      "plan_date": "2026-07-29",
+      "created_at": "2026-07-29T08:00:00+08:00",
+      "ticker": "07226",
+      "name": "",
+      "leg": "HK",
+      "strategy_id": "risk_rebalance",
+      "thesis_id": "7226-additional-cap-trim",
+      "action": "cut",
+      "condition": {
+        "type": "open",
+        "price": null,
+        "description": ""
+      },
+      "size": {
+        "shares": 1000,
+        "pct": 100.0,
+        "note": ""
+      },
+      "confidence": 0.72,
+      "driven_by": "risk_rule",
+      "evidence_event_id": null,
+      "regime": "risk_off",
+      "rationale": "factor_conc Top2 81.4% > 70% cap 需降至 35% 单名; swap 6200 后 03033 接收但 07226 仍占 HK 30%; 再砍 1000 占 HK 28% 符合 cap",
+      "simulated_entry_price": 3.462,
+      "horizon_sessions": 1,
+      "override": {
+        "status": "none",
+        "reason": "",
+        "expires_on": null,
+        "revisit_condition": ""
+      },
+      "evaluation": {
+        "status": "pending",
+        "triggered": null,
+        "trigger_session": null,
+        "execution_price": null,
+        "underlying_return_t1_pct": null,
+        "benefit_t1_pct": null,
+        "benefit_t5_pct": null,
+        "outcome": "pending",
+        "capital": null
+      },
+      "execution": {
+        "status": "unknown",
+        "detected_at": null,
+        "source": null
+      },
+      "migration": {
+        "source": "plan_v1"
+      }
+    },
+    {
+      "schema_version": 2,
+      "decision_id": "dec-29bdcf586c6a",
+      "episode_id": "ep-20260728-pltu-001",
+      "decision_group_id": "2026-07-29:PLTU",
+      "plan_date": "2026-07-29",
+      "created_at": "2026-07-29T08:00:00+08:00",
+      "ticker": "PLTU",
+      "name": "",
+      "leg": "US",
+      "strategy_id": "risk_rebalance",
+      "thesis_id": "pltu-2x-to-pltr-spot-swap",
+      "action": "cut",
+      "condition": {
+        "type": "open",
+        "price": null,
+        "description": ""
+      },
+      "size": {
+        "shares": 14,
+        "pct": 100.0,
+        "note": ""
+      },
+      "confidence": 0.85,
+      "driven_by": "risk_rule",
+      "evidence_event_id": null,
+      "regime": "risk_off",
+      "rationale": "硬止损 -33.17% ≤ -18% (breach bs-20260625) + levered_exp 84.9% US + 🧭 regime red; 同因子 1x swap PLTR; 防 8/3 PLTR Q2 cRPO beat-and-fade",
+      "simulated_entry_price": 27.37,
+      "horizon_sessions": 1,
+      "override": {
+        "status": "none",
+        "reason": "",
+        "expires_on": null,
+        "revisit_condition": ""
+      },
+      "evaluation": {
+        "status": "pending",
+        "triggered": null,
+        "trigger_session": null,
+        "execution_price": null,
+        "underlying_return_t1_pct": null,
+        "benefit_t1_pct": null,
+        "benefit_t5_pct": null,
+        "outcome": "pending",
+        "capital": null
+      },
+      "execution": {
+        "status": "unknown",
+        "detected_at": null,
+        "source": null
+      },
+      "migration": {
+        "source": "plan_v1"
+      }
+    },
+    {
+      "schema_version": 2,
+      "decision_id": "dec-ee77c949ce65",
+      "episode_id": "ep-20260728-rklx-001",
+      "decision_group_id": "2026-07-29:RKLX",
+      "plan_date": "2026-07-29",
+      "created_at": "2026-07-29T08:00:00+08:00",
+      "ticker": "RKLX",
+      "name": "",
+      "leg": "US",
+      "strategy_id": "risk_rebalance",
+      "thesis_id": "rklx-2x-to-1x-swap",
+      "action": "cut",
+      "condition": {
+        "type": "open",
+        "price": null,
+        "description": ""
+      },
+      "size": {
+        "shares": 10,
+        "pct": 100.0,
+        "note": ""
+      },
+      "confidence": 0.82,
+      "driven_by": "risk_rule",
+      "evidence_event_id": null,
+      "regime": "risk_off",
+      "rationale": "硬止损 -67.42% ≤ -18% (breach bs-20260626) + regime_delever 🧭 red (标 RKLB 破 200MA -17.9% + vol 76%) + 8.1% 月 decay; 同因子 1x swap RKLB",
+      "simulated_entry_price": 16.19,
+      "horizon_sessions": 1,
+      "override": {
+        "status": "none",
+        "reason": "",
+        "expires_on": null,
+        "revisit_condition": ""
+      },
+      "evaluation": {
+        "status": "pending",
+        "triggered": null,
+        "trigger_session": null,
+        "execution_price": null,
+        "underlying_return_t1_pct": null,
+        "benefit_t1_pct": null,
+        "benefit_t5_pct": null,
+        "outcome": "pending",
+        "capital": null
+      },
+      "execution": {
+        "status": "unknown",
+        "detected_at": null,
+        "source": null
+      },
+      "migration": {
+        "source": "plan_v1"
+      }
+    },
+    {
+      "schema_version": 2,
+      "decision_id": "dec-c8743d7de2fb",
+      "episode_id": "ep-20260728-spch-001",
+      "decision_group_id": "2026-07-29:SPCH",
+      "plan_date": "2026-07-29",
+      "created_at": "2026-07-29T08:00:00+08:00",
+      "ticker": "SPCH",
+      "name": "",
+      "leg": "US",
+      "strategy_id": "risk_rebalance",
+      "thesis_id": "spch-2x-to-spcx-spot-swap",
+      "action": "cut",
+      "condition": {
+        "type": "open",
+        "price": null,
+        "description": ""
+      },
+      "size": {
+        "shares": 160,
+        "pct": 100.0,
+        "note": ""
+      },
+      "confidence": 0.85,
+      "driven_by": "risk_rule",
+      "evidence_event_id": null,
+      "regime": "risk_off",
+      "rationale": "硬止损 -55.20% ≤ -18% (breach bs-20260623) + 月度 -34% SpaceX 蒸发 $1.5T + 8/6 lockup 测试 $100 + 大摩 xAI 估值定零/负 + Musk 自嘲前万亿富翁; swap 1x SPCX",
+      "simulated_entry_price": 6.77,
+      "horizon_sessions": 1,
+      "override": {
+        "status": "none",
+        "reason": "",
+        "expires_on": null,
+        "revisit_condition": ""
+      },
+      "evaluation": {
+        "status": "pending",
+        "triggered": null,
+        "trigger_session": null,
+        "execution_price": null,
+        "underlying_return_t1_pct": null,
+        "benefit_t1_pct": null,
+        "benefit_t5_pct": null,
+        "outcome": "pending",
+        "capital": null
+      },
+      "execution": {
+        "status": "unknown",
+        "detected_at": null,
+        "source": null
+      },
+      "migration": {
+        "source": "plan_v1"
+      }
+    },
+    {
+      "schema_version": 2,
+      "decision_id": "dec-78bd4ab3a4c5",
+      "episode_id": "ep-20260728-msfu-001",
+      "decision_group_id": "2026-07-29:MSFU",
+      "plan_date": "2026-07-29",
+      "created_at": "2026-07-29T08:00:00+08:00",
+      "ticker": "MSFU",
+      "name": "",
+      "leg": "US",
+      "strategy_id": "risk_rebalance",
+      "thesis_id": "msfu-2x-to-msft-spot-swap",
+      "action": "cut",
+      "condition": {
+        "type": "open",
+        "price": null,
+        "description": ""
+      },
+      "size": {
+        "shares": 20,
+        "pct": 100.0,
+        "note": ""
+      },
+      "confidence": 0.78,
+      "driven_by": "risk_rule",
+      "evidence_event_id": null,
+      "regime": "risk_off",
+      "rationale": "硬止损 -16.58% + levered_exp 84.9% US + 今晚 MSFT AMC + Powell 30 分钟前双线 catalyst 叠加; 先 swap MSFT 再赌 alpha, 不在 2x 上赌 beat 兑现",
+      "simulated_entry_price": 24.3,
+      "horizon_sessions": 1,
+      "override": {
+        "status": "none",
+        "reason": "",
+        "expires_on": null,
+        "revisit_condition": ""
+      },
+      "evaluation": {
+        "status": "pending",
+        "triggered": null,
+        "trigger_session": null,
+        "execution_price": null,
+        "underlying_return_t1_pct": null,
+        "benefit_t1_pct": null,
+        "benefit_t5_pct": null,
+        "outcome": "pending",
+        "capital": null
+      },
+      "execution": {
+        "status": "unknown",
+        "detected_at": null,
+        "source": null
+      },
+      "migration": {
+        "source": "plan_v1"
+      }
+    },
+    {
+      "schema_version": 2,
+      "decision_id": "dec-e5162f0eaf92",
+      "episode_id": "ep-20260728-00100-001",
+      "decision_group_id": "2026-07-29:00100",
+      "plan_date": "2026-07-29",
+      "created_at": "2026-07-29T08:00:00+08:00",
+      "ticker": "00100",
+      "name": "",
+      "leg": "HK",
+      "strategy_id": "risk_rebalance",
+      "thesis_id": "00100-single-name-cap-trim",
+      "action": "trim_on_rebound",
+      "condition": {
+        "type": "price_above",
+        "price": 220.0,
+        "description": ""
+      },
+      "size": {
+        "shares": 30,
+        "pct": 30.0,
+        "note": ""
+      },
+      "confidence": 0.65,
+      "driven_by": "risk_rule",
+      "evidence_event_id": null,
+      "regime": "risk_off",
+      "rationale": "single_name 38.97% > 35% cap; trim_on_rebound by_action 唯一正向 cluster (n=5 wins=5, +6.8% CI [4.10%, 10.00%]); Bull/Bear 在这里真分歧 - Bear 要 cut 我选 trim 因为 Goldman $860 + Citi 正面 + 商汤 +3.7% 板块异类 = 7 月底 +68% 套牢盘释放后边际卖压减弱; close 197.2 下 30 股 trim 不至 cut 70% thesis",
+      "simulated_entry_price": 197.2,
+      "horizon_sessions": 1,
+      "override": {
+        "status": "none",
+        "reason": "",
+        "expires_on": null,
+        "revisit_condition": ""
+      },
+      "evaluation": {
+        "status": "pending",
+        "triggered": null,
+        "trigger_session": null,
+        "execution_price": null,
+        "underlying_return_t1_pct": null,
+        "benefit_t1_pct": null,
+        "benefit_t5_pct": null,
+        "outcome": "pending",
+        "capital": null
+      },
+      "execution": {
+        "status": "unknown",
+        "detected_at": null,
+        "source": null
+      },
+      "migration": {
+        "source": "plan_v1"
+      }
+    },
+    {
+      "schema_version": 2,
+      "decision_id": "dec-dc7576fe90df",
+      "episode_id": "ep-20260728-skhy-001",
+      "decision_group_id": "2026-07-29:SKHY",
+      "plan_date": "2026-07-29",
+      "created_at": "2026-07-29T08:00:00+08:00",
+      "ticker": "SKHY",
+      "name": "",
+      "leg": "US",
+      "strategy_id": "core_position",
+      "thesis_id": "skhy-hbm-long-tail",
+      "action": "hold_and_watch",
+      "condition": {
+        "type": "manual",
+        "price": null,
+        "description": ""
+      },
+      "size": {
+        "shares": 0,
+        "pct": 0.0,
+        "note": ""
+      },
+      "confidence": 0.55,
+      "driven_by": "macro",
+      "evidence_event_id": null,
+      "regime": "risk_off",
+      "rationale": "1 股现货 0.5% book weight; 浮亏 23% 但无单一 breach; HBM 三星 38% / SK 29% / 美光 22% (Yicai 7/27), 长鑫 Q1 营收 +722% 是板块见顶硬信号; 不补仓不砍仓",
+      "simulated_entry_price": 130.17,
+      "horizon_sessions": 1,
+      "override": {
+        "status": "none",
+        "reason": "",
+        "expires_on": null,
+        "revisit_condition": ""
+      },
+      "evaluation": {
+        "status": "pending",
+        "triggered": null,
+        "trigger_session": null,
+        "execution_price": null,
+        "underlying_return_t1_pct": null,
+        "benefit_t1_pct": null,
+        "benefit_t5_pct": null,
+        "outcome": "pending",
+        "capital": null
+      },
+      "execution": {
+        "status": "unknown",
+        "detected_at": null,
+        "source": null
+      },
+      "migration": {
+        "source": "plan_v1"
+      }
+    },
+    {
+      "schema_version": 2,
+      "decision_id": "dec-231e9985dbc4",
+      "episode_id": "ep-fb89c88c8dfb",
+      "decision_group_id": "2026-07-29:CRCL",
+      "plan_date": "2026-07-29",
+      "created_at": "2026-07-29T08:00:00+08:00",
+      "ticker": "CRCL",
+      "name": "",
+      "leg": "US",
+      "strategy_id": "core_position",
+      "thesis_id": "crcl-stablecoin-thesis",
+      "action": "hold_and_watch",
+      "condition": {
+        "type": "manual",
+        "price": null,
+        "description": ""
+      },
+      "size": {
+        "shares": 0,
+        "pct": 0.0,
+        "note": ""
+      },
+      "confidence": 0.5,
+      "driven_by": "macro",
+      "evidence_event_id": null,
+      "regime": "risk_off",
+      "rationale": "2 股 (0.5% book) 小仓位 浮亏 -26%; Cathie Wood 7/28 抄底 14M 是中偏正; 8/5 Q2 财报后决策",
+      "simulated_entry_price": 64.32,
+      "horizon_sessions": 1,
+      "override": {
+        "status": "none",
+        "reason": "",
+        "expires_on": null,
+        "revisit_condition": ""
+      },
+      "evaluation": {
+        "status": "pending",
+        "triggered": null,
+        "trigger_session": null,
+        "execution_price": null,
+        "underlying_return_t1_pct": null,
+        "benefit_t1_pct": null,
+        "benefit_t5_pct": null,
+        "outcome": "pending",
+        "capital": null
+      },
+      "execution": {
+        "status": "unknown",
+        "detected_at": null,
+        "source": null
+      },
+      "migration": {
+        "source": "plan_v1"
+      }
+    },
+    {
+      "schema_version": 2,
+      "decision_id": "dec-7950b2109cc1",
+      "episode_id": "ep-f31982c6d511",
+      "decision_group_id": "2026-07-29:02208",
+      "plan_date": "2026-07-29",
+      "created_at": "2026-07-29T08:00:00+08:00",
+      "ticker": "02208",
+      "name": "",
+      "leg": "HK",
+      "strategy_id": "core_position",
+      "thesis_id": "02208-wind-seasonal",
+      "action": "hold_and_watch",
+      "condition": {
+        "type": "manual",
+        "price": null,
+        "description": ""
+      },
+      "size": {
+        "shares": 0,
+        "pct": 0.0,
+        "note": ""
+      },
+      "confidence": 0.55,
+      "driven_by": "macro",
+      "evidence_event_id": null,
+      "regime": "risk_off",
+      "rationale": "风电装机季节性回调; 同行 (00916 +2.7% 5d) 强但 self 弱; 不补仓等 8 月装机数据",
+      "simulated_entry_price": 9.56,
+      "horizon_sessions": 1,
+      "override": {
+        "status": "none",
+        "reason": "",
+        "expires_on": null,
+        "revisit_condition": ""
+      },
+      "evaluation": {
+        "status": "pending",
+        "triggered": null,
+        "trigger_session": null,
+        "execution_price": null,
+        "underlying_return_t1_pct": null,
+        "benefit_t1_pct": null,
+        "benefit_t5_pct": null,
+        "outcome": "pending",
+        "capital": null
+      },
+      "execution": {
+        "status": "unknown",
+        "detected_at": null,
+        "source": null
+      },
+      "migration": {
+        "source": "plan_v1"
+      }
+    },
+    {
+      "schema_version": 2,
+      "decision_id": "dec-4af9252ffc2f",
+      "episode_id": "ep-a2cb9ac8da8f",
+      "decision_group_id": "2026-07-29:03033",
+      "plan_date": "2026-07-29",
+      "created_at": "2026-07-29T08:00:00+08:00",
+      "ticker": "03033",
+      "name": "",
+      "leg": "HK",
+      "strategy_id": "core_position",
+      "thesis_id": "03033-hstech-1x-proxy",
+      "action": "hold_and_watch",
+      "condition": {
+        "type": "manual",
+        "price": null,
+        "description": ""
+      },
+      "size": {
+        "shares": 0,
+        "pct": 0.0,
+        "note": ""
+      },
+      "confidence": 0.5,
+      "driven_by": "peer",
+      "evidence_event_id": null,
+      "regime": "risk_off",
+      "rationale": "1x proxy 比 07226 2x 阻 decay; 同行 5d liquid +1.32% 是 7 月底第一次正, 但 trend 仍未确认 reversal",
+      "simulated_entry_price": 4.644,
+      "horizon_sessions": 1,
+      "override": {
+        "status": "none",
+        "reason": "",
+        "expires_on": null,
+        "revisit_condition": ""
+      },
+      "evaluation": {
+        "status": "pending",
+        "triggered": null,
+        "trigger_session": null,
+        "execution_price": null,
+        "underlying_return_t1_pct": null,
+        "benefit_t1_pct": null,
+        "benefit_t5_pct": null,
+        "outcome": "pending",
+        "capital": null
+      },
+      "execution": {
+        "status": "unknown",
+        "detected_at": null,
+        "source": null
+      },
+      "migration": {
+        "source": "plan_v1"
+      }
+    },
+    {
+      "schema_version": 2,
+      "decision_id": "dec-a43d5f03a33d",
+      "episode_id": "ep-c4d21f2bd95b",
+      "decision_group_id": "2026-07-29:SPCX",
+      "plan_date": "2026-07-29",
+      "created_at": "2026-07-29T08:00:00+08:00",
+      "ticker": "SPCX",
+      "name": "",
+      "leg": "US",
+      "strategy_id": "core_position",
+      "thesis_id": "spcx-spot-thesis",
+      "action": "hold_and_watch",
+      "condition": {
+        "type": "manual",
+        "price": null,
+        "description": ""
+      },
+      "size": {
+        "shares": 0,
+        "pct": 0.0,
+        "note": ""
+      },
+      "confidence": 0.45,
+      "driven_by": "peer",
+      "evidence_event_id": null,
+      "regime": "risk_off",
+      "rationale": "1 股现货 (0.4% book) 0.5% weight 极小; 8/4 Q2 / 8/6 lockup 是两重事件; 大摩定 xAI 估值零已 in price",
+      "simulated_entry_price": 116.41,
+      "horizon_sessions": 1,
+      "override": {
+        "status": "none",
+        "reason": "",
+        "expires_on": null,
+        "revisit_condition": ""
+      },
+      "evaluation": {
+        "status": "pending",
+        "triggered": null,
+        "trigger_session": null,
+        "execution_price": null,
+        "underlying_return_t1_pct": null,
+        "benefit_t1_pct": null,
+        "benefit_t5_pct": null,
+        "outcome": "pending",
+        "capital": null
+      },
+      "execution": {
+        "status": "unknown",
+        "detected_at": null,
+        "source": null
+      },
+      "migration": {
+        "source": "plan_v1"
+      }
+    },
+    {
+      "schema_version": 2,
+      "decision_id": "dec-9986a2f95a6e",
+      "episode_id": "ep-30ce77c43225",
+      "decision_group_id": "2026-07-29:CASH",
+      "plan_date": "2026-07-29",
+      "created_at": "2026-07-29T08:00:00+08:00",
+      "ticker": "CRCL",
+      "name": "",
+      "leg": "US",
+      "strategy_id": "core_position",
+      "thesis_id": "us-cash-buffer-watch",
+      "action": "watch",
+      "condition": {
+        "type": "manual",
+        "price": null,
+        "description": ""
+      },
+      "size": {
+        "shares": 0,
+        "pct": 0.0,
+        "note": ""
+      },
+      "confidence": 0.65,
+      "driven_by": "risk_rule",
+      "evidence_event_id": null,
+      "regime": "risk_off",
+      "rationale": "US cash $100 接近 0, broker-side audit 需在 7/29 09:30 ET 前完成; 真正 broker 端 audit 由 watch_levels.us_cash_floor_usd=200 承载, 此处仅作 CRCL watch 占位",
+      "simulated_entry_price": 64.32,
+      "horizon_sessions": 1,
+      "override": {
+        "status": "none",
+        "reason": "",
+        "expires_on": null,
+        "revisit_condition": ""
+      },
+      "evaluation": {
+        "status": "pending",
+        "triggered": null,
+        "trigger_session": null,
+        "execution_price": null,
+        "underlying_return_t1_pct": null,
+        "benefit_t1_pct": null,
+        "benefit_t5_pct": null,
+        "outcome": "pending",
+        "capital": null
+      },
+      "execution": {
+        "status": "unknown",
+        "detected_at": null,
+        "source": null
+      },
+      "migration": {
+        "source": "plan_v1"
+      }
+    }
+  ],
+  "watch_levels": {
+    "hstech_breakdown": 4600,
+    "soxl_breakdown_pct": null,
+    "book_force_derisk_usd": -400,
+    "us_cash_floor_usd": 200,
+    "00100_rebound_target_hkd": 220.0,
+    "spcx_lockup_test_usd": 100.0
+  }
+}
