@@ -19,7 +19,7 @@ def test_settled_outlier_is_quarantined_but_latest_five_dates_win():
     fresh[1] = ("2026-07-02", 130.0)  # settled: reject 27% rewrite
     fresh[-1] = ("2026-07-10", 140.0)  # latest five: accept provisional close
 
-    stable, advisory = gold.stabilize_xau_history(
+    stable, advisory = gold.stabilize_history(
         fresh,
         previous,
         {"name": gold.XAU_PRIMARY_SOURCE, "points": len(fresh)},
@@ -38,7 +38,7 @@ def test_small_settled_revision_is_accepted():
     fresh = list(previous)
     fresh[0] = ("2026-07-01", 100.2)
 
-    stable, advisory = gold.stabilize_xau_history(
+    stable, advisory = gold.stabilize_history(
         fresh,
         previous,
         {"name": gold.XAU_PRIMARY_SOURCE, "points": len(fresh)},
@@ -53,7 +53,7 @@ def test_primary_feed_recovery_replaces_fallback_reference():
     fallback = rows((day, 200.0) for day in range(1, 8))
     primary = rows((day, 100.0) for day in range(1, 8))
 
-    stable, advisory = gold.stabilize_xau_history(
+    stable, advisory = gold.stabilize_history(
         primary,
         fallback,
         {"name": gold.XAU_PRIMARY_SOURCE, "points": len(primary)},
@@ -67,7 +67,7 @@ def test_primary_feed_recovery_replaces_fallback_reference():
 def test_empty_fetch_preserves_reference_and_emits_advisory():
     previous = rows((day, 100.0 + day) for day in range(1, 4))
 
-    stable, advisory = gold.stabilize_xau_history(
+    stable, advisory = gold.stabilize_history(
         [],
         previous,
         {"name": "unavailable", "points": 0},
@@ -80,7 +80,7 @@ def test_empty_fetch_preserves_reference_and_emits_advisory():
 
 
 def test_first_empty_fetch_is_also_visible():
-    stable, advisory = gold.stabilize_xau_history(
+    stable, advisory = gold.stabilize_history(
         [],
         [],
         {"name": "unavailable", "points": 0},
@@ -104,13 +104,17 @@ def test_london_payload_persists_reference_and_visible_provenance():
         7.0,
         {"2026-07-01": 7.0, "2026-07-02": 7.0},
         xau,
-        source,
-        "test advisory",
+        hist_source=source,
+        fx_hist_source={"name": "frankfurter_usdcny", "points": 2},
+        hist_advisory="test advisory",
     )
 
     assert london["hist_source"] == source
     assert london["hist_series"] == [
         ["2026-07-01", 100.0], ["2026-07-02", 101.0],
+    ]
+    assert london["fx_hist_series"] == [
+        ["2026-07-01", 7.0], ["2026-07-02", 7.0],
     ]
     assert london["hist_advisory"] == "test advisory"
     assert london["dca_equiv"]["oz_held"] > 0
@@ -121,6 +125,7 @@ def test_dashboard_drops_internal_history_but_keeps_provenance_contract():
     renderer = (ROOT / "assets" / "js" / "dashboard.render.js").read_text()
 
     assert "_gold['london'].pop('hist_series', None)" in builder
+    assert "_gold['london'].pop('fx_hist_series', None)" in builder
     assert "历史源 ${escapeHtml(" in renderer
     assert 'role="status"' in renderer
     assert "ld.hist_advisory" in renderer

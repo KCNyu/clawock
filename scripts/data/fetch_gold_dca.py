@@ -228,7 +228,8 @@ def fetch_xau_history(start):
     return [], {'name': 'unavailable', 'points': 0}
 
 
-def stabilize_xau_history(fresh, previous, fresh_source, previous_source=None):
+def stabilize_history(fresh, previous, fresh_source, previous_source=None,
+                      label='伦敦金历史'):
     """Accept revisions in the latest settlement window; quarantine old outliers.
 
     A current close can legitimately settle on the next day, so the newest five
@@ -242,12 +243,12 @@ def stabilize_xau_history(fresh, previous, fresh_source, previous_source=None):
     source_name = (fresh_source or {}).get('name', 'unavailable')
     prior_name = (previous_source or {}).get('name')
     if not prior_map:
-        advisory = None if fresh_map else '伦敦金历史抓取失败，暂无可用参考点'
+        advisory = None if fresh_map else f'{label}抓取失败，暂无可用参考点'
         return sorted(fresh_map.items()), advisory
     if not fresh_map:
         return (
             sorted(prior_map.items()),
-            f'伦敦金历史抓取失败，沿用上次 {len(prior_map)} 个参考点',
+            f'{label}抓取失败，沿用上次 {len(prior_map)} 个参考点',
         )
     if source_name == XAU_PRIMARY_SOURCE and prior_name == XAU_FALLBACK_SOURCE:
         return sorted(fresh_map.items()), None
@@ -266,7 +267,7 @@ def stabilize_xau_history(fresh, previous, fresh_source, previous_source=None):
     if quarantined:
         worst_day, worst_pct = max(quarantined, key=lambda item: item[1])
         advisory = (
-            f'伦敦金历史校验：沿用 {len(quarantined)} 个已结算点；'
+            f'{label}校验：沿用 {len(quarantined)} 个已结算点；'
             f'最大新旧偏差 {worst_pct:.2f}%（{worst_day}，源 {source_name}）'
         )
     return sorted(merged.items()), advisory
@@ -366,7 +367,7 @@ def build_london_dca(nav_history, xau_hist, usdcny_hist, xau_cur, usdcny_cur, st
 
 
 def compute_london(derived, gold, spot, usdcny, usdcny_hist, xau_hist,
-                   hist_source=None, hist_advisory=None):
+                   hist_source=None, fx_hist_source=None, hist_advisory=None):
     """折算 + 对比线 + DCA 对应现值。任一关键源缺失 → 保留旧 london（merge-not-overwrite）。"""
     if not spot or not spot.get('xau_usd') or not usdcny:
         return gold.get('london')  # 抓空：沿用旧值，绝不清空
@@ -400,6 +401,10 @@ def compute_london(derived, gold, spot, usdcny, usdcny_hist, xau_hist,
         'dca_equiv': dca_equiv,
         'hist_source': hist_source or {'name': 'unavailable', 'points': 0},
         'hist_series': [[d, round(v, 4)] for d, v in (xau_hist or [])],
+        'fx_hist_source': fx_hist_source or {'name': 'unavailable', 'points': 0},
+        'fx_hist_series': [
+            [d, round(v, 6)] for d, v in sorted((usdcny_hist or {}).items())
+        ],
         'hist_advisory': hist_advisory,
         'last_updated': datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%S.%fZ'),
     }
@@ -427,7 +432,8 @@ def project_dca(units, principal, nav, daily, horizons=(20, 40, 60, 120, 250)):
 
 
 def compute(gold, history, realtime, spot=None, usdcny=None, usdcny_hist=None,
-            xau_hist=None, xau_hist_source=None, xau_hist_advisory=None):
+            xau_hist=None, xau_hist_source=None, fx_hist_source=None,
+            hist_advisory=None):
     base_principal = float(gold['principal_invested'])
     base_units = float(gold['units_held'])
     daily = float(gold.get('daily_amount', 200))
@@ -484,7 +490,7 @@ def compute(gold, history, realtime, spot=None, usdcny=None, usdcny_hist=None,
     }
     derived['london'] = compute_london(
         derived, gold, spot, usdcny, usdcny_hist, xau_hist,
-        xau_hist_source, xau_hist_advisory,
+        xau_hist_source, fx_hist_source, hist_advisory,
     )
     return derived
 
@@ -514,22 +520,37 @@ def main():
     else:
         xau_fresh, xau_source = [], {'name': 'not_attempted', 'points': 0}
     old_london = gold.get('london') or {}
-    xau_hist, xau_advisory = stabilize_xau_history(
+    xau_hist, xau_advisory = stabilize_history(
         xau_fresh,
         old_london.get('hist_series') or [],
         xau_source,
         old_london.get('hist_source') or {},
     )
+    fx_source = {
+        'name': 'frankfurter_usdcny',
+        'points': len(usdcny_hist or {}),
+    }
+    fx_hist, fx_advisory = stabilize_history(
+        sorted((usdcny_hist or {}).items()),
+        old_london.get('fx_hist_series') or [],
+        fx_source,
+        old_london.get('fx_hist_source') or {},
+        label='USDCNY 历史',
+    )
+    usdcny_hist = dict(fx_hist)
+    history_advisory = '；'.join(
+        advisory for advisory in (xau_advisory, fx_advisory) if advisory
+    ) or None
     if not spot:
         print('  warn: 伦敦金现货(hf_XAU)抓空，沿用旧 london', file=sys.stderr)
     elif not xau_fresh:
         print('  warn: 伦敦金历史(GC00Y)限流抓空，对比线沿用旧线', file=sys.stderr)
-    if xau_advisory:
-        print(f'  advisory: {xau_advisory}', file=sys.stderr)
+    if history_advisory:
+        print(f'  advisory: {history_advisory}', file=sys.stderr)
 
     derived = compute(
         gold, history, realtime, spot, usdcny, usdcny_hist, xau_hist,
-        xau_source, xau_advisory,
+        xau_source, fx_source, history_advisory,
     )
 
     # merge：真值字段原样保留，派生字段更新；nav_history 抓空时不清空

@@ -2309,6 +2309,7 @@ def main():
             # 结算窗的原始参考序列只属于 fetcher 持久状态；dashboard 只需要
             # 来源、点数和可见 advisory，不把整条内部校验账本发到浏览器。
             _gold['london'].pop('hist_series', None)
+            _gold['london'].pop('fx_hist_series', None)
     out['gold_dca'] = _gold
 
     # A2 健康卡：数据新鲜度 + 体检结论（纯文件运算，零网络）
