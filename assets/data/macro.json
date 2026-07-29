@@ -1,65 +1,71 @@
 {
-  "generated_at": "2026-07-28T22:41:30.498136+00:00",
+  "generated_at": "2026-07-29T22:38:10.511135+00:00",
   "vix": {
     "symbol": "^VIX",
-    "price": 18.21,
-    "prev": 18.67,
-    "change_pct": -2.46,
-    "as_of": 1785269701,
+    "price": 20.66,
+    "prev": 18.21,
+    "change_pct": 13.45,
+    "as_of": 1785356101,
     "source": "yahoo"
   },
   "treasury_10y": {
     "symbol": "^TNX",
-    "price": 4.604,
-    "prev": 4.641,
-    "change_pct": -0.8,
-    "as_of": 1785265194,
+    "price": 4.622,
+    "prev": 4.604,
+    "change_pct": 0.39,
+    "as_of": 1785351595,
     "source": "yahoo",
-    "yield_pct": 4.604
+    "yield_pct": 4.622
   },
   "dxy": {
     "symbol": "DX-Y.NYB",
-    "price": 101.393,
-    "prev": 101.535,
-    "change_pct": -0.14,
-    "as_of": 1785276296,
+    "price": 100.802,
+    "prev": 101.417,
+    "change_pct": -0.61,
+    "as_of": 1785362699,
     "source": "yahoo"
   },
   "fear_greed": {
-    "score": 38.5,
+    "score": 32.3,
     "rating": "fear",
-    "prev_close": 39.9,
-    "prev_1_week": 43.4,
-    "as_of": "2026-07-28T22:22:49+00:00"
+    "prev_close": 38.5,
+    "prev_1_week": 43.3,
+    "as_of": "2026-07-29T22:19:57+00:00"
   },
   "hsi": {
     "symbol": "^HSI",
-    "price": 25310.85,
-    "prev": 25207.18,
-    "change_pct": 0.41,
+    "price": 25807.92,
+    "prev": 25310.85,
+    "change_pct": 1.96,
     "source": "tencent"
   },
   "hstech": {
     "symbol": "^HSTECH",
-    "price": 4730.61,
-    "prev": 4702.05,
-    "change_pct": 0.61,
+    "price": 4864.73,
+    "prev": 4730.61,
+    "change_pct": 2.84,
     "source": "tencent"
   },
   "spx": {
     "symbol": "^GSPC",
-    "price": 7428.78,
-    "prev": 7413.18,
-    "change_pct": 0.21,
-    "as_of": 1785273014,
+    "price": 7316.15,
+    "prev": 7428.78,
+    "change_pct": -1.52,
+    "as_of": 1785359560,
     "source": "yahoo"
   },
   "nasdaq": {
     "symbol": "^IXIC",
-    "price": 24876.91,
-    "prev": 24932.08,
-    "change_pct": -0.22,
+    "price": 24442.94,
+    "prev": 24876.91,
+    "change_pct": -1.74,
     "source": "tencent"
   },
-  "fed_press": []
+  "fed_press": [
+    {
+      "date": "2026-07-29",
+      "title": "Federal Reserve issues FOMC statement",
+      "url": "https://www.federalreserve.gov/newsevents/pressreleases/monetary20260729a.htm"
+    }
+  ]
 }
