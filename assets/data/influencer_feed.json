@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-28T22:37:25.781873+00:00",
+  "generated_at": "2026-07-29T14:59:47.308554+00:00",
   "lookback_hours": 48,
   "sources": {
     "trump": "trumpstruth.org/feed (primary)",
@@ -13,179 +13,37 @@
   },
   "llm_filtered": true,
   "counts": {
-    "total": 11,
-    "held_hits": 6,
-    "new_ideas": 2,
+    "total": 9,
+    "held_hits": 0,
+    "new_ideas": 6,
     "sector_hits": 1
   },
   "items": [
     {
       "author": "Musk",
-      "text": "Elon Musk stocks take $1.5 trillion hit with fresh test in SpaceX lockup ahead",
+      "text": "Elon Musk Thanked Micron Twice on Tesla's Earnings Call -- Here's Why That's Great News",
       "url": "",
-      "published": "Tue, 28 Jul 2026 18:56:34 GMT",
+      "published": "Wed, 29 Jul 2026 11:16:00 GMT",
       "origin": "gnews-rss",
-      "source": "CNBC",
+      "source": "The Motley Fool",
       "tickers": [
-        "SPCX",
-        "SPCH"
+        "MU"
       ],
-      "held": [
-        "SPCH",
-        "SPCX"
+      "held": [],
+      "new_ideas": [
+        "MU"
       ],
-      "new_ideas": [],
       "sectors": [
-        "航天",
-        "私募估值"
-      ],
-      "sector_holdings": [
-        "RKLX"
-      ],
-      "stance": "attack",
-      "relevance": 90,
-      "summary_cn": "Musk旗下SpaceX在lockup测试前估值蒸发1.5万亿美元，kcn持仓SPCX和SPCH（2倍做多SpaceX ETF）直接承压。"
-    },
-    {
-      "author": "Musk",
-      "text": "SpaceX stock plunges. Is Elon Musk still the richest person in the world?",
-      "url": "",
-      "published": "Tue, 28 Jul 2026 18:59:59 GMT",
-      "origin": "gnews-rss",
-      "source": "Deseret News",
-      "tickers": [
-        "SPCX",
-        "SPCH"
-      ],
-      "held": [
-        "SPCH",
-        "SPCX"
-      ],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "Tesla",
-        "科技富豪榜"
-      ],
-      "sector_holdings": [
-        "RKLX"
-      ],
-      "stance": "attack",
-      "relevance": 88,
-      "summary_cn": "SpaceX股价大跌，Musk世界首富地位受质疑，kcn持有的SPCX与SPCH（2倍杠杆SpaceX ETF）受直接冲击。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk calls himself ‘former trillionaire’ as billions vanish amid Tesla, SpaceX crash. Why the rich laugh at losses",
-      "url": "",
-      "published": "Tue, 28 Jul 2026 10:55:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Yahoo Finance",
-      "tickers": [
-        "SPCX",
-        "SPCH"
-      ],
-      "held": [
-        "SPCH",
-        "SPCX"
-      ],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "Tesla",
-        "AI"
+        "AI",
+        "半导体"
       ],
       "sector_holdings": [
         "MSFU",
-        "RKLX"
+        "SKHY"
       ],
-      "stance": "attack",
-      "relevance": 87,
-      "summary_cn": "Musk自嘲'前万亿富翁'，Tesla与SpaceX估值双杀背景下，kcn的SpaceX相关杠杆敞口SPCX/SPCH持续承压。"
-    },
-    {
-      "author": "Musk",
-      "text": "Reality Bites Elon Musk and His Tesla, SpaceX Believers",
-      "url": "",
-      "published": "Thu, 23 Jul 2026 21:04:00 GMT",
-      "origin": "gnews-rss",
-      "source": "WSJ",
-      "tickers": [
-        "SPCX",
-        "SPCH"
-      ],
-      "held": [
-        "SPCH",
-        "SPCX"
-      ],
-      "new_ideas": [],
-      "sectors": [
-        "Tesla",
-        "航天",
-        "AI"
-      ],
-      "sector_holdings": [
-        "MSFU",
-        "RKLX"
-      ],
-      "stance": "attack",
-      "relevance": 85,
-      "summary_cn": "Musk的Tesla与SpaceX'信徒'遭现实打击，估值神话被质疑，kcn的SPCX/SPCH等SpaceX杠杆持仓面临重新定价。"
-    },
-    {
-      "author": "Musk",
-      "text": "Musk’s Wealth Has Taken a Huge SpaceX Hit. He’s Still Worth 45 Times China’s CXMT Billionaire.",
-      "url": "",
-      "published": "Tue, 28 Jul 2026 20:38:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Barron's",
-      "tickers": [
-        "SPCX",
-        "SPCH"
-      ],
-      "held": [
-        "SPCH",
-        "SPCX"
-      ],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "科技富豪榜"
-      ],
-      "sector_holdings": [
-        "RKLX"
-      ],
-      "stance": "attack",
-      "relevance": 84,
-      "summary_cn": "SpaceX估值大幅缩水，Musk身家仍是中国CXMT亿万富翁的45倍——kcn的SpaceX杠杆敞口SPCX/SPCH持续走弱。"
-    },
-    {
-      "author": "Musk",
-      "text": "As SpaceX Sheds a Tesla’s Worth of Value, Elon Musk Is Trying to Sell Investors on Another Company",
-      "url": "",
-      "published": "Tue, 28 Jul 2026 16:30:46 GMT",
-      "origin": "gnews-rss",
-      "source": "Gizmodo",
-      "tickers": [
-        "SPCX",
-        "SPCH"
-      ],
-      "held": [
-        "SPCH",
-        "SPCX"
-      ],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "私募估值",
-        "资本运作"
-      ],
-      "sector_holdings": [
-        "RKLX"
-      ],
-      "stance": "attack",
-      "relevance": 83,
-      "summary_cn": "SpaceX单轮蒸发相当于一整辆Tesla市值的价值，Musk转而向投资者推介其他公司，kcn的SPCX/SPCH持仓承压信号明显。"
+      "stance": "endorse",
+      "relevance": 78,
+      "summary_cn": "Musk在Tesla财报会上两次点名感谢Micron(MU)，等于公开背书MU为AI/HBM内存关键供应商，对存储链是强信号。"
     },
     {
       "author": "Trump",
@@ -202,18 +60,15 @@
       ],
       "sectors": [
         "AI",
-        "半导体",
-        "制造业回流",
-        "英伟达"
+        "半导体"
       ],
       "sector_holdings": [
-        "03032",
-        "03033",
-        "07226"
+        "MSFU",
+        "SKHY"
       ],
       "stance": "endorse",
-      "relevance": 72,
-      "summary_cn": "Trump转发NVIDIA'在美国建、为美国建'宣传内容，间接背书NVDA本土制造叙事，对恒生科技ETF等AI敞口有情绪利好。"
+      "relevance": 70,
+      "summary_cn": "Trump转发英伟达'美国制造'宣传页面，背书NVDA在美本土生产AI芯片的制造业回流叙事。"
     },
     {
       "author": "Trump",
@@ -230,42 +85,15 @@
       ],
       "sectors": [
         "AI",
-        "半导体",
-        "制造业回流"
+        "半导体"
       ],
       "sector_holdings": [
-        "03032",
-        "03033",
-        "07226"
+        "MSFU",
+        "SKHY"
       ],
       "stance": "endorse",
       "relevance": 70,
-      "summary_cn": "Trump转发NVIDIA与合作伙伴在美国本土建厂博文，强化'美国制造'主题，对AI/半导体板块情绪正面。"
-    },
-    {
-      "author": "Musk",
-      "text": "UK lawmaker suing Musk's xAI seeks order to stop Grok generating sexualised images",
-      "url": "",
-      "published": "Tue, 28 Jul 2026 13:19:43 GMT",
-      "origin": "gnews-rss",
-      "source": "Reuters",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "AI",
-        "监管",
-        "xAI/Grok"
-      ],
-      "sector_holdings": [
-        "03032",
-        "03033",
-        "07226",
-        "MSFU"
-      ],
-      "stance": "attack",
-      "relevance": 58,
-      "summary_cn": "英国议员起诉xAI并寻求禁令阻止Grok生成色情图像，xAI/AI监管风险上升，对AI板块情绪偏负面。"
+      "summary_cn": "Trump转发英伟达官方博客：'NVIDIA and Partners Build in America, for America'，持续背书AI芯片美国制造。"
     },
     {
       "author": "Trump",
@@ -273,123 +101,21 @@
       "url": "https://trumpstruth.org/statuses/40376",
       "published": "2026-07-28T17:24:57+00:00",
       "origin": "truthsocial",
-      "tickers": [],
+      "tickers": [
+        "TM"
+      ],
       "held": [],
-      "new_ideas": [],
+      "new_ideas": [
+        "TM"
+      ],
       "sectors": [
         "关税",
-        "汽车",
-        "制造业回流"
+        "汽车"
       ],
       "sector_holdings": [],
       "stance": "neutral",
-      "relevance": 62,
-      "summary_cn": "Trump关税推动叠加USMCA，Toyota将Tacoma生产线从墨西哥迁至德州，体现关税政策对汽车制造业回流的影响。"
-    },
-    {
-      "author": "Trump",
-      "text": "John Thune should not allow the United States  Senate to “leave town” until it passes The Save America Act or, far better still, TERMINATES THE FILIBUSTER, where Republicans can then quickly pass everything they ever dreamed of, including a full and deep throated SAVE AMERICA ACT, the Budget, and the ever looming Debt Ceiling disaster, 1929! The Dumocrats will do it on day one, and can’t believe how lucky they got with this Senate leadership. Remember, stupidity always brings LOSING & DEATH! President DJT",
-      "url": "https://trumpstruth.org/statuses/40301",
-      "published": "2026-07-27T13:01:06+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "财政政策",
-        "债务上限",
-        "立法"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 55,
-      "summary_cn": "Trump施压参议院通过《Save America Act》、预算及债务上限法案，警告1929式金融危机，影响财政与利率预期。"
-    }
-  ],
-  "held_hits": [
-    {
-      "author": "Musk",
-      "text": "Elon Musk stocks take $1.5 trillion hit with fresh test in SpaceX lockup ahead",
-      "url": "",
-      "published": "Tue, 28 Jul 2026 18:56:34 GMT",
-      "origin": "gnews-rss",
-      "source": "CNBC",
-      "tickers": [
-        "SPCX",
-        "SPCH"
-      ],
-      "held": [
-        "SPCH",
-        "SPCX"
-      ],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "私募估值"
-      ],
-      "sector_holdings": [
-        "RKLX"
-      ],
-      "stance": "attack",
-      "relevance": 90,
-      "summary_cn": "Musk旗下SpaceX在lockup测试前估值蒸发1.5万亿美元，kcn持仓SPCX和SPCH（2倍做多SpaceX ETF）直接承压。"
-    },
-    {
-      "author": "Musk",
-      "text": "SpaceX stock plunges. Is Elon Musk still the richest person in the world?",
-      "url": "",
-      "published": "Tue, 28 Jul 2026 18:59:59 GMT",
-      "origin": "gnews-rss",
-      "source": "Deseret News",
-      "tickers": [
-        "SPCX",
-        "SPCH"
-      ],
-      "held": [
-        "SPCH",
-        "SPCX"
-      ],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "Tesla",
-        "科技富豪榜"
-      ],
-      "sector_holdings": [
-        "RKLX"
-      ],
-      "stance": "attack",
-      "relevance": 88,
-      "summary_cn": "SpaceX股价大跌，Musk世界首富地位受质疑，kcn持有的SPCX与SPCH（2倍杠杆SpaceX ETF）受直接冲击。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk calls himself ‘former trillionaire’ as billions vanish amid Tesla, SpaceX crash. Why the rich laugh at losses",
-      "url": "",
-      "published": "Tue, 28 Jul 2026 10:55:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Yahoo Finance",
-      "tickers": [
-        "SPCX",
-        "SPCH"
-      ],
-      "held": [
-        "SPCH",
-        "SPCX"
-      ],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "Tesla",
-        "AI"
-      ],
-      "sector_holdings": [
-        "MSFU",
-        "RKLX"
-      ],
-      "stance": "attack",
-      "relevance": 87,
-      "summary_cn": "Musk自嘲'前万亿富翁'，Tesla与SpaceX估值双杀背景下，kcn的SpaceX相关杠杆敞口SPCX/SPCH持续承压。"
+      "relevance": 65,
+      "summary_cn": "分析指关税拉动、USMCA推动丰田将Tacoma生产从墨西哥迁回德州，验证Trump关税政策对车企供应链的实际影响。"
     },
     {
       "author": "Musk",
@@ -399,84 +125,131 @@
       "origin": "gnews-rss",
       "source": "WSJ",
       "tickers": [
-        "SPCX",
-        "SPCH"
+        "TSLA"
       ],
-      "held": [
+      "held": [],
+      "new_ideas": [
+        "TSLA"
+      ],
+      "sectors": [
+        "电动车",
+        "航天"
+      ],
+      "sector_holdings": [
+        "RKLX",
         "SPCH",
         "SPCX"
       ],
+      "stance": "attack",
+      "relevance": 55,
+      "summary_cn": "媒体看空Musk旗下Tesla与SpaceX投资人信念，间接提示SPCX/SPCH/RKLX等SpaceX敞口持仓存在叙事降温风险。"
+    },
+    {
+      "author": "Musk",
+      "text": "As Elon Musk Promises The Future, Tesla Stock Slides Into The Past",
+      "url": "",
+      "published": "Mon, 27 Jul 2026 18:49:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Investor's Business Daily",
+      "tickers": [
+        "TSLA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "TSLA"
+      ],
+      "sectors": [
+        "电动车"
+      ],
+      "sector_holdings": [],
+      "stance": "attack",
+      "relevance": 55,
+      "summary_cn": "报道标题批评Musk一边'承诺未来'，Tesla股价却滑向过去，对TSLA情绪偏负面。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk said money doesn't matter. Then he rolled out X Money and admitted he's a 'former trillionaire'",
+      "url": "",
+      "published": "Wed, 29 Jul 2026 07:05:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Fortune",
+      "tickers": [],
+      "held": [],
       "new_ideas": [],
       "sectors": [
-        "Tesla",
-        "航天",
-        "AI"
+        "加密货币",
+        "支付"
+      ],
+      "sector_holdings": [
+        "CRCL"
+      ],
+      "stance": "endorse",
+      "relevance": 65,
+      "summary_cn": "Musk推出X Money支付服务并自嘲'前万亿富翁'，为X的金融/支付业务站台，间接利好加密支付生态(含CRCL稳定币赛道)。"
+    },
+    {
+      "author": "Trump",
+      "text": "Trump Rallies Around 'Trump Accounts' During Ga. Speech: https://www.newsmax.com/newsfront/donald-trump-georgia-rally-investment-accounts/2026/07/22/id/1263753/",
+      "url": "https://trumpstruth.org/statuses/40377",
+      "published": "2026-07-28T17:28:59+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "宏观经济"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 55,
+      "summary_cn": "Trump在佐治亚演讲中推广'Trump Accounts'(婴幼儿投资账户)，涉及未来美国储蓄/投资政策方向。"
+    },
+    {
+      "author": "Trump",
+      "text": "https://www.cnbc.com/video/2026/07/06/watch-cnbcs-full-interview-with-invest-america-founder-brad-gerstner.html",
+      "url": "https://trumpstruth.org/statuses/40329",
+      "published": "2026-07-27T23:20:58+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "美股"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 50,
+      "summary_cn": "Trump转发CNBC对Invest America创始人Brad Gerstner的专访，议题涉及美国资本市场/投资政策。"
+    }
+  ],
+  "held_hits": [],
+  "new_ideas": [
+    {
+      "author": "Musk",
+      "text": "Elon Musk Thanked Micron Twice on Tesla's Earnings Call -- Here's Why That's Great News",
+      "url": "",
+      "published": "Wed, 29 Jul 2026 11:16:00 GMT",
+      "origin": "gnews-rss",
+      "source": "The Motley Fool",
+      "tickers": [
+        "MU"
+      ],
+      "held": [],
+      "new_ideas": [
+        "MU"
+      ],
+      "sectors": [
+        "AI",
+        "半导体"
       ],
       "sector_holdings": [
         "MSFU",
-        "RKLX"
+        "SKHY"
       ],
-      "stance": "attack",
-      "relevance": 85,
-      "summary_cn": "Musk的Tesla与SpaceX'信徒'遭现实打击，估值神话被质疑，kcn的SPCX/SPCH等SpaceX杠杆持仓面临重新定价。"
+      "stance": "endorse",
+      "relevance": 78,
+      "summary_cn": "Musk在Tesla财报会上两次点名感谢Micron(MU)，等于公开背书MU为AI/HBM内存关键供应商，对存储链是强信号。"
     },
-    {
-      "author": "Musk",
-      "text": "Musk’s Wealth Has Taken a Huge SpaceX Hit. He’s Still Worth 45 Times China’s CXMT Billionaire.",
-      "url": "",
-      "published": "Tue, 28 Jul 2026 20:38:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Barron's",
-      "tickers": [
-        "SPCX",
-        "SPCH"
-      ],
-      "held": [
-        "SPCH",
-        "SPCX"
-      ],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "科技富豪榜"
-      ],
-      "sector_holdings": [
-        "RKLX"
-      ],
-      "stance": "attack",
-      "relevance": 84,
-      "summary_cn": "SpaceX估值大幅缩水，Musk身家仍是中国CXMT亿万富翁的45倍——kcn的SpaceX杠杆敞口SPCX/SPCH持续走弱。"
-    },
-    {
-      "author": "Musk",
-      "text": "As SpaceX Sheds a Tesla’s Worth of Value, Elon Musk Is Trying to Sell Investors on Another Company",
-      "url": "",
-      "published": "Tue, 28 Jul 2026 16:30:46 GMT",
-      "origin": "gnews-rss",
-      "source": "Gizmodo",
-      "tickers": [
-        "SPCX",
-        "SPCH"
-      ],
-      "held": [
-        "SPCH",
-        "SPCX"
-      ],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "私募估值",
-        "资本运作"
-      ],
-      "sector_holdings": [
-        "RKLX"
-      ],
-      "stance": "attack",
-      "relevance": 83,
-      "summary_cn": "SpaceX单轮蒸发相当于一整辆Tesla市值的价值，Musk转而向投资者推介其他公司，kcn的SPCX/SPCH持仓承压信号明显。"
-    }
-  ],
-  "new_ideas": [
     {
       "author": "Trump",
       "text": "NVIDIA: Building in America, for America: https://www.nvidia.com/en-us/made-in-usa/",
@@ -492,18 +265,15 @@
       ],
       "sectors": [
         "AI",
-        "半导体",
-        "制造业回流",
-        "英伟达"
+        "半导体"
       ],
       "sector_holdings": [
-        "03032",
-        "03033",
-        "07226"
+        "MSFU",
+        "SKHY"
       ],
       "stance": "endorse",
-      "relevance": 72,
-      "summary_cn": "Trump转发NVIDIA'在美国建、为美国建'宣传内容，间接背书NVDA本土制造叙事，对恒生科技ETF等AI敞口有情绪利好。"
+      "relevance": 70,
+      "summary_cn": "Trump转发英伟达'美国制造'宣传页面，背书NVDA在美本土生产AI芯片的制造业回流叙事。"
     },
     {
       "author": "Trump",
@@ -520,44 +290,109 @@
       ],
       "sectors": [
         "AI",
-        "半导体",
-        "制造业回流"
+        "半导体"
       ],
       "sector_holdings": [
-        "03032",
-        "03033",
-        "07226"
+        "MSFU",
+        "SKHY"
       ],
       "stance": "endorse",
       "relevance": 70,
-      "summary_cn": "Trump转发NVIDIA与合作伙伴在美国本土建厂博文，强化'美国制造'主题，对AI/半导体板块情绪正面。"
+      "summary_cn": "Trump转发英伟达官方博客：'NVIDIA and Partners Build in America, for America'，持续背书AI芯片美国制造。"
+    },
+    {
+      "author": "Trump",
+      "text": "Tariffs pull, USMCA pushes: Toyota to Texas: https://thehill.com/opinion/white-house/5965989-toyota-texas-tacoma-tariffs-impact/",
+      "url": "https://trumpstruth.org/statuses/40376",
+      "published": "2026-07-28T17:24:57+00:00",
+      "origin": "truthsocial",
+      "tickers": [
+        "TM"
+      ],
+      "held": [],
+      "new_ideas": [
+        "TM"
+      ],
+      "sectors": [
+        "关税",
+        "汽车"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 65,
+      "summary_cn": "分析指关税拉动、USMCA推动丰田将Tacoma生产从墨西哥迁回德州，验证Trump关税政策对车企供应链的实际影响。"
+    },
+    {
+      "author": "Musk",
+      "text": "Reality Bites Elon Musk and His Tesla, SpaceX Believers",
+      "url": "",
+      "published": "Thu, 23 Jul 2026 21:04:00 GMT",
+      "origin": "gnews-rss",
+      "source": "WSJ",
+      "tickers": [
+        "TSLA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "TSLA"
+      ],
+      "sectors": [
+        "电动车",
+        "航天"
+      ],
+      "sector_holdings": [
+        "RKLX",
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "attack",
+      "relevance": 55,
+      "summary_cn": "媒体看空Musk旗下Tesla与SpaceX投资人信念，间接提示SPCX/SPCH/RKLX等SpaceX敞口持仓存在叙事降温风险。"
+    },
+    {
+      "author": "Musk",
+      "text": "As Elon Musk Promises The Future, Tesla Stock Slides Into The Past",
+      "url": "",
+      "published": "Mon, 27 Jul 2026 18:49:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Investor's Business Daily",
+      "tickers": [
+        "TSLA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "TSLA"
+      ],
+      "sectors": [
+        "电动车"
+      ],
+      "sector_holdings": [],
+      "stance": "attack",
+      "relevance": 55,
+      "summary_cn": "报道标题批评Musk一边'承诺未来'，Tesla股价却滑向过去，对TSLA情绪偏负面。"
     }
   ],
   "sector_hits": [
     {
       "author": "Musk",
-      "text": "UK lawmaker suing Musk's xAI seeks order to stop Grok generating sexualised images",
+      "text": "Elon Musk said money doesn't matter. Then he rolled out X Money and admitted he's a 'former trillionaire'",
       "url": "",
-      "published": "Tue, 28 Jul 2026 13:19:43 GMT",
+      "published": "Wed, 29 Jul 2026 07:05:00 GMT",
       "origin": "gnews-rss",
-      "source": "Reuters",
+      "source": "Fortune",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "AI",
-        "监管",
-        "xAI/Grok"
+        "加密货币",
+        "支付"
       ],
       "sector_holdings": [
-        "03032",
-        "03033",
-        "07226",
-        "MSFU"
+        "CRCL"
       ],
-      "stance": "attack",
-      "relevance": 58,
-      "summary_cn": "英国议员起诉xAI并寻求禁令阻止Grok生成色情图像，xAI/AI监管风险上升，对AI板块情绪偏负面。"
+      "stance": "endorse",
+      "relevance": 65,
+      "summary_cn": "Musk推出X Money支付服务并自嘲'前万亿富翁'，为X的金融/支付业务站台，间接利好加密支付生态(含CRCL稳定币赛道)。"
     }
   ]
 }
