@@ -6,7 +6,7 @@ the `validate` workflow) actually call it.
 """
 import copy
 import json
-from datetime import date, datetime, timezone
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 
 import pytest
@@ -77,6 +77,53 @@ def test_reported_earnings_without_an_artifact_is_due(dirs):
         "reason": "earnings reported with no primary-source artifact covering it",
     }]
     assert surface["earnings"]["detection_window_days"] == 14
+
+
+@pytest.mark.parametrize(
+    "event_time,now,expected",
+    [
+        # 00:28 HKT is still 12:28 ET on the event date: an AMC report has not
+        # happened merely because the HKT calendar rolled over.
+        ("amc", datetime(2026, 7, 30, 0, 28, tzinfo=timezone(timedelta(hours=8))), False),
+        ("amc", datetime(2026, 7, 30, 4, 16, tzinfo=timezone(timedelta(hours=8))), True),
+        ("bmo", datetime(2026, 7, 29, 9, 29, tzinfo=timezone(timedelta(hours=-4))), False),
+        ("bmo", datetime(2026, 7, 29, 9, 30, tzinfo=timezone(timedelta(hours=-4))), True),
+        ("unknown", datetime(2026, 7, 29, 23, 59, tzinfo=timezone(timedelta(hours=-4))), False),
+        ("unknown", datetime(2026, 7, 30, 0, 0, tzinfo=timezone(timedelta(hours=-4))), True),
+    ],
+)
+def test_earnings_queue_waits_for_the_event_to_mature(dirs, event_time, now, expected):
+    event = {
+        "ticker": "USTEST",
+        "date": "2026-07-29",
+        "time": event_time,
+        "eps_actual": None,
+    }
+    surface = rs.summarize(
+        portfolio=portfolio(),
+        catalysts={"lookback_window_days": 14, "earnings": [event]},
+        today=date(2026, 7, 30),
+        now=now,
+        **dirs,
+    )
+    assert bool(surface["earnings"]["reviews_due"]) is expected
+
+
+def test_an_actual_result_matures_the_event_before_the_calendar_boundary(dirs):
+    event = {
+        "ticker": "USTEST",
+        "date": "2026-07-29",
+        "time": "amc",
+        "eps_actual": 3.65,
+    }
+    surface = rs.summarize(
+        portfolio=portfolio(),
+        catalysts={"lookback_window_days": 14, "earnings": [event]},
+        today=date(2026, 7, 30),
+        now=datetime(2026, 7, 30, 0, 28, tzinfo=timezone(timedelta(hours=8))),
+        **dirs,
+    )
+    assert [row["ticker"] for row in surface["earnings"]["reviews_due"]] == ["USTEST"]
 
 
 def test_an_artifact_published_after_the_report_clears_the_queue(dirs):
@@ -526,7 +573,8 @@ def test_a_report_by_a_tracked_company_marks_the_fund_position_due(dirs):
     surface = rs.summarize(
         portfolio=book,
         catalysts={"lookback_window_days": 14,
-                   "earnings": [{"ticker": "MSFT", "date": "2026-07-29"}]},
+                   "earnings": [{"ticker": "MSFT", "date": "2026-07-29",
+                                 "eps_actual": 1.0}]},
         today=date(2026, 7, 30), now=datetime(2026, 7, 30, tzinfo=timezone.utc), **dirs,
     )
     due = surface["earnings"]["reviews_due"]

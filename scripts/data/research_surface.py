@@ -21,8 +21,9 @@ from __future__ import annotations
 import argparse
 import json
 import sys
-from datetime import date, datetime, timezone
+from datetime import date, datetime, time, timedelta, timezone
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 WS = Path(__file__).resolve().parents[2]
 THESIS_DIR = WS / "memory" / "theses"
@@ -55,6 +56,15 @@ CADENCE_DAYS = {"quarterly": 92, "semiannual": 183, "annual": 366}
 # 1.6 periods: one full period late is a miss, but a late filing inside the normal
 # reporting lag must not be called stale.
 STALE_LEDGER_FACTOR = 1.6
+
+# `fetch_catalysts` currently sources the earnings calendar for US-listed
+# issuers. Calendar dates and BMO/AMC labels therefore belong to New York time,
+# even though the recurring jobs and `today` run in HKT.
+US_EARNINGS_TZ = ZoneInfo("America/New_York")
+US_MARKET_OPEN = time(9, 30)
+# An AMC label promises only "after close", not a precise release minute.
+# Waiting 15 minutes avoids creating work at the closing bell itself.
+US_AFTER_CLOSE_MATURE = time(16, 15)
 
 
 def _load_json(path: Path):
@@ -171,8 +181,34 @@ def earnings_issuers(positions) -> dict:
     return out
 
 
-def earnings_reviews_due(positions, catalysts, artifacts, today: date) -> list[dict]:
-    """A reported earnings date with no artifact published after it."""
+def earnings_event_mature(event: dict, *, now: datetime) -> bool:
+    """Whether a scheduled US earnings event can truthfully be called reported."""
+    reported = _parse_date(event.get("date"))
+    if reported is None:
+        return False
+    # A populated actual is stronger evidence than a coarse calendar label.
+    if event.get("eps_actual") is not None:
+        return True
+    if now.tzinfo is None:
+        now = now.replace(tzinfo=timezone.utc)
+    local_now = now.astimezone(US_EARNINGS_TZ)
+    session = str(event.get("time") or "unknown").strip().lower()
+    if session == "bmo":
+        mature_at = datetime.combine(reported, US_MARKET_OPEN, US_EARNINGS_TZ)
+    elif session in {"amc", "dmh"}:
+        mature_at = datetime.combine(reported, US_AFTER_CLOSE_MATURE, US_EARNINGS_TZ)
+    else:
+        mature_at = datetime.combine(
+            reported + timedelta(days=1), time.min, US_EARNINGS_TZ
+        )
+    return local_now >= mature_at
+
+
+def earnings_reviews_due(
+    positions, catalysts, artifacts, today: date, *, now: datetime | None = None
+) -> list[dict]:
+    """A matured earnings event with no artifact published after it."""
+    now = now or datetime.now(timezone.utc)
     issuers = earnings_issuers(positions)
     held = set(issuers.values()) | {position["ticker"] for position in positions}
     via = {issuer: ticker for ticker, issuer in issuers.items() if issuer != ticker}
@@ -184,6 +220,8 @@ def earnings_reviews_due(positions, catalysts, artifacts, today: date) -> list[d
         if ticker not in held or reported is None:
             continue
         if not 0 <= (today - reported).days <= window:
+            continue
+        if not earnings_event_mature(event, now=now):
             continue
         published = [
             _parse_date(doc.get("published_at")) for doc in artifacts.get(ticker) or []
@@ -425,7 +463,7 @@ def summarize(*, portfolio=None, catalysts=None, today=None, now=None,
     theses, thesis_errors = thesis_registry.load_registry(thesis_dir)
     errors = earnings_errors + gate_errors + [f"theses: {e}" for e in thesis_errors]
 
-    due = earnings_reviews_due(positions, catalysts, earnings, today)
+    due = earnings_reviews_due(positions, catalysts, earnings, today, now=now)
     stale = stale_ledgers(positions, earnings, today)
     hk_expected = hk_results_expected(positions, today, artifacts=earnings) if hk_watch else []
     overdue = overdue_commitments(earnings, today)
