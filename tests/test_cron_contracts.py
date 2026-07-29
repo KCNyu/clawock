@@ -450,6 +450,7 @@ def test_intraday_payload_contract_bans_heredoc_and_requires_text_file():
     assert profile['tools_allow'] == [
         'exec', 'read', 'write', 'web_search', 'web_fetch'
     ]
+    assert profile['thinking'] == 'high'
     assert 'process' not in profile['tools_allow']
     # 300s is a per-exec bound. A 300s whole-turn timeout would kill normal
     # 4–6 minute check-ins before postflight can deliver them.
