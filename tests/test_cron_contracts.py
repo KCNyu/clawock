@@ -443,6 +443,17 @@ def test_intraday_payload_contract_bans_heredoc_and_requires_text_file():
     assert 'intraday_postflight.py --market {market} --context-id' in profile['required_substrings']
     assert 'verbatim' in profile['forbidden_substrings']
     assert '<<<' in profile['forbidden_substrings']
+    assert 'trading_calendar.py' in profile['forbidden_substrings']
+    assert 'market_closed' in profile['required_substrings']
+    assert '所有脚本 exec 调用都显式设置 `timeout: 300`' in profile['required_substrings']
+    assert '同一条回复内并行发出两个 `write` 工具调用' in profile['required_substrings']
+    assert profile['tools_allow'] == [
+        'exec', 'read', 'write', 'web_search', 'web_fetch'
+    ]
+    assert 'process' not in profile['tools_allow']
+    # 300s is a per-exec bound. A 300s whole-turn timeout would kill normal
+    # 4–6 minute check-ins before postflight can deliver them.
+    assert 'timeout_seconds' not in profile
 
     vars_ = {'market': 'hk', 'skill': 'hk-stock-analysis'}
     data = contract()
@@ -450,7 +461,8 @@ def test_intraday_payload_contract_bans_heredoc_and_requires_text_file():
     message = '\n'.join(s.format(**vars_) for s in profile['required_substrings'])
     live = {
         'payload': {'message': message, 'kind': 'agentTurn',
-                    'model': profile['model'], 'thinking': profile['thinking']},
+                    'model': profile['model'], 'thinking': profile['thinking'],
+                    'toolsAllow': profile['tools_allow']},
         'delivery': {'mode': 'none'},
     }
     assert cron_contract.payload_errors(data, expected, live) == []
@@ -479,13 +491,35 @@ def test_intraday_slots_are_unconditional_again():
     message = '\n'.join(s.format(**vars_) for s in profile['required_substrings'])
     live = {
         'payload': {'message': message, 'kind': 'agentTurn',
-                    'model': profile['model'], 'thinking': profile['thinking']},
+                    'model': profile['model'], 'thinking': profile['thinking'],
+                    'toolsAllow': profile['tools_allow']},
         'delivery': {'mode': 'none'},
         'trigger': {'script': 'json({ fire: false });', 'once': False},
     }
     assert cron_contract.payload_errors(data, expected, live) == [
         'unexpected condition trigger'
     ]
+
+
+def test_intraday_payload_rejects_tool_surface_drift():
+    data = contract()
+    expected = {job['name']: job for job in data['jobs']}['盘中盯盘']
+    profile = data['payload_profiles']['intraday']
+    message = '\n'.join(
+        s.format(**expected['payload_vars']) for s in profile['required_substrings']
+    )
+    live = {
+        'payload': {
+            'message': message,
+            'kind': profile['payload_kind'],
+            'model': profile['model'],
+            'thinking': profile['thinking'],
+            'toolsAllow': [*profile['tools_allow'], 'process'],
+        },
+        'delivery': {'mode': profile['delivery_mode']},
+    }
+    errors = cron_contract.payload_errors(data, expected, live)
+    assert any('toolsAllow expected' in error for error in errors), errors
 
 
 def test_every_twenty_minutes_timeline_label_is_not_every_hour():
