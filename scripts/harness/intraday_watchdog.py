@@ -36,6 +36,21 @@ but duplicates, so it's gone. Telegram is the sole backstop channel.
 Healthy runs use their generated report; stalled/looped runs fall back to the
 deterministic preflight block on Telegram. Dedupe remains per slot.
 
+MARKER FIRST (2026-07-29): the gates are ordered loop → marker → generation →
+mirror,
+and that order is the fix, not an accident. The generation gate used to run
+first and duplicated a perfectly delivered 10:30 HK report, because its two
+signals are both weak: `delivery.messageToolSentTo` has been structurally empty
+since the 2026-06-03 double-send fix took sending away from the model, and
+`summary` is openclaw's truncated meta-prose — under Mode 7 prose mode it holds
+the analysis, not the data block, so `raw_block_first in summary` is a coin
+flip (10:00 hit, 10:30 missed, same day). The marker is the only positive proof
+of delivery, so it is consulted before any inference over the run record.
+
+The loop gate stays ABOVE the marker on purpose: `tg_ok` proves a send exited 0,
+never that the body was sane, so a confirmed delivery must not suppress a
+detected loop.
+
 (Shared run-record / send helpers live in _watchdog_common.py.)
 
 Usage:
@@ -62,6 +77,7 @@ import cron_heartbeat  # noqa: E402
 
 LOOP_THRESHOLD = 5         # transcript loop_score ≥ this ⇒ mimo repeat-loop ⇒ garbage
 MARKER_FRESH_MS = 25 * 60 * 1000  # postflight send-marker older than this ⇒ treat as not-this-slot
+MARKER_FUTURE_SKEW_MS = 5 * 60 * 1000  # marker written just after the watchdog's clock read
 WATCHDOG_DELAY_MINUTES = 10
 
 
@@ -70,6 +86,38 @@ def deterministic_fallback(raw_block, tag, reason):
     return (f'🧯 {tag} 确定性兜底（LLM {reason}）\n'
             '以下内容由 preflight 数据直接生成，未经过模型改写：\n\n'
             + raw_block.strip())
+
+
+def deliver_fallback(raw_block, tag, reason, args, watchdog_now, flag,
+                     expected_job, expected_slot, run_at, extra=None):
+    """Send the deterministic block and record the outcome — success OR failure.
+
+    The failure branch records `watchdog_failed` deliberately: a fallback that
+    could not be sent is the one state nobody downstream can infer, so it must
+    leave the same kind of trace the mirror path already leaves.
+    """
+    body = deterministic_fallback(raw_block, tag, reason)
+    tg_ok, tg_out = send_telegram(KCN_TELEGRAM, body, args.dry_run)
+    log({'tag': tag, 'action': 'deterministic-fallback', 'sent_ok': tg_ok,
+         'fail_kind': reason, 'run_at': run_at, 'target': KCN_TELEGRAM,
+         'out': tg_out, **(extra or {})})
+    if not args.dry_run:
+        if tg_ok:
+            flag.write_text(watchdog_now.isoformat())
+            cron_heartbeat.record(
+                args.market, 'watchdog_backstop', at=watchdog_now,
+                job_name=expected_job, slot=expected_slot,
+                watchdog_state='deterministic_fallback', telegram_sent=True,
+            )
+        else:
+            cron_heartbeat.record(
+                args.market, 'watchdog_failed', at=watchdog_now,
+                job_name=expected_job, slot=expected_slot,
+                watchdog_state='deterministic_fallback_failed', telegram_sent=False,
+            )
+    print(json.dumps({'tag': tag, 'deterministic_fallback': tg_ok,
+                      'dry_run': args.dry_run}, ensure_ascii=False))
+    return tg_ok
 
 
 def watchdog_target(market, now=None):
@@ -117,7 +165,17 @@ def marker_covers_slot(marker, job_name, slot, raw_block_first, now_ms):
     if (marker.get('job'), marker.get('slot')) != (job_name, slot):
         return False
     ts = marker.get('ts')
-    if not isinstance(ts, (int, float)) or now_ms - ts >= MARKER_FRESH_MS:
+    # Both bounds matter now that the marker is the primary judge: a wildly
+    # future-dated ts (clock skew, corrupted or hand-edited marker) would
+    # otherwise read as infinitely fresh and suppress every backstop.
+    # The tolerance is not symmetric on purpose — postflight can legitimately
+    # finish its send in the seconds AFTER the watchdog reads its own wall clock,
+    # and that marker is fresher evidence, not staler. Rejecting it would re-open
+    # the duplicate this ordering fix exists to close.
+    if not isinstance(ts, (int, float)):
+        return False
+    age_ms = now_ms - ts
+    if not -MARKER_FUTURE_SKEW_MS <= age_ms < MARKER_FRESH_MS:
         return False
     return not raw_block_first or marker.get('first_line') == raw_block_first
 
@@ -161,7 +219,7 @@ def main():
         log({'tag': tag, 'action': 'skip', 'reason': 'already handled this slot (dedupe flag)'})
         return 0
 
-    # --- Generation gate: generated report or deterministic fallback ----------
+    # --- Context gate: only assess this slot's own preflight data -------------
     summary = last.get('summary', '')
     ctx_path = WS / 'memory' / '.tmp' / f'intraday-context-{args.market}-latest.json'
     context = context_for_slot(ctx_path, expected_job, expected_slot)
@@ -178,38 +236,31 @@ def main():
         return 0
     raw_block = (context.get('raw_wechat_block') or '').strip()
     raw_block_first = raw_block.splitlines()[0] if raw_block else None
-    sent_via_tool = bool((last.get('delivery') or {}).get('messageToolSentTo'))
-    block_present = bool(raw_block_first and raw_block_first in summary)
-    delivered_clean = sent_via_tool or block_present
     loop_score, _ = transcript_loop_score(session_id)
     looped = loop_score >= LOOP_THRESHOLD
-    if not delivered_clean or looped:
-        reason = '循环' if looped else '未完成'
-        body = deterministic_fallback(raw_block, tag, reason)
-        tg_ok, tg_out = send_telegram(KCN_TELEGRAM, body, args.dry_run)
-        log({'tag': tag, 'action': 'deterministic-fallback', 'sent_ok': tg_ok,
-             'delivered_clean': delivered_clean, 'loop_score': loop_score, 'run_at': run_at,
-             'target': KCN_TELEGRAM, 'out': tg_out})
-        if tg_ok and not args.dry_run:
-            flag.write_text(watchdog_now.isoformat())
-            cron_heartbeat.record(
-                args.market, 'watchdog_backstop', at=watchdog_now,
-                job_name=expected_job, slot=expected_slot,
-                watchdog_state='deterministic_fallback', telegram_sent=True,
-            )
-        print(json.dumps({'tag': tag, 'deterministic_fallback': tg_ok,
-                          'dry_run': args.dry_run}, ensure_ascii=False))
+
+    # --- Loop gate: a detected loop always reaches kcn, delivered or not ------
+    # A confirmed marker does NOT suppress this. `tg_ok` only proves the send
+    # subprocess exited 0 — it never inspects the body. postflight's length cap
+    # catches most repeat-loops (they blow the 3500-char limit → fail-closed data
+    # block + a 🔴 banner kcn can see), but a loop that stays under the cap can
+    # pass validation and be delivered as normal-looking prose. A line in
+    # watchdog.jsonl is not something kcn reads, so treating it as "surfaced"
+    # would be exactly the silent downgrade that is forbidden here.
+    if looped:
+        deliver_fallback(
+            raw_block, tag, '循环', args, watchdog_now, flag,
+            expected_job, expected_slot, run_at,
+            extra={'loop_score': loop_score, 'delivered_clean': None})
         return 0
 
-    # --- Delivery backstop: Telegram only (no WeChat resend) ------------------
-    # WHY NO WECHAT RESEND ANYMORE (2026-07-09, kcn's call): a watchdog WeChat
-    # resend DUPLICATED the report on WeChat whenever the marker merely looked
-    # stale/mismatched but WeChat had actually landed — and you can't tell a landed
-    # WeChat send from a silently-dropped one (#81096/#81316 wontfix, cold drop
-    # still returns sent_ok=true). Now that intraday_postflight ALWAYS co-sends the
-    # same body to Telegram (cold-proof, no contextToken drop), the WeChat retry
-    # bought nothing but duplicates. So the watchdog's SOLE job is to guarantee
-    # Telegram has this report — never touch WeChat.
+    # --- Delivery evidence gate: the postflight marker decides -----------------
+    # ORDER MATTERS (2026-07-29): this used to sit BELOW the generation gate, so a
+    # slot whose report postflight had verifiably delivered still got a duplicate
+    # deterministic fallback whenever the run-record heuristics below happened to
+    # miss. The marker is positive proof — postflight itself recorded tg_ok for
+    # this exact job/slot/first_line within the freshness window — and positive
+    # proof of delivery outranks any inference drawn from the run record.
     marker_path = WS / 'memory' / '.tmp' / f'intraday-sent-{args.market}.json'
     marker = None
     if marker_path.exists():
@@ -227,11 +278,48 @@ def main():
             job_name=expected_job, slot=expected_slot,
             watchdog_state='ok', telegram_sent=True,
         )
+        # `delivery_state` rides along for traceability: postflight records
+        # 'failed' when it fell back to the data block alone. That case needs no
+        # backstop — kcn already got the 🔴 banner in the message itself — but the
+        # watchdog log should not claim a clean run either.
         log({'tag': tag, 'action': 'ok',
              'reason': 'postflight cosend already delivered Telegram this slot — no backstop',
+             'loop_score': loop_score,
+             'delivery_state': (marker or {}).get('delivery_state'),
              'run_at': run_at})
         return 0
 
+    # --- Generation gate: generated report or deterministic fallback ----------
+    # Reached only when the marker did NOT prove delivery. The run-record
+    # `summary` is openclaw's truncated meta-prose, which under Mode 7 prose mode
+    # usually holds analysis rather than the data block — a weak signal kept only
+    # as a last resort for the marker-missing case.
+    #
+    # `delivery.messageToolSentTo` used to be OR'd in here and was deleted
+    # (2026-07-29): the 2026-06-03 double-send fix took sending away from the
+    # model and the cron contract forbids the `message` tool outright, so no
+    # canonical path can set it truthfully. A permanently-false term in an `or`
+    # is not redundancy — if it ever did fire it would mark a contract-violating
+    # run as delivered and mirror a truncated summary as if it were the report.
+    block_present = bool(raw_block_first and raw_block_first in summary)
+    delivered_clean = block_present
+    if not delivered_clean:
+        deliver_fallback(
+            raw_block, tag, '未完成', args, watchdog_now, flag,
+            expected_job, expected_slot, run_at,
+            extra={'loop_score': loop_score, 'delivered_clean': delivered_clean})
+        return 0
+
+    # --- Delivery backstop: Telegram only (no WeChat resend) ------------------
+    # WHY NO WECHAT RESEND ANYMORE (2026-07-09, kcn's call): a watchdog WeChat
+    # resend DUPLICATED the report on WeChat whenever the marker merely looked
+    # stale/mismatched but WeChat had actually landed — and you can't tell a landed
+    # WeChat send from a silently-dropped one (#81096/#81316 wontfix, cold drop
+    # still returns sent_ok=true). Now that intraday_postflight ALWAYS co-sends the
+    # same body to Telegram (cold-proof, no contextToken drop), the WeChat retry
+    # bought nothing but duplicates. So the watchdog's SOLE job is to guarantee
+    # Telegram has this report — never touch WeChat.
+    #
     # postflight cosend never ran / failed / stale-or-mismatched marker ⇒ Telegram
     # is not confirmed for this report → mirror it now.
     report = last_report_text(session_id, raw_block_first) if raw_block_first else None
