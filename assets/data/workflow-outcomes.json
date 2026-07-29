@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "monitoring_started_at": "2026-07-26T08:00:00+08:00",
-  "updated_at": "2026-07-29T16:39:28.684119+00:00",
+  "updated_at": "2026-07-29T16:40:17.442153+00:00",
   "records": [
     {
       "job": "美股收盘报告",
@@ -4607,9 +4607,9 @@
         },
         "llm": {
           "status": "success",
-          "at": "2026-07-29T16:34:32.350866+00:00",
+          "at": "2026-07-29T16:40:17.419873+00:00",
           "market": "us",
-          "updated_at": "2026-07-29T16:34:32.348620+00:00",
+          "updated_at": "2026-07-30T00:40:02.989524+08:00",
           "should_alert": true,
           "anomaly_count": 3,
           "postflight_status": "pass",
@@ -4618,13 +4618,14 @@
           "dashboard_published": true,
           "data_plane_status": "published",
           "insights_sidecar": true,
-          "issue_count": 0
+          "issue_count": 0,
+          "watchdog_state": "ok"
         },
         "postflight": {
           "status": "success",
-          "at": "2026-07-29T16:34:32.357278+00:00",
+          "at": "2026-07-29T16:40:17.432110+00:00",
           "market": "us",
-          "updated_at": "2026-07-29T16:34:32.348620+00:00",
+          "updated_at": "2026-07-30T00:40:02.989524+08:00",
           "should_alert": true,
           "anomaly_count": 3,
           "postflight_status": "pass",
@@ -4633,13 +4634,14 @@
           "dashboard_published": true,
           "data_plane_status": "published",
           "insights_sidecar": true,
-          "issue_count": 0
+          "issue_count": 0,
+          "watchdog_state": "ok"
         },
         "primary_delivery": {
           "status": "success",
-          "at": "2026-07-29T16:34:32.363073+00:00",
+          "at": "2026-07-29T16:40:17.442153+00:00",
           "market": "us",
-          "updated_at": "2026-07-29T16:34:32.348620+00:00",
+          "updated_at": "2026-07-30T00:40:02.989524+08:00",
           "should_alert": true,
           "anomaly_count": 3,
           "postflight_status": "pass",
@@ -4648,7 +4650,8 @@
           "dashboard_published": true,
           "data_plane_status": "published",
           "insights_sidecar": true,
-          "issue_count": 0
+          "issue_count": 0,
+          "watchdog_state": "ok"
         },
         "watchdog_delivery": {
           "status": "unknown"
@@ -4661,7 +4664,7 @@
         "run_id": null,
         "error_present": true
       },
-      "updated_at": "2026-07-29T16:34:32.363073+00:00",
+      "updated_at": "2026-07-29T16:40:17.442153+00:00",
       "final_product": {
         "status": "success",
         "reason": "primary delivery succeeded"
