@@ -115,7 +115,9 @@ def test_gold_eastmoney_legs_use_shared_client_and_keep_truth_separate(monkeypat
 
     assert gold.fetch_nav_history("000217", pages=1) == [("2026-07-15", 3.5, 0.5)]
     assert gold.fetch_realtime("000217")["est_nav"] == 3.51
-    assert gold.fetch_xau_history("2026-07-01") == [("2026-07-15", 3300.0)]
+    history, source = gold.fetch_xau_history("2026-07-01")
+    assert history == [("2026-07-15", 3300.0)]
+    assert source == {"name": gold.XAU_FALLBACK_SOURCE, "points": 1}
     assert any("api.fund.eastmoney.com" in url for url in calls)
     assert any("fundgz.1234567.com.cn" in url for url in calls)
     assert any("push2his.eastmoney.com" in url for url in calls)
@@ -127,4 +129,3 @@ def test_gold_eastmoney_legs_use_shared_client_and_keep_truth_separate(monkeypat
     }
     derived = gold.compute(seed, [("2026-07-15", 3.5, 0.5)], None)
     assert gold.GROUND_TRUTH_FIELDS.isdisjoint(derived)
-

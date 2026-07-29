@@ -1815,6 +1815,21 @@
                ${ld.xau_high != null && ld.xau_low != null ? ` · 日内 ${num(ld.xau_low, 0)}~${num(ld.xau_high, 0)}` : ''}
                · USDCNY ${num(ld.usdcny, 4)}
              </div>`;
+        const histSource = ld.hist_source || {};
+        const histNames = {
+          sina_global_futures_xau: '新浪 XAU 现货',
+          eastmoney_gc00y_fallback: '东财 GC00Y 兜底',
+          unavailable: '历史抓取失败',
+          not_attempted: '历史未抓取',
+        };
+        html += `<div class="muted" style="font-size:10px;margin-top:4px;text-transform:none;letter-spacing:0">
+          历史源 ${escapeHtml(histNames[histSource.name] || histSource.name || '未知')} · ${num(histSource.points || 0)} 点
+        </div>`;
+        if (ld.hist_advisory) {
+          html += `<div role="status" style="font-size:10px;color:var(--warning);margin-top:4px;text-transform:none;letter-spacing:0">
+            ℹ️ ${escapeHtml(ld.hist_advisory)}
+          </div>`;
+        }
         // DCA 平均成本：同样的钱、同样的定投日子，改买伦敦金现货 → 我的均价是多少（对标基金卡的「平均成本」）
         const de = ld.dca_equiv;
         if (de && de.avg_cost_usd_oz != null) {
