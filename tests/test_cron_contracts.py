@@ -447,12 +447,20 @@ def test_intraday_payload_contract_bans_heredoc_and_requires_text_file():
     assert 'trading_calendar.py' in profile['forbidden_substrings']
     assert 'market_closed' in profile['required_substrings']
     assert '所有脚本 exec 调用都显式设置 `timeout: 300`' in profile['required_substrings']
+    assert any(
+        '只用 `process` poll' in line and 'sleep/ps/ls/grep' in line
+        for line in profile['required_substrings']
+    )
     assert '同一条回复内并行发出两个 `write` 工具调用' in profile['required_substrings']
+    assert any(
+        'postflight 返回 pass/warn 后直接输出' in line and '禁止再读、搜或重建' in line
+        for line in profile['required_substrings']
+    )
     assert profile['tools_allow'] == [
-        'exec', 'read', 'write', 'web_search', 'web_fetch'
+        'exec', 'process', 'read', 'write', 'web_search', 'web_fetch'
     ]
     assert profile['thinking'] == 'high'
-    assert 'process' not in profile['tools_allow']
+    assert 'process' in profile['tools_allow']
     # 300s is a per-exec bound. A 300s whole-turn timeout would kill normal
     # 4–6 minute check-ins before postflight can deliver them.
     assert 'timeout_seconds' not in profile
@@ -515,7 +523,7 @@ def test_intraday_slots_are_unconditional_again():
     ]
 
 
-def test_intraday_payload_rejects_tool_surface_drift():
+def test_intraday_payload_rejects_missing_process_tool():
     data = contract()
     expected = {job['name']: job for job in data['jobs']}['盘中盯盘']
     profile = data['payload_profiles']['intraday']
@@ -528,7 +536,9 @@ def test_intraday_payload_rejects_tool_surface_drift():
             'kind': profile['payload_kind'],
             'model': profile['model'],
             'thinking': profile['thinking'],
-            'toolsAllow': [*profile['tools_allow'], 'process'],
+            'toolsAllow': [
+                tool for tool in profile['tools_allow'] if tool != 'process'
+            ],
         },
         'delivery': {'mode': profile['delivery_mode']},
     }
