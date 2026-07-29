@@ -25,9 +25,10 @@ Sources (authoritative, re-checked 2026-07-27):
     https://ir.theice.com/press/news-details/2024/NYSE-Group-Announces-2025-2026-and-2027-Holiday-and-Early-Closings-Calendar/default.aspx
   HK general holidays, gazetted:
     https://www.gov.hk/en/about/abouthk/holiday/2027.htm
-  HKEX half-day sessions (eves of LNY/Christmas/New Year, and the day of the
-  Mid-Autumn Festival — morning session only, no afternoon):
-    https://www.hkex.com.hk/Services/Trading-hours-and-Severe-Weather-Arrangements/Trading-Hours/Securities-Market?sc_lang=en
+  HKEX Rule 501 half-day sessions (eves of LNY/Christmas/New Year only):
+    https://www.hkex.com.hk/-/media/hkex-market/services/trading-hours-and-severe-weather-arrangements/severe-weather-arrangements/trading/chap-5_eng
+  HKEX 2027 holiday/half-day circular (pins the three concrete half-days):
+    https://www.hkex.com.hk/-/media/HKEX-Market/Services/Circulars-and-Notices/Participant-and-Members-Circulars/SEHK/2026/MO_DT_133_26_e1.pdf
 
 CLI:
   python3 trading_calendar.py hk            -> prints OPEN/CLOSED, exit 0/1
@@ -90,7 +91,7 @@ HK_HOLIDAYS = {
     "2026-05-25",  # Buddha's Birthday (Mon)
     "2026-06-19",  # Tuen Ng / Dragon Boat (Fri)
     "2026-07-01",  # HKSAR Establishment Day (Wed)
-    "2026-09-26",  # Mid-Autumn Festival (Sat - weekend)
+    "2026-09-26",  # Day following Mid-Autumn Festival (Sat - weekend)
     "2026-10-01",  # National Day (Thu)
     "2026-10-19",  # Chung Yeung Festival (Mon)
     "2026-12-25",  # Christmas Day (Fri)
@@ -120,13 +121,11 @@ HK_HOLIDAYS = {
 # so a trading day, but afternoon-session crons should treat them as closed.
 HK_HALF_DAYS = {
     "2026-02-16",  # Lunar New Year's Eve (Mon)
-    "2026-09-25",  # Day before Mid-Autumn (Fri)
     "2026-12-24",  # Christmas Eve (Thu)
     "2026-12-31",  # New Year's Eve (Thu)
 
     # 2027
     "2027-02-05",  # Lunar New Year's Eve (Fri)
-    "2027-09-15",  # Mid-Autumn Festival day (Wed) — the holiday is the day after
     "2027-12-24",  # Christmas Eve (Fri) — US is shut, HK trades the morning
     "2027-12-31",  # New Year's Eve (Fri)
 }
