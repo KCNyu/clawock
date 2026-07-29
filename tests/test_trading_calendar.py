@@ -73,7 +73,6 @@ def test_us_christmas_eve_is_shut_while_hk_trades_the_morning():
 
 @pytest.mark.parametrize("iso,what", [
     ("2027-02-05", "Lunar New Year's Eve"),
-    ("2027-09-15", "Mid-Autumn Festival day — the holiday is the day after"),
     ("2027-12-24", "Christmas Eve"),
     ("2027-12-31", "New Year's Eve"),
 ])
@@ -84,10 +83,28 @@ def test_2027_hk_half_days_trade_the_morning_only(iso, what):
     assert trading_calendar.closed_reason("hk", d, session="afternoon") == "半日市·午后休市"
 
 
-def test_mid_autumn_is_a_half_day_and_the_day_after_is_the_closure():
-    """Getting these two the wrong way round loses a real trading session."""
-    assert trading_calendar.is_trading_day("hk", date(2027, 9, 15))
-    assert not trading_calendar.is_trading_day("hk", date(2027, 9, 16))
+@pytest.mark.parametrize("festival,holiday", [
+    ("2026-09-25", "2026-09-26"),
+    ("2027-09-15", "2027-09-16"),
+])
+def test_mid_autumn_trades_a_full_day_and_the_day_after_is_closed(festival, holiday):
+    """HKEX Rule 501 does not make Mid-Autumn Festival day a half-day."""
+    festival_day = date.fromisoformat(festival)
+    assert trading_calendar.is_trading_day("hk", festival_day)
+    assert trading_calendar.is_trading_day("hk", festival_day, session="afternoon")
+    assert trading_calendar.closed_reason(
+        "hk", festival_day, session="afternoon"
+    ) is None
+    assert not trading_calendar.is_trading_day("hk", date.fromisoformat(holiday))
+
+
+@pytest.mark.parametrize("iso", ["2026-09-25", "2027-09-15"])
+@pytest.mark.parametrize("phase", ["pm", "close"])
+def test_mid_autumn_keeps_hk_pm_and_close_report_gates_open(iso, phase):
+    d = date.fromisoformat(iso)
+    session = trading_calendar.phase_session("hk", phase)
+    assert session == "afternoon"
+    assert trading_calendar.closed_reason("hk", d, session=session) is None
 
 
 def test_an_ordinary_2027_weekday_still_trades():
