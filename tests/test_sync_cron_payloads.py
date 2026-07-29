@@ -35,7 +35,9 @@ def live_from_contract(data):
             ("timeout_seconds", "timeoutSeconds"),
         ):
             if contract_field in profile:
-                payload[live_field] = copy.deepcopy(profile[contract_field])
+                value = profile[contract_field]
+                if value is not None:
+                    payload[live_field] = copy.deepcopy(value)
         live.append({
             "id": f"id-{index}",
             "name": spec["name"],
@@ -64,7 +66,7 @@ def test_drift_plan_and_command_patch_only_declared_fields():
     job = next(item for item in live if item["name"] == "美股盘中盯盘")
     job["payload"]["thinking"] = "high"
     job["payload"]["fallbacks"] = []
-    job["payload"]["toolsAllow"].remove("process")
+    job["payload"]["toolsAllow"] = ["exec", "process", "read", "write"]
     job["payload"]["message"] += "\nmanual drift"
     job["delivery"]["to"] = "preserve-me"
 
@@ -82,7 +84,8 @@ def test_drift_plan_and_command_patch_only_declared_fields():
     assert command[command.index("--fallbacks") + 1] == ",".join(
         profile["fallbacks"]
     )
-    assert "process" in command[command.index("--tools") + 1].split(",")
+    assert "--clear-tools" in command
+    assert "--tools" not in command
     assert "--message" in command
     assert "preserve-me" not in command
 

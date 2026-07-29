@@ -31,6 +31,8 @@
       "delivery_mode": "none",
       "required_substrings": [
         "skills/{skill}/SKILL.md",
+        "并行调用 `read` 读取 `/root/.openclaw/workspace/skills/{skill}/SKILL.md` 与 Step 1 preflight",
+        "skills catalog 只有索引，不含 SKILL.md 正文",
         "report_preflight.py --market {market} --phase {phase}",
         "context_id",
         "report_postflight.py --market {market} --phase {phase} --context-id",
@@ -72,17 +74,12 @@
       ],
       "thinking": "adaptive",
       "message_template": "config/cron-payloads/intraday.md",
-      "tools_allow": [
-        "exec",
-        "process",
-        "read",
-        "write",
-        "web_search",
-        "web_fetch"
-      ],
+      "tools_allow": null,
       "delivery_mode": "none",
       "required_substrings": [
         "skills/{skill}/SKILL.md",
+        "并行调用 `read` 读取 `/root/.openclaw/workspace/skills/{skill}/SKILL.md` 与 Step 1 preflight",
+        "skills catalog 只有索引，不含 SKILL.md 正文",
         "intraday_preflight.py --market {market}",
         "market_closed",
         "所有脚本 exec 调用都显式设置 `timeout: 300`",
@@ -138,6 +135,8 @@
         "trading_calendar.py hk",
         "trading_calendar.py us",
         "skills/daily-deep-brief/SKILL.md",
+        "并行调用 `read` 读取 `/root/.openclaw/workspace/skills/daily-deep-brief/SKILL.md` 与下方 Step 0 的两个休市闸命令",
+        "skills catalog 只有索引，不含 SKILL.md 正文",
         "brief_preflight.py",
         "brief_postflight.py",
         "唯一微信路径",

@@ -234,7 +234,13 @@ def payload_errors(contract: dict, expected_job: dict, live_job: dict) -> list[s
             f"got {payload.get('timeoutSeconds')!r}"
         )
     expected_tools = profile.get("tools_allow")
-    if expected_tools is not None:
+    if "tools_allow" in profile and expected_tools is None:
+        if payload.get("toolsAllow") is not None:
+            errors.append(
+                "payload.toolsAllow expected unrestricted tools, "
+                f"got {payload.get('toolsAllow')!r}"
+            )
+    elif expected_tools is not None:
         live_tools = payload.get("toolsAllow")
         if not isinstance(live_tools, list):
             errors.append(

@@ -460,11 +460,8 @@ def test_intraday_payload_contract_bans_heredoc_and_requires_text_file():
         'postflight 返回 pass/warn 后直接输出' in line and '禁止再读、搜或重建' in line
         for line in profile['required_substrings']
     )
-    assert profile['tools_allow'] == [
-        'exec', 'process', 'read', 'write', 'web_search', 'web_fetch'
-    ]
+    assert profile['tools_allow'] is None
     assert profile['thinking'] == 'adaptive'
-    assert 'process' in profile['tools_allow']
     # 300s is a per-exec bound. A 300s whole-turn timeout would kill normal
     # 4–6 minute check-ins before postflight can deliver them.
     assert 'timeout_seconds' not in profile
@@ -476,8 +473,7 @@ def test_intraday_payload_contract_bans_heredoc_and_requires_text_file():
     live = {
         'payload': {'message': message, 'kind': 'agentTurn',
                     'model': profile['model'], 'thinking': profile['thinking'],
-                    'fallbacks': profile['fallbacks'],
-                    'toolsAllow': profile['tools_allow']},
+                    'fallbacks': profile['fallbacks']},
         'delivery': {'mode': 'none'},
     }
     assert cron_contract.payload_errors(data, expected, live) == []
@@ -502,6 +498,46 @@ def test_strategy_crons_pin_minimax_m3_adaptive_reasoning():
         'intraday': 'adaptive',
         'brief': 'adaptive',
     }
+
+
+def test_strategy_crons_require_skill_body_read_in_first_tool_batch():
+    """The skills system prompt is a catalog, not the SKILL.md body.
+
+    Saying "follow this skill" is therefore insufficient: a model can go
+    straight to preflight and never receive the strategy rules.  Pin an
+    explicit read in the first parallel tool batch so loading the real body
+    does not add another model round trip.
+    """
+    data = contract()
+    jobs = {job['name']: job for job in data['jobs']}
+
+    report = cron_contract.render_payload_message(data, jobs['美股开盘报告'])
+    assert (
+        '并行调用 `read` 读取 '
+        '`/root/.openclaw/workspace/skills/us-stock-analysis/SKILL.md` '
+        '与 Step 1 preflight'
+    ) in report
+
+    intraday = cron_contract.render_payload_message(data, jobs['美股盘中盯盘'])
+    assert (
+        '并行调用 `read` 读取 '
+        '`/root/.openclaw/workspace/skills/us-stock-analysis/SKILL.md` '
+        '与 Step 1 preflight'
+    ) in intraday
+
+    brief = cron_contract.render_payload_message(data, jobs['盘前深度简报'])
+    assert (
+        '并行调用 `read` 读取 '
+        '`/root/.openclaw/workspace/skills/daily-deep-brief/SKILL.md` '
+        '与下方 Step 0 的两个休市闸命令'
+    ) in brief
+
+    assert all(
+        'skills catalog 只有索引，不含 SKILL.md 正文' in message
+        for message in (report, intraday, brief)
+    )
+
+
 def test_intraday_slots_are_unconditional_again():
     """Every Mode 7 slot runs the turn; no pre-model condition gate.
 
@@ -522,8 +558,7 @@ def test_intraday_slots_are_unconditional_again():
     live = {
         'payload': {'message': message, 'kind': 'agentTurn',
                     'model': profile['model'], 'thinking': profile['thinking'],
-                    'fallbacks': profile['fallbacks'],
-                    'toolsAllow': profile['tools_allow']},
+                    'fallbacks': profile['fallbacks']},
         'delivery': {'mode': 'none'},
         'trigger': {'script': 'json({ fire: false });', 'once': False},
     }
@@ -532,7 +567,7 @@ def test_intraday_slots_are_unconditional_again():
     ]
 
 
-def test_intraday_payload_rejects_missing_process_tool():
+def test_intraday_payload_rejects_stale_restricted_tool_override():
     data = contract()
     expected = {job['name']: job for job in data['jobs']}['盘中盯盘']
     profile = data['payload_profiles']['intraday']
@@ -544,14 +579,15 @@ def test_intraday_payload_rejects_missing_process_tool():
             'model': profile['model'],
             'fallbacks': profile['fallbacks'],
             'thinking': profile['thinking'],
-            'toolsAllow': [
-                tool for tool in profile['tools_allow'] if tool != 'process'
-            ],
+            'toolsAllow': ['exec', 'process', 'read', 'write'],
         },
         'delivery': {'mode': profile['delivery_mode']},
     }
     errors = cron_contract.payload_errors(data, expected, live)
-    assert any('toolsAllow expected' in error for error in errors), errors
+    assert errors == [
+        "payload.toolsAllow expected unrestricted tools, "
+        "got ['exec', 'process', 'read', 'write']"
+    ]
 
 
 def test_every_twenty_minutes_timeline_label_is_not_every_hour():
