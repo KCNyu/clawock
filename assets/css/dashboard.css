@@ -1660,8 +1660,12 @@
     .panel.active[data-panel="hero"] > .overview-command { column-span: all; }
     .overview-command > .hero-honesty-card { align-self: start; }
     .profit-extremes-card .ext-row .v {
+      min-width: 0;
+      max-width: 100%;
+      overflow: hidden;
       white-space: nowrap;
       overflow-wrap: normal;
+      text-overflow: ellipsis;
     }
     .desktop-wide .holdings-table th,
     .desktop-wide .holdings-table td {

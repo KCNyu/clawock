@@ -353,7 +353,7 @@ layout: null
     <div class="sect-divider price-section-heading">价格动态 <span class="muted" style="font-weight:500;letter-spacing:0">latest local session · US / HK 各取最近本地交易时段</span></div>
 
     <div class="card" id="movers-card">
-      <div class="desktop-section-kicker" aria-hidden="true">价格动态 · Price action</div>
+      <div class="desktop-section-kicker" role="heading" aria-level="2">价格动态 · Price action</div>
       <h3>Today's Movers <span class="muted" style="text-transform:none;letter-spacing:0;font-weight:500">(≥3% · latest local session)</span></h3>
       <div class="movers-scroll" id="movers-scroll">
         <div class="empty-state">No movers ≥3% today.</div>
@@ -369,6 +369,7 @@ layout: null
     </div>
 
     <div class="card">
+      <div class="desktop-section-kicker" aria-hidden="true">价格动态 · Price action</div>
       <h3>8日走势热力 <span class="muted" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:11px">(近 8 日走势 + 收益 · 按强弱排序)</span></h3>
       <p class="chart-hint">每格一只持仓：<b>背景色</b> = 8 日回报（绿 = 在跑、红 = 在拖），<b>白色折线</b> = 这 8 日的价格走势形状，下方小字 = 各自市场 leg 内权重（不是组合权重）。颜色看强弱、折线看路径，重仓 + 大红块 = 优先审视。</p>
       <div class="ret-heatmap" id="ret-heatmap">
@@ -377,6 +378,7 @@ layout: null
     </div>
 
     <div class="card">
+      <div class="desktop-section-kicker" aria-hidden="true">价格动态 · Price action</div>
       <h3>Today's Range <span class="muted" style="text-transform:none;letter-spacing:0;font-weight:500">(high-low ÷ price · latest local session)</span></h3>
       <div class="range-list" id="range-list">
         <div class="empty-state">No range data yet.</div>
@@ -386,7 +388,7 @@ layout: null
     <div class="sect-divider policy-section-heading">政策模拟</div>
 
     <div class="card" id="shadow-portfolio-card">
-      <div class="desktop-section-kicker" aria-hidden="true">政策模拟 · Policy replay</div>
+      <div class="desktop-section-kicker" role="heading" aria-level="2">政策模拟 · Policy replay</div>
       <button type="button" class="shadow-toggle" id="shadow-portfolio-toggle"
               aria-expanded="false" aria-controls="shadow-portfolio-expanded">
         <span class="shadow-toggle-title">Shadow Portfolio · Policy Replay</span>
