@@ -371,47 +371,11 @@
     if (t === "risk" || t === "market") updateFoldPeeks();
   }
 
-  function scheduleDeferredTabs(version, activeTab) {
-    const jobs = TAB_ORDER
-      .filter(t => t !== activeTab)
-      .flatMap(t => TAB_RENDERERS[t].map(fn => ({ t, fn })));
-    const remaining = new Map(
-      TAB_ORDER.filter(t => t !== activeTab).map(t => [t, TAB_RENDERERS[t].length])
-    );
-    const schedule = window.requestIdleCallback
-      ? cb => requestIdleCallback(cb, { timeout: 2000 })
-      : cb => setTimeout(() => cb({ didTimeout: true, timeRemaining: () => 0 }), 32);
-    const runOne = () => {
-      if (version !== RENDER_VERSION || !DATA) return;
-      const job = jobs.shift();
-      if (job && _tabRenderVersion.get(job.t) !== version) {
-        job.fn();
-        const left = (remaining.get(job.t) || 1) - 1;
-        remaining.set(job.t, left);
-        if (left === 0) {
-          _tabRenderVersion.set(job.t, version);
-          if (job.t === "risk" || job.t === "market") updateFoldPeeks();
-        }
-      }
-      if (jobs.length) {
-        // One renderer per idle slice. A whole hidden tab used to become a second
-        // long task even after render() was split by tab.
-        schedule(runOne);
-      } else {
-        syncDeskRail();             // refresh after all canonical cells exist
-      }
-    };
-    if (jobs.length) schedule(runOne);
-  }
-
-  // Re-render ONE tab's DOM in place after a sidecar it depends on arrives, without
-  // bumping the global RENDER_VERSION or touching any other tab. Overview (hero) has
-  // no sidecar dependency, so a background sidecar can never re-render or re-animate
-  // it — its equity chart stays put. If the refreshed tab happens to be the visible
-  // one (a deep link that landed before its data, or a poll on that tab), its charts
-  // repaint; animationDurationUpdate:0 keeps that repaint flicker-free.
+  // Re-render the visible tab after its sidecars revalidate. Hidden tabs are
+  // never runtime consumers: their cached data is marked stale by the poll and
+  // they render only when activated.
   function refreshTab(t) {
-    if (!DATA || !TAB_RENDERERS[t]) return;
+    if (!DATA || !TAB_RENDERERS[t] || currentTab() !== t) return;
     TAB_RENDERERS[t].forEach(fn => fn());
     _tabRenderVersion.set(t, RENDER_VERSION);
     const panel = document.querySelector(`.panel[data-panel="${t}"]`);
@@ -432,7 +396,6 @@
     renderBuildStatus();
     syncDeskRail();
     ensureVisibleCharts();
-    scheduleDeferredTabs(version, activeTab);
   }
 
   // ── A2 系统健康卡（页脚）──
