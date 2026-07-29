@@ -236,9 +236,14 @@ def test_confirmed_marker_outranks_a_run_record_that_looks_undelivered(
     assert heartbeats[-1][1]['telegram_sent'] is True
 
 
-def test_a_delivered_but_looped_run_stays_visible_without_a_duplicate(
+def test_a_confirmed_marker_does_not_suppress_a_detected_loop(
         tmp_path, monkeypatch):
-    """A loop must not be silenced — but kcn already has the report, so no re-send."""
+    """`tg_ok` proves the send exited 0, never that the body was sane.
+
+    postflight's length cap catches most repeat-loops, but one that stays under
+    the limit is delivered as normal-looking prose. A watchdog.jsonl line is not
+    something kcn reads, so the loop has to reach Telegram.
+    """
     now = datetime(2026, 7, 29, 10, 40, tzinfo=HKT)
     run = _run(datetime(2026, 7, 29, 10, 30, tzinfo=HKT),
                summary='▎我的看法', delivery={'messageToolSentTo': None})
@@ -249,9 +254,80 @@ def test_a_delivered_but_looped_run_stays_visible_without_a_duplicate(
         monkeypatch, tmp_path, run=run, now=now, marker=marker, loop_score=49)
 
     assert watchdog.main() == 0
-    assert sends == []
-    assert events[-1]['looped_but_delivered'] is True
+    assert len(sends) == 1
+    assert sends[0].startswith('🧯 intraday-hk 确定性兜底（LLM 循环）')
     assert events[-1]['loop_score'] == 49
+    assert events[-1]['fail_kind'] == '循环'
+
+
+def test_a_run_that_sent_via_the_forbidden_message_tool_is_not_trusted(
+        tmp_path, monkeypatch):
+    """`messageToolSentTo` is gone: the cron contract forbids that path entirely."""
+    now = datetime(2026, 7, 29, 10, 40, tzinfo=HKT)
+    run = _run(datetime(2026, 7, 29, 10, 30, tzinfo=HKT),
+               summary='▎我的看法',
+               delivery={'messageToolSentTo': ['telegram']})
+
+    watchdog, sends, _, events = _wire_watchdog(
+        monkeypatch, tmp_path, run=run, now=now, marker=None)
+
+    assert watchdog.main() == 0
+    assert len(sends) == 1                  # not upgraded to "delivered"
+    assert events[-1]['action'] == 'deterministic-fallback'
+
+
+def test_a_marker_written_just_after_the_watchdog_clock_read_still_counts(
+        tmp_path, monkeypatch):
+    """postflight may land seconds late — fresher evidence, not stale."""
+    now = datetime(2026, 7, 29, 10, 40, tzinfo=HKT)
+    run = _run(datetime(2026, 7, 29, 10, 30, tzinfo=HKT),
+               summary='▎我的看法', delivery={'messageToolSentTo': None})
+    marker = {'ts': int(datetime(2026, 7, 29, 10, 40, 20, tzinfo=HKT).timestamp() * 1000),
+              'tg_ok': True, 'first_line': HEADING, 'job': '盘中盯盘', 'slot': SLOT}
+
+    watchdog, sends, _, events = _wire_watchdog(
+        monkeypatch, tmp_path, run=run, now=now, marker=marker)
+
+    assert watchdog.main() == 0
+    assert sends == []
+    assert events[-1]['action'] == 'ok'
+
+
+def test_an_absurdly_future_marker_cannot_suppress_the_backstop(
+        tmp_path, monkeypatch):
+    """A corrupt/skewed ts must not read as infinitely fresh."""
+    now = datetime(2026, 7, 29, 10, 40, tzinfo=HKT)
+    run = _run(datetime(2026, 7, 29, 10, 30, tzinfo=HKT),
+               summary='▎我的看法', delivery={'messageToolSentTo': None})
+    marker = {'ts': int(datetime(2026, 7, 29, 18, 0, tzinfo=HKT).timestamp() * 1000),
+              'tg_ok': True, 'first_line': HEADING, 'job': '盘中盯盘', 'slot': SLOT}
+
+    watchdog, sends, _, events = _wire_watchdog(
+        monkeypatch, tmp_path, run=run, now=now, marker=marker)
+
+    assert watchdog.main() == 0
+    assert len(sends) == 1
+    assert events[-1]['action'] == 'deterministic-fallback'
+
+
+def test_a_fallback_that_could_not_be_sent_records_a_failure(
+        tmp_path, monkeypatch):
+    """The one state nobody downstream can infer must leave its own trace."""
+    import intraday_watchdog as watchdog_mod
+
+    now = datetime(2026, 7, 29, 10, 40, tzinfo=HKT)
+    run = _run(datetime(2026, 7, 29, 10, 30, tzinfo=HKT),
+               summary='▎我的看法', delivery={'messageToolSentTo': None})
+
+    watchdog, _, heartbeats, events = _wire_watchdog(
+        monkeypatch, tmp_path, run=run, now=now, marker=None)
+    monkeypatch.setattr(watchdog_mod, 'send_telegram',
+                        lambda target, body, dry: (False, 'boom'))
+
+    assert watchdog.main() == 0
+    assert events[-1]['sent_ok'] is False
+    assert heartbeats[-1][0] == ('hk', 'watchdog_failed')
+    assert heartbeats[-1][1]['telegram_sent'] is False
 
 
 def test_missing_marker_still_gets_the_deterministic_fallback(
