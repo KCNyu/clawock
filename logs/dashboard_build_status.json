@@ -1,7 +1,7 @@
 {
-  "checked_at": "2026-07-29T06:03:26Z",
+  "checked_at": "2026-07-29T06:34:11Z",
   "ok": true,
   "warn_count": 0,
   "repair_count": 0,
-  "tail": "data/shadow_portfolio.json (shadow portfolio sidecar, 模拟·非实盘)\n  brief-context source: brief-context-2026-07-29.json\n✓ wrote /root/.openclaw/workspace/assets/data/dashboard.json (145,204 bytes)\n✓ wrote /root/.openclaw/workspace/assets/data/decision_audit.json (decision audit sidecar)\n  US: 16 holdings, 7 active, value $2490\n  HK: 7 holdings, 5 active, value HK$53626\n  Snapshots: 56 embedded / 56 on disk\n  Plans: 5 embedded / 53 on disk\n  Snapshots: 56 | Plans: 5\n  FX USDHKD: 7.8416 (Frankfurter)\n"
+  "tail": "data/shadow_portfolio.json (shadow portfolio sidecar, 模拟·非实盘)\n  brief-context source: brief-context-2026-07-29.json\n✓ wrote /root/.openclaw/workspace/assets/data/dashboard.json (145,348 bytes)\n✓ wrote /root/.openclaw/workspace/assets/data/decision_audit.json (decision audit sidecar)\n  US: 16 holdings, 7 active, value $2490\n  HK: 7 holdings, 5 active, value HK$53644\n  Snapshots: 56 embedded / 56 on disk\n  Plans: 5 embedded / 53 on disk\n  Snapshots: 56 | Plans: 5\n  FX USDHKD: 7.8416 (Frankfurter)\n"
 }
