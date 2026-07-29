@@ -496,6 +496,19 @@ def test_strategy_crons_pin_minimax_m3_adaptive_reasoning():
         'intraday': 'adaptive',
         'brief': 'adaptive',
     }
+    assert {
+        name: (
+            profiles[name].get('model'),
+            profiles[name].get('fallbacks'),
+        )
+        for name in ('report', 'intraday', 'brief')
+    } == {
+        name: (
+            'minimax-2/MiniMax-M3',
+            ['minimax/MiniMax-M3'],
+        )
+        for name in ('report', 'intraday', 'brief')
+    }
 
 
 def test_intraday_slots_are_unconditional_again():
