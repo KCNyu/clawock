@@ -459,7 +459,7 @@ def test_intraday_payload_contract_bans_heredoc_and_requires_text_file():
     assert profile['tools_allow'] == [
         'exec', 'process', 'read', 'write', 'web_search', 'web_fetch'
     ]
-    assert profile['thinking'] == 'high'
+    assert profile['thinking'] == 'adaptive'
     assert 'process' in profile['tools_allow']
     # 300s is a per-exec bound. A 300s whole-turn timeout would kill normal
     # 4–6 minute check-ins before postflight can deliver them.
@@ -481,15 +481,21 @@ def test_intraday_payload_contract_bans_heredoc_and_requires_text_file():
     assert cron_contract.payload_errors(data, expected, live) != []
 
 
-def test_strategy_crons_explicitly_pin_high_reasoning():
+def test_strategy_crons_pin_minimax_m3_adaptive_reasoning():
+    """M3 exposes only off/adaptive; high is a budgeted M2.x level.
+
+    Adaptive is M3's reasoning-enabled mode, not a context or output reduction.
+    Keeping the supported value explicit prevents every live run from silently
+    rewriting the tracked contract while emitting an unsupported-level warning.
+    """
     profiles = contract()['payload_profiles']
     assert {
         name: profiles[name].get('thinking')
         for name in ('report', 'intraday', 'brief')
     } == {
-        'report': 'high',
-        'intraday': 'high',
-        'brief': 'high',
+        'report': 'adaptive',
+        'intraday': 'adaptive',
+        'brief': 'adaptive',
     }
 
 
