@@ -26,6 +26,7 @@ python3 /root/.openclaw/workspace/scripts/harness/brief_preflight.py
 - Confidence calls + Next-session plan（可交易，不是观察清单）
 
 **Step 4 - 写三份输出**
+- 首次生成和 postflight 修复 Step 4 产物都只用 `write` 完整覆盖；禁止 `edit` 精确文本替换。若 postflight 返回 fail，先 `read` 当前文件，根据 issues 在内存中修正，再用 `write` 一次覆盖完整文件后重跑 postflight；一次已恢复的 `edit` 工具错误仍会把整个 cron 记成 error。
 - `memory/{date}-pre-open.md` — 完整 markdown（含 Header/Tier 1/Tier 2/Tier 3/Judge/Confidence/Next-Session 段标记，**显式提 HHI + FX**）
 - `memory/{date}-plan.json` — 结构化 plan，schema v2 见 SKILL.md（顶层 decisions；strategy_id/action/condition/confidence enum 严格；禁止 actions）
 - `memory/.tmp/brief-card-{date}.txt` — **微信卡**（投递脚本会原样发这个文件，所以要自洽完整）。格式：
