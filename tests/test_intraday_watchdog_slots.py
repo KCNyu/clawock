@@ -198,6 +198,10 @@ def _wire_watchdog(monkeypatch, tmp_path, *, run, now, marker, loop_score=1):
     monkeypatch.setattr(watchdog, 'today_runs', lambda job_id: [run])
     monkeypatch.setattr(watchdog, 'transcript_loop_score',
                         lambda session_id: (loop_score, ''))
+    # Keep the tests hermetic: both of these read /root/.openclaw/agents/... on a
+    # real box, which is unreadable on the CI runner.
+    monkeypatch.setattr(watchdog, 'last_report_text',
+                        lambda session_id, first_line: None)
     monkeypatch.setattr(watchdog, 'send_telegram',
                         lambda target, body, dry: sends.append(body) or (True, 'ok'))
     monkeypatch.setattr(watchdog.cron_heartbeat, 'record',
@@ -363,5 +367,6 @@ def test_a_marker_that_failed_telegram_still_gets_mirrored(
 
     assert watchdog.main() == 0
     assert len(sends) == 1
+    assert HEADING in sends[0]              # the report reaches kcn, not just a banner
     assert events[-1]['action'] == 'mirror-telegram'
     assert events[-1]['reason'] == 'postflight cosend failed'
