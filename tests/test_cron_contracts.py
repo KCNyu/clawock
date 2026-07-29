@@ -451,6 +451,11 @@ def test_intraday_payload_contract_bans_heredoc_and_requires_text_file():
         for line in profile['required_substrings']
     )
     assert '同一条回复内并行发出两个 `write` 工具调用' in profile['required_substrings']
+    exact_number_rule = (
+        '数字必须原样照抄 context 的完整字面值；'
+        '禁止四舍五入、取整或改写成“约/近”等近似数，找不到原值就省略'
+    )
+    assert exact_number_rule in profile['required_substrings']
     assert any(
         'postflight 返回 pass/warn 后直接输出' in line and '禁止再读、搜或重建' in line
         for line in profile['required_substrings']
@@ -467,6 +472,7 @@ def test_intraday_payload_contract_bans_heredoc_and_requires_text_file():
     data = contract()
     expected = {job['name']: job for job in data['jobs']}['盘中盯盘']
     message = cron_contract.render_payload_message(data, expected)
+    assert exact_number_rule in message
     live = {
         'payload': {'message': message, 'kind': 'agentTurn',
                     'model': profile['model'], 'thinking': profile['thinking'],
