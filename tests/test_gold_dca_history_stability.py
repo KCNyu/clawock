@@ -1,6 +1,5 @@
 """Regression coverage for London-gold history provenance and settlement."""
 from datetime import date, timedelta
-from math import ceil
 from pathlib import Path
 import sys
 
@@ -32,14 +31,6 @@ def spaced_rows(count, span_days):
         )
         for offset in range(count)
     ]
-
-
-def test_london_fallback_bound_covers_measured_calendar_span():
-    measured_required = ceil(212 * 134 / 188) + gold.XAU_SETTLEMENT_DAYS
-
-    assert measured_required == 157
-    assert gold.LONDON_HISTORY_FALLBACK_KEEP == 180
-    assert gold.LONDON_HISTORY_FALLBACK_KEEP >= measured_required
 
 
 def test_settled_outlier_is_quarantined_but_latest_five_dates_win():
@@ -120,24 +111,25 @@ def test_first_empty_fetch_is_also_visible():
 
 
 def test_stale_date_absent_from_fresh_feed_is_evicted_outside_bound():
-    previous = dated_rows(gold.LONDON_HISTORY_FALLBACK_KEEP + 1)
+    previous = dated_rows(200)
     fresh = previous[1:]
+    coverage_start = previous[40][0]
 
     stable, advisory = gold.stabilize_history(
         fresh,
         previous,
         {"name": gold.XAU_PRIMARY_SOURCE, "points": len(fresh)},
         {"name": gold.XAU_PRIMARY_SOURCE, "points": len(previous)},
+        coverage_start=coverage_start,
     )
 
-    assert len(stable) == gold.LONDON_HISTORY_FALLBACK_KEEP
     assert previous[0][0] not in dict(stable)
-    assert stable == fresh
+    assert stable == fresh[40 - gold.XAU_SETTLEMENT_DAYS - 1:]
     assert advisory is None
 
 
 def test_date_bound_keeps_coverage_and_preceding_settlement_window():
-    fresh = dated_rows(gold.LONDON_HISTORY_FALLBACK_KEEP + 20)
+    fresh = dated_rows(200)
     coverage_start = fresh[40][0]
 
     stable, advisory = gold.stabilize_history(
@@ -182,7 +174,7 @@ def test_london_payload_persists_reference_and_visible_provenance():
 
 
 def test_london_payload_serializes_both_histories_within_bound():
-    oversized = dated_rows(gold.LONDON_HISTORY_FALLBACK_KEEP + 7)
+    oversized = dated_rows(gold.HISTORY_KEEP + 47)
     nav = [[day, 3.0] for day, _ in oversized[-gold.HISTORY_KEEP:]]
     start = oversized[-(gold.HISTORY_KEEP + 10)][0]
 
@@ -195,21 +187,49 @@ def test_london_payload_serializes_both_histories_within_bound():
         oversized,
     )
 
-    expected = oversized[
-        -(gold.HISTORY_KEEP + 10 + gold.XAU_SETTLEMENT_DAYS):
-    ]
+    expected = oversized[-(gold.HISTORY_KEEP + gold.XAU_SETTLEMENT_DAYS):]
     assert london["hist_series"] == [[day, round(value, 4)] for day, value in expected]
     assert london["fx_hist_series"] == [[day, 7.0] for day, _ in expected]
+
+
+def test_sliding_coverage_anchor_bounds_retained_london_history():
+    start = "2026-01-22"
+    first_day = date(2026, 1, 22)
+    last_day = date(2029, 7, 30)
+    xau = []
+    day = first_day
+    while day <= last_day:
+        if day.weekday() < 5:
+            xau.append((day.isoformat(), 2000.0))
+        day += timedelta(days=1)
+    nav = []
+    day = last_day
+    while len(nav) < gold.HISTORY_KEEP:
+        if day.weekday() < 5:
+            nav.append([day.isoformat(), 3.0])
+        day -= timedelta(days=1)
+    nav.sort()
+
+    coverage_start = gold._london_history_coverage_start(nav, start)
+    retained = gold._bounded_london_history(xau, coverage_start)
+    max_retained = gold.HISTORY_KEEP + gold.XAU_SETTLEMENT_DAYS
+
+    assert len(xau) == 918
+    # Same weekday calendar: 140 NAV dates plus five preceding settlement points.
+    assert len(retained) <= max_retained == 145
+    assert coverage_start == nav[0][0]
 
 
 def test_retention_does_not_starve_oldest_nav_purchases():
     daily = 200
     nav = [[day, 3.0] for day, _ in spaced_rows(gold.HISTORY_KEEP, 212)]
     xau = spaced_rows(152, 212)
+    coverage_start = gold._london_history_coverage_start(nav, nav[0][0])
     retained, advisory = gold.stabilize_history(
         xau,
         [],
         {"name": gold.XAU_PRIMARY_SOURCE, "points": len(xau)},
+        coverage_start=coverage_start,
     )
 
     dca = gold.build_london_dca(

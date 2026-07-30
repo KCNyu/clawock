@@ -66,11 +66,6 @@ SEED = {
 HISTORY_PAGES = 8     # 8×20 = 160 交易日，够画迷你图 + 取区间高低
 HISTORY_KEEP = 140    # 写回 portfolio.json 的最大点数（控体积）
 XAU_SETTLEMENT_DAYS = 5
-# Measured portfolio spans: 140 NAV points cover 212 calendar days, while XAU
-# averages 134 / 188 = 0.713 points/day. Matching 212 days therefore needs
-# ceil(212 * 134 / 188) = 152 XAU points, or 157 with the settlement window.
-# Date-aware callers are authoritative; 180 is only the context-free fallback.
-LONDON_HISTORY_FALLBACK_KEEP = 180
 XAU_SETTLED_DRIFT_PCT = 0.3
 XAU_PRIMARY_SOURCE = 'sina_global_futures_xau'
 XAU_FALLBACK_SOURCE = 'eastmoney_gc00y_fallback'
@@ -237,12 +232,12 @@ def _london_history_coverage_start(nav_history, start):
     """Oldest date whose XAU/FX coverage may be consumed by London metrics."""
     nav_dates = [
         str(row[0]) for row in (nav_history or [])
-        if row and row[0]
+        if row and len(row) > 1 and row[0] and row[1] is not None
     ]
     candidates = [str(start)] if start else []
     if nav_dates:
         candidates.append(min(nav_dates))
-    return min(candidates) if candidates else None
+    return max(candidates) if candidates else None
 
 
 def _bounded_london_history(rows, coverage_start=None):
@@ -253,7 +248,7 @@ def _bounded_london_history(rows, coverage_start=None):
     }
     ordered = sorted(normalized.items())
     if not coverage_start:
-        return ordered[-LONDON_HISTORY_FALLBACK_KEEP:]
+        return ordered
     dates = [day for day, _ in ordered]
     first_required = bisect.bisect_left(dates, str(coverage_start))
     first_retained = max(0, first_required - XAU_SETTLEMENT_DAYS)
