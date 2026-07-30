@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-29T22:33:01.929885+00:00",
+  "generated_at": "2026-07-30T14:56:11.085355+00:00",
   "lookback_hours": 48,
   "sources": {
     "trump": "trumpstruth.org/feed (primary)",
@@ -13,73 +13,43 @@
   },
   "llm_filtered": true,
   "counts": {
-    "total": 14,
+    "total": 9,
     "held_hits": 0,
     "new_ideas": 5,
-    "sector_hits": 2
+    "sector_hits": 1
   },
   "items": [
     {
-      "author": "Trump",
-      "text": "NVIDIA: Building in America, for America: https://www.nvidia.com/en-us/made-in-usa/",
-      "url": "https://trumpstruth.org/statuses/40333",
-      "published": "2026-07-27T23:20:03+00:00",
-      "origin": "truthsocial",
+      "author": "Musk",
+      "text": "As Elon Musk's SpaceX and Tesla Stocks Continue to Fall, Is It Time to Buy the Stocks on the Dip?",
+      "url": "",
+      "published": "Thu, 30 Jul 2026 10:00:00 GMT",
+      "origin": "gnews-rss",
+      "source": "The Motley Fool",
       "tickers": [
-        "NVDA"
+        "TSLA"
       ],
       "held": [],
       "new_ideas": [
-        "NVDA"
+        "TSLA"
       ],
       "sectors": [
-        "AI",
-        "半导体",
-        "关税"
+        "电动车",
+        "航天"
       ],
       "sector_holdings": [
-        "03032",
-        "03033",
-        "07226",
-        "MSFU"
+        "SPCH",
+        "SPCX"
       ],
-      "stance": "endorse",
-      "relevance": 80,
-      "summary_cn": "Trump官方渠道转发NVIDIA'美国制造'页面，定调AI芯片国产化叙事，强力背书NVDA。"
-    },
-    {
-      "author": "Trump",
-      "text": "NVIDIA and Partners Build in America, for America: https://blogs.nvidia.com/blog/nvidia-and-partners-build-in-america-for-america/",
-      "url": "https://trumpstruth.org/statuses/40322",
-      "published": "2026-07-27T23:19:17+00:00",
-      "origin": "truthsocial",
-      "tickers": [
-        "NVDA"
-      ],
-      "held": [],
-      "new_ideas": [
-        "NVDA"
-      ],
-      "sectors": [
-        "AI",
-        "半导体",
-        "关税"
-      ],
-      "sector_holdings": [
-        "03032",
-        "03033",
-        "07226",
-        "MSFU"
-      ],
-      "stance": "endorse",
-      "relevance": 80,
-      "summary_cn": "Trump转发NVIDIA官博'与合作伙伴在美国本土建厂'文章，为AI/半导体on-shorcing背书。"
+      "stance": "neutral",
+      "relevance": 70,
+      "summary_cn": "马斯克旗下SpaceX和特斯拉股价持续下跌，媒体讨论是否为抄底机会——与kcn持有的SpaceX相关ETF高度相关。"
     },
     {
       "author": "Musk",
-      "text": "Tesla Stock Suffered Its Worst Week Since 2022, Falling 18% as Investors Balked at Elon Musk's Robotaxi and AI Spending Plans",
+      "text": "Cathie Wood Bought $53.5 Million of Tesla Stock Right After Elon Musk's Post-Earnings Sell-Off. Is a Rebound Coming?",
       "url": "",
-      "published": "Wed, 29 Jul 2026 18:25:00 GMT",
+      "published": "Thu, 30 Jul 2026 05:50:00 GMT",
       "origin": "gnews-rss",
       "source": "Yahoo Finance",
       "tickers": [
@@ -90,37 +60,35 @@
         "TSLA"
       ],
       "sectors": [
-        "电动车",
-        "AI"
+        "电动车"
       ],
       "sector_holdings": [],
-      "stance": "attack",
-      "relevance": 78,
-      "summary_cn": "Tesla单周暴跌18%(2022年以来最差)，市场对Musk的Robotaxi与AI烧钱计划用脚投票。"
+      "stance": "endorse",
+      "relevance": 55,
+      "summary_cn": "Cathie Wood在特斯拉财报后暴跌中抄底5350万美元，市场解读为反弹信号。"
     },
     {
       "author": "Musk",
-      "text": "Elon Musk said money doesn’t matter. Then he rolled out X Money and admitted he’s a ‘former trillionaire’",
+      "text": "Elon Musk launches invite-only X Money with a Visa debit card, 6% yield and real-time transfers",
       "url": "",
-      "published": "Wed, 29 Jul 2026 07:05:00 GMT",
+      "published": "Thu, 30 Jul 2026 02:07:00 GMT",
       "origin": "gnews-rss",
-      "source": "Fortune",
+      "source": "KCRA",
       "tickers": [
-        "TSLA"
+        "V"
       ],
       "held": [],
       "new_ideas": [
-        "TSLA"
+        "V"
       ],
       "sectors": [
-        "电动车",
-        "加密货币",
-        "AI"
+        "支付",
+        "加密货币"
       ],
       "sector_holdings": [],
       "stance": "neutral",
-      "relevance": 72,
-      "summary_cn": "Musk自称'前万亿富翁'并推出X Money，叠加TSLA承压叙事，财富/支付概念受关注。"
+      "relevance": 55,
+      "summary_cn": "马斯克的X平台推出邀请制的X Money，搭载Visa借记卡、6%收益和实时转账——Visa为合作方，X Money或与支付/加密赛道形成竞争。"
     },
     {
       "author": "Musk",
@@ -137,58 +105,57 @@
         "TSLA"
       ],
       "sectors": [
-        "电动车"
+        "电动车",
+        "房地产"
       ],
       "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 65,
-      "summary_cn": "Tesla成为奥斯汀地区最大工业租户之一，扩产/基础设施投入信号明确。"
+      "stance": "neutral",
+      "relevance": 50,
+      "summary_cn": "特斯拉成为奥斯汀地区最大工业租户之一，反映其产能/设施扩张持续推进。"
     },
     {
       "author": "Musk",
-      "text": "Reality Bites Elon Musk and His Tesla, SpaceX Believers",
+      "text": "Elon Musk's Tesla Pay Plan: What It Takes to Fully Vest - BASENOR",
       "url": "",
-      "published": "Thu, 23 Jul 2026 21:04:00 GMT",
+      "published": "Thu, 30 Jul 2026 11:06:46 GMT",
       "origin": "gnews-rss",
-      "source": "WSJ",
+      "source": "BASENOR - Tesla Accessories",
+      "tickers": [
+        "TSLA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "TSLA"
+      ],
+      "sectors": [
+        "电动车"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 45,
+      "summary_cn": "特斯拉薪酬方案详解：马斯克需达成哪些里程碑方可完全归属——间接反映公司业绩指引。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk stocks take $1.5 trillion hit with fresh test in SpaceX lockup ahead",
+      "url": "",
+      "published": "Tue, 28 Jul 2026 18:56:34 GMT",
+      "origin": "gnews-rss",
+      "source": "CNBC",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "电动车",
         "航天",
-        "AI"
+        "电动车"
       ],
       "sector_holdings": [
         "SPCH",
         "SPCX"
       ],
       "stance": "attack",
-      "relevance": 72,
-      "summary_cn": "媒体批判Musk与Tesla/SpaceX信徒，叠加TSLA暴跌叙事，Musk系资产整体承压。"
-    },
-    {
-      "author": "Musk",
-      "text": "Exclusive / SpaceX looks to compete with the carriers",
-      "url": "",
-      "published": "Wed, 29 Jul 2026 18:51:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Semafor",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "电信"
-      ],
-      "sector_holdings": [
-        "RKLX",
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "neutral",
-      "relevance": 70,
-      "summary_cn": "SpaceX拟进入电信运营商市场与既有运营商正面竞争，利好SpaceX生态(SPCX/SPCH/RKLX)。"
+      "relevance": 78,
+      "summary_cn": "马斯克相关股票单日蒸发1.5万亿美元市值，SpaceX lockup到期带来新一轮解禁压力——对kcn持有的SpaceX ETF（SPCX/SPCH）有直接负面影响。"
     },
     {
       "author": "Trump",
@@ -201,12 +168,13 @@
       "new_ideas": [],
       "sectors": [
         "关税",
+        "电动车",
         "汽车"
       ],
       "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 65,
-      "summary_cn": "关税压力推动丰田将Tacoma生产线迁至德州，凸显关税政策正在重塑制造业布局。"
+      "stance": "neutral",
+      "relevance": 62,
+      "summary_cn": "关税'拉扯'效应下，丰田宣布将Tacoma生产线从墨西哥迁至德州，凸显关税正重塑美国汽车制造业布局。"
     },
     {
       "author": "Trump",
@@ -223,26 +191,7 @@
       "sector_holdings": [],
       "stance": "endorse",
       "relevance": 60,
-      "summary_cn": "Trump抨击最高法院关于出生公民权和关税的裁决，称已让美国损失数万亿美元，关税立场强硬。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk's xAI sues Minnesota over its first-in-the-nation law banning 'nudification' technology - ABC News",
-      "url": "",
-      "published": "Wed, 29 Jul 2026 20:09:52 GMT",
-      "origin": "gnews-rss",
-      "source": "ABC News - Breaking News, Latest News and Videos",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "AI",
-        "监管"
-      ],
-      "sector_holdings": [],
-      "stance": "attack",
-      "relevance": 50,
-      "summary_cn": "Musk旗下xAI起诉明尼苏达州'去AI裸露化'立法，凸显AI监管与公司对抗加剧。"
+      "summary_cn": "特朗普抨击最高法院关于出生公民权和关税的裁决，称其让美国损失数万亿美元，暗示关税政策受阻。"
     },
     {
       "author": "Trump",
@@ -258,125 +207,43 @@
       ],
       "sector_holdings": [],
       "stance": "endorse",
-      "relevance": 50,
-      "summary_cn": "Trump在佐治亚造势宣传'Trump Accounts'(儿童投资账户)政策利好概念。"
-    },
-    {
-      "author": "Trump",
-      "text": "Many more people died of Covid under the Biden Administration than under the Trump Administration. “Operation Warp Speed”  was a SPECTACULAR SUCCESS, in fact, many say, one of the most successful things ever done by an American President. I overrode Fauci on this. His ideas were CRAZY! Also, I said from the beginning that the Virus came from the Wuhan Laboratory in China. Fauci strongly disagreed, always trying to protect China. I Inherited Fauci, who was there since the 1980’s, but with each passing day, relied less and less on him. He made too many bad calls, like on MASKS. Remember at the b",
-      "url": "https://trumpstruth.org/statuses/40391",
-      "published": "2026-07-29T11:46:42+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "生物医药",
-        "中国"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 45,
-      "summary_cn": "Trump回顾新冠应对与Wuhan溯源论，抨击Fauci，政治口水为主，市场含义弱。"
-    },
-    {
-      "author": "Trump",
-      "text": "It is my Great Honor to endorse Amir Hassan, who is running to represent the fantastic people of Michigan’s 8th Congressional District!   From bravely fighting for our incredible U.S. Navy, to protecting his Community as a Federal Law Enforcement Officer, Amir has served our Nation with distinction, and will bring that same Fighting Spirit to the U.S. Congress. His opponent, Kristen McDonald Rivet, voted against NO TAX ON TIPS, NO TAX ON OVERTIME, and NO TAX ON SOCIAL SECURITY and, if she and the Dumocrats ever got in, all of these things would be terminated. She wants massive Tax Increases, O",
-      "url": "https://trumpstruth.org/statuses/40388",
-      "published": "2026-07-29T00:59:25+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "税收"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 45,
-      "summary_cn": "Trump背书密歇根候选人，借机宣传'取消小费/加班/社保税'等减税政策。"
-    },
-    {
-      "author": "Trump",
-      "text": "https://www.cnbc.com/video/2026/07/06/watch-cnbcs-full-interview-with-invest-america-founder-brad-gerstner.html",
-      "url": "https://trumpstruth.org/statuses/40329",
-      "published": "2026-07-27T23:20:58+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "宏观政策"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 45,
-      "summary_cn": "Trump转发Invest America创始人Brad Gerstner访谈视频，涉美国再投资主题。"
+      "relevance": 55,
+      "summary_cn": "特朗普在乔治亚州演讲中力推'Trump Accounts'（儿童投资账户计划），属财政/储蓄类政策利好。"
     }
   ],
   "held_hits": [],
   "new_ideas": [
     {
-      "author": "Trump",
-      "text": "NVIDIA: Building in America, for America: https://www.nvidia.com/en-us/made-in-usa/",
-      "url": "https://trumpstruth.org/statuses/40333",
-      "published": "2026-07-27T23:20:03+00:00",
-      "origin": "truthsocial",
+      "author": "Musk",
+      "text": "As Elon Musk's SpaceX and Tesla Stocks Continue to Fall, Is It Time to Buy the Stocks on the Dip?",
+      "url": "",
+      "published": "Thu, 30 Jul 2026 10:00:00 GMT",
+      "origin": "gnews-rss",
+      "source": "The Motley Fool",
       "tickers": [
-        "NVDA"
+        "TSLA"
       ],
       "held": [],
       "new_ideas": [
-        "NVDA"
+        "TSLA"
       ],
       "sectors": [
-        "AI",
-        "半导体",
-        "关税"
+        "电动车",
+        "航天"
       ],
       "sector_holdings": [
-        "03032",
-        "03033",
-        "07226",
-        "MSFU"
+        "SPCH",
+        "SPCX"
       ],
-      "stance": "endorse",
-      "relevance": 80,
-      "summary_cn": "Trump官方渠道转发NVIDIA'美国制造'页面，定调AI芯片国产化叙事，强力背书NVDA。"
-    },
-    {
-      "author": "Trump",
-      "text": "NVIDIA and Partners Build in America, for America: https://blogs.nvidia.com/blog/nvidia-and-partners-build-in-america-for-america/",
-      "url": "https://trumpstruth.org/statuses/40322",
-      "published": "2026-07-27T23:19:17+00:00",
-      "origin": "truthsocial",
-      "tickers": [
-        "NVDA"
-      ],
-      "held": [],
-      "new_ideas": [
-        "NVDA"
-      ],
-      "sectors": [
-        "AI",
-        "半导体",
-        "关税"
-      ],
-      "sector_holdings": [
-        "03032",
-        "03033",
-        "07226",
-        "MSFU"
-      ],
-      "stance": "endorse",
-      "relevance": 80,
-      "summary_cn": "Trump转发NVIDIA官博'与合作伙伴在美国本土建厂'文章，为AI/半导体on-shorcing背书。"
+      "stance": "neutral",
+      "relevance": 70,
+      "summary_cn": "马斯克旗下SpaceX和特斯拉股价持续下跌，媒体讨论是否为抄底机会——与kcn持有的SpaceX相关ETF高度相关。"
     },
     {
       "author": "Musk",
-      "text": "Tesla Stock Suffered Its Worst Week Since 2022, Falling 18% as Investors Balked at Elon Musk's Robotaxi and AI Spending Plans",
+      "text": "Cathie Wood Bought $53.5 Million of Tesla Stock Right After Elon Musk's Post-Earnings Sell-Off. Is a Rebound Coming?",
       "url": "",
-      "published": "Wed, 29 Jul 2026 18:25:00 GMT",
+      "published": "Thu, 30 Jul 2026 05:50:00 GMT",
       "origin": "gnews-rss",
       "source": "Yahoo Finance",
       "tickers": [
@@ -387,37 +254,35 @@
         "TSLA"
       ],
       "sectors": [
-        "电动车",
-        "AI"
+        "电动车"
       ],
       "sector_holdings": [],
-      "stance": "attack",
-      "relevance": 78,
-      "summary_cn": "Tesla单周暴跌18%(2022年以来最差)，市场对Musk的Robotaxi与AI烧钱计划用脚投票。"
+      "stance": "endorse",
+      "relevance": 55,
+      "summary_cn": "Cathie Wood在特斯拉财报后暴跌中抄底5350万美元，市场解读为反弹信号。"
     },
     {
       "author": "Musk",
-      "text": "Elon Musk said money doesn’t matter. Then he rolled out X Money and admitted he’s a ‘former trillionaire’",
+      "text": "Elon Musk launches invite-only X Money with a Visa debit card, 6% yield and real-time transfers",
       "url": "",
-      "published": "Wed, 29 Jul 2026 07:05:00 GMT",
+      "published": "Thu, 30 Jul 2026 02:07:00 GMT",
       "origin": "gnews-rss",
-      "source": "Fortune",
+      "source": "KCRA",
       "tickers": [
-        "TSLA"
+        "V"
       ],
       "held": [],
       "new_ideas": [
-        "TSLA"
+        "V"
       ],
       "sectors": [
-        "电动车",
-        "加密货币",
-        "AI"
+        "支付",
+        "加密货币"
       ],
       "sector_holdings": [],
       "stance": "neutral",
-      "relevance": 72,
-      "summary_cn": "Musk自称'前万亿富翁'并推出X Money，叠加TSLA承压叙事，财富/支付概念受关注。"
+      "relevance": 55,
+      "summary_cn": "马斯克的X平台推出邀请制的X Money，搭载Visa借记卡、6%收益和实时转账——Visa为合作方，X Money或与支付/加密赛道形成竞争。"
     },
     {
       "author": "Musk",
@@ -434,60 +299,59 @@
         "TSLA"
       ],
       "sectors": [
+        "电动车",
+        "房地产"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 50,
+      "summary_cn": "特斯拉成为奥斯汀地区最大工业租户之一，反映其产能/设施扩张持续推进。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk's Tesla Pay Plan: What It Takes to Fully Vest - BASENOR",
+      "url": "",
+      "published": "Thu, 30 Jul 2026 11:06:46 GMT",
+      "origin": "gnews-rss",
+      "source": "BASENOR - Tesla Accessories",
+      "tickers": [
+        "TSLA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "TSLA"
+      ],
+      "sectors": [
         "电动车"
       ],
       "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 65,
-      "summary_cn": "Tesla成为奥斯汀地区最大工业租户之一，扩产/基础设施投入信号明确。"
+      "stance": "neutral",
+      "relevance": 45,
+      "summary_cn": "特斯拉薪酬方案详解：马斯克需达成哪些里程碑方可完全归属——间接反映公司业绩指引。"
     }
   ],
   "sector_hits": [
     {
       "author": "Musk",
-      "text": "Reality Bites Elon Musk and His Tesla, SpaceX Believers",
+      "text": "Elon Musk stocks take $1.5 trillion hit with fresh test in SpaceX lockup ahead",
       "url": "",
-      "published": "Thu, 23 Jul 2026 21:04:00 GMT",
+      "published": "Tue, 28 Jul 2026 18:56:34 GMT",
       "origin": "gnews-rss",
-      "source": "WSJ",
+      "source": "CNBC",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "电动车",
         "航天",
-        "AI"
+        "电动车"
       ],
       "sector_holdings": [
         "SPCH",
         "SPCX"
       ],
       "stance": "attack",
-      "relevance": 72,
-      "summary_cn": "媒体批判Musk与Tesla/SpaceX信徒，叠加TSLA暴跌叙事，Musk系资产整体承压。"
-    },
-    {
-      "author": "Musk",
-      "text": "Exclusive / SpaceX looks to compete with the carriers",
-      "url": "",
-      "published": "Wed, 29 Jul 2026 18:51:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Semafor",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "电信"
-      ],
-      "sector_holdings": [
-        "RKLX",
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "neutral",
-      "relevance": 70,
-      "summary_cn": "SpaceX拟进入电信运营商市场与既有运营商正面竞争，利好SpaceX生态(SPCX/SPCH/RKLX)。"
+      "relevance": 78,
+      "summary_cn": "马斯克相关股票单日蒸发1.5万亿美元市值，SpaceX lockup到期带来新一轮解禁压力——对kcn持有的SpaceX ETF（SPCX/SPCH）有直接负面影响。"
     }
   ]
 }
