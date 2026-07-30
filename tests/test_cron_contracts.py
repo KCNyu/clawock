@@ -500,6 +500,52 @@ def test_strategy_crons_pin_minimax_m3_adaptive_reasoning():
     }
 
 
+def test_strategy_cron_provider_order_is_fixed_policy():
+    profiles = contract()['payload_profiles']
+
+    # This concrete order is policy. Reordering it requires a deliberate human
+    # decision; do not make this expectation follow the contract dynamically.
+    assert {
+        name: {
+            'model': profiles[name].get('model'),
+            'fallbacks': profiles[name].get('fallbacks'),
+            'model_candidates': profiles[name].get('model_candidates'),
+        }
+        for name in ('report', 'intraday', 'brief')
+    } == {
+        'report': {
+            'model': 'minimax/MiniMax-M3',
+            'fallbacks': ['minimax-2/MiniMax-M3'],
+            'model_candidates': [
+                'minimax/MiniMax-M3',
+                'minimax-2/MiniMax-M3',
+                'openai/gpt-5.6-sol',
+                'anthropic/claude-sonnet-4-6',
+            ],
+        },
+        'intraday': {
+            'model': 'minimax/MiniMax-M3',
+            'fallbacks': ['minimax-2/MiniMax-M3'],
+            'model_candidates': [
+                'minimax/MiniMax-M3',
+                'minimax-2/MiniMax-M3',
+                'openai/gpt-5.6-sol',
+                'anthropic/claude-sonnet-4-6',
+            ],
+        },
+        'brief': {
+            'model': 'minimax/MiniMax-M3',
+            'fallbacks': ['minimax-2/MiniMax-M3'],
+            'model_candidates': [
+                'minimax/MiniMax-M3',
+                'minimax-2/MiniMax-M3',
+                'openai/gpt-5.6-sol',
+                'anthropic/claude-sonnet-4-6',
+            ],
+        },
+    }
+
+
 def test_strategy_crons_require_skill_body_read_in_first_tool_batch():
     """The skills system prompt is a catalog, not the SKILL.md body.
 
