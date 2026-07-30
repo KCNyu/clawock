@@ -17,9 +17,10 @@ Side effects:
   - status=pass: rebuild dashboard, commit scoped report artifacts, deliver WeChat + Telegram
   - status=warn: same as pass but commit msg flags validation warnings
   - status=fail: no commit or delivery (preserve commit history clean); print issues
-  - --dry-run: normalize the authored plan, validate, add missing Jekyll front matter,
-    and write the publish-gate status; do not write the decision ledger, rebuild/commit
-    the dashboard, push, deliver messages, or write the delivery marker
+  - --dry-run: normalize the authored plan in memory, validate, add missing Jekyll
+    front matter, and write the publish-gate status; do not rewrite the authored
+    plan, write the decision ledger, rebuild/commit the dashboard, push, deliver
+    messages, or write the delivery marker
 """
 
 import json
@@ -141,7 +142,28 @@ def _normalization_owned_plan_error(issue):
                for pattern in _NORMALIZATION_OWNED_PLAN_ERRORS)
 
 
-def normalize_plan_json(path, ledger_path=None):
+def _normalization_result(issues, normalized, return_plan):
+    return (issues, normalized) if return_plan else issues
+
+
+class _InMemoryPlanPath:
+    """Path-compatible validation input backed by a normalized in-memory plan."""
+
+    def __init__(self, path, plan):
+        self._path = Path(path)
+        self._body = json.dumps(plan, ensure_ascii=False, indent=2) + '\n'
+
+    def exists(self):
+        return self._path.exists()
+
+    def read_text(self, *args, **kwargs):
+        return self._body
+
+    def __fspath__(self):
+        return str(self._path)
+
+
+def normalize_plan_json(path, ledger_path=None, *, write=True, return_plan=False):
     """Fill only machine-owned v2 fields before validation.
 
     ``normalize_authored_plan`` also canonicalizes legacy/default values.  Never
@@ -151,18 +173,20 @@ def normalize_plan_json(path, ledger_path=None):
     missing deterministic ids/linkage/timestamps are exempted.
 
     JSON parse/missing-file diagnostics remain owned by ``validate_plan_json``
-    so callers do not receive duplicate issues.
+    so callers do not receive duplicate issues. With ``write=False`` the
+    normalized document stays in memory; ``return_plan=True`` exposes it to the
+    validator while preserving the default issue-list return contract.
     """
     if not path.exists():
-        return []
+        return _normalization_result([], None, return_plan)
     try:
         authored = json.loads(path.read_text())
     except json.JSONDecodeError:
-        return []
+        return _normalization_result([], None, return_plan)
 
     if (authored.get('schema_version') != 2
             or not isinstance(authored.get('decisions'), list)):
-        return []
+        return _normalization_result([], authored, return_plan)
 
     authored_issues = decision_v2.validate_plan(authored, path)
     semantic_issues = [
@@ -170,20 +194,23 @@ def normalize_plan_json(path, ledger_path=None):
         if not _normalization_owned_plan_error(issue)
     ]
     if semantic_issues:
-        return [f'plan.json authored: {issue}' for issue in semantic_issues]
+        issues = [f'plan.json authored: {issue}' for issue in semantic_issues]
+        return _normalization_result(issues, authored, return_plan)
 
     try:
         normalized = decision_v2.normalize_authored_plan(
             authored,
             ledger_path or (WS / 'memory' / 'decisions.jsonl'),
         )
-        if normalized != authored:
+        if write and normalized != authored:
             path.write_text(
                 json.dumps(normalized, ensure_ascii=False, indent=2) + '\n'
             )
     except Exception as exc:
-        return [f'plan.json 标准化失败: {exc}']
-    return []
+        return _normalization_result(
+            [f'plan.json 标准化失败: {exc}'], authored, return_plan
+        )
+    return _normalization_result([], normalized, return_plan)
 
 
 def validate_plan_json(path, context=None, decision_packet=None):
@@ -537,9 +564,10 @@ def main():
     import argparse
     ap = argparse.ArgumentParser()
     ap.add_argument('--dry-run', action='store_true',
-                    help='normalize/validate without ledger writes, dashboard rebuild/commit, '
-                         'push, message delivery, or delivery-marker writes; still adds '
-                         'missing Jekyll front matter and writes the publish-gate status')
+                    help='normalize in memory and validate without rewriting plan.json, '
+                         'ledger writes, dashboard rebuild/commit, push, message delivery, '
+                         'or delivery-marker writes; still adds missing Jekyll front matter '
+                         'and writes the publish-gate status')
     args = ap.parse_args()
 
     today = datetime.now().strftime('%Y-%m-%d')
@@ -583,9 +611,19 @@ def main():
         except Exception as exc:
             issues.append(f'decision packet 不可用: {exc}')
     issues += validate_markdown(md_path, context=context)
-    issues += normalize_plan_json(plan_path)
+    normalization_issues, normalized_plan = normalize_plan_json(
+        plan_path,
+        write=not args.dry_run,
+        return_plan=True,
+    )
+    issues += normalization_issues
+    validation_path = (
+        _InMemoryPlanPath(plan_path, normalized_plan)
+        if args.dry_run and normalized_plan is not None
+        else plan_path
+    )
     issues += validate_plan_json(
-        plan_path, context=context, decision_packet=decision_packet
+        validation_path, context=context, decision_packet=decision_packet
     )
 
     status = categorize(issues)
