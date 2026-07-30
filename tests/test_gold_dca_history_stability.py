@@ -1,4 +1,5 @@
 """Regression coverage for London-gold history provenance and settlement."""
+from datetime import date, timedelta
 from pathlib import Path
 import sys
 
@@ -11,6 +12,20 @@ import fetch_gold_dca as gold  # noqa: E402
 
 def rows(values):
     return [(f"2026-07-{day:02d}", value) for day, value in values]
+
+
+def dated_rows(count):
+    start = date(2025, 1, 1)
+    return [
+        ((start + timedelta(days=offset)).isoformat(), 100.0 + offset)
+        for offset in range(count)
+    ]
+
+
+def test_london_retention_is_derived_from_consumed_history_windows():
+    assert gold.LONDON_HISTORY_KEEP == (
+        gold.HISTORY_KEEP + gold.XAU_SETTLEMENT_DAYS
+    )
 
 
 def test_settled_outlier_is_quarantined_but_latest_five_dates_win():
@@ -90,6 +105,23 @@ def test_first_empty_fetch_is_also_visible():
     assert advisory == "伦敦金历史抓取失败，暂无可用参考点"
 
 
+def test_stale_date_absent_from_fresh_feed_is_evicted_outside_bound():
+    previous = dated_rows(gold.LONDON_HISTORY_KEEP + 1)
+    fresh = previous[1:]
+
+    stable, advisory = gold.stabilize_history(
+        fresh,
+        previous,
+        {"name": gold.XAU_PRIMARY_SOURCE, "points": len(fresh)},
+        {"name": gold.XAU_PRIMARY_SOURCE, "points": len(previous)},
+    )
+
+    assert len(stable) == gold.LONDON_HISTORY_KEEP
+    assert previous[0][0] not in dict(stable)
+    assert stable == fresh
+    assert advisory is None
+
+
 def test_london_payload_persists_reference_and_visible_provenance():
     xau = [("2026-07-01", 100.0), ("2026-07-02", 101.0)]
     derived = {"current_value": 1000.0, "nav_history": [
@@ -118,6 +150,25 @@ def test_london_payload_persists_reference_and_visible_provenance():
     ]
     assert london["hist_advisory"] == "test advisory"
     assert london["dca_equiv"]["oz_held"] > 0
+
+
+def test_london_payload_serializes_both_histories_within_bound():
+    oversized = dated_rows(gold.LONDON_HISTORY_KEEP + 7)
+    nav = [[day, 3.0] for day, _ in oversized[-gold.HISTORY_KEEP:]]
+
+    london = gold.compute_london(
+        {"current_value": 1000.0, "nav_history": nav},
+        {"start_date": nav[0][0], "daily_amount": 200},
+        {"xau_usd": oversized[-1][1], "change_pct": 1.0},
+        7.0,
+        dict((day, 7.0) for day, _ in oversized),
+        oversized,
+    )
+
+    assert len(london["hist_series"]) == gold.LONDON_HISTORY_KEEP
+    assert len(london["fx_hist_series"]) == gold.LONDON_HISTORY_KEEP
+    assert london["hist_series"][0][0] == oversized[-gold.LONDON_HISTORY_KEEP][0]
+    assert london["fx_hist_series"][0][0] == oversized[-gold.LONDON_HISTORY_KEEP][0]
 
 
 def test_dashboard_drops_internal_history_but_keeps_provenance_contract():
