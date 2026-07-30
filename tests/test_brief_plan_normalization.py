@@ -159,3 +159,49 @@ def test_main_normalizes_before_calling_plan_validation(tmp_path, monkeypatch):
     assert brief_postflight.main() == 0
     assert observed["decision_id"].startswith("dec-")
     assert observed["episode_id"].startswith("ep-")
+
+
+def test_dry_run_validates_normalized_plan_without_rewriting_source(
+    tmp_path, monkeypatch
+):
+    today = datetime.now().strftime("%Y-%m-%d")
+    plan_path = tmp_path / "memory" / f"{today}-plan.json"
+    plan_path.parent.mkdir(parents=True)
+    authored = json.dumps({
+        "schema_version": 2,
+        "date": today,
+        "decisions": [_authored_decision()],
+    })
+    plan_path.write_text(authored)
+    before_mtime = plan_path.stat().st_mtime_ns
+    observed = {}
+    validate = brief_postflight.validate_plan_json
+
+    def capture_validation(path, **kwargs):
+        decision = json.loads(path.read_text())["decisions"][0]
+        observed["decision_id"] = decision["decision_id"]
+        observed["issues"] = validate(path, **kwargs)
+        return observed["issues"]
+
+    monkeypatch.setattr(brief_postflight, "WS", tmp_path)
+    monkeypatch.setattr(
+        brief_postflight.trading_calendar, "closed_reason", lambda _market: None
+    )
+    monkeypatch.setattr(
+        brief_postflight.workflow_outcomes, "slot_for_job", lambda _job: "slot"
+    )
+    monkeypatch.setattr(
+        brief_postflight.workflow_outcomes, "record_stage", lambda *_a, **_k: None
+    )
+    monkeypatch.setattr(brief_postflight, "validate_markdown", lambda *_a, **_k: [])
+    monkeypatch.setattr(
+        brief_postflight, "validate_plan_json", capture_validation
+    )
+    monkeypatch.setattr(brief_postflight, "already_delivered", lambda _path: True)
+    monkeypatch.setattr(sys, "argv", ["brief_postflight.py", "--dry-run"])
+
+    assert brief_postflight.main() == 0
+    assert observed["decision_id"].startswith("dec-")
+    assert observed["issues"] == []
+    assert plan_path.read_text() == authored
+    assert plan_path.stat().st_mtime_ns == before_mtime
