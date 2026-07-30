@@ -1,5 +1,6 @@
 """Regression coverage for London-gold history provenance and settlement."""
 from datetime import date, timedelta
+from math import ceil
 from pathlib import Path
 import sys
 
@@ -22,10 +23,23 @@ def dated_rows(count):
     ]
 
 
-def test_london_retention_is_derived_from_consumed_history_windows():
-    assert gold.LONDON_HISTORY_KEEP == (
-        gold.HISTORY_KEEP + gold.XAU_SETTLEMENT_DAYS
-    )
+def spaced_rows(count, span_days):
+    start = date(2025, 1, 1)
+    return [
+        (
+            (start + timedelta(days=offset * span_days // (count - 1))).isoformat(),
+            100.0 + offset,
+        )
+        for offset in range(count)
+    ]
+
+
+def test_london_fallback_bound_covers_measured_calendar_span():
+    measured_required = ceil(212 * 134 / 188) + gold.XAU_SETTLEMENT_DAYS
+
+    assert measured_required == 157
+    assert gold.LONDON_HISTORY_FALLBACK_KEEP == 180
+    assert gold.LONDON_HISTORY_FALLBACK_KEEP >= measured_required
 
 
 def test_settled_outlier_is_quarantined_but_latest_five_dates_win():
@@ -106,7 +120,7 @@ def test_first_empty_fetch_is_also_visible():
 
 
 def test_stale_date_absent_from_fresh_feed_is_evicted_outside_bound():
-    previous = dated_rows(gold.LONDON_HISTORY_KEEP + 1)
+    previous = dated_rows(gold.LONDON_HISTORY_FALLBACK_KEEP + 1)
     fresh = previous[1:]
 
     stable, advisory = gold.stabilize_history(
@@ -116,9 +130,24 @@ def test_stale_date_absent_from_fresh_feed_is_evicted_outside_bound():
         {"name": gold.XAU_PRIMARY_SOURCE, "points": len(previous)},
     )
 
-    assert len(stable) == gold.LONDON_HISTORY_KEEP
+    assert len(stable) == gold.LONDON_HISTORY_FALLBACK_KEEP
     assert previous[0][0] not in dict(stable)
     assert stable == fresh
+    assert advisory is None
+
+
+def test_date_bound_keeps_coverage_and_preceding_settlement_window():
+    fresh = dated_rows(gold.LONDON_HISTORY_FALLBACK_KEEP + 20)
+    coverage_start = fresh[40][0]
+
+    stable, advisory = gold.stabilize_history(
+        fresh,
+        [],
+        {"name": gold.XAU_PRIMARY_SOURCE, "points": len(fresh)},
+        coverage_start=coverage_start,
+    )
+
+    assert stable == fresh[40 - gold.XAU_SETTLEMENT_DAYS:]
     assert advisory is None
 
 
@@ -153,22 +182,49 @@ def test_london_payload_persists_reference_and_visible_provenance():
 
 
 def test_london_payload_serializes_both_histories_within_bound():
-    oversized = dated_rows(gold.LONDON_HISTORY_KEEP + 7)
+    oversized = dated_rows(gold.LONDON_HISTORY_FALLBACK_KEEP + 7)
     nav = [[day, 3.0] for day, _ in oversized[-gold.HISTORY_KEEP:]]
+    start = oversized[-(gold.HISTORY_KEEP + 10)][0]
 
     london = gold.compute_london(
         {"current_value": 1000.0, "nav_history": nav},
-        {"start_date": nav[0][0], "daily_amount": 200},
+        {"start_date": start, "daily_amount": 200},
         {"xau_usd": oversized[-1][1], "change_pct": 1.0},
         7.0,
         dict((day, 7.0) for day, _ in oversized),
         oversized,
     )
 
-    assert len(london["hist_series"]) == gold.LONDON_HISTORY_KEEP
-    assert len(london["fx_hist_series"]) == gold.LONDON_HISTORY_KEEP
-    assert london["hist_series"][0][0] == oversized[-gold.LONDON_HISTORY_KEEP][0]
-    assert london["fx_hist_series"][0][0] == oversized[-gold.LONDON_HISTORY_KEEP][0]
+    expected = oversized[
+        -(gold.HISTORY_KEEP + 10 + gold.XAU_SETTLEMENT_DAYS):
+    ]
+    assert london["hist_series"] == [[day, round(value, 4)] for day, value in expected]
+    assert london["fx_hist_series"] == [[day, 7.0] for day, _ in expected]
+
+
+def test_retention_does_not_starve_oldest_nav_purchases():
+    daily = 200
+    nav = [[day, 3.0] for day, _ in spaced_rows(gold.HISTORY_KEEP, 212)]
+    xau = spaced_rows(152, 212)
+    retained, advisory = gold.stabilize_history(
+        xau,
+        [],
+        {"name": gold.XAU_PRIMARY_SOURCE, "points": len(xau)},
+    )
+
+    dca = gold.build_london_dca(
+        nav,
+        retained,
+        {day: 7.0 for day, _ in xau},
+        xau_cur=xau[-1][1],
+        usdcny_cur=7.0,
+        start=nav[0][0],
+        daily=daily,
+    )
+
+    assert advisory is None
+    assert retained[0][0] == nav[0][0]
+    assert dca["principal_cny"] == daily * len(nav)
 
 
 def test_dashboard_drops_internal_history_but_keeps_provenance_contract():
