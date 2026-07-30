@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-29T15:04:44.309490",
+  "generated_at": "2026-07-30T15:02:43.750948",
   "lookback_hours": 48,
   "tickers": [
     "CRCL",
@@ -23,9 +23,9 @@
       "MSFU"
     ]
   },
-  "digest_markdown": "## Top 移动信号\n- **CRCL**: 收购 IBM 全部区块链专利组合 (~1000项), 成美国最大持有者 — USDC 护城河加固, 利好直接持仓.\n- **MSFT**: 财报临近, 期权暗示 ±6.6% 波动, AI 交易面临 reset; 同时面临\"诱导订阅 AI\"调查 — 双向催化, MSFU 2x 放大波动, 财报前注意仓位.\n- **SKHY**: Q2 营收 +250% YoY、利润 +500%, HBM 主导地位+5年长约, 2026 capex >$24B — 收入爆量但 capex 飙升, 净影响偏正, 直接持仓.\n- **PLTR**: 8/3 财报\"make-or-break\", 同时法国被 ChapsVision 替代退出国安合同 — 双重催化, PLTU 2x 双向放大.\n- **RKLB**: \"最差单月\"但 Cathie Wood/ARK 周二加仓 62,497 股 (~$4M) — 机构逆向接货, RKLX 2x 杠杆下若情绪反转弹性大.\n\n## Per-ticker 简报\n- **CRCL**: IBM 专利收购落地 + 仍在依赖 USDC 储备收入 — 中长期 moat+, 短期估值仍锚定储备利率.\n- **MSFT**: Hyperscaler 2026 已发 ~$194B 债券 (+79% YoY), 收益率走高 — 资本开支竞争白热化.\n- **SKHY**: Q2 营业利润略低于预期, capex 上调, Cramer 称\"没那么糟\" — 兑现度高, 估值仍具吸引力.\n- **SPCX**: ARK 加仓 SpaceX/RKLB 等太空股, 看多长期但警示加密破产潮; SpaceX 股价较 IPO 高点腰斩 — SPCH 2x 杠杆对 SPCX 持仓敏感, 关注 ARK 周报动向.\n\n## 风险 watch\n- **MSFT**: AI 订阅诱导调查 (监管).\n- **PLTR**: 欧洲政府业务流失先例 (法国→ChapsVision), 财报 8/3 前波动放大.\n- **SKHY**: Capex >$24B, 若 HBM 价格回落将压缩利润.\n- **Hyperscaler 债务**: $194B 债券供给冲击收益率, AI 基建融资成本上升.",
+  "digest_markdown": "## Top 移动信号\n- **SPCX**: 拿下 $1.6B Pentagon 发射任务订单 + FAA 拟加速发射审批 → **SPCH** 2x 放大, 防御+监管双重催化\n- **RKLB**: $266M Space Force 史上最大单 + iQPS 第三份多发合同(三个月内) → **RKLX** 2x 放大, 但股价正创单月最差, 多空背离\n- **PLTR**: 8/3 Q2 财报, 利润 YoY 近 4 倍, 目标第 12 次连续营收加速, 股价自高点 -40% → **PLTU** 2x 放大 binary risk\n- **CRCL**: 收购 IBM 近 1000 项区块链专利 + Bernstein 砍 PT 至 $140 仍看 118% upside → 护城河强化\n- **MSFT/PLTR/SKHY**: AI capex 市场选择性增强, MSFT 被拥抱、半导体受 Warsh 鹰派言论冲击 → **MSFU** 2x 受益叙事分化\n\n## Per-ticker 简报\n- **CRCL**: 收购 IBM 区块链专利组合成为美国最大持有者 — 强化 USDC 防御壁垒\n- **PLTR**: Q2 财报 8/3, 美国商业增长是关键变量 — 12 连加速预期决定 PLTU 方向\n- **RKLB**: $266M Space Force + iQPS 三连发 — 营收可见度高, 但单月最大跌幅显示卖压未消化\n- **SPCX**: $1.6B 国防卫星订单 + FAA 加速审批提案(规避 13 部联邦法律) — 监管松绑利多\n- **MSFT**: 投资者对 AI 支出从\"全买\"转向\"精选\", MSFT 通过考验 — MSFU 受益情绪\n- **SKHY**: 三星 Q2 营业利润创新高 AI 内存需求强劲 — 板块基本面正面, 但 Warsh 鹰派言论 30 分钟内引发半导体抛售\n\n## 风险 watch\n- **PLTR** 8/3 财报 binary event, 已是 -40% from high, miss 风险大\n- **RKLB** 基本面催化 vs 单月最大跌幅背离 — 卖压来源待解\n- AI 泡沫叙事升温 (KOSPI 崩盘论 + Warsh Fed 鹰派冲击半导体板块)\n- **MSFT** AI capex scrutiny 上升, 后续季度选择性可能更严",
   "raw_news_counts": {
-    "CRCL": 5,
+    "CRCL": 4,
     "PLTR": 5,
     "RKLB": 5,
     "SPCX": 5,
@@ -34,6 +34,20 @@
   },
   "raw_news_evidence": {
     "CRCL": [
+      {
+        "headline": "Bernstein Slashes Circle Target to $140: Is 118% Upside Still Realistic?",
+        "datetime": 1785328779,
+        "source": "Benzinga",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=642e2889ee7670bce73ec182d08d5c19315ce62028bc0cafd1fd392302d4b557"
+      },
+      {
+        "headline": "HYPE Is Cheaper Than COIN, HOOD, CRCL, PYPL, Grayscale Argues—So Why Is PURR Going Down?",
+        "datetime": 1785311563,
+        "source": "Benzinga",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=0bb88a377161d69a6a49a41aa4f1ad6ed6a01532e53daffe6ca07557ada4ab40"
+      },
       {
         "headline": "Bit Digital As Of March 2026 Ethereum Treasury Held ~155,444.4 ETH",
         "datetime": 1785250960,
@@ -47,212 +61,191 @@
         "source": "Benzinga",
         "origin": "finnhub",
         "url": "https://finnhub.io/api/news?id=5253d17d9dc473b84bb6bb0898bbd10c17de16af5c97e999d206917feefed409"
-      },
-      {
-        "headline": "Circle Internet Group: Navigating Competitive And Macro Headwinds",
-        "datetime": 1785158450,
-        "source": "SeekingAlpha",
-        "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=e2ffd251fe05fa8f4826823d2ff40c8278b519706d6f44d77fea5343a2d1d288"
-      },
-      {
-        "headline": "Anthony Scaramucci Comments On Trump-Linked Meme Coin Activity: 'People Smell Corruption'",
-        "datetime": 1785148548,
-        "source": "Benzinga",
-        "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=617510f1d98a5056199b7b1b2137be8663d8717075b251569762fc5114b6dc28"
-      },
-      {
-        "headline": "Circle Internet Group Acquires Assets From IBM Blockchain Patent Portfolio; Financial Terms Undisclosed",
-        "datetime": 1785139374,
-        "source": "Benzinga",
-        "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=c5d8d667eb8b92041f7f1ad5054eef742a77b0d57f991fef41be0d8ede14d70d"
       }
     ],
     "PLTR": [
       {
-        "headline": "Should You 'Buy' or 'Sell' Palantir Stock Before Aug. 3 Earnings?",
-        "datetime": 1785331752,
+        "headline": "Palantir's Profit Nearly Quadrupled Over the Past Year. Its Stock Fell 40% From Its High. Both Numbers Get Tested on Aug. 3.",
+        "datetime": 1785418440,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=0c1306c1e422cda083d9ac73a08769a734fc99c3ff4586d6bc8ca6e9b4caaee3"
+        "url": "https://finnhub.io/api/news?id=96b0dd14e8946ec816b741ffe05fc28e9a10385fb2b307ae8f82a7d8aa65e0da"
       },
       {
-        "headline": "Direxion unveils options income ETF suite tied to Nvidia, Tesla and other megacap",
-        "datetime": 1785331154,
+        "headline": "AI Revenue Just Hit $100 Billion From Zero Two Years Ago. Now Wall Street’s Warning of a Massive SaaS Trap",
+        "datetime": 1785416403,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=16c457f9b69baba78acf8014feb308efe33e970716ad83a5d4993af7d1622872"
+        "url": "https://finnhub.io/api/news?id=0fe85eb6902da5df8c94b99a1e93ac5816700c34506af0c1de210373c740c090"
       },
       {
-        "headline": "Direxion Launches Defined Income Boost ETFs",
-        "datetime": 1785326400,
+        "headline": "Palantir Aims For 12th Straight Revenue Acceleration, But U.S. Growth Is Key",
+        "datetime": 1785412934,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=e097656a4d209bb115440fe74455c0c5f4dfaf281a4f6cf300e395b10dac0e8f"
+        "url": "https://finnhub.io/api/news?id=69e0292b61fe1edc4ce8f242d2e99e5f019a0cfda5d297b820619619363634df"
       },
       {
-        "headline": "Is Palantir Still a Millionaire-Maker Stock?",
-        "datetime": 1785319500,
+        "headline": "The Bull and Bear Case for Palantir, According to Wall Street",
+        "datetime": 1785405000,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=60054d01e8d8fa3226ff0861def365f0b9a954423efcb1d255be9aa50c5ed19d"
+        "url": "https://finnhub.io/api/news?id=9852b54ad2ab4b351b7ff354d89a288abc1d6b2164c4cffc360c02d39f154c12"
       },
       {
-        "headline": "Palantir (PLTR) Faces A French Exit As ChapsVision Takes Its Place",
-        "datetime": 1785316127,
+        "headline": "Prediction: This Will Be Palantir's Stock Price in a Year (Hint: It's Time to Buy)",
+        "datetime": 1785402780,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=76cf97cfab6493fbb1e2adb7bb4d2e947850353a93b7cc6de6771edb5dd17dc5"
+        "url": "https://finnhub.io/api/news?id=8eff409db6434b66d6de8c1e3d4aeac7d88b3884e7597ea864eea2b3b84d5823"
       }
     ],
     "RKLB": [
       {
-        "headline": "ARK Buys Millions In Falling Space Names. SpaceX Preps Classified Mission.",
-        "datetime": 1785332441,
+        "headline": "Rocket Lab Wins Three Additional Satellite Launches From iQPS",
+        "datetime": 1785419964,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=4313a8607abe7927ed30cb0203e7b75507e9e65b6ebee5a60ac2396b7d6f2c76"
+        "url": "https://finnhub.io/api/news?id=8e287ba58400b0bc3f0056d10ea5a33cd083b2ae6c49c60283440d426138c1a1"
       },
       {
-        "headline": "SpaceX Stock Gets a Lift as Washington Moves to Cut Red Tape",
-        "datetime": 1785321480,
+        "headline": "Rocket Lab’s Third Deal With Japanese Satellite Firm Gets Retail Buzzing – But RKLB Stock Heads For Worst Ever Month",
+        "datetime": 1785417327,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=cfce379dff56e10a6fc74d800df4cba15920055ee03c7cad5a930c5b38a07a97"
+        "url": "https://finnhub.io/api/news?id=e626ed4aa8e006036fa2dc75a57f00f07dd81ff3503af121ed5c6d1c4b36bc3b"
       },
       {
-        "headline": "RKLB Stock Eyes Worst Month Ever, But Cathie Wood Keeps Buying — ARK Adds Rocket Lab, Cuts Exposure To $8B Takeover Target",
-        "datetime": 1785304756,
+        "headline": "Should You Buy Rocket Lab Stock After It Just Won Its Largest Launch Contract in History?",
+        "datetime": 1785414300,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=4c1764e7012f304ee19c419af79db64004855b2eac6194c1004194af5e96bd80"
+        "url": "https://finnhub.io/api/news?id=6db2e3c90da667f54807d970f7f8ad43905470d92405df13829deb110b994923"
       },
       {
-        "headline": "Stocks making big moves yesterday: Zoom, TransDigm, Elastic, Rocket Lab, and Tyson Foods",
-        "datetime": 1785298382,
+        "headline": "Should You Buy Rocket Lab Over SpaceX? Here's My Take.",
+        "datetime": 1785413100,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=7a35082094bc8eb467e5265367dd09955f9af9805e297847440656f6db003c22"
+        "url": "https://finnhub.io/api/news?id=eda2e4e22575cec1062add793eda01d38aecc8e84d861c9e010cab31cd566002"
       },
       {
-        "headline": "Rocket Lab Corporation (RKLB) Stock Dips While Market Gains: Key Facts",
-        "datetime": 1785276904,
+        "headline": "Rocket Lab Secures Multi-Launch Deal with iQPS for Three Dedicated Missions",
+        "datetime": 1785405600,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=745d3889b7bcb271df849c7e810cd8106972cd46b541929a6da459c32d6c7dc6"
+        "url": "https://finnhub.io/api/news?id=3305af21d1a3baefdb13c5605c1541893b017baaccdd25dcd4969525d79838df"
       }
     ],
     "SPCX": [
       {
-        "headline": "Nvidia's Latest Rebound Comes With Fresh Support",
-        "datetime": 1785332874,
+        "headline": "Investor Cathie Wood Buys Crypto Stocks As Prices Fall",
+        "datetime": 1785419760,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=802d9a2b0528e01a6d94ae5664bb9d71d6a07f08f9ab2b1120c212065d055820"
+        "url": "https://finnhub.io/api/news?id=5143b0806c2cf2311d79438016ad3f2259716c56dfa6fda2fc61d9db9fea3313"
       },
       {
-        "headline": "ARK Buys Millions In Falling Space Names. SpaceX Preps Classified Mission.",
-        "datetime": 1785332441,
+        "headline": "SpaceX Feels For A Bottom Amid $1.6 Bil Contract Win, Permitting Scrap",
+        "datetime": 1785417178,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=4313a8607abe7927ed30cb0203e7b75507e9e65b6ebee5a60ac2396b7d6f2c76"
+        "url": "https://finnhub.io/api/news?id=9b193cb2b05afc6c0c6f5cd3344e22f31b8c10785f6f45465e332c06729a1bcc"
       },
       {
-        "headline": "What a $3,000 Investment in SpaceX Could Be Worth by 2030",
-        "datetime": 1785331500,
+        "headline": "SpaceX's Pentagon Role Is Getting Harder to Ignore",
+        "datetime": 1785416399,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=06f649a314e196d99a3bcb0906ebc6b7e9192e557772373aa192b432ae31684a"
+        "url": "https://finnhub.io/api/news?id=273148e32abb68fdbcac3b1637dd78f9422831fcff7a4c55c66548d76ad549e1"
       },
       {
-        "headline": "SpaceX Vs. HawkEye, Cerebrus: Comparing 2026 IPOs",
-        "datetime": 1785329765,
+        "headline": "Huge News For SpaceX Stock Fans",
+        "datetime": 1785414815,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=62f758de36ae198360198bdf6ec9a251797577a5082b210650c82778e7afcddc"
+        "url": "https://finnhub.io/api/news?id=451b251ac9404d7b9643bd4bd4d15b9857e83d676689e091b6770a5ab1161f79"
       },
       {
-        "headline": "ARK Warns Crypto Bankruptcies and Shutdowns Will Rise, Cathie Wood’s Stock Buys Show Why",
-        "datetime": 1785328261,
+        "headline": "SpaceX, Blue Origin Could Get Faster Launch Approvals Under FAA's Sweeping Proposal",
+        "datetime": 1785414638,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=b761e2a4043f6d8905011f451d89ac8f8e6db4f9ccdd1b564c966d4f4f9ad95f"
+        "url": "https://finnhub.io/api/news?id=dfe179833e8ce1eb0f0f220b68e500d1060b59da42f6f3cb991b35913d6c659f"
       }
     ],
     "MSFT": [
       {
-        "headline": "Microsoft's Earnings Could Reset the AI Trade",
-        "datetime": 1785332911,
-        "source": "Yahoo",
+        "headline": "These S&P500 stocks are gapping in today's session",
+        "datetime": 1785422101,
+        "source": "ChartMill",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=188d2d78fef497c5f597cd5a3e4b2b755b583ce590af11c7f8b87316e87c54dc"
+        "url": "https://finnhub.io/api/news?id=f586ad3b990c9f5f2c671e6846b5cfd9d5fe179c59e7fb7e3a2281c44e76ffc5"
       },
       {
-        "headline": "Hyperscaler debt binge pushes yields up as investor demand cools",
-        "datetime": 1785332905,
+        "headline": "TSMC is moving in on Intel’s turf; Why Intel is up anyway",
+        "datetime": 1785419843,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=fb12bc191373a1a3909b08f5a2157fa1e5f024c27997b0f38abc6f3bff8caab7"
+        "url": "https://finnhub.io/api/news?id=5dc67cd1d04a3d05302b4ba3aba29641caef46c71851a7ae43973a3189b9eea1"
       },
       {
-        "headline": "Stock Market Today: Dow Falls As Iran Hostilities Ignite Again; SK Hynix Slides (Live Coverage)",
-        "datetime": 1785332530,
+        "headline": "The Market Loves Microsoft’s AI Spending, Hates Meta’s. Here’s Why",
+        "datetime": 1785419033,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=67c04ece6afa9e15e0981c68bcab0b03050d0a15c2ae5bf23e2a1f47ebfd8eb1"
+        "url": "https://finnhub.io/api/news?id=82d1692ca8f1caac88db8e18ec1d147fbf2fd4b286ecdaebac2ba23d31eba79f"
       },
       {
-        "headline": "Microsoft faces claims it tricked people into AI subscriptions",
-        "datetime": 1785332207,
+        "headline": "Stocks Bounce Back From Fed Day Turmoil",
+        "datetime": 1785418357,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=db390db21f1512d5b5209d7080d336e4fd7cca012cf21793fad86ecc30ff76ab"
+        "url": "https://finnhub.io/api/news?id=77a2cb39356c179001e317bd7b5cf51b0b7fa223fc5d23ba740529e620c356fd"
       },
       {
-        "headline": "Evinced Harnesses Agentic Coding to Automatically and Reliably Fix Accessibility Problems",
-        "datetime": 1785331800,
+        "headline": "Technology Stocks Set to Lift Wall Street at the Open After Sharp Sell-Off: Dow Jones, S&P, Nasdaq, Futures",
+        "datetime": 1785417691,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=c8205d0cef82aebc950eb5851b82c7cc14af3154b16068d051160a569f5b79ab"
+        "url": "https://finnhub.io/api/news?id=8496b7cf9b8cfd4178c6bcf589b0c1023181070d691eaf89acfb0fe7a597c5f0"
       }
     ],
     "SKHY": [
       {
-        "headline": "Chips Sell First, Ask Questions Later - And SK Hynix Just Handed Them the Answer",
-        "datetime": 1785316364,
-        "source": "ChartMill",
-        "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=2dd0609fece9b7df7d96e884291a99b4db8c8f2618b80ae5cd0c2bffda101783"
-      },
-      {
-        "headline": "SK hynix: Explosive 500%+ Growth",
-        "datetime": 1785311154,
+        "headline": "The KOSPI Crash: The Prelude To The Nasdaq 100 Crash",
+        "datetime": 1785398451,
         "source": "SeekingAlpha",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=a8f72723bb2b89eda3074fb7d04ebf9fc2ce9bb5dfab56f2eded3561fe2195c9"
+        "url": "https://finnhub.io/api/news?id=24d2e6f804c8e73112b902727ece406529f8b06bb56f236cde98035fae8f9148"
       },
       {
-        "headline": "SK Hynix: The Market Missed The Best Part Of Q2 (Rating Upgrade)",
-        "datetime": 1785309300,
+        "headline": "China Can Build The Memory, It Can't Build The Base Die",
+        "datetime": 1785389261,
         "source": "SeekingAlpha",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=18a7ce7f5b64a975d2428e82335962d0a7a83111d9e65ebefeb3c716f940c061"
+        "url": "https://finnhub.io/api/news?id=53fe941b032880907c3b681c98716c5ee4436ef3af5aad610bb0d06c6e6b6909"
       },
       {
-        "headline": "SK hynix Inc. (SKHY) Q2 2026 Earnings Call Transcript",
-        "datetime": 1785280388,
-        "source": "SeekingAlpha",
-        "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=a0833d7f8845daeb53db1f9553081bc9a17386c38b39daf038e1aadb3562d81a"
-      },
-      {
-        "headline": "SK Hynix Misses Profit Estimates Despite Record Quarter, Sees Higher CapEx as AI Demand Holds Strong: Jim Cramer Calls It Not That 'Bad'",
-        "datetime": 1785277881,
+        "headline": "Samsung Stock Jumps Over 6% In Seoul as AI Memory Business Delivers Record Profit: 'Supply Constraints' Expected to Continue",
+        "datetime": 1785363759,
         "source": "Benzinga",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=a7293b9efbec6fd6b928a85be57d0934aac0972b7c285c707d4815eb983388b2"
+        "url": "https://finnhub.io/api/news?id=0572f6d534317a5ca66c5074f1cad969c30fbd7ebc3d4ac8f379d78c4c816f57"
+      },
+      {
+        "headline": "Warsh Hits the AI Trade: Here Are the 10 Biggest Losers In 30 Minutes",
+        "datetime": 1785341970,
+        "source": "Benzinga",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=19b793d0560747e83a1d50e394fd9af073832376d4041f386c17c37d47345740"
+      },
+      {
+        "headline": "SK hynix: Damn The Torpedoes, Full Steam Ahead",
+        "datetime": 1785339400,
+        "source": "SeekingAlpha",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=e3ea37c26b3d072be639d608ae9363968bfe34c144798c166faaa1e7042a1df6"
       }
     ]
   },
