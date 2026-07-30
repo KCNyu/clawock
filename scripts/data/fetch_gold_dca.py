@@ -228,8 +228,35 @@ def fetch_xau_history(start):
     return [], {'name': 'unavailable', 'points': 0}
 
 
+def _london_history_coverage_start(nav_history, start):
+    """Oldest date whose XAU/FX coverage may be consumed by London metrics."""
+    nav_dates = [
+        str(row[0]) for row in (nav_history or [])
+        if row and len(row) > 1 and row[0] and row[1] is not None
+    ]
+    candidates = [str(start)] if start else []
+    if nav_dates:
+        candidates.append(min(nav_dates))
+    return max(candidates) if candidates else None
+
+
+def _bounded_london_history(rows, coverage_start=None):
+    normalized = {
+        str(day): float(value)
+        for day, value in (rows or [])
+        if day and value is not None
+    }
+    ordered = sorted(normalized.items())
+    if not coverage_start:
+        return ordered
+    dates = [day for day, _ in ordered]
+    first_required = bisect.bisect_left(dates, str(coverage_start))
+    first_retained = max(0, first_required - XAU_SETTLEMENT_DAYS)
+    return ordered[first_retained:]
+
+
 def stabilize_history(fresh, previous, fresh_source, previous_source=None,
-                      label='伦敦金历史'):
+                      label='伦敦金历史', coverage_start=None):
     """Accept revisions in the latest settlement window; quarantine old outliers.
 
     A current close can legitimately settle on the next day, so the newest five
@@ -238,20 +265,21 @@ def stabilize_history(fresh, previous, fresh_source, previous_source=None,
     changing every historical DCA purchase. When the authoritative Sina XAU feed
     returns after a GC00Y fallback, it replaces the fallback reference outright.
     """
-    fresh_map = {str(d): float(v) for d, v in (fresh or []) if d and v is not None}
-    prior_map = {str(d): float(v) for d, v in (previous or []) if d and v is not None}
+    fresh_map = dict(_bounded_london_history(fresh, coverage_start))
+    prior_map = dict(_bounded_london_history(previous, coverage_start))
     source_name = (fresh_source or {}).get('name', 'unavailable')
     prior_name = (previous_source or {}).get('name')
     if not prior_map:
         advisory = None if fresh_map else f'{label}抓取失败，暂无可用参考点'
-        return sorted(fresh_map.items()), advisory
+        return _bounded_london_history(fresh_map.items(), coverage_start), advisory
     if not fresh_map:
+        retained = _bounded_london_history(prior_map.items(), coverage_start)
         return (
-            sorted(prior_map.items()),
-            f'{label}抓取失败，沿用上次 {len(prior_map)} 个参考点',
+            retained,
+            f'{label}抓取失败，沿用上次 {len(retained)} 个参考点',
         )
     if source_name == XAU_PRIMARY_SOURCE and prior_name == XAU_FALLBACK_SOURCE:
-        return sorted(fresh_map.items()), None
+        return _bounded_london_history(fresh_map.items(), coverage_start), None
 
     recent = set(sorted(fresh_map)[-XAU_SETTLEMENT_DAYS:])
     merged = dict(prior_map)
@@ -270,7 +298,7 @@ def stabilize_history(fresh, previous, fresh_source, previous_source=None,
             f'{label}校验：沿用 {len(quarantined)} 个已结算点；'
             f'最大新旧偏差 {worst_pct:.2f}%（{worst_day}，源 {source_name}）'
         )
-    return sorted(merged.items()), advisory
+    return _bounded_london_history(merged.items(), coverage_start), advisory
 
 
 def _xau_at(xau_sorted_dates, xau_vals, d):
@@ -386,6 +414,10 @@ def compute_london(derived, gold, spot, usdcny, usdcny_hist, xau_hist,
                                  float(gold.get('daily_amount', 200)))
     if not dca_equiv and gold.get('london', {}).get('dca_equiv'):
         dca_equiv = gold['london']['dca_equiv']  # 历史限流 → 沿用旧值
+    coverage_start = _london_history_coverage_start(
+        derived.get('nav_history') or [],
+        gold.get('start_date', ''),
+    )
     return {
         'xau_usd': round(xau, 2),
         'xau_change_pct': spot.get('change_pct'),
@@ -400,10 +432,17 @@ def compute_london(derived, gold, spot, usdcny, usdcny_hist, xau_hist,
         'compare_series': compare,
         'dca_equiv': dca_equiv,
         'hist_source': hist_source or {'name': 'unavailable', 'points': 0},
-        'hist_series': [[d, round(v, 4)] for d, v in (xau_hist or [])],
+        'hist_series': [
+            [d, round(v, 4)]
+            for d, v in _bounded_london_history(xau_hist, coverage_start)
+        ],
         'fx_hist_source': fx_hist_source or {'name': 'unavailable', 'points': 0},
         'fx_hist_series': [
-            [d, round(v, 6)] for d, v in sorted((usdcny_hist or {}).items())
+            [d, round(v, 6)]
+            for d, v in _bounded_london_history(
+                (usdcny_hist or {}).items(),
+                coverage_start,
+            )
         ],
         'hist_advisory': hist_advisory,
         'last_updated': datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%S.%fZ'),
@@ -520,11 +559,16 @@ def main():
     else:
         xau_fresh, xau_source = [], {'name': 'not_attempted', 'points': 0}
     old_london = gold.get('london') or {}
+    london_coverage_start = _london_history_coverage_start(
+        history[-HISTORY_KEEP:] if history else gold.get('nav_history') or [],
+        gold.get('start_date', ''),
+    )
     xau_hist, xau_advisory = stabilize_history(
         xau_fresh,
         old_london.get('hist_series') or [],
         xau_source,
         old_london.get('hist_source') or {},
+        coverage_start=london_coverage_start,
     )
     fx_source = {
         'name': 'frankfurter_usdcny',
@@ -536,6 +580,7 @@ def main():
         fx_source,
         old_london.get('fx_hist_source') or {},
         label='USDCNY 历史',
+        coverage_start=london_coverage_start,
     )
     usdcny_hist = dict(fx_hist)
     history_advisory = '；'.join(
