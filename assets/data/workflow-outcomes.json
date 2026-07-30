@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "monitoring_started_at": "2026-07-26T08:00:00+08:00",
-  "updated_at": "2026-07-30T07:40:25.453781+00:00",
+  "updated_at": "2026-07-30T08:15:16.898379+00:00",
   "records": [
     {
       "job": "盘前深度简报",
@@ -5768,6 +5768,54 @@
         "error_present": false
       },
       "updated_at": "2026-07-30T07:40:25.453781+00:00",
+      "final_product": {
+        "status": "success",
+        "reason": "primary delivery succeeded"
+      }
+    },
+    {
+      "job": "港股收盘报告",
+      "slot": "2026-07-30T16:00:00+08:00",
+      "stages": {
+        "preflight": {
+          "status": "success",
+          "at": "2026-07-30T08:02:11.776731+00:00",
+          "context_id": "cced7950677b"
+        },
+        "llm": {
+          "status": "success",
+          "at": "2026-07-30T08:03:00.932432+00:00",
+          "context_id": "cced7950677b",
+          "issue_count": 0
+        },
+        "postflight": {
+          "status": "success",
+          "at": "2026-07-30T08:04:33.271281+00:00",
+          "delivered": "full report",
+          "data_plane_status": "published",
+          "issue_count": 0
+        },
+        "primary_delivery": {
+          "status": "success",
+          "at": "2026-07-30T08:04:33.297010+00:00",
+          "channel": "wechat_or_telegram",
+          "deterministic_fallback": false
+        },
+        "watchdog_delivery": {
+          "status": "not_required",
+          "at": "2026-07-30T08:15:16.898379+00:00",
+          "action": "ok",
+          "reason": "postflight cosend already delivered Telegram this slot — no backstop"
+        }
+      },
+      "raw_execution": {
+        "status": "error",
+        "run_at_ms": 1785398400026,
+        "finished_at_ms": 1785398479406,
+        "run_id": null,
+        "error_present": true
+      },
+      "updated_at": "2026-07-30T08:15:16.898379+00:00",
       "final_product": {
         "status": "success",
         "reason": "primary delivery succeeded"
