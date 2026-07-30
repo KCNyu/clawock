@@ -1,24 +1,8 @@
 {
   "schema_version": 1,
   "monitoring_started_at": "2026-07-16T02:17:00+08:00",
-  "updated_at": "2026-07-31T00:10:02.109775+08:00",
+  "updated_at": "2026-07-30T16:32:32.545074+00:00",
   "events": [
-    {
-      "job": "美股盘中盯盘-overnight",
-      "market": "us",
-      "slot": "2026-07-28T00:30:00+08:00",
-      "state": "completed",
-      "updated_at": "2026-07-28T00:40:02.617532+08:00",
-      "should_alert": true,
-      "anomaly_count": 5,
-      "postflight_status": "fail",
-      "wechat_sent": true,
-      "telegram_sent": true,
-      "dashboard_published": false,
-      "insights_sidecar": true,
-      "issue_count": 1,
-      "watchdog_state": "ok"
-    },
     {
       "job": "美股盘中盯盘-overnight",
       "market": "us",
@@ -911,6 +895,22 @@
       "insights_sidecar": true,
       "issue_count": 1,
       "watchdog_state": "ok"
+    },
+    {
+      "job": "美股盘中盯盘-overnight",
+      "market": "us",
+      "slot": "2026-07-31T00:30:00+08:00",
+      "state": "completed",
+      "updated_at": "2026-07-30T16:32:32.545074+00:00",
+      "should_alert": true,
+      "anomaly_count": 3,
+      "postflight_status": "pass",
+      "wechat_sent": true,
+      "telegram_sent": true,
+      "dashboard_published": true,
+      "data_plane_status": "published",
+      "insights_sidecar": true,
+      "issue_count": 0
     }
   ]
 }
