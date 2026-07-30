@@ -1,24 +1,8 @@
 {
   "schema_version": 1,
   "monitoring_started_at": "2026-07-16T02:17:00+08:00",
-  "updated_at": "2026-07-30T10:10:02.870127+08:00",
+  "updated_at": "2026-07-30T02:32:48.145425+00:00",
   "events": [
-    {
-      "job": "盘中盯盘",
-      "market": "hk",
-      "slot": "2026-07-27T10:30:00+08:00",
-      "state": "completed",
-      "updated_at": "2026-07-27T10:40:03.725673+08:00",
-      "should_alert": true,
-      "anomaly_count": 0,
-      "postflight_status": "pass",
-      "wechat_sent": true,
-      "telegram_sent": true,
-      "dashboard_published": true,
-      "insights_sidecar": true,
-      "issue_count": 0,
-      "watchdog_state": "ok"
-    },
     {
       "job": "盘中盯盘",
       "market": "hk",
@@ -884,6 +868,22 @@
       "insights_sidecar": true,
       "issue_count": 0,
       "watchdog_state": "ok"
+    },
+    {
+      "job": "盘中盯盘",
+      "market": "hk",
+      "slot": "2026-07-30T10:30:00+08:00",
+      "state": "completed",
+      "updated_at": "2026-07-30T02:32:48.145425+00:00",
+      "should_alert": true,
+      "anomaly_count": 0,
+      "postflight_status": "pass",
+      "wechat_sent": true,
+      "telegram_sent": true,
+      "dashboard_published": true,
+      "data_plane_status": "published",
+      "insights_sidecar": true,
+      "issue_count": 0
     }
   ]
 }
