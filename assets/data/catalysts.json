@@ -1,8 +1,8 @@
 {
-  "generated_at": "2026-07-29T08:05:51.428219+08:00",
+  "generated_at": "2026-07-30T08:04:27.621971+08:00",
   "lookback_window_days": 14,
-  "window_start": "2026-07-29",
-  "window_end": "2026-08-12",
+  "window_start": "2026-07-30",
+  "window_end": "2026-08-13",
   "earnings_queried": [
     "CRCL",
     "MSFT",
@@ -12,28 +12,6 @@
     "SPCX"
   ],
   "earnings": [
-    {
-      "ticker": "MSFT",
-      "name": "MSFT",
-      "date": "2026-07-29",
-      "time": "amc",
-      "eps_estimate": 4.3274,
-      "eps_actual": null,
-      "revenue_estimate_m": 89373.72,
-      "quarter": 4,
-      "year": 2026
-    },
-    {
-      "ticker": "SKHY",
-      "name": "000660.KS",
-      "date": "2026-07-29",
-      "time": "unknown",
-      "eps_estimate": 70446.5658,
-      "eps_actual": null,
-      "revenue_estimate_m": 83598109.12,
-      "quarter": 2,
-      "year": 2026
-    },
     {
       "ticker": "PLTR",
       "name": "PLTR",
@@ -60,7 +38,7 @@
       "ticker": "CRCL",
       "name": "CRCL",
       "date": "2026-08-05",
-      "time": "unknown",
+      "time": "bmo",
       "eps_estimate": 0.2161,
       "eps_actual": null,
       "revenue_estimate_m": 738.42,
@@ -79,13 +57,7 @@
       "year": 2026
     }
   ],
-  "fomc": [
-    {
-      "date": "2026-07-29",
-      "type": "rate_decision",
-      "detail": "FOMC 2026-07-28 to 2026-07-29 meeting; rate decision + Powell presser on 2026-07-29"
-    }
-  ],
+  "fomc": [],
   "macro_events": [
     {
       "date": "2026-07-30",
@@ -109,9 +81,9 @@
     }
   ],
   "summary": {
-    "earnings_count": 6,
-    "fomc_in_window": 1,
+    "earnings_count": 4,
+    "fomc_in_window": 0,
     "macro_count": 4,
-    "highest_impact_within_7d": "FOMC 2026-07-29 (rate decision)"
+    "highest_impact_within_7d": "PLTR earnings 2026-08-03 (amc)"
   }
 }
