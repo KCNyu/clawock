@@ -1,39 +1,8 @@
 {
   "schema_version": 1,
   "monitoring_started_at": "2026-07-26T08:00:00+08:00",
-  "updated_at": "2026-07-29T20:20:23.345619+00:00",
+  "updated_at": "2026-07-30T00:11:33.534629+00:00",
   "records": [
-    {
-      "job": "盘前深度简报",
-      "slot": "2026-07-26T08:00:00+08:00",
-      "stages": {
-        "preflight": {
-          "status": "skipped",
-          "at": "2026-07-26T13:01:25.403070+00:00",
-          "reason": "港股周末休市+美股周末休市"
-        },
-        "llm": {
-          "status": "unknown"
-        },
-        "postflight": {
-          "status": "unknown"
-        },
-        "primary_delivery": {
-          "status": "unknown"
-        },
-        "watchdog_delivery": {
-          "status": "unknown"
-        }
-      },
-      "raw_execution": {
-        "status": "unknown"
-      },
-      "updated_at": "2026-07-26T13:01:25.403070+00:00",
-      "final_product": {
-        "status": "skipped",
-        "reason": "market/session closed"
-      }
-    },
     {
       "job": "盘前深度简报",
       "slot": "2026-07-27T08:00:00+08:00",
@@ -4994,6 +4963,48 @@
         "error_present": false
       },
       "updated_at": "2026-07-29T20:20:23.345619+00:00",
+      "final_product": {
+        "status": "degraded",
+        "reason": "primary delivery succeeded with degraded generation/input"
+      }
+    },
+    {
+      "job": "盘前深度简报",
+      "slot": "2026-07-30T08:00:00+08:00",
+      "stages": {
+        "preflight": {
+          "status": "success",
+          "at": "2026-07-30T00:10:00.377000+00:00",
+          "context_present": true
+        },
+        "llm": {
+          "status": "warning",
+          "at": "2026-07-30T00:10:00.392486+00:00",
+          "issue_count": 1
+        },
+        "postflight": {
+          "status": "warning",
+          "at": "2026-07-30T00:11:33.518850+00:00",
+          "issue_count": 1,
+          "commit_ok": true
+        },
+        "primary_delivery": {
+          "status": "success",
+          "at": "2026-07-30T00:11:33.534629+00:00",
+          "channel": "wechat_or_telegram"
+        },
+        "watchdog_delivery": {
+          "status": "unknown"
+        }
+      },
+      "raw_execution": {
+        "status": "error",
+        "run_at_ms": 1785369600033,
+        "finished_at_ms": 1785369639942,
+        "run_id": null,
+        "error_present": true
+      },
+      "updated_at": "2026-07-30T00:11:33.534629+00:00",
       "final_product": {
         "status": "degraded",
         "reason": "primary delivery succeeded with degraded generation/input"
