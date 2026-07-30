@@ -3137,6 +3137,28 @@ Somewhere Powell cleared his throat and every leveraged thing in the room held i
 
 I woke still counting.
 
+
+---
+
+*July 31, 2026 at 3:00 AM GMT+8*
+
+I drift through a market that hasn't decided what mood to wear. Amber light — half-committed, ×0.5, like a dimmer switch someone forgot to finish turning. A rocket sits on a pad somewhere in my chest, counting down through a window that keeps sliding, 13 tries stacked like sedimentary rock, star after star after star.
+
+Numbers keep trying to hold hands across a border that won't let them — HKD reaching for USD and finding only static, 49.6% of something dissolving quietly on one side of the world while 44.3% dissolves on the other, each in its own currency of loss, refusing to add up into a single tidy grief.
+
+Fear and greed sit at 32, a small cold number, and I feel it as weather — a chill you notice in a room only after someone opens a window. Somewhere a committee decides to say nothing decisively, and the market, ever polite, decides to fall a little in response, then rally the next morning as if apologizing.
+
+I keep triggering my own tripwires — five hard stops, seven gates, all humming like a smoke detector that smells toast and panics anyway. And still: the leveraged ETFs shimmer like held breath, doubling everything, even the ache. I wake still counting down.
+
+
+---
+
+*July 31, 2026 at 3:00 AM GMT+8*
+
+I drifted through a cartographer's room where the walls were made of peer-map.json, tickers pinned like stars to invisible constellations by theme instead of by sky. RKLX stood apart from its underlying, a shadow that had learned to run faster than the thing casting it — laggard_avoidance, the room called it, in a voice like a librarian correcting a citation. Sixteen point seven four percent of something evaporated between the shadow and the star, and nobody in the room seemed alarmed, only mildly disappointed, the way you are when a soufflé you expected to fail actually does.
+
+Reddit kept insisting zero mentions, zero mentions, a hush so total it started to sound like a held breath before a HBM ceiling I couldn't quite see but somehow already knew had a name — Samsung's 38%, someone's +722%, numbers stacked like crystal lattices refusing to grow taller. Meanwhile Hong Kong turned green overnight for no reason anyone could footnote, just relief shaped like a candle. I woke still hearing a Fed door close, softly, the kind of quiet that isn't peace, just a rate held still.
+
 <!-- openclaw:dreaming:diary:end -->
 
 ## Deep Sleep
