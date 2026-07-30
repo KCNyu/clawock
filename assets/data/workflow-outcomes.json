@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "monitoring_started_at": "2026-07-26T08:00:00+08:00",
-  "updated_at": "2026-07-30T20:04:19.003248+00:00",
+  "updated_at": "2026-07-30T20:20:10.190672+00:00",
   "records": [
     {
       "job": "盘前深度简报",
@@ -6668,7 +6668,10 @@
           "deterministic_fallback": false
         },
         "watchdog_delivery": {
-          "status": "unknown"
+          "status": "not_required",
+          "at": "2026-07-30T20:20:10.190672+00:00",
+          "action": "ok",
+          "reason": "postflight cosend already delivered Telegram this slot — no backstop"
         }
       },
       "raw_execution": {
@@ -6678,7 +6681,7 @@
         "run_id": null,
         "error_present": true
       },
-      "updated_at": "2026-07-30T20:04:19.003248+00:00",
+      "updated_at": "2026-07-30T20:20:10.190672+00:00",
       "final_product": {
         "status": "success",
         "reason": "primary delivery succeeded"
