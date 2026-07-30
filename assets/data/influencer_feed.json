@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-30T14:56:11.085355+00:00",
+  "generated_at": "2026-07-30T22:40:24.205415+00:00",
   "lookback_hours": 48,
   "sources": {
     "trump": "trumpstruth.org/feed (primary)",
@@ -13,10 +13,10 @@
   },
   "llm_filtered": true,
   "counts": {
-    "total": 9,
+    "total": 8,
     "held_hits": 0,
-    "new_ideas": 5,
-    "sector_hits": 1
+    "new_ideas": 2,
+    "sector_hits": 4
   },
   "items": [
     {
@@ -37,66 +37,18 @@
         "电动车",
         "航天"
       ],
-      "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "neutral",
-      "relevance": 70,
-      "summary_cn": "马斯克旗下SpaceX和特斯拉股价持续下跌，媒体讨论是否为抄底机会——与kcn持有的SpaceX相关ETF高度相关。"
-    },
-    {
-      "author": "Musk",
-      "text": "Cathie Wood Bought $53.5 Million of Tesla Stock Right After Elon Musk's Post-Earnings Sell-Off. Is a Rebound Coming?",
-      "url": "",
-      "published": "Thu, 30 Jul 2026 05:50:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Yahoo Finance",
-      "tickers": [
-        "TSLA"
-      ],
-      "held": [],
-      "new_ideas": [
-        "TSLA"
-      ],
-      "sectors": [
-        "电动车"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 55,
-      "summary_cn": "Cathie Wood在特斯拉财报后暴跌中抄底5350万美元，市场解读为反弹信号。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk launches invite-only X Money with a Visa debit card, 6% yield and real-time transfers",
-      "url": "",
-      "published": "Thu, 30 Jul 2026 02:07:00 GMT",
-      "origin": "gnews-rss",
-      "source": "KCRA",
-      "tickers": [
-        "V"
-      ],
-      "held": [],
-      "new_ideas": [
-        "V"
-      ],
-      "sectors": [
-        "支付",
-        "加密货币"
-      ],
       "sector_holdings": [],
       "stance": "neutral",
-      "relevance": 55,
-      "summary_cn": "马斯克的X平台推出邀请制的X Money，搭载Visa借记卡、6%收益和实时转账——Visa为合作方，X Money或与支付/加密赛道形成竞争。"
+      "relevance": 62,
+      "summary_cn": "马斯克旗下SpaceX和特斯拉股价持续下跌，媒体讨论是否应逢低买入——航天板块情绪信号。"
     },
     {
       "author": "Musk",
-      "text": "Elon Musk’s Tesla becomes one of the largest industrial tenants in Austin area with latest lease",
+      "text": "Tesla (TSLA)and SpaceX Stock Drops Hit Cathie Wood and Ron Baron Funds",
       "url": "",
-      "published": "Wed, 29 Jul 2026 21:48:00 GMT",
+      "published": "Thu, 30 Jul 2026 21:05:00 GMT",
       "origin": "gnews-rss",
-      "source": "The Real Deal",
+      "source": "Barron's",
       "tickers": [
         "TSLA"
       ],
@@ -106,34 +58,12 @@
       ],
       "sectors": [
         "电动车",
-        "房地产"
+        "航天"
       ],
       "sector_holdings": [],
       "stance": "neutral",
-      "relevance": 50,
-      "summary_cn": "特斯拉成为奥斯汀地区最大工业租户之一，反映其产能/设施扩张持续推进。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk's Tesla Pay Plan: What It Takes to Fully Vest - BASENOR",
-      "url": "",
-      "published": "Thu, 30 Jul 2026 11:06:46 GMT",
-      "origin": "gnews-rss",
-      "source": "BASENOR - Tesla Accessories",
-      "tickers": [
-        "TSLA"
-      ],
-      "held": [],
-      "new_ideas": [
-        "TSLA"
-      ],
-      "sectors": [
-        "电动车"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 45,
-      "summary_cn": "特斯拉薪酬方案详解：马斯克需达成哪些里程碑方可完全归属——间接反映公司业绩指引。"
+      "relevance": 60,
+      "summary_cn": "特斯拉和SpaceX股价下挫拖累Cathie Wood、Ron Baron基金——马斯克系资产抛压信号。"
     },
     {
       "author": "Musk",
@@ -146,35 +76,36 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "航天",
-        "电动车"
+        "航天"
       ],
       "sector_holdings": [
         "SPCH",
         "SPCX"
       ],
-      "stance": "attack",
-      "relevance": 78,
-      "summary_cn": "马斯克相关股票单日蒸发1.5万亿美元市值，SpaceX lockup到期带来新一轮解禁压力——对kcn持有的SpaceX ETF（SPCX/SPCH）有直接负面影响。"
+      "stance": "neutral",
+      "relevance": 72,
+      "summary_cn": "马斯克系股票合计蒸发1.5万亿美元，SpaceX锁定期面临新一轮测试——直接关联kcn航天持仓，情绪偏负面。"
     },
     {
-      "author": "Trump",
-      "text": "Tariffs pull, USMCA pushes: Toyota to Texas: https://thehill.com/opinion/white-house/5965989-toyota-texas-tacoma-tariffs-impact/",
-      "url": "https://trumpstruth.org/statuses/40376",
-      "published": "2026-07-28T17:24:57+00:00",
-      "origin": "truthsocial",
+      "author": "Musk",
+      "text": "Elon Musk launches invite-only X Money with a Visa debit card, 6% yield and real-time transfers",
+      "url": "",
+      "published": "Thu, 30 Jul 2026 02:07:00 GMT",
+      "origin": "gnews-rss",
+      "source": "KCRA",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "关税",
-        "电动车",
-        "汽车"
+        "加密货币",
+        "支付"
       ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 62,
-      "summary_cn": "关税'拉扯'效应下，丰田宣布将Tacoma生产线从墨西哥迁至德州，凸显关税正重塑美国汽车制造业布局。"
+      "sector_holdings": [
+        "CRCL"
+      ],
+      "stance": "endorse",
+      "relevance": 70,
+      "summary_cn": "马斯克推出仅限邀请的X Money，搭配Visa借记卡、6%收益和实时转账——马斯克系进军支付/稳定币，间接利好Circle(CRCL)所处赛道。"
     },
     {
       "author": "Trump",
@@ -186,29 +117,76 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "关税"
+        "关税",
+        "最高法院"
       ],
-      "sector_holdings": [],
+      "sector_holdings": [
+        "02208",
+        "03032",
+        "03033",
+        "07226"
+      ],
       "stance": "endorse",
-      "relevance": 60,
-      "summary_cn": "特朗普抨击最高法院关于出生公民权和关税的裁决，称其让美国损失数万亿美元，暗示关税政策受阻。"
+      "relevance": 55,
+      "summary_cn": "特朗普抨击最高法院对出生公民权和关税的裁决，称给美国造成数万亿美元损失，暗示将施压改变关税立场。"
     },
     {
-      "author": "Trump",
-      "text": "Trump Rallies Around 'Trump Accounts' During Ga. Speech: https://www.newsmax.com/newsfront/donald-trump-georgia-rally-investment-accounts/2026/07/22/id/1263753/",
-      "url": "https://trumpstruth.org/statuses/40377",
-      "published": "2026-07-28T17:28:59+00:00",
-      "origin": "truthsocial",
+      "author": "Musk",
+      "text": "Elon Musk’s xAI sues Minnesota over law banning ‘nudification’ technology",
+      "url": "",
+      "published": "Thu, 30 Jul 2026 00:34:00 GMT",
+      "origin": "gnews-rss",
+      "source": "The Guardian",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "宏观政策"
+        "AI"
+      ],
+      "sector_holdings": [
+        "00100",
+        "MSFU",
+        "SKHY"
+      ],
+      "stance": "attack",
+      "relevance": 52,
+      "summary_cn": "马斯克xAI起诉明尼苏达州反对AI裸露图像禁令——AI监管摩擦，间接影响AI板块情绪。"
+    },
+    {
+      "author": "Musk",
+      "text": "Exclusive: Musk plans massive push for GOP in midterms",
+      "url": "",
+      "published": "Wed, 29 Jul 2026 22:37:21 GMT",
+      "origin": "gnews-rss",
+      "source": "Axios",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "政治/中期选举"
       ],
       "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 55,
-      "summary_cn": "特朗普在乔治亚州演讲中力推'Trump Accounts'（儿童投资账户计划），属财政/储蓄类政策利好。"
+      "stance": "neutral",
+      "relevance": 45,
+      "summary_cn": "马斯克计划在中期选举中大规模资助共和党，金额上亿美元——政治影响力扩张，间接利好其关联公司舆论环境。"
+    },
+    {
+      "author": "Musk",
+      "text": "Musk Plans to Spend at Least $100 Million to Help Republicans in the Midterms",
+      "url": "",
+      "published": "Thu, 30 Jul 2026 17:03:16 GMT",
+      "origin": "gnews-rss",
+      "source": "The New York Times",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "政治/中期选举"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 45,
+      "summary_cn": "马斯克计划投入至少1亿美元助共和党中期选举——政治资本扩张。"
     }
   ],
   "held_hits": [],
@@ -231,66 +209,18 @@
         "电动车",
         "航天"
       ],
-      "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "neutral",
-      "relevance": 70,
-      "summary_cn": "马斯克旗下SpaceX和特斯拉股价持续下跌，媒体讨论是否为抄底机会——与kcn持有的SpaceX相关ETF高度相关。"
-    },
-    {
-      "author": "Musk",
-      "text": "Cathie Wood Bought $53.5 Million of Tesla Stock Right After Elon Musk's Post-Earnings Sell-Off. Is a Rebound Coming?",
-      "url": "",
-      "published": "Thu, 30 Jul 2026 05:50:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Yahoo Finance",
-      "tickers": [
-        "TSLA"
-      ],
-      "held": [],
-      "new_ideas": [
-        "TSLA"
-      ],
-      "sectors": [
-        "电动车"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 55,
-      "summary_cn": "Cathie Wood在特斯拉财报后暴跌中抄底5350万美元，市场解读为反弹信号。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk launches invite-only X Money with a Visa debit card, 6% yield and real-time transfers",
-      "url": "",
-      "published": "Thu, 30 Jul 2026 02:07:00 GMT",
-      "origin": "gnews-rss",
-      "source": "KCRA",
-      "tickers": [
-        "V"
-      ],
-      "held": [],
-      "new_ideas": [
-        "V"
-      ],
-      "sectors": [
-        "支付",
-        "加密货币"
-      ],
       "sector_holdings": [],
       "stance": "neutral",
-      "relevance": 55,
-      "summary_cn": "马斯克的X平台推出邀请制的X Money，搭载Visa借记卡、6%收益和实时转账——Visa为合作方，X Money或与支付/加密赛道形成竞争。"
+      "relevance": 62,
+      "summary_cn": "马斯克旗下SpaceX和特斯拉股价持续下跌，媒体讨论是否应逢低买入——航天板块情绪信号。"
     },
     {
       "author": "Musk",
-      "text": "Elon Musk’s Tesla becomes one of the largest industrial tenants in Austin area with latest lease",
+      "text": "Tesla (TSLA)and SpaceX Stock Drops Hit Cathie Wood and Ron Baron Funds",
       "url": "",
-      "published": "Wed, 29 Jul 2026 21:48:00 GMT",
+      "published": "Thu, 30 Jul 2026 21:05:00 GMT",
       "origin": "gnews-rss",
-      "source": "The Real Deal",
+      "source": "Barron's",
       "tickers": [
         "TSLA"
       ],
@@ -300,34 +230,12 @@
       ],
       "sectors": [
         "电动车",
-        "房地产"
+        "航天"
       ],
       "sector_holdings": [],
       "stance": "neutral",
-      "relevance": 50,
-      "summary_cn": "特斯拉成为奥斯汀地区最大工业租户之一，反映其产能/设施扩张持续推进。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk's Tesla Pay Plan: What It Takes to Fully Vest - BASENOR",
-      "url": "",
-      "published": "Thu, 30 Jul 2026 11:06:46 GMT",
-      "origin": "gnews-rss",
-      "source": "BASENOR - Tesla Accessories",
-      "tickers": [
-        "TSLA"
-      ],
-      "held": [],
-      "new_ideas": [
-        "TSLA"
-      ],
-      "sectors": [
-        "电动车"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 45,
-      "summary_cn": "特斯拉薪酬方案详解：马斯克需达成哪些里程碑方可完全归属——间接反映公司业绩指引。"
+      "relevance": 60,
+      "summary_cn": "特斯拉和SpaceX股价下挫拖累Cathie Wood、Ron Baron基金——马斯克系资产抛压信号。"
     }
   ],
   "sector_hits": [
@@ -342,16 +250,81 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "航天",
-        "电动车"
+        "航天"
       ],
       "sector_holdings": [
         "SPCH",
         "SPCX"
       ],
+      "stance": "neutral",
+      "relevance": 72,
+      "summary_cn": "马斯克系股票合计蒸发1.5万亿美元，SpaceX锁定期面临新一轮测试——直接关联kcn航天持仓，情绪偏负面。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk launches invite-only X Money with a Visa debit card, 6% yield and real-time transfers",
+      "url": "",
+      "published": "Thu, 30 Jul 2026 02:07:00 GMT",
+      "origin": "gnews-rss",
+      "source": "KCRA",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "加密货币",
+        "支付"
+      ],
+      "sector_holdings": [
+        "CRCL"
+      ],
+      "stance": "endorse",
+      "relevance": 70,
+      "summary_cn": "马斯克推出仅限邀请的X Money，搭配Visa借记卡、6%收益和实时转账——马斯克系进军支付/稳定币，间接利好Circle(CRCL)所处赛道。"
+    },
+    {
+      "author": "Trump",
+      "text": "Does anybody have any idea how much Money and Prestige the United States Supreme Court has cost our Nation with their negative Rulings on Birthright Citizenship and TARIFFS? The answer, TRILLIONS AND TRILLIONS OF DOLLARS! President DONALD J. TRUMP",
+      "url": "https://trumpstruth.org/statuses/40393",
+      "published": "2026-07-29T22:13:23+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "关税",
+        "最高法院"
+      ],
+      "sector_holdings": [
+        "02208",
+        "03032",
+        "03033",
+        "07226"
+      ],
+      "stance": "endorse",
+      "relevance": 55,
+      "summary_cn": "特朗普抨击最高法院对出生公民权和关税的裁决，称给美国造成数万亿美元损失，暗示将施压改变关税立场。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk’s xAI sues Minnesota over law banning ‘nudification’ technology",
+      "url": "",
+      "published": "Thu, 30 Jul 2026 00:34:00 GMT",
+      "origin": "gnews-rss",
+      "source": "The Guardian",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "AI"
+      ],
+      "sector_holdings": [
+        "00100",
+        "MSFU",
+        "SKHY"
+      ],
       "stance": "attack",
-      "relevance": 78,
-      "summary_cn": "马斯克相关股票单日蒸发1.5万亿美元市值，SpaceX lockup到期带来新一轮解禁压力——对kcn持有的SpaceX ETF（SPCX/SPCH）有直接负面影响。"
+      "relevance": 52,
+      "summary_cn": "马斯克xAI起诉明尼苏达州反对AI裸露图像禁令——AI监管摩擦，间接影响AI板块情绪。"
     }
   ]
 }
