@@ -102,34 +102,25 @@
 - **单一来源：`portfolio.json`**，不在此维护副本
 - ticker 列表：`memory/current-portfolio-summary.md`（提高检索命中）
 
-## Promoted From Short-Term Memory (2026-07-28)
+## Promoted From Short-Term Memory (2026-08-01)
 
-<!-- openclaw-memory-promotion:memory:memory/2026-07-22-pre-open.md:17:17 -->
-- Header: ▎TL;DR（先看这 5 行） [score=0.808 recalls=0 avg=0.620 source=memory/2026-07-22-pre-open.md:17-17]
-<!-- openclaw-memory-promotion:memory:memory/2026-07-23-pre-open.md:11:11 -->
-- 📊 盘前深度简报｜2026-07-23 周四 08:00 HKT (USDHKD=7.8404): **Book (双视角)**: [score=0.803 recalls=0 avg=0.620 source=memory/2026-07-23-pre-open.md:11-11]
-<!-- openclaw-memory-promotion:memory:memory/2026-07-23-pre-open.md:12:15 -->
-- 📊 盘前深度简报｜2026-07-23 周四 08:00 HKT (USDHKD=7.8404): USD-base 总浮亏: **-$8,464** (≈ HKD -66,360); USDHKD = 7.8404 (Frankfurter, 抓于 00:02 UTC); ├─ **HK 段**: -50,620 HKD (-50.3%) ≈ -$6,456; └─ **US 段**: -$2,008 USD (-44.6%) ≈ -HKD 15,741 [score=0.803 recalls=0 avg=0.620 source=memory/2026-07-23-pre-open.md:12-15]
-<!-- openclaw-memory-promotion:memory:memory/2026-07-23-pre-open.md:17:17 -->
-- 📊 盘前深度简报｜2026-07-23 周四 08:00 HKT (USDHKD=7.8404): **集中度风险 (HHI)**: [score=0.803 recalls=0 avg=0.620 source=memory/2026-07-23-pre-open.md:17-17]
-<!-- openclaw-memory-promotion:memory:memory/2026-07-23-pre-open.md:18:20 -->
-- 📊 盘前深度简报｜2026-07-23 周四 08:00 HKT (USDHKD=7.8404): HK: HHI 0.345 ⚠️ 集中风险 | 07226 41.84% + 00100 39.36% = **Top2 81.2%**; US: HHI 0.241 偏集中 | SPCH 40.35% + MSFU 19.24% = **Top2 59.6%**; US β = 4.81 (>3.0 cap),Combined vol 92.5%,Sharpe -4.82 [score=0.803 recalls=0 avg=0.620 source=memory/2026-07-23-pre-open.md:18-20]
-<!-- openclaw-memory-promotion:memory:memory/2026-07-23-pre-open.md:2:4 -->
-- layout: default title: 盘前深度简报 · 2026-07-23 description: "clawock 盘前深度简报 2026-07-23：港股 + 美股真实持仓的多空辩论、量化因子、风控硬闸与 AI 自评战绩（诚实公开，承认主动操作跑输躺平）。" [score=0.803 recalls=0 avg=0.620 source=memory/2026-07-23-pre-open.md:2-4]
-<!-- openclaw-memory-promotion:memory:memory/2026-07-23-pre-open.md:9:9 -->
-- 📊 盘前深度简报｜2026-07-23 周四 08:00 HKT (USDHKD=7.8404): **Regime**: US `neutral` (VIX 17 calm 但 SPX/NDX 同向下行) · HK `neutral` (HSTECH 4668 跌穿 4800 支撑,AI 大模型股重创,但大市 HSI 跌幅有限) [score=0.803 recalls=0 avg=0.620 source=memory/2026-07-23-pre-open.md:9-9]
-
-## Promoted From Short-Term Memory (2026-07-29)
-
-<!-- openclaw-memory-promotion:memory:memory/2026-07-24-pre-open.md:15:18 -->
-- ▎TL;DR: 🧭 **Regime:** neutral（HK amber ×0.5 持续；US 等 FOMC 7/29） 🔥 **催化剂栈：** SpaceX 13 号星舰试飞今天发射窗口（+SPCX 8/4 财报+8/6 解禁三连发）·Moonshot $30B IPO 6 月内+ Zhongji Innolight $7B 港股 IPO · 周二 FOMC 大概率 hold+鹰派措辞 · GOOGL $205B capex 重燃 AI ROI 质疑 ⚠️ **5 条硬止损+7 条仓位闸仍触发**，昨天 5 个 swap 2x→1x/spot **执行率 75%（昨天实际是 0 — 全部失败再挂）**，今天必须真挂单至少 4 个，不然 book 多挨一天。 ✅ **book 总览**：usd_base = **-8,358 USD**（= HK leg -65,540 HKD @7.8413 + US leg -2,000 USD）。HK 浮亏 -49.6%，US 浮亏 -44.3%，**主要靠 SPCH(-55.3%) + RKLX(-60.3%) + 07226(-21.8%) 三个杠杆 ETF**。Hold-and-watch 不再构成默认 — 那三只继续 carry decay。 [score=0.803 recalls=0 avg=0.620 source=memory/2026-07-24-pre-open.md:15-18]
-<!-- openclaw-memory-promotion:memory:memory/2026-07-24-pre-open.md:2:4 -->
-- layout: default title: 盘前深度简报 · 2026-07-24 description: "clawock 盘前深度简报 2026-07-24：港股 + 美股真实持仓的多空辩论、量化因子、风控硬闸与 AI 自评战绩（诚实公开，承认主动操作跑输躺平）。" [score=0.803 recalls=0 avg=0.620 source=memory/2026-07-24-pre-open.md:2-4]
-<!-- openclaw-memory-promotion:memory:memory/2026-07-24-pre-open.md:22:22 -->
-- ▎核心结论（1 句话）: > **纪律优先 day**：7 个仓位闸 + 5 个硬止损全部悬挂，前天决策 1x swap 0/5 执行意味着 book 已多亏一天 — 今天的 active call 90% 是 `risk_rebalance` swap 类，alpha call 只留 SKHY/CRCL hold-and-watch。 [score=0.803 recalls=0 avg=0.620 source=memory/2026-07-24-pre-open.md:22-22]
-<!-- openclaw-memory-promotion:memory:memory/2026-07-24-pre-open.md:26:26 -->
-- ▎Header（book + 持仓集中度）: **book USD-base 总浮亏：$-8,358** (= HK leg -49,916 HKD @ 7.8413 + US leg -1,992 USD) [score=0.803 recalls=0 avg=0.620 source=memory/2026-07-24-pre-open.md:26-26]
-<!-- openclaw-memory-promotion:memory:memory/2026-07-24-pre-open.md:28:31 -->
-- ▎Header（book + 持仓集中度）: | Leg | Currency | 持仓值 | Cash | 总浮亏 | HHI | Top2% | Verdict | |---|---|---|---|---|---|---|---| | HK | HKD | 50,760 | 22,197 HKD | **-49,916 (-49.6%)** | **0.343** ⚠️ | 81.0% | ⚠️ 集中风险 | | US | USD | 2,509 | 134 USD | **-1,992 (-44.3%)** | **0.249** ⚠️ | 60.3% | 偏集中 | [score=0.803 recalls=0 avg=0.620 source=memory/2026-07-24-pre-open.md:28-31]
-<!-- openclaw-memory-promotion:memory:memory/2026-07-24-pre-open.md:9:9 -->
-- 盘前深度简报 · 2026-07-24（周五）: **Author:** Rick · 08:00 HKT（HK 开盘 -90min · US 已收 ~4h） · USDHKD = 7.8413 (Frankfurter) [score=0.803 recalls=0 avg=0.620 source=memory/2026-07-24-pre-open.md:9-9]
+<!-- openclaw-memory-promotion:memory:memory/2026-07-27-pre-open.md:15:18 -->
+- ▎TL;DR: 🧭 **Regime:** `neutral`（FOMC 7/29 加息概率从 12.8% 飙到 37.9% + US β 3.58 远超 cap + HK amber ×0.5） 🔥 **催化剂栈（7d 内）：** FOMC 7/29（加息 37.9%）· MSFT 7/29 AMC 财报 · SPCX 8/6 8月解禁 · PLTR 8/3 · CRCL/RKLB 8/5 ⚠️ **5 条硬止损 + 7 条仓位闸全部悬挂**：RKLX -67.2% / SPCH -57.7% / PLTU -33.2% / 07226 -24.0% / MSFU -21.4%。US leg 41.5% SPCH 一票独大、HK leg 81% Top2 是 HSTECH+AI 单因子敞口 📉 **执行率地狱**：昨天 5 个 swap 全 0/5 执行，book 已多挨一天 2x carry decay。今天纪律动作不是"看情况"，是"开盘前必须挂" [score=0.803 recalls=0 avg=0.620 source=memory/2026-07-27-pre-open.md:15-18]
+<!-- openclaw-memory-promotion:memory:memory/2026-07-27-pre-open.md:19:19 -->
+- ▎TL;DR: ✅ **book**：usd_base = **-8,623 USD**（= HK -51,110 HKD + US -2,106 USD）。HK -50.8% / US -46.8% [score=0.803 recalls=0 avg=0.620 source=memory/2026-07-27-pre-open.md:19-19]
+<!-- openclaw-memory-promotion:memory:memory/2026-07-27-pre-open.md:2:4 -->
+- layout: default title: 盘前深度简报 · 2026-07-27 description: "clawock 盘前深度简报 2026-07-27：港股+美股真实持仓的多空辩论、量化因子、风控硬闸、AI 自评战绩。纪律优先 day #3 — 5 个 swap + 2 个 trim 仍悬挂、US cash 已见底、FOMC 7/29 + 加息概率 37.9% 是本周最大变量。" [score=0.803 recalls=0 avg=0.620 source=memory/2026-07-27-pre-open.md:2-4]
+<!-- openclaw-memory-promotion:memory:memory/2026-07-27-pre-open.md:23:23 -->
+- ▎核心结论（1 句话）: > **纪律优先 day #3**：5 个 swap + 1 trim 全部从昨天 0/5 失败计划继承，今天改成 0 price-anchor（开盘市价成交）+ 1 个 SKHY 触发加仓 — alpha call 退到最低，book 修复优先；FOMC 7/29 + 加息概率 37.9% 是窗口外最大尾部风险，所有新仓位暂停到 7/30。 [score=0.803 recalls=0 avg=0.620 source=memory/2026-07-27-pre-open.md:23-23]
+<!-- openclaw-memory-promotion:memory:memory/2026-07-27-pre-open.md:27:27 -->
+- ▎Header（book + 持仓集中度）: **book USD-base 总浮亏：$-8,623** （= HK leg -51,110 HKD @ 7.8426 + US leg -2,106 USD） [score=0.803 recalls=0 avg=0.620 source=memory/2026-07-27-pre-open.md:27-27]
+<!-- openclaw-memory-promotion:memory:memory/2026-07-27-pre-open.md:9:9 -->
+- 盘前深度简报 · 2026-07-27（周一）: **Author:** Rick · 08:00 HKT（HK 开盘 -90min · US 已收 ~4h） · USDHKD = **7.8426** (Frankfurter) [score=0.803 recalls=0 avg=0.620 source=memory/2026-07-27-pre-open.md:9-9]
+<!-- openclaw-memory-promotion:memory:memory/2026-07-27.md:11:11 -->
+- 自动产出（08:00 HKT cron）: ✅ `memory/.tmp/sector-scan-2026-07-27.json` — 板块全景 sidecar [score=0.803 recalls=0 avg=0.620 source=memory/2026-07-27.md:11-11]
+<!-- openclaw-memory-promotion:memory:memory/2026-07-27.md:15:15 -->
+- 今日核心判断: **纪律优先 day #3**：5 个 swap + 1 trim + 1 hold-and-watch 全部从昨天 0/5 失败计划继承。 [score=0.803 recalls=0 avg=0.620 source=memory/2026-07-27.md:15-15]
+<!-- openclaw-memory-promotion:memory:memory/2026-07-27.md:16:18 -->
+- 今日核心判断: **Regime**: neutral（F&G 39.4 fear + FOMC 7/29 加息概率 37.9%）; **执行口径**: **所有 swap 用 market-on-open (MOO) 市价单**，不挂限价单; **alpha call 全部暂停**: SKHY add 等 7/30 后（不是 7/28-7/29 FOMC 前） [score=0.803 recalls=0 avg=0.620 source=memory/2026-07-27.md:16-18]
+<!-- openclaw-memory-promotion:memory:memory/2026-07-27.md:22:24 -->
+- 待 kcn 处理（开盘前 09:00 HKT / 21:30 ET）: **HK 09:00 集合竞价挂市价单**：; 07226 swap 1000 股 → 03033（市价单，09:30 集合竞价成交）; 00100 trim 20 股 条件单（if day_high ≥ 215） [score=0.803 recalls=0 avg=0.620 source=memory/2026-07-27.md:22-24]
