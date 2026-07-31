@@ -1,55 +1,8 @@
 {
   "schema_version": 1,
   "monitoring_started_at": "2026-07-26T08:00:00+08:00",
-  "updated_at": "2026-07-31T18:40:10.375408+00:00",
+  "updated_at": "2026-07-31T20:00:03.795372+00:00",
   "records": [
-    {
-      "job": "美股收盘报告",
-      "slot": "2026-07-28T04:00:00+08:00",
-      "stages": {
-        "preflight": {
-          "status": "success",
-          "at": "2026-07-27T20:00:45.604243+00:00",
-          "context_id": "85d9d6e00570"
-        },
-        "llm": {
-          "status": "success",
-          "at": "2026-07-27T20:03:38.977670+00:00",
-          "context_id": "85d9d6e00570",
-          "issue_count": 0
-        },
-        "postflight": {
-          "status": "success",
-          "at": "2026-07-27T20:04:23.890401+00:00",
-          "delivered": "full report",
-          "issue_count": 0
-        },
-        "primary_delivery": {
-          "status": "success",
-          "at": "2026-07-27T20:04:23.893011+00:00",
-          "channel": "wechat_or_telegram",
-          "deterministic_fallback": false
-        },
-        "watchdog_delivery": {
-          "status": "not_required",
-          "at": "2026-07-27T20:20:10.214044+00:00",
-          "action": "ok",
-          "reason": "postflight cosend already delivered Telegram this slot — no backstop"
-        }
-      },
-      "raw_execution": {
-        "status": "ok",
-        "run_at_ms": 1785182400014,
-        "finished_at_ms": 1785182666417,
-        "run_id": null,
-        "error_present": false
-      },
-      "updated_at": "2026-07-27T20:20:10.214044+00:00",
-      "final_product": {
-        "status": "success",
-        "reason": "primary delivery succeeded"
-      }
-    },
     {
       "job": "盘前深度简报",
       "slot": "2026-07-28T08:00:00+08:00",
@@ -6957,6 +6910,36 @@
       "final_product": {
         "status": "success",
         "reason": "primary delivery succeeded"
+      }
+    },
+    {
+      "job": "美股收盘报告",
+      "slot": "2026-08-01T04:00:00+08:00",
+      "stages": {
+        "preflight": {
+          "status": "pending",
+          "at": "2026-07-31T20:00:03.795372+00:00"
+        },
+        "llm": {
+          "status": "unknown"
+        },
+        "postflight": {
+          "status": "unknown"
+        },
+        "primary_delivery": {
+          "status": "unknown"
+        },
+        "watchdog_delivery": {
+          "status": "unknown"
+        }
+      },
+      "raw_execution": {
+        "status": "unknown"
+      },
+      "updated_at": "2026-07-31T20:00:03.795372+00:00",
+      "final_product": {
+        "status": "pending",
+        "reason": "terminal product evidence not recorded yet"
       }
     }
   ]
