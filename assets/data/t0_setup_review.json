@@ -1,62 +1,62 @@
 {
-  "as_of": "2026-07-30",
-  "days_logged": 61,
+  "as_of": "2026-07-31",
+  "days_logged": 62,
   "min_n": 20,
   "horizon": 1,
   "grades": {
     "chase_low_quality": {
       "label": "🔴 追高低质",
       "n": 111,
-      "hit_rate": 0.559,
+      "hit_rate": 0.577,
       "ci95": [
-        0.466,
-        0.647
+        0.484,
+        0.664
       ],
       "edge_significant": false,
       "sample_sufficient": true,
       "edge_supported": false,
       "reverse_edge_supported": false,
       "decision_direction": null,
-      "avg_dir_fwd_pct": 1.23,
+      "avg_dir_fwd_pct": 1.06,
       "usable": false,
       "note": "Wilson CI 跨 50%，正向 edge 未获支持"
     },
     "elevated": {
       "label": "🟡 偏高位",
-      "n": 46,
-      "hit_rate": 0.63,
+      "n": 48,
+      "hit_rate": 0.604,
       "ci95": [
-        0.486,
-        0.755
+        0.463,
+        0.73
       ],
       "edge_significant": false,
       "sample_sufficient": true,
       "edge_supported": false,
       "reverse_edge_supported": false,
       "decision_direction": null,
-      "avg_dir_fwd_pct": 1.71,
+      "avg_dir_fwd_pct": 1.59,
       "usable": false,
       "note": "Wilson CI 跨 50%，正向 edge 未获支持"
     },
     "oversold_low": {
       "label": "🟡 低位/超卖",
-      "n": 218,
-      "hit_rate": 0.417,
+      "n": 222,
+      "hit_rate": 0.428,
       "ci95": [
-        0.354,
-        0.484
+        0.365,
+        0.494
       ],
       "edge_significant": false,
       "sample_sufficient": true,
       "edge_supported": false,
       "reverse_edge_supported": true,
       "decision_direction": null,
-      "avg_dir_fwd_pct": -0.46,
+      "avg_dir_fwd_pct": -0.32,
       "usable": false,
       "note": "Wilson CI 支持相反方向；原牌面禁用，不自动反向交易"
     }
   },
-  "summary": "没有牌面同时通过样本与正向 edge 闸（61 交易日留痕）——结论未解锁",
+  "summary": "没有牌面同时通过样本与正向 edge 闸（62 交易日留痕）——结论未解锁",
   "unlock_rule": "sample_sufficient AND Wilson_ci95_lower>50pct",
   "discipline": "自迭代：usable 需要样本量与正向 Wilson edge 同时成立；样本够多但方向错误也只展示不下结论；「命中」= 评级方向警示被次日价格证实（追高→跌 / 超卖→涨），不是「能赚钱」。"
 }
