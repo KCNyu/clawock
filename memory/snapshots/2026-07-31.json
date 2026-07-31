@@ -1,6 +1,6 @@
 {
   "owner": "kcn",
-  "last_updated": "2026/07/31 21:32 HKT",
+  "last_updated": "2026/07/31 22:00 HKT",
   "portfolios": {
     "us_stocks": {
       "currency": "USD",
@@ -87,7 +87,7 @@
           "current_price": 64.26,
           "today_change_pct": 0.0311,
           "pnl_percent": -26.1379,
-          "data_source": "Finnhub Jul 31, 2026 09:32 ET",
+          "data_source": "Finnhub Jul 31, 2026 10:00 ET",
           "note": "2026-02-26/03-02 共买入14股(@88.35+@86.45,均价≈87);2026-03-04 卖4股@103.21(+64.84);03-11 卖5股@120(+165);03-23 卖3股@127(+120);剩余2股长期持有(看好稳定币+agent支付赛道)",
           "trades": [
             {
@@ -299,7 +299,7 @@
           "current_price": 26.82,
           "today_change_pct": 0.0746,
           "pnl_percent": -34.5169,
-          "data_source": "Finnhub Jul 31, 2026 09:32 ET",
+          "data_source": "Finnhub Jul 31, 2026 10:00 ET",
           "prev_close": 26.8,
           "current_value": 375.48,
           "pnl_abs": -197.92,
@@ -389,7 +389,7 @@
           "current_price": 16.28,
           "today_change_pct": 0.123,
           "pnl_percent": -67.2369,
-          "data_source": "Finnhub Jul 31, 2026 09:32 ET",
+          "data_source": "Finnhub Jul 31, 2026 10:00 ET",
           "day_high": 16.34,
           "day_low": 14.0,
           "day_open": 14.56,
@@ -528,7 +528,7 @@
           "pnl_percent": -23.9119,
           "today_change": 0.03,
           "today_change_pct": 0.0267,
-          "data_source": "Finnhub Jul 31, 2026 09:32 ET",
+          "data_source": "Finnhub Jul 31, 2026 10:00 ET",
           "trades": [
             {
               "date": "2026-06-12",
@@ -570,7 +570,7 @@
           "current_value": 1069.3,
           "pnl_abs": -1418.0,
           "pnl_percent": -57.0097,
-          "data_source": "Finnhub Jul 31, 2026 09:32 ET",
+          "data_source": "Finnhub Jul 31, 2026 10:00 ET",
           "today_change": 1.7,
           "today_change_pct": 0.1592,
           "trades": [
@@ -737,7 +737,7 @@
           "day_high": 32.275,
           "day_low": 29.0501,
           "day_open": 29.81,
-          "data_source": "Finnhub Jul 31, 2026 09:32 ET",
+          "data_source": "Finnhub Jul 31, 2026 10:00 ET",
           "volume": 6022942,
           "prev_close_date": "2026-07-30",
           "day_session_date": "2026-07-31"
@@ -751,7 +751,7 @@
           "current_value": 149.03,
           "pnl_abs": -20.16,
           "pnl_percent": -11.913,
-          "data_source": "Finnhub Jul 31, 2026 09:32 ET",
+          "data_source": "Finnhub Jul 31, 2026 10:00 ET",
           "day_high": 150.356,
           "day_low": 134.5,
           "note": "2026-07-10 IPO首日(发行价$149,史上第二大全球股票发行仅次于SpaceX)169.185买入1股,用户报告成交。临时代码SKHYV已于2026-07-13转为正式代码SKHY",
@@ -782,28 +782,28 @@
       "realized_note": "NVDA 3股@197.5(+29.19) + CRCL 4股@103.21(+64.84) + CRCL 5股@120(+165) + CRCL 3股@127(+120) + NVDA 3股@199.41(+34.92) + QQQ 1股@631.3(+9.03) + TQQQ 8股@54.45(+69.76) + HOOD 5股@88.36(+74.3) + OKLO 2股@68(+10.34) + TCOM 5股@53.86(+5.6) + SOXL 5股@112(+100.65) + RKLX 4股@75(+113.2) + RKLX 2股@91.03(+88.66) + SOXL 3股@170.8(+236.79) + SOXL 2股@217.17(+250.6) + RKLB 5股@100.17(+145.85) + SPCX 5股@168(+48.5) + RKLX 10股@53.93(+7.3) + SPCH 20股@18.42(+34.8) + ROBN 20股@35.175(+231.85) + ROBN 10股@40(+164.17) + ROBN 10股@37(+134.18) + MSFU 5股@31.19(+10.3)",
       "last_updated": "Jun 24, 2026 16:00 ET close",
       "last_close_attempted": "May 7, 2026 16:00 ET close",
-      "last_open_attempted": "2026-07-31 09:32 EDT",
+      "last_open_attempted": "2026-07-31 10:00 EDT",
       "indices_snapshot": {
         "SPX": {
           "name": "S&P 500",
-          "price": 7482.38,
+          "price": 7445.07,
           "prev_close": 7437.63,
-          "change_pct": 0.602,
-          "source": "Tencent usINX index @ 2026-07-31 09:32 ET"
+          "change_pct": 0.1,
+          "source": "Tencent usINX index @ 2026-07-31 10:00 ET"
         },
         "NDX": {
           "name": "Nasdaq 100",
-          "price": 28525.95,
+          "price": 28248.46,
           "prev_close": 28106.35,
-          "change_pct": 1.493,
-          "source": "Tencent usNDX index @ 2026-07-31 09:32 ET"
+          "change_pct": 0.506,
+          "source": "Tencent usNDX index @ 2026-07-31 10:00 ET"
         },
         "DJI": {
           "name": "Dow Jones",
-          "price": 52451.2,
+          "price": 52205.91,
           "prev_close": 52208.06,
-          "change_pct": 0.466,
-          "source": "Tencent usDJI index @ 2026-07-31 09:32 ET"
+          "change_pct": -0.004,
+          "source": "Tencent usDJI index @ 2026-07-31 10:00 ET"
         }
       },
       "last_trade_update": "2026-06-13 00:02 HKT",
@@ -863,7 +863,7 @@
         "source_counts": {
           "Finnhub": 7
         },
-        "updated_at": "2026-07-31 09:32 EDT",
+        "updated_at": "2026-07-31 10:00 EDT",
         "note": "Multi-provider fetch. Sources: 7x Finnhub"
       },
       "afterhours_fetch_status": {
