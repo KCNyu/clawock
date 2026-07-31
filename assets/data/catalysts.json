@@ -1,8 +1,8 @@
 {
-  "generated_at": "2026-07-30T08:04:27.621971+08:00",
+  "generated_at": "2026-07-31T08:01:48.209858+08:00",
   "lookback_window_days": 14,
-  "window_start": "2026-07-30",
-  "window_end": "2026-08-13",
+  "window_start": "2026-07-31",
+  "window_end": "2026-08-14",
   "earnings_queried": [
     "CRCL",
     "MSFT",
@@ -60,11 +60,6 @@
   "fomc": [],
   "macro_events": [
     {
-      "date": "2026-07-30",
-      "type": "GDP",
-      "detail": "Q2 2026 GDP advance estimate"
-    },
-    {
       "date": "2026-07-31",
       "type": "PCE",
       "detail": "Jun PCE price index (BEA, Fed preferred inflation gauge)"
@@ -83,7 +78,7 @@
   "summary": {
     "earnings_count": 4,
     "fomc_in_window": 0,
-    "macro_count": 4,
-    "highest_impact_within_7d": "PLTR earnings 2026-08-03 (amc)"
+    "macro_count": 3,
+    "highest_impact_within_7d": "NFP 2026-08-07"
   }
 }
