@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "monitoring_started_at": "2026-07-26T08:00:00+08:00",
-  "updated_at": "2026-07-31T00:20:04.506702+00:00",
+  "updated_at": "2026-07-31T00:30:02.406984+00:00",
   "records": [
     {
       "job": "港股开盘报告",
@@ -6668,7 +6668,10 @@
           "channel": "wechat_or_telegram"
         },
         "watchdog_delivery": {
-          "status": "unknown"
+          "status": "not_required",
+          "at": "2026-07-31T00:30:02.406984+00:00",
+          "action": "ok",
+          "reason": "postflight cosend already delivered Telegram today — no backstop"
         }
       },
       "raw_execution": {
@@ -6678,7 +6681,7 @@
         "run_id": null,
         "error_present": false
       },
-      "updated_at": "2026-07-31T00:11:19.485430+00:00",
+      "updated_at": "2026-07-31T00:30:02.406984+00:00",
       "final_product": {
         "status": "degraded",
         "reason": "primary delivery succeeded with degraded generation/input"
