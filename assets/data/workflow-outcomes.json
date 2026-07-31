@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "monitoring_started_at": "2026-07-26T08:00:00+08:00",
-  "updated_at": "2026-07-31T20:00:03.795372+00:00",
+  "updated_at": "2026-07-31T20:20:04.767340+00:00",
   "records": [
     {
       "job": "盘前深度简报",
@@ -6917,29 +6917,44 @@
       "slot": "2026-08-01T04:00:00+08:00",
       "stages": {
         "preflight": {
-          "status": "pending",
-          "at": "2026-07-31T20:00:03.795372+00:00"
+          "status": "success",
+          "at": "2026-07-31T20:01:28.719867+00:00",
+          "context_id": "aef41987800f"
         },
         "llm": {
-          "status": "unknown"
+          "status": "warning",
+          "at": "2026-07-31T20:01:54.575954+00:00",
+          "context_id": "aef41987800f",
+          "issue_count": 1
         },
         "postflight": {
-          "status": "unknown"
+          "status": "warning",
+          "at": "2026-07-31T20:02:35.786713+00:00",
+          "delivered": "full report",
+          "data_plane_status": "published",
+          "issue_count": 1
         },
         "primary_delivery": {
-          "status": "unknown"
+          "status": "success",
+          "at": "2026-07-31T20:02:35.796374+00:00",
+          "channel": "wechat_or_telegram",
+          "deterministic_fallback": false
         },
         "watchdog_delivery": {
           "status": "unknown"
         }
       },
       "raw_execution": {
-        "status": "unknown"
+        "status": "ok",
+        "run_at_ms": 1785528000012,
+        "finished_at_ms": 1785528158176,
+        "run_id": null,
+        "error_present": false
       },
-      "updated_at": "2026-07-31T20:00:03.795372+00:00",
+      "updated_at": "2026-07-31T20:02:35.796374+00:00",
       "final_product": {
-        "status": "pending",
-        "reason": "terminal product evidence not recorded yet"
+        "status": "degraded",
+        "reason": "primary delivery succeeded with degraded generation/input"
       }
     }
   ]
