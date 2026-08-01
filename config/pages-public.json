@@ -1,4 +1,5 @@
 {
+  "site_url": "https://kcnyu.github.io/clawock",
   "browser_data": [
     "assets/data/dashboard.json",
     "assets/data/macro.json",
@@ -12,6 +13,7 @@
   ],
   "required_pages": [
     "index.html",
+    "4fb2df1611ed42e5b67fd6171a237acb.txt",
     "briefs.html",
     "robots.txt",
     "sitemap.xml",
@@ -25,6 +27,7 @@
   ],
   "artifact_include": [
     "index.html",
+    "4fb2df1611ed42e5b67fd6171a237acb.txt",
     "briefs.html",
     "robots.txt",
     "sitemap.xml",

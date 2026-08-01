@@ -141,6 +141,17 @@ def test_main_records_nothing_when_post_fails(tmp_path):
     assert ins.load_seen() == {}, 'ledger advanced despite a failed submission'
 
 
+def test_missing_key_fails_before_sitemap_or_head_work():
+    with mock.patch.object(ins, 'find_key', side_effect=SystemExit('missing')), \
+            mock.patch.object(ins, 'select', side_effect=AssertionError('network work started')):
+        try:
+            ins.main([])
+        except SystemExit as exc:
+            assert str(exc) == 'missing'
+        else:
+            assert False, 'a real submission continued without its public key'
+
+
 def test_dry_run_never_posts(tmp_path):
     live = {u: 'v1' for u in SITEMAP}
     with mock.patch.object(ins, 'sitemap_urls', return_value=SITEMAP), \

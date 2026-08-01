@@ -154,6 +154,11 @@ def parse_args(argv):
 
 def main(argv=None):
     args = parse_args(sys.argv[1:] if argv is None else argv)
+    # A real submission cannot possibly succeed without the public key. Resolve
+    # it before fetching the sitemap and issuing one HEAD per URL, so a deleted
+    # or unpublished key fails cheaply instead of doing guaranteed-wasted work.
+    # Inspection modes deliberately remain useful while the key is being fixed.
+    key = None if args.record_only or args.dry_run else find_key()
     urls, record = select(args)
     if args.record_only:
         save_seen(record)
@@ -166,7 +171,7 @@ def main(argv=None):
         print(f"IndexNow dry-run — would submit {len(urls)} URL(s):")
         print("\n".join(urls))
         return
-    post(find_key(), urls)
+    post(key, urls)
     # Record only after the POST is accepted, so a failed run retries instead of
     # marking the URLs as done forever.
     save_seen(record)
