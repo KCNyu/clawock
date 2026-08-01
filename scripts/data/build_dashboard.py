@@ -1737,25 +1737,142 @@ def compute_net_principal_return(portfolio, fx_rate):
     return out
 
 
-# 期望刷新节奏（小时）——超过即标 stale。值取「正常情况下两次成功刷新的最大间隔 +
-# 容忍隔夜/周末」，不是硬 SLA。盘中/收盘类短，GHA 扫描类长。
-_FRESHNESS_SLA_H = {
-    'portfolio.json': 26,
-    'quant_signals.json': 30,
-    'quant_signal_review.json': 30,
-    'cross_sectional_factor.json': 30,
-    'peer_residual.json': 30,
-    'news_evidence_graph.json': 30,
-    'risk.json': 30,
-    'lev_regime.json': 30,
-    'benchmark.json': 80,          # 偶发限流，宽容
-    'macro.json': 30,
-    'sentiment.json': 30,
-    'catalysts.json': 30,
-    'us_news_digest.json': 30,
-    'em_news.json': 30,
-    'influencer_feed.json': 30,
+# Freshness policy.  Runtime-written artifacts keep the historical max-age
+# behavior.  GitHub weekday scans instead compare mtime with the latest cron
+# fire that should have completed: a Friday artifact is valid all weekend, but
+# becomes stale on Monday shortly after the next expected run.  Per-fire grace
+# absorbs measured GitHub schedule delay plus commit serialization.
+_MON_FRI = (0, 1, 2, 3, 4)           # datetime.weekday(): Monday == 0
+_UTC_SUN_THU = (0, 1, 2, 3, 6)
+
+
+def _scheduled_fire(weekdays, hour, minute, grace_hours, *, tz='UTC',
+                    required_when=None):
+    if not weekdays:
+        raise ValueError('scheduled freshness fire needs at least one weekday')
+    if not (0 <= hour <= 23 and 0 <= minute <= 59 and grace_hours >= 0):
+        raise ValueError('invalid scheduled freshness fire')
+    return {
+        'weekdays': tuple(sorted(weekdays)),
+        'hour': hour,
+        'minute': minute,
+        'grace_hours': grace_hours,
+        'timezone': tz,
+        **({'required_when': required_when} if required_when else {}),
+    }
+
+
+def _scheduled_policy(sla_hours, *fires):
+    if not fires:
+        raise ValueError('scheduled freshness policy needs at least one fire')
+    return {
+        'sla_hours': sla_hours,
+        'schedule': {'fires': tuple(fires)},
+    }
+
+
+_BRIEF_FRESHNESS_ARTIFACTS = frozenset({
+    'quant_signals.json',
+    'quant_signal_review.json',
+    'cross_sectional_factor.json',
+    'peer_residual.json',
+    'news_evidence_graph.json',
+    'risk.json',
+    'lev_regime.json',
+    'catalysts.json',
+    'em_news.json',
+})
+
+# The local brief normally commits in minutes but has a remote fallback and a
+# 10:00 HKT landing window.  Do not declare it missed until 14:00 HKT.  Unlike
+# GitHub scans, the brief intentionally skips a fire when both covered markets
+# are closed, so its descriptor mirrors that producer gate.
+_BRIEF_FIRE = _scheduled_fire(
+    _MON_FRI, 8, 0, 6, tz='Asia/Shanghai', required_when='any_market_open'
+)
+
+
+_FRESHNESS_POLICY = {
+    'portfolio.json': {'sla_hours': 26},
+    **{
+        name: _scheduled_policy(30, _BRIEF_FIRE)
+        for name in _BRIEF_FRESHNESS_ARTIFACTS
+    },
+    'benchmark.json': {'sla_hours': 80},  # 偶发限流，宽容
+    # Grace is per fire, rounded above producer-only history (max observed:
+    # macro 4.32h, sentiment 4.60h, influencer 5.04h, digest 5.57h).
+    'macro.json': _scheduled_policy(
+        30, _scheduled_fire(_UTC_SUN_THU, 21, 45, 5)
+    ),
+    'sentiment.json': _scheduled_policy(
+        30, _scheduled_fire(_UTC_SUN_THU, 21, 30, 6)
+    ),
+    'us_news_digest.json': _scheduled_policy(
+        30, _scheduled_fire(_MON_FRI, 13, 0, 7)
+    ),
+    'influencer_feed.json': _scheduled_policy(
+        30,
+        _scheduled_fire(_UTC_SUN_THU, 21, 40, 6),
+        _scheduled_fire(_MON_FRI, 12, 50, 6),
+    ),
 }
+
+# Compatibility/readability alias for callers that only need the max-age
+# metadata.  `_FRESHNESS_POLICY` is the single source of truth.
+_FRESHNESS_SLA_H = {
+    name: policy['sla_hours'] for name, policy in _FRESHNESS_POLICY.items()
+}
+
+
+def _fire_is_expected(fire, candidate, calendar):
+    """Mirror producer-side skip rules; unavailable calendars fail closed."""
+    if fire.get('required_when') != 'any_market_open' or calendar is None:
+        return True
+    return any(
+        calendar.closed_reason(
+            market,
+            candidate.astimezone(ZoneInfo(calendar.MARKET_TZ[market])).date(),
+        ) is None
+        for market in ('hk', 'us')
+    )
+
+
+def _latest_due_fire(schedule, at, calendar=None):
+    """Latest fire whose own grace deadline has elapsed, normalized to UTC."""
+    if at.tzinfo is None:
+        raise ValueError('freshness reference time must be timezone-aware')
+    latest = None
+    for fire in schedule['fires']:
+        fire_tz = ZoneInfo(fire['timezone'])
+        cutoff = at.astimezone(fire_tz) - timedelta(hours=fire['grace_hours'])
+        for days_back in range(8):
+            candidate_date = cutoff.date() - timedelta(days=days_back)
+            if candidate_date.weekday() not in fire['weekdays']:
+                continue
+            candidate = datetime(
+                candidate_date.year,
+                candidate_date.month,
+                candidate_date.day,
+                fire['hour'],
+                fire['minute'],
+                tzinfo=fire_tz,
+            )
+            if candidate > cutoff or not _fire_is_expected(
+                fire, candidate, calendar
+            ):
+                continue
+            scheduled_at = candidate.astimezone(timezone.utc)
+            due = {
+                'scheduled_at': scheduled_at,
+                'deadline_at': scheduled_at + timedelta(
+                    hours=fire['grace_hours']
+                ),
+                'grace_hours': fire['grace_hours'],
+            }
+            if latest is None or scheduled_at > latest['scheduled_at']:
+                latest = due
+            break
+    return latest
 
 
 def _latest_completed_session(market, calendar, at=None):
@@ -1847,38 +1964,68 @@ def _market_leg_freshness(portfolio_leg, market, calendar, at=None):
     }
 
 
-def compute_build_status(portfolio, data_dir):
+def compute_build_status(portfolio, data_dir, at=None):
     """A2 健康卡数据：每个数据文件的新鲜度 + 体检结论 + 每市场 data 时点。
 
     纯文件运算、零网络。被动暴露 staleness 给前端（不推送，遵 feedback_no_individual_cron_alerts）。
     内联跑一次 preflight_integrity 取新鲜体检结论嵌进来。
     """
-    now = datetime.now().astimezone()
-    files = []
-    targets = ['portfolio.json'] + sorted(_FRESHNESS_SLA_H.keys() - {'portfolio.json'})
-    for name in targets:
-        path = (WS_ROOT / name) if name == 'portfolio.json' else (data_dir / name)
-        sla = _FRESHNESS_SLA_H.get(name, 30)
-        if path.exists():
-            age_h = (time.time() - path.stat().st_mtime) / 3600.0
-            files.append({'name': name, 'age_hours': round(age_h, 1),
-                          'sla_hours': sla, 'stale': age_h > sla, 'present': True})
-        else:
-            files.append({'name': name, 'present': False, 'stale': True, 'sla_hours': sla})
-
-    # 每市场数据时点：逐只活跃持仓的报价日期 vs 最近已完成 session。
-    # 不能信 region.last_updated 或 portfolio.json mtime；两者都会被另一条写入刷新。
-    markets = {}
+    now = at if at is not None else datetime.now().astimezone()
+    if now.tzinfo is None:
+        now = now.astimezone()
     try:
         sys.path.insert(0, str(WS_ROOT / 'scripts' / 'data'))
         import trading_calendar as _tc
     except Exception:
         _tc = None
+    files = []
+    targets = ['portfolio.json'] + sorted(_FRESHNESS_POLICY.keys() - {'portfolio.json'})
+    for name in targets:
+        path = (WS_ROOT / name) if name == 'portfolio.json' else (data_dir / name)
+        policy = _FRESHNESS_POLICY.get(name, {'sla_hours': 30})
+        sla = policy['sla_hours']
+        schedule = policy.get('schedule')
+        due = _latest_due_fire(schedule, now, _tc) if schedule else None
+        freshness_mode = 'scheduled_fire' if schedule else 'max_age'
+        if path.exists():
+            mtime = path.stat().st_mtime
+            age_h = (now.timestamp() - mtime) / 3600.0
+            stale = (
+                mtime < due['scheduled_at'].timestamp()
+                if due else age_h > sla
+            )
+            files.append({'name': name, 'age_hours': round(age_h, 1),
+                          'sla_hours': sla, 'stale': stale, 'present': True,
+                          'freshness_mode': freshness_mode,
+                          **({'latest_due_at': due['scheduled_at'].isoformat(),
+                              'deadline_at': due['deadline_at'].isoformat(),
+                              'grace_hours': due['grace_hours']}
+                             if due else {})})
+        else:
+            files.append({'name': name, 'present': False, 'stale': True,
+                          'sla_hours': sla, 'freshness_mode': freshness_mode,
+                          **({'latest_due_at': (
+                                  due['scheduled_at'].isoformat() if due else None
+                              ),
+                              'deadline_at': (
+                                  due['deadline_at'].isoformat() if due else None
+                              ),
+                              'grace_hours': (
+                                  due['grace_hours'] if due else None
+                              )}
+                             if schedule else {})})
+
+    # 每市场数据时点：逐只活跃持仓的报价日期 vs 最近已完成 session。
+    # 不能信 region.last_updated 或 portfolio.json mtime；两者都会被另一条写入刷新。
+    markets = {}
     for region, mkt in (('us_stocks', 'us'), ('hk_stocks', 'hk')):
         pf = portfolio.get('portfolios', {}).get(region, {})
         if _tc:
-            markets[mkt] = _market_leg_freshness(pf, mkt, _tc)
-            markets[mkt]['closed_today'] = _tc.closed_reason(mkt) is not None
+            markets[mkt] = _market_leg_freshness(pf, mkt, _tc, at=now)
+            market_date = now.astimezone(ZoneInfo(_tc.MARKET_TZ[mkt])).date()
+            markets[mkt]['closed_today'] = (
+                _tc.closed_reason(mkt, market_date) is not None
+            )
         else:
             markets[mkt] = {
                 'last_updated': pf.get('last_updated'),
