@@ -206,7 +206,7 @@
   function _sidecarState(k) {
     if (!SIDECAR_STATE.has(k)) {
       SIDECAR_STATE.set(k, {
-        value: null, ready: false, stale: true, inFlight: null,
+        value: null, serialized: null, ready: false, stale: true, inFlight: null,
       });
     }
     return SIDECAR_STATE.get(k);
@@ -241,8 +241,10 @@
         // Sidecars publish independently from dashboard.json. Revalidate them,
         // but do not replay a tab's DOM when its serialized value is identical
         // to the value it already rendered.
-        const changed = !state.ready || JSON.stringify(value) !== JSON.stringify(state.value);
+        const serialized = JSON.stringify(value);
+        const changed = !state.ready || serialized !== state.serialized;
         state.value = value;
+        state.serialized = serialized;
         state.ready = true;
         state.stale = false;
         return changed;
