@@ -3,6 +3,7 @@ import json
 import re
 import shutil
 import subprocess
+import xml.etree.ElementTree as ET
 from pathlib import Path
 
 
@@ -11,6 +12,7 @@ CONTRACT = json.loads((ROOT / "config/pages-public.json").read_text())
 WORKFLOW = (ROOT / ".github/workflows/pages.yml").read_text()
 UI = (ROOT / "assets/js/dashboard.ui.js").read_text()
 INDEX = (ROOT / "index.html").read_text()
+INDEXNOW_KEY = "4fb2df1611ed42e5b67fd6171a237acb.txt"
 
 
 def _sidecar_keys() -> set[str]:
@@ -42,6 +44,13 @@ def test_linked_web_manifest_is_required_and_triggers_deploy():
     assert manifest in CONTRACT["required_pages"]
     assert manifest in CONTRACT["artifact_include"]
     assert WORKFLOW.count(f"'{manifest}'") == 2
+
+
+def test_indexnow_key_is_required_public_and_triggers_deploy():
+    assert (ROOT / INDEXNOW_KEY).read_text().strip() == INDEXNOW_KEY.removesuffix(".txt")
+    assert INDEXNOW_KEY in CONTRACT["required_pages"]
+    assert INDEXNOW_KEY in CONTRACT["artifact_include"]
+    assert WORKFLOW.count(f"'{INDEXNOW_KEY}'") == 2
 
 
 def test_repository_only_patterns_cannot_match_browser_data():
@@ -89,8 +98,15 @@ def test_builder_stages_only_public_consumers(tmp_path):
     output = tmp_path / "_pages"
     shutil.copytree(ROOT / "assets", site / "assets")
     (site / "index.html").write_text("ok")
-    for path in ("briefs.html", "robots.txt", "sitemap.xml", "manifest.webmanifest"):
+    for path in ("briefs.html", "robots.txt", "manifest.webmanifest", INDEXNOW_KEY):
         (site / path).write_text("ok")
+    (site / "sitemap.xml").write_text(
+        '<?xml version="1.0" encoding="UTF-8"?>'
+        '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'
+        '<url><loc>https://kcnyu.github.io/clawock/</loc></url>'
+        '<url><loc>https://kcnyu.github.io/clawock/tests/private.html</loc></url>'
+        '</urlset>'
+    )
     (site / "tests").mkdir()
     (site / "tests/private.txt").write_text("not public")
     (site / "memory").mkdir()
@@ -119,6 +135,12 @@ def test_builder_stages_only_public_consumers(tmp_path):
     assert not list((output / "assets/data").glob("*.jsonl"))
     assert not (output / "memory/decisions.jsonl").exists()
     assert not (output / "tests").exists()
+    sitemap_locs = [
+        node.text for node in ET.parse(output / "sitemap.xml").getroot().iter()
+        if node.tag.rsplit("}", 1)[-1] == "loc"
+    ]
+    assert sitemap_locs == ["https://kcnyu.github.io/clawock/"]
+    assert (output / INDEXNOW_KEY).is_file()
     assert (output / "assets/data/dashboard.json").is_file()
     assert (ROOT / "assets/dashboard.gif").stat().st_size == source_gif_size
     assert all(path.is_file() for path in source_jsonl)

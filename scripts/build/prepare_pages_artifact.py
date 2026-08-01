@@ -11,7 +11,9 @@ import argparse
 import fnmatch
 import json
 import shutil
+import xml.etree.ElementTree as ET
 from pathlib import Path
+from urllib.parse import unquote, urlsplit
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -20,6 +22,46 @@ CONTRACT_PATH = ROOT / "config/pages-public.json"
 
 def load_contract() -> dict:
     return json.loads(CONTRACT_PATH.read_text())
+
+
+def reconcile_sitemap(output_dir: Path, site_url: str) -> int:
+    """Drop sitemap URLs that the allowlisted artifact does not publish."""
+    sitemap = output_dir / "sitemap.xml"
+    tree = ET.parse(sitemap)
+    root = tree.getroot()
+    public = urlsplit(site_url.rstrip("/"))
+    base_path = public.path.rstrip("/")
+    removed = 0
+    for entry in list(root):
+        loc = next(
+            (node for node in entry if node.tag.rsplit("}", 1)[-1] == "loc"),
+            None,
+        )
+        target = urlsplit((loc.text or "").strip()) if loc is not None else None
+        if target is None or target.scheme != public.scheme or target.netloc != public.netloc:
+            root.remove(entry)
+            removed += 1
+            continue
+        path = unquote(target.path)
+        if path in (base_path, f"{base_path}/"):
+            relative = ""
+        elif path.startswith(f"{base_path}/"):
+            relative = path[len(base_path) + 1:]
+        else:
+            root.remove(entry)
+            removed += 1
+            continue
+        candidates = [output_dir / relative]
+        if not relative or relative.endswith("/"):
+            candidates.append(output_dir / relative / "index.html")
+        if not any(candidate.is_file() for candidate in candidates):
+            root.remove(entry)
+            removed += 1
+    namespace = root.tag.partition("}")[0].removeprefix("{")
+    if namespace:
+        ET.register_namespace("", namespace)
+    tree.write(sitemap, encoding="utf-8", xml_declaration=True)
+    return removed
 
 
 def prepare(
@@ -66,6 +108,8 @@ def prepare(
             shutil.copy2(source, destination)
             copied.append(relative.as_posix())
 
+    removed_sitemap_urls = reconcile_sitemap(output_dir, contract["site_url"])
+
     missing_pages = [
         path for path in contract["required_pages"] if not (output_dir / path).is_file()
     ]
@@ -86,7 +130,8 @@ def prepare(
     after = sum(path.stat().st_size for path in output_dir.rglob("*") if path.is_file())
     print(
         f"Pages artifact: {before:,} -> {after:,} bytes "
-        f"({before - after:,} excluded; {len(set(copied))} public files)"
+        f"({before - after:,} excluded; {len(set(copied))} public files; "
+        f"{removed_sitemap_urls} sitemap URLs excluded)"
     )
     return before, after
 
