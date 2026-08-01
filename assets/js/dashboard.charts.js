@@ -587,7 +587,15 @@
         return `<span style="color:${line.color}">●</span> ${escapeHtml(line.name)}: <b>${finite(v) ? moneyTip(v, model.cur) : DASH}</b>`;
       });
       const dd = model.dd[hoverIndex];
-      rows.push(`<span style="color:${model.negative}">●</span> 回撤: <b>${finite(dd) ? Number(dd).toFixed(2) + "%" : DASH}</b>`);
+      const ddAbs = model.ddAbs[hoverIndex];
+      let ddText = DASH;
+      if (finite(dd)) ddText = Number(dd).toFixed(2) + "%";
+      else if (finite(ddAbs)) {
+        const amount = Number(ddAbs);
+        ddText = `${amount < 0 ? "−" : ""}${moneyTip(Math.abs(amount), model.cur)}` +
+          ` <span class="muted">(% 不适用)</span>`;
+      }
+      rows.push(`<span style="color:${model.negative}">●</span> 回撤: <b>${ddText}</b>`);
       const change = model.change[hoverIndex];
       if (finite(change)) {
         const sign = Number(change) >= 0 ? "+" : "-";
@@ -740,11 +748,17 @@
 
     // 回撤 — 用 PROFIT(净化本金) 口径而非 净值。净值会被加仓虚抬(花掉的现金不计),
     // 使回撤恒显示 ~0%(假新高);profit 是 trade-invariant 的真回撤,与下方"历史利润极值"
-    // 卡一致。% 仅在利润全程为正时给(running peak>0 且当前>0),否则 null=无红色填充。
+    // 卡一致。% 仅在利润峰值和当前利润都为正时给，否则 null=无红色填充。
+    // 负利润阶段仍保留“峰值至当前”的金额差，tooltip 用它代替误导的负分母 %。
     let peak = -Infinity;
+    const ddAbs = [];
     const ddPct = profit.map(v => {
-      if (v == null) return null;
+      if (v == null) {
+        ddAbs.push(null);
+        return null;
+      }
       if (v > peak) peak = v;
+      ddAbs.push(r2(v - peak));
       return (peak > 0 && v > 0) ? Math.round(((v - peak) / peak) * 10000) / 100 : null;
     });
     // 总利润较昨日 — 用总利润(trade-invariant)算日变化，在 tooltip 与"回撤"分列，
@@ -810,7 +824,7 @@
       `恒科200线触发 ${Math.round(hstech200)}` +
       (reclaimPct != null ? `（需${reclaimPct >= 0 ? "+" : ""}${reclaimPct.toFixed(0)}%）` : "");
     charts.equity.setModel({
-      view, dates, lines, dd: ddPct, change: chg, changePct: chgPct, cur,
+      view, dates, lines, dd: ddPct, ddAbs, change: chg, changePct: chgPct, cur,
       positive: green, negative: red, warning: hkColor,
       triggerLevel: triggerLvl, triggerLabel,
     });

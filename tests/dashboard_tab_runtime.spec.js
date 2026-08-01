@@ -173,6 +173,18 @@ async function testEquityTouch(browser, base) {
   await page.waitForTimeout(100);
   assert(await page.locator(".native-equity-tooltip").isVisible(), "chart tap did not open its tooltip");
 
+  await page.locator('.mkt-seg-btn[data-mkt="hk"]').first().click();
+  await page.waitForFunction(() =>
+    document.querySelector("#equity-title")?.textContent.includes("港股 HKD"));
+  await dispatchTouch(session, "touchStart", [{ x: box.x + box.width / 2, y }]);
+  await dispatchTouch(session, "touchEnd", []);
+  await page.waitForTimeout(100);
+  const hkTooltip = await page.locator(".native-equity-tooltip").innerText();
+  assert.match(hkTooltip, /回撤:\s*(?:−?HK\$[\d,]+|[-\d.]+%)/,
+    "HK drawdown still rendered as an empty dash");
+  assert.match(hkTooltip, /% 不适用/,
+    "negative-profit HK drawdown did not explain its amount fallback");
+
   const xs = [box.x + box.width - 5, 300, 250, 200, 150, 100, 45];
   await dispatchTouch(session, "touchStart", [{ x: xs[0], y }]);
   for (const x of xs.slice(1)) {
