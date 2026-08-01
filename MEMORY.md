@@ -102,25 +102,21 @@
 - **单一来源：`portfolio.json`**，不在此维护副本
 - ticker 列表：`memory/current-portfolio-summary.md`（提高检索命中）
 
-## Promoted From Short-Term Memory (2026-08-01)
+## Promoted From Short-Term Memory (2026-08-02)
 
-<!-- openclaw-memory-promotion:memory:memory/2026-07-27-pre-open.md:15:18 -->
-- ▎TL;DR: 🧭 **Regime:** `neutral`（FOMC 7/29 加息概率从 12.8% 飙到 37.9% + US β 3.58 远超 cap + HK amber ×0.5） 🔥 **催化剂栈（7d 内）：** FOMC 7/29（加息 37.9%）· MSFT 7/29 AMC 财报 · SPCX 8/6 8月解禁 · PLTR 8/3 · CRCL/RKLB 8/5 ⚠️ **5 条硬止损 + 7 条仓位闸全部悬挂**：RKLX -67.2% / SPCH -57.7% / PLTU -33.2% / 07226 -24.0% / MSFU -21.4%。US leg 41.5% SPCH 一票独大、HK leg 81% Top2 是 HSTECH+AI 单因子敞口 📉 **执行率地狱**：昨天 5 个 swap 全 0/5 执行，book 已多挨一天 2x carry decay。今天纪律动作不是"看情况"，是"开盘前必须挂" [score=0.803 recalls=0 avg=0.620 source=memory/2026-07-27-pre-open.md:15-18]
-<!-- openclaw-memory-promotion:memory:memory/2026-07-27-pre-open.md:19:19 -->
-- ▎TL;DR: ✅ **book**：usd_base = **-8,623 USD**（= HK -51,110 HKD + US -2,106 USD）。HK -50.8% / US -46.8% [score=0.803 recalls=0 avg=0.620 source=memory/2026-07-27-pre-open.md:19-19]
-<!-- openclaw-memory-promotion:memory:memory/2026-07-27-pre-open.md:2:4 -->
-- layout: default title: 盘前深度简报 · 2026-07-27 description: "clawock 盘前深度简报 2026-07-27：港股+美股真实持仓的多空辩论、量化因子、风控硬闸、AI 自评战绩。纪律优先 day #3 — 5 个 swap + 2 个 trim 仍悬挂、US cash 已见底、FOMC 7/29 + 加息概率 37.9% 是本周最大变量。" [score=0.803 recalls=0 avg=0.620 source=memory/2026-07-27-pre-open.md:2-4]
-<!-- openclaw-memory-promotion:memory:memory/2026-07-27-pre-open.md:23:23 -->
-- ▎核心结论（1 句话）: > **纪律优先 day #3**：5 个 swap + 1 trim 全部从昨天 0/5 失败计划继承，今天改成 0 price-anchor（开盘市价成交）+ 1 个 SKHY 触发加仓 — alpha call 退到最低，book 修复优先；FOMC 7/29 + 加息概率 37.9% 是窗口外最大尾部风险，所有新仓位暂停到 7/30。 [score=0.803 recalls=0 avg=0.620 source=memory/2026-07-27-pre-open.md:23-23]
-<!-- openclaw-memory-promotion:memory:memory/2026-07-27-pre-open.md:27:27 -->
-- ▎Header（book + 持仓集中度）: **book USD-base 总浮亏：$-8,623** （= HK leg -51,110 HKD @ 7.8426 + US leg -2,106 USD） [score=0.803 recalls=0 avg=0.620 source=memory/2026-07-27-pre-open.md:27-27]
-<!-- openclaw-memory-promotion:memory:memory/2026-07-27-pre-open.md:9:9 -->
-- 盘前深度简报 · 2026-07-27（周一）: **Author:** Rick · 08:00 HKT（HK 开盘 -90min · US 已收 ~4h） · USDHKD = **7.8426** (Frankfurter) [score=0.803 recalls=0 avg=0.620 source=memory/2026-07-27-pre-open.md:9-9]
-<!-- openclaw-memory-promotion:memory:memory/2026-07-27.md:11:11 -->
-- 自动产出（08:00 HKT cron）: ✅ `memory/.tmp/sector-scan-2026-07-27.json` — 板块全景 sidecar [score=0.803 recalls=0 avg=0.620 source=memory/2026-07-27.md:11-11]
-<!-- openclaw-memory-promotion:memory:memory/2026-07-27.md:15:15 -->
-- 今日核心判断: **纪律优先 day #3**：5 个 swap + 1 trim + 1 hold-and-watch 全部从昨天 0/5 失败计划继承。 [score=0.803 recalls=0 avg=0.620 source=memory/2026-07-27.md:15-15]
-<!-- openclaw-memory-promotion:memory:memory/2026-07-27.md:16:18 -->
-- 今日核心判断: **Regime**: neutral（F&G 39.4 fear + FOMC 7/29 加息概率 37.9%）; **执行口径**: **所有 swap 用 market-on-open (MOO) 市价单**，不挂限价单; **alpha call 全部暂停**: SKHY add 等 7/30 后（不是 7/28-7/29 FOMC 前） [score=0.803 recalls=0 avg=0.620 source=memory/2026-07-27.md:16-18]
-<!-- openclaw-memory-promotion:memory:memory/2026-07-27.md:22:24 -->
-- 待 kcn 处理（开盘前 09:00 HKT / 21:30 ET）: **HK 09:00 集合竞价挂市价单**：; 07226 swap 1000 股 → 03033（市价单，09:30 集合竞价成交）; 00100 trim 20 股 条件单（if day_high ≥ 215） [score=0.803 recalls=0 avg=0.620 source=memory/2026-07-27.md:22-24]
+<!-- openclaw-memory-promotion:memory:memory/2026-07-27.md:3:3 -->
+- 2026-07-27 · 盘前深度简报日: > AI 自动生成的简报日落盘（手写复盘请覆盖本文件并 commit `memory: daily notes 2026-07-27`）。 [score=0.818 recalls=0 avg=0.620 source=memory/2026-07-27.md:3-3]
+<!-- openclaw-memory-promotion:memory:memory/2026-07-27.md:7:10 -->
+- 自动产出（08:00 HKT cron）: ✅ `memory/2026-07-27-pre-open.md` — 完整 deep brief（25KB）; ✅ `memory/2026-07-27-plan.json` — schema v2, 7 decisions; ✅ `memory/.tmp/brief-card-2026-07-27.txt` — 微信投递卡（postflight 自动发）; ✅ `memory/.tmp/insights-2026-07-27.json` — dashboard 行为复盘 sidecar [score=0.818 recalls=0 avg=0.620 source=memory/2026-07-27.md:7-10]
+<!-- openclaw-memory-promotion:memory:memory/2026-07-28-pre-open.md:11:13 -->
+- 盘前深度简报 · 2026-07-28 (周二) 08:00 HKT: 🧭 **Regime**：US `neutral` (F&G 39.9 fear / VIX 18.67 / 10Y 4.641%) · HK `neutral` (HSI 25207.18 +0.98% / HSTECH 4702.05 +1.57%) — 双边都 fear 但指数不弱，节奏为"高 β 单因子反复回血 + 杠杆成本 day-by-day 啃"。 **FX**：USDHKD = **7.842**（Frankfurter · 抓取 2026-07-28T00:03:09 UTC）。 **实时价快照**：HK 持仓价格来自 Tencent 2026-07-28 08:03 HKT；US 持仓价格来自 Finnhub 2026-07-27 20:02 ET（市场周一已收盘）。 [score=0.803 recalls=0 avg=0.620 source=memory/2026-07-28-pre-open.md:11-13]
+<!-- openclaw-memory-promotion:memory:memory/2026-07-28-pre-open.md:15:15 -->
+- 盘前深度简报 · 2026-07-28 (周二) 08:00 HKT: ⚠️ **数据 stale 提示**：所有 7 个 US 持仓的 `data_source` 仍标 2026-07-27（US 昨夜已收，今天 21:30 HKT 才重新开盘）。今天的报告价格口径 = 7/27 美股 close，做 active 操作需要等今晚美股开盘 + 8/3-8/5 财报窗口重抓一次。 [score=0.803 recalls=0 avg=0.620 source=memory/2026-07-28-pre-open.md:15-15]
+<!-- openclaw-memory-promotion:memory:memory/2026-07-28-pre-open.md:19:21 -->
+- Book（USD-base + HKD-base 双视角，绝不相加）: 真实总浮盈亏：**USD −8,044.27** ≈ HKD −63,083.19 (USDHKD 7.842) ├─ HK 段：**HKD −46,968.04** ≈ USD −5,989.29 └─ US 段：**USD −2,054.98** ≈ HKD −16,115.14 [score=0.803 recalls=0 avg=0.620 source=memory/2026-07-28-pre-open.md:19-21]
+<!-- openclaw-memory-promotion:memory:memory/2026-07-28-pre-open.md:2:4 -->
+- layout: default title: 盘前深度简报 · 2026-07-28 description: "clawock 盘前深度简报 2026-07-28：港股 + 美股真实持仓的多空辩论、量化因子、风控硬闸与 AI 自评战绩（诚实公开，承认主动操作跑输躺平）。" [score=0.803 recalls=0 avg=0.620 source=memory/2026-07-28-pre-open.md:2-4]
+<!-- openclaw-memory-promotion:memory:memory/2026-07-28-pre-open.md:23:26 -->
+- Book（USD-base + HKD-base 双视角，绝不相加）: | 段 | 真实成本 | 当前市值 | 现金 | 总浮亏 % | 主因 | |---|---|---|---|---|---| | HK | 100,676.44 HKD | 53,708.40 HKD | 22,197 HKD | **−46.65%** | 00100 单票吞噬（−62.8%） + 07226 杠杆二次吃亏 | | US | 2,471.12 USD (true_principal) | 2,446.80 USD | 159.93 USD | **−45.65%** (cost basis 口径) / 全 book 实际本金回撤更高 | 7 票里 5 票杠杆 ETF，beta/衰减齐杀 | [score=0.803 recalls=0 avg=0.620 source=memory/2026-07-28-pre-open.md:23-26]
+<!-- openclaw-memory-promotion:memory:memory/2026-07-28-pre-open.md:9:9 -->
+- 盘前深度简报 · 2026-07-28 (周二) 08:00 HKT: > Auto-generated by daily-deep-brief harness. 手写复盘覆盖本文件即可。 [score=0.803 recalls=0 avg=0.620 source=memory/2026-07-28-pre-open.md:9-9]
