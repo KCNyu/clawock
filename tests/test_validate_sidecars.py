@@ -408,7 +408,7 @@ def test_dashboard_rejects_payload_at_or_above_first_paint_cap(tmp_path):
     payload['padding'] = 'x' * validators.DASHBOARD_MAX_BYTES
     path = write_json(tmp_path / 'dashboard.json', payload)
 
-    with pytest.raises(AssertionError, match='first-paint cap'):
+    with pytest.raises(AssertionError, match='full dashboard cap'):
         validators.validate_dashboard(path)
 
 

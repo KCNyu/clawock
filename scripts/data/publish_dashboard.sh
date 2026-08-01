@@ -39,8 +39,8 @@ python3 scripts/data/build_dashboard.py
 python3 scripts/data/cron_heartbeat.py --publish
 python3 scripts/data/workflow_outcomes.py --publish
 
-# build_dashboard writes three public files. The shared ownership helper compares
-# all three against HEAD, strips only build-clock metadata, restores clock-only
+# build_dashboard writes four public files. The shared ownership helper compares
+# all four against HEAD, strips only build-clock metadata, restores clock-only
 # rewrites, and prints the exact semantic publication pathspec.
 dashboard_paths_output="$(python3 scripts/data/dashboard_outputs.py)"
 dashboard_paths=()

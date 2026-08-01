@@ -21,12 +21,13 @@ def _sidecar_keys() -> set[str]:
 
 
 def test_every_browser_fetch_is_declared_public():
-    expected = {"assets/data/dashboard.json"}
+    expected = {"assets/data/overview.json", "assets/data/dashboard.json"}
     expected.update(f"assets/data/{key}.json" for key in _sidecar_keys())
 
     assert set(CONTRACT["browser_data"]) == expected
     for asset in (
         "assets/css/dashboard.css",
+        "assets/data/overview.json",
         "assets/js/dashboard.core.js",
         "assets/js/dashboard.charts.js",
         "assets/js/dashboard.hero.js",
@@ -143,6 +144,7 @@ def test_builder_stages_only_public_consumers(tmp_path):
     assert sitemap_locs == ["https://kcnyu.github.io/clawock/"]
     assert (output / INDEXNOW_KEY).is_file()
     assert (output / "assets/data/dashboard.json").is_file()
+    assert (output / "assets/data/overview.json").is_file()
     assert (ROOT / "assets/dashboard.gif").stat().st_size == source_gif_size
     assert all(path.is_file() for path in source_jsonl)
     assert "Pages artifact:" in result.stdout

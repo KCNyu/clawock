@@ -36,9 +36,11 @@ function serveWorkspace() {
 }
 
 function observe(page) {
-  const result = { detailRequests: 0, failures: [], errors: [] };
+  const result = { detailRequests: 0, fullRequests: 0, failures: [], errors: [] };
   page.on("request", request => {
-    if (new URL(request.url()).pathname === DETAIL_PATH) result.detailRequests += 1;
+    const pathname = new URL(request.url()).pathname;
+    if (pathname === DETAIL_PATH) result.detailRequests += 1;
+    if (pathname === "/assets/data/dashboard.json") result.fullRequests += 1;
   });
   page.on("response", response => {
     const url = new URL(response.url());
@@ -51,13 +53,22 @@ function observe(page) {
 }
 
 async function waitForData(page) {
-  await page.waitForFunction(() => document.querySelector("#combined-usd")?.textContent.trim() !== "—");
+  await page.waitForFunction(() => {
+    const panel = document.querySelector('.panel[data-panel="hero"]');
+    return DATA?.projection === "overview" &&
+      !panel?.hasAttribute("aria-busy") &&
+      !panel?.querySelector(".card.is-pending");
+  });
 }
 
 async function waitForTab(page, tab) {
   await page.waitForFunction(tab => {
     const panel = document.querySelector(`.panel[data-panel="${tab}"]`);
+    const coreReady = tab === "hero"
+      ? DATA?.projection === "overview"
+      : Array.isArray(DATA?.snapshots);
     return panel?.classList.contains("active") &&
+      coreReady &&
       !panel.hasAttribute("aria-busy") &&
       !panel.querySelector(".card.is-pending");
   }, tab);
@@ -73,12 +84,25 @@ async function testRuntime(browser, base) {
   await page.goto(base, { waitUntil: "networkidle" });
   await waitForData(page);
   assert.equal(state.detailRequests, 0, "Overview downloaded the detail renderer");
+  assert.equal(state.fullRequests, 0, "Overview downloaded the full dashboard document");
+  await page.evaluate(() => {
+    const original = window.render;
+    window.__coreRenderCalls = 0;
+    window.render = (...args) => {
+      window.__coreRenderCalls += 1;
+      return original(...args);
+    };
+  });
+  await page.evaluate(() => loadData(false));
+  assert.equal(await page.evaluate(() => window.__coreRenderCalls), 0,
+    "unchanged Overview poll replayed the core renderer");
 
   for (const tab of TABS) {
     await page.click(`.tab-btn[data-tab="${tab}"]`);
     await waitForTab(page, tab);
   }
   assert.equal(state.detailRequests, 1, "detail tabs did not share one bundle request");
+  assert.equal(state.fullRequests, 1, "detail tabs did not share one full dashboard request");
   assert.deepEqual(state.failures, []);
   assert.deepEqual(state.errors, []);
 
@@ -87,6 +111,7 @@ async function testRuntime(browser, base) {
   await deep.goto(base + "#reflect", { waitUntil: "domcontentloaded" });
   await waitForTab(deep, "reflect");
   assert.equal(deepState.detailRequests, 1, "deep link did not load one detail bundle");
+  assert.equal(deepState.fullRequests, 1, "deep link did not load one full dashboard");
   assert.deepEqual(deepState.failures, []);
   assert.deepEqual(deepState.errors, []);
 
@@ -102,8 +127,31 @@ async function testRuntime(browser, base) {
     document.querySelector(`.tab-btn[data-tab="${tab}"]`).click()), TABS);
   await waitForTab(rapid, "reflect");
   assert.equal(rapidState.detailRequests, 1, "rapid activation duplicated the bundle request");
+  assert.equal(rapidState.fullRequests, 1, "rapid activation duplicated the full dashboard request");
   assert.deepEqual(rapidState.failures, []);
   assert.deepEqual(rapidState.errors, []);
+
+  const mismatch = await browser.newPage({ viewport: { width: 1280, height: 900 } });
+  const mismatchState = observe(mismatch);
+  let fullAttempt = 0;
+  await mismatch.route(/\/assets\/data\/dashboard\.json(?:\?.*)?$/, async route => {
+    fullAttempt += 1;
+    if (fullAttempt > 1) return route.continue();
+    const response = await route.fetch();
+    const body = await response.json();
+    body.generated_at = "1999-01-01T00:00:00Z";
+    await route.fulfill({
+      status: response.status(),
+      headers: { ...response.headers(), "content-type": "application/json" },
+      body: JSON.stringify(body),
+    });
+  });
+  await mismatch.goto(base + "#risk", { waitUntil: "domcontentloaded" });
+  await waitForTab(mismatch, "risk");
+  assert.equal(fullAttempt, 2,
+    "generation mismatch was not rejected and retried without cache");
+  assert.deepEqual(mismatchState.failures, []);
+  assert.deepEqual(mismatchState.errors, []);
 }
 
 async function testEquityTouch(browser, base) {
