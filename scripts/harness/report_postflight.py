@@ -67,14 +67,6 @@ MIN_REPORT_CHARS = 50
 # this is the previous slot's, not this one's. See read_prose_text.
 PROSE_MAX_AGE_MIN = 30
 
-# Char limits — HK + US 统一 3000/3500（2026-07-23 起，各档在 2000/2500 基础上 +1000；
-# 更早一版 1200 太紧、2000 仍让正常长度的报告频繁 warn）
-CHAR_LIMITS = {
-    'hk': {'soft': 3000, 'hard': 3500},
-    'us': {'soft': 3000, 'hard': 3500},
-}
-
-
 def load_context(market, phase, date):
     path = TMP / f'report-context-{market}-{phase}-{date}.json'
     if not path.exists():
@@ -197,6 +189,7 @@ def categorize(issues):
 
 sys.path.insert(0, str(Path(__file__).parent))
 from _harness_common import (  # noqa: E402
+    REPORT_CHAR_LIMITS as CHAR_LIMITS,
     advisory_prefix,
     categorize_issues,
     check_numeric_claims,
