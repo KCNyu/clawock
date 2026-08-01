@@ -30,6 +30,35 @@ DASHBOARD_PUBLISH_LOCK = '/tmp/dashboard_publish.lock'
 # per-cron alerts — see feedback_no_individual_cron_alerts).
 DASHBOARD_BUILD_STATUS = 'logs/dashboard_build_status.json'
 
+# Mode 6 report size is measured on title + harness-owned data block + model
+# prose. Keep the thresholds in one place so preflight can tell the model its
+# exact remaining prose budget and postflight can enforce the same arithmetic.
+REPORT_ASSEMBLED_TARGET_CHARS = 2_800
+REPORT_CHAR_LIMITS = {
+    'hk': {'soft': 3_000, 'hard': 3_500},
+    'us': {'soft': 3_000, 'hard': 3_500},
+}
+
+
+def report_prose_budget(title, raw_wechat_block, market='hk'):
+    """Exact remaining prose room under Mode 6 assembled-message limits."""
+    title_chars = len((title or '').strip())
+    raw_chars = len((raw_wechat_block or '').strip())
+    # assemble_message joins three non-empty parts with two ``\n\n`` separators.
+    separator_chars = 4
+    fixed_chars = title_chars + raw_chars + separator_chars
+    limits = REPORT_CHAR_LIMITS.get(market, REPORT_CHAR_LIMITS['hk'])
+    return {
+        'assembled_target_chars': REPORT_ASSEMBLED_TARGET_CHARS,
+        'title_chars': title_chars,
+        'raw_block_chars': raw_chars,
+        'separator_chars': separator_chars,
+        'fixed_chars': fixed_chars,
+        'prose_target_chars': max(0, REPORT_ASSEMBLED_TARGET_CHARS - fixed_chars),
+        'prose_soft_limit_chars': max(0, limits['soft'] - fixed_chars),
+        'prose_hard_limit_chars': max(0, limits['hard'] - fixed_chars),
+    }
+
 
 def compute_context_id(result):
     """A per-GENERATION id for a preflight output.
