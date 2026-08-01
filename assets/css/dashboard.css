@@ -279,8 +279,18 @@
       overflow-x: hidden; overflow-y: auto; overscroll-behavior-y: contain;
       scroll-snap-align: start; scroll-snap-stop: always;
       padding: var(--space-4);
+      /* Keep every panel box in the horizontal pager so native swipe/snap geometry
+         stays intact, but let Chromium skip inner work for off-screen panels. Keep
+         a viewport-height intrinsic block so revealing a skipped subtree cannot
+         momentarily collapse its scroll geometry and create a layout shift. */
+      content-visibility: auto;
+      contain-intrinsic-block-size: auto 100dvh;
       -webkit-overflow-scrolling: touch;
     }
+    /* The current page must be visible from the first layout. Leaving `auto` on
+       Hero can make Chrome reveal the whole pager a frame late under CPU load,
+       which is observable as a large CLS even though the inactive pages benefit. */
+    .panel.active { content-visibility: visible; }
     /* visually hidden but kept in the a11y tree so the heading sequence stays h1→h2→h3
        (display:none would drop the h2 → axe/screen-readers see an h1→h3 skip). NOTE: must
        stay IN FLOW — position:absolute here escapes the horizontal scroll-snap pager and
