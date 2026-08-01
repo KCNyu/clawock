@@ -454,7 +454,11 @@
       const raw = (r.raw_execution || {}).status || 'unknown';
       const final = (r.final_product || {}).status || 'pending';
       const slot = (r.slot || '').replace('T', ' ').slice(5, 16);
-      lines.push(`流程 ${r.job} ${slot}: 执行=${raw} / 成品=${final}`);
+      const readability = r.readability || {};
+      const readabilityDetail = readability.status
+        ? ` / 可读性=${readability.status}${Number.isFinite(readability.bytes) ? ` ${(readability.bytes / 1000).toFixed(1)}KB` : ''}`
+        : '';
+      lines.push(`流程 ${r.job} ${slot}: 执行=${raw} / 成品=${final}${readabilityDetail}`);
     });
     const gen = bs.generated_at ? bs.generated_at.replace('T', ' ').slice(0, 16) : '';
     el.innerHTML = `<span class="bs-dot">${dot}</span> <span class="bs-label">${label}</span>` +
