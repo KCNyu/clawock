@@ -24,7 +24,8 @@
 
 | Workflow | 触发 | 写文件 | 备注 |
 |---|---|---|---|
-| `harness-regression.yml` | push to master | (read-only) | 每次 push 跑 schema/import 校验 |
+| `harness-regression.yml` | 代码/配置 push to master + 每个 PR | (read-only) | 完整 schema/import/pytest 校验；自动生成的 dashboard-only push 走下方轻量门禁 |
+| `dashboard-artifact-gate.yml` | dashboard.json push to master | (read-only) | GitHub runner 上零依赖校验已提交首屏 payload，不占 VPS |
 | `actionlint.yml` | workflow 变更的 push/PR | (read-only) | pinned actionlint 校验 GHA expression/YAML/shell |
 | `weekly-health.yml` | 周日 23:00 UTC | (read-only) | 综合健康检查（含公网数据源活体） |
 | `eod-archive.yml` | 周五 22:00 UTC | `memory/archive/eod-history.csv` | 每周持仓快照 audit trail |

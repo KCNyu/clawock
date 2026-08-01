@@ -13,7 +13,6 @@ on:
       - 'memory/theses/**'
       - 'memory/earnings/**'
       - 'memory/entry-gates/**'
-      - 'assets/data/dashboard.json'
       - '.github/workflows/harness-regression.yml'
       # Whole directory on purpose: every file here (cron contract, instrument
       # registry, thesis/earnings schemas, news-evidence policy, peer rules) is
@@ -92,7 +91,9 @@ jobs:
         # Only runs on PRs; non-PR events force the steps on via the `if:` below.
         #
         # Keep this path set in sync with the `push:` trigger `paths:` at the top
-        # of this file — both answer "does this change affect validate?".
+        # of this file, except dashboard.json: its frequent automation commits use
+        # the cheap dashboard-artifact-gate on master, while a rare dashboard PR
+        # still gets the full suite here.
         id: changes
         if: github.event_name == 'pull_request'
         env:
@@ -275,23 +276,13 @@ jobs:
         if: github.event_name != 'pull_request' || steps.changes.outputs.code == 'true'
         run: |
           python3 scripts/data/build_dashboard.py
+          python3 scripts/data/validate_sidecars.py dashboard
           python3 << 'PY'
           import json
-          with open('assets/data/dashboard.json') as f: d = json.load(f)
           with open('assets/data/decision_audit.json') as f: audit = json.load(f)
-          needed = ['generated_at','fx','totals','concentration','holdings','snapshots','decision_metrics','decision_delta']
-          missing = [k for k in needed if k not in d]
-          assert not missing, f'missing keys: {missing}'
-          assert 'episode_backtest' not in d, 'Reflect backtest leaked into first-paint payload'
           assert audit.get('episode_backtest', {}).get('horizons', {}).get('t1'), \
               'decision_audit.json missing Reflect episode backtest'
-          for leg in ('us', 'hk'):
-              assert leg in d['holdings'], f'holdings.{leg} missing'
-              assert leg in d['concentration'], f'concentration.{leg} missing'
-              c = d['concentration'][leg]
-              assert 'hhi' in c and 'top2' in c and 'verdict' in c, f'{leg} concentration incomplete'
-              assert c['verdict']['level'] in ('healthy','moderate','concentrated','danger'), f'bad verdict level'
-          print('dashboard.json: schema OK')
+          print('decision_audit.json: Reflect backtest OK')
           PY
 
       - name: Run build_dashboard sanity

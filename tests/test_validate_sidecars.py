@@ -86,6 +86,28 @@ def macro_payload(generated_at: str = GENERATED) -> dict:
     }
 
 
+def dashboard_payload() -> dict:
+    return {
+        'generated_at': GENERATED,
+        'fx': {'usdhkd': 7.8, 'source': 'test', 'fetched_at': GENERATED},
+        'totals': {'us': {}, 'hk': {}},
+        'holdings': {'us': [], 'hk': []},
+        'concentration': {
+            leg: {
+                'hhi': 0.0,
+                'top2': 0.0,
+                'positions': [],
+                'total': 0.0,
+                'verdict': {'level': 'healthy'},
+            }
+            for leg in ('us', 'hk')
+        },
+        'snapshots': [{'date': '2026-07-17'}],
+        'decision_metrics': {},
+        'decision_delta': {},
+    }
+
+
 def news_payload(generated_at: str = GENERATED) -> dict:
     return {
         'generated_at': generated_at,
@@ -255,6 +277,66 @@ def test_real_committed_gif_passes():
     validators.validate_gif(ROOT / 'assets/dashboard.gif')
 
 
+def test_real_committed_dashboard_passes():
+    validators.validate_dashboard(
+        ROOT / 'assets/data/dashboard.json', portfolio_path=ROOT / 'portfolio.json')
+
+
+@pytest.mark.parametrize('mutation,problem', (
+    (lambda payload: payload['holdings']['us'][0].update(current_value=-999),
+     r'holdings\.us\..*\.current_value=.*does not reconcile'),
+    (lambda payload: payload['totals']['hk'].update(pnl_hkd=-999),
+     r'totals\.hk\.pnl_hkd=.*does not reconcile'),
+    (lambda payload: payload['holdings']['us'].pop(),
+     r'holdings\.us ticker coverage mismatch'),
+    (lambda payload: payload['concentration']['us'].update(hhi=0.9999),
+     r'concentration\.us\.hhi=.*does not reconcile'),
+    (lambda payload: payload['build_status']['integrity'].update(ok=False),
+     r'build_status\.integrity is not clean'),
+))
+def test_dashboard_money_reconciliation_rejects_public_drift(
+        tmp_path, mutation, problem):
+    payload = json.loads((ROOT / 'assets/data/dashboard.json').read_text())
+    mutation(payload)
+    dashboard = write_json(tmp_path / 'dashboard.json', payload)
+
+    with pytest.raises(AssertionError, match=problem):
+        validators.validate_dashboard(
+            dashboard, portfolio_path=ROOT / 'portfolio.json')
+
+
+def test_dashboard_money_reconciliation_rejects_source_integrity_failure(tmp_path):
+    portfolio = json.loads((ROOT / 'portfolio.json').read_text())
+    portfolio['portfolios']['us_stocks']['total_pnl'] += 100
+    source = write_json(tmp_path / 'portfolio.json', portfolio)
+
+    with pytest.raises(AssertionError, match='portfolio money integrity failed: PNL_TOTAL'):
+        validators.validate_dashboard(
+            ROOT / 'assets/data/dashboard.json', portfolio_path=source)
+
+
+def test_dashboard_money_reconciliation_checks_fx_cache_when_available(tmp_path):
+    fx = write_json(tmp_path / 'fx.json', {'rate': 7.0})
+
+    with pytest.raises(AssertionError, match=r'fx\.usdhkd'):
+        validators.validate_dashboard(
+            ROOT / 'assets/data/dashboard.json',
+            portfolio_path=ROOT / 'portfolio.json',
+            fx_path=fx,
+        )
+
+
+def test_dashboard_money_reconciliation_allows_untracked_cash_as_null(tmp_path):
+    payload = json.loads((ROOT / 'assets/data/dashboard.json').read_text())
+    portfolio = json.loads((ROOT / 'portfolio.json').read_text())
+    payload['totals']['hk']['cash_hkd'] = None
+    portfolio['portfolios']['hk_stocks']['cash_hkd'] = None
+    dashboard = write_json(tmp_path / 'dashboard.json', payload)
+    source = write_json(tmp_path / 'portfolio.json', portfolio)
+
+    validators.validate_dashboard(dashboard, portfolio_path=source)
+
+
 JSON_VALIDATORS = (
     ('macro', lambda path, portfolio: validators.validate_macro(
         path, now=datetime(2026, 7, 17, 1, tzinfo=timezone.utc))),
@@ -262,6 +344,7 @@ JSON_VALIDATORS = (
     ('influencer', lambda path, portfolio: validators.validate_influencer(path)),
     ('news', lambda path, portfolio: validators.validate_news_digest(
         path, now=datetime(2026, 7, 17, 1, tzinfo=timezone.utc))),
+    ('dashboard', lambda path, portfolio: validators.validate_dashboard(path)),
 )
 
 
@@ -281,6 +364,52 @@ def test_json_artifacts_fail_clearly(
 
     with pytest.raises(AssertionError, match=problem):
         validator(path, portfolio)
+
+
+@pytest.mark.parametrize('missing', (
+    'generated_at', 'fx', 'totals', 'holdings', 'concentration', 'snapshots',
+    'decision_metrics', 'decision_delta',
+))
+def test_dashboard_rejects_missing_first_paint_contract_key(tmp_path, missing):
+    payload = dashboard_payload()
+    payload.pop(missing)
+    path = write_json(tmp_path / 'dashboard.json', payload)
+
+    with pytest.raises(AssertionError, match='missing keys'):
+        validators.validate_dashboard(path)
+
+
+@pytest.mark.parametrize('mutation,problem', (
+    (lambda payload: payload.update(generated_at='not-a-date'),
+     'generated_at is not a valid ISO timestamp'),
+    (lambda payload: payload['holdings'].update(us={}),
+     'holdings.us must be a list'),
+    (lambda payload: payload['concentration']['hk'].pop('top2'),
+     'concentration.hk missing keys'),
+    (lambda payload: payload['concentration']['us']['verdict'].update(level='unknown'),
+     'concentration.us has invalid verdict level'),
+    (lambda payload: payload.update(snapshots=[]),
+     'snapshots is empty'),
+    (lambda payload: payload.update(episode_backtest={}),
+     'Reflect backtest leaked into first-paint payload'),
+))
+def test_dashboard_rejects_incomplete_or_unsafe_payload(
+        tmp_path, mutation, problem):
+    payload = dashboard_payload()
+    mutation(payload)
+    path = write_json(tmp_path / 'dashboard.json', payload)
+
+    with pytest.raises(AssertionError, match=problem):
+        validators.validate_dashboard(path)
+
+
+def test_dashboard_rejects_payload_at_or_above_first_paint_cap(tmp_path):
+    payload = dashboard_payload()
+    payload['padding'] = 'x' * validators.DASHBOARD_MAX_BYTES
+    path = write_json(tmp_path / 'dashboard.json', payload)
+
+    with pytest.raises(AssertionError, match='first-paint cap'):
+        validators.validate_dashboard(path)
 
 
 def test_sentiment_quiet_day_with_zero_results_passes(tmp_path):

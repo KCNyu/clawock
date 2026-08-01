@@ -244,7 +244,7 @@ def check(portfolio_path=PORTFOLIO):
         # FX_TAG ---------------------------------------------------------
         ccy = port.get('currency')
         want = region_ccy.get(region)
-        if want and ccy and ccy != want:
+        if want and ccy != want:
             add('FX_TAG', 'ERROR', f'{region} currency={ccy} 应为 {want}（HKD/USD 不能混加）', region)
 
         # TCV_SUM --------------------------------------------------------

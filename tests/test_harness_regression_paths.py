@@ -7,38 +7,29 @@ later (thesis and earnings schemas, evidence policies, peer rules) silently fell
 outside the gate — a config-only PR reported green in seconds without running the
 tests that read that config. These assertions keep the directory-wide form.
 """
-import re
 from pathlib import Path
+
+from workflow_contract_helpers import case_patterns, push_paths
 
 
 ROOT = Path(__file__).resolve().parents[1]
-WORKFLOW = (ROOT / ".github" / "workflows" / "harness-regression.yml").read_text()
+WORKFLOW_PATH = ROOT / ".github" / "workflows" / "harness-regression.yml"
+WORKFLOW = WORKFLOW_PATH.read_text()
 CONFIG_FILES = sorted(
     str(path.relative_to(ROOT)) for path in (ROOT / "config").rglob("*")
     if path.is_file()
 )
 
 
-def _push_paths():
-    block = WORKFLOW.split("    paths:", 1)[1].split("  pull_request:", 1)[0]
-    return re.findall(r"^\s*-\s*'([^']+)'", block, re.MULTILINE)
-
-
-def _case_patterns():
-    detect = WORKFLOW.split("Detect code changes", 1)[1]
-    line = next(ln for ln in detect.splitlines() if ln.strip().endswith(")") and "|" in ln)
-    return line.strip().rstrip(")").split("|")
-
-
 def test_config_directory_is_gated_as_a_whole():
-    assert "config/**" in _push_paths()
-    assert "config/*" in _case_patterns()
+    assert "config/**" in push_paths(WORKFLOW_PATH)
+    assert "config/*" in case_patterns(WORKFLOW_PATH)
 
 
 def test_no_individual_config_file_is_named_in_either_gate():
     # A single named file is the failure mode this test exists to prevent: it looks
     # complete while leaving every future config file ungated.
-    narrow = [p for p in _push_paths() + _case_patterns()
+    narrow = [p for p in push_paths(WORKFLOW_PATH) + case_patterns(WORKFLOW_PATH)
               if p.startswith("config/") and p not in {"config/**", "config/*"}]
     assert narrow == [], f"re-narrowed config gating: {narrow}"
 
@@ -51,6 +42,6 @@ def test_every_shipped_config_file_matches_the_gate():
 
 def test_scripts_and_tests_stay_gated():
     for pattern in ("scripts/*", "tests/*"):
-        assert pattern in _case_patterns()
+        assert pattern in case_patterns(WORKFLOW_PATH)
     for pattern in ("scripts/**", "tests/**"):
-        assert pattern in _push_paths()
+        assert pattern in push_paths(WORKFLOW_PATH)
