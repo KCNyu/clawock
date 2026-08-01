@@ -209,7 +209,8 @@ python3 /root/.openclaw/workspace/scripts/harness/report_preflight.py --market u
 同义复述，再跑一次字符数检查。**同行明细不是压缩对象**：必须保留 `peer_scan` 的 Top 5、
 持仓位置、今日/5 日涨跌和归因。也**禁止删除**异动归因、计划对账、三段必需标记、证据或
 `needs_risk_section=true` 时的风险提示，禁止用硬截断制造半句话。3000/3500 仍由 postflight
-按最终拼装全文严格判定。
+按最终拼装全文严格判定。具体去重：同一组合风险数字不要在技术面、操作建议和风险提示三段
+重复；财报/lockup 日期只在最相关的一段写一次；情绪面的异动归因和同行对比不要在技术面复述。
 
 #### Step 3: 跑 postflight
 ```bash
