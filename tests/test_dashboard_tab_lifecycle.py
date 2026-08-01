@@ -6,7 +6,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 UI = (ROOT / "assets" / "js" / "dashboard.ui.js").read_text()
-RENDER = (ROOT / "assets" / "js" / "dashboard.render.js").read_text()
+HERO = (ROOT / "assets" / "js" / "dashboard.hero.js").read_text()
 CHARTS = (ROOT / "assets" / "js" / "dashboard.charts.js").read_text()
 
 
@@ -24,11 +24,11 @@ def test_every_mapped_sidecar_has_a_valid_seed_before_browser_fetches_it():
 
 
 def test_hidden_tabs_have_no_idle_or_timeout_renderer():
-    assert "scheduleDeferredTabs" not in RENDER
-    assert "requestIdleCallback" not in RENDER
-    assert "didTimeout" not in RENDER
-    assert "renderTab(activeTab, version)" in RENDER
-    assert "currentTab() !== t" in RENDER
+    assert "scheduleDeferredTabs" not in HERO
+    assert "requestIdleCallback" not in HERO
+    assert "didTimeout" not in HERO
+    assert "renderTab(activeTab, version)" in HERO
+    assert "currentTab() !== t" in HERO
 
 
 def test_tab_activation_owns_sidecar_fetch_and_inflight_deduplication():
