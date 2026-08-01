@@ -32,6 +32,21 @@ def test_budget_arithmetic_matches_the_assembled_message_boundaries():
     ctx = {'market': 'us', 'title': title, 'raw_wechat_block': raw}
     assert len(postflight.assemble_message(ctx, at_soft)) == 3_000
     assert len(postflight.assemble_message(ctx, over_soft)) == 3_001
+    at_hard = 'P' * budget['prose_hard_limit_chars']
+    over_hard = at_hard + 'P'
+    assert len(postflight.assemble_message(ctx, at_hard)) == 3_500
+    assert len(postflight.assemble_message(ctx, over_hard)) == 3_501
+    at_hard_issues = postflight.validate(
+        postflight.assemble_message(ctx, at_hard), ctx,
+        prose_only=True, model_text=at_hard,
+    )
+    assert any('3000 软上限' in issue for issue in at_hard_issues)
+    assert not any('3500 上限' in issue for issue in at_hard_issues)
+    hard_issues = postflight.validate(
+        postflight.assemble_message(ctx, over_hard), ctx,
+        prose_only=True, model_text=over_hard,
+    )
+    assert any('3500 上限' in issue for issue in hard_issues)
 
 
 def test_small_hk_block_gets_more_prose_room_but_the_same_assembled_limits():
