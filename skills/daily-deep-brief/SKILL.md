@@ -587,13 +587,15 @@ calibration bundle 的 `decision_metrics` 是 v2 唯一口径：只结算**条�
 - Header + book/仓位表 + 核心结论：≤5KB
 - Retrospective + Tier 1：≤6KB
 - Tier 2 + Tier 3/Judge：≤6KB
-- 同行 + macro + sentiment + influencer：≤5KB
+- 同行明细完整 + macro + sentiment + influencer：≤5KB（空间不足时先压后三者的重复解释）
 - Confidence + Decision v2 + Next-Session：≤4KB
 
 初稿写完但仍在 Step 4-A 时，运行 `wc -c memory/{YYYY-MM-DD}-pre-open.md`。若 >28KB，
 在定稿前删除重复解释、缩短逐票叙述、合并同义句；所有必需段落、证据、风险闸和行动必须完整
-保留。若 ≥40KB，必须先按分段预算收敛再跑 postflight。**禁止**用 `head`、`truncate`、
-字符串切片或其他事后硬**截断**；也禁止为了压体量删除证据、风险闸或行动段。
+保留。**同行明细不是压缩对象**：同行枚举、相对涨跌、持仓位置和归因必须保留；同行组超预算
+时先压 macro / sentiment / influencer 的重复解释。若 ≥40KB，必须先按分段预算收敛再跑
+postflight。**禁止**用 `head`、`truncate`、字符串切片或其他事后硬**截断**；也禁止为了压
+体量删除证据、风险闸或行动段。
 
 #### B. 结构化 plan → `memory/{YYYY-MM-DD}-plan.json`
 

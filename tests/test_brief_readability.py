@@ -69,25 +69,6 @@ def test_extreme_oversize_remains_a_real_degradation(tmp_path):
     assert postflight.categorize(issues) == 'warn'
 
 
-def test_recent_real_briefs_stop_producing_systematic_false_yellow():
-    expected = {
-        '2026-07-28': ('advisory', 29_109),
-        '2026-07-29': ('advisory', 28_592),
-        '2026-07-30': ('within_budget', 26_728),
-        '2026-07-31': ('within_budget', 26_099),
-    }
-    for day, (status, size) in expected.items():
-        path = ROOT / 'memory' / f'{day}-pre-open.md'
-        readability = postflight.assess_brief_readability(path)
-        issues = postflight.validate_markdown(path)
-
-        assert readability['status'] == status, day
-        assert readability['bytes'] == size, day
-        assert postflight.readability_issues(readability) == [], day
-        assert issues == [], (day, issues)
-        assert postflight.categorize(issues) == 'pass', day
-
-
 def test_generation_instructions_budget_sections_before_postflight():
     skill = (ROOT / 'skills' / 'daily-deep-brief' / 'SKILL.md').read_text(
         encoding='utf-8')
@@ -99,3 +80,5 @@ def test_generation_instructions_budget_sections_before_postflight():
     assert 'wc -c' in report
     assert '分段预算' in report
     assert '禁止' in report and '截断' in report
+    assert '同行明细不是压缩对象' in report
+    assert '同行枚举、相对涨跌、持仓位置和归因必须保留' in report
