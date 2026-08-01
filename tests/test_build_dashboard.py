@@ -803,6 +803,25 @@ def test_dashboard_tooltip_distinguishes_schedule_deadlines_from_age_slas():
     assert "/ SLA ${f.sla_hours}h" in block
 
 
+def test_dashboard_market_tooltip_uses_canonical_quote_sessions():
+    renderer = (ROOT / "assets" / "js" / "dashboard.render.js").read_text()
+    helper = renderer.split("function quoteSessionLabel", 1)[1].split(
+        "// ── A2 系统健康卡", 1
+    )[0]
+    market_block = renderer.split("if (bs.markets)", 1)[1].split(
+        "(wf.recent || [])", 1
+    )[0]
+
+    assert "market.oldest_quote_session" in helper
+    assert "market.newest_quote_session" in helper
+    assert "oldest === newest" in helper
+    assert "${oldest} → ${newest}" in helper
+    assert "行情会话未知" in helper
+    assert "quoteSessionLabel(v)" in market_block
+    assert "v.closed_today" in market_block
+    assert "last_updated" not in market_block
+
+
 @pytest.mark.parametrize("holdings", [[], [
     {"ticker": "ZERO", "name": "Z", "is_active": True, "current_value": 0.0},
 ]])
