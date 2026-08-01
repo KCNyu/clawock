@@ -230,7 +230,7 @@
   function _fetchSidecar(k, triggeredByUser, requestStamp) {
     const state = _sidecarState(k);
     if (state.inFlight) return state.inFlight;
-    if (state.ready && !state.stale) return Promise.resolve(state.value);
+    if (state.ready && !state.stale) return Promise.resolve(false);
 
     const bust = triggeredByUser ? "?t=" + requestStamp : "";
     state.inFlight = fetch("assets/data/" + k + ".json" + bust, {
@@ -238,10 +238,14 @@
     }).then(async response => response.ok ? await response.json() : null)
       .catch(() => null)
       .then(value => {
+        // Sidecars publish independently from dashboard.json. Revalidate them,
+        // but do not replay a tab's DOM when its serialized value is identical
+        // to the value it already rendered.
+        const changed = !state.ready || JSON.stringify(value) !== JSON.stringify(state.value);
         state.value = value;
         state.ready = true;
         state.stale = false;
-        return value;
+        return changed;
       })
       .finally(() => { state.inFlight = null; });
     return state.inFlight;
@@ -249,9 +253,11 @@
 
   async function _loadTabSidecars(t, triggeredByUser = false) {
     const keys = _sidecarsForTab(t);
-    if (!keys.length) return;
+    if (!keys.length) return false;
     const requestStamp = Date.now();
-    await Promise.all(keys.map(k => _fetchSidecar(k, triggeredByUser, requestStamp)));
+    const changed = await Promise.all(
+      keys.map(k => _fetchSidecar(k, triggeredByUser, requestStamp)));
+    return changed.some(Boolean);
   }
 
   function _paintActivatedTab(t) {
@@ -341,16 +347,21 @@
       } else {
         _markLoadedSidecarsStale();
       }
-      _applySidecars(json);
       const newAt = json.generated_at;
       const hasNew = newAt && newAt !== LAST_LOADED_AT;
-      DATA = json;
-      render();
+      if (firstLoad || hasNew) {
+        _applySidecars(json);
+        DATA = json;
+        render();
+      }
+      // An unchanged generation still updates relative-time copy and refresh
+      // feedback, but must not replace DATA or replay the same DOM every minute.
       _updateAgeLabel();
       if (!firstLoad && _sidecarsForTab(landing).length) {
-        _loadTabSidecars(landing, triggeredByUser).then(() => {
-          if (DATA !== json || currentTab() !== landing) return;
-          _applySidecars(json);
+        const expectedData = DATA;
+        _loadTabSidecars(landing, triggeredByUser).then(sidecarsChanged => {
+          if (!sidecarsChanged || DATA !== expectedData || currentTab() !== landing) return;
+          _applySidecars(DATA);
           refreshTab(landing);
         });
       }
