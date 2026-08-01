@@ -1,0 +1,101 @@
+"""Brief readability is observable, but modest overage is not product failure."""
+from pathlib import Path
+import sys
+
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / 'scripts' / 'harness'))
+import brief_postflight as postflight  # noqa: E402
+
+
+def _write_size(path: Path, size: int) -> Path:
+    path.write_bytes(b'x' * size)
+    return path
+
+
+def test_clean_brief_is_within_budget_and_passes(tmp_path):
+    path = _write_size(
+        tmp_path / 'brief.md', postflight.BRIEF_READABILITY_TARGET_BYTES)
+
+    readability = postflight.assess_brief_readability(path)
+
+    assert readability['status'] == 'within_budget'
+    assert readability['bytes'] == postflight.BRIEF_READABILITY_TARGET_BYTES
+    assert postflight.readability_issues(readability) == []
+    assert postflight.categorize([]) == 'pass'
+
+
+def test_modest_overage_is_separate_advisory_not_validation_warning(tmp_path):
+    size = postflight.BRIEF_READABILITY_TARGET_BYTES + 1_234
+    path = _write_size(tmp_path / 'brief.md', size)
+    before = path.read_bytes()
+
+    readability = postflight.assess_brief_readability(path)
+
+    assert readability == {
+        'status': 'advisory',
+        'bytes': size,
+        'target_bytes': postflight.BRIEF_READABILITY_TARGET_BYTES,
+        'extreme_bytes': postflight.BRIEF_READABILITY_EXTREME_BYTES,
+        'over_by_bytes': 1_234,
+    }
+    assert postflight.readability_issues(readability) == []
+    assert postflight.categorize([]) == 'pass'
+    assert path.read_bytes() == before, 'readability assessment truncated the brief'
+
+
+def test_readability_advisory_cannot_hide_substantive_failure(tmp_path):
+    path = _write_size(
+        tmp_path / 'brief.md', postflight.BRIEF_READABILITY_TARGET_BYTES + 100)
+    readability = postflight.assess_brief_readability(path)
+    substantive = ['pre-open.md 缺失（critical）']
+
+    issues = substantive + postflight.readability_issues(readability)
+
+    assert readability['status'] == 'advisory'
+    assert issues == substantive
+    assert postflight.categorize(issues) == 'fail'
+
+
+def test_extreme_oversize_remains_a_real_degradation(tmp_path):
+    path = _write_size(
+        tmp_path / 'brief.md', postflight.BRIEF_READABILITY_EXTREME_BYTES)
+
+    readability = postflight.assess_brief_readability(path)
+    issues = postflight.readability_issues(readability)
+
+    assert readability['status'] == 'extreme'
+    assert len(issues) == 1 and '极端超长' in issues[0]
+    assert postflight.categorize(issues) == 'warn'
+
+
+def test_recent_real_briefs_stop_producing_systematic_false_yellow():
+    expected = {
+        '2026-07-28': ('advisory', 29_109),
+        '2026-07-29': ('advisory', 28_592),
+        '2026-07-30': ('within_budget', 26_728),
+        '2026-07-31': ('within_budget', 26_099),
+    }
+    for day, (status, size) in expected.items():
+        path = ROOT / 'memory' / f'{day}-pre-open.md'
+        readability = postflight.assess_brief_readability(path)
+        issues = postflight.validate_markdown(path)
+
+        assert readability['status'] == status, day
+        assert readability['bytes'] == size, day
+        assert postflight.readability_issues(readability) == [], day
+        assert issues == [], (day, issues)
+        assert postflight.categorize(issues) == 'pass', day
+
+
+def test_generation_instructions_budget_sections_before_postflight():
+    skill = (ROOT / 'skills' / 'daily-deep-brief' / 'SKILL.md').read_text(
+        encoding='utf-8')
+    report = skill.split('#### A. Markdown 报告', 1)[1].split(
+        '#### B. 结构化 plan', 1)[0]
+
+    assert '28KB' in report
+    assert '40KB' in report
+    assert 'wc -c' in report
+    assert '分段预算' in report
+    assert '禁止' in report and '截断' in report

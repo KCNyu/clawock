@@ -67,6 +67,50 @@ HKD_USD_BUG_PATTERNS = [
     '合计 -4423', '合计 -4,423', '合计 -4423.0',
 ]
 
+# Readability is measured separately from substantive validation. A modestly
+# long brief remains a usable product; only extreme size becomes a warning.
+BRIEF_READABILITY_TARGET_BYTES = 28_000
+BRIEF_READABILITY_EXTREME_BYTES = 40_000
+
+
+def assess_brief_readability(path):
+    """Return structured size health without changing the authored brief."""
+    try:
+        nbytes = Path(path).stat().st_size
+    except OSError:
+        nbytes = None
+
+    if nbytes is None:
+        status = 'unavailable'
+        over_by = None
+    elif nbytes >= BRIEF_READABILITY_EXTREME_BYTES:
+        status = 'extreme'
+        over_by = max(0, nbytes - BRIEF_READABILITY_TARGET_BYTES)
+    elif nbytes > BRIEF_READABILITY_TARGET_BYTES:
+        status = 'advisory'
+        over_by = nbytes - BRIEF_READABILITY_TARGET_BYTES
+    else:
+        status = 'within_budget'
+        over_by = max(0, nbytes - BRIEF_READABILITY_TARGET_BYTES)
+
+    return {
+        'status': status,
+        'bytes': nbytes,
+        'target_bytes': BRIEF_READABILITY_TARGET_BYTES,
+        'extreme_bytes': BRIEF_READABILITY_EXTREME_BYTES,
+        'over_by_bytes': over_by,
+    }
+
+
+def readability_issues(readability):
+    """Promote only an extreme overage into normal validation semantics."""
+    if readability.get('status') != 'extreme':
+        return []
+    return [
+        'pre-open.md 极端超长 '
+        f'{readability.get("bytes")} bytes（≥40KB，完整保留但下次生成须按分段预算收敛）'
+    ]
+
 
 def _section_markers(text):
     """Return real section-marker lines, not incidental aliases in prose."""
@@ -342,12 +386,6 @@ def validate_markdown(path, context=None):
     if 'USDHKD' not in text and 'FX' not in text and '汇率' not in text:
         issues.append('pre-open.md 未提及 FX rate / 汇率')
 
-    # 体量卫生 (2026-05-31): WeChat 只发紧凑结论卡（Step 4-D），pre-open.md 仅作 dashboard
-    # 全文，不再受 16KB 微信上限约束 → 不 fail。但过长 briefs 页难读，>24KB 给个 warn 提醒精简。
-    nbytes = len(text.encode('utf-8'))
-    if nbytes > 24000:
-        issues.append(f'pre-open.md 偏长 {nbytes} bytes（dashboard 全文，建议精简到 ≤24KB 便于阅读）')
-
     # Markdown table column consistency — Pages renderer breaks if header/sep/data
     # rows diverge in pipe-segment count (same class of bug as the WeChat one
     # caught by intraday/report postflights).
@@ -601,6 +639,7 @@ def main():
         except Exception:
             pass
 
+    readability = assess_brief_readability(md_path)
     issues = []
     manifest_path = ctx_path.with_suffix('') / 'manifest.json'
     decision_packet = None
@@ -611,6 +650,7 @@ def main():
         except Exception as exc:
             issues.append(f'decision packet 不可用: {exc}')
     issues += validate_markdown(md_path, context=context)
+    issues += readability_issues(readability)
     normalization_issues, normalized_plan = normalize_plan_json(
         plan_path,
         write=not args.dry_run,
@@ -642,6 +682,7 @@ def main():
         slot=slot,
         dry_run=args.dry_run,
         issue_count=len(issues),
+        readability=readability,
     )
     # Emit the cross-process publish gate BEFORE anything else can raise, so the
     # off-host workflow's committer has an explicit verdict (and a crash leaves no
@@ -757,6 +798,7 @@ def main():
         'commit_msg':    commit_msg,
         'projection_status': projection_status,
         'projection_issues': projection_issues,
+        'readability': readability,
         'files_checked': {
             'pre_open_md':  str(md_path),
             'plan_json':    str(plan_path),
@@ -772,6 +814,7 @@ def main():
         dry_run=args.dry_run,
         issue_count=len(issues),
         commit_ok=commit_ok,
+        readability=readability,
     )
     workflow_outcomes.record_stage(
         job_name,
