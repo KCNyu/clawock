@@ -10,7 +10,10 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 HTML = (ROOT / "index.html").read_text()
 CSS = (ROOT / "assets" / "css" / "dashboard.css").read_text()
-VISUAL_REGRESSION = ROOT / "docs" / "visual-regression" / "issue-206"
+VISUAL_REGRESSION = ROOT / "assets" / "visual-regression" / "issue-206"
+VISUAL_REGRESSION_DOC = (
+    ROOT / "docs" / "visual-regression" / "issue-206" / "README.md"
+)
 
 
 def enclosing_desktop_block(rule_start):
@@ -101,7 +104,7 @@ def test_gold_dca_mobile_floor_and_single_column_rules_remain():
 
 
 def test_issue_206_visual_regression_evidence_is_shipped():
-    readme = (VISUAL_REGRESSION / "README.md").read_text(encoding="utf-8")
+    readme = VISUAL_REGRESSION_DOC.read_text(encoding="utf-8")
     for name in (
         "before-1440.jpg", "after-1440.jpg",
         "before-1920.jpg", "after-1920.jpg", "after-390.jpg",
