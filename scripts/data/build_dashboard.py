@@ -4,8 +4,8 @@ build_dashboard.py — aggregates portfolio.json + snapshots + plans into the
 public JSON state consumed by the static dashboard (index.html at the repo root,
 served by Jekyll Pages).
 
-Outputs: assets/data/dashboard.json, assets/data/decision_audit.json,
-         assets/data/shadow_portfolio.json
+Outputs: assets/data/overview.json, assets/data/dashboard.json,
+         assets/data/decision_audit.json, assets/data/shadow_portfolio.json
 
 Run after each portfolio mutation (cron commit) so Pages stays fresh.
 """
@@ -32,6 +32,7 @@ SNAPSHOT_FNAME_RE = re.compile(r'^\d{4}-\d{2}-\d{2}\.json$')
 WS_ROOT = Path(__file__).resolve().parent.parent.parent
 OUT_DIR = WS_ROOT / 'assets' / 'data'
 OUT_FILE = OUT_DIR / 'dashboard.json'
+OVERVIEW_FILE = OUT_DIR / 'overview.json'
 AUDIT_FILE = OUT_DIR / 'decision_audit.json'
 
 # ── Anti-bloat caps ──────────────────────────────────────────────────────
@@ -41,6 +42,130 @@ MAX_SNAPSHOTS_EMBEDDED = 90        # ≈ 4 months of trading days (kept in dashb
 MAX_PLANS_EMBEDDED     = 5         # last 5 plans (each can be a few KB)
 MAX_PLAN_BYTES         = 4096      # cap each plan blob to 4KB; if larger, just keep summary
 MAX_OUT_BYTES          = 200_000   # final dashboard.json hard cap (~200KB)
+MAX_OVERVIEW_BYTES      = 80_000    # Hero-only projection hard cap
+
+
+def _fields(value, names):
+    """Copy an explicit public projection surface from an optional mapping."""
+    value = value if isinstance(value, dict) else {}
+    return {name: value.get(name) for name in names}
+
+
+def compile_overview_projection(dashboard):
+    """Compile the versioned Hero consumer from the canonical dashboard build.
+
+    No money, health, or chart value is recomputed here: this is a deterministic
+    field projection over the same in-memory object written to dashboard.json.
+    Detail-only blocks therefore cannot drift into the first-paint contract.
+    """
+    generation = dashboard.get('generated_at')
+    metrics = dashboard.get('decision_metrics') or {}
+    delta = dashboard.get('decision_delta') or {}
+    workflow = dashboard.get('workflow_outcomes') or {}
+    guardrail = dashboard.get('risk_guardrail') or {}
+    lev_regime = dashboard.get('lev_regime') or {}
+    recent_plans = sorted(
+        dashboard.get('recent_plans') or [],
+        key=lambda row: str(row.get('date', '')),
+        reverse=True,
+    )[:1]
+
+    active = _fields(metrics.get('active'), (
+        'avg_benefit_pct', 'cluster_ci95', 'n_episodes',
+        'capital_weighted_benefit_pct',
+    ))
+    by_driver = {
+        name: _fields((metrics.get('by_driver') or {}).get(name),
+                      ('win_rate', 'cluster_ci95'))
+        for name in ('catalyst', 'technical', 'macro', 'peer')
+    }
+    execution = _fields(
+        (metrics.get('execution_by_kind') or {}).get('active'), ('rate', 'known'))
+    active_calibration = _fields(
+        (metrics.get('calibration') or {}).get('active'), ('baseline_loo', 'n'))
+    compact_recent = [
+        {
+            **_fields(row, ('job', 'slot')),
+            'raw_execution': _fields(row.get('raw_execution'), ('status',)),
+            'final_product': _fields(row.get('final_product'), ('status',)),
+            'readability': _fields(row.get('readability'), ('status', 'bytes')),
+        }
+        for row in workflow.get('recent') or [] if isinstance(row, dict)
+    ]
+    overview_equity_fields = (
+        'date', 'us_asof', 'hk_asof', 'us_total_value', 'hk_total_value',
+        'us_cash', 'hk_cash', 'us_equity', 'hk_equity', 'us_total_cost',
+        'hk_total_cost', 'us_profit', 'hk_profit',
+    )
+    watch_holdings = []
+    for region in ('us', 'hk'):
+        for holding in (dashboard.get('holdings') or {}).get(region, []):
+            if (holding.get('is_active', True) is False
+                    or (holding.get('shares') or 0) <= 0):
+                continue
+            watch_holdings.append({
+                **_fields(holding, ('ticker', 'current_price')),
+                'region': region,
+            })
+
+    return {
+        'schema_version': 1,
+        'projection': 'overview',
+        'generation_id': generation,
+        **_fields(dashboard, (
+            'generated_at', 'last_updated', 'fx', 'totals', 'indices', 'regime',
+            'today_movers', 'anomalies', 'catalysts', 'debate_metrics',
+            'build_status', 'delta', 'gold_dca', 'status_banner',
+            'status_banner_meta', 'benchmark',
+        )),
+        'watch_holdings': watch_holdings,
+        'recent_plans': [
+            {
+                'date': row.get('date'),
+                'plan': {'watch_levels': (row.get('plan') or {}).get('watch_levels')},
+            }
+            for row in recent_plans if isinstance(row, dict)
+        ],
+        'decision_delta_summary': {
+            'new_count': len(delta.get('new') or []),
+            'changed_count': len(delta.get('changed') or []),
+            'triggered_count': len(delta.get('triggered') or []),
+            'active_overrides_count': len(delta.get('active_overrides') or []),
+            'has_material_change': bool(delta.get('has_material_change')),
+        },
+        'decision_metrics': {
+            **_fields(metrics, (
+                'raw_decisions', 'brier', 'brier_beats_baseline',
+                'brier_baseline_loo',
+            )),
+            'active': active,
+            'by_driver': by_driver,
+            'execution_by_kind': {'active': execution},
+            'calibration': {'active': active_calibration},
+        },
+        'workflow_outcomes': {
+            **_fields(workflow, ('counts', 'raw_error_but_product_usable')),
+            'recent': compact_recent,
+        },
+        'risk_guardrail': {
+            **_fields(guardrail, (
+                'computed', 'error', 'breach_count', 'directive',
+            )),
+            'breaches': [
+                _fields(row, ('type', 'severity', 'detail'))
+                for row in guardrail.get('breaches') or [] if isinstance(row, dict)
+            ],
+            'hard_stop_watch': [
+                _fields(row, ('severity', 'detail'))
+                for row in guardrail.get('hard_stop_watch') or [] if isinstance(row, dict)
+            ],
+        },
+        'overview_equity': [
+            _fields(row, overview_equity_fields)
+            for row in dashboard.get('snapshots') or [] if isinstance(row, dict)
+        ],
+        'lev_regime': _fields(lev_regime, ('ma', 'close', 'hk')),
+    }
 
 
 def load_json(path):
@@ -133,7 +258,7 @@ def build_decision_audit_payload(decisions, portfolio):
     ``episode_backtest`` is rendered only on Reflect, whose existing
     ``decision_audit.json`` dependency is already fetched before that tab
     paints. Keeping it here avoids taxing every other tab while preserving one
-    logical dashboard build and the existing three-output publication contract.
+    logical dashboard build and the existing four-output publication contract.
     """
     payload = decision_v2.build_audit_sidecar(
         decisions, portfolio, include_records=False
@@ -143,7 +268,7 @@ def build_decision_audit_payload(decisions, portfolio):
 
 
 def serialize_dashboard_payload(value):
-    """Serialize the first-paint document without spending headroom on whitespace."""
+    """Serialize a browser projection without spending headroom on whitespace."""
     return json.dumps(value, ensure_ascii=False, separators=(',', ':'))
 
 
@@ -2483,9 +2608,9 @@ def main():
     if brief_ctx_path:
         print(f'  brief-context source: {os.path.basename(brief_ctx_path)}')
 
-    # dashboard.json is a machine-consumed first-paint document. Always keep it
-    # compact: spending newly recovered headroom on indentation made the cap
-    # oscillate without adding user value.
+    # dashboard.json is the canonical cross-tab browser document. Keep it compact:
+    # detail activation still pays this parse, and producers should not spend
+    # recovered headroom on indentation that adds no user value.
     payload = serialize_dashboard_payload(out)
     size_bytes = len(payload.encode('utf-8'))
 
@@ -2504,8 +2629,22 @@ def main():
             print(f'⚠️  payload STILL {size_bytes} bytes > {MAX_OUT_BYTES} cap after '
                   f'dropping recent_plans — publishing over cap', file=sys.stderr)
 
+    overview_file = (
+        OVERVIEW_FILE if out_file == OUT_FILE else out_file.parent / 'overview.json')
+    overview_payload = serialize_dashboard_payload(compile_overview_projection(out))
+    overview_size = len(overview_payload.encode('utf-8'))
+    if overview_size > MAX_OVERVIEW_BYTES:
+        raise ValueError(
+            f'overview projection {overview_size:,} bytes exceeds '
+            f'{MAX_OVERVIEW_BYTES:,}-byte cap')
+
+    # Both files are compiled from the same in-memory generation and enter the
+    # shared publication pathspec together. The browser still verifies their
+    # generation IDs because intermediary caches need not be atomic.
+    safe_write_text(str(overview_file), overview_payload)
     safe_write_text(str(out_file), payload)
 
+    print(f'✓ wrote {overview_file} ({overview_size:,} bytes)')
     print(f'✓ wrote {out_file} ({size_bytes:,} bytes)')
     print(f'✓ wrote {audit_file} (decision audit sidecar)')
     print(f'  US: {len(us_h)} holdings, {len([h for h in us_h if h["is_active"]])} active, value ${us_conc["total"]:.0f}')

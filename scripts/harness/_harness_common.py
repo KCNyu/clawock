@@ -268,7 +268,7 @@ def _record_dashboard_build(ok, output, ws=None):
 
 
 def rebuild_dashboard(ws=None):
-    """Re-run build_dashboard.py to refresh its three public dashboard outputs.
+    """Re-run build_dashboard.py to refresh its four public dashboard outputs.
 
     Refreshes today's snapshot AND syncs GH Action-managed data files first, so
     the equity curve reflects latest portfolio state and the embedded sentiment/

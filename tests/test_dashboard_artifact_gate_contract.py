@@ -15,22 +15,24 @@ WORKFLOWS = ROOT / '.github' / 'workflows'
 HARNESS = WORKFLOWS / 'harness-regression.yml'
 GATE = WORKFLOWS / 'dashboard-artifact-gate.yml'
 DASHBOARD = 'assets/data/dashboard.json'
+OVERVIEW = 'assets/data/overview.json'
+CORE_OUTPUTS = [OVERVIEW, DASHBOARD]
 
 
 def test_dashboard_commits_leave_the_heavy_master_push_lane():
-    assert DASHBOARD not in push_paths(HARNESS)
+    assert all(path not in push_paths(HARNESS) for path in CORE_OUTPUTS)
     harness = HARNESS.read_text(encoding='utf-8')
     assert re.search(r'^  pull_request:\s*$', harness, re.MULTILINE), (
         'required validate context must still report for every PR')
-    assert DASHBOARD in case_patterns(HARNESS), (
-        'dashboard changes in a PR must still run the full regression suite')
+    assert all(path in case_patterns(HARNESS) for path in CORE_OUTPUTS), (
+        'core projection changes in a PR must still run the full regression suite')
 
 
 def test_dashboard_gate_is_master_only_and_path_exact():
     text = GATE.read_text(encoding='utf-8')
     trigger = text.split('on:', 1)[1].split('permissions:', 1)[0]
     assert 'branches: [master]' in trigger
-    assert re.findall(r"^\s*-\s*'([^']+)'", trigger, re.MULTILINE) == [DASHBOARD]
+    assert re.findall(r"^\s*-\s*'([^']+)'", trigger, re.MULTILINE) == CORE_OUTPUTS
     assert 'pull_request:' not in trigger
 
 

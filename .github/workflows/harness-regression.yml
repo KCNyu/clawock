@@ -94,7 +94,8 @@ jobs:
         # Only runs on PRs; non-PR events force the steps on via the `if:` below.
         #
         # Keep this path set in sync with the `push:` trigger `paths:` at the top
-        # of this file, except dashboard.json: its frequent automation commits use
+        # of this file, except the two core dashboard projections: their frequent
+        # automation commits use
         # the cheap dashboard-artifact-gate on master, while a rare dashboard PR
         # still gets the full suite here.
         id: changes
@@ -119,7 +120,7 @@ jobs:
           while IFS= read -r f; do
             [ -n "$f" ] || continue
             case "$f" in
-              scripts/*|tests/*|portfolio.json|memory/*-plan.json|memory/theses/*|memory/earnings/*|memory/entry-gates/*|assets/data/dashboard.json|config/*|docs/operations/cron-schedules.md|.github/workflows/*)
+              scripts/*|tests/*|portfolio.json|memory/*-plan.json|memory/theses/*|memory/earnings/*|memory/entry-gates/*|assets/data/overview.json|assets/data/dashboard.json|config/*|docs/operations/cron-schedules.md|.github/workflows/*)
                 code=true
                 break
                 ;;

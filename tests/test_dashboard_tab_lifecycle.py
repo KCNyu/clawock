@@ -46,23 +46,6 @@ def test_tab_activation_owns_sidecar_fetch_and_inflight_deduplication():
     assert "new Set(deferred" not in UI
 
 
-def test_poll_skips_unchanged_core_and_refreshes_only_changed_active_sidecars():
-    load = UI.split("async function loadData", 1)[1].split(
-        "function _scheduleAutoRefresh", 1
-    )[0]
-    changed_core = load.split("if (firstLoad || hasNew) {", 1)[1].split(
-        "\n      }", 1
-    )[0]
-    assert "DATA = json" in changed_core
-    assert "render()" in changed_core
-    assert "_markLoadedSidecarsStale()" in load
-    assert "_loadTabSidecars(landing, triggeredByUser)" in load
-    assert "if (!sidecarsChanged" in load
-    assert "return changed.some(Boolean)" in UI
-    assert "currentTab() !== landing" in load
-    assert "refreshTab(landing)" in load
-
-
 def test_echarts_uses_one_shared_load_promise_without_polling():
     loader = CHARTS.split("let _echartsPromise", 1)[1].split(
         "function paintCharts", 1

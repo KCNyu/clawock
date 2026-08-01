@@ -671,7 +671,7 @@
         bmEl.style.display = "";
       } else { bmEl.style.display = "none"; }
     }
-    const snaps = (safe(DATA, "snapshots") || [])
+    const snaps = (safe(DATA, "overview_equity") || safe(DATA, "snapshots") || [])
       .filter(s => s.us_total_value != null || s.hk_total_value != null);
     const byDate = new Map();
     snaps.forEach(s => byDate.set(s.date, s));

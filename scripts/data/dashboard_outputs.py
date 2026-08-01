@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """Ownership and semantic-diff contract for build_dashboard.py outputs.
 
-``build_dashboard.py`` writes three public files as one logical build.  Every
+``build_dashboard.py`` writes four public files as one logical build.  Every
 committer that invokes it must publish the same semantic write set:
 
+* overview.json
 * dashboard.json
 * decision_audit.json
 * shadow_portfolio.json
@@ -27,12 +28,16 @@ ROOT = Path(__file__).resolve().parents[2]
 # pathspec, and the contract test fails when build_dashboard gains a new sidecar
 # without adding an owner here.
 DASHBOARD_OUTPUTS = (
+    "assets/data/overview.json",
     "assets/data/dashboard.json",
     "assets/data/decision_audit.json",
     "assets/data/shadow_portfolio.json",
 )
 
 _RECURSIVE_CLOCK_FIELDS = {
+    "assets/data/overview.json": {
+        "generated_at", "generation_id", "age_hours", "days_behind",
+    },
     "assets/data/dashboard.json": {"generated_at", "age_hours", "days_behind"},
 }
 _TOP_LEVEL_CLOCK_FIELDS = {
