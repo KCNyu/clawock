@@ -76,7 +76,7 @@ def test_cadence_is_read_from_the_cron_expression(exprs, hours):
 
 def test_a_weekday_job_is_not_overdue_across_a_weekend():
     """Monday 07:00 rollup looking at a Friday run must stay quiet."""
-    row = wh.assess("cron-health.yml", ["0 9 * * 1-5"], [run("success", 2.9)], NOW)
+    row = wh.assess("cron-health.yml", ["17 9 * * 1-5"], [run("success", 2.9)], NOW)
     assert row["overdue_hours"] is None
 
 
