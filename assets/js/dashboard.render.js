@@ -434,6 +434,15 @@
     const lines = [];
     (bs.files || []).forEach(f => {
       if (!f.present) lines.push(`✗ ${f.name} 缺失`);
+      else if (f.freshness_mode === 'scheduled_fire') {
+        const deadline = f.deadline_at
+          ? new Date(f.deadline_at).toLocaleString('zh-CN', {
+              month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit',
+              hour12: false, timeZone: 'Asia/Hong_Kong',
+            })
+          : '未知';
+        lines.push(`${f.stale ? '⚠' : '·'} ${f.name}  ${f.age_hours}h · 应于 ${deadline} HKT 前刷新`);
+      }
       else lines.push(`${f.stale ? '⚠' : '·'} ${f.name}  ${f.age_hours}h / SLA ${f.sla_hours}h`);
     });
     (ig.top || []).forEach(t => lines.push(`${t.level === 'ERROR' ? '🔴' : '🟡'} ${t.code}: ${t.msg}`));

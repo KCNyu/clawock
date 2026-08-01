@@ -7,9 +7,10 @@ it does not read snapshots, portfolio data, or the network.
 import json
 import os
 from pathlib import Path
+import re
 import sys
 from types import SimpleNamespace
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 from zoneinfo import ZoneInfo
 
 import pytest
@@ -38,6 +39,31 @@ def _snapshot(day, *, us_equity, hk_equity, us_profit=None, hk_profit=None):
         "us_profit": us_profit,
         "hk_profit": hk_profit,
     }
+
+
+def test_session_asof_without_a_dated_active_holding_is_none():
+    assert dashboard._session_asof({"holdings": []}, 2026) is None
+    assert dashboard._session_asof({
+        "holdings": [{"shares": 1, "data_source": "fallback without a date"}],
+    }, 2026) is None
+
+
+def _fresh_build_status_fixture(monkeypatch, tmp_path, at):
+    data_dir = tmp_path / "assets" / "data"
+    data_dir.mkdir(parents=True)
+    for name in dashboard._FRESHNESS_POLICY:
+        path = tmp_path / name if name == "portfolio.json" else data_dir / name
+        path.write_text("{}")
+        os.utime(path, (at.timestamp(), at.timestamp()))
+    monkeypatch.setattr(dashboard, "WS_ROOT", tmp_path)
+    monkeypatch.setitem(
+        sys.modules,
+        "preflight_integrity",
+        SimpleNamespace(check=lambda: {
+            "ok": True, "error_count": 0, "warn_count": 0, "findings": [],
+        }),
+    )
+    return _portfolio(), data_dir
 
 
 def test_guardrail_compute_exception_is_an_explicit_failure_dict(monkeypatch):
@@ -444,6 +470,337 @@ def test_stale_market_leg_makes_build_unhealthy(monkeypatch, tmp_path):
     assert status["stale_files"] == []
     assert status["stale_markets"] == ["us", "hk"]
     assert status["healthy"] is False
+
+
+@pytest.mark.parametrize("at", [
+    datetime(2026, 8, 1, 6, 0, tzinfo=timezone.utc),
+    datetime(2026, 8, 2, 6, 0, tzinfo=timezone.utc),
+])
+def test_weekday_scan_newer_than_friday_fire_stays_fresh_on_weekend(
+    monkeypatch, tmp_path, at,
+):
+    portfolio, data_dir = _fresh_build_status_fixture(monkeypatch, tmp_path, at)
+    # Friday-HKT producers fire Thursday UTC.  These commits landed after their
+    # nominal fires but are 31-55h old when inspected over the weekend.
+    mtimes = {
+        "macro.json": datetime(2026, 7, 30, 22, 15, tzinfo=timezone.utc),
+        "sentiment.json": datetime(2026, 7, 30, 22, 0, tzinfo=timezone.utc),
+        "us_news_digest.json": datetime(2026, 7, 31, 15, 15, tzinfo=timezone.utc),
+        "influencer_feed.json": datetime(2026, 7, 31, 15, 15, tzinfo=timezone.utc),
+    }
+    friday_brief = datetime(2026, 7, 31, 1, 0, tzinfo=timezone.utc)
+    mtimes.update({name: friday_brief for name in dashboard._BRIEF_FRESHNESS_ARTIFACTS})
+    for name, mtime in mtimes.items():
+        os.utime(data_dir / name, (mtime.timestamp(), mtime.timestamp()))
+
+    status = dashboard.compute_build_status(portfolio, data_dir, at=at)
+
+    assert "macro.json" not in status["stale_files"]
+    assert "sentiment.json" not in status["stale_files"]
+    assert status["healthy"] is True
+
+
+def test_scan_does_not_become_due_inside_its_measured_grace(monkeypatch, tmp_path):
+    at = datetime(2026, 8, 3, 2, 30, tzinfo=timezone.utc)
+    portfolio, data_dir = _fresh_build_status_fixture(monkeypatch, tmp_path, at)
+    friday_commit = datetime(2026, 7, 30, 22, 15, tzinfo=timezone.utc)
+    os.utime(
+        data_dir / "macro.json",
+        (friday_commit.timestamp(), friday_commit.timestamp()),
+    )
+
+    status = dashboard.compute_build_status(portfolio, data_dir, at=at)
+    macro = next(row for row in status["files"] if row["name"] == "macro.json")
+
+    assert macro["latest_due_at"] == "2026-07-30T21:45:00+00:00"
+    assert macro["stale"] is False
+
+
+def test_missed_monday_scan_becomes_stale_after_grace(monkeypatch, tmp_path):
+    at = datetime(2026, 8, 3, 2, 46, tzinfo=timezone.utc)
+    portfolio, data_dir = _fresh_build_status_fixture(monkeypatch, tmp_path, at)
+    friday_commit = datetime(2026, 7, 30, 22, 15, tzinfo=timezone.utc)
+    os.utime(
+        data_dir / "macro.json",
+        (friday_commit.timestamp(), friday_commit.timestamp()),
+    )
+
+    status = dashboard.compute_build_status(portfolio, data_dir, at=at)
+    macro = next(row for row in status["files"] if row["name"] == "macro.json")
+
+    assert macro["stale"] is True
+    assert macro["latest_due_at"] == "2026-08-02T21:45:00+00:00"
+    assert macro["deadline_at"] == "2026-08-03T02:45:00+00:00"
+    assert macro["grace_hours"] == 5
+    assert "macro.json" in status["stale_files"]
+    assert status["healthy"] is False
+
+
+@pytest.mark.parametrize("at", [
+    datetime(2026, 8, 1, 6, 0, tzinfo=timezone.utc),
+    datetime(2026, 8, 2, 6, 0, tzinfo=timezone.utc),
+])
+def test_genuine_friday_miss_remains_stale_through_weekend(
+    monkeypatch, tmp_path, at,
+):
+    portfolio, data_dir = _fresh_build_status_fixture(monkeypatch, tmp_path, at)
+    thursday_commit = datetime(2026, 7, 29, 22, 15, tzinfo=timezone.utc)
+    os.utime(
+        data_dir / "macro.json",
+        (thursday_commit.timestamp(), thursday_commit.timestamp()),
+    )
+
+    status = dashboard.compute_build_status(portfolio, data_dir, at=at)
+
+    assert "macro.json" in status["stale_files"]
+
+
+def test_missed_friday_brief_artifact_remains_stale_through_weekend(
+    monkeypatch, tmp_path,
+):
+    at = datetime(2026, 8, 1, 6, 0, tzinfo=timezone.utc)
+    portfolio, data_dir = _fresh_build_status_fixture(monkeypatch, tmp_path, at)
+    old = datetime(2026, 7, 30, 1, 0, tzinfo=timezone.utc)
+    os.utime(data_dir / "risk.json", (old.timestamp(), old.timestamp()))
+
+    status = dashboard.compute_build_status(portfolio, data_dir, at=at)
+
+    assert "risk.json" in status["stale_files"]
+
+
+def test_flat_sla_portfolio_keeps_age_based_behavior_on_weekend(monkeypatch, tmp_path):
+    at = datetime(2026, 8, 1, 6, 0, tzinfo=timezone.utc)
+    portfolio, data_dir = _fresh_build_status_fixture(monkeypatch, tmp_path, at)
+    old = at - timedelta(hours=27)
+    os.utime(tmp_path / "portfolio.json", (old.timestamp(), old.timestamp()))
+
+    status = dashboard.compute_build_status(portfolio, data_dir, at=at)
+    row = next(row for row in status["files"] if row["name"] == "portfolio.json")
+
+    assert row["freshness_mode"] == "max_age"
+    assert row["sla_hours"] == 26
+    assert row["stale"] is True
+
+
+def test_weekday_market_holiday_still_expects_scan(monkeypatch, tmp_path):
+    # Christmas is a market holiday, but the GitHub scan cron still fires.
+    at = datetime(2026, 12, 25, 3, 0, tzinfo=timezone.utc)
+    portfolio, data_dir = _fresh_build_status_fixture(monkeypatch, tmp_path, at)
+    old = datetime(2026, 12, 23, 22, 15, tzinfo=timezone.utc)
+    os.utime(data_dir / "macro.json", (old.timestamp(), old.timestamp()))
+
+    status = dashboard.compute_build_status(portfolio, data_dir, at=at)
+
+    assert "macro.json" in status["stale_files"]
+
+
+def test_brief_fire_is_skipped_when_both_covered_markets_are_closed(
+    monkeypatch, tmp_path,
+):
+    # Monday 2026-04-06 is an HK holiday; at 08:00 HKT the US date is Sunday.
+    # The producer skips, so Friday's successful brief remains the latest due.
+    at = datetime(2026, 4, 6, 7, 0, tzinfo=timezone.utc)
+    portfolio, data_dir = _fresh_build_status_fixture(monkeypatch, tmp_path, at)
+    friday_commit = datetime(2026, 4, 3, 1, 0, tzinfo=timezone.utc)
+    os.utime(data_dir / "risk.json", (friday_commit.timestamp(), friday_commit.timestamp()))
+
+    status = dashboard.compute_build_status(portfolio, data_dir, at=at)
+    risk = next(row for row in status["files"] if row["name"] == "risk.json")
+
+    assert risk["latest_due_at"] == "2026-04-03T00:00:00+00:00"
+    assert risk["stale"] is False
+
+
+def test_brief_artifact_turns_stale_after_next_required_fire(monkeypatch, tmp_path):
+    # Tuesday's HK leg is closed too, but Monday's US session is open, so the
+    # two-market brief runs and must supersede Friday after its grace window.
+    at = datetime(2026, 4, 7, 7, 0, tzinfo=timezone.utc)
+    portfolio, data_dir = _fresh_build_status_fixture(monkeypatch, tmp_path, at)
+    friday_commit = datetime(2026, 4, 3, 1, 0, tzinfo=timezone.utc)
+    os.utime(data_dir / "risk.json", (friday_commit.timestamp(), friday_commit.timestamp()))
+
+    status = dashboard.compute_build_status(portfolio, data_dir, at=at)
+    risk = next(row for row in status["files"] if row["name"] == "risk.json")
+
+    assert risk["latest_due_at"] == "2026-04-07T00:00:00+00:00"
+    assert risk["stale"] is True
+
+
+def test_multiple_daily_fires_use_latest_due_schedule(monkeypatch, tmp_path):
+    at = datetime(2026, 7, 31, 19, 0, tzinfo=timezone.utc)
+    portfolio, data_dir = _fresh_build_status_fixture(monkeypatch, tmp_path, at)
+    after_early_fire = datetime(2026, 7, 30, 22, 0, tzinfo=timezone.utc)
+    os.utime(
+        data_dir / "influencer_feed.json",
+        (after_early_fire.timestamp(), after_early_fire.timestamp()),
+    )
+
+    status = dashboard.compute_build_status(portfolio, data_dir, at=at)
+    influencer = next(
+        row for row in status["files"] if row["name"] == "influencer_feed.json"
+    )
+
+    assert influencer["latest_due_at"] == "2026-07-31T12:50:00+00:00"
+    assert influencer["deadline_at"] == "2026-07-31T18:50:00+00:00"
+    assert influencer["grace_hours"] == 6
+    assert influencer["stale"] is True
+
+
+def test_digest_uses_its_own_seven_hour_grace(monkeypatch, tmp_path):
+    friday_commit = datetime(2026, 7, 31, 15, 15, tzinfo=timezone.utc)
+    before_deadline = datetime(2026, 8, 3, 19, 59, tzinfo=timezone.utc)
+    portfolio, data_dir = _fresh_build_status_fixture(
+        monkeypatch, tmp_path, before_deadline
+    )
+    os.utime(
+        data_dir / "us_news_digest.json",
+        (friday_commit.timestamp(), friday_commit.timestamp()),
+    )
+
+    before = dashboard.compute_build_status(portfolio, data_dir, at=before_deadline)
+    row = next(r for r in before["files"] if r["name"] == "us_news_digest.json")
+    assert row["latest_due_at"] == "2026-07-31T13:00:00+00:00"
+    assert row["stale"] is False
+
+    after_deadline = datetime(2026, 8, 3, 20, 1, tzinfo=timezone.utc)
+    after = dashboard.compute_build_status(portfolio, data_dir, at=after_deadline)
+    row = next(r for r in after["files"] if r["name"] == "us_news_digest.json")
+    assert row["latest_due_at"] == "2026-08-03T13:00:00+00:00"
+    assert row["deadline_at"] == "2026-08-03T20:00:00+00:00"
+    assert row["stale"] is True
+
+
+def test_scheduled_mtime_boundary_and_missing_file(monkeypatch, tmp_path):
+    at = datetime(2026, 8, 3, 2, 46, tzinfo=timezone.utc)
+    portfolio, data_dir = _fresh_build_status_fixture(monkeypatch, tmp_path, at)
+    due = datetime(2026, 8, 2, 21, 45, tzinfo=timezone.utc)
+    macro = data_dir / "macro.json"
+
+    os.utime(macro, (due.timestamp(), due.timestamp()))
+    exact = dashboard.compute_build_status(portfolio, data_dir, at=at)
+    row = next(r for r in exact["files"] if r["name"] == "macro.json")
+    assert row["stale"] is False
+
+    os.utime(macro, (due.timestamp() - 1, due.timestamp() - 1))
+    one_second_old = dashboard.compute_build_status(portfolio, data_dir, at=at)
+    row = next(r for r in one_second_old["files"] if r["name"] == "macro.json")
+    assert row["stale"] is True
+
+    macro.unlink()
+    missing = dashboard.compute_build_status(portfolio, data_dir, at=at)
+    row = next(r for r in missing["files"] if r["name"] == "macro.json")
+    assert row["present"] is False
+    assert row["stale"] is True
+    assert "macro.json" in missing["stale_files"]
+
+
+def _cron_python_weekdays(field):
+    names = {name: i for i, name in enumerate(
+        ("MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN")
+    )}
+
+    def cron_day(value):
+        value = value.upper()
+        if value in names:
+            return names[value]
+        number = int(value)
+        return 6 if number in (0, 7) else number - 1
+
+    if field == "*":
+        return tuple(range(7))
+    days = set()
+    for part in field.split(","):
+        start, sep, end = part.partition("-")
+        if sep:
+            first, last = cron_day(start), cron_day(end)
+            if first <= last:
+                days.update(range(first, last + 1))
+            else:
+                days.update(range(first, 7))
+                days.update(range(0, last + 1))
+        else:
+            days.add(cron_day(start))
+    return tuple(sorted(days))
+
+
+def test_gha_freshness_registry_matches_workflow_crons():
+    workflow_for_artifact = {
+        "macro.json": "macro-scan.yml",
+        "sentiment.json": "sentiment-scan.yml",
+        "us_news_digest.json": "news-digest.yml",
+        "influencer_feed.json": "influencer-scan.yml",
+    }
+    expected_graces = {
+        "macro.json": [5],
+        "sentiment.json": [6],
+        "us_news_digest.json": [7],
+        "influencer_feed.json": [6, 6],
+    }
+
+    scheduled = {
+        name for name, policy in dashboard._FRESHNESS_POLICY.items()
+        if policy.get("schedule")
+    }
+    assert scheduled - dashboard._BRIEF_FRESHNESS_ARTIFACTS == set(
+        workflow_for_artifact
+    )
+
+    for artifact, workflow in workflow_for_artifact.items():
+        text = (ROOT / ".github" / "workflows" / workflow).read_text()
+        expressions = re.findall(
+            r"^\s*-\s+cron:\s*['\"]([^'\"]+)['\"]\s*$", text, re.MULTILINE
+        )
+        assert len(expressions) == text.count("- cron:"), (
+            f"unsupported cron syntax in {workflow}"
+        )
+        actual = set()
+        for expression in expressions:
+            minute, hour, dom, month, dow = expression.split()
+            assert dom == month == "*"
+            assert minute.isdigit() and hour.isdigit()
+            actual.add(("UTC", _cron_python_weekdays(dow), int(hour), int(minute)))
+
+        policy = dashboard._FRESHNESS_POLICY[artifact]["schedule"]
+        expected = {
+            (fire["timezone"], tuple(fire["weekdays"]), fire["hour"], fire["minute"])
+            for fire in policy["fires"]
+        }
+        assert actual == expected, f"{artifact} cadence drifted from {workflow}"
+        assert sorted(fire["grace_hours"] for fire in policy["fires"]) == (
+            expected_graces[artifact]
+        )
+
+
+def test_brief_freshness_registry_matches_host_cron_contract():
+    contract = json.loads((ROOT / "config" / "cron-schedules.json").read_text())
+    job = next(job for job in contract["jobs"] if job["name"] == "盘前深度简报")
+
+    assert job["schedule"] == {
+        "kind": "cron",
+        "expr": "0 8 * * 1-5",
+        "tz": "Asia/Shanghai",
+    }
+    assert dashboard._BRIEF_FIRE == {
+        "weekdays": (0, 1, 2, 3, 4),
+        "hour": 8,
+        "minute": 0,
+        "grace_hours": 6,
+        "timezone": "Asia/Shanghai",
+        "required_when": "any_market_open",
+    }
+
+
+def test_dashboard_tooltip_distinguishes_schedule_deadlines_from_age_slas():
+    renderer = (ROOT / "assets" / "js" / "dashboard.render.js").read_text()
+    block = renderer.split("// tooltip：逐文件年龄", 1)[1].split(
+        "(ig.top || [])", 1
+    )[0]
+
+    assert "f.freshness_mode === 'scheduled_fire'" in block
+    assert "f.deadline_at" in block
+    assert "timeZone: 'Asia/Hong_Kong'" in block
+    assert "HKT 前刷新" in block
+    assert "/ SLA ${f.sla_hours}h" in block
 
 
 @pytest.mark.parametrize("holdings", [[], [
