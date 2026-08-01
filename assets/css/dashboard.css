@@ -1884,6 +1884,31 @@
   .overview-command > .hero-honesty-card { grid-column: span 5; min-height: 220px; }
   .overview-command > .hero-gold-card { grid-column: span 7; min-height: 760px; }
 
+  @media (min-width: 1024px) {
+    /* Gold is the primary information surface here. Give it the full row, then
+       use that width internally instead of leaving a tall page-level void beside
+       the shorter self-grading card. The DOM order stays unchanged for mobile. */
+    .overview-command > .hero-gold-card {
+      grid-column: 1 / -1; min-height: 0;
+      display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
+      grid-template-areas:
+        "title london"
+        "hero london"
+        "stats london"
+        "spark london"
+        "proj london"
+        "asof asof";
+      column-gap: clamp(20px, 2.2vw, 34px); align-items: start;
+    }
+    .hero-gold-card > h3 { grid-area: title; }
+    #gold-hero { grid-area: hero; min-width: 0; }
+    #gold-stats { grid-area: stats; min-width: 0; }
+    #gold-london { grid-area: london; min-width: 0; }
+    #gold-spark { grid-area: spark; min-width: 0; }
+    #gold-proj { grid-area: proj; min-width: 0; }
+    #gold-asof { grid-area: asof; min-width: 0; }
+  }
+
   /* Hero top "今日要点" triage strip */
   .today-highlights {
     display: flex; flex-wrap: wrap; align-content: flex-start; gap: 8px;

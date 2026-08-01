@@ -10,6 +10,10 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 HTML = (ROOT / "index.html").read_text()
 CSS = (ROOT / "assets" / "css" / "dashboard.css").read_text()
+VISUAL_REGRESSION = ROOT / "assets" / "visual-regression" / "issue-206"
+VISUAL_REGRESSION_DOC = (
+    ROOT / "docs" / "visual-regression" / "issue-206" / "README.md"
+)
 
 
 def enclosing_desktop_block(rule_start):
@@ -65,3 +69,47 @@ def test_desktop_numeric_and_overview_height_rules_are_scoped_to_desktop():
     assert "text-overflow: ellipsis" in rule
     assert ".desktop-wide .holdings-table th," in block
     assert "height: 36px" in block
+
+
+def test_gold_dca_uses_the_full_desktop_row_and_an_internal_grid():
+    gold = CSS.index(
+        ".overview-command > .hero-gold-card {", CSS.index("min-height: 760px")
+    )
+    block = enclosing_desktop_block(gold)
+    assert "grid-column: 1 / -1" in block
+    assert "min-height: 0" in block
+    assert "grid-template-columns: repeat(2, minmax(0, 1fr))" in block
+    assert '"title london"' in block
+    assert '"hero london"' in block
+    assert '"stats london"' in block
+    assert '"spark london"' in block
+    assert '"proj london"' in block
+    assert '"asof asof"' in block
+    for area, selector in (
+        ("title", ".hero-gold-card > h3"),
+        ("hero", "#gold-hero"),
+        ("stats", "#gold-stats"),
+        ("london", "#gold-london"),
+        ("spark", "#gold-spark"),
+        ("proj", "#gold-proj"),
+        ("asof", "#gold-asof"),
+    ):
+        assert f"{selector} {{ grid-area: {area};" in block
+
+
+def test_gold_dca_mobile_floor_and_single_column_rules_remain():
+    mobile = CSS.split("@media (max-width: 767px)", 1)[1]
+    assert ".overview-command { display: flex; flex-direction: column" in mobile
+    assert ".overview-command > .hero-gold-card { min-height: 760px; }" in mobile
+
+
+def test_issue_206_visual_regression_evidence_is_shipped():
+    readme = VISUAL_REGRESSION_DOC.read_text(encoding="utf-8")
+    for name in (
+        "before-1440.jpg", "after-1440.jpg",
+        "before-1920.jpg", "after-1920.jpg", "after-390.jpg",
+    ):
+        image = VISUAL_REGRESSION / name
+        assert image.stat().st_size > 20_000, f"missing/empty screenshot: {name}"
+        assert name in readme
+    assert "scrollWidth == clientWidth" in readme
