@@ -307,13 +307,6 @@ def test_fx_tag_accepts_canonical_currency_and_rejects_wrong_currency(run_check)
     _assert_only(run_check(bad), "FX_TAG", "ERROR", "currency=HKD 应为 USD")
 
 
-@pytest.mark.xfail(
-    strict=True,
-    reason=(
-        "genuine bug (high confidence): FX_TAG uses `and ccy`, so a missing required "
-        "region currency silently passes despite the documented USD/HKD invariant"
-    ),
-)
 def test_fx_tag_rejects_missing_required_currency(run_check):
     data = _portfolio_data()
     del _port(data)["currency"]

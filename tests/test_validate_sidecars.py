@@ -278,7 +278,63 @@ def test_real_committed_gif_passes():
 
 
 def test_real_committed_dashboard_passes():
-    validators.validate_dashboard(ROOT / 'assets/data/dashboard.json')
+    validators.validate_dashboard(
+        ROOT / 'assets/data/dashboard.json', portfolio_path=ROOT / 'portfolio.json')
+
+
+@pytest.mark.parametrize('mutation,problem', (
+    (lambda payload: payload['holdings']['us'][0].update(current_value=-999),
+     r'holdings\.us\..*\.current_value=.*does not reconcile'),
+    (lambda payload: payload['totals']['hk'].update(pnl_hkd=-999),
+     r'totals\.hk\.pnl_hkd=.*does not reconcile'),
+    (lambda payload: payload['holdings']['us'].pop(),
+     r'holdings\.us ticker coverage mismatch'),
+    (lambda payload: payload['concentration']['us'].update(hhi=0.9999),
+     r'concentration\.us\.hhi=.*does not reconcile'),
+    (lambda payload: payload['build_status']['integrity'].update(ok=False),
+     r'build_status\.integrity is not clean'),
+))
+def test_dashboard_money_reconciliation_rejects_public_drift(
+        tmp_path, mutation, problem):
+    payload = json.loads((ROOT / 'assets/data/dashboard.json').read_text())
+    mutation(payload)
+    dashboard = write_json(tmp_path / 'dashboard.json', payload)
+
+    with pytest.raises(AssertionError, match=problem):
+        validators.validate_dashboard(
+            dashboard, portfolio_path=ROOT / 'portfolio.json')
+
+
+def test_dashboard_money_reconciliation_rejects_source_integrity_failure(tmp_path):
+    portfolio = json.loads((ROOT / 'portfolio.json').read_text())
+    portfolio['portfolios']['us_stocks']['total_pnl'] += 100
+    source = write_json(tmp_path / 'portfolio.json', portfolio)
+
+    with pytest.raises(AssertionError, match='portfolio money integrity failed: PNL_TOTAL'):
+        validators.validate_dashboard(
+            ROOT / 'assets/data/dashboard.json', portfolio_path=source)
+
+
+def test_dashboard_money_reconciliation_checks_fx_cache_when_available(tmp_path):
+    fx = write_json(tmp_path / 'fx.json', {'rate': 7.0})
+
+    with pytest.raises(AssertionError, match=r'fx\.usdhkd=.*does not reconcile'):
+        validators.validate_dashboard(
+            ROOT / 'assets/data/dashboard.json',
+            portfolio_path=ROOT / 'portfolio.json',
+            fx_path=fx,
+        )
+
+
+def test_dashboard_money_reconciliation_allows_untracked_cash_as_null(tmp_path):
+    payload = json.loads((ROOT / 'assets/data/dashboard.json').read_text())
+    portfolio = json.loads((ROOT / 'portfolio.json').read_text())
+    payload['totals']['hk']['cash_hkd'] = None
+    portfolio['portfolios']['hk_stocks']['cash_hkd'] = None
+    dashboard = write_json(tmp_path / 'dashboard.json', payload)
+    source = write_json(tmp_path / 'portfolio.json', portfolio)
+
+    validators.validate_dashboard(dashboard, portfolio_path=source)
 
 
 JSON_VALIDATORS = (
