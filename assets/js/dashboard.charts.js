@@ -603,11 +603,28 @@
       scheduleDraw();
     }
 
-    canvas.addEventListener("pointermove", showTooltip);
-    canvas.addEventListener("pointerleave", () => {
+    const hideTooltip = () => {
       hoverIndex = null;
       tooltip.hidden = true;
       scheduleDraw();
+    };
+    // Mouse/pen hover continuously. Touch uses a tap for inspection; if that
+    // touch becomes a horizontal pager swipe the browser emits pointercancel,
+    // which must remove the provisional tooltip instead of leaving it stuck.
+    canvas.addEventListener("pointermove", event => {
+      if (event.pointerType !== "touch") showTooltip(event);
+    });
+    canvas.addEventListener("pointerdown", event => {
+      if (event.pointerType === "touch") showTooltip(event);
+    });
+    canvas.addEventListener("pointerleave", event => {
+      // Touch emits pointerleave when the finger lifts; keep a deliberate tap's
+      // tooltip visible. A real scroll is cleared by pointercancel instead.
+      if (event.pointerType !== "touch") hideTooltip();
+    });
+    canvas.addEventListener("pointercancel", hideTooltip);
+    document.addEventListener("pointerdown", event => {
+      if (event.pointerType === "touch" && event.target !== canvas) hideTooltip();
     });
     range.addEventListener("input", () => {
       userWindow = true;

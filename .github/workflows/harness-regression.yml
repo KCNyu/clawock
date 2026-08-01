@@ -6,6 +6,9 @@ on:
     paths:
       - 'scripts/**'
       - 'tests/**'
+      - 'assets/css/**'
+      - 'assets/js/**'
+      - 'index.html'
       - 'portfolio.json'
       - 'memory/**-plan.json'
       # Research artifacts are validated by the suite below, so a
@@ -31,7 +34,7 @@ permissions:
 jobs:
   validate:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v7
         with:
@@ -122,8 +125,30 @@ jobs:
                 ;;
             esac
           done <<< "$changed"
+          ui=false
+          if grep -Eq '^(assets/(css|js)/|index\.html$|tests/dashboard_tab_runtime\.spec\.js$)' <<< "$changed"; then
+            ui=true
+            code=true
+          fi
           echo "code=$code" >> "$GITHUB_OUTPUT"
+          echo "ui=$ui" >> "$GITHUB_OUTPUT"
           echo "code changed: $code"
+
+      - name: Set up Node for dashboard browser contract
+        if: github.event_name == 'pull_request' && steps.changes.outputs.ui == 'true'
+        uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+
+      - name: Install dashboard browser contract runtime
+        if: github.event_name == 'pull_request' && steps.changes.outputs.ui == 'true'
+        run: |
+          npm install --no-save --silent playwright@1.60.0
+          npx playwright install --with-deps chromium
+
+      - name: Browser contract — Hero, detail tabs, and chart gestures
+        if: github.event_name == 'pull_request' && steps.changes.outputs.ui == 'true'
+        run: node tests/dashboard_tab_runtime.spec.js
 
       - name: Set up Python
         if: github.event_name != 'pull_request' || steps.changes.outputs.code == 'true'

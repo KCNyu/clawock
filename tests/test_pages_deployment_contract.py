@@ -29,6 +29,7 @@ def test_every_browser_fetch_is_declared_public():
         "assets/css/dashboard.css",
         "assets/js/dashboard.core.js",
         "assets/js/dashboard.charts.js",
+        "assets/js/dashboard.hero.js",
         "assets/js/dashboard.render.js",
         "assets/js/dashboard.ui.js",
         "assets/js/echarts.min.js",
