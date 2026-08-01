@@ -581,6 +581,22 @@ calibration bundle 的 `decision_metrics` 是 v2 唯一口径：只结算**条�
 - "USDHKD" 或 "FX" 或 "汇率" — FX 段
 - 不能出现 "合计 -4423" / "合计 -4,423" 这种 HKD+USD 直接相加的历史 bug
 
+**写作时体量预算（在 Step 4-A 内完成，不是 postflight 返工）**：目标 ≤28KB；≥40KB
+属于极端超长，会让成品健康状态降级。按以下分段预算写初稿，给 Markdown 标记留出余量：
+
+- Header + book/仓位表 + 核心结论：≤5KB
+- Retrospective + Tier 1：≤6KB
+- Tier 2 + Tier 3/Judge：≤6KB
+- 同行明细完整 + macro + sentiment + influencer：≤5KB（空间不足时先压后三者的重复解释）
+- Confidence + Decision v2 + Next-Session：≤4KB
+
+初稿写完但仍在 Step 4-A 时，运行 `wc -c memory/{YYYY-MM-DD}-pre-open.md`。若 >28KB，
+在定稿前删除重复解释、缩短逐票叙述、合并同义句；所有必需段落、证据、风险闸和行动必须完整
+保留。**同行明细不是压缩对象**：同行枚举、相对涨跌、持仓位置和归因必须保留；同行组超预算
+时先压 macro / sentiment / influencer 的重复解释。若 ≥40KB，必须先按分段预算收敛再跑
+postflight。**禁止**用 `head`、`truncate`、字符串切片或其他事后硬**截断**；也禁止为了压
+体量删除证据、风险闸或行动段。
+
 #### B. 结构化 plan → `memory/{YYYY-MM-DD}-plan.json`
 
 postflight 严格 schema 校验：
@@ -770,7 +786,7 @@ python3 /root/.openclaw/workspace/scripts/harness/brief_postflight.py
 ```
 
 - `pass` — 全部 OK，已 `git commit`
-- `warn` — 有非 critical 问题（≤4 个），已 commit 但标 `(validation warnings)`
+- `warn` — 有非 critical 实质问题或 ≥40KB 极端超长（≤4 个），已 commit 但标 `(validation warnings)`
 - `fail` — 缺文件/JSON 解析错/critical 字段缺失，**不 commit**、**不投递**
 - `wechat_sent` — postflight 自动投递结果（见下）
 
@@ -781,15 +797,11 @@ python3 /root/.openclaw/workspace/scripts/harness/brief_postflight.py
 不要在一次 `fail` 之后一路埋头修到自己认为"干净"为止 —— 修掉 critical 那条以后往往
 已经是 warn，剩下的 issue 不阻塞交付。
 
-> **2026-07-27 实例**：首跑 `fail`，issues 是「表格 #1 列数不一致」+「pre-open.md 偏长
-> 35853 bytes」。表格那条是 critical，体积那条只是提醒。修好表格后没有重跑，误以为体积
-> 也是硬闸，从 35.8KB 一路裁到 23.7KB —— 多烧 6 分钟 / 约 13M tokens，中途还因为 `edit`
-> 的 `oldText` 打错中文字（`滴`/`滘`、`拉锅`/`拉锯`）连失败 3 次，把整跑染成
-> `status=error`（产物其实已正常交付）。
-
-`pre-open.md 偏长 … bytes` 永远是 warn：这个文件是 dashboard 全文，不受微信 16KB 限制，
->24KB 只是"页面难读"的提醒。**不要为它裁剪已经写好的正文。** 要控体量就在 Step 4-A 写的
-时候写紧凑，而不是事后返工。
+> **2026-07-27 教训**：旧规则把 35.8KB 和表格 critical 混在同一个 issues 列表里，模型误把
+> 体量当硬闸，事后一路裁到 23.7KB，既浪费时间/tokens 又引入编辑错误。新规则把体量单独记录：
+> 28–40KB 是结构化 `advisory`，不计入 issues、不让已交付成品变黄；≥40KB 才是实际 `warn`。
+> 无论哪档都保留完整正文，绝不在 postflight 后硬截断。体量应按 Step 4-A 的分段预算在定稿前
+> 收敛，不能牺牲必需段落、证据、风险闸或行动。
 
 ### 投递（Step 5 postflight 内自动，你什么都不用做）
 

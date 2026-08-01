@@ -85,15 +85,16 @@ def trim_lev_regime(lev_regime):
 
 
 def trim_workflow_outcomes(summary):
-    """Keep the two fields the build-status dot reads; drop the stage detail.
+    """Keep build-status fields and compact readability; drop stage detail.
 
     `recent[].stages` is five stage objects per slot, each carrying the full
     heartbeat detail (market, anomaly_count, wechat_sent, …) — 24KB across a
     36h window, and the renderer touches none of it: the dot reads `counts`
     and `raw_error_but_product_usable`, the tooltip reads only `job`, `slot`,
-    `raw_execution.status` and `final_product.status`. The complete ledger is
-    published on its own at assets/data/workflow-outcomes.json, so this is the
-    same duplication the calibrator and regime-history trims removed.
+    `raw_execution.status`, `final_product.status`, and the compact readability
+    assessment. The complete ledger is published on its own at
+    assets/data/workflow-outcomes.json, so this is the same duplication the
+    calibrator and regime-history trims removed.
     """
     if not isinstance(summary, dict):
         return summary
@@ -106,8 +107,20 @@ def trim_workflow_outcomes(summary):
         if not isinstance(record, dict):
             trimmed.append(record)
             continue
+        stages = record.get('stages')
+        compact = {k: v for k, v in record.items() if k != 'stages'}
+        if isinstance(stages, dict):
+            # llm is written immediately before the dashboard build, so it is
+            # current even on a same-slot retry whose older postflight detail is
+            # still present. Both stages carry the same assessment on first run.
+            for stage_name in ('llm', 'postflight'):
+                stage = stages.get(stage_name)
+                candidate = stage.get('readability') if isinstance(stage, dict) else None
+                if isinstance(candidate, dict):
+                    compact['readability'] = candidate
+                    break
         dropped = dropped or 'stages' in record
-        trimmed.append({k: v for k, v in record.items() if k != 'stages'})
+        trimmed.append(compact)
     summary = {**summary, 'recent': trimmed}
     if dropped:
         summary['stages_source'] = 'assets/data/workflow-outcomes.json'

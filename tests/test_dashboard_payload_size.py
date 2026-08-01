@@ -143,6 +143,48 @@ def test_the_unread_workflow_stage_detail_stays_out(payload):
         assert record["final_product"]["status"]
 
 
+def test_dashboard_trim_keeps_readability_without_full_stage_detail():
+    sys.path.insert(0, str(ROOT / "scripts" / "data"))
+    import build_dashboard
+
+    readability = {
+        "status": "advisory", "bytes": 29_109,
+        "target_bytes": 28_000, "extreme_bytes": 40_000,
+        "over_by_bytes": 1_109,
+    }
+    summary = {
+        "recent": [{
+            "job": "盘前深度简报",
+            "stages": {"llm": {"status": "success", "readability": readability}},
+            "final_product": {"status": "success"},
+        }],
+    }
+
+    trimmed = build_dashboard.trim_workflow_outcomes(summary)
+
+    assert "stages" not in trimmed["recent"][0]
+    assert trimmed["recent"][0]["readability"] == readability
+    assert trimmed["stages_source"] == "assets/data/workflow-outcomes.json"
+
+
+def test_dashboard_trim_prefers_current_llm_readability_on_same_slot_retry():
+    sys.path.insert(0, str(ROOT / "scripts" / "data"))
+    import build_dashboard
+
+    current = {"status": "within_budget", "bytes": 27_000}
+    stale = {"status": "advisory", "bytes": 29_000}
+    summary = {"recent": [{
+        "stages": {
+            "llm": {"status": "success", "readability": current},
+            "postflight": {"status": "success", "readability": stale},
+        },
+    }]}
+
+    trimmed = build_dashboard.trim_workflow_outcomes(summary)
+
+    assert trimmed["recent"][0]["readability"] == current
+
+
 def test_dropped_blocks_are_still_reachable_elsewhere():
     """Trimming the payload must not lose the data — only relocate it."""
     standalone = json.loads((ROOT / "assets" / "data" / "lev_regime.json").read_text())
