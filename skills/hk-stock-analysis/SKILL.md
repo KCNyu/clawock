@@ -202,10 +202,11 @@ python3 /root/.openclaw/workspace/scripts/harness/report_preflight.py --market h
 **定稿前体量闸**：preflight 的 `size_budget` 已扣掉标题和 harness 自动拼入的数据块。
 散文目标必须 ≤`size_budget.prose_target_chars`，并且绝不能超过
 `size_budget.prose_soft_limit_chars`；写完文件后先跑
-`wc -m memory/.tmp/report-prose-hk-{phase}.md`。超目标时先删除重复解释、压缩板块全景和
-同业枚举，再跑一次字符数检查。**禁止删除**异动归因、计划对账、三段必需标记、证据或
-`needs_risk_section=true` 时的风险提示，也禁止用硬截断制造半句话。3000/3500 仍由
-postflight 按最终拼装全文严格判定。
+`wc -m memory/.tmp/report-prose-hk-{phase}.md`。超目标时先删除重复解释、开场铺垫、过渡句和
+同义复述，再跑一次字符数检查。**同行明细不是压缩对象**：必须保留 `peer_scan` 的 Top 5、
+持仓位置、今日/5 日涨跌和归因。也**禁止删除**异动归因、计划对账、三段必需标记、证据或
+`needs_risk_section=true` 时的风险提示，禁止用硬截断制造半句话。3000/3500 仍由 postflight
+按最终拼装全文严格判定。
 
 #### Step 3: 跑 postflight
 ```bash

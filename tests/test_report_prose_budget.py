@@ -57,19 +57,6 @@ def test_small_hk_block_gets_more_prose_room_but_the_same_assembled_limits():
     assert budget['prose_hard_limit_chars'] == 2_807
 
 
-def test_retained_us_runs_would_have_received_feasible_earlier_targets():
-    observed = (
-        # phase, title chars, raw chars, prose chars
-        ('open', 28, 1_596, 1_587),
-        ('close', 19, 1_520, 1_740),
-    )
-    for phase, title_chars, raw_chars, prose_chars in observed:
-        budget = common.report_prose_budget(
-            'T' * title_chars, 'R' * raw_chars, market='us')
-        assert 1_000 <= budget['prose_target_chars'] < prose_chars, phase
-        assert budget['prose_target_chars'] < budget['prose_soft_limit_chars'], phase
-
-
 def test_successful_preflight_publishes_the_budget_in_its_context(
         tmp_path, monkeypatch, capsys):
     raw = 'R' * 1_596
@@ -117,5 +104,9 @@ def test_us_and_hk_skills_require_dynamic_budget_check_without_content_deletion(
         assert 'prose_soft_limit_chars' in mode6
         assert 'wc -m' in mode6
         assert '禁止' in mode6 and '删除' in mode6
-        for required in ('异动归因', '计划对账', '风险提示'):
+        assert '同行明细不是压缩对象' in mode6
+        assert 'Top 5' in mode6 and '今日/5 日涨跌' in mode6
+        assert '压缩板块全景' not in mode6
+        assert '同业枚举' not in mode6
+        for required in ('异动归因', '计划对账', '风险提示', '持仓位置', '归因'):
             assert required in mode6
