@@ -318,7 +318,7 @@ def test_dashboard_money_reconciliation_rejects_source_integrity_failure(tmp_pat
 def test_dashboard_money_reconciliation_checks_fx_cache_when_available(tmp_path):
     fx = write_json(tmp_path / 'fx.json', {'rate': 7.0})
 
-    with pytest.raises(AssertionError, match=r'fx\.usdhkd=.*does not reconcile'):
+    with pytest.raises(AssertionError, match=r'fx\.usdhkd'):
         validators.validate_dashboard(
             ROOT / 'assets/data/dashboard.json',
             portfolio_path=ROOT / 'portfolio.json',

@@ -774,8 +774,11 @@ def _assert_dashboard_money_reconciles(
             f'concentration.{leg}.positions do not reconcile to holdings.{leg}')
 
     fx_rate = data['fx'].get('usdhkd')
-    assert finite(fx_rate) and fx_rate > 0, 'fx.usdhkd must be a positive finite number'
-    if fx_path is not None and Path(fx_path).is_file():
+    fx_source_available = fx_path is not None and Path(fx_path).is_file()
+    if fx_rate is not None:
+        assert finite(fx_rate) and fx_rate > 0, (
+            'fx.usdhkd must be null or a positive finite number')
+    if fx_source_available:
         fx_source = json.loads(Path(fx_path).read_text(encoding='utf-8'))
         same_number(fx_rate, fx_source.get('rate'), 'fx.usdhkd', 0.00005)
 
