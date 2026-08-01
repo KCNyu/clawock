@@ -398,6 +398,15 @@
     ensureVisibleCharts();
   }
 
+  function quoteSessionLabel(market) {
+    const oldest = market && market.oldest_quote_session;
+    const newest = market && market.newest_quote_session;
+    if (!oldest && !newest) return '行情会话未知';
+    if (!oldest) return String(newest);
+    if (!newest) return String(oldest);
+    return oldest === newest ? String(newest) : `${oldest} → ${newest}`;
+  }
+
   // ── A2 系统健康卡（页脚）──
   // 数据新鲜度 + 体检结论（A1）的被动展示。不推送（遵 feedback_no_individual_cron_alerts），
   // 让 stale / 体检异常一眼可见。绿=全新鲜且体检过；黄=有 stale 或 WARN；红=体检 ERROR。
@@ -448,7 +457,7 @@
     (ig.top || []).forEach(t => lines.push(`${t.level === 'ERROR' ? '🔴' : '🟡'} ${t.code}: ${t.msg}`));
     if (bs.markets) {
       Object.entries(bs.markets).forEach(([m, v]) =>
-        lines.push(`${m.toUpperCase()}: ${v.last_updated || '?'}${v.closed_today ? ' (休市)' : ''}`));
+        lines.push(`${m.toUpperCase()}: 行情会话 ${quoteSessionLabel(v)}${v.closed_today ? ' (休市)' : ''}`));
     }
     (wf.recent || []).slice(0, 8).forEach(r => {
       const raw = (r.raw_execution || {}).status || 'unknown';
