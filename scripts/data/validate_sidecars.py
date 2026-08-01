@@ -15,6 +15,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[2]
+DASHBOARD_MAX_BYTES = 200_000
 
 
 def validate_macro(path: Path | str, *, now: datetime | None = None) -> None:
@@ -621,6 +622,94 @@ def validate_gif(path: Path | str = 'assets/dashboard.gif') -> None:
     print(f'validated {path}: {size} bytes, {width}x{height}, {frames} frames')
 
 
+def validate_dashboard(
+        path: Path | str = 'assets/data/dashboard.json') -> None:
+    """Validate the committed, public first-paint dashboard payload.
+
+    This intentionally uses only the standard library so a dashboard-only push
+    can fail closed on a stock GitHub runner without installing the full test
+    environment. Freshness is schedule-aware in the UI and is not a schema
+    property, so this gate validates the timestamp but does not compare it with
+    wall-clock time.
+    """
+    path = Path(path)
+    assert path.is_file(), f'dashboard payload missing: {path}'
+    try:
+        raw = path.read_text(encoding='utf-8')
+    except UnicodeDecodeError:
+        raise AssertionError('file is not valid UTF-8') from None
+    assert raw.strip(), 'file is empty'
+    size = path.stat().st_size
+    assert size < DASHBOARD_MAX_BYTES, (
+        f'{size:,} bytes exceeds the {DASHBOARD_MAX_BYTES:,}-byte '
+        'first-paint cap')
+    try:
+        data = json.loads(raw)
+    except json.JSONDecodeError as exc:
+        raise AssertionError(
+            f'invalid JSON at line {exc.lineno} column {exc.colno}') from None
+    assert isinstance(data, dict), 'top-level JSON must be an object'
+
+    required = (
+        'generated_at', 'fx', 'totals', 'concentration', 'holdings',
+        'snapshots', 'decision_metrics', 'decision_delta',
+    )
+    missing = [key for key in required if key not in data]
+    assert not missing, f'missing keys: {missing}'
+    assert 'episode_backtest' not in data, (
+        'Reflect backtest leaked into first-paint payload')
+
+    generated_at = data['generated_at']
+    assert isinstance(generated_at, str), 'generated_at missing'
+    try:
+        datetime.fromisoformat(generated_at.replace('Z', '+00:00'))
+    except ValueError:
+        raise AssertionError(
+            'generated_at is not a valid ISO timestamp') from None
+
+    assert isinstance(data['fx'], dict), 'fx must be an object'
+    assert isinstance(data['totals'], dict), 'totals must be an object'
+    assert isinstance(data['holdings'], dict), 'holdings must be an object'
+    assert isinstance(data['concentration'], dict), (
+        'concentration must be an object')
+    assert isinstance(data['snapshots'], list), 'snapshots must be a list'
+    assert data['snapshots'], 'snapshots is empty — dashboard would render blank'
+    assert isinstance(data['decision_metrics'], dict), (
+        'decision_metrics must be an object')
+    assert isinstance(data['decision_delta'], dict), (
+        'decision_delta must be an object')
+
+    def finite_number(value):
+        return (isinstance(value, (int, float))
+                and not isinstance(value, bool) and math.isfinite(value))
+
+    allowed_levels = {'healthy', 'moderate', 'concentrated', 'danger'}
+    for leg in ('us', 'hk'):
+        assert isinstance(data['totals'].get(leg), dict), (
+            f'totals.{leg} must be an object')
+        assert isinstance(data['holdings'].get(leg), list), (
+            f'holdings.{leg} must be a list')
+        concentration = data['concentration'].get(leg)
+        assert isinstance(concentration, dict), (
+            f'concentration.{leg} must be an object')
+        required_concentration = {'hhi', 'top2', 'positions', 'total', 'verdict'}
+        missing_concentration = sorted(required_concentration - concentration.keys())
+        assert not missing_concentration, (
+            f'concentration.{leg} missing keys: {missing_concentration}')
+        for field in ('hhi', 'top2', 'total'):
+            assert finite_number(concentration[field]), (
+                f'concentration.{leg}.{field} must be a finite number')
+        assert isinstance(concentration['positions'], list), (
+            f'concentration.{leg}.positions must be a list')
+        verdict = concentration['verdict']
+        assert isinstance(verdict, dict), (
+            f'concentration.{leg}.verdict must be an object')
+        assert verdict.get('level') in allowed_levels, (
+            f'concentration.{leg} has invalid verdict level')
+
+    print(f'dashboard structural validation OK: {path}')
+
+
 def validate_coverage_badge(path: Path | str = 'assets/data/coverage.json') -> None:
     """The README badge is rendered by shields.io straight from this file.
 
@@ -686,12 +775,14 @@ def _dispatch(name: str) -> None:
         ))
     elif name == 'gif':
         validate_gif('assets/dashboard.gif')
+    elif name == 'dashboard':
+        validate_dashboard('assets/data/dashboard.json')
     elif name == 'coverage':
         validate_coverage_badge('assets/data/coverage.json')
     else:
         choices = ('macro', 'sentiment', 'influencer', 'news-digest',
                    'eod-archive', 'weekly-review', 'screenshots', 'gif',
-                   'coverage')
+                   'dashboard', 'coverage')
         raise SystemExit(f'unknown validator {name!r}; choose one of: {", ".join(choices)}')
 
 
@@ -714,6 +805,7 @@ def main(argv: list[str] | None = None) -> int:
             'weekly-review': 'weekly review',
             'screenshots': 'screenshots',
             'gif': 'GIF assets/dashboard.gif',
+            'dashboard': 'dashboard payload assets/data/dashboard.json',
             'coverage': 'coverage badge assets/data/coverage.json',
         }
         label = failure_labels.get(argv[0], argv[0])

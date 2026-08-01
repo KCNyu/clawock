@@ -86,6 +86,28 @@ def macro_payload(generated_at: str = GENERATED) -> dict:
     }
 
 
+def dashboard_payload() -> dict:
+    return {
+        'generated_at': GENERATED,
+        'fx': {'usdhkd': 7.8, 'source': 'test', 'fetched_at': GENERATED},
+        'totals': {'us': {}, 'hk': {}},
+        'holdings': {'us': [], 'hk': []},
+        'concentration': {
+            leg: {
+                'hhi': 0.0,
+                'top2': 0.0,
+                'positions': [],
+                'total': 0.0,
+                'verdict': {'level': 'healthy'},
+            }
+            for leg in ('us', 'hk')
+        },
+        'snapshots': [{'date': '2026-07-17'}],
+        'decision_metrics': {},
+        'decision_delta': {},
+    }
+
+
 def news_payload(generated_at: str = GENERATED) -> dict:
     return {
         'generated_at': generated_at,
@@ -255,6 +277,10 @@ def test_real_committed_gif_passes():
     validators.validate_gif(ROOT / 'assets/dashboard.gif')
 
 
+def test_real_committed_dashboard_passes():
+    validators.validate_dashboard(ROOT / 'assets/data/dashboard.json')
+
+
 JSON_VALIDATORS = (
     ('macro', lambda path, portfolio: validators.validate_macro(
         path, now=datetime(2026, 7, 17, 1, tzinfo=timezone.utc))),
@@ -262,6 +288,7 @@ JSON_VALIDATORS = (
     ('influencer', lambda path, portfolio: validators.validate_influencer(path)),
     ('news', lambda path, portfolio: validators.validate_news_digest(
         path, now=datetime(2026, 7, 17, 1, tzinfo=timezone.utc))),
+    ('dashboard', lambda path, portfolio: validators.validate_dashboard(path)),
 )
 
 
@@ -281,6 +308,52 @@ def test_json_artifacts_fail_clearly(
 
     with pytest.raises(AssertionError, match=problem):
         validator(path, portfolio)
+
+
+@pytest.mark.parametrize('missing', (
+    'generated_at', 'fx', 'totals', 'holdings', 'concentration', 'snapshots',
+    'decision_metrics', 'decision_delta',
+))
+def test_dashboard_rejects_missing_first_paint_contract_key(tmp_path, missing):
+    payload = dashboard_payload()
+    payload.pop(missing)
+    path = write_json(tmp_path / 'dashboard.json', payload)
+
+    with pytest.raises(AssertionError, match='missing keys'):
+        validators.validate_dashboard(path)
+
+
+@pytest.mark.parametrize('mutation,problem', (
+    (lambda payload: payload.update(generated_at='not-a-date'),
+     'generated_at is not a valid ISO timestamp'),
+    (lambda payload: payload['holdings'].update(us={}),
+     'holdings.us must be a list'),
+    (lambda payload: payload['concentration']['hk'].pop('top2'),
+     'concentration.hk missing keys'),
+    (lambda payload: payload['concentration']['us']['verdict'].update(level='unknown'),
+     'concentration.us has invalid verdict level'),
+    (lambda payload: payload.update(snapshots=[]),
+     'snapshots is empty'),
+    (lambda payload: payload.update(episode_backtest={}),
+     'Reflect backtest leaked into first-paint payload'),
+))
+def test_dashboard_rejects_incomplete_or_unsafe_payload(
+        tmp_path, mutation, problem):
+    payload = dashboard_payload()
+    mutation(payload)
+    path = write_json(tmp_path / 'dashboard.json', payload)
+
+    with pytest.raises(AssertionError, match=problem):
+        validators.validate_dashboard(path)
+
+
+def test_dashboard_rejects_payload_at_or_above_first_paint_cap(tmp_path):
+    payload = dashboard_payload()
+    payload['padding'] = 'x' * validators.DASHBOARD_MAX_BYTES
+    path = write_json(tmp_path / 'dashboard.json', payload)
+
+    with pytest.raises(AssertionError, match='first-paint cap'):
+        validators.validate_dashboard(path)
 
 
 def test_sentiment_quiet_day_with_zero_results_passes(tmp_path):
