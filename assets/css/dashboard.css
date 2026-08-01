@@ -1783,7 +1783,10 @@
   }
   .overview-equity-hint { max-width: 92%; margin: -3px 0 3px; }
   .overview-equity-chart { min-height: 390px; height: 390px; }
-  .native-equity-canvas { display: block; touch-action: pan-y; }
+  /* The chart sits inside the mobile horizontal pager. Allow the browser to
+     resolve both axes so a horizontal drag still changes tabs; pointercancel
+     below clears chart hover state once scrolling takes ownership. */
+  .native-equity-canvas { display: block; touch-action: auto; }
   .native-equity-tooltip {
     position: absolute; z-index: 3; pointer-events: none; max-width: 240px;
     padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px;

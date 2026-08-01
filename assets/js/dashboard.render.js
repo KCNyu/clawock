@@ -1,3 +1,6 @@
+(function () {
+  // Detail-only renderer bundle. It is requested on the first non-Hero tab
+  // activation, then registers its functions with the critical-path registry.
   // =========================================================
   // Render — orchestrates all sections
   // =========================================================
@@ -2906,3 +2909,12 @@
         </div>`;
     }).join("");
   }
+
+  window.registerDetailRenderers({
+    drill: TAB_RENDERERS.drill,
+    risk: TAB_RENDERERS.risk,
+    market: TAB_RENDERERS.market,
+    plan: TAB_RENDERERS.plan,
+    reflect: TAB_RENDERERS.reflect,
+  });
+}());

@@ -198,6 +198,26 @@
   };
   const SIDECAR_STATE = new Map();
   let TAB_ACTIVATION_VERSION = 0;
+  let DETAIL_RENDERERS_PROMISE = null;
+
+  function _loadTabRuntime(t) {
+    if (t === "hero" || hasTabRenderer(t)) return Promise.resolve();
+    if (DETAIL_RENDERERS_PROMISE) return DETAIL_RENDERERS_PROMISE;
+    DETAIL_RENDERERS_PROMISE = new Promise((resolve, reject) => {
+      const script = document.createElement("script");
+      script.src = "assets/js/dashboard.render.js";
+      script.async = true;
+      script.onload = () => hasTabRenderer(t)
+        ? resolve()
+        : reject(new Error("detail renderer registration failed"));
+      script.onerror = () => reject(new Error("detail renderer load failed"));
+      document.head.appendChild(script);
+    }).catch(error => {
+      DETAIL_RENDERERS_PROMISE = null;
+      throw error;
+    });
+    return DETAIL_RENDERERS_PROMISE;
+  }
 
   function _sidecarsForTab(t) {
     return Object.keys(SIDECAR_TAB).filter(k => SIDECAR_TAB[k] === t);
@@ -282,16 +302,22 @@
       return !state.ready || state.stale || state.inFlight;
     });
     const panel = document.querySelector(`.panel[data-panel="${t}"]`);
-    if (needsFetch && panel) panel.setAttribute("aria-busy", "true");
-    if (!needsFetch) {
+    const needsRuntime = !hasTabRenderer(t);
+    if ((needsFetch || needsRuntime) && panel) panel.setAttribute("aria-busy", "true");
+    if (!needsFetch && !needsRuntime) {
       _paintActivatedTab(t);
       return;
     }
-    _loadTabSidecars(t).then(() => {
-      if (version !== TAB_ACTIVATION_VERSION || !DATA || currentTab() !== t) return;
-      _applySidecars(DATA);
-      _paintActivatedTab(t);
-    });
+    Promise.all([_loadTabRuntime(t), _loadTabSidecars(t)])
+      .then(() => {
+        if (version !== TAB_ACTIVATION_VERSION || !DATA || currentTab() !== t) return;
+        _applySidecars(DATA);
+        _paintActivatedTab(t);
+      })
+      .catch(error => {
+        console.error(error);
+        if (version === TAB_ACTIVATION_VERSION && panel) panel.removeAttribute("aria-busy");
+      });
   }
 
   function _formatRelative(iso) {
@@ -344,7 +370,10 @@
         // dependencies finish, rather than rendering a partial new landing tab.
         do {
           landing = currentTab();
-          await _loadTabSidecars(landing, triggeredByUser);
+          await Promise.all([
+            _loadTabRuntime(landing),
+            _loadTabSidecars(landing, triggeredByUser),
+          ]);
         } while (currentTab() !== landing);
       } else {
         _markLoadedSidecarsStale();
