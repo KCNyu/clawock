@@ -199,6 +199,14 @@ python3 /root/.openclaw/workspace/scripts/harness/report_preflight.py --market h
 ▎风险提示（仅当 needs_risk_section=true）
 ```
 
+**定稿前体量闸**：preflight 的 `size_budget` 已扣掉标题和 harness 自动拼入的数据块。
+散文目标必须 ≤`size_budget.prose_target_chars`，并且绝不能超过
+`size_budget.prose_soft_limit_chars`；写完文件后先跑
+`wc -m memory/.tmp/report-prose-hk-{phase}.md`。超目标时先删除重复解释、压缩板块全景和
+同业枚举，再跑一次字符数检查。**禁止删除**异动归因、计划对账、三段必需标记、证据或
+`needs_risk_section=true` 时的风险提示，也禁止用硬截断制造半句话。3000/3500 仍由
+postflight 按最终拼装全文严格判定。
+
 #### Step 3: 跑 postflight
 ```bash
 python3 /root/.openclaw/workspace/scripts/harness/report_postflight.py --market hk --phase {phase} --context-id {Step 1 的 context_id} --text-file /root/.openclaw/workspace/memory/.tmp/report-prose-hk-{phase}.md
@@ -224,7 +232,9 @@ python3 /root/.openclaw/workspace/scripts/harness/report_postflight.py --market 
 - 不用 `message` 工具 — 微信由 Step 3 的 `report_postflight` fresh-token 主发（cron `--no-deliver`），手动再调会和 postflight 双发；本回合回复文本仅存档
 - 不简单复述数字，必须做模型自己的解读
 - 异动票（anomalies 字段）**必须在报告里被提到**（postflight 强制）
-- 目标 ≤2200 字；>3000 字 postflight warn，>3500 字 fail
+- 散文目标/上限以 context 的 `size_budget.prose_target_chars` /
+  `size_budget.prose_soft_limit_chars` 为准；
+  拼装全文 >3000 字 postflight warn，>3500 字 fail
 
 ### Mode 5 — Sentiment / 情绪面 Read
 **When:** "市场怎么看 X" / "雪球怎么聊 00100" / "港股情绪" / before sizing
