@@ -1,6 +1,7 @@
 {
   "site_url": "https://kcnyu.github.io/clawock",
   "browser_data": [
+    "assets/data/overview.json",
     "assets/data/dashboard.json",
     "assets/data/macro.json",
     "assets/data/sentiment.json",
@@ -19,6 +20,7 @@
     "sitemap.xml",
     "manifest.webmanifest",
     "assets/css/dashboard.css",
+    "assets/data/overview.json",
     "assets/js/dashboard.core.js",
     "assets/js/dashboard.charts.js",
     "assets/js/dashboard.hero.js",

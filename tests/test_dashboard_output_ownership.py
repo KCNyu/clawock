@@ -1,4 +1,4 @@
-"""One build, three public outputs, one semantic publication contract."""
+"""One build, four public outputs, one semantic publication contract."""
 import json
 import subprocess
 import sys
@@ -12,6 +12,7 @@ import dashboard_outputs  # noqa: E402
 
 
 EXPECTED = {
+    "assets/data/overview.json",
     "assets/data/dashboard.json",
     "assets/data/decision_audit.json",
     "assets/data/shadow_portfolio.json",
@@ -38,6 +39,12 @@ def _repo(tmp_path):
     _git(tmp_path, "config", "user.name", "test")
     _git(tmp_path, "config", "user.email", "test@example.com")
     values = {
+        "assets/data/overview.json": {
+            "schema_version": 1,
+            "generation_id": "old",
+            "generated_at": "old",
+            "book": {"value": 10},
+        },
         "assets/data/dashboard.json": {
             "generated_at": "old",
             "freshness": {"age_hours": 1, "days_behind": 0, "stale": False},
@@ -62,6 +69,12 @@ def _repo(tmp_path):
 def test_clock_only_rebuild_is_restored_instead_of_published(tmp_path):
     original = _repo(tmp_path)
     rebuilt = {
+        "assets/data/overview.json": {
+            "schema_version": 1,
+            "generation_id": "new",
+            "generated_at": "new",
+            "book": {"value": 10},
+        },
         "assets/data/dashboard.json": {
             "generated_at": "new",
             "freshness": {"age_hours": 9, "days_behind": 3, "stale": False},

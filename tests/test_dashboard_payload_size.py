@@ -1,9 +1,8 @@
-"""dashboard.json is a first-paint payload, not an archive.
+"""dashboard.json is a bounded cross-tab payload, not an archive.
 
-Every visitor downloads it before anything renders, so a block nobody reads is a
-tax on every page load. Two regressions had crept in: the leverage dial shipped
-twice in one document, and 27KB of calibrator posterior state shipped with no
-consumer at all.
+Detail visitors download it, so a block nobody reads still taxes activation.
+Two historical regressions had crept in: the leverage dial shipped twice in one
+document, and 27KB of calibrator posterior state shipped with no consumer at all.
 """
 import json
 import subprocess
@@ -15,6 +14,7 @@ import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
 DASHBOARD = ROOT / "assets" / "data" / "dashboard.json"
+OVERVIEW = ROOT / "assets" / "data" / "overview.json"
 # Bytes, not characters — the unit build_dashboard's MAX_OUT_BYTES and
 # system_check both use, and the only one a visitor actually downloads. This
 # file used to measure `len(read_text())`, and because the payload is heavily
@@ -43,6 +43,18 @@ def _published_size():
 def test_payload_stays_under_the_published_cap():
     size = _published_size()
     assert size < SIZE_CAP, f"{size:,} bytes; trim or move detail to a sidecar"
+
+
+def test_overview_projection_keeps_canonical_money_health_and_generation_parity():
+    full = json.loads(DASHBOARD.read_text())
+    overview = json.loads(OVERVIEW.read_text())
+
+    assert overview["schema_version"] == 1
+    assert overview["projection"] == "overview"
+    assert overview["generation_id"] == full["generated_at"]
+    for field in ("generated_at", "fx", "totals", "build_status"):
+        assert overview[field] == full[field]
+    assert len(OVERVIEW.read_bytes()) < 80_000
 
 
 def test_the_cap_is_measured_in_the_same_unit_the_builder_enforces():

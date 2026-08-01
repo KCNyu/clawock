@@ -15,7 +15,9 @@
     if (!wl || typeof wl !== "object" || !Object.keys(wl).length) return { date: null, rows: [] };
 
     const hmap = {};
-    flatHoldings().forEach(h => { if (h.ticker) hmap[String(h.ticker).toUpperCase()] = h; });
+    const watchHoldings = safe(DATA, "watch_holdings");
+    (Array.isArray(watchHoldings) ? watchHoldings : flatHoldings())
+      .forEach(h => { if (h.ticker) hmap[String(h.ticker).toUpperCase()] = h; });
     const idx = safe(DATA, "indices") || {};
     const hkTot = safe(DATA, "totals", "hk") || {};
     const LABELS = { stop:"止损", support:"支撑", breakdown:"破位", target:"目标",
@@ -75,8 +77,21 @@
     return { date: latest.date || null, rows };
   }
 
-  // A. Hero top "今日要点" triage strip — pure synthesis of data already in
-  // dashboard.json (no new fetch). Answers "what should I look at today" in 5s.
+  function decisionDeltaSummary() {
+    const summary = safe(DATA, "decision_delta_summary");
+    if (summary) return summary;
+    const delta = safe(DATA, "decision_delta") || {};
+    return {
+      new_count: (delta.new || []).length,
+      changed_count: (delta.changed || []).length,
+      triggered_count: (delta.triggered || []).length,
+      active_overrides_count: (delta.active_overrides || []).length,
+      has_material_change: !!delta.has_material_change,
+    };
+  }
+
+  // A. Hero top "今日要点" triage strip — pure synthesis of the compiled
+  // Overview projection. Answers "what should I look at today" in 5s.
   function renderTodayHighlights() {
     const el = document.getElementById("today-highlights");
     if (!el) return;
@@ -95,10 +110,10 @@
 
     // What changed since the previous decision set. Counts are dynamic and come
     // from the canonical delta payload; no live number is baked into static copy.
-    const dd = safe(DATA, "decision_delta") || {};
-    const changedN = (dd.changed || []).length;
-    const newN = (dd.new || []).length;
-    const triggeredN = (dd.triggered || []).length;
+    const dd = decisionDeltaSummary();
+    const changedN = dd.changed_count || 0;
+    const newN = dd.new_count || 0;
+    const triggeredN = dd.triggered_count || 0;
     if (dd.has_material_change || changedN || newN || triggeredN) {
       chips.push({
         cls: triggeredN ? "hl-alert" : "hl-info",
@@ -170,7 +185,7 @@
     if (!card || !el) return;
     card.classList.remove("is-pending");
     const metrics = safe(DATA, "decision_metrics") || {};
-    const delta = safe(DATA, "decision_delta") || {};
+    const delta = decisionDeltaSummary();
     const dm = safe(DATA, "debate_metrics");
     const drv = metrics.by_driver || {};
     if (!metrics.raw_decisions) { card.style.display = "none"; return; }
@@ -191,7 +206,7 @@
     if (active.capital_weighted_benefit_pct != null)
       rows.push(row("资金加权平均方向分", `${active.capital_weighted_benefit_pct >= 0 ? "+" : ""}${active.capital_weighted_benefit_pct.toFixed(2)}%`,
         active.capital_weighted_benefit_pct >= 0 ? "var(--green)" : "var(--red)"));
-    rows.push(row("今日决策变化", `新增 ${(delta.new || []).length} · 修改 ${(delta.changed || []).length} · 触发 ${(delta.triggered || []).length} · override ${(delta.active_overrides || []).length}`, "var(--text-dim)"));
+    rows.push(row("今日决策变化", `新增 ${delta.new_count || 0} · 修改 ${delta.changed_count || 0} · 触发 ${delta.triggered_count || 0} · override ${delta.active_overrides_count || 0}`, "var(--text-dim)"));
     if (dm && dm.decisiveness_pct != null)
       rows.push(row("辩论决断率", `${dm.decisiveness_pct}% · 其余=默认 HOLD`, "var(--text-dim)"));
     const fe = [];

@@ -199,6 +199,42 @@
   const SIDECAR_STATE = new Map();
   let TAB_ACTIVATION_VERSION = 0;
   let DETAIL_RENDERERS_PROMISE = null;
+  let OVERVIEW_DATA = null;
+  let FULL_DASHBOARD = null;
+  let FULL_DASHBOARD_INFLIGHT = null;
+
+  function _generation(value) {
+    return value && (value.generation_id || value.generated_at);
+  }
+
+  function _loadFullDashboard(generation, triggeredByUser = false) {
+    if (_generation(FULL_DASHBOARD) === generation) return Promise.resolve(FULL_DASHBOARD);
+    if (FULL_DASHBOARD_INFLIGHT?.generation === generation) {
+      return FULL_DASHBOARD_INFLIGHT.promise;
+    }
+    const fetchGeneration = async retry => {
+      const bust = triggeredByUser || retry ? "?t=" + Date.now() : "";
+      const response = await fetch("assets/data/dashboard.json" + bust, {
+        cache: triggeredByUser || retry ? "no-store" : "no-cache",
+      });
+      if (!response.ok) throw new Error("dashboard HTTP " + response.status);
+      const value = await response.json();
+      if (_generation(value) !== generation) {
+        if (!retry) return fetchGeneration(true);
+        throw new Error(
+          `dashboard generation mismatch: wanted ${generation}, got ${_generation(value)}`);
+      }
+      // A slower request for the previous Overview generation must not replace
+      // the cache after a newer poll has already become canonical.
+      if (_generation(OVERVIEW_DATA) === generation) FULL_DASHBOARD = value;
+      return value;
+    };
+    const promise = fetchGeneration(false).finally(() => {
+      if (FULL_DASHBOARD_INFLIGHT?.promise === promise) FULL_DASHBOARD_INFLIGHT = null;
+    });
+    FULL_DASHBOARD_INFLIGHT = { generation, promise };
+    return promise;
+  }
 
   function _loadTabRuntime(t) {
     if (t === "hero" || hasTabRenderer(t)) return Promise.resolve();
@@ -303,14 +339,28 @@
     });
     const panel = document.querySelector(`.panel[data-panel="${t}"]`);
     const needsRuntime = !hasTabRenderer(t);
-    if ((needsFetch || needsRuntime) && panel) panel.setAttribute("aria-busy", "true");
-    if (!needsFetch && !needsRuntime) {
+    const generation = _generation(OVERVIEW_DATA || DATA);
+    const needsFull = t !== "hero" && _generation(FULL_DASHBOARD) !== generation;
+    const applyCore = () => {
+      if (t === "hero" && OVERVIEW_DATA) DATA = OVERVIEW_DATA;
+      else if (t !== "hero" && FULL_DASHBOARD) DATA = FULL_DASHBOARD;
+    };
+    if ((needsFetch || needsRuntime || needsFull) && panel) {
+      panel.setAttribute("aria-busy", "true");
+    }
+    if (!needsFetch && !needsRuntime && !needsFull) {
+      applyCore();
       _paintActivatedTab(t);
       return;
     }
-    Promise.all([_loadTabRuntime(t), _loadTabSidecars(t)])
+    Promise.all([
+      _loadTabRuntime(t),
+      needsFull ? _loadFullDashboard(generation) : Promise.resolve(FULL_DASHBOARD),
+      _loadTabSidecars(t),
+    ])
       .then(() => {
         if (version !== TAB_ACTIVATION_VERSION || !DATA || currentTab() !== t) return;
+        applyCore();
         _applySidecars(DATA);
         _paintActivatedTab(t);
       })
@@ -347,42 +397,48 @@
     if (btn) btn.classList.add("is-loading");
     if (triggeredByUser && btn) btn.setAttribute("disabled", "true");
     try {
-      // Auto-polls revalidate via ETag/Last-Modified (`no-cache` → conditional GET,
-      // 304 when unchanged = headers-only on mobile data instead of ~113KB/min).
+      // Auto-polls revalidate the small Overview projection via ETag/Last-Modified.
+      // The full cross-tab document is fetched only at the detail consumer boundary.
       // A user-initiated refresh keeps the old cache-buster so it ALWAYS punches
       // through stale intermediary caches (WeChat webview / carrier proxies).
       const url = triggeredByUser
-        ? "assets/data/dashboard.json?t=" + Date.now()
-        : "assets/data/dashboard.json";
+        ? "assets/data/overview.json?t=" + Date.now()
+        : "assets/data/overview.json";
       const res = await fetch(url, { cache: triggeredByUser ? "no-store" : "no-cache" });
       if (!res.ok) throw new Error("HTTP " + res.status);
       const json = await res.json();
+      if (json.schema_version !== 1 || json.projection !== "overview" ||
+          !_generation(json)) {
+        throw new Error("invalid Overview projection envelope");
+      }
+      const newAt = _generation(json);
+      const firstLoad = OVERVIEW_DATA == null;
+      const hasNew = newAt && newAt !== LAST_LOADED_AT;
+      OVERVIEW_DATA = json;
       // Tab activation is the only sidecar consumer boundary. A normal Hero
-      // landing therefore makes no sidecar requests; a deep link waits for its
-      // mapped dependencies before the first render. Later polls retain the
-      // last good inactive-tab values, mark them stale, and revalidate only the
-      // active tab. The next activation refreshes any inactive stale tab.
+      // landing therefore makes no full-dashboard or sidecar requests; a deep
+      // link waits for one generation-compatible full document and its mapped
+      // dependencies before the first render.
       let landing = currentTab();
-      const firstLoad = DATA == null;
-      if (firstLoad) {
-        // A user can click/swipe while dashboard.json is in flight. Keep the
+      if (!firstLoad) _markLoadedSidecarsStale();
+      if (firstLoad || hasNew) {
+        // A user can click/swipe while projection dependencies are in flight. Keep the
         // first paint complete for whichever tab is actually visible when its
         // dependencies finish, rather than rendering a partial new landing tab.
         do {
           landing = currentTab();
           await Promise.all([
             _loadTabRuntime(landing),
+            landing === "hero"
+              ? Promise.resolve(json)
+              : _loadFullDashboard(newAt, triggeredByUser),
             _loadTabSidecars(landing, triggeredByUser),
           ]);
         } while (currentTab() !== landing);
-      } else {
-        _markLoadedSidecarsStale();
       }
-      const newAt = json.generated_at;
-      const hasNew = newAt && newAt !== LAST_LOADED_AT;
       if (firstLoad || hasNew) {
-        _applySidecars(json);
-        DATA = json;
+        DATA = landing === "hero" ? json : FULL_DASHBOARD;
+        _applySidecars(DATA);
         render();
       }
       // An unchanged generation still updates relative-time copy and refresh
@@ -418,7 +474,7 @@
       }
       LAST_LOADED_AT = newAt;
     } catch (e) {
-      console.error("Failed to load dashboard.json:", e);
+      console.error("Failed to load Overview projection:", e);
       document.getElementById("last-updated").textContent = "load failed";
       if (btn) {
         btn.classList.remove("is-loading");
@@ -428,7 +484,7 @@
   }
 
   function _scheduleAutoRefresh() {
-    // Re-pull dashboard.json every 60 s in the background so the user doesn't
+    // Re-pull overview.json every 60 s in the background so the user doesn't
     // have to keep clicking. Pauses while the tab is hidden to be polite.
     if (AUTO_REFRESH_TIMER) clearInterval(AUTO_REFRESH_TIMER);
     AUTO_REFRESH_TIMER = setInterval(() => {

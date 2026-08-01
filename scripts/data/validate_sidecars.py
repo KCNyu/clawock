@@ -16,6 +16,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 DASHBOARD_MAX_BYTES = 200_000
+OVERVIEW_MAX_BYTES = 80_000
 DASHBOARD_MONEY_INTEGRITY_CODES = frozenset({
     'VALUE_LEG', 'TCV_SUM', 'COST_TOTAL', 'PNL_TOTAL', 'PNL_PCT',
     'PNL_LEG', 'TODAY_LEG', 'TODAY_TOTAL', 'CASH_RECON', 'CASH_SANITY',
@@ -791,8 +792,9 @@ def _assert_dashboard_money_reconciles(
 def validate_dashboard(
         path: Path | str = 'assets/data/dashboard.json', *,
         portfolio_path: Path | str | None = None,
-        fx_path: Path | str | None = None) -> None:
-    """Validate the committed, public first-paint dashboard payload.
+        fx_path: Path | str | None = None,
+        overview_path: Path | str | None = None) -> None:
+    """Validate the committed, public full cross-tab dashboard payload.
 
     This intentionally uses only the standard library so a dashboard-only push
     can fail closed on a stock GitHub runner without installing the full test
@@ -810,7 +812,7 @@ def validate_dashboard(
     size = path.stat().st_size
     assert size < DASHBOARD_MAX_BYTES, (
         f'{size:,} bytes exceeds the {DASHBOARD_MAX_BYTES:,}-byte '
-        'first-paint cap')
+        'full dashboard cap')
     try:
         data = json.loads(raw)
     except json.JSONDecodeError as exc:
@@ -877,6 +879,24 @@ def validate_dashboard(
 
     if portfolio_path is not None:
         _assert_dashboard_money_reconciles(data, portfolio_path, fx_path)
+
+    if overview_path is not None:
+        overview_path = Path(overview_path)
+        assert overview_path.is_file(), f'Overview projection missing: {overview_path}'
+        assert overview_path.stat().st_size < OVERVIEW_MAX_BYTES, (
+            f'{overview_path.stat().st_size:,} bytes exceeds the '
+            f'{OVERVIEW_MAX_BYTES:,}-byte Overview cap')
+        overview = json.loads(overview_path.read_text(encoding='utf-8'))
+        assert overview.get('schema_version') == 1, 'Overview schema_version must be 1'
+        assert overview.get('projection') == 'overview', 'Overview projection kind invalid'
+        assert overview.get('generation_id') == data['generated_at'], (
+            'Overview/full dashboard generation mismatch')
+        for field in ('generated_at', 'fx', 'totals', 'build_status'):
+            assert overview.get(field) == data.get(field), (
+                f'Overview {field} drifted from canonical dashboard')
+        assert isinstance(overview.get('overview_equity'), list), (
+            'Overview equity projection must be a list')
+        assert overview['overview_equity'], 'Overview equity projection is empty'
 
     suffix = ' + money reconciliation' if portfolio_path is not None else ''
     print(f'dashboard structural validation{suffix} OK: {path}')
@@ -952,6 +972,7 @@ def _dispatch(name: str) -> None:
             'assets/data/dashboard.json',
             portfolio_path='portfolio.json',
             fx_path='.cache/fx_rate.json',
+            overview_path='assets/data/overview.json',
         )
     elif name == 'coverage':
         validate_coverage_badge('assets/data/coverage.json')
