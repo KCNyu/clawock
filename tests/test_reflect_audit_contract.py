@@ -16,6 +16,9 @@ BUILD = (ROOT / "scripts" / "data" / "build_dashboard.py").read_text()
 HARNESS_WORKFLOW = (
     ROOT / ".github" / "workflows" / "harness-regression.yml"
 ).read_text()
+SIDECAR_VALIDATORS = (
+    ROOT / "scripts" / "data" / "validate_sidecars.py"
+).read_text()
 
 
 def test_reflect_loads_audit_as_sidecar_and_not_dashboard_field():
@@ -56,8 +59,12 @@ def test_remote_rebuild_gate_validates_the_new_payload_boundary():
     gate = HARNESS_WORKFLOW.split(
         "- name: Rebuild dashboard.json and validate", 1
     )[1].split("- name: Run build_dashboard sanity", 1)[0]
+    dashboard_validator = SIDECAR_VALIDATORS.split(
+        'def validate_dashboard', 1
+    )[1].split('def validate_coverage_badge', 1)[0]
     assert "assets/data/decision_audit.json" in gate
-    assert "'episode_backtest' not in d" in gate
+    assert "validate_sidecars.py dashboard" in gate
+    assert "'episode_backtest' not in data" in dashboard_validator
     assert "audit.get('episode_backtest'" in gate
 
 

@@ -51,8 +51,10 @@ def test_the_cap_is_measured_in_the_same_unit_the_builder_enforces():
     content is non-ASCII — which this payload has always been."""
     sys.path.insert(0, str(ROOT / "scripts" / "data"))
     import build_dashboard
+    import validate_sidecars
 
     assert SIZE_CAP == build_dashboard.MAX_OUT_BYTES
+    assert SIZE_CAP == validate_sidecars.DASHBOARD_MAX_BYTES
 
     # The payload is CJK-heavy, so the two units are ~5% apart. Pinning the
     # gate's measurement to the byte count is what stops anyone quietly putting

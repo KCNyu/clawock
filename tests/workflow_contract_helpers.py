@@ -3,9 +3,23 @@ from __future__ import annotations
 
 import textwrap
 from pathlib import Path
+import re
 
 
 VALIDATOR_COMMAND = 'python3 scripts/data/validate_sidecars.py'
+
+
+def push_paths(workflow: Path) -> list[str]:
+    text = workflow.read_text(encoding='utf-8')
+    block = text.split('    paths:', 1)[1].split('\n  pull_request:', 1)[0]
+    return re.findall(r"^\s*-\s*'([^']+)'", block, re.MULTILINE)
+
+
+def case_patterns(workflow: Path, step_name: str = 'Detect code changes') -> list[str]:
+    detect = workflow.read_text(encoding='utf-8').split(step_name, 1)[1]
+    line = next(ln for ln in detect.splitlines()
+                if ln.strip().endswith(')') and '|' in ln)
+    return line.strip().rstrip(')').split('|')
 
 
 def steps(workflow: Path):

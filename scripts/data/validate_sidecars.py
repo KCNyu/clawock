@@ -15,6 +15,12 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[2]
+DASHBOARD_MAX_BYTES = 200_000
+DASHBOARD_MONEY_INTEGRITY_CODES = frozenset({
+    'VALUE_LEG', 'TCV_SUM', 'COST_TOTAL', 'PNL_TOTAL', 'PNL_PCT',
+    'PNL_LEG', 'TODAY_LEG', 'TODAY_TOTAL', 'CASH_RECON', 'CASH_SANITY',
+    'REALIZED_SUM', 'COST_BASIS', 'FX_TAG', 'TRUE_PRINCIPAL', 'GOLD_RECON',
+})
 
 
 def validate_macro(path: Path | str, *, now: datetime | None = None) -> None:
@@ -621,6 +627,261 @@ def validate_gif(path: Path | str = 'assets/dashboard.gif') -> None:
     print(f'validated {path}: {size} bytes, {width}x{height}, {frames} frames')
 
 
+def _assert_dashboard_money_reconciles(
+        data: dict, portfolio_path: Path | str,
+        fx_path: Path | str | None = None) -> None:
+    """Reconcile public first-paint money against the canonical source book."""
+    portfolio_path = Path(portfolio_path)
+    assert portfolio_path.is_file(), f'portfolio missing: {portfolio_path}'
+    try:
+        portfolio = json.loads(portfolio_path.read_text(encoding='utf-8'))
+    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+        raise AssertionError(f'portfolio is not valid JSON/UTF-8: {exc}') from None
+
+    # Reuse the same conservation rules that protect local pre-push and brief
+    # generation. Only arithmetic/accounting findings are fatal here; quote
+    # freshness and market-data advisories remain visible in the dashboard.
+    try:
+        from scripts.data import preflight_integrity
+    except ImportError:  # direct script execution from scripts/data
+        import preflight_integrity  # type: ignore
+    report = preflight_integrity.check(portfolio_path)
+    money_findings = [
+        finding for finding in report['findings']
+        if finding.get('code') in DASHBOARD_MONEY_INTEGRITY_CODES
+    ]
+    assert not money_findings, (
+        'portfolio money integrity failed: '
+        + '; '.join(f"{finding['code']} {finding['msg']}"
+                    for finding in money_findings[:6]))
+
+    def finite(value):
+        return (isinstance(value, (int, float))
+                and not isinstance(value, bool) and math.isfinite(value))
+
+    def same_number(actual, expected, label, tolerance=0.005):
+        assert finite(actual), f'{label} must be a finite number'
+        assert finite(expected), f'portfolio source for {label} must be a finite number'
+        assert abs(actual - expected) <= tolerance, (
+            f'{label}={actual} does not reconcile to portfolio.json={expected}')
+
+    def same_optional_number(actual, expected, label, tolerance=0.005):
+        if expected is None:
+            assert actual is None, (
+                f'{label}={actual} does not reconcile to portfolio.json=null')
+            return
+        same_number(actual, expected, label, tolerance)
+
+    regions = {
+        'us': ('us_stocks', 'USD', {
+            'value_usd': 'total_current_value',
+            'cost_usd': 'total_cost',
+            'pnl_usd': 'total_pnl',
+            'pnl_pct': 'total_pnl_percent',
+            'today_change_usd': 'today_total_change',
+            'realized_usd': 'realized_pnl',
+            'cash_usd': 'cash_usd',
+        }),
+        'hk': ('hk_stocks', 'HKD', {
+            'value_hkd': 'total_current_value',
+            'cost_hkd': 'total_cost',
+            'pnl_hkd': 'total_pnl',
+            'pnl_pct': 'total_pnl_percent',
+            'today_change_hkd': 'today_total_change',
+            'realized_hkd': 'realized_pnl',
+            'cash_hkd': 'cash_hkd',
+        }),
+    }
+    holding_fields = {
+        'shares': ('shares', None),
+        'cost_basis': ('cost_basis', 4),
+        'current_price': ('current_price', 4),
+        'current_value': ('current_value', 2),
+        'today_change': ('today_change', 2),
+        'today_change_pct': ('today_change_pct', 2),
+        'day_high': ('day_high', 4),
+        'day_low': ('day_low', 4),
+        'pnl_abs': ('pnl_abs', 2),
+        'pnl_percent': ('pnl_percent', 2),
+    }
+
+    for leg, (region, currency, total_fields) in regions.items():
+        source_leg = portfolio.get('portfolios', {}).get(region)
+        assert isinstance(source_leg, dict), f'portfolio missing {region}'
+        for public_field, source_field in total_fields.items():
+            same_optional_number(
+                data['totals'][leg].get(public_field),
+                source_leg.get(source_field),
+                f'totals.{leg}.{public_field}',
+            )
+
+        source_rows = {
+            row.get('ticker') or row.get('code'): row
+            for row in source_leg.get('holdings', [])
+            if isinstance(row, dict) and (row.get('shares') or 0) > 0
+        }
+        public_rows = data['holdings'][leg]
+        public_by_ticker = {
+            row.get('ticker'): row for row in public_rows if isinstance(row, dict)
+        }
+        assert len(public_by_ticker) == len(public_rows), (
+            f'holdings.{leg} has duplicate or malformed tickers')
+        assert set(public_by_ticker) == set(source_rows), (
+            f'holdings.{leg} ticker coverage mismatch: '
+            f'missing={sorted(set(source_rows) - set(public_by_ticker))}, '
+            f'extra={sorted(set(public_by_ticker) - set(source_rows))}')
+
+        for ticker, source in source_rows.items():
+            public = public_by_ticker[ticker]
+            expected_name = source.get('name') or source.get('stock_name', '')
+            assert public.get('name') == expected_name, (
+                f'holdings.{leg}.{ticker}.name does not reconcile')
+            assert public.get('currency') == currency, (
+                f'holdings.{leg}.{ticker}.currency must be {currency}')
+            assert public.get('is_active') is True, (
+                f'holdings.{leg}.{ticker}.is_active must be true')
+            assert public.get('trades_count') == len(source.get('trades') or []), (
+                f'holdings.{leg}.{ticker}.trades_count does not reconcile')
+            for public_field, (source_field, places) in holding_fields.items():
+                source_value = source.get(source_field)
+                expected = source_value if places is None else round(source_value or 0, places)
+                tolerance = 1e-9 if places is None else 0.5 * (10 ** -places)
+                same_number(
+                    public.get(public_field), expected,
+                    f'holdings.{leg}.{ticker}.{public_field}', tolerance,
+                )
+
+        # Recompute the public concentration card from the public holding rows.
+        positive = [row for row in public_rows if row.get('current_value', 0) > 0]
+        total = sum(row['current_value'] for row in positive)
+        positions = [{
+            'ticker': row['ticker'],
+            'name': row['name'],
+            'value': row['current_value'],
+            'weight': round(row['current_value'] / total, 4),
+        } for row in positive] if total > 0 else []
+        positions.sort(key=lambda row: -row['weight'])
+        expected_hhi = round(sum(row['weight'] ** 2 for row in positions), 4)
+        expected_top2 = round(sum(row['weight'] for row in positions[:2]), 4)
+        concentration = data['concentration'][leg]
+        same_number(concentration.get('total'), round(total, 2),
+                    f'concentration.{leg}.total')
+        same_number(concentration.get('hhi'), expected_hhi,
+                    f'concentration.{leg}.hhi', 0.00005)
+        same_number(concentration.get('top2'), expected_top2,
+                    f'concentration.{leg}.top2', 0.00005)
+        assert concentration.get('positions') == positions, (
+            f'concentration.{leg}.positions do not reconcile to holdings.{leg}')
+
+    fx_rate = data['fx'].get('usdhkd')
+    fx_source_available = fx_path is not None and Path(fx_path).is_file()
+    if fx_rate is not None:
+        assert finite(fx_rate) and fx_rate > 0, (
+            'fx.usdhkd must be null or a positive finite number')
+    if fx_source_available:
+        fx_source = json.loads(Path(fx_path).read_text(encoding='utf-8'))
+        same_number(fx_rate, fx_source.get('rate'), 'fx.usdhkd', 0.00005)
+
+    embedded = (data.get('build_status') or {}).get('integrity')
+    assert isinstance(embedded, dict), 'build_status.integrity missing'
+    assert embedded.get('ok') is True and embedded.get('error_count') == 0, (
+        'build_status.integrity is not clean')
+
+
+def validate_dashboard(
+        path: Path | str = 'assets/data/dashboard.json', *,
+        portfolio_path: Path | str | None = None,
+        fx_path: Path | str | None = None) -> None:
+    """Validate the committed, public first-paint dashboard payload.
+
+    This intentionally uses only the standard library so a dashboard-only push
+    can fail closed on a stock GitHub runner without installing the full test
+    environment. Freshness is schedule-aware in the UI and is not a schema
+    property, so this gate validates the timestamp but does not compare it with
+    wall-clock time.
+    """
+    path = Path(path)
+    assert path.is_file(), f'dashboard payload missing: {path}'
+    try:
+        raw = path.read_text(encoding='utf-8')
+    except UnicodeDecodeError:
+        raise AssertionError('file is not valid UTF-8') from None
+    assert raw.strip(), 'file is empty'
+    size = path.stat().st_size
+    assert size < DASHBOARD_MAX_BYTES, (
+        f'{size:,} bytes exceeds the {DASHBOARD_MAX_BYTES:,}-byte '
+        'first-paint cap')
+    try:
+        data = json.loads(raw)
+    except json.JSONDecodeError as exc:
+        raise AssertionError(
+            f'invalid JSON at line {exc.lineno} column {exc.colno}') from None
+    assert isinstance(data, dict), 'top-level JSON must be an object'
+
+    required = (
+        'generated_at', 'fx', 'totals', 'concentration', 'holdings',
+        'snapshots', 'decision_metrics', 'decision_delta',
+    )
+    missing = [key for key in required if key not in data]
+    assert not missing, f'missing keys: {missing}'
+    assert 'episode_backtest' not in data, (
+        'Reflect backtest leaked into first-paint payload')
+
+    generated_at = data['generated_at']
+    assert isinstance(generated_at, str), 'generated_at missing'
+    try:
+        datetime.fromisoformat(generated_at.replace('Z', '+00:00'))
+    except ValueError:
+        raise AssertionError(
+            'generated_at is not a valid ISO timestamp') from None
+
+    assert isinstance(data['fx'], dict), 'fx must be an object'
+    assert isinstance(data['totals'], dict), 'totals must be an object'
+    assert isinstance(data['holdings'], dict), 'holdings must be an object'
+    assert isinstance(data['concentration'], dict), (
+        'concentration must be an object')
+    assert isinstance(data['snapshots'], list), 'snapshots must be a list'
+    assert data['snapshots'], 'snapshots is empty — dashboard would render blank'
+    assert isinstance(data['decision_metrics'], dict), (
+        'decision_metrics must be an object')
+    assert isinstance(data['decision_delta'], dict), (
+        'decision_delta must be an object')
+
+    def finite_number(value):
+        return (isinstance(value, (int, float))
+                and not isinstance(value, bool) and math.isfinite(value))
+
+    allowed_levels = {'healthy', 'moderate', 'concentrated', 'danger'}
+    for leg in ('us', 'hk'):
+        assert isinstance(data['totals'].get(leg), dict), (
+            f'totals.{leg} must be an object')
+        assert isinstance(data['holdings'].get(leg), list), (
+            f'holdings.{leg} must be a list')
+        concentration = data['concentration'].get(leg)
+        assert isinstance(concentration, dict), (
+            f'concentration.{leg} must be an object')
+        required_concentration = {'hhi', 'top2', 'positions', 'total', 'verdict'}
+        missing_concentration = sorted(required_concentration - concentration.keys())
+        assert not missing_concentration, (
+            f'concentration.{leg} missing keys: {missing_concentration}')
+        for field in ('hhi', 'top2', 'total'):
+            assert finite_number(concentration[field]), (
+                f'concentration.{leg}.{field} must be a finite number')
+        assert isinstance(concentration['positions'], list), (
+            f'concentration.{leg}.positions must be a list')
+        verdict = concentration['verdict']
+        assert isinstance(verdict, dict), (
+            f'concentration.{leg}.verdict must be an object')
+        assert verdict.get('level') in allowed_levels, (
+            f'concentration.{leg} has invalid verdict level')
+
+    if portfolio_path is not None:
+        _assert_dashboard_money_reconciles(data, portfolio_path, fx_path)
+
+    suffix = ' + money reconciliation' if portfolio_path is not None else ''
+    print(f'dashboard structural validation{suffix} OK: {path}')
+
+
 def validate_coverage_badge(path: Path | str = 'assets/data/coverage.json') -> None:
     """The README badge is rendered by shields.io straight from this file.
 
@@ -686,12 +947,18 @@ def _dispatch(name: str) -> None:
         ))
     elif name == 'gif':
         validate_gif('assets/dashboard.gif')
+    elif name == 'dashboard':
+        validate_dashboard(
+            'assets/data/dashboard.json',
+            portfolio_path='portfolio.json',
+            fx_path='.cache/fx_rate.json',
+        )
     elif name == 'coverage':
         validate_coverage_badge('assets/data/coverage.json')
     else:
         choices = ('macro', 'sentiment', 'influencer', 'news-digest',
                    'eod-archive', 'weekly-review', 'screenshots', 'gif',
-                   'coverage')
+                   'dashboard', 'coverage')
         raise SystemExit(f'unknown validator {name!r}; choose one of: {", ".join(choices)}')
 
 
@@ -714,6 +981,7 @@ def main(argv: list[str] | None = None) -> int:
             'weekly-review': 'weekly review',
             'screenshots': 'screenshots',
             'gif': 'GIF assets/dashboard.gif',
+            'dashboard': 'dashboard payload assets/data/dashboard.json',
             'coverage': 'coverage badge assets/data/coverage.json',
         }
         label = failure_labels.get(argv[0], argv[0])
