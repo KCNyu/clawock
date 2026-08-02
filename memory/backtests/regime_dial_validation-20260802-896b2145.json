@@ -1,0 +1,375 @@
+{
+  "schema_version": 1,
+  "run_id": "regime_dial_validation-20260802-896b2145",
+  "backtest": "regime_dial_validation",
+  "generated_at": "2026-08-02T05:58:57+00:00",
+  "git_commit": "18a0e7d0",
+  "reproduction_key": "sha256:896b21453c34d0b3",
+  "params": {
+    "folds": 4,
+    "permutations": 2000,
+    "ma_grid": [
+      100,
+      150,
+      200,
+      250
+    ],
+    "vol_cap_grid": [
+      0.4,
+      0.5,
+      0.6,
+      0.7
+    ],
+    "production": {
+      "ma": 200,
+      "vol_cap": 0.5,
+      "vol_window": 20
+    },
+    "base_leverage": 2.0,
+    "tier_mult": {
+      "green": 1.0,
+      "amber": 0.5,
+      "red": 0.0
+    }
+  },
+  "inputs": [
+    {
+      "symbol": "hkHSTECH",
+      "source": "tencent kline (day, unadjusted)",
+      "bars": 1370,
+      "first_session": "2021-01-04",
+      "last_session": "2026-07-31",
+      "digest": "sha256:3715c002b9d71428"
+    }
+  ],
+  "code": [
+    {
+      "file": "validate_regime_dial.py",
+      "digest": "sha256:6abe837747d67548"
+    },
+    {
+      "file": "compute_regime.py",
+      "digest": "sha256:0d55c686b98f39f1"
+    }
+  ],
+  "metrics": {
+    "in_sample": {
+      "n_sessions": 1369,
+      "dial_total_return": -0.851718,
+      "hold_total_return": -0.859672,
+      "dial_max_drawdown": -0.916061,
+      "hold_max_drawdown": -0.95487,
+      "drawdown_improvement": 0.038809,
+      "return_improvement": 0.007954,
+      "pct_time_at_full_leverage": 30.53
+    },
+    "tier_distribution": {
+      "sessions": 1369,
+      "counts": {
+        "green": 418,
+        "amber": 814,
+        "red": 137
+      },
+      "pct": {
+        "green": 30.5,
+        "amber": 59.5,
+        "red": 10.0
+      }
+    },
+    "walk_forward": {
+      "folds": [
+        {
+          "fold": 1,
+          "train": [
+            "2021-01-04",
+            "2022-12-23"
+          ],
+          "test": [
+            "2022-12-28",
+            "2023-11-20"
+          ],
+          "chosen_ma": 250,
+          "chosen_vol_cap": 0.4,
+          "chosen_matches_production": false,
+          "out_of_sample": {
+            "n_sessions": 220,
+            "dial_total_return": -0.38083,
+            "hold_total_return": -0.113113,
+            "dial_max_drawdown": -0.500412,
+            "hold_max_drawdown": -0.476693,
+            "drawdown_improvement": -0.023719,
+            "return_improvement": -0.267717,
+            "pct_time_at_full_leverage": 40.45
+          },
+          "production_thresholds_out_of_sample": {
+            "n_sessions": 220,
+            "dial_total_return": -0.332677,
+            "hold_total_return": -0.113113,
+            "dial_max_drawdown": -0.509216,
+            "hold_max_drawdown": -0.476693,
+            "drawdown_improvement": -0.032523,
+            "return_improvement": -0.219564,
+            "pct_time_at_full_leverage": 49.55
+          }
+        },
+        {
+          "fold": 2,
+          "train": [
+            "2021-01-04",
+            "2023-11-20"
+          ],
+          "test": [
+            "2023-11-21",
+            "2024-10-15"
+          ],
+          "chosen_ma": 250,
+          "chosen_vol_cap": 0.7,
+          "chosen_matches_production": false,
+          "out_of_sample": {
+            "n_sessions": 220,
+            "dial_total_return": 0.187899,
+            "hold_total_return": 0.050456,
+            "dial_max_drawdown": -0.306064,
+            "hold_max_drawdown": -0.478468,
+            "drawdown_improvement": 0.172403,
+            "return_improvement": 0.137443,
+            "pct_time_at_full_leverage": 16.82
+          },
+          "production_thresholds_out_of_sample": {
+            "n_sessions": 220,
+            "dial_total_return": 0.215584,
+            "hold_total_return": 0.050456,
+            "dial_max_drawdown": -0.346774,
+            "hold_max_drawdown": -0.478468,
+            "drawdown_improvement": 0.131693,
+            "return_improvement": 0.165128,
+            "pct_time_at_full_leverage": 21.82
+          }
+        },
+        {
+          "fold": 3,
+          "train": [
+            "2021-01-04",
+            "2024-10-15"
+          ],
+          "test": [
+            "2024-10-16",
+            "2025-09-04"
+          ],
+          "chosen_ma": 250,
+          "chosen_vol_cap": 0.7,
+          "chosen_matches_production": false,
+          "out_of_sample": {
+            "n_sessions": 220,
+            "dial_total_return": 0.277667,
+            "hold_total_return": 0.383202,
+            "dial_max_drawdown": -0.505401,
+            "hold_max_drawdown": -0.505401,
+            "drawdown_improvement": 0.0,
+            "return_improvement": -0.105535,
+            "pct_time_at_full_leverage": 87.27
+          },
+          "production_thresholds_out_of_sample": {
+            "n_sessions": 220,
+            "dial_total_return": 0.199243,
+            "hold_total_return": 0.383202,
+            "dial_max_drawdown": -0.487525,
+            "hold_max_drawdown": -0.505401,
+            "drawdown_improvement": 0.017876,
+            "return_improvement": -0.183959,
+            "pct_time_at_full_leverage": 80.0
+          }
+        },
+        {
+          "fold": 4,
+          "train": [
+            "2021-01-04",
+            "2025-09-04"
+          ],
+          "test": [
+            "2025-09-05",
+            "2026-07-31"
+          ],
+          "chosen_ma": 250,
+          "chosen_vol_cap": 0.7,
+          "chosen_matches_production": false,
+          "out_of_sample": {
+            "n_sessions": 220,
+            "dial_total_return": -0.18494,
+            "hold_total_return": -0.303374,
+            "dial_max_drawdown": -0.49607,
+            "hold_max_drawdown": -0.616676,
+            "drawdown_improvement": 0.120606,
+            "return_improvement": 0.118434,
+            "pct_time_at_full_leverage": 45.0
+          },
+          "production_thresholds_out_of_sample": {
+            "n_sessions": 220,
+            "dial_total_return": -0.260415,
+            "hold_total_return": -0.303374,
+            "dial_max_drawdown": -0.542735,
+            "hold_max_drawdown": -0.616676,
+            "drawdown_improvement": 0.073942,
+            "return_improvement": 0.042959,
+            "pct_time_at_full_leverage": 38.64
+          }
+        }
+      ],
+      "n_folds": 4,
+      "folds_with_shallower_drawdown": 2,
+      "mean_drawdown_improvement": 0.067323,
+      "production_mean_drawdown_improvement": 0.047747,
+      "threshold_stability": "unstable"
+    },
+    "permutation": {
+      "permutations": 2000,
+      "observed_drawdown_improvement": 0.038809,
+      "observed_return_improvement": 0.007954,
+      "p_value_drawdown": 0.92454,
+      "p_value_return": 0.97001,
+      "null_drawdown_improvement_median": 0.102316,
+      "null_drawdown_improvement_p95": 0.305674,
+      "null": "circular shift of the exposure path against returns",
+      "observed_switches": 79,
+      "null_switch_counts": [
+        79
+      ]
+    },
+    "sensitivity": {
+      "grid": [
+        {
+          "ma": 250,
+          "vol_cap": 0.7,
+          "drawdown_improvement": 0.120731,
+          "return_improvement": 0.182179,
+          "dial_max_drawdown": -0.83414
+        },
+        {
+          "ma": 200,
+          "vol_cap": 0.7,
+          "drawdown_improvement": 0.104912,
+          "return_improvement": 0.110287,
+          "dial_max_drawdown": -0.849958
+        },
+        {
+          "ma": 250,
+          "vol_cap": 0.4,
+          "drawdown_improvement": 0.100717,
+          "return_improvement": 0.119214,
+          "dial_max_drawdown": -0.854153
+        },
+        {
+          "ma": 100,
+          "vol_cap": 0.7,
+          "drawdown_improvement": 0.099388,
+          "return_improvement": 0.074749,
+          "dial_max_drawdown": -0.855482
+        },
+        {
+          "ma": 200,
+          "vol_cap": 0.4,
+          "drawdown_improvement": 0.085872,
+          "return_improvement": 0.063482,
+          "dial_max_drawdown": -0.868998
+        },
+        {
+          "ma": 100,
+          "vol_cap": 0.4,
+          "drawdown_improvement": 0.084571,
+          "return_improvement": 0.039337,
+          "dial_max_drawdown": -0.870299
+        },
+        {
+          "ma": 150,
+          "vol_cap": 0.7,
+          "drawdown_improvement": 0.078423,
+          "return_improvement": 0.063058,
+          "dial_max_drawdown": -0.876447
+        },
+        {
+          "ma": 250,
+          "vol_cap": 0.6,
+          "drawdown_improvement": 0.066012,
+          "return_improvement": 0.057609,
+          "dial_max_drawdown": -0.888858
+        },
+        {
+          "ma": 150,
+          "vol_cap": 0.4,
+          "drawdown_improvement": 0.063319,
+          "return_improvement": 0.02571,
+          "dial_max_drawdown": -0.891552
+        },
+        {
+          "ma": 200,
+          "vol_cap": 0.6,
+          "drawdown_improvement": 0.055838,
+          "return_improvement": 0.013932,
+          "dial_max_drawdown": -0.899032
+        },
+        {
+          "ma": 100,
+          "vol_cap": 0.6,
+          "drawdown_improvement": 0.053217,
+          "return_improvement": -0.006545,
+          "dial_max_drawdown": -0.901653
+        },
+        {
+          "ma": 250,
+          "vol_cap": 0.5,
+          "drawdown_improvement": 0.046735,
+          "return_improvement": 0.048844,
+          "dial_max_drawdown": -0.908135
+        },
+        {
+          "ma": 200,
+          "vol_cap": 0.5,
+          "drawdown_improvement": 0.038809,
+          "return_improvement": 0.007954,
+          "dial_max_drawdown": -0.916061
+        },
+        {
+          "ma": 150,
+          "vol_cap": 0.6,
+          "drawdown_improvement": 0.038013,
+          "return_improvement": -0.015222,
+          "dial_max_drawdown": -0.916857
+        },
+        {
+          "ma": 100,
+          "vol_cap": 0.5,
+          "drawdown_improvement": 0.036831,
+          "return_improvement": -0.011412,
+          "dial_max_drawdown": -0.918039
+        },
+        {
+          "ma": 150,
+          "vol_cap": 0.5,
+          "drawdown_improvement": 0.02399,
+          "return_improvement": -0.020069,
+          "dial_max_drawdown": -0.93088
+        }
+      ],
+      "best": {
+        "ma": 250,
+        "vol_cap": 0.7,
+        "drawdown_improvement": 0.120731,
+        "return_improvement": 0.182179,
+        "dial_max_drawdown": -0.83414
+      },
+      "production": {
+        "ma": 200,
+        "vol_cap": 0.5,
+        "drawdown_improvement": 0.038809,
+        "return_improvement": 0.007954,
+        "dial_max_drawdown": -0.916061
+      },
+      "production_rank": 13,
+      "neighbourhood_spread": 0.096741
+    }
+  },
+  "notes": [
+    "models the production tier mapping (green/amber/red -> 1.0/0.5/0.0) applied to a 2x sleeve, not 2x->cash"
+  ],
+  "data_boundary": "derived metrics and source names only; no raw vendor bars"
+}
