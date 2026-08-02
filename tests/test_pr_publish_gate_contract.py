@@ -99,3 +99,37 @@ def test_live_runtime_key_is_limited_to_live_checkout():
     safe_push = (ROOT / "scripts" / "data" / "safe_push.sh").read_text()
     assert '"/root/.openclaw/workspace"' in safe_push
     assert '"/root/.ssh/clawock_runtime_publish"' in safe_push
+
+
+def test_every_workflow_that_stages_the_money_file_pushes_through_the_gate():
+    """The money-conservation check lived only in .githooks/pre-push, which a
+    fresh actions/checkout never installs (no workflow sets core.hooksPath). So
+    brief-fallback could stage portfolio.json and push it with cash, positions
+    and P&L never reconciled — purely because of where the push originated.
+
+    The gate now lives in safe_push.sh; this asserts nothing can route around it.
+    """
+    workflows = sorted((ROOT / ".github" / "workflows").glob("*.yml"))
+    offenders = []
+    for path in workflows:
+        text = path.read_text()
+        stages_money = any(
+            "portfolio.json" in line and line.strip().startswith(("git add", "- git add"))
+            or ("git add" in line and "portfolio.json" in line)
+            for line in text.splitlines())
+        if stages_money and "safe_push.sh" not in text:
+            offenders.append(path.name)
+
+    assert not offenders, (
+        "these workflows stage portfolio.json but do not push through "
+        f"safe_push.sh, so the money gate is not on their path: {offenders}")
+
+
+def test_safe_push_runs_the_money_check_when_the_money_file_moves():
+    text = (ROOT / "scripts" / "data" / "safe_push.sh").read_text()
+
+    assert "preflight_integrity.py" in text, (
+        "safe_push.sh no longer runs the money-conservation check — the Actions "
+        "publish path is unprotected again")
+    # Scoped, not blanket: a dashboard-only publish must not be blocked by it.
+    assert "portfolio.json" in text and "PORTFOLIO_TOUCHED" in text
