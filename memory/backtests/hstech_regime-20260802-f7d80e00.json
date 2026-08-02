@@ -1,0 +1,88 @@
+{
+  "schema_version": 1,
+  "run_id": "hstech_regime-20260802-f7d80e00",
+  "backtest": "hstech_regime",
+  "generated_at": "2026-08-02T05:41:37+00:00",
+  "git_commit": "3a4047c8",
+  "reproduction_key": "sha256:f7d80e00731db356",
+  "params": {
+    "ma": 200,
+    "vol_cap": 0.5,
+    "vol_n": 20,
+    "crash_window": [
+      "2021-02-01",
+      "2022-10-31"
+    ]
+  },
+  "inputs": [
+    {
+      "symbol": "hkHSTECH",
+      "source": "tencent kline (day, unadjusted)",
+      "bars": 1370,
+      "first_session": "2021-01-04",
+      "last_session": "2026-07-31",
+      "digest": "sha256:3715c002b9d71428"
+    }
+  ],
+  "code": [
+    {
+      "file": "backtest_hstech_regime.py",
+      "digest": "sha256:c3bac1ba94cca7a1"
+    },
+    {
+      "file": "compute_regime.py",
+      "digest": "sha256:f8e8aba58a0629c4"
+    }
+  ],
+  "metrics": {
+    "Buy&Hold 1x (index)": {
+      "total_return": -0.431167,
+      "cagr": -0.096346,
+      "max_drawdown": -0.743999,
+      "max_dd_window": "2021-02-17→2022-10-24",
+      "crash_2021_2022_drawdown": -0.743999,
+      "pct_time_in_market": 100.0,
+      "switches": 0
+    },
+    "Buy&Hold 2x ETF": {
+      "total_return": -0.859672,
+      "cagr": -0.29717,
+      "max_drawdown": -0.95487,
+      "max_dd_window": "2021-02-17→2024-01-31",
+      "crash_2021_2022_drawdown": -0.952912,
+      "pct_time_in_market": 100.0,
+      "switches": 0
+    },
+    "Regime 2x (200DMA)": {
+      "total_return": -0.595986,
+      "cagr": -0.150194,
+      "max_drawdown": -0.704985,
+      "max_dd_window": "2023-01-27→2024-07-16",
+      "crash_2021_2022_drawdown": 0.0,
+      "pct_time_in_market": 35.43,
+      "switches": 56
+    },
+    "Regime+Vol 2x (200DMA,<50%)": {
+      "total_return": -0.495943,
+      "cagr": -0.115753,
+      "max_drawdown": -0.704985,
+      "max_dd_window": "2023-01-27→2024-07-16",
+      "crash_2021_2022_drawdown": 0.0,
+      "pct_time_in_market": 30.53,
+      "switches": 60
+    },
+    "Regime 1x (200DMA, de-levered)": {
+      "total_return": -0.272299,
+      "cagr": -0.055481,
+      "max_drawdown": -0.442024,
+      "max_dd_window": "2023-01-27→2024-07-16",
+      "crash_2021_2022_drawdown": 0.0,
+      "pct_time_in_market": 35.43,
+      "switches": 56
+    }
+  },
+  "notes": [
+    "thresholds are calibrated on this same window; see #233"
+  ],
+  "data_boundary": "derived metrics and source names only; no raw vendor bars"
+}
