@@ -112,3 +112,19 @@ def test_an_outcome_the_source_cannot_state_is_unknown_not_ok():
 
     assert runs[0].status == "unknown", (
         "a recorded run with no stated outcome must not round to success")
+
+
+def test_delivery_rewire_preserves_the_ok_contract_callers_depend_on():
+    """Every caller reads `(ok, tail)`. The provider has four states; `ok` must
+    still mean exactly what a non-zero exit meant before, or a WeChat send that
+    the cold session drops starts reading as a failure and triggers a duplicate.
+    """
+    import sys
+    from pathlib import Path
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+    from clawock.providers.delivery import OpenClawDelivery
+
+    for code, expected_ok in ((0, True), (1, False)):
+        result = OpenClawDelivery(
+            runner=lambda cmd, c=code: (c, '{"ok":1}')).send("wechat", "kcn", "hi")
+        assert (result.status != "failed") is expected_ok, result

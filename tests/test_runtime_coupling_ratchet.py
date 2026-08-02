@@ -30,9 +30,11 @@ ADAPTER = ROOT / "clawock" / "providers"
 # Lower this as consumers move behind clawock.providers. It must never rise.
 #
 #   scripts/system_check.py                 7
-#   scripts/harness/_watchdog_common.py     6
 #   scripts/data/sync_cron_payloads.py      1
-BASELINE = 14
+#
+# _watchdog_common reached 0 when delivery and the cron CLI moved behind
+# clawock/providers/ (its 6 were the largest single block).
+BASELINE = 8
 
 
 def _is_invocation(source_lines: list[str], node: ast.AST, lineno: int) -> bool:
@@ -53,6 +55,19 @@ def coupling_sites() -> dict[str, list[int]]:
         except (OSError, SyntaxError):
             continue
         lines = source.splitlines()
+        # Docstrings are ast.Constant too. A docstring that *describes* an
+        # OpenClaw call is documentation, not a call — counting it punishes
+        # writing the comment, and the cheapest way to go green is deleting the
+        # explanation. Collect their node ids and skip them.
+        docstrings = set()
+        for holder in ast.walk(tree):
+            if isinstance(holder, (ast.Module, ast.ClassDef, ast.FunctionDef,
+                                   ast.AsyncFunctionDef)):
+                body = getattr(holder, "body", None)
+                if (body and isinstance(body[0], ast.Expr)
+                        and isinstance(body[0].value, ast.Constant)
+                        and isinstance(body[0].value.value, str)):
+                    docstrings.add(id(body[0].value))
         found: list[int] = []
         for node in ast.walk(tree):
             # `OPENCLAW_BIN` is unambiguous: it exists to be executed.
@@ -60,6 +75,8 @@ def coupling_sites() -> dict[str, list[int]]:
                 found.append(node.lineno)
                 continue
             if not (isinstance(node, ast.Constant) and isinstance(node.value, str)):
+                continue
+            if id(node) in docstrings:
                 continue
             value = node.value.strip()
             # `"openclaw cron runs …"` is a command however it is assembled.

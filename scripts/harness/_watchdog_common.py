@@ -35,7 +35,10 @@ STATE_DB = OC / 'state' / 'openclaw.sqlite'
 SESSIONS_DIR = OC / 'agents' / 'main' / 'sessions'
 LOG = WS / 'logs' / 'watchdog.jsonl'
 HKT = timezone(timedelta(hours=8))
-OPENCLAW_BIN = '/root/.local/share/pnpm/openclaw'
+# The binary path and the cron CLI call moved into clawock/providers/openclaw.py
+# so this module stops being the largest consumer that knows which runtime it is
+# on. Re-exported: callers that import OPENCLAW_BIN from here keep working.
+from clawock.providers.openclaw import OPENCLAW_BIN, cron_cli_json as _adapter_cron_json  # noqa: E402
 
 
 def log(event):
@@ -94,20 +97,7 @@ def _cron_cli_json(cli_args):
     leading 'Config warnings:' noise). Returns the dict, or None on any failure.
     This is the storage-agnostic path — 6.1 migrated cron from jobs.json/runs/*.jsonl
     into state/openclaw.sqlite, so direct file reads silently return nothing."""
-    try:
-        # `cron list --json` round-trips through the gateway and has been observed
-        # at ~42s on a loaded host. A tight timeout here trips TimeoutExpired →
-        # None → silent fossil fallback in load_jobs(), which once masked a healthy
-        # fleet as "drifted" and blocked every push. Keep this well above real p99.
-        r = subprocess.run([OPENCLAW_BIN, 'cron', *cli_args],
-                           capture_output=True, text=True, timeout=120)
-        txt = r.stdout
-        i = txt.find('{')
-        if i < 0:
-            return None
-        return json.loads(txt[i:])
-    except Exception:
-        return None
+    return _adapter_cron_json(cli_args)
 
 
 # Set by load_jobs() to record which source served the last call:
@@ -370,30 +360,36 @@ def resolve_wechat_target(market=None):
     return KCN_WECHAT
 
 
+def _delivery(account=None):
+    """The delivery provider for this workspace. OpenClaw today, by construction
+    swappable — that is the whole point of the interface."""
+    from clawock.providers.delivery import OpenClawDelivery
+    return OpenClawDelivery(account=account)
+
+
 def send_wechat(channel, to, account, message, dry_run):
-    """openclaw message send. Returns (ok, tail_of_output)."""
-    cmd = [OPENCLAW_BIN, 'message', 'send',
-           '--channel', channel, '--target', to, '-m', message, '--json']
-    if account:
-        cmd[3:3] = ['--account', account]
-    if dry_run:
-        cmd.append('--dry-run')
-    r = subprocess.run(cmd, capture_output=True, text=True, timeout=60)
-    return r.returncode == 0, (r.stdout + r.stderr)[-400:]
+    """Deliver to WeChat through the delivery provider. Returns (ok, tail).
+
+    Now routed through clawock.providers.delivery. `ok` is unchanged: the
+    provider reports `failed` exactly where this used to see a non-zero exit,
+    so every caller keeps the same two-state answer. The richer status —
+    WeChat's success is `unknown`, never `confirmed`, because the cold session
+    can drop it silently — is available to callers that ask for it, and
+    migrating the watchdogs' mirror-on-suspicion logic onto it is a separate
+    change with live delivery consequences.
+    """
+    result = _delivery(account).send(channel, str(to), message, dry_run=dry_run)
+    return result.status != 'failed', result.detail
 
 
 def send_telegram(target, message, dry_run):
-    """openclaw message send to Telegram. Returns (ok, tail_of_output).
+    """Deliver to Telegram through the delivery provider. Returns (ok, tail).
 
     Telegram is the cold-session-proof backup channel: unlike WeChat it has no
     idle-session silent-drop (the #81096/#81316 wontfix), so when the intraday
     watchdog judges a WeChat push probably dropped it mirrors here instead."""
-    cmd = [OPENCLAW_BIN, 'message', 'send',
-           '--channel', 'telegram', '--target', str(target), '-m', message, '--json']
-    if dry_run:
-        cmd.append('--dry-run')
-    r = subprocess.run(cmd, capture_output=True, text=True, timeout=60)
-    return r.returncode == 0, (r.stdout + r.stderr)[-400:]
+    result = _delivery().send('telegram', str(target), message, dry_run=dry_run)
+    return result.status != 'failed', result.detail
 
 
 def dispatch_brief_fallback(dry_run=False):
