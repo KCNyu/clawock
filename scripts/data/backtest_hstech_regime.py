@@ -17,10 +17,17 @@ Run:
 """
 import argparse
 import math
+import os
+import sys
 from datetime import date
+from pathlib import Path
 
 import requests
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import run_card  # noqa: E402  every backtest leaves evidence behind
+
+WS = Path(__file__).resolve().parents[2]
 TENCENT = 'https://web.ifzq.gtimg.cn/appstock/app/kline/kline'
 
 
@@ -138,6 +145,7 @@ def run(ma=200, vol_cap=0.50, vol_n=20):
     ]
     print(f'{"strategy":<36}{"totRet":>8}{"CAGR":>7}{"maxDD":>8}{"21-22DD":>9}{"%inMkt":>7}{"sw":>4}  maxDD window')
     print('-' * 96)
+    measured = {}
     for name, nav, pos in rows:
         tot = nav[-1] / nav[0] - 1
         cg = cagr(nav, dates)
@@ -146,6 +154,12 @@ def run(ma=200, vol_cap=0.50, vol_n=20):
         inmkt = (sum(pos) / len(pos) * 100) if pos else 100.0
         sw = switches(pos) if pos else 0
         print(f'{name:<36}{tot*100:>7.0f}%{cg*100:>6.1f}%{mdd*100:>7.1f}%{cdd*100:>8.1f}%{inmkt:>6.0f}%{sw:>4}  {dp}→{dt}')
+        measured[name] = {
+            'total_return': round(tot, 6), 'cagr': round(cg, 6),
+            'max_drawdown': round(mdd, 6), 'max_dd_window': f'{dp}→{dt}',
+            'crash_2021_2022_drawdown': round(cdd, 6),
+            'pct_time_in_market': round(inmkt, 2), 'switches': sw,
+        }
 
     # What does the rule say RIGHT NOW?
     print('\n--- current regime read (as of last bar) ---')
@@ -156,6 +170,22 @@ def run(ma=200, vol_cap=0.50, vol_n=20):
     print(f'  20d realized vol  : {vols[-1]*100:.0f}% annualised' if vols[-1] else '  vol: n/a')
     if vols[-1] is not None:
         print(f'  vol vs {int(vol_cap*100)}% cap     : {"OK ✅" if vols[-1] < vol_cap else "HOT ⛔ decay tax high"}')
+
+    card = run_card.record(
+        'hstech_regime',
+        params={'ma': ma, 'vol_cap': vol_cap, 'vol_n': vol_n,
+                'crash_window': [crash0, crash1]},
+        inputs=[{
+            'symbol': 'hkHSTECH', 'source': 'tencent kline (day, unadjusted)',
+            'bars': n, 'first_session': dates[0], 'last_session': dates[-1],
+            'digest': run_card.series_digest(data),
+        }],
+        metrics=measured,
+        code_files=[__file__, Path(__file__).with_name('compute_regime.py')],
+        notes=['thresholds are calibrated on this same window; see #233'],
+    )
+    print(f'\nrun card: {card.relative_to(WS)}')
+    return measured
 
 
 if __name__ == '__main__':

@@ -20,6 +20,8 @@ Run: python3 scripts/data/backtest_combined_regime.py
 """
 import json
 import math
+import os
+import sys
 from datetime import date
 from pathlib import Path
 
@@ -35,6 +37,9 @@ for _fp in ('/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc',):
         font_manager.fontManager.addfont(_fp)
         plt.rcParams['font.family'] = font_manager.FontProperties(fname=_fp).get_name()
 plt.rcParams['axes.unicode_minus'] = False
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import run_card  # noqa: E402  every backtest leaves evidence behind
 
 WS = Path(__file__).resolve().parent.parent.parent
 OUT = WS / 'memory' / '.tmp'
@@ -192,11 +197,20 @@ def main():
     CLR = {'bh': '#ef4444', 'regime': '#22c55e', 'all1x': '#64748b'}
     print(f'{"strategy":<22}{"totRet":>9}{"CAGR":>8}{"ann.vol":>9}{"maxDD":>9}{"21-22DD":>9}')
     print('-' * 66)
+    measured = {}
     for mode in ('bh', 'regime', 'all1x'):
         nav = navs[mode]
         cdd = mdd([v for v, d in zip(nav, dates) if crash0 <= d <= crash1])
         print(f'{LBL[mode]:<22}{ (nav[-1]-1)*100:>8.0f}%{cagr(nav,dates)*100:>7.1f}%'
               f'{ann_vol(rets_book[mode])*100:>8.0f}%{mdd(nav)*100:>8.1f}%{cdd*100:>8.1f}%')
+        measured[mode] = {
+            'label': LBL[mode],
+            'total_return': round(nav[-1] - 1, 6),
+            'cagr': round(cagr(nav, dates), 6),
+            'annualised_vol': round(ann_vol(rets_book[mode]), 6),
+            'max_drawdown': round(mdd(nav), 6),
+            'crash_2021_2022_drawdown': round(cdd, 6),
+        }
 
     # ---- charts: equity (log) + underwater
     dts = [date.fromisoformat(d) for d in dates]
@@ -216,6 +230,27 @@ def main():
     fig.tight_layout()
     p = OUT / 'combined_regime.png'; fig.savefig(p, dpi=110); plt.close(fig)
     print(f'\n chart → {p}')
+
+    card = run_card.record(
+        'combined_regime',
+        params={'ma_window': MA_WIN, 'vol_window': VOL_WIN, 'vol_hot': VOL_HOT,
+                'crash_window': [crash0, crash1],
+                'weights_usd': {tk: round(wt, 6) for tk, wt in sorted(w.items())},
+                'holding_map': {tk: list(spec) for tk, spec in sorted(HOLDING_MAP.items())}},
+        inputs=[{
+            'symbol': 'union-calendar book', 'source': 'tencent kline/fqkline via PROXIES',
+            'bars': n, 'first_session': dates[0], 'last_session': dates[-1],
+            'digest': run_card.series_digest(
+                [(d, sum(ff[proxy][i] for proxy in sorted(ff)))
+                 for i, d in enumerate(dates)]),
+            'note': 'closes are forward-filled onto a union calendar; see #233',
+        }],
+        metrics=measured,
+        code_files=[__file__, Path(__file__).with_name('compute_regime.py')],
+        notes=['book weights are current, applied to history — this is a '
+               'fixed-weight simulation, not a replay of what was held'],
+    )
+    print(f' run card → {card.relative_to(WS)}')
 
 
 if __name__ == '__main__':
