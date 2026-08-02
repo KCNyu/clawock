@@ -57,6 +57,38 @@ if git grep -nE '^(<<<<<<< |>>>>>>> )' HEAD -- 2>/dev/null | grep -q .; then
   exit 3
 fi
 
+# ── Money-conservation gate (2026-08-02) ─────────────────────────────────────
+# The integrity check used to live ONLY in .githooks/pre-push, which is active
+# solely where core.hooksPath=.githooks is configured. A fresh actions/checkout
+# carries no local git config, so the hook does not exist on a runner — and
+# brief-fallback.yml stages portfolio.json and pushes through this script. The
+# money file could therefore reach master with cash, positions and P&L never
+# reconciled, purely because of where the push originated.
+#
+# Scoped deliberately: it runs only when portfolio.json is actually part of what
+# is being pushed. A dashboard-only publish is never blocked by it, which keeps
+# the "detection must not degrade into not-publishing" rule intact for everything
+# except the one file where an unbalanced write must not be published at all.
+# `|| true` on both: under `set -e` a failing command substitution aborts the
+# whole script, which would turn any git hiccup into "push silently skipped".
+REPO_TOP="$(git rev-parse --show-toplevel 2>/dev/null || true)"
+INTEGRITY_SCRIPT="${REPO_TOP:-.}/scripts/data/preflight_integrity.py"
+if git fetch "$REMOTE" "$BRANCH" -q 2>/dev/null; then
+  PORTFOLIO_TOUCHED="$(git diff --name-only FETCH_HEAD..HEAD -- portfolio.json 2>/dev/null || true)"
+else
+  # Cannot tell what is new; assume the money file is in scope rather than skip.
+  PORTFOLIO_TOUCHED="portfolio.json"
+fi
+if [ -n "$PORTFOLIO_TOUCHED" ] && [ -f "$INTEGRITY_SCRIPT" ]; then
+  echo "▸ portfolio.json is in this push — running money-conservation check…"
+  if ! python3 "$INTEGRITY_SCRIPT"; then
+    echo "✗ REFUSING TO PUSH — portfolio.json does not reconcile."
+    echo "  Cash, positions and P&L must balance before the money file is published."
+    echo "  Fix the ledger (see the findings above) and re-commit."
+    exit 4
+  fi
+fi
+
 for i in $(seq 1 $MAX_RETRIES); do
   if git push "$REMOTE" "$BRANCH"; then
     echo "✓ pushed on attempt $i"
