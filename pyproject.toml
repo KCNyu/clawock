@@ -29,11 +29,17 @@ imaging = ["Pillow>=10"]
 test = ["pytest>=8", "pytest-cov>=5", "numpy>=1.26", "Pillow>=10"]
 
 [project.scripts]
-clawock = "clawock_cli:main"
+clawock = "clawock.cli:main"
 
 [tool.setuptools]
-# Deliberately not packaging scripts/ yet. The coupling that stops a stranger
-# running this is inside modules (pure computation mixed with I/O to a hardcoded
-# workspace root), not between files, so moving 84 files would buy very little.
-# What unblocks a foreign run is the workspace indirection plus this metadata.
-py-modules = ["clawock_cli"]
+# The installable surface is the `clawock` package. It started as a single
+# py-module at the repo root, which built a wheel that crashed on import the
+# moment it was installed outside the source checkout: the module reached into
+# scripts/data/ through a sys.path hack for code the wheel did not contain.
+# `pip install -e .` hid that completely, because editable installs leave the
+# source tree on sys.path. Anything the CLI imports has to live in here.
+#
+# scripts/ is still deliberately unpackaged — it is the operator-side
+# implementation of this desk, and the coupling there is inside modules rather
+# than between them.
+packages = ["clawock"]
