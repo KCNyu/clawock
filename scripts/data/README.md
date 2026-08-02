@@ -105,6 +105,7 @@ clawock 是**美股 + 港股 + 黄金定投**的实盘组合。工具包遵循�
 
 | 端点 | 数据 | 源 | 可达 |
 |---|---|---|:---:|
+| `claim_provenance.py` | 回测结论必须引用 run card，且卡里仍要含这个数字：**失效引用**（指向真证据但已对不上）比缺引用更危险 | `memory/backtests/*.json` | ✅ |
 | `run_card.py` | 每次回测留证：输入序列身份(source/窗口/bar 数/摘要) + 参数 + 代码哈希 + 指标 JSON；`--list` / `--run-id` 复查。落 `memory/backtests/` | 纯本地 | ✅ |
 | `backtest_hstech_regime.py` | 恒科 regime 去杠杆回测(2021→今) | 腾讯 kline | ✅ |
 | `backtest_us_leverage.py` | 美股 2x ETF regime 回测 | 日线模拟 | ✅ |

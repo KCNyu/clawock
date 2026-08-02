@@ -199,6 +199,13 @@ jobs:
         if: github.event_name != 'pull_request' || steps.changes.outputs.code == 'true'
         run: python3 scripts/data/generate_cron_docs.py --check
 
+      - name: Backtest claims cite a run card that still matches
+        # A stale citation is the failure that matters: it points at real
+        # evidence which no longer says what the claim says, so it reads as
+        # maximally credible while being wrong.
+        if: github.event_name != 'pull_request' || steps.changes.outputs.code == 'true'
+        run: python3 scripts/data/claim_provenance.py --check
+
       - name: Validate research lifecycle artifacts
         # Every thesis, earnings and entry-gate artifact on disk must still be
         # valid — including that a gate's stated verdict matches the recomputed
