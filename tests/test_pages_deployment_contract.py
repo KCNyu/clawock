@@ -100,7 +100,7 @@ def test_builder_stages_only_public_consumers(tmp_path):
     output = tmp_path / "_pages"
     shutil.copytree(ROOT / "assets", site / "assets")
     (site / "index.html").write_text("ok")
-    for path in ("briefs.html", "robots.txt", "manifest.webmanifest", INDEXNOW_KEY):
+    for path in ("briefs.html", "evidence.html", "robots.txt", "manifest.webmanifest", INDEXNOW_KEY):
         (site / path).write_text("ok")
     (site / "sitemap.xml").write_text(
         '<?xml version="1.0" encoding="UTF-8"?>'

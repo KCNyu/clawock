@@ -1509,6 +1509,13 @@ def main():
     except Exception as e:
         print(f'   ⚠ cross-sectional factor failed: {e}')
 
+    # 证据页：读上面刚刷新的产物重新生成，保证「测了什么、什么没通过」不落后于事实。
+    try:
+        subprocess.run(['python3', str(WS / 'scripts' / 'data' / 'build_evidence.py')],
+                       capture_output=True, text=True, timeout=60, check=False)
+    except Exception as e:
+        print(f'   ⚠ evidence page rebuild failed: {e}')
+
     # [10b3c] Curated peer residual/leadership research. HK taxonomy is explicitly
     # manual-only; leveraged products are folded to 1x before basket construction.
     # As with the broader cross-sectional layer, inactive rules are display-only.
