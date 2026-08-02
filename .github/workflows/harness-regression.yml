@@ -166,7 +166,7 @@ jobs:
         # Pillow: validate_sidecars now fully-decodes screenshots/GIF (finding #12);
         # the real asset checks run in screenshot-refresh.yml (which has Pillow) but
         # the unit tests here exercise the same validators, so pytest needs it too.
-        run: pip install --quiet requests pytest pytest-cov numpy Pillow
+        run: pip install --quiet -e '.[test]'
 
       - name: Unit tests — money-integrity derivations
         if: github.event_name != 'pull_request' || steps.changes.outputs.code == 'true'
@@ -377,7 +377,7 @@ jobs:
         with:
           python-version: '3.11'
 
-      - run: pip install --quiet requests
+      - run: pip install --quiet -e .
 
       - name: FX fallback chain
         run: |

@@ -43,7 +43,10 @@ from zoneinfo import ZoneInfo
 # made preflight write context to a nonexistent path on the runner → the fallback
 # brief then FATAL'd with "no preflight context" (2026-05-30 fix). parents[2] =
 # scripts/harness/<this> → workspace root, correct in both environments.
-WS = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / 'scripts' / 'data'))
+from workspace import workspace_root  # noqa: E402
+
+WS = workspace_root(Path(__file__).resolve().parents[2])
 TMP_DIR = WS / 'memory' / '.tmp'
 SNAPSHOT_DIR = WS / 'memory' / 'snapshots'
 

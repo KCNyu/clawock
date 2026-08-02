@@ -22,7 +22,9 @@ import urllib.parse
 from datetime import datetime, timezone
 from pathlib import Path
 
-WS = Path(__file__).resolve().parents[2]
+from workspace import workspace_root  # noqa: E402
+
+WS = workspace_root(Path(__file__).resolve().parents[2])
 PORTFOLIO = WS / 'portfolio.json'
 OUT = WS / 'assets' / 'data' / 'em_news.json'
 UA = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36'

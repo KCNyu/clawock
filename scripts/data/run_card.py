@@ -52,7 +52,9 @@ from pathlib import Path
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from safe_io import safe_write_json  # noqa: E402
 
-WS = Path(__file__).resolve().parents[2]
+from workspace import workspace_root  # noqa: E402
+
+WS = workspace_root(Path(__file__).resolve().parents[2])
 CARDS_DIR = WS / 'memory' / 'backtests'
 SCHEMA_VERSION = 1
 

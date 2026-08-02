@@ -30,7 +30,7 @@ jobs:
         with:
           python-version: '3.11'
 
-      - run: pip install --quiet requests numpy
+      - run: pip install --quiet -e '.[compute]'
 
       # Set git identity up front: brief_postflight commits internally (rebuild
       # dashboard + auto-commit), so it needs an identity well before the final

@@ -26,7 +26,9 @@ import sys
 from pathlib import Path
 
 
-ROOT = Path(__file__).resolve().parents[2]
+from workspace import workspace_root  # noqa: E402
+
+ROOT = workspace_root(Path(__file__).resolve().parents[2])
 
 # The settlement core: everything whose arithmetic can corrupt the public record.
 # Paths are repo-relative and must all be present in the report — see

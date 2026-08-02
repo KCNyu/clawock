@@ -35,7 +35,9 @@ from typing import Dict, List
 
 import requests
 
-WS_ROOT = Path(__file__).resolve().parent.parent.parent
+from workspace import workspace_root  # noqa: E402
+
+WS_ROOT = workspace_root(Path(__file__).resolve().parent.parent.parent)
 OUT_FILE = WS_ROOT / 'assets' / 'data' / 'benchmark.json'
 TIMEOUT = 12
 DEFAULT_DAYS = 60

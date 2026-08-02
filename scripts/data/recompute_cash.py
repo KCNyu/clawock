@@ -14,7 +14,9 @@ amount 单位同该市场货币；或直接抬高 cash_reconciled + cash_reconci
 import sys
 from pathlib import Path
 
-WS = Path(__file__).resolve().parents[2]
+from workspace import workspace_root  # noqa: E402
+
+WS = workspace_root(Path(__file__).resolve().parents[2])
 sys.path.insert(0, str(WS / 'scripts' / 'data'))
 
 from preflight_integrity import derive_cash  # noqa: E402

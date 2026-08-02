@@ -34,7 +34,9 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 # whether a bar exists — an unfinished session has no bar either.
 import trading_calendar as _cal  # noqa: E402
 
-WS = Path(__file__).resolve().parents[2]
+from workspace import workspace_root  # noqa: E402
+
+WS = workspace_root(Path(__file__).resolve().parents[2])
 LEDGER = WS / "memory" / "decisions.jsonl"
 SNAP_DIR = WS / "memory" / "snapshots"
 

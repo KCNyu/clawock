@@ -16,7 +16,10 @@ from pathlib import Path
 # cron (local /root/.openclaw/workspace) and on GH Action runners (checkout dir).
 # parents[2] = scripts/harness/<this> → workspace root. Identical to the old
 # hardcoded /root path locally, but correct on a runner too. (2026-05-30)
-WS = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / 'scripts' / 'data'))
+from workspace import workspace_root  # noqa: E402
+
+WS = workspace_root(Path(__file__).resolve().parents[2])
 sys.path.insert(0, str(WS / 'scripts' / 'data'))
 from dashboard_outputs import semantic_changed_paths as dashboard_output_changes  # noqa: E402
 

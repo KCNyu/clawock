@@ -53,7 +53,10 @@ from pathlib import Path
 
 # Workspace root, resolved from this file's location (location-independent;
 # matches the old hardcoded /root path locally, robust if run elsewhere).
-WS = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / 'scripts' / 'data'))
+from workspace import workspace_root  # noqa: E402
+
+WS = workspace_root(Path(__file__).resolve().parents[2])
 DATA_DIR = WS / 'scripts' / 'data'
 TMP = WS / 'memory' / '.tmp'
 

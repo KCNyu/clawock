@@ -29,7 +29,9 @@ import json_repair
 # rows in the equity curve before this filter was added).
 SNAPSHOT_FNAME_RE = re.compile(r'^\d{4}-\d{2}-\d{2}\.json$')
 
-WS_ROOT = Path(__file__).resolve().parent.parent.parent
+from workspace import workspace_root  # noqa: E402
+
+WS_ROOT = workspace_root(Path(__file__).resolve().parent.parent.parent)
 OUT_DIR = WS_ROOT / 'assets' / 'data'
 OUT_FILE = OUT_DIR / 'dashboard.json'
 OVERVIEW_FILE = OUT_DIR / 'overview.json'
