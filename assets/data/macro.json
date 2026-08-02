@@ -1,76 +1,86 @@
 {
-  "generated_at": "2026-07-30T22:45:29.913312+00:00",
+  "generated_at": "2026-08-02T22:38:45.446124+00:00",
   "vix": {
     "symbol": "^VIX",
-    "price": 17.09,
-    "prev": 20.66,
-    "change_pct": -17.28,
-    "as_of": 1785442501,
+    "price": 15.99,
+    "prev": 17.09,
+    "change_pct": -6.44,
+    "as_of": 1785528901,
     "source": "yahoo"
   },
   "treasury_10y": {
     "symbol": "^TNX",
-    "price": 4.663,
-    "prev": 4.622,
-    "change_pct": 0.89,
-    "as_of": 1785437995,
+    "price": 4.745,
+    "prev": 4.663,
+    "change_pct": 1.76,
+    "as_of": 1785524395,
     "source": "yahoo",
-    "yield_pct": 4.663
+    "yield_pct": 4.745
   },
   "dxy": {
     "symbol": "DX-Y.NYB",
-    "price": 99.969,
-    "prev": 100.886,
-    "change_pct": -0.91,
-    "as_of": 1785449099,
+    "price": 99.654,
+    "prev": 99.914,
+    "change_pct": -0.26,
+    "as_of": 1785709723,
     "source": "yahoo"
   },
   "fear_greed": {
-    "score": 38.9,
+    "score": 42.5,
     "rating": "fear",
-    "prev_close": 32.3,
-    "prev_1_week": 38.9,
-    "as_of": "2026-07-30T22:28:49+00:00"
+    "prev_close": 38.9,
+    "prev_1_week": 41.3,
+    "as_of": "2026-07-31T23:59:52+00:00"
   },
   "hsi": {
     "symbol": "^HSI",
-    "price": 25858.88,
-    "prev": 25807.92,
-    "change_pct": 0.2,
+    "price": 25884.43,
+    "prev": 25858.88,
+    "change_pct": 0.1,
     "source": "tencent"
   },
   "hstech": {
     "symbol": "^HSTECH",
-    "price": 4803.77,
-    "prev": 4864.73,
-    "change_pct": -1.25,
+    "price": 4829.22,
+    "prev": 4803.77,
+    "change_pct": 0.53,
     "source": "tencent"
   },
   "spx": {
     "symbol": "^GSPC",
-    "price": 7437.63,
-    "prev": 7316.15,
-    "change_pct": 1.66,
-    "as_of": 1785444275,
+    "price": 7489.72,
+    "prev": 7437.63,
+    "change_pct": 0.7,
+    "as_of": 1785532932,
     "source": "yahoo"
   },
   "nasdaq": {
     "symbol": "^IXIC",
-    "price": 25122.18,
-    "prev": 24442.94,
-    "change_pct": 2.78,
+    "price": 25373.85,
+    "prev": 25122.18,
+    "change_pct": 1.0,
     "source": "tencent"
   },
   "fed_press": [
     {
-      "date": "2026-07-30",
-      "title": "Federal Reserve Board issues enforcement actions with former employee of Regions Bank and former employee of First Interstate Bank",
-      "url": "https://www.federalreserve.gov/newsevents/pressreleases/enforcement20260730a.htm"
+      "date": "2026-07-31",
+      "title": "Federal Reserve Board requests comment on a proposal to modernize its rule governing the extension of credit to bank \"insiders\"—bank executives, board members and major shareholders who could potentia",
+      "url": "https://www.federalreserve.gov/newsevents/pressreleases/bcreg20260731b.htm"
+    },
+    {
+      "date": "2026-07-31",
+      "title": "Federal Reserve Board requests comment on a proposal to modernize rules for mutual banking organizations",
+      "url": "https://www.federalreserve.gov/newsevents/pressreleases/bcreg20260731a.htm"
     },
     {
       "date": "2026-07-30",
       "title": "Federal Reserve Board issues enforcement action with Iuka Bancshares, Inc. and The Iuka State Bank",
       "url": "https://www.federalreserve.gov/newsevents/pressreleases/enforcement20260730b.htm"
+    },
+    {
+      "date": "2026-07-30",
+      "title": "Federal Reserve Board issues enforcement actions with former employee of Regions Bank and former employee of First Interstate Bank",
+      "url": "https://www.federalreserve.gov/newsevents/pressreleases/enforcement20260730a.htm"
     },
     {
       "date": "2026-07-29",
