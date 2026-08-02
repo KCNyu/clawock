@@ -333,12 +333,14 @@ def test_one_non_finite_return_does_not_poison_the_whole_window():
     # make Sharpe None for an unrelated reason and hide what is under test.
     returns = {d: (0.01 if i % 2 else -0.006) for i, d in enumerate(dates)}
     returns["2026-01-10"] = float("inf")
+    returns["2026-01-11"] = None  # a junk value must be excluded, not crash
     coverage = {d: 1.0 for d in dates}
 
     stats = risk._stream_stats(returns, coverage)
 
-    assert stats["missingness"]["excluded_non_finite_dates"] == ["2026-01-10"]
-    assert stats["n_returns"] == len(dates) - 1
+    assert stats["missingness"]["excluded_non_finite_dates"] == [
+        "2026-01-10", "2026-01-11"]
+    assert stats["n_returns"] == len(dates) - 2
     for key in ("vol_30d_annualized", "max_dd_30d", "sharpe_30d",
                 "expected_shortfall_95", "ewma_vol_annualized"):
         value = stats[key]

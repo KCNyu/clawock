@@ -477,8 +477,11 @@ def _stream_stats(return_by_date: dict, coverage_by_date: dict,
     # per-date guards) is dropped rather than carried: it would otherwise make
     # every statistic below non-finite at once. The dropped dates are published
     # next to the low-coverage ones so the exclusion stays visible.
+    # `_round_finite` is reused as the predicate so a None or a junk value is
+    # excluded rather than raising: np.array(..., dtype=float) used to turn both
+    # into nan silently, and this must not be the step that starts crashing.
     non_finite_dates = [
-        d for d in eligible_dates if not math.isfinite(float(return_by_date[d]))
+        d for d in eligible_dates if _round_finite(return_by_date[d]) is None
     ]
     if non_finite_dates:
         eligible_dates = [d for d in eligible_dates if d not in set(non_finite_dates)]
