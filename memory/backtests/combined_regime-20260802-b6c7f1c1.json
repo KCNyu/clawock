@@ -1,0 +1,130 @@
+{
+  "schema_version": 1,
+  "run_id": "combined_regime-20260802-b6c7f1c1",
+  "backtest": "combined_regime",
+  "generated_at": "2026-08-02T06:00:10+00:00",
+  "git_commit": "18a0e7d0",
+  "reproduction_key": "sha256:b6c7f1c1b2b2a763",
+  "params": {
+    "ma_window": 200,
+    "vol_window": 20,
+    "vol_hot": 0.7,
+    "crash_window": [
+      "2021-08-01",
+      "2022-10-31"
+    ],
+    "weights_usd": {
+      "00100": 0.377751,
+      "02208": 0.06339,
+      "03032": 0.015589,
+      "03033": 0.07652,
+      "07226": 0.361133,
+      "CRCL": 0.015784,
+      "MSFU": 0.041908,
+      "PLTU": 0.047925
+    },
+    "holding_map": {
+      "00100": [
+        "HSTECH",
+        1,
+        null
+      ],
+      "02208": [
+        "GF",
+        1,
+        null
+      ],
+      "03032": [
+        "HSTECH",
+        1,
+        null
+      ],
+      "03033": [
+        "HSTECH",
+        1,
+        null
+      ],
+      "07226": [
+        "HSTECH",
+        2,
+        "hk2x"
+      ],
+      "CRCL": [
+        "RKLB",
+        1,
+        null
+      ],
+      "MSFU": [
+        "MSFT",
+        2,
+        "us2x"
+      ],
+      "PLTU": [
+        "PLTR",
+        2,
+        "us2x"
+      ],
+      "RKLB": [
+        "RKLB",
+        1,
+        null
+      ],
+      "ROBN": [
+        "HOOD",
+        2,
+        "us2x"
+      ]
+    }
+  },
+  "inputs": [
+    {
+      "symbol": "union-calendar book",
+      "source": "tencent kline/fqkline via PROXIES",
+      "bars": 1291,
+      "first_session": "2021-07-29",
+      "last_session": "2026-07-31",
+      "digest": "sha256:8dddd1c757e7666b",
+      "note": "closes are forward-filled onto a union calendar; see #233"
+    }
+  ],
+  "code": [
+    {
+      "file": "backtest_combined_regime.py",
+      "digest": "sha256:15fb7da855debbb7"
+    },
+    {
+      "file": "compute_regime.py",
+      "digest": "sha256:4c3526b901d26081"
+    }
+  ],
+  "metrics": {
+    "bh": {
+      "label": "死扛(原杠杆)",
+      "total_return": -0.154086,
+      "cagr": -0.032883,
+      "annualised_vol": 0.485805,
+      "max_drawdown": -0.719895,
+      "crash_2021_2022_drawdown": -0.719895
+    },
+    "regime": {
+      "label": "刻度盘(降杠杆)",
+      "total_return": -0.056693,
+      "cagr": -0.011594,
+      "annualised_vol": 0.40186,
+      "max_drawdown": -0.603319,
+      "crash_2021_2022_drawdown": -0.591673
+    },
+    "all1x": {
+      "label": "全1x(从不加杠杆)",
+      "total_return": -0.029059,
+      "cagr": -0.005875,
+      "annualised_vol": 0.340829,
+      "max_drawdown": -0.569473,
+      "crash_2021_2022_drawdown": -0.569473
+    }
+  },
+  "notes": [
+    "book weights are current, applied to history — this is a fixed-weight simulation, not a replay of what was held"
+  ],
+  "data_boundary": "derived metrics and source names only; no raw vendor bars"
+}
