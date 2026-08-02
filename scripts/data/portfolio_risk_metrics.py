@@ -448,6 +448,24 @@ def ewma_correlation(left: np.ndarray, right: np.ndarray,
     return float(np.sum(weights * dx * dy) / math.sqrt(vx * vy))
 
 
+def _round_finite(value, digits: int = 4):
+    """Round for publication, or `None` when the value is not a finite float.
+
+    Every metric here is a ratio, and one non-finite input poisons the whole
+    window: `np.std` over an array containing a single `nan` returns `nan`, so
+    vol, drawdown, Sharpe and expected shortfall all go non-finite together and
+    the card reads as broken rather than as missing. Publishing `null` says
+    "not computable" in a way `JSON.parse` survives.
+    """
+    if value is None:
+        return None
+    try:
+        out = float(value)
+    except (TypeError, ValueError):
+        return None
+    return round(out, digits) if math.isfinite(out) else None
+
+
 def _stream_stats(return_by_date: dict, coverage_by_date: dict,
                   benchmark_return_by_date=None):
     observed_dates = sorted(return_by_date)[-WINDOW_DAYS:]
@@ -455,6 +473,15 @@ def _stream_stats(return_by_date: dict, coverage_by_date: dict,
         date for date in observed_dates
         if coverage_by_date.get(date, 0.0) >= MIN_DATE_COVERAGE
     ]
+    # A non-finite daily return (a zero or absurd close that survived the
+    # per-date guards) is dropped rather than carried: it would otherwise make
+    # every statistic below non-finite at once. The dropped dates are published
+    # next to the low-coverage ones so the exclusion stays visible.
+    non_finite_dates = [
+        d for d in eligible_dates if not math.isfinite(float(return_by_date[d]))
+    ]
+    if non_finite_dates:
+        eligible_dates = [d for d in eligible_dates if d not in set(non_finite_dates)]
     returns = np.array([return_by_date[d] for d in eligible_dates], dtype=float)
     vol = (float(np.std(returns, ddof=1) * np.sqrt(TRADING_DAYS))
            if returns.size > 1 else None)
@@ -480,22 +507,24 @@ def _stream_stats(return_by_date: dict, coverage_by_date: dict,
                 if observed_dates else None
             ),
             'excluded_low_coverage_dates': [
-                d for d in observed_dates if d not in eligible_dates
+                d for d in observed_dates
+                if d not in eligible_dates and d not in set(non_finite_dates)
             ],
+            'excluded_non_finite_dates': non_finite_dates,
             'per_date_value_coverage_pct': {
                 d: round(100 * coverage_by_date[d], 1) for d in observed_dates
             },
         },
-        'vol_30d_annualized': round(vol, 4) if vol is not None else None,
+        'vol_30d_annualized': _round_finite(vol),
         'ewma_vol_annualized': (
-            round(ewma_volatility(returns), 4) if returns.size > 1 else None
+            _round_finite(ewma_volatility(returns)) if returns.size > 1 else None
         ),
-        'max_dd_30d': round(max_drawdown(returns), 4) if returns.size else None,
+        'max_dd_30d': _round_finite(max_drawdown(returns)) if returns.size else None,
         'sharpe_30d': (
-            round(sharpe(returns, vol), 4) if vol not in (None, 0) else None
+            _round_finite(sharpe(returns, vol)) if vol not in (None, 0) else None
         ),
         'expected_shortfall_95': (
-            round(expected_shortfall(returns), 4) if returns.size > 1 else None
+            _round_finite(expected_shortfall(returns)) if returns.size > 1 else None
         ),
         'threshold_eligible': bool(returns.size >= MIN_ACTION_RETURNS),
         'threshold_min_returns': MIN_ACTION_RETURNS,
@@ -515,8 +544,8 @@ def _stream_stats(return_by_date: dict, coverage_by_date: dict,
         )
         b = beta(port, bench)
         c = ewma_correlation(port, bench)
-        result['beta'] = round(b, 4) if b is not None else None
-        result['ewma_benchmark_correlation'] = round(c, 4) if c is not None else None
+        result['beta'] = _round_finite(b)
+        result['ewma_benchmark_correlation'] = _round_finite(c)
     return result
 
 

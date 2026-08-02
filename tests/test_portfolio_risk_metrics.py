@@ -3,6 +3,8 @@ import pytest
 
 np = pytest.importorskip("numpy")
 
+import json
+import math
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
@@ -320,6 +322,36 @@ def test_alert_thresholds_are_withheld_when_window_is_not_eligible():
     alerts = risk.build_alerts(us, None, combined, {"combined_avg": 1.0})
 
     assert [a["type"] for a in alerts] == ["insufficient_observations"]
+
+
+def test_one_non_finite_return_does_not_poison_the_whole_window():
+    """np.std over an array holding a single nan returns nan, so vol, drawdown,
+    Sharpe and expected shortfall would all go non-finite together — the card
+    reads as broken rather than as missing. The bad date is dropped and named."""
+    dates = [f"2026-01-{day:02d}" for day in range(1, 26)]
+    # Alternating signs so volatility is genuinely non-zero: a flat series would
+    # make Sharpe None for an unrelated reason and hide what is under test.
+    returns = {d: (0.01 if i % 2 else -0.006) for i, d in enumerate(dates)}
+    returns["2026-01-10"] = float("inf")
+    coverage = {d: 1.0 for d in dates}
+
+    stats = risk._stream_stats(returns, coverage)
+
+    assert stats["missingness"]["excluded_non_finite_dates"] == ["2026-01-10"]
+    assert stats["n_returns"] == len(dates) - 1
+    for key in ("vol_30d_annualized", "max_dd_30d", "sharpe_30d",
+                "expected_shortfall_95", "ewma_vol_annualized"):
+        value = stats[key]
+        assert value is not None, f"{key} was dropped instead of computed"
+        assert math.isfinite(value), f"{key} is non-finite: {value}"
+
+
+def test_a_non_finite_metric_is_published_as_null_never_as_nan():
+    assert risk._round_finite(float("nan")) is None
+    assert risk._round_finite(float("inf")) is None
+    assert risk._round_finite(None) is None
+    assert risk._round_finite(1.23456) == 1.2346
+    json.dumps({"beta": risk._round_finite(float("nan"))}, allow_nan=False)
 
 
 def test_beta_alert_is_withheld_when_benchmark_overlap_is_too_short():
