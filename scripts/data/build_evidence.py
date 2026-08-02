@@ -41,6 +41,7 @@ VERDICT = {
     'failed': '🔴 未通过',
     'undecided': '⚪ 尚不可判',
     'passed': '🟢 通过',
+    'pending': '⏳ 尚未到期',
 }
 
 
@@ -116,12 +117,23 @@ def factor_section() -> dict | None:
     rows = []
     for name, stats in sorted(factors.items()):
         ci = stats.get('ci95')
+        # A sample spanning a single date- or ticker-cluster cannot produce a
+        # two-way clustered interval at all. Printing a bare hit rate there
+        # invites the exact misreading the page exists to prevent: trend_on_follow
+        # shows 3.1%, which is one ticker's 32 sessions, not a broken factor.
+        single_cluster = (stats.get('n_tickers') or 0) < 2 or (stats.get('n_dates') or 0) < 2
+        if single_cluster:
+            verdict_text = '⚪ 样本只覆盖单一簇，算不出聚类 CI —— 无法解读'
+        elif stats.get('edge_significant'):
+            verdict_text = '✅ 可入决策'
+        else:
+            verdict_text = '⚪ CI 跨 50%，锁定'
         rows.append((
             f'`{name}`',
             f"命中率 {_pct(stats.get('hit_rate'))} · "
             f"CI95 {'—' if not ci else f'[{ci[0] * 100:.1f}%, {ci[1] * 100:.1f}%]'} · "
             f"n={stats.get('n_events')}（{stats.get('n_dates')} 日 × {stats.get('n_tickers')} 标的）· "
-            f"{'✅ 可入决策' if stats.get('edge_significant') else '⚪ CI 跨 50%，锁定'}"))
+            f"{verdict_text}"))
     unlocked = sum(1 for s in factors.values() if s.get('edge_significant'))
     return {
         'title': '量化因子 edge',
@@ -134,6 +146,70 @@ def factor_section() -> dict | None:
             f"结论不同。"),
         'source': '`assets/data/quant_signal_review.json`',
         'sample': f"留痕 {review.get('days_logged')} 天",
+    }
+
+
+
+def _sessions_after(start: str, n: int, market: str = 'hk') -> str | None:
+    """The date `n` trading sessions after `start`, or None if unknowable.
+
+    Used to answer "when could this criterion first pass" instead of leaving a
+    reader to derive it. Falls back to None rather than guessing when the
+    calendar does not cover the horizon — a wrong date here would be worse than
+    no date.
+    """
+    try:
+        from datetime import date, timedelta
+        import trading_calendar
+    except Exception:
+        return None
+    try:
+        day = date.fromisoformat(str(start)[:10])
+    except ValueError:
+        return None
+    seen = 0
+    for _ in range(n * 4):          # generous bound; loop is cheap and finite
+        day += timedelta(days=1)
+        if day.year > max(trading_calendar.covered_years(market) or {day.year}):
+            return None
+        if trading_calendar.is_trading_day(market, day):
+            seen += 1
+            if seen >= n:
+                return day.isoformat()
+    return None
+
+
+def _horizon_status(payload, checks) -> dict:
+    """Split "waiting on a horizon" from "measured and short".
+
+    A prospective criterion sitting at zero while the forward window has not
+    elapsed is not a failing check, and rendering it as one is the exact
+    conflation this page claims not to make.
+    """
+    registered = str(payload.get('registered_at') or '')[:10]
+    # The horizon lives in the layer's pre-registration config, not in its
+    # output — reading it from the config is what makes "not yet elapsed" a
+    # derived fact rather than a guess.
+    config = _load(WS / 'config' / 'factor-universe.json') or {}
+    horizon = int(config.get('forward_horizon_sessions') or 0)
+    required = ((checks.get('prospective_dates') or {}).get('required')
+                or (config.get('activation_criteria') or {}).get(
+                    'min_prospective_dates'))
+    actual = (checks.get('prospective_dates') or {}).get('actual')
+    if not registered or not horizon or actual is None:
+        return {'pending': False}
+    if actual > 0:
+        return {'pending': False}
+
+    first_measurable = _sessions_after(registered, horizon)
+    earliest_activation = (
+        _sessions_after(first_measurable, int(required) - 1)
+        if first_measurable and required else None)
+    return {
+        'pending': True,
+        'horizon': horizon,
+        'first_measurable': first_measurable,
+        'earliest_activation': earliest_activation,
     }
 
 
@@ -151,15 +227,32 @@ def cross_sectional_section() -> dict | None:
         rows.append((f'`{name}`',
                      f"{check.get('actual')} / 需要 {check.get('required')} · "
                      f"{'✅' if check.get('pass') else '⚪ 未达标'}"))
-    return {
-        'title': '截面因子（预注册）',
-        'verdict': VERDICT['passed'] if activation.get('usable_for_decisions')
-        else VERDICT['undecided'],
-        'rows': rows,
-        'reading': (
+    horizon = _horizon_status(payload, checks)
+    if horizon['pending']:
+        verdict = VERDICT['pending']
+        window = (f"最早可测 {horizon['first_measurable']}"
+                  if horizon['first_measurable'] else '最早可测日期待日历覆盖')
+        activation_at = (f"，按当前节奏最早 {horizon['earliest_activation']} 才可能激活"
+                         if horizon['earliest_activation'] else '')
+        reading = (
+            f"**这不是一条没通过的检验，是还没到期。** 前瞻收益要 "
+            f"{horizon['horizon']} 个交易日才算得出来，注册后的快照一条都还没满窗，"
+            f"所以计数必然是 0（{window}{activation_at}）。"
+            "这一层只用 `registered_at` 之后记录的快照，回溯结果永远不能激活它——"
+            "代价就是必须等，而等待和失败是两件事。")
+    else:
+        verdict = (VERDICT['passed'] if activation.get('usable_for_decisions')
+                   else VERDICT['undecided'])
+        reading = (
             "这一层**只用 `registered_at` 之后记录的快照**做样本外验证，"
             "回溯结果永远不能激活它。目前仍未达标，因此不参与任何决策。"
-            "「还没通过」被公开写出来，是为了让它日后通过时那句话有意义。"),
+            "「还没通过」被公开写出来，是为了让它日后通过时那句话有意义。")
+
+    return {
+        'title': '截面因子（预注册）',
+        'verdict': verdict,
+        'rows': rows,
+        'reading': reading,
         'source': '`assets/data/cross_sectional_factor.json`',
         'sample': f"预注册于 {payload.get('registered_at')}",
     }
