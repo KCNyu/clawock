@@ -13,10 +13,37 @@ Evidence: run card `hstech_regime-20260802-f7d80e00` (1370 HSTECH bars,
 maxDD -95.5% against -44.2% for the de-levered 1x variant. Re-derive with
 `python3 scripts/data/run_card.py --run-id hstech_regime-20260802-f7d80e00`.
 
-Two caveats the card makes visible and this docstring previously did not:
-the thresholds were calibrated on the same window they are scored on (#233),
-and no backtested row is exactly this module's production dial — the card's
-"Regime 2x" goes to cash when trend-off, while production de-levers 2x→1x.
+READ THIS BEFORE QUOTING THE NUMBERS ABOVE. Neither of them describes the dial
+this module actually ships. Both come from rows that switch a 2x sleeve to
+*cash* (or hold a 1x sleeve) on the trend signal alone. What ships is the tier
+mapping below: `amber` only halves the cap, and `red` needs trend-off AND
+vol-hot together. HSTECH's 20d vol sits under 50% through much of a slow
+decline, so the common crash state is amber — 1x on a 2x sleeve, not cash.
+
+`validate_regime_dial.py` models that shipped mapping and reports
+(run card `regime_dial_validation-20260802-896b2145`, 1370 bars,
+2021-01-04 → 2026-07-31):
+
+  in-sample     maxDD -91.6% vs always-2x -95.5% — an improvement of +3.9pp,
+                not the -95%→-44% the rows above suggest
+  tiers fired   green 30.5% · amber 59.5% · red 10.0%
+  permutation   p = 0.92 for drawdown, 0.97 for return. The observed
+                improvement is WORSE than the median random re-timing of the
+                same exposure path (+10.2pp), so on this window the dial's
+                timing is not distinguishable from chance
+  walk-forward  2 of 4 out-of-sample folds improved drawdown; the calibrated
+                thresholds were unstable and never chose 200/0.50
+  sensitivity   200/0.50 ranks 13th of 16 on the grid
+
+The dial is deliberately still here and unchanged. One index and one crash
+cannot support "this does not work" any more than they supported "this does";
+p = 0.92 is a failure to reject, not a refutation, and the module's other job —
+capping leveraged exposure when the regime turns hostile — is a risk-appetite
+rule that does not need a timing edge to be worth keeping. What is no longer
+defensible is the previous framing, in which a -95%→-44% figure from a
+different strategy read as evidence for this one.
+
+Re-derive: `python3 scripts/data/validate_regime_dial.py`.
 
 The single biggest lever was LEVERAGE (2x→1x→cash), not timing. So this module
 emits a leverage-cap MULTIPLIER that tightens the guardrail's leveraged-ETF leg cap

@@ -157,10 +157,36 @@ def main():
         ff[k] = out
     n = len(dates)
 
-    # per-proxy daily returns (a market closed that day carries its price → 0 ret), 200DMA, 20d vol
+    # per-proxy daily returns (a market closed that day carries its price → 0 ret)
     ret = {k: [0.0] + [ff[k][i] / ff[k][i-1] - 1 if ff[k][i-1] else 0.0 for i in range(1, n)] for k in raw}
-    ma = {k: sma(ff[k], MA_WIN) for k in raw}
-    vol = {k: [rvol(ret[k], VOL_WIN, i) for i in range(n)] for k in raw}
+
+    # The dial's inputs are computed on each proxy's NATIVE sessions and then
+    # mapped onto the union calendar — not on the forward-filled series. A closed
+    # market contributes a 0% return on the union calendar, and those injected
+    # zero-variance days deflate 20d realised vol, which is one of the two dial
+    # inputs. Production (compute_regime) reads HSTECH's own sessions, so
+    # measuring vol here on the union calendar meant the backtest and the live
+    # dial were reading different numbers from the same rule.
+    ma, vol = {}, {}
+    for k, s in raw.items():
+        native_dates = sorted(s)
+        native_closes = [s[d] for d in native_dates]
+        native_rets = [0.0] + [native_closes[i] / native_closes[i-1] - 1
+                               for i in range(1, len(native_closes))]
+        native_ma = sma(native_closes, MA_WIN)
+        native_vol = [rvol(native_rets, VOL_WIN, i) for i in range(len(native_closes))]
+        by_date_ma = dict(zip(native_dates, native_ma))
+        by_date_vol = dict(zip(native_dates, native_vol))
+        # Carry the last native reading forward across a closed session: the dial
+        # does not update on a day the market did not trade, and it does not go
+        # blind either.
+        ma[k], vol[k] = [], []
+        last_ma = last_vol = None
+        for d in dates:
+            if d in by_date_ma:
+                last_ma, last_vol = by_date_ma[d], by_date_vol[d]
+            ma[k].append(last_ma)
+            vol[k].append(last_vol)
 
     w, tot_usd = weights_usd()
     print(f'Combined book ≈ ${tot_usd:,.0f}  · 共 {len(w)} 持仓 · 窗口 {dates[0]} → {dates[-1]} ({n} 交易日)')
