@@ -53,18 +53,26 @@ sys.path.insert(0, str(WS / 'scripts' / 'data'))
 import trading_calendar  # noqa: E402
 import workflow_outcomes  # noqa: E402
 
-REQUIRED_SECTIONS = ['▎情绪面', '▎技术面', '▎操作建议']
-FORBIDDEN_PHRASES = ['数据待获取', '等待数据', '数据缺失（占位）', 'TODO', 'TBD']
+# The deterministic report core moved into the installed package so `clawock
+# report` can run it without a repository checkout. Re-exported here so this
+# module's own regression suite keeps exercising exactly that code.
+sys.path.insert(0, str(WS))
+from clawock.report import (  # noqa: E402,F401
+    CRITICAL_KEYWORDS,
+    FORBIDDEN_PHRASES,
+    MIN_REPORT_CHARS,
+    REQUIRED_SECTIONS,
+    _is_hard_char_limit,
+    _unusable_context,
+    assemble_message,
+    categorize,
+    validate,
+)
 
-# A real report is always >500 字 (raw_wechat_block alone ≈600). Anything this
-# short is a broken pipe, not a report — never deliver it. 2026-06-17: the cron
-# LLM issued the file-write and `report_postflight ... <<< "$(cat report.txt)"`
-# as PARALLEL tool calls in one turn; cat raced the write, read a missing file →
-# empty stdin (n_chars=1). The validator (correctly) failed it, but deliver_wechat
-# sends on ALL statuses incl. fail → kcn got a scary empty "🔴 Validation FAILED"
-# banner before the model's serial retry delivered the real report. Guard the
-# degenerate-input case BEFORE send/commit so a broken pipe never reaches WeChat.
-MIN_REPORT_CHARS = 50
+# Report slots are hours apart (open/mid/pm/close), so a prose file older than
+# this is the previous slot's, not this one's. See read_prose_text.
+PROSE_MAX_AGE_MIN = 30
+
 
 # Report slots are hours apart (open/mid/pm/close), so a prose file older than
 # this is the previous slot's, not this one's. See read_prose_text.
@@ -80,114 +88,6 @@ def load_context(market, phase, date):
         return None, f'preflight context 解析失败: {e}'
 
 
-def _unusable_context(ctx, prose_only):
-    """Reason string if the context can't back a report, else None.
-
-    preflight writes blockless sentinels (status preflight_failed / market_closed)
-    that carry none of the deterministic fields postflight assembles from. Anything
-    but a 'ok' status with a nonempty raw block + title + commit_msg — plus a
-    context_id in prose mode — is not a report context.
-    """
-    if ctx.get('status') != 'ok':
-        return f'context status={ctx.get("status")!r}（preflight 未产出可用数据），跳过投递+commit'
-    missing = [k for k in ('raw_wechat_block', 'title', 'commit_msg') if not (ctx.get(k) or '').strip()]
-    if prose_only and not (ctx.get('context_id') or '').strip():
-        missing.append('context_id')
-    if missing:
-        return f'context 缺字段 {missing}，跳过投递+commit'
-    return None
-
-
-def assemble_message(ctx, prose):
-    """Build the delivered report from harness-owned data + model-owned prose.
-
-    The 2026-07-24 incident happened because the deterministic data block made a
-    round trip through the LLM: preflight put it in the context, the payload
-    ordered the model to copy it verbatim, and validate() checked the copy. A
-    model that read the wrong context therefore published wrong numbers, and the
-    verbatim check could only notice *after* the send.
-
-    Prepending it here removes the round trip: the numbers in the delivered
-    message come from the context file at send time, so they cannot be stale,
-    paraphrased, or table-mangled — no instruction and no validation rule needed.
-    """
-    parts = [ctx.get('title', '').strip(),
-             (ctx.get('raw_wechat_block') or '').strip(),
-             prose.strip()]
-    return '\n\n'.join(p for p in parts if p)
-
-
-def validate(body, ctx, prose_only=False, model_text=None):
-    """Validate the delivered message.
-
-    `body` is what gets sent. `model_text` is the part the MODEL wrote; in prose
-    mode that is the prose alone, in legacy mode it is the whole report (== body).
-
-    The content rules — sections, risk section, anomaly mention, forbidden phrases
-    — MUST run against model_text, never body. In prose mode assemble_message has
-    already prepended the raw data block, and that block itself contains the
-    anomaly tickers and (potentially) section-looking tokens: checking body would
-    let prose that mentions none of the movers pass because the table does. Only
-    the length limit is a property of the assembled body. (2026-07-24 review.)
-    """
-    issues = []
-    checked = body if model_text is None else model_text
-
-    # 1. raw block 必须 verbatim 出现（legacy path only — see docstring）
-    raw = ctx.get('raw_wechat_block', '').strip()
-    if raw and not prose_only:
-        first_line = raw.splitlines()[0]
-        if first_line not in body:
-            issues.append(f'报告未包含原始数据块首行 "{first_line[:40]}..." (verbatim 验证失败)')
-        issues.extend(check_raw_tables_verbatim(body, raw))
-
-    # 2. 必有三段标记（模型文本）
-    for sec in REQUIRED_SECTIONS:
-        if sec not in checked:
-            issues.append(f'缺段标记 "{sec}"')
-
-    # 3. 风险提示段（若 preflight 标了 needs；模型文本）
-    if ctx.get('needs_risk_section') and '▎风险提示' not in checked:
-        issues.append('preflight 标 needs_risk_section=true 但未见 "▎风险提示" 段')
-
-    # 4. 长度 —— 按投递全文 (per-market)
-    n_chars = len(body)
-    limits = CHAR_LIMITS.get(ctx.get('market', 'hk'), CHAR_LIMITS['hk'])
-    soft, hard = limits['soft'], limits['hard']
-    if n_chars > hard:
-        issues.append(f'报告长度 {n_chars} 字 > {hard} 上限')
-    elif n_chars > soft:
-        issues.append(f'报告长度 {n_chars} 字 > {soft} 软上限 (warn)')
-
-    # 5. 异动票必须被提到（模型文本 —— 数据块里本就有票代码，不能拿它顶）
-    anomalies = ctx.get('anomalies', [])
-    if anomalies:
-        mentioned = [a['ticker'] for a in anomalies if a['ticker'] in checked]
-        if not mentioned:
-            tickers = ', '.join(a['ticker'] for a in anomalies)
-            issues.append(f'preflight 标了 {len(anomalies)} 个 ≥3% 异动票 ({tickers}) 但报告全部未提及')
-
-    # 6. 敷衍 phrases（模型文本）
-    issues.extend(validate_forbidden_phrases(checked, FORBIDDEN_PHRASES))
-
-    # 7. 数字必须来自 context（模型文本）—— 一条聚合 warn，见 check_numeric_claims
-    issues.extend(check_numeric_claims(checked, ctx))
-
-    return issues
-
-
-CRITICAL_KEYWORDS = ['缺段标记', '未包含原始数据块', '敷衍词', '表格行未 verbatim']
-
-
-def _is_hard_char_limit(issue):
-    """Hard char limit (e.g. '字 > 3500 上限') is critical; soft is not."""
-    return '字 >' in issue and '上限' in issue and '软上限' not in issue
-
-
-def categorize(issues):
-    return categorize_issues(
-        issues, CRITICAL_KEYWORDS, warn_max=3, extra_critical=_is_hard_char_limit,
-    )
 
 
 sys.path.insert(0, str(Path(__file__).parent))

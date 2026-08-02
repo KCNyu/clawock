@@ -49,6 +49,47 @@ def _doctor(args) -> int:
     return 1
 
 
+
+def _report(args) -> int:
+    """Assemble and judge a market report, in-process.
+
+    Deliberately does NOT invoke scripts/harness/report_postflight.py. A CLI that
+    re-executes the same scripts is a rename, not independence — so this calls the
+    extracted core directly and works from an installed wheel with no repository
+    checkout, no `openclaw`, no `git`.
+
+    Delivery and publication are not done here: those are capability providers,
+    and a report you can render without them is exactly the point of the split.
+    """
+    from clawock.report import assemble_message, categorize, validate
+
+    context = json.loads(Path(args.context).read_text())
+    prose = Path(args.prose).read_text() if args.prose else sys.stdin.read()
+
+    body = assemble_message(context, prose)
+    issues = validate(body, context, prose_only=True, model_text=prose)
+    verdict = categorize(issues)
+
+    result = {
+        "market": context.get("market"),
+        "phase": context.get("phase"),
+        "context_id": context.get("context_id"),
+        "chars": len(body),
+        "status": verdict,
+        "issues": issues,
+        "body": body,
+    }
+    if args.json:
+        print(json.dumps(result, ensure_ascii=False, indent=2))
+    else:
+        print(body)
+        if issues:
+            print(f"\n--- {verdict}: {len(issues)} issue(s) ---", file=sys.stderr)
+            for issue in issues:
+                print(f"  · {issue}", file=sys.stderr)
+    return 0 if verdict == "pass" else 1
+
+
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser(prog="clawock", description=__doc__)
     sub = parser.add_subparsers(dest="command", required=True)
@@ -57,6 +98,15 @@ def main(argv=None) -> int:
     doctor.add_argument("--workspace", type=Path, default=None)
     doctor.add_argument("--json", action="store_true")
     doctor.set_defaults(func=_doctor)
+
+    report = sub.add_parser(
+        "report", help="assemble and validate a market report from a context file")
+    report.add_argument("--context", type=Path, required=True,
+                        help="preflight context JSON")
+    report.add_argument("--prose", type=Path, default=None,
+                        help="model prose; reads stdin when omitted")
+    report.add_argument("--json", action="store_true")
+    report.set_defaults(func=_report)
 
     args = parser.parse_args(argv)
     return args.func(args)
