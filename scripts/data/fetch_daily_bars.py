@@ -55,6 +55,7 @@ from pathlib import Path
 from zoneinfo import ZoneInfo
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import bar_checks  # noqa: E402  shared "is this bar believable" contract
 from _em_http import em_get  # noqa: E402  统一请求节流出口
 
 WS = Path(__file__).resolve().parents[2]
@@ -185,9 +186,15 @@ def fetch_em_audit(secid: str, beg: str, end: str) -> list[dict]:
 
 
 def sane(b: dict) -> bool:
-    """low <= open,close <= high, and nothing free."""
-    return (b["low"] <= b["open"] <= b["high"] and b["low"] <= b["close"] <= b["high"]
-            and b["low"] > 0 and b["high"] > 0)
+    """low <= open,close <= high, and nothing free.
+
+    Detection now lives in `bar_checks` so this store and the live-quote paths
+    share one definition. The policy stays here and is unchanged: a bar that
+    cannot be true of any session is refused. What changed is that a *degenerate*
+    bar (o==h==l==c) is no longer indistinguishable from a healthy one — see
+    `merge`, which stores it with a flag instead of pretending it had a range.
+    """
+    return bar_checks.is_structurally_sane(b)
 
 
 def merge(ticker: str, fresh: list[dict], repair: bool) -> tuple[int, int, list[str]]:
@@ -204,11 +211,20 @@ def merge(ticker: str, fresh: list[dict], repair: bool) -> tuple[int, int, list[
         d = b["date"]
         if d > last_closed:
             continue                      # session not finished — never store a live bar
-        if not sane(b):
-            conflicts.append(f"{d}: insane OHLC {b}")
+        verdict = bar_checks.check_bar(b)
+        if verdict["fatal"]:
+            conflicts.append(f"{d}: insane OHLC {b} ({'; '.join(verdict['fatal'])})")
             continue
         rec = {"open": b["open"], "high": b["high"], "low": b["low"], "close": b["close"],
                "source": "tencent", "adjustment": "raw", "fetched_at": now}
+        # A bar whose OHLC collapsed to a single price is legitimate for a halted
+        # or untraded session and is also the signature of a frozen provider
+        # quote. We cannot tell which from the bar alone, so it is stored with
+        # the flag rather than dropped (settlement still needs the close) — and
+        # never silently, because a trigger that "fired" inside a zero-width
+        # range is not evidence of anything.
+        if "degenerate_range" in verdict["flags"]:
+            rec["degenerate"] = True
         old = bars.get(d)
         if old is None:
             bars[d] = rec

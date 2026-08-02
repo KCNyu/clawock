@@ -22,6 +22,7 @@ from typing import Dict, List, Optional
 import requests
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import bar_checks  # noqa: E402  shared "is this bar believable" contract
 from _em_http import em_get  # noqa: E402
 from instrument_registry import INSTRUMENTS  # noqa: E402
 
@@ -402,12 +403,12 @@ def update_hk_portfolio(dry_run: bool = False) -> Dict:
         # 07226 +2.64% 方向相反）。非致命：照常写入但收集告警，刷新结束打印汇总，靠人工
         # 体检 / dashboard 异常卡兜底（kcn 不要单次 cron 即时推送告警）。
         lo_q, hi_q = q.get('l'), q.get('h')
-        if lo_q and hi_q and c:
-            tol = max(0.005, c * 0.002)   # 容差，防浮点/取整误报
-            if c < lo_q - tol or c > hi_q + tol:
-                range_warns.append(
-                    f"{code} {q.get('name','')[:6]}: current {c} 越出当日区间 "
-                    f"[{lo_q}, {hi_q}]（prev_close {pc}，疑似坏 tick）")
+        # 判据搬到 bar_checks（同一套容差、同一套定义），策略仍留在这里：告警不致命。
+        breach = bar_checks.price_outside_quoted_range(c, lo_q, hi_q)
+        if breach:
+            range_warns.append(
+                f"{code} {q.get('name','')[:6]}: current {c} 越出当日区间 "
+                f"[{lo_q}, {hi_q}]（prev_close {pc}，疑似坏 tick — {breach}）")
 
         h['current_price']    = round(c, 3)
         h['prev_close']       = round(pc, 3)
