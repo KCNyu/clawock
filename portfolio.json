@@ -1328,15 +1328,15 @@
   },
   "market_context": {},
   "gold_dca": {
-    "principal_invested": 17299.0,
-    "daily_amount": 200,
-    "reconciled_date": "2026-06-09",
+    "principal_note": "对账基线(自动累加模式)。2026-06-09 kcn 对账:现值 15470 + 盈亏 -1829 → 本金 17299,份额 = 15470/净值3.1867 = 4854.55。此后每个 A 股交易日自动 +200@当日净值。补投对账:把 principal_invested/units_held 改成新真实数字、reconciled_date 改成对账当天即可,自动累加归零重算。",
     "currency": "CNY",
     "fund_code": "000217",
+    "reconciled_date": "2026-06-09",
     "fund_name": "华安黄金ETF联接C",
     "units_held": 4854.55,
+    "daily_amount": 200,
     "start_date": "2026-01-22",
-    "principal_note": "对账基线(自动累加模式)。2026-06-09 kcn 对账:现值 15470 + 盈亏 -1829 → 本金 17299,份额 = 15470/净值3.1867 = 4854.55。此后每个 A 股交易日自动 +200@当日净值。补投对账:把 principal_invested/units_held 改成新真实数字、reconciled_date 改成对账当天即可,自动累加归零重算。",
+    "principal_invested": 17299.0,
     "nav": 2.98,
     "nav_date": "2026-07-31",
     "nav_change_pct": 0.49,
@@ -1960,16 +1960,16 @@
         2.98
       ]
     ],
-    "last_updated": "2026-07-31T15:50:15.056134Z",
+    "last_updated": "2026-08-02T15:50:19.814414Z",
     "london": {
-      "xau_usd": 4040.42,
-      "xau_change_pct": -1.54,
+      "xau_usd": 4046.42,
+      "xau_change_pct": -1.39,
       "xau_high": 4111.65,
       "xau_low": 4021.08,
       "xau_prev_close": 4103.42,
-      "xau_date": "2026-07-31",
+      "xau_date": "2026-08-01",
       "usdcny": 6.7513,
-      "oz_equiv": 0.798,
+      "oz_equiv": 0.797,
       "grams_equiv": 24.8,
       "intl_value_usd": 3225.79,
       "compare_series": [
@@ -2421,47 +2421,47 @@
         [
           "2026-07-31",
           81.36,
-          81.85
+          81.98
         ]
       ],
       "dca_equiv": {
         "principal_cny": 25200.0,
         "oz_held": 0.8113,
         "grams_held": 25.2,
-        "avg_cost_usd_oz": 4544.99,
-        "avg_cost_cny_g": 998.61,
-        "spot_usd_oz": 4040.42,
-        "breakeven_upside_pct": 12.49,
-        "current_value_cny": 22131.39,
-        "pnl_abs": -3068.61,
-        "pnl_pct": -12.18,
+        "avg_cost_usd_oz": 4545.05,
+        "avg_cost_cny_g": 998.62,
+        "spot_usd_oz": 4046.42,
+        "breakeven_upside_pct": 12.32,
+        "current_value_cny": 22163.95,
+        "pnl_abs": -3036.05,
+        "pnl_pct": -12.05,
         "days": 126,
         "daily_grams": 0.228,
         "projection": [
           {
             "days": 20,
-            "avg_cost_usd_oz": 4467.75,
-            "breakeven_upside_pct": 10.58
+            "avg_cost_usd_oz": 4468.82,
+            "breakeven_upside_pct": 10.44
           },
           {
             "days": 40,
-            "avg_cost_usd_oz": 4411.03,
-            "breakeven_upside_pct": 9.17
+            "avg_cost_usd_oz": 4412.81,
+            "breakeven_upside_pct": 9.05
           },
           {
             "days": 60,
-            "avg_cost_usd_oz": 4367.59,
-            "breakeven_upside_pct": 8.1
+            "avg_cost_usd_oz": 4369.91,
+            "breakeven_upside_pct": 7.99
           },
           {
             "days": 120,
-            "avg_cost_usd_oz": 4282.49,
-            "breakeven_upside_pct": 5.99
+            "avg_cost_usd_oz": 4285.82,
+            "breakeven_upside_pct": 5.92
           },
           {
             "days": 250,
-            "avg_cost_usd_oz": 4195.23,
-            "breakeven_upside_pct": 3.83
+            "avg_cost_usd_oz": 4199.57,
+            "breakeven_upside_pct": 3.78
           }
         ]
       },
@@ -3012,7 +3012,7 @@
         ],
         [
           "2026-07-31",
-          4040.42
+          4046.42
         ]
       ],
       "fx_hist_source": {
@@ -3558,7 +3558,7 @@
         ]
       ],
       "hist_advisory": null,
-      "last_updated": "2026-07-31T15:50:15.056746Z"
+      "last_updated": "2026-08-02T15:50:19.815453Z"
     }
   }
 }
