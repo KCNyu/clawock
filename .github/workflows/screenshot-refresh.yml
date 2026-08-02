@@ -51,7 +51,7 @@ jobs:
       - name: Assemble tab-cycle GIF
         if: github.event_name == 'workflow_dispatch'
         run: |
-          python3 -m pip install --quiet --upgrade Pillow
+          python3 -m pip install --quiet -e '.[imaging]'
           python3 scripts/data/assemble_dashboard_gif.py
 
       - name: Validate tab-cycle GIF
@@ -64,7 +64,7 @@ jobs:
       # separate step so the validate step's command stays exactly the validator
       # invocation (workflow-contract test).
       - name: Install Pillow for screenshot decode
-        run: python3 -m pip install --quiet --upgrade Pillow
+        run: python3 -m pip install --quiet -e '.[imaging]'
 
       - name: Validate screenshots
         run: python3 scripts/data/validate_sidecars.py screenshots

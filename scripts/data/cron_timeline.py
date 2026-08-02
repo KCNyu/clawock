@@ -26,7 +26,9 @@ import subprocess
 import sys
 from pathlib import Path
 
-WS = Path(__file__).resolve().parents[2]
+from workspace import workspace_root  # noqa: E402
+
+WS = workspace_root(Path(__file__).resolve().parents[2])
 WORKFLOWS = WS / '.github' / 'workflows'
 
 DOW_SHORT = ['日', '一', '二', '三', '四', '五', '六']  # 0=Sun .. 6=Sat

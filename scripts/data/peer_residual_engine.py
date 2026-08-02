@@ -19,7 +19,9 @@ import sys
 from datetime import date, datetime, timezone
 from pathlib import Path
 
-WS = Path(__file__).resolve().parents[2]
+from workspace import workspace_root  # noqa: E402
+
+WS = workspace_root(Path(__file__).resolve().parents[2])
 RULE_CONFIG = WS / 'config' / 'peer-residual-rules.json'
 FACTOR_CONFIG = WS / 'config' / 'factor-universe.json'
 PEER_MAP = WS / 'memory' / 'peer-map.json'

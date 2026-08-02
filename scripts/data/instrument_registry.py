@@ -15,7 +15,9 @@ from pathlib import Path
 from typing import Any
 
 
-WS = Path(__file__).resolve().parents[2]
+from workspace import workspace_root  # noqa: E402
+
+WS = workspace_root(Path(__file__).resolve().parents[2])
 REGISTRY_FILE = WS / "config" / "instruments.json"
 SCHEMA_FILE = WS / "config" / "instruments.schema.json"
 SCHEMA_VERSION = 1

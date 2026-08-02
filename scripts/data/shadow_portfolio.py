@@ -25,7 +25,9 @@ from zoneinfo import ZoneInfo
 import decision_v2
 import trading_calendar
 
-WS = Path(__file__).resolve().parents[2]
+from workspace import workspace_root  # noqa: E402
+
+WS = workspace_root(Path(__file__).resolve().parents[2])
 OUT = WS / "assets" / "data" / "shadow_portfolio.json"
 SCHEMA_VERSION = 1
 ACTIVE_ACTIONS = set(decision_v2.ACTIVE_ACTIONS)

@@ -206,11 +206,18 @@ def test_pr_run_measures_coverage_and_gates_on_it():
 
 def test_the_coverage_plugin_is_installed_where_it_is_used():
     # Without pytest-cov the --cov flags are an unknown-argument error, not a
-    # silent skip.
+    # silent skip. The install line no longer names packages — dependencies moved
+    # to pyproject.toml so they stop drifting across nine workflow files — so the
+    # guarantee is checked at the new source of truth instead.
+    import tomllib
+
     installs = [line for line in strip_hash_comments(WORKFLOW.read_text()).splitlines()
-                if 'pip install' in line and 'pytest' in line]
-    assert len(installs) == 1
-    assert 'pytest-cov' in installs[0]
+                if 'pip install' in line and '[test]' in line]
+    assert len(installs) == 1, 'the suite must install the test extra exactly once'
+
+    extras = tomllib.load(open(ROOT / 'pyproject.toml', 'rb'))[
+        'project']['optional-dependencies']
+    assert any(dep.startswith('pytest-cov') for dep in extras['test'])
 
 
 def _publish_job():

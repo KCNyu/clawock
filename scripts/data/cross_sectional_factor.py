@@ -24,7 +24,9 @@ from pathlib import Path
 
 import requests
 
-WS = Path(__file__).resolve().parents[2]
+from workspace import workspace_root  # noqa: E402
+
+WS = workspace_root(Path(__file__).resolve().parents[2])
 CONFIG = WS / 'config' / 'factor-universe.json'
 OUT = WS / 'assets' / 'data' / 'cross_sectional_factor.json'
 HISTORY = WS / 'assets' / 'data' / 'cross_sectional_factor_history.jsonl'

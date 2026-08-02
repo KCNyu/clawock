@@ -25,7 +25,9 @@ import sys
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
-WS = Path(__file__).resolve().parents[2]
+from workspace import workspace_root  # noqa: E402
+
+WS = workspace_root(Path(__file__).resolve().parents[2])
 WORKFLOW_DIR = WS / ".github" / "workflows"
 LOOKBACK_DAYS = 7
 # A schedule that fires at most weekly still has to fire inside two of its own

@@ -1,0 +1,39 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "clawock"
+version = "0.1.0"
+description = "Auditable AI portfolio operation: decision ledger, calibration, and evidence-first reporting"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { file = "LICENSE" }
+
+# The one place dependencies are declared. They used to live in nine workflow
+# files as drifting `pip install` lines — `requests` in seven, `requests numpy`
+# in one, `requests pytest pytest-cov numpy Pillow` in another. The comment
+# above that last one already records the cost: a missing numpy once aborted
+# pytest collection and silently stopped enforcing the whole suite while the
+# run still looked green.
+dependencies = [
+    "requests>=2.31",
+]
+
+[project.optional-dependencies]
+# Numeric work: risk metrics, correlation x-ray, regime validation.
+compute = ["numpy>=1.26"]
+# Screenshot and social-card validation.
+imaging = ["Pillow>=10"]
+# Everything the test suite needs to *collect*, not just to pass.
+test = ["pytest>=8", "pytest-cov>=5", "numpy>=1.26", "Pillow>=10"]
+
+[project.scripts]
+clawock = "clawock_cli:main"
+
+[tool.setuptools]
+# Deliberately not packaging scripts/ yet. The coupling that stops a stranger
+# running this is inside modules (pure computation mixed with I/O to a hardcoded
+# workspace root), not between files, so moving 84 files would buy very little.
+# What unblocks a foreign run is the workspace indirection plus this metadata.
+py-modules = ["clawock_cli"]

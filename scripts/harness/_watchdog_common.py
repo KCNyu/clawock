@@ -24,7 +24,10 @@ from collections import Counter
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
 
-WS = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / 'scripts' / 'data'))
+from workspace import workspace_root  # noqa: E402
+
+WS = workspace_root(Path(__file__).resolve().parents[2])
 OC = Path('/root/.openclaw')
 RUNS_DIR = OC / 'cron' / 'runs'
 JOBS_JSON = OC / 'cron' / 'jobs.json'

@@ -9,7 +9,9 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
-WS = Path(__file__).resolve().parents[2]
+from workspace import workspace_root  # noqa: E402
+
+WS = workspace_root(Path(__file__).resolve().parents[2])
 SCHEMA_FILE = WS / "config" / "thesis.schema.json"
 SCHEMA_VERSION = 1
 THESIS_STATES = ("unknown", "broken", "damaged", "weakening", "intact")
