@@ -50,8 +50,10 @@ def test_an_inconclusive_result_never_renders_as_a_pass(tmp_path, monkeypatch):
     (tmp_path / "quant_signal_review.json").write_text(json.dumps({
         "unlock_rule": "cluster_ci_entirely_above_or_below_50pct",
         "days_logged": 3,
-        "factors": {"thin": {"hit_rate": 1.0, "ci95": None, "n_events": 2,
-                             "n_dates": 2, "n_tickers": 1,
+        # Multi-cluster on purpose: a straddling CI is a different verdict from
+        # an uninterpretable single-cluster sample, and this test owns the first.
+        "factors": {"thin": {"hit_rate": 0.55, "ci95": [0.38, 0.71],
+                             "n_events": 40, "n_dates": 12, "n_tickers": 5,
                              "edge_significant": False}},
     }))
 
@@ -90,3 +92,66 @@ def test_a_failed_verdict_is_stated_as_a_failure_to_reject(tmp_path, monkeypatch
 
 def test_regenerating_the_page_is_idempotent():
     assert ev.build() == ev.build()
+
+
+def test_not_yet_elapsed_is_neither_a_pass_nor_a_failure(tmp_path, monkeypatch):
+    """A prospective criterion at zero while its forward window has not elapsed
+    is waiting, not failing. Rendering the two the same is the exact conflation
+    this page exists to avoid."""
+    monkeypatch.setattr(ev, "DATA", tmp_path)
+    monkeypatch.setattr(ev, "WS", tmp_path)
+    (tmp_path / "config").mkdir()
+    (tmp_path / "config" / "factor-universe.json").write_text(json.dumps({
+        "forward_horizon_sessions": 21,
+        "activation_criteria": {"min_prospective_dates": 24},
+    }))
+    (tmp_path / "cross_sectional_factor.json").write_text(json.dumps({
+        "registered_at": "2026-07-26",
+        "activation": {"usable_for_decisions": False, "checks": {
+            "prospective_dates": {"actual": 0, "required": 24, "pass": False}}},
+    }))
+
+    section = ev.cross_sectional_section()
+
+    assert section["verdict"] == ev.VERDICT["pending"]
+    assert section["verdict"] not in (ev.VERDICT["passed"], ev.VERDICT["undecided"])
+    assert "还没到期" in section["reading"]
+    # The wait has to be quantified, not just asserted.
+    assert "2026-" in section["reading"]
+
+
+def test_a_measured_shortfall_still_reads_as_not_yet_decidable(tmp_path, monkeypatch):
+    """Once observations exist, a shortfall is a real measurement again — the
+    pending state must not swallow it."""
+    monkeypatch.setattr(ev, "DATA", tmp_path)
+    monkeypatch.setattr(ev, "WS", tmp_path)
+    (tmp_path / "config").mkdir()
+    (tmp_path / "config" / "factor-universe.json").write_text(json.dumps({
+        "forward_horizon_sessions": 21,
+        "activation_criteria": {"min_prospective_dates": 24},
+    }))
+    (tmp_path / "cross_sectional_factor.json").write_text(json.dumps({
+        "registered_at": "2026-07-26",
+        "activation": {"usable_for_decisions": False, "checks": {
+            "prospective_dates": {"actual": 9, "required": 24, "pass": False}}},
+    }))
+
+    assert ev.cross_sectional_section()["verdict"] == ev.VERDICT["undecided"]
+
+
+def test_a_single_cluster_sample_is_labelled_instead_of_showing_a_bare_rate(
+        tmp_path, monkeypatch):
+    """trend_on_follow's 3.1% is one ticker over 32 sessions. Shown bare it reads
+    as a catastrophically wrong factor; it is an uninterpretable sample."""
+    monkeypatch.setattr(ev, "DATA", tmp_path)
+    (tmp_path / "quant_signal_review.json").write_text(json.dumps({
+        "unlock_rule": "cluster_ci_entirely_above_or_below_50pct", "days_logged": 38,
+        "factors": {"trend_on_follow": {"hit_rate": 0.031, "ci95": None,
+                                        "n_events": 32, "n_dates": 32,
+                                        "n_tickers": 1, "edge_significant": False}},
+    }))
+
+    row = ev.factor_section()["rows"][0][1]
+
+    assert "单一簇" in row
+    assert "锁定" not in row, "a single-cluster sample is not the same as a CI that straddles 50%"
