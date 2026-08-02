@@ -12,7 +12,7 @@ A real Hong Kong + US stock portfolio, debated by multiple LLMs and graded by Py
 [![Coverage](https://img.shields.io/endpoint?url=https%3A%2F%2Fkcnyu.github.io%2Fclawock%2Fassets%2Fdata%2Fcoverage.json&style=flat-square&logo=python&logoColor=white&labelColor=252b35)](https://github.com/KCNyu/clawock/actions/workflows/harness-regression.yml)
 [![License](https://img.shields.io/badge/LICENSE-MIT-aab5bf?style=flat-square&labelColor=252b35)](LICENSE)
 
-[**Live dashboard**](https://kcnyu.github.io/clawock/) &nbsp;·&nbsp; [**Daily briefs**](https://kcnyu.github.io/clawock/briefs.html) &nbsp;·&nbsp; [**简体中文**](README.zh.md)
+[**Live dashboard**](https://kcnyu.github.io/clawock/) &nbsp;·&nbsp; [**Daily briefs**](https://kcnyu.github.io/clawock/briefs.html) &nbsp;·&nbsp; [**Evidence**](https://kcnyu.github.io/clawock/evidence.html) &nbsp;·&nbsp; [**简体中文**](README.zh.md)
 
 <br>
 
@@ -141,6 +141,22 @@ The model submits decisions; it can never write or amend its own evaluation. Tha
 
 </details>
 
+## What we tested, and what failed
+
+The scorecard reports what happened. This reports what was checked — and what did not survive the check.
+
+A layer has to clear a stated bar before it is allowed to influence a decision, and the bar is set before the result is known:
+
+- **Factor edges** must have a two-way clustered bootstrap interval that does not straddle 50%. An interval that straddles it means the sample is too small, which is a different statement from "the factor does not work" — both keep it out of decisions, and the distinction is published.
+- **The cross-sectional layer** is pre-registered. Only snapshots recorded after registration count toward activation, so a retrospective result can never switch it on.
+- **The leverage dial** is scored out of sample: thresholds are calibrated on a leading window and graded on the next one, and its timing is tested against a null that circularly shifts the same exposure path against returns — preserving its shape and time-in-market while destroying only the alignment.
+
+Results are published whether or not they flatter the system. The dial's permutation test is the current example: on the sample available, its timing cannot be distinguished from chance, and that is stated on the page rather than left out of it. A failure to reject is not a refutation, and the page says which one it is.
+
+Two properties keep this from decaying into copy. The page is **generated from the artifacts**, so it cannot quietly drift from them. And any backtest figure quoted in the repository has to cite a run card that still contains it — a stale citation points at real evidence that no longer says what the claim says, which reads as credible and is wrong. CI fails on both.
+
+[**Evidence and refutation**](https://kcnyu.github.io/clawock/evidence.html)
+
 ## What the code enforces
 
 The model writes opinions. The arithmetic that could corrupt the record runs in Python and is unit-tested.
@@ -176,6 +192,20 @@ weekly     archive, health, review, and visual-refresh jobs
 ```
 
 Hong Kong times run on HKT; US session times follow ET and their cron expressions shift automatically with New York DST. A holiday + weekend gate skips closed sessions. The exact generated table is in [docs/operations/cron-schedules.md](docs/operations/cron-schedules.md).
+
+## Run it on your own book
+
+The repository installs as a package, and the computation is no longer welded to this account's directory:
+
+```bash
+pip install -e .
+clawock doctor                          # is this workspace runnable?
+clawock doctor --workspace ~/my-book    # is that one?
+```
+
+`doctor` answers one question — could the loop run against this portfolio — and names what is missing instead of failing somewhere deep with a path error. `CLAWOCK_WORKSPACE` points the computation at another tree; unset, everything behaves exactly as it did.
+
+Be clear about how far this goes. It is the first slice, not a general-purpose framework: much of the pipeline still assumes this desk's shape — two books, the instrument registry, the schedules. `doctor` tells you what a foreign workspace lacks rather than pretending otherwise, and dependencies now come from `pyproject.toml` rather than being restated in every workflow.
 
 ## Explore the system
 

@@ -12,7 +12,7 @@
 [![Coverage](https://img.shields.io/endpoint?url=https%3A%2F%2Fkcnyu.github.io%2Fclawock%2Fassets%2Fdata%2Fcoverage.json&style=flat-square&logo=python&logoColor=white&labelColor=252b35)](https://github.com/KCNyu/clawock/actions/workflows/harness-regression.yml)
 [![License](https://img.shields.io/badge/LICENSE-MIT-aab5bf?style=flat-square&labelColor=252b35)](LICENSE)
 
-[**实时仪表盘**](https://kcnyu.github.io/clawock/) &nbsp;·&nbsp; [**每日简报**](https://kcnyu.github.io/clawock/briefs.html) &nbsp;·&nbsp; [**English**](README.md)
+[**实时仪表盘**](https://kcnyu.github.io/clawock/) &nbsp;·&nbsp; [**每日简报**](https://kcnyu.github.io/clawock/briefs.html) &nbsp;·&nbsp; [**证据与反证**](https://kcnyu.github.io/clawock/evidence.html) &nbsp;·&nbsp; [**English**](README.md)
 
 <br>
 
@@ -141,6 +141,22 @@ clawock 是一个持续运行的、公开的**纪律化、自评式** AI 投资�
 
 </details>
 
+## 测了什么，什么没通过
+
+战绩说的是发生了什么。这一节说的是**检验了什么，以及什么没通过检验**。
+
+一层能力要影响决策，得先过一条事先定好的线——线在结果出来之前就划好：
+
+- **因子 edge** 的 date×ticker 双向聚类 bootstrap 区间必须整体落在 50% 一侧。区间跨过 50% 意味着样本还不够，这和「因子无效」是两句不同的话——两者都不进决策，但区别会被公开写出来。
+- **截面层是预注册的**：只有注册时点之后记录的快照才计入激活条件，回溯结果永远不能把它打开。
+- **杠杆刻度盘按样本外打分**：阈值在前一段窗口上标定、在下一段上评分；择时能力对照的是一个环形位移的原假设——把同一条敞口路径整体平移，保留它的形状和在场时间，只破坏它与收益的对齐。
+
+结果不管好看不好看都发。刻度盘的置换检验就是眼下的例子：在现有样本上，它的择时**不可与随机区分**，这句话被写在页面上而不是被略过。「未能拒绝原假设」不等于「已被证伪」，页面会说清楚是哪一种。
+
+有两条性质让它不会退化成文案。页面是**从产物生成的**，不会悄悄和产物脱节；仓库里任何引用回测的数字，都必须引用一张**仍然包含这个数字**的 run card——失效引用指向的是真证据，但那份证据已经不再支持这句话，看起来最可信，实际是错的。这两条 CI 都会红。
+
+[**证据与反证**](https://kcnyu.github.io/clawock/evidence.html)
+
 ## 代码强制执行的规矩
 
 模型只写观点。可能污染记录的算术都跑在 Python 里、有单元测试。
@@ -176,6 +192,20 @@ clawock 是一个持续运行的、公开的**纪律化、自评式** AI 投资�
 ```
 
 港股时间按 HKT;美股 session 时间按 ET,其 cron 表达式随纽约夏令时自动切换。节假日 + 周末闸门跳过休市 session。精确的生成表见 [docs/operations/cron-schedules.md](docs/operations/cron-schedules.md)。
+
+## 在你自己的账本上跑
+
+仓库现在可以作为包安装，计算部分也不再焊死在这个账户的目录上：
+
+```bash
+pip install -e .
+clawock doctor                          # 这个 workspace 能跑吗？
+clawock doctor --workspace ~/my-book    # 那个呢？
+```
+
+`doctor` 只回答一个问题——这套循环能不能对着这份持仓跑起来——并且**把缺什么直接说出来**，而不是在很深的地方抛一个路径错误。`CLAWOCK_WORKSPACE` 可以把计算指向别的目录树；不设置时行为和以前完全一致。
+
+边界也要说清楚：这是第一刀，不是通用框架。流水线里相当一部分仍然假设了这张桌子的形状——两个账本、工具标的注册表、那套排程。`doctor` 会告诉你一个外来 workspace 缺什么，而不是假装它能跑；依赖也统一到了 `pyproject.toml`，不再散落在每个 workflow 里各写一遍。
 
 ## 逛一逛这套系统
 
