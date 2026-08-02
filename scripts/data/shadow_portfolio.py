@@ -253,6 +253,26 @@ def _requested_shares(
     return int(math.floor(raw / lot)) * lot
 
 
+def _leg_provenance(decision: dict) -> dict:
+    """The two labels a fill needs to be attributable back to a rule.
+
+    Without them a leg is an anonymous cash movement: the sidecar could say the
+    plan beat buy-and-hold but not which kind of decision did it. `driven_by` is
+    the canonical strategy label (`risk_rule` for disciplinary rebalancing);
+    `execution_status` is whether the real book actually followed.
+
+    `decision_id` is deliberately not published here. Visitors download this
+    sidecar, it measured 7KB across ~200 legs, and nothing reads it — the same
+    argument that removed 27KB of consumer-less calibrator state from the
+    dashboard payload.
+    """
+    return {
+        "driven_by": str(decision.get("driven_by") or "unknown"),
+        "execution_status": str(
+            (decision.get("execution") or {}).get("status") or "unknown"),
+    }
+
+
 def _execute_sell(
     state: dict,
     decision: dict,
@@ -272,6 +292,7 @@ def _execute_sell(
             "ticker": ticker, "direction": "sell", "requested_shares": requested,
             "filled_shares": 0, "price": fill["price"], "status": "skipped_no_inventory",
             "fill_type": fill["type"], "fill_model": fill["model"],
+            **_leg_provenance(decision),
         }
     inventory[ticker] = available - qty
     state["cash"] += qty * fill["price"]
@@ -280,6 +301,7 @@ def _execute_sell(
         "filled_shares": qty, "price": fill["price"], "notional": round(qty * fill["price"], 6),
         "status": "filled" if qty == requested else "partial_inventory_cap",
         "fill_type": fill["type"], "fill_model": fill["model"],
+        **_leg_provenance(decision),
     }
 
 
@@ -303,6 +325,7 @@ def _execute_buy(
             "ticker": ticker, "direction": "buy", "requested_shares": requested,
             "filled_shares": 0, "price": fill["price"], "status": "skipped_no_cash",
             "fill_type": fill["type"], "fill_model": fill["model"],
+            **_leg_provenance(decision),
         }
     cost = qty * fill["price"]
     state["cash"] -= cost
@@ -312,6 +335,7 @@ def _execute_buy(
         "filled_shares": qty, "price": fill["price"], "notional": round(cost, 6),
         "status": "filled" if qty == requested else "partial_cash_cap",
         "fill_type": fill["type"], "fill_model": fill["model"],
+        **_leg_provenance(decision),
     }
 
 
@@ -396,6 +420,131 @@ def _expected_trading_dates(
             dates.append(current.isoformat())
         current += timedelta(days=1)
     return dates
+
+
+def attribute_fills(events: list[dict], final_prices: dict[str, float]) -> dict:
+    """Split the policy-vs-buy-and-hold gap into per-fill contributions.
+
+    Both books start from the same seed and only the followed book trades, so
+    the final gap is exactly the sum of what each fill did to it. For a fill of
+    `q` shares against a final mark `P`:
+
+        buy   →  q·P − notional   (paid `notional`, holds shares worth q·P)
+        sell  →  notional − q·P   (banked `notional`, gave up q·P of stock)
+
+    External cash flows are applied to both books and cancel; every traded
+    ticker is still held by one of the two books at the end, so it always has a
+    final mark. That makes this an identity, not an estimate — which is the
+    whole point. `identity.residual` is published rather than absorbed: a
+    non-zero residual means the simulation and this decomposition disagree, and
+    that is information, not a rounding nuisance.
+
+    Arithmetic only — no LLM, no re-simulation — so every number here is
+    reproducible from the sidecar it ships in.
+
+    Args:
+        events: the `events` list from `simulate_leg`.
+        final_prices: `{ticker: close}` on the final published mark date.
+
+    Returns:
+        JSON-safe dict of contributions grouped by driver, direction, execution
+        status and ticker, plus turnover and the identity check.
+    """
+    by_driver: dict[str, float] = defaultdict(float)
+    by_direction: dict[str, float] = defaultdict(float)
+    by_execution: dict[str, float] = defaultdict(float)
+    by_ticker: dict[str, dict] = {}
+    unpriced: set[str] = set()
+    sell_notional = buy_notional = 0.0
+    filled_legs = 0
+    total = 0.0
+
+    for event in events:
+        for leg_fill in event.get("legs") or []:
+            qty = leg_fill.get("filled_shares") or 0
+            if qty <= 0:
+                continue
+            ticker = str(leg_fill.get("ticker") or "")
+            notional = _number(leg_fill.get("notional")) or 0.0
+            filled_legs += 1
+            if leg_fill.get("direction") == "sell":
+                sell_notional += notional
+            else:
+                buy_notional += notional
+
+            price = _number(final_prices.get(ticker))
+            if price is None or price <= 0:
+                # Never guess a mark: an unpriced ticker breaks the identity and
+                # must say so instead of contributing a silent zero.
+                unpriced.add(ticker)
+                continue
+
+            terminal = qty * price
+            contribution = (
+                notional - terminal if leg_fill.get("direction") == "sell"
+                else terminal - notional
+            )
+            total += contribution
+            by_driver[str(leg_fill.get("driven_by") or "unknown")] += contribution
+            by_direction[str(leg_fill.get("direction") or "unknown")] += contribution
+            by_execution[str(leg_fill.get("execution_status") or "unknown")] += contribution
+            row = by_ticker.setdefault(
+                ticker, {"ticker": ticker, "contribution": 0.0, "fills": 0,
+                         "gross_notional": 0.0})
+            row["contribution"] += contribution
+            row["fills"] += 1
+            row["gross_notional"] += notional
+
+    ranked = sorted(
+        ({**row, "contribution": round(row["contribution"], 2),
+          "gross_notional": round(row["gross_notional"], 2)}
+         for row in by_ticker.values()),
+        key=lambda row: -abs(row["contribution"]),
+    )
+    return {
+        "basis": "per-fill contribution to the final gap, marked to the same "
+                 "canonical closes both books are marked to",
+        "filled_legs": filled_legs,
+        "total_contribution": round(total, 2),
+        "by_driver": {k: round(v, 2) for k, v in sorted(by_driver.items())},
+        "by_direction": {k: round(v, 2) for k, v in sorted(by_direction.items())},
+        "by_execution_status": {k: round(v, 2) for k, v in sorted(by_execution.items())},
+        "by_ticker": ranked,
+        "turnover": {
+            "sell_notional": round(sell_notional, 2),
+            "buy_notional": round(buy_notional, 2),
+            "gross_notional": round(sell_notional + buy_notional, 2),
+        },
+        "unpriced_tickers": sorted(unpriced),
+    }
+
+
+def _attribution_identity(attribution: dict, cumulative_diff) -> dict:
+    """Does the decomposition reproduce the published gap?
+
+    Tolerance is 1 currency unit: the curve is published rounded to cents and
+    every fill contributes its own rounding. Anything larger is a real
+    disagreement between the simulation and this decomposition, and it is
+    published as `closes: false` rather than quietly rescaled to fit.
+    """
+    total = attribution.get("total_contribution")
+    if cumulative_diff is None or total is None:
+        return {"closes": None, "reason": "no published final point"}
+    residual = round(float(cumulative_diff) - float(total), 2)
+    closes = abs(residual) <= 1.0 and not attribution.get("unpriced_tickers")
+    out = {
+        "cumulative_diff": round(float(cumulative_diff), 2),
+        "sum_of_contributions": round(float(total), 2),
+        "residual": residual,
+        "tolerance": 1.0,
+        "closes": closes,
+    }
+    if attribution.get("unpriced_tickers"):
+        out["reason"] = (
+            "traded tickers without a final mark: "
+            + ", ".join(attribution["unpriced_tickers"])
+        )
+    return out
 
 
 def simulate_leg(
@@ -510,6 +659,7 @@ def simulate_leg(
                             "status": "skipped_no_fill_price",
                             "fill_type": "missing",
                             "fill_model": "none",
+                            **_leg_provenance(row),
                         })
                         continue
                     if row.get("action") in SELL_ACTIONS:
@@ -632,6 +782,25 @@ def simulate_leg(
     ]
     final_point = published[-1] if published else None
     final_diff = final_point["cumulative_diff"] if final_point else None
+
+    # Attribution marks every fill to the same closes the final curve point uses,
+    # so the buckets and the headline number cannot drift apart.
+    traded_tickers = {
+        str(leg_fill.get("ticker") or "")
+        for event in events
+        for leg_fill in event.get("legs") or []
+        if (leg_fill.get("filled_shares") or 0) > 0
+    }
+    final_prices = {}
+    if final_point:
+        for ticker in traded_tickers:
+            close = _number((bar_loader(ticker, final_point["date"]) or {}).get("close"))
+            if close is not None:
+                final_prices[ticker] = close
+    attribution = attribute_fills(events, final_prices)
+    attribution["as_of"] = final_point["date"] if final_point else None
+    attribution["identity"] = _attribution_identity(attribution, final_diff)
+
     return {
         "leg": leg,
         "currency": LEG_CONFIG[leg]["currency"],
@@ -640,6 +809,7 @@ def simulate_leg(
         "initial": seed,
         "curve": curve,
         "cumulative_diff": final_diff,
+        "attribution": attribution,
         "final": {
             "followed_sim": final_point["followed_sim"] if final_point else None,
             "buy_and_hold": final_point["buy_and_hold"] if final_point else None,
