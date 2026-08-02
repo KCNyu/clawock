@@ -29,6 +29,7 @@ from zoneinfo import ZoneInfo
 import requests
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import bar_checks  # noqa: E402  shared "is this bar believable" contract
 from _em_http import em_get  # noqa: E402
 from instrument_registry import INSTRUMENTS  # noqa: E402
 import trading_calendar  # noqa: E402
@@ -1101,7 +1102,8 @@ def update_us_portfolio(
         # a real signal from the provider rather than our own fabrication.
         if 9 <= now_et.hour < 16:
             o_, h_, l_ = q.get('o'), q.get('h'), q.get('l')
-            if None not in (o_, h_, l_) and o_ == h_ == l_ == q['c']:
+            if None not in (o_, h_, l_) and bar_checks.is_degenerate(
+                    {'open': o_, 'high': h_, 'low': l_, 'close': q['c']}):
                 print(f"  ⚠ {t}: degenerate range (o=h=l=c=${q['c']:.4f}) mid-session "
                       f"— possible stale quote (run with US_FETCH_DEBUG=1 to capture payload)",
                       file=sys.stderr)
