@@ -56,7 +56,12 @@ import workflow_outcomes  # noqa: E402
 # The deterministic report core moved into the installed package so `clawock
 # report` can run it without a repository checkout. Re-exported here so this
 # module's own regression suite keeps exercising exactly that code.
-sys.path.insert(0, str(WS))
+#
+# The *checkout* root, not `WS`: `WS` is the workspace, and CLAWOCK_WORKSPACE can
+# point it at someone else's data directory — a foreign workspace holds market
+# data, not our package. Identical to the old line whenever the override is unset,
+# i.e. on every live run, and correct when it is set.
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 from clawock.report import (  # noqa: E402,F401
     CRITICAL_KEYWORDS,
     FORBIDDEN_PHRASES,

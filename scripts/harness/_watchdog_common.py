@@ -38,6 +38,15 @@ HKT = timezone(timedelta(hours=8))
 # The binary path and the cron CLI call moved into clawock/providers/openclaw.py
 # so this module stops being the largest consumer that knows which runtime it is
 # on. Re-exported: callers that import OPENCLAW_BIN from here keep working.
+#
+# `clawock` is not installed on the live host, so the repository root has to be on
+# sys.path for this import to resolve. Say so here rather than inheriting it: the
+# `workspace` shim above also inserts the root, and relying on that side effect
+# makes every watchdog's import depend on an unrelated module keeping a line it
+# only has for its own 53 consumers. Import-time failure is the worst shape for a
+# watchdog — the backstop that exists to notice a missing report goes missing
+# first, and the crontab entry only logs a traceback.
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 from clawock.providers.openclaw import OPENCLAW_BIN, cron_cli_json as _adapter_cron_json  # noqa: E402
 
 
