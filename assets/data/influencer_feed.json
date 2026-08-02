@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-31T15:10:45.046782+00:00",
+  "generated_at": "2026-08-02T22:31:34.693262+00:00",
   "lookback_hours": 48,
   "sources": {
     "trump": "trumpstruth.org/feed (primary)",
@@ -13,33 +13,34 @@
   },
   "llm_filtered": true,
   "counts": {
-    "total": 10,
-    "held_hits": 0,
+    "total": 13,
+    "held_hits": 4,
     "new_ideas": 0,
-    "sector_hits": 5
+    "sector_hits": 0
   },
   "items": [
     {
-      "author": "Trump",
-      "text": "Does anybody have any idea how much Money and Prestige the United States Supreme Court has cost our Nation with their negative Rulings on Birthright Citizenship and TARIFFS? The answer, TRILLIONS AND TRILLIONS OF DOLLARS! President DONALD J. TRUMP",
-      "url": "https://trumpstruth.org/statuses/40393",
-      "published": "2026-07-29T22:13:23+00:00",
-      "origin": "truthsocial",
+      "author": "Musk",
+      "text": "Elon Musk stocks take $1.5 trillion hit with fresh test in SpaceX lockup ahead",
+      "url": "",
+      "published": "Tue, 28 Jul 2026 18:56:34 GMT",
+      "origin": "gnews-rss",
+      "source": "CNBC",
       "tickers": [],
-      "held": [],
+      "held": [
+        "SPCH",
+        "SPCX"
+      ],
       "new_ideas": [],
       "sectors": [
-        "关税"
+        "航天",
+        "特斯拉",
+        "SpaceX"
       ],
-      "sector_holdings": [
-        "02208",
-        "03032",
-        "03033",
-        "07226"
-      ],
-      "stance": "attack",
-      "relevance": 65,
-      "summary_cn": "Trump抨击最高法院关于出生公民权和关税的裁决，称让美国损失数万亿美元关税收入。"
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 75,
+      "summary_cn": "Musk系股票单日蒸发1.5万亿美元市值，SpaceX lockup带来新一轮抛压测试，直接影响kcn的SPCX/SPCH。"
     },
     {
       "author": "Musk",
@@ -49,197 +50,258 @@
       "origin": "gnews-rss",
       "source": "NBC News",
       "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天"
-      ],
-      "sector_holdings": [
+      "held": [
         "SPCH",
         "SPCX"
       ],
-      "stance": "neutral",
-      "relevance": 60,
-      "summary_cn": "报道称SpaceX是当前被做空最多的大型公司，分析大规模抛售原因（SpaceX未上市，但kcn通过SPCX/SPCH持有）。"
-    },
-    {
-      "author": "Trump",
-      "text": "RT @EximBankUSThanks to @realDonaldTrump, the Export-Import Bank is profitable for the first time in nearly a DECADE. Here’s why that matters to every American: ✅ Supply Chain Security: EXIM is answering @realDonaldTrump’s call to action - delivering Project Vault and $28 billion in deals to ensure companies large and small have access to critical raw materials.     ✅ Reindustrializing America: EXIM is a frontline economic tool again, and small businesses are at the heart of our mission, supporting over 45,000 American jobs.    ✅ Energy DOMINANCE: After 4 years of Biden inaction, President Tru",
-      "url": "https://trumpstruth.org/statuses/40400",
-      "published": "2026-07-30T23:12:52+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
       "new_ideas": [],
       "sectors": [
-        "再工业化",
-        "能源",
-        "供应链"
-      ],
-      "sector_holdings": [
-        "02208"
-      ],
-      "stance": "endorse",
-      "relevance": 55,
-      "summary_cn": "Trump转发EXIM银行盈利新闻，强调供应链安全、再工业化和能源主导战略。"
-    },
-    {
-      "author": "Trump",
-      "text": "Thanks to @realDonaldTrump, the Export-Import Bank is profitable for the first time in nearly a DECADE. Here’s why that matters to every American: ✅ Supply Chain Security: EXIM is answering @realDonaldTrump’s call to action - delivering Project Vault and $28 billion in deals to ensure companies large and small have access to critical raw materials.     ✅ Reindustrializing America: EXIM is a frontline economic tool again, and small businesses are at the heart of our mission, supporting over 45,000 American jobs.    ✅ Energy DOMINANCE: After 4 years of Biden inaction, President Trump is unleashi",
-      "url": "https://trumpstruth.org/statuses/40401",
-      "published": "2026-07-29T23:12:46+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "再工业化",
-        "能源",
-        "供应链"
-      ],
-      "sector_holdings": [
-        "02208"
-      ],
-      "stance": "endorse",
-      "relevance": 55,
-      "summary_cn": "Trump转发EXIM银行内容，与第2条重复，仅保留一条更高信息量的。"
-    },
-    {
-      "author": "Musk",
-      "text": "'Creep': Minnesota leaders respond to xAI suit over ban on 'nudification' tech",
-      "url": "",
-      "published": "Fri, 31 Jul 2026 09:54:03 GMT",
-      "origin": "gnews-rss",
-      "source": "Austin American-Statesman",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "AI"
-      ],
-      "sector_holdings": [
-        "MSFU",
-        "SKHY"
-      ],
-      "stance": "neutral",
-      "relevance": 50,
-      "summary_cn": "明尼苏达州领导人回应xAI（未上市）诉讼，涉及AI监管和'裸化'技术禁令。"
-    },
-    {
-      "author": "Musk",
-      "text": "Exclusive | Tesla Weighs Sale of China Business to Pave Way for Potential SpaceX Merger",
-      "url": "",
-      "published": "Fri, 31 Jul 2026 10:56:00 GMT",
-      "origin": "gnews-rss",
-      "source": "WSJ",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "电动车",
         "航天",
-        "中国"
+        "SpaceX"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 72,
+      "summary_cn": "Musk称SpaceX是当前被做空最多的大型公司，暗示SpaceX估值被低估为其背书(直接利好kcn的SPCX/SPCH)。"
+    },
+    {
+      "author": "Musk",
+      "text": "Tesla and SpaceX Merger Speculation Heats Up and Elon Musk Tries to Cool It Off",
+      "url": "",
+      "published": "Fri, 31 Jul 2026 20:29:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Barron's",
+      "tickers": [],
+      "held": [
+        "SPCH",
+        "SPCX"
+      ],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "特斯拉",
+        "SpaceX"
       ],
       "sector_holdings": [],
       "stance": "neutral",
       "relevance": 70,
-      "summary_cn": "报道称Tesla考虑出售中国业务以为与SpaceX合并铺路（涉及未上市公司，不计入tickers）。"
+      "summary_cn": "市场热议Tesla与SpaceX合并传闻，Musk本人试图降温；涉及kcn核心SpaceX持仓。"
     },
     {
       "author": "Musk",
-      "text": "Elon Musk Dismisses Tesla China Unit Sale Report As 'Fake News'",
+      "text": "Elon Musk’s fortune slumps to pre-SpaceX IPO levels after rout",
       "url": "",
-      "published": "Fri, 31 Jul 2026 12:09:00 GMT",
+      "published": "Sat, 01 Aug 2026 15:19:00 GMT",
       "origin": "gnews-rss",
-      "source": "Investor's Business Daily",
+      "source": "Fortune",
+      "tickers": [],
+      "held": [
+        "SPCH",
+        "SPCX"
+      ],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "特斯拉"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 68,
+      "summary_cn": "Musk身价因SpaceX IPO前估值重估及特斯拉回调跌至IPO前水平，间接影响kcn的SpaceX主题持仓。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk's Tesla Delivered 480,126 Vehicles in Q2, a 25% Jump From a Year Ago",
+      "url": "",
+      "published": "Sun, 02 Aug 2026 02:15:00 GMT",
+      "origin": "gnews-rss",
+      "source": "The Motley Fool",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "电动车",
-        "中国"
+        "特斯拉",
+        "电动车"
       ],
       "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 55,
-      "summary_cn": "Musk否认Tesla出售中国业务报道为'假新闻'。"
+      "stance": "endorse",
+      "relevance": 60,
+      "summary_cn": "Tesla Q2交付48万辆同比+25%，基本面强劲。"
     },
-    {
-      "author": "Musk",
-      "text": "Why Elon Musk would find it hard to decouple Tesla from China",
-      "url": "",
-      "published": "Fri, 31 Jul 2026 10:00:23 GMT",
-      "origin": "gnews-rss",
-      "source": "South China Morning Post",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "电动车",
-        "中国"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 55,
-      "summary_cn": "分析Musk为何难以将Tesla与中国业务脱钩。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk Plans at Least $100 Million in Midterm Spending to Help Republicans",
-      "url": "",
-      "published": "Thu, 30 Jul 2026 17:51:30 GMT",
-      "origin": "gnews-rss",
-      "source": "The New York Times",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 45,
-      "summary_cn": "Musk计划投入至少1亿美元用于中期选举助选共和党。"
-    },
-    {
-      "author": "Musk",
-      "text": "Exclusive: Musk plans massive push for GOP in midterms",
-      "url": "",
-      "published": "Thu, 30 Jul 2026 02:02:13 GMT",
-      "origin": "gnews-rss",
-      "source": "axios.com",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 45,
-      "summary_cn": "Musk为共和党中期选举大规模助选报道（与第9、13条重复）。"
-    }
-  ],
-  "held_hits": [],
-  "new_ideas": [],
-  "sector_hits": [
     {
       "author": "Trump",
-      "text": "Does anybody have any idea how much Money and Prestige the United States Supreme Court has cost our Nation with their negative Rulings on Birthright Citizenship and TARIFFS? The answer, TRILLIONS AND TRILLIONS OF DOLLARS! President DONALD J. TRUMP",
-      "url": "https://trumpstruth.org/statuses/40393",
-      "published": "2026-07-29T22:13:23+00:00",
+      "text": "The U.S.A. is locked and loaded and ready to go against the Islamic Republic of Iran, at levels of Military Terror, Strength, and Power not seen since World War II. Despite this, we have just been asked by Iran, and other Middle Eastern Countries, to hold off any attack in that the perimeters of a deal has been agreed to. This would include the Immediate, Complete, and Total OPENING OF THE HORMUZ STRAIT, and an end to Iran’s  nuclear threat. Based on this request, I have agreed, for the future benefit of the WORLD and, likewise, the survival of a successful and prosperous Iran, to cancel the a",
+      "url": "https://trumpstruth.org/statuses/40453",
+      "published": "2026-08-02T02:05:08+00:00",
       "origin": "truthsocial",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "关税"
+        "地缘政治",
+        "石油",
+        "军工"
       ],
-      "sector_holdings": [
-        "02208",
-        "03032",
-        "03033",
-        "07226"
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 60,
+      "summary_cn": "Trump称美伊接近达成协议，换取霍尔木兹海峡开放与伊朗弃核，若成行将利好油价与航运。"
+    },
+    {
+      "author": "Musk",
+      "text": "Musk dismisses report of Tesla's potential China business sale",
+      "url": "",
+      "published": "Sat, 01 Aug 2026 07:08:35 GMT",
+      "origin": "gnews-rss",
+      "source": "Reuters",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "特斯拉",
+        "电动车",
+        "中国"
       ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 58,
+      "summary_cn": "Musk否认Tesla将出售中国业务传闻，澄清中国市场立场。"
+    },
+    {
+      "author": "Trump",
+      "text": "Trump’s Energy Triumph: https://www.wsj.com/opinion/trumps-energy-triumph-82e4b953",
+      "url": "https://trumpstruth.org/statuses/40457",
+      "published": "2026-08-02T12:58:05+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "能源",
+        "石油",
+        "LNG"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 55,
+      "summary_cn": "WSJ社论称Trump能源政策为胜利，涉及油气出口与LNG产能扩张。"
+    },
+    {
+      "author": "Trump",
+      "text": "RT @realDonaldTrumpBecause of President Donald J. Trump, Oil Exports are SURGING!",
+      "url": "https://trumpstruth.org/statuses/40443",
+      "published": "2026-08-01T18:32:14+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "石油",
+        "能源"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 55,
+      "summary_cn": "Trump宣称任内美国石油出口激增，强化能源主导叙事。"
+    },
+    {
+      "author": "Trump",
+      "text": "Because of President Donald J. Trump, Oil Exports are SURGING!",
+      "url": "https://trumpstruth.org/statuses/40433",
+      "published": "2026-08-01T18:12:32+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "石油",
+        "能源"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 55,
+      "summary_cn": "Trump再称石油出口激增(与第5条重复，保留信息量略高的一条)。"
+    },
+    {
+      "author": "Trump",
+      "text": "https://www.energy.gov/articles/secretary-wright-directs-sable-offshore-restore-santa-ynez-unit-and-pipeline",
+      "url": "https://trumpstruth.org/statuses/40460",
+      "published": "2026-08-02T16:22:34+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "能源",
+        "石油"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 52,
+      "summary_cn": "能源部长Wright重启加州Sable海上油气项目，Trump阵营力推化石能源政策。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk's xAI sues Minnesota over its first-in-the-nation law banning 'nudification' technology",
+      "url": "",
+      "published": "Wed, 29 Jul 2026 21:38:00 GMT",
+      "origin": "gnews-rss",
+      "source": "AP News",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "AI",
+        "监管"
+      ],
+      "sector_holdings": [],
       "stance": "attack",
-      "relevance": 65,
-      "summary_cn": "Trump抨击最高法院关于出生公民权和关税的裁决，称让美国损失数万亿美元关税收入。"
+      "relevance": 50,
+      "summary_cn": "xAI起诉明尼苏达州反AI裸照生成法，Musk阵营对抗AI监管立法。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk readies major midterm investment for Republicans ahead of November: Sources",
+      "url": "",
+      "published": "Fri, 31 Jul 2026 00:11:07 GMT",
+      "origin": "gnews-rss",
+      "source": "abcnews.com",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "政治",
+        "科技"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 48,
+      "summary_cn": "Musk准备为共和党中期选举大额投入，影响政策/监管预期。"
+    }
+  ],
+  "held_hits": [
+    {
+      "author": "Musk",
+      "text": "Elon Musk stocks take $1.5 trillion hit with fresh test in SpaceX lockup ahead",
+      "url": "",
+      "published": "Tue, 28 Jul 2026 18:56:34 GMT",
+      "origin": "gnews-rss",
+      "source": "CNBC",
+      "tickers": [],
+      "held": [
+        "SPCH",
+        "SPCX"
+      ],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "特斯拉",
+        "SpaceX"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 75,
+      "summary_cn": "Musk系股票单日蒸发1.5万亿美元市值，SpaceX lockup带来新一轮抛压测试，直接影响kcn的SPCX/SPCH。"
     },
     {
       "author": "Musk",
@@ -249,81 +311,66 @@
       "origin": "gnews-rss",
       "source": "NBC News",
       "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天"
-      ],
-      "sector_holdings": [
+      "held": [
         "SPCH",
         "SPCX"
       ],
-      "stance": "neutral",
-      "relevance": 60,
-      "summary_cn": "报道称SpaceX是当前被做空最多的大型公司，分析大规模抛售原因（SpaceX未上市，但kcn通过SPCX/SPCH持有）。"
-    },
-    {
-      "author": "Trump",
-      "text": "RT @EximBankUSThanks to @realDonaldTrump, the Export-Import Bank is profitable for the first time in nearly a DECADE. Here’s why that matters to every American: ✅ Supply Chain Security: EXIM is answering @realDonaldTrump’s call to action - delivering Project Vault and $28 billion in deals to ensure companies large and small have access to critical raw materials.     ✅ Reindustrializing America: EXIM is a frontline economic tool again, and small businesses are at the heart of our mission, supporting over 45,000 American jobs.    ✅ Energy DOMINANCE: After 4 years of Biden inaction, President Tru",
-      "url": "https://trumpstruth.org/statuses/40400",
-      "published": "2026-07-30T23:12:52+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
       "new_ideas": [],
       "sectors": [
-        "再工业化",
-        "能源",
-        "供应链"
+        "航天",
+        "SpaceX"
       ],
-      "sector_holdings": [
-        "02208"
-      ],
+      "sector_holdings": [],
       "stance": "endorse",
-      "relevance": 55,
-      "summary_cn": "Trump转发EXIM银行盈利新闻，强调供应链安全、再工业化和能源主导战略。"
-    },
-    {
-      "author": "Trump",
-      "text": "Thanks to @realDonaldTrump, the Export-Import Bank is profitable for the first time in nearly a DECADE. Here’s why that matters to every American: ✅ Supply Chain Security: EXIM is answering @realDonaldTrump’s call to action - delivering Project Vault and $28 billion in deals to ensure companies large and small have access to critical raw materials.     ✅ Reindustrializing America: EXIM is a frontline economic tool again, and small businesses are at the heart of our mission, supporting over 45,000 American jobs.    ✅ Energy DOMINANCE: After 4 years of Biden inaction, President Trump is unleashi",
-      "url": "https://trumpstruth.org/statuses/40401",
-      "published": "2026-07-29T23:12:46+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "再工业化",
-        "能源",
-        "供应链"
-      ],
-      "sector_holdings": [
-        "02208"
-      ],
-      "stance": "endorse",
-      "relevance": 55,
-      "summary_cn": "Trump转发EXIM银行内容，与第2条重复，仅保留一条更高信息量的。"
+      "relevance": 72,
+      "summary_cn": "Musk称SpaceX是当前被做空最多的大型公司，暗示SpaceX估值被低估为其背书(直接利好kcn的SPCX/SPCH)。"
     },
     {
       "author": "Musk",
-      "text": "'Creep': Minnesota leaders respond to xAI suit over ban on 'nudification' tech",
+      "text": "Tesla and SpaceX Merger Speculation Heats Up and Elon Musk Tries to Cool It Off",
       "url": "",
-      "published": "Fri, 31 Jul 2026 09:54:03 GMT",
+      "published": "Fri, 31 Jul 2026 20:29:00 GMT",
       "origin": "gnews-rss",
-      "source": "Austin American-Statesman",
+      "source": "Barron's",
       "tickers": [],
-      "held": [],
+      "held": [
+        "SPCH",
+        "SPCX"
+      ],
       "new_ideas": [],
       "sectors": [
-        "AI"
+        "航天",
+        "特斯拉",
+        "SpaceX"
       ],
-      "sector_holdings": [
-        "MSFU",
-        "SKHY"
-      ],
+      "sector_holdings": [],
       "stance": "neutral",
-      "relevance": 50,
-      "summary_cn": "明尼苏达州领导人回应xAI（未上市）诉讼，涉及AI监管和'裸化'技术禁令。"
+      "relevance": 70,
+      "summary_cn": "市场热议Tesla与SpaceX合并传闻，Musk本人试图降温；涉及kcn核心SpaceX持仓。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk’s fortune slumps to pre-SpaceX IPO levels after rout",
+      "url": "",
+      "published": "Sat, 01 Aug 2026 15:19:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Fortune",
+      "tickers": [],
+      "held": [
+        "SPCH",
+        "SPCX"
+      ],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "特斯拉"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 68,
+      "summary_cn": "Musk身价因SpaceX IPO前估值重估及特斯拉回调跌至IPO前水平，间接影响kcn的SpaceX主题持仓。"
     }
-  ]
+  ],
+  "new_ideas": [],
+  "sector_hits": []
 }
