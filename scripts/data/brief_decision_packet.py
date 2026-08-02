@@ -693,12 +693,23 @@ def read_packet(manifest_path: Path) -> dict:
     return packet
 
 
-def _print_bounded(value) -> None:
+def bounded_payload(value) -> str:
+    """Serialise a query result, refusing anything over the per-query cap.
+
+    The cap used to live only on the print path, so any caller that used
+    read_packet()/summary_view() directly — every non-CLI consumer, including the
+    tool layer — silently bypassed it. The budget is a property of the query, not
+    of stdout.
+    """
     text = json.dumps(value, ensure_ascii=False, indent=2) + "\n"
     size = len(text.encode("utf-8"))
     if size > MAX_QUERY_BYTES:
         raise ValueError(f"decision packet query exceeds {MAX_QUERY_BYTES} bytes: {size}")
-    print(text, end="")
+    return text
+
+
+def _print_bounded(value) -> None:
+    print(bounded_payload(value), end="")
 
 
 def main() -> int:
