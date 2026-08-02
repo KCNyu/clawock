@@ -17,13 +17,11 @@ import json
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent / "scripts" / "data"))
-
-from workspace import ENV_VAR, describe, workspace_root  # noqa: E402
+from clawock.workspace import ENV_VAR, describe, workspace_root
 
 
 def _doctor(args) -> int:
-    default = args.workspace or Path(__file__).resolve().parent
+    default = args.workspace or Path.cwd()
     root = workspace_root(default)
     report = describe(root)
 
@@ -35,7 +33,14 @@ def _doctor(args) -> int:
     if report["holdings"] is not None:
         print(f"holdings:  {report['holdings']}")
     if not report["problems"]:
-        print("✅ runnable")
+        # Deliberately narrow wording. This checks that a portfolio and an
+        # instrument registry are present and structurally sane — nothing else.
+        # It does not verify provider credentials, market-data reachability,
+        # publisher configuration, scheduling or delivery, and a label that
+        # implied otherwise would be the same overclaim this project keeps
+        # correcting elsewhere.
+        print("✅ portfolio and registry are readable and structurally sane")
+        print("   not checked: credentials, market data, publisher, schedule, delivery")
         return 0
     print(f"❌ not runnable — {len(report['problems'])} problem(s):")
     for problem in report["problems"]:
