@@ -26,7 +26,7 @@ jobs:
         with:
           python-version: '3.11'
 
-      - run: pip install --quiet requests
+      - run: pip install --quiet -e .
 
       - name: Run weekly review
         env:

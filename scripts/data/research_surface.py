@@ -25,7 +25,9 @@ from datetime import date, datetime, time, timedelta, timezone
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
-WS = Path(__file__).resolve().parents[2]
+from workspace import workspace_root  # noqa: E402
+
+WS = workspace_root(Path(__file__).resolve().parents[2])
 THESIS_DIR = WS / "memory" / "theses"
 EARNINGS_DIR = WS / "memory" / "earnings"
 ENTRY_GATE_DIR = WS / "memory" / "entry-gates"

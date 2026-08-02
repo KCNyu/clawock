@@ -32,7 +32,9 @@ from zoneinfo import ZoneInfo
 
 import requests
 
-WS = Path(__file__).resolve().parents[2]
+from workspace import workspace_root  # noqa: E402
+
+WS = workspace_root(Path(__file__).resolve().parents[2])
 PORTFOLIO = WS / 'portfolio.json'
 OUT = WS / 'assets' / 'data' / 'quant_signals.json'
 HIST = WS / 'assets' / 'data' / 'quant_signals_history.jsonl'

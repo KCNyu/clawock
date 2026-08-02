@@ -26,7 +26,9 @@ import json
 from datetime import datetime
 from pathlib import Path
 
-WS = Path(__file__).resolve().parents[2]
+from workspace import workspace_root  # noqa: E402
+
+WS = workspace_root(Path(__file__).resolve().parents[2])
 MEMORY = WS / "memory"
 LEDGER = MEMORY / "decisions.jsonl"
 

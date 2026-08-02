@@ -14,7 +14,9 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
-WS = Path(__file__).resolve().parents[2]
+from workspace import workspace_root  # noqa: E402
+
+WS = workspace_root(Path(__file__).resolve().parents[2])
 LOCAL_PATH = WS / "memory" / ".tmp" / "cron-heartbeats.json"
 PUBLIC_PATH = WS / "assets" / "data" / "cron-heartbeats.json"
 HKT = ZoneInfo("Asia/Hong_Kong")

@@ -19,7 +19,9 @@ from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 from urllib.parse import urlparse
 
-WS = Path(__file__).resolve().parents[2]
+from workspace import workspace_root  # noqa: E402
+
+WS = workspace_root(Path(__file__).resolve().parents[2])
 POLICY = WS / 'config' / 'news-evidence-policy.json'
 PORTFOLIO = WS / 'portfolio.json'
 FACTOR_CONFIG = WS / 'config' / 'factor-universe.json'

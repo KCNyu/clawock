@@ -39,7 +39,9 @@ def wilson_ci(hits, n, z=1.96):
     return [round(max(0.0, center - half), 3), round(min(1.0, center + half), 3)]
 
 
-WS = Path(__file__).resolve().parents[2]
+from workspace import workspace_root  # noqa: E402
+
+WS = workspace_root(Path(__file__).resolve().parents[2])
 HIST = WS / 'assets' / 'data' / 't0_setups_history.jsonl'
 OUT = WS / 'assets' / 'data' / 't0_setup_review.json'
 

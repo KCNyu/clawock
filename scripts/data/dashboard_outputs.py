@@ -22,7 +22,9 @@ import subprocess
 from pathlib import Path
 
 
-ROOT = Path(__file__).resolve().parents[2]
+from workspace import workspace_root  # noqa: E402
+
+ROOT = workspace_root(Path(__file__).resolve().parents[2])
 
 # Keep this tuple explicit and ordered: callers use it as the exact publication
 # pathspec, and the contract test fails when build_dashboard gains a new sidecar

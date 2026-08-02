@@ -42,7 +42,9 @@ plt.rcParams['axes.unicode_minus'] = False
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import run_card  # noqa: E402  every backtest leaves evidence behind
 
-WS = Path(__file__).resolve().parent.parent.parent
+from workspace import workspace_root  # noqa: E402
+
+WS = workspace_root(Path(__file__).resolve().parent.parent.parent)
 OUT = WS / 'memory' / '.tmp'
 OUT.mkdir(parents=True, exist_ok=True)
 UA = ('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 '

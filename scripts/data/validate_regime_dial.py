@@ -56,7 +56,9 @@ import requests
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import run_card  # noqa: E402
 
-WS = Path(__file__).resolve().parents[2]
+from workspace import workspace_root  # noqa: E402
+
+WS = workspace_root(Path(__file__).resolve().parents[2])
 TENCENT = 'https://web.ifzq.gtimg.cn/appstock/app/kline/kline'
 
 # Production defaults, imported in spirit from compute_regime so the validated

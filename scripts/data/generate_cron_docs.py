@@ -7,7 +7,9 @@ from pathlib import Path
 
 from cron_contract import load_contract
 
-WS = Path(__file__).resolve().parents[2]
+from workspace import workspace_root  # noqa: E402
+
+WS = workspace_root(Path(__file__).resolve().parents[2])
 OUTPUT = WS / "docs" / "operations" / "cron-schedules.md"
 
 

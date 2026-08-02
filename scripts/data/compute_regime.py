@@ -72,7 +72,9 @@ from pathlib import Path
 
 import requests
 
-WS = Path(__file__).resolve().parent.parent.parent
+from workspace import workspace_root  # noqa: E402
+
+WS = workspace_root(Path(__file__).resolve().parent.parent.parent)
 OUT_FILE = WS / 'assets' / 'data' / 'lev_regime.json'
 PORTFOLIO = WS / 'portfolio.json'
 TENCENT = 'https://web.ifzq.gtimg.cn/appstock/app/kline/kline'

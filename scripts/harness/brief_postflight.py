@@ -33,7 +33,10 @@ from pathlib import Path
 # Location-independent root: runs under openclaw cron (local) AND on GH Action
 # brief-fallback.yml (checkout dir). parents[2] = workspace root in both. See
 # brief_preflight.py for the bug this avoids (hardcoded /root broke the runner).
-WS = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / 'scripts' / 'data'))
+from workspace import workspace_root  # noqa: E402
+
+WS = workspace_root(Path(__file__).resolve().parents[2])
 
 sys.path.insert(0, str(WS / 'scripts' / 'data'))
 import trading_calendar  # noqa: E402
