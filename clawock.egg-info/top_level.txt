@@ -1,1 +1,0 @@
-clawock_cli

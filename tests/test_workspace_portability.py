@@ -10,6 +10,7 @@
 Deliberately small. These are the two invariants that would actually break.
 """
 import json
+import os
 import re
 import subprocess
 import sys
@@ -17,9 +18,9 @@ import tomllib
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT / "scripts" / "data"))
+sys.path.insert(0, str(ROOT))
 
-import workspace  # noqa: E402
+from clawock import workspace  # noqa: E402
 
 
 def test_no_workflow_reinstates_a_hand_written_package_list():
@@ -69,9 +70,9 @@ def test_the_engine_runs_against_a_workspace_that_is_not_this_one(tmp_path):
 
     # And through the entry point a stranger would actually use.
     done = subprocess.run(
-        [sys.executable, str(ROOT / "clawock_cli.py"), "doctor",
+        [sys.executable, "-m", "clawock.cli", "doctor",
          "--workspace", str(tmp_path), "--json"],
-        capture_output=True, text=True, timeout=60)
+        capture_output=True, text=True, timeout=60, cwd=ROOT)
     assert done.returncode == 0, done.stderr
     assert json.loads(done.stdout)["holdings"] == 2
 
@@ -83,9 +84,9 @@ def test_an_incomplete_workspace_names_what_is_missing_and_exits_nonzero(tmp_pat
     }))
 
     done = subprocess.run(
-        [sys.executable, str(ROOT / "clawock_cli.py"), "doctor",
+        [sys.executable, "-m", "clawock.cli", "doctor",
          "--workspace", str(tmp_path)],
-        capture_output=True, text=True, timeout=60)
+        capture_output=True, text=True, timeout=60, cwd=ROOT)
 
     assert done.returncode == 1
     assert "config/instruments.json" in done.stdout
@@ -100,3 +101,38 @@ def test_the_default_workspace_is_unchanged_when_the_override_is_unset(monkeypat
 
     monkeypatch.setenv(workspace.ENV_VAR, "/tmp")
     assert workspace.workspace_root(ROOT) == Path("/tmp").resolve()
+
+
+def test_the_entry_point_imports_without_the_scripts_directory(tmp_path):
+    """The defect this file failed to catch once already.
+
+    `pyproject.toml` shipped only `clawock_cli`, which reached
+    `scripts/data/workspace.py` through a source-relative `sys.path` hack. An
+    editable install keeps the source tree importable, so `pip install -e .`
+    passed for a reason unrelated to what it proved; a real wheel raised
+    ModuleNotFoundError on first use.
+
+    Importing the console entry point with only the repo root visible — no
+    `scripts/` anywhere — is the cheap proxy for "does the wheel work".
+    """
+    done = subprocess.run(
+        [sys.executable, "-c",
+         "import sys; sys.path[:] = [p for p in sys.path if 'scripts' not in p];"
+         " from clawock.cli import main; print('ok')"],
+        cwd=tmp_path, capture_output=True, text=True, timeout=60,
+        env={**os.environ, "PYTHONPATH": str(ROOT)})
+
+    assert done.returncode == 0, done.stderr
+    assert "ok" in done.stdout
+
+
+def test_no_build_metadata_is_tracked():
+    """`clawock.egg-info/` was committed by the packaging change and is pure
+    build output — it goes stale instantly and conflicts across runners."""
+    tracked = subprocess.run(
+        ["git", "ls-files"], cwd=ROOT, capture_output=True, text=True, timeout=60)
+
+    offenders = [line for line in tracked.stdout.splitlines()
+                 if ".egg-info" in line or line.startswith(("build/", "dist/"))]
+
+    assert not offenders, f"build metadata is tracked: {offenders}"

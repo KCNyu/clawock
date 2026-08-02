@@ -1,2 +1,0 @@
-[console_scripts]
-clawock = clawock_cli:main
