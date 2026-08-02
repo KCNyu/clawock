@@ -10,6 +10,13 @@ installability proved nothing.
 
 Structural rather than a real wheel build, so it stays cheap enough to run on
 every PR while still catching that exact class.
+
+It did not catch the recurrence. `clawock.providers` and `clawock.tools` were
+missing from every wheel built after they were added, and this file could not see
+it: the scan globbed `clawock/*.py`, top level only, and the declaration check
+read the package list rather than the artifact. `tests/test_wheel_contains_the_
+package.py` now builds and imports the real thing; these checks stay for the
+cheap, fast signal, corrected to walk the whole package.
 """
 import ast
 import sys
@@ -32,25 +39,39 @@ def _first_party_imports(path: Path) -> set[str]:
     return {name for name in names if name not in stdlib}
 
 
+# One escape is known and tracked, not tolerated: `OpenClawRuns.list_runs()`
+# lazily imports `_watchdog_common`, which lives in `scripts/harness/` and is not
+# in the wheel. The module still imports from an installation — the import is
+# inside the method — but calling it there raises. Pinned rather than hidden so a
+# *new* escape fails while this one stays visible until the read moves into the
+# package.
+KNOWN_ESCAPES = {"providers/runs.py": {"_watchdog_common"}}
+
+
 def test_nothing_the_package_imports_lives_outside_it():
     escapes = {}
-    for path in sorted(PKG.glob("*.py")):
+    for path in sorted(PKG.rglob("*.py")):
+        if "__pycache__" in path.parts:
+            continue
         for name in _first_party_imports(path):
             if name != "clawock":
-                escapes.setdefault(path.name, set()).add(name)
+                escapes.setdefault(
+                    path.relative_to(PKG).as_posix(), set()).add(name)
 
-    assert not escapes, (
-        "the installed wheel contains only the clawock package, so a first-party "
-        f"import that resolves outside it crashes on install: {escapes}")
+    assert escapes == KNOWN_ESCAPES, (
+        "the wheel contains only the clawock package, so a first-party import "
+        "that resolves outside it crashes on install. Expected only the tracked "
+        f"escape {KNOWN_ESCAPES}, found {escapes}")
 
 
-def test_the_entry_point_and_the_packaged_directory_agree():
+def test_the_entry_point_is_inside_the_package():
     config = tomllib.load(open(ROOT / "pyproject.toml", "rb"))["project"]
-    packages = tomllib.load(open(ROOT / "pyproject.toml", "rb"))[
-        "tool"]["setuptools"]["packages"]
-
     module = config["scripts"]["clawock"].split(":")[0]
 
-    assert module.split(".")[0] in packages, (
-        f"entry point {module} is not inside a packaged directory {packages}")
+    # Deliberately no longer compares against the declared package list. That
+    # check read the declaration and passed for as long as the declaration was
+    # wrong; whether the entry point is really shipped is now settled by building
+    # the wheel and importing out of it.
+    assert module.split(".")[0] == PKG.name, (
+        f"entry point {module} is not inside the package directory {PKG.name}")
     assert (PKG / "__init__.py").exists(), "clawock must be a real package"

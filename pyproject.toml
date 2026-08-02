@@ -42,4 +42,11 @@ clawock = "clawock.cli:main"
 # scripts/ is still deliberately unpackaged — it is the operator-side
 # implementation of this desk, and the coupling there is inside modules rather
 # than between them.
-packages = ["clawock"]
+#
+# Discovered rather than listed. `packages = ["clawock"]` is an *exact* list in
+# setuptools, so `clawock.providers` and `clawock.tools` were silently left out of
+# the wheel the moment they were added — the rule two paragraphs up, broken by the
+# next two PRs that obeyed it in spirit. A pattern brings a new subpackage in by
+# construction; a list brings it in only if someone remembers.
+[tool.setuptools.packages.find]
+include = ["clawock*"]
