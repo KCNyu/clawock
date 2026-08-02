@@ -14,6 +14,8 @@ Outputs:
 Run: python3 scripts/data/backtest_us_leverage.py
 """
 import math
+import os
+import sys
 from datetime import date
 from pathlib import Path
 
@@ -36,6 +38,9 @@ for _fp in ('/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc',
         except Exception:
             pass
 plt.rcParams['axes.unicode_minus'] = False
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import run_card  # noqa: E402  every backtest leaves evidence behind
 
 WS = Path(__file__).resolve().parent.parent.parent
 OUT = WS / 'memory' / '.tmp'
@@ -129,11 +134,18 @@ def main():
                          'ytick.color': '#94a3b8', 'grid.color': '#1e293b',
                          'font.size': 9, 'axes.titlesize': 11})
     sims, allrows = {}, []
+    measured, series_inputs = {}, []
     print(f'{"ETF/标的":<14}{"strategy":<20}{"totRet":>9}{"CAGR":>8}{"maxDD":>9}{"%inMkt":>8}{"sw":>5}')
     print('-' * 76)
     for etf, ul, sym in NAMES:
         data = fetch(sym)
         dates = [d for d, _ in data]; closes = [c for _, c in data]
+        series_inputs.append({
+            'symbol': sym, 'etf': etf, 'underlying': ul,
+            'source': 'tencent fqkline (qfq-adjusted)',
+            'bars': len(data), 'first_session': dates[0], 'last_session': dates[-1],
+            'digest': run_card.series_digest(data),
+        })
         s = simulate(closes); s['dates'] = dates; s['last_close'] = closes[-1]; sims[etf] = s
         for key in ('bh1', 'bh2', 'reg', 'rgv', 'r1x'):
             nav = s[key]
@@ -143,6 +155,12 @@ def main():
             sw = sum(1 for a, b in zip(s['pos'], s['pos'][1:]) if a != b) if key in ('reg', 'rgv', 'r1x') else 0
             print(f'{(etf+"/"+ul):<14}{LBL[key]:<20}{tot*100:>8.0f}%{cg*100:>7.1f}%{m*100:>8.1f}%{inmkt:>7.0f}%{sw:>5}')
             allrows.append((etf, ul, key, tot, cg, m))
+            measured[f'{etf}:{key}'] = {
+                'strategy': LBL[key], 'underlying': ul,
+                'total_return': round(tot, 6), 'cagr': round(cg, 6),
+                'max_drawdown': round(m, 6),
+                'pct_time_in_market': round(inmkt, 2), 'switches': sw,
+            }
         print('-' * 76)
 
     # ---- Figure 1: per-name equity (log) + underwater drawdown (3 rows × 2 cols)
@@ -191,6 +209,18 @@ def main():
         trend = 'ABOVE ✅' if (ma and c > ma) else 'BELOW ⛔'
         print(f'  {etf}/{ul}: close {c:.1f} vs 200DMA {ma:.1f} → {trend} ({(c/ma-1)*100:+.0f}%) | 20d vol {vol*100:.0f}%')
     print(f'\n charts → {p1}\n          {p2}')
+
+    card = run_card.record(
+        'us_leverage_regime',
+        params={'ma_window': MA_WIN, 'vol_window': VOL_WIN, 'vol_cap': VOL_CAP,
+                'names': [list(n) for n in NAMES]},
+        inputs=series_inputs,
+        metrics=measured,
+        code_files=[__file__, Path(__file__).with_name('compute_regime.py')],
+        notes=['charts are written to memory/.tmp/ and are not evidence — '
+               'they are regenerated on every run and never committed'],
+    )
+    print(f' run card → {card.relative_to(WS)}')
 
 
 if __name__ == '__main__':

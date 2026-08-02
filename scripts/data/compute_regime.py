@@ -7,6 +7,17 @@ Verified in backtest_hstech_regime.py on 2021→now real HSTECH data: an index-l
 drawdown on a 2x-HSTECH sleeve from -95% to 0% (fully de-risked through the crash),
 and de-levering on the same signal cut full-period maxDD from -95% → -44%.
 
+Evidence: run card `hstech_regime-20260802-f7d80e00` (1370 HSTECH bars,
+2021-01-04 → 2026-07-31). It reproduces both figures — crash-window drawdown
+-95.3% for buy-and-hold 2x against 0.0% for the regime sleeve, and full-period
+maxDD -95.5% against -44.2% for the de-levered 1x variant. Re-derive with
+`python3 scripts/data/run_card.py --run-id hstech_regime-20260802-f7d80e00`.
+
+Two caveats the card makes visible and this docstring previously did not:
+the thresholds were calibrated on the same window they are scored on (#233),
+and no backtested row is exactly this module's production dial — the card's
+"Regime 2x" goes to cash when trend-off, while production de-levers 2x→1x.
+
 The single biggest lever was LEVERAGE (2x→1x→cash), not timing. So this module
 emits a leverage-cap MULTIPLIER that tightens the guardrail's leveraged-ETF leg cap
 when the regime turns hostile — it does NOT generate buy/sell calls.
