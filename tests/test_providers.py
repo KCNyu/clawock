@@ -1,0 +1,114 @@
+"""Three things that would make these providers worse than the status quo.
+
+1. Delivery collapsing back to a boolean. WeChat's CLI reports success for a
+   send its cold session silently drops (upstream wontfix), which is why the
+   intraday watchdog mirrors to Telegram on suspicion. `unknown` has to be its
+   own state: folded into success a dropped report looks delivered; folded into
+   failure it triggers duplicate sends.
+2. The two run-history sources not actually normalising — the point of the
+   interface is that a caller need not know which scheduler answered.
+3. A missing binary raising instead of reporting.
+"""
+import sys
+from pathlib import Path
+
+import pytest
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+
+from clawock.providers import (  # noqa: E402
+    DeliveryResult, GitHubRuns, NullDelivery, OpenClawDelivery, OpenClawRuns, Run,
+)
+
+
+def test_wechat_success_is_unknown_not_confirmed():
+    sent = OpenClawDelivery(runner=lambda cmd: (0, '{"ok":true}')).send(
+        "wechat", "kcn", "hello")
+
+    assert sent.status == "unknown"
+    assert sent.reached_target is False, (
+        "a channel that cannot confirm must never report the message arrived")
+    assert sent.worth_mirroring is True
+
+
+def test_telegram_success_is_confirmed_and_needs_no_mirror():
+    sent = OpenClawDelivery(runner=lambda cmd: (0, "{}")).send(
+        "telegram", "123", "hello")
+
+    assert sent.status == "confirmed"
+    assert sent.reached_target is True
+    assert sent.worth_mirroring is False
+
+
+def test_a_timeout_is_unknown_because_the_message_may_have_gone():
+    import subprocess
+
+    def boom(cmd):
+        raise subprocess.TimeoutExpired(cmd, 60)
+
+    sent = OpenClawDelivery(runner=boom).send("wechat", "kcn", "hi")
+
+    # Calling this `failed` would invite a duplicate send of a report that
+    # possibly arrived.
+    assert sent.status == "unknown"
+
+
+def test_a_missing_binary_reports_instead_of_raising():
+    def missing(cmd):
+        raise FileNotFoundError(cmd[0])
+
+    sent = OpenClawDelivery(runner=missing).send("wechat", "kcn", "hi")
+
+    assert sent.status == "failed"
+    assert "not installed" in sent.detail
+
+
+def test_the_null_provider_never_claims_delivery():
+    provider = NullDelivery()
+
+    sent = provider.send("wechat", "kcn", "hi")
+
+    assert sent.status == "accepted"
+    assert sent.reached_target is False
+    assert provider.sent[0]["message"] == "hi"
+
+
+def test_an_invalid_status_cannot_be_constructed():
+    with pytest.raises(ValueError, match="unknown delivery status"):
+        DeliveryResult("delivered", "wechat", "kcn")
+
+
+def test_both_run_sources_normalise_to_the_same_shape():
+    openclaw = OpenClawRuns(reader=lambda job: [
+        {"jobName": "brief", "runAtIso": "2026-08-01T08:00:00+08:00",
+         "durationMs": 1167, "action": "finished", "status": "ok",
+         "sessionId": "abc"},
+    ]).history("brief")
+    github = GitHubRuns(runner=lambda cmd: (
+        '[{"conclusion":"success","createdAt":"2026-08-01T00:00:00Z",'
+        '"event":"schedule","databaseId":42}]')).history("brief-fallback.yml")
+
+    assert [type(r) for r in openclaw + github] == [Run, Run]
+    assert openclaw[0].status == github[0].status == "ok"
+    # A caller must not have to know which scheduler answered.
+    assert {r.source for r in openclaw + github} == {"openclaw", "github"}
+    assert openclaw[0].reference == "abc" and github[0].reference == "42"
+
+
+def test_an_unfinished_github_run_is_running_not_success():
+    runs = GitHubRuns(runner=lambda cmd: (
+        '[{"conclusion":null,"createdAt":"2026-08-02T00:00:00Z",'
+        '"event":"schedule","databaseId":7}]')).history("x")
+
+    assert runs[0].status == "running"
+
+
+def test_an_outcome_the_source_cannot_state_is_unknown_not_ok():
+    runs = OpenClawRuns(reader=lambda job: [
+        {"jobName": "brief", "runAtIso": "2026-08-01T08:00:00+08:00",
+         "action": "finished"},          # no status field at all
+    ]).history("brief")
+
+    assert runs[0].status == "unknown", (
+        "a recorded run with no stated outcome must not round to success")
