@@ -19,6 +19,7 @@ import math
 import os
 import sys
 import time
+from collections import defaultdict
 from datetime import datetime, timedelta, timezone
 
 import numpy as np
@@ -69,6 +70,19 @@ MIN_ACTION_RETURNS = 20
 MIN_DATE_COVERAGE = 0.80
 NEW_LISTING_RETURNS = 20
 EWMA_LAMBDA = 0.94
+
+# Correlation x-ray. `MIN_CORR_SESSIONS` matches MIN_ACTION_RETURNS so a
+# correlation number can never be acted on with a thinner sample than a beta.
+# `CLUSTER_RHO` is the level at which two names stop being separate bets;
+# `CLUSTER_WEIGHT_ALERT_PCT` reuses the existing declared appetite for
+# single-factor exposure (brief_preflight's `top2_factor_pct` cap) rather than
+# inventing a second, unexplained threshold.
+MIN_CORR_SESSIONS = 20
+# Correlation deserves a longer sample than the 30-day risk window, and
+# fetch_history already returns 60 sessions, so this costs no extra request.
+CORR_WINDOW_SESSIONS = 60
+CLUSTER_RHO = 0.80
+CLUSTER_WEIGHT_ALERT_PCT = 70.0
 
 
 # ----------------------------------------------------------------------------
@@ -708,6 +722,10 @@ def compute_bucket(holdings: list, bench_series, label: str, sleep_between: floa
 
     meta = {
         'fetched': list(fetched.keys()),
+        # Per-ticker close series, for callers that need co-movement rather than
+        # the aggregated stream. Internal only — `main` publishes named keys from
+        # meta, never meta itself, so this never reaches risk.json.
+        'series': fetched,
         'failed': failed,
         'n_holdings': len(holdings),
         'n_returns': stats['n_returns'],
@@ -716,6 +734,191 @@ def compute_bucket(holdings: list, bench_series, label: str, sleep_between: floa
         **stream,
     }
     return bucket_out, meta
+
+
+def correlation_xray(holdings_by_leg, series_by_leg, fx_hkd_to_usd):
+    """Measure how many *bets* the book holds, not how many tickers.
+
+    Concentration here has always been weight-only: HHI and Top2 over dollar
+    weights, with `top2_factor_pct` standing in as a proxy for "these are one
+    factor". That proxy fails in both directions. Two names that are the same
+    bet — a 2x ETF and its 1x underlying, or the 07226 / 03033 / 00100 HSTECH
+    cluster — look diversified the moment a third name pushes them out of the
+    Top 2, and two genuinely unrelated leaders trip the cap for no reason. The
+    2026-06 drawdown is on record as a construction problem ("HK 85% one
+    factor"), which is precisely the quantity that was never measured.
+
+    Everything here is computed from realised returns, so it is descriptive, not
+    predictive:
+
+      effective_names   1/HHI — the old weight-only count, kept for contrast
+      effective_bets    1/(wᵀρw) — collapses toward 1 as the book co-moves
+      diversification_ratio  Σwᵢσᵢ / σ_portfolio — 1.0 means no diversification
+      clusters          single-linkage groups at |ρ| ≥ CLUSTER_RHO, by weight
+      var_95 / es_95    historical tail of the weighted book
+
+    Both legs are converted to USD before weighting, per the standing rule that
+    HKD and USD are never added. Correlation needs contemporaneous returns, so
+    the sample is the *intersection* of sessions both markets traded.
+    """
+    weights, returns_by_ticker = {}, {}
+    for leg, holdings in holdings_by_leg.items():
+        rate = 1.0 if leg == 'us' else fx_hkd_to_usd
+        series_map = series_by_leg.get(leg) or {}
+        for holding in holdings:
+            ticker = holding['ticker']
+            series = series_map.get(ticker)
+            if not series:
+                continue
+            value_usd = float(holding['current_value']) * float(rate)
+            if value_usd <= 0:
+                continue
+            weights[ticker] = value_usd
+            returns_by_ticker[ticker] = {
+                date: row['return'] for date, row in _return_map(series).items()
+            }
+
+    book_value = sum(weights.values())
+    excluded = sorted(
+        holding['ticker']
+        for leg, holdings in holdings_by_leg.items()
+        for holding in holdings
+        if holding['ticker'] not in weights
+    )
+
+    # A recent listing must not truncate the established names — the same rule
+    # `build_dynamic_return_stream` already follows. Requiring every holding to
+    # share every session let one 16-session name (SKHY) cap the whole sample at
+    # 15 and produce nothing at all.
+    short_history = sorted(
+        ticker for ticker, returns in returns_by_ticker.items()
+        if len(returns) < MIN_CORR_SESSIONS
+    )
+    for ticker in short_history:
+        returns_by_ticker.pop(ticker)
+
+    def _unavailable(reason):
+        return {
+            'effective_names': None, 'effective_bets': None,
+            'diversification_ratio': None, 'var_95': None,
+            'expected_shortfall_95': None, 'clusters': [], 'top_pairs': [],
+            'n_common_sessions': 0, 'tickers': sorted(returns_by_ticker),
+            'excluded_no_history': excluded,
+            'excluded_short_history': short_history,
+            'reason': reason,
+        }
+
+    if len(returns_by_ticker) < 2:
+        return _unavailable('needs at least two holdings with enough history')
+
+    common = sorted(set.intersection(
+        *(set(dates) for dates in returns_by_ticker.values())))[-CORR_WINDOW_SESSIONS:]
+    if len(common) < MIN_CORR_SESSIONS:
+        return _unavailable(
+            f'{len(common)} sessions common to the {len(returns_by_ticker)} '
+            f'holdings with history; {MIN_CORR_SESSIONS} required')
+
+    tickers = sorted(returns_by_ticker)
+    total = sum(weights[t] for t in tickers)
+    w = np.array([weights[t] / total for t in tickers], dtype=float)
+    matrix = np.array(
+        [[returns_by_ticker[t][d] for t in tickers] for d in common], dtype=float)
+    if not np.isfinite(matrix).all():
+        return _unavailable('non-finite return in the aligned matrix')
+
+    sigmas = matrix.std(axis=0, ddof=1)
+    if not (sigmas > 0).all():
+        # A name that never moved has undefined correlation; naming it beats
+        # publishing a matrix with silent NaN columns.
+        flat = [t for t, s in zip(tickers, sigmas) if not s > 0]
+        return _unavailable(f'zero-variance holding(s): {", ".join(flat)}')
+
+    rho = np.corrcoef(matrix, rowvar=False)
+    portfolio = matrix @ w
+    sigma_p = float(portfolio.std(ddof=1))
+
+    hhi = float(np.sum(w ** 2))
+    quadratic = float(w @ rho @ w)
+    weighted_sigma = float(np.sum(w * sigmas))
+
+    pairs = []
+    for i in range(len(tickers)):
+        for j in range(i + 1, len(tickers)):
+            pairs.append({'pair': [tickers[i], tickers[j]],
+                          'rho': _round_finite(rho[i, j], 3),
+                          'combined_weight_pct': _round_finite(
+                              (w[i] + w[j]) * 100, 2)})
+    pairs = [p for p in pairs if p['rho'] is not None]
+    pairs.sort(key=lambda p: -abs(p['rho']))
+
+    return {
+        'effective_names': _round_finite(1.0 / hhi if hhi > 0 else None, 2),
+        'effective_bets': _round_finite(
+            1.0 / quadratic if quadratic > 0 else None, 2),
+        'diversification_ratio': _round_finite(
+            weighted_sigma / sigma_p if sigma_p > 0 else None, 3),
+        'var_95': _round_finite(float(np.percentile(portfolio, 5))),
+        'expected_shortfall_95': _round_finite(_tail_mean(portfolio, 0.05)),
+        'clusters': _correlation_clusters(tickers, rho, w),
+        'top_pairs': pairs[:5],
+        'n_common_sessions': len(common),
+        'first_session': common[0],
+        'last_session': common[-1],
+        'tickers': tickers,
+        'excluded_no_history': excluded,
+        'excluded_short_history': short_history,
+        # How much of the book the numbers above actually describe. Excluding a
+        # name is not free, and a reader must be able to see that a 60%-covered
+        # x-ray is a different claim from a 99%-covered one.
+        'covered_weight_pct': _round_finite(
+            100 * total / book_value if book_value > 0 else None, 2),
+        'cluster_rho': CLUSTER_RHO,
+        'basis': 'USD-converted current weights over sessions both legs traded',
+    }
+
+
+def _tail_mean(returns: np.ndarray, alpha: float):
+    """Mean of the worst `alpha` tail — expected shortfall, historical."""
+    if returns.size < 2:
+        return None
+    cutoff = max(1, int(math.ceil(alpha * returns.size)))
+    return float(np.sort(returns)[:cutoff].mean())
+
+
+def _correlation_clusters(tickers, rho, weights):
+    """Single-linkage groups at |ρ| >= CLUSTER_RHO, heaviest first.
+
+    Single linkage on purpose: A~B and B~C makes one cluster even when A and C
+    are not directly correlated, because that is still one chain of shared
+    exposure. It over-groups rather than under-groups, and for a risk readout
+    the conservative error is the right one.
+    """
+    parent = list(range(len(tickers)))
+
+    def find(i):
+        while parent[i] != i:
+            parent[i] = parent[parent[i]]
+            i = parent[i]
+        return i
+
+    for i in range(len(tickers)):
+        for j in range(i + 1, len(tickers)):
+            if abs(rho[i, j]) >= CLUSTER_RHO:
+                parent[find(i)] = find(j)
+
+    grouped = defaultdict(list)
+    for index, ticker in enumerate(tickers):
+        grouped[find(index)].append(index)
+
+    clusters = []
+    for members in grouped.values():
+        clusters.append({
+            'tickers': [tickers[i] for i in sorted(members)],
+            'weight_pct': _round_finite(
+                sum(weights[i] for i in members) * 100, 2),
+        })
+    clusters.sort(key=lambda c: -(c['weight_pct'] or 0))
+    return clusters
 
 
 def compute_combined(us_meta, hk_meta, holdings_all, fx_hkd_to_usd=None):
@@ -815,7 +1018,7 @@ def compute_leverage(holdings_all, fx_hkd_to_usd):
     }
 
 
-def build_alerts(us, hk, combined, leverage):
+def build_alerts(us, hk, combined, leverage, correlation=None):
     alerts = []
     for label, block in (('US', us), ('HK', hk)):
         if not isinstance(block, dict):
@@ -882,6 +1085,52 @@ def build_alerts(us, hk, combined, leverage):
             and combined['sharpe_30d'] < 0):
         alerts.append({'type': 'negative_sharpe', 'severity': 'medium',
                        'detail': f'Combined 30d Sharpe = {combined["sharpe_30d"]} (< 0)'})
+    alerts.extend(_correlation_alerts(correlation))
+    return alerts
+
+
+def _correlation_alerts(correlation):
+    """Co-movement findings. Reports, never suppresses.
+
+    This is deliberately an alert and not a hard cap. The guardrail's caps are
+    mandatory trim directives the brief must act on; changing what the book is
+    required to sell is kcn's call on thresholds, not a side effect of adding a
+    measurement. What this can say is that the measured cluster is larger than
+    the declared appetite for single-factor exposure.
+    """
+    if not correlation:
+        return []
+    if correlation.get('reason'):
+        return [{
+            'type': 'insufficient_observations', 'severity': 'medium',
+            'detail': f'correlation x-ray unavailable: {correlation["reason"]}',
+        }]
+
+    alerts = []
+    clusters = correlation.get('clusters') or []
+    biggest = clusters[0] if clusters else None
+    if (biggest and len(biggest.get('tickers') or []) > 1
+            and (biggest.get('weight_pct') or 0) > CLUSTER_WEIGHT_ALERT_PCT):
+        alerts.append({
+            'type': 'correlated_cluster', 'severity': 'high',
+            'detail': (
+                f'{biggest["weight_pct"]}% of the book moves as one cluster '
+                f'({", ".join(biggest["tickers"])}) at |ρ| ≥ '
+                f'{correlation.get("cluster_rho", CLUSTER_RHO)} '
+                f'(> {CLUSTER_WEIGHT_ALERT_PCT}%)'
+            ),
+        })
+
+    names = correlation.get('effective_names')
+    bets = correlation.get('effective_bets')
+    if names is not None and bets is not None and bets < names / 2:
+        alerts.append({
+            'type': 'diversification_illusion', 'severity': 'medium',
+            'detail': (
+                f'{names} effective names but only {bets} effective bets — '
+                'weight-based concentration understates the real exposure'
+            ),
+        })
     return alerts
 
 
@@ -987,7 +1236,14 @@ def main():
                                     fx_hkd_to_usd=fx_hkd_to_usd)
     leverage_out = compute_leverage({'us': us_holdings, 'hk': hk_holdings},
                                     fx_hkd_to_usd=fx_hkd_to_usd)
-    alerts = build_alerts(us_out, hk_out, combined_out, leverage_out)
+    correlation_out = correlation_xray(
+        {'us': us_holdings, 'hk': hk_holdings},
+        {'us': (us_meta or {}).get('series') or {},
+         'hk': (hk_meta or {}).get('series') or {}},
+        fx_hkd_to_usd,
+    )
+    alerts = build_alerts(us_out, hk_out, combined_out, leverage_out,
+                          correlation_out)
 
     out = {
         'generated_at': datetime.now(timezone.utc).isoformat(),
@@ -995,6 +1251,7 @@ def main():
         'us': us_out,
         'hk': hk_out,
         'combined': combined_out,
+        'correlation': correlation_out,
         'leveraged_exposure': leverage_out,
         'alerts': alerts,
         'meta': {
