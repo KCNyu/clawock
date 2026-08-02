@@ -330,6 +330,153 @@ def test_cumulative_diff_is_followed_minus_buy_hold_with_both_signs():
     assert final_diff(15) == -50
 
 
+# ── attribution: the gap has to say *why*, not just *how much* ──────────────
+
+def _leg(ticker, direction, shares, notional, *, driven_by="technical",
+         execution_status="not_followed"):
+    return {
+        "ticker": ticker, "direction": direction, "filled_shares": shares,
+        "notional": notional, "driven_by": driven_by,
+        "execution_status": execution_status,
+    }
+
+
+def test_attribution_reproduces_the_published_gap_exactly():
+    """The identity is the point: both books start from the same seed and only
+    the followed book trades, so the gap IS the sum of the fills."""
+    portfolio = _portfolio(us_cash=200, us_holdings=[_holding("AAA", 10)])
+    decisions = [_decision("sell", "AAA", "cut", 10, price=10)]
+    bars = {"AAA": {DAY_1: {"close": 10}, DAY_2: {"close": 5}}}
+    bar_loader, bar_map_loader = _loaders(bars)
+
+    result = shadow.simulate_leg(
+        deepcopy(portfolio), decisions, "US",
+        bar_loader=bar_loader, bar_map_loader=bar_map_loader, matched={})
+
+    identity = result["attribution"]["identity"]
+    assert identity["closes"] is True
+    assert identity["residual"] == 0.0
+    assert identity["sum_of_contributions"] == result["cumulative_diff"] == 50.0
+
+
+def test_selling_before_a_fall_contributes_positively_and_a_buy_negatively():
+    sold = shadow.attribute_fills(
+        [{"legs": [_leg("AAA", "sell", 10, 100.0)]}], {"AAA": 5.0})
+    bought = shadow.attribute_fills(
+        [{"legs": [_leg("AAA", "buy", 10, 100.0)]}], {"AAA": 5.0})
+
+    # Banked 100, gave up stock now worth 50.
+    assert sold["total_contribution"] == 50.0
+    # Paid 100 for stock now worth 50.
+    assert bought["total_contribution"] == -50.0
+
+
+def test_buckets_sum_to_the_total_on_every_dimension():
+    events = [{"legs": [
+        _leg("AAA", "sell", 10, 100.0, driven_by="risk_rule",
+             execution_status="followed"),
+        _leg("BBB", "buy", 4, 80.0, driven_by="technical",
+             execution_status="not_followed"),
+    ]}]
+
+    out = shadow.attribute_fills(events, {"AAA": 5.0, "BBB": 30.0})
+
+    total = out["total_contribution"]
+    for dimension in ("by_driver", "by_direction", "by_execution_status"):
+        assert sum(out[dimension].values()) == pytest.approx(total), dimension
+    assert sum(row["contribution"] for row in out["by_ticker"]) == pytest.approx(total)
+
+
+def test_perturbing_one_fill_moves_only_its_own_buckets():
+    base = [{"legs": [
+        _leg("AAA", "sell", 10, 100.0, driven_by="risk_rule"),
+        _leg("BBB", "sell", 10, 100.0, driven_by="technical"),
+    ]}]
+    prices = {"AAA": 5.0, "BBB": 5.0}
+
+    before = shadow.attribute_fills(deepcopy(base), prices)
+    moved = deepcopy(base)
+    moved[0]["legs"][0]["notional"] = 130.0
+    after = shadow.attribute_fills(moved, prices)
+
+    assert after["by_driver"]["risk_rule"] == before["by_driver"]["risk_rule"] + 30
+    assert after["by_driver"]["technical"] == before["by_driver"]["technical"]
+    assert after["total_contribution"] == before["total_contribution"] + 30
+
+
+def test_an_unpriced_ticker_breaks_the_identity_instead_of_contributing_zero():
+    """A silent zero would let the buckets look complete while missing a leg."""
+    events = [{"legs": [_leg("AAA", "sell", 10, 100.0),
+                        _leg("GONE", "sell", 10, 500.0)]}]
+
+    out = shadow.attribute_fills(events, {"AAA": 5.0})
+    identity = shadow._attribution_identity(out, cumulative_diff=50.0)
+
+    assert out["unpriced_tickers"] == ["GONE"]
+    # The unpriced leg contributes nothing at all — not a fabricated mark of 0,
+    # which would have booked its whole notional as if the stock went to zero.
+    assert out["total_contribution"] == 50.0
+    assert [row["ticker"] for row in out["by_ticker"]] == ["AAA"]
+    assert identity["closes"] is False
+    assert "GONE" in identity["reason"]
+
+
+def test_turnover_counts_gross_notional_on_both_sides():
+    events = [{"legs": [_leg("AAA", "sell", 10, 100.0),
+                        _leg("BBB", "buy", 2, 40.0)]}]
+
+    turnover = shadow.attribute_fills(events, {"AAA": 5.0, "BBB": 30.0})["turnover"]
+
+    assert turnover == {"sell_notional": 100.0, "buy_notional": 40.0,
+                        "gross_notional": 140.0}
+
+
+def test_unfilled_legs_contribute_nothing_and_are_not_counted_as_turnover():
+    events = [{"legs": [
+        {"ticker": "AAA", "direction": "sell", "filled_shares": 0,
+         "status": "skipped_no_inventory", "driven_by": "risk_rule"},
+    ]}]
+
+    out = shadow.attribute_fills(events, {"AAA": 5.0})
+
+    assert out["filled_legs"] == 0
+    assert out["total_contribution"] == 0.0
+    assert out["turnover"]["gross_notional"] == 0.0
+
+
+def test_attribution_is_skipped_with_a_reason_when_nothing_was_published():
+    out = shadow.attribute_fills([], {})
+
+    identity = shadow._attribution_identity(out, cumulative_diff=None)
+
+    assert identity["closes"] is None
+    assert "no published final point" in identity["reason"]
+
+
+def test_every_fill_carries_the_provenance_attribution_needs():
+    """Without driven_by and execution_status a leg is an anonymous cash move
+    and the sidecar cannot say which kind of rule earned the gap."""
+    portfolio = _portfolio(us_holdings=[_holding("AAA", 10)])
+    state = {"cash": 0.0, "inventory": {"AAA": 10}}
+    decision = _decision("sell-1", "AAA", "cut", 10)
+    decision["driven_by"] = "risk_rule"
+    fill = {"price": 10.0, "type": "ohlc_assumption", "model": "fixture"}
+
+    leg = shadow._execute_sell(state, decision, fill, portfolio)
+
+    assert leg["driven_by"] == "risk_rule"
+    assert leg["execution_status"] == "not_followed"
+    # decision_id is intentionally absent: 7KB across ~200 legs with no consumer.
+    assert "decision_id" not in leg
+
+
+def test_a_decision_without_a_driver_is_labelled_unknown_not_dropped():
+    leg = shadow._leg_provenance({"decision_id": "x"})
+
+    assert leg["driven_by"] == "unknown"
+    assert leg["execution_status"] == "unknown"
+
+
 def test_expected_sessions_disclose_missing_marks_and_emit_curve_gaps():
     days = [
         "2026-07-13",
