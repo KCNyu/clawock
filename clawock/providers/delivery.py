@@ -75,9 +75,12 @@ class OpenClawDelivery:
 
     name = "openclaw"
 
-    def __init__(self, binary: str = "openclaw", account: str | None = None,
+    def __init__(self, binary: str | None = None, account: str | None = None,
                  timeout: int = 60, runner=None) -> None:
-        self.binary = binary
+        # Default to the adapter's own constant so callers do not have to know
+        # the path — that knowledge is what this package exists to contain.
+        from clawock.providers.openclaw import OPENCLAW_BIN
+        self.binary = binary or OPENCLAW_BIN
         self.account = account
         self.timeout = timeout
         self._runner = runner or self._run
