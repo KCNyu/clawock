@@ -17,7 +17,6 @@ session transcript. transcript_loop_score detects that directly and cleanly
 (observed: looped run score≈7 on a 97KB assistant blob; clean run score≈2 on 3KB).
 """
 import json
-import sqlite3
 import subprocess
 import sys
 from collections import Counter
@@ -29,15 +28,15 @@ from workspace import workspace_root  # noqa: E402
 
 WS = workspace_root(Path(__file__).resolve().parents[2])
 OC = Path('/root/.openclaw')
-RUNS_DIR = OC / 'cron' / 'runs'
-JOBS_JSON = OC / 'cron' / 'jobs.json'
-STATE_DB = OC / 'state' / 'openclaw.sqlite'
 SESSIONS_DIR = OC / 'agents' / 'main' / 'sessions'
 LOG = WS / 'logs' / 'watchdog.jsonl'
 HKT = timezone(timedelta(hours=8))
-# The binary path and the cron CLI call moved into clawock/providers/openclaw.py
-# so this module stops being the largest consumer that knows which runtime it is
-# on. Re-exported: callers that import OPENCLAW_BIN from here keep working.
+# The binary path, the cron CLI call and the cron-state fallback chain moved
+# into clawock/providers/openclaw.py so this module stops being the largest
+# consumer that knows which runtime it is on — and so the chain is reachable
+# from an installation, which it was not while it lived in this file: the wheel
+# ships `clawock`, not `scripts/harness`. Re-exported: callers that import
+# OPENCLAW_BIN from here keep working.
 #
 # `clawock` is not installed on the live host, so the repository root has to be on
 # sys.path for this import to resolve. Say so here rather than inheriting it: the
@@ -47,6 +46,7 @@ HKT = timezone(timedelta(hours=8))
 # watchdog — the backstop that exists to notice a missing report goes missing
 # first, and the crontab entry only logs a traceback.
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+from clawock.providers import openclaw as _openclaw  # noqa: E402
 from clawock.providers.openclaw import OPENCLAW_BIN, cron_cli_json as _adapter_cron_json  # noqa: E402
 
 
@@ -120,95 +120,18 @@ LAST_LOAD_SOURCE = None
 LAST_RUNS_SOURCE = None
 
 
-def _open_state_db():
-    """Open the OpenClaw state DB read-only, including its live WAL."""
-    return sqlite3.connect(f'file:{STATE_DB}?mode=ro', uri=True, timeout=5)
-
-
-def _sqlite_store_key(conn):
-    row = conn.execute(
-        'SELECT store_key FROM cron_jobs '
-        'GROUP BY store_key ORDER BY MAX(updated_at) DESC LIMIT 1'
-    ).fetchone()
-    return row[0] if row else None
-
-
-def _sqlite_jobs():
-    """Return live cron jobs from SQLite, or None when the DB/schema is unreadable."""
-    try:
-        with _open_state_db() as conn:
-            conn.execute('PRAGMA query_only = ON')
-            store_key = _sqlite_store_key(conn)
-            if store_key is None:
-                return []
-            rows = conn.execute(
-                'SELECT job_json, state_json FROM cron_jobs '
-                'WHERE store_key = ? ORDER BY sort_order, job_id',
-                (store_key,),
-            ).fetchall()
-        jobs = []
-        for raw_job, raw_state in rows:
-            job = json.loads(raw_job)
-            state = json.loads(raw_state or '{}')
-            if not isinstance(job, dict) or not isinstance(state, dict):
-                raise ValueError('cron SQLite row is not a JSON object')
-            # Runtime state is maintained separately from the declarative job
-            # JSON. Merge it so callers see the same current view as the CLI.
-            job['state'] = {**(job.get('state') or {}), **state}
-            jobs.append(job)
-        return jobs
-    except Exception:
-        return None
-
-
-def _fossil_jobs():
-    for p in (JOBS_JSON, JOBS_JSON.with_suffix('.json.migrated')):
-        try:
-            data = json.loads(p.read_text())
-            jobs = data if isinstance(data, list) else data.get('jobs', data.get('items', []))
-            if not isinstance(jobs, list):
-                continue
-            print(f'warn: live cron state unreadable; falling back to STALE {p.name} '
-                  '(pre-6.1 fossil — do not trust model/delivery/message)', file=sys.stderr)
-            return jobs
-        except Exception:
-            continue
-    return None
-
-
 def load_jobs(source='auto'):
-    """Load cron jobs from auto|cli|sqlite|fossil.
+    """Cron jobs from auto|cli|sqlite|fossil, recording which source answered.
 
-    Auto prefers the public CLI, then the same live SQLite state read-only. The
-    pre-6.1 JSON is retained only for watchdog compatibility and is explicitly
-    marked stale; contract/operator tools must reject it.
+    The chain itself lives in `clawock.providers.openclaw` so it is reachable
+    from an installation. This wrapper exists for the module global: five
+    callers read `_watchdog_common.LAST_LOAD_SOURCE` after the call, and the
+    cron-contract check refuses to report failures off a fossil.
     """
     global LAST_LOAD_SOURCE
-    if source not in {'auto', 'cli', 'sqlite', 'fossil'}:
-        raise ValueError(f'unsupported cron source: {source}')
-    if source in {'auto', 'cli'}:
-        d = _cron_cli_json(['list', '--json'])
-        if isinstance(d, dict) and isinstance(d.get('jobs'), list):
-            LAST_LOAD_SOURCE = 'cli'
-            return d['jobs']
-        if source == 'cli':
-            LAST_LOAD_SOURCE = 'empty'
-            return []
-    if source in {'auto', 'sqlite'}:
-        jobs = _sqlite_jobs()
-        if jobs is not None:
-            LAST_LOAD_SOURCE = 'sqlite'
-            return jobs
-        if source == 'sqlite':
-            LAST_LOAD_SOURCE = 'empty'
-            return []
-    if source in {'auto', 'fossil'}:
-        jobs = _fossil_jobs()
-        if jobs is not None:
-            LAST_LOAD_SOURCE = 'fossil'
-            return jobs
-    LAST_LOAD_SOURCE = 'empty'
-    return []
+    read = _openclaw.read_jobs(source)
+    LAST_LOAD_SOURCE = read.source
+    return read.entries
 
 
 def find_job_id(job_name):
@@ -218,77 +141,16 @@ def find_job_id(job_name):
     return None
 
 
-def _sqlite_runs(job_id):
-    """Return one job's finished runs oldest→newest, or None if SQLite is unreadable."""
-    try:
-        with _open_state_db() as conn:
-            conn.execute('PRAGMA query_only = ON')
-            store_key = _sqlite_store_key(conn)
-            if store_key is None:
-                return []
-            rows = conn.execute(
-                'SELECT entry_json FROM cron_run_logs '
-                'WHERE store_key = ? AND job_id = ? ORDER BY ts, seq',
-                (store_key, job_id),
-            ).fetchall()
-        entries = [json.loads(row[0]) for row in rows]
-        if not all(isinstance(entry, dict) for entry in entries):
-            raise ValueError('cron run SQLite row is not a JSON object')
-        return [entry for entry in entries if entry.get('action') in (None, 'finished')]
-    except Exception:
-        return None
-
-
-def _fossil_runs(job_id):
-    out = []
-    for cand in (RUNS_DIR / f'{job_id}.jsonl', RUNS_DIR / f'{job_id}.jsonl.migrated'):
-        if not cand.exists():
-            continue
-        for line in cand.read_text().splitlines():
-            line = line.strip()
-            if not line:
-                continue
-            try:
-                out.append(json.loads(line))
-            except Exception:
-                continue
-        return out
-    return None
-
-
 def read_runs(job_id, source='auto'):
     """Finished-run records for a job, OLDEST→NEWEST (so callers' [-1] = newest).
-    Auto uses CLI → read-only SQLite → migrated JSONL fossil."""
+
+    Same shape as load_jobs: the CLI → SQLite → fossil chain lives in the
+    provider, this keeps LAST_RUNS_SOURCE for the callers that branch on it.
+    """
     global LAST_RUNS_SOURCE
-    if source not in {'auto', 'cli', 'sqlite', 'fossil'}:
-        raise ValueError(f'unsupported cron source: {source}')
-    if source in {'auto', 'cli'}:
-        d = _cron_cli_json(['runs', '--id', job_id])
-        if isinstance(d, dict) and isinstance(d.get('entries'), list):
-            finished = [e for e in d['entries'] if e.get('action') in (None, 'finished')]
-            LAST_RUNS_SOURCE = 'cli'
-            # CLI returns newest-first; reverse to match the old append-order contract.
-            return list(reversed(finished))
-        if source == 'cli':
-            LAST_RUNS_SOURCE = 'empty'
-            return []
-    if source in {'auto', 'sqlite'}:
-        entries = _sqlite_runs(job_id)
-        if entries is not None:
-            LAST_RUNS_SOURCE = 'sqlite'
-            return entries
-        if source == 'sqlite':
-            LAST_RUNS_SOURCE = 'empty'
-            return []
-    if source in {'auto', 'fossil'}:
-        entries = _fossil_runs(job_id)
-        if entries is not None:
-            LAST_RUNS_SOURCE = 'fossil'
-            print(f'warn: live cron runs unreadable; using STALE migrated JSONL '
-                  f'for {job_id}', file=sys.stderr)
-            return entries
-    LAST_RUNS_SOURCE = 'empty'
-    return []
+    read = _openclaw.read_runs(job_id, source)
+    LAST_RUNS_SOURCE = read.source
+    return read.entries
 
 
 def is_today_hkt(ts_ms):

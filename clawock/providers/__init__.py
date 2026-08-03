@@ -12,11 +12,16 @@ Remove OpenClaw and reports stop being delivered and every watchdog goes blind,
 before anything about prose generation matters.
 
 Both are already narrow, JSON-returning subprocess calls, and run history
-already has two independent implementations — `_watchdog_common.read_runs`
-(OpenClaw, with a cli → sqlite → fossil fallback chain) and
+already has two independent implementations — the OpenClaw cli → sqlite →
+fossil chain (now `openclaw.read_runs`, moved here from `_watchdog_common`) and
 `workflow_health.fetch_runs` (GitHub Actions, via `gh run list --json`). They
 simply had no common shape. This package is mostly collecting implementations
 that exist, not inventing abstractions.
+
+Where a capability physically lives decides whether it is a capability at all:
+while the OpenClaw chain sat in `scripts/harness/`, which the wheel does not
+ship, `OpenClawRuns` imported cleanly from an installation and raised the first
+time it was called (#273).
 """
 from __future__ import annotations
 
