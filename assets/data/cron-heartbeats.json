@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "monitoring_started_at": "2026-07-16T02:17:00+08:00",
-  "updated_at": "2026-08-03T16:00:03.995571+00:00",
+  "updated_at": "2026-08-04T00:10:01.992477+08:00",
   "events": [
     {
       "job": "美股盘中盯盘-overnight",
@@ -306,8 +306,18 @@
       "job": "美股盘中盯盘-overnight",
       "market": "us",
       "slot": "2026-08-04T00:00:00+08:00",
-      "state": "started",
-      "updated_at": "2026-08-03T16:00:03.995571+00:00"
+      "state": "completed",
+      "updated_at": "2026-08-04T00:10:01.992477+08:00",
+      "should_alert": true,
+      "anomaly_count": 6,
+      "postflight_status": "pass",
+      "wechat_sent": true,
+      "telegram_sent": true,
+      "dashboard_published": true,
+      "data_plane_status": "published",
+      "insights_sidecar": true,
+      "issue_count": 0,
+      "watchdog_state": "ok"
     }
   ]
 }
