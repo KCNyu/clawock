@@ -47,6 +47,17 @@ _TOP_LEVEL_CLOCK_FIELDS = {
     "assets/data/shadow_portfolio.json": {"as_of"},
 }
 
+# overview.json is a projection of dashboard.json and pins
+# ``overview.generation_id == dashboard.generated_at``.  Per-file clock-only
+# restores break that parity whenever the full payload changes in a field the
+# projection does not carry: the projection is byte-identical, gets restored to
+# HEAD, and stays one generation behind the payload published beside it.  These
+# two publish together or not at all.
+_GENERATION_LINKED = frozenset({
+    "assets/data/overview.json",
+    "assets/data/dashboard.json",
+})
+
 
 def _strip_recursive(value, fields):
     if isinstance(value, dict):
@@ -96,22 +107,34 @@ def semantic_changed_paths(root: Path | str = ROOT, *, restore_clock_only=True):
     Clock-only rebuilds are restored to ``HEAD`` by default.  Missing/untracked
     outputs, invalid JSON, or a missing ``HEAD`` version are conservatively
     treated as real changes so they cannot disappear from publication.
+    Generation-linked outputs are decided as a group, so a projection is never
+    restored while the payload it is stamped from gets published.
     """
     root = Path(root)
-    changed = []
+    changed = set()
+    clock_only = set()
     for path in DASHBOARD_OUTPUTS:
         try:
             current = json.loads((root / path).read_text(encoding="utf-8"))
             previous = _head_json(root, path)
         except (FileNotFoundError, json.JSONDecodeError, subprocess.SubprocessError):
-            changed.append(path)
+            changed.add(path)
             continue
 
         if semantic_value(path, current) != semantic_value(path, previous):
-            changed.append(path)
-        elif restore_clock_only:
-            _restore_head_worktree(root, path)
-    return changed
+            changed.add(path)
+        else:
+            clock_only.add(path)
+
+    if changed & _GENERATION_LINKED:
+        changed |= clock_only & _GENERATION_LINKED
+        clock_only -= _GENERATION_LINKED
+
+    if restore_clock_only:
+        for path in DASHBOARD_OUTPUTS:
+            if path in clock_only:
+                _restore_head_worktree(root, path)
+    return [path for path in DASHBOARD_OUTPUTS if path in changed]
 
 
 def main():
