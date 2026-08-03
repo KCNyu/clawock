@@ -630,6 +630,20 @@ def validate_gif(path: Path | str = 'assets/dashboard.gif') -> None:
     print(f'validated {path}: {size} bytes, {width}x{height}, {frames} frames')
 
 
+def _book_generation(stamp: object, label: str) -> datetime:
+    """Parse a book stamp (``2026/08/03 12:00 HKT``) into a comparable time.
+
+    Unparseable is fatal, not skipped: an unreadable stamp would otherwise turn
+    the cross-generation direction check below into a silent pass.
+    """
+    assert isinstance(stamp, str) and stamp.strip(), f'{label} missing'
+    text = stamp.strip().removesuffix('HKT').strip()
+    try:
+        return datetime.strptime(text, '%Y/%m/%d %H:%M')
+    except ValueError:
+        raise AssertionError(f'{label} is unparseable: {stamp!r}') from None
+
+
 def _assert_dashboard_money_reconciles(
         data: dict, portfolio_path: Path | str,
         fx_path: Path | str | None = None) -> None:
@@ -657,6 +671,28 @@ def _assert_dashboard_money_reconciles(
         'portfolio money integrity failed: '
         + '; '.join(f"{finding['code']} {finding['msg']}"
                     for finding in money_findings[:6]))
+
+    # The dashboard and portfolio.json have deliberately different commit
+    # cadences. Mode 7 and the scheduled publisher rebuild the dashboard from
+    # the live book every slot but never commit portfolio.json — that is an
+    # explicit design decision (intraday_postflight.py header), because the book
+    # can be mid-refresh when a postflight commits. The price updaters own it and
+    # publish at open/midday/close. During a session the committed dashboard is
+    # therefore legitimately built from a NEWER book than the committed
+    # portfolio, and comparing their totals field by field compares two
+    # generations — which reddened the gate on every intraday tick.
+    #
+    # Reconcile field by field only within one book generation. Across
+    # generations, assert the direction instead: a dashboard built from an OLDER
+    # book than the committed one is real staleness and still fails here.
+    book_stamp = data.get('last_updated')
+    source_stamp = portfolio.get('last_updated')
+    same_book = book_stamp == source_stamp
+    if not same_book:
+        assert _book_generation(book_stamp, 'dashboard.last_updated') >= \
+            _book_generation(source_stamp, 'portfolio.last_updated'), (
+                f'dashboard was built from an older book than the committed '
+                f'portfolio.json: dashboard={book_stamp} < portfolio={source_stamp}')
 
     def finite(value):
         return (isinstance(value, (int, float))
@@ -711,48 +747,54 @@ def _assert_dashboard_money_reconciles(
     for leg, (region, currency, total_fields) in regions.items():
         source_leg = portfolio.get('portfolios', {}).get(region)
         assert isinstance(source_leg, dict), f'portfolio missing {region}'
-        for public_field, source_field in total_fields.items():
-            same_optional_number(
-                data['totals'][leg].get(public_field),
-                source_leg.get(source_field),
-                f'totals.{leg}.{public_field}',
-            )
-
-        source_rows = {
-            row.get('ticker') or row.get('code'): row
-            for row in source_leg.get('holdings', [])
-            if isinstance(row, dict) and (row.get('shares') or 0) > 0
-        }
         public_rows = data['holdings'][leg]
         public_by_ticker = {
             row.get('ticker'): row for row in public_rows if isinstance(row, dict)
         }
         assert len(public_by_ticker) == len(public_rows), (
             f'holdings.{leg} has duplicate or malformed tickers')
-        assert set(public_by_ticker) == set(source_rows), (
-            f'holdings.{leg} ticker coverage mismatch: '
-            f'missing={sorted(set(source_rows) - set(public_by_ticker))}, '
-            f'extra={sorted(set(public_by_ticker) - set(source_rows))}')
 
-        for ticker, source in source_rows.items():
-            public = public_by_ticker[ticker]
-            expected_name = source.get('name') or source.get('stock_name', '')
-            assert public.get('name') == expected_name, (
-                f'holdings.{leg}.{ticker}.name does not reconcile')
-            assert public.get('currency') == currency, (
-                f'holdings.{leg}.{ticker}.currency must be {currency}')
-            assert public.get('is_active') is True, (
-                f'holdings.{leg}.{ticker}.is_active must be true')
-            assert public.get('trades_count') == len(source.get('trades') or []), (
-                f'holdings.{leg}.{ticker}.trades_count does not reconcile')
-            for public_field, (source_field, places) in holding_fields.items():
-                source_value = source.get(source_field)
-                expected = source_value if places is None else round(source_value or 0, places)
-                tolerance = 1e-9 if places is None else 0.5 * (10 ** -places)
-                same_number(
-                    public.get(public_field), expected,
-                    f'holdings.{leg}.{ticker}.{public_field}', tolerance,
+        # Everything from here to the concentration card compares the published
+        # view against the source book, so it is only meaningful within one book
+        # generation. See the `same_book` note above.
+        if same_book:
+            for public_field, source_field in total_fields.items():
+                same_optional_number(
+                    data['totals'][leg].get(public_field),
+                    source_leg.get(source_field),
+                    f'totals.{leg}.{public_field}',
                 )
+
+            source_rows = {
+                row.get('ticker') or row.get('code'): row
+                for row in source_leg.get('holdings', [])
+                if isinstance(row, dict) and (row.get('shares') or 0) > 0
+            }
+            assert set(public_by_ticker) == set(source_rows), (
+                f'holdings.{leg} ticker coverage mismatch: '
+                f'missing={sorted(set(source_rows) - set(public_by_ticker))}, '
+                f'extra={sorted(set(public_by_ticker) - set(source_rows))}')
+
+            for ticker, source in source_rows.items():
+                public = public_by_ticker[ticker]
+                expected_name = source.get('name') or source.get('stock_name', '')
+                assert public.get('name') == expected_name, (
+                    f'holdings.{leg}.{ticker}.name does not reconcile')
+                assert public.get('currency') == currency, (
+                    f'holdings.{leg}.{ticker}.currency must be {currency}')
+                assert public.get('is_active') is True, (
+                    f'holdings.{leg}.{ticker}.is_active must be true')
+                assert public.get('trades_count') == len(source.get('trades') or []), (
+                    f'holdings.{leg}.{ticker}.trades_count does not reconcile')
+                for public_field, (source_field, places) in holding_fields.items():
+                    source_value = source.get(source_field)
+                    expected = (source_value if places is None
+                                else round(source_value or 0, places))
+                    tolerance = 1e-9 if places is None else 0.5 * (10 ** -places)
+                    same_number(
+                        public.get(public_field), expected,
+                        f'holdings.{leg}.{ticker}.{public_field}', tolerance,
+                    )
 
         # Recompute the public concentration card from the public holding rows.
         positive = [row for row in public_rows if row.get('current_value', 0) > 0]
