@@ -1,6 +1,7 @@
 import copy
 import sys
 import unittest
+from datetime import date, timedelta
 from pathlib import Path
 from unittest import mock
 
@@ -653,6 +654,55 @@ class HierarchicalCalibrationTest(unittest.TestCase):
             dv2.missing_regime_warnings([row]),
             ["regime missing/unknown for T1/core_position"],
         )
+
+
+class ExecutionCoverageTests(unittest.TestCase):
+    """An unknown that will never resolve is censoring, not a pending gap."""
+
+    def _unknown(self, days_ago, action):
+        row = decision((date.today() - timedelta(days=days_ago)).isoformat(), action=action)
+        row["execution"] = {"status": "unknown", "detected_at": None, "source": None}
+        return row
+
+    def test_an_unknown_past_its_window_is_stranded_and_the_window_is_per_action(self):
+        # A cut gets T+2 and a hold gets T+1, so one day back separates them:
+        # the hold can never resolve again, the cut still can.
+        rows = [self._unknown(1, "cut"), self._unknown(1, "hold_and_watch")]
+        dv2.assign_episode_ids(rows)
+
+        by_kind = dv2.compute_metrics(rows, window_days=365)["execution_by_kind"]
+
+        self.assertEqual((by_kind["active"]["pending"], by_kind["active"]["stranded"]), (1, 0))
+        self.assertEqual((by_kind["passive"]["pending"], by_kind["passive"]["stranded"]), (0, 1))
+        for leg in by_kind.values():
+            self.assertEqual(leg["unknown"], leg["pending"] + leg["stranded"])
+
+    def test_an_unusable_plan_date_cannot_hide_in_pending(self):
+        """`pending` means "wait and it resolves". A row with no readable date
+        never will, so it must not sit in the bucket that promises it might.
+        Exercised on `_exec_rate` directly: such a row cannot reach the ledger,
+        and the surrounding metrics parse plan_date for their own reasons."""
+        row = self._unknown(30, "cut")
+        row["plan_date"] = "not-a-date"
+
+        self.assertEqual(dv2._exec_rate([row])["pending"], 0)
+        self.assertEqual(dv2._exec_rate([row])["stranded"], 1)
+
+    def test_the_verification_window_has_a_single_definition(self):
+        """`_detect_followed` must read the rule, not keep its own copy.
+
+        Two copies drift silently — the first measurement for #294 read the
+        wrong field, got the wrong window for every passive row and produced a
+        plausible answer that was off by six points.
+        """
+        import brief_preflight
+
+        row = {"plan_date": (date.today() - timedelta(days=10)).isoformat(),
+               "ticker": "AAA", "bucket": "cut"}
+        with mock.patch.object(brief_preflight, "_shares_at_date", return_value=5):
+            self.assertEqual(brief_preflight._detect_followed(row), "false")
+            with mock.patch.object(dv2, "verification_window_days", return_value=3650):
+                self.assertEqual(brief_preflight._detect_followed(row), "unknown")
 
 
 if __name__ == "__main__":
