@@ -305,6 +305,52 @@ def test_dashboard_money_reconciliation_rejects_public_drift(
             dashboard, portfolio_path=ROOT / 'portfolio.json')
 
 
+def _book(payload, stamp):
+    payload['last_updated'] = stamp
+    return payload
+
+
+def test_intraday_dashboard_ahead_of_the_committed_book_is_not_a_failure(tmp_path):
+    """The intraday publishing model: every slot rebuilds the dashboard from the
+    live book, but portfolio.json is committed only at open/midday/close. The
+    committed dashboard is then legitimately a newer generation, and comparing
+    the two field by field reddened the gate on every tick of 2026-08-03."""
+    portfolio = json.loads((ROOT / 'portfolio.json').read_text())
+    source = write_json(
+        tmp_path / 'portfolio.json', _book(portfolio, '2026/08/03 09:30 HKT'))
+
+    payload = json.loads((ROOT / 'assets/data/dashboard.json').read_text())
+    payload['last_updated'] = '2026/08/03 12:00 HKT'
+    payload['totals']['hk']['value_hkd'] += 1688.0
+    dashboard = write_json(tmp_path / 'dashboard.json', payload)
+
+    validators.validate_dashboard(dashboard, portfolio_path=source)
+
+
+def test_dashboard_built_from_an_older_book_than_the_committed_one_fails(tmp_path):
+    portfolio = json.loads((ROOT / 'portfolio.json').read_text())
+    source = write_json(
+        tmp_path / 'portfolio.json', _book(portfolio, '2026/08/03 12:00 HKT'))
+
+    payload = json.loads((ROOT / 'assets/data/dashboard.json').read_text())
+    payload['last_updated'] = '2026/08/03 09:30 HKT'
+    dashboard = write_json(tmp_path / 'dashboard.json', payload)
+
+    with pytest.raises(AssertionError, match='older book than the committed'):
+        validators.validate_dashboard(dashboard, portfolio_path=source)
+
+
+def test_same_book_still_reconciles_field_by_field(tmp_path):
+    """The relaxation above must not reach inside a single generation."""
+    payload = json.loads((ROOT / 'assets/data/dashboard.json').read_text())
+    payload['totals']['hk']['value_hkd'] += 1688.0
+    dashboard = write_json(tmp_path / 'dashboard.json', payload)
+
+    with pytest.raises(AssertionError, match=r'totals\.hk\.value_hkd'):
+        validators.validate_dashboard(
+            dashboard, portfolio_path=ROOT / 'portfolio.json')
+
+
 def test_dashboard_money_reconciliation_rejects_source_integrity_failure(tmp_path):
     portfolio = json.loads((ROOT / 'portfolio.json').read_text())
     portfolio['portfolios']['us_stocks']['total_pnl'] += 100
