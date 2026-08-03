@@ -123,6 +123,34 @@ def test_real_sidecar_change_is_returned_with_exact_path(tmp_path):
     ) == original["assets/data/decision_audit.json"]
 
 
+def test_payload_change_outside_the_projection_republishes_the_projection(tmp_path):
+    """The failure that reddened master on 2026-08-03.
+
+    ``workflow_outcomes`` moved, the overview projection did not carry it, so the
+    projection looked clock-only and was restored to HEAD — leaving its
+    ``generation_id`` one build behind the payload committed beside it.
+    """
+    original = _repo(tmp_path)
+    _write(tmp_path, "assets/data/overview.json", {
+        **original["assets/data/overview.json"],
+        "generation_id": "new",
+        "generated_at": "new",
+    })
+    _write(tmp_path, "assets/data/dashboard.json", {
+        **original["assets/data/dashboard.json"],
+        "generated_at": "new",
+        "workflow_outcomes": {"failures": 1},
+    })
+
+    assert dashboard_outputs.semantic_changed_paths(tmp_path) == [
+        "assets/data/overview.json",
+        "assets/data/dashboard.json",
+    ]
+    overview = json.loads((tmp_path / "assets/data/overview.json").read_text())
+    dashboard = json.loads((tmp_path / "assets/data/dashboard.json").read_text())
+    assert overview["generation_id"] == dashboard["generated_at"]
+
+
 def test_reflect_backtest_change_publishes_the_existing_audit_sidecar(tmp_path):
     original = _repo(tmp_path)
     _write(tmp_path, "assets/data/decision_audit.json", {
