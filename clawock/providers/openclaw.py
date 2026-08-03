@@ -173,9 +173,19 @@ def _sqlite_runs(job_id):
 def _fossil_runs(job_id):
     out = []
     for cand in (CRON_RUNS_DIR / f"{job_id}.jsonl", CRON_RUNS_DIR / f"{job_id}.jsonl.migrated"):
-        if not cand.exists():
-            continue
-        for line in cand.read_text().splitlines():
+        try:
+            if not cand.exists():
+                continue
+            text = cand.read_text()
+        except OSError:
+            # Unreadable is not the same as absent, and neither is a crash.
+            # `Path.exists()` swallows ENOENT but re-raises EACCES, so this
+            # blew up for any process that is not the user owning the runtime's
+            # home — which is every process outside the live host, i.e. exactly
+            # the installed-elsewhere case this provider is supposed to serve.
+            # None means "this layer cannot answer"; the chain ends at empty.
+            return None
+        for line in text.splitlines():
             line = line.strip()
             if not line:
                 continue
