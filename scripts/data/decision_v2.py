@@ -70,6 +70,21 @@ PASSIVE_ACTIONS = {"hold_and_watch", "watch"}
 ADD_ACTIONS = ACTIVE_ACTIONS - SELL_ACTIONS
 AUDIT_SCHEMA_VERSION = 1
 
+# How long after plan_date an execution verdict is allowed to still be pending.
+# Sitting still is verifiable the next day; acting gets a working day to reach
+# the book. Same reason as PASSIVE_ACTIONS above: this used to live inline in
+# `brief_preflight._detect_followed`, and _exec_rate needs the identical rule to
+# tell "not verifiable yet" from "will never be verified". Two copies of a rule
+# nobody looks at drift, and the drift is invisible — the first measurement for
+# #294 read `bucket` instead of `action`, got the wrong window for every passive
+# row, and produced a plausible answer that was wrong by 6 points.
+SAME_DAY_STANCES = {"hold_and_watch", "watch", "t_only"}
+
+
+def verification_window_days(action: str | None) -> int:
+    """Days after plan_date before an unresolved execution is permanent."""
+    return 1 if (action or "").lower() in SAME_DAY_STANCES else 2
+
 # Confidence is calibrated prospectively over strategy episodes, never by fitting
 # and scoring the same row. Sparse leaves borrow pseudo-observations from their
 # parent rather than pretending a 1/1 subgroup is a stable 100% signal.
@@ -1261,23 +1276,54 @@ def _cumulative_win_rate_curve(rows: list[dict], benefit_key: str) -> list[dict]
     return curve
 
 
-def _exec_rate(rows: list[dict]) -> dict:
+def _exec_rate(rows: list[dict], today: date | None = None) -> dict:
     """Follow-through over rows whose execution is actually known.
 
-    ``unknown`` means unverified, not ignored — marking is partly manual
-    (``mark_followed.py``), so an unknown row is a gap in the record rather than
-    evidence of a miss, and it stays out of the denominator. That censoring does
-    not manufacture the result: every unknown row is from the last three days,
-    and counting them all as misses moves the active rate 2.65% -> 2.26%.
-    ``known`` is emitted so the coverage is visible next to the rate.
+    ``unknown`` stays out of the denominator, but it is two different things
+    wearing one label, and only one of them is temporary:
+
+    * ``pending`` — the verification window has not closed, so the next
+      preflight can still resolve it. A genuine gap in the record.
+    * ``stranded`` — the window closed days ago and ``_detect_followed`` returns
+      ``unknown`` on every retry. It never resolves. `_shares_at_date` answers
+      ``None`` when the ticker is in no ``holdings`` list, which is what a plan
+      naming a spot ticker held through a 2x ETF looks like (PLTR/MSFT vs
+      PLTU/MSFU, #162). Those rows are **not a random sample**: a plan that was
+      never acted on is exactly the kind whose ticker never enters the book, so
+      dropping them biases the rate upward.
+
+    This docstring used to assert that "every unknown row is from the last three
+    days". On 2026-08-04 that was false — 37 of 42 unknown rows were stranded,
+    the oldest from 2026-07-13, and on the passive leg *nothing* was pending:
+    98.8% was computed on 83 of 97 rows, against a floor of 84.5%. The claim had
+    silently expired, which is why the counts are emitted instead of argued.
+
+    Emitting both is the whole fix. The rate is unchanged and no verdict moves;
+    what changes is that the censoring is now a number a reader can see.
     """
+    today = today or date.today()
     c = Counter((r.get("execution") or {}).get("status", "unknown") for r in rows)
     known = c["followed"] + c["not_followed"]
+    pending = 0
+    for row in rows:
+        if (row.get("execution") or {}).get("status", "unknown") != "unknown":
+            continue
+        try:
+            planned = date.fromisoformat(row.get("plan_date") or "")
+        except ValueError:
+            # No usable plan_date, so the window cannot be said to be open.
+            # Counting it as pending would let an unparseable row hide forever
+            # in the bucket that means "wait and it will resolve".
+            continue
+        if planned + timedelta(days=verification_window_days(row.get("action"))) > today:
+            pending += 1
     return {
         "n": len(rows),
         "followed": c["followed"],
         "not_followed": c["not_followed"],
         "unknown": c["unknown"],
+        "pending": pending,
+        "stranded": c["unknown"] - pending,
         "known": known,
         "rate": round(c["followed"] / known, 4) if known else None,
     }

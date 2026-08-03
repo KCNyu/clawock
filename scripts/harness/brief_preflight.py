@@ -645,7 +645,7 @@ def _detect_followed(row, min_window_days=None):
       add_only_on_trigger / add_on_breakout → shares should INCREASE
       hold_and_watch / watch / t_only → shares should be UNCHANGED
 
-    min_window_days defaults to bucket-specific:
+    min_window_days defaults to `decision_v2.verification_window_days`:
       hold_and_watch / watch / t_only → T+1 (held by next day = followed)
       cut / trim / add → T+2 (give user a working day to actually trade)
     """
@@ -656,7 +656,10 @@ def _detect_followed(row, min_window_days=None):
         return 'unknown'
 
     if min_window_days is None:
-        min_window_days = 1 if bucket in ('hold_and_watch', 'watch', 't_only') else 2
+        # One definition, in decision_v2: _exec_rate needs the identical rule to
+        # separate "not verifiable yet" from "never will be", and a second copy
+        # here would drift without anything failing.
+        min_window_days = decision_v2.verification_window_days(bucket)
 
     # Day BEFORE plan_date (last commit before plan was created)
     try:
