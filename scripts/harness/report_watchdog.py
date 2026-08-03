@@ -55,6 +55,8 @@ from _watchdog_common import (  # noqa: E402
 
 LOOP_THRESHOLD = 5                 # transcript loop_score ≥ this ⇒ mimo repeat-loop ⇒ garbage
 MARKER_FRESH_MS = 120 * 60 * 1000  # postflight send-marker older than this ⇒ treat as not-this-slot
+REGEN_WINDOW_S = 30 * 60           # context rebuilt within this of the delivered one ⇒ same slot
+REGEN_BACKWARD_S = 60              # tolerance for a context timestamped just before the marker's
 
 
 def deterministic_fallback(raw_block, tag, reason):
@@ -64,7 +66,34 @@ def deterministic_fallback(raw_block, tag, reason):
             + raw_block.strip())
 
 
-def slot_delivered(marker, ctx_id, raw_block_first, now_ms):
+def _same_generation_window(marker, ctx_generated_at):
+    """Was the delivered report built from THIS slot's data, a regeneration apart?
+
+    `context_id` is a per-preflight-invocation hash, so an openclaw auto-retry
+    (re-runs preflight, then hits postflight's idempotency lock and deliberately
+    does NOT rewrite the marker) guarantees the two ids differ — the one case the
+    id compare exists to survive. Both 2026-08-03 HK false backstops were exactly
+    that: delivered at 13:31 from a 13:30 context, watchdog at 13:42 reading the
+    retry's 13:32:59 context.
+
+    Comparing the source contexts' own timestamps separates that from the failure
+    the id compare was added for (2026-07-24 美股收盘报告 delivered 07/22 numbers):
+    a retry regenerates minutes later, a genuinely stale body is hours or days
+    behind. The window is asymmetric — a retry's context is always the NEWER one,
+    so only a small backward tolerance is allowed for clock/write ordering.
+    """
+    marker_at = marker.get('context_generated_at')
+    if not marker_at or not ctx_generated_at:
+        return False
+    try:
+        delta = (datetime.fromisoformat(ctx_generated_at)
+                 - datetime.fromisoformat(marker_at)).total_seconds()
+    except (TypeError, ValueError):
+        return False
+    return -REGEN_BACKWARD_S <= delta <= REGEN_WINDOW_S
+
+
+def slot_delivered(marker, ctx_id, raw_block_first, now_ms, ctx_generated_at=None):
     """Did report_postflight confirmably deliver THIS slot's report to Telegram?
 
     Doubles as the generation gate: in prose mode the model's final answer is a
@@ -73,22 +102,35 @@ def slot_delivered(marker, ctx_id, raw_block_first, now_ms):
     every healthy run — firing a deterministic fallback that duplicates a report
     kcn already has.
 
-    Slot identity prefers `context_id` (exact, written by prose mode). Prose-mode
-    bodies start with the TITLE, so the legacy first-line compare would report a
-    false mismatch; it is kept only for markers written before that field existed.
+    Slot identity prefers `context_id` (exact, written by prose mode), then the
+    regeneration window when the ids differ because the cron retried, then — only
+    for markers predating both fields — the legacy first-line compare. Prose-mode
+    bodies start with the TITLE, so that legacy compare reports a false mismatch
+    on every healthy prose run and cannot be the primary judge.
+
+    Returns (delivered, judge) — the judge names which rule decided, so the log
+    can show why no backstop fired instead of leaving that to a second,
+    drift-prone recomputation at the call site.
     """
     if not marker or not marker.get('tg_ok'):
-        return False
+        return False, 'no-marker'
     # An exact context_id match is proof this slot was delivered regardless of age:
     # both ids are per market+phase+date, so a delayed watchdog must NOT re-mirror a
     # confirmed delivery just because the marker is >2h old (2026-07-24 review). The
     # freshness window only guards the fuzzy legacy first-line compare, where a
     # matching first line could otherwise belong to an earlier day's report.
     if marker.get('context_id') and ctx_id:
-        return marker['context_id'] == ctx_id
+        if marker['context_id'] == ctx_id:
+            return True, 'context_id'
+        # Ids differ. That is the normal shape of a cron retry, not of a miss —
+        # see _same_generation_window. Markers written before that field existed
+        # fall through to the legacy compare below rather than to a false miss.
+        if marker.get('context_generated_at'):
+            return _same_generation_window(marker, ctx_generated_at), 'regenerated-context'
     if now_ms - (marker.get('ts') or 0) >= MARKER_FRESH_MS:
-        return False
-    return (marker.get('first_line') or '').strip() == (raw_block_first or '').strip()
+        return False, 'marker-stale'
+    same_line = (marker.get('first_line') or '').strip() == (raw_block_first or '').strip()
+    return same_line, 'legacy-first-line'
 
 
 def main():
@@ -126,24 +168,20 @@ def main():
     # The clean report block's first line comes from the preflight context. If the
     # context is missing, preflight never ran → nothing to resend.
     ctx_path = WS / 'memory' / '.tmp' / f'report-context-{args.market}-{args.phase}-{today}.json'
-    raw_block = ''
-    raw_block_first = None
-    if ctx_path.exists():
-        try:
-            raw_block = (json.loads(ctx_path.read_text()).get('raw_wechat_block') or '').strip()
-            raw_block_first = raw_block.splitlines()[0] if raw_block else None
-        except Exception:
-            pass
+    # One read, one generation: a cron retry rewrites this file mid-flight, so
+    # re-reading it per field could mix two generations' block and id.
+    ctx = {}
+    try:
+        ctx = json.loads(ctx_path.read_text())
+    except Exception:
+        ctx = {}
+    raw_block = (ctx.get('raw_wechat_block') or '').strip()
+    raw_block_first = raw_block.splitlines()[0] if raw_block else None
     if not raw_block_first:
         log({'tag': tag, 'action': 'skip', 'reason': 'no preflight raw_wechat_block (cron likely never ran)'})
         return 0
 
-    ctx_id = None
-    if ctx_path.exists():
-        try:
-            ctx_id = json.loads(ctx_path.read_text()).get('context_id')
-        except Exception:
-            pass
+    ctx_id = ctx.get('context_id')
 
     marker_path = WS / 'memory' / '.tmp' / f'report-sent-{args.market}-{args.phase}-{today}.json'
     marker = None
@@ -153,7 +191,9 @@ def main():
         except Exception:
             marker = None
     now_ms = int(datetime.now(HKT).timestamp() * 1000)
-    delivered_this_slot = slot_delivered(marker, ctx_id, raw_block_first, now_ms)
+    delivered_this_slot, delivery_judge = slot_delivered(
+        marker, ctx_id, raw_block_first, now_ms,
+        ctx_generated_at=ctx.get('generated_at'))
 
     # --- Generation gate ------------------------------------------------------
     # In prose mode the model's final answer is a postflight status line, not the
@@ -163,6 +203,9 @@ def main():
     if delivered_this_slot:
         log({'tag': tag, 'action': 'ok',
              'reason': 'postflight cosend already delivered Telegram this slot — no backstop',
+             # Which rule accepted it. `regenerated-context` recurring here means
+             # the cron keeps retrying — visible instead of inferred.
+             'match': delivery_judge,
              'run_at': run_at})
         return 0
 
