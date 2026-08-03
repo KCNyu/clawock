@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "monitoring_started_at": "2026-07-26T08:00:00+08:00",
-  "updated_at": "2026-08-03T00:20:03.954874+00:00",
+  "updated_at": "2026-08-03T00:30:02.206911+00:00",
   "records": [
     {
       "job": "港股开盘报告",
@@ -3500,7 +3500,10 @@
           "channel": "wechat_or_telegram"
         },
         "watchdog_delivery": {
-          "status": "unknown"
+          "status": "not_required",
+          "at": "2026-08-03T00:30:02.206911+00:00",
+          "action": "ok",
+          "reason": "postflight cosend already delivered Telegram today — no backstop"
         }
       },
       "raw_execution": {
@@ -3510,7 +3513,7 @@
         "run_id": null,
         "error_present": false
       },
-      "updated_at": "2026-08-03T00:08:58.208217+00:00",
+      "updated_at": "2026-08-03T00:30:02.206911+00:00",
       "final_product": {
         "status": "success",
         "reason": "primary delivery succeeded"
