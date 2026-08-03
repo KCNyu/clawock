@@ -39,13 +39,13 @@ def _first_party_imports(path: Path) -> set[str]:
     return {name for name in names if name not in stdlib}
 
 
-# One escape is known and tracked, not tolerated: `OpenClawRuns.list_runs()`
-# lazily imports `_watchdog_common`, which lives in `scripts/harness/` and is not
-# in the wheel. The module still imports from an installation — the import is
-# inside the method — but calling it there raises. Pinned rather than hidden so a
-# *new* escape fails while this one stays visible until the read moves into the
-# package.
-KNOWN_ESCAPES = {"providers/runs.py": {"_watchdog_common"}}
+# Empty, and asserted empty rather than deleted: the one tracked escape was
+# `OpenClawRuns.list_runs()` lazily importing `_watchdog_common` from
+# `scripts/harness/`, which is not in the wheel — importable from an
+# installation, raising the first time it was called. The cron-state chain moved
+# into `clawock.providers.openclaw` (#273), so the set is empty and stays the
+# thing a new escape has to break.
+KNOWN_ESCAPES: dict[str, set[str]] = {}
 
 
 def test_nothing_the_package_imports_lives_outside_it():

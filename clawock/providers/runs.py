@@ -17,6 +17,8 @@ import subprocess
 from dataclasses import dataclass
 from typing import Protocol
 
+from . import openclaw
+
 # Deliberately small and closed. `unknown` is a real answer — a run that is
 # recorded but whose outcome the source cannot state must not be silently
 # rounded to success.
@@ -55,7 +57,7 @@ class RunHistoryProvider(Protocol):
 
 
 class OpenClawRuns:
-    """Wraps `_watchdog_common.read_runs`, which keeps its own fallback chain."""
+    """Wraps the adapter's cron-state chain: CLI → read-only SQLite → fossil."""
 
     name = "openclaw"
 
@@ -65,8 +67,11 @@ class OpenClawRuns:
     def _read(self, job: str):
         if self._reader is not None:
             return self._reader(job)
-        import _watchdog_common  # resolved from the workspace's scripts/harness
-        return _watchdog_common.read_runs(job) or []
+        # Previously `import _watchdog_common`, which lives in scripts/harness
+        # and is not in the wheel: this class was importable but not callable
+        # from an installation, so "interchangeable providers" held only where
+        # the checkout happened to be on sys.path.
+        return openclaw.read_runs(job).entries
 
     def history(self, job: str, limit: int = 20) -> list[Run]:
         entries = list(self._read(job))[-limit:]

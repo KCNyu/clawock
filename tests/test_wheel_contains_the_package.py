@@ -99,4 +99,26 @@ def test_every_module_imports_from_a_non_editable_install(tmp_path):
 
     assert done.returncode == 0, (
         "a module in the source tree is not importable from the built wheel — "
-        f"the shipped package is not the package:\n{done.stderr[-2000:]}")
+        "the shipped package is not the package:\n" + done.stderr[-2000:])
+
+    # Importable was never the claim. `OpenClawRuns` used to import
+    # `_watchdog_common` — which lives in scripts/harness and is not shipped —
+    # *inside* the method, so it imported cleanly from an installation and
+    # raised ModuleNotFoundError the first time anyone called it. The chain has
+    # no runtime to talk to here, so the answer is an empty history; that it
+    # answers at all is the point.
+    done = subprocess.run(
+        [sys.executable, "-c",
+         "from clawock.providers.runs import OpenClawRuns\n"
+         "runs = OpenClawRuns().history('any-job')\n"
+         "assert isinstance(runs, list), runs\n"
+         "print('ok')"],
+        cwd=tmp_path,
+        env={"PYTHONPATH": str(site), "PATH": "/usr/bin:/bin",
+             "LC_ALL": "C.UTF-8", "PYTHONIOENCODING": "utf-8"},
+        capture_output=True, text=True, timeout=120)
+
+    assert done.returncode == 0, (
+        "the run-history provider is importable from the wheel but not callable "
+        "there, so it is a provider only where the checkout happens to be:\n"
+        + done.stderr[-2000:])

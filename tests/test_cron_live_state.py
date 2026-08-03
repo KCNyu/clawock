@@ -9,6 +9,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts" / "harness"))
 
 import _watchdog_common as common  # noqa: E402
+from clawock.providers import openclaw as provider  # noqa: E402
 
 
 def _make_state_db(path):
@@ -61,9 +62,9 @@ def _make_state_db(path):
 def test_auto_falls_back_to_live_sqlite_before_fossil(tmp_path, monkeypatch):
     db = tmp_path / "openclaw.sqlite"
     _make_state_db(db)
-    monkeypatch.setattr(common, "STATE_DB", db)
-    monkeypatch.setattr(common, "JOBS_JSON", tmp_path / "jobs.json")
-    monkeypatch.setattr(common, "_cron_cli_json", lambda _args: None)
+    monkeypatch.setattr(provider, "STATE_DB", db)
+    monkeypatch.setattr(provider, "CRON_JOBS_JSON", tmp_path / "jobs.json")
+    monkeypatch.setattr(provider, "cron_cli_json", lambda _args: None)
 
     jobs = common.load_jobs()
 
@@ -76,10 +77,10 @@ def test_auto_falls_back_to_live_sqlite_before_fossil(tmp_path, monkeypatch):
 def test_explicit_sqlite_run_history_is_oldest_first(tmp_path, monkeypatch):
     db = tmp_path / "openclaw.sqlite"
     _make_state_db(db)
-    monkeypatch.setattr(common, "STATE_DB", db)
+    monkeypatch.setattr(provider, "STATE_DB", db)
     monkeypatch.setattr(
-        common,
-        "_cron_cli_json",
+        provider,
+        "cron_cli_json",
         lambda _args: (_ for _ in ()).throw(AssertionError("CLI must not run")),
     )
 
@@ -90,11 +91,11 @@ def test_explicit_sqlite_run_history_is_oldest_first(tmp_path, monkeypatch):
 
 
 def test_fossil_source_is_marked_stale(tmp_path, monkeypatch):
-    monkeypatch.setattr(common, "STATE_DB", tmp_path / "missing.sqlite")
+    monkeypatch.setattr(provider, "STATE_DB", tmp_path / "missing.sqlite")
     jobs_json = tmp_path / "jobs.json"
     jobs_json.write_text(json.dumps([{"id": "old", "name": "stale"}]))
-    monkeypatch.setattr(common, "JOBS_JSON", jobs_json)
-    monkeypatch.setattr(common, "_cron_cli_json", lambda _args: None)
+    monkeypatch.setattr(provider, "CRON_JOBS_JSON", jobs_json)
+    monkeypatch.setattr(provider, "cron_cli_json", lambda _args: None)
 
     assert common.load_jobs() == [{"id": "old", "name": "stale"}]
     assert common.LAST_LOAD_SOURCE == "fossil"
