@@ -2461,7 +2461,14 @@
       const passiveNote = pas.rate != null
         ? ` · 不用动的 hold ${Math.round(pas.rate * 100)}% 是坐着没动自动算听了`
         : "";
-      setSub("plan-followed-sub", `${act.followed}/${act.known} 条要动手的${passiveNote}`);
+      // Rows whose verification window closed without an answer never resolve —
+      // the ticker is in no holdings list, which is what a plan on a spot ticker
+      // held through a 2x ETF looks like. They are out of the denominator above,
+      // so the count has to be visible or the rate is quietly censored. Same
+      // shape as the win-rate card's 「另有 N 条判不了」 note.
+      const stranded = (act.stranded || 0) + (pas.stranded || 0);
+      const strandedNote = stranded ? ` · 另有 ${stranded} 条永远验不了（不在分母）` : "";
+      setSub("plan-followed-sub", `${act.followed}/${act.known} 条要动手的${passiveNote}${strandedNote}`);
       setClass("plan-followed", "neutral");
     }
 
