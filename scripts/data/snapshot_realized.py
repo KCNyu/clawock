@@ -24,7 +24,10 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-PORTFOLIO_PATH = '/root/.openclaw/workspace/portfolio.json'
+# There was a `PORTFOLIO_PATH` here naming the live ledger absolutely. Nothing
+# in this module read it, and both importers (`build_dashboard`, the legacy
+# backfill) take only the two pure functions below, so it is deleted rather
+# than re-pointed: an unused constant naming production is a loaded gun.
 
 
 def _ledger_sells(holdings):
