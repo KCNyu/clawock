@@ -81,8 +81,12 @@ def compile_overview_projection(dashboard):
                       ('win_rate', 'cluster_ci95'))
         for name in ('catalyst', 'technical', 'macro', 'peer')
     }
+    # `stranded` travels with `rate`: it is how many rows the denominator drops
+    # and never gets back (#294). Shipping the rate without it is what the
+    # detail card was already fixed for; the Hero is the copy people see first.
     execution = _fields(
-        (metrics.get('execution_by_kind') or {}).get('active'), ('rate', 'known'))
+        (metrics.get('execution_by_kind') or {}).get('active'),
+        ('rate', 'known', 'stranded'))
     active_calibration = _fields(
         (metrics.get('calibration') or {}).get('active'), ('baseline_loo', 'n'))
     compact_recent = [
