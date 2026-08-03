@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-02T22:31:34.693262+00:00",
+  "generated_at": "2026-08-03T15:32:37.692092+00:00",
   "lookback_hours": 48,
   "sources": {
     "trump": "trumpstruth.org/feed (primary)",
@@ -13,56 +13,39 @@
   },
   "llm_filtered": true,
   "counts": {
-    "total": 13,
+    "total": 16,
     "held_hits": 4,
-    "new_ideas": 0,
-    "sector_hits": 0
+    "new_ideas": 3,
+    "sector_hits": 1
   },
   "items": [
     {
       "author": "Musk",
-      "text": "Elon Musk stocks take $1.5 trillion hit with fresh test in SpaceX lockup ahead",
+      "text": "Elon Musk’s fortune slumps to pre-SpaceX IPO levels after rout",
       "url": "",
-      "published": "Tue, 28 Jul 2026 18:56:34 GMT",
+      "published": "Sat, 01 Aug 2026 15:19:00 GMT",
       "origin": "gnews-rss",
-      "source": "CNBC",
-      "tickers": [],
+      "source": "Fortune",
+      "tickers": [
+        "TSLA",
+        "SPCX",
+        "SPCH"
+      ],
       "held": [
         "SPCH",
         "SPCX"
       ],
-      "new_ideas": [],
+      "new_ideas": [
+        "TSLA"
+      ],
       "sectors": [
-        "航天",
-        "特斯拉",
-        "SpaceX"
+        "航天/SpaceX",
+        "电动车"
       ],
       "sector_holdings": [],
       "stance": "neutral",
-      "relevance": 75,
-      "summary_cn": "Musk系股票单日蒸发1.5万亿美元市值，SpaceX lockup带来新一轮抛压测试，直接影响kcn的SPCX/SPCH。"
-    },
-    {
-      "author": "Musk",
-      "text": "SpaceX is the most shorted large company right now. What’s behind the massive selloff",
-      "url": "",
-      "published": "Fri, 31 Jul 2026 13:02:19 GMT",
-      "origin": "gnews-rss",
-      "source": "NBC News",
-      "tickers": [],
-      "held": [
-        "SPCH",
-        "SPCX"
-      ],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "SpaceX"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 72,
-      "summary_cn": "Musk称SpaceX是当前被做空最多的大型公司，暗示SpaceX估值被低估为其背书(直接利好kcn的SPCX/SPCH)。"
+      "relevance": 78,
+      "summary_cn": "Musk个人财富因SpaceX IPO后股价暴跌而回落至IPO前水平——直接负面冲击kcn持有的SpaceX相关仓位SPCX/SPCH。"
     },
     {
       "author": "Musk",
@@ -71,62 +54,162 @@
       "published": "Fri, 31 Jul 2026 20:29:00 GMT",
       "origin": "gnews-rss",
       "source": "Barron's",
-      "tickers": [],
+      "tickers": [
+        "TSLA",
+        "SPCX",
+        "SPCH"
+      ],
+      "held": [
+        "SPCH",
+        "SPCX"
+      ],
+      "new_ideas": [
+        "TSLA"
+      ],
+      "sectors": [
+        "航天/SpaceX",
+        "电动车"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 75,
+      "summary_cn": "Tesla与SpaceX合并猜测升温，但Musk试图降温——若合并传闻成真，对kcn持仓SPCX/SPCH是重大结构性事件。"
+    },
+    {
+      "author": "Musk",
+      "text": "SpaceX's post-IPO plunge sets tense backdrop for first earnings report",
+      "url": "",
+      "published": "Mon, 03 Aug 2026 12:00:01 GMT",
+      "origin": "gnews-rss",
+      "source": "CNBC",
+      "tickers": [
+        "SPCX",
+        "SPCH"
+      ],
       "held": [
         "SPCH",
         "SPCX"
       ],
       "new_ideas": [],
       "sectors": [
-        "航天",
-        "特斯拉",
-        "SpaceX"
+        "航天/SpaceX"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 72,
+      "summary_cn": "SpaceX IPO后股价下挫，为其首份季报蒙上紧张氛围——kcn持仓SPCX/SPCH面临首次财报考验。"
+    },
+    {
+      "author": "Musk",
+      "text": "How Elon Musk can convince investors SpaceX will be profitable next year",
+      "url": "",
+      "published": "Mon, 03 Aug 2026 14:54:40 GMT",
+      "origin": "gnews-rss",
+      "source": "Yahoo Finance",
+      "tickers": [
+        "SPCX",
+        "SPCH"
+      ],
+      "held": [
+        "SPCH",
+        "SPCX"
+      ],
+      "new_ideas": [],
+      "sectors": [
+        "航天/SpaceX"
       ],
       "sector_holdings": [],
       "stance": "neutral",
       "relevance": 70,
-      "summary_cn": "市场热议Tesla与SpaceX合并传闻，Musk本人试图降温；涉及kcn核心SpaceX持仓。"
+      "summary_cn": "报道聚焦Musk如何向投资者说明SpaceX明年盈利前景——直接关系kcn持仓SPCX/SPCH的估值叙事。"
+    },
+    {
+      "author": "Trump",
+      "text": "Mike Wirth, Chairman and CEO of Chevron, just gave, in an interview with the fabulous Maria Bartiromo, all of the reasons that his company is doing so well. The only thing he conveniently forgot to mention is that, without the genius, foresight, strength, and stability, of the TRUMP Administration, the Oil Industry, and our Country itself, would be DEAD! As an example, they threw Mike and Chevron out of Venezuela, but now they’re back, far bigger and stronger than ever before, expecting to make a fortune! That goes for other Oil Companies as well…and get your consumer (retail!) Oil Prices DOWN",
+      "url": "https://trumpstruth.org/statuses/40464",
+      "published": "2026-08-03T13:50:42+00:00",
+      "origin": "truthsocial",
+      "tickers": [
+        "CVX"
+      ],
+      "held": [],
+      "new_ideas": [
+        "CVX"
+      ],
+      "sectors": [
+        "原油/能源",
+        "委内瑞拉政策"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 65,
+      "summary_cn": "Trump公开力挺Chevron(CVX)CEO Mike Wirth，将其业绩归功于自己政府，并要求压低零售油价；同时吹嘘美国油企重返委内瑞拉。"
     },
     {
       "author": "Musk",
-      "text": "Elon Musk’s fortune slumps to pre-SpaceX IPO levels after rout",
+      "text": "Musk dismisses report of Tesla's potential China business sale",
       "url": "",
-      "published": "Sat, 01 Aug 2026 15:19:00 GMT",
+      "published": "Sat, 01 Aug 2026 07:08:35 GMT",
       "origin": "gnews-rss",
-      "source": "Fortune",
-      "tickers": [],
-      "held": [
-        "SPCH",
-        "SPCX"
+      "source": "Reuters",
+      "tickers": [
+        "TSLA"
       ],
-      "new_ideas": [],
+      "held": [],
+      "new_ideas": [
+        "TSLA"
+      ],
       "sectors": [
-        "航天",
-        "特斯拉"
+        "电动车",
+        "中国业务"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 62,
+      "summary_cn": "Musk否认有关Tesla可能出售中国业务的报道——驳空头传言，对Tesla偏利好。"
+    },
+    {
+      "author": "Musk",
+      "text": "Tesla Missed Earnings by 38%, but Elon Musk Isn't Worried. Here's What Investors Should Make of That.",
+      "url": "",
+      "published": "Mon, 03 Aug 2026 08:05:00 GMT",
+      "origin": "gnews-rss",
+      "source": "The Motley Fool",
+      "tickers": [
+        "TSLA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "TSLA"
+      ],
+      "sectors": [
+        "电动车"
       ],
       "sector_holdings": [],
       "stance": "neutral",
-      "relevance": 68,
-      "summary_cn": "Musk身价因SpaceX IPO前估值重估及特斯拉回调跌至IPO前水平，间接影响kcn的SpaceX主题持仓。"
+      "relevance": 58,
+      "summary_cn": "Tesla业绩低于预期38%但Musk不担忧——财报重大miss信号，需关注投资者如何解读。"
     },
     {
       "author": "Musk",
-      "text": "Elon Musk's Tesla Delivered 480,126 Vehicles in Q2, a 25% Jump From a Year Ago",
+      "text": "Judge denies request by Elon Musk’s xAI to pause Minnesota nudification ban",
       "url": "",
-      "published": "Sun, 02 Aug 2026 02:15:00 GMT",
+      "published": "Fri, 31 Jul 2026 19:41:20 GMT",
       "origin": "gnews-rss",
-      "source": "The Motley Fool",
+      "source": "nbcnews.com",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "特斯拉",
-        "电动车"
+        "AI",
+        "监管/法律"
       ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 60,
-      "summary_cn": "Tesla Q2交付48万辆同比+25%，基本面强劲。"
+      "sector_holdings": [
+        "MSFU"
+      ],
+      "stance": "attack",
+      "relevance": 58,
+      "summary_cn": "法官驳回Musk旗下xAI关于暂停明尼苏达'去裸化'禁令的请求——AI监管/内容审查负面信号，间接影响AI板块情绪。"
     },
     {
       "author": "Trump",
@@ -138,53 +221,31 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "地缘政治",
-        "石油",
-        "军工"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 60,
-      "summary_cn": "Trump称美伊接近达成协议，换取霍尔木兹海峡开放与伊朗弃核，若成行将利好油价与航运。"
-    },
-    {
-      "author": "Musk",
-      "text": "Musk dismisses report of Tesla's potential China business sale",
-      "url": "",
-      "published": "Sat, 01 Aug 2026 07:08:35 GMT",
-      "origin": "gnews-rss",
-      "source": "Reuters",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "特斯拉",
-        "电动车",
-        "中国"
+        "军工/地缘政治",
+        "原油/能源"
       ],
       "sector_holdings": [],
       "stance": "neutral",
-      "relevance": 58,
-      "summary_cn": "Musk否认Tesla将出售中国业务传闻，澄清中国市场立场。"
+      "relevance": 68,
+      "summary_cn": "Trump称美国对伊朗'上膛待发'，但因中东国家请求暂缓攻击，并称伊朗已同意'完全开放霍尔木兹海峡'及放弃核威胁——重大地缘政治进展，直接影响油价与航运。"
     },
     {
       "author": "Trump",
-      "text": "Trump’s Energy Triumph: https://www.wsj.com/opinion/trumps-energy-triumph-82e4b953",
-      "url": "https://trumpstruth.org/statuses/40457",
-      "published": "2026-08-02T12:58:05+00:00",
+      "text": "Iranian Leadership is unbelievably duplicitous! They ask for a meeting, some would say “beg,” talks begin, with more scheduled in the immediate future, and they say, openly and proudly, that they’re not having any discussions, that nothing is being talked about, and they’re only dealing with “Oman.” They then go on to give their usual blather in saying, the Strait of Hormuz will be operated powerfully by them, when it is already completely controlled by the United States Navy and our “Blockade” or, as some say, “The United States Wall of Steel!” Nothing gets through to Iran, unless we want it ",
+      "url": "https://trumpstruth.org/statuses/40465",
+      "published": "2026-08-03T15:25:55+00:00",
       "origin": "truthsocial",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "能源",
-        "石油",
-        "LNG"
+        "原油/能源",
+        "军工/地缘政治"
       ],
       "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 55,
-      "summary_cn": "WSJ社论称Trump能源政策为胜利，涉及油气出口与LNG产能扩张。"
+      "stance": "neutral",
+      "relevance": 62,
+      "summary_cn": "Trump抨击伊朗在霍尔木兹海峡问题上的两面派，并强调美国海军对该海峡的封锁/控制——地缘政治与油价相关信号。"
     },
     {
       "author": "Trump",
@@ -196,31 +257,13 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "石油",
-        "能源"
+        "原油/能源",
+        "出口/贸易"
       ],
       "sector_holdings": [],
       "stance": "endorse",
-      "relevance": 55,
-      "summary_cn": "Trump宣称任内美国石油出口激增，强化能源主导叙事。"
-    },
-    {
-      "author": "Trump",
-      "text": "Because of President Donald J. Trump, Oil Exports are SURGING!",
-      "url": "https://trumpstruth.org/statuses/40433",
-      "published": "2026-08-01T18:12:32+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "石油",
-        "能源"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 55,
-      "summary_cn": "Trump再称石油出口激增(与第5条重复，保留信息量略高的一条)。"
+      "relevance": 58,
+      "summary_cn": "Trump声称'因特朗普总统，美国原油出口正激增'——直接背书美国油气出口扩张。"
     },
     {
       "author": "Trump",
@@ -232,98 +275,116 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "能源",
-        "石油"
+        "原油/能源",
+        "离岸油气基础设施"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 55,
+      "summary_cn": "Trump转发能源部长Wright指令恢复加州Sable Offshore Santa Ynez单元及管道的官方公告——利好美国离岸油气生产与基础设施。"
+    },
+    {
+      "author": "Trump",
+      "text": "Trump’s Energy Triumph: https://www.wsj.com/opinion/trumps-energy-triumph-82e4b953",
+      "url": "https://trumpstruth.org/statuses/40457",
+      "published": "2026-08-02T12:58:05+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "原油/能源",
+        "宏观能源政策"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 55,
+      "summary_cn": "Trump转发WSJ评论文章'特朗普的能源胜利'——背书自身能源政策胜利，对油气板块整体偏利好信号。"
+    },
+    {
+      "author": "Trump",
+      "text": "My REAL Polling Numbers, not those made up by the Fake News Media, are the best they have ever been, and why wouldn’t they be with the biggest tax cuts and employment numbers EVER, the biggest outside Investment in America in World history, a totally secure Border, a giant Victory in Venezuela, the Denuclearization of Iran, unparalleled respect and success throughout the World, and much more? Don’t believe the Radical Left’s Fake Poll numbers. They are Crooked and Corrupt, just like the Country Destroying Dumocrats are Crooked and Corrupt. VOTE REPUBLICAN FOR GREATNESS IN AMERICA! Thank you fo",
+      "url": "https://trumpstruth.org/statuses/40463",
+      "published": "2026-08-03T13:31:10+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "宏观/财政政策(减税)",
+        "原油/能源",
+        "地缘政治(委内瑞拉/伊朗)"
       ],
       "sector_holdings": [],
       "stance": "endorse",
       "relevance": 52,
-      "summary_cn": "能源部长Wright重启加州Sable海上油气项目，Trump阵营力推化石能源政策。"
+      "summary_cn": "Trump吹嘘'史上最大减税'、委内瑞拉胜利、伊朗去核化与就业数据，强调外资历史性流入美国——宏观自夸但暗示政策利好能源与减税受益板块。"
     },
     {
       "author": "Musk",
-      "text": "Elon Musk's xAI sues Minnesota over its first-in-the-nation law banning 'nudification' technology",
+      "text": "Musk Plans to Spend at Least $100 Million to Help Republicans in the Midterms",
       "url": "",
-      "published": "Wed, 29 Jul 2026 21:38:00 GMT",
+      "published": "Thu, 30 Jul 2026 17:03:16 GMT",
       "origin": "gnews-rss",
-      "source": "AP News",
+      "source": "The New York Times",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "AI",
-        "监管"
-      ],
-      "sector_holdings": [],
-      "stance": "attack",
-      "relevance": 50,
-      "summary_cn": "xAI起诉明尼苏达州反AI裸照生成法，Musk阵营对抗AI监管立法。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk readies major midterm investment for Republicans ahead of November: Sources",
-      "url": "",
-      "published": "Fri, 31 Jul 2026 00:11:07 GMT",
-      "origin": "gnews-rss",
-      "source": "abcnews.com",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "政治",
-        "科技"
+        "政治献金/中期选举"
       ],
       "sector_holdings": [],
       "stance": "neutral",
-      "relevance": 48,
-      "summary_cn": "Musk准备为共和党中期选举大额投入，影响政策/监管预期。"
+      "relevance": 45,
+      "summary_cn": "Musk计划花费至少1亿美元助共和党中期选举——政治献金信号，对监管/科技政策环境有间接影响。"
+    },
+    {
+      "author": "Trump",
+      "text": "Trump's new NIH chief outlines sweeping reforms like new pandemic playbook, vaccine injury body: https://justthenews.com/government/federal-agencies/trumps-new-nih-chief-outlines-sweeping-reforms-such-new-pandemic",
+      "url": "https://trumpstruth.org/statuses/40454",
+      "published": "2026-08-02T11:20:56+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "医疗/公共卫生",
+        "监管"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 45,
+      "summary_cn": "Trump转发新NIH负责人推出大流行病应对手册与疫苗伤害机构等全面改革——医疗监管政策方向信号。"
     }
   ],
   "held_hits": [
     {
       "author": "Musk",
-      "text": "Elon Musk stocks take $1.5 trillion hit with fresh test in SpaceX lockup ahead",
+      "text": "Elon Musk’s fortune slumps to pre-SpaceX IPO levels after rout",
       "url": "",
-      "published": "Tue, 28 Jul 2026 18:56:34 GMT",
+      "published": "Sat, 01 Aug 2026 15:19:00 GMT",
       "origin": "gnews-rss",
-      "source": "CNBC",
-      "tickers": [],
+      "source": "Fortune",
+      "tickers": [
+        "TSLA",
+        "SPCX",
+        "SPCH"
+      ],
       "held": [
         "SPCH",
         "SPCX"
       ],
-      "new_ideas": [],
+      "new_ideas": [
+        "TSLA"
+      ],
       "sectors": [
-        "航天",
-        "特斯拉",
-        "SpaceX"
+        "航天/SpaceX",
+        "电动车"
       ],
       "sector_holdings": [],
       "stance": "neutral",
-      "relevance": 75,
-      "summary_cn": "Musk系股票单日蒸发1.5万亿美元市值，SpaceX lockup带来新一轮抛压测试，直接影响kcn的SPCX/SPCH。"
-    },
-    {
-      "author": "Musk",
-      "text": "SpaceX is the most shorted large company right now. What’s behind the massive selloff",
-      "url": "",
-      "published": "Fri, 31 Jul 2026 13:02:19 GMT",
-      "origin": "gnews-rss",
-      "source": "NBC News",
-      "tickers": [],
-      "held": [
-        "SPCH",
-        "SPCX"
-      ],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "SpaceX"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 72,
-      "summary_cn": "Musk称SpaceX是当前被做空最多的大型公司，暗示SpaceX估值被低估为其背书(直接利好kcn的SPCX/SPCH)。"
+      "relevance": 78,
+      "summary_cn": "Musk个人财富因SpaceX IPO后股价暴跌而回落至IPO前水平——直接负面冲击kcn持有的SpaceX相关仓位SPCX/SPCH。"
     },
     {
       "author": "Musk",
@@ -332,45 +393,166 @@
       "published": "Fri, 31 Jul 2026 20:29:00 GMT",
       "origin": "gnews-rss",
       "source": "Barron's",
-      "tickers": [],
+      "tickers": [
+        "TSLA",
+        "SPCX",
+        "SPCH"
+      ],
+      "held": [
+        "SPCH",
+        "SPCX"
+      ],
+      "new_ideas": [
+        "TSLA"
+      ],
+      "sectors": [
+        "航天/SpaceX",
+        "电动车"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 75,
+      "summary_cn": "Tesla与SpaceX合并猜测升温，但Musk试图降温——若合并传闻成真，对kcn持仓SPCX/SPCH是重大结构性事件。"
+    },
+    {
+      "author": "Musk",
+      "text": "SpaceX's post-IPO plunge sets tense backdrop for first earnings report",
+      "url": "",
+      "published": "Mon, 03 Aug 2026 12:00:01 GMT",
+      "origin": "gnews-rss",
+      "source": "CNBC",
+      "tickers": [
+        "SPCX",
+        "SPCH"
+      ],
       "held": [
         "SPCH",
         "SPCX"
       ],
       "new_ideas": [],
       "sectors": [
-        "航天",
-        "特斯拉",
-        "SpaceX"
+        "航天/SpaceX"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 72,
+      "summary_cn": "SpaceX IPO后股价下挫，为其首份季报蒙上紧张氛围——kcn持仓SPCX/SPCH面临首次财报考验。"
+    },
+    {
+      "author": "Musk",
+      "text": "How Elon Musk can convince investors SpaceX will be profitable next year",
+      "url": "",
+      "published": "Mon, 03 Aug 2026 14:54:40 GMT",
+      "origin": "gnews-rss",
+      "source": "Yahoo Finance",
+      "tickers": [
+        "SPCX",
+        "SPCH"
+      ],
+      "held": [
+        "SPCH",
+        "SPCX"
+      ],
+      "new_ideas": [],
+      "sectors": [
+        "航天/SpaceX"
       ],
       "sector_holdings": [],
       "stance": "neutral",
       "relevance": 70,
-      "summary_cn": "市场热议Tesla与SpaceX合并传闻，Musk本人试图降温；涉及kcn核心SpaceX持仓。"
+      "summary_cn": "报道聚焦Musk如何向投资者说明SpaceX明年盈利前景——直接关系kcn持仓SPCX/SPCH的估值叙事。"
+    }
+  ],
+  "new_ideas": [
+    {
+      "author": "Trump",
+      "text": "Mike Wirth, Chairman and CEO of Chevron, just gave, in an interview with the fabulous Maria Bartiromo, all of the reasons that his company is doing so well. The only thing he conveniently forgot to mention is that, without the genius, foresight, strength, and stability, of the TRUMP Administration, the Oil Industry, and our Country itself, would be DEAD! As an example, they threw Mike and Chevron out of Venezuela, but now they’re back, far bigger and stronger than ever before, expecting to make a fortune! That goes for other Oil Companies as well…and get your consumer (retail!) Oil Prices DOWN",
+      "url": "https://trumpstruth.org/statuses/40464",
+      "published": "2026-08-03T13:50:42+00:00",
+      "origin": "truthsocial",
+      "tickers": [
+        "CVX"
+      ],
+      "held": [],
+      "new_ideas": [
+        "CVX"
+      ],
+      "sectors": [
+        "原油/能源",
+        "委内瑞拉政策"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 65,
+      "summary_cn": "Trump公开力挺Chevron(CVX)CEO Mike Wirth，将其业绩归功于自己政府，并要求压低零售油价；同时吹嘘美国油企重返委内瑞拉。"
     },
     {
       "author": "Musk",
-      "text": "Elon Musk’s fortune slumps to pre-SpaceX IPO levels after rout",
+      "text": "Musk dismisses report of Tesla's potential China business sale",
       "url": "",
-      "published": "Sat, 01 Aug 2026 15:19:00 GMT",
+      "published": "Sat, 01 Aug 2026 07:08:35 GMT",
       "origin": "gnews-rss",
-      "source": "Fortune",
-      "tickers": [],
-      "held": [
-        "SPCH",
-        "SPCX"
+      "source": "Reuters",
+      "tickers": [
+        "TSLA"
       ],
-      "new_ideas": [],
+      "held": [],
+      "new_ideas": [
+        "TSLA"
+      ],
       "sectors": [
-        "航天",
-        "特斯拉"
+        "电动车",
+        "中国业务"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 62,
+      "summary_cn": "Musk否认有关Tesla可能出售中国业务的报道——驳空头传言，对Tesla偏利好。"
+    },
+    {
+      "author": "Musk",
+      "text": "Tesla Missed Earnings by 38%, but Elon Musk Isn't Worried. Here's What Investors Should Make of That.",
+      "url": "",
+      "published": "Mon, 03 Aug 2026 08:05:00 GMT",
+      "origin": "gnews-rss",
+      "source": "The Motley Fool",
+      "tickers": [
+        "TSLA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "TSLA"
+      ],
+      "sectors": [
+        "电动车"
       ],
       "sector_holdings": [],
       "stance": "neutral",
-      "relevance": 68,
-      "summary_cn": "Musk身价因SpaceX IPO前估值重估及特斯拉回调跌至IPO前水平，间接影响kcn的SpaceX主题持仓。"
+      "relevance": 58,
+      "summary_cn": "Tesla业绩低于预期38%但Musk不担忧——财报重大miss信号，需关注投资者如何解读。"
     }
   ],
-  "new_ideas": [],
-  "sector_hits": []
+  "sector_hits": [
+    {
+      "author": "Musk",
+      "text": "Judge denies request by Elon Musk’s xAI to pause Minnesota nudification ban",
+      "url": "",
+      "published": "Fri, 31 Jul 2026 19:41:20 GMT",
+      "origin": "gnews-rss",
+      "source": "nbcnews.com",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "AI",
+        "监管/法律"
+      ],
+      "sector_holdings": [
+        "MSFU"
+      ],
+      "stance": "attack",
+      "relevance": 58,
+      "summary_cn": "法官驳回Musk旗下xAI关于暂停明尼苏达'去裸化'禁令的请求——AI监管/内容审查负面信号，间接影响AI板块情绪。"
+    }
+  ]
 }
