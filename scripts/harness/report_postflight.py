@@ -182,7 +182,7 @@ def claim_upgrade(market, phase, date):
 
 
 def deliver_wechat(market, phase, date, wechat_prefix, text, delivery_state='delivered',
-                   context_id=None):
+                   context_id=None, context_generated_at=None):
     """Primary WeChat send for staged reports — fresh-token `openclaw message send`,
     decoupled from the cron's announce.
 
@@ -232,6 +232,16 @@ def deliver_wechat(market, phase, date, wechat_prefix, text, delivery_state='del
             # starts with the title, so first_line no longer matches the context's
             # block and a string compare would mirror a duplicate to Telegram.
             'context_id': context_id,
+            # When the id alone can't decide, this dates the DATA we sent, not the
+            # send. `context_id` is strictly per-preflight-invocation, so an
+            # openclaw auto-retry (which re-runs preflight but is blocked from
+            # re-sending by the idempotency lock above) leaves the marker pointing
+            # at a generation the context file no longer holds — an id compare then
+            # reads a healthy delivery as "never delivered" (2026-08-03 hk-open +
+            # hk-pm, both double-sent a deterministic fallback). The watchdog needs
+            # to tell that two-minute regeneration apart from the genuinely stale
+            # body of 2026-07-24, and only the source context's own timestamp can.
+            'context_generated_at': context_generated_at,
             'market': market,
             'phase': phase,
             'out': (out or '')[-200:],
@@ -481,7 +491,8 @@ def main():
     else:
         wechat_sent, _ = deliver_wechat(args.market, args.phase, today, wechat_prefix, body,
                                         delivery_state=delivery_state,
-                                        context_id=ctx.get('context_id'))
+                                        context_id=ctx.get('context_id'),
+                                        context_generated_at=ctx.get('generated_at'))
 
     commit_ok, commit_msg = maybe_commit(status, ctx['commit_msg'])
     data_plane_status = classify_data_plane(commit_ok, commit_msg)
