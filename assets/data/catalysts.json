@@ -1,8 +1,8 @@
 {
-  "generated_at": "2026-07-31T08:01:48.209858+08:00",
+  "generated_at": "2026-08-03T08:01:56.861371+08:00",
   "lookback_window_days": 14,
-  "window_start": "2026-07-31",
-  "window_end": "2026-08-14",
+  "window_start": "2026-08-03",
+  "window_end": "2026-08-17",
   "earnings_queried": [
     "CRCL",
     "MSFT",
@@ -28,7 +28,7 @@
       "name": "SPCX",
       "date": "2026-08-04",
       "time": "amc",
-      "eps_estimate": -0.2538,
+      "eps_estimate": -0.2635,
       "eps_actual": null,
       "revenue_estimate_m": 7072.53,
       "quarter": 2,
@@ -60,11 +60,6 @@
   "fomc": [],
   "macro_events": [
     {
-      "date": "2026-07-31",
-      "type": "PCE",
-      "detail": "Jun PCE price index (BEA, Fed preferred inflation gauge)"
-    },
-    {
       "date": "2026-08-07",
       "type": "NFP",
       "detail": "Jul jobs report (Non-Farm Payrolls); BLS 8:30 ET"
@@ -78,7 +73,7 @@
   "summary": {
     "earnings_count": 4,
     "fomc_in_window": 0,
-    "macro_count": 3,
+    "macro_count": 2,
     "highest_impact_within_7d": "NFP 2026-08-07"
   }
 }
