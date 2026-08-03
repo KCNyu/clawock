@@ -16,12 +16,24 @@ import json
 import os
 import re
 import sys
+from pathlib import Path
 
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+# `safe_io`, `snapshot_realized` and `workspace` all live in scripts/data. This
+# inserted *this* directory instead, so the module has not been importable on
+# its own since it was moved into scripts/legacy — `python3 -c "import
+# backfill_snapshot_realized"` raises ModuleNotFoundError on the first line
+# below. It only ever ran when something else had already put scripts/data on
+# the path.
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'data'))
 from safe_io import safe_write_json
 from snapshot_realized import realized_as_of, snapshot_shares
+from workspace import workspace_root
 
-WS = '/root/.openclaw/workspace'
+# The workspace this file sits in, not the operator's. As an absolute live path
+# it made `--portfolio` default to the real ledger *and* pointed SNAP_DIR at the
+# real memory/snapshots/, so a backfill run from a review checkout rewrote
+# production snapshots in place.
+WS = str(workspace_root(Path(__file__).resolve().parents[2]))
 SNAP_DIR = os.path.join(WS, 'memory', 'snapshots')
 DATE_RE = re.compile(r'^(\d{4}-\d{2}-\d{2})')
 

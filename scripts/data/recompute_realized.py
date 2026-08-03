@@ -21,12 +21,21 @@ import argparse
 import json
 import os
 import sys
+from pathlib import Path
 from typing import Dict, List, Tuple
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from safe_io import safe_write_json
+from workspace import workspace_root
 
-PORTFOLIO_PATH = '/root/.openclaw/workspace/portfolio.json'
+# The ledger of whichever workspace this file sits in — the same resolution the
+# other 42 modules use. It was the live absolute path, which made
+# `python3 recompute_realized.py` in a worktree rewrite the operator's real
+# portfolio.json: the library callers pass their own dict, so the constant only
+# ever served the command line, and the command line was pointed at production
+# no matter where it ran from. On the live host this resolves to the same file.
+PORTFOLIO_PATH = os.path.join(workspace_root(Path(__file__).resolve().parents[2]),
+                              'portfolio.json')
 
 
 def _aggregate(holdings: List[Dict]) -> Tuple[float, str, List[Dict]]:
