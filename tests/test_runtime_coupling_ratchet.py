@@ -53,8 +53,9 @@ RUNTIME = "openclaw"
 # This baseline is not comparable to the 8 the substring classifier reported:
 # that number counted six error strings and missed both cron writes. Nothing
 # regressed between the two — the earlier count was measuring the wrong thing,
-# so it is the first number here that is worth quoting.
-BASELINE = 14
+# so 14 was the first number here worth quoting. 14 → 13 when the cron-state
+# chain moved into the adapter (#273).
+BASELINE = 13
 
 _SPAWNERS = {"run", "call", "check_call", "check_output", "Popen", "system", "getoutput"}
 
