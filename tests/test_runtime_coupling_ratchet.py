@@ -173,12 +173,23 @@ def _sites_in(tree: ast.AST) -> list[int]:
         if _is_argv_vector(node, enumerations):
             found.append(node.lineno)
             continue
-        # 1b. A shell string, which only counts where it is spawned.
+        # 1b. Anything handed to the OS to execute, where the spawn call itself
+        #     removes the ambiguity the shape rule above has to guess at: a
+        #     shell string, or a vector of any shape. Nobody passes `choices=`
+        #     to subprocess.run, so a flagless `["openclaw", "doctor"]` and a
+        #     tuple are commands here even though they are not recognisable as
+        #     one when built somewhere else. Reported at the argument's own line
+        #     so a multi-line call is the same single site rule 1a would find.
         if isinstance(node, ast.Call) and _is_spawn(node) and node.args:
             first = node.args[0]
             if (isinstance(first, ast.Constant) and isinstance(first.value, str)
                     and first.value.split()[:1] == [RUNTIME]):
                 found.append(node.lineno)
+                continue
+            if (isinstance(first, (ast.List, ast.Tuple)) and first.elts
+                    and isinstance(first.elts[0], ast.Constant)
+                    and first.elts[0].value == RUNTIME):
+                found.append(first.lineno)
                 continue
         # 3. Another runtime's private files.
         if (isinstance(node, ast.Constant) and isinstance(node.value, str)
@@ -251,6 +262,28 @@ def test_prose_is_not_coupling_and_a_command_is():
     assert len(_sites_in(shell)) == 1, "a spawned shell string is a call"
     assert len(_sites_in(state)) == 2, "openclaw's home and its state DB are both reads"
     assert len(_sites_in(aliased)) == 1, "renaming the binary constant is not migrating it"
+
+
+def test_a_spawned_command_counts_even_without_a_flag():
+    """The hole left by the shape rule: away from its spawn call, a vector is
+    told apart from a list of peer names by carrying a flag or a computed
+    argument, so `["openclaw", "doctor"]` — the next line someone adds — landed
+    green. At the spawn call there is nothing to guess: nobody hands `choices=`
+    to `subprocess.run`, so any vector shape counts there, tuples included.
+
+    A vector built away from its spawn with neither a flag nor a computed
+    argument is still uncounted, and that is the deliberate trade — the
+    alternative punishes `--source openclaw|gha|crontab`, which is the design.
+    """
+    assert len(_sites_in(ast.parse('subprocess.run(["openclaw", "doctor"])'))) == 1
+    assert len(_sites_in(ast.parse('subprocess.run(("openclaw", "doctor"))'))) == 1, (
+        "a tuple is a display row in cron_timeline, but not when it is being executed")
+    # A multi-line call must be one site, not two: the vector is reported at its
+    # own line, which is where the shape rule would have found it.
+    multiline = ast.parse('subprocess.run(\n    [\n        "openclaw", "cron", "edit", cid,\n    ],\n)')
+    assert len(_sites_in(multiline)) == 1
+    assert _sites_in(ast.parse('subprocess.run(["gha", "openclaw"])')) == [], (
+        "the runtime has to be argv[0]; naming it as an argument is not calling it")
 
 
 def test_a_multi_source_label_is_not_counted_as_coupling():
