@@ -7,8 +7,24 @@
 set -e
 WS="$(git rev-parse --show-toplevel)"
 
+# A missing checker used to `exit 0` here, which did two wrong things at once:
+# it read "the checker is absent" as "the checks passed", and because this sits
+# ABOVE the money gate it also took preflight_integrity down with it — two
+# independent gates disarmed by one unrelated file's absence. Verified: with
+# system_check.py removed and portfolio.json failing its arithmetic, the push
+# went through.
+#
+# A repo carrying portfolio.json is a ledger workspace, so a missing checker
+# there is a broken install, not a bootstrap. Say so and refuse. A repo without
+# the money file keeps the original permissive behaviour.
 if [ ! -f "$WS/scripts/system_check.py" ]; then
-  # No checker yet — let push through
+  if [ -f "$WS/portfolio.json" ]; then
+    echo "🚫 push blocked — scripts/system_check.py is missing from a workspace"
+    echo "   that carries portfolio.json. The book was not verified."
+    echo "   Override (rare): git push --no-verify"
+    exit 1
+  fi
+  # No money file and no checker — not a ledger workspace, let push through.
   exit 0
 fi
 

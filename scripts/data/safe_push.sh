@@ -79,7 +79,17 @@ else
   # Cannot tell what is new; assume the money file is in scope rather than skip.
   PORTFOLIO_TOUCHED="portfolio.json"
 fi
-if [ -n "$PORTFOLIO_TOUCHED" ] && [ -f "$INTEGRITY_SCRIPT" ]; then
+if [ -n "$PORTFOLIO_TOUCHED" ] && [ ! -f "$INTEGRITY_SCRIPT" ]; then
+  # `-f` used to be a precondition of running the gate, so a checker that was
+  # not where we looked read as "nothing to check" and the money file shipped
+  # unverified. It is an assertion now: the file is in this push and we cannot
+  # verify it, so we do not push it.
+  echo "✗ REFUSING TO PUSH — portfolio.json is in this push but the"
+  echo "  money-conservation checker is missing: $INTEGRITY_SCRIPT"
+  echo "  The book cannot be verified from here."
+  exit 4
+fi
+if [ -n "$PORTFOLIO_TOUCHED" ]; then
   echo "▸ portfolio.json is in this push — running money-conservation check…"
   if ! python3 "$INTEGRITY_SCRIPT"; then
     echo "✗ REFUSING TO PUSH — portfolio.json does not reconcile."
