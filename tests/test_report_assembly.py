@@ -458,15 +458,20 @@ def _marker(**over):
     return m
 
 
+def _delivered(wd, *args, **kwargs):
+    """slot_delivered returns (verdict, judge); these tests assert the verdict."""
+    return wd.slot_delivered(*args, **kwargs)[0]
+
+
 def test_watchdog_accepts_a_prose_slot_by_context_id(wd):
     """Prose bodies start with the TITLE, so the old first-line compare would call
     a healthy run a mismatch and mirror a duplicate to Telegram."""
-    assert wd.slot_delivered(_marker(), 'abc123def456',
+    assert _delivered(wd, _marker(), 'abc123def456',
                              '🇺🇸 美股盯盘 | 07/23 16:00 ET', 1_000_100) is True
 
 
 def test_watchdog_still_backstops_a_different_generation(wd):
-    assert wd.slot_delivered(_marker(context_id='OTHERGEN'), 'abc123def456',
+    assert _delivered(wd, _marker(context_id='OTHERGEN'), 'abc123def456',
                              '🇺🇸 美股盯盘 | 07/23 16:00 ET', 1_000_100) is False
 
 
@@ -475,23 +480,23 @@ def test_watchdog_context_id_match_ignores_the_age_window(wd):
     exact match is proof of THIS slot regardless of marker age. A delayed watchdog
     must not re-mirror a confirmed delivery just because the marker is >2h old."""
     old = 1_000_000 + wd.MARKER_FRESH_MS + 1
-    assert wd.slot_delivered(_marker(), 'abc123def456', 'x', old) is True
+    assert _delivered(wd, _marker(), 'abc123def456', 'x', old) is True
 
 
 def test_watchdog_falls_back_to_first_line_for_legacy_markers(wd):
     legacy = _marker(first_line='🇺🇸 美股盯盘 | 07/23 16:00 ET')
     legacy.pop('context_id')
-    assert wd.slot_delivered(legacy, None, '🇺🇸 美股盯盘 | 07/23 16:00 ET', 1_000_100) is True
-    assert wd.slot_delivered(legacy, None, '🇺🇸 美股盯盘 | 07/22 16:02 ET', 1_000_100) is False
+    assert _delivered(wd, legacy, None, '🇺🇸 美股盯盘 | 07/23 16:00 ET', 1_000_100) is True
+    assert _delivered(wd, legacy, None, '🇺🇸 美股盯盘 | 07/22 16:02 ET', 1_000_100) is False
     # freshness still gates the FUZZY legacy path — an old first-line match could
     # belong to an earlier day
     old = 1_000_000 + wd.MARKER_FRESH_MS
-    assert wd.slot_delivered(legacy, None, '🇺🇸 美股盯盘 | 07/23 16:00 ET', old) is False
+    assert _delivered(wd, legacy, None, '🇺🇸 美股盯盘 | 07/23 16:00 ET', old) is False
 
 
 def test_watchdog_ignores_an_undelivered_marker(wd):
-    assert wd.slot_delivered(_marker(tg_ok=False), 'abc123def456', 'x', 1_000_100) is False
-    assert wd.slot_delivered(None, 'abc123def456', 'x', 1_000_100) is False
+    assert _delivered(wd, _marker(tg_ok=False), 'abc123def456', 'x', 1_000_100) is False
+    assert _delivered(wd, None, 'abc123def456', 'x', 1_000_100) is False
 
 
 # ── watchdog must not duplicate a healthy prose run ────────────────────────
@@ -509,9 +514,9 @@ def test_watchdog_identifies_the_slot_by_context_id_not_first_line(wd):
     marker = {'ts': now - 60_000, 'tg_ok': True, 'context_id': 'abc123def456',
               'first_line': '🌙 美股收盘日报｜2026-07-24'}
 
-    assert wd.slot_delivered(marker, 'abc123def456', FRESH_BLOCK.splitlines()[0], now)
+    assert _delivered(wd, marker, 'abc123def456', FRESH_BLOCK.splitlines()[0], now)
     # a marker from a different generation is NOT this slot's
-    assert not wd.slot_delivered(marker, 'NEWGENERATION', FRESH_BLOCK.splitlines()[0], now)
+    assert not _delivered(wd, marker, 'NEWGENERATION', FRESH_BLOCK.splitlines()[0], now)
 
 
 def test_watchdog_falls_back_to_the_legacy_first_line_when_no_context_id(wd):
@@ -519,10 +524,10 @@ def test_watchdog_falls_back_to_the_legacy_first_line_when_no_context_id(wd):
     first = FRESH_BLOCK.splitlines()[0]
     legacy = {'ts': now - 60_000, 'tg_ok': True, 'first_line': first}
 
-    assert wd.slot_delivered(legacy, None, first, now)
-    assert not wd.slot_delivered({**legacy, 'first_line': 'something else'}, None, first, now)
-    assert not wd.slot_delivered({**legacy, 'tg_ok': False}, None, first, now)
-    assert not wd.slot_delivered({**legacy, 'ts': 0}, None, first, now)
+    assert _delivered(wd, legacy, None, first, now)
+    assert not _delivered(wd, {**legacy, 'first_line': 'something else'}, None, first, now)
+    assert not _delivered(wd, {**legacy, 'tg_ok': False}, None, first, now)
+    assert not _delivered(wd, {**legacy, 'ts': 0}, None, first, now)
 
 
 @pytest.fixture
