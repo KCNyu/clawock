@@ -266,7 +266,13 @@
       followed.className = "overview-discipline-value neutral";
     }
     if (followedMeta) {
-      followedMeta.textContent = activeExec.known == null ? "known sample —" : `known n=${activeExec.known}`;
+      // The denominator and what it drops, together. `stranded` rows are calls
+      // whose verification window closed without an answer and never resolves,
+      // so a bare `known n=` overstates how much of the record this rate covers.
+      const stranded = activeExec.stranded;
+      followedMeta.textContent = activeExec.known == null
+        ? "known sample —"
+        : `known n=${activeExec.known}` + (stranded ? ` · ${stranded} unverifiable` : "");
     }
     if (brier) {
       brier.textContent = metrics.brier == null ? DASH : metrics.brier.toFixed(3);
