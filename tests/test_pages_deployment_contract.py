@@ -81,13 +81,16 @@ def test_all_action_data_and_rendered_briefs_trigger_pages_build():
 
 
 def test_workflow_uses_official_non_committing_pages_flow():
+    # Assert the official action and a pinned major, not which major. The
+    # invariant here is the non-committing flow below; pinning the digits made
+    # every dependabot major bump a guaranteed red that said nothing about it.
     for action in (
-        "actions/configure-pages@v5",
-        "actions/jekyll-build-pages@v1",
-        "actions/upload-pages-artifact@v4",
-        "actions/deploy-pages@v4",
+        "actions/configure-pages",
+        "actions/jekyll-build-pages",
+        "actions/upload-pages-artifact",
+        "actions/deploy-pages",
     ):
-        assert action in WORKFLOW
+        assert re.search(rf"uses: {re.escape(action)}@v\d+\b", WORKFLOW), action
     assert "pages: write" in WORKFLOW
     assert "id-token: write" in WORKFLOW
     assert "git push" not in WORKFLOW
