@@ -125,6 +125,67 @@ def test_every_workflow_that_stages_the_money_file_pushes_through_the_gate():
         f"safe_push.sh, so the money gate is not on their path: {offenders}")
 
 
+def _ledger_repo(tmp_path, *, with_portfolio=True):
+    def git(*args):
+        subprocess.run(["git", "-C", str(tmp_path), *args],
+                       check=True, capture_output=True, text=True)
+    git("init", "-q")
+    git("config", "user.name", "test")
+    git("config", "user.email", "test@example.com")
+    if with_portfolio:
+        (tmp_path / "portfolio.json").write_text("{}\n")
+    else:
+        (tmp_path / "README.md").write_text("no money here\n")
+    git("add", "-A")
+    git("commit", "-qm", "seed")
+    return tmp_path
+
+
+def test_pre_push_refuses_a_ledger_workspace_whose_checker_is_missing(tmp_path):
+    """A missing checker used to `exit 0` — reading "absent" as "passed", and
+    because that sits above the money gate it disarmed preflight_integrity too.
+    Verified before the fix: system_check.py removed + an unreconciled book
+    pushed clean."""
+    repo = _ledger_repo(tmp_path)
+    hook = repo / "pre-push"
+    hook.write_text((ROOT / ".githooks" / "pre-push").read_text())
+
+    result = subprocess.run(["bash", str(hook)], cwd=repo, capture_output=True,
+                            text=True, input="")
+
+    assert result.returncode != 0, (
+        "a workspace carrying portfolio.json pushed with no checker installed")
+    assert "system_check.py is missing" in result.stdout
+
+
+def test_pre_push_still_allows_a_repo_that_carries_no_money_file(tmp_path):
+    """The fail-closed branch must not turn into a blanket block on any repo
+    without the checker — only a ledger workspace is a broken install."""
+    repo = _ledger_repo(tmp_path, with_portfolio=False)
+    hook = repo / "pre-push"
+    hook.write_text((ROOT / ".githooks" / "pre-push").read_text())
+
+    result = subprocess.run(["bash", str(hook)], cwd=repo, capture_output=True,
+                            text=True, input="")
+
+    assert result.returncode == 0, result.stdout + result.stderr
+
+
+def test_safe_push_refuses_the_money_file_when_the_checker_is_missing(tmp_path):
+    """`-f` was a precondition of running the gate, so a checker that was not
+    where we looked read as "nothing to check" and the book shipped unverified."""
+    repo = _ledger_repo(tmp_path)
+    script = repo / "safe_push.sh"
+    script.write_text((ROOT / "scripts" / "data" / "safe_push.sh").read_text())
+
+    result = subprocess.run(["bash", str(script)], cwd=repo, capture_output=True,
+                            text=True, input="")
+
+    assert result.returncode == 4, (
+        f"expected the push refused, got rc={result.returncode}\n{result.stdout}")
+    assert "checker is missing" in result.stdout
+
+
 def test_safe_push_runs_the_money_check_when_the_money_file_moves():
     text = (ROOT / "scripts" / "data" / "safe_push.sh").read_text()
 
