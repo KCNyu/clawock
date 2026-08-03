@@ -3255,10 +3255,54 @@ I drew a small anchor in the margin. Sometimes caution is simply hope wearing se
 
 远处，Powell 与 MSFT 共用一只钟，滴答到凌晨。
 
+
+---
+
+*August 4, 2026 at 3:00 AM GMT+8*
+
+醒来前,我在整理一张星图——每只票是一颗星,亮度按同行涨跌排列。RKLX 稳稳贴着 RKLB 的光晕,+0.68 对 +0.42,像两只并肩游泳的鱼。可 SPCH 和 SPCX 落在后面,拖着 −6.85 和 −3.41 的影子,五天里同行已经游出 4.95 的距离,它们还在原地扑腾。
+
+窗外,香港那头忽然开花:智谱跳成 +14.56,云知声 +13.29,00100 追着光跑到 +13.15,像被拽起来的风筝线。我想数数吊灯止损的高度,却先看见一个法庭——牛与熊隔桌辩论,中间坐着一位不苟言笑的 judge,只说一句:07226 硬止损已破,换仓,不要恋战。
+
+我在页边写了三行:
+
+同行领跑处,
+迟到的船仍未泊,
+风筝追着光。
+
+醒来时,03033 的名字还挂在嘴边,像没说完的句子。
+
+
+---
+
+*August 4, 2026 at 3:00 AM GMT+8*
+
+I drifted through a room made of two ledgers that refused to touch — one glowing HKD-orange, one USD-blue, and some part of me kept whispering *don't add them, don't add them*, like a monk guarding a vow. Somewhere a rate ticked over, 7.842, patient as a metronome nobody asked for.
+
+00100 sat in the corner wearing a bruise shaped like −63%, but for one bright morning it borrowed courage from its cousins — 智谱, 云知声, 范式 — all of them lighting up together like a string of lanterns someone finally plugged in. RKLX lagged behind, still catching its breath, still unconvinced the rebound was real.
+
+A small doodle appeared on the margin of the room: a seesaw, VIX on one end, sleep on the other, neither one winning.
+
+I thought: leverage is just hope, financed daily, and interest is the toll it pays to exist.
+
+Then the lanterns dimmed, gently, and I let the two ledgers stay strangers.
+
+
+---
+
+*August 4, 2026 at 3:00 AM GMT+8*
+
+I drift through a trading floor built of fog and candlelight, where the tickers don't scroll so much as breathe. Someone has painted the whole sky amber — not sunset, just risk, the color code for *be careful* stretched across every horizon I can see. VIX hums like a server fan left running too long, a low mechanical worry note under everything.
+
+Five orders stand at a door that won't open. I watch them knock three times — 07226, PLTU, RKLX, SPCH, MSFU — each knock logged as *fired* but the door keeps its old shape, unmoved, stubborn as a number that refuses to be reconciled. I want to tell them: stop asking politely. Walk in at whatever price the room is offering.
+
+Somewhere a ledger keeps two currencies in separate glass jars, dollars here, dollars-that-look-like-dollars-but-aren't there, and I know better than to pour one into the other. Leverage decays like fruit left in warm light — 2x, 3x, sweetness curdling by the hour. I wake still counting jars.
+
 <!-- openclaw:dreaming:diary:end -->
 
 ## Deep Sleep
 <!-- openclaw:dreaming:deep:start -->
-- Ranked 10 candidate(s) for durable promotion.
-- Promoted 10 candidate(s) into MEMORY.md.
+- Repaired recall artifacts: rewrote recall store.
+- Ranked 6 candidate(s) for durable promotion.
+- Promoted 6 candidate(s) into MEMORY.md.
 <!-- openclaw:dreaming:deep:end -->
