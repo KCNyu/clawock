@@ -518,7 +518,7 @@ calibration bundle 的 `decision_metrics` 是 v2 唯一口径：只结算**条�
 - 主动决策：n=N，平均 benefit=X%，date-cluster CI=[L,U]
 - 信心校准：嘴上平均 {mean_confidence}，实际胜率 {base_rate}；Brier {brier} vs 闭眼总报 {base_rate} 的 {brier_baseline_loo}
 - 按 strategy / action / driven_by 点出最强与最弱各一项
-- 执行状态：**要动手的** {execution_by_kind.active.rate}（{followed}/{known}）与 **不用动的** {execution_by_kind.passive.rate} 分开写；执行率不等于建议质量
+- 执行状态：**要动手的** {execution_by_kind.active.rate}（{followed}/{known}）与 **不用动的** {execution_by_kind.passive.rate} 分开写；执行率不等于建议质量。两条腿各自的 `{stranded}` **必须同句写出来**（「另有 N 条永远验不了，不在分母」）——那是窗口早已关闭、`_detect_followed` 每次重试都答 unknown 的行，标的从没进过 holdings，被丢掉的样本偏向「没执行」，所以裸报的执行率系统性偏高
 ```
 
 规则：

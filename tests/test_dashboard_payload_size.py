@@ -5,6 +5,7 @@ Two historical regressions had crept in: the leverage dial shipped twice in one
 document, and 27KB of calibrator posterior state shipped with no consumer at all.
 """
 import json
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -55,6 +56,37 @@ def test_overview_projection_keeps_canonical_money_health_and_generation_parity(
     for field in ("generated_at", "fx", "totals", "build_status"):
         assert overview[field] == full[field]
     assert len(OVERVIEW.read_bytes()) < 80_000
+
+
+def test_the_overview_projection_ships_every_execution_field_the_hero_renders():
+    """The Hero is the first-paint copy of a number the projection trims.
+
+    `compile_overview_projection` deliberately keeps overview.json small, so the
+    execution leg is a hand-listed field tuple. When `stranded` was added to the
+    metric (#294) the detail card picked it up automatically and the Hero could
+    not — it renders whatever `overview.json` happens to carry, which was
+    `rate` and `known` only, i.e. the rate without the count of rows dropped
+    from its denominator.
+
+    Asserted against the projection function rather than the committed
+    artifact, so it holds on the PR that changes the trim and not one publish
+    later.
+    """
+    sys.path.insert(0, str(ROOT / "scripts" / "data"))
+    import build_dashboard
+
+    full = json.loads(DASHBOARD.read_text())
+    projected = build_dashboard.compile_overview_projection(full)
+    shipped = ((projected.get("decision_metrics") or {})
+               .get("execution_by_kind") or {}).get("active") or {}
+    hero = (ROOT / "assets" / "js" / "dashboard.hero.js").read_text()
+    rendered = set(re.findall(r"activeExec\.(\w+)", hero))
+
+    assert rendered, "the Hero stopped reading the execution leg; update this test"
+    missing = sorted(rendered - set(shipped))
+    assert not missing, (
+        f"the Hero renders {missing} but the overview projection does not ship "
+        "them; it would silently show a rate with less context than the detail card")
 
 
 def test_the_cap_is_measured_in_the_same_unit_the_builder_enforces():
