@@ -54,8 +54,9 @@ RUNTIME = "openclaw"
 # that number counted six error strings and missed both cron writes. Nothing
 # regressed between the two — the earlier count was measuring the wrong thing,
 # so 14 was the first number here worth quoting. 14 → 13 when the cron-state
-# chain moved into the adapter (#273).
-BASELINE = 13
+# chain moved into the adapter (#273); 13 → 10 when the two money CLIs and the
+# legacy backfill stopped naming the runtime's workspace absolutely (#290).
+BASELINE = 10
 
 _SPAWNERS = {"run", "call", "check_call", "check_output", "Popen", "system", "getoutput"}
 
