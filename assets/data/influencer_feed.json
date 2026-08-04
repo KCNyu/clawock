@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-04T15:11:41.742331+00:00",
+  "generated_at": "2026-08-04T22:39:08.365203+00:00",
   "lookback_hours": 48,
   "sources": {
     "trump": "trumpstruth.org/feed (primary)",
@@ -13,12 +13,32 @@
   },
   "llm_filtered": true,
   "counts": {
-    "total": 4,
+    "total": 8,
     "held_hits": 0,
     "new_ideas": 0,
-    "sector_hits": 0
+    "sector_hits": 1
   },
   "items": [
+    {
+      "author": "Trump",
+      "text": "Congresswoman Ann Wagner is doing an incredible job representing the amazing people of Missouri’s 2nd Congressional District!   As the Chair of the Financial Services Subcommittee on Capital Markets, Ann knows the AMERICA FIRST Policies required to Create GREAT Jobs, Cut Taxes and Regulations, and Champion our Nation’s Golden Age. She is fighting tirelessly to Unleash American Energy DOMINANCE, Keep our Border SECURE, Strengthen our Military/Veterans, and Protect our always under siege Second Amendment.   Ann Wagner has my Complete and Total Endorsement for Re-Election. Election Day is Tuesday",
+      "url": "https://trumpstruth.org/statuses/40489",
+      "published": "2026-08-03T22:18:15+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "金融/资本市场",
+        "税收"
+      ],
+      "sector_holdings": [
+        "CRCL"
+      ],
+      "stance": "endorse",
+      "relevance": 52,
+      "summary_cn": "Trump背书众议员Ann Wagner，其任金融委员会资本市场小组主席，间接利好金融/资本市场（含稳定币/USDC生态）。"
+    },
     {
       "author": "Trump",
       "text": "Trump: ‘Deal Is Imminent’ as Iran Talks Restart Monday on Denuclearization, Hormuz: https://www.breitbart.com/politics/2026/08/02/trump-deal-imminent-iran-talks-restart-monday-hormuz-denuclearization/",
@@ -29,14 +49,31 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "地缘政治",
-        "能源",
-        "伊朗"
+        "能源/原油",
+        "地缘政治"
       ],
       "sector_holdings": [],
       "stance": "endorse",
-      "relevance": 65,
-      "summary_cn": "Trump称伊朗去核与霍尔木兹海峡协议'即将达成'，谈判周一重启，涉及能源与地缘风险定价。"
+      "relevance": 62,
+      "summary_cn": "Trump称美伊去核与霍尔木兹海峡协议'即将达成'，影响原油价格与中东局势风险溢价。"
+    },
+    {
+      "author": "Trump",
+      "text": "Manufacturing is BOOMING! Factory activity just hit its fastest pace in more than FOUR YEARS, far exceeding expectations. New orders have expanded for SEVEN straight months. American Manufacturing is BACK!   The Stock Market is at an ALL TIME HIGH, and setting Record after Record because Investors know America is WINNING!   American Exports are on FIRE. U.S. Goods Exports have now topped 200 BILLION DOLLARS for the fifth consecutive month, and we are on pace for nearly 2.5 TRILLION DOLLARS in Goods Exports this year — Numbers nobody thought possible just two years ago.   The Fake News and the ",
+      "url": "https://trumpstruth.org/statuses/40543",
+      "published": "2026-08-04T20:38:42+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "宏观经济",
+        "制造业/出口"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 60,
+      "summary_cn": "Trump称美国制造业PMI创四年新高、股市历史新高、出口近2.5万亿，强力看多美国资产。"
     },
     {
       "author": "Trump",
@@ -48,13 +85,31 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "美国制造业",
-        "宏观"
+        "宏观经济",
+        "制造业"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 58,
+      "summary_cn": "美国制造业以2022年来最快速度扩张，被作为Trump关税/产业政策成效佐证。"
+    },
+    {
+      "author": "Trump",
+      "text": "My REAL Polling Numbers, not those made up by the Fake News Media, are the best they have ever been, and why wouldn’t they be with the biggest tax cuts and employment numbers EVER, the biggest outside Investment in America in World history, a totally secure Border, a giant Victory in Venezuela, the Denuclearization of Iran, unparalleled respect and success throughout the World, and much more? Don’t believe the Radical Left’s Fake Poll numbers. They are Crooked and Corrupt, just like the Country Destroying Dumocrats are Crooked and Corrupt. VOTE REPUBLICAN FOR GREATNESS IN AMERICA! Thank you fo",
+      "url": "https://trumpstruth.org/statuses/40544",
+      "published": "2026-08-04T21:39:05+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "宏观经济",
+        "税收"
       ],
       "sector_holdings": [],
       "stance": "endorse",
       "relevance": 55,
-      "summary_cn": "美国制造业以2022年以来最快速度扩张，宏观利好美国本土工业与供应链。"
+      "summary_cn": "Trump吹嘘执政成绩单：史上最大减税、就业、外资回流、美边境安全、伊朗去核等，整体利好风险资产。"
     },
     {
       "author": "Trump",
@@ -66,13 +121,13 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "钢铁",
-        "美国制造业"
+        "钢铁/原材料",
+        "制造业"
       ],
       "sector_holdings": [],
       "stance": "endorse",
       "relevance": 55,
-      "summary_cn": "美国钢铁产量26年来首次超越日本，关税保护下本土钢铁产业景气上行。"
+      "summary_cn": "美国钢铁产量26年来首次超越日本，体现美国制造业回流与关税成效。"
     },
     {
       "author": "Trump",
@@ -84,16 +139,55 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "汽车",
-        "关税"
+        "关税",
+        "汽车/制造业"
       ],
       "sector_holdings": [],
       "stance": "endorse",
       "relevance": 55,
-      "summary_cn": "UAW称Trump关税推动汽车业招聘激增，利好美国本土汽车制造业。"
+      "summary_cn": "UAW称'战略性'关税刺激行业招聘激增，验证Trump关税政策对汽车/制造业的拉动。"
+    },
+    {
+      "author": "Trump",
+      "text": "It was my Honor to write the Foreword for Brian Pannebecker’s incredible new Book, “Blue Collar Conservative: From Reagan to Trump.” As the head of Autoworkers for Trump, Brian has been with us from the very beginning, and understands, like few others, the Wisdom, Courage, and TARIFFS required to, MAKE AMERICA GREAT AGAIN. It is Great Patriots like Brian who helped us secure Historic Victories in three Presidential Campaigns, and are working tirelessly to save American Industry, and champion MADE IN THE U.S.A. “Forgotten” America is forgotten no longer — Get your copy today: https://www.amazon",
+      "url": "https://trumpstruth.org/statuses/40552",
+      "published": "2026-08-04T22:34:28+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "关税",
+        "汽车/制造业"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 52,
+      "summary_cn": "Trump为汽车工人代言人新书作序，再挺关税政策，强调关税推动美国制造业回流。"
     }
   ],
   "held_hits": [],
   "new_ideas": [],
-  "sector_hits": []
+  "sector_hits": [
+    {
+      "author": "Trump",
+      "text": "Congresswoman Ann Wagner is doing an incredible job representing the amazing people of Missouri’s 2nd Congressional District!   As the Chair of the Financial Services Subcommittee on Capital Markets, Ann knows the AMERICA FIRST Policies required to Create GREAT Jobs, Cut Taxes and Regulations, and Champion our Nation’s Golden Age. She is fighting tirelessly to Unleash American Energy DOMINANCE, Keep our Border SECURE, Strengthen our Military/Veterans, and Protect our always under siege Second Amendment.   Ann Wagner has my Complete and Total Endorsement for Re-Election. Election Day is Tuesday",
+      "url": "https://trumpstruth.org/statuses/40489",
+      "published": "2026-08-03T22:18:15+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "金融/资本市场",
+        "税收"
+      ],
+      "sector_holdings": [
+        "CRCL"
+      ],
+      "stance": "endorse",
+      "relevance": 52,
+      "summary_cn": "Trump背书众议员Ann Wagner，其任金融委员会资本市场小组主席，间接利好金融/资本市场（含稳定币/USDC生态）。"
+    }
+  ]
 }
