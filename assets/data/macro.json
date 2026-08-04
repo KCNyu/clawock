@@ -1,67 +1,82 @@
 {
-  "generated_at": "2026-08-03T22:39:43.049514+00:00",
+  "generated_at": "2026-08-04T22:43:43.118880+00:00",
   "vix": {
     "symbol": "^VIX",
-    "price": 15.86,
-    "prev": 15.99,
-    "change_pct": -0.81,
-    "as_of": 1785788101,
+    "price": 16.5,
+    "prev": 15.86,
+    "change_pct": 4.04,
+    "as_of": 1785874501,
     "source": "yahoo"
   },
   "treasury_10y": {
     "symbol": "^TNX",
-    "price": 4.686,
-    "prev": 4.745,
-    "change_pct": -1.24,
-    "as_of": 1785783592,
+    "price": 4.627,
+    "prev": 4.686,
+    "change_pct": -1.26,
+    "as_of": 1785869994,
     "source": "yahoo",
-    "yield_pct": 4.686
+    "yield_pct": 4.627
   },
   "dxy": {
     "symbol": "DX-Y.NYB",
-    "price": 99.991,
-    "prev": 99.914,
-    "change_pct": 0.08,
-    "as_of": 1785794699,
+    "price": 99.882,
+    "prev": 99.897,
+    "change_pct": -0.02,
+    "as_of": 1785881099,
     "source": "yahoo"
   },
   "fear_greed": {
-    "score": 45.8,
-    "rating": "neutral",
-    "prev_close": 42.5,
-    "prev_1_week": 37.6,
-    "as_of": "2026-08-03T22:22:42+00:00"
+    "score": 58.1,
+    "rating": "greed",
+    "prev_close": 45.8,
+    "prev_1_week": 37.9,
+    "as_of": "2026-08-04T22:24:49+00:00"
   },
   "hsi": {
     "symbol": "^HSI",
-    "price": 26009.4,
-    "prev": 25884.43,
-    "change_pct": 0.48,
+    "price": 25852.92,
+    "prev": 26009.4,
+    "change_pct": -0.6,
     "source": "tencent"
   },
   "hstech": {
     "symbol": "^HSTECH",
-    "price": 4875.61,
-    "prev": 4829.22,
-    "change_pct": 0.96,
+    "price": 4885.61,
+    "prev": 4875.61,
+    "change_pct": 0.21,
     "source": "tencent"
   },
   "spx": {
     "symbol": "^GSPC",
-    "price": 7600.5,
-    "prev": 7489.72,
-    "change_pct": 1.48,
-    "as_of": 1785791155,
+    "price": 7736.52,
+    "prev": 7600.5,
+    "change_pct": 1.79,
+    "as_of": 1785876138,
     "source": "yahoo"
   },
   "nasdaq": {
     "symbol": "^IXIC",
-    "price": 25913.9,
-    "prev": 25373.85,
-    "change_pct": 2.13,
+    "price": 26584.99,
+    "prev": 25913.9,
+    "change_pct": 2.59,
     "source": "tencent"
   },
   "fed_press": [
+    {
+      "date": "2026-08-04",
+      "title": "Federal Reserve Board announces approval of the application by Coastal Bend Bancshares, Inc.",
+      "url": "https://www.federalreserve.gov/newsevents/pressreleases/orders20260804c.htm"
+    },
+    {
+      "date": "2026-08-04",
+      "title": "Federal Reserve Board announces approval of the application by FS Bancorp, Inc.",
+      "url": "https://www.federalreserve.gov/newsevents/pressreleases/orders20260804b.htm"
+    },
+    {
+      "date": "2026-08-04",
+      "title": "Federal Reserve Board announces approval of the application by Banco Santander, S.A. and Santander Holdings USA, Inc.",
+      "url": "https://www.federalreserve.gov/newsevents/pressreleases/orders20260804a.htm"
+    },
     {
       "date": "2026-07-31",
       "title": "Federal Reserve Board requests comment on a proposal to modernize its rule governing the extension of credit to bank \"insiders\"—bank executives, board members and major shareholders who could potentia",
@@ -74,13 +89,13 @@
     },
     {
       "date": "2026-07-30",
-      "title": "Federal Reserve Board issues enforcement action with Iuka Bancshares, Inc. and The Iuka State Bank",
-      "url": "https://www.federalreserve.gov/newsevents/pressreleases/enforcement20260730b.htm"
+      "title": "Federal Reserve Board issues enforcement actions with former employee of Regions Bank and former employee of First Interstate Bank",
+      "url": "https://www.federalreserve.gov/newsevents/pressreleases/enforcement20260730a.htm"
     },
     {
       "date": "2026-07-30",
-      "title": "Federal Reserve Board issues enforcement actions with former employee of Regions Bank and former employee of First Interstate Bank",
-      "url": "https://www.federalreserve.gov/newsevents/pressreleases/enforcement20260730a.htm"
+      "title": "Federal Reserve Board issues enforcement action with Iuka Bancshares, Inc. and The Iuka State Bank",
+      "url": "https://www.federalreserve.gov/newsevents/pressreleases/enforcement20260730b.htm"
     },
     {
       "date": "2026-07-29",
