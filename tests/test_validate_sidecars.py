@@ -277,9 +277,9 @@ def test_real_committed_gif_passes():
     validators.validate_gif(ROOT / 'assets/dashboard.gif')
 
 
-def test_real_committed_dashboard_passes():
+def test_real_committed_dashboard_passes(freshly_built_dashboard):
     validators.validate_dashboard(
-        ROOT / 'assets/data/dashboard.json', portfolio_path=ROOT / 'portfolio.json')
+        freshly_built_dashboard, portfolio_path=ROOT / 'portfolio.json')
 
 
 @pytest.mark.parametrize('mutation,problem', (
@@ -295,8 +295,8 @@ def test_real_committed_dashboard_passes():
      r'build_status\.integrity is not clean'),
 ))
 def test_dashboard_money_reconciliation_rejects_public_drift(
-        tmp_path, mutation, problem):
-    payload = json.loads((ROOT / 'assets/data/dashboard.json').read_text())
+        tmp_path, freshly_built_dashboard, mutation, problem):
+    payload = json.loads(freshly_built_dashboard.read_text())
     mutation(payload)
     dashboard = write_json(tmp_path / 'dashboard.json', payload)
 
@@ -310,7 +310,8 @@ def _book(payload, stamp):
     return payload
 
 
-def test_intraday_dashboard_ahead_of_the_committed_book_is_not_a_failure(tmp_path):
+def test_intraday_dashboard_ahead_of_the_committed_book_is_not_a_failure(
+        tmp_path, freshly_built_dashboard):
     """The intraday publishing model: every slot rebuilds the dashboard from the
     live book, but portfolio.json is committed only at open/midday/close. The
     committed dashboard is then legitimately a newer generation, and comparing
@@ -319,7 +320,7 @@ def test_intraday_dashboard_ahead_of_the_committed_book_is_not_a_failure(tmp_pat
     source = write_json(
         tmp_path / 'portfolio.json', _book(portfolio, '2026/08/03 09:30 HKT'))
 
-    payload = json.loads((ROOT / 'assets/data/dashboard.json').read_text())
+    payload = json.loads(freshly_built_dashboard.read_text())
     payload['last_updated'] = '2026/08/03 12:00 HKT'
     payload['totals']['hk']['value_hkd'] += 1688.0
     dashboard = write_json(tmp_path / 'dashboard.json', payload)
@@ -327,12 +328,13 @@ def test_intraday_dashboard_ahead_of_the_committed_book_is_not_a_failure(tmp_pat
     validators.validate_dashboard(dashboard, portfolio_path=source)
 
 
-def test_dashboard_built_from_an_older_book_than_the_committed_one_fails(tmp_path):
+def test_dashboard_built_from_an_older_book_than_the_committed_one_fails(
+        tmp_path, freshly_built_dashboard):
     portfolio = json.loads((ROOT / 'portfolio.json').read_text())
     source = write_json(
         tmp_path / 'portfolio.json', _book(portfolio, '2026/08/03 12:00 HKT'))
 
-    payload = json.loads((ROOT / 'assets/data/dashboard.json').read_text())
+    payload = json.loads(freshly_built_dashboard.read_text())
     payload['last_updated'] = '2026/08/03 09:30 HKT'
     dashboard = write_json(tmp_path / 'dashboard.json', payload)
 
@@ -340,9 +342,9 @@ def test_dashboard_built_from_an_older_book_than_the_committed_one_fails(tmp_pat
         validators.validate_dashboard(dashboard, portfolio_path=source)
 
 
-def test_same_book_still_reconciles_field_by_field(tmp_path):
+def test_same_book_still_reconciles_field_by_field(tmp_path, freshly_built_dashboard):
     """The relaxation above must not reach inside a single generation."""
-    payload = json.loads((ROOT / 'assets/data/dashboard.json').read_text())
+    payload = json.loads(freshly_built_dashboard.read_text())
     payload['totals']['hk']['value_hkd'] += 1688.0
     dashboard = write_json(tmp_path / 'dashboard.json', payload)
 
@@ -351,29 +353,32 @@ def test_same_book_still_reconciles_field_by_field(tmp_path):
             dashboard, portfolio_path=ROOT / 'portfolio.json')
 
 
-def test_dashboard_money_reconciliation_rejects_source_integrity_failure(tmp_path):
+def test_dashboard_money_reconciliation_rejects_source_integrity_failure(
+        tmp_path, freshly_built_dashboard):
     portfolio = json.loads((ROOT / 'portfolio.json').read_text())
     portfolio['portfolios']['us_stocks']['total_pnl'] += 100
     source = write_json(tmp_path / 'portfolio.json', portfolio)
 
     with pytest.raises(AssertionError, match='portfolio money integrity failed: PNL_TOTAL'):
         validators.validate_dashboard(
-            ROOT / 'assets/data/dashboard.json', portfolio_path=source)
+            freshly_built_dashboard, portfolio_path=source)
 
 
-def test_dashboard_money_reconciliation_checks_fx_cache_when_available(tmp_path):
+def test_dashboard_money_reconciliation_checks_fx_cache_when_available(
+        tmp_path, freshly_built_dashboard):
     fx = write_json(tmp_path / 'fx.json', {'rate': 7.0})
 
     with pytest.raises(AssertionError, match=r'fx\.usdhkd'):
         validators.validate_dashboard(
-            ROOT / 'assets/data/dashboard.json',
+            freshly_built_dashboard,
             portfolio_path=ROOT / 'portfolio.json',
             fx_path=fx,
         )
 
 
-def test_dashboard_money_reconciliation_allows_untracked_cash_as_null(tmp_path):
-    payload = json.loads((ROOT / 'assets/data/dashboard.json').read_text())
+def test_dashboard_money_reconciliation_allows_untracked_cash_as_null(
+        tmp_path, freshly_built_dashboard):
+    payload = json.loads(freshly_built_dashboard.read_text())
     portfolio = json.loads((ROOT / 'portfolio.json').read_text())
     payload['totals']['hk']['cash_hkd'] = None
     portfolio['portfolios']['hk_stocks']['cash_hkd'] = None
