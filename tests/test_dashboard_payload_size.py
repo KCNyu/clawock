@@ -6,7 +6,6 @@ document, and 27KB of calibrator posterior state shipped with no consumer at all
 """
 import json
 import re
-import subprocess
 import sys
 from pathlib import Path
 
@@ -28,8 +27,8 @@ RENDERERS = ("dashboard.render.js", "dashboard.charts.js")
 
 
 @pytest.fixture(scope="module")
-def payload():
-    return json.loads(DASHBOARD.read_text())
+def payload(freshly_built_dashboard):
+    return json.loads(freshly_built_dashboard.read_text())
 
 
 def _size(obj):
@@ -41,13 +40,14 @@ def _published_size():
     return len(DASHBOARD.read_bytes())
 
 
-def test_payload_stays_under_the_published_cap():
+def test_payload_stays_under_the_published_cap(freshly_built_dashboard):
     size = _published_size()
     assert size < SIZE_CAP, f"{size:,} bytes; trim or move detail to a sidecar"
 
 
-def test_overview_projection_keeps_canonical_money_health_and_generation_parity():
-    full = json.loads(DASHBOARD.read_text())
+def test_overview_projection_keeps_canonical_money_health_and_generation_parity(
+        freshly_built_dashboard):
+    full = json.loads(freshly_built_dashboard.read_text())
     overview = json.loads(OVERVIEW.read_text())
 
     assert overview["schema_version"] == 1
@@ -58,7 +58,8 @@ def test_overview_projection_keeps_canonical_money_health_and_generation_parity(
     assert len(OVERVIEW.read_bytes()) < 80_000
 
 
-def test_the_overview_projection_ships_every_execution_field_the_hero_renders():
+def test_the_overview_projection_ships_every_execution_field_the_hero_renders(
+        freshly_built_dashboard):
     """The Hero is the first-paint copy of a number the projection trims.
 
     `compile_overview_projection` deliberately keeps overview.json small, so the
@@ -75,7 +76,7 @@ def test_the_overview_projection_ships_every_execution_field_the_hero_renders():
     sys.path.insert(0, str(ROOT / "scripts" / "data"))
     import build_dashboard
 
-    full = json.loads(DASHBOARD.read_text())
+    full = json.loads(freshly_built_dashboard.read_text())
     projected = build_dashboard.compile_overview_projection(full)
     shipped = ((projected.get("decision_metrics") or {})
                .get("execution_by_kind") or {}).get("active") or {}
@@ -89,7 +90,8 @@ def test_the_overview_projection_ships_every_execution_field_the_hero_renders():
         "them; it would silently show a rate with less context than the detail card")
 
 
-def test_the_cap_is_measured_in_the_same_unit_the_builder_enforces():
+def test_the_cap_is_measured_in_the_same_unit_the_builder_enforces(
+        freshly_built_dashboard):
     """Three gates, one unit. The drift here was silent for a reason: on an
     ASCII payload the two units agree exactly, so nothing catches it until the
     content is non-ASCII — which this payload has always been."""
@@ -268,10 +270,12 @@ def test_what_the_charts_actually_read_is_still_present(payload):
     assert payload["lev_regime"]["us"]["names"]
 
 
-def test_rebuild_is_idempotent_and_keeps_the_trim():
-    subprocess.run([sys.executable, "scripts/data/build_dashboard.py"],
-                   cwd=ROOT, check=True, capture_output=True)
-    rebuilt = json.loads(DASHBOARD.read_text())
+def test_the_trim_survives_a_real_rebuild(freshly_built_dashboard):
+    """The builder is run by the `freshly_built_dashboard` session fixture, not
+    here: the money-reconciliation gate in `test_validate_sidecars` reads the
+    same artifact and used to depend on this test having run first, which only
+    held because `test_dashboard_...` sorts before `test_validate_...` (#298)."""
+    rebuilt = json.loads(freshly_built_dashboard.read_text())
     assert "regime_history" not in rebuilt["lev_regime"]
     assert "current_group_calibrators" not in rebuilt["decision_metrics"]["hierarchical_calibration"]
     assert all("stages" not in r for r in rebuilt["workflow_outcomes"]["recent"])
