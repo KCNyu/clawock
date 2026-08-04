@@ -9,6 +9,7 @@ Outputs: assets/data/overview.json, assets/data/dashboard.json,
 
 Run after each portfolio mutation (cron commit) so Pages stays fresh.
 """
+import argparse
 import glob
 import json
 import math
@@ -807,16 +808,115 @@ def _latest_brief_context():
         return None, None
 
 
-def _load_existing_dashboard():
-    """Return the currently-published dashboard.json as a dict (or None). Used to
-    preserve brief-derived fields across a fresh-checkout rebuild where memory/.tmp
-    is absent — see the merge-not-overwrite guard at the anomalies assignment."""
+def load_previous_payload(path):
+    """Return a previously published dashboard payload as a dict, or None.
+
+    `path` is an explicit input, not an ambient lookup: the values this file
+    contributes are the only part of the output that does not come from the
+    workspace, so which file supplied them has to be a stated argument and is
+    reported in `build_status.previous_payload` (#262). `None` means the caller
+    asked for a build that depends on nothing but the workspace.
+    """
+    if path is None:
+        return None
     try:
-        if OUT_FILE.exists():
-            return load_json(str(OUT_FILE))
+        path = Path(path)
+        if path.exists():
+            return load_json(str(path))
     except Exception as e:
-        print(f'  warn: _load_existing_dashboard failed: {e}', file=sys.stderr)
+        print(f'  warn: load_previous_payload({path}) failed: {e}', file=sys.stderr)
     return None
+
+
+def merge_previous_payload(out, previous, presence, usable=None):
+    """Fill in `out` keys whose source context was absent from this checkout.
+
+    A context-less rebuild (memory/.tmp is gitignored, so brief-context and the
+    insights / intraday sidecars are ABSENT — meaning "not in THIS checkout",
+    NOT "no insight today") must not blank the cards the last build published,
+    or Pages flickers empty. `presence[key]` is False for exactly that case, and
+    the last non-empty published value is restored.
+
+    `usable[key]` overrides what counts as a value worth restoring. Truthiness is
+    the default, but `peer_divergence` is a wrapper dict that is truthy even when
+    its `items` list is empty, and republishing an empty card is not preservation.
+
+    Returns the sorted keys taken from `previous`, which is what makes this
+    dependency measurable rather than invisible: on the live host every source
+    is present, so the correct value is `[]`.
+    """
+    taken = []
+    for key, source_present in presence.items():
+        if source_present:
+            continue
+        value = (previous or {}).get(key)
+        if ((usable or {}).get(key) or bool)(value):
+            out[key] = value
+            taken.append(key)
+    return sorted(taken)
+
+
+def workspace_relative(path):
+    """Path as written inside the workspace, so a published value does not carry
+    the absolute location of whichever machine built it.
+
+    `/root/.openclaw/workspace/assets/data/dashboard.json` on the live host and
+    `/home/runner/work/clawock/clawock/assets/data/dashboard.json` on an Actions
+    runner name the same input; publishing the raw string would make the two
+    publishers alternate a field that `semantic_value()` does not strip, i.e.
+    a real commit for no reader-visible change.
+    """
+    if not path:
+        return None
+    try:
+        return str(Path(path).resolve().relative_to(Path(WS_ROOT).resolve()))
+    except (ValueError, OSError):
+        return str(path)
+
+
+def record_preservation(presence, taken, source, out_file, at=None):
+    """Append one line per build to memory/.tmp/preserve-absent-YYYY-MM-DD.jsonl.
+
+    The merge has exactly one known publishing consumer: `brief-fallback.yml`
+    runs `brief_postflight`, which rebuilds and commits the dashboard from an
+    Actions checkout. `brief_preflight` writes a brief-context there, but the
+    off-host generator writes no insights / intraday / sector-scan sidecars, so
+    those cards would publish blank without the merge — the 2026-06-21
+    regression. The scans stopped rebuilding dashboard.json on 2026-07-04
+    (gha_commit_push.sh header) and the other two Actions builders never commit.
+
+    What is not known is how much else reaches it: the pre-commit hook rebuilds
+    on any `portfolio.json` commit, and a developer clone has no memory/.tmp
+    either. So this measures rather than assumes, and records the empty case too,
+    so "it has not fired in N days" has a denominator.
+
+    One file per day, because `gc_sessions` ages memory/.tmp out by whole-file
+    mtime (KEEP_TMP_DAYS=14) — a single append-only file refreshes its own mtime
+    on every build and would never be collected.
+
+    Deliberately not in the payload and deliberately not created if the directory
+    is absent — memory/.tmp is gitignored and only exists on a real workspace.
+    Never raises: measurement must not be able to fail a publish.
+    """
+    try:
+        tmp_dir = Path(WS_ROOT) / 'memory' / '.tmp'
+        if not tmp_dir.is_dir():
+            return
+        at = at or datetime.now(timezone.utc)
+        line = json.dumps({
+            'at': at.isoformat(timespec='seconds'),
+            'out_file': str(out_file),
+            # Absolute here on purpose: unlike the published field, this file is
+            # local and knowing which checkout built it is the point.
+            'previous_source': str(source) if source else None,
+            'absent_sources': sorted(k for k, present in presence.items() if not present),
+            'preserved': taken,
+        }, ensure_ascii=False)
+        daily = tmp_dir / f'preserve-absent-{at.date().isoformat()}.jsonl'
+        with daily.open('a', encoding='utf-8') as handle:
+            handle.write(line + '\n')
+    except Exception as e:
+        print(f'  warn: preservation telemetry failed: {e}', file=sys.stderr)
 
 
 def load_sector_scan():
@@ -2212,13 +2312,31 @@ def compute_workflow_outcomes():
         return None
 
 
-def main():
+def parse_args(argv=None):
+    parser = argparse.ArgumentParser(
+        description='Build the public dashboard payloads from the workspace.')
+    source = parser.add_mutually_exclusive_group()
+    source.add_argument(
+        '--previous', metavar='PATH', default=None,
+        help='dashboard payload to restore card values from when their source '
+             'context is absent from this checkout (default: the published '
+             f'{OUT_FILE.name})')
+    source.add_argument(
+        '--no-previous', action='store_true',
+        help='build from the workspace alone; no output may come from a '
+             'previously published file')
+    return parser.parse_args(argv)
+
+
+def main(argv=None):
     # BUILD_DASHBOARD_OUT: redirect the WRITE target only. Verification callers
     # (system_check's buildability gate, run by the pre-push hook) build to a
     # temp file so a *check* never mutates the published artifact — before
     # 2026-06-10 every pre-push run rewrote dashboard.json in place, leaving
-    # the working tree perpetually dirty. Reads that merge previous values
-    # (load_prev_dashboard) still come from the real OUT_FILE on purpose.
+    # the working tree perpetually dirty. The previous-payload read stays on the
+    # real OUT_FILE on purpose, so a redirected build still sees what is live.
+    args = parse_args(argv)
+    previous_source = None if args.no_previous else Path(args.previous or OUT_FILE)
     out_file = Path(os.environ.get('BUILD_DASHBOARD_OUT') or OUT_FILE)
     out_file.parent.mkdir(parents=True, exist_ok=True)
     portfolio = load_json(WS_ROOT / 'portfolio.json')
@@ -2306,35 +2424,33 @@ def main():
     out['today_movers'] = compute_today_movers(us_h, hk_h)
 
     # merge-not-overwrite guard for sidecar-derived cards. A context-less rebuild
-    # (GHA fresh-checkout: memory/.tmp is gitignored, so brief-context + insights/
+    # (fresh checkout: memory/.tmp is gitignored, so brief-context + insights/
     # intraday sidecars are ABSENT — meaning "not in THIS checkout", NOT "no insight
     # today") must NOT blank the cards the last local build published, or Pages
-    # flickers empty several times a day (every macro/sentiment/influencer GHA scan
-    # rebuilds dashboard.json via gha_commit_push.sh). Restore the last non-empty
-    # published value whenever the source context is absent. This regressed to
-    # anomalies-only at some point; restored to all sidecar fields 2026-06-21 —
-    # see memory: openclaw-gha-sidecar-strip-and-prepush-seterr.
-    _prev_dash = _load_existing_dashboard() or {}
-
-    def _preserve_absent(key, source_present):
-        """Keep the freshly-computed value when its source context was present in
-        this checkout; otherwise fall back to the last non-empty published value."""
-        if not source_present:
-            prev = _prev_dash.get(key)
-            if prev:
-                out[key] = prev
+    # flickers empty. Restore the last non-empty published value whenever the
+    # source context is absent. This regressed to anomalies-only at some point;
+    # restored to all sidecar fields 2026-06-21 — see memory:
+    # openclaw-gha-sidecar-strip-and-prepush-seterr.
+    #
+    # This is the one part of the output that does not come from the workspace,
+    # so the file it comes from is an argument (`--previous` / `--no-previous`)
+    # and the keys it supplied are reported in build_status (#262). It is NOT
+    # dead code: brief-fallback.yml publishes a dashboard rebuilt on an Actions
+    # checkout that has a brief-context but no insights / intraday / sector-scan
+    # sidecars, which is exactly the case this restores. See record_preservation.
+    _prev_dash = load_previous_payload(previous_source) or {}
+    _presence = {}
 
     out['anomalies'] = extract_anomalies(brief_ctx, us_h, hk_h)
-    _preserve_absent('anomalies', bool(brief_ctx))
+    _presence['anomalies'] = bool(brief_ctx)
 
     # market_context is sector-scan-derived (load_sector_scan reads memory/.tmp,
-    # absent on a GHA checkout) and portfolio.market_context is usually empty — so
-    # a context-less rebuild would blank the 大盘速读 card. Preserve last good,
-    # same merge-not-overwrite contract as the sidecar fields above.
-    if not out.get('market_context'):
-        _prev_mc = _prev_dash.get('market_context')
-        if _prev_mc:
-            out['market_context'] = _prev_mc
+    # absent on a fresh checkout) and portfolio.market_context is usually empty —
+    # so a context-less rebuild would blank the 大盘速读 card. Preserve last good,
+    # same merge-not-overwrite contract as the sidecar fields above. Its presence
+    # test is the computed value itself rather than a source flag, because both
+    # of its sources are optional.
+    _presence['market_context'] = bool(out.get('market_context'))
 
     # ── LLM narrative sidecars (agent-written in Step 3; text-only, no keys) ──
     # Each sidecar is validated (validate_insights / validate_intraday_insights)
@@ -2359,7 +2475,7 @@ def main():
         'stale': _insights.get('_stale', True if not _insights else False),
     }
     for _k in ('behavioral_review', 'bear_cases', 'hidden_concentration', 'insights_meta'):
-        _preserve_absent(_k, insights_present)
+        _presence[_k] = insights_present
     # intraday insights (every 30min): status_banner + per-mover attribution.
     _intra = load_tmp_sidecar('intraday-insights', max_age_days=1)
     intra_present = bool(_intra)  # file existed in this checkout (vs. GHA-absent)
@@ -2370,8 +2486,9 @@ def main():
         'generated_at': _intra.get('generated_at'),
         'stale': _intra.get('_stale', True if not _intra else False),
     }
-    _preserve_absent('status_banner', intra_present)
-    _preserve_absent('status_banner_meta', intra_present)
+    _presence['status_banner'] = intra_present
+    _presence['status_banner_meta'] = intra_present
+
     # Merge validated mover attribution onto the deterministic movers list (by ticker).
     for _m in out['today_movers']:
         _note = _intra_v['movers'].get(_m.get('ticker'))
@@ -2383,10 +2500,19 @@ def main():
         'items': extract_peer_divergence(brief_ctx, us_h, hk_h),
     }
     # peer_divergence is brief-context-derived → preserve last good when absent.
-    if not brief_ctx and not out['peer_divergence']['items']:
-        _prev_pd = _prev_dash.get('peer_divergence')
-        if isinstance(_prev_pd, dict) and _prev_pd.get('items'):
-            out['peer_divergence'] = _prev_pd
+    # Its wrapper dict is truthy even with an empty items list, so restoring it
+    # needs a stricter test than the other cards — hence `usable` below.
+    _presence['peer_divergence'] = bool(brief_ctx) or bool(out['peer_divergence']['items'])
+
+    # One merge, after every card above has been computed: the nine keys are
+    # disjoint from everything read in between, so applying them together changes
+    # nothing except that the set of restored keys can now be named. Anything
+    # added later that falls back to `_prev_dash` belongs in this map, or the
+    # payload will under-report what it copied.
+    _preserved = merge_previous_payload(
+        out, _prev_dash, _presence,
+        usable={'peer_divergence': lambda v: isinstance(v, dict) and bool(v.get('items'))})
+    record_preservation(_presence, _preserved, previous_source, out_file)
     # Decision system v2 is the only live scoring path. No CSV/signal-row
     # compatibility keys are emitted: frontend, README and harness share this.
     _decisions = decision_v2.load_decisions()
@@ -2609,6 +2735,17 @@ def main():
     except Exception as e:
         print(f'  warn: compute_build_status failed: {e}', file=sys.stderr)
         out['build_status'] = None
+    if isinstance(out.get('build_status'), dict):
+        # Provenance for the only values that did not come from the workspace.
+        # `preserved: []` is the healthy reading and the one the live host is
+        # expected to publish; a non-empty list means this payload is partly a
+        # copy of an older one, which a reader is entitled to know. Attached only
+        # when the health card was computed — a failed build_status is already
+        # its own signal and must keep its `null`.
+        out['build_status']['previous_payload'] = {
+            'source': workspace_relative(previous_source),
+            'preserved': _preserved,
+        }
     out['workflow_outcomes'] = compute_workflow_outcomes()
 
     if brief_ctx_path:

@@ -356,3 +356,22 @@ def test_the_brief_only_ships_calibrator_rows_that_can_move_size():
     for field in ("method", "hierarchy", "abstain_rule", "sizing_rule",
                   "all_predictions", "after_warmup"):
         assert field in calibration, field
+
+
+def test_the_published_provenance_names_a_workspace_relative_source(freshly_built_dashboard):
+    """The payload states which previously published file it borrowed from (#262).
+
+    Asserted on a real build because the value is only correct if `main()` passes
+    it through `workspace_relative`: the live host and the brief-fallback Actions
+    job build this file from different absolute roots, and `semantic_value()`
+    does not strip the field, so an absolute path makes the two publishers
+    alternate a commit that changes nothing a reader can see.
+    """
+    provenance = (json.loads(freshly_built_dashboard.read_text())
+                  .get("build_status") or {}).get("previous_payload")
+
+    assert provenance is not None, "a published payload must say what it reused"
+    assert isinstance(provenance["preserved"], list)
+    source = provenance["source"]
+    assert source is None or not Path(source).is_absolute(), (
+        f"provenance source {source!r} is machine-specific")
