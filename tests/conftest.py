@@ -1,15 +1,28 @@
 """Session-level guarantees that belong to no single test module.
 
-Right now there is one: the suite must not leave the publish-owned dashboard
-artifacts rewritten.
+There are two, and both exist because a test module must not depend on which
+other module happened to run first.
 
-`test_dashboard_payload_size.test_rebuild_is_idempotent_and_keeps_the_trim`
-runs the real `build_dashboard.py` against the real tree, which is deliberate —
-`test_validate_sidecars` then reconciles that fresh payload against
-`portfolio.json`, and at any given commit the *tracked* dashboard.json is
-older than the tracked portfolio.json (the publisher commits them on different
-cadences), so a rebuild is what makes the money check meaningful. The rebuild
-is load-bearing; only its residue is the problem.
+**The rebuild.** The money-reconciliation tests compare the dashboard payload
+against `portfolio.json`, and at any given commit the *tracked* dashboard.json
+may be older than the tracked portfolio.json (the publisher commits them on
+different cadences), so a rebuild is what makes the money check meaningful. The
+rebuild used to live inside `test_dashboard_payload_size`, and
+`test_validate_sidecars` reconciled whatever that module had left behind —
+correct only because `test_dashboard_...` sorts before `test_validate_...`.
+Nothing stated it, so running the money gate on its own was not a valid
+invocation, and any rename, split-by-file or shuffled ordering would have
+reported "money does not reconcile" for what was really an ordering accident.
+It is a session fixture now: requested by name, built once, at most one
+subprocess per session either way. The rebuild is load-bearing; only its
+residue is the problem.
+
+**The import path.** `scripts/data` modules import their siblings by bare name
+(`from workspace import workspace_root`), so that directory has to be on
+`sys.path` before collection imports anything. Roughly twenty test modules
+insert it at import time, which made a single-module run work or fail on
+alphabetical luck: `pytest tests/test_validate_sidecars.py` alone died in
+collection. Doing it here covers every module and every invocation.
 
 The residue is not cosmetic. #295 was pushed carrying four regenerated
 artifacts because the suite had been run and `git add -A` swept them up; the
@@ -30,6 +43,12 @@ from pathlib import Path
 import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
+DASHBOARD = ROOT / "assets" / "data" / "dashboard.json"
+
+# Import time, not fixture time: collection imports the test modules, which
+# import `scripts.data.validate_sidecars`, which imports `workspace` by bare
+# name. See the module docstring.
+sys.path.insert(0, str(ROOT / "scripts" / "data"))
 
 
 def _git_status(paths):
@@ -44,7 +63,6 @@ def _git_status(paths):
 
 @pytest.fixture(scope="session", autouse=True)
 def publish_owned_artifacts_are_left_as_found():
-    sys.path.insert(0, str(ROOT / "scripts" / "data"))
     from dashboard_outputs import DASHBOARD_OUTPUTS
 
     before = {path: (ROOT / path).read_bytes() for path in DASHBOARD_OUTPUTS
@@ -62,3 +80,22 @@ def publish_owned_artifacts_are_left_as_found():
             "the suite changed the publish-owned artifacts and the restore did "
             "not put them back; a later `git add -A` would carry them into a "
             f"code PR:\n{status_after}")
+
+
+@pytest.fixture(scope="session")
+def freshly_built_dashboard(publish_owned_artifacts_are_left_as_found):
+    """The real builder run once, against the real tree, before anything reads
+    the payload it produces.
+
+    Depends on the restore guard by name so the snapshot is always taken before
+    the first byte is rewritten — the ordering that keeps the rebuild's residue
+    out of a code PR.
+
+    Returns the path rather than the parsed payload: the callers that matter
+    read it as bytes (the size cap) as well as as JSON, and taking the path
+    from the fixture is what makes each of them state the dependency instead of
+    reaching for a module constant that may or may not be fresh.
+    """
+    subprocess.run([sys.executable, "scripts/data/build_dashboard.py"],
+                   cwd=ROOT, check=True, capture_output=True)
+    return DASHBOARD
