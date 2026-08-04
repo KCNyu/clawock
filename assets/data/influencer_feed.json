@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-03T22:35:22.348164+00:00",
+  "generated_at": "2026-08-04T15:11:41.742331+00:00",
   "lookback_hours": 48,
   "sources": {
     "trump": "trumpstruth.org/feed (primary)",
@@ -13,133 +13,87 @@
   },
   "llm_filtered": true,
   "counts": {
-    "total": 5,
+    "total": 4,
     "held_hits": 0,
-    "new_ideas": 1,
+    "new_ideas": 0,
     "sector_hits": 0
   },
   "items": [
     {
       "author": "Trump",
-      "text": "Mike Wirth, Chairman and CEO of Chevron, just gave, in an interview with the fabulous Maria Bartiromo, all of the reasons that his company is doing so well. The only thing he conveniently forgot to mention is that, without the genius, foresight, strength, and stability, of the TRUMP Administration, the Oil Industry, and our Country itself, would be DEAD! As an example, they threw Mike and Chevron out of Venezuela, but now they’re back, far bigger and stronger than ever before, expecting to make a fortune! That goes for other Oil Companies as well…and get your consumer (retail!) Oil Prices DOWN",
-      "url": "https://trumpstruth.org/statuses/40464",
-      "published": "2026-08-03T13:50:42+00:00",
+      "text": "Trump: ‘Deal Is Imminent’ as Iran Talks Restart Monday on Denuclearization, Hormuz: https://www.breitbart.com/politics/2026/08/02/trump-deal-imminent-iran-talks-restart-monday-hormuz-denuclearization/",
+      "url": "https://trumpstruth.org/statuses/40527",
+      "published": "2026-08-04T14:38:19+00:00",
       "origin": "truthsocial",
-      "tickers": [
-        "CVX"
-      ],
+      "tickers": [],
       "held": [],
-      "new_ideas": [
-        "CVX"
-      ],
+      "new_ideas": [],
       "sectors": [
-        "原油/能源",
-        "油气"
+        "地缘政治",
+        "能源",
+        "伊朗"
       ],
       "sector_holdings": [],
       "stance": "endorse",
-      "relevance": 68,
-      "summary_cn": "Trump点名Chevron(CVX)CEO Mike Wirth，暗示自身政策让Chevron在委内瑞拉卷土重来获利，并要求油企压低零售油价。"
+      "relevance": 65,
+      "summary_cn": "Trump称伊朗去核与霍尔木兹海峡协议'即将达成'，谈判周一重启，涉及能源与地缘风险定价。"
     },
     {
       "author": "Trump",
-      "text": "Iranian Leadership is unbelievably duplicitous! They ask for a meeting, some would say “beg,” talks begin, with more scheduled in the immediate future, and they say, openly and proudly, that they’re not having any discussions, that nothing is being talked about, and they’re only dealing with “Oman.” They then go on to give their usual blather in saying, the Strait of Hormuz will be operated powerfully by them, when it is already completely controlled by the United States Navy and our “Blockade” or, as some say, “The United States Wall of Steel!” Nothing gets through to Iran, unless we want it ",
-      "url": "https://trumpstruth.org/statuses/40465",
-      "published": "2026-08-03T15:25:55+00:00",
+      "text": "American Manufacturing Expands At Fastest Pace Since 2022: https://www.breitbart.com/economy/2026/08/03/american-manufacturing-expands-at-fastest-pace-since-2022/",
+      "url": "https://trumpstruth.org/statuses/40530",
+      "published": "2026-08-04T14:37:43+00:00",
       "origin": "truthsocial",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "原油/能源",
-        "地缘政治/中东"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 58,
-      "summary_cn": "Trump抨击伊朗在谈判中两面派，强调美国海军已完全控制霍尔木兹海峡，暗示对伊朗极限施压与封锁延续。"
-    },
-    {
-      "author": "Trump",
-      "text": "https://www.energy.gov/articles/secretary-wright-directs-sable-offshore-restore-santa-ynez-unit-and-pipeline",
-      "url": "https://trumpstruth.org/statuses/40460",
-      "published": "2026-08-02T16:22:34+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "原油/能源",
-        "海上油气"
+        "美国制造业",
+        "宏观"
       ],
       "sector_holdings": [],
       "stance": "endorse",
       "relevance": 55,
-      "summary_cn": "Trump转发能源部链接：能源部长Wright指令重启加州外海Sable油田Santa Ynez单元及管道，利好美国海上油气产能恢复。"
+      "summary_cn": "美国制造业以2022年以来最快速度扩张，宏观利好美国本土工业与供应链。"
     },
     {
       "author": "Trump",
-      "text": "My REAL Polling Numbers, not those made up by the Fake News Media, are the best they have ever been, and why wouldn’t they be with the biggest tax cuts and employment numbers EVER, the biggest outside Investment in America in World history, a totally secure Border, a giant Victory in Venezuela, the Denuclearization of Iran, unparalleled respect and success throughout the World, and much more? Don’t believe the Radical Left’s Fake Poll numbers. They are Crooked and Corrupt, just like the Country Destroying Dumocrats are Crooked and Corrupt. VOTE REPUBLICAN FOR GREATNESS IN AMERICA! Thank you fo",
-      "url": "https://trumpstruth.org/statuses/40463",
-      "published": "2026-08-03T13:31:10+00:00",
+      "text": "US steel production exceeds Japan's for first time in 26 years: https://asia.nikkei.com/business/materials/us-steel-production-exceeds-japan-s-for-first-time-in-26-years",
+      "url": "https://trumpstruth.org/statuses/40533",
+      "published": "2026-08-04T14:36:49+00:00",
       "origin": "truthsocial",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "宏观/税改",
-        "就业",
-        "地缘政治",
-        "原油/能源"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 52,
-      "summary_cn": "Trump自夸其任期最大减税、就业、外资流入、边境安全、委内瑞拉胜利、伊朗去核化等政绩，暗示执政利好延续。"
-    },
-    {
-      "author": "Trump",
-      "text": "Trump’s Energy Triumph: https://www.wsj.com/opinion/trumps-energy-triumph-82e4b953",
-      "url": "https://trumpstruth.org/statuses/40457",
-      "published": "2026-08-02T12:58:05+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "原油/能源",
-        "宏观/能源政策"
+        "钢铁",
+        "美国制造业"
       ],
       "sector_holdings": [],
       "stance": "endorse",
-      "relevance": 52,
-      "summary_cn": "Trump转发WSJ评论《Trump的能源胜利》，自我宣传能源政策成果，间接利好油气与能源板块情绪。"
+      "relevance": 55,
+      "summary_cn": "美国钢铁产量26年来首次超越日本，关税保护下本土钢铁产业景气上行。"
+    },
+    {
+      "author": "Trump",
+      "text": "UAW: 'Strategic' Tariffs Prompt Industry Hiring Surge: https://www.newsmax.com/newsfront/united-auto-workers-tariffs-hiring-surge/2026/03/11/id/1249195/",
+      "url": "https://trumpstruth.org/statuses/40535",
+      "published": "2026-08-04T14:36:16+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "汽车",
+        "关税"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 55,
+      "summary_cn": "UAW称Trump关税推动汽车业招聘激增，利好美国本土汽车制造业。"
     }
   ],
   "held_hits": [],
-  "new_ideas": [
-    {
-      "author": "Trump",
-      "text": "Mike Wirth, Chairman and CEO of Chevron, just gave, in an interview with the fabulous Maria Bartiromo, all of the reasons that his company is doing so well. The only thing he conveniently forgot to mention is that, without the genius, foresight, strength, and stability, of the TRUMP Administration, the Oil Industry, and our Country itself, would be DEAD! As an example, they threw Mike and Chevron out of Venezuela, but now they’re back, far bigger and stronger than ever before, expecting to make a fortune! That goes for other Oil Companies as well…and get your consumer (retail!) Oil Prices DOWN",
-      "url": "https://trumpstruth.org/statuses/40464",
-      "published": "2026-08-03T13:50:42+00:00",
-      "origin": "truthsocial",
-      "tickers": [
-        "CVX"
-      ],
-      "held": [],
-      "new_ideas": [
-        "CVX"
-      ],
-      "sectors": [
-        "原油/能源",
-        "油气"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 68,
-      "summary_cn": "Trump点名Chevron(CVX)CEO Mike Wirth，暗示自身政策让Chevron在委内瑞拉卷土重来获利，并要求油企压低零售油价。"
-    }
-  ],
+  "new_ideas": [],
   "sector_hits": []
 }
