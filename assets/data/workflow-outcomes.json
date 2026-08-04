@@ -1,56 +1,8 @@
 {
   "schema_version": 1,
   "monitoring_started_at": "2026-07-26T08:00:00+08:00",
-  "updated_at": "2026-08-04T03:40:22.312092+00:00",
+  "updated_at": "2026-08-04T04:20:03.158892+00:00",
   "records": [
-    {
-      "job": "港股午盘报告",
-      "slot": "2026-07-31T12:00:00+08:00",
-      "stages": {
-        "preflight": {
-          "status": "success",
-          "at": "2026-07-31T04:03:01.056094+00:00",
-          "context_id": "cac1cf0cd57f"
-        },
-        "llm": {
-          "status": "success",
-          "at": "2026-07-31T04:03:39.518714+00:00",
-          "context_id": "cac1cf0cd57f",
-          "issue_count": 0
-        },
-        "postflight": {
-          "status": "success",
-          "at": "2026-07-31T04:04:20.176264+00:00",
-          "delivered": "full report",
-          "data_plane_status": "published",
-          "issue_count": 0
-        },
-        "primary_delivery": {
-          "status": "success",
-          "at": "2026-07-31T04:04:20.185411+00:00",
-          "channel": "wechat_or_telegram",
-          "deterministic_fallback": false
-        },
-        "watchdog_delivery": {
-          "status": "not_required",
-          "at": "2026-07-31T04:12:07.897029+00:00",
-          "action": "ok",
-          "reason": "postflight cosend already delivered Telegram this slot — no backstop"
-        }
-      },
-      "raw_execution": {
-        "status": "error",
-        "run_at_ms": 1785470400015,
-        "finished_at_ms": 1785470522839,
-        "run_id": null,
-        "error_present": true
-      },
-      "updated_at": "2026-07-31T04:12:07.897029+00:00",
-      "final_product": {
-        "status": "success",
-        "reason": "primary delivery succeeded"
-      }
-    },
     {
       "job": "港股午后快报",
       "slot": "2026-07-31T13:30:00+08:00",
@@ -3554,6 +3506,54 @@
       "final_product": {
         "status": "recovered",
         "reason": "watchdog delivered a usable product"
+      }
+    },
+    {
+      "job": "港股午盘报告",
+      "slot": "2026-08-04T12:00:00+08:00",
+      "stages": {
+        "preflight": {
+          "status": "success",
+          "at": "2026-08-04T04:00:27.074824+00:00",
+          "context_id": "8ee673bb4bc0"
+        },
+        "llm": {
+          "status": "success",
+          "at": "2026-08-04T04:01:54.868537+00:00",
+          "context_id": "8ee673bb4bc0",
+          "issue_count": 0
+        },
+        "postflight": {
+          "status": "success",
+          "at": "2026-08-04T04:02:39.618147+00:00",
+          "delivered": "full report",
+          "data_plane_status": "published",
+          "issue_count": 0
+        },
+        "primary_delivery": {
+          "status": "success",
+          "at": "2026-08-04T04:02:39.623281+00:00",
+          "channel": "wechat_or_telegram",
+          "deterministic_fallback": false
+        },
+        "watchdog_delivery": {
+          "status": "not_required",
+          "at": "2026-08-04T04:12:08.009916+00:00",
+          "action": "ok",
+          "reason": "postflight cosend already delivered Telegram this slot — no backstop"
+        }
+      },
+      "raw_execution": {
+        "status": "ok",
+        "run_at_ms": 1785816000048,
+        "finished_at_ms": 1785816162046,
+        "run_id": null,
+        "error_present": false
+      },
+      "updated_at": "2026-08-04T04:12:08.009916+00:00",
+      "final_product": {
+        "status": "success",
+        "reason": "primary delivery succeeded"
       }
     }
   ]
