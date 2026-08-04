@@ -943,3 +943,114 @@ def test_today_ranges_uses_current_price_denominator_and_strict_top_n():
         "current": 10.0,
         "range_pct": 40.0,
     }]
+
+
+# ── the previous published payload as an explicit input (#262) ──────────────
+#
+# The merge is the one part of the output that does not come from the workspace,
+# so what it took and where it came from have to be answerable. These pin the
+# contract; the live default (restore from the published dashboard.json) is
+# unchanged.
+
+
+def test_merge_takes_only_the_keys_whose_source_was_absent_and_names_them():
+    out = {"anomalies": [], "status_banner": "fresh"}
+    previous = {"anomalies": ["yesterday"], "status_banner": "stale", "totals": {"hk": 1}}
+
+    taken = dashboard.merge_previous_payload(
+        out, previous, {"anomalies": False, "status_banner": True})
+
+    assert out["anomalies"] == ["yesterday"], "absent source must not blank the card"
+    assert out["status_banner"] == "fresh", "a present source must win over the old payload"
+    assert taken == ["anomalies"]
+    assert "totals" not in out, "only the listed cards may come from the previous payload"
+
+
+def test_an_absent_source_with_nothing_published_before_stays_absent():
+    """The fallback is 'keep the last non-empty value', not 'invent one'."""
+    out = {"anomalies": []}
+
+    taken = dashboard.merge_previous_payload(out, {"anomalies": []}, {"anomalies": False})
+
+    assert out["anomalies"] == []
+    assert taken == []
+
+
+def test_no_previous_builds_from_the_workspace_alone():
+    """`--no-previous` is the acceptance criterion: no output may come from a
+    previously published file. It resolves to no source at all, and the merge is
+    then a no-op even for absent sidecars."""
+    args = dashboard.parse_args(["--no-previous"])
+    assert args.no_previous is True
+
+    out = {"anomalies": []}
+    assert dashboard.load_previous_payload(None) is None
+    assert dashboard.merge_previous_payload(out, None, {"anomalies": False}) == []
+    assert out["anomalies"] == []
+
+    assert dashboard.parse_args([]).previous is None, (
+        "the default has to stay 'the published file' in main(), not a parsed value")
+
+
+def test_a_wrapper_card_is_not_restored_when_its_previous_items_were_empty():
+    """peer_divergence is a dict that stays truthy after its items list empties;
+    republishing that is not preservation, it is publishing an empty card as if
+    it had been kept."""
+    out = {"peer_divergence": {"as_of": "2026-08-04", "items": []}}
+    usable = {"peer_divergence": lambda v: isinstance(v, dict) and bool(v.get("items"))}
+
+    empty = dashboard.merge_previous_payload(
+        out, {"peer_divergence": {"as_of": "2026-08-01", "items": []}},
+        {"peer_divergence": False}, usable=usable)
+    assert empty == []
+    assert out["peer_divergence"]["as_of"] == "2026-08-04", "must not adopt an empty older card"
+
+    filled = dashboard.merge_previous_payload(
+        out, {"peer_divergence": {"as_of": "2026-08-01", "items": [{"ticker": "AAPL"}]}},
+        {"peer_divergence": False}, usable=usable)
+    assert filled == ["peer_divergence"]
+    assert out["peer_divergence"]["items"] == [{"ticker": "AAPL"}]
+
+
+def test_the_published_source_is_workspace_relative(monkeypatch, tmp_path):
+    """Two publishers build this file — the live host and the brief-fallback
+    Actions job. An absolute path would differ between them, and semantic_value()
+    does not strip it, so the two would alternate a commit for no reader-visible
+    change."""
+    monkeypatch.setattr(dashboard, "WS_ROOT", tmp_path)
+
+    assert dashboard.workspace_relative(
+        tmp_path / "assets" / "data" / "dashboard.json") == "assets/data/dashboard.json"
+    assert dashboard.workspace_relative(None) is None
+
+
+def test_the_empty_case_is_recorded_so_never_fired_has_a_denominator(tmp_path, monkeypatch):
+    """Telemetry answers 'has the merge fired in N days'. A line only on the
+    interesting case would make silence ambiguous between 'did not fire' and
+    'did not build'."""
+    monkeypatch.setattr(dashboard, "WS_ROOT", tmp_path)
+    (tmp_path / "memory" / ".tmp").mkdir(parents=True)
+
+    at = datetime(2026, 8, 4, 12, 0, tzinfo=timezone.utc)
+    dashboard.record_preservation(
+        {"anomalies": True}, [], Path("dashboard.json"), "out.json", at=at)
+
+    # Dated, because gc_sessions ages memory/.tmp out by whole-file mtime: one
+    # append-only file would refresh its own mtime forever and never be collected.
+    written = sorted(p.name for p in (tmp_path / "memory" / ".tmp").iterdir())
+    assert written == ["preserve-absent-2026-08-04.jsonl"]
+
+    line = json.loads((tmp_path / "memory" / ".tmp" / written[0]).read_text())
+    assert line["preserved"] == []
+    assert line["absent_sources"] == []
+    assert line["previous_source"] == "dashboard.json"
+
+
+def test_telemetry_never_creates_the_directory_or_raises(tmp_path, monkeypatch):
+    """A fresh checkout has no memory/.tmp — measurement must not manufacture a
+    workspace, and must never be able to fail a publish."""
+    monkeypatch.setattr(dashboard, "WS_ROOT", tmp_path)
+
+    dashboard.record_preservation({"anomalies": False}, ["anomalies"], None, "out.json")
+
+    assert not (tmp_path / "memory").exists()
