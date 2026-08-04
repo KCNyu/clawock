@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "as_of": "2026-08-05T00:00:02+08:00",
+  "as_of": "2026-08-05T01:50:56+08:00",
   "label": "模拟·非实盘",
   "estimand": "跟随全部已触发主动建议的政策模拟净值，相对同起点、同日收盘计价的买入持有基线；累计差为模拟 timing alpha",
   "curves": {
@@ -10,7 +10,7 @@
       "start_date": "2026-05-18",
       "end_date": "2026-08-03",
       "initial": {
-        "cash": 135.205,
+        "cash": 135.195,
         "cash_known": true,
         "inventory": {
           "RKLB": 5,
@@ -22,7 +22,7 @@
           "MSFU": 20
         },
         "source": "portfolio.json reversed through holdings[].trades and cash_adjustments",
-        "reversed_trades": 32,
+        "reversed_trades": 33,
         "reversed_adjustments": 1,
         "negative_inventory_reconstruction": {}
       },
@@ -41,13 +41,13 @@
         },
         {
           "date": "2026-05-20",
-          "followed_sim": 3921.89,
+          "followed_sim": 3921.88,
           "buy_and_hold": 3931.28,
           "cumulative_diff": -9.4
         },
         {
           "date": "2026-05-21",
-          "followed_sim": 3889.43,
+          "followed_sim": 3889.41,
           "buy_and_hold": 3897.72,
           "cumulative_diff": -8.3
         },
@@ -59,20 +59,20 @@
         },
         {
           "date": "2026-05-26",
-          "followed_sim": 4201.32,
-          "buy_and_hold": 4192.03,
+          "followed_sim": 4201.31,
+          "buy_and_hold": 4192.02,
           "cumulative_diff": 9.29
         },
         {
           "date": "2026-05-27",
           "followed_sim": 4196.02,
-          "buy_and_hold": 4208.45,
+          "buy_and_hold": 4208.44,
           "cumulative_diff": -12.43
         },
         {
           "date": "2026-05-28",
-          "followed_sim": 4220.05,
-          "buy_and_hold": 4521.19,
+          "followed_sim": 4220.03,
+          "buy_and_hold": 4521.18,
           "cumulative_diff": -301.14
         },
         {
@@ -83,182 +83,182 @@
         },
         {
           "date": "2026-06-01",
-          "followed_sim": 4071.47,
-          "buy_and_hold": 4676.24,
+          "followed_sim": 4071.45,
+          "buy_and_hold": 4676.23,
           "cumulative_diff": -604.78
         },
         {
           "date": "2026-06-02",
-          "followed_sim": 4225.34,
-          "buy_and_hold": 4678.01,
+          "followed_sim": 4225.32,
+          "buy_and_hold": 4677.99,
           "cumulative_diff": -452.67
         },
         {
           "date": "2026-06-03",
-          "followed_sim": 4209.28,
-          "buy_and_hold": 4423.78,
+          "followed_sim": 4209.27,
+          "buy_and_hold": 4423.77,
           "cumulative_diff": -214.5
         },
         {
           "date": "2026-06-04",
           "followed_sim": 4166.4,
-          "buy_and_hold": 4484.22,
+          "buy_and_hold": 4484.2,
           "cumulative_diff": -317.81
         },
         {
           "date": "2026-06-05",
-          "followed_sim": 3762.7,
+          "followed_sim": 3762.68,
           "buy_and_hold": 3782.82,
           "cumulative_diff": -20.13
         },
         {
           "date": "2026-06-08",
-          "followed_sim": 3902.76,
+          "followed_sim": 3902.74,
           "buy_and_hold": 3998.61,
           "cumulative_diff": -95.86
         },
         {
           "date": "2026-06-09",
           "followed_sim": 3831.64,
-          "buy_and_hold": 3825.76,
+          "buy_and_hold": 3825.74,
           "cumulative_diff": 5.89
         },
         {
           "date": "2026-06-10",
           "followed_sim": 3724.47,
-          "buy_and_hold": 3719.93,
+          "buy_and_hold": 3719.91,
           "cumulative_diff": 4.55
         },
         {
           "date": "2026-06-11",
           "followed_sim": 3957.26,
-          "buy_and_hold": 4124.88,
+          "buy_and_hold": 4124.86,
           "cumulative_diff": -167.61
         },
         {
           "date": "2026-06-12",
           "followed_sim": 3921.74,
-          "buy_and_hold": 4077.76,
+          "buy_and_hold": 4077.74,
           "cumulative_diff": -156.01
         },
         {
           "date": "2026-06-15",
-          "followed_sim": 4122.99,
+          "followed_sim": 4122.98,
           "buy_and_hold": 4509.31,
           "cumulative_diff": -386.32
         },
         {
           "date": "2026-06-16",
           "followed_sim": 3903.64,
-          "buy_and_hold": 4172.89,
+          "buy_and_hold": 4172.88,
           "cumulative_diff": -269.24
         },
         {
           "date": "2026-06-17",
-          "followed_sim": 3953.11,
-          "buy_and_hold": 4383.12,
+          "followed_sim": 3953.09,
+          "buy_and_hold": 4383.11,
           "cumulative_diff": -430.02
         },
         {
           "date": "2026-06-18",
-          "followed_sim": 4130.2,
-          "buy_and_hold": 4664.45,
+          "followed_sim": 4130.19,
+          "buy_and_hold": 4664.44,
           "cumulative_diff": -534.25
         },
         {
           "date": "2026-06-22",
-          "followed_sim": 4180.45,
-          "buy_and_hold": 4563.78,
+          "followed_sim": 4180.44,
+          "buy_and_hold": 4563.77,
           "cumulative_diff": -383.33
         },
         {
           "date": "2026-06-23",
           "followed_sim": 3865.39,
-          "buy_and_hold": 4102.51,
+          "buy_and_hold": 4102.49,
           "cumulative_diff": -237.11
         },
         {
           "date": "2026-06-24",
-          "followed_sim": 3798.12,
-          "buy_and_hold": 3826.62,
+          "followed_sim": 3798.11,
+          "buy_and_hold": 3826.61,
           "cumulative_diff": -28.5
         },
         {
           "date": "2026-06-25",
           "followed_sim": 3870.51,
-          "buy_and_hold": 3748.03,
+          "buy_and_hold": 3748.01,
           "cumulative_diff": 122.49
         },
         {
           "date": "2026-06-26",
           "followed_sim": 3748.3,
-          "buy_and_hold": 3789.55,
+          "buy_and_hold": 3789.53,
           "cumulative_diff": -41.24
         },
         {
           "date": "2026-06-29",
-          "followed_sim": 3879.57,
-          "buy_and_hold": 4066.8,
+          "followed_sim": 3879.55,
+          "buy_and_hold": 4066.78,
           "cumulative_diff": -187.23
         },
         {
           "date": "2026-06-30",
-          "followed_sim": 3971.26,
-          "buy_and_hold": 4192.39,
+          "followed_sim": 3971.24,
+          "buy_and_hold": 4192.38,
           "cumulative_diff": -221.13
         },
         {
           "date": "2026-07-01",
-          "followed_sim": 3767.84,
-          "buy_and_hold": 4220.19,
+          "followed_sim": 3767.82,
+          "buy_and_hold": 4220.18,
           "cumulative_diff": -452.35
         },
         {
           "date": "2026-07-02",
-          "followed_sim": 3632.7,
-          "buy_and_hold": 4185.44,
+          "followed_sim": 3632.68,
+          "buy_and_hold": 4185.43,
           "cumulative_diff": -552.74
         },
         {
           "date": "2026-07-06",
           "followed_sim": 3675.39,
-          "buy_and_hold": 4351.66,
+          "buy_and_hold": 4351.65,
           "cumulative_diff": -676.27
         },
         {
           "date": "2026-07-07",
-          "followed_sim": 3518.38,
-          "buy_and_hold": 4017.66,
+          "followed_sim": 3518.36,
+          "buy_and_hold": 4017.64,
           "cumulative_diff": -499.28
         },
         {
           "date": "2026-07-08",
           "followed_sim": 3553.11,
-          "buy_and_hold": 4055.28,
+          "buy_and_hold": 4055.26,
           "cumulative_diff": -502.16
         },
         {
           "date": "2026-07-09",
           "followed_sim": 3618.05,
-          "buy_and_hold": 4156.81,
+          "buy_and_hold": 4156.8,
           "cumulative_diff": -538.75
         },
         {
           "date": "2026-07-10",
-          "followed_sim": 3622.16,
-          "buy_and_hold": 4049.62,
+          "followed_sim": 3622.14,
+          "buy_and_hold": 4049.61,
           "cumulative_diff": -427.47
         },
         {
           "date": "2026-07-13",
           "followed_sim": 3492.24,
-          "buy_and_hold": 3860.51,
+          "buy_and_hold": 3860.49,
           "cumulative_diff": -368.26
         },
         {
           "date": "2026-07-14",
           "followed_sim": 3544.3,
-          "buy_and_hold": 4026.28,
+          "buy_and_hold": 4026.26,
           "cumulative_diff": -481.97
         },
         {
@@ -269,14 +269,14 @@
         },
         {
           "date": "2026-07-16",
-          "followed_sim": 3288.36,
+          "followed_sim": 3288.34,
           "buy_and_hold": 3620.43,
           "cumulative_diff": -332.08
         },
         {
           "date": "2026-07-17",
-          "followed_sim": 3176.74,
-          "buy_and_hold": 3406.2,
+          "followed_sim": 3176.72,
+          "buy_and_hold": 3406.18,
           "cumulative_diff": -229.46
         },
         {
@@ -293,32 +293,32 @@
         },
         {
           "date": "2026-07-22",
-          "followed_sim": 3194.49,
-          "buy_and_hold": 3594.43,
+          "followed_sim": 3194.47,
+          "buy_and_hold": 3594.41,
           "cumulative_diff": -399.94
         },
         {
           "date": "2026-07-23",
-          "followed_sim": 3187.47,
+          "followed_sim": 3187.45,
           "buy_and_hold": 3465.53,
           "cumulative_diff": -278.07
         },
         {
           "date": "2026-07-24",
-          "followed_sim": 3035.84,
-          "buy_and_hold": 3167.47,
+          "followed_sim": 3035.82,
+          "buy_and_hold": 3167.45,
           "cumulative_diff": -131.63
         },
         {
           "date": "2026-07-27",
-          "followed_sim": 3046.84,
-          "buy_and_hold": 3233.3,
+          "followed_sim": 3046.82,
+          "buy_and_hold": 3233.28,
           "cumulative_diff": -186.46
         },
         {
           "date": "2026-07-28",
           "followed_sim": 2959.39,
-          "buy_and_hold": 3013.36,
+          "buy_and_hold": 3013.34,
           "cumulative_diff": -53.96
         },
         {
@@ -335,14 +335,14 @@
         },
         {
           "date": "2026-07-31",
-          "followed_sim": 2970.91,
-          "buy_and_hold": 3087.26,
+          "followed_sim": 2970.89,
+          "buy_and_hold": 3087.24,
           "cumulative_diff": -116.35
         },
         {
           "date": "2026-08-03",
           "followed_sim": 3097.26,
-          "buy_and_hold": 3279.49,
+          "buy_and_hold": 3279.47,
           "cumulative_diff": -182.22
         },
         {
@@ -451,7 +451,7 @@
       },
       "final": {
         "followed_sim": 3097.26,
-        "buy_and_hold": 3279.49
+        "buy_and_hold": 3279.47
       },
       "events": [
         {
@@ -540,7 +540,7 @@
           ],
           "mark": {
             "date": "2026-05-20",
-            "followed_sim": 3921.89,
+            "followed_sim": 3921.88,
             "buy_and_hold": 3931.28,
             "cumulative_diff": -9.4
           }
@@ -596,7 +596,7 @@
           ],
           "mark": {
             "date": "2026-05-21",
-            "followed_sim": 3889.43,
+            "followed_sim": 3889.41,
             "buy_and_hold": 3897.72,
             "cumulative_diff": -8.3
           }
@@ -732,8 +732,8 @@
           ],
           "mark": {
             "date": "2026-05-26",
-            "followed_sim": 4201.32,
-            "buy_and_hold": 4192.03,
+            "followed_sim": 4201.31,
+            "buy_and_hold": 4192.02,
             "cumulative_diff": 9.29
           }
         },
@@ -788,7 +788,7 @@
           "mark": {
             "date": "2026-05-27",
             "followed_sim": 4196.02,
-            "buy_and_hold": 4208.45,
+            "buy_and_hold": 4208.44,
             "cumulative_diff": -12.43
           }
         },
@@ -841,8 +841,8 @@
           ],
           "mark": {
             "date": "2026-05-28",
-            "followed_sim": 4220.05,
-            "buy_and_hold": 4521.19,
+            "followed_sim": 4220.03,
+            "buy_and_hold": 4521.18,
             "cumulative_diff": -301.14
           }
         },
@@ -949,8 +949,8 @@
           ],
           "mark": {
             "date": "2026-06-01",
-            "followed_sim": 4071.47,
-            "buy_and_hold": 4676.24,
+            "followed_sim": 4071.45,
+            "buy_and_hold": 4676.23,
             "cumulative_diff": -604.78
           }
         },
@@ -979,8 +979,8 @@
           ],
           "mark": {
             "date": "2026-06-02",
-            "followed_sim": 4225.34,
-            "buy_and_hold": 4678.01,
+            "followed_sim": 4225.32,
+            "buy_and_hold": 4677.99,
             "cumulative_diff": -452.67
           }
         },
@@ -1036,7 +1036,7 @@
           "mark": {
             "date": "2026-06-09",
             "followed_sim": 3831.64,
-            "buy_and_hold": 3825.76,
+            "buy_and_hold": 3825.74,
             "cumulative_diff": 5.89
           }
         },
@@ -1090,7 +1090,7 @@
           "mark": {
             "date": "2026-06-10",
             "followed_sim": 3724.47,
-            "buy_and_hold": 3719.93,
+            "buy_and_hold": 3719.91,
             "cumulative_diff": 4.55
           }
         },
@@ -1192,7 +1192,7 @@
           ],
           "mark": {
             "date": "2026-06-15",
-            "followed_sim": 4122.99,
+            "followed_sim": 4122.98,
             "buy_and_hold": 4509.31,
             "cumulative_diff": -386.32
           }
@@ -1223,7 +1223,7 @@
           "mark": {
             "date": "2026-06-16",
             "followed_sim": 3903.64,
-            "buy_and_hold": 4172.89,
+            "buy_and_hold": 4172.88,
             "cumulative_diff": -269.24
           }
         },
@@ -1276,8 +1276,8 @@
           ],
           "mark": {
             "date": "2026-06-17",
-            "followed_sim": 3953.11,
-            "buy_and_hold": 4383.12,
+            "followed_sim": 3953.09,
+            "buy_and_hold": 4383.11,
             "cumulative_diff": -430.02
           }
         },
@@ -1354,8 +1354,8 @@
           ],
           "mark": {
             "date": "2026-06-18",
-            "followed_sim": 4130.2,
-            "buy_and_hold": 4664.45,
+            "followed_sim": 4130.19,
+            "buy_and_hold": 4664.44,
             "cumulative_diff": -534.25
           }
         },
@@ -1408,8 +1408,8 @@
           ],
           "mark": {
             "date": "2026-06-22",
-            "followed_sim": 4180.45,
-            "buy_and_hold": 4563.78,
+            "followed_sim": 4180.44,
+            "buy_and_hold": 4563.77,
             "cumulative_diff": -383.33
           }
         },
@@ -1487,7 +1487,7 @@
           "mark": {
             "date": "2026-06-23",
             "followed_sim": 3865.39,
-            "buy_and_hold": 4102.51,
+            "buy_and_hold": 4102.49,
             "cumulative_diff": -237.11
           }
         },
@@ -1564,8 +1564,8 @@
           ],
           "mark": {
             "date": "2026-06-24",
-            "followed_sim": 3798.12,
-            "buy_and_hold": 3826.62,
+            "followed_sim": 3798.11,
+            "buy_and_hold": 3826.61,
             "cumulative_diff": -28.5
           }
         },
@@ -1668,7 +1668,7 @@
           "mark": {
             "date": "2026-06-25",
             "followed_sim": 3870.51,
-            "buy_and_hold": 3748.03,
+            "buy_and_hold": 3748.01,
             "cumulative_diff": 122.49
           }
         },
@@ -1770,7 +1770,7 @@
           "mark": {
             "date": "2026-06-26",
             "followed_sim": 3748.3,
-            "buy_and_hold": 3789.55,
+            "buy_and_hold": 3789.53,
             "cumulative_diff": -41.24
           }
         },
@@ -1871,8 +1871,8 @@
           ],
           "mark": {
             "date": "2026-06-29",
-            "followed_sim": 3879.57,
-            "buy_and_hold": 4066.8,
+            "followed_sim": 3879.55,
+            "buy_and_hold": 4066.78,
             "cumulative_diff": -187.23
           }
         },
@@ -1925,8 +1925,8 @@
           ],
           "mark": {
             "date": "2026-06-30",
-            "followed_sim": 3971.26,
-            "buy_and_hold": 4192.39,
+            "followed_sim": 3971.24,
+            "buy_and_hold": 4192.38,
             "cumulative_diff": -221.13
           }
         },
@@ -2027,8 +2027,8 @@
           ],
           "mark": {
             "date": "2026-07-01",
-            "followed_sim": 3767.84,
-            "buy_and_hold": 4220.19,
+            "followed_sim": 3767.82,
+            "buy_and_hold": 4220.18,
             "cumulative_diff": -452.35
           }
         },
@@ -2081,8 +2081,8 @@
           ],
           "mark": {
             "date": "2026-07-02",
-            "followed_sim": 3632.7,
-            "buy_and_hold": 4185.44,
+            "followed_sim": 3632.68,
+            "buy_and_hold": 4185.43,
             "cumulative_diff": -552.74
           }
         },
@@ -2112,7 +2112,7 @@
           "mark": {
             "date": "2026-07-06",
             "followed_sim": 3675.39,
-            "buy_and_hold": 4351.66,
+            "buy_and_hold": 4351.65,
             "cumulative_diff": -676.27
           }
         },
@@ -2141,8 +2141,8 @@
           ],
           "mark": {
             "date": "2026-07-07",
-            "followed_sim": 3518.38,
-            "buy_and_hold": 4017.66,
+            "followed_sim": 3518.36,
+            "buy_and_hold": 4017.64,
             "cumulative_diff": -499.28
           }
         },
@@ -2172,7 +2172,7 @@
           "mark": {
             "date": "2026-07-08",
             "followed_sim": 3553.11,
-            "buy_and_hold": 4055.28,
+            "buy_and_hold": 4055.26,
             "cumulative_diff": -502.16
           }
         },
@@ -2250,7 +2250,7 @@
           "mark": {
             "date": "2026-07-09",
             "followed_sim": 3618.05,
-            "buy_and_hold": 4156.81,
+            "buy_and_hold": 4156.8,
             "cumulative_diff": -538.75
           }
         },
@@ -2351,8 +2351,8 @@
           ],
           "mark": {
             "date": "2026-07-10",
-            "followed_sim": 3622.16,
-            "buy_and_hold": 4049.62,
+            "followed_sim": 3622.14,
+            "buy_and_hold": 4049.61,
             "cumulative_diff": -427.47
           }
         },
@@ -2454,7 +2454,7 @@
           "mark": {
             "date": "2026-07-13",
             "followed_sim": 3492.24,
-            "buy_and_hold": 3860.51,
+            "buy_and_hold": 3860.49,
             "cumulative_diff": -368.26
           }
         },
@@ -2532,7 +2532,7 @@
           "mark": {
             "date": "2026-07-14",
             "followed_sim": 3544.3,
-            "buy_and_hold": 4026.28,
+            "buy_and_hold": 4026.26,
             "cumulative_diff": -481.97
           }
         },
@@ -2909,7 +2909,7 @@
           ],
           "mark": {
             "date": "2026-07-16",
-            "followed_sim": 3288.36,
+            "followed_sim": 3288.34,
             "buy_and_hold": 3620.43,
             "cumulative_diff": -332.08
           }
@@ -3107,8 +3107,8 @@
           ],
           "mark": {
             "date": "2026-07-17",
-            "followed_sim": 3176.74,
-            "buy_and_hold": 3406.2,
+            "followed_sim": 3176.72,
+            "buy_and_hold": 3406.18,
             "cumulative_diff": -229.46
           }
         },
@@ -3461,8 +3461,8 @@
           ],
           "mark": {
             "date": "2026-07-22",
-            "followed_sim": 3194.49,
-            "buy_and_hold": 3594.43,
+            "followed_sim": 3194.47,
+            "buy_and_hold": 3594.41,
             "cumulative_diff": -399.94
           }
         },
@@ -3563,7 +3563,7 @@
           ],
           "mark": {
             "date": "2026-07-23",
-            "followed_sim": 3187.47,
+            "followed_sim": 3187.45,
             "buy_and_hold": 3465.53,
             "cumulative_diff": -278.07
           }
@@ -3665,8 +3665,8 @@
           ],
           "mark": {
             "date": "2026-07-24",
-            "followed_sim": 3035.84,
-            "buy_and_hold": 3167.47,
+            "followed_sim": 3035.82,
+            "buy_and_hold": 3167.45,
             "cumulative_diff": -131.63
           }
         },
@@ -3767,8 +3767,8 @@
           ],
           "mark": {
             "date": "2026-07-27",
-            "followed_sim": 3046.84,
-            "buy_and_hold": 3233.3,
+            "followed_sim": 3046.82,
+            "buy_and_hold": 3233.28,
             "cumulative_diff": -186.46
           }
         },
@@ -3870,7 +3870,7 @@
           "mark": {
             "date": "2026-07-28",
             "followed_sim": 2959.39,
-            "buy_and_hold": 3013.36,
+            "buy_and_hold": 3013.34,
             "cumulative_diff": -53.96
           }
         },
@@ -4175,8 +4175,8 @@
           ],
           "mark": {
             "date": "2026-07-31",
-            "followed_sim": 2970.91,
-            "buy_and_hold": 3087.26,
+            "followed_sim": 2970.89,
+            "buy_and_hold": 3087.24,
             "cumulative_diff": -116.35
           }
         },
@@ -4254,7 +4254,7 @@
           "mark": {
             "date": "2026-08-03",
             "followed_sim": 3097.26,
-            "buy_and_hold": 3279.49,
+            "buy_and_hold": 3279.47,
             "cumulative_diff": -182.22
           }
         }
