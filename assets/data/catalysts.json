@@ -1,8 +1,8 @@
 {
-  "generated_at": "2026-08-03T08:01:56.861371+08:00",
+  "generated_at": "2026-08-04T08:03:46.115550+08:00",
   "lookback_window_days": 14,
-  "window_start": "2026-08-03",
-  "window_end": "2026-08-17",
+  "window_start": "2026-08-04",
+  "window_end": "2026-08-18",
   "earnings_queried": [
     "CRCL",
     "MSFT",
@@ -12,17 +12,6 @@
     "SPCX"
   ],
   "earnings": [
-    {
-      "ticker": "PLTR",
-      "name": "PLTR",
-      "date": "2026-08-03",
-      "time": "amc",
-      "eps_estimate": 0.3544,
-      "eps_actual": null,
-      "revenue_estimate_m": 1840.81,
-      "quarter": 2,
-      "year": 2026
-    },
     {
       "ticker": "SPCX",
       "name": "SPCX",
@@ -49,7 +38,7 @@
       "ticker": "RKLB",
       "name": "RKLB",
       "date": "2026-08-10",
-      "time": "unknown",
+      "time": "amc",
       "eps_estimate": -0.0765,
       "eps_actual": null,
       "revenue_estimate_m": 235.97,
@@ -71,7 +60,7 @@
     }
   ],
   "summary": {
-    "earnings_count": 4,
+    "earnings_count": 3,
     "fomc_in_window": 0,
     "macro_count": 2,
     "highest_impact_within_7d": "NFP 2026-08-07"
