@@ -1,85 +1,8 @@
 {
   "schema_version": 1,
   "monitoring_started_at": "2026-07-26T08:00:00+08:00",
-  "updated_at": "2026-08-04T13:45:08.257269+00:00",
+  "updated_at": "2026-08-04T14:10:16.641567+00:00",
   "records": [
-    {
-      "job": "美股盘中盯盘",
-      "slot": "2026-07-31T22:00:00+08:00",
-      "stages": {
-        "preflight": {
-          "status": "success",
-          "at": "2026-07-31T14:01:37.348723+00:00",
-          "market": "us",
-          "updated_at": "2026-07-31T14:01:37.347135+00:00",
-          "should_alert": true,
-          "anomaly_count": 0
-        },
-        "llm": {
-          "status": "success",
-          "at": "2026-07-31T14:10:07.306168+00:00",
-          "market": "us",
-          "updated_at": "2026-07-31T22:10:01.490190+08:00",
-          "should_alert": true,
-          "anomaly_count": 0,
-          "postflight_status": "pass",
-          "wechat_sent": true,
-          "telegram_sent": true,
-          "dashboard_published": true,
-          "data_plane_status": "published",
-          "insights_sidecar": true,
-          "issue_count": 0,
-          "watchdog_state": "ok"
-        },
-        "postflight": {
-          "status": "success",
-          "at": "2026-07-31T14:10:07.315593+00:00",
-          "market": "us",
-          "updated_at": "2026-07-31T22:10:01.490190+08:00",
-          "should_alert": true,
-          "anomaly_count": 0,
-          "postflight_status": "pass",
-          "wechat_sent": true,
-          "telegram_sent": true,
-          "dashboard_published": true,
-          "data_plane_status": "published",
-          "insights_sidecar": true,
-          "issue_count": 0,
-          "watchdog_state": "ok"
-        },
-        "primary_delivery": {
-          "status": "success",
-          "at": "2026-07-31T14:10:07.324223+00:00",
-          "market": "us",
-          "updated_at": "2026-07-31T22:10:01.490190+08:00",
-          "should_alert": true,
-          "anomaly_count": 0,
-          "postflight_status": "pass",
-          "wechat_sent": true,
-          "telegram_sent": true,
-          "dashboard_published": true,
-          "data_plane_status": "published",
-          "insights_sidecar": true,
-          "issue_count": 0,
-          "watchdog_state": "ok"
-        },
-        "watchdog_delivery": {
-          "status": "unknown"
-        }
-      },
-      "raw_execution": {
-        "status": "ok",
-        "run_at_ms": 1785506400021,
-        "finished_at_ms": 1785506625611,
-        "run_id": null,
-        "error_present": false
-      },
-      "updated_at": "2026-07-31T14:10:07.324223+00:00",
-      "final_product": {
-        "status": "success",
-        "reason": "primary delivery succeeded"
-      }
-    },
     {
       "job": "美股盘中盯盘",
       "slot": "2026-07-31T22:30:00+08:00",
@@ -3571,6 +3494,100 @@
       "final_product": {
         "status": "success",
         "reason": "primary delivery succeeded"
+      }
+    },
+    {
+      "job": "美股盘中盯盘",
+      "slot": "2026-08-04T22:00:00+08:00",
+      "stages": {
+        "preflight": {
+          "status": "success",
+          "at": "2026-08-04T14:03:39.055261+00:00",
+          "market": "us",
+          "updated_at": "2026-08-04T14:03:39.054171+00:00",
+          "should_alert": true,
+          "anomaly_count": 4,
+          "postflight_status": "pass",
+          "wechat_sent": true,
+          "telegram_sent": true,
+          "dashboard_published": true,
+          "data_plane_status": "published",
+          "insights_sidecar": true,
+          "issue_count": 0
+        },
+        "llm": {
+          "status": "success",
+          "at": "2026-08-04T14:05:04.517755+00:00",
+          "market": "us",
+          "updated_at": "2026-08-04T14:05:04.512734+00:00",
+          "should_alert": true,
+          "anomaly_count": 4,
+          "postflight_status": "pass",
+          "wechat_sent": true,
+          "telegram_sent": true,
+          "dashboard_published": true,
+          "data_plane_status": "published",
+          "insights_sidecar": true,
+          "issue_count": 0
+        },
+        "postflight": {
+          "status": "success",
+          "at": "2026-08-04T14:05:04.545244+00:00",
+          "market": "us",
+          "updated_at": "2026-08-04T14:05:04.512734+00:00",
+          "should_alert": true,
+          "anomaly_count": 4,
+          "postflight_status": "pass",
+          "wechat_sent": true,
+          "telegram_sent": true,
+          "dashboard_published": true,
+          "data_plane_status": "published",
+          "insights_sidecar": true,
+          "issue_count": 0
+        },
+        "primary_delivery": {
+          "status": "success",
+          "at": "2026-08-04T14:05:04.569069+00:00",
+          "market": "us",
+          "updated_at": "2026-08-04T14:05:04.512734+00:00",
+          "should_alert": true,
+          "anomaly_count": 4,
+          "postflight_status": "pass",
+          "wechat_sent": true,
+          "telegram_sent": true,
+          "dashboard_published": true,
+          "data_plane_status": "published",
+          "insights_sidecar": true,
+          "issue_count": 0
+        },
+        "watchdog_delivery": {
+          "status": "success",
+          "at": "2026-08-04T14:10:16.641567+00:00",
+          "market": "us",
+          "updated_at": "2026-08-04T22:10:01.899992+08:00",
+          "should_alert": true,
+          "anomaly_count": 4,
+          "postflight_status": "pass",
+          "wechat_sent": true,
+          "telegram_sent": true,
+          "dashboard_published": true,
+          "data_plane_status": "published",
+          "insights_sidecar": true,
+          "issue_count": 0,
+          "watchdog_state": "deterministic_fallback"
+        }
+      },
+      "raw_execution": {
+        "status": "error",
+        "run_at_ms": 1785852000012,
+        "finished_at_ms": 1785852142911,
+        "run_id": null,
+        "error_present": true
+      },
+      "updated_at": "2026-08-04T14:10:16.641567+00:00",
+      "final_product": {
+        "status": "recovered",
+        "reason": "watchdog delivered a usable product"
       }
     }
   ]
