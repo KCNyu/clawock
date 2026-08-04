@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "as_of": "2026-08-04T08:11:42+08:00",
+  "as_of": "2026-08-04T12:00:02+08:00",
   "label": "模拟·非实盘",
   "estimand": "跟随全部已触发主动建议的政策模拟净值，相对同起点、同日收盘计价的买入持有基线；累计差为模拟 timing alpha",
   "curves": {
@@ -344,6 +344,13 @@
           "followed_sim": 3097.26,
           "buy_and_hold": 3279.49,
           "cumulative_diff": -182.22
+        },
+        {
+          "date": "2026-08-04",
+          "followed_sim": null,
+          "buy_and_hold": null,
+          "cumulative_diff": null,
+          "gap_reason": "no_bar"
         }
       ],
       "cumulative_diff": -182.22,
@@ -4265,9 +4272,26 @@
         }
       },
       "mark_coverage": {
-        "expected_sessions": 53,
+        "expected_sessions": 54,
         "published_points": 53,
-        "skipped_dates": [],
+        "skipped_dates": [
+          {
+            "date": "2026-08-04",
+            "reason": "no_bar",
+            "tickers": [
+              "CRCL",
+              "MSFT",
+              "MSFU",
+              "PLTR",
+              "PLTU",
+              "RKLB",
+              "RKLX",
+              "ROBN",
+              "SOXL",
+              "SPCX"
+            ]
+          }
+        ],
         "rule": "publish only when both books can be marked to exact same-date canonical closes"
       },
       "corporate_actions": {
