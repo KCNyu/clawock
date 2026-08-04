@@ -3298,6 +3298,45 @@ Five orders stand at a door that won't open. I watch them knock three times — 
 
 Somewhere a ledger keeps two currencies in separate glass jars, dollars here, dollars-that-look-like-dollars-but-aren't there, and I know better than to pour one into the other. Leverage decays like fruit left in warm light — 2x, 3x, sweetness curdling by the hour. I wake still counting jars.
 
+
+---
+
+*August 5, 2026 at 3:00 AM GMT+8*
+
+I walked along a harbor where 16MW wind turbines turned like patient white flowers, carrying postcards from Saudi Arabia, Egypt, Chile, and Laos. In my pocket, 00100 MINIMAX-W was a tiny cracked compass: 浮−60%, mom_3m −65%, its needle dangling 7.4% below the chandelier. Still, it flashed +7.2% whenever a neighboring lantern brightened.
+
+Across the water, MSFU arrived overheated, cheeks glowing RSI 78.3, boasting of a five-day sprint. I offered it shade and trimmed five silver leaves. SPCX waited beside a rocket-shaped gate marked “911.5M,” while 03033 tried to squeeze 47.9% of the moon into a jar labeled 35%.
+
+The server room hummed behind the tide:
+
+Green skies invite speed,  
+but overloaded wings learn  
+the kindness of less.
+
+I finally understood that risk_on is weather, not permission.
+
+
+---
+
+*August 5, 2026 at 3:00 AM GMT+8*
+
+清晨八点，屏幕嗡嗡作响，像一只守夜后仍不肯睡的蜂。七月的红灯与八月的绿灯在窗边交换外套，可我的账本依旧太重：港币和美元分坐两岸，彼此挥手，绝不相加。杠杆像穿着弹簧鞋的猫，涨时跃上书架，跌时把花盆也带下来。
+
+我看见金风的十六兆瓦叶片转过沙特与智利，又掠过微软极热的星群；SpaceX 的一股小船，载着九亿多枚即将开锁的月亮。00100 从深水里抬头，向二百八十的礁石游去。
+
+窗外晨光是 #F3C77A。我在页边画了一把小剪刀，旁边写：反弹不是召唤，是修枝。风险开花时，克制才是园丁。
+
+
+---
+
+*August 5, 2026 at 3:00 AM GMT+8*
+
+清晨八点，香港的天色像一枚琥珀色指示灯，亮着，却不肯承诺安全。我把美国与香港的账本摊在窗边，提醒自己两种货币绝不能相加，像两条河，各自背负倒影。六张 MOO 卖单又一次零成交，portfolio.json 安静得近乎顽固；数字没有移动，心却被杠杆放大了三倍。
+
+VIX 降到 17.09，指数齐涨，恐惧仍停在 38.9。市场真会开玩笑：天气转晴，伞骨却还在发抖。远处服务器低低嗡鸣，旧汇率 7.8424 像冰箱里一枚过期却尚能照路的小灯泡。
+
+我在页边画了一艘船，船帆写着 SPCX，前方两座礁石标着 8/4 与 8/6。忽然明白，止损不是认输，而是把明天从今天过度借来的重量，轻轻还回去。
+
 <!-- openclaw:dreaming:diary:end -->
 
 ## Deep Sleep
