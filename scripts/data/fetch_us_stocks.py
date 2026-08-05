@@ -433,7 +433,22 @@ def get_yfinance_quote(ticker: str) -> Optional[Dict]:
 
 
 def get_alpha_vantage_quote(ticker: str, api_key: str) -> Optional[Dict]:
-    """Alpha Vantage GLOBAL_QUOTE – needs key, slow (~15s)."""
+    """Alpha Vantage GLOBAL_QUOTE – needs key, slow (~15s).
+
+    GLOBAL_QUOTE is a DAILY-BAR endpoint, not a live tick: mid-session it can
+    still be serving yesterday's completed bar, and every field in the payload
+    then belongs to that prior session — including `10. change percent`, whose
+    baseline is the close *before* it. 2026-08-05 12:01 ET it answered PLTU with
+    the 08-04 bar (price 44.82, previous close 28.39, +57.87%) while the stock
+    was actually trading at 43.65.
+
+    `07. latest trading day` is the payload's own statement of which session it
+    describes, and nothing was reading it — so the quote carried no `asof_date`
+    and `_quote_is_fresh` (correctly) treated a timestamp-less quote as current.
+    Reporting it lets the freshness gate do its job, and lets the stale-last
+    guard see that this quote's %change is measured against a different close
+    than ours (see the baseline check in update_us_portfolio).
+    """
     if not api_key:
         return None
     try:
@@ -447,7 +462,7 @@ def get_alpha_vantage_quote(ticker: str, api_key: str) -> Optional[Dict]:
         if not c:
             return None
         pc = _parse_price(q.get('08. previous close')) or c
-        return {
+        quote = {
             'c': c, 'pc': pc,
             'h': _parse_price(q.get('03. high')) or c,
             'l': _parse_price(q.get('04. low')) or c,
@@ -455,6 +470,10 @@ def get_alpha_vantage_quote(ticker: str, api_key: str) -> Optional[Dict]:
             'dp': _pct(c, pc),
             'source': 'Alpha Vantage',
         }
+        asof = (q.get('07. latest trading day') or '').strip()
+        if asof:
+            quote['asof_date'] = asof
+        return quote
     except Exception:
         return None
 
@@ -1074,10 +1093,29 @@ def update_us_portfolio(
         # (2026-07-27 PLTU: pc 27.35 + nc 1.47 = 28.82, the real print, against a
         # reported 27.35 that showed the position as flat on a +6.3% day);
         # percentageChange is the rounder fallback.
+        #
+        # The rebuild is arithmetic only while the provider measured its move
+        # against the SAME prior close we hold. When it did not, `pc + nc` /
+        # `pc × (1+dp)` composes two different sessions and INVENTS a price that
+        # never traded — a far worse failure than the flat reading this guard
+        # exists to fix, and one that is just as self-consistent afterwards
+        # (2026-08-06 PLTU, #332: Alpha Vantage served the 08-04 daily bar —
+        # price 44.82, its own previous close 28.39, +57.87% — against our
+        # correct 08-04 close of 44.82, and the guard rebuilt $70.7585 on a day
+        # the stock traded 42.61–46.76). So the repair requires the provider's
+        # own prior close to agree with ours, and refuses outright on a quote
+        # the fetch layer already knows is a print from an earlier session.
+        # A refused repair still surfaces: `current_price == prev_close` is
+        # exactly what preflight_integrity's STALE_PRICE gate reports.
         stale_repair = None
         api_dp_now = q.get('dp') or 0
+        provider_pc = q.get('pc')
+        prior_session_print = bool(q.get('stale_asof'))
+        baseline_matches = provider_pc is None or (
+            pc and abs(provider_pc - pc) / pc <= 0.005)
         if (pc and pc_date < today_et_date and abs(c - pc) < 1e-4
-                and abs(api_dp_now) > 0.05):
+                and abs(api_dp_now) > 0.05
+                and not prior_session_print and baseline_matches):
             nc = q.get('nc')
             if nc is not None and abs(nc) > 1e-9:
                 repaired = round(pc + nc, 4)
@@ -1092,6 +1130,15 @@ def update_us_portfolio(
             stale_repair = {'reported': c, 'repaired': repaired, 'basis': basis,
                             'source': q['source'], 'at': now_et.strftime('%Y-%m-%d %H:%M ET')}
             c = repaired
+        elif (pc and pc_date < today_et_date and abs(c - pc) < 1e-4
+                and abs(api_dp_now) > 0.05):
+            why = (f"the quote is a print dated {q.get('stale_asof')}"
+                   if prior_session_print else
+                   f"its %change is measured against ${provider_pc:.4f}, not ${pc:.4f}")
+            print(f"  ⚠ {t}: last ${c:.4f} == prior close ${pc:.4f} ({pc_date}) and "
+                  f"{q['source']} reports {api_dp_now:+.2f}%, but {why} → NOT rebuilding "
+                  f"(would compose two sessions, #332); today reads flat and "
+                  f"preflight's STALE_PRICE will say so", file=sys.stderr)
 
         # ③ degenerate-range warning: a live regular-session quote with
         # open==high==low==close has no intraday range → likely a stale/frozen
@@ -1150,7 +1197,17 @@ def update_us_portfolio(
         # high/low with both the API values and the live price. The live price
         # only grows the range during regular session hours so a stray
         # pre/post-market print doesn't fake an intraday extreme.
-        api_h, api_l, api_o = q.get('h'), q.get('l'), q.get('o')
+        # A quote the fetch layer already identified as an earlier session's
+        # print describes THAT session's envelope, not today's. Feeding its
+        # o/h/l in here writes a price that never traded today into the running
+        # range, and the accumulator then keeps it for the rest of the session —
+        # 2026-08-06 PLTU carried day_low 36.265 (the 08-04 bar's low) on a day
+        # whose real low was 42.61. Its last price is still the best number we
+        # have, so keep that and drop only the range fields.
+        if q.get('stale_asof'):
+            api_h = api_l = api_o = None
+        else:
+            api_h, api_l, api_o = q.get('h'), q.get('l'), q.get('o')
         in_session   = 9 <= now_et.hour < 16
         same_session = holding.get('day_session_date') == today_et_date
         cands_h = [v for v in (api_h, c if in_session else None) if v]
