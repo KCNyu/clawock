@@ -190,13 +190,16 @@ def compile_overview_projection(dashboard):
         }
         for row in workflow.get('recent') or [] if isinstance(row, dict)
     ]
-    overview_equity_fields = (
-        'date', 'us_asof', 'hk_asof', 'us_total_value', 'hk_total_value',
-        'us_cash', 'hk_cash', 'us_equity', 'hk_equity', 'us_total_cost',
-        'hk_total_cost', 'us_profit', 'hk_profit',
+    # Per-leg snapshot fields, grouped by metric the way the Hero projection has
+    # always emitted them (both legs' `_asof`, then both `_total_value`, …).
+    leg_keys = [leg.key for leg in _ledger_legs()]
+    overview_equity_fields = ('date',) + tuple(
+        f'{key}_{metric}'
+        for metric in ('asof', 'total_value', 'cash', 'equity', 'total_cost', 'profit')
+        for key in leg_keys
     )
     watch_holdings = []
-    for region in ('us', 'hk'):
+    for region in leg_keys:
         for holding in (dashboard.get('holdings') or {}).get(region, []):
             if (holding.get('is_active', True) is False
                     or (holding.get('shares') or 0) <= 0):
@@ -498,8 +501,8 @@ def build_holdings_history(snapshot_paths, days=8):
         d = load_json(p)
         if not d:
             continue
-        for region in ('us_stocks', 'hk_stocks'):
-            for h in (d.get('portfolios', {}).get(region, {}).get('holdings') or []):
+        for leg in _ledger_legs():
+            for h in (d.get('portfolios', {}).get(leg.bucket, {}).get('holdings') or []):
                 t = h.get('ticker') or h.get('code')
                 if not t:
                     continue
@@ -568,8 +571,30 @@ def _session_asof(region_pf, fallback_year):
 _LEDGER_CACHE = None
 
 
+_LEDGER_LEGS_CACHE = None
+
+
+def _ledger_legs():
+    """The live ledger's legs, cached for the process.
+
+    Snapshots carry the same `portfolios.{bucket}` shape as portfolio.json, but
+    an individual snapshot may predate a book. Reading the leg list from the
+    CURRENT ledger rather than from each snapshot keeps one stable key set across
+    every row — the frontend indexes `<leg>_equity` on all of them, so a row that
+    silently dropped a leg would break the curve rather than shorten it.
+    """
+    global _LEDGER_LEGS_CACHE
+    if _LEDGER_LEGS_CACHE is None:
+        try:
+            _LEDGER_LEGS_CACHE = resolve_legs(
+                load_json(str(WS_ROOT / 'portfolio.json')) or {})
+        except Exception:
+            _LEDGER_LEGS_CACHE = []
+    return _LEDGER_LEGS_CACHE
+
+
 def _canonical_ledger():
-    """portfolio.json holdings per region — the realized-P&L source of truth.
+    """portfolio.json holdings per leg — the realized-P&L source of truth.
     Cached for the lifetime of the process. Returns {} on any failure."""
     global _LEDGER_CACHE
     if _LEDGER_CACHE is None:
@@ -577,8 +602,8 @@ def _canonical_ledger():
             d = load_json(str(WS_ROOT / 'portfolio.json')) or {}
             pf = d.get('portfolios', {})
             _LEDGER_CACHE = {
-                'us_stocks': pf.get('us_stocks', {}).get('holdings', []) or [],
-                'hk_stocks': pf.get('hk_stocks', {}).get('holdings', []) or [],
+                leg.bucket: pf.get(leg.bucket, {}).get('holdings', []) or []
+                for leg in resolve_legs(d)
             }
         except Exception:
             _LEDGER_CACHE = {}
@@ -596,6 +621,7 @@ def load_snapshots():
     even if a future writer regresses. Read-only on the snapshot files."""
     from snapshot_realized import realized_as_of, snapshot_shares
     ledger = _canonical_ledger()
+    legs = _ledger_legs()
     paths = sorted(
         p for p in glob.glob(str(WS_ROOT / 'memory' / 'snapshots' / '*.json'))
         if SNAPSHOT_FNAME_RE.match(os.path.basename(p))
@@ -612,37 +638,32 @@ def load_snapshots():
         date = fname.split('.')[0].split('-')
         date = '-'.join(date[:3]) if len(date) >= 3 else fname
         pf = d.get('portfolios', {})
-        us = pf.get('us_stocks', {})
-        hk = pf.get('hk_stocks', {})
-        us_val = us.get('total_current_value', 0) or 0
-        hk_val = hk.get('total_current_value', 0) or 0
-        us_real = us.get('realized_pnl', 0) or 0
-        hk_real = hk.get('realized_pnl', 0) or 0
+        books = {leg.key: pf.get(leg.bucket, {}) for leg in legs}
+        vals = {k: (b.get('total_current_value', 0) or 0) for k, b in books.items()}
+        reals = {k: (b.get('realized_pnl', 0) or 0) for k, b in books.items()}
         # Prefer point-in-time realized derived from the canonical ledger; only
         # override when it diverges from the stored value (stale/lagging snapshot).
         if SNAPSHOT_FNAME_RE.match(fname) and ledger:
-            for region_holdings, region_pf, cur in (
-                (ledger.get('us_stocks', []), us, 'us'),
-                (ledger.get('hk_stocks', []), hk, 'hk'),
-            ):
+            for leg in legs:
+                region_pf = books[leg.key]
                 if not region_pf:
                     continue
-                true_real, _ = realized_as_of(region_holdings, date, snapshot_shares(region_pf))
-                stored = (us_real if cur == 'us' else hk_real)
-                if abs(true_real - (stored or 0)) > 0.005:
-                    if cur == 'us':
-                        us_real = true_real
-                    else:
-                        hk_real = true_real
-        results.append({
-            'date': date,
-            'file': fname,
-            'us_total_value': us_val,
-            'us_total_cost': us.get('total_cost', 0),
-            'us_total_pnl': us.get('total_pnl', 0),
-            'us_today_change': us.get('today_total_change', 0),
-            'us_realized': us_real,
-            'us_equity': round(us_val + us_real, 2),
+                true_real, _ = realized_as_of(
+                    ledger.get(leg.bucket, []), date, snapshot_shares(region_pf))
+                if abs(true_real - (reals[leg.key] or 0)) > 0.005:
+                    reals[leg.key] = true_real
+        row = {'date': date, 'file': fname}
+        # Per-leg metrics first, one leg fully before the next — the payload is
+        # serialized unsorted, so this grouping is the published field order.
+        for leg in legs:
+            book, val, real = books[leg.key], vals[leg.key], reals[leg.key]
+            cost = book.get('total_cost', 0)
+            row[f'{leg.key}_total_value'] = val
+            row[f'{leg.key}_total_cost'] = cost
+            row[f'{leg.key}_total_pnl'] = book.get('total_pnl', 0)
+            row[f'{leg.key}_today_change'] = book.get('today_total_change', 0)
+            row[f'{leg.key}_realized'] = real
+            row[f'{leg.key}_equity'] = round(val + real, 2)
             # 总利润 = 浮盈 + 已实现 = equity − 成本基础. Unlike equity, this nets out
             # deployed capital, so its peak is the true P&L peak (market value peaks
             # when capital is MOST deployed, which is not the same as making the most
@@ -650,24 +671,18 @@ def load_snapshots():
             # realized so a lagging snapshot can't poison it either. NOTE: profit can
             # go negative, so % drawdown on this series is meaningless — only ever
             # report it in absolute money terms (the equity series owns the % axis).
-            'us_profit': round(us_val + us_real - (us.get('total_cost', 0) or 0), 2),
-            'hk_total_value': hk_val,
-            'hk_total_cost': hk.get('total_cost', 0),
-            'hk_total_pnl': hk.get('total_pnl', 0),
-            'hk_today_change': hk.get('today_total_change', 0),
-            'hk_realized': hk_real,
-            'hk_equity': round(hk_val + hk_real, 2),
-            'hk_profit': round(hk_val + hk_real - (hk.get('total_cost', 0) or 0), 2),
-            # 现金余额 (kcn 对账手填进 portfolio.json，refresh_today_snapshot 整文件拷进
-            # 快照故自动留痕)。真实总资产 = total_value + cash。早于现金跟踪的快照为 None
-            # → 前端 total-assets 曲线在该点断开(不瞎算)。US 自 2026-06-12 起有、HK 自 06-18 起有。
-            'us_cash': us.get('cash_usd'),
-            'hk_cash': hk.get('cash_hkd'),
-            # Market-session dates (≠ filename date) so daily P&L can collapse a US
-            # session that straddles two HK-dated snapshots instead of double-counting.
-            'us_asof': _session_asof(us, date[:4]),
-            'hk_asof': _session_asof(hk, date[:4]),
-        })
+            row[f'{leg.key}_profit'] = round(val + real - (cost or 0), 2)
+        # 现金余额 (kcn 对账手填进 portfolio.json，refresh_today_snapshot 整文件拷进
+        # 快照故自动留痕)。真实总资产 = total_value + cash。早于现金跟踪的快照为 None
+        # → 前端 total-assets 曲线在该点断开(不瞎算)。US 自 2026-06-12 起有、HK 自 06-18 起有。
+        # 字段名用币种,和账本里 `cash_usd`/`cash_hkd` 同一条规则。
+        for leg in legs:
+            row[f'{leg.key}_cash'] = books[leg.key].get(f'cash_{leg.currency.lower()}')
+        # Market-session dates (≠ filename date) so daily P&L can collapse a US
+        # session that straddles two HK-dated snapshots instead of double-counting.
+        for leg in legs:
+            row[f'{leg.key}_asof'] = _session_asof(books[leg.key], date[:4])
+        results.append(row)
     return results
 
 
@@ -810,16 +825,16 @@ def _pct_change(curr, prev):
         return None
 
 
-def compute_delta(snapshots):
-    """Equity rolling-window % change vs today.
+def compute_delta(snapshots, legs=None):
+    """Equity rolling-window % change vs today, per leg.
 
     snapshots is the same list build_dashboard already prepares: ascending date,
-    so today = snapshots[-1], yesterday = snapshots[-2], etc.
+    so today = snapshots[-1], yesterday = snapshots[-2], etc. Each row carries
+    `<leg>_equity`, written by `load_snapshots` from the same leg list.
     """
-    empty = {
-        'us': {'today_pct': None, '7d_pct': None, '30d_pct': None},
-        'hk': {'today_pct': None, '7d_pct': None, '30d_pct': None},
-    }
+    legs = _ledger_legs() if legs is None else legs
+    empty = {leg.key: {'today_pct': None, '7d_pct': None, '30d_pct': None}
+             for leg in legs}
     try:
         if not snapshots:
             return empty
@@ -839,10 +854,7 @@ def compute_delta(snapshots):
                 '7d_pct':    _pct_change(today_v, at(7, value_key)) if n >= 8 else None,
                 '30d_pct':   _pct_change(today_v, at(30, value_key)) if n >= 31 else None,
             }
-        return {
-            'us': region('us_equity'),
-            'hk': region('hk_equity'),
-        }
+        return {leg.key: region(f'{leg.key}_equity') for leg in legs}
     except Exception as e:
         print(f'  warn: compute_delta failed: {e}', file=sys.stderr)
         return empty
@@ -1595,30 +1607,37 @@ def _profit_extremes(series):
     }
 
 
-def compute_drawdown(snapshots, fx_rate=None):
-    """All-time peak / trough / max-drawdown per region AND combined.
+def compute_drawdown(snapshots, fx_rate=None, legs=None):
+    """All-time peak / trough / max-drawdown per leg AND combined.
 
     Basis = equity (market value + cumulative realized) so selling a position
-    doesn't masquerade as a drawdown. Combined series folds US→HKD at the
-    current fx_rate (HKD peg barely moves, so a constant rate is fine).
+    doesn't masquerade as a drawdown. The combined series folds the base leg into
+    the QUOTE leg's currency at the current fx_rate (the HKD peg barely moves, so
+    a constant rate is fine) — note this is the opposite direction from the
+    combined P&L cards, which is why both label their currency.
 
     Legacy keys kept for back-compat:
       `max_pct_30d_*` = worst peak-to-trough retracement over the window.
       `current_pct_*` = (today - 30d-ago) / 30d-ago * 100.
-    New keys: `us` / `hk` / `combined` → see `_series_extremes`.
+    New keys: one per leg, plus `combined` → see `_series_extremes`.
     """
-    empty = {
-        'max_pct_30d_hk': None,
-        'max_pct_30d_us': None,
-        'current_pct_hk': None,
-        'current_pct_us': None,
-        'us': None,
-        'hk': None,
-        'combined': None,
-        'profit': {'us': None, 'hk': None, 'combined': None,
-                   'basis': 'total profit (unrealized + realized), money-only'},
-        'basis': 'equity (market value + realized)',
-    }
+    legs = _ledger_legs() if legs is None else legs
+    base_leg, quote_leg = (legs[0], legs[1]) if len(legs) == 2 else (None, None)
+    # The legacy suffixed keys were emitted quote-leg-first. Key order is the
+    # published field order, so it is reproduced rather than tidied.
+    legacy = list(reversed(legs))
+    empty = {}
+    for leg in legacy:
+        empty[f'max_pct_30d_{leg.key}'] = None
+    for leg in legacy:
+        empty[f'current_pct_{leg.key}'] = None
+    for leg in legs:
+        empty[leg.key] = None
+    empty['combined'] = None
+    empty['profit'] = {leg.key: None for leg in legs}
+    empty['profit']['combined'] = None
+    empty['profit']['basis'] = 'total profit (unrealized + realized), money-only'
+    empty['basis'] = 'equity (market value + realized)'
     try:
         if not snapshots:
             return empty
@@ -1664,66 +1683,69 @@ def compute_drawdown(snapshots, fx_rate=None):
             return round((t - b) / abs(b) * 100, 2)
 
         # All-time extremes (over every embedded snapshot, not just the 30d window).
-        us_series = [(s.get('date'), s.get('us_equity')) for s in snapshots]
-        hk_series = [(s.get('date'), s.get('hk_equity')) for s in snapshots]
-        combined = None
-        if fx_rate and fx_rate > 0:
-            comb_series = []
+        def _combined(field):
+            """Base leg converted into the quote leg's currency, then added."""
+            if not base_leg or not (fx_rate and fx_rate > 0):
+                return None
+            rows = []
             for s in snapshots:
-                ue, he = s.get('us_equity'), s.get('hk_equity')
-                if ue is None or he is None:
+                b, q = (s.get(f'{base_leg.key}_{field}'),
+                        s.get(f'{quote_leg.key}_{field}'))
+                if b is None or q is None:
                     continue
-                comb_series.append((s.get('date'), ue * fx_rate + he))
-            combined = _series_extremes(comb_series)
-            if combined:
-                combined['currency'] = 'HKD'
-                combined['fx_usdhkd'] = round(fx_rate, 4)
+                rows.append((s.get('date'), b * fx_rate + q))
+            return rows
 
-        us_ext = _series_extremes(us_series)
-        if us_ext:
-            us_ext['currency'] = 'USD'
-        hk_ext = _series_extremes(hk_series)
-        if hk_ext:
-            hk_ext['currency'] = 'HKD'
+        def _label(ext, currency):
+            if ext:
+                ext['currency'] = currency
+            return ext
+
+        fx_key = (f'fx_{base_leg.currency.lower()}{quote_leg.currency.lower()}'
+                  if base_leg else 'fx_rate')
+        comb_series = _combined('equity')
+        combined = _series_extremes(comb_series) if comb_series is not None else None
+        if combined:
+            combined['currency'] = quote_leg.currency
+            combined[fx_key] = round(fx_rate, 4)
+
+        ext_by_leg = {
+            leg.key: _label(
+                _series_extremes([(s.get('date'), s.get(f'{leg.key}_equity'))
+                                  for s in snapshots]),
+                leg.currency)
+            for leg in legs
+        }
 
         # 总利润 (浮盈+已实现) extremes — money-only, parallel to the equity block.
         # Lets the dashboard answer "利润峰值到过多少 / 现在离峰值差多少 $" without the
         # market-value-peak ≠ profit-peak confusion that equity invites.
-        us_profit_ext = _profit_extremes([(s.get('date'), s.get('us_profit')) for s in snapshots])
-        if us_profit_ext:
-            us_profit_ext['currency'] = 'USD'
-        hk_profit_ext = _profit_extremes([(s.get('date'), s.get('hk_profit')) for s in snapshots])
-        if hk_profit_ext:
-            hk_profit_ext['currency'] = 'HKD'
-        combined_profit_ext = None
-        if fx_rate and fx_rate > 0:
-            comb_p = []
-            for s in snapshots:
-                up, hp = s.get('us_profit'), s.get('hk_profit')
-                if up is None or hp is None:
-                    continue
-                comb_p.append((s.get('date'), up * fx_rate + hp))   # HKD base, same as combined equity
-            combined_profit_ext = _profit_extremes(comb_p)
-            if combined_profit_ext:
-                combined_profit_ext['currency'] = 'HKD'
-                combined_profit_ext['fx_usdhkd'] = round(fx_rate, 4)
-
-        return {
-            'max_pct_30d_hk': max_drawdown_pct('hk_equity'),
-            'max_pct_30d_us': max_drawdown_pct('us_equity'),
-            'current_pct_hk': current_pct('hk_equity'),
-            'current_pct_us': current_pct('us_equity'),
-            'us': us_ext,
-            'hk': hk_ext,
-            'combined': combined,
-            'profit': {
-                'us': us_profit_ext,
-                'hk': hk_profit_ext,
-                'combined': combined_profit_ext,
-                'basis': 'total profit (unrealized + realized), money-only',
-            },
-            'basis': 'equity (market value + realized)',
+        profit_by_leg = {
+            leg.key: _label(
+                _profit_extremes([(s.get('date'), s.get(f'{leg.key}_profit'))
+                                  for s in snapshots]),
+                leg.currency)
+            for leg in legs
         }
+        comb_p = _combined('profit')   # same base as the combined equity series
+        combined_profit_ext = _profit_extremes(comb_p) if comb_p is not None else None
+        if combined_profit_ext:
+            combined_profit_ext['currency'] = quote_leg.currency
+            combined_profit_ext[fx_key] = round(fx_rate, 4)
+
+        out = {}
+        for leg in legacy:
+            out[f'max_pct_30d_{leg.key}'] = max_drawdown_pct(f'{leg.key}_equity')
+        for leg in legacy:
+            out[f'current_pct_{leg.key}'] = current_pct(f'{leg.key}_equity')
+        for leg in legs:
+            out[leg.key] = ext_by_leg[leg.key]
+        out['combined'] = combined
+        out['profit'] = dict(profit_by_leg)
+        out['profit']['combined'] = combined_profit_ext
+        out['profit']['basis'] = 'total profit (unrealized + realized), money-only'
+        out['basis'] = 'equity (market value + realized)'
+        return out
     except Exception as e:
         print(f'  warn: compute_drawdown failed: {e}', file=sys.stderr)
         return empty
