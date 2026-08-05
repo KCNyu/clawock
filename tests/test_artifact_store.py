@@ -107,6 +107,61 @@ def test_publishing_does_not_leave_the_caller_repository_shallow(repo):
     _git(repo, "push", "origin", "master")                  # the master publish
 
 
+def test_a_published_generation_reads_back_byte_for_byte(repo, tmp_path):
+    """Byte-equality between what was published and what is served is the
+    acceptance criterion for the whole migration, and the easiest way to lose it
+    is a trailing newline: `git` output is routinely stripped, and a JSON payload
+    ends in one. Round-tripped through a real push and a real fetch."""
+    generation = {
+        "assets/data/dashboard.json": '{"totals": 1}\n',
+        "assets/data/overview.json": '{"generation_id": "one"}\n',
+    }
+    store = GitBranchStore(repo, "data-plane")
+    store.publish(generation, label="round trip")
+
+    into = tmp_path / "checkout"
+    written = store.fetch(into, names=list(generation))
+
+    assert written == list(generation)
+    for name, text in generation.items():
+        assert (into / name).read_text(encoding="utf-8") == text
+
+
+def test_a_materialised_generation_is_readable_by_whoever_serves_it(repo, tmp_path):
+    """`mkstemp` creates 0600 and `os.replace` swaps the inode, so a published
+    file inherits the staging permissions rather than its own.
+
+    Invisible for as long as these went out through git — the index normalises
+    the mode to 100644 — and load-bearing the moment a consumer reads them off
+    disk instead. The Pages build was the first: `jekyll-build-pages` runs in a
+    container as another user and could not read its own inputs
+    (`PermissionError: … _site/assets/data/overview.json`).
+    """
+    store = GitBranchStore(repo, "data-plane")
+    store.publish(GENERATION, label="x")
+
+    into = tmp_path / "checkout"
+    store.fetch(into, names=list(GENERATION))
+
+    for name in GENERATION:
+        mode = (into / name).stat().st_mode & 0o777
+        assert mode == 0o644, f"{name} published as {oct(mode)}"
+
+
+def test_a_generation_the_branch_does_not_carry_is_refused(repo, tmp_path):
+    """Materialising three of four outputs would leave the fourth as whatever the
+    checkout already had — one page serving two generations, with nothing in the
+    logs. The reader asserts the whole set."""
+    GitBranchStore(repo, "data-plane").publish(GENERATION, label="x")
+
+    with pytest.raises(FileNotFoundError, match="decision_audit"):
+        GitBranchStore(repo, "data-plane").fetch(
+            tmp_path / "checkout",
+            names=[*GENERATION, "assets/data/decision_audit.json"])
+    assert not (tmp_path / "checkout").exists(), (
+        "nothing is materialised when the generation is incomplete")
+
+
 @pytest.mark.parametrize("branch", ["master", "main", "HEAD"])
 def test_a_branch_that_is_built_on_is_refused(repo, branch):
     """Every publish discards the target's history. Pointed at `master` that is

@@ -65,6 +65,14 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
+      # The four dashboard outputs are published to an orphan data branch, not
+      # to master (#314). Jekyll builds _site from the checkout, so they have to
+      # be in the checkout first. Loud on failure: a fall back to whatever the
+      # checkout happened to carry is how a site serves a stale generation with
+      # every gate still green.
+      - name: Fetch the published generation
+        run: python3 scripts/build/fetch_data_plane.py
+
       - name: Configure Pages
         uses: actions/configure-pages@v6
 

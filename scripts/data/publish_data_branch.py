@@ -38,10 +38,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 from clawock.publish import GitBranchStore  # noqa: E402
 from dashboard_outputs import DASHBOARD_OUTPUTS  # noqa: E402
 
-# The one place this name is decided. `.github/workflows/pages.yml` fetches the
-# same branch and `tests/test_pages_deployment_contract.py` asserts the two agree,
-# because a rename that updated only one of them would serve stale data with
-# every gate still green.
+# The one place this name is decided. The reader imports it from here rather
+# than restating it (`scripts/build/fetch_data_plane.py`), because a rename that
+# updated only the writer would serve a stale generation with every gate green.
 DATA_BRANCH = "data-plane"
 
 # Same bot identity the scheduled publisher commits under. Injected per
