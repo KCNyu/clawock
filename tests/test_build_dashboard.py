@@ -1183,3 +1183,31 @@ def test_telemetry_never_creates_the_directory_or_raises(tmp_path, monkeypatch):
     dashboard.record_preservation({"anomalies": False}, ["anomalies"], None, "out.json")
 
     assert not (tmp_path / "memory").exists()
+
+
+def test_anomaly_order_follows_the_ledger_not_the_brief_context():
+    """The high-weight-loss loop appends to a list nothing sorts afterwards, so
+    the order it iterates legs in IS the published order of the card.
+
+    The brief-context happens to carry its concentration keys as `hk, us` — the
+    reverse of the ledger. Reading legs off that dict looks equivalent and is
+    invisible until both legs have an entry on the same day, which is exactly
+    when the card would silently reorder.
+    """
+    brief_ctx = {"concentration": {  # deliberately hk-first, like the real file
+        "hk": {"weights": [{"ticker": "09660", "weight_pct": 30.0}]},
+        "us": {"weights": [{"ticker": "SOXL", "weight_pct": 30.0}]},
+    }}
+    us_h = [{"ticker": "SOXL", "pnl_percent": -15.0, "shares": 1}]
+    hk_h = [{"ticker": "09660", "pnl_percent": -15.0, "shares": 1}]
+
+    ordered = dashboard.extract_anomalies(
+        brief_ctx, us_h, hk_h, leg_keys=["us", "hk"])
+    tickers = [a["ticker"] for a in ordered if a["type"] == "high_weight_loss"]
+    assert tickers == ["SOXL", "09660"], (
+        "leg order must come from the ledger, not from the brief-context's dict")
+
+    reversed_ledger = dashboard.extract_anomalies(
+        brief_ctx, us_h, hk_h, leg_keys=["hk", "us"])
+    assert [a["ticker"] for a in reversed_ledger
+            if a["type"] == "high_weight_loss"] == ["09660", "SOXL"]

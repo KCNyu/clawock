@@ -108,6 +108,27 @@ def leg_books(portfolio):
     return books.get(base.bucket) or {}, books.get(quote.bucket) or {}
 
 
+def leg_totals(leg, book):
+    """One leg's headline numbers, with its own currency in the field names.
+
+    The suffix is the leg's currency, not the string 'usd' — the same reason the
+    combined figures carry theirs. `cash_{ccy}` is also how the ledger itself
+    names the field, so it is read the same way rather than by a second rule.
+    """
+    ccy = leg.currency.lower()
+    return {
+        f'value_{ccy}': book.get('total_current_value', 0),
+        f'cost_{ccy}': book.get('total_cost', 0),
+        f'pnl_{ccy}': book.get('total_pnl', 0),
+        'pnl_pct': book.get('total_pnl_percent', 0),
+        f'today_change_{ccy}': book.get('today_total_change', 0),
+        f'realized_{ccy}': book.get('realized_pnl', 0),
+        # 现金余额(kcn 对账手填) → 真实总资产 = 持仓市值 + 现金 (trade-invariant).
+        # None = 该腿现金未跟踪（HK 长期如此）。
+        f'cash_{ccy}': book.get(f'cash_{ccy}'),
+    }
+
+
 # ── Anti-bloat caps ──────────────────────────────────────────────────────
 # Dashboard only embeds the most recent snapshots + plan summaries.
 # Older history lives on disk; if dashboard ever needs full history, load lazily.
@@ -827,34 +848,27 @@ def compute_delta(snapshots):
         return empty
 
 
-def compute_today_movers(us_h, hk_h):
-    """abs(today_change_pct) >= 3.0 holdings across both regions, top 10 by abs."""
+def compute_today_movers(us_h, hk_h, leg_keys=('us', 'hk')):
+    """abs(today_change_pct) >= 3.0 holdings across both legs, top 10 by abs.
+
+    `leg_keys` labels the two holdings lists. The default is the historical pair
+    and exists for direct callers; the projection passes its ledger's legs.
+    """
     try:
         items = []
-        for h in (us_h or []):
-            pct = h.get('today_change_pct')
-            if pct is None:
-                continue
-            if abs(pct) >= 3.0:
-                items.append({
-                    'ticker': h.get('ticker'),
-                    'name': h.get('name', ''),
-                    'region': 'us',
-                    'today_change_pct': round(pct, 2),
-                    'current_price': h.get('current_price'),
-                })
-        for h in (hk_h or []):
-            pct = h.get('today_change_pct')
-            if pct is None:
-                continue
-            if abs(pct) >= 3.0:
-                items.append({
-                    'ticker': h.get('ticker'),
-                    'name': h.get('name', ''),
-                    'region': 'hk',
-                    'today_change_pct': round(pct, 2),
-                    'current_price': h.get('current_price'),
-                })
+        for leg_key, holdings in zip(leg_keys, (us_h, hk_h)):
+            for h in (holdings or []):
+                pct = h.get('today_change_pct')
+                if pct is None:
+                    continue
+                if abs(pct) >= 3.0:
+                    items.append({
+                        'ticker': h.get('ticker'),
+                        'name': h.get('name', ''),
+                        'region': leg_key,
+                        'today_change_pct': round(pct, 2),
+                        'current_price': h.get('current_price'),
+                    })
         items.sort(key=lambda x: -abs(x['today_change_pct']))
         return items[:10]
     except Exception as e:
@@ -1175,7 +1189,7 @@ def validate_intraday_insights(data, known_tickers):
 _LEVERAGED_TICKERS = instrument_registry.leveraged_symbols()
 
 
-def extract_anomalies(brief_ctx, us_h, hk_h):
+def extract_anomalies(brief_ctx, us_h, hk_h, leg_keys=None):
     """Risk signals derived from the latest brief-context.
 
     Recognized types:
@@ -1208,7 +1222,14 @@ def extract_anomalies(brief_ctx, us_h, hk_h):
 
         # high_weight_loss anomalies (concentration top tickers w/ deep loss)
         conc = brief_ctx.get('concentration') or {}
-        for region in ('us', 'hk'):
+        # Leg order comes from the caller's ledger, NOT from `conc`: this loop
+        # appends to `out` and nothing sorts it afterwards, so the iteration order
+        # is the published order of the anomaly list. The brief-context happens to
+        # carry its concentration keys as ['hk', 'us'] — reading them in that order
+        # would silently reorder the card the day both legs have an entry.
+        for region in (leg_keys or list(conc)):
+            if region not in conc:
+                continue
             region_conc = conc.get(region) or {}
             weights = region_conc.get('weights') or []
             for w in weights:
@@ -1405,8 +1426,9 @@ def compute_weight_confidence(portfolio, window_days=30):
 
         # Compute per-region weights from active holdings
         out = []
-        for region_key, region_label in (('us_stocks', 'us'), ('hk_stocks', 'hk')):
-            pf = (portfolio.get('portfolios') or {}).get(region_key, {}) or {}
+        for leg in resolve_legs(portfolio):
+            region_label = leg.key
+            pf = (portfolio.get('portfolios') or {}).get(leg.bucket, {}) or {}
             holdings = [h for h in pf.get('holdings', []) if (h.get('shares') or 0) > 0]
             total = sum((h.get('current_value') or 0) for h in holdings)
             if total <= 0:
@@ -1717,11 +1739,12 @@ LEVERAGED_TICKERS = instrument_registry.leveraged_symbols()
 
 def compute_sector_exposure(portfolio):
     """Group active holdings by sector, with % of region book."""
-    result = {'us': [], 'hk': []}
+    legs = resolve_legs(portfolio)
+    result = {leg.key: [] for leg in legs}
     try:
-        for region in ('us_stocks', 'hk_stocks'):
-            r_key = 'us' if region == 'us_stocks' else 'hk'
-            holdings = portfolio['portfolios'][region].get('holdings', [])
+        for leg in legs:
+            r_key = leg.key
+            holdings = portfolio['portfolios'][leg.bucket].get('holdings', [])
             active = [h for h in holdings if h.get('shares', 0) > 0]
             total_value = sum(h.get('current_value', 0) or 0 for h in active)
             if total_value <= 0:
@@ -1752,7 +1775,7 @@ def compute_lookthrough_exposure(portfolio):
         return instrument_registry.compute_lookthrough_exposure(portfolio)
     except Exception as e:
         print(f'  warn: compute_lookthrough_exposure failed: {e}', file=sys.stderr)
-        return {'us': {}, 'hk': {}}
+        return {leg.key: {} for leg in resolve_legs(portfolio)}
 
 
 def compute_reentry_radar(lev_regime, portfolio):
@@ -1843,9 +1866,9 @@ def compute_current_holdings_extremes(portfolio, top_n=3):
     out = {'winners': [], 'losers': []}
     try:
         rows = []
-        for region in ('us_stocks', 'hk_stocks'):
-            r_key = 'us' if region == 'us_stocks' else 'hk'
-            for h in portfolio['portfolios'][region].get('holdings', []):
+        for leg in resolve_legs(portfolio):
+            r_key = leg.key
+            for h in portfolio['portfolios'][leg.bucket].get('holdings', []):
                 if h.get('shares', 0) <= 0:
                     continue
                 p = h.get('pnl_percent')
@@ -1871,9 +1894,9 @@ def compute_today_ranges(portfolio, top_n=8):
     """Today's high-low spread as % of current price, sorted desc."""
     rows = []
     try:
-        for region in ('us_stocks', 'hk_stocks'):
-            r_key = 'us' if region == 'us_stocks' else 'hk'
-            for h in portfolio['portfolios'][region].get('holdings', []):
+        for leg in resolve_legs(portfolio):
+            r_key = leg.key
+            for h in portfolio['portfolios'][leg.bucket].get('holdings', []):
                 if h.get('shares', 0) <= 0:
                     continue
                 hi = h.get('day_high'); lo = h.get('day_low'); cur = h.get('current_price')
@@ -2505,38 +2528,16 @@ def build_projection(previous_source=None, shadow_previous=None):
             'source': fx_cache.get('source'),
             'fetched_at': fx_cache.get('fetched_at'),
         },
-        'totals': {
-            'us': {
-                'value_usd': us_pf.get('total_current_value', 0),
-                'cost_usd': us_pf.get('total_cost', 0),
-                'pnl_usd': us_pf.get('total_pnl', 0),
-                'pnl_pct': us_pf.get('total_pnl_percent', 0),
-                'today_change_usd': us_pf.get('today_total_change', 0),
-                'realized_usd': us_pf.get('realized_pnl', 0),
-                # 现金余额(kcn 对账手填) → 真实总资产 = 持仓市值 + 现金 (trade-invariant).
-                'cash_usd': us_pf.get('cash_usd'),
-            },
-            'hk': {
-                'value_hkd': hk_pf.get('total_current_value', 0),
-                'cost_hkd': hk_pf.get('total_cost', 0),
-                'pnl_hkd': hk_pf.get('total_pnl', 0),
-                'pnl_pct': hk_pf.get('total_pnl_percent', 0),
-                'today_change_hkd': hk_pf.get('today_total_change', 0),
-                'realized_hkd': hk_pf.get('realized_pnl', 0),
-                'cash_hkd': hk_pf.get('cash_hkd'),   # None = HK 现金未跟踪
-            },
-        },
-        'concentration': {
-            'us': us_conc,
-            'hk': hk_conc,
-        },
+        'totals': {leg.key: leg_totals(leg, book)
+                   for leg, book in ((base_leg, us_pf), (quote_leg, hk_pf))},
+        'concentration': {base_leg.key: us_conc, quote_leg.key: hk_conc},
         'holdings': {
             # Only ship live positions to the client — shares=0 (fully-exited) names keep
             # their trades[] in portfolio.json for realized-P&L, but the frontend never
             # renders them (every consumer filters is_active), so excluding them here just
             # trims dashboard.json. Intermediate us_h/hk_h above stay full for compute_hhi.
-            'us': [h for h in us_h if (h.get('shares') or 0) > 0],
-            'hk': [h for h in hk_h if (h.get('shares') or 0) > 0],
+            base_leg.key: [h for h in us_h if (h.get('shares') or 0) > 0],
+            quote_leg.key: [h for h in hk_h if (h.get('shares') or 0) > 0],
         },
         'snapshots': snapshots,
         'snapshots_total': total_snapshots_count(),
@@ -2558,7 +2559,8 @@ def build_projection(previous_source=None, shadow_previous=None):
     # ── Dashboard v2 NEW fields (additive; never replace existing keys) ─
     brief_ctx_path, brief_ctx = _latest_brief_context()
     out['delta'] = compute_delta(snapshots)
-    out['today_movers'] = compute_today_movers(us_h, hk_h)
+    out['today_movers'] = compute_today_movers(
+        us_h, hk_h, leg_keys=(base_leg.key, quote_leg.key))
 
     # merge-not-overwrite guard for sidecar-derived cards. A context-less rebuild
     # (fresh checkout: memory/.tmp is gitignored, so brief-context + insights/
@@ -2580,7 +2582,8 @@ def build_projection(previous_source=None, shadow_previous=None):
     _prev_dash = load_previous_payload(previous_source) or {}
     _presence = {}
 
-    out['anomalies'] = extract_anomalies(brief_ctx, us_h, hk_h)
+    out['anomalies'] = extract_anomalies(
+        brief_ctx, us_h, hk_h, leg_keys=[leg.key for leg in resolve_legs(portfolio)])
     _presence['anomalies'] = bool(brief_ctx)
 
     # market_context is sector-scan-derived (load_sector_scan reads memory/.tmp,
