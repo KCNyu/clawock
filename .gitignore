@@ -112,3 +112,16 @@ portfolio.json.bak
 *.egg-info/
 /build/
 /dist/
+
+# Dashboard build outputs — published to the `data-plane` branch, not committed
+# (#314). Still written into the worktree by every build; ignored so no committer
+# can put a generation back into repository history by accident, and so
+# `git status` stays quiet on a machine that builds them. 71% of the commits on
+# master were these four files.
+/assets/data/overview.json
+/assets/data/dashboard.json
+/assets/data/decision_audit.json
+/assets/data/shadow_portfolio.json
+# The last published generation, materialised for `--previous` and for the
+# semantic diff's baseline.
+/.data-plane.cache/

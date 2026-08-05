@@ -165,26 +165,75 @@ def test_reflect_backtest_change_publishes_the_existing_audit_sidecar(tmp_path):
     ]
 
 
-def test_every_dashboard_committer_uses_the_shared_contract():
+def test_nothing_stages_the_outputs_into_a_commit_any_more():
+    """#314 took the four outputs out of repository history, so every path that
+    added them to a commit had to stop.
+
+    `git add` on a gitignored path FAILS rather than skipping, so a missed one is
+    a red publish rather than a quiet one — but "the publisher is red every 20
+    minutes" is not a discovery mechanism, and two of these five were found only
+    because a contract test named them. This is that test, inverted: it used to
+    assert they all staged, and now asserts none does.
+    """
     assert set(dashboard_outputs.DASHBOARD_OUTPUTS) == EXPECTED
 
-    for path in (
-        "scripts/harness/brief_postflight.py",
-        "scripts/harness/report_postflight.py",
-        "scripts/harness/intraday_postflight.py",
-    ):
-        assert "dashboard_output_changes()" in (ROOT / path).read_text()
-
-    for path in (
+    stagers = (
         ".githooks/pre-commit",
         "scripts/data/gold_dca_refresh.sh",
         "scripts/data/publish_dashboard.sh",
-    ):
-        assert "scripts/data/dashboard_outputs.py" in (ROOT / path).read_text()
+        "scripts/data/update_gold_dca.py",
+        "scripts/harness/_harness_common.py",
+    )
+    offenders = []
+    for rel in stagers:
+        for line in (ROOT / rel).read_text().splitlines():
+            code = line.split("#", 1)[0]
+            if "git" in code and "add" in code and "dashboard_paths" in code:
+                offenders.append(f"{rel}: {line.strip()}")
 
-    assert "semantic_changed_paths(WS_ROOT)" in (
-        ROOT / "scripts/data/update_gold_dca.py"
-    ).read_text()
+    assert not offenders, (
+        f"these still stage outputs that are no longer tracked: {offenders}")
+
+
+def test_the_publisher_compares_against_what_was_published():
+    """The semantic diff answers "did this rebuild change anything that matters",
+    and its answer came from `git show HEAD:…`. With the outputs untracked, HEAD
+    has nothing to say — every output would read as changed on every tick, and
+    every tick would republish and redeploy the site.
+
+    So the baseline has to be the data branch. This pins both halves: the
+    publisher materialises the last published generation, and hands that
+    directory to the diff rather than letting it default to git.
+    """
+    publisher = (ROOT / "scripts/data/publish_dashboard.sh").read_text()
+
+    assert "fetch_data_plane.py" in publisher
+    assert "--baseline-dir" in publisher
+    assert '--previous "$PREVIOUS_DIR' in publisher, (
+        "the recovery source must be the published generation, not this host's "
+        "own last build")
+
+
+def test_an_unreachable_data_plane_does_not_stop_the_publish():
+    """`set -e` is on in the publisher, so a bare `fetch_data_plane.py` would turn
+    a transient network failure into "this tick publishes nothing at all" — the
+    publisher would be strictly LESS resilient than before the migration, and
+    detection is not allowed to degrade into not-publishing.
+
+    What a failed fetch actually costs is bounded: the build goes workspace-only
+    and says so (#315), and the semantic diff falls back to "everything changed",
+    so the tick republishes once and the next fetch repairs it.
+    """
+    lines = (ROOT / "scripts/data/publish_dashboard.sh").read_text().splitlines()
+    invocation = next(i for i, line in enumerate(lines)
+                      if "fetch_data_plane.py" in line
+                      and not line.lstrip().startswith("#"))
+
+    guarded = lines[invocation].lstrip().startswith(("if ! ", "if "))
+    tolerated = lines[invocation].rstrip().endswith(("|| true", "|| :"))
+    assert guarded or tolerated, (
+        f"publish_dashboard.sh:{invocation + 1} lets a failed data-plane fetch "
+        "abort the whole publish under `set -e`")
 
 
 def test_a_failed_write_set_publishes_nothing(tmp_path):

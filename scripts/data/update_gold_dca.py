@@ -31,7 +31,6 @@ from zoneinfo import ZoneInfo
 WS_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.insert(0, os.path.join(WS_ROOT, 'scripts', 'data'))
 from safe_io import safe_write_json  # noqa: E402
-from dashboard_outputs import semantic_changed_paths  # noqa: E402
 
 PORTFOLIO = os.path.join(WS_ROOT, 'portfolio.json')
 
@@ -98,23 +97,23 @@ def main():
           f'对账日 {old[2]}→{rdate}')
     print(f'  平均成本 {avg:.4f}  （自动累加从 {rdate} 之后的交易日重新算起）')
 
-    dashboard_paths = []
     if not a.no_refresh:
         print('  刷新净值 + 重建 dashboard…')
         subprocess.run([sys.executable, os.path.join(WS_ROOT, 'scripts/data/fetch_gold_dca.py')], check=False)
+        # Rebuilt so this host's copy is current; NOT staged. The four outputs
+        # left the repository in #314 — the scheduled publisher puts them on the
+        # data branch, at most 20 minutes behind this commit.
         subprocess.run([sys.executable, os.path.join(WS_ROOT, 'scripts/data/build_dashboard.py')],
                        check=False, stdout=subprocess.DEVNULL)
-        dashboard_paths = semantic_changed_paths(WS_ROOT)
 
     if a.publish:
         print('  提交 + 推送上线…')
         os.chdir(WS_ROOT)
-        subprocess.run(['git', 'add', 'portfolio.json', *dashboard_paths], check=False)
+        subprocess.run(['git', 'add', 'portfolio.json'], check=False)
         subprocess.run(['git', 'commit', '-q', '-m', f'gold: 定投对账 {rdate}（本金{principal:.0f}/份额{units:.0f}）'], check=False)
         subprocess.run(['bash', os.path.join(WS_ROOT, 'scripts/data/safe_push.sh')], check=False)
     else:
-        publish_paths = ' '.join(['portfolio.json', *dashboard_paths])
-        print(f'  未推送。要上线：git add {publish_paths} && '
+        print('  未推送。要上线：git add portfolio.json && '
               'git commit + bash scripts/data/safe_push.sh（或加 --publish）')
     return 0
 

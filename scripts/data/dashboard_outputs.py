@@ -212,9 +212,14 @@ def main():
     parser.add_argument("--root", type=Path, default=ROOT)
     parser.add_argument("--keep-clock-only", action="store_true",
                         help="do not restore outputs changed only by build clocks")
+    parser.add_argument("--baseline-dir", type=Path, default=None,
+                        help="compare against a directory holding the last "
+                             "published generation instead of this repository's "
+                             "HEAD (the outputs are no longer tracked, #314)")
     args = parser.parse_args()
+    baseline = DirectoryBaseline(args.baseline_dir) if args.baseline_dir else None
     for path in semantic_changed_paths(
-        args.root, restore_clock_only=not args.keep_clock_only
+        args.root, restore_clock_only=not args.keep_clock_only, baseline=baseline
     ):
         print(path)
 
