@@ -479,7 +479,25 @@ def get_alpha_vantage_quote(ticker: str, api_key: str) -> Optional[Dict]:
 
 
 def get_polygon_quote(ticker: str, api_key: str) -> Optional[Dict]:
-    """Polygon.io prev-close – needs key, last resort."""
+    """Polygon.io prev-close – needs key, last resort.
+
+    This endpoint returns the PRIOR SESSION's daily bar. Every field it gives
+    back therefore describes that session: `c` is yesterday's close, `o/h/l` is
+    yesterday's range. Reported as-is it reads exactly like a healthy live quote
+    that happens to be flat, which is what it did on 2026-08-05 14:30 ET when it
+    was the only provider left standing: PLTU showed 44.82 / +0.00% against a
+    real 43.04 / -3.97%, and yesterday's low (36.265) went into today's range
+    accumulator, where it survives the rest of the session (#336).
+
+    So it states its own age (`asof_date` from the bar's timestamp) and lets the
+    freshness gate decide. Two related corrections:
+
+    * `pc` is None, not `vw`. The volume-weighted average price of the prior
+      session is not the close before it — it was never a prior close, and the
+      only reason it never produced a wrong day-change is that `dp` is hardcoded
+      to 0. Absent means absent (#139).
+    * `dp` stays 0.0 and is honest: with no live price there is no move to report.
+    """
     if not api_key:
         return None
     try:
@@ -492,13 +510,17 @@ def get_polygon_quote(ticker: str, api_key: str) -> Optional[Dict]:
         if not results:
             return None
         res = results[0]
-        c = float(res['c'])
-        return {
-            'c': c, 'pc': float(res.get('vw', c)),
+        quote = {
+            'c': float(res['c']), 'pc': None,
             'h': float(res['h']), 'l': float(res['l']), 'o': float(res['o']),
             'dp': 0.0,
             'source': 'Polygon (prev close)',
         }
+        bar_ms = res.get('t')
+        if bar_ms:
+            quote['asof_date'] = datetime.fromtimestamp(
+                bar_ms / 1000, ZoneInfo('America/New_York')).date().isoformat()
+        return quote
     except Exception:
         return None
 
@@ -858,12 +880,16 @@ def fetch_us_quotes(tickers: List[str], keys: Dict[str, str]) -> Dict[str, Dict]
         return results
 
     # 7. Polygon (prev-close, last resort)
+    #
+    # Through `_offer` like every other provider. This branch used to call
+    # `_done` directly, which is the whole of #336: a prior-session daily bar
+    # skipped both the freshness and the completeness gate and was recorded as a
+    # healthy, flat, current quote — price, range and all. It still gets used
+    # when nothing else answered; it now arrives at step 8 labelled, so the
+    # range accumulator and the stale-quote guard can both see what it is.
     print(f"  [7] Polygon for: {', '.join(remaining)}")
     for t in list(remaining):
-        q = get_polygon_quote(t, keys.get('POLYGON_API_KEY', ''))
-        if q:
-            _done(t, q)
-            print(f"      ✓ {t}: ${q['c']:.4f} (prev close) [{q['source']}]")
+        _offer(t, get_polygon_quote(t, keys.get('POLYGON_API_KEY', '')))
 
     # 8. fall back to the best quote we had to reject — a price without a range
     #    still beats no price, but it must be labelled so the caller does not
