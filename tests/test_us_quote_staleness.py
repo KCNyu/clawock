@@ -517,6 +517,66 @@ class TestStaleLastGuard:
         assert h["prev_close_date"] < h["day_session_date"]
 
 
+# ── 2026-08-06 (#332): the guard above, pointed at a daily-bar provider ──────
+# The 07-27 net above assumed the provider's %change and our prev_close share a
+# baseline. Alpha Vantage's GLOBAL_QUOTE is a daily endpoint: mid-session it can
+# serve YESTERDAY's whole bar, whose %change is measured against the close
+# before it. Composing the two rebuilt PLTU to $70.7585 — a price that never
+# traded — and every derived field agreed with it afterwards.
+AV_PRIOR_SESSION_BAR = {   # verbatim, 2026-08-05 12:01 ET, PLTU
+    "Global Quote": {
+        "01. symbol": "PLTU", "02. open": "36.9800", "03. high": "45.7100",
+        "04. low": "36.2650", "05. price": "44.8200", "06. volume": "12549412",
+        "07. latest trading day": "2026-08-04",
+        "08. previous close": "28.3900", "09. change": "16.4300",
+        "10. change percent": "57.8725%",
+    }
+}
+
+
+class TestDailyBarProviderIsNotComposed:
+    def test_alpha_vantage_reports_the_session_its_bar_belongs_to(self, monkeypatch):
+        monkeypatch.setattr(F.SESSION, "get",
+                            lambda *a, **k: _FakeResp(AV_PRIOR_SESSION_BAR))
+        q = F.get_alpha_vantage_quote("PLTU", "key")
+        # Without this the quote carries no date, and _quote_is_fresh's "no
+        # timestamp means current" contract lets an overnight bar win a ticker.
+        assert q["asof_date"] == "2026-08-04"
+        assert not F._quote_is_fresh(q, "2026-08-05")
+
+    def test_prior_session_bar_is_never_rebuilt_into_a_price(
+            self, monkeypatch, tmp_path, no_indices):
+        # c == our prev_close and the provider shouts +57.87%, which is the
+        # guard's exact trigger — but that 57.87% is measured against 28.39,
+        # not against the 44.82 we hold. Refusing leaves today reading flat,
+        # which preflight's STALE_PRICE gate reports; inventing $70.7585 was
+        # silent and moved the whole US day-change from -265 to +7.
+        h = TestStaleLastGuard()._run(
+            monkeypatch, tmp_path,
+            {"c": 44.82, "pc": 28.39, "h": 45.71, "l": 36.265, "o": 36.98,
+             "dp": 57.8725, "asof_date": "2026-08-04",
+             "source": "Alpha Vantage"},
+            {"PLTU": (44.82, _fresh_prev_bar_date())})
+        assert h["current_price"] == 44.82
+        assert "stale_price_repair" not in h
+
+    def test_known_old_print_keeps_its_price_but_not_its_range(
+            self, monkeypatch, tmp_path, no_indices):
+        # Step 8's last resort: every provider failed and we knowingly use an
+        # earlier session's print. Its last price is still the best number we
+        # have; its high/low belong to that session and must not seed today's
+        # range (PLTU carried day_low 36.265 into a 42.61-46.76 day).
+        h = TestStaleLastGuard()._run(
+            monkeypatch, tmp_path,
+            {"c": 27.35, "pc": None, "h": 29.9, "l": 26.1, "o": 26.4,
+             "dp": 5.37, "nc": 1.47, "stale_asof": "2026-07-23",
+             "incomplete": True, "source": "Nasdaq API (etf)"},
+            {"PLTU": (27.35, _fresh_prev_bar_date())})
+        assert h["current_price"] == 27.35        # not rebuilt to 28.82
+        assert "stale_price_repair" not in h
+        assert h["day_low"] != 26.1 and h["day_high"] != 29.9
+
+
 # ── the gate that should have caught it ──────────────────────────────────────
 def _mini_portfolio(holding):
     return {
