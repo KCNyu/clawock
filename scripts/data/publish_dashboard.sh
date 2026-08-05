@@ -103,12 +103,9 @@ python3 scripts/data/dashboard_outputs.py --baseline-dir "$PREVIOUS_DIR" > /dev/
 # destination is the data branch (#325).
 data_plane_failed=0
 publish_data_plane() {
-  # Sourced for GIT_SSH_COMMAND/PUBLISH_REMOTE — the same deploy-key identity
-  # safe_push.sh uses, selected in one place rather than restated per publisher.
-  # shellcheck source=scripts/data/publish_identity.sh
-  . scripts/data/publish_identity.sh
-  if ! python3 scripts/data/publish_data_branch.py \
-       --deploy --remote "${PUBLISH_REMOTE:-origin}"; then
+  # One entry point, shared with the harness postflights (#328) — identity
+  # selection and the publish itself must not drift between the two callers.
+  if ! bash scripts/data/publish_generation.sh; then
     echo "✗ publish_dashboard: data plane not published or not deployed" >&2
     return 1
   fi
