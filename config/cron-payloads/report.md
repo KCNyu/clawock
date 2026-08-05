@@ -15,7 +15,7 @@ stdout 就是 context 本身（与落盘同一份 JSON），含 `context_id`、s
 - 只写 ▎情绪面 / ▎技术面 / ▎操作建议 三段（共 4-6 行）；`needs_risk_section=true` 时补 ▎风险提示 段
 - **不要写标题、不要写数据块、不要写表格** —— postflight 自己从 context 拼进消息开头，你写了会重复
 - `anomalies` 非空时，散文必须提到至少一个异动票
-- 目标 ≤ 2200 字；postflight 按拼装后的全文在 >3000 字 warn、>3500 字 fail
+- 长度自己判断，不设字数目标；postflight 按拼装后的全文只判防复读天花板（>5000 warn、>6000 fail）
 - 用文件写入工具存到 `/root/.openclaw/workspace/memory/.tmp/report-prose-{{market}}-{{phase}}.md`
 
 **Step 3 - Postflight**

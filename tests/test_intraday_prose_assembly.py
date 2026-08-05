@@ -132,12 +132,13 @@ def test_anomaly_rule_reads_the_prose_not_the_prepended_block(pf):
 def test_length_limit_measures_the_delivered_body(pf):
     """Length is a property of what WeChat receives, so it — unlike the content
     rules — is measured on the assembled message."""
-    prose = '▎我的看法\n' + 'x' * 3400
+    hard = pf.REPORT_CHAR_LIMITS['hard']
+    prose = '▎我的看法\n' + 'x' * (hard - 100)
     body = pf.assemble_message(_ctx(), prose)
 
     issues = pf.validate(body, _ctx(), prose_only=True, model_text=prose)
 
-    assert [i for i in issues if '3500' in i], issues
+    assert [i for i in issues if str(hard) in i], issues
     assert len(body) > len(prose)
 
 

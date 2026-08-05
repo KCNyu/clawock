@@ -501,24 +501,19 @@ def test_mode_6_reports_must_attribute_their_anomalies(skill_name):
     assert "先砍板块全景" in prose
 
 
-def test_report_length_limits_are_unchanged_and_still_match_the_payload_contract():
-    """Attribution is ~1 line per mover; the measured worst case (a US close body
-    at 2898 chars) still clears the 3000 soft warn, and the numbers are pinned in
-    nine live cron payloads. Raising them is a live-payload migration, not a code
-    edit, so it is deliberately not done here."""
-    import json
+def test_mover_attribution_has_room_under_the_ceiling():
+    """Attribution is ~1 line per mover; the measured worst case was a US close
+    body at 2,898 chars. That used to sit just under a 3,000 soft warn, which is
+    why this test existed. #334 lifted the ceiling to 5,000/6,000 and removed the
+    pre-write target, so the worst case now clears it with room to spare — the
+    remaining risk is the opposite one, a ceiling quietly lowered back onto it."""
     import sys
 
     sys.path.insert(0, str(ROOT / "scripts" / "harness"))
     import report_postflight
 
-    assert report_postflight.CHAR_LIMITS == {
-        "hk": {"soft": 3000, "hard": 3500},
-        "us": {"soft": 3000, "hard": 3500},
-    }
-    contract = json.loads((ROOT / "config" / "cron-schedules.json").read_text())
-    for profile in ("report", "intraday"):
-        required = contract["payload_profiles"][profile]["required_substrings"]
-        assert "目标 ≤ 2200 字" in required
-        assert ">3000 字 warn" in required
-        assert ">3500 字 fail" in required
+    worst_case_measured = 2_898
+    assert report_postflight.CHAR_LIMITS["soft"] > worst_case_measured
+    assert [i for i in report_postflight.validate("填" * worst_case_measured,
+                                                  {"market": "us"})
+            if "报告长度" in i] == []

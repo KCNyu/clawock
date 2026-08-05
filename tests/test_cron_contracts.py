@@ -311,46 +311,24 @@ def test_intraday_hard_length_limit_is_a_failure():
     ) == 'warn'
 
 
-def test_length_thresholds_are_the_relaxed_3000_3500_pair():
-    """2026-07-23: every tier was raised by 1000 字 (target 1200→2200, warn
-    2000→3000, fail 2500→3500). categorize() alone can't catch a threshold
-    regression — it only reads the issue *string* — so assert the boundaries
-    through the real validate() of both postflights, and keep the tracked cron
-    contract pinned to the same numbers (live payloads are checked against it)."""
-    import intraday_postflight
-    import report_postflight
+def test_length_ceiling_is_one_number_shared_by_the_live_payloads():
+    """#334 removed the pre-write字数目标 and left a single repeat-loop ceiling.
+    The boundaries themselves are asserted in test_report_length_ceiling.py;
+    what belongs here is that the tracked contract — which live payloads are
+    checked against — moved with the code, and that the retired numbers can
+    never reappear in a live payload."""
+    import _harness_common as common
 
-    body = '▎我的看法\n' + '判' * 200 + '\n'
-
-    def intraday_len(n):
-        text = body + '填' * (n - len(body))
-        assert len(text) == n
-        return [i for i in intraday_postflight.validate(text, {}) if '报告长度' in i]
-
-    assert intraday_len(3000) == []
-    assert intraday_len(3001) == ['报告长度 3001 字 > 3000 软上限 (warn)']
-    assert intraday_len(3500) == ['报告长度 3500 字 > 3000 软上限 (warn)']
-    assert intraday_len(3501) == ['报告长度 3501 字 > 3500 上限']
-    assert intraday_postflight.categorize(['报告长度 3501 字 > 3500 上限']) == 'fail'
-
-    for market in ('hk', 'us'):
-        def report_len(n, market=market):
-            text = '填' * n
-            return [i for i in report_postflight.validate(text, {'market': market})
-                    if '报告长度' in i]
-
-        assert report_len(3000) == []
-        assert report_len(3001) == ['报告长度 3001 字 > 3000 软上限 (warn)']
-        assert report_len(3500) == ['报告长度 3500 字 > 3000 软上限 (warn)']
-        assert report_len(3501) == ['报告长度 3501 字 > 3500 上限']
-        assert report_postflight.categorize(['报告长度 3501 字 > 3500 上限']) == 'fail'
+    soft = common.REPORT_CHAR_LIMITS['soft']
+    hard = common.REPORT_CHAR_LIMITS['hard']
 
     for profile in ('report', 'intraday'):
         required = contract()['payload_profiles'][profile]['required_substrings']
         forbidden = contract()['payload_profiles'][profile]['forbidden_substrings']
-        assert '>3000 字 warn' in required and '>3500 字 fail' in required
-        assert '目标 ≤ 2200 字' in required
-        # the pre-relaxation numbers must not survive in a live payload
+        assert f'>{soft} warn' in required and f'>{hard} fail' in required
+        # a live payload still carrying a writing target is the drift to catch
+        assert '目标 ≤ 2200 字' in forbidden
+        assert '>3000 字 warn' in forbidden and '>3500 字 fail' in forbidden
         assert '>2000 字 warn' in forbidden and '>2500 字 fail' in forbidden
 
 

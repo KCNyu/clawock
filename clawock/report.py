@@ -107,8 +107,7 @@ def validate(body, ctx, prose_only=False, model_text=None):
 
     # 4. 长度 —— 按投递全文 (per-market)
     n_chars = len(body)
-    limits = CHAR_LIMITS.get(ctx.get('market', 'hk'), CHAR_LIMITS['hk'])
-    soft, hard = limits['soft'], limits['hard']
+    soft, hard = CHAR_LIMITS['soft'], CHAR_LIMITS['hard']
     if n_chars > hard:
         issues.append(f'报告长度 {n_chars} 字 > {hard} 上限')
     elif n_chars > soft:
