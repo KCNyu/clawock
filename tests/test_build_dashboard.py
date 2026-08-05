@@ -948,9 +948,9 @@ def test_today_ranges_uses_current_price_denominator_and_strict_top_n():
 # ── the previous published payload as an explicit input (#262) ──────────────
 #
 # The merge is the one part of the output that does not come from the workspace,
-# so what it took and where it came from have to be answerable. These pin the
-# contract; the live default (restore from the published dashboard.json) is
-# unchanged.
+# so what it took and where it came from have to be answerable. Since slice 2 it
+# is also opt-in: a build reads a previously published payload only when a caller
+# names the file.
 
 
 def test_merge_takes_only_the_keys_whose_source_was_absent_and_names_them():
@@ -976,20 +976,51 @@ def test_an_absent_source_with_nothing_published_before_stays_absent():
     assert taken == []
 
 
-def test_no_previous_builds_from_the_workspace_alone():
-    """`--no-previous` is the acceptance criterion: no output may come from a
-    previously published file. It resolves to no source at all, and the merge is
-    then a no-op even for absent sidecars."""
-    args = dashboard.parse_args(["--no-previous"])
-    assert args.no_previous is True
+def test_the_default_build_reads_no_previously_published_file():
+    """Acceptance criterion for #262: no output depends on a previously published
+    file unless that file is passed in explicitly. A bare invocation resolves to
+    no source at all, so the merge is a no-op even where every sidecar is absent
+    — which is what makes a workspace the complete input to a build."""
+    assert dashboard.resolve_previous_source(dashboard.parse_args([])) is None
+    assert dashboard.resolve_previous_source(dashboard.parse_args(["--no-previous"])) is None
+    assert dashboard.resolve_previous_source(
+        dashboard.parse_args(["--previous", "assets/data/dashboard.json"])
+    ) == Path("assets/data/dashboard.json"), "a named file must still be honoured"
 
     out = {"anomalies": []}
     assert dashboard.load_previous_payload(None) is None
     assert dashboard.merge_previous_payload(out, None, {"anomalies": False}) == []
     assert out["anomalies"] == []
 
-    assert dashboard.parse_args([]).previous is None, (
-        "the default has to stay 'the published file' in main(), not a parsed value")
+
+def test_every_publishing_caller_opts_into_preservation():
+    """The default is safe for a build, but silent for a *publisher*: a fresh
+    checkout has no memory/.tmp, so a publishing caller that forgets `--previous`
+    commits blank narrative cards (the 2026-06-21 regression). Exactly three
+    callers put their build into a commit, and each has to ask.
+
+    Every other caller — system_check's buildability gate, the two Actions
+    validation jobs, the gold refresh path — either never publishes or runs only
+    on the host, and is deliberately left bare.
+    """
+    publishers = [
+        "scripts/data/publish_dashboard.sh",   # host crontab, every 20 minutes
+        "scripts/harness/_harness_common.py",  # all three postflights → brief-fallback.yml
+        ".githooks/pre-commit",                # stages its rebuild into the commit
+    ]
+    for rel in publishers:
+        lines = (ROOT / rel).read_text(encoding="utf-8").splitlines()
+        invocations = [
+            i for i, line in enumerate(lines)
+            if "build_dashboard.py" in line and "python3" in line
+            and not line.lstrip().startswith("#")
+        ]
+        assert invocations, f"{rel} no longer invokes build_dashboard.py"
+        for i in invocations:
+            window = "\n".join(lines[i:i + 3])
+            assert "--previous" in window, (
+                f"{rel}:{i + 1} publishes its build but does not opt into "
+                "restoring cards whose sidecar is absent from this checkout")
 
 
 def test_a_wrapper_card_is_not_restored_when_its_previous_items_were_empty():

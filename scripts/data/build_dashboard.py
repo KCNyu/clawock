@@ -2319,13 +2319,35 @@ def parse_args(argv=None):
     source.add_argument(
         '--previous', metavar='PATH', default=None,
         help='dashboard payload to restore card values from when their source '
-             'context is absent from this checkout (default: the published '
-             f'{OUT_FILE.name})')
+             'context is absent from this checkout. Opt-in: a build that is '
+             'going to be published from a checkout without the memory/.tmp '
+             f'sidecars passes the published {OUT_FILE.name} here')
     source.add_argument(
         '--no-previous', action='store_true',
         help='build from the workspace alone; no output may come from a '
-             'previously published file')
+             'previously published file. This is the default — pass it to state '
+             'the guarantee explicitly')
     return parser.parse_args(argv)
+
+
+def resolve_previous_source(args):
+    """The payload file this build may restore absent cards from, or None.
+
+    Workspace-only is the DEFAULT (#262 slice 2). Reading the last published
+    dashboard makes the output depend on this repository's own history, so the
+    builder does not do it unless a caller names the file. The callers that
+    still want it are the ones that publish from a checkout which may lack the
+    memory/.tmp sidecars — `publish_dashboard.sh`, `rebuild_dashboard()` (which
+    covers all three postflights, and through them `brief-fallback.yml`) and the
+    pre-commit hook. Every other caller either has the sidecars or never
+    publishes, and gets the workspace-only build.
+
+    Inverting this is the point of the slice: before, a silent default meant a
+    fresh checkout could publish yesterday's cards without anyone asking it to.
+    """
+    if args.no_previous:
+        return None
+    return Path(args.previous) if args.previous else None
 
 
 def main(argv=None):
@@ -2333,10 +2355,10 @@ def main(argv=None):
     # (system_check's buildability gate, run by the pre-push hook) build to a
     # temp file so a *check* never mutates the published artifact — before
     # 2026-06-10 every pre-push run rewrote dashboard.json in place, leaving
-    # the working tree perpetually dirty. The previous-payload read stays on the
-    # real OUT_FILE on purpose, so a redirected build still sees what is live.
+    # the working tree perpetually dirty. A redirected build still reads whatever
+    # `--previous` names, so the redirect never changes which cards are restored.
     args = parse_args(argv)
-    previous_source = None if args.no_previous else Path(args.previous or OUT_FILE)
+    previous_source = resolve_previous_source(args)
     out_file = Path(os.environ.get('BUILD_DASHBOARD_OUT') or OUT_FILE)
     out_file.parent.mkdir(parents=True, exist_ok=True)
     portfolio = load_json(WS_ROOT / 'portfolio.json')
@@ -2433,8 +2455,10 @@ def main(argv=None):
     # openclaw-gha-sidecar-strip-and-prepush-seterr.
     #
     # This is the one part of the output that does not come from the workspace,
-    # so the file it comes from is an argument (`--previous` / `--no-previous`)
-    # and the keys it supplied are reported in build_status (#262). It is NOT
+    # so the file it comes from is an opt-in argument (`--previous`, default off
+    # since #262 slice 2) and the keys it supplied are reported in build_status.
+    # `_prev_dash` is `{}` for every caller that did not ask, which is what makes
+    # a workspace the complete input to a build. Restoration is NOT
     # dead code: brief-fallback.yml publishes a dashboard rebuilt on an Actions
     # checkout that has a brief-context but no insights / intraday / sector-scan
     # sidecars, which is exactly the case this restores. See record_preservation.

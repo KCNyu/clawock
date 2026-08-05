@@ -75,7 +75,11 @@ fi
 # ──────────────────────────────────────────────────────────────────────────
 if echo "$STAGED" | grep -qE '^portfolio\.json$'; then
   echo "  ▸ rebuilding dashboard outputs (portfolio.json was staged)…"
-  python3 scripts/data/build_dashboard.py > /dev/null
+  # --previous: this rebuild is STAGED into the commit, so it is a publishing
+  # path, and it runs in whatever checkout the committer has. A worktree has no
+  # memory/.tmp (gitignored), so without the opt-in this hook would commit blank
+  # narrative cards. Workspace-only is the builder's default since #262 slice 2.
+  python3 scripts/data/build_dashboard.py --previous assets/data/dashboard.json > /dev/null
   dashboard_paths_output="$(python3 scripts/data/dashboard_outputs.py)"
   dashboard_paths=()
   if [ -n "$dashboard_paths_output" ]; then
