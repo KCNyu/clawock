@@ -33,6 +33,13 @@ from zoneinfo import ZoneInfo
 from workspace import workspace_root  # noqa: E402
 
 WS = workspace_root(Path(__file__).resolve().parents[2])
+# The checkout root, so `clawock` is importable regardless of where the WORKSPACE
+# points. WS can be redirected with CLAWOCK_WORKSPACE and is a data directory;
+# the package lives in the checkout. Inserting it here rather than inside the
+# function is what test_harness_import_independence requires — an import that
+# resolves only because some other module happened to widen sys.path first is a
+# side effect, not a dependency (#265).
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 sys.path.insert(0, str(WS / 'scripts' / 'data'))
 import cron_token_audit  # noqa: E402
 
@@ -121,6 +128,47 @@ def parse_cron_slots(expr, tz_name, target_date_utc):
         return []
 
     return [f"{h:02d}:{m:02d}" for h in hours for m in mins]
+
+
+def runs_finished_today(job_id, provider=None):
+    """How many times the job finished OK today, per the run-history provider.
+
+    ADVISORY ONLY. It answers a different question from counting commits — "did
+    the job run" rather than "did the job produce" — and the two can legitimately
+    disagree: a run that finishes clean but writes nothing is healthy here and
+    missing there, and a cron status can itself be falsely red when a mid-run
+    failure gets recovered (see the 2026-07-22 false-red postmortem).
+
+    Migrating this check onto the provider is a prerequisite of moving the
+    outputs off `master`, because today the commit IS the receipt (#262). But a
+    straight swap would silently change what a live alerting path means, so this
+    is reported beside the commit count and measured for agreement first.
+
+    Never raises and never influences status: an advisory signal that can fail
+    the health check is worse than no advisory signal.
+    """
+    if not job_id:
+        return None
+    try:
+        if provider is None:
+            from clawock.providers.runs import OpenClawRuns
+            provider = OpenClawRuns()
+        today = datetime.now(HKT).date()
+        count = 0
+        for run in provider.history(job_id, limit=200):
+            if run.status != 'ok' or not run.started_at:
+                continue
+            try:
+                started = datetime.fromisoformat(run.started_at)
+            except ValueError:
+                continue
+            if started.tzinfo is None:
+                started = started.replace(tzinfo=timezone.utc)
+            if started.astimezone(HKT).date() == today:
+                count += 1
+        return count
+    except Exception:
+        return None
 
 
 def commit_count_today(commit_pattern):
@@ -346,6 +394,8 @@ def main():
         expected_past = [s for s in expected if s <= now_local]
         commit_pat = COMMIT_PATTERNS.get(name)
         commit_n = commit_count_today(commit_pat)
+        # Advisory second evidence source (#262). Reported, never acted on.
+        runs_n = runs_finished_today(job.get('id'))
 
         # Holiday gate: don't expect a commit from a 港股*/美股* report on that market's
         # holiday — preflight skips the run by design (the 6-19 端午+Juneteenth double
@@ -407,6 +457,12 @@ def main():
             'tz': tz,
             'expected_today': len(expected_past),
             'commits_today': commit_n,
+            # `runs_today` is the run-history provider's answer and is advisory:
+            # it is here to be compared with `commits_today` over time, not to
+            # decide anything. `None` = the provider had nothing to say.
+            'runs_today': runs_n,
+            'runs_agree': (None if runs_n is None or commit_n is None
+                           else runs_n == commit_n),
             'status': status,
             'detail': detail,
         })
