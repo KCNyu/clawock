@@ -1,5 +1,6 @@
 """One build, four public outputs, one semantic publication contract."""
 import json
+import pytest
 import subprocess
 import sys
 from pathlib import Path
@@ -184,3 +185,41 @@ def test_every_dashboard_committer_uses_the_shared_contract():
     assert "semantic_changed_paths(WS_ROOT)" in (
         ROOT / "scripts/data/update_gold_dca.py"
     ).read_text()
+
+
+def test_a_failed_write_set_publishes_nothing(tmp_path):
+    """#262 slice 3 step 3: the four outputs are one generation, so a failure
+    part-way must leave the old generation intact rather than mix them.
+
+    `safe_write_text` is atomic per file, which is why this is not already true:
+    four successful-then-failing calls each land atomically, and the reader gets
+    two new files beside two old ones.
+    """
+    for name in ("overview.json", "dashboard.json"):
+        (tmp_path / name).write_text("OLD", encoding="utf-8")
+    # A directory where a file must go: the staged write fails, and it fails
+    # after the first two payloads have already been staged.
+    (tmp_path / "decision_audit.json").mkdir()
+
+    with pytest.raises(OSError):
+        dashboard_outputs.write_generation({
+            str(tmp_path / "overview.json"): "NEW",
+            str(tmp_path / "dashboard.json"): "NEW",
+            str(tmp_path / "decision_audit.json"): "NEW",
+        })
+
+    assert (tmp_path / "overview.json").read_text(encoding="utf-8") == "OLD"
+    assert (tmp_path / "dashboard.json").read_text(encoding="utf-8") == "OLD"
+    assert not list(tmp_path.glob(".staged-*")), "staged temporaries must be cleaned up"
+
+
+def test_a_complete_write_set_swaps_every_file(tmp_path):
+    written = dashboard_outputs.write_generation({
+        str(tmp_path / "overview.json"): "A",
+        str(tmp_path / "nested" / "shadow_portfolio.json"): "B",
+    })
+
+    assert [Path(p).name for p in written] == ["overview.json", "shadow_portfolio.json"]
+    assert (tmp_path / "overview.json").read_text(encoding="utf-8") == "A"
+    assert (tmp_path / "nested" / "shadow_portfolio.json").read_text(encoding="utf-8") == "B"
+    assert not list(tmp_path.glob(".staged-*"))
