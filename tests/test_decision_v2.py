@@ -707,3 +707,35 @@ class ExecutionCoverageTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class EmptyCalibrationPopulation(unittest.TestCase):
+    """#309: a ledger with nothing scored must not abort the dashboard build.
+
+    `compute_metrics` reads every Brier baseline unconditionally, and
+    `build_dashboard.build_projection` calls it outside any per-card try — so a
+    calibration branch that returns fewer keys than its sibling takes down the
+    whole build, not one card. A fresh workspace and any window in which nothing
+    settled both land on that branch.
+
+    These two cases are the guard: a baseline added to the populated branch and
+    read by `compute_metrics`, but forgotten in the empty branch, raises KeyError
+    here. Comparing the two branches' key sets directly is not possible — `_calib`
+    is nested, and `compute_metrics` re-projects explicit field names, so an
+    unused extra key is invisible (and harmless).
+    """
+
+    def test_an_empty_ledger_reports_no_calibration_instead_of_raising(self):
+        metrics = dv2.compute_metrics([])
+
+        self.assertIsNone(metrics["brier"])
+        self.assertIsNone(metrics["brier_baseline_constant"])
+        self.assertIsNone(metrics["brier_baseline_coinflip"])
+        self.assertEqual(metrics["settled_episodes"], 0)
+
+    def test_an_unsettled_ledger_reports_no_calibration_instead_of_raising(self):
+        today = date.today().isoformat()
+        unsettled = decision(today)
+        unsettled["evaluation"] = {}
+
+        self.assertIsNone(dv2.compute_metrics([unsettled])["brier"])
