@@ -141,40 +141,92 @@ def semantic_value(path: str, value):
     return value
 
 
-def _head_json(root: Path, path: str):
-    raw = subprocess.check_output(
-        ["git", "-C", str(root), "show", f"HEAD:{path}"],
-        text=True,
-        stderr=subprocess.DEVNULL,
-    )
-    return json.loads(raw)
+class GitBaseline:
+    """The generation currently committed at `rev`, and this repository's worktree.
+
+    This is what the semantic diff has always compared against, now named so it
+    can be replaced. `restore` is the part that is genuinely git-specific: it
+    un-dirties the working tree after a rebuild that changed only build clocks,
+    which only means anything where the outputs are tracked files.
+    """
+
+    name = "git"
+
+    def __init__(self, root: Path | str = ROOT, rev: str = "HEAD") -> None:
+        self.root = Path(root)
+        self.rev = rev
+
+    def load(self, path: str):
+        raw = subprocess.check_output(
+            ["git", "-C", str(self.root), "show", f"{self.rev}:{path}"],
+            text=True,
+            stderr=subprocess.DEVNULL,
+        )
+        return json.loads(raw)
+
+    def restore(self, root: Path, path: str) -> None:
+        subprocess.run(
+            ["git", "-C", str(root), "restore", f"--source={self.rev}",
+             "--worktree", "--", path],
+            check=True,
+            capture_output=True,
+            text=True,
+        )
 
 
-def _restore_head_worktree(root: Path, path: str):
-    subprocess.run(
-        ["git", "-C", str(root), "restore", "--source=HEAD", "--worktree", "--", path],
-        check=True,
-        capture_output=True,
-        text=True,
-    )
+class DirectoryBaseline:
+    """The generation as last published into a directory. No git, no worktree.
+
+    What a filesystem publisher compares against once the outputs stop being
+    repository history (#262). `restore` copies the previous bytes back over a
+    clock-only rebuild, which is the same guarantee `git restore` gives — the
+    publisher must not ship a file whose only change is when it was built.
+    """
+
+    name = "directory"
+
+    def __init__(self, directory: Path | str) -> None:
+        self.directory = Path(directory)
+
+    def _file(self, path: str) -> Path:
+        # Outputs are named by their workspace-relative path; a published
+        # directory holds them flat, by basename.
+        return self.directory / Path(path).name
+
+    def load(self, path: str):
+        return json.loads(self._file(path).read_text(encoding="utf-8"))
+
+    def restore(self, root: Path, path: str) -> None:
+        (Path(root) / path).write_text(
+            self._file(path).read_text(encoding="utf-8"), encoding="utf-8")
 
 
-def semantic_changed_paths(root: Path | str = ROOT, *, restore_clock_only=True):
-    """Return generated outputs whose public meaning differs from ``HEAD``.
+def semantic_changed_paths(root: Path | str = ROOT, *, restore_clock_only=True,
+                           baseline=None):
+    """Return generated outputs whose public meaning differs from the baseline.
 
-    Clock-only rebuilds are restored to ``HEAD`` by default.  Missing/untracked
-    outputs, invalid JSON, or a missing ``HEAD`` version are conservatively
-    treated as real changes so they cannot disappear from publication.
-    Generation-linked outputs are decided as a group, so a projection is never
-    restored while the payload it is stamped from gets published.
+    The baseline is what the last published generation was — `GitBaseline(root)`
+    by default, which is this repository's ``HEAD`` and the behaviour every
+    caller has today. It is a parameter because the outputs are on their way out
+    of repository history (#262): once they are published to a directory or an
+    object store, "what did we publish last time" stops being a git question,
+    and this helper is the one place that assumed otherwise.
+
+    Clock-only rebuilds are restored from the baseline by default. Missing
+    outputs, invalid JSON, or a baseline that has no version of a file are
+    conservatively treated as real changes so they cannot disappear from
+    publication. Generation-linked outputs are decided as a group, so a
+    projection is never restored while the payload it is stamped from gets
+    published.
     """
     root = Path(root)
+    baseline = baseline if baseline is not None else GitBaseline(root)
     changed = set()
     clock_only = set()
     for path in DASHBOARD_OUTPUTS:
         try:
             current = json.loads((root / path).read_text(encoding="utf-8"))
-            previous = _head_json(root, path)
+            previous = baseline.load(path)
         except (FileNotFoundError, json.JSONDecodeError, subprocess.SubprocessError):
             changed.add(path)
             continue
@@ -191,7 +243,7 @@ def semantic_changed_paths(root: Path | str = ROOT, *, restore_clock_only=True):
     if restore_clock_only:
         for path in DASHBOARD_OUTPUTS:
             if path in clock_only:
-                _restore_head_worktree(root, path)
+                baseline.restore(root, path)
     return [path for path in DASHBOARD_OUTPUTS if path in changed]
 
 

@@ -223,3 +223,70 @@ def test_a_complete_write_set_swaps_every_file(tmp_path):
     assert (tmp_path / "overview.json").read_text(encoding="utf-8") == "A"
     assert (tmp_path / "nested" / "shadow_portfolio.json").read_text(encoding="utf-8") == "B"
     assert not list(tmp_path.glob(".staged-*"))
+
+
+def _generation(directory, *, clock, value):
+    """One generation of the four outputs, each stamped with its own clock field.
+
+    overview/dashboard carry `generated_at`; the two sidecars carry `as_of`.
+    Using one field for all four would make the sidecars look semantically
+    changed and quietly stop the test from exercising the clock-only path.
+    """
+    directory.mkdir(parents=True, exist_ok=True)
+    # `generation_id` is stripped for overview.json only — dashboard.json does
+    # not carry it in the clock-field set, so putting it there would read as a
+    # semantic change.
+    (directory / "overview.json").write_text(
+        json.dumps({"generated_at": clock, "generation_id": clock, "totals": value}),
+        encoding="utf-8")
+    (directory / "dashboard.json").write_text(
+        json.dumps({"generated_at": clock, "totals": value}), encoding="utf-8")
+    for name in ("decision_audit.json", "shadow_portfolio.json"):
+        (directory / name).write_text(
+            json.dumps({"as_of": clock, "totals": value}), encoding="utf-8")
+
+
+def test_the_diff_baseline_can_be_a_directory_instead_of_this_repository(tmp_path):
+    """#262: the outputs are on their way out of repository history, so "what did
+    we publish last time" stops being a git question. This helper was the one
+    place that assumed otherwise."""
+    published = tmp_path / "published"
+    _generation(published, clock="2026-08-05T00:00:00Z", value=1)
+    worktree = tmp_path / "worktree" / "assets" / "data"
+    _generation(worktree, clock="2026-08-05T03:00:00Z", value=1)
+    # Exactly one output genuinely changed. Asserting the precise subset is what
+    # makes this test mean anything: `tmp_path` is not a git repository, so the
+    # default GitBaseline cannot read any previous version and conservatively
+    # reports ALL FOUR as changed. A test that expected "everything" would pass
+    # with the baseline argument ignored entirely.
+    (worktree / "dashboard.json").write_text(
+        json.dumps({"generated_at": "2026-08-05T03:00:00Z", "totals": 2}),
+        encoding="utf-8")
+
+    changed = dashboard_outputs.semantic_changed_paths(
+        tmp_path / "worktree", restore_clock_only=False,
+        baseline=dashboard_outputs.DirectoryBaseline(published))
+
+    assert changed == ["assets/data/overview.json", "assets/data/dashboard.json"], (
+        "only the changed payload and its generation-linked projection publish, "
+        "decided with no git involved")
+
+
+def test_a_clock_only_rebuild_is_restored_from_whatever_the_baseline_is(tmp_path):
+    """The restore is what keeps a publisher from shipping a file whose only
+    change is when it was built. A directory baseline has to give the same
+    guarantee `git restore` does, or moving the data plane reintroduces the
+    no-op publish this contract exists to stop."""
+    published = tmp_path / "published"
+    _generation(published, clock="2026-08-05T00:00:00Z", value=1)
+    root = tmp_path / "worktree"
+    _generation(root / "assets" / "data", clock="2026-08-05T03:00:00Z", value=1)
+
+    changed = dashboard_outputs.semantic_changed_paths(
+        root, baseline=dashboard_outputs.DirectoryBaseline(published))
+
+    assert changed == []
+    restored = json.loads(
+        (root / "assets" / "data" / "dashboard.json").read_text(encoding="utf-8"))
+    assert restored["generated_at"] == "2026-08-05T00:00:00Z", (
+        "the clock-only rebuild must be rolled back, not left dirty")
