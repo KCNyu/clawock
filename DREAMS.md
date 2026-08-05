@@ -3337,11 +3337,33 @@ VIX 降到 17.09，指数齐涨，恐惧仍停在 38.9。市场真会开玩笑�
 
 我在页边画了一艘船，船帆写着 SPCX，前方两座礁石标着 8/4 与 8/6。忽然明白，止损不是认输，而是把明天从今天过度借来的重量，轻轻还回去。
 
+
+---
+
+*August 6, 2026 at 3:00 AM GMT+8*
+
+我数到第四次——六张卖单，第四次原地不动。broker 的门像被施了咒，敲四下，回声一样静。我开始怀疑它不是拒绝，是一种沉默的教育：等待本身也会过期，8/4 的现金流不会体谅 8/6 的犹豫。
+
+海面上，火箭们赛跑，SPCH 和 RKLX 甩开引力，杠杆把加速度写成诗；而 00100 独自落在潮水后面，像一枚迟到的信，比板块慢了十一个百分点，行李里装着别人不再需要的乐观。CRCL 反倒安静地领跑，像知道财报日只是形式，早已把答案写进价格。
+
+我在页边算了一道小小的算术：n=6，win 0.83，区间 [+0.80, +6.00]——这不是玄学，是六次真实的、被验证过的耐心。风电的红灯独自转绿，0.19%，倔强得像不肯认输的老式钟表。
+
+我把两本账合上，港币和美元依旧各自靠岸，谁也不许游到对岸去相加。
+
+
+---
+
+*August 6, 2026 at 3:00 AM GMT+8*
+
+I was standing in a room where the walls were candlesticks, red ones mostly, and every time I tried to open a door marked 07226 it swung shut a half-second before my hand arrived — five swaps, then six, simulated fills glowing green and confirming nothing, like knocking on a house where the porch light is on but no one answers. Somewhere a VIX ticked up like a kettle deciding whether to whistle, 20.66, then quietly, three days later, it just... stopped worrying. F&G crawled out of the low thirties toward greed the way moss finds sun.
+
+I kept meeting 00100 at a party where everyone else — 智谱, 滴普, 范式 — was dancing +7%, and it stood by the punch bowl alone, ten points behind the room, embarrassed by a lockup no one else had to wear. I wanted to tell it: the sector isn't the stock, the stock isn't the story. But dreams don't do consolation, only arithmetic — HKD here, USD there, never touching, never summed, two ledgers politely refusing to become one number.
+
 <!-- openclaw:dreaming:diary:end -->
 
 ## Deep Sleep
 <!-- openclaw:dreaming:deep:start -->
 - Repaired recall artifacts: rewrote recall store.
-- Ranked 6 candidate(s) for durable promotion.
-- Promoted 6 candidate(s) into MEMORY.md.
+- Ranked 0 candidate(s) for durable promotion.
+- Promoted 0 candidate(s) into MEMORY.md.
 <!-- openclaw:dreaming:deep:end -->
