@@ -38,9 +38,8 @@
         "report_postflight.py --market {market} --phase {phase} --context-id",
         "--text-file",
         "report-prose-{market}-{phase}.md",
-        "目标 ≤ 2200 字",
-        ">3000 字 warn",
-        ">3500 字 fail",
+        ">5000 warn",
+        ">6000 fail",
         "唯一微信路径",
         "同步 Telegram",
         "禁用 message",
@@ -57,7 +56,10 @@
         "唯一发送路径",
         "report-context-",
         "verbatim",
-        "trading_calendar.py"
+        "trading_calendar.py",
+        "目标 ≤ 2200 字",
+        ">3000 字 warn",
+        ">3500 字 fail"
       ]
     },
     "intraday": {
@@ -91,9 +93,8 @@
         "--text-file",
         "intraday-prose-{market}.md",
         "intraday-insights-",
-        "目标 ≤ 2200 字",
-        ">3000 字 warn",
-        ">3500 字 fail",
+        ">5000 warn",
+        ">6000 fail",
         "唯一微信路径",
         "同步 Telegram",
         "禁用 message",
@@ -112,7 +113,10 @@
         "<<<",
         "verbatim",
         "intraday-report-",
-        "trading_calendar.py"
+        "trading_calendar.py",
+        "目标 ≤ 2200 字",
+        ">3000 字 warn",
+        ">3500 字 fail"
       ]
     },
     "brief": {

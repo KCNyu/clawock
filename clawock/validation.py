@@ -252,31 +252,18 @@ def categorize_issues(issues, critical_substrings, warn_max=2, extra_critical=No
 
 
 
-# Mode 6 report size is measured on title + harness-owned data block + model
-# prose. Keep the thresholds in one place so preflight can tell the model its
-# exact remaining prose budget and postflight can enforce the same arithmetic.
-REPORT_ASSEMBLED_TARGET_CHARS = 2_800
-REPORT_CHAR_LIMITS = {
-    'hk': {'soft': 3_000, 'hard': 3_500},
-    'us': {'soft': 3_000, 'hard': 3_500},
-}
-
-
-def report_prose_budget(title, raw_wechat_block, market='hk'):
-    """Exact remaining prose room under Mode 6 assembled-message limits."""
-    title_chars = len((title or '').strip())
-    raw_chars = len((raw_wechat_block or '').strip())
-    # assemble_message joins three non-empty parts with two ``\n\n`` separators.
-    separator_chars = 4
-    fixed_chars = title_chars + raw_chars + separator_chars
-    limits = REPORT_CHAR_LIMITS.get(market, REPORT_CHAR_LIMITS['hk'])
-    return {
-        'assembled_target_chars': REPORT_ASSEMBLED_TARGET_CHARS,
-        'title_chars': title_chars,
-        'raw_block_chars': raw_chars,
-        'separator_chars': separator_chars,
-        'fixed_chars': fixed_chars,
-        'prose_target_chars': max(0, REPORT_ASSEMBLED_TARGET_CHARS - fixed_chars),
-        'prose_soft_limit_chars': max(0, limits['soft'] - fixed_chars),
-        'prose_hard_limit_chars': max(0, limits['hard'] - fixed_chars),
-    }
+# The only length numbers in the system. One pair, shared by Mode 6 (open /
+# midday / close reports) and Mode 7 (intraday) — they used to be two copies of
+# the same 3000/3500, one here per market and one hardcoded in
+# intraday_postflight, which is how they could drift apart unnoticed.
+#
+# These are NOT a writing target. #214 handed the model an exact pre-write prose
+# budget (2800 assembled minus title and data block ≈ 1,200 chars) and every
+# report was then written under a compression instruction; kcn's call on
+# 2026-08-06 was to take that away and let the model decide length. What is left
+# is a ceiling a normal report never approaches and a repeat-loop always does —
+# a model stuck restating itself blows past it, which is the only automatic
+# signal we have for that failure (see intraday_watchdog's fail-closed path).
+# Widen them if a real report ever legitimately reaches one; do not turn them
+# back into a target.
+REPORT_CHAR_LIMITS = {'soft': 5_000, 'hard': 6_000}

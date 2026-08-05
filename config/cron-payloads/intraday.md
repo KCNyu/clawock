@@ -17,7 +17,7 @@ python3 /root/.openclaw/workspace/scripts/harness/intraday_preflight.py --market
 - 你的输出从 `▎我的看法` 开始（2-3 行）
 - 若 `should_alert=true`，必须提到 `anomalies` 至少一个票
 - 数字必须原样照抄 context 的完整字面值；禁止四舍五入、取整或改写成“约/近”等近似数，找不到原值就省略
-- 目标 ≤ 2200 字；postflight 在 >3000 字 warn、>3500 字 fail；**无标题**（高频推送避免刷屏）
+- 长度自己判断，不设字数目标；postflight 只判防复读天花板（>5000 warn、>6000 fail）；**无标题**（高频推送避免刷屏）
 
 生成散文和 sidecar 后，必须在同一条回复内并行发出两个 `write` 工具调用，分别写入 prose 文件与 sidecar；不要拆成两轮。
 
