@@ -18,6 +18,10 @@ set -euo pipefail
 
 WS="/root/.openclaw/workspace"
 LOCK="/tmp/dashboard_publish.lock"
+# Where the last published generation is materialised for this tick. Gitignored,
+# rewritten every run, and read by two steps that must agree on what "previously
+# published" means.
+PREVIOUS_DIR="$WS/.data-plane.cache"
 cd "$WS"
 
 BOT_ID=(-c "user.name=github-actions[bot]"
@@ -35,22 +39,49 @@ fi
 git fetch -q origin master || true
 git merge -q --ff-only origin/master 2>/dev/null || true
 
+# The last published generation, materialised out of the data branch. Two things
+# need it and both used to get it from this repository: the recovery source for
+# `--previous`, and the baseline the semantic diff compares against. Neither is a
+# git question any more — the outputs are not tracked (#314) — and the worktree
+# copy would answer both with "whatever this host built last time", which is the
+# wrong answer on any checkout that did not build the previous one.
+#
+# NOT fatal, deliberately. `set -e` is on, so a bare invocation here would turn
+# a transient network failure into "this tick publishes nothing at all" — the
+# publisher would be strictly less resilient than before the migration, and
+# detection is not allowed to degrade into not-publishing. What a failed fetch
+# actually costs is bounded and self-correcting:
+#   • --previous does not resolve → the build is workspace-only and says so (#315);
+#   • the baseline is absent or one generation stale → the semantic diff falls
+#     back to "everything changed", so the tick republishes and redeploys. Noisy
+#     for one tick, correct, and repaired by the next fetch.
+# A stale $PREVIOUS_DIR is not a problem either: it still holds the last
+# generation this host saw published, which is exactly what the baseline means.
+if ! python3 scripts/build/fetch_data_plane.py --into "$PREVIOUS_DIR"; then
+  echo "⚠ publish_dashboard: could not read the published generation — this tick" >&2
+  echo "  builds workspace-only and may republish without a real change" >&2
+fi
+
 # --previous: this build is published, so it opts in to restoring cards whose
 # memory/.tmp sidecar is missing (#262 slice 2 made workspace-only the default).
 # On this host the sidecars are present, so it is a no-op — it is here so a
 # degraded run publishes the last good cards instead of blanking them.
-python3 scripts/data/build_dashboard.py --previous assets/data/dashboard.json
+python3 scripts/data/build_dashboard.py --previous "$PREVIOUS_DIR/assets/data/dashboard.json"
 python3 scripts/data/cron_heartbeat.py --publish
 python3 scripts/data/workflow_outcomes.py --publish
 
 # build_dashboard writes four public files. The shared ownership helper compares
-# all four against HEAD, strips only build-clock metadata, restores clock-only
-# rewrites, and prints the exact semantic publication pathspec.
-dashboard_paths_output="$(python3 scripts/data/dashboard_outputs.py)"
-dashboard_paths=()
-if [ -n "$dashboard_paths_output" ]; then
-  mapfile -t dashboard_paths <<< "$dashboard_paths_output"
-fi
+# all four against the last published generation, strips build-clock metadata,
+# and restores clock-only rewrites — so a rebuild that changed nothing but
+# `generated_at` is not republished, and does not trigger a site deploy for a
+# generation the site already serves.
+#
+# The comparison target is the data branch, not HEAD: these files left the
+# repository's history in #314, so `git show HEAD:…` has nothing to answer with
+# and every output would read as changed on every tick. The return value is no
+# longer a commit pathspec — nothing commits these any more — so it is discarded;
+# the restore is the part that matters.
+python3 scripts/data/dashboard_outputs.py --baseline-dir "$PREVIOUS_DIR" > /dev/null
 
 # ── Data plane (#314) ────────────────────────────────────────────────────────
 # The same generation, also published to the orphan data branch, and the site
@@ -95,7 +126,7 @@ if git diff --quiet -- assets/data/workflow-outcomes.json; then
   outcomes_changed=0
 fi
 
-if [ "${#dashboard_paths[@]}" -eq 0 ] && [ "$heartbeat_changed" -eq 0 ] && [ "$outcomes_changed" -eq 0 ]; then
+if [ "$heartbeat_changed" -eq 0 ] && [ "$outcomes_changed" -eq 0 ]; then
   echo "publish_dashboard: no semantic or heartbeat change"
   # Nothing to commit, but the data plane still gets checked: a quiet tick is
   # exactly when nothing else would force a retry of a publish that never
@@ -104,7 +135,10 @@ if [ "${#dashboard_paths[@]}" -eq 0 ] && [ "$heartbeat_changed" -eq 0 ] && [ "$o
   exit "$data_plane_failed"
 fi
 
-paths=("${dashboard_paths[@]}")
+# The four dashboard outputs are NOT here any more: they go to the data branch.
+# `git add` on an ignored path fails rather than skipping quietly, so putting one
+# back would be a red publish, not a silent one.
+paths=()
 if [ "$heartbeat_changed" -eq 1 ]; then
   paths+=(assets/data/cron-heartbeats.json)
 fi

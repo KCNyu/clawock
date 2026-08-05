@@ -69,24 +69,14 @@ PY
 fi
 
 # ──────────────────────────────────────────────────────────────────────────
-# 3. Dashboard public outputs — auto-rebuild if portfolio.json staged
-#    (Prevents drift between portfolio + all generated views. Stages only
-#    semantic changes; build-clock-only rewrites are restored.)
+# 3. Dashboard public outputs — no longer this hook's business
+#    They were rebuilt and staged here so a portfolio.json commit could not
+#    drift from the generated views it implies. Since #314 the four outputs are
+#    not tracked at all: they go to the data branch, published by whoever
+#    publishes, at most 20 minutes behind. There is no drift left for a commit
+#    to carry, and `git add` on an ignored path fails rather than skipping, so
+#    leaving the block would have turned every portfolio commit into a failed one.
 # ──────────────────────────────────────────────────────────────────────────
-if echo "$STAGED" | grep -qE '^portfolio\.json$'; then
-  echo "  ▸ rebuilding dashboard outputs (portfolio.json was staged)…"
-  # --previous: this rebuild is STAGED into the commit, so it is a publishing
-  # path, and it runs in whatever checkout the committer has. A worktree has no
-  # memory/.tmp (gitignored), so without the opt-in this hook would commit blank
-  # narrative cards. Workspace-only is the builder's default since #262 slice 2.
-  python3 scripts/data/build_dashboard.py --previous assets/data/dashboard.json > /dev/null
-  dashboard_paths_output="$(python3 scripts/data/dashboard_outputs.py)"
-  dashboard_paths=()
-  if [ -n "$dashboard_paths_output" ]; then
-    mapfile -t dashboard_paths <<< "$dashboard_paths_output"
-    git add -- "${dashboard_paths[@]}"
-  fi
-fi
 
 # ──────────────────────────────────────────────────────────────────────────
 # 4. No staged secrets (paranoid scan)
