@@ -285,9 +285,17 @@ def rebuild_dashboard(ws=None):
         # the rare off-host brief fallback reuses this same harness path.
         # flock serializes the build so a harness run and
         # the publisher can't interleave writes to the same generated file.
+        # --previous: all three postflights publish what they build, so they opt
+        # in to restoring cards whose memory/.tmp sidecar is absent (#262 slice 2
+        # made workspace-only the builder's default). This is the ONE caller
+        # where the flag does something: brief-fallback.yml reaches here through
+        # brief_postflight on an Actions checkout that has a brief-context but no
+        # insights / intraday / sector-scan sidecars — without it those cards
+        # publish blank, the 2026-06-21 regression. On the host it is a no-op.
         r = subprocess.run(
             ['flock', DASHBOARD_PUBLISH_LOCK,
-             'python3', str(ws / 'scripts' / 'data' / 'build_dashboard.py')],
+             'python3', str(ws / 'scripts' / 'data' / 'build_dashboard.py'),
+             '--previous', str(ws / 'assets' / 'data' / 'dashboard.json')],
             capture_output=True, text=True, timeout=30, cwd=str(ws),
         )
         ok = r.returncode == 0
