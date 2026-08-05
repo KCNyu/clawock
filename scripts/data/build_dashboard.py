@@ -22,6 +22,7 @@ from pathlib import Path
 from typing import NamedTuple
 from zoneinfo import ZoneInfo
 
+import dashboard_outputs
 import decision_v2
 import instrument_registry
 import json_repair
@@ -3001,15 +3002,21 @@ def main(argv=None):
         print(f'FATAL: {e}', file=sys.stderr)
         return 1
 
-    from safe_io import safe_write_text
-    # Both files are compiled from the same in-memory generation and enter the
-    # shared publication pathspec together. The browser still verifies their
-    # generation IDs because intermediary caches need not be atomic.
-    safe_write_text(str(overview_file), projection['overview'])
-    safe_write_text(str(out_file), projection['dashboard'])
-    safe_write_text(str(audit_file), projection['audit'])
-    shadow_file.parent.mkdir(parents=True, exist_ok=True)
-    safe_write_text(str(shadow_file), projection['shadow'])
+    # All four are compiled from the same in-memory generation and enter the
+    # shared publication pathspec together, so they are published as one write
+    # set: every file is staged on disk before any of them is swapped in. A
+    # failure part-way now publishes nothing instead of two new files beside two
+    # old ones (#262 slice 3 step 3). The browser still verifies their generation
+    # IDs, because intermediary caches need not be atomic either way.
+    #
+    # Order is the ownership contract's, so the pathspec and the write set cannot
+    # drift apart.
+    dashboard_outputs.write_generation({
+        str(overview_file): projection['overview'],
+        str(out_file): projection['dashboard'],
+        str(audit_file): projection['audit'],
+        str(shadow_file): projection['shadow'],
+    })
 
     record_preservation(
         projection['preservation']['presence'],
