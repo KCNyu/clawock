@@ -313,31 +313,27 @@ def compute_guardrail_outputs(portfolio, risk, lev_regime=None):
         }
 
 
-def write_shadow_sidecar(portfolio, decisions, shadow_file):
-    """Build the shadow sidecar, replacing stale results with an explicit failure.
+def build_shadow_sidecar(portfolio, decisions, previous=None):
+    """Build the shadow sidecar payload, replacing a stale result with a failure.
 
     A failed refresh must never leave the previous curves looking current.  Keep
     the last successful ``as_of`` only as provenance on the failure marker; a
-    later successful full write naturally removes ``computed: false`` again.
+    later successful full build naturally removes ``computed: false`` again.
+
+    ``previous`` is the sidecar as it currently stands on disk. It is passed in
+    rather than read here because this no longer knows where the sidecar lives —
+    the caller owns that, and the failure marker is the only thing that needs the
+    old value at all.
     """
-    shadow_file = Path(shadow_file)
     try:
         import shadow_portfolio
-        result = shadow_portfolio.write_shadow_portfolio(
-            portfolio, decisions, shadow_file)
-        print(f'✓ wrote {shadow_file} (shadow portfolio sidecar, 模拟·非实盘)')
-        return result
+        return shadow_portfolio.build_shadow_portfolio(portfolio, decisions)
     except Exception as e:
-        previous = load_json(shadow_file) if shadow_file.exists() else None
         failure = {'computed': False, 'error': str(e)}
         if isinstance(previous, dict):
             stale_as_of = previous.get('as_of') or previous.get('stale_as_of')
             if stale_as_of:
                 failure['stale_as_of'] = stale_as_of
-        from safe_io import safe_write_text
-        safe_write_text(
-            str(shadow_file),
-            json.dumps(failure, ensure_ascii=False, indent=2) + '\n')
         print(f'  warn: shadow_portfolio build fail: {e}', file=sys.stderr)
         return failure
 
@@ -2350,21 +2346,35 @@ def resolve_previous_source(args):
     return Path(args.previous) if args.previous else None
 
 
-def main(argv=None):
-    # BUILD_DASHBOARD_OUT: redirect the WRITE target only. Verification callers
-    # (system_check's buildability gate, run by the pre-push hook) build to a
-    # temp file so a *check* never mutates the published artifact — before
-    # 2026-06-10 every pre-push run rewrote dashboard.json in place, leaving
-    # the working tree perpetually dirty. A redirected build still reads whatever
-    # `--previous` names, so the redirect never changes which cards are restored.
-    args = parse_args(argv)
-    previous_source = resolve_previous_source(args)
-    out_file = Path(os.environ.get('BUILD_DASHBOARD_OUT') or OUT_FILE)
-    out_file.parent.mkdir(parents=True, exist_ok=True)
+class MissingPortfolio(Exception):
+    """portfolio.json is the one input a projection cannot be built without."""
+
+
+def build_projection(previous_source=None, shadow_previous=None):
+    """Compute the four public payloads from the workspace. Writes nothing.
+
+    Returns `{dashboard, overview, audit, shadow, preservation, summary}` — the
+    complete generation, in memory. Which files those payloads end up in, and
+    whether they are written at all, is `main()`'s business (#262 slice 3).
+
+    Separating this out is what makes the projection testable against a
+    synthetic workspace, and it is the precondition for the later slices: a
+    renderer can only consume a projection directory if a projection is a value
+    rather than a side effect of writing four files.
+
+    `previous_source` is the opt-in payload from slice 2 — a path, read here, and
+    named in `dashboard.build_status.previous_payload`. `shadow_previous` is the
+    shadow sidecar as it stands on disk, needed only to keep the last successful
+    `as_of` as provenance when the simulation fails; the caller reads it because
+    the caller is the one that knows where the sidecar lives.
+
+    Raises `MissingPortfolio` when the ledger is absent. Everything else degrades
+    into the payload — a build that cannot compute a card publishes the card's
+    failure, it does not abort the generation.
+    """
     portfolio = load_json(WS_ROOT / 'portfolio.json')
     if not portfolio:
-        print('FATAL: portfolio.json missing', file=sys.stderr)
-        return 1
+        raise MissingPortfolio(str(WS_ROOT / 'portfolio.json'))
 
     us_pf = portfolio['portfolios']['us_stocks']
     hk_pf = portfolio['portfolios']['hk_stocks']
@@ -2536,29 +2546,19 @@ def main(argv=None):
     _preserved = merge_previous_payload(
         out, _prev_dash, _presence,
         usable={'peer_divergence': lambda v: isinstance(v, dict) and bool(v.get('items'))})
-    record_preservation(_presence, _preserved, previous_source, out_file)
     # Decision system v2 is the only live scoring path. No CSV/signal-row
     # compatibility keys are emitted: frontend, README and harness share this.
     _decisions = decision_v2.load_decisions()
     decision_v2.settle_decisions(_decisions)
-    audit_file = Path(os.environ.get('DECISION_AUDIT_OUT')
-                      or (out_file.parent / AUDIT_FILE.name))
-    from safe_io import safe_write_text
     # Reflect reads timing_diagnostic plus its episode backtest from this sidecar.
     # The full per-decision `records` trail (~700KB, recomputable from decisions)
     # is not rendered or linked anywhere, so it stays unpublished.
-    safe_write_text(
-        str(audit_file),
-        json.dumps(
-            build_decision_audit_payload(_decisions, portfolio),
-            ensure_ascii=False, separators=(',', ':')))
-    # Shadow-portfolio policy simulation (模拟·非实盘): fetched sidecar, NOT embedded
+    _audit = build_decision_audit_payload(_decisions, portfolio)
+    # Shadow-portfolio policy simulation (模拟·非实盘): its own sidecar, NOT embedded
     # in dashboard.json. Two cash+inventory ledgers (follow-all-triggered vs
     # same-seed buy-and-hold) marked to canonical closes; cumulative diff is a
     # simulated timing alpha, never live/broker performance.
-    shadow_file = Path(os.environ.get('SHADOW_PORTFOLIO_OUT')
-                       or (out_file.parent / 'shadow_portfolio.json'))
-    write_shadow_sidecar(portfolio, _decisions, shadow_file)
+    _shadow = build_shadow_sidecar(portfolio, _decisions, shadow_previous)
     out['decision_schema_version'] = 2
     out['decision_metrics'] = trim_decision_metrics(
         decision_v2.compute_metrics(_decisions))
@@ -2775,6 +2775,10 @@ def main(argv=None):
     if brief_ctx_path:
         print(f'  brief-context source: {os.path.basename(brief_ctx_path)}')
 
+    # The size cap trims `out` and the overview is compiled from the trimmed
+    # result, so both stay part of the projection: they change what the payload
+    # IS, not where it goes. Only the writes belong to the caller.
+    #
     # dashboard.json is the canonical cross-tab browser document. Keep it compact:
     # detail activation still pays this parse, and producers should not spend
     # recovered headroom on indentation that adds no user value.
@@ -2796,8 +2800,6 @@ def main(argv=None):
             print(f'⚠️  payload STILL {size_bytes} bytes > {MAX_OUT_BYTES} cap after '
                   f'dropping recent_plans — publishing over cap', file=sys.stderr)
 
-    overview_file = (
-        OVERVIEW_FILE if out_file == OUT_FILE else out_file.parent / 'overview.json')
     overview_payload = serialize_dashboard_payload(compile_overview_projection(out))
     overview_size = len(overview_payload.encode('utf-8'))
     if overview_size > MAX_OVERVIEW_BYTES:
@@ -2805,21 +2807,91 @@ def main(argv=None):
             f'overview projection {overview_size:,} bytes exceeds '
             f'{MAX_OVERVIEW_BYTES:,}-byte cap')
 
+    return {
+        # Serialized, because the size caps above are enforced on the encoded
+        # bytes: handing back the dict would let a writer re-encode differently
+        # and publish something the cap never saw.
+        'dashboard': payload,
+        'overview': overview_payload,
+        'audit': json.dumps(_audit, ensure_ascii=False, separators=(',', ':')),
+        'shadow': json.dumps(_shadow, ensure_ascii=False, indent=2) + '\n',
+        # What the caller needs to record the slice-2 telemetry without knowing
+        # how the merge works.
+        'preservation': {'presence': _presence, 'preserved': _preserved},
+        'summary': {
+            'dashboard_bytes': size_bytes,
+            'overview_bytes': overview_size,
+            'us_holdings': len(us_h),
+            'us_active': len([h for h in us_h if h['is_active']]),
+            'us_value': us_conc['total'],
+            'hk_holdings': len(hk_h),
+            'hk_active': len([h for h in hk_h if h['is_active']]),
+            'hk_value': hk_conc['total'],
+            'snapshots_embedded': len(snapshots),
+            'snapshots_total': out['snapshots_total'],
+            'plans_embedded': len(plans),
+            'plans_total': out['plans_count'],
+            'fx_rate': fx_cache.get('rate'),
+            'fx_source': fx_cache.get('source'),
+        },
+    }
+
+
+def main(argv=None):
+    # BUILD_DASHBOARD_OUT: redirect the WRITE target only. Verification callers
+    # (system_check's buildability gate, run by the pre-push hook) build to a
+    # temp file so a *check* never mutates the published artifact — before
+    # 2026-06-10 every pre-push run rewrote dashboard.json in place, leaving
+    # the working tree perpetually dirty. A redirected build still reads whatever
+    # `--previous` names, so the redirect never changes which cards are restored.
+    args = parse_args(argv)
+    previous_source = resolve_previous_source(args)
+    out_file = Path(os.environ.get('BUILD_DASHBOARD_OUT') or OUT_FILE)
+    out_file.parent.mkdir(parents=True, exist_ok=True)
+    # The four outputs are one logical generation (dashboard_outputs.py owns that
+    # contract). Their paths are resolved together, here, so that the projection
+    # never learns where it is going to land.
+    overview_file = (
+        OVERVIEW_FILE if out_file == OUT_FILE else out_file.parent / 'overview.json')
+    audit_file = Path(os.environ.get('DECISION_AUDIT_OUT')
+                      or (out_file.parent / AUDIT_FILE.name))
+    shadow_file = Path(os.environ.get('SHADOW_PORTFOLIO_OUT')
+                       or (out_file.parent / 'shadow_portfolio.json'))
+
+    try:
+        projection = build_projection(
+            previous_source=previous_source,
+            shadow_previous=load_json(shadow_file) if shadow_file.exists() else None)
+    except MissingPortfolio:
+        print('FATAL: portfolio.json missing', file=sys.stderr)
+        return 1
+
+    from safe_io import safe_write_text
     # Both files are compiled from the same in-memory generation and enter the
     # shared publication pathspec together. The browser still verifies their
     # generation IDs because intermediary caches need not be atomic.
-    safe_write_text(str(overview_file), overview_payload)
-    safe_write_text(str(out_file), payload)
+    safe_write_text(str(overview_file), projection['overview'])
+    safe_write_text(str(out_file), projection['dashboard'])
+    safe_write_text(str(audit_file), projection['audit'])
+    shadow_file.parent.mkdir(parents=True, exist_ok=True)
+    safe_write_text(str(shadow_file), projection['shadow'])
 
-    print(f'✓ wrote {overview_file} ({overview_size:,} bytes)')
-    print(f'✓ wrote {out_file} ({size_bytes:,} bytes)')
+    record_preservation(
+        projection['preservation']['presence'],
+        projection['preservation']['preserved'],
+        previous_source, out_file)
+
+    s = projection['summary']
+    print(f'✓ wrote {overview_file} ({s["overview_bytes"]:,} bytes)')
+    print(f'✓ wrote {out_file} ({s["dashboard_bytes"]:,} bytes)')
     print(f'✓ wrote {audit_file} (decision audit sidecar)')
-    print(f'  US: {len(us_h)} holdings, {len([h for h in us_h if h["is_active"]])} active, value ${us_conc["total"]:.0f}')
-    print(f'  HK: {len(hk_h)} holdings, {len([h for h in hk_h if h["is_active"]])} active, value HK${hk_conc["total"]:.0f}')
-    print(f'  Snapshots: {len(snapshots)} embedded / {out["snapshots_total"]} on disk')
-    print(f'  Plans: {len(plans)} embedded / {out["plans_count"]} on disk')
-    print(f'  Snapshots: {len(snapshots)} | Plans: {len(plans)}')
-    print(f'  FX USDHKD: {fx_cache.get("rate")} ({fx_cache.get("source")})')
+    print(f'✓ wrote {shadow_file} (shadow portfolio sidecar, 模拟·非实盘)')
+    print(f'  US: {s["us_holdings"]} holdings, {s["us_active"]} active, value ${s["us_value"]:.0f}')
+    print(f'  HK: {s["hk_holdings"]} holdings, {s["hk_active"]} active, value HK${s["hk_value"]:.0f}')
+    print(f'  Snapshots: {s["snapshots_embedded"]} embedded / {s["snapshots_total"]} on disk')
+    print(f'  Plans: {s["plans_embedded"]} embedded / {s["plans_total"]} on disk')
+    print(f'  Snapshots: {s["snapshots_embedded"]} | Plans: {s["plans_embedded"]}')
+    print(f'  FX USDHKD: {s["fx_rate"]} ({s["fx_source"]})')
     return 0
 
 
