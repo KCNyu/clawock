@@ -39,8 +39,15 @@ def workspace(tmp_path):
     _git(work, "config", "user.name", "test")
     _git(work, "config", "user.email", "test@example.invalid")
     _git(work, "remote", "add", "origin", str(origin))
-    for name in ("overview", "dashboard", "decision_audit", "shadow_portfolio"):
-        (work / "assets" / "data" / f"{name}.json").write_text(
+    # Every member of the published generation, read from the publisher rather
+    # than restated — the set grew from four to six in #325, and a fixture that
+    # named them would have silently tested a smaller generation.
+    sys.path.insert(0, str(ROOT / "scripts" / "data"))
+    from publish_data_branch import DATA_PLANE_FILES
+    for name in DATA_PLANE_FILES:
+        target = work / name
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text(
             json.dumps({"generated_at": "2026-08-05T00:00:00Z", "name": name}),
             encoding="utf-8")
     (work / "README.md").write_text("source\n", encoding="utf-8")
