@@ -1,64 +1,64 @@
 {
-  "generated_at": "2026-08-04T22:43:43.118880+00:00",
+  "generated_at": "2026-08-05T22:42:20.892842+00:00",
   "vix": {
     "symbol": "^VIX",
-    "price": 16.5,
-    "prev": 15.86,
-    "change_pct": 4.04,
-    "as_of": 1785874501,
+    "price": 15.81,
+    "prev": 16.5,
+    "change_pct": -4.18,
+    "as_of": 1785960901,
     "source": "yahoo"
   },
   "treasury_10y": {
     "symbol": "^TNX",
-    "price": 4.627,
-    "prev": 4.686,
-    "change_pct": -1.26,
-    "as_of": 1785869994,
+    "price": 4.617,
+    "prev": 4.627,
+    "change_pct": -0.22,
+    "as_of": 1785956393,
     "source": "yahoo",
-    "yield_pct": 4.627
+    "yield_pct": 4.617
   },
   "dxy": {
     "symbol": "DX-Y.NYB",
-    "price": 99.882,
-    "prev": 99.897,
-    "change_pct": -0.02,
-    "as_of": 1785881099,
+    "price": 99.69,
+    "prev": 99.858,
+    "change_pct": -0.17,
+    "as_of": 1785967499,
     "source": "yahoo"
   },
   "fear_greed": {
-    "score": 58.1,
+    "score": 59.7,
     "rating": "greed",
-    "prev_close": 45.8,
-    "prev_1_week": 37.9,
-    "as_of": "2026-08-04T22:24:49+00:00"
+    "prev_close": 58.2,
+    "prev_1_week": 34.7,
+    "as_of": "2026-08-05T22:21:53+00:00"
   },
   "hsi": {
     "symbol": "^HSI",
-    "price": 25852.92,
-    "prev": 26009.4,
-    "change_pct": -0.6,
+    "price": 25915.82,
+    "prev": 25852.92,
+    "change_pct": 0.24,
     "source": "tencent"
   },
   "hstech": {
     "symbol": "^HSTECH",
-    "price": 4885.61,
-    "prev": 4875.61,
-    "change_pct": 0.21,
+    "price": 4933.07,
+    "prev": 4885.61,
+    "change_pct": 0.97,
     "source": "tencent"
   },
   "spx": {
     "symbol": "^GSPC",
-    "price": 7736.52,
-    "prev": 7600.5,
-    "change_pct": 1.79,
-    "as_of": 1785876138,
+    "price": 7723.55,
+    "prev": 7736.52,
+    "change_pct": -0.17,
+    "as_of": 1785962505,
     "source": "yahoo"
   },
   "nasdaq": {
     "symbol": "^IXIC",
-    "price": 26584.99,
-    "prev": 25913.9,
-    "change_pct": 2.59,
+    "price": 26363.44,
+    "prev": 26584.99,
+    "change_pct": -0.83,
     "source": "tencent"
   },
   "fed_press": [
@@ -96,11 +96,6 @@
       "date": "2026-07-30",
       "title": "Federal Reserve Board issues enforcement action with Iuka Bancshares, Inc. and The Iuka State Bank",
       "url": "https://www.federalreserve.gov/newsevents/pressreleases/enforcement20260730b.htm"
-    },
-    {
-      "date": "2026-07-29",
-      "title": "Federal Reserve issues FOMC statement",
-      "url": "https://www.federalreserve.gov/newsevents/pressreleases/monetary20260729a.htm"
     }
   ]
 }
