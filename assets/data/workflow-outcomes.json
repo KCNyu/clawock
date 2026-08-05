@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "monitoring_started_at": "2026-07-26T08:00:00+08:00",
-  "updated_at": "2026-08-04T20:20:09.501461+00:00",
+  "updated_at": "2026-08-05T00:20:03.264954+00:00",
   "records": [
     {
       "job": "港股收盘报告",
@@ -3585,6 +3585,62 @@
         "error_present": true
       },
       "updated_at": "2026-08-04T20:20:09.501461+00:00",
+      "final_product": {
+        "status": "success",
+        "reason": "primary delivery succeeded"
+      }
+    },
+    {
+      "job": "盘前深度简报",
+      "slot": "2026-08-05T08:00:00+08:00",
+      "stages": {
+        "preflight": {
+          "status": "success",
+          "at": "2026-08-05T00:08:14.115905+00:00",
+          "context_present": true
+        },
+        "llm": {
+          "status": "success",
+          "at": "2026-08-05T00:08:14.120696+00:00",
+          "issue_count": 0,
+          "readability": {
+            "status": "advisory",
+            "bytes": 34981,
+            "target_bytes": 28000,
+            "extreme_bytes": 40000,
+            "over_by_bytes": 6981
+          }
+        },
+        "postflight": {
+          "status": "success",
+          "at": "2026-08-05T00:09:03.694217+00:00",
+          "issue_count": 0,
+          "commit_ok": true,
+          "readability": {
+            "status": "advisory",
+            "bytes": 34981,
+            "target_bytes": 28000,
+            "extreme_bytes": 40000,
+            "over_by_bytes": 6981
+          }
+        },
+        "primary_delivery": {
+          "status": "success",
+          "at": "2026-08-05T00:09:03.699547+00:00",
+          "channel": "wechat_or_telegram"
+        },
+        "watchdog_delivery": {
+          "status": "unknown"
+        }
+      },
+      "raw_execution": {
+        "status": "ok",
+        "run_at_ms": 1785888000022,
+        "finished_at_ms": 1785888548069,
+        "run_id": null,
+        "error_present": false
+      },
+      "updated_at": "2026-08-05T00:09:03.699547+00:00",
       "final_product": {
         "status": "success",
         "reason": "primary delivery succeeded"
