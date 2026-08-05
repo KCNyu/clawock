@@ -1,6 +1,7 @@
 """Cron health: what counts as evidence that a scheduled job did its work."""
+import json
 import sys
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from types import SimpleNamespace
 from zoneinfo import ZoneInfo
@@ -54,3 +55,49 @@ def test_only_todays_finished_runs_count_as_evidence():
     ])
 
     assert cron_health_check.runs_finished_today("job", provider) == 2
+
+
+# ── #338: the publisher's only liveness signal ──────────────────────────────
+# #325 moved the outputs off master, which removed the `dashboard: scheduled
+# publish` commits kcn actually used to see the crontab entry was alive. The
+# published generation's own age is the replacement.
+def _generation(tmp_path, published_at):
+    path = tmp_path / "dashboard.json"
+    path.write_text(json.dumps({"generated_at": published_at.isoformat()}))
+    return path
+
+
+def test_a_frozen_generation_on_a_trading_day_is_reported():
+    # 2026-08-05 is a Wednesday and a session in both markets.
+    now = datetime(2026, 8, 5, 16, 0, tzinfo=timezone.utc)
+    import tempfile
+    with tempfile.TemporaryDirectory() as d:
+        stale = _generation(Path(d), now - timedelta(hours=4))
+        result = cron_health_check.check_scheduled_publisher(now=now, path=stale)
+    assert result["state"] == "stale"
+    assert result["age_hours"] == 4.0
+
+
+def test_a_quiet_tick_is_not_a_dead_publisher():
+    # The publisher only pushes when the semantic diff changed, so a generation
+    # that is merely an hour old is healthy — flagging it would red the workflow
+    # on every calm session.
+    now = datetime(2026, 8, 5, 16, 0, tzinfo=timezone.utc)
+    import tempfile
+    with tempfile.TemporaryDirectory() as d:
+        fresh = _generation(Path(d), now - timedelta(hours=1))
+        result = cron_health_check.check_scheduled_publisher(now=now, path=fresh)
+    assert result["state"] == "ok"
+
+
+def test_a_closed_weekend_is_silence_by_design():
+    # 2026-08-09 12:00 HKT is a Sunday: no session to publish into, so an old
+    # generation is correct and must not be reported as a stalled publisher.
+    # (UTC, not HKT — 16:00 UTC on a Sunday is already Monday in Hong Kong.)
+    now = datetime(2026, 8, 9, 4, 0, tzinfo=timezone.utc)
+    import tempfile
+    with tempfile.TemporaryDirectory() as d:
+        stale = _generation(Path(d), now - timedelta(hours=30))
+        result = cron_health_check.check_scheduled_publisher(now=now, path=stale)
+    assert result["state"] == "ok"
+    assert "非交易日" in result["detail"]

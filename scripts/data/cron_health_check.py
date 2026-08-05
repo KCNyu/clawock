@@ -296,6 +296,71 @@ def heartbeat_coverage(job_name, slots, tz_name, now, ledger):
             'failed': failed, 'pending': pending}
 
 
+# How long the published generation may sit unchanged on a trading day before
+# the scheduled publisher is presumed dead. Deliberately generous: the publisher
+# only pushes when the semantic diff says something changed, so a quiet tick
+# publishing nothing is healthy. This threshold is not "the cadence" (20 min) —
+# it is "nothing has moved in the book for three hours during a session", which
+# on a trading day means the 0,20,40 crontab entry stopped running.
+PUBLISHER_STALE_HOURS = 3
+
+
+def check_scheduled_publisher(now=None, path=None):
+    """Is the every-20-minutes publisher still reaching the data branch?
+
+    #325 moved the generated outputs off `master`, which removed the
+    `dashboard: scheduled publish <ts>` commits — the de-facto liveness signal
+    for the crontab entry that produces them (kcn, 2026-08-06: "以前 schedule
+    publisher 是不是用来监控…现在也看不到"). Nothing replaced it: the publisher
+    writes no heartbeat, appears in no ledger, and does not even write
+    logs/dashboard_build_status.json (that file has three postflight writers and
+    the publisher is none of them). A dead publisher's only symptom was a site
+    quietly frozen on an old generation.
+
+    So ask the published generation itself how old it is. This costs nothing:
+    the workflow already materialises the data branch before running this check,
+    so `assets/data/dashboard.json` here IS the last generation the site serves.
+    Run on a host instead of in CI it answers the weaker local question ("when
+    did this host last build"), which is why it never escalates past a warning.
+    """
+    path = path or (WS / 'assets' / 'data' / 'dashboard.json')
+    now = now or datetime.now(timezone.utc)
+    if not path.exists():
+        return {'state': 'absent', 'detail': 'no published generation to read',
+                'age_hours': None}
+    try:
+        stamp = json.loads(path.read_text()).get('generated_at')
+        published = datetime.fromisoformat(str(stamp).replace('Z', '+00:00'))
+        if published.tzinfo is None:
+            published = published.replace(tzinfo=timezone.utc)
+    except Exception as e:
+        return {'state': 'failed', 'detail': f'generation stamp unreadable: {e}',
+                'age_hours': None}
+    age_hours = round((now - published).total_seconds() / 3600, 1)
+    local = now.astimezone(HKT)
+    # A weekend or a double holiday has no session to publish into, so silence
+    # is correct there and must not be reported as a stalled publisher.
+    # Same local, fail-open import as _market_closed_today: an unavailable
+    # calendar must not turn this into a red, so it falls through to judging.
+    try:
+        import trading_calendar as _tc
+        trading = any(_tc.is_trading_day(m, local.date()) for m in ('hk', 'us'))
+    except Exception:
+        trading = True
+    if not trading:
+        return {'state': 'ok',
+                'detail': f'last generation {age_hours}h old · 非交易日不判',
+                'age_hours': age_hours}
+    if age_hours > PUBLISHER_STALE_HOURS:
+        return {'state': 'stale',
+                'detail': (f'已发布的那一代已 {age_hours}h 未更新 '
+                           f'(> {PUBLISHER_STALE_HOURS}h) — 0,20,40 的 '
+                           f'publish_dashboard.sh 大概率没在跑'),
+                'age_hours': age_hours}
+    return {'state': 'ok', 'detail': f'last generation {age_hours}h old',
+            'age_hours': age_hours}
+
+
 def check_dashboard_build():
     """Read logs/dashboard_build_status.json (written by _harness_common.rebuild_dashboard).
 
@@ -473,6 +538,14 @@ def main():
     elif dash['state'] in ('degraded', 'stale'):
         has_warn = True
 
+    publisher = check_scheduled_publisher(now=now)
+    # 'absent' is reported but never escalated, matching check_dashboard_build:
+    # it means "no generation was fetched to judge", which is not the same claim
+    # as "the publisher is dead". In the workflow the fetch step fails loudly on
+    # its own, so absent cannot hide a real stall there.
+    if publisher['state'] in ('stale', 'failed'):
+        has_warn = True
+
     # Token regressions surface in the daily review, never as a per-cron alert
     # (feedback_no_individual_cron_alerts) and never as a reason to exit non-zero:
     # a job burning 3x its usual tokens is something to look at, not a failure.
@@ -485,6 +558,7 @@ def main():
         'now_hkt': now.astimezone(HKT).strftime('%Y-%m-%d %H:%M HKT'),
         'jobs': report,
         'dashboard_build': dash,
+        'scheduled_publisher': publisher,
         'token_usage': token_reports,
         'has_missing': has_missing,
         'has_warn': has_warn,
@@ -501,6 +575,8 @@ def main():
             print(f"  {icon} {r['name']:25s}  {r['detail']}")
         dash_icon = DASHBOARD_STATE_ICONS[dash['state']]
         print(f"  {dash_icon} {'dashboard build':25s}  {dash['detail']}")
+        pub_icon = DASHBOARD_STATE_ICONS[publisher['state']]
+        print(f"  {pub_icon} {'scheduled publisher':25s}  {publisher['detail']}")
         for line in cron_token_audit.format_lines(token_regressions):
             print(f"  {line}")
         if has_missing:
