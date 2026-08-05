@@ -2452,7 +2452,48 @@ def parse_args(argv=None):
         help='build from the workspace alone; no output may come from a '
              'previously published file. This is the default — pass it to state '
              'the guarantee explicitly')
+    parser.add_argument(
+        '--out-dir', metavar='DIR', default=None,
+        help='write the four outputs of this generation into DIR instead of the '
+             'published location. Beats the BUILD_DASHBOARD_OUT / '
+             'DECISION_AUDIT_OUT / SHADOW_PORTFOLIO_OUT redirects')
     return parser.parse_args(argv)
+
+
+def resolve_output_paths(out_dir=None):
+    """The four files one generation lands in, keyed by payload name.
+
+    Precedence: an explicit `--out-dir` beats the per-file environment redirects,
+    which beat the published locations. Explicit beats ambient — a caller that
+    named a directory should not have an inherited env var silently move one of
+    the four files out of it and split the generation across two places.
+
+    The env vars stay because they are what system_check's buildability gate and
+    the Actions validation jobs already use. `--out-dir` is the form a caller
+    outside this repository wants, and is what makes a projection buildable
+    anywhere (#262 slice 3 step 4).
+
+    Note the old `OVERVIEW_FILE if out_file == OUT_FILE else …` conditional is
+    gone: `OVERVIEW_FILE` is `OUT_FILE.parent / 'overview.json'`, so both arms
+    always produced the same path.
+    """
+    if out_dir:
+        directory = Path(out_dir)
+        return {
+            'overview': directory / OVERVIEW_FILE.name,
+            'dashboard': directory / OUT_FILE.name,
+            'audit': directory / AUDIT_FILE.name,
+            'shadow': directory / 'shadow_portfolio.json',
+        }
+    out_file = Path(os.environ.get('BUILD_DASHBOARD_OUT') or OUT_FILE)
+    return {
+        'overview': out_file.parent / OVERVIEW_FILE.name,
+        'dashboard': out_file,
+        'audit': Path(os.environ.get('DECISION_AUDIT_OUT')
+                      or (out_file.parent / AUDIT_FILE.name)),
+        'shadow': Path(os.environ.get('SHADOW_PORTFOLIO_OUT')
+                       or (out_file.parent / 'shadow_portfolio.json')),
+    }
 
 
 def resolve_previous_source(args):
@@ -2977,17 +3018,13 @@ def main(argv=None):
     # `--previous` names, so the redirect never changes which cards are restored.
     args = parse_args(argv)
     previous_source = resolve_previous_source(args)
-    out_file = Path(os.environ.get('BUILD_DASHBOARD_OUT') or OUT_FILE)
-    out_file.parent.mkdir(parents=True, exist_ok=True)
     # The four outputs are one logical generation (dashboard_outputs.py owns that
     # contract). Their paths are resolved together, here, so that the projection
     # never learns where it is going to land.
-    overview_file = (
-        OVERVIEW_FILE if out_file == OUT_FILE else out_file.parent / 'overview.json')
-    audit_file = Path(os.environ.get('DECISION_AUDIT_OUT')
-                      or (out_file.parent / AUDIT_FILE.name))
-    shadow_file = Path(os.environ.get('SHADOW_PORTFOLIO_OUT')
-                       or (out_file.parent / 'shadow_portfolio.json'))
+    paths = resolve_output_paths(args.out_dir)
+    out_file, overview_file = paths['dashboard'], paths['overview']
+    audit_file, shadow_file = paths['audit'], paths['shadow']
+    out_file.parent.mkdir(parents=True, exist_ok=True)
 
     try:
         projection = build_projection(
