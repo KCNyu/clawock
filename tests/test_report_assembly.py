@@ -347,11 +347,16 @@ def test_happy_path_assembles_commits_and_records_delivered(run_main, sent):
     assert body.startswith('🌙 美股收盘日报') and FRESH_BLOCK in body and '▎情绪面' in body
 
 
-def test_failed_narrative_still_commits_only_the_data_plane_paths(pf, monkeypatch):
+def test_failed_narrative_still_commits_the_money_file_and_nothing_ignored(pf, monkeypatch):
+    """A rejected narrative must not cost the deterministic half of the run.
+
+    It used to stage the dashboard outputs alongside `portfolio.json`. Since #314
+    those are gitignored, and `git add` on an ignored path FAILS — which would
+    have aborted this commit and taken the money file with it. The rebuild still
+    happens; only the staging is gone.
+    """
     calls = []
     monkeypatch.setattr(pf, 'rebuild_dashboard', lambda: (True, 'ok'))
-    monkeypatch.setattr(pf, 'dashboard_output_changes',
-                        lambda: ['assets/data/dashboard.json'])
     monkeypatch.setattr(pf, 'snapshot_date_for_now', lambda: None)
     monkeypatch.setattr(pf, 'push_with_rebase_retry', lambda: (True, 'ok'))
 
@@ -365,13 +370,11 @@ def test_failed_narrative_still_commits_only_the_data_plane_paths(pf, monkeypatc
 
     assert ok is True and message == 'committed + pushed'
     assert calls[0] == (
-        'add', 'portfolio.json', 'assets/data/dashboard.json',
-        'logs/dashboard_build_status.json',
+        'add', 'portfolio.json', 'logs/dashboard_build_status.json',
     )
     assert calls[1] == (
         'commit', '-m', 'portfolio: refresh (data only; prose rejected)', '--',
-        'portfolio.json', 'assets/data/dashboard.json',
-        'logs/dashboard_build_status.json',
+        'portfolio.json', 'logs/dashboard_build_status.json',
     )
 
 

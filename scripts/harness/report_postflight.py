@@ -102,7 +102,6 @@ from _harness_common import (  # noqa: E402
     categorize_issues,
     check_numeric_claims,
     check_raw_tables_verbatim,
-    dashboard_output_changes,
     git_cmd as _git,
     push_with_rebase_retry,
     rebuild_dashboard,
@@ -255,7 +254,6 @@ def deliver_wechat(market, phase, date, wechat_prefix, text, delivery_state='del
 
 def maybe_commit(status, commit_msg):
     rebuild_ok, _ = rebuild_dashboard()
-    dashboard_paths = dashboard_output_changes()
     suffix = {
         'warn': ' (validation warnings)',
         'fail': ' (data only; prose rejected)',
@@ -263,7 +261,12 @@ def maybe_commit(status, commit_msg):
     snap_date = snapshot_date_for_now()
     # logs/dashboard_build_status.json rides along: its only scheduled reader is
     # the GHA cron-health runner (fresh checkout), so it must reach origin.
-    add_args = ['add', 'portfolio.json', *dashboard_paths,
+    # The four dashboard outputs are NOT staged: #314 took them out of the
+    # repository, and `git add` on a gitignored path FAILS rather than skipping
+    # — which would abort this commit and take portfolio.json and the snapshot
+    # down with it. The rebuild above still refreshes them in the worktree; the
+    # scheduled publisher puts them on the data branch within 20 minutes.
+    add_args = ['add', 'portfolio.json',
                 'logs/dashboard_build_status.json']
     if snap_date:
         add_args.append(f'memory/snapshots/{snap_date}.json')
