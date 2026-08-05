@@ -24,9 +24,7 @@ from workspace import workspace_root  # noqa: E402
 # in-repo importers keep working unchanged.
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 from clawock.validation import (  # noqa: E402,F401
-    REPORT_ASSEMBLED_TARGET_CHARS,
     REPORT_CHAR_LIMITS,
-    report_prose_budget,
     ADVISORY_MARK,
     MAX_NUMERIC_SAMPLES,
     MIN_CHECKED_AMOUNT,

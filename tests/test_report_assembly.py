@@ -125,20 +125,20 @@ def test_content_rules_run_on_prose_not_the_prepended_block(pf):
 
 
 def test_length_is_measured_on_the_assembled_message(pf):
-    """Limits are pinned in the cron contract at 3000/3500 and have always meant
-    the delivered message. Measuring prose alone would silently loosen them by
-    the length of the block."""
+    """The ceiling has always meant the delivered message. Measuring prose alone
+    would silently loosen it by the length of the harness-owned block."""
+    soft = pf.CHAR_LIMITS['soft']
     ctx = _ctx()
-    # prose sized to sit just UNDER the soft limit on its own, so the only way to
+    # prose sized to sit just UNDER the ceiling on its own, so the only way to
     # trip the rule is to count the block the harness prepends
-    prose = PROSE + '填' * (2990 - len(PROSE))
+    prose = PROSE + '填' * (soft - 10 - len(PROSE))
     assembled = pf.assemble_message(ctx, prose)
-    assert len(prose) < 3000 < len(assembled)
+    assert len(prose) < soft < len(assembled)
 
     assert [i for i in pf.validate(prose, ctx, prose_only=True, model_text=prose)
             if '报告长度' in i] == []
     assert [i for i in pf.validate(assembled, ctx, prose_only=True, model_text=prose)
-            if '报告长度' in i] == [f'报告长度 {len(assembled)} 字 > 3000 软上限 (warn)']
+            if '报告长度' in i] == [f'报告长度 {len(assembled)} 字 > {soft} 软上限 (warn)']
 
 
 # ── generation binding ─────────────────────────────────────────────────────

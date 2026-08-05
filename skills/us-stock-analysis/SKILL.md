@@ -116,7 +116,7 @@ python3 /root/.openclaw/workspace/scripts/harness/intraday_preflight.py --market
   - 🔢 **数字铁律**：金额/股数一律**照抄 context**，不换算不心算；**别在 `▎我的看法` 里重述持仓股数或市值**（数据块里已经有了，但 `plan_context.open[].shares` 这种「本单动多少股」是要写的）；前瞻性数字要么给算式要么不写。postflight 的 `check_numeric_claims` 会把 context 里没有的数字和自相矛盾的区间标成 warn（issue #120）。
   - ⚡ **板块全景**：数据**已由 preflight 备好**在 context.json 的 `peer_scan` 里（每个 active ticker 一项：`theme` 板块名、`listed_peers` 已按今日涨幅降序、含 `pct_1d`/`pct_5d`、`divergence_signal`、`self_pct_1d`）。**直接引用它,不要自己去读 peer-map.json、也不要自己调 `fetch_peers.py`**；给对应主题成分今日 Top 5 + 你持仓位置 + 1 句归因;`peer_scan` 为空或缺项时才回退 web search。若某条带 `name_mismatch`,以 feed 名为准并在报告里提一句。持仓自己的数字仍从 context.json。板块行情**优先用内置 web search**；`tavily-search` 仅在**开盘/收盘报告**或盘中真事件时才用，且必带 `--bucket report`/`--bucket intraday`（见 Mode 5 的 Budget rule）——盘中每 30 分钟的常规盯盘**不要**烧 Tavily
   - 禁止"无异动，观望"这种敷衍 1 句话
-- 目标 ≤2200 字；>3000 字 postflight warn，>3500 字 fail（长度算的是拼装后的整条消息）
+- 不设字数目标；postflight 只有一道防复读死循环的天花板：>5000 warn，>6000 fail（算的是拼装后的整条消息）
 
 #### Step 2.5: 写 dashboard 状态横幅 sidecar
 
@@ -202,14 +202,10 @@ python3 /root/.openclaw/workspace/scripts/harness/report_preflight.py --market u
 ▎风险提示（仅当 needs_risk_section=true）
 ```
 
-**定稿前体量闸**：preflight 的 `size_budget` 已扣掉标题和 harness 自动拼入的数据块。
-散文目标必须 ≤`size_budget.prose_target_chars`，并且绝不能超过
-`size_budget.prose_soft_limit_chars`；写完文件后先跑
-`wc -m memory/.tmp/report-prose-us-{phase}.md`。超目标时先删除重复解释、开场铺垫、过渡句和
-同义复述，再跑一次字符数检查。**同行明细不是压缩对象**：必须保留 `peer_scan` 的 Top 5、
-持仓位置、今日/5 日涨跌和归因。也**禁止删除**异动归因、计划对账、三段必需标记、证据或
-`needs_risk_section=true` 时的风险提示，禁止用硬截断制造半句话。3000/3500 仍由 postflight
-按最终拼装全文严格判定。具体去重：同一组合风险数字不要在技术面、操作建议和风险提示三段
+**长度由你自己判断**：不设字数目标，把该说的说完，不为凑数注水也不为省字砍内容。
+必须写到的：`peer_scan` 的 Top 5、持仓在同行里的位置、今日/5 日涨跌和归因、异动归因、
+计划对账、三段必需标记、证据，以及 `needs_risk_section=true` 时的风险提示。
+自然要避免的是重复而不是长度——同一组合风险数字不要在技术面、操作建议和风险提示三段
 重复；财报/lockup 日期只在最相关的一段写一次；情绪面的异动归因和同行对比不要在技术面复述。
 
 #### Step 3: 跑 postflight
@@ -236,9 +232,7 @@ pass/warn 自动刷新 snapshot/dashboard，提交 scoped 产物并经 `safe_pus
 - ❌ **禁止调用 `message`/send 工具发报告** — 微信由 Step 3 的 `report_postflight` 用 fresh-token 主发（cron `--no-deliver`，不 announce），手动再调 message 会**和 postflight 撞成双发**（2026-06-03 美股开盘连发两次的根因：模型在"已完成"叙述的同一 turn 又调了一次 send）。整轮只输出一次，发完即停；`report_watchdog` 只在 Telegram marker 缺失/失败时补投 Telegram，不重发微信。
 - No simple number recitation — model must add interpretation
 - 异动票 (anomalies) **必须在报告里提到** (postflight 强制)
-- 散文目标/上限以 context 的 `size_budget.prose_target_chars` /
-  `size_budget.prose_soft_limit_chars` 为准；
-  拼装全文 >3000 字 postflight warn，>3500 字 fail
+- 不设字数目标；拼装全文只有一道防复读死循环的天花板（>5000 warn，>6000 fail）
 
 ### Mode 5 — Sentiment Read
 **When:** "市场情绪怎么样" / "推上怎么说 X" / "Reddit 怎么聊 X" / before a sizing decision

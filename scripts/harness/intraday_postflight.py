@@ -24,7 +24,7 @@ Two input modes, selected by `--context-id`:
 
 Validates:
   1. ▎我的看法 段必须存在 + 段内容 ≥ 60 字（防敷衍 1 句话）
-  2. 总长度 ≤ 3000 字 (warn), ≤ 3500 字 (fail) — 与 Mode 6 US 对齐
+  2. 总长度闸与 Mode 6 共用 clawock.validation.REPORT_CHAR_LIMITS（防复读死循环，不是写作目标）
   3. legacy 模式：必须以 raw_wechat_block 开头且表格逐字符复制
      prose 模式：数据块由 harness 拼装，无往返可校验
   4. 若 preflight should_alert=true：报告必须提到至少一个异动票或 alert_reason
@@ -44,6 +44,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
 from _harness_common import (  # noqa: E402
+    REPORT_CHAR_LIMITS,
     advisory_prefix,
     categorize_issues,
     check_numeric_claims,
@@ -203,12 +204,15 @@ def validate(text, ctx, prose_only=False, model_text=None):
             )
 
     # Length is a property of what actually gets pushed to WeChat, so it — and
-    # only it — measures the assembled body.
+    # only it — measures the assembled body. The thresholds are Mode 6's, shared
+    # rather than copied: this file used to carry its own 3000/3500 literals,
+    # so the two modes could drift apart with nothing to notice.
     n = len(text)
-    if n > 3500:
-        issues.append(f'报告长度 {n} 字 > 3500 上限')
-    elif n > 3000:
-        issues.append(f'报告长度 {n} 字 > 3000 软上限 (warn)')
+    soft, hard = REPORT_CHAR_LIMITS['soft'], REPORT_CHAR_LIMITS['hard']
+    if n > hard:
+        issues.append(f'报告长度 {n} 字 > {hard} 上限')
+    elif n > soft:
+        issues.append(f'报告长度 {n} 字 > {soft} 软上限 (warn)')
 
     if ctx.get('should_alert'):
         anomaly_tickers = [a['ticker'] for a in ctx.get('anomalies', [])]

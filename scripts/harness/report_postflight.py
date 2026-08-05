@@ -16,7 +16,7 @@ Two input modes:
 Validates (on the assembled message):
   1. ▎情绪面 / ▎技术面 / ▎操作建议 三段标记齐全
   2. 若 preflight needs_risk_section=true, 必须有 ▎风险提示 段
-  3. 总长度 ≤ 3000 字 (warn) / ≤ 3500 字 (fail) — HK + US 统一（2026-07-23 调升）
+  3. 总长度闸 clawock.validation.REPORT_CHAR_LIMITS（防复读死循环，不是写作目标；#334）
   4. legacy only: 必须以 raw_wechat_block 开头（prose 模式由本脚本拼，无需校验）
   5. 如果 preflight 有 anomalies，报告必须提到至少一个 anomaly 票
   6. 没有"等待数据/数据待获取"等敷衍词

@@ -30,7 +30,6 @@ Output keys:
   market:             "hk" | "us"
   phase:              "open" | "mid" | "pm" | "close"
   title:              suggested WeChat title
-  size_budget:        exact prose room before assembled target/soft/hard limits
   commit_msg:         git commit message suffix
   signal_count:       {watch, stop, trim}
   anomalies:          list of {ticker, move_pct, reason}
@@ -63,7 +62,6 @@ TMP = WS / 'memory' / '.tmp'
 sys.path.insert(0, str(Path(__file__).parent))
 from _harness_common import (  # noqa: E402,F401 — re-exported for callers/tests
     compute_context_id,
-    report_prose_budget,
 )
 
 sys.path.insert(0, str(DATA_DIR))
@@ -373,7 +371,6 @@ def main():
 
     title = TITLE_TEMPLATES[(args.market, args.phase)].format(date=today)
     raw_wechat_block = stdout.strip()
-    size_budget = report_prose_budget(title, raw_wechat_block, args.market)
     market_cn = '港股' if args.market == 'hk' else '美股'
     commit_msg = f'portfolio: {market_cn}{COMMIT_PHASE_CN[args.phase]}价格更新'
 
@@ -405,7 +402,6 @@ def main():
         'generated_at':       datetime.now().isoformat(timespec='microseconds'),
         'raw_wechat_block':   raw_wechat_block,
         'title':              title,
-        'size_budget':        size_budget,
         'commit_msg':         commit_msg,
         'signal_count':       signals,
         'anomalies':          anomalies,
