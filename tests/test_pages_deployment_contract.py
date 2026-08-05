@@ -98,6 +98,29 @@ def test_workflow_uses_official_non_committing_pages_flow():
     assert "github.event_name == 'push'" in WORKFLOW
 
 
+def test_the_data_plane_is_fetched_before_jekyll_reads_the_checkout():
+    """Jekyll builds `_site` from the checkout, so a generation that arrives
+    after it is a generation the site does not serve. Ordering, not presence, is
+    the invariant — the step can be moved without breaking anything visible until
+    a publish lands between the two."""
+    steps = [line for line in WORKFLOW.splitlines()
+             if "fetch_data_plane.py" in line or "actions/jekyll-build-pages@" in line]
+
+    assert len(steps) == 2, f"expected one fetch and one Jekyll build, got {steps}"
+    assert "fetch_data_plane.py" in steps[0], (
+        "the data plane must be in the checkout before Jekyll reads it")
+
+
+def test_the_reader_and_the_writer_cannot_disagree_about_the_branch():
+    """A rename that updated only one side would publish to one ref and serve
+    from another, with every gate green and the site frozen at whatever it last
+    built. The reader imports the name; nothing restates it."""
+    reader = (ROOT / "scripts/build/fetch_data_plane.py").read_text()
+
+    assert "from publish_data_branch import DATA_BRANCH" in reader
+    assert '"data-plane"' not in reader and "'data-plane'" not in reader
+
+
 def test_builder_stages_only_public_consumers(tmp_path):
     site = tmp_path / "_site"
     output = tmp_path / "_pages"
