@@ -1255,3 +1255,43 @@ def test_the_legacy_drawdown_keys_keep_their_quote_leg_first_order():
         "max_pct_30d_eu", "max_pct_30d_jp", "current_pct_eu", "current_pct_jp",
     ]
     assert keys[4:6] == ["jp", "eu"], "the per-leg block stays in ledger order"
+
+
+def test_an_explicit_out_dir_keeps_the_generation_together(monkeypatch, tmp_path):
+    """#262 slice 3 step 4. The four outputs are one generation, so the thing
+    that can actually break here is not "does --out-dir work" but "can a stray
+    environment variable move one of the four somewhere else".
+
+    The env redirects are inherited from whatever invoked the build —
+    system_check sets one, the Actions validation jobs set others — so a caller
+    that named a directory must win over all of them.
+    """
+    monkeypatch.setenv("BUILD_DASHBOARD_OUT", str(tmp_path / "env" / "dashboard.json"))
+    monkeypatch.setenv("DECISION_AUDIT_OUT", str(tmp_path / "env" / "decision_audit.json"))
+    monkeypatch.setenv("SHADOW_PORTFOLIO_OUT", str(tmp_path / "env" / "shadow.json"))
+
+    paths = dashboard.resolve_output_paths(tmp_path / "cli")
+
+    assert set(paths) == {"overview", "dashboard", "audit", "shadow"}
+    assert {p.parent for p in paths.values()} == {tmp_path / "cli"}, (
+        "an inherited redirect must not split one generation across two directories")
+    assert sorted(p.name for p in paths.values()) == [
+        "dashboard.json", "decision_audit.json", "overview.json", "shadow_portfolio.json",
+    ]
+
+
+def test_without_an_out_dir_the_environment_redirects_still_hold(monkeypatch, tmp_path):
+    """system_check's buildability gate redirects the write target so a *check*
+    never mutates the published artifact. That behaviour predates --out-dir and
+    has to survive it."""
+    monkeypatch.setenv("BUILD_DASHBOARD_OUT", str(tmp_path / "check.json"))
+    monkeypatch.delenv("DECISION_AUDIT_OUT", raising=False)
+    monkeypatch.delenv("SHADOW_PORTFOLIO_OUT", raising=False)
+
+    paths = dashboard.resolve_output_paths()
+
+    assert paths["dashboard"] == tmp_path / "check.json"
+    assert paths["overview"] == tmp_path / "overview.json", (
+        "the siblings follow the redirected target, not the published directory")
+    assert paths["audit"].parent == tmp_path
+    assert paths["shadow"].parent == tmp_path
