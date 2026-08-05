@@ -1654,8 +1654,15 @@ def compute_metrics(decisions: list[dict], window_days: int = 30) -> dict:
         cr = [r for r in rows if _float(r.get("confidence")) is not None
               and (r.get("evaluation") or {}).get("outcome") in ("win", "loss", "flat")]
         if not cr:
-            return {"n": 0, "brier": None, "baseline_loo": None, "base_rate": None,
-                    "mean_confidence": None, "beats_baseline": None, "high_confidence": None}
+            # Same key set as the populated branch below — the caller reads every
+            # baseline unconditionally, so a branch that drops one aborts the whole
+            # dashboard build rather than degrading a card (#309). An empty
+            # population is not an error: a fresh workspace, or a window in which
+            # nothing settled, has no Brier score to report and says so with None.
+            return {"n": 0, "brier": None, "baseline_loo": None,
+                    "baseline_constant": None, "baseline_coinflip": None,
+                    "base_rate": None, "mean_confidence": None,
+                    "beats_baseline": None, "high_confidence": None}
         ys = [1 if (r.get("evaluation") or {}).get("outcome") == "win" else 0 for r in cr]
         ps = [float(r["confidence"]) for r in cr]
         n = len(ys)
