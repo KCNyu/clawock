@@ -35,7 +35,11 @@ fi
 git fetch -q origin master || true
 git merge -q --ff-only origin/master 2>/dev/null || true
 
-python3 scripts/data/build_dashboard.py
+# --previous: this build is published, so it opts in to restoring cards whose
+# memory/.tmp sidecar is missing (#262 slice 2 made workspace-only the default).
+# On this host the sidecars are present, so it is a no-op — it is here so a
+# degraded run publishes the last good cards instead of blanking them.
+python3 scripts/data/build_dashboard.py --previous assets/data/dashboard.json
 python3 scripts/data/cron_heartbeat.py --publish
 python3 scripts/data/workflow_outcomes.py --publish
 
