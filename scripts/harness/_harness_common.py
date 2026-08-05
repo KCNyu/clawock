@@ -312,11 +312,49 @@ def rebuild_dashboard(ws=None):
         )
         ok = r.returncode == 0
         full = r.stdout + r.stderr
+        if ok:
+            full += _publish_generation(ws)
         _record_dashboard_build(ok, full, ws)
         return ok, full[-300:]
     except Exception as e:
         _record_dashboard_build(False, str(e), ws)
         return False, str(e)
+
+
+def _publish_generation(ws):
+    """Put the generation this rebuild just produced on the data branch.
+
+    Here rather than in each postflight on purpose. Before #326 a postflight
+    published by committing — the commit matched `pages.yml`'s `paths:` and the
+    deploy followed. With the outputs untracked that path is gone, so a
+    generation built by an intraday slot would sit in the worktree until the next
+    scheduled tick: up to 20 minutes, on every slot, which is the opposite of
+    what intraday monitoring is for (#328).
+
+    On the shared path every generation-builder already goes through, so a fourth
+    postflight gets this by construction. A hand-maintained list of callers is
+    exactly what missed three postflights in #319 and had to be repaired in #322.
+
+    Non-fatal, and loud. These callers deliver reports; a publishing fault must
+    not take the report's own commit and push down with it. The outcome rides in
+    the build record, so a failure is visible to the daily cron health check
+    rather than only in a log nobody opens.
+
+    Idempotent: the store compares against what the branch actually holds, so an
+    interleaved scheduled tick makes this a no-op rather than a conflict — which
+    is why it does not need to hold the build lock.
+    """
+    try:
+        r = subprocess.run(
+            ['bash', str(ws / 'scripts' / 'data' / 'publish_generation.sh')],
+            capture_output=True, text=True, timeout=120, cwd=str(ws),
+        )
+    except Exception as e:                       # noqa: BLE001 - reported, not raised
+        return f'\n  data-plane publish failed: {e}'
+    tail = (r.stdout + r.stderr).strip()[-200:]
+    if r.returncode != 0:
+        return f'\n  data-plane publish failed: {tail}'
+    return f'\n  {tail}'
 
 
 def push_with_rebase_retry(remote='origin', branch='master', attempts=3):

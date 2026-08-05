@@ -419,3 +419,41 @@ def test_a_fresh_checkout_can_still_restore_the_workflow_card():
 
     assert "_presence['workflow_outcomes']" in builder, (
         "the workflow card has no recovery path on a fresh checkout")
+
+
+def test_every_generation_builder_publishes_what_it_built():
+    """#326 stopped the scheduled publisher committing; nothing replaced the
+    postflights' publish, so an intraday generation sat in the worktree until the
+    next 20-minute tick (#328). Measured at the time: disk 15:05, branch and site
+    15:00.
+
+    Pinned on the SHARED path, not on a list of postflights. A caller list is
+    what missed three of them in #319 and had to be repaired in #322 — the same
+    failure mode, twice in one day. `rebuild_dashboard` is the one function every
+    generation-builder already goes through, so a fourth postflight gets this by
+    construction.
+    """
+    harness = (ROOT / "scripts/harness/_harness_common.py").read_text()
+    rebuild = harness.split("def rebuild_dashboard", 1)[1].split("\ndef ", 1)[0]
+
+    assert "_publish_generation(ws)" in rebuild, (
+        "a rebuild no longer publishes what it built; its generation reaches the "
+        "site only when the next scheduled tick happens to run")
+
+
+def test_the_publish_path_is_shared_and_not_restated():
+    """Two kinds of caller reach the data branch — the scheduled publisher and
+    the postflights — and both need the deploy-key identity. A Python caller
+    cannot source a shell file, so restating the selection is the obvious wrong
+    turn; it is the duplication #316 removed for `safe_push.sh`."""
+    entry = ROOT / "scripts/data/publish_generation.sh"
+    assert entry.is_file()
+    body = entry.read_text()
+    assert "publish_identity.sh" in body and "publish_data_branch.py" in body
+
+    for rel in ("scripts/data/publish_dashboard.sh",
+                "scripts/harness/_harness_common.py"):
+        text = (ROOT / rel).read_text()
+        assert "publish_generation.sh" in text, f"{rel} does not use the shared entry"
+        assert "publish_identity.sh" not in text, (
+            f"{rel} restates the identity selection instead of sharing it")
