@@ -35,7 +35,7 @@ ROOT = workspace_root(Path(__file__).resolve().parents[2])
 # (#265, #313).
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
-from clawock.publish import GitBranchStore  # noqa: E402
+from clawock.publish import GitBranchStore, GitHubDispatchDeployer  # noqa: E402
 from dashboard_outputs import DASHBOARD_OUTPUTS  # noqa: E402
 
 # The one place this name is decided. The reader imports it from here rather
@@ -48,6 +48,10 @@ DATA_BRANCH = "data-plane"
 # identity would clobber kcn's interactive one.
 BOT_NAME = "github-actions[bot]"
 BOT_EMAIL = "41898282+github-actions[bot]@users.noreply.github.com"
+
+# This instance's site. A third party publishing to a filesystem asks nobody for
+# a deploy, which is why `--deploy` is opt-in rather than the default.
+REPOSITORY = "KCNyu/clawock"
 
 
 def generation_label(root: Path) -> str:
@@ -76,6 +80,9 @@ def main() -> int:
     parser.add_argument("--remote", default="origin",
                         help="an ssh URL when a deploy key was selected; "
                              "publish_identity.sh exports the matching GIT_SSH_COMMAND")
+    parser.add_argument("--deploy", action="store_true",
+                        help="ask GitHub to rebuild the site when this publish "
+                             "changed the branch")
     args = parser.parse_args()
 
     root = Path(args.root)
@@ -103,11 +110,29 @@ def main() -> int:
         print(f"✗ data-plane: {exc}", file=sys.stderr)
         return 1
     if not result.changed:
+        # No deploy request either: the site already serves this generation, and
+        # asking on every quiet tick would rebuild it 72 times a day for nothing.
         print(f"· data-plane: {args.remote}/{args.branch} already holds this "
               f"generation ({result.receipt[:12]})")
         return 0
     print(f"✓ data-plane: published {len(files)} outputs as "
           f"{result.receipt[:12]} → {args.remote} {args.branch}")
+
+    if not args.deploy:
+        return 0
+    try:
+        receipt = GitHubDispatchDeployer(REPOSITORY).request(
+            reason=f"data-plane {result.receipt[:12]}")
+    except (subprocess.CalledProcessError, OSError) as exc:
+        # Loud, and non-zero. A generation that reached the branch but never
+        # reached the site is the failure this whole seam exists to make
+        # visible: nothing else in the system notices a site frozen on an old
+        # generation.
+        detail = getattr(exc, "stderr", "") or exc
+        print(f"✗ data-plane: published, but the site deploy was not requested: "
+              f"{detail}", file=sys.stderr)
+        return 1
+    print(f"✓ data-plane: requested {receipt}")
     return 0
 
 
