@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "monitoring_started_at": "2026-07-16T02:17:00+08:00",
-  "updated_at": "2026-08-05T03:34:26.451423+00:00",
+  "updated_at": "2026-08-05T11:40:02.469625+08:00",
   "events": [
     {
       "job": "盘中盯盘",
@@ -681,7 +681,7 @@
       "market": "hk",
       "slot": "2026-08-05T11:30:00+08:00",
       "state": "completed",
-      "updated_at": "2026-08-05T03:34:26.451423+00:00",
+      "updated_at": "2026-08-05T11:40:02.469625+08:00",
       "should_alert": true,
       "anomaly_count": 1,
       "postflight_status": "warn",
@@ -690,7 +690,8 @@
       "dashboard_published": true,
       "data_plane_status": "published",
       "insights_sidecar": true,
-      "issue_count": 1
+      "issue_count": 1,
+      "watchdog_state": "ok"
     }
   ]
 }
