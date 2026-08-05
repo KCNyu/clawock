@@ -13,6 +13,11 @@ those into one thing that can only be replaced as a unit.
 """
 from __future__ import annotations
 
+from clawock.publish.deploy import (  # noqa: F401
+    GitHubDispatchDeployer,
+    NullDeployer,
+    SiteDeployer,
+)
 from clawock.publish.store import (  # noqa: F401
     ArtifactStore,
     FilesystemStore,
@@ -24,4 +29,5 @@ from clawock.publish.store import (  # noqa: F401
 __all__ = [
     "ArtifactStore", "FilesystemStore", "GitBranchStore", "PublishResult",
     "write_generation",
+    "GitHubDispatchDeployer", "NullDeployer", "SiteDeployer",
 ]

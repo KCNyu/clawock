@@ -48,6 +48,14 @@ on:
       - 'memory/weekly/**'
       - 'config/pages-public.json'
       - 'scripts/build/prepare_pages_artifact.py'
+  # The publisher asks for a deploy once a generation reaches the data branch
+  # (#314). A push to that branch cannot do it: `push` runs the workflows on the
+  # ref that was pushed, and an orphan data branch carries none. GitHub
+  # documents `repository_dispatch` as creating a run even when sent with the
+  # automatic GITHUB_TOKEN, so every publisher can ask — the host through its
+  # own login, an Actions publisher through the token it already has.
+  repository_dispatch:
+    types: [data-plane-published]
   workflow_dispatch:
 
 permissions:
@@ -94,7 +102,16 @@ jobs:
           path: ./_pages
 
   deploy:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    # A dispatched run deploys too — that is the entire point of the dispatch.
+    # `workflow_dispatch` is included as the manual recourse: once dashboard
+    # publishes stop landing on `master`, "push something to force a rebuild"
+    # stops being available, and a lost dispatch would otherwise need a dummy
+    # commit to recover from. `pull_request` still must not deploy: it is the one
+    # event whose build comes from untrusted content.
+    if: >-
+      github.event_name == 'repository_dispatch'
+      || github.event_name == 'workflow_dispatch'
+      || (github.event_name == 'push' && github.ref == 'refs/heads/master')
     needs: build
     runs-on: ubuntu-latest
     timeout-minutes: 10
