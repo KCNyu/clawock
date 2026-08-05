@@ -26,6 +26,12 @@ from pathlib import Path
 from typing import Mapping, Protocol
 
 
+# Published artifacts are read by a web server, a Jekyll container and anyone
+# who checks the repository out. Explicit rather than umask-derived so a
+# publisher's environment cannot decide whether the site's data is readable.
+PUBLISHED_MODE = 0o644
+
+
 def write_generation(writes: Mapping[str, str]) -> list[str]:
     """Publish files as ONE write set: stage every file, then swap.
 
@@ -69,6 +75,15 @@ def write_generation(writes: Mapping[str, str]) -> list[str]:
                 handle.write(text)
                 handle.flush()
                 os.fsync(handle.fileno())
+            # `mkstemp` creates 0600, and `os.replace` swaps the inode — so the
+            # published file inherits the temp file's permissions, not the ones
+            # it had. These are artifacts a web server serves; 0600 is an
+            # artifact of how they were staged, not a decision. It stayed
+            # invisible for as long as they went out through git, which
+            # normalises the mode to 100644 in the index, and surfaced the first
+            # time a consumer read them off disk instead: the Pages build,
+            # whose Jekyll container could not read its own inputs.
+            os.chmod(tmp, PUBLISHED_MODE)
             staged.append((tmp, path))
     except BaseException:
         for tmp, _ in staged:
@@ -198,17 +213,35 @@ class GitBranchStore:
         self.author_email = author_email
 
     # ── git plumbing ────────────────────────────────────────────────────────
-    def _git(self, *args: str, env: dict | None = None, stdin: str | None = None) -> str:
+    def _argv(self, *args: str) -> list[str]:
         identity: list[str] = []
         if self.author_name:
             identity += ["-c", f"user.name={self.author_name}"]
         if self.author_email:
             identity += ["-c", f"user.email={self.author_email}"]
+        return ["git", "-C", str(self.repo), *identity, *args]
+
+    def _git(self, *args: str, env: dict | None = None, stdin: str | None = None) -> str:
         result = subprocess.run(
-            ["git", "-C", str(self.repo), *identity, *args],
+            self._argv(*args),
             input=stdin, capture_output=True, text=True, env=env, check=True,
         )
         return result.stdout.strip()
+
+    def _git_blob(self, ref: str, name: str) -> str:
+        """Read a stored file back with its bytes intact.
+
+        Separate from `_git` because that one strips — right for a sha or a ref
+        name, wrong for content. A trailing newline silently removed here would
+        make a fetched generation differ from the published one by exactly the
+        byte no diff prints, and byte-equality is the acceptance criterion for
+        the whole migration.
+        """
+        result = subprocess.run(
+            self._argv("cat-file", "blob", f"{ref}:{name}"),
+            capture_output=True, check=True,
+        )
+        return result.stdout.decode("utf-8")
 
     def _default_branch(self) -> str | None:
         """The remote's own default branch, asked of the remote.
@@ -314,3 +347,38 @@ class GitBranchStore:
                     raise
                 time.sleep(attempt * 3)
         return PublishResult(commit, changed=True)
+
+    def fetch(self, into: Path | str, *, names=None) -> list[str]:
+        """Materialise the stored generation into a directory.
+
+        The read side of the same seam. Two callers need it and neither wants a
+        checkout: the Pages build has to put the payloads where Jekyll will pick
+        them up, and the semantic diff has to answer "what did we publish last
+        time" once that is no longer a question about this repository's history.
+
+        Written through `write_generation`, so a fetch is the same all-or-nothing
+        write set a build is — a half-materialised generation would be published
+        by the very next step.
+
+        `names` asserts what the caller expects to be there. A member the branch
+        does not carry raises rather than being skipped: silently materialising
+        three of four files is how a page ends up serving one payload from this
+        generation and another from whatever was on disk.
+        """
+        # Full depth for the same reason `_stored_tree` uses it: `--depth=1`
+        # writes a shallow boundary into the repository doing the fetch, and a
+        # shallow repository has its pushes rejected. A parentless branch is one
+        # commit either way.
+        self._git("fetch", self.remote, self.branch)
+        listed = self._git("ls-tree", "-r", "--name-only", "FETCH_HEAD").split("\n")
+        listed = [name for name in listed if name]
+        wanted = list(names) if names is not None else listed
+        missing = [name for name in wanted if name not in listed]
+        if missing:
+            raise FileNotFoundError(
+                f"{self.remote}/{self.branch} does not carry {missing}")
+        into = Path(into)
+        write_generation({
+            str(into / name): self._git_blob("FETCH_HEAD", name) for name in wanted
+        })
+        return wanted
