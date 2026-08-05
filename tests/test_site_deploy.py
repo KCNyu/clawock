@@ -51,15 +51,25 @@ def workspace(tmp_path):
 
 
 def _fake_gh(tmp_path, *, exit_code=0):
-    """A `gh` that records its arguments instead of talking to GitHub."""
+    """A `gh` that records its arguments AND the request body it was handed.
+
+    Recording only the arguments is what let a real 422 through: the body was
+    being sent as `--raw-field client_payload={...}`, which GitHub receives as a
+    *string*, and it requires an object. A fake that just exits 0 agrees with
+    anything — the assertions below parse what it captured.
+    """
     bin_dir = tmp_path / "bin"
     bin_dir.mkdir(exist_ok=True)
     log = tmp_path / "gh.log"
+    body = tmp_path / "gh.body"
     (bin_dir / "gh").write_text(
-        f'#!/usr/bin/env bash\nprintf "%s\\n" "$*" >> {log}\nexit {exit_code}\n',
+        f'#!/usr/bin/env bash\n'
+        f'printf "%s\\n" "$*" >> {log}\n'
+        f'if [ -t 0 ]; then :; else cat > {body}; fi\n'
+        f'exit {exit_code}\n',
         encoding="utf-8")
     (bin_dir / "gh").chmod(0o755)
-    return bin_dir, log
+    return bin_dir, log, body
 
 
 def _publish(workspace, bin_dir, *extra):
@@ -74,7 +84,7 @@ def test_the_dispatch_names_the_event_the_workflow_listens_for(tmp_path):
     """Two files have to agree on a string neither can validate at runtime. A
     rename on one side alone leaves the publisher reporting a successful request
     for an event nothing handles — every gate green, site frozen."""
-    bin_dir, log = _fake_gh(tmp_path)
+    bin_dir, log, body = _fake_gh(tmp_path)
     env = {**os.environ, "PATH": f"{bin_dir}:{os.environ['PATH']}"}
     subprocess.run([sys.executable, "-c",
                     "import sys; sys.path.insert(0, %r);"
@@ -82,13 +92,16 @@ def test_the_dispatch_names_the_event_the_workflow_listens_for(tmp_path):
                     "D('KCNyu/clawock').request('why')" % str(ROOT)],
                    env=env, check=True, capture_output=True, text=True)
 
-    sent = log.read_text()
-    event = re.search(r"event_type=(\S+)", sent).group(1)
+    assert "repos/KCNyu/clawock/dispatches" in log.read_text()
+    sent = json.loads(body.read_text())
     declared = re.search(r"repository_dispatch:\s*\n\s*types:\s*\[([^\]]+)\]",
                          WORKFLOW).group(1)
 
-    assert event in [name.strip() for name in declared.split(",")]
-    assert "repos/KCNyu/clawock/dispatches" in sent
+    assert sent["event_type"] in [name.strip() for name in declared.split(",")]
+    # GitHub rejects a `client_payload` that is not an object, with a 422 the
+    # publisher reports as "the site deploy was not requested" — a real failure
+    # that a fake `gh` exiting 0 was perfectly happy with.
+    assert isinstance(sent.get("client_payload"), dict), sent
 
 
 def test_a_dispatched_run_is_allowed_to_deploy():
@@ -108,7 +121,7 @@ def test_a_publish_that_could_not_ask_for_a_deploy_is_not_success(workspace, tmp
     """A generation on the branch that never reached the site is exactly the
     failure this seam exists to surface — nothing else in the system notices a
     frozen site. It must not exit 0."""
-    bin_dir, _ = _fake_gh(tmp_path, exit_code=1)
+    bin_dir, _, _ = _fake_gh(tmp_path, exit_code=1)
 
     result = _publish(workspace, bin_dir, "--deploy")
 
@@ -121,7 +134,7 @@ def test_a_publish_that_could_not_ask_for_a_deploy_is_not_success(workspace, tmp
 def test_an_unchanged_generation_asks_for_nothing(workspace, tmp_path):
     """72 ticks a day, and most change nothing. Asking every time would rebuild
     and redeploy the site for a generation it already serves."""
-    bin_dir, log = _fake_gh(tmp_path)
+    bin_dir, log, body = _fake_gh(tmp_path)
 
     first = _publish(workspace, bin_dir, "--deploy")
     second = _publish(workspace, bin_dir, "--deploy")
@@ -135,7 +148,7 @@ def test_an_unchanged_generation_asks_for_nothing(workspace, tmp_path):
 def test_publishing_without_the_flag_asks_no_one(workspace, tmp_path):
     """A third party publishing to a filesystem has nobody to ask. The deploy
     request is this instance's configuration, so it is opt-in."""
-    bin_dir, log = _fake_gh(tmp_path)
+    bin_dir, log, body = _fake_gh(tmp_path)
 
     result = _publish(workspace, bin_dir)
 
