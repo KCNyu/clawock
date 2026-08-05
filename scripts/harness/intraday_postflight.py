@@ -48,7 +48,6 @@ from _harness_common import (  # noqa: E402
     categorize_issues,
     check_numeric_claims,
     check_raw_tables_verbatim,
-    dashboard_output_changes,
     git_cmd,
     push_with_rebase_retry,
     rebuild_dashboard,
@@ -262,7 +261,10 @@ def publish_data_plane(market):
         ok, _ = rebuild_dashboard()
         if not ok:
             return 'rebuild_failed', False
-        paths = [*dashboard_output_changes(), 'logs/dashboard_build_status.json']
+        # No dashboard outputs here: #314 untracked them, and `git add` on a
+        # gitignored path fails rather than skipping, which would abort the
+        # snapshot commit too.
+        paths = ['logs/dashboard_build_status.json']
         snap = snapshot_date_for_now()
         if snap:
             paths.append(f'memory/snapshots/{snap}.json')
