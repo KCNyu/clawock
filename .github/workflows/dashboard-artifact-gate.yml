@@ -1,11 +1,14 @@
 name: Dashboard Artifact Gate
 
 on:
-  push:
-    branches: [master]
-    paths:
-      - 'assets/data/overview.json'
-      - 'assets/data/dashboard.json'
+  # The payload is published to the data branch, not committed to master (#314),
+  # so the old `push: paths:` trigger would simply never fire again — no red, no
+  # signal, a validation gate switched off by a change somewhere else entirely.
+  # This is the same event the publisher raises for the Pages deploy, so the
+  # payload is validated on exactly the generations that reach the site.
+  repository_dispatch:
+    types: [data-plane-published]
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -17,5 +20,12 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - name: Validate committed dashboard payload
+      # The payload under validation is the published one, so it is fetched
+      # rather than read out of the checkout — the checkout no longer carries it,
+      # and rebuilding here would validate this runner's output instead of what
+      # the site serves.
+      - name: Fetch the published generation
+        run: python3 scripts/build/fetch_data_plane.py
+
+      - name: Validate published dashboard payload
         run: python3 scripts/data/validate_sidecars.py dashboard

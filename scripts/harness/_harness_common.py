@@ -292,10 +292,23 @@ def rebuild_dashboard(ws=None):
         # brief_postflight on an Actions checkout that has a brief-context but no
         # insights / intraday / sector-scan sidecars — without it those cards
         # publish blank, the 2026-06-21 regression. On the host it is a no-op.
+        # The recovery source is the last PUBLISHED generation, materialised out
+        # of the data branch — not this checkout's copy. On a fresh Actions
+        # checkout (brief-fallback, the one caller where --previous does
+        # anything) there is no copy to read: #314 took the outputs out of the
+        # tree, so pointing at the worktree would resolve to nothing exactly
+        # where recovery matters. Non-fatal: a missing recovery source must not
+        # stop a publish, and build_dashboard reports it loudly either way (#315).
+        previous = ws / '.data-plane.cache'
+        subprocess.run(
+            ['python3', str(ws / 'scripts' / 'build' / 'fetch_data_plane.py'),
+             '--into', str(previous)],
+            capture_output=True, text=True, timeout=60, cwd=str(ws), check=False,
+        )
         r = subprocess.run(
             ['flock', DASHBOARD_PUBLISH_LOCK,
              'python3', str(ws / 'scripts' / 'data' / 'build_dashboard.py'),
-             '--previous', str(ws / 'assets' / 'data' / 'dashboard.json')],
+             '--previous', str(previous / 'assets' / 'data' / 'dashboard.json')],
             capture_output=True, text=True, timeout=30, cwd=str(ws),
         )
         ok = r.returncode == 0

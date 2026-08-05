@@ -1037,8 +1037,12 @@ def test_the_default_build_reads_no_previously_published_file():
 def test_every_publishing_caller_opts_into_preservation():
     """The default is safe for a build, but silent for a *publisher*: a fresh
     checkout has no memory/.tmp, so a publishing caller that forgets `--previous`
-    commits blank narrative cards (the 2026-06-21 regression). Exactly three
-    callers put their build into a commit, and each has to ask.
+    publishes blank narrative cards (the 2026-06-21 regression).
+
+    Two callers publish what they build. `.githooks/pre-commit` was the third
+    until #314 — it rebuilt and staged the outputs so a portfolio.json commit
+    could not drift from the views it implied, and with the outputs untracked
+    there is no longer a commit for them to drift inside of.
 
     Every other caller — system_check's buildability gate, the two Actions
     validation jobs, the gold refresh path — either never publishes or runs only
@@ -1047,7 +1051,6 @@ def test_every_publishing_caller_opts_into_preservation():
     publishers = [
         "scripts/data/publish_dashboard.sh",   # host crontab, every 20 minutes
         "scripts/harness/_harness_common.py",  # all three postflights → brief-fallback.yml
-        ".githooks/pre-commit",                # stages its rebuild into the commit
     ]
     for rel in publishers:
         lines = (ROOT / rel).read_text(encoding="utf-8").splitlines()
