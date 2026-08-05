@@ -23,10 +23,16 @@ import build_dashboard as dashboard  # noqa: E402
 
 
 def _portfolio(*, us=None, hk=None):
+    """A two-book ledger shaped like the real one.
+
+    `currency` is not decoration: the legs, and the currency a combined figure is
+    denominated in, are read off the books (#262 slice 3). A fixture without it
+    models a ledger the money rules refuse to combine.
+    """
     return {
         "portfolios": {
-            "us_stocks": us or {"holdings": []},
-            "hk_stocks": hk or {"holdings": []},
+            "us_stocks": {"currency": "USD", **(us or {"holdings": []})},
+            "hk_stocks": {"currency": "HKD", **(hk or {"holdings": []})},
         }
     }
 
@@ -855,6 +861,49 @@ def test_realized_unrealized_all_zero_book_stays_zero():
     assert result["combined_usd"] == {"realized": 0.0, "unrealized": 0.0}
 
 
+def test_a_ledger_with_different_books_publishes_its_own_legs():
+    """#262 slice 3 acceptance, in miniature: the leg shape comes from the ledger,
+    not from this file. A workspace whose books are not `us_stocks`/`hk_stocks`
+    still produces a payload — keyed by its own legs, denominated in its own base
+    currency."""
+    ledger = {"portfolios": {
+        "jp_stocks": {"currency": "JPY", "holdings": [], "realized_pnl": 300.0,
+                      "total_pnl": -100.0},
+        "eu_stocks": {"currency": "EUR", "holdings": [], "realized_pnl": 80.0,
+                      "total_pnl": 20.0},
+    }}
+
+    assert [leg.key for leg in dashboard.resolve_legs(ledger)] == ["jp", "eu"], (
+        "publication order is the ledger's — the payload is serialized unsorted")
+
+    result = dashboard.compute_realized_vs_unrealized(ledger, fx_rate=4.0)
+
+    assert result["jp"] == {"realized": 300.0, "unrealized": -100.0}
+    assert result["eu"] == {"realized": 80.0, "unrealized": 20.0}
+    assert result["combined_jpy"] == {"realized": 320.0, "unrealized": -95.0}
+    assert "us" not in result and "combined_usd" not in result
+
+
+def test_a_book_without_a_declared_currency_is_never_combined():
+    """The iron rule is that two currencies may not be added. A book that never
+    said which currency it holds cannot be folded into a total, and the total
+    must not be labelled as if it had — the per-leg values still publish."""
+    ledger = {"portfolios": {
+        "us_stocks": {"holdings": [], "realized_pnl": 30.0, "total_pnl": -10.0},
+        "hk_stocks": {"currency": "HKD", "holdings": [], "realized_pnl": 80.0,
+                      "total_pnl": 20.0},
+    }}
+
+    assert dashboard.leg_pair(ledger) == (None, None)
+
+    result = dashboard.compute_realized_vs_unrealized(ledger, fx_rate=8.0)
+
+    assert result["us"] == {"realized": 30.0, "unrealized": -10.0}
+    assert result["hk"] == {"realized": 80.0, "unrealized": 20.0}
+    assert result["combined"] == {"realized": None, "unrealized": None}
+    assert "combined_" not in result, "an unlabelled currency must not become a key"
+
+
 def test_capital_deployed_adds_cost_and_realized_without_compounding():
     portfolio = _portfolio(
         us={"holdings": [], "total_cost": 100.0, "realized_pnl": 20.0},
@@ -1041,8 +1090,8 @@ def test_the_projection_computes_and_writes_nothing():
 
 
 def test_a_missing_ledger_is_a_clean_exit_not_a_traceback(monkeypatch, capsys):
-    """`main` turns the one unbuildable input into the exit code the pre-push
-    buildability gate and every postflight already read. Letting MissingPortfolio
+    """`main` turns an unbuildable input into the exit code the pre-push
+    buildability gate and every postflight already read. Letting the exception
     escape would change a handled failure into a crash."""
     def no_ledger(*_args, **_kwargs):
         raise dashboard.MissingPortfolio("portfolio.json")
@@ -1051,6 +1100,25 @@ def test_a_missing_ledger_is_a_clean_exit_not_a_traceback(monkeypatch, capsys):
 
     assert dashboard.main([]) == 1
     assert "FATAL: portfolio.json missing" in capsys.readouterr().err
+
+
+def test_a_ledger_of_the_wrong_shape_says_so_instead_of_claiming_it_is_missing(
+    monkeypatch, capsys,
+):
+    """Both input failures exit 1, but they are not the same failure. Reporting a
+    three-book ledger as "portfolio.json missing" would send whoever reads the
+    gate looking for a file that is sitting right there."""
+    def wrong_shape(*_args, **_kwargs):
+        raise dashboard.UnsupportedLegShape(
+            "portfolio.json must declare exactly two books, each with a currency; "
+            "found [('us_stocks', 'USD'), ('hk_stocks', 'HKD'), ('jp_stocks', '')]")
+
+    monkeypatch.setattr(dashboard, "build_projection", wrong_shape)
+
+    assert dashboard.main([]) == 1
+    err = capsys.readouterr().err
+    assert "exactly two books" in err and "jp_stocks" in err
+    assert "portfolio.json missing" not in err
 
 
 def test_a_wrapper_card_is_not_restored_when_its_previous_items_were_empty():
