@@ -96,9 +96,38 @@ exit 1
 
 
 def test_live_runtime_key_is_limited_to_live_checkout():
-    safe_push = (ROOT / "scripts" / "data" / "safe_push.sh").read_text()
-    assert '"/root/.openclaw/workspace"' in safe_push
-    assert '"/root/.ssh/clawock_runtime_publish"' in safe_push
+    identity = (ROOT / "scripts" / "data" / "publish_identity.sh").read_text()
+    assert '"/root/.openclaw/workspace"' in identity
+    assert '"/root/.ssh/clawock_runtime_publish"' in identity
+
+
+def test_a_checkout_that_is_not_the_live_workspace_gets_no_publish_identity(tmp_path):
+    """Interactive worktrees must not inherit the live deploy key.
+
+    Both selection branches are refused here: no Actions secret in the
+    environment, and a checkout that is not `/root/.openclaw/workspace`. On the
+    live host `/root/.ssh/clawock_runtime_publish` is readable, so the toplevel
+    comparison is the only thing standing between an interactive worktree and a
+    key that bypasses the ruleset — this exercises it. On a runner the key is
+    absent as well, so the assertion holds for a second reason.
+
+    Behavioural rather than a grep, because the selection now lives in a file
+    that two publishers source: a text assertion would keep passing if only one
+    of them still consulted it.
+    """
+    subprocess.run(["git", "-C", str(tmp_path), "init", "-q"], check=True)
+    probe = subprocess.run(
+        ["bash", "-c",
+         f". {ROOT / 'scripts' / 'data' / 'publish_identity.sh'}; "
+         'printf "%s|%s|%s" "$PUBLISH_SSH_KEY" "$PUBLISH_REMOTE" "${GIT_SSH_COMMAND:-}"'],
+        cwd=tmp_path,
+        env={k: v for k, v in os.environ.items() if k != "CLAWOCK_PUBLISH_SSH_KEY"},
+        check=True, capture_output=True, text=True,
+    )
+
+    assert probe.stdout == "||", (
+        "an interactive checkout selected a publishing identity: "
+        f"{probe.stdout!r}")
 
 
 def test_every_workflow_that_stages_the_money_file_pushes_through_the_gate():
@@ -177,6 +206,12 @@ def test_safe_push_refuses_the_money_file_when_the_checker_is_missing(tmp_path):
     repo = _ledger_repo(tmp_path)
     script = repo / "safe_push.sh"
     script.write_text((ROOT / "scripts" / "data" / "safe_push.sh").read_text())
+    # safe_push.sh sources its sibling for identity selection, so a deployment
+    # of it is both files. Not tolerating an absent one is deliberate: an
+    # unreadable identity helper must fail here, not silently push under
+    # whatever git happens to be configured with.
+    (repo / "publish_identity.sh").write_text(
+        (ROOT / "scripts" / "data" / "publish_identity.sh").read_text())
 
     result = subprocess.run(["bash", str(script)], cwd=repo, capture_output=True,
                             text=True, input="")

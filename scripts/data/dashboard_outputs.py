@@ -18,15 +18,20 @@ from __future__ import annotations
 import argparse
 import copy
 import json
-import os
 import subprocess
-import tempfile
+import sys
 from pathlib import Path
 
 
 from workspace import workspace_root  # noqa: E402
 
 ROOT = workspace_root(Path(__file__).resolve().parents[2])
+# The checkout root, so `clawock` is importable regardless of where WS points:
+# WS is a data directory and can be redirected with CLAWOCK_WORKSPACE, while the
+# package lives in the checkout (#265, #313).
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+
+from clawock.publish import write_generation  # noqa: E402,F401
 
 # Keep this tuple explicit and ordered: callers use it as the exact publication
 # pathspec, and the contract test fails when build_dashboard gains a new sidecar
@@ -61,60 +66,11 @@ _GENERATION_LINKED = frozenset({
 })
 
 
-def write_generation(writes):
-    """Publish the four outputs as ONE write set: stage every file, then swap.
-
-    `writes` maps path -> already-serialized text. `safe_write_text` is atomic
-    per file, so no single output can be torn — but four sequential calls are not
-    atomic ACROSS files: a failure on the third leaves two files from the new
-    generation beside two from the old, and every consumer of these payloads
-    (the browser, the semantic diff, the publication pathspec) treats them as one
-    generation.
-
-    Staging every file first shrinks the window from "serialize + write + fsync,
-    four times" down to the `os.replace` calls themselves, and converts the
-    common failures — a full disk, a read-only mount, an unwritable directory —
-    from "publish a mixed generation" into "publish nothing and raise".
-
-    Targets are checked before anything is staged, because a target that cannot
-    be replaced at all (one that is a directory) would otherwise fail in the swap
-    loop, i.e. after earlier files had already been published — the exact outcome
-    this exists to prevent.
-
-    What remains is genuinely irreducible: the swap loop itself. If the directory
-    is removed between staging and replacing, some files can land and others not.
-    Four files cannot be swapped atomically without a transactional filesystem;
-    this narrows the window to consecutive `os.replace` calls rather than closing
-    it, and the payloads carry generation IDs so a reader can still tell.
-
-    Returns the paths written, in the order given.
-    """
-    for path in map(Path, writes):
-        if path.is_dir():
-            raise IsADirectoryError(
-                f"{path} is a directory; the write set cannot be swapped in")
-    staged = []
-    try:
-        for path, text in writes.items():
-            path = Path(path)
-            path.parent.mkdir(parents=True, exist_ok=True)
-            fd, tmp = tempfile.mkstemp(dir=str(path.parent), prefix=".staged-")
-            with os.fdopen(fd, "w", encoding="utf-8") as handle:
-                handle.write(text)
-                handle.flush()
-                os.fsync(handle.fileno())
-            staged.append((tmp, path))
-    except BaseException:
-        for tmp, _ in staged:
-            try:
-                os.unlink(tmp)
-            except FileNotFoundError:
-                pass
-        raise
-    # Every byte is on disk; only the swaps remain.
-    for tmp, path in staged:
-        os.replace(tmp, path)
-    return [str(path) for _, path in staged]
+# `write_generation` is re-exported from `clawock.publish`, not defined here.
+# "Publish N files as one write set" stopped being specific to these four the
+# moment the generation could go somewhere other than this worktree (#314), and
+# `FilesystemStore` is the same operation with a directory in front of it. Two
+# copies of a staging-then-swap loop is exactly the shape that drifts.
 
 
 def _strip_recursive(value, fields):
@@ -189,9 +145,12 @@ class DirectoryBaseline:
         self.directory = Path(directory)
 
     def _file(self, path: str) -> Path:
-        # Outputs are named by their workspace-relative path; a published
-        # directory holds them flat, by basename.
-        return self.directory / Path(path).name
+        # Same layout `FilesystemStore` publishes and the same layout the data
+        # branch holds: outputs keep their workspace-relative path. Flattening to
+        # basename here would mean the baseline looked in one place and the store
+        # wrote to another, which is only discoverable once they are wired to
+        # each other.
+        return self.directory / path
 
     def load(self, path: str):
         return json.loads(self._file(path).read_text(encoding="utf-8"))
