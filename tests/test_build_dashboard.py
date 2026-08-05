@@ -85,15 +85,12 @@ def test_guardrail_compute_exception_is_an_explicit_failure_dict(monkeypatch):
     assert result["breakeven_math"] == {"computed": False}
 
 
-def test_shadow_failure_replaces_stale_result_and_success_clears_marker(
-    monkeypatch, tmp_path,
-):
-    sidecar = tmp_path / "shadow_portfolio.json"
-    sidecar.write_text(json.dumps({
+def test_shadow_failure_replaces_stale_result_and_success_clears_marker(monkeypatch):
+    previous = {
         "as_of": "2026-07-16T23:00:00+08:00",
         "cumulative_diff": {"HKD": 26428.93},
         "curves": {"HKD": {"curve": [{"date": "2026-07-16"}]}},
-    }), encoding="utf-8")
+    }
 
     def explode(*_args, **_kwargs):
         raise RuntimeError("synthetic shadow failure")
@@ -101,41 +98,36 @@ def test_shadow_failure_replaces_stale_result_and_success_clears_marker(
     monkeypatch.setitem(
         sys.modules,
         "shadow_portfolio",
-        SimpleNamespace(write_shadow_portfolio=explode),
+        SimpleNamespace(build_shadow_portfolio=explode),
     )
-    failed = dashboard.write_shadow_sidecar({}, [], sidecar)
-    written_failure = json.loads(sidecar.read_text(encoding="utf-8"))
+    failed = dashboard.build_shadow_sidecar({}, [], previous)
 
-    assert failed == written_failure == {
+    assert failed == {
         "computed": False,
         "error": "synthetic shadow failure",
         "stale_as_of": "2026-07-16T23:00:00+08:00",
-    }
-    assert "curves" not in written_failure
-    assert "cumulative_diff" not in written_failure
-    assert all(value is not None for value in written_failure.values())
+    }, "a failed refresh keeps only the old as_of as provenance, never its curves"
+    assert "curves" not in failed
+    assert "cumulative_diff" not in failed
+    assert all(value is not None for value in failed.values())
 
-    def succeed(_portfolio, _decisions, out_path):
-        result = {
+    def succeed(_portfolio, _decisions):
+        return {
             "as_of": "2026-07-17T23:00:00+08:00",
             "curves": {},
             "cumulative_diff": {},
         }
-        Path(out_path).write_text(json.dumps(result), encoding="utf-8")
-        return result
 
     monkeypatch.setitem(
         sys.modules,
         "shadow_portfolio",
-        SimpleNamespace(write_shadow_portfolio=succeed),
+        SimpleNamespace(build_shadow_portfolio=succeed),
     )
-    succeeded = dashboard.write_shadow_sidecar({}, [], sidecar)
-    written_success = json.loads(sidecar.read_text(encoding="utf-8"))
+    succeeded = dashboard.build_shadow_sidecar({}, [], failed)
 
-    assert succeeded == written_success
-    assert "computed" not in written_success
-    assert "error" not in written_success
-    assert "stale_as_of" not in written_success
+    assert "computed" not in succeeded
+    assert "error" not in succeeded
+    assert "stale_as_of" not in succeeded
 
 
 def test_profit_curve_max_drawdown_matches_known_peak_and_trough():
@@ -1021,6 +1013,44 @@ def test_every_publishing_caller_opts_into_preservation():
             assert "--previous" in window, (
                 f"{rel}:{i + 1} publishes its build but does not opt into "
                 "restoring cards whose sidecar is absent from this checkout")
+
+
+def test_the_projection_computes_and_writes_nothing():
+    """#262 slice 3: `build_projection` returns the generation, `main` writes it.
+
+    The split only holds while it holds — a write added back into the compute
+    path would restore the coupling silently, and no output test would notice
+    because the bytes would be identical. So this reads the function itself.
+    """
+    import ast
+
+    source = (ROOT / "scripts" / "data" / "build_dashboard.py").read_text(encoding="utf-8")
+    projection = next(
+        node for node in ast.parse(source).body
+        if isinstance(node, ast.FunctionDef) and node.name == "build_projection"
+    )
+    writers = {"safe_write_text", "write_text", "mkdir", "record_preservation"}
+    found = sorted({
+        f"{getattr(node.func, 'attr', None) or getattr(node.func, 'id', None)}"
+        f" (line {node.lineno})"
+        for node in ast.walk(projection)
+        if isinstance(node, ast.Call)
+        and (getattr(node.func, "attr", None) or getattr(node.func, "id", None)) in writers
+    })
+    assert not found, f"build_projection must not touch the filesystem: {found}"
+
+
+def test_a_missing_ledger_is_a_clean_exit_not_a_traceback(monkeypatch, capsys):
+    """`main` turns the one unbuildable input into the exit code the pre-push
+    buildability gate and every postflight already read. Letting MissingPortfolio
+    escape would change a handled failure into a crash."""
+    def no_ledger(*_args, **_kwargs):
+        raise dashboard.MissingPortfolio("portfolio.json")
+
+    monkeypatch.setattr(dashboard, "build_projection", no_ledger)
+
+    assert dashboard.main([]) == 1
+    assert "FATAL: portfolio.json missing" in capsys.readouterr().err
 
 
 def test_a_wrapper_card_is_not_restored_when_its_previous_items_were_empty():
