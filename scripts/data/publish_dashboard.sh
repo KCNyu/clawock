@@ -3,8 +3,9 @@
 # JSON and the Mode 7 heartbeat sidecar (Option 1, 2026-07-04). GH Action scans commit ONLY
 # their sidecar files (macro/sentiment/influencer/…); index.html fetches those
 # directly, so this publisher does not embed them. This crontab-run publisher
-# rebuilds portfolio-derived dashboard data, publishes the heartbeat sidecar, and
-# pushes any semantic change.
+# rebuilds portfolio-derived dashboard data and publishes the whole generation —
+# four payloads plus the heartbeat and workflow-outcome sidecars — to the orphan
+# data branch. It no longer commits anything to `master` (#325).
 #
 # Concurrency: holds /tmp/dashboard_publish.lock (the same lock the host harness
 # rebuild takes, see _harness_common.DASHBOARD_PUBLISH_LOCK) for the WHOLE
@@ -12,8 +13,9 @@
 # race on the generated file. `flock -n` → if a build is already in flight, skip
 # this tick rather than pile up.
 #
-# Commits as the bot via per-invocation `-c` (never persistent git config, which
-# would clobber kcn's interactive KCNyu identity — see feedback-commit-identity-kcnyu).
+# The bot identity now lives with the only thing that still writes a commit —
+# `publish_data_branch.py` injects it per invocation into `commit-tree`, never
+# into git config (see feedback-commit-identity-kcnyu).
 set -euo pipefail
 
 WS="/root/.openclaw/workspace"
@@ -24,8 +26,6 @@ LOCK="/tmp/dashboard_publish.lock"
 PREVIOUS_DIR="$WS/.data-plane.cache"
 cd "$WS"
 
-BOT_ID=(-c "user.name=github-actions[bot]"
-        -c "user.email=41898282+github-actions[bot]@users.noreply.github.com")
 
 # Take the lock on fd 9 for the whole critical section (released on exit). -n:
 # if the host harness is mid-rebuild, skip this tick rather than pile up.
@@ -99,11 +99,8 @@ python3 scripts/data/dashboard_outputs.py --baseline-dir "$PREVIOUS_DIR" > /dev/
 # genuine change, which on a quiet day is indefinitely. It also covers the first
 # tick, where there is no branch yet.
 #
-# AFTER the master publish, not before. Both destinations trigger a Pages run
-# during the dual write, and `concurrency: pages` cancels the older one — going
-# second is what leaves the dispatched run to finish, so the path that has to
-# work after the cut is the one actually exercised now. Ordering is otherwise
-# free precisely because the store is self-healing.
+# There is no longer a master publish to order against — this script's only
+# destination is the data branch (#325).
 data_plane_failed=0
 publish_data_plane() {
   # Sourced for GIT_SSH_COMMAND/PUBLISH_REMOTE — the same deploy-key identity
@@ -117,43 +114,19 @@ publish_data_plane() {
   fi
 }
 
-heartbeat_changed=1
-if git diff --quiet -- assets/data/cron-heartbeats.json; then
-  heartbeat_changed=0
-fi
-outcomes_changed=1
-if git diff --quiet -- assets/data/workflow-outcomes.json; then
-  outcomes_changed=0
-fi
+# Nothing to commit any more. The scheduled publisher's entire commit pathspec
+# was `cron-heartbeats.json` + `workflow-outcomes.json`, and both went to the
+# data branch with the four payloads (#325) — so this publisher stops writing to
+# `master` altogether.
+#
+# The `git diff --quiet` checks that used to gate the commit are gone with it:
+# git cannot answer "did this change" for an untracked file, and the store
+# already answers it better by comparing against what the branch actually holds.
+#
+# Side effect worth naming: `master` no longer receives a push from this script,
+# so the tick no longer triggers a Pages deploy by pushing AND by dispatching.
+# That double trigger is what produced the `cancelled` runs in #321.
 
-if [ "$heartbeat_changed" -eq 0 ] && [ "$outcomes_changed" -eq 0 ]; then
-  echo "publish_dashboard: no semantic or heartbeat change"
-  # Nothing to commit, but the data plane still gets checked: a quiet tick is
-  # exactly when nothing else would force a retry of a publish that never
-  # arrived, so this is the branch a stale data plane would exit through.
-  publish_data_plane || data_plane_failed=1
-  exit "$data_plane_failed"
-fi
-
-# The four dashboard outputs are NOT here any more: they go to the data branch.
-# `git add` on an ignored path fails rather than skipping quietly, so putting one
-# back would be a red publish, not a silent one.
-paths=()
-if [ "$heartbeat_changed" -eq 1 ]; then
-  paths+=(assets/data/cron-heartbeats.json)
-fi
-if [ "$outcomes_changed" -eq 1 ]; then
-  paths+=(assets/data/workflow-outcomes.json)
-fi
-git add -- "${paths[@]}"
-# Scope the commit to generated outputs with an explicit pathspec: a bare `git commit`
-# would also sweep in anything ELSE already staged in the index (e.g. a human mid-edit
-# staging files at publish time), mislabeling them "scheduled publish" — happened once.
-git "${BOT_ID[@]}" commit -q -m "dashboard: scheduled publish $(date -u +%Y-%m-%dT%H:%MZ)" -- "${paths[@]}"
-bash scripts/data/safe_push.sh
 
 publish_data_plane || data_plane_failed=1
-# A tick that reached only one of its two destinations is degraded, and the cron
-# health check is where that belongs. Non-zero only after `master` was published,
-# so the failing half cannot take the working half down with it.
 exit "$data_plane_failed"
