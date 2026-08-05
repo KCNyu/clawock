@@ -14,32 +14,14 @@ set -e
 MAX_RETRIES=3
 REMOTE="${1:-origin}"
 BRANCH="${2:-master}"
-TEMP_SSH_KEY=""
-PUBLISH_SSH_KEY=""
 
-# A protected master must still accept scheduled data writers. GitHub-hosted
-# workflows receive a write-enabled deploy key through this secret; using the
-# deploy key lets the repository ruleset distinguish automation from the shared
-# KCNyu identity used by interactive Codex/Claude sessions.
-if [ -n "${CLAWOCK_PUBLISH_SSH_KEY:-}" ]; then
-  TEMP_SSH_KEY=$(mktemp)
-  chmod 600 "$TEMP_SSH_KEY"
-  printf '%s\n' "$CLAWOCK_PUBLISH_SSH_KEY" > "$TEMP_SSH_KEY"
-  PUBLISH_SSH_KEY="$TEMP_SSH_KEY"
-elif [ "$(git rev-parse --show-toplevel 2>/dev/null)" = "/root/.openclaw/workspace" ] && \
-     [ -r "/root/.ssh/clawock_runtime_publish" ]; then
-  # The live OpenClaw checkout uses a separate deploy key. Interactive agents
-  # work in isolated /root/.worktrees paths, so they never inherit this bypass.
-  PUBLISH_SSH_KEY="/root/.ssh/clawock_runtime_publish"
-fi
-
-if [ -n "$PUBLISH_SSH_KEY" ]; then
-  export GIT_SSH_COMMAND="ssh -i $PUBLISH_SSH_KEY -o IdentitiesOnly=yes -o StrictHostKeyChecking=accept-new"
-  REMOTE="${CLAWOCK_PUBLISH_REMOTE:-git@github.com:KCNyu/clawock.git}"
-fi
-
-if [ -n "$TEMP_SSH_KEY" ]; then
-  trap 'test -z "$TEMP_SSH_KEY" || { : > "$TEMP_SSH_KEY"; unlink "$TEMP_SSH_KEY"; }' EXIT
+# Identity selection (deploy key vs. whatever git is configured with) is shared
+# with the data-branch publisher, so it lives in one sourceable file rather than
+# being restated per publisher. It also owns wiping an ephemeral Actions key.
+# shellcheck source=scripts/data/publish_identity.sh
+. "$(dirname "${BASH_SOURCE[0]}")/publish_identity.sh"
+if [ -n "$PUBLISH_REMOTE" ]; then
+  REMOTE="$PUBLISH_REMOTE"
 fi
 
 # ── Conflict-marker guard (2026-06-03) ───────────────────────────────────────

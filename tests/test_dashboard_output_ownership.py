@@ -251,7 +251,9 @@ def test_the_diff_baseline_can_be_a_directory_instead_of_this_repository(tmp_pat
     we publish last time" stops being a git question. This helper was the one
     place that assumed otherwise."""
     published = tmp_path / "published"
-    _generation(published, clock="2026-08-05T00:00:00Z", value=1)
+    # Laid out the way `FilesystemStore` and the data branch hold a
+    # generation: by workspace-relative path, not flattened to basename.
+    _generation(published / "assets" / "data", clock="2026-08-05T00:00:00Z", value=1)
     worktree = tmp_path / "worktree" / "assets" / "data"
     _generation(worktree, clock="2026-08-05T03:00:00Z", value=1)
     # Exactly one output genuinely changed. Asserting the precise subset is what
@@ -278,7 +280,9 @@ def test_a_clock_only_rebuild_is_restored_from_whatever_the_baseline_is(tmp_path
     guarantee `git restore` does, or moving the data plane reintroduces the
     no-op publish this contract exists to stop."""
     published = tmp_path / "published"
-    _generation(published, clock="2026-08-05T00:00:00Z", value=1)
+    # Laid out the way `FilesystemStore` and the data branch hold a
+    # generation: by workspace-relative path, not flattened to basename.
+    _generation(published / "assets" / "data", clock="2026-08-05T00:00:00Z", value=1)
     root = tmp_path / "worktree"
     _generation(root / "assets" / "data", clock="2026-08-05T03:00:00Z", value=1)
 
