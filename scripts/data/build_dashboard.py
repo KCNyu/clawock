@@ -903,23 +903,38 @@ def _latest_brief_context():
 
 
 def load_previous_payload(path):
-    """Return a previously published dashboard payload as a dict, or None.
+    """Return `(payload_or_None, missing)` for a previously published dashboard.
 
     `path` is an explicit input, not an ambient lookup: the values this file
     contributes are the only part of the output that does not come from the
     workspace, so which file supplied them has to be a stated argument and is
-    reported in `build_status.previous_payload` (#262). `None` means the caller
-    asked for a build that depends on nothing but the workspace.
+    reported in `build_status.previous_payload` (#262). `path is None` means the
+    caller asked for a build that depends on nothing but the workspace.
+
+    `missing` separates the two ways of getting `None`, which used to be the same
+    thing (#314). A caller that NAMED a file and did not get it is not doing a
+    workspace-only build — it is doing a degraded one, and until now that was
+    silent: `preserved: []` looks identical whether every source was present or
+    the recovery payload simply was not there. The one caller where the flag does
+    anything is brief-fallback, whose whole job is recovery, so the day the path
+    stops resolving is the day recovery stops with nothing to show for it.
+
+    Deliberately not fatal. A missing recovery payload must not block a publish —
+    detect, do not silence, and do not turn a degraded build into no build.
     """
     if path is None:
-        return None
+        return None, False
     try:
         path = Path(path)
         if path.exists():
-            return load_json(str(path))
+            return load_json(str(path)), False
+        print(f'  warn: --previous {path} does not exist — no card can be restored '
+              f'from it; this build is workspace-only despite being asked for a '
+              f'recovery source', file=sys.stderr)
+        return None, True
     except Exception as e:
         print(f'  warn: load_previous_payload({path}) failed: {e}', file=sys.stderr)
-    return None
+        return None, True
 
 
 def merge_previous_payload(out, previous, presence, usable=None):
@@ -968,7 +983,7 @@ def workspace_relative(path):
         return str(path)
 
 
-def record_preservation(presence, taken, source, out_file, at=None):
+def record_preservation(presence, taken, source, out_file, at=None, missing=False):
     """Append one line per build to memory/.tmp/preserve-absent-YYYY-MM-DD.jsonl.
 
     The merge has exactly one known publishing consumer: `brief-fallback.yml`
@@ -1003,6 +1018,7 @@ def record_preservation(presence, taken, source, out_file, at=None):
             # Absolute here on purpose: unlike the published field, this file is
             # local and knowing which checkout built it is the point.
             'previous_source': str(source) if source else None,
+            'previous_missing': missing,
             'absent_sources': sorted(k for k, present in presence.items() if not present),
             'preserved': taken,
         }, ensure_ascii=False)
@@ -2643,7 +2659,8 @@ def build_projection(previous_source=None, shadow_previous=None):
     # dead code: brief-fallback.yml publishes a dashboard rebuilt on an Actions
     # checkout that has a brief-context but no insights / intraday / sector-scan
     # sidecars, which is exactly the case this restores. See record_preservation.
-    _prev_dash = load_previous_payload(previous_source) or {}
+    _prev_dash, _previous_missing = load_previous_payload(previous_source)
+    _prev_dash = _prev_dash or {}
     _presence = {}
 
     out['anomalies'] = extract_anomalies(
@@ -2942,6 +2959,11 @@ def build_projection(previous_source=None, shadow_previous=None):
             'source': workspace_relative(previous_source),
             'preserved': _preserved,
         }
+        # Only present when something is wrong, so a healthy payload stays byte
+        # for byte what it was. `preserved: []` alone cannot tell "every source
+        # was present" from "the recovery file was not there" (#314).
+        if _previous_missing:
+            out['build_status']['previous_payload']['missing'] = True
     out['workflow_outcomes'] = compute_workflow_outcomes()
 
     if brief_ctx_path:
@@ -2989,7 +3011,8 @@ def build_projection(previous_source=None, shadow_previous=None):
         'shadow': json.dumps(_shadow, ensure_ascii=False, indent=2) + '\n',
         # What the caller needs to record the slice-2 telemetry without knowing
         # how the merge works.
-        'preservation': {'presence': _presence, 'preserved': _preserved},
+        'preservation': {'presence': _presence, 'preserved': _preserved,
+                         'missing': _previous_missing},
         'summary': {
             'dashboard_bytes': size_bytes,
             'overview_bytes': overview_size,
@@ -3058,7 +3081,8 @@ def main(argv=None):
     record_preservation(
         projection['preservation']['presence'],
         projection['preservation']['preserved'],
-        previous_source, out_file)
+        previous_source, out_file,
+        missing=projection['preservation']['missing'])
 
     s = projection['summary']
     print(f'✓ wrote {overview_file} ({s["overview_bytes"]:,} bytes)')
