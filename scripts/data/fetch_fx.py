@@ -22,6 +22,19 @@ import requests
 
 WS_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 CACHE_PATH = os.path.join(WS_ROOT, '.cache', 'fx_rate.json')
+# The durable record, one line per day. The cache above is gitignored and
+# overwritten, so until #323 the only place a past day's rate survived was the
+# commit history of assets/data/dashboard.json — which #314 moved off master.
+# Prices are already durable (every snapshot carries current_price per holding);
+# this is the rate that COMBINES the two legs, and without it a rebuild of any
+# past day silently stamps it with today's rate. `openclaw-fx-rule` says HKD and
+# USD cannot be added directly; this is the provenance half of that.
+#
+# Under memory/ deliberately: `brief_postflight` already runs
+# `git add 'memory/'` every morning, so this rides an existing, proven commit
+# path rather than needing a new one. Append-only, so a morning that fails to
+# commit loses nothing — the next one carries both days.
+LEDGER_PATH = os.path.join(WS_ROOT, 'memory', 'fx-rates.jsonl')
 CACHE_TTL_HOURS = 4   # FX moves slowly intraday; refresh 6x/day is enough
 TIMEOUT = 10
 
@@ -54,6 +67,73 @@ def _save_cache(data: Dict):
     os.makedirs(os.path.dirname(CACHE_PATH), exist_ok=True)
     with open(CACHE_PATH, 'w') as f:
         json.dump(data, f)
+    _record_rate(data)
+
+
+def _ledger_day(entry: Dict) -> str:
+    """The UTC day an entry belongs to, from its fetch time."""
+    stamp = (entry.get('fetched_at') or '')[:10]
+    return stamp or time.strftime('%Y-%m-%d', time.gmtime())
+
+
+def read_rate_ledger(path: str = None) -> Dict[str, Dict]:
+    """day -> the rate recorded for it. Last write for a day wins.
+
+    Tolerates a corrupt line rather than refusing the whole file: this is a
+    provenance record appended to over months, and one bad line must not make
+    every other day unreadable.
+    """
+    path = path or LEDGER_PATH
+    out: Dict[str, Dict] = {}
+    try:
+        with open(path) as handle:
+            for line in handle:
+                line = line.strip()
+                if not line:
+                    continue
+                try:
+                    entry = json.loads(line)
+                except ValueError:
+                    continue
+                if entry.get('day'):
+                    out[entry['day']] = entry
+    except OSError:
+        return out
+    return out
+
+
+def _record_rate(data: Dict, path: str = None):
+    """Append today's rate, unless the same rate for the same day is already there.
+
+    Idempotent per (day, rate) because the fetcher runs up to 6x/day on a 4-hour
+    TTL and a re-fetch that agrees carries no new information. A rate that
+    CHANGED within the day is appended — that is a real observation, and the
+    reader takes the last one.
+
+    Never raises: a provenance record must not be able to fail a price fetch.
+    """
+    path = path or LEDGER_PATH
+    try:
+        rate = data.get('rate')
+        if rate is None:
+            return
+        day = _ledger_day(data)
+        existing = read_rate_ledger(path).get(day)
+        if existing and existing.get('rate') == rate:
+            return
+        entry = {
+            'day': day,
+            'rate': rate,
+            'pair': data.get('pair', 'USDHKD'),
+            'source': data.get('source'),
+            'fetched_at': data.get('fetched_at'),
+            'fallback_used': data.get('fallback_used'),
+        }
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        with open(path, 'a') as handle:
+            handle.write(json.dumps(entry, sort_keys=True) + '\n')
+    except Exception:
+        return
 
 
 def _get_frankfurter() -> Optional[float]:
