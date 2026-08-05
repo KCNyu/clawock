@@ -371,3 +371,51 @@ def test_a_clock_only_rebuild_is_restored_from_whatever_the_baseline_is(tmp_path
         (root / "assets" / "data" / "dashboard.json").read_text(encoding="utf-8"))
     assert restored["generated_at"] == "2026-08-05T00:00:00Z", (
         "the clock-only rebuild must be rolled back, not left dirty")
+
+
+def test_the_publisher_no_longer_writes_to_master_at_all():
+    """#325: the scheduled publisher's entire commit pathspec was
+    `cron-heartbeats.json` + `workflow-outcomes.json`. Both moved to the data
+    branch, so it commits nothing — which is what finally takes the commit count
+    down, and what removes the second Pages trigger behind the cancelled runs in
+    #321.
+
+    Asserted on the script rather than on a commit count, because a count is a
+    live number and this is the structural fact underneath it.
+    """
+    publisher = (ROOT / "scripts/data/publish_dashboard.sh").read_text()
+    code = "\n".join(line.split("#", 1)[0] for line in publisher.splitlines())
+
+    for forbidden in ("git add", "git commit", "safe_push.sh"):
+        assert forbidden not in code, (
+            f"the scheduled publisher still runs `{forbidden}`; its destination "
+            "is the data branch alone")
+
+
+def test_the_two_sidecars_are_published_with_the_generation():
+    """They are written by the same tick and read out of the same place, so a
+    consumer that fetches the generation must get all six or none — a partial
+    fetch is how `cron_health_check` ends up reading an absent heartbeat ledger
+    and reporting every intraday slot as missed."""
+    import sys as _sys
+    _sys.path.insert(0, str(ROOT / "scripts" / "data"))
+    from publish_data_branch import DATA_PLANE_FILES
+
+    assert set(dashboard_outputs.DASHBOARD_OUTPUTS) < set(DATA_PLANE_FILES)
+    assert "assets/data/cron-heartbeats.json" in DATA_PLANE_FILES
+    assert "assets/data/workflow-outcomes.json" in DATA_PLANE_FILES
+
+    reader = (ROOT / "scripts/build/fetch_data_plane.py").read_text()
+    assert "DATA_PLANE_FILES" in reader, (
+        "the reader must fetch the whole published set, not just the payloads")
+
+
+def test_a_fresh_checkout_can_still_restore_the_workflow_card():
+    """`workflow-outcomes.json` left the repository, and `brief-fallback.yml`
+    does not run `workflow_outcomes.py` — so on that path the file is simply
+    absent. Without a presence entry the card publishes empty and `--previous`
+    cannot bring it back: the 2026-06-21 shape, in a new place."""
+    builder = (ROOT / "scripts/data/build_dashboard.py").read_text()
+
+    assert "_presence['workflow_outcomes']" in builder, (
+        "the workflow card has no recovery path on a fresh checkout")

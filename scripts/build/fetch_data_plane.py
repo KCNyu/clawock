@@ -37,8 +37,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 sys.path.insert(0, str(ROOT / "scripts" / "data"))
 
 from clawock.publish import GitBranchStore  # noqa: E402
-from dashboard_outputs import DASHBOARD_OUTPUTS  # noqa: E402
-from publish_data_branch import DATA_BRANCH  # noqa: E402
+from publish_data_branch import DATA_BRANCH, DATA_PLANE_FILES  # noqa: E402
 
 
 def main() -> int:
@@ -52,7 +51,7 @@ def main() -> int:
 
     store = GitBranchStore(args.repo, args.branch, remote=args.remote)
     try:
-        written = store.fetch(args.into or args.repo, names=DASHBOARD_OUTPUTS)
+        written = store.fetch(args.into or args.repo, names=DATA_PLANE_FILES)
     except subprocess.CalledProcessError as exc:
         detail = (exc.stderr or b"")
         if isinstance(detail, bytes):

@@ -43,6 +43,17 @@ from dashboard_outputs import DASHBOARD_OUTPUTS  # noqa: E402
 # updated only the writer would serve a stale generation with every gate green.
 DATA_BRANCH = "data-plane"
 
+# The generation is six files, not four. `cron-heartbeats.json` and
+# `workflow-outcomes.json` are written by the same tick as the four payloads and
+# were the ONLY two entries left in the publisher's commit pathspec — which is
+# why moving the four barely changed the commit count (#325). Nothing in the
+# browser fetches them; `build_dashboard` embeds their content into the payload.
+DATA_PLANE_EXTRA = (
+    "assets/data/cron-heartbeats.json",
+    "assets/data/workflow-outcomes.json",
+)
+DATA_PLANE_FILES = tuple(DASHBOARD_OUTPUTS) + DATA_PLANE_EXTRA
+
 # Same bot identity the scheduled publisher commits under. Injected per
 # invocation by the store (`git -c`), never written to git config — a persistent
 # identity would clobber kcn's interactive one.
@@ -87,7 +98,7 @@ def main() -> int:
 
     root = Path(args.root)
     files = {}
-    for path in DASHBOARD_OUTPUTS:
+    for path in DATA_PLANE_FILES:
         try:
             files[path] = (root / path).read_text(encoding="utf-8")
         except OSError as exc:

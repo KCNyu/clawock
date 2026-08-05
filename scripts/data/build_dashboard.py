@@ -2674,6 +2674,13 @@ def build_projection(previous_source=None, shadow_previous=None):
     # test is the computed value itself rather than a source flag, because both
     # of its sources are optional.
     _presence['market_context'] = bool(out.get('market_context'))
+    # #325 moved workflow-outcomes.json to the data branch, so a fresh-checkout
+    # build (brief-fallback, which does not run workflow_outcomes.py) finds no
+    # file at all. Without a presence entry the card would publish empty and
+    # `--previous` could not restore it — the 2026-06-21 shape. The recovery
+    # mechanism exists for exactly this; it just never covered this key.
+    _presence['workflow_outcomes'] = bool(
+        (out.get('workflow_outcomes') or {}).get('recent'))
 
     # ── LLM narrative sidecars (agent-written in Step 3; text-only, no keys) ──
     # Each sidecar is validated (validate_insights / validate_intraday_insights)
