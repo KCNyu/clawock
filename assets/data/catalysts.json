@@ -1,8 +1,8 @@
 {
-  "generated_at": "2026-08-04T08:03:46.115550+08:00",
+  "generated_at": "2026-08-05T08:01:34.955127+08:00",
   "lookback_window_days": 14,
-  "window_start": "2026-08-04",
-  "window_end": "2026-08-18",
+  "window_start": "2026-08-05",
+  "window_end": "2026-08-19",
   "earnings_queried": [
     "CRCL",
     "MSFT",
@@ -12,17 +12,6 @@
     "SPCX"
   ],
   "earnings": [
-    {
-      "ticker": "SPCX",
-      "name": "SPCX",
-      "date": "2026-08-04",
-      "time": "amc",
-      "eps_estimate": -0.2635,
-      "eps_actual": null,
-      "revenue_estimate_m": 7072.53,
-      "quarter": 2,
-      "year": 2026
-    },
     {
       "ticker": "CRCL",
       "name": "CRCL",
@@ -60,9 +49,9 @@
     }
   ],
   "summary": {
-    "earnings_count": 3,
+    "earnings_count": 2,
     "fomc_in_window": 0,
     "macro_count": 2,
-    "highest_impact_within_7d": "NFP 2026-08-07"
+    "highest_impact_within_7d": "CPI 2026-08-12"
   }
 }
