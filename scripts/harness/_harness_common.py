@@ -42,7 +42,6 @@ from clawock.validation import (  # noqa: E402,F401
 
 WS = workspace_root(Path(__file__).resolve().parents[2])
 sys.path.insert(0, str(WS / 'scripts' / 'data'))
-from dashboard_outputs import semantic_changed_paths as dashboard_output_changes  # noqa: E402
 
 # Single-publisher mutex for all dashboard build outputs (Option 1, 2026-07-04).
 # Shared by the host harness rebuild and publish_dashboard.sh crontab so the two

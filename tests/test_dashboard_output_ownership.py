@@ -1,5 +1,6 @@
 """One build, four public outputs, one semantic publication contract."""
 import json
+import re
 import pytest
 import subprocess
 import sys
@@ -166,33 +167,60 @@ def test_reflect_backtest_change_publishes_the_existing_audit_sidecar(tmp_path):
 
 
 def test_nothing_stages_the_outputs_into_a_commit_any_more():
-    """#314 took the four outputs out of repository history, so every path that
-    added them to a commit had to stop.
+    """#314 untracked the four outputs, so every path that added them to a commit
+    had to stop. `git add` on a gitignored path FAILS rather than skipping, and
+    these commits carry `portfolio.json`, the decision ledger and the daily
+    snapshot — so a leftover stager does not publish a stale dashboard, it stops
+    the money file from being committed at all.
 
-    `git add` on a gitignored path FAILS rather than skipping, so a missed one is
-    a red publish rather than a quiet one — but "the publisher is red every 20
-    minutes" is not a discovery mechanism, and two of these five were found only
-    because a contract test named them. This is that test, inverted: it used to
-    assert they all staged, and now asserts none does.
+    DISCOVERED, not listed. The first version of this test named five files by
+    hand and passed while three postflights still staged them; they were found
+    only when the daily brief was hours from failing. So it walks every committer
+    and asks a structural question: does this file both derive dashboard output
+    paths and hand paths to `git add`?
     """
-    assert set(dashboard_outputs.DASHBOARD_OUTPUTS) == EXPECTED
-
-    stagers = (
-        ".githooks/pre-commit",
-        "scripts/data/gold_dca_refresh.sh",
-        "scripts/data/publish_dashboard.sh",
-        "scripts/data/update_gold_dca.py",
-        "scripts/harness/_harness_common.py",
-    )
+    owner = "scripts/data/dashboard_outputs.py"
+    derives = ("dashboard_output_changes", "semantic_changed_paths",
+               "DASHBOARD_OUTPUTS")
     offenders = []
-    for rel in stagers:
-        for line in (ROOT / rel).read_text().splitlines():
-            code = line.split("#", 1)[0]
-            if "git" in code and "add" in code and "dashboard_paths" in code:
-                offenders.append(f"{rel}: {line.strip()}")
+    for root in ("scripts", ".githooks"):
+        for path in sorted(ROOT.joinpath(root).rglob("*")):
+            if not path.is_file() or path.suffix not in ("", ".py", ".sh"):
+                continue
+            rel = path.relative_to(ROOT).as_posix()
+            if rel == owner:
+                continue
+            code = "\n".join(line.split("#", 1)[0] for line in
+                              path.read_text(errors="ignore").splitlines())
+            if not any(name in code for name in derives):
+                continue
+            # `git add` as an actual invocation, in shell or argv form —
+            # not the substring, which matches half the file.
+            if re.search(r"""git[^\n]{0,24}['"\s]add\b""", code):
+                offenders.append(rel)
 
     assert not offenders, (
-        f"these still stage outputs that are no longer tracked: {offenders}")
+        "these both derive dashboard output paths and run `git add`, which is "
+        f"how an untracked output gets staged again: {offenders}")
+
+
+def test_the_publish_path_for_the_outputs_is_the_data_branch_alone():
+    """One publisher for the generation, and it is not a committer.
+
+    Stated as a test because the three postflights used to publish these by
+    committing them, and 'rebuild then let the scheduled publisher pick it up'
+    is a quieter contract than it looks — nothing errors if a postflight starts
+    staging them again, until `git add` refuses and takes the whole commit down.
+    """
+    publisher = (ROOT / "scripts/data/publish_data_branch.py").read_text()
+    assert "DASHBOARD_OUTPUTS" in publisher
+    for rel in ("scripts/harness/brief_postflight.py",
+                "scripts/harness/report_postflight.py",
+                "scripts/harness/intraday_postflight.py"):
+        text = (ROOT / rel).read_text()
+        assert "dashboard_output_changes" not in text, (
+            f"{rel} still derives dashboard output paths; its only former use "
+            "was staging them")
 
 
 def test_the_publisher_compares_against_what_was_published():
