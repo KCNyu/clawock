@@ -75,11 +75,18 @@ class GitHubDispatchDeployer:
         self.event_type = event_type
 
     def request(self, reason: str = "") -> str:
-        payload = json.dumps({"reason": reason} if reason else {})
+        # The whole body as one JSON document on stdin, not `-f`/`--raw-field`
+        # pairs. `client_payload` has to arrive as an OBJECT, and both of those
+        # flags send their value as a string — GitHub answers 422 ("is not an
+        # object") and the deploy is never requested. A fake `gh` that only
+        # checks the command exits 0 cannot see this; the test below parses the
+        # body it was handed.
+        body = {"event_type": self.event_type}
+        if reason:
+            body["client_payload"] = {"reason": reason}
         subprocess.run(
-            ["gh", "api", f"repos/{self.repository}/dispatches",
-             "-f", f"event_type={self.event_type}",
-             "--raw-field", f"client_payload={payload}"],
-            check=True, capture_output=True, text=True,
+            ["gh", "api", "--method", "POST",
+             f"repos/{self.repository}/dispatches", "--input", "-"],
+            input=json.dumps(body), check=True, capture_output=True, text=True,
         )
         return f"{self.event_type} → {self.repository}"
