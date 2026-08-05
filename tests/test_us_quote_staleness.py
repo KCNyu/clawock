@@ -577,6 +577,75 @@ class TestDailyBarProviderIsNotComposed:
         assert h["day_low"] != 26.1 and h["day_high"] != 29.9
 
 
+# ── 2026-08-06 (#336): the same disease, one provider further down ──────────
+# Polygon's `/prev` endpoint returns the PRIOR SESSION's daily bar. Step 7 was
+# the only branch calling `_done` instead of `_offer`, so that bar skipped both
+# the freshness and the completeness gate and was recorded as a healthy, flat,
+# current quote — yesterday's close as today's price, yesterday's range as
+# today's range.
+POLYGON_PREV_BAR = {   # verbatim, PLTU, requested 2026-08-05 15:1x ET
+    "ticker": "PLTU", "queryCount": 1, "resultsCount": 1, "adjusted": True,
+    "results": [{"T": "PLTU", "v": 12746526.0, "vw": 41.7637, "o": 36.98,
+                 "c": 44.82, "h": 45.71, "l": 36.265,
+                 "t": 1785873600000, "n": 165741}],
+    "status": "OK", "count": 1,
+}
+
+
+class TestPolygonPrevCloseStatesItsAge:
+    def test_the_bar_reports_its_own_session_and_no_invented_prior_close(
+            self, monkeypatch):
+        monkeypatch.setattr(F.SESSION, "get",
+                            lambda *a, **k: _FakeResp(POLYGON_PREV_BAR))
+        q = F.get_polygon_quote("PLTU", "key")
+        assert q["asof_date"] == "2026-08-04"
+        assert not F._quote_is_fresh(q, "2026-08-05")
+        # `vw` is the prior session's VWAP; it was never a prior close.
+        assert q["pc"] is None
+        assert q["c"] == 44.82
+
+    def test_a_live_quote_beats_it_instead_of_being_skipped(self, monkeypatch):
+        # Every other provider fails, but Finnhub answers: the prior-session bar
+        # must not win, and previously it could not even be compared because
+        # step 7 bypassed the race entirely.
+        monkeypatch.setattr(F, "get_eastmoney_batch", lambda *a, **k: {})
+        for name in ("get_nasdaq_quote", "get_yahoo_v8_quote",
+                     "get_yfinance_quote", "get_alpha_vantage_quote"):
+            monkeypatch.setattr(F, name, lambda *a, **k: None)
+        monkeypatch.setattr(F, "get_finnhub_quote",
+                            lambda t, k: {"c": 43.04, "pc": 44.82, "h": 46.76,
+                                          "l": 42.61, "o": 43.78, "dp": -3.9714,
+                                          "source": "Finnhub"})
+        monkeypatch.setattr(F, "get_polygon_quote",
+                            lambda t, k: {"c": 44.82, "pc": None, "h": 45.71,
+                                          "l": 36.265, "o": 36.98, "dp": 0.0,
+                                          "asof_date": "2026-08-04",
+                                          "source": "Polygon (prev close)"})
+        out = F.fetch_us_quotes(["PLTU"], {"FINNHUB_API_KEY": "x",
+                                           "POLYGON_API_KEY": "k"})
+        assert out["PLTU"]["source"] == "Finnhub"
+        assert out["PLTU"]["c"] == 43.04
+
+    def test_as_the_only_survivor_it_is_used_but_labelled(self, monkeypatch):
+        monkeypatch.setattr(F, "get_eastmoney_batch", lambda *a, **k: {})
+        for name in ("get_nasdaq_quote", "get_finnhub_quote",
+                     "get_yahoo_v8_quote", "get_yfinance_quote",
+                     "get_alpha_vantage_quote"):
+            monkeypatch.setattr(F, name, lambda *a, **k: None)
+        monkeypatch.setattr(F, "get_polygon_quote",
+                            lambda t, k: {"c": 44.82, "pc": None, "h": 45.71,
+                                          "l": 36.265, "o": 36.98, "dp": 0.0,
+                                          "asof_date": "2026-08-04",
+                                          "source": "Polygon (prev close)"})
+        out = F.fetch_us_quotes(["PLTU"], {"POLYGON_API_KEY": "k"})
+        # A price is still better than none — but it must say what it is, which
+        # is what keeps yesterday's 36.265 out of today's range (#332's
+        # accumulator rule keys off exactly this flag).
+        assert out["PLTU"]["c"] == 44.82
+        assert out["PLTU"]["stale_asof"] == "2026-08-04"
+        assert out["PLTU"]["incomplete"] is True
+
+
 # ── the gate that should have caught it ──────────────────────────────────────
 def _mini_portfolio(holding):
     return {
