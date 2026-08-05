@@ -19,6 +19,7 @@ import sys
 import time
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
+from typing import NamedTuple
 from zoneinfo import ZoneInfo
 
 import decision_v2
@@ -37,6 +38,75 @@ OUT_DIR = WS_ROOT / 'assets' / 'data'
 OUT_FILE = OUT_DIR / 'dashboard.json'
 OVERVIEW_FILE = OUT_DIR / 'overview.json'
 AUDIT_FILE = OUT_DIR / 'decision_audit.json'
+
+# ── Leg shape ────────────────────────────────────────────────────────────
+# The ledger declares its own legs: `portfolio.json`'s `portfolios` is a mapping
+# of bucket name to a book that carries its own `currency`. Deriving them from
+# there is what lets the projection run against a workspace whose legs are not
+# `us_stocks`/`hk_stocks` (#262 slice 3). It also avoids inventing a second
+# source of truth — `config/instruments.json` describes instruments, not books.
+LEG_BUCKET_SUFFIX = '_stocks'
+
+
+class Leg(NamedTuple):
+    bucket: str    # key inside portfolio['portfolios']
+    key: str       # key inside the published payload
+    currency: str  # the book's native currency
+
+
+def resolve_legs(portfolio):
+    """The legs this projection publishes, in the ledger's declaration order.
+
+    The published key drops the `_stocks` suffix, which is the rule the payload
+    has always followed (`us_stocks` → `out['us']`).
+
+    Order is the ledger's and must stay that way: the payload is serialized
+    without sorting keys, so reordering would rewrite every card without a
+    reader seeing anything change — a commit `semantic_value()` cannot strip.
+    """
+    legs = []
+    for bucket, book in (portfolio.get('portfolios') or {}).items():
+        if not isinstance(book, dict):
+            continue
+        key = (bucket[:-len(LEG_BUCKET_SUFFIX)]
+               if bucket.endswith(LEG_BUCKET_SUFFIX) else bucket)
+        legs.append(Leg(bucket, key, book.get('currency') or ''))
+    return legs
+
+
+def leg_pair(portfolio):
+    """The two legs a cross-leg aggregate needs, or `(None, None)`.
+
+    Every combined figure in this file is "base leg + other leg converted at one
+    rate", which is only defined for exactly two books. A workspace with one leg
+    has nothing to combine; one with three would need an FX table this project
+    does not have, and silently folding two of them would be a money bug. Both
+    cases return `(None, None)` so the caller publishes its explicit `None`
+    rather than a number nobody can reproduce.
+
+    A book that does not declare its `currency` is refused for the same reason.
+    The iron rule here is that HKD and USD may never be added; a combined figure
+    whose base currency is unknown cannot be labelled, let alone checked.
+    """
+    legs = resolve_legs(portfolio)
+    if len(legs) != 2 or not all(leg.currency for leg in legs):
+        return (None, None)
+    return (legs[0], legs[1])
+
+
+def leg_books(portfolio):
+    """The two books themselves, in ledger order, or `({}, {})`.
+
+    Convenience for the many cards that want the books and not the metadata; the
+    empty pair keeps their existing "degrade into the payload" behaviour when the
+    ledger does not have the two-book shape a combined figure needs.
+    """
+    base, quote = leg_pair(portfolio)
+    if not base:
+        return {}, {}
+    books = portfolio.get('portfolios') or {}
+    return books.get(base.bucket) or {}, books.get(quote.bucket) or {}
+
 
 # ── Anti-bloat caps ──────────────────────────────────────────────────────
 # Dashboard only embeds the most recent snapshots + plan summaries.
@@ -290,8 +360,9 @@ def compute_guardrail_outputs(portfolio, risk, lev_regime=None):
         sys.path.insert(0, str(WS_ROOT / 'scripts' / 'harness'))
         from brief_preflight import (compute_risk_guardrail, compute_concentration,
                                      compute_breakeven_math)
-        hk_holdings = portfolio['portfolios']['hk_stocks']['holdings']
-        us_holdings = portfolio['portfolios']['us_stocks']['holdings']
+        us_book, hk_book = leg_books(portfolio)
+        hk_holdings = hk_book['holdings']
+        us_holdings = us_book['holdings']
         guardrail = compute_risk_guardrail(
             hk_holdings, us_holdings,
             compute_concentration(hk_holdings), compute_concentration(us_holdings),
@@ -1720,8 +1791,7 @@ def compute_reentry_radar(lev_regime, portfolio):
         return None
     watches.sort(key=lambda w: (not w['trend_on'],
                                 abs(w['dist_ma_pct']) if w['dist_ma_pct'] is not None else 999))
-    us_pf = portfolio['portfolios'].get('us_stocks', {})
-    hk_pf = portfolio['portfolios'].get('hk_stocks', {})
+    us_pf, hk_pf = leg_books(portfolio)
     return {
         'watches': watches,
         'triggered_count': sum(1 for w in watches if w['trend_on']),
@@ -1736,9 +1806,10 @@ def compute_leveraged_etf_exposure(portfolio, fx_rate):
     """Percent of book in 2x/3x leveraged ETFs, per region + combined (USD-base)."""
     out = {'us_pct': None, 'hk_pct': None, 'combined_pct': None, 'tickers': []}
     try:
-        us_active = [h for h in portfolio['portfolios']['us_stocks'].get('holdings', [])
+        us_book, hk_book = leg_books(portfolio)
+        us_active = [h for h in us_book.get('holdings', [])
                      if h.get('shares', 0) > 0]
-        hk_active = [h for h in portfolio['portfolios']['hk_stocks'].get('holdings', [])
+        hk_active = [h for h in hk_book.get('holdings', [])
                      if h.get('shares', 0) > 0]
 
         us_total = sum(h.get('current_value', 0) or 0 for h in us_active)
@@ -1829,24 +1900,31 @@ def compute_today_ranges(portfolio, top_n=8):
 
 
 def compute_realized_vs_unrealized(portfolio, fx_rate):
-    """Realized + unrealized split per region + combined (USD-base)."""
-    out = {
-        'us': {'realized': None, 'unrealized': None},
-        'hk': {'realized': None, 'unrealized': None},
-        'combined_usd': {'realized': None, 'unrealized': None},
-    }
+    """Realized + unrealized split per leg + combined in the base leg's currency.
+
+    `fx_rate` is quote-currency per unit of base currency, so the quote leg is
+    divided by it. The combined figure exists only when both a rate and exactly
+    two books do — see `leg_pair`.
+    """
+    legs = resolve_legs(portfolio)
+    base, quote = leg_pair(portfolio)
+    # `combined` without a suffix is the honest label when the ledger never said
+    # what currency the sum would be in — and in that case it stays None.
+    combined_key = f'combined_{base.currency.lower()}' if base else 'combined'
+    out = {leg.key: {'realized': None, 'unrealized': None} for leg in legs}
+    out[combined_key] = {'realized': None, 'unrealized': None}
     try:
-        us = portfolio['portfolios']['us_stocks']
-        hk = portfolio['portfolios']['hk_stocks']
-        out['us']['realized']   = us.get('total_realized_pnl') or us.get('realized_pnl') or 0.0
-        out['us']['unrealized'] = us.get('total_pnl') or 0.0
-        out['hk']['realized']   = hk.get('total_realized_pnl') or hk.get('realized_pnl') or 0.0
-        out['hk']['unrealized'] = hk.get('total_pnl') or 0.0
-        if fx_rate and fx_rate > 0:
-            out['combined_usd']['realized'] = round(
-                out['us']['realized'] + out['hk']['realized'] / fx_rate, 2)
-            out['combined_usd']['unrealized'] = round(
-                out['us']['unrealized'] + out['hk']['unrealized'] / fx_rate, 2)
+        books = portfolio['portfolios']
+        for leg in legs:
+            book = books[leg.bucket]
+            out[leg.key]['realized'] = (
+                book.get('total_realized_pnl') or book.get('realized_pnl') or 0.0)
+            out[leg.key]['unrealized'] = book.get('total_pnl') or 0.0
+        if base and fx_rate and fx_rate > 0:
+            out[combined_key]['realized'] = round(
+                out[base.key]['realized'] + out[quote.key]['realized'] / fx_rate, 2)
+            out[combined_key]['unrealized'] = round(
+                out[base.key]['unrealized'] + out[quote.key]['unrealized'] / fx_rate, 2)
     except Exception as e:
         print(f'  warn: compute_realized_vs_unrealized failed: {e}', file=sys.stderr)
     return out
@@ -1868,27 +1946,27 @@ def compute_capital_deployed(portfolio, fx_rate):
 
     See 2026-05-22 conversation with kcn (rotation churn 问题).
     """
-    out = {
-        'us':  {'native': None, 'usd': None},
-        'hk':  {'native': None, 'usd': None},
-        'combined_usd': None,
-    }
+    legs = resolve_legs(portfolio)
+    base, quote = leg_pair(portfolio)
+    base_ccy = base.currency.lower() if base else None
+    combined_key = f'combined_{base_ccy}' if base_ccy else 'combined'
+    # The per-leg conversion field is named for the base currency, because that
+    # is what it converts TO — `usd` here only because the base book is USD.
+    conv = base_ccy or 'base'
+    out = {leg.key: {'native': None, conv: None} for leg in legs}
+    out[combined_key] = None
 
     try:
-        us = portfolio['portfolios']['us_stocks']
-        hk = portfolio['portfolios']['hk_stocks']
-
-        us_cur  = us.get('total_cost', 0) or 0
-        us_real = us.get('realized_pnl', 0) or 0
-        hk_cur  = hk.get('total_cost', 0) or 0
-        hk_real = hk.get('realized_pnl', 0) or 0
-
-        out['us']['native'] = round(us_cur + us_real, 2)
-        out['hk']['native'] = round(hk_cur + hk_real, 2)
-        out['us']['usd'] = out['us']['native']  # US native is USD
-        if fx_rate and fx_rate > 0:
-            out['hk']['usd'] = round(out['hk']['native'] / fx_rate, 2)
-            out['combined_usd'] = round(out['us']['usd'] + out['hk']['usd'], 2)
+        books = portfolio['portfolios']
+        for leg in legs:
+            book = books[leg.bucket]
+            out[leg.key]['native'] = round(
+                (book.get('total_cost', 0) or 0) + (book.get('realized_pnl', 0) or 0), 2)
+        if base:
+            out[base.key][conv] = out[base.key]['native']  # base leg is already base currency
+            if fx_rate and fx_rate > 0:
+                out[quote.key][conv] = round(out[quote.key]['native'] / fx_rate, 2)
+                out[combined_key] = round(out[base.key][conv] + out[quote.key][conv], 2)
     except Exception as e:
         print(f'  warn: compute_capital_deployed failed: {e}', file=sys.stderr)
     return out
@@ -1919,12 +1997,14 @@ def compute_net_principal_return(portfolio, fx_rate):
     true_principal 是更诚实的"我实际投了多少"。net_principal 仍照算并保留在输出里
     供参考；combined 也跟随用各 region 实际分母（denom）。
     """
-    out = {
-        'us':  {'net_principal': None, 'total_profit': None, 'return_pct': None},
-        'hk':  {'net_principal': None, 'total_profit': None, 'return_pct': None},
-        'combined_usd': {'net_principal': None, 'total_profit': None, 'return_pct': None},
-        'formula': '回报率 = (浮动 + 已实现) ÷ 本金；本金优先用 true_principal（峰值净投入），否则用 净投入本金=累计成本−已实现',
-    }
+    legs = resolve_legs(portfolio)
+    base, quote = leg_pair(portfolio)
+    combined_key = f'combined_{base.currency.lower()}' if base else 'combined'
+    out = {leg.key: {'net_principal': None, 'total_profit': None, 'return_pct': None}
+           for leg in legs}
+    out[combined_key] = {'net_principal': None, 'total_profit': None, 'return_pct': None}
+    out['formula'] = ('回报率 = (浮动 + 已实现) ÷ 本金；本金优先用 true_principal'
+                      '（峰值净投入），否则用 净投入本金=累计成本−已实现')
 
     def _region(pf):
         cost = pf.get('total_cost', 0) or 0
@@ -1952,26 +2032,29 @@ def compute_net_principal_return(portfolio, fx_rate):
         return res
 
     try:
-        out['us'] = _region(portfolio['portfolios']['us_stocks'])
-        out['hk'] = _region(portfolio['portfolios']['hk_stocks'])
-        if fx_rate and fx_rate > 0:
-            np_usd = round(out['us']['_denom'] + out['hk']['_denom'] / fx_rate, 2)
-            tp_usd = round(out['us']['total_profit'] + out['hk']['total_profit'] / fx_rate, 2)
-            # combined 分母是混合的：US 用 true_principal、HK 用 net_principal。
-            # 暴露 basis 让前端标签诚实（任一 region 用真实本金即标「真实本金」）。
+        books = portfolio['portfolios']
+        for leg in legs:
+            out[leg.key] = _region(books[leg.bucket])
+        if base and fx_rate and fx_rate > 0:
+            np_base = round(
+                out[base.key]['_denom'] + out[quote.key]['_denom'] / fx_rate, 2)
+            tp_base = round(
+                out[base.key]['total_profit'] + out[quote.key]['total_profit'] / fx_rate, 2)
+            # combined 分母是混合的：一条腿可能用 true_principal、另一条用 net_principal。
+            # 暴露 basis 让前端标签诚实（任一腿用真实本金即标「真实本金」）。
             mixed_basis = ('true_principal'
-                           if 'true_principal' in (out['us'].get('return_basis'),
-                                                   out['hk'].get('return_basis'))
+                           if 'true_principal' in (out[base.key].get('return_basis'),
+                                                   out[quote.key].get('return_basis'))
                            else 'net_principal')
-            out['combined_usd'] = {
-                'net_principal': np_usd,
-                'total_profit': tp_usd,
-                'return_pct': round(tp_usd / np_usd * 100, 2) if np_usd > 0 else None,
+            out[combined_key] = {
+                'net_principal': np_base,
+                'total_profit': tp_base,
+                'return_pct': round(tp_base / np_base * 100, 2) if np_base > 0 else None,
                 'return_basis': mixed_basis,
             }
         # _denom 仅用于 combined 计算，不外泄到输出
-        for r in ('us', 'hk'):
-            out[r].pop('_denom', None)
+        for leg in legs:
+            out[leg.key].pop('_denom', None)
     except Exception as e:
         print(f'  warn: compute_net_principal_return failed: {e}', file=sys.stderr)
     return out
@@ -2346,8 +2429,21 @@ def resolve_previous_source(args):
     return Path(args.previous) if args.previous else None
 
 
-class MissingPortfolio(Exception):
+class ProjectionInputError(Exception):
+    """The workspace cannot produce a projection. Reported, never published."""
+
+
+class MissingPortfolio(ProjectionInputError):
     """portfolio.json is the one input a projection cannot be built without."""
+
+
+class UnsupportedLegShape(ProjectionInputError):
+    """The ledger does not have the two-book shape the cards are defined for.
+
+    Deliberately fatal rather than "publish the two books we recognise": every
+    combined figure would then quietly omit a book, and a total that silently
+    drops money is worse than a dashboard that stops updating and says why.
+    """
 
 
 def build_projection(previous_source=None, shadow_previous=None):
@@ -2376,11 +2472,20 @@ def build_projection(previous_source=None, shadow_previous=None):
     if not portfolio:
         raise MissingPortfolio(str(WS_ROOT / 'portfolio.json'))
 
-    us_pf = portfolio['portfolios']['us_stocks']
-    hk_pf = portfolio['portfolios']['hk_stocks']
+    # The two books, named by the ledger rather than by this file. `us_h`/`hk_h`
+    # keep their names because 40-odd call sites downstream still read them; what
+    # changes here is that nothing hardcodes which bucket they came from.
+    base_leg, quote_leg = leg_pair(portfolio)
+    if not base_leg:
+        raise UnsupportedLegShape(
+            'portfolio.json must declare exactly two books, each with a '
+            'currency; found '
+            + repr([(leg.bucket, leg.currency) for leg in resolve_legs(portfolio)]))
+    us_pf = portfolio['portfolios'][base_leg.bucket]
+    hk_pf = portfolio['portfolios'][quote_leg.bucket]
 
-    us_h = [trim_holding(h, 'USD') for h in us_pf.get('holdings', [])]
-    hk_h = [trim_holding(h, 'HKD') for h in hk_pf.get('holdings', [])]
+    us_h = [trim_holding(h, base_leg.currency) for h in us_pf.get('holdings', [])]
+    hk_h = [trim_holding(h, quote_leg.currency) for h in hk_pf.get('holdings', [])]
 
     us_conc = compute_hhi(us_h)
     hk_conc = compute_hhi(hk_h)
@@ -2864,6 +2969,11 @@ def main(argv=None):
             shadow_previous=load_json(shadow_file) if shadow_file.exists() else None)
     except MissingPortfolio:
         print('FATAL: portfolio.json missing', file=sys.stderr)
+        return 1
+    except ProjectionInputError as e:
+        # Same exit code the buildability gate already reads, but say which input
+        # is wrong — "portfolio.json missing" would be a lie here.
+        print(f'FATAL: {e}', file=sys.stderr)
         return 1
 
     from safe_io import safe_write_text
