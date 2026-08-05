@@ -1211,3 +1211,47 @@ def test_anomaly_order_follows_the_ledger_not_the_brief_context():
         brief_ctx, us_h, hk_h, leg_keys=["hk", "us"])
     assert [a["ticker"] for a in reversed_ledger
             if a["type"] == "high_weight_loss"] == ["09660", "SOXL"]
+
+
+def _leg(bucket, key, currency):
+    return dashboard.Leg(bucket=bucket, key=key, currency=currency)
+
+
+def test_the_equity_series_follows_the_ledger_legs_not_us_and_hk():
+    """#262 slice 3 acceptance for the snapshot chain: `load_snapshots` writes
+    `<leg>_equity` / `<leg>_profit`, and the cards that read them back take the
+    same leg list. A ledger of JPY and EUR books gets its own curves."""
+    legs = [_leg("jp_stocks", "jp", "JPY"), _leg("eu_stocks", "eu", "EUR")]
+    snapshots = [
+        {"date": "2026-08-01", "jp_equity": 100.0, "eu_equity": 200.0,
+         "jp_profit": 10.0, "eu_profit": 20.0},
+        {"date": "2026-08-02", "jp_equity": 110.0, "eu_equity": 180.0,
+         "jp_profit": 20.0, "eu_profit": 0.0},
+    ]
+
+    delta = dashboard.compute_delta(snapshots, legs=legs)
+    assert set(delta) == {"jp", "eu"}
+    assert delta["jp"]["today_pct"] == 10.0
+    assert delta["eu"]["today_pct"] == -10.0
+
+    dd = dashboard.compute_drawdown(snapshots, fx_rate=2.0, legs=legs)
+    assert dd["jp"]["currency"] == "JPY"
+    assert dd["eu"]["currency"] == "EUR"
+    assert dd["combined"]["currency"] == "EUR", (
+        "the combined equity series is denominated in the QUOTE leg's currency")
+    assert dd["combined"]["fx_jpyeur"] == 2.0
+    assert "us" not in dd and "combined_usd" not in dd
+
+
+def test_the_legacy_drawdown_keys_keep_their_quote_leg_first_order():
+    """`max_pct_30d_*` and `current_pct_*` have always been emitted quote-leg
+    first — the reverse of every other block. The payload is serialized unsorted,
+    so tidying that would rewrite the whole card for nothing a reader can see."""
+    legs = [_leg("jp_stocks", "jp", "JPY"), _leg("eu_stocks", "eu", "EUR")]
+
+    keys = list(dashboard.compute_drawdown([], legs=legs))
+
+    assert keys[:4] == [
+        "max_pct_30d_eu", "max_pct_30d_jp", "current_pct_eu", "current_pct_jp",
+    ]
+    assert keys[4:6] == ["jp", "eu"], "the per-leg block stays in ledger order"
