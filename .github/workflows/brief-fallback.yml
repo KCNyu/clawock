@@ -91,6 +91,43 @@ jobs:
           tail -20 "${RUNNER_TEMP:-/tmp}/postflight.log"
           [ "$code" -lt 2 ] || exit "$code"
 
+      - name: Report which cards the recovery restored
+        # #302's detector was "scan master's history for a build whose payload
+        # has a non-empty build_status.previous_payload.preserved". #314 replaced
+        # that history with a force-updated branch holding one generation, so the
+        # scan cannot be moved — only replaced.
+        #
+        # Replaced here, and better than what it replaced: this workflow is the
+        # ONLY producer of that population (the one caller where `--previous`
+        # does anything), so it answers for itself, on the run that did it,
+        # instead of a corpus scan days later. Not a gate — recovering those
+        # cards is this job's purpose; this is the record that it happened.
+        if: steps.check.outputs.skip != 'true'
+        run: |
+          python3 - <<'PY' >> "$GITHUB_STEP_SUMMARY"
+          import json, pathlib
+          payload = pathlib.Path('assets/data/dashboard.json')
+          if not payload.is_file():
+              print('### Recovery\n\nNo payload was built.')
+              raise SystemExit(0)
+          status = json.loads(payload.read_text()).get('build_status', {})
+          previous = status.get('previous_payload', {}) or {}
+          preserved = previous.get('preserved') or []
+          print('### Recovery')
+          print()
+          if previous.get('missing'):
+              print(f"Recovery source **did not resolve**: `{previous.get('source')}`.")
+              print('This build is workspace-only; every card came from this checkout.')
+          elif preserved:
+              print(f'Restored **{len(preserved)}** card(s) from the last published')
+              print('generation, because this checkout has no `memory/.tmp` sidecars:')
+              print()
+              for key in preserved:
+                  print(f'- `{key}`')
+          else:
+              print('Nothing restored — every source was present in this checkout.')
+          PY
+
       - name: Commit + push
         # Reached when postflight exits <2: pass/warn, or an uncaught exception (exit 1).
         # The publish gate distinguishes a legitimate warn from a crash-before-gate;
