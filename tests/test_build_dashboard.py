@@ -1029,7 +1029,7 @@ def test_the_default_build_reads_no_previously_published_file():
     ) == Path("assets/data/dashboard.json"), "a named file must still be honoured"
 
     out = {"anomalies": []}
-    assert dashboard.load_previous_payload(None) is None
+    assert dashboard.load_previous_payload(None) == (None, False)
     assert dashboard.merge_previous_payload(out, None, {"anomalies": False}) == []
     assert out["anomalies"] == []
 
@@ -1295,3 +1295,23 @@ def test_without_an_out_dir_the_environment_redirects_still_hold(monkeypatch, tm
         "the siblings follow the redirected target, not the published directory")
     assert paths["audit"].parent == tmp_path
     assert paths["shadow"].parent == tmp_path
+
+
+def test_a_named_previous_that_is_not_there_is_reported_not_swallowed(tmp_path, capsys):
+    """#314. Both a workspace-only build and a build whose recovery file vanished
+    end up with `preserved: []` — they are the same reading and opposite states.
+
+    The one caller where `--previous` does anything is brief-fallback, whose whole
+    job is recovery. So the day the path stops resolving — which is the day the
+    outputs move off master — recovery stops silently, and the payload still looks
+    healthy. This is what makes that visible.
+    """
+    payload, missing = dashboard.load_previous_payload(tmp_path / "gone.json")
+
+    assert payload is None
+    assert missing is True
+    assert "does not exist" in capsys.readouterr().err
+
+    present = tmp_path / "there.json"
+    present.write_text('{"anomalies": ["kept"]}', encoding="utf-8")
+    assert dashboard.load_previous_payload(present) == ({"anomalies": ["kept"]}, False)
