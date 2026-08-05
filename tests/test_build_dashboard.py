@@ -1318,3 +1318,30 @@ def test_a_named_previous_that_is_not_there_is_reported_not_swallowed(tmp_path, 
     present = tmp_path / "there.json"
     present.write_text('{"anomalies": ["kept"]}', encoding="utf-8")
     assert dashboard.load_previous_payload(present) == ({"anomalies": ["kept"]}, False)
+
+
+def test_the_fresh_checkout_population_is_reported_by_its_only_producer():
+    """#302's detector was "scan master's history for a build whose payload has a
+    non-empty `build_status.previous_payload.preserved`". #314 replaced that
+    history with a force-updated branch holding one generation, so the scan
+    cannot be moved — only replaced.
+
+    The replacement is better than what it replaced, and this pins it: the
+    population has exactly ONE producer — `brief-fallback.yml`, the only caller
+    where `--previous` does anything — so it reports on itself, on the run that
+    did it, instead of a corpus scan days later. The host telemetry
+    (`memory/.tmp/preserve-absent-*.jsonl`) is blind to this population by
+    construction: a runner has no `memory/.tmp`.
+    """
+    workflow = (ROOT / ".github/workflows/brief-fallback.yml").read_text()
+
+    assert "previous_payload" in workflow, (
+        "brief-fallback no longer reports what the recovery restored; the "
+        "fresh-checkout population is unobservable again")
+    assert "GITHUB_STEP_SUMMARY" in workflow
+    # It must run whether or not the build published, and must not be able to
+    # fail the job — this is a record, not a gate. Recovering the cards is this
+    # workflow's purpose, so doing it is not an error condition.
+    report = workflow.split("Report which cards the recovery restored", 1)[1]
+    assert "raise SystemExit(0)" in report.split("Commit + push", 1)[0], (
+        "a missing payload must end the report, not fail the run")
