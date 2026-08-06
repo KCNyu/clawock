@@ -317,10 +317,10 @@ def test_length_ceiling_is_one_number_shared_by_the_live_payloads():
     what belongs here is that the tracked contract — which live payloads are
     checked against — moved with the code, and that the retired numbers can
     never reappear in a live payload."""
-    import _harness_common as common
+    from clawock import validation
 
-    soft = common.REPORT_CHAR_LIMITS['soft']
-    hard = common.REPORT_CHAR_LIMITS['hard']
+    soft = validation.REPORT_CHAR_LIMITS['soft']
+    hard = validation.REPORT_CHAR_LIMITS['hard']
 
     for profile in ('report', 'intraday'):
         required = contract()['payload_profiles'][profile]['required_substrings']

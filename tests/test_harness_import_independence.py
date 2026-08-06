@@ -30,9 +30,14 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 
 # Expressions that denote the checkout root itself. `parents[2]` from a file two
-# directories down is the root; the shim names it. `WS` is deliberately absent:
-# it is the workspace, and a foreign workspace holds market data, not our package.
-CHECKOUT_ROOT_FORMS = ("parents[2]", "_REPO_ROOT")
+# directories down is the root; the shim names it. `_CHECKOUT` is the name #269
+# gave it across the 27 modules that stopped resolving code through the
+# workspace, and it is bound to that same expression everywhere it appears.
+# `WS` is deliberately absent: it is the workspace, and a foreign workspace holds
+# market data, not our package. Naming a form here does not weaken the check —
+# the `"/" in arg` guard below still rejects `_CHECKOUT / 'scripts' / 'data'`,
+# which is a directory below the root and does not make `clawock` importable.
+CHECKOUT_ROOT_FORMS = ("parents[2]", "_REPO_ROOT", "_CHECKOUT")
 
 
 def _inserts_checkout_root(node: ast.Call, source: str) -> bool:
