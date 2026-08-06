@@ -1345,3 +1345,33 @@ def test_the_fresh_checkout_population_is_reported_by_its_only_producer():
     report = workflow.split("Report which cards the recovery restored", 1)[1]
     assert "raise SystemExit(0)" in report.split("Commit + push", 1)[0], (
         "a missing payload must end the report, not fail the run")
+
+
+# --- bear_case ticker resolution (#341) ------------------------------------
+#
+# `validate_insights` is the hallucination guard for the LLM-authored insights
+# sidecar: a bear_case on a name that isn't in the book must never reach the
+# public dashboard. On 2026-08-06 that guard also ate a legitimate paired thesis
+# written as `RKLX+SPCH` — both real holdings — so a third of the day's bear
+# cases vanished with no trace on the page. The guard is about membership, not
+# formatting; these pin both halves of that distinction.
+
+def _bear(ticker):
+    return {"bear_cases": [{"ticker": ticker, "thesis": "levered pair unwinds together"}]}
+
+
+def test_composite_bear_case_survives_when_every_component_is_held():
+    out = dashboard.validate_insights(_bear("RKLX+SPCH"), {"RKLX", "SPCH", "00100"})
+    assert [c["ticker"] for c in out["bear_cases"]] == ["RKLX+SPCH"]
+
+
+def test_composite_bear_case_is_dropped_when_any_component_is_unknown():
+    """The guard must not weaken: one fabricated leg poisons the whole entry."""
+    out = dashboard.validate_insights(_bear("RKLX+NVDA"), {"RKLX", "SPCH"})
+    assert out["bear_cases"] == []
+
+
+def test_single_ticker_bear_case_membership_is_unchanged():
+    known = {"RKLX", "SPCH"}
+    assert dashboard.validate_insights(_bear("RKLX"), known)["bear_cases"][0]["ticker"] == "RKLX"
+    assert dashboard.validate_insights(_bear("NVDA"), known)["bear_cases"] == []

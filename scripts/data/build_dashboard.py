@@ -1127,6 +1127,31 @@ def _clean_str(v, maxlen):
     return s[:maxlen] if s else None
 
 
+# A bear_case may cover two or three holdings at once (paired thesis on e.g. two
+# leveraged names in the same sector), which the agent writes as `RKLX+SPCH`.
+_COMPOSITE_SEP = re.compile(r'[+/&,]')
+_MAX_COMPOSITE_PARTS = 3
+
+
+def _resolve_insight_ticker(raw, known_tickers):
+    """Resolve a bear_case ticker label against live holdings.
+
+    Accepts a composite label (`A+B`) as long as EVERY component is a real
+    holding — the membership check exists to block names that aren't in the book
+    at all, not to block formatting. Returns the normalised `A+B` label, or None
+    if any component is unknown (→ caller drops the entry, guard unchanged).
+    """
+    if not raw:
+        return None
+    parts = [p.strip() for p in _COMPOSITE_SEP.split(raw)]
+    parts = [p for p in parts if p]
+    if not parts or len(parts) > _MAX_COMPOSITE_PARTS:
+        return None
+    if known_tickers and any(p not in known_tickers for p in parts):
+        return None
+    return '+'.join(parts)
+
+
 def validate_insights(data, known_tickers):
     """Schema + sanity gate for the agent-written daily insights sidecar.
 
@@ -1162,15 +1187,18 @@ def validate_insights(data, known_tickers):
     for c in (data.get('bear_cases') or [])[:5]:
         if not isinstance(c, dict):
             continue
-        tk = _clean_str(c.get('ticker'), 12)
+        # Cap allows a composite label (`A+B`); the real guard is the
+        # per-component holdings check in _resolve_insight_ticker.
+        tk = _clean_str(c.get('ticker'), 40)
         thesis = _clean_str(c.get('thesis'), 220)
         if not tk or not thesis:
             continue
-        if known_tickers and tk not in known_tickers:
+        resolved = _resolve_insight_ticker(tk, known_tickers)
+        if not resolved:
             print(f'  warn: insights dropped bear_case for unknown ticker {tk}', file=sys.stderr)
             continue
         out['bear_cases'].append({
-            'ticker': tk,
+            'ticker': resolved,
             'thesis': thesis,
             'falsifier': _clean_str(c.get('falsifier'), 160) or '',
             'watch': _clean_str(c.get('watch'), 120) or '',
