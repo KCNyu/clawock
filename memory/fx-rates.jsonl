@@ -50,3 +50,4 @@
 {"backfilled_from": "dashboard.json history", "day": "2026-08-03", "fallback_used": null, "fetched_at": "2026-08-03T00:01:35.634334+00:00", "pair": "USDHKD", "rate": 7.8432, "source": "Frankfurter"}
 {"backfilled_from": "dashboard.json history", "day": "2026-08-04", "fallback_used": null, "fetched_at": "2026-08-04T00:02:23.665493+00:00", "pair": "USDHKD", "rate": 7.8426, "source": "Frankfurter"}
 {"day": "2026-08-05", "fallback_used": false, "fetched_at": "2026-08-05T14:09:56.133268+00:00", "pair": "USDHKD", "rate": 7.8431, "source": "Frankfurter"}
+{"day": "2026-08-06", "fallback_used": false, "fetched_at": "2026-08-06T00:01:46.429381+00:00", "pair": "USDHKD", "rate": 7.8431, "source": "Frankfurter"}
