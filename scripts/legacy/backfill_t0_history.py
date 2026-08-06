@@ -15,10 +15,15 @@ import sys
 from pathlib import Path
 
 WS = Path(__file__).resolve().parents[2]
+# Code lives in the checkout; only DATA lives in the workspace. `workspace_root`
+# is overridable, so resolving our own modules through WS would read them out of
+# someone else's data directory — or silently pick up whatever happens to be
+# there. Same expression WS is seeded from, kept separate on purpose (#269).
+_CHECKOUT = Path(__file__).resolve().parents[2]
 SNAP_DIR = WS / 'memory' / 'snapshots'
 HIST = WS / 'assets' / 'data' / 't0_setups_history.jsonl'
 
-sys.path.insert(0, str(WS / 'scripts' / 'data'))
+sys.path.insert(0, str(_CHECKOUT / 'scripts' / 'data'))
 import compute_t0_setups as t0  # noqa: E402
 
 SNAP_RE = re.compile(r'^\d{4}-\d{2}-\d{2}\.json$')

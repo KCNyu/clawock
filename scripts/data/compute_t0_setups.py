@@ -27,6 +27,11 @@ from pathlib import Path
 
 from workspace import workspace_root  # noqa: E402
 
+# Code lives in the checkout; only DATA lives in the workspace. `workspace_root`
+# is overridable, so resolving our own modules through WS would read them out of
+# someone else's data directory — or silently pick up whatever happens to be
+# there. Same expression WS is seeded from, kept separate on purpose (#269).
+_CHECKOUT = Path(__file__).resolve().parents[2]
 WS = workspace_root(Path(__file__).resolve().parents[2])
 PORTFOLIO = WS / 'portfolio.json'
 QUANT = WS / 'assets' / 'data' / 'quant_signals.json'
@@ -34,7 +39,7 @@ OUT = WS / 'assets' / 'data' / 't0_setups.json'
 HIST = WS / 'assets' / 'data' / 't0_setups_history.jsonl'
 HIST_MAX_LINES = 4000   # 盘中每 30min 一行，封顶约 1 年留痕
 
-sys.path.insert(0, str(WS / 'scripts' / 'data'))
+sys.path.insert(0, str(_CHECKOUT / 'scripts' / 'data'))
 from instrument_registry import INSTRUMENTS  # noqa: E402
 
 try:

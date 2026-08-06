@@ -38,8 +38,13 @@ from clawock.validation import (  # noqa: E402,F401
     validate_forbidden_phrases,
 )
 
+# Code lives in the checkout; only DATA lives in the workspace. `workspace_root`
+# is overridable, so resolving our own modules through WS would read them out of
+# someone else's data directory — or silently pick up whatever happens to be
+# there. Same expression WS is seeded from, kept separate on purpose (#269).
+_CHECKOUT = Path(__file__).resolve().parents[2]
 WS = workspace_root(Path(__file__).resolve().parents[2])
-sys.path.insert(0, str(WS / 'scripts' / 'data'))
+sys.path.insert(0, str(_CHECKOUT / 'scripts' / 'data'))
 
 # Single-publisher mutex for all dashboard build outputs (Option 1, 2026-07-04).
 # Shared by the host harness rebuild and publish_dashboard.sh crontab so the two
@@ -395,6 +400,6 @@ def safe_write_text(path, text):
 
     Avoids importing scripts/data/safe_io.py path-juggling in each postflight.
     """
-    sys.path.insert(0, str(WS / 'scripts' / 'data'))
+    sys.path.insert(0, str(_CHECKOUT / 'scripts' / 'data'))
     from safe_io import safe_write_text as _swt  # type: ignore
     _swt(str(path), text)
