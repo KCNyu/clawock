@@ -27,8 +27,6 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2] / 'scripts' / 'data')
 from workspace import workspace_root  # noqa: E402
 
 WS = workspace_root(Path(__file__).resolve().parents[2])
-OC = Path('/root/.openclaw')
-SESSIONS_DIR = OC / 'agents' / 'main' / 'sessions'
 LOG = WS / 'logs' / 'watchdog.jsonl'
 HKT = timezone(timedelta(hours=8))
 # The binary path, the cron CLI call and the cron-state fallback chain moved
@@ -47,7 +45,18 @@ HKT = timezone(timedelta(hours=8))
 # first, and the crontab entry only logs a traceback.
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 from clawock.providers import openclaw as _openclaw  # noqa: E402
-from clawock.providers.openclaw import OPENCLAW_BIN, cron_cli_json as _adapter_cron_json  # noqa: E402
+from clawock.providers.openclaw import (  # noqa: E402
+    OPENCLAW_BIN, OPENCLAW_HOME, cron_cli_json as _adapter_cron_json,
+)
+
+# Where the runtime keeps its session transcripts. The location is the runtime's,
+# so the adapter owns it (#330 step 1): this module used to hard-code
+# `Path('/root/.openclaw')`, which made it one of the ten sites that know which
+# runtime they are on. Deriving it from the adapter's constant is the fix the
+# ratchet is asking for — not a relocated string, because `clawock/providers/` is
+# the one place where knowing is correct, and it is already this module's source
+# for OPENCLAW_BIN and the cron chain.
+SESSIONS_DIR = OPENCLAW_HOME / 'agents' / 'main' / 'sessions'
 
 
 def log(event):
