@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-05T22:37:31.217767+00:00",
+  "generated_at": "2026-08-06T15:01:54.928070+00:00",
   "lookback_hours": 48,
   "sources": {
     "trump": "trumpstruth.org/feed (primary)",
@@ -13,12 +13,60 @@
   },
   "llm_filtered": true,
   "counts": {
-    "total": 13,
-    "held_hits": 8,
-    "new_ideas": 0,
-    "sector_hits": 2
+    "total": 12,
+    "held_hits": 0,
+    "new_ideas": 2,
+    "sector_hits": 5
   },
   "items": [
+    {
+      "author": "Musk",
+      "text": "Elon Musk's Tesla Suffered Its Worst Week Since 2022, Wiping Out $130 Billion of His Fortune. Is the Stock Still a Buy?",
+      "url": "",
+      "published": "Thu, 06 Aug 2026 11:57:28 GMT",
+      "origin": "gnews-rss",
+      "source": "The Motley Fool",
+      "tickers": [
+        "TSLA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "TSLA"
+      ],
+      "sectors": [
+        "电动车"
+      ],
+      "sector_holdings": [],
+      "stance": "attack",
+      "relevance": 72,
+      "summary_cn": "特斯拉经历2022年以来最差单周，Musk财富蒸发1300亿美元，股价承压。"
+    },
+    {
+      "author": "Musk",
+      "text": "Musk Says These Tesla Products Will 'Dramatically' Increase Starlink Demand",
+      "url": "",
+      "published": "Wed, 05 Aug 2026 20:01:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Investor's Business Daily",
+      "tickers": [
+        "TSLA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "TSLA"
+      ],
+      "sectors": [
+        "电动车",
+        "卫星互联网"
+      ],
+      "sector_holdings": [
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "endorse",
+      "relevance": 65,
+      "summary_cn": "Musk称多款特斯拉产品将'显著'拉抬Starlink需求，特斯拉与Starlink协同叙事利好。"
+    },
     {
       "author": "Musk",
       "text": "SpaceX Revenue Could Reach $1 Trillion, Elon Musk Says",
@@ -26,297 +74,250 @@
       "published": "Wed, 05 Aug 2026 00:12:00 GMT",
       "origin": "gnews-rss",
       "source": "WSJ",
-      "tickers": [
-        "SPCX",
-        "SPCH"
-      ],
-      "held": [
-        "SPCH",
-        "SPCX"
-      ],
+      "tickers": [],
+      "held": [],
       "new_ideas": [],
       "sectors": [
         "航天",
-        "AI"
+        "卫星互联网"
       ],
-      "sector_holdings": [],
-      "stance": "endorsed",
-      "relevance": 85,
-      "summary_cn": "Musk放言SpaceX营收可达1万亿美元，极度看多，利好kcn持有的SpaceX多头仓位。"
-    },
-    {
-      "author": "Musk",
-      "text": "SpaceX And Tesla Earnings Have A Similar Theme: Capex Spending",
-      "url": "",
-      "published": "Wed, 05 Aug 2026 20:02:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Investor's Business Daily",
-      "tickers": [
-        "SPCX",
-        "SPCH"
-      ],
-      "held": [
+      "sector_holdings": [
         "SPCH",
         "SPCX"
       ],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "AI基础设施",
-        "资本开支"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 82,
-      "summary_cn": "Musk旗下SpaceX与Tesla共同主题：大额capex，AI/航天资本开支周期延续。"
+      "stance": "endorse",
+      "relevance": 72,
+      "summary_cn": "Musk宣称SpaceX收入有望达到1万亿美元，对SpaceX长期前景给出极强多头信号。"
     },
     {
       "author": "Musk",
-      "text": "Elon Musk's Tesla and SpaceX Have Shed $1.19 Trillion in Value Since June. Is This a Buying Opportunity?",
+      "text": "SpaceX Earnings: Here’s How Wall Street Reacted As Shares Fall 13%",
       "url": "",
-      "published": "Wed, 05 Aug 2026 14:40:00 GMT",
+      "published": "Wed, 05 Aug 2026 18:51:00 GMT",
       "origin": "gnews-rss",
-      "source": "Yahoo Finance",
-      "tickers": [
-        "SPCX",
-        "SPCH"
-      ],
-      "held": [
-        "SPCH",
-        "SPCX"
-      ],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "电动车",
-        "AI"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 82,
-      "summary_cn": "Musk旗下Tesla/SpaceX自6月以来市值蒸发1.19万亿美元，文章问是否抄底机会。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk’s SpaceX unnerves investors with lavish AI spending plans",
-      "url": "",
-      "published": "Wed, 05 Aug 2026 16:39:39 GMT",
-      "origin": "gnews-rss",
-      "source": "ft.com",
-      "tickers": [
-        "SPCX",
-        "SPCH"
-      ],
-      "held": [
-        "SPCH",
-        "SPCX"
-      ],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "AI",
-        "资本开支"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 80,
-      "summary_cn": "SpaceX AI支出计划激进，引发投资者不安，kcn双倍做多SpaceX敞口受关注。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk: SpaceX posts loss in first report as a public company but less than expected",
-      "url": "",
-      "published": "Wed, 05 Aug 2026 10:41:15 GMT",
-      "origin": "gnews-rss",
-      "source": "ABC7 Los Angeles",
-      "tickers": [
-        "SPCX",
-        "SPCH"
-      ],
-      "held": [
-        "SPCH",
-        "SPCX"
-      ],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "AI"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 78,
-      "summary_cn": "SpaceX首次以上市公司身份披露财报，亏损好于预期，kcn直接持有SpaceX多头。"
-    },
-    {
-      "author": "Musk",
-      "text": "Investors are having doubts about Elon Musk’s grandiose ambitions",
-      "url": "",
-      "published": "Wed, 05 Aug 2026 19:50:23 GMT",
-      "origin": "gnews-rss",
-      "source": "The Economist",
-      "tickers": [
-        "SPCX",
-        "SPCH"
-      ],
-      "held": [
-        "SPCH",
-        "SPCX"
-      ],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "AI"
-      ],
-      "sector_holdings": [],
-      "stance": "attack",
-      "relevance": 75,
-      "summary_cn": "投资者对Musk宏大雄心产生疑虑，SpaceX/Tesla叙事面临信心考验。"
-    },
-    {
-      "author": "Musk",
-      "text": "Piece of SpaceX rocket the size of a school bus crashes into the moon",
-      "url": "",
-      "published": "Wed, 05 Aug 2026 08:32:07 GMT",
-      "origin": "gnews-rss",
-      "source": "Al Jazeera",
-      "tickers": [
-        "SPCX",
-        "SPCH"
-      ],
-      "held": [
-        "SPCH",
-        "SPCX"
-      ],
+      "source": "Forbes",
+      "tickers": [],
+      "held": [],
       "new_ideas": [],
       "sectors": [
         "航天"
       ],
-      "sector_holdings": [],
-      "stance": "attack",
+      "sector_holdings": [
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "neutral",
+      "relevance": 68,
+      "summary_cn": "SpaceX首次财报电话会后股价下跌13%，市场反应偏负面。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk reveals SpaceX plans to build satellite factories on the moon",
+      "url": "",
+      "published": "Wed, 05 Aug 2026 18:01:07 GMT",
+      "origin": "gnews-rss",
+      "source": "Scientific American",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "卫星制造"
+      ],
+      "sector_holdings": [
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "endorse",
       "relevance": 62,
-      "summary_cn": "SpaceX火箭残骸撞击月球，负面新闻但基本面影响有限。"
+      "summary_cn": "Musk披露SpaceX计划在月球建设卫星工厂，长期愿景利好SpaceX叙事。"
     },
     {
       "author": "Musk",
-      "text": "Wayward SpaceX rocket expected to crash into moon",
+      "text": "Is Elon Musk's master plan with SpaceX to have rockets replace planes for global cargo delivery?",
       "url": "",
-      "published": "Wed, 05 Aug 2026 22:10:55 GMT",
+      "published": "Wed, 05 Aug 2026 21:50:00 GMT",
       "origin": "gnews-rss",
-      "source": "The Washington Post",
-      "tickers": [
-        "SPCX",
-        "SPCH"
+      "source": "Fortune",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "物流运输"
       ],
-      "held": [
+      "sector_holdings": [
         "SPCH",
         "SPCX"
       ],
+      "stance": "endorse",
+      "relevance": 58,
+      "summary_cn": "市场猜测Musk的SpaceX终极计划是用火箭替代飞机进行全球货运，概念性长期看好信号。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk repeatedly one-upped his execs on SpaceX’s first earnings call",
+      "url": "",
+      "published": "Tue, 04 Aug 2026 22:30:58 GMT",
+      "origin": "gnews-rss",
+      "source": "techcrunch.com",
+      "tickers": [],
+      "held": [],
       "new_ideas": [],
       "sectors": [
         "航天"
       ],
-      "sector_holdings": [],
-      "stance": "attack",
-      "relevance": 58,
-      "summary_cn": "SpaceX火箭失控将撞月，舆论负面。"
-    },
-    {
-      "author": "Trump",
-      "text": "For far too long, Radical Climate Activists attempted to hold our Great Country hostage by drastically and unreasonably expanding the intended scope of the Endangered Species Act. This was complete and total regulatory overreach by unelected bureaucrats! They treated Americans very unfairly by stifling the production of important resources like Oil, Natural Gas, and Timber, and blocking the construction of family homes and critical Infrastructure. Even our Military couldn’t train on land that was deemed “off limits” to protect a little rodent! Now my Administration has returned the Endangered ",
-      "url": "https://trumpstruth.org/statuses/40554",
-      "published": "2026-08-04T22:52:51+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "能源/原油",
-        "天然气",
-        "监管/环保"
-      ],
       "sector_holdings": [
-        "02208"
-      ],
-      "stance": "endorsed",
-      "relevance": 55,
-      "summary_cn": "Trump政府削弱《濒危物种法》监管，扩大油气/木材/基建开发，能源板块利好。"
-    },
-    {
-      "author": "Trump",
-      "text": "Trump: ‘Deal Is Imminent’ as Iran Talks Restart Monday on Denuclearization, Hormuz: https://www.breitbart.com/politics/2026/08/02/trump-deal-imminent-iran-talks-restart-monday-hormuz-denuclearization/",
-      "url": "https://trumpstruth.org/statuses/40527",
-      "published": "2026-08-04T14:38:19+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "能源/原油",
-        "地缘政治"
-      ],
-      "sector_holdings": [
-        "02208"
+        "SPCH",
+        "SPCX"
       ],
       "stance": "neutral",
       "relevance": 55,
-      "summary_cn": "Trump称伊朗核谈判周一重启、霍尔木兹协议即将达成，能源板块潜在催化。"
+      "summary_cn": "Musk在SpaceX首次财报会上频繁压过自家高管发言，市场关注公司治理信号。"
     },
     {
       "author": "Trump",
-      "text": "American Manufacturing Expands At Fastest Pace Since 2022: https://www.breitbart.com/economy/2026/08/03/american-manufacturing-expands-at-fastest-pace-since-2022/",
-      "url": "https://trumpstruth.org/statuses/40530",
-      "published": "2026-08-04T14:37:43+00:00",
+      "text": "The U.S. has massive amounts of “munitions,” especially of certain types. Additionally, large amounts are being manufactured and shipped to the U.S. as needed. Defense companies are building the largest number of plants and factories in our country’s history. The “leakers” of these treasonous statements are being hunted down. Long term jail sentences will be sought! President DJT",
+      "url": "https://trumpstruth.org/statuses/40598",
+      "published": "2026-08-06T04:34:50+00:00",
       "origin": "truthsocial",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "制造业/工业",
-        "宏观经济"
+        "国防军工"
       ],
       "sector_holdings": [],
-      "stance": "endorsed",
-      "relevance": 55,
-      "summary_cn": "美国制造业PMI创2022年以来最快增速，宏观顺风利好工业板块。"
+      "stance": "endorse",
+      "relevance": 62,
+      "summary_cn": "特朗普强调美国弹药库存充足、国防企业正在大规模建设工厂，利好国防军工板块。"
     },
     {
       "author": "Trump",
-      "text": "UAW: 'Strategic' Tariffs Prompt Industry Hiring Surge: https://www.newsmax.com/newsfront/united-auto-workers-tariffs-hiring-surge/2026/03/11/id/1249195/",
-      "url": "https://trumpstruth.org/statuses/40535",
-      "published": "2026-08-04T14:36:16+00:00",
+      "text": "Manufacturing is BOOMING! Factory activity just hit its fastest pace in more than FOUR YEARS, far exceeding expectations. New orders have expanded for SEVEN straight months. American Manufacturing is BACK!   The Stock Market is at an ALL TIME HIGH, and setting Record after Record because Investors know America is WINNING!   American Exports are on FIRE. U.S. Goods Exports have now topped 200 BILLION DOLLARS for the fifth consecutive month, and we are on pace for nearly 2.5 TRILLION DOLLARS in Goods Exports this year — Numbers nobody thought possible just two years ago.   The Fake News and the ",
+      "url": "https://trumpstruth.org/statuses/40543",
+      "published": "2026-08-04T20:38:42+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "宏观经济",
+        "制造业"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 60,
+      "summary_cn": "特朗普宣称美国制造业四年来最强、股市创历史新高、出口创纪录，整体看好美国经济与股市。"
+    },
+    {
+      "author": "Trump",
+      "text": "It was my Honor to write the Foreword for Brian Pannebecker’s incredible new Book, “Blue Collar Conservative: From Reagan to Trump.” As the head of Autoworkers for Trump, Brian has been with us from the very beginning, and understands, like few others, the Wisdom, Courage, and TARIFFS required to, MAKE AMERICA GREAT AGAIN. It is Great Patriots like Brian who helped us secure Historic Victories in three Presidential Campaigns, and are working tirelessly to save American Industry, and champion MADE IN THE U.S.A. “Forgotten” America is forgotten no longer — Get your copy today: https://www.amazon",
+      "url": "https://trumpstruth.org/statuses/40552",
+      "published": "2026-08-04T22:34:28+00:00",
       "origin": "truthsocial",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
         "关税",
-        "汽车",
-        "制造业/工业"
+        "汽车"
       ],
       "sector_holdings": [],
-      "stance": "endorsed",
+      "stance": "endorse",
       "relevance": 55,
-      "summary_cn": "UAW称'战略性'关税推动汽车业招聘激增，Trump背书关税政策利好本土制造。"
+      "summary_cn": "特朗普为蓝领保守派书籍作序，强调关税与发展美国制造业，重申关税保护立场。"
     },
     {
       "author": "Trump",
-      "text": "US steel production exceeds Japan's for first time in 26 years: https://asia.nikkei.com/business/materials/us-steel-production-exceeds-japan-s-for-first-time-in-26-years",
-      "url": "https://trumpstruth.org/statuses/40533",
-      "published": "2026-08-04T14:36:49+00:00",
+      "text": "My REAL Polling Numbers, not those made up by the Fake News Media, are the best they have ever been, and why wouldn’t they be with the biggest tax cuts and employment numbers EVER, the biggest outside Investment in America in World history, a totally secure Border, a giant Victory in Venezuela, the Denuclearization of Iran, unparalleled respect and success throughout the World, and much more? Don’t believe the Radical Left’s Fake Poll numbers. They are Crooked and Corrupt, just like the Country Destroying Dumocrats are Crooked and Corrupt. VOTE REPUBLICAN FOR GREATNESS IN AMERICA! Thank you fo",
+      "url": "https://trumpstruth.org/statuses/40544",
+      "published": "2026-08-04T21:39:05+00:00",
       "origin": "truthsocial",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "钢铁/材料"
+        "宏观经济",
+        "能源",
+        "税收"
       ],
       "sector_holdings": [],
-      "stance": "endorsed",
+      "stance": "endorse",
+      "relevance": 55,
+      "summary_cn": "特朗普自称支持率历史最高，宣扬史上最大减税、就业与外资流入，为中期选举造势。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk’s DOGE made big errors in claims of government savings, GAO finds",
+      "url": "",
+      "published": "Thu, 06 Aug 2026 14:25:53 GMT",
+      "origin": "gnews-rss",
+      "source": "The Washington Post",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "政府效率(DOGE)"
+      ],
+      "sector_holdings": [],
+      "stance": "attack",
       "relevance": 50,
-      "summary_cn": "美国钢产量26年来首次超过日本，关税保护下本土钢铁业走强。"
+      "summary_cn": "美GAO报告指出Musk的政府效率部(DOGE)在政府节省金额上存在重大计算错误，间接施压Musk相关叙事。"
     }
   ],
-  "held_hits": [
+  "held_hits": [],
+  "new_ideas": [
+    {
+      "author": "Musk",
+      "text": "Elon Musk's Tesla Suffered Its Worst Week Since 2022, Wiping Out $130 Billion of His Fortune. Is the Stock Still a Buy?",
+      "url": "",
+      "published": "Thu, 06 Aug 2026 11:57:28 GMT",
+      "origin": "gnews-rss",
+      "source": "The Motley Fool",
+      "tickers": [
+        "TSLA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "TSLA"
+      ],
+      "sectors": [
+        "电动车"
+      ],
+      "sector_holdings": [],
+      "stance": "attack",
+      "relevance": 72,
+      "summary_cn": "特斯拉经历2022年以来最差单周，Musk财富蒸发1300亿美元，股价承压。"
+    },
+    {
+      "author": "Musk",
+      "text": "Musk Says These Tesla Products Will 'Dramatically' Increase Starlink Demand",
+      "url": "",
+      "published": "Wed, 05 Aug 2026 20:01:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Investor's Business Daily",
+      "tickers": [
+        "TSLA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "TSLA"
+      ],
+      "sectors": [
+        "电动车",
+        "卫星互联网"
+      ],
+      "sector_holdings": [
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "endorse",
+      "relevance": 65,
+      "summary_cn": "Musk称多款特斯拉产品将'显著'拉抬Starlink需求，特斯拉与Starlink协同叙事利好。"
+    }
+  ],
+  "sector_hits": [
     {
       "author": "Musk",
       "text": "SpaceX Revenue Could Reach $1 Trillion, Elon Musk Says",
@@ -324,243 +325,106 @@
       "published": "Wed, 05 Aug 2026 00:12:00 GMT",
       "origin": "gnews-rss",
       "source": "WSJ",
-      "tickers": [
-        "SPCX",
-        "SPCH"
-      ],
-      "held": [
-        "SPCH",
-        "SPCX"
-      ],
+      "tickers": [],
+      "held": [],
       "new_ideas": [],
       "sectors": [
         "航天",
-        "AI"
+        "卫星互联网"
       ],
-      "sector_holdings": [],
-      "stance": "endorsed",
-      "relevance": 85,
-      "summary_cn": "Musk放言SpaceX营收可达1万亿美元，极度看多，利好kcn持有的SpaceX多头仓位。"
-    },
-    {
-      "author": "Musk",
-      "text": "SpaceX And Tesla Earnings Have A Similar Theme: Capex Spending",
-      "url": "",
-      "published": "Wed, 05 Aug 2026 20:02:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Investor's Business Daily",
-      "tickers": [
-        "SPCX",
-        "SPCH"
-      ],
-      "held": [
+      "sector_holdings": [
         "SPCH",
         "SPCX"
       ],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "AI基础设施",
-        "资本开支"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 82,
-      "summary_cn": "Musk旗下SpaceX与Tesla共同主题：大额capex，AI/航天资本开支周期延续。"
+      "stance": "endorse",
+      "relevance": 72,
+      "summary_cn": "Musk宣称SpaceX收入有望达到1万亿美元，对SpaceX长期前景给出极强多头信号。"
     },
     {
       "author": "Musk",
-      "text": "Elon Musk's Tesla and SpaceX Have Shed $1.19 Trillion in Value Since June. Is This a Buying Opportunity?",
+      "text": "SpaceX Earnings: Here’s How Wall Street Reacted As Shares Fall 13%",
       "url": "",
-      "published": "Wed, 05 Aug 2026 14:40:00 GMT",
+      "published": "Wed, 05 Aug 2026 18:51:00 GMT",
       "origin": "gnews-rss",
-      "source": "Yahoo Finance",
-      "tickers": [
-        "SPCX",
-        "SPCH"
-      ],
-      "held": [
-        "SPCH",
-        "SPCX"
-      ],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "电动车",
-        "AI"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 82,
-      "summary_cn": "Musk旗下Tesla/SpaceX自6月以来市值蒸发1.19万亿美元，文章问是否抄底机会。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk’s SpaceX unnerves investors with lavish AI spending plans",
-      "url": "",
-      "published": "Wed, 05 Aug 2026 16:39:39 GMT",
-      "origin": "gnews-rss",
-      "source": "ft.com",
-      "tickers": [
-        "SPCX",
-        "SPCH"
-      ],
-      "held": [
-        "SPCH",
-        "SPCX"
-      ],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "AI",
-        "资本开支"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 80,
-      "summary_cn": "SpaceX AI支出计划激进，引发投资者不安，kcn双倍做多SpaceX敞口受关注。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk: SpaceX posts loss in first report as a public company but less than expected",
-      "url": "",
-      "published": "Wed, 05 Aug 2026 10:41:15 GMT",
-      "origin": "gnews-rss",
-      "source": "ABC7 Los Angeles",
-      "tickers": [
-        "SPCX",
-        "SPCH"
-      ],
-      "held": [
-        "SPCH",
-        "SPCX"
-      ],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "AI"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 78,
-      "summary_cn": "SpaceX首次以上市公司身份披露财报，亏损好于预期，kcn直接持有SpaceX多头。"
-    },
-    {
-      "author": "Musk",
-      "text": "Investors are having doubts about Elon Musk’s grandiose ambitions",
-      "url": "",
-      "published": "Wed, 05 Aug 2026 19:50:23 GMT",
-      "origin": "gnews-rss",
-      "source": "The Economist",
-      "tickers": [
-        "SPCX",
-        "SPCH"
-      ],
-      "held": [
-        "SPCH",
-        "SPCX"
-      ],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "AI"
-      ],
-      "sector_holdings": [],
-      "stance": "attack",
-      "relevance": 75,
-      "summary_cn": "投资者对Musk宏大雄心产生疑虑，SpaceX/Tesla叙事面临信心考验。"
-    },
-    {
-      "author": "Musk",
-      "text": "Piece of SpaceX rocket the size of a school bus crashes into the moon",
-      "url": "",
-      "published": "Wed, 05 Aug 2026 08:32:07 GMT",
-      "origin": "gnews-rss",
-      "source": "Al Jazeera",
-      "tickers": [
-        "SPCX",
-        "SPCH"
-      ],
-      "held": [
-        "SPCH",
-        "SPCX"
-      ],
+      "source": "Forbes",
+      "tickers": [],
+      "held": [],
       "new_ideas": [],
       "sectors": [
         "航天"
       ],
-      "sector_holdings": [],
-      "stance": "attack",
+      "sector_holdings": [
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "neutral",
+      "relevance": 68,
+      "summary_cn": "SpaceX首次财报电话会后股价下跌13%，市场反应偏负面。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk reveals SpaceX plans to build satellite factories on the moon",
+      "url": "",
+      "published": "Wed, 05 Aug 2026 18:01:07 GMT",
+      "origin": "gnews-rss",
+      "source": "Scientific American",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "卫星制造"
+      ],
+      "sector_holdings": [
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "endorse",
       "relevance": 62,
-      "summary_cn": "SpaceX火箭残骸撞击月球，负面新闻但基本面影响有限。"
+      "summary_cn": "Musk披露SpaceX计划在月球建设卫星工厂，长期愿景利好SpaceX叙事。"
     },
     {
       "author": "Musk",
-      "text": "Wayward SpaceX rocket expected to crash into moon",
+      "text": "Is Elon Musk's master plan with SpaceX to have rockets replace planes for global cargo delivery?",
       "url": "",
-      "published": "Wed, 05 Aug 2026 22:10:55 GMT",
+      "published": "Wed, 05 Aug 2026 21:50:00 GMT",
       "origin": "gnews-rss",
-      "source": "The Washington Post",
-      "tickers": [
-        "SPCX",
-        "SPCH"
+      "source": "Fortune",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "物流运输"
       ],
-      "held": [
+      "sector_holdings": [
         "SPCH",
         "SPCX"
       ],
+      "stance": "endorse",
+      "relevance": 58,
+      "summary_cn": "市场猜测Musk的SpaceX终极计划是用火箭替代飞机进行全球货运，概念性长期看好信号。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk repeatedly one-upped his execs on SpaceX’s first earnings call",
+      "url": "",
+      "published": "Tue, 04 Aug 2026 22:30:58 GMT",
+      "origin": "gnews-rss",
+      "source": "techcrunch.com",
+      "tickers": [],
+      "held": [],
       "new_ideas": [],
       "sectors": [
         "航天"
       ],
-      "sector_holdings": [],
-      "stance": "attack",
-      "relevance": 58,
-      "summary_cn": "SpaceX火箭失控将撞月，舆论负面。"
-    }
-  ],
-  "new_ideas": [],
-  "sector_hits": [
-    {
-      "author": "Trump",
-      "text": "For far too long, Radical Climate Activists attempted to hold our Great Country hostage by drastically and unreasonably expanding the intended scope of the Endangered Species Act. This was complete and total regulatory overreach by unelected bureaucrats! They treated Americans very unfairly by stifling the production of important resources like Oil, Natural Gas, and Timber, and blocking the construction of family homes and critical Infrastructure. Even our Military couldn’t train on land that was deemed “off limits” to protect a little rodent! Now my Administration has returned the Endangered ",
-      "url": "https://trumpstruth.org/statuses/40554",
-      "published": "2026-08-04T22:52:51+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "能源/原油",
-        "天然气",
-        "监管/环保"
-      ],
       "sector_holdings": [
-        "02208"
-      ],
-      "stance": "endorsed",
-      "relevance": 55,
-      "summary_cn": "Trump政府削弱《濒危物种法》监管，扩大油气/木材/基建开发，能源板块利好。"
-    },
-    {
-      "author": "Trump",
-      "text": "Trump: ‘Deal Is Imminent’ as Iran Talks Restart Monday on Denuclearization, Hormuz: https://www.breitbart.com/politics/2026/08/02/trump-deal-imminent-iran-talks-restart-monday-hormuz-denuclearization/",
-      "url": "https://trumpstruth.org/statuses/40527",
-      "published": "2026-08-04T14:38:19+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "能源/原油",
-        "地缘政治"
-      ],
-      "sector_holdings": [
-        "02208"
+        "SPCH",
+        "SPCX"
       ],
       "stance": "neutral",
       "relevance": 55,
-      "summary_cn": "Trump称伊朗核谈判周一重启、霍尔木兹协议即将达成，能源板块潜在催化。"
+      "summary_cn": "Musk在SpaceX首次财报会上频繁压过自家高管发言，市场关注公司治理信号。"
     }
   ]
 }
