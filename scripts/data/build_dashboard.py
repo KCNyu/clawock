@@ -32,7 +32,11 @@ import json_repair
 # rows in the equity curve before this filter was added).
 SNAPSHOT_FNAME_RE = re.compile(r'^\d{4}-\d{2}-\d{2}\.json$')
 
-from workspace import workspace_root  # noqa: E402
+# The checkout root, so `clawock` resolves from the tree this file ships
+# in. Reached through the scripts/data/workspace shim until #267 step 3,
+# whose only remaining job was inserting this path as a side effect.
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+from clawock.workspace import workspace_root  # noqa: E402
 
 WS_ROOT = workspace_root(Path(__file__).resolve().parent.parent.parent)
 OUT_DIR = WS_ROOT / 'assets' / 'data'

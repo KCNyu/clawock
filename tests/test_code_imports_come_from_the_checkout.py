@@ -65,9 +65,10 @@ def test_the_two_roots_actually_diverge_under_the_override(tmp_path):
     env = dict(os.environ, CLAWOCK_WORKSPACE=str(foreign))
     probe = subprocess.run(
         [sys.executable, "-c",
-         f"import sys; sys.path.insert(0, {str(ROOT / 'scripts' / 'data')!r})\n"
+         f"import sys; sys.path.insert(0, {str(ROOT)!r})\n"
          "from pathlib import Path\n"
-         "from workspace import workspace_root\n"
+         # The package, not the scripts/data shim that used to re-export it (#267).
+         "from clawock.workspace import workspace_root\n"
          "print(workspace_root(Path.cwd()))\n"],
         capture_output=True, text=True, timeout=60, env=env, cwd=str(ROOT),
     )
@@ -82,3 +83,34 @@ def test_the_two_roots_actually_diverge_under_the_override(tmp_path):
     assert ran.returncode == 0, (
         "a script could not even start against a code-less workspace:\n"
         f"{ran.stdout}\n{ran.stderr}")
+
+
+def test_no_compatibility_shim_re_exports_the_package():
+    """The extraction is finished, not paused (#267).
+
+    Each package extraction kept a shim so ~50 importers did not have to change
+    in the same PR. That was the right call — the alternative was one PR touching
+    the watchdogs, system_check and the publish path at once — but a shim that
+    outlives its migration is indistinguishable from one that was forgotten, and
+    `scripts/data/workspace.py` also inserted the checkout root as a side effect
+    that other modules silently relied on.
+
+    Asserted rather than assumed, because the cheapest way to "fix" a future
+    import error is to re-add a file named `workspace.py` next to its callers and
+    have everything work again — quietly restoring the indirection and the side
+    effect together.
+    """
+    shim = ROOT / "scripts" / "data" / "workspace.py"
+    assert not shim.exists(), (
+        "scripts/data/workspace.py is back. It re-exported clawock.workspace and "
+        "inserted the checkout root as a side effect; both are now explicit at "
+        "each call site, and reviving it would hide the second one again.")
+
+    offenders = []
+    for path in sorted(ROOT.glob("scripts/**/*.py")):
+        for lineno, line in enumerate(path.read_text().splitlines(), 1):
+            stripped = line.strip()
+            if stripped.startswith(("from workspace import", "import workspace")):
+                offenders.append(f"{path.relative_to(ROOT).as_posix()}:{lineno}")
+    assert not offenders, (
+        f"these import the retired workspace shim rather than the package: {offenders}")

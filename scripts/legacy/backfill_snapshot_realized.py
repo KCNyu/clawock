@@ -27,7 +27,11 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'data'))
 from safe_io import safe_write_json
 from snapshot_realized import realized_as_of, snapshot_shares
-from workspace import workspace_root
+# The checkout root, so `clawock` resolves from the tree this file ships
+# in. Reached through the scripts/data/workspace shim until #267 step 3,
+# whose only remaining job was inserting this path as a side effect.
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+from clawock.workspace import workspace_root  # noqa: E402
 
 # The workspace this file sits in, not the operator's. As an absolute live path
 # it made `--portfolio` default to the real ledger *and* pointed SNAP_DIR at the

@@ -17,7 +17,11 @@ from pathlib import Path
 # parents[2] = scripts/harness/<this> → workspace root. Identical to the old
 # hardcoded /root path locally, but correct on a runner too. (2026-05-30)
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / 'scripts' / 'data'))
-from workspace import workspace_root  # noqa: E402
+# The checkout root, so `clawock` resolves from the tree this file ships
+# in. Reached through the scripts/data/workspace shim until #267 step 3,
+# whose only remaining job was inserting this path as a side effect.
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+from clawock.workspace import workspace_root  # noqa: E402
 
 # The text/numeric validation primitives moved into the installed package so the
 # report core can run without a repository checkout. Re-exported here so all ten

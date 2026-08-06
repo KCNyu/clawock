@@ -34,7 +34,11 @@ from pathlib import Path
 # brief-fallback.yml (checkout dir). parents[2] = workspace root in both. See
 # brief_preflight.py for the bug this avoids (hardcoded /root broke the runner).
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / 'scripts' / 'data'))
-from workspace import workspace_root  # noqa: E402
+# The checkout root, so `clawock` resolves from the tree this file ships
+# in. Reached through the scripts/data/workspace shim until #267 step 3,
+# whose only remaining job was inserting this path as a side effect.
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+from clawock.workspace import workspace_root  # noqa: E402
 
 # Code lives in the checkout; only DATA lives in the workspace. `workspace_root`
 # is overridable, so resolving our own modules through WS would read them out of

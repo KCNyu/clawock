@@ -14,7 +14,11 @@ from email.utils import parsedate_to_datetime
 from pathlib import Path
 
 
-from workspace import workspace_root  # noqa: E402
+# The checkout root, so `clawock` resolves from the tree this file ships
+# in. Reached through the scripts/data/workspace shim until #267 step 3,
+# whose only remaining job was inserting this path as a side effect.
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+from clawock.workspace import workspace_root  # noqa: E402
 
 ROOT = workspace_root(Path(__file__).resolve().parents[2])
 DASHBOARD_MAX_BYTES = 200_000
