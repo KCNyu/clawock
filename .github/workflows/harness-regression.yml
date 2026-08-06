@@ -227,12 +227,20 @@ jobs:
         if: github.event_name != 'pull_request' || steps.changes.outputs.code == 'true'
         run: |
           set -e
-          python3 scripts/harness/report_preflight.py --help > /dev/null
-          python3 scripts/harness/report_postflight.py --help > /dev/null
-          python3 scripts/harness/intraday_preflight.py --help > /dev/null
-          python3 scripts/harness/intraday_postflight.py --help > /dev/null
-          python3 scripts/harness/brief_preflight.py --help > /dev/null 2>&1 || true
-          python3 scripts/harness/brief_postflight.py --help > /dev/null 2>&1 || true
+          # `timeout` is the point of this step as much as the exit code. The two
+          # brief scripts used to be wrapped in `|| true`, which reads like the
+          # case was handled: it is not, because `|| true` catches a non-zero
+          # exit and what actually happened was a HANG. brief_preflight took no
+          # arguments at all, so --help ran the whole preflight — live fetches,
+          # EDGAR, Tavily — and ate the job's entire 10-minute budget, failing an
+          # unrelated PR. A probe must cost nothing, and if it ever stops being
+          # free this fails in seconds instead of taking the job down with it.
+          for cli in report_preflight report_postflight \
+                     intraday_preflight intraday_postflight \
+                     brief_preflight brief_postflight; do
+            timeout 30 python3 "scripts/harness/$cli.py" --help > /dev/null \
+              || { echo "::error::$cli.py --help did not exit 0 within 30s"; exit 1; }
+          done
           echo "OK: all argparse parsers loadable"
 
       - name: Schema-validate portfolio.json

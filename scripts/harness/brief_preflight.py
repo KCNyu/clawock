@@ -27,6 +27,7 @@ Output (stdout): step-by-step progress; final summary with issue count.
 Exit: 0 if no issues, 1 if any data leg failed.
 """
 
+import argparse
 import json
 import math
 import os
@@ -1206,6 +1207,26 @@ def load_influencer_feed(issues):
 
 
 def main():
+    # This script took no arguments at all, so `--help` was not "unsupported" —
+    # it was ignored, and the full preflight ran: live price fetches, SEC EDGAR,
+    # Tavily. A probe meant to cost nothing did a minutes-long real run.
+    #
+    # CI wraps this call in `|| true`, which reads like the case was handled. It
+    # is not: `|| true` catches a non-zero exit, and this never exited non-zero —
+    # it hung. On 2026-08-06 that consumed the validate job's entire 10-minute
+    # budget and failed a PR that had nothing to do with it.
+    #
+    # Parsing argv also restores the contract the repo relies on when an agent
+    # probes a script: `--help` exits 0 having done nothing, and an unknown flag
+    # exits 2 rather than being silently ignored — the latter is what turns
+    # "mistyped argument plus valid input" into a successful-looking no-op.
+    argparse.ArgumentParser(
+        description=(
+            "Deterministic data collection for the daily-deep-brief harness. "
+            "Takes no arguments; the date comes from TODAY or HKT now()."
+        ),
+    ).parse_args()
+
     # Date in HKT (the system's canonical TZ), or honor the TODAY env that the
     # brief-fallback workflow exports — so the context filename here always matches
     # the date the fallback script reads. Naive now() = runner UTC, which mismatched
