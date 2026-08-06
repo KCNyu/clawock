@@ -343,3 +343,30 @@ def build_cron_edit_argv(job_id: str, patch: dict, *,
     if run_timeout_ms is not None:
         command.extend(["--timeout", str(run_timeout_ms)])
     return command
+
+
+# ── Runtime layout and availability ──────────────────────────────────────────
+# Where this runtime keeps the things an operator check needs to look at, and
+# whether it is installed at all (#330 step 3). These were literals in
+# `system_check.py`, which is the last consumer to migrate — deliberately, since
+# it is what proves the earlier steps did not break anything.
+
+# The runtime's own workspace. Not derived from a caller's workspace_root: the
+# semantic index only ever covers the live runtime checkout, so an interactive
+# worktree must judge that one rather than its own copy.
+LIVE_WORKSPACE = OPENCLAW_HOME / "workspace"
+CONFIG_FILE = OPENCLAW_HOME / "openclaw.json"
+MEMORY_INDEX_DB = OPENCLAW_HOME / "agents" / "main" / "agent" / "openclaw-agent.sqlite"
+# The npm/pnpm install, which is a different root from the state home.
+INSTALL_DIR = Path("/root/.local/share/pnpm/global/5/node_modules/openclaw")
+
+
+def is_installed() -> bool:
+    """Whether this runtime is present on this host.
+
+    Callers ask the capability question — "is there a runtime here?" — rather
+    than testing a binary path themselves. A CI runner and a dev clone both
+    answer False, which is what lets an operator check skip cleanly instead of
+    reporting a fault that only means "not this machine".
+    """
+    return Path(OPENCLAW_BIN).exists()
