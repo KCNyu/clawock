@@ -1,0 +1,25 @@
+{
+  "_meta": {
+    "purpose": "Company-specific events with a known future date that no API provides: Stock Connect effective dates, lockup expiries, mainnet launches, index rebalance effective dates. Earnings/FOMC/macro are fetched automatically and do NOT belong here.",
+    "maintained": "manual — add an entry when a dated company event is announced; delete it once the date has passed and been reflected in the ledger",
+    "why_this_exists": "Before this file, such dates existed only inside brief prose, so the model re-guessed them every morning. On 2026-08-06 one brief gave three mutually contradictory dates for the same MiniMax Stock Connect event (下周一 / next month / 9月) while using that very date to size a trim.",
+    "date_confidence": {
+      "confirmed": "an official announcement states this exact date",
+      "estimated": "derived from a stated rule (e.g. 'effective the second Monday after review') — usable, but say it is an estimate",
+      "unconfirmed": "the event is real but no date is known yet; date MUST be null. Never fill a guess here."
+    },
+    "consumed_by": "scripts/data/fetch_catalysts.py -> catalysts.json.scheduled_events -> brief context"
+  },
+  "events": [
+    {
+      "ticker": "00100",
+      "name": "MINIMAX-W",
+      "type": "stock_connect_inclusion",
+      "date": null,
+      "date_confidence": "unconfirmed",
+      "detail": "上交所 2026-08-05 公告港股通标的名单调入 00100；调入已宣布，实际生效日尚未从公告原文确认",
+      "source": "上交所公告 2026-08-05（经 em_news 捕获，标题：上交所：港股通标的名单调入MINIMAX-W、立讯精密、三环集团）",
+      "added": "2026-08-06"
+    }
+  ]
+}
