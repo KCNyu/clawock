@@ -22,11 +22,24 @@ from workspace import workspace_root  # noqa: E402
 
 WS = workspace_root(Path(__file__).resolve().parents[2])
 sys.path.insert(0, str(WS / "scripts" / "data"))
+# The runtime's cron command line and the strict read both live in the adapter
+# (#330 step 2). This file decides WHAT to change; how that reaches OpenClaw is
+# not its business, and spelling the argv out here was what made it one of the
+# two places outside clawock/providers/ that had to know the runtime.
+#
+# The CHECKOUT root, not WS: `workspace_root` is overridable, so WS can be
+# someone else's data directory with no `clawock` package in it. The import has
+# to resolve against the tree this file ships in.
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 from cron_contract import (  # noqa: E402
     effective_schedule,
     load_contract,
     render_payload_message,
+)
+from clawock.providers.openclaw import (  # noqa: E402
+    build_cron_edit_argv,
+    read_jobs_strict,
 )
 
 Runner = Callable[..., subprocess.CompletedProcess]
@@ -50,21 +63,15 @@ def _json_object(text: str) -> dict:
     return value
 
 
-def load_live_jobs(runner: Runner = subprocess.run) -> list[dict]:
-    result = runner(
-        ["openclaw", "cron", "list", "--json"],
-        capture_output=True,
-        text=True,
-        timeout=120,
-    )
-    if result.returncode != 0:
-        detail = (result.stdout + result.stderr).strip()[-500:]
-        raise RuntimeError(f"openclaw cron list failed: {detail}")
-    value = _json_object(result.stdout)
-    jobs = value.get("jobs")
-    if not isinstance(jobs, list):
-        raise ValueError("OpenClaw CLI JSON has no jobs list")
-    return jobs
+def load_live_jobs(runner=None) -> list[dict]:
+    """The live schedule, raising rather than reporting an empty one.
+
+    Strictness is the whole point on this path: an empty read would be diffed
+    against the contract as "every job differs", so a failed command would turn
+    into a full rewrite of the table. The adapter's `read_jobs` is deliberately
+    fail-soft for watchdogs; this uses its strict sibling.
+    """
+    return read_jobs_strict(runner=runner)
 
 
 def _value_summary(value: object) -> object:
@@ -224,56 +231,17 @@ def desired_changes(contract: dict, live_jobs: list[dict],
 
 
 def build_edit_command(change: dict) -> list[str]:
-    patch = change["patch"]
-    command = ["openclaw", "cron", "edit", change["id"]]
-    if "schedule" in patch:
-        schedule = patch["schedule"]
-        if not schedule.get("tz"):
-            raise ValueError(
-                f"{change['name']}: clearing a cron timezone is not supported safely"
-            )
-        command.extend([
-            "--cron", schedule["expr"], "--tz", schedule["tz"], "--exact",
-        ])
-    if "enabled" in patch:
-        command.append("--enable" if patch["enabled"] else "--disable")
-    if "model" in patch:
-        command.extend(["--model", patch["model"]])
-    if "fallbacks" in patch:
-        if patch["fallbacks"]:
-            command.extend(["--fallbacks", ",".join(patch["fallbacks"])])
-        else:
-            command.append("--clear-fallbacks")
-    if "thinking" in patch:
-        command.extend(["--thinking", patch["thinking"]])
-    if "toolsAllow" in patch:
-        tools = patch["toolsAllow"]
-        command.extend(["--tools", ",".join(tools)]) if tools else command.append(
-            "--clear-tools"
-        )
-    if "timeoutSeconds" in patch:
-        command.extend(["--timeout-seconds", str(patch["timeoutSeconds"])])
-    if "message" in patch:
-        command.extend(["--message", patch["message"]])
-    if "deliveryMode" in patch:
-        mode = patch["deliveryMode"]
-        if mode == "none":
-            command.append("--no-deliver")
-        elif mode == "announce":
-            command.append("--announce")
-        else:
-            raise ValueError(
-                f"{change['name']}: unsupported delivery mode {mode!r}"
-            )
-    if patch.get("clearTrigger"):
-        command.append("--clear-trigger")
-    if "trigger" in patch:
-        trigger = patch["trigger"]
-        command.extend(["--trigger-script", trigger["scriptPath"]])
-        if trigger["once"]:
-            command.append("--trigger-once")
-    command.extend(["--timeout", "120000"])
-    return command
+    """This change as a runtime command line.
+
+    The mapping itself lives in `clawock.providers.openclaw`; what stays here is
+    the job name, because the caller's errors are read by a human looking at a
+    contract, not at a job id.
+    """
+    try:
+        return build_cron_edit_argv(
+            change["id"], change["patch"], run_timeout_ms=120000)
+    except ValueError as exc:
+        raise ValueError(f"{change['name']}: {exc}") from exc
 
 
 def apply_changes(changes: list[dict], runner: Runner = subprocess.run,

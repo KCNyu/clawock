@@ -7,9 +7,11 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts" / "data"))
+sys.path.insert(0, str(ROOT))
 
 import cron_contract
 import sync_cron_payloads
+from clawock.providers.openclaw import OPENCLAW_BIN
 
 
 JULY = datetime(2026, 7, 30, 0, tzinfo=timezone.utc)
@@ -78,7 +80,8 @@ def test_drift_plan_and_command_patch_only_declared_fields():
         "thinking", "fallbacks", "toolsAllow", "message"
     }
     command = sync_cron_payloads.build_edit_command(change)
-    assert command[:4] == ["openclaw", "cron", "edit", job["id"]]
+    assert command[0] == OPENCLAW_BIN
+    assert command[1:4] == ["cron", "edit", job["id"]]
     assert command[command.index("--thinking") + 1] == "adaptive"
     profile = data["payload_profiles"]["intraday"]
     assert command[command.index("--fallbacks") + 1] == ",".join(
@@ -186,7 +189,11 @@ def test_apply_stops_at_first_failure_and_uses_argv():
     errors = sync_cron_payloads.apply_changes(changes, runner=runner)
     assert len(calls) == 1
     assert isinstance(calls[0][0], list)
-    assert calls[0][0][:4] == ["openclaw", "cron", "edit", "one"]
+    # argv[0] is the absolute binary, not a bare name resolved off PATH (#330
+    # step 2). The DST sync runs from crontab, where the bare form only works
+    # because that entry happens to use a login shell.
+    assert calls[0][0][0] == OPENCLAW_BIN
+    assert calls[0][0][1:4] == ["cron", "edit", "one"]
     assert "first" in errors[0]
     assert "boom" in errors[0]
 
