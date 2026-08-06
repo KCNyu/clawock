@@ -20,11 +20,11 @@ from typing import Any
 # whose only remaining job was inserting this path as a side effect.
 import sys  # noqa: E402
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
-from clawock.workspace import workspace_root  # noqa: E402
+from clawock.workspace import engine_config, workspace_root  # noqa: E402
 
 WS = workspace_root(Path(__file__).resolve().parents[2])
 REGISTRY_FILE = WS / "config" / "instruments.json"
-SCHEMA_FILE = WS / "config" / "instruments.schema.json"
+SCHEMA_FILE = engine_config("instruments.schema.json")
 SCHEMA_VERSION = 1
 
 REQUIRED_FIELDS = {
@@ -151,8 +151,20 @@ def validate_registry(doc: Any) -> list[str]:
     return errors
 
 
-def load_registry(path: Path | str = REGISTRY_FILE) -> dict[str, dict]:
+def load_registry(path: Path | str = REGISTRY_FILE,
+                  *, missing_ok: bool = False) -> dict[str, dict]:
+    """The book's instruments.
+
+    `missing_ok` separates two things this used to conflate (#356). An ABSENT
+    registry means the workspace has registered nothing yet — true of any book
+    that is not this one — and must not stop the module from importing, because
+    every host-side gate imports it. A MALFORMED registry is corruption and
+    still raises: degrading there would publish numbers against metadata nobody
+    validated.
+    """
     path = Path(path)
+    if missing_ok and not path.exists():
+        return {}
     try:
         doc = json.loads(path.read_text(encoding="utf-8"))
     except Exception as exc:
@@ -193,7 +205,16 @@ def validate_active_holdings(
     return errors
 
 
-INSTRUMENTS = load_registry()
+# Import must not depend on this book having a registry. Every host-side safety
+# gate imports this module, so raising here took the whole toolchain down for any
+# workspace but this one — `brief_preflight`, `report_preflight` and
+# `intraday_preflight` all died at import against a foreign book (#356).
+#
+# Absence yields an empty registry, and that is not silent: `validate_active_holdings`
+# then reports every live holding as unregistered, which system_check raises as
+# CRITICAL. A book with holdings and no registry gets a loud, accurate, actionable
+# message instead of a stack trace from an import.
+INSTRUMENTS = load_registry(missing_ok=True)
 
 
 def get(symbol: str) -> dict | None:

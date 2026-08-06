@@ -29,7 +29,7 @@ from pathlib import Path
 # in. Reached through the scripts/data/workspace shim until #267 step 3,
 # whose only remaining job was inserting this path as a side effect.
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
-from clawock.workspace import workspace_root  # noqa: E402
+from clawock.workspace import engine_config, workspace_root  # noqa: E402
 
 # Code lives in the checkout; only DATA lives in the workspace. `workspace_root`
 # is overridable, so resolving our own modules through WS would read them out of
@@ -37,7 +37,7 @@ from clawock.workspace import workspace_root  # noqa: E402
 # there. Same expression WS is seeded from, kept separate on purpose (#269).
 _CHECKOUT = Path(__file__).resolve().parents[2]
 WS = workspace_root(Path(__file__).resolve().parents[2])
-SCHEMA_FILE = WS / "config" / "entry_gate.schema.json"
+SCHEMA_FILE = engine_config("entry_gate.schema.json")
 VETO_FILE = WS / "config" / "entry-gate-vetoes.json"
 ARTIFACT_ROOT = WS / "memory" / "entry-gates"
 SCHEMA_VERSION = 1
@@ -91,12 +91,24 @@ ARTIFACT_FIELDS = (
 MIRROR_TEST_SENTENCES = 5
 
 
-def load_vetoes(path: Path = VETO_FILE) -> dict:
-    doc = json.loads(path.read_text())
+def load_vetoes(path: Path = VETO_FILE, *, missing_ok: bool = False) -> dict:
+    """The book's standing entry vetoes.
+
+    `missing_ok` splits absence from corruption, same as the instrument registry
+    (#356): a workspace that has declared no vetoes is a normal state for any
+    book but this one, while malformed JSON is corruption and still raises.
+    """
+    if missing_ok and not Path(path).exists():
+        return {}
+    doc = json.loads(Path(path).read_text())
     return {item["id"]: item for item in doc["vetoes"]}
 
 
-VETOES = load_vetoes()
+# Absent vetoes must not stop this module importing — brief_preflight imports it
+# transitively, so raising here killed the whole preflight against a foreign
+# workspace. An empty veto set is not silent: `check` reports any veto a caller
+# names as undefined, which is exactly what an unconfigured book should hear.
+VETOES = load_vetoes(missing_ok=True)
 
 
 def _exact_fields(item, required, prefix, errors) -> bool:

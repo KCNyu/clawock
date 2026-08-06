@@ -24,6 +24,26 @@ ENV_VAR = "CLAWOCK_WORKSPACE"
 REQUIRED = ("portfolio.json", "config/instruments.json")
 
 
+def engine_config(name: str) -> Path:
+    """A config file that ships with the ENGINE rather than with a book (#356).
+
+    `config/` holds two different kinds of thing, and conflating them is what
+    made a foreign workspace unable to start:
+
+    * **schemas** — `instruments.schema.json` and friends describe the FORMAT.
+      Every book uses the identical file, so requiring each one to carry a copy
+      is asking users to vendor our validation rules.
+    * **book data** — `instruments.json`, `factor-universe.json`,
+      `entry-gate-vetoes.json`. These are the user's content and stay in the
+      workspace, where absence means "not configured yet", not "engine broken".
+
+    Schemas resolve here, from the checkout this module ships in. Deliberately
+    NOT workspace-first-with-fallback: a fallback would silently apply this
+    repository's data to someone else's book, which is worse than a clear error.
+    """
+    return Path(__file__).resolve().parents[1] / "config" / name
+
+
 def workspace_root(default: Path | str | None = None) -> Path:
     """The workspace to operate on.
 
