@@ -31,7 +31,7 @@ from pathlib import Path
 # in. Reached through the scripts/data/workspace shim until #267 step 3,
 # whose only remaining job was inserting this path as a side effect.
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
-from clawock.workspace import workspace_root  # noqa: E402
+from clawock.workspace import engine_config, workspace_root  # noqa: E402
 
 # Code lives in the checkout; only DATA lives in the workspace. `workspace_root`
 # is overridable, so resolving our own modules through WS would read them out of
@@ -39,7 +39,7 @@ from clawock.workspace import workspace_root  # noqa: E402
 # there. Same expression WS is seeded from, kept separate on purpose (#269).
 _CHECKOUT = Path(__file__).resolve().parents[2]
 WS = workspace_root(Path(__file__).resolve().parents[2])
-SCHEMA_FILE = WS / "config" / "earnings_review.schema.json"
+SCHEMA_FILE = engine_config("earnings_review.schema.json")
 ARTIFACT_ROOT = WS / "memory" / "earnings"
 SCHEMA_VERSION = 1
 
