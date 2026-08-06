@@ -113,6 +113,13 @@ def _context():
                 "ticker": "00100",
                 "headline": "primary event",
                 "actionable_escalation": True,
+            }, {
+                # Real, reported, but not escalated — the common case. Most
+                # events on a given day look like this one, not like evt_good.
+                "event_id": "evt_quiet",
+                "ticker": "00100",
+                "headline": "quarterly results, no escalation",
+                "actionable_escalation": False,
             }]
         },
         "integrity": {"ok": True, "error_count": 0, "warn_count": 0},
@@ -245,6 +252,46 @@ def test_plan_is_constrained_by_harness_actions_evidence_and_inventory():
     issues = packet_mod.validate_plan_constraints(bad, packet)
     assert any("allowed_actions" in issue for issue in issues)
     assert any("evidence gate" in issue for issue in issues)
+
+
+def _catalyst(action, evidence_id, ticker="00100"):
+    return {"decisions": [{
+        "ticker": ticker,
+        "action": action,
+        "driven_by": "catalyst",
+        "evidence_event_id": evidence_id,
+        "size": {},
+    }]}
+
+
+# --- catalyst evidence gate, active vs passive (#342) -----------------------
+#
+# `actionable_evidence_ids` holds only escalated events, so requiring it of
+# EVERY catalyst-driven decision left a passive stance no way to cite a real but
+# un-escalated event. On 2026-08-06 all three watched names (CRCL/SKHY/SPCX) had
+# 6-7 real events and zero escalated ones, and the only ways past the gate were
+# to relabel `driven_by` or drop the id — both destroying the attribution that
+# `by_driver` bucketing reads.
+
+def test_passive_catalyst_may_cite_a_real_unescalated_event():
+    packet = _compiled()
+    assert packet_mod.validate_plan_constraints(
+        _catalyst("hold_and_watch", "evt_quiet"), packet) == []
+
+
+def test_passive_catalyst_still_rejects_an_event_id_that_matches_nothing():
+    """Relaxing escalation must not relax the hallucination check."""
+    issues = packet_mod.validate_plan_constraints(
+        _catalyst("hold_and_watch", "evt_nonexistent"), _compiled())
+    assert any("does not match any event" in issue for issue in issues)
+
+
+def test_active_catalyst_still_requires_an_escalated_event():
+    """The escalation gate is the point of the active tier — it must not move."""
+    packet = _compiled()
+    issues = packet_mod.validate_plan_constraints(_catalyst("cut", "evt_quiet"), packet)
+    assert any("evidence gate" in issue for issue in issues)
+    assert packet_mod.validate_plan_constraints(_catalyst("cut", "evt_good"), packet) == []
 
 
 def test_pages_prefers_projection_and_keeps_a_backward_fallback():

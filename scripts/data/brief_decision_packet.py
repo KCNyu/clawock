@@ -16,7 +16,13 @@ import hashlib
 import json
 import math
 import os
+import sys
 from pathlib import Path
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+# Canonical owner of the active/passive action split; duplicating those sets here
+# would let the evidence gate drift onto the wrong one.
+import decision_v2  # noqa: E402
 
 
 SCHEMA_VERSION = 1
@@ -534,6 +540,40 @@ def validate_judgment_overlay(packet: dict, overlay: dict) -> list[str]:
     return issues
 
 
+def _catalyst_evidence_issues(tag: str, decision: dict, row: dict) -> list[str]:
+    """Evidence check for a decision the model attributed to a catalyst.
+
+    Two tiers, because `actionable_evidence_ids` only ever holds events flagged
+    `actionable_escalation` — the escalation set, not the set of real events:
+
+    * an ACTIVE action must point at an escalated event.  That is the harness
+      rule named by the sibling constraint `active_action_requires_evidence`:
+      you do not trade on a catalyst the harness did not escalate.
+    * a PASSIVE stance only has to point at a real event for this ticker.
+      "I'm watching CRCL because it reported Q2 yesterday" is a legitimate
+      attribution, and requiring escalation there left the model no way to
+      record it — the only ways past the gate were to relabel `driven_by` or to
+      drop `evidence_event_id`, both of which destroy the attribution that
+      `by_driver` win-rate bucketing reads.
+
+    Both tiers still reject an id that matches no event, so a fabricated
+    reference is caught either way.
+    """
+    evidence_id = decision.get("evidence_event_id")
+    action = decision.get("action")
+    if action in decision_v2.ACTIVE_ACTIONS:
+        if evidence_id not in ((row.get("constraints") or {}).get("actionable_evidence_ids") or []):
+            return [f"{tag}: evidence_event_id is outside harness evidence gate"]
+        return []
+    known_ids = {
+        event.get("event_id") for event in (row.get("evidence") or [])
+        if event.get("event_id")
+    }
+    if evidence_id not in known_ids:
+        return [f"{tag}: evidence_event_id does not match any event for this ticker"]
+    return []
+
+
 def validate_plan_constraints(plan: dict, packet: dict) -> list[str]:
     issues = []
     rows = packet.get("tickers") or {}
@@ -551,11 +591,8 @@ def validate_plan_constraints(plan: dict, packet: dict) -> list[str]:
                 f"{tag}: action {action!r} outside harness allowed_actions "
                 f"{constraints.get('allowed_actions') or []}"
             )
-        evidence_id = decision.get("evidence_event_id")
-        if decision.get("driven_by") == "catalyst" and evidence_id not in (
-            constraints.get("actionable_evidence_ids") or []
-        ):
-            issues.append(f"{tag}: evidence_event_id is outside harness evidence gate")
+        if decision.get("driven_by") == "catalyst":
+            issues.extend(_catalyst_evidence_issues(tag, decision, row))
         shares = _number((decision.get("size") or {}).get("shares"), 0)
         max_sell = _number(constraints.get("max_sell_shares"), 0)
         if (
