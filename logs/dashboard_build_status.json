@@ -1,7 +1,7 @@
 {
-  "checked_at": "2026-08-06T01:34:29Z",
+  "checked_at": "2026-08-06T02:04:07Z",
   "ok": true,
   "warn_count": 1,
   "repair_count": 0,
-  "tail": "ata/shadow_portfolio.json (shadow portfolio sidecar, 模拟·非实盘)\n  US: 16 holdings, 7 active, value $2353\n  HK: 7 holdings, 5 active, value HK$66010\n  Snapshots: 62 embedded / 62 on disk\n  Plans: 5 embedded / 59 on disk\n  Snapshots: 62 | Plans: 5\n  FX USDHKD: 7.8431 (Frankfurter)\n  warn: insights dropped bear_case for unknown ticker RKLX+SPCH\n\n  ✓ data-plane: published 6 outputs as dcdc33cd2426 → git@github.com:KCNyu/clawock.git data-plane\n✓ data-plane: requested data-plane-published → KCNyu/clawock"
+  "tail": "ata/shadow_portfolio.json (shadow portfolio sidecar, 模拟·非实盘)\n  US: 16 holdings, 7 active, value $2353\n  HK: 7 holdings, 5 active, value HK$68110\n  Snapshots: 62 embedded / 62 on disk\n  Plans: 5 embedded / 59 on disk\n  Snapshots: 62 | Plans: 5\n  FX USDHKD: 7.8431 (Frankfurter)\n  warn: insights dropped bear_case for unknown ticker RKLX+SPCH\n\n  ✓ data-plane: published 6 outputs as 500af68310f9 → git@github.com:KCNyu/clawock.git data-plane\n✓ data-plane: requested data-plane-published → KCNyu/clawock"
 }
