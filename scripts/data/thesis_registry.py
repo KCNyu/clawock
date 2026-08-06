@@ -13,10 +13,10 @@ from pathlib import Path
 # in. Reached through the scripts/data/workspace shim until #267 step 3,
 # whose only remaining job was inserting this path as a side effect.
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
-from clawock.workspace import workspace_root  # noqa: E402
+from clawock.workspace import engine_config, workspace_root  # noqa: E402
 
 WS = workspace_root(Path(__file__).resolve().parents[2])
-SCHEMA_FILE = WS / "config" / "thesis.schema.json"
+SCHEMA_FILE = engine_config("thesis.schema.json")
 SCHEMA_VERSION = 1
 THESIS_STATES = ("unknown", "broken", "damaged", "weakening", "intact")
 STATE_RANK = {"broken": 0, "damaged": 1, "weakening": 2, "intact": 3}
