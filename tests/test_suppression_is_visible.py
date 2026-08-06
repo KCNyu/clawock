@@ -30,12 +30,15 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts" / "harness"))
 sys.path.insert(0, str(ROOT / "scripts" / "data"))
 
-import _harness_common as hc  # noqa: E402
 import plan_surface  # noqa: E402
+# The validation primitives come from the package, not through the harness
+# module that used to re-export them (#267).
+sys.path.insert(0, str(ROOT))
+from clawock import validation as val  # noqa: E402
 
 
-ADVISORY = f"07226 6200 股 未在 context 中 {hc.ADVISORY_MARK}"
-ADVISORY_2 = f"区间 +0.3~-0.4% 自相矛盾 {hc.ADVISORY_MARK}"
+ADVISORY = f"07226 6200 股 未在 context 中 {val.ADVISORY_MARK}"
+ADVISORY_2 = f"区间 +0.3~-0.4% 自相矛盾 {val.ADVISORY_MARK}"
 
 
 # --------------------------------------------------------------------------
@@ -45,44 +48,44 @@ ADVISORY_2 = f"区间 +0.3~-0.4% 自相矛盾 {hc.ADVISORY_MARK}"
 
 def test_advisory_only_report_is_not_dressed_as_a_warning():
     """It stays `warn` (delivered either way) but reads as information."""
-    escalating, advisories = hc.split_advisory([ADVISORY])
+    escalating, advisories = val.split_advisory([ADVISORY])
     assert escalating == []
-    assert hc.advisory_prefix(advisories).startswith("ℹ️ 数字校验（不影响投递）")
-    assert "⚠️" not in hc.advisory_prefix(advisories)
+    assert val.advisory_prefix(advisories).startswith("ℹ️ 数字校验（不影响投递）")
+    assert "⚠️" not in val.advisory_prefix(advisories)
 
 
 def test_advisory_survives_a_banner_full_of_other_issues():
     """The defect: `issues[:2]` dropped the advisory on exactly the bad reports."""
     issues = ["缺段标记 ▎技术面", "报告长度 3100 字 > 3000 软上限 (warn)", ADVISORY]
-    escalating, advisories = hc.split_advisory(issues)
+    escalating, advisories = val.split_advisory(issues)
     assert len(escalating) == 2
-    prefix = hc.advisory_prefix(advisories)
+    prefix = val.advisory_prefix(advisories)
     assert "07226 6200 股" in prefix
 
 
 def test_advisory_line_bounds_itself():
-    many = [f"{i} 股 未在 context 中 {hc.ADVISORY_MARK}" for i in range(5)]
-    prefix = hc.advisory_prefix(many)
+    many = [f"{i} 股 未在 context 中 {val.ADVISORY_MARK}" for i in range(5)]
+    prefix = val.advisory_prefix(many)
     assert "另 3 条" in prefix
     assert prefix.count(";") <= 2
 
 
 def test_no_advisory_means_no_line():
-    assert hc.advisory_prefix([]) == ""
-    assert hc.split_advisory(["缺段标记 ▎技术面"]) == (["缺段标记 ▎技术面"], [])
+    assert val.advisory_prefix([]) == ""
+    assert val.split_advisory(["缺段标记 ▎技术面"]) == (["缺段标记 ▎技术面"], [])
 
 
 def test_the_advisory_mark_is_not_shown_to_the_reader():
     """`(advisory)` is a routing token for categorize_issues, not prose."""
-    assert hc.ADVISORY_MARK not in hc.advisory_prefix([ADVISORY])
+    assert val.ADVISORY_MARK not in val.advisory_prefix([ADVISORY])
 
 
 def test_advisory_still_cannot_change_the_verdict():
     """The #123 guarantee, re-asserted here because this PR touches its callers."""
-    assert hc.categorize_issues([ADVISORY], ("必须",), warn_max=2) == "warn"
+    assert val.categorize_issues([ADVISORY], ("必须",), warn_max=2) == "warn"
     two_warnings = ["a", "b"]
-    assert hc.categorize_issues(two_warnings, ("必须",), warn_max=2) == "warn"
-    assert hc.categorize_issues(two_warnings + [ADVISORY, ADVISORY_2],
+    assert val.categorize_issues(two_warnings, ("必须",), warn_max=2) == "warn"
+    assert val.categorize_issues(two_warnings + [ADVISORY, ADVISORY_2],
                                 ("必须",), warn_max=2) == "warn"
 
 

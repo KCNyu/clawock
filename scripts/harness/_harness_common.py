@@ -23,20 +23,6 @@ from workspace import workspace_root  # noqa: E402
 # report core can run without a repository checkout. Re-exported here so all ten
 # in-repo importers keep working unchanged.
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
-from clawock.validation import (  # noqa: E402,F401
-    REPORT_CHAR_LIMITS,
-    ADVISORY_MARK,
-    MAX_NUMERIC_SAMPLES,
-    MIN_CHECKED_AMOUNT,
-    advisory_prefix,
-    categorize_issues,
-    check_md_table_column_consistency,
-    check_numeric_claims,
-    check_raw_tables_verbatim,
-    is_advisory,
-    split_advisory,
-    validate_forbidden_phrases,
-)
 
 # Code lives in the checkout; only DATA lives in the workspace. `workspace_root`
 # is overridable, so resolving our own modules through WS would read them out of
