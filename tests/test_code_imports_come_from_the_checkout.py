@@ -19,9 +19,10 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 
-# `system_check` migrates last, for the same reason it goes last in the
-# decoupling sequence: it is what proves the rest still works.
-MIGRATING_LAST = {"scripts/system_check.py"}
+# Nothing is exempt any more. `system_check` migrated last — for the same reason
+# it goes last in the decoupling sequence, that it is what proves the rest still
+# works — and its own run against the live host is what closed this out.
+MIGRATING_LAST: set[str] = set()
 
 _WS_IMPORT = re.compile(r"sys\.path\.insert\(\s*0\s*,\s*str\(\s*WS\s*/")
 
