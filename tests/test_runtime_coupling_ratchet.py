@@ -59,8 +59,13 @@ RUNTIME = "openclaw"
 # 10 → 9 when the watchdogs' session directory came from the adapter's
 # OPENCLAW_HOME instead of a hard-coded path (#330 step 1); 9 → 6 when the two
 # schedule writers took their command line from the adapter's scheduling
-# capability instead of spelling out argv (#330 step 2).
-BASELINE = 6
+# capability instead of spelling out argv (#330 step 2); 6 → 1 when system_check
+# took the runtime's layout and an is_installed() capability from the adapter
+# (#330 step 3, last on purpose — it is what proves the earlier steps held).
+#
+# 1 is the floor, not a waypoint: see DELIBERATE_EXCLUSIONS below. The ratchet
+# has arrived, and what remains is a decision rather than debt.
+BASELINE = 1
 
 # The honest floor is 1, not 0 — say it rather than let a future reader assume
 # the remaining count is all debt.
@@ -72,11 +77,9 @@ BASELINE = 6
 # making — a garbage collector for someone else's files is not part of a
 # portable harness's interface.
 #
-# So the sequence that remains is 6 → 1:
-#   system_check.py (5) — last, deliberately. It is what proves the earlier
-#     steps did not break anything, so migrating it first would remove the check
-#     while the checked-for change is in flight. With steps 1 and 2 done it is
-#     now the only block left.
+# Nothing remains to migrate. Every other consumer now reaches the runtime
+# through clawock/providers/, which is what makes "it happens to run on OpenClaw"
+# a description of deployment rather than of the code.
 DELIBERATE_EXCLUSIONS = {"scripts/data/gc_sessions.py": 1}
 HONEST_FLOOR = sum(DELIBERATE_EXCLUSIONS.values())
 

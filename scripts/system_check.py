@@ -20,14 +20,28 @@ from datetime import date, datetime, timezone
 from pathlib import Path
 
 WS = Path(__file__).resolve().parent.parent
+# Named rather than inlined: this file sits one level below the root, so the
+# usual `parents[2]` would land above it. The name is what says "checkout root"
+# regardless of depth — and it is the checkout, not WS, because `clawock` ships
+# in the tree this file belongs to.
+_REPO_ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(_REPO_ROOT))
 
-# Live-box paths for the memory-index check. These are deliberately absolute and
-# not derived from WS: the semantic index only ever covers the live runtime
-# checkout, so an interactive worktree must judge that one, not its own copy.
-# All of them are absent in CI, where the check skips.
-LIVE_WORKSPACE = Path('/root/.openclaw/workspace')
-MEMORY_INDEX_DB = Path('/root/.openclaw/agents/main/agent/openclaw-agent.sqlite')
-OPENCLAW_INSTALL = Path('/root/.local/share/pnpm/global/5/node_modules/openclaw')
+# Live-box paths for the memory-index check. Still deliberately absolute and not
+# derived from WS — the semantic index only ever covers the live runtime
+# checkout, so an interactive worktree must judge that one, not its own copy —
+# but they are the RUNTIME's layout, so the adapter owns them (#330 step 3).
+# This file was the last block of sites that knew which runtime it was on, and
+# it migrates last on purpose: it is what proves the earlier steps did not break
+# anything. All of these are absent in CI, where the checks skip.
+from clawock.providers.openclaw import (  # noqa: E402
+    INSTALL_DIR as OPENCLAW_INSTALL,
+    LIVE_WORKSPACE,
+    MEMORY_INDEX_DB,
+    CONFIG_FILE as OPENCLAW_CONFIG,
+    is_installed as openclaw_is_installed,
+)
+
 MEMORY_INDEX_LOG = LIVE_WORKSPACE / 'logs' / 'memory_index.log'
 # Nightly reindex is 05:10 HKT; 30h lets one run slip into the next daily review
 # rather than firing on the normal gap between two runs.
@@ -358,7 +372,7 @@ def check_no_leaked_secrets(r):
 def check_openclaw_doctor(r):
     """Cheap config-validity check. Full `openclaw doctor` is too slow for hooks,
     so we just re-validate the JSON config can be parsed + has expected shape."""
-    config = Path('/root/.openclaw/openclaw.json')
+    config = OPENCLAW_CONFIG
     if not config.exists():
         r.add('openclaw config', WARNING, 'openclaw.json not found (skipped)')
         return
@@ -435,13 +449,13 @@ def check_cron_paths_exist(r):
     sys.path.insert(0, str(WS / 'scripts' / 'harness'))
     try:
         import _watchdog_common as wc  # type: ignore
-        from _watchdog_common import OPENCLAW_BIN, load_jobs  # type: ignore
+        from _watchdog_common import load_jobs  # type: ignore
         jobs = load_jobs()
     except Exception as e:
         r.add('cron paths', WARNING, f'cron jobs unreadable: {e}')
         return
     if not jobs:
-        if not os.path.exists(OPENCLAW_BIN):
+        if not openclaw_is_installed():
             # CI runner / dev clone without the openclaw install — nothing to check.
             r.add('cron paths', OK, 'skipped (no openclaw CLI on this host)')
         else:
