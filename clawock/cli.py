@@ -17,6 +17,8 @@ import json
 import sys
 from pathlib import Path
 
+from clawock.tools import ToolError, build_registry
+from clawock.tools import describe as describe_tools
 from clawock.workspace import ENV_VAR, describe, workspace_root
 
 
@@ -90,6 +92,48 @@ def _report(args) -> int:
     return 0 if verdict == "pass" else 1
 
 
+def _tool(args) -> int:
+    """Reach a context tool through the registry instead of a path into scripts/.
+
+    This is what makes the tool layer real (#266). Before it, `clawock.tools` had
+    no caller outside its own tests: the skills reached the same data by running
+    `python3 .../scripts/data/brief_decision_packet.py`, so the registry was an
+    executable design document and the per-query byte budget — the hole #258
+    actually closed — protected a path nobody took, because the callers that read
+    context ARE the skills.
+
+    `--list` prints the contract as JSON, so a non-OpenClaw runner can discover
+    the tools instead of re-deriving them from Chinese prose in a SKILL.md.
+    """
+    root = workspace_root(args.workspace or Path.cwd())
+    registry = build_registry(root)
+    if args.list:
+        print(describe_tools(root, args.dialect))
+        return 0
+    if not args.name:
+        print("a tool name is required (or --list)", file=sys.stderr)
+        return 2
+    params: dict[str, str] = {}
+    for item in args.arg or []:
+        key, sep, value = item.partition("=")
+        if not sep:
+            print(f"--arg must be key=value, got {item!r}", file=sys.stderr)
+            return 2
+        params[key] = value
+    try:
+        print(registry.call(args.name, **params))
+    except (ToolError, ValueError) as exc:
+        # A refusal is the tool working, not the CLI failing: report it on stderr
+        # with a non-zero exit so a caller can tell it apart from real output,
+        # and never print a traceback into the middle of a model turn.
+        # ValueError is in here for one specific reason: the 24 KiB budget raises
+        # it from bounded_payload, so the single most likely refusal on this path
+        # would otherwise be the one thing that crashes instead of refusing.
+        print(f"{args.name}: {exc}", file=sys.stderr)
+        return 1
+    return 0
+
+
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser(prog="clawock", description=__doc__)
     sub = parser.add_subparsers(dest="command", required=True)
@@ -107,6 +151,17 @@ def main(argv=None) -> int:
                         help="model prose; reads stdin when omitted")
     report.add_argument("--json", action="store_true")
     report.set_defaults(func=_report)
+
+    tool = sub.add_parser(
+        "tool", help="call a context tool through the registry")
+    tool.add_argument("name", nargs="?", help="tool name, e.g. decision_packet_query")
+    tool.add_argument("--arg", action="append", metavar="KEY=VALUE",
+                      help="tool argument; repeatable")
+    tool.add_argument("--list", action="store_true",
+                      help="print the tool contract as JSON and exit")
+    tool.add_argument("--dialect", choices=("openai", "anthropic"), default="openai")
+    tool.add_argument("--workspace", type=Path, default=None)
+    tool.set_defaults(func=_tool)
 
     args = parser.parse_args(argv)
     return args.func(args)

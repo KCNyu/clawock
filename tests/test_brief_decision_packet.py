@@ -304,6 +304,9 @@ def test_pages_prefers_projection_and_keeps_a_backward_fallback():
     assert "projection.schema_version === 1" in renderer
     assert "projected.length" in renderer
     assert ": holds.map" in renderer
-    assert "--summary" in skill
+    # The summary read moved behind the tool registry (#266); it is the same read,
+    # reached by name instead of by a path into scripts/. --judgment-template has
+    # no tool yet, so it is still a shell-out.
+    assert "decision_packet_summary" in skill
     assert "--judgment-template" in skill
     assert "禁止加入价格、RSI、MA" in skill
