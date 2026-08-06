@@ -55,8 +55,31 @@ RUNTIME = "openclaw"
 # regressed between the two — the earlier count was measuring the wrong thing,
 # so 14 was the first number here worth quoting. 14 → 13 when the cron-state
 # chain moved into the adapter (#273); 13 → 10 when the two money CLIs and the
-# legacy backfill stopped naming the runtime's workspace absolutely (#290).
-BASELINE = 10
+# legacy backfill stopped naming the runtime's workspace absolutely (#290);
+# 10 → 9 when the watchdogs' session directory came from the adapter's
+# OPENCLAW_HOME instead of a hard-coded path (#330 step 1).
+BASELINE = 9
+
+# The honest floor is 1, not 0 — say it rather than let a future reader assume
+# the remaining count is all debt.
+#
+# `gc_sessions.py` keeps its site by decision (#330). Its OPENCLAW_HOME cleans
+# the runtime's OWN session files: that is running the runtime, not our harness
+# depending on it. Removing the site would mean moving the whole script into
+# clawock/providers/, which is a different argument and probably not worth
+# making — a garbage collector for someone else's files is not part of a
+# portable harness's interface.
+#
+# So the sequence that remains is 9 → 1:
+#   sync_cron_payloads.py (2) + sync_us_cron_dst.py (1) — the only paths that
+#     WRITE OpenClaw's schedule. They need a scheduling capability on the
+#     provider interface, which does not exist yet; that interface is the real
+#     work and the call sites are trivial afterwards.
+#   system_check.py (5) — last, deliberately. It is what proves the earlier
+#     steps did not break anything, so migrating it first would remove the check
+#     while the checked-for change is in flight.
+DELIBERATE_EXCLUSIONS = {"scripts/data/gc_sessions.py": 1}
+HONEST_FLOOR = sum(DELIBERATE_EXCLUSIONS.values())
 
 _SPAWNERS = {"run", "call", "check_call", "check_output", "Popen", "system", "getoutput"}
 
@@ -229,6 +252,16 @@ def test_the_runtime_coupling_count_never_rises():
     assert total >= BASELINE, (
         f"runtime coupling fell to {total} — lower BASELINE to {total} in this "
         "file so the gain is locked in")
+
+    # Keep the documented floor honest. Without this the exclusion note is prose
+    # that can quietly become false — either because the site was fixed and the
+    # note still claims it is deliberate, or because it moved and the note points
+    # at nothing. Both turn "the honest target is 1, not 0" into a lie.
+    for name, count in DELIBERATE_EXCLUSIONS.items():
+        assert len(sites.get(name, [])) == count, (
+            f"{name} is documented as a deliberate exclusion of {count} site(s), "
+            f"but now has {len(sites.get(name, []))}. Update DELIBERATE_EXCLUSIONS "
+            "and the note above it — the floor is part of the claim.")
 
 
 def test_prose_is_not_coupling_and_a_command_is():
