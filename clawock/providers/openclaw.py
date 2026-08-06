@@ -251,3 +251,95 @@ def read_runs(job_id: str, source: str = "auto") -> CronRead:
                   f"for {job_id}", file=sys.stderr)
             return CronRead(entries, "fossil")
     return CronRead([], "empty")
+
+
+# ── Scheduling ───────────────────────────────────────────────────────────────
+# The capability the two schedule WRITERS need (#330 step 2). Reading is already
+# above; writing was the only part of the cron interface still spelled out as an
+# argv literal inside `scripts/`, which made those two files the only places that
+# had to know this runtime's command line in order to do their job.
+#
+# The split: the patch vocabulary below is ours — what a scheduler is asked to
+# change — and mapping it onto a command line is this adapter's business. A
+# second runtime reimplements the mapping, not the callers.
+
+
+def read_jobs_strict(*, runner=None) -> list[dict]:
+    """Jobs from the CLI, raising if the runtime cannot be read.
+
+    `read_jobs` is fail-soft on purpose: for a watchdog, an unreachable runtime
+    is not the same as an empty schedule. For the paths that WRITE the schedule
+    the opposite is true — an empty read means "every job differs from the
+    contract", which would rewrite the whole table off a failed command. So the
+    writer path gets its own read, and the difference is stated rather than left
+    to whoever calls which.
+    """
+    data = cron_cli_json(["list", "--json"], runner=runner)
+    if not isinstance(data, dict):
+        raise RuntimeError("openclaw cron list failed: no JSON object returned")
+    jobs = data.get("jobs")
+    if not isinstance(jobs, list):
+        raise RuntimeError("openclaw cron list failed: response has no job list")
+    return jobs
+
+
+def build_cron_edit_argv(job_id: str, patch: dict, *,
+                         binary: str = OPENCLAW_BIN,
+                         run_timeout_ms: int | None = None) -> list[str]:
+    """One job patch as this runtime's `cron edit` command line.
+
+    Only declared fields are emitted, so an edit never carries a value the caller
+    did not ask to change — that is what keeps a payload sync from clobbering
+    delivery settings it has no opinion about.
+
+    `binary` defaults to the absolute path rather than relying on PATH: the DST
+    sync runs from crontab, where a bare name resolves only because the entry
+    happens to use a login shell.
+    """
+    command = [binary, "cron", "edit", job_id]
+    if "schedule" in patch:
+        schedule = patch["schedule"]
+        if not schedule.get("tz"):
+            # A cron row with no timezone silently follows the host's, which for
+            # a market schedule is the difference between an open and a close.
+            raise ValueError("clearing a cron timezone is not supported safely")
+        command.extend(["--cron", schedule["expr"], "--tz", schedule["tz"], "--exact"])
+    if "enabled" in patch:
+        command.append("--enable" if patch["enabled"] else "--disable")
+    if "model" in patch:
+        command.extend(["--model", patch["model"]])
+    if "fallbacks" in patch:
+        if patch["fallbacks"]:
+            command.extend(["--fallbacks", ",".join(patch["fallbacks"])])
+        else:
+            command.append("--clear-fallbacks")
+    if "thinking" in patch:
+        command.extend(["--thinking", patch["thinking"]])
+    if "toolsAllow" in patch:
+        tools = patch["toolsAllow"]
+        if tools:
+            command.extend(["--tools", ",".join(tools)])
+        else:
+            command.append("--clear-tools")
+    if "timeoutSeconds" in patch:
+        command.extend(["--timeout-seconds", str(patch["timeoutSeconds"])])
+    if "message" in patch:
+        command.extend(["--message", patch["message"]])
+    if "deliveryMode" in patch:
+        mode = patch["deliveryMode"]
+        if mode == "none":
+            command.append("--no-deliver")
+        elif mode == "announce":
+            command.append("--announce")
+        else:
+            raise ValueError(f"unsupported delivery mode {mode!r}")
+    if patch.get("clearTrigger"):
+        command.append("--clear-trigger")
+    if "trigger" in patch:
+        trigger = patch["trigger"]
+        command.extend(["--trigger-script", trigger["scriptPath"]])
+        if trigger["once"]:
+            command.append("--trigger-once")
+    if run_timeout_ms is not None:
+        command.extend(["--timeout", str(run_timeout_ms)])
+    return command
