@@ -39,7 +39,11 @@ def wilson_ci(hits, n, z=1.96):
     return [round(max(0.0, center - half), 3), round(min(1.0, center + half), 3)]
 
 
-from workspace import workspace_root  # noqa: E402
+# The checkout root, so `clawock` resolves from the tree this file ships
+# in. Reached through the scripts/data/workspace shim until #267 step 3,
+# whose only remaining job was inserting this path as a side effect.
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+from clawock.workspace import workspace_root  # noqa: E402
 
 # Code lives in the checkout; only DATA lives in the workspace. `workspace_root`
 # is overridable, so resolving our own modules through WS would read them out of

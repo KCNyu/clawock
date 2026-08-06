@@ -8,7 +8,12 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
-from workspace import workspace_root  # noqa: E402
+# The checkout root, so `clawock` resolves from the tree this file ships
+# in. Reached through the scripts/data/workspace shim until #267 step 3,
+# whose only remaining job was inserting this path as a side effect.
+import sys  # noqa: E402
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+from clawock.workspace import workspace_root  # noqa: E402
 
 WS = workspace_root(Path(__file__).resolve().parents[2])
 DEFAULT_CONTRACT = WS / "config" / "cron-schedules.json"

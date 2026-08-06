@@ -14,7 +14,11 @@ amount 单位同该市场货币；或直接抬高 cash_reconciled + cash_reconci
 import sys
 from pathlib import Path
 
-from workspace import workspace_root  # noqa: E402
+# The checkout root, so `clawock` resolves from the tree this file ships
+# in. Reached through the scripts/data/workspace shim until #267 step 3,
+# whose only remaining job was inserting this path as a side effect.
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+from clawock.workspace import workspace_root  # noqa: E402
 
 # Code lives in the checkout; only DATA lives in the workspace. `workspace_root`
 # is overridable, so resolving our own modules through WS would read them out of
