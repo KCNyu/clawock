@@ -10,6 +10,11 @@ const { chromium } = require("playwright");
 const ROOT = path.resolve(__dirname, "..");
 const DETAIL_PATH = "/assets/js/dashboard.render.js";
 const TABS = ["drill", "risk", "market", "plan", "reflect"];
+// Everything after the first paint reads the data branch instead of this origin
+// (#367). Every page here stubs it: left unrouted it would put a live call to
+// raw.githubusercontent.com on CI's critical path, and the bytes it would return
+// are the ones already sitting in assets/data.
+const LIVE_DATA_ORIGIN = "https://raw.githubusercontent.com/KCNyu/clawock/data-plane/";
 const MIME = {
   ".css": "text/css; charset=utf-8",
   ".html": "text/html; charset=utf-8",
@@ -35,12 +40,36 @@ function serveWorkspace() {
   });
 }
 
+// Records which data files were served from the live branch, so a test can
+// assert both that the first paint never went there and that a poll always does.
+async function stubLiveOrigin(page, options = {}) {
+  const served = [];
+  await page.route(LIVE_DATA_ORIGIN + "**", async route => {
+    const name = path.basename(new URL(route.request().url()).pathname);
+    served.push(name);
+    if (options.fail) return route.abort("failed");
+    const file = path.resolve(ROOT, "assets/data", name);
+    if (!fs.existsSync(file)) return route.fulfill({ status: 404, body: "not found" });
+    await route.fulfill({
+      status: 200,
+      headers: {
+        "content-type": "application/json; charset=utf-8",
+        "access-control-allow-origin": "*",
+      },
+      body: fs.readFileSync(file, "utf8"),
+    });
+  });
+  return served;
+}
+
 function observe(page) {
   const result = { detailRequests: 0, fullRequests: 0, failures: [], errors: [] };
   page.on("request", request => {
     const pathname = new URL(request.url()).pathname;
     if (pathname === DETAIL_PATH) result.detailRequests += 1;
-    if (pathname === "/assets/data/dashboard.json") result.fullRequests += 1;
+    // Counted on either origin: the point of the assertion is that detail tabs
+    // share one request for the full document, not where it was served from.
+    if (pathname.endsWith("/assets/data/dashboard.json")) result.fullRequests += 1;
   });
   page.on("response", response => {
     const url = new URL(response.url());
@@ -81,6 +110,7 @@ async function dispatchTouch(session, type, points) {
 async function testRuntime(browser, base) {
   const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
   const state = observe(page);
+  await stubLiveOrigin(page);
   await page.goto(base, { waitUntil: "networkidle" });
   await waitForData(page);
   assert.equal(state.detailRequests, 0, "Overview downloaded the detail renderer");
@@ -108,6 +138,7 @@ async function testRuntime(browser, base) {
 
   const deep = await browser.newPage({ viewport: { width: 1280, height: 900 } });
   const deepState = observe(deep);
+  await stubLiveOrigin(deep);
   await deep.goto(base + "#reflect", { waitUntil: "domcontentloaded" });
   await waitForTab(deep, "reflect");
   assert.equal(deepState.detailRequests, 1, "deep link did not load one detail bundle");
@@ -117,6 +148,7 @@ async function testRuntime(browser, base) {
 
   const rapid = await browser.newPage({ viewport: { width: 1280, height: 900 } });
   const rapidState = observe(rapid);
+  await stubLiveOrigin(rapid);
   await rapid.route(`**${DETAIL_PATH}`, async route => {
     await new Promise(resolve => setTimeout(resolve, 250));
     await route.continue();
@@ -133,6 +165,7 @@ async function testRuntime(browser, base) {
 
   const mismatch = await browser.newPage({ viewport: { width: 1280, height: 900 } });
   const mismatchState = observe(mismatch);
+  await stubLiveOrigin(mismatch);
   let fullAttempt = 0;
   await mismatch.route(/\/assets\/data\/dashboard\.json(?:\?.*)?$/, async route => {
     fullAttempt += 1;
@@ -154,12 +187,70 @@ async function testRuntime(browser, base) {
   assert.deepEqual(mismatchState.errors, []);
 }
 
+async function testLiveDataOrigin(browser, base) {
+  // The first paint must stay on this origin. `overview.json` is the only fetch
+  // on the LCP path, so a second origin's handshake there is paid by every cold
+  // visit — Lighthouse included — to save a wait nobody is watching yet.
+  const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
+  const state = observe(page);
+  const served = await stubLiveOrigin(page);
+  await page.goto(base, { waitUntil: "networkidle" });
+  await waitForData(page);
+  assert.deepEqual(served, [], "the first paint reached across origins for its data");
+
+  // Every poll after it must read the branch, which is ~14 minutes ahead of
+  // this origin during a session (#367). A poll that keeps reading Pages is the
+  // regression this whole change exists to prevent.
+  await page.evaluate(() => loadData(false));
+  assert.deepEqual(served, ["overview.json"],
+    "the background poll did not read the data branch");
+
+  // The full document has to follow overview.json across, or the two halves of
+  // one generation come from origins ~14 minutes apart and never line up.
+  await page.click('.tab-btn[data-tab="risk"]');
+  await waitForTab(page, "risk");
+  assert.ok(served.includes("dashboard.json"),
+    "the full document was not read from the data branch");
+  assert.equal(state.fullRequests, 1, "the full document was fetched more than once");
+  assert.deepEqual(state.failures, []);
+  assert.deepEqual(state.errors, []);
+  await page.close();
+
+  // A data branch we cannot reach must cost one attempt, not one per poll, and
+  // must leave a working page behind.
+  const offline = await browser.newPage({ viewport: { width: 1280, height: 900 } });
+  const offlineState = observe(offline);
+  const attempts = await stubLiveOrigin(offline, { fail: true });
+  await offline.goto(base, { waitUntil: "networkidle" });
+  await waitForData(offline);
+  await offline.evaluate(() => loadData(false));
+  // Asserted here, before the next poll succeeds and repairs the label: the one
+  // honest statement on screen is how old the generation being rendered is, and
+  // a failed background poll must not overwrite it with a string that says
+  // nothing about it.
+  assert.match(await offline.evaluate(() =>
+    document.getElementById("last-updated").textContent), /生成于/,
+    "a failed poll replaced the age of the generation still on screen");
+  // Three polls, not two. The second falls back and succeeds, and it is the
+  // third that catches a fallback which forgets — re-promoting the dead origin
+  // after every recovery makes every other poll fail.
+  await offline.evaluate(() => loadData(false));
+  await offline.evaluate(() => loadData(false));
+  assert.equal(attempts.length, 1,
+    "an unreachable data branch was retried on every poll instead of being dropped");
+  await waitForData(offline);
+  assert.deepEqual(offlineState.failures, []);
+  assert.deepEqual(offlineState.errors, []);
+  await offline.close();
+}
+
 async function testEquityTouch(browser, base) {
   const context = await browser.newContext({
     viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true,
   });
   const page = await context.newPage();
   const state = observe(page);
+  await stubLiveOrigin(page);
   await page.goto(base, { waitUntil: "networkidle" });
   await waitForData(page);
   await page.locator(".native-equity-canvas").scrollIntoViewIfNeeded();
@@ -210,6 +301,7 @@ async function main() {
   } : {});
   try {
     await testRuntime(browser, base);
+    await testLiveDataOrigin(browser, base);
     await testEquityTouch(browser, base);
   } finally {
     await browser.close();
