@@ -55,9 +55,9 @@ python3 /root/.openclaw/workspace/scripts/harness/brief_preflight.py
 ### Step 2: 只读 decision packet summary（唯一常驻输入）
 
 ```bash
-python3 /root/.openclaw/workspace/scripts/data/brief_decision_packet.py \
-  --manifest /root/.openclaw/workspace/memory/.tmp/brief-context-$(date +%Y-%m-%d)/manifest.json \
-  --summary
+PYTHONPATH=/root/.openclaw/workspace python3 -m clawock.cli tool decision_packet_summary \
+  --workspace /root/.openclaw/workspace \
+  --arg manifest=/root/.openclaw/workspace/memory/.tmp/brief-context-$(date +%Y-%m-%d)/manifest.json
 ```
 
 summary 包含 book/concentration、每票 deterministic status、技术/因子可用性、风险计数、allowed actions 与 evidence IDs。它不要求模型加载原始持仓交易流水或整张因子表。
@@ -65,12 +65,15 @@ summary 包含 book/concentration、每票 deterministic status、技术/因子�
 需要分析某票时才查该票；需要单一维度时必须带 `--section`：
 
 ```bash
-python3 /root/.openclaw/workspace/scripts/data/brief_decision_packet.py \
-  --manifest /root/.openclaw/workspace/memory/.tmp/brief-context-$(date +%Y-%m-%d)/manifest.json \
-  --ticker 00100 --section technical
+PYTHONPATH=/root/.openclaw/workspace python3 -m clawock.cli tool decision_packet_query \
+  --workspace /root/.openclaw/workspace \
+  --arg manifest=/root/.openclaw/workspace/memory/.tmp/brief-context-$(date +%Y-%m-%d)/manifest.json \
+  --arg ticker=00100 --arg section=technical
 ```
 
 可选 section：`facts|technical|quant|sentiment|evidence|risk|constraints`。一次查询硬上限 24 KiB，并同时校验 manifest hash 与 generation。正常分析禁止 `cat brief-context-{date}.json`，也禁止为了省一次查询而整份读 core/research/market bundle。
+
+> **为什么走 `clawock.cli tool` 而不是直接调 `scripts/data/brief_decision_packet.py`**：工具注册表是这套上下文协议唯一机器可读的定义（`clawock.cli tool --list` 直接吐 JSON schema），而 24 KiB 预算是在注册表里强制的 —— 真正读 context 的调用方就是本 skill，绕过注册表等于绕过预算（#266）。`PYTHONPATH=` 前缀是必需的：`clawock` 尚未 pip 安装，没有它则只在 cwd 恰好是 workspace 时才能跑。输出与旧命令逐 section JSON 等价，含 `_meta.generation_id` 代次钉扎。
 
 ### Step 2.5: 按消费者 lazy-load bundles
 

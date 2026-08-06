@@ -112,8 +112,17 @@ class DecisionPacketQuery(_PacketTool):
         value = (packet.get("tickers") or {}).get(str(ticker))
         if value is None:
             raise ToolError(f"unknown ticker: {ticker}")
+        # `_meta` carries the generation_id, and a narrowed payload must keep it:
+        # the whole protocol is generation-pinned and postflight validates a report
+        # against the exact generation the model read. The CLI path has always
+        # attached it here; the tool dropped it, so every section query through the
+        # registry was silently un-pinned (found by wiring the first real consumer,
+        # #266 — nothing else would have shown it).
         payload = value if section is None else {
-            "ticker": str(ticker), section: value.get(section)}
+            "_meta": packet.get("_meta"),
+            "ticker": str(ticker),
+            section: value.get(section),
+        }
         # The budget is applied here, not on a print path — that is the bug this
         # layer exists to close: every non-CLI caller used to bypass the cap.
         return packet_module.bounded_payload(payload)
