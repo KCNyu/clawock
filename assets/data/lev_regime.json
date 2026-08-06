@@ -1,30 +1,30 @@
 {
-  "generated_at": "2026-08-05T00:01:13.547934+00:00",
-  "as_of": "2026-08-04",
+  "generated_at": "2026-08-06T00:06:33.988244+00:00",
+  "as_of": "2026-08-05",
   "index": "HSTECH",
   "source": "tencent",
-  "bars": 1372,
-  "close": 4885.61,
+  "bars": 1373,
+  "close": 4933.07,
   "ma_window": 200,
-  "ma": 5235.63,
-  "dist_ma_pct": -6.7,
+  "ma": 5227.94,
+  "dist_ma_pct": -5.6,
   "vol_window": 20,
-  "vol_annualized": 0.3294,
+  "vol_annualized": 0.2837,
   "vol_cap": 0.5,
   "trend_on": false,
   "vol_ok": true,
   "tier": "amber",
   "lev_cap_mult": 0.5,
   "label": "趋势OFF：杠杆敞口上限砍半",
-  "rationale": "HSTECH 4886 低于 200日线 5236 (-6.7%)；20日波动 33% < 50% 上限。→ HK 杠杆ETF腿上限 ×0.5（amber）",
+  "rationale": "HSTECH 4933 低于 200日线 5228 (-5.6%)；20日波动 28% < 50% 上限。→ HK 杠杆ETF腿上限 ×0.5（amber）",
   "hk": {
     "tier": "amber",
     "lev_cap_mult": 0.5,
     "label": "趋势OFF：杠杆敞口上限砍半",
-    "close": 4885.61,
-    "ma": 5235.63,
-    "dist_ma_pct": -6.7,
-    "vol_annualized": 0.3294,
+    "close": 4933.07,
+    "ma": 5227.94,
+    "dist_ma_pct": -5.6,
+    "vol_annualized": 0.2837,
     "trend_on": false,
     "vol_ok": true
   },
@@ -33,11 +33,11 @@
       {
         "etf": "PLTU",
         "underlying": "PLTR",
-        "close": 162.66,
-        "ma": 152.54,
+        "close": 158.43,
+        "ma": 152.44,
         "ma_window": 200,
-        "dist_ma_pct": 6.6,
-        "vol_annualized": 1.1541,
+        "dist_ma_pct": 3.9,
+        "vol_annualized": 1.1578,
         "vol_n_returns": 20,
         "vol_hot_cap": 0.7,
         "trend_on": true,
@@ -48,11 +48,11 @@
       {
         "etf": "RKLX",
         "underlying": "RKLB",
-        "close": 74.48,
-        "ma": 77.82,
+        "close": 74.82,
+        "ma": 77.86,
         "ma_window": 200,
-        "dist_ma_pct": -4.3,
-        "vol_annualized": 0.9046,
+        "dist_ma_pct": -3.9,
+        "vol_annualized": 0.9051,
         "vol_n_returns": 20,
         "vol_hot_cap": 0.7,
         "trend_on": false,
@@ -63,24 +63,24 @@
       {
         "etf": "SPCH",
         "underlying": "SPCX",
-        "close": 125.33,
-        "ma": 114.6,
+        "close": 108.27,
+        "ma": 113.74,
         "ma_window": 5,
-        "dist_ma_pct": 9.4,
+        "dist_ma_pct": -4.8,
         "vol_annualized": null,
-        "trend_on": true,
-        "state": "ok",
+        "trend_on": false,
+        "state": "cut",
         "regime_basis": "short_ma_5",
-        "note": "SPCX 新上市仅 36 bars，不足 200DMA → 用 5日均线做右侧确认（非完整 regime）。趋势确认(>短均)→可持杠杆"
+        "note": "SPCX 新上市仅 37 bars，不足 200DMA → 用 5日均线做右侧确认（非完整 regime）。短均线之下=左侧逆市，2x 应降杠杆/换 1x，等右侧再上"
       },
       {
         "etf": "MSFU",
         "underlying": "MSFT",
-        "close": 492.81,
-        "ma": 433.35,
+        "close": 487.46,
+        "ma": 433.23,
         "ma_window": 200,
-        "dist_ma_pct": 13.7,
-        "vol_annualized": 0.6127,
+        "dist_ma_pct": 12.5,
+        "vol_annualized": 0.6109,
         "vol_n_returns": 20,
         "vol_hot_cap": 0.7,
         "trend_on": true,
@@ -90,19 +90,13 @@
       }
     ],
     "tier": "red",
-    "label": "1 只触发降杠杆（趋势off+波动过热，或新名左侧逆市）",
+    "label": "2 只触发降杠杆（趋势off+波动过热，或新名左侧逆市）",
     "vol_hot_cap": 0.7,
-    "cut_count": 1,
+    "cut_count": 2,
     "watch_count": 0
   },
   "regime_history": {
     "hk": {
-      "2025-12-19": {
-        "trend_on": false,
-        "dist_ma_pct": -1.9,
-        "mom_pct": -3.2,
-        "regime3": "bear"
-      },
       "2025-12-22": {
         "trend_on": false,
         "dist_ma_pct": -1.0,
@@ -996,15 +990,15 @@
         "dist_ma_pct": -6.7,
         "mom_pct": 1.5,
         "regime3": "chop"
+      },
+      "2026-08-05": {
+        "trend_on": false,
+        "dist_ma_pct": -5.6,
+        "mom_pct": 5.7,
+        "regime3": "bull"
       }
     },
     "us": {
-      "2026-06-22": {
-        "trend_on": null,
-        "dist_ma_pct": null,
-        "mom_pct": 0.9,
-        "regime3": "chop"
-      },
       "2026-06-23": {
         "trend_on": null,
         "dist_ma_pct": null,
@@ -1172,6 +1166,18 @@
         "dist_ma_pct": null,
         "mom_pct": 0.5,
         "regime3": "chop"
+      },
+      "2026-08-03": {
+        "trend_on": null,
+        "dist_ma_pct": null,
+        "mom_pct": 2.1,
+        "regime3": "chop"
+      },
+      "2026-08-04": {
+        "trend_on": null,
+        "dist_ma_pct": null,
+        "mom_pct": 3.1,
+        "regime3": "bull"
       }
     },
     "meta": {

@@ -1,6 +1,6 @@
 {
-  "as_of": "2026-08-05",
-  "days_logged": 41,
+  "as_of": "2026-08-06",
+  "days_logged": 42,
   "unlock_rule": "cluster_ci_entirely_above_or_below_50pct",
   "factors": {
     "trend_on_follow": {
@@ -17,13 +17,13 @@
       "note": "date/ticker 聚类不足，方向结论不入决策"
     },
     "trend_off_avoid": {
-      "n_events": 290,
-      "n_dates": 36,
+      "n_events": 296,
+      "n_dates": 37,
       "n_tickers": 10,
-      "hit_rate": 0.51,
+      "hit_rate": 0.5,
       "ci95": [
-        0.376,
-        0.65
+        0.36,
+        0.635
       ],
       "ci_method": "date_ticker_two_way_cluster_bootstrap",
       "edge_significant": false,
@@ -33,12 +33,12 @@
       "note": "聚类 CI 跨 50%，方向结论不入决策"
     },
     "rsi_oversold_bounce": {
-      "n_events": 27,
-      "n_dates": 17,
-      "n_tickers": 7,
-      "hit_rate": 0.63,
+      "n_events": 28,
+      "n_dates": 18,
+      "n_tickers": 8,
+      "hit_rate": 0.643,
       "ci95": [
-        0.308,
+        0.333,
         1.0
       ],
       "ci_method": "date_ticker_two_way_cluster_bootstrap",
@@ -78,12 +78,12 @@
       "note": "聚类 CI 跨 50%，方向结论不入决策"
     },
     "stop_breach_continue": {
-      "n_events": 252,
-      "n_dates": 36,
+      "n_events": 255,
+      "n_dates": 37,
       "n_tickers": 11,
-      "hit_rate": 0.52,
+      "hit_rate": 0.518,
       "ci95": [
-        0.349,
+        0.346,
         0.684
       ],
       "ci_method": "date_ticker_two_way_cluster_bootstrap",
@@ -94,6 +94,6 @@
       "note": "聚类 CI 跨 50%，方向结论不入决策"
     }
   },
-  "summary": "没有因子通过聚类 CI 50% 闸（41 天留痕）——结论未解锁",
+  "summary": "没有因子通过聚类 CI 50% 闸（42 天留痕）——结论未解锁",
   "discipline": "自迭代规则：公开 n_events/n_dates/n_tickers；date×ticker 双向聚类 CI 跨 50% 不入决策；只有反向 CI 整体低于 50% 才允许反向解读。driven_by=technical 的整体战绩以 dashboard 的实时 decision_metrics.by_driver.technical 为准，不使用固定百分比。"
 }

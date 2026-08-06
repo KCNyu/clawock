@@ -1,8 +1,8 @@
 {
-  "generated_at": "2026-08-05T08:01:34.955127+08:00",
+  "generated_at": "2026-08-06T08:06:53.677510+08:00",
   "lookback_window_days": 14,
-  "window_start": "2026-08-05",
-  "window_end": "2026-08-19",
+  "window_start": "2026-08-06",
+  "window_end": "2026-08-20",
   "earnings_queried": [
     "CRCL",
     "MSFT",
@@ -12,17 +12,6 @@
     "SPCX"
   ],
   "earnings": [
-    {
-      "ticker": "CRCL",
-      "name": "CRCL",
-      "date": "2026-08-05",
-      "time": "bmo",
-      "eps_estimate": 0.2161,
-      "eps_actual": null,
-      "revenue_estimate_m": 738.42,
-      "quarter": 2,
-      "year": 2026
-    },
     {
       "ticker": "RKLB",
       "name": "RKLB",
@@ -49,7 +38,7 @@
     }
   ],
   "summary": {
-    "earnings_count": 2,
+    "earnings_count": 1,
     "fomc_in_window": 0,
     "macro_count": 2,
     "highest_impact_within_7d": "CPI 2026-08-12"
