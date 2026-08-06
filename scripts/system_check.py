@@ -129,7 +129,7 @@ def check_portfolio_schema(r):
 
 def check_instrument_registry(r):
     """Canonical metadata must cover every active holding."""
-    sys.path.insert(0, str(WS / 'scripts' / 'data'))
+    sys.path.insert(0, str(_REPO_ROOT / 'scripts' / 'data'))
     try:
         import instrument_registry
         portfolio = json.loads((WS / 'portfolio.json').read_text())
@@ -156,7 +156,7 @@ def check_plan_json_schema(r):
         r.add('plan.json schema', OK, '0 plans yet')
         return
     bad = []
-    sys.path.insert(0, str(WS / 'scripts' / 'data'))
+    sys.path.insert(0, str(_REPO_ROOT / 'scripts' / 'data'))
     import decision_v2
     for p in plans:
         try:
@@ -184,7 +184,7 @@ def check_dashboard_buildable(r):
     try:
         env = dict(os.environ, BUILD_DASHBOARD_OUT=str(out))
         rr = subprocess.run(
-            ['python3', str(WS / 'scripts' / 'data' / 'build_dashboard.py')],
+            ['python3', str(_REPO_ROOT / 'scripts' / 'data' / 'build_dashboard.py')],
             capture_output=True, text=True, timeout=30, cwd=str(WS), env=env,
         )
         if rr.returncode != 0:
@@ -418,7 +418,7 @@ def check_decision_ledger(r):
         r.add('decisions.jsonl', OK, 'no ledger yet (first runs)')
         return
     try:
-        sys.path.insert(0, str(WS / 'scripts' / 'data'))
+        sys.path.insert(0, str(_REPO_ROOT / 'scripts' / 'data'))
         import decision_v2
         rows = decision_v2.load_decisions(p)
     except Exception as e:
@@ -446,7 +446,7 @@ def check_cron_paths_exist(r):
     only as an explicitly rejected last-resort fossil.
     """
     import re
-    sys.path.insert(0, str(WS / 'scripts' / 'harness'))
+    sys.path.insert(0, str(_REPO_ROOT / 'scripts' / 'harness'))
     try:
         import _watchdog_common as wc  # type: ignore
         from _watchdog_common import load_jobs  # type: ignore
@@ -471,7 +471,7 @@ def check_cron_paths_exist(r):
         return
 
     try:
-        sys.path.insert(0, str(WS / 'scripts' / 'data'))
+        sys.path.insert(0, str(_REPO_ROOT / 'scripts' / 'data'))
         from cron_contract import (  # type: ignore
             load_contract, next_us_dst_transition, us_season,
             validate_live_jobs, validate_watchdogs,
@@ -515,7 +515,7 @@ def check_cron_paths_exist(r):
 def check_generated_cron_docs(r):
     """Generated schedule documentation must exactly match the contract."""
     result = subprocess.run(
-        ['python3', str(WS / 'scripts' / 'data' / 'generate_cron_docs.py'), '--check'],
+        ['python3', str(_REPO_ROOT / 'scripts' / 'data' / 'generate_cron_docs.py'), '--check'],
         capture_output=True, text=True, timeout=15, cwd=str(WS),
     )
     if result.returncode == 0:
@@ -533,7 +533,7 @@ def check_trading_calendar_horizon(r):
     holiday into a session. The table cannot be auto-generated (HK dates are
     gazetted, US ones move), so the only safe mechanism is a loud deadline.
     """
-    sys.path.insert(0, str(WS / 'scripts' / 'data'))
+    sys.path.insert(0, str(_REPO_ROOT / 'scripts' / 'data'))
     try:
         import trading_calendar
         coverage = trading_calendar.coverage()
@@ -683,7 +683,7 @@ def check_research_artifacts(r):
     schema broke, is an integrity failure. A due earnings review or an ungated
     position is the human's work queue, so it warns and never blocks a publish.
     """
-    sys.path.insert(0, str(WS / 'scripts' / 'data'))
+    sys.path.insert(0, str(_REPO_ROOT / 'scripts' / 'data'))
     try:
         import research_surface
         result = research_surface.check()
