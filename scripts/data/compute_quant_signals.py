@@ -34,6 +34,11 @@ import requests
 
 from workspace import workspace_root  # noqa: E402
 
+# Code lives in the checkout; only DATA lives in the workspace. `workspace_root`
+# is overridable, so resolving our own modules through WS would read them out of
+# someone else's data directory — or silently pick up whatever happens to be
+# there. Same expression WS is seeded from, kept separate on purpose (#269).
+_CHECKOUT = Path(__file__).resolve().parents[2]
 WS = workspace_root(Path(__file__).resolve().parents[2])
 PORTFOLIO = WS / 'portfolio.json'
 OUT = WS / 'assets' / 'data' / 'quant_signals.json'
@@ -48,7 +53,7 @@ SIGMA_TARGET = 0.25   # vol-target sizing 的组合级目标波动（25% 年化�
 MAX_STALE_DAYS = 7
 RETIRED_RETENTION_DAYS = 7
 
-sys.path.insert(0, str(WS / 'scripts' / 'data'))
+sys.path.insert(0, str(_CHECKOUT / 'scripts' / 'data'))
 from instrument_registry import require as require_instrument  # noqa: E402
 import trading_calendar  # noqa: E402
 

@@ -31,6 +31,11 @@ from zoneinfo import ZoneInfo
 
 from workspace import workspace_root  # noqa: E402
 
+# Code lives in the checkout; only DATA lives in the workspace. `workspace_root`
+# is overridable, so resolving our own modules through WS would read them out of
+# someone else's data directory — or silently pick up whatever happens to be
+# there. Same expression WS is seeded from, kept separate on purpose (#269).
+_CHECKOUT = Path(__file__).resolve().parents[2]
 WS = workspace_root(Path(__file__).resolve().parents[2])
 LOCAL_PATH = WS / "memory" / ".tmp" / "workflow-outcomes.json"
 PUBLIC_PATH = WS / "assets" / "data" / "workflow-outcomes.json"
@@ -81,7 +86,7 @@ def slot_for_job(job_name, at=None):
     correct across daylight/standard transitions.
     """
     at = _now(at)
-    sys.path.insert(0, str(WS / "scripts" / "data"))
+    sys.path.insert(0, str(_CHECKOUT / "scripts" / "data"))
     from cron_contract import effective_schedule, load_contract
 
     expected = next(
@@ -337,7 +342,7 @@ def _match_run(record, entries):
 def reconcile_raw_execution():
     """Overlay raw run status from live SQLite without changing final product."""
     try:
-        sys.path.insert(0, str(WS / "scripts" / "harness"))
+        sys.path.insert(0, str(_CHECKOUT / "scripts" / "harness"))
         import _watchdog_common as common
 
         jobs = common.load_jobs("sqlite")
