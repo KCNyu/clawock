@@ -46,13 +46,13 @@ PRIMARY_SOURCE_TYPES = {
 POSITIVE_WORDS = {
     'beat', 'beats', 'raise', 'raised', 'upgrade', 'upgraded', 'approval',
     'approved', 'contract', 'award', 'buyback', 'record revenue', '获准',
-    '中标', '回购', '上调', '增长', '获批',
+    '中标', '回购', '上调', '增长', '获批', '调入', '纳入',
 }
 NEGATIVE_WORDS = {
     'miss', 'missed', 'probe', 'investigation', 'fraud', 'lawsuit',
     'downgrade', 'downgraded', 'recall', 'dilution', 'offering', 'default',
     'cut guidance', 'restatement', '减持', '调查', '诉讼', '下调', '召回',
-    '亏损', '处罚', '违约',
+    '亏损', '处罚', '违约', '调出', '剔除',
 }
 
 sys.path.insert(0, str(WS / 'scripts' / 'data'))
@@ -186,6 +186,12 @@ def classify_event(title, explicit=None):
         ('product', ('launch', 'release', 'recall', '测试', '发布', '召回')),
         ('analyst_rating', ('upgrade', 'downgrade', 'price target', '覆盖', '评级')),
         ('ownership', ('stake', 'holding', '持股', '减持', '增持')),
+        # Southbound/index membership changes. Deliberately NOT in
+        # HARD_EVENT_TYPES: escalation additionally requires a negative
+        # direction, and widening high_impact here would quietly start
+        # escalating removals — a policy change, not a classification fix.
+        ('index_inclusion', ('港股通', '沪股通', '深股通', '标的名单',
+                             'stock connect', 'index inclusion')),
         ('price_move', ('涨超', '跌幅', 'shares rise', 'shares fall')),
         ('sector_flow', ('sector', '板块', 'etf主力', '资金流入')),
     )

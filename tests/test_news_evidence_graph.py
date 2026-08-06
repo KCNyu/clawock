@@ -407,3 +407,38 @@ def test_postflight_requires_matching_actionable_event_id(tmp_path):
     path.write_text(json.dumps(missing))
     rejected = brief_postflight.validate_plan_json(path, context)
     assert any('news-evidence-gate' in issue for issue in rejected)
+
+
+def test_stock_connect_membership_gets_a_type_and_a_direction():
+    """港股通 membership changes were classified `other` / `unknown` (#346).
+
+    `unknown` is not a harmless default: `apply_confirmation` derives
+    `expected_sign` from the direction, so an unknown-direction event has
+    `price_aligned is False` no matter how it traded. MiniMax's 2026-08-06
+    inclusion was recorded as "not confirmed" on a day it moved +10.25% — which
+    reads identically to a catalyst the tape rejected, when in truth the tape was
+    never consulted. Escalation is asserted here too: it must stay False, because
+    positive events are hold-only by design (see the sibling escalation test) and
+    the fix must not smuggle in a policy change.
+    """
+    inclusion = '上交所：港股通标的名单调入MINIMAX-W、立讯精密、三环集团'
+    removal = '港股通标的名单调出某某股份'
+    assert graph.classify_event(inclusion) == 'index_inclusion'
+    assert graph.classify_impact(inclusion) == 'positive'
+    assert graph.classify_impact(removal) == 'negative'
+    # Broad words must not fire on an unrelated negative headline.
+    assert graph.classify_impact('某公司纳入调查') == 'conflicting'
+
+    event = {
+        'title': inclusion, 'ticker': '00100', 'reported_ticker': '00100',
+        'event_type': graph.classify_event(inclusion),
+        'impact_direction': graph.classify_impact(inclusion),
+        'source_reliability': 0.62, 'novelty_score': 1.0, 'status': 'active',
+    }
+    portfolio = {'portfolios': {'hk_stocks': {'holdings': [
+        {'ticker': '00100', 'today_change_pct': 10.25,
+         'current_price': 253.8, 'volume': 38060, 'shares': 120}]}}}
+    graph.apply_confirmation(POLICY, [event], portfolio, {}, {})
+    graph.gate_events(POLICY, [event])
+    assert event['confirmation']['price_aligned'] is True
+    assert event['actionable_escalation'] is False
