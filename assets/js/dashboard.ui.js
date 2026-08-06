@@ -203,6 +203,46 @@
   let FULL_DASHBOARD = null;
   let FULL_DASHBOARD_INFLIGHT = null;
 
+  // These six outputs are published to the `data-plane` branch (#314) and only
+  // reach this origin through a Pages deployment. Measured 2026-08-06: the
+  // deployment reports success within seconds but its content becomes visible
+  // ~14 minutes later, and a deployment created while another is still
+  // propagating is dropped outright — so the site lands roughly every other
+  // generation while the publisher writes one every 20 minutes (#367).
+  // Everything after the first paint therefore reads the branch directly, where
+  // the same bytes are readable seconds after the push.
+  //
+  // The first paint deliberately stays on this origin. `overview.json` is the
+  // only fetch on the LCP path, and a second origin's DNS/TCP/TLS handshake
+  // there would be paid by every cold visit — including Lighthouse — to save a
+  // wait that nobody is watching yet. A `preconnect` would not help either: the
+  // first cross-origin request happens 60 s in, far outside the load window.
+  const DATA_PLANE_ORIGIN = "https://raw.githubusercontent.com/KCNyu/clawock/data-plane/";
+  const DATA_PLANE_FILES = new Set([
+    "cron-heartbeats", "dashboard", "decision_audit",
+    "overview", "shadow_portfolio", "workflow-outcomes",
+  ]);
+  // null until the first paint succeeds, and back to null for good if that
+  // origin ever fails us — in which case the page degrades to reading Pages, as
+  // before. The block has to be sticky: re-promoting on the next successful
+  // same-origin poll would make every second poll fail against a broken origin.
+  let LIVE_ORIGIN = null;
+  let LIVE_ORIGIN_BLOCKED = false;
+
+  function _isLiveUrl(url) {
+    return LIVE_ORIGIN != null && url.startsWith(LIVE_ORIGIN);
+  }
+
+  // `bust` is dropped for the live origin on purpose: raw.githubusercontent.com
+  // normalizes query strings out of its cache key (a `?t=` request comes back
+  // `x-cache: HIT` under the unchanged etag), so it would be noise on the wire
+  // and nothing else. `cache: "no-store"` is what actually forces a fresh hop.
+  function _dataUrl(name, bust) {
+    const relative = "assets/data/" + name + ".json";
+    if (LIVE_ORIGIN && DATA_PLANE_FILES.has(name)) return LIVE_ORIGIN + relative;
+    return relative + (bust || "");
+  }
+
   function _generation(value) {
     return value && (value.generation_id || value.generated_at);
   }
@@ -214,15 +254,23 @@
     }
     const fetchGeneration = async retry => {
       const bust = triggeredByUser || retry ? "?t=" + Date.now() : "";
-      const response = await fetch("assets/data/dashboard.json" + bust, {
+      const url = _dataUrl("dashboard", bust);
+      const response = await fetch(url, {
         cache: triggeredByUser || retry ? "no-store" : "no-cache",
       });
       if (!response.ok) throw new Error("dashboard HTTP " + response.status);
       const value = await response.json();
       if (_generation(value) !== generation) {
+        // The live origin caches each file independently for 300 s, so the two
+        // halves of one generation can be minutes apart at the edge. `no-store`
+        // re-hops it. If the pair still does not line up, this generation is
+        // simply not assembled yet — say so in a way the caller can tell apart
+        // from a real failure, and let the next poll pick it up.
         if (!retry) return fetchGeneration(true);
-        throw new Error(
+        const error = new Error(
           `dashboard generation mismatch: wanted ${generation}, got ${_generation(value)}`);
+        error.incompleteGeneration = _isLiveUrl(url);
+        throw error;
       }
       // A slower request for the previous Overview generation must not replace
       // the cache after a newer poll has already become canonical.
@@ -289,9 +337,28 @@
     if (state.ready && !state.stale) return Promise.resolve(false);
 
     const bust = triggeredByUser ? "?t=" + requestStamp : "";
-    state.inFlight = fetch("assets/data/" + k + ".json" + bust, {
-      cache: triggeredByUser ? "no-store" : "no-cache",
-    }).then(async response => response.ok ? await response.json() : null)
+    const init = { cache: triggeredByUser ? "no-store" : "no-cache" };
+    const load = async () => {
+      const url = _dataUrl(k, bust);
+      try {
+        const response = await fetch(url, init);
+        if (response.ok) return await response.json();
+      } catch (error) {
+        if (!_isLiveUrl(url)) return null;
+      }
+      // Sidecars carry no generation to check against, so they cannot ride the
+      // poll's fallback. If the live origin let one down, take the older copy
+      // this origin still serves: a tab rendered a few minutes behind beats an
+      // empty one. Same-origin failures keep the existing null contract.
+      if (!_isLiveUrl(url)) return null;
+      try {
+        const response = await fetch("assets/data/" + k + ".json" + bust, init);
+        return response.ok ? await response.json() : null;
+      } catch (error) {
+        return null;
+      }
+    };
+    state.inFlight = load()
       .catch(() => null)
       .then(value => {
         // Sidecars publish independently from dashboard.json. Revalidate them,
@@ -401,9 +468,7 @@
       // The full cross-tab document is fetched only at the detail consumer boundary.
       // A user-initiated refresh keeps the old cache-buster so it ALWAYS punches
       // through stale intermediary caches (WeChat webview / carrier proxies).
-      const url = triggeredByUser
-        ? "assets/data/overview.json?t=" + Date.now()
-        : "assets/data/overview.json";
+      const url = _dataUrl("overview", triggeredByUser ? "?t=" + Date.now() : "");
       const res = await fetch(url, { cache: triggeredByUser ? "no-store" : "no-cache" });
       if (!res.ok) throw new Error("HTTP " + res.status);
       const json = await res.json();
@@ -473,9 +538,29 @@
         }
       }
       LAST_LOADED_AT = newAt;
+      // The shell is painted and the LCP path is done. Everything from here on
+      // reads the data branch directly, which is ~14 minutes ahead of this
+      // origin during a trading session (#367).
+      if (!LIVE_ORIGIN_BLOCKED) LIVE_ORIGIN = DATA_PLANE_ORIGIN;
     } catch (e) {
+      // A generation whose two halves have not both propagated yet is not a
+      // failure — the next poll gets it. Anything else means we cannot rely on
+      // that origin, so fall back to this one for good. `LIVE_ORIGIN` is set
+      // here only if this cycle actually read from it.
+      if (LIVE_ORIGIN && !e?.incompleteGeneration) {
+        LIVE_ORIGIN_BLOCKED = true;
+        LIVE_ORIGIN = null;
+      }
       console.error("Failed to load Overview projection:", e);
-      document.getElementById("last-updated").textContent = "load failed";
+      // Blanking the age label on a background poll would replace the one honest
+      // statement on screen — how old the rendered generation is — with a string
+      // that says nothing about it. Keep it; a label that visibly stops advancing
+      // is the accurate signal. The first load has nothing to preserve.
+      if (DATA == null) {
+        document.getElementById("last-updated").textContent = "load failed";
+      } else {
+        _updateAgeLabel();
+      }
       if (btn) {
         btn.classList.remove("is-loading");
         btn.removeAttribute("disabled");

@@ -147,6 +147,14 @@ jobs:
           npm install --no-save --silent playwright@1.60.0
           npx playwright install --with-deps chromium
 
+      # The dashboard's four outputs and two sidecars live on the data branch,
+      # not on master (#314), so a checkout does not carry them. The browser
+      # contract loads the real page and would time out waiting for a Hero that
+      # never receives its projection.
+      - name: Fetch the published generation
+        if: github.event_name == 'pull_request' && steps.changes.outputs.ui == 'true'
+        run: python3 scripts/build/fetch_data_plane.py
+
       - name: Browser contract — Hero, detail tabs, and chart gestures
         if: github.event_name == 'pull_request' && steps.changes.outputs.ui == 'true'
         run: node tests/dashboard_tab_runtime.spec.js
