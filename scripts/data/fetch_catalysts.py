@@ -34,6 +34,9 @@ from instrument_registry import leveraged_symbols
 WS_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 OUT_FILE = os.path.join(WS_ROOT, 'assets', 'data', 'catalysts.json')
 API_KEYS_FILE = os.path.join(WS_ROOT, '.api_keys')
+# Dated company events no vendor supplies (Stock Connect effective dates, lockup
+# expiries, mainnet launches). Hand-maintained; see the file's own _meta.
+SCHEDULED_FILE = os.path.join(WS_ROOT, 'memory', 'scheduled_catalysts.json')
 
 UA = 'clawock-catalysts/1.0 (github.com/KCNyu/clawock)'
 HEADERS = {'User-Agent': UA}
@@ -307,6 +310,54 @@ def _highest_impact(catalysts, today_iso):
     return None
 
 
+def scheduled_in_window(window_start, window_end, path=SCHEDULED_FILE):
+    """Hand-maintained company events, filtered to the window.
+
+    An entry whose date is unknown is kept regardless of the window and carries
+    `date: null`. That is the point of the file: the brief must be able to say
+    "生效日未确认" from data instead of inventing a date, which is what produced
+    three contradictory dates for one event on 2026-08-06.
+
+    Returns `(events, error)`. A malformed file must not take the whole catalyst
+    step down — the automatic categories are still worth publishing — but it must
+    not vanish silently either: a JSON typo in a hand-edited file would otherwise
+    drop every scheduled event with nothing anywhere saying so. The error rides
+    out in `catalysts.json.error`, which preflight already surfaces.
+    """
+    try:
+        with open(path, encoding='utf-8') as fh:
+            entries = (json.load(fh) or {}).get('events') or []
+    except FileNotFoundError:
+        return [], None
+    except (OSError, ValueError) as exc:
+        return [], f'{type(exc).__name__}: {exc}'
+    out = []
+    for entry in entries:
+        if not isinstance(entry, dict) or not entry.get('ticker'):
+            continue
+        date = entry.get('date')
+        confidence = entry.get('date_confidence') or 'unconfirmed'
+        # A date that is present but outside the window is simply not due yet.
+        if date and not (window_start <= date <= window_end):
+            continue
+        # Guard the one rule the file exists to enforce: no date, no confidence
+        # claim. A stray "confirmed" with a null date would let the brief cite a
+        # certainty that does not exist.
+        if not date:
+            confidence = 'unconfirmed'
+        out.append({
+            'ticker': entry['ticker'],
+            'name': entry.get('name') or entry['ticker'],
+            'type': entry.get('type') or 'other',
+            'date': date,
+            'date_confidence': confidence,
+            'detail': entry.get('detail') or '',
+            'source': entry.get('source') or '',
+        })
+    ordered = sorted(out, key=lambda e: (e['date'] is None, e['date'] or '', e['ticker']))
+    return ordered, None
+
+
 def build_catalysts(days):
     today = datetime.now(timezone(timedelta(hours=8))).strftime('%Y-%m-%d')
     today_dt = datetime.strptime(today, '%Y-%m-%d').date()
@@ -320,6 +371,9 @@ def build_catalysts(days):
 
     fomc = fomc_in_window(today, end_iso)
     macro = macro_in_window(today, end_iso)
+    scheduled, s_error = scheduled_in_window(today, end_iso)
+    if s_error:
+        errors['scheduled_events'] = s_error
 
     catalysts = {
         'earnings':      earnings,
@@ -337,10 +391,13 @@ def build_catalysts(days):
         'earnings':           earnings,
         'fomc':               fomc,
         'macro_events':       macro,
+        'scheduled_events':   scheduled,
         'summary': {
             'earnings_count':           len(earnings),
             'fomc_in_window':           len(fomc),
             'macro_count':              len(macro),
+            'scheduled_count':          len(scheduled),
+            'scheduled_undated':        sum(1 for e in scheduled if not e['date']),
             'highest_impact_within_7d': highest,
         },
     }
