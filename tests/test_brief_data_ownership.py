@@ -70,6 +70,46 @@ def test_preflight_writes_are_committed():
         f'workflow took ownership.')
 
 
+def _repo_root_outputs():
+    """Repo-root files written by the scripts preflight shells out to.
+
+    `{NAME} = WS / 'file'` at the top of a script, kept only when that constant is
+    actually written (not merely read) in the same file.
+    """
+    out = {}
+    for script in sorted(set(re.findall(
+            r"scripts' / 'data' / '([a-z_]+\.py)'", PREFLIGHT))):
+        path = ROOT / 'scripts' / 'data' / script
+        if not path.exists():
+            continue
+        source = path.read_text()
+        for const, name in re.findall(
+                r"^([A-Z_]+) = WS / '([^/']+)'$", source, re.M):
+            if re.search(rf"{const}\.write_text\(|_write_\w+\({const}\b", source):
+                out[name] = script
+    return out
+
+
+def test_repo_root_outputs_are_committed_too():
+    """The same contract, for files that do NOT live under assets/data/.
+
+    This is the hole `evidence.md` fell through (#345): every `git add` above is
+    directory-scoped, and the sibling test only discovers `assets/data/` paths, so
+    a repo-root artifact had no owner and nothing failed. build_evidence.py rewrote
+    it each morning for months while the published page served 08-02 numbers and
+    live carried a permanently dirty file. Exactly the MEMORY.md/DREAMS.md gap that
+    needed commit_dreaming.sh — this asserts the root is covered, not just the
+    subdirectory.
+    """
+    staged = _postflight_add_list()
+    unowned = sorted(f'{name} (written by {script})'
+                     for name, script in _repo_root_outputs().items()
+                     if name not in staged)
+    assert not unowned, (
+        f'preflight rebuilds {unowned} at the repo root but postflight never '
+        f'stages them, so origin keeps serving a stale copy and live stays dirty.')
+
+
 def test_gha_synced_files_are_actually_gha_produced():
     """GHA_DATA_FILES is checked out from origin, so a local-only file must not be
     in it — the checkout would silently discard the copy preflight just fetched.
