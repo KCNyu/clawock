@@ -304,7 +304,7 @@ preflight 已算好,直接读 `context.risk_guardrail`:
 | **软情绪** (soft) | Reddit 提及数/热度、Google News 标题情绪、散户温度、Trump/Musk 喊话(无落地)、"看好/看空"类口风 | **只能动 confidence ±10pp,不能单独翻 bucket** |
 
 硬性规则:
-- **`context.news_evidence_graph` 存在时，只有 `actionable_escalation=true` 的事件能驱动主动 catalyst 动作**，并把其 `event_id` 原样写入 plan 的 `evidence_event_id`。事件必须是一手/可靠、仍有效、足够新颖、负面证伪且获价量或已校准同行残差确认；任一 blocker 存在就只能 display/watch。
+- **`context.news_evidence_graph` 存在时，只有 `actionable_escalation=true` 的事件能驱动主动 catalyst 动作**，并把其 `event_id` 原样写入 plan 的 `evidence_event_id`。事件必须是一手/可靠、仍有效、足够新颖、负面证伪且获价量或已校准同行残差确认；任一 blocker 存在就只能 display/watch —— 但落成 `watch`/`hold_and_watch` 时**仍然可以**把该事件的 `event_id` 写进 `evidence_event_id` 并保留 `driven_by=catalyst`（被动档只要求事件真实，见 plan.json 字段表）。
 - 同一 novelty cluster 的重复摘要不会增加 conviction；过期事件不能复活。`positive/confirming` 事件一律 hold-only。
 - Tavily 新闻搜索只准处理 `tavily_resolution_queue` 里列出的 event ID 和 query；队列外的日常旧闻/低影响摘要不得消耗 Tavily。未解决不等于可交易，搜索结果仍需下一轮图谱门控。
 - **软情绪单独存在时,bucket 必须维持技术面/基本面给出的那个**;软情绪只允许把该 action 的 confidence 上下微调最多 ±10pp,且要在 rationale 写明"软情绪佐证/背离,confidence ±X"。
@@ -660,7 +660,8 @@ postflight 严格 schema 校验：
 - `action` ∈ {`cut`, `trim_on_rebound`, `hold_and_watch`, `t_only`, `add_only_on_trigger`, `watch`}
 - `condition.type` ∈ {`open`, `price_above`, `price_below`, `index_breakdown`, `event`, `manual`}
 - `driven_by` ∈ {`technical`, `catalyst`, `sentiment`, `influencer`, `macro`, `peer`, `risk_rule`}（每个 decision 必填）
-- `evidence_event_id`：主动且 `driven_by=catalyst` 时必填，必须精确匹配 `context.news_evidence_graph.events` 中同 ticker 且 `actionable_escalation=true` 的事件；其余 decision 填 `null`。
+- `evidence_event_id`：`driven_by=catalyst` 时必填，分两档 —— **主动** call（`cut`/`trim_on_rebound`/`t_only`/`add_only_on_trigger`/`add_on_breakout`）必须精确匹配 `context.news_evidence_graph.events` 中同 ticker 且 `actionable_escalation=true` 的事件（不许拿未升级事件去交易）；**被动** `hold_and_watch`/`watch` 只要求匹配同 ticker 的**真实**事件，不要求 `actionable_escalation=true`（「昨天出了财报所以我盯着」是正当归因）。`driven_by` 不是 `catalyst` 的 decision 填 `null`。
+  - ⚠️ 被动决策若归因 `catalyst` 就**必须**给出真实 `event_id`，不能填 `null` —— 归因得可核。给不出具体事件，就说明它其实不是 catalyst 驱动，改用 `technical`/`risk_rule` 等如实标注。**不要为了过闸而改标 `driven_by`**：这个字段直接决定 `by_driver` 胜率归属（主动和被动都进桶），洗标签就是在污染自己的 edge 统计。
 - `regime` ∈ {`risk_on`, `neutral`, `risk_off`}（每个 decision 必填；按本报告已判定的当前 regime 留痕，迁移旧数据才允许 `unknown`）
 - `confidence` ∈ [0.0, 1.0]
 - `size.shares`（整数，**主动 call（`cut`/`trim_on_rebound`/`t_only`/`add_only_on_trigger`/`add_on_breakout`）必填**；`hold_and_watch`/`watch` 不需要)：股数是这条 call 日后唯一能被折算成钱的凭据。面板上那条金额曲线已撤（见上条铁律），但**重建一套可信对照账本必须有股数，当天没填就永远补不回来**。宁可给保守估数也别留空。填**你真的会动的股数**,不是仓位上限。
