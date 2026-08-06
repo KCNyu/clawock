@@ -74,6 +74,11 @@ import requests
 
 from workspace import workspace_root  # noqa: E402
 
+# Code lives in the checkout; only DATA lives in the workspace. `workspace_root`
+# is overridable, so resolving our own modules through WS would read them out of
+# someone else's data directory — or silently pick up whatever happens to be
+# there. Same expression WS is seeded from, kept separate on purpose (#269).
+_CHECKOUT = Path(__file__).resolve().parents[2]
 WS = workspace_root(Path(__file__).resolve().parent.parent.parent)
 OUT_FILE = WS / 'assets' / 'data' / 'lev_regime.json'
 PORTFOLIO = WS / 'portfolio.json'
@@ -86,7 +91,7 @@ MA_WINDOW = 200      # slower MA = fewer falling-knife re-entries (verified vs 1
 VOL_WINDOW = 20
 VOL_CAP = 0.50       # HSTECH 20d annualised realised-vol ceiling for "vol-ok"
 
-sys.path.insert(0, str(WS / 'scripts' / 'data'))
+sys.path.insert(0, str(_CHECKOUT / 'scripts' / 'data'))
 from instrument_registry import INSTRUMENTS  # noqa: E402
 
 # US 2x single-stock ETF → (underlying ticker, Tencent fqkline symbol). The US dial is

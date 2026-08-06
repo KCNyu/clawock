@@ -27,6 +27,11 @@ from zoneinfo import ZoneInfo
 
 from workspace import workspace_root  # noqa: E402
 
+# Code lives in the checkout; only DATA lives in the workspace. `workspace_root`
+# is overridable, so resolving our own modules through WS would read them out of
+# someone else's data directory — or silently pick up whatever happens to be
+# there. Same expression WS is seeded from, kept separate on purpose (#269).
+_CHECKOUT = Path(__file__).resolve().parents[2]
 WS = workspace_root(Path(__file__).resolve().parents[2])
 THESIS_DIR = WS / "memory" / "theses"
 EARNINGS_DIR = WS / "memory" / "earnings"
@@ -34,7 +39,7 @@ ENTRY_GATE_DIR = WS / "memory" / "entry-gates"
 PORTFOLIO = WS / "portfolio.json"
 CATALYSTS = WS / "assets" / "data" / "catalysts.json"
 
-sys.path.insert(0, str(WS / "scripts" / "data"))
+sys.path.insert(0, str(_CHECKOUT / "scripts" / "data"))
 import earnings_review  # noqa: E402
 import entry_gate  # noqa: E402
 import thesis_registry  # noqa: E402

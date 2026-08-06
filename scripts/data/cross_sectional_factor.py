@@ -26,6 +26,11 @@ import requests
 
 from workspace import workspace_root  # noqa: E402
 
+# Code lives in the checkout; only DATA lives in the workspace. `workspace_root`
+# is overridable, so resolving our own modules through WS would read them out of
+# someone else's data directory — or silently pick up whatever happens to be
+# there. Same expression WS is seeded from, kept separate on purpose (#269).
+_CHECKOUT = Path(__file__).resolve().parents[2]
 WS = workspace_root(Path(__file__).resolve().parents[2])
 CONFIG = WS / 'config' / 'factor-universe.json'
 OUT = WS / 'assets' / 'data' / 'cross_sectional_factor.json'
@@ -46,7 +51,7 @@ RAW_FACTORS = (
 )
 QUALITY_METHOD_VERSION = 2
 
-sys.path.insert(0, str(WS / 'scripts' / 'data'))
+sys.path.insert(0, str(_CHECKOUT / 'scripts' / 'data'))
 from safe_io import safe_write_json, safe_write_text  # noqa: E402
 
 

@@ -17,11 +17,16 @@ from zoneinfo import ZoneInfo
 
 from workspace import workspace_root  # noqa: E402
 
+# Code lives in the checkout; only DATA lives in the workspace. `workspace_root`
+# is overridable, so resolving our own modules through WS would read them out of
+# someone else's data directory — or silently pick up whatever happens to be
+# there. Same expression WS is seeded from, kept separate on purpose (#269).
+_CHECKOUT = Path(__file__).resolve().parents[2]
 WS = workspace_root(Path(__file__).resolve().parents[2])
 HKT = ZoneInfo("Asia/Hong_Kong")
 PORTFOLIO = WS / "portfolio.json"
 
-sys.path.insert(0, str(WS / "scripts" / "data"))
+sys.path.insert(0, str(_CHECKOUT / "scripts" / "data"))
 import cron_heartbeat  # noqa: E402
 import fetch_peers  # noqa: E402
 import trading_calendar  # noqa: E402
