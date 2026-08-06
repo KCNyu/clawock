@@ -29,6 +29,13 @@ from cron_contract import (  # noqa: E402
     us_season,
 )
 from _watchdog_common import load_jobs  # noqa: E402
+# The cron command line belongs to the adapter (#330 step 2): this script owns
+# WHEN the US schedule shifts, not how an edit reaches OpenClaw.
+#
+# The CHECKOUT root, not WS: `workspace_root` is overridable, so WS can be a
+# data directory with no `clawock` package in it.
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+from clawock.providers.openclaw import build_cron_edit_argv  # noqa: E402
 
 def parse_at(value: str | None) -> datetime:
     if not value:
@@ -84,11 +91,11 @@ def apply_openclaw(changes: list[dict]) -> list[str]:
         if not change.get("id"):
             errors.append(f"{change['name']}: missing runtime id")
             continue
-        cmd = [
-            "openclaw", "cron", "edit", change["id"],
-            "--cron", change["to"]["expr"],
-            "--tz", change["to"]["tz"], "--exact",
-        ]
+        try:
+            cmd = build_cron_edit_argv(change["id"], {"schedule": change["to"]})
+        except ValueError as exc:
+            errors.append(f"{change['name']}: {exc}")
+            continue
         result = subprocess.run(cmd, capture_output=True, text=True, timeout=45)
         if result.returncode != 0:
             errors.append(f"{change['name']}: {(result.stdout + result.stderr)[-300:]}")

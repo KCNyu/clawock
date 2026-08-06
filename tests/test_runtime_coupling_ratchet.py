@@ -57,8 +57,10 @@ RUNTIME = "openclaw"
 # chain moved into the adapter (#273); 13 → 10 when the two money CLIs and the
 # legacy backfill stopped naming the runtime's workspace absolutely (#290);
 # 10 → 9 when the watchdogs' session directory came from the adapter's
-# OPENCLAW_HOME instead of a hard-coded path (#330 step 1).
-BASELINE = 9
+# OPENCLAW_HOME instead of a hard-coded path (#330 step 1); 9 → 6 when the two
+# schedule writers took their command line from the adapter's scheduling
+# capability instead of spelling out argv (#330 step 2).
+BASELINE = 6
 
 # The honest floor is 1, not 0 — say it rather than let a future reader assume
 # the remaining count is all debt.
@@ -70,14 +72,11 @@ BASELINE = 9
 # making — a garbage collector for someone else's files is not part of a
 # portable harness's interface.
 #
-# So the sequence that remains is 9 → 1:
-#   sync_cron_payloads.py (2) + sync_us_cron_dst.py (1) — the only paths that
-#     WRITE OpenClaw's schedule. They need a scheduling capability on the
-#     provider interface, which does not exist yet; that interface is the real
-#     work and the call sites are trivial afterwards.
+# So the sequence that remains is 6 → 1:
 #   system_check.py (5) — last, deliberately. It is what proves the earlier
 #     steps did not break anything, so migrating it first would remove the check
-#     while the checked-for change is in flight.
+#     while the checked-for change is in flight. With steps 1 and 2 done it is
+#     now the only block left.
 DELIBERATE_EXCLUSIONS = {"scripts/data/gc_sessions.py": 1}
 HONEST_FLOOR = sum(DELIBERATE_EXCLUSIONS.values())
 
@@ -330,16 +329,39 @@ def test_a_multi_source_label_is_not_counted_as_coupling():
         "would reward removing multi-source support")
 
 
-def test_the_cron_writes_are_counted():
-    """The substring classifier missed these while reporting a falling number.
-    They are the only paths in the repository that write OpenClaw's schedule; a
-    metric that cannot see them cannot claim convergence."""
+def test_the_cron_writes_moved_rather_than_vanished():
+    """The schedule writers are the reason this metric exists.
+
+    The substring classifier missed them while reporting a falling number, so
+    the original form of this test pinned them as counted in
+    `sync_cron_payloads` and `sync_us_cron_dst`. They have since moved behind
+    the adapter (#330 step 2), which is the outcome the ratchet is for — but a
+    count can fall for two very different reasons, and "the capability moved"
+    must not be confused with "the sites were deleted and the writes now happen
+    somewhere unaccounted for".
+
+    So: the writers no longer spell out a command line, AND the adapter really
+    does supply one. The classifier's ability to *see* a `cron edit` vector is
+    pinned separately, on synthetic source, by
+    `test_prose_is_not_coupling_and_a_command_is`.
+    """
     sites = coupling_sites()
 
-    assert len(sites.get("scripts/data/sync_cron_payloads.py", [])) >= 2, (
-        "the `cron list` read and the `cron edit` write must both be counted")
-    assert sites.get("scripts/data/sync_us_cron_dst.py"), (
-        "the DST cron rewrite spawns `openclaw cron edit` and must be counted")
+    for writer in ("scripts/data/sync_cron_payloads.py",
+                   "scripts/data/sync_us_cron_dst.py"):
+        assert writer not in sites, (
+            f"{writer} names the runtime again — the schedule writers are "
+            "supposed to reach it through clawock.providers")
+
+    import importlib
+    adapter = importlib.import_module("clawock.providers.openclaw")
+    argv = adapter.build_cron_edit_argv(
+        "job-id", {"schedule": {"expr": "0 8 * * 1-5", "tz": "Asia/Shanghai"}})
+    assert argv[0] == adapter.OPENCLAW_BIN
+    assert argv[1:4] == ["cron", "edit", "job-id"]
+    assert "--exact" in argv, (
+        "a schedule edit must pin the slot exactly; a scheduler stagger is how "
+        "a market open drifts off its bar")
 
 
 def test_the_adapter_is_exempt_because_that_is_what_an_adapter_is_for():
