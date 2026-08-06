@@ -67,12 +67,12 @@ import workflow_outcomes  # noqa: E402
 # data, not our package. Identical to the old line whenever the override is unset,
 # i.e. on every live run, and correct when it is set.
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
-from clawock.report import (  # noqa: E402,F401
-    CRITICAL_KEYWORDS,
-    FORBIDDEN_PHRASES,
+# Only what this module uses. The four names it merely re-exported
+# (CRITICAL_KEYWORDS, FORBIDDEN_PHRASES, REQUIRED_SECTIONS, _is_hard_char_limit)
+# retired with #267: nothing outside imported them through here, so they were an
+# indirection with no consumer.
+from clawock.report import (  # noqa: E402
     MIN_REPORT_CHARS,
-    REQUIRED_SECTIONS,
-    _is_hard_char_limit,
     _unusable_context,
     assemble_message,
     categorize,
@@ -101,18 +101,20 @@ def load_context(market, phase, date):
 
 
 sys.path.insert(0, str(Path(__file__).parent))
-from _harness_common import (  # noqa: E402
+from clawock.validation import (  # noqa: E402
     REPORT_CHAR_LIMITS as CHAR_LIMITS,
     advisory_prefix,
     categorize_issues,
     check_numeric_claims,
     check_raw_tables_verbatim,
+    split_advisory,
+    validate_forbidden_phrases,
+)
+from _harness_common import (  # noqa: E402
     git_cmd as _git,
     push_with_rebase_retry,
     rebuild_dashboard,
     snapshot_date_for_now,
-    split_advisory,
-    validate_forbidden_phrases,
 )
 from _watchdog_common import resolve_wechat_target, send_wechat, cosend_telegram, already_delivered  # noqa: E402
 

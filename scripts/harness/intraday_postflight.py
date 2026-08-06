@@ -43,18 +43,23 @@ from datetime import datetime
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
-from _harness_common import (  # noqa: E402
+# The checkout root, so `clawock` resolves from the tree this file ships in
+# rather than by side effect (#265/#269).
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+from clawock.validation import (  # noqa: E402
     REPORT_CHAR_LIMITS,
     advisory_prefix,
     categorize_issues,
     check_numeric_claims,
     check_raw_tables_verbatim,
+    split_advisory,
+    validate_forbidden_phrases,
+)
+from _harness_common import (  # noqa: E402
     git_cmd,
     push_with_rebase_retry,
     rebuild_dashboard,
     snapshot_date_for_now,
-    split_advisory,
-    validate_forbidden_phrases,
 )
 from _watchdog_common import resolve_wechat_target, send_wechat, cosend_telegram, already_delivered  # noqa: E402
 

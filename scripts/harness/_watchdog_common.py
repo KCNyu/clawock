@@ -38,8 +38,9 @@ HKT = timezone(timedelta(hours=8))
 # into clawock/providers/openclaw.py so this module stops being the largest
 # consumer that knows which runtime it is on — and so the chain is reachable
 # from an installation, which it was not while it lived in this file: the wheel
-# ships `clawock`, not `scripts/harness`. Re-exported: callers that import
-# OPENCLAW_BIN from here keep working.
+# ships `clawock`, not `scripts/harness`. The OPENCLAW_BIN re-export retired with
+# #267 once system_check stopped importing it from here (#353) — it was the last
+# consumer, which is exactly the ordering that issue specified.
 #
 # `clawock` is not installed on the live host, so the repository root has to be on
 # sys.path for this import to resolve. Say so here rather than inheriting it: the
@@ -51,7 +52,7 @@ HKT = timezone(timedelta(hours=8))
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 from clawock.providers import openclaw as _openclaw  # noqa: E402
 from clawock.providers.openclaw import (  # noqa: E402
-    OPENCLAW_BIN, OPENCLAW_HOME, cron_cli_json as _adapter_cron_json,
+    OPENCLAW_HOME, cron_cli_json as _adapter_cron_json,
 )
 
 # Where the runtime keeps its session transcripts. The location is the runtime's,
@@ -60,7 +61,7 @@ from clawock.providers.openclaw import (  # noqa: E402
 # runtime they are on. Deriving it from the adapter's constant is the fix the
 # ratchet is asking for — not a relocated string, because `clawock/providers/` is
 # the one place where knowing is correct, and it is already this module's source
-# for OPENCLAW_BIN and the cron chain.
+# for OPENCLAW_HOME and the cron chain.
 SESSIONS_DIR = OPENCLAW_HOME / 'agents' / 'main' / 'sessions'
 
 

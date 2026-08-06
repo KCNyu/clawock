@@ -39,7 +39,7 @@ CTX = {
 def hc():
     if HARNESS not in sys.path:
         sys.path.insert(0, HARNESS)
-    return pytest.importorskip("_harness_common")
+    return pytest.importorskip("clawock.validation")
 
 
 def test_the_shipped_loss_estimate_is_caught(hc):

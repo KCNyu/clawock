@@ -397,7 +397,6 @@ def validate_markdown(path, context=None):
     # Markdown table column consistency — Pages renderer breaks if header/sep/data
     # rows diverge in pipe-segment count (same class of bug as the WeChat one
     # caught by intraday/report postflights).
-    from _harness_common import check_md_table_column_consistency
     for issue in check_md_table_column_consistency(text):
         issues.append(f'pre-open.md {issue}')
 
@@ -445,8 +444,15 @@ def categorize(issues):
 
 
 sys.path.insert(0, str(Path(__file__).parent))
-from _harness_common import (  # noqa: E402
+# Say it rather than inherit it: `clawock` resolved here only because
+# scripts/data/workspace.py happens to insert the root as a side effect, which is
+# the dependency #267 has to remove before that shim can retire.
+sys.path.insert(0, str(_CHECKOUT))
+from clawock.validation import (  # noqa: E402
     categorize_issues,
+    check_md_table_column_consistency,
+)
+from _harness_common import (  # noqa: E402
     git_cmd as _git,
     push_with_rebase_retry,
     rebuild_dashboard,

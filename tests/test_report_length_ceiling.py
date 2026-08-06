@@ -15,7 +15,8 @@ import sys
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'scripts' / 'harness'))
-import _harness_common as common  # noqa: E402
+import _harness_common as common  # noqa: F401
+from clawock import validation  # noqa: E402
 import intraday_postflight  # noqa: E402
 import report_postflight as postflight  # noqa: E402
 
@@ -23,16 +24,16 @@ import report_postflight as postflight  # noqa: E402
 def test_every_mode_reads_one_definition_of_the_ceiling():
     # Mode 7 used to carry its own 3000/3500 literals, so the two modes could
     # drift apart with nothing to notice.
-    assert postflight.CHAR_LIMITS is common.REPORT_CHAR_LIMITS
-    assert intraday_postflight.REPORT_CHAR_LIMITS is common.REPORT_CHAR_LIMITS
-    assert common.REPORT_CHAR_LIMITS == {'soft': 5_000, 'hard': 6_000}
+    assert postflight.CHAR_LIMITS is validation.REPORT_CHAR_LIMITS
+    assert intraday_postflight.REPORT_CHAR_LIMITS is validation.REPORT_CHAR_LIMITS
+    assert validation.REPORT_CHAR_LIMITS == {'soft': 5_000, 'hard': 6_000}
 
 
 def test_a_repeat_loop_still_fails_closed():
     # The one thing the ceiling is for: a model restating itself blows past it,
     # and that is the only automatic signal we have for that failure.
-    soft = common.REPORT_CHAR_LIMITS['soft']
-    hard = common.REPORT_CHAR_LIMITS['hard']
+    soft = validation.REPORT_CHAR_LIMITS['soft']
+    hard = validation.REPORT_CHAR_LIMITS['hard']
     body = '▎我的看法\n' + '判' * 200 + '\n'
 
     def intraday_len(n):
