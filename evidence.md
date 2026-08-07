@@ -27,14 +27,14 @@ description: 我们测了什么、什么没通过。全部数字从产物读取�
 
 ## 量化因子 edge
 
-**判定：⚪ 尚不可判** · 样本：留痕 42 天 · 来源：`assets/data/quant_signal_review.json`
+**判定：⚪ 尚不可判** · 样本：留痕 43 天 · 来源：`assets/data/quant_signal_review.json`
 
 | | |
 |---|---|
-| `rsi_overbought_fade` | 命中率 100.0% · CI95 — · n=2（2 日 × 1 标的）· ⚪ 样本只覆盖单一簇，算不出聚类 CI —— 无法解读 |
+| `rsi_overbought_fade` | 命中率 66.7% · CI95 [0.0%, 100.0%] · n=3（3 日 × 2 标的）· ⚪ CI 跨 50%，锁定 |
 | `rsi_oversold_bounce` | 命中率 64.3% · CI95 [33.3%, 100.0%] · n=28（18 日 × 8 标的）· ⚪ CI 跨 50%，锁定 |
-| `stop_breach_continue` | 命中率 51.8% · CI95 [34.6%, 68.4%] · n=255（37 日 × 11 标的）· ⚪ CI 跨 50%，锁定 |
-| `trend_off_avoid` | 命中率 50.0% · CI95 [36.0%, 63.5%] · n=296（37 日 × 10 标的）· ⚪ CI 跨 50%，锁定 |
+| `stop_breach_continue` | 命中率 51.0% · CI95 [34.1%, 67.5%] · n=259（38 日 × 11 标的）· ⚪ CI 跨 50%，锁定 |
+| `trend_off_avoid` | 命中率 49.3% · CI95 [34.7%, 62.7%] · n=302（38 日 × 10 标的）· ⚪ CI 跨 50%，锁定 |
 | `trend_on_follow` | 命中率 3.1% · CI95 — · n=32（32 日 × 1 标的）· ⚪ 样本只覆盖单一簇，算不出聚类 CI —— 无法解读 |
 | `zscore_extreme_revert` | 命中率 80.0% · CI95 [0.0%, 100.0%] · n=10（6 日 × 6 标的）· ⚪ CI 跨 50%，锁定 |
 
@@ -59,4 +59,4 @@ description: 我们测了什么、什么没通过。全部数字从产物读取�
 
 ---
 
-<sub>由 `scripts/data/build_evidence.py` 生成于 2026-08-06T04:02:26+08:00。数字全部读自产物；改动结论请改产物，不要改这一页。</sub>
+<sub>由 `scripts/data/build_evidence.py` 生成于 2026-08-07T04:04:34+08:00。数字全部读自产物；改动结论请改产物，不要改这一页。</sub>

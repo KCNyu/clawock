@@ -1,30 +1,30 @@
 {
-  "generated_at": "2026-08-06T00:06:33.988244+00:00",
-  "as_of": "2026-08-05",
+  "generated_at": "2026-08-07T00:07:52.325383+00:00",
+  "as_of": "2026-08-06",
   "index": "HSTECH",
   "source": "tencent",
-  "bars": 1373,
-  "close": 4933.07,
+  "bars": 1374,
+  "close": 4820.78,
   "ma_window": 200,
-  "ma": 5227.94,
-  "dist_ma_pct": -5.6,
+  "ma": 5220.75,
+  "dist_ma_pct": -7.7,
   "vol_window": 20,
-  "vol_annualized": 0.2837,
+  "vol_annualized": 0.2973,
   "vol_cap": 0.5,
   "trend_on": false,
   "vol_ok": true,
   "tier": "amber",
   "lev_cap_mult": 0.5,
   "label": "趋势OFF：杠杆敞口上限砍半",
-  "rationale": "HSTECH 4933 低于 200日线 5228 (-5.6%)；20日波动 28% < 50% 上限。→ HK 杠杆ETF腿上限 ×0.5（amber）",
+  "rationale": "HSTECH 4821 低于 200日线 5221 (-7.7%)；20日波动 30% < 50% 上限。→ HK 杠杆ETF腿上限 ×0.5（amber）",
   "hk": {
     "tier": "amber",
     "lev_cap_mult": 0.5,
     "label": "趋势OFF：杠杆敞口上限砍半",
-    "close": 4933.07,
-    "ma": 5227.94,
-    "dist_ma_pct": -5.6,
-    "vol_annualized": 0.2837,
+    "close": 4820.78,
+    "ma": 5220.75,
+    "dist_ma_pct": -7.7,
+    "vol_annualized": 0.2973,
     "trend_on": false,
     "vol_ok": true
   },
@@ -33,11 +33,11 @@
       {
         "etf": "PLTU",
         "underlying": "PLTR",
-        "close": 158.43,
-        "ma": 152.44,
+        "close": 155.92,
+        "ma": 152.33,
         "ma_window": 200,
-        "dist_ma_pct": 3.9,
-        "vol_annualized": 1.1578,
+        "dist_ma_pct": 2.4,
+        "vol_annualized": 1.1549,
         "vol_n_returns": 20,
         "vol_hot_cap": 0.7,
         "trend_on": true,
@@ -48,11 +48,11 @@
       {
         "etf": "RKLX",
         "underlying": "RKLB",
-        "close": 74.82,
-        "ma": 77.86,
+        "close": 75.67,
+        "ma": 77.9,
         "ma_window": 200,
-        "dist_ma_pct": -3.9,
-        "vol_annualized": 0.9051,
+        "dist_ma_pct": -2.9,
+        "vol_annualized": 0.9064,
         "vol_n_returns": 20,
         "vol_hot_cap": 0.7,
         "trend_on": false,
@@ -63,24 +63,24 @@
       {
         "etf": "SPCH",
         "underlying": "SPCX",
-        "close": 108.27,
-        "ma": 113.74,
+        "close": 114.92,
+        "ma": 114.28,
         "ma_window": 5,
-        "dist_ma_pct": -4.8,
+        "dist_ma_pct": 0.6,
         "vol_annualized": null,
-        "trend_on": false,
-        "state": "cut",
+        "trend_on": true,
+        "state": "ok",
         "regime_basis": "short_ma_5",
-        "note": "SPCX 新上市仅 37 bars，不足 200DMA → 用 5日均线做右侧确认（非完整 regime）。短均线之下=左侧逆市，2x 应降杠杆/换 1x，等右侧再上"
+        "note": "SPCX 新上市仅 38 bars，不足 200DMA → 用 5日均线做右侧确认（非完整 regime）。趋势确认(>短均)→可持杠杆"
       },
       {
         "etf": "MSFU",
         "underlying": "MSFT",
-        "close": 487.46,
-        "ma": 433.23,
+        "close": 499.86,
+        "ma": 433.16,
         "ma_window": 200,
-        "dist_ma_pct": 12.5,
-        "vol_annualized": 0.6109,
+        "dist_ma_pct": 15.4,
+        "vol_annualized": 0.6113,
         "vol_n_returns": 20,
         "vol_hot_cap": 0.7,
         "trend_on": true,
@@ -90,19 +90,13 @@
       }
     ],
     "tier": "red",
-    "label": "2 只触发降杠杆（趋势off+波动过热，或新名左侧逆市）",
+    "label": "1 只触发降杠杆（趋势off+波动过热，或新名左侧逆市）",
     "vol_hot_cap": 0.7,
-    "cut_count": 2,
+    "cut_count": 1,
     "watch_count": 0
   },
   "regime_history": {
     "hk": {
-      "2025-12-22": {
-        "trend_on": false,
-        "dist_ma_pct": -1.0,
-        "mom_pct": -2.4,
-        "regime3": "chop"
-      },
       "2025-12-23": {
         "trend_on": false,
         "dist_ma_pct": -1.7,
@@ -996,6 +990,12 @@
         "dist_ma_pct": -5.6,
         "mom_pct": 5.7,
         "regime3": "bull"
+      },
+      "2026-08-06": {
+        "trend_on": false,
+        "dist_ma_pct": -7.7,
+        "mom_pct": 2.6,
+        "regime3": "chop"
       }
     },
     "us": {
@@ -1178,6 +1178,12 @@
         "dist_ma_pct": null,
         "mom_pct": 3.1,
         "regime3": "bull"
+      },
+      "2026-08-05": {
+        "trend_on": null,
+        "dist_ma_pct": null,
+        "mom_pct": 3.0,
+        "regime3": "chop"
       }
     },
     "meta": {
