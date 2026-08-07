@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-07T01:04:06.446737+00:00",
+  "generated_at": "2026-08-07T14:01:27.662491+00:00",
   "lookback_hours": 48,
   "sources": {
     "trump": "trumpstruth.org/feed (primary)",
@@ -11,27 +11,38 @@
     "musk": "success",
     "serenity": "failed"
   },
-  "llm_filtered": false,
+  "llm_filtered": true,
   "counts": {
-    "total": 24,
+    "total": 10,
     "held_hits": 0,
     "new_ideas": 0,
-    "sector_hits": 0
+    "sector_hits": 7
   },
   "items": [
     {
       "author": "Musk",
-      "text": "Elon Musk repeatedly one-upped his execs on SpaceX’s first earnings call",
+      "text": "SpaceX, Tesla to Build Chip Plant in Texas to Meet Compute Demand",
       "url": "",
-      "published": "Tue, 04 Aug 2026 22:30:58 GMT",
+      "published": "Thu, 06 Aug 2026 15:02:00 GMT",
       "origin": "gnews-rss",
-      "source": "TechCrunch",
+      "source": "WSJ",
       "tickers": [],
       "held": [],
       "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
+      "sectors": [
+        "半导体",
+        "航天",
+        "AI"
+      ],
+      "sector_holdings": [
+        "RKLX",
+        "SKHY",
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "endorse",
+      "relevance": 82,
+      "summary_cn": "SpaceX与Tesla将在德州合资建芯片厂以满足算力需求——直接利好SpaceX/SPCX，并间接触及SK海力士等AI半导体供应链。"
     },
     {
       "author": "Musk",
@@ -43,37 +54,42 @@
       "tickers": [],
       "held": [],
       "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
+      "sectors": [
+        "航天",
+        "半导体",
+        "AI"
+      ],
+      "sector_holdings": [
+        "RKLX",
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "endorse",
+      "relevance": 78,
+      "summary_cn": "SpaceX正式官宣Terafab项目，初始投资168亿美元——利好SpaceX及AI/半导体供应链。"
     },
     {
       "author": "Musk",
-      "text": "SpaceX Bought $295 Million Worth Of Tesla Megapacks In Q2",
+      "text": "SpaceX to invest $16.8bn in Texas TeraFab as Elon Musk says 100m-sq-ft fab will be “50 times the size of the Pentagon”",
       "url": "",
-      "published": "Thu, 06 Aug 2026 20:04:00 GMT",
+      "published": "Fri, 07 Aug 2026 13:11:30 GMT",
       "origin": "gnews-rss",
-      "source": "Investor's Business Daily",
+      "source": "Data Center Dynamics",
       "tickers": [],
       "held": [],
       "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk’s DOGE made big errors in claims of government savings, GAO finds",
-      "url": "",
-      "published": "Thu, 06 Aug 2026 18:00:00 GMT",
-      "origin": "gnews-rss",
-      "source": "The Washington Post",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
+      "sectors": [
+        "航天",
+        "半导体"
+      ],
+      "sector_holdings": [
+        "RKLX",
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "endorse",
+      "relevance": 76,
+      "summary_cn": "Musk确认SpaceX将在德州TeraFab投资168亿美元，规模号称'50倍五角大楼'——利好SpaceX。"
     },
     {
       "author": "Musk",
@@ -85,51 +101,89 @@
       "tickers": [],
       "held": [],
       "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
+      "sectors": [
+        "航天",
+        "太空制造"
+      ],
+      "sector_holdings": [
+        "RKLX",
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "endorse",
+      "relevance": 72,
+      "summary_cn": "Musk披露SpaceX计划将月球改造为生产基地——利好SpaceX及航天板块。"
     },
     {
       "author": "Musk",
-      "text": "Musk, Abbott confirm $17B Terafab plant will be built near College Station",
+      "text": "Elon Musk reveals SpaceX plans to build satellite factories on the moon",
       "url": "",
-      "published": "Thu, 06 Aug 2026 16:05:53 GMT",
+      "published": "Wed, 05 Aug 2026 18:01:07 GMT",
       "origin": "gnews-rss",
-      "source": "Houston Chronicle",
+      "source": "Scientific American",
       "tickers": [],
       "held": [],
       "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
+      "sectors": [
+        "航天",
+        "卫星制造",
+        "太空制造"
+      ],
+      "sector_holdings": [
+        "RKLX",
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "endorse",
+      "relevance": 70,
+      "summary_cn": "Musk透露SpaceX计划在月球建造卫星工厂——利好SpaceX及航天板块长期叙事。"
     },
     {
       "author": "Musk",
-      "text": "SpaceX, Tesla to Build Chip Plant in Texas to Meet Compute Demand",
+      "text": "Elon Musk repeatedly one-upped his execs on SpaceX’s first earnings call",
       "url": "",
-      "published": "Thu, 06 Aug 2026 15:02:00 GMT",
+      "published": "Tue, 04 Aug 2026 22:30:58 GMT",
       "origin": "gnews-rss",
-      "source": "WSJ",
+      "source": "TechCrunch",
       "tickers": [],
       "held": [],
       "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
+      "sectors": [
+        "航天",
+        "私募估值"
+      ],
+      "sector_holdings": [
+        "RKLX",
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "endorse",
+      "relevance": 70,
+      "summary_cn": "SpaceX首次财报电话会，Musk多次压过自家高管——强化SpaceX估值叙事，利好SPCX。"
     },
     {
       "author": "Musk",
-      "text": "Elon Musk's Tesla Suffered Its Worst Week Since 2022, Wiping Out $130 Billion of His Fortune. Is the Stock Still a Buy?",
+      "text": "SpaceX Bought $295 Million Worth Of Tesla Megapacks In Q2",
       "url": "",
-      "published": "Thu, 06 Aug 2026 12:46:00 GMT",
+      "published": "Thu, 06 Aug 2026 20:04:00 GMT",
       "origin": "gnews-rss",
-      "source": "The Motley Fool",
+      "source": "Investor's Business Daily",
       "tickers": [],
       "held": [],
       "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
+      "sectors": [
+        "储能",
+        "航天",
+        "电动车"
+      ],
+      "sector_holdings": [
+        "RKLX",
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "endorse",
+      "relevance": 62,
+      "summary_cn": "SpaceX Q2斥资2.95亿美元采购Tesla Megapacks——强化Tesla储能业务收入及SpaceX资本开支逻辑。"
     },
     {
       "author": "Trump",
@@ -140,139 +194,13 @@
       "tickers": [],
       "held": [],
       "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
-    },
-    {
-      "author": "Trump",
-      "text": "It is my Great Honor to endorse Highly Respected State Senator, Brent Taylor, who is running to represent the Incredible People of Tennessee’s 9th Congressional District. Brent is strongly supported by the most Highly Respected MAGA Warriors in Tennessee, including both of your tremendous U.S. Senators, my friends, Marsha Blackburn and Bill Hagerty!   A Successful Businessman, and very popular State Senator, Brent has dedicated his life to serving his Community. As your next Congressman, Brent will work tirelessly to Grow our Economy, Champion our Amazing Farmers and Ranchers, Cut Taxes and Re",
-      "url": "https://trumpstruth.org/statuses/40602",
-      "published": "2026-08-06T16:20:46+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
-    },
-    {
-      "author": "Trump",
-      "text": "Congressman David Kustoff is a Tremendous Champion for Tennessee’s 8th Congressional District!   As a former Criminal Prosecutor, David knows the Wisdom and Courage required to uphold our Constitution, and ensure LAW AND ORDER. A true America First Patriot, David is fighting tirelessly to Strengthen our Military, Care for our Brave Veterans, Stand with our Incredible Law Enforcement, Keep our Border SECURE, Stop Migrant Crime, Cut Taxes and Regulations, Promote MADE IN THE U.S.A., Unleash American Energy DOMINANCE, Advance Election Integrity, and Protect our always under siege Second Amendment",
-      "url": "https://trumpstruth.org/statuses/40603",
-      "published": "2026-08-06T16:20:41+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
-    },
-    {
-      "author": "Trump",
-      "text": "I am proud to, once again, endorse the GREAT Congressman from Tennessee’s 7th Congressional District, Matt Van Epps. I strongly campaigned with Matt to defeat the Radical Left in his 2025 Special Election, and it is my Honor to support his 2026 Re-Election.   A West Point Graduate, and Combat Decorated Army Helicopter Pilot, Matt knows the WISDOM and COURAGE required to Defend our Country, Support our incredible Military/Veterans, and Ensure PEACE THROUGH STRENGTH. In Congress, Matt is working hard to Keep our Border SECURE, Stop Migrant Crime, Advance Law and Order, Grow our Economy, Cut Taxe",
-      "url": "https://trumpstruth.org/statuses/40604",
-      "published": "2026-08-06T16:20:37+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
-    },
-    {
-      "author": "Trump",
-      "text": "Congressman Andy Ogles is doing a fantastic job representing the incredible people of Tennessee’s 5th Congressional District!   Andy is a Conservative Warrior who has strong support from his Community. In Congress, he is fighting tirelessly to Grow our Economy, Cut Taxes and Regulations, Promote MADE IN THE U.S.A. and American Energy DOMINANCE, Safeguard our Elections, Keep our Border SECURE, Stop Migrant Crime, Strengthen our Military/Veterans, and Defend our always under siege Second Amendment.   Andy Ogles my Complete and Total Endorsement for Re-Election. Election Day for the Republican Pr",
-      "url": "https://trumpstruth.org/statuses/40605",
-      "published": "2026-08-06T16:20:31+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
-    },
-    {
-      "author": "Trump",
-      "text": "Congressman Scott DesJarlais is a Fantastic Advocate for Tennessee’s 4th Congressional District!   As a Member of the House Agriculture Committee, Scott is a strong and effective voice for American Agriculture, and our amazing Farmers and Ranchers. In Congress, he is working hard to Grow our Economy, Cut Taxes and Regulations, Promote MADE IN THE U.S.A., Unleash American Energy DOMINANCE, Safeguard our Elections, Keep our Border SECURE, Stop Migrant Crime, Strengthen our Military/Veterans, and Defend our always under siege Second Amendment.   Scott DesJarlais has my Complete and Total Endorsem",
-      "url": "https://trumpstruth.org/statuses/40606",
-      "published": "2026-08-06T16:20:23+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
-    },
-    {
-      "author": "Trump",
-      "text": "Congressman Chuck Fleischmann is a terrific Representative for the incredible people of Tennessee’s 3rd Congressional District!   Chuck is a MAGA Warrior with a Strong Record of Success, and compelling support from his Community. In Congress, he is working hard to Promote our Amazing Farmers and Ranchers, Grow our Economy, Cut Taxes and Regulations, Advance MADE IN THE U.S.A., Unleash American Energy DOMINANCE, Keep our Border SECURE, Stop Migrant Crime, Advocate for our Great Military/Veterans, and Defend our always under siege Second Amendment.   Chuck Fleischmann has my Complete and Total E",
-      "url": "https://trumpstruth.org/statuses/40607",
-      "published": "2026-08-06T16:20:16+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
-    },
-    {
-      "author": "Trump",
-      "text": "Congressman Tim Burchett is an America First Patriot who is doing a fantastic job representing Tennessee’s 2nd Congressional District!   A former Mayor of Knox County, State Legislator, and now, as U.S. Congressman, Tim has strongly served his Community with a career “loaded up” with accolades and wins. In Congress, he is working hard to Grow our Economy, Cut Taxes and Regulations, Promote MADE IN THE U.S.A., Unleash American Energy DOMINANCE, Keep our Border SECURE, Stop Migrant Crime, Strengthen our Military/Veterans, Safeguard our Elections, and Defend our always under siege Second Amendmen",
-      "url": "https://trumpstruth.org/statuses/40608",
-      "published": "2026-08-06T16:20:11+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
-    },
-    {
-      "author": "Trump",
-      "text": "Congresswoman Diana Harshbarger is doing an incredible job representing the wonderful people of Tennessee’s 1st Congressional District!   A very successful Pharmacist and Businesswoman, Diana knows the America First Policies required to Create GREAT Jobs, Unleash Innovation, and Advance American Energy DOMINANCE. In Congress, she is working tirelessly to Cut Taxes and Regulations, Promote MADE IN THE U.S.A., Keep our Border SECURE, Stop Migrant Crime, Champion our Amazing Farmers and Ranchers, Support our Brave Military/Veterans, and Protect our always under siege Second Amendment.   Diana Har",
-      "url": "https://trumpstruth.org/statuses/40600",
-      "published": "2026-08-06T16:17:58+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
-    },
-    {
-      "author": "Trump",
-      "text": "Senator Bill Hagerty is doing a fantastic job representing the Great People of Tennessee!   I have known Bill for a long time, as both a Highly Successful Businessman, and outstanding Ambassador to Japan. He has been with us from the very beginning, helping us, MAKE AMERICA GREAT AGAIN. In the Senate, Bill is working hard to Grow our Economy, Lower Taxes, Keep our Border SECURE, Champion our Incredible Military/Vets, Unleash American Energy DOMINANCE, Protect our always under siege Second Amendment, and Ensure PEACE THROUGH STRENGTH.   Senator Bill Hagerty has my Complete and Total Endorsement",
-      "url": "https://trumpstruth.org/statuses/40601",
-      "published": "2026-08-06T16:17:52+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
-    },
-    {
-      "author": "Trump",
-      "text": "Cash is king: Washington Republicans bankroll midterms as National Democrat coffers are in the red: https://justthenews.com/politics-policy/elections/cash-king-republicans-bankroll-midterms-democrat-coffers-are-red",
-      "url": "https://trumpstruth.org/statuses/40599",
-      "published": "2026-08-06T04:40:54+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
+      "sectors": [
+        "关税"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 68,
+      "summary_cn": "Trump盟友推动赋予总统新关税武器，惩罚'占美国便宜'的国家——关税升级信号。"
     },
     {
       "author": "Trump",
@@ -283,64 +211,202 @@
       "tickers": [],
       "held": [],
       "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
+      "sectors": [
+        "国防军工",
+        "能源"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 60,
+      "summary_cn": "Trump称美国弹药充足、国防企业正兴建史上最多工厂——利好国防军工板块。"
     },
     {
-      "author": "Trump",
-      "text": "So beautiful! D.C. is better than ever. Tender, loving care! President DJT",
-      "url": "https://trumpstruth.org/statuses/40597",
-      "published": "2026-08-06T04:03:02+00:00",
-      "origin": "truthsocial",
+      "author": "Musk",
+      "text": "Elon Musk’s DOGE made big errors in claims of government savings, GAO finds",
+      "url": "",
+      "published": "Thu, 06 Aug 2026 18:00:00 GMT",
+      "origin": "gnews-rss",
+      "source": "The Washington Post",
       "tickers": [],
       "held": [],
       "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
-    },
-    {
-      "author": "Trump",
-      "text": "Michael Moore, the failed political “pundit” who has been losing to me for years, was ranting that, “We lost in 2024, and just can’t take it anymore.” No Michael, just get used to more losing! You’ve been a Loser all your life, and nothing’s going to change. Abdul, your new Communist Comrade, will not be able to save you. He knows you are a failed LOWLIFE, and he wants to pick up where you have left. For thousands of years, the concept of Communist Policies have never worked, and they’re not going to work now, especially under the tremendous transformational SUCCESS that the Trump Administrati",
-      "url": "https://trumpstruth.org/statuses/40596",
-      "published": "2026-08-06T00:28:41+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
-    },
-    {
-      "author": "Trump",
-      "text": "I was 28-1 last night on Endorsements, and numerous of them were outliers, but if you studied the Fake News, you would think it was just the opposite, 1-28. All they talked about was the one, and that’s why they call it the FAKE NEWS! President DJT",
-      "url": "https://trumpstruth.org/statuses/40594",
-      "published": "2026-08-05T20:16:40+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
-    },
-    {
-      "author": "Trump",
-      "text": "Wayne County (Detroit) in Michigan is one of the most corrupt voting areas in the United States, if not the World. It is strictly Third World! Miracles happen in Wayne County, including more votes being cast than there are voters, by a lot. Therefore, the Communist, who is not liked in Detroit, is potentially in “Vote Counter” trouble. The Radical Left Socialist has a real shot, and don’t discount all of those fake mail-in ballots that will “surprisingly” show up at the last moment. Get ready for another Rigged Election. In November we must VOTE FOR MIKE ROGERS, and make Michigan TOO BIG TO RI",
-      "url": "https://trumpstruth.org/statuses/40592",
-      "published": "2026-08-05T13:28:05+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
+      "sectors": [
+        "政府效率(DOGE)"
+      ],
+      "sector_holdings": [],
+      "stance": "attack",
+      "relevance": 45,
+      "summary_cn": "GAO报告称Musk的DOGE在政府节省金额上存在重大错误——对Musk/DOGE形象负面，但市场含义有限。"
     }
   ],
   "held_hits": [],
   "new_ideas": [],
-  "sector_hits": []
+  "sector_hits": [
+    {
+      "author": "Musk",
+      "text": "SpaceX, Tesla to Build Chip Plant in Texas to Meet Compute Demand",
+      "url": "",
+      "published": "Thu, 06 Aug 2026 15:02:00 GMT",
+      "origin": "gnews-rss",
+      "source": "WSJ",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "半导体",
+        "航天",
+        "AI"
+      ],
+      "sector_holdings": [
+        "RKLX",
+        "SKHY",
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "endorse",
+      "relevance": 82,
+      "summary_cn": "SpaceX与Tesla将在德州合资建芯片厂以满足算力需求——直接利好SpaceX/SPCX，并间接触及SK海力士等AI半导体供应链。"
+    },
+    {
+      "author": "Musk",
+      "text": "SpaceX makes Terafab official, confirms initial $16.8 billion investment",
+      "url": "",
+      "published": "Thu, 06 Aug 2026 22:04:29 GMT",
+      "origin": "gnews-rss",
+      "source": "Austin American-Statesman",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "半导体",
+        "AI"
+      ],
+      "sector_holdings": [
+        "RKLX",
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "endorse",
+      "relevance": 78,
+      "summary_cn": "SpaceX正式官宣Terafab项目，初始投资168亿美元——利好SpaceX及AI/半导体供应链。"
+    },
+    {
+      "author": "Musk",
+      "text": "SpaceX to invest $16.8bn in Texas TeraFab as Elon Musk says 100m-sq-ft fab will be “50 times the size of the Pentagon”",
+      "url": "",
+      "published": "Fri, 07 Aug 2026 13:11:30 GMT",
+      "origin": "gnews-rss",
+      "source": "Data Center Dynamics",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "半导体"
+      ],
+      "sector_holdings": [
+        "RKLX",
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "endorse",
+      "relevance": 76,
+      "summary_cn": "Musk确认SpaceX将在德州TeraFab投资168亿美元，规模号称'50倍五角大楼'——利好SpaceX。"
+    },
+    {
+      "author": "Musk",
+      "text": "‘Pure insanity’—Elon Musk details SpaceX’s plan to turn the moon into its newest manufacturing site",
+      "url": "",
+      "published": "Thu, 06 Aug 2026 17:36:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Fortune",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "太空制造"
+      ],
+      "sector_holdings": [
+        "RKLX",
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "endorse",
+      "relevance": 72,
+      "summary_cn": "Musk披露SpaceX计划将月球改造为生产基地——利好SpaceX及航天板块。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk reveals SpaceX plans to build satellite factories on the moon",
+      "url": "",
+      "published": "Wed, 05 Aug 2026 18:01:07 GMT",
+      "origin": "gnews-rss",
+      "source": "Scientific American",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "卫星制造",
+        "太空制造"
+      ],
+      "sector_holdings": [
+        "RKLX",
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "endorse",
+      "relevance": 70,
+      "summary_cn": "Musk透露SpaceX计划在月球建造卫星工厂——利好SpaceX及航天板块长期叙事。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk repeatedly one-upped his execs on SpaceX’s first earnings call",
+      "url": "",
+      "published": "Tue, 04 Aug 2026 22:30:58 GMT",
+      "origin": "gnews-rss",
+      "source": "TechCrunch",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "私募估值"
+      ],
+      "sector_holdings": [
+        "RKLX",
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "endorse",
+      "relevance": 70,
+      "summary_cn": "SpaceX首次财报电话会，Musk多次压过自家高管——强化SpaceX估值叙事，利好SPCX。"
+    },
+    {
+      "author": "Musk",
+      "text": "SpaceX Bought $295 Million Worth Of Tesla Megapacks In Q2",
+      "url": "",
+      "published": "Thu, 06 Aug 2026 20:04:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Investor's Business Daily",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "储能",
+        "航天",
+        "电动车"
+      ],
+      "sector_holdings": [
+        "RKLX",
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "endorse",
+      "relevance": 62,
+      "summary_cn": "SpaceX Q2斥资2.95亿美元采购Tesla Megapacks——强化Tesla储能业务收入及SpaceX资本开支逻辑。"
+    }
+  ]
 }
