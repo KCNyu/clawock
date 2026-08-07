@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-06T15:01:54.928070+00:00",
+  "generated_at": "2026-08-07T01:04:06.446737+00:00",
   "lookback_hours": 48,
   "sources": {
     "trump": "trumpstruth.org/feed (primary)",
@@ -11,169 +11,268 @@
     "musk": "success",
     "serenity": "failed"
   },
-  "llm_filtered": true,
+  "llm_filtered": false,
   "counts": {
-    "total": 12,
+    "total": 24,
     "held_hits": 0,
-    "new_ideas": 2,
-    "sector_hits": 5
+    "new_ideas": 0,
+    "sector_hits": 0
   },
   "items": [
-    {
-      "author": "Musk",
-      "text": "Elon Musk's Tesla Suffered Its Worst Week Since 2022, Wiping Out $130 Billion of His Fortune. Is the Stock Still a Buy?",
-      "url": "",
-      "published": "Thu, 06 Aug 2026 11:57:28 GMT",
-      "origin": "gnews-rss",
-      "source": "The Motley Fool",
-      "tickers": [
-        "TSLA"
-      ],
-      "held": [],
-      "new_ideas": [
-        "TSLA"
-      ],
-      "sectors": [
-        "电动车"
-      ],
-      "sector_holdings": [],
-      "stance": "attack",
-      "relevance": 72,
-      "summary_cn": "特斯拉经历2022年以来最差单周，Musk财富蒸发1300亿美元，股价承压。"
-    },
-    {
-      "author": "Musk",
-      "text": "Musk Says These Tesla Products Will 'Dramatically' Increase Starlink Demand",
-      "url": "",
-      "published": "Wed, 05 Aug 2026 20:01:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Investor's Business Daily",
-      "tickers": [
-        "TSLA"
-      ],
-      "held": [],
-      "new_ideas": [
-        "TSLA"
-      ],
-      "sectors": [
-        "电动车",
-        "卫星互联网"
-      ],
-      "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "endorse",
-      "relevance": 65,
-      "summary_cn": "Musk称多款特斯拉产品将'显著'拉抬Starlink需求，特斯拉与Starlink协同叙事利好。"
-    },
-    {
-      "author": "Musk",
-      "text": "SpaceX Revenue Could Reach $1 Trillion, Elon Musk Says",
-      "url": "",
-      "published": "Wed, 05 Aug 2026 00:12:00 GMT",
-      "origin": "gnews-rss",
-      "source": "WSJ",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "卫星互联网"
-      ],
-      "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "endorse",
-      "relevance": 72,
-      "summary_cn": "Musk宣称SpaceX收入有望达到1万亿美元，对SpaceX长期前景给出极强多头信号。"
-    },
-    {
-      "author": "Musk",
-      "text": "SpaceX Earnings: Here’s How Wall Street Reacted As Shares Fall 13%",
-      "url": "",
-      "published": "Wed, 05 Aug 2026 18:51:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Forbes",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天"
-      ],
-      "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "neutral",
-      "relevance": 68,
-      "summary_cn": "SpaceX首次财报电话会后股价下跌13%，市场反应偏负面。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk reveals SpaceX plans to build satellite factories on the moon",
-      "url": "",
-      "published": "Wed, 05 Aug 2026 18:01:07 GMT",
-      "origin": "gnews-rss",
-      "source": "Scientific American",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "卫星制造"
-      ],
-      "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "endorse",
-      "relevance": 62,
-      "summary_cn": "Musk披露SpaceX计划在月球建设卫星工厂，长期愿景利好SpaceX叙事。"
-    },
-    {
-      "author": "Musk",
-      "text": "Is Elon Musk's master plan with SpaceX to have rockets replace planes for global cargo delivery?",
-      "url": "",
-      "published": "Wed, 05 Aug 2026 21:50:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Fortune",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "物流运输"
-      ],
-      "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "endorse",
-      "relevance": 58,
-      "summary_cn": "市场猜测Musk的SpaceX终极计划是用火箭替代飞机进行全球货运，概念性长期看好信号。"
-    },
     {
       "author": "Musk",
       "text": "Elon Musk repeatedly one-upped his execs on SpaceX’s first earnings call",
       "url": "",
       "published": "Tue, 04 Aug 2026 22:30:58 GMT",
       "origin": "gnews-rss",
-      "source": "techcrunch.com",
+      "source": "TechCrunch",
       "tickers": [],
       "held": [],
       "new_ideas": [],
-      "sectors": [
-        "航天"
-      ],
-      "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
       "stance": "neutral",
-      "relevance": 55,
-      "summary_cn": "Musk在SpaceX首次财报会上频繁压过自家高管发言，市场关注公司治理信号。"
+      "relevance": null,
+      "summary_cn": ""
+    },
+    {
+      "author": "Musk",
+      "text": "SpaceX makes Terafab official, confirms initial $16.8 billion investment",
+      "url": "",
+      "published": "Thu, 06 Aug 2026 22:04:29 GMT",
+      "origin": "gnews-rss",
+      "source": "Austin American-Statesman",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "stance": "neutral",
+      "relevance": null,
+      "summary_cn": ""
+    },
+    {
+      "author": "Musk",
+      "text": "SpaceX Bought $295 Million Worth Of Tesla Megapacks In Q2",
+      "url": "",
+      "published": "Thu, 06 Aug 2026 20:04:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Investor's Business Daily",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "stance": "neutral",
+      "relevance": null,
+      "summary_cn": ""
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk’s DOGE made big errors in claims of government savings, GAO finds",
+      "url": "",
+      "published": "Thu, 06 Aug 2026 18:00:00 GMT",
+      "origin": "gnews-rss",
+      "source": "The Washington Post",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "stance": "neutral",
+      "relevance": null,
+      "summary_cn": ""
+    },
+    {
+      "author": "Musk",
+      "text": "‘Pure insanity’—Elon Musk details SpaceX’s plan to turn the moon into its newest manufacturing site",
+      "url": "",
+      "published": "Thu, 06 Aug 2026 17:36:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Fortune",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "stance": "neutral",
+      "relevance": null,
+      "summary_cn": ""
+    },
+    {
+      "author": "Musk",
+      "text": "Musk, Abbott confirm $17B Terafab plant will be built near College Station",
+      "url": "",
+      "published": "Thu, 06 Aug 2026 16:05:53 GMT",
+      "origin": "gnews-rss",
+      "source": "Houston Chronicle",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "stance": "neutral",
+      "relevance": null,
+      "summary_cn": ""
+    },
+    {
+      "author": "Musk",
+      "text": "SpaceX, Tesla to Build Chip Plant in Texas to Meet Compute Demand",
+      "url": "",
+      "published": "Thu, 06 Aug 2026 15:02:00 GMT",
+      "origin": "gnews-rss",
+      "source": "WSJ",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "stance": "neutral",
+      "relevance": null,
+      "summary_cn": ""
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk's Tesla Suffered Its Worst Week Since 2022, Wiping Out $130 Billion of His Fortune. Is the Stock Still a Buy?",
+      "url": "",
+      "published": "Thu, 06 Aug 2026 12:46:00 GMT",
+      "origin": "gnews-rss",
+      "source": "The Motley Fool",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "stance": "neutral",
+      "relevance": null,
+      "summary_cn": ""
+    },
+    {
+      "author": "Trump",
+      "text": "Trump allies push to arm president with new tariff weapon to punish countries 'ripping off' America: https://www.foxnews.com/politics/trump-allies-push-arm-president-new-tariff-weapon-punish-countries-ripping-off-america",
+      "url": "https://trumpstruth.org/statuses/40612",
+      "published": "2026-08-06T20:38:27+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "stance": "neutral",
+      "relevance": null,
+      "summary_cn": ""
+    },
+    {
+      "author": "Trump",
+      "text": "It is my Great Honor to endorse Highly Respected State Senator, Brent Taylor, who is running to represent the Incredible People of Tennessee’s 9th Congressional District. Brent is strongly supported by the most Highly Respected MAGA Warriors in Tennessee, including both of your tremendous U.S. Senators, my friends, Marsha Blackburn and Bill Hagerty!   A Successful Businessman, and very popular State Senator, Brent has dedicated his life to serving his Community. As your next Congressman, Brent will work tirelessly to Grow our Economy, Champion our Amazing Farmers and Ranchers, Cut Taxes and Re",
+      "url": "https://trumpstruth.org/statuses/40602",
+      "published": "2026-08-06T16:20:46+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "stance": "neutral",
+      "relevance": null,
+      "summary_cn": ""
+    },
+    {
+      "author": "Trump",
+      "text": "Congressman David Kustoff is a Tremendous Champion for Tennessee’s 8th Congressional District!   As a former Criminal Prosecutor, David knows the Wisdom and Courage required to uphold our Constitution, and ensure LAW AND ORDER. A true America First Patriot, David is fighting tirelessly to Strengthen our Military, Care for our Brave Veterans, Stand with our Incredible Law Enforcement, Keep our Border SECURE, Stop Migrant Crime, Cut Taxes and Regulations, Promote MADE IN THE U.S.A., Unleash American Energy DOMINANCE, Advance Election Integrity, and Protect our always under siege Second Amendment",
+      "url": "https://trumpstruth.org/statuses/40603",
+      "published": "2026-08-06T16:20:41+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "stance": "neutral",
+      "relevance": null,
+      "summary_cn": ""
+    },
+    {
+      "author": "Trump",
+      "text": "I am proud to, once again, endorse the GREAT Congressman from Tennessee’s 7th Congressional District, Matt Van Epps. I strongly campaigned with Matt to defeat the Radical Left in his 2025 Special Election, and it is my Honor to support his 2026 Re-Election.   A West Point Graduate, and Combat Decorated Army Helicopter Pilot, Matt knows the WISDOM and COURAGE required to Defend our Country, Support our incredible Military/Veterans, and Ensure PEACE THROUGH STRENGTH. In Congress, Matt is working hard to Keep our Border SECURE, Stop Migrant Crime, Advance Law and Order, Grow our Economy, Cut Taxe",
+      "url": "https://trumpstruth.org/statuses/40604",
+      "published": "2026-08-06T16:20:37+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "stance": "neutral",
+      "relevance": null,
+      "summary_cn": ""
+    },
+    {
+      "author": "Trump",
+      "text": "Congressman Andy Ogles is doing a fantastic job representing the incredible people of Tennessee’s 5th Congressional District!   Andy is a Conservative Warrior who has strong support from his Community. In Congress, he is fighting tirelessly to Grow our Economy, Cut Taxes and Regulations, Promote MADE IN THE U.S.A. and American Energy DOMINANCE, Safeguard our Elections, Keep our Border SECURE, Stop Migrant Crime, Strengthen our Military/Veterans, and Defend our always under siege Second Amendment.   Andy Ogles my Complete and Total Endorsement for Re-Election. Election Day for the Republican Pr",
+      "url": "https://trumpstruth.org/statuses/40605",
+      "published": "2026-08-06T16:20:31+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "stance": "neutral",
+      "relevance": null,
+      "summary_cn": ""
+    },
+    {
+      "author": "Trump",
+      "text": "Congressman Scott DesJarlais is a Fantastic Advocate for Tennessee’s 4th Congressional District!   As a Member of the House Agriculture Committee, Scott is a strong and effective voice for American Agriculture, and our amazing Farmers and Ranchers. In Congress, he is working hard to Grow our Economy, Cut Taxes and Regulations, Promote MADE IN THE U.S.A., Unleash American Energy DOMINANCE, Safeguard our Elections, Keep our Border SECURE, Stop Migrant Crime, Strengthen our Military/Veterans, and Defend our always under siege Second Amendment.   Scott DesJarlais has my Complete and Total Endorsem",
+      "url": "https://trumpstruth.org/statuses/40606",
+      "published": "2026-08-06T16:20:23+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "stance": "neutral",
+      "relevance": null,
+      "summary_cn": ""
+    },
+    {
+      "author": "Trump",
+      "text": "Congressman Chuck Fleischmann is a terrific Representative for the incredible people of Tennessee’s 3rd Congressional District!   Chuck is a MAGA Warrior with a Strong Record of Success, and compelling support from his Community. In Congress, he is working hard to Promote our Amazing Farmers and Ranchers, Grow our Economy, Cut Taxes and Regulations, Advance MADE IN THE U.S.A., Unleash American Energy DOMINANCE, Keep our Border SECURE, Stop Migrant Crime, Advocate for our Great Military/Veterans, and Defend our always under siege Second Amendment.   Chuck Fleischmann has my Complete and Total E",
+      "url": "https://trumpstruth.org/statuses/40607",
+      "published": "2026-08-06T16:20:16+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "stance": "neutral",
+      "relevance": null,
+      "summary_cn": ""
+    },
+    {
+      "author": "Trump",
+      "text": "Congressman Tim Burchett is an America First Patriot who is doing a fantastic job representing Tennessee’s 2nd Congressional District!   A former Mayor of Knox County, State Legislator, and now, as U.S. Congressman, Tim has strongly served his Community with a career “loaded up” with accolades and wins. In Congress, he is working hard to Grow our Economy, Cut Taxes and Regulations, Promote MADE IN THE U.S.A., Unleash American Energy DOMINANCE, Keep our Border SECURE, Stop Migrant Crime, Strengthen our Military/Veterans, Safeguard our Elections, and Defend our always under siege Second Amendmen",
+      "url": "https://trumpstruth.org/statuses/40608",
+      "published": "2026-08-06T16:20:11+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "stance": "neutral",
+      "relevance": null,
+      "summary_cn": ""
+    },
+    {
+      "author": "Trump",
+      "text": "Congresswoman Diana Harshbarger is doing an incredible job representing the wonderful people of Tennessee’s 1st Congressional District!   A very successful Pharmacist and Businesswoman, Diana knows the America First Policies required to Create GREAT Jobs, Unleash Innovation, and Advance American Energy DOMINANCE. In Congress, she is working tirelessly to Cut Taxes and Regulations, Promote MADE IN THE U.S.A., Keep our Border SECURE, Stop Migrant Crime, Champion our Amazing Farmers and Ranchers, Support our Brave Military/Veterans, and Protect our always under siege Second Amendment.   Diana Har",
+      "url": "https://trumpstruth.org/statuses/40600",
+      "published": "2026-08-06T16:17:58+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "stance": "neutral",
+      "relevance": null,
+      "summary_cn": ""
+    },
+    {
+      "author": "Trump",
+      "text": "Senator Bill Hagerty is doing a fantastic job representing the Great People of Tennessee!   I have known Bill for a long time, as both a Highly Successful Businessman, and outstanding Ambassador to Japan. He has been with us from the very beginning, helping us, MAKE AMERICA GREAT AGAIN. In the Senate, Bill is working hard to Grow our Economy, Lower Taxes, Keep our Border SECURE, Champion our Incredible Military/Vets, Unleash American Energy DOMINANCE, Protect our always under siege Second Amendment, and Ensure PEACE THROUGH STRENGTH.   Senator Bill Hagerty has my Complete and Total Endorsement",
+      "url": "https://trumpstruth.org/statuses/40601",
+      "published": "2026-08-06T16:17:52+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "stance": "neutral",
+      "relevance": null,
+      "summary_cn": ""
+    },
+    {
+      "author": "Trump",
+      "text": "Cash is king: Washington Republicans bankroll midterms as National Democrat coffers are in the red: https://justthenews.com/politics-policy/elections/cash-king-republicans-bankroll-midterms-democrat-coffers-are-red",
+      "url": "https://trumpstruth.org/statuses/40599",
+      "published": "2026-08-06T04:40:54+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "stance": "neutral",
+      "relevance": null,
+      "summary_cn": ""
     },
     {
       "author": "Trump",
@@ -184,247 +283,64 @@
       "tickers": [],
       "held": [],
       "new_ideas": [],
-      "sectors": [
-        "国防军工"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 62,
-      "summary_cn": "特朗普强调美国弹药库存充足、国防企业正在大规模建设工厂，利好国防军工板块。"
+      "stance": "neutral",
+      "relevance": null,
+      "summary_cn": ""
     },
     {
       "author": "Trump",
-      "text": "Manufacturing is BOOMING! Factory activity just hit its fastest pace in more than FOUR YEARS, far exceeding expectations. New orders have expanded for SEVEN straight months. American Manufacturing is BACK!   The Stock Market is at an ALL TIME HIGH, and setting Record after Record because Investors know America is WINNING!   American Exports are on FIRE. U.S. Goods Exports have now topped 200 BILLION DOLLARS for the fifth consecutive month, and we are on pace for nearly 2.5 TRILLION DOLLARS in Goods Exports this year — Numbers nobody thought possible just two years ago.   The Fake News and the ",
-      "url": "https://trumpstruth.org/statuses/40543",
-      "published": "2026-08-04T20:38:42+00:00",
+      "text": "So beautiful! D.C. is better than ever. Tender, loving care! President DJT",
+      "url": "https://trumpstruth.org/statuses/40597",
+      "published": "2026-08-06T04:03:02+00:00",
       "origin": "truthsocial",
       "tickers": [],
       "held": [],
       "new_ideas": [],
-      "sectors": [
-        "宏观经济",
-        "制造业"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 60,
-      "summary_cn": "特朗普宣称美国制造业四年来最强、股市创历史新高、出口创纪录，整体看好美国经济与股市。"
+      "stance": "neutral",
+      "relevance": null,
+      "summary_cn": ""
     },
     {
       "author": "Trump",
-      "text": "It was my Honor to write the Foreword for Brian Pannebecker’s incredible new Book, “Blue Collar Conservative: From Reagan to Trump.” As the head of Autoworkers for Trump, Brian has been with us from the very beginning, and understands, like few others, the Wisdom, Courage, and TARIFFS required to, MAKE AMERICA GREAT AGAIN. It is Great Patriots like Brian who helped us secure Historic Victories in three Presidential Campaigns, and are working tirelessly to save American Industry, and champion MADE IN THE U.S.A. “Forgotten” America is forgotten no longer — Get your copy today: https://www.amazon",
-      "url": "https://trumpstruth.org/statuses/40552",
-      "published": "2026-08-04T22:34:28+00:00",
+      "text": "Michael Moore, the failed political “pundit” who has been losing to me for years, was ranting that, “We lost in 2024, and just can’t take it anymore.” No Michael, just get used to more losing! You’ve been a Loser all your life, and nothing’s going to change. Abdul, your new Communist Comrade, will not be able to save you. He knows you are a failed LOWLIFE, and he wants to pick up where you have left. For thousands of years, the concept of Communist Policies have never worked, and they’re not going to work now, especially under the tremendous transformational SUCCESS that the Trump Administrati",
+      "url": "https://trumpstruth.org/statuses/40596",
+      "published": "2026-08-06T00:28:41+00:00",
       "origin": "truthsocial",
       "tickers": [],
       "held": [],
       "new_ideas": [],
-      "sectors": [
-        "关税",
-        "汽车"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 55,
-      "summary_cn": "特朗普为蓝领保守派书籍作序，强调关税与发展美国制造业，重申关税保护立场。"
+      "stance": "neutral",
+      "relevance": null,
+      "summary_cn": ""
     },
     {
       "author": "Trump",
-      "text": "My REAL Polling Numbers, not those made up by the Fake News Media, are the best they have ever been, and why wouldn’t they be with the biggest tax cuts and employment numbers EVER, the biggest outside Investment in America in World history, a totally secure Border, a giant Victory in Venezuela, the Denuclearization of Iran, unparalleled respect and success throughout the World, and much more? Don’t believe the Radical Left’s Fake Poll numbers. They are Crooked and Corrupt, just like the Country Destroying Dumocrats are Crooked and Corrupt. VOTE REPUBLICAN FOR GREATNESS IN AMERICA! Thank you fo",
-      "url": "https://trumpstruth.org/statuses/40544",
-      "published": "2026-08-04T21:39:05+00:00",
+      "text": "I was 28-1 last night on Endorsements, and numerous of them were outliers, but if you studied the Fake News, you would think it was just the opposite, 1-28. All they talked about was the one, and that’s why they call it the FAKE NEWS! President DJT",
+      "url": "https://trumpstruth.org/statuses/40594",
+      "published": "2026-08-05T20:16:40+00:00",
       "origin": "truthsocial",
       "tickers": [],
       "held": [],
       "new_ideas": [],
-      "sectors": [
-        "宏观经济",
-        "能源",
-        "税收"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 55,
-      "summary_cn": "特朗普自称支持率历史最高，宣扬史上最大减税、就业与外资流入，为中期选举造势。"
+      "stance": "neutral",
+      "relevance": null,
+      "summary_cn": ""
     },
     {
-      "author": "Musk",
-      "text": "Elon Musk’s DOGE made big errors in claims of government savings, GAO finds",
-      "url": "",
-      "published": "Thu, 06 Aug 2026 14:25:53 GMT",
-      "origin": "gnews-rss",
-      "source": "The Washington Post",
+      "author": "Trump",
+      "text": "Wayne County (Detroit) in Michigan is one of the most corrupt voting areas in the United States, if not the World. It is strictly Third World! Miracles happen in Wayne County, including more votes being cast than there are voters, by a lot. Therefore, the Communist, who is not liked in Detroit, is potentially in “Vote Counter” trouble. The Radical Left Socialist has a real shot, and don’t discount all of those fake mail-in ballots that will “surprisingly” show up at the last moment. Get ready for another Rigged Election. In November we must VOTE FOR MIKE ROGERS, and make Michigan TOO BIG TO RI",
+      "url": "https://trumpstruth.org/statuses/40592",
+      "published": "2026-08-05T13:28:05+00:00",
+      "origin": "truthsocial",
       "tickers": [],
       "held": [],
       "new_ideas": [],
-      "sectors": [
-        "政府效率(DOGE)"
-      ],
-      "sector_holdings": [],
-      "stance": "attack",
-      "relevance": 50,
-      "summary_cn": "美GAO报告指出Musk的政府效率部(DOGE)在政府节省金额上存在重大计算错误，间接施压Musk相关叙事。"
+      "stance": "neutral",
+      "relevance": null,
+      "summary_cn": ""
     }
   ],
   "held_hits": [],
-  "new_ideas": [
-    {
-      "author": "Musk",
-      "text": "Elon Musk's Tesla Suffered Its Worst Week Since 2022, Wiping Out $130 Billion of His Fortune. Is the Stock Still a Buy?",
-      "url": "",
-      "published": "Thu, 06 Aug 2026 11:57:28 GMT",
-      "origin": "gnews-rss",
-      "source": "The Motley Fool",
-      "tickers": [
-        "TSLA"
-      ],
-      "held": [],
-      "new_ideas": [
-        "TSLA"
-      ],
-      "sectors": [
-        "电动车"
-      ],
-      "sector_holdings": [],
-      "stance": "attack",
-      "relevance": 72,
-      "summary_cn": "特斯拉经历2022年以来最差单周，Musk财富蒸发1300亿美元，股价承压。"
-    },
-    {
-      "author": "Musk",
-      "text": "Musk Says These Tesla Products Will 'Dramatically' Increase Starlink Demand",
-      "url": "",
-      "published": "Wed, 05 Aug 2026 20:01:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Investor's Business Daily",
-      "tickers": [
-        "TSLA"
-      ],
-      "held": [],
-      "new_ideas": [
-        "TSLA"
-      ],
-      "sectors": [
-        "电动车",
-        "卫星互联网"
-      ],
-      "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "endorse",
-      "relevance": 65,
-      "summary_cn": "Musk称多款特斯拉产品将'显著'拉抬Starlink需求，特斯拉与Starlink协同叙事利好。"
-    }
-  ],
-  "sector_hits": [
-    {
-      "author": "Musk",
-      "text": "SpaceX Revenue Could Reach $1 Trillion, Elon Musk Says",
-      "url": "",
-      "published": "Wed, 05 Aug 2026 00:12:00 GMT",
-      "origin": "gnews-rss",
-      "source": "WSJ",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "卫星互联网"
-      ],
-      "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "endorse",
-      "relevance": 72,
-      "summary_cn": "Musk宣称SpaceX收入有望达到1万亿美元，对SpaceX长期前景给出极强多头信号。"
-    },
-    {
-      "author": "Musk",
-      "text": "SpaceX Earnings: Here’s How Wall Street Reacted As Shares Fall 13%",
-      "url": "",
-      "published": "Wed, 05 Aug 2026 18:51:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Forbes",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天"
-      ],
-      "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "neutral",
-      "relevance": 68,
-      "summary_cn": "SpaceX首次财报电话会后股价下跌13%，市场反应偏负面。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk reveals SpaceX plans to build satellite factories on the moon",
-      "url": "",
-      "published": "Wed, 05 Aug 2026 18:01:07 GMT",
-      "origin": "gnews-rss",
-      "source": "Scientific American",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "卫星制造"
-      ],
-      "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "endorse",
-      "relevance": 62,
-      "summary_cn": "Musk披露SpaceX计划在月球建设卫星工厂，长期愿景利好SpaceX叙事。"
-    },
-    {
-      "author": "Musk",
-      "text": "Is Elon Musk's master plan with SpaceX to have rockets replace planes for global cargo delivery?",
-      "url": "",
-      "published": "Wed, 05 Aug 2026 21:50:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Fortune",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "物流运输"
-      ],
-      "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "endorse",
-      "relevance": 58,
-      "summary_cn": "市场猜测Musk的SpaceX终极计划是用火箭替代飞机进行全球货运，概念性长期看好信号。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk repeatedly one-upped his execs on SpaceX’s first earnings call",
-      "url": "",
-      "published": "Tue, 04 Aug 2026 22:30:58 GMT",
-      "origin": "gnews-rss",
-      "source": "techcrunch.com",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天"
-      ],
-      "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "neutral",
-      "relevance": 55,
-      "summary_cn": "Musk在SpaceX首次财报会上频繁压过自家高管发言，市场关注公司治理信号。"
-    }
-  ]
+  "new_ideas": [],
+  "sector_hits": []
 }
