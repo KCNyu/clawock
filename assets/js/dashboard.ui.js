@@ -59,8 +59,11 @@
       b.classList.toggle("active", on);
       b.setAttribute("aria-selected", on);
     });
+    const activeIndex = TAB_ORDER.indexOf(t);
     document.querySelectorAll(".panel").forEach(p => {
-      p.classList.toggle("active", p.dataset.panel === t);
+      const panelIndex = TAB_ORDER.indexOf(p.dataset.panel);
+      p.classList.toggle("active", panelIndex === activeIndex);
+      p.classList.toggle("is-near", Math.abs(panelIndex - activeIndex) === 1);
     });
     if (DATA) {
       // Activation is the consumer boundary: mapped sidecars load first, then
@@ -615,6 +618,7 @@
     // Land on the deep-linked tab BEFORE first paint of data (instant, no animation).
     const t0 = tabFromHash();
     if (t0) goToTab(t0, false);
+    else setActiveButton(TAB_ORDER[0]);
     loadData();
     _scheduleAutoRefresh();
   }

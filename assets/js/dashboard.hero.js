@@ -324,8 +324,8 @@
   // registry mutable avoids parsing 100KB+ of functions that Overview cannot call.
   const TAB_RENDERERS = {
     hero: [
-      renderTodayHighlights, renderHonesty, renderMarketSnapshot, renderTotals,
-      renderTodayPnl, renderRiskGuardrail, renderOverviewSummaries, renderGoldDca,
+      renderTotals, renderTodayPnl, renderRiskGuardrail, renderOverviewSummaries,
+      renderMarketSnapshot, renderTodayHighlights, renderHonesty, renderGoldDca,
     ],
   };
   let RENDER_VERSION = 0;
@@ -353,6 +353,39 @@
     if (t === "risk" || t === "market") updateFoldPeeks();
   }
 
+  // Overview is the only runtime on the startup path. Its eight independent
+  // projections used to land in one multi-second mobile task; yield between
+  // them so the browser can paint and accept input while preserving the exact
+  // same final DOM. Detail activations stay synchronous after an explicit tab
+  // choice, where one atomic update is preferable to a partially refreshed tab.
+  function renderLandingTab(t, version, done) {
+    if (t !== "hero" || !hasTabRenderer(t)) {
+      renderTab(t, version);
+      done();
+      return;
+    }
+    const renderers = TAB_RENDERERS[t];
+    let index = 0;
+    const step = () => {
+      if (version !== RENDER_VERSION) return;
+      if (currentTab() !== t) {
+        done();
+        return;
+      }
+      renderers[index++]();
+      if (index < renderers.length) {
+        setTimeout(step, 0);
+        return;
+      }
+      _tabRenderVersion.set(t, version);
+      const panel = document.querySelector(`.panel[data-panel="${t}"]`);
+      if (panel) panel.querySelectorAll(".card.is-pending").forEach(card =>
+        card.classList.remove("is-pending"));
+      done();
+    };
+    step();
+  }
+
   function refreshTab(t) {
     if (!DATA || !hasTabRenderer(t) || currentTab() !== t) return;
     TAB_RENDERERS[t].forEach(fn => fn());
@@ -371,10 +404,11 @@
     renderHeader();
     renderStatusBanner();
     syncDeskRail();
-    renderTab(activeTab, version);
-    renderBuildStatus();
-    syncDeskRail();
-    ensureVisibleCharts();
+    renderLandingTab(activeTab, version, () => {
+      renderBuildStatus();
+      syncDeskRail();
+      ensureVisibleCharts();
+    });
   }
 
   function quoteSessionLabel(market) {
@@ -892,11 +926,11 @@
         `<svg viewBox="0 0 ${W} ${H}" width="100%" height="${H}" preserveAspectRatio="none" style="margin-top:4px">
           ${avgY != null ? `<line x1="0" y1="${avgY.toFixed(1)}" x2="${W}" y2="${avgY.toFixed(1)}" stroke="var(--warning)" stroke-width="1" stroke-dasharray="3 2" opacity="0.7"/>` : ''}
           <polyline points="${pts}" fill="none" stroke="var(--warning)" stroke-width="1.6"/>
-          <circle cx="${x(startIdx).toFixed(1)}" cy="${y(hist[startIdx][1]).toFixed(1)}" r="2.6" fill="#60a5fa"/>
+          <circle cx="${x(startIdx).toFixed(1)}" cy="${y(hist[startIdx][1]).toFixed(1)}" r="2.6" fill="var(--accent)"/>
           <circle cx="${x(hist.length - 1).toFixed(1)}" cy="${y(lastV).toFixed(1)}" r="2.6" fill="${pnlColor}"/>
         </svg>
         <div class="muted" style="font-size:10px;display:flex;justify-content:space-between;text-transform:none;letter-spacing:0">
-          <span style="color:#60a5fa">${hist[startIdx][0]} 起投 ${num(hist[startIdx][1], 3)}</span>
+          <span style="color:var(--accent)">${hist[startIdx][0]} 起投 ${num(hist[startIdx][1], 3)}</span>
           <span style="color:var(--warning)">成本线 ${num(avg, 3)}</span>
           <span>区间 ${num(lo, 3)}~${num(hi, 3)}</span>
         </div>`;
