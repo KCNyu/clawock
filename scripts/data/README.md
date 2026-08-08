@@ -43,7 +43,7 @@ clawock 是**美股 + 港股 + 黄金定投**的实盘组合。工具包遵循�
 | `analyze_us_stocks.py` | 美股组合刷新 + RSI | Yahoo v8 chart | ✅ |
 | `analyze_hk_stocks.py` | 港股实时价 + HSI/HSTECH 指数 + 新闻 + 信号 | 腾讯 qt.gtimg.cn | ✅ |
 | `fetch_benchmark_history.py` | SPY / HSI / HSTECH 日线历史(基准叠加) | 腾讯 kline / Yahoo | ✅ |
-| `fetch_gold_dca.py` | 黄金定投 000217 净值 + 定投指标 | 东财 lsjz / fundgz | ✅ |
+| `fetch_gold_dca.py` | 黄金定投 000217 净值 + Au99.99/伦敦金回本映射 | 东财 lsjz / 上金所 / 腾讯 XAU / Frankfurter | ✅ |
 
 ## Layer 2 · 基本面/申报 Fundamentals & Filings
 

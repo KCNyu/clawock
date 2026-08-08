@@ -1816,6 +1816,39 @@
         ${cell('约定投', `${g.installments_est ?? DASH} 笔 ×¥${num(g.daily_amount)}`)}
       </div>`;
 
+    // 国内真基准：000217 跟随上金所国内现货金，这是用户判断回本的主口径。
+    const dg = g.domestic_gold;
+    const goldDomestic = document.getElementById('gold-domestic');
+    if (goldDomestic) {
+      if (!dg || dg.price_cny_g == null) {
+        goldDomestic.innerHTML =
+          `<div role="status" style="margin:12px 0 4px;padding:10px 12px;border-radius:6px;border:1px solid color-mix(in srgb,var(--warning) 25%,transparent);color:var(--warning);font-size:11px">
+             上金所 Au99.99 暂无有效行情
+           </div>`;
+      } else {
+        const dchg = dg.change_pct;
+        const dcolor = dchg == null ? 'var(--neutral)' : (dchg >= 0 ? 'var(--positive)' : 'var(--negative)');
+        const retained = dg.quote_status === 'retained';
+        goldDomestic.innerHTML =
+          `<div style="margin:12px 0 4px;padding:12px;border-radius:6px;background:color-mix(in srgb,var(--positive) 6%,transparent);border:1px solid color-mix(in srgb,var(--positive) 24%,transparent)">
+             <div class="muted" style="font-size:10px;text-transform:none;letter-spacing:0">国内基准 · 上金所 Au99.99</div>
+             <div style="display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:end;gap:10px;margin-top:7px">
+               <div><div class="muted" style="font-size:10px">当前金价</div><div style="font-size:21px;font-weight:800;white-space:nowrap">¥${num(dg.price_cny_g, 2)}<span style="font-size:11px;color:var(--muted,#999)">/克</span></div></div>
+               <div class="muted" aria-hidden="true" style="padding-bottom:4px">→</div>
+               <div><div class="muted" style="font-size:10px">我的回本价</div><div style="font-size:21px;font-weight:800;color:var(--warning);white-space:nowrap">¥${num(dg.breakeven_cny_g, 2)}<span style="font-size:11px;color:var(--muted,#999)">/克</span></div></div>
+             </div>
+             <div class="muted" style="font-size:11px;margin-top:7px;text-transform:none;letter-spacing:0">
+               距回本 <b style="color:var(--warning)">+${num(dg.breakeven_upside_pct, 2)}%</b>
+               ${dchg == null ? '' : ` · 当日 <b style="color:${dcolor}">${dchg >= 0 ? '+' : ''}${num(dchg, 2)}%</b>`}
+               ${dg.low_cny_g != null && dg.high_cny_g != null ? ` · 日内 ¥${num(dg.low_cny_g, 0)}~${num(dg.high_cny_g, 0)}` : ''}
+             </div>
+             <div class="muted" style="font-size:10px;margin-top:4px;text-transform:none;letter-spacing:0">
+               ${dg.date || ''} 收盘 · 上金所${retained ? ' · ⚠️ 本次抓取失败，沿用上次有效值' : ''}
+             </div>
+           </div>`;
+      }
+    }
+
     // 伦敦金类比口径：折算成克/盎司 + 国际口径现值 + 伦敦金vs你基金归一趋势线
     // （kcn 日常看伦敦金现货趋势/新闻，这块把人民币基金翻译成他熟悉的口径）
     const ld = g.london;
@@ -1825,20 +1858,25 @@
       else {
         const xchg = ld.xau_change_pct;
         const xcolor = (xchg == null ? 'var(--neutral)' : (xchg >= 0 ? 'var(--positive)' : 'var(--negative)'));
-        const xchgStr = xchg == null ? '' : ` <span style="color:${xcolor};font-size:11px">${xchg >= 0 ? '+' : ''}${Number(xchg).toFixed(2)}%</span>`;
-        // 折算行 + 现价行
+        const xchgStr = xchg == null ? '' : ` · 当日 <span style="color:${xcolor};font-size:11px">${xchg >= 0 ? '+' : ''}${Number(xchg).toFixed(2)}%</span>`;
+        const fundBeXau = ld.fund_breakeven_usd_oz != null
+          ? ld.fund_breakeven_usd_oz
+          : (g.nav ? ld.xau_usd * g.avg_cost / g.nav : null);
+        const fundBePct = ld.fund_breakeven_upside_pct != null
+          ? ld.fund_breakeven_upside_pct : g.breakeven_upside_pct;
+        // 伦敦金保留为国际辅助口径，显式区分现价与真基金回本映射。
         let html =
           `<div style="margin:12px 0 4px;padding:8px 12px;border-radius:6px;background:color-mix(in srgb,var(--warning) 7%,transparent);border:1px solid color-mix(in srgb,var(--warning) 25%,transparent)">
-             <div class="muted" style="font-size:10px;text-transform:none;letter-spacing:0">类比伦敦金（国际口径）</div>
-             <div style="display:flex;align-items:baseline;gap:var(--space-3);flex-wrap:wrap;margin-top:3px">
-               <span style="font-size:18px;font-weight:800">≈ ${num(ld.grams_equiv, 1)} 克</span>
-               <span style="font-size:13px;font-weight:700;color:var(--muted,#999)">/ ${num(ld.oz_equiv, 3)} oz</span>
-               ${ld.intl_value_usd != null ? `<span style="font-size:13px">国际现值 <b>$${num(ld.intl_value_usd)}</b></span>` : ''}
+             <div class="muted" style="font-size:10px;text-transform:none;letter-spacing:0">国际辅助 · 伦敦金 XAU/USD</div>
+             <div style="display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:end;gap:10px;margin-top:7px">
+               <div><div class="muted" style="font-size:10px">当前金价</div><div style="font-size:19px;font-weight:800;white-space:nowrap">$${num(ld.xau_usd, 2)}<span style="font-size:11px;color:var(--muted,#999)">/oz</span></div></div>
+               <div class="muted" aria-hidden="true" style="padding-bottom:4px">→</div>
+               <div><div class="muted" style="font-size:10px">按当前汇率回本</div><div style="font-size:19px;font-weight:800;color:var(--warning);white-space:nowrap">$${num(fundBeXau, 2)}<span style="font-size:11px;color:var(--muted,#999)">/oz</span></div></div>
              </div>
              <div class="muted" style="font-size:11px;margin-top:5px;text-transform:none;letter-spacing:0">
-               伦敦金现货 <b style="color:var(--text,#eee)">$${num(ld.xau_usd, 2)}</b>/oz${xchgStr}
+               距回本 <b style="color:var(--warning)">+${num(fundBePct, 2)}%</b>${xchgStr}
                ${ld.xau_high != null && ld.xau_low != null ? ` · 日内 ${num(ld.xau_low, 0)}~${num(ld.xau_high, 0)}` : ''}
-               · USDCNY ${num(ld.usdcny, 4)}
+               · USDCNY ${num(ld.usdcny, 4)} · 假设汇率/内外盘价差不变
              </div>`;
         const histSource = ld.hist_source || {};
         const histNames = {
@@ -1855,14 +1893,15 @@
             ℹ️ ${escapeHtml(ld.hist_advisory)}
           </div>`;
         }
-        // DCA 平均成本：同样的钱、同样的定投日子，改买伦敦金现货 → 我的均价是多少（对标基金卡的「平均成本」）
+        // 反事实 DCA 只是模拟对照，默认折叠，不再叫「我的平均成本」。
         const de = ld.dca_equiv;
         if (de && de.avg_cost_usd_oz != null) {
           const beColor = de.breakeven_upside_pct > 0 ? 'var(--negative)' : 'var(--positive)';
           const dColor = de.pnl_pct >= 0 ? 'var(--positive)' : 'var(--negative)';
           html +=
-            `<div style="margin-top:8px;padding-top:8px;border-top:1px dashed color-mix(in srgb,var(--warning) 28%,transparent)">
-               <div class="muted" style="font-size:10px;text-transform:none;letter-spacing:0">同额定投伦敦金 · 我的平均成本</div>
+            `<details style="margin-top:8px;padding-top:8px;border-top:1px dashed color-mix(in srgb,var(--warning) 28%,transparent)">
+               <summary class="muted" style="font-size:10px;text-transform:none;letter-spacing:0;cursor:pointer">模拟对照 · 若每个基金交易日直接买伦敦金</summary>
+               <div style="margin-top:6px">
                <div style="display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;margin-top:2px">
                  <span style="font-size:17px;font-weight:800">$${num(de.avg_cost_usd_oz, 2)}<span style="font-size:11px;font-weight:600;color:var(--muted,#999)">/oz</span></span>
                  <span style="font-size:12px;font-weight:700;color:var(--muted,#999)">¥${num(de.avg_cost_cny_g, 2)}/克</span>
@@ -1884,8 +1923,9 @@
               `<div class="muted" style="font-size:10px;margin:8px 0 2px;text-transform:none;letter-spacing:0">若金价/汇率不动、继续每日定投 → 持金成本 $/oz 下移</div>
                <table style="width:100%;font-size:12px;border-collapse:collapse">
                  <tr class="muted" style="font-size:10px"><th scope="col" style="padding:4px 8px;text-align:left;font-weight:inherit">继续</th><th scope="col" style="padding:4px 8px;text-align:right;font-weight:inherit">均成本/oz</th><th scope="col" style="padding:4px 8px;text-align:right;font-weight:inherit">回本只需涨</th></tr>
-                 ${lrows}</table>`;
+               ${lrows}</table>`;
           }
+          html += `</div></details>`;
         }
         // 归一对比线：起投=100，伦敦金(USD) vs 你的基金(CNY)
         const cs = (ld.compare_series || []).filter(r => Array.isArray(r) && r[1] != null && r[2] != null);

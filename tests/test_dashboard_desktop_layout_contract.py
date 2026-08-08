@@ -79,9 +79,9 @@ def test_gold_dca_uses_the_full_desktop_row_and_an_internal_grid():
     assert "grid-column: 1 / -1" in block
     assert "min-height: 0" in block
     assert "grid-template-columns: repeat(2, minmax(0, 1fr))" in block
-    assert '"title london"' in block
-    assert '"hero london"' in block
-    assert '"stats london"' in block
+    assert '"title domestic"' in block
+    assert '"hero domestic"' in block
+    assert '"stats domestic"' in block
     assert '"spark london"' in block
     assert '"proj london"' in block
     assert '"asof asof"' in block
@@ -89,6 +89,7 @@ def test_gold_dca_uses_the_full_desktop_row_and_an_internal_grid():
         ("title", ".hero-gold-card > h3"),
         ("hero", "#gold-hero"),
         ("stats", "#gold-stats"),
+        ("domestic", "#gold-domestic"),
         ("london", "#gold-london"),
         ("spark", "#gold-spark"),
         ("proj", "#gold-proj"),

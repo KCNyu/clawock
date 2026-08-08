@@ -1905,9 +1905,9 @@
       grid-column: 1 / -1; min-height: 0;
       display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
       grid-template-areas:
-        "title london"
-        "hero london"
-        "stats london"
+        "title domestic"
+        "hero domestic"
+        "stats domestic"
         "spark london"
         "proj london"
         "asof asof";
@@ -1916,6 +1916,7 @@
     .hero-gold-card > h3 { grid-area: title; }
     #gold-hero { grid-area: hero; min-width: 0; }
     #gold-stats { grid-area: stats; min-width: 0; }
+    #gold-domestic { grid-area: domestic; min-width: 0; }
     #gold-london { grid-area: london; min-width: 0; }
     #gold-spark { grid-area: spark; min-width: 0; }
     #gold-proj { grid-area: proj; min-width: 0; }
