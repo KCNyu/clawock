@@ -1,8 +1,10 @@
-"""Small contracts shared by runners, validators and publishers."""
+"""Contracts shared by external callers, validators and publishers."""
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from datetime import UTC, datetime
 from pathlib import Path
+from typing import Any, Mapping
 
 
 WORKFLOWS = ("brief", "report", "intraday")
@@ -45,3 +47,65 @@ class ArtifactSet:
         if mismatched:
             raise ValueError(
                 "mixed artifact generations: " + ", ".join(mismatched))
+
+
+@dataclass(frozen=True)
+class AgentRunRequest:
+    """The deterministic inputs an external agent asks clawock to certify."""
+
+    task: str
+    workspace: Path
+    context_files: tuple[str, ...]
+    output_directory: Path
+    metadata: Mapping[str, Any] = field(default_factory=dict)
+
+    def __post_init__(self) -> None:
+        if not self.task.strip():
+            raise ValueError("agent run task is empty")
+        if not self.context_files:
+            raise ValueError("agent run has no context files")
+
+
+@dataclass(frozen=True)
+class ValidationIssue:
+    code: str
+    message: str
+
+
+@dataclass(frozen=True)
+class RunReceipt:
+    run_id: str
+    generation_id: str
+    status: str
+    artifacts: ArtifactSet
+    validation_issues: tuple[ValidationIssue, ...] = ()
+    publish_receipt: str | None = None
+    publish_changed: bool = False
+    created_at: str = field(
+        default_factory=lambda: datetime.now(UTC).isoformat(timespec="seconds"))
+
+    def as_dict(self) -> dict[str, Any]:
+        return {
+            "schema_version": 1,
+            "run_id": self.run_id,
+            "generation_id": self.generation_id,
+            "status": self.status,
+            "created_at": self.created_at,
+            "artifacts": [
+                {
+                    "name": artifact.name,
+                    "path": str(artifact.path),
+                    "media_type": artifact.media_type,
+                    "generation_id": artifact.generation_id,
+                }
+                for artifact in self.artifacts.artifacts
+            ],
+            "validation_issues": [
+                {"code": issue.code, "message": issue.message}
+                for issue in self.validation_issues
+            ],
+            "publish": {
+                "receipt": self.publish_receipt,
+                "changed": self.publish_changed,
+            },
+        }
