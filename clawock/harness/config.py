@@ -12,7 +12,7 @@ CONFIG_NAME = "clawock.json"
 DEFAULT_CONTEXT = "CONTEXT.md"
 
 
-def initialize(workspace: Path | str) -> Path:
+def initialize(workspace: Path | str, *, workflow: str | None = None) -> Path:
     root = Path(workspace).expanduser().resolve()
     root.mkdir(parents=True, exist_ok=True)
     if (root / CONFIG_NAME).exists():
@@ -23,6 +23,12 @@ def initialize(workspace: Path | str) -> Path:
         "context": [DEFAULT_CONTEXT],
         "output_directory": ".clawock/runs",
     }
+    if workflow:
+        from clawock.workflows import load_workflow
+
+        pack = load_workflow(workflow)
+        config["workflow"] = workflow
+        config["task"] = pack.descriptor["task"]
     writes = {
         str(root / CONFIG_NAME): json.dumps(config, ensure_ascii=False, indent=2) + "\n",
     }
@@ -64,6 +70,22 @@ def load_request(workspace: Path | str) -> AgentRunRequest:
     metadata = payload.get("metadata", {})
     if not isinstance(metadata, dict):
         raise ValueError(f"{CONFIG_NAME} metadata must be an object")
+    workflow = payload.get("workflow")
+    workflow_parameters = payload.get("workflow_parameters", {})
+    if workflow is None:
+        if workflow_parameters:
+            raise ValueError(
+                f"{CONFIG_NAME} workflow_parameters require a workflow"
+            )
+        contract = {}
+    elif not isinstance(workflow, str) or not workflow.strip():
+        raise ValueError(f"{CONFIG_NAME} workflow must be a non-empty string")
+    elif not isinstance(workflow_parameters, dict):
+        raise ValueError(f"{CONFIG_NAME} workflow_parameters must be an object")
+    else:
+        from clawock.workflows import workflow_contract
+
+        contract = workflow_contract(workflow, workflow_parameters)
     output_resolved = (root / output_path).resolve()
     try:
         output_resolved.relative_to(root)
@@ -76,4 +98,5 @@ def load_request(workspace: Path | str) -> AgentRunRequest:
         context_files=tuple(context),
         output_directory=output_resolved,
         metadata=metadata,
+        workflow=contract,
     )

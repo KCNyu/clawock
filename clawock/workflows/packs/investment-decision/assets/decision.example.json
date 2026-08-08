@@ -1,0 +1,63 @@
+{
+  "schema_version": 1,
+  "workflow": {
+    "id": "investment-decision",
+    "version": "1.0.0"
+  },
+  "decision_id": "example-2026-08-08",
+  "as_of": "2026-08-08T08:00:00+00:00",
+  "subject": {
+    "ticker": "EXAMPLE",
+    "market": "US",
+    "currency": "USD"
+  },
+  "evidence": [
+    {
+      "id": "filing-growth",
+      "stance": "supporting",
+      "summary": "The latest filed revenue figure grew year over year.",
+      "source": "issuer filing",
+      "source_class": "primary",
+      "observed_at": "2026-08-08T07:30:00+00:00"
+    },
+    {
+      "id": "valuation-risk",
+      "stance": "opposing",
+      "summary": "The current market multiple is above its stated comparison range.",
+      "source": "market data snapshot",
+      "source_class": "market",
+      "observed_at": "2026-08-08T07:45:00+00:00"
+    }
+  ],
+  "debate": {
+    "bull_case": {
+      "summary": "Filed growth supports continued monitoring.",
+      "evidence_ids": [
+        "filing-growth"
+      ]
+    },
+    "bear_case": {
+      "summary": "Valuation leaves insufficient margin of safety for a new entry.",
+      "evidence_ids": [
+        "valuation-risk"
+      ]
+    }
+  },
+  "thesis": {
+    "statement": "Business momentum is constructive, but price does not yet compensate for valuation risk.",
+    "confidence": 0.7,
+    "invalidation_conditions": [
+      "Filed growth reverses",
+      "Valuation falls into the stated entry range"
+    ]
+  },
+  "decision": {
+    "action": "watch",
+    "rationale": "The opposing valuation evidence blocks an entry despite constructive primary evidence.",
+    "evidence_ids": [
+      "filing-growth",
+      "valuation-risk"
+    ],
+    "order": null
+  }
+}
