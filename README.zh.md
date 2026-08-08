@@ -294,7 +294,7 @@ adapter；其它 runner 可以消费同一套 context/tool 契约。live adapter
 | `docs/`、`tests/` | 产品/运维文档与高价值不变量检查 |
 | 根 context 文件、`skills/`、`memory/` | OpenClaw 兼容面；保留在 runtime 要求的位置 |
 | `portfolio.json`、`assets/data/` | live 账本与生成发布状态；永不进入 package |
-| `scripts/data/`、`scripts/harness/` | 仍待迁移的 instance job 与临时回滚别名，不是可移植 API |
+| `scripts/data/` | 仍待迁移的仓库 job，不是可移植 API |
 
 </details>
 

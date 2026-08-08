@@ -207,27 +207,28 @@ def test_reconcile_adds_raw_error_without_changing_final_product(tmp_path, monke
     for stage in ("preflight", "llm", "postflight", "primary_delivery"):
         outcomes.record_stage(job, stage, "success", slot=slot)
 
-    sys.path.insert(0, str(ROOT / "scripts" / "harness"))
-    import _watchdog_common as common
+    from clawock.providers import openclaw
 
     run_at_ms = int(
         outcomes.datetime.fromisoformat(slot).timestamp() * 1000
     )
 
-    def load_jobs(_source):
-        common.LAST_LOAD_SOURCE = "sqlite"
-        return [{"id": "brief-id", "name": job}]
-
-    monkeypatch.setattr(common, "load_jobs", load_jobs)
     monkeypatch.setattr(
-        common,
+        openclaw,
+        "read_jobs",
+        lambda _source: openclaw.CronRead(
+            [{"id": "brief-id", "name": job}], "sqlite"
+        ),
+    )
+    monkeypatch.setattr(
+        openclaw,
         "read_runs",
-        lambda _job_id, _source: [{
-            "runAtMs": run_at_ms,
-            "ts": run_at_ms + 1000,
-            "status": "error",
-            "error": "private provider detail",
-        }],
+        lambda _job_id, _source: openclaw.CronRead([{
+                "runAtMs": run_at_ms,
+                "ts": run_at_ms + 1000,
+                "status": "error",
+                "error": "private provider detail",
+            }], "sqlite"),
     )
 
     assert outcomes.reconcile_raw_execution() is True

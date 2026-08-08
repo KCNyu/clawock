@@ -35,8 +35,13 @@ SNAPSHOT_FNAME_RE = re.compile(r'^\d{4}-\d{2}-\d{2}\.json$')
 # The checkout root, so `clawock` resolves from the tree this file ships
 # in. Reached through the scripts/data/workspace shim until #267 step 3,
 # whose only remaining job was inserting this path as a side effect.
+CHECKOUT_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
-sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
+sys.path.insert(0, str(CHECKOUT_ROOT / "src"))
+# Repository-only dashboard generation still consumes three generic calculations
+# from the transitional KCNyu package. Keep that dependency explicit until those
+# calculations move into core; never recover it through a source-tree alias.
+sys.path.insert(0, str(CHECKOUT_ROOT / "instances" / "kcnyu" / "src"))
 from clawock.workspace import workspace_root  # noqa: E402
 
 WS_ROOT = workspace_root(Path(__file__).resolve().parent.parent.parent)
@@ -387,9 +392,9 @@ def compute_guardrail_outputs(portfolio, risk, lev_regime=None):
     renderer normalized it to ``{}`` and painted a green all-clear.
     """
     try:
-        sys.path.insert(0, str(WS_ROOT / 'scripts' / 'harness'))
-        from brief_preflight import (compute_risk_guardrail, compute_concentration,
-                                     compute_breakeven_math)
+        from clawock_kcnyu.harness.brief_preflight import (
+            compute_breakeven_math, compute_concentration, compute_risk_guardrail,
+        )
         us_book, hk_book = leg_books(portfolio)
         hk_holdings = hk_book['holdings']
         us_holdings = us_book['holdings']
@@ -2954,7 +2959,7 @@ def build_projection(previous_source=None, shadow_previous=None):
             _harness = WS_ROOT / 'scripts' / 'harness'
             if str(_harness) not in sys.path:
                 sys.path.insert(0, str(_harness))
-            from brief_preflight import _classify_regime
+            from clawock_kcnyu.harness.brief_preflight import _classify_regime
             out['regime'] = _classify_regime(_macro)
     except Exception as e:
         print(f'  warn: regime classify failed: {e}', file=sys.stderr)
