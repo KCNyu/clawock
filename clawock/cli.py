@@ -263,16 +263,34 @@ def _tool(args) -> int:
 
 def _context(args) -> int:
     """Audit or assemble the runtime-neutral context contract (#366)."""
-    from clawock.context import assemble, audit
+    from clawock.context import (
+        assemble,
+        audit,
+        compare_prompt_reports,
+        load_prompt_report,
+    )
 
-    root = workspace_root(args.workspace or Path.cwd())
-    if args.context_command == "audit":
-        result = audit(root)
-        print(json.dumps(result, ensure_ascii=False, indent=2))
-        return 0 if result["ok"] else 1
-
+    root = workspace_root(getattr(args, "workspace", None) or Path.cwd())
     try:
-        bundle = assemble(root, skills=args.skill or ())
+        if args.context_command == "audit":
+            result = audit(root, profile=args.profile)
+            print(json.dumps(result, ensure_ascii=False, indent=2))
+            return 0 if result["ok"] else 1
+        if args.context_command == "compare":
+            result = compare_prompt_reports(
+                load_prompt_report(
+                    args.before, session_key=args.before_session_key
+                ),
+                load_prompt_report(
+                    args.after, session_key=args.after_session_key
+                ),
+                profile=args.profile,
+            )
+            print(json.dumps(result, ensure_ascii=False, indent=2))
+            return 0 if result["ok"] else 1
+        bundle = assemble(
+            root, skills=args.skill or (), profile=args.profile
+        )
     except ValueError as exc:
         print(str(exc), file=sys.stderr)
         return 1
@@ -449,17 +467,30 @@ def main(argv=None) -> int:
         "context", help="audit or assemble the agent context contract")
     context_sub = context.add_subparsers(dest="context_command", required=True)
     context_audit = context_sub.add_parser(
-        "audit", help="verify OpenClaw bootstrap files without loading exclusions")
+        "audit", help="verify one OpenClaw context profile and capability roots")
     context_audit.add_argument("--workspace", type=Path, default=None)
+    context_audit.add_argument(
+        "--profile", default="isolated-cron",
+        help="interactive, isolated-cron, heartbeat-full/light, bootstrap-pending or subagent",
+    )
     context_audit.set_defaults(func=_context)
     context_assemble = context_sub.add_parser(
         "assemble", help="render the bootstrap and explicitly selected skills")
     context_assemble.add_argument("--workspace", type=Path, default=None)
+    context_assemble.add_argument("--profile", default="isolated-cron")
     context_assemble.add_argument("--skill", action="append",
                                   help="load this skill body; repeatable")
     context_assemble.add_argument("--json", action="store_true",
                                   help="print assembly manifest, not prompt text")
     context_assemble.set_defaults(func=_context)
+    context_compare = context_sub.add_parser(
+        "compare", help="compare before/after OpenClaw system-prompt reports")
+    context_compare.add_argument("--profile", required=True)
+    context_compare.add_argument("--before", type=Path, required=True)
+    context_compare.add_argument("--after", type=Path, required=True)
+    context_compare.add_argument("--before-session-key")
+    context_compare.add_argument("--after-session-key")
+    context_compare.set_defaults(func=_context)
 
     workflow = sub.add_parser(
         "workflow", help="discover or install portable decision-workflow skills")

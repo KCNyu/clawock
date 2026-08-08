@@ -79,20 +79,31 @@ cutover is complete.
 
 ## Context contract
 
-OpenClaw 2026.7.1 isolated cron injects, in order, `AGENTS.md`, `TOOLS.md`,
-`SOUL.md`, `IDENTITY.md`, and `USER.md`. That profile excludes `MEMORY.md`,
-`HEARTBEAT.md`, and `BOOTSTRAP.md`; normal chat, heartbeat and bootstrap have
-different context behavior. `clawock/context_manifest.json` records the isolated
-cron rule, and CI fails when one of those injected files disappears or is empty.
+OpenClaw 2026.7.1 does not have one universal context allowlist. Normal chat
+injects the five identity/tool bootstrap files plus `HEARTBEAT.md` and
+`MEMORY.md`; isolated cron injects only the five-file runtime allowlist;
+heartbeat-light keeps only `HEARTBEAT.md`; bootstrap-pending and subagent runs
+have their own rules. `clawock/context_manifest.json` records each profile, the
+lazy skill/memory capability roots, conversation-history ownership and the rule
+that clawock never narrows OpenClaw's tools implicitly.
+
+`clawock context audit --profile <name>` fails visibly when an injected file is
+missing/empty or when moving `skills/`, `MEMORY.md` or `memory/` would silently
+remove catalog/search capability. This is broader than comparing prompt text:
+the skills catalog contains metadata rather than skill bodies, memory search can
+remain available where `MEMORY.md` is not injected, and session history belongs
+to the runtime rather than the bootstrap bundle.
 
 `clawock context assemble` gives another runner the equivalent bootstrap. Skill
 bodies remain lazy: the catalog is only an index, and only an explicitly selected
 `skills/{name}/SKILL.md` is added. This preserves normal chat context and avoids
 silently loading every skill into every run.
 
-Those five root files must not move while OpenClaw hard-codes their names. The
-manifest owns the portable definition and audit gate; it cannot make an old
-OpenClaw binary consume a different path.
+The runtime-required root files and capability directories must not move before
+every active profile passes its parity gate. The manifest owns the portable
+definition and audit gate; it cannot make an OpenClaw binary consume a different
+path. The full adapter and cron cutover contract is in
+[`openclaw-adapter.md`](openclaw-adapter.md).
 
 Standalone runs instead list context files in `clawock.json`. Every document and
 the assembled bundle receive SHA-256 certification in the runtime request and
