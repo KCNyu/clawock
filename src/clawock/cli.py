@@ -334,6 +334,8 @@ def _packaged_utility(args) -> int:
         from clawock.earnings_review import main
     elif args.command == "research":
         from clawock.research_surface import main
+    elif args.command == "realized":
+        from clawock.recompute_realized import main
     else:
         from clawock.claim_provenance import main
     return main(args.utility_args)
@@ -446,6 +448,7 @@ def main(argv=None) -> int:
     packaged_utilities = {
         "plan-context", "risk", "dashboard-outputs", "run-card", "provenance",
         "entry-gate", "thesis", "earnings", "research", "claim-provenance",
+        "realized",
     }
     if raw_argv and raw_argv[0] in packaged_utilities:
         return _packaged_utility(argparse.Namespace(
@@ -537,6 +540,7 @@ def main(argv=None) -> int:
         ("earnings", "validate and release primary-source earnings reviews"),
         ("research", "show or check the configured research work queue"),
         ("claim-provenance", "verify backtest claims against run cards"),
+        ("realized", "recompute realized P&L from the trade ledger"),
     ):
         utility = sub.add_parser(name, help=help_text, add_help=False)
         utility.add_argument("utility_args", nargs=argparse.REMAINDER)

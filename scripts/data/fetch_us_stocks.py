@@ -1336,7 +1336,7 @@ def update_us_portfolio(
         print("\n  [dry-run] portfolio.json NOT written.\n")
     else:
         from clawock.safe_io import mutate_json
-        from recompute_realized import recompute as recompute_realized
+        from clawock.recompute_realized import recompute as recompute_realized
         recompute_realized(data)
         # 锁内重读、只覆盖自己拥有的 us_stocks 区 + 顶层 last_updated 戳，保住并发
         # 写者(gold/hk)的字段 [cut #2]（last_updated 是顶层键，别随 region-overlay 丢）
