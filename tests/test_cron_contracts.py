@@ -1,5 +1,6 @@
 import importlib.util
 import json
+import subprocess
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
@@ -228,6 +229,37 @@ def test_legacy_host_rows_are_planned_to_installed_commands():
     assert len([change for change in host if change['kind'] == 'dst-sync']) == 1
     assert all(change['matched_by'] == 'legacy' for change in host)
     assert all('scripts/harness/' not in change['to']['command'] for change in host)
+
+
+def test_crontab_apply_preserves_every_unmanaged_line(monkeypatch):
+    original = (
+        '# managed and unrelated host jobs\n'
+        '30 8 * * 1-5 old-watchdog\n'
+        '0,20,40 * * * * /bin/bash /srv/publisher.sh\n'
+    )
+    captured = {}
+
+    def fake_run(argv, **kwargs):
+        captured['argv'] = argv
+        captured.update(kwargs)
+        return subprocess.CompletedProcess(argv, 0, stdout='', stderr='')
+
+    monkeypatch.setattr(sync_us_cron_dst.subprocess, 'run', fake_run)
+    errors = sync_us_cron_dst.apply_crontab(original, [{
+        'line_index': 1,
+        'to': {
+            'expr': '30 8 * * 1-5',
+            'command': '/root/.local/bin/clawock-kcnyu-brief-watchdog',
+        },
+    }])
+
+    assert errors == []
+    assert captured['argv'] == ['crontab', '-']
+    assert captured['input'] == (
+        '# managed and unrelated host jobs\n'
+        '30 8 * * 1-5 /root/.local/bin/clawock-kcnyu-brief-watchdog\n'
+        '0,20,40 * * * * /bin/bash /srv/publisher.sh\n'
+    )
 
 
 def test_intraday_heartbeat_is_slot_keyed_published_and_health_checked(tmp_path, monkeypatch):
