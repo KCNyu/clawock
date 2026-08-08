@@ -1,45 +1,17 @@
-"""The four capabilities the brief skill already drives, given a schema.
+"""Package-owned context capabilities exposed to external agent runtimes.
 
-Each one delegates to the code that implements it today — `read_packet`,
-`summary_view`, `bounded_payload` in `brief_decision_packet.py`. Nothing here
-reimplements the protocol; it exposes it. That is deliberate: the generation
-pin, the hash check and the per-query byte budget are load-bearing and already
-tested, and a second copy of them would be a second thing to get wrong.
-
-The workspace is passed in rather than resolved from `__file__`, because these
-tools have to work against a foreign workspace — that is the whole point.
+The protocol implementation ships in ``clawock``. The workspace argument points
+only at user artifacts and data; it is never searched for executable Python.
 """
 from __future__ import annotations
 
-import importlib.util
-import json
-import sys
 from pathlib import Path
 
+from clawock import brief_context, brief_decision_packet
 from clawock.tools import BaseTool, ToolError
 
 SECTIONS = ("facts", "technical", "quant", "sentiment", "evidence", "risk",
             "constraints")
-
-
-def _load(workspace, module: str):
-    """Import a workspace's own data module.
-
-    Not a subprocess, and not a copy: these tools read *that workspace's*
-    protocol, so importing that workspace's implementation is the honest
-    resolution. A wheel installed elsewhere still works — it just needs a
-    workspace to point at, exactly like `portfolio.json`.
-    """
-    path = Path(workspace) / "scripts" / "data" / f"{module}.py"
-    if not path.exists():
-        raise ToolError(f"{module}.py not found in workspace {workspace}")
-    data_dir = str(path.parent)
-    if data_dir not in sys.path:
-        sys.path.insert(0, data_dir)
-    spec = importlib.util.spec_from_file_location(module, path)
-    loaded = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(loaded)
-    return loaded
 
 
 def _manifest(workspace, manifest) -> Path:
@@ -51,14 +23,7 @@ def _manifest(workspace, manifest) -> Path:
     return path
 
 
-class _PacketTool(BaseTool):
-    @classmethod
-    def check_available(cls, workspace) -> bool:
-        return (Path(workspace) / "scripts" / "data"
-                / "brief_decision_packet.py").exists()
-
-
-class DecisionPacketSummary(_PacketTool):
+class DecisionPacketSummary(BaseTool):
     name = "decision_packet_summary"
     description = (
         "The brief's resident input: book and concentration, per-ticker "
@@ -78,12 +43,13 @@ class DecisionPacketSummary(_PacketTool):
     }
 
     def execute(self, workspace, *, manifest: str) -> str:
-        packet_module = _load(workspace, "brief_decision_packet")
-        packet = packet_module.read_packet(_manifest(workspace, manifest))
-        return packet_module.bounded_payload(packet_module.summary_view(packet))
+        packet = brief_decision_packet.read_packet(_manifest(workspace, manifest))
+        return brief_decision_packet.bounded_payload(
+            brief_decision_packet.summary_view(packet)
+        )
 
 
-class DecisionPacketQuery(_PacketTool):
+class DecisionPacketQuery(BaseTool):
     name = "decision_packet_query"
     description = (
         "One ticker's slice of the decision packet, optionally narrowed to a "
@@ -107,8 +73,7 @@ class DecisionPacketQuery(_PacketTool):
         if section is not None and section not in SECTIONS:
             raise ToolError(
                 f"unknown section {section!r}; expected one of {', '.join(SECTIONS)}")
-        packet_module = _load(workspace, "brief_decision_packet")
-        packet = packet_module.read_packet(_manifest(workspace, manifest))
+        packet = brief_decision_packet.read_packet(_manifest(workspace, manifest))
         value = (packet.get("tickers") or {}).get(str(ticker))
         if value is None:
             raise ToolError(f"unknown ticker: {ticker}")
@@ -125,7 +90,29 @@ class DecisionPacketQuery(_PacketTool):
         }
         # The budget is applied here, not on a print path — that is the bug this
         # layer exists to close: every non-CLI caller used to bypass the cap.
-        return packet_module.bounded_payload(payload)
+        return brief_decision_packet.bounded_payload(payload)
+
+
+class DecisionPacketJudgmentTemplate(BaseTool):
+    name = "decision_packet_judgment_template"
+    description = (
+        "A generation-pinned template containing only the judgment fields the "
+        "external agent may fill."
+    )
+    parameters = {
+        "type": "object",
+        "properties": {
+            "manifest": {"type": "string",
+                         "description": "Path to the generation's manifest.json."},
+        },
+        "required": ["manifest"],
+    }
+
+    def execute(self, workspace, *, manifest: str) -> str:
+        packet = brief_decision_packet.read_packet(_manifest(workspace, manifest))
+        return brief_decision_packet.bounded_payload(
+            brief_decision_packet.judgment_template(packet)
+        )
 
 
 class ContextBundle(BaseTool):
@@ -146,23 +133,8 @@ class ContextBundle(BaseTool):
         "required": ["manifest", "bundle"],
     }
 
-    @classmethod
-    def check_available(cls, workspace) -> bool:
-        return (Path(workspace) / "scripts" / "data" / "brief_context.py").exists()
-
     def execute(self, workspace, *, manifest: str, bundle: str) -> str:
-        path = _manifest(workspace, manifest)
-        entry = ((json.loads(path.read_text(encoding="utf-8")).get("artifacts") or {})
-                 .get(bundle))
-        if not entry:
-            available = sorted(
-                (json.loads(path.read_text(encoding="utf-8")).get("artifacts") or {}))
-            raise ToolError(
-                f"unknown bundle {bundle!r}; manifest lists: {', '.join(available)}")
-        target = Path(entry.get("path") or "")
-        if not target.exists():
-            raise ToolError(f"bundle {bundle!r} is listed but missing: {target}")
-        return target.read_text(encoding="utf-8")
+        return brief_context.read_artifact(_manifest(workspace, manifest), bundle)
 
 
 class ReportContext(BaseTool):
@@ -194,4 +166,10 @@ class ReportContext(BaseTool):
         return path.read_text(encoding="utf-8")
 
 
-TOOLS = (DecisionPacketSummary, DecisionPacketQuery, ContextBundle, ReportContext)
+TOOLS = (
+    DecisionPacketSummary,
+    DecisionPacketQuery,
+    DecisionPacketJudgmentTemplate,
+    ContextBundle,
+    ReportContext,
+)

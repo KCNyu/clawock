@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Typed, queryable decision boundary for the daily deep brief.
 
 The expensive producers remain authoritative for prices, technical indicators,
@@ -16,13 +15,9 @@ import hashlib
 import json
 import math
 import os
-import sys
 from pathlib import Path
 
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-# Canonical owner of the active/passive action split; duplicating those sets here
-# would let the evidence gate drift onto the wrong one.
-import decision_v2  # noqa: E402
+from clawock.decision_contract import ACTIVE_ACTIONS
 
 
 SCHEMA_VERSION = 1
@@ -561,7 +556,7 @@ def _catalyst_evidence_issues(tag: str, decision: dict, row: dict) -> list[str]:
     """
     evidence_id = decision.get("evidence_event_id")
     action = decision.get("action")
-    if action in decision_v2.ACTIVE_ACTIONS:
+    if action in ACTIVE_ACTIONS:
         if evidence_id not in ((row.get("constraints") or {}).get("actionable_evidence_ids") or []):
             return [f"{tag}: evidence_event_id is outside harness evidence gate"]
         return []

@@ -3,8 +3,9 @@
 `skills/daily-deep-brief/SKILL.md` drives a genuinely good lazy-load protocol —
 generation-pinned manifest, typed decision packet, per-section queries, hash
 validation, a hard per-query byte budget. The protocol is not the problem. The
-problem is how the model reaches it: markdown telling it to run
-`python3 /root/.openclaw/workspace/scripts/data/brief_decision_packet.py …`.
+problem was how the model reached it: markdown told it to run a Python file from
+the KCNyu source checkout. The implementation and the tool schema now both ship
+in the wheel.
 
 That makes the skill the only machine-unreadable copy of the interface, forces
 the cron payload to know internal file layout, and leaves any non-OpenClaw

@@ -237,7 +237,7 @@ def _tool(args) -> int:
 
     This is what makes the tool layer real (#266). Before it, `clawock.tools` had
     no caller outside its own tests: the skills reached the same data by running
-    `python3 .../scripts/data/brief_decision_packet.py`, so the registry was an
+    a source-checkout script, so the registry was an
     executable design document and the per-query byte budget — the hole #258
     actually closed — protected a path nobody took, because the callers that read
     context ARE the skills.

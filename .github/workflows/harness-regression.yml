@@ -184,6 +184,8 @@ jobs:
           python3 -m pytest tests/ -q \
             --cov=scripts \
             --cov=clawock.bar_checks \
+            --cov=clawock.brief_context \
+            --cov=clawock.brief_decision_packet \
             --cov=clawock.instrument_registry \
             --cov=clawock.json_repair \
             --cov=clawock.safe_io \

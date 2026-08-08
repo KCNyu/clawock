@@ -11,8 +11,24 @@ import pytest
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts" / "data"))
 
-import brief_context  # noqa: E402
+from clawock import brief_context
 from clawock_kcnyu.harness import brief_postflight  # noqa: E402
+
+
+def test_context_protocol_implementation_is_owned_by_the_product():
+    from clawock import brief_decision_packet
+
+    assert {
+        Path(module.__file__).relative_to(ROOT).as_posix()
+        for module in (brief_context, brief_decision_packet)
+    } == {
+        "src/clawock/brief_context.py",
+        "src/clawock/brief_decision_packet.py",
+    }
+    assert not any(
+        (ROOT / "scripts" / "data" / name).exists()
+        for name in ("brief_context.py", "brief_decision_packet.py")
+    )
 
 
 def _fixture():

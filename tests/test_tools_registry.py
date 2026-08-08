@@ -5,7 +5,7 @@
 2. The per-query byte budget bypassed. It used to live only on the CLI print
    path, so every non-CLI caller silently skipped it; that is the bug this layer
    exists to close.
-3. A missing dependency exploding instead of excluding the tool.
+3. A package-owned tool disappearing just because a workspace has no source tree.
 """
 import inspect
 import json
@@ -53,19 +53,17 @@ def test_the_query_budget_is_enforced_through_the_tool(tmp_path, monkeypatch):
     """The cap lived only in the CLI's print path. Any caller using
     read_packet()/summary_view() directly — i.e. every non-CLI consumer —
     bypassed it."""
-    packet_module = type(sys)("brief_decision_packet")
-    packet_module.MAX_QUERY_BYTES = 24 * 1024
-
     def bounded_payload(value):
         text = json.dumps(value, ensure_ascii=False, indent=2) + "\n"
-        if len(text.encode()) > packet_module.MAX_QUERY_BYTES:
+        if len(text.encode()) > 24 * 1024:
             raise ValueError("decision packet query exceeds")
         return text
 
-    packet_module.bounded_payload = bounded_payload
-    packet_module.read_packet = lambda path: {
+    monkeypatch.setattr(context_tools.brief_decision_packet,
+                        "bounded_payload", bounded_payload)
+    monkeypatch.setattr(context_tools.brief_decision_packet, "read_packet", lambda path: {
         "tickers": {"00100": {"technical": {"blob": "x" * 40_000}}}}
-    monkeypatch.setattr(context_tools, "_load", lambda ws, mod: packet_module)
+    )
 
     manifest = tmp_path / "manifest.json"
     manifest.write_text("{}")
@@ -76,14 +74,46 @@ def test_the_query_budget_is_enforced_through_the_tool(tmp_path, monkeypatch):
                      section="technical")
 
 
-def test_a_tool_whose_dependency_is_missing_is_excluded_not_raised(tmp_path):
-    """`check_available` is the difference between a shorter tool list and a
-    traceback in the middle of a model turn."""
-    registry = build_registry(tmp_path)          # empty dir: no scripts/, no memory/
+def test_package_tools_exist_without_python_source_in_the_workspace(tmp_path):
+    """A wheel supplies behavior; a user's workspace supplies only artifacts."""
+    registry = build_registry(tmp_path)  # empty dir: no scripts/, no memory/
 
-    assert registry.names() == []
-    with pytest.raises(ToolError, match="unknown tool"):
+    assert registry.names() == [
+        "context_bundle",
+        "decision_packet_judgment_template",
+        "decision_packet_query",
+        "decision_packet_summary",
+    ]
+    with pytest.raises(ToolError, match="manifest not found"):
         registry.call("decision_packet_summary", manifest="x")
+
+
+def test_package_tools_read_a_real_generation_without_workspace_code(tmp_path):
+    source = {"date": "2026-08-08", "quant_signals": {"signal": "verified"}}
+    generation_id = context_tools.brief_context.compute_generation_id(source)
+    packet = {
+        "_meta": {"schema_version": 1, "kind": "brief_decision_packet",
+                  "generation_id": generation_id},
+        "tickers": {"TEST": {}},
+    }
+    _, manifest = context_tools.brief_context.write_run_bundle(
+        source,
+        tmp_path / "brief-context.json",
+        tool_artifacts={"decision_packet": packet},
+    )
+    registry = build_registry(tmp_path)
+
+    bundle = json.loads(registry.call(
+        "context_bundle", manifest=manifest["manifest_path"], bundle="research"
+    ))
+    template = json.loads(registry.call(
+        "decision_packet_judgment_template", manifest=manifest["manifest_path"]
+    ))
+
+    assert bundle["_meta"]["generation_id"] == generation_id
+    assert bundle["quant_signals"] == {"signal": "verified"}
+    assert template["context_generation_id"] == generation_id
+    assert template["ticker_judgments"][0]["ticker"] == "TEST"
 
 
 def test_schemas_render_for_both_dialects():
@@ -111,23 +141,18 @@ def test_the_cli_consumer_refuses_an_over_budget_query_instead_of_crashing(
     """
     from clawock import cli
 
-    packet_module = type(sys)("brief_decision_packet")
-    packet_module.MAX_QUERY_BYTES = 24 * 1024
-
     def bounded_payload(value):
         text = json.dumps(value, ensure_ascii=False, indent=2) + "\n"
-        if len(text.encode()) > packet_module.MAX_QUERY_BYTES:
+        if len(text.encode()) > 24 * 1024:
             raise ValueError("decision packet query exceeds")
         return text
 
-    packet_module.bounded_payload = bounded_payload
-    packet_module.read_packet = lambda path: {
+    monkeypatch.setattr(context_tools.brief_decision_packet,
+                        "bounded_payload", bounded_payload)
+    monkeypatch.setattr(context_tools.brief_decision_packet, "read_packet", lambda path: {
         "_meta": {"generation_id": "gen"},
         "tickers": {"00100": {"technical": {"blob": "x" * 40_000}}}}
-    monkeypatch.setattr(context_tools, "_load", lambda ws, mod: packet_module)
-    monkeypatch.setattr(
-        context_tools.DecisionPacketQuery, "check_available",
-        classmethod(lambda cls, ws: True))
+    )
 
     manifest = tmp_path / "manifest.json"
     manifest.write_text("{}")
@@ -151,12 +176,15 @@ def test_a_narrowed_query_keeps_the_generation_pin(tmp_path, monkeypatch):
     here; the tool dropped it, so every narrowed query through the registry was
     silently un-pinned — invisible until a real consumer compared the two.
     """
-    packet_module = type(sys)("brief_decision_packet")
-    packet_module.bounded_payload = lambda value: json.dumps(value)
-    packet_module.read_packet = lambda path: {
+    monkeypatch.setattr(
+        context_tools.brief_decision_packet,
+        "bounded_payload",
+        lambda value: json.dumps(value),
+    )
+    monkeypatch.setattr(context_tools.brief_decision_packet, "read_packet", lambda path: {
         "_meta": {"generation_id": "gen-abc"},
         "tickers": {"00100": {"technical": {"tag": "trend-off"}}}}
-    monkeypatch.setattr(context_tools, "_load", lambda ws, mod: packet_module)
+    )
 
     manifest = tmp_path / "manifest.json"
     manifest.write_text("{}")
