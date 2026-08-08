@@ -40,6 +40,7 @@ from zoneinfo import ZoneInfo
 
 from clawock.workspace import workspace_root
 from clawock import trading_calendar
+from clawock import brief_context, brief_decision_packet
 
 WS = workspace_root(Path.cwd())
 _CHECKOUT = WS
@@ -53,8 +54,6 @@ import research_surface  # noqa: E402
 import peer_scan  # noqa: E402
 import workflow_outcomes  # noqa: E402
 import risk_discipline  # noqa: E402
-import brief_context  # noqa: E402
-import brief_decision_packet  # noqa: E402
 from clawock.instrument_registry import get as get_instrument  # noqa: E402
 from clawock.instrument_registry import compute_lookthrough_exposure  # noqa: E402
 from clawock.instrument_registry import one_x_swap_map  # noqa: E402
