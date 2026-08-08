@@ -4,7 +4,7 @@
 
 ### AI 争辩。代码结算。连亏损都摆在明面上。
 
-一个真实的港股 + 美股组合,由多个 LLM 辩论、交给 Python 打分 —— 每条判断都在明面上结算,而主动判断至今仍落后于买入持有。
+把这套真实港股 + 美股投研台背后的决策能力装进任何 Agent —— 证据、反方、确定性对账，以及连接结果的改进。
 
 [![Dashboard](https://img.shields.io/github/deployments/KCNyu/clawock/github-pages?label=DASHBOARD&style=flat-square&logo=githubpages&logoColor=white&labelColor=252b35&color=4b91c8)](https://kcnyu.github.io/clawock/)
 [![Tests](https://img.shields.io/github/actions/workflow/status/KCNyu/clawock/harness-regression.yml?label=TESTS&style=flat-square&logo=githubactions&logoColor=white&labelColor=252b35&color=738391)](https://github.com/KCNyu/clawock/actions/workflows/harness-regression.yml)
@@ -32,14 +32,22 @@
 
 ## 这是什么
 
-clawock 是一套**可审计的投资组合 Agent Harness，并内置上下文认证层**。
-完整 Agent = `clawock + 模型 + runtime`；这个仓库负责其中不会幻觉的那一半。
-它也是一个持续运行的、公开的纪律化、自评式 AI 投资实验 —— 不是一夜暴富的机器人,也不是跟单服务。
+clawock 是一套**面向 Agent 的投资决策 workflow plugin kit，加上一层可验证
+harness**。OpenClaw、Hermes、Claude Code、Codex 或其它外部 runtime 负责模型
+调用、对话、记忆、规划、工具、权限和凭证；clawock 安装可复用 workflow，负责
+认证证据、强制反方、校验资金和汇率、连接结果，并让每个改进提案可审、可回滚。
+
+这个仓库也是第一套持续运行的证明：一个真实港股 + 美股组合上的纪律化、公开、
+自评式 AI 投资实验 —— 不是一夜暴富的机器人，也不是跟单服务。
 
 一套多 Agent 投研台监控一个真实券商账户(港股与美股分账)、辩论证据、给出交易建议;执行留给账户所有者。这个项目的核心产品就是这份实时记录:真实持仓、不断累积的决策历史,以及公开战绩。模型负责提议;价格、风控上限、账本、结算与评分,全部由 Python 负责。
 
 ### 有什么不一样
 
+- **是 workflow plugin，不是另一个 Agent。** 外部 runtime 保留自己的模型、聊天、
+  memory、skills engine、tool loop 与权限；clawock 让投资决策契约跨 runtime 迁移。
+- **闭环不会停在答案。** 证据、反方、thesis、decision、execution 与 observed
+  outcome 共用一条 lineage。结果可以提出有边界的参数改动，却不能暗改策略。
 - **真金白银,公开打分。** 一个在跑的港股 + 美股真实券商账户,公开战绩保留每一条符合条件的结果 —— 亏损也在内,包括主动判断至今没跑赢买入持有。
 - **模型不能给自己打分。** LLM 提出交易建议;Python 独立结算并计算战绩。
 - **一个论点,只算一个 episode。** 同一论点的重复意见只计一次。每个 episode 都用指定基准供应商的行情结算;缺 session 时按公开的补齐规则处理。
@@ -48,9 +56,15 @@ clawock 是一套**可审计的投资组合 Agent Harness，并内置上下文�
 
 ## 怎么跑的
 
-这套系统把**概率性判断**和**确定性控制**分开:LLM 读市场、吵交易;代码决定什么被允许、实际发生了什么、记录上写什么。
+产品边界很简单：外部 Agent 负责读取与推理；clawock 负责可迁移的决策 workflow
+和周围的确定性真值。
 
-![clawock 架构 —— Python 构建对账后的市场上下文,多 Agent LLM 辩论提出交易,代码记录并把关决策,公开战绩闭环](assets/architecture.svg)
+![clawock 产品架构 —— 外部 runtime 拥有模型、对话、记忆与工具；包提供可迁移 workflow、认证上下文、确定性对账、评估和有边界改进](assets/product-architecture.svg)
+
+KCNyu 部署再把这个产品边界用于一个真实组合。下面第二张是实例架构，不是可复用
+package 架构。
+
+![KCNyu live-instance 架构 —— Python 构建对账后的市场上下文，OpenClaw Agent 辩论交易，clawock 契约把关决策，公开战绩闭环](assets/architecture.svg)
 
 每个交易日,系统拉取最新价格、汇率、波动率、财报与宏观上下文,以及新闻与社交情绪;把这份归一化的上下文交给多 Agent 辩论;在 Python 里施加确定性的风控、schema 与账本闸门;把简报送到微信;并更新公开仪表盘。
 
@@ -197,17 +211,24 @@ clawock 是一套**可审计的投资组合 Agent Harness，并内置上下文�
 
 ## 在你自己的账本上跑
 
-仓库现在可以作为包安装，计算部分也不再焊死在这个账户的目录上：
+package lifecycle 已经不再焊死在这个账户目录上。在
+[#379](https://github.com/KCNyu/clawock/issues/379) 完成 trusted publishing 前，
+请从 GitHub 安装当前 pre-release，不假装 PyPI 名称已经上线：
 
 ```bash
-pip install -e .
-clawock doctor                          # 这个 workspace 能跑吗？
-clawock doctor --workspace ~/my-book    # 那个呢？
-clawock context audit                   # runtime 上下文契约还完整吗？
-clawock report preflight --market hk --phase open
+python -m pip install "clawock @ git+https://github.com/KCNyu/clawock.git"
+clawock workflow install investment-decision --workspace ./my-decision
+clawock init ./my-decision --workflow investment-decision
+clawock run prepare --workspace ./my-decision
 ```
 
-`doctor` 只回答一个问题——这套循环能不能对着这份持仓跑起来——并且**把缺什么直接说出来**，而不是在很深的地方抛一个路径错误。`CLAWOCK_WORKSPACE` 可以把计算指向别的目录树；不设置时行为和以前完全一致。
+输出的 request 交给外部 Agent。Agent 写出 `decision.json`，再由
+`clawock run publish` 校验并产生关联的 generation receipt。包内 example 可以在
+不调用模型时 smoke lifecycle；真实 adapter 则把模型调用完全留在 runtime。
+
+KCNyu compatibility surface 仍由 `clawock doctor`、`clawock context audit` 和
+`CLAWOCK_WORKSPACE` 检查或指向实际账本。它们会直说缺什么，不假装任意外来
+workspace 都能直接运行这套 live desk。
 
 包本身拥有 lifecycle 契约、generation-pinned artifacts、上下文组装、校验与
 CLI，但不会另写一套 Agent loop。这个实例今天用 OpenClaw 作为无人值守 runtime
@@ -245,7 +266,9 @@ adapter；其它 runner 可以消费同一套 context/tool 契约。live adapter
 
 <br>
 
-**模型。** 交互式聊天目前跑在 Claude 上;无人值守的市场任务通过 Anthropic Messages API 固定一个模型,并带一个可选兜底。供应商凭据与兜底策略放在这个公开仓库之外,可以在不改 harness 的情况下变更。这里不存任何供应商密钥。
+**模型。** 模型选择属于外部 runtime，不属于 clawock。live OpenClaw 实例可以为
+每个 scheduled job 分别固定 primary 与 fallback；供应商凭据与路由策略放在公开
+仓库之外，可以在不改 workflow 的情况下变化。这里不存任何供应商密钥。
 
 **写入对账。** dashboard 构建产物 —— `dashboard.json`、`decision_audit.json`、`shadow_portfolio.json` —— 都是派生的,而 cron 守护进程、远端 workflow、crontab publisher 和临时 session 都可能更新 `master`。规则是:隔离 scan-sidecar 写者,并串行化同一 host 上的 dashboard builder。
 
