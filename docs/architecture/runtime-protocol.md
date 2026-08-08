@@ -27,6 +27,9 @@ clawock run prepare --workspace ./my-workspace
 contains a run ID, generation ID, task, context documents, per-document SHA-256
 hashes and a hash of the assembled context. The external agent reads that input
 using its normal conversation, skills and tools; clawock performs no inference.
+Because the local request contains the full context text, it is written with
+owner-only permissions and `.clawock/work/` is ignored by the workspace-local
+`.clawock/.gitignore`. Published manifests contain hashes, not the context body.
 
 ## Validate and publish
 

@@ -46,6 +46,7 @@ def _run_prepare(args) -> int:
         write_generation({
             str(state): json.dumps(payload, ensure_ascii=False, indent=2) + "\n",
         })
+        state.chmod(0o600)
     except (ValueError, OSError) as exc:
         print(str(exc), file=sys.stderr)
         return 1

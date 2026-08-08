@@ -68,6 +68,7 @@ def test_init_joins_an_existing_agent_workspace_without_overwriting(tmp_path):
     assert context.read_text() == "runtime-owned context\n"
     assert (tmp_path / "AGENTS.md").read_text() == "runtime-owned instructions\n"
     assert (tmp_path / "clawock.json").exists()
+    assert (tmp_path / ".clawock/.gitignore").read_text() == "*\n!.gitignore\n"
 
 
 def test_external_agent_can_repair_then_publish_one_certified_generation(tmp_path):

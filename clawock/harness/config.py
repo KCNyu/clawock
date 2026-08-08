@@ -34,6 +34,9 @@ def initialize(workspace: Path | str) -> Path:
             "# Context\n\n"
             "Replace this file with the facts and instructions the runtime should use.\n"
         )
+    local_ignore = root / ".clawock" / ".gitignore"
+    if not local_ignore.exists():
+        writes[str(local_ignore)] = "*\n!.gitignore\n"
     write_generation(writes)
     return root
 
