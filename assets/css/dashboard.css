@@ -381,6 +381,19 @@
     .panel.active > .card.lead .sentiment-drill > * {
       break-inside: avoid; margin-bottom: var(--space-2);
     }
+    /* WebKit/Safari can stall while activating Reflect when dynamically sized
+       ECharts canvases live inside this multi-column formatting context. Keep
+       the Chromium masonry everywhere else; only Reflect in WebKit falls back
+       to ordinary block flow. Reset the column-only child hints as well so
+       Safari never has to construct a latent spanning/fragmentation context. */
+    html.is-webkit .panel.active[data-panel="reflect"] {
+      column-count: auto;
+      column-gap: normal;
+    }
+    html.is-webkit .panel.active[data-panel="reflect"] > * {
+      break-inside: auto;
+      column-span: none;
+    }
   }
   .desktop-section-kicker { display: none; }
   /* =========================================================
