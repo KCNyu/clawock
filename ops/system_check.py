@@ -37,6 +37,7 @@ sys.path.insert(0, str(_REPO_ROOT / "src"))
 # anything. All of these are absent in CI, where the checks skip.
 from clawock.providers.openclaw import (  # noqa: E402
     is_installed as openclaw_is_installed,
+    read_jobs as openclaw_read_jobs,
     runtime_paths as openclaw_runtime_paths,
 )
 
@@ -446,16 +447,14 @@ def check_cron_paths_exist(r):
     """Live cron schedules match the tracked contract and payload scripts exist.
 
     6.1 migrated cron storage from cron/jobs.json into state/openclaw.sqlite, so
-    direct file reads silently return nothing. Read via _watchdog_common.load_jobs:
-    CLI first, then the live SQLite DB read-only, with pre-migration files kept
-    only as an explicitly rejected last-resort fossil.
+    direct file reads silently return nothing. Read through the core runtime
+    provider: CLI first, then the live SQLite DB read-only, with pre-migration
+    files kept only as an explicitly rejected last-resort fossil.
     """
     import re
-    sys.path.insert(0, str(_REPO_ROOT / 'scripts' / 'harness'))
     try:
-        import _watchdog_common as wc  # type: ignore
-        from _watchdog_common import load_jobs  # type: ignore
-        jobs = load_jobs()
+        cron_read = openclaw_read_jobs()
+        jobs = cron_read.entries
     except Exception as e:
         r.add('cron paths', WARNING, f'cron jobs unreadable: {e}')
         return
@@ -466,8 +465,8 @@ def check_cron_paths_exist(r):
         else:
             r.add('cron paths', WARNING, 'openclaw CLI returned 0 cron jobs (storage regression? run doctor --fix)')
         return
-    if getattr(wc, 'LAST_LOAD_SOURCE', None) == 'fossil':
-        # Both live sources were unreadable and load_jobs() served a pre-6.1
+    if cron_read.source == 'fossil':
+        # Both live sources were unreadable and the provider served a pre-6.1
         # fossil that is STALE for model/delivery/message. Refuse validation:
         # passing or failing the payload contract against this view is a lie.
         r.add('cron runtime contract', CRITICAL,
@@ -500,7 +499,10 @@ def check_cron_paths_exist(r):
             if watchdog_errors:
                 r.add('watchdog cron contract', CRITICAL, '; '.join(watchdog_errors[:8]))
             else:
-                n_watchdogs = sum(bool(j.get('watchdog')) for j in contract['jobs'])
+                n_watchdogs = sum(
+                    bool(job.get('watchdog')) + len(job.get('extra_watchdogs') or [])
+                    for job in contract['jobs']
+                )
                 r.add('watchdog cron contract', OK,
                       f'{n_watchdogs} watchdogs + daily DST sync match tracked config')
     except Exception as e:
