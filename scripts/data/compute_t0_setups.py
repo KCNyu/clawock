@@ -45,7 +45,7 @@ HIST = WS / 'assets' / 'data' / 't0_setups_history.jsonl'
 HIST_MAX_LINES = 4000   # 盘中每 30min 一行，封顶约 1 年留痕
 
 sys.path.insert(0, str(_CHECKOUT / 'scripts' / 'data'))
-from instrument_registry import INSTRUMENTS  # noqa: E402
+from clawock.instrument_registry import INSTRUMENTS  # noqa: E402
 
 try:
     from safe_io import safe_write_json

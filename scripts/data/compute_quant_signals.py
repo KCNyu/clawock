@@ -59,7 +59,7 @@ MAX_STALE_DAYS = 7
 RETIRED_RETENTION_DAYS = 7
 
 sys.path.insert(0, str(_CHECKOUT / 'scripts' / 'data'))
-from instrument_registry import require as require_instrument  # noqa: E402
+from clawock.instrument_registry import require as require_instrument  # noqa: E402
 import trading_calendar  # noqa: E402
 
 try:

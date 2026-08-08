@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Canonical instrument metadata shared by dashboard, risk, quant and brief.
 
 The JSON file is deliberately data-only so exchange suffixes, leverage and
@@ -15,13 +14,7 @@ from pathlib import Path
 from typing import Any
 
 
-# The checkout root, so `clawock` resolves from the tree this file ships
-# in. Reached through the scripts/data/workspace shim until #267 step 3,
-# whose only remaining job was inserting this path as a side effect.
-import sys  # noqa: E402
-sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
-sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
-from clawock.workspace import engine_config, workspace_root  # noqa: E402
+from .workspace import engine_config, workspace_root
 
 WS = workspace_root(Path(__file__).resolve().parents[2])
 REGISTRY_FILE = WS / "config" / "instruments.json"

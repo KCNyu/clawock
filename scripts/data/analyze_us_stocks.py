@@ -15,16 +15,20 @@ Usage:
 
 import json, os, sys
 from datetime import datetime, timezone, timedelta
+from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 import requests
 
 # ── imports from sibling script ─────────────────────────────────────────────
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+_CHECKOUT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(_CHECKOUT))
+sys.path.insert(0, str(_CHECKOUT / "src"))
 from fetch_us_stocks import (
     update_us_portfolio, load_api_keys,
     PORTFOLIO_PATH, SESSION, TIMEOUT
 )
-from instrument_registry import get as get_instrument
+from clawock.instrument_registry import get as get_instrument
 
 ET_TZ  = timezone(timedelta(hours=-4))
 HKT_TZ = timezone(timedelta(hours=8))

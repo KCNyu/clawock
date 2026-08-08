@@ -97,7 +97,7 @@ VOL_WINDOW = 20
 VOL_CAP = 0.50       # HSTECH 20d annualised realised-vol ceiling for "vol-ok"
 
 sys.path.insert(0, str(_CHECKOUT / 'scripts' / 'data'))
-from instrument_registry import INSTRUMENTS  # noqa: E402
+from clawock.instrument_registry import INSTRUMENTS  # noqa: E402
 
 # US 2x single-stock ETF → (underlying ticker, Tencent fqkline symbol). The US dial is
 # PER-NAME (each ETF tracks one stock) and — verified in backtest_us_leverage.py — must

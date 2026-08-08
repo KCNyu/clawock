@@ -234,7 +234,7 @@ def _market_flashes(names, *, now, window):
 def holding_names(tickers) -> dict:
     """Ticker → display name, for matching a market-wide flash to a holding."""
     try:
-        import instrument_registry  # noqa: PLC0415
+        from clawock import instrument_registry  # noqa: PLC0415
 
         return {
             ticker: (instrument_registry.get(str(ticker)) or {}).get("name")
@@ -287,7 +287,7 @@ def probe_targets(ticker: str, market: str) -> dict:
     earnings calendar and the news digest.
     """
     try:
-        import instrument_registry  # noqa: PLC0415
+        from clawock import instrument_registry  # noqa: PLC0415
 
         resolved = instrument_registry.look_through(ticker)
     except Exception:  # noqa: BLE001 — never break a reporting cron

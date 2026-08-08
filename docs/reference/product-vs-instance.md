@@ -54,12 +54,15 @@ classification says where a file belongs, not that it has arrived.
 ## Classification
 
 The package now has a standard `src/clawock/` source boundary. The historical
-counts below describe the still-unmoved `scripts/data/` migration inventory;
-they are not a claim that `scripts/` is an acceptable final product home.
+counts below classify the original `scripts/data/` migration inventory; they are
+not a claim that `scripts/` is an acceptable final product home.
 
 Historical classification counts: **product 60 · instance 27**. The two cron
 synchronizers now live in `ops/host/`; the table retains them to preserve the
-decision record while the rest of `scripts/data/` is migrated.
+decision record while the rest of `scripts/data/` is migrated. The first product
+move is complete: `instrument_registry` now ships as
+`src/clawock/instrument_registry.py`; configured instruments remain workspace
+data and are not bundled in the wheel.
 
 ### Product — the engine
 
@@ -70,7 +73,8 @@ decision record while the rest of `scripts/data/` is migrated.
 | Risk + governance | `portfolio_risk_metrics` `risk_discipline` `thesis_registry` `entry_gate` `earnings_review` `research_surface` |
 | Quant + research | `compute_quant_signals` `compute_regime` `compute_t0_setups` `t0_setup_review` `quant_signal_review` `cross_sectional_factor` `peer_residual_engine` `peer_scan` `suggest_peers` |
 | Evidence + provenance | `news_evidence_graph` `research_provenance` `claim_provenance` `run_card` `build_evidence` `json_repair` |
-| Market data | `fetch_us_stocks` `fetch_daily_bars` `fetch_fx` `fetch_benchmark_history` `fetch_peers` `fetch_catalysts` `fetch_us_filings` `fetch_fundamentals_em` `fetch_fundflow_em` `fetch_em_news` `fetch_sentiment` `fetch_macro` `mover_news` `known_catalysts` `analyze_hk_stocks` `analyze_us_stocks` `_em_http` `_em_symbols` `bar_checks` `instrument_registry` `trading_calendar` |
+| Market data | `fetch_us_stocks` `fetch_daily_bars` `fetch_fx` `fetch_benchmark_history` `fetch_peers` `fetch_catalysts` `fetch_us_filings` `fetch_fundamentals_em` `fetch_fundflow_em` `fetch_em_news` `fetch_sentiment` `fetch_macro` `mover_news` `known_catalysts` `analyze_hk_stocks` `analyze_us_stocks` `_em_http` `_em_symbols` `bar_checks` `trading_calendar` |
+| Moved into product | `clawock.instrument_registry` | Code and schema ship in the wheel; each user's `config/instruments.json` stays in their workspace |
 | Gates + outputs | `preflight_integrity` `validate_sidecars` `dashboard_outputs` `build_dashboard` `workflow_outcomes` `workflow_health` `coverage_badge` `cron_contract` `cron_heartbeat` |
 
 ### Instance — kcn's desk

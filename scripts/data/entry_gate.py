@@ -44,7 +44,7 @@ ARTIFACT_ROOT = WS / "memory" / "entry-gates"
 SCHEMA_VERSION = 1
 
 sys.path.insert(0, str(_CHECKOUT / "scripts" / "data"))
-import instrument_registry  # noqa: E402
+from clawock import instrument_registry  # noqa: E402
 
 MARKETS = {"US", "HK"}
 INSTRUMENT_KINDS = {"company", "leveraged_etf"}

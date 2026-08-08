@@ -29,9 +29,12 @@ from zoneinfo import ZoneInfo
 import requests
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+_CHECKOUT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(_CHECKOUT))
+sys.path.insert(0, str(_CHECKOUT / "src"))
 import bar_checks  # noqa: E402  shared "is this bar believable" contract
 from _em_http import em_get  # noqa: E402
-from instrument_registry import INSTRUMENTS  # noqa: E402
+from clawock.instrument_registry import INSTRUMENTS  # noqa: E402
 import trading_calendar  # noqa: E402
 
 WS_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))

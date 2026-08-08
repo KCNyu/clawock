@@ -55,9 +55,9 @@ import workflow_outcomes  # noqa: E402
 import risk_discipline  # noqa: E402
 import brief_context  # noqa: E402
 import brief_decision_packet  # noqa: E402
-from instrument_registry import get as get_instrument  # noqa: E402
-from instrument_registry import compute_lookthrough_exposure  # noqa: E402
-from instrument_registry import one_x_swap_map  # noqa: E402
+from clawock.instrument_registry import get as get_instrument  # noqa: E402
+from clawock.instrument_registry import compute_lookthrough_exposure  # noqa: E402
+from clawock.instrument_registry import one_x_swap_map  # noqa: E402
 
 
 def _run(script, args=None, timeout=120):
