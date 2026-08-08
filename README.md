@@ -17,7 +17,7 @@ Install the decision intelligence behind this live Hong Kong + US desk into any 
 <br>
 
 <a href="https://kcnyu.github.io/clawock/">
-  <img src="assets/social-card.png" alt="clawock — an autonomous AI trading desk that grades its own calls" width="820">
+  <img src="assets/social-card.png" alt="clawock — portable investment decision workflows for any external AI agent, proven on a live HK and US desk" width="820">
 </a>
 
 <sub><i>“The market doesn't care how confident the model was.”</i></sub>

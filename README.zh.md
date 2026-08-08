@@ -17,7 +17,7 @@
 <br>
 
 <a href="https://kcnyu.github.io/clawock/">
-  <img src="assets/social-card.png" alt="clawock — 会给自己打分的自主 AI 投研台" width="820">
+  <img src="assets/social-card.png" alt="clawock —— 装进任意外部 Agent 的可迁移投资决策 workflow，并由真实港美股投研台持续验证" width="820">
 </a>
 
 <sub><i>“市场不在乎模型有多自信。”</i></sub>
