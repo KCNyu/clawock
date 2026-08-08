@@ -96,7 +96,7 @@ def test_the_dispatch_names_the_event_the_workflow_listens_for(tmp_path):
     subprocess.run([sys.executable, "-c",
                     "import sys; sys.path.insert(0, %r);"
                     "from clawock.publish import GitHubDispatchDeployer as D;"
-                    "D('KCNyu/clawock').request('why')" % str(ROOT)],
+                    "D('KCNyu/clawock').request('why')" % str(ROOT / "src")],
                    env=env, check=True, capture_output=True, text=True)
 
     assert "repos/KCNyu/clawock/dispatches" in log.read_text()

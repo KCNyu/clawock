@@ -8,9 +8,8 @@ from unittest import mock
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts" / "data"))
 import decision_v2 as dv2
-sys.path.insert(0, str(ROOT / "scripts" / "harness"))
-from intraday_watchdog import deterministic_fallback as intraday_fallback
-from report_watchdog import deterministic_fallback as report_fallback
+from clawock_kcnyu.harness.intraday_watchdog import deterministic_fallback as intraday_fallback
+from clawock_kcnyu.harness.report_watchdog import deterministic_fallback as report_fallback
 
 
 def decision(day, ticker="AAA", strategy="core_position", action="hold_and_watch",
@@ -695,7 +694,7 @@ class ExecutionCoverageTests(unittest.TestCase):
         wrong field, got the wrong window for every passive row and produced a
         plausible answer that was off by six points.
         """
-        import brief_preflight
+        from clawock_kcnyu.harness import brief_preflight
 
         row = {"plan_date": (date.today() - timedelta(days=10)).isoformat(),
                "ticker": "AAA", "bucket": "cut"}

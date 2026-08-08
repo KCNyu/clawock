@@ -35,6 +35,7 @@ from zoneinfo import ZoneInfo
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
 from clawock.workspace import workspace_root  # noqa: E402
+from clawock.providers import openclaw  # noqa: E402
 
 # Code lives in the checkout; only DATA lives in the workspace. `workspace_root`
 # is overridable, so resolving our own modules through WS would read them out of
@@ -347,11 +348,9 @@ def _match_run(record, entries):
 def reconcile_raw_execution():
     """Overlay raw run status from live SQLite without changing final product."""
     try:
-        sys.path.insert(0, str(_CHECKOUT / "scripts" / "harness"))
-        import _watchdog_common as common
-
-        jobs = common.load_jobs("sqlite")
-        if common.LAST_LOAD_SOURCE != "sqlite" or not jobs:
+        jobs_result = openclaw.read_jobs("sqlite")
+        jobs = jobs_result.entries
+        if jobs_result.source != "sqlite" or not jobs:
             return False
         job_ids = {job.get("name"): job.get("id") for job in jobs}
         ledger = load_ledger()
@@ -362,7 +361,7 @@ def reconcile_raw_execution():
             if not job_id:
                 continue
             if job_id not in run_cache:
-                run_cache[job_id] = common.read_runs(job_id, "sqlite")
+                run_cache[job_id] = openclaw.read_runs(job_id, "sqlite").entries
             matched = _match_run(record, run_cache[job_id])
             if not matched:
                 continue

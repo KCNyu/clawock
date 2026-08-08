@@ -17,10 +17,9 @@ from datetime import date
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT / 'scripts' / 'harness'))
 sys.path.insert(0, str(ROOT / 'scripts' / 'data'))
 
-import brief_preflight
+from clawock_kcnyu.harness import brief_preflight
 import trading_calendar
 
 

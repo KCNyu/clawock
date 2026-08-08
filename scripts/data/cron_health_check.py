@@ -36,6 +36,7 @@ from zoneinfo import ZoneInfo
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
 from clawock.workspace import workspace_root  # noqa: E402
+from clawock.providers import openclaw  # noqa: E402
 
 # Code lives in the checkout; only DATA lives in the workspace. `workspace_root`
 # is overridable, so resolving our own modules through WS would read them out of
@@ -227,9 +228,7 @@ def load_runtime_jobs(jobs_file=None):
             jobs.append(resolved)
         return jobs
 
-    sys.path.insert(0, str(_CHECKOUT / 'scripts' / 'harness'))
-    from _watchdog_common import load_jobs
-    jobs = load_jobs()
+    jobs = openclaw.read_jobs().entries
     if not jobs:
         raise RuntimeError('OpenClaw CLI returned no cron jobs; run `openclaw doctor --fix`')
     return jobs

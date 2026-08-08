@@ -25,8 +25,11 @@ import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
 
-CLIS = ("brief_preflight", "report_preflight", "intraday_preflight",
-        "brief_postflight", "report_postflight", "intraday_postflight")
+PHASES = tuple(
+    (mode, phase)
+    for mode in ("brief", "report", "intraday")
+    for phase in ("preflight", "postflight")
+)
 
 
 def _source_install_env(**extra):
@@ -50,22 +53,16 @@ def foreign_book(tmp_path):
     return book
 
 
-@pytest.mark.parametrize("cli", CLIS)
-def test_instance_rollback_aliases_start_against_the_instance_workspace(cli):
-    """The aliases are KCNyu rollback wiring, not the portable product.
-
-    Their implementation now lives in the separately installed instance
-    distribution and may consume this desk's data modules. Public foreign-book
-    portability is exercised through the product CLI below, not by pretending
-    KCNyu's live market/delivery adapter belongs to every user.
-    """
+@pytest.mark.parametrize(("mode", "phase"), PHASES)
+def test_installed_phase_entrypoints_start_against_the_instance_workspace(mode, phase):
+    """Production phase commands resolve the repository-only adapter by entry point."""
     done = subprocess.run(
-        [sys.executable, str(ROOT / "scripts" / "harness" / f"{cli}.py"), "--help"],
+        [sys.executable, "-m", "clawock", mode, phase, "--help"],
         capture_output=True, text=True, timeout=90, cwd=str(ROOT),
         env=_source_install_env(CLAWOCK_WORKSPACE=str(ROOT)),
     )
     assert done.returncode == 0, (
-        f"{cli} cannot start against the KCNyu instance workspace:\n"
+        f"clawock {mode} {phase} cannot start against the KCNyu workspace:\n"
         f"{done.stdout[-500:]}\n{done.stderr[-1500:]}")
 
 

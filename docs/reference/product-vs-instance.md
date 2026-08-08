@@ -126,9 +126,9 @@ The portable lifecycle vocabulary and generation-pinned `ArtifactSet` live in
 `src/clawock/harness/`; `clawock brief|report|intraday` dispatch phases in-process
 through the `clawock.instance_phases` entry-point group. KCNyu's implementation
 lives in its own `clawock-kcnyu` distribution under `instances/kcnyu/`, so the
-public wheel neither imports nor ships it. Thin `scripts/harness/` aliases remain
-temporarily for rollback; they are not an ownership boundary or a production
-source of truth.
+public wheel neither imports nor ships it. The former `scripts/harness/` aliases
+were retired after every production and test caller moved to installed commands
+or explicit package imports.
 
 | Classification | Modules | Boundary |
 |---|---|---|

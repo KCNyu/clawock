@@ -5,7 +5,7 @@ from pathlib import Path
 
 
 WS = Path(__file__).resolve().parents[1]
-sys.path[:0] = [str(WS / "scripts" / "data"), str(WS / "scripts" / "harness")]
+sys.path.insert(0, str(WS / "scripts" / "data"))
 
 import build_dashboard  # noqa: E402
 import compute_quant_signals  # noqa: E402
@@ -16,7 +16,7 @@ import fetch_us_stocks  # noqa: E402
 import instrument_registry  # noqa: E402
 import portfolio_risk_metrics  # noqa: E402
 import preflight_integrity  # noqa: E402
-import brief_preflight  # noqa: E402
+from clawock_kcnyu.harness import brief_preflight  # noqa: E402
 import analyze_hk_stocks  # noqa: E402
 import analyze_us_stocks  # noqa: E402
 
@@ -148,4 +148,3 @@ def test_leveraged_exposure_ignores_closed_positions_with_stale_values():
     assert build_dashboard.compute_leveraged_etf_exposure(
         portfolio, fx_rate=7.84
     ) == live
-

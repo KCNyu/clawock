@@ -73,9 +73,9 @@ calling runtime's existing investment strategy remains the decision source.
 
 The live workflow phase commands discover KCNyu's separately installed
 `clawock-kcnyu` distribution through standard Python entry points. The portable
-wheel contains neither that implementation nor portfolio data. Temporary
-`scripts/harness/` launchers remain only as rollback aliases while OpenClaw's
-host schedules complete their cutover to the stable `clawock` command.
+wheel contains neither that implementation nor portfolio data. The former
+`scripts/harness/` launchers were removed after OpenClaw phases and host
+watchdogs completed their installed-command cutover.
 
 ## Context contract
 
