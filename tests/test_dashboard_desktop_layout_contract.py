@@ -55,6 +55,22 @@ def test_holdings_dividers_do_not_partition_the_masonry_flow():
     ) == 2
 
 
+def test_webkit_reflect_uses_desktop_only_ordinary_flow_fallback():
+    ui = (ROOT / "assets" / "js" / "dashboard.ui.js").read_text()
+    assert "/AppleWebKit/i.test" in ui
+    assert 'classList.toggle("is-webkit", WEBKIT)' in ui
+
+    selector = 'html.is-webkit .panel.active[data-panel="reflect"] {'
+    start = CSS.index(selector)
+    block = enclosing_desktop_block(start)
+    rule = CSS[start:CSS.index("}", start)]
+    assert selector in block
+    assert "column-count: auto" in rule
+    assert 'html.is-webkit .panel.active[data-panel="reflect"] > * {' in block
+    assert "break-inside: auto" in block
+    assert "column-span: none" in block
+
+
 def test_desktop_numeric_and_overview_height_rules_are_scoped_to_desktop():
     honesty = CSS.index(
         ".overview-command > .hero-honesty-card { align-self: start; }"

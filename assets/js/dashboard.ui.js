@@ -6,6 +6,14 @@
 
   const pager = document.getElementById("pager");
   const DESKTOP_MQ = window.matchMedia("(min-width: 1024px)");
+  // Safari/WebKit can synchronously stall when ECharts canvases are initialized
+  // inside Reflect's desktop multi-column formatting context. Mark WebKit once;
+  // CSS applies a Reflect-only ordinary-flow fallback at the desktop breakpoint.
+  // Chromium keeps the balanced masonry layout, and mobile pager geometry is
+  // untouched because the fallback lives inside the desktop media query.
+  const WEBKIT = /AppleWebKit/i.test(navigator.userAgent || "") &&
+    /Apple/i.test(navigator.vendor || "");
+  document.documentElement.classList.toggle("is-webkit", WEBKIT);
   // The CSS breakpoint is the source of truth; matchMedia avoids a forced style
   // calculation after setActiveButton() has just changed panel classes.
   const pagerLive = () => !!pager && !DESKTOP_MQ.matches;
