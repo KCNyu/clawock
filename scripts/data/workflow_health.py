@@ -20,7 +20,6 @@ from __future__ import annotations
 import argparse
 import json
 import re
-import subprocess
 import sys
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -30,6 +29,7 @@ from pathlib import Path
 # whose only remaining job was inserting this path as a side effect.
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 from clawock.workspace import workspace_root  # noqa: E402
+from clawock.providers import GitHubRuns, Run  # noqa: E402
 
 WS = workspace_root(Path(__file__).resolve().parents[2])
 WORKFLOW_DIR = WS / ".github" / "workflows"
@@ -93,36 +93,54 @@ def _expand_dow(dow: str) -> list[int]:
     return out
 
 
-def fetch_runs(workflow: str, limit: int = 20, runner=None) -> list[dict]:
-    runner = runner or (lambda cmd: subprocess.run(
-        cmd, capture_output=True, text=True, timeout=60).stdout)
-    raw = runner([
-        "gh", "run", "list", "--workflow", workflow, "--limit", str(limit),
-        "--json", "conclusion,createdAt,event",
-    ])
-    try:
-        return json.loads(raw or "[]")
-    except json.JSONDecodeError:
-        return []
+def fetch_runs(workflow: str, limit: int = 20, runner=None) -> list[Run]:
+    """Production caller for the GitHub run-history provider (#362)."""
+    return GitHubRuns(runner=runner).history(workflow, limit=limit)
 
 
-def assess(workflow: str, exprs: list[str], runs: list[dict], now: datetime) -> dict:
-    scheduled = [r for r in runs if r.get("event") == "schedule"] or runs
+def _run_field(run, normalized: str, legacy: str):
+    """Read the provider shape, while keeping `assess` useful to old callers."""
+    if isinstance(run, Run):
+        return getattr(run, normalized)
+    return run.get(legacy)
+
+
+def _status(run) -> str:
+    if isinstance(run, Run):
+        return run.status
+    return {
+        "success": "ok", "failure": "error", "cancelled": "cancelled",
+        "skipped": "skipped", None: "running", "": "running",
+    }.get(run.get("conclusion"), "unknown")
+
+
+def _display_status(run):
+    status = _status(run)
+    return {
+        "ok": "success", "error": "failure", "running": None,
+        "cancelled": "cancelled", "skipped": "skipped",
+        "unknown": "unknown",
+    }[status]
+
+
+def assess(workflow: str, exprs: list[str], runs: list[Run | dict], now: datetime) -> dict:
+    scheduled = [r for r in runs if _run_field(r, "trigger", "event") == "schedule"] or runs
     window_start = now - timedelta(days=LOOKBACK_DAYS)
 
     def parsed(run):
         try:
-            return datetime.fromisoformat(str(run.get("createdAt")).replace("Z", "+00:00"))
+            return datetime.fromisoformat(
+                str(_run_field(run, "started_at", "createdAt")).replace("Z", "+00:00"))
         except (TypeError, ValueError):
             return None
 
     recent = [r for r in scheduled if (parsed(r) or window_start) >= window_start]
-    failures = [r for r in recent if r.get("conclusion") == "failure"]
+    failures = [r for r in recent if _status(r) == "error"]
     streak = 0
     for run in scheduled:                       # newest first
-        if run.get("conclusion") == "failure":
+        if _status(run) == "error":
             streak += 1
-        elif run.get("conclusion") in (None, "cancelled", "skipped"):
+        elif _status(run) in ("running", "cancelled", "skipped"):
             continue
         else:
             break
@@ -143,7 +161,7 @@ def assess(workflow: str, exprs: list[str], runs: list[dict], now: datetime) -> 
         "schedules": exprs,
         "expected_interval_hours": interval,
         "last_run": last.isoformat() if last else None,
-        "last_conclusion": scheduled[0].get("conclusion") if scheduled else None,
+        "last_conclusion": _display_status(scheduled[0]) if scheduled else None,
         "failures_in_window": len(failures),
         "consecutive_failures": streak,
         "overdue_hours": overdue_hours,

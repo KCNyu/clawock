@@ -22,12 +22,18 @@ from . import openclaw
 # Deliberately small and closed. `unknown` is a real answer — a run that is
 # recorded but whose outcome the source cannot state must not be silently
 # rounded to success.
-STATUSES = ("ok", "error", "running", "unknown")
+STATUSES = ("ok", "error", "running", "cancelled", "skipped", "unknown")
 
 _GITHUB_CONCLUSIONS = {
     "success": "ok",
     "failure": "error",
-    "cancelled": "error",
+    # Cancellation and skipping are scheduler outcomes, not failed work. The
+    # GitHub rollup has always ignored them when counting a failure streak; the
+    # provider used to collapse cancelled into error before it had a production
+    # caller, which would have reversed that policy the moment it was wired in
+    # (#362).
+    "cancelled": "cancelled",
+    "skipped": "skipped",
     "timed_out": "error",
     "startup_failure": "error",
     None: "running",
@@ -43,6 +49,7 @@ class Run:
     duration_ms: int | None = None
     source: str = ""             # which provider answered
     reference: str | None = None  # session id / run id, for tracing back
+    trigger: str | None = None    # schedule / workflow_dispatch / push / ...
 
     def __post_init__(self) -> None:
         if self.status not in STATUSES:
@@ -95,12 +102,13 @@ class OpenClawRuns:
                 duration_ms=entry.get("durationMs"),
                 source=self.name,
                 reference=entry.get("sessionId"),
+                trigger=entry.get("trigger"),
             ))
         return out
 
 
 class GitHubRuns:
-    """Wraps `gh run list --json`, the shape `workflow_health` already uses."""
+    """GitHub Actions history, normalised for scheduler-agnostic consumers."""
 
     name = "github"
 
@@ -126,6 +134,7 @@ class GitHubRuns:
                 started_at=entry.get("createdAt"),
                 status=_GITHUB_CONCLUSIONS.get(entry.get("conclusion"), "unknown"),
                 source=self.name,
-                reference=str(entry["databaseId"]) if entry.get("databaseId") else None)
+                reference=str(entry["databaseId"]) if entry.get("databaseId") else None,
+                trigger=entry.get("event"))
             for entry in entries
         ]

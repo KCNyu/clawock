@@ -94,6 +94,7 @@ def test_both_run_sources_normalise_to_the_same_shape():
     # A caller must not have to know which scheduler answered.
     assert {r.source for r in openclaw + github} == {"openclaw", "github"}
     assert openclaw[0].reference == "abc" and github[0].reference == "42"
+    assert github[0].trigger == "schedule"
 
 
 def test_an_unfinished_github_run_is_running_not_success():
@@ -102,6 +103,15 @@ def test_an_unfinished_github_run_is_running_not_success():
         '"event":"schedule","databaseId":7}]')).history("x")
 
     assert runs[0].status == "running"
+
+
+def test_cancelled_github_run_stays_neutral_and_keeps_its_trigger():
+    runs = GitHubRuns(runner=lambda cmd: (
+        '[{"conclusion":"cancelled","createdAt":"2026-08-02T00:00:00Z",'
+        '"event":"workflow_dispatch","databaseId":8}]')).history("x")
+
+    assert runs[0].status == "cancelled"
+    assert runs[0].trigger == "workflow_dispatch"
 
 
 def test_an_outcome_the_source_cannot_state_is_unknown_not_ok():
