@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:clawock:workflow:investment-decision:1.1.0:improvement-proposal",
+  "title": "clawock bounded workflow improvement proposal",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version", "kind", "proposal_id", "created_at", "workflow",
+    "trigger", "changes", "rationale", "expected_effect"
+  ],
+  "properties": {
+    "schema_version": {"const": 1},
+    "kind": {"const": "workflow-improvement-proposal"},
+    "proposal_id": {"type": "string", "pattern": "^[0-9a-f]{32}$"},
+    "created_at": {"type": "string", "format": "date-time"},
+    "workflow": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "version", "certificate", "parameters"],
+      "properties": {
+        "id": {"const": "investment-decision"},
+        "version": {"const": "1.1.0"},
+        "certificate": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "parameters": {"type": "object"}
+      }
+    },
+    "trigger": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "id", "sha256"],
+      "properties": {
+        "kind": {"enum": ["outcome_evaluation", "validation_receipt"]},
+        "id": {"type": "string", "minLength": 1},
+        "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+      }
+    },
+    "changes": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["before", "after"],
+        "properties": {
+          "before": {"type": "number"},
+          "after": {"type": "number"}
+        }
+      }
+    },
+    "rationale": {"type": "string", "minLength": 1},
+    "expected_effect": {"type": "string", "minLength": 1}
+  }
+}

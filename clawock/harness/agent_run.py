@@ -160,6 +160,7 @@ class AgentRun:
                 generation_id=prepared.generation_id,
                 status="rejected",
                 artifacts=artifact_set,
+                workflow=prepared.request.workflow,
                 validation_issues=issues,
             )
 
@@ -191,6 +192,7 @@ class AgentRun:
             generation_id=prepared.generation_id,
             status="published",
             artifacts=final_artifacts,
+            workflow=prepared.request.workflow,
             publish_receipt=published.receipt,
             publish_changed=published.changed,
         )
