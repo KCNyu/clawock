@@ -16,7 +16,7 @@ from typing import Any
 
 from .workspace import engine_config, workspace_root
 
-WS = workspace_root(Path(__file__).resolve().parents[2])
+WS = workspace_root(Path.cwd())
 REGISTRY_FILE = WS / "config" / "instruments.json"
 SCHEMA_FILE = engine_config("instruments.schema.json")
 SCHEMA_VERSION = 1

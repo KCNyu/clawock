@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Durable governance ledger for portfolio-risk breaches.
 
 The daily guardrail is a detector, not a workflow. This module gives each
@@ -16,30 +15,15 @@ import sys
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
+from clawock.instrument_registry import get as get_instrument
+from clawock.instrument_registry import one_x_swap_map
+from clawock.workspace import workspace_root
 
-# The checkout root, so `clawock` resolves from the tree this file ships
-# in. Reached through the scripts/data/workspace shim until #267 step 3,
-# whose only remaining job was inserting this path as a side effect.
-sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
-sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
-from clawock.workspace import workspace_root  # noqa: E402
-
-WS = workspace_root(Path(__file__).resolve().parents[2])
+WS = workspace_root(Path.cwd())
 LEDGER = WS / "memory" / "risk_breaches.json"
 GUARDRAIL_HISTORY = WS / "assets" / "data" / "guardrail_history.jsonl"
 SCHEMA_VERSION = 1
 
-LEVERAGED_TO_1X = {
-    "07226": "03033",
-    "PLTU": "PLTR",
-    "ROBN": "HOOD",
-    "MSFU": "MSFT",
-    "TQQQ": "QQQ",
-    "SOXL": "SOXX",
-    "RKLX": "RKLB",
-    "SPCH": "SPCX",
-}
-LEVERAGED_TICKERS = set(LEVERAGED_TO_1X)
 ADD_ACTIONS = {"add_only_on_trigger", "add_on_breakout"}
 SELL_ACTIONS = {"cut", "trim_on_rebound", "t_only"}
 
@@ -154,11 +138,8 @@ def _fingerprint(row: dict) -> str:
 
 def _holding_map(portfolio: dict) -> dict[str, dict]:
     out = {}
-    for region in ("hk_stocks", "us_stocks"):
-        for holding in (
-            ((portfolio.get("portfolios") or {}).get(region) or {})
-            .get("holdings") or []
-        ):
+    for book in (portfolio.get("portfolios") or {}).values():
+        for holding in (book or {}).get("holdings") or []:
             ticker = str(holding.get("ticker") or holding.get("code") or "")
             if ticker:
                 out[ticker] = holding
@@ -175,7 +156,7 @@ def _broker_evidence(record: dict, portfolio: dict) -> list[dict]:
     if not targets and record.get("type") in {
         "leveraged_exposure", "beta", "regime_delever",
     }:
-        targets = list(LEVERAGED_TICKERS)
+        targets = list(one_x_swap_map())
     opened = (_parse_stamp(record.get("current_opened_at"))
               or _parse_stamp(record.get("first_seen_at")))
     opened_day = opened.date().isoformat() if opened else ""
@@ -414,7 +395,7 @@ def _holding_price(holding: dict) -> float | None:
 
 
 def _risk_reducing_swap(decision: dict, decisions: list[dict],
-                        portfolio: dict) -> bool:
+                        portfolio: dict, leverage_pairs: dict[str, str]) -> bool:
     target = str(decision.get("ticker") or "")
     holdings = _holding_map(portfolio)
     add_shares = (decision.get("size") or {}).get("shares")
@@ -423,7 +404,7 @@ def _risk_reducing_swap(decision: dict, decisions: list[dict],
     except (TypeError, ValueError):
         return False
     target_price = _holding_price(holdings.get(target) or {})
-    for source, underlying in LEVERAGED_TO_1X.items():
+    for source, underlying in leverage_pairs.items():
         if underlying != target:
             continue
         reductions = [
@@ -440,7 +421,9 @@ def _risk_reducing_swap(decision: dict, decisions: list[dict],
                 continue
             source_price = _holding_price(holdings.get(source) or {})
             if source_price and target_price:
-                old_factor_notional = cut_shares * source_price * 2
+                source_meta = get_instrument(source) or {}
+                leverage = float(source_meta.get("leverage_multiple") or 1)
+                old_factor_notional = cut_shares * source_price * leverage
                 new_factor_notional = add_shares * target_price
                 if new_factor_notional <= old_factor_notional * 1.05:
                     return True
@@ -461,13 +444,18 @@ def validate_exposure_increases(
     ]
     if not open_records:
         return []
+    leverage_pairs = one_x_swap_map()
+    leveraged_tickers = set(leverage_pairs)
     issues = []
     for decision in decisions:
         if decision.get("action") not in ADD_ACTIONS:
             continue
         ticker = str(decision.get("ticker") or "")
-        leg = decision.get("leg") or ("HK" if ticker.isdigit() else "US")
-        if _risk_reducing_swap(decision, decisions, portfolio):
+        instrument = get_instrument(ticker) or {}
+        leg = decision.get("leg") or instrument.get("region")
+        if _risk_reducing_swap(
+            decision, decisions, portfolio, leverage_pairs
+        ):
             continue
         blockers = []
         for breach in open_records:
@@ -476,14 +464,14 @@ def validate_exposure_increases(
             kind = breach.get("type")
             source = str(breach.get("ticker") or "")
             same_factor = {
-                source, LEVERAGED_TO_1X.get(source, "")
+                source, leverage_pairs.get(source, "")
             }
             reduction_sources = set(
                 (breach.get("required_reduction") or {})
                 .get("target_tickers") or []
             )
             same_risk_sleeve = reduction_sources | {
-                LEVERAGED_TO_1X.get(item, "")
+                leverage_pairs.get(item, "")
                 for item in reduction_sources
             }
             if kind == "hard_stop" and ticker in same_factor:
@@ -491,7 +479,7 @@ def validate_exposure_increases(
             elif kind == "factor_concentration":
                 blockers.append(breach)
             elif kind in {"leveraged_exposure", "beta"} \
-                    and ticker in (same_risk_sleeve or LEVERAGED_TICKERS):
+                    and ticker in (same_risk_sleeve or leveraged_tickers):
                 blockers.append(breach)
             elif kind == "regime_delever" and ticker in same_factor:
                 blockers.append(breach)
@@ -501,7 +489,7 @@ def validate_exposure_increases(
             ids = ", ".join(sorted({row["breach_id"] for row in blockers}))
             issues.append(
                 f"{ticker} {decision.get('action')} frozen by open risk "
-                f"breach(es) {ids}; only a proven risk-reducing 2x→1x pair "
+                f"breach(es) {ids}; only a proven risk-reducing leveraged→1x pair "
                 "or a durable unexpired override may proceed"
             )
     return issues
@@ -583,7 +571,7 @@ def confirm_execution(path: Path, breach_id: str, evidence: str) -> dict:
     return _mutate_record(path, breach_id, mutate)
 
 
-def main() -> int:
+def main(argv=None) -> int:
     parser = argparse.ArgumentParser(
         description="Maintain the durable risk-breach governance ledger")
     parser.add_argument("--ledger", type=Path, default=LEDGER)
@@ -599,7 +587,7 @@ def main() -> int:
     confirm = sub.add_parser("confirm")
     confirm.add_argument("breach_id")
     confirm.add_argument("--evidence", required=True)
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
 
     try:
         if args.command == "list":

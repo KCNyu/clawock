@@ -189,6 +189,8 @@ jobs:
             --cov=clawock.decision_v2 \
             --cov=clawock.instrument_registry \
             --cov=clawock.json_repair \
+            --cov=clawock.research_provenance \
+            --cov=clawock.risk_discipline \
             --cov=clawock.safe_io \
             --cov=clawock.trading_calendar \
             --cov-report=term-missing:skip-covered \

@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """What the 08:00 brief already decided, for the crons that run after it.
 
 The daily deep brief writes `memory/{date}-plan.json` and appends its decisions to
@@ -6,11 +5,10 @@ The daily deep brief writes `memory/{date}-plan.json` and appends its decisions 
 one: the 09:30 report and every 30-minute intraday slot rebuilt their view of the
 day from prices alone.
 
-That gap is not cosmetic. On 2026-07-27 the 09:30 report attached a "wait for a
--1% pullback" condition to 07226 — a name the 08:00 plan had already ruled a
-discipline swap on four simultaneous risk breaches, i.e. explicitly not a timing
-decision (issue #119). The 10:05 slot reached the right answer only by shelling out
-six times to read the plan by hand, and misquoted the size while doing it.
+That gap is not cosmetic. A later market report can otherwise attach a timing
+condition to a position the morning plan already classified as a mandatory risk
+reduction. Downstream runs must consume the decision ledger instead of rebuilding
+the day's intent from prices.
 
 The ledger is the source of truth, not the plan file: `mark_followed.py` writes
 execution status back to `decisions.jsonl` only. Reading the plan file alone would
@@ -26,15 +24,9 @@ import json
 from datetime import datetime
 from pathlib import Path
 
-# The checkout root, so `clawock` resolves from the tree this file ships
-# in. Reached through the scripts/data/workspace shim until #267 step 3,
-# whose only remaining job was inserting this path as a side effect.
-import sys  # noqa: E402
-sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
-sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
-from clawock.workspace import workspace_root  # noqa: E402
+from clawock.workspace import workspace_root
 
-WS = workspace_root(Path(__file__).resolve().parents[2])
+WS = workspace_root(Path.cwd())
 MEMORY = WS / "memory"
 LEDGER = MEMORY / "decisions.jsonl"
 
@@ -172,13 +164,13 @@ def open_decisions_context(*, leg=None, today=None, ledger=None, memory_dir=None
         return {"error": f"{type(exc).__name__}: {exc}"[:200]}
 
 
-def main():
+def main(argv=None):
     import argparse
 
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--leg", choices=["HK", "US"])
     parser.add_argument("--date")
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
     print(json.dumps(
         open_decisions_context(leg=args.leg, today=args.date),
         ensure_ascii=False, indent=2,

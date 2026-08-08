@@ -51,7 +51,7 @@ from datetime import datetime
 from pathlib import Path
 
 from clawock.workspace import workspace_root
-from clawock import trading_calendar
+from clawock import plan_surface, trading_calendar
 
 WS = workspace_root(Path.cwd())
 DATA_DIR = WS / 'scripts' / 'data'
@@ -63,7 +63,6 @@ from ._harness_common import (  # noqa: F401 — re-exported for callers/tests
 
 sys.path.insert(0, str(DATA_DIR))
 import peer_scan  # noqa: E402
-import plan_surface  # noqa: E402
 import research_surface  # noqa: E402
 import mover_news  # noqa: E402
 import workflow_outcomes  # noqa: E402

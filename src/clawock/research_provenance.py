@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Fail-closed numeric provenance gate for long-form research artifacts."""
 from __future__ import annotations
 

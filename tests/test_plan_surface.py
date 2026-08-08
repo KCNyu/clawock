@@ -30,9 +30,7 @@ TODAY = "2026-07-27"
 
 @pytest.fixture(scope="module")
 def ps():
-    if DATA_SCRIPTS not in sys.path:
-        sys.path.insert(0, DATA_SCRIPTS)
-    return pytest.importorskip("plan_surface")
+    return pytest.importorskip("clawock.plan_surface")
 
 
 def decision(**over):

@@ -29,7 +29,7 @@ import pytest
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts" / "data"))
 
-import plan_surface  # noqa: E402
+from clawock import plan_surface
 # The validation primitives come from the package, not through the harness
 # module that used to re-export them (#267).
 sys.path.insert(0, str(ROOT))

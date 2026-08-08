@@ -24,6 +24,12 @@ RESEARCH_SCRIPTS = (
     "entry_gate.py", "earnings_review.py", "thesis_registry.py",
     "research_provenance.py", "research_surface.py",
 )
+RESEARCH_LOCATIONS = {
+    name: (ROOT / "src" / "clawock" / name
+           if name == "research_provenance.py"
+           else ROOT / "scripts" / "data" / name)
+    for name in RESEARCH_SCRIPTS
+}
 ARTIFACT_DIRS = ("memory/entry-gates", "memory/earnings", "memory/theses")
 
 
@@ -52,8 +58,8 @@ def test_shared_skill_fragments_are_explained_rather_than_left_dangling():
 def test_every_research_script_is_indexed_in_tools_md():
     missing = [name for name in RESEARCH_SCRIPTS if f"`{name}`" not in TOOLS]
     assert missing == [], f"research scripts unreachable from TOOLS.md: {missing}"
-    for name in RESEARCH_SCRIPTS:
-        assert (ROOT / "scripts" / "data" / name).exists()
+    for path in RESEARCH_LOCATIONS.values():
+        assert path.exists()
 
 
 def test_bootstrap_states_the_research_lifecycle_rules():

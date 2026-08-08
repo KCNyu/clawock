@@ -76,7 +76,7 @@
     },
     "provenance": {
       "type": "object",
-      "description": "A research_provenance manifest covering every published number; see src/clawock/config/thesis.schema.json's sibling gate in scripts/data/research_provenance.py."
+      "description": "A clawock.research_provenance manifest covering every published number; see the sibling thesis schema gate."
     }
   },
   "$defs": {
