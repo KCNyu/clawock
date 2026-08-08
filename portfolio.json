@@ -1367,13 +1367,13 @@
   "gold_dca": {
     "reconciled_date": "2026-06-09",
     "currency": "CNY",
+    "start_date": "2026-01-22",
     "fund_name": "华安黄金ETF联接C",
     "daily_amount": 200,
     "principal_invested": 17299.0,
+    "units_held": 4854.55,
     "principal_note": "对账基线(自动累加模式)。2026-06-09 kcn 对账:现值 15470 + 盈亏 -1829 → 本金 17299,份额 = 15470/净值3.1867 = 4854.55。此后每个 A 股交易日自动 +200@当日净值。补投对账:把 principal_invested/units_held 改成新真实数字、reconciled_date 改成对账当天即可,自动累加归零重算。",
     "fund_code": "000217",
-    "units_held": 4854.55,
-    "start_date": "2026-01-22",
     "nav": 3.1312,
     "nav_date": "2026-08-07",
     "nav_change_pct": 0.5,
@@ -1997,18 +1997,35 @@
         3.1312
       ]
     ],
-    "last_updated": "2026-08-07T15:50:30.450092Z",
+    "last_updated": "2026-08-08T06:45:49.887881Z",
+    "domestic_gold": {
+      "symbol": "Au99.99",
+      "price_cny_g": 930.47,
+      "date": "2026-08-07",
+      "open_cny_g": 924.71,
+      "high_cny_g": 934.0,
+      "low_cny_g": 918.0,
+      "change_pct": 0.53,
+      "weighted_avg_cny_g": 928.37,
+      "source": "sge_quotation_daily_new",
+      "fetched_at": "2026-08-08T06:45:44.916875Z",
+      "breakeven_cny_g": 1000.04,
+      "breakeven_upside_pct": 7.48,
+      "quote_status": "fresh"
+    },
     "london": {
-      "xau_usd": 4349.28,
-      "xau_change_pct": 2.56,
+      "xau_usd": 4341.12,
+      "xau_change_pct": 2.37,
       "xau_high": 4371.53,
       "xau_low": 4229.7,
       "xau_prev_close": 4240.55,
-      "xau_date": "2026-08-07",
+      "xau_date": "2026-08-08",
       "usdcny": 6.7476,
-      "oz_equiv": 0.815,
-      "grams_equiv": 25.3,
+      "oz_equiv": 0.816,
+      "grams_equiv": 25.4,
       "intl_value_usd": 3543.65,
+      "fund_breakeven_usd_oz": 4665.68,
+      "fund_breakeven_upside_pct": 7.48,
       "compare_series": [
         [
           "2026-03-30",
@@ -2458,47 +2475,47 @@
         [
           "2026-08-07",
           85.49,
-          88.17
+          87.95
         ]
       ],
       "dca_equiv": {
         "principal_cny": 26200.0,
         "oz_held": 0.8467,
         "grams_held": 26.3,
-        "avg_cost_usd_oz": 4530.29,
-        "avg_cost_cny_g": 994.91,
-        "spot_usd_oz": 4349.28,
-        "breakeven_upside_pct": 4.16,
-        "current_value_cny": 24847.0,
-        "pnl_abs": -1353.0,
-        "pnl_pct": -5.16,
+        "avg_cost_usd_oz": 4530.2,
+        "avg_cost_cny_g": 994.89,
+        "spot_usd_oz": 4341.12,
+        "breakeven_upside_pct": 4.36,
+        "current_value_cny": 24800.88,
+        "pnl_abs": -1399.12,
+        "pnl_pct": -5.34,
         "days": 131,
         "daily_grams": 0.212,
         "projection": [
           {
             "days": 20,
-            "avg_cost_usd_oz": 4505.19,
-            "breakeven_upside_pct": 3.58
+            "avg_cost_usd_oz": 4503.94,
+            "breakeven_upside_pct": 3.75
           },
           {
             "days": 40,
-            "avg_cost_usd_oz": 4486.2,
-            "breakeven_upside_pct": 3.15
+            "avg_cost_usd_oz": 4484.08,
+            "breakeven_upside_pct": 3.29
           },
           {
             "days": 60,
-            "avg_cost_usd_oz": 4471.34,
-            "breakeven_upside_pct": 2.81
+            "avg_cost_usd_oz": 4468.54,
+            "breakeven_upside_pct": 2.94
           },
           {
             "days": 120,
-            "avg_cost_usd_oz": 4441.35,
-            "breakeven_upside_pct": 2.12
+            "avg_cost_usd_oz": 4437.21,
+            "breakeven_upside_pct": 2.21
           },
           {
             "days": 250,
-            "avg_cost_usd_oz": 4409.37,
-            "breakeven_upside_pct": 1.38
+            "avg_cost_usd_oz": 4403.81,
+            "breakeven_upside_pct": 1.44
           }
         ]
       },
@@ -3069,7 +3086,7 @@
         ],
         [
           "2026-08-07",
-          4352.04
+          4341.12
         ]
       ],
       "fx_hist_source": {
@@ -3635,7 +3652,7 @@
         ]
       ],
       "hist_advisory": null,
-      "last_updated": "2026-08-07T15:50:30.450778Z"
+      "last_updated": "2026-08-08T06:45:49.889159Z"
     }
   }
 }
