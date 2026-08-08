@@ -31,12 +31,12 @@ from datetime import datetime, timedelta
 from pathlib import Path
 
 from clawock.workspace import workspace_root
+from clawock import trading_calendar
 
 WS = workspace_root(Path.cwd())
 _CHECKOUT = WS
 
 sys.path.insert(0, str(_CHECKOUT / 'scripts' / 'data'))
-import trading_calendar  # noqa: E402
 import decision_v2  # noqa: E402
 import workflow_outcomes  # noqa: E402
 import risk_discipline  # noqa: E402

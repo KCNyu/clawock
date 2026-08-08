@@ -1,4 +1,4 @@
-"""Guards for the hand-maintained holiday tables in scripts/data/trading_calendar.py.
+"""Guards for the package-owned hand-maintained holiday tables.
 
 The tables cannot be generated. US observance shifts move dates around the
 weekend, and HK dates come from the gazetted general holidays plus the lunar
@@ -12,6 +12,8 @@ the direction of the failure if it ever lapses again.
 """
 from __future__ import annotations
 
+import os
+import subprocess
 import sys
 from datetime import date
 from pathlib import Path
@@ -19,9 +21,25 @@ from pathlib import Path
 import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT / "scripts" / "data"))
 
-import trading_calendar  # noqa: E402
+from clawock import trading_calendar
+
+
+def test_calendar_implementation_and_cli_ship_in_the_product():
+    assert Path(trading_calendar.__file__).relative_to(ROOT).as_posix() == (
+        "src/clawock/trading_calendar.py"
+    )
+    assert not (ROOT / "scripts" / "data" / "trading_calendar.py").exists()
+    result = subprocess.run(
+        [sys.executable, "-m", "clawock", "calendar", "us", "--date", "2026-06-19"],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        timeout=30,
+        env={**os.environ, "PYTHONPATH": str(ROOT / "src")},
+    )
+    assert result.returncode == 1
+    assert result.stdout.strip() == "CLOSED (US 2026-06-19)"
 
 
 # --------------------------------------------------------------------------

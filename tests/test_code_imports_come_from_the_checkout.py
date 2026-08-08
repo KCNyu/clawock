@@ -2,7 +2,7 @@
 
 `workspace_root()` is overridable with CLAWOCK_WORKSPACE so the engine can run
 against someone else's book (#246). But a foreign workspace holds market data —
-snapshots, ledgers, plans — not `scripts/data/trading_calendar.py`. A module that
+snapshots, ledgers, plans — not package code such as `clawock.trading_calendar`. A module that
 puts `WS / 'scripts' / 'data'` on sys.path therefore resolves OUR code out of
 THEIR directory: it fails if the directory is absent, and silently imports
 whatever is there if it is not (#269).

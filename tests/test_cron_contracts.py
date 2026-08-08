@@ -617,6 +617,20 @@ def test_brief_repair_uses_whole_file_write_instead_of_brittle_edit():
     assert '一次已恢复的 `edit` 工具错误仍会把整个 cron 记成 error' in message
 
 
+def test_brief_uses_the_installed_calendar_command():
+    data = contract()
+    profile = data['payload_profiles']['brief']
+    brief = next(job for job in data['jobs'] if job['name'] == '盘前深度简报')
+    message = cron_contract.render_payload_message(data, brief)
+
+    for market in ('hk', 'us'):
+        command = f'/root/.local/bin/clawock calendar {market}'
+        assert command in profile['required_substrings']
+        assert command in message
+    assert 'trading_calendar.py' in profile['forbidden_substrings']
+    assert 'trading_calendar.py' not in message
+
+
 def test_intraday_slots_are_unconditional_again():
     """Every Mode 7 slot runs the turn; no pre-model condition gate.
 

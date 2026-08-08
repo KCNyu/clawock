@@ -35,6 +35,7 @@ from datetime import datetime
 from pathlib import Path
 
 from clawock.workspace import workspace_root
+from clawock import trading_calendar
 
 WS = workspace_root(Path.cwd())
 DATA_DIR = WS / 'scripts' / 'data'
@@ -43,7 +44,6 @@ TMP = WS / 'memory' / '.tmp'
 from ._harness_common import compute_context_id
 
 sys.path.insert(0, str(DATA_DIR))
-import trading_calendar  # noqa: E402
 import cron_heartbeat  # noqa: E402
 import peer_scan  # noqa: E402
 import plan_surface  # noqa: E402

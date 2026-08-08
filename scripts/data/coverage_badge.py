@@ -55,7 +55,7 @@ CORE_MODULES = (
     'scripts/data/intraday_delta_gate.py',
     'scripts/data/workflow_outcomes.py',
     'src/clawock/safe_io.py',
-    'scripts/data/trading_calendar.py',
+    'src/clawock/trading_calendar.py',
 )
 
 # Floors sit a couple of points under the measured value: enough headroom that a

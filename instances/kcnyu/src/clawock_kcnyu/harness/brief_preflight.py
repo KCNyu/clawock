@@ -39,6 +39,7 @@ from pathlib import Path
 from zoneinfo import ZoneInfo
 
 from clawock.workspace import workspace_root
+from clawock import trading_calendar
 
 WS = workspace_root(Path.cwd())
 _CHECKOUT = WS
@@ -46,7 +47,6 @@ TMP_DIR = WS / 'memory' / '.tmp'
 SNAPSHOT_DIR = WS / 'memory' / 'snapshots'
 
 sys.path.insert(0, str(_CHECKOUT / 'scripts' / 'data'))
-import trading_calendar  # noqa: E402
 import decision_v2  # noqa: E402
 import thesis_registry  # noqa: E402
 import research_surface  # noqa: E402

@@ -83,7 +83,7 @@ except Exception:  # pragma: no cover
         Path(path).write_text(json.dumps(data, ensure_ascii=False, indent=indent))
 
 try:
-    import trading_calendar as tc
+    from clawock import trading_calendar as tc
 except Exception:
     tc = None
 
