@@ -22,7 +22,7 @@ echo "▸ recompute cash (baseline + trades cashflow + adjustments)…"
 python3 scripts/data/recompute_cash.py $DRY
 
 echo "▸ recompute realized P&L (Σ sell trades)…"
-python3 scripts/data/recompute_realized.py $DRY
+clawock realized $DRY
 
 echo "▸ integrity gate (TCV / cost / pnl / CASH_RECON / COST_BASIS / FX)…"
 python3 scripts/data/preflight_integrity.py

@@ -116,11 +116,11 @@ def test_the_money_clis_target_the_checkout_they_are_in(monkeypatch):
     """
     probe = (
         "import sys; sys.path[:0] = [%r, %r];"
-        "import recompute_realized as rr, snapshot_realized as sr,"
-        " backfill_snapshot_realized as bf;"
+        "from clawock import recompute_realized as rr, snapshot_realized as sr;"
+        " import backfill_snapshot_realized as bf;"
         "print(rr.PORTFOLIO_PATH); print(bf.SNAP_DIR);"
         "print(hasattr(sr, 'PORTFOLIO_PATH'))"
-    ) % (str(ROOT / "scripts" / "data"), str(ROOT / "scripts" / "legacy"))
+    ) % (str(ROOT / "src"), str(ROOT / "scripts" / "legacy"))
     env = {k: v for k, v in os.environ.items() if k != workspace.ENV_VAR}
 
     done = subprocess.run([sys.executable, "-c", probe], cwd=str(ROOT), env=env,
