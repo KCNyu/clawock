@@ -197,6 +197,23 @@ def test_main_delivers_block_plus_prose_on_the_happy_path(run_main, sent):
         assert line in body
 
 
+def test_publish_failure_is_loud_after_report_delivery(
+    run_main, sent, pf, monkeypatch
+):
+    """A delivered report cannot turn a frozen public dashboard green."""
+    monkeypatch.setattr(
+        pf, 'publish_data_plane', lambda market: ('publish_failed', False)
+    )
+
+    rc, out = run_main(PROSE, context_id='abc123def456')
+
+    assert rc == 2
+    assert out['status'] == 'pass'
+    assert out['data_plane_status'] == 'publish_failed'
+    assert out['heartbeat']['state'] == 'publish_failed'
+    assert '▎我的看法' in sent['messages'][0]
+
+
 def test_main_refuses_to_marry_stale_prose_to_fresh_numbers(run_main, sent):
     """The model wrote against a context that has since been regenerated. Ship
     the data block alone rather than a check-in that looks clean and is not."""

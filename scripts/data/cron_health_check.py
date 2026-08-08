@@ -375,8 +375,9 @@ def check_dashboard_build():
 
     Returns a dict with keys: state
     ('ok'|'repaired'|'degraded'|'stale'|'failed'|'absent'), detail, ok,
-    warn_count, repair_count, age_hours. A 'failed' build means dashboard.json is
-    frozen while commits keep flowing — the silent-freeze case this guards against.
+    warn_count, repair_count, age_hours. A failed build or publish means the
+    public generation may be frozen while commits keep flowing — the silent-freeze
+    case this guards against.
     """
     path = WS / 'logs' / 'dashboard_build_status.json'
     if not path.exists():
@@ -394,9 +395,19 @@ def check_dashboard_build():
     except Exception:
         pass
     if not st.get('ok'):
-        return {'state': 'failed', 'detail': f"build FAILED — dashboard.json frozen. tail: {st.get('tail','')[-160:]}",
+        build_ok = st.get('build_ok')
+        publish_ok = st.get('publish_ok')
+        if build_ok is True and publish_ok is False:
+            failure = 'data-plane publish FAILED — public generation may be stale'
+        elif build_ok is False:
+            failure = 'dashboard build FAILED — no generation was produced'
+        else:
+            # Rolling-upgrade compatibility for the old one-bit status file.
+            failure = 'dashboard build/publish FAILED — public generation may be stale'
+        return {'state': 'failed', 'detail': f"{failure}. tail: {st.get('tail','')[-500:]}",
                 'ok': False, 'warn_count': st.get('warn_count', 0),
-                'repair_count': st.get('repair_count', 0), 'age_hours': age_hours}
+                'repair_count': st.get('repair_count', 0), 'age_hours': age_hours,
+                'build_ok': build_ok, 'publish_ok': publish_ok}
     if st.get('warn_count'):
         return {'state': 'degraded', 'detail': f"{st['warn_count']} degraded section(s) on last build",
                 'ok': True, 'warn_count': st['warn_count'],

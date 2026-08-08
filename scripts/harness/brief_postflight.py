@@ -457,6 +457,7 @@ from clawock.validation import (  # noqa: E402
     check_md_table_column_consistency,
 )
 from _harness_common import (  # noqa: E402
+    dashboard_publication_state,
     git_cmd as _git,
     push_with_rebase_retry,
     rebuild_dashboard,
@@ -752,6 +753,10 @@ def main(argv=None):
                          + '\n\n')
 
     commit_ok, commit_msg = maybe_commit(status, today, dry_run=args.dry_run)
+    if status in ('pass', 'warn') and not args.dry_run:
+        data_plane_status = dashboard_publication_state(WS)
+    else:
+        data_plane_status = 'skipped'
 
     # ── WeChat delivery (decoupled from the cron's announce) ──────────────────
     # The cron now runs delivery=none. The announce used to fire at the END of a
@@ -824,6 +829,7 @@ def main(argv=None):
         'wechat_sent':   wechat_sent,
         'commit_ok':     commit_ok,
         'commit_msg':    commit_msg,
+        'data_plane_status': data_plane_status,
         'projection_status': projection_status,
         'projection_issues': projection_issues,
         'readability': readability,
@@ -837,7 +843,11 @@ def main(argv=None):
     workflow_outcomes.record_stage(
         job_name,
         'postflight',
-        'success' if status == 'pass' else ('warning' if status == 'warn' else 'failed'),
+        ('success'
+         if status == 'pass' and data_plane_status in {'published', 'skipped'}
+         else ('warning'
+               if status == 'warn' and data_plane_status in {'published', 'skipped'}
+               else 'failed')),
         slot=slot,
         dry_run=args.dry_run,
         issue_count=len(issues),
@@ -854,6 +864,9 @@ def main(argv=None):
         channel='wechat_or_telegram',
     )
     print(json.dumps(result, ensure_ascii=False, indent=2))
+    if (not args.dry_run and status in ('pass', 'warn')
+            and data_plane_status != 'published'):
+        return 2
     return 0 if status == 'pass' else (1 if status == 'warn' else 2)
 
 
