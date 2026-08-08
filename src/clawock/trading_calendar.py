@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Trading-calendar guard for HK (HKEX) and US (NYSE/Nasdaq) markets.
 
 Why this exists: every market cron is scheduled `* * 1-5`, which only skips
@@ -31,15 +30,15 @@ Sources (authoritative, re-checked 2026-07-27):
     https://www.hkex.com.hk/-/media/HKEX-Market/Services/Circulars-and-Notices/Participant-and-Members-Circulars/SEHK/2026/MO_DT_133_26_e1.pdf
 
 CLI:
-  python3 trading_calendar.py hk            -> prints OPEN/CLOSED, exit 0/1
-  python3 trading_calendar.py us            -> prints OPEN/CLOSED, exit 0/1
-  python3 trading_calendar.py hk --session afternoon
+  clawock calendar hk                       -> prints OPEN/CLOSED, exit 0/1
+  clawock calendar us                       -> prints OPEN/CLOSED, exit 0/1
+  clawock calendar hk --session afternoon
                                             -> CLOSED on HK half-days too
-  python3 trading_calendar.py us --date 2026-06-19
+  clawock calendar us --date 2026-06-19
                                             -> check a specific date
 
 Exit code: 0 = market open (trading day), 1 = closed. So bash guards read as:
-  python3 trading_calendar.py us || exit 0   # bail on closed
+  clawock calendar us || exit 0              # bail on closed
 """
 from __future__ import annotations
 
@@ -233,7 +232,7 @@ def main(argv: list[str]) -> int:
         # Fail open: don't silently skip a real trading day past the table.
         if not a.quiet:
             print(f"OPEN (warning: {a.market} holiday table only covers "
-                  f"through {LATEST_YEAR}; extend trading_calendar.py)")
+                  f"through {LATEST_YEAR}; extend clawock.trading_calendar)")
         return 0
 
     open_ = is_trading_day(a.market, d, a.session)

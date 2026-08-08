@@ -33,9 +33,9 @@ _CHECKOUT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(_CHECKOUT))
 sys.path.insert(0, str(_CHECKOUT / "src"))
 from clawock import bar_checks  # noqa: E402  shared contract
+from clawock import trading_calendar  # noqa: E402
 from _em_http import em_get  # noqa: E402
 from clawock.instrument_registry import INSTRUMENTS  # noqa: E402
-import trading_calendar  # noqa: E402
 
 WS_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 PORTFOLIO_PATH = os.path.join(WS_ROOT, 'portfolio.json')

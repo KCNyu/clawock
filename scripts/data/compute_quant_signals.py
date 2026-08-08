@@ -38,6 +38,7 @@ import requests
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
 from clawock.workspace import workspace_root  # noqa: E402
+from clawock import trading_calendar  # noqa: E402
 
 # Code lives in the checkout; only DATA lives in the workspace. `workspace_root`
 # is overridable, so resolving our own modules through WS would read them out of
@@ -60,7 +61,6 @@ RETIRED_RETENTION_DAYS = 7
 
 sys.path.insert(0, str(_CHECKOUT / 'scripts' / 'data'))
 from clawock.instrument_registry import require as require_instrument  # noqa: E402
-import trading_calendar  # noqa: E402
 
 try:
     from clawock.safe_io import safe_write_json

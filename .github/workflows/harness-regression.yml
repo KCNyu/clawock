@@ -187,6 +187,7 @@ jobs:
             --cov=clawock.instrument_registry \
             --cov=clawock.json_repair \
             --cov=clawock.safe_io \
+            --cov=clawock.trading_calendar \
             --cov-report=term-missing:skip-covered \
             --cov-report=json:coverage-report.json
 

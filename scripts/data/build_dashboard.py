@@ -2398,7 +2398,7 @@ def compute_build_status(portfolio, data_dir, at=None):
         now = now.astimezone()
     try:
         sys.path.insert(0, str(WS_ROOT / 'scripts' / 'data'))
-        import trading_calendar as _tc
+        from clawock import trading_calendar as _tc
     except Exception:
         _tc = None
     files = []

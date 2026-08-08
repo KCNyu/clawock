@@ -20,7 +20,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'scripts' / 'data'))
 
 from clawock_kcnyu.harness import brief_preflight
-import trading_calendar
+from clawock import trading_calendar
 
 
 def test_brief_actually_calls_the_bar_fetcher():

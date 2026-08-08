@@ -542,7 +542,7 @@ def check_trading_calendar_horizon(r):
     """
     sys.path.insert(0, str(_REPO_ROOT / 'scripts' / 'data'))
     try:
-        import trading_calendar
+        from clawock import trading_calendar
         coverage = trading_calendar.coverage()
     except Exception as e:  # noqa: BLE001
         r.add('trading calendar', CRITICAL, f'cannot read coverage: {e}')
