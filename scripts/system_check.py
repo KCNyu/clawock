@@ -704,6 +704,9 @@ def check_research_artifacts(r):
 
 def main():
     r = Result()
+    # GitHub Secret Scanning + Push Protection own repository-wide credential
+    # detection. The pre-commit hook still scans staged additions locally; do
+    # not put the old full-tree git-grep back into this latency-sensitive hook.
     checks = [
         check_baseline_files,
         check_scripts_compile,
@@ -712,7 +715,6 @@ def main():
         check_plan_json_schema,
         check_dashboard_buildable,
         check_peer_map_coverage,
-        check_no_leaked_secrets,
         check_openclaw_doctor,
         check_decision_ledger,
         check_cron_paths_exist,

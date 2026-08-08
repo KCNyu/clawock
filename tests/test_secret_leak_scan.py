@@ -170,14 +170,11 @@ def test_clean_repo_reports_ok(sc, monkeypatch, tmp_path):
     assert _scan(sc, monkeypatch, repo).level == sc.OK
 
 
-def test_this_repo_is_clean(sc):
-    """The live tree must stay clean, and the scan must actually run on it."""
-    lines, failure = sc._grep_tracked(sc.SECRET_PATTERNS_STRICT)
-    assert failure is None, f"strict scan failed to run: {failure}"
-    assert lines == []
-    lines, failure = sc._grep_tracked(sc.SECRET_PATTERNS_LOOSE)
-    assert failure is None, f"loose scan failed to run: {failure}"
-    assert lines == []
+def test_full_repo_scan_is_not_registered_in_system_check(sc):
+    """GitHub push protection owns full-history scanning; the hook must stay fast."""
+    source = Path(sc.__file__).read_text(encoding="utf-8")
+    checks = source.split("\n    checks = [", 1)[1].split("]", 1)[0]
+    assert "check_no_leaked_secrets" not in checks
 
 
 # --------------------------------------------------------------------------
