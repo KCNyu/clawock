@@ -215,5 +215,5 @@ End with a structured report:
 ## Inputs / Outputs
 
 - **Reads**: `~/.openclaw/openclaw.json`, live cron state via `openclaw cron list --json`, `config/cron-schedules.json`, workspace canonical MD files, short-term recall state, and disk usage of `~/.openclaw/`
-- **Writes**: trimmed `*.md` workspace files (with bak), cron fields only through `openclaw cron edit` / `sync_us_cron_dst.py` plus the tracked contract and regenerated `docs/operations/cron-schedules.md`, eventual `portfolio.json` if data refresh happens; everything else archived to `/tmp/openclaw-cleanup-<date>/`
+- **Writes**: trimmed `*.md` workspace files (with bak), cron fields only through `openclaw cron edit` / `ops/host/sync_us_cron_dst.py` plus the tracked contract and regenerated `docs/operations/cron-schedules.md`, eventual `portfolio.json` if data refresh happens; everything else archived to `/tmp/openclaw-cleanup-<date>/`
 - **Side effects**: may suggest gateway restart at the end (user-confirmed)

@@ -89,7 +89,7 @@ def render(contract: dict) -> str:
         "## DST policy / 夏令时策略",
         "",
         "US market jobs remain expressed in HKT because the daemon's ET timezone parser has",
-        "regressed before. `sync_us_cron_dst.py --apply` runs daily at **06:20 HKT**, derives",
+        "regressed before. `ops/host/sync_us_cron_dst.py --apply` runs daily at **06:20 HKT**, derives",
         "the season from `America/New_York`, and updates both OpenClaw jobs and their system",
         "watchdogs. The overnight monitor always stops at 02:30 HKT so 03:00 memory dreaming",
         "keeps an exclusive window; standard time therefore has two fewer US intraday slots.",

@@ -8,6 +8,7 @@ from zoneinfo import ZoneInfo
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'scripts' / 'data'))
+sys.path.insert(0, str(ROOT / 'ops' / 'host'))
 sys.path.insert(0, str(ROOT / 'scripts' / 'harness'))
 
 import cron_contract
@@ -155,12 +156,11 @@ def _crontab_from_contract(data, at):
             if not watchdog:
                 continue
             expr = cron_contract.effective_schedule(watchdog, at)['expr']
-            tokens = ' '.join(watchdog['command_contains'])
-            rows.append(f'{expr} run-{index} {tokens}')
+            rows.append(f"{expr} {watchdog['command']}")
     sync = data['dst_sync']
     rows.append(
         f"{cron_contract.effective_schedule(sync, at)['expr']} "
-        + ' '.join(sync['command_contains'])
+        + sync['command']
     )
     return '\n'.join(rows) + '\n'
 
@@ -189,6 +189,45 @@ def test_watchdog_contract_and_dst_change_plan_cover_both_schedulers():
     assert {change['name'] for change in watchdogs} == {
         '美股开盘报告', '美股收盘报告', '美股盘中盯盘'
     }
+
+
+def test_legacy_host_rows_are_planned_to_installed_commands():
+    data = contract()
+    july = datetime(2026, 7, 16, 0, tzinfo=timezone.utc)
+    canonical = _crontab_from_contract(data, july)
+    legacy = canonical
+    replacements = {
+        '/root/.local/bin/clawock-kcnyu-brief-watchdog':
+            'python3 scripts/harness/brief_watchdog.py',
+        '/root/.local/bin/clawock-kcnyu-report-watchdog':
+            'python3 scripts/harness/report_watchdog.py',
+        '/root/.local/bin/clawock-kcnyu-intraday-watchdog':
+            'python3 scripts/harness/intraday_watchdog.py',
+        '/usr/bin/python3 /root/.openclaw/workspace/ops/host/sync_us_cron_dst.py':
+            'python3 scripts/data/sync_us_cron_dst.py',
+    }
+    for installed, old in replacements.items():
+        legacy = legacy.replace(installed, old)
+    legacy = legacy.replace(
+        ' >> /root/.openclaw/workspace/logs/watchdog.cron.log',
+        ' >> logs/watchdog.cron.log')
+    legacy = legacy.replace(
+        ' >> /root/.openclaw/workspace/logs/dst-sync.log',
+        ' >> logs/dst-sync.log')
+
+    live = [{
+        'id': f'id-{index}', 'name': job['name'],
+        'schedule': cron_contract.effective_schedule(job, july),
+    } for index, job in enumerate(data['jobs'])]
+    openclaw, host, errors = sync_us_cron_dst.desired_changes(
+        data, live, legacy, july)
+
+    assert errors == []
+    assert openclaw == []
+    assert len([change for change in host if change['kind'] != 'dst-sync']) == 11
+    assert len([change for change in host if change['kind'] == 'dst-sync']) == 1
+    assert all(change['matched_by'] == 'legacy' for change in host)
+    assert all('scripts/harness/' not in change['to']['command'] for change in host)
 
 
 def test_intraday_heartbeat_is_slot_keyed_published_and_health_checked(tmp_path, monkeypatch):

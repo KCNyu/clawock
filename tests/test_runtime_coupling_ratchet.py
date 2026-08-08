@@ -340,8 +340,8 @@ def test_the_cron_writes_moved_rather_than_vanished():
     """
     sites = coupling_sites()
 
-    for writer in ("scripts/data/sync_cron_payloads.py",
-                   "scripts/data/sync_us_cron_dst.py"):
+    for writer in ("ops/host/sync_cron_payloads.py",
+                   "ops/host/sync_us_cron_dst.py"):
         assert writer not in sites, (
             f"{writer} names the runtime again — the schedule writers are "
             "supposed to reach it through clawock.providers")

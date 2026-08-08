@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
-"""Keep US OpenClaw jobs and their system watchdogs aligned with New York DST.
+"""Reconcile host watchdog commands and US schedules with the cron contract.
 
 The daemon's America/New_York cron parsing has regressed before, so the runtime
 jobs stay in HKT. This tool derives the correct HKT expressions from the tracked
 seasonal contract and applies them daily at 06:20 HKT, safely before market jobs.
+It also owns the exact system-crontab command for every watchdog, including the
+one-time migration from source-tree compatibility aliases to installed commands.
 """
 from __future__ import annotations
 
@@ -28,7 +30,6 @@ from clawock.workspace import workspace_root  # noqa: E402
 _CHECKOUT = Path(__file__).resolve().parents[2]
 WS = workspace_root(Path(__file__).resolve().parents[2])
 sys.path.insert(0, str(_CHECKOUT / "scripts" / "data"))
-sys.path.insert(0, str(_CHECKOUT / "scripts" / "harness"))
 
 from cron_contract import (  # noqa: E402
     effective_schedule,
@@ -38,7 +39,6 @@ from cron_contract import (  # noqa: E402
     parse_crontab_lines,
     us_season,
 )
-from _watchdog_common import load_jobs  # noqa: E402
 # The cron command line belongs to the adapter (#330 step 2): this script owns
 # WHEN the US schedule shifts, not how an edit reaches OpenClaw.
 #
@@ -46,7 +46,51 @@ from _watchdog_common import load_jobs  # noqa: E402
 # data directory with no `clawock` package in it.
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
-from clawock.providers.openclaw import build_cron_edit_argv  # noqa: E402
+from clawock.providers.openclaw import (  # noqa: E402
+    build_cron_edit_argv,
+    read_jobs_strict,
+)
+
+
+def load_live_jobs() -> list[dict]:
+    """Read the live scheduler strictly before planning any writes."""
+    return read_jobs_strict()
+
+
+def _find_managed_row(rows: list[dict], spec: dict) -> tuple[dict | None, str]:
+    """Find one canonical row, or one explicitly declared migration source."""
+    canonical = [row for row in rows if row["command"] == spec.get("command")]
+    if len(canonical) == 1:
+        return canonical[0], "canonical"
+    if len(canonical) > 1:
+        return None, "missing"
+    legacy_matchers = spec.get("legacy_command_contains") or []
+    matches = []
+    for tokens in legacy_matchers:
+        row = find_crontab_row(rows, tokens)
+        if row and row["index"] not in {item["index"] for item in matches}:
+            matches.append(row)
+    return (matches[0], "legacy") if len(matches) == 1 else (None, "missing")
+
+
+def _crontab_change(name: str, spec: dict, rows: list[dict], at: datetime,
+                    *, kind: str) -> tuple[dict | None, str | None]:
+    row, matched_by = _find_managed_row(rows, spec)
+    if not row:
+        return None, f"missing or ambiguous {kind} for {name}"
+    desired_expr = effective_schedule(spec, at).get("expr")
+    desired_command = spec.get("command")
+    if row["expr"] == desired_expr and row["command"] == desired_command:
+        return None, None
+    return {
+        "name": name,
+        "kind": kind,
+        "line_index": row["index"],
+        "matched_by": matched_by,
+        "from": {"expr": row["expr"], "command": row["command"]},
+        "to": {"expr": desired_expr, "command": desired_command},
+    }, None
+
 
 def parse_at(value: str | None) -> datetime:
     if not value:
@@ -79,20 +123,28 @@ def desired_changes(contract: dict, live_jobs: list[dict], crontab_text: str,
                         "from": {"expr": current.get("expr"), "tz": current.get("tz")},
                         "to": {"expr": desired.get("expr"), "tz": desired.get("tz")},
                     })
-        watchdog = job.get("watchdog") or {}
-        if not watchdog.get("seasonal_schedules"):
-            continue
-        tokens = watchdog.get("command_contains") or []
-        row = find_crontab_row(cron_rows, tokens)
-        if not row:
-            errors.append(f"missing or ambiguous watchdog for {job['name']}: {tokens}")
-            continue
-        desired_expr = effective_schedule(watchdog, at).get("expr")
-        if row["expr"] != desired_expr:
-            watchdog_changes.append({
-                "name": job["name"], "line_index": row["index"],
-                "from": row["expr"], "to": desired_expr,
-            })
+        watchdogs = [("watchdog", job.get("watchdog"))]
+        watchdogs.extend(
+            (f"extra-watchdog-{index}", watchdog)
+            for index, watchdog in enumerate(job.get("extra_watchdogs") or [], start=1)
+        )
+        for kind, watchdog in watchdogs:
+            if not watchdog:
+                continue
+            change, error = _crontab_change(
+                job["name"], watchdog, cron_rows, at, kind=kind)
+            if error:
+                errors.append(error)
+            elif change:
+                watchdog_changes.append(change)
+
+    sync = contract["dst_sync"]
+    change, error = _crontab_change(
+        "US cron DST sync", sync, cron_rows, at, kind="dst-sync")
+    if error:
+        errors.append(error)
+    elif change:
+        watchdog_changes.append(change)
     return openclaw_changes, watchdog_changes, errors
 
 
@@ -122,7 +174,7 @@ def apply_crontab(text: str, changes: list[dict]) -> list[str]:
         parts = lines[index].split(None, 5)
         if len(parts) < 6:
             return [f"cannot parse crontab line {index + 1}"]
-        lines[index] = f"{change['to']} {parts[5]}"
+        lines[index] = f"{change['to']['expr']} {change['to']['command']}"
     payload = "\n".join(lines) + "\n"
     result = subprocess.run(
         ["crontab", "-"], input=payload, capture_output=True, text=True, timeout=15,
@@ -139,7 +191,7 @@ def main() -> int:
 
     at = parse_at(args.at)
     contract = load_contract()
-    live_jobs = load_jobs()
+    live_jobs = load_live_jobs()
     crontab = subprocess.check_output(["crontab", "-l"], text=True)
     oc_changes, wd_changes, errors = desired_changes(contract, live_jobs, crontab, at)
     applied = False
