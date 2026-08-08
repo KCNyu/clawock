@@ -1,14 +1,11 @@
 #!/usr/bin/env python3
-"""`clawock` — the entry point a stranger reaches for first.
+"""`clawock` — portable decision workflows for external agent runtimes.
 
-Today the only honest thing it can do is answer "could this run against my
-book?", which is precisely the question nobody could previously ask: without
-package metadata or a workspace override, the code only ever operated on the
-tree it lived in.
-
-    clawock doctor                      # this checkout
-    clawock doctor --workspace ~/mybook # someone else's
-    CLAWOCK_WORKSPACE=~/mybook clawock doctor
+An agent-native plugin kit backed by a verifiable execution harness. Existing
+external agents call ``clawock run`` to certify inputs and validate/publish their
+artifacts; the model, conversation, memory, skills and tool loop stay external.
+The KCNyu live desk also exposes compatibility phase commands while its instance
+code is migrated.
 """
 from __future__ import annotations
 
@@ -20,6 +17,104 @@ from pathlib import Path
 from clawock.tools import ToolError, build_registry
 from clawock.tools import describe as describe_tools
 from clawock.workspace import ENV_VAR, describe, workspace_root
+
+
+def _init(args) -> int:
+    from clawock.harness.config import initialize
+
+    try:
+        root = initialize(args.workspace)
+    except (ValueError, OSError) as exc:
+        print(str(exc), file=sys.stderr)
+        return 1
+    print(f"initialized clawock workspace: {root}")
+    print(f"edit {root / 'clawock.json'} and {root / 'CONTEXT.md'}")
+    return 0
+
+
+def _run_prepare(args) -> int:
+    from clawock.harness import AgentRun
+    from clawock.harness.config import load_request
+    from clawock.publish.store import write_generation
+
+    try:
+        request = load_request(args.workspace)
+        prepared = AgentRun().prepare(request)
+        state = request.workspace / ".clawock" / "work" / prepared.run_id / "request.json"
+        payload = prepared.as_dict()
+        payload["request_file"] = str(state)
+        write_generation({
+            str(state): json.dumps(payload, ensure_ascii=False, indent=2) + "\n",
+        })
+        state.chmod(0o600)
+    except (ValueError, OSError) as exc:
+        print(str(exc), file=sys.stderr)
+        return 1
+    print(json.dumps(payload, ensure_ascii=False, indent=2))
+    return 0
+
+
+def _run_publish(args) -> int:
+    from clawock.context import assemble_explicit
+    from clawock.harness import AgentRun, PreparedRun
+    from clawock.harness.config import load_request
+    from clawock.publish import FilesystemStore
+
+    try:
+        request = load_request(args.workspace)
+        state_path = args.request.expanduser().resolve()
+        state_root = (request.workspace / ".clawock" / "work").resolve()
+        state_path.relative_to(state_root)
+        payload = json.loads(state_path.read_text(encoding="utf-8"))
+        if not isinstance(payload, dict) or payload.get("schema_version") != 1:
+            raise ValueError("prepared request requires schema_version 1")
+        run_id = payload.get("run_id")
+        generation_id = payload.get("generation_id")
+        if not all(
+            isinstance(value, str) and len(value) == 32
+            and all(char in "0123456789abcdef" for char in value)
+            for value in (run_id, generation_id)
+        ):
+            raise ValueError("prepared request has invalid run/generation IDs")
+        if payload.get("task") != request.task:
+            raise ValueError("workspace task changed after this run was prepared")
+        if payload.get("output_directory") != str(request.output_directory):
+            raise ValueError("workspace output directory changed after this run was prepared")
+        if payload.get("metadata") != dict(request.metadata):
+            raise ValueError("workspace metadata changed after this run was prepared")
+        context = assemble_explicit(request.workspace, request.context_files)
+        supplied_context = payload.get("context")
+        if not isinstance(supplied_context, dict) or (
+            supplied_context.get("certificate") != context.certificate()
+        ):
+            raise ValueError("workspace context changed after this run was prepared")
+
+        artifacts: dict[str, str] = {}
+        for item in args.artifact:
+            name, separator, raw_path = item.partition("=")
+            if not separator:
+                raise ValueError(f"--artifact must be NAME=PATH, got {item!r}")
+            source = Path(raw_path).expanduser()
+            if not source.is_absolute():
+                source = request.workspace / source
+            source = source.resolve()
+            source.relative_to(request.workspace)
+            if name in artifacts:
+                raise ValueError(f"duplicate artifact name: {name}")
+            artifacts[name] = source.read_text(encoding="utf-8")
+
+        prepared = PreparedRun(request, context, run_id, generation_id)
+        receipt = AgentRun().publish(
+            prepared,
+            artifacts,
+            FilesystemStore(request.output_directory / run_id),
+        )
+        result = receipt.as_dict()
+    except (ValueError, OSError, json.JSONDecodeError) as exc:
+        print(str(exc), file=sys.stderr)
+        return 1
+    print(json.dumps(result, ensure_ascii=False, indent=2))
+    return 0 if receipt.status == "published" else 1
 
 
 def _doctor(args) -> int:
@@ -188,7 +283,25 @@ def main(argv=None) -> int:
     parser = argparse.ArgumentParser(prog="clawock", description=__doc__)
     sub = parser.add_subparsers(dest="command", required=True)
 
-    doctor = sub.add_parser("doctor", help="can this workspace run the loop?")
+    init = sub.add_parser("init", help="create a standalone clawock workspace")
+    init.add_argument("workspace", type=Path)
+    init.set_defaults(func=_init)
+
+    run = sub.add_parser(
+        "run", help="certify and publish one external decision-workflow run")
+    run_steps = run.add_subparsers(dest="run_command", required=True)
+    prepare = run_steps.add_parser("prepare", help="emit certified run input as JSON")
+    prepare.add_argument("--workspace", type=Path, default=Path.cwd())
+    prepare.set_defaults(func=_run_prepare)
+    publish = run_steps.add_parser(
+        "publish", help="validate and publish artifacts produced by the calling agent")
+    publish.add_argument("--workspace", type=Path, default=Path.cwd())
+    publish.add_argument("--request", type=Path, required=True)
+    publish.add_argument("--artifact", action="append", default=[], metavar="NAME=PATH")
+    publish.set_defaults(func=_run_publish)
+
+    doctor = sub.add_parser(
+        "doctor", help="audit portfolio and registry prerequisites")
     doctor.add_argument("--workspace", type=Path, default=None)
     doctor.add_argument("--json", action="store_true")
     doctor.set_defaults(func=_doctor)

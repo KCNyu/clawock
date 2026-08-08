@@ -1,4 +1,4 @@
-"""clawock — auditable AI portfolio operation.
+"""clawock — portable decision intelligence for external agents.
 
 This package is the part that is meant to be installable and pointed at any
 workspace. Everything under `scripts/` remains the operator-side implementation

@@ -24,6 +24,7 @@ source tree can replace it, because the source tree is the thing that lied.
 Mutation check: pin the declaration back to `packages = ["clawock"]` and this
 goes red on the first subpackage.
 """
+import json
 import shutil
 import subprocess
 import sys
@@ -122,3 +123,43 @@ def test_every_module_imports_from_a_non_editable_install(tmp_path):
         "the run-history provider is importable from the wheel but not callable "
         "there, so it is a provider only where the checkout happens to be:\n"
         + done.stderr[-2000:])
+
+    # Importability still is not the product claim. Drive the complete portable
+    # lifecycle exactly as an external agent does from the installed wheel:
+    # init -> certified prepare -> agent-owned output -> validate/publication.
+    workspace = tmp_path / "book"
+    clean_env = {
+        "PYTHONPATH": str(site), "PATH": "/usr/bin:/bin",
+        "LC_ALL": "C.UTF-8", "PYTHONIOENCODING": "utf-8",
+    }
+    initialized = subprocess.run(
+        [sys.executable, "-m", "clawock", "init", str(workspace)],
+        cwd=tmp_path, env=clean_env, capture_output=True, text=True, timeout=120)
+    assert initialized.returncode == 0, initialized.stderr
+
+    prepared = subprocess.run(
+        [sys.executable, "-m", "clawock", "run", "prepare",
+         "--workspace", str(workspace)],
+        cwd=tmp_path, env=clean_env, capture_output=True, text=True, timeout=120)
+    assert prepared.returncode == 0, prepared.stderr
+    request = json.loads(prepared.stdout)
+    assert request["context"]["documents"][0]["sha256"]
+
+    # This write stands in for output produced by OpenClaw, Hermes, Claude Code,
+    # Codex or any other caller. clawock does not start that agent.
+    answer = workspace / "answer.md"
+    answer.write_text(request["context"]["documents"][0]["text"].strip() + "\n")
+    completed = subprocess.run(
+        [sys.executable, "-m", "clawock", "run", "publish",
+         "--workspace", str(workspace), "--request", request["request_file"],
+         "--artifact", "answer.md=answer.md"],
+        cwd=tmp_path, env=clean_env, capture_output=True, text=True, timeout=120)
+    assert completed.returncode == 0, completed.stderr
+    receipt = json.loads(completed.stdout)
+    assert receipt["status"] == "published"
+    published = Path(receipt["publish"]["receipt"])
+    manifest = json.loads((published / "manifest.json").read_text())
+    assert (published / "answer.md").read_text().startswith("# Context")
+    assert manifest["generation_id"] == receipt["generation_id"]
+    assert {item["generation_id"] for item in receipt["artifacts"]} == {
+        receipt["generation_id"]}
