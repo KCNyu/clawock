@@ -63,6 +63,9 @@ def _report(args) -> int:
     Delivery and publication are not done here: those are capability providers,
     and a report you can render without them is exactly the point of the split.
     """
+    if args.harness_phase:
+        return _harness(args, "report")
+
     from clawock.report import assemble_message, categorize, validate
 
     context = json.loads(Path(args.context).read_text())
@@ -90,6 +93,31 @@ def _report(args) -> int:
             for issue in issues:
                 print(f"  · {issue}", file=sys.stderr)
     return 0 if verdict == "pass" else 1
+
+
+def _harness(args, workflow=None) -> int:
+    """Drive the live instance through the package lifecycle, in-process."""
+    from clawock.harness.runner import AdapterUnavailable, run_phase
+
+    workflow = workflow or args.command
+    phase = args.harness_phase
+    forwarded = []
+    for flag, value in (
+        ("--market", getattr(args, "market", None)),
+        ("--phase", getattr(args, "market_phase", None)),
+        ("--context-id", getattr(args, "context_id", None)),
+        ("--text-file", getattr(args, "text_file", None)),
+    ):
+        if value is not None:
+            forwarded += [flag, str(value)]
+    if getattr(args, "dry_run", False):
+        forwarded.append("--dry-run")
+    try:
+        return run_phase(workflow, phase, forwarded,
+                         workspace=getattr(args, "workspace", None))
+    except AdapterUnavailable as exc:
+        print(str(exc), file=sys.stderr)
+        return 1
 
 
 def _tool(args) -> int:
@@ -134,6 +162,28 @@ def _tool(args) -> int:
     return 0
 
 
+def _context(args) -> int:
+    """Audit or assemble the runtime-neutral context contract (#366)."""
+    from clawock.context import assemble, audit
+
+    root = workspace_root(args.workspace or Path.cwd())
+    if args.context_command == "audit":
+        result = audit(root)
+        print(json.dumps(result, ensure_ascii=False, indent=2))
+        return 0 if result["ok"] else 1
+
+    try:
+        bundle = assemble(root, skills=args.skill or ())
+    except ValueError as exc:
+        print(str(exc), file=sys.stderr)
+        return 1
+    if args.json:
+        print(json.dumps(bundle.manifest(), ensure_ascii=False, indent=2))
+    else:
+        print(bundle.text, end="")
+    return 0
+
+
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser(prog="clawock", description=__doc__)
     sub = parser.add_subparsers(dest="command", required=True)
@@ -145,12 +195,30 @@ def main(argv=None) -> int:
 
     report = sub.add_parser(
         "report", help="assemble and validate a market report from a context file")
-    report.add_argument("--context", type=Path, required=True,
+    report.add_argument("harness_phase", nargs="?", choices=("preflight", "postflight"),
+                        help="run the live harness phase in-process")
+    report.add_argument("--context", type=Path,
                         help="preflight context JSON")
     report.add_argument("--prose", type=Path, default=None,
                         help="model prose; reads stdin when omitted")
     report.add_argument("--json", action="store_true")
+    report.add_argument("--market", choices=("hk", "us"))
+    report.add_argument("--phase", dest="market_phase",
+                        choices=("open", "mid", "pm", "close"))
+    report.add_argument("--context-id")
+    report.add_argument("--text-file", type=Path)
+    report.add_argument("--workspace", type=Path, default=None)
     report.set_defaults(func=_report)
+
+    for workflow in ("brief", "intraday"):
+        harness = sub.add_parser(workflow, help=f"run {workflow} harness in-process")
+        harness.add_argument("harness_phase", choices=("preflight", "postflight"))
+        harness.add_argument("--market", choices=("hk", "us"))
+        harness.add_argument("--context-id")
+        harness.add_argument("--text-file", type=Path)
+        harness.add_argument("--dry-run", action="store_true")
+        harness.add_argument("--workspace", type=Path, default=None)
+        harness.set_defaults(func=_harness)
 
     tool = sub.add_parser(
         "tool", help="call a context tool through the registry")
@@ -163,7 +231,25 @@ def main(argv=None) -> int:
     tool.add_argument("--workspace", type=Path, default=None)
     tool.set_defaults(func=_tool)
 
+    context = sub.add_parser(
+        "context", help="audit or assemble the agent context contract")
+    context_sub = context.add_subparsers(dest="context_command", required=True)
+    context_audit = context_sub.add_parser(
+        "audit", help="verify OpenClaw bootstrap files without loading exclusions")
+    context_audit.add_argument("--workspace", type=Path, default=None)
+    context_audit.set_defaults(func=_context)
+    context_assemble = context_sub.add_parser(
+        "assemble", help="render the bootstrap and explicitly selected skills")
+    context_assemble.add_argument("--workspace", type=Path, default=None)
+    context_assemble.add_argument("--skill", action="append",
+                                  help="load this skill body; repeatable")
+    context_assemble.add_argument("--json", action="store_true",
+                                  help="print assembly manifest, not prompt text")
+    context_assemble.set_defaults(func=_context)
+
     args = parser.parse_args(argv)
+    if args.command == "report" and not args.harness_phase and not args.context:
+        parser.error("clawock report requires --context, or preflight/postflight")
     return args.func(args)
 
 

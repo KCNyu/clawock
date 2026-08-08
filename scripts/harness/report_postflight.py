@@ -313,7 +313,7 @@ def classify_data_plane(commit_ok, commit_msg):
     return 'published'
 
 
-def main():
+def main(argv=None):
     parser = argparse.ArgumentParser()
     parser.add_argument('--market', choices=['hk', 'us'], required=True)
     parser.add_argument('--phase', choices=['open', 'mid', 'pm', 'close'], required=True)
@@ -323,7 +323,7 @@ def main():
                              'prose mode: the input is the analysis sections only and '
                              'this script prepends title + raw_wechat_block itself. '
                              'Omit for the legacy full-report input.')
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
     job_name = workflow_outcomes.job_for(args.market, args.phase)
     slot = workflow_outcomes.slot_for_job(job_name)
 

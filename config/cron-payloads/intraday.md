@@ -6,7 +6,7 @@
 
 **Step 1 - Preflight**
 ```
-python3 /root/.openclaw/workspace/scripts/harness/intraday_preflight.py --market {{market}}
+clawock intraday preflight --market {{market}}
 ```
 本流程所有脚本 exec 调用都显式设置 `timeout: 300`。
 若 exec 返回 `Command still running`，只用 `process` poll 对应 session；禁止新开 exec 用 sleep/ps/ls/grep 探测进度。preflight 内置休市闸；若输出 `status: market_closed`，立即结束，不生成报告、不调用 postflight/send/message。
@@ -33,7 +33,7 @@ python3 /root/.openclaw/workspace/scripts/harness/intraday_preflight.py --market
 **Step 3 - Postflight**
 ```
 # 先用文件写入工具把散文写到 memory/.tmp/intraday-prose-{{market}}.md，确认写入成功，再跑下面这一行（{CTXID} 换成 Step 1 打印的那个）：
-python3 /root/.openclaw/workspace/scripts/harness/intraday_postflight.py --market {{market}} --context-id {CTXID} --text-file /root/.openclaw/workspace/memory/.tmp/intraday-prose-{{market}}.md
+clawock intraday postflight --market {{market}} --context-id {CTXID} --text-file /root/.openclaw/workspace/memory/.tmp/intraday-prose-{{market}}.md
 ```
 `--context-id` 必须是 Step 1 的 `context_id`：不匹配说明 context 已被换代（散文和数据不同代），postflight 拒绝拼装、只发数据块。
 ❌ 禁止把散文塞进 stdin（heredoc / here-string 重定向）——内容含 emoji、$ 和换行，shell 引号极脆；2026-07-23 10:00 就因为漏喂 stdin 造成假红。空输入、或超 20 分钟没重写的旧文件，会被判 `input_error` 拒投。

@@ -1210,7 +1210,7 @@ def load_influencer_feed(issues):
         return {}
 
 
-def main():
+def main(argv=None):
     # This script took no arguments at all, so `--help` was not "unsupported" —
     # it was ignored, and the full preflight ran: live price fetches, SEC EDGAR,
     # Tavily. A probe meant to cost nothing did a minutes-long real run.
@@ -1229,7 +1229,7 @@ def main():
             "Deterministic data collection for the daily-deep-brief harness. "
             "Takes no arguments; the date comes from TODAY or HKT now()."
         ),
-    ).parse_args()
+    ).parse_args(argv)
 
     # Date in HKT (the system's canonical TZ), or honor the TODAY env that the
     # brief-fallback workflow exports — so the context filename here always matches

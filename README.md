@@ -32,7 +32,11 @@ A real Hong Kong + US stock portfolio, debated by multiple LLMs and graded by Py
 
 ## What this is
 
-clawock is a continuously running, public experiment in **disciplined, self-grading** AI investing — not a get-rich bot, and not a copy-trading service.
+clawock is an **auditable agent harness for portfolio operation, with the
+context-certification layer built in**. The agent is `clawock + a model + a
+runtime`; this repository is the half that does not hallucinate. It is also a
+continuously running public experiment in disciplined, self-grading AI investing
+— not a get-rich bot, and not a copy-trading service.
 
 A multi-agent desk monitors a real brokerage account with separate Hong Kong and US books, debates the evidence, and proposes trades; execution stays with the account owner. The product is the live record: real positions, an accumulating decision history, and a public scorecard. The model proposes; Python owns the prices, the risk limits, the ledger, the settlement, and the grading.
 
@@ -80,7 +84,7 @@ sources ──► preflight (Python, deterministic) ──► context.json ─�
 | | Pre-open brief | Open / midday / afternoon / close | Intraday check-in |
 |---|---|---|---|
 | **When** | 08:00 HKT, weekdays | HK 09:30 · 12:00 · 13:30 · 16:00 · US open and close | every 30 min while a market is open |
-| **Blocks** | 36 | 16 | 19 |
+| **Blocks** | 36 | 16 | 20 |
 | **Position truth** | holdings, book totals, concentration, leverage look-through | fresh quote block | fresh quote block |
 | **Risk** | guardrail, discipline ledger, β/vol/drawdown, breakeven math | risk section only when signals demand it | signal counts and detail |
 | **Signals** | quant factors and their hit-rate review, cross-sectional factor, peer residual, T+0 setups | peer/sector scan | peer/sector scan, T+0 setups, anomaly flags |
@@ -201,11 +205,18 @@ The repository installs as a package, and the computation is no longer welded to
 pip install -e .
 clawock doctor                          # is this workspace runnable?
 clawock doctor --workspace ~/my-book    # is that one?
+clawock context audit                   # is the runtime context contract intact?
+clawock report preflight --market hk --phase open
 ```
 
 `doctor` answers one question — could the loop run against this portfolio — and names what is missing instead of failing somewhere deep with a path error. `CLAWOCK_WORKSPACE` points the computation at another tree; unset, everything behaves exactly as it did.
 
-Be clear about how far this goes. It is the first slice, not a general-purpose framework: much of the pipeline still assumes this desk's shape — two books, the instrument registry, the schedules. `doctor` tells you what a foreign workspace lacks rather than pretending otherwise, and dependencies now come from `pyproject.toml` rather than being restated in every workflow.
+The package owns the lifecycle contracts, generation-pinned artifacts, context
+assembly, validation and CLI. It does not reimplement an agent loop: OpenClaw is
+the unattended runtime adapter used by this instance today, while another runner
+can consume the same context/tool contracts. The live adapter still assumes this
+desk's two books, registry and schedules; `doctor` and `context audit` state those
+capabilities instead of pretending every foreign workspace is production-ready.
 
 ## Explore the system
 
@@ -264,6 +275,7 @@ clawock/
 │   └─ *_review.json  guardrail_history.jsonl                          ← factor / setup scorecards + what the caps flagged
 ├─ portfolio.json                           ← single source of truth (atomic writes)
 ├─ tests/                                    ← decision-v2 + money-conservation regression gates
+├─ clawock/                                  ← portable harness contracts · context · CLI · providers
 ├─ MEMORY.md  DREAMS.md                      ← iron rules + nightly "dreaming" promotion
 ├─ memory/
 │   ├─ {date}-pre-open.md  {date}-plan.json  ← brief output + structured plan
@@ -272,7 +284,7 @@ clawock/
 │   └─ snapshots/{date}.json
 ├─ scripts/
 │   ├─ data/      fetchers · build_dashboard.py · risk/quant/regime compute · safe_push.sh
-│   └─ harness/   {brief,report,intraday}_{pre,post}flight.py · watchdogs
+│   └─ harness/   live kcn instance adapter · watchdogs
 └─ skills/{name}/SKILL.md
 ```
 
