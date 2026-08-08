@@ -5,9 +5,9 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-UI = (ROOT / "assets" / "js" / "dashboard.ui.js").read_text()
-HERO = (ROOT / "assets" / "js" / "dashboard.hero.js").read_text()
-CHARTS = (ROOT / "assets" / "js" / "dashboard.charts.js").read_text()
+UI = (ROOT / "site" / "assets" / "js" / "dashboard.ui.js").read_text()
+HERO = (ROOT / "site" / "assets" / "js" / "dashboard.hero.js").read_text()
+CHARTS = (ROOT / "site" / "assets" / "js" / "dashboard.charts.js").read_text()
 
 
 def _sidecar_keys() -> set[str]:

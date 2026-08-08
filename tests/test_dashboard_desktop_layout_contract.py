@@ -8,9 +8,9 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-HTML = (ROOT / "index.html").read_text()
-CSS = (ROOT / "assets" / "css" / "dashboard.css").read_text()
-VISUAL_REGRESSION = ROOT / "assets" / "visual-regression" / "issue-206"
+HTML = (ROOT / "site/index.html").read_text()
+CSS = (ROOT / "site" / "assets" / "css" / "dashboard.css").read_text()
+VISUAL_REGRESSION = ROOT / "docs" / "visual-regression" / "issue-206"
 VISUAL_REGRESSION_DOC = (
     ROOT / "docs" / "visual-regression" / "issue-206" / "README.md"
 )
@@ -56,7 +56,7 @@ def test_holdings_dividers_do_not_partition_the_masonry_flow():
 
 
 def test_webkit_reflect_uses_desktop_only_ordinary_flow_fallback():
-    ui = (ROOT / "assets" / "js" / "dashboard.ui.js").read_text()
+    ui = (ROOT / "site" / "assets" / "js" / "dashboard.ui.js").read_text()
     assert "/AppleWebKit/i.test" in ui
     assert 'classList.toggle("is-webkit", WEBKIT)' in ui
 

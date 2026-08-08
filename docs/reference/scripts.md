@@ -84,7 +84,7 @@ cron payload 是真实执行面，会为隔离 session 自包含关键步骤；S
 模板在 `config/cron-payloads/`，job 变量、model/fallback/thinking/tools/schedule 则由
 `config/cron-schedules.json` 单源声明；改格式时必须同时 diff payload 与对应 Mode，尤其
 Step 2.5 sidecar。schedule、payload、watchdog 或生成文档漂移都会被
-`scripts/system_check.py` / CI 拦截。
+`ops/system_check.py` / CI 拦截。
 
 **改 cron 配置的安全步骤**（默认只检查，显式 apply；不覆盖投递目标/account/failure alert）：
 ```bash

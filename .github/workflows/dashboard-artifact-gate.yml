@@ -25,7 +25,7 @@ jobs:
       # and rebuilding here would validate this runner's output instead of what
       # the site serves.
       - name: Fetch the published generation
-        run: python3 scripts/build/fetch_data_plane.py
+        run: python3 ops/pages/fetch_data_plane.py
 
       - name: Validate published dashboard payload
         run: python3 scripts/data/validate_sidecars.py dashboard

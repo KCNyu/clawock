@@ -34,9 +34,9 @@ fi
 # A repo carrying portfolio.json is a ledger workspace, so a missing checker
 # there is a broken install, not a bootstrap. Say so and refuse. A repo without
 # the money file keeps the original permissive behaviour.
-if [ ! -f "$WS/scripts/system_check.py" ]; then
+if [ ! -f "$WS/ops/system_check.py" ]; then
   if [ -f "$WS/portfolio.json" ]; then
-    echo "🚫 push blocked — scripts/system_check.py is missing from a workspace"
+    echo "🚫 push blocked — ops/system_check.py is missing from a workspace"
     echo "   that carries portfolio.json. The book was not verified."
     echo "   Override (rare): git push --no-verify"
     exit 1
@@ -51,7 +51,7 @@ echo "▸ running clawock system_check.py before push…"
 # So capture the rc without letting set -e kill us. Warning-only checks use RC=2
 # and must never become a generic "failed to push some refs" error.
 RC=0
-python3 "$WS/scripts/system_check.py" || RC=$?
+python3 "$WS/ops/system_check.py" || RC=$?
 
 # RC=0 all OK, RC=2 warnings only (must not block). ANY other code means the
 # checker did not deliver a verdict — interpreter missing (127), killed (137),

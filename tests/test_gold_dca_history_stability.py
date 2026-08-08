@@ -292,7 +292,7 @@ def test_retention_does_not_starve_oldest_nav_purchases():
 
 def test_dashboard_drops_internal_history_but_keeps_provenance_contract():
     builder = (ROOT / "scripts" / "data" / "build_dashboard.py").read_text()
-    renderer = (ROOT / "assets" / "js" / "dashboard.render.js").read_text()
+    renderer = (ROOT / "site" / "assets" / "js" / "dashboard.render.js").read_text()
 
     assert "_gold['london'].pop('hist_series', None)" in builder
     assert "_gold['london'].pop('fx_hist_series', None)" in builder

@@ -357,7 +357,7 @@ def test_daily_brief_skill_tells_the_model_what_to_do_with_it():
 
 def _registered_system_checks():
     """Names inside system_check's `checks = [...]` list, position-independent."""
-    source = (ROOT / "scripts" / "system_check.py").read_text()
+    source = (ROOT / "ops" / "system_check.py").read_text()
     # `self.checks = []` appears earlier in the Result class, so anchor on the
     # registration list itself.
     block = source.split("\n    checks = [", 1)[1].split("]", 1)[0]
@@ -365,7 +365,7 @@ def _registered_system_checks():
 
 
 def test_system_check_validates_artifacts_before_every_push():
-    check = (ROOT / "scripts" / "system_check.py").read_text()
+    check = (ROOT / "ops" / "system_check.py").read_text()
     assert "def check_research_artifacts(r):" in check
     assert "check_research_artifacts" in _registered_system_checks()
     assert "research_surface.check()" in check
@@ -526,7 +526,7 @@ def test_calendar_coverage_is_reported_per_market():
 
 
 def test_system_check_watches_the_calendar_horizon():
-    check = (ROOT / "scripts" / "system_check.py").read_text()
+    check = (ROOT / "ops" / "system_check.py").read_text()
     assert "def check_trading_calendar_horizon(r):" in check
     assert "check_trading_calendar_horizon" in _registered_system_checks()
     # the table is hand-maintained, so the gate must escalate rather than assume

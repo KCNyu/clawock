@@ -31,7 +31,7 @@ jobs:
       # failure: a health check that silently read an absent ledger would
       # report every intraday slot as missed.
       - name: Fetch the published generation
-        run: python3 scripts/build/fetch_data_plane.py
+        run: python3 ops/pages/fetch_data_plane.py
 
       - name: Run cron health check
         id: health

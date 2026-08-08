@@ -53,7 +53,7 @@ After any of the following changes, run a git commit automatically — no need t
 | Workspace docs changed (SOUL/AGENTS/TOOLS/USER/CLAUDE/README) | `docs: <what changed>` |
 
 Message style: `<type>: <concise description>`, Chinese is fine.
-**Never commit:** `.api_keys`, scratch `*.png`/`*.jpg` outside the shipped `assets/`/`docs/` allowlists, `.openclaw/`, `.clawhub/`, `memory/.dreams/`, `memory/.tmp/` (gitignored). Shipped `assets/*.png` are committed; `screenshot-refresh.yml` generates `assets/social-card.png` directly from the light editorial HTML/CSS composition plus a fresh dashboard capture, refreshes `assets/shadow-backtest.png`, and updates `assets/dashboard.gif` only on manual dispatch.
+**Never commit:** `.api_keys`, scratch `*.png`/`*.jpg` outside the shipped `site/assets/`/`docs/` allowlists, `.openclaw/`, `.clawhub/`, `memory/.dreams/`, `memory/.tmp/` (gitignored). Shipped `site/assets/*.png` are committed; `screenshot-refresh.yml` generates `site/assets/social-card.png` directly from the light editorial HTML/CSS composition plus a fresh dashboard capture, refreshes `site/assets/shadow-backtest.png`, and updates `site/assets/dashboard.gif` only on manual dispatch.
 
 Push: harness postflight now **auto-pushes** after commit (rebase+retry on race).
 Interactive Codex/Claude work must never push `master`; it may push only its task

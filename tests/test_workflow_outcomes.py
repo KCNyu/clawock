@@ -264,7 +264,7 @@ def test_slots_older_than_the_retention_window_are_pruned(tmp_path, monkeypatch)
 
 
 def test_dashboard_renderer_labels_raw_and_final_status_separately():
-    renderer = (ROOT / "assets" / "js" / "dashboard.render.js").read_text()
+    renderer = (ROOT / "site" / "assets" / "js" / "dashboard.render.js").read_text()
 
     assert "执行=${raw} / 成品=${final}" in renderer
     assert "可读性=${readability.status}" in renderer
