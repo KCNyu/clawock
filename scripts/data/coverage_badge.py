@@ -50,7 +50,7 @@ CORE_MODULES = (
     'scripts/data/shadow_portfolio.py',
     'src/clawock/instrument_registry.py',
     'scripts/data/recompute_aggregates.py',
-    'scripts/data/recompute_realized.py',
+    'src/clawock/recompute_realized.py',
     'scripts/data/portfolio_risk_metrics.py',
     'scripts/data/intraday_delta_gate.py',
     'scripts/data/workflow_outcomes.py',

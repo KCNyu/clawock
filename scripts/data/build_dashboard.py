@@ -629,7 +629,7 @@ def load_snapshots():
     point-in-time realized reflected in each snapshot's own holdings and prefer
     it, so the equity curve / drawdown can never be poisoned by a stale aggregate
     even if a future writer regresses. Read-only on the snapshot files."""
-    from snapshot_realized import realized_as_of, snapshot_shares
+    from clawock.snapshot_realized import realized_as_of, snapshot_shares
     ledger = _canonical_ledger()
     legs = _ledger_legs()
     paths = sorted(

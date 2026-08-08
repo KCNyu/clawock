@@ -18,20 +18,13 @@ import re
 import sys
 from pathlib import Path
 
-# `safe_io`, `snapshot_realized` and `workspace` all live in scripts/data. This
-# inserted *this* directory instead, so the module has not been importable on
-# its own since it was moved into scripts/legacy — `python3 -c "import
-# backfill_snapshot_realized"` raises ModuleNotFoundError on the first line
-# below. It only ever ran when something else had already put scripts/data on
-# the path.
-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'data'))
 # The checkout root, so `clawock` resolves from the tree this file ships
 # in. Reached through the scripts/data/workspace shim until #267 step 3,
 # whose only remaining job was inserting this path as a side effect.
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
 from clawock.safe_io import safe_write_json  # noqa: E402
-from snapshot_realized import realized_as_of, snapshot_shares  # noqa: E402
+from clawock.snapshot_realized import realized_as_of, snapshot_shares  # noqa: E402
 from clawock.workspace import workspace_root  # noqa: E402
 
 # The workspace this file sits in, not the operator's. As an absolute live path

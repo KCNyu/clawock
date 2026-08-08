@@ -82,7 +82,7 @@ of claim-bearing backtests remain workspace configuration.
 | Area | Modules |
 |---|---|
 | Ledger + decision contract | `plan_surface` `mark_followed` `audit_resettle` |
-| Money integrity | `recompute_aggregates` `recompute_cash` `recompute_realized` `snapshot_realized` `shadow_portfolio` |
+| Money integrity | `recompute_aggregates` `recompute_cash` `clawock realized` `clawock.snapshot_realized` `shadow_portfolio` |
 | Risk + governance | `portfolio_risk_metrics` `risk_discipline` `thesis_registry` `entry_gate` `earnings_review` `research_surface` |
 | Quant + research | `compute_quant_signals` `compute_regime` `compute_t0_setups` `t0_setup_review` `quant_signal_review` `cross_sectional_factor` `peer_residual_engine` `peer_scan` `suggest_peers` |
 | Evidence + provenance | `news_evidence_graph` `research_provenance` `claim_provenance` `run_card` `build_evidence` |

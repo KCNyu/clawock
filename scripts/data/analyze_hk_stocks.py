@@ -489,7 +489,7 @@ def update_hk_portfolio(dry_run: bool = False) -> Dict:
         print("  [dry-run] Not written.\n")
     else:
         from clawock.safe_io import mutate_json
-        from recompute_realized import recompute as recompute_realized
+        from clawock.recompute_realized import recompute as recompute_realized
         recompute_realized(data)
         # 锁内重读、只覆盖自己拥有的 hk_stocks 区 + 顶层 last_updated 戳，保住并发
         # 写者(gold/us)的字段 [cut #2]（last_updated 是顶层键，别随 region-overlay 丢）

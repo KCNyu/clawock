@@ -1,35 +1,21 @@
-"""
-snapshot_realized.py — point-in-time realized P&L for a historical snapshot.
+"""Point-in-time realized P&L for a historical snapshot.
 
 `recompute_realized.py` sums *every* trade in portfolio.json — correct for the
 live portfolio, but wrong for a dated snapshot, where realized must reflect only
 the sells that had already settled into that snapshot's holdings. Crediting a
-sell too early inflates equity (phantom high); too late deflates it (phantom
-low — the 2026-05-21 bug, where the SOXL/RKLX sells were debited from holdings
-a day before realized caught up, faking a −$498 drawdown bottom).
+sell too early inflates equity; crediting it too late deflates it.
 
 The canonical portfolio.json `trades[]` ledger is the single source of truth.
 A sell is "reflected" in a snapshot when:
   * sell.date <  snapshot.date                              (settled on a prior day), OR
   * sell.date == snapshot.date AND snapshot_shares <= post_sell_balance
     (same-day tie broken by the snapshot's own share count — handles the
-     08:00 HKT morning snapshot taken before that day's US session).
+     a morning snapshot taken before that day's later market session).
 
 The same-day share check uses the running balance *after* the sell, so a sell is
 only counted once the holding has actually been drawn down to (or below) it. The
 strict date-`<` branch handles later sell→rebuy cycles without false negatives.
 """
-import os
-import sys
-
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-
-# There was a `PORTFOLIO_PATH` here naming the live ledger absolutely. Nothing
-# in this module read it, and both importers (`build_dashboard`, the legacy
-# backfill) take only the two pure functions below, so it is deleted rather
-# than re-pointed: an unused constant naming production is a loaded gun.
-
-
 def _ledger_sells(holdings):
     """Per-ticker chronological sells, each tagged with its post-sell balance.
 
