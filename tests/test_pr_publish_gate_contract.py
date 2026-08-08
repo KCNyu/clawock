@@ -200,6 +200,45 @@ def test_pre_push_still_allows_a_repo_that_carries_no_money_file(tmp_path):
     assert result.returncode == 0, result.stdout + result.stderr
 
 
+def test_pre_push_does_not_apply_master_ledger_gates_to_data_plane(tmp_path):
+    """The orphan data ref contains dashboard artifacts, not the ledger.
+
+    A temporarily unreconciled working-tree portfolio must not freeze that
+    independent publication path. This is behavioural: changing the target ref
+    to master makes the same missing-checker fixture fail closed, so merely
+    deleting the hook body cannot satisfy both assertions.
+    """
+    repo = _ledger_repo(tmp_path)
+    hook = repo / "pre-push"
+    hook.write_text((ROOT / ".githooks" / "pre-push").read_text())
+    zero = "0" * 40
+    one = "1" * 40
+
+    data_update = f"refs/heads/data-plane {one} refs/heads/data-plane {zero}\n"
+    data = subprocess.run(
+        ["bash", str(hook)], cwd=repo, capture_output=True, text=True,
+        input=data_update,
+    )
+    assert data.returncode == 0, data.stdout + data.stderr
+
+    master_update = f"refs/heads/master {one} refs/heads/master {zero}\n"
+    master = subprocess.run(
+        ["bash", str(hook)], cwd=repo, capture_output=True, text=True,
+        input=master_update,
+    )
+    assert master.returncode != 0
+    assert "system_check.py is missing" in master.stdout
+
+
+def test_data_plane_publisher_preserves_hook_stdout_and_git_stderr():
+    publisher = (ROOT / "scripts" / "data" / "publish_data_branch.py").read_text()
+
+    assert "exc.stdout, exc.stderr" in publisher
+    assert "[-2000:]" in (
+        ROOT / "scripts" / "harness" / "_harness_common.py"
+    ).read_text(), "postflight truncated the hook reason back out of the result"
+
+
 def test_safe_push_refuses_the_money_file_when_the_checker_is_missing(tmp_path):
     """`-f` was a precondition of running the gate, so a checker that was not
     where we looked read as "nothing to check" and the book shipped unverified."""

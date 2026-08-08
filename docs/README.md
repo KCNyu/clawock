@@ -4,6 +4,13 @@ The repository root is reserved for files with a real discovery or publishing
 contract: GitHub metadata, OpenClaw bootstrap context, Jekyll entry points, and
 website-root verification files. General documentation belongs here.
 
+## Architecture
+
+- [`data-plane.md`](architecture/data-plane.md) — why the live JSON snapshot is
+  separate from Pages, what GitHub officially supports, and the replacement bar.
+- [`harness.md`](architecture/harness.md) — package/instance/runtime boundaries,
+  CLI lifecycle, context injection contract, and generation-pinned artifacts.
+
 ## Operations
 
 - [`cron-schedules.md`](operations/cron-schedules.md) — generated human view of
