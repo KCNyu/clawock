@@ -29,13 +29,13 @@ assets/data/integrity_report.json
 media/
 
 # Images / generated output
-# assets/ is the one place shipped visuals live (README / OG card / Pages all point
+# site/assets/ is the one place shipped visuals live (README / OG card / Pages all point
 # there). Everything else is scratch. These negations matter: without them the
 # shipped PNGs survive only by already being tracked, so a single `git rm --cached`
 # would make them unaddable.
 *.png
-!assets/*.png
-!assets/icons/*.png
+!site/assets/*.png
+!site/assets/icons/*.png
 *.jpg
 !docs/*.png
 !docs/*.jpg
@@ -43,8 +43,8 @@ media/
 *.gif
 *.mp4
 # README/social artifacts (refreshed weekly by screenshot-refresh.yml) — allow these
-!assets/social-card.png
-!assets/dashboard.gif
+!site/assets/social-card.png
+!site/assets/dashboard.gif
 # per-tab frames are transient inputs to assemble_dashboard_gif.py — never commit
 .gifframes/
 

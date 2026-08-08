@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """assemble_dashboard_gif.py — stitch the per-tab scroll frames shot by
-shoot_dashboard.js into assets/dashboard.gif (the README hero animation).
+shoot_dashboard.js into site/assets/dashboard.gif (the README hero animation).
 
 Run right after shoot_dashboard.js:
-    node scripts/data/shoot_dashboard.js
-    python3 scripts/data/assemble_dashboard_gif.py
+    node site/tools/shoot_dashboard.js
+    python3 site/tools/assemble_dashboard_gif.py
 
 shoot_dashboard.js writes, per tab i, a sequence .gifframes/f{i}_{0..n}.png captured
 while scrolling that tab's content top→bottom. This script plays each tab as: hold at
@@ -22,7 +22,7 @@ from PIL import Image
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 FRAME_DIR = os.environ.get("FRAME_DIR", os.path.join(ROOT, ".gifframes"))
-OUT = os.path.join(ROOT, "assets", "dashboard.gif")
+OUT = os.path.join(ROOT, "site", "assets", "dashboard.gif")
 
 OW = 640             # output width (frames scaled to this; height follows aspect)
                      # 640 ≈ 2× the README's 300px display = crisp on retina; source

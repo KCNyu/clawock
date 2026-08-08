@@ -1,8 +1,10 @@
 # Project documentation
 
-The repository root is reserved for files with a real discovery or publishing
-contract: GitHub metadata, OpenClaw bootstrap context, Jekyll entry points, and
-website-root verification files. General documentation belongs here.
+The repository root is reserved for files with a real discovery or runtime
+contract: GitHub/Python metadata, OpenClaw bootstrap context, and the live
+instance ledgers. Static website source lives in `site/`; Pages combines it with
+public runtime outputs through `ops/pages/stage_site.py`. General documentation
+belongs here.
 
 ## Architecture
 
@@ -36,10 +38,10 @@ website-root verification files. General documentation belongs here.
 Historical designs live under `archive/`. They are retained for context, are
 excluded from the public Pages build, and must not be used as current runbooks.
 
-## Why some website files stay at the root
+## Why OpenClaw files stay at the root
 
-`index.html`, `briefs.md`, `_config.yml`, `_layouts/`, `robots.txt`,
-`manifest.webmanifest`, and verification files have root-path or Jekyll
-discovery semantics. Moving them without changing the complete Pages build
-pipeline would alter public URLs or break verification, so they intentionally
-remain at the repository root.
+`AGENTS.md`, `TOOLS.md`, `SOUL.md`, `IDENTITY.md`, `USER.md`, `MEMORY.md`,
+`HEARTBEAT.md`, `BOOTSTRAP.md`, `skills/` and `memory/` participate in the live
+OpenClaw workspace contract. They remain at their required runtime paths until
+an adjacent context-parity canary proves a supported alternative. Website files
+have no such constraint and therefore live under `site/`.

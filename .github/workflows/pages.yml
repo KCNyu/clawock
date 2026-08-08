@@ -5,49 +5,27 @@ on:
     branches: [master]
     paths:
       - '.github/workflows/pages.yml'
-      - '_config.yml'
-      - '_layouts/**'
-      - 'index.html'
-      - '4fb2df1611ed42e5b67fd6171a237acb.txt'
-      - 'briefs.md'
+      - 'site/**'
       - 'README.md'
       - 'README.zh.md'
-      - 'robots.txt'
-      - 'manifest.webmanifest'
       - 'docs/**'
-      - 'assets/css/**'
-      - 'assets/js/**'
       - 'assets/data/**'
-      - 'assets/*.png'
-      - 'assets/*.svg'
-      - 'assets/icons/**'
       - 'memory/*-pre-open.md'
       - 'memory/weekly/**'
       - 'config/pages-public.json'
-      - 'scripts/build/prepare_pages_artifact.py'
+      - 'ops/pages/**'
   pull_request:
     paths:
       - '.github/workflows/pages.yml'
-      - '_config.yml'
-      - '_layouts/**'
-      - 'index.html'
-      - '4fb2df1611ed42e5b67fd6171a237acb.txt'
-      - 'briefs.md'
+      - 'site/**'
       - 'README.md'
       - 'README.zh.md'
-      - 'robots.txt'
-      - 'manifest.webmanifest'
       - 'docs/**'
-      - 'assets/css/**'
-      - 'assets/js/**'
       - 'assets/data/**'
-      - 'assets/*.png'
-      - 'assets/*.svg'
-      - 'assets/icons/**'
       - 'memory/*-pre-open.md'
       - 'memory/weekly/**'
       - 'config/pages-public.json'
-      - 'scripts/build/prepare_pages_artifact.py'
+      - 'ops/pages/**'
   # The publisher asks for a deploy once a generation reaches the data branch
   # (#314). A push to that branch cannot do it: `push` runs the workflows on the
   # ref that was pushed, and an orphan data branch carries none. GitHub
@@ -82,12 +60,15 @@ jobs:
         uses: actions/checkout@v6
 
       # The four dashboard outputs are published to an orphan data branch, not
-      # to master (#314). Jekyll builds _site from the checkout, so they have to
-      # be in the checkout first. Loud on failure: a fall back to whatever the
+      # to master (#314). The staging step reads them from the checkout, so they
+      # have to arrive first. Loud on failure: falling back to whatever the
       # checkout happened to carry is how a site serves a stale generation with
       # every gate still green.
       - name: Fetch the published generation
-        run: python3 scripts/build/fetch_data_plane.py
+        run: python3 ops/pages/fetch_data_plane.py
+
+      - name: Stage the owned website source
+        run: python3 ops/pages/stage_site.py --output-dir _site-source
 
       - name: Configure Pages
         uses: actions/configure-pages@v6
@@ -95,12 +76,12 @@ jobs:
       - name: Build with Jekyll
         uses: actions/jekyll-build-pages@v1
         with:
-          source: ./
+          source: ./_site-source
           destination: ./_site
 
       - name: Prepare consumer-safe artifact
         run: >-
-          python3 scripts/build/prepare_pages_artifact.py
+          python3 ops/pages/prepare_pages_artifact.py
           --site-dir _site
           --output-dir _pages
 

@@ -295,8 +295,8 @@ def test_active_catalyst_still_requires_an_escalated_event():
 
 
 def test_pages_prefers_projection_and_keeps_a_backward_fallback():
-    ui = (ROOT / "assets" / "js" / "dashboard.ui.js").read_text()
-    renderer = (ROOT / "assets" / "js" / "dashboard.render.js").read_text()
+    ui = (ROOT / "site" / "assets" / "js" / "dashboard.ui.js").read_text()
+    renderer = (ROOT / "site" / "assets" / "js" / "dashboard.render.js").read_text()
     skill = (ROOT / "skills" / "daily-deep-brief" / "SKILL.md").read_text()
 
     assert 'brief_projection: "drill"' in ui

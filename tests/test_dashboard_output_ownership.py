@@ -406,7 +406,7 @@ def test_the_two_sidecars_are_published_with_the_generation():
     assert "assets/data/cron-heartbeats.json" in DATA_PLANE_FILES
     assert "assets/data/workflow-outcomes.json" in DATA_PLANE_FILES
 
-    reader = (ROOT / "scripts/build/fetch_data_plane.py").read_text()
+    reader = (ROOT / "ops/pages/fetch_data_plane.py").read_text()
     assert "DATA_PLANE_FILES" in reader, (
         "the reader must fetch the whole published set, not just the payloads")
 

@@ -57,7 +57,7 @@ git merge -q --ff-only origin/master 2>/dev/null || true
 #     for one tick, correct, and repaired by the next fetch.
 # A stale $PREVIOUS_DIR is not a problem either: it still holds the last
 # generation this host saw published, which is exactly what the baseline means.
-if ! python3 scripts/build/fetch_data_plane.py --into "$PREVIOUS_DIR"; then
+if ! python3 ops/pages/fetch_data_plane.py --into "$PREVIOUS_DIR"; then
   echo "⚠ publish_dashboard: could not read the published generation — this tick" >&2
   echo "  builds workspace-only and may republish without a real change" >&2
 fi

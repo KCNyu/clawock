@@ -19,7 +19,7 @@ from pathlib import Path
 import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
-INSTALLER = ROOT / "scripts" / "ops" / "install_clawock_launcher.sh"
+INSTALLER = ROOT / "ops" / "host" / "install_clawock_launcher.sh"
 
 
 @pytest.fixture(scope="module")
@@ -52,6 +52,20 @@ def test_the_launcher_points_at_the_checkout_rather_than_copying_it(installed_la
     assert str(ROOT) in body, "the launcher must name the checkout it serves"
     assert str(venv / "bin" / "clawock") in body
     assert "CLAWOCK_INSTANCE=kcnyu" in body
+
+
+def test_the_installer_exposes_all_watchdogs_on_the_same_path(installed_launcher):
+    target, venv, _tmp_path = installed_launcher
+    for name in (
+        "clawock-kcnyu-brief-watchdog",
+        "clawock-kcnyu-report-watchdog",
+        "clawock-kcnyu-intraday-watchdog",
+    ):
+        launcher = target.parent / name
+        assert launcher.exists() and os.access(launcher, os.X_OK)
+        body = launcher.read_text()
+        assert str(venv / "bin" / name) in body
+        assert "CLAWOCK_WORKSPACE=" in body
 
 
 def test_the_installer_refuses_a_directory_that_is_not_a_checkout(tmp_path):

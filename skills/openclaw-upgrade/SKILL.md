@@ -33,7 +33,7 @@ This auto-reinstalls/links managed plugins (weixin, llama-cpp, codex) — no man
 The updater replaces the installed `dist/` tree. From the live workspace run:
 
 ```bash
-bash scripts/ops/reapply_openclaw_patches.sh
+bash ops/host/reapply_openclaw_patches.sh
 ```
 
 The wrapper applies these idempotent host scripts in order:
@@ -56,7 +56,7 @@ Re-run the structured no-in-flight check from step 1, then:
 
 ```bash
 openclaw gateway restart
-bash scripts/ops/reapply_openclaw_patches.sh --check-only
+bash ops/host/reapply_openclaw_patches.sh --check-only
 ```
 
 ## 5. Regression gate (ALL must pass before declaring done)
@@ -65,7 +65,7 @@ bash scripts/ops/reapply_openclaw_patches.sh --check-only
 | version | `openclaw --version` | shows target |
 | **cron count** | `openclaw cron list \| grep -c isolated` | **11** (SQLite→SQLite keeps them; if lost → `openclaw doctor --fix` imports legacy jobs.json) |
 | embedding | `openclaw memory search "<q>" --max-results 2 --json` | returns results, no `Unknown memory embedding provider` (6.8 has no `--limit`) |
-| local patches | `bash scripts/ops/reapply_openclaw_patches.sh --check-only` | all four markers and JS/Python syntax pass |
+| local patches | `bash ops/host/reapply_openclaw_patches.sh --check-only` | all four markers and JS/Python syntax pass |
 | MiniMax transport | transport log + fallback smoke | Anthropic protocol; `priority` present; a no-header timeout is retryable; the 300s generation timeout remains |
 | weixin delivery | tail `/tmp/openclaw/openclaw-*.log` | `weixin monitor started` + `gateway ready`, no crash loop |
 | model chain | the cron run log / a throwaway `openclaw agent` call | a model answers (⚠️ see note) |

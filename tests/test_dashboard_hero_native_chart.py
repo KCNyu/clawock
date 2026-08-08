@@ -2,8 +2,8 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-CHARTS = (ROOT / "assets/js/dashboard.charts.js").read_text()
-UI = (ROOT / "assets/js/dashboard.ui.js").read_text()
+CHARTS = (ROOT / "site/assets/js/dashboard.charts.js").read_text()
+UI = (ROOT / "site/assets/js/dashboard.ui.js").read_text()
 
 
 def test_hero_renderer_is_native_and_outside_echarts_gate():

@@ -10,8 +10,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 CONTRACT = json.loads((ROOT / "config/pages-public.json").read_text())
 WORKFLOW = (ROOT / ".github/workflows/pages.yml").read_text()
-UI = (ROOT / "assets/js/dashboard.ui.js").read_text()
-INDEX = (ROOT / "index.html").read_text()
+UI = (ROOT / "site/assets/js/dashboard.ui.js").read_text()
+INDEX = (ROOT / "site/index.html").read_text()
 INDEXNOW_KEY = "4fb2df1611ed42e5b67fd6171a237acb.txt"
 
 
@@ -45,14 +45,14 @@ def test_linked_web_manifest_is_required_and_triggers_deploy():
 
     assert manifest in CONTRACT["required_pages"]
     assert manifest in CONTRACT["artifact_include"]
-    assert WORKFLOW.count(f"'{manifest}'") == 2
+    assert WORKFLOW.count("'site/**'") == 2
 
 
 def test_indexnow_key_is_required_public_and_triggers_deploy():
-    assert (ROOT / INDEXNOW_KEY).read_text().strip() == INDEXNOW_KEY.removesuffix(".txt")
+    assert (ROOT / "site" / INDEXNOW_KEY).read_text().strip() == INDEXNOW_KEY.removesuffix(".txt")
     assert INDEXNOW_KEY in CONTRACT["required_pages"]
     assert INDEXNOW_KEY in CONTRACT["artifact_include"]
-    assert WORKFLOW.count(f"'{INDEXNOW_KEY}'") == 2
+    assert WORKFLOW.count("'site/**'") == 2
 
 
 def test_repository_only_patterns_cannot_match_browser_data():
@@ -75,7 +75,7 @@ def test_all_action_data_and_rendered_briefs_trigger_pages_build():
         "'memory/*-pre-open.md'",
         "'memory/weekly/**'",
         "'config/pages-public.json'",
-        "'scripts/build/prepare_pages_artifact.py'",
+        "'ops/pages/**'",
     ):
         assert WORKFLOW.count(path) == 2
 
@@ -115,7 +115,7 @@ def test_the_reader_and_the_writer_cannot_disagree_about_the_branch():
     """A rename that updated only one side would publish to one ref and serve
     from another, with every gate green and the site frozen at whatever it last
     built. The reader imports the name; nothing restates it."""
-    reader = (ROOT / "scripts/build/fetch_data_plane.py").read_text()
+    reader = (ROOT / "ops/pages/fetch_data_plane.py").read_text()
 
     assert "from publish_data_branch import DATA_BRANCH" in reader
     assert '"data-plane"' not in reader and "'data-plane'" not in reader
@@ -147,7 +147,8 @@ def test_the_browser_reads_the_same_branch_and_files_the_publisher_writes():
 def test_builder_stages_only_public_consumers(tmp_path):
     site = tmp_path / "_site"
     output = tmp_path / "_pages"
-    shutil.copytree(ROOT / "assets", site / "assets")
+    shutil.copytree(ROOT / "site/assets", site / "assets")
+    shutil.copytree(ROOT / "assets/data", site / "assets/data")
     (site / "index.html").write_text("ok")
     for path in ("briefs.html", "evidence.html", "robots.txt", "manifest.webmanifest", INDEXNOW_KEY):
         (site / path).write_text("ok")
@@ -162,13 +163,13 @@ def test_builder_stages_only_public_consumers(tmp_path):
     (site / "tests/private.txt").write_text("not public")
     (site / "memory").mkdir()
     (site / "memory/decisions.jsonl").write_text("{}\n")
-    source_gif_size = (ROOT / "assets/dashboard.gif").stat().st_size
+    source_gif_size = (ROOT / "site/assets/dashboard.gif").stat().st_size
     source_jsonl = sorted((ROOT / "assets/data").glob("*.jsonl"))
 
     result = subprocess.run(
         [
             "python3",
-            str(ROOT / "scripts/build/prepare_pages_artifact.py"),
+            str(ROOT / "ops/pages/prepare_pages_artifact.py"),
             "--site-dir",
             str(site),
             "--output-dir",
@@ -194,7 +195,7 @@ def test_builder_stages_only_public_consumers(tmp_path):
     assert (output / INDEXNOW_KEY).is_file()
     assert (output / "assets/data/dashboard.json").is_file()
     assert (output / "assets/data/overview.json").is_file()
-    assert (ROOT / "assets/dashboard.gif").stat().st_size == source_gif_size
+    assert (ROOT / "site/assets/dashboard.gif").stat().st_size == source_gif_size
     assert all(path.is_file() for path in source_jsonl)
     assert "Pages artifact:" in result.stdout
 
@@ -203,5 +204,26 @@ def test_readme_gif_stays_available_from_repository():
     readme = (ROOT / "README.md").read_text()
     assert (
         "https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/"
-        "assets/dashboard.gif"
+        "site/assets/dashboard.gif"
     ) in readme
+
+
+def test_site_staging_joins_owned_source_and_runtime_inputs(tmp_path):
+    output = tmp_path / "site-source"
+    subprocess.run(
+        [
+            "python3",
+            str(ROOT / "ops/pages/stage_site.py"),
+            "--output-dir",
+            str(output),
+        ],
+        cwd=ROOT,
+        check=True,
+    )
+
+    assert (output / "index.html").is_file()
+    assert (output / "_config.yml").is_file()
+    assert (output / "assets/js/dashboard.core.js").is_file()
+    assert (output / "assets/data/overview.json").is_file()
+    assert (output / "docs/architecture/harness.md").is_file()
+    assert not (output / "portfolio.json").exists()

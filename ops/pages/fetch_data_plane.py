@@ -19,8 +19,8 @@ already refuses to build an artifact with pages missing; this refuses one built
 from a data plane it could not read.
 
 Usage (see .github/workflows/pages.yml):
-  python3 scripts/build/fetch_data_plane.py
-  python3 scripts/build/fetch_data_plane.py --branch other --into .
+  python3 ops/pages/fetch_data_plane.py
+  python3 ops/pages/fetch_data_plane.py --branch other --into .
 """
 from __future__ import annotations
 

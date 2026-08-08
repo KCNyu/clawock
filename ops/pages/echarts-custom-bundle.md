@@ -1,6 +1,6 @@
 # Custom (tree-shaken) ECharts bundle
 
-`assets/js/echarts.min.js` is **not** the stock ECharts dist. It is a tree-shaken
+`site/assets/js/echarts.min.js` is **not** the stock ECharts dist. It is a tree-shaken
 build that registers only the chart types and components this dashboard uses, so it
 is ~620KB instead of ~1MB (gzip ~202KB vs ~334KB) and parses ~40% faster on mobile.
 It exposes the exact same global surface the app relies on — `window.echarts.init(...)`
@@ -15,7 +15,7 @@ full GIF/social-card capture pipeline (`shoot_dashboard.js`).
 - Bumping the ECharts version.
 - Adding a chart that needs a component/series type not in the list below — otherwise
   ECharts logs `Component/Series ... is used but not imported` and that series silently
-  drops. Grep `assets/js/dashboard.charts.js` for `type: "<series>"` and any new
+  drops. Grep `site/assets/js/dashboard.charts.js` for `type: "<series>"` and any new
   `echarts.*` component usage, then add the matching import + `use()` entry.
 
 ## Reproduce
@@ -55,7 +55,7 @@ JS
 ./node_modules/.bin/esbuild entry.js --bundle --minify --format=iife \
   --target=es2017 --legal-comments=none --outfile=echarts.min.js
 
-cp echarts.min.js ../assets/js/echarts.min.js
+cp echarts.min.js ../site/assets/js/echarts.min.js
 ```
 
 ## Re-verify after a rebuild
@@ -63,8 +63,8 @@ cp echarts.min.js ../assets/js/echarts.min.js
 Serve the site and, in headless Chromium, drive all 6 tabs in both color schemes
 against the OLD (full dist) and NEW bundle; assert: no new console warnings, identical
 `canvas.width×height` per tab, and ~0% pixel diff between the two screenshot sets. Then
-run `scripts/data/shoot_dashboard.js` with `CAPTURE_GIF=1` and confirm 6 frames/tab and
+run `site/tools/shoot_dashboard.js` with `CAPTURE_GIF=1` and confirm 6 frames/tab and
 the win-rate chart + social card render.
 
-Keep the previous `assets/js/echarts.min.js` recoverable via git history as a one-commit
+Keep the previous `site/assets/js/echarts.min.js` recoverable via git history as a one-commit
 rollback if a rebuild regresses.

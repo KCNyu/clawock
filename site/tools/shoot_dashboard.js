@@ -5,24 +5,24 @@
  * runnable locally:
  *
  *   npm install playwright@1.60.0 && npx playwright install --with-deps chromium
- *   node scripts/data/shoot_dashboard.js
- *   python3 scripts/data/assemble_dashboard_gif.py   # assembles the GIF from frames
+ *   node site/tools/shoot_dashboard.js
+ *   python3 site/tools/assemble_dashboard_gif.py   # assembles the GIF from frames
  *
- * Env overrides: URL (default live Pages), OUT_DIR (assets/), FRAME_DIR (.gifframes/),
+ * Env overrides: URL (default live Pages), OUT_DIR (site/assets/), FRAME_DIR (.gifframes/),
  *                TMP_DIR (intermediates), CHROME_EXE (explicit browser binary).
  *
  * Outputs:
- *   assets/shadow-backtest.png   v2 cumulative win-rate chart (all / active / 50% ref)
- *   assets/social-card.png       1280x640 pearl editorial card + fresh Hero dashboard
- *   assets/dashboard.gif         manual dispatch only; built from FRAME_DIR
+ *   site/assets/shadow-backtest.png   v2 cumulative win-rate chart (all / active / 50% ref)
+ *   site/assets/social-card.png       1280x640 pearl editorial card + fresh Hero dashboard
+ *   site/assets/dashboard.gif         manual dispatch only; built from FRAME_DIR
  *   TMP_DIR/dashboard-preview.png  focused light Hero crop embedded into the social card
  *   .gifframes/f{0..5}.png       per-tab mobile frames → assemble_dashboard_gif.py
  *
- * assets/ is the one place shipped images live: README, Pages and the OG card all
- * point there, and _config.yml includes it. docs/ used to hold four PNGs of which
+ * site/assets/ is the one place shipped images live: README, Pages and the OG card all
+ * point there, and site/_config.yml includes it. docs/ used to hold four PNGs of which
  * two were orphans re-committed weekly (architecture.png alone was 1.4MB) and one
  * was only ever an input to the social card. The architecture diagram is authored
- * as assets/architecture.svg and README embeds that SVG directly, so rendering it
+ * as site/assets/architecture.svg and README embeds that SVG directly, so rendering it
  * to PNG produced a file nobody read.
  *
  * Notes:
@@ -38,9 +38,9 @@ const path = require('path');
 
 const URL = process.env.URL || 'https://kcnyu.github.io/clawock/';
 const ROOT = path.resolve(__dirname, '../..');
-const BRAND_MARK_SVG = fs.readFileSync(path.join(ROOT, 'assets/logo-mark.svg'), 'utf8')
+const BRAND_MARK_SVG = fs.readFileSync(path.join(ROOT, 'site/assets/logo-mark.svg'), 'utf8')
   .replace('<svg ', '<svg class="brand-mark" ');
-const OUT_DIR = process.env.OUT_DIR || path.join(ROOT, 'assets');
+const OUT_DIR = process.env.OUT_DIR || path.join(ROOT, 'site/assets');
 const FRAME_DIR = process.env.FRAME_DIR || path.join(ROOT, '.gifframes');
 // Intermediate only: the social card inlines it as a data-URI, so it never ships.
 const TMP_DIR = process.env.TMP_DIR || path.join(ROOT, '.gifframes');

@@ -34,8 +34,8 @@ def test_screenshots_are_validated_and_exactly_staged_before_publish():
     add_lines = [line.strip() for line in commit_run.splitlines()
                  if re.match(r'^git add(?:\s|$)', line.strip())]
     assert add_lines == [
-        'git add -- assets/shadow-backtest.png assets/social-card.png',
-        'git add -- assets/dashboard.gif',
+        'git add -- site/assets/shadow-backtest.png site/assets/social-card.png',
+        'git add -- site/assets/dashboard.gif',
     ]
     assert not re.search(r'(?m)^\s*git add\s+(?:--\s+)?assets/?\s*$', commit_run)
 

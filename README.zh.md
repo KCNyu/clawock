@@ -1,6 +1,6 @@
 <div align="center">
 
-<h1><img src="assets/logo-lockup.svg" alt="clawock" height="48"></h1>
+<h1><img src="site/assets/logo-lockup.svg" alt="clawock" height="48"></h1>
 
 ### AI 争辩。代码结算。连亏损都摆在明面上。
 
@@ -17,12 +17,12 @@
 <br>
 
 <a href="https://kcnyu.github.io/clawock/">
-  <img src="assets/social-card.png" alt="clawock —— 装进任意外部 Agent 的可迁移投资决策 workflow，并由真实港美股投研台持续验证" width="820">
+  <img src="site/assets/social-card.png" alt="clawock —— 装进任意外部 Agent 的可迁移投资决策 workflow，并由真实港美股投研台持续验证" width="820">
 </a>
 
 <sub><i>“市场不在乎模型有多自信。”</i></sub>
 
-<a href="https://kcnyu.github.io/clawock/"><img src="assets/dashboard.gif" alt="clawock 仪表盘循环切换各标签页" width="300"></a>
+<a href="https://kcnyu.github.io/clawock/"><img src="site/assets/dashboard.gif" alt="clawock 仪表盘循环切换各标签页" width="300"></a>
 
 <sub>真实持仓、真实盈亏、公开打分。预览图每周刷新;实时仪表盘随交易日更新。</sub>
 
@@ -59,12 +59,12 @@ harness**。OpenClaw、Hermes、Claude Code、Codex 或其它外部 runtime 负�
 产品边界很简单：外部 Agent 负责读取与推理；clawock 负责可迁移的决策 workflow
 和周围的确定性真值。
 
-![clawock 产品架构 —— 外部 runtime 拥有模型、对话、记忆与工具；包提供可迁移 workflow、认证上下文、确定性对账、评估和有边界改进](assets/product-architecture.svg)
+![clawock 产品架构 —— 外部 runtime 拥有模型、对话、记忆与工具；包提供可迁移 workflow、认证上下文、确定性对账、评估和有边界改进](site/assets/product-architecture.svg)
 
 KCNyu 部署再把这个产品边界用于一个真实组合。下面第二张是实例架构，不是可复用
 package 架构。
 
-![KCNyu live-instance 架构 —— Python 构建对账后的市场上下文，OpenClaw Agent 辩论交易，clawock 契约把关决策，公开战绩闭环](assets/architecture.svg)
+![KCNyu live-instance 架构 —— Python 构建对账后的市场上下文，OpenClaw Agent 辩论交易，clawock 契约把关决策，公开战绩闭环](site/assets/architecture.svg)
 
 每个交易日,系统拉取最新价格、汇率、波动率、财报与宏观上下文,以及新闻与社交情绪;把这份归一化的上下文交给多 Agent 辩论;在 Python 里施加确定性的风控、schema 与账本闸门;把简报送到微信;并更新公开仪表盘。
 
@@ -122,7 +122,7 @@ package 架构。
 
 每日深度简报跑一场结构化的**多 Agent 辩论**,改编自 [TradingAgents](https://github.com/TauricResearch/TradingAgents),为港股与美股分账适配。Agent 更多不是重点:协议**要求给出对立论点**,裁判**把每条结论归因**到一个具名策略框架。
 
-![clawock 的多 Agent 辩论 —— 一份证据包喂给四种分析师视角;两名研究员建立多空对立论点并记录分歧点;三种风险声音与一位裁判点名策略框架,收敛成 plan.json,进入下一场的打分环](assets/debate-flow.svg)
+![clawock 的多 Agent 辩论 —— 一份证据包喂给四种分析师视角;两名研究员建立多空对立论点并记录分歧点;三种风险声音与一位裁判点名策略框架,收敛成 plan.json,进入下一场的打分环](site/assets/debate-flow.svg)
 
 - **分析师视角。** 基本面、技术面、情绪面、板块轮动 Agent 读*同一份*上下文,汇成一张表。每个论点都必须引用数值上下文。
 - **多头 vs 空头。** 两名研究员建立对立论点,各自引用具体的分析师数据点。协议要求他们**在至少一个仓位上真正分歧**并记录下来,所以一致同意读作警示,而不是证据。
@@ -139,7 +139,7 @@ package 架构。
 
 模型只提交决策;它永远不能写或改自己的评估。这种隔离让投研台没法给自己打分 —— 但它**并不**让市场数据或指标定义变得正确。**把这份记录当诊断,而不是收益的证明。**
 
-<p align="center"><img src="assets/shadow-backtest.png" alt="累计 episode 胜率对 50% 方向命中基线" width="760"></p>
+<p align="center"><img src="site/assets/shadow-backtest.png" alt="累计 episode 胜率对 50% 方向命中基线" width="760"></p>
 
 <sub>累计 episode 胜率对 50% 方向命中基线 —— 衡量的是方向对了多少次,不是赚了多少。买入持有的对比是影子组合(在下方 details 和 Reflect 里),那是另一个问题。由 GitHub Actions 每周刷新;实时数字见<a href="https://kcnyu.github.io/clawock/">诚实(Reflect)标签页</a>。</sub>
 
@@ -285,28 +285,16 @@ adapter；其它 runner 可以消费同一套 context/tool 契约。live adapter
 
 <br>
 
-```
-clawock/
-├─ index.html  briefs.md                    ← Pages 落地页
-├─ docs/                                      ← 运维 · 参考 · 法律 · 历史归档
-├─ assets/data/        由 harness + GH Actions 构建,从不手改
-│   ├─ dashboard.json  risk.json  catalysts.json
-│   ├─ macro.json  sentiment.json  *_news*.json  influencer_feed.json  ← scan sidecar,前端直接抓
-│   └─ *_review.json  guardrail_history.jsonl                          ← 因子 / setup 记分卡 + 风控闸拦下了什么
-├─ portfolio.json                           ← 唯一真源(原子写入)
-├─ tests/                                    ← decision-v2 + 资金守恒回归闸
-├─ src/clawock/                              ← 可移植 harness 契约 · context · CLI · providers
-├─ MEMORY.md  DREAMS.md                      ← 铁律 + 每夜「做梦」提炼
-├─ memory/
-│   ├─ {date}-pre-open.md  {date}-plan.json  ← 简报产出 + 结构化 plan
-│   ├─ decisions.jsonl                       ← 权威决策/episode 账本
-│   ├─ bars/{ticker}.json                    ← 基准不复权 OHLC —— 结算触发的依据
-│   └─ snapshots/{date}.json
-├─ scripts/
-│   ├─ data/      fetcher · build_dashboard.py · 风控/量化/regime 计算 · safe_push.sh
-│   └─ harness/   kcn live instance adapter · 看门狗
-└─ skills/{name}/SKILL.md
-```
+| 路径 | 所有权 |
+|---|---|
+| `src/clawock/` | 可移植 package、workflow 契约、schema 与 CLI |
+| `instances/kcnyu/` | 只属于 KCNyu 的 adapter phase 与 watchdog 实现 |
+| `site/` | Jekyll/dashboard 源码、浏览器代码、SVG、截图与 social 资产 |
+| `ops/` | Pages 拼装、host launcher、OpenClaw 补丁与 system audit |
+| `docs/`、`tests/` | 产品/运维文档与高价值不变量检查 |
+| 根 context 文件、`skills/`、`memory/` | OpenClaw 兼容面；保留在 runtime 要求的位置 |
+| `portfolio.json`、`assets/data/` | live 账本与生成发布状态；永不进入 package |
+| `scripts/data/`、`scripts/harness/` | 仍待迁移的 instance job 与临时回滚别名，不是可移植 API |
 
 </details>
 

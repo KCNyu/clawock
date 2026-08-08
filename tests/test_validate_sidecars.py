@@ -274,7 +274,7 @@ def test_real_committed_screenshots_pass():
 
 
 def test_real_committed_gif_passes():
-    validators.validate_gif(ROOT / 'assets/dashboard.gif')
+    validators.validate_gif(ROOT / 'site/assets/dashboard.gif')
 
 
 def test_real_committed_dashboard_passes(freshly_built_dashboard):

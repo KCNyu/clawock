@@ -155,7 +155,7 @@ jobs:
       # never receives its projection.
       - name: Fetch the published generation
         if: github.event_name == 'pull_request' && steps.changes.outputs.ui == 'true'
-        run: python3 scripts/build/fetch_data_plane.py
+        run: python3 ops/pages/fetch_data_plane.py
 
       - name: Browser contract — Hero, detail tabs, and chart gestures
         if: github.event_name == 'pull_request' && steps.changes.outputs.ui == 'true'

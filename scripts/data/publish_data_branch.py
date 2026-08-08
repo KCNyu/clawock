@@ -45,7 +45,7 @@ from clawock.publish import GitBranchStore, GitHubDispatchDeployer  # noqa: E402
 from dashboard_outputs import DASHBOARD_OUTPUTS  # noqa: E402
 
 # The one place this name is decided. The reader imports it from here rather
-# than restating it (`scripts/build/fetch_data_plane.py`), because a rename that
+# than restating it (`ops/pages/fetch_data_plane.py`), because a rename that
 # updated only the writer would serve a stale generation with every gate green.
 DATA_BRANCH = "data-plane"
 

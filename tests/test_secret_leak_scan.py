@@ -1,4 +1,4 @@
-"""Guards for the pre-push secret scan in scripts/system_check.py.
+"""Guards for the pre-push secret scan in ops/system_check.py.
 
 The scan runs in two tiers on purpose:
 
@@ -31,7 +31,7 @@ from pathlib import Path
 import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
-SCRIPTS = str(ROOT / "scripts")
+SCRIPTS = str(ROOT / "ops")
 
 
 @pytest.fixture(scope="module")
@@ -344,8 +344,9 @@ def test_pre_push_hook_blocks_unless_the_checker_gave_a_verdict(tmp_path, rc, bl
     import os
     repo = tmp_path / "r"
     (repo / "scripts" / "data").mkdir(parents=True)
+    (repo / "ops").mkdir()
     subprocess.run(["git", "init", "-q"], cwd=repo, check=True)
-    (repo / "scripts" / "system_check.py").write_text("")
+    (repo / "ops" / "system_check.py").write_text("")
     (repo / "scripts" / "data" / "preflight_integrity.py").write_text("")
     bin_dir = tmp_path / "bin"
     bin_dir.mkdir()

@@ -1,7 +1,7 @@
 """No source file may be invisible to `git add`.
 
 `.gitignore` carried `build/` for pip/setuptools output. Unanchored, that pattern
-matches at any depth, so it also matched `scripts/build/` — the directory holding
+matches at any depth, so it also matched `ops/pages/` — the directory holding
 `prepare_pages_artifact.py`. Those files stayed tracked because they predate the
 rule, which is precisely what made it invisible: the directory looked normal, and
 a NEW script added there was silently dropped. `git add -A` reported nothing,
@@ -18,7 +18,7 @@ ROOT = Path(__file__).resolve().parents[1]
 # Directories whose contents are hand-written source. Generated trees
 # (assets/data, memory) are deliberately not here: some of what they hold is
 # meant to be ignored.
-SOURCE_TREES = ("scripts", "clawock", "tests", ".github")
+SOURCE_TREES = ("src", "instances", "site", "ops", "scripts", "tests", ".github")
 
 
 def test_no_hand_written_source_file_is_gitignored():

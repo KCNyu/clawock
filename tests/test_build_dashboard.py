@@ -789,7 +789,7 @@ def test_brief_freshness_registry_matches_host_cron_contract():
 
 
 def test_dashboard_tooltip_distinguishes_schedule_deadlines_from_age_slas():
-    renderer = (ROOT / "assets" / "js" / "dashboard.render.js").read_text()
+    renderer = (ROOT / "site" / "assets" / "js" / "dashboard.render.js").read_text()
     block = renderer.split("// tooltip：逐文件年龄", 1)[1].split(
         "(ig.top || [])", 1
     )[0]
@@ -802,7 +802,7 @@ def test_dashboard_tooltip_distinguishes_schedule_deadlines_from_age_slas():
 
 
 def test_dashboard_market_tooltip_uses_canonical_quote_sessions():
-    renderer = (ROOT / "assets" / "js" / "dashboard.render.js").read_text()
+    renderer = (ROOT / "site" / "assets" / "js" / "dashboard.render.js").read_text()
     helper = renderer.split("function quoteSessionLabel", 1)[1].split(
         "// ── A2 系统健康卡", 1
     )[0]
