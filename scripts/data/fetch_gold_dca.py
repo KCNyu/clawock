@@ -14,8 +14,9 @@
 本脚本【绝不】改这三个基线字段，只：
   1. 拉最新净值 + 近 ~150 交易日历史（api.fund.eastmoney.com/f10/lsjz，稳定渠道）
   2. 拉实时估值（fundgz，净值未出时的当日估算，仅展示用）
-  3. 重算 avg_cost / 现值 / 盈亏 / 回本门槛 / 定投摊薄预测 / 区间高低
-  4. merge-not-overwrite 写回 portfolio.json
+  3. 拉上金所 Au99.99 同日收盘，映射真持仓的国内金/伦敦金回本价
+  4. 重算 avg_cost / 现值 / 盈亏 / 回本门槛 / 定投摊薄预测 / 区间高低
+  5. merge-not-overwrite 写回 portfolio.json
 
 一天刷一次即可，无 LLM、无 API key。延续记忆：
   - openclaw-fetcher-merge-not-overwrite（抓空保留旧值，绝不整文件覆盖真值）
@@ -136,9 +137,64 @@ def fetch_realtime(code):
         return None
 
 
+def _market_number(value):
+    text = str(value or '').strip().replace(',', '').replace('%', '')
+    if text in ('', '-'):
+        return None
+    try:
+        return float(text)
+    except ValueError:
+        return None
+
+
+def fetch_au9999_daily(day):
+    """上金所 Au99.99 每日交易行情，元/克。
+
+    用基金最新净值日查同一交易日，避免周末或净值晚发时把
+    不同日的国内金价与基金净值硬对齐。抓空返回 None，调用方
+    merge-not-overwrite 保留上次有效值。
+    """
+    if not day:
+        return None
+    url = ('https://www.sge.com.cn/sjzx/quotation_daily_new'
+           f'?start_date={day}&end_date={day}')
+    raw = _curl(url, 'https://www.sge.com.cn/')
+    if 'Au99.99' not in raw:
+        return None
+    try:
+        import re
+        rows = re.findall(r'<tr[^>]*>(.*?)</tr>', raw, flags=re.I | re.S)
+        row = next(r for r in rows if re.search(r'>\s*Au99\.99\s*<', r))
+        cells = [re.sub(r'<[^>]+>', '', cell).strip()
+                 for cell in re.findall(r'<td[^>]*>(.*?)</td>', row, flags=re.I | re.S)]
+        # 页面把旧「序号」td 放在 HTML 注释里，宽松 HTML 解析仍可能读到；
+        # 以合约列为锚点，不假设序号是否出现。
+        symbol_idx = cells.index('Au99.99')
+        if symbol_idx < 1 or len(cells) < symbol_idx + 8:
+            return None
+        close = _market_number(cells[symbol_idx + 4])
+        if close is None or close <= 0:
+            return None
+        return {
+            'symbol': 'Au99.99',
+            'price_cny_g': close,
+            'date': cells[symbol_idx - 1],
+            'open_cny_g': _market_number(cells[symbol_idx + 1]),
+            'high_cny_g': _market_number(cells[symbol_idx + 2]),
+            'low_cny_g': _market_number(cells[symbol_idx + 3]),
+            'change_pct': _market_number(cells[symbol_idx + 6]),
+            'weighted_avg_cny_g': _market_number(cells[symbol_idx + 7]),
+            'source': 'sge_quotation_daily_new',
+            'fetched_at': datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%S.%fZ'),
+        }
+    except (StopIteration, IndexError, ValueError):
+        return None
+
+
 # ───────────────────────── 伦敦金（XAU）类比口径 ─────────────────────────
 # kcn 日常看的是伦敦金现货趋势 → 把这笔人民币基金折算成「等于多少克/盎司黄金」+
-# 「伦敦金 vs 你的基金」起投归一对比线。三个源（都无 key）：
+# 「伦敦金 vs 你的基金」起投归一对比线。国内真基准另取上金所
+# Au99.99 每日行情。国际口径三个源（都无 key）：
 #   · 现价/涨跌/高低 = 腾讯 hf_XAU（真·伦敦金现货，稳）
 #   · USDCNY        = frankfurter（ECB 日频，带历史）
 #   · 历史日线      = 新浪 GlobalFutures XAU（真·伦敦金现货日线，回溯 2006）；东财 GC00Y 兜底
@@ -418,6 +474,9 @@ def compute_london(derived, gold, spot, usdcny, usdcny_hist, xau_hist,
         derived.get('nav_history') or [],
         gold.get('start_date', ''),
     )
+    nav = float(derived.get('nav') or 0)
+    avg_cost = float(derived.get('avg_cost') or 0)
+    breakeven_ratio = (avg_cost / nav) if nav and avg_cost else None
     return {
         'xau_usd': round(xau, 2),
         'xau_change_pct': spot.get('change_pct'),
@@ -429,6 +488,10 @@ def compute_london(derived, gold, spot, usdcny, usdcny_hist, xau_hist,
         'oz_equiv': round(oz, 3) if oz else None,
         'grams_equiv': round(grams, 1) if grams else None,
         'intl_value_usd': round(intl_usd, 2) if intl_usd else None,
+        # 真基金持仓的映射回本线：假设 USD/CNY 与内外盘价差不变。
+        # 与下方 dca_equiv（假设每日直接买伦敦金）必须分开。
+        'fund_breakeven_usd_oz': round(xau * breakeven_ratio, 2) if breakeven_ratio else None,
+        'fund_breakeven_upside_pct': derived.get('breakeven_upside_pct'),
         'compare_series': compare,
         'dca_equiv': dca_equiv,
         'hist_source': hist_source or {'name': 'unavailable', 'points': 0},
@@ -447,6 +510,28 @@ def compute_london(derived, gold, spot, usdcny, usdcny_hist, xau_hist,
         'hist_advisory': hist_advisory,
         'last_updated': datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%S.%fZ'),
     }
+
+
+def compute_domestic_gold(derived, gold, quote):
+    """上金所现价 → 真基金持仓回本价。
+
+    quote 抓空时沿用旧 domestic_gold，但用最新基金成本/净值重算
+    回本映射；这样不会把旧行情冒充新日期，也不会清空最后一个有效值。
+    """
+    reference = quote or gold.get('domestic_gold')
+    if not isinstance(reference, dict):
+        return None
+    price = _market_number(reference.get('price_cny_g'))
+    nav = float(derived.get('nav') or 0)
+    avg_cost = float(derived.get('avg_cost') or 0)
+    if not price or not nav or not avg_cost:
+        return None
+    out = dict(reference)
+    out['price_cny_g'] = round(price, 2)
+    out['breakeven_cny_g'] = round(price * avg_cost / nav, 2)
+    out['breakeven_upside_pct'] = derived.get('breakeven_upside_pct')
+    out['quote_status'] = 'fresh' if quote else 'retained'
+    return out
 
 
 def trading_days_since(history, start):
@@ -472,7 +557,7 @@ def project_dca(units, principal, nav, daily, horizons=(20, 40, 60, 120, 250)):
 
 def compute(gold, history, realtime, spot=None, usdcny=None, usdcny_hist=None,
             xau_hist=None, xau_hist_source=None, fx_hist_source=None,
-            hist_advisory=None):
+            hist_advisory=None, domestic_quote=None):
     base_principal = float(gold['principal_invested'])
     base_units = float(gold['units_held'])
     daily = float(gold.get('daily_amount', 200))
@@ -527,6 +612,7 @@ def compute(gold, history, realtime, spot=None, usdcny=None, usdcny_hist=None,
         'nav_history': [[d, round(n, 4)] for d, n, _ in history[-HISTORY_KEEP:]],
         'last_updated': datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%S.%fZ'),
     }
+    derived['domestic_gold'] = compute_domestic_gold(derived, gold, domestic_quote)
     derived['london'] = compute_london(
         derived, gold, spot, usdcny, usdcny_hist, xau_hist,
         xau_hist_source, fx_hist_source, hist_advisory,
@@ -550,6 +636,12 @@ def main():
         return 1
     if not history:
         print('  warn: 净值历史抓空，沿用 portfolio 里旧 nav（merge-not-overwrite）', file=sys.stderr)
+
+    quote_day = history[-1][0] if history else gold.get('nav_date')
+    domestic_quote = fetch_au9999_daily(quote_day)
+    if not domestic_quote:
+        print(f'  warn: 上金所 Au99.99({quote_day or "unknown"})抓空，沿用上次有效值',
+              file=sys.stderr)
 
     # 伦敦金类比口径（best-effort，抓空各自沿用旧值）
     spot = fetch_london_spot()
@@ -595,7 +687,7 @@ def main():
 
     derived = compute(
         gold, history, realtime, spot, usdcny, usdcny_hist, xau_hist,
-        xau_source, fx_source, history_advisory,
+        xau_source, fx_source, history_advisory, domestic_quote,
     )
 
     # merge：真值字段原样保留，派生字段更新；nav_history 抓空时不清空
@@ -616,11 +708,18 @@ def main():
     if g.get('realtime'):
         rt = g['realtime']
         print(f"  实时估值 {rt['est_nav']} ({rt['est_change_pct']:+.2f}%) @ {rt.get('est_time')}")
+    if g.get('domestic_gold'):
+        dg = g['domestic_gold']
+        print(f"  上金所 Au99.99 ¥{dg['price_cny_g']:,.2f}/克 @ {dg.get('date')} "
+              f"→ 真持仓回本 ¥{dg['breakeven_cny_g']:,.2f}/克 "
+              f"({dg.get('breakeven_upside_pct', 0):+.2f}%, {dg.get('quote_status')})")
     if g.get('london'):
         ld = g['london']
         print(f"  伦敦金 ${ld.get('xau_usd')}/oz ({(ld.get('xau_change_pct') or 0):+.2f}%) "
               f"USDCNY {ld.get('usdcny')} → 折 {ld.get('grams_equiv')} 克 / {ld.get('oz_equiv')} oz "
               f"(国际口径 ${ld.get('intl_value_usd'):,.0f})  对比线 {len(ld.get('compare_series') or [])} 点")
+        print(f"  ↳ 真持仓伦敦金回本 ${ld.get('fund_breakeven_usd_oz'):,.2f}/oz "
+              f"(假设汇率/内外盘价差不变)")
         hs = ld.get('hist_source') or {}
         print(f"  ↳ 历史源 {hs.get('name', 'unknown')} · {hs.get('points', 0)} 点")
         if ld.get('hist_advisory'):
