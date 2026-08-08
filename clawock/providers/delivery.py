@@ -77,10 +77,10 @@ class OpenClawDelivery:
 
     def __init__(self, binary: str | None = None, account: str | None = None,
                  timeout: int = 60, runner=None) -> None:
-        # Default to the adapter's own constant so callers do not have to know
-        # the path — that knowledge is what this package exists to contain.
-        from clawock.providers.openclaw import OPENCLAW_BIN
-        self.binary = binary or OPENCLAW_BIN
+        # Resolve at construction time so one installed wheel can target a
+        # non-default runtime without importing host constants.
+        from clawock.providers.openclaw import runtime_paths
+        self.binary = binary or runtime_paths().binary
         self.account = account
         self.timeout = timeout
         self._runner = runner or self._run

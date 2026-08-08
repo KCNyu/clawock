@@ -63,24 +63,12 @@ RUNTIME = "openclaw"
 # took the runtime's layout and an is_installed() capability from the adapter
 # (#330 step 3, last on purpose — it is what proves the earlier steps held).
 #
-# 1 is the floor, not a waypoint: see DELIBERATE_EXCLUSIONS below. The ratchet
-# has arrived, and what remains is a decision rather than debt.
-BASELINE = 1
+# 6 → 1 when system_check moved behind the adapter; 1 → 0 when the remaining
+# operator-owned session collector started asking the same adapter for runtime
+# paths. Zero means no code outside the provider knows a host-specific layout.
+BASELINE = 0
 
-# The honest floor is 1, not 0 — say it rather than let a future reader assume
-# the remaining count is all debt.
-#
-# `gc_sessions.py` keeps its site by decision (#330). Its OPENCLAW_HOME cleans
-# the runtime's OWN session files: that is running the runtime, not our harness
-# depending on it. Removing the site would mean moving the whole script into
-# clawock/providers/, which is a different argument and probably not worth
-# making — a garbage collector for someone else's files is not part of a
-# portable harness's interface.
-#
-# Nothing remains to migrate. Every other consumer now reaches the runtime
-# through clawock/providers/, which is what makes "it happens to run on OpenClaw"
-# a description of deployment rather than of the code.
-DELIBERATE_EXCLUSIONS = {"scripts/data/gc_sessions.py": 1}
+DELIBERATE_EXCLUSIONS = {}
 HONEST_FLOOR = sum(DELIBERATE_EXCLUSIONS.values())
 
 _SPAWNERS = {"run", "call", "check_call", "check_output", "Popen", "system", "getoutput"}

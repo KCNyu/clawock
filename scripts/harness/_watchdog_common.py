@@ -56,17 +56,17 @@ HKT = timezone(timedelta(hours=8))
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 from clawock.providers import openclaw as _openclaw  # noqa: E402
 from clawock.providers.openclaw import (  # noqa: E402
-    OPENCLAW_HOME, cron_cli_json as _adapter_cron_json,
+    cron_cli_json as _adapter_cron_json, runtime_paths as _openclaw_paths,
 )
 
 # Where the runtime keeps its session transcripts. The location is the runtime's,
 # so the adapter owns it (#330 step 1): this module used to hard-code
 # `Path('/root/.openclaw')`, which made it one of the ten sites that know which
-# runtime they are on. Deriving it from the adapter's constant is the fix the
-# ratchet is asking for — not a relocated string, because `clawock/providers/` is
-# the one place where knowing is correct, and it is already this module's source
-# for OPENCLAW_HOME and the cron chain.
-SESSIONS_DIR = OPENCLAW_HOME / 'agents' / 'main' / 'sessions'
+# runtime they are on. Deriving it from the adapter's selected runtime is the
+# fix the ratchet is asking for — not a relocated string, because
+# `clawock/providers/` is the one place where knowing is correct and is already
+# this module's source for runtime paths and the cron chain.
+SESSIONS_DIR = _openclaw_paths().sessions_dir
 
 
 def log(event):

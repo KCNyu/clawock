@@ -35,12 +35,15 @@ sys.path.insert(0, str(_REPO_ROOT))
 # it migrates last on purpose: it is what proves the earlier steps did not break
 # anything. All of these are absent in CI, where the checks skip.
 from clawock.providers.openclaw import (  # noqa: E402
-    INSTALL_DIR as OPENCLAW_INSTALL,
-    LIVE_WORKSPACE,
-    MEMORY_INDEX_DB,
-    CONFIG_FILE as OPENCLAW_CONFIG,
     is_installed as openclaw_is_installed,
+    runtime_paths as openclaw_runtime_paths,
 )
+
+_OPENCLAW_PATHS = openclaw_runtime_paths()
+OPENCLAW_INSTALL = _OPENCLAW_PATHS.install_dir
+LIVE_WORKSPACE = _OPENCLAW_PATHS.workspace
+MEMORY_INDEX_DB = _OPENCLAW_PATHS.memory_index_db
+OPENCLAW_CONFIG = _OPENCLAW_PATHS.config_file
 
 MEMORY_INDEX_LOG = LIVE_WORKSPACE / 'logs' / 'memory_index.log'
 # Nightly reindex is 05:10 HKT; 30h lets one run slip into the next daily review
