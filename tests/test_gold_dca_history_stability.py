@@ -145,7 +145,8 @@ def test_date_bound_keeps_coverage_and_preceding_settlement_window():
 
 def test_london_payload_persists_reference_and_visible_provenance():
     xau = [("2026-07-01", 100.0), ("2026-07-02", 101.0)]
-    derived = {"current_value": 1000.0, "nav_history": [
+    derived = {"current_value": 1000.0, "nav": 3.1, "avg_cost": 3.41,
+               "breakeven_upside_pct": 10.0, "nav_history": [
         ["2026-07-01", 3.0], ["2026-07-02", 3.1],
     ]}
     source = {"name": gold.XAU_PRIMARY_SOURCE, "points": len(xau)}
@@ -171,6 +172,48 @@ def test_london_payload_persists_reference_and_visible_provenance():
     ]
     assert london["hist_advisory"] == "test advisory"
     assert london["dca_equiv"]["oz_held"] > 0
+    assert london["fund_breakeven_usd_oz"] == 112.2
+    assert london["fund_breakeven_upside_pct"] == 10.0
+
+
+def test_sge_au9999_parser_anchors_on_symbol_not_commented_sequence(monkeypatch):
+    html = """
+    <table><tr>
+      <!-- <td>2</td> -->
+      <td>2026-08-07</td><td>Au99.99</td><td>924.71</td>
+      <td>934.00</td><td>918.00</td><td>930.47</td>
+      <td>4.87</td><td>0.53%</td><td>928.37</td><td>5363.04</td>
+    </tr></table>
+    """
+    monkeypatch.setattr(gold, "_curl", lambda *_args, **_kwargs: html)
+
+    quote = gold.fetch_au9999_daily("2026-08-07")
+
+    assert quote["price_cny_g"] == 930.47
+    assert quote["date"] == "2026-08-07"
+    assert quote["high_cny_g"] == 934.0
+    assert quote["low_cny_g"] == 918.0
+    assert quote["change_pct"] == 0.53
+    assert quote["source"] == "sge_quotation_daily_new"
+
+
+def test_domestic_gold_maps_true_holding_breakeven_and_retains_last_quote():
+    derived = {"nav": 3.1312, "avg_cost": 3.3653, "breakeven_upside_pct": 7.48}
+    quote = {
+        "symbol": "Au99.99", "price_cny_g": 930.47, "date": "2026-08-07",
+        "source": "sge_quotation_daily_new",
+    }
+
+    fresh = gold.compute_domestic_gold(derived, {}, quote)
+    retained = gold.compute_domestic_gold(
+        derived, {"domestic_gold": fresh}, quote=None)
+
+    assert fresh["breakeven_cny_g"] == 1000.04
+    assert fresh["breakeven_upside_pct"] == 7.48
+    assert fresh["quote_status"] == "fresh"
+    assert retained["price_cny_g"] == 930.47
+    assert retained["date"] == "2026-08-07"
+    assert retained["quote_status"] == "retained"
 
 
 def test_london_payload_serializes_both_histories_within_bound():
@@ -256,3 +299,7 @@ def test_dashboard_drops_internal_history_but_keeps_provenance_contract():
     assert "历史源 ${escapeHtml(" in renderer
     assert 'role="status"' in renderer
     assert "ld.hist_advisory" in renderer
+    assert "国内基准 · 上金所 Au99.99" in renderer
+    assert "我的回本价" in renderer
+    assert "模拟对照 · 若每个基金交易日直接买伦敦金" in renderer
+    assert "同额定投伦敦金 · 我的平均成本" not in renderer
