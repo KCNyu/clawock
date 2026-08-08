@@ -304,6 +304,11 @@ def test_pages_prefers_projection_and_keeps_a_backward_fallback():
     assert "projection.schema_version === 1" in renderer
     assert "projected.length" in renderer
     assert ": holds.map" in renderer
+    # The compiled status schema is {rank, label, state}; keep the Pages
+    # consumer on the same key so a populated projection cannot print
+    # JavaScript's literal "undefined" in the 综合 column.
+    assert "${v.label}" in renderer
+    assert "${v.txt}" not in renderer
     # The summary read moved behind the tool registry (#266); it is the same read,
     # reached by name instead of by a path into scripts/. --judgment-template has
     # no tool yet, so it is still a shell-out.
