@@ -1260,12 +1260,12 @@
     // 综合 verdict：状态分级(rank 越小越需关注)。强动作来自硬闸(kcn 已定框架)，
     // 其余仅给技术面状态，不臆造买卖结论(主动信号 edge 弱，见 calibration)。
     const verdict = (q, a) => {
-      if (a && a.kind === 'stop') return { rank: 0, txt: '止损/换1x', state: 'critical' };
-      if (a && a.kind === 'trim') return { rank: 1, txt: '减仓', state: 'elevated' };
-      if (q.trend_on === true) return { rank: 4, txt: '趋势ON', state: 'positive' };
-      if (q.rsi14 != null && q.rsi14 <= 30) return { rank: 2, txt: '超卖·观望', state: 'elevated' };
-      if (q.tag || q.rsi14 != null) return { rank: 3, txt: '趋势off·观望', state: 'neutral' };
-      return { rank: 5, txt: '—', state: 'neutral' };
+      if (a && a.kind === 'stop') return { rank: 0, label: '止损/换1x', state: 'critical' };
+      if (a && a.kind === 'trim') return { rank: 1, label: '减仓', state: 'elevated' };
+      if (q.trend_on === true) return { rank: 4, label: '趋势ON', state: 'positive' };
+      if (q.rsi14 != null && q.rsi14 <= 30) return { rank: 2, label: '超卖·观望', state: 'elevated' };
+      if (q.tag || q.rsi14 != null) return { rank: 3, label: '趋势off·观望', state: 'neutral' };
+      return { rank: 5, label: '—', state: 'neutral' };
     };
     const enriched = projected.length
       ? projected.map(row => {
@@ -1307,7 +1307,7 @@
       const mk = proxy ? `<sup style="color:var(--muted,#9ca3af)" title="杠杆ETF · 量化列取底层 ${proxy}">▵</sup>` : '';
       return `<tr>` +
         `<td><strong>${h.ticker}</strong>${mk}</td>` +
-        `<td style="font-size:11px"><span class="matrix-status ${v.state}">${v.txt}</span></td>` +
+        `<td style="font-size:11px"><span class="matrix-status ${v.state}">${v.label}</span></td>` +
         `<td class="num" ${sign(h.today_change_pct)}>${num(h.today_change_pct, '%')}</td>` +
         `<td class="num" ${sign(h.pnl_percent)}>${num(h.pnl_percent, '%')}</td>` +
         `<td>${rangeBar(q.pct_52w_range)}</td>` +
