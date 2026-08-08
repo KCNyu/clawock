@@ -52,4 +52,12 @@ clawock = "clawock.cli:main"
 include = ["clawock*"]
 
 [tool.setuptools.package-data]
-clawock = ["context_manifest.json"]
+clawock = [
+    "context_manifest.json",
+    "workflows/packs/*/*.json",
+    "workflows/packs/*/*.md",
+    "workflows/packs/*/references/*.md",
+    "workflows/packs/*/references/*.json",
+    "workflows/packs/*/assets/*.json",
+    "workflows/packs/*/agents/*.yaml",
+]

@@ -28,6 +28,7 @@ The public CLI is the stable driver boundary:
 
 ```text
 clawock init <workspace>
+clawock workflow list|show|install
 clawock run prepare --workspace <workspace>
 clawock run publish --workspace <workspace> --request <json> --artifact <name=path>
 clawock context audit|assemble
@@ -42,6 +43,23 @@ agent-native business CLI. `run prepare` emits certified input; the calling agen
 keeps its own model, conversation, memory, skills, tools and repair loop; `run
 publish` validates/reconciles its files and atomically emits generation-pinned
 artifacts plus a receipt. clawock never launches the agent.
+
+`clawock workflow install investment-decision --workspace <workspace>` exports
+the package-owned pack to `<workspace>/.agents/skills/investment-decision` as a
+standard Agent Skill (`SKILL.md`, progressive references and assets). Current
+OpenClaw also [discovers project-agent skills](https://docs.openclaw.ai/skills)
+from `.agents/skills`; other
+skills-compatible runtimes can consume the same directory without a fork. The
+installed skill tells the current agent how to call the CLI—it does not delegate
+to a clawock-owned model.
+
+The first shipped workflow pins its ID, semantic version, whole-pack certificate
+and bounded parameters into the prepared request. Its deterministic validator
+requires supporting and opposing evidence, linked bull/bear cases, thesis
+invalidation conditions, a bounded action, confidence provenance and exact
+order/FX arithmetic. A prompt cannot waive those gates. Outcome evaluation and
+review/apply/rollback of parameter proposals remain the next #386 slice and are
+not claimed by version 1.0.0.
 
 The live workflow phase commands dispatch in-process but currently resolve the
 KCNyu implementation from `scripts/harness`. They are a compatibility seam, not
@@ -77,3 +95,24 @@ An `ArtifactSet` has one `generation_id`, and every member must carry the same
 ID. This is the runtime-neutral seam after model deliberation: a runner may use
 OpenClaw, a direct API or an interactive coding agent, but validation and publish
 must reject artifacts mixed across generations.
+
+## Workflow pack contract
+
+Package data under `clawock/workflows/packs/<workflow-id>/` owns reusable
+semantics:
+
+```text
+investment-decision/
+├── SKILL.md
+├── workflow.json
+├── agents/openai.yaml
+├── references/decision-contract.md
+├── references/decision.schema.json
+└── assets/decision.example.json
+```
+
+`workflow.json` is the machine-readable discovery and parameter contract;
+`SKILL.md` follows the open [Agent Skills specification](https://agentskills.io/specification)
+and is the runtime-facing procedure; references and assets are loaded
+progressively. Python validators remain package code so neither a runtime nor an
+instance can silently edit financial or provenance invariants by changing prose.

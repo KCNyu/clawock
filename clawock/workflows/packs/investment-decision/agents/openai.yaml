@@ -1,0 +1,4 @@
+interface:
+  display_name: "Investment Decision"
+  short_description: "Evidence-led investing with debate and reconciliation"
+  default_prompt: "Use $investment-decision to produce and publish an evidence-linked investment decision."

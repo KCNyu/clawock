@@ -1,0 +1,63 @@
+{
+  "schema_version": 1,
+  "id": "investment-decision",
+  "version": "1.0.0",
+  "title": "Investment Decision",
+  "description": "Turn traceable evidence and an explicit opposing case into a bounded investment decision with deterministic order and FX reconciliation.",
+  "task": "Produce decision.json for an evidence-linked investment decision. Include a genuine opposing case, thesis invalidation conditions, a bounded action, and exactly reconciled order and FX amounts when an order is proposed.",
+  "skill": "SKILL.md",
+  "stages": [
+    {
+      "id": "evidence",
+      "owner": "external-runtime",
+      "output": "traceable supporting, opposing, and contextual evidence"
+    },
+    {
+      "id": "debate",
+      "owner": "external-runtime",
+      "output": "bull and bear cases linked to evidence"
+    },
+    {
+      "id": "decision",
+      "owner": "external-runtime",
+      "output": "thesis, invalidation conditions, action, and optional order intent"
+    },
+    {
+      "id": "validate-reconcile-publish",
+      "owner": "clawock",
+      "output": "validation issues or a generation-pinned publication receipt"
+    }
+  ],
+  "artifacts": {
+    "required": [
+      "decision.json"
+    ],
+    "optional": []
+  },
+  "schemas": {
+    "decision.json": "references/decision.schema.json"
+  },
+  "parameters": {
+    "min_supporting_evidence": {
+      "type": "integer",
+      "default": 1,
+      "minimum": 1,
+      "maximum": 5,
+      "description": "Minimum distinct evidence items supporting the thesis."
+    },
+    "min_opposing_evidence": {
+      "type": "integer",
+      "default": 1,
+      "minimum": 1,
+      "maximum": 5,
+      "description": "Minimum distinct evidence items opposing the thesis."
+    },
+    "max_confidence_without_primary_source": {
+      "type": "number",
+      "default": 0.65,
+      "minimum": 0.5,
+      "maximum": 0.85,
+      "description": "Maximum thesis confidence when the decision cites no primary source."
+    }
+  }
+}

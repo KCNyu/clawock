@@ -58,12 +58,26 @@ class AgentRunRequest:
     context_files: tuple[str, ...]
     output_directory: Path
     metadata: Mapping[str, Any] = field(default_factory=dict)
+    workflow: Mapping[str, Any] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
         if not self.task.strip():
             raise ValueError("agent run task is empty")
         if not self.context_files:
             raise ValueError("agent run has no context files")
+        if self.workflow:
+            required = {"id", "version", "certificate", "parameters"}
+            if set(self.workflow) != required:
+                raise ValueError(
+                    "workflow contract must contain exactly " + ", ".join(sorted(required))
+                )
+            if not all(
+                isinstance(self.workflow.get(field), str) and self.workflow[field]
+                for field in ("id", "version", "certificate")
+            ):
+                raise ValueError("workflow id, version and certificate are required")
+            if not isinstance(self.workflow.get("parameters"), Mapping):
+                raise ValueError("workflow parameters must be an object")
 
 
 @dataclass(frozen=True)

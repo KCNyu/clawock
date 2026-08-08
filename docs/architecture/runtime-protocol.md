@@ -23,6 +23,21 @@ clawock init ./my-workspace
 clawock run prepare --workspace ./my-workspace
 ```
 
+For the packaged investment workflow, initialize and install its portable skill:
+
+```bash
+clawock init ./my-workspace --workflow investment-decision
+clawock workflow install investment-decision --workspace ./my-workspace
+clawock run prepare --workspace ./my-workspace
+```
+
+The default install target is `.agents/skills/investment-decision`, following the
+open [Agent Skills](https://agentskills.io/specification) directory/`SKILL.md`
+format. Installation refuses to overwrite
+an existing skill unless `--force` is explicit. The runtime discovers and loads
+the skill using its own normal mechanism; clawock does not inject it into a
+conversation.
+
 `prepare` prints JSON and stores the same request beneath `.clawock/work/`. It
 contains a run ID, generation ID, task, context documents, per-document SHA-256
 hashes and a hash of the assembled context. The external agent reads that input
@@ -33,14 +48,14 @@ owner-only permissions and `.clawock/work/` is ignored by the workspace-local
 
 ## Validate and publish
 
-After the external agent writes one or more text artifacts inside the workspace,
-it calls:
+After the external agent writes the workflow artifacts inside the workspace, it
+calls:
 
 ```bash
 clawock run publish \
   --workspace ./my-workspace \
   --request ./my-workspace/.clawock/work/<run-id>/request.json \
-  --artifact response.md=./response.md
+  --artifact decision.json=./decision.json
 ```
 
 The request is rejected if the configured task or certified context changed
@@ -48,6 +63,13 @@ after preparation. Artifact names must be canonical relative paths inside one
 generation; empty artifacts, traversal and the reserved `manifest.json` name are
 rejected. Rejections are structured JSON for the external agent's own repair
 loop. Nothing is published while validation fails.
+
+When `clawock.json` pins `investment-decision`, the request and final manifest
+also pin its version, whole-pack certificate and effective parameters. The
+required `decision.json` is rejected unless it carries traceable supporting and
+opposing evidence, linked bull/bear cases, thesis invalidation conditions and a
+bounded action. Any order intent is reconciled to currency cents in quote and
+base currency. The complete schema and example travel with the installed skill.
 
 On success the configured store receives one write set, including a
 `manifest.json` that pins every artifact and context hash to one generation ID.

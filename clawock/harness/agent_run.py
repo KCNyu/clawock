@@ -60,6 +60,7 @@ class PreparedRun:
                 ],
             },
             "metadata": dict(self.request.metadata),
+            "workflow": dict(self.request.workflow),
         }
 
 
@@ -126,16 +127,27 @@ class AgentRun:
             generation_id=generation_id or uuid4().hex,
         )
 
-    def _issues(self, artifacts: Mapping[str, str]) -> tuple[ValidationIssue, ...]:
+    def _issues(
+        self, prepared: PreparedRun, artifacts: Mapping[str, str]
+    ) -> tuple[ValidationIssue, ...]:
+        workflow_validators: tuple[ArtifactValidator, ...] = ()
+        if prepared.request.workflow:
+            # Lazy to keep the generic harness model independent at import time.
+            # The package API and CLI must enforce the same workflow contract;
+            # requiring every caller to remember to inject these validators would
+            # make the most important gates optional by accident.
+            from clawock.workflows import validators_for
+
+            workflow_validators = validators_for(prepared.request.workflow)
         return tuple(
             issue
-            for validator in self.validators
+            for validator in (*self.validators, *workflow_validators)
             for issue in validator.validate(artifacts)
         )
 
     def publish(self, prepared: PreparedRun, artifacts: Mapping[str, str],
                 store: ArtifactStore) -> RunReceipt:
-        issues = self._issues(artifacts)
+        issues = self._issues(prepared, artifacts)
         members = tuple(
             Artifact(name, Path(name), _media_type(name), prepared.generation_id)
             for name in artifacts
@@ -161,6 +173,7 @@ class AgentRun:
                 for name in artifacts
             ],
             "producer_metadata": dict(prepared.request.metadata),
+            "workflow": dict(prepared.request.workflow),
         }
         files: Mapping[str, str] = {
             **artifacts,

@@ -132,8 +132,25 @@ def test_every_module_imports_from_a_non_editable_install(tmp_path):
         "PYTHONPATH": str(site), "PATH": "/usr/bin:/bin",
         "LC_ALL": "C.UTF-8", "PYTHONIOENCODING": "utf-8",
     }
+    discovered = subprocess.run(
+        [sys.executable, "-m", "clawock", "workflow", "list"],
+        cwd=tmp_path, env=clean_env, capture_output=True, text=True, timeout=120)
+    assert discovered.returncode == 0, discovered.stderr
+    assert {item["id"] for item in json.loads(discovered.stdout)} == {
+        "investment-decision"}
+
+    installed = subprocess.run(
+        [sys.executable, "-m", "clawock", "workflow", "install",
+         "investment-decision", "--workspace", str(workspace)],
+        cwd=tmp_path, env=clean_env, capture_output=True, text=True, timeout=120)
+    assert installed.returncode == 0, installed.stderr
+    skill = workspace / ".agents/skills/investment-decision"
+    assert (skill / "SKILL.md").read_text().startswith(
+        "---\nname: investment-decision\n")
+
     initialized = subprocess.run(
-        [sys.executable, "-m", "clawock", "init", str(workspace)],
+        [sys.executable, "-m", "clawock", "init", str(workspace),
+         "--workflow", "investment-decision"],
         cwd=tmp_path, env=clean_env, capture_output=True, text=True, timeout=120)
     assert initialized.returncode == 0, initialized.stderr
 
@@ -144,22 +161,26 @@ def test_every_module_imports_from_a_non_editable_install(tmp_path):
     assert prepared.returncode == 0, prepared.stderr
     request = json.loads(prepared.stdout)
     assert request["context"]["documents"][0]["sha256"]
+    assert request["workflow"]["id"] == "investment-decision"
+    assert len(request["workflow"]["certificate"]) == 64
 
-    # This write stands in for output produced by OpenClaw, Hermes, Claude Code,
-    # Codex or any other caller. clawock does not start that agent.
-    answer = workspace / "answer.md"
-    answer.write_text(request["context"]["documents"][0]["text"].strip() + "\n")
+    # This copy stands in for decision.json produced by OpenClaw, Hermes, Claude
+    # Code, Codex or another caller. clawock does not start that agent.
+    decision = workspace / "decision.json"
+    decision.write_text((skill / "assets/decision.example.json").read_text())
     completed = subprocess.run(
         [sys.executable, "-m", "clawock", "run", "publish",
          "--workspace", str(workspace), "--request", request["request_file"],
-         "--artifact", "answer.md=answer.md"],
+         "--artifact", "decision.json=decision.json"],
         cwd=tmp_path, env=clean_env, capture_output=True, text=True, timeout=120)
     assert completed.returncode == 0, completed.stderr
     receipt = json.loads(completed.stdout)
     assert receipt["status"] == "published"
     published = Path(receipt["publish"]["receipt"])
     manifest = json.loads((published / "manifest.json").read_text())
-    assert (published / "answer.md").read_text().startswith("# Context")
+    assert json.loads((published / "decision.json").read_text())["decision"][
+        "action"] == "watch"
     assert manifest["generation_id"] == receipt["generation_id"]
+    assert manifest["workflow"] == request["workflow"]
     assert {item["generation_id"] for item in receipt["artifacts"]} == {
         receipt["generation_id"]}
