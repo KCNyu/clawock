@@ -86,11 +86,12 @@ dreaming 留独占窗口，所以 EST 季比 EDT 季少两个 slot。
 
 #### Step 1: preflight
 ```bash
-python3 /root/.openclaw/workspace/scripts/harness/intraday_preflight.py --market us
+clawock intraday preflight --market us
 ```
 输出 `memory/.tmp/intraday-context-us-latest.json`，并把**同一份 JSON** 打到 stdout（含 `context_id` —— Step 3 要原样回传）。关键字段：`should_alert` + `alert_reasons`，另有 `peer_scan`（本腿持仓的板块+同业涨跌，已排序）和 `plan_context`（08:00 简报为本腿定下、尚未成交的决策）。
 - `mover_thesis` — **只对本轮异动票**的 thesis 只读快照：`state`、`triggered`/`watch` 红线（含 severity 与 required_action）、下次 review trigger；最新一次 entry gate 判 `reject` 也会标出来。没有基线就是 `unknown`，不许靠记忆补。**这是归因语境不是催化剂**：红线解释「这个跌为什么要紧、当初说好要怎么做」，但能不能动手仍由 catalyst-gate 决定（软消息/情绪不构成主动操作依据）。
 - `mover_news` — **只对本轮异动票**、有限预算抓回来的「刚发生了什么」：`tier=primary` 是交易所/监管一手文件（港股=港交所公告，美股=SEC filing，带 `age_minutes`），`tier=supporting` 是券商研报/媒体/7×24 快讯。**只有 primary 才可能构成硬催化**（仍要过 catalyst-gate）；supporting 只能当色彩，不能作为主动操作依据。
+  - `known_catalysts` 是当天 08:00 brief 已核过、且只按本轮异动票裁剪的结构化催化。它回答「此前已知什么」，`mover_news` 回答「这个分钟窗口新发生什么」；两者不能混为一谈，也不因此扩大新闻窗口。
   - `status=no_recent_filing` 是**明确的空**：写「窗口内无一手公告」，不要改口编一个理由；`status=degraded` 说明源没抓到，同样如实写。
   - 用法铁律：异动票必须给出归因或明写「无法归因」。**不要把 `mover_news` 整块抄进报告**——最多引 1–2 条最相关的标题+时间。
   - 一手文件都没有、而异动又很大时，才允许用**内置 web search** 补一次（禁止 Tavily：盘中不烧额度）。
@@ -108,7 +109,7 @@ python3 /root/.openclaw/workspace/scripts/harness/intraday_preflight.py --market
     「{票} {幅度}% ← {标题要点}（{age_minutes} 分钟前 / {source_class}）」。多只异动票就各写一行，最多 3 行。
     - `halts` 里有这只票 → **先写停牌**（`reason_code` + 复牌时间），它比任何标题都能解释一次跳动。
     - 只有 `context` 没有 `interrupt` → 写「无一手催化，{context 标题}仅作背景」。
-    - `status=no_recent_filing` → 直接写「窗口内无一手公告，暂无法归因」，**不许改口编一个理由**；`index_fund_no_issuer` → 写「指数基金无发行人公告，看成分/板块」。
+    - `status=no_recent_filing` → 先查 `known_catalysts[票]`：有则写「窗口内无新公告；沿用今早已知催化：{detail}（{source}）」；没有才写「窗口内无新公告，且无已知催化，暂无法归因」。`index_fund_no_issuer` → 写「指数基金无发行人公告，看成分/板块」。
     - `status=degraded` → 写「催化源未取到」，别把它说成「没有消息」。
     - 引用**至多两条**、每条一行；`suppressed_noise` / `more_interrupts` 只是计数，不要写进报告。
   - 必须包含：今天该看/该等/该减 + 引用至少 1 个具体数字（票现价 / 异动幅度 / 信号 / RSI）
@@ -127,7 +128,7 @@ python3 /root/.openclaw/workspace/scripts/harness/intraday_preflight.py --market
 **必须两步、按顺序**：先用文件写入工具把 Step 2 的散文写到
 `memory/.tmp/intraday-prose-us.md`，确认写入成功后再调用（命令写成一行）：
 ```bash
-python3 /root/.openclaw/workspace/scripts/harness/intraday_postflight.py --market us --context-id {Step 1 的 context_id} --text-file /root/.openclaw/workspace/memory/.tmp/intraday-prose-us.md
+clawock intraday postflight --market us --context-id {Step 1 的 context_id} --text-file /root/.openclaw/workspace/memory/.tmp/intraday-prose-us.md
 ```
 `--context-id` 必须是 Step 1 打印的那个：不匹配说明 context 已被换代（散文和数据不同代），
 postflight 拒绝拼装、只发数据块。
@@ -158,7 +159,7 @@ publisher 发布。
 
 #### Step 1: 跑 preflight
 ```bash
-python3 /root/.openclaw/workspace/scripts/harness/report_preflight.py --market us --phase {open|close}
+clawock report preflight --market us --phase {open|close}
 ```
 跑 `scripts/data/analyze_us_stocks.py --wechat --md-table` + 抽信号 + 异动，写 context 文件，并把**同一份 JSON** 打到 stdout（含 `context_id`；末行是 `context_path:`）。若输出 `market_closed`，本回合到此结束。
 
@@ -185,7 +186,7 @@ python3 /root/.openclaw/workspace/scripts/harness/report_preflight.py --market u
 - 每只异动票一行：「{票} {幅度}% ← {mover_news 里 signal=interrupt 的标题要点}（{age_minutes} 分钟前 / {source_class}）」。
 - `halts` 命中该票 → 先写停牌（`reason_code` + 复牌时间）。
 - `mover_thesis` 里该票有 `triggered`/`watch` 红线 → 追一句「触及红线：{required_action}」——**这是归因语境，不是操作许可**，能不能动手仍由 catalyst-gate 与风控契约决定。
-- 没有 interrupt：`no_recent_filing` 写「窗口内无一手公告，暂无法归因」；`index_fund_no_issuer` 写「指数基金无发行人公告，看成分/板块」；`degraded` 写「催化源未取到」（**不等于「没有消息」**）。一律不许编理由。
+- 没有 interrupt：`no_recent_filing` 先查 `known_catalysts[票]`；有则写「窗口内无新公告；沿用今早已知催化：…」，没有才写「窗口内无新公告，且无已知催化，暂无法归因」；`index_fund_no_issuer` 写「指数基金无发行人公告，看成分/板块」；`degraded` 写「催化源未取到」（**不等于「没有消息」**）。一律不许编理由。
 - 空间不够时**先砍板块全景的细节，不砍归因**——一次异动没解释，比少列两个同业更贵。
 
 写这几段，**存成 `memory/.tmp/report-prose-us-{phase}.md`**：
@@ -210,7 +211,7 @@ python3 /root/.openclaw/workspace/scripts/harness/report_preflight.py --market u
 
 #### Step 3: 跑 postflight
 ```bash
-python3 /root/.openclaw/workspace/scripts/harness/report_postflight.py --market us --phase {phase} --context-id {Step 1 的 context_id} --text-file /root/.openclaw/workspace/memory/.tmp/report-prose-us-{phase}.md
+clawock report postflight --market us --phase {phase} --context-id {Step 1 的 context_id} --text-file /root/.openclaw/workspace/memory/.tmp/report-prose-us-{phase}.md
 ```
 `--context-id` 必须是 Step 1 打印的那个：不匹配说明 context 已被换代（散文和数据不同代），postflight 拒绝拼装、只发数据块。散文文件超过 30 分钟没更新同样拒发（防重发上个 slot 的旧文本）。
 pass/warn 自动刷新 snapshot/dashboard，提交 scoped 产物并经 `safe_push.sh` 推送。
