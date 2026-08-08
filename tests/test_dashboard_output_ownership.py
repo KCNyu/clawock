@@ -8,6 +8,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
+INSTANCE_HARNESS = ROOT / "instances" / "kcnyu" / "src" / "clawock_kcnyu" / "harness"
 sys.path.insert(0, str(ROOT / "scripts" / "data"))
 
 import dashboard_outputs  # noqa: E402
@@ -214,9 +215,9 @@ def test_the_publish_path_for_the_outputs_is_the_data_branch_alone():
     """
     publisher = (ROOT / "scripts/data/publish_data_branch.py").read_text()
     assert "DASHBOARD_OUTPUTS" in publisher
-    for rel in ("scripts/harness/brief_postflight.py",
-                "scripts/harness/report_postflight.py",
-                "scripts/harness/intraday_postflight.py"):
+    for rel in ("instances/kcnyu/src/clawock_kcnyu/harness/brief_postflight.py",
+                "instances/kcnyu/src/clawock_kcnyu/harness/report_postflight.py",
+                "instances/kcnyu/src/clawock_kcnyu/harness/intraday_postflight.py"):
         text = (ROOT / rel).read_text()
         assert "dashboard_output_changes" not in text, (
             f"{rel} still derives dashboard output paths; its only former use "
@@ -433,7 +434,7 @@ def test_every_generation_builder_publishes_what_it_built():
     generation-builder already goes through, so a fourth postflight gets this by
     construction.
     """
-    harness = (ROOT / "scripts/harness/_harness_common.py").read_text()
+    harness = (INSTANCE_HARNESS / "_harness_common.py").read_text()
     rebuild = harness.split("def rebuild_dashboard", 1)[1].split("\ndef ", 1)[0]
 
     assert "_publish_generation(ws)" in rebuild, (
@@ -452,7 +453,7 @@ def test_the_publish_path_is_shared_and_not_restated():
     assert "publish_identity.sh" in body and "publish_data_branch.py" in body
 
     for rel in ("scripts/data/publish_dashboard.sh",
-                "scripts/harness/_harness_common.py"):
+                "instances/kcnyu/src/clawock_kcnyu/harness/_harness_common.py"):
         text = (ROOT / rel).read_text()
         assert "publish_generation.sh" in text, f"{rel} does not use the shared entry"
         assert "publish_identity.sh" not in text, (

@@ -76,7 +76,7 @@ def test_fallback_workflow_consults_the_gate_and_does_not_swallow_failure():
     # The postflight step must not swallow its own failure into a silent publish...
     postflight_run = _workflow_step_run('Postflight validation')
     invocations = [l for l in postflight_run.splitlines()
-                   if 'brief_postflight.py' in l and not l.strip().startswith('#')]
+                   if 'clawock brief postflight' in l and not l.strip().startswith('#')]
     assert invocations, 'postflight invocation not found'
     assert all('|| true' not in l for l in invocations), 'postflight failure is being swallowed again'
     # ...but a publishable warn (exit 1) must NOT fail the job; only fail (>=2)/crash does.

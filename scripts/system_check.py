@@ -84,7 +84,8 @@ def check_baseline_files(r):
 def check_scripts_compile(r):
     """All Python scripts compile."""
     failed = []
-    for pat in ['scripts/data/*.py', 'scripts/harness/*.py']:
+    for pat in ['scripts/data/*.py',
+                'instances/kcnyu/src/clawock_kcnyu/harness/*.py']:
         for f in glob.glob(str(WS / pat)):
             try:
                 rr = subprocess.run(['python3', '-m', 'py_compile', f],

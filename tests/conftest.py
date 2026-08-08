@@ -36,11 +36,18 @@ So: snapshot before, restore after, and verify the restore actually worked.
 Restoring to the session's starting bytes rather than to HEAD keeps a
 developer's own uncommitted edits intact.
 """
+import os
 import subprocess
 import sys
 from pathlib import Path
 
 import pytest
+
+# A test process must be physically incapable of reaching kcn's real WeChat,
+# Telegram, or fallback workflow.  This is deliberately established before
+# test-module collection, so import order and monkeypatch target changes cannot
+# reopen live delivery.
+os.environ["CLAWOCK_DELIVERY_DISABLED"] = "1"
 
 ROOT = Path(__file__).resolve().parents[1]
 DASHBOARD = ROOT / "assets" / "data" / "dashboard.json"
@@ -49,6 +56,7 @@ DASHBOARD = ROOT / "assets" / "data" / "dashboard.json"
 # import `scripts.data.validate_sidecars`, which imports `workspace` by bare
 # name. See the module docstring.
 sys.path.insert(0, str(ROOT / "src"))
+sys.path.insert(0, str(ROOT / "instances" / "kcnyu" / "src"))
 sys.path.insert(0, str(ROOT / "scripts" / "data"))
 
 

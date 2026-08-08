@@ -23,12 +23,13 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT / 'scripts' / 'harness'))
+INSTANCE_HARNESS = ROOT / 'instances' / 'kcnyu' / 'src' / 'clawock_kcnyu' / 'harness'
+sys.path.insert(0, str(ROOT / 'instances' / 'kcnyu' / 'src'))
 
-import _harness_common
+from clawock_kcnyu.harness import _harness_common
 
-PREFLIGHT = (ROOT / 'scripts' / 'harness' / 'brief_preflight.py').read_text()
-POSTFLIGHT = (ROOT / 'scripts' / 'harness' / 'brief_postflight.py').read_text()
+PREFLIGHT = (INSTANCE_HARNESS / 'brief_preflight.py').read_text()
+POSTFLIGHT = (INSTANCE_HARNESS / 'brief_postflight.py').read_text()
 
 # Owned by a GH Action: preflight reads these, the workflow writes and commits
 # them. Committing them from the brief would fight the workflow, so they are the

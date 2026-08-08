@@ -11,6 +11,7 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+INSTANCE_HARNESS = ROOT / "instances" / "kcnyu" / "src" / "clawock_kcnyu" / "harness"
 sys.path.insert(0, str(ROOT / "scripts" / "data"))
 
 import fetch_fx  # noqa: E402
@@ -81,7 +82,7 @@ def test_the_ledger_rides_a_committer_that_already_exists():
     assert "memory" in Path(fetch_fx.LEDGER_PATH).parts, fetch_fx.LEDGER_PATH
     assert Path(fetch_fx.LEDGER_PATH).name == "fx-rates.jsonl"
 
-    postflight = (ROOT / "scripts/harness/brief_postflight.py").read_text()
+    postflight = (INSTANCE_HARNESS / "brief_postflight.py").read_text()
     assert "'memory/'" in postflight, (
         "the daily brief no longer stages memory/, so the FX ledger has no "
         "route to origin")

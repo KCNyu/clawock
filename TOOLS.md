@@ -7,7 +7,7 @@
 - 当前持仓摘要：`memory/current-portfolio-summary.md`
 - 每日复盘/交易日志：`memory/YYYY-MM-DD.md`
 - 数据脚本（被 harness / 手动调用）：`scripts/data/`
-- Harness 脚本（cron 调起）：`scripts/harness/`
+- Harness 入口（cron 调起）：安装后的 `clawock brief|report|intraday`；KCNyu 实现在独立 adapter `instances/kcnyu/`
 - 历史/参考脚本：`scripts/legacy/`
 - Dashboard 入口：`index.html` (落到 `kcnyu.github.io/clawock`)；`scripts/data/build_dashboard.py` 一次生成 `dashboard.json` + `decision_audit.json` + `shadow_portfolio.json`
 - 快速查看：`check_portfolio.sh`

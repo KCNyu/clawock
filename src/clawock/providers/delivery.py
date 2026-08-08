@@ -19,6 +19,7 @@ duplicate sends. It has to be its own state.
 """
 from __future__ import annotations
 
+import os
 import subprocess
 from dataclasses import dataclass, field
 from typing import Protocol
@@ -26,6 +27,18 @@ from typing import Protocol
 # Channels that can tell us a message arrived. WeChat cannot: the CLI reports
 # success for a send the cold session silently drops.
 CONFIRMING_CHANNELS = frozenset({"telegram"})
+
+
+def delivery_disabled() -> bool:
+    """Whether this process is forbidden from contacting a real transport.
+
+    Tests set this before collection.  Keep the check in the provider itself,
+    not only in a harness caller: an import/adapter refactor must never be able
+    to bypass the safety boundary by changing which function gets patched.
+    """
+    return os.environ.get("CLAWOCK_DELIVERY_DISABLED", "").strip().lower() in {
+        "1", "true", "yes", "on",
+    }
 
 
 @dataclass(frozen=True)
@@ -93,6 +106,13 @@ class OpenClawDelivery:
     def send(self, channel: str, target: str, message: str, *,
              dry_run: bool = False,
              idempotency_key: str | None = None) -> DeliveryResult:
+        if delivery_disabled():
+            return DeliveryResult(
+                "failed", channel, str(target),
+                detail="delivery blocked by CLAWOCK_DELIVERY_DISABLED",
+                idempotency_key=idempotency_key,
+            )
+
         cmd = [self.binary, "message", "send", "--channel", channel,
                "--target", str(target), "-m", message, "--json"]
         if self.account:
