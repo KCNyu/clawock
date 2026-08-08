@@ -59,11 +59,56 @@ def _make_state_db(path):
             )
 
 
+def test_runtime_paths_derive_one_external_installation():
+    paths = provider.runtime_paths({
+        "CLAWOCK_OPENCLAW_BIN": "/opt/openclaw/bin/openclaw",
+        "CLAWOCK_OPENCLAW_HOME": "/srv/openclaw-state",
+        "CLAWOCK_OPENCLAW_INSTALL_DIR": "/opt/openclaw/package",
+    })
+
+    assert paths.binary == "/opt/openclaw/bin/openclaw"
+    assert paths.state_db == Path("/srv/openclaw-state/state/openclaw.sqlite")
+    assert paths.sessions_dir == Path("/srv/openclaw-state/agents/main/sessions")
+    assert paths.workspace == Path("/srv/openclaw-state/workspace")
+    assert paths.install_dir == Path("/opt/openclaw/package")
+
+
+def test_explicit_runtime_reads_its_own_sqlite(tmp_path):
+    paths = provider.OpenClawPaths(
+        binary="/opt/openclaw/bin/openclaw",
+        home=tmp_path / "external-runtime",
+        install_dir=tmp_path / "package",
+    )
+    paths.state_db.parent.mkdir(parents=True)
+    _make_state_db(paths.state_db)
+
+    jobs = provider.read_jobs("sqlite", paths=paths)
+    runs = provider.read_runs("job-1", "sqlite", paths=paths)
+
+    assert jobs.source == runs.source == "sqlite"
+    assert jobs.entries[0]["name"] == "live job"
+    assert [entry["ts"] for entry in runs.entries] == [100, 200]
+
+
+def test_runtime_binary_override_reaches_read_and_write_commands(monkeypatch):
+    monkeypatch.setenv("CLAWOCK_OPENCLAW_BIN", "/opt/openclaw/bin/openclaw")
+    seen = []
+
+    class Result:
+        stdout = '{"jobs": []}'
+
+    provider.cron_cli_json(
+        ["list", "--json"], runner=lambda cmd: seen.append(cmd) or Result())
+    edit = provider.build_cron_edit_argv("job-1", {"enabled": True})
+
+    assert seen[0][0] == edit[0] == "/opt/openclaw/bin/openclaw"
+
+
 def test_auto_falls_back_to_live_sqlite_before_fossil(tmp_path, monkeypatch):
-    db = tmp_path / "openclaw.sqlite"
+    db = tmp_path / "state" / "openclaw.sqlite"
+    db.parent.mkdir()
     _make_state_db(db)
-    monkeypatch.setattr(provider, "STATE_DB", db)
-    monkeypatch.setattr(provider, "CRON_JOBS_JSON", tmp_path / "jobs.json")
+    monkeypatch.setenv("CLAWOCK_OPENCLAW_HOME", str(tmp_path))
     monkeypatch.setattr(provider, "cron_cli_json", lambda _args: None)
 
     jobs = common.load_jobs()
@@ -75,9 +120,10 @@ def test_auto_falls_back_to_live_sqlite_before_fossil(tmp_path, monkeypatch):
 
 
 def test_explicit_sqlite_run_history_is_oldest_first(tmp_path, monkeypatch):
-    db = tmp_path / "openclaw.sqlite"
+    db = tmp_path / "state" / "openclaw.sqlite"
+    db.parent.mkdir()
     _make_state_db(db)
-    monkeypatch.setattr(provider, "STATE_DB", db)
+    monkeypatch.setenv("CLAWOCK_OPENCLAW_HOME", str(tmp_path))
     monkeypatch.setattr(
         provider,
         "cron_cli_json",
@@ -91,10 +137,10 @@ def test_explicit_sqlite_run_history_is_oldest_first(tmp_path, monkeypatch):
 
 
 def test_fossil_source_is_marked_stale(tmp_path, monkeypatch):
-    monkeypatch.setattr(provider, "STATE_DB", tmp_path / "missing.sqlite")
-    jobs_json = tmp_path / "jobs.json"
+    monkeypatch.setenv("CLAWOCK_OPENCLAW_HOME", str(tmp_path))
+    jobs_json = tmp_path / "cron" / "jobs.json"
+    jobs_json.parent.mkdir()
     jobs_json.write_text(json.dumps([{"id": "old", "name": "stale"}]))
-    monkeypatch.setattr(provider, "CRON_JOBS_JSON", jobs_json)
     monkeypatch.setattr(provider, "cron_cli_json", lambda _args: None)
 
     assert common.load_jobs() == [{"id": "old", "name": "stale"}]

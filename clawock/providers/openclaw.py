@@ -15,11 +15,13 @@ imported it at call time and raised `ModuleNotFoundError` outside the checkout.
 from __future__ import annotations
 
 import json
+import os
 import sqlite3
 import subprocess
 import sys
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Mapping
 
 # pnpm's global bin. Kept as one constant rather than resolved through PATH: the
 # cron environment is not a login shell, and PATH resolution has bitten this
@@ -33,6 +35,68 @@ OPENCLAW_HOME = Path("/root/.openclaw")
 CRON_RUNS_DIR = OPENCLAW_HOME / "cron" / "runs"
 CRON_JOBS_JSON = OPENCLAW_HOME / "cron" / "jobs.json"
 STATE_DB = OPENCLAW_HOME / "state" / "openclaw.sqlite"
+# The npm/pnpm install is a different root from the state home.
+INSTALL_DIR = Path("/root/.local/share/pnpm/global/5/node_modules/openclaw")
+
+
+@dataclass(frozen=True)
+class OpenClawPaths:
+    """One OpenClaw installation, without assuming this host's layout."""
+
+    binary: str
+    home: Path
+    install_dir: Path
+
+    @property
+    def cron_runs_dir(self) -> Path:
+        return self.home / "cron" / "runs"
+
+    @property
+    def cron_jobs_json(self) -> Path:
+        return self.home / "cron" / "jobs.json"
+
+    @property
+    def state_db(self) -> Path:
+        return self.home / "state" / "openclaw.sqlite"
+
+    @property
+    def workspace(self) -> Path:
+        return self.home / "workspace"
+
+    @property
+    def config_file(self) -> Path:
+        return self.home / "openclaw.json"
+
+    @property
+    def memory_index_db(self) -> Path:
+        return self.home / "agents" / "main" / "agent" / "openclaw-agent.sqlite"
+
+    @property
+    def sessions_dir(self) -> Path:
+        return self.home / "agents" / "main" / "sessions"
+
+    @property
+    def supervisor_handoff(self) -> Path:
+        return self.home / "gateway-supervisor-restart-handoff.json"
+
+    @property
+    def workspace_memory_tmp(self) -> Path:
+        return self.workspace / "memory" / ".tmp"
+
+
+def runtime_paths(environ: Mapping[str, str] | None = None) -> OpenClawPaths:
+    """Resolve the selected external OpenClaw runtime.
+
+    `CLAWOCK_OPENCLAW_*` is the package-facing namespace. `OPENCLAW_HOME` stays
+    as a compatibility fallback for existing operator scripts.
+    """
+    env = os.environ if environ is None else environ
+    binary = env.get("CLAWOCK_OPENCLAW_BIN") or OPENCLAW_BIN
+    home_override = env.get("CLAWOCK_OPENCLAW_HOME") or env.get("OPENCLAW_HOME")
+    home = Path(home_override).expanduser() if home_override else OPENCLAW_HOME
+    install_override = env.get("CLAWOCK_OPENCLAW_INSTALL_DIR")
+    install_dir = Path(install_override).expanduser() if install_override else INSTALL_DIR
+    return OpenClawPaths(binary=binary, home=home, install_dir=install_dir)
 
 # `cron list --json` round-trips through the gateway and has been observed at
 # ~42s on a loaded host. A tight timeout trips TimeoutExpired, which callers
@@ -40,7 +104,7 @@ STATE_DB = OPENCLAW_HOME / "state" / "openclaw.sqlite"
 CRON_TIMEOUT_SECONDS = 120
 
 
-def cron_cli_json(cli_args, *, binary: str = OPENCLAW_BIN,
+def cron_cli_json(cli_args, *, binary: str | None = None,
                   timeout: int = CRON_TIMEOUT_SECONDS, runner=None):
     """Run `openclaw cron <args> --json` and parse the object it prints.
 
@@ -51,10 +115,11 @@ def cron_cli_json(cli_args, *, binary: str = OPENCLAW_BIN,
     Leading `Config warnings:` noise is skipped: the CLI prints it before the
     JSON body and it is not an error.
     """
+    selected_binary = binary or runtime_paths().binary
     run = runner or (lambda cmd: subprocess.run(
         cmd, capture_output=True, text=True, timeout=timeout))
     try:
-        done = run([binary, "cron", *cli_args])
+        done = run([selected_binary, "cron", *cli_args])
         # Deliberately NOT gated on returncode: the original helper parsed
         # stdout regardless, and a command that exits non-zero while still
         # printing a valid object was treated as data. Preserving that keeps
@@ -93,9 +158,10 @@ class CronRead:
     source: str
 
 
-def _open_state_db():
+def _open_state_db(paths: OpenClawPaths | None = None):
     """Open the OpenClaw state DB read-only, including its live WAL."""
-    return sqlite3.connect(f"file:{STATE_DB}?mode=ro", uri=True, timeout=5)
+    state_db = (paths or runtime_paths()).state_db
+    return sqlite3.connect(f"file:{state_db}?mode=ro", uri=True, timeout=5)
 
 
 def _sqlite_store_key(conn):
@@ -106,10 +172,10 @@ def _sqlite_store_key(conn):
     return row[0] if row else None
 
 
-def _sqlite_jobs():
+def _sqlite_jobs(paths: OpenClawPaths | None = None):
     """Return live cron jobs from SQLite, or None when the DB/schema is unreadable."""
     try:
-        with _open_state_db() as conn:
+        with _open_state_db(paths) as conn:
             conn.execute("PRAGMA query_only = ON")
             store_key = _sqlite_store_key(conn)
             if store_key is None:
@@ -134,8 +200,9 @@ def _sqlite_jobs():
         return None
 
 
-def _fossil_jobs():
-    for path in (CRON_JOBS_JSON, CRON_JOBS_JSON.with_suffix(".json.migrated")):
+def _fossil_jobs(paths: OpenClawPaths | None = None):
+    jobs_json = (paths or runtime_paths()).cron_jobs_json
+    for path in (jobs_json, jobs_json.with_suffix(".json.migrated")):
         try:
             data = json.loads(path.read_text())
             jobs = data if isinstance(data, list) else data.get("jobs", data.get("items", []))
@@ -149,10 +216,10 @@ def _fossil_jobs():
     return None
 
 
-def _sqlite_runs(job_id):
+def _sqlite_runs(job_id, paths: OpenClawPaths | None = None):
     """Return one job's finished runs oldest→newest, or None if SQLite is unreadable."""
     try:
-        with _open_state_db() as conn:
+        with _open_state_db(paths) as conn:
             conn.execute("PRAGMA query_only = ON")
             store_key = _sqlite_store_key(conn)
             if store_key is None:
@@ -170,9 +237,10 @@ def _sqlite_runs(job_id):
         return None
 
 
-def _fossil_runs(job_id):
+def _fossil_runs(job_id, paths: OpenClawPaths | None = None):
     out = []
-    for cand in (CRON_RUNS_DIR / f"{job_id}.jsonl", CRON_RUNS_DIR / f"{job_id}.jsonl.migrated"):
+    runs_dir = (paths or runtime_paths()).cron_runs_dir
+    for cand in (runs_dir / f"{job_id}.jsonl", runs_dir / f"{job_id}.jsonl.migrated"):
         try:
             if not cand.exists():
                 continue
@@ -197,7 +265,7 @@ def _fossil_runs(job_id):
     return None
 
 
-def read_jobs(source: str = "auto") -> CronRead:
+def read_jobs(source: str = "auto", *, paths: OpenClawPaths | None = None) -> CronRead:
     """Cron jobs from auto|cli|sqlite|fossil.
 
     Auto prefers the public CLI, then the same live SQLite state read-only. The
@@ -207,31 +275,34 @@ def read_jobs(source: str = "auto") -> CronRead:
     if source not in SOURCES:
         raise ValueError(f"unsupported cron source: {source}")
     if source in {"auto", "cli"}:
-        data = cron_cli_json(["list", "--json"])
+        data = (cron_cli_json(["list", "--json"], binary=paths.binary)
+                if paths else cron_cli_json(["list", "--json"]))
         if isinstance(data, dict) and isinstance(data.get("jobs"), list):
             return CronRead(data["jobs"], "cli")
         if source == "cli":
             return CronRead([], "empty")
     if source in {"auto", "sqlite"}:
-        jobs = _sqlite_jobs()
+        jobs = _sqlite_jobs(paths)
         if jobs is not None:
             return CronRead(jobs, "sqlite")
         if source == "sqlite":
             return CronRead([], "empty")
     if source in {"auto", "fossil"}:
-        jobs = _fossil_jobs()
+        jobs = _fossil_jobs(paths)
         if jobs is not None:
             return CronRead(jobs, "fossil")
     return CronRead([], "empty")
 
 
-def read_runs(job_id: str, source: str = "auto") -> CronRead:
+def read_runs(job_id: str, source: str = "auto", *,
+              paths: OpenClawPaths | None = None) -> CronRead:
     """Finished-run records for a job, OLDEST→NEWEST (so callers' [-1] = newest).
     Auto uses CLI → read-only SQLite → migrated JSONL fossil."""
     if source not in SOURCES:
         raise ValueError(f"unsupported cron source: {source}")
     if source in {"auto", "cli"}:
-        data = cron_cli_json(["runs", "--id", job_id])
+        data = (cron_cli_json(["runs", "--id", job_id], binary=paths.binary)
+                if paths else cron_cli_json(["runs", "--id", job_id]))
         if isinstance(data, dict) and isinstance(data.get("entries"), list):
             finished = [e for e in data["entries"] if e.get("action") in (None, "finished")]
             # CLI returns newest-first; reverse to match the old append-order contract.
@@ -239,13 +310,13 @@ def read_runs(job_id: str, source: str = "auto") -> CronRead:
         if source == "cli":
             return CronRead([], "empty")
     if source in {"auto", "sqlite"}:
-        entries = _sqlite_runs(job_id)
+        entries = _sqlite_runs(job_id, paths)
         if entries is not None:
             return CronRead(entries, "sqlite")
         if source == "sqlite":
             return CronRead([], "empty")
     if source in {"auto", "fossil"}:
-        entries = _fossil_runs(job_id)
+        entries = _fossil_runs(job_id, paths)
         if entries is not None:
             print(f"warn: live cron runs unreadable; using STALE migrated JSONL "
                   f"for {job_id}", file=sys.stderr)
@@ -264,7 +335,7 @@ def read_runs(job_id: str, source: str = "auto") -> CronRead:
 # second runtime reimplements the mapping, not the callers.
 
 
-def read_jobs_strict(*, runner=None) -> list[dict]:
+def read_jobs_strict(*, paths: OpenClawPaths | None = None, runner=None) -> list[dict]:
     """Jobs from the CLI, raising if the runtime cannot be read.
 
     `read_jobs` is fail-soft on purpose: for a watchdog, an unreachable runtime
@@ -274,7 +345,8 @@ def read_jobs_strict(*, runner=None) -> list[dict]:
     writer path gets its own read, and the difference is stated rather than left
     to whoever calls which.
     """
-    data = cron_cli_json(["list", "--json"], runner=runner)
+    data = cron_cli_json(
+        ["list", "--json"], binary=paths.binary if paths else None, runner=runner)
     if not isinstance(data, dict):
         raise RuntimeError("openclaw cron list failed: no JSON object returned")
     jobs = data.get("jobs")
@@ -284,7 +356,7 @@ def read_jobs_strict(*, runner=None) -> list[dict]:
 
 
 def build_cron_edit_argv(job_id: str, patch: dict, *,
-                         binary: str = OPENCLAW_BIN,
+                         binary: str | None = None,
                          run_timeout_ms: int | None = None) -> list[str]:
     """One job patch as this runtime's `cron edit` command line.
 
@@ -296,7 +368,7 @@ def build_cron_edit_argv(job_id: str, patch: dict, *,
     sync runs from crontab, where a bare name resolves only because the entry
     happens to use a login shell.
     """
-    command = [binary, "cron", "edit", job_id]
+    command = [binary or runtime_paths().binary, "cron", "edit", job_id]
     if "schedule" in patch:
         schedule = patch["schedule"]
         if not schedule.get("tz"):
@@ -357,11 +429,9 @@ def build_cron_edit_argv(job_id: str, patch: dict, *,
 LIVE_WORKSPACE = OPENCLAW_HOME / "workspace"
 CONFIG_FILE = OPENCLAW_HOME / "openclaw.json"
 MEMORY_INDEX_DB = OPENCLAW_HOME / "agents" / "main" / "agent" / "openclaw-agent.sqlite"
-# The npm/pnpm install, which is a different root from the state home.
-INSTALL_DIR = Path("/root/.local/share/pnpm/global/5/node_modules/openclaw")
 
 
-def is_installed() -> bool:
+def is_installed(paths: OpenClawPaths | None = None) -> bool:
     """Whether this runtime is present on this host.
 
     Callers ask the capability question — "is there a runtime here?" — rather
@@ -369,4 +439,4 @@ def is_installed() -> bool:
     answer False, which is what lets an operator check skip cleanly instead of
     reporting a fault that only means "not this machine".
     """
-    return Path(OPENCLAW_BIN).exists()
+    return Path((paths or runtime_paths()).binary).exists()
