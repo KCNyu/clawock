@@ -28,6 +28,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2] / 'scripts' / 'data')
 # in. Reached through the scripts/data/workspace shim until #267 step 3,
 # whose only remaining job was inserting this path as a side effect.
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
 from clawock.workspace import workspace_root  # noqa: E402
 
 # Code lives in the checkout; only DATA lives in the workspace. `workspace_root`
@@ -39,7 +40,7 @@ WS = workspace_root(Path(__file__).resolve().parents[2])
 LOG = WS / 'logs' / 'watchdog.jsonl'
 HKT = timezone(timedelta(hours=8))
 # The binary path, the cron CLI call and the cron-state fallback chain moved
-# into clawock/providers/openclaw.py so this module stops being the largest
+# into src/clawock/providers/openclaw.py so this module stops being the largest
 # consumer that knows which runtime it is on — and so the chain is reachable
 # from an installation, which it was not while it lived in this file: the wheel
 # ships `clawock`, not `scripts/harness`. The OPENCLAW_BIN re-export retired with
@@ -54,6 +55,7 @@ HKT = timezone(timedelta(hours=8))
 # watchdog — the backstop that exists to notice a missing report goes missing
 # first, and the crontab entry only logs a traceback.
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
 from clawock.providers import openclaw as _openclaw  # noqa: E402
 from clawock.providers.openclaw import (  # noqa: E402
     cron_cli_json as _adapter_cron_json, runtime_paths as _openclaw_paths,
@@ -64,7 +66,7 @@ from clawock.providers.openclaw import (  # noqa: E402
 # `Path('/root/.openclaw')`, which made it one of the ten sites that know which
 # runtime they are on. Deriving it from the adapter's selected runtime is the
 # fix the ratchet is asking for — not a relocated string, because
-# `clawock/providers/` is the one place where knowing is correct and is already
+# `src/clawock/providers/` is the one place where knowing is correct and is already
 # this module's source for runtime paths and the cron chain.
 SESSIONS_DIR = _openclaw_paths().sessions_dir
 

@@ -48,6 +48,7 @@ DASHBOARD = ROOT / "assets" / "data" / "dashboard.json"
 # Import time, not fixture time: collection imports the test modules, which
 # import `scripts.data.validate_sidecars`, which imports `workspace` by bare
 # name. See the module docstring.
+sys.path.insert(0, str(ROOT / "src"))
 sys.path.insert(0, str(ROOT / "scripts" / "data"))
 
 

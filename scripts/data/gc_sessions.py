@@ -28,6 +28,7 @@ from pathlib import Path
 
 _REPO_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(_REPO_ROOT))
+sys.path.insert(0, str(_REPO_ROOT / "src"))
 from clawock.providers.openclaw import runtime_paths  # noqa: E402
 
 _OPENCLAW_PATHS = runtime_paths()

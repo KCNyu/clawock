@@ -32,12 +32,14 @@ from pathlib import Path
 # in. Reached through the scripts/data/workspace shim until #267 step 3,
 # whose only remaining job was inserting this path as a side effect.
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
 from clawock.workspace import workspace_root  # noqa: E402
 
 ROOT = workspace_root(Path(__file__).resolve().parents[2])
 # The checkout root, so `clawock` is importable regardless of where WS points
 # (#265, #313).
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
 
 from clawock.publish import GitBranchStore, GitHubDispatchDeployer  # noqa: E402
 from dashboard_outputs import DASHBOARD_OUTPUTS  # noqa: E402

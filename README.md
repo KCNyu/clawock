@@ -275,7 +275,7 @@ clawock/
 │   └─ *_review.json  guardrail_history.jsonl                          ← factor / setup scorecards + what the caps flagged
 ├─ portfolio.json                           ← single source of truth (atomic writes)
 ├─ tests/                                    ← decision-v2 + money-conservation regression gates
-├─ clawock/                                  ← portable harness contracts · context · CLI · providers
+├─ src/clawock/                              ← portable harness contracts · context · CLI · providers
 ├─ MEMORY.md  DREAMS.md                      ← iron rules + nightly "dreaming" promotion
 ├─ memory/
 │   ├─ {date}-pre-open.md  {date}-plan.json  ← brief output + structured plan

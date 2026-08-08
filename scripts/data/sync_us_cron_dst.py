@@ -18,6 +18,7 @@ from pathlib import Path
 # in. Reached through the scripts/data/workspace shim until #267 step 3,
 # whose only remaining job was inserting this path as a side effect.
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
 from clawock.workspace import workspace_root  # noqa: E402
 
 # Code lives in the checkout; only DATA lives in the workspace. `workspace_root`
@@ -44,6 +45,7 @@ from _watchdog_common import load_jobs  # noqa: E402
 # The CHECKOUT root, not WS: `workspace_root` is overridable, so WS can be a
 # data directory with no `clawock` package in it.
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
 from clawock.providers.openclaw import build_cron_edit_argv  # noqa: E402
 
 def parse_at(value: str | None) -> datetime:

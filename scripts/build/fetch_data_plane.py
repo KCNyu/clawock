@@ -34,6 +34,7 @@ ROOT = Path(__file__).resolve().parents[2]
 # on the live host, so an import that resolves only because some other module
 # widened sys.path first is a side effect, not a dependency (#265).
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
 sys.path.insert(0, str(ROOT / "scripts" / "data"))
 
 from clawock.publish import GitBranchStore  # noqa: E402

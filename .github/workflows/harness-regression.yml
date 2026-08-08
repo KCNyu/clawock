@@ -5,6 +5,8 @@ on:
     branches: [master]
     paths:
       - 'scripts/**'
+      - 'src/**'
+      - 'pyproject.toml'
       - 'tests/**'
       - 'assets/css/**'
       - 'assets/js/**'
@@ -120,7 +122,7 @@ jobs:
           while IFS= read -r f; do
             [ -n "$f" ] || continue
             case "$f" in
-              scripts/*|tests/*|portfolio.json|memory/*-plan.json|memory/theses/*|memory/earnings/*|memory/entry-gates/*|assets/data/overview.json|assets/data/dashboard.json|config/*|docs/operations/cron-schedules.md|.github/workflows/*)
+              scripts/*|src/*|tests/*|pyproject.toml|portfolio.json|memory/*-plan.json|memory/theses/*|memory/earnings/*|memory/entry-gates/*|assets/data/overview.json|assets/data/dashboard.json|config/*|docs/operations/cron-schedules.md|.github/workflows/*)
                 code=true
                 break
                 ;;

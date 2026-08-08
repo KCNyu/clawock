@@ -46,6 +46,7 @@ import run_card  # noqa: E402  every backtest leaves evidence behind
 # in. Reached through the scripts/data/workspace shim until #267 step 3,
 # whose only remaining job was inserting this path as a side effect.
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
 from clawock.workspace import workspace_root  # noqa: E402
 
 WS = workspace_root(Path(__file__).resolve().parent.parent.parent)

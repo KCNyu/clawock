@@ -8,7 +8,7 @@ python3 scripts/data/entry_gate.py validate memory/entry-gates/<TICKER>-<date>.j
 python3 scripts/data/entry_gate.py assess   memory/entry-gates/<TICKER>-<date>.json
 ```
 
-Shape: `config/entry_gate.schema.json`. Hard vetoes and their encoded industry
+Shape: `src/clawock/config/entry_gate.schema.json`. Hard vetoes and their encoded industry
 exceptions: `config/entry-gate-vetoes.json`. Workflow:
 `skills/entry-gate/SKILL.md`. A worked example lives in
 `tests/fixtures/entry-gates/`.
