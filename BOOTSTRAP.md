@@ -58,10 +58,10 @@ context.json 的决策/自进化字段，**必须用上**：
 
 ### B+. 研究生命周期（artifact 即真源）
 
-- **新标的建仓前先过研究闸**：`python3 scripts/data/entry_gate.py assess memory/entry-gates/{TICKER}-{date}.json`。
+- **新标的建仓前先过研究闸**：`clawock entry-gate assess memory/entry-gates/{TICKER}-{date}.json`。
   信息来源单薄只判 `gray_needs_evidence`（要写清缺什么证据），**不判死**；四条硬否决先于任何计分结算，行业例外只认 `config/entry-gate-vetoes.json` 里按板块写好的那几条。
 - **财报结论只能来自 artifact**：走 `earnings-review` skill 写 `memory/earnings/{TICKER}/{period}.json`，盈利质量数字由 `earnings_review.py` 算出来再引用，别在报告里现编。缺一手文件就降级来源等级并禁用脚注类结论。
-- **thesis 状态只能由 registry 改**：`memory/theses/*.json` 是唯一 baseline；改动走 `thesis_registry.py drift`，每个 improved/weakened 维度必须附上次检查之后新观察到的 evidence ID。价格波动只能改估值，动不了生意/护城河/管理层。没有 baseline 就诚实报 `unknown`。
+- **thesis 状态只能由 registry 改**：`memory/theses/*.json` 是唯一 baseline；改动走 `clawock thesis drift`，每个 improved/weakened 维度必须附上次检查之后新观察到的 evidence ID。价格波动只能改估值，动不了生意/护城河/管理层。没有 baseline 就诚实报 `unknown`。
 - **对外数字两源**：长文里引用的数字走 `research_provenance.py` manifest（两个独立来源 + Decimal 精算），单源或超容差直接卡准出。
 - 每天的待办队列在 brief context 的 `research_surface`（该复盘的财报 / 逾期承诺 / 没过闸的仓位 / 失效 artifact）——简报要把它讲出来。节奏依据见 `docs/operations/research-cadence.md`。
 

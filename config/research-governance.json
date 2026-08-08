@@ -1,0 +1,8 @@
+{
+  "schema_version": 1,
+  "gate_required_from": "2026-07-27",
+  "default_review_window_days": 14,
+  "max_review_window_days": 45,
+  "stale_ledger_factor": 1.6,
+  "hk_results_notice_window_days": 45
+}

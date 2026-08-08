@@ -40,7 +40,14 @@ from zoneinfo import ZoneInfo
 
 from clawock.workspace import workspace_root
 from clawock import trading_calendar
-from clawock import brief_context, brief_decision_packet, decision_v2, risk_discipline
+from clawock import (
+    brief_context,
+    brief_decision_packet,
+    decision_v2,
+    research_surface,
+    risk_discipline,
+    thesis_registry,
+)
 
 WS = workspace_root(Path.cwd())
 _CHECKOUT = WS
@@ -48,13 +55,23 @@ TMP_DIR = WS / 'memory' / '.tmp'
 SNAPSHOT_DIR = WS / 'memory' / 'snapshots'
 
 sys.path.insert(0, str(_CHECKOUT / 'scripts' / 'data'))
-import thesis_registry  # noqa: E402
-import research_surface  # noqa: E402
 import peer_scan  # noqa: E402
 import workflow_outcomes  # noqa: E402
+import mover_news  # noqa: E402
 from clawock.instrument_registry import get as get_instrument  # noqa: E402
 from clawock.instrument_registry import compute_lookthrough_exposure  # noqa: E402
 from clawock.instrument_registry import one_x_swap_map  # noqa: E402
+
+
+def _fetch_hk_results_notices(ticker):
+    """KCNyu's free HK notice feed; core only consumes injected records."""
+    symbol = mover_news.tencent_symbol(ticker, "hk")
+    if not symbol:
+        return []
+    payload = mover_news._http_json(
+        f"{mover_news.TENCENT_NEWS}?symbol={symbol}&n=20&page=1&type=0"
+    )
+    return ((payload or {}).get("data") or {}).get("data") or []
 
 
 def _run(script, args=None, timeout=120):
@@ -1800,7 +1817,10 @@ def main(argv=None):
     # hk_watch costs two Tencent calls a day (HK operating companies only) and is
     # the only advance warning we have that HK results are near — see issue #99.
     research_surface_ctx = research_surface.summarize(
-        portfolio=portfolio, catalysts=catalysts, hk_watch=True,
+        portfolio=portfolio,
+        catalysts=catalysts,
+        hk_watch=True,
+        hk_results_fetch=_fetch_hk_results_notices,
     )
 
     context = {

@@ -7,13 +7,11 @@ non-existent-card case, and the real repository staying green.
 Run: python3 -m pytest tests/test_claim_provenance.py -q
 """
 import json
-import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT / "scripts" / "data"))
 
-import claim_provenance as cp  # noqa: E402
+from clawock import claim_provenance as cp
 
 
 def _workspace(tmp_path, prose, metrics, run_id="fixture-20260802-abcdef12"):
@@ -29,11 +27,11 @@ def _workspace(tmp_path, prose, metrics, run_id="fixture-20260802-abcdef12"):
 def _check(root):
     return cp.check(root=root,
                     cards_dir=root / "memory" / "backtests",
-                    allowlist=root / "config" / "claim-allowlist.json")
+                    allowlist=root / "config" / "claim-allowlist.json",
+                    scanned=("scripts/data/compute_regime.py",))
 
 
-def test_a_claim_whose_card_says_something_else_fails(tmp_path, monkeypatch):
-    monkeypatch.setattr(cp, "SCANNED", ("scripts/data/compute_regime.py",))
+def test_a_claim_whose_card_says_something_else_fails(tmp_path):
     root = _workspace(
         tmp_path,
         prose='"""Evidence: run card fixture-20260802-abcdef12.\nmaxDD -55.5%\n"""\n',
@@ -44,8 +42,7 @@ def test_a_claim_whose_card_says_something_else_fails(tmp_path, monkeypatch):
     assert problems and "no cited run card contains" in problems[0]
 
 
-def test_the_same_claim_passes_when_the_card_agrees(tmp_path, monkeypatch):
-    monkeypatch.setattr(cp, "SCANNED", ("scripts/data/compute_regime.py",))
+def test_the_same_claim_passes_when_the_card_agrees(tmp_path):
     root = _workspace(
         tmp_path,
         prose='"""Evidence: run card fixture-20260802-abcdef12.\nmaxDD -91.6%\n"""\n',
@@ -54,8 +51,7 @@ def test_the_same_claim_passes_when_the_card_agrees(tmp_path, monkeypatch):
     assert _check(root) == []
 
 
-def test_citing_a_card_that_does_not_exist_fails(tmp_path, monkeypatch):
-    monkeypatch.setattr(cp, "SCANNED", ("scripts/data/compute_regime.py",))
+def test_citing_a_card_that_does_not_exist_fails(tmp_path):
     root = _workspace(
         tmp_path,
         prose='"""Evidence: run card fixture-20260802-99999999.\nmaxDD -91.6%\n"""\n',
@@ -67,11 +63,10 @@ def test_citing_a_card_that_does_not_exist_fails(tmp_path, monkeypatch):
 
 
 def test_the_allowlist_exempts_a_figure_quoted_in_order_to_correct_it(
-        tmp_path, monkeypatch):
+        tmp_path):
     """`compute_regime` quotes the superseded -95%/-44% framing precisely to
     retire it. Corrective prose must stay legal, and the mechanism has to be
     tested rather than assumed."""
-    monkeypatch.setattr(cp, "SCANNED", ("scripts/data/compute_regime.py",))
     root = _workspace(
         tmp_path,
         prose='"""Evidence: run card fixture-20260802-abcdef12.\n'

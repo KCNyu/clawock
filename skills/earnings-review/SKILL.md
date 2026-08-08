@@ -1,6 +1,6 @@
 ---
 name: earnings-review
-description: Manual, event-driven earnings review for a US or HK holding, backed by first-party filings. Use when a company reports, when a management promise comes due, or when a thesis review needs primary-source numbers. Produces a structured artifact under memory/earnings/<TICKER>/<period>.json whose earnings-quality math, promise ledger, and thesis evidence are computed by scripts/data/earnings_review.py — not by prose. Never places trades and never changes thesis state.
+description: Manual, event-driven earnings review for a US or HK holding, backed by first-party filings. Use when a company reports, when a management promise comes due, or when a thesis review needs primary-source numbers. Produces a structured artifact under memory/earnings/<TICKER>/<period>.json whose earnings-quality math, promise ledger, and thesis evidence are computed by the packaged clawock earnings command — not by prose. Never places trades and never changes thesis state.
 ---
 
 # Earnings Review
@@ -14,7 +14,7 @@ Markdown you write afterwards is a rendering of that file.
 
 ## What the code owns and what you own
 
-| Owned by `scripts/data/earnings_review.py` | Owned by you |
+| Owned by `clawock earnings` | Owned by you |
 |---|---|
 | Source grade `A/B/C` and whether footnote claims are allowed | Reading the filing and paraphrasing what it says |
 | Cash conversion, FCF, working-capital gaps, dilution, SBC share, margins | Choosing which segments and footnotes matter |
@@ -57,7 +57,7 @@ Carry the previous period's ledger forward; a promise may never be dropped, and
 `met/partial/missed` are terminal.
 
 ```bash
-python3 scripts/data/earnings_review.py promises \
+clawock earnings promises \
   memory/earnings/TICKER/<previous>.json memory/earnings/TICKER/<current>.json
 ```
 
@@ -73,8 +73,8 @@ Every published number needs two independent sources in `provenance` (see
 any number is single-sourced or the two sources disagree beyond tolerance.
 
 ```bash
-python3 scripts/data/earnings_review.py validate memory/earnings/TICKER/<period>.json
-python3 scripts/data/earnings_review.py review   memory/earnings/TICKER/<period>.json
+clawock earnings validate memory/earnings/TICKER/<period>.json
+clawock earnings review   memory/earnings/TICKER/<period>.json
 ```
 
 `review` prints the source grade, the provenance verdict, the quality metrics and
@@ -84,7 +84,7 @@ artifact, do not narrate around it.
 ## Step 5 — hand evidence to the thesis, not a verdict
 
 ```bash
-python3 scripts/data/earnings_review.py thesis-evidence memory/earnings/TICKER/<period>.json
+clawock earnings thesis-evidence memory/earnings/TICKER/<period>.json
 ```
 
 This emits `evidence[]` rows in the thesis registry's shape plus
@@ -93,7 +93,7 @@ thesis, append these evidence rows to a new version of
 `memory/theses/<thesis-id>.json` and run the registry's own drift evaluator:
 
 ```bash
-python3 scripts/data/thesis_registry.py drift old.json new.json
+clawock thesis drift old.json new.json
 ```
 
 The registry re-checks freshness itself and will reject a dimension change that

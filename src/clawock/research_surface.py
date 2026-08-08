@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """What the recurring paths need to know about the research lifecycle.
 
 The entry gate, earnings ledger and thesis registry each own an artifact
@@ -25,33 +24,49 @@ from datetime import date, datetime, time, timedelta, timezone
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
-# The checkout root, so `clawock` resolves from the tree this file ships
-# in. Reached through the scripts/data/workspace shim until #267 step 3,
-# whose only remaining job was inserting this path as a side effect.
-sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
-sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
-from clawock.workspace import workspace_root  # noqa: E402
+from clawock import earnings_review, entry_gate, instrument_registry, thesis_registry
+from clawock.workspace import workspace_root
 
-# Code lives in the checkout; only DATA lives in the workspace. `workspace_root`
-# is overridable, so resolving our own modules through WS would read them out of
-# someone else's data directory — or silently pick up whatever happens to be
-# there. Same expression WS is seeded from, kept separate on purpose (#269).
-_CHECKOUT = Path(__file__).resolve().parents[2]
-WS = workspace_root(Path(__file__).resolve().parents[2])
+WS = workspace_root(Path.cwd())
 THESIS_DIR = WS / "memory" / "theses"
 EARNINGS_DIR = WS / "memory" / "earnings"
 ENTRY_GATE_DIR = WS / "memory" / "entry-gates"
 PORTFOLIO = WS / "portfolio.json"
 CATALYSTS = WS / "assets" / "data" / "catalysts.json"
 
-sys.path.insert(0, str(_CHECKOUT / "scripts" / "data"))
-import earnings_review  # noqa: E402
-import entry_gate  # noqa: E402
-import thesis_registry  # noqa: E402
+POLICY_FILE = WS / "config" / "research-governance.json"
 
-# The entry gate shipped on 2026-07-26. Positions opened before it existed are not
-# retroactively ungated; anything opened from this date on needs an artifact.
-GATE_REQUIRED_FROM = date(2026, 7, 27)
+
+def load_policy(path: Path = POLICY_FILE) -> dict:
+    """Load deployment cadence without baking one desk's cutover date into code."""
+    defaults = {
+        "gate_required_from": "0001-01-01",
+        "default_review_window_days": 14,
+        "max_review_window_days": 45,
+        "stale_ledger_factor": 1.6,
+        "hk_results_notice_window_days": 45,
+    }
+    if not path.exists():
+        return defaults
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    if not isinstance(payload, dict) or payload.get("schema_version") != 1:
+        raise ValueError(f"{path} must declare schema_version 1")
+    merged = {**defaults, **{key: payload[key] for key in defaults if key in payload}}
+    date.fromisoformat(str(merged["gate_required_from"]))
+    for key in (
+        "default_review_window_days", "max_review_window_days",
+        "hk_results_notice_window_days",
+    ):
+        if not isinstance(merged[key], int) or merged[key] < 1:
+            raise ValueError(f"{path}: {key} must be a positive integer")
+    if not isinstance(merged["stale_ledger_factor"], (int, float)) \
+            or merged["stale_ledger_factor"] <= 0:
+        raise ValueError(f"{path}: stale_ledger_factor must be positive")
+    return merged
+
+
+POLICY = load_policy()
+GATE_REQUIRED_FROM = date.fromisoformat(POLICY["gate_required_from"])
 # Cadence, decided deliberately (see docs/operations/research-cadence.md):
 #
 # * `reviews_due` is detected from `assets/data/catalysts.json`, which the brief
@@ -62,12 +77,12 @@ GATE_REQUIRED_FROM = date(2026, 7, 27)
 #   all: it compares the newest artifact's period end against the issuer's own
 #   reporting cadence, so a ledger left behind for a whole period keeps surfacing
 #   long after the catalyst rotated out.
-DEFAULT_REVIEW_WINDOW_DAYS = 14
-MAX_REVIEW_WINDOW_DAYS = 45
+DEFAULT_REVIEW_WINDOW_DAYS = POLICY["default_review_window_days"]
+MAX_REVIEW_WINDOW_DAYS = POLICY["max_review_window_days"]
 CADENCE_DAYS = {"quarterly": 92, "semiannual": 183, "annual": 366}
 # 1.6 periods: one full period late is a miss, but a late filing inside the normal
 # reporting lag must not be called stale.
-STALE_LEDGER_FACTOR = 1.6
+STALE_LEDGER_FACTOR = float(POLICY["stale_ledger_factor"])
 
 # `fetch_catalysts` currently sources the earnings calendar for US-listed
 # issuers. Calendar dates and BMO/AMC labels therefore belong to New York time,
@@ -174,20 +189,14 @@ def review_window_days(catalysts) -> int:
 def earnings_issuers(positions) -> dict:
     """Held ticker → the issuer whose earnings moves it.
 
-    A catalyst arrives under the company's name (MSFT), while the position is the
-    fund that tracks it (MSFU). Matching on the held ticker alone silently misses
-    every earnings review for the leveraged sleeve.
+    A catalyst can arrive under an issuer's name while the held position is a fund
+    that tracks it. Matching on the held ticker alone silently misses every
+    earnings review for the leveraged sleeve.
     """
-    try:
-        import fetch_catalysts  # noqa: PLC0415
-
-        resolve = fetch_catalysts.earnings_issuer
-    except Exception:  # noqa: BLE001
-        return {position["ticker"]: position["ticker"] for position in positions}
     out = {}
     for position in positions:
         ticker = position["ticker"]
-        issuer = resolve(ticker)
+        issuer = instrument_registry.issuer_for(ticker) or ticker
         if issuer:
             out[ticker] = issuer
     return out
@@ -252,12 +261,10 @@ def earnings_reviews_due(
     return sorted(due, key=lambda row: (row["ticker"], row["reported_on"]))
 
 
-# HK issuers announce a board meeting before publishing results — for 00100 the
-# notice led the annual results by about three weeks. It is the only free advance
-# signal found (see issue #99: no free HK results calendar exists, and the notice
-# row carries no meeting date), so this says "results are near", never a date.
+# Some HK issuers announce a board meeting before publishing results. The notice
+# carries no reliable release date, so this says "results are near", never a date.
 HK_BOARD_MEETING_PATTERN = "董事会会议"
-HK_RESULTS_NOTICE_WINDOW_DAYS = 45
+HK_RESULTS_NOTICE_WINDOW_DAYS = POLICY["hk_results_notice_window_days"]
 
 
 def hk_results_expected(positions, today: date, *, artifacts=None, fetch=None) -> list[dict]:
@@ -267,19 +274,7 @@ def hk_results_expected(positions, today: date, *, artifacts=None, fetch=None) -
     if not hk:
         return []
     if fetch is None:
-        try:
-            import mover_news  # noqa: PLC0415
-
-            def fetch(ticker):
-                symbol = mover_news.tencent_symbol(ticker, "hk")
-                if not symbol:
-                    return []
-                payload = mover_news._http_json(
-                    f"{mover_news.TENCENT_NEWS}?symbol={symbol}&n=20&page=1&type=0"
-                )
-                return ((payload or {}).get("data") or {}).get("data") or []
-        except Exception:  # noqa: BLE001
-            return []
+        return []
     out = []
     for position in hk:
         ticker = position["ticker"]
@@ -459,7 +454,8 @@ def movers_thesis_context(tickers, *, now=None, thesis_dir=THESIS_DIR,
 
 def summarize(*, portfolio=None, catalysts=None, today=None, now=None,
               thesis_dir=THESIS_DIR, earnings_dir=EARNINGS_DIR,
-              entry_gate_dir=ENTRY_GATE_DIR, hk_watch=False) -> dict:
+              entry_gate_dir=ENTRY_GATE_DIR, hk_watch=False,
+              hk_results_fetch=None) -> dict:
     """The compact block the daily brief context carries."""
     now = now or datetime.now(timezone.utc)
     today = today or now.date()
@@ -477,7 +473,11 @@ def summarize(*, portfolio=None, catalysts=None, today=None, now=None,
 
     due = earnings_reviews_due(positions, catalysts, earnings, today, now=now)
     stale = stale_ledgers(positions, earnings, today)
-    hk_expected = hk_results_expected(positions, today, artifacts=earnings) if hk_watch else []
+    hk_expected = (
+        hk_results_expected(
+            positions, today, artifacts=earnings, fetch=hk_results_fetch
+        ) if hk_watch else []
+    )
     overdue = overdue_commitments(earnings, today)
     ungated = ungated_positions(positions, gates)
     verdicts: dict[str, int] = {}

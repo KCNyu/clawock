@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Canonical investment-thesis registry and evidence-only drift evaluator."""
 from __future__ import annotations
 
@@ -9,14 +8,9 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
-# The checkout root, so `clawock` resolves from the tree this file ships
-# in. Reached through the scripts/data/workspace shim until #267 step 3,
-# whose only remaining job was inserting this path as a side effect.
-sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
-sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
-from clawock.workspace import engine_config, workspace_root  # noqa: E402
+from clawock.workspace import engine_config, workspace_root
 
-WS = workspace_root(Path(__file__).resolve().parents[2])
+WS = workspace_root(Path.cwd())
 SCHEMA_FILE = engine_config("thesis.schema.json")
 SCHEMA_VERSION = 1
 THESIS_STATES = ("unknown", "broken", "damaged", "weakening", "intact")

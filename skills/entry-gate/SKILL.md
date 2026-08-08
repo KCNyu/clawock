@@ -1,6 +1,6 @@
 ---
 name: entry-gate
-description: Pre-investment screening gate for a name that is not yet researched or held. Use before spending a deep-research run or opening new exposure, to answer only "is this understandable and researchable enough to proceed?". Grades information richness separately from investment quality, applies deterministic hard vetoes from config/entry-gate-vetoes.json, and returns pass_to_deep_research / reject / gray_needs_evidence via scripts/data/entry_gate.py. Recommends research; never sizes or places a trade.
+description: Pre-investment screening gate for a name that is not yet researched or held. Use before spending a deep-research run or opening new exposure, to answer only "is this understandable and researchable enough to proceed?". Grades information richness separately from investment quality, applies deterministic hard vetoes from config/entry-gate-vetoes.json, and returns pass_to_deep_research / reject / gray_needs_evidence via the packaged clawock entry-gate command. Recommends research; never sizes or places a trade.
 ---
 
 # Entry Gate
@@ -79,8 +79,8 @@ Exactly five distinct sentences: what it does, why it earns, what must stay true
 what would break it, and what you would do then.
 
 ```bash
-python3 scripts/data/entry_gate.py validate memory/entry-gates/<TICKER>-<date>.json
-python3 scripts/data/entry_gate.py assess   memory/entry-gates/<TICKER>-<date>.json
+clawock entry-gate validate memory/entry-gates/<TICKER>-<date>.json
+clawock entry-gate assess   memory/entry-gates/<TICKER>-<date>.json
 ```
 
 - `pass_to_deep_research` → go run `us-stock-analysis` / `hk-stock-analysis`
