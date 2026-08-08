@@ -82,7 +82,7 @@ def thesis(ticker="TEST", thesis_id="test-core"):
 
 def test_canonical_schema_and_validator_exist():
     schema = json.loads(tr.SCHEMA_FILE.read_text())
-    assert tr.SCHEMA_FILE == ROOT / "config" / "thesis.schema.json"
+    assert tr.SCHEMA_FILE == ROOT / "src" / "clawock" / "config" / "thesis.schema.json"
     assert schema["$schema"].endswith("2020-12/schema")
     assert set(schema["properties"]["dimensions"]["required"]) == set(tr.DIMENSIONS)
     assert tr.validate_thesis(thesis(), now=NOW) == []

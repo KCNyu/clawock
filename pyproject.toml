@@ -56,6 +56,7 @@ include = ["clawock*"]
 [tool.setuptools.package-data]
 clawock = [
     "context_manifest.json",
+    "config/*.schema.json",
     "workflows/packs/*/*.json",
     "workflows/packs/*/*.md",
     "workflows/packs/*/references/*.md",

@@ -27,8 +27,8 @@ REQUIRED = ("portfolio.json", "config/instruments.json")
 def engine_config(name: str) -> Path:
     """A config file that ships with the ENGINE rather than with a book (#356).
 
-    `config/` holds two different kinds of thing, and conflating them is what
-    made a foreign workspace unable to start:
+    The old repository-root `config/` held two different kinds of thing, and
+    conflating them is what made a foreign workspace unable to start:
 
     * **schemas** — `instruments.schema.json` and friends describe the FORMAT.
       Every book uses the identical file, so requiring each one to carry a copy
@@ -37,11 +37,12 @@ def engine_config(name: str) -> Path:
       `entry-gate-vetoes.json`. These are the user's content and stay in the
       workspace, where absence means "not configured yet", not "engine broken".
 
-    Schemas resolve here, from the checkout this module ships in. Deliberately
-    NOT workspace-first-with-fallback: a fallback would silently apply this
-    repository's data to someone else's book, which is worse than a clear error.
+    Schemas resolve from package data, so a wheel and a source checkout use the
+    same product-owned contract. Deliberately NOT workspace-first-with-fallback:
+    a fallback would silently apply one user's data to someone else's book,
+    which is worse than a clear error.
     """
-    return Path(__file__).resolve().parents[1] / "config" / name
+    return Path(__file__).resolve().parent / "config" / name
 
 
 def workspace_root(default: Path | str | None = None) -> Path:

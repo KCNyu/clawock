@@ -92,6 +92,10 @@ def test_every_module_imports_from_a_non_editable_install(tmp_path):
          "import importlib, sys\n"
          "for name in sys.argv[1:]:\n"
          "    importlib.import_module(name)\n"
+         "from clawock.workspace import engine_config\n"
+         "for schema in ('earnings_review.schema.json', 'entry_gate.schema.json', "
+         "'instruments.schema.json', 'thesis.schema.json'):\n"
+         "    assert engine_config(schema).is_file(), engine_config(schema)\n"
          "print('ok')"] + modules,
         cwd=tmp_path,
         env={"PYTHONPATH": str(site), "PATH": "/usr/bin:/bin",
