@@ -22,6 +22,7 @@ from pathlib import Path
 # Resolve the package from the checkout this adapter ships in, not from an
 # ambient PYTHONPATH inherited from whichever runtime imported it.
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
 from clawock.workspace import workspace_root
 
 

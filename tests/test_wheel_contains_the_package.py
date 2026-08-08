@@ -13,7 +13,7 @@ where to point a test:
   the source tree on `sys.path`, so the wheel's contents never matter in CI;
 * the live host does not install the package at all — it reaches the source
   through `sys.path` inserts;
-* `test_package_surface.py` reads `clawock/*.py` in the source tree, and
+* `test_package_surface.py` reads `src/clawock/*.py` in the source tree, and
   `test_report_core_is_independent.py` proves independence with
   `PYTHONPATH=<repo root>` — also the source tree. Both assert things about code
   we did not ship.
@@ -40,12 +40,12 @@ BUILD_INPUTS = ("pyproject.toml", "README.md", "LICENSE", "NOTICE")
 
 
 def _modules_in_source() -> set[str]:
-    """Importable dotted names for every module under clawock/ in the checkout."""
+    """Importable dotted names for every module under src/clawock/."""
     names = set()
-    for path in sorted((ROOT / "clawock").rglob("*.py")):
+    for path in sorted((ROOT / "src" / "clawock").rglob("*.py")):
         if "__pycache__" in path.parts:
             continue
-        rel = path.relative_to(ROOT).with_suffix("")
+        rel = path.relative_to(ROOT / "src").with_suffix("")
         parts = list(rel.parts)
         if parts[-1] == "__init__":
             parts.pop()
@@ -56,7 +56,7 @@ def _modules_in_source() -> set[str]:
 def test_every_module_imports_from_a_non_editable_install(tmp_path):
     source = tmp_path / "src"
     source.mkdir()
-    shutil.copytree(ROOT / "clawock", source / "clawock",
+    shutil.copytree(ROOT / "src" / "clawock", source / "src" / "clawock",
                     ignore=shutil.ignore_patterns("__pycache__"))
     for name in BUILD_INPUTS:
         origin = ROOT / name

@@ -22,6 +22,7 @@ from typing import Callable
 # in. Reached through the scripts/data/workspace shim until #267 step 3,
 # whose only remaining job was inserting this path as a side effect.
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
 from clawock.workspace import workspace_root  # noqa: E402
 
 # Code lives in the checkout; only DATA lives in the workspace. `workspace_root`
@@ -34,12 +35,13 @@ sys.path.insert(0, str(_CHECKOUT / "scripts" / "data"))
 # The runtime's cron command line and the strict read both live in the adapter
 # (#330 step 2). This file decides WHAT to change; how that reaches OpenClaw is
 # not its business, and spelling the argv out here was what made it one of the
-# two places outside clawock/providers/ that had to know the runtime.
+# two places outside src/clawock/providers/ that had to know the runtime.
 #
 # The CHECKOUT root, not WS: `workspace_root` is overridable, so WS can be
 # someone else's data directory with no `clawock` package in it. The import has
 # to resolve against the tree this file ships in.
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
 
 from cron_contract import (  # noqa: E402
     effective_schedule,

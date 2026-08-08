@@ -65,7 +65,7 @@ def test_the_two_roots_actually_diverge_under_the_override(tmp_path):
     env = dict(os.environ, CLAWOCK_WORKSPACE=str(foreign))
     probe = subprocess.run(
         [sys.executable, "-c",
-         f"import sys; sys.path.insert(0, {str(ROOT)!r})\n"
+         f"import sys; sys.path.insert(0, {str(ROOT / 'src')!r})\n"
          "from pathlib import Path\n"
          # The package, not the scripts/data shim that used to re-export it (#267).
          "from clawock.workspace import workspace_root\n"

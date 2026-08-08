@@ -13,7 +13,7 @@ every PR while still catching that exact class.
 
 It did not catch the recurrence. `clawock.providers` and `clawock.tools` were
 missing from every wheel built after they were added, and this file could not see
-it: the scan globbed `clawock/*.py`, top level only, and the declaration check
+it: the scan globbed `src/clawock/*.py`, top level only, and the declaration check
 read the package list rather than the artifact. `tests/test_wheel_contains_the_
 package.py` now builds and imports the real thing; these checks stay for the
 cheap, fast signal, corrected to walk the whole package.
@@ -24,7 +24,7 @@ import tomllib
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-PKG = ROOT / "clawock"
+PKG = ROOT / "src" / "clawock"
 
 
 def _first_party_imports(path: Path) -> set[str]:

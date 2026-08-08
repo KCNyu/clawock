@@ -1,4 +1,4 @@
-# Product vs instance: what belongs in `clawock/`, what stays in `scripts/`
+# Product vs instance: what belongs in `src/clawock/`, what stays instance-owned
 
 kcn's definition of done for this repository:
 
@@ -19,7 +19,7 @@ Ask one question about a module:
 
 > **Would someone running clawock against their own book need this, unchanged?**
 
-- **Yes → product.** It belongs in `clawock/`: importable, no assumption about
+- **Yes → product.** It belongs in `src/clawock/`: importable, no assumption about
   where the workspace is, no knowledge of which runtime or which repository it is
   deployed into. Prices, ledger schema, risk math, validation gates, the decision
   contract.
@@ -37,7 +37,7 @@ holds 000217, and nobody else's book has that position by construction.
 **Knowing a runtime is instance, even when the code is generic.** Anything that
 spawns OpenClaw, writes its schedule, reads its state, or targets this
 repository's Pages/branches is instance no matter how cleanly it is written. That
-is the same boundary the runtime-coupling ratchet counts, and `clawock/providers/`
+is the same boundary the runtime-coupling ratchet counts, and `src/clawock/providers/`
 is the one place allowed to cross it.
 
 ## What this rule is not
@@ -52,7 +52,9 @@ classification says where a file belongs, not that it has arrived.
 
 ## Classification
 
-87 files, 35,649 lines in `scripts/data/`. `clawock/` holds 2,050.
+The package now has a standard `src/clawock/` source boundary. The historical
+counts below describe the still-unmoved `scripts/data/` migration inventory;
+they are not a claim that `scripts/` is an acceptable final product home.
 
 Counts: **product 60 · instance 27**.
 
@@ -118,7 +120,7 @@ Four calls are genuinely arguable, and a reviewer may reasonably move them:
 ## `scripts/harness/` — lifecycle vs live desk adapter
 
 The portable lifecycle vocabulary and generation-pinned `ArtifactSet` live in
-`clawock/harness/`; `clawock brief|report|intraday` dispatch phases in-process.
+`src/clawock/harness/`; `clawock brief|report|intraday` dispatch phases in-process.
 The scripts remain the kcn instance adapter during the strangler migration, so
 old direct invocations still work and OpenClaw behaviour does not change under a
 trading cron.

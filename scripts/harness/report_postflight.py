@@ -48,6 +48,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2] / 'scripts' / 'data')
 # in. Reached through the scripts/data/workspace shim until #267 step 3,
 # whose only remaining job was inserting this path as a side effect.
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
 from clawock.workspace import workspace_root  # noqa: E402
 
 # Code lives in the checkout; only DATA lives in the workspace. `workspace_root`
@@ -71,6 +72,7 @@ import workflow_outcomes  # noqa: E402
 # data, not our package. Identical to the old line whenever the override is unset,
 # i.e. on every live run, and correct when it is set.
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
 # Only what this module uses. The four names it merely re-exported
 # (CRITICAL_KEYWORDS, FORBIDDEN_PHRASES, REQUIRED_SECTIONS, _is_hard_char_limit)
 # retired with #267: nothing outside imported them through here, so they were an

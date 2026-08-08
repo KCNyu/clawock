@@ -25,7 +25,7 @@ def test_cli_dispatches_a_preflight_in_process(monkeypatch):
 
 
 def test_runner_contains_no_subprocess_calls():
-    path = Path(__file__).resolve().parents[1] / "clawock/harness/runner.py"
+    path = Path(__file__).resolve().parents[1] / "src/clawock/harness/runner.py"
     tree = ast.parse(path.read_text())
     assert not any(isinstance(node, (ast.Import, ast.ImportFrom)) and
                    ((isinstance(node, ast.Import) and any(a.name == "subprocess" for a in node.names)) or

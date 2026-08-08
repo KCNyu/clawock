@@ -32,6 +32,7 @@ test = ["pytest>=8", "pytest-cov>=5", "numpy>=1.26", "Pillow>=10"]
 clawock = "clawock.cli:main"
 
 [tool.setuptools]
+package-dir = {"" = "src"}
 # The installable surface is the `clawock` package. It started as a single
 # py-module at the repo root, which built a wheel that crashed on import the
 # moment it was installed outside the source checkout: the module reached into
@@ -49,6 +50,7 @@ clawock = "clawock.cli:main"
 # next two PRs that obeyed it in spirit. A pattern brings a new subpackage in by
 # construction; a list brings it in only if someone remembers.
 [tool.setuptools.packages.find]
+where = ["src"]
 include = ["clawock*"]
 
 [tool.setuptools.package-data]

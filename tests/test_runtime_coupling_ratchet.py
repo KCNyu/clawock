@@ -42,7 +42,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 
 # Where knowing about OpenClaw is correct: that is what an adapter is for.
-ADAPTER = ROOT / "clawock" / "providers"
+ADAPTER = ROOT / "src" / "clawock" / "providers"
 
 RUNTIME = "openclaw"
 
@@ -214,7 +214,9 @@ def _sites_in(tree: ast.AST) -> list[int]:
 def coupling_sites() -> dict[str, list[int]]:
     """Files outside the adapter that invoke OpenClaw or read its state."""
     sites: dict[str, list[int]] = {}
-    for path in sorted(ROOT.glob("scripts/**/*.py")) + sorted(ROOT.glob("clawock/**/*.py")):
+    for path in sorted(ROOT.glob("scripts/**/*.py")) + sorted(
+        ROOT.glob("src/clawock/**/*.py")
+    ):
         if ADAPTER in path.parents:
             continue
         try:
@@ -358,6 +360,6 @@ def test_the_cron_writes_moved_rather_than_vanished():
 def test_the_adapter_is_exempt_because_that_is_what_an_adapter_is_for():
     sites = coupling_sites()
 
-    assert not [name for name in sites if name.startswith("clawock/providers/")]
+    assert not [name for name in sites if name.startswith("src/clawock/providers/")]
     # And the adapter must actually exist, or the exemption is hiding nothing.
     assert (ADAPTER / "delivery.py").exists()
