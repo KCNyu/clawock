@@ -15,9 +15,13 @@ never take down a market cron.
 from __future__ import annotations
 
 import json
+import sys
 from datetime import datetime
 from pathlib import Path
 
+# Resolve the package from the checkout this adapter ships in, not from an
+# ambient PYTHONPATH inherited from whichever runtime imported it.
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 from clawock.workspace import workspace_root
 
 
@@ -73,4 +77,3 @@ def for_movers(tickers, *, today=None, tmp_dir=None):
         return result
     except (OSError, ValueError, TypeError, AttributeError):
         return {}
-
