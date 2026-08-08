@@ -15,9 +15,11 @@ from .improvements import (
     rollback_change,
 )
 from .validators import validators_for
+from .schemas import DIALECTS, render_workflow_schema
 
 __all__ = [
     "WorkflowPack",
+    "DIALECTS",
     "apply_proposal",
     "create_proposal",
     "evaluate_files",
@@ -25,6 +27,7 @@ __all__ = [
     "list_workflows",
     "load_workflow",
     "review_proposal",
+    "render_workflow_schema",
     "rollback_change",
     "validators_for",
     "workflow_contract",

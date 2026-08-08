@@ -2,7 +2,11 @@
 import copy
 import json
 
-from clawock.workflows import load_workflow, validators_for
+from clawock.workflows import (
+    load_workflow,
+    render_workflow_schema,
+    validators_for,
+)
 
 
 def _example():
@@ -54,3 +58,28 @@ def test_order_and_fx_totals_are_reconciled_to_currency_cents():
 
     assert "gross_amount_mismatch" not in codes
     assert "fx_amount_mismatch" in codes
+
+
+def test_codex_schema_is_a_relaxed_projection_not_the_final_validator():
+    canonical = render_workflow_schema(
+        "investment-decision", "decision.json", dialect="canonical"
+    )
+    codex = render_workflow_schema(
+        "investment-decision", "decision.json", dialect="codex"
+    )
+    serialized = json.dumps(codex)
+
+    assert canonical["properties"]["decision"]["properties"][
+        "evidence_ids"
+    ]["uniqueItems"] is True
+    assert "uniqueItems" not in serialized
+    assert "minLength" not in serialized
+    assert "oneOf" not in serialized
+    assert '"const"' not in serialized
+    assert codex["properties"]["schema_version"]["enum"] == [1]
+    assert "anyOf" in codex["properties"]["decision"]["properties"]["order"]
+
+    # Relaxing the model-facing schema must not relax clawock's own gate.
+    invalid = _example()
+    invalid["decision"]["evidence_ids"] = ["filing-growth", "filing-growth"]
+    assert "duplicate_evidence_reference" in _codes(invalid)
