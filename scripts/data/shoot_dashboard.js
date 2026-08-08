@@ -215,9 +215,9 @@ function socialCardHTML(shotDataUri) {
   }
   .sub { font-size:18px; line-height:1.5; color:#5f6d79; font-weight:500; max-width:452px; }
   .sub b { color:#1e2831; font-weight:750; }
-  .proof { display:flex; align-items:center; gap:12px; margin-top:30px;
-    color:#4c5d6b; font:800 12px/1 ui-monospace,SFMono-Regular,Menlo,monospace;
-    letter-spacing:.14em; }
+  .proof { display:flex; align-items:center; gap:9px; margin-top:28px;
+    color:#4c5d6b; font:800 11px/1 ui-monospace,SFMono-Regular,Menlo,monospace;
+    letter-spacing:.1em; }
   .proof i { width:22px; height:1px; background:linear-gradient(90deg,#aeb9c3,#6ea0c6); }
   .repo { position:absolute; left:72px; bottom:38px; font-size:17px; font-weight:700;
     color:#334653; display:flex; align-items:center; gap:11px; }
@@ -247,10 +247,10 @@ function socialCardHTML(shotDataUri) {
       ${BRAND_MARK_SVG}
       <span class="name">clawock</span>
     </div>
-    <div class="eyebrow">AUTONOMOUS · MULTI-AGENT · REAL MONEY</div>
-    <h1>AI agents debate.<br><span class="hl">Code controls the risk.</span></h1>
-    <div class="sub">A real <b>HK + US portfolio</b>, where every call is settled on a public scorecard and <b>published unedited.</b></div>
-    <div class="proof"><span>DEBATE</span><i></i><span>GATE</span><i></i><span>GRADE</span></div>
+    <div class="eyebrow">DECISION WORKFLOWS · ANY AGENT · LIVE PROOF</div>
+    <h1>Install decision<br><span class="hl">intelligence into<br>any agent.</span></h1>
+    <div class="sub">Portable <b>evidence + opposition</b>, deterministic reconciliation, and outcome-linked improvement — proven on a real <b>HK + US desk.</b></div>
+    <div class="proof"><span>EVIDENCE</span><i></i><span>OPPOSE</span><i></i><span>RECONCILE</span><i></i><span>IMPROVE</span></div>
     <div class="repo">github.com/KCNyu/clawock</div>
   </div>
   <div class="shot"><div class="bar"><i></i><i></i><i></i><span class="address"></span></div><img src="${shotDataUri}" alt=""></div>
