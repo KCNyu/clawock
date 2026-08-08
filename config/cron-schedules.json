@@ -133,8 +133,8 @@
       "message_template": "config/cron-payloads/brief.md",
       "delivery_mode": "none",
       "required_substrings": [
-        "trading_calendar.py hk",
-        "trading_calendar.py us",
+        "/root/.local/bin/clawock calendar hk",
+        "/root/.local/bin/clawock calendar us",
         "skills/daily-deep-brief/SKILL.md",
         "并行调用 `read` 读取 `/root/.openclaw/workspace/skills/daily-deep-brief/SKILL.md` 与下方 Step 0 的两个休市闸命令",
         "skills catalog 只有索引，不含 SKILL.md 正文",
@@ -147,7 +147,8 @@
         "message"
       ],
       "forbidden_substrings": [
-        "唯一投递路径"
+        "唯一投递路径",
+        "trading_calendar.py"
       ]
     },
     "memory": {

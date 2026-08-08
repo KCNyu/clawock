@@ -150,6 +150,19 @@ def _doctor(args) -> int:
     return 1
 
 
+def _calendar(args) -> int:
+    """Run the package-owned HK/US session guard."""
+    from clawock.trading_calendar import main as calendar_main
+
+    forwarded = [args.market]
+    if args.date:
+        forwarded += ["--date", args.date]
+    if args.session != "full":
+        forwarded += ["--session", args.session]
+    if args.quiet:
+        forwarded.append("--quiet")
+    return calendar_main(forwarded)
+
 
 def _report(args) -> int:
     """Assemble and judge a market report, in-process.
@@ -430,6 +443,15 @@ def main(argv=None) -> int:
     doctor.add_argument("--workspace", type=Path, default=None)
     doctor.add_argument("--json", action="store_true")
     doctor.set_defaults(func=_doctor)
+
+    calendar = sub.add_parser(
+        "calendar", help="check whether an HK or US market session is open")
+    calendar.add_argument("market", choices=("hk", "us"))
+    calendar.add_argument("--date", help="YYYY-MM-DD; defaults to today in market TZ")
+    calendar.add_argument(
+        "--session", choices=("full", "morning", "afternoon"), default="full")
+    calendar.add_argument("--quiet", action="store_true")
+    calendar.set_defaults(func=_calendar)
 
     report = sub.add_parser(
         "report", help="assemble and validate a market report from a context file")

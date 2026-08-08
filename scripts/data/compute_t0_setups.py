@@ -53,7 +53,7 @@ except Exception:
     def safe_write_json(path, data, indent=2):
         Path(path).write_text(json.dumps(data, ensure_ascii=False, indent=indent))
 try:
-    import trading_calendar as tc
+    from clawock import trading_calendar as tc
 except Exception:
     tc = None
 

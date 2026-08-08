@@ -61,13 +61,13 @@ from ._harness_common import (  # noqa: E402
 from ._watchdog_common import resolve_wechat_target, send_wechat, cosend_telegram, already_delivered  # noqa: E402
 
 from clawock.workspace import workspace_root
+from clawock import trading_calendar
 
 WS = workspace_root(Path.cwd())
 _CHECKOUT = WS
 TMP = WS / 'memory' / '.tmp'
 
 sys.path.insert(0, str(_CHECKOUT / 'scripts' / 'data'))
-import trading_calendar  # noqa: E402
 import cron_heartbeat  # noqa: E402
 
 # A report file older than this is assumed to be a previous slot's leftover. Kept
