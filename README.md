@@ -2,292 +2,338 @@
 
 <h1><img src="assets/logo-lockup.svg" alt="clawock" height="48"></h1>
 
-### Install decision intelligence into any agent.
+### AI argues. Code settles. The losses stay on the page.
 
-Evidence-first investment workflows, deterministic money reconciliation, outcome-linked evaluation, and bounded improvement — without replacing your agent runtime.
+Install the decision intelligence behind this live Hong Kong + US desk into any agent — evidence, opposition, deterministic reconciliation, and outcome-linked improvement.
 
-[![Dashboard](https://img.shields.io/github/deployments/KCNyu/clawock/github-pages?label=LIVE%20PROOF&style=flat-square&logo=githubpages&logoColor=white&labelColor=252b35&color=4b91c8)](https://kcnyu.github.io/clawock/)
-[![Tests](https://img.shields.io/github/actions/workflow/status/KCNyu/clawock/harness-regression.yml?label=CONTRACTS&style=flat-square&logo=githubactions&logoColor=white&labelColor=252b35&color=738391)](https://github.com/KCNyu/clawock/actions/workflows/harness-regression.yml)
+[![Dashboard](https://img.shields.io/github/deployments/KCNyu/clawock/github-pages?label=DASHBOARD&style=flat-square&logo=githubpages&logoColor=white&labelColor=252b35&color=4b91c8)](https://kcnyu.github.io/clawock/)
+[![Tests](https://img.shields.io/github/actions/workflow/status/KCNyu/clawock/harness-regression.yml?label=TESTS&style=flat-square&logo=githubactions&logoColor=white&labelColor=252b35&color=738391)](https://github.com/KCNyu/clawock/actions/workflows/harness-regression.yml)
 [![Dashboard Data](https://img.shields.io/github/actions/workflow/status/KCNyu/clawock/dashboard-artifact-gate.yml?label=DATA&style=flat-square&logo=githubactions&logoColor=white&labelColor=252b35&color=738391)](https://github.com/KCNyu/clawock/actions/workflows/dashboard-artifact-gate.yml)
+[![Coverage](https://img.shields.io/endpoint?url=https%3A%2F%2Fkcnyu.github.io%2Fclawock%2Fassets%2Fdata%2Fcoverage.json&style=flat-square&logo=python&logoColor=white&labelColor=252b35)](https://github.com/KCNyu/clawock/actions/workflows/harness-regression.yml)
 [![License](https://img.shields.io/badge/LICENSE-MIT-aab5bf?style=flat-square&labelColor=252b35)](LICENSE)
 
-[**Quickstart**](#quickstart) · [**Architecture**](#architecture) · [**OpenClaw adapter**](#openclaw-is-the-first-production-adapter) · [**Live KCNyu proof**](https://kcnyu.github.io/clawock/) · [**简体中文**](README.zh.md)
+[**Live dashboard**](https://kcnyu.github.io/clawock/) &nbsp;·&nbsp; [**Daily briefs**](https://kcnyu.github.io/clawock/briefs.html) &nbsp;·&nbsp; [**Evidence**](https://kcnyu.github.io/clawock/evidence.html) &nbsp;·&nbsp; [**简体中文**](README.zh.md)
+
+<br>
+
+<a href="https://kcnyu.github.io/clawock/">
+  <img src="assets/social-card.png" alt="clawock — an autonomous AI trading desk that grades its own calls" width="820">
+</a>
+
+<sub><i>“The market doesn't care how confident the model was.”</i></sub>
+
+<a href="https://kcnyu.github.io/clawock/"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/assets/dashboard.gif" alt="clawock dashboard cycling through its tabs" width="300"></a>
+
+<sub>Real positions, real P&amp;L, graded in the open. Previews refresh weekly; the live dashboard updates through the trading day.</sub>
 
 </div>
 
-## What clawock is
+---
+
+## What this is
 
 clawock is an **agent-native investment decision-workflow plugin kit with a
-verifiable harness**. An external runtime such as OpenClaw, Hermes, Claude Code,
-Codex, or another tool-capable agent owns the model call, conversation, memory,
-planning, tools, permissions, and credentials. It installs or calls clawock to
-make an investment decision follow a portable, inspectable contract.
+verifiable harness**. OpenClaw, Hermes, Claude Code, Codex, or another external
+runtime owns the model call, conversation, memory, planning, tools, permissions,
+and credentials. clawock installs the reusable workflow that certifies evidence,
+forces an opposing case, validates money and FX, links outcomes, and keeps every
+improvement proposal reviewable and reversible.
 
-The first workflow turns evidence into a bounded decision and preserves the
-lineage afterwards:
+This repository is also the first continuously running proof: a disciplined,
+self-grading AI investing experiment on a real Hong Kong + US portfolio — not a
+get-rich bot, and not a copy-trading service.
 
-```text
-evidence + opposing case
-          │
-          ▼
- thesis + invalidation ──► decision ──► execution/outcome
-          │                    │                │
-          └──── certified context + deterministic money/FX ────┘
-                                                   │
-                                                   ▼
-                              reviewable improvement proposal
-                               └─ accept / reject / rollback
+A multi-agent desk monitors a real brokerage account with separate Hong Kong and US books, debates the evidence, and proposes trades; execution stays with the account owner. The product is the live record: real positions, an accumulating decision history, and a public scorecard. The model proposes; Python owns the prices, the risk limits, the ledger, the settlement, and the grading.
+
+### What makes it different
+
+- **A workflow plugin, not another agent.** The external runtime keeps its model,
+  chat, memory, skills engine, tool loop, and permissions; clawock makes the
+  investment-decision contract portable across runtimes.
+- **The loop continues after the answer.** Evidence, the opposing case, thesis,
+  decision, execution, and observed outcome share one lineage. Measured results
+  can propose bounded parameter changes, but never silently rewrite strategy.
+- **Real money, graded in public.** One live Hong Kong + US brokerage account, with a public scorecard that keeps every eligible result — the losses included, and the fact that the active calls haven't beaten buy-and-hold.
+- **The model can't grade itself.** LLMs propose trades; Python settles them and computes the scorecard.
+- **One thesis, one episode.** Repeated opinions on the same thesis count once. Each episode is settled from canonical vendor bars, with declared gap-fill rules when a session is missing.
+- **The ledger has to reconcile.** A money-conservation check runs before every push; if cash, positions, and P&L don't balance, nothing is published.
+- **Built to keep running.** Scheduled Hong Kong and US sessions produce bilingual briefs and refresh the live dashboard through the trading day.
+
+## How it works
+
+The product boundary is simple: the external agent reads and reasons; clawock
+owns the portable decision workflow and the deterministic truth around it.
+
+![clawock product architecture — external runtimes own models, conversation, memory and tools while the package supplies portable workflows, certified context, deterministic reconciliation, evaluation and bounded improvement](assets/product-architecture.svg)
+
+The KCNyu deployment then applies that product boundary to one live portfolio.
+This second diagram is the instance architecture, not the reusable package.
+
+![KCNyu live-instance architecture — Python builds reconciled market context, OpenClaw agents debate the trade, clawock contracts gate the decision, and a public scorecard closes the loop](assets/architecture.svg)
+
+Every trading day the system pulls fresh prices, FX, volatility, earnings and macro context plus news and social sentiment; hands that normalized context to a multi-agent debate; applies deterministic risk, schema, and ledger gates in Python; delivers a brief to WeChat; and updates the public dashboard.
+
+## The information layer
+
+Reading the market is most of what the LLM does, so the widest part of the system is data collection. The repository catalogs **26 fetch and compute modules across 8 layers**, with **bilingual Hong Kong + US coverage** — live quotes, SEC + Eastmoney filings, capital flow, earnings calendars, macro (VIX / DXY / 10Y), Reddit and news sentiment, and market-moving social feeds. Each brief consumes the subset relevant to that market and session. Collection stays broad; the decision layer stays constrained.
+
+| Layer | Modules | Primary sources |
+|---|:---:|---|
+| 1 · Market | 5 | Tencent · Yahoo · Eastmoney |
+| 2 · Fundamentals & filings | 2 | SEC EDGAR · Eastmoney datacenter |
+| 3 · Capital flow | 1 | Eastmoney push2his |
+| 4 · News (bilingual) | 3 | Eastmoney · Finnhub · Google News |
+| 5 · Macro & sentiment | 4 | Yahoo · Reddit · social feeds |
+| 6 · Quant & risk | 4 | deterministic math over price history |
+| 7 · FX & integrity | 2 | Frankfurter · local invariants |
+| 8 · Backtest & calibration | 5 | local snapshots + canonical bars |
+
+The fetch layer degrades gracefully: every live Eastmoney call routes through **one throttled gateway**, critical paths (quotes, FX) use **multi-source fallback**, and an empty fetch **keeps the prior value** instead of overwriting a good series with a blank. Public sources include Tencent, stooq, yfinance, Frankfurter, SEC EDGAR, Finnhub, Nasdaq, Eastmoney, Polygon, Alpha Vantage, Reddit, and Google News — full per-endpoint catalog with per-host reachability in [`scripts/data/README.md`](scripts/data/README.md).
+
+### What each run actually receives
+
+Collection is broad, but no run gets everything. Each scheduled job's preflight assembles only the blocks that job can act on, writes them to a context file, and the model reads that file rather than fetching for itself.
+
+```
+sources ──► preflight (Python, deterministic) ──► context.json ──► LLM prose ──► postflight (Python) ──► publish
 ```
 
-This is not a trading bot, broker, model router, or another agent framework.
-clawock does not decide which model to call and does not execute trades. Its job
-is to make the workflow and its financial truth portable across agents.
+| | Pre-open brief | Open / midday / afternoon / close | Intraday check-in |
+|---|---|---|---|
+| **When** | 08:00 HKT, weekdays | HK 09:30 · 12:00 · 13:30 · 16:00 · US open and close | every 30 min while a market is open |
+| **Blocks** | 36 | 16 | 20 |
+| **Position truth** | holdings, book totals, concentration, leverage look-through | fresh quote block | fresh quote block |
+| **Risk** | guardrail, discipline ledger, β/vol/drawdown, breakeven math | risk section only when signals demand it | signal counts and detail |
+| **Signals** | quant factors and their hit-rate review, cross-sectional factor, peer residual, T+0 setups | peer/sector scan | peer/sector scan, T+0 setups, anomaly flags |
+| **News and events** | evidence graph, Chinese-language company news, catalyst calendar, macro, Reddit and social feeds | catalyst probe on flagged names | catalyst probe on flagged names |
+| **Research state** | thesis registry, research work queue (reviews due, overdue promises, ungated positions) | thesis and red lines for flagged names | thesis and red lines for flagged names |
+| **History** | retrospective, decision metrics, reflections, data-integrity report | — | heartbeat slot state |
+| **Today's plan** | writes it | the morning's still-open decisions for this leg | the morning's still-open decisions for this leg |
 
-## Why this layer exists
+The catalyst probe is the narrow, time-sensitive one: it fires **only for names that already moved**, reads exchange and regulator filings first (SEC acceptance timestamps, HKEX announcements), classifies each item as interrupt, context or noise, and states `no_recent_filing` explicitly rather than letting an empty block read as "nothing happened".
 
-Agents are good at reading ambiguous evidence and forming a view. They are poor
-authorities for arithmetic, provenance, and grading their own decisions. A
-broker can provide transaction records; a generic observability product can log
-tool calls. Neither, by itself, forces the complete investment-decision loop.
+What is deliberately absent matters as much: no research production inside an intraday loop, no paid search on a 30-minute cadence, and no evidence graph rebuild intraday — it is a daily artifact and would be stale by construction.
 
-clawock adds four domain-specific properties:
+## How it decides
 
-- **A decision must survive opposition.** Supporting evidence alone is
-  insufficient; the artifact must carry a genuine opposing case and explicit
-  invalidation conditions.
-- **Money is settled by code.** Orders, currencies, FX timestamps, fees, cash,
-  and P&L are structured inputs to deterministic validation rather than prose
-  the model can reinterpret.
-- **The record continues after the answer.** Workflow version, certified input,
-  decision, execution, and observed outcome share one lineage.
-- **Improvement is bounded.** Outcomes may propose changes to declared
-  evidence/provenance parameters. A proposal is reviewed, versioned, and
-  reversible; it cannot silently rewrite strategy or the external agent.
+Analysis resolves into explicit, gated strategy decisions — and one stock can carry several at once.
 
-## Installation status
+- **Several strategies, graded separately.** `core_position`, `risk_rebalance`, `intraday_t`, `event_trade`, and `tactical_entry` can coexist on the same name, because a long-term thesis and an intraday trade can legitimately disagree. Each is graded in its own episode.
+- **Attribution-first.** Every decision is tagged by its dominant driver, and that driver's edge is measured *dynamically* from the record — no hit rate is hard-coded into the logic.
+- **Falsify, don't confirm.** In a risk-on tape the default is HOLD. A bullish story doesn't trigger a buy until it clears a disconfirming check and an "is this already priced in?" test on the last few days' move.
+- **Regime over timing.** Leverage isn't timed; a 200-day-trend × volatility dial sets the cap. The backtested lesson: the edge was in *de-leveraging in the wrong regime*, not in calling tops.
 
-The package builds and runs as a non-editable wheel outside this repository.
-Until the trusted-publishing release in [#379](https://github.com/KCNyu/clawock/issues/379)
-is complete, install the current pre-release directly from GitHub:
+## The debate
+
+The daily deep brief runs a structured **multi-agent debate**, adapted from [TradingAgents](https://github.com/TauricResearch/TradingAgents) for separate Hong Kong and US books. More agents isn't the point: the protocol **demands an opposing case**, and the Judge **attributes each resolution** to a named strategy frame.
+
+![clawock's multi-agent debate — one evidence pack feeds four analyst lenses; two researchers argue opposing bull and bear cases and record where they disagree; three risk voices and a judge name the strategy frame and resolve it into plan.json, which enters the next session's grading loop](assets/debate-flow.svg)
+
+- **Analyst lenses.** Fundamental, technical, sentiment, and sector-rotation agents read the *same* context and merge into one table. Every claim must cite numeric context.
+- **Bull vs Bear.** Two researchers build opposing cases, each citing concrete analyst data points. The protocol asks them to **genuinely disagree on at least one position** and to record it, so unanimous agreement reads as a flag rather than evidence.
+- **Risk voices + a Judge.** Aggressive, Conservative, and Neutral each argue their corner. A Judge weighs them, **names the strategy frame driving each decision**, and resolves the argument into `plan.json` — which enters the next session's grading pipeline.
+
+## The public scorecard
+
+Every call is settled mechanically and published — wins, losses, and the cases that can't be graded. Nothing is hand-tuned after the fact.
+
+1. **Record** — the model submits a versioned decision with its strategy, condition, regime, size, and confidence. The authoritative ledger is `memory/decisions.jsonl`.
+2. **Trigger** — Python evaluates it against canonical unadjusted daily bars, counted on each market's own calendar. An unfinished session grades nothing, and a gap straight through a trigger fills at the open — never at a price that was never available.
+3. **Group** — repeated calls of the same strategy collapse into one *episode*, so holding a position for five mornings does not manufacture five samples.
+4. **Grade & publish** — code settles the outcome, scores it against a plain directional baseline, and renders it. Shut sessions, calls that need human evidence, and instruments that didn't trade are published as ungradeable — out of the win-rate denominator, but kept visible in the coverage count instead of silently dropped.
+
+The model submits decisions; it can never write or amend its own evaluation. That isolation stops the desk from grading itself — it does **not** make the market data or the metric definitions correct. **Treat the record as a diagnostic, not as proof of return.**
+
+<p align="center"><img src="assets/shadow-backtest.png" alt="cumulative episode win rate against a 50% directional-hit line" width="760"></p>
+
+<sub>Cumulative episode win rate against a 50% directional-hit line — how often the direction was right, not what it earned. The buy-and-hold comparison is the shadow portfolio (in the details below and on Reflect); this is a different question. Refreshed weekly by GitHub Actions; live figures live on the <a href="https://kcnyu.github.io/clawock/">Reflect tab</a>.</sub>
+
+<details>
+<summary><b>How the grading handles the hard cases</b></summary>
+
+<br>
+
+- **Incomplete sessions & missing bars.** Triggers and marks come from `memory/bars/` — unadjusted daily bars from a single canonical vendor feed, not an exchange feed. An unfinished session never grades anything.
+- **Reaffirmations.** Consecutive restatements of the same strategy/action are one episode. Re-anchoring a trigger to where the stock has since moved is still a reaffirmation, not a new call.
+- **Episode aggregation.** An episode scores as the *mean* of its own settled calls, not an elected member — letting the first or last call speak for the group can swing the active win rate across the 50% line on nothing but that choice.
+- **Confidence calibration.** Stated confidence remains an audit field. A strictly prequential beta-binomial hierarchy estimates action × driver × condition × regime probabilities from earlier dates only, shrinks sparse groups toward broader priors, and abstains from signal sizing when evidence or the posterior lower bound is insufficient.
+- **Timing, priced separately.** A single-event diagnostic asks how much better or worse the trigger fill was than that session's close, strictly paired by ticker/date/direction/shares. It deliberately never draws a cumulative money curve.
+- **Shadow portfolio (simulated · not live).** Two cash + inventory books replay the same timeline: one follows every triggered active call, the other buys and holds. Their cumulative difference is reported as *simulated timing alpha*. It keeps USD and HKD separate, exposes how few calls were ever actually executed, and discloses the unadjusted-bar bias. Source: `assets/data/shadow_portfolio.json`. It is a policy simulation, not a claim about what the live account earned.
+
+</details>
+
+## What we tested, and what failed
+
+The scorecard reports what happened. This reports what was checked — and what did not survive the check.
+
+A layer has to clear a stated bar before it is allowed to influence a decision, and the bar is set before the result is known:
+
+- **Factor edges** must have a two-way clustered bootstrap interval that does not straddle 50%. An interval that straddles it means the sample is too small, which is a different statement from "the factor does not work" — both keep it out of decisions, and the distinction is published.
+- **The cross-sectional layer** is pre-registered. Only snapshots recorded after registration count toward activation, so a retrospective result can never switch it on.
+- **The leverage dial** is scored out of sample: thresholds are calibrated on a leading window and graded on the next one, and its timing is tested against a null that circularly shifts the same exposure path against returns — preserving its shape and time-in-market while destroying only the alignment.
+
+Results are published whether or not they flatter the system. The dial's permutation test is the current example: on the sample available, its timing cannot be distinguished from chance, and that is stated on the page rather than left out of it. A failure to reject is not a refutation, and the page says which one it is.
+
+Two properties keep this from decaying into copy. The page is **generated from the artifacts**, so it cannot quietly drift from them. And any backtest figure quoted in the repository has to cite a run card that still contains it — a stale citation points at real evidence that no longer says what the claim says, which reads as credible and is wrong. CI fails on both.
+
+[**Evidence and refutation**](https://kcnyu.github.io/clawock/evidence.html)
+
+## What the code enforces
+
+The model writes opinions. The arithmetic that could corrupt the record runs in Python and is unit-tested.
+
+That path is covered by a large unit-test suite — it's what keeps the system stable.
+
+| Rule | What the code does |
+|---|---|
+| **Currencies never sum** | HKD and USD are shown in both views with the rate + timestamp stamped; adding them naively is a meaningless number. |
+| **Risk caps, checked every brief** | Single name ≤35%, Top-2 ≤70%, leverage-ETF sleeve ≤50%, portfolio β ≤3.0, stop at −18%. Each breach has a durable age, acknowledgement, expiring override and execution-evidence record; same-risk adds freeze until compliance. Execution stays human. |
+| **Concentration per leg** | `HHI = Σ wᵢ²` per book: `<0.15` ✅ · `0.15–0.25` 🟡 · `0.25–0.40` 🟠 · `>0.40` 🔴. Never blended across currencies. |
+| **Leverage judged by regime** | A 200-day-trend × volatility dial caps the leverage-ETF sleeve (×1 / ×0.5 / ×0); daily-reset 2×/3× products skip fundamentals entirely. |
+| **Return on peak principal** | Return % uses peak net deposits from the cash-flow ledger, not `cost − realized` — a realized win must not fake a higher return. |
+| **News needs an evidence graph** | Filings, issuer/exchange news, calendars, and headlines are deduplicated into expiring event IDs. Only a reliable, novel, negative event with price/volume or validated peer confirmation can drive a discretionary action; positive and repeated news stays watch-only. |
+| **Unproven signals are shown, never obeyed** | A quant factor layer runs in code but is barred from influencing a decision until it clears a minimum sample and proves a hit rate. |
+| **Published research numbers need two sources** | Long-form numbers carry a provenance manifest: exact Decimal arithmetic, two independent sources per figure, and a tolerance cap the manifest cannot raise for itself. A single-sourced or disagreeing figure blocks release of the artifact that quotes it. |
+| **A thesis moves only on new evidence** | Assumptions, red lines and valuation anchors live in versioned JSON. A dimension may change only with evidence observed after the last check; a price move can reprice valuation but cannot touch business, moat or management; triggering *and* clearing a red line both need evidence. A missing baseline stays `unknown` instead of being reconstructed from prose. |
+| **Earnings quality is computed, not asserted** | Cash conversion, working-capital gaps, dilution, SBC share and guidance outcomes are derived in code from at least four comparable periods. A basis or currency switch mid-history is an error, a missing input reads `unavailable` with a reason, and footnote claims require a primary issuer document. |
+| **A new name passes a gate before a research run** | Information richness is graded separately from investment quality, so thin sourcing returns `gray_needs_evidence`, never a rejection. Four hard vetoes resolve before any check is tallied, their industry exceptions are encoded per sector rather than improvised, and quotes must come from the workspace pipelines. |
+
+Reliability rides on the same principle. Every market-reporting job is **preflight (Python) → LLM → postflight (Python)**: the deterministic work runs in code, and a pre-push gate refuses to publish a book that doesn't reconcile. If risk can't be computed, the card says **"risk unavailable,"** never a green "none." Overlapping schedulers, a fallback workflow, and watchdogs mean a single LLM stall is no longer silent — though nothing here promises delivery under every outage.
+
+## Daily rhythm
+
+```
+overnight  memory "dreaming" — promote yesterday's lessons into long-term notes
+morning    deep brief — multi-tier debate + a judge, ships to WeChat
+HK session open → scheduled intraday monitors → close
+US session open → split intraday monitors → close
+             ↑ every successful reporting run publishes dashboard changes
+around it  pre-brief macro / sentiment / event scans, then a pre-US-open news digest
+weekly     archive, health, review, and visual-refresh jobs
+```
+
+Hong Kong times run on HKT; US session times follow ET and their cron expressions shift automatically with New York DST. A holiday + weekend gate skips closed sessions. The exact generated table is in [docs/operations/cron-schedules.md](docs/operations/cron-schedules.md).
+
+## Run it on your own book
+
+The package lifecycle is no longer welded to this account's directory. Until
+the trusted-publishing release in [#379](https://github.com/KCNyu/clawock/issues/379)
+lands, install the current pre-release from GitHub rather than assuming the PyPI
+name is live:
 
 ```bash
 python -m pip install "clawock @ git+https://github.com/KCNyu/clawock.git"
-clawock --help
+clawock workflow install investment-decision --workspace ./my-decision
+clawock init ./my-decision --workflow investment-decision
+clawock run prepare --workspace ./my-decision
 ```
 
-`pip install clawock` is intentionally not advertised yet: the PyPI project has
-not been published. The release workflow will use PyPI trusted publishing and an
-isolated-index install smoke before this section changes.
+The emitted request is for the external agent to consume. The agent writes
+`decision.json`; `clawock run publish` validates it and emits the correlated
+generation receipt. The packaged example can smoke the lifecycle without a
+model, while a real adapter leaves the model call entirely in its runtime.
 
-## Quickstart
+For the KCNyu compatibility surface, `clawock doctor`, `clawock context audit`,
+and `CLAWOCK_WORKSPACE` still inspect or point at an operational book. They name
+missing capabilities instead of pretending every foreign workspace is ready to
+run this live desk.
 
-The following smoke uses the packaged example artifact, so it proves the
-workflow lifecycle without pretending that clawock made a model call:
+The package owns the lifecycle contracts, generation-pinned artifacts, context
+assembly, validation and CLI. It does not reimplement an agent loop: OpenClaw is
+the unattended runtime adapter used by this instance today, while another runner
+can consume the same context/tool contracts. The live adapter still assumes this
+desk's two books, registry and schedules; `doctor` and `context audit` state those
+capabilities instead of pretending every foreign workspace is production-ready.
 
-```bash
-clawock workflow install investment-decision --workspace ./decision-demo
-clawock init ./decision-demo --workflow investment-decision
+## Explore the system
 
-request_path=$(clawock run prepare --workspace ./decision-demo \
-  | python -c 'import json,sys; print(json.load(sys.stdin)["request_file"])')
+- [**Live dashboard**](https://kcnyu.github.io/clawock/) — positions, risk, and the self-graded scorecard.
+- [**Daily briefs**](https://kcnyu.github.io/clawock/briefs.html) — the published morning reads.
+- [**Schedule**](docs/operations/cron-schedules.md) — the generated cron table.
+- [**Data scripts**](scripts/data/README.md) — the fetcher and compute catalog.
+- [**Project docs**](docs/README.md) — operations, reference, legal notes, and archived designs.
 
-cp ./decision-demo/.agents/skills/investment-decision/assets/decision.example.json \
-  ./decision-demo/decision.json
+### Research surfaces
 
-clawock run publish \
-  --workspace ./decision-demo \
-  --request "$request_path" \
-  --artifact decision.json=./decision-demo/decision.json
+| Question | Entry point | Data/runtime contract | Reuse scope |
+|---|---|---|---|
+| Analyze a US company | [`us-stock-analysis`](skills/us-stock-analysis/SKILL.md) | Local quote fallback, SEC filings, fundamentals, news | Reusable with the clawock workspace |
+| Analyze a Hong Kong company | [`hk-stock-analysis`](skills/hk-stock-analysis/SKILL.md) | Tencent/Eastmoney quote checks, HK fundamentals, market context | Reusable with the clawock workspace |
+| Review the current portfolio | [`portfolio-risk-review`](skills/portfolio-risk-review/SKILL.md) for one pass; [`portfolio-swarm-review`](skills/portfolio-swarm-review/SKILL.md) for debate | `portfolio.json`, fresh quotes, risk and decision ledgers | Specific to the configured portfolio |
+| Stress-test a supply-chain thesis | [`serenity-skill`](skills/serenity-skill/SKILL.md) | Current public evidence plus its local scorecard | Reusable as a manual research framework |
+| Review a reported quarter and hold management to account | [`earnings-review`](skills/earnings-review/SKILL.md) | First-party filings/HKEX announcements, structured XBRL or Eastmoney verification, provenance gate | Reusable; artifacts live in `memory/earnings/` |
+| Decide whether a new name is worth researching | [`entry-gate`](skills/entry-gate/SKILL.md) | Workspace quote pipelines, instrument registry, evidence source grading, deterministic hard vetoes | Reusable; artifacts live in `memory/entry-gates/` |
+
+These surfaces chain in one direction — entry gate, then first-party earnings evidence, then the canonical thesis and its evidence-only drift, then the existing decision, risk and settlement loop. Each step writes a versioned artifact the next one reads, so a later stage can never quietly re-derive an earlier one from prose.
+
+These are workspace-native research routes, not standalone one-command products. They expect clawock's scripts, data contracts, and memory/SOP files; the published portfolio and its operating history remain specific to this deployment.
+
+Built with [Claude Code](https://claude.com/claude-code), the [openclaw](https://openclaw.com) cron daemon, a static Jekyll + GitHub Pages frontend, and Python. Market, news, macro, and sentiment come from documented public sources with multi-source fallback; see [third-party data and service terms](docs/legal/third-party-data.md) before reusing any fetched content.
+
+<details>
+<summary><b>Under the hood</b> — models, write coordination, and integrity gates</summary>
+
+<br>
+
+**Models.** Model selection belongs to the external runtime, not clawock. The
+live OpenClaw instance can pin a primary and fallback independently for each
+scheduled job; provider credentials and routing policy stay outside this public
+repository and can change without rewriting the workflow. No provider key is
+stored here.
+
+**Write reconciliation.** The dashboard-build outputs — `dashboard.json`, `decision_audit.json`, `shadow_portfolio.json` — are derived, while a cron daemon, off-host workflows, crontab publishers, and ad-hoc sessions can all update `master`. The rule: isolate scan-sidecar writers, and serialize dashboard builders that share a host.
+
+- **The frontend reads scan sidecars directly.** Macro / sentiment / news / influencer feeds are fetched file-by-file at load, so a GitHub Action only ever commits its own disjoint sidecar — writers can't conflict, and a scan appears the instant its commit lands, with no rebuild.
+- **Dashboard builders share one lock and one contract.** On-host rebuilds serialize on a shared `flock`; every builder runs the same semantic-diff helper, so clock-only rewrites are restored and real changes to the three generated files are staged together.
+- **Everyone pushes through `safe_push.sh`** — rebase-retry, abort on a real conflict, and a committed conflict marker is rejected at the push hook so a broken `dashboard.json` can never reach Pages.
+- **Portfolio numbers are gated at the door.** `portfolio.json` — the single source of truth — is written under an advisory `flock` with read-fresh-then-overlay and atomic replace. A pre-push hook blocks any push whose book fails a money-conservation identity (`TCV = Σ value`, `cash = baseline + trades + adjustments`, `cost = moving-weighted`), and those derivations are pinned by a `pytest` suite in CI.
+- **Schedules have a checked contract.** Runtime truth comes from the live cron list; a tracked config drives the generated schedule table, DST sync, payload/watchdog checks, and CI health.
+
+</details>
+
+<details>
+<summary><b>Repository layout</b></summary>
+
+<br>
+
+```
+clawock/
+├─ index.html  briefs.md                    ← Pages landing
+├─ docs/                                      ← operations · reference · legal · archive
+├─ assets/data/        built by harness + GH Actions, never hand-edited
+│   ├─ dashboard.json  risk.json  catalysts.json
+│   ├─ macro.json  sentiment.json  *_news*.json  influencer_feed.json  ← scan sidecars, fetched straight by the frontend
+│   └─ *_review.json  guardrail_history.jsonl                          ← factor / setup scorecards + what the caps flagged
+├─ portfolio.json                           ← single source of truth (atomic writes)
+├─ tests/                                    ← decision-v2 + money-conservation regression gates
+├─ src/clawock/                              ← portable harness contracts · context · CLI · providers
+├─ MEMORY.md  DREAMS.md                      ← iron rules + nightly "dreaming" promotion
+├─ memory/
+│   ├─ {date}-pre-open.md  {date}-plan.json  ← brief output + structured plan
+│   ├─ decisions.jsonl                       ← authoritative decision/episode ledger
+│   ├─ bars/{ticker}.json                    ← canonical unadjusted OHLC — what settles triggers
+│   └─ snapshots/{date}.json
+├─ scripts/
+│   ├─ data/      fetchers · build_dashboard.py · risk/quant/regime compute · safe_push.sh
+│   └─ harness/   live kcn instance adapter · watchdogs
+└─ skills/{name}/SKILL.md
 ```
 
-The receipt correlates the certified request, workflow version, validated
-artifact, and immutable generation directory. In real use, replace the `cp`
-line with your external agent producing `decision.json` from the same request
-and installed skill.
+</details>
 
-### The external-agent contract
+---
 
-An adapter does not copy the business rules. It needs only to:
+## Scope, disclaimer, and license
 
-1. run `clawock run prepare` and read the emitted request JSON;
-2. expose the installed `investment-decision` skill to its agent;
-3. have the agent write `decision.json` without changing the request; and
-4. run `clawock run publish` with that request and artifact.
+This repository holds **real trading positions**. It is a personal record and portable workspace — **not investment advice, a recommendation, or a copy-trading system**. The desk analyzes and proposes; it does not place orders for you. No individual outcome is hand-picked — settlement rules and methodology changes are versioned in code — the active calls have yet to show an edge, and every number may be stale by the time you read it.
 
-clawock validates the output and publishes the receipt. The runtime remains the
-only component that can call a model or use its conversation, memory, and tools.
+Original code is under the [MIT License](LICENSE). Adapted third-party code keeps its own license and attribution in [NOTICE](NOTICE) and [`THIRD_PARTY_LICENSES/`](THIRD_PARTY_LICENSES/). Third-party market data, news, social posts, filings, trademarks, and API access are **not** relicensed by MIT — see [Third-party data and services](docs/legal/third-party-data.md).
 
-## What ships in the workflow
+<div align="center">
+<br>
 
-`clawock workflow show investment-decision` prints the packaged contract.
-Version 1.1.0 currently includes:
+**[Live dashboard](https://kcnyu.github.io/clawock/)** &nbsp;·&nbsp; **[Daily briefs](https://kcnyu.github.io/clawock/briefs.html)** &nbsp;·&nbsp; **[简体中文](README.zh.md)**
 
-- a standard `SKILL.md` plus runtime-neutral references and JSON Schemas;
-- certified context documents and a workflow certificate;
-- supporting and opposing evidence requirements;
-- thesis, invalidation, bounded action, order, currency, and FX fields;
-- deterministic decision and outcome validation;
-- generation-pinned artifacts and local publication receipts; and
-- evaluate, propose, review, apply, and rollback commands for bounded changes.
+<sub>Built and maintained by <a href="https://github.com/KCNyu">Shengyu Li (kcn)</a> and Rick · 2026</sub>
 
-The workflow does not invent a quant factor, catalyst, signal, entry, exit, or
-portfolio rule. Those belong to the user's existing strategy and evidence.
-
-## Bounded improvement, not autonomous self-rewriting
-
-```text
-decision + observed outcome
-            │
-            ▼
- clawock workflow evaluate
-            │
-            ▼
- evidence-linked proposal
-            │
-      review exact diff
-       ┌────┴────┐
-    reject     accept ──► apply ──► rollback record
-```
-
-Only declared workflow parameters can change. Applying a proposal requires an
-accepted review record; rollback restores the prior parameters. Production
-instructions, agent memory, model policy, and investment strategy never mutate
-implicitly.
-
-## Architecture
-
-![clawock product architecture — external agent runtimes own models, conversation, memory and tools while the clawock package supplies portable workflows, certified context, deterministic reconciliation, evaluation and bounded improvement](assets/product-architecture.svg)
-
-```text
-┌──────────────────────────────────────────────────────────────┐
-│ External agent runtime                                      │
-│ OpenClaw · Hermes · Claude Code · Codex · others             │
-│ model · chat · memory · planning · tools · permissions       │
-└───────────────────────────┬──────────────────────────────────┘
-                            │ installs Skill / calls CLI + JSON
-┌───────────────────────────▼──────────────────────────────────┐
-│ clawock product (`src/clawock/`)                             │
-│ workflows · certified context · artifact contracts          │
-│ deterministic validation/reconciliation · evaluation        │
-│ generation receipts · bounded proposal/review/rollback       │
-└───────────────────────────┬──────────────────────────────────┘
-                            │ adapter-owned I/O
-┌───────────────────────────▼──────────────────────────────────┐
-│ User instance                                                │
-│ strategy · evidence · ledger · schedules · delivery · UI     │
-└──────────────────────────────────────────────────────────────┘
-
-KCNyu production instance today:
-OpenClaw scheduler ─► KCNyu adapter ─► clawock contracts
-                  └► reconciled ledger ─► data plane ─► Pages
-```
-
-The lower box is not part of the wheel. The public KCNyu dashboard is one live
-instance and proof surface, not the reusable product.
-
-### Repository map
-
-```text
-src/clawock/        installable product, schemas, workflow pack, adapters
-tests/              expensive-invariant and installed-wheel contracts
-scripts/harness/    transitional KCNyu lifecycle adapter
-scripts/data/       mixed migration inventory; classified product vs instance
-scripts/ops/        host/operator entry points
-config/             KCNyu instance configuration (product schemas moved out)
-skills/             OpenClaw instance skills; runtime path remains stable
-memory/             KCNyu ledger, outcomes, research state, and OpenClaw memory
-assets/ + *.html    current Pages source and generated dashboard surface
-```
-
-This map is deliberately honest about the remaining overlap. The target
-product/instance/site/operations separation is tracked in
-[#381](https://github.com/KCNyu/clawock/issues/381); root OpenClaw context files
-will not move until prompt, memory, skills, tools, cron, and delivery parity are
-proven.
-
-## OpenClaw is the first production adapter
-
-The live instance uses OpenClaw for interactive chat and eleven isolated
-scheduled jobs. clawock records separate context profiles for interactive chat,
-isolated cron, heartbeat, and bootstrap behavior, including memory and skill
-discovery rather than treating five Markdown files as the whole context.
-
-Runtime paths are configurable through the OpenClaw adapter. The package never
-silently narrows OpenClaw's tool set, and it leaves these runtime responsibilities
-with OpenClaw:
-
-- normal conversation history and startup context;
-- `AGENTS.md`, `SOUL.md`, `TOOLS.md`, `IDENTITY.md`, and `USER.md` injection;
-- `MEMORY.md`, dated memory, indexing, and search;
-- skill catalog discovery and selected `SKILL.md` loading;
-- tool schemas, permissions, heartbeat, bootstrap, cron, and delivery.
-
-See [the adapter contract](docs/architecture/openclaw-adapter.md) and
-[`clawock context audit`](docs/architecture/harness.md). A real OpenClaw
-scheduler canary has called the packaged workflow successfully; the complete
-market-schedule cutover remains open in
-[#380](https://github.com/KCNyu/clawock/issues/380).
-
-## The KCNyu live proof
-
-[The public dashboard](https://kcnyu.github.io/clawock/) operates a real HK + US
-portfolio workflow. It is useful because it exposes decisions, losses,
-reconciliation, and outcome history instead of presenting a polished sample.
-Human ownership remains at the execution boundary.
-
-<p align="center"><a href="https://kcnyu.github.io/clawock/"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/assets/dashboard.gif" alt="KCNyu clawock dashboard cycling through its live proof surfaces" width="300"></a></p>
-
-- [Live dashboard](https://kcnyu.github.io/clawock/)
-- [Published briefs](https://kcnyu.github.io/clawock/briefs.html)
-- [Evidence and refutation](https://kcnyu.github.io/clawock/evidence.html)
-- [Cron contract](docs/operations/cron-schedules.md)
-- [Product vs instance classification](docs/reference/product-vs-instance.md)
-- [KCNyu live-instance architecture](assets/architecture.svg)
-
-Nothing in the live portfolio is a recommendation, return claim, copy-trading
-service, or proof that a workflow has market edge.
-
-## Current boundary — no inflated claims
-
-Implemented and demonstrated:
-
-- package-native `init`, workflow install/discovery, `run prepare`, and
-  `run publish` from a wheel outside the source checkout;
-- evidence/opposition/decision/outcome schemas and deterministic money/FX checks;
-- explicit proposal review, apply, and rollback;
-- configurable OpenClaw runtime paths and a real isolated-scheduler canary; and
-- a live portfolio/data/dashboard instance with fail-closed publication.
-
-Still required before calling clawock a fully delivered standalone harness:
-
-- a published TestPyPI/PyPI release and isolated public-index install;
-- the same real workflow executed by a documented non-OpenClaw runtime;
-- extraction of the remaining KCNyu compatibility phases from `scripts/harness`;
-- physical instance/site/operations separation; and
-- full OpenClaw market-cron cutover and adjacent before/after context parity.
-
-The terminal delivery plan and evidence requirements live in
-[#378](https://github.com/KCNyu/clawock/issues/378).
-
-## Development
-
-```bash
-git clone https://github.com/KCNyu/clawock.git
-cd clawock
-python -m pip install -e '.[test]'
-python -m pytest -q tests/test_wheel_contains_the_package.py
-```
-
-The project deliberately prioritizes installed-wheel behavior, financial
-reconciliation, and live receipts over decorative test counts. See
-[CONTRIBUTING.md](CONTRIBUTING.md) and [SECURITY.md](SECURITY.md).
-
-## License and risk
-
-MIT licensed. See [LICENSE](LICENSE), [NOTICE](NOTICE),
-[third-party data terms](docs/legal/third-party-data.md), and
-[third-party notices](THIRD_PARTY_LICENSES/README.md).
-
-clawock is research software, not financial advice. It does not place trades or
-guarantee accuracy, availability, or returns. Keep human approval, broker-side
-controls, and independent reconciliation around any real-money use.
+</div>

@@ -59,9 +59,9 @@
   </g>
 
   <path d="M480 234V272" class="wire"/>
-  <g transform="translate(382 242)" class="sans">
-    <rect width="196" height="26" rx="13" fill="#26323d"/>
-    <text x="98" y="17" text-anchor="middle" class="kicker" fill="#eaf2f8">INSTALL SKILL · CALL CLI + JSON</text>
+  <g transform="translate(342 242)" class="sans">
+    <rect width="276" height="26" rx="13" fill="#26323d"/>
+    <text x="138" y="17" text-anchor="middle" class="kicker" fill="#eaf2f8">INSTALL SKILL · CALL CLI + JSON</text>
   </g>
 
   <g transform="translate(26 276)" class="sans">
@@ -121,9 +121,9 @@
   </g>
 
   <path d="M480 520V558" class="wire"/>
-  <g transform="translate(401 528)" class="sans">
-    <rect width="158" height="26" rx="13" fill="#fff" stroke="#c8d6e0"/>
-    <text x="79" y="17" text-anchor="middle" class="kicker blue">ADAPTER-OWNED I/O</text>
+  <g transform="translate(385 528)" class="sans">
+    <rect width="190" height="26" rx="13" fill="#fff" stroke="#c8d6e0"/>
+    <text x="95" y="17" text-anchor="middle" class="kicker blue">ADAPTER-OWNED I/O</text>
   </g>
 
   <g transform="translate(26 562)" class="sans">

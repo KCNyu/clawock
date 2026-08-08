@@ -2,273 +2,327 @@
 
 <h1><img src="assets/logo-lockup.svg" alt="clawock" height="48"></h1>
 
-### 把投资决策能力，装进任何 Agent。
+### AI 争辩。代码结算。连亏损都摆在明面上。
 
-证据优先的投资 workflow、确定性的资金对账、连接结果的评估，以及有边界的改进；不替代你的 Agent runtime。
+把这套真实港股 + 美股投研台背后的决策能力装进任何 Agent —— 证据、反方、确定性对账，以及连接结果的改进。
 
-[![Dashboard](https://img.shields.io/github/deployments/KCNyu/clawock/github-pages?label=LIVE%20PROOF&style=flat-square&logo=githubpages&logoColor=white&labelColor=252b35&color=4b91c8)](https://kcnyu.github.io/clawock/)
-[![Tests](https://img.shields.io/github/actions/workflow/status/KCNyu/clawock/harness-regression.yml?label=CONTRACTS&style=flat-square&logo=githubactions&logoColor=white&labelColor=252b35&color=738391)](https://github.com/KCNyu/clawock/actions/workflows/harness-regression.yml)
+[![Dashboard](https://img.shields.io/github/deployments/KCNyu/clawock/github-pages?label=DASHBOARD&style=flat-square&logo=githubpages&logoColor=white&labelColor=252b35&color=4b91c8)](https://kcnyu.github.io/clawock/)
+[![Tests](https://img.shields.io/github/actions/workflow/status/KCNyu/clawock/harness-regression.yml?label=TESTS&style=flat-square&logo=githubactions&logoColor=white&labelColor=252b35&color=738391)](https://github.com/KCNyu/clawock/actions/workflows/harness-regression.yml)
 [![Dashboard Data](https://img.shields.io/github/actions/workflow/status/KCNyu/clawock/dashboard-artifact-gate.yml?label=DATA&style=flat-square&logo=githubactions&logoColor=white&labelColor=252b35&color=738391)](https://github.com/KCNyu/clawock/actions/workflows/dashboard-artifact-gate.yml)
+[![Coverage](https://img.shields.io/endpoint?url=https%3A%2F%2Fkcnyu.github.io%2Fclawock%2Fassets%2Fdata%2Fcoverage.json&style=flat-square&logo=python&logoColor=white&labelColor=252b35)](https://github.com/KCNyu/clawock/actions/workflows/harness-regression.yml)
 [![License](https://img.shields.io/badge/LICENSE-MIT-aab5bf?style=flat-square&labelColor=252b35)](LICENSE)
 
-[**快速开始**](#快速开始) · [**架构**](#架构) · [**OpenClaw adapter**](#openclaw-是第一个生产-adapter) · [**KCNyu 实盘证明**](https://kcnyu.github.io/clawock/) · [**English**](README.md)
+[**实时仪表盘**](https://kcnyu.github.io/clawock/) &nbsp;·&nbsp; [**每日简报**](https://kcnyu.github.io/clawock/briefs.html) &nbsp;·&nbsp; [**证据与反证**](https://kcnyu.github.io/clawock/evidence.html) &nbsp;·&nbsp; [**English**](README.md)
+
+<br>
+
+<a href="https://kcnyu.github.io/clawock/">
+  <img src="assets/social-card.png" alt="clawock — 会给自己打分的自主 AI 投研台" width="820">
+</a>
+
+<sub><i>“市场不在乎模型有多自信。”</i></sub>
+
+<a href="https://kcnyu.github.io/clawock/"><img src="assets/dashboard.gif" alt="clawock 仪表盘循环切换各标签页" width="300"></a>
+
+<sub>真实持仓、真实盈亏、公开打分。预览图每周刷新;实时仪表盘随交易日更新。</sub>
 
 </div>
 
-## clawock 是什么
+---
+
+## 这是什么
 
 clawock 是一套**面向 Agent 的投资决策 workflow plugin kit，加上一层可验证
-harness**。OpenClaw、Hermes、Claude Code、Codex 或其它能用工具的外部 runtime
-负责模型调用、对话、记忆、规划、工具、权限和凭证；它们安装或调用 clawock，
-让一条投资决策遵守可迁移、可检查的契约。
+harness**。OpenClaw、Hermes、Claude Code、Codex 或其它外部 runtime 负责模型
+调用、对话、记忆、规划、工具、权限和凭证；clawock 安装可复用 workflow，负责
+认证证据、强制反方、校验资金和汇率、连接结果，并让每个改进提案可审、可回滚。
 
-第一套 workflow 把证据变成有边界的决策，并继续保留决策之后的链路：
+这个仓库也是第一套持续运行的证明：一个真实港股 + 美股组合上的纪律化、公开、
+自评式 AI 投资实验 —— 不是一夜暴富的机器人，也不是跟单服务。
 
-```text
-支持证据 + 真正的反方证据
-              │
-              ▼
- thesis + 失效条件 ──► decision ──► execution / outcome
-              │              │                │
-              └──── 认证上下文 + 确定性资金/汇率对账 ────┘
-                                                   │
-                                                   ▼
-                                      可审阅的改进提案
-                                      └─ 接受 / 拒绝 / 回滚
+一套多 Agent 投研台监控一个真实券商账户(港股与美股分账)、辩论证据、给出交易建议;执行留给账户所有者。这个项目的核心产品就是这份实时记录:真实持仓、不断累积的决策历史,以及公开战绩。模型负责提议;价格、风控上限、账本、结算与评分,全部由 Python 负责。
+
+### 有什么不一样
+
+- **是 workflow plugin，不是另一个 Agent。** 外部 runtime 保留自己的模型、聊天、
+  memory、skills engine、tool loop 与权限；clawock 让投资决策契约跨 runtime 迁移。
+- **闭环不会停在答案。** 证据、反方、thesis、decision、execution 与 observed
+  outcome 共用一条 lineage。结果可以提出有边界的参数改动，却不能暗改策略。
+- **真金白银,公开打分。** 一个在跑的港股 + 美股真实券商账户,公开战绩保留每一条符合条件的结果 —— 亏损也在内,包括主动判断至今没跑赢买入持有。
+- **模型不能给自己打分。** LLM 提出交易建议;Python 独立结算并计算战绩。
+- **一个论点,只算一个 episode。** 同一论点的重复意见只计一次。每个 episode 都用指定基准供应商的行情结算;缺 session 时按公开的补齐规则处理。
+- **账本必须对得上。** 每次 push 前都检查资金守恒;现金、持仓与盈亏不平,就什么都不发布。
+- **为持续运行而建。** 定时的港股与美股 session 产出双语简报,并在交易日里刷新实时仪表盘。
+
+## 怎么跑的
+
+产品边界很简单：外部 Agent 负责读取与推理；clawock 负责可迁移的决策 workflow
+和周围的确定性真值。
+
+![clawock 产品架构 —— 外部 runtime 拥有模型、对话、记忆与工具；包提供可迁移 workflow、认证上下文、确定性对账、评估和有边界改进](assets/product-architecture.svg)
+
+KCNyu 部署再把这个产品边界用于一个真实组合。下面第二张是实例架构，不是可复用
+package 架构。
+
+![KCNyu live-instance 架构 —— Python 构建对账后的市场上下文，OpenClaw Agent 辩论交易，clawock 契约把关决策，公开战绩闭环](assets/architecture.svg)
+
+每个交易日,系统拉取最新价格、汇率、波动率、财报与宏观上下文,以及新闻与社交情绪;把这份归一化的上下文交给多 Agent 辩论;在 Python 里施加确定性的风控、schema 与账本闸门;把简报送到微信;并更新公开仪表盘。
+
+## 信息层
+
+读市场是 LLM 干的大部分活,所以整套系统最宽的一环是数据收集。仓库编录了 **8 层、26 个抓取与计算模块**,**港股与美股双语覆盖** —— 实时报价、SEC + 东财申报、资金流、财报日历、宏观(VIX / DXY / 10Y)、Reddit 与新闻情绪,以及能撬动行情的社交 feed。每份简报只取与该市场、该 session 相关的子集。信息收集保持宽,决策层保持窄。
+
+| 层 | 模块 | 主要来源 |
+|---|:---:|---|
+| 1 · 行情 | 5 | 腾讯 · Yahoo · 东财 |
+| 2 · 基本面/申报 | 2 | SEC EDGAR · 东财 datacenter |
+| 3 · 资金面 | 1 | 东财 push2his |
+| 4 · 消息面(双语) | 3 | 东财 · Finnhub · Google News |
+| 5 · 宏观/情绪 | 4 | Yahoo · Reddit · 社交 feed |
+| 6 · 量化与风险 | 4 | 对价格历史做确定性计算 |
+| 7 · 汇率/校验 | 2 | Frankfurter · 本地不变量 |
+| 8 · 回测/自省 | 5 | 本地快照 + 基准行情 |
+
+抓取层优雅降级:所有现役东财调用统一走**一个节流网关**,关键路径(报价、汇率)用**多源兜底**,而一次抓空会**保留旧值**,不会用空白覆盖一条好序列。公开来源包括腾讯、stooq、yfinance、Frankfurter、SEC EDGAR、Finnhub、Nasdaq、东财、Polygon、Alpha Vantage、Reddit 与 Google News —— 逐端点目录与各 host 可达性见 [`scripts/data/README.md`](scripts/data/README.md)。
+
+### 每种运行实际拿到什么
+
+采集面很宽，但没有哪次运行拿全部。每个排程任务的 preflight 只组装这次能用得上的块，写进 context 文件，模型读文件而不是自己去抓。
+
+```
+数据源 ──► preflight（Python，确定性）──► context.json ──► LLM 散文 ──► postflight（Python）──► 发布
 ```
 
-它不是交易机器人、券商、模型路由器，也不是另一套 Agent 框架。clawock 不决定
-调用哪个模型，也不执行交易。它负责把 workflow 和其中的金融真值迁移到不同
-Agent 之间。
+| | 盘前深度简报 | 开盘 / 午盘 / 午后 / 收盘 | 盘中盯盘 |
+|---|---|---|---|
+| **什么时候** | 工作日 08:00 HKT | 港股 09:30 · 12:00 · 13:30 · 16:00 · 美股开收盘 | 开市期间每 30 分钟 |
+| **块数** | 36 | 16 | 20 |
+| **持仓真值** | 持仓、账面合计、集中度、杠杆看穿 | 新鲜行情块 | 新鲜行情块 |
+| **风控** | 护栏、纪律账本、β/波动/回撤、解套算术 | 只在信号要求时出风险段 | 信号计数与明细 |
+| **信号** | 量化因子及其命中率复核、截面因子、同业残差、T+0 牌面 | 板块 / 同业扫描 | 板块 / 同业扫描、T+0 牌面、异动标记 |
+| **消息与事件** | 证据图、中文公司新闻、催化日历、宏观、Reddit 与社交源 | 只对异动票的催化探针 | 只对异动票的催化探针 |
+| **研究状态** | thesis registry、研究待办队列（该复盘的财报、逾期承诺、没过闸的仓位） | 异动票的 thesis 与红线 | 异动票的 thesis 与红线 |
+| **历史** | 回顾、决策指标、反思、数据完整性报告 | — | heartbeat slot 状态 |
+| **当日计划** | 由它写出 | 本腿今早还没成交的决策 | 本腿今早还没成交的决策 |
 
-## 为什么需要这一层
+催化探针是里面最讲时效的一条：**只对已经异动的票**触发，一手源优先（SEC 受理时间戳、港交所公告），每条分成 interrupt / context / noise 三级，找不到就明写 `no_recent_filing`——不让一个空块被读成「什么都没发生」。
 
-Agent 擅长读模糊证据、形成观点，却不适合当算术、溯源以及「给自己打分」的
-最终权威。券商能给交易记录，通用 observability 能记工具调用；但它们本身都
-不会强制一条完整的投资决策闭环。
+**刻意不给的**同样重要：盘中回路里不做研究生产、30 分钟节奏不烧付费搜索、盘中也不重建证据图——它是日级产物，盘中天然过期。
 
-clawock 增加四个领域能力：
+## 怎么做决策
 
-- **决策必须过反方。** 只有支持材料不够；产物必须包含真正的反方论点和明确的
-  thesis 失效条件。
-- **资金由代码结算。** 订单、币种、汇率时间戳、费用、现金和盈亏进入确定性
-  校验，不是任模型重新解释的散文。
-- **记录不会停在答案。** workflow 版本、认证输入、决策、执行和观察到的结果
-  共用一条 lineage。
-- **改进有边界。** 结果只能对声明过的证据/溯源参数提出改动；提案可审、可
-  版本化、可回滚，不能悄悄改策略或外部 Agent。
+分析最终落成明确的、带闸门的策略决策 —— 而同一只股票可以同时挂好几条。
 
-## 安装状态
+- **多条策略,分别打分。** `core_position`、`risk_rebalance`、`intraday_t`、`event_trade`、`tactical_entry` 可以在同一只标的上并存,因为长线论点和日内交易本就可能合理地分歧。每条在自己的 episode 里打分。
+- **归因优先。** 每条决策按其主导驱动打标签,而那个驱动的 edge 是从记录里*动态*测出来的 —— 逻辑里不硬编码任何命中率。
+- **证伪,不证实。** 风偏向上的行情里默认 HOLD。一个看多的故事在跨过一道证伪检查、以及一道「这是不是已经被 price in 了?」的近几日涨幅测试之前,不会触发买入。
+- **regime 高于择时。** 杠杆不做择时;200 日趋势 × 波动率的拨盘给它封顶。回测的教训是:edge 在*于错误 regime 里降杠杆*,不在抄顶。
 
-包已经能以非 editable wheel 的方式在仓库外运行。在
-[#379](https://github.com/KCNyu/clawock/issues/379) 完成 trusted publishing 之前，
-请从 GitHub 安装当前 pre-release：
+## 辩论
+
+每日深度简报跑一场结构化的**多 Agent 辩论**,改编自 [TradingAgents](https://github.com/TauricResearch/TradingAgents),为港股与美股分账适配。Agent 更多不是重点:协议**要求给出对立论点**,裁判**把每条结论归因**到一个具名策略框架。
+
+![clawock 的多 Agent 辩论 —— 一份证据包喂给四种分析师视角;两名研究员建立多空对立论点并记录分歧点;三种风险声音与一位裁判点名策略框架,收敛成 plan.json,进入下一场的打分环](assets/debate-flow.svg)
+
+- **分析师视角。** 基本面、技术面、情绪面、板块轮动 Agent 读*同一份*上下文,汇成一张表。每个论点都必须引用数值上下文。
+- **多头 vs 空头。** 两名研究员建立对立论点,各自引用具体的分析师数据点。协议要求他们**在至少一个仓位上真正分歧**并记录下来,所以一致同意读作警示,而不是证据。
+- **风险声音 + 一位裁判。** 激进、保守、中性各自陈词。一位裁判权衡他们、**点名驱动每条决策的策略框架**,并把争论收敛成 `plan.json` —— 进入下一场的打分流水线。
+
+## 公开战绩
+
+每条判断都被机械地结算并发布 —— 赢的、输的、以及没法打分的,一并公开。事后绝不手工调。
+
+1. **记录** —— 模型提交一条带版本的决策,含策略、条件、regime、仓位、置信度。权威账本是 `memory/decisions.jsonl`。
+2. **触发** —— Python 用基准供应商的逐日不复权行情、按各市场自己的交易日历评判。未完成的 session 不打分;缺口直接穿过触发价的按开盘价成交 —— 绝不给它一个从未出现过的价。
+3. **归组** —— 同一策略的重复判断收敛成一个 *episode*,所以连喊五个早上「持有」不会凭空变出五个样本。
+4. **打分并发布** —— 代码结算结果、对着一条朴素的方向基线评分、再渲染。休市 session、需要人工证据的判断、当天没成交的标的,会公开标为「不可评」—— 移出胜率分母,但保留在 coverage 覆盖计数里可见,而不是被悄悄丢掉。
+
+模型只提交决策;它永远不能写或改自己的评估。这种隔离让投研台没法给自己打分 —— 但它**并不**让市场数据或指标定义变得正确。**把这份记录当诊断,而不是收益的证明。**
+
+<p align="center"><img src="assets/shadow-backtest.png" alt="累计 episode 胜率对 50% 方向命中基线" width="760"></p>
+
+<sub>累计 episode 胜率对 50% 方向命中基线 —— 衡量的是方向对了多少次,不是赚了多少。买入持有的对比是影子组合(在下方 details 和 Reflect 里),那是另一个问题。由 GitHub Actions 每周刷新;实时数字见<a href="https://kcnyu.github.io/clawock/">诚实(Reflect)标签页</a>。</sub>
+
+<details>
+<summary><b>打分怎么处理那些难缠的边界情况</b></summary>
+
+<br>
+
+- **未完成 session 与缺失行情。** 触发与标记来自 `memory/bars/` —— 单一基准供应商的逐日不复权行情,不是交易所直连。未完成的 session 永不打分。
+- **重申(reaffirmation)。** 对同一策略/动作的连续重申算一个 episode。把触发价重新锚到股票现在的位置,仍是重申,不是一条新判断。
+- **episode 聚合。** 一个 episode 取它自己已结算判断的*均值*,而不是选出一条代表 —— 让第一条或最后一条代言整组,能仅凭这个选择就把主动胜率在 50% 线两侧来回甩。
+- **置信度校准。** 声称的置信度只保留为审计字段。严格按日期前向的 beta-binomial 分层模型只用更早日期,估计 action × driver × condition × regime 概率;稀疏小组向宽层先验收缩,证据或后验下界不足时不允许拿信号扩仓。
+- **择时,单独计价。** 一个单事件诊断只问:触发成交比当日收盘执行好或差多少,严格按同票/同日/同方向/同股数配对。它有意从不画累计金额曲线。
+- **影子组合(模拟 · 非实盘)。** 两本现金+库存账重放同一条时间线:一本跟每一条触发的主动建议,另一本买入持有。两者的累计差被报为*模拟择时 alpha*。它把美元与港币分开、暴露真正被执行过的建议有多少、并披露不复权行情的偏差。来源:`assets/data/shadow_portfolio.json`。它是策略模拟,不是对实盘赚了多少的声称。
+
+</details>
+
+## 测了什么，什么没通过
+
+战绩说的是发生了什么。这一节说的是**检验了什么，以及什么没通过检验**。
+
+一层能力要影响决策，得先过一条事先定好的线——线在结果出来之前就划好：
+
+- **因子 edge** 的 date×ticker 双向聚类 bootstrap 区间必须整体落在 50% 一侧。区间跨过 50% 意味着样本还不够，这和「因子无效」是两句不同的话——两者都不进决策，但区别会被公开写出来。
+- **截面层是预注册的**：只有注册时点之后记录的快照才计入激活条件，回溯结果永远不能把它打开。
+- **杠杆刻度盘按样本外打分**：阈值在前一段窗口上标定、在下一段上评分；择时能力对照的是一个环形位移的原假设——把同一条敞口路径整体平移，保留它的形状和在场时间，只破坏它与收益的对齐。
+
+结果不管好看不好看都发。刻度盘的置换检验就是眼下的例子：在现有样本上，它的择时**不可与随机区分**，这句话被写在页面上而不是被略过。「未能拒绝原假设」不等于「已被证伪」，页面会说清楚是哪一种。
+
+有两条性质让它不会退化成文案。页面是**从产物生成的**，不会悄悄和产物脱节；仓库里任何引用回测的数字，都必须引用一张**仍然包含这个数字**的 run card——失效引用指向的是真证据，但那份证据已经不再支持这句话，看起来最可信，实际是错的。这两条 CI 都会红。
+
+[**证据与反证**](https://kcnyu.github.io/clawock/evidence.html)
+
+## 代码强制执行的规矩
+
+模型只写观点。可能污染记录的算术都跑在 Python 里、有单元测试。
+
+这条链路由大量单元测试覆盖 —— 系统的稳定就靠它。
+
+| 规矩 | 代码做的事 |
+|---|---|
+| **两种货币不直接相加** | 港币与美元同时以两种口径展示,并盖上汇率+时间戳;把两种货币生硬相加是个没意义的数。 |
+| **风控上限,每份简报都核查** | 单一标的 ≤35%、Top-2 ≤70%、杠杆 ETF 仓位 ≤50%、组合 β ≤3.0、−18% 止损。每条 breach 都有持久化的年龄、确认、限时 override 与成交证据;回到合规前冻结同风险增仓。执行仍然是人。 |
+| **集中度按腿计算** | 每本账 `HHI = Σ wᵢ²`:`<0.15` ✅ · `0.15–0.25` 🟡 · `0.25–0.40` 🟠 · `>0.40` 🔴。绝不跨币种混算。 |
+| **杠杆按 regime 拨挡** | 200 日趋势 × 波动率的拨盘给杠杆 ETF 仓位封顶(×1 / ×0.5 / ×0);每日重置的 2×/3× 产品完全跳过基本面。 |
+| **回报基于峰值本金** | 回报率用现金流账本里的峰值净投入,而不是 `成本 − 已实现` —— 一笔已实现盈利不该伪造出更高的回报。 |
+| **软情绪不能翻转交易** | 一条推文或一种情绪只能微调置信度数字;只有硬的、带日期的催化剂才能改动作。风偏向上的行情里默认 HOLD。 |
+| **未验证的信号只展示、绝不遵从** | 一层量化因子跑在代码里,但在它跨过最小样本量并证明命中率之前,被禁止影响任何决策。 |
+| **对外研究里的数字必须两源** | 长文里的数字带 provenance manifest:精确 Decimal 运算、每个数字两个独立来源、tolerance 上限不能由 manifest 自己抬高。单源或两源不一致的数字,直接卡住引用它的产物准出。 |
+| **thesis 只在有新证据时变** | 假设、红线、估值锚都落在带版本的 JSON 里。某个维度要变,必须有上次检查之后观察到的证据;价格波动只能改估值,动不了生意 / 护城河 / 管理层;红线的触发**和**解除都要证据。没有基线就诚实记 `unknown`,不靠文案补造历史。 |
+| **盈利质量由代码算,不靠断言** | 现金转化、营运资本缺口、摊薄、SBC 占比、指引结果都由代码从至少四个可比期算出。中途换会计基准或币种直接判错,缺输入就写 `unavailable` 并给原因,脚注类结论必须有一手发行人文件。 |
+| **新标的先过研究闸再花深研** | 信息丰富度与投资质量分开打分,所以来源单薄只会得到 `gray_needs_evidence`,不会被判死。四条硬否决在任何计分之前结算,行业例外按板块写进配置而不是临场发挥,行情只认 workspace 自己的取价链。 |
+
+可靠性走同一条原则。每个市场播报任务都是 **preflight(Python)→ LLM → postflight(Python)**:确定性工作全在代码里,一个 push 前的闸门拒绝发布一本对不上账的账。若风险算不出来,卡片显示 **「风险无法计算」**,绝不显示绿色的「无」。多层排程、一个兜底 workflow、加上看门狗,意味着单个 LLM 卡死不再是无声的 —— 尽管这里不承诺在任何故障下都能送达。
+
+## 每日节奏
+
+```
+凌晨    记忆「做梦」—— 把昨天的教训提炼进长期笔记
+早上    深度简报 —— 多层辩论 + 一位裁判,推送到微信
+港股    开盘 → 定时盘中监控 → 收盘
+美股    开盘 → 拆分盘中监控 → 收盘
+             ↑ 每次成功的播报都会发布仪表盘变更
+穿插    盘前宏观 / 情绪 / 事件扫描,再加一份美股盘前新闻摘要
+每周    归档、体检、复盘与视觉刷新任务
+```
+
+港股时间按 HKT;美股 session 时间按 ET,其 cron 表达式随纽约夏令时自动切换。节假日 + 周末闸门跳过休市 session。精确的生成表见 [docs/operations/cron-schedules.md](docs/operations/cron-schedules.md)。
+
+## 在你自己的账本上跑
+
+package lifecycle 已经不再焊死在这个账户目录上。在
+[#379](https://github.com/KCNyu/clawock/issues/379) 完成 trusted publishing 前，
+请从 GitHub 安装当前 pre-release，不假装 PyPI 名称已经上线：
 
 ```bash
 python -m pip install "clawock @ git+https://github.com/KCNyu/clawock.git"
-clawock --help
+clawock workflow install investment-decision --workspace ./my-decision
+clawock init ./my-decision --workflow investment-decision
+clawock run prepare --workspace ./my-decision
 ```
 
-这里暂时不宣传 `pip install clawock`：PyPI 项目还没有发布。release workflow
-会使用 PyPI trusted publishing，并先做隔离 index 安装 smoke，之后才改这段文案。
+输出的 request 交给外部 Agent。Agent 写出 `decision.json`，再由
+`clawock run publish` 校验并产生关联的 generation receipt。包内 example 可以在
+不调用模型时 smoke lifecycle；真实 adapter 则把模型调用完全留在 runtime。
 
-## 快速开始
+KCNyu compatibility surface 仍由 `clawock doctor`、`clawock context audit` 和
+`CLAWOCK_WORKSPACE` 检查或指向实际账本。它们会直说缺什么，不假装任意外来
+workspace 都能直接运行这套 live desk。
 
-下面用包内的 example artifact 做 smoke。它证明的是 workflow lifecycle，不冒充
-clawock 自己调用过模型：
+包本身拥有 lifecycle 契约、generation-pinned artifacts、上下文组装、校验与
+CLI，但不会另写一套 Agent loop。这个实例今天用 OpenClaw 作为无人值守 runtime
+adapter；其它 runner 可以消费同一套 context/tool 契约。live adapter 仍假设这张
+桌子的两个账本、registry 和 schedules；`doctor` 与 `context audit` 会如实说明能力，
+不会假装任意外来 workspace 已可直接上生产。
 
-```bash
-clawock workflow install investment-decision --workspace ./decision-demo
-clawock init ./decision-demo --workflow investment-decision
+## 逛一逛这套系统
 
-request_path=$(clawock run prepare --workspace ./decision-demo \
-  | python -c 'import json,sys; print(json.load(sys.stdin)["request_file"])')
+- [**实时仪表盘**](https://kcnyu.github.io/clawock/) —— 持仓、风控,以及自评战绩。
+- [**每日简报**](https://kcnyu.github.io/clawock/briefs.html) —— 已发布的早读。
+- [**排程表**](docs/operations/cron-schedules.md) —— 生成的 cron 表。
+- [**数据脚本**](scripts/data/README.md) —— fetcher 与计算目录。
+- [**项目文档**](docs/README.md) —— 运维、参考、法律说明与历史设计。
 
-cp ./decision-demo/.agents/skills/investment-decision/assets/decision.example.json \
-  ./decision-demo/decision.json
+### 研究入口
 
-clawock run publish \
-  --workspace ./decision-demo \
-  --request "$request_path" \
-  --artifact decision.json=./decision-demo/decision.json
+| 问题 | 入口 | 数据 / 运行契约 | 复用范围 |
+|---|---|---|---|
+| 分析一家美股公司 | [`us-stock-analysis`](skills/us-stock-analysis/SKILL.md) | 本地行情兜底、SEC 文件、基本面、新闻 | 可随 clawock workspace 复用 |
+| 分析一家港股公司 | [`hk-stock-analysis`](skills/hk-stock-analysis/SKILL.md) | 腾讯 / 东财行情对账、港股基本面、市场环境 | 可随 clawock workspace 复用 |
+| 检查当前组合 | 单次走 [`portfolio-risk-review`](skills/portfolio-risk-review/SKILL.md);深度辩论走 [`portfolio-swarm-review`](skills/portfolio-swarm-review/SKILL.md) | `portfolio.json`、新鲜行情、风控与决策账本 | 依赖已配置的真实组合 |
+| 压测一条供应链 thesis | [`serenity-skill`](skills/serenity-skill/SKILL.md) | 当前公开证据 + 本地评分卡 | 可作为手动研究框架复用 |
+| 复盘一个已披露的报告期并追踪管理层承诺 | [`earnings-review`](skills/earnings-review/SKILL.md) | 一手 filing / 港交所公告、XBRL 或东财结构化交叉验证、provenance 准出闸 | 可复用;产物落在 `memory/earnings/` |
+| 判断一个新标的值不值得做深度研究 | [`entry-gate`](skills/entry-gate/SKILL.md) | workspace 行情链、instrument registry、证据来源分级、确定性硬否决 | 可复用;产物落在 `memory/entry-gates/` |
+
+这几个入口是单向串起来的——先过建仓前研究闸,再做一手财报证据,再落到 canonical thesis 与只认证据的 drift,最后才进已有的决策、风控、结算回路。每一步都写下带版本的产物给下一步读,所以后面的环节永远没法拿文案把前面那步重新推一遍。
+
+这些入口原生依赖 workspace,不是一条命令即可独立安装的通用产品。它们要求 clawock 的脚本、数据契约和记忆 / SOP 文件;公开持仓及其运行历史只属于当前这套部署。
+
+用 [Claude Code](https://claude.com/claude-code)、[openclaw](https://openclaw.com) cron 守护进程、纯静态 Jekyll + GitHub Pages 前端,以及 Python 构建。行情、新闻、宏观、情绪来自有文档的公开源并带多源兜底;复用任何抓取内容前请先看[第三方数据与服务条款](docs/legal/third-party-data.md)。
+
+<details>
+<summary><b>底层细节</b> —— 模型、写入协调与完整性闸门</summary>
+
+<br>
+
+**模型。** 模型选择属于外部 runtime，不属于 clawock。live OpenClaw 实例可以为
+每个 scheduled job 分别固定 primary 与 fallback；供应商凭据与路由策略放在公开
+仓库之外，可以在不改 workflow 的情况下变化。这里不存任何供应商密钥。
+
+**写入对账。** dashboard 构建产物 —— `dashboard.json`、`decision_audit.json`、`shadow_portfolio.json` —— 都是派生的,而 cron 守护进程、远端 workflow、crontab publisher 和临时 session 都可能更新 `master`。规则是:隔离 scan-sidecar 写者,并串行化同一 host 上的 dashboard builder。
+
+- **前端直接读 scan sidecar。** 宏观 / 情绪 / 新闻 / 影响者 feed 在加载时逐文件抓取,所以一个 GitHub Action 只提交它自己那份不相交的 sidecar —— 写者之间不会冲突,一份扫描在它的 commit 落地那一刻就出现在页面上,无需重建。
+- **dashboard builder 共用一把锁、一份契约。** on-host 重建在一把共享 `flock` 上串行;每个 builder 跑同一个语义-diff 助手,所以只改时钟的重写被还原,而三份生成文件的真实变更被一起 stage。
+- **所有人都走 `safe_push.sh`** —— rebase 重试、真冲突即中止,提交进来的冲突标记在 push hook 处被拒,所以一份坏掉的 `dashboard.json` 永远到不了 Pages。
+- **组合数字在门口就被把关。** `portfolio.json` —— 唯一真源 —— 在一把 advisory `flock` 下、以「读最新再覆盖 + 原子替换」写入。一个 pre-push hook 拦下任何账目对不上资金守恒恒等式(`TCV = Σ value`、`cash = baseline + trades + adjustments`、`cost = 移动加权`)的 push,这些纯派生由 CI 里的 `pytest` 套件钉死。
+- **排程有受检契约。** 运行时真源来自实时 cron 列表;一份被追踪的配置驱动生成的排程表、夏令时同步、payload/看门狗检查与 CI 体检。
+
+</details>
+
+<details>
+<summary><b>仓库结构</b></summary>
+
+<br>
+
+```
+clawock/
+├─ index.html  briefs.md                    ← Pages 落地页
+├─ docs/                                      ← 运维 · 参考 · 法律 · 历史归档
+├─ assets/data/        由 harness + GH Actions 构建,从不手改
+│   ├─ dashboard.json  risk.json  catalysts.json
+│   ├─ macro.json  sentiment.json  *_news*.json  influencer_feed.json  ← scan sidecar,前端直接抓
+│   └─ *_review.json  guardrail_history.jsonl                          ← 因子 / setup 记分卡 + 风控闸拦下了什么
+├─ portfolio.json                           ← 唯一真源(原子写入)
+├─ tests/                                    ← decision-v2 + 资金守恒回归闸
+├─ src/clawock/                              ← 可移植 harness 契约 · context · CLI · providers
+├─ MEMORY.md  DREAMS.md                      ← 铁律 + 每夜「做梦」提炼
+├─ memory/
+│   ├─ {date}-pre-open.md  {date}-plan.json  ← 简报产出 + 结构化 plan
+│   ├─ decisions.jsonl                       ← 权威决策/episode 账本
+│   ├─ bars/{ticker}.json                    ← 基准不复权 OHLC —— 结算触发的依据
+│   └─ snapshots/{date}.json
+├─ scripts/
+│   ├─ data/      fetcher · build_dashboard.py · 风控/量化/regime 计算 · safe_push.sh
+│   └─ harness/   kcn live instance adapter · 看门狗
+└─ skills/{name}/SKILL.md
 ```
 
-receipt 把认证 request、workflow 版本、通过校验的 artifact 和不可变 generation
-目录关联起来。真实使用时，把 `cp` 那一行换成外部 Agent 读取同一个 request 与
-已安装 skill 后产出 `decision.json`。
+</details>
 
-### 外部 Agent 契约
+---
 
-一个 adapter 不需要复制业务规则，只需要：
+## 范围、免责与许可
 
-1. 运行 `clawock run prepare` 并读取输出的 request JSON；
-2. 让 Agent 能看到已安装的 `investment-decision` skill；
-3. 让 Agent 在不修改 request 的前提下写出 `decision.json`；
-4. 用同一个 request 和 artifact 运行 `clawock run publish`。
+本仓库包含**真实交易持仓**。它是一份个人记录和可携带的工作区 —— **不是投资建议、不是推荐、也不是跟单系统**。这套投研台只分析和建议;它不替你下单。任何一条结果都不是人工挑选的 —— 结算规则与方法学变更都在代码里版本化 —— 主动判断至今没显出优势,而你读到时每个数字都可能已经过时。
 
-clawock 校验输出并发布 receipt。只有 runtime 能调用模型、使用对话、记忆和工具。
+原创代码采用 [MIT 许可证](LICENSE)。改编的第三方代码保留其原有许可与署名,见 [NOTICE](NOTICE) 与 [`THIRD_PARTY_LICENSES/`](THIRD_PARTY_LICENSES/)。第三方行情、新闻、社交内容、文件、商标与 API 访问**不**被 MIT 重新授权 —— 见[第三方数据与服务](docs/legal/third-party-data.md)。
 
-## workflow 里有什么
+<div align="center">
+<br>
 
-`clawock workflow show investment-decision` 会打印包内契约。当前 1.1.0 包含：
+**[实时仪表盘](https://kcnyu.github.io/clawock/)** &nbsp;·&nbsp; **[每日简报](https://kcnyu.github.io/clawock/briefs.html)** &nbsp;·&nbsp; **[English](README.md)**
 
-- 标准 `SKILL.md`、runtime-neutral references 和 JSON Schemas；
-- 认证过的上下文文件与 workflow certificate；
-- 支持证据和反方证据要求；
-- thesis、失效条件、有边界的动作、订单、币种与汇率字段；
-- 确定性的 decision/outcome 校验；
-- generation-pinned artifacts 与本地 publication receipts；
-- 用于有边界改动的 evaluate、propose、review、apply、rollback 命令。
+<sub>由 <a href="https://github.com/KCNyu">Shengyu Li (kcn)</a> 与 Rick 构建维护 · 2026</sub>
 
-这套 workflow 不发明新的量化因子、catalyst、信号、买卖点或组合规则。它消费
-用户现有策略与证据。
-
-## 有边界的改进，不是自主改写自己
-
-```text
-decision + observed outcome
-            │
-            ▼
- clawock workflow evaluate
-            │
-            ▼
- 与证据绑定的 proposal
-            │
-       审阅精确 diff
-       ┌────┴────┐
-     拒绝       接受 ──► apply ──► rollback record
-```
-
-只有声明过的 workflow 参数可以改变。apply 必须带已接受的 review record；
-rollback 恢复旧参数。生产指令、Agent memory、模型 policy 与投资策略不会隐式变化。
-
-## 架构
-
-![clawock 产品架构 —— 外部 Agent runtime 拥有模型、对话、记忆与工具，clawock 包提供可迁移 workflow、认证上下文、确定性对账、评估和有边界改进](assets/product-architecture.svg)
-
-```text
-┌──────────────────────────────────────────────────────────────┐
-│ 外部 Agent runtime                                          │
-│ OpenClaw · Hermes · Claude Code · Codex · 其它               │
-│ model · chat · memory · planning · tools · permissions       │
-└───────────────────────────┬──────────────────────────────────┘
-                            │ 安装 Skill / 调用 CLI + JSON
-┌───────────────────────────▼──────────────────────────────────┐
-│ clawock 产品（`src/clawock/`）                               │
-│ workflows · 认证上下文 · artifact contracts                 │
-│ 确定性校验/对账 · evaluation                                 │
-│ generation receipts · proposal/review/rollback               │
-└───────────────────────────┬──────────────────────────────────┘
-                            │ adapter-owned I/O
-┌───────────────────────────▼──────────────────────────────────┐
-│ 用户实例                                                     │
-│ strategy · evidence · ledger · schedules · delivery · UI     │
-└──────────────────────────────────────────────────────────────┘
-
-今天的 KCNyu 生产实例：
-OpenClaw scheduler ─► KCNyu adapter ─► clawock contracts
-                  └► 对账账本 ─► data plane ─► Pages
-```
-
-最下面一层不进 wheel。公开 KCNyu dashboard 是一个真实运行实例和证明面，不是
-可复用产品本身。
-
-### 仓库目录图
-
-```text
-src/clawock/        可安装产品、schemas、workflow pack、adapters
-tests/              高价值不变量与 installed-wheel 契约
-scripts/harness/    迁移中的 KCNyu lifecycle adapter
-scripts/data/       已分类、尚未完成物理迁移的 product/instance inventory
-scripts/ops/        主机与运维入口
-config/             KCNyu 实例配置（产品 schemas 已迁出）
-skills/             OpenClaw 实例 skills；runtime 路径暂时保持稳定
-memory/             KCNyu 账本、结果、研究状态与 OpenClaw memory
-assets/ + *.html    当前 Pages source 与生成的 dashboard surface
-```
-
-这张图诚实保留了尚未拆开的部分。最终的 product/instance/site/operations 分离在
-[#381](https://github.com/KCNyu/clawock/issues/381) 追踪；在 prompt、memory、skills、
-tools、cron 和 delivery 的等价性证明完成前，不会为了目录好看移动 OpenClaw 根
-上下文文件。
-
-## OpenClaw 是第一个生产 adapter
-
-当前实例用 OpenClaw 承担正常聊天和 11 个 isolated scheduled jobs。clawock 分别
-记录 interactive chat、isolated cron、heartbeat 和 bootstrap context profile，
-包含 memory 与 skill discovery，而不是把五个 Markdown 当成全部上下文。
-
-OpenClaw adapter 的 runtime path 可配置。包不会暗中缩小 OpenClaw 的工具集，
-下面这些责任始终属于 OpenClaw：
-
-- 正常对话历史和 startup context；
-- `AGENTS.md`、`SOUL.md`、`TOOLS.md`、`IDENTITY.md`、`USER.md` 注入；
-- `MEMORY.md`、日期 memory、索引与搜索；
-- skill catalog discovery 和选定 `SKILL.md` 的加载；
-- tool schemas、权限、heartbeat、bootstrap、cron 与 delivery。
-
-参见 [adapter contract](docs/architecture/openclaw-adapter.md) 与
-[`clawock context audit`](docs/architecture/harness.md)。真实 OpenClaw scheduler
-canary 已经成功调用包内 workflow；完整市场定时任务切换仍在
-[#380](https://github.com/KCNyu/clawock/issues/380) 中。
-
-## KCNyu 实盘证明
-
-[公开 dashboard](https://kcnyu.github.io/clawock/) 跑的是一个真实港股 + 美股组合
-workflow。它的价值不是展示漂亮 demo，而是把决策、亏损、对账与结果历史一起
-暴露出来。最终执行权仍由人持有。
-
-<p align="center"><a href="https://kcnyu.github.io/clawock/"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/assets/dashboard.gif" alt="KCNyu clawock dashboard 循环展示真实运行证明" width="300"></a></p>
-
-- [实时 dashboard](https://kcnyu.github.io/clawock/)
-- [已发布简报](https://kcnyu.github.io/clawock/briefs.html)
-- [证据与反证](https://kcnyu.github.io/clawock/evidence.html)
-- [Cron contract](docs/operations/cron-schedules.md)
-- [Product vs instance 分类](docs/reference/product-vs-instance.md)
-- [KCNyu live-instance 架构](assets/architecture.svg)
-
-实盘里的任何内容都不是投资建议、收益承诺、跟单服务，也不能证明 workflow
-具有市场 edge。
-
-## 当前边界：不夸大
-
-已经实现并验证：
-
-- 在源码仓库外从 wheel 运行 package-native `init`、workflow 安装/发现、
-  `run prepare` 与 `run publish`；
-- evidence/opposition/decision/outcome schemas 与确定性资金/汇率校验；
-- 明确的 proposal review、apply 与 rollback；
-- 可配置 OpenClaw runtime path 和一次真实 isolated-scheduler canary；
-- 一套 fail-closed 发布的真实 portfolio/data/dashboard 实例。
-
-在称为「已完整交付的独立 harness」之前还缺：
-
-- 正式 TestPyPI/PyPI 发布和 public index 隔离安装；
-- 由一套有文档的非 OpenClaw runtime 跑完同一条真实 workflow；
-- 从 `scripts/harness` 抽出剩余 KCNyu compatibility phases；
-- 物理上的 instance/site/operations 分离；
-- OpenClaw 全部 market cron 切换与相邻版本 before/after context parity。
-
-终极交付计划和证据要求见
-[#378](https://github.com/KCNyu/clawock/issues/378)。
-
-## 开发
-
-```bash
-git clone https://github.com/KCNyu/clawock.git
-cd clawock
-python -m pip install -e '.[test]'
-python -m pytest -q tests/test_wheel_contains_the_package.py
-```
-
-项目刻意把 installed-wheel 行为、资金对账和真实 receipt 放在 decorative test
-数量之前。参见 [CONTRIBUTING.md](CONTRIBUTING.md) 与 [SECURITY.md](SECURITY.md)。
-
-## License 与风险
-
-MIT License。见 [LICENSE](LICENSE)、[NOTICE](NOTICE)、
-[第三方数据条款](docs/legal/third-party-data.md) 与
-[third-party notices](THIRD_PARTY_LICENSES/README.md)。
-
-clawock 是研究软件，不是投资建议。它不下单，也不保证准确率、可用性或收益。
-任何真金白银的使用都应保留人工批准、券商侧控制与独立对账。
+</div>

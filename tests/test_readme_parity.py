@@ -32,17 +32,15 @@ def _first_emoji(text):
     return None
 
 EN_H2 = [
-    "What clawock is", "Why this layer exists", "Installation status",
-    "Quickstart", "What ships in the workflow",
-    "Bounded improvement, not autonomous self-rewriting", "Architecture",
-    "OpenClaw is the first production adapter", "The KCNyu live proof",
-    "Current boundary — no inflated claims", "Development", "License and risk",
+    "What this is", "How it works", "The information layer", "How it decides",
+    "The debate", "The public scorecard", "What we tested, and what failed",
+    "What the code enforces", "Daily rhythm", "Run it on your own book",
+    "Explore the system", "Scope, disclaimer, and license",
 ]
 ZH_H2 = [
-    "clawock 是什么", "为什么需要这一层", "安装状态", "快速开始",
-    "workflow 里有什么", "有边界的改进，不是自主改写自己", "架构",
-    "OpenClaw 是第一个生产 adapter", "KCNyu 实盘证明",
-    "当前边界：不夸大", "开发", "License 与风险",
+    "这是什么", "怎么跑的", "信息层", "怎么做决策", "辩论", "公开战绩",
+    "测了什么，什么没通过", "代码强制执行的规矩", "每日节奏",
+    "在你自己的账本上跑", "逛一逛这套系统", "范围、免责与许可",
 ]
 
 
@@ -63,7 +61,7 @@ def test_section_count_matches():
 
 
 def test_details_count_matches():
-    assert _details(EN) == _details(ZH)
+    assert _details(EN) == _details(ZH) > 0
 
 
 def test_embedded_assets_match():
@@ -89,22 +87,51 @@ def test_language_switch_links_cross():
     assert "README.md" in ZH
 
 
-def test_portable_workflow_surface_stays_in_both_languages():
+def test_research_surfaces_stay_in_both_languages():
+    assert "### Research surfaces" in EN
+    assert "### 研究入口" in ZH
     for target in (
-        "clawock workflow install investment-decision",
-        "clawock run prepare",
-        "clawock run publish",
-        "src/clawock/",
+        "skills/us-stock-analysis/SKILL.md",
+        "skills/hk-stock-analysis/SKILL.md",
+        "skills/portfolio-risk-review/SKILL.md",
+        "skills/portfolio-swarm-review/SKILL.md",
+        "skills/serenity-skill/SKILL.md",
+        "skills/earnings-review/SKILL.md",
+        "skills/entry-gate/SKILL.md",
     ):
         assert target in EN and target in ZH, f"{target} missing from a README"
 
 
-def test_runtime_boundary_is_explicit_in_both_languages():
-    for md in (EN, ZH):
-        for owner in ("model", "memory", "tools", "permissions"):
-            assert owner in md
-        assert "scripts/harness/" in md
-        assert "#380" in md and "#381" in md
+def test_per_run_context_layers_documented_in_both_languages():
+    """The layered view must stay honest about counts: it claims a block count per
+    run, and those come from the preflights' own context dicts."""
+    import re
+
+    assert "### What each run actually receives" in EN
+    assert "### 每种运行实际拿到什么" in ZH
+
+    root = Path(__file__).resolve().parents[1]
+    counts = {}
+    for name, path in (
+        ("brief", "scripts/harness/brief_preflight.py"),
+        ("report", "scripts/harness/report_preflight.py"),
+        ("intraday", "scripts/harness/intraday_preflight.py"),
+    ):
+        source = (root / path).read_text()
+        block = re.search(r"\n    (?:context|result) = \{(.*?)\n    \}", source, re.S)
+        assert block, name
+        counts[name] = len(re.findall(r"'([a-z_0-9]+)':", block.group(1)))
+
+    for md, name in ((EN, "README.md"), (ZH, "README.zh.md")):
+        row = next(line for line in md.splitlines()
+                   if line.startswith("| **Blocks**") or line.startswith("| **块数**"))
+        # split, not a shared-delimiter regex: `| 36 | 15 | 18 |` consumes the
+        # middle pipe and silently drops a column
+        stated = [int(cell.strip()) for cell in row.split("|")
+                  if cell.strip().isdigit()]
+        assert stated == [counts["brief"], counts["report"], counts["intraday"]], (
+            f"{name} block counts drifted from the preflights: {stated} vs {counts}"
+        )
 
 
 def test_explicit_h2_sequences():

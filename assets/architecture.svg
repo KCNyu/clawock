@@ -122,7 +122,7 @@
     <circle cx="31" cy="146" r="11" fill="#f5e6dd"/>
     <path d="M31 139v8M31 151v1" stroke="#b95f3a" stroke-width="1.8"/>
     <text x="51" y="150" class="label ink">Hard-limit actions enforced</text>
-    <text x="20" y="166" class="micro muted">&#8594; brief · ledger · dashboard</text>
+    <text x="20" y="162" class="micro muted">&#8594; brief · ledger · dashboard</text>
   </g>
 
   <!-- Settlement loop (bottom row, flows right to left) -->
