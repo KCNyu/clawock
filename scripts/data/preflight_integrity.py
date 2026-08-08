@@ -74,7 +74,7 @@ PORTFOLIO = WS / 'portfolio.json'
 OUT = WS / 'assets' / 'data' / 'integrity_report.json'
 
 sys.path.insert(0, str(_CHECKOUT / 'scripts' / 'data'))
-from instrument_registry import INSTRUMENTS  # noqa: E402
+from clawock.instrument_registry import INSTRUMENTS  # noqa: E402
 
 try:
     from safe_io import safe_write_json

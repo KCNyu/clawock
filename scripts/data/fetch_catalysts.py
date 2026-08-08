@@ -28,8 +28,11 @@ from pathlib import Path
 
 import requests
 
-import instrument_registry
-from instrument_registry import leveraged_symbols
+_CHECKOUT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(_CHECKOUT))
+sys.path.insert(0, str(_CHECKOUT / "src"))
+from clawock import instrument_registry  # noqa: E402
+from clawock.instrument_registry import leveraged_symbols  # noqa: E402
 
 WS_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 OUT_FILE = os.path.join(WS_ROOT, 'assets', 'data', 'catalysts.json')

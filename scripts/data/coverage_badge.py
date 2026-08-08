@@ -48,7 +48,7 @@ CORE_MODULES = (
     'scripts/data/preflight_integrity.py',
     'scripts/data/risk_discipline.py',
     'scripts/data/shadow_portfolio.py',
-    'scripts/data/instrument_registry.py',
+    'src/clawock/instrument_registry.py',
     'scripts/data/recompute_aggregates.py',
     'scripts/data/recompute_realized.py',
     'scripts/data/portfolio_risk_metrics.py',

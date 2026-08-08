@@ -13,12 +13,19 @@ import compute_regime  # noqa: E402
 import compute_t0_setups  # noqa: E402
 import fetch_daily_bars  # noqa: E402
 import fetch_us_stocks  # noqa: E402
-import instrument_registry  # noqa: E402
+from clawock import instrument_registry  # noqa: E402
 import portfolio_risk_metrics  # noqa: E402
 import preflight_integrity  # noqa: E402
 from clawock_kcnyu.harness import brief_preflight  # noqa: E402
 import analyze_hk_stocks  # noqa: E402
 import analyze_us_stocks  # noqa: E402
+
+
+def test_registry_implementation_is_product_not_a_repository_script():
+    assert instrument_registry.__file__ == str(
+        WS / "src" / "clawock" / "instrument_registry.py"
+    )
+    assert not (WS / "scripts" / "data" / "instrument_registry.py").exists()
 
 
 def _portfolio():

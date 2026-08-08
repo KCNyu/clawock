@@ -183,6 +183,7 @@ jobs:
         run: |
           python3 -m pytest tests/ -q \
             --cov=scripts \
+            --cov=clawock.instrument_registry \
             --cov-report=term-missing:skip-covered \
             --cov-report=json:coverage-report.json
 
@@ -272,7 +273,7 @@ jobs:
 
       - name: Schema-validate canonical instrument registry
         if: github.event_name != 'pull_request' || steps.changes.outputs.code == 'true'
-        run: python3 scripts/data/instrument_registry.py
+        run: python3 -m clawock.instrument_registry
 
       - name: Schema-validate memory/*-plan.json
         if: github.event_name != 'pull_request' || steps.changes.outputs.code == 'true'

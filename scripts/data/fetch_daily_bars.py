@@ -76,7 +76,7 @@ SCHEMA_VERSION = 1
 # canonical and `em` remains the best-effort cross-audit source. The registry is
 # the one reviewed location for load-bearing .OQ/.N/.AM suffixes, retirement
 # declarations and display names.
-from instrument_registry import canonical_bar_manifest  # noqa: E402
+from clawock.instrument_registry import canonical_bar_manifest  # noqa: E402
 
 MANIFEST: dict[str, dict] = canonical_bar_manifest()
 
