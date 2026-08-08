@@ -32,7 +32,9 @@
 
 ## 这是什么
 
-clawock 是一个持续运行的、公开的**纪律化、自评式** AI 投资实验 —— 不是一夜暴富的机器人,也不是跟单服务。
+clawock 是一套**可审计的投资组合 Agent Harness，并内置上下文认证层**。
+完整 Agent = `clawock + 模型 + runtime`；这个仓库负责其中不会幻觉的那一半。
+它也是一个持续运行的、公开的纪律化、自评式 AI 投资实验 —— 不是一夜暴富的机器人,也不是跟单服务。
 
 一套多 Agent 投研台监控一个真实券商账户(港股与美股分账)、辩论证据、给出交易建议;执行留给账户所有者。这个项目的核心产品就是这份实时记录:真实持仓、不断累积的决策历史,以及公开战绩。模型负责提议;价格、风控上限、账本、结算与评分,全部由 Python 负责。
 
@@ -80,7 +82,7 @@ clawock 是一个持续运行的、公开的**纪律化、自评式** AI 投资�
 | | 盘前深度简报 | 开盘 / 午盘 / 午后 / 收盘 | 盘中盯盘 |
 |---|---|---|---|
 | **什么时候** | 工作日 08:00 HKT | 港股 09:30 · 12:00 · 13:30 · 16:00 · 美股开收盘 | 开市期间每 30 分钟 |
-| **块数** | 36 | 16 | 19 |
+| **块数** | 36 | 16 | 20 |
 | **持仓真值** | 持仓、账面合计、集中度、杠杆看穿 | 新鲜行情块 | 新鲜行情块 |
 | **风控** | 护栏、纪律账本、β/波动/回撤、解套算术 | 只在信号要求时出风险段 | 信号计数与明细 |
 | **信号** | 量化因子及其命中率复核、截面因子、同业残差、T+0 牌面 | 板块 / 同业扫描 | 板块 / 同业扫描、T+0 牌面、异动标记 |
@@ -201,11 +203,17 @@ clawock 是一个持续运行的、公开的**纪律化、自评式** AI 投资�
 pip install -e .
 clawock doctor                          # 这个 workspace 能跑吗？
 clawock doctor --workspace ~/my-book    # 那个呢？
+clawock context audit                   # runtime 上下文契约还完整吗？
+clawock report preflight --market hk --phase open
 ```
 
 `doctor` 只回答一个问题——这套循环能不能对着这份持仓跑起来——并且**把缺什么直接说出来**，而不是在很深的地方抛一个路径错误。`CLAWOCK_WORKSPACE` 可以把计算指向别的目录树；不设置时行为和以前完全一致。
 
-边界也要说清楚：这是第一刀，不是通用框架。流水线里相当一部分仍然假设了这张桌子的形状——两个账本、工具标的注册表、那套排程。`doctor` 会告诉你一个外来 workspace 缺什么，而不是假装它能跑；依赖也统一到了 `pyproject.toml`，不再散落在每个 workflow 里各写一遍。
+包本身拥有 lifecycle 契约、generation-pinned artifacts、上下文组装、校验与
+CLI，但不会另写一套 Agent loop。这个实例今天用 OpenClaw 作为无人值守 runtime
+adapter；其它 runner 可以消费同一套 context/tool 契约。live adapter 仍假设这张
+桌子的两个账本、registry 和 schedules；`doctor` 与 `context audit` 会如实说明能力，
+不会假装任意外来 workspace 已可直接上生产。
 
 ## 逛一逛这套系统
 
@@ -264,6 +272,7 @@ clawock/
 │   └─ *_review.json  guardrail_history.jsonl                          ← 因子 / setup 记分卡 + 风控闸拦下了什么
 ├─ portfolio.json                           ← 唯一真源(原子写入)
 ├─ tests/                                    ← decision-v2 + 资金守恒回归闸
+├─ clawock/                                  ← 可移植 harness 契约 · context · CLI · providers
 ├─ MEMORY.md  DREAMS.md                      ← 铁律 + 每夜「做梦」提炼
 ├─ memory/
 │   ├─ {date}-pre-open.md  {date}-plan.json  ← 简报产出 + 结构化 plan
@@ -272,7 +281,7 @@ clawock/
 │   └─ snapshots/{date}.json
 ├─ scripts/
 │   ├─ data/      fetcher · build_dashboard.py · 风控/量化/regime 计算 · safe_push.sh
-│   └─ harness/   {brief,report,intraday}_{pre,post}flight.py · 看门狗
+│   └─ harness/   kcn live instance adapter · 看门狗
 └─ skills/{name}/SKILL.md
 ```
 

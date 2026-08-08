@@ -344,7 +344,10 @@ def _publish_generation(ws):
         )
     except Exception as e:                       # noqa: BLE001 - reported, not raised
         return f'\n  data-plane publish failed: {e}'
-    tail = (r.stdout + r.stderr).strip()[-200:]
+    # A failed git push ends with a generic one-line summary. The hook/remote
+    # reason precedes it, so 200 characters erased the only actionable evidence
+    # in the 2026-08-08 data-plane freeze (#370).
+    tail = (r.stdout + r.stderr).strip()[-2000:]
     if r.returncode != 0:
         return f'\n  data-plane publish failed: {tail}'
     return f'\n  {tail}'

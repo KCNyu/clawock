@@ -1,6 +1,6 @@
 ---
 name: daily-deep-brief
-description: kcn 每个工作日 08:00 HKT 跑一次的盘前全 swarm 深度分析。harness 化：`scripts/harness/brief_preflight.py` 计算并编译 typed decision packet，LLM 只做 Tier 1/2/3/Judge 与受限 judgment overlay，`scripts/harness/brief_postflight.py` 验证、生成 Pages projection、commit 并自动投递微信。**输出**：完整 markdown、结构化 plan、受限 judgment JSON 与紧凑微信卡。**只在每日 8 点 cron 触发时使用；手动深度分析仍走 portfolio-swarm-review。**
+description: kcn 每个工作日 08:00 HKT 跑一次的盘前全 swarm 深度分析。harness 化：`clawock brief preflight` 计算并编译 typed decision packet，LLM 只做 Tier 1/2/3/Judge 与受限 judgment overlay，`clawock brief postflight` 验证、生成 Pages projection、commit 并自动投递微信。**输出**：完整 markdown、结构化 plan、受限 judgment JSON 与紧凑微信卡。**只在每日 8 点 cron 触发时使用；手动深度分析仍走 portfolio-swarm-review。**
 ---
 
 # Daily Deep Brief (08:00 HKT, weekday)
@@ -12,7 +12,7 @@ description: kcn 每个工作日 08:00 HKT 跑一次的盘前全 swarm 深度分
 
 ```
 ┌────────────────────┐     ┌───────────────┐     ┌────────────────────┐
-│ scripts/harness/brief_preflight.py │ ──► │ LLM (你 / Rick)│ ──► │ brief_postflight.py│
+│ clawock brief preflight            │ ──► │ LLM (你 / Rick)│ ──► │ clawock brief postflight │
 │  (确定性 + 幂等)   │     │ (只写判断/反方)│     │ 验证+projection+投递│
 └────────────────────┘     └───────────────┘     └────────────────────┘
    指标/因子/风险/evidence   查 packet summary/ticker 校验 md+plan+judgment，
@@ -27,7 +27,7 @@ description: kcn 每个工作日 08:00 HKT 跑一次的盘前全 swarm 深度分
 ### Step 1: 跑 preflight（一行命令搞定所有确定性活）
 
 ```bash
-python3 /root/.openclaw/workspace/scripts/harness/brief_preflight.py
+clawock brief preflight
 ```
 
 这一步内部做了：
@@ -778,7 +778,7 @@ https://kcnyu.github.io/clawock/memory/{date}-pre-open.html
 ### Step 5: 跑 postflight（验证 + commit + 自动投递微信）
 
 ```bash
-python3 /root/.openclaw/workspace/scripts/harness/brief_postflight.py
+clawock brief postflight
 ```
 
 输出 JSON：

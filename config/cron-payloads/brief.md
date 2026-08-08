@@ -9,7 +9,7 @@
 
 **Step 1 - Preflight（一行搞定所有确定性活）**
 ```
-python3 /root/.openclaw/workspace/scripts/harness/brief_preflight.py
+clawock brief preflight
 ```
 内部会刷 US/HK 价 + FX + 快照 + HHI + SEC EDGAR + retrospective，输出 `memory/.tmp/brief-context-{date}.json`。
 
@@ -51,7 +51,7 @@ https://kcnyu.github.io/clawock/memory/{date}-pre-open.html
 
 **Step 5 - Postflight（验证 + commit + 自动投递微信）**
 ```
-python3 /root/.openclaw/workspace/scripts/harness/brief_postflight.py
+clawock brief postflight
 ```
 postflight 会校验、pass/warn 时自动 commit，并用 **fresh token 把 brief-card 自动投到微信**（这是唯一微信路径，并同步 Telegram；你不用自己发）。返回 JSON 含 `status` (pass/warn/fail) + `wechat_sent`。
 

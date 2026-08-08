@@ -310,11 +310,11 @@ def collect_peers(market):
         return {}
 
 
-def main():
+def main(argv=None):
     parser = argparse.ArgumentParser()
     parser.add_argument('--market', choices=['hk', 'us'], required=True)
     parser.add_argument('--phase', choices=['open', 'mid', 'pm', 'close'], required=True)
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
 
     if (args.market, args.phase) not in TITLE_TEMPLATES:
         print(f'❌ invalid market+phase combo: {args.market}/{args.phase}', file=sys.stderr)

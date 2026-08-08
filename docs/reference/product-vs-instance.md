@@ -8,9 +8,10 @@ That is a statement about *shape*, and shape is only real if a reviewer can appl
 it to a file they have not seen. This page is that rule, plus the classification
 of every module in `scripts/data/` against it (#331).
 
-It deliberately moves nothing. The point is that the migration afterwards is
+It classifies before moving. The point is that the migration afterwards is
 mechanical and reviewable one file at a time, and that a new file has an obvious
 home instead of defaulting to `scripts/data/` because that is where things go.
+The same rule now covers all 11 modules in `scripts/harness/` (#365).
 
 ## The rule
 
@@ -64,7 +65,7 @@ Counts: **product 60 · instance 27**.
 | Risk + governance | `portfolio_risk_metrics` `risk_discipline` `thesis_registry` `entry_gate` `earnings_review` `research_surface` |
 | Quant + research | `compute_quant_signals` `compute_regime` `compute_t0_setups` `t0_setup_review` `quant_signal_review` `cross_sectional_factor` `peer_residual_engine` `peer_scan` `suggest_peers` |
 | Evidence + provenance | `news_evidence_graph` `research_provenance` `claim_provenance` `run_card` `build_evidence` `json_repair` |
-| Market data | `fetch_us_stocks` `fetch_daily_bars` `fetch_fx` `fetch_benchmark_history` `fetch_peers` `fetch_catalysts` `fetch_us_filings` `fetch_fundamentals_em` `fetch_fundflow_em` `fetch_em_news` `fetch_sentiment` `fetch_macro` `mover_news` `analyze_hk_stocks` `analyze_us_stocks` `_em_http` `_em_symbols` `bar_checks` `instrument_registry` `trading_calendar` |
+| Market data | `fetch_us_stocks` `fetch_daily_bars` `fetch_fx` `fetch_benchmark_history` `fetch_peers` `fetch_catalysts` `fetch_us_filings` `fetch_fundamentals_em` `fetch_fundflow_em` `fetch_em_news` `fetch_sentiment` `fetch_macro` `mover_news` `known_catalysts` `analyze_hk_stocks` `analyze_us_stocks` `_em_http` `_em_symbols` `bar_checks` `instrument_registry` `trading_calendar` |
 | Gates + outputs | `preflight_integrity` `validate_sidecars` `dashboard_outputs` `build_dashboard` `workflow_outcomes` `workflow_health` `coverage_badge` `cron_contract` `cron_heartbeat` |
 
 ### Instance — kcn's desk
@@ -113,6 +114,26 @@ Four calls are genuinely arguable, and a reviewer may reasonably move them:
   It is retained deliberately as reference material: MEMORY.md records that
   retired scripts stay readable for their early fallback ordering and the reasons
   they were replaced.
+
+## `scripts/harness/` — lifecycle vs live desk adapter
+
+The portable lifecycle vocabulary and generation-pinned `ArtifactSet` live in
+`clawock/harness/`; `clawock brief|report|intraday` dispatch phases in-process.
+The scripts remain the kcn instance adapter during the strangler migration, so
+old direct invocations still work and OpenClaw behaviour does not change under a
+trading cron.
+
+| Classification | Modules | Boundary |
+|---|---|---|
+| Mixed — product preflight plus instance I/O | `brief_preflight` `report_preflight` `intraday_preflight` | Context calculation and gates are product; live paths, refresh side effects and `.tmp` placement are instance adapter concerns |
+| Mixed — product validation plus instance publish/delivery | `brief_postflight` `report_postflight` `intraday_postflight` | Validation/assembly is product; git coordination, dashboard publication and channel delivery are instance capabilities |
+| Mixed shared implementation | `_harness_common` | Generation/validation helpers are product; this repository's publish and dashboard refresh path is instance |
+| Instance runtime supervision | `_watchdog_common` `brief_watchdog` `report_watchdog` `intraday_watchdog` | Reads runtime sessions/run history, mirrors this deployment's channels and applies this desk's retry policy |
+
+The classification is intentionally not “move all 6,338 lines into the wheel”.
+Watchdogs stay adapters; product functions cross the boundary only after they no
+longer assume this repository's paths. The stable package CLI means payloads no
+longer need to know the adapter's file layout while extraction continues.
 
 ## Note on the counts in #331
 

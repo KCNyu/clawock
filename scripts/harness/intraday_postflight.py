@@ -307,7 +307,7 @@ def publish_data_plane(market):
         return 'publish_failed', False
 
 
-def main():
+def main(argv=None):
     parser = argparse.ArgumentParser()
     parser.add_argument('--market', choices=['hk', 'us'], required=True)
     parser.add_argument('--text-file',
@@ -317,7 +317,7 @@ def main():
                              'selects prose mode: the file holds ONLY the ▎我的看法 prose '
                              'and the harness prepends the data block. Omit for legacy '
                              'whole-report input.')
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
 
     # Holiday/weekend gate: no send/publish on a closed market.
     closed = trading_calendar.closed_reason(args.market)

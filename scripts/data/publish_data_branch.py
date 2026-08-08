@@ -119,7 +119,15 @@ def main() -> int:
     try:
         result = store.publish(files, label=generation_label(root))
     except subprocess.CalledProcessError as exc:
-        print(f"✗ data-plane: git failed: {exc.stderr or exc}", file=sys.stderr)
+        # Hooks commonly explain a refusal on stdout while git writes only its
+        # generic final line to stderr. Keeping just stderr hid the actual
+        # COST_BASIS gate behind "failed to push some refs" for an entire US
+        # session (#370). Preserve both streams; callers can still bound how
+        # much they persist, but the useful end must reach them first.
+        detail = "\n".join(
+            part.strip() for part in (exc.stdout, exc.stderr) if part and part.strip()
+        ) or str(exc)
+        print(f"✗ data-plane: git failed:\n{detail}", file=sys.stderr)
         return 1
     except ValueError as exc:
         print(f"✗ data-plane: {exc}", file=sys.stderr)

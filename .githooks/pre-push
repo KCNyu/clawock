@@ -1,11 +1,28 @@
 #!/usr/bin/env bash
-# clawock pre-push hook — runs scripts/system_check.py before allowing any push.
-# Critical failure blocks push; warnings shown but push proceeds.
+# clawock pre-push hook — protects updates to master.
+# Critical failure blocks a master push; warnings shown but push proceeds.
 #
 # Override with: git push --no-verify  (use sparingly)
 
 set -e
 WS="$(git rev-parse --show-toplevel)"
+
+# Git passes one line per ref update on stdin:
+#   <local-ref> <local-sha> <remote-ref> <remote-sha>
+#
+# The checks below certify the live ledger/workspace that backs `master`. They
+# say nothing about an orphan artifact ref, and running them there creates the
+# opposite of isolation: on 2026-08-08 an in-flight SPCH ledger edit blocked
+# every force-update of `data-plane`, freezing the public dashboard although
+# the generation being pushed contained no portfolio.json at all (#370).
+#
+# Keep an empty stdin fail-closed for direct/manual hook probes. During a real
+# push Git always supplies the update lines; when it supplies lines and none
+# targets master, this hook has no applicable invariant and exits cleanly.
+UPDATES="$(cat)"
+if [ -n "$UPDATES" ] && ! printf '%s\n' "$UPDATES" | awk '$3 == "refs/heads/master" { found=1 } END { exit !found }'; then
+  exit 0
+fi
 
 # A missing checker used to `exit 0` here, which did two wrong things at once:
 # it read "the checker is absent" as "the checks passed", and because this sits
