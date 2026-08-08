@@ -72,7 +72,7 @@ distribution（源码位于 `instances/kcnyu/`）通过标准 Python entry point
 精确的 11-job schedule、EDT/EST 表达式、Mode/harness 和 10 条 watchdog 映射由
 `config/cron-schedules.json` 单源维护，生成的人读表见
 [`docs/operations/cron-schedules.md`](../operations/cron-schedules.md)。
-`sync_us_cron_dst.py --apply` 每日自动对齐美股 live cron + system watchdog；
+`ops/host/sync_us_cron_dst.py --apply` 每日自动对齐美股 live cron + system watchdog；
 `cron_heartbeat.py` 维护 Mode 7 slot ledger，由现有 single publisher 发布。
 
 所有 harness preflight/postflight 的实现都在 `instances/kcnyu/`，统一从安装后的
@@ -88,8 +88,8 @@ Step 2.5 sidecar。schedule、payload、watchdog 或生成文档漂移都会被
 
 **改 cron 配置的安全步骤**（默认只检查，显式 apply；不覆盖投递目标/account/failure alert）：
 ```bash
-python3 scripts/data/sync_cron_payloads.py --json
-python3 scripts/data/sync_cron_payloads.py --apply --json
+python3 ops/host/sync_cron_payloads.py --json
+python3 ops/host/sync_cron_payloads.py --apply --json
 ```
 同步器按精确 job 名/ID 规划最小 patch，发现重复/缺失/额外 job 或目标 job 正在运行时不写，
 逐 job 失败即停，apply 后重新读取验证。升级大版本后仍应先 `openclaw cron list` 数 job 个数

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Reconcile tracked OpenClaw jobs with the reviewed cron contract.
+"""Reconcile tracked OpenClaw jobs with the reviewed host cron contract.
 
 The default mode is read-only and exits 1 when drift exists. ``--apply`` edits
 only declared fields, one job at a time, and stops at the first failed edit.
