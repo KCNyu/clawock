@@ -52,9 +52,9 @@ layout: null
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="clawock">
-<!-- Cloudflare Web Analytics (cookieless, no consent banner). Injected after load +
-     idle so its ~350ms of script eval stays off the first-paint critical path; the
-     beacon still fires for every session, so pageview counts are unaffected. -->
+<!-- Cloudflare Web Analytics (cookieless, no consent banner). Keep the third-party
+     evaluator outside the interaction-critical startup window. A delayed pageview
+     still counts an engaged visit without making the live proof feel slower. -->
 <script>
   (function () {
     function loadBeacon() {
@@ -64,10 +64,7 @@ layout: null
       s.setAttribute("data-cf-beacon", '{"token": "704a5341d8c3422a871d6d11d38b25fe"}');
       document.head.appendChild(s);
     }
-    function schedule() {
-      if (window.requestIdleCallback) requestIdleCallback(loadBeacon, { timeout: 3000 });
-      else setTimeout(loadBeacon, 1200);
-    }
+    function schedule() { setTimeout(loadBeacon, 15000); }
     if (document.readyState === "complete") schedule();
     else window.addEventListener("load", schedule, { once: true });
   })();
@@ -284,7 +281,7 @@ layout: null
         <div id="gold-london"></div>
         <div id="gold-spark"></div>
         <div id="gold-proj"></div>
-        <div class="muted" id="gold-asof" style="font-size:10px;margin-top:var(--space-2);opacity:0.7"></div>
+        <div class="muted asof-faded" id="gold-asof" style="font-size:10px;margin-top:var(--space-2)"></div>
       </div>
     </div>
 
@@ -545,14 +542,14 @@ layout: null
       <div id="lev-regime-trigger" style="font-size:11px;margin-top:5px;line-height:1.5"></div>
       <div class="muted" style="font-size:10px;margin:8px 0 3px;opacity:0.8">US · 2x 单股 per-name（趋势off且波动过热才砍）</div>
       <div class="risk-alerts" id="lev-regime-us"></div>
-      <div class="muted" id="lev-regime-asof" style="font-size:10px;margin-top:var(--space-2);opacity:0.7"></div>
+      <div class="muted asof-faded" id="lev-regime-asof" style="font-size:10px;margin-top:var(--space-2)"></div>
     </div>
 
     <div class="card fold-m" id="reentry-card" data-fold-id="reentry" style="display:none">
       <h3>再入场雷达 <span class="muted" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:11px">持币等回均线 → 触发即布局</span><span class="peek" id="peek-reentry"></span></h3>
       <div id="reentry-powder" style="margin-bottom:8px"></div>
       <div id="reentry-list"></div>
-      <div class="muted" id="reentry-asof" style="font-size:10px;margin-top:var(--space-2);opacity:0.7"></div>
+      <div class="muted asof-faded" id="reentry-asof" style="font-size:10px;margin-top:var(--space-2)"></div>
     </div>
 
     <div class="card fold-m" id="breakeven-card" data-fold-id="breakeven" style="display:none">

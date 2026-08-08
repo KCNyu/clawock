@@ -27,7 +27,8 @@ def test_hidden_tabs_have_no_idle_or_timeout_renderer():
     assert "scheduleDeferredTabs" not in HERO
     assert "requestIdleCallback" not in HERO
     assert "didTimeout" not in HERO
-    assert "renderTab(activeTab, version)" in HERO
+    assert "renderLandingTab(activeTab, version" in HERO
+    assert "if (currentTab() !== t)" in HERO
     assert "currentTab() !== t" in HERO
 
 

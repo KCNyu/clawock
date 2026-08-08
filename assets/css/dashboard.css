@@ -67,18 +67,22 @@
       --border-strong: #B9C6D3;
       --text-primary: #101821;
       --text-secondary: #526170;
-      --text-tertiary: #5E6D7D;
-      --accent: #087DD1;
+      --text-tertiary: #596878;
+      --accent: #006EB8;
       --accent-strong: #0567B1;
       --accent-soft: #DCEEFF;
-      --positive: #138B66;
+      --positive: #08734F;
       --negative: #C83D4A;
-      --warning: #A66F08;
+      --warning: #805400;
       --neutral: #66788D;
       --focus: #0078C9;
       --shadow-topbar: 0 8px 24px rgba(18,33,48,.08);
     }
+    /* Preserve the quiet timestamp hierarchy without blending below WCAG AA. */
+    .asof-faded { color: #263848; }
   }
+
+  .asof-faded { opacity: .7; }
 
   * { box-sizing: border-box; }
   html, body { margin: 0; padding: 0; }
@@ -291,6 +295,11 @@
        Hero can make Chrome reveal the whole pager a frame late under CPU load,
        which is observable as a large CLS even though the inactive pages benefit. */
     .panel.active { content-visibility: visible; }
+    /* Only the current page and its two swipe neighbours need inner layout.
+       Keeping the neighbour boxes warm preserves native swipe preview while
+       explicit hiding prevents the other full dashboard trees from consuming
+       mobile startup style/layout time. */
+    .panel:not(.active):not(.is-near) { content-visibility: hidden; }
     /* visually hidden but kept in the a11y tree so the heading sequence stays h1→h2→h3
        (display:none would drop the h2 → axe/screen-readers see an h1→h3 skip). NOTE: must
        stay IN FLOW — position:absolute here escapes the horizontal scroll-snap pager and
@@ -1051,7 +1060,7 @@
   .drv-chip.drv-technical  { background: rgba(148,163,184,.18); color: var(--muted); }
   .drv-chip.drv-sentiment  { background: color-mix(in srgb, var(--warning) 15%, transparent); color: var(--warning); }
   .drv-chip.drv-influencer { background: color-mix(in srgb, var(--accent) 18%, transparent); color: var(--accent); }
-  .drv-chip.drv-macro      { background: rgba(96,165,250,.15); color: #60a5fa; }
+  .drv-chip.drv-macro      { background: color-mix(in srgb, var(--accent) 15%, transparent); color: var(--accent); }
   .drv-chip.drv-peer       { background: rgba(45,212,191,.15); color: #2dd4bf; }
   @media (max-width: 600px) {
     .drv-chip { font-size: 9px; padding: 1px 5px; margin-left: 4px; }
@@ -1091,7 +1100,7 @@
     border-radius: 5px; margin-right: 8px; vertical-align: middle;
   }
   .bear-lbl.bl-fal   { background: color-mix(in srgb, var(--positive) 15%, transparent); color: var(--positive); }
-  .bear-lbl.bl-watch { background: rgba(96,165,250,.15); color: #60a5fa; }
+  .bear-lbl.bl-watch { background: color-mix(in srgb, var(--accent) 15%, transparent); color: var(--accent); }
   /* hidden concentration */
   .hc-headline { font-size: 14px; font-weight: 600; line-height: 1.45; margin-bottom: 12px; }
   .hc-bar-row { display: flex; align-items: center; gap: var(--space-3); margin-bottom: var(--space-3); }
