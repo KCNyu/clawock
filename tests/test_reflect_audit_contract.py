@@ -86,6 +86,6 @@ def test_reflect_card_keeps_timing_claims_narrow():
 def test_audit_sidecar_still_covers_all_four_states():
     # The list no longer renders inline, but the published sidecar must still
     # account for every decision across all four states (no cherry-picking).
-    dv = (ROOT / "scripts" / "data" / "decision_v2.py").read_text()
+    dv = (ROOT / "src" / "clawock" / "decision_v2.py").read_text()
     for state in ("settled", "not_triggered", "not_evaluable", "pending"):
         assert state in dv

@@ -39,7 +39,7 @@ ROOT = workspace_root(Path(__file__).resolve().parents[2])
 # Paths are repo-relative and must all be present in the report — see
 # _core_summary() for why a missing one is an error rather than a skip.
 CORE_MODULES = (
-    'scripts/data/decision_v2.py',
+    'src/clawock/decision_v2.py',
     'scripts/data/entry_gate.py',
     'scripts/data/thesis_registry.py',
     'scripts/data/earnings_review.py',

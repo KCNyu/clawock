@@ -40,7 +40,7 @@ from zoneinfo import ZoneInfo
 
 from clawock.workspace import workspace_root
 from clawock import trading_calendar
-from clawock import brief_context, brief_decision_packet
+from clawock import brief_context, brief_decision_packet, decision_v2
 
 WS = workspace_root(Path.cwd())
 _CHECKOUT = WS
@@ -48,7 +48,6 @@ TMP_DIR = WS / 'memory' / '.tmp'
 SNAPSHOT_DIR = WS / 'memory' / 'snapshots'
 
 sys.path.insert(0, str(_CHECKOUT / 'scripts' / 'data'))
-import decision_v2  # noqa: E402
 import thesis_registry  # noqa: E402
 import research_surface  # noqa: E402
 import peer_scan  # noqa: E402

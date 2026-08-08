@@ -28,7 +28,7 @@ from zoneinfo import ZoneInfo
 import sys  # noqa: E402
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
-import decision_v2  # noqa: E402
+from clawock import decision_v2  # noqa: E402
 from clawock import trading_calendar  # noqa: E402
 from clawock.workspace import workspace_root  # noqa: E402
 
