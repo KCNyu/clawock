@@ -1,93 +1,33 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-08-06T08:06:57.796628+08:00",
-  "as_of": "2026-08-06",
-  "context_generation_id": "dc2d465ed25ed8c6",
+  "generated_at": "2026-08-07T08:08:16.731028+08:00",
+  "as_of": "2026-08-07",
+  "context_generation_id": "2f11715238f37673",
   "judgment_status": "valid",
   "judgment_issues": [],
   "portfolio_judgment": {
-    "assessment": "11 breach 22d 最老未消, broker 0/6 第 5 日 swap 路径已断, 3 杠杆 ETF (07226/RKLX/SPCH) hard cut 升级 + 3 trim 锁利 (00100/MSFU/PLTU); 6 主动 call 全 driven_by=risk_rule 不受 regime 约束, 唯一正 edge 仅 trim_on_rebound 反射 6 ep 0.83 win edge_significant=true. book 系统性 over-levered: US β 6.05 (cap 3.0) + US levered 83.6% (cap 50%) + HK Top2 84.2% (cap 70%) + 2 硬止损 -56.75%/-61.32% 已击穿 5 日.",
-    "counterargument": "AI/算力 8/5 板块 momentum 仍在 trend (费半 +6.55% / PLTR +93% YoY rev / MSFT Azure +43% / 高盛 ARR 130亿), 主动减仓是 churn 风险; 8/6 broker 突然 fill swap 5d 阻断 = 升级 hard cut 必错误 (但概率 <10%, 5d 0/6); catalyst 主动 call 反射 capital_weighted -6.57% 显著输基准, 但 risk_rule 政策不受反射影响."
+    "assessment": "book 8/6 close 总浮亏 USD -6,456.66 / HKD -50,649.89; HK leg 67,940.8 HKD (00100 52.49% 单仓超 35% cap 23d 最老 breach, 加 8/6 +17% 反弹加剧; 07226 -4.73% 1d 跟跌 HSTECH 杠杆放大; 02208 +1.21% 跟涨海外扩张利好); US leg 2,596.11 USD (SPCH 1d +11.31% 修复但仍硬止损 -54.05% 23d 阻断 swap 升级 hard cut; RKLX 硬止损 -55.76% 6d broker 0/6 阻断; MSFU 1d +5.13% RSI 76.1 z+2.5σ EXTREME; PLTU 1d -3.29% 部分回吐; SPCX 1d +6.14% 修复; SKHY 1d -4.97% 持续消化; CRCL 0.0% flat); 9 breach 23d 未消, broker 0/6 第 6 日阻断 swap 路径, 必须升级 hard cut @ open 全部清 3 杠杆 ETF (含 user 8/7 01:34 +20 SPCH 摊本 冲突)",
+    "counterargument": "板块 AI/算力/科技 8/5 8/6 持续强势 (00100 8/6 +17.09% 领涨 AI 板块 / 阿里 09988 +7.01% Qwen3.8-Max 2.4万亿 / NVDA 2.56% / AVGO 7% / TSM 3.6%); 9 breach 但 trim 路径 100% fill 5d 工作; 反射 trim 7 ep 0.86 win CW +2.56% edge_significant=true 唯一正 edge; HK Top1 00100 +17% 反弹后 5d +27.2% 累计涨幅仍有空间 (8/4 加仓均价 230 +29.2% 浮盈 part); 9/16 Arc mainnet CRCL 9 月 unlock; 8/10 RKLB amc Q2 商业航天催化; user 8/7 01:34 +20 SPCH 摊本反映无限子弹流风格 与 3 breach 触发冲突, 但板块情绪修复 (ASTS +15% 周) 可能让 hard cut 错过 alpha; 1x HSTECH (03032/03033) 持仓已经吸收部分杠杆暴露, hard cut 07226 后 1x 暴露在 book 中维持"
   },
   "tickers": [
-    {
-      "ticker": "SPCH",
-      "name": "Leverage Shares 2X Long SpaceX Daily ETF",
-      "leg": "US",
-      "facts": {
-        "today_change_pct": -27.44,
-        "pnl_pct": -61.32
-      },
-      "technical": {
-        "source_ticker": "SPCX",
-        "is_proxy": true,
-        "as_of": "2026-08-05",
-        "tag": "趋势OFF · 已破吊灯止损",
-        "trend": "off",
-        "rsi14": 37.9,
-        "rsi_state": "weak",
-        "dist_ma200_pct": null,
-        "pct_52w_range": 0.0,
-        "stop_state": "breached",
-        "usable": true
-      },
-      "quant": {
-        "factor_usable": false,
-        "peer_usable": false
-      },
-      "sentiment": {
-        "source_ticker": "SPCX",
-        "reddit_mentions_7d": 0,
-        "headline_count": 3,
-        "coverage": "available"
-      },
-      "risk": {
-        "count": 5,
-        "severity": "critical",
-        "action": {
-          "kind": "stop",
-          "label": "止损"
-        },
-        "breach_ids": [
-          "risk-66a236e9b7e1",
-          "risk-80e3b5a6819f",
-          "risk-50dc9e7335c5",
-          "risk-66b800a6afe2",
-          "risk-95ac7f6cd591"
-        ]
-      },
-      "status": {
-        "label": "止损/换1x",
-        "rank": 0,
-        "state": "critical"
-      },
-      "judgment": {
-        "ticker": "SPCH",
-        "verdict": "bearish",
-        "confidence": 0.65,
-        "assessment": "5d broker 0/6 swap 阻断; 硬止损 -61.32% ≤ -18% 硬止损线 5d broker 阻断; 1d -27.44% 雪崩 + 5d -14.1% 持续跌; single_name 40.9% + US levered 83.6%; SPCX 8/4 amc Q2 beat 但 1d -13.61% selloff; SPCX packet 限制 1 股无法 swap 接收 170 股 swap 实际不可能.",
-        "counterargument": "SPCX 8/4 amc 上市后首份财报 beat (rev $1.935B +93% YoY, 亏损好于预期) 是 confirming 利好; 持有 等 1d selloff 止跌反弹; Musk 1万亿 revenue 喊话 + 大摩 $300 vs 汇丰 $115 目标分歧.",
-        "rationale": "broker 0/6 5d swap 路径已断 + SPCX 1 股 swap 限制, 唯一 exit = hard cut @ open 全清 170; 持有等待 = chop_drag 1.85%/月 收费 + 1d -27.44% 雪崩加速; 政策纪律, 不受 regime 约束."
-      }
-    },
     {
       "ticker": "RKLX",
       "name": "Defiance Daily Target 2X Long R",
       "leg": "US",
       "facts": {
-        "today_change_pct": 0.89,
-        "pnl_pct": -56.75
+        "today_change_pct": 2.28,
+        "pnl_pct": -55.77
       },
       "technical": {
         "source_ticker": "RKLB",
         "is_proxy": true,
-        "as_of": "2026-08-05",
+        "as_of": "2026-08-06",
         "tag": "趋势OFF",
         "trend": "off",
-        "rsi14": 48.4,
+        "rsi14": 49.3,
         "rsi_state": "neutral",
-        "dist_ma200_pct": -3.9,
-        "pct_52w_range": 31.9,
+        "dist_ma200_pct": -2.9,
+        "pct_52w_range": 32.7,
         "stop_state": "intact",
         "usable": true
       },
@@ -123,10 +63,69 @@
       "judgment": {
         "ticker": "RKLX",
         "verdict": "bearish",
-        "confidence": 0.6,
-        "assessment": "5d broker 0/6 swap 阻断; 硬止损 -56.75% ≤ -18% 硬止损线 5d broker 阻断; lev_regime red (RKLB 破 MA200 -3.9% + 20d 波动 90.5%); 反射 11 ep 0.36 win 主动 call 多半没跑赢.",
-        "counterargument": "RKLB 8/4 传 $80亿 拟收购 Iridium +12% 跳空 + 8/10 amc Q2 财报 (analyst PT $111.62 +71.86% upside, KGI 买入 $107) 是 forward catalyst; 持有 等 8/10 amc 财报可能 +30% 跳空.",
-        "rationale": "broker 0/6 5d swap 路径已断, 唯一 exit = hard cut @ open 全清 10; 硬止损 -56.75% 5d broker 阻断; 持有等待 = chop_drag 6.83%/月 收费 (per breakeven_math); 政策纪律, 不受 risk_on HOLD 默认豁免."
+        "confidence": 0.75,
+        "assessment": "硬止损 -55.76% ≤ -18% 硬止损线 (breach_id=risk-0a0af7ae3b3a 23d 未消); lev_regime red (RKLB 破 MA200 -2.9% + 20d 波动 91% > 70% cap, breach_id=risk-17fa752f4860 11d); 8/6 sim 21.61 vs close 21.98 错位 +1.7%; 替代 2x→1x swap RKLB 敞口保留",
+        "counterargument": "RKLB 8/10 amc Q2 财报 (PT $111.62, +71.86% upside) catalyst; ASTS +15% 周 + 8/6 SPCX +6.14% 板块修复; 8/6 +2.28% 反弹 + lev_regime red 但 hold 不升级",
+        "rationale": "硬止损 -55.76% 23d 阻断 + lev_regime red 11d + broker 0/6 6d 阻断 swap = 必须 hard cut @ open 全部清 10 股; 反射 11 ep 0.36 win 但 hard cut 是政策不受反射影响; 替代 2x→1x swap RKLB 保留敞口"
+      }
+    },
+    {
+      "ticker": "SPCH",
+      "name": "Leverage Shares 2X Long SpaceX Daily ETF",
+      "leg": "US",
+      "facts": {
+        "today_change_pct": 11.31,
+        "pnl_pct": -54.05
+      },
+      "technical": {
+        "source_ticker": "SPCX",
+        "is_proxy": true,
+        "as_of": "2026-08-06",
+        "tag": "趋势OFF · 已破吊灯止损",
+        "trend": "off",
+        "rsi14": 42.5,
+        "rsi_state": "weak",
+        "dist_ma200_pct": null,
+        "pct_52w_range": 7.1,
+        "stop_state": "breached",
+        "usable": true
+      },
+      "quant": {
+        "factor_usable": false,
+        "peer_usable": false
+      },
+      "sentiment": {
+        "source_ticker": "SPCX",
+        "reddit_mentions_7d": 0,
+        "headline_count": 3,
+        "coverage": "available"
+      },
+      "risk": {
+        "count": 4,
+        "severity": "critical",
+        "action": {
+          "kind": "stop",
+          "label": "止损"
+        },
+        "breach_ids": [
+          "risk-66a236e9b7e1",
+          "risk-80e3b5a6819f",
+          "risk-66b800a6afe2",
+          "risk-95ac7f6cd591"
+        ]
+      },
+      "status": {
+        "label": "止损/换1x",
+        "rank": 0,
+        "state": "critical"
+      },
+      "judgment": {
+        "ticker": "SPCH",
+        "verdict": "bearish",
+        "confidence": 0.75,
+        "assessment": "硬止损 -54.05% ≤ -18% 硬止损线 (breach_id=risk-95ac7f6cd591 23d 未消); 8/6 1d +11.31% 修复但仍浮 -54%; single_name 46.11% > 35% + US levered 85.2% > 50% 三 breach 同触发; user 8/7 01:34 +20 @5.88 摊本 (现 190 股) 与 plan 冲突; 8/6 sim 5.505 vs close 6.30 错位 -14.4%",
+        "counterargument": "8/6 1d +11.31% 修复 + ASTS +15% 周 + SPCX 8/6 +6.14% 板块情绪改善; user 8/7 01:34 +20 摊本反映无限子弹流风格; broker 0/6 6d 阻断 swap 错过 1d +11.31% 修复, hard cut 可能错过 alpha",
+        "rationale": "硬止损 -54.05% 23d 阻断 + single_name 46.11% + US levered 85.2% + broker 0/6 6d = 必须 hard cut @ open 全部清 190 股; 反射 9 ep 0.67 win (清×7 胜5) 强 cut 信号; user 摊本与纪律冲突, 必须 hard cut 或 durable override"
       }
     },
     {
@@ -134,20 +133,20 @@
       "name": "MINIMAX-W",
       "leg": "HK",
       "facts": {
-        "today_change_pct": 10.25,
-        "pnl_pct": -54.11
+        "today_change_pct": 17.1,
+        "pnl_pct": -46.26
       },
       "technical": {
         "source_ticker": "00100",
         "is_proxy": false,
-        "as_of": "2026-08-05",
-        "tag": "趋势OFF · 已破吊灯止损",
+        "as_of": "2026-08-06",
+        "tag": "趋势OFF · z+2.5σ极端",
         "trend": "off",
-        "rsi14": 45.2,
+        "rsi14": 51.6,
         "rsi_state": "neutral",
         "dist_ma200_pct": null,
-        "pct_52w_range": 5.8,
-        "stop_state": "breached",
+        "pct_52w_range": 10.0,
+        "stop_state": "intact",
         "usable": true
       },
       "quant": {
@@ -179,69 +178,11 @@
       },
       "judgment": {
         "ticker": "00100",
-        "verdict": "mixed",
-        "confidence": 0.65,
-        "assessment": "single_name 47.65% 超 35% cap 22d breach 最老; 1d +10.25% 反弹 (8/5 close 253.8 vs 8/4 加仓均价 230), trim 28 @ ≥240 broker 1/1 fill 预期, 反射 6 ep 0.83 win 唯一正 edge.",
-        "counterargument": "港股通 8/5 调入 + 高盛 ARR 130亿 + 8/4 H3 launch 利好已 price in 1d +10.25% + 周 +17.65% 反弹, 9 月 港股通 实际生效前 利好出尽 risk; 8/4 加仓均价 230 是支撑位, 跌破升级 hard cut.",
-        "rationale": "trim 28 @ ≥240 是 broker 1/1 fill + 反射 0.83 win 唯一正 edge, 1d +10.25% 给 240 触发空间; 持有 100→120 加剧 breach 不可继续, trim 是 single_name cap 减 breach 4.25pp 唯一路径."
-      }
-    },
-    {
-      "ticker": "07226",
-      "name": "XL二南方恒科",
-      "leg": "HK",
-      "facts": {
-        "today_change_pct": 2.12,
-        "pnl_pct": -13.73
-      },
-      "technical": {
-        "source_ticker": "07226",
-        "is_proxy": false,
-        "as_of": null,
-        "tag": null,
-        "trend": "unknown",
-        "rsi14": null,
-        "rsi_state": "unknown",
-        "dist_ma200_pct": null,
-        "pct_52w_range": null,
-        "stop_state": "unknown",
-        "usable": false
-      },
-      "quant": {
-        "factor_usable": false,
-        "peer_usable": false
-      },
-      "sentiment": {
-        "source_ticker": "07226",
-        "reddit_mentions_7d": 0,
-        "headline_count": 3,
-        "coverage": "available"
-      },
-      "risk": {
-        "count": 3,
-        "severity": "high",
-        "action": {
-          "kind": "trim",
-          "label": "减仓"
-        },
-        "breach_ids": [
-          "risk-2e011bb6c67f",
-          "risk-56fb5eebe7cc",
-          "risk-da9861ae6562"
-        ]
-      },
-      "status": {
-        "label": "减仓",
-        "rank": 1,
-        "state": "elevated"
-      },
-      "judgment": {
-        "ticker": "07226",
         "verdict": "bearish",
-        "confidence": 0.55,
-        "assessment": "5d broker 0/6 swap 阻断, 唯一 exit = hard cut @ open; 3 breach 同触发: single_name 36.52% + levered 36.5% (amber 0.5 cap 12.5%) + factor 84.2%; chop_drag 0.67%/月 持续烧; 8/4 sim -126.18 HKD 错位, 8/5 reflection 14 ep 0.57 win (减×2 胜2 + 清×7 胜4) 仍 win 多数.",
-        "counterargument": "HSTECH 8/5 +0.97% 维持 4,800 区间上沿, 2x 杠杆 ETF 1d +2.11% 跟涨 持有可能 继续反弹; 1x 03033 已持有 1,000 股 swap 接收已存在, 1d +1.04% 跟涨.",
-        "rationale": "broker 0/6 5d swap 路径已断, 唯一 exit = hard cut @ open 全清 6,200; 持有等待 = chop_drag 0.67%/月 收费, 8/4 sim 错位; 8/6 hard cut 政策纪律, 不受 risk_on HOLD 默认约束."
+        "confidence": 0.62,
+        "assessment": "8/6 +17% 反弹至 297.2 加剧 single_name 52.49% breach (23d 最老未消); 8/4 加仓均价 230 守住 +29.2% 浮盈 part; 5d +27.2% 累计涨幅仍 price in 部分 H3 开源 + 港股通 9 月 (待确认日期) + 高盛 ARR 130亿; 反射 trim 6 ep 0.83 win 唯一正 edge 触发 trim 30 @280",
+        "counterargument": "智谱 02513 8/6 -4.81% 跑输 self 21.9pp, 资金从智谱分流到 MiniMax; 月之暗面 500 亿美元 Pre-IPO 估值潮; 板块 AI 整体强势; 8/4 加仓均价 230 已 +29.2% 浮盈 part, 反弹未到顶",
+        "rationale": "breach_id=risk-2a450e7c896e 23d 最老未消 + reflection trim 0.83 win 唯一正 edge + 8/6 +17% 反弹给 280 触发空间; 借反弹分批 trim 30 @280 是纪律性再平衡不是择时; breach 不会 1 日关闭但分批 5 日内 close 路径明确"
       }
     },
     {
@@ -249,18 +190,18 @@
       "name": "Circle Internet Group Inc-A",
       "leg": "US",
       "facts": {
-        "today_change_pct": 0.05,
+        "today_change_pct": 0.0,
         "pnl_pct": -27.26
       },
       "technical": {
         "source_ticker": "CRCL",
         "is_proxy": false,
-        "as_of": "2026-08-05",
+        "as_of": "2026-08-06",
         "tag": "趋势OFF",
         "trend": "off",
         "rsi14": 45.0,
         "rsi_state": "neutral",
-        "dist_ma200_pct": -28.6,
+        "dist_ma200_pct": -28.4,
         "pct_52w_range": 11.6,
         "stop_state": "intact",
         "usable": true
@@ -290,60 +231,9 @@
         "ticker": "CRCL",
         "verdict": "neutral",
         "confidence": 0.5,
-        "assessment": "8/5 bmo Q2 EPS $0.27 beat + USDC circulation $73.3B +19% YoY + Arc presale $242M + mainnet 9/16 启动; 1d +0.05% flat 利好已 price in; 反思 14 ep 0.50 win 持有 50% win; 浮 -27.26% 离回本 37.5%.",
-        "counterargument": "Morgan Stanley 砍目标 $38 (USDC 萎缩 + agentic payments volume 仅 $41,900 daily) 是 disconfirming soft signal; Q2 revenue $713M 略 miss 共识; Cathie Wood 加仓 $6.9M (NYDFS trust charter) 是 confirming.",
-        "rationale": "持有等 9/16 Arc mainnet 启动 forward catalyst, MS 砍 $38 是 软情绪 不翻 bucket; 反思 0.50 win 持有 中性, 暂不主动."
-      }
-    },
-    {
-      "ticker": "SPCX",
-      "name": "SpaceX",
-      "leg": "US",
-      "facts": {
-        "today_change_pct": -13.61,
-        "pnl_pct": -26.6
-      },
-      "technical": {
-        "source_ticker": "SPCX",
-        "is_proxy": false,
-        "as_of": "2026-08-05",
-        "tag": "趋势OFF · 已破吊灯止损",
-        "trend": "off",
-        "rsi14": 37.9,
-        "rsi_state": "weak",
-        "dist_ma200_pct": null,
-        "pct_52w_range": 0.0,
-        "stop_state": "breached",
-        "usable": true
-      },
-      "quant": {
-        "factor_usable": false,
-        "peer_usable": false
-      },
-      "sentiment": {
-        "source_ticker": "SPCX",
-        "reddit_mentions_7d": 0,
-        "headline_count": 3,
-        "coverage": "available"
-      },
-      "risk": {
-        "count": 0,
-        "severity": "none",
-        "action": null,
-        "breach_ids": []
-      },
-      "status": {
-        "label": "趋势off·观望",
-        "rank": 3,
-        "state": "neutral"
-      },
-      "judgment": {
-        "ticker": "SPCX",
-        "verdict": "mixed",
-        "confidence": 0.4,
-        "assessment": "8/4 amc 上市后首份财报 rev $1.935B +93% YoY 亏损好于预期, 但 1d -13.61% selloff (AI 支出担忧 + 8/5 $539M crypto drop); 5d -5.7%; 反思 8 ep 0.12 win 持有多个亏 = 持有 多个亏; packet 限制 allowed=[hold_and_watch, watch] 无法 trim.",
-        "counterargument": "Musk 1万亿 revenue 喊话 + 大摩 $300 vs 汇丰 $115 目标分歧; 9 月 SPCX 8-K 文件周期看 AI 支出是否可控; SPCH hard cut 全清后 SPCX 1 股单点暴露, 风险.",
-        "rationale": "持有等 9 月 SPCX 8-K 文件周期, 但 反思 0.12 win 持有多个亏 提示风险; SPCH hard cut 全清后 SPCX 1 股单点暴露 = 9/16 mainnet unlock 后 才有 forward catalyst."
+        "assessment": "8/5 bmo Q2 EPS $0.27 beat, USDC circulation $73.3B +19% YoY, Arc presale $242M, mainnet 9/16 启动 (待确认日期); 1d 0.0% flat 8/6 同价; 5d +1.1%; MS 砍目标 $38 (软情绪)",
+        "counterargument": "GENIUS Act 已通过 (硬催化, 已 price in); Coinbase AiFi 概念长期; Wood $6.9M 加仓; mainnet 9/16 unlock (待确认日期) forward catalyst",
+        "rationale": "8/5 Q2 EPS beat 利好 1d +0.05% flat 已 price in, MS 砍 $38 是 disconfirming soft signal 不驱动 cut; 9/16 mainnet unlock forward catalyst 持有"
       }
     },
     {
@@ -351,19 +241,19 @@
       "name": "金风科技",
       "leg": "HK",
       "facts": {
-        "today_change_pct": 3.07,
-        "pnl_pct": -23.81
+        "today_change_pct": 1.21,
+        "pnl_pct": -22.89
       },
       "technical": {
         "source_ticker": "02208",
         "is_proxy": false,
-        "as_of": "2026-08-05",
-        "tag": "趋势OFF · z+2.2σ极端",
+        "as_of": "2026-08-06",
+        "tag": "趋势OFF · z+2.1σ极端",
         "trend": "off",
-        "rsi14": 55.6,
+        "rsi14": 57.0,
         "rsi_state": "neutral",
-        "dist_ma200_pct": -20.9,
-        "pct_52w_range": 33.2,
+        "dist_ma200_pct": -19.8,
+        "pct_52w_range": 34.4,
         "stop_state": "intact",
         "usable": true
       },
@@ -392,9 +282,60 @@
         "ticker": "02208",
         "verdict": "neutral",
         "confidence": 0.5,
-        "assessment": "1d +3.07% 跟涨 风电 海外扩张 利好 (8/4 财联社专题 + 泰国 DKT1 89.7MW 签约 + 沙特订单 温州总装厂近半产能); Q1 营收 +63.48% YoY 154.85 亿元 / 净利 +59.65% 9.07 亿元 forward catalyst 强.",
-        "counterargument": "z+2.2σ 极端 overbought + 反思 15 ep 0.33 win 主动 call 多半没跑赢持有, packet 限制 allowed=[hold_and_watch, watch] 无法 trim; 5d +12.9% 跳空后回吐 risk.",
-        "rationale": "持有等 1x HSTECH 趋势修复, 反思 0.33 win 主动 call 多半没跑赢持有, 暂不主动; 5d +12.9% 跳空后回吐 risk 是 软情绪 不驱动 cut."
+        "assessment": "1d +1.21% 跟涨海外扩张 + 欧洲海风政策; z+2.1σ 极端 overbought; Q1 +63.48% YoY 营收 / +59.65% 净利; 8/4 签约泰国 DKT1 89.7MW; 反思 15 ep 0.33 win 主动 call 多半没跑赢持有",
+        "counterargument": "中财网 8/4 研报 欧洲海风在建 25GW + 汉堡宣言 / AccelerateEU 战略 + 中国风机出海从量增转质升; 板块整体跟涨; packet 限制 allowed=[hold_and_watch, watch] 无法 trim",
+        "rationale": "1d +1.21% 跟涨板块均值, 反思 0.33 win 主动 call 多半没跑赢持有; packet 限制无法 trim; 持有等 1x HSTECH 趋势修复"
+      }
+    },
+    {
+      "ticker": "SPCX",
+      "name": "SpaceX",
+      "leg": "US",
+      "facts": {
+        "today_change_pct": 6.14,
+        "pnl_pct": -22.09
+      },
+      "technical": {
+        "source_ticker": "SPCX",
+        "is_proxy": false,
+        "as_of": "2026-08-06",
+        "tag": "趋势OFF · 已破吊灯止损",
+        "trend": "off",
+        "rsi14": 42.5,
+        "rsi_state": "weak",
+        "dist_ma200_pct": null,
+        "pct_52w_range": 7.1,
+        "stop_state": "breached",
+        "usable": true
+      },
+      "quant": {
+        "factor_usable": false,
+        "peer_usable": false
+      },
+      "sentiment": {
+        "source_ticker": "SPCX",
+        "reddit_mentions_7d": 0,
+        "headline_count": 3,
+        "coverage": "available"
+      },
+      "risk": {
+        "count": 0,
+        "severity": "none",
+        "action": null,
+        "breach_ids": []
+      },
+      "status": {
+        "label": "趋势off·观望",
+        "rank": 3,
+        "state": "neutral"
+      },
+      "judgment": {
+        "ticker": "SPCX",
+        "verdict": "neutral",
+        "confidence": 0.4,
+        "assessment": "8/4 amc 上市后首份财报 rev $1.935B +93% YoY 亏损好于预期, 1d -13.61% selloff (AI 支出担忧 + 8/5 $539M crypto drop), 8/6 +6.14% 修复; 反思 8 ep 0.12 win 持有多个亏; ASTS +15% 周 + 8/6 SPCX 修复板块情绪",
+        "counterargument": "Musk 1 万亿 revenue 喊话 + 大摩 $300 vs 汇丰 $115 目标分歧; 8/4 amc 财报 beat 但 1d selloff 8/6 修复; 9 月 SPCX 8-K 文件周期看 AI 支出是否可控",
+        "rationale": "8/4 财报 beat 但 1d -13.61% selloff 8/6 修复, 反思 0.12 win 持有多个亏; packet 限制 allowed=[hold_and_watch, watch] 无法 trim; 9 月 8-K 文件周期看 AI 支出"
       }
     },
     {
@@ -402,19 +343,19 @@
       "name": "恒生科技ETF",
       "leg": "HK",
       "facts": {
-        "today_change_pct": 0.94,
-        "pnl_pct": -8.86
+        "today_change_pct": -1.99,
+        "pnl_pct": -10.68
       },
       "technical": {
         "source_ticker": "HSTECH",
         "is_proxy": true,
-        "as_of": "2026-08-05",
+        "as_of": "2026-08-06",
         "tag": "趋势OFF",
         "trend": "off",
-        "rsi14": 60.6,
-        "rsi_state": "strong",
-        "dist_ma200_pct": -5.6,
-        "pct_52w_range": 27.9,
+        "rsi14": 53.6,
+        "rsi_state": "neutral",
+        "dist_ma200_pct": -7.7,
+        "pct_52w_range": 23.3,
         "stop_state": "intact",
         "usable": true
       },
@@ -443,9 +384,9 @@
         "ticker": "03032",
         "verdict": "neutral",
         "confidence": 0.5,
-        "assessment": "1d +0.94% 跟 HSTECH +0.97% 同步; 7/29 5亿成交 3 连涨 + 国产 AI 催化 + 8/3 港股通 净买入 110.31 亿 持续支撑; 浮 -8.86% 离回本 9.7%.",
-        "counterargument": "反思 12 ep 0.33 win 主动 call 多半没跑赢持有, packet 限制 allowed=[hold_and_watch, watch] 无法 trim; 1x 跟 HSTECH 同步, 缺乏 alpha.",
-        "rationale": "持有等 1x HSTECH 趋势修复, 反思 0.33 win 不主动; 1x 跟 HSTECH 同步缺乏 alpha, 持有是 最低成本 等待."
+        "assessment": "1d -1.99% 跟 HSTECH -2.28% 同步; 5d -1.99%; 反思 12 ep 0.33 win 主动 call 多半没跑赢持有; 8/3 港股通 净买入 110.31 亿 (盈富 47.5 亿) 持续支撑",
+        "counterargument": "1x ETF 跟 HSTECH 同步 + 南向资金持续流入; 港股通 8/7 生效预期 (待确认日期); 持有等 1x HSTECH 修复",
+        "rationale": "1d -1.99% 跟跌 HSTECH 同步, 反思 0.33 win 不追; 持有不主动"
       }
     },
     {
@@ -453,19 +394,19 @@
       "name": "二倍做多PLTR ETF-Direxion",
       "leg": "US",
       "facts": {
-        "today_change_pct": -5.09,
-        "pnl_pct": 3.86
+        "today_change_pct": -3.29,
+        "pnl_pct": 0.45
       },
       "technical": {
         "source_ticker": "PLTR",
         "is_proxy": true,
-        "as_of": "2026-08-05",
-        "tag": "趋势OFF · z+2.5σ极端",
+        "as_of": "2026-08-06",
+        "tag": "趋势OFF",
         "trend": "off",
-        "rsi14": 68.7,
+        "rsi14": 66.4,
         "rsi_state": "strong",
-        "dist_ma200_pct": 3.9,
-        "pct_52w_range": 51.2,
+        "dist_ma200_pct": 2.4,
+        "pct_52w_range": 48.7,
         "stop_state": "intact",
         "usable": true
       },
@@ -495,11 +436,11 @@
       },
       "judgment": {
         "ticker": "PLTU",
-        "verdict": "mixed",
-        "confidence": 0.6,
-        "assessment": "RSI 72.8 z+3.7σ EXTREME overbought + 5d +62.1% 跳空已 price in; 1d -5.09% 是 8/4 PLTR +29.45% / PLTU +57.87% 跳空后 1d 跟跌 起步; 反射 6 ep 0.83 win 唯一正; 8/4 trim 2 @44 sim +2.92 USD ✓ broker fill 第 2 日.",
-        "counterargument": "PLTR 8/3 amc Q2 beat (rev $1.935B +93% YoY / US comm +149% / FY26 guide +82%) 是 confirming 利好, 持有 继续涨; Burry 仍看空 SOXX/PLTR 是 软情绪.",
-        "rationale": "trim 2 @ ≥44 是 broker 1/1 fill + 反射 0.83 win 唯一正, 1d -5.09% 起步是回吐信号; z+3.7σ EXTREME 触发 trim, 持有 等 趋势修复 错失锁利."
+        "verdict": "neutral",
+        "confidence": 0.62,
+        "assessment": "1d -3.29% 部分回吐 + RSI 72.8 z+3.7σ EXTREME 仍 EXTREME; 5d +62.1% 跳空后 1d -3.29% 是 trend 起步; 8/4 trim 2 @44 sim +2.92 USD broker fill ✓, 8/6 trim 2 @44 不触发 (high 估 ≤42.295)",
+        "counterargument": "PLTR 8/3 amc Q2 rev $1.935B +93% YoY, US comm +149%, FY26 guide +82% 利好; 8/4 amc 财报 chain 1d price in; AMD 8/6 盘前 -8.7% 风险传染; 降触发到 40 给 buffer",
+        "rationale": "反射 trim 7 ep 0.86 win CW +2.56% 唯一正 edge; 8/6 trim 2 @44 不触发降触发到 40; 锁利 +0.45% 浮盈 part 兑现; technical driver CW +2.51% 唯一正向"
       }
     },
     {
@@ -507,19 +448,19 @@
       "name": "二倍做多微软ETF-Direxion",
       "leg": "US",
       "facts": {
-        "today_change_pct": -2.2,
-        "pnl_pct": 25.03
+        "today_change_pct": 5.13,
+        "pnl_pct": 31.45
       },
       "technical": {
         "source_ticker": "MSFT",
         "is_proxy": true,
-        "as_of": "2026-08-05",
-        "tag": "趋势OFF · RSI超买76.1",
+        "as_of": "2026-08-06",
+        "tag": "趋势OFF · RSI超买78.1",
         "trend": "off",
-        "rsi14": 76.1,
+        "rsi14": 78.1,
         "rsi_state": "overbought",
-        "dist_ma200_pct": 12.5,
-        "pct_52w_range": 71.1,
+        "dist_ma200_pct": 15.4,
+        "pct_52w_range": 77.7,
         "stop_state": "intact",
         "usable": true
       },
@@ -549,11 +490,65 @@
       },
       "judgment": {
         "ticker": "MSFU",
-        "verdict": "mixed",
+        "verdict": "neutral",
         "confidence": 0.65,
-        "assessment": "RSI 76.1 z+2.5σ EXTREME overbought + 5d MSFT +25.29% / MSFU +18.9% 跳空已 price in; 1d -2.20% 是 8/5 跟跌 起步; 反射 6 ep 0.83 win CI [+0.30, +5.57] edge_significant=true 唯一正 edge; 8/4 trim 3 @37 sim +1.74 USD ✓ broker fill 第 3 日.",
-        "counterargument": "MSFT 8/5 10-K 文件 + Azure Q4 +43% YoY 突破 $100B annual 是 confirming 利好, 持有 继续涨; 浮 +25.03% 部分锁利 = churn 风险.",
-        "rationale": "trim 3 @ ≥38 是 broker 1/1 fill + 反射 0.83 win 唯一正 edge, 1d -2.20% 起步是回吐信号; technical driver CW +2.61% 唯一正向; RSI 76 z+2.5σ EXTREME 触发 trim, 持有 等 趋势修复 错失锁利."
+        "assessment": "1d +5.13% 持续 + RSI 76.1 z+2.5σ EXTREME 仍 EXTREME; 8/4 +29% / 8/5 +2% / 8/6 +5.13% 跳空持续; 浮盈 +31.45% 锁利 part; 反射 trim 7 ep 0.86 win CW +2.56% 唯一 edge_significant=true",
+        "counterargument": "MSFT 8/5 10-K + Azure Q4 +43% YoY 突破 $100B annual 利好持续; FY26 rev $331.8B +18% 大幅 beat; 8/7 NFP + 8/10 RKLB amc + 8/12 CPI 三事件叠加, 持有等待可能错过部分 alpha",
+        "rationale": "8/4 trim 3 @37 sim +1.74 USD broker fill ✓, 8/6 trim 3 @38 sim +0.87 USD broker fill ✓ 路径走通; 锁利 +31.45% 浮盈 part 兑现 = 8/7 继续 trim 2 @40 锁利"
+      }
+    },
+    {
+      "ticker": "07226",
+      "name": "XL二南方恒科",
+      "leg": "HK",
+      "facts": {
+        "today_change_pct": -4.73,
+        "pnl_pct": -17.81
+      },
+      "technical": {
+        "source_ticker": "07226",
+        "is_proxy": false,
+        "as_of": null,
+        "tag": null,
+        "trend": "unknown",
+        "rsi14": null,
+        "rsi_state": "unknown",
+        "dist_ma200_pct": null,
+        "pct_52w_range": null,
+        "stop_state": "unknown",
+        "usable": false
+      },
+      "quant": {
+        "factor_usable": false,
+        "peer_usable": false
+      },
+      "sentiment": {
+        "source_ticker": "07226",
+        "reddit_mentions_7d": 0,
+        "headline_count": 3,
+        "coverage": "available"
+      },
+      "risk": {
+        "count": 2,
+        "severity": "high",
+        "action": null,
+        "breach_ids": [
+          "risk-56fb5eebe7cc",
+          "risk-da9861ae6562"
+        ]
+      },
+      "status": {
+        "label": "数据不足",
+        "rank": 5,
+        "state": "neutral"
+      },
+      "judgment": {
+        "ticker": "07226",
+        "verdict": "bearish",
+        "confidence": 0.7,
+        "assessment": "2x 杠杆 ETF 6d broker 0/6 阻断 swap 路径已断; 3 breach 同触发: single_name 32.72% + levered 32.7% + factor 85.2%; chop_drag 0.67%/月 持续烧; 8/6 sim 3.692 vs close 3.586 错位 -2.9%; 8/6 plan hard cut sim +657.2 HKD",
+        "counterargument": "8/6 close 3.586 1d -4.73% 是 HSTECH 4,820 下沿区间, 2x 杠杆放大; 若 8/7 NFP 强劲 + 8/10 RKLB amc + 8/12 CPI 风险事件叠加, 杠杆 ETF 持有等待 = 收费 decay 而非方向赌注",
+        "rationale": "broker 0/6 第 6 日 = swap 路径已断 = 唯一 exit = hard cut @ open 全部清 6,200 股; 反射 14 ep 0.57 win 减×2 胜2 + 清×7 胜4 仍 win 多数; risk_rule 政策纪律不受 regime guard"
       }
     },
     {
@@ -561,8 +556,8 @@
       "name": "SK海力士 ADR",
       "leg": "US",
       "facts": {
-        "today_change_pct": -2.17,
-        "pnl_pct": -10.73
+        "today_change_pct": -4.97,
+        "pnl_pct": -15.16
       },
       "technical": {
         "source_ticker": "SKHY",
@@ -602,9 +597,9 @@
         "ticker": "SKHY",
         "verdict": "neutral",
         "confidence": 0.5,
-        "assessment": "Q2 营收 79.32 万亿韩元 +257% YoY, 营业利润 60.54 万亿韩元 +557% YoY (创历史); 1d -2.17% 财报日 -13% 已部分消化 (长协锁价低于市场预期 + 失 DRAM 第一 to 三星 39% 市占 软情绪), 5d +4.6% 修复; Wolfe Research Outperform PT $200 (8/4 启动覆盖) + Cantor Fitzgerald 12 月翻倍.",
-        "counterargument": "Q2 财报日 1d -13% 是 disconfirming hard catalyst (长协锁价低于市场预期), 5d +4.6% 修复中但 仍未回到 财报前 高; 反思 6 ep 0.50 win 持有 50% win.",
-        "rationale": "持有等 Wolfe/Cantor PT $200 12 月目标, 1d -13% 财报日 已部分消化; Q2 +257% YoY rev / +557% op 创历史 是 forward catalyst, 持有是 最低成本 等待."
+        "assessment": "Q2 营收 +257% YoY / op +557% 创历史; 1d -4.97% 财报日 -13% + 8/6 -4.97% 持续消化; 5d -0.1% 持平; 长协锁价低于市场预期 + 失 DRAM 第一 to 三星 39% 市占; 2027 HBM 产能全部售罄 forward catalyst",
+        "counterargument": "Wolfe Research Outperform PT $200 (8/4 启动覆盖) + Cantor Fitzgerald 12 月翻倍 $200; 2027 HBM 产能售罄 long term positive; 反思 6 ep 0.50 win 持有",
+        "rationale": "Q2 财报日 -13% + 8/6 -4.97% 持续消化, 反思 0.50 win 持有; 2027 HBM 产能全部售罄 forward catalyst; Wolfe/Cantor PT $200 持有"
       }
     },
     {
@@ -612,8 +607,8 @@
       "name": "南方恒生科技",
       "leg": "HK",
       "facts": {
-        "today_change_pct": 1.04,
-        "pnl_pct": -5.84
+        "today_change_pct": -2.19,
+        "pnl_pct": -7.9
       },
       "technical": {
         "source_ticker": "03033",
@@ -653,9 +648,9 @@
         "ticker": "03033",
         "verdict": "neutral",
         "confidence": 0.5,
-        "assessment": "1d +1.04% 跟 HSTECH +0.97% 同步; 8/3 港股通 净买入 110.31 亿 + 盈富基金净买 47.5 亿 持续支撑; 浮 -5.84% 离回本 6.2%.",
-        "counterargument": "反思 12 ep 0.33 win 主动 call 多半没跑赢持有, packet 限制 allowed=[hold_and_watch, watch] 无法 trim; 1x 跟 HSTECH 同步 缺乏 alpha.",
-        "rationale": "持有等 1x HSTECH 趋势修复, 反思 0.33 win 不主动; 同 03032 持有策略."
+        "assessment": "1d -2.19% 跟 HSTECH -2.28% 同步; 5d -2.19%; 反思 12 ep 0.33 win 主动 call 多半没跑赢持有; 同 03032, 1x 略好于 underlying",
+        "counterargument": "1x ETF 跟 HSTECH 同步 + 南向资金持续流入; 8/3 港股通 净买入 110.31 亿 + 盈富基金净买 47.5 亿; 持有等 1x HSTECH 修复",
+        "rationale": "1d -2.19% 跟跌 HSTECH 同步, 反思 0.33 win 不主动; 持有不追"
       }
     }
   ]

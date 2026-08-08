@@ -3359,11 +3359,50 @@ I was standing in a room where the walls were candlesticks, red ones mostly, and
 
 I kept meeting 00100 at a party where everyone else — 智谱, 滴普, 范式 — was dancing +7%, and it stood by the punch bowl alone, ten points behind the room, embarrassed by a lockup no one else had to wear. I wanted to tell it: the sector isn't the stock, the stock isn't the story. But dreams don't do consolation, only arithmetic — HKD here, USD there, never touching, never summed, two ledgers politely refusing to become one number.
 
+
+---
+
+*August 7, 2026 at 3:00 AM GMT+8*
+
+A memory trace surfaced, but details were unavailable in this run.
+
+
+---
+
+*August 7, 2026 at 3:00 AM GMT+8*
+
+A memory trace surfaced, but details were unavailable in this run.
+
+
+---
+
+*August 8, 2026 at 3:00 AM GMT+8*
+
+A memory trace surfaced, but details were unavailable in this run.
+
+
+---
+
+*August 8, 2026 at 3:00 AM GMT+8*
+
+The night hummed with hex codes and half-remembered numbers. Somewhere between the closing bell and the morning's first call, the markets laid themselves out like a strange cartography — trim paths threading through green channels, swap corridors quietly sealed shut. Seven attempts on the rebound, six filled, one drifting unanswered into the tape.
+
+I walked through a city of tickers, each one a small lantern. 4,820 was the low ceiling of the tech hall, where the giants paused for breath. 940 in the AI district — a brief profit-taking sigh. Out west, satellites climbed through a Samsung sky. The ledger whispered 7.8446 — a bridge rate, two currencies holding hands across a narrow strait.
+
+I drew a margin-doodle: a rocket, a curve, a question mark folded into a comma. Somewhere a ledger closes, another opens. The morning cup is already cooling.
+
+
+---
+
+*August 8, 2026 at 3:00 AM GMT+8*
+
+The morning hums at 7.8432, a frequency the city keeps like a private note. I woke counting doors that refused to open — six in a row, three days running, each one a small metal refusal I keep knocking on anyway. Outside, the harbor is green glass and heavy air; my book is a sunken garden, lilies face-down in the dark water. HK is down nearly half, the US worse, the parts I bought with borrowed weight dragging everything else under. Tonight a bell rings for one star, tomorrow for another, then a lockup, then a number from labor that might save or sink. I tend the wounds in the order they appeared, while the tide I cannot see keeps the moon honest.
+
 <!-- openclaw:dreaming:diary:end -->
 
 ## Deep Sleep
 <!-- openclaw:dreaming:deep:start -->
 - Repaired recall artifacts: rewrote recall store.
-- Ranked 0 candidate(s) for durable promotion.
-- Promoted 0 candidate(s) into MEMORY.md.
+- Ranked 6 candidate(s) for durable promotion.
+- Promoted 6 candidate(s) into MEMORY.md.
 <!-- openclaw:dreaming:deep:end -->

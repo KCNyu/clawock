@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-06T15:01:54.928070+00:00",
+  "generated_at": "2026-08-07T14:01:27.662491+00:00",
   "lookback_hours": 48,
   "sources": {
     "trump": "trumpstruth.org/feed (primary)",
@@ -13,102 +13,106 @@
   },
   "llm_filtered": true,
   "counts": {
-    "total": 12,
+    "total": 10,
     "held_hits": 0,
-    "new_ideas": 2,
-    "sector_hits": 5
+    "new_ideas": 0,
+    "sector_hits": 7
   },
   "items": [
     {
       "author": "Musk",
-      "text": "Elon Musk's Tesla Suffered Its Worst Week Since 2022, Wiping Out $130 Billion of His Fortune. Is the Stock Still a Buy?",
+      "text": "SpaceX, Tesla to Build Chip Plant in Texas to Meet Compute Demand",
       "url": "",
-      "published": "Thu, 06 Aug 2026 11:57:28 GMT",
-      "origin": "gnews-rss",
-      "source": "The Motley Fool",
-      "tickers": [
-        "TSLA"
-      ],
-      "held": [],
-      "new_ideas": [
-        "TSLA"
-      ],
-      "sectors": [
-        "电动车"
-      ],
-      "sector_holdings": [],
-      "stance": "attack",
-      "relevance": 72,
-      "summary_cn": "特斯拉经历2022年以来最差单周，Musk财富蒸发1300亿美元，股价承压。"
-    },
-    {
-      "author": "Musk",
-      "text": "Musk Says These Tesla Products Will 'Dramatically' Increase Starlink Demand",
-      "url": "",
-      "published": "Wed, 05 Aug 2026 20:01:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Investor's Business Daily",
-      "tickers": [
-        "TSLA"
-      ],
-      "held": [],
-      "new_ideas": [
-        "TSLA"
-      ],
-      "sectors": [
-        "电动车",
-        "卫星互联网"
-      ],
-      "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "endorse",
-      "relevance": 65,
-      "summary_cn": "Musk称多款特斯拉产品将'显著'拉抬Starlink需求，特斯拉与Starlink协同叙事利好。"
-    },
-    {
-      "author": "Musk",
-      "text": "SpaceX Revenue Could Reach $1 Trillion, Elon Musk Says",
-      "url": "",
-      "published": "Wed, 05 Aug 2026 00:12:00 GMT",
+      "published": "Thu, 06 Aug 2026 15:02:00 GMT",
       "origin": "gnews-rss",
       "source": "WSJ",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
+        "半导体",
         "航天",
-        "卫星互联网"
+        "AI"
       ],
       "sector_holdings": [
+        "RKLX",
+        "SKHY",
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "endorse",
+      "relevance": 82,
+      "summary_cn": "SpaceX与Tesla将在德州合资建芯片厂以满足算力需求——直接利好SpaceX/SPCX，并间接触及SK海力士等AI半导体供应链。"
+    },
+    {
+      "author": "Musk",
+      "text": "SpaceX makes Terafab official, confirms initial $16.8 billion investment",
+      "url": "",
+      "published": "Thu, 06 Aug 2026 22:04:29 GMT",
+      "origin": "gnews-rss",
+      "source": "Austin American-Statesman",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "半导体",
+        "AI"
+      ],
+      "sector_holdings": [
+        "RKLX",
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "endorse",
+      "relevance": 78,
+      "summary_cn": "SpaceX正式官宣Terafab项目，初始投资168亿美元——利好SpaceX及AI/半导体供应链。"
+    },
+    {
+      "author": "Musk",
+      "text": "SpaceX to invest $16.8bn in Texas TeraFab as Elon Musk says 100m-sq-ft fab will be “50 times the size of the Pentagon”",
+      "url": "",
+      "published": "Fri, 07 Aug 2026 13:11:30 GMT",
+      "origin": "gnews-rss",
+      "source": "Data Center Dynamics",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "半导体"
+      ],
+      "sector_holdings": [
+        "RKLX",
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "endorse",
+      "relevance": 76,
+      "summary_cn": "Musk确认SpaceX将在德州TeraFab投资168亿美元，规模号称'50倍五角大楼'——利好SpaceX。"
+    },
+    {
+      "author": "Musk",
+      "text": "‘Pure insanity’—Elon Musk details SpaceX’s plan to turn the moon into its newest manufacturing site",
+      "url": "",
+      "published": "Thu, 06 Aug 2026 17:36:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Fortune",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "太空制造"
+      ],
+      "sector_holdings": [
+        "RKLX",
         "SPCH",
         "SPCX"
       ],
       "stance": "endorse",
       "relevance": 72,
-      "summary_cn": "Musk宣称SpaceX收入有望达到1万亿美元，对SpaceX长期前景给出极强多头信号。"
-    },
-    {
-      "author": "Musk",
-      "text": "SpaceX Earnings: Here’s How Wall Street Reacted As Shares Fall 13%",
-      "url": "",
-      "published": "Wed, 05 Aug 2026 18:51:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Forbes",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天"
-      ],
-      "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "neutral",
-      "relevance": 68,
-      "summary_cn": "SpaceX首次财报电话会后股价下跌13%，市场反应偏负面。"
+      "summary_cn": "Musk披露SpaceX计划将月球改造为生产基地——利好SpaceX及航天板块。"
     },
     {
       "author": "Musk",
@@ -122,37 +126,17 @@
       "new_ideas": [],
       "sectors": [
         "航天",
-        "卫星制造"
+        "卫星制造",
+        "太空制造"
       ],
       "sector_holdings": [
+        "RKLX",
         "SPCH",
         "SPCX"
       ],
       "stance": "endorse",
-      "relevance": 62,
-      "summary_cn": "Musk披露SpaceX计划在月球建设卫星工厂，长期愿景利好SpaceX叙事。"
-    },
-    {
-      "author": "Musk",
-      "text": "Is Elon Musk's master plan with SpaceX to have rockets replace planes for global cargo delivery?",
-      "url": "",
-      "published": "Wed, 05 Aug 2026 21:50:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Fortune",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "物流运输"
-      ],
-      "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "endorse",
-      "relevance": 58,
-      "summary_cn": "市场猜测Musk的SpaceX终极计划是用火箭替代飞机进行全球货运，概念性长期看好信号。"
+      "relevance": 70,
+      "summary_cn": "Musk透露SpaceX计划在月球建造卫星工厂——利好SpaceX及航天板块长期叙事。"
     },
     {
       "author": "Musk",
@@ -160,20 +144,63 @@
       "url": "",
       "published": "Tue, 04 Aug 2026 22:30:58 GMT",
       "origin": "gnews-rss",
-      "source": "techcrunch.com",
+      "source": "TechCrunch",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "航天"
+        "航天",
+        "私募估值"
       ],
       "sector_holdings": [
+        "RKLX",
         "SPCH",
         "SPCX"
       ],
-      "stance": "neutral",
-      "relevance": 55,
-      "summary_cn": "Musk在SpaceX首次财报会上频繁压过自家高管发言，市场关注公司治理信号。"
+      "stance": "endorse",
+      "relevance": 70,
+      "summary_cn": "SpaceX首次财报电话会，Musk多次压过自家高管——强化SpaceX估值叙事，利好SPCX。"
+    },
+    {
+      "author": "Musk",
+      "text": "SpaceX Bought $295 Million Worth Of Tesla Megapacks In Q2",
+      "url": "",
+      "published": "Thu, 06 Aug 2026 20:04:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Investor's Business Daily",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "储能",
+        "航天",
+        "电动车"
+      ],
+      "sector_holdings": [
+        "RKLX",
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "endorse",
+      "relevance": 62,
+      "summary_cn": "SpaceX Q2斥资2.95亿美元采购Tesla Megapacks——强化Tesla储能业务收入及SpaceX资本开支逻辑。"
+    },
+    {
+      "author": "Trump",
+      "text": "Trump allies push to arm president with new tariff weapon to punish countries 'ripping off' America: https://www.foxnews.com/politics/trump-allies-push-arm-president-new-tariff-weapon-punish-countries-ripping-off-america",
+      "url": "https://trumpstruth.org/statuses/40612",
+      "published": "2026-08-06T20:38:27+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "关税"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 68,
+      "summary_cn": "Trump盟友推动赋予总统新关税武器，惩罚'占美国便宜'的国家——关税升级信号。"
     },
     {
       "author": "Trump",
@@ -185,73 +212,19 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "国防军工"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 62,
-      "summary_cn": "特朗普强调美国弹药库存充足、国防企业正在大规模建设工厂，利好国防军工板块。"
-    },
-    {
-      "author": "Trump",
-      "text": "Manufacturing is BOOMING! Factory activity just hit its fastest pace in more than FOUR YEARS, far exceeding expectations. New orders have expanded for SEVEN straight months. American Manufacturing is BACK!   The Stock Market is at an ALL TIME HIGH, and setting Record after Record because Investors know America is WINNING!   American Exports are on FIRE. U.S. Goods Exports have now topped 200 BILLION DOLLARS for the fifth consecutive month, and we are on pace for nearly 2.5 TRILLION DOLLARS in Goods Exports this year — Numbers nobody thought possible just two years ago.   The Fake News and the ",
-      "url": "https://trumpstruth.org/statuses/40543",
-      "published": "2026-08-04T20:38:42+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "宏观经济",
-        "制造业"
+        "国防军工",
+        "能源"
       ],
       "sector_holdings": [],
       "stance": "endorse",
       "relevance": 60,
-      "summary_cn": "特朗普宣称美国制造业四年来最强、股市创历史新高、出口创纪录，整体看好美国经济与股市。"
-    },
-    {
-      "author": "Trump",
-      "text": "It was my Honor to write the Foreword for Brian Pannebecker’s incredible new Book, “Blue Collar Conservative: From Reagan to Trump.” As the head of Autoworkers for Trump, Brian has been with us from the very beginning, and understands, like few others, the Wisdom, Courage, and TARIFFS required to, MAKE AMERICA GREAT AGAIN. It is Great Patriots like Brian who helped us secure Historic Victories in three Presidential Campaigns, and are working tirelessly to save American Industry, and champion MADE IN THE U.S.A. “Forgotten” America is forgotten no longer — Get your copy today: https://www.amazon",
-      "url": "https://trumpstruth.org/statuses/40552",
-      "published": "2026-08-04T22:34:28+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "关税",
-        "汽车"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 55,
-      "summary_cn": "特朗普为蓝领保守派书籍作序，强调关税与发展美国制造业，重申关税保护立场。"
-    },
-    {
-      "author": "Trump",
-      "text": "My REAL Polling Numbers, not those made up by the Fake News Media, are the best they have ever been, and why wouldn’t they be with the biggest tax cuts and employment numbers EVER, the biggest outside Investment in America in World history, a totally secure Border, a giant Victory in Venezuela, the Denuclearization of Iran, unparalleled respect and success throughout the World, and much more? Don’t believe the Radical Left’s Fake Poll numbers. They are Crooked and Corrupt, just like the Country Destroying Dumocrats are Crooked and Corrupt. VOTE REPUBLICAN FOR GREATNESS IN AMERICA! Thank you fo",
-      "url": "https://trumpstruth.org/statuses/40544",
-      "published": "2026-08-04T21:39:05+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "宏观经济",
-        "能源",
-        "税收"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 55,
-      "summary_cn": "特朗普自称支持率历史最高，宣扬史上最大减税、就业与外资流入，为中期选举造势。"
+      "summary_cn": "Trump称美国弹药充足、国防企业正兴建史上最多工厂——利好国防军工板块。"
     },
     {
       "author": "Musk",
       "text": "Elon Musk’s DOGE made big errors in claims of government savings, GAO finds",
       "url": "",
-      "published": "Thu, 06 Aug 2026 14:25:53 GMT",
+      "published": "Thu, 06 Aug 2026 18:00:00 GMT",
       "origin": "gnews-rss",
       "source": "The Washington Post",
       "tickers": [],
@@ -262,104 +235,107 @@
       ],
       "sector_holdings": [],
       "stance": "attack",
-      "relevance": 50,
-      "summary_cn": "美GAO报告指出Musk的政府效率部(DOGE)在政府节省金额上存在重大计算错误，间接施压Musk相关叙事。"
+      "relevance": 45,
+      "summary_cn": "GAO报告称Musk的DOGE在政府节省金额上存在重大错误——对Musk/DOGE形象负面，但市场含义有限。"
     }
   ],
   "held_hits": [],
-  "new_ideas": [
-    {
-      "author": "Musk",
-      "text": "Elon Musk's Tesla Suffered Its Worst Week Since 2022, Wiping Out $130 Billion of His Fortune. Is the Stock Still a Buy?",
-      "url": "",
-      "published": "Thu, 06 Aug 2026 11:57:28 GMT",
-      "origin": "gnews-rss",
-      "source": "The Motley Fool",
-      "tickers": [
-        "TSLA"
-      ],
-      "held": [],
-      "new_ideas": [
-        "TSLA"
-      ],
-      "sectors": [
-        "电动车"
-      ],
-      "sector_holdings": [],
-      "stance": "attack",
-      "relevance": 72,
-      "summary_cn": "特斯拉经历2022年以来最差单周，Musk财富蒸发1300亿美元，股价承压。"
-    },
-    {
-      "author": "Musk",
-      "text": "Musk Says These Tesla Products Will 'Dramatically' Increase Starlink Demand",
-      "url": "",
-      "published": "Wed, 05 Aug 2026 20:01:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Investor's Business Daily",
-      "tickers": [
-        "TSLA"
-      ],
-      "held": [],
-      "new_ideas": [
-        "TSLA"
-      ],
-      "sectors": [
-        "电动车",
-        "卫星互联网"
-      ],
-      "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "endorse",
-      "relevance": 65,
-      "summary_cn": "Musk称多款特斯拉产品将'显著'拉抬Starlink需求，特斯拉与Starlink协同叙事利好。"
-    }
-  ],
+  "new_ideas": [],
   "sector_hits": [
     {
       "author": "Musk",
-      "text": "SpaceX Revenue Could Reach $1 Trillion, Elon Musk Says",
+      "text": "SpaceX, Tesla to Build Chip Plant in Texas to Meet Compute Demand",
       "url": "",
-      "published": "Wed, 05 Aug 2026 00:12:00 GMT",
+      "published": "Thu, 06 Aug 2026 15:02:00 GMT",
       "origin": "gnews-rss",
       "source": "WSJ",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
+        "半导体",
         "航天",
-        "卫星互联网"
+        "AI"
       ],
       "sector_holdings": [
+        "RKLX",
+        "SKHY",
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "endorse",
+      "relevance": 82,
+      "summary_cn": "SpaceX与Tesla将在德州合资建芯片厂以满足算力需求——直接利好SpaceX/SPCX，并间接触及SK海力士等AI半导体供应链。"
+    },
+    {
+      "author": "Musk",
+      "text": "SpaceX makes Terafab official, confirms initial $16.8 billion investment",
+      "url": "",
+      "published": "Thu, 06 Aug 2026 22:04:29 GMT",
+      "origin": "gnews-rss",
+      "source": "Austin American-Statesman",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "半导体",
+        "AI"
+      ],
+      "sector_holdings": [
+        "RKLX",
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "endorse",
+      "relevance": 78,
+      "summary_cn": "SpaceX正式官宣Terafab项目，初始投资168亿美元——利好SpaceX及AI/半导体供应链。"
+    },
+    {
+      "author": "Musk",
+      "text": "SpaceX to invest $16.8bn in Texas TeraFab as Elon Musk says 100m-sq-ft fab will be “50 times the size of the Pentagon”",
+      "url": "",
+      "published": "Fri, 07 Aug 2026 13:11:30 GMT",
+      "origin": "gnews-rss",
+      "source": "Data Center Dynamics",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "半导体"
+      ],
+      "sector_holdings": [
+        "RKLX",
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "endorse",
+      "relevance": 76,
+      "summary_cn": "Musk确认SpaceX将在德州TeraFab投资168亿美元，规模号称'50倍五角大楼'——利好SpaceX。"
+    },
+    {
+      "author": "Musk",
+      "text": "‘Pure insanity’—Elon Musk details SpaceX’s plan to turn the moon into its newest manufacturing site",
+      "url": "",
+      "published": "Thu, 06 Aug 2026 17:36:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Fortune",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "太空制造"
+      ],
+      "sector_holdings": [
+        "RKLX",
         "SPCH",
         "SPCX"
       ],
       "stance": "endorse",
       "relevance": 72,
-      "summary_cn": "Musk宣称SpaceX收入有望达到1万亿美元，对SpaceX长期前景给出极强多头信号。"
-    },
-    {
-      "author": "Musk",
-      "text": "SpaceX Earnings: Here’s How Wall Street Reacted As Shares Fall 13%",
-      "url": "",
-      "published": "Wed, 05 Aug 2026 18:51:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Forbes",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天"
-      ],
-      "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "neutral",
-      "relevance": 68,
-      "summary_cn": "SpaceX首次财报电话会后股价下跌13%，市场反应偏负面。"
+      "summary_cn": "Musk披露SpaceX计划将月球改造为生产基地——利好SpaceX及航天板块。"
     },
     {
       "author": "Musk",
@@ -373,37 +349,17 @@
       "new_ideas": [],
       "sectors": [
         "航天",
-        "卫星制造"
+        "卫星制造",
+        "太空制造"
       ],
       "sector_holdings": [
+        "RKLX",
         "SPCH",
         "SPCX"
       ],
       "stance": "endorse",
-      "relevance": 62,
-      "summary_cn": "Musk披露SpaceX计划在月球建设卫星工厂，长期愿景利好SpaceX叙事。"
-    },
-    {
-      "author": "Musk",
-      "text": "Is Elon Musk's master plan with SpaceX to have rockets replace planes for global cargo delivery?",
-      "url": "",
-      "published": "Wed, 05 Aug 2026 21:50:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Fortune",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "物流运输"
-      ],
-      "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "endorse",
-      "relevance": 58,
-      "summary_cn": "市场猜测Musk的SpaceX终极计划是用火箭替代飞机进行全球货运，概念性长期看好信号。"
+      "relevance": 70,
+      "summary_cn": "Musk透露SpaceX计划在月球建造卫星工厂——利好SpaceX及航天板块长期叙事。"
     },
     {
       "author": "Musk",
@@ -411,20 +367,46 @@
       "url": "",
       "published": "Tue, 04 Aug 2026 22:30:58 GMT",
       "origin": "gnews-rss",
-      "source": "techcrunch.com",
+      "source": "TechCrunch",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "航天"
+        "航天",
+        "私募估值"
       ],
       "sector_holdings": [
+        "RKLX",
         "SPCH",
         "SPCX"
       ],
-      "stance": "neutral",
-      "relevance": 55,
-      "summary_cn": "Musk在SpaceX首次财报会上频繁压过自家高管发言，市场关注公司治理信号。"
+      "stance": "endorse",
+      "relevance": 70,
+      "summary_cn": "SpaceX首次财报电话会，Musk多次压过自家高管——强化SpaceX估值叙事，利好SPCX。"
+    },
+    {
+      "author": "Musk",
+      "text": "SpaceX Bought $295 Million Worth Of Tesla Megapacks In Q2",
+      "url": "",
+      "published": "Thu, 06 Aug 2026 20:04:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Investor's Business Daily",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "储能",
+        "航天",
+        "电动车"
+      ],
+      "sector_holdings": [
+        "RKLX",
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "endorse",
+      "relevance": 62,
+      "summary_cn": "SpaceX Q2斥资2.95亿美元采购Tesla Megapacks——强化Tesla储能业务收入及SpaceX资本开支逻辑。"
     }
   ]
 }
