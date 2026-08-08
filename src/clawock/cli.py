@@ -312,6 +312,7 @@ def _workflow(args) -> int:
         list_workflows,
         load_workflow,
         review_proposal,
+        render_workflow_schema,
         rollback_change,
     )
 
@@ -353,6 +354,11 @@ def _workflow(args) -> int:
             return 0
         if args.workflow_command == "show":
             emit(load_workflow(args.workflow_id).as_dict())
+            return 0
+        if args.workflow_command == "schema":
+            emit(render_workflow_schema(
+                args.workflow_id, args.artifact, dialect=args.dialect
+            ))
             return 0
         if args.workflow_command == "evaluate":
             emit(evaluate_files(args.workflow_id, args.decision, args.outcome))
@@ -500,6 +506,16 @@ def main(argv=None) -> int:
     workflow_show = workflow_sub.add_parser("show", help="print a workflow contract")
     workflow_show.add_argument("workflow_id")
     workflow_show.set_defaults(func=_workflow)
+    workflow_schema = workflow_sub.add_parser(
+        "schema", help="export an artifact schema for an external runtime")
+    workflow_schema.add_argument("workflow_id")
+    workflow_schema.add_argument("artifact")
+    workflow_schema.add_argument(
+        "--dialect", choices=("canonical", "codex"), default="canonical",
+        help="canonical validation schema or Codex structured-output subset",
+    )
+    workflow_schema.add_argument("--output", type=Path)
+    workflow_schema.set_defaults(func=_workflow)
     workflow_install = workflow_sub.add_parser(
         "install", help="install a workflow as a standard Agent Skill")
     workflow_install.add_argument("workflow_id")
