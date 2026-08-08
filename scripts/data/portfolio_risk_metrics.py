@@ -21,14 +21,18 @@ import sys
 import time
 from collections import defaultdict
 from datetime import datetime, timedelta, timezone
+from pathlib import Path
 
 import numpy as np
 import requests
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+_CHECKOUT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(_CHECKOUT))
+sys.path.insert(0, str(_CHECKOUT / "src"))
 from fetch_fx import get_usdhkd  # noqa: E402
-from instrument_registry import get as get_instrument  # noqa: E402
-from instrument_registry import leverage_map, require as require_instrument  # noqa: E402
+from clawock.instrument_registry import get as get_instrument  # noqa: E402
+from clawock.instrument_registry import leverage_map, require as require_instrument  # noqa: E402
 
 WS_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 PORTFOLIO_FILE = os.path.join(WS_ROOT, 'portfolio.json')

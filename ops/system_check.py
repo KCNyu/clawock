@@ -137,7 +137,7 @@ def check_instrument_registry(r):
     """Canonical metadata must cover every active holding."""
     sys.path.insert(0, str(_REPO_ROOT / 'scripts' / 'data'))
     try:
-        import instrument_registry
+        from clawock import instrument_registry
         portfolio = json.loads((WS / 'portfolio.json').read_text())
         errors = instrument_registry.validate_active_holdings(portfolio)
     except Exception as e:
