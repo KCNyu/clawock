@@ -5,12 +5,11 @@ Everything OpenClaw-specific belongs here so the rest of the tree can be counted
 as runtime-agnostic — see `tests/test_runtime_coupling_ratchet.py`, which exempts
 `clawock/providers/` precisely because that is what an adapter is for.
 
-Moved out of `scripts/harness/_watchdog_common.py`, which held the binary path,
-the cron CLI call and the run-history fallback chain, and was therefore the
-largest single consumer that knew which runtime it was on. `_watchdog_common`
-lives in `scripts/harness/`, which is deliberately not in the wheel, so anything
-left there was unreachable from an installation — `OpenClawRuns.list_runs()`
-imported it at call time and raised `ModuleNotFoundError` outside the checkout.
+Moved out of the former `scripts/harness/_watchdog_common.py`, which held the
+binary path, cron CLI call and run-history fallback chain and was therefore the
+largest single consumer that knew which runtime it was on. That source alias was
+never in the wheel, so anything left behind it was unreachable from an install;
+the alias has now been retired.
 """
 from __future__ import annotations
 

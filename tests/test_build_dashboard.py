@@ -81,7 +81,9 @@ def test_guardrail_compute_exception_is_an_explicit_failure_dict(monkeypatch):
         compute_concentration=lambda _holdings: {},
         compute_breakeven_math=lambda *_args, **_kwargs: {"rows": []},
     )
-    monkeypatch.setitem(sys.modules, "brief_preflight", fake_preflight)
+    monkeypatch.setitem(
+        sys.modules, "clawock_kcnyu.harness.brief_preflight", fake_preflight
+    )
 
     result = dashboard.compute_guardrail_outputs(_portfolio(), risk={})
 

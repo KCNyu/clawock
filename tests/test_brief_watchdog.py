@@ -5,9 +5,7 @@ import sys
 
 
 ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT / "scripts" / "harness"))
-
-import brief_watchdog as watchdog  # noqa: E402
+from clawock_kcnyu.harness import brief_watchdog as watchdog  # noqa: E402
 
 
 TODAY = "2026-07-17"

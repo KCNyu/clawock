@@ -305,7 +305,7 @@ stored here.
 | `docs/`, `tests/` | Product/runbook documentation and invariant checks |
 | root context files, `skills/`, `memory/` | OpenClaw compatibility surface; kept at runtime-required paths |
 | `portfolio.json`, `assets/data/` | Live ledger and generated publication state; never package contents |
-| `scripts/data/`, `scripts/harness/` | Remaining migration surface: instance jobs plus temporary rollback aliases, not portable APIs |
+| `scripts/data/` | Remaining migration surface: repository jobs, not portable APIs |
 
 </details>
 

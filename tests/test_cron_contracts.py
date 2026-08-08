@@ -10,7 +10,6 @@ from zoneinfo import ZoneInfo
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'scripts' / 'data'))
 sys.path.insert(0, str(ROOT / 'ops' / 'host'))
-sys.path.insert(0, str(ROOT / 'scripts' / 'harness'))
 
 import cron_contract
 import cron_heartbeat
@@ -192,43 +191,13 @@ def test_watchdog_contract_and_dst_change_plan_cover_both_schedulers():
     }
 
 
-def test_legacy_host_rows_are_planned_to_installed_commands():
+def test_contract_has_no_retired_host_command_migrations():
     data = contract()
-    july = datetime(2026, 7, 16, 0, tzinfo=timezone.utc)
-    canonical = _crontab_from_contract(data, july)
-    legacy = canonical
-    replacements = {
-        '/root/.local/bin/clawock-kcnyu-brief-watchdog':
-            'python3 scripts/harness/brief_watchdog.py',
-        '/root/.local/bin/clawock-kcnyu-report-watchdog':
-            'python3 scripts/harness/report_watchdog.py',
-        '/root/.local/bin/clawock-kcnyu-intraday-watchdog':
-            'python3 scripts/harness/intraday_watchdog.py',
-        '/usr/bin/python3 /root/.openclaw/workspace/ops/host/sync_us_cron_dst.py':
-            'python3 scripts/data/sync_us_cron_dst.py',
-    }
-    for installed, old in replacements.items():
-        legacy = legacy.replace(installed, old)
-    legacy = legacy.replace(
-        ' >> /root/.openclaw/workspace/logs/watchdog.cron.log',
-        ' >> logs/watchdog.cron.log')
-    legacy = legacy.replace(
-        ' >> /root/.openclaw/workspace/logs/dst-sync.log',
-        ' >> logs/dst-sync.log')
-
-    live = [{
-        'id': f'id-{index}', 'name': job['name'],
-        'schedule': cron_contract.effective_schedule(job, july),
-    } for index, job in enumerate(data['jobs'])]
-    openclaw, host, errors = sync_us_cron_dst.desired_changes(
-        data, live, legacy, july)
-
-    assert errors == []
-    assert openclaw == []
-    assert len([change for change in host if change['kind'] != 'dst-sync']) == 11
-    assert len([change for change in host if change['kind'] == 'dst-sync']) == 1
-    assert all(change['matched_by'] == 'legacy' for change in host)
-    assert all('scripts/harness/' not in change['to']['command'] for change in host)
+    specs = [data['dst_sync']]
+    for job in data['jobs']:
+        specs.extend(job.get('system_watchdogs', []))
+        specs.extend(job.get('extra_system_watchdogs', []))
+    assert all('legacy_command_contains' not in spec for spec in specs)
 
 
 def test_crontab_apply_preserves_every_unmanaged_line(monkeypatch):
@@ -372,7 +341,7 @@ def test_heartbeat_health_graces_the_current_running_slot():
 
 
 def test_intraday_hard_length_limit_is_a_failure():
-    import intraday_postflight
+    from clawock_kcnyu.harness import intraday_postflight
 
     assert intraday_postflight.categorize(
         ['报告长度 3501 字 > 3500 上限']
@@ -409,7 +378,7 @@ def test_intraday_empty_input_is_an_input_error_not_a_content_failure(monkeypatc
     wrong" issues, hiding the real cause (missing plumbing). Empty input must be
     reported as its own class, and must never reach content validation."""
     import io
-    import intraday_postflight
+    from clawock_kcnyu.harness import intraday_postflight
 
     monkeypatch.setattr(sys, 'stdin', io.StringIO(''))
     text, err = intraday_postflight.read_report_text('hk', None)
@@ -426,7 +395,7 @@ def test_intraday_stale_report_file_is_refused(tmp_path):
     report — the failure mode --text-file would otherwise introduce."""
     import os
 
-    import intraday_postflight
+    from clawock_kcnyu.harness import intraday_postflight
 
     report = tmp_path / 'intraday-report-hk.md'
     report.write_text('🇭🇰 港股盯盘 | 07/23 10:03 HKT\n▎我的看法\n' + 'x' * 80)
@@ -452,7 +421,7 @@ def test_intraday_main_stops_on_empty_input_and_blames_the_context_slot(monkeypa
     successful retry marks 10:00 completed."""
     import io
 
-    import intraday_postflight
+    from clawock_kcnyu.harness import intraday_postflight
 
     recorded = {}
     monkeypatch.setattr(sys, 'stdin', io.StringIO(''))

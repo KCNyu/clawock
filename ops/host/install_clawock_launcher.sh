@@ -5,7 +5,7 @@
 # product and KCNyu adapter into a dedicated virtualenv. The stable launcher
 # keeps every OpenClaw payload unchanged while entry-point discovery proves the
 # live phase came from the separately installed instance distribution—not from
-# a source-tree `scripts/harness` import.
+# a source-tree import.
 set -euo pipefail
 
 CHECKOUT="${1:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}"

@@ -32,6 +32,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
 from clawock.workspace import workspace_root  # noqa: E402
+from clawock.providers import openclaw  # noqa: E402
 
 WS = workspace_root(Path(__file__).resolve().parents[2])
 WORKFLOWS = WS / '.github' / 'workflows'
@@ -160,10 +161,9 @@ def load_openclaw(backend='auto'):
         # 6.1 moved cron storage into SQLite — read via the storage-agnostic CLI
         # layer (the dead jobs.json silently returned [] and dropped all 11
         # openclaw jobs from the timeline, found 2026-06-10).
-        sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'harness'))
-        import _watchdog_common as watchdog_common
-        jobs = watchdog_common.load_jobs(backend)
-        LAST_OPENCLAW_SOURCE = watchdog_common.LAST_LOAD_SOURCE
+        result = openclaw.read_jobs(backend)
+        jobs = result.entries
+        LAST_OPENCLAW_SOURCE = result.source
     except Exception:
         LAST_OPENCLAW_SOURCE = 'empty'
         return rows

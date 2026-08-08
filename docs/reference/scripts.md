@@ -33,7 +33,7 @@ title: clawock · scripts 详细参考
 确定性活强制脚本化执行；LLM 只做合成；postflight 自验证 + commit。
 生产入口是安装后的 `clawock` CLI；KCNyu 实现由独立的 `clawock-kcnyu`
 distribution（源码位于 `instances/kcnyu/`）通过标准 Python entry points 提供。
-`scripts/harness/` 只保留迁移期回滚别名，不再是实现真源。
+旧的 `scripts/harness/` 回滚别名已在 installed-command 切换验证后删除。
 
 **Daily deep brief**（08:00 HKT cron）
 - **`clawock brief preflight`**：刷 US/HK 价 + FX + portfolio snapshot + HHI 算法 + SEC EDGAR (仅 `is_leveraged_etf=false`) + retrospective vs 上次 plan.json。输出 `memory/.tmp/brief-context-{date}.json`

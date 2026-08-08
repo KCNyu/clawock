@@ -5,7 +5,7 @@ The daemon's America/New_York cron parsing has regressed before, so the runtime
 jobs stay in HKT. This tool derives the correct HKT expressions from the tracked
 seasonal contract and applies them daily at 06:20 HKT, safely before market jobs.
 It also owns the exact system-crontab command for every watchdog, including the
-one-time migration from source-tree compatibility aliases to installed commands.
+installed command used after the source-tree alias cutover.
 """
 from __future__ import annotations
 
@@ -33,7 +33,6 @@ sys.path.insert(0, str(_CHECKOUT / "scripts" / "data"))
 
 from cron_contract import (  # noqa: E402
     effective_schedule,
-    find_crontab_row,
     load_contract,
     next_us_dst_transition,
     parse_crontab_lines,
@@ -58,19 +57,11 @@ def load_live_jobs() -> list[dict]:
 
 
 def _find_managed_row(rows: list[dict], spec: dict) -> tuple[dict | None, str]:
-    """Find one canonical row, or one explicitly declared migration source."""
+    """Find exactly one canonical row."""
     canonical = [row for row in rows if row["command"] == spec.get("command")]
     if len(canonical) == 1:
         return canonical[0], "canonical"
-    if len(canonical) > 1:
-        return None, "missing"
-    legacy_matchers = spec.get("legacy_command_contains") or []
-    matches = []
-    for tokens in legacy_matchers:
-        row = find_crontab_row(rows, tokens)
-        if row and row["index"] not in {item["index"] for item in matches}:
-            matches.append(row)
-    return (matches[0], "legacy") if len(matches) == 1 else (None, "missing")
+    return None, "missing"
 
 
 def _crontab_change(name: str, spec: dict, rows: list[dict], at: datetime,

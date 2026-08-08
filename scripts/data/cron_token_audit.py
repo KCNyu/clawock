@@ -33,7 +33,9 @@ import sys
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "harness"))
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
+from clawock.providers import openclaw  # noqa: E402
 
 HKT = timezone(timedelta(hours=8))
 # Enough history to have a stable median per provider without reaching back to a
@@ -56,9 +58,7 @@ def _load_runs(job_id, reader=None):
     if reader is not None:
         return reader(job_id) or []
     try:
-        import _watchdog_common as watchdog_common  # noqa: PLC0415
-
-        return watchdog_common.read_runs(job_id, RUN_SOURCE) or []
+        return openclaw.read_runs(job_id, RUN_SOURCE).entries
     except Exception:  # noqa: BLE001 — a health report must not die on the store
         return []
 
@@ -67,9 +67,7 @@ def _load_jobs(reader=None):
     if reader is not None:
         return reader()
     try:
-        import _watchdog_common as watchdog_common  # noqa: PLC0415
-
-        return watchdog_common.load_jobs(RUN_SOURCE) or []
+        return openclaw.read_jobs(RUN_SOURCE).entries
     except Exception:  # noqa: BLE001
         return []
 

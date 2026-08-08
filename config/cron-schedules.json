@@ -8,10 +8,7 @@
       "expr": "20 6 * * *",
       "tz": "Asia/Hong_Kong"
     },
-    "command": "/usr/bin/python3 /root/.openclaw/workspace/ops/host/sync_us_cron_dst.py --apply >> /root/.openclaw/workspace/logs/dst-sync.log 2>&1",
-    "legacy_command_contains": [
-      ["scripts/data/sync_us_cron_dst.py", "--apply"]
-    ]
+    "command": "/usr/bin/python3 /root/.openclaw/workspace/ops/host/sync_us_cron_dst.py --apply >> /root/.openclaw/workspace/logs/dst-sync.log 2>&1"
   },
   "payload_profiles": {
     "report": {
@@ -185,10 +182,7 @@
           "expr": "10,40 0-2 * * 2-6",
           "tz": "Asia/Hong_Kong"
         },
-        "command": "/root/.local/bin/clawock-kcnyu-intraday-watchdog --job-name \"美股盘中盯盘-overnight\" --market us >> /root/.openclaw/workspace/logs/watchdog.cron.log 2>&1",
-        "legacy_command_contains": [
-          ["scripts/harness/intraday_watchdog.py", "--job-name \"美股盘中盯盘-overnight\"", "--market us"]
-        ]
+        "command": "/root/.local/bin/clawock-kcnyu-intraday-watchdog --job-name \"美股盘中盯盘-overnight\" --market us >> /root/.openclaw/workspace/logs/watchdog.cron.log 2>&1"
       }
     },
     {
@@ -243,10 +237,7 @@
             "tz": "Asia/Hong_Kong"
           }
         },
-        "command": "/root/.local/bin/clawock-kcnyu-report-watchdog --market us --phase close --job-name \"美股收盘报告\" >> /root/.openclaw/workspace/logs/watchdog.cron.log 2>&1",
-        "legacy_command_contains": [
-          ["scripts/harness/report_watchdog.py", "--market us", "--phase close"]
-        ]
+        "command": "/root/.local/bin/clawock-kcnyu-report-watchdog --market us --phase close --job-name \"美股收盘报告\" >> /root/.openclaw/workspace/logs/watchdog.cron.log 2>&1"
       }
     },
     {
@@ -266,10 +257,7 @@
           "expr": "30 8 * * 1-5",
           "tz": "Asia/Hong_Kong"
         },
-        "command": "/root/.local/bin/clawock-kcnyu-brief-watchdog >> /root/.openclaw/workspace/logs/watchdog.cron.log 2>&1",
-        "legacy_command_contains": [
-          ["scripts/harness/brief_watchdog.py >>"]
-        ]
+        "command": "/root/.local/bin/clawock-kcnyu-brief-watchdog >> /root/.openclaw/workspace/logs/watchdog.cron.log 2>&1"
       },
       "extra_watchdogs": [
         {
@@ -279,10 +267,7 @@
             "expr": "5 9 * * 1-5",
             "tz": "Asia/Hong_Kong"
           },
-          "command": "/root/.local/bin/clawock-kcnyu-brief-watchdog --check-missing >> /root/.openclaw/workspace/logs/watchdog.cron.log 2>&1",
-          "legacy_command_contains": [
-            ["scripts/harness/brief_watchdog.py --check-missing"]
-          ]
+          "command": "/root/.local/bin/clawock-kcnyu-brief-watchdog --check-missing >> /root/.openclaw/workspace/logs/watchdog.cron.log 2>&1"
         }
       ]
     },
@@ -313,10 +298,7 @@
           "expr": "45 9 * * 1-5",
           "tz": "Asia/Hong_Kong"
         },
-        "command": "/root/.local/bin/clawock-kcnyu-report-watchdog --market hk --phase open --job-name \"港股开盘报告\" >> /root/.openclaw/workspace/logs/watchdog.cron.log 2>&1",
-        "legacy_command_contains": [
-          ["scripts/harness/report_watchdog.py", "--market hk", "--phase open"]
-        ]
+        "command": "/root/.local/bin/clawock-kcnyu-report-watchdog --market hk --phase open --job-name \"港股开盘报告\" >> /root/.openclaw/workspace/logs/watchdog.cron.log 2>&1"
       }
     },
     {
@@ -342,10 +324,7 @@
           "expr": "10,40 10-11,14-15 * * 1-5",
           "tz": "Asia/Hong_Kong"
         },
-        "command": "/root/.local/bin/clawock-kcnyu-intraday-watchdog --job-name \"盘中盯盘\" --market hk >> /root/.openclaw/workspace/logs/watchdog.cron.log 2>&1",
-        "legacy_command_contains": [
-          ["scripts/harness/intraday_watchdog.py", "--job-name \"盘中盯盘\"", "--market hk"]
-        ]
+        "command": "/root/.local/bin/clawock-kcnyu-intraday-watchdog --job-name \"盘中盯盘\" --market hk >> /root/.openclaw/workspace/logs/watchdog.cron.log 2>&1"
       }
     },
     {
@@ -375,10 +354,7 @@
           "expr": "12 12 * * 1-5",
           "tz": "Asia/Hong_Kong"
         },
-        "command": "/root/.local/bin/clawock-kcnyu-report-watchdog --market hk --phase mid --job-name \"港股午盘报告\" >> /root/.openclaw/workspace/logs/watchdog.cron.log 2>&1",
-        "legacy_command_contains": [
-          ["scripts/harness/report_watchdog.py", "--market hk", "--phase mid"]
-        ]
+        "command": "/root/.local/bin/clawock-kcnyu-report-watchdog --market hk --phase mid --job-name \"港股午盘报告\" >> /root/.openclaw/workspace/logs/watchdog.cron.log 2>&1"
       }
     },
     {
@@ -408,10 +384,7 @@
           "expr": "42 13 * * 1-5",
           "tz": "Asia/Hong_Kong"
         },
-        "command": "/root/.local/bin/clawock-kcnyu-report-watchdog --market hk --phase pm --job-name \"港股午后快报\" >> /root/.openclaw/workspace/logs/watchdog.cron.log 2>&1",
-        "legacy_command_contains": [
-          ["scripts/harness/report_watchdog.py", "--market hk", "--phase pm"]
-        ]
+        "command": "/root/.local/bin/clawock-kcnyu-report-watchdog --market hk --phase pm --job-name \"港股午后快报\" >> /root/.openclaw/workspace/logs/watchdog.cron.log 2>&1"
       }
     },
     {
@@ -441,10 +414,7 @@
           "expr": "15 16 * * 1-5",
           "tz": "Asia/Hong_Kong"
         },
-        "command": "/root/.local/bin/clawock-kcnyu-report-watchdog --market hk --phase close --job-name \"港股收盘报告\" >> /root/.openclaw/workspace/logs/watchdog.cron.log 2>&1",
-        "legacy_command_contains": [
-          ["scripts/harness/report_watchdog.py", "--market hk", "--phase close"]
-        ]
+        "command": "/root/.local/bin/clawock-kcnyu-report-watchdog --market hk --phase close --job-name \"港股收盘报告\" >> /root/.openclaw/workspace/logs/watchdog.cron.log 2>&1"
       }
     },
     {
@@ -488,10 +458,7 @@
             "tz": "Asia/Hong_Kong"
           }
         },
-        "command": "/root/.local/bin/clawock-kcnyu-report-watchdog --market us --phase open --job-name \"美股开盘报告\" >> /root/.openclaw/workspace/logs/watchdog.cron.log 2>&1",
-        "legacy_command_contains": [
-          ["scripts/harness/report_watchdog.py", "--market us", "--phase open"]
-        ]
+        "command": "/root/.local/bin/clawock-kcnyu-report-watchdog --market us --phase open --job-name \"美股开盘报告\" >> /root/.openclaw/workspace/logs/watchdog.cron.log 2>&1"
       }
     },
     {
@@ -531,10 +498,7 @@
             "tz": "Asia/Hong_Kong"
           }
         },
-        "command": "/root/.local/bin/clawock-kcnyu-intraday-watchdog --job-name \"美股盘中盯盘\" --market us >> /root/.openclaw/workspace/logs/watchdog.cron.log 2>&1",
-        "legacy_command_contains": [
-          ["scripts/harness/intraday_watchdog.py", "--job-name \"美股盘中盯盘\"", "--market us"]
-        ]
+        "command": "/root/.local/bin/clawock-kcnyu-intraday-watchdog --job-name \"美股盘中盯盘\" --market us >> /root/.openclaw/workspace/logs/watchdog.cron.log 2>&1"
       }
     }
   ]

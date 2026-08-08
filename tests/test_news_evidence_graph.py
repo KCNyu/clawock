@@ -5,7 +5,7 @@ from datetime import datetime, timedelta, timezone
 from scripts.data import gh_action_news_digest
 from scripts.data import news_evidence_graph as graph
 from scripts.data import validate_sidecars
-from scripts.harness import brief_postflight
+from clawock_kcnyu.harness import brief_postflight
 
 
 POLICY = graph.load_policy()

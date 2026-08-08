@@ -6,9 +6,6 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT / "scripts" / "harness"))
-
-import _watchdog_common as common  # noqa: E402
 from clawock.providers import openclaw as provider  # noqa: E402
 
 
@@ -111,12 +108,12 @@ def test_auto_falls_back_to_live_sqlite_before_fossil(tmp_path, monkeypatch):
     monkeypatch.setenv("CLAWOCK_OPENCLAW_HOME", str(tmp_path))
     monkeypatch.setattr(provider, "cron_cli_json", lambda _args: None)
 
-    jobs = common.load_jobs()
+    jobs = provider.read_jobs()
 
-    assert common.LAST_LOAD_SOURCE == "sqlite"
-    assert [job["name"] for job in jobs] == ["live job"]
-    assert jobs[0]["payload"]["model"] == "provider/current"
-    assert jobs[0]["state"] == {"lastRunStatus": "ok", "nextRunAtMs": 2000}
+    assert jobs.source == "sqlite"
+    assert [job["name"] for job in jobs.entries] == ["live job"]
+    assert jobs.entries[0]["payload"]["model"] == "provider/current"
+    assert jobs.entries[0]["state"] == {"lastRunStatus": "ok", "nextRunAtMs": 2000}
 
 
 def test_explicit_sqlite_run_history_is_oldest_first(tmp_path, monkeypatch):
@@ -130,10 +127,10 @@ def test_explicit_sqlite_run_history_is_oldest_first(tmp_path, monkeypatch):
         lambda _args: (_ for _ in ()).throw(AssertionError("CLI must not run")),
     )
 
-    entries = common.read_runs("job-1", source="sqlite")
+    entries = provider.read_runs("job-1", source="sqlite")
 
-    assert common.LAST_RUNS_SOURCE == "sqlite"
-    assert [entry["ts"] for entry in entries] == [100, 200]
+    assert entries.source == "sqlite"
+    assert [entry["ts"] for entry in entries.entries] == [100, 200]
 
 
 def test_fossil_source_is_marked_stale(tmp_path, monkeypatch):
@@ -143,8 +140,9 @@ def test_fossil_source_is_marked_stale(tmp_path, monkeypatch):
     jobs_json.write_text(json.dumps([{"id": "old", "name": "stale"}]))
     monkeypatch.setattr(provider, "cron_cli_json", lambda _args: None)
 
-    assert common.load_jobs() == [{"id": "old", "name": "stale"}]
-    assert common.LAST_LOAD_SOURCE == "fossil"
+    result = provider.read_jobs()
+    assert result.entries == [{"id": "old", "name": "stale"}]
+    assert result.source == "fossil"
 
 
 def test_timeline_returns_nonzero_for_fossil(monkeypatch, capsys):
