@@ -15,6 +15,13 @@ server's filesystem. Installed packages may set:
   a compatibility fallback);
 - `CLAWOCK_OPENCLAW_INSTALL_DIR` — npm/pnpm package root for operator checks.
 
+Without overrides, the adapter resolves `openclaw` from `PATH`, uses
+`~/.openclaw` as the external runtime state home, and discovers common npm/pnpm
+package layouts on a best-effort basis. A service with a deliberately narrow
+`PATH` should set an absolute `CLAWOCK_OPENCLAW_BIN`; an operator check that
+inspects the installed JavaScript should set `CLAWOCK_OPENCLAW_INSTALL_DIR` when
+its package manager layout cannot be discovered.
+
 Cron SQLite, fossil history, workspace, session and memory-index paths are
 derived from that selected home. These settings locate an external runtime;
 they do not make clawock launch a model or own an agent loop.
