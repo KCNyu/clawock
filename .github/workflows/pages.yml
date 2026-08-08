@@ -61,9 +61,17 @@ on:
 permissions:
   contents: read
 
+# One deployment at a time, but never at the cost of losing one. With
+# `cancel-in-progress: true` a burst — a merge, an intraday postflight and a
+# scheduled tick landing inside a few minutes — becomes a chain where each run
+# kills the one before it: on 2026-08-06 four consecutive deploys were cancelled,
+# including both that carried a merged fix, and the site sat 48 minutes behind
+# with every workflow green. Queuing loses nothing that matters: GitHub keeps the
+# run in progress and the latest queued one, and skips only the intermediate
+# generations, which the next tick supersedes anyway.
 concurrency:
   group: pages
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   build:

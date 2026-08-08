@@ -121,6 +121,29 @@ def test_the_reader_and_the_writer_cannot_disagree_about_the_branch():
     assert '"data-plane"' not in reader and "'data-plane'" not in reader
 
 
+def test_the_browser_reads_the_same_branch_and_files_the_publisher_writes():
+    """The browser reaches the data branch by URL, which no import can follow.
+    Both halves fail soft, which is what makes them worth pinning: a renamed
+    branch leaves the poll 404-ing and falling back to this origin, and a file
+    the publisher moved onto the branch but the browser still asks Pages for
+    goes back to being a deployment behind. Either way the site quietly stops
+    refreshing and every gate stays green."""
+    import sys
+
+    sys.path.insert(0, str(ROOT / "scripts/data"))
+    from publish_data_branch import DATA_BRANCH, DATA_PLANE_FILES
+
+    origin = re.search(r'DATA_PLANE_ORIGIN\s*=\s*"([^"]+)"', UI).group(1)
+    assert origin.endswith(f"/{DATA_BRANCH}/"), (
+        f"the browser polls {origin}, the publisher writes {DATA_BRANCH}")
+
+    block = UI.split("const DATA_PLANE_FILES = new Set([", 1)[1].split("]);", 1)[0]
+    browser = set(re.findall(r'"([^"]+)"', block))
+    published = {Path(name).stem for name in DATA_PLANE_FILES}
+    assert browser == published, (
+        f"browser reads {sorted(browser)}, publisher writes {sorted(published)}")
+
+
 def test_builder_stages_only_public_consumers(tmp_path):
     site = tmp_path / "_site"
     output = tmp_path / "_pages"
