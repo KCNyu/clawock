@@ -56,6 +56,7 @@ from clawock.validation import (  # noqa: E402
     validate_forbidden_phrases,
 )
 from _harness_common import (  # noqa: E402
+    dashboard_publication_state,
     git_cmd,
     push_with_rebase_retry,
     rebuild_dashboard,
@@ -277,8 +278,7 @@ def publish_data_plane(market):
     """Publish deterministic dashboard outputs, independent of prose quality."""
     try:
         ok, _ = rebuild_dashboard()
-        if not ok:
-            return 'rebuild_failed', False
+        publication_state = dashboard_publication_state(WS)
         # No dashboard outputs here: #314 untracked them, and `git add` on a
         # gitignored path fails rather than skipping, which would abort the
         # snapshot commit too.
@@ -292,7 +292,7 @@ def publish_data_plane(market):
         # git diff --cached --quiet returns 0 when there is NO diff
         clean, _ = git_cmd('diff', '--cached', '--quiet', '--', *paths)
         if clean:
-            return 'current', False
+            return ('current', False) if ok else (publication_state, False)
         msg = (
             f"dashboard: intraday refresh "
             f"({market} {datetime.now().strftime('%H:%M HKT')})"
@@ -301,7 +301,12 @@ def publish_data_plane(market):
         if not committed:
             return 'commit_failed', False
         pushed, _ = push_with_rebase_retry()
-        return ('published', True) if pushed else ('committed_local', False)
+        if not pushed:
+            return 'committed_local', False
+        # The status file must reach master even when the data-plane push failed;
+        # otherwise the off-host health check keeps reading the previous green
+        # record. Report the actual public outcome after that diagnostic commit.
+        return ('published', True) if ok else (publication_state, False)
     except Exception as exc:
         print(f'warn: dashboard auto-publish failed: {exc}', file=sys.stderr)
         return 'publish_failed', False
@@ -490,7 +495,13 @@ def main(argv=None):
         'insights_sidecar': insights_written,
     }
     heartbeat = ctx.get('heartbeat') or {}
-    heartbeat_state = 'completed' if data_plane_ready else 'postflight_failed'
+    publication_ok = data_plane_status in {'published', 'current'}
+    if data_plane_ready and publication_ok:
+        heartbeat_state = 'completed'
+    elif data_plane_ready:
+        heartbeat_state = 'publish_failed'
+    else:
+        heartbeat_state = 'postflight_failed'
     cron_heartbeat.record(
         args.market,
         heartbeat_state,
@@ -505,6 +516,8 @@ def main(argv=None):
         'state': heartbeat_state,
     }
     print(json.dumps(result, ensure_ascii=False, indent=2))
+    if not publication_ok:
+        return 2
     return 0 if status == 'pass' else (1 if status == 'warn' else 2)
 
 
