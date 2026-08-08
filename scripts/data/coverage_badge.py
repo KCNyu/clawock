@@ -54,7 +54,7 @@ CORE_MODULES = (
     'scripts/data/portfolio_risk_metrics.py',
     'scripts/data/intraday_delta_gate.py',
     'scripts/data/workflow_outcomes.py',
-    'scripts/data/safe_io.py',
+    'src/clawock/safe_io.py',
     'scripts/data/trading_calendar.py',
 )
 

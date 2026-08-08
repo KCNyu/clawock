@@ -60,7 +60,7 @@ HORIZON = 1  # T+1：按「下一个有该标的留痕的交易日」结算
 
 sys.path.insert(0, str(_CHECKOUT / 'scripts' / 'data'))
 try:
-    from safe_io import safe_write_json
+    from clawock.safe_io import safe_write_json
 except Exception:
     def safe_write_json(path, data, indent=2):
         Path(path).write_text(json.dumps(data, ensure_ascii=False, indent=indent))

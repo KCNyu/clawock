@@ -63,7 +63,7 @@ from clawock.instrument_registry import require as require_instrument  # noqa: E
 import trading_calendar  # noqa: E402
 
 try:
-    from safe_io import safe_write_json  # type: ignore
+    from clawock.safe_io import safe_write_json
 except Exception:
     def safe_write_json(path, data, indent=2):
         Path(path).write_text(json.dumps(data, ensure_ascii=False, indent=indent))

@@ -26,7 +26,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 _CHECKOUT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(_CHECKOUT))
 sys.path.insert(0, str(_CHECKOUT / "src"))
-import bar_checks  # noqa: E402  shared "is this bar believable" contract
+from clawock import bar_checks  # noqa: E402  shared contract
 from _em_http import em_get  # noqa: E402
 from clawock.instrument_registry import INSTRUMENTS  # noqa: E402
 
@@ -488,7 +488,7 @@ def update_hk_portfolio(dry_run: bool = False) -> Dict:
     if dry_run:
         print("  [dry-run] Not written.\n")
     else:
-        from safe_io import mutate_json
+        from clawock.safe_io import mutate_json
         from recompute_realized import recompute as recompute_realized
         recompute_realized(data)
         # 锁内重读、只覆盖自己拥有的 hk_stocks 区 + 顶层 last_updated 戳，保住并发

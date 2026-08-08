@@ -409,8 +409,8 @@ def push_with_rebase_retry(remote='origin', branch='master', attempts=3):
 def safe_write_text(path, text):
     """Re-export safe_io.safe_write_text for harness scripts.
 
-    Avoids importing scripts/data/safe_io.py path-juggling in each postflight.
+    Keeps each postflight on the package-owned atomic-write implementation.
     """
     sys.path.insert(0, str(_CHECKOUT / 'scripts' / 'data'))
-    from safe_io import safe_write_text as _swt  # type: ignore
+    from clawock.safe_io import safe_write_text as _swt
     _swt(str(path), text)

@@ -16,7 +16,7 @@ import pytest
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts" / "data"))
 
-import safe_io  # noqa: E402
+from clawock import safe_io  # noqa: E402
 
 
 @pytest.mark.parametrize("bad", [float("nan"), float("inf"), float("-inf")])

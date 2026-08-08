@@ -43,7 +43,7 @@ TIMEOUT = 12
 sys.path.insert(0, str(_CHECKOUT / 'scripts' / 'data'))
 from _em_http import em_get  # noqa: E402  统一请求节流出口
 try:
-    from safe_io import safe_write_json
+    from clawock.safe_io import safe_write_json
 except Exception:
     def safe_write_json(path, data, indent=2):
         Path(path).write_text(json.dumps(data, ensure_ascii=False, indent=indent))

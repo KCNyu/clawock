@@ -25,13 +25,13 @@ from pathlib import Path
 # below. It only ever ran when something else had already put scripts/data on
 # the path.
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'data'))
-from safe_io import safe_write_json
-from snapshot_realized import realized_as_of, snapshot_shares
 # The checkout root, so `clawock` resolves from the tree this file ships
 # in. Reached through the scripts/data/workspace shim until #267 step 3,
 # whose only remaining job was inserting this path as a side effect.
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
+from clawock.safe_io import safe_write_json  # noqa: E402
+from snapshot_realized import realized_as_of, snapshot_shares  # noqa: E402
 from clawock.workspace import workspace_root  # noqa: E402
 
 # The workspace this file sits in, not the operator's. As an absolute live path

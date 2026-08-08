@@ -24,7 +24,6 @@ from zoneinfo import ZoneInfo
 
 import dashboard_outputs
 import decision_v2
-import json_repair
 
 # Strict YYYY-MM-DD.json — rejects baselines/backups/archives that share the
 # snapshots dir (e.g. 2026-05-16-saturday-baseline.json caused duplicate 5-16
@@ -43,6 +42,7 @@ sys.path.insert(0, str(CHECKOUT_ROOT / "src"))
 sys.path.insert(0, str(CHECKOUT_ROOT / "instances" / "kcnyu" / "src"))
 from clawock.workspace import workspace_root  # noqa: E402
 from clawock import instrument_registry  # noqa: E402
+from clawock import json_repair  # noqa: E402
 
 WS_ROOT = workspace_root(Path(__file__).resolve().parent.parent.parent)
 OUT_DIR = WS_ROOT / 'assets' / 'data'

@@ -15,8 +15,12 @@ import json
 import os
 import sys
 from datetime import datetime, timezone
+from pathlib import Path
 
 import requests
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
 
 WS_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 OUT_FILE = os.path.join(WS_ROOT, 'assets', 'data', 'macro.json')
@@ -219,7 +223,7 @@ def main():
 
     # Atomic write
     sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-    from safe_io import safe_write_json
+    from clawock.safe_io import safe_write_json
     os.makedirs(os.path.dirname(OUT_FILE), exist_ok=True)
     safe_write_json(OUT_FILE, out)
 

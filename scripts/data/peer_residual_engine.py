@@ -47,7 +47,7 @@ from cross_sectional_factor import (  # noqa: E402
     clustered_mean_ci,
     fetch_universe,
 )
-from safe_io import safe_write_json, safe_write_text  # noqa: E402
+from clawock.safe_io import safe_write_json, safe_write_text  # noqa: E402
 
 
 def load_rule_config(path=RULE_CONFIG):

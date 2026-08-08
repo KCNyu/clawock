@@ -57,7 +57,7 @@ RAW_FACTORS = (
 QUALITY_METHOD_VERSION = 2
 
 sys.path.insert(0, str(_CHECKOUT / 'scripts' / 'data'))
-from safe_io import safe_write_json, safe_write_text  # noqa: E402
+from clawock.safe_io import safe_write_json, safe_write_text  # noqa: E402
 
 
 def load_config(path=CONFIG):
