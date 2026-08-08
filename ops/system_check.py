@@ -9,7 +9,7 @@ Used by:
   • .githooks/pre-push        (blocks bad pushes from this clone)
   • harness postflight        (calls before git commit/push)
   • CI weekly-health.yml      (full check)
-  • Manual: `python3 scripts/system_check.py`
+  • Manual: `python3 ops/system_check.py`
 """
 import glob
 import json
@@ -292,7 +292,7 @@ SECRET_PATTERNS_STRICT = (
 # is not in the repo, so git grep cannot see it anyway — it is deliberately NOT
 # excluded here: an exclusion would only ever take effect on the one day someone
 # accidentally commits that file, which is precisely the day it must be caught.
-_SCAN_EXCLUDES = [':!.gitignore', ':!.githooks/*', ':!scripts/system_check.py']
+_SCAN_EXCLUDES = [':!.gitignore', ':!.githooks/*', ':!ops/system_check.py']
 
 
 def _grep_tracked(pattern, extra_excludes=(), rev=None):

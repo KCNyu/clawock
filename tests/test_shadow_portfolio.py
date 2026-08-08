@@ -537,8 +537,8 @@ def test_expected_sessions_disclose_missing_marks_and_emit_curve_gaps():
 
 
 def test_shadow_frontend_fails_closed_and_discloses_mark_gaps():
-    html = (ROOT / "index.html").read_text(encoding="utf-8") + "".join(
-        (ROOT / "assets" / "js" / name).read_text(encoding="utf-8")
+    html = (ROOT / "site/index.html").read_text(encoding="utf-8") + "".join(
+        (ROOT / "site" / "assets" / "js" / name).read_text(encoding="utf-8")
         for name in (
             "dashboard.core.js",
             "dashboard.charts.js",

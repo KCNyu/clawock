@@ -1,6 +1,6 @@
 <div align="center">
 
-<h1><img src="assets/logo-lockup.svg" alt="clawock" height="48"></h1>
+<h1><img src="site/assets/logo-lockup.svg" alt="clawock" height="48"></h1>
 
 ### AI argues. Code settles. The losses stay on the page.
 
@@ -17,12 +17,12 @@ Install the decision intelligence behind this live Hong Kong + US desk into any 
 <br>
 
 <a href="https://kcnyu.github.io/clawock/">
-  <img src="assets/social-card.png" alt="clawock — portable investment decision workflows for any external AI agent, proven on a live HK and US desk" width="820">
+  <img src="site/assets/social-card.png" alt="clawock — portable investment decision workflows for any external AI agent, proven on a live HK and US desk" width="820">
 </a>
 
 <sub><i>“The market doesn't care how confident the model was.”</i></sub>
 
-<a href="https://kcnyu.github.io/clawock/"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/assets/dashboard.gif" alt="clawock dashboard cycling through its tabs" width="300"></a>
+<a href="https://kcnyu.github.io/clawock/"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/dashboard.gif" alt="clawock dashboard cycling through its tabs" width="300"></a>
 
 <sub>Real positions, real P&amp;L, graded in the open. Previews refresh weekly; the live dashboard updates through the trading day.</sub>
 
@@ -64,12 +64,12 @@ A multi-agent desk monitors a real brokerage account with separate Hong Kong and
 The product boundary is simple: the external agent reads and reasons; clawock
 owns the portable decision workflow and the deterministic truth around it.
 
-![clawock product architecture — external runtimes own models, conversation, memory and tools while the package supplies portable workflows, certified context, deterministic reconciliation, evaluation and bounded improvement](assets/product-architecture.svg)
+![clawock product architecture — external runtimes own models, conversation, memory and tools while the package supplies portable workflows, certified context, deterministic reconciliation, evaluation and bounded improvement](site/assets/product-architecture.svg)
 
 The KCNyu deployment then applies that product boundary to one live portfolio.
 This second diagram is the instance architecture, not the reusable package.
 
-![KCNyu live-instance architecture — Python builds reconciled market context, OpenClaw agents debate the trade, clawock contracts gate the decision, and a public scorecard closes the loop](assets/architecture.svg)
+![KCNyu live-instance architecture — Python builds reconciled market context, OpenClaw agents debate the trade, clawock contracts gate the decision, and a public scorecard closes the loop](site/assets/architecture.svg)
 
 Every trading day the system pulls fresh prices, FX, volatility, earnings and macro context plus news and social sentiment; hands that normalized context to a multi-agent debate; applies deterministic risk, schema, and ledger gates in Python; delivers a brief to WeChat; and updates the public dashboard.
 
@@ -127,7 +127,7 @@ Analysis resolves into explicit, gated strategy decisions — and one stock can 
 
 The daily deep brief runs a structured **multi-agent debate**, adapted from [TradingAgents](https://github.com/TauricResearch/TradingAgents) for separate Hong Kong and US books. More agents isn't the point: the protocol **demands an opposing case**, and the Judge **attributes each resolution** to a named strategy frame.
 
-![clawock's multi-agent debate — one evidence pack feeds four analyst lenses; two researchers argue opposing bull and bear cases and record where they disagree; three risk voices and a judge name the strategy frame and resolve it into plan.json, which enters the next session's grading loop](assets/debate-flow.svg)
+![clawock's multi-agent debate — one evidence pack feeds four analyst lenses; two researchers argue opposing bull and bear cases and record where they disagree; three risk voices and a judge name the strategy frame and resolve it into plan.json, which enters the next session's grading loop](site/assets/debate-flow.svg)
 
 - **Analyst lenses.** Fundamental, technical, sentiment, and sector-rotation agents read the *same* context and merge into one table. Every claim must cite numeric context.
 - **Bull vs Bear.** Two researchers build opposing cases, each citing concrete analyst data points. The protocol asks them to **genuinely disagree on at least one position** and to record it, so unanimous agreement reads as a flag rather than evidence.
@@ -144,7 +144,7 @@ Every call is settled mechanically and published — wins, losses, and the cases
 
 The model submits decisions; it can never write or amend its own evaluation. That isolation stops the desk from grading itself — it does **not** make the market data or the metric definitions correct. **Treat the record as a diagnostic, not as proof of return.**
 
-<p align="center"><img src="assets/shadow-backtest.png" alt="cumulative episode win rate against a 50% directional-hit line" width="760"></p>
+<p align="center"><img src="site/assets/shadow-backtest.png" alt="cumulative episode win rate against a 50% directional-hit line" width="760"></p>
 
 <sub>Cumulative episode win rate against a 50% directional-hit line — how often the direction was right, not what it earned. The buy-and-hold comparison is the shadow portfolio (in the details below and on Reflect); this is a different question. Refreshed weekly by GitHub Actions; live figures live on the <a href="https://kcnyu.github.io/clawock/">Reflect tab</a>.</sub>
 
@@ -296,28 +296,16 @@ stored here.
 
 <br>
 
-```
-clawock/
-├─ index.html  briefs.md                    ← Pages landing
-├─ docs/                                      ← operations · reference · legal · archive
-├─ assets/data/        built by harness + GH Actions, never hand-edited
-│   ├─ dashboard.json  risk.json  catalysts.json
-│   ├─ macro.json  sentiment.json  *_news*.json  influencer_feed.json  ← scan sidecars, fetched straight by the frontend
-│   └─ *_review.json  guardrail_history.jsonl                          ← factor / setup scorecards + what the caps flagged
-├─ portfolio.json                           ← single source of truth (atomic writes)
-├─ tests/                                    ← decision-v2 + money-conservation regression gates
-├─ src/clawock/                              ← portable harness contracts · context · CLI · providers
-├─ MEMORY.md  DREAMS.md                      ← iron rules + nightly "dreaming" promotion
-├─ memory/
-│   ├─ {date}-pre-open.md  {date}-plan.json  ← brief output + structured plan
-│   ├─ decisions.jsonl                       ← authoritative decision/episode ledger
-│   ├─ bars/{ticker}.json                    ← canonical unadjusted OHLC — what settles triggers
-│   └─ snapshots/{date}.json
-├─ scripts/
-│   ├─ data/      fetchers · build_dashboard.py · risk/quant/regime compute · safe_push.sh
-│   └─ harness/   live kcn instance adapter · watchdogs
-└─ skills/{name}/SKILL.md
-```
+| Path | Owner |
+|---|---|
+| `src/clawock/` | Portable package, workflow contracts, schemas and CLI |
+| `instances/kcnyu/` | KCNyu-only adapter phases and watchdog implementation |
+| `site/` | Jekyll/dashboard source, browser code, SVGs, screenshots and social assets |
+| `ops/` | Pages assembly, host launchers, OpenClaw patching and system audit |
+| `docs/`, `tests/` | Product/runbook documentation and invariant checks |
+| root context files, `skills/`, `memory/` | OpenClaw compatibility surface; kept at runtime-required paths |
+| `portfolio.json`, `assets/data/` | Live ledger and generated publication state; never package contents |
+| `scripts/data/`, `scripts/harness/` | Remaining migration surface: instance jobs plus temporary rollback aliases, not portable APIs |
 
 </details>
 

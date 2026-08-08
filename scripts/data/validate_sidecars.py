@@ -557,8 +557,8 @@ def validate_weekly_review(
 
 
 DEFAULT_SCREENSHOTS = (
-    ('assets/shadow-backtest.png', 20_000, 400, 200),
-    ('assets/social-card.png', 150_000, 1_000, 500),
+    ('site/assets/shadow-backtest.png', 20_000, 400, 200),
+    ('site/assets/social-card.png', 150_000, 1_000, 500),
 )
 
 
@@ -602,7 +602,7 @@ def _decoded_png_size(path, label):
         raise AssertionError(f'{label}: PNG does not decode ({type(e).__name__}: {e})') from None
 
 
-def validate_gif(path: Path | str = 'assets/dashboard.gif') -> None:
+def validate_gif(path: Path | str = 'site/assets/dashboard.gif') -> None:
     GIF_MAGICS = (b'GIF89a', b'GIF87a')
     MIN_GIF_SIZE = 300_000
     path = Path(path)
@@ -1015,7 +1015,7 @@ def _dispatch(name: str) -> None:
             for filename, min_size, min_width, min_height in DEFAULT_SCREENSHOTS
         ))
     elif name == 'gif':
-        validate_gif('assets/dashboard.gif')
+        validate_gif('site/assets/dashboard.gif')
     elif name == 'dashboard':
         validate_dashboard(
             'assets/data/dashboard.json',
@@ -1050,7 +1050,7 @@ def main(argv: list[str] | None = None) -> int:
             'eod-archive': 'EOD archive memory/archive/eod-history.csv',
             'weekly-review': 'weekly review',
             'screenshots': 'screenshots',
-            'gif': 'GIF assets/dashboard.gif',
+            'gif': 'GIF site/assets/dashboard.gif',
             'dashboard': 'dashboard payload assets/data/dashboard.json',
             'coverage': 'coverage badge assets/data/coverage.json',
         }

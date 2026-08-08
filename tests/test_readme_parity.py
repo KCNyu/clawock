@@ -53,7 +53,7 @@ def _details(md):
 
 
 def _assets(md):
-    return sorted(set(re.findall(r"assets/[\w./-]+\.(?:svg|png|gif)", md)))
+    return sorted(set(re.findall(r"(?:site/)?assets/[\w./-]+\.(?:svg|png|gif)", md)))
 
 
 def test_section_count_matches():

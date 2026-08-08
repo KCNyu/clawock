@@ -6,7 +6,7 @@ import subprocess
 
 ROOT = Path(__file__).resolve().parents[1]
 SKILL = ROOT / "skills" / "openclaw-upgrade" / "SKILL.md"
-WRAPPER = ROOT / "scripts" / "ops" / "reapply_openclaw_patches.sh"
+WRAPPER = ROOT / "ops" / "host" / "reapply_openclaw_patches.sh"
 
 PATCH_SCRIPTS = (
     "/root/tools/openclaw/current/patch-embedding-threads1.sh",
@@ -26,12 +26,12 @@ PATCH_MARKERS = (
 def test_upgrade_skill_patches_after_update_and_before_restart():
     text = SKILL.read_text()
     update_at = text.index("openclaw update --tag <version> --no-restart --yes")
-    patch_at = text.index("bash scripts/ops/reapply_openclaw_patches.sh")
+    patch_at = text.index("bash ops/host/reapply_openclaw_patches.sh")
     restart_at = text.index("openclaw gateway restart")
 
     assert update_at < patch_at < restart_at
     assert "runningAtMs != null" in text
-    assert text.count("scripts/ops/reapply_openclaw_patches.sh") >= 3
+    assert text.count("ops/host/reapply_openclaw_patches.sh") >= 3
     for patch_script in PATCH_SCRIPTS:
         assert patch_script in text
 

@@ -15,8 +15,8 @@ def _png_size(path: Path) -> tuple[int, int]:
 
 
 def test_vector_brand_sources_are_valid_and_keep_the_canonical_geometry():
-    mark = ROOT / "assets/logo-mark.svg"
-    app = ROOT / "assets/icons/app-icon.svg"
+    mark = ROOT / "site/assets/logo-mark.svg"
+    app = ROOT / "site/assets/icons/app-icon.svg"
     mark_root = ET.parse(mark).getroot()
     app_root = ET.parse(app).getroot()
 
@@ -30,7 +30,7 @@ def test_vector_brand_sources_are_valid_and_keep_the_canonical_geometry():
 
 
 def test_mono_lockup_keeps_the_canonical_geometry_and_inherits_color():
-    mono = ROOT / "assets/logo-mark-mono.svg"
+    mono = ROOT / "site/assets/logo-mark-mono.svg"
     root = ET.parse(mono).getroot()
     source = mono.read_text()
     assert root.attrib["viewBox"] == "0 0 64 64"
@@ -42,7 +42,7 @@ def test_mono_lockup_keeps_the_canonical_geometry_and_inherits_color():
 
 
 def test_wordmark_lockup_keeps_the_canonical_geometry_and_carries_the_name():
-    lockup = ROOT / "assets/logo-lockup.svg"
+    lockup = ROOT / "site/assets/logo-lockup.svg"
     root = ET.parse(lockup).getroot()
     source = lockup.read_text()
     # Wide mark+wordmark lockup for the README header: same saddle geometry and
@@ -65,12 +65,12 @@ def test_raster_derivatives_have_exact_declared_sizes():
         "icon-maskable-512.png": (512, 512),
     }
     for filename, size in expected.items():
-        assert _png_size(ROOT / "assets/icons" / filename) == size
+        assert _png_size(ROOT / "site/assets/icons" / filename) == size
 
 
 def test_all_public_shells_use_the_vector_mark():
-    index = (ROOT / "index.html").read_text()
-    layout = (ROOT / "_layouts/default.html").read_text()
+    index = (ROOT / "site/index.html").read_text()
+    layout = (ROOT / "site/_layouts/default.html").read_text()
     readmes = (ROOT / "README.md").read_text() + (ROOT / "README.zh.md").read_text()
 
     # Header wordmark uses the adaptive two-tone mark; the SVG favicon uses the
@@ -80,4 +80,4 @@ def test_all_public_shells_use_the_vector_mark():
     assert 'class="brand-mark" src="assets/logo-mark.svg"' in index
     assert "/assets/logo-mark.svg" in layout
     assert "/assets/icons/app-icon.svg" in layout
-    assert readmes.count('src="assets/logo-lockup.svg"') == 2
+    assert readmes.count('src="site/assets/logo-lockup.svg"') == 2

@@ -12,7 +12,7 @@ heavy enters an intraday path.
 
 | Question | Cadence | Where it runs | Cost |
 |---|---|---|---|
-| Are the thesis, earnings and entry-gate artifacts still valid? | every push, every PR | `scripts/system_check.py` (pre-push) · `validate` job (`research_surface.py --check`) | local file reads |
+| Are the thesis, earnings and entry-gate artifacts still valid? | every push, every PR | `ops/system_check.py` (pre-push) · `validate` job (`research_surface.py --check`) | local file reads |
 | What is each holding's thesis state and next review trigger? | daily | `brief_preflight.py` → `context.thesis_registry` | local file reads |
 | Is an earnings review due, a promise overdue, a position ungated? | daily | `brief_preflight.py` → `context.research_surface` | local file reads |
 | Should this thesis change? | on new evidence | `thesis_registry.py drift` after an earnings artifact or a red-line event | one agent turn |

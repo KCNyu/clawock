@@ -40,7 +40,7 @@ Entry pointer for Claude Code in kcn's investment workspace. Same workflow as `A
 | Pages dashboard input | `assets/data/dashboard.json` (built by `scripts/data/build_dashboard.py`) |
 | Risk metrics snapshot | `assets/data/risk.json` (built by `scripts/data/portfolio_risk_metrics.py`, refreshed daily via brief preflight) |
 | Decision execution marking | `memory/decisions.jsonl` `execution.status`; manual override via `scripts/data/mark_followed.py DECISION_ID [--no]` |
-| Pages landing | `index.html` (dashboard) + `briefs.md` (daily briefs index) |
+| Pages source | `site/index.html` (dashboard) + `site/briefs.md` (daily briefs index) |
 
 ## Cron run loop (what openclaw fires)
 

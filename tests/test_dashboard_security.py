@@ -5,7 +5,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def test_sort_headers_never_reinterpret_dom_text_as_html():
-    renderer = (ROOT / "assets" / "js" / "dashboard.render.js").read_text()
+    renderer = (ROOT / "site" / "assets" / "js" / "dashboard.render.js").read_text()
     sort_headers = renderer.split("// Wire sort headers", 1)[1].split(
         "function renderShadowPortfolioCard", 1
     )[0]

@@ -9,7 +9,7 @@
 - 数据脚本（被 harness / 手动调用）：`scripts/data/`
 - Harness 入口（cron 调起）：安装后的 `clawock brief|report|intraday`；KCNyu 实现在独立 adapter `instances/kcnyu/`
 - 历史/参考脚本：`scripts/legacy/`
-- Dashboard 入口：`index.html` (落到 `kcnyu.github.io/clawock`)；`scripts/data/build_dashboard.py` 一次生成 `dashboard.json` + `decision_audit.json` + `shadow_portfolio.json`
+- Dashboard 源入口：`site/index.html`（Pages 发布后仍是 `kcnyu.github.io/clawock/`）；`scripts/data/build_dashboard.py` 一次生成 `dashboard.json` + `decision_audit.json` + `shadow_portfolio.json`
 - 快速查看：`check_portfolio.sh`
 
 ## 公共发布层（仓库 = `github.com/KCNyu/clawock`）
@@ -17,7 +17,7 @@
 - Repo 是 **public**，含真实仓位（用户已知情授权）
 - Dashboard live: https://kcnyu.github.io/clawock/ — 自动从 `assets/data/dashboard.json` 取数
 - Briefs index: https://kcnyu.github.io/clawock/briefs.html — 自动列 `memory/*-pre-open.md`
-- `_layouts/default.html` 给 markdown 页面统一样式（briefs.md 等）；dashboard 自身（`index.html`）CSS/JS 全 inline，不依赖 `assets/dashboard.{css,js}`（v2 重构已删）
+- `site/_layouts/default.html` 给 markdown 页面统一样式（`site/briefs.md` 等）；dashboard 自身由 `site/index.html` + `site/assets/{css,js}` 构成
 - Pages 自动 build on push
 
 ### GitHub Actions 分工
@@ -36,7 +36,7 @@
 | `news-digest.yml` | 工作日 13:00 UTC (21:00 HKT) | `assets/data/us_news_digest.json` | 美股开盘前 48h 新闻提炼 |
 | `influencer-scan.yml` | 周日–四 21:40 + 工作日 12:50 UTC | `assets/data/influencer_feed.json` | 盘前 + 美股盘前两班影响力雷达 |
 | `cron-health.yml` | 工作日 09:00 UTC (17:00 HKT) | (read-only) | 用 tracked cron contract + HKT commit date 巡检漏跑 |
-| `screenshot-refresh.yml` | 周日 22:00 UTC | `assets/social-card.png` + `assets/shadow-backtest.png` | 每周刷新社交卡里的 Hero 截图和实时战绩图；`assets/dashboard.gif` 只在手动 dispatch 时生成 |
+| `screenshot-refresh.yml` | 周日 22:00 UTC | `site/assets/social-card.png` + `site/assets/shadow-backtest.png` | 每周刷新社交卡里的 Hero 截图和实时战绩图；`site/assets/dashboard.gif` 只在手动 dispatch 时生成 |
 
 **远端 LLM 路径**: 本地市场 cron 与远端 `xiaomi_llm.chat()` 都以 MiniMax M3 为主；远端在可选 `XIAOMI_API_KEY` 仍有效时可 fallback 到 MiMo v2.5-pro。4 个 LLM workflow（news-digest / weekly-review / brief-fallback / influencer-scan）均只从 repo secrets 读 key，仓库不落 key。
 

@@ -27,8 +27,11 @@ function serveWorkspace() {
   return http.createServer((request, response) => {
     const urlPath = decodeURIComponent(new URL(request.url, "http://localhost").pathname);
     const relative = urlPath === "/" ? "index.html" : urlPath.replace(/^\/+/, "");
-    const filename = path.resolve(ROOT, relative);
-    if (!filename.startsWith(ROOT + path.sep) || !fs.existsSync(filename) || fs.statSync(filename).isDirectory()) {
+    const sourceRoot = relative.startsWith("assets/data/")
+      ? ROOT
+      : path.resolve(ROOT, "site");
+    const filename = path.resolve(sourceRoot, relative);
+    if (!filename.startsWith(sourceRoot + path.sep) || !fs.existsSync(filename) || fs.statSync(filename).isDirectory()) {
       response.writeHead(404).end("not found");
       return;
     }

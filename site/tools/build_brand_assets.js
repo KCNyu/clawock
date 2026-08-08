@@ -2,16 +2,16 @@
 /**
  * Render the canonical vector app icon into the PNG sizes consumed by the site.
  *
- *   CHROME_EXE=/snap/bin/chromium node scripts/data/build_brand_assets.js
+ *   CHROME_EXE=/snap/bin/chromium node site/tools/build_brand_assets.js
  *
- * The source of truth stays assets/icons/app-icon.svg. Do not hand-edit the PNGs.
+ * The source of truth stays site/assets/icons/app-icon.svg. Do not hand-edit the PNGs.
  */
 const { chromium } = require('playwright');
 const fs = require('fs');
 const path = require('path');
 
 const ROOT = path.resolve(__dirname, '../..');
-const SOURCE = path.join(ROOT, 'assets/icons/app-icon.svg');
+const SOURCE = path.join(ROOT, 'site/assets/icons/app-icon.svg');
 const CHROME_EXE = process.env.CHROME_EXE || undefined;
 const outputs = [
   ['favicon-64.png', 64],
@@ -37,7 +37,7 @@ const outputs = [
         `<style>*{box-sizing:border-box}html,body{margin:0;width:${size}px;height:${size}px;overflow:hidden}svg{display:block;width:${size}px;height:${size}px}</style>${svg}`,
       );
       await page.screenshot({
-        path: path.join(ROOT, 'assets/icons', name),
+        path: path.join(ROOT, 'site/assets/icons', name),
         omitBackground: true,
       });
       await context.close();

@@ -3,8 +3,8 @@ import sys
 
 
 ROOT = Path(__file__).resolve().parents[1]
-HTML = (ROOT / "index.html").read_text() + "".join(
-    (ROOT / "assets" / "js" / name).read_text()
+HTML = (ROOT / "site/index.html").read_text() + "".join(
+    (ROOT / "site" / "assets" / "js" / name).read_text()
     for name in (
         "dashboard.core.js",
         "dashboard.charts.js",

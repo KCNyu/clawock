@@ -80,7 +80,7 @@ def test_the_overview_projection_ships_every_execution_field_the_hero_renders(
     projected = build_dashboard.compile_overview_projection(full)
     shipped = ((projected.get("decision_metrics") or {})
                .get("execution_by_kind") or {}).get("active") or {}
-    hero = (ROOT / "assets" / "js" / "dashboard.hero.js").read_text()
+    hero = (ROOT / "site" / "assets" / "js" / "dashboard.hero.js").read_text()
     rendered = set(re.findall(r"activeExec\.(\w+)", hero))
 
     assert rendered, "the Hero stopped reading the execution leg; update this test"
@@ -110,7 +110,7 @@ def test_the_cap_is_measured_in_the_same_unit_the_builder_enforces(
     assert _published_size() > characters
     assert _published_size() == len(DASHBOARD.read_bytes())
 
-    check = (ROOT / "scripts" / "system_check.py").read_text()
+    check = (ROOT / "ops" / "system_check.py").read_text()
     assert "out.stat().st_size" in check, "system_check must stay on bytes too"
 
 
@@ -273,7 +273,7 @@ def test_dropped_blocks_are_still_reachable_elsewhere(payload):
 
 def test_what_the_charts_actually_read_is_still_present(payload):
     """Guards against over-trimming across the main payload/sidecar boundary."""
-    js = "".join((ROOT / "assets" / "js" / name).read_text() for name in RENDERERS)
+    js = "".join((ROOT / "site" / "assets" / "js" / name).read_text() for name in RENDERERS)
     assert 'safe(DATA, "decision_audit", "episode_backtest")' in js
     assert 'safe(DATA, "episode_backtest")' in js  # rollout fallback
     # The tracked artifact may still be from the pre-migration cron build on a

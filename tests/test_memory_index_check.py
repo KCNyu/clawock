@@ -1,4 +1,4 @@
-"""Guards for the memory-index assertion in scripts/system_check.py.
+"""Guards for the memory-index assertion in ops/system_check.py.
 
 The index fell 23 files behind for five days in July 2026 and nothing reported
 it: every dreaming note since 07-23 and both weekly reviews were invisible to
@@ -27,7 +27,7 @@ from pathlib import Path
 import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
-SCRIPTS = str(ROOT / "scripts")
+SCRIPTS = str(ROOT / "ops")
 
 
 @pytest.fixture(scope="module")
@@ -201,7 +201,7 @@ def test_check_can_never_block_a_push(sc, box):
 
 def test_check_is_registered_in_main(sc):
     """A check nobody runs is the failure mode this issue was about."""
-    source = (ROOT / "scripts" / "system_check.py").read_text()
+    source = (ROOT / "ops" / "system_check.py").read_text()
     # `self.checks = []` appears earlier in the Result class, so anchor on the
     # registration list itself.
     body = source.split("\n    checks = [", 1)[1].split("]", 1)[0]
