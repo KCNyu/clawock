@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Evidence a backtest actually ran, and against what.
 
 Why this exists
@@ -43,23 +42,15 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
-import os
 import subprocess
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from clawock.safe_io import safe_write_json
+from clawock.workspace import workspace_root
 
-# The checkout root, so `clawock` resolves from the tree this file ships
-# in. Reached through the scripts/data/workspace shim until #267 step 3,
-# whose only remaining job was inserting this path as a side effect.
-sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
-sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
-from clawock.safe_io import safe_write_json  # noqa: E402
-from clawock.workspace import workspace_root  # noqa: E402
-
-WS = workspace_root(Path(__file__).resolve().parents[2])
+WS = workspace_root(Path.cwd())
 CARDS_DIR = WS / 'memory' / 'backtests'
 SCHEMA_VERSION = 1
 
@@ -173,11 +164,11 @@ def load_cards(cards_dir: Path | None = None) -> list[dict]:
     return out
 
 
-def main() -> int:
+def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument('--list', action='store_true', help='list stored run cards')
     ap.add_argument('--run-id', help='print one card')
-    args = ap.parse_args()
+    args = ap.parse_args(argv)
 
     cards = load_cards()
     if args.run_id:

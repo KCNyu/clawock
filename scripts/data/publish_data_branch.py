@@ -42,7 +42,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
 
 from clawock.publish import GitBranchStore, GitHubDispatchDeployer  # noqa: E402
-from dashboard_outputs import DASHBOARD_OUTPUTS  # noqa: E402
+from clawock.dashboard_outputs import output_paths  # noqa: E402
 
 # The one place this name is decided. The reader imports it from here rather
 # than restating it (`ops/pages/fetch_data_plane.py`), because a rename that
@@ -58,7 +58,7 @@ DATA_PLANE_EXTRA = (
     "assets/data/cron-heartbeats.json",
     "assets/data/workflow-outcomes.json",
 )
-DATA_PLANE_FILES = tuple(DASHBOARD_OUTPUTS) + DATA_PLANE_EXTRA
+DATA_PLANE_FILES = output_paths(ROOT) + DATA_PLANE_EXTRA
 
 # Same bot identity the scheduled publisher commits under. Injected per
 # invocation by the store (`git -c`), never written to git config — a persistent

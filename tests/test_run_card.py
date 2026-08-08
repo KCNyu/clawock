@@ -17,9 +17,7 @@ import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
 DATA = ROOT / "scripts" / "data"
-sys.path.insert(0, str(DATA))
-
-import run_card  # noqa: E402
+from clawock import run_card
 
 BACKTESTS = (
     "backtest_hstech_regime.py",
@@ -146,8 +144,14 @@ def test_every_backtest_records_a_run_card(script):
     tree = ast.parse((DATA / script).read_text())
 
     imports_it = any(
-        isinstance(node, ast.Import)
-        and any(alias.name == "run_card" for alias in node.names)
+        (
+            isinstance(node, ast.Import)
+            and any(alias.name == "run_card" for alias in node.names)
+        ) or (
+            isinstance(node, ast.ImportFrom)
+            and node.module == "clawock"
+            and any(alias.name == "run_card" for alias in node.names)
+        )
         for node in ast.walk(tree)
     )
     calls_record = any(

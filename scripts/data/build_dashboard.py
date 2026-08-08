@@ -22,8 +22,6 @@ from pathlib import Path
 from typing import NamedTuple
 from zoneinfo import ZoneInfo
 
-import dashboard_outputs
-
 # Strict YYYY-MM-DD.json — rejects baselines/backups/archives that share the
 # snapshots dir (e.g. 2026-05-16-saturday-baseline.json caused duplicate 5-16
 # rows in the equity curve before this filter was added).
@@ -43,6 +41,7 @@ from clawock.workspace import workspace_root  # noqa: E402
 from clawock import instrument_registry  # noqa: E402
 from clawock import json_repair  # noqa: E402
 from clawock import decision_v2  # noqa: E402
+from clawock import dashboard_outputs  # noqa: E402
 
 WS_ROOT = workspace_root(Path(__file__).resolve().parent.parent.parent)
 OUT_DIR = WS_ROOT / 'assets' / 'data'

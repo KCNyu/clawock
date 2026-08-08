@@ -9,9 +9,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 INSTANCE_HARNESS = ROOT / "instances" / "kcnyu" / "src" / "clawock_kcnyu" / "harness"
-sys.path.insert(0, str(ROOT / "scripts" / "data"))
-
-import dashboard_outputs  # noqa: E402
+from clawock import dashboard_outputs
 
 
 EXPECTED = {
@@ -41,6 +39,12 @@ def _repo(tmp_path):
     _git(tmp_path, "init", "-q")
     _git(tmp_path, "config", "user.name", "test")
     _git(tmp_path, "config", "user.email", "test@example.com")
+    contract = tmp_path / "config" / "dashboard-outputs.json"
+    contract.parent.mkdir(parents=True, exist_ok=True)
+    contract.write_text(
+        (ROOT / "config" / "dashboard-outputs.json").read_text(encoding="utf-8"),
+        encoding="utf-8",
+    )
     values = {
         "assets/data/overview.json": {
             "schema_version": 1,
@@ -64,7 +68,7 @@ def _repo(tmp_path):
     }
     for path, value in values.items():
         _write(tmp_path, path, value)
-    _git(tmp_path, "add", "--", *dashboard_outputs.DASHBOARD_OUTPUTS)
+    _git(tmp_path, "add", "--", *dashboard_outputs.output_paths(ROOT))
     _git(tmp_path, "commit", "-qm", "seed")
     return values
 
@@ -180,9 +184,9 @@ def test_nothing_stages_the_outputs_into_a_commit_any_more():
     and asks a structural question: does this file both derive dashboard output
     paths and hand paths to `git add`?
     """
-    owner = "scripts/data/dashboard_outputs.py"
+    owner = "src/clawock/dashboard_outputs.py"
     derives = ("dashboard_output_changes", "semantic_changed_paths",
-               "DASHBOARD_OUTPUTS")
+               "output_paths")
     offenders = []
     for root in ("scripts", ".githooks"):
         for path in sorted(ROOT.joinpath(root).rglob("*")):
@@ -214,7 +218,7 @@ def test_the_publish_path_for_the_outputs_is_the_data_branch_alone():
     staging them again, until `git add` refuses and takes the whole commit down.
     """
     publisher = (ROOT / "scripts/data/publish_data_branch.py").read_text()
-    assert "DASHBOARD_OUTPUTS" in publisher
+    assert "output_paths" in publisher
     for rel in ("instances/kcnyu/src/clawock_kcnyu/harness/brief_postflight.py",
                 "instances/kcnyu/src/clawock_kcnyu/harness/report_postflight.py",
                 "instances/kcnyu/src/clawock_kcnyu/harness/intraday_postflight.py"):
@@ -324,6 +328,15 @@ def _generation(directory, *, clock, value):
             json.dumps({"as_of": clock, "totals": value}), encoding="utf-8")
 
 
+def _install_contract(root):
+    target = root / "config" / "dashboard-outputs.json"
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text(
+        (ROOT / "config" / "dashboard-outputs.json").read_text(encoding="utf-8"),
+        encoding="utf-8",
+    )
+
+
 def test_the_diff_baseline_can_be_a_directory_instead_of_this_repository(tmp_path):
     """#262: the outputs are on their way out of repository history, so "what did
     we publish last time" stops being a git question. This helper was the one
@@ -334,6 +347,7 @@ def test_the_diff_baseline_can_be_a_directory_instead_of_this_repository(tmp_pat
     _generation(published / "assets" / "data", clock="2026-08-05T00:00:00Z", value=1)
     worktree = tmp_path / "worktree" / "assets" / "data"
     _generation(worktree, clock="2026-08-05T03:00:00Z", value=1)
+    _install_contract(tmp_path / "worktree")
     # Exactly one output genuinely changed. Asserting the precise subset is what
     # makes this test mean anything: `tmp_path` is not a git repository, so the
     # default GitBaseline cannot read any previous version and conservatively
@@ -363,6 +377,7 @@ def test_a_clock_only_rebuild_is_restored_from_whatever_the_baseline_is(tmp_path
     _generation(published / "assets" / "data", clock="2026-08-05T00:00:00Z", value=1)
     root = tmp_path / "worktree"
     _generation(root / "assets" / "data", clock="2026-08-05T03:00:00Z", value=1)
+    _install_contract(root)
 
     changed = dashboard_outputs.semantic_changed_paths(
         root, baseline=dashboard_outputs.DirectoryBaseline(published))
@@ -402,7 +417,7 @@ def test_the_two_sidecars_are_published_with_the_generation():
     _sys.path.insert(0, str(ROOT / "scripts" / "data"))
     from publish_data_branch import DATA_PLANE_FILES
 
-    assert set(dashboard_outputs.DASHBOARD_OUTPUTS) < set(DATA_PLANE_FILES)
+    assert set(dashboard_outputs.output_paths(ROOT)) < set(DATA_PLANE_FILES)
     assert "assets/data/cron-heartbeats.json" in DATA_PLANE_FILES
     assert "assets/data/workflow-outcomes.json" in DATA_PLANE_FILES
 

@@ -314,6 +314,21 @@ def _context(args) -> int:
     return 0
 
 
+def _packaged_utility(args) -> int:
+    """Dispatch package-owned ledgers and deterministic output utilities."""
+    if args.command == "plan-context":
+        from clawock.plan_surface import main
+    elif args.command == "risk":
+        from clawock.risk_discipline import main
+    elif args.command == "dashboard-outputs":
+        from clawock.dashboard_outputs import main
+    elif args.command == "run-card":
+        from clawock.run_card import main
+    else:
+        from clawock.research_provenance import main
+    return main(args.utility_args)
+
+
 def _workflow(args) -> int:
     """Discover or install portable Agent Skills shipped by clawock."""
     from clawock.publish.store import write_generation
@@ -417,6 +432,15 @@ def _workflow(args) -> int:
 
 
 def main(argv=None) -> int:
+    raw_argv = list(sys.argv[1:] if argv is None else argv)
+    packaged_utilities = {
+        "plan-context", "risk", "dashboard-outputs", "run-card", "provenance",
+    }
+    if raw_argv and raw_argv[0] in packaged_utilities:
+        return _packaged_utility(argparse.Namespace(
+            command=raw_argv[0], utility_args=raw_argv[1:]
+        ))
+
     parser = argparse.ArgumentParser(prog="clawock", description=__doc__)
     sub = parser.add_subparsers(dest="command", required=True)
 
@@ -490,6 +514,17 @@ def main(argv=None) -> int:
     tool.add_argument("--dialect", choices=("openai", "anthropic"), default="openai")
     tool.add_argument("--workspace", type=Path, default=None)
     tool.set_defaults(func=_tool)
+
+    for name, help_text in (
+        ("plan-context", "show still-open decisions for a downstream run"),
+        ("risk", "maintain the durable risk-breach governance ledger"),
+        ("dashboard-outputs", "compare one generated dashboard write set"),
+        ("run-card", "inspect durable backtest evidence"),
+        ("provenance", "verify numeric research provenance"),
+    ):
+        utility = sub.add_parser(name, help=help_text, add_help=False)
+        utility.add_argument("utility_args", nargs=argparse.REMAINDER)
+        utility.set_defaults(func=_packaged_utility)
 
     context = sub.add_parser(
         "context", help="audit or assemble the agent context contract")
@@ -583,7 +618,7 @@ def main(argv=None) -> int:
     workflow_rollback.add_argument("--change-id", required=True)
     workflow_rollback.set_defaults(func=_workflow)
 
-    args = parser.parse_args(argv)
+    args = parser.parse_args(raw_argv)
     if args.command == "report" and not args.harness_phase and not args.context:
         parser.error("clawock report requires --context, or preflight/postflight")
     return args.func(args)

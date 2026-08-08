@@ -81,7 +81,7 @@ python3 scripts/data/workflow_outcomes.py --publish
 # and every output would read as changed on every tick. The return value is no
 # longer a commit pathspec — nothing commits these any more — so it is discarded;
 # the restore is the part that matters.
-python3 scripts/data/dashboard_outputs.py --baseline-dir "$PREVIOUS_DIR" > /dev/null
+/root/.local/bin/clawock dashboard-outputs --baseline-dir "$PREVIOUS_DIR" > /dev/null
 
 # ── Data plane (#314) ────────────────────────────────────────────────────────
 # The same generation, also published to the orphan data branch, and the site

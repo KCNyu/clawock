@@ -94,7 +94,7 @@ clawock 是**美股 + 港股 + 黄金定投**的实盘组合。工具包遵循�
 | `fetch_fx.py` | USDHKD 汇率 · 3 路 fallback | Frankfurter(ECB) → 备用 | ✅ |
 | `preflight_integrity.py` | 数据不变量硬闸: TCV / PNL / FX / cash 对账 | 本地 | ✅ |
 | `src/clawock/bar_checks.py` | bar/quote **判据唯一真源**:结构不可能(fatal) vs 可疑(flag,含 o==h==l==c 退化区间)、同源区间越界、gap-safe 收益(停牌不填 0)。策略仍由各 fetcher 自己定 | 纯本地(无 I/O) | ✅ |
-| `research_provenance.py` | 研究报告 Decimal 计算、两源数字溯源与 fail-closed 准出（tolerance 上限 5%，算式异常也只输出结构化 fail） | 结构化 manifest + 本地确定性校验 | ✅ |
+| `src/clawock/research_provenance.py` | 研究报告 Decimal 计算、两源数字溯源与 fail-closed 准出（tolerance 上限 5%，算式异常也只输出结构化 fail） | 结构化 manifest + 本地确定性校验 | ✅ |
 | `thesis_registry.py` | 持久 thesis schema/validator、证据驱动 drift（红线触发/解除对称要证据）与 decision link 解析 | `memory/theses/*.json` + 本地确定性校验 | ✅ |
 | `earnings_review.py` | 一手财报复盘:来源分级、盈利质量数学、管理层承诺账本、provenance 准出与 thesis 证据交接 | `memory/earnings/*/*.json` + 本地确定性校验 | ✅ |
 | `workflow_health.py` | 排程 GitHub Actions 周度健康:连续失败计数 + **静默停跑**检测(节奏从 workflow 文件里读) | `gh run list` + `.github/workflows/*.yml` | ✅ |
@@ -107,13 +107,13 @@ clawock 是**美股 + 港股 + 黄金定投**的实盘组合。工具包遵循�
 |---|---|---|:---:|
 | `claim_provenance.py` | 回测结论必须引用 run card，且卡里仍要含这个数字：**失效引用**（指向真证据但已对不上）比缺引用更危险 | `memory/backtests/*.json` | ✅ |
 | `build_evidence.py` | 生成 `evidence.md`「测了什么、什么没通过」：数字全部读自产物，判定区分**未通过 / 尚不可判 / 通过** | 派生 | ✅ |
-| `run_card.py` | 每次回测留证：输入序列身份(source/窗口/bar 数/摘要) + 参数 + 代码哈希 + 指标 JSON；`--list` / `--run-id` 复查。落 `memory/backtests/` | 纯本地 | ✅ |
+| `src/clawock/run_card.py` | 每次回测留证：输入序列身份(source/窗口/bar 数/摘要) + 参数 + 代码哈希 + 指标 JSON；`clawock run-card` 复查。落 `memory/backtests/` | 纯本地 | ✅ |
 | `backtest_hstech_regime.py` | 恒科 regime 去杠杆回测(2021→今) | 腾讯 kline | ✅ |
 | `backtest_us_leverage.py` | 美股 2x ETF regime 回测 | 日线模拟 | ✅ |
 | `backtest_combined_regime.py` | 全组合 regime vs buy&hold vs 全 1x（MA/vol 在各代理**原生交易日**上算，不用 union 日历填充值） | 因子代理历史 | ✅ |
 | `validate_regime_dial.py` | 杠杆刻度盘样本外验证：walk-forward + 环形位移置换检验 + 阈值敏感面；建模的是**生产 tier 映射**(1.0/0.5/0.0)而非 2x→cash | 腾讯 kline | ✅ |
 | `src/clawock/decision_v2.py` | 安装包拥有的 strategy episode 结算、coverage、严格前向分层 confidence 校准、方向命中审计 | workspace decisions ledger + canonical bars | ✅ |
-| `risk_discipline.py` | 持久 breach 账本、确认/限时 override、成交证据与同风险增仓冻结 | guardrail + portfolio trades | ✅ |
+| `src/clawock/risk_discipline.py` | 持久 breach 账本、确认/限时 override、成交证据与同风险增仓冻结；`clawock risk` 操作 | guardrail + portfolio trades | ✅ |
 | `quant_signal_review.py` · `t0_setup_review.py` | 因子 / 牌面 edge 自检(T+1/T+5 命中率) | 本地留痕 | ✅ |
 | `cross_sectional_factor.py` | 预注册 walk-forward + date×ticker 双向聚类 CI；存活偏差未消除即禁止入决策 | 本地留痕 + 调整后日线 | ✅ |
 | `peer_residual_engine.py` | leader 延续 / laggard 规避 / 均值回归分规则 prospective 聚类校准 | 本地留痕 + 人工 taxonomy | ✅ |

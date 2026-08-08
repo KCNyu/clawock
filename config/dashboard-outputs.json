@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "outputs": {
+    "assets/data/overview.json": {
+      "recursive_clock_fields": ["generated_at", "generation_id", "age_hours", "days_behind"],
+      "top_level_clock_fields": [],
+      "generation_group": "dashboard"
+    },
+    "assets/data/dashboard.json": {
+      "recursive_clock_fields": ["generated_at", "age_hours", "days_behind"],
+      "top_level_clock_fields": [],
+      "generation_group": "dashboard"
+    },
+    "assets/data/decision_audit.json": {
+      "recursive_clock_fields": [],
+      "top_level_clock_fields": ["as_of"]
+    },
+    "assets/data/shadow_portfolio.json": {
+      "recursive_clock_fields": [],
+      "top_level_clock_fields": ["as_of"]
+    }
+  }
+}
