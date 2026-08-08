@@ -26,10 +26,14 @@ import sys
 import time
 from pathlib import Path
 
-OPENCLAW_HOME = Path(os.environ.get('OPENCLAW_HOME', '/root/.openclaw'))
-SESSIONS_DIR  = OPENCLAW_HOME / 'agents' / 'main' / 'sessions'
-HANDOFF_FILE  = OPENCLAW_HOME / 'gateway-supervisor-restart-handoff.json'
-WORKSPACE_TMP = OPENCLAW_HOME / 'workspace' / 'memory' / '.tmp'
+_REPO_ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(_REPO_ROOT))
+from clawock.providers.openclaw import runtime_paths  # noqa: E402
+
+_OPENCLAW_PATHS = runtime_paths()
+SESSIONS_DIR = _OPENCLAW_PATHS.sessions_dir
+HANDOFF_FILE = _OPENCLAW_PATHS.supervisor_handoff
+WORKSPACE_TMP = _OPENCLAW_PATHS.workspace_memory_tmp
 
 KEEP_TRAJECTORY_DAYS = int(os.environ.get('GC_KEEP_TRAJECTORY_DAYS', '7'))
 KEEP_SESSION_DAYS    = int(os.environ.get('GC_KEEP_SESSION_DAYS',    '14'))

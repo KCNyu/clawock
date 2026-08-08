@@ -7,6 +7,18 @@ scheduler, and delivery channel. clawock contributes a stable CLI plus portable
 decision workflows, deterministic validation/reconciliation, artifacts and
 receipts.
 
+The adapter resolves a runtime at execution time instead of assuming this
+server's filesystem. Installed packages may set:
+
+- `CLAWOCK_OPENCLAW_BIN` — absolute OpenClaw CLI path;
+- `CLAWOCK_OPENCLAW_HOME` — runtime state home (with `OPENCLAW_HOME` accepted as
+  a compatibility fallback);
+- `CLAWOCK_OPENCLAW_INSTALL_DIR` — npm/pnpm package root for operator checks.
+
+Cron SQLite, fossil history, workspace, session and memory-index paths are
+derived from that selected home. These settings locate an external runtime;
+they do not make clawock launch a model or own an agent loop.
+
 ## Context profiles
 
 The contract was verified against the installed OpenClaw 2026.7.1 source and
