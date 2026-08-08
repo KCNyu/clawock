@@ -18,7 +18,7 @@ import tomllib
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT))
+sys.path.insert(0, str(ROOT / "src"))
 
 from clawock import workspace  # noqa: E402
 
@@ -72,7 +72,8 @@ def test_the_engine_runs_against_a_workspace_that_is_not_this_one(tmp_path):
     done = subprocess.run(
         [sys.executable, "-m", "clawock.cli", "doctor",
          "--workspace", str(tmp_path), "--json"],
-        capture_output=True, text=True, timeout=60, cwd=ROOT)
+        capture_output=True, text=True, timeout=60, cwd=ROOT,
+        env={**os.environ, "PYTHONPATH": str(ROOT / "src")})
     assert done.returncode == 0, done.stderr
     assert json.loads(done.stdout)["holdings"] == 2
 
@@ -86,7 +87,8 @@ def test_an_incomplete_workspace_names_what_is_missing_and_exits_nonzero(tmp_pat
     done = subprocess.run(
         [sys.executable, "-m", "clawock.cli", "doctor",
          "--workspace", str(tmp_path)],
-        capture_output=True, text=True, timeout=60, cwd=ROOT)
+        capture_output=True, text=True, timeout=60, cwd=ROOT,
+        env={**os.environ, "PYTHONPATH": str(ROOT / "src")})
 
     assert done.returncode == 1
     assert "config/instruments.json" in done.stdout
@@ -150,7 +152,7 @@ def test_the_entry_point_imports_without_the_scripts_directory(tmp_path):
          "import sys; sys.path[:] = [p for p in sys.path if 'scripts' not in p];"
          " from clawock.cli import main; print('ok')"],
         cwd=tmp_path, capture_output=True, text=True, timeout=60,
-        env={**os.environ, "PYTHONPATH": str(ROOT)})
+        env={**os.environ, "PYTHONPATH": str(ROOT / "src")})
 
     assert done.returncode == 0, done.stderr
     assert "ok" in done.stdout

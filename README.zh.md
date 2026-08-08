@@ -272,7 +272,7 @@ clawock/
 │   └─ *_review.json  guardrail_history.jsonl                          ← 因子 / setup 记分卡 + 风控闸拦下了什么
 ├─ portfolio.json                           ← 唯一真源(原子写入)
 ├─ tests/                                    ← decision-v2 + 资金守恒回归闸
-├─ clawock/                                  ← 可移植 harness 契约 · context · CLI · providers
+├─ src/clawock/                              ← 可移植 harness 契约 · context · CLI · providers
 ├─ MEMORY.md  DREAMS.md                      ← 铁律 + 每夜「做梦」提炼
 ├─ memory/
 │   ├─ {date}-pre-open.md  {date}-plan.json  ← 简报产出 + 结构化 plan

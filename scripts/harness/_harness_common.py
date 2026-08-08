@@ -21,12 +21,14 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2] / 'scripts' / 'data')
 # in. Reached through the scripts/data/workspace shim until #267 step 3,
 # whose only remaining job was inserting this path as a side effect.
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
 from clawock.workspace import workspace_root  # noqa: E402
 
 # The text/numeric validation primitives moved into the installed package so the
 # report core can run without a repository checkout. Re-exported here so all ten
 # in-repo importers keep working unchanged.
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
 
 # Code lives in the checkout; only DATA lives in the workspace. `workspace_root`
 # is overridable, so resolving our own modules through WS would read them out of

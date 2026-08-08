@@ -20,6 +20,7 @@ from typing import Any
 # whose only remaining job was inserting this path as a side effect.
 import sys  # noqa: E402
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
 from clawock.workspace import engine_config, workspace_root  # noqa: E402
 
 WS = workspace_root(Path(__file__).resolve().parents[2])

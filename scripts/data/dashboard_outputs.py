@@ -27,6 +27,7 @@ from pathlib import Path
 # in. Reached through the scripts/data/workspace shim until #267 step 3,
 # whose only remaining job was inserting this path as a side effect.
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
 from clawock.workspace import workspace_root  # noqa: E402
 
 ROOT = workspace_root(Path(__file__).resolve().parents[2])
@@ -34,6 +35,7 @@ ROOT = workspace_root(Path(__file__).resolve().parents[2])
 # WS is a data directory and can be redirected with CLAWOCK_WORKSPACE, while the
 # package lives in the checkout (#265, #313).
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
 
 from clawock.publish import write_generation  # noqa: E402,F401
 

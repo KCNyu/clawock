@@ -34,6 +34,7 @@ from zoneinfo import ZoneInfo
 # in. Reached through the scripts/data/workspace shim until #267 step 3,
 # whose only remaining job was inserting this path as a side effect.
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
 from clawock.workspace import workspace_root  # noqa: E402
 
 # Code lives in the checkout; only DATA lives in the workspace. `workspace_root`
@@ -49,6 +50,7 @@ WS = workspace_root(Path(__file__).resolve().parents[2])
 # resolves only because some other module happened to widen sys.path first is a
 # side effect, not a dependency (#265).
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
 sys.path.insert(0, str(_CHECKOUT / 'scripts' / 'data'))
 import cron_token_audit  # noqa: E402
 

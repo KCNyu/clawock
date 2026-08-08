@@ -23,7 +23,7 @@ they do not make clawock launch a model or own an agent loop.
 
 The contract was verified against the installed OpenClaw 2026.7.1 source and
 its stored system-prompt reports. The machine-readable source is
-`clawock/context_manifest.json`.
+`src/clawock/context_manifest.json`.
 
 | Profile | Injected workspace files | History and lazy capabilities |
 |---|---|---|

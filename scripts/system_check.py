@@ -26,6 +26,7 @@ WS = Path(__file__).resolve().parent.parent
 # in the tree this file belongs to.
 _REPO_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(_REPO_ROOT))
+sys.path.insert(0, str(_REPO_ROOT / "src"))
 
 # Live-box paths for the memory-index check. Still deliberately absolute and not
 # derived from WS — the semantic index only ever covers the live runtime

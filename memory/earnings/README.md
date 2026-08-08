@@ -13,7 +13,7 @@ python3 scripts/data/earnings_review.py promises \
     memory/earnings/<TICKER>/<previous>.json memory/earnings/<TICKER>/<current>.json
 ```
 
-Shape: `config/earnings_review.schema.json`. Workflow and source policy:
+Shape: `src/clawock/config/earnings_review.schema.json`. Workflow and source policy:
 `skills/earnings-review/SKILL.md`. Worked US and HK examples live in
 `tests/fixtures/earnings/`.
 

@@ -33,7 +33,7 @@ def test_report_runs_with_no_openclaw_no_git_and_no_scripts_directory(tmp_path):
     empty_bin.mkdir()
     env = {
         "PATH": str(empty_bin),          # no openclaw, no git, no gh
-        "PYTHONPATH": str(ROOT),         # the package; `scripts/` is not importable
+        "PYTHONPATH": str(ROOT / "src"),  # the package; `scripts/` is not importable
         "HOME": str(tmp_path),
         "LC_ALL": "C.UTF-8", "PYTHONIOENCODING": "utf-8",
     }
@@ -57,7 +57,7 @@ def test_the_core_never_re_invokes_the_harness_scripts():
     both modules legitimately *mention* report_postflight.py in prose."""
     offenders = []
     for name in ("report.py", "cli.py", "validation.py"):
-        tree = ast.parse((ROOT / "clawock" / name).read_text())
+        tree = ast.parse((ROOT / "src" / "clawock" / name).read_text())
         for node in ast.walk(tree):
             if isinstance(node, ast.Attribute) and node.attr in {"run", "Popen",
                                                                  "check_output"}:

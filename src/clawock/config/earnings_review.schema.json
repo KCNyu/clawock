@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/KCNyu/clawock/config/earnings_review.schema.json",
+  "$id": "https://github.com/KCNyu/clawock/src/clawock/config/earnings_review.schema.json",
   "title": "clawock primary-source earnings review artifact",
   "description": "One reporting period per file under memory/earnings/<TICKER>/<period>.json. scripts/data/earnings_review.py is the enforcing validator; this document is the published shape.",
   "type": "object",
@@ -76,7 +76,7 @@
     },
     "provenance": {
       "type": "object",
-      "description": "A research_provenance manifest covering every published number; see config/thesis.schema.json's sibling gate in scripts/data/research_provenance.py."
+      "description": "A research_provenance manifest covering every published number; see src/clawock/config/thesis.schema.json's sibling gate in scripts/data/research_provenance.py."
     }
   },
   "$defs": {
