@@ -34,6 +34,14 @@ def test_every_data_module_is_classified():
         "exists to end.")
 
 
+def test_every_harness_module_is_classified():
+    text = DOC.read_text()
+    actual = {p.stem for p in (ROOT / "scripts" / "harness").glob("*.py")}
+    named = set(re.findall(r"`([a-z0-9_]+)`", text))
+    missing = sorted(actual - named)
+    assert not missing, f"unclassified scripts/harness modules: {missing}"
+
+
 def test_the_retired_backfill_stays_retired():
     """backfill_t0_history seeded t0 history once and had zero callers after."""
     assert not (ROOT / "scripts" / "legacy" / "backfill_t0_history.py").exists(), (

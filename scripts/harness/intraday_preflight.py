@@ -57,6 +57,7 @@ import peer_scan  # noqa: E402
 import plan_surface  # noqa: E402
 import research_surface  # noqa: E402
 import mover_news  # noqa: E402
+import known_catalysts  # noqa: E402
 
 
 def run_analyze(market):
@@ -152,10 +153,10 @@ def collect_peers(market):
         return {}
 
 
-def main():
+def main(argv=None):
     parser = argparse.ArgumentParser()
     parser.add_argument('--market', choices=['hk', 'us'], required=True)
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
 
     now = datetime.now()
     stamp = now.strftime('%Y-%m-%d_%H%M')
@@ -253,6 +254,14 @@ def main():
         today=now.strftime('%Y-%m-%d'),
     )
 
+    # A narrow news window answers "what is new this slot", not "what is known
+    # to drive the move".  Carry the morning brief's structured events for these
+    # movers so an overnight announcement that is reacting today is not called
+    # unexplainable (#354).  Local, bounded, fail-soft; mover_news stays narrow.
+    known_catalyst_ctx = known_catalysts.for_movers(
+        [a['ticker'] for a in anomalies], today=now.strftime('%Y-%m-%d'),
+    )
+
     result = {
         'status':           'ok',
         'market':           args.market,
@@ -270,6 +279,7 @@ def main():
         'plan_context':     plan_ctx,
         'mover_thesis':     mover_thesis,
         'mover_news':       mover_news_ctx,
+        'known_catalysts':  known_catalyst_ctx,
         'heartbeat':        {'job': heartbeat['job'], 'slot': heartbeat['slot']},
     }
     # Last field: the id digests everything above it, and the model echoes it to

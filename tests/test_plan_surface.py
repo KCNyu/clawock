@@ -207,6 +207,8 @@ def _stub_preflight(module, monkeypatch, tmp_path):
     monkeypatch.setattr(module, "collect_peers", lambda market: {})
     monkeypatch.setattr(module.research_surface, "movers_thesis_context", lambda *a, **k: {})
     monkeypatch.setattr(module.mover_news, "probe", lambda *a, **k: {})
+    if hasattr(module, "known_catalysts"):
+        monkeypatch.setattr(module.known_catalysts, "for_movers", lambda *a, **k: {})
     monkeypatch.setattr(
         module.plan_surface, "open_decisions_context",
         lambda **kwargs: {"plan_date": TODAY, "open": [{"ticker": "07226"}],

@@ -626,7 +626,7 @@ def _ensure_jekyll_front_matter(md_path, date):
     md_path.write_text(fm + content)
 
 
-def main():
+def main(argv=None):
     import argparse
     ap = argparse.ArgumentParser()
     ap.add_argument('--dry-run', action='store_true',
@@ -634,7 +634,7 @@ def main():
                          'ledger writes, dashboard rebuild/commit, push, message delivery, '
                          'or delivery-marker writes; still adds missing Jekyll front matter '
                          'and writes the publish-gate status')
-    args = ap.parse_args()
+    args = ap.parse_args(argv)
 
     today = datetime.now().strftime('%Y-%m-%d')
     job_name = '盘前深度简报'

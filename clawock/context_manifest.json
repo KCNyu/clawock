@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "runtime_contract": "openclaw-cron-bootstrap-2026.7.1",
+  "bootstrap": [
+    "AGENTS.md",
+    "TOOLS.md",
+    "SOUL.md",
+    "IDENTITY.md",
+    "USER.md"
+  ],
+  "excluded": [
+    "MEMORY.md",
+    "HEARTBEAT.md",
+    "BOOTSTRAP.md"
+  ],
+  "skills": {
+    "catalog_is_index_only": true,
+    "body_pattern": "skills/{name}/SKILL.md",
+    "load": "selected_only"
+  }
+}

@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "clawock"
 version = "0.1.0"
-description = "Auditable AI portfolio operation: decision ledger, calibration, and evidence-first reporting"
+description = "Auditable agent harness for portfolio operation with context certification"
 readme = "README.md"
 requires-python = ">=3.11"
 license = { file = "LICENSE" }
@@ -50,3 +50,6 @@ clawock = "clawock.cli:main"
 # construction; a list brings it in only if someone remembers.
 [tool.setuptools.packages.find]
 include = ["clawock*"]
+
+[tool.setuptools.package-data]
+clawock = ["context_manifest.json"]

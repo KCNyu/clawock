@@ -6,7 +6,7 @@
 
 **Step 1 - Preflight**
 ```
-python3 /root/.openclaw/workspace/scripts/harness/report_preflight.py --market {{market}} --phase {{phase}}
+clawock report preflight --market {{market}} --phase {{phase}}
 ```
 stdout 就是 context 本身（与落盘同一份 JSON），含 `context_id`、signals、anomalies、peer_scan。
 若返回 `market_closed`：**立即结束本回合**——不写散文、不调 postflight，只回一句「{{market_name}}今日休市，跳过」。
@@ -20,7 +20,7 @@ stdout 就是 context 本身（与落盘同一份 JSON），含 `context_id`、s
 
 **Step 3 - Postflight**
 ```
-python3 /root/.openclaw/workspace/scripts/harness/report_postflight.py --market {{market}} --phase {{phase}} --context-id <Step 1 的 context_id> --text-file /root/.openclaw/workspace/memory/.tmp/report-prose-{{market}}-{{phase}}.md
+clawock report postflight --market {{market}} --phase {{phase}} --context-id <Step 1 的 context_id> --text-file /root/.openclaw/workspace/memory/.tmp/report-prose-{{market}}-{{phase}}.md
 ```
 `--context-id` 必须照抄 Step 1 打印的那个。pass/warn 自动拼装+发送+刷新 snapshot/dashboard+提交推送。
 这是**唯一微信路径**，并同步 Telegram；本 cron 配 `--no-deliver`，不会再 announce 你的回复文本。

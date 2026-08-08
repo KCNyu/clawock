@@ -104,6 +104,18 @@ def test_a_broken_gh_response_degrades_to_no_rows():
     assert wh.fetch_runs("x.yml", runner=lambda cmd: "not json") == []
 
 
+def test_fetch_runs_uses_the_provider_and_keeps_schedule_semantics():
+    rows = wh.fetch_runs("x.yml", runner=lambda cmd: json.dumps([
+        run("cancelled", 1, event="schedule"),
+        run("failure", 2, event="workflow_dispatch"),
+    ]))
+
+    assert all(isinstance(row, wh.Run) for row in rows)
+    assessed = wh.assess("x.yml", ["0 1 * * *"], rows, NOW)
+    assert assessed["consecutive_failures"] == 0
+    assert assessed["last_conclusion"] == "cancelled"
+
+
 def test_weekly_health_runs_it_with_the_permission_it_needs():
     workflow = (ROOT / ".github" / "workflows" / "weekly-health.yml").read_text()
     assert "scripts/data/workflow_health.py" in workflow
