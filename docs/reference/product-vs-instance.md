@@ -57,7 +57,9 @@ The package now has a standard `src/clawock/` source boundary. The historical
 counts below describe the still-unmoved `scripts/data/` migration inventory;
 they are not a claim that `scripts/` is an acceptable final product home.
 
-Counts: **product 60 · instance 27**.
+Historical classification counts: **product 60 · instance 27**. The two cron
+synchronizers now live in `ops/host/`; the table retains them to preserve the
+decision record while the rest of `scripts/data/` is migrated.
 
 ### Product — the engine
 
@@ -135,11 +137,13 @@ source of truth.
 | Mixed shared implementation | `_harness_common` | Generation/validation helpers are product; this repository's publish and dashboard refresh path is instance |
 | Instance runtime supervision | `_watchdog_common` `brief_watchdog` `report_watchdog` `intraday_watchdog` | Reads runtime sessions/run history, mirrors this deployment's channels and applies this desk's retry policy |
 
-The classification is intentionally not “move all 6,338 lines into the public
-wheel”. Watchdogs stay in the private-instance-shaped adapter; product functions
-cross into `src/clawock/` only after they no longer assume this repository's
-paths. The stable package CLI means payloads do not know the adapter's file
-layout while extraction continues.
+The separate distribution is a migration seam, not evidence that all code in it
+is instance-specific. Reusable investment preflight, validation,
+reconciliation, generation and postflight behavior belongs in `src/clawock/`;
+reusable OpenClaw behavior belongs behind a runtime adapter. Only KCNyu delivery
+targets, live schedules, repository publication and other desk bindings remain
+here. `clawock-kcnyu` is repository-only and must never be published to PyPI or
+pulled in by the portable package.
 
 ## Note on the counts in #331
 

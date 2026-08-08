@@ -90,15 +90,17 @@ def load_contract(path: str | Path | None = None) -> dict:
         if job.get("payload_profile") not in profiles:
             raise ValueError(f"{job['name']}: unknown payload profile")
         render_payload_message(data, job)
-        watchdog = job.get("watchdog")
-        if watchdog:
+        watchdogs = [job.get("watchdog"), *(job.get("extra_watchdogs") or [])]
+        for watchdog in watchdogs:
+            if not watchdog:
+                continue
             if bool(watchdog.get("schedule")) == bool(watchdog.get("seasonal_schedules")):
                 raise ValueError(f"{job['name']}: watchdog needs exactly one schedule source")
-            if not watchdog.get("command_contains"):
-                raise ValueError(f"{job['name']}: watchdog command matcher missing")
+            if not isinstance(watchdog.get("command"), str) or not watchdog["command"]:
+                raise ValueError(f"{job['name']}: watchdog command missing")
     sync = data.get("dst_sync") or {}
-    if not sync.get("schedule") or not sync.get("command_contains"):
-        raise ValueError("dst_sync schedule and command matcher are required")
+    if not sync.get("schedule") or not isinstance(sync.get("command"), str):
+        raise ValueError("dst_sync schedule and command are required")
     return data
 
 
@@ -348,15 +350,16 @@ def validate_watchdogs(contract: dict, crontab_text: str,
         # 08:30 delivery backstop, and a 09:05 miss detector — 08:30 falls inside the
         # brief's own 08:13-08:49 landing window, so it cannot tell a slow brief from
         # a dead one and a second pass after the window is the only place to judge.
-        # Each entry must still match EXACTLY ONE crontab row, so their
-        # command_contains have to be mutually exclusive, not just present.
+        # Each entry must still match EXACTLY ONE exact crontab command. This is
+        # stricter than the old basename token match, which could accept a
+        # source-tree alias or select both brief watchdog passes.
         for watchdog in [job.get("watchdog")] + list(job.get("extra_watchdogs") or []):
             if not watchdog:
                 continue
-            tokens = watchdog.get("command_contains") or []
-            row = find_crontab_row(rows, tokens)
+            matches = [row for row in rows if row["command"] == watchdog.get("command")]
+            row = matches[0] if len(matches) == 1 else None
             if not row:
-                errors.append(f"{job['name']} watchdog missing or ambiguous: {tokens}")
+                errors.append(f"{job['name']} watchdog command missing or ambiguous")
                 continue
             expected = effective_schedule(watchdog, at).get("expr")
             if row["expr"] != expected:
@@ -365,10 +368,10 @@ def validate_watchdogs(contract: dict, crontab_text: str,
                 )
     sync = contract.get("dst_sync") or {}
     if sync:
-        tokens = sync.get("command_contains") or []
-        row = find_crontab_row(rows, tokens)
+        matches = [row for row in rows if row["command"] == sync.get("command")]
+        row = matches[0] if len(matches) == 1 else None
         if not row:
-            errors.append(f"DST sync cron missing or ambiguous: {tokens}")
+            errors.append("DST sync cron command missing or ambiguous")
         else:
             expected = effective_schedule(sync, at).get("expr")
             if row["expr"] != expected:
