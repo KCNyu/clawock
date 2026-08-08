@@ -27,7 +27,7 @@ Entry pointer for Claude Code in kcn's investment workspace. Same workflow as `A
 | Scripts / fallback / skill routing / cron | `TOOLS.md` |
 | Skill bodies | `skills/{name}/SKILL.md` |
 | Data scripts | `scripts/data/` (analyze, fetch, update, build_dashboard) |
-| Harness scripts | `scripts/harness/` (brief/report/intraday × preflight/postflight) |
+| Harness CLI / live adapter | `clawock brief\|report\|intraday` / `instances/kcnyu/` |
 | Legacy / reference scripts | `scripts/legacy/` |
 | Daily logs (template `_TEMPLATE.md`) | `memory/YYYY-MM-DD.md` |
 | Daily deep brief output | `memory/{date}-pre-open.md` + `memory/{date}-plan.json` |
@@ -47,13 +47,13 @@ Entry pointer for Claude Code in kcn's investment workspace. Same workflow as `A
 Each cron job's prompt tells you which harness 4-step to execute:
 
 ```
-Step 1  preflight     scripts/harness/{brief|report|intraday}_preflight.py [args]
+Step 1  preflight     clawock {brief|report|intraday} preflight [args]
                       → writes memory/.tmp/{brief|report|intraday}-context-*.json
 Step 2  read context  inside that .json: raw_wechat_block, anomalies, title, signals, etc.
 Step 3  LLM synthesis you write the analysis prose + (brief only) plan.json
                       following the SKILL.md Mode template. Mode 6 reports: prose ONLY —
                       report_postflight prepends title + raw_wechat_block itself
-Step 4  postflight    scripts/harness/{brief|report|intraday}_postflight.py [args]
+Step 4  postflight    clawock {brief|report|intraday} postflight [args]
                       validates report, computes wechat_prefix, then handles its scoped publish
                       (all three auto-run build_dashboard.py; intraday commits only semantic diffs)
 ```

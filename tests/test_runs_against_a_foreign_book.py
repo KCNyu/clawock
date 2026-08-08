@@ -29,6 +29,14 @@ CLIS = ("brief_preflight", "report_preflight", "intraday_preflight",
         "brief_postflight", "report_postflight", "intraday_postflight")
 
 
+def _source_install_env(**extra):
+    """Mirror CI's editable product + adapter install for subprocess probes."""
+    roots = [str(ROOT / "src"), str(ROOT / "instances" / "kcnyu" / "src")]
+    if os.environ.get("PYTHONPATH"):
+        roots.append(os.environ["PYTHONPATH"])
+    return dict(os.environ, PYTHONPATH=os.pathsep.join(roots), **extra)
+
+
 @pytest.fixture
 def foreign_book(tmp_path):
     """A workspace with data and no config, code, or history — a new user."""
@@ -43,21 +51,33 @@ def foreign_book(tmp_path):
 
 
 @pytest.mark.parametrize("cli", CLIS)
-def test_every_harness_cli_starts_against_a_foreign_book(cli, foreign_book):
-    """--help is the cheapest proof the module got through import.
+def test_instance_rollback_aliases_start_against_the_instance_workspace(cli):
+    """The aliases are KCNyu rollback wiring, not the portable product.
 
-    Import is where this failed: both instrument_registry and entry_gate read
-    their config at module scope, so the failure landed before argparse and took
-    every consumer with it.
+    Their implementation now lives in the separately installed instance
+    distribution and may consume this desk's data modules. Public foreign-book
+    portability is exercised through the product CLI below, not by pretending
+    KCNyu's live market/delivery adapter belongs to every user.
     """
     done = subprocess.run(
         [sys.executable, str(ROOT / "scripts" / "harness" / f"{cli}.py"), "--help"],
         capture_output=True, text=True, timeout=90, cwd=str(ROOT),
-        env=dict(os.environ, CLAWOCK_WORKSPACE=str(foreign_book)),
+        env=_source_install_env(CLAWOCK_WORKSPACE=str(ROOT)),
     )
     assert done.returncode == 0, (
-        f"{cli} cannot start against a workspace that is not this repository:\n"
+        f"{cli} cannot start against the KCNyu instance workspace:\n"
         f"{done.stdout[-500:]}\n{done.stderr[-1500:]}")
+
+
+def test_public_cli_stays_usable_from_a_foreign_book(foreign_book):
+    done = subprocess.run(
+        [sys.executable, "-m", "clawock", "workflow", "list"],
+        capture_output=True, text=True, timeout=60, cwd=str(foreign_book),
+        env={k: v for k, v in _source_install_env().items()
+             if k not in {"CLAWOCK_INSTANCE", "CLAWOCK_WORKSPACE"}},
+    )
+    assert done.returncode == 0, done.stderr
+    assert "investment-decision" in done.stdout
 
 
 def test_an_absent_registry_is_empty_but_a_broken_one_still_raises(tmp_path):

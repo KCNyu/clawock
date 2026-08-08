@@ -133,7 +133,8 @@ def test_skills_only_claim_peer_scan_where_a_preflight_emits_it(skill):
                 for k in node.keys if isinstance(k, ast.Constant) and isinstance(k.value, str)}
 
     for name in ("report_preflight", "intraday_preflight"):
-        path = WS / "scripts" / "harness" / f"{name}.py"
+        path = (WS / "instances" / "kcnyu" / "src" / "clawock_kcnyu" /
+                "harness" / f"{name}.py")
         assert "peer_scan" in emitted_keys(path), \
             f"{skill} promises peer_scan but {name} never writes that key"
 

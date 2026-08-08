@@ -24,12 +24,12 @@ jobs:
         with:
           python-version: '3.11'
 
-      - run: pip install --quiet -e .
+      - run: pip install --quiet -e . -e ./instances/kcnyu
 
       - name: Compile all scripts
         run: |
           set -e
-          for f in scripts/data/*.py scripts/harness/*.py; do
+          for f in scripts/data/*.py instances/kcnyu/src/clawock_kcnyu/harness/*.py; do
             python3 -m py_compile "$f"
           done
           echo "OK: all scripts compile"
@@ -40,10 +40,10 @@ jobs:
       - name: argparse contracts unchanged
         run: |
           set -e
-          python3 scripts/harness/report_preflight.py --help > /dev/null
-          python3 scripts/harness/report_postflight.py --help > /dev/null
-          python3 scripts/harness/intraday_preflight.py --help > /dev/null
-          python3 scripts/harness/intraday_postflight.py --help > /dev/null
+          CLAWOCK_INSTANCE=kcnyu clawock report preflight --help > /dev/null
+          CLAWOCK_INSTANCE=kcnyu clawock report postflight --help > /dev/null
+          CLAWOCK_INSTANCE=kcnyu clawock intraday preflight --help > /dev/null
+          CLAWOCK_INSTANCE=kcnyu clawock intraday postflight --help > /dev/null
 
       - name: Public data sources reachable
         continue-on-error: true
@@ -108,7 +108,7 @@ jobs:
         run: |
           python3 << 'PY'
           import os, re, sys
-          for d in ['scripts/data','scripts/harness']:
+          for d in ['scripts/data','instances/kcnyu/src/clawock_kcnyu/harness']:
               for f in os.listdir(d):
                   if f.endswith('.py'):
                       assert os.path.exists(os.path.join(d, f)), f

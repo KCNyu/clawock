@@ -22,6 +22,25 @@ from clawock.providers import (  # noqa: E402
 )
 
 
+@pytest.fixture(autouse=True)
+def fake_transport_tests_are_explicitly_enabled(monkeypatch):
+    """These tests use injected local runners; none can reach a real binary."""
+    monkeypatch.setenv("CLAWOCK_DELIVERY_DISABLED", "0")
+
+
+def test_delivery_disable_gate_never_calls_the_transport(monkeypatch):
+    monkeypatch.setenv("CLAWOCK_DELIVERY_DISABLED", "1")
+
+    def must_not_run(_cmd):
+        raise AssertionError("the transport was reached while delivery was disabled")
+
+    sent = OpenClawDelivery(runner=must_not_run).send(
+        "openclaw-weixin", "real-target", "fixture body")
+
+    assert sent.status == "failed"
+    assert "CLAWOCK_DELIVERY_DISABLED" in sent.detail
+
+
 def test_wechat_success_is_unknown_not_confirmed():
     sent = OpenClawDelivery(runner=lambda cmd: (0, '{"ok":true}')).send(
         "wechat", "kcn", "hello")

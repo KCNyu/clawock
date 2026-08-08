@@ -22,7 +22,7 @@ execution/outcome → bounded, reviewable improvement proposal.
 | Plugin/harness core | portable skills/workflows, generation-pinned artifact contract, validation/reconciliation, context assembly, tool schemas, evaluation contracts | `src/clawock/` + portable skill/workflow packages (in progress) |
 | Instance | portfolio, schedules, selected skills/persona, delivery targets, dashboard skin | root data + `config/` + `skills/` |
 | Runtime adapters | conversations, scheduling, delivery, run history | OpenClaw today; provider interfaces in `src/clawock/providers/` |
-| Live desk adapter | market refresh, `.tmp` artifact placement, git coordination, publication/watchdogs | `scripts/harness/` |
+| Live desk adapter | market refresh, `.tmp` artifact placement, git coordination, publication/watchdogs | separately installable `instances/kcnyu/` distribution |
 
 The public CLI is the stable driver boundary:
 
@@ -71,11 +71,11 @@ The shipped parameters govern evidence/provenance strictness only; they do not
 add or tune factors, catalysts, signals, entries, exits or portfolio rules. The
 calling runtime's existing investment strategy remains the decision source.
 
-The live workflow phase commands dispatch in-process but currently resolve the
-KCNyu implementation from `scripts/harness`. They are a compatibility seam, not
-standalone wheel functionality. The old Python entry points remain available for
-OpenClaw, GitHub workflows and operational rollback until the instance adapter
-cutover is complete.
+The live workflow phase commands discover KCNyu's separately installed
+`clawock-kcnyu` distribution through standard Python entry points. The portable
+wheel contains neither that implementation nor portfolio data. Temporary
+`scripts/harness/` launchers remain only as rollback aliases while OpenClaw's
+host schedules complete their cutover to the stable `clawock` command.
 
 ## Context contract
 

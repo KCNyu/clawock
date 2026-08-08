@@ -235,7 +235,8 @@ def test_data_plane_publisher_preserves_hook_stdout_and_git_stderr():
 
     assert "exc.stdout, exc.stderr" in publisher
     assert "[-2000:]" in (
-        ROOT / "scripts" / "harness" / "_harness_common.py"
+        ROOT / "instances" / "kcnyu" / "src" / "clawock_kcnyu" / "harness" /
+        "_harness_common.py"
     ).read_text(), "postflight truncated the hook reason back out of the result"
 
 

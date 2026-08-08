@@ -36,10 +36,15 @@ def test_every_data_module_is_classified():
 
 def test_every_harness_module_is_classified():
     text = DOC.read_text()
-    actual = {p.stem for p in (ROOT / "scripts" / "harness").glob("*.py")}
+    actual = {
+        p.stem for p in (
+            ROOT / "instances" / "kcnyu" / "src" / "clawock_kcnyu" / "harness"
+        ).glob("*.py")
+        if p.stem != "__init__"
+    }
     named = set(re.findall(r"`([a-z0-9_]+)`", text))
     missing = sorted(actual - named)
-    assert not missing, f"unclassified scripts/harness modules: {missing}"
+    assert not missing, f"unclassified KCNyu adapter modules: {missing}"
 
 
 def test_the_retired_backfill_stays_retired():

@@ -320,7 +320,8 @@ def test_the_brief_still_gets_the_calibrators_the_dashboard_no_longer_ships():
     calibration = metrics.get("hierarchical_calibration") or {}
     assert isinstance(calibration.get("current_group_calibrators"), list)
 
-    preflight = (ROOT / "scripts" / "harness" / "brief_preflight.py").read_text()
+    preflight = (ROOT / "instances" / "kcnyu" / "src" / "clawock_kcnyu" /
+                 "harness" / "brief_preflight.py").read_text()
     computed = preflight.split("def compute_decision_metrics", 1)[1][:1500]
     assert "decision_v2.compute_metrics" in computed
     assert "dashboard.json" not in computed, "the brief must not source metrics from the trimmed payload"
@@ -343,9 +344,9 @@ def test_the_brief_only_ships_calibrator_rows_that_can_move_size():
     import sys
 
     sys.path.insert(0, str(ROOT / "scripts" / "data"))
-    sys.path.insert(0, str(ROOT / "scripts" / "harness"))
+    sys.path.insert(0, str(ROOT / "instances" / "kcnyu" / "src"))
     import decision_v2
-    import brief_preflight
+    from clawock_kcnyu.harness import brief_preflight
 
     raw = decision_v2.compute_metrics(decision_v2.load_decisions())
     rows = raw["hierarchical_calibration"]["current_group_calibrators"]

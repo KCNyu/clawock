@@ -18,7 +18,7 @@ Three defences, one test each:
 
 from __future__ import annotations
 
-import importlib.util
+import importlib
 import json
 import sys
 from pathlib import Path
@@ -27,18 +27,15 @@ import pytest
 
 
 ROOT = Path(__file__).resolve().parents[1]
-HARNESS = ROOT / 'scripts' / 'harness'
+HARNESS = ROOT / 'instances' / 'kcnyu' / 'src' / 'clawock_kcnyu' / 'harness'
 
 
 def _load(name):
-    """Import a harness module by path — they are scripts, not a package."""
-    for extra in (ROOT / 'scripts' / 'data', HARNESS):
+    """Import the separately packaged KCNyu adapter."""
+    for extra in (ROOT / 'scripts' / 'data', ROOT / 'instances' / 'kcnyu' / 'src'):
         if str(extra) not in sys.path:
             sys.path.insert(0, str(extra))
-    spec = importlib.util.spec_from_file_location(name, HARNESS / f'{name}.py')
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module
+    return importlib.import_module(f'clawock_kcnyu.harness.{name}')
 
 
 @pytest.fixture

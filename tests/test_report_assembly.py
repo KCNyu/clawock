@@ -15,7 +15,7 @@ Every test drives real functions; nothing asserts on prompt text.
 
 from __future__ import annotations
 
-import importlib.util
+import importlib
 import json
 import sys
 from pathlib import Path
@@ -24,7 +24,7 @@ import pytest
 
 
 ROOT = Path(__file__).resolve().parents[1]
-HARNESS = ROOT / 'scripts' / 'harness'
+HARNESS = ROOT / 'instances' / 'kcnyu' / 'src' / 'clawock_kcnyu' / 'harness'
 
 FRESH_BLOCK = ('🇺🇸 美股盯盘 | 07/23 16:00 ET\n\n'
                '📊 市值 $2,508 | 浮盈 $-1,993\n\n'
@@ -36,13 +36,10 @@ PROSE = ('▎情绪面\nCRCL 今日 -5.5%，稳定币板块只有它在跌。\n\
 
 
 def _load(name):
-    for extra in (ROOT / 'scripts' / 'data', HARNESS):
+    for extra in (ROOT / 'scripts' / 'data', ROOT / 'instances' / 'kcnyu' / 'src'):
         if str(extra) not in sys.path:
             sys.path.insert(0, str(extra))
-    spec = importlib.util.spec_from_file_location(name, HARNESS / f'{name}.py')
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module
+    return importlib.import_module(f'clawock_kcnyu.harness.{name}')
 
 
 @pytest.fixture

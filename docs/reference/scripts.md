@@ -31,19 +31,22 @@ title: clawock · scripts 详细参考
 
 所有 stock cron 都用同一套"preflight (确定性) → LLM (创造性) → postflight (校验)"模式。
 确定性活强制脚本化执行；LLM 只做合成；postflight 自验证 + commit。
+生产入口是安装后的 `clawock` CLI；KCNyu 实现由独立的 `clawock-kcnyu`
+distribution（源码位于 `instances/kcnyu/`）通过标准 Python entry points 提供。
+`scripts/harness/` 只保留迁移期回滚别名，不再是实现真源。
 
 **Daily deep brief**（08:00 HKT cron）
-- **`scripts/harness/brief_preflight.py`**：刷 US/HK 价 + FX + portfolio snapshot + HHI 算法 + SEC EDGAR (仅 `is_leveraged_etf=false`) + retrospective vs 上次 plan.json。输出 `memory/.tmp/brief-context-{date}.json`
-- **`scripts/harness/brief_postflight.py`**：校验 `memory/{date}-pre-open.md` + `memory/{date}-plan.json`（段标记 / plan schema / HHI / FX / HKD+USD bug pattern）；pass/warn 自动 commit
+- **`clawock brief preflight`**：刷 US/HK 价 + FX + portfolio snapshot + HHI 算法 + SEC EDGAR (仅 `is_leveraged_etf=false`) + retrospective vs 上次 plan.json。输出 `memory/.tmp/brief-context-{date}.json`
+- **`clawock brief postflight`**：校验 `memory/{date}-pre-open.md` + `memory/{date}-plan.json`（段标记 / plan schema / HHI / FX / HKD+USD bug pattern）；pass/warn 自动 commit
 
 **Mode 6 briefing**（HK 开/午/午后/收盘 + US 开/收盘 — 6 个 cron 共享）
-- **`scripts/harness/report_preflight.py --market {hk|us} --phase {open|mid|pm|close}`**：跑 analyze_*.py + 抽信号 (WATCH/STOP/TRIM 计数) + 异动 (≥3% 涨跌) + 指数方向；写 `memory/.tmp/report-context-{market}-{phase}-{date}.json`（`{date}` = 跑批当天）并清掉该 market+phase 其它日期的残留；**stdout 与文件是同一份 JSON**（含 `context_id`，末行 `context_path:`），靠 `peer_scan` 在源头裁剪保持小体积。`raw_wechat_block` 不再经模型手 —— postflight 自己拼进消息
-- **`scripts/harness/report_postflight.py --market {hk|us} --phase {phase} --context-id ID --text-file PATH`**：拼 `title + raw_wechat_block + 模型散文`，校验三段标记 / 异动票必须被提及 / 长度 / 敷衍词；`--context-id` 不匹配或散文文件 >30min 未更新则拒发。**fail-closed**：pass/warn 发全文 + scoped commit/push，fail 只发数据块（绝不发被拒散文）且不 commit，休市/缺 context 不发。失败过的 slot 之后可被合格报告**补发一次**。主发 WeChat + 镜像 Telegram。
-- **`scripts/harness/report_watchdog.py --market {hk|us} --phase {phase} --job-name "{cron名}"`**：系统 crontab 的 LLM-free Telegram-only backstop。覆盖 HK 4 班 + US 开/收 2 班；读取 postflight delivery marker，只有 Telegram 未确认时才补投，绝不重发 WeChat。
+- **`clawock report preflight --market {hk|us} --phase {open|mid|pm|close}`**：跑 analyze_*.py + 抽信号 (WATCH/STOP/TRIM 计数) + 异动 (≥3% 涨跌) + 指数方向；写 `memory/.tmp/report-context-{market}-{phase}-{date}.json`（`{date}` = 跑批当天）并清掉该 market+phase 其它日期的残留；**stdout 与文件是同一份 JSON**（含 `context_id`，末行 `context_path:`），靠 `peer_scan` 在源头裁剪保持小体积。`raw_wechat_block` 不再经模型手 —— postflight 自己拼进消息
+- **`clawock report postflight --market {hk|us} --phase {phase} --context-id ID --text-file PATH`**：拼 `title + raw_wechat_block + 模型散文`，校验三段标记 / 异动票必须被提及 / 长度 / 敷衍词；`--context-id` 不匹配或散文文件 >30min 未更新则拒发。**fail-closed**：pass/warn 发全文 + scoped commit/push，fail 只发数据块（绝不发被拒散文）且不 commit，休市/缺 context 不发。失败过的 slot 之后可被合格报告**补发一次**。主发 WeChat + 镜像 Telegram。
+- **`clawock-kcnyu-report-watchdog --market {hk|us} --phase {phase} --job-name "{cron名}"`**：系统 crontab 的 LLM-free Telegram-only backstop。覆盖 HK 4 班 + US 开/收 2 班；读取 postflight delivery marker，只有 Telegram 未确认时才补投，绝不重发 WeChat。
 
 **Mode 7 intraday**（HK + US 盘中盯盘 — 3 个 cron job 共享同一套脚本；季节化 slot 数和精确时间只看生成调度表，隔夜始终最晚 02:30 HKT）
-- **`scripts/harness/intraday_preflight.py --market {hk|us}`**：跑 analyze_*.py + 异动检测 + `should_alert` 决策；输出 `memory/.tmp/intraday-context-{market}-latest.json`
-- **`scripts/harness/intraday_postflight.py --market {hk|us} --context-id {preflight 的 context_id} --text-file memory/.tmp/intraday-prose-{hk|us}.md`**（**先写文件再调用，禁 heredoc/`<<<`**；空输入/超 20 分钟的旧文件判 `status: input_error` 并拒投）：模型只写 `▎我的看法` 散文，`assemble_message()` 在发送时把 `raw_wechat_block` 拼在前面 —— 数据块不再经模型往返，也就不会被重排版打坏。`--context-id` 不匹配 = 散文与数据不同代，拒绝拼装只发数据块。校验 ▎我的看法 / should_alert 异动票提及只针对模型写的那段（长度算拼装后的整条）；不提交 `portfolio.json`，dashboard 仅在语义变化时 commit + push；无论有无 dashboard diff 都更新本地 slot heartbeat，交 single publisher 发布。省略 `--context-id` 回落到 legacy 整报告模式（保留 verbatim 校验），供未迁移的 payload 过渡。
+- **`clawock intraday preflight --market {hk|us}`**：跑 analyze_*.py + 异动检测 + `should_alert` 决策；输出 `memory/.tmp/intraday-context-{market}-latest.json`
+- **`clawock intraday postflight --market {hk|us} --context-id {preflight 的 context_id} --text-file memory/.tmp/intraday-prose-{hk|us}.md`**（**先写文件再调用，禁 heredoc/`<<<`**；空输入/超 20 分钟的旧文件判 `status: input_error` 并拒投）：模型只写 `▎我的看法` 散文，`assemble_message()` 在发送时把 `raw_wechat_block` 拼在前面 —— 数据块不再经模型往返，也就不会被重排版打坏。`--context-id` 不匹配 = 散文与数据不同代，拒绝拼装只发数据块。校验 ▎我的看法 / should_alert 异动票提及只针对模型写的那段（长度算拼装后的整条）；不提交 `portfolio.json`，dashboard 仅在语义变化时 commit + push；无论有无 dashboard diff 都更新本地 slot heartbeat，交 single publisher 发布。省略 `--context-id` 回落到 legacy 整报告模式（保留 verbatim 校验），供未迁移的 payload 过渡。
 
 **共通设计点**：
 - `raw_wechat_block`：**Mode 6 报告**（report_postflight）由 harness 自己拼进消息，LLM 只写散文、不碰数据块；**intraday** 仍是 LLM verbatim 拷贝 + postflight 首行验证
@@ -61,7 +64,7 @@ title: clawock · scripts 详细参考
 - **`scripts/data/fetch_influencer_feed.py`**：高影响力人物市场异动 → `assets/data/influencer_feed.json`。Trump 原帖(trumpstruth.org/feed RSS, 全文)+ Musk(Google News RSS 代理, X 无可靠免费 RSS)。关键词预筛 → 单次 vendor LLM(`thinking_disabled` 结构化抽取)提相关性/stance/ticker/板块 → 代码交叉匹配持仓分三档：`held_hits` / `new_ideas` / `sector_hits`。merge-not-overwrite: 源**抓取失败**才保留旧条目（被 LLM 筛掉≠失败）。`MINIMAX_API_KEY` 主、`XIAOMI_API_KEY` 可选 fallback；两者都缺才降级 keyword-only。dashboard「影响力雷达」卡 + brief `▎名人异动/政策风向` 段消费。
 - **`scripts/data/xiaomi_llm.py`**：Anthropic-Messages client，供 GH Action 直调（绕过 openclaw gateway）。**Primary MiniMax M3 → optional fallback Xiaomi MiMo v2.5-pro**；M2.7 + openai-completions 已废。单轮默认 thinking enabled + max_tokens 32K；结构化抽取传 `thinking_disabled=True`。`_clean()` 统一剥内联 `<think>…</think>` + markdown fence。retry 3 + 429 handling。env `MINIMAX_API_KEY` 必需；`XIAOMI_API_KEY` 可选且失效后自动跳过；`chat(fallback=False)` 可关 Xiaomi fallback。
 - **`scripts/data/gh_action_*.py`**：3 个 GH Action 入口脚本（brief_fallback / weekly_review / news_digest），都用 `xiaomi_llm.chat()` 走 MiniMax M3 主路径。
-- **`scripts/data/safe_push.sh`**：共享 git push 防 conflict 死循环工具。3 次 retry + 每次 rebase 失败 → `git rebase --abort` + exit 2（不死循环 push）。所有写文件的 GH Action workflow 用 `bash scripts/data/safe_push.sh` 替代原本的 push loop；harness 端 `scripts/harness/_harness_common.push_with_rebase_retry` **直接委托本脚本**（2026-06-10 统一，自动获得 rebase.autoStash + 冲突标记硬闸），全体 committer 单一 push 路径。
+- **`scripts/data/safe_push.sh`**：共享 git push 防 conflict 死循环工具。3 次 retry + 每次 rebase 失败 → `git rebase --abort` + exit 2（不死循环 push）。所有写文件的 GH Action workflow 用 `bash scripts/data/safe_push.sh` 替代原本的 push loop；adapter 的 `_harness_common.push_with_rebase_retry` **直接委托本脚本**（2026-06-10 统一，自动获得 rebase.autoStash + 冲突标记硬闸），全体 committer 单一 push 路径。
 - **`scripts/data/reconcile.sh`**：手工成交后的唯一收口。先把成交写进对应 `holdings[].trades[]`（`action/date/shares/price`，卖出另记 `realized_pnl`），同步 broker 真值叶子（`shares` / `cost_basis`；新仓建 holding、平仓保留历史行并置 `shares=0`；存取款写 `cash_adjustments[]`），再运行本脚本重算 aggregates / cash / realized P&L 并执行完整性闸。它只派生和校验，不会替你猜成交。
 
 ### Cron map
@@ -72,7 +75,8 @@ title: clawock · scripts 详细参考
 `sync_us_cron_dst.py --apply` 每日自动对齐美股 live cron + system watchdog；
 `cron_heartbeat.py` 维护 Mode 7 slot ledger，由现有 single publisher 发布。
 
-所有 harness preflight/postflight 都在 `scripts/harness/`。Mode 6 / brief / Mode 7 的 postflight
+所有 harness preflight/postflight 的实现都在 `instances/kcnyu/`，统一从安装后的
+`clawock` CLI 调用。Mode 6 / brief / Mode 7 的 postflight
 都会重建 dashboard；Mode 7 不提交 `portfolio.json`，dashboard 只发布语义变化，但每个
 受监控 slot 的 heartbeat 都会发布并由 cron health 对账。
 

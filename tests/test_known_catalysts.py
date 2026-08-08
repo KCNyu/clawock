@@ -50,7 +50,7 @@ def test_missing_or_corrupt_brief_fails_soft(tmp_path):
 
 def test_intraday_preflight_publishes_known_catalysts():
     root = Path(__file__).resolve().parents[1]
-    source = (root / "scripts/harness/intraday_preflight.py").read_text()
+    source = (root / "instances/kcnyu/src/clawock_kcnyu/harness/intraday_preflight.py").read_text()
     assert "known_catalysts.for_movers(" in source
     assert "'known_catalysts':" in source
     assert "mover_news.probe(" in source, "the narrow novelty probe must remain"
