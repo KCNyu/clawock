@@ -70,6 +70,26 @@ def test_runtime_paths_derive_one_external_installation():
     assert paths.install_dir == Path("/opt/openclaw/package")
 
 
+def test_default_runtime_paths_follow_the_current_user_and_path(tmp_path):
+    home = tmp_path / "user-home"
+    bin_dir = tmp_path / "bin"
+    bin_dir.mkdir()
+    binary = bin_dir / "openclaw"
+    binary.write_text("#!/bin/sh\n")
+    binary.chmod(0o755)
+
+    paths = provider.runtime_paths({"HOME": str(home), "PATH": str(bin_dir)})
+
+    assert paths.binary == str(binary)
+    assert paths.home == home / ".openclaw"
+    assert paths.install_dir is None
+
+
+def test_public_provider_has_no_operator_home_literal():
+    source = Path(provider.__file__).read_text()
+    assert "/root/" not in source
+
+
 def test_explicit_runtime_reads_its_own_sqlite(tmp_path):
     paths = provider.OpenClawPaths(
         binary="/opt/openclaw/bin/openclaw",
