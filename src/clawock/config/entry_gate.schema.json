@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/KCNyu/clawock/src/clawock/config/entry_gate.schema.json",
+  "$id": "urn:clawock:schema:entry-gate:1",
   "title": "clawock pre-investment entry gate artifact",
-  "description": "One assessment per file under memory/entry-gates/<TICKER>-<date>.json. scripts/data/entry_gate.py is the enforcing validator and recomputes verdict, routing and information grade; this document is the published shape. Hard vetoes and their encoded exceptions live in config/entry-gate-vetoes.json.",
+  "description": "One assessment per file under memory/entry-gates/<TICKER>-<date>.json. clawock.entry_gate is the enforcing validator and recomputes verdict, routing and information grade; this document is the published shape. Hard vetoes and their encoded exceptions live in config/entry-gate-vetoes.json.",
   "type": "object",
   "additionalProperties": false,
   "required": [

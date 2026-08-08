@@ -11,7 +11,7 @@ from pathlib import Path
 
 import pytest
 
-from scripts.data import research_surface as rs
+from clawock import research_surface as rs
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -343,7 +343,7 @@ def test_live_repository_artifacts_are_valid_right_now():
 
 def test_brief_preflight_puts_the_surface_in_the_daily_context():
     preflight = (INSTANCE_HARNESS / "brief_preflight.py").read_text()
-    assert "import research_surface" in preflight
+    assert "research_surface" in preflight
     assert "'research_surface': research_surface_ctx," in preflight
     assert "research_surface.summarize(" in preflight
 
@@ -373,7 +373,7 @@ def test_system_check_validates_artifacts_before_every_push():
 
 def test_validate_workflow_runs_the_integrity_check():
     workflow = (ROOT / ".github" / "workflows" / "harness-regression.yml").read_text()
-    assert "python3 scripts/data/research_surface.py --check" in workflow
+    assert "clawock research --check" in workflow
     # and a bad artifact must be able to red that job
     for pattern in ("memory/theses/**", "memory/earnings/**", "memory/entry-gates/**"):
         assert pattern in workflow
@@ -499,7 +499,7 @@ def test_a_missing_registry_directory_never_breaks_a_reporting_cron(tmp_path):
 def test_intraday_and_report_preflights_carry_mover_thesis():
     for name in ("intraday_preflight.py", "report_preflight.py"):
         source = (INSTANCE_HARNESS / name).read_text()
-        assert "import research_surface" in source, name
+        assert "research_surface" in source, name
         assert "research_surface.movers_thesis_context(" in source, name
         assert "'mover_thesis'" in source, name
         # scoped to the names the slot already flagged, never the whole book

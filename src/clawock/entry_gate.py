@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Pre-investment entry gate: is this name understandable and researchable enough?
 
 This runs *before* a deep-research run or any new exposure, and it answers only
@@ -25,26 +24,14 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
-# The checkout root, so `clawock` resolves from the tree this file ships
-# in. Reached through the scripts/data/workspace shim until #267 step 3,
-# whose only remaining job was inserting this path as a side effect.
-sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
-sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
-from clawock.workspace import engine_config, workspace_root  # noqa: E402
+from clawock import instrument_registry
+from clawock.workspace import engine_config, workspace_root
 
-# Code lives in the checkout; only DATA lives in the workspace. `workspace_root`
-# is overridable, so resolving our own modules through WS would read them out of
-# someone else's data directory — or silently pick up whatever happens to be
-# there. Same expression WS is seeded from, kept separate on purpose (#269).
-_CHECKOUT = Path(__file__).resolve().parents[2]
-WS = workspace_root(Path(__file__).resolve().parents[2])
+WS = workspace_root(Path.cwd())
 SCHEMA_FILE = engine_config("entry_gate.schema.json")
 VETO_FILE = WS / "config" / "entry-gate-vetoes.json"
 ARTIFACT_ROOT = WS / "memory" / "entry-gates"
 SCHEMA_VERSION = 1
-
-sys.path.insert(0, str(_CHECKOUT / "scripts" / "data"))
-from clawock import instrument_registry  # noqa: E402
 
 MARKETS = {"US", "HK"}
 INSTRUMENT_KINDS = {"company", "leveraged_etf"}

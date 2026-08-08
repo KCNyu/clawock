@@ -73,6 +73,9 @@ numeric research provenance, and backtest run cards also ship in `clawock`.
 The risk engine derives leverage pairs from the workspace instrument registry;
 the dashboard diff engine reads `config/dashboard-outputs.json`. Neither desk's
 tickers nor artifact paths are compiled into the public package.
+The entry gate, thesis registry, earnings ledger, research queue, and claim
+scanner now ship there as well. KCNyu's research cutover date, cadence and list
+of claim-bearing backtests remain workspace configuration.
 
 ### Product — the engine
 
@@ -84,7 +87,7 @@ tickers nor artifact paths are compiled into the public package.
 | Quant + research | `compute_quant_signals` `compute_regime` `compute_t0_setups` `t0_setup_review` `quant_signal_review` `cross_sectional_factor` `peer_residual_engine` `peer_scan` `suggest_peers` |
 | Evidence + provenance | `news_evidence_graph` `research_provenance` `claim_provenance` `run_card` `build_evidence` |
 | Market data | `fetch_us_stocks` `fetch_daily_bars` `fetch_fx` `fetch_benchmark_history` `fetch_peers` `fetch_catalysts` `fetch_us_filings` `fetch_fundamentals_em` `fetch_fundflow_em` `fetch_em_news` `fetch_sentiment` `fetch_macro` `mover_news` `known_catalysts` `analyze_hk_stocks` `analyze_us_stocks` `_em_http` `_em_symbols` |
-| Moved into product | `clawock.instrument_registry` `clawock.bar_checks` `clawock.brief_context` `clawock.brief_decision_packet` `clawock.decision_contract` `clawock.decision_v2` `clawock.plan_surface` `clawock.risk_discipline` `clawock.dashboard_outputs` `clawock.research_provenance` `clawock.run_card` `clawock.json_repair` `clawock.safe_io` `clawock.trading_calendar` | Code and schemas ship in the wheel; each user's configuration and data stay in their workspace |
+| Moved into product | `clawock.instrument_registry` `clawock.bar_checks` `clawock.brief_context` `clawock.brief_decision_packet` `clawock.decision_contract` `clawock.decision_v2` `clawock.plan_surface` `clawock.risk_discipline` `clawock.dashboard_outputs` `clawock.research_provenance` `clawock.run_card` `clawock.entry_gate` `clawock.thesis_registry` `clawock.earnings_review` `clawock.research_surface` `clawock.claim_provenance` `clawock.json_repair` `clawock.safe_io` `clawock.trading_calendar` | Code and schemas ship in the wheel; each user's configuration and data stay in their workspace |
 | Gates + outputs | `preflight_integrity` `validate_sidecars` `dashboard_outputs` `build_dashboard` `workflow_outcomes` `workflow_health` `coverage_badge` `cron_contract` `cron_heartbeat` |
 
 ### Instance — kcn's desk
@@ -98,6 +101,7 @@ tickers nor artifact paths are compiled into the public package.
 | kcn's specific positions | `fetch_gold_dca` `update_gold_dca` `fetch_influencer_feed` | 000217; a feed chosen for this book's theses |
 | Claims about this book | `backtest_hstech_regime` `backtest_us_leverage` `backtest_combined_regime` `validate_regime_dial` | Validate kcn's dial against kcn's holdings |
 | This site's output contract | `config/dashboard-outputs.json` | Names this desk's generated artifacts, clock fields and linked generation group; the wheel only implements the configured diff algorithm |
+| This desk's research rollout | `config/research-governance.json` `config/claim-provenance.json` | Pins the gate cutover/cadence and the KCNyu backtest claim surfaces without compiling either into the wheel |
 
 ### Contested — flagging rather than hiding
 

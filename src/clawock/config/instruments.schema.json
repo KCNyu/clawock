@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/KCNyu/clawock/src/clawock/config/instruments.schema.json",
+  "$id": "urn:clawock:schema:instruments:1",
   "title": "clawock canonical instrument registry",
   "type": "object",
   "additionalProperties": false,

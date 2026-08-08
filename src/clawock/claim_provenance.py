@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Backtest claims must cite a run card, and the card must still agree.
 
 The gap this closes
@@ -34,19 +33,12 @@ import re
 import sys
 from pathlib import Path
 
-WS = Path(__file__).resolve().parents[2]
+from clawock.workspace import workspace_root
+
+WS = workspace_root(Path.cwd())
 CARDS_DIR = WS / 'memory' / 'backtests'
 ALLOWLIST = WS / 'config' / 'claim-allowlist.json'
-
-# Files whose prose makes backtest claims. Explicit, so adding a new claim
-# surface is a decision rather than an accident.
-SCANNED = (
-    'scripts/data/compute_regime.py',
-    'scripts/data/validate_regime_dial.py',
-    'scripts/data/backtest_hstech_regime.py',
-    'scripts/data/backtest_us_leverage.py',
-    'scripts/data/backtest_combined_regime.py',
-)
+SURFACES_CONFIG = WS / 'config' / 'claim-provenance.json'
 
 QUANTITY = re.compile(
     r'\b(maxDD|max_drawdown|drawdown|CAGR|totRet|total_return|improvement|'
@@ -57,6 +49,23 @@ PVALUE = re.compile(r'p\s*[=＝]\s*([01](?:\.\d+)?)', re.I)
 RUN_ID = re.compile(r'\b([a-z_]+-\d{8}-[0-9a-f]{8})\b')
 
 TOLERANCE = 0.006   # 0.6pp — prose rounds to one decimal
+
+
+def load_surfaces(path: Path | None = None) -> tuple[str, ...]:
+    """Claim-bearing files are workspace policy, not package contents."""
+    path = Path(path or SURFACES_CONFIG)
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    surfaces = payload.get("surfaces") if isinstance(payload, dict) else None
+    if (not isinstance(payload, dict) or payload.get("schema_version") != 1
+            or not isinstance(surfaces, list)):
+        raise ValueError(f"{path} must declare schema_version 1 and surfaces")
+    if not all(
+        isinstance(item, str) and item and not Path(item).is_absolute()
+        and ".." not in Path(item).parts
+        for item in surfaces
+    ):
+        raise ValueError(f"{path}: surfaces must be relative workspace paths")
+    return tuple(surfaces)
 
 
 def load_cards(cards_dir: Path | None = None) -> dict:
@@ -117,13 +126,15 @@ def _matches_card(value: float, cards: list[dict]) -> bool:
 
 
 def check(root: Path | None = None, cards_dir: Path | None = None,
-          allowlist: Path | None = None) -> list[str]:
+          allowlist: Path | None = None, scanned=None) -> list[str]:
     root = Path(root or WS)
+    scanned = load_surfaces(root / "config" / "claim-provenance.json") \
+        if scanned is None else tuple(scanned)
     cards = load_cards(cards_dir)
     allowed = load_allowlist(allowlist)
     problems = []
 
-    for rel in SCANNED:
+    for rel in scanned:
         path = root / rel
         if not path.exists():
             problems.append(f'{rel}: declared claim surface is missing')
@@ -155,13 +166,14 @@ def check(root: Path | None = None, cards_dir: Path | None = None,
     return problems
 
 
-def main() -> int:
+def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument('--check', action='store_true', help='exit non-zero on problems')
-    args = ap.parse_args()
+    args = ap.parse_args(argv)
 
     try:
-        problems = check()
+        scanned = load_surfaces()
+        problems = check(scanned=scanned)
     except Exception as exc:  # fail-closed: a broken scanner is a red gate
         print(f'claim provenance scanner failed: {exc!r}', file=sys.stderr)
         return 2
@@ -171,7 +183,7 @@ def main() -> int:
         for problem in problems:
             print(f'   · {problem}', file=sys.stderr)
         return 1 if args.check else 0
-    print(f'✅ backtest claims in {len(SCANNED)} file(s) resolve to stored run cards')
+    print(f'✅ backtest claims in {len(scanned)} file(s) resolve to stored run cards')
     return 0
 
 

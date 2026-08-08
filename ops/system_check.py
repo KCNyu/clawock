@@ -692,7 +692,7 @@ def check_research_artifacts(r):
     """
     sys.path.insert(0, str(_REPO_ROOT / 'scripts' / 'data'))
     try:
-        import research_surface
+        from clawock import research_surface
         result = research_surface.check()
     except Exception as e:  # noqa: BLE001 — a broken checker must not fail open
         r.add('research artifacts', CRITICAL, f'cannot validate: {e}')
