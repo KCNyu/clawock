@@ -23,12 +23,14 @@ def _init(args) -> int:
     from clawock.harness.config import initialize
 
     try:
-        root = initialize(args.workspace)
+        root = initialize(args.workspace, workflow=args.workflow)
     except (ValueError, OSError) as exc:
         print(str(exc), file=sys.stderr)
         return 1
     print(f"initialized clawock workspace: {root}")
     print(f"edit {root / 'clawock.json'} and {root / 'CONTEXT.md'}")
+    if args.workflow:
+        print(f"workflow: {args.workflow}")
     return 0
 
 
@@ -82,6 +84,8 @@ def _run_publish(args) -> int:
             raise ValueError("workspace output directory changed after this run was prepared")
         if payload.get("metadata") != dict(request.metadata):
             raise ValueError("workspace metadata changed after this run was prepared")
+        if payload.get("workflow", {}) != dict(request.workflow):
+            raise ValueError("workspace workflow changed after this run was prepared")
         context = assemble_explicit(request.workspace, request.context_files)
         supplied_context = payload.get("context")
         if not isinstance(supplied_context, dict) or (
@@ -279,12 +283,54 @@ def _context(args) -> int:
     return 0
 
 
+def _workflow(args) -> int:
+    """Discover or install portable Agent Skills shipped by clawock."""
+    from clawock.workflows import install_workflow, list_workflows, load_workflow
+
+    try:
+        if args.workflow_command == "list":
+            payload = [
+                {
+                    "id": pack.workflow_id,
+                    "version": pack.version,
+                    "description": pack.descriptor["description"],
+                    "certificate": pack.certificate,
+                }
+                for pack in list_workflows()
+            ]
+            print(json.dumps(payload, ensure_ascii=False, indent=2))
+            return 0
+        if args.workflow_command == "show":
+            print(json.dumps(
+                load_workflow(args.workflow_id).as_dict(),
+                ensure_ascii=False,
+                indent=2,
+            ))
+            return 0
+        root = args.skill_root
+        if root is None:
+            root = args.workspace.expanduser().resolve() / ".agents" / "skills"
+        destination = install_workflow(
+            args.workflow_id, root, force=args.force
+        )
+        print(json.dumps({
+            "workflow": args.workflow_id,
+            "installed": str(destination),
+            "skill": str(destination / "SKILL.md"),
+        }, ensure_ascii=False, indent=2))
+        return 0
+    except (ValueError, OSError, json.JSONDecodeError) as exc:
+        print(str(exc), file=sys.stderr)
+        return 1
+
+
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser(prog="clawock", description=__doc__)
     sub = parser.add_subparsers(dest="command", required=True)
 
     init = sub.add_parser("init", help="create a standalone clawock workspace")
     init.add_argument("workspace", type=Path)
+    init.add_argument("--workflow", help="pin a packaged decision workflow")
     init.set_defaults(func=_init)
 
     run = sub.add_parser(
@@ -359,6 +405,22 @@ def main(argv=None) -> int:
     context_assemble.add_argument("--json", action="store_true",
                                   help="print assembly manifest, not prompt text")
     context_assemble.set_defaults(func=_context)
+
+    workflow = sub.add_parser(
+        "workflow", help="discover or install portable decision-workflow skills")
+    workflow_sub = workflow.add_subparsers(dest="workflow_command", required=True)
+    workflow_list = workflow_sub.add_parser("list", help="list packaged workflows")
+    workflow_list.set_defaults(func=_workflow)
+    workflow_show = workflow_sub.add_parser("show", help="print a workflow contract")
+    workflow_show.add_argument("workflow_id")
+    workflow_show.set_defaults(func=_workflow)
+    workflow_install = workflow_sub.add_parser(
+        "install", help="install a workflow as a standard Agent Skill")
+    workflow_install.add_argument("workflow_id")
+    workflow_install.add_argument("--workspace", type=Path, default=Path.cwd())
+    workflow_install.add_argument("--skill-root", type=Path, default=None)
+    workflow_install.add_argument("--force", action="store_true")
+    workflow_install.set_defaults(func=_workflow)
 
     args = parser.parse_args(argv)
     if args.command == "report" and not args.harness_phase and not args.context:
