@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import json
 import os
+import shutil
 import sqlite3
 import subprocess
 import sys
@@ -22,20 +23,18 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Mapping
 
-# pnpm's global bin. Kept as one constant rather than resolved through PATH: the
-# cron environment is not a login shell, and PATH resolution has bitten this
-# before.
-OPENCLAW_BIN = "/root/.local/share/pnpm/openclaw"
-
-# Where the runtime keeps its own state. 6.1 migrated cron out of the JSONL
-# files into SQLite; both are still read, newest first, because the fossil is
-# the only thing left when the gateway and the DB are both unreadable.
-OPENCLAW_HOME = Path("/root/.openclaw")
+# Keep this compatibility name for callers that need an argv default, but make
+# its value belong to the current environment rather than to one operator's
+# pnpm installation. Cron services that deliberately run with a restricted PATH
+# should set CLAWOCK_OPENCLAW_BIN to an absolute path.
+OPENCLAW_BIN = shutil.which("openclaw") or "openclaw"
+DEFAULT_OPENCLAW_HOME = Path.home() / ".openclaw"
+# Compatibility aliases remain environment-neutral. New code should accept an
+# OpenClawPaths object or call runtime_paths() so overrides are resolved at use.
+OPENCLAW_HOME = DEFAULT_OPENCLAW_HOME
 CRON_RUNS_DIR = OPENCLAW_HOME / "cron" / "runs"
 CRON_JOBS_JSON = OPENCLAW_HOME / "cron" / "jobs.json"
 STATE_DB = OPENCLAW_HOME / "state" / "openclaw.sqlite"
-# The npm/pnpm install is a different root from the state home.
-INSTALL_DIR = Path("/root/.local/share/pnpm/global/5/node_modules/openclaw")
 
 
 @dataclass(frozen=True)
@@ -44,7 +43,7 @@ class OpenClawPaths:
 
     binary: str
     home: Path
-    install_dir: Path
+    install_dir: Path | None
 
     @property
     def cron_runs_dir(self) -> Path:
@@ -83,6 +82,38 @@ class OpenClawPaths:
         return self.workspace / "memory" / ".tmp"
 
 
+def _discover_install_dir(binary: str, *, search_path: str | None = None) -> Path | None:
+    """Best-effort npm/pnpm package root discovery from a selected CLI.
+
+    The package root is only needed by optional operator checks. Runtime calls
+    need the binary and state home, so an unfamiliar installation layout must
+    not make the provider unusable.
+    """
+    located = (binary if Path(binary).is_absolute()
+               else shutil.which(binary, path=search_path))
+    if not located:
+        return None
+    binary_path = Path(located)
+    try:
+        resolved = binary_path.resolve()
+    except OSError:
+        resolved = binary_path
+
+    # npm commonly symlinks the executable into a package's bin script.
+    for parent in (resolved.parent, *resolved.parents):
+        if parent.name == "openclaw" and parent.parent.name == "node_modules":
+            return parent
+
+    # pnpm's global launcher is a shell wrapper next to global/<n>/node_modules.
+    candidates = sorted(
+        binary_path.parent.glob("global/*/node_modules/openclaw"), reverse=True)
+    return candidates[0] if candidates else None
+
+
+# Legacy import surface, now discovered instead of fixed to one pnpm store.
+INSTALL_DIR = _discover_install_dir(OPENCLAW_BIN)
+
+
 def runtime_paths(environ: Mapping[str, str] | None = None) -> OpenClawPaths:
     """Resolve the selected external OpenClaw runtime.
 
@@ -90,11 +121,15 @@ def runtime_paths(environ: Mapping[str, str] | None = None) -> OpenClawPaths:
     as a compatibility fallback for existing operator scripts.
     """
     env = os.environ if environ is None else environ
-    binary = env.get("CLAWOCK_OPENCLAW_BIN") or OPENCLAW_BIN
+    binary = env.get("CLAWOCK_OPENCLAW_BIN") or shutil.which(
+        "openclaw", path=env.get("PATH")) or "openclaw"
     home_override = env.get("CLAWOCK_OPENCLAW_HOME") or env.get("OPENCLAW_HOME")
-    home = Path(home_override).expanduser() if home_override else OPENCLAW_HOME
+    default_home = (Path(env["HOME"]) / ".openclaw"
+                    if env.get("HOME") else DEFAULT_OPENCLAW_HOME)
+    home = Path(home_override).expanduser() if home_override else default_home
     install_override = env.get("CLAWOCK_OPENCLAW_INSTALL_DIR")
-    install_dir = Path(install_override).expanduser() if install_override else INSTALL_DIR
+    install_dir = (Path(install_override).expanduser() if install_override
+                   else _discover_install_dir(binary, search_path=env.get("PATH")))
     return OpenClawPaths(binary=binary, home=home, install_dir=install_dir)
 
 # `cron list --json` round-trips through the gateway and has been observed at
@@ -422,9 +457,8 @@ def build_cron_edit_argv(job_id: str, patch: dict, *,
 # `system_check.py`, which is the last consumer to migrate — deliberately, since
 # it is what proves the earlier steps did not break anything.
 
-# The runtime's own workspace. Not derived from a caller's workspace_root: the
-# semantic index only ever covers the live runtime checkout, so an interactive
-# worktree must judge that one rather than its own copy.
+# Legacy path imports follow the generic current-user default. Operator code
+# that can target multiple runtimes should use runtime_paths() instead.
 LIVE_WORKSPACE = OPENCLAW_HOME / "workspace"
 CONFIG_FILE = OPENCLAW_HOME / "openclaw.json"
 MEMORY_INDEX_DB = OPENCLAW_HOME / "agents" / "main" / "agent" / "openclaw-agent.sqlite"
@@ -438,4 +472,6 @@ def is_installed(paths: OpenClawPaths | None = None) -> bool:
     answer False, which is what lets an operator check skip cleanly instead of
     reporting a fault that only means "not this machine".
     """
-    return Path((paths or runtime_paths()).binary).exists()
+    binary = (paths or runtime_paths()).binary
+    return (Path(binary).exists() if Path(binary).is_absolute()
+            else shutil.which(binary) is not None)

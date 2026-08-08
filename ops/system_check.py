@@ -600,6 +600,8 @@ def _memory_index_backlog():
 
 def _memory_index_patch_gaps():
     """Local dist patches openclaw upgrades wipe, both silent at the point of use."""
+    if OPENCLAW_INSTALL is None:
+        return ['openclaw install root unresolved; set CLAWOCK_OPENCLAW_INSTALL_DIR']
     try:
         dist = OPENCLAW_INSTALL.resolve() / 'dist'
     except OSError as e:  # noqa: BLE001
