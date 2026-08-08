@@ -1,0 +1,10 @@
+{
+  "percent_rounding_by_book": {
+    "us_stocks": 4,
+    "hk_stocks": 2
+  },
+  "cash_field_by_book": {
+    "us_stocks": "cash_usd",
+    "hk_stocks": "cash_hkd"
+  }
+}
