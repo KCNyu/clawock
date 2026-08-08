@@ -966,7 +966,7 @@ def write_shadow_portfolio(
     path = Path(out_path)
     path.parent.mkdir(parents=True, exist_ok=True)
     try:
-        from safe_io import safe_write_text
+        from clawock.safe_io import safe_write_text
         safe_write_text(
             str(path), json.dumps(result, ensure_ascii=False, indent=2) + "\n")
     except ImportError:

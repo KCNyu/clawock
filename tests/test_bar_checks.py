@@ -19,7 +19,7 @@ ROOT = Path(__file__).resolve().parents[1]
 DATA = ROOT / 'scripts' / 'data'
 sys.path.insert(0, str(DATA))
 
-import bar_checks  # noqa: E402
+from clawock import bar_checks  # noqa: E402
 
 
 def _bar(o, h, l, c, **extra):
@@ -229,7 +229,7 @@ def test_every_declared_consumer_still_routes_through_the_shared_module():
     for name in bar_checks.BAR_CONSUMERS:
         path = DATA / name
         assert path.exists(), f'{name} is registered as a bar consumer but is gone'
-        assert re.search(r'^import bar_checks', path.read_text(), re.M), (
+        assert re.search(r'^from clawock import bar_checks', path.read_text(), re.M), (
             f'{name} no longer imports bar_checks — the shared contract has a '
             'hole exactly where it used to have three private ones')
 

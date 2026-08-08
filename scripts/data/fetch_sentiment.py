@@ -16,9 +16,13 @@ import sys
 import time
 import xml.etree.ElementTree as ET
 from datetime import datetime, timezone
+from pathlib import Path
 from urllib.parse import quote, urlparse
 
 import requests
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
 
 WS_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 OUT_FILE = os.path.join(WS_ROOT, 'assets', 'data', 'sentiment.json')
@@ -163,7 +167,7 @@ def main():
     os.makedirs(os.path.dirname(OUT_FILE), exist_ok=True)
     # Atomic write
     sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-    from safe_io import safe_write_json
+    from clawock.safe_io import safe_write_json
     safe_write_json(OUT_FILE, out)
     print(f'\n✓ wrote {OUT_FILE} ({len(out["tickers"])} tickers, {os.path.getsize(OUT_FILE):,} bytes)')
 

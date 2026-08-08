@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """
 json_repair.py — bounded, lossless recovery for hand-authored JSON sidecars.
 

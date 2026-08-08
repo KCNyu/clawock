@@ -119,7 +119,7 @@ SHORT_MA_WINDOW = 5  # 新上市杠杆名不足 200DMA 时的「右侧确认」�
 SHORT_MA_MIN = 5     # 短均线至少需要的 bar 数，再少则 unknown
 
 try:
-    from safe_io import safe_write_json  # type: ignore
+    from clawock.safe_io import safe_write_json
 except Exception:
     def safe_write_json(path, data, indent=2):
         Path(path).write_text(json.dumps(data, ensure_ascii=False, indent=indent))

@@ -49,7 +49,7 @@ DEFAULT_DAYS = 60
 
 sys.path.insert(0, str(WS_ROOT / 'scripts' / 'data'))
 from fetch_us_stocks import load_api_keys  # type: ignore
-from safe_io import safe_write_json  # type: ignore
+from clawock.safe_io import safe_write_json
 
 
 def fetch_polygon_daily(ticker: str, days: int, api_key: str) -> List[Dict]:

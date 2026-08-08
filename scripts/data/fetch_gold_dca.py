@@ -32,12 +32,15 @@ import sys
 import os
 import bisect
 from datetime import date, datetime, timezone
+from pathlib import Path
 
 GRAMS_PER_OZ = 31.1035  # 1 金衡盎司(troy oz) = 31.1035 克
 
 WS_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.insert(0, os.path.join(WS_ROOT, 'scripts', 'data'))
-from safe_io import safe_write_json  # noqa: E402
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
+from clawock.safe_io import safe_write_json  # noqa: E402
 from _em_http import em_get  # noqa: E402  东财统一请求节流出口
 
 PORTFOLIO = os.path.join(WS_ROOT, 'portfolio.json')
@@ -738,7 +741,7 @@ def main():
 
     # 锁内重读当前 portfolio，只覆盖自己拥有的 gold_dca key —— 防与 market/intraday
     # 写者的 load-modify-write 竞态（旧内存整块覆盖刚写的 gold 字段）。[cut #2]
-    from safe_io import mutate_json
+    from clawock.safe_io import mutate_json
     mutate_json(PORTFOLIO, lambda d: {**d, 'gold_dca': merged})
     print(f"  ✓ 已写回 {PORTFOLIO}")
     return 0

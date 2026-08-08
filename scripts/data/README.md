@@ -93,7 +93,7 @@ clawock 是**美股 + 港股 + 黄金定投**的实盘组合。工具包遵循�
 |---|---|---|:---:|
 | `fetch_fx.py` | USDHKD 汇率 · 3 路 fallback | Frankfurter(ECB) → 备用 | ✅ |
 | `preflight_integrity.py` | 数据不变量硬闸: TCV / PNL / FX / cash 对账 | 本地 | ✅ |
-| `bar_checks.py` | bar/quote **判据唯一真源**:结构不可能(fatal) vs 可疑(flag,含 o==h==l==c 退化区间)、同源区间越界、gap-safe 收益(停牌不填 0)。策略仍由各 fetcher 自己定 | 纯本地(无 I/O) | ✅ |
+| `src/clawock/bar_checks.py` | bar/quote **判据唯一真源**:结构不可能(fatal) vs 可疑(flag,含 o==h==l==c 退化区间)、同源区间越界、gap-safe 收益(停牌不填 0)。策略仍由各 fetcher 自己定 | 纯本地(无 I/O) | ✅ |
 | `research_provenance.py` | 研究报告 Decimal 计算、两源数字溯源与 fail-closed 准出（tolerance 上限 5%，算式异常也只输出结构化 fail） | 结构化 manifest + 本地确定性校验 | ✅ |
 | `thesis_registry.py` | 持久 thesis schema/validator、证据驱动 drift（红线触发/解除对称要证据）与 decision link 解析 | `memory/theses/*.json` + 本地确定性校验 | ✅ |
 | `earnings_review.py` | 一手财报复盘:来源分级、盈利质量数学、管理层承诺账本、provenance 准出与 thesis 证据交接 | `memory/earnings/*/*.json` + 本地确定性校验 | ✅ |

@@ -26,11 +26,14 @@ import os
 import subprocess
 import sys
 from datetime import datetime
+from pathlib import Path
 from zoneinfo import ZoneInfo
 
 WS_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.insert(0, os.path.join(WS_ROOT, 'scripts', 'data'))
-from safe_io import safe_write_json  # noqa: E402
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
+from clawock.safe_io import safe_write_json  # noqa: E402
 
 PORTFOLIO = os.path.join(WS_ROOT, 'portfolio.json')
 
