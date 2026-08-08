@@ -72,18 +72,19 @@ def _git_status(paths):
 
 @pytest.fixture(scope="session", autouse=True)
 def publish_owned_artifacts_are_left_as_found():
-    from dashboard_outputs import DASHBOARD_OUTPUTS
+    from clawock.dashboard_outputs import output_paths
 
-    before = {path: (ROOT / path).read_bytes() for path in DASHBOARD_OUTPUTS
+    outputs = output_paths(ROOT)
+    before = {path: (ROOT / path).read_bytes() for path in outputs
               if (ROOT / path).exists()}
-    status_before = _git_status(DASHBOARD_OUTPUTS)
+    status_before = _git_status(outputs)
 
     yield
 
     for path, blob in before.items():
         (ROOT / path).write_bytes(blob)
 
-    status_after = _git_status(DASHBOARD_OUTPUTS)
+    status_after = _git_status(outputs)
     if status_before is not None:
         assert status_after == status_before, (
             "the suite changed the publish-owned artifacts and the restore did "

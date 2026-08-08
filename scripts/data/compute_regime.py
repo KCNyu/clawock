@@ -11,7 +11,7 @@ Evidence: run card `hstech_regime-20260802-f7d80e00` (1370 HSTECH bars,
 2021-01-04 → 2026-07-31). It reproduces both figures — crash-window drawdown
 -95.3% for buy-and-hold 2x against 0.0% for the regime sleeve, and full-period
 maxDD -95.5% against -44.2% for the de-levered 1x variant. Re-derive with
-`python3 scripts/data/run_card.py --run-id hstech_regime-20260802-f7d80e00`.
+`clawock run-card --run-id hstech_regime-20260802-f7d80e00`.
 
 READ THIS BEFORE QUOTING THE NUMBERS ABOVE. Neither of them describes the dial
 this module actually ships. Both come from rows that switch a 2x sleeve to

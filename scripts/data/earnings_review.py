@@ -45,7 +45,7 @@ ARTIFACT_ROOT = WS / "memory" / "earnings"
 SCHEMA_VERSION = 1
 
 sys.path.insert(0, str(_CHECKOUT / "scripts" / "data"))
-import research_provenance  # noqa: E402
+from clawock import research_provenance  # noqa: E402
 
 MARKETS = {"US", "HK"}
 # Source classes, ordered by how directly they come from the issuer. Only a
