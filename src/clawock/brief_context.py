@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Budgeted, generation-bound context artifacts for the daily deep brief.
 
 The complete preflight context remains the audit record. The model-facing

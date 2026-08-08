@@ -32,6 +32,7 @@ from pathlib import Path
 
 from clawock.workspace import workspace_root
 from clawock import trading_calendar
+from clawock import brief_context, brief_decision_packet
 
 WS = workspace_root(Path.cwd())
 _CHECKOUT = WS
@@ -40,8 +41,6 @@ sys.path.insert(0, str(_CHECKOUT / 'scripts' / 'data'))
 import decision_v2  # noqa: E402
 import workflow_outcomes  # noqa: E402
 import risk_discipline  # noqa: E402
-import brief_context  # noqa: E402
-import brief_decision_packet  # noqa: E402
 
 # Required concepts and the section labels the brief model may legitimately emit.
 # The canonical keys preserve the existing missing-section issue text.  The aliases

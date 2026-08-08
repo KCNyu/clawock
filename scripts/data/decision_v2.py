@@ -35,6 +35,12 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
 from clawock import trading_calendar as _cal  # noqa: E402
+from clawock.decision_contract import (  # noqa: E402
+    ACTIVE_ACTIONS,
+    ADD_ACTIONS,
+    PASSIVE_ACTIONS,
+    SELL_ACTIONS,
+)
 from clawock.workspace import workspace_root  # noqa: E402
 
 WS = workspace_root(Path(__file__).resolve().parents[2])
@@ -61,14 +67,6 @@ STRATEGIES = {
     "core_position", "risk_rebalance", "intraday_t", "event_trade",
     "tactical_entry", "legacy_unknown",
 }
-ACTIVE_ACTIONS = {"cut", "trim_on_rebound", "t_only", "add_only_on_trigger", "add_on_breakout"}
-SELL_ACTIONS = {"cut", "trim_on_rebound", "t_only"}
-# `watch` is a standing stance, not a directional call — it is graded passively
-# (stance_at_open) exactly like hold_and_watch. This is the one place the active/
-# passive split is defined; every surface (dashboard, rick_broadcast) must read it
-# from here so the two can never disagree on what "active" means.
-PASSIVE_ACTIONS = {"hold_and_watch", "watch"}
-ADD_ACTIONS = ACTIVE_ACTIONS - SELL_ACTIONS
 AUDIT_SCHEMA_VERSION = 1
 
 # How long after plan_date an execution verdict is allowed to still be pending.

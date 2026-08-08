@@ -9,8 +9,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts" / "data"))
 
-import brief_context  # noqa: E402
-import brief_decision_packet as packet_mod  # noqa: E402
+from clawock import brief_context
+from clawock import brief_decision_packet as packet_mod
 
 
 def _context():
@@ -309,9 +309,9 @@ def test_pages_prefers_projection_and_keeps_a_backward_fallback():
     # JavaScript's literal "undefined" in the 综合 column.
     assert "${v.label}" in renderer
     assert "${v.txt}" not in renderer
-    # The summary read moved behind the tool registry (#266); it is the same read,
-    # reached by name instead of by a path into scripts/. --judgment-template has
-    # no tool yet, so it is still a shell-out.
+    # Both reads go through package-owned tool contracts; neither requires a
+    # Python source file in the KCNyu workspace.
     assert "decision_packet_summary" in skill
-    assert "--judgment-template" in skill
+    assert "decision_packet_judgment_template" in skill
+    assert "scripts/data/brief_decision_packet.py" not in skill
     assert "禁止加入价格、RSI、MA" in skill

@@ -55,7 +55,7 @@ clawock brief preflight
 ### Step 2: 只读 decision packet summary（唯一常驻输入）
 
 ```bash
-PYTHONPATH=/root/.openclaw/workspace python3 -m clawock.cli tool decision_packet_summary \
+/root/.local/bin/clawock tool decision_packet_summary \
   --workspace /root/.openclaw/workspace \
   --arg manifest=/root/.openclaw/workspace/memory/.tmp/brief-context-$(date +%Y-%m-%d)/manifest.json
 ```
@@ -65,7 +65,7 @@ summary 包含 book/concentration、每票 deterministic status、技术/因子�
 需要分析某票时才查该票；需要单一维度时必须带 `--section`：
 
 ```bash
-PYTHONPATH=/root/.openclaw/workspace python3 -m clawock.cli tool decision_packet_query \
+/root/.local/bin/clawock tool decision_packet_query \
   --workspace /root/.openclaw/workspace \
   --arg manifest=/root/.openclaw/workspace/memory/.tmp/brief-context-$(date +%Y-%m-%d)/manifest.json \
   --arg ticker=00100 --arg section=technical
@@ -73,7 +73,7 @@ PYTHONPATH=/root/.openclaw/workspace python3 -m clawock.cli tool decision_packet
 
 可选 section：`facts|technical|quant|sentiment|evidence|risk|constraints`。一次查询硬上限 24 KiB，并同时校验 manifest hash 与 generation。正常分析禁止 `cat brief-context-{date}.json`，也禁止为了省一次查询而整份读 core/research/market bundle。
 
-> **为什么走 `clawock.cli tool` 而不是直接调 `scripts/data/brief_decision_packet.py`**：工具注册表是这套上下文协议唯一机器可读的定义（`clawock.cli tool --list` 直接吐 JSON schema），而 24 KiB 预算是在注册表里强制的 —— 真正读 context 的调用方就是本 skill，绕过注册表等于绕过预算（#266）。`PYTHONPATH=` 前缀是必需的：`clawock` 尚未 pip 安装，没有它则只在 cwd 恰好是 workspace 时才能跑。输出与旧命令逐 section JSON 等价，含 `_meta.generation_id` 代次钉扎。
+> **为什么走 `clawock tool`**：工具注册表是这套上下文协议唯一机器可读的定义（`clawock tool --list` 直接吐 JSON schema），而 24 KiB 预算是在注册表里强制的。协议实现随 `clawock` wheel 安装；workspace 只提供本次生成的数据，不再提供可执行 Python 源码。输出含 `_meta.generation_id` 代次钉扎。
 
 ### Step 2.5: 按消费者 lazy-load bundles
 
@@ -81,15 +81,15 @@ bundle 是审计深钻，不是默认模型输入。只有 packet 没有提供�
 
 ```bash
 # 风险情景 / 解套数学使用前
-python3 /root/.openclaw/workspace/scripts/data/brief_context.py --manifest /root/.openclaw/workspace/memory/.tmp/brief-context-$(date +%Y-%m-%d)/manifest.json --bundle risk_detail
+/root/.local/bin/clawock tool context_bundle --workspace /root/.openclaw/workspace --arg manifest=/root/.openclaw/workspace/memory/.tmp/brief-context-$(date +%Y-%m-%d)/manifest.json --arg bundle=risk_detail
 # EDGAR / 同行明细确需原始研究记录时
-python3 /root/.openclaw/workspace/scripts/data/brief_context.py --manifest /root/.openclaw/workspace/memory/.tmp/brief-context-$(date +%Y-%m-%d)/manifest.json --bundle research
+/root/.local/bin/clawock tool context_bundle --workspace /root/.openclaw/workspace --arg manifest=/root/.openclaw/workspace/memory/.tmp/brief-context-$(date +%Y-%m-%d)/manifest.json --arg bundle=research
 # 需要查看事件图完整 provenance 时（action 权限仍以 packet constraints 为准）
-python3 /root/.openclaw/workspace/scripts/data/brief_context.py --manifest /root/.openclaw/workspace/memory/.tmp/brief-context-$(date +%Y-%m-%d)/manifest.json --bundle evidence
+/root/.local/bin/clawock tool context_bundle --workspace /root/.openclaw/workspace --arg manifest=/root/.openclaw/workspace/memory/.tmp/brief-context-$(date +%Y-%m-%d)/manifest.json --arg bundle=evidence
 # 需要市场级而非 per-ticker 的宏观/名人记录时
-python3 /root/.openclaw/workspace/scripts/data/brief_context.py --manifest /root/.openclaw/workspace/memory/.tmp/brief-context-$(date +%Y-%m-%d)/manifest.json --bundle market
+/root/.local/bin/clawock tool context_bundle --workspace /root/.openclaw/workspace --arg manifest=/root/.openclaw/workspace/memory/.tmp/brief-context-$(date +%Y-%m-%d)/manifest.json --arg bundle=market
 # Retrospective / Decision v2 校准段使用前
-python3 /root/.openclaw/workspace/scripts/data/brief_context.py --manifest /root/.openclaw/workspace/memory/.tmp/brief-context-$(date +%Y-%m-%d)/manifest.json --bundle calibration
+/root/.local/bin/clawock tool context_bundle --workspace /root/.openclaw/workspace --arg manifest=/root/.openclaw/workspace/memory/.tmp/brief-context-$(date +%Y-%m-%d)/manifest.json --arg bundle=calibration
 ```
 
 bundle 路由：
@@ -694,9 +694,9 @@ postflight 严格 schema 校验：
 先生成模板，再只回填观点字段：
 
 ```bash
-python3 /root/.openclaw/workspace/scripts/data/brief_decision_packet.py \
-  --manifest /root/.openclaw/workspace/memory/.tmp/brief-context-$(date +%Y-%m-%d)/manifest.json \
-  --judgment-template
+/root/.local/bin/clawock tool decision_packet_judgment_template \
+  --workspace /root/.openclaw/workspace \
+  --arg manifest=/root/.openclaw/workspace/memory/.tmp/brief-context-$(date +%Y-%m-%d)/manifest.json
 ```
 
 schema 只允许顶层 `schema_version/context_generation_id/portfolio_assessment/portfolio_counterargument/ticker_judgments`；每票只允许：
