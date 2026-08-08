@@ -203,8 +203,8 @@ def sync_gha_data_files(ws=None):
         return False, str(e)
 
 
-def _record_dashboard_build(ok, output, ws=None):
-    """Persist the last build_dashboard outcome to logs/dashboard_build_status.json.
+def _record_dashboard_build(build_ok, publish_ok, output, ws=None):
+    """Persist build *and* publication outcomes to the dashboard status file.
 
     Why: report_postflight / brief_postflight call rebuild_dashboard() and discard
     the return value, so a hard crash (returncode!=0) or a silent section
@@ -230,19 +230,32 @@ def _record_dashboard_build(ok, output, ws=None):
         repair_count = sum(
             1 for ln in (output or '').splitlines() if 'repair:' in ln
         )
+        ok = bool(build_ok and publish_ok)
         status = {
             'checked_at': datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ'),
-            'ok': bool(ok),
+            'ok': ok,
+            'build_ok': bool(build_ok),
+            # None means publication was not attempted because the build itself
+            # failed. Keeping that distinct from a rejected push makes the next
+            # operator action unambiguous.
+            'publish_ok': None if publish_ok is None else bool(publish_ok),
             'warn_count': warn_count,
             'repair_count': repair_count,
-            'tail': (output or '')[-500:],
+            # Git hooks and remote rules print the useful cause *before* their
+            # generic "failed to push" footer. The old 500-char tail hid it.
+            'tail': (output or '')[-4000:],
         }
         path = ws / DASHBOARD_BUILD_STATUS
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(json.dumps(status, ensure_ascii=False, indent=2))
-        if not ok:
-            print(f'🔴 build_dashboard FAILED — recorded to {DASHBOARD_BUILD_STATUS}; '
-                  f'dashboard.json NOT refreshed. tail: {(output or "")[-200:]}',
+        if not build_ok:
+            print(f'🔴 dashboard build FAILED — recorded to {DASHBOARD_BUILD_STATUS}; '
+                  f'local outputs were not refreshed. tail: {(output or "")[-500:]}',
+                  file=sys.stderr)
+        elif not publish_ok:
+            print(f'🔴 data-plane publish FAILED — recorded to '
+                  f'{DASHBOARD_BUILD_STATUS}; local outputs were rebuilt but the '
+                  f'public generation may be stale. tail: {(output or "")[-500:]}',
                   file=sys.stderr)
         elif warn_count:
             print(f'⚠️  build_dashboard ok but {warn_count} degraded section(s) — '
@@ -264,8 +277,10 @@ def rebuild_dashboard(ws=None):
     Records the outcome via _record_dashboard_build so a failure is observable in
     the daily cron health check even when callers discard the return value.
 
-    Returns (ok, last_300_chars_of_output). Failure is non-fatal — caller
-    should log but not abort the commit pipeline.
+    Returns (ok, diagnostic_output). ``ok`` covers both the local build and the
+    data-plane publication. A publication fault must not prevent report delivery,
+    but callers must surface it as an operational failure so cron retries and
+    health checks cannot turn a frozen public dashboard green.
     """
     ws = ws or WS
     refresh_today_snapshot(ws)
@@ -303,14 +318,17 @@ def rebuild_dashboard(ws=None):
              '--previous', str(previous / 'assets' / 'data' / 'dashboard.json')],
             capture_output=True, text=True, timeout=30, cwd=str(ws),
         )
-        ok = r.returncode == 0
+        build_ok = r.returncode == 0
+        publish_ok = None
         full = r.stdout + r.stderr
-        if ok:
-            full += _publish_generation(ws)
-        _record_dashboard_build(ok, full, ws)
-        return ok, full[-300:]
+        if build_ok:
+            publish_ok, publish_detail = _publish_generation(ws)
+            full += publish_detail
+        ok = bool(build_ok and publish_ok)
+        _record_dashboard_build(build_ok, publish_ok, full, ws)
+        return ok, full[-2000:]
     except Exception as e:
-        _record_dashboard_build(False, str(e), ws)
+        _record_dashboard_build(False, None, str(e), ws)
         return False, str(e)
 
 
@@ -328,10 +346,9 @@ def _publish_generation(ws):
     postflight gets this by construction. A hand-maintained list of callers is
     exactly what missed three postflights in #319 and had to be repaired in #322.
 
-    Non-fatal, and loud. These callers deliver reports; a publishing fault must
-    not take the report's own commit and push down with it. The outcome rides in
-    the build record, so a failure is visible to the daily cron health check
-    rather than only in a log nobody opens.
+    Returns ``(ok, detail)``. These callers deliver reports; a publishing fault
+    must not take report delivery down with it, but it is still a failed
+    postflight and must be visible to cron retry/health surfaces.
 
     Idempotent: the store compares against what the branch actually holds, so an
     interleaved scheduled tick makes this a no-op rather than a conflict — which
@@ -343,14 +360,33 @@ def _publish_generation(ws):
             capture_output=True, text=True, timeout=120, cwd=str(ws),
         )
     except Exception as e:                       # noqa: BLE001 - reported, not raised
-        return f'\n  data-plane publish failed: {e}'
+        return False, f'\n  data-plane publish failed: {e}'
     # A failed git push ends with a generic one-line summary. The hook/remote
     # reason precedes it, so 200 characters erased the only actionable evidence
     # in the 2026-08-08 data-plane freeze (#370).
     tail = (r.stdout + r.stderr).strip()[-2000:]
     if r.returncode != 0:
-        return f'\n  data-plane publish failed: {tail}'
-    return f'\n  {tail}'
+        return False, f'\n  data-plane publish failed: {tail}'
+    return True, f'\n  {tail}'
+
+
+def dashboard_publication_state(ws=None):
+    """Return the last explicit data-plane outcome for postflight wiring.
+
+    Older status files only carried ``ok``; treating an old ``ok=true`` record as
+    published keeps rolling upgrades compatible. New records distinguish a
+    failed local build from a failed public push.
+    """
+    ws = ws or WS
+    try:
+        status = json.loads((ws / DASHBOARD_BUILD_STATUS).read_text())
+    except Exception:
+        return 'unavailable'
+    if status.get('build_ok', status.get('ok')) is not True:
+        return 'rebuild_failed'
+    if status.get('publish_ok', status.get('ok')) is not True:
+        return 'publish_failed'
+    return 'published'
 
 
 def push_with_rebase_retry(remote='origin', branch='master', attempts=3):

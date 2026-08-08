@@ -16,6 +16,7 @@ and two boundaries that must not move:
     previous day's card — showing yesterday's critique as today's.
 """
 import json
+from types import SimpleNamespace
 import sys
 from pathlib import Path
 
@@ -177,7 +178,7 @@ def test_repairs_and_warnings_are_counted_separately(tmp_path):
         '  repair: intraday-insights-2026-07-28.json — repaired JSON (trailing_comma)\n'
     )
 
-    _harness_common._record_dashboard_build(True, output, ws=tmp_path)
+    _harness_common._record_dashboard_build(True, True, output, ws=tmp_path)
 
     status = json.loads((tmp_path / _harness_common.DASHBOARD_BUILD_STATUS).read_text())
     assert status['repair_count'] == 2
@@ -185,11 +186,43 @@ def test_repairs_and_warnings_are_counted_separately(tmp_path):
 
 
 def test_a_clean_build_records_zero_repairs(tmp_path):
-    _harness_common._record_dashboard_build(True, '  wrote dashboard.json\n', ws=tmp_path)
+    _harness_common._record_dashboard_build(
+        True, True, '  wrote dashboard.json\n', ws=tmp_path
+    )
 
     status = json.loads((tmp_path / _harness_common.DASHBOARD_BUILD_STATUS).read_text())
     assert status['repair_count'] == 0
     assert status['warn_count'] == 0
+
+
+def test_rebuild_fails_closed_when_the_publication_push_fails(
+    tmp_path, monkeypatch
+):
+    """Regression for the 2026-08-08 freeze: build green + push red is red."""
+    monkeypatch.setattr(_harness_common, 'refresh_today_snapshot', lambda ws: (True, 'ok'))
+    monkeypatch.setattr(_harness_common, 'sync_gha_data_files', lambda ws: (True, 'ok'))
+    results = iter([
+        SimpleNamespace(returncode=0, stdout='', stderr=''),
+        SimpleNamespace(returncode=0, stdout='wrote dashboard.json\n', stderr=''),
+        SimpleNamespace(
+            returncode=1,
+            stdout='money integrity gate rejected data-plane push\n',
+            stderr='error: failed to push some refs\n',
+        ),
+    ])
+    monkeypatch.setattr(_harness_common.subprocess, 'run', lambda *a, **k: next(results))
+
+    ok, detail = _harness_common.rebuild_dashboard(tmp_path)
+    status = json.loads(
+        (tmp_path / _harness_common.DASHBOARD_BUILD_STATUS).read_text()
+    )
+
+    assert ok is False
+    assert status['ok'] is False
+    assert status['build_ok'] is True
+    assert status['publish_ok'] is False
+    assert 'money integrity gate rejected' in status['tail']
+    assert 'data-plane publish failed' in detail
 
 
 # ── cron_health_check: reported, never escalated ────────────────────────────

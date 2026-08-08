@@ -115,6 +115,7 @@ from clawock.validation import (  # noqa: E402
     validate_forbidden_phrases,
 )
 from _harness_common import (  # noqa: E402
+    dashboard_publication_state,
     git_cmd as _git,
     push_with_rebase_retry,
     rebuild_dashboard,
@@ -265,6 +266,7 @@ def deliver_wechat(market, phase, date, wechat_prefix, text, delivery_state='del
 
 def maybe_commit(status, commit_msg):
     rebuild_ok, _ = rebuild_dashboard()
+    publication_state = dashboard_publication_state(WS)
     suffix = {
         'warn': ' (validation warnings)',
         'fail': ' (data only; prose rejected)',
@@ -287,7 +289,7 @@ def maybe_commit(status, commit_msg):
     commit_paths = add_args[1:]
     ok, out = _git('commit', '-m', f'{commit_msg}{suffix}', '--', *commit_paths)
     if not ok and 'nothing to commit' in out:
-        return True, 'nothing to commit (idempotent)'
+        return True, f'nothing to commit (idempotent; dashboard={publication_state})'
     if not ok:
         return False, out[-200:]
 
@@ -296,18 +298,23 @@ def maybe_commit(status, commit_msg):
     if push_ok:
         if rebuild_ok:
             return True, 'committed + pushed'
-        return True, 'committed + pushed (dashboard rebuild failed)'
-    return True, f'committed (push failed: {push_out[-150:]})'
+        return True, f'committed + pushed (dashboard={publication_state})'
+    return True, (f'committed (push failed: {push_out[-150:]}; '
+                  f'dashboard={publication_state})')
 
 
 def classify_data_plane(commit_ok, commit_msg):
     """Return an explicit publication state independent of prose validation."""
     if not commit_ok:
         return 'failed'
+    if 'dashboard=publish_failed' in commit_msg:
+        return 'publish_failed'
+    if 'dashboard=rebuild_failed' in commit_msg:
+        return 'rebuild_failed'
+    if 'dashboard=unavailable' in commit_msg:
+        return 'unavailable'
     if 'push failed' in commit_msg:
         return 'committed_local'
-    if 'rebuild failed' in commit_msg:
-        return 'published_degraded'
     if 'nothing to commit' in commit_msg:
         return 'current'
     return 'published'
@@ -560,6 +567,8 @@ def main(argv=None):
         deterministic_fallback=(status == 'fail'),
     )
     print(json.dumps(result, ensure_ascii=False, indent=2))
+    if data_plane_status not in {'published', 'current'}:
+        return 2
     return 0 if status == 'pass' else (1 if status == 'warn' else 2)
 
 
