@@ -4,7 +4,7 @@
 
 ### AI argues. Code settles. The losses stay on the page.
 
-A real Hong Kong + US stock portfolio, debated by multiple LLMs and graded by Python — every call scored in the open, and the active ones still behind buy-and-hold.
+Install the decision intelligence behind this live Hong Kong + US desk into any agent — evidence, opposition, deterministic reconciliation, and outcome-linked improvement.
 
 [![Dashboard](https://img.shields.io/github/deployments/KCNyu/clawock/github-pages?label=DASHBOARD&style=flat-square&logo=githubpages&logoColor=white&labelColor=252b35&color=4b91c8)](https://kcnyu.github.io/clawock/)
 [![Tests](https://img.shields.io/github/actions/workflow/status/KCNyu/clawock/harness-regression.yml?label=TESTS&style=flat-square&logo=githubactions&logoColor=white&labelColor=252b35&color=738391)](https://github.com/KCNyu/clawock/actions/workflows/harness-regression.yml)
@@ -32,16 +32,27 @@ A real Hong Kong + US stock portfolio, debated by multiple LLMs and graded by Py
 
 ## What this is
 
-clawock is an **auditable agent harness for portfolio operation, with the
-context-certification layer built in**. The agent is `clawock + a model + a
-runtime`; this repository is the half that does not hallucinate. It is also a
-continuously running public experiment in disciplined, self-grading AI investing
-— not a get-rich bot, and not a copy-trading service.
+clawock is an **agent-native investment decision-workflow plugin kit with a
+verifiable harness**. OpenClaw, Hermes, Claude Code, Codex, or another external
+runtime owns the model call, conversation, memory, planning, tools, permissions,
+and credentials. clawock installs the reusable workflow that certifies evidence,
+forces an opposing case, validates money and FX, links outcomes, and keeps every
+improvement proposal reviewable and reversible.
+
+This repository is also the first continuously running proof: a disciplined,
+self-grading AI investing experiment on a real Hong Kong + US portfolio — not a
+get-rich bot, and not a copy-trading service.
 
 A multi-agent desk monitors a real brokerage account with separate Hong Kong and US books, debates the evidence, and proposes trades; execution stays with the account owner. The product is the live record: real positions, an accumulating decision history, and a public scorecard. The model proposes; Python owns the prices, the risk limits, the ledger, the settlement, and the grading.
 
 ### What makes it different
 
+- **A workflow plugin, not another agent.** The external runtime keeps its model,
+  chat, memory, skills engine, tool loop, and permissions; clawock makes the
+  investment-decision contract portable across runtimes.
+- **The loop continues after the answer.** Evidence, the opposing case, thesis,
+  decision, execution, and observed outcome share one lineage. Measured results
+  can propose bounded parameter changes, but never silently rewrite strategy.
 - **Real money, graded in public.** One live Hong Kong + US brokerage account, with a public scorecard that keeps every eligible result — the losses included, and the fact that the active calls haven't beaten buy-and-hold.
 - **The model can't grade itself.** LLMs propose trades; Python settles them and computes the scorecard.
 - **One thesis, one episode.** Repeated opinions on the same thesis count once. Each episode is settled from canonical vendor bars, with declared gap-fill rules when a session is missing.
@@ -50,9 +61,15 @@ A multi-agent desk monitors a real brokerage account with separate Hong Kong and
 
 ## How it works
 
-The desk separates **probabilistic judgment** from **deterministic control**. LLMs read the market and argue the trade; code decides what is allowed, what actually happened, and what the record says.
+The product boundary is simple: the external agent reads and reasons; clawock
+owns the portable decision workflow and the deterministic truth around it.
 
-![clawock architecture — Python builds reconciled market context, a multi-agent LLM debate proposes the trade, code records and gates the decision, and a public scorecard closes the loop](assets/architecture.svg)
+![clawock product architecture — external runtimes own models, conversation, memory and tools while the package supplies portable workflows, certified context, deterministic reconciliation, evaluation and bounded improvement](assets/product-architecture.svg)
+
+The KCNyu deployment then applies that product boundary to one live portfolio.
+This second diagram is the instance architecture, not the reusable package.
+
+![KCNyu live-instance architecture — Python builds reconciled market context, OpenClaw agents debate the trade, clawock contracts gate the decision, and a public scorecard closes the loop](assets/architecture.svg)
 
 Every trading day the system pulls fresh prices, FX, volatility, earnings and macro context plus news and social sentiment; hands that normalized context to a multi-agent debate; applies deterministic risk, schema, and ledger gates in Python; delivers a brief to WeChat; and updates the public dashboard.
 
@@ -199,17 +216,27 @@ Hong Kong times run on HKT; US session times follow ET and their cron expression
 
 ## Run it on your own book
 
-The repository installs as a package, and the computation is no longer welded to this account's directory:
+The package lifecycle is no longer welded to this account's directory. Until
+the trusted-publishing release in [#379](https://github.com/KCNyu/clawock/issues/379)
+lands, install the current pre-release from GitHub rather than assuming the PyPI
+name is live:
 
 ```bash
-pip install -e .
-clawock doctor                          # is this workspace runnable?
-clawock doctor --workspace ~/my-book    # is that one?
-clawock context audit                   # is the runtime context contract intact?
-clawock report preflight --market hk --phase open
+python -m pip install "clawock @ git+https://github.com/KCNyu/clawock.git"
+clawock workflow install investment-decision --workspace ./my-decision
+clawock init ./my-decision --workflow investment-decision
+clawock run prepare --workspace ./my-decision
 ```
 
-`doctor` answers one question — could the loop run against this portfolio — and names what is missing instead of failing somewhere deep with a path error. `CLAWOCK_WORKSPACE` points the computation at another tree; unset, everything behaves exactly as it did.
+The emitted request is for the external agent to consume. The agent writes
+`decision.json`; `clawock run publish` validates it and emits the correlated
+generation receipt. The packaged example can smoke the lifecycle without a
+model, while a real adapter leaves the model call entirely in its runtime.
+
+For the KCNyu compatibility surface, `clawock doctor`, `clawock context audit`,
+and `CLAWOCK_WORKSPACE` still inspect or point at an operational book. They name
+missing capabilities instead of pretending every foreign workspace is ready to
+run this live desk.
 
 The package owns the lifecycle contracts, generation-pinned artifacts, context
 assembly, validation and CLI. It does not reimplement an agent loop: OpenClaw is
@@ -248,7 +275,11 @@ Built with [Claude Code](https://claude.com/claude-code), the [openclaw](https:/
 
 <br>
 
-**Models.** Interactive chat currently runs on Claude; unattended market jobs pin a fixed model over the Anthropic Messages API with an optional fallback. Provider credentials and the fallback policy live outside this public repository and can change without rewriting the harness. No provider key is stored here.
+**Models.** Model selection belongs to the external runtime, not clawock. The
+live OpenClaw instance can pin a primary and fallback independently for each
+scheduled job; provider credentials and routing policy stay outside this public
+repository and can change without rewriting the workflow. No provider key is
+stored here.
 
 **Write reconciliation.** The dashboard-build outputs — `dashboard.json`, `decision_audit.json`, `shadow_portfolio.json` — are derived, while a cron daemon, off-host workflows, crontab publishers, and ad-hoc sessions can all update `master`. The rule: isolate scan-sidecar writers, and serialize dashboard builders that share a host.
 
