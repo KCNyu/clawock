@@ -14,7 +14,9 @@ whole product.
 
 ## Prepare
 
-Initialize a workspace once, then ask clawock to prepare a run:
+Initialize clawock in a new or existing agent workspace, then ask it to prepare a
+run. Initialization preserves every existing project/context file and refuses to
+overwrite an existing `clawock.json`:
 
 ```bash
 clawock init ./my-workspace

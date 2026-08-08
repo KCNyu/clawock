@@ -14,22 +14,27 @@ DEFAULT_CONTEXT = "CONTEXT.md"
 
 def initialize(workspace: Path | str) -> Path:
     root = Path(workspace).expanduser().resolve()
-    if root.exists() and any(root.iterdir()):
-        raise ValueError(f"refusing to initialize non-empty directory: {root}")
     root.mkdir(parents=True, exist_ok=True)
+    if (root / CONFIG_NAME).exists():
+        raise ValueError(f"refusing to overwrite existing {CONFIG_NAME}: {root}")
     config = {
         "schema_version": 1,
         "task": "Produce a concise answer grounded in the supplied context.",
         "context": [DEFAULT_CONTEXT],
         "output_directory": ".clawock/runs",
     }
-    write_generation({
+    writes = {
         str(root / CONFIG_NAME): json.dumps(config, ensure_ascii=False, indent=2) + "\n",
-        str(root / DEFAULT_CONTEXT): (
+    }
+    # A plugin normally joins an existing agent workspace. Preserve its files
+    # and reuse an existing CONTEXT.md instead of requiring an empty directory
+    # or replacing context that the external runtime already owns.
+    if not (root / DEFAULT_CONTEXT).exists():
+        writes[str(root / DEFAULT_CONTEXT)] = (
             "# Context\n\n"
             "Replace this file with the facts and instructions the runtime should use.\n"
-        ),
-    })
+        )
+    write_generation(writes)
     return root
 
 

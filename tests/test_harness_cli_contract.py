@@ -59,6 +59,17 @@ def test_instance_adapter_receives_workspace_without_leaking_env(monkeypatch, tm
     assert "CLAWOCK_WORKSPACE" not in os.environ
 
 
+def test_init_joins_an_existing_agent_workspace_without_overwriting(tmp_path):
+    context = tmp_path / "CONTEXT.md"
+    context.write_text("runtime-owned context\n")
+    (tmp_path / "AGENTS.md").write_text("runtime-owned instructions\n")
+
+    assert main(["init", str(tmp_path)]) == 0
+    assert context.read_text() == "runtime-owned context\n"
+    assert (tmp_path / "AGENTS.md").read_text() == "runtime-owned instructions\n"
+    assert (tmp_path / "clawock.json").exists()
+
+
 def test_external_agent_can_repair_then_publish_one_certified_generation(tmp_path):
     (tmp_path / "CONTEXT.md").write_text("source fact\n")
     output = tmp_path / "out"
