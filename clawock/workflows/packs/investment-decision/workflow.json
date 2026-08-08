@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "id": "investment-decision",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "title": "Investment Decision",
   "description": "Turn traceable evidence and an explicit opposing case into a bounded investment decision with deterministic order and FX reconciliation.",
   "task": "Produce decision.json for an evidence-linked investment decision. Include a genuine opposing case, thesis invalidation conditions, a bounded action, and exactly reconciled order and FX amounts when an order is proposed.",
@@ -35,7 +35,19 @@
     "optional": []
   },
   "schemas": {
-    "decision.json": "references/decision.schema.json"
+    "decision.json": "references/decision.schema.json",
+    "outcome.json": "references/outcome.schema.json",
+    "improvement-proposal.json": "references/improvement-proposal.schema.json"
+  },
+  "feedback": {
+    "outcome": "outcome.json",
+    "evaluation": "clawock workflow evaluate",
+    "bounded_parameters": [
+      "min_supporting_evidence",
+      "min_opposing_evidence",
+      "max_confidence_without_primary_source"
+    ],
+    "adoption": ["review", "apply", "rollback"]
   },
   "parameters": {
     "min_supporting_evidence": {

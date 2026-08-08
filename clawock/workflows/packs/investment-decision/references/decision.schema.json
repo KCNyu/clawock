@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "urn:clawock:workflow:investment-decision:1.0.0:decision",
+  "$id": "urn:clawock:workflow:investment-decision:1.1.0:decision",
   "title": "clawock investment decision",
   "type": "object",
   "additionalProperties": false,
@@ -25,7 +25,7 @@
       "required": ["id", "version"],
       "properties": {
         "id": {"const": "investment-decision"},
-        "version": {"const": "1.0.0"}
+        "version": {"const": "1.1.0"}
       }
     },
     "decision_id": {

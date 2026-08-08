@@ -57,9 +57,19 @@ The first shipped workflow pins its ID, semantic version, whole-pack certificate
 and bounded parameters into the prepared request. Its deterministic validator
 requires supporting and opposing evidence, linked bull/bear cases, thesis
 invalidation conditions, a bounded action, confidence provenance and exact
-order/FX arithmetic. A prompt cannot waive those gates. Outcome evaluation and
-review/apply/rollback of parameter proposals remain the next #386 slice and are
-not claimed by version 1.0.0.
+order/FX arithmetic. A prompt cannot waive those gates.
+
+Version 1.1 adds the bounded feedback loop without turning clawock into an
+agent. An observed outcome is source-linked and reconciled across price and FX;
+the evaluator reports a direction-adjusted basis-point result with an explicit
+not-realized-P&L caveat. That evaluation, or a rejected validation receipt, can
+anchor a proposal that changes only parameters already bounded by the pack.
+Proposal review certifies an exact hash, apply records before/after overrides,
+and rollback refuses to overwrite later drift. No command launches a model,
+rewrites a skill, or lets a proposal accept itself.
+The shipped parameters govern evidence/provenance strictness only; they do not
+add or tune factors, catalysts, signals, entries, exits or portfolio rules. The
+calling runtime's existing investment strategy remains the decision source.
 
 The live workflow phase commands dispatch in-process but currently resolve the
 KCNyu implementation from `scripts/harness`. They are a compatibility seam, not
@@ -108,7 +118,10 @@ investment-decision/
 ├── agents/openai.yaml
 ├── references/decision-contract.md
 ├── references/decision.schema.json
-└── assets/decision.example.json
+├── references/outcome.schema.json
+├── references/improvement-proposal.schema.json
+├── assets/decision.example.json
+└── assets/outcome.example.json
 ```
 
 `workflow.json` is the machine-readable discovery and parameter contract;

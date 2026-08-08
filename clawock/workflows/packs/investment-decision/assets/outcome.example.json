@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "workflow": {
+    "id": "investment-decision",
+    "version": "1.1.0"
+  },
+  "decision_id": "example-2026-08-08",
+  "observed_at": "2026-08-09T08:00:00+00:00",
+  "evidence": {
+    "source": "broker closing-price export",
+    "source_class": "broker",
+    "quote_currency": "USD",
+    "entry_price": "100.00",
+    "outcome_price": "102.00",
+    "base_currency": "HKD",
+    "entry_fx_quote_to_base": "7.80",
+    "outcome_fx_quote_to_base": "7.81"
+  }
+}

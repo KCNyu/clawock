@@ -2,7 +2,7 @@
   "schema_version": 1,
   "workflow": {
     "id": "investment-decision",
-    "version": "1.0.0"
+    "version": "1.1.0"
   },
   "decision_id": "example-2026-08-08",
   "as_of": "2026-08-08T08:00:00+00:00",

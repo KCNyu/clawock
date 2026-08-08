@@ -75,6 +75,34 @@ On success the configured store receives one write set, including a
 `manifest.json` that pins every artifact and context hash to one generation ID.
 The JSON receipt reports the final location and whether anything changed.
 
+## Evaluate and improve without owning the agent
+
+At the declared horizon, a caller can record observed prices, FX and their
+broker/exchange/market-data source, then reconcile them deterministically:
+
+```bash
+clawock workflow evaluate investment-decision \
+  --decision decision.json --outcome outcome.json --output evaluation.json
+```
+
+The evaluation is evidence for a workflow change, not permission to make one.
+The adoption protocol is deliberately split:
+
+```text
+evaluation or rejected receipt
+          │
+          ▼
+      proposal ──► named accept/reject review ──► apply ──► rollback record
+```
+
+`workflow propose` accepts only pack-declared bounded parameters and pins the
+trigger hash plus the current workflow version/certificate. `workflow apply`
+requires an accepted review of that exact proposal and records the prior
+workspace overrides. `workflow rollback` restores them only if no later
+parameter drift would be overwritten. The external runtime remains responsible
+for reasoning about why a proposal is warranted; clawock supplies the measured
+input, structural limits, adoption record and reversal mechanism.
+
 Artifact source paths are restricted to the workspace. The external runtime
 retains responsibility for its own credentials and permissions; clawock neither
 starts it nor receives its provider stderr.

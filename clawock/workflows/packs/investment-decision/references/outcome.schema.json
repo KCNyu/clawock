@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:clawock:workflow:investment-decision:1.1.0:outcome",
+  "title": "clawock investment decision outcome evidence",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "workflow", "decision_id", "observed_at", "evidence"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "workflow": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "version"],
+      "properties": {
+        "id": {"const": "investment-decision"},
+        "version": {"const": "1.1.0"}
+      }
+    },
+    "decision_id": {"type": "string", "minLength": 1},
+    "observed_at": {"type": "string", "format": "date-time"},
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source", "source_class", "quote_currency", "entry_price",
+        "outcome_price", "base_currency", "entry_fx_quote_to_base",
+        "outcome_fx_quote_to_base"
+      ],
+      "properties": {
+        "source": {"type": "string", "minLength": 1},
+        "source_class": {"enum": ["broker", "exchange", "market_data"]},
+        "quote_currency": {"type": "string", "minLength": 1},
+        "entry_price": {"$ref": "#/$defs/positive-number"},
+        "outcome_price": {"$ref": "#/$defs/positive-number"},
+        "base_currency": {"type": "string", "minLength": 1},
+        "entry_fx_quote_to_base": {"$ref": "#/$defs/positive-number"},
+        "outcome_fx_quote_to_base": {"$ref": "#/$defs/positive-number"}
+      }
+    }
+  },
+  "$defs": {
+    "positive-number": {
+      "oneOf": [
+        {"type": "number", "exclusiveMinimum": 0},
+        {"type": "string", "pattern": "^(?:0*[1-9][0-9]*(?:\\.[0-9]+)?|0*\\.[0-9]*[1-9][0-9]*)$"}
+      ]
+    }
+  }
+}
