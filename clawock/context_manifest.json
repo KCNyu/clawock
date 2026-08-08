@@ -1,21 +1,128 @@
 {
-  "schema_version": 1,
-  "runtime_contract": "openclaw-cron-bootstrap-2026.7.1",
-  "bootstrap": [
-    "AGENTS.md",
-    "TOOLS.md",
-    "SOUL.md",
-    "IDENTITY.md",
-    "USER.md"
+  "schema_version": 2,
+  "runtime_contract": "openclaw-context-profiles-2026.7.1",
+  "verified_against": "OpenClaw 2026.7.1 (2d2ddc4)",
+  "source_symbols": [
+    "loadWorkspaceBootstrapFiles",
+    "filterBootstrapFilesForSession",
+    "applyContextModeFilter",
+    "buildSystemPromptReport"
   ],
-  "excluded": [
-    "MEMORY.md",
-    "HEARTBEAT.md",
-    "BOOTSTRAP.md"
-  ],
+  "default_profile": "isolated-cron",
+  "profiles": {
+    "interactive": {
+      "description": "Normal user-facing chat after workspace bootstrap is complete.",
+      "bootstrap": [
+        "AGENTS.md",
+        "SOUL.md",
+        "TOOLS.md",
+        "IDENTITY.md",
+        "USER.md",
+        "HEARTBEAT.md",
+        "MEMORY.md"
+      ],
+      "excluded": ["BOOTSTRAP.md"],
+      "conversation_history": "runtime session transcript",
+      "memory": "MEMORY.md is injected; memory_search reads MEMORY.md and memory/*.md",
+      "capability_paths": ["skills", "MEMORY.md", "memory"]
+    },
+    "isolated-cron": {
+      "description": "OpenClaw isolated scheduled run.",
+      "bootstrap": [
+        "AGENTS.md",
+        "SOUL.md",
+        "TOOLS.md",
+        "IDENTITY.md",
+        "USER.md"
+      ],
+      "excluded": ["MEMORY.md", "HEARTBEAT.md", "BOOTSTRAP.md"],
+      "conversation_history": "isolated per-run transcript",
+      "memory": "not injected; memory_search still reads MEMORY.md and memory/*.md",
+      "capability_paths": ["skills", "MEMORY.md", "memory"]
+    },
+    "heartbeat-full": {
+      "description": "Heartbeat with the default full context mode.",
+      "bootstrap": [
+        "AGENTS.md",
+        "SOUL.md",
+        "TOOLS.md",
+        "IDENTITY.md",
+        "USER.md",
+        "HEARTBEAT.md",
+        "MEMORY.md"
+      ],
+      "excluded": ["BOOTSTRAP.md"],
+      "conversation_history": "main or configured heartbeat session",
+      "memory": "MEMORY.md is injected; memory_search reads MEMORY.md and memory/*.md",
+      "capability_paths": ["skills", "MEMORY.md", "memory"]
+    },
+    "heartbeat-light": {
+      "description": "Heartbeat when agents.defaults.heartbeat.lightContext is enabled.",
+      "bootstrap": ["HEARTBEAT.md"],
+      "excluded": [
+        "AGENTS.md",
+        "SOUL.md",
+        "TOOLS.md",
+        "IDENTITY.md",
+        "USER.md",
+        "BOOTSTRAP.md",
+        "MEMORY.md"
+      ],
+      "conversation_history": "main/configured session unless isolatedSession is enabled",
+      "memory": "not injected; runtime memory tools remain policy-controlled",
+      "capability_paths": ["skills", "MEMORY.md", "memory"]
+    },
+    "bootstrap-pending": {
+      "description": "Primary interactive run before workspace setup is complete.",
+      "bootstrap": [
+        "AGENTS.md",
+        "SOUL.md",
+        "TOOLS.md",
+        "IDENTITY.md",
+        "USER.md",
+        "HEARTBEAT.md",
+        "BOOTSTRAP.md",
+        "MEMORY.md"
+      ],
+      "excluded": [],
+      "conversation_history": "primary interactive session",
+      "memory": "MEMORY.md is injected when present and indexed by memory_search",
+      "capability_paths": ["skills", "memory"]
+    },
+    "subagent": {
+      "description": "OpenClaw spawned subagent session.",
+      "bootstrap": ["AGENTS.md", "TOOLS.md"],
+      "excluded": [
+        "SOUL.md",
+        "IDENTITY.md",
+        "USER.md",
+        "HEARTBEAT.md",
+        "BOOTSTRAP.md",
+        "MEMORY.md"
+      ],
+      "conversation_history": "subagent-owned session context",
+      "memory": "not injected; runtime tool policy decides memory access",
+      "capability_paths": ["skills", "MEMORY.md", "memory"]
+    }
+  },
   "skills": {
     "catalog_is_index_only": true,
     "body_pattern": "skills/{name}/SKILL.md",
-    "load": "selected_only"
+    "load": "selected_only",
+    "ownership": "OpenClaw discovers the catalog; the agent reads selected bodies"
+  },
+  "tools": {
+    "ownership": "OpenClaw assembles schemas and enforces policy",
+    "clawock_policy": "never narrow the runtime tool set implicitly"
+  },
+  "memory_search": {
+    "default_sources": ["memory"],
+    "memory_source": "MEMORY.md + memory/*.md",
+    "sessions_source": "optional indexed session transcripts"
+  },
+  "startup_context": {
+    "applies_on": ["new", "reset"],
+    "default_daily_memory_days": 2,
+    "ownership": "OpenClaw"
   }
 }
