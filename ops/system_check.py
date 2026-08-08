@@ -163,7 +163,7 @@ def check_plan_json_schema(r):
         return
     bad = []
     sys.path.insert(0, str(_REPO_ROOT / 'scripts' / 'data'))
-    import decision_v2
+    from clawock import decision_v2
     for p in plans:
         try:
             d = json.loads(open(p).read())
@@ -425,7 +425,7 @@ def check_decision_ledger(r):
         return
     try:
         sys.path.insert(0, str(_REPO_ROOT / 'scripts' / 'data'))
-        import decision_v2
+        from clawock import decision_v2
         rows = decision_v2.load_decisions(p)
     except Exception as e:
         r.add('decisions.jsonl', CRITICAL, f'parse fail: {e}')

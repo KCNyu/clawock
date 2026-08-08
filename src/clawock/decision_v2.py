@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """clawock decision ledger v2.
 
 The legacy scorecard treated every plan row as an independent prediction and
@@ -23,27 +22,23 @@ import os
 import random
 import re
 import statistics
-import sys
 import tempfile
 from collections import Counter, defaultdict
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 
-# The checkout root, so `clawock` resolves from the tree this file ships
-# in. Reached through the scripts/data/workspace shim until #267 step 3,
-# whose only remaining job was inserting this path as a side effect.
-sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
-sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
-from clawock import trading_calendar as _cal  # noqa: E402
-from clawock.decision_contract import (  # noqa: E402
+from clawock import trading_calendar as _cal
+from clawock.decision_contract import (
     ACTIVE_ACTIONS,
     ADD_ACTIONS,
     PASSIVE_ACTIONS,
     SELL_ACTIONS,
 )
-from clawock.workspace import workspace_root  # noqa: E402
+from clawock.workspace import workspace_root
 
-WS = workspace_root(Path(__file__).resolve().parents[2])
+# Installed package code resolves user state from the caller's workspace, never
+# from site-packages or a source checkout path.
+WS = workspace_root(Path.cwd())
 LEDGER = WS / "memory" / "decisions.jsonl"
 SNAP_DIR = WS / "memory" / "snapshots"
 
@@ -457,7 +452,7 @@ def _price(snapshot: dict | None, ticker: str, field: str = "current_price"):
 # (00100 2026-05-18 read 744.5 against a real 827.5, dropping a winner).
 #
 # `memory/bars/` is session-dated, unadjusted, and never contains an unfinished
-# session. See scripts/data/fetch_daily_bars.py for the store's contract.
+# session. The workspace bar writer owns the store's refresh contract.
 # ---------------------------------------------------------------------------
 
 BARS_DIR = WS / "memory" / "bars"
