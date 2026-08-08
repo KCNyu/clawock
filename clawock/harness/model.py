@@ -92,6 +92,7 @@ class RunReceipt:
     generation_id: str
     status: str
     artifacts: ArtifactSet
+    workflow: Mapping[str, Any] = field(default_factory=dict)
     validation_issues: tuple[ValidationIssue, ...] = ()
     publish_receipt: str | None = None
     publish_changed: bool = False
@@ -114,6 +115,7 @@ class RunReceipt:
                 }
                 for artifact in self.artifacts.artifacts
             ],
+            "workflow": dict(self.workflow),
             "validation_issues": [
                 {"code": issue.code, "message": issue.message}
                 for issue in self.validation_issues

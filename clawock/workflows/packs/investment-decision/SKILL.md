@@ -37,3 +37,18 @@ memory, skills, tools, repair loops, and permissions.
 The final receipt is the proof that one workflow version, certified context, and
 artifact generation passed the deterministic gates. It is supporting evidence,
 not a substitute for the decision itself.
+
+## Learn from outcomes
+
+After the stated horizon, record broker, exchange, or market-data evidence using
+`assets/outcome.example.json`, then run `clawock workflow evaluate`. The result
+reconciles price and FX before assigning a direction-adjusted basis-point score;
+it is not realized portfolio P&L.
+
+A runtime may use that evaluation or a rejected validation receipt to request a
+bounded parameter proposal with `clawock workflow propose`. The proposal cannot
+apply itself. A named reviewer must explicitly accept or reject the exact hash,
+and accepted changes go through `workflow apply`; `workflow rollback` restores
+the recorded prior parameters. See
+[the decision contract](references/decision-contract.md) for commands and the
+strict no-self-edit boundary.

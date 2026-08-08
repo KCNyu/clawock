@@ -285,7 +285,40 @@ def _context(args) -> int:
 
 def _workflow(args) -> int:
     """Discover or install portable Agent Skills shipped by clawock."""
-    from clawock.workflows import install_workflow, list_workflows, load_workflow
+    from clawock.publish.store import write_generation
+    from clawock.workflows import (
+        apply_proposal,
+        create_proposal,
+        evaluate_files,
+        install_workflow,
+        list_workflows,
+        load_workflow,
+        review_proposal,
+        rollback_change,
+    )
+
+    def emit(payload):
+        serialized = json.dumps(payload, ensure_ascii=False, indent=2) + "\n"
+        output = getattr(args, "output", None)
+        if output is not None:
+            write_generation({str(output.expanduser().resolve()): serialized})
+        print(serialized, end="")
+
+    def changes():
+        parsed = {}
+        for item in args.set:
+            name, separator, raw = item.partition("=")
+            if not separator or not name:
+                raise ValueError(f"--set must be NAME=JSON_VALUE, got {item!r}")
+            if name in parsed:
+                raise ValueError(f"duplicate workflow parameter: {name}")
+            try:
+                parsed[name] = json.loads(raw)
+            except json.JSONDecodeError as exc:
+                raise ValueError(
+                    f"--set value for {name} must be a JSON number"
+                ) from exc
+        return parsed
 
     try:
         if args.workflow_command == "list":
@@ -298,14 +331,36 @@ def _workflow(args) -> int:
                 }
                 for pack in list_workflows()
             ]
-            print(json.dumps(payload, ensure_ascii=False, indent=2))
+            emit(payload)
             return 0
         if args.workflow_command == "show":
-            print(json.dumps(
-                load_workflow(args.workflow_id).as_dict(),
-                ensure_ascii=False,
-                indent=2,
+            emit(load_workflow(args.workflow_id).as_dict())
+            return 0
+        if args.workflow_command == "evaluate":
+            emit(evaluate_files(args.workflow_id, args.decision, args.outcome))
+            return 0
+        if args.workflow_command == "propose":
+            emit(create_proposal(
+                args.workspace,
+                args.trigger,
+                changes(),
+                rationale=args.rationale,
+                expected_effect=args.expected_effect,
             ))
+            return 0
+        if args.workflow_command == "review":
+            emit(review_proposal(
+                args.proposal,
+                disposition=args.decision,
+                reviewer=args.reviewer,
+                note=args.note,
+            ))
+            return 0
+        if args.workflow_command == "apply":
+            emit(apply_proposal(args.workspace, args.proposal, args.review))
+            return 0
+        if args.workflow_command == "rollback":
+            emit(rollback_change(args.workspace, args.change_id))
             return 0
         root = args.skill_root
         if root is None:
@@ -313,11 +368,11 @@ def _workflow(args) -> int:
         destination = install_workflow(
             args.workflow_id, root, force=args.force
         )
-        print(json.dumps({
+        emit({
             "workflow": args.workflow_id,
             "installed": str(destination),
             "skill": str(destination / "SKILL.md"),
-        }, ensure_ascii=False, indent=2))
+        })
         return 0
     except (ValueError, OSError, json.JSONDecodeError) as exc:
         print(str(exc), file=sys.stderr)
@@ -421,6 +476,43 @@ def main(argv=None) -> int:
     workflow_install.add_argument("--skill-root", type=Path, default=None)
     workflow_install.add_argument("--force", action="store_true")
     workflow_install.set_defaults(func=_workflow)
+    workflow_evaluate = workflow_sub.add_parser(
+        "evaluate", help="reconcile a decision with observed price and FX evidence")
+    workflow_evaluate.add_argument("workflow_id")
+    workflow_evaluate.add_argument("--decision", type=Path, required=True)
+    workflow_evaluate.add_argument("--outcome", type=Path, required=True)
+    workflow_evaluate.add_argument("--output", type=Path)
+    workflow_evaluate.set_defaults(func=_workflow)
+    workflow_propose = workflow_sub.add_parser(
+        "propose", help="create a bounded parameter proposal from measured evidence")
+    workflow_propose.add_argument("--workspace", type=Path, default=Path.cwd())
+    workflow_propose.add_argument("--trigger", type=Path, required=True)
+    workflow_propose.add_argument("--set", action="append", required=True,
+                                  metavar="NAME=JSON_VALUE")
+    workflow_propose.add_argument("--rationale", required=True)
+    workflow_propose.add_argument("--expected-effect", required=True)
+    workflow_propose.add_argument("--output", type=Path)
+    workflow_propose.set_defaults(func=_workflow)
+    workflow_review = workflow_sub.add_parser(
+        "review", help="accept or reject one exact proposal")
+    workflow_review.add_argument("--proposal", type=Path, required=True)
+    workflow_review.add_argument("--decision", choices=("accepted", "rejected"),
+                                 required=True)
+    workflow_review.add_argument("--reviewer", required=True)
+    workflow_review.add_argument("--note", required=True)
+    workflow_review.add_argument("--output", type=Path)
+    workflow_review.set_defaults(func=_workflow)
+    workflow_apply = workflow_sub.add_parser(
+        "apply", help="apply an accepted proposal and write a rollback record")
+    workflow_apply.add_argument("--workspace", type=Path, default=Path.cwd())
+    workflow_apply.add_argument("--proposal", type=Path, required=True)
+    workflow_apply.add_argument("--review", type=Path, required=True)
+    workflow_apply.set_defaults(func=_workflow)
+    workflow_rollback = workflow_sub.add_parser(
+        "rollback", help="restore the parameters recorded before an applied change")
+    workflow_rollback.add_argument("--workspace", type=Path, default=Path.cwd())
+    workflow_rollback.add_argument("--change-id", required=True)
+    workflow_rollback.set_defaults(func=_workflow)
 
     args = parser.parse_args(argv)
     if args.command == "report" and not args.harness_phase and not args.context:
