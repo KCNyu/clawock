@@ -1,0 +1,137 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="680" viewBox="0 0 960 680" role="img" aria-labelledby="title desc">
+  <title id="title">clawock product architecture</title>
+  <desc id="desc">External agent runtimes own the model, conversation, memory, planning, tools, permissions and credentials. They install a standard skill and call the clawock CLI using JSON. The clawock package owns portable decision workflows, certified inputs, artifact contracts, deterministic money and foreign-exchange reconciliation, outcome evaluation, receipts, and bounded proposal review and rollback. User instances own strategy, evidence, ledgers, schedules, delivery and user interfaces.</desc>
+  <defs>
+    <linearGradient id="page" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#fcfcfd"/>
+      <stop offset=".62" stop-color="#f5f6f8"/>
+      <stop offset="1" stop-color="#edf2f5"/>
+    </linearGradient>
+    <linearGradient id="product" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#fbfdff"/>
+      <stop offset="1" stop-color="#e8f0f6"/>
+    </linearGradient>
+    <linearGradient id="brand-bull" x1="14" y1="50" x2="51" y2="31" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#245574"/>
+      <stop offset="1" stop-color="#559ed1"/>
+    </linearGradient>
+    <marker id="arrow" markerWidth="9" markerHeight="9" refX="7" refY="4" orient="auto">
+      <path d="M0 0L8 4L0 8Z" fill="#718392"/>
+    </marker>
+    <style>
+      .sans{font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif}
+      .mono{font-family:"SFMono-Regular",Consolas,monospace}
+      .ink{fill:#151a21}.muted{fill:#61707e}.blue{fill:#407ba7}
+      .kicker{font:700 10px "SFMono-Regular",Consolas,monospace;letter-spacing:1.3px}
+      .title{font:800 27px Inter,-apple-system,"Segoe UI",Arial,sans-serif;letter-spacing:-.7px}
+      .section{font:800 19px Inter,-apple-system,"Segoe UI",Arial,sans-serif;letter-spacing:-.35px}
+      .body{font:500 12.5px Inter,-apple-system,"Segoe UI",Arial,sans-serif}
+      .label{font:750 12px Inter,-apple-system,"Segoe UI",Arial,sans-serif}
+      .micro{font:600 10.5px "SFMono-Regular",Consolas,monospace}
+      .shell{fill:#fff;stroke:#d8e1e8;stroke-width:1.2}
+      .card{fill:#fff;stroke:#d4dfe7;stroke-width:1.1}
+      .wire{fill:none;stroke:#718392;stroke-width:1.8;marker-end:url(#arrow)}
+    </style>
+  </defs>
+
+  <rect width="960" height="680" fill="url(#page)"/>
+
+  <g class="sans">
+    <g transform="translate(26 18) scale(.34)">
+      <path d="M8 13C22 9 40 16 55 28C42 24 28 25 17 32C12 27 9 21 8 13Z" fill="#10141a"/>
+      <path d="M56 51C42 55 24 48 9 36C22 40 36 39 47 32C52 37 55 43 56 51Z" fill="url(#brand-bull)"/>
+    </g>
+    <text x="54" y="36" font-size="20" font-weight="800" class="ink">clawock</text>
+    <text x="934" y="34" text-anchor="end" class="kicker blue">PRODUCT ARCHITECTURE · RUNTIME NEUTRAL</text>
+    <text x="26" y="76" class="title ink">Decision intelligence between the agent and the instance</text>
+    <text x="26" y="98" class="body muted">The runtime thinks and acts. clawock makes the decision workflow portable, reconciled, and reviewable.</text>
+  </g>
+
+  <g transform="translate(26 122)" class="sans">
+    <rect width="908" height="112" rx="16" class="shell"/>
+    <rect width="6" height="112" rx="3" fill="#27323c"/>
+    <text x="24" y="29" class="kicker blue">OWNED BY THE EXTERNAL RUNTIME</text>
+    <text x="24" y="60" class="section ink">OpenClaw · Hermes · Claude Code · Codex · other agents</text>
+    <text x="24" y="84" class="body muted">model call · conversation · memory · planning / ReAct · tools · permissions · credentials</text>
+    <rect x="736" y="27" width="144" height="56" rx="12" fill="#f2f5f7" stroke="#d8e1e8"/>
+    <text x="808" y="51" text-anchor="middle" class="kicker blue">THE AGENT</text>
+    <text x="808" y="70" text-anchor="middle" class="label ink">reads · reasons · writes</text>
+  </g>
+
+  <path d="M480 234V272" class="wire"/>
+  <g transform="translate(382 242)" class="sans">
+    <rect width="196" height="26" rx="13" fill="#26323d"/>
+    <text x="98" y="17" text-anchor="middle" class="kicker" fill="#eaf2f8">INSTALL SKILL · CALL CLI + JSON</text>
+  </g>
+
+  <g transform="translate(26 276)" class="sans">
+    <rect width="908" height="244" rx="18" fill="url(#product)" stroke="#bfcfdb" stroke-width="1.4"/>
+    <rect width="6" height="244" rx="3" fill="#4b8ab8"/>
+    <text x="24" y="30" class="kicker blue">OWNED BY THE CLAWOCK PACKAGE · src/clawock/</text>
+    <text x="24" y="61" class="section ink">Portable decision-workflow plugin + verifiable harness</text>
+
+    <g transform="translate(24 83)">
+      <rect width="156" height="120" rx="13" class="card"/>
+      <text x="16" y="26" class="kicker blue">01 · WORKFLOW</text>
+      <text x="16" y="51" class="label ink">Evidence + opposition</text>
+      <text x="16" y="70" class="body muted">thesis · invalidation</text>
+      <text x="16" y="89" class="body muted">bounded decision</text>
+      <text x="16" y="108" class="micro muted">SKILL.md + schemas</text>
+    </g>
+
+    <path d="M180 143H196" class="wire"/>
+    <g transform="translate(196 83)">
+      <rect width="156" height="120" rx="13" class="card"/>
+      <text x="16" y="26" class="kicker blue">02 · CERTIFY</text>
+      <text x="16" y="51" class="label ink">Pinned input</text>
+      <text x="16" y="70" class="body muted">context hashes</text>
+      <text x="16" y="89" class="body muted">workflow version</text>
+      <text x="16" y="108" class="micro muted">run prepare</text>
+    </g>
+
+    <path d="M352 143H368" class="wire"/>
+    <g transform="translate(368 83)">
+      <rect width="172" height="120" rx="13" class="card"/>
+      <text x="16" y="26" class="kicker blue">03 · RECONCILE</text>
+      <text x="16" y="51" class="label ink">Deterministic truth</text>
+      <text x="16" y="70" class="body muted">order · cash · FX · P&amp;L</text>
+      <text x="16" y="89" class="body muted">artifact validation</text>
+      <text x="16" y="108" class="micro muted">run publish</text>
+    </g>
+
+    <path d="M540 143H556" class="wire"/>
+    <g transform="translate(556 83)">
+      <rect width="146" height="120" rx="13" class="card"/>
+      <text x="16" y="26" class="kicker blue">04 · EVALUATE</text>
+      <text x="16" y="51" class="label ink">Observed outcome</text>
+      <text x="16" y="70" class="body muted">decision lineage</text>
+      <text x="16" y="89" class="body muted">generation receipt</text>
+      <text x="16" y="108" class="micro muted">workflow evaluate</text>
+    </g>
+
+    <path d="M702 143H718" class="wire"/>
+    <g transform="translate(718 83)">
+      <rect width="142" height="120" rx="13" class="card"/>
+      <text x="16" y="26" class="kicker blue">05 · IMPROVE</text>
+      <text x="16" y="51" class="label ink">Bounded proposal</text>
+      <text x="16" y="70" class="body muted">review exact diff</text>
+      <text x="16" y="89" class="body muted">apply · rollback</text>
+      <text x="16" y="108" class="micro muted">never silent</text>
+    </g>
+  </g>
+
+  <path d="M480 520V558" class="wire"/>
+  <g transform="translate(401 528)" class="sans">
+    <rect width="158" height="26" rx="13" fill="#fff" stroke="#c8d6e0"/>
+    <text x="79" y="17" text-anchor="middle" class="kicker blue">ADAPTER-OWNED I/O</text>
+  </g>
+
+  <g transform="translate(26 562)" class="sans">
+    <rect width="908" height="90" rx="16" class="shell"/>
+    <rect width="6" height="90" rx="3" fill="#9a7b65"/>
+    <text x="24" y="29" class="kicker blue">OWNED BY THE USER INSTANCE</text>
+    <text x="24" y="58" class="section ink">Strategy · evidence · ledger · schedules · delivery · UI</text>
+    <text x="906" y="30" text-anchor="end" class="micro muted">not included in the wheel</text>
+    <text x="906" y="58" text-anchor="end" class="body muted">KCNyu is one live proof, not the product</text>
+  </g>
+</svg>
