@@ -187,11 +187,15 @@ jobs:
             --cov=clawock.brief_context \
             --cov=clawock.brief_decision_packet \
             --cov=clawock.decision_v2 \
+            --cov=clawock.earnings_review \
+            --cov=clawock.entry_gate \
             --cov=clawock.instrument_registry \
             --cov=clawock.json_repair \
             --cov=clawock.research_provenance \
             --cov=clawock.risk_discipline \
             --cov=clawock.safe_io \
+            --cov=clawock.research_surface \
+            --cov=clawock.thesis_registry \
             --cov=clawock.trading_calendar \
             --cov-report=term-missing:skip-covered \
             --cov-report=json:coverage-report.json
@@ -224,7 +228,7 @@ jobs:
         # evidence which no longer says what the claim says, so it reads as
         # maximally credible while being wrong.
         if: github.event_name != 'pull_request' || steps.changes.outputs.code == 'true'
-        run: python3 scripts/data/claim_provenance.py --check
+        run: clawock claim-provenance --check
 
       - name: Validate research lifecycle artifacts
         # Every thesis, earnings and entry-gate artifact on disk must still be
@@ -232,7 +236,7 @@ jobs:
         # one. Work items (a due earnings review, an ungated position) only warn
         # in system_check; this step fails on integrity alone.
         if: github.event_name != 'pull_request' || steps.changes.outputs.code == 'true'
-        run: python3 scripts/data/research_surface.py --check
+        run: clawock research --check
 
       - name: Import-check all scripts
         if: github.event_name != 'pull_request' || steps.changes.outputs.code == 'true'

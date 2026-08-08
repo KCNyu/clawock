@@ -3,7 +3,7 @@ import json
 from datetime import datetime, timezone
 from pathlib import Path
 
-from scripts.data import thesis_registry as tr
+from clawock import thesis_registry as tr
 
 
 ROOT = Path(__file__).resolve().parents[1]

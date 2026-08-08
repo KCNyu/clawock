@@ -24,9 +24,19 @@ RESEARCH_SCRIPTS = (
     "entry_gate.py", "earnings_review.py", "thesis_registry.py",
     "research_provenance.py", "research_surface.py",
 )
+RESEARCH_INDEX_TOKENS = {
+    "entry_gate.py": "clawock entry-gate",
+    "earnings_review.py": "clawock earnings",
+    "thesis_registry.py": "clawock thesis",
+    "research_provenance.py": "clawock provenance",
+    "research_surface.py": "clawock research",
+}
 RESEARCH_LOCATIONS = {
     name: (ROOT / "src" / "clawock" / name
-           if name == "research_provenance.py"
+           if name in {
+               "entry_gate.py", "earnings_review.py", "thesis_registry.py",
+               "research_provenance.py", "research_surface.py",
+           }
            else ROOT / "scripts" / "data" / name)
     for name in RESEARCH_SCRIPTS
 }
@@ -56,7 +66,10 @@ def test_shared_skill_fragments_are_explained_rather_than_left_dangling():
 
 
 def test_every_research_script_is_indexed_in_tools_md():
-    missing = [name for name in RESEARCH_SCRIPTS if f"`{name}`" not in TOOLS]
+    missing = [
+        name for name, token in RESEARCH_INDEX_TOKENS.items()
+        if f"`{token}`" not in TOOLS
+    ]
     assert missing == [], f"research scripts unreachable from TOOLS.md: {missing}"
     for path in RESEARCH_LOCATIONS.values():
         assert path.exists()
@@ -65,7 +78,7 @@ def test_every_research_script_is_indexed_in_tools_md():
 def test_bootstrap_states_the_research_lifecycle_rules():
     # The injected file, not just the optional read, has to carry the rules that
     # decide whether a session may open exposure or restate a thesis.
-    for token in ("entry_gate.py", "earnings-review", "thesis_registry.py",
+    for token in ("clawock entry-gate", "earnings-review", "clawock thesis",
                   "research_provenance.py", "research_surface"):
         assert token in BOOTSTRAP, f"BOOTSTRAP.md never mentions {token}"
     assert "gray_needs_evidence" in BOOTSTRAP

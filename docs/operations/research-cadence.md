@@ -12,13 +12,13 @@ heavy enters an intraday path.
 
 | Question | Cadence | Where it runs | Cost |
 |---|---|---|---|
-| Are the thesis, earnings and entry-gate artifacts still valid? | every push, every PR | `ops/system_check.py` (pre-push) · `validate` job (`research_surface.py --check`) | local file reads |
+| Are the thesis, earnings and entry-gate artifacts still valid? | every push, every PR | `ops/system_check.py` (pre-push) · `validate` job (`clawock research --check`) | local file reads |
 | What is each holding's thesis state and next review trigger? | daily | `brief_preflight.py` → `context.thesis_registry` | local file reads |
 | Is an earnings review due, a promise overdue, a position ungated? | daily | `brief_preflight.py` → `context.research_surface` | local file reads |
-| Should this thesis change? | on new evidence | `thesis_registry.py drift` after an earnings artifact or a red-line event | one agent turn |
+| Should this thesis change? | on new evidence | `clawock thesis drift` after an earnings artifact or a red-line event | one agent turn |
 | Review a reported quarter | on the report | `earnings-review` skill, manual/event-driven | one deep turn + filings |
 | Screen a new name | before a research run | `entry-gate` skill, manual | one cheap turn |
-| Verify a published number | at release | `research_provenance.py` inside `earnings_review.release()` | local, deterministic |
+| Verify a published number | at release | `clawock.provenance` inside `clawock.earnings_review.release()` | local, deterministic |
 
 ## Why the daily items are daily
 
@@ -58,7 +58,7 @@ the cadence detector keeps a forgotten ledger visible indefinitely.
 
 ## Integrity versus work queue
 
-`research_surface.check()` separates the two on purpose:
+`clawock.research_surface.check()` separates the two on purpose:
 
 - **integrity failures fail closed** — an invalid artifact, or an entry gate whose
   stated verdict no longer matches the recomputed one, reds `system_check.py` and

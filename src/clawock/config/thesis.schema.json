@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/KCNyu/clawock/src/clawock/config/thesis.schema.json",
+  "$id": "urn:clawock:schema:thesis:1",
   "title": "clawock canonical investment thesis",
   "type": "object",
   "additionalProperties": false,

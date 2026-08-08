@@ -4,8 +4,8 @@
 An agent-native plugin kit backed by a verifiable execution harness. Existing
 external agents call ``clawock run`` to certify inputs and validate/publish their
 artifacts; the model, conversation, memory, skills and tool loop stay external.
-The KCNyu live desk also exposes compatibility phase commands while its instance
-code is migrated.
+Separately installed live adapters may expose compatibility phase commands while
+their instance code is migrated.
 """
 from __future__ import annotations
 
@@ -324,8 +324,18 @@ def _packaged_utility(args) -> int:
         from clawock.dashboard_outputs import main
     elif args.command == "run-card":
         from clawock.run_card import main
-    else:
+    elif args.command == "provenance":
         from clawock.research_provenance import main
+    elif args.command == "entry-gate":
+        from clawock.entry_gate import main
+    elif args.command == "thesis":
+        from clawock.thesis_registry import main
+    elif args.command == "earnings":
+        from clawock.earnings_review import main
+    elif args.command == "research":
+        from clawock.research_surface import main
+    else:
+        from clawock.claim_provenance import main
     return main(args.utility_args)
 
 
@@ -435,6 +445,7 @@ def main(argv=None) -> int:
     raw_argv = list(sys.argv[1:] if argv is None else argv)
     packaged_utilities = {
         "plan-context", "risk", "dashboard-outputs", "run-card", "provenance",
+        "entry-gate", "thesis", "earnings", "research", "claim-provenance",
     }
     if raw_argv and raw_argv[0] in packaged_utilities:
         return _packaged_utility(argparse.Namespace(
@@ -521,6 +532,11 @@ def main(argv=None) -> int:
         ("dashboard-outputs", "compare one generated dashboard write set"),
         ("run-card", "inspect durable backtest evidence"),
         ("provenance", "verify numeric research provenance"),
+        ("entry-gate", "validate or assess a pre-investment research gate"),
+        ("thesis", "validate thesis state or evaluate evidence-only drift"),
+        ("earnings", "validate and release primary-source earnings reviews"),
+        ("research", "show or check the configured research work queue"),
+        ("claim-provenance", "verify backtest claims against run cards"),
     ):
         utility = sub.add_parser(name, help=help_text, add_help=False)
         utility.add_argument("utility_args", nargs=argparse.REMAINDER)

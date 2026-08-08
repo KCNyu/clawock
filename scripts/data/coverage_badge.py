@@ -40,11 +40,11 @@ ROOT = workspace_root(Path(__file__).resolve().parents[2])
 # _core_summary() for why a missing one is an error rather than a skip.
 CORE_MODULES = (
     'src/clawock/decision_v2.py',
-    'scripts/data/entry_gate.py',
-    'scripts/data/thesis_registry.py',
-    'scripts/data/earnings_review.py',
+    'src/clawock/entry_gate.py',
+    'src/clawock/thesis_registry.py',
+    'src/clawock/earnings_review.py',
     'src/clawock/research_provenance.py',
-    'scripts/data/research_surface.py',
+    'src/clawock/research_surface.py',
     'scripts/data/preflight_integrity.py',
     'src/clawock/risk_discipline.py',
     'scripts/data/shadow_portfolio.py',

@@ -5,8 +5,8 @@ from pathlib import Path
 
 import pytest
 
-from scripts.data import earnings_review as er
-from scripts.data import thesis_registry as tr
+from clawock import earnings_review as er
+from clawock import thesis_registry as tr
 
 
 ROOT = Path(__file__).resolve().parents[1]
