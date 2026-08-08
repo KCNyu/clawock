@@ -39,7 +39,11 @@ class WorkflowPack:
 
     @property
     def certificate(self) -> str:
-        return hashlib.sha256(_canonical(self.descriptor).encode()).hexdigest()
+        members = {
+            name: hashlib.sha256(content.encode()).hexdigest()
+            for name, content in _resource_files(self.resource).items()
+        }
+        return hashlib.sha256(_canonical(members).encode()).hexdigest()
 
     def contract(self, overrides: Mapping[str, Any] | None = None) -> dict[str, Any]:
         parameters = {

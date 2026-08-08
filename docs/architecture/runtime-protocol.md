@@ -65,7 +65,7 @@ rejected. Rejections are structured JSON for the external agent's own repair
 loop. Nothing is published while validation fails.
 
 When `clawock.json` pins `investment-decision`, the request and final manifest
-also pin its version, descriptor certificate and effective parameters. The
+also pin its version, whole-pack certificate and effective parameters. The
 required `decision.json` is rejected unless it carries traceable supporting and
 opposing evidence, linked bull/bear cases, thesis invalidation conditions and a
 bounded action. Any order intent is reconciled to currency cents in quote and

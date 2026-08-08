@@ -53,7 +53,7 @@ skills-compatible runtimes can consume the same directory without a fork. The
 installed skill tells the current agent how to call the CLI—it does not delegate
 to a clawock-owned model.
 
-The first shipped workflow pins its ID, semantic version, descriptor certificate
+The first shipped workflow pins its ID, semantic version, whole-pack certificate
 and bounded parameters into the prepared request. Its deterministic validator
 requires supporting and opposing evidence, linked bull/bear cases, thesis
 invalidation conditions, a bounded action, confidence provenance and exact
