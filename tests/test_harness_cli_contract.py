@@ -1,5 +1,6 @@
 """Small contract tests for the package harness boundary (#365)."""
 import ast
+import os
 from pathlib import Path
 
 from clawock.cli import main
@@ -38,3 +39,18 @@ def test_artifact_set_rejects_mixed_generations(tmp_path):
         assert "mixed artifact generations" in str(exc)
     else:
         raise AssertionError("mixed generations were accepted")
+
+
+def test_instance_adapter_receives_workspace_without_leaking_env(monkeypatch, tmp_path):
+    import clawock.harness.runner as runner
+
+    seen = {}
+    fake = type("Adapter", (), {
+        "main": staticmethod(lambda argv: seen.update(
+            workspace=os.environ.get("CLAWOCK_WORKSPACE")) or 0),
+    })
+    monkeypatch.setattr(runner.importlib, "import_module", lambda name: fake)
+    monkeypatch.delenv("CLAWOCK_WORKSPACE", raising=False)
+    assert runner.run_phase("brief", "preflight", workspace=tmp_path) == 0
+    assert seen["workspace"] == str(tmp_path.resolve())
+    assert "CLAWOCK_WORKSPACE" not in os.environ
