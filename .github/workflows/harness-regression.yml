@@ -176,7 +176,7 @@ jobs:
         # Pillow: validate_sidecars now fully-decodes screenshots/GIF (finding #12);
         # the real asset checks run in screenshot-refresh.yml (which has Pillow) but
         # the unit tests here exercise the same validators, so pytest needs it too.
-        run: pip install --quiet -e '.[test]'
+        run: pip install --quiet -e '.[test]' -e ./instances/kcnyu
 
       - name: Unit tests — money-integrity derivations
         if: github.event_name != 'pull_request' || steps.changes.outputs.code == 'true'
@@ -228,7 +228,7 @@ jobs:
         if: github.event_name != 'pull_request' || steps.changes.outputs.code == 'true'
         run: |
           set -e
-          for f in scripts/data/*.py scripts/harness/*.py; do
+          for f in scripts/data/*.py instances/kcnyu/src/clawock_kcnyu/harness/*.py; do
             echo "syntax check: $f"
             python3 -m py_compile "$f"
           done
@@ -248,7 +248,7 @@ jobs:
           for cli in report_preflight report_postflight \
                      intraday_preflight intraday_postflight \
                      brief_preflight brief_postflight; do
-            timeout 30 python3 "scripts/harness/$cli.py" --help > /dev/null \
+            timeout 30 env CLAWOCK_INSTANCE=kcnyu clawock "${cli%%_*}" "${cli##*_}" --help > /dev/null \
               || { echo "::error::$cli.py --help did not exit 0 within 30s"; exit 1; }
           done
           echo "OK: all argparse parsers loadable"

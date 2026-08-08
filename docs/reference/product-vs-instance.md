@@ -11,7 +11,8 @@ of every module in `scripts/data/` against it (#331).
 It classifies before moving. The point is that the migration afterwards is
 mechanical and reviewable one file at a time, and that a new file has an obvious
 home instead of defaulting to `scripts/data/` because that is where things go.
-The same rule now covers all 11 modules in `scripts/harness/` (#365).
+The same rule now covers all 11 modules in the separately packaged
+`instances/kcnyu/` adapter (#365).
 
 ## The rule
 
@@ -117,13 +118,15 @@ Four calls are genuinely arguable, and a reviewer may reasonably move them:
   retired scripts stay readable for their early fallback ordering and the reasons
   they were replaced.
 
-## `scripts/harness/` — lifecycle vs live desk adapter
+## `instances/kcnyu/` — the live desk adapter
 
 The portable lifecycle vocabulary and generation-pinned `ArtifactSet` live in
-`src/clawock/harness/`; `clawock brief|report|intraday` dispatch phases in-process.
-The scripts remain the kcn instance adapter during the strangler migration, so
-old direct invocations still work and OpenClaw behaviour does not change under a
-trading cron.
+`src/clawock/harness/`; `clawock brief|report|intraday` dispatch phases in-process
+through the `clawock.instance_phases` entry-point group. KCNyu's implementation
+lives in its own `clawock-kcnyu` distribution under `instances/kcnyu/`, so the
+public wheel neither imports nor ships it. Thin `scripts/harness/` aliases remain
+temporarily for rollback; they are not an ownership boundary or a production
+source of truth.
 
 | Classification | Modules | Boundary |
 |---|---|---|
@@ -132,10 +135,11 @@ trading cron.
 | Mixed shared implementation | `_harness_common` | Generation/validation helpers are product; this repository's publish and dashboard refresh path is instance |
 | Instance runtime supervision | `_watchdog_common` `brief_watchdog` `report_watchdog` `intraday_watchdog` | Reads runtime sessions/run history, mirrors this deployment's channels and applies this desk's retry policy |
 
-The classification is intentionally not “move all 6,338 lines into the wheel”.
-Watchdogs stay adapters; product functions cross the boundary only after they no
-longer assume this repository's paths. The stable package CLI means payloads no
-longer need to know the adapter's file layout while extraction continues.
+The classification is intentionally not “move all 6,338 lines into the public
+wheel”. Watchdogs stay in the private-instance-shaped adapter; product functions
+cross into `src/clawock/` only after they no longer assume this repository's
+paths. The stable package CLI means payloads do not know the adapter's file
+layout while extraction continues.
 
 ## Note on the counts in #331
 

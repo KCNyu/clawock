@@ -7,6 +7,7 @@ functions.  ``BRIEF_PREFLIGHT_UNDER_TEST`` is intentionally supported so the
 same assertions can mutation-test a scratch copy without editing product code.
 """
 
+import importlib
 import importlib.util
 import os
 import sys
@@ -16,7 +17,10 @@ import pytest
 
 
 ROOT = Path(__file__).resolve().parents[1]
-PRODUCTION_MODULE = ROOT / "scripts" / "harness" / "brief_preflight.py"
+PRODUCTION_MODULE = (
+    ROOT / "instances" / "kcnyu" / "src" / "clawock_kcnyu" / "harness" /
+    "brief_preflight.py"
+)
 
 
 @pytest.fixture(scope="module")
@@ -26,8 +30,11 @@ def preflight():
     data_path = str(ROOT / "scripts" / "data")
     sys.path.insert(0, data_path)
     try:
+        if module_path.resolve() == PRODUCTION_MODULE.resolve():
+            return importlib.import_module("clawock_kcnyu.harness.brief_preflight")
         spec = importlib.util.spec_from_file_location(
-            "_brief_preflight_guardrail_under_test", module_path
+            "clawock_kcnyu.harness._brief_preflight_guardrail_under_test",
+            module_path,
         )
         if spec is None or spec.loader is None:
             pytest.skip(f"cannot load brief_preflight from {module_path}")

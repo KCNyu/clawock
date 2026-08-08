@@ -14,6 +14,7 @@ from scripts.data import mover_news as mn
 
 
 ROOT = Path(__file__).resolve().parents[1]
+INSTANCE_HARNESS = ROOT / "instances" / "kcnyu" / "src" / "clawock_kcnyu" / "harness"
 NOW = datetime(2026, 7, 24, 6, 0, tzinfo=timezone.utc)          # 14:00 HKT
 
 
@@ -249,7 +250,7 @@ def test_symbol_mapping_covers_both_markets():
 
 def test_both_preflights_probe_only_the_flagged_names():
     for name in ("intraday_preflight.py", "report_preflight.py"):
-        source = (ROOT / "scripts" / "harness" / name).read_text()
+        source = (INSTANCE_HARNESS / name).read_text()
         assert "import mover_news" in source, name
         assert "mover_news.probe(" in source, name
         assert "[a['ticker'] for a in anomalies]" in source, name

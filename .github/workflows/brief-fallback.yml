@@ -18,6 +18,9 @@ jobs:
   fallback:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    env:
+      CLAWOCK_INSTANCE: kcnyu
+      CLAWOCK_WORKSPACE: ${{ github.workspace }}
     permissions:
       contents: write
     steps:
@@ -30,7 +33,7 @@ jobs:
         with:
           python-version: '3.11'
 
-      - run: pip install --quiet -e '.[compute]'
+      - run: pip install --quiet -e '.[compute]' -e ./instances/kcnyu
 
       # Set git identity up front: brief_postflight commits internally (rebuild
       # dashboard + auto-commit), so it needs an identity well before the final
@@ -68,7 +71,7 @@ jobs:
         if: steps.check.outputs.skip != 'true'
         env:
           FINNHUB_API_KEY: ${{ secrets.FINNHUB_API_KEY }}
-        run: python3 scripts/harness/brief_preflight.py 2>&1 | tail -50
+        run: clawock brief preflight 2>&1 | tail -50
 
       - name: Call off-host LLM to generate brief
         if: steps.check.outputs.skip != 'true'
@@ -86,7 +89,7 @@ jobs:
         # and NOT a bare pipe, which would turn a publishable warn red under pipefail.
         run: |
           set +e
-          python3 scripts/harness/brief_postflight.py > "${RUNNER_TEMP:-/tmp}/postflight.log" 2>&1
+          clawock brief postflight > "${RUNNER_TEMP:-/tmp}/postflight.log" 2>&1
           code=$?
           tail -20 "${RUNNER_TEMP:-/tmp}/postflight.log"
           [ "$code" -lt 2 ] || exit "$code"

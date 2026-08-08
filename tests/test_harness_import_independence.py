@@ -85,3 +85,19 @@ def test_clawock_importers_do_not_inherit_their_sys_path():
         "these modules import clawock without putting the checkout root on "
         f"sys.path first, so the import resolves only by side effect: {offenders}"
     )
+
+
+def test_installed_instance_adapter_never_imports_product_from_the_checkout():
+    """The adapter may still reach workspace-owned data modules during the next
+    migration slice; product code must already come from its declared wheel
+    dependency, never from a repository-relative `src/` insertion.
+    """
+    root = ROOT / "instances" / "kcnyu" / "src" / "clawock_kcnyu"
+    offenders = []
+    for path in sorted(root.rglob("*.py")):
+        source = path.read_text()
+        if "Path(__file__)" in source and (
+            ' / "src"' in source or " / 'src'" in source
+        ):
+            offenders.append(str(path.relative_to(ROOT)))
+    assert not offenders, f"adapter reaches product source by checkout path: {offenders}"

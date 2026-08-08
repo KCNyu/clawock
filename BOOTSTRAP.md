@@ -22,18 +22,18 @@
 
 不论是哪个 LLM 在跑（MiniMax / Xiaomi / GLM / Claude / GPT），都按 **4 步**：
 
-1. **Preflight**：`python3 scripts/harness/{brief|report|intraday}_preflight.py [args]`
+1. **Preflight**：`clawock {brief|report|intraday} preflight [args]`
    - 把所有确定性活（刷价 / FX / HHI / 信号 / 异动）下放给 Python
    - 输出 `memory/.tmp/{type}-context-{date}.json`
 2. **读 context.json**：
    - 数字（FX rate / book total / concentration / anomalies）**只从 JSON 取**
-   - `raw_wechat_block` 字段必须 **verbatim 拷贝**到输出开头，不改时间戳/数字
+   - `raw_wechat_block` 是 harness-owned 数据块；report / intraday 的模型只写散文，postflight 在投递前拼装，模型不得重排或重算其中数字
 3. **LLM 合成**（你这一步）：
    - 按对应 SKILL.md 的 Mode 模板写 markdown 报告
    - daily-deep-brief 还要写 `memory/{date}-plan.json`（schema 在 SKILL.md 里）
    - 报告里**必须**至少提一个 `anomalies` 字段里的异动票
    - 若 `needs_risk_section=true`，必须有 ▎风险提示 段
-4. **Postflight**：`python3 scripts/harness/{brief|report|intraday}_postflight.py [args]`
+4. **Postflight**：`clawock {brief|report|intraday} postflight [args]`
    - 校验 → pass / warn 自动 commit；fail 加红 banner
 
 ### C+. 自进化机制（daily-deep-brief）

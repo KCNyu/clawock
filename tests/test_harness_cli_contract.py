@@ -48,14 +48,28 @@ def test_instance_adapter_receives_workspace_without_leaking_env(monkeypatch, tm
     import clawock.harness.runner as runner
 
     seen = {}
-    fake = type("Adapter", (), {
-        "main": staticmethod(lambda argv: seen.update(
-            workspace=os.environ.get("CLAWOCK_WORKSPACE")) or 0),
-    })
-    monkeypatch.setattr(runner.importlib, "import_module", lambda name: fake)
+    def adapter(argv):
+        seen.update(workspace=os.environ.get("CLAWOCK_WORKSPACE"), argv=argv)
+        return 0
+
+    class FakeEntryPoint:
+        @staticmethod
+        def load():
+            return adapter
+
+    class FakeEntryPoints:
+        @staticmethod
+        def select(*, group, name):
+            assert group == runner.ENTRYPOINT_GROUP
+            assert name == "fixture.brief.preflight"
+            return (FakeEntryPoint(),)
+
+    monkeypatch.setattr(runner, "entry_points", lambda: FakeEntryPoints())
+    monkeypatch.setenv("CLAWOCK_INSTANCE", "fixture")
     monkeypatch.delenv("CLAWOCK_WORKSPACE", raising=False)
     assert runner.run_phase("brief", "preflight", workspace=tmp_path) == 0
     assert seen["workspace"] == str(tmp_path.resolve())
+    assert seen["argv"] == []
     assert "CLAWOCK_WORKSPACE" not in os.environ
 
 

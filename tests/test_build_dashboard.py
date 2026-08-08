@@ -1050,7 +1050,7 @@ def test_every_publishing_caller_opts_into_preservation():
     """
     publishers = [
         "scripts/data/publish_dashboard.sh",   # host crontab, every 20 minutes
-        "scripts/harness/_harness_common.py",  # all three postflights → brief-fallback.yml
+        "instances/kcnyu/src/clawock_kcnyu/harness/_harness_common.py",
     ]
     for rel in publishers:
         lines = (ROOT / rel).read_text(encoding="utf-8").splitlines()

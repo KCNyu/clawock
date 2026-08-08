@@ -15,6 +15,7 @@ from scripts.data import research_surface as rs
 
 
 ROOT = Path(__file__).resolve().parents[1]
+INSTANCE_HARNESS = ROOT / "instances" / "kcnyu" / "src" / "clawock_kcnyu" / "harness"
 EARNINGS_FIXTURE = ROOT / "tests" / "fixtures" / "earnings" / "us-ustest-fy2026q1.json"
 GATE_FIXTURE = ROOT / "tests" / "fixtures" / "entry-gates" / "ustest-2026-07-20.json"
 NOW = datetime(2026, 7, 26, tzinfo=timezone.utc)
@@ -341,7 +342,7 @@ def test_live_repository_artifacts_are_valid_right_now():
 # --- the consumers actually call it ------------------------------------------
 
 def test_brief_preflight_puts_the_surface_in_the_daily_context():
-    preflight = (ROOT / "scripts" / "harness" / "brief_preflight.py").read_text()
+    preflight = (INSTANCE_HARNESS / "brief_preflight.py").read_text()
     assert "import research_surface" in preflight
     assert "'research_surface': research_surface_ctx," in preflight
     assert "research_surface.summarize(" in preflight
@@ -497,7 +498,7 @@ def test_a_missing_registry_directory_never_breaks_a_reporting_cron(tmp_path):
 
 def test_intraday_and_report_preflights_carry_mover_thesis():
     for name in ("intraday_preflight.py", "report_preflight.py"):
-        source = (ROOT / "scripts" / "harness" / name).read_text()
+        source = (INSTANCE_HARNESS / name).read_text()
         assert "import research_surface" in source, name
         assert "research_surface.movers_thesis_context(" in source, name
         assert "'mover_thesis'" in source, name
@@ -651,7 +652,7 @@ def test_the_watch_is_opt_in_and_the_daily_brief_opts_in():
                                                      "us_stocks": {"holdings": []}}},
                            catalysts={"earnings": []}, today=TODAY, now=NOW)
     assert surface["earnings"]["hk_results_expected"] == []
-    preflight = (ROOT / "scripts" / "harness" / "brief_preflight.py").read_text()
+    preflight = (INSTANCE_HARNESS / "brief_preflight.py").read_text()
     assert "hk_watch=True" in preflight
 
 

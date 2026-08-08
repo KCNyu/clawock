@@ -1,30 +1,22 @@
-"""In-process harness dispatch.
+"""In-process dispatch to an installed instance adapter.
 
-This is a strangler adapter: cron and other runtimes call a stable package CLI,
-while the live desk implementation remains importable from ``scripts/harness``
-until its product/instance seams are extracted.  Crucially this never shells out
-to a script; the selected module's ``main(argv)`` is called in the same process.
-A wheel without the kcn instance can still import all harness contracts and gets
-a named adapter error if it asks to run that instance.
+The portable wheel knows the phase protocol but not the KCNyu implementation.
+Instance distributions register phase callables through the
+``clawock.instance_phases`` entry-point group. External runtimes therefore keep
+one stable ``clawock`` command while the product wheel remains free of live desk
+code, portfolio data and repository-layout imports.
 """
 from __future__ import annotations
 
-import importlib
 import os
 from contextlib import contextmanager
+from importlib.metadata import entry_points
 from pathlib import Path
 
 from .model import RunRequest
 
 
-ENTRYPOINTS = {
-    ("brief", "preflight"): "scripts.harness.brief_preflight:main",
-    ("brief", "postflight"): "scripts.harness.brief_postflight:main",
-    ("report", "preflight"): "scripts.harness.report_preflight:main",
-    ("report", "postflight"): "scripts.harness.report_postflight:main",
-    ("intraday", "preflight"): "scripts.harness.intraday_preflight:main",
-    ("intraday", "postflight"): "scripts.harness.intraday_postflight:main",
-}
+ENTRYPOINT_GROUP = "clawock.instance_phases"
 
 
 class AdapterUnavailable(RuntimeError):
@@ -53,15 +45,19 @@ def run_phase(workflow: str, phase: str, argv=(), *, workspace=None) -> int:
         workspace=Path(workspace or os.environ.get("CLAWOCK_WORKSPACE") or Path.cwd()),
         argv=tuple(argv),
     )
-    target = ENTRYPOINTS[(request.workflow, request.phase)]
-    module_name, function_name = target.split(":", 1)
-    try:
-        with _workspace_env(request.workspace):
-            module = importlib.import_module(module_name)
-            function = getattr(module, function_name)
-            return int(function(list(request.argv)) or 0)
-    except ModuleNotFoundError as exc:
+    instance = os.environ.get("CLAWOCK_INSTANCE", "").strip()
+    if not instance:
         raise AdapterUnavailable(
             f"{workflow} {phase} needs an installed instance adapter; "
-            f"{module_name} is unavailable"
-        ) from exc
+            "set CLAWOCK_INSTANCE to its registered name"
+        )
+    name = f"{instance}.{request.workflow}.{request.phase}"
+    matches = tuple(entry_points().select(group=ENTRYPOINT_GROUP, name=name))
+    if len(matches) != 1:
+        raise AdapterUnavailable(
+            f"{workflow} {phase} needs exactly one installed '{instance}' "
+            f"adapter entry point; found {len(matches)} for {name}"
+        )
+    with _workspace_env(request.workspace):
+        function = matches[0].load()
+        return int(function(list(request.argv)) or 0)

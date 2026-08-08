@@ -1,0 +1,34 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "clawock-kcnyu"
+version = "0.1.0"
+description = "KCNyu live-desk adapter for the clawock decision-workflow harness"
+readme = "README.md"
+requires-python = ">=3.11"
+license = "MIT"
+dependencies = [
+    "clawock>=0.1.0,<0.2",
+]
+
+[project.entry-points."clawock.instance_phases"]
+"kcnyu.brief.preflight" = "clawock_kcnyu.harness.brief_preflight:main"
+"kcnyu.brief.postflight" = "clawock_kcnyu.harness.brief_postflight:main"
+"kcnyu.report.preflight" = "clawock_kcnyu.harness.report_preflight:main"
+"kcnyu.report.postflight" = "clawock_kcnyu.harness.report_postflight:main"
+"kcnyu.intraday.preflight" = "clawock_kcnyu.harness.intraday_preflight:main"
+"kcnyu.intraday.postflight" = "clawock_kcnyu.harness.intraday_postflight:main"
+
+[project.scripts]
+clawock-kcnyu-brief-watchdog = "clawock_kcnyu.harness.brief_watchdog:main"
+clawock-kcnyu-report-watchdog = "clawock_kcnyu.harness.report_watchdog:main"
+clawock-kcnyu-intraday-watchdog = "clawock_kcnyu.harness.intraday_watchdog:main"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["clawock_kcnyu*"]
