@@ -16,13 +16,13 @@ from __future__ import annotations
 import argparse
 import copy
 import json
-import os
 import sys
 from collections import Counter, defaultdict
 from pathlib import Path
 
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-import decision_v2 as dv2  # noqa: E402
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
+from clawock import decision_v2 as dv2  # noqa: E402
 
 
 def snap(decisions: list[dict]) -> dict:

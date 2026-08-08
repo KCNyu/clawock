@@ -123,7 +123,7 @@ def test_retirement_is_declared_never_inferred(tmp_path, monkeypatch):
     `instrument_inactive` and drop out of the denominator with nothing reported. Only
     a declaration in fetch_daily_bars' MANIFEST may say an instrument is retired.
     """
-    import decision_v2
+    from clawock import decision_v2
 
     d = tmp_path / 'memory' / 'bars'
     d.mkdir(parents=True)

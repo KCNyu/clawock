@@ -17,8 +17,10 @@ from datetime import date, timedelta
 from pathlib import Path
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
 from xiaomi_llm import chat
-import decision_v2
+from clawock import decision_v2  # noqa: E402
 
 
 def _load_json(path, kind, errors):

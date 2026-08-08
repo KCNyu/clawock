@@ -186,6 +186,7 @@ jobs:
             --cov=clawock.bar_checks \
             --cov=clawock.brief_context \
             --cov=clawock.brief_decision_packet \
+            --cov=clawock.decision_v2 \
             --cov=clawock.instrument_registry \
             --cov=clawock.json_repair \
             --cov=clawock.safe_io \
@@ -285,9 +286,8 @@ jobs:
         if: github.event_name != 'pull_request' || steps.changes.outputs.code == 'true'
         run: |
           python3 << 'PY'
-          import json, glob, sys
-          sys.path.insert(0, 'scripts/data')
-          import decision_v2
+          import json, glob
+          from clawock import decision_v2
           for p in sorted(glob.glob('memory/*-plan.json')):
               with open(p) as f: d = json.load(f)
               errors = decision_v2.validate_plan(d, p)
@@ -300,9 +300,8 @@ jobs:
         run: |
           python3 -m unittest discover -s tests -p 'test_decision_v2.py' -v
           python3 << 'PY'
-          import json, glob, sys
-          sys.path.insert(0, 'scripts/data')
-          import decision_v2
+          import json, glob
+          from clawock import decision_v2
           led = decision_v2.load_decisions()
           ids = [d['decision_id'] for d in led]
           dupes = len(ids) - len(set(ids))

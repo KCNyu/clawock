@@ -16,10 +16,14 @@ import argparse
 import json
 import os
 import sys
+from pathlib import Path
 
-ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+_CHECKOUT = Path(__file__).resolve().parents[2]
+ROOT = str(_CHECKOUT)
 sys.path.insert(0, os.path.join(ROOT, "scripts", "data"))
-import decision_v2
+sys.path.insert(0, str(_CHECKOUT))
+sys.path.insert(0, os.path.join(ROOT, "src"))
+from clawock import decision_v2  # noqa: E402
 QUANT = os.path.join(ROOT, "assets", "data", "quant_signal_review.json")
 T0 = os.path.join(ROOT, "assets", "data", "t0_setup_review.json")
 REPO = "github.com/KCNyu/clawock"

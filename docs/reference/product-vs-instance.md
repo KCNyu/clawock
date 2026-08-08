@@ -66,18 +66,20 @@ data and are not bundled in the wheel. The dependency-free `bar_checks`,
 `json_repair`, `safe_io`, and `trading_calendar` utilities have also moved into
 `src/clawock/`. The generation-bound brief context and typed decision packet now
 ship there too; tools never import executable Python from a user's workspace.
+The v2 decision ledger and settlement engine is now `clawock.decision_v2`; its
+default data root is the caller's workspace, never the package installation path.
 
 ### Product — the engine
 
 | Area | Modules |
 |---|---|
-| Ledger + decision contract | `decision_v2` `plan_surface` `mark_followed` `audit_resettle` |
+| Ledger + decision contract | `plan_surface` `mark_followed` `audit_resettle` |
 | Money integrity | `recompute_aggregates` `recompute_cash` `recompute_realized` `snapshot_realized` `shadow_portfolio` |
 | Risk + governance | `portfolio_risk_metrics` `risk_discipline` `thesis_registry` `entry_gate` `earnings_review` `research_surface` |
 | Quant + research | `compute_quant_signals` `compute_regime` `compute_t0_setups` `t0_setup_review` `quant_signal_review` `cross_sectional_factor` `peer_residual_engine` `peer_scan` `suggest_peers` |
 | Evidence + provenance | `news_evidence_graph` `research_provenance` `claim_provenance` `run_card` `build_evidence` |
 | Market data | `fetch_us_stocks` `fetch_daily_bars` `fetch_fx` `fetch_benchmark_history` `fetch_peers` `fetch_catalysts` `fetch_us_filings` `fetch_fundamentals_em` `fetch_fundflow_em` `fetch_em_news` `fetch_sentiment` `fetch_macro` `mover_news` `known_catalysts` `analyze_hk_stocks` `analyze_us_stocks` `_em_http` `_em_symbols` |
-| Moved into product | `clawock.instrument_registry` `clawock.bar_checks` `clawock.brief_context` `clawock.brief_decision_packet` `clawock.decision_contract` `clawock.json_repair` `clawock.safe_io` `clawock.trading_calendar` | Code and schemas ship in the wheel; each user's configuration and data stay in their workspace |
+| Moved into product | `clawock.instrument_registry` `clawock.bar_checks` `clawock.brief_context` `clawock.brief_decision_packet` `clawock.decision_contract` `clawock.decision_v2` `clawock.json_repair` `clawock.safe_io` `clawock.trading_calendar` | Code and schemas ship in the wheel; each user's configuration and data stay in their workspace |
 | Gates + outputs | `preflight_integrity` `validate_sidecars` `dashboard_outputs` `build_dashboard` `workflow_outcomes` `workflow_health` `coverage_badge` `cron_contract` `cron_heartbeat` |
 
 ### Instance — kcn's desk
