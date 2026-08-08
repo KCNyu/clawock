@@ -1,21 +1,25 @@
 # Harness architecture
 
-clawock is an auditable agent harness for portfolio operation, with a
-context-certification layer. It is not an agent orchestration framework: it does
-not implement model routing, a ReAct loop or conversation memory. The external
-agent/runtime remains complete in itself; clawock is the verifiable execution
-envelope around it.
+clawock is an agent-native decision-workflow plugin kit backed by a verifiable
+harness. It packages reusable skills, tool contracts and decision workflows for
+external agents. It is not an agent orchestration framework: it does not
+implement model routing, a ReAct loop or conversation memory. The external
+agent/runtime remains complete in itself.
 
 The runtime is intentionally external. OpenClaw, Hermes, Claude Code, Codex,
 LangGraph or another runner may own the conversation, model and tools; clawock
-wraps that run with certified input, deterministic artifacts, reconciliation,
-validation and publication receipts.
+calls clawock for workflow steps, certified input, deterministic reconciliation,
+validation, outcome evaluation and publication receipts.
+
+A generation is the correlated audit unit emitted by one workflow run, not the
+product itself. The product-level loop is evidence → debate/workflow → decision →
+execution/outcome → bounded, reviewable improvement proposal.
 
 ## Ownership
 
 | Layer | Owns | Current location |
 |---|---|---|
-| Harness core | complete `AgentRun` lifecycle, generation-pinned artifact contract, validation/repair, context assembly, tool schemas | `clawock/` |
+| Plugin/harness core | portable skills/workflows, generation-pinned artifact contract, validation/reconciliation, context assembly, tool schemas, evaluation contracts | `clawock/` + portable skill/workflow packages (in progress) |
 | Instance | portfolio, schedules, selected skills/persona, delivery targets, dashboard skin | root data + `config/` + `skills/` |
 | Runtime adapters | conversations, scheduling, delivery, run history | OpenClaw today; provider interfaces in `clawock/providers/` |
 | Live desk adapter | market refresh, `.tmp` artifact placement, git coordination, publication/watchdogs | `scripts/harness/` |

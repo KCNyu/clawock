@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
-"""`clawock` — a verifiable execution harness for external agent runtimes.
+"""`clawock` — portable decision workflows for external agent runtimes.
 
-Create a portable workspace with ``clawock init``. Existing external agents call
-``clawock run`` to certify inputs and validate/publish their artifacts.
+An agent-native plugin kit backed by a verifiable execution harness. Existing
+external agents call ``clawock run`` to certify inputs and validate/publish their
+artifacts; the model, conversation, memory, skills and tool loop stay external.
 The KCNyu live desk also exposes compatibility phase commands while its instance
 code is migrated.
 """
@@ -285,7 +286,8 @@ def main(argv=None) -> int:
     init.add_argument("workspace", type=Path)
     init.set_defaults(func=_init)
 
-    run = sub.add_parser("run", help="certify and publish an external agent run")
+    run = sub.add_parser(
+        "run", help="certify and publish one external decision-workflow run")
     run_steps = run.add_subparsers(dest="run_command", required=True)
     prepare = run_steps.add_parser("prepare", help="emit certified run input as JSON")
     prepare.add_argument("--workspace", type=Path, default=Path.cwd())

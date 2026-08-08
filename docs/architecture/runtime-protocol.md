@@ -1,13 +1,16 @@
 # External agent invocation protocol
 
-`clawock` is not an agent, model client or agent launcher. It is a deterministic
-CLI/tool surface called by an existing external agent runtime. OpenClaw, Hermes,
+`clawock` is an agent-native decision-workflow plugin kit, not an agent, model
+client or agent launcher. Its deterministic CLI/tool surface is called by an
+existing external agent runtime. OpenClaw, Hermes,
 Claude Code, Codex, LangGraph or another runtime keeps its conversation, memory,
 skills, routing, ReAct and tool loop.
 
 In short: **built for agents, not an agent**. This follows the same agent-native
 CLI principle as Lark CLI at a different layer: Lark exposes business operations
-to an agent, while clawock certifies, validates and publishes a whole generation.
+to an agent, while clawock packages decision workflows and certifies, validates,
+reconciles and evaluates their outputs. A generation is one audit unit, not the
+whole product.
 
 ## Prepare
 
