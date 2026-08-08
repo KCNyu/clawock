@@ -1288,7 +1288,7 @@ def main():
     }
 
     sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-    from safe_io import safe_write_json
+    from clawock.safe_io import safe_write_json
     os.makedirs(os.path.dirname(OUT_FILE), exist_ok=True)
     safe_write_json(OUT_FILE, out)
 

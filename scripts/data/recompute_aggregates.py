@@ -31,8 +31,10 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
 from preflight_integrity import _num, _active, PORTFOLIO  # noqa: E402
-from safe_io import safe_write_json  # noqa: E402
+from clawock.safe_io import safe_write_json  # noqa: E402
 
 # total_pnl_percent precision differs per region's fetcher (fetch_us_stocks rounds
 # to 4dp, analyze_hk_stocks to 2dp) — match each so this stays a no-op after a fetch.

@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """One shared contract for "is this bar believable", used by every fetcher.
 
 Why this exists

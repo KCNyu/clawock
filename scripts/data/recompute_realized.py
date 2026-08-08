@@ -25,12 +25,12 @@ from pathlib import Path
 from typing import Dict, List, Tuple
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from safe_io import safe_write_json
 # The checkout root, so `clawock` resolves from the tree this file ships
 # in. Reached through the scripts/data/workspace shim until #267 step 3,
 # whose only remaining job was inserting this path as a side effect.
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
+from clawock.safe_io import safe_write_json  # noqa: E402
 from clawock.workspace import workspace_root  # noqa: E402
 
 # The ledger of whichever workspace this file sits in — the same resolution the

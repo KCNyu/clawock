@@ -30,7 +30,7 @@ WS = workspace_root(Path(__file__).resolve().parents[2])
 sys.path.insert(0, str(_CHECKOUT / 'scripts' / 'data'))
 
 from preflight_integrity import derive_cash  # noqa: E402
-from safe_io import mutate_json  # noqa: E402
+from clawock.safe_io import mutate_json  # noqa: E402
 
 PORTFOLIO = WS / 'portfolio.json'
 CASH_FIELD = {'us_stocks': 'cash_usd', 'hk_stocks': 'cash_hkd'}

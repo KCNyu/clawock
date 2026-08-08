@@ -461,7 +461,7 @@ def main():
     # return on --json meant nothing in the daily pipeline ever rewrote the file →
     # the dashboard Catalysts card froze at whenever someone last ran it bare.
     sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-    from safe_io import safe_write_json
+    from clawock.safe_io import safe_write_json
     os.makedirs(os.path.dirname(OUT_FILE), exist_ok=True)
     safe_write_json(OUT_FILE, out)
 

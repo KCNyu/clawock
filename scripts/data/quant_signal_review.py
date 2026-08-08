@@ -40,7 +40,7 @@ OUT = WS / 'assets' / 'data' / 'quant_signal_review.json'
 
 sys.path.insert(0, str(_CHECKOUT / 'scripts' / 'data'))
 try:
-    from safe_io import safe_write_json  # type: ignore
+    from clawock.safe_io import safe_write_json
 except Exception:
     def safe_write_json(path, data, indent=2):
         Path(path).write_text(json.dumps(data, ensure_ascii=False, indent=indent))
