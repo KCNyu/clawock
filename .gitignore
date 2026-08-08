@@ -39,6 +39,8 @@ media/
 *.jpg
 !docs/*.png
 !docs/*.jpg
+!docs/**/*.png
+!docs/**/*.jpg
 *.jpeg
 *.gif
 *.mp4

@@ -76,7 +76,7 @@ jobs:
                 bad+=("$f")
                 ;;
               *.png|*.jpg|*.jpeg)
-                [[ "$f" == assets/* ]] || bad+=("$f")
+                [[ "$f" == site/assets/* || "$f" == docs/* ]] || bad+=("$f")
                 ;;
             esac
           done
