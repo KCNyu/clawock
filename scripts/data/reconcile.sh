@@ -16,10 +16,10 @@ DRY=""
 [ "${1:-}" = "--dry-run" ] && DRY="--dry-run"
 
 echo "▸ recompute aggregates (leaf shares/price/cost → current_value, totals, pnl)…"
-python3 scripts/data/recompute_aggregates.py $DRY
+clawock aggregates $DRY
 
 echo "▸ recompute cash (baseline + trades cashflow + adjustments)…"
-python3 scripts/data/recompute_cash.py $DRY
+clawock cash $DRY
 
 echo "▸ recompute realized P&L (Σ sell trades)…"
 clawock realized $DRY

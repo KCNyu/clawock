@@ -23,7 +23,7 @@ cost_basis/prev_close/trades[])复原，且都有一道闸守着。计算链：
   TODAY_LEG      每只 today_change == shares×(current − prev_close)      WARN
   TODAY_TOTAL    today_total_change == Σ(活跃持仓 today_change)          WARN
   CASH_RECON     cash == cash_reconciled基线 + Σ(此后trades现金流) + 存取款 ERROR
-                 → 加仓记进仓位漏扣现金 → 双计（6/22-24 SPCH $581；recompute_cash.py）
+                 → 加仓记进仓位漏扣现金 → 双计（修复命令：clawock cash）
   PRICE_RANGE    current_price ∈ [day_low, day_high]                     WARN
                  → 03033 坏 tick 4.5 跌破 [4.644,4.696]（e54bc54）
   LEV_DIRECTION  同标的 2x 与 1x 的 today_change_pct 同号                WARN
@@ -75,6 +75,13 @@ OUT = WS / 'assets' / 'data' / 'integrity_report.json'
 
 sys.path.insert(0, str(_CHECKOUT / 'scripts' / 'data'))
 from clawock.instrument_registry import INSTRUMENTS  # noqa: E402
+from clawock.portfolio_math import (  # noqa: E402
+    active_holdings as _active,
+    derive_cash,
+    moving_average_cost as _moving_avg_cost,
+    number as _num,
+    trade_cashflow_after as _trade_cashflow_after,
+)
 
 try:
     from clawock.safe_io import safe_write_json
@@ -97,81 +104,6 @@ HSTECH_SIBLINGS = {
 TCV_TOL = 1.0      # 货币单位（HKD/USD），手工记账小数误差
 PCT_TOL = 0.5      # pnl_abs 重算容差（货币单位）
 RANGE_TOL = 0.005  # current 越界容忍 0.5%（收盘集合竞价/盘后微动）
-
-
-def _num(x):
-    try:
-        return float(x)
-    except (TypeError, ValueError):
-        return None
-
-
-def _active(holdings):
-    return [h for h in holdings if (_num(h.get('shares')) or 0) > 0]
-
-
-def _moving_avg_cost(trades):
-    """移动加权成本 + 净股数，从 trades[] 推。
-
-    买入按价累加成本；卖出按*当时均价*冲减成本（与券商口径一致：卖出不动均价、
-    盈亏落 realized_pnl）。同日 buy/sell 用原始下标稳定排序，保证「先买后卖」的
-    T+0 在同一天被正确平掉。返回 (avg_cost 或 None, net_shares)。"""
-    sh = 0.0
-    cost = 0.0
-    for _, t in sorted(enumerate(trades), key=lambda x: (x[1].get('date', ''), x[0])):
-        a = t.get('action')
-        s = _num(t.get('shares')) or 0
-        pr = _num(t.get('price')) or 0
-        if a == 'buy':
-            sh += s
-            cost += s * pr
-        elif a == 'sell':
-            if sh > 0:
-                cost -= s * (cost / sh)   # 按当时均价冲减，均价不变
-            sh -= s
-    return (cost / sh if sh else None), sh
-
-
-def _trade_cashflow_after(holdings, after_date):
-    """Σ(此日期*之后*所有 trades 的现金流)：sell=+shares×price，buy=−shares×price。
-
-    after_date 为基线对账日 ISO 串；严格大于（基线值已含当日及之前所有成交）。"""
-    flow = 0.0
-    n = 0
-    for h in holdings or []:
-        for t in h.get('trades', []) or []:
-            d = t.get('date', '')
-            if not d or d <= after_date:
-                continue
-            s = _num(t.get('shares')) or 0
-            pr = _num(t.get('price')) or 0
-            a = t.get('action')
-            if a == 'sell':
-                flow += s * pr
-            elif a == 'buy':
-                flow -= s * pr
-            else:
-                continue
-            n += 1
-    return flow, n
-
-
-def derive_cash(port):
-    """从对账基线 + 此后 trades 现金流 + 存取款派生现金。
-
-    返回 (derived, baseline, baseline_date, n_trades) 或 None（无基线则不可派生，
-    调用方应跳过 CASH_RECON 闸——与 COST_BASIS「账本不完整就不校验」同理）。"""
-    baseline = _num(port.get('cash_reconciled'))
-    bdate = port.get('cash_reconciled_date')
-    if baseline is None or not bdate:
-        return None
-    flow, n = _trade_cashflow_after(port.get('holdings', []), bdate)
-    adj = 0.0
-    for a in port.get('cash_adjustments', []) or []:
-        d = a.get('date', '')
-        if d and d > bdate:
-            adj += _num(a.get('amount')) or 0
-    return round(baseline + flow + adj, 2), baseline, bdate, n
 
 
 def _last_session(market):
@@ -501,7 +433,7 @@ def check(portfolio_path=PORTFOLIO):
                     add('CASH_RECON', 'ERROR',
                         f'{cash_field}={stated:.2f} ≠ 派生值 {derived:.2f}'
                         f'（基线 {baseline:.2f}@{bdate} + 此后 {n_tr} 笔成交现金流，差 '
-                        f'{stated - derived:+.2f}）；改/补 trades 后须跑 recompute_cash.py', region)
+                        f'{stated - derived:+.2f}）；改/补 trades 后须跑 clawock cash', region)
 
     # GOLD_RECON：黄金定投手填对账值闸（隐含均价 vs NAV，抓填错/单位反）
     g = data.get('gold_dca') or {}
