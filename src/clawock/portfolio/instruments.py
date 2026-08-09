@@ -14,7 +14,7 @@ from pathlib import Path
 from typing import Any
 
 
-from .workspace import engine_config, workspace_root
+from clawock.workspace import engine_config, workspace_root
 
 WS = workspace_root(Path.cwd())
 REGISTRY_FILE = WS / "config" / "instruments.json"

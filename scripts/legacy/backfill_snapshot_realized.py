@@ -5,7 +5,8 @@ portfolio.json trades[] ledger (the 2026-05-21 phantom-drawdown bug).
 
 For each memory/snapshots/YYYY-MM-DD.json it recomputes realized_pnl + realized_note
 as the point-in-time value reflected in that snapshot's holdings (see
-snapshot_realized.realized_as_of), using portfolio.json as the source of truth.
+clawock.portfolio.snapshots.realized_as_of), using portfolio.json as the source
+of truth.
 
     python3 backfill_snapshot_realized.py --dry-run   # diff only
     python3 backfill_snapshot_realized.py             # write in place
@@ -24,7 +25,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
 from clawock.safe_io import safe_write_json  # noqa: E402
-from clawock.snapshot_realized import realized_as_of, snapshot_shares  # noqa: E402
+from clawock.portfolio.snapshots import realized_as_of, snapshot_shares  # noqa: E402
 from clawock.workspace import workspace_root  # noqa: E402
 
 # The workspace this file sits in, not the operator's. As an absolute live path

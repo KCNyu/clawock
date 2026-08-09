@@ -38,7 +38,7 @@ sys.path.insert(0, str(CHECKOUT_ROOT / "src"))
 # calculations move into core; never recover it through a source-tree alias.
 sys.path.insert(0, str(CHECKOUT_ROOT / "instances" / "kcnyu" / "src"))
 from clawock.workspace import workspace_root  # noqa: E402
-from clawock import instrument_registry  # noqa: E402
+from clawock.portfolio import instruments as instrument_registry  # noqa: E402
 from clawock import json_repair  # noqa: E402
 from clawock import decision_v2  # noqa: E402
 from clawock import dashboard_outputs  # noqa: E402
@@ -432,7 +432,7 @@ def build_shadow_sidecar(portfolio, decisions, previous=None):
     """
     try:
         import importlib
-        shadow_portfolio = importlib.import_module('clawock.shadow_portfolio')
+        shadow_portfolio = importlib.import_module('clawock.portfolio.shadow')
         leg_config = shadow_portfolio.load_leg_config(
             WS_ROOT / 'config' / 'portfolio-derivations.json')
         return shadow_portfolio.build_shadow_portfolio(
@@ -633,7 +633,7 @@ def load_snapshots():
     point-in-time realized reflected in each snapshot's own holdings and prefer
     it, so the equity curve / drawdown can never be poisoned by a stale aggregate
     even if a future writer regresses. Read-only on the snapshot files."""
-    from clawock.snapshot_realized import realized_as_of, snapshot_shares
+    from clawock.portfolio.snapshots import realized_as_of, snapshot_shares
     ledger = _canonical_ledger()
     legs = _ledger_legs()
     paths = sorted(
@@ -2394,7 +2394,7 @@ def compute_build_status(portfolio, data_dir, at=None):
     """A2 健康卡数据：每个数据文件的新鲜度 + 体检结论 + 每市场 data 时点。
 
     纯文件运算、零网络。被动暴露 staleness 给前端（不推送，遵 feedback_no_individual_cron_alerts）。
-    内联跑一次 preflight_integrity 取新鲜体检结论嵌进来。
+    内联跑一次 `clawock integrity` 取新鲜体检结论嵌进来。
     """
     now = at if at is not None else datetime.now().astimezone()
     if now.tzinfo is None:
@@ -2462,7 +2462,7 @@ def compute_build_status(portfolio, data_dir, at=None):
     # 体检结论（A1）——纯文件运算，安全内联
     integrity = None
     try:
-        from clawock import preflight_integrity as _pi
+        from clawock.portfolio import integrity as _pi
         rep = _pi.check()
         integrity = {'ok': rep['ok'], 'error_count': rep['error_count'],
                      'warn_count': rep['warn_count'],
@@ -2815,7 +2815,7 @@ def build_projection(previous_source=None, shadow_previous=None):
     out['sector_exposure'] = compute_sector_exposure(portfolio)
     out['lookthrough_exposure'] = compute_lookthrough_exposure(portfolio)
     out['leveraged_etf'] = compute_leveraged_etf_exposure(portfolio, fx_rate)
-    # Tier 2: pull pre-computed risk metrics (from portfolio_risk_metrics.py)
+    # Tier 2: pull pre-computed risk metrics (from `clawock portfolio-risk`)
     risk_path = WS_ROOT / 'assets' / 'data' / 'risk.json'
     if risk_path.exists():
         try:

@@ -55,7 +55,7 @@ from zoneinfo import ZoneInfo
 
 from clawock import bar_checks
 from clawock._em_http import em_get
-from clawock.instrument_registry import canonical_bar_manifest
+from clawock.portfolio.instruments import canonical_bar_manifest
 from clawock.workspace import workspace_root
 
 WS = workspace_root(Path.cwd())

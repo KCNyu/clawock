@@ -13,7 +13,7 @@ import argparse
 import json
 from pathlib import Path
 
-from clawock.portfolio_math import derive_cash
+from clawock.portfolio.math import derive_cash
 from clawock.safe_io import mutate_json
 from clawock.workspace import workspace_root
 

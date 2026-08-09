@@ -25,7 +25,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 _CHECKOUT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(_CHECKOUT))
 sys.path.insert(0, str(_CHECKOUT / "src"))
-from clawock import instrument_registry  # noqa: E402
+from clawock.portfolio import instruments as instrument_registry  # noqa: E402
 from xiaomi_llm import chat
 from fetch_sentiment import fetch_google_news
 

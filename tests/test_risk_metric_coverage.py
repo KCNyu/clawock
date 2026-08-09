@@ -2,7 +2,7 @@
 
 import numpy as np
 
-from clawock import portfolio_risk_metrics as risk
+from clawock.portfolio import risk
 
 
 def _series(start=1780000000, closes=(100, 101, 102, 103, 104, 105, 106)):

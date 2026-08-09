@@ -20,7 +20,7 @@ WS = Path(__file__).resolve().parents[1]
 @pytest.fixture(scope="module")
 def pi():
     """Import lazily so an unavailable local dependency cannot break collection."""
-    return pytest.importorskip("clawock.preflight_integrity")
+    return pytest.importorskip("clawock.portfolio.integrity")
 
 
 @pytest.fixture

@@ -3,7 +3,7 @@ from pathlib import Path
 
 import pytest
 
-from clawock import shadow_portfolio as shadow
+from clawock.portfolio import shadow
 
 ROOT = Path(__file__).resolve().parents[1]
 

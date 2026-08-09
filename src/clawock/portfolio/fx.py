@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-fetch_fx.py - USDHKD exchange rate fetcher (3-route fallback, no API key)
+USDHKD exchange-rate provider (3-route fallback, no API key).
 
 Provider chain:
   1. Frankfurter.app  – ECB-sourced, free, no key, daily refresh
