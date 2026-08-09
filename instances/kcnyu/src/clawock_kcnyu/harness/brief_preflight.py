@@ -39,8 +39,8 @@ from pathlib import Path
 from zoneinfo import ZoneInfo
 
 from clawock.workspace import workspace_root
-from clawock import trading_calendar
-from clawock import brief_context
+from clawock.market_data import sessions as trading_calendar
+from clawock.context import brief as brief_context
 from clawock.decision import ledger as decision_v2
 from clawock.decision import packet as brief_decision_packet
 from clawock.decision import risk as risk_discipline

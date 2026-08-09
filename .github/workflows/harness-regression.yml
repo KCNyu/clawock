@@ -187,7 +187,7 @@ jobs:
             --cov=clawock.market_data.macro \
             --cov=clawock.market_data.mover_evidence \
             --cov=clawock.market_data.sentiment \
-            --cov=clawock.brief_context \
+            --cov=clawock.context.brief \
             --cov=clawock.decision.packet \
             --cov=clawock.evidence.build_evidence \
             --cov=clawock.decision.ledger \
@@ -210,8 +210,8 @@ jobs:
             --cov=clawock.portfolio.snapshots \
             --cov=clawock.portfolio.shadow \
             --cov=clawock.decision.theses \
-            --cov=clawock.trading_calendar \
-            --cov=clawock.validate_sidecars \
+            --cov=clawock.market_data.sessions \
+            --cov=clawock.publish.artifacts \
             --cov-report=term-missing:skip-covered \
             --cov-report=json:coverage-report.json
 

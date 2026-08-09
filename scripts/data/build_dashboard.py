@@ -41,7 +41,7 @@ from clawock.workspace import workspace_root  # noqa: E402
 from clawock.portfolio import instruments as instrument_registry  # noqa: E402
 from clawock import json_repair  # noqa: E402
 from clawock.decision import ledger as decision_v2  # noqa: E402
-from clawock import dashboard_outputs  # noqa: E402
+from clawock.publish import outputs as dashboard_outputs  # noqa: E402
 
 WS_ROOT = workspace_root(Path(__file__).resolve().parent.parent.parent)
 OUT_DIR = WS_ROOT / 'assets' / 'data'
@@ -2401,7 +2401,7 @@ def compute_build_status(portfolio, data_dir, at=None):
         now = now.astimezone()
     try:
         sys.path.insert(0, str(WS_ROOT / 'scripts' / 'data'))
-        from clawock import trading_calendar as _tc
+        from clawock.market_data import sessions as _tc
     except Exception:
         _tc = None
     files = []
@@ -3088,7 +3088,7 @@ def main(argv=None):
     # `--previous` names, so the redirect never changes which cards are restored.
     args = parse_args(argv)
     previous_source = resolve_previous_source(args)
-    # The four outputs are one logical generation (dashboard_outputs.py owns that
+    # The four outputs are one logical generation (clawock.publish.outputs owns that
     # contract). Their paths are resolved together, here, so that the projection
     # never learns where it is going to land.
     paths = resolve_output_paths(args.out_dir)

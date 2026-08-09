@@ -1,4 +1,4 @@
-"""Configured ownership and semantic diffs for generated JSON write sets.
+"""Publication ownership and semantic diffs for generated JSON write sets.
 
 The algorithm ships in the wheel. Output paths, clock-only fields and generation
 groups are workspace configuration, so an installed package never inherits one

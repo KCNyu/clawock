@@ -390,7 +390,7 @@ def print_wechat_report(data: Dict, analyses: List[Dict], md_table: bool = False
     if md_table:
         # Seven-column visual-width-aligned markdown table.
         # Stays consistent line-width on mobile WeChat (no md render there).
-        from clawock.mobile_table import render_holdings_table
+        from clawock.adapters.mobile import render_holdings_table
         rows = [{
             'code':      a['holding']['ticker'],
             'shares':    a['holding'].get('shares', 0),

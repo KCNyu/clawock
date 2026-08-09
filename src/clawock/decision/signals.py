@@ -32,7 +32,7 @@ from zoneinfo import ZoneInfo
 
 import requests
 
-from clawock import trading_calendar
+from clawock.market_data import sessions as trading_calendar
 from clawock.portfolio.instruments import require as require_instrument
 from clawock.safe_io import safe_write_json
 from clawock.workspace import workspace_root

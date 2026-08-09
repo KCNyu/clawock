@@ -145,7 +145,7 @@ clawock us-quotes     # 仅刷美股价格
 - 盘中 Mode 7：`intraday_preflight.py --market {hk|us}` / `intraday_postflight.py …`（不提交 `portfolio.json`；dashboard 仅语义变化提交，逐 slot heartbeat 必发布）
 - 共通：preflight 出 `raw_wechat_block`(LLM **verbatim** 拷) + `anomalies`(必提≥1票) + `plan_context`(08:00 未成交决策,散文必须对账、股数照抄不许心算)；postflight 出 `wechat_prefix`；context 全落 `memory/.tmp/`(gitignore)
 
-**Dashboard/发布**：`build_dashboard.py`(聚合 portfolio+snapshots+plan+decisions.jsonl+risk+sidecar → `dashboard.json` + 决策审计/影子组合两个公开 sidecar；三类 postflight 都会自动调) · `dashboard_outputs.py`(统一 ownership + 语义 diff，忽略纯构建时间并给出精确 staging pathspec) · `safe_push.sh`(统一 push,rebase.autoStash 容脏树)
+**Dashboard/发布**：`build_dashboard.py`(聚合 portfolio+snapshots+plan+decisions.jsonl+risk+sidecar → `dashboard.json` + 决策审计/影子组合两个公开 sidecar；三类 postflight 都会自动调) · `clawock.publish.outputs`(统一 ownership + 语义 diff，忽略纯构建时间并给出精确 staging pathspec) · `safe_push.sh`(统一 push,rebase.autoStash 容脏树)
 
 **LLM-free Telegram 兜底哨兵（系统 crontab，非 openclaw cron）**
 - report / brief / intraday postflight 主发 WeChat 并同步 Telegram；watchdog 读真实 delivery marker，只在 Telegram marker 缺失或失败时补投，不再猜 run summary、也不重发 WeChat。

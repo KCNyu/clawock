@@ -57,7 +57,7 @@ def _run_prepare(args) -> int:
 
 
 def _run_publish(args) -> int:
-    from clawock.context import assemble_explicit
+    from clawock.context.assembly import assemble_explicit
     from clawock.harness import AgentRun, PreparedRun
     from clawock.harness.config import load_request
     from clawock.publish import FilesystemStore
@@ -152,7 +152,7 @@ def _doctor(args) -> int:
 
 def _calendar(args) -> int:
     """Run the package-owned HK/US session guard."""
-    from clawock.trading_calendar import main as calendar_main
+    from clawock.market_data.sessions import main as calendar_main
 
     forwarded = [args.market]
     if args.date:
@@ -178,7 +178,7 @@ def _report(args) -> int:
     if args.harness_phase:
         return _harness(args, "report")
 
-    from clawock.report import assemble_message, categorize, validate
+    from clawock.harness.report import assemble_message, categorize, validate
 
     context = json.loads(Path(args.context).read_text())
     prose = Path(args.prose).read_text() if args.prose else sys.stdin.read()
@@ -276,7 +276,7 @@ def _tool(args) -> int:
 
 def _context(args) -> int:
     """Audit or assemble the runtime-neutral context contract (#366)."""
-    from clawock.context import (
+    from clawock.context.assembly import (
         assemble,
         audit,
         compare_prompt_reports,
@@ -321,7 +321,7 @@ def _packaged_utility(args) -> int:
     elif args.command == "risk":
         from clawock.decision.risk import main
     elif args.command == "dashboard-outputs":
-        from clawock.dashboard_outputs import main
+        from clawock.publish.outputs import main
     elif args.command == "run-card":
         from clawock.evidence.run_card import main
     elif args.command == "provenance":
@@ -392,7 +392,7 @@ def _packaged_utility(args) -> int:
     elif args.command == "integrity":
         from clawock.portfolio.integrity import main
     elif args.command == "validate-sidecar":
-        from clawock.validate_sidecars import main
+        from clawock.publish.artifacts import main
     elif args.command == "mark-followed":
         from clawock.decision.execution import main
     elif args.command == "audit-resettle":

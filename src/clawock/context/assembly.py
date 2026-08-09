@@ -63,7 +63,7 @@ class ContextBundle:
 
 
 def load_manifest() -> dict:
-    resource = files("clawock").joinpath("context_manifest.json")
+    resource = files("clawock.context").joinpath("manifest.json")
     return json.loads(resource.read_text(encoding="utf-8"))
 
 

@@ -8,7 +8,7 @@ import pytest
 
 from scripts.data import fetch_influencer_feed
 from scripts.data import gh_action_news_digest
-from clawock import validate_sidecars
+from clawock.publish import artifacts as validate_sidecars
 from clawock.market_data import sentiment as fetch_sentiment
 
 

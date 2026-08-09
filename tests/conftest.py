@@ -71,7 +71,7 @@ def _git_status(paths):
 
 @pytest.fixture(scope="session", autouse=True)
 def publish_owned_artifacts_are_left_as_found():
-    from clawock.dashboard_outputs import output_paths
+    from clawock.publish.outputs import output_paths
 
     outputs = output_paths(ROOT)
     before = {path: (ROOT / path).read_bytes() for path in outputs

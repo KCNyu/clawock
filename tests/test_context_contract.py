@@ -3,7 +3,7 @@ from pathlib import Path
 
 import pytest
 
-from clawock.context import (
+from clawock.context.assembly import (
     assemble,
     audit,
     compare_prompt_reports,

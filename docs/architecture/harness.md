@@ -83,7 +83,7 @@ OpenClaw 2026.7.1 does not have one universal context allowlist. Normal chat
 injects the five identity/tool bootstrap files plus `HEARTBEAT.md` and
 `MEMORY.md`; isolated cron injects only the five-file runtime allowlist;
 heartbeat-light keeps only `HEARTBEAT.md`; bootstrap-pending and subagent runs
-have their own rules. `src/clawock/context_manifest.json` records each profile, the
+have their own rules. `src/clawock/context/manifest.json` records each profile, the
 lazy skill/memory capability roots, conversation-history ownership and the rule
 that clawock never narrows OpenClaw's tools implicitly.
 
