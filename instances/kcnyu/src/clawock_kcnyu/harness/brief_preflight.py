@@ -1432,7 +1432,7 @@ def main(argv=None):
     print('[11/14] Risk metrics')
     risk = {}
     try:
-        r = subprocess.run(['python3', str(WS / 'scripts' / 'data' / 'portfolio_risk_metrics.py')],
+        r = subprocess.run(['clawock', 'portfolio-risk'], cwd=WS,
                            capture_output=True, text=True, timeout=180, check=False)
         if r.returncode != 0:
             tail = (r.stderr or r.stdout or '')[-500:]

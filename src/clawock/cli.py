@@ -344,6 +344,8 @@ def _packaged_utility(args) -> int:
         from clawock.shadow_portfolio import main
     elif args.command == "fx":
         from clawock.fetch_fx import main
+    elif args.command == "portfolio-risk":
+        from clawock.portfolio_risk_metrics import main
     else:
         from clawock.claim_provenance import main
     return main(args.utility_args)
@@ -457,7 +459,7 @@ def main(argv=None) -> int:
         "plan-context", "risk", "dashboard-outputs", "run-card", "provenance",
         "entry-gate", "thesis", "earnings", "research", "claim-provenance",
         "realized",
-        "aggregates", "cash", "shadow", "fx",
+        "aggregates", "cash", "shadow", "fx", "portfolio-risk",
     }
     if raw_argv and raw_argv[0] in packaged_utilities:
         return _packaged_utility(argparse.Namespace(
@@ -554,6 +556,7 @@ def main(argv=None) -> int:
         ("cash", "recompute cash from its reconciliation ledger"),
         ("shadow", "simulate followed decisions against buy and hold"),
         ("fx", "fetch or convert the canonical USD/HKD rate"),
+        ("portfolio-risk", "compute portfolio beta, volatility, and tail risk"),
     ):
         utility = sub.add_parser(name, help=help_text, add_help=False)
         utility.add_argument("utility_args", nargs=argparse.REMAINDER)

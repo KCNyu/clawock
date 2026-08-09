@@ -1,15 +1,8 @@
 """Public risk numbers must disclose — and obey — their data denominator."""
 
-import sys
-from pathlib import Path
-
 import numpy as np
 
-
-ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT / "scripts" / "data"))
-
-import portfolio_risk_metrics as risk  # noqa: E402
+from clawock import portfolio_risk_metrics as risk
 
 
 def _series(start=1780000000, closes=(100, 101, 102, 103, 104, 105, 106)):

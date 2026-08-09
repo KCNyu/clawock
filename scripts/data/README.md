@@ -83,7 +83,6 @@ clawock 是**美股 + 港股 + 黄金定投**的实盘组合。工具包遵循�
 | `compute_quant_signals.py` | 双均线 / 动量 / RSI / ATR / vol-target(杠杆 ETF 按标的) | 派生 | ✅ |
 | `compute_regime.py` | 杠杆刻度盘: 200DMA 趋势 + 20d 波动带 | 派生 | ✅ |
 | `compute_t0_setups.py` | T+0 牌面评级 + 追高检测 | 派生 | ✅ |
-| `portfolio_risk_metrics.py` | β / Cov-Var / 回撤 / 集中度 + **相关性 x-ray**(effective bets、分散比、聚类、VaR95/ES95) | Yahoo 30d/60d + 派生 | ✅ |
 | `cross_sectional_factor.py` | 同行/1x 标的行业中性排名、杠杆 decay 对比（激活闸前仅研究） | 腾讯 qfq + SEC XBRL | ✅ |
 | `peer_residual_engine.py` | 人工同行篮子等权/流动性权重残差、breadth/dispersion/leadership（HK 禁自动发现） | 腾讯 qfq + peer-map | ✅ |
 

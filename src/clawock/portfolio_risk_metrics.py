@@ -14,6 +14,7 @@ Finance v8 for every active ticker + benchmarks (^GSPC, ^HSI), and computes:
 
 Writes: assets/data/risk.json
 """
+import argparse
 import json
 import math
 import os
@@ -26,17 +27,15 @@ from pathlib import Path
 import numpy as np
 import requests
 
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-_CHECKOUT = Path(__file__).resolve().parents[2]
-sys.path.insert(0, str(_CHECKOUT))
-sys.path.insert(0, str(_CHECKOUT / "src"))
-from clawock.fetch_fx import get_usdhkd  # noqa: E402
-from clawock.instrument_registry import get as get_instrument  # noqa: E402
-from clawock.instrument_registry import leverage_map, require as require_instrument  # noqa: E402
+from clawock.fetch_fx import get_usdhkd
+from clawock.instrument_registry import get as get_instrument
+from clawock.instrument_registry import leverage_map, require as require_instrument
+from clawock.safe_io import safe_write_json
+from clawock.workspace import workspace_root
 
-WS_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-PORTFOLIO_FILE = os.path.join(WS_ROOT, 'portfolio.json')
-OUT_FILE = os.path.join(WS_ROOT, 'assets', 'data', 'risk.json')
+WS_ROOT = workspace_root(Path.cwd())
+PORTFOLIO_FILE = str(WS_ROOT / 'portfolio.json')
+OUT_FILE = str(WS_ROOT / 'assets' / 'data' / 'risk.json')
 
 UA = ('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) '
       'AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0 Safari/537.36 '
@@ -45,13 +44,13 @@ HEADERS = {'User-Agent': UA}
 TIMEOUT = 15
 
 # ---- API keys (for fallback historical fetch) -------------------------------
-API_KEYS_PATH = os.path.join(WS_ROOT, '.api_keys')
+API_KEYS_PATH = str(WS_ROOT / '.api_keys')
 
 
-def _load_api_keys():
+def _load_api_keys(path=API_KEYS_PATH):
     keys = {}
     try:
-        with open(API_KEYS_PATH) as f:
+        with open(path) as f:
             for line in f:
                 line = line.strip()
                 if line and not line.startswith('#') and '=' in line:
@@ -355,8 +354,9 @@ def active_holdings(portfolio: dict, key: str):
         if shares <= 0 or cv <= 0:
             continue
         ticker = h.get('ticker')
-        lev = require_instrument(ticker)['leverage_multiple']
-        if key == 'hk_stocks':
+        instrument = require_instrument(ticker)
+        lev = instrument['leverage_multiple']
+        if instrument.get('region') == 'HK':
             yahoo_sym = h.get('ticker_finnhub') or hk_yahoo_symbol(ticker)
         else:
             yahoo_sym = ticker
@@ -1154,19 +1154,54 @@ def load_canonical_fx():
     }
 
 
+def load_risk_config(path: Path | str) -> dict[str, str]:
+    """Load instance-owned book names for the supported US/HK risk model."""
+    payload = json.loads(Path(path).read_text(encoding='utf-8'))
+    books = payload.get('risk_books')
+    if not isinstance(books, dict):
+        raise ValueError('portfolio derivation config needs risk_books')
+    result = {}
+    for market in ('us', 'hk'):
+        entry = books.get(market)
+        if not isinstance(entry, dict):
+            raise ValueError(f'risk_books.{market} must be an object')
+        portfolio_key = entry.get('portfolio_key')
+        if not isinstance(portfolio_key, str) or not portfolio_key:
+            raise ValueError(f'risk_books.{market}.portfolio_key is required')
+        result[market] = portfolio_key
+    if result['us'] == result['hk']:
+        raise ValueError('US and HK risk books must be distinct')
+    return result
+
+
 # ----------------------------------------------------------------------------
 # Main
 # ----------------------------------------------------------------------------
 
-def main():
-    if not os.path.exists(PORTFOLIO_FILE):
-        print(f'ERROR: portfolio not found at {PORTFOLIO_FILE}', file=sys.stderr)
+def main(argv=None):
+    workspace = workspace_root(Path.cwd())
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--path', type=Path, default=workspace / 'portfolio.json')
+    parser.add_argument(
+        '--config', type=Path,
+        default=workspace / 'config' / 'portfolio-derivations.json')
+    parser.add_argument(
+        '--out', type=Path, default=workspace / 'assets' / 'data' / 'risk.json')
+    parser.add_argument('--api-keys', type=Path, default=workspace / '.api_keys')
+    args = parser.parse_args(argv)
+    portfolio_file = str(args.path)
+    out_file = str(args.out)
+    if not os.path.exists(portfolio_file):
+        print(f'ERROR: portfolio not found at {portfolio_file}', file=sys.stderr)
         return 1
-    with open(PORTFOLIO_FILE, 'r', encoding='utf-8') as f:
+    with open(portfolio_file, 'r', encoding='utf-8') as f:
         portfolio = json.load(f)
+    books = load_risk_config(args.config)
+    global API_KEYS
+    API_KEYS = _load_api_keys(args.api_keys)
 
-    us_holdings = active_holdings(portfolio, 'us_stocks')
-    hk_holdings = active_holdings(portfolio, 'hk_stocks')
+    us_holdings = active_holdings(portfolio, books['us'])
+    hk_holdings = active_holdings(portfolio, books['hk'])
 
     print(f'Active US holdings: {len(us_holdings)}  '
           f'({", ".join(h["ticker"] for h in us_holdings)})')
@@ -1198,9 +1233,9 @@ def main():
     # portfolio.json — so we always refresh it from current holdings even when the
     # rest of the block (β/vol/sharpe) is stale.
     prev = {}
-    if os.path.exists(OUT_FILE):
+    if os.path.exists(out_file):
         try:
-            prev = json.load(open(OUT_FILE, 'r', encoding='utf-8'))
+            prev = json.load(open(out_file, 'r', encoding='utf-8'))
         except Exception:
             prev = {}
 
@@ -1287,10 +1322,8 @@ def main():
         },
     }
 
-    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-    from clawock.safe_io import safe_write_json
-    os.makedirs(os.path.dirname(OUT_FILE), exist_ok=True)
-    safe_write_json(OUT_FILE, out)
+    Path(out_file).parent.mkdir(parents=True, exist_ok=True)
+    safe_write_json(out_file, out)
 
     # ---- summary print ----
     print('\n=== Portfolio Risk Summary ===')
@@ -1328,7 +1361,7 @@ def main():
     else:
         print('\nNo alerts triggered.')
 
-    print(f'\nWrote {OUT_FILE} ({os.path.getsize(OUT_FILE):,} bytes)')
+    print(f'\nWrote {out_file} ({os.path.getsize(out_file):,} bytes)')
     return 0
 
 
