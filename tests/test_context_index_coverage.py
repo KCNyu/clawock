@@ -81,7 +81,7 @@ def test_bootstrap_states_the_research_lifecycle_rules():
     # The injected file, not just the optional read, has to carry the rules that
     # decide whether a session may open exposure or restate a thesis.
     for token in ("clawock entry-gate", "earnings-review", "clawock thesis",
-                  "research_provenance.py", "research_surface"):
+                  "clawock provenance", "research_surface"):
         assert token in BOOTSTRAP, f"BOOTSTRAP.md never mentions {token}"
     assert "gray_needs_evidence" in BOOTSTRAP
 

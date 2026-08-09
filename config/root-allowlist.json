@@ -23,7 +23,6 @@
     "assets": {"owner": "generated instance state", "consumer": "publisher and Pages data plane"},
     "config": {"owner": "workspace and repository contracts", "consumer": "package, instance, CI and operations"},
     "docs": {"owner": "product and operator documentation", "consumer": "GitHub and Pages staging"},
-    "evidence.md": {"owner": "generated product evidence", "consumer": "clawock evidence and Pages staging"},
     "instances": {"owner": "KCNyu instance distribution", "consumer": "clawock-kcnyu install"},
     "logs": {"owner": "generated operator state", "consumer": "live host checks and cron"},
     "memory": {"owner": "runtime compatibility and instance state", "consumer": "OpenClaw memory and published briefs"},
