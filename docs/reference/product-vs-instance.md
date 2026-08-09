@@ -85,6 +85,10 @@ Quant factors, leverage-regime calculation, T+0 setup grading and both
 forward-return review loops now ship in the package as `clawock quant`,
 `regime`, `t0`, `quant-review`, and `t0-review`. They discover holdings from
 the ledger and instrument registry rather than assuming KCNyu's book keys.
+East Money symbol resolution, HK/US fundamentals, fund flow and Chinese-news
+collection now ship as `clawock fundamentals`, `fundflow`, and `em-news`.
+The news collector discovers HK holdings from the selected workspace's ledger
+and registry rather than assuming a book named `hk_stocks`.
 
 ### Product — the engine
 
@@ -95,8 +99,8 @@ the ledger and instrument registry rather than assuming KCNyu's book keys.
 | Risk + governance | `clawock portfolio-risk` `risk_discipline` `thesis_registry` `entry_gate` `earnings_review` `research_surface` |
 | Quant + research | `clawock quant` `clawock regime` `clawock t0` `clawock quant-review` `clawock t0-review` `clawock cross-factor` `clawock peer-residual` `peer_scan` `suggest_peers` |
 | Evidence + provenance | `news_evidence_graph` `research_provenance` `claim_provenance` `run_card` `build_evidence` |
-| Market data | `clawock fx` `clawock fetch-peers` `clawock filings` `fetch_us_stocks` `fetch_daily_bars` `fetch_benchmark_history` `fetch_catalysts` `fetch_fundamentals_em` `fetch_fundflow_em` `fetch_em_news` `fetch_sentiment` `fetch_macro` `mover_news` `known_catalysts` `analyze_hk_stocks` `analyze_us_stocks` `_em_http` `_em_symbols` |
-| Moved into product | `clawock.instrument_registry` `clawock.bar_checks` `clawock.brief_context` `clawock.brief_decision_packet` `clawock.decision_contract` `clawock.decision_v2` `clawock.plan_surface` `clawock.risk_discipline` `clawock.dashboard_outputs` `clawock.research_provenance` `clawock.run_card` `clawock.entry_gate` `clawock.thesis_registry` `clawock.earnings_review` `clawock.research_surface` `clawock.claim_provenance` `clawock.recompute_realized` `clawock.snapshot_realized` `clawock.portfolio_math` `clawock.recompute_aggregates` `clawock.recompute_cash` `clawock.shadow_portfolio` `clawock.fetch_fx` `clawock.portfolio_risk_metrics` `clawock.compute_quant_signals` `clawock.compute_regime` `clawock.compute_t0_setups` `clawock.quant_signal_review` `clawock.t0_setup_review` `clawock.json_repair` `clawock.safe_io` `clawock.trading_calendar` | Code and schemas ship in the wheel; each user's configuration and data stay in their workspace |
+| Market data | `clawock fx` `clawock fetch-peers` `clawock filings` `clawock fundamentals` `clawock fundflow` `clawock em-news` `fetch_us_stocks` `fetch_daily_bars` `fetch_benchmark_history` `fetch_catalysts` `fetch_sentiment` `fetch_macro` `mover_news` `known_catalysts` `analyze_hk_stocks` `analyze_us_stocks` `_em_http` |
+| Moved into product | `clawock.instrument_registry` `clawock.bar_checks` `clawock.brief_context` `clawock.brief_decision_packet` `clawock.decision_contract` `clawock.decision_v2` `clawock.plan_surface` `clawock.risk_discipline` `clawock.dashboard_outputs` `clawock.research_provenance` `clawock.run_card` `clawock.entry_gate` `clawock.thesis_registry` `clawock.earnings_review` `clawock.research_surface` `clawock.claim_provenance` `clawock.recompute_realized` `clawock.snapshot_realized` `clawock.portfolio_math` `clawock.recompute_aggregates` `clawock.recompute_cash` `clawock.shadow_portfolio` `clawock.fetch_fx` `clawock.portfolio_risk_metrics` `clawock.compute_quant_signals` `clawock.compute_regime` `clawock.compute_t0_setups` `clawock.quant_signal_review` `clawock.t0_setup_review` `clawock.cross_sectional_factor` `clawock.peer_residual_engine` `clawock.fetch_peers` `clawock.fetch_us_filings` `clawock._em_symbols` `clawock.fetch_fundamentals_em` `clawock.fetch_fundflow_em` `clawock.fetch_em_news` `clawock.json_repair` `clawock.safe_io` `clawock.trading_calendar` | Code and schemas ship in the wheel; each user's configuration and data stay in their workspace |
 | Gates + outputs | `preflight_integrity` `validate_sidecars` `dashboard_outputs` `build_dashboard` `workflow_outcomes` `workflow_health` `coverage_badge` `cron_contract` `cron_heartbeat` |
 
 ### Instance — kcn's desk

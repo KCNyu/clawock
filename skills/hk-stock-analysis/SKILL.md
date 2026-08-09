@@ -41,7 +41,7 @@ python3 /root/.openclaw/workspace/scripts/data/analyze_hk_stocks.py --no-fetch  
 **Removed routes (do not retry):**
 - ❌ AAStocks / 富途网页 — anti-scraping, not worth the fight; use Tencent
 
-**基本面路由（行情之外，2026-06-14 接入）：** 港股财报/关键指标走东财 datacenter — `fetch_fundamentals_em.py`（datacenter-web + searchapi 子域实测稳定；行情链的 push2 由共享客户端独立尝试）。详见 Mode 3。⚠️ 资金流 `fetch_fundflow_em.py` 写好但 push2his 在本服务器 IP 被封，暂不可用。
+**基本面路由（行情之外，2026-06-14 接入）：** 港股财报/关键指标走东财 datacenter — `clawock fundamentals`（datacenter-web + searchapi 子域实测稳定；行情链的 push2 由共享客户端独立尝试）。详见 Mode 3。⚠️ 资金流 `clawock fundflow` 写好但 push2his 在本服务器 IP 被封，暂不可用。
 
 **Critical trap — 00100 MINIMAX has only Tencent.** As a new IPO it has no stooq/yfinance coverage. If Tencent fails on 00100, say so explicitly before falling back — do not silently use yesterday's cache.
 
@@ -64,8 +64,8 @@ python3 /root/.openclaw/workspace/scripts/data/analyze_hk_stocks.py --no-fetch  
 **When:** "00100 估值合理吗" / "金风的业绩"
 1. Run script for fresh baseline
 2. **本地基本面优先**（东财 datacenter, 中文科目, 无 key — 别再用 web search 抓财报）：
-   - 关键指标: `python3 scripts/data/fetch_fundamentals_em.py {CODE} --indicators` → 近 4 期 ROE/EPS/毛利率/净利率/资产负债率/股息率
-   - 三表科目: `python3 scripts/data/fetch_fundamentals_em.py {CODE} --statements income`（balance/cashflow 同理）
+   - 关键指标: `clawock fundamentals {CODE} --indicators` → 近 4 期 ROE/EPS/毛利率/净利率/资产负债率/股息率
+   - 三表科目: `clawock fundamentals {CODE} --statements income`（balance/cashflow 同理）
 3. Web search 仅补: 行业政策, 同业定性对比, 最新业绩点评（数字以本地为准）
 4. Layer in HK-specific macro: 南向资金近一周流向, 港元 HIBOR 走势, 恒科 vs 纳指相对强弱
 5. Output: 基本面 + 估值 + 流动性环境 + 风险

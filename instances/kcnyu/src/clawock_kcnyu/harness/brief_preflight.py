@@ -1014,7 +1014,7 @@ def load_em_news(issues):
     it feeds the catalyst-gate. Stale/missing → {} (warn-only, never blocks)."""
     path = WS / 'assets' / 'data' / 'em_news.json'
     if not path.exists():
-        issues.append('em_news.json 缺失 — fetch_em_news 未跑(中文消息源)')
+        issues.append('em_news.json 缺失 — clawock em-news 未跑(中文消息源)')
         return {}
     try:
         d = json.loads(path.read_text())
@@ -1633,10 +1633,10 @@ def main(argv=None):
     # [10b6] 中文消息源 — Eastmoney HK 持仓新闻 + 7x24 快讯（信息广度，喂 catalyst-gate）。
     # 借鉴 UZI-Skill 的数据源广度；信息收集是 LLM 强项 + kcn token 充足。失败 fail-soft。
     try:
-        subprocess.run(['python3', str(WS / 'scripts' / 'data' / 'fetch_em_news.py')],
+        subprocess.run(['clawock', 'em-news'], cwd=WS,
                        capture_output=True, text=True, timeout=60, check=False)
     except Exception as e:
-        print(f'   ⚠ fetch_em_news failed: {e}')
+        print(f'   ⚠ clawock em-news failed: {e}')
 
     # [10b5] 数据体检闸 — 把历史踩过的数字 bug 固化成自动门。warn-only 注入 context
     # （遵 feedback_no_individual_cron_alerts 不推送），ERROR 由 build_status 健康卡暴露。

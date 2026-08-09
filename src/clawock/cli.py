@@ -365,6 +365,12 @@ def _packaged_utility(args) -> int:
         hard_exit(main(args.utility_args))
     elif args.command == "filings":
         from clawock.fetch_us_filings import main
+    elif args.command == "fundamentals":
+        from clawock.fetch_fundamentals_em import main
+    elif args.command == "fundflow":
+        from clawock.fetch_fundflow_em import main
+    elif args.command == "em-news":
+        from clawock.fetch_em_news import main
     else:
         from clawock.claim_provenance import main
     return main(args.utility_args)
@@ -481,6 +487,7 @@ def main(argv=None) -> int:
         "aggregates", "cash", "shadow", "fx", "portfolio-risk",
         "quant", "regime", "t0", "quant-review", "t0-review",
         "cross-factor", "peer-residual", "fetch-peers", "filings",
+        "fundamentals", "fundflow", "em-news",
     }
     if raw_argv and raw_argv[0] in packaged_utilities:
         return _packaged_utility(argparse.Namespace(
@@ -587,6 +594,9 @@ def main(argv=None) -> int:
         ("peer-residual", "calibrate curated-peer residual and leadership rules"),
         ("fetch-peers", "price peer tickers from a JSON request on stdin"),
         ("filings", "fetch SEC filings and point-in-time XBRL fundamentals"),
+        ("fundamentals", "fetch East Money HK/US statements and indicators"),
+        ("fundflow", "fetch East Money HK/US daily capital flow"),
+        ("em-news", "fetch Chinese news for active HK holdings"),
     ):
         utility = sub.add_parser(name, help=help_text, add_help=False)
         utility.add_argument("utility_args", nargs=argparse.REMAINDER)
