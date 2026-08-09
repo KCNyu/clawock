@@ -42,7 +42,14 @@ CACHE_TTL_HOURS = 4   # FX moves slowly intraday; refresh 6x/day is enough
 TIMEOUT = 10
 
 SESSION = requests.Session()
-SESSION.headers.update({'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) openclaw-fx/1.0'})
+# The package's outbound identity, not the runtime that happens to be driving
+# it. This said `openclaw-fx/1.0`, so anyone who installed the wheel announced
+# themselves to a third-party FX API as an instance of somebody else's agent
+# runtime. Naming the project matches every other fetcher in the package and is
+# what a rate-limiting operator would need in order to reach us.
+SESSION.headers.update(
+    {'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) '
+                   'clawock-fx/1.0 (github.com/KCNyu/clawock)'})
 
 
 def _from_cache(allow_stale: bool = False) -> Optional[Dict]:
