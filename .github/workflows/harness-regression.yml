@@ -189,6 +189,7 @@ jobs:
             --cov=clawock.decision_v2 \
             --cov=clawock.earnings_review \
             --cov=clawock.entry_gate \
+            --cov=clawock.fetch_fx \
             --cov=clawock.instrument_registry \
             --cov=clawock.json_repair \
             --cov=clawock.research_provenance \
@@ -424,6 +425,6 @@ jobs:
 
       - name: FX fallback chain
         run: |
-          out=$(python3 scripts/data/fetch_fx.py --json) || exit 1
+          out=$(clawock fx --json) || exit 1
           echo "$out"
           python3 -c "import json,sys; d=json.load(open('-')) if False else json.loads('''$out'''); assert 7 < d['rate'] < 9, f'FX rate out of range: {d[\"rate\"]}'; print('FX OK:', d['source'])"

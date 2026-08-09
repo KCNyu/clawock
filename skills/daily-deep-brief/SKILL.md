@@ -34,7 +34,7 @@ clawock brief preflight
 
 1. `scripts/data/analyze_us_stocks.py` — US 价格刷新（7-route fallback + RSI/MA）
 2. `scripts/data/analyze_hk_stocks.py` — HK 价格刷新（Tencent 主源 + Eastmoney 全量独立对账/兜底 → stooq → yfinance + 恒指 + 信号）
-3. `scripts/data/fetch_fx.py --json` — USDHKD 实时汇率（Frankfurter → exchangerate.host → Yahoo）
+3. `clawock fx --json` — USDHKD 实时汇率（Frankfurter → exchangerate.host → Yahoo）
 4. `cp portfolio.json memory/snapshots/{date}.json` — 每日快照（longitudinal 基础设施）
    - **为什么**：`portfolio.json` 是滚动覆盖的 ground truth，每次刷价就丢前一刻状态。
      有 snapshot 历史才能做 Rolling P&L 曲线 / Alpha vs benchmark / Drawdown 分析 / Position 变化追溯。

@@ -85,7 +85,13 @@ def _run(script, args=None, timeout=120):
 
 
 def fetch_fx_rate():
-    out, ok = _run('scripts/data/fetch_fx.py', ['--json'])
+    try:
+        result = subprocess.run(
+            ['clawock', 'fx', '--json'], cwd=WS, capture_output=True,
+            text=True, timeout=30)
+        out, ok = result.stdout, result.returncode == 0
+    except Exception as exc:
+        out, ok = f'{type(exc).__name__}: {exc}', False
     if not ok:
         return {'rate': 7.80, 'source': 'HARDCODED_FALLBACK', 'error': out[-300:]}
     try:
