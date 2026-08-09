@@ -520,24 +520,27 @@ def _workflow(args) -> int:
         return 1
 
 
+# Utility commands dispatched straight to their module `main`, bypassing the
+# argparse tree below. Module scope so callers can ask what the CLI accepts
+# without building the parser or shelling out.
+PACKAGED_UTILITIES = frozenset({
+    "plan-context", "risk", "dashboard-outputs", "dashboard-build", "run-card",
+    "provenance", "entry-gate", "thesis", "earnings", "research",
+    "claim-provenance", "realized", "aggregates", "cash", "shadow", "fx",
+    "portfolio-risk", "quant", "regime", "t0", "quant-review", "t0-review",
+    "cross-factor", "peer-residual", "fetch-peers", "filings", "fundamentals",
+    "fundflow", "em-news", "daily-bars", "catalysts", "us-quotes",
+    "analyze-us", "analyze-hk", "benchmark", "macro", "sentiment",
+    "mover-evidence", "integrity", "reconcile", "validate-sidecar",
+    "mark-followed", "audit-resettle", "evidence", "news-evidence",
+    "evaluate-combined-regime", "evaluate-hstech-regime",
+    "evaluate-us-leverage", "validate-regime-dial",
+})
+
+
 def main(argv=None) -> int:
     raw_argv = list(sys.argv[1:] if argv is None else argv)
-    packaged_utilities = {
-        "plan-context", "risk", "dashboard-outputs", "dashboard-build", "run-card", "provenance",
-        "entry-gate", "thesis", "earnings", "research", "claim-provenance",
-        "realized",
-        "aggregates", "cash", "shadow", "fx", "portfolio-risk",
-        "quant", "regime", "t0", "quant-review", "t0-review",
-        "cross-factor", "peer-residual", "fetch-peers", "filings",
-        "fundamentals", "fundflow", "em-news",
-        "daily-bars", "catalysts", "us-quotes", "analyze-us", "analyze-hk",
-        "benchmark", "macro", "sentiment", "mover-evidence", "integrity", "reconcile",
-        "validate-sidecar", "mark-followed",
-        "audit-resettle", "evidence", "news-evidence",
-        "evaluate-combined-regime", "evaluate-hstech-regime",
-        "evaluate-us-leverage", "validate-regime-dial",
-    }
-    if raw_argv and raw_argv[0] in packaged_utilities:
+    if raw_argv and raw_argv[0] in PACKAGED_UTILITIES:
         return _packaged_utility(argparse.Namespace(
             command=raw_argv[0], utility_args=raw_argv[1:]
         ))

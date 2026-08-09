@@ -13,6 +13,3 @@ openclaw 收到 heartbeat poll 时会自动注入提示，让 agent 读这个文
 
 _（无）_
 
-## 历史
-
-- 2026-03-19 04:35 — MU 财报检查任务完成；Telegram 通知失败（chat ID 需更新）。此条已归档，**与当前 idle 状态无关**。

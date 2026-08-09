@@ -42,7 +42,7 @@ def stage(output_dir: Path, *, source_root: Path = ROOT) -> Path:
 
     # These files are live-instance outputs. Copying is intentionally one-way:
     # Jekyll must never write back into the portfolio workspace.
-    _copy(source_root / "evidence.md", output_dir / "evidence.md")
+    _copy(source_root / "site" / "evidence.md", output_dir / "evidence.md")
     _copy(source_root / "assets" / "data", output_dir / "assets" / "data")
     for report in sorted((source_root / "memory").glob("*-pre-open.md")):
         _copy(report, output_dir / "memory" / report.name)
