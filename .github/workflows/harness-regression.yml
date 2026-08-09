@@ -197,6 +197,7 @@ jobs:
             --cov=clawock.recompute_aggregates \
             --cov=clawock.recompute_cash \
             --cov=clawock.portfolio_math \
+            --cov=clawock.portfolio_risk_metrics \
             --cov=clawock.risk_discipline \
             --cov=clawock.safe_io \
             --cov=clawock.research_surface \

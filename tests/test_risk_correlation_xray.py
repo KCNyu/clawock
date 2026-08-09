@@ -10,7 +10,6 @@ Run: python3 -m pytest tests/test_risk_correlation_xray.py -q
 """
 import json
 import math
-import sys
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
@@ -19,9 +18,7 @@ import pytest
 np = pytest.importorskip("numpy")
 
 ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT / "scripts" / "data"))
-
-import portfolio_risk_metrics as risk  # noqa: E402
+from clawock import portfolio_risk_metrics as risk
 
 START = datetime(2026, 4, 1, tzinfo=timezone.utc)
 
