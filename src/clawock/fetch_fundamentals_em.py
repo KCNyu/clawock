@@ -5,30 +5,24 @@ fetch_fundamentals_em.py - 东财 datacenter 基本面 (美股 + 港股, 无 key
 Adapted and modified from global-stock-data
 (https://github.com/simonlin1212/global-stock-data, Apache-2.0). See NOTICE.
 
-补 openclaw 数据空白: 港股财报/关键指标 (analyze_hk_stocks.py 只有价格+技术+新闻)。
-美股基本面优先走 fetch_us_filings.py (SEC, 更全); 此处提供中文科目/关键指标作补充。
+补齐港股财报/关键指标数据；美股基本面优先走 SEC filings，此处提供中文
+科目和关键指标作为补充。
 
 数据源: datacenter-web.eastmoney.com (实测可达 2026-06-14, kcn 服务器 IP)。
 
 Usage:
-  python3 fetch_fundamentals_em.py 00700                      # 关键指标概览(默认)
-  python3 fetch_fundamentals_em.py 00700 --indicators         # 同上, 最近4期 ROE/EPS/毛利率...
-  python3 fetch_fundamentals_em.py AAPL  --statements income  # 利润表(中文科目行)
-  python3 fetch_fundamentals_em.py BABA  --statements balance # 资产负债表
-  python3 fetch_fundamentals_em.py 00700 --periods 8 --json   # 取8期 + 机读 JSON
+  clawock fundamentals 00700                      # 关键指标概览(默认)
+  clawock fundamentals 00700 --indicators         # 同上, 最近4期 ROE/EPS/毛利率...
+  clawock fundamentals AAPL  --statements income  # 利润表(中文科目行)
+  clawock fundamentals BABA  --statements balance # 资产负债表
+  clawock fundamentals 00700 --periods 8 --json   # 取8期 + 机读 JSON
 """
 import json
-import os
 import sys
-from pathlib import Path
 from typing import Dict, List
 
-_CHECKOUT = Path(__file__).resolve().parents[2]
-sys.path.insert(0, str(_CHECKOUT))
-sys.path.insert(0, str(_CHECKOUT / "src"))
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from _em_symbols import resolve  # noqa: E402
-from clawock._em_http import em_get  # noqa: E402  统一请求节流出口
+from clawock._em_http import em_get
+from clawock._em_symbols import resolve
 
 DATACENTER_URL = "https://datacenter-web.eastmoney.com/api/data/v1/get"
 
@@ -161,18 +155,23 @@ def _parse_args(argv):
     return code, mode, statement, periods, as_json
 
 
-def main():
-    code, mode, statement, periods, as_json = _parse_args(sys.argv[1:])
+def main(argv=None):
+    argv = list(sys.argv[1:] if argv is None else argv)
+    if "-h" in argv or "--help" in argv:
+        print(__doc__)
+        return 0
+    code, mode, statement, periods, as_json = _parse_args(argv)
     if not code:
-        print(__doc__); sys.exit(1)
+        print(__doc__)
+        return 1
     if statement not in _REPORT_MAP:
         print(f"  ⚠️  未知报表 '{statement}', 可选: balance/income/cashflow", file=sys.stderr)
-        sys.exit(1)
+        return 1
 
     sym = resolve(code)
     if not sym:
         print(json.dumps({"error": f"无法解析代码: {code}"}, ensure_ascii=False))
-        sys.exit(1)
+        return 1
     market = "hk" if sym["mkt_num"] == 116 else "us"
 
     def _fetch(secucode):
@@ -199,7 +198,7 @@ def main():
 
     if as_json:
         print(json.dumps(result, ensure_ascii=False, indent=2))
-        return
+        return 0
 
     # 人读输出
     tag = f"{sym['name']} {sym['code']} ({sym['market']}, {sym['secucode']})"
@@ -226,7 +225,8 @@ def main():
             yoy = row.get("yoy_pct")
             print(f"    {row['item']}: {_fmt(row['amount'])}"
                   + (f"  (同比 {_fmt(yoy, is_pct=True)})" if yoy is not None else ""))
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())

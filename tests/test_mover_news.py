@@ -10,6 +10,7 @@ from pathlib import Path
 
 import pytest
 
+from clawock import fetch_em_news
 from scripts.data import mover_news as mn
 
 
@@ -225,10 +226,7 @@ def test_market_flashes_only_survive_when_they_name_a_holding(monkeypatch):
         {"title": "MINIMAX-W 港股异动拉升", "date": "2026-07-24 13:40:00"},
         {"title": "某地暴雨预警升级", "date": "2026-07-24 13:41:00"},
     ]
-    monkeypatch.setitem(
-        __import__("sys").modules, "fetch_em_news",
-        type("M", (), {"em_fast_news": staticmethod(lambda limit=20: fake_rows)}),
-    )
+    monkeypatch.setattr(fetch_em_news, "em_fast_news", lambda limit=20: fake_rows)
     result = mn.probe(["00100"], market="hk", now=NOW,
                       http=fake_http({"appstock/news": tencent_payload([])}))
     flashes = result["market_flashes"]

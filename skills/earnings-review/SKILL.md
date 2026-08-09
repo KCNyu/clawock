@@ -30,7 +30,7 @@ Source order is not negotiable:
 
 - **US** — SEC filing (10-K/10-Q/8-K) or issuer IR first; `clawock filings`
   supplies the structured XBRL numbers used to verify them.
-- **HK** — HKEX announcement or issuer IR first; `scripts/data/fetch_fundamentals_em.py`
+- **HK** — HKEX announcement or issuer IR first; `clawock fundamentals`
   (Eastmoney) is a secondary *structured* source, never a substitute for a footnote.
 - A third-party summary may only fill a gap, and it lowers the grade.
 

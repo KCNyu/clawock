@@ -50,19 +50,19 @@ clawock 是**美股 + 港股 + 黄金定投**的实盘组合。工具包遵循�
 | 端点 | 数据 | 源 | 可达 |
 |---|---|---|:---:|
 | `clawock filings` | 10-K/10-Q 段落 · Form 4 内部人 · 13F 机构 · XBRL 关键财务 | SEC EDGAR | ✅ |
-| `fetch_fundamentals_em.py` | 美/港财报三表 + 关键指标(中文科目) | 东财 datacenter | ✅ |
+| `clawock fundamentals` | 美/港财报三表 + 关键指标(中文科目) | 东财 datacenter | ✅ |
 
 ## Layer 3 · 资金面 Capital Flow
 
 | 端点 | 数据 | 源 | 可达 |
 |---|---|---|:---:|
-| `fetch_fundflow_em.py` | 日级主力/超大/大/中/小单净流入 + 主力净占比 | 东财 push2his | 🟡 |
+| `clawock fundflow` | 日级主力/超大/大/中/小单净流入 + 主力净占比 | 东财 push2his | 🟡 |
 
 ## Layer 4 · 消息面 News
 
 | 端点 | 数据 | 源 | 可达 |
 |---|---|---|:---:|
-| `fetch_em_news.py` | 港股个股中文新闻(催化级, 带日期) + 7x24 快讯 | 东财 search / newsapi | ✅ |
+| `clawock em-news` | 港股个股中文新闻(催化级, 带日期) + 7x24 快讯 | 东财 search / newsapi | ✅ |
 | `gh_action_news_digest.py` | 美股持仓新闻蒸馏为可执行要点 | Finnhub + Google News | ✅ |
 | `fetch_catalysts.py` | 未来 14 天财报/事件日历 | Finnhub earnings | 🟡 |
 | `news_evidence_graph.py` | 公告/SEC/新闻/日历去重事件图；来源、新颖度、到期与价量/同行确认硬闸 | 元数据/标题 + 本地行情 | ✅ |

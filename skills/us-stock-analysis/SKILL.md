@@ -61,7 +61,7 @@ Pick the smallest mode that answers the question. Default to **Quick Read** unle
 1. Run `scripts/data/analyze_us_stocks.py {TICKER}` for fresh price baseline
 2. Run `clawock filings {TICKER}` — pulls SEC EDGAR: latest 10-K/10-Q/8-K + 13 key XBRL concepts (revenue/net income/cash/EPS/assets/equity, 4 most recent periods). **Use this before web search** — primary source, structured, no scraping.
 3. (Optional) `clawock filings {TICKER} --form4` if insider activity is material to thesis
-4. (Optional 中文速查) `python3 scripts/data/fetch_fundamentals_em.py {TICKER} --indicators` — 东财 GMAININDICATOR 一次给齐 ROE/毛利率/净利率/资产负债率（比从 XBRL 自算比率快）；数字与 SEC 冲突时以 SEC 为准
+4. (Optional 中文速查) `clawock fundamentals {TICKER} --indicators` — 东财 GMAININDICATOR 一次给齐 ROE/毛利率/净利率/资产负债率（比从 XBRL 自算比率快）；数字与 SEC 冲突时以 SEC 为准
 5. Web search only for what SEC EDGAR can't give: peer multiples, analyst consensus, qualitative thesis, sector context
 6. Load `references/fundamental-analysis.md` for framework, `references/financial-metrics.md` for ratio definitions
 7. Output: business overview, financial trends from XBRL, valuation vs peers/history, insider signal, key risks, fair value range

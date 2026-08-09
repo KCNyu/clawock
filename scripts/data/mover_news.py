@@ -53,7 +53,6 @@ from clawock.workspace import workspace_root  # noqa: E402
 # there. Same expression WS is seeded from, kept separate on purpose (#269).
 _CHECKOUT = Path(__file__).resolve().parents[2]
 WS = workspace_root(Path(__file__).resolve().parents[2])
-sys.path.insert(0, str(_CHECKOUT / "scripts" / "data"))
 
 HKT = timezone(timedelta(hours=8))
 MAX_MOVERS = 4
@@ -203,7 +202,7 @@ def _sec_items(ticker, *, now, window, http):
 def _market_flashes(names, *, now, window):
     """Market-wide 7x24 flashes, kept only when they name a holding."""
     try:
-        import fetch_em_news  # noqa: PLC0415
+        from clawock import fetch_em_news  # noqa: PLC0415
 
         rows = fetch_em_news.em_fast_news(limit=20) or []
     except Exception as exc:  # noqa: BLE001 — supporting colour, never fatal
