@@ -20,7 +20,7 @@ import json
 import sys
 from collections import Counter, defaultdict
 
-from clawock import decision_v2 as dv2
+from clawock.decision import ledger as dv2
 
 
 def snap(decisions: list[dict]) -> dict:

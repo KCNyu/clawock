@@ -3,10 +3,11 @@
 import json
 from pathlib import Path
 
-from clawock import compute_quant_signals as quant
-from clawock import compute_regime as regime
-from clawock import compute_t0_setups as t0
-from clawock import quant_signal_review, t0_setup_review
+from clawock.decision import signals as quant
+from clawock.decision import regime
+from clawock.decision import setups as t0
+from clawock.decision import signal_review as quant_signal_review
+from clawock.decision import setup_review as t0_setup_review
 
 
 ROOT = Path(__file__).resolve().parents[1]

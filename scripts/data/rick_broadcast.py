@@ -23,7 +23,7 @@ ROOT = str(_CHECKOUT)
 sys.path.insert(0, os.path.join(ROOT, "scripts", "data"))
 sys.path.insert(0, str(_CHECKOUT))
 sys.path.insert(0, os.path.join(ROOT, "src"))
-from clawock import decision_v2  # noqa: E402
+from clawock.decision import ledger as decision_v2  # noqa: E402
 QUANT = os.path.join(ROOT, "assets", "data", "quant_signal_review.json")
 T0 = os.path.join(ROOT, "assets", "data", "t0_setup_review.json")
 REPO = "github.com/KCNyu/clawock"

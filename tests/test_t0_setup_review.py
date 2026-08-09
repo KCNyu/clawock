@@ -6,7 +6,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts" / "data"))
-from clawock import t0_setup_review as review  # noqa: E402
+from clawock.decision import setup_review as review  # noqa: E402
 
 
 class _HistoryStub:

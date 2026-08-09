@@ -23,7 +23,7 @@ from pathlib import Path
 from typing import Callable
 from zoneinfo import ZoneInfo
 
-from clawock import decision_v2
+from clawock.decision import ledger as decision_v2
 from clawock import trading_calendar
 from clawock.safe_io import safe_write_text
 from clawock.workspace import workspace_root

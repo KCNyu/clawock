@@ -6,7 +6,7 @@ import sys
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts" / "data"))
 
-from clawock import compute_quant_signals as quant  # noqa: E402
+from clawock.decision import signals as quant  # noqa: E402
 
 
 def detail(label="LIVE", code="usLIVE.OQ"):

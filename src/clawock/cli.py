@@ -317,9 +317,9 @@ def _context(args) -> int:
 def _packaged_utility(args) -> int:
     """Dispatch package-owned ledgers and deterministic output utilities."""
     if args.command == "plan-context":
-        from clawock.plan_surface import main
+        from clawock.decision.plans import main
     elif args.command == "risk":
-        from clawock.risk_discipline import main
+        from clawock.decision.risk import main
     elif args.command == "dashboard-outputs":
         from clawock.dashboard_outputs import main
     elif args.command == "run-card":
@@ -327,11 +327,11 @@ def _packaged_utility(args) -> int:
     elif args.command == "provenance":
         from clawock.evidence.research_provenance import main
     elif args.command == "entry-gate":
-        from clawock.entry_gate import main
+        from clawock.decision.entry import main
     elif args.command == "thesis":
-        from clawock.thesis_registry import main
+        from clawock.decision.theses import main
     elif args.command == "earnings":
-        from clawock.earnings_review import main
+        from clawock.decision.earnings import main
     elif args.command == "research":
         from clawock.evidence.research_surface import main
     elif args.command == "realized":
@@ -347,15 +347,15 @@ def _packaged_utility(args) -> int:
     elif args.command == "portfolio-risk":
         from clawock.portfolio.risk import main
     elif args.command == "quant":
-        from clawock.compute_quant_signals import main
+        from clawock.decision.signals import main
     elif args.command == "regime":
-        from clawock.compute_regime import main
+        from clawock.decision.regime import main
     elif args.command == "t0":
-        from clawock.compute_t0_setups import main
+        from clawock.decision.setups import main
     elif args.command == "quant-review":
-        from clawock.quant_signal_review import main
+        from clawock.decision.signal_review import main
     elif args.command == "t0-review":
-        from clawock.t0_setup_review import main
+        from clawock.decision.setup_review import main
     elif args.command == "cross-factor":
         from clawock.market_data.factors import main
     elif args.command == "peer-residual":
@@ -394,9 +394,9 @@ def _packaged_utility(args) -> int:
     elif args.command == "validate-sidecar":
         from clawock.validate_sidecars import main
     elif args.command == "mark-followed":
-        from clawock.mark_followed import main
+        from clawock.decision.execution import main
     elif args.command == "audit-resettle":
-        from clawock.audit_resettle import main
+        from clawock.decision.settlement import main
     elif args.command == "evidence":
         from clawock.evidence.build_evidence import main
     elif args.command == "news-evidence":

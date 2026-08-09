@@ -30,7 +30,7 @@ TODAY = "2026-07-27"
 
 @pytest.fixture(scope="module")
 def ps():
-    return pytest.importorskip("clawock.plan_surface")
+    return pytest.importorskip("clawock.decision.plans")
 
 
 def decision(**over):

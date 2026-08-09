@@ -66,7 +66,7 @@ dependency-free `bar_checks`,
 `json_repair`, `safe_io`, and `trading_calendar` utilities have also moved into
 `src/clawock/`. The generation-bound brief context and typed decision packet now
 ship there too; tools never import executable Python from a user's workspace.
-The v2 decision ledger and settlement engine is now `clawock.decision_v2`; its
+The v2 decision ledger and settlement engine is now `clawock.decision.ledger`; its
 default data root is the caller's workspace, never the package installation path.
 Planning continuity, durable risk governance, dashboard output ownership,
 numeric research provenance, and backtest run cards also ship in `clawock`.
@@ -100,9 +100,8 @@ domain namespace rather than copied flat from `scripts/data`: provenance gates,
 research status, run cards, the evidence page and the news graph live under
 `src/clawock/evidence/`. Stable CLI command names are the public interface;
 historical Python module paths are not retained as package-root shims. The
-remaining flat package modules are transitional inventory and move with their
-`decision/`, `market_data/`, `context/` or adapter-owned batch —
-they are not the accepted terminal layout.
+remaining flat package modules are transitional context, publishing, validation
+or adapter inventory; they are not the accepted terminal layout.
 
 The complete portable portfolio core now lives under `src/clawock/portfolio/`:
 instrument and book resolution, pure ledger math, realized and snapshot
@@ -121,17 +120,26 @@ product scripts (`fetch_macro.py`, `fetch_sentiment.py`, `mover_news.py`) are
 gone; installed CLI commands and explicit package imports are the consumers.
 No package-root compatibility shim is shipped.
 
+The complete decision boundary now lives under `src/clawock/decision/`. It owns
+the action vocabulary, ledger and settlement lineage, execution ground truth,
+plan continuity, risk governance, thesis/entry/earnings lifecycle, typed brief
+packet, deterministic signals and regimes, and forward outcome review loops.
+Stable CLI commands are unchanged, while historical root module paths are absent
+from the wheel. Quant and T+0 modules live here because they produce and evaluate
+decision inputs; provider transport and raw/canonical market records remain in
+`market_data/`.
+
 ### Product — the engine
 
 | Area | Modules |
 |---|---|
-| Ledger + decision contract | `plan_surface` `clawock mark-followed` `clawock audit-resettle` |
+| Ledger + decision contract | `clawock.decision.actions` `clawock.decision.ledger` `clawock.decision.packet` `clawock.decision.plans` `clawock mark-followed` `clawock audit-resettle` |
 | Portfolio + money integrity | `clawock.portfolio.instruments` `clawock.portfolio.books` `clawock aggregates` `clawock cash` `clawock realized` `clawock shadow` `clawock fx` `clawock portfolio-risk` `clawock integrity` |
-| Decision risk + governance | `risk_discipline` `thesis_registry` `entry_gate` `earnings_review` `research_surface` |
-| Quant + research | `clawock quant` `clawock regime` `clawock t0` `clawock quant-review` `clawock t0-review` `clawock cross-factor` `clawock peer-residual` `clawock.market_data.peer_scan` `clawock.market_data.peer_discovery` |
+| Decision risk + governance | `clawock.decision.risk` `clawock.decision.theses` `clawock.decision.entry` `clawock.decision.earnings` `clawock.evidence.research_surface` |
+| Quant + outcome review | `clawock quant` `clawock regime` `clawock t0` `clawock quant-review` `clawock t0-review` `clawock cross-factor` `clawock peer-residual` `clawock.market_data.peer_scan` `clawock.market_data.peer_discovery` |
 | Evidence + provenance | `clawock news-evidence` `clawock.evidence.research_provenance` `clawock.evidence.claim_provenance` `clawock.evidence.run_card` `clawock evidence` |
 | Market data | `clawock fetch-peers` `clawock filings` `clawock fundamentals` `clawock fundflow` `clawock em-news` `clawock daily-bars` `clawock catalysts` `clawock us-quotes` `clawock analyze-us` `clawock analyze-hk` `clawock benchmark` `clawock sentiment` `clawock macro` `clawock mover-evidence` `clawock.market_data.eastmoney_http` |
-| Moved into product | `clawock.portfolio.instruments` `clawock.portfolio.books` `clawock.portfolio.math` `clawock.portfolio.realized` `clawock.portfolio.snapshots` `clawock.portfolio.aggregates` `clawock.portfolio.cash` `clawock.portfolio.shadow` `clawock.portfolio.fx` `clawock.portfolio.risk` `clawock.portfolio.integrity` `clawock.mobile_table` `clawock.market_data.integrity` `clawock.brief_context` `clawock.brief_decision_packet` `clawock.decision_contract` `clawock.decision_v2` `clawock.plan_surface` `clawock.risk_discipline` `clawock.dashboard_outputs` `clawock.evidence.research_provenance` `clawock.evidence.run_card` `clawock.entry_gate` `clawock.thesis_registry` `clawock.earnings_review` `clawock.evidence.research_surface` `clawock.evidence.claim_provenance` `clawock.compute_quant_signals` `clawock.compute_regime` `clawock.compute_t0_setups` `clawock.quant_signal_review` `clawock.t0_setup_review` `clawock.market_data.factors` `clawock.market_data.peer_residuals` `clawock.market_data.peer_quotes` `clawock.market_data.filings` `clawock.market_data.eastmoney_symbols` `clawock.market_data.fundamentals` `clawock.market_data.fund_flows` `clawock.market_data.eastmoney_news` `clawock.market_data.bars` `clawock.market_data.calendar` `clawock.market_data.known_catalysts` `clawock.market_data.us_quotes` `clawock.market_data.us_analysis` `clawock.market_data.hk_analysis` `clawock.market_data.benchmarks` `clawock.validate_sidecars` `clawock.mark_followed` `clawock.audit_resettle` `clawock.evidence.build_evidence` `clawock.evidence.news_evidence_graph` `clawock.json_repair` `clawock.safe_io` `clawock.trading_calendar` | Code and schemas ship in the wheel; each user's configuration and data stay in their workspace |
+| Moved into product | `clawock.portfolio.instruments` `clawock.portfolio.books` `clawock.portfolio.math` `clawock.portfolio.realized` `clawock.portfolio.snapshots` `clawock.portfolio.aggregates` `clawock.portfolio.cash` `clawock.portfolio.shadow` `clawock.portfolio.fx` `clawock.portfolio.risk` `clawock.portfolio.integrity` `clawock.mobile_table` `clawock.market_data.integrity` `clawock.brief_context` `clawock.decision.packet` `clawock.decision.actions` `clawock.decision.ledger` `clawock.decision.plans` `clawock.decision.risk` `clawock.dashboard_outputs` `clawock.evidence.research_provenance` `clawock.evidence.run_card` `clawock.decision.entry` `clawock.decision.theses` `clawock.decision.earnings` `clawock.evidence.research_surface` `clawock.evidence.claim_provenance` `clawock.decision.signals` `clawock.decision.regime` `clawock.decision.setups` `clawock.decision.signal_review` `clawock.decision.setup_review` `clawock.market_data.factors` `clawock.market_data.peer_residuals` `clawock.market_data.peer_quotes` `clawock.market_data.filings` `clawock.market_data.eastmoney_symbols` `clawock.market_data.fundamentals` `clawock.market_data.fund_flows` `clawock.market_data.eastmoney_news` `clawock.market_data.bars` `clawock.market_data.calendar` `clawock.market_data.known_catalysts` `clawock.market_data.us_quotes` `clawock.market_data.us_analysis` `clawock.market_data.hk_analysis` `clawock.market_data.benchmarks` `clawock.validate_sidecars` `clawock.decision.execution` `clawock.decision.settlement` `clawock.evidence.build_evidence` `clawock.evidence.news_evidence_graph` `clawock.json_repair` `clawock.safe_io` `clawock.trading_calendar` | Code and schemas ship in the wheel; each user's configuration and data stay in their workspace |
 | Gates + outputs | `clawock integrity` `clawock validate-sidecar` `dashboard_outputs` `build_dashboard` `workflow_outcomes` `workflow_health` `coverage_badge` `cron_contract` `cron_heartbeat` |
 
 ### Instance — kcn's desk
