@@ -21,23 +21,17 @@ Rules this generator follows
 * **Absent evidence is not failure.** "Not yet decidable" is a distinct verdict
   from "tested and failed", and conflating them would be its own dishonesty.
 
-Writes: evidence.md   Run: python3 scripts/data/build_evidence.py
+Writes: evidence.md   Run: clawock evidence
 """
 from __future__ import annotations
 
+import argparse
 import json
-import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent))
-# The checkout root, so `clawock` resolves from the tree this file ships
-# in. Reached through the scripts/data/workspace shim until #267 step 3,
-# whose only remaining job was inserting this path as a side effect.
-sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
-sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
-from clawock.workspace import workspace_root  # noqa: E402
+from clawock.workspace import workspace_root
 
-WS = workspace_root(Path(__file__).resolve().parents[2])
+WS = workspace_root(Path.cwd())
 OUT = WS / 'evidence.md'
 CARDS = WS / 'memory' / 'backtests'
 DATA = WS / 'assets' / 'data'
@@ -289,7 +283,7 @@ def render(sections: list[dict], generated_at: str) -> str:
         lines += [f'| {label} | {value} |' for label, value in section['rows']]
         lines += ['', f"> {section['reading']}", '']
     lines += ['---', '',
-              f'<sub>由 `scripts/data/build_evidence.py` 生成于 {generated_at}。'
+              f'<sub>由 `clawock evidence` 生成于 {generated_at}。'
               f'数字全部读自产物；改动结论请改产物，不要改这一页。</sub>', '']
     return '\n'.join(lines)
 
@@ -301,7 +295,10 @@ def build() -> str:
     return render(sections, audit.get('as_of') or 'unknown')
 
 
-def main() -> int:
+def main(argv=None) -> int:
+    argparse.ArgumentParser(
+        prog='clawock evidence', description=__doc__
+    ).parse_args(argv)
     page = build()
     OUT.write_text(page, encoding='utf-8')
     print(f'wrote {OUT.relative_to(WS)} ({len(page.encode())} bytes)')

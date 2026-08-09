@@ -323,9 +323,9 @@ def _packaged_utility(args) -> int:
     elif args.command == "dashboard-outputs":
         from clawock.dashboard_outputs import main
     elif args.command == "run-card":
-        from clawock.run_card import main
+        from clawock.evidence.run_card import main
     elif args.command == "provenance":
-        from clawock.research_provenance import main
+        from clawock.evidence.research_provenance import main
     elif args.command == "entry-gate":
         from clawock.entry_gate import main
     elif args.command == "thesis":
@@ -333,7 +333,7 @@ def _packaged_utility(args) -> int:
     elif args.command == "earnings":
         from clawock.earnings_review import main
     elif args.command == "research":
-        from clawock.research_surface import main
+        from clawock.evidence.research_surface import main
     elif args.command == "realized":
         from clawock.recompute_realized import main
     elif args.command == "aggregates":
@@ -391,8 +391,12 @@ def _packaged_utility(args) -> int:
         from clawock.mark_followed import main
     elif args.command == "audit-resettle":
         from clawock.audit_resettle import main
+    elif args.command == "evidence":
+        from clawock.evidence.build_evidence import main
+    elif args.command == "news-evidence":
+        from clawock.evidence.news_evidence_graph import main
     else:
-        from clawock.claim_provenance import main
+        from clawock.evidence.claim_provenance import main
     return main(args.utility_args)
 
 
@@ -510,7 +514,7 @@ def main(argv=None) -> int:
         "fundamentals", "fundflow", "em-news",
         "daily-bars", "catalysts", "us-quotes", "analyze-us", "analyze-hk",
         "benchmark", "integrity", "validate-sidecar", "mark-followed",
-        "audit-resettle",
+        "audit-resettle", "evidence", "news-evidence",
     }
     if raw_argv and raw_argv[0] in packaged_utilities:
         return _packaged_utility(argparse.Namespace(
@@ -630,6 +634,8 @@ def main(argv=None) -> int:
         ("validate-sidecar", "validate a workflow-generated sidecar artifact"),
         ("mark-followed", "record execution ground truth in the decision ledger"),
         ("audit-resettle", "audit decision re-settlement without writing by default"),
+        ("evidence", "rebuild the artifact-backed public evidence page"),
+        ("news-evidence", "build the expiring news and filing evidence graph"),
     ):
         utility = sub.add_parser(name, help=help_text, add_help=False)
         utility.add_argument("utility_args", nargs=argparse.REMAINDER)

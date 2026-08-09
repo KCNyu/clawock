@@ -11,7 +11,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 
-from clawock import claim_provenance as cp
+from clawock.evidence import claim_provenance as cp
 
 
 def _workspace(tmp_path, prose, metrics, run_id="fixture-20260802-abcdef12"):

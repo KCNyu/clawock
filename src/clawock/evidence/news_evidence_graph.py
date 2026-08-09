@@ -14,24 +14,13 @@ import argparse
 import hashlib
 import json
 import re
-import sys
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 from urllib.parse import urlparse
 
-# The checkout root, so `clawock` resolves from the tree this file ships
-# in. Reached through the scripts/data/workspace shim until #267 step 3,
-# whose only remaining job was inserting this path as a side effect.
-sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
-sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
-from clawock.workspace import workspace_root  # noqa: E402
+from clawock.workspace import workspace_root
 
-# Code lives in the checkout; only DATA lives in the workspace. `workspace_root`
-# is overridable, so resolving our own modules through WS would read them out of
-# someone else's data directory — or silently pick up whatever happens to be
-# there. Same expression WS is seeded from, kept separate on purpose (#269).
-_CHECKOUT = Path(__file__).resolve().parents[2]
-WS = workspace_root(Path(__file__).resolve().parents[2])
+WS = workspace_root(Path.cwd())
 POLICY = WS / 'config' / 'news-evidence-policy.json'
 PORTFOLIO = WS / 'portfolio.json'
 FACTOR_CONFIG = WS / 'config' / 'factor-universe.json'
@@ -65,8 +54,7 @@ NEGATIVE_WORDS = {
     '亏损', '处罚', '违约', '调出', '剔除',
 }
 
-sys.path.insert(0, str(_CHECKOUT / 'scripts' / 'data'))
-from clawock.safe_io import safe_write_json, safe_write_text  # noqa: E402
+from clawock.safe_io import safe_write_json, safe_write_text
 
 
 def _load(path, default=None):
@@ -943,7 +931,8 @@ def update_history(as_of, events):
 
 
 def main(argv=None):
-    parser = argparse.ArgumentParser(description=__doc__)
+    parser = argparse.ArgumentParser(
+        prog='clawock news-evidence', description=__doc__)
     parser.add_argument('--no-sec', action='store_true',
                         help='skip live SEC metadata refresh')
     parser.add_argument('--policy', default=str(POLICY))

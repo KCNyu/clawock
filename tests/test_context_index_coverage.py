@@ -32,13 +32,15 @@ RESEARCH_INDEX_TOKENS = {
     "research_surface.py": "clawock research",
 }
 RESEARCH_LOCATIONS = {
-    name: (ROOT / "src" / "clawock" / name
-           if name in {
-               "entry_gate.py", "earnings_review.py", "thesis_registry.py",
-               "research_provenance.py", "research_surface.py",
-           }
-           else ROOT / "scripts" / "data" / name)
-    for name in RESEARCH_SCRIPTS
+    "entry_gate.py": ROOT / "src" / "clawock" / "entry_gate.py",
+    "earnings_review.py": ROOT / "src" / "clawock" / "earnings_review.py",
+    "thesis_registry.py": ROOT / "src" / "clawock" / "thesis_registry.py",
+    "research_provenance.py": (
+        ROOT / "src" / "clawock" / "evidence" / "research_provenance.py"
+    ),
+    "research_surface.py": (
+        ROOT / "src" / "clawock" / "evidence" / "research_surface.py"
+    ),
 }
 ARTIFACT_DIRS = ("memory/entry-gates", "memory/earnings", "memory/theses")
 
