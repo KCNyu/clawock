@@ -9,6 +9,29 @@ description = "Agent-native decision-workflow plugin with a verifiable harness"
 readme = "README.md"
 requires-python = ">=3.11"
 license = { file = "LICENSE" }
+authors = [{ name = "Shengyu Li" }]
+keywords = [
+    "agent", "llm", "decision-workflow", "harness", "portfolio", "provenance",
+    "reconciliation", "evidence", "audit", "mcp",
+]
+# Trove classifiers are how PyPI's own search and category filters see this
+# package. Without them it is unlisted everywhere a prospective user would
+# browse, and nothing local ever shows it: `pip install -e .` never renders a
+# project page.
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Financial and Insurance Industry",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Office/Business :: Financial :: Investment",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Typing :: Typed",
+]
 
 # The one place dependencies are declared. They used to live in nine workflow
 # files as drifting `pip install` lines — `requests` in seven, `requests numpy`
@@ -28,6 +51,13 @@ evaluation = ["numpy>=1.26", "matplotlib>=3.8"]
 imaging = ["Pillow>=10"]
 # Everything the test suite needs to *collect*, not just to pass.
 test = ["pytest>=8", "pytest-cov>=5", "numpy>=1.26", "Pillow>=10"]
+
+[project.urls]
+Homepage = "https://github.com/KCNyu/clawock"
+Documentation = "https://kcnyu.github.io/clawock/"
+Source = "https://github.com/KCNyu/clawock"
+Issues = "https://github.com/KCNyu/clawock/issues"
+Evidence = "https://kcnyu.github.io/clawock/evidence.html"
 
 [project.scripts]
 clawock = "clawock.cli:main"

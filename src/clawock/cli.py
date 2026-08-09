@@ -66,7 +66,14 @@ def _run_publish(args) -> int:
         request = load_request(args.workspace)
         state_path = args.request.expanduser().resolve()
         state_root = (request.workspace / ".clawock" / "work").resolve()
-        state_path.relative_to(state_root)
+        if not state_path.is_relative_to(state_root):
+            # The boundary is deliberate — a request from anywhere else has no
+            # provenance — but `relative_to` reports it as a raw ValueError, and
+            # "'/x/req.json' is not in the subpath of '/x/.clawock/work'" tells a
+            # first-time user nothing about what to do instead.
+            raise ValueError(
+                f"prepared request must live under {state_root}; `clawock run prepare` "
+                f"writes one to {state_root}/<run_id>/request.json — pass that path")
         payload = json.loads(state_path.read_text(encoding="utf-8"))
         if not isinstance(payload, dict) or payload.get("schema_version") != 1:
             raise ValueError("prepared request requires schema_version 1")
@@ -102,7 +109,9 @@ def _run_publish(args) -> int:
             if not source.is_absolute():
                 source = request.workspace / source
             source = source.resolve()
-            source.relative_to(request.workspace)
+            if not source.is_relative_to(request.workspace):
+                raise ValueError(
+                    f"artifact {name!r} is outside the workspace: {source}")
             if name in artifacts:
                 raise ValueError(f"duplicate artifact name: {name}")
             artifacts[name] = source.read_text(encoding="utf-8")
@@ -523,7 +532,10 @@ def main(argv=None) -> int:
     publish = run_steps.add_parser(
         "publish", help="validate and publish artifacts produced by the calling agent")
     publish.add_argument("--workspace", type=Path, default=Path.cwd())
-    publish.add_argument("--request", type=Path, required=True)
+    publish.add_argument(
+        "--request", type=Path, required=True,
+        help="the request `clawock run prepare` wrote to "
+             ".clawock/work/<run_id>/request.json")
     publish.add_argument("--artifact", action="append", default=[], metavar="NAME=PATH")
     publish.set_defaults(func=_run_publish)
 
