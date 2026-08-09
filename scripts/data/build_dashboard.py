@@ -3088,7 +3088,7 @@ def main(argv=None):
     # `--previous` names, so the redirect never changes which cards are restored.
     args = parse_args(argv)
     previous_source = resolve_previous_source(args)
-    # The four outputs are one logical generation (dashboard_outputs.py owns that
+    # The four outputs are one logical generation (clawock.publish.outputs owns that
     # contract). Their paths are resolved together, here, so that the projection
     # never learns where it is going to land.
     paths = resolve_output_paths(args.out_dir)
