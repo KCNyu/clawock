@@ -35,4 +35,4 @@ git -c user.name="$BOT_NAME" -c user.email="$BOT_EMAIL" \
   commit -q -m "gold: 黄金定投净值刷新 $(TZ=Asia/Hong_Kong date +%Y-%m-%d)" || { echo "$(date -Is) commit 失败"; exit 1; }
 echo "$(date -Is) gold-refresh: 已提交 $(git rev-parse --short HEAD)"
 
-exec bash "$WS/scripts/data/safe_push.sh"
+exec bash "$WS/ops/publish/safe_push.sh"

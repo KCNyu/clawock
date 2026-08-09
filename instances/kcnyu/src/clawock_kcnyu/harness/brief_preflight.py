@@ -55,7 +55,7 @@ TMP_DIR = WS / 'memory' / '.tmp'
 SNAPSHOT_DIR = WS / 'memory' / 'snapshots'
 
 sys.path.insert(0, str(_CHECKOUT / 'scripts' / 'data'))
-import workflow_outcomes  # noqa: E402
+from clawock_kcnyu.automation import workflow_outcomes  # noqa: E402
 from clawock.portfolio.instruments import get as get_instrument  # noqa: E402
 from clawock.portfolio.instruments import compute_lookthrough_exposure  # noqa: E402
 from clawock.portfolio.instruments import one_x_swap_map  # noqa: E402

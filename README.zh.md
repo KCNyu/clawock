@@ -270,11 +270,11 @@ adapter；其它 runner 可以消费同一套 context/tool 契约。live adapter
 每个 scheduled job 分别固定 primary 与 fallback；供应商凭据与路由策略放在公开
 仓库之外，可以在不改 workflow 的情况下变化。这里不存任何供应商密钥。
 
-**写入对账。** dashboard 构建产物 —— `dashboard.json`、`decision_audit.json`、`shadow_portfolio.json` —— 都是派生的,而 cron 守护进程、远端 workflow、crontab publisher 和临时 session 都可能更新 `master`。规则是:隔离 scan-sidecar 写者,并串行化同一 host 上的 dashboard builder。
+**写入对账。** dashboard 产物是一代整体发布到 data plane 的派生状态；scan sidecar 与其他 runtime 状态各有自己的 producer。规则是:隔离 scan-sidecar 写者、串行化同一 host 上的 dashboard builder，并只保留一个发布实现。
 
 - **前端直接读 scan sidecar。** 宏观 / 情绪 / 新闻 / 影响者 feed 在加载时逐文件抓取,所以一个 GitHub Action 只提交它自己那份不相交的 sidecar —— 写者之间不会冲突,一份扫描在它的 commit 落地那一刻就出现在页面上,无需重建。
-- **dashboard builder 共用一把锁、一份契约。** on-host 重建在一把共享 `flock` 上串行;每个 builder 跑同一个语义-diff 助手,所以只改时钟的重写被还原,而三份生成文件的真实变更被一起 stage。
-- **所有人都走 `safe_push.sh`** —— rebase 重试、真冲突即中止,提交进来的冲突标记在 push hook 处被拒,所以一份坏掉的 `dashboard.json` 永远到不了 Pages。
+- **dashboard builder 共用一把锁、一份契约。** on-host 重建在一把共享 `flock` 上串行;每个 builder 跑同一个语义-diff 助手,所以只改时钟的重写被还原,完整 generation 一起发布到 data plane。
+- **所有人都走 `ops/publish/safe_push.sh`** —— rebase 重试、真冲突即中止,提交进来的冲突标记在 push hook 处被拒,所以一代坏产物永远到不了 Pages。
 - **组合数字在门口就被把关。** `portfolio.json` —— 唯一真源 —— 在一把 advisory `flock` 下、以「读最新再覆盖 + 原子替换」写入。一个 pre-push hook 拦下任何账目对不上资金守恒恒等式(`TCV = Σ value`、`cash = baseline + trades + adjustments`、`cost = 移动加权`)的 push,这些纯派生由 CI 里的 `pytest` 套件钉死。
 - **排程有受检契约。** 运行时真源来自实时 cron 列表;一份被追踪的配置驱动生成的排程表、夏令时同步、payload/看门狗检查与 CI 体检。
 
@@ -290,7 +290,7 @@ adapter；其它 runner 可以消费同一套 context/tool 契约。live adapter
 | `src/clawock/` | 可移植 package、workflow 契约、schema 与 CLI |
 | `instances/kcnyu/` | 只属于 KCNyu 的 adapter phase 与 watchdog 实现 |
 | `site/` | Jekyll/dashboard 源码、浏览器代码、SVG、截图与 social 资产 |
-| `ops/` | Pages 拼装、host launcher、OpenClaw 补丁与 system audit |
+| `ops/{host,publish,ci,growth,pages}/` | 明确归属的 host、发布、CI、增长与 Pages wiring；不允许通用 data 桶 |
 | `docs/`、`tests/` | 产品/运维文档与高价值不变量检查 |
 | 根 context 文件、`skills/`、`memory/` | OpenClaw 兼容面；保留在 runtime 要求的位置 |
 | `portfolio.json`、`assets/data/` | live 账本与生成发布状态；永不进入 package |

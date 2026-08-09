@@ -25,6 +25,8 @@ dependencies = [
 clawock-kcnyu-brief-watchdog = "clawock_kcnyu.harness.brief_watchdog:main"
 clawock-kcnyu-report-watchdog = "clawock_kcnyu.harness.report_watchdog:main"
 clawock-kcnyu-intraday-watchdog = "clawock_kcnyu.harness.intraday_watchdog:main"
+clawock-kcnyu-cron-heartbeat = "clawock_kcnyu.automation.cron_heartbeat:main"
+clawock-kcnyu-workflow-outcomes = "clawock_kcnyu.automation.workflow_outcomes:main"
 
 [tool.setuptools]
 package-dir = {"" = "src"}

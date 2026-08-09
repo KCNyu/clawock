@@ -38,7 +38,7 @@ jobs:
         run: |
           # CI cannot query the host's SQLite, so it consumes the tracked mirror.
           # system_check.py compares this contract with the live CLI on the host.
-          python3 scripts/data/cron_health_check.py \
+          python3 ops/host/cron_health_check.py \
             --jobs-file config/cron-schedules.json \
             --heartbeats-file assets/data/cron-heartbeats.json
           # On a miss this exits non-zero and remains visible in Actions. We deliberately

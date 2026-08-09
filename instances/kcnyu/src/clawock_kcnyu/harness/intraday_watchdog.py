@@ -72,7 +72,7 @@ from ._watchdog_common import (
 )
 
 sys.path.insert(0, str(WS / 'scripts' / 'data'))
-import cron_heartbeat  # noqa: E402
+from clawock_kcnyu.automation import cron_heartbeat  # noqa: E402
 
 LOOP_THRESHOLD = 5         # transcript loop_score ≥ this ⇒ mimo repeat-loop ⇒ garbage
 MARKER_FRESH_MS = 25 * 60 * 1000  # postflight send-marker older than this ⇒ treat as not-this-slot

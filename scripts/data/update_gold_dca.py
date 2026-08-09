@@ -114,10 +114,10 @@ def main():
         os.chdir(WS_ROOT)
         subprocess.run(['git', 'add', 'portfolio.json'], check=False)
         subprocess.run(['git', 'commit', '-q', '-m', f'gold: 定投对账 {rdate}（本金{principal:.0f}/份额{units:.0f}）'], check=False)
-        subprocess.run(['bash', os.path.join(WS_ROOT, 'scripts/data/safe_push.sh')], check=False)
+        subprocess.run(['bash', os.path.join(WS_ROOT, 'ops/publish/safe_push.sh')], check=False)
     else:
         print('  未推送。要上线：git add portfolio.json && '
-              'git commit + bash scripts/data/safe_push.sh（或加 --publish）')
+              'git commit + bash ops/publish/safe_push.sh（或加 --publish）')
     return 0
 
 

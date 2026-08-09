@@ -1057,7 +1057,7 @@ def test_every_publishing_caller_opts_into_preservation():
     on the host, and is deliberately left bare.
     """
     publishers = [
-        "scripts/data/publish_dashboard.sh",   # host crontab, every 20 minutes
+        "ops/publish/publish_dashboard.sh",   # host crontab, every 20 minutes
         "instances/kcnyu/src/clawock_kcnyu/harness/_harness_common.py",
     ]
     for rel in publishers:

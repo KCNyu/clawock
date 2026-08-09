@@ -67,8 +67,8 @@ fi
 # On this host the sidecars are present, so it is a no-op — it is here so a
 # degraded run publishes the last good cards instead of blanking them.
 python3 scripts/data/build_dashboard.py --previous "$PREVIOUS_DIR/assets/data/dashboard.json"
-python3 scripts/data/cron_heartbeat.py --publish
-python3 scripts/data/workflow_outcomes.py --publish
+/root/.local/bin/clawock-kcnyu-cron-heartbeat --publish
+/root/.local/bin/clawock-kcnyu-workflow-outcomes --publish
 
 # build_dashboard writes four public files. The shared ownership helper compares
 # all four against the last published generation, strips build-clock metadata,
@@ -105,7 +105,7 @@ data_plane_failed=0
 publish_data_plane() {
   # One entry point, shared with the harness postflights (#328) — identity
   # selection and the publish itself must not drift between the two callers.
-  if ! bash scripts/data/publish_generation.sh; then
+  if ! bash ops/publish/publish_generation.sh; then
     echo "✗ publish_dashboard: data plane not published or not deployed" >&2
     return 1
   fi

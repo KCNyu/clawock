@@ -13,7 +13,7 @@ from pathlib import Path
 from unittest import mock
 
 ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT / 'scripts' / 'data'))
+sys.path.insert(0, str(ROOT / 'ops' / 'growth'))
 import rick_broadcast
 
 FORBIDDEN = ['less often', 'earned its keep', '还不如', '没拖后腿', 'this week', '这周']

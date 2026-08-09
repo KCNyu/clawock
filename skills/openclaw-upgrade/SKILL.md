@@ -21,7 +21,7 @@ openclaw cron list --json \
 
 If this is not `true`, wait. A SIGTERM mid-run can orphan the cron into
 permanent `running`. Use `--no-restart` and pick a quiet window between slots
-(`./check_crons.sh --timeline`).
+(`bash ops/host/check_crons.sh --timeline`).
 
 ## 2. Update (built-in updater, since 6.x)
 ```

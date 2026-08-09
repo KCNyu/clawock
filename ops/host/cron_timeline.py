@@ -26,15 +26,13 @@ import subprocess
 import sys
 from pathlib import Path
 
-# The checkout root, so `clawock` resolves from the tree this file ships
-# in. Reached through the scripts/data/workspace shim until #267 step 3,
-# whose only remaining job was inserting this path as a side effect.
-sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
-sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
+_CHECKOUT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(_CHECKOUT))
+sys.path.insert(0, str(_CHECKOUT / "src"))
 from clawock.workspace import workspace_root  # noqa: E402
 from clawock.providers import openclaw  # noqa: E402
 
-WS = workspace_root(Path(__file__).resolve().parents[2])
+WS = workspace_root(_CHECKOUT)
 WORKFLOWS = WS / '.github' / 'workflows'
 
 DOW_SHORT = ['日', '一', '二', '三', '四', '五', '六']  # 0=Sun .. 6=Sat

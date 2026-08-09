@@ -21,10 +21,10 @@
 set -uo pipefail
 
 WS_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-cd "$WS_ROOT"
+cd "$WS_ROOT" || exit 1
 
-# shellcheck source=scripts/data/publish_identity.sh
-. "$WS_ROOT/scripts/data/publish_identity.sh"
+# shellcheck source=ops/publish/publish_identity.sh
+. "$WS_ROOT/ops/publish/publish_identity.sh"
 
-exec python3 "$WS_ROOT/scripts/data/publish_data_branch.py" \
+exec python3 "$WS_ROOT/ops/publish/publish_data_branch.py" \
   --deploy --remote "${PUBLISH_REMOTE:-origin}"

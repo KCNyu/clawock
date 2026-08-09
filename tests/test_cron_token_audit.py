@@ -18,13 +18,13 @@ import pytest
 
 
 WS = Path(__file__).resolve().parents[1]
-DATA_SCRIPTS = str(WS / "scripts" / "data")
+HOST_SCRIPTS = str(WS / "ops" / "host")
 
 
 @pytest.fixture(scope="module")
 def audit():
-    if DATA_SCRIPTS not in sys.path:
-        sys.path.insert(0, DATA_SCRIPTS)
+    if HOST_SCRIPTS not in sys.path:
+        sys.path.insert(0, HOST_SCRIPTS)
     return pytest.importorskip("cron_token_audit")
 
 
@@ -122,7 +122,7 @@ def health(monkeypatch):
     """cron_health_check.main() with every live source replaced."""
     import importlib.util
     spec = importlib.util.spec_from_file_location(
-        "cron_health_check_probe", WS / "scripts" / "data" / "cron_health_check.py")
+        "cron_health_check_probe", WS / "ops" / "host" / "cron_health_check.py")
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     monkeypatch.setattr(module, "load_runtime_jobs", lambda jobs_file=None: [])

@@ -217,7 +217,7 @@ def test_the_publish_path_for_the_outputs_is_the_data_branch_alone():
     is a quieter contract than it looks — nothing errors if a postflight starts
     staging them again, until `git add` refuses and takes the whole commit down.
     """
-    publisher = (ROOT / "scripts/data/publish_data_branch.py").read_text()
+    publisher = (ROOT / "ops/publish/publish_data_branch.py").read_text()
     assert "output_paths" in publisher
     for rel in ("instances/kcnyu/src/clawock_kcnyu/harness/brief_postflight.py",
                 "instances/kcnyu/src/clawock_kcnyu/harness/report_postflight.py",
@@ -238,7 +238,7 @@ def test_the_publisher_compares_against_what_was_published():
     publisher materialises the last published generation, and hands that
     directory to the diff rather than letting it default to git.
     """
-    publisher = (ROOT / "scripts/data/publish_dashboard.sh").read_text()
+    publisher = (ROOT / "ops/publish/publish_dashboard.sh").read_text()
 
     assert "fetch_data_plane.py" in publisher
     assert "--baseline-dir" in publisher
@@ -257,7 +257,7 @@ def test_an_unreachable_data_plane_does_not_stop_the_publish():
     and says so (#315), and the semantic diff falls back to "everything changed",
     so the tick republishes once and the next fetch repairs it.
     """
-    lines = (ROOT / "scripts/data/publish_dashboard.sh").read_text().splitlines()
+    lines = (ROOT / "ops/publish/publish_dashboard.sh").read_text().splitlines()
     invocation = next(i for i, line in enumerate(lines)
                       if "fetch_data_plane.py" in line
                       and not line.lstrip().startswith("#"))
@@ -399,7 +399,7 @@ def test_the_publisher_no_longer_writes_to_master_at_all():
     Asserted on the script rather than on a commit count, because a count is a
     live number and this is the structural fact underneath it.
     """
-    publisher = (ROOT / "scripts/data/publish_dashboard.sh").read_text()
+    publisher = (ROOT / "ops/publish/publish_dashboard.sh").read_text()
     code = "\n".join(line.split("#", 1)[0] for line in publisher.splitlines())
 
     for forbidden in ("git add", "git commit", "safe_push.sh"):
@@ -462,12 +462,12 @@ def test_the_publish_path_is_shared_and_not_restated():
     the postflights — and both need the deploy-key identity. A Python caller
     cannot source a shell file, so restating the selection is the obvious wrong
     turn; it is the duplication #316 removed for `safe_push.sh`."""
-    entry = ROOT / "scripts/data/publish_generation.sh"
+    entry = ROOT / "ops/publish/publish_generation.sh"
     assert entry.is_file()
     body = entry.read_text()
     assert "publish_identity.sh" in body and "publish_data_branch.py" in body
 
-    for rel in ("scripts/data/publish_dashboard.sh",
+    for rel in ("ops/publish/publish_dashboard.sh",
                 "instances/kcnyu/src/clawock_kcnyu/harness/_harness_common.py"):
         text = (ROOT / rel).read_text()
         assert "publish_generation.sh" in text, f"{rel} does not use the shared entry"

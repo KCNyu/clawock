@@ -317,7 +317,7 @@ def test_a_multi_source_label_is_not_counted_as_coupling():
     thing."""
     sites = coupling_sites()
 
-    assert "scripts/data/cron_timeline.py" not in sites, (
+    assert "ops/host/cron_timeline.py" not in sites, (
         "cron_timeline treats openclaw as one source among three — counting it "
         "would reward removing multi-source support")
 

@@ -26,9 +26,10 @@ Entry pointer for Claude Code in kcn's investment workspace. Same workflow as `A
 | Iron rules / traps | `MEMORY.md` |
 | Scripts / fallback / skill routing / cron | `TOOLS.md` |
 | Skill bodies | `skills/{name}/SKILL.md` |
-| Data scripts | `scripts/data/` (analyze, fetch, update, build_dashboard) |
-| Harness CLI / live adapter | `clawock brief\|report\|intraday` / `instances/kcnyu/` |
-| Legacy / reference scripts | `scripts/legacy/` |
+| Portable workflows / market / portfolio tools | installed `clawock` CLI; source in `src/clawock/` |
+| Harness CLI / live adapter | `clawock brief\|report\|intraday`; installed from `instances/kcnyu/` as `clawock-kcnyu` |
+| Host / publish / CI / growth wiring | `ops/{host,publish,ci,growth}/` |
+| Transitional repository jobs | internal only; do not call `scripts/data/` as a runtime API |
 | Daily logs (template `_TEMPLATE.md`) | `memory/YYYY-MM-DD.md` |
 | Daily deep brief output | `memory/{date}-pre-open.md` + `memory/{date}-plan.json` |
 | Daily portfolio snapshots | `memory/snapshots/{date}.json` |
@@ -37,7 +38,7 @@ Entry pointer for Claude Code in kcn's investment workspace. Same workflow as `A
 | Heartbeat workflow | `HEARTBEAT.md` (heartbeat poll only) |
 | Auto-commit rules | `AGENTS.md` |
 | Interactive code PR/worktree rules | `AGENTS.md` § Interactive Codex/Claude PR workflow |
-| Pages dashboard input | `assets/data/dashboard.json` (built by `scripts/data/build_dashboard.py`) |
+| Pages dashboard input | data-plane generation refreshed by KCNyu postflight and `ops/publish/publish_dashboard.sh` |
 | Risk metrics snapshot | `assets/data/risk.json` (built by `clawock portfolio-risk`, refreshed daily via brief preflight) |
 | Decision execution marking | `memory/decisions.jsonl` `execution.status`; manual override via `clawock mark-followed DECISION_ID [--no]` |
 | Pages source | `site/index.html` (dashboard) + `site/briefs.md` (daily briefs index) |
@@ -55,7 +56,7 @@ Step 3  LLM synthesis you write the analysis prose + (brief only) plan.json
                       report_postflight prepends title + raw_wechat_block itself
 Step 4  postflight    clawock {brief|report|intraday} postflight [args]
                       validates report, computes wechat_prefix, then handles its scoped publish
-                      (all three auto-run build_dashboard.py; intraday commits only semantic diffs)
+                      (all three refresh the complete dashboard generation; intraday publishes only semantic diffs)
 ```
 
 Don't ask permission for internal reads/edits. Action over confirmation.

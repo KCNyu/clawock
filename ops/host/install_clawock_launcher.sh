@@ -17,7 +17,7 @@ TARGET_DIR="$(dirname "$TARGET")"
 [ -f "$CHECKOUT/instances/kcnyu/pyproject.toml" ] || { echo "missing KCNyu adapter: $CHECKOUT" >&2; exit 1; }
 mkdir -p "$TARGET_DIR"
 python3 -m venv "$VENV"
-"$VENV/bin/python" -m pip install --quiet -e "$CHECKOUT[compute]" -e "$CHECKOUT/instances/kcnyu"
+"$VENV/bin/python" -m pip install --quiet -e "${CHECKOUT}[compute]" -e "$CHECKOUT/instances/kcnyu"
 
 cat > "$TARGET" <<LAUNCHER
 #!/usr/bin/env bash
@@ -32,7 +32,9 @@ chmod +x "$TARGET"
 for COMMAND in \
   clawock-kcnyu-brief-watchdog \
   clawock-kcnyu-report-watchdog \
-  clawock-kcnyu-intraday-watchdog
+  clawock-kcnyu-intraday-watchdog \
+  clawock-kcnyu-cron-heartbeat \
+  clawock-kcnyu-workflow-outcomes
 do
   [ -x "$VENV/bin/$COMMAND" ] || { echo "missing installed command: $VENV/bin/$COMMAND" >&2; exit 1; }
   COMMAND_TARGET="$TARGET_DIR/$COMMAND"
@@ -45,4 +47,4 @@ LAUNCHER
   chmod +x "$COMMAND_TARGET"
 done
 
-echo "installed: clawock + 3 KCNyu watchdog commands in $TARGET_DIR (workspace $CHECKOUT)"
+echo "installed: clawock + 5 KCNyu runtime commands in $TARGET_DIR (workspace $CHECKOUT)"

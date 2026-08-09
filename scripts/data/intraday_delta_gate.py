@@ -34,7 +34,7 @@ HKT = ZoneInfo("Asia/Hong_Kong")
 PORTFOLIO = WS / "portfolio.json"
 
 sys.path.insert(0, str(_CHECKOUT / "scripts" / "data"))
-import cron_heartbeat  # noqa: E402
+from clawock_kcnyu.automation import cron_heartbeat  # noqa: E402
 
 
 def _load(path):

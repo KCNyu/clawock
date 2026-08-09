@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Submit clawock URLs to IndexNow (Bing / Yandex / Seznam — NOT Google).
 
-Zero-touch indexing accelerator. Reads the IndexNow key from the repo-root
-`<key>.txt` file (32-hex), pulls URLs from the live sitemap, and POSTs the ones
+Zero-touch indexing accelerator. Reads the IndexNow key from the site-owned
+`site/<key>.txt` file (32-hex), pulls URLs from the live sitemap, and POSTs the ones
 that are new or whose content actually changed.
 
 Google does not consume IndexNow — for Google use GSC "Request Indexing".
@@ -15,11 +15,11 @@ forever. IndexNow asks publishers to submit on change, so re-POSTing unchanged
 URLs daily is equally wrong in the other direction.
 
 Usage:
-  python3 scripts/data/indexnow_submit.py             # new + changed URLs
-  python3 scripts/data/indexnow_submit.py --all       # every sitemap URL
-  python3 scripts/data/indexnow_submit.py <url> ...   # submit specific URLs
-  python3 scripts/data/indexnow_submit.py --record-only  # seed ledger, no POST
-  python3 scripts/data/indexnow_submit.py --dry-run   # print, do not POST
+  python3 ops/growth/indexnow_submit.py             # new + changed URLs
+  python3 ops/growth/indexnow_submit.py --all       # every sitemap URL
+  python3 ops/growth/indexnow_submit.py <url> ...   # submit specific URLs
+  python3 ops/growth/indexnow_submit.py --record-only  # seed ledger, no POST
+  python3 ops/growth/indexnow_submit.py --dry-run   # print, do not POST
 """
 import argparse
 import glob
@@ -33,15 +33,16 @@ import urllib.request
 HOST = "kcnyu.github.io"
 SITE = "https://kcnyu.github.io/clawock"
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+SITE_SOURCE = os.path.join(ROOT, "site")
 STATE = os.path.join(ROOT, "logs", "indexnow_seen.json")
 
 
 def find_key():
-    for p in glob.glob(os.path.join(ROOT, "*.txt")):
+    for p in glob.glob(os.path.join(SITE_SOURCE, "*.txt")):
         name = os.path.splitext(os.path.basename(p))[0]
         if re.fullmatch(r"[0-9a-f]{32}", name):
             return name
-    raise SystemExit("ERROR: no IndexNow key file (<32-hex>.txt) at repo root")
+    raise SystemExit("ERROR: no IndexNow key file (site/<32-hex>.txt)")
 
 
 def sitemap_urls():

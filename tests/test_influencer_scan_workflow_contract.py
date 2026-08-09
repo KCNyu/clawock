@@ -27,6 +27,6 @@ def test_influencer_feed_requires_structural_coverage_before_exact_publish():
 
     commit_run = _step_run('Commit + push')
     publish_lines = [line.strip() for line in commit_run.splitlines()
-                     if line.strip().startswith('bash scripts/data/gha_commit_push.sh')]
+                     if line.strip().startswith('bash ops/publish/gha_commit_push.sh')]
     assert len(publish_lines) == 1
     assert re.search(r'\sassets/data/influencer_feed\.json$', publish_lines[0])

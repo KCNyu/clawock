@@ -167,7 +167,7 @@ def test_fossil_source_is_marked_stale(tmp_path, monkeypatch):
 
 def test_timeline_returns_nonzero_for_fossil(monkeypatch, capsys):
     spec = importlib.util.spec_from_file_location(
-        "cron_timeline_live_state", ROOT / "scripts" / "data" / "cron_timeline.py"
+        "cron_timeline_live_state", ROOT / "ops" / "host" / "cron_timeline.py"
     )
     timeline = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(timeline)
@@ -184,7 +184,7 @@ def test_timeline_returns_nonzero_for_fossil(monkeypatch, capsys):
 
 def test_timeline_returns_nonzero_when_live_state_is_empty(monkeypatch, capsys):
     spec = importlib.util.spec_from_file_location(
-        "cron_timeline_empty_state", ROOT / "scripts" / "data" / "cron_timeline.py"
+        "cron_timeline_empty_state", ROOT / "ops" / "host" / "cron_timeline.py"
     )
     timeline = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(timeline)

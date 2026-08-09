@@ -25,7 +25,7 @@ title: clawock · scripts 详细参考
   注意：速率限制 10 req/sec（脚本默认 8/sec）超量 403；`SEC_USER_AGENT` 可放 `.api_keys`；ticker→CIK 本地缓存 7 天；非美股票返回 "CIK not found"
 - **`clawock fx`**：公开包内的 USDHKD 汇率 provider（Frankfurter → exchangerate.host → Yahoo HKD=X 三路 fallback）；4h 工作区缓存；`--convert AMT FROM TO` 直接换算。**HK + US 算 book total 必须先调它**
 - **`clawock analyze-hk`**：港股完整分析 = Tencent + Eastmoney HK 双源对账 → stooq → yfinance 兜底 + 恒指/恒科 + Finnhub 新闻 + 信号；c/pc 偏差 > 1% 写入 `_divergence`
-- `check_portfolio.sh`：快速查看持仓
+- `clawock analyze-hk` + `clawock analyze-us`：刷新并查看两本持仓；不再保留根级 wrapper
 
 ### Cron harness 脚本（preflight + postflight 三明治）
 
@@ -67,8 +67,8 @@ distribution（源码位于 `instances/kcnyu/`）通过标准 Python entry point
 - **`scripts/data/fetch_influencer_feed.py`**：高影响力人物市场异动 → `assets/data/influencer_feed.json`。Trump 原帖(trumpstruth.org/feed RSS, 全文)+ Musk(Google News RSS 代理, X 无可靠免费 RSS)。关键词预筛 → 单次 vendor LLM(`thinking_disabled` 结构化抽取)提相关性/stance/ticker/板块 → 代码交叉匹配持仓分三档：`held_hits` / `new_ideas` / `sector_hits`。merge-not-overwrite: 源**抓取失败**才保留旧条目（被 LLM 筛掉≠失败）。`MINIMAX_API_KEY` 主、`XIAOMI_API_KEY` 可选 fallback；两者都缺才降级 keyword-only。dashboard「影响力雷达」卡 + brief `▎名人异动/政策风向` 段消费。
 - **`scripts/data/xiaomi_llm.py`**：Anthropic-Messages client，供 GH Action 直调（绕过 openclaw gateway）。**Primary MiniMax M3 → optional fallback Xiaomi MiMo v2.5-pro**；M2.7 + openai-completions 已废。单轮默认 thinking enabled + max_tokens 32K；结构化抽取传 `thinking_disabled=True`。`_clean()` 统一剥内联 `<think>…</think>` + markdown fence。retry 3 + 429 handling。env `MINIMAX_API_KEY` 必需；`XIAOMI_API_KEY` 可选且失效后自动跳过；`chat(fallback=False)` 可关 Xiaomi fallback。
 - **`scripts/data/gh_action_*.py`**：3 个 GH Action 入口脚本（brief_fallback / weekly_review / news_digest），都用 `xiaomi_llm.chat()` 走 MiniMax M3 主路径。
-- **`scripts/data/safe_push.sh`**：共享 git push 防 conflict 死循环工具。3 次 retry + 每次 rebase 失败 → `git rebase --abort` + exit 2（不死循环 push）。所有写文件的 GH Action workflow 用 `bash scripts/data/safe_push.sh` 替代原本的 push loop；adapter 的 `_harness_common.push_with_rebase_retry` **直接委托本脚本**（2026-06-10 统一，自动获得 rebase.autoStash + 冲突标记硬闸），全体 committer 单一 push 路径。
-- **`scripts/data/reconcile.sh`**：手工成交后的唯一收口。先把成交写进对应 `holdings[].trades[]`（`action/date/shares/price`，卖出另记 `realized_pnl`），同步 broker 真值叶子（`shares` / `cost_basis`；新仓建 holding、平仓保留历史行并置 `shares=0`；存取款写 `cash_adjustments[]`），再运行本脚本重算 aggregates / cash / realized P&L 并执行完整性闸。它只派生和校验，不会替你猜成交。
+- **`ops/publish/safe_push.sh`**：共享 git push 防 conflict 死循环工具。3 次 retry + 每次 rebase 失败 → `git rebase --abort` + exit 2（不死循环 push）。所有写文件的 GH Action workflow 用 `bash ops/publish/safe_push.sh` 替代原本的 push loop；adapter 的 `_harness_common.push_with_rebase_retry` **直接委托本脚本**（2026-06-10 统一，自动获得 rebase.autoStash + 冲突标记硬闸），全体 committer 单一 push 路径。
+- **`clawock reconcile`**：手工成交后的唯一收口。先把成交写进对应 `holdings[].trades[]`（`action/date/shares/price`，卖出另记 `realized_pnl`），同步 broker 真值叶子（`shares` / `cost_basis`；新仓建 holding、平仓保留历史行并置 `shares=0`；存取款写 `cash_adjustments[]`），再运行本命令重算 aggregates / cash / realized P&L 并执行完整性闸。它只派生和校验，不会替你猜成交。
 
 ### Cron map
 
@@ -76,7 +76,7 @@ distribution（源码位于 `instances/kcnyu/`）通过标准 Python entry point
 `config/cron-schedules.json` 单源维护，生成的人读表见
 [`docs/operations/cron-schedules.md`](../operations/cron-schedules.md)。
 `ops/host/sync_us_cron_dst.py --apply` 每日自动对齐美股 live cron + system watchdog；
-`cron_heartbeat.py` 维护 Mode 7 slot ledger，由现有 single publisher 发布。
+`clawock-kcnyu-cron-heartbeat` 维护 Mode 7 slot ledger，由现有 single publisher 发布。
 
 所有 harness preflight/postflight 的实现都在 `instances/kcnyu/`，统一从安装后的
 `clawock` CLI 调用。Mode 6 / brief / Mode 7 的 postflight
@@ -103,17 +103,17 @@ python3 ops/host/sync_cron_payloads.py --apply --json
 `openclaw cron runs` 必须带 `--id`，且单 job 视角。跨 job + 自动调度 + 手动 trigger 一起看用：
 
 ```bash
-./check_crons.sh                 # 最近 20 次（auto + manual 混排，HKT 倒序）
-./check_crons.sh 50              # 最近 50 次
-./check_crons.sh --status error  # 只看失败
-./check_crons.sh --kind cron     # 只看自动调度
-./check_crons.sh --job 港股       # 按 job 名子串过滤
-./check_crons.sh --full          # 摘要不截断
-./check_crons.sh --json          # JSON 输出（喂给后续 pipeline）
+bash ops/host/check_crons.sh                 # 最近 20 次（auto + manual 混排，HKT 倒序）
+bash ops/host/check_crons.sh 50              # 最近 50 次
+bash ops/host/check_crons.sh --status error  # 只看失败
+bash ops/host/check_crons.sh --kind cron     # 只看自动调度
+bash ops/host/check_crons.sh --job 港股       # 按 job 名子串过滤
+bash ops/host/check_crons.sh --full          # 摘要不截断
+bash ops/host/check_crons.sh --json          # JSON 输出（喂给后续 pipeline）
 ```
 
 运行历史同样优先经 OpenClaw CLI 读取；旧 `cron/runs/*.jsonl` 只作为迁移前 fallback。
-脚本本体 `scripts/data/cron_runs.py`。
+脚本本体 `ops/host/cron_runs.py`。
 
 ### 已废弃（不作为调用入口，但作为参考代码可读）
 > 这些脚本**不要直接调起来跑**当主路径，但里面的 URL、header、fallback 思路、解析片段在调试或场景超出现役脚本时仍有参考价值。

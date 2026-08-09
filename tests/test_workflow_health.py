@@ -10,7 +10,7 @@ from pathlib import Path
 
 import pytest
 
-from scripts.data import workflow_health as wh
+import workflow_health as wh
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -96,7 +96,7 @@ def test_only_scheduled_workflows_are_assessed():
 
 def test_the_rollup_never_fails_its_host_job(capsys):
     assert wh.main(["--json"]) == 0 or True       # exit code is always 0 by contract
-    source = (ROOT / "scripts" / "data" / "workflow_health.py").read_text()
+    source = (ROOT / "ops" / "ci" / "workflow_health.py").read_text()
     assert "Report only: a weekly rollup must not fail the job it runs inside." in source
 
 
@@ -118,6 +118,6 @@ def test_fetch_runs_uses_the_provider_and_keeps_schedule_semantics():
 
 def test_weekly_health_runs_it_with_the_permission_it_needs():
     workflow = (ROOT / ".github" / "workflows" / "weekly-health.yml").read_text()
-    assert "scripts/data/workflow_health.py" in workflow
+    assert "ops/ci/workflow_health.py" in workflow
     assert "actions: read" in workflow
     assert "GH_TOKEN: ${{ github.token }}" in workflow
