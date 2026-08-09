@@ -32,7 +32,7 @@ jobs:
 
       - name: Build sdist and wheel
         run: |
-          pip install --quiet build twine
+          pip install --quiet -e '.[release]'
           python -m build
           python -m twine check dist/*
 
@@ -57,6 +57,7 @@ jobs:
         run: |
           set -euo pipefail
           python -m venv /tmp/isolated
+          # Not a dependency list: this installs the artifact under test.
           /tmp/isolated/bin/pip install --quiet dist/*.whl
           mkdir -p /tmp/newuser && cd /tmp/newuser
           env -i PATH=/usr/bin:/bin HOME=/tmp /tmp/isolated/bin/clawock init book

@@ -49,6 +49,10 @@ compute = ["numpy>=1.26"]
 evaluation = ["numpy>=1.26", "matplotlib>=3.8"]
 # Screenshot and social-card validation.
 imaging = ["Pillow>=10"]
+# Building and checking a distribution. Here rather than in the release workflow
+# for the same reason as everything else in this table: a version pinned in a
+# workflow line is a second source of truth that drifts unseen.
+release = ["build>=1.2", "twine>=5"]
 # Everything the test suite needs to *collect*, not just to pass.
 test = ["pytest>=8", "pytest-cov>=5", "numpy>=1.26", "Pillow>=10"]
 
