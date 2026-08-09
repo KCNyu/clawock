@@ -11,7 +11,7 @@ from pathlib import Path
 
 import pytest
 
-from clawock import research_surface as rs
+from clawock.evidence import research_surface as rs
 
 
 ROOT = Path(__file__).resolve().parents[1]

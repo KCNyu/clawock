@@ -76,7 +76,7 @@
     },
     "provenance": {
       "type": "object",
-      "description": "A clawock.research_provenance manifest covering every published number; see the sibling thesis schema gate."
+      "description": "A clawock.evidence.research_provenance manifest covering every published number; see the sibling thesis schema gate."
     }
   },
   "$defs": {

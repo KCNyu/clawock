@@ -18,7 +18,7 @@ import pytest
 ROOT = Path(__file__).resolve().parents[1]
 DATA = ROOT / "scripts" / "data"
 PACKAGE = ROOT / "src" / "clawock"
-from clawock import run_card
+from clawock.evidence import run_card
 
 BACKTESTS = (
     "backtest_hstech_regime.py",
@@ -150,7 +150,7 @@ def test_every_backtest_records_a_run_card(script):
             and any(alias.name == "run_card" for alias in node.names)
         ) or (
             isinstance(node, ast.ImportFrom)
-            and node.module == "clawock"
+            and node.module == "clawock.evidence"
             and any(alias.name == "run_card" for alias in node.names)
         )
         for node in ast.walk(tree)

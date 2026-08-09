@@ -1,11 +1,15 @@
 import json
+import os
 import subprocess
 import sys
 from decimal import Decimal
+from pathlib import Path
 
 import pytest
 
-from clawock import research_provenance as rp
+from clawock.evidence import research_provenance as rp
+
+ROOT = Path(__file__).resolve().parents[1]
 
 def metric():
     return {
@@ -122,9 +126,11 @@ def test_hostile_expressions_fail_closed_with_one_json_object(expression, capsys
 
 
 def test_calc_cli_subprocess_prints_json_and_no_traceback():
+    env = os.environ.copy()
+    env["PYTHONPATH"] = str(ROOT / "src")
     result = subprocess.run(
-        [sys.executable, "-m", "clawock.research_provenance", "calc", "--expr", "0/0"],
-        capture_output=True, text=True, check=False,
+        [sys.executable, "-m", "clawock", "provenance", "calc", "--expr", "0/0"],
+        capture_output=True, text=True, check=False, env=env,
     )
     assert result.returncode == 1
     assert "Traceback" not in result.stderr
