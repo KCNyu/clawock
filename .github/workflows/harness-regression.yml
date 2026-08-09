@@ -200,6 +200,7 @@ jobs:
             --cov=clawock.safe_io \
             --cov=clawock.research_surface \
             --cov=clawock.snapshot_realized \
+            --cov=clawock.shadow_portfolio \
             --cov=clawock.thesis_registry \
             --cov=clawock.trading_calendar \
             --cov-report=term-missing:skip-covered \

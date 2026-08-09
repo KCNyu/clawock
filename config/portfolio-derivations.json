@@ -6,5 +6,19 @@
   "cash_field_by_book": {
     "us_stocks": "cash_usd",
     "hk_stocks": "cash_hkd"
+  },
+  "shadow_books": {
+    "US": {
+      "portfolio_key": "us_stocks",
+      "currency": "USD",
+      "cash_key": "cash_usd",
+      "market": "us"
+    },
+    "HK": {
+      "portfolio_key": "hk_stocks",
+      "currency": "HKD",
+      "cash_key": "cash_hkd",
+      "market": "hk"
+    }
   }
 }

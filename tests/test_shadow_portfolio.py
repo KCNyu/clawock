@@ -1,13 +1,11 @@
-import sys
 from copy import deepcopy
 from pathlib import Path
 
 import pytest
 
-ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT / "scripts" / "data"))
+from clawock import shadow_portfolio as shadow
 
-import shadow_portfolio as shadow
+ROOT = Path(__file__).resolve().parents[1]
 
 
 DAY_1 = "2026-07-01"
@@ -27,10 +25,16 @@ def _portfolio(*, us_cash=0, us_holdings=(), hk_cash=0, hk_holdings=()):
     return {
         "portfolios": {
             "us_stocks": {
+                "decision_leg": "US",
+                "currency": "USD",
+                "market": "us",
                 "cash_usd": us_cash,
                 "holdings": list(us_holdings),
             },
             "hk_stocks": {
+                "decision_leg": "HK",
+                "currency": "HKD",
+                "market": "hk",
                 "cash_hkd": hk_cash,
                 "holdings": list(hk_holdings),
             },
@@ -208,6 +212,95 @@ def test_build_keeps_usd_and_hkd_curves_separate_without_combination():
     assert result["fx_policy"]["combined_curve"] is False
     assert "combined" not in result["curves"]
     assert "combined" not in result["cumulative_diff"]
+
+
+def test_build_uses_instance_mapping_without_compiled_book_names():
+    portfolio = {
+        "portfolios": {
+            "tokyo_growth": {
+                "currency": "JPY",
+                "cash_jpy": 100,
+                "holdings": [_holding("JP1", 1)],
+            },
+            "frankfurt_value": {
+                "currency": "EUR",
+                "cash_eur": 200,
+                "holdings": [_holding("EU1", 1)],
+            },
+        }
+    }
+    decisions = [
+        _decision("jp-sell", "JP1", "cut", 1, leg="TOKYO", price=10),
+        _decision("eu-sell", "EU1", "cut", 1, leg="FRANKFURT", price=20),
+    ]
+    bars = {
+        "JP1": {DAY_1: {"close": 10}},
+        "EU1": {DAY_1: {"close": 20}},
+    }
+    bar_loader, bar_map_loader = _loaders(bars)
+    config = {
+        "TOKYO": {
+            "portfolio_key": "tokyo_growth", "currency": "JPY",
+            "cash_key": "cash_jpy", "market": "us",
+        },
+        "FRANKFURT": {
+            "portfolio_key": "frankfurt_value", "currency": "EUR",
+            "cash_key": "cash_eur", "market": "hk",
+        },
+    }
+
+    result = shadow.build_shadow_portfolio(
+        portfolio,
+        decisions,
+        as_of=DAY_1,
+        bar_loader=bar_loader,
+        bar_map_loader=bar_map_loader,
+        matched={},
+        leg_config=config,
+    )
+
+    assert set(result["curves"]) == {"JPY", "EUR"}
+    assert result["curves"]["JPY"]["leg"] == "TOKYO"
+    assert result["curves"]["EUR"]["leg"] == "FRANKFURT"
+
+
+def test_leg_config_rejects_incomplete_or_unknown_market(tmp_path):
+    path = tmp_path / "portfolio-derivations.json"
+    path.write_text('{"shadow_books":{"X":{"portfolio_key":"book"}}}')
+    with pytest.raises(ValueError, match="missing"):
+        shadow.load_leg_config(path)
+
+    path.write_text(
+        '{"shadow_books":{"X":{"portfolio_key":"book",'
+        '"currency":"EUR","cash_key":"cash_eur","market":"mars"}}}')
+    with pytest.raises(ValueError, match="unsupported"):
+        shadow.load_leg_config(path)
+
+
+def test_configured_book_must_exist_and_match_ledger_currency():
+    portfolio = {
+        "portfolios": {
+            "book": {"currency": "JPY", "cash_jpy": 0, "holdings": []},
+        }
+    }
+    decision = _decision("x", "JP1", "cut", 1, leg="TOKYO")
+    missing = {
+        "TOKYO": {
+            "portfolio_key": "absent", "currency": "JPY",
+            "cash_key": "cash_jpy", "market": "us",
+        }
+    }
+    mismatch = {
+        "TOKYO": {
+            "portfolio_key": "book", "currency": "USD",
+            "cash_key": "cash_jpy", "market": "us",
+        }
+    }
+
+    with pytest.raises(ValueError, match="is missing"):
+        shadow.resolve_leg_config(portfolio, [decision], missing)
+    with pytest.raises(ValueError, match="currency mismatch"):
+        shadow.resolve_leg_config(portfolio, [decision], mismatch)
 
 
 def test_buy_hold_uses_same_seed_and_only_canonical_close_marks():
