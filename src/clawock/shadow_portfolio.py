@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import json
 import math
+import argparse
 import os
 import re
 from collections import Counter, defaultdict
@@ -22,28 +23,116 @@ from pathlib import Path
 from typing import Callable
 from zoneinfo import ZoneInfo
 
-# The checkout root, so `clawock` resolves from the tree this file ships
-# in. Reached through the scripts/data/workspace shim until #267 step 3,
-# whose only remaining job was inserting this path as a side effect.
-import sys  # noqa: E402
-sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
-sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
-from clawock import decision_v2  # noqa: E402
-from clawock import trading_calendar  # noqa: E402
-from clawock.workspace import workspace_root  # noqa: E402
+from clawock import decision_v2
+from clawock import trading_calendar
+from clawock.safe_io import safe_write_text
+from clawock.workspace import workspace_root
 
-WS = workspace_root(Path(__file__).resolve().parents[2])
-OUT = WS / "assets" / "data" / "shadow_portfolio.json"
 SCHEMA_VERSION = 1
 ACTIVE_ACTIONS = set(decision_v2.ACTIVE_ACTIONS)
 SELL_ACTIONS = set(decision_v2.SELL_ACTIONS)
 BUY_ACTIONS = set(decision_v2.ADD_ACTIONS)
-LEG_CONFIG = {
-    "US": {"portfolio_key": "us_stocks", "currency": "USD", "cash_key": "cash_usd"},
-    "HK": {"portfolio_key": "hk_stocks", "currency": "HKD", "cash_key": "cash_hkd"},
-}
 EXTERNAL_FLOW_WORDS = ("入金", "deposit", "withdraw", "出金", "transfer")
 CORPORATE_ACTION_WORDS = ("dividend", "股息", "派息", "split", "拆股")
+
+
+def load_leg_config(path: Path | str) -> dict[str, dict[str, str]]:
+    """Load the instance-owned decision-leg to ledger-book mapping."""
+    payload = json.loads(Path(path).read_text(encoding="utf-8"))
+    configured = payload.get("shadow_books")
+    if not isinstance(configured, dict) or not configured:
+        raise ValueError("portfolio derivation config needs non-empty shadow_books")
+    result = {}
+    required = {"portfolio_key", "currency", "cash_key", "market"}
+    for leg, raw in configured.items():
+        if not isinstance(leg, str) or not leg or not isinstance(raw, dict):
+            raise ValueError("shadow_books entries must map a decision leg to an object")
+        missing = required - raw.keys()
+        if missing:
+            raise ValueError(
+                f"shadow_books.{leg} missing: {', '.join(sorted(missing))}")
+        values = {key: raw[key] for key in required}
+        if any(not isinstance(value, str) or not value.strip()
+               for value in values.values()):
+            raise ValueError(f"shadow_books.{leg} values must be non-empty strings")
+        values["market"] = values["market"].lower()
+        if values["market"] not in trading_calendar.MARKET_TZ:
+            raise ValueError(
+                f"shadow_books.{leg}.market unsupported: {values['market']}")
+        result[leg] = values
+    return result
+
+
+def _leg_cfg(
+    portfolio: dict,
+    leg: str,
+    leg_config: dict[str, dict[str, str]] | None,
+) -> dict[str, str]:
+    """Resolve one leg without compiling an instance's book names into core."""
+    if leg_config is not None:
+        try:
+            configured = leg_config[leg]
+        except KeyError as exc:
+            raise ValueError(f"decision leg {leg!r} has no shadow-book mapping") from exc
+        book = (portfolio.get("portfolios") or {}).get(
+            configured["portfolio_key"])
+        if not isinstance(book, dict):
+            raise ValueError(
+                f"shadow book {configured['portfolio_key']!r} for {leg!r} is missing")
+        ledger_currency = book.get("currency")
+        if ledger_currency and ledger_currency != configured["currency"]:
+            raise ValueError(
+                f"shadow book currency mismatch for {leg!r}: "
+                f"{ledger_currency!r} != {configured['currency']!r}")
+        return configured
+
+    # A portable caller may declare the mapping in its ledger instead of using
+    # the KCNyu instance's sidecar configuration.
+    for portfolio_key, book in (portfolio.get("portfolios") or {}).items():
+        if not isinstance(book, dict) or book.get("decision_leg") != leg:
+            continue
+        currency = book.get("currency")
+        market = book.get("market")
+        cash_key = book.get("cash_key")
+        if not cash_key and isinstance(currency, str) and currency:
+            cash_key = f"cash_{currency.lower()}"
+        if not all(isinstance(value, str) and value for value in (
+                portfolio_key, currency, cash_key, market)):
+            break
+        market = market.lower()
+        if market not in trading_calendar.MARKET_TZ:
+            raise ValueError(f"portfolio market unsupported: {market}")
+        return {
+            "portfolio_key": portfolio_key,
+            "currency": currency,
+            "cash_key": cash_key,
+            "market": market,
+        }
+    raise ValueError(
+        f"decision leg {leg!r} is not declared by the portfolio or configuration")
+
+
+def resolve_leg_config(
+    portfolio: dict,
+    decisions: list[dict],
+    configured: dict[str, dict[str, str]] | None = None,
+) -> dict[str, dict[str, str]]:
+    """Return mappings for every authored decision leg, preserving ledger order."""
+    legs = []
+    for decision in decisions:
+        leg = decision.get("leg")
+        if isinstance(leg, str) and leg and leg not in legs:
+            legs.append(leg)
+    if configured is not None:
+        # Ignore configured books that have no decisions, matching the old
+        # behavior where a leg without an active decision emitted no curve.
+        resolved = {leg: _leg_cfg(portfolio, leg, configured) for leg in legs}
+    else:
+        resolved = {leg: _leg_cfg(portfolio, leg, None) for leg in legs}
+    currencies = [cfg["currency"] for cfg in resolved.values()]
+    if len(currencies) != len(set(currencies)):
+        raise ValueError("shadow-book currencies must be unique output keys")
+    return resolved
 
 
 def _number(value) -> float | None:
@@ -61,8 +150,12 @@ def _shares(value) -> int | None:
     return max(0, int(math.floor(number + 1e-9)))
 
 
-def _holding_map(portfolio: dict, leg: str) -> dict[str, dict]:
-    cfg = LEG_CONFIG[leg]
+def _holding_map(
+    portfolio: dict,
+    leg: str,
+    leg_config: dict[str, dict[str, str]] | None = None,
+) -> dict[str, dict]:
+    cfg = _leg_cfg(portfolio, leg, leg_config)
     holdings = (
         ((portfolio.get("portfolios") or {}).get(cfg["portfolio_key"]) or {})
         .get("holdings") or []
@@ -74,15 +167,24 @@ def _holding_map(portfolio: dict, leg: str) -> dict[str, dict]:
     }
 
 
-def _lot_size(portfolio: dict, leg: str, ticker: str) -> int:
-    raw = (_holding_map(portfolio, leg).get(ticker) or {}).get("lot_size")
+def _lot_size(
+    portfolio: dict,
+    leg: str,
+    ticker: str,
+    leg_config: dict[str, dict[str, str]] | None = None,
+) -> int:
+    raw = (_holding_map(portfolio, leg, leg_config).get(ticker) or {}).get("lot_size")
     lot = _shares(raw)
     return lot if lot and lot > 0 else 1
 
 
-def _trade_rows(portfolio: dict, leg: str) -> list[dict]:
+def _trade_rows(
+    portfolio: dict,
+    leg: str,
+    leg_config: dict[str, dict[str, str]] | None = None,
+) -> list[dict]:
     rows = []
-    for ticker, holding in _holding_map(portfolio, leg).items():
+    for ticker, holding in _holding_map(portfolio, leg, leg_config).items():
         for ordinal, trade in enumerate(holding.get("trades") or []):
             row = dict(trade)
             row["ticker"] = ticker
@@ -91,8 +193,12 @@ def _trade_rows(portfolio: dict, leg: str) -> list[dict]:
     return rows
 
 
-def _cash_adjustments(portfolio: dict, leg: str) -> list[dict]:
-    cfg = LEG_CONFIG[leg]
+def _cash_adjustments(
+    portfolio: dict,
+    leg: str,
+    leg_config: dict[str, dict[str, str]] | None = None,
+) -> list[dict]:
+    cfg = _leg_cfg(portfolio, leg, leg_config)
     book = ((portfolio.get("portfolios") or {}).get(cfg["portfolio_key"]) or {})
     rows = []
     for ordinal, adjustment in enumerate(book.get("cash_adjustments") or []):
@@ -119,14 +225,19 @@ def _cash_adjustments(portfolio: dict, leg: str) -> list[dict]:
     return rows
 
 
-def reconstruct_initial_book(portfolio: dict, leg: str, start_date: str) -> dict:
+def reconstruct_initial_book(
+    portfolio: dict,
+    leg: str,
+    start_date: str,
+    leg_config: dict[str, dict[str, str]] | None = None,
+) -> dict:
     """Reverse the actual ledger from today's state to just before ``start_date``.
 
     Actual post-start trades are used only to recover the seed. They are not
     replayed into either comparison book after the simulation starts.
     """
-    cfg = LEG_CONFIG[leg]
-    holdings = _holding_map(portfolio, leg)
+    cfg = _leg_cfg(portfolio, leg, leg_config)
+    holdings = _holding_map(portfolio, leg, leg_config)
     inventory = {
         ticker: _shares(row.get("shares")) or 0
         for ticker, row in holdings.items()
@@ -137,7 +248,7 @@ def reconstruct_initial_book(portfolio: dict, leg: str, start_date: str) -> dict
     cash = cash or 0.0
 
     reversed_trades = 0
-    for trade in _trade_rows(portfolio, leg):
+    for trade in _trade_rows(portfolio, leg, leg_config):
         if str(trade.get("date") or "") < start_date:
             continue
         ticker = trade["ticker"]
@@ -159,7 +270,7 @@ def reconstruct_initial_book(portfolio: dict, leg: str, start_date: str) -> dict
         reversed_trades += 1
 
     reversed_adjustments = 0
-    for adjustment in _cash_adjustments(portfolio, leg):
+    for adjustment in _cash_adjustments(portfolio, leg, leg_config):
         if adjustment["date"] >= start_date:
             cash -= adjustment["amount"]
             reversed_adjustments += 1
@@ -285,11 +396,12 @@ def _execute_sell(
     decision: dict,
     fill: dict,
     portfolio: dict,
+    leg_config: dict[str, dict[str, str]] | None = None,
 ) -> dict:
     ticker = str(decision.get("ticker") or "")
     inventory = state["inventory"]
     available = inventory.get(ticker, 0)
-    lot = _lot_size(portfolio, decision["leg"], ticker)
+    lot = _lot_size(portfolio, decision["leg"], ticker, leg_config)
     requested = _requested_shares(
         decision, inventory, state["cash"], fill["price"], lot)
     qty = min(requested, available)
@@ -318,10 +430,11 @@ def _execute_buy(
     fill: dict,
     portfolio: dict,
     budget: float | None = None,
+    leg_config: dict[str, dict[str, str]] | None = None,
 ) -> dict:
     ticker = str(decision.get("ticker") or "")
     inventory = state["inventory"]
-    lot = _lot_size(portfolio, decision["leg"], ticker)
+    lot = _lot_size(portfolio, decision["leg"], ticker, leg_config)
     available_cash = state["cash"] if budget is None else min(state["cash"], budget)
     requested = _requested_shares(
         decision, inventory, available_cash, fill["price"], lot)
@@ -351,6 +464,7 @@ def _execute_swap_group(
     rows: list[dict],
     fills: dict[str, dict],
     portfolio: dict,
+    leg_config: dict[str, dict[str, str]] | None = None,
 ) -> list[dict]:
     """Sell first, then spend only that group's proceeds on its buy leg(s)."""
     legs = []
@@ -360,7 +474,8 @@ def _execute_swap_group(
     for decision in sell_rows:
         fill = fills.get(decision.get("decision_id"))
         if fill:
-            legs.append(_execute_sell(state, decision, fill, portfolio))
+            legs.append(_execute_sell(
+                state, decision, fill, portfolio, leg_config=leg_config))
     proceeds = max(0.0, state["cash"] - cash_before)
     remaining = proceeds
     for index, decision in enumerate(buy_rows):
@@ -371,7 +486,9 @@ def _execute_swap_group(
         # available swap pot evenly; they never borrow the pre-existing cash.
         targets_left = len(buy_rows) - index
         budget = remaining if targets_left == 1 else remaining / targets_left
-        leg = _execute_buy(state, decision, fill, portfolio, budget=budget)
+        leg = _execute_buy(
+            state, decision, fill, portfolio, budget=budget,
+            leg_config=leg_config)
         legs.append(leg)
         remaining -= _number(leg.get("notional")) or 0.0
     return legs
@@ -399,7 +516,7 @@ def _mark(
     return (None if missing else round(value, 6), missing)
 
 
-def _market_as_of_date(as_of: str | None, leg: str) -> str | None:
+def _market_as_of_date(as_of: str | None, market: str) -> str | None:
     """Convert a build timestamp to the leg's local market date."""
     if not as_of:
         return None
@@ -407,18 +524,16 @@ def _market_as_of_date(as_of: str | None, leg: str) -> str | None:
         return as_of
     parsed = datetime.fromisoformat(as_of.replace("Z", "+00:00"))
     if parsed.tzinfo is not None:
-        market = leg.lower()
         parsed = parsed.astimezone(ZoneInfo(trading_calendar.MARKET_TZ[market]))
     return parsed.date().isoformat()
 
 
 def _expected_trading_dates(
-    leg: str,
+    market: str,
     start_date: str,
     end_date: str,
 ) -> list[str]:
     """Return every calendar-expected session, independent of bar availability."""
-    market = leg.lower()
     current = date.fromisoformat(start_date)
     end = date.fromisoformat(end_date)
     dates = []
@@ -564,12 +679,15 @@ def simulate_leg(
     bar_loader: Callable[[str, str], dict | None] = decision_v2.bar,
     bar_map_loader: Callable[[str], dict] = decision_v2.load_ticker_bars,
     matched: dict[str, dict] | None = None,
+    leg_config: dict[str, dict[str, str]] | None = None,
 ) -> dict | None:
+    cfg = _leg_cfg(portfolio, leg, leg_config)
     active = _active_triggered(decisions, leg)
     if not active:
         return None
     start_date = start_date or min(_event_session(row) for _, row in active)
-    seed = reconstruct_initial_book(portfolio, leg, start_date)
+    seed = reconstruct_initial_book(
+        portfolio, leg, start_date, leg_config=leg_config)
     followed = {"cash": float(seed["cash"]), "inventory": deepcopy(seed["inventory"])}
     buy_hold = {"cash": float(seed["cash"]), "inventory": deepcopy(seed["inventory"])}
     matched = matched if matched is not None else decision_v2.match_real_executions(
@@ -602,7 +720,8 @@ def simulate_leg(
     }
     end_date = as_of_date or max(
         available_dates | event_dates | {start_date})
-    expected_dates = set(_expected_trading_dates(leg, start_date, end_date))
+    expected_dates = set(_expected_trading_dates(
+        cfg["market"], start_date, end_date))
     # Event sessions remain replayable for backward compatibility with already
     # authored ledgers, but only calendar-expected sessions count toward mark
     # coverage.  Future events beyond the build's as-of date are never replayed.
@@ -612,7 +731,7 @@ def simulate_leg(
 
     adjustments_by_date = defaultdict(list)
     ignored_corporate_actions = []
-    for adjustment in _cash_adjustments(portfolio, leg):
+    for adjustment in _cash_adjustments(portfolio, leg, leg_config):
         if adjustment["date"] < start_date:
             continue
         if adjustment["kind"] == "corporate_action":
@@ -650,7 +769,8 @@ def simulate_leg(
             has_buy = any(row.get("action") in BUY_ACTIONS for row in rows)
             paired_swap = has_sell and has_buy
             if paired_swap:
-                legs = _execute_swap_group(followed, rows, fills, portfolio)
+                legs = _execute_swap_group(
+                    followed, rows, fills, portfolio, leg_config=leg_config)
             else:
                 legs = []
                 for row in rows:
@@ -670,9 +790,13 @@ def simulate_leg(
                         })
                         continue
                     if row.get("action") in SELL_ACTIONS:
-                        legs.append(_execute_sell(followed, row, fill, portfolio))
+                        legs.append(_execute_sell(
+                            followed, row, fill, portfolio,
+                            leg_config=leg_config))
                     else:
-                        legs.append(_execute_buy(followed, row, fill, portfolio))
+                        legs.append(_execute_buy(
+                            followed, row, fill, portfolio,
+                            leg_config=leg_config))
                 if any(
                     swap_pattern.search(
                         " ".join([
@@ -810,7 +934,7 @@ def simulate_leg(
 
     return {
         "leg": leg,
-        "currency": LEG_CONFIG[leg]["currency"],
+        "currency": cfg["currency"],
         "start_date": start_date,
         "end_date": final_point["date"] if final_point else None,
         "initial": seed,
@@ -856,22 +980,25 @@ def build_shadow_portfolio(
     bar_loader: Callable[[str, str], dict | None] = decision_v2.bar,
     bar_map_loader: Callable[[str], dict] = decision_v2.load_ticker_bars,
     matched: dict[str, dict] | None = None,
+    leg_config: dict[str, dict[str, str]] | None = None,
 ) -> dict:
-    """Build the public sidecar. USD and HKD are intentionally never combined."""
+    """Build native-currency curves without adding unlike currencies."""
     as_of = as_of or datetime.now().astimezone().isoformat(timespec="seconds")
     matched = matched if matched is not None else decision_v2.match_real_executions(
         decisions, portfolio)
+    configured = resolve_leg_config(portfolio, decisions, leg_config)
     curves = {}
-    for leg in ("US", "HK"):
+    for leg, cfg in configured.items():
         result = simulate_leg(
             portfolio,
             decisions,
             leg,
             start_date=(start_dates or {}).get(leg),
-            as_of_date=_market_as_of_date(as_of, leg),
+            as_of_date=_market_as_of_date(as_of, cfg["market"]),
             bar_loader=bar_loader,
             bar_map_loader=bar_map_loader,
             matched=matched,
+            leg_config=configured,
         )
         if result:
             curves[result["currency"]] = result
@@ -899,12 +1026,18 @@ def build_shadow_portfolio(
         },
         "fx_policy": {
             "combined_curve": False,
-            "reason": "USD and HKD are separate; no naked cross-currency addition",
+            "reason": (
+                f"native currencies stay separate ({', '.join(curves) or 'none'}); "
+                "no naked cross-currency addition"
+            ),
             "daily_fx_required_for_combination": True,
             "today_fx_for_history_forbidden": True,
         },
         "methodology": {
-            "books": "two independent cash+inventory ledgers with identical reconstructed seeds",
+            "books": (
+                f"{len(configured)} independent cash+inventory ledgers with "
+                "identical reconstruction rules"
+            ),
             "action_scope": "every triggered active decision, including execution.status=not_followed",
             "ordering": "trigger session, then authored created_at, then ledger order",
             "constraints": "sell capped by live inventory; buy capped by live cash; prior legs mutate the next leg",
@@ -948,7 +1081,7 @@ def build_shadow_portfolio(
                 "from prose and remain independent cash-constrained actions."
             ),
             (
-                "USD and HKD stay separate. A combined curve would require point-in-time daily FX, "
+                "Native currencies stay separate. A combined curve would require point-in-time daily FX, "
                 "which this sidecar deliberately does not synthesize."
             ),
         ],
@@ -958,33 +1091,41 @@ def build_shadow_portfolio(
 def write_shadow_portfolio(
     portfolio: dict,
     decisions: list[dict],
-    out_path: Path | str = OUT,
+    out_path: Path | str,
     **kwargs,
 ) -> dict:
     result = build_shadow_portfolio(portfolio, decisions, **kwargs)
     path = Path(out_path)
     path.parent.mkdir(parents=True, exist_ok=True)
-    try:
-        from clawock.safe_io import safe_write_text
-        safe_write_text(
-            str(path), json.dumps(result, ensure_ascii=False, indent=2) + "\n")
-    except ImportError:
-        path.write_text(
-            json.dumps(result, ensure_ascii=False, indent=2) + "\n",
-            encoding="utf-8",
-        )
+    safe_write_text(
+        str(path), json.dumps(result, ensure_ascii=False, indent=2) + "\n")
     return result
 
 
-def main() -> int:
-    portfolio_path = WS / "portfolio.json"
+def main(argv=None) -> int:
+    workspace = workspace_root(Path.cwd())
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--path", type=Path, default=workspace / "portfolio.json")
+    parser.add_argument(
+        "--config", type=Path,
+        default=workspace / "config" / "portfolio-derivations.json")
+    parser.add_argument(
+        "--decisions", type=Path,
+        default=workspace / "memory" / "decisions.jsonl")
+    parser.add_argument(
+        "--out", type=Path,
+        default=workspace / "assets" / "data" / "shadow_portfolio.json")
+    args = parser.parse_args(argv)
+    portfolio_path = args.path
     if not portfolio_path.exists():
         raise SystemExit("portfolio.json missing")
     portfolio = json.loads(portfolio_path.read_text(encoding="utf-8"))
-    decisions = decision_v2.load_decisions()
+    decisions = decision_v2.load_decisions(args.decisions)
     decision_v2.settle_decisions(decisions)
-    out_path = Path(os.environ.get("SHADOW_PORTFOLIO_OUT") or OUT)
-    result = write_shadow_portfolio(portfolio, decisions, out_path)
+    out_path = Path(os.environ.get("SHADOW_PORTFOLIO_OUT") or args.out)
+    result = write_shadow_portfolio(
+        portfolio, decisions, out_path,
+        leg_config=load_leg_config(args.config))
     points = sum(
         (book.get("mark_coverage") or {}).get("published_points", 0)
         for book in result["curves"].values()

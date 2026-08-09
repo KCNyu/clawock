@@ -431,8 +431,12 @@ def build_shadow_sidecar(portfolio, decisions, previous=None):
     old value at all.
     """
     try:
-        import shadow_portfolio
-        return shadow_portfolio.build_shadow_portfolio(portfolio, decisions)
+        import importlib
+        shadow_portfolio = importlib.import_module('clawock.shadow_portfolio')
+        leg_config = shadow_portfolio.load_leg_config(
+            WS_ROOT / 'config' / 'portfolio-derivations.json')
+        return shadow_portfolio.build_shadow_portfolio(
+            portfolio, decisions, leg_config=leg_config)
     except Exception as e:
         failure = {'computed': False, 'error': str(e)}
         if isinstance(previous, dict):
