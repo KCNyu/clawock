@@ -19,7 +19,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'scripts' / 'data'))
 
 import coverage_badge  # noqa: E402
-import validate_sidecars  # noqa: E402
+from clawock import validate_sidecars  # noqa: E402
 
 WORKFLOW = ROOT / '.github' / 'workflows' / 'harness-regression.yml'
 BADGE_PATH = 'assets/data/coverage.json'

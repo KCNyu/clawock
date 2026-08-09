@@ -43,7 +43,7 @@ jobs:
         run: python3 scripts/data/fetch_influencer_feed.py
 
       - name: Validate influencer coverage
-        run: python3 scripts/data/validate_sidecars.py influencer
+        run: clawock validate-sidecar influencer
 
       - name: Commit + push
         # Shared helper commits only this workflow's sidecar. The frontend fetches

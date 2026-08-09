@@ -15,7 +15,7 @@ from clawock import portfolio_risk_metrics  # noqa: E402
 from clawock import compute_quant_signals  # noqa: E402
 from clawock import compute_regime  # noqa: E402
 from clawock import compute_t0_setups  # noqa: E402
-import preflight_integrity  # noqa: E402
+from clawock import preflight_integrity  # noqa: E402
 from clawock_kcnyu.harness import brief_preflight  # noqa: E402
 from clawock import analyze_hk_stocks  # noqa: E402
 from clawock import analyze_us_stocks  # noqa: E402

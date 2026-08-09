@@ -56,7 +56,7 @@ jobs:
 
       - name: Validate tab-cycle GIF
         if: github.event_name == 'workflow_dispatch'
-        run: python3 scripts/data/validate_sidecars.py gif
+        run: clawock validate-sidecar gif
 
       # validate_screenshots now fully decodes the PNGs (finding #12), and this
       # runs on BOTH schedule and dispatch — the GIF steps above install Pillow
@@ -67,7 +67,7 @@ jobs:
         run: python3 -m pip install --quiet -e '.[imaging]'
 
       - name: Validate screenshots
-        run: python3 scripts/data/validate_sidecars.py screenshots
+        run: clawock validate-sidecar screenshots
 
       - name: Commit if changed
         env:

@@ -80,7 +80,12 @@ fi
 # the human "改完必跑 recompute" 铁律 into a structural block: never publish an
 # unreconciled book. WARN (staleness etc.) does NOT block. Override: --no-verify.
 IRC=0
-python3 "$WS/scripts/data/preflight_integrity.py" >/tmp/clawock_integrity.out 2>&1 || IRC=$?
+if ! command -v clawock >/dev/null 2>&1; then
+  echo "🚫 push blocked — clawock CLI is missing; the money checker cannot run"
+  echo "   install the current package before publishing this ledger"
+  exit 1
+fi
+CLAWOCK_WORKSPACE="$WS" clawock integrity >/tmp/clawock_integrity.out 2>&1 || IRC=$?
 # Same rule as above: 0 = clean, 2 = ERROR findings, anything else = the checker
 # never reached a verdict and must not be read as a pass.
 if [ "$IRC" != "0" ]; then
@@ -91,7 +96,7 @@ if [ "$IRC" != "0" ]; then
     echo "   run:  bash scripts/data/reconcile.sh   (recompute cash + realized, re-check)"
     echo "   then re-commit portfolio.json. Override (rare): git push --no-verify"
   else
-    echo "🚫 push blocked — preflight_integrity.py did not complete (exit $IRC):"
+    echo "🚫 push blocked — clawock integrity did not complete (exit $IRC):"
     tail -12 /tmp/clawock_integrity.out
     echo "   the book was not verified. Override (rare): git push --no-verify"
   fi

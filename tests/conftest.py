@@ -17,9 +17,9 @@ It is a session fixture now: requested by name, built once, at most one
 subprocess per session either way. The rebuild is load-bearing; only its
 residue is the problem.
 
-**The import path.** `scripts/data` modules import their siblings by bare name
-(`from workspace import workspace_root`), so that directory has to be on
-`sys.path` before collection imports anything. Roughly twenty test modules
+**The import path.** Remaining `scripts/data` modules still import some siblings
+by bare name, so that directory has to be on `sys.path` before collection imports
+anything. Roughly twenty test modules
 insert it at import time, which made a single-module run work or fail on
 alphabetical luck: `pytest tests/test_validate_sidecars.py` alone died in
 collection. Doing it here covers every module and every invocation.
@@ -53,8 +53,7 @@ ROOT = Path(__file__).resolve().parents[1]
 DASHBOARD = ROOT / "assets" / "data" / "dashboard.json"
 
 # Import time, not fixture time: collection imports the test modules, which
-# import `scripts.data.validate_sidecars`, which imports `workspace` by bare
-# name. See the module docstring.
+# import remaining operator scripts by bare name. See the module docstring.
 sys.path.insert(0, str(ROOT / "src"))
 sys.path.insert(0, str(ROOT / "instances" / "kcnyu" / "src"))
 sys.path.insert(0, str(ROOT / "scripts" / "data"))

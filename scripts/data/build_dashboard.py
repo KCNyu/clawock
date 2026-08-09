@@ -2462,8 +2462,7 @@ def compute_build_status(portfolio, data_dir, at=None):
     # 体检结论（A1）——纯文件运算，安全内联
     integrity = None
     try:
-        sys.path.insert(0, str(WS_ROOT / 'scripts' / 'data'))
-        import preflight_integrity as _pi
+        from clawock import preflight_integrity as _pi
         rep = _pi.check()
         integrity = {'ok': rep['ok'], 'error_count': rep['error_count'],
                      'warn_count': rep['warn_count'],

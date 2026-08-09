@@ -9,7 +9,7 @@ import pytest
 from scripts.data import fetch_influencer_feed
 from scripts.data import fetch_sentiment
 from scripts.data import gh_action_news_digest
-from scripts.data import validate_sidecars
+from clawock import validate_sidecars
 
 
 class _Empty200:

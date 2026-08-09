@@ -383,6 +383,14 @@ def _packaged_utility(args) -> int:
         from clawock.analyze_hk_stocks import main
     elif args.command == "benchmark":
         from clawock.fetch_benchmark_history import main
+    elif args.command == "integrity":
+        from clawock.preflight_integrity import main
+    elif args.command == "validate-sidecar":
+        from clawock.validate_sidecars import main
+    elif args.command == "mark-followed":
+        from clawock.mark_followed import main
+    elif args.command == "audit-resettle":
+        from clawock.audit_resettle import main
     else:
         from clawock.claim_provenance import main
     return main(args.utility_args)
@@ -501,7 +509,8 @@ def main(argv=None) -> int:
         "cross-factor", "peer-residual", "fetch-peers", "filings",
         "fundamentals", "fundflow", "em-news",
         "daily-bars", "catalysts", "us-quotes", "analyze-us", "analyze-hk",
-        "benchmark",
+        "benchmark", "integrity", "validate-sidecar", "mark-followed",
+        "audit-resettle",
     }
     if raw_argv and raw_argv[0] in packaged_utilities:
         return _packaged_utility(argparse.Namespace(
@@ -617,6 +626,10 @@ def main(argv=None) -> int:
         ("analyze-us", "refresh and analyze active US holdings"),
         ("analyze-hk", "refresh and analyze active HK holdings"),
         ("benchmark", "fetch SPY, HSI, and HSTECH daily benchmark history"),
+        ("integrity", "verify portfolio money and market-data invariants"),
+        ("validate-sidecar", "validate a workflow-generated sidecar artifact"),
+        ("mark-followed", "record execution ground truth in the decision ledger"),
+        ("audit-resettle", "audit decision re-settlement without writing by default"),
     ):
         utility = sub.add_parser(name, help=help_text, add_help=False)
         utility.add_argument("utility_args", nargs=argparse.REMAINDER)

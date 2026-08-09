@@ -6,7 +6,7 @@ from pathlib import Path
 import re
 
 
-VALIDATOR_COMMAND = 'python3 scripts/data/validate_sidecars.py'
+VALIDATOR_COMMAND = 'clawock validate-sidecar'
 
 
 def push_paths(workflow: Path) -> list[str]:

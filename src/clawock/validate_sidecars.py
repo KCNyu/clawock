@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
-"""Behavioral coverage gates for workflow-generated sidecar artifacts."""
+"""Behavioral coverage gates for workflow-generated sidecar artifacts.
+
+Run as ``clawock validate-sidecar <name>``.
+"""
 from __future__ import annotations
 
 import csv
@@ -14,14 +17,9 @@ from email.utils import parsedate_to_datetime
 from pathlib import Path
 
 
-# The checkout root, so `clawock` resolves from the tree this file ships
-# in. Reached through the scripts/data/workspace shim until #267 step 3,
-# whose only remaining job was inserting this path as a side effect.
-sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
-sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
-from clawock.workspace import workspace_root  # noqa: E402
+from clawock.workspace import workspace_root
 
-ROOT = workspace_root(Path(__file__).resolve().parents[2])
+ROOT = workspace_root(Path.cwd())
 DASHBOARD_MAX_BYTES = 200_000
 OVERVIEW_MAX_BYTES = 80_000
 DASHBOARD_MONEY_INTEGRITY_CODES = frozenset({
@@ -663,10 +661,7 @@ def _assert_dashboard_money_reconciles(
     # Reuse the same conservation rules that protect local pre-push and brief
     # generation. Only arithmetic/accounting findings are fatal here; quote
     # freshness and market-data advisories remain visible in the dashboard.
-    try:
-        from scripts.data import preflight_integrity
-    except ImportError:  # direct script execution from scripts/data
-        import preflight_integrity  # type: ignore
+    from clawock import preflight_integrity
     report = preflight_integrity.check(portfolio_path)
     money_findings = [
         finding for finding in report['findings']
@@ -1035,7 +1030,7 @@ def _dispatch(name: str) -> None:
 def main(argv: list[str] | None = None) -> int:
     argv = sys.argv[1:] if argv is None else argv
     if len(argv) != 1:
-        print('usage: validate_sidecars.py <name>', file=sys.stderr)
+        print('usage: clawock validate-sidecar <name>', file=sys.stderr)
         return 2
     try:
         _dispatch(argv[0])

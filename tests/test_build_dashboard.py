@@ -64,7 +64,7 @@ def _fresh_build_status_fixture(monkeypatch, tmp_path, at):
     monkeypatch.setattr(dashboard, "WS_ROOT", tmp_path)
     monkeypatch.setitem(
         sys.modules,
-        "preflight_integrity",
+        "clawock.preflight_integrity",
         SimpleNamespace(check=lambda: {
             "ok": True, "error_count": 0, "warn_count": 0, "findings": [],
         }),
@@ -457,7 +457,7 @@ def test_stale_market_leg_makes_build_unhealthy(monkeypatch, tmp_path):
     monkeypatch.setattr(dashboard, "WS_ROOT", tmp_path)
     monkeypatch.setitem(
         sys.modules,
-        "preflight_integrity",
+        "clawock.preflight_integrity",
         SimpleNamespace(check=lambda: {
             "ok": True, "error_count": 0, "warn_count": 0, "findings": [],
         }),

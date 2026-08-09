@@ -67,7 +67,7 @@ jobs:
           PY
 
       - name: Validate EOD archive coverage
-        run: python3 scripts/data/validate_sidecars.py eod-archive
+        run: clawock validate-sidecar eod-archive
 
       - name: Commit
         env:

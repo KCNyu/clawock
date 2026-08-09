@@ -49,7 +49,7 @@ cost_basis/prev_close/trades[])复原，且都有一道闸守着。计算链：
                  → 手填本金常量过期 → 「净本金回报率」分母失真而虚高
 
 用法：
-  python3 preflight_integrity.py [portfolio.json]   # 默认仓库根 portfolio.json
+  clawock integrity [portfolio.json]   # 默认 workspace 根 portfolio.json
   退出码：0=全过或仅 WARN；2=有 ERROR（调用方应阻止发布/投递）
 """
 import json
@@ -57,25 +57,14 @@ import sys
 from datetime import date, datetime, timedelta
 from pathlib import Path
 
-# The checkout root, so `clawock` resolves from the tree this file ships
-# in. Reached through the scripts/data/workspace shim until #267 step 3,
-# whose only remaining job was inserting this path as a side effect.
-sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
-sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
-from clawock.workspace import workspace_root  # noqa: E402
+from clawock.workspace import workspace_root
 
-# Code lives in the checkout; only DATA lives in the workspace. `workspace_root`
-# is overridable, so resolving our own modules through WS would read them out of
-# someone else's data directory — or silently pick up whatever happens to be
-# there. Same expression WS is seeded from, kept separate on purpose (#269).
-_CHECKOUT = Path(__file__).resolve().parents[2]
-WS = workspace_root(Path(__file__).resolve().parents[2])
+WS = workspace_root(Path.cwd())
 PORTFOLIO = WS / 'portfolio.json'
 OUT = WS / 'assets' / 'data' / 'integrity_report.json'
 
-sys.path.insert(0, str(_CHECKOUT / 'scripts' / 'data'))
-from clawock.instrument_registry import INSTRUMENTS  # noqa: E402
-from clawock.portfolio_math import (  # noqa: E402
+from clawock.instrument_registry import INSTRUMENTS
+from clawock.portfolio_math import (
     active_holdings as _active,
     derive_cash,
     moving_average_cost as _moving_avg_cost,
@@ -461,7 +450,8 @@ def check(portfolio_path=PORTFOLIO):
     return report
 
 
-def main(argv):
+def main(argv=None):
+    argv = sys.argv[1:] if argv is None else argv
     path = Path(argv[0]) if argv else PORTFOLIO
     report = check(path)
     safe_write_json(str(OUT), report)
@@ -479,4 +469,4 @@ def main(argv):
 
 
 if __name__ == '__main__':
-    sys.exit(main(sys.argv[1:]))
+    sys.exit(main())

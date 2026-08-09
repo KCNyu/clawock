@@ -20,6 +20,8 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
+      - run: pip install --quiet .
+
       # The payload under validation is the published one, so it is fetched
       # rather than read out of the checkout — the checkout no longer carries it,
       # and rebuilding here would validate this runner's output instead of what
@@ -28,4 +30,4 @@ jobs:
         run: python3 ops/pages/fetch_data_plane.py
 
       - name: Validate published dashboard payload
-        run: python3 scripts/data/validate_sidecars.py dashboard
+        run: clawock validate-sidecar dashboard

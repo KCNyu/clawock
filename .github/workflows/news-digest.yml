@@ -35,7 +35,7 @@ jobs:
         run: python3 scripts/data/gh_action_news_digest.py
 
       - name: Validate generated digest
-        run: python3 scripts/data/validate_sidecars.py news-digest
+        run: clawock validate-sidecar news-digest
 
       - name: Commit + push
         env:
