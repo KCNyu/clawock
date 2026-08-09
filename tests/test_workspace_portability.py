@@ -30,8 +30,12 @@ def test_no_workflow_reinstates_a_hand_written_package_list():
             stripped = line.split("#", 1)[0]
             if "pip install" not in stripped:
                 continue
-            # Installing the project (optionally with an extra) is the only
-            # accepted form; anything else is a package list growing back.
+            # Installing the project (optionally with an extra) is the accepted
+            # form; anything else is a package list growing back. Installing a
+            # distribution this workflow just built is not a package list — it is
+            # the artifact under test, and naming it is the point.
+            if re.search(r"pip install [^|;]*\bdist/\*", stripped):
+                continue
             if not re.search(r"-e\s+'?\.(\[[a-z,]+\])?'?", stripped):
                 offenders.append(f"{path.name}:{lineno}: {line.strip()}")
 
