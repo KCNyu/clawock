@@ -207,8 +207,6 @@ jobs:
             --cov=clawock.thesis_registry \
             --cov=clawock.trading_calendar \
             --cov=clawock.validate_sidecars \
-            --cov=clawock.mark_followed \
-            --cov=clawock.audit_resettle \
             --cov-report=term-missing:skip-covered \
             --cov-report=json:coverage-report.json
 
@@ -388,11 +386,9 @@ jobs:
         with:
           python-version: '3.11'
 
-      # No second test run: the suite was already measured in `validate`.
-      # Install the package itself without resolving dependencies so the
-      # package-owned sidecar validator is the command that certifies the badge.
-      - run: pip install --quiet --no-deps .
-
+      # No dependency install and no second test run: the suite was already
+      # measured in `validate`. The package validator runs from `src/` with the
+      # stock runner so this cheap publishing job stays stdlib-only.
       - name: Download coverage report
         uses: actions/download-artifact@v8
         with:
@@ -404,7 +400,7 @@ jobs:
       - name: Validate coverage badge
         # shields.io renders this file verbatim; a malformed payload would show up
         # as an "invalid" badge on the README instead of failing anything.
-        run: clawock validate-sidecar coverage
+        run: PYTHONPATH=src python3 -m clawock validate-sidecar coverage
 
       - name: Commit
         # Commits only the badge payload. assets/data/coverage.json is not in this
