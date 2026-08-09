@@ -73,7 +73,6 @@ def test_the_overview_projection_ships_every_execution_field_the_hero_renders(
     artifact, so it holds on the PR that changes the trim and not one publish
     later.
     """
-    sys.path.insert(0, str(ROOT / "scripts" / "data"))
     from clawock.publish import dashboard as build_dashboard
 
     full = json.loads(freshly_built_dashboard.read_text())
@@ -95,7 +94,6 @@ def test_the_cap_is_measured_in_the_same_unit_the_builder_enforces(
     """Three gates, one unit. The drift here was silent for a reason: on an
     ASCII payload the two units agree exactly, so nothing catches it until the
     content is non-ASCII — which this payload has always been."""
-    sys.path.insert(0, str(ROOT / "scripts" / "data"))
     from clawock.publish import dashboard as build_dashboard
     from clawock.publish import artifacts as validate_sidecars
 
@@ -115,7 +113,6 @@ def test_the_cap_is_measured_in_the_same_unit_the_builder_enforces(
 
 
 def test_builder_does_not_spend_recovered_headroom_on_indentation():
-    sys.path.insert(0, str(ROOT / "scripts" / "data"))
     from clawock.publish import dashboard as build_dashboard
 
     value = {"中文": {"rows": [1, 2]}, "status": "ok"}
@@ -201,7 +198,6 @@ def test_the_unread_workflow_stage_detail_stays_out(payload):
 
 
 def test_dashboard_trim_keeps_readability_without_full_stage_detail():
-    sys.path.insert(0, str(ROOT / "scripts" / "data"))
     from clawock.publish import dashboard as build_dashboard
 
     readability = {
@@ -225,7 +221,6 @@ def test_dashboard_trim_keeps_readability_without_full_stage_detail():
 
 
 def test_dashboard_trim_prefers_current_llm_readability_on_same_slot_retry():
-    sys.path.insert(0, str(ROOT / "scripts" / "data"))
     from clawock.publish import dashboard as build_dashboard
 
     current = {"status": "within_budget", "bytes": 27_000}
@@ -313,7 +308,6 @@ def test_the_brief_still_gets_the_calibrators_the_dashboard_no_longer_ships():
     """
     import sys
 
-    sys.path.insert(0, str(ROOT / "scripts" / "data"))
     from clawock.decision import ledger as decision_v2
 
     metrics = decision_v2.compute_metrics(decision_v2.load_decisions())
@@ -343,7 +337,6 @@ def test_the_brief_only_ships_calibrator_rows_that_can_move_size():
     """
     import sys
 
-    sys.path.insert(0, str(ROOT / "scripts" / "data"))
     sys.path.insert(0, str(ROOT / "instances" / "kcnyu" / "src"))
     from clawock.decision import ledger as decision_v2
     from clawock_kcnyu.harness import brief_preflight

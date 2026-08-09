@@ -29,6 +29,7 @@ from pathlib import Path
 from zoneinfo import ZoneInfo
 
 from clawock.providers import openclaw
+from clawock.publish.outcomes import summarize_records
 from clawock.workspace import workspace_root
 from clawock_kcnyu import schedule
 
@@ -393,38 +394,16 @@ def reconcile_raw_execution():
 
 
 def summarize(*, reconcile=False, hours=36):
+    """Reconcile, then fold this desk's ledger with the portable arithmetic.
+
+    The fold lives in `clawock.publish.outcomes` because the dashboard has to
+    perform the identical one over the published copy; two implementations of
+    "what does the card count" would drift the moment either side changed.
+    """
     if reconcile:
         reconcile_raw_execution()
-    ledger = load_ledger()
-    cutoff = _now() - timedelta(hours=hours)
-    recent = []
-    for record in ledger.get("records", []):
-        try:
-            slot = datetime.fromisoformat(record["slot"])
-            if slot.tzinfo is None:
-                slot = slot.replace(tzinfo=HKT)
-        except Exception:
-            continue
-        if slot.astimezone(timezone.utc) >= cutoff:
-            recent.append(record)
-    recent.sort(key=lambda record: record.get("slot", ""), reverse=True)
-    counts = {}
-    false_reds = 0
-    for record in recent:
-        final = (record.get("final_product") or {}).get("status", "pending")
-        counts[final] = counts.get(final, 0) + 1
-        if (
-            (record.get("raw_execution") or {}).get("status") == "error"
-            and final in {"success", "recovered", "degraded", "artifact_only"}
-        ):
-            false_reds += 1
-    return {
-        "generated_at": _now().isoformat(),
-        "window_hours": hours,
-        "counts": counts,
-        "raw_error_but_product_usable": false_reds,
-        "recent": recent[:16],
-    }
+    return summarize_records(load_ledger().get("records", []),
+                             hours=hours, now=_now())
 
 
 def publish():

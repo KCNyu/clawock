@@ -515,7 +515,6 @@ def test_both_stock_skills_frame_it_as_attribution_not_a_trigger():
 
 def test_calendar_coverage_is_reported_per_market():
     import sys
-    sys.path.insert(0, str(ROOT / "scripts" / "data"))
     from clawock.market_data import sessions as trading_calendar
 
     coverage = trading_calendar.coverage(date(2026, 7, 26))

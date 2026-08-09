@@ -25,6 +25,28 @@ WORKFLOW = ROOT / '.github' / 'workflows' / 'harness-regression.yml'
 BADGE_PATH = 'assets/data/coverage.json'
 
 
+# Where each distribution's importable root sits in the checkout, so a dotted
+# `--cov=` target can be compared against the repo-relative paths the floors
+# name. Order does not matter: a target resolves under exactly one of them.
+_IMPORT_ROOTS = ('src/', 'instances/kcnyu/src/', '')
+
+
+def _is_measured(module: str, run: str) -> bool:
+    """True when `--cov=` in `run` covers the repo-relative `module` path."""
+    for line in run.splitlines():
+        line = line.strip()
+        if not line.startswith('--cov='):
+            continue
+        target = line[len('--cov='):].removesuffix(' \\').strip()
+        if not target or target.startswith('-') or 'report' in target:
+            continue
+        for root in _IMPORT_ROOTS:
+            prefix = root + target.replace('.', '/')
+            if module == f'{prefix}.py' or module.startswith(f'{prefix}/'):
+                return True
+    return False
+
+
 def _file_entry(statements, covered):
     return {'summary': {'num_statements': statements, 'covered_lines': covered}}
 
@@ -195,8 +217,17 @@ def test_pr_run_measures_coverage_and_gates_on_it():
     assert names.index('Unit tests — money-integrity derivations') < names.index('Coverage floors')
 
     test_run = step_run(WORKFLOW, 'Unit tests — money-integrity derivations')
-    assert '--cov=scripts' in test_run
     assert '--cov-report=json:coverage-report.json' in test_run
+    # Every module the floors gate on must be inside the measured scope. The
+    # floors already error on a module the report is missing, but that fires
+    # after a 60s test run on a green-looking PR; this states the same rule at
+    # the workflow level, where a move out of a measured package shows up as
+    # the diff that caused it.
+    unmeasured = [module for module in coverage_badge.CORE_MODULES
+                  if not _is_measured(module, test_run)]
+    assert not unmeasured, (
+        'these floor-gated modules are outside --cov= scope, so the report '
+        f'will not contain them: {", ".join(unmeasured)}')
 
     floors = step_block(WORKFLOW, 'Coverage floors')
     assert 'continue-on-error' not in floors

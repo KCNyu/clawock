@@ -14,11 +14,14 @@ set -uo pipefail
 WS=/root/.openclaw/workspace
 cd "$WS" || exit 1
 
-clawock-kcnyu-gold-fetch                     || { echo "$(date -Is) gold fetch 失败"; exit 1; }
+# Absolute paths: this runs from the user crontab, whose PATH is /usr/bin:/bin —
+# a bare `clawock` here is a nightly "command not found", the same reason
+# publish_dashboard.sh spells the launcher out.
+/root/.local/bin/clawock-kcnyu-gold-fetch    || { echo "$(date -Is) gold fetch 失败"; exit 1; }
 # 重建本机副本,但不再入库:四个产物已随 #314 迁到 data-plane 分支,
 # 由定时 publisher 发布(最多落后 20 分钟)。这里再 `git add` 它们会因为
 # .gitignore 直接失败,而不是静默跳过。
-clawock dashboard-build                      || { echo "$(date -Is) gold dashboard-build 失败"; exit 1; }
+/root/.local/bin/clawock dashboard-build     || { echo "$(date -Is) gold dashboard-build 失败"; exit 1; }
 
 # 自动任务 → 用 bot 身份提交,但走 `git -c`(单次注入)而非 `git config`(持久),
 # 否则会污染交互 Claude-Code 会话的提交身份(kcn 要那些 = KCNyu)。

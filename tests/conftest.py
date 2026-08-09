@@ -104,6 +104,11 @@ def freshly_built_dashboard(publish_owned_artifacts_are_left_as_found):
     from the fixture is what makes each of them state the dependency instead of
     reaching for a module constant that may or may not be fresh.
     """
+    # CLAWOCK_INSTANCE is how the live launcher runs it, and it is what selects
+    # the `clawock.dashboard_sections` provider. Without it the builder is
+    # correct but publishes a payload with no instance cards, so every reader
+    # here would be asserting against a shape production never has.
     subprocess.run([sys.executable, "-m", "clawock.publish.dashboard"],
-                   cwd=ROOT, check=True, capture_output=True)
+                   cwd=ROOT, check=True, capture_output=True,
+                   env={**os.environ, "CLAWOCK_INSTANCE": "kcnyu"})
     return DASHBOARD

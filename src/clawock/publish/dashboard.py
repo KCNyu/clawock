@@ -31,6 +31,7 @@ from clawock.portfolio import instruments as instrument_registry
 from clawock import json_repair
 from clawock.decision import ledger as decision_v2
 from clawock.publish import outputs as dashboard_outputs
+from clawock.publish import outcomes as dashboard_outcomes
 
 WS_ROOT = workspace_root(Path.cwd())
 OUT_DIR = WS_ROOT / 'assets' / 'data'
@@ -2471,15 +2472,12 @@ def compute_workflow_outcomes():
     """
     try:
         payload = load_json(WS_ROOT / 'assets' / 'data' / 'workflow-outcomes.json')
-        if payload is None:
-            return {
-                'generated_at': datetime.now(timezone.utc).isoformat(),
-                'window_hours': 36,
-                'counts': {},
-                'raw_error_but_product_usable': 0,
-                'recent': [],
-            }
-        return trim_workflow_outcomes(payload)
+        # The published file is the ledger itself — `{records: [...]}` — because
+        # the adapter reads it back as its own fresh-checkout recovery source.
+        # The card wants the window fold of it, so do the fold here rather than
+        # trimming raw records into a payload with no `counts` and no `recent`.
+        return trim_workflow_outcomes(dashboard_outcomes.summarize_records(
+            (payload or {}).get('records', [])))
     except Exception as e:
         print(f'  warn: workflow outcome summary failed: {e}', file=sys.stderr)
         return None

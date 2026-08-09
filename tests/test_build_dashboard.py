@@ -17,7 +17,6 @@ import pytest
 
 
 ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT / "scripts" / "data"))
 
 from clawock.publish import dashboard  # noqa: E402
 
@@ -72,18 +71,20 @@ def _fresh_build_status_fixture(monkeypatch, tmp_path, at):
     return _portfolio(), data_dir
 
 
+def _install_section_provider(monkeypatch, name, section):
+    """Register `section` as the instance's `clawock.dashboard_sections` entry."""
+    monkeypatch.setenv("CLAWOCK_INSTANCE", name)
+    entry = SimpleNamespace(name=name, load=lambda: section)
+    monkeypatch.setattr(
+        dashboard.importlib.metadata, "entry_points",
+        lambda group: [entry] if group == "clawock.dashboard_sections" else [])
+
+
 def test_guardrail_compute_exception_is_an_explicit_failure_dict(monkeypatch):
     def explode(*_args, **_kwargs):
         raise RuntimeError("synthetic guardrail failure")
 
-    fake_preflight = SimpleNamespace(
-        compute_risk_guardrail=explode,
-        compute_concentration=lambda _holdings: {},
-        compute_breakeven_math=lambda *_args, **_kwargs: {"rows": []},
-    )
-    monkeypatch.setitem(
-        sys.modules, "clawock_kcnyu.harness.brief_preflight", fake_preflight
-    )
+    _install_section_provider(monkeypatch, "fixture", explode)
 
     result = dashboard.compute_guardrail_outputs(_portfolio(), risk={})
 
@@ -91,6 +92,52 @@ def test_guardrail_compute_exception_is_an_explicit_failure_dict(monkeypatch):
     assert result["risk_guardrail"]["computed"] is False
     assert result["risk_guardrail"]["error"] == "synthetic guardrail failure"
     assert result["breakeven_math"] == {"computed": False}
+
+
+def test_guardrail_without_an_instance_provider_says_so(monkeypatch):
+    """No provider must read as "not computed", never as an empty all-clear.
+
+    The renderer normalizes a missing card to `{}` and paints it green, so this
+    is the difference between "no breaches" and "nobody checked".
+    """
+    monkeypatch.delenv("CLAWOCK_INSTANCE", raising=False)
+    monkeypatch.setattr(
+        dashboard.importlib.metadata, "entry_points", lambda group: [])
+
+    result = dashboard.compute_guardrail_outputs(_portfolio(), risk={})
+
+    assert result["risk_guardrail"]["computed"] is False
+    assert result["breakeven_math"]["computed"] is False
+
+
+def test_workflow_card_folds_the_published_ledger_into_counts(monkeypatch, tmp_path):
+    """The published sidecar is the raw ledger; the card is its window fold.
+
+    Handing the ledger straight to the trim produced a payload with no `counts`
+    and no `recent`. Nothing went red: the presence map then treated the card as
+    absent and `--previous` restored the last good one, so the dashboard kept
+    showing a frozen 36h window indefinitely.
+    """
+    slot = datetime.now(ZoneInfo("Asia/Hong_Kong")).replace(microsecond=0)
+    (tmp_path / "assets" / "data").mkdir(parents=True)
+    (tmp_path / "assets" / "data" / "workflow-outcomes.json").write_text(json.dumps({
+        "schema_version": 1,
+        "records": [{
+            "job": "港股收盘报告",
+            "slot": slot.isoformat(),
+            "raw_execution": {"status": "error"},
+            "final_product": {"status": "recovered"},
+            "stages": {"llm": {"status": "success"}},
+        }],
+    }))
+    monkeypatch.setattr(dashboard, "WS_ROOT", tmp_path)
+
+    card = dashboard.compute_workflow_outcomes()
+
+    assert card["counts"] == {"recovered": 1}
+    assert card["raw_error_but_product_usable"] == 1
+    assert [r["job"] for r in card["recent"]] == ["港股收盘报告"]
+    assert "stages" not in card["recent"][0]
 
 
 def test_shadow_failure_replaces_stale_result_and_success_clears_marker(monkeypatch):

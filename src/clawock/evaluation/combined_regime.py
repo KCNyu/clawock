@@ -24,17 +24,6 @@ from datetime import date
 from pathlib import Path
 
 import requests
-import matplotlib
-matplotlib.use('Agg')
-import matplotlib.pyplot as plt
-import matplotlib.dates as mdates
-from matplotlib import font_manager
-
-for _fp in ('/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc',):
-    if Path(_fp).exists():
-        font_manager.fontManager.addfont(_fp)
-        plt.rcParams['font.family'] = font_manager.FontProperties(fname=_fp).get_name()
-plt.rcParams['axes.unicode_minus'] = False
 
 from clawock.decision import regime as compute_regime
 from clawock.evidence import run_card
@@ -135,7 +124,32 @@ def weights_usd():
     return {k: v / tot for k, v in w.items()}, tot
 
 
+def _plotting():
+    """Import matplotlib at call time and return the two handles `main` draws with.
+
+    Deferred on purpose: charting is the `evaluation` extra, so a base install of
+    the wheel must be able to import this module. A module-level
+    `import matplotlib` makes the whole package un-importable for everyone who
+    did not ask for plots, which is the failure `test_wheel_contains_the_package`
+    exists to catch.
+    """
+    import matplotlib
+    matplotlib.use('Agg')
+    import matplotlib.dates as mdates
+    import matplotlib.pyplot as plt
+    from matplotlib import font_manager
+
+    for path in ('/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc',):
+        if Path(path).exists():
+            font_manager.fontManager.addfont(path)
+            plt.rcParams['font.family'] = font_manager.FontProperties(
+                fname=path).get_name()
+    plt.rcParams['axes.unicode_minus'] = False
+    return plt, mdates
+
+
 def main():
+    plt, mdates = _plotting()
     plt.rcParams.update({'figure.facecolor': '#0f172a', 'axes.facecolor': '#0f172a',
                          'axes.edgecolor': '#334155', 'text.color': '#e2e8f0',
                          'axes.labelcolor': '#94a3b8', 'xtick.color': '#94a3b8',

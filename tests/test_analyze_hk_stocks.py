@@ -15,7 +15,6 @@ import pytest
 pytest.importorskip("requests")
 
 ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT / "scripts" / "data"))
 
 from clawock.market_data import hk_analysis as hk  # noqa: E402
 
