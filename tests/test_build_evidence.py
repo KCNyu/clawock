@@ -11,13 +11,10 @@ Run: python3 -m pytest tests/test_build_evidence.py -q
 """
 import json
 import re
-import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT / "scripts" / "data"))
-
-import build_evidence as ev  # noqa: E402
+from clawock.evidence import build_evidence as ev
 
 
 def test_every_number_on_the_page_comes_from_an_artifact():

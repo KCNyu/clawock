@@ -6,7 +6,8 @@ Three provenance gates already exist and none of them can see a backtest claim:
 
 * `test_numeric_claims` catches report prose quoting magnitudes the harness
   context never contained (#120);
-* `research_provenance.py` is fail-closed — for thesis and earnings artifacts;
+* `clawock.evidence.research_provenance` is fail-closed — for thesis and
+  earnings artifacts;
 * `test_no_live_numbers_in_static_copy` keeps moving figures out of README.
 
 #234 gave every backtest a run card and #233 cited one from `compute_regime.py`.

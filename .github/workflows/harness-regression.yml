@@ -186,13 +186,15 @@ jobs:
             --cov=clawock.bar_checks \
             --cov=clawock.brief_context \
             --cov=clawock.brief_decision_packet \
+            --cov=clawock.evidence.build_evidence \
             --cov=clawock.decision_v2 \
             --cov=clawock.earnings_review \
             --cov=clawock.entry_gate \
             --cov=clawock.fetch_fx \
             --cov=clawock.instrument_registry \
             --cov=clawock.json_repair \
-            --cov=clawock.research_provenance \
+            --cov=clawock.evidence.news_evidence_graph \
+            --cov=clawock.evidence.research_provenance \
             --cov=clawock.recompute_realized \
             --cov=clawock.recompute_aggregates \
             --cov=clawock.recompute_cash \
@@ -201,7 +203,7 @@ jobs:
             --cov=clawock.preflight_integrity \
             --cov=clawock.risk_discipline \
             --cov=clawock.safe_io \
-            --cov=clawock.research_surface \
+            --cov=clawock.evidence.research_surface \
             --cov=clawock.snapshot_realized \
             --cov=clawock.shadow_portfolio \
             --cov=clawock.thesis_registry \

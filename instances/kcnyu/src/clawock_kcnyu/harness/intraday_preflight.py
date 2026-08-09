@@ -35,7 +35,8 @@ from datetime import datetime
 from pathlib import Path
 
 from clawock.workspace import workspace_root
-from clawock import known_catalysts, peer_scan, plan_surface, research_surface, trading_calendar
+from clawock import known_catalysts, peer_scan, plan_surface, trading_calendar
+from clawock.evidence import research_surface
 
 WS = workspace_root(Path.cwd())
 DATA_DIR = WS / 'scripts' / 'data'

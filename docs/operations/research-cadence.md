@@ -58,7 +58,7 @@ the cadence detector keeps a forgotten ledger visible indefinitely.
 
 ## Integrity versus work queue
 
-`clawock.research_surface.check()` separates the two on purpose:
+`clawock.evidence.research_surface.check()` separates the two on purpose:
 
 - **integrity failures fail closed** — an invalid artifact, or an entry gate whose
   stated verdict no longer matches the recomputed one, reds `system_check.py` and

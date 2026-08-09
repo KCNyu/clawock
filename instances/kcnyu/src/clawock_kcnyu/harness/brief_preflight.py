@@ -45,10 +45,10 @@ from clawock import (
     brief_decision_packet,
     decision_v2,
     peer_scan,
-    research_surface,
     risk_discipline,
     thesis_registry,
 )
+from clawock.evidence import research_surface
 
 WS = workspace_root(Path.cwd())
 _CHECKOUT = WS
@@ -1567,7 +1567,7 @@ def main(argv=None):
 
     # 证据页：读上面刚刷新的产物重新生成，保证「测了什么、什么没通过」不落后于事实。
     try:
-        subprocess.run(['python3', str(WS / 'scripts' / 'data' / 'build_evidence.py')],
+        subprocess.run(['clawock', 'evidence'],
                        capture_output=True, text=True, timeout=60, check=False)
     except Exception as e:
         print(f'   ⚠ evidence page rebuild failed: {e}')
@@ -1730,9 +1730,12 @@ def main(argv=None):
     # gates. Only a compact decision envelope enters the LLM context.
     news_evidence_ctx = {}
     try:
-        graph_out, graph_ok = _run(
-            'scripts/data/news_evidence_graph.py', timeout=150
+        graph_run = subprocess.run(
+            ['clawock', 'news-evidence'], capture_output=True, text=True,
+            timeout=150, check=False,
         )
+        graph_out = (graph_run.stdout or '') + (graph_run.stderr or '')
+        graph_ok = graph_run.returncode == 0
         graph_path = WS / 'assets' / 'data' / 'news_evidence_graph.json'
         if not graph_ok:
             print(f'   ⚠ news evidence graph failed: {graph_out[-150:]}')
