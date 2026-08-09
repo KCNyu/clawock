@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import Any, Mapping, Protocol
 from uuid import uuid4
 
-from clawock.context import ContextBundle, assemble_explicit
+from clawock.context.assembly import ContextBundle, assemble_explicit
 from clawock.harness.model import (
     AgentRunRequest,
     Artifact,

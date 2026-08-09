@@ -33,7 +33,7 @@ from clawock.decision import plans as plan_surface
 # The validation primitives come from the package, not through the harness
 # module that used to re-export them (#267).
 sys.path.insert(0, str(ROOT))
-from clawock import validation as val  # noqa: E402
+from clawock.harness import validation as val  # noqa: E402
 
 
 ADVISORY = f"07226 6200 股 未在 context 中 {val.ADVISORY_MARK}"

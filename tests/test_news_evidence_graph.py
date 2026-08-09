@@ -4,7 +4,7 @@ from datetime import datetime, timedelta, timezone
 
 from scripts.data import gh_action_news_digest
 from clawock.evidence import news_evidence_graph as graph
-from clawock import validate_sidecars
+from clawock.publish import artifacts as validate_sidecars
 from clawock_kcnyu.harness import brief_postflight
 
 

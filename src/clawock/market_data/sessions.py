@@ -232,7 +232,7 @@ def main(argv: list[str]) -> int:
         # Fail open: don't silently skip a real trading day past the table.
         if not a.quiet:
             print(f"OPEN (warning: {a.market} holiday table only covers "
-                  f"through {LATEST_YEAR}; extend clawock.trading_calendar)")
+                  f"through {LATEST_YEAR}; extend clawock.market_data.sessions)")
         return 0
 
     open_ = is_trading_day(a.market, d, a.session)

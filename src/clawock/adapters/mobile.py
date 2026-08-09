@@ -6,7 +6,7 @@ WeChat 移动端不渲染 markdown table，只显示原始 monospace 文本。CJ
 被强制换行，wrap 出来的子串也对齐。
 
 用法：
-    from clawock.mobile_table import render_holdings_table
+    from clawock.adapters.mobile import render_holdings_table
 
     rows = [
         {'code': '00100', 'shares': 60, 'cost': 822.83, 'price': 722.00,
@@ -111,7 +111,7 @@ def render_holdings_table(rows: List[Dict], currency: str = '') -> List[str]:
     seg_counts = {line.count('|') for line in out}
     if len(seg_counts) != 1:
         raise AssertionError(
-            f'mobile_table: pipe-segment counts diverge across rows ({seg_counts}); '
+            f'adapters.mobile: pipe-segment counts diverge across rows ({seg_counts}); '
             f'header/sep/data must be identical column count.'
         )
     return out

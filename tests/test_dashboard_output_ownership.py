@@ -9,7 +9,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 INSTANCE_HARNESS = ROOT / "instances" / "kcnyu" / "src" / "clawock_kcnyu" / "harness"
-from clawock import dashboard_outputs
+from clawock.publish import outputs as dashboard_outputs
 
 
 EXPECTED = {

@@ -24,7 +24,7 @@ Two input modes, selected by `--context-id`:
 
 Validates:
   1. ▎我的看法 段必须存在 + 段内容 ≥ 60 字（防敷衍 1 句话）
-  2. 总长度闸与 Mode 6 共用 clawock.validation.REPORT_CHAR_LIMITS（防复读死循环，不是写作目标）
+  2. 总长度闸与 Mode 6 共用 clawock.harness.validation.REPORT_CHAR_LIMITS（防复读死循环，不是写作目标）
   3. legacy 模式：必须以 raw_wechat_block 开头且表格逐字符复制
      prose 模式：数据块由 harness 拼装，无往返可校验
   4. 若 preflight should_alert=true：报告必须提到至少一个异动票或 alert_reason
@@ -42,7 +42,7 @@ import sys
 from datetime import datetime
 from pathlib import Path
 
-from clawock.validation import (
+from clawock.harness.validation import (
     REPORT_CHAR_LIMITS,
     advisory_prefix,
     categorize_issues,
@@ -61,7 +61,7 @@ from ._harness_common import (  # noqa: E402
 from ._watchdog_common import resolve_wechat_target, send_wechat, cosend_telegram, already_delivered  # noqa: E402
 
 from clawock.workspace import workspace_root
-from clawock import trading_calendar
+from clawock.market_data import sessions as trading_calendar
 
 WS = workspace_root(Path.cwd())
 _CHECKOUT = WS

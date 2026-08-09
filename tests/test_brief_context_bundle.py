@@ -11,7 +11,7 @@ import pytest
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts" / "data"))
 
-from clawock import brief_context
+from clawock.context import brief as brief_context
 from clawock_kcnyu.harness import brief_postflight  # noqa: E402
 
 
@@ -22,7 +22,7 @@ def test_context_protocol_implementation_is_owned_by_the_product():
         Path(module.__file__).relative_to(ROOT).as_posix()
         for module in (brief_context, brief_decision_packet)
     } == {
-        "src/clawock/brief_context.py",
+        "src/clawock/context/brief.py",
         "src/clawock/decision/packet.py",
     }
     assert not any(

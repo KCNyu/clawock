@@ -396,7 +396,7 @@ def test_hhi_uses_value_weights_and_reports_top_two_concentration():
 
 
 def test_latest_completed_session_skips_holiday_weekend_before_close():
-    from clawock import trading_calendar
+    from clawock.market_data import sessions as trading_calendar
 
     before_close = datetime(
         2026, 7, 6, 15, 0, tzinfo=ZoneInfo("America/New_York")
@@ -414,7 +414,7 @@ def test_latest_completed_session_skips_holiday_weekend_before_close():
 
 
 def test_market_leg_freshness_exposes_one_frozen_holding():
-    from clawock import trading_calendar
+    from clawock.market_data import sessions as trading_calendar
 
     at = datetime(
         2026, 7, 24, 17, 0, tzinfo=ZoneInfo("America/New_York")

@@ -42,7 +42,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
 
 from clawock.publish import GitBranchStore, GitHubDispatchDeployer  # noqa: E402
-from clawock.dashboard_outputs import output_paths  # noqa: E402
+from clawock.publish.outputs import output_paths  # noqa: E402
 
 # The one place this name is decided. The reader imports it from here rather
 # than restating it (`ops/pages/fetch_data_plane.py`), because a rename that

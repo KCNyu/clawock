@@ -35,7 +35,7 @@ from datetime import datetime
 from pathlib import Path
 
 from clawock.workspace import workspace_root
-from clawock import trading_calendar
+from clawock.market_data import sessions as trading_calendar
 from clawock.decision import plans as plan_surface
 from clawock.evidence import research_surface
 from clawock.market_data import known_catalysts, mover_evidence as mover_news, peer_scan

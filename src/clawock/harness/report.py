@@ -13,7 +13,7 @@ from __future__ import annotations
 
 import re
 
-from clawock.validation import (
+from clawock.harness.validation import (
     ADVISORY_MARK,
     REPORT_CHAR_LIMITS as CHAR_LIMITS,
     categorize_issues,

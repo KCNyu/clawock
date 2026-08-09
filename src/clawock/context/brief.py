@@ -1,4 +1,4 @@
-"""Budgeted, generation-bound context artifacts for the daily deep brief.
+"""Portable, generation-bound context artifacts for the daily deep brief.
 
 The complete preflight context remains the audit record. The model-facing
 boundary is a compact manifest plus a fixed core and independently loadable

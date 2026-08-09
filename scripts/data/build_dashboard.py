@@ -41,7 +41,7 @@ from clawock.workspace import workspace_root  # noqa: E402
 from clawock.portfolio import instruments as instrument_registry  # noqa: E402
 from clawock import json_repair  # noqa: E402
 from clawock.decision import ledger as decision_v2  # noqa: E402
-from clawock import dashboard_outputs  # noqa: E402
+from clawock.publish import outputs as dashboard_outputs  # noqa: E402
 
 WS_ROOT = workspace_root(Path(__file__).resolve().parent.parent.parent)
 OUT_DIR = WS_ROOT / 'assets' / 'data'
@@ -2401,7 +2401,7 @@ def compute_build_status(portfolio, data_dir, at=None):
         now = now.astimezone()
     try:
         sys.path.insert(0, str(WS_ROOT / 'scripts' / 'data'))
-        from clawock import trading_calendar as _tc
+        from clawock.market_data import sessions as _tc
     except Exception:
         _tc = None
     files = []

@@ -653,7 +653,7 @@ def print_wechat_report(data: Dict, news_map: Optional[Dict[str, List]] = None, 
         # 7-col visual-width-aligned markdown table — works on raw monospace
         # Narrow messaging clients and desktop use the same visual widths.
         # for the why (CJK chars = 2 visual width, fixed widths per col).
-        from clawock.mobile_table import render_holdings_table
+        from clawock.adapters.mobile import render_holdings_table
         rows = [{
             'code':      h['ticker'],
             'shares':    h.get('shares', 0),
