@@ -27,8 +27,9 @@ git config core.hooksPath .githooks
 `.githooks/pre-commit` enforces on every commit (openclaw cron / GH Action / manual):
 - portfolio.json valid JSON + required structure
 - memory/*-plan.json schema (bucket enum, trigger_type enum, confidence ∈ [0,1])
-- dashboard.json + decision_audit.json + shadow_portfolio.json auto-rebuild and
-  semantic re-stage when portfolio.json is staged (prevents generated-view drift)
+- the dashboard write set rebuilds when portfolio.json is staged, but is no longer
+  staged with it: since #319 those four payloads live on the `data-plane` branch and
+  `git add` on a now-ignored path fails the commit rather than skipping
 - paranoid scan for leaked API keys (`sk-…`, `tp-…`, `FINNHUB_API_KEY=`, etc.)
 
 Override with `--no-verify` if false positive (rare).
@@ -49,7 +50,7 @@ After any of the following changes, run a git commit automatically — no need t
 | KCNyu harness/publisher refreshed dashboard outputs | publish the complete semantic generation through the data plane; do not stage individual generated files ad hoc |
 | `assets/data/risk.json` refreshed via `clawock portfolio-risk` | bundled with brief commit |
 | `memory/decisions.jsonl` execution status marked via `clawock mark-followed` | `decisions: mark execution` |
-| Any script added or modified | `script: <what changed>` |
+| Package, instance or `ops/` code changed | `refactor:`/`fix:`/`feat: <what changed>` (via PR, never direct) |
 | Workspace docs changed (SOUL/AGENTS/TOOLS/USER/CLAUDE/README) | `docs: <what changed>` |
 
 Message style: `<type>: <concise description>`, Chinese is fine.
@@ -73,13 +74,18 @@ documentation:
 2. Make and commit the change in that worktree, then push the task branch and open a PR.
 3. Let GitHub Actions run the full test suite. Local full-suite runs are optional; the
    required remote checks are the merge gate.
-4. The authoring agent must not merge its own PR. The other agent reviews the diff,
-   leaves a final `AI-REVIEW: PASS` comment only after findings are resolved, and owns
-   the merge: Claude reviews/merges Codex PRs; Codex reviews/merges Claude PRs.
-5. Do not merge while any required check is pending or failing. Fix the branch, push,
+4. The authoring agent must not merge its own PR. Claude reviews/merges Codex PRs;
+   Codex reviews/merges Claude PRs.
+5. **Never post the review as a PR comment.** Both agents authenticate as the GitHub
+   user `KCNyu`, so a posted review reads as kcn talking to themself — findings go in
+   the interactive handoff instead. Do not add a signature, an `AI-REVIEW` prefix, or
+   any other marker to work around this; it is an identity problem, not a labelling one.
+6. If the reviewing agent is unavailable because its quota is exhausted, the author may
+   audit its own diff, checks and merge state and squash-merge. That is permission to
+   finish the workflow alone — never to skip a required check.
+7. Do not merge while any required check is pending or failing. Fix the branch, push,
    and let the PR rerun its checks.
-6. The reviewing agent squash-merges only after required checks pass, then removes the
-   task worktree/branch.
+8. Squash-merge only after required checks pass, then remove the task worktree/branch.
 
 Runtime-generated market data, snapshots, reports, ledgers, and dashboard artifacts
 remain on the existing direct-to-`master` bot path. They do not open high-frequency PRs.

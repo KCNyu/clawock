@@ -568,7 +568,7 @@ def maybe_commit(status, today, dry_run=False):
                             'assets/data/t0_setup_review.json',
                             'assets/data/brief_projection.json',
                             'logs/dashboard_build_status.json',
-                            'evidence.md')
+                            'site/evidence.md')
     if not add_ok:
         return False, f'git add failed: {add_out[-200:]}'
 

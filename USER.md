@@ -35,9 +35,9 @@ The more you know, the better you can help. But remember — you're learning abo
 ## 工作节奏
 
 - 港股工作日 09:30-12:00 / 13:00-16:00（北京时间同）
-- 美股工作日 21:30-04:00 北京时间（夏令时 21:30-04:00，冬令时 22:30-05:00）
+- 美股工作日按 ET 09:30-16:00 折算（禁止写死北京时间，见 `MEMORY.md § 时区`）；当季精确档位见 `docs/operations/cron-schedules.md`
 - 收盘后通常会自己写一篇 `memory/YYYY-MM-DD.md` 复盘（手写习惯，agent 不要自动生成）
-- 操作发生后习惯立即 git commit，且按 type 前缀（`portfolio:` / `memory:` / `script:` / `docs:`）
+- 操作发生后习惯立即 git commit，且按 type 前缀（`portfolio:` / `memory:` / `docs:`；代码走 PR，用 `fix:` / `feat:` / `refactor:`）
 
 ## 不要做的事
 

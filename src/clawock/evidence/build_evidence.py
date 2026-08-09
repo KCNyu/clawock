@@ -21,7 +21,7 @@ Rules this generator follows
 * **Absent evidence is not failure.** "Not yet decidable" is a distinct verdict
   from "tested and failed", and conflating them would be its own dishonesty.
 
-Writes: evidence.md   Run: clawock evidence
+Writes: site/evidence.md   Run: clawock evidence
 """
 from __future__ import annotations
 
@@ -32,7 +32,7 @@ from pathlib import Path
 from clawock.workspace import workspace_root
 
 WS = workspace_root(Path.cwd())
-OUT = WS / 'evidence.md'
+OUT = WS / 'site' / 'evidence.md'
 CARDS = WS / 'memory' / 'backtests'
 DATA = WS / 'assets' / 'data'
 
