@@ -37,7 +37,7 @@ jobs:
       - run: pip install --quiet -e .
 
       - name: Fetch macro
-        run: python3 scripts/data/fetch_macro.py
+        run: clawock macro --workspace .
 
       - name: Validate macro coverage
         run: clawock validate-sidecar macro

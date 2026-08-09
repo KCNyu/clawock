@@ -8,7 +8,7 @@ import requests
 
 
 WS = Path(__file__).resolve().parents[1]
-from clawock import suggest_peers as sp
+from clawock.market_data import peer_discovery as sp
 
 
 class FakeResponse:

@@ -53,8 +53,8 @@ from datetime import date, datetime, timedelta
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
-from clawock import bar_checks
-from clawock._em_http import em_get
+from clawock.market_data import integrity as bar_checks
+from clawock.market_data.eastmoney_http import em_get
 from clawock.portfolio.instruments import canonical_bar_manifest
 from clawock.workspace import workspace_root
 

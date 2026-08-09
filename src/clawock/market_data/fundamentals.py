@@ -21,8 +21,8 @@ import json
 import sys
 from typing import Dict, List
 
-from clawock._em_http import em_get
-from clawock._em_symbols import resolve
+from clawock.market_data.eastmoney_http import em_get
+from clawock.market_data.eastmoney_symbols import resolve
 
 DATACENTER_URL = "https://datacenter-web.eastmoney.com/api/data/v1/get"
 

@@ -36,7 +36,7 @@ def run(args=(), stdin=""):
 
 @pytest.fixture(scope="module")
 def fp():
-    return pytest.importorskip("clawock.fetch_peers")
+    return pytest.importorskip("clawock.market_data.peer_quotes")
 
 
 @pytest.mark.parametrize("flag", ["-h", "--help"])
@@ -244,7 +244,7 @@ def test_process_exits_despite_an_uncooperative_worker():
     program = textwrap.dedent(f"""
         import sys, time
         sys.path.insert(0, {PACKAGE_SRC!r})
-        from clawock import fetch_peers as fp
+        from clawock.market_data import peer_quotes as fp
 
         def uncooperative(ticker, deadline=None):
             time.sleep(30)                      # never looks at the deadline

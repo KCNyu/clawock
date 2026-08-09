@@ -19,7 +19,7 @@ import pytest
 WS = Path(__file__).resolve().parents[1]
 @pytest.fixture(scope="module")
 def ps():
-    return pytest.importorskip("clawock.peer_scan")
+    return pytest.importorskip("clawock.market_data.peer_scan")
 
 
 PORTFOLIO = {

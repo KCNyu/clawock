@@ -20,7 +20,7 @@ import urllib.parse
 from datetime import datetime, timezone
 from pathlib import Path
 
-from clawock._em_http import em_get
+from clawock.market_data.eastmoney_http import em_get
 from clawock.portfolio.instruments import load_registry
 from clawock.safe_io import safe_write_json
 from clawock.workspace import workspace_root

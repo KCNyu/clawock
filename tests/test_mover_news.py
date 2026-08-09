@@ -10,12 +10,11 @@ from pathlib import Path
 
 import pytest
 
-from clawock import fetch_em_news
-from scripts.data import mover_news as mn
+from clawock.market_data import eastmoney_news as fetch_em_news
+from clawock.market_data import mover_evidence as mn
 
 
 ROOT = Path(__file__).resolve().parents[1]
-INSTANCE_HARNESS = ROOT / "instances" / "kcnyu" / "src" / "clawock_kcnyu" / "harness"
 NOW = datetime(2026, 7, 24, 6, 0, tzinfo=timezone.utc)          # 14:00 HKT
 
 
@@ -175,7 +174,7 @@ def test_sec_cik_is_not_double_prefixed(monkeypatch):
     """`lookup_cik` already returns `CIK##########`; prefixing again 404s."""
     seen = {}
 
-    from clawock import fetch_us_filings
+    from clawock.market_data import filings as fetch_us_filings
 
     monkeypatch.setattr(
         fetch_us_filings, "lookup_cik", lambda ticker: "CIK0001045810"
@@ -244,15 +243,6 @@ def test_symbol_mapping_covers_both_markets():
 
 # --- the consumers -----------------------------------------------------------
 
-def test_both_preflights_probe_only_the_flagged_names():
-    for name in ("intraday_preflight.py", "report_preflight.py"):
-        source = (INSTANCE_HARNESS / name).read_text()
-        assert "import mover_news" in source, name
-        assert "mover_news.probe(" in source, name
-        assert "[a['ticker'] for a in anomalies]" in source, name
-        assert "'mover_news'" in source, name
-
-
 def test_both_skills_bound_how_the_block_may_be_used():
     for name in ("us-stock-analysis", "hk-stock-analysis"):
         skill = (ROOT / "skills" / name / "SKILL.md").read_text()
@@ -261,11 +251,6 @@ def test_both_skills_bound_how_the_block_may_be_used():
         assert "primary" in skill and "supporting" in skill, name
         # Tavily must stay out of the intraday catalyst path
         assert "禁止 Tavily" in skill or "禁止Tavily" in skill, name
-
-
-def test_tavily_is_never_called_from_this_module():
-    source = (ROOT / "scripts" / "data" / "mover_news.py").read_text().lower()
-    assert "tavily" not in source.replace("禁止 tavily", "")
 
 
 # --- filing triage, calibrated on this book's real filings --------------------

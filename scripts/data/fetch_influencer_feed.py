@@ -46,7 +46,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
 from clawock.safe_io import safe_write_json  # noqa: E402
-from fetch_sentiment import fetch_google_news
+from clawock.market_data.sentiment import fetch_google_news
 
 WS_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 OUT_FILE = os.path.join(WS_ROOT, 'assets', 'data', 'influencer_feed.json')

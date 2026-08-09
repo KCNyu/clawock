@@ -18,7 +18,7 @@ import statistics
 from datetime import date, datetime, timezone
 from pathlib import Path
 
-from clawock.cross_sectional_factor import (
+from clawock.market_data.factors import (
     _last_index,
     _liquidity,
     _return_at,

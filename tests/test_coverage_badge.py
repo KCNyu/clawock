@@ -40,7 +40,7 @@ def _report(*, core_pct=90.0, filler_statements=14000, filler_pct=50.0):
         module: _file_entry(per_core, round(per_core * core_pct / 100))
         for module in coverage_badge.CORE_MODULES
     }
-    files['src/clawock/fetch_us_stocks.py'] = _file_entry(
+    files['src/clawock/market_data/us_quotes.py'] = _file_entry(
         filler_statements, round(filler_statements * filler_pct / 100))
     statements = sum(f['summary']['num_statements'] for f in files.values())
     covered = sum(f['summary']['covered_lines'] for f in files.values())

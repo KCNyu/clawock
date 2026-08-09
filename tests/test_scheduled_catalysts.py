@@ -16,7 +16,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'scripts' / 'data'))
 
-from clawock import fetch_catalysts
+from clawock.market_data import calendar as fetch_catalysts
 
 
 def _store(tmp_path, events):
