@@ -180,6 +180,41 @@ def is_trading_day(market: str, d: date | None = None, session: str = "full") ->
     return True
 
 
+#: How long after midnight, in market-local time, a session is treated as
+#: finished. Both exchanges close at 16:00 local; the extra hour is for the
+#: settling quotes to arrive, so that "the session ended" never gets read as
+#: "today's prices are in the book" while they are still landing.
+SESSION_SETTLED_HOUR = 17
+
+
+def latest_completed_session(market: str, at: datetime | None = None) -> date | None:
+    """Newest trading session that has conservatively finished in market time.
+
+    The one place this is decided. It used to be decided in three, and the odd
+    one out was load-bearing: `portfolio.integrity` asked `date.today()` — the
+    *host's* date, and counting today as complete — so from midnight until the
+    market actually produced a quote, every holding still carrying the newest
+    real close was flagged stale. For the US leg, whose quotes only arrive
+    around 21:30 Hong Kong time, that was most of every trading day. A staleness
+    warning that fires while nothing is wrong is not a conservative gate; it is
+    the reason a real one goes unread.
+
+    Returns None only if no trading day is found within a fortnight, which means
+    the holiday table is broken rather than that the market is quiet.
+    """
+    market = market.lower()
+    if market not in MARKET_TZ:
+        raise ValueError(f"unknown market {market!r} (use 'hk' or 'us')")
+    tz = ZoneInfo(MARKET_TZ[market])
+    now = at.astimezone(tz) if at else datetime.now(tz)
+    probe = now.date() if now.hour >= SESSION_SETTLED_HOUR else now.date() - timedelta(days=1)
+    for _ in range(14):
+        if is_trading_day(market, probe):
+            return probe
+        probe -= timedelta(days=1)
+    return None
+
+
 def previous_trading_day(market: str, d: date) -> date:
     """Most recent trading day strictly before ``d``."""
     probe = d - timedelta(days=1)

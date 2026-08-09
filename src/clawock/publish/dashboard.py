@@ -2284,15 +2284,13 @@ def _latest_due_fire(schedule, at, calendar=None):
 
 
 def _latest_completed_session(market, calendar, at=None):
-    """Newest trading session that has conservatively finished in market time."""
-    tz = ZoneInfo(calendar.MARKET_TZ[market])
-    now = at.astimezone(tz) if at else datetime.now(tz)
-    current = now.date() if now.hour >= 17 else now.date() - timedelta(days=1)
-    for _ in range(14):
-        if calendar.is_trading_day(market, current):
-            return current
-        current -= timedelta(days=1)
-    return None
+    """Newest trading session that has conservatively finished in market time.
+
+    Thin now: the rule lives on the calendar, which is the only module that
+    knows when a market is open. `calendar` stays a parameter because callers
+    inject it, and it is still what answers the question.
+    """
+    return calendar.latest_completed_session(market, at)
 
 
 def _quote_session(holding, reference):
