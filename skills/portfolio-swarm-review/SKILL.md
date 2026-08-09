@@ -22,8 +22,8 @@ In this order:
 Refresh quotes before producing conclusions:
 
 ```bash
-python3 /root/.openclaw/workspace/scripts/data/analyze_us_stocks.py    # US 7-route fallback
-python3 /root/.openclaw/workspace/scripts/data/analyze_hk_stocks.py    # HK Tencent + Eastmoney full-batch cross-check/fallback → stooq → yfinance
+/root/.local/bin/clawock analyze-us    # US 7-route fallback
+/root/.local/bin/clawock analyze-hk    # HK Tencent + Eastmoney full-batch cross-check/fallback → stooq → yfinance
 ```
 
 If a leg is stale, name the exact ticker and limit confidence on conclusions involving it. **00100 only has Tencent** — flag explicitly if that leg fails. KR linkage (07709/07747) is exited; do not run any KR-side fetch.

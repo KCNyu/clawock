@@ -7,14 +7,13 @@ Indices:  r_hkHSI / r_hkHSTECH via same API
 News:     Finnhub (needs FINNHUB_API_KEY in .api_keys)
 
 Usage:
-  python3 analyze_hk_stocks.py            # refresh prices + news + report
-  python3 analyze_hk_stocks.py --no-fetch # use cached prices, just report
-  python3 analyze_hk_stocks.py --no-news  # skip news (faster)
-  python3 analyze_hk_stocks.py --dry-run  # print prices, don't write file
+  clawock analyze-hk            # refresh prices + news + report
+  clawock analyze-hk --no-fetch # use cached prices, just report
+  clawock analyze-hk --no-news  # skip news (faster)
+  clawock analyze-hk --dry-run  # print prices, don't write file
 """
 
 import json
-import os
 import sys
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
@@ -22,17 +21,15 @@ from typing import Dict, List, Optional
 
 import requests
 
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-_CHECKOUT = Path(__file__).resolve().parents[2]
-sys.path.insert(0, str(_CHECKOUT))
-sys.path.insert(0, str(_CHECKOUT / "src"))
-from clawock import bar_checks  # noqa: E402  shared contract
-from clawock._em_http import em_get  # noqa: E402
-from clawock.instrument_registry import INSTRUMENTS  # noqa: E402
+from clawock import bar_checks
+from clawock._em_http import em_get
+from clawock.instrument_registry import INSTRUMENTS
+from clawock.market_books import region_book
+from clawock.workspace import workspace_root
 
-WS_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-PORTFOLIO_PATH = os.path.join(WS_ROOT, 'portfolio.json')
-API_KEYS_PATH  = os.path.join(WS_ROOT, '.api_keys')
+WS_ROOT = workspace_root(Path.cwd())
+PORTFOLIO_PATH = str(WS_ROOT / 'portfolio.json')
+API_KEYS_PATH = str(WS_ROOT / '.api_keys')
 TIMEOUT = 10
 SESSION = requests.Session()
 SESSION.headers.update({'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36'})
@@ -365,7 +362,7 @@ def update_hk_portfolio(dry_run: bool = False) -> Dict:
     now_hkt = datetime.now(hkt_tz)
     hkt_str = now_hkt.strftime('%Y/%m/%d %H:%M HKT')
 
-    us = data['portfolios']['hk_stocks']
+    hk_key, us = region_book(data, 'HK')
     active = [h for h in us['holdings'] if h.get('shares', 0) > 0]
     codes  = [h['ticker'] for h in active]
 
@@ -491,12 +488,12 @@ def update_hk_portfolio(dry_run: bool = False) -> Dict:
         from clawock.safe_io import mutate_json
         from clawock.recompute_realized import recompute as recompute_realized
         recompute_realized(data)
-        # 锁内重读、只覆盖自己拥有的 hk_stocks 区 + 顶层 last_updated 戳，保住并发
+        # 锁内重读、只覆盖自己拥有的 HK 区 + 顶层 last_updated 戳，保住并发
         # 写者(gold/us)的字段 [cut #2]（last_updated 是顶层键，别随 region-overlay 丢）
         mutate_json(PORTFOLIO_PATH, lambda d: {
             **d, 'last_updated': data.get('last_updated', d.get('last_updated')),
             'portfolios': {**d.get('portfolios', {}),
-                           'hk_stocks': data['portfolios']['hk_stocks']}})
+                           hk_key: data['portfolios'][hk_key]}})
         print(f"  ✅ Saved → {PORTFOLIO_PATH}")
 
     print(f"{'═'*60}\n")
@@ -509,7 +506,7 @@ def print_report(data: Dict, news_map: Optional[Dict[str, List]] = None):
     hkt_tz  = timezone(timedelta(hours=8))
     now_hkt = datetime.now(hkt_tz)
 
-    us      = data['portfolios']['hk_stocks']
+    _, us = region_book(data, 'HK')
     active  = [h for h in us['holdings'] if h.get('shares', 0) > 0]
 
     # Indices
@@ -615,7 +612,7 @@ def print_wechat_report(data: Dict, news_map: Optional[Dict[str, List]] = None, 
     hkt_tz  = timezone(timedelta(hours=8))
     now_hkt = datetime.now(hkt_tz)
 
-    us      = data['portfolios']['hk_stocks']
+    _, us = region_book(data, 'HK')
     active  = [h for h in us['holdings'] if h.get('shares', 0) > 0]
     indices = fetch_indices()
 
@@ -654,9 +651,9 @@ def print_wechat_report(data: Dict, news_map: Optional[Dict[str, List]] = None, 
     lines.append('')
     if md_table:
         # 7-col visual-width-aligned markdown table — works on raw monospace
-        # WeChat mobile (no md table render) and desktop. See _wechat_table.py
+        # Narrow messaging clients and desktop use the same visual widths.
         # for the why (CJK chars = 2 visual width, fixed widths per col).
-        from _wechat_table import render_holdings_table
+        from clawock.mobile_table import render_holdings_table
         rows = [{
             'code':      h['ticker'],
             'shares':    h.get('shares', 0),
@@ -722,12 +719,13 @@ def print_wechat_report(data: Dict, news_map: Optional[Dict[str, List]] = None, 
 
 # ── CLI ───────────────────────────────────────────────────────────────────────
 
-if __name__ == '__main__':
-    no_fetch = '--no-fetch' in sys.argv
-    dry_run  = '--dry-run'  in sys.argv
-    no_news  = '--no-news'  in sys.argv
-    wechat   = '--wechat'   in sys.argv
-    md_table = '--md-table' in sys.argv
+def main(argv=None) -> int:
+    argv = list(sys.argv[1:] if argv is None else argv)
+    no_fetch = '--no-fetch' in argv
+    dry_run  = '--dry-run'  in argv
+    no_news  = '--no-news'  in argv
+    wechat   = '--wechat'   in argv
+    md_table = '--md-table' in argv
 
     if no_fetch:
         with open(PORTFOLIO_PATH, encoding='utf-8') as f:
@@ -749,7 +747,8 @@ if __name__ == '__main__':
     if not no_news:
         keys = load_api_keys()
         finnhub_key = keys.get('FINNHUB_API_KEY', '')
-        active_codes = [h['ticker'] for h in data['portfolios']['hk_stocks']['holdings']
+        _, hk_book = region_book(data, 'HK')
+        active_codes = [h['ticker'] for h in hk_book['holdings']
                         if h.get('shares', 0) > 0]
         if finnhub_key:
             if not wechat:
@@ -766,3 +765,8 @@ if __name__ == '__main__':
         print_wechat_report(data, news_map, md_table=md_table)
     else:
         print_report(data, news_map)
+    return 0
+
+
+if __name__ == '__main__':
+    raise SystemExit(main())

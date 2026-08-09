@@ -39,10 +39,10 @@ clawock 是**美股 + 港股 + 黄金定投**的实盘组合。工具包遵循�
 
 | 端点 | 数据 | 源 | 可达 |
 |---|---|---|:---:|
-| `fetch_us_stocks.py` | 美股活跃持仓实时价 · 多 provider 链 | 多源 | ✅ |
-| `analyze_us_stocks.py` | 美股组合刷新 + RSI | Yahoo v8 chart | ✅ |
-| `analyze_hk_stocks.py` | 港股实时价 + HSI/HSTECH 指数 + 新闻 + 信号 | 腾讯 qt.gtimg.cn | ✅ |
-| `fetch_benchmark_history.py` | SPY / HSI / HSTECH 日线历史(基准叠加) | 腾讯 kline / Yahoo | ✅ |
+| `clawock us-quotes` | 美股活跃持仓实时价 · 多 provider 链 | 多源 | ✅ |
+| `clawock analyze-us` | 美股组合刷新 + RSI | Yahoo v8 chart | ✅ |
+| `clawock analyze-hk` | 港股实时价 + HSI/HSTECH 指数 + 新闻 + 信号 | 腾讯 qt.gtimg.cn | ✅ |
+| `clawock benchmark` | SPY / HSI / HSTECH 日线历史(基准叠加) | 腾讯 kline / Yahoo | ✅ |
 | `fetch_gold_dca.py` | 黄金定投 000217 净值 + Au99.99/伦敦金回本映射 | 东财 lsjz / 上金所 / 腾讯 XAU / Frankfurter | ✅ |
 
 ## Layer 2 · 基本面/申报 Fundamentals & Filings

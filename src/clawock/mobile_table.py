@@ -1,5 +1,4 @@
-"""
-_wechat_table.py — visual-width-aware markdown table renderer.
+"""Visual-width-aware markdown table renderer for narrow messaging clients.
 
 WeChat 移动端不渲染 markdown table，只显示原始 monospace 文本。CJK 字符
 在 monospace 字体下视觉宽度 = 2 个 ASCII 字符。该 helper 用 visual width
@@ -7,7 +6,7 @@ WeChat 移动端不渲染 markdown table，只显示原始 monospace 文本。CJ
 被强制换行，wrap 出来的子串也对齐。
 
 用法：
-    from _wechat_table import render_holdings_table
+    from clawock.mobile_table import render_holdings_table
 
     rows = [
         {'code': '00100', 'shares': 60, 'cost': 822.83, 'price': 722.00,
@@ -17,11 +16,11 @@ WeChat 移动端不渲染 markdown table，只显示原始 monospace 文本。CJ
     print('\\n'.join(render_holdings_table(rows, currency='HKD')))
 """
 
-from typing import Dict, List, Optional
+from typing import Dict, List
 
 
 def vw(s: str) -> int:
-    """Visual width: CJK = 2, ASCII = 1. Matches WeChat monospace rendering."""
+    """Visual width: CJK = 2, ASCII = 1 in common monospace renderers."""
     return sum(2 if ord(c) > 127 else 1 for c in s)
 
 
@@ -51,7 +50,7 @@ W_PNL_A  = 7
 
 
 def render_holdings_table(rows: List[Dict], currency: str = '') -> List[str]:
-    """Render a 7-col WeChat-friendly markdown holdings table.
+    """Render a seven-column narrow-client holdings table.
 
     Returns list of strings (no trailing newline). Caller joins with '\\n'.
 
@@ -112,7 +111,7 @@ def render_holdings_table(rows: List[Dict], currency: str = '') -> List[str]:
     seg_counts = {line.count('|') for line in out}
     if len(seg_counts) != 1:
         raise AssertionError(
-            f'_wechat_table: pipe-segment counts diverge across rows ({seg_counts}); '
+            f'mobile_table: pipe-segment counts diverge across rows ({seg_counts}); '
             f'header/sep/data must be identical column count.'
         )
     return out

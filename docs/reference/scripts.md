@@ -11,8 +11,8 @@ title: clawock · scripts 详细参考
 ## 现有脚本梳理
 
 ### 核心（当前在用）
-- **`scripts/data/fetch_us_stocks.py`**：美股多 provider 抓取（7 路 fallback），自动写回 portfolio.json；prev_close 由 Polygon `/prev` 独立获取（带日期戳）
-- **`scripts/data/analyze_us_stocks.py`**：美股完整分析 = 刷价格 + RSI-14/MA20/50 + Finnhub 新闻 + 信号
+- **`clawock us-quotes`**：美股多 provider 抓取（7 路 fallback），自动写回 portfolio.json；prev_close 由 Polygon `/prev` 独立获取（带日期戳）
+- **`clawock analyze-us`**：美股完整分析 = 刷价格 + RSI-14/MA20/50 + Finnhub 新闻 + 信号
 - **`clawock filings`**：SEC EDGAR 对接 — 10-K/10-Q/8-K filings、XBRL 财务概念、Form 4 insider、13F-HR；无需 API key；Mode 3 fundamental 深挖时用。完整用法（2026-06-10 自 TOOLS.md 移入控 16K）：
 
 | 数据 | 用法 |
@@ -24,7 +24,7 @@ title: clawock · scripts 详细参考
 
   注意：速率限制 10 req/sec（脚本默认 8/sec）超量 403；`SEC_USER_AGENT` 可放 `.api_keys`；ticker→CIK 本地缓存 7 天；非美股票返回 "CIK not found"
 - **`clawock fx`**：公开包内的 USDHKD 汇率 provider（Frankfurter → exchangerate.host → Yahoo HKD=X 三路 fallback）；4h 工作区缓存；`--convert AMT FROM TO` 直接换算。**HK + US 算 book total 必须先调它**
-- **`scripts/data/analyze_hk_stocks.py`**：港股完整分析 = Tencent + Eastmoney HK 双源对账 → stooq → yfinance 兜底 + 恒指/恒科 + Finnhub 新闻 + 信号；c/pc 偏差 > 1% 写入 `_divergence`
+- **`clawock analyze-hk`**：港股完整分析 = Tencent + Eastmoney HK 双源对账 → stooq → yfinance 兜底 + 恒指/恒科 + Finnhub 新闻 + 信号；c/pc 偏差 > 1% 写入 `_divergence`
 - `check_portfolio.sh`：快速查看持仓
 
 ### Cron harness 脚本（preflight + postflight 三明治）
@@ -114,7 +114,7 @@ python3 ops/host/sync_cron_payloads.py --apply --json
 
 ### 已废弃（不作为调用入口，但作为参考代码可读）
 > 这些脚本**不要直接调起来跑**当主路径，但里面的 URL、header、fallback 思路、解析片段在调试或场景超出现役脚本时仍有参考价值。
-- `scripts/legacy/stock_analyzer.py` — 被 `scripts/data/analyze_us_stocks.py` + `analyze_hk_stocks.py` 取代；仅保留早期 fallback 顺序作参考
+- `scripts/legacy/stock_analyzer.py` — 被 `clawock analyze-us` + `clawock analyze-hk` 取代；仅保留早期 fallback 顺序作参考
 - **完全删掉** (2026-05-16 大扫除)：`monday_signal.py` (含硬编码 key)、`api_retry_wrapper.py`、`baidu_search_wrapper.py`、`deep_analysis.py`、`final_analysis.py`、`find_opportunities.py`、`hk_ai_monitor.py`、`multi_agent_stock_analysis.py`、`price_alert_monitor.py`、`TradingAgents/` 整目录
 - **完全删掉** (2026-07-04 清理)：`scripts/legacy/{hk_monitor,hk_open_monitor,hk_stock_fetcher,portfolio_monitor,portfolio_table,portfolio_visualization}.py`（无代码/cron 引用的死参考）、`scripts/data/brief_fallback_send.py`（被 `gh_action_brief_fallback.py` 取代）
 

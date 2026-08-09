@@ -56,8 +56,8 @@
 
 ### 2. 更新价格
 ```bash
-python3 scripts/data/analyze_us_stocks.py   # 美股
-python3 scripts/data/analyze_hk_stocks.py   # 港股
+clawock analyze-us   # 美股
+clawock analyze-hk   # 港股
 ```
 
 ### 3. 快速查看持仓
@@ -79,10 +79,10 @@ bash check_portfolio.sh
 ### 美股 & 港股脚本（推荐用法）
 
 ```bash
-python3 scripts/data/analyze_us_stocks.py   # 美股完整分析（RSI/MA/新闻/信号）
-python3 scripts/data/analyze_hk_stocks.py   # 港股完整分析（恒指/恒科/P&L/信号）
+clawock analyze-us   # 美股完整分析（RSI/MA/新闻/信号）
+clawock analyze-hk   # 港股完整分析（恒指/恒科/P&L/信号）
 # 共通 flag：--no-news(省Finnhub配额) --no-fetch(用缓存价) ；hk 另有 --dry-run
-python3 scripts/data/fetch_us_stocks.py     # 仅刷美股价格
+clawock us-quotes     # 仅刷美股价格
 ```
 
 ### 美股 fallback 链
@@ -110,7 +110,7 @@ python3 scripts/data/fetch_us_stocks.py     # 仅刷美股价格
 - fallback：Frankfurter → exchangerate.host → Yahoo HKD=X；4h 本地缓存
 
 ### 美股基本面 / SEC filings
-`clawock filings {TICKER}` — SEC EDGAR 免费无 key：10-K/10-Q/8-K、`--financials`(XBRL 13项)、`--form4`(insider)、`--13f`、`--json`。速率 8/sec；非美股票返回 "CIK not found"；**纯基本面补充，不替代 fetch_us_stocks 抓价**。完整参数表+注意事项 → `docs/reference/scripts.md`。
+`clawock filings {TICKER}` — SEC EDGAR 免费无 key：10-K/10-Q/8-K、`--financials`(XBRL 13项)、`--form4`(insider)、`--13f`、`--json`。速率 8/sec；非美股票返回 "CIK not found"；**纯基本面补充，不替代 `clawock us-quotes` 抓价**。完整参数表+注意事项 → `docs/reference/scripts.md`。
 
 ### 港股/美股基本面(中文) — 东财 datacenter
 `clawock fundamentals {CODE}` — 无 key，**填港股财报空白**：`--indicators`(GMAININDICATOR ROE/EPS/毛利率/资产负债率，美+港) / `--statements income|balance|cashflow`(中文科目行) / `--json`。美股数字以 SEC 为准、此为中文速查。datacenter-web+searchapi 子域实测稳；**资金流 `clawock fundflow`(push2his)本机 IP 被封暂不可用**。
@@ -135,7 +135,7 @@ python3 scripts/data/fetch_us_stocks.py     # 仅刷美股价格
 
 ## 现有脚本梳理（精简索引 — 完整说明见 `docs/reference/scripts.md`）
 
-**数据抓取/分析**：`fetch_us_stocks.py`(美股7路fallback,写回portfolio) · `analyze_us_stocks.py`(刷价+RSI/MA+新闻+信号) · `analyze_hk_stocks.py`(腾讯+东财双源对账→stooq/yf兜底) · `clawock fx`(USDHKD 3路,**book total 必先调**) · `clawock filings`(SEC EDGAR) · `clawock fundamentals`(东财中文基本面,**港股财报**)双保险 · `clawock catalysts`(14d催化→catalysts.json) · `fetch_influencer_feed.py`(Trump/Musk雷达→influencer_feed.json) · `clawock portfolio-risk`(β/Vol/DD/Sharpe→risk.json) · `clawock quant`(趋势/动量/RSI/z/ATR吊灯/vol-target→quant_signals.json+history.jsonl留痕,杠杆ETF按标的) · `clawock quant-review`(留痕vs前瞻收益→因子edge表,n<20不解锁,brief按edge取信)
+**数据抓取/分析**：`clawock us-quotes`(美股7路fallback,写回portfolio) · `clawock analyze-us`(刷价+RSI/MA+新闻+信号) · `clawock analyze-hk`(腾讯+东财双源对账→stooq/yf兜底) · `clawock benchmark`(SPY/HSI/HSTECH 日线) · `clawock fx`(USDHKD 3路,**book total 必先调**) · `clawock filings`(SEC EDGAR) · `clawock fundamentals`(东财中文基本面,**港股财报**)双保险 · `clawock catalysts`(14d催化→catalysts.json) · `fetch_influencer_feed.py`(Trump/Musk雷达→influencer_feed.json) · `clawock portfolio-risk`(β/Vol/DD/Sharpe→risk.json) · `clawock quant`(趋势/动量/RSI/z/ATR吊灯/vol-target→quant_signals.json+history.jsonl留痕,杠杆ETF按标的) · `clawock quant-review`(留痕vs前瞻收益→因子edge表,n<20不解锁,brief按edge取信)
 
 **研究生命周期（手动/事件驱动，产物即真源）**：`clawock entry-gate`(建仓前研究闸,信息分级≠投资质量,硬否决先于计分→`memory/entry-gates/`) · `clawock earnings`(一手财报复盘+管理层承诺账本,盈利质量由代码算→`memory/earnings/`) · `clawock thesis`(canonical thesis + 只认证据的 drift→`memory/theses/`) · `clawock provenance`(数字两源+Decimal 精算,准出闸) · `clawock research`(把上面三类 artifact 汇成待办队列;brief preflight 读它,`--check` 进 system_check 与 CI) · `cron_token_audit.py`(每 cron 最新一跑的 token 量 vs **同 provider** 滚动中位数,跨 provider 比是假的;只进 daily health 不告警不改 exit code) · `clawock plan-context`(08:00 简报还没成交的决策→report/intraday preflight 的 `plan_context`;真源是 `decisions.jsonl` 不是 plan 文件,因为执行状态只写回账本;永不抛异常) · `mover_news.py`(盘中异动票的一手催化探针:SEC/港交所公告分钟级,券商研报与 7×24 只作 supporting;有预算上限、失败降级、不碰 Tavily;filing 三级分流 `config/filing-triage.json`、基金看穿到标的、美股停牌 feed)
 
@@ -208,7 +208,7 @@ clawhub install <slug>
 按市场和重要性顺序：
 
 ### 美股
-1. **Finnhub news** —— `scripts/data/analyze_us_stocks.py` 默认拉取，主英文媒体 + 关键词情绪打分
+1. **Finnhub news** —— `clawock analyze-us` 默认拉取，主英文媒体 + 关键词情绪打分
 2. **Tavily** —— 新闻 + X/Twitter trending（`node skills/tavily-search/scripts/search.mjs "{TICKER} sentiment" --topic news --bucket report`）；⚠️ 仅开/收盘报告或盘中真事件用，带 `--bucket report`/`intraday`，盘中常规盯盘不烧 Tavily
 3. **Reddit JSON**（无需 auth）—— r/wallstreetbets（散户动量）+ r/stocks（理性）：
    ```bash

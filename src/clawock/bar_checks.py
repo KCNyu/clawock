@@ -42,14 +42,6 @@ from __future__ import annotations
 
 import math
 
-# Scripts that ingest bars or quotes and must route detection through this
-# module. `tests/test_bar_checks.py` fails when one of them stops importing it,
-# so a future fetcher cannot quietly re-grow a private copy of these rules.
-BAR_CONSUMERS = (
-    'fetch_us_stocks.py',
-    'analyze_hk_stocks.py',
-)
-
 # A live quote may sit this far outside its own reported [low, high] before it
 # counts as a bad tick — absolute floor plus a relative term, so a HK$0.5 name
 # is not flagged by rounding alone. Taken from the existing analyze_hk_stocks

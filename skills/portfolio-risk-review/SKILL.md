@@ -1,6 +1,6 @@
 ---
 name: portfolio-risk-review
-description: Single-pass holdings analysis for kcn using workspace files and the local fetch chain. Use for portfolio review, position risk ranking, US-HK cross-market read, leverage ETF risk assessment, and one-shot actionable reports based on portfolio.json plus fresh quotes from scripts/data/analyze_us_stocks.py / analyze_hk_stocks.py.
+description: Single-pass holdings analysis for kcn using workspace files and the local fetch chain. Use for portfolio review, position risk ranking, US-HK cross-market read, leverage ETF risk assessment, and one-shot actionable reports based on portfolio.json plus fresh quotes from `clawock analyze-us` / `clawock analyze-hk`.
 ---
 
 # Portfolio Risk Review
@@ -27,12 +27,12 @@ may change valuation but cannot by themselves change business, moat, or manageme
 
 ```bash
 # US: 7-route fallback, RSI/MA/news/signal, writes back to portfolio.json
-python3 /root/.openclaw/workspace/scripts/data/analyze_us_stocks.py
-python3 /root/.openclaw/workspace/scripts/data/analyze_us_stocks.py --no-news    # skip news
+/root/.local/bin/clawock analyze-us
+/root/.local/bin/clawock analyze-us --no-news    # skip news
 
 # HK: Tencent primary + Eastmoney full-batch independent cross-check/fallback → stooq → yfinance
-python3 /root/.openclaw/workspace/scripts/data/analyze_hk_stocks.py
-python3 /root/.openclaw/workspace/scripts/data/analyze_hk_stocks.py --no-news
+/root/.local/bin/clawock analyze-hk
+/root/.local/bin/clawock analyze-hk --no-news
 ```
 
 If any leg of the fallback fails for a holding, mark that line stale in the output. Special trap: **00100 only has Tencent** — Tencent down means 00100 is stale.
@@ -117,6 +117,6 @@ Four buckets from Lens D, with concrete triggers/levels where applicable.
 - Tie every conclusion to actual holdings (no hypothetical names)
 - Respect the user's aggressive style — but call real risk plainly
 - Tables for any 3+ data points
-- Cite data freshness: "数据: scripts/data/analyze_us_stocks.py / scripts/data/analyze_hk_stocks.py {timestamp}"
+- Cite data freshness: "数据: clawock analyze-us / clawock analyze-hk {timestamp}"
 - Flag stale legs loudly with ⚠️ before any conclusion drawn from them
 - Do not substitute external "best practice" frameworks for the workspace data chain

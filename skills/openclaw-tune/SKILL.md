@@ -169,7 +169,7 @@ smoke call before proposing any change; do not infer upgrades from an old model 
 curl -sf http://127.0.0.1:18789/health && echo " ✓ gateway up"
 
 # Confirm scripts still run
-cd /root/.openclaw/workspace && python3 scripts/data/analyze_hk_stocks.py --no-fetch --no-news --wechat | head -5
+cd /root/.openclaw/workspace && clawock analyze-hk --no-fetch --no-news --wechat | head -5
 
 # Show cleanup summary
 du -sh /tmp/openclaw-cleanup-*/  # what was archived

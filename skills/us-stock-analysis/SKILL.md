@@ -1,6 +1,6 @@
 ---
 name: us-stock-analysis
-description: Workspace-aware US stock analysis for kcn. Routes through the local fetch pipeline (analyze_us_stocks.py / fetch_us_stocks.py) instead of generic web search, then layers fundamental/technical/news analysis on top. Use when user asks to analyze a US ticker (e.g. "analyze AAPL", "look at RKLB", "compare TSLA vs NVDA"), check earnings, run technicals, or write an investment report on a US name.
+description: Workspace-aware US stock analysis for kcn. Routes through `clawock analyze-us` / `clawock us-quotes` instead of generic web search, then layers fundamental/technical/news analysis on top. Use when user asks to analyze a US ticker (e.g. "analyze AAPL", "look at RKLB", "compare TSLA vs NVDA"), check earnings, run technicals, or write an investment report on a US name.
 triggers:
   - "analyze {US ticker}"
   - "美股 {ticker}"
@@ -27,11 +27,11 @@ In this order:
 
 ```bash
 # Full analysis: refreshes price + RSI-14 / MA20 / MA50 + Finnhub news + signal
-python3 /root/.openclaw/workspace/scripts/data/analyze_us_stocks.py {TICKER}
-python3 /root/.openclaw/workspace/scripts/data/analyze_us_stocks.py {TICKER} --no-news    # skip news (save Finnhub quota)
+/root/.local/bin/clawock analyze-us {TICKER}
+/root/.local/bin/clawock analyze-us {TICKER} --no-news    # skip news (save Finnhub quota)
 
 # Price-only refresh
-python3 /root/.openclaw/workspace/scripts/data/fetch_us_stocks.py {TICKER}
+/root/.local/bin/clawock us-quotes {TICKER}
 ```
 
 The script internally runs the 7-route fallback (Nasdaq API → Eastmoney → Finnhub → Yahoo v8 → yfinance → Alpha Vantage → Polygon), pulls `prev_close` independently from Polygon's `/prev` endpoint (so `today_change` is trustworthy after close), and writes back to `portfolio.json` if the ticker is held. Bypassing it re-introduces every bug it was written to fix.
@@ -46,19 +46,19 @@ Pick the smallest mode that answers the question. Default to **Quick Read** unle
 
 ### Mode 1 — Quick Read (most common)
 **When:** "What's RKLB at?" / "How's NVDA doing today?"
-1. Run `scripts/data/analyze_us_stocks.py {TICKER} --no-news` for price + RSI/MA/signal
+1. Run `clawock analyze-us {TICKER} --no-news` for price + RSI/MA/signal
 2. If in active book, pull cost basis + PnL from `portfolio.json`
 3. One short paragraph: price, today's move, RSI/MA stance, one-line verdict
 
 ### Mode 2 — Technical Read
 **When:** "Is X oversold?" / "Where's resistance on Y?"
-1. Run `scripts/data/analyze_us_stocks.py {TICKER} --no-news`
+1. Run `clawock analyze-us {TICKER} --no-news`
 2. Load `references/technical-analysis.md` for indicator interpretation
 3. Output: trend (up/down/sideways), MA20/50 stance, RSI-14 reading (oversold <30, overbought >70), recent support/resistance from price action, one-line risk note
 
 ### Mode 3 — Fundamental Read
 **When:** "Is X overvalued?" / "Analyze Y's business"
-1. Run `scripts/data/analyze_us_stocks.py {TICKER}` for fresh price baseline
+1. Run `clawock analyze-us {TICKER}` for fresh price baseline
 2. Run `clawock filings {TICKER}` — pulls SEC EDGAR: latest 10-K/10-Q/8-K + 13 key XBRL concepts (revenue/net income/cash/EPS/assets/equity, 4 most recent periods). **Use this before web search** — primary source, structured, no scraping.
 3. (Optional) `clawock filings {TICKER} --form4` if insider activity is material to thesis
 4. (Optional 中文速查) `clawock fundamentals {TICKER} --indicators` — 东财 GMAININDICATOR 一次给齐 ROE/毛利率/净利率/资产负债率（比从 XBRL 自算比率快）；数字与 SEC 冲突时以 SEC 为准
@@ -161,7 +161,7 @@ publisher 发布。
 ```bash
 clawock report preflight --market us --phase {open|close}
 ```
-跑 `scripts/data/analyze_us_stocks.py --wechat --md-table` + 抽信号 + 异动，写 context 文件，并把**同一份 JSON** 打到 stdout（含 `context_id`；末行是 `context_path:`）。若输出 `market_closed`，本回合到此结束。
+跑 `clawock analyze-us --wechat --md-table` + 抽信号 + 异动，写 context 文件，并把**同一份 JSON** 打到 stdout（含 `context_id`；末行是 `context_path:`）。若输出 `market_closed`，本回合到此结束。
 
 #### Step 2: 只写分析散文
 
@@ -239,7 +239,7 @@ pass/warn 自动刷新 snapshot/dashboard，提交 scoped 产物并经 `safe_pus
 **When:** "市场情绪怎么样" / "推上怎么说 X" / "Reddit 怎么聊 X" / before a sizing decision
 
 Sources, in order:
-1. **Finnhub news (in script)** — `scripts/data/analyze_us_stocks.py {TICKER}` without `--no-news` already pulls last 7 days with keyword sentiment scoring. **This is the first source — read it before anything else.**
+1. **Finnhub news (in script)** — `clawock analyze-us {TICKER}` without `--no-news` already pulls last 7 days with keyword sentiment scoring. **This is the first source — read it before anything else.**
 2. **Tavily (news + X)** — for trending discussions, analyst notes, X/Twitter sentiment. ⚠️ **Budget rule** (免费档 1000 credits/月，全局共享): 盘中盯盘(每 30 分钟)**默认不调 Tavily**，用 Finnhub + Reddit JSON 就够；只有**开盘/收盘报告**、或盘中出现**真事件**(异常波动跑输基准 / 停牌 / 财报预警 / 监管公告 / 有大标题但价格无法解释)才用。调用必须带 `--bucket`：开盘/收盘用 `--bucket report`，盘中事件用 `--bucket intraday`(不带 bucket 会落 60/月的 default 桶很快被挡):
    ```bash
    node /root/.openclaw/workspace/skills/tavily-search/scripts/search.mjs "{TICKER} stock sentiment" --topic news --days 3 --bucket report
@@ -278,7 +278,7 @@ The user is aggressive, table-first, and hates filler. Match that:
 - **Direct verdicts.** "RKLB looks toppy at $118, RSI 73, would trim on strength" beats "RKLB shows signs of being overbought; consider monitoring."
 - **Tables for any 3+ data points.** Price/PnL/RSI/MA/signal lives in a table, not prose.
 - **No hedging boilerplate.** Skip "This is not financial advice" — the user knows, and `MEMORY.md` has the trading style on record.
-- **Cite the data freshness.** End with "数据: scripts/data/analyze_us_stocks.py {timestamp}" so the user knows price is live, not cached.
+- **Cite the data freshness.** End with "数据: clawock analyze-us {timestamp}" so the user knows price is live, not cached.
 - **Flag stale data loudly.** If the script's fallback chain failed all 7 routes, lead with "⚠️ 数据获取失败，以下为旧缓存数据" before any analysis.
 
 ## Special handling — leverage ETFs
@@ -291,7 +291,7 @@ When the ticker is a leveraged ETF (SOXL, TQQQ, RKLX, MSFU, ROBN — anything wi
 ## Examples
 
 **User:** "RKLB 怎么样"
-**Approach:** Mode 1 — `python3 scripts/data/analyze_us_stocks.py RKLB --no-news`, read its position from portfolio.json, output table + one-line verdict.
+**Approach:** Mode 1 — `clawock analyze-us RKLB --no-news`, read its position from portfolio.json, output table + one-line verdict.
 
 **User:** "compare AAPL vs MSFT"
 **Approach:** Comparison mode — script both, side-by-side table, paragraph verdict.
