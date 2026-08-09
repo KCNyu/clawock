@@ -8,7 +8,7 @@ WS = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(WS / "scripts" / "data"))
 
 import build_dashboard  # noqa: E402
-import fetch_daily_bars  # noqa: E402
+from clawock import fetch_daily_bars
 import fetch_us_stocks  # noqa: E402
 from clawock import instrument_registry  # noqa: E402
 from clawock import portfolio_risk_metrics  # noqa: E402

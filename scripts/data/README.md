@@ -64,7 +64,7 @@ clawock 是**美股 + 港股 + 黄金定投**的实盘组合。工具包遵循�
 |---|---|---|:---:|
 | `clawock em-news` | 港股个股中文新闻(催化级, 带日期) + 7x24 快讯 | 东财 search / newsapi | ✅ |
 | `gh_action_news_digest.py` | 美股持仓新闻蒸馏为可执行要点 | Finnhub + Google News | ✅ |
-| `fetch_catalysts.py` | 未来 14 天财报/事件日历 | Finnhub earnings | 🟡 |
+| `clawock catalysts` | 未来 14 天财报/事件日历 | Finnhub earnings | 🟡 |
 | `news_evidence_graph.py` | 公告/SEC/新闻/日历去重事件图；来源、新颖度、到期与价量/同行确认硬闸 | 元数据/标题 + 本地行情 | ✅ |
 
 ## Layer 5 · 宏观/情绪 Macro & Sentiment

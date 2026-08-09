@@ -39,31 +39,26 @@ Contract
   755.0, 05-22 close 768.5), which is what re-opened the stale-range bug.
 
 Usage
-  fetch_daily_bars.py --backfill            # fill every manifest symbol from START_DATE
-  fetch_daily_bars.py                       # incremental: append newly closed sessions
-  fetch_daily_bars.py --ticker 00100        # one symbol
-  fetch_daily_bars.py --repair --ticker X   # allow overwriting with an audit record
+  clawock daily-bars --backfill            # fill every manifest symbol from START_DATE
+  clawock daily-bars                       # incremental: append newly closed sessions
+  clawock daily-bars --ticker 00100        # one symbol
+  clawock daily-bars --repair --ticker X   # allow overwriting with an audit record
 """
 from __future__ import annotations
 
 import argparse
 import json
-import os
 import sys
 from datetime import date, datetime, timedelta
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
-# The checkout root, so `clawock` resolves from the tree this file ships
-# in. Reached through the scripts/data/workspace shim until #267 step 3,
-# whose only remaining job was inserting this path as a side effect.
-sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
-sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
-from clawock import bar_checks  # noqa: E402  shared contract
-from clawock._em_http import em_get  # noqa: E402  统一请求节流出口
-from clawock.workspace import workspace_root  # noqa: E402
+from clawock import bar_checks
+from clawock._em_http import em_get
+from clawock.instrument_registry import canonical_bar_manifest
+from clawock.workspace import workspace_root
 
-WS = workspace_root(Path(__file__).resolve().parents[2])
+WS = workspace_root(Path.cwd())
 BARS_DIR = WS / "memory" / "bars"
 HKT = ZoneInfo("Asia/Hong_Kong")
 ET = ZoneInfo("America/New_York")
@@ -74,8 +69,6 @@ SCHEMA_VERSION = 1
 # canonical and `em` remains the best-effort cross-audit source. The registry is
 # the one reviewed location for load-bearing .OQ/.N/.AM suffixes, retirement
 # declarations and display names.
-from clawock.instrument_registry import canonical_bar_manifest  # noqa: E402
-
 MANIFEST: dict[str, dict] = canonical_bar_manifest()
 
 
@@ -277,12 +270,12 @@ def incremental_beg(ticker: str) -> str:
                (date.fromisoformat(max(bars)) - timedelta(days=2)).isoformat())
 
 
-def main() -> int:
+def main(argv=None) -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--backfill", action="store_true", help=f"fetch from {START_DATE}")
     ap.add_argument("--ticker", help="single ticker")
     ap.add_argument("--repair", action="store_true", help="allow overwriting a stored bar")
-    args = ap.parse_args()
+    args = ap.parse_args(sys.argv[1:] if argv is None else argv)
 
     tickers = [args.ticker] if args.ticker else list(MANIFEST)
     unknown = [t for t in tickers if t not in MANIFEST]

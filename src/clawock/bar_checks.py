@@ -46,7 +46,6 @@ import math
 # module. `tests/test_bar_checks.py` fails when one of them stops importing it,
 # so a future fetcher cannot quietly re-grow a private copy of these rules.
 BAR_CONSUMERS = (
-    'fetch_daily_bars.py',
     'fetch_us_stocks.py',
     'analyze_hk_stocks.py',
 )

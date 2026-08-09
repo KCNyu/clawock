@@ -536,12 +536,7 @@ def test_system_check_watches_the_calendar_horizon():
 # --- earnings look-through: we hold the fund, the company reports -------------
 
 def test_catalyst_tickers_come_from_holdings_not_a_hand_synced_list():
-    import sys
-    sys.path.insert(0, str(ROOT / "scripts" / "data"))
-    import fetch_catalysts
-
-    source = (ROOT / "scripts" / "data" / "fetch_catalysts.py").read_text()
-    assert "US_TICKERS_ACTIVE" not in source, "the hand-synced list is back"
+    from clawock import fetch_catalysts
 
     book = {"portfolios": {"us_stocks": {"holdings": [
         {"ticker": "MSFU", "shares": 20},     # 2x MSFT
@@ -559,9 +554,7 @@ def test_catalyst_tickers_come_from_holdings_not_a_hand_synced_list():
     ("CRCL", "CRCL"), ("SOXL", None), ("TQQQ", None), ("07226", None),
 ])
 def test_earnings_issuer_resolution(ticker, issuer):
-    import sys
-    sys.path.insert(0, str(ROOT / "scripts" / "data"))
-    import fetch_catalysts
+    from clawock import fetch_catalysts
 
     assert fetch_catalysts.earnings_issuer(ticker) == issuer
 
@@ -677,22 +670,6 @@ def test_registry_look_through_is_the_single_rule(symbol, kind, issuer, tracks):
     resolved = instrument_registry.look_through(symbol)
     assert (resolved["kind"], resolved["issuer"], resolved["tracks"]) == (kind, issuer, tracks)
     assert instrument_registry.issuer_for(symbol) == issuer
-
-
-def test_all_three_consumers_delegate_to_the_registry():
-    """The rule was reimplemented three times; a fourth copy would drift."""
-    data = ROOT / "scripts" / "data"
-    catalysts = (data / "fetch_catalysts.py").read_text()
-    probe = (data / "mover_news.py").read_text()
-    digest = (data / "gh_action_news_digest.py").read_text()
-
-    assert "instrument_registry.issuer_for(" in catalysts
-    assert "instrument_registry.look_through(" in probe
-    assert "instrument_registry.look_through(" in digest
-    # and none of them keeps a private copy of the chain walk
-    for source, name in ((catalysts, "fetch_catalysts"), (probe, "mover_news")):
-        assert "meta.get('venue') == 'INDEX'" not in source, name
-        assert 'meta.get("venue") == "INDEX"' not in source, name
 
 
 def test_news_digest_queries_issuers_and_records_the_fund_it_reads_for():

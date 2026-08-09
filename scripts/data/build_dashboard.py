@@ -2918,7 +2918,7 @@ def build_projection(previous_source=None, shadow_previous=None):
         out['news_evidence_graph'] = None
     _embed('t0_setups', 't0_setups.json')              # compute_t0_setups.py: T+0 牌面评级(追高检测)
     _embed('t0_setup_review', 't0_setup_review.json')  # t0_setup_review.py: 牌面命中率背书(T+1对账)
-    _embed('catalysts', 'catalysts.json')              # fetch_catalysts.py + brief preflight [11/11]
+    _embed('catalysts', 'catalysts.json')              # clawock catalysts + brief preflight
     _embed('benchmark', 'benchmark.json')              # fetch_benchmark_history.py: SPY/HSI/HSTECH daily close
     # 基准新鲜度守卫 — Polygon/HSI 抓取偶发限流会让 benchmark.json 停更(曾停到6天),
     # equity curve 的 SPY/恒科等值线会静默退化成平线。被动暴露 staleness 给前端显示小字
