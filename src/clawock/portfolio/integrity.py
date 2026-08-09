@@ -97,18 +97,22 @@ RANGE_TOL = 0.005  # current 越界容忍 0.5%（收盘集合竞价/盘后微动
 
 
 def _last_session(market):
-    """上一个（含今天）交易日 ISO 字符串；trading_calendar 不可用时返回 None。"""
+    """最近一个**已收盘**交易日的 ISO 字符串；日历不可用时返回 None。
+
+    以前这里用 `date.today()`（宿主本地日期）并且**把今天算成已完成**，于是从午夜
+    到该市场真正产出报价之间，持有着「最新真实收盘价」的持仓每一只都会被判 stale。
+    美股腿的报价约 21:30 HKT 才到，也就是**每个交易日约 21 小时都在误报**。
+    天天喊狼的闸等于没有闸——真 stale 那次没人会多看一眼。
+
+    现在和面板、决策信号走同一个日历函数：市场本地时区、17:00 之后才认今天。
+    """
     if tc is None:
         return None
-    d = date.today()
-    for _ in range(10):
-        try:
-            if tc.is_trading_day(market, d):
-                return d.isoformat()
-        except Exception:
-            return None
-        d -= timedelta(days=1)
-    return None
+    try:
+        session = tc.latest_completed_session(market)
+    except Exception:
+        return None
+    return session.isoformat() if session else None
 
 
 def _extract_iso(s):

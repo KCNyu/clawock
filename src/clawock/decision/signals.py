@@ -233,15 +233,7 @@ def _universe():
 
 
 def _latest_completed_session(region, at=None):
-    market = region.lower()
-    now = at or datetime.now(ZoneInfo(trading_calendar.MARKET_TZ[market]))
-    now = now.astimezone(ZoneInfo(trading_calendar.MARKET_TZ[market]))
-    current = now.date() if now.hour >= 17 else now.date() - timedelta(days=1)
-    for _ in range(14):
-        if trading_calendar.is_trading_day(market, current):
-            return current
-        current -= timedelta(days=1)
-    return None
+    return trading_calendar.latest_completed_session(region, at)
 
 
 def _as_date(value):
