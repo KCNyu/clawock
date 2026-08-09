@@ -34,7 +34,7 @@
 ### 2. FX 铁律 — HKD + USD 不能直接相加
 - 港股 book 用 HKD，美股 book 用 USD — **绝不直接相加**
 - 所有 book-level 数字必须**双视角**：USD-base + HKD-base，显式标注 rate / source / fetched_at
-- 工具：`python3 scripts/data/fetch_fx.py --json` （3 路 fallback，4h 缓存）
+- 工具：`clawock fx --json` （3 路 fallback，4h 缓存）
 - 教训：2026-05-16 deep brief 把 -4936 HKD + +513 USD = -4423 直接相加 → 数字毫无意义
 
 ### 3. 已知数据坑

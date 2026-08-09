@@ -7,14 +7,11 @@ of any past day would stamp it with *today's* rate and produce a combined figure
 that looks entirely normal (#323).
 """
 import json
-import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 INSTANCE_HARNESS = ROOT / "instances" / "kcnyu" / "src" / "clawock_kcnyu" / "harness"
-sys.path.insert(0, str(ROOT / "scripts" / "data"))
-
-import fetch_fx  # noqa: E402
+from clawock import fetch_fx
 
 
 def _entry(rate, day="2026-08-05", source="Frankfurter"):
