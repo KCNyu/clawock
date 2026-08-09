@@ -1,64 +1,64 @@
 {
-  "generated_at": "2026-08-07T01:04:36.618321+00:00",
+  "generated_at": "2026-08-09T22:03:22.880110+00:00",
   "vix": {
     "symbol": "^VIX",
-    "price": 15.15,
-    "prev": 15.81,
-    "change_pct": -4.17,
-    "as_of": 1786047301,
+    "price": 14.9,
+    "prev": 15.15,
+    "change_pct": -1.65,
+    "as_of": 1786133701,
     "source": "yahoo"
   },
   "treasury_10y": {
     "symbol": "^TNX",
-    "price": 4.67,
-    "prev": 4.617,
-    "change_pct": 1.15,
-    "as_of": 1786042795,
+    "price": 4.66,
+    "prev": 4.67,
+    "change_pct": -0.21,
+    "as_of": 1786129193,
     "source": "yahoo",
-    "yield_pct": 4.67
+    "yield_pct": 4.66
   },
   "dxy": {
     "symbol": "DX-Y.NYB",
-    "price": 99.983,
-    "prev": 99.93,
-    "change_pct": 0.05,
-    "as_of": 1786064074,
+    "price": 99.604,
+    "prev": 99.539,
+    "change_pct": 0.07,
+    "as_of": 1786136399,
     "source": "yahoo"
   },
   "fear_greed": {
-    "score": 59.7,
+    "score": 63.7,
     "rating": "greed",
     "prev_close": 59.7,
-    "prev_1_week": 40.7,
-    "as_of": "2026-08-06T23:59:45+00:00"
+    "prev_1_week": 45.2,
+    "as_of": "2026-08-07T23:59:47+00:00"
   },
   "hsi": {
     "symbol": "^HSI",
-    "price": 25530.28,
+    "price": 25668.03,
     "prev": 25530.28,
-    "change_pct": 0.0,
+    "change_pct": 0.54,
     "source": "tencent"
   },
   "hstech": {
     "symbol": "^HSTECH",
-    "price": 4820.78,
+    "price": 4858.29,
     "prev": 4820.78,
-    "change_pct": 0.0,
+    "change_pct": 0.78,
     "source": "tencent"
   },
   "spx": {
     "symbol": "^GSPC",
-    "price": 7709.96,
-    "prev": 7723.55,
-    "change_pct": -0.18,
-    "as_of": 1786055566,
+    "price": 7757.64,
+    "prev": 7709.96,
+    "change_pct": 0.62,
+    "as_of": 1786135824,
     "source": "yahoo"
   },
   "nasdaq": {
     "symbol": "^IXIC",
-    "price": 26348.35,
-    "prev": 26363.44,
-    "change_pct": -0.06,
+    "price": 26690.62,
+    "prev": 26348.35,
+    "change_pct": 1.3,
     "source": "tencent"
   },
   "fed_press": [
@@ -76,16 +76,6 @@
       "date": "2026-08-04",
       "title": "Federal Reserve Board announces approval of the application by Banco Santander, S.A. and Santander Holdings USA, Inc.",
       "url": "https://www.federalreserve.gov/newsevents/pressreleases/orders20260804a.htm"
-    },
-    {
-      "date": "2026-07-31",
-      "title": "Federal Reserve Board requests comment on a proposal to modernize its rule governing the extension of credit to bank \"insiders\"—bank executives, board members and major shareholders who could potentia",
-      "url": "https://www.federalreserve.gov/newsevents/pressreleases/bcreg20260731b.htm"
-    },
-    {
-      "date": "2026-07-31",
-      "title": "Federal Reserve Board requests comment on a proposal to modernize rules for mutual banking organizations",
-      "url": "https://www.federalreserve.gov/newsevents/pressreleases/bcreg20260731a.htm"
     }
   ]
 }
