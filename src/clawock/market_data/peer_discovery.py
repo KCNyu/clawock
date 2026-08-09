@@ -16,7 +16,7 @@ from typing import Iterable
 
 import requests
 
-from clawock._em_http import em_get
+from clawock.market_data.eastmoney_http import em_get
 from clawock.workspace import workspace_root
 
 

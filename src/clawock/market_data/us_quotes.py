@@ -28,9 +28,9 @@ from typing import Dict, List, Optional
 from zoneinfo import ZoneInfo
 import requests
 
-from clawock import bar_checks
+from clawock.market_data import integrity as bar_checks
 from clawock import trading_calendar
-from clawock._em_http import em_get
+from clawock.market_data.eastmoney_http import em_get
 from clawock.portfolio.instruments import INSTRUMENTS
 from clawock.portfolio.books import region_book
 from clawock.workspace import workspace_root

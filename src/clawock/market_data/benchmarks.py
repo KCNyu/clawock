@@ -34,7 +34,7 @@ from typing import Dict, List
 
 import requests
 
-from clawock.fetch_us_stocks import load_api_keys
+from clawock.market_data.us_quotes import load_api_keys
 from clawock.safe_io import safe_write_json
 from clawock.workspace import workspace_root
 

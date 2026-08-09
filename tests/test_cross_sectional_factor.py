@@ -7,7 +7,7 @@ import pytest
 
 
 ROOT = Path(__file__).resolve().parents[1]
-from clawock import cross_sectional_factor as factor
+from clawock.market_data import factors as factor
 
 
 def _bars(rate, count=180, volume=1000):

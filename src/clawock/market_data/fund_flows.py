@@ -20,8 +20,8 @@ import json
 import sys
 from typing import Dict, List
 
-from clawock._em_http import em_get
-from clawock._em_symbols import resolve
+from clawock.market_data.eastmoney_http import em_get
+from clawock.market_data.eastmoney_symbols import resolve
 
 FFLOW_URL = "https://push2his.eastmoney.com/api/qt/stock/fflow/daykline/get"
 

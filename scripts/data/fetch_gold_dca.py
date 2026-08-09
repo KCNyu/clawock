@@ -41,7 +41,7 @@ sys.path.insert(0, os.path.join(WS_ROOT, 'scripts', 'data'))
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
 from clawock.safe_io import safe_write_json  # noqa: E402
-from clawock._em_http import em_get  # noqa: E402  东财统一请求节流出口
+from clawock.market_data.eastmoney_http import em_get  # noqa: E402
 
 PORTFOLIO = os.path.join(WS_ROOT, 'portfolio.json')
 

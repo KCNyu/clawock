@@ -7,9 +7,9 @@ from datetime import datetime, timedelta, timezone
 import pytest
 
 from scripts.data import fetch_influencer_feed
-from scripts.data import fetch_sentiment
 from scripts.data import gh_action_news_digest
 from clawock import validate_sidecars
+from clawock.market_data import sentiment as fetch_sentiment
 
 
 class _Empty200:
@@ -33,13 +33,12 @@ def _portfolio(path):
 
 def _run_sentiment(tmp_path, monkeypatch, get):
     output = tmp_path / 'sentiment.json'
-    monkeypatch.setattr(fetch_sentiment, 'OUT_FILE', str(output))
-    monkeypatch.setattr(fetch_sentiment, 'load_tickers', lambda: [{
+    monkeypatch.setattr(fetch_sentiment, 'load_tickers', lambda _workspace: [{
         'ticker': 'AAPL', 'name': 'Apple', 'region': 'us_stocks',
     }])
     monkeypatch.setattr(fetch_sentiment.requests, 'get', get)
     monkeypatch.setattr(fetch_sentiment.time, 'sleep', lambda _seconds: None)
-    fetch_sentiment.main()
+    fetch_sentiment.main(['--workspace', str(tmp_path), '--output', str(output)])
     return output, json.loads(output.read_text(encoding='utf-8'))
 
 

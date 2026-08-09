@@ -18,7 +18,7 @@ ROOT = Path(__file__).resolve().parents[1]
 DATA = ROOT / 'scripts' / 'data'
 sys.path.insert(0, str(DATA))
 
-from clawock import bar_checks  # noqa: E402
+from clawock.market_data import integrity as bar_checks  # noqa: E402
 
 
 def _bar(o, h, l, c, **extra):
@@ -181,7 +181,7 @@ def test_a_zero_or_missing_close_cannot_enter_the_return_series():
 # ── the flag has to reach the store, not just the checker ───────────────────
 
 def _bars_module(tmp_path, monkeypatch):
-    from clawock import fetch_daily_bars
+    from clawock.market_data import bars as fetch_daily_bars
 
     monkeypatch.setattr(fetch_daily_bars, 'BARS_DIR', tmp_path)
     monkeypatch.setitem(
@@ -225,7 +225,7 @@ def test_an_impossible_bar_is_still_refused_with_the_reason_named(
 # ── the structural gate: nobody re-grows a private copy ─────────────────────
 
 def test_packaged_daily_bar_store_uses_the_shared_contract():
-    from clawock import fetch_daily_bars
+    from clawock.market_data import bars as fetch_daily_bars
 
     assert fetch_daily_bars.bar_checks is bar_checks
 
