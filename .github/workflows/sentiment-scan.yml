@@ -39,7 +39,7 @@ jobs:
         run: python3 scripts/data/fetch_sentiment.py
 
       - name: Validate sentiment coverage
-        run: python3 scripts/data/validate_sidecars.py sentiment
+        run: clawock validate-sidecar sentiment
 
       - name: Commit
         # Shared helper commits only this workflow's sidecar. The frontend fetches

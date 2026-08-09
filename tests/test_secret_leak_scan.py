@@ -347,7 +347,6 @@ def test_pre_push_hook_blocks_unless_the_checker_gave_a_verdict(tmp_path, rc, bl
     (repo / "ops").mkdir()
     subprocess.run(["git", "init", "-q"], cwd=repo, check=True)
     (repo / "ops" / "system_check.py").write_text("")
-    (repo / "scripts" / "data" / "preflight_integrity.py").write_text("")
     bin_dir = tmp_path / "bin"
     bin_dir.mkdir()
     # first invocation (system_check) exits rc; the integrity call after it exits 0
@@ -357,6 +356,9 @@ def test_pre_push_hook_blocks_unless_the_checker_gave_a_verdict(tmp_path, rc, bl
         'case "$1" in *system_check.py) exit %d;; *) exit 0;; esac\n' % rc
     )
     stub.chmod(0o755)
+    clawock = bin_dir / "clawock"
+    clawock.write_text("#!/usr/bin/env bash\nexit 0\n")
+    clawock.chmod(0o755)
     p = subprocess.run(
         ["bash", str(ROOT / ".githooks" / "pre-push")],
         cwd=repo, capture_output=True, text=True,

@@ -28,4 +28,4 @@ jobs:
         run: python3 ops/pages/fetch_data_plane.py
 
       - name: Validate published dashboard payload
-        run: python3 scripts/data/validate_sidecars.py dashboard
+        run: PYTHONPATH=src python3 -m clawock validate-sidecar dashboard

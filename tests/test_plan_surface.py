@@ -6,7 +6,7 @@ the brief had already ruled a non-timed discipline swap (issue #119).
 
 Two properties matter more than the rest and are asserted directly:
 
-* the ledger, not the plan file, decides what is still open — `mark_followed.py`
+* the ledger, not the plan file, decides what is still open — `clawock mark-followed`
   writes execution status only to `decisions.jsonl`, so a plan-file reader would
   keep re-proposing a filled order;
 * nothing here may raise. A malformed brief artifact taking down the 30-minute
@@ -93,7 +93,7 @@ def test_size_is_carried_verbatim(ledger, call):
 
 
 def test_filled_order_is_not_re_proposed(ledger, call):
-    # mark_followed.py writes execution status to the ledger only. Reading the
+    # `clawock mark-followed` writes execution status to the ledger only. Reading the
     # plan file instead would keep proposing this order all day.
     ctx = call(ledger([decision(execution={"status": "followed"})]))
     assert ctx == {}

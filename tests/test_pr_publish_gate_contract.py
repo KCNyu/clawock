@@ -241,8 +241,7 @@ def test_data_plane_publisher_preserves_hook_stdout_and_git_stderr():
 
 
 def test_safe_push_refuses_the_money_file_when_the_checker_is_missing(tmp_path):
-    """`-f` was a precondition of running the gate, so a checker that was not
-    where we looked read as "nothing to check" and the book shipped unverified."""
+    """A missing package CLI cannot silently certify a changed money file."""
     repo = _ledger_repo(tmp_path)
     script = repo / "safe_push.sh"
     script.write_text((ROOT / "scripts" / "data" / "safe_push.sh").read_text())
@@ -253,19 +252,38 @@ def test_safe_push_refuses_the_money_file_when_the_checker_is_missing(tmp_path):
     (repo / "publish_identity.sh").write_text(
         (ROOT / "scripts" / "data" / "publish_identity.sh").read_text())
 
-    result = subprocess.run(["bash", str(script)], cwd=repo, capture_output=True,
-                            text=True, input="")
+    result = subprocess.run(
+        ["/bin/bash", str(script)], cwd=repo, capture_output=True,
+        text=True, input="", env={**os.environ, "PATH": "/usr/bin:/bin"},
+    )
 
     assert result.returncode == 4, (
         f"expected the push refused, got rc={result.returncode}\n{result.stdout}")
-    assert "checker is missing" in result.stdout
+    assert "checker is unavailable" in result.stdout
 
 
-def test_safe_push_runs_the_money_check_when_the_money_file_moves():
-    text = (ROOT / "scripts" / "data" / "safe_push.sh").read_text()
+def test_safe_push_runs_the_money_check_when_the_money_file_moves(tmp_path):
+    repo = _ledger_repo(tmp_path)
+    script = repo / "safe_push.sh"
+    script.write_text((ROOT / "scripts" / "data" / "safe_push.sh").read_text())
+    (repo / "publish_identity.sh").write_text(
+        (ROOT / "scripts" / "data" / "publish_identity.sh").read_text())
+    bin_dir = tmp_path / "bin"
+    bin_dir.mkdir()
+    marker = tmp_path / "integrity-invoked"
+    checker = bin_dir / "clawock"
+    checker.write_text(
+        "#!/bin/sh\n"
+        f"touch {marker}\n"
+        "exit 2\n"
+    )
+    checker.chmod(0o755)
 
-    assert "preflight_integrity.py" in text, (
-        "safe_push.sh no longer runs the money-conservation check — the Actions "
-        "publish path is unprotected again")
-    # Scoped, not blanket: a dashboard-only publish must not be blocked by it.
-    assert "portfolio.json" in text and "PORTFOLIO_TOUCHED" in text
+    result = subprocess.run(
+        ["bash", str(script)], cwd=repo, capture_output=True, text=True, input="",
+        env={**os.environ, "PATH": f"{bin_dir}:{os.environ['PATH']}"},
+    )
+
+    assert result.returncode == 4
+    assert marker.exists(), "the package integrity command was not invoked"
+    assert "does not reconcile" in result.stdout

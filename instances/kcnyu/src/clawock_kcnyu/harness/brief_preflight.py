@@ -1653,8 +1653,7 @@ def main(argv=None):
     # （遵 feedback_no_individual_cron_alerts 不推送），ERROR 由 build_status 健康卡暴露。
     integrity = {}
     try:
-        sys.path.insert(0, str(_CHECKOUT / 'scripts' / 'data'))
-        import preflight_integrity as _pi
+        from clawock import preflight_integrity as _pi
         integrity = _pi.check()
         if not integrity['ok']:
             print(f'   🔴 数据体检 {integrity["error_count"]} ERROR：')

@@ -49,7 +49,7 @@ context.json 的决策/自进化字段，**必须用上**：
    - 只结算 condition 实际触发的 episode；同策略连续重申不重复计样本。
    - 输出 ▎Decision v2 校准：Brier、active/passive、by_strategy/by_driver/by_condition 与 date-cluster CI。
    - 给 decision 的 confidence 前参考同策略 episode；CI 跨 0 只能称方向性，不许声称稳定 edge。
-   - execution 与建议质量分离。手动标记：`scripts/data/mark_followed.py DECISION_ID [--no]`。
+   - execution 与建议质量分离。手动标记：`clawock mark-followed DECISION_ID [--no]`。
 
 3. **`risk_metrics`** — 当下组合风险量化（β/Vol/Max DD/Sharpe/leverage/margin_at_risk）
    - 出现 `alerts[]` 数组 → 必须输出 ▎风险警报 段，列举每个 alert.type + detail

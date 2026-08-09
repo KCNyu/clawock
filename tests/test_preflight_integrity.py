@@ -10,7 +10,6 @@ from __future__ import annotations
 
 import copy
 import json
-import sys
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -18,15 +17,10 @@ import pytest
 
 
 WS = Path(__file__).resolve().parents[1]
-DATA_SCRIPTS = str(WS / "scripts" / "data")
-
-
 @pytest.fixture(scope="module")
 def pi():
     """Import lazily so an unavailable local dependency cannot break collection."""
-    if DATA_SCRIPTS not in sys.path:
-        sys.path.insert(0, DATA_SCRIPTS)
-    return pytest.importorskip("preflight_integrity")
+    return pytest.importorskip("clawock.preflight_integrity")
 
 
 @pytest.fixture
