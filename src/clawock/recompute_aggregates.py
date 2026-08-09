@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""recompute_aggregates.py — rebuild every DERIVED portfolio field from the leaves.
+"""Rebuild every derived portfolio field from ledger leaves.
 
 Part of the ledger-derivation work (#3): the only hand-/fetcher-anchored leaves are
 `shares`, `cost_basis`, `current_price`, `prev_close`. EVERYTHING above them is a
@@ -17,49 +17,63 @@ pure function of those and must never be edited by hand:
     total_pnl_percent   = total_pnl / total_cost × 100
     today_total_change  = Σ today_change
 
-This automates the "手工卖出必须重算聚合" 铁律 (the phantom-peak bug, 3a68822): a
-manual T+0 edit to shares/cash no longer needs a full price fetch — run this and the
-book is internally consistent again, so the pre-push money-conservation gate passes.
-Formulas + `_num`/`_active` are imported from preflight_integrity so this can never
-drift from the gate that verifies them.
+This lets a caller reconcile a position edit without fetching prices again.
+Arithmetic primitives are shared with the integrity gate so derivation and
+validation cannot drift.
 
-    python3 recompute_aggregates.py            # rewrite portfolio.json in place
-    python3 recompute_aggregates.py --dry-run  # print diffs, write nothing
+    clawock aggregates            # rewrite portfolio.json in place
+    clawock aggregates --dry-run  # print diffs, write nothing
 """
+import argparse
 import json
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent))
-sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
-sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
-from preflight_integrity import _num, _active, PORTFOLIO  # noqa: E402
-from clawock.safe_io import safe_write_json  # noqa: E402
+from clawock.portfolio_math import active_holdings, number
+from clawock.safe_io import safe_write_json
+from clawock.workspace import workspace_root
 
-# total_pnl_percent precision differs per region's fetcher (fetch_us_stocks rounds
-# to 4dp, analyze_hk_stocks to 2dp) — match each so this stays a no-op after a fetch.
-_PCT_ROUND = {'us_stocks': 4, 'hk_stocks': 2}
+WS = workspace_root(Path.cwd())
+PORTFOLIO = WS / 'portfolio.json'
+POLICY = WS / 'config' / 'portfolio-derivations.json'
 
 
 def _r(x):
     return round(x, 2)
 
 
-def recompute(data, dry_run=False):
+def load_policy(path=POLICY):
+    """Load workspace-specific precision without embedding book names in core."""
+    try:
+        payload = json.loads(Path(path).read_text())
+    except (OSError, json.JSONDecodeError):
+        return {}
+    configured = payload.get('percent_rounding_by_book', {})
+    if not isinstance(configured, dict):
+        return {}
+    return {
+        str(book): int(digits)
+        for book, digits in configured.items()
+        if isinstance(digits, int) and not isinstance(digits, bool)
+        and 0 <= digits <= 8
+    }
+
+
+def recompute(data, dry_run=False, percent_rounding=None):
     """Mutate `data` in place. Return per-region dict of {field: (old, new)} diffs."""
     changes = {}
-    for region in ('us_stocks', 'hk_stocks'):
-        pf = data.get('portfolios', {}).get(region)
-        if not pf:
+    precision = percent_rounding or {}
+    for region, pf in (data.get('portfolios') or {}).items():
+        if not isinstance(pf, dict):
             continue
         diffs = {}
 
         # ── per-holding derived leaves (active only, mirrors the gate's _active) ──
         sum_cv = sum_cost = sum_tc = 0.0
-        for h in _active(pf.get('holdings', [])):
-            sh = _num(h.get('shares'))
-            cp = _num(h.get('current_price'))
-            cb = _num(h.get('cost_basis'))
+        for h in active_holdings(pf.get('holdings', [])):
+            sh = number(h.get('shares'))
+            cp = number(h.get('current_price'))
+            cb = number(h.get('cost_basis'))
             if sh is None or cp is None:
                 continue  # missing a required leaf → can't derive; leave untouched
             cv = _r(sh * cp)
@@ -67,15 +81,15 @@ def recompute(data, dry_run=False):
             if cb is not None:
                 sum_cost += sh * cb
                 pnl = _r(sh * (cp - cb))
-                if _num(h.get('pnl_abs')) != pnl:
+                if number(h.get('pnl_abs')) != pnl:
                     diffs.setdefault('holdings.pnl_abs', []).append((h.get('ticker'), h.get('pnl_abs'), pnl))
                 if not dry_run:
                     h['pnl_abs'] = pnl
-            if _num(h.get('current_value')) != cv:
+            if number(h.get('current_value')) != cv:
                 diffs.setdefault('holdings.current_value', []).append((h.get('ticker'), h.get('current_value'), cv))
             if not dry_run:
                 h['current_value'] = cv
-            pc = _num(h.get('prev_close'))
+            pc = number(h.get('prev_close'))
             if pc is not None:
                 tc = _r(sh * (cp - pc))
                 sum_tc += tc
@@ -83,7 +97,7 @@ def recompute(data, dry_run=False):
                     h['today_change'] = tc
 
         # ── region aggregates ──
-        pct_nd = _PCT_ROUND.get(region, 2)
+        pct_nd = precision.get(region, 2)
         want = {
             'total_current_value': _r(sum_cv),
             'total_cost': _r(sum_cost),
@@ -93,7 +107,7 @@ def recompute(data, dry_run=False):
         }
         for k, v in want.items():
             old = pf.get(k)
-            if _num(old) != v and not (old is None and v is None):
+            if number(old) != v and not (old is None and v is None):
                 diffs[k] = (old, v)
             if not dry_run:
                 pf[k] = v
@@ -103,11 +117,17 @@ def recompute(data, dry_run=False):
     return changes
 
 
-def main(argv):
-    dry = '--dry-run' in argv
-    path = Path(PORTFOLIO)
+def main(argv=None):
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--dry-run', action='store_true')
+    parser.add_argument('--path', type=Path, default=PORTFOLIO)
+    parser.add_argument('--config', type=Path, default=POLICY)
+    args = parser.parse_args(argv)
+    dry = args.dry_run
+    path = args.path
     data = json.loads(path.read_text())
-    changes = recompute(data, dry_run=dry)
+    changes = recompute(
+        data, dry_run=dry, percent_rounding=load_policy(args.config))
 
     if not changes:
         print('recompute_aggregates: ✓ all derived fields already consistent')

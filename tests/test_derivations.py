@@ -21,7 +21,7 @@ sys.path.insert(0, os.path.join(WS, "scripts", "data"))
 
 import preflight_integrity as pi  # noqa: E402
 from clawock import recompute_realized as rr  # noqa: E402
-import recompute_aggregates as ra  # noqa: E402
+from clawock import recompute_aggregates as ra  # noqa: E402
 import build_dashboard as bd  # noqa: E402
 
 
@@ -268,7 +268,7 @@ class TestRecomputeAggregates:
 
     def test_leaf_and_region_derivation(self):
         d = self._book()
-        ra.recompute(d, dry_run=False)
+        ra.recompute(d, dry_run=False, percent_rounding={"us_stocks": 4})
         us = d["portfolios"]["us_stocks"]
         A, B, C = us["holdings"]
         # per-holding leaves rebuilt from shares/price/cost
@@ -285,9 +285,10 @@ class TestRecomputeAggregates:
     def test_fixes_phantom_peak_drift(self):
         # the real bug (3a68822): a manual T+0 sell left total_current_value inflated.
         d = self._book()
-        ra.recompute(d, dry_run=False)                     # make consistent
+        ra.recompute(d, dry_run=False, percent_rounding={"us_stocks": 4})
         d["portfolios"]["us_stocks"]["total_current_value"] += 906.0   # inject drift
-        changes = ra.recompute(d, dry_run=False)           # recompute must fix it
+        changes = ra.recompute(
+            d, dry_run=False, percent_rounding={"us_stocks": 4})
         assert d["portfolios"]["us_stocks"]["total_current_value"] == 180.0
         assert "us_stocks" in changes                      # and report it changed
 
