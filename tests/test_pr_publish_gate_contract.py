@@ -240,17 +240,28 @@ def test_data_plane_publisher_preserves_hook_stdout_and_git_stderr():
     ).read_text(), "postflight truncated the hook reason back out of the result"
 
 
+def _safe_push_in(repo):
+    """Copy the publisher and the files it sources next to each other.
+
+    A deployment of safe_push.sh is all of them. Not tolerating an absent one is
+    deliberate: an unreadable identity helper must fail rather than silently
+    push under whatever git happens to be configured with, and an unreadable
+    money checker must fail rather than skip the money gate.
+    """
+    for name in ("safe_push.sh", "publish_identity.sh", "money_checker.sh"):
+        (repo / name).write_text((ROOT / "ops" / "publish" / name).read_text())
+    return repo / "safe_push.sh"
+
+
 def test_safe_push_refuses_the_money_file_when_the_checker_is_missing(tmp_path):
-    """A missing package CLI cannot silently certify a changed money file."""
+    """A missing package CLI cannot silently certify a changed money file.
+
+    The other half of the cron-PATH fix below: nothing on PATH *and* nothing
+    importable from the checkout must still refuse. The fallback exists so a
+    verifiable book gets published, not so the gate becomes a formality.
+    """
     repo = _ledger_repo(tmp_path)
-    script = repo / "safe_push.sh"
-    script.write_text((ROOT / "ops" / "publish" / "safe_push.sh").read_text())
-    # safe_push.sh sources its sibling for identity selection, so a deployment
-    # of it is both files. Not tolerating an absent one is deliberate: an
-    # unreadable identity helper must fail here, not silently push under
-    # whatever git happens to be configured with.
-    (repo / "publish_identity.sh").write_text(
-        (ROOT / "ops" / "publish" / "publish_identity.sh").read_text())
+    script = _safe_push_in(repo)
 
     result = subprocess.run(
         ["/bin/bash", str(script)], cwd=repo, capture_output=True,
@@ -262,12 +273,43 @@ def test_safe_push_refuses_the_money_file_when_the_checker_is_missing(tmp_path):
     assert "checker is unavailable" in result.stdout
 
 
+CRON_ENV = {"PATH": "/usr/bin:/bin", "HOME": "/root", "LANG": "C.UTF-8"}
+"""What a job started from the user crontab actually gets. The installed
+console script lives in ~/.local/bin, which is not on this PATH."""
+
+
+def test_safe_push_finds_the_money_checker_under_a_bare_cron_environment(tmp_path):
+    """The gate must resolve the checker without help from PATH.
+
+    On 2026-08-09 the nightly gold refresh committed portfolio.json and then
+    could not push it: started from the user crontab, `command -v clawock`
+    found nothing, so the gate refused. It was right to refuse an unverifiable
+    book — but the book was verifiable, and the money commit then sat on the
+    live checkout in front of every later push, because the gate re-runs for as
+    long as an unpushed portfolio.json commit exists.
+
+    Asserted behaviourally, in the environment that broke it: reverting to a
+    bare `command -v clawock` makes this red because the run never reaches the
+    check at all.
+    """
+    repo = _ledger_repo(tmp_path)
+    script = _safe_push_in(repo)
+    # The fallback runs the package out of the checkout being pushed.
+    (repo / "src").symlink_to(ROOT / "src")
+
+    result = subprocess.run(["bash", str(script)], cwd=repo, capture_output=True,
+                            text=True, input="", env=CRON_ENV)
+
+    assert "running money-conservation check" in result.stdout, (
+        "the gate never got as far as checking the book:\n" + result.stdout)
+    assert "neither on PATH nor importable" not in result.stdout, (
+        "the checker was reported unavailable although the package is right "
+        "here in the checkout:\n" + result.stdout)
+
+
 def test_safe_push_runs_the_money_check_when_the_money_file_moves(tmp_path):
     repo = _ledger_repo(tmp_path)
-    script = repo / "safe_push.sh"
-    script.write_text((ROOT / "ops" / "publish" / "safe_push.sh").read_text())
-    (repo / "publish_identity.sh").write_text(
-        (ROOT / "ops" / "publish" / "publish_identity.sh").read_text())
+    script = _safe_push_in(repo)
     bin_dir = tmp_path / "bin"
     bin_dir.mkdir()
     marker = tmp_path / "integrity-invoked"

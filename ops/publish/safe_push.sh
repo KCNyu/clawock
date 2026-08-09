@@ -20,6 +20,11 @@ BRANCH="${2:-master}"
 # being restated per publisher. It also owns wiping an ephemeral Actions key.
 # shellcheck source=ops/publish/publish_identity.sh
 . "$(dirname "${BASH_SOURCE[0]}")/publish_identity.sh"
+# Locating the money checker is shared with .githooks/pre-push for the same
+# reason: PATH is not a reliable way to find it, and one gate learning that
+# while the other does not is how a book gets published unverified.
+# shellcheck source=ops/publish/money_checker.sh
+. "$(dirname "${BASH_SOURCE[0]}")/money_checker.sh"
 if [ -n "$PUBLISH_REMOTE" ]; then
   REMOTE="$PUBLISH_REMOTE"
 fi
@@ -60,15 +65,17 @@ else
   # Cannot tell what is new; assume the money file is in scope rather than skip.
   PORTFOLIO_TOUCHED="portfolio.json"
 fi
-if [ -n "$PORTFOLIO_TOUCHED" ] && ! command -v clawock >/dev/null 2>&1; then
-  echo "✗ REFUSING TO PUSH — portfolio.json is in this push but the"
-  echo "  package-owned money-conservation checker is unavailable: clawock"
-  echo "  The book cannot be verified from here."
-  exit 4
-fi
 if [ -n "$PORTFOLIO_TOUCHED" ]; then
   echo "▸ portfolio.json is in this push — running money-conservation check…"
-  if ! CLAWOCK_WORKSPACE="${REPO_TOP:-.}" clawock integrity; then
+  RC=0
+  run_money_check "${REPO_TOP:-$PWD}" || RC=$?
+  if [ "$RC" = 127 ]; then
+    echo "✗ REFUSING TO PUSH — portfolio.json is in this push but the"
+    echo "  package-owned money-conservation checker is unavailable: clawock"
+    echo "  It is neither on PATH nor importable from ${REPO_TOP:-$PWD}/src."
+    echo "  The book cannot be verified from here."
+    exit 4
+  elif [ "$RC" != 0 ]; then
     echo "✗ REFUSING TO PUSH — portfolio.json does not reconcile."
     echo "  Cash, positions and P&L must balance before the money file is published."
     echo "  Fix the ledger (see the findings above) and re-commit."
