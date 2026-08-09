@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-fetch_us_stocks.py - Multi-provider US stock price fetcher
+clawock us-quotes — multi-provider US stock price fetcher
 Reads active holdings (shares > 0) from portfolio.json.
 
 Provider chain:

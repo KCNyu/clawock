@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-fetch_us_filings.py - SEC EDGAR fundamentals + filings fetcher (no API key required)
+clawock filings — SEC EDGAR fundamentals + filings fetcher (no API key required)
 
 Covers gaps in US market data: 10-K/10-Q sections, Form 4 insider trades,
 13F institutional holdings, and XBRL-derived key financials. All free, direct

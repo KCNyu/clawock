@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-fetch_fundamentals_em.py - 东财 datacenter 基本面 (美股 + 港股, 无 key)
+clawock fundamentals — 东财 datacenter 基本面 (美股 + 港股, 无 key)
 
 Adapted and modified from global-stock-data
 (https://github.com/simonlin1212/global-stock-data, Apache-2.0). See NOTICE.

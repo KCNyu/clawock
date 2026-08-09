@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-analyze_hk_stocks.py - HK portfolio price refresh + news + signal generation
+clawock analyze-hk — HK portfolio price refresh + news + signal generation
 
 Provider: Tencent qt.gtimg.cn (no key, real-time, works outside HK)
 Indices:  r_hkHSI / r_hkHSTECH via same API

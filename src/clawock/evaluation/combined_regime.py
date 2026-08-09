@@ -19,6 +19,7 @@ Outputs: results table + memory/.tmp/combined_*.png
 Run: clawock evaluate-combined-regime
 """
 import json
+import argparse
 import math
 from datetime import date
 from pathlib import Path
@@ -148,7 +149,9 @@ def _plotting():
     return plt, mdates
 
 
-def main():
+def main(argv=None):
+    argparse.ArgumentParser(prog='clawock evaluate-combined-regime',
+                            description=__doc__).parse_args(argv)
     plt, mdates = _plotting()
     plt.rcParams.update({'figure.facecolor': '#0f172a', 'axes.facecolor': '#0f172a',
                          'axes.edgecolor': '#334155', 'text.color': '#e2e8f0',
@@ -293,4 +296,4 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    raise SystemExit(main())

@@ -6,6 +6,7 @@ Run as ``clawock validate-sidecar <name>``.
 from __future__ import annotations
 
 import csv
+import argparse
 import json
 import math
 import os
@@ -988,6 +989,13 @@ def validate_coverage_badge(path: Path | str = 'assets/data/coverage.json') -> N
     print(f'validated {path}: {label} {message}')
 
 
+# The one list of what this command accepts: the CLI's `choices=` and the
+# dispatch below both read it, so a new validator cannot be reachable from one
+# and invisible to the other.
+VALIDATORS = ('macro', 'sentiment', 'influencer', 'news-digest', 'eod-archive',
+              'weekly-review', 'screenshots', 'gif', 'dashboard', 'coverage')
+
+
 def _dispatch(name: str) -> None:
     os.chdir(ROOT)
     if name == 'macro':
@@ -1021,17 +1029,18 @@ def _dispatch(name: str) -> None:
     elif name == 'coverage':
         validate_coverage_badge('assets/data/coverage.json')
     else:
-        choices = ('macro', 'sentiment', 'influencer', 'news-digest',
-                   'eod-archive', 'weekly-review', 'screenshots', 'gif',
-                   'dashboard', 'coverage')
-        raise SystemExit(f'unknown validator {name!r}; choose one of: {", ".join(choices)}')
+        raise SystemExit(
+            f'unknown validator {name!r}; choose one of: {", ".join(VALIDATORS)}')
 
 
 def main(argv: list[str] | None = None) -> int:
     argv = sys.argv[1:] if argv is None else argv
-    if len(argv) != 1:
-        print('usage: clawock validate-sidecar <name>', file=sys.stderr)
-        return 2
+    parser = argparse.ArgumentParser(
+        prog='clawock validate-sidecar',
+        description='Check one published artifact against its structural contract.')
+    parser.add_argument('name', choices=VALIDATORS,
+                        help='the artifact to validate')
+    argv = [parser.parse_args(argv).name]
     try:
         _dispatch(argv[0])
     except SystemExit:
