@@ -19,9 +19,9 @@ import pytest
 WS = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(WS, "scripts", "data"))
 
-from clawock import preflight_integrity as pi  # noqa: E402
-from clawock import recompute_realized as rr  # noqa: E402
-from clawock import recompute_aggregates as ra  # noqa: E402
+from clawock.portfolio import integrity as pi  # noqa: E402
+from clawock.portfolio import realized as rr  # noqa: E402
+from clawock.portfolio import aggregates as ra  # noqa: E402
 import build_dashboard as bd  # noqa: E402
 
 

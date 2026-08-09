@@ -24,7 +24,8 @@ from datetime import date, datetime, time, timedelta, timezone
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
-from clawock import earnings_review, entry_gate, instrument_registry, thesis_registry
+from clawock import earnings_review, entry_gate, thesis_registry
+from clawock.portfolio import instruments as instrument_registry
 from clawock.workspace import workspace_root
 
 WS = workspace_root(Path.cwd())

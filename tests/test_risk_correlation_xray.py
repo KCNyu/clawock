@@ -18,7 +18,7 @@ import pytest
 np = pytest.importorskip("numpy")
 
 ROOT = Path(__file__).resolve().parents[1]
-from clawock import portfolio_risk_metrics as risk
+from clawock.portfolio import risk
 
 START = datetime(2026, 4, 1, tzinfo=timezone.utc)
 

@@ -90,13 +90,13 @@ clawock 是**美股 + 港股 + 黄金定投**的实盘组合。工具包遵循�
 
 | 端点 | 数据 | 源 | 可达 |
 |---|---|---|:---:|
-| `clawock integrity` (`src/clawock/preflight_integrity.py`) | 数据不变量硬闸: TCV / PNL / FX / cash 对账 | 本地 | ✅ |
+| `clawock integrity` (`src/clawock/portfolio/integrity.py`) | 数据不变量硬闸: TCV / PNL / FX / cash 对账 | 本地 | ✅ |
 | `src/clawock/bar_checks.py` | bar/quote **判据唯一真源**:结构不可能(fatal) vs 可疑(flag,含 o==h==l==c 退化区间)、同源区间越界、gap-safe 收益(停牌不填 0)。策略仍由各 fetcher 自己定 | 纯本地(无 I/O) | ✅ |
 | `src/clawock/evidence/research_provenance.py` | 研究报告 Decimal 计算、两源数字溯源与 fail-closed 准出（tolerance 上限 5%，算式异常也只输出结构化 fail） | 结构化 manifest + 本地确定性校验 | ✅ |
 | `src/clawock/thesis_registry.py` | 持久 thesis schema/validator、证据驱动 drift（红线触发/解除对称要证据）与 decision link 解析；`clawock thesis` 操作 | `memory/theses/*.json` + 本地确定性校验 | ✅ |
 | `src/clawock/earnings_review.py` | 一手财报复盘:来源分级、盈利质量数学、管理层承诺账本、provenance 准出与 thesis 证据交接；`clawock earnings` 操作 | `memory/earnings/*/*.json` + 本地确定性校验 | ✅ |
 | `workflow_health.py` | 排程 GitHub Actions 周度健康:连续失败计数 + **静默停跑**检测(节奏从 workflow 文件里读) | `gh run list` + `.github/workflows/*.yml` | ✅ |
-| `src/clawock/instrument_registry.py` | 工具标的**唯一真源**:杠杆倍数、underlying 看穿(`look_through`/`issuer_for` — 基金→发行人、指数基金→无发行人)、canonical bar manifest | `config/instruments.json` | ✅ |
+| `src/clawock/portfolio/instruments.py` | 工具标的**唯一真源**:杠杆倍数、underlying 看穿(`look_through`/`issuer_for` — 基金→发行人、指数基金→无发行人)、canonical bar manifest | `config/instruments.json` | ✅ |
 | `src/clawock/entry_gate.py` | 建仓前研究闸:信息分级与投资质量分离、确定性硬否决(行业例外写进配置)、pass/reject/gray 判定与深研路由；`clawock entry-gate` 操作 | `memory/entry-gates/*.json` + `config/entry-gate-vetoes.json` | ✅ |
 
 ## Layer 8 · 回测/自省 Backtest & Calibration

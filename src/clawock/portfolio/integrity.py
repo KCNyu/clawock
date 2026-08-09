@@ -29,7 +29,7 @@ cost_basis/prev_close/trades[])复原，且都有一道闸守着。计算链：
   LEV_DIRECTION  同标的 2x 与 1x 的 today_change_pct 同号                WARN
                  → 杠杆 ETF 反号坏 tick（07226 vs 03033）
   FX_TAG         us 区 currency==USD、hk 区 currency==HKD                 ERROR
-                 → HKD+USD 不能直接相加（fetch_fx 铁律）
+                 → HKD+USD 不能直接相加（`clawock fx` 铁律）
   STALENESS      data_source / last_updated 不早于上一交易日              WARN
                  → 休市日写 stale 价当新 session（cac6222）
   STALE_PRICE    current_price ≠ 上一交易日 prev_close（四位小数）         WARN
@@ -63,8 +63,8 @@ WS = workspace_root(Path.cwd())
 PORTFOLIO = WS / 'portfolio.json'
 OUT = WS / 'assets' / 'data' / 'integrity_report.json'
 
-from clawock.instrument_registry import INSTRUMENTS
-from clawock.portfolio_math import (
+from clawock.portfolio.instruments import INSTRUMENTS
+from clawock.portfolio.math import (
     active_holdings as _active,
     derive_cash,
     moving_average_cost as _moving_avg_cost,
@@ -231,7 +231,7 @@ def check(portfolio_path=PORTFOLIO):
             if abs(rp - tally) > 1.0:
                 add('REALIZED_SUM', 'WARN',
                     f'realized_pnl={rp:.2f} ≠ trades 汇总={tally:.2f}（差 {rp - tally:+.2f}）；'
-                    f'禁止手写 realized_pnl，应跑 recompute_realized', region)
+                    f'禁止手写 realized_pnl，应跑 clawock realized', region)
 
         # 逐只 -----------------------------------------------------------
         sib_dirs = {}

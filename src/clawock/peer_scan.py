@@ -23,7 +23,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-from clawock.instrument_registry import get as get_instrument
+from clawock.portfolio.instruments import get as get_instrument
 from clawock.suggest_peers import suggest_auto_peers
 from clawock.workspace import workspace_root
 

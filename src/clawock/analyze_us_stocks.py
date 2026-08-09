@@ -22,8 +22,8 @@ from clawock.fetch_us_stocks import (
     update_us_portfolio, load_api_keys,
     PORTFOLIO_PATH, SESSION, TIMEOUT
 )
-from clawock.instrument_registry import get as get_instrument
-from clawock.market_books import region_book
+from clawock.portfolio.instruments import get as get_instrument
+from clawock.portfolio.books import region_book
 
 ET_TZ  = timezone(timedelta(hours=-4))
 HKT_TZ = timezone(timedelta(hours=8))

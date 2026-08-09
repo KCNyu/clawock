@@ -10,12 +10,12 @@ sys.path.insert(0, str(WS / "scripts" / "data"))
 import build_dashboard  # noqa: E402
 from clawock import fetch_daily_bars
 from clawock import fetch_us_stocks  # noqa: E402
-from clawock import instrument_registry  # noqa: E402
-from clawock import portfolio_risk_metrics  # noqa: E402
+from clawock.portfolio import instruments as instrument_registry  # noqa: E402
+from clawock.portfolio import risk as portfolio_risk_metrics  # noqa: E402
 from clawock import compute_quant_signals  # noqa: E402
 from clawock import compute_regime  # noqa: E402
 from clawock import compute_t0_setups  # noqa: E402
-from clawock import preflight_integrity  # noqa: E402
+from clawock.portfolio import integrity as preflight_integrity  # noqa: E402
 from clawock_kcnyu.harness import brief_preflight  # noqa: E402
 from clawock import analyze_hk_stocks  # noqa: E402
 from clawock import analyze_us_stocks  # noqa: E402
@@ -23,7 +23,7 @@ from clawock import analyze_us_stocks  # noqa: E402
 
 def test_registry_implementation_is_product_not_a_repository_script():
     assert instrument_registry.__file__ == str(
-        WS / "src" / "clawock" / "instrument_registry.py"
+        WS / "src" / "clawock" / "portfolio" / "instruments.py"
     )
     assert not (WS / "scripts" / "data" / "instrument_registry.py").exists()
 

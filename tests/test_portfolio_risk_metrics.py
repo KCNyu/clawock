@@ -10,7 +10,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-from clawock import portfolio_risk_metrics as risk
+from clawock.portfolio import risk
 
 
 def _utc_epoch(day: str) -> int:

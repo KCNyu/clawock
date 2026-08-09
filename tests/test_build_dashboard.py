@@ -64,7 +64,7 @@ def _fresh_build_status_fixture(monkeypatch, tmp_path, at):
     monkeypatch.setattr(dashboard, "WS_ROOT", tmp_path)
     monkeypatch.setitem(
         sys.modules,
-        "clawock.preflight_integrity",
+        "clawock.portfolio.integrity",
         SimpleNamespace(check=lambda: {
             "ok": True, "error_count": 0, "warn_count": 0, "findings": [],
         }),
@@ -105,7 +105,7 @@ def test_shadow_failure_replaces_stale_result_and_success_clears_marker(monkeypa
 
     monkeypatch.setitem(
         sys.modules,
-        "clawock.shadow_portfolio",
+        "clawock.portfolio.shadow",
         SimpleNamespace(
             load_leg_config=lambda _path: {},
             build_shadow_portfolio=explode,
@@ -131,7 +131,7 @@ def test_shadow_failure_replaces_stale_result_and_success_clears_marker(monkeypa
 
     monkeypatch.setitem(
         sys.modules,
-        "clawock.shadow_portfolio",
+        "clawock.portfolio.shadow",
         SimpleNamespace(
             load_leg_config=lambda _path: {},
             build_shadow_portfolio=succeed,
@@ -457,7 +457,7 @@ def test_stale_market_leg_makes_build_unhealthy(monkeypatch, tmp_path):
     monkeypatch.setattr(dashboard, "WS_ROOT", tmp_path)
     monkeypatch.setitem(
         sys.modules,
-        "clawock.preflight_integrity",
+        "clawock.portfolio.integrity",
         SimpleNamespace(check=lambda: {
             "ok": True, "error_count": 0, "warn_count": 0, "findings": [],
         }),
