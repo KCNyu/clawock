@@ -80,9 +80,9 @@ clawock 是**美股 + 港股 + 黄金定投**的实盘组合。工具包遵循�
 
 | 端点 | 数据 | 源 | 可达 |
 |---|---|---|:---:|
-| `compute_quant_signals.py` | 双均线 / 动量 / RSI / ATR / vol-target(杠杆 ETF 按标的) | 派生 | ✅ |
-| `compute_regime.py` | 杠杆刻度盘: 200DMA 趋势 + 20d 波动带 | 派生 | ✅ |
-| `compute_t0_setups.py` | T+0 牌面评级 + 追高检测 | 派生 | ✅ |
+| `clawock quant` | 双均线 / 动量 / RSI / ATR / vol-target(杠杆 ETF 按标的) | 派生 | ✅ |
+| `clawock regime` | 杠杆刻度盘: 200DMA 趋势 + 20d 波动带 | 派生 | ✅ |
+| `clawock t0` | T+0 牌面评级 + 追高检测 | 派生 | ✅ |
 | `cross_sectional_factor.py` | 同行/1x 标的行业中性排名、杠杆 decay 对比（激活闸前仅研究） | 腾讯 qfq + SEC XBRL | ✅ |
 | `peer_residual_engine.py` | 人工同行篮子等权/流动性权重残差、breadth/dispersion/leadership（HK 禁自动发现） | 腾讯 qfq + peer-map | ✅ |
 
@@ -112,7 +112,7 @@ clawock 是**美股 + 港股 + 黄金定投**的实盘组合。工具包遵循�
 | `validate_regime_dial.py` | 杠杆刻度盘样本外验证：walk-forward + 环形位移置换检验 + 阈值敏感面；建模的是**生产 tier 映射**(1.0/0.5/0.0)而非 2x→cash | 腾讯 kline | ✅ |
 | `src/clawock/decision_v2.py` | 安装包拥有的 strategy episode 结算、coverage、严格前向分层 confidence 校准、方向命中审计 | workspace decisions ledger + canonical bars | ✅ |
 | `src/clawock/risk_discipline.py` | 持久 breach 账本、确认/限时 override、成交证据与同风险增仓冻结；`clawock risk` 操作 | guardrail + portfolio trades | ✅ |
-| `quant_signal_review.py` · `t0_setup_review.py` | 因子 / 牌面 edge 自检(T+1/T+5 命中率) | 本地留痕 | ✅ |
+| `clawock quant-review` · `clawock t0-review` | 因子 / 牌面 edge 自检(T+1/T+5 命中率) | 本地留痕 | ✅ |
 | `cross_sectional_factor.py` | 预注册 walk-forward + date×ticker 双向聚类 CI；存活偏差未消除即禁止入决策 | 本地留痕 + 调整后日线 | ✅ |
 | `peer_residual_engine.py` | leader 延续 / laggard 规避 / 均值回归分规则 prospective 聚类校准 | 本地留痕 + 人工 taxonomy | ✅ |
 | `news_evidence_graph.py` | 重复新闻衰减、事件到期与 catalyst actionable 权限审计 | 本地留痕 + 预注册 policy | ✅ |

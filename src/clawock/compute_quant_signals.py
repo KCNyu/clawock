@@ -32,20 +32,12 @@ from zoneinfo import ZoneInfo
 
 import requests
 
-# The checkout root, so `clawock` resolves from the tree this file ships
-# in. Reached through the scripts/data/workspace shim until #267 step 3,
-# whose only remaining job was inserting this path as a side effect.
-sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
-sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
-from clawock.workspace import workspace_root  # noqa: E402
-from clawock import trading_calendar  # noqa: E402
+from clawock import trading_calendar
+from clawock.instrument_registry import require as require_instrument
+from clawock.safe_io import safe_write_json
+from clawock.workspace import workspace_root
 
-# Code lives in the checkout; only DATA lives in the workspace. `workspace_root`
-# is overridable, so resolving our own modules through WS would read them out of
-# someone else's data directory — or silently pick up whatever happens to be
-# there. Same expression WS is seeded from, kept separate on purpose (#269).
-_CHECKOUT = Path(__file__).resolve().parents[2]
-WS = workspace_root(Path(__file__).resolve().parents[2])
+WS = workspace_root(Path.cwd())
 PORTFOLIO = WS / 'portfolio.json'
 OUT = WS / 'assets' / 'data' / 'quant_signals.json'
 HIST = WS / 'assets' / 'data' / 'quant_signals_history.jsonl'
@@ -58,16 +50,6 @@ UA = ('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 '
 SIGMA_TARGET = 0.25   # vol-target sizing 的组合级目标波动（25% 年化）
 MAX_STALE_DAYS = 7
 RETIRED_RETENTION_DAYS = 7
-
-sys.path.insert(0, str(_CHECKOUT / 'scripts' / 'data'))
-from clawock.instrument_registry import require as require_instrument  # noqa: E402
-
-try:
-    from clawock.safe_io import safe_write_json
-except Exception:
-    def safe_write_json(path, data, indent=2):
-        Path(path).write_text(json.dumps(data, ensure_ascii=False, indent=indent))
-
 
 def _parse_bars(rows):
     """Tencent kline 行 = [date, open, close, high, low, ...] → list of dict（含 OHLC）。"""
@@ -214,8 +196,10 @@ def _universe_details():
     """
     port = json.loads(PORTFOLIO.read_text())
     by_code = {}
-    for region in ('hk_stocks', 'us_stocks'):
-        for h in port['portfolios'][region]['holdings']:
+    for book in (port.get('portfolios') or {}).values():
+        if not isinstance(book, dict):
+            continue
+        for h in book.get('holdings', []):
             if h.get('shares', 0) <= 0:
                 continue
             t = h.get('ticker')
@@ -372,7 +356,8 @@ def refresh_rows(previous, universe, *, run_date=None, previous_as_of=None,
     return rows
 
 
-def main():
+def main(argv=None):
+    del argv
     prev = {}
     if OUT.exists():
         try:

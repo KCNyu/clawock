@@ -18,32 +18,15 @@ CI 整体成立时才允许反向解读，不按 raw n 自动解锁。
 """
 import json
 import random
-import sys
 from datetime import date
 from pathlib import Path
 
-# The checkout root, so `clawock` resolves from the tree this file ships
-# in. Reached through the scripts/data/workspace shim until #267 step 3,
-# whose only remaining job was inserting this path as a side effect.
-sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
-sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
-from clawock.workspace import workspace_root  # noqa: E402
+from clawock.safe_io import safe_write_json
+from clawock.workspace import workspace_root
 
-# Code lives in the checkout; only DATA lives in the workspace. `workspace_root`
-# is overridable, so resolving our own modules through WS would read them out of
-# someone else's data directory — or silently pick up whatever happens to be
-# there. Same expression WS is seeded from, kept separate on purpose (#269).
-_CHECKOUT = Path(__file__).resolve().parents[2]
-WS = workspace_root(Path(__file__).resolve().parents[2])
+WS = workspace_root(Path.cwd())
 HIST = WS / 'assets' / 'data' / 'quant_signals_history.jsonl'
 OUT = WS / 'assets' / 'data' / 'quant_signal_review.json'
-
-sys.path.insert(0, str(_CHECKOUT / 'scripts' / 'data'))
-try:
-    from clawock.safe_io import safe_write_json
-except Exception:
-    def safe_write_json(path, data, indent=2):
-        Path(path).write_text(json.dumps(data, ensure_ascii=False, indent=indent))
 
 # 因子 → (触发条件, 预期方向: +1=涨算命中 / -1=跌算命中, 结算窗口天数)
 FACTOR_TESTS = {
@@ -89,7 +72,8 @@ def clustered_ci(observations, samples=2000):
     ]
 
 
-def main():
+def main(argv=None):
+    del argv
     if not HIST.exists():
         print('  no history yet — skip')
         return

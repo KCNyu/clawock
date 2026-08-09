@@ -46,7 +46,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 # whose only remaining job was inserting this path as a side effect.
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
-from clawock import run_card  # noqa: E402  every backtest leaves evidence behind
+from clawock import compute_regime, run_card  # noqa: E402  every backtest leaves evidence behind
 from clawock.workspace import workspace_root  # noqa: E402
 
 WS = workspace_root(Path(__file__).resolve().parent.parent.parent)
@@ -223,7 +223,7 @@ def main():
                 'names': [list(n) for n in NAMES]},
         inputs=series_inputs,
         metrics=measured,
-        code_files=[__file__, Path(__file__).with_name('compute_regime.py')],
+        code_files=[__file__, Path(compute_regime.__file__)],
         notes=['charts are written to memory/.tmp/ and are not evidence — '
                'they are regenerated on every run and never committed'],
     )
