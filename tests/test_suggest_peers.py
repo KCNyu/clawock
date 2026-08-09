@@ -2,18 +2,13 @@
 
 from __future__ import annotations
 
-import sys
 from pathlib import Path
 
 import requests
 
 
 WS = Path(__file__).resolve().parents[1]
-DATA_SCRIPTS = str(WS / "scripts" / "data")
-if DATA_SCRIPTS not in sys.path:
-    sys.path.insert(0, DATA_SCRIPTS)
-
-import suggest_peers as sp  # noqa: E402
+from clawock import suggest_peers as sp
 
 
 class FakeResponse:
@@ -27,7 +22,7 @@ class FakeResponse:
 
 
 def test_us_excludes_self_and_curated_then_caps_six(monkeypatch):
-    monkeypatch.setattr(sp, "load_api_keys", lambda: {"FINNHUB_API_KEY": "test"})
+    monkeypatch.setattr(sp, "_api_key", lambda name: "test")
     monkeypatch.setattr(
         sp.requests,
         "get",
@@ -45,7 +40,7 @@ def test_us_excludes_self_and_curated_then_caps_six(monkeypatch):
 
 
 def test_us_outage_returns_empty_and_diagnoses(monkeypatch, capsys):
-    monkeypatch.setattr(sp, "load_api_keys", lambda: {"FINNHUB_API_KEY": "test"})
+    monkeypatch.setattr(sp, "_api_key", lambda name: "test")
 
     def timeout(*args, **kwargs):
         raise requests.Timeout("offline")

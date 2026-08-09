@@ -1,4 +1,4 @@
-"""CLI contract tests for scripts/data/fetch_peers.py.
+"""CLI contract tests for ``clawock fetch-peers``.
 
 The script is stdin-driven and takes no options, so an agent probing it with
 ``--help`` used to fall through to ``json.loads('')`` and exit 1 — a non-zero
@@ -13,6 +13,7 @@ sends an explicit empty request.
 from __future__ import annotations
 
 import json
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -21,22 +22,21 @@ import pytest
 
 
 WS = Path(__file__).resolve().parents[1]
-SCRIPT = WS / "scripts" / "data" / "fetch_peers.py"
-DATA_SCRIPTS = str(WS / "scripts" / "data")
+PACKAGE_SRC = str(WS / "src")
 
 
 def run(args=(), stdin=""):
     return subprocess.run(
-        [sys.executable, str(SCRIPT), *args],
+        [sys.executable, "-m", "clawock.cli", "fetch-peers", *args],
         input=stdin, capture_output=True, text=True, timeout=60,
+        cwd=WS,
+        env={**os.environ, "PYTHONPATH": PACKAGE_SRC},
     )
 
 
 @pytest.fixture(scope="module")
 def fp():
-    if DATA_SCRIPTS not in sys.path:
-        sys.path.insert(0, DATA_SCRIPTS)
-    return pytest.importorskip("fetch_peers")
+    return pytest.importorskip("clawock.fetch_peers")
 
 
 @pytest.mark.parametrize("flag", ["-h", "--help"])
@@ -44,7 +44,7 @@ def test_help_exits_zero_with_usage(flag):
     """Probing the script must never poison a cron run."""
     r = run([flag])
     assert r.returncode == 0
-    assert "usage: fetch_peers.py" in r.stdout
+    assert "usage: clawock fetch-peers" in r.stdout
     assert "stdin" in r.stdout
 
 
@@ -243,8 +243,8 @@ def test_process_exits_despite_an_uncooperative_worker():
 
     program = textwrap.dedent(f"""
         import sys, time
-        sys.path.insert(0, {DATA_SCRIPTS!r})
-        import fetch_peers as fp
+        sys.path.insert(0, {PACKAGE_SRC!r})
+        from clawock import fetch_peers as fp
 
         def uncooperative(ticker, deadline=None):
             time.sleep(30)                      # never looks at the deadline

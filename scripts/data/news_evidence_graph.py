@@ -454,7 +454,7 @@ def collect_sec_events(policy, portfolio, underlying, enabled=True):
     if not enabled:
         return [], {'status': 'skipped'}
     try:
-        from fetch_us_filings import get_filings
+        from clawock.fetch_us_filings import get_filings
     except Exception as exc:
         return [], {'status': 'import_failed', 'error': str(exc)[:120]}
     events, errors = [], {}

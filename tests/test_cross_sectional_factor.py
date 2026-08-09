@@ -1,6 +1,5 @@
 import copy
 import json
-import sys
 from datetime import date, timedelta
 from pathlib import Path
 
@@ -8,9 +7,7 @@ import pytest
 
 
 ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT / "scripts" / "data"))
-
-import cross_sectional_factor as factor  # noqa: E402
+from clawock import cross_sectional_factor as factor
 
 
 def _bars(rate, count=180, volume=1000):

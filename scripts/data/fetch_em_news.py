@@ -40,8 +40,7 @@ OUT = WS / 'assets' / 'data' / 'em_news.json'
 UA = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36'
 TIMEOUT = 12
 
-sys.path.insert(0, str(_CHECKOUT / 'scripts' / 'data'))
-from _em_http import em_get  # noqa: E402  统一请求节流出口
+from clawock._em_http import em_get  # noqa: E402  统一请求节流出口
 try:
     from clawock.safe_io import safe_write_json
 except Exception:

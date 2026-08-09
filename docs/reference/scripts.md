@@ -13,11 +13,11 @@ title: clawock · scripts 详细参考
 ### 核心（当前在用）
 - **`scripts/data/fetch_us_stocks.py`**：美股多 provider 抓取（7 路 fallback），自动写回 portfolio.json；prev_close 由 Polygon `/prev` 独立获取（带日期戳）
 - **`scripts/data/analyze_us_stocks.py`**：美股完整分析 = 刷价格 + RSI-14/MA20/50 + Finnhub 新闻 + 信号
-- **`scripts/data/fetch_us_filings.py`**：SEC EDGAR 对接 — 10-K/10-Q/8-K filings、XBRL 财务概念、Form 4 insider、13F-HR；无需 API key；Mode 3 fundamental 深挖时用。完整用法（2026-06-10 自 TOOLS.md 移入控 16K）：
+- **`clawock filings`**：SEC EDGAR 对接 — 10-K/10-Q/8-K filings、XBRL 财务概念、Form 4 insider、13F-HR；无需 API key；Mode 3 fundamental 深挖时用。完整用法（2026-06-10 自 TOOLS.md 移入控 16K）：
 
 | 数据 | 用法 |
 |---|---|
-| 最近 filings (10-K/10-Q/8-K) | `fetch_us_filings.py RKLB` （`--filings 10-K,10-Q` 指定表型） |
+| 最近 filings (10-K/10-Q/8-K) | `clawock filings RKLB` （`--filings 10-K,10-Q` 指定表型） |
 | XBRL 关键财务概念（营收/净利/现金/EPS 等 13 项）| `--financials` |
 | Insider Form 4 / 13F-HR | `--form4` / `--13f` |
 | 机器可读 | 任一模式加 `--json` |

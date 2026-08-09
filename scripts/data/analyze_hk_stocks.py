@@ -27,7 +27,7 @@ _CHECKOUT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(_CHECKOUT))
 sys.path.insert(0, str(_CHECKOUT / "src"))
 from clawock import bar_checks  # noqa: E402  shared contract
-from _em_http import em_get  # noqa: E402
+from clawock._em_http import em_get  # noqa: E402
 from clawock.instrument_registry import INSTRUMENTS  # noqa: E402
 
 WS_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))

@@ -44,6 +44,7 @@ from clawock import (
     brief_context,
     brief_decision_packet,
     decision_v2,
+    peer_scan,
     research_surface,
     risk_discipline,
     thesis_registry,
@@ -55,7 +56,6 @@ TMP_DIR = WS / 'memory' / '.tmp'
 SNAPSHOT_DIR = WS / 'memory' / 'snapshots'
 
 sys.path.insert(0, str(_CHECKOUT / 'scripts' / 'data'))
-import peer_scan  # noqa: E402
 import workflow_outcomes  # noqa: E402
 import mover_news  # noqa: E402
 from clawock.instrument_registry import get as get_instrument  # noqa: E402
@@ -124,7 +124,14 @@ def collect_us_fundamentals(portfolio):
         if h.get('shares', 0) <= 0 or _is_leveraged_etf(h):
             continue
         ticker = h['ticker']
-        out, ok = _run('scripts/data/fetch_us_filings.py', [ticker, '--financials', '--json'], timeout=30)
+        try:
+            result = subprocess.run(
+                ['clawock', 'filings', ticker, '--financials', '--json'],
+                cwd=WS, capture_output=True, text=True, timeout=30,
+            )
+            out, ok = result.stdout, result.returncode == 0
+        except Exception as exc:
+            out, ok = f'{type(exc).__name__}: {exc}', False
         if not ok:
             fundamentals[ticker] = {'error': out[-300:]}
             continue
@@ -1508,7 +1515,7 @@ def main(argv=None):
     cross_sectional_factor_ctx = {}
     try:
         subprocess.run(
-            ['python3', str(WS / 'scripts' / 'data' / 'cross_sectional_factor.py')],
+            ['clawock', 'cross-factor'],
             capture_output=True, text=True, timeout=240, check=False,
         )
         cs_path = WS / 'assets' / 'data' / 'cross_sectional_factor.json'
@@ -1518,8 +1525,8 @@ def main(argv=None):
             rankings = cross_sectional_factor.get('live_rankings') or {}
             held = {
                 h.get('ticker')
-                for leg in ('hk_stocks', 'us_stocks')
-                for h in portfolio.get('portfolios', {}).get(leg, {}).get('holdings', [])
+                for book in portfolio.get('portfolios', {}).values()
+                for h in book.get('holdings', [])
                 if h.get('shares', 0) > 0
             }
             held_rows = {
@@ -1560,7 +1567,7 @@ def main(argv=None):
     peer_residual_ctx = {}
     try:
         subprocess.run(
-            ['python3', str(WS / 'scripts' / 'data' / 'peer_residual_engine.py')],
+            ['clawock', 'peer-residual'],
             capture_output=True, text=True, timeout=180, check=False,
         )
         pr_path = WS / 'assets' / 'data' / 'peer_residual.json'
@@ -1569,8 +1576,8 @@ def main(argv=None):
             peer_live = peer_residual.get('live') or {}
             held = {
                 h.get('ticker')
-                for leg in ('hk_stocks', 'us_stocks')
-                for h in portfolio.get('portfolios', {}).get(leg, {}).get('holdings', [])
+                for book in portfolio.get('portfolios', {}).values()
+                for h in book.get('holdings', [])
                 if h.get('shares', 0) > 0
             }
             peer_residual_ctx = {

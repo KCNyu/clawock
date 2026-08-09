@@ -2,7 +2,7 @@
   "_meta": {
     "purpose": "Per-holding peer/neighborhood map for rotation detection. Maintained semi-manually; revisit every ~3 months or when adding new positions.",
     "private_peers_handled_by": "Tavily news search in preflight (no price feed)",
-    "listed_peers_handled_by": "scripts/data/fetch_peers.py (Tencent quote + Tencent qfq daily bars; Nasdaq is the US price fallback)",
+    "listed_peers_handled_by": "clawock fetch-peers (Tencent quote + Tencent qfq daily bars; Nasdaq is the US price fallback)",
     "last_updated": "2026-07-22",
     "ticker_verification": "Tickers verified against the Tencent gtimg feed on 2026-07-22; brief_preflight warns on any configured-name vs fetched-name mismatch."
   },

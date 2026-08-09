@@ -1,5 +1,4 @@
 import json
-import sys
 from datetime import date, timedelta
 from pathlib import Path
 
@@ -7,9 +6,7 @@ import pytest
 
 
 ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT / "scripts" / "data"))
-
-import peer_residual_engine as peer  # noqa: E402
+from clawock import peer_residual_engine as peer
 
 
 def _bars(rate, count=80, volume=1000):

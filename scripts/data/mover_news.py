@@ -163,7 +163,7 @@ def _tencent_items(symbol, feed_type, tier, source_class, *, now, window, http):
 
 
 def _sec_items(ticker, *, now, window, http):
-    import fetch_us_filings  # noqa: PLC0415 — optional, only needed on the US leg
+    from clawock import fetch_us_filings  # noqa: PLC0415 — optional on the US leg
 
     cik = fetch_us_filings.lookup_cik(ticker)
     if not cik:
