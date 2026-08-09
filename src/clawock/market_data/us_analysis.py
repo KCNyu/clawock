@@ -142,9 +142,13 @@ def get_news(ticker: str, api_key: str, days: int = 7) -> List[Dict]:
     start = (now - timedelta(days=days)).strftime('%Y-%m-%d')
     end   = now.strftime('%Y-%m-%d')
     try:
+    # Credential goes in a header, never the URL: a query-string secret ends up
+    # in proxy logs, crash dumps and Referer, and taints every value derived from
+    # the response for any dataflow analysis reading this file.
         r = SESSION.get(
-            f"https://finnhub.io/api/v1/company-news?symbol={ticker}"
-            f"&from={start}&to={end}&token={api_key}",
+            "https://finnhub.io/api/v1/company-news",
+            params={'symbol': ticker, 'from': start, 'to': end},
+            headers={'X-Finnhub-Token': api_key},
             timeout=TIMEOUT,
         )
         return r.json()[:5] if isinstance(r.json(), list) else []
