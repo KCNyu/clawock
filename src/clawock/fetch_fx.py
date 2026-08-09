@@ -8,20 +8,23 @@ Provider chain:
   3. Yahoo HKD=X      – live spot, no key
 
 Usage:
-  python3 fetch_fx.py                          # print USDHKD rate
-  python3 fetch_fx.py --json                   # JSON output
-  python3 fetch_fx.py --convert 10000 HKD USD  # convert amount
+  clawock fx                          # print USDHKD rate
+  clawock fx --json                   # JSON output
+  clawock fx --convert 10000 HKD USD  # convert amount
 """
 
+import argparse
 import json
 import os
-import sys
 import time
+from pathlib import Path
 from typing import Optional, Dict
 import requests
 
-WS_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-CACHE_PATH = os.path.join(WS_ROOT, '.cache', 'fx_rate.json')
+from clawock.workspace import workspace_root
+
+WS_ROOT = workspace_root(Path.cwd())
+CACHE_PATH = str(WS_ROOT / '.cache' / 'fx_rate.json')
 # The durable record, one line per day. The cache above is gitignored and
 # overwritten, so until #323 the only place a past day's rate survived was the
 # commit history of assets/data/dashboard.json — which #314 moved off master.
@@ -34,7 +37,7 @@ CACHE_PATH = os.path.join(WS_ROOT, '.cache', 'fx_rate.json')
 # `git add 'memory/'` every morning, so this rides an existing, proven commit
 # path rather than needing a new one. Append-only, so a morning that fails to
 # commit loses nothing — the next one carries both days.
-LEDGER_PATH = os.path.join(WS_ROOT, 'memory', 'fx-rates.jsonl')
+LEDGER_PATH = str(WS_ROOT / 'memory' / 'fx-rates.jsonl')
 CACHE_TTL_HOURS = 4   # FX moves slowly intraday; refresh 6x/day is enough
 TIMEOUT = 10
 
@@ -223,24 +226,32 @@ def convert(amount: float, from_ccy: str, to_ccy: str) -> Dict:
     raise ValueError(f"unsupported pair {from_ccy}->{to_ccy}; only USD<->HKD")
 
 
-if __name__ == '__main__':
-    as_json = '--json' in sys.argv
-    if '--convert' in sys.argv:
-        idx = sys.argv.index('--convert')
-        amount   = float(sys.argv[idx + 1])
-        from_ccy = sys.argv[idx + 2].upper()
-        to_ccy   = sys.argv[idx + 3].upper()
+def main(argv=None):
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--json', action='store_true')
+    parser.add_argument('--force-refresh', action='store_true')
+    parser.add_argument('--convert', nargs=3, metavar=('AMOUNT', 'FROM', 'TO'))
+    args = parser.parse_args(argv)
+    if args.convert:
+        amount = float(args.convert[0])
+        from_ccy = args.convert[1].upper()
+        to_ccy = args.convert[2].upper()
         result = convert(amount, from_ccy, to_ccy)
-        if as_json:
+        if args.json:
             print(json.dumps(result, indent=2))
         else:
             print(f"{amount} {from_ccy} = {result['amount']} {to_ccy}  "
                   f"(rate {result['rate']}, {result['source']})")
     else:
-        fx = get_usdhkd()
-        if as_json:
+        fx = get_usdhkd(force_refresh=args.force_refresh)
+        if args.json:
             print(json.dumps(fx, indent=2))
         else:
             print(f"USDHKD: {fx['rate']}  [{fx['source']}, {fx['fetched_at']}]")
             if 'warning' in fx:
                 print(f"  ⚠️  {fx['warning']}")
+    return 0
+
+
+if __name__ == '__main__':
+    raise SystemExit(main())

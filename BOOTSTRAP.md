@@ -12,7 +12,7 @@
 1. **绝不**用 `portfolio.json` 的 `current_price` 计算盈亏 — 它是旧缓存。先跑
    `scripts/data/analyze_{us,hk}_stocks.py` 刷价，再回答。
 2. **绝不**把 HKD 和 USD 相加。Book total 必须双视角（USD-base + HKD-base），
-   显式标 FX rate + source + timestamp。换算工具 `scripts/data/fetch_fx.py --json`。
+   显式标 FX rate + source + timestamp。换算工具 `clawock fx --json`。
 3. **绝不**对 `00100 MINIMAX` 在 Tencent 失败时假装拿到数据 —
    它是唯一源，挂了必须明说 "实时价获取失败"。
 4. **绝不**用旧版 `analyze_us_stocks.py` / `analyze_hk_stocks.py` 路径

@@ -23,7 +23,7 @@ title: clawock · scripts 详细参考
 | 机器可读 | 任一模式加 `--json` |
 
   注意：速率限制 10 req/sec（脚本默认 8/sec）超量 403；`SEC_USER_AGENT` 可放 `.api_keys`；ticker→CIK 本地缓存 7 天；非美股票返回 "CIK not found"
-- **`scripts/data/fetch_fx.py`**：USDHKD 汇率（Frankfurter → exchangerate.host → Yahoo HKD=X 三路 fallback）；4h 本地缓存；`--convert AMT FROM TO` 直接换算。**HK + US 算 book total 必须先调它**
+- **`clawock fx`**：公开包内的 USDHKD 汇率 provider（Frankfurter → exchangerate.host → Yahoo HKD=X 三路 fallback）；4h 工作区缓存；`--convert AMT FROM TO` 直接换算。**HK + US 算 book total 必须先调它**
 - **`scripts/data/analyze_hk_stocks.py`**：港股完整分析 = Tencent + Eastmoney HK 双源对账 → stooq → yfinance 兜底 + 恒指/恒科 + Finnhub 新闻 + 信号；c/pc 偏差 > 1% 写入 `_divergence`
 - `check_portfolio.sh`：快速查看持仓
 

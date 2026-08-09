@@ -49,7 +49,7 @@ jobs:
         continue-on-error: true
         run: |
           # FX
-          python3 scripts/data/fetch_fx.py --json
+          clawock fx --json
           # Sample HK quote (Tencent fallback) — skip if all 3 routes down (network policy)
           python3 -c "
           import sys
