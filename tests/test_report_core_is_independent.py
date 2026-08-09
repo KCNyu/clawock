@@ -56,7 +56,7 @@ def test_the_core_never_re_invokes_the_harness_scripts():
     """The facade this slice exists to avoid. Checked through the AST, because
     both modules legitimately *mention* report_postflight.py in prose."""
     offenders = []
-    for name in ("report.py", "cli.py", "validation.py"):
+    for name in ("harness/report.py", "cli.py", "harness/validation.py"):
         tree = ast.parse((ROOT / "src" / "clawock" / name).read_text())
         for node in ast.walk(tree):
             if isinstance(node, ast.Attribute) and node.attr in {"run", "Popen",
