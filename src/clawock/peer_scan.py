@@ -6,7 +6,7 @@ peer_scan.py — per-holding peer/rotation comparison shared by the preflights.
 briefings) both need the same thing: for each active holding, how its listed
 peers moved today and over 5 sessions, plus a divergence flag. Mode 6 used to
 have no deterministic peer data at all even though its SKILL asks for a sector
-Top 5, which left the agent hand-rolling `fetch_peers.py` invocations at runtime
+Top 5, which left the agent hand-rolling `clawock fetch-peers` invocations at runtime
 — that is how a `--help` probe reddened the 2026-07-22 09:30 cron.
 
 The peer-map is semi-manual and drifts (tickers get reused, companies rename,
@@ -19,19 +19,15 @@ lines get delisted), so two guards live here rather than in the caller:
 
 import json
 import re
+import subprocess
+import sys
 from pathlib import Path
 
-from suggest_peers import suggest_auto_peers
+from clawock.instrument_registry import get as get_instrument
+from clawock.suggest_peers import suggest_auto_peers
+from clawock.workspace import workspace_root
 
-# The checkout root, so `clawock` resolves from the tree this file ships
-# in. Reached through the scripts/data/workspace shim until #267 step 3,
-# whose only remaining job was inserting this path as a side effect.
-import sys  # noqa: E402
-sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
-sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
-from clawock.workspace import workspace_root  # noqa: E402
-
-WS = workspace_root(Path(__file__).resolve().parents[2])
+WS = workspace_root(Path.cwd())
 
 
 def _has_cjk(s):
@@ -63,9 +59,8 @@ def _names_agree(fetched, configured):
 
 def _run_fetch(peer_request):
     """Price curated and auto peers in one existing-budget subprocess."""
-    import subprocess as sp
-    return sp.run(
-        ['python3', str(WS / 'scripts' / 'data' / 'fetch_peers.py')],
+    return subprocess.run(
+        [sys.executable, '-m', 'clawock.cli', 'fetch-peers'],
         input=json.dumps(peer_request), capture_output=True, text=True, timeout=120,
     )
 
@@ -74,7 +69,7 @@ def collect(portfolio, log=print, legs=None):
     """For each active holding with a peer entry in peer-map.json, fetch peer
     prices and flag divergence (peer up significantly while holding flat/down).
 
-    `legs` limits which portfolio legs are scanned ('hk_stocks'/'us_stocks'). A
+    `legs` optionally limits which declared portfolio books are scanned. A
     single-market caller must pass its own leg: filtering the *result* instead
     would still pay the full cross-market network fan-out first.
     """
@@ -89,23 +84,26 @@ def collect(portfolio, log=print, legs=None):
 
     # Index holdings by ticker for self-pct lookup
     h_by_ticker = {}
-    for region in (legs or ('hk_stocks', 'us_stocks')):
-        for h in portfolio['portfolios'].get(region, {}).get('holdings', []):
+    books = portfolio.get('portfolios') or {}
+    for book_key in (legs or tuple(books)):
+        for h in books.get(book_key, {}).get('holdings', []):
             if h.get('shares', 0) > 0:
+                instrument = get_instrument(h.get('ticker')) or {}
+                market = str(instrument.get('region') or '').lower()
                 h_by_ticker[h['ticker']] = {
                     'pct_1d': h.get('today_change_pct', 0),
                     'pnl_pct': h.get('pnl_percent', 0),
-                    'region': region,
+                    'region': market,
                 }
 
-    # Suggest first, then price curated + auto peers in ONE fetch_peers.py batch.
+    # Suggest first, then price curated + auto peers in ONE fetch-peers batch.
     # Curated requests remain first, so the existing 8-worker/90s budget gives
     # the hand-maintained map priority if the combined list is large.
     auto_by_ticker = {}
     for ticker, info in pmap.items():
         if ticker not in h_by_ticker:
             continue
-        region = 'hk' if h_by_ticker[ticker]['region'] == 'hk_stocks' else 'us'
+        region = h_by_ticker[ticker]['region']
         curated = [p.get('ticker') for p in info.get('listed_peers', [])]
         try:
             suggested = suggest_auto_peers(ticker, region, curated)
@@ -139,16 +137,16 @@ def collect(portfolio, log=print, legs=None):
     if not peer_request:
         return {}
 
-    # Call fetch_peers.py via subprocess
+    # Call the installed package command via subprocess.
     try:
         r = _run_fetch(peer_request)
         if r.returncode != 0:
             # Old versions of the script printed their error to stdout, not stderr.
-            log(f'   ⚠️  fetch_peers.py failed (rc={r.returncode}): {(r.stderr or r.stdout)[-300:]}')
+            log(f'   ⚠️  clawock fetch-peers failed (rc={r.returncode}): {(r.stderr or r.stdout)[-300:]}')
             return {}
         fetched = json.loads(r.stdout)['peers']
         if not isinstance(fetched, dict):
-            log(f'   ⚠️  fetch_peers.py returned a malformed peers block: {type(fetched).__name__}')
+            log(f'   ⚠️  clawock fetch-peers returned a malformed peers block: {type(fetched).__name__}')
             return {}
         missing = [p['ticker'] for p in peer_request if 'price' not in fetched.get(p['ticker'], {})]
         log(f'   peers priced {len(peer_request) - len(missing)}/{len(peer_request)}'

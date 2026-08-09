@@ -52,7 +52,7 @@ DEADLINE_SECONDS = 90
 MAX_WORKERS = 8
 
 USAGE = """\
-usage: fetch_peers.py [-h]
+usage: clawock fetch-peers [-h]
 
 Reads a JSON array of peer requests on stdin and writes prices to stdout.
 This script takes no options other than -h/--help; the request is stdin-only.
@@ -68,7 +68,7 @@ stdout:
 
 example:
   jq '[.holdings["00100"].listed_peers[]]' memory/peer-map.json \\
-    | python3 scripts/data/fetch_peers.py
+    | clawock fetch-peers
 """
 
 

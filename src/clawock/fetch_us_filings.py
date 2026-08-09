@@ -2,7 +2,7 @@
 """
 fetch_us_filings.py - SEC EDGAR fundamentals + filings fetcher (no API key required)
 
-Covers the gaps in openclaw US data: 10-K/10-Q sections, Form 4 insider trades,
+Covers gaps in US market data: 10-K/10-Q sections, Form 4 insider trades,
 13F institutional holdings, and XBRL-derived key financials. All free, direct
 from SEC.
 
@@ -18,12 +18,12 @@ Endpoints used:
   5. Archives/edgar/data/{cik}/... – filing primary document URL
 
 Usage:
-  python3 fetch_us_filings.py RKLB                       # summary: latest filings + key financials
-  python3 fetch_us_filings.py RKLB --filings             # full recent filings list
-  python3 fetch_us_filings.py RKLB --filings 10-K,10-Q   # only specific forms
-  python3 fetch_us_filings.py RKLB --form4               # insider Form 4 transactions
-  python3 fetch_us_filings.py RKLB --financials          # key XBRL concepts (revenue, net income, etc.)
-  python3 fetch_us_filings.py RKLB --json                # machine-readable JSON to stdout
+  clawock filings RKLB                       # summary: latest filings + key financials
+  clawock filings RKLB --filings             # full recent filings list
+  clawock filings RKLB --filings 10-K,10-Q   # only specific forms
+  clawock filings RKLB --form4               # insider Form 4 transactions
+  clawock filings RKLB --financials          # key XBRL concepts
+  clawock filings RKLB --json                # machine-readable JSON to stdout
 """
 
 import json
@@ -31,13 +31,16 @@ import os
 import sys
 import time
 from datetime import datetime, timezone
+from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 import requests
 
-WS_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-API_KEYS_PATH = os.path.join(WS_ROOT, '.api_keys')
-CACHE_DIR     = os.path.join(WS_ROOT, '.cache')
-TICKER_CACHE  = os.path.join(CACHE_DIR, 'sec_tickers.json')
+from clawock.workspace import workspace_root
+
+WS_ROOT = workspace_root(Path.cwd())
+API_KEYS_PATH = WS_ROOT / '.api_keys'
+CACHE_DIR = WS_ROOT / '.cache'
+TICKER_CACHE = CACHE_DIR / 'sec_tickers.json'
 CACHE_TTL_DAYS = 7   # ticker → CIK map; SEC updates infrequently
 
 TIMEOUT      = 15
@@ -49,7 +52,7 @@ _last_call = 0.0
 def _load_user_agent() -> str:
     """SEC requires User-Agent: 'Name email@domain'. Read from .api_keys or env."""
     try:
-        with open(API_KEYS_PATH) as f:
+        with API_KEYS_PATH.open() as f:
             for line in f:
                 line = line.strip()
                 if line.startswith('SEC_USER_AGENT='):
@@ -60,7 +63,7 @@ def _load_user_agent() -> str:
     if env_ua:
         return env_ua
     # Fallback — works but SEC requests you identify yourself
-    return 'openclaw-research shengyu.li.evgeny@gmail.com'
+    return 'clawock-research/0.1 clawock@users.noreply.github.com'
 
 
 SESSION = requests.Session()
@@ -101,23 +104,23 @@ def _get(url: str, host: Optional[str] = None) -> Optional[requests.Response]:
 
 def _load_ticker_map() -> Dict[str, str]:
     """Returns {TICKER: 'CIK0001234567'} (10-digit zero-padded)."""
-    os.makedirs(CACHE_DIR, exist_ok=True)
-    if os.path.exists(TICKER_CACHE):
-        age_days = (time.time() - os.path.getmtime(TICKER_CACHE)) / 86400
+    CACHE_DIR.mkdir(parents=True, exist_ok=True)
+    if TICKER_CACHE.exists():
+        age_days = (time.time() - TICKER_CACHE.stat().st_mtime) / 86400
         if age_days < CACHE_TTL_DAYS:
-            with open(TICKER_CACHE) as f:
+            with TICKER_CACHE.open() as f:
                 return json.load(f)
 
     r = _get('https://www.sec.gov/files/company_tickers.json', host='www.sec.gov')
     if not r:
-        if os.path.exists(TICKER_CACHE):
-            with open(TICKER_CACHE) as f:
+        if TICKER_CACHE.exists():
+            with TICKER_CACHE.open() as f:
                 return json.load(f)
         return {}
     raw = r.json()
     mapping = {entry['ticker'].upper(): f"CIK{int(entry['cik_str']):010d}"
                for entry in raw.values()}
-    with open(TICKER_CACHE, 'w') as f:
+    with TICKER_CACHE.open('w') as f:
         json.dump(mapping, f)
     return mapping
 
@@ -363,8 +366,12 @@ def _parse_args(argv: List[str]) -> Tuple[str, str, Optional[List[str]], bool]:
     return ticker, 'summary', None, as_json
 
 
-def main():
-    ticker, mode, form_types, as_json = _parse_args(sys.argv[1:])
+def main(argv=None):
+    argv = list(sys.argv[1:] if argv is None else argv)
+    if '-h' in argv or '--help' in argv:
+        print(__doc__)
+        return 0
+    ticker, mode, form_types, as_json = _parse_args(argv)
 
     if mode == 'summary':
         result = summarize(ticker, as_json=as_json)
@@ -394,7 +401,8 @@ def main():
 
     if as_json:
         print(json.dumps(result, indent=2, ensure_ascii=False))
+    return 0
 
 
 if __name__ == '__main__':
-    main()
+    raise SystemExit(main())

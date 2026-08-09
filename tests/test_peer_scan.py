@@ -11,21 +11,15 @@ The fetch itself is stubbed — no network, no subprocess.
 from __future__ import annotations
 
 import json
-import sys
 from pathlib import Path
 
 import pytest
 
 
 WS = Path(__file__).resolve().parents[1]
-DATA_SCRIPTS = str(WS / "scripts" / "data")
-
-
 @pytest.fixture(scope="module")
 def ps():
-    if DATA_SCRIPTS not in sys.path:
-        sys.path.insert(0, DATA_SCRIPTS)
-    return pytest.importorskip("peer_scan")
+    return pytest.importorskip("clawock.peer_scan")
 
 
 PORTFOLIO = {

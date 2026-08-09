@@ -356,6 +356,15 @@ def _packaged_utility(args) -> int:
         from clawock.quant_signal_review import main
     elif args.command == "t0-review":
         from clawock.t0_setup_review import main
+    elif args.command == "cross-factor":
+        from clawock.cross_sectional_factor import main
+    elif args.command == "peer-residual":
+        from clawock.peer_residual_engine import main
+    elif args.command == "fetch-peers":
+        from clawock.fetch_peers import hard_exit, main
+        hard_exit(main(args.utility_args))
+    elif args.command == "filings":
+        from clawock.fetch_us_filings import main
     else:
         from clawock.claim_provenance import main
     return main(args.utility_args)
@@ -471,6 +480,7 @@ def main(argv=None) -> int:
         "realized",
         "aggregates", "cash", "shadow", "fx", "portfolio-risk",
         "quant", "regime", "t0", "quant-review", "t0-review",
+        "cross-factor", "peer-residual", "fetch-peers", "filings",
     }
     if raw_argv and raw_argv[0] in packaged_utilities:
         return _packaged_utility(argparse.Namespace(
@@ -573,6 +583,10 @@ def main(argv=None) -> int:
         ("t0", "grade intraday setup quality from existing market data"),
         ("quant-review", "reconcile factor signals with forward returns"),
         ("t0-review", "reconcile setup grades with next-session returns"),
+        ("cross-factor", "rank a curated universe with sector-neutral factors"),
+        ("peer-residual", "calibrate curated-peer residual and leadership rules"),
+        ("fetch-peers", "price peer tickers from a JSON request on stdin"),
+        ("filings", "fetch SEC filings and point-in-time XBRL fundamentals"),
     ):
         utility = sub.add_parser(name, help=help_text, add_help=False)
         utility.add_argument("utility_args", nargs=argparse.REMAINDER)

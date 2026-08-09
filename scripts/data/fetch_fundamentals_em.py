@@ -20,11 +20,15 @@ Usage:
 import json
 import os
 import sys
+from pathlib import Path
 from typing import Dict, List
 
+_CHECKOUT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(_CHECKOUT))
+sys.path.insert(0, str(_CHECKOUT / "src"))
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from _em_symbols import resolve  # noqa: E402
-from _em_http import em_get  # noqa: E402  统一请求节流出口
+from clawock._em_http import em_get  # noqa: E402  统一请求节流出口
 
 DATACENTER_URL = "https://datacenter-web.eastmoney.com/api/data/v1/get"
 

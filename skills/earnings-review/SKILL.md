@@ -28,7 +28,7 @@ Never assert a computed number in prose. Run the script and quote its output.
 
 Source order is not negotiable:
 
-- **US** — SEC filing (10-K/10-Q/8-K) or issuer IR first; `scripts/data/fetch_us_filings.py`
+- **US** — SEC filing (10-K/10-Q/8-K) or issuer IR first; `clawock filings`
   supplies the structured XBRL numbers used to verify them.
 - **HK** — HKEX announcement or issuer IR first; `scripts/data/fetch_fundamentals_em.py`
   (Eastmoney) is a secondary *structured* source, never a substitute for a footnote.

@@ -19,13 +19,15 @@ MktNum / secid 前缀:
 
 零鉴权。endpoint 实测可达 (2026-06-14, kcn 服务器 IP)。
 """
-import os
 import re
 import sys
+from pathlib import Path
 from typing import Dict, List, Optional
 
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from _em_http import em_get  # noqa: E402  统一请求节流出口
+_CHECKOUT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(_CHECKOUT))
+sys.path.insert(0, str(_CHECKOUT / "src"))
+from clawock._em_http import em_get  # noqa: E402  统一请求节流出口
 
 SEARCH_URL = "https://searchapi.eastmoney.com/api/suggest/get"
 # 公开 token(满网皆是,非密钥); 若失效会自动回退到启发式

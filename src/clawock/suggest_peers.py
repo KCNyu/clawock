@@ -11,12 +11,17 @@ from __future__ import annotations
 
 import re
 import sys
+from pathlib import Path
 from typing import Iterable
 
 import requests
 
-from _em_http import em_get
-from fetch_us_stocks import load_api_keys
+from clawock._em_http import em_get
+from clawock.workspace import workspace_root
+
+
+WS = workspace_root(Path.cwd())
+API_KEYS_PATH = WS / ".api_keys"
 
 
 MAX_AUTO_PEERS = 6
@@ -70,9 +75,21 @@ def _response_json(response, source: str):
     return response.json()
 
 
+def _api_key(name: str) -> str:
+    try:
+        for line in API_KEYS_PATH.read_text(encoding="utf-8").splitlines():
+            if line and not line.startswith("#") and "=" in line:
+                key, value = line.split("=", 1)
+                if key.strip() == name:
+                    return value.strip()
+    except OSError:
+        pass
+    return ""
+
+
 def _suggest_us(ticker: str, curated_tickers: Iterable[object]) -> list[dict]:
     symbol = _norm_us(ticker)
-    key = load_api_keys().get("FINNHUB_API_KEY", "")
+    key = _api_key("FINNHUB_API_KEY")
     if not key:
         _diag(symbol, "Finnhub API key unavailable")
         return []
@@ -95,7 +112,7 @@ def _suggest_us(ticker: str, curated_tickers: Iterable[object]) -> list[dict]:
         if not candidate or candidate in blocked or candidate in seen:
             continue
         seen.add(candidate)
-        # /stock/peers returns symbols only. fetch_peers.py supplies the feed
+        # /stock/peers returns symbols only. `clawock fetch-peers` supplies the feed
         # company name during the shared pricing pass; the symbol is a safe
         # fallback if that feed omits its name.
         out.append({
