@@ -47,7 +47,7 @@ CORE_MODULES = (
     'src/clawock/research_surface.py',
     'scripts/data/preflight_integrity.py',
     'src/clawock/risk_discipline.py',
-    'scripts/data/shadow_portfolio.py',
+    'src/clawock/shadow_portfolio.py',
     'src/clawock/instrument_registry.py',
     'src/clawock/recompute_aggregates.py',
     'src/clawock/recompute_realized.py',

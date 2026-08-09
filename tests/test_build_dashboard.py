@@ -105,8 +105,11 @@ def test_shadow_failure_replaces_stale_result_and_success_clears_marker(monkeypa
 
     monkeypatch.setitem(
         sys.modules,
-        "shadow_portfolio",
-        SimpleNamespace(build_shadow_portfolio=explode),
+        "clawock.shadow_portfolio",
+        SimpleNamespace(
+            load_leg_config=lambda _path: {},
+            build_shadow_portfolio=explode,
+        ),
     )
     failed = dashboard.build_shadow_sidecar({}, [], previous)
 
@@ -119,7 +122,7 @@ def test_shadow_failure_replaces_stale_result_and_success_clears_marker(monkeypa
     assert "cumulative_diff" not in failed
     assert all(value is not None for value in failed.values())
 
-    def succeed(_portfolio, _decisions):
+    def succeed(_portfolio, _decisions, **_kwargs):
         return {
             "as_of": "2026-07-17T23:00:00+08:00",
             "curves": {},
@@ -128,8 +131,11 @@ def test_shadow_failure_replaces_stale_result_and_success_clears_marker(monkeypa
 
     monkeypatch.setitem(
         sys.modules,
-        "shadow_portfolio",
-        SimpleNamespace(build_shadow_portfolio=succeed),
+        "clawock.shadow_portfolio",
+        SimpleNamespace(
+            load_leg_config=lambda _path: {},
+            build_shadow_portfolio=succeed,
+        ),
     )
     succeeded = dashboard.build_shadow_sidecar({}, [], failed)
 
