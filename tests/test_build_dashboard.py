@@ -483,6 +483,63 @@ def test_latest_completed_session_skips_holiday_weekend_before_close():
     ).isoformat() == "2026-07-06"
 
 
+SESSION_PHASES = [
+    # (market, local hour, phase, the newest session that has conservatively
+    #  finished at that moment). 2026-08-11 is a Tuesday; both markets traded on
+    #  Monday the 10th, so "yesterday" is unambiguous in either timezone.
+    ("hk", 8, "pre-open", "2026-08-10"),
+    ("hk", 12, "mid-session", "2026-08-10"),
+    ("hk", 16, "just after the close", "2026-08-10"),
+    ("hk", 18, "after-hours", "2026-08-11"),
+    ("us", 8, "pre-open", "2026-08-10"),
+    ("us", 12, "mid-session", "2026-08-10"),
+    ("us", 16, "just after the close", "2026-08-10"),
+    ("us", 18, "after-hours", "2026-08-11"),
+]
+
+
+@pytest.mark.parametrize("market, hour, phase, expected", SESSION_PHASES)
+def test_completed_session_is_resolved_per_market_across_the_whole_day(
+        market, hour, phase, expected):
+    """Freshness is judged against the newest *completed* session, so which one
+    that is has to be right at every hour of the day, in each market's own
+    clock.
+
+    The hour after the close is the interesting row and it is deliberate: at
+    16:00 local the session has ended but the quotes that settle it have not
+    necessarily arrived, so the bar stays at yesterday until 17:00. Moving it
+    earlier would mark a leg fresh on today's session before today's prices
+    could possibly be in the book — the failure this whole check exists to
+    catch.
+    """
+    from clawock.market_data import sessions as trading_calendar
+
+    at = datetime(2026, 8, 11, hour, 0,
+                  tzinfo=ZoneInfo(trading_calendar.MARKET_TZ[market]))
+    resolved = dashboard._latest_completed_session(market, trading_calendar, at)
+
+    assert resolved.isoformat() == expected, (
+        f"{market} {phase} ({hour}:00 local) resolved to {resolved}")
+
+
+def test_the_two_markets_disagree_at_the_same_instant():
+    """One clock cannot serve both legs.
+
+    18:00 in Hong Kong is 06:00 in New York on the same date: Hong Kong has
+    finished the 11th while New York has not yet opened it. A single UTC (or
+    host-local) cutoff would give both legs the same answer and silently mark
+    one of them fresh against a session it has no prices for.
+    """
+    from clawock.market_data import sessions as trading_calendar
+
+    instant = datetime(2026, 8, 11, 18, 0, tzinfo=ZoneInfo("Asia/Hong_Kong"))
+
+    hk = dashboard._latest_completed_session("hk", trading_calendar, instant)
+    us = dashboard._latest_completed_session("us", trading_calendar, instant)
+
+    assert (hk.isoformat(), us.isoformat()) == ("2026-08-11", "2026-08-10")
+
+
 def test_market_leg_freshness_exposes_one_frozen_holding():
     from clawock.market_data import sessions as trading_calendar
 

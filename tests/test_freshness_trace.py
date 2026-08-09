@@ -94,3 +94,36 @@ def test_an_unreachable_layer_is_a_finding_rather_than_a_silent_pass():
     report = freshness.assess([_layer("producer", 1), broken], now=NOW)
     assert _status(report, "live") == "unreachable"
     assert report["findings"]
+
+
+def test_a_silent_builder_is_a_finding_even_when_every_layer_agrees():
+    """The failure the trace itself can hide: consistent and dead.
+
+    Liveness is read from when the builder last WROTE, never from
+    `generated_at`. The publisher deliberately holds the generation steady when a
+    rebuild is semantically identical (#312), so a timestamp standing still on a
+    quiet night is correct behaviour — the first version of this check called it
+    a stall and cried wolf on its first real run.
+    """
+    producer = _layer("producer", 90)
+    producer.wrote_at = NOW - timedelta(minutes=90)
+    layers = [producer, _layer("data plane", 90), _layer("live", 90)]
+
+    report = freshness.assess(layers, now=NOW)
+    assert report["consistent"], "the layers do agree — that is the trap"
+    assert any("has not written" in f for f in report["findings"]), report["findings"]
+
+    # Same stale generation, but the builder is writing: nothing is wrong.
+    producer.wrote_at = NOW - timedelta(minutes=3)
+    healthy = freshness.assess(layers, now=NOW)
+    assert not healthy["findings"], healthy["findings"]
+
+
+def test_stale_inputs_in_the_served_payload_are_a_finding():
+    """Fresh generation, stale ingredients — the payload already knows."""
+    live = _layer("live", 2)
+    live.build_status = {"healthy": False, "stale_files": ["portfolio.json"],
+                         "stale_markets": ["hk"]}
+    report = freshness.assess([_layer("producer", 2), live], now=NOW)
+    assert report["served_inputs"]["healthy"] is False
+    assert any("stale inputs" in f for f in report["findings"]), report["findings"]

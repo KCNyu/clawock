@@ -79,13 +79,27 @@ fi
 # reconcile — the "$581 double-count" / "phantom-peak TCV" class of bug. Turning
 # the human "改完必跑 recompute" 铁律 into a structural block: never publish an
 # unreconciled book. WARN (staleness etc.) does NOT block. Override: --no-verify.
+#
+# Finding the checker is shared with ops/publish/safe_push.sh, because a bare
+# `command -v clawock` is not a reliable way to find it and this hook runs
+# INSIDE that script's `git push` — so it inherits exactly the environment that
+# defeated it (a cron job's PATH=/usr/bin:/bin, where the installed console
+# script in ~/.local/bin is invisible). Two gates, one resolver.
 IRC=0
-if ! command -v clawock >/dev/null 2>&1; then
-  echo "🚫 push blocked — clawock CLI is missing; the money checker cannot run"
+if [ ! -f "$WS/ops/publish/money_checker.sh" ]; then
+  echo "🚫 push blocked — ops/publish/money_checker.sh is missing; the money"
+  echo "   checker cannot be resolved. The book was not verified."
+  exit 1
+fi
+# shellcheck source=ops/publish/money_checker.sh
+. "$WS/ops/publish/money_checker.sh"
+run_money_check "$WS" >/tmp/clawock_integrity.out 2>&1 || IRC=$?
+if [ "$IRC" = 127 ]; then
+  echo "🚫 push blocked — clawock is neither on PATH nor importable from"
+  echo "   $WS/src; the money checker cannot run."
   echo "   install the current package before publishing this ledger"
   exit 1
 fi
-CLAWOCK_WORKSPACE="$WS" clawock integrity >/tmp/clawock_integrity.out 2>&1 || IRC=$?
 # Same rule as above: 0 = clean, 2 = ERROR findings, anything else = the checker
 # never reached a verdict and must not be read as a pass.
 if [ "$IRC" != "0" ]; then
