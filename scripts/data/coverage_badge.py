@@ -51,7 +51,7 @@ CORE_MODULES = (
     'src/clawock/instrument_registry.py',
     'src/clawock/recompute_aggregates.py',
     'src/clawock/recompute_realized.py',
-    'scripts/data/portfolio_risk_metrics.py',
+    'src/clawock/portfolio_risk_metrics.py',
     'scripts/data/intraday_delta_gate.py',
     'scripts/data/workflow_outcomes.py',
     'src/clawock/safe_io.py',

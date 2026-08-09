@@ -5,15 +5,12 @@ np = pytest.importorskip("numpy")
 
 import json
 import math
-import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT / "scripts" / "data"))
-
-import portfolio_risk_metrics as risk  # noqa: E402
+from clawock import portfolio_risk_metrics as risk
 
 
 def _utc_epoch(day: str) -> int:
@@ -123,14 +120,14 @@ def test_parse_tencent_returns_none_for_missing_or_short_rows(payload):
 def test_active_holdings_filters_nonpositive_shares_and_maps_leverage_and_symbols():
     portfolio = {
         "portfolios": {
-            "us_stocks": {
+            "growth_book": {
                 "holdings": [
                     {"ticker": "PLTU", "shares": 5, "current_value": 120.0},
                     {"ticker": "AAPL", "shares": 0, "current_value": 200.0},
                     {"ticker": "MSFT", "shares": -1, "current_value": 300.0},
                 ]
             },
-            "hk_stocks": {
+            "hstech_book": {
                 "holdings": [
                     {"ticker": "07226", "shares": 10, "current_value": 400.0},
                     {"ticker": "00100", "shares": 0, "current_value": 500.0},
@@ -139,7 +136,7 @@ def test_active_holdings_filters_nonpositive_shares_and_maps_leverage_and_symbol
         }
     }
 
-    assert risk.active_holdings(portfolio, "us_stocks") == [
+    assert risk.active_holdings(portfolio, "growth_book") == [
         {
             "ticker": "PLTU",
             "current_value": 120.0,
@@ -150,7 +147,7 @@ def test_active_holdings_filters_nonpositive_shares_and_maps_leverage_and_symbol
             "yahoo_symbol": "PLTU",
         }
     ]
-    assert risk.active_holdings(portfolio, "hk_stocks") == [
+    assert risk.active_holdings(portfolio, "hstech_book") == [
         {
             "ticker": "07226",
             "current_value": 400.0,
@@ -181,6 +178,20 @@ def test_active_holdings_filters_nonpositive_shares_and_maps_leverage_and_symbol
 )
 def test_active_holdings_returns_empty_for_missing_empty_or_all_zero_buckets(portfolio):
     assert risk.active_holdings(portfolio, "us_stocks") == []
+
+
+def test_risk_book_config_is_explicit_and_distinct(tmp_path):
+    path = tmp_path / "portfolio-derivations.json"
+    path.write_text(
+        '{"risk_books":{"us":{"portfolio_key":"growth"},'
+        '"hk":{"portfolio_key":"hstech"}}}')
+    assert risk.load_risk_config(path) == {"us": "growth", "hk": "hstech"}
+
+    path.write_text(
+        '{"risk_books":{"us":{"portfolio_key":"same"},'
+        '"hk":{"portfolio_key":"same"}}}')
+    with pytest.raises(ValueError, match="distinct"):
+        risk.load_risk_config(path)
 
 
 def test_align_to_dates_keeps_only_the_sorted_date_intersection():

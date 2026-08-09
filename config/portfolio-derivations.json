@@ -20,5 +20,13 @@
       "cash_key": "cash_hkd",
       "market": "hk"
     }
+  },
+  "risk_books": {
+    "us": {
+      "portfolio_key": "us_stocks"
+    },
+    "hk": {
+      "portfolio_key": "hk_stocks"
+    }
   }
 }
