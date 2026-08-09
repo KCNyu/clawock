@@ -55,6 +55,19 @@ DATA_PLANE_BOUND = timedelta(minutes=25)
 # 14 minutes after the deployment already reports success. One publisher tick on
 # top, because the deploy is triggered by the tick that produced the generation.
 LIVE_BOUND = timedelta(minutes=45)
+# Consistency is not freshness: if the builder stops, every layer keeps agreeing
+# on the same generation and this trace stays green while the dashboard ages.
+#
+# But liveness cannot be read off `generated_at`. The publisher deliberately does
+# not advance the generation when a rebuild is semantically identical — that is
+# the #312 guarantee that a file whose only change is the build clock never gets
+# published — so on a quiet night the timestamp standing still is the correct
+# state, not a stall. My first version of this check called that a stall and
+# cried wolf on the first run.
+#
+# The honest evidence that the builder ran is that it wrote the file. Available
+# only on the producing host; elsewhere the layer is absent and so is the check.
+PRODUCER_BOUND = timedelta(minutes=30)
 
 
 @dataclass
@@ -68,6 +81,10 @@ class Layer:
     generation: str | None = None
     generated_at: datetime | None = None
     detail: str = ""
+    # When the builder last WROTE this layer, as opposed to which generation it
+    # holds. The two answer different questions and only the host can answer this.
+    wrote_at: datetime | None = None
+    build_status: dict | None = None
     problems: list[str] = field(default_factory=list)
 
     @property
@@ -84,6 +101,17 @@ def _parse(payload: str, name: str) -> Layer:
         return layer
     stamp = data.get("generated_at")
     layer.generation = data.get("generation_id") or stamp
+    # The payload carries its own market-session verdict on its inputs. Reading
+    # it here is what makes this a freshness trace rather than a sameness trace,
+    # and it avoids a second copy of the trading-hours table drifting from the
+    # one the builder already uses.
+    status = data.get("build_status")
+    if isinstance(status, dict):
+        layer.build_status = {
+            "healthy": status.get("healthy"),
+            "stale_files": status.get("stale_files") or [],
+            "stale_markets": status.get("stale_markets") or [],
+        }
     try:
         layer.generated_at = datetime.fromisoformat(str(stamp).replace("Z", "+00:00"))
     except Exception:
@@ -99,6 +127,7 @@ def read_producer(workspace: Path) -> Layer:
         return Layer("producer", detail=f"no local {PAYLOAD} (not the producing host)")
     layer = _parse(path.read_text(encoding="utf-8"), "producer")
     layer.detail = str(path)
+    layer.wrote_at = datetime.fromtimestamp(path.stat().st_mtime, timezone.utc)
     return layer
 
 
@@ -160,6 +189,15 @@ def assess(layers: list[Layer], now: datetime | None = None) -> dict:
     reference = reference or next((layer for layer in layers if layer.ok), None)
 
     findings: list[str] = []
+    # Has the builder run at all recently? Only the producing host can say.
+    producer = next((layer for layer in layers if layer.name == "producer"), None)
+    if producer and producer.wrote_at:
+        silent = now - producer.wrote_at
+        if silent > PRODUCER_BOUND:
+            findings.append(
+                f"the builder has not written for {int(silent.total_seconds() // 60)}m "
+                f"— it runs every 20m, so the layers agreeing below means production "
+                f"stopped, not that the pipeline is healthy")
     live = next((layer for layer in layers if layer.name == "live" and layer.ok), None)
     rows = []
     for layer in layers:
@@ -216,8 +254,17 @@ def assess(layers: list[Layer], now: datetime | None = None) -> dict:
             "note": note,
         })
 
+    # What the browser is served says about its own inputs, for this session.
+    served = next((layer for layer in layers if layer.name == "live" and layer.build_status),
+                  None) or next((layer for layer in layers if layer.build_status), None)
+    inputs = served.build_status if served else None
+    if inputs and inputs.get("healthy") is False:
+        stale = ", ".join(inputs["stale_files"] + inputs["stale_markets"]) or "unnamed inputs"
+        findings.append(f"the served payload reports stale inputs for this session: {stale}")
+
     return {
         "checked_at": now.isoformat(),
+        "served_inputs": inputs,
         "reference": reference.generation if reference else None,
         "layers": rows,
         "consistent": all(row["status"] in ("ok", "skipped") for row in rows),
@@ -248,7 +295,13 @@ def main(argv=None) -> int:
             print(f"{row['layer']:<18}{row['status']:<22}"
                   f"{str(row['generated_at'] or '—'):<34}{row['note']}")
         print()
-        if report["consistent"]:
+        inputs = report.get("served_inputs")
+        if inputs is not None:
+            verdict = "fresh for this session" if inputs.get("healthy") else "STALE INPUTS"
+            print(f"served payload inputs: {verdict}"
+                  + (f" — {', '.join(inputs['stale_files'] + inputs['stale_markets'])}"
+                     if not inputs.get("healthy") else "") + "\n")
+        if report["consistent"] and not report["findings"]:
             print("✅ every layer is serving the same generation")
         elif report["findings"]:
             for finding in report["findings"]:
