@@ -140,6 +140,29 @@ def test_workflow_card_folds_the_published_ledger_into_counts(monkeypatch, tmp_p
     assert "stages" not in card["recent"][0]
 
 
+def test_a_checkout_without_the_ledger_republishes_the_last_workflow_card(
+        monkeypatch, tmp_path):
+    """`--previous` must actually reach the published payload, not just `preserved`.
+
+    brief-fallback builds from a fresh checkout, where the ledger is untracked
+    and absent. The card was computed after the merge ran, so the restored value
+    was overwritten by the empty one while `build_status` still reported the key
+    as preserved — a blank card plus telemetry saying it had been recovered.
+    """
+    (tmp_path / "assets" / "data").mkdir(parents=True)
+    (tmp_path / "memory" / "snapshots").mkdir(parents=True)
+    (tmp_path / "portfolio.json").write_text(json.dumps(_portfolio()))
+    previous = tmp_path / "previous.json"
+    previous.write_text(json.dumps({"workflow_outcomes": {
+        "counts": {"success": 9}, "recent": [{"job": "last good"}]}}))
+    monkeypatch.setattr(dashboard, "WS_ROOT", tmp_path)
+
+    payload = json.loads(dashboard.build_projection(previous_source=previous)["dashboard"])
+
+    assert payload["workflow_outcomes"]["counts"] == {"success": 9}
+    assert "workflow_outcomes" in payload["build_status"]["previous_payload"]["preserved"]
+
+
 def test_shadow_failure_replaces_stale_result_and_success_clears_marker(monkeypatch):
     previous = {
         "as_of": "2026-07-16T23:00:00+08:00",
