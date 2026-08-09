@@ -21,13 +21,9 @@ MktNum / secid 前缀:
 """
 import re
 import sys
-from pathlib import Path
 from typing import Dict, List, Optional
 
-_CHECKOUT = Path(__file__).resolve().parents[2]
-sys.path.insert(0, str(_CHECKOUT))
-sys.path.insert(0, str(_CHECKOUT / "src"))
-from clawock._em_http import em_get  # noqa: E402  统一请求节流出口
+from clawock._em_http import em_get
 
 SEARCH_URL = "https://searchapi.eastmoney.com/api/suggest/get"
 # 公开 token(满网皆是,非密钥); 若失效会自动回退到启发式

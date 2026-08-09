@@ -1,20 +1,18 @@
 #!/usr/bin/env python3
-"""fetch_em_news.py — Chinese-language news source (Eastmoney) for the info layer.
+"""Chinese-language East Money news for a workspace's active HK holdings.
 
-clawock's news_digest is Finnhub + Google News — English / US-skewed. clawock is
-half a Hong-Kong book, so its biggest information gap is *Chinese-source* news and
-holding-level catalysts. Eastmoney gives both, free + no key, and is reachable
-here. Inspired by UZI-Skill's data-source breadth (github.com/wbh604/UZI-Skill):
-information-gathering is what an LLM is *best* at, so widen the inputs — this is a
-separate axis from decision/debate breadth (which the calibration deliberately
-keeps narrow).
+This complements English/US-skewed news providers with dated company items and
+market-wide Chinese headlines. Collection breadth stays separate from whatever
+decision policy an external runtime applies to the resulting evidence.
 
 Pulls, into assets/data/em_news.json:
-  - per active HK holding: recent EM company news (catalyst-grade, dated)
+  - per active HK holding discovered from the selected workspace's ledger and
+    instrument registry: recent EM company news (catalyst-grade, dated)
   - market 7x24 快讯: a few macro/sector headlines for context
 
 Fail-soft: any source error -> that slice is empty, never raises.
 """
+import argparse
 import json
 import re
 import sys
@@ -22,30 +20,13 @@ import urllib.parse
 from datetime import datetime, timezone
 from pathlib import Path
 
-# The checkout root, so `clawock` resolves from the tree this file ships
-# in. Reached through the scripts/data/workspace shim until #267 step 3,
-# whose only remaining job was inserting this path as a side effect.
-sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
-sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
-from clawock.workspace import workspace_root  # noqa: E402
+from clawock._em_http import em_get
+from clawock.instrument_registry import load_registry
+from clawock.safe_io import safe_write_json
+from clawock.workspace import workspace_root
 
-# Code lives in the checkout; only DATA lives in the workspace. `workspace_root`
-# is overridable, so resolving our own modules through WS would read them out of
-# someone else's data directory — or silently pick up whatever happens to be
-# there. Same expression WS is seeded from, kept separate on purpose (#269).
-_CHECKOUT = Path(__file__).resolve().parents[2]
-WS = workspace_root(Path(__file__).resolve().parents[2])
-PORTFOLIO = WS / 'portfolio.json'
-OUT = WS / 'assets' / 'data' / 'em_news.json'
 UA = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36'
 TIMEOUT = 12
-
-from clawock._em_http import em_get  # noqa: E402  统一请求节流出口
-try:
-    from clawock.safe_io import safe_write_json
-except Exception:
-    def safe_write_json(path, data, indent=2):
-        Path(path).write_text(json.dumps(data, ensure_ascii=False, indent=indent))
 
 
 def _strip(s):
@@ -103,10 +84,9 @@ def em_fast_news(limit=6):
         return []
 
 
-# Leverage markers — a 2x/3x ETF's marketing name ("XL二南方恒科") keyword-
-# searches into junk (name collisions like 万恒科技) AND, per clawock's existing
-# rule, company news doesn't apply to a daily-reset index tracker. Skip them;
-# they're covered by the 7x24 feed + the regime dial.
+# Leverage markers — a 2x/3x ETF's marketing name keyword-searches into unrelated
+# companies, and company news does not apply to a daily-reset index tracker.
+# Skip them; market-wide headlines still remain available.
 _LEV_MARKERS = ('倍', 'XL二', 'XL三', 'X二', 'X三', '两倍', '三倍', '杠杆',
                 'Direxion', 'ProShares', '2X', '3X')
 
@@ -115,20 +95,40 @@ def _is_lev(name):
     return any(m in str(name) for m in _LEV_MARKERS)
 
 
-def active_hk_names():
+def active_hk_names(portfolio_path: Path, registry_path: Path):
+    """Return active HK companies from any declared book shape.
+
+    The historical script indexed one fixed desk book key directly, so the
+    fetcher went empty as soon as another workspace used a different name.
+    Region ownership lives in the instrument registry; book names are
+    intentionally irrelevant here.
+    """
     try:
-        pf = json.loads(PORTFOLIO.read_text())
-        hk = (pf.get('portfolios', {}).get('hk_stocks', {}) or {}).get('holdings', []) or []
-        return [(h.get('ticker'), h.get('name') or h.get('ticker'))
-                for h in hk
-                if (h.get('shares') or 0) > 0 and not _is_lev(h.get('name'))]
+        portfolio = json.loads(portfolio_path.read_text())
+        registry = load_registry(registry_path, missing_ok=True)
     except Exception:
         return []
 
+    names = []
+    for book in (portfolio.get('portfolios') or {}).values():
+        for holding in (book or {}).get('holdings') or []:
+            ticker = holding.get('ticker')
+            meta = registry.get(ticker) or {}
+            name = holding.get('name') or meta.get('name') or ticker
+            if ((holding.get('shares') or 0) > 0
+                    and meta.get('region') == 'HK'
+                    and (meta.get('leverage_multiple') or 1) <= 1
+                    and not _is_lev(name)):
+                names.append((ticker, name))
+    return names
 
-def main():
+
+def fetch_workspace(workspace: Path, output: Path | None = None):
+    workspace = workspace.expanduser().resolve()
+    output = output or workspace / 'assets' / 'data' / 'em_news.json'
     by_ticker = {}
-    for ticker, name in active_hk_names():
+    for ticker, name in active_hk_names(
+            workspace / 'portfolio.json', workspace / 'config' / 'instruments.json'):
         items = em_stock_news(name)
         if items:
             by_ticker[ticker] = {'name': name, 'items': items}
@@ -139,11 +139,29 @@ def main():
         'holdings_news': by_ticker,
         'market_724': em_fast_news(),
     }
-    safe_write_json(str(OUT), out)
+    safe_write_json(str(output), out)
     n = sum(len(v['items']) for v in by_ticker.values())
     print(f'  em_news: {len(by_ticker)} HK holdings · {n} company items · '
-          f"{len(out['market_724'])} 快讯 → {OUT}")
+          f"{len(out['market_724'])} 快讯 → {output}")
+    return out
+
+
+def main(argv=None):
+    parser = argparse.ArgumentParser(
+        prog='clawock em-news', description=__doc__)
+    parser.add_argument('--workspace', type=Path)
+    parser.add_argument('--output', type=Path)
+    args = parser.parse_args(sys.argv[1:] if argv is None else argv)
+    workspace = (args.workspace.expanduser().resolve() if args.workspace
+                 else workspace_root(Path.cwd()))
+    output = args.output.expanduser() if args.output else None
+    if output and not output.is_absolute():
+        output = (workspace / output).resolve()
+    elif output:
+        output = output.resolve()
+    fetch_workspace(workspace, output)
+    return 0
 
 
 if __name__ == '__main__':
-    main()
+    raise SystemExit(main())
