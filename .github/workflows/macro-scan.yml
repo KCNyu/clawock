@@ -40,7 +40,7 @@ jobs:
         run: python3 scripts/data/fetch_macro.py
 
       - name: Validate macro coverage
-        run: python3 scripts/data/validate_sidecars.py macro
+        run: clawock validate-sidecar macro
 
       - name: Commit
         # Shared helper commits only this workflow's sidecar. The frontend fetches

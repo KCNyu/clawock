@@ -7,6 +7,7 @@ from workflow_contract_helpers import (
     case_patterns,
     push_paths,
     step_block,
+    step_run,
 )
 
 
@@ -58,7 +59,8 @@ def test_dashboard_gate_is_read_only_stdlib_validation():
     assert 'safe_push.sh' not in text
     assert 'gha_commit_push.sh' not in text
     assert 'CLAWOCK_PUBLISH_SSH_KEY' not in text
-    assert_validator_step(GATE, 'Validate published dashboard payload', 'dashboard')
+    assert step_run(GATE, 'Validate published dashboard payload') == (
+        'PYTHONPATH=src python3 -m clawock validate-sidecar dashboard')
     assert 'continue-on-error' not in step_block(
         GATE, 'Validate published dashboard payload')
     # It must validate what was PUBLISHED. The checkout no longer carries the

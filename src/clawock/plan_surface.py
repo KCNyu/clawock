@@ -10,7 +10,7 @@ condition to a position the morning plan already classified as a mandatory risk
 reduction. Downstream runs must consume the decision ledger instead of rebuilding
 the day's intent from prices.
 
-The ledger is the source of truth, not the plan file: `mark_followed.py` writes
+The ledger is the source of truth, not the plan file: `clawock mark-followed` writes
 execution status back to `decisions.jsonl` only. Reading the plan file alone would
 keep proposing an order that already filled.
 
@@ -37,7 +37,7 @@ RATIONALE_CHARS = 180
 EXEC_MODE_CHARS = 240
 
 # An order still waiting on the market. `followed`/`not_followed` are terminal:
-# mark_followed.py has already recorded what happened, so re-proposing the action
+# `clawock mark-followed` has already recorded what happened, so re-proposing the action
 # would be arguing with the ledger.
 OPEN_EXECUTION = "unknown"
 

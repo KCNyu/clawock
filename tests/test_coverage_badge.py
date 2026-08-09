@@ -19,7 +19,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'scripts' / 'data'))
 
 import coverage_badge  # noqa: E402
-import validate_sidecars  # noqa: E402
+from clawock import validate_sidecars  # noqa: E402
 
 WORKFLOW = ROOT / '.github' / 'workflows' / 'harness-regression.yml'
 BADGE_PATH = 'assets/data/coverage.json'
@@ -258,7 +258,8 @@ def test_publish_job_validates_then_commits_one_exact_path():
     assert 'continue-on-error' not in badge_step
     assert f'--out {BADGE_PATH}' in step_run(WORKFLOW, 'Coverage floors and badge payload')
 
-    assert_validator_step(WORKFLOW, 'Validate coverage badge', 'coverage')
+    assert step_run(WORKFLOW, 'Validate coverage badge') == (
+        'PYTHONPATH=src python3 -m clawock validate-sidecar coverage')
 
     commit_run = step_run(WORKFLOW, 'Commit')
     publish = [line.strip() for line in commit_run.splitlines()

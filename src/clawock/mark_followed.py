@@ -2,24 +2,20 @@
 """Record execution ground truth in the v2 decision ledger.
 
 Usage:
-  mark_followed.py DECISION_ID [--no]
-  mark_followed.py --list
+  clawock mark-followed DECISION_ID [--no]
+  clawock mark-followed --list
 """
 import argparse
-import sys
-from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
-sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
 from clawock import decision_v2
 
 
-def main():
+def main(argv=None):
     ap = argparse.ArgumentParser()
     ap.add_argument("decision_id", nargs="?")
     ap.add_argument("--no", action="store_true", help="mark not_followed")
     ap.add_argument("--list", action="store_true", help="list unknown triggered decisions")
-    args = ap.parse_args()
+    args = ap.parse_args(argv)
     rows = decision_v2.load_decisions()
     if args.list:
         for d in rows:

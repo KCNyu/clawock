@@ -25,7 +25,7 @@ echo "▸ recompute realized P&L (Σ sell trades)…"
 clawock realized $DRY
 
 echo "▸ integrity gate (TCV / cost / pnl / CASH_RECON / COST_BASIS / FX)…"
-python3 scripts/data/preflight_integrity.py
+clawock integrity
 rc=$?
 
 echo

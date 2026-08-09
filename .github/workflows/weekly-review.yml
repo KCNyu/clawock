@@ -35,7 +35,7 @@ jobs:
         run: python3 scripts/data/gh_action_weekly_review.py
 
       - name: Validate generated review
-        run: python3 scripts/data/validate_sidecars.py weekly-review
+        run: clawock validate-sidecar weekly-review
 
       - name: Commit + push
         env:

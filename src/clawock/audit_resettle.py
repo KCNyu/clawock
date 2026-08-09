@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """
-audit_resettle.py — dry-run the bar-based re-settle and report every state transition.
+``clawock audit-resettle`` — dry-run the bar-based re-settle and report every
+state transition.
 
 A re-settlement moves the public scorecard. "The win rate after the fix" is not a
 reportable number on its own: the fix removes some rows and adds others, and if the
@@ -8,8 +9,8 @@ removed ones happened to be losers the record improves for no honest reason. Thi
 prints the whole transition matrix so the direction of every change is attributable,
 and it never writes the ledger.
 
-  audit_resettle.py                 # dry-run + full report
-  audit_resettle.py --write         # apply to memory/decisions.jsonl
+  clawock audit-resettle                 # dry-run + full report
+  clawock audit-resettle --write         # apply to memory/decisions.jsonl
 """
 from __future__ import annotations
 
@@ -18,21 +19,18 @@ import copy
 import json
 import sys
 from collections import Counter, defaultdict
-from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
-sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
-from clawock import decision_v2 as dv2  # noqa: E402
+from clawock import decision_v2 as dv2
 
 
 def snap(decisions: list[dict]) -> dict:
     return {d["decision_id"]: copy.deepcopy(d.get("evaluation") or {}) for d in decisions}
 
 
-def main() -> int:
+def main(argv=None) -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--write", action="store_true", help="persist the re-settled ledger")
-    args = ap.parse_args()
+    args = ap.parse_args(argv)
 
     decisions = dv2.load_decisions()
     before = snap(decisions)

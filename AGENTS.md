@@ -48,7 +48,7 @@ After any of the following changes, run a git commit automatically — no need t
 | Harness produced new `memory/{date}-pre-open.md` + `-plan.json` | `memory: daily deep brief <date>` (postflight auto-commits) |
 | Any dashboard output refreshed via `build_dashboard.py` | semantic changes to `dashboard.json` / `decision_audit.json` / `shadow_portfolio.json` are bundled with the relevant data commit |
 | `assets/data/risk.json` refreshed via `clawock portfolio-risk` | bundled with brief commit |
-| `memory/decisions.jsonl` execution status marked via `mark_followed.py` | `decisions: mark execution` |
+| `memory/decisions.jsonl` execution status marked via `clawock mark-followed` | `decisions: mark execution` |
 | Any script added or modified | `script: <what changed>` |
 | Workspace docs changed (SOUL/AGENTS/TOOLS/USER/CLAUDE/README) | `docs: <what changed>` |
 

@@ -54,26 +54,21 @@ fi
 # `|| true` on both: under `set -e` a failing command substitution aborts the
 # whole script, which would turn any git hiccup into "push silently skipped".
 REPO_TOP="$(git rev-parse --show-toplevel 2>/dev/null || true)"
-INTEGRITY_SCRIPT="${REPO_TOP:-.}/scripts/data/preflight_integrity.py"
 if git fetch "$REMOTE" "$BRANCH" -q 2>/dev/null; then
   PORTFOLIO_TOUCHED="$(git diff --name-only FETCH_HEAD..HEAD -- portfolio.json 2>/dev/null || true)"
 else
   # Cannot tell what is new; assume the money file is in scope rather than skip.
   PORTFOLIO_TOUCHED="portfolio.json"
 fi
-if [ -n "$PORTFOLIO_TOUCHED" ] && [ ! -f "$INTEGRITY_SCRIPT" ]; then
-  # `-f` used to be a precondition of running the gate, so a checker that was
-  # not where we looked read as "nothing to check" and the money file shipped
-  # unverified. It is an assertion now: the file is in this push and we cannot
-  # verify it, so we do not push it.
+if [ -n "$PORTFOLIO_TOUCHED" ] && ! command -v clawock >/dev/null 2>&1; then
   echo "✗ REFUSING TO PUSH — portfolio.json is in this push but the"
-  echo "  money-conservation checker is missing: $INTEGRITY_SCRIPT"
+  echo "  package-owned money-conservation checker is unavailable: clawock"
   echo "  The book cannot be verified from here."
   exit 4
 fi
 if [ -n "$PORTFOLIO_TOUCHED" ]; then
   echo "▸ portfolio.json is in this push — running money-conservation check…"
-  if ! python3 "$INTEGRITY_SCRIPT"; then
+  if ! CLAWOCK_WORKSPACE="${REPO_TOP:-.}" clawock integrity; then
     echo "✗ REFUSING TO PUSH — portfolio.json does not reconcile."
     echo "  Cash, positions and P&L must balance before the money file is published."
     echo "  Fix the ledger (see the findings above) and re-commit."

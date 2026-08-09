@@ -198,6 +198,7 @@ jobs:
             --cov=clawock.recompute_cash \
             --cov=clawock.portfolio_math \
             --cov=clawock.portfolio_risk_metrics \
+            --cov=clawock.preflight_integrity \
             --cov=clawock.risk_discipline \
             --cov=clawock.safe_io \
             --cov=clawock.research_surface \
@@ -205,6 +206,7 @@ jobs:
             --cov=clawock.shadow_portfolio \
             --cov=clawock.thesis_registry \
             --cov=clawock.trading_calendar \
+            --cov=clawock.validate_sidecars \
             --cov-report=term-missing:skip-covered \
             --cov-report=json:coverage-report.json
 
@@ -347,7 +349,7 @@ jobs:
         if: github.event_name != 'pull_request' || steps.changes.outputs.code == 'true'
         run: |
           python3 scripts/data/build_dashboard.py
-          python3 scripts/data/validate_sidecars.py dashboard
+          clawock validate-sidecar dashboard
           python3 << 'PY'
           import json
           with open('assets/data/decision_audit.json') as f: audit = json.load(f)
@@ -385,7 +387,8 @@ jobs:
           python-version: '3.11'
 
       # No dependency install and no second test run: the suite was already
-      # measured in `validate`. Everything below is stdlib.
+      # measured in `validate`. The package validator runs from `src/` with the
+      # stock runner so this cheap publishing job stays stdlib-only.
       - name: Download coverage report
         uses: actions/download-artifact@v8
         with:
@@ -397,7 +400,7 @@ jobs:
       - name: Validate coverage badge
         # shields.io renders this file verbatim; a malformed payload would show up
         # as an "invalid" badge on the README instead of failing anything.
-        run: python3 scripts/data/validate_sidecars.py coverage
+        run: PYTHONPATH=src python3 -m clawock validate-sidecar coverage
 
       - name: Commit
         # Commits only the badge payload. assets/data/coverage.json is not in this
