@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # reconcile.sh — the one command to run after ANY edit to portfolio.json trades,
 # cash_adjustments, or holdings. Replaces the error-prone "remember to run
-# recompute_cash AND recompute_realized" 铁律 with a single structural step, then
+# `clawock cash` AND `clawock realized`" rule with a single structural step, then
 # verifies the book against every money-conservation gate.
 #
 #   bash scripts/data/reconcile.sh            # recompute in place + verify

@@ -190,22 +190,22 @@ jobs:
             --cov=clawock.decision_v2 \
             --cov=clawock.earnings_review \
             --cov=clawock.entry_gate \
-            --cov=clawock.fetch_fx \
-            --cov=clawock.instrument_registry \
+            --cov=clawock.portfolio.fx \
+            --cov=clawock.portfolio.instruments \
             --cov=clawock.json_repair \
             --cov=clawock.evidence.news_evidence_graph \
             --cov=clawock.evidence.research_provenance \
-            --cov=clawock.recompute_realized \
-            --cov=clawock.recompute_aggregates \
-            --cov=clawock.recompute_cash \
-            --cov=clawock.portfolio_math \
-            --cov=clawock.portfolio_risk_metrics \
-            --cov=clawock.preflight_integrity \
+            --cov=clawock.portfolio.realized \
+            --cov=clawock.portfolio.aggregates \
+            --cov=clawock.portfolio.cash \
+            --cov=clawock.portfolio.math \
+            --cov=clawock.portfolio.risk \
+            --cov=clawock.portfolio.integrity \
             --cov=clawock.risk_discipline \
             --cov=clawock.safe_io \
             --cov=clawock.evidence.research_surface \
-            --cov=clawock.snapshot_realized \
-            --cov=clawock.shadow_portfolio \
+            --cov=clawock.portfolio.snapshots \
+            --cov=clawock.portfolio.shadow \
             --cov=clawock.thesis_registry \
             --cov=clawock.trading_calendar \
             --cov=clawock.validate_sidecars \
@@ -298,7 +298,7 @@ jobs:
 
       - name: Schema-validate canonical instrument registry
         if: github.event_name != 'pull_request' || steps.changes.outputs.code == 'true'
-        run: python3 -m clawock.instrument_registry
+        run: python3 -m clawock.portfolio.instruments
 
       - name: Schema-validate memory/*-plan.json
         if: github.event_name != 'pull_request' || steps.changes.outputs.code == 'true'

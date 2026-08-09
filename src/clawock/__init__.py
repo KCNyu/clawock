@@ -1,9 +1,9 @@
 """clawock — portable decision intelligence for external agents.
 
-This package is the part that is meant to be installable and pointed at any
-workspace. Everything under `scripts/` remains the operator-side implementation
-of kcn's own desk; the boundary is deliberately thin for now and will move as
-more of the loop becomes importable rather than shelled.
+This package is the runtime-neutral product that can be installed and pointed at
+any workspace. Cohesive product areas live in domain subpackages such as
+``clawock.evidence`` and ``clawock.portfolio``; remaining code under ``scripts``
+is instance or repository operations, never an alternate product namespace.
 """
 
 from clawock.workspace import ENV_VAR, describe, missing_pieces, workspace_root

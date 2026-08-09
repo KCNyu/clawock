@@ -58,9 +58,9 @@ SNAPSHOT_DIR = WS / 'memory' / 'snapshots'
 sys.path.insert(0, str(_CHECKOUT / 'scripts' / 'data'))
 import workflow_outcomes  # noqa: E402
 import mover_news  # noqa: E402
-from clawock.instrument_registry import get as get_instrument  # noqa: E402
-from clawock.instrument_registry import compute_lookthrough_exposure  # noqa: E402
-from clawock.instrument_registry import one_x_swap_map  # noqa: E402
+from clawock.portfolio.instruments import get as get_instrument  # noqa: E402
+from clawock.portfolio.instruments import compute_lookthrough_exposure  # noqa: E402
+from clawock.portfolio.instruments import one_x_swap_map  # noqa: E402
 
 
 def _fetch_hk_results_notices(ticker):
@@ -1653,7 +1653,7 @@ def main(argv=None):
     # （遵 feedback_no_individual_cron_alerts 不推送），ERROR 由 build_status 健康卡暴露。
     integrity = {}
     try:
-        from clawock import preflight_integrity as _pi
+        from clawock.portfolio import integrity as _pi
         integrity = _pi.check()
         if not integrity['ok']:
             print(f'   🔴 数据体检 {integrity["error_count"]} ERROR：')

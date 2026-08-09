@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-portfolio_risk_metrics.py — Tier 2 portfolio risk quantification.
+Tier 2 portable portfolio risk quantification.
 
 Reads `portfolio.json` (current holdings), pulls 30d daily prices from Yahoo
 Finance v8 for every active ticker + benchmarks (^GSPC, ^HSI), and computes:
@@ -27,9 +27,9 @@ from pathlib import Path
 import numpy as np
 import requests
 
-from clawock.fetch_fx import get_usdhkd
-from clawock.instrument_registry import get as get_instrument
-from clawock.instrument_registry import leverage_map, require as require_instrument
+from clawock.portfolio.fx import get_usdhkd
+from clawock.portfolio.instruments import get as get_instrument
+from clawock.portfolio.instruments import leverage_map, require as require_instrument
 from clawock.safe_io import safe_write_json
 from clawock.workspace import workspace_root
 
@@ -1139,11 +1139,11 @@ def _correlation_alerts(correlation):
 
 
 def load_canonical_fx():
-    """Return HKD→USD plus provenance from the shared fetch_fx source."""
+    """Return HKD→USD plus provenance from the shared portfolio FX source."""
     fx = get_usdhkd()
     rate = float(fx.get('rate') or 0)
     if not 7.0 < rate < 9.0:
-        raise ValueError(f'invalid USDHKD rate from fetch_fx: {rate!r}')
+        raise ValueError(f'invalid USDHKD rate from clawock fx: {rate!r}')
     return 1.0 / rate, {
         'pair': fx.get('pair') or 'USDHKD',
         'rate': rate,
@@ -1265,7 +1265,7 @@ def main(argv=None):
         print('  WARN: HK risk fetch empty — kept previous β/vol block (stale), '
               'value refreshed from holdings', file=sys.stderr)
 
-    # Canonical USDHKD source: fetch_fx owns cache, provider order and fallback.
+    # Canonical USDHKD source: portfolio.fx owns cache, provider order and fallback.
     fx_hkd_to_usd, fx_meta = load_canonical_fx()
     if fx_meta['fallback_used']:
         print(f'  WARN: FX fallback in use: {fx_meta["source"]}', file=sys.stderr)

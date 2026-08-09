@@ -1,6 +1,6 @@
 """Point-in-time realized P&L for a historical snapshot.
 
-`recompute_realized.py` sums *every* trade in portfolio.json — correct for the
+`clawock realized` sums *every* trade in portfolio.json — correct for the
 live portfolio, but wrong for a dated snapshot, where realized must reflect only
 the sells that had already settled into that snapshot's holdings. Crediting a
 sell too early inflates equity; crediting it too late deflates it.

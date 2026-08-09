@@ -24,7 +24,7 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
-from clawock import instrument_registry
+from clawock.portfolio import instruments as instrument_registry
 from clawock.workspace import engine_config, workspace_root
 
 WS = workspace_root(Path.cwd())

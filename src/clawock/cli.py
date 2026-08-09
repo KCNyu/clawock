@@ -335,17 +335,17 @@ def _packaged_utility(args) -> int:
     elif args.command == "research":
         from clawock.evidence.research_surface import main
     elif args.command == "realized":
-        from clawock.recompute_realized import main
+        from clawock.portfolio.realized import main
     elif args.command == "aggregates":
-        from clawock.recompute_aggregates import main
+        from clawock.portfolio.aggregates import main
     elif args.command == "cash":
-        from clawock.recompute_cash import main
+        from clawock.portfolio.cash import main
     elif args.command == "shadow":
-        from clawock.shadow_portfolio import main
+        from clawock.portfolio.shadow import main
     elif args.command == "fx":
-        from clawock.fetch_fx import main
+        from clawock.portfolio.fx import main
     elif args.command == "portfolio-risk":
-        from clawock.portfolio_risk_metrics import main
+        from clawock.portfolio.risk import main
     elif args.command == "quant":
         from clawock.compute_quant_signals import main
     elif args.command == "regime":
@@ -384,7 +384,7 @@ def _packaged_utility(args) -> int:
     elif args.command == "benchmark":
         from clawock.fetch_benchmark_history import main
     elif args.command == "integrity":
-        from clawock.preflight_integrity import main
+        from clawock.portfolio.integrity import main
     elif args.command == "validate-sidecar":
         from clawock.validate_sidecars import main
     elif args.command == "mark-followed":

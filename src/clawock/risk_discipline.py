@@ -15,8 +15,8 @@ import sys
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
-from clawock.instrument_registry import get as get_instrument
-from clawock.instrument_registry import one_x_swap_map
+from clawock.portfolio.instruments import get as get_instrument
+from clawock.portfolio.instruments import one_x_swap_map
 from clawock.workspace import workspace_root
 
 WS = workspace_root(Path.cwd())

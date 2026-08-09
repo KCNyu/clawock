@@ -11,7 +11,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 INSTANCE_HARNESS = ROOT / "instances" / "kcnyu" / "src" / "clawock_kcnyu" / "harness"
-from clawock import fetch_fx
+from clawock.portfolio import fx as fetch_fx
 
 
 def _entry(rate, day="2026-08-05", source="Frankfurter"):

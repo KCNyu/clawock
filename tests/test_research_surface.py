@@ -665,7 +665,7 @@ def test_the_watch_is_opt_in_and_the_daily_brief_opts_in():
 def test_registry_look_through_is_the_single_rule(symbol, kind, issuer, tracks):
     import sys
     sys.path.insert(0, str(ROOT / "scripts" / "data"))
-    from clawock import instrument_registry
+    from clawock.portfolio import instruments as instrument_registry
 
     resolved = instrument_registry.look_through(symbol)
     assert (resolved["kind"], resolved["issuer"], resolved["tracks"]) == (kind, issuer, tracks)

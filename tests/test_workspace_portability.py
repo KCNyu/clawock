@@ -106,7 +106,7 @@ def test_the_default_workspace_is_unchanged_when_the_override_is_unset(monkeypat
 
 
 def test_the_money_clis_target_the_checkout_they_are_in(monkeypatch):
-    """`python3 recompute_realized.py` from a worktree rewrote the live ledger.
+    """The realized command from a worktree once rewrote the live ledger.
 
     Its `--path` default was `/root/.openclaw/workspace/portfolio.json`, so the
     command line pointed at production wherever it ran; the library callers
@@ -116,7 +116,7 @@ def test_the_money_clis_target_the_checkout_they_are_in(monkeypatch):
     """
     probe = (
         "import sys; sys.path[:0] = [%r, %r];"
-        "from clawock import recompute_realized as rr, snapshot_realized as sr;"
+        "from clawock.portfolio import realized as rr, snapshots as sr;"
         " import backfill_snapshot_realized as bf;"
         "print(rr.PORTFOLIO_PATH); print(bf.SNAP_DIR);"
         "print(hasattr(sr, 'PORTFOLIO_PATH'))"
@@ -131,7 +131,7 @@ def test_the_money_clis_target_the_checkout_they_are_in(monkeypatch):
     assert Path(ledger) == ROOT / "portfolio.json"
     assert Path(snapshots) == ROOT / "memory" / "snapshots"
     assert dead_constant == "False", (
-        "snapshot_realized's unused PORTFOLIO_PATH named production and had no "
+        "the snapshots module's unused PORTFOLIO_PATH named production and had no "
         "reader; re-adding one is re-adding a loaded gun")
 
 

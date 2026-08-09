@@ -661,7 +661,7 @@ def _assert_dashboard_money_reconciles(
     # Reuse the same conservation rules that protect local pre-push and brief
     # generation. Only arithmetic/accounting findings are fatal here; quote
     # freshness and market-data advisories remain visible in the dashboard.
-    from clawock import preflight_integrity
+    from clawock.portfolio import integrity as preflight_integrity
     report = preflight_integrity.check(portfolio_path)
     money_findings = [
         finding for finding in report['findings']
