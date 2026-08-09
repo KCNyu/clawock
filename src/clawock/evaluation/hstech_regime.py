@@ -187,10 +187,16 @@ def run(ma=200, vol_cap=0.50, vol_n=20):
     return measured
 
 
-if __name__ == '__main__':
-    ap = argparse.ArgumentParser()
+def main(argv=None):
+    ap = argparse.ArgumentParser(prog='clawock evaluate-hstech-regime',
+                                 description=__doc__)
     ap.add_argument('--ma', type=int, default=200)
     ap.add_argument('--vol-cap', type=float, default=0.50)
     ap.add_argument('--vol-n', type=int, default=20)
-    args = ap.parse_args()
+    args = ap.parse_args(argv)
     run(ma=args.ma, vol_cap=args.vol_cap, vol_n=args.vol_n)
+    return 0
+
+
+if __name__ == '__main__':
+    raise SystemExit(main())

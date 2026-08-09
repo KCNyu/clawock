@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-analyze_us_stocks.py - US portfolio analysis for active holdings
+clawock analyze-us — US portfolio analysis for active holdings
 Steps:
   1. Fetch fresh prices via fetch_us_stocks (multi-provider)
   2. Pull RSI from Yahoo daily history (free, no rate limit)

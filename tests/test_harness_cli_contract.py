@@ -110,3 +110,73 @@ def test_external_agent_can_repair_then_publish_one_certified_generation(tmp_pat
     assert manifest["generation_id"] == receipt.generation_id
     assert manifest["context"]["documents"][0]["name"] == "CONTEXT.md"
     assert len(manifest["context"]["documents"][0]["sha256"]) == 64
+
+
+def test_every_packaged_utility_is_actually_callable():
+    """Each table entry must import and expose a `main` that takes argv.
+
+    #429 added four `evaluate-*` commands to the name list without touching the
+    dispatch chain beside it: one module had no `main` at all and three had
+    `main()` with no parameters, so every invocation — `--help` included — died
+    on ImportError or TypeError. Nothing noticed, because no test ever asked the
+    CLI to reach them. The two are one table now; this asserts the table resolves.
+    """
+    import importlib
+    import inspect
+
+    from clawock.cli import HARD_EXIT_UTILITIES, PACKAGED_UTILITIES
+
+    broken = []
+    for command, target in sorted(PACKAGED_UTILITIES.items()):
+        try:
+            module = importlib.import_module(target)
+        except Exception as exc:
+            broken.append(f"{command}: {target} does not import ({exc})")
+            continue
+        entry = getattr(module, "main", None)
+        if entry is None:
+            broken.append(f"{command}: {target} has no main()")
+            continue
+        try:
+            inspect.signature(entry).bind([])
+        except TypeError:
+            broken.append(f"{command}: {target}.main() does not accept argv")
+        if command in HARD_EXIT_UTILITIES and not hasattr(module, "hard_exit"):
+            broken.append(f"{command}: {target} has no hard_exit()")
+    assert not broken, "packaged utilities the CLI cannot reach:\n" + "\n".join(broken)
+
+
+def test_every_packaged_utility_answers_help_without_running_anything():
+    """`--help` is the first thing anyone types, and it must not do work.
+
+    Two separate failures hid here. Some utilities took `argv[0]` as a path, so
+    `--help` came back as a FileNotFoundError traceback. Worse, eleven scan argv
+    for flags by hand and simply ignore anything they do not recognise — so
+    `clawock analyze-hk --help` fetched live quotes and rewrote portfolio.json.
+
+    Driven through `cli.main`, because that is the surface a user touches; the
+    module's own `main` is not where the guarantee has to hold.
+    """
+    import io
+    from contextlib import redirect_stdout, redirect_stderr
+
+    from clawock import cli
+
+    bad = []
+    for command in sorted(cli.PACKAGED_UTILITIES):
+        out = io.StringIO()
+        try:
+            with redirect_stdout(out), redirect_stderr(out):
+                returned = cli.main([command, "--help"])
+        except SystemExit as exit_code:
+            if exit_code.code not in (0, None):
+                bad.append(f"{command}: --help exited {exit_code.code}")
+        except Exception as exc:
+            bad.append(f"{command}: --help raised {type(exc).__name__}: {exc}")
+            continue
+        else:
+            if returned not in (0, None):
+                bad.append(f"{command}: --help returned {returned}")
+        if "usage" not in out.getvalue().lower():
+            bad.append(f"{command}: --help printed no usage line")
+    assert not bad, "utilities that mishandle --help:\n" + "\n".join(bad)

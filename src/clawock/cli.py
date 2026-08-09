@@ -316,107 +316,17 @@ def _context(args) -> int:
 
 def _packaged_utility(args) -> int:
     """Dispatch package-owned ledgers and deterministic output utilities."""
-    if args.command == "plan-context":
-        from clawock.decision.plans import main
-    elif args.command == "risk":
-        from clawock.decision.risk import main
-    elif args.command == "dashboard-outputs":
-        from clawock.publish.outputs import main
-    elif args.command == "dashboard-build":
-        from clawock.publish.dashboard import main
-    elif args.command == "run-card":
-        from clawock.evidence.run_card import main
-    elif args.command == "provenance":
-        from clawock.evidence.research_provenance import main
-    elif args.command == "entry-gate":
-        from clawock.decision.entry import main
-    elif args.command == "thesis":
-        from clawock.decision.theses import main
-    elif args.command == "earnings":
-        from clawock.decision.earnings import main
-    elif args.command == "research":
-        from clawock.evidence.research_surface import main
-    elif args.command == "realized":
-        from clawock.portfolio.realized import main
-    elif args.command == "aggregates":
-        from clawock.portfolio.aggregates import main
-    elif args.command == "cash":
-        from clawock.portfolio.cash import main
-    elif args.command == "shadow":
-        from clawock.portfolio.shadow import main
-    elif args.command == "fx":
-        from clawock.portfolio.fx import main
-    elif args.command == "portfolio-risk":
-        from clawock.portfolio.risk import main
-    elif args.command == "quant":
-        from clawock.decision.signals import main
-    elif args.command == "regime":
-        from clawock.decision.regime import main
-    elif args.command == "t0":
-        from clawock.decision.setups import main
-    elif args.command == "quant-review":
-        from clawock.decision.signal_review import main
-    elif args.command == "t0-review":
-        from clawock.decision.setup_review import main
-    elif args.command == "cross-factor":
-        from clawock.market_data.factors import main
-    elif args.command == "peer-residual":
-        from clawock.market_data.peer_residuals import main
-    elif args.command == "fetch-peers":
-        from clawock.market_data.peer_quotes import hard_exit, main
-        hard_exit(main(args.utility_args))
-    elif args.command == "filings":
-        from clawock.market_data.filings import main
-    elif args.command == "fundamentals":
-        from clawock.market_data.fundamentals import main
-    elif args.command == "fundflow":
-        from clawock.market_data.fund_flows import main
-    elif args.command == "em-news":
-        from clawock.market_data.eastmoney_news import main
-    elif args.command == "daily-bars":
-        from clawock.market_data.bars import main
-    elif args.command == "catalysts":
-        from clawock.market_data.calendar import main
-    elif args.command == "us-quotes":
-        from clawock.market_data.us_quotes import main
-    elif args.command == "analyze-us":
-        from clawock.market_data.us_analysis import main
-    elif args.command == "analyze-hk":
-        from clawock.market_data.hk_analysis import main
-    elif args.command == "benchmark":
-        from clawock.market_data.benchmarks import main
-    elif args.command == "macro":
-        from clawock.market_data.macro import main
-    elif args.command == "sentiment":
-        from clawock.market_data.sentiment import main
-    elif args.command == "mover-evidence":
-        from clawock.market_data.mover_evidence import main
-    elif args.command == "integrity":
-        from clawock.portfolio.integrity import main
-    elif args.command == "reconcile":
-        from clawock.portfolio.reconcile import main
-    elif args.command == "validate-sidecar":
-        from clawock.publish.artifacts import main
-    elif args.command == "mark-followed":
-        from clawock.decision.execution import main
-    elif args.command == "audit-resettle":
-        from clawock.decision.settlement import main
-    elif args.command == "evidence":
-        from clawock.evidence.build_evidence import main
-    elif args.command == "news-evidence":
-        from clawock.evidence.news_evidence_graph import main
-    elif args.command == "evaluate-combined-regime":
-        from clawock.evaluation.combined_regime import main
-    elif args.command == "evaluate-hstech-regime":
-        from clawock.evaluation.hstech_regime import main
-    elif args.command == "evaluate-us-leverage":
-        from clawock.evaluation.us_leverage import main
-    elif args.command == "validate-regime-dial":
-        from clawock.evaluation.regime_validation import main
-    else:
-        from clawock.evidence.claim_provenance import main
-    return main(args.utility_args)
+    import importlib
 
+    module = importlib.import_module(PACKAGED_UTILITIES[args.command])
+    if (args.command in DOCSTRING_HELP_UTILITIES
+            and set(args.utility_args) & {"-h", "--help"}):
+        print(f"usage: clawock {args.command} [flags]\n")
+        print((module.__doc__ or "no module documentation").strip())
+        return 0
+    if args.command in HARD_EXIT_UTILITIES:
+        module.hard_exit(module.main(args.utility_args))
+    return module.main(args.utility_args)
 
 def _workflow(args) -> int:
     """Discover or install portable Agent Skills shipped by clawock."""
@@ -520,23 +430,74 @@ def _workflow(args) -> int:
         return 1
 
 
-# Utility commands dispatched straight to their module `main`, bypassing the
-# argparse tree below. Module scope so callers can ask what the CLI accepts
-# without building the parser or shelling out.
-PACKAGED_UTILITIES = frozenset({
-    "plan-context", "risk", "dashboard-outputs", "dashboard-build", "run-card",
-    "provenance", "entry-gate", "thesis", "earnings", "research",
-    "claim-provenance", "realized", "aggregates", "cash", "shadow", "fx",
-    "portfolio-risk", "quant", "regime", "t0", "quant-review", "t0-review",
-    "cross-factor", "peer-residual", "fetch-peers", "filings", "fundamentals",
-    "fundflow", "em-news", "daily-bars", "catalysts", "us-quotes",
-    "analyze-us", "analyze-hk", "benchmark", "macro", "sentiment",
-    "mover-evidence", "integrity", "reconcile", "validate-sidecar",
-    "mark-followed", "audit-resettle", "evidence", "news-evidence",
-    "evaluate-combined-regime", "evaluate-hstech-regime",
-    "evaluate-us-leverage", "validate-regime-dial",
-})
+# Command -> module owning its `main(argv)`. One table, not a name list plus a
+# parallel dispatch chain: those were two copies of the same 49 entries, and the
+# four `evaluate-*` commands shipped in #429 pointing at a module with no `main`
+# because only one copy was updated.
+PACKAGED_UTILITIES = {
+    "aggregates": "clawock.portfolio.aggregates",
+    "analyze-hk": "clawock.market_data.hk_analysis",
+    "analyze-us": "clawock.market_data.us_analysis",
+    "audit-resettle": "clawock.decision.settlement",
+    "benchmark": "clawock.market_data.benchmarks",
+    "cash": "clawock.portfolio.cash",
+    "catalysts": "clawock.market_data.calendar",
+    "claim-provenance": "clawock.evidence.claim_provenance",
+    "cross-factor": "clawock.market_data.factors",
+    "daily-bars": "clawock.market_data.bars",
+    "dashboard-build": "clawock.publish.dashboard",
+    "dashboard-outputs": "clawock.publish.outputs",
+    "earnings": "clawock.decision.earnings",
+    "em-news": "clawock.market_data.eastmoney_news",
+    "entry-gate": "clawock.decision.entry",
+    "evaluate-combined-regime": "clawock.evaluation.combined_regime",
+    "evaluate-hstech-regime": "clawock.evaluation.hstech_regime",
+    "evaluate-us-leverage": "clawock.evaluation.us_leverage",
+    "evidence": "clawock.evidence.build_evidence",
+    "fetch-peers": "clawock.market_data.peer_quotes",
+    "filings": "clawock.market_data.filings",
+    "fundamentals": "clawock.market_data.fundamentals",
+    "fundflow": "clawock.market_data.fund_flows",
+    "fx": "clawock.portfolio.fx",
+    "integrity": "clawock.portfolio.integrity",
+    "macro": "clawock.market_data.macro",
+    "mark-followed": "clawock.decision.execution",
+    "mover-evidence": "clawock.market_data.mover_evidence",
+    "news-evidence": "clawock.evidence.news_evidence_graph",
+    "peer-residual": "clawock.market_data.peer_residuals",
+    "plan-context": "clawock.decision.plans",
+    "portfolio-risk": "clawock.portfolio.risk",
+    "provenance": "clawock.evidence.research_provenance",
+    "quant": "clawock.decision.signals",
+    "quant-review": "clawock.decision.signal_review",
+    "realized": "clawock.portfolio.realized",
+    "reconcile": "clawock.portfolio.reconcile",
+    "regime": "clawock.decision.regime",
+    "research": "clawock.evidence.research_surface",
+    "risk": "clawock.decision.risk",
+    "run-card": "clawock.evidence.run_card",
+    "sentiment": "clawock.market_data.sentiment",
+    "shadow": "clawock.portfolio.shadow",
+    "t0": "clawock.decision.setups",
+    "t0-review": "clawock.decision.setup_review",
+    "thesis": "clawock.decision.theses",
+    "us-quotes": "clawock.market_data.us_quotes",
+    "validate-regime-dial": "clawock.evaluation.regime_validation",
+    "validate-sidecar": "clawock.publish.artifacts",
+}
 
+# Its own exit-code convention: a partial peer fetch must not read as success.
+HARD_EXIT_UTILITIES = frozenset({"fetch-peers"})
+
+# These scan `argv` for flags by hand instead of using argparse, so `--help` is
+# not a flag to them — it is an unrecognised token they ignore while going on to
+# do the real work. `clawock analyze-hk --help` fetched live quotes and rewrote
+# portfolio.json. Answering here keeps that one input from reaching them; their
+# contract is the module docstring, which is what gets printed.
+DOCSTRING_HELP_UTILITIES = frozenset({
+    "analyze-hk", "analyze-us", "fetch-peers", "filings", "fundamentals",
+    "fundflow", "quant", "quant-review", "t0", "t0-review", "us-quotes",
+})
 
 def main(argv=None) -> int:
     raw_argv = list(sys.argv[1:] if argv is None else argv)

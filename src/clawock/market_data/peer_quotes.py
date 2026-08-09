@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-fetch_peers.py — fetch current price + 5-day P&L for peer tickers.
+clawock fetch-peers — current price + 5-day P&L for peer tickers.
 
 Used by brief_preflight to enrich context.json with peer_scan data.
 

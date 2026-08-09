@@ -382,7 +382,9 @@ def sensitivity_surface(closes, ma_grid=MA_GRID, vol_grid=VOL_CAP_GRID):
 
 # ── CLI ─────────────────────────────────────────────────────────────────────
 
-def main() -> int:
+def main(argv=None) -> int:
+    argparse.ArgumentParser(prog='clawock validate-regime-dial',
+                            description=__doc__).parse_args(argv)
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument('--folds', type=int, default=4)
     ap.add_argument('--permutations', type=int, default=2000)
