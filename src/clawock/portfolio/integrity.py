@@ -52,6 +52,7 @@ cost_basis/prev_close/trades[])复原，且都有一道闸守着。计算链：
   clawock integrity [portfolio.json]   # 默认 workspace 根 portfolio.json
   退出码：0=全过或仅 WARN；2=有 ERROR（调用方应阻止发布/投递）
 """
+import argparse
 import json
 import sys
 from datetime import date, datetime, timedelta
@@ -452,7 +453,11 @@ def check(portfolio_path=PORTFOLIO):
 
 def main(argv=None):
     argv = sys.argv[1:] if argv is None else argv
-    path = Path(argv[0]) if argv else PORTFOLIO
+    parser = argparse.ArgumentParser(
+        prog='clawock integrity', description=__doc__.strip().splitlines()[0])
+    parser.add_argument('portfolio', nargs='?', type=Path, default=PORTFOLIO,
+                        help='ledger to check (default: this workspace)')
+    path = parser.parse_args(argv).portfolio
     report = check(path)
     safe_write_json(str(OUT), report)
 

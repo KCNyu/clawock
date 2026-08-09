@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-fetch_fundflow_em.py - 东财 push2his 日级资金流 (美股 + 港股, 无 key)
+clawock fundflow — 东财 push2his 日级资金流 (美股 + 港股, 无 key)
 
 Adapted and modified from global-stock-data
 (https://github.com/simonlin1212/global-stock-data, Apache-2.0). See NOTICE.

@@ -13,6 +13,7 @@ Outputs:
 
 Run: clawock evaluate-us-leverage
 """
+import argparse
 import math
 from datetime import date
 from pathlib import Path
@@ -139,7 +140,9 @@ COLORS = {'bh2': '#ef4444', 'reg': '#f59e0b', 'rgv': '#a855f7', 'r1x': '#22c55e'
 LBL = {'bh1': '标的 1x 持有', 'bh2': '2x ETF 死扛', 'reg': 'Regime 2x', 'rgv': 'Regime+Vol 2x', 'r1x': 'Regime 1x(降杠杆)'}
 
 
-def main():
+def main(argv=None):
+    argparse.ArgumentParser(prog='clawock evaluate-us-leverage',
+                            description=__doc__).parse_args(argv)
     plt, mdates = _plotting()
     plt.rcParams.update({'figure.facecolor': '#0f172a', 'axes.facecolor': '#0f172a',
                          'axes.edgecolor': '#334155', 'text.color': '#e2e8f0',
@@ -237,4 +240,4 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    raise SystemExit(main())
