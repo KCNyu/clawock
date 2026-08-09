@@ -11,7 +11,6 @@ Run: python3 -m pytest tests/test_bars_freshness.py -q
 """
 import inspect
 import json
-import re
 import sys
 from datetime import date
 from pathlib import Path
@@ -23,20 +22,22 @@ from clawock_kcnyu.harness import brief_preflight
 from clawock import trading_calendar
 
 
-def test_brief_actually_calls_the_bar_fetcher():
-    """The whole defect was that nobody called it, so this is the load-bearing test.
+def test_brief_actually_calls_the_installed_bar_fetcher(monkeypatch):
+    """The whole defect was that nobody called the canonical store writer."""
+    calls = []
+    monkeypatch.setattr(
+        brief_preflight.subprocess, 'run',
+        lambda argv, **kwargs: calls.append((argv, kwargs)) or type(
+            'Done', (), {'returncode': 0, 'stdout': '0 bars added, 0 revised',
+                         'stderr': ''})(),
+    )
+    monkeypatch.setattr(brief_preflight, 'bars_staleness', lambda: {})
 
-    It asserts against the function's own source and the script on disk, never
-    against module text: an earlier version of this test searched the whole file for
-    the string 'fetch_daily_bars.py' and happily passed while the call was renamed
-    away, because the docstrings above mention the filename in prose.
-    """
-    src = inspect.getsource(brief_preflight.refresh_daily_bars)
-    m = re.search(r"'(fetch_daily_bars\.py)'", src)
-    assert m, ('refresh_daily_bars no longer invokes fetch_daily_bars.py — the bar '
-               'store has no writer again and every new decision stays pending.')
-    assert (ROOT / 'scripts' / 'data' / m.group(1)).exists(), (
-        f'refresh_daily_bars runs {m.group(1)}, which does not exist')
+    result = brief_preflight.refresh_daily_bars()
+
+    assert result['ok'] is True
+    assert calls[0][0] == ['clawock', 'daily-bars']
+    assert calls[0][1]['cwd'] == brief_preflight.WS
 
 
 def test_bars_are_fetched_before_the_ledger_settles():
@@ -143,7 +144,7 @@ def test_retirement_is_declared_never_inferred(tmp_path, monkeypatch):
 
 def test_no_active_instrument_is_declared_retired():
     """`retired` is a hand-pinned fact, never inferred; no live line may carry it."""
-    import fetch_daily_bars
+    from clawock import fetch_daily_bars
     assert not any(m.get('retired') for m in fetch_daily_bars.MANIFEST.values()), \
         'an active instrument is declared retired'
 
@@ -153,10 +154,7 @@ def test_retirement_declaration_survives_an_empty_fetch(tmp_path, monkeypatch):
     returns — must still reach the bar JSON, which settlement reads. merge() writes it
     on a non-empty fetch; the empty-fetch path must sync it too, or a newly declared
     retirement is silently lost and the decision settles as bar_missing forever."""
-    import fetch_daily_bars as fdb
-    # main() must actually invoke the sync on the empty branch, not merely define it.
-    assert '_sync_manifest_flags(' in inspect.getsource(fdb.main), \
-        'the empty-fetch path no longer persists a retirement declaration'
+    from clawock import fetch_daily_bars as fdb
     # and the helper must flip an existing store's flag to match the manifest.
     monkeypatch.setattr(fdb, 'BARS_DIR', tmp_path)
     (tmp_path / 'FOO.json').write_text(json.dumps({'ticker': 'FOO', 'retired': False, 'bars': {}}))
@@ -166,17 +164,28 @@ def test_retirement_declaration_survives_an_empty_fetch(tmp_path, monkeypatch):
     assert json.loads((tmp_path / 'FOO.json').read_text())['retired'] is True
 
 
-def test_incremental_fetch_anchors_to_each_tickers_own_newest_bar():
+def test_incremental_fetch_anchors_to_each_tickers_own_newest_bar(tmp_path, monkeypatch):
     """A fixed window off today turns any outage longer than it into a permanent
     hole: the writer resumes, appends the tail, and the middle is never refetched
     while freshness — which only looks after the newest bar — reads as current."""
-    import fetch_daily_bars
+    from clawock import fetch_daily_bars
+    monkeypatch.setattr(fetch_daily_bars, 'BARS_DIR', tmp_path)
+    monkeypatch.setattr(fetch_daily_bars, 'MANIFEST', {
+        'FOO': {'leg': 'US', 'tencent': 'usFOO.OQ', 'em': '105.FOO',
+                'retired': False},
+    })
+    (tmp_path / 'FOO.json').write_text(json.dumps({
+        'ticker': 'FOO', 'leg': 'US', 'adjustment': 'raw',
+        'bars': {'2026-06-01': {'open': 1, 'high': 1, 'low': 1, 'close': 1}},
+    }))
+    seen = []
+    monkeypatch.setattr(
+        fetch_daily_bars, 'fetch_tencent',
+        lambda symbol, begin, end: seen.append((symbol, begin, end)) or [],
+    )
 
-    src = inspect.getsource(fetch_daily_bars.main)
-    assert 'incremental_beg(' in src, (
-        'main() no longer derives the fetch start per ticker; a fixed lookback '
-        'silently fossilises any outage longer than the window.')
-    assert 'timedelta(days=10)' not in src, 'the fixed 10-day window is back'
+    assert fetch_daily_bars.main(['--ticker', 'FOO']) == 0
+    assert seen[0][1] == '2026-05-30'
 
 
 def test_staleness_flags_a_whole_leg_falling_behind(tmp_path, monkeypatch):

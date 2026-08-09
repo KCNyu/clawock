@@ -15,18 +15,13 @@ never take down a market cron.
 from __future__ import annotations
 
 import json
-import sys
 from datetime import datetime
 from pathlib import Path
 
-# Resolve the package from the checkout this adapter ships in, not from an
-# ambient PYTHONPATH inherited from whichever runtime imported it.
-sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
-sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
 from clawock.workspace import workspace_root
 
 
-WS = workspace_root(Path(__file__).resolve().parents[2])
+WS = workspace_root(Path.cwd())
 TMP = WS / "memory" / ".tmp"
 MAX_MOVERS = 4
 MAX_EVENTS_PER_TICKER = 2

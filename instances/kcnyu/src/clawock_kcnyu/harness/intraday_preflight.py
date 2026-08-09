@@ -35,7 +35,7 @@ from datetime import datetime
 from pathlib import Path
 
 from clawock.workspace import workspace_root
-from clawock import peer_scan, plan_surface, research_surface, trading_calendar
+from clawock import known_catalysts, peer_scan, plan_surface, research_surface, trading_calendar
 
 WS = workspace_root(Path.cwd())
 DATA_DIR = WS / 'scripts' / 'data'
@@ -46,7 +46,6 @@ from ._harness_common import compute_context_id
 sys.path.insert(0, str(DATA_DIR))
 import cron_heartbeat  # noqa: E402
 import mover_news  # noqa: E402
-import known_catalysts  # noqa: E402
 
 
 def run_analyze(market):

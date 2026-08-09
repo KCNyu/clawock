@@ -139,7 +139,7 @@ def snapshot_date_for_now():
 
 # Only files a GH Action actually produces belong here — this list is checked out
 # from origin, so anything local wins. `catalysts.json` was in it but no workflow
-# has ever built it: fetch_catalysts.py runs in brief preflight [12/14] alone. So
+# has ever built it: `clawock catalysts` runs in brief preflight alone. So
 # the sync clobbered each freshly-fetched copy with origin's older one, and since
 # it wasn't committed either, origin only moved when an unrelated commit happened
 # to sweep it up — a loop that kept it stale from both ends.
