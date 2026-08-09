@@ -13,9 +13,9 @@ Provider chain:
   7. Polygon        – JSON, needs POLYGON_API_KEY, prev-close only
 
 Usage:
-  python3 fetch_us_stocks.py                # update portfolio.json
-  python3 fetch_us_stocks.py --dry-run      # print prices, don't write
-  python3 fetch_us_stocks.py RKLB SOXL      # specific tickers only
+  clawock us-quotes                         # update portfolio.json
+  clawock us-quotes --dry-run               # print prices, don't write
+  clawock us-quotes RKLB SOXL               # specific tickers only
 """
 
 import json
@@ -28,18 +28,16 @@ from typing import Dict, List, Optional
 from zoneinfo import ZoneInfo
 import requests
 
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-_CHECKOUT = Path(__file__).resolve().parents[2]
-sys.path.insert(0, str(_CHECKOUT))
-sys.path.insert(0, str(_CHECKOUT / "src"))
-from clawock import bar_checks  # noqa: E402  shared contract
-from clawock import trading_calendar  # noqa: E402
-from clawock._em_http import em_get  # noqa: E402
-from clawock.instrument_registry import INSTRUMENTS  # noqa: E402
+from clawock import bar_checks
+from clawock import trading_calendar
+from clawock._em_http import em_get
+from clawock.instrument_registry import INSTRUMENTS
+from clawock.market_books import region_book
+from clawock.workspace import workspace_root
 
-WS_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-PORTFOLIO_PATH = os.path.join(WS_ROOT, 'portfolio.json')
-API_KEYS_PATH  = os.path.join(WS_ROOT, '.api_keys')
+WS_ROOT = workspace_root(Path.cwd())
+PORTFOLIO_PATH = str(WS_ROOT / 'portfolio.json')
+API_KEYS_PATH = str(WS_ROOT / '.api_keys')
 POLYGON_PREV_CACHE_DIR = Path(WS_ROOT) / 'memory' / '.tmp' / 'polygon-prev-close'
 POLYGON_CACHE_SCHEMA_VERSION = 1
 
@@ -938,7 +936,7 @@ def update_us_portfolio(
         data = json.load(f)
 
     keys = load_api_keys()
-    us   = data['portfolios']['us_stocks']
+    us_key, us = region_book(data, 'US')
 
     active_holdings = [h for h in us['holdings'] if h.get('shares', 0) > 0]
     all_active      = [h['ticker'] for h in active_holdings]
@@ -1338,12 +1336,12 @@ def update_us_portfolio(
         from clawock.safe_io import mutate_json
         from clawock.recompute_realized import recompute as recompute_realized
         recompute_realized(data)
-        # 锁内重读、只覆盖自己拥有的 us_stocks 区 + 顶层 last_updated 戳，保住并发
+        # 锁内重读、只覆盖自己拥有的 US 区 + 顶层 last_updated 戳，保住并发
         # 写者(gold/hk)的字段 [cut #2]（last_updated 是顶层键，别随 region-overlay 丢）
         mutate_json(portfolio_path, lambda d: {
             **d, 'last_updated': data.get('last_updated', d.get('last_updated')),
             'portfolios': {**d.get('portfolios', {}),
-                           'us_stocks': data['portfolios']['us_stocks']}})
+                           us_key: data['portfolios'][us_key]}})
         print(f"\n  ✅ Saved → {portfolio_path}")
 
     print(f"{'═'*62}\n")
@@ -1352,8 +1350,14 @@ def update_us_portfolio(
 
 # ── CLI ──────────────────────────────────────────────────────────────────────
 
-if __name__ == '__main__':
-    args      = [a for a in sys.argv[1:] if not a.startswith('--')]
-    dry_run   = '--dry-run' in sys.argv
+def main(argv=None) -> int:
+    argv = list(sys.argv[1:] if argv is None else argv)
+    args = [a for a in argv if not a.startswith('--')]
+    dry_run = '--dry-run' in argv
     overrides = args if args else None
     update_us_portfolio(dry_run=dry_run, tickers_override=overrides)
+    return 0
+
+
+if __name__ == '__main__':
+    raise SystemExit(main())

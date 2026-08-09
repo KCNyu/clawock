@@ -9,7 +9,6 @@ live path; the weakest one guarded the store that settles trigger verdicts.
 Run: python3 -m pytest tests/test_bar_checks.py -q
 """
 import ast
-import re
 import sys
 from pathlib import Path
 
@@ -224,15 +223,6 @@ def test_an_impossible_bar_is_still_refused_with_the_reason_named(
 
 
 # ── the structural gate: nobody re-grows a private copy ─────────────────────
-
-def test_every_declared_consumer_still_routes_through_the_shared_module():
-    for name in bar_checks.BAR_CONSUMERS:
-        path = DATA / name
-        assert path.exists(), f'{name} is registered as a bar consumer but is gone'
-        assert re.search(r'^from clawock import bar_checks', path.read_text(), re.M), (
-            f'{name} no longer imports bar_checks — the shared contract has a '
-            'hole exactly where it used to have three private ones')
-
 
 def test_packaged_daily_bar_store_uses_the_shared_contract():
     from clawock import fetch_daily_bars

@@ -35,7 +35,7 @@ def _first_party_imports(path: Path) -> set[str]:
             names |= {alias.name.split(".")[0] for alias in node.names}
         elif isinstance(node, ast.ImportFrom) and node.module and node.level == 0:
             names.add(node.module.split(".")[0])
-    stdlib = set(sys.stdlib_module_names) | {"requests", "numpy", "PIL"}
+    stdlib = set(sys.stdlib_module_names) | {"requests", "numpy", "PIL", "yfinance"}
     return {name for name in names if name not in stdlib}
 
 

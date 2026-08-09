@@ -84,6 +84,17 @@ def _run(script, args=None, timeout=120):
         return f'{type(e).__name__}: {e}', False
 
 
+def _run_clawock(command, args=None, timeout=120):
+    """Run one installed package command in the selected workspace."""
+    try:
+        result = subprocess.run(
+            ['clawock', command] + (args or []), cwd=WS,
+            capture_output=True, text=True, timeout=timeout)
+        return (result.stdout or '') + (result.stderr or ''), result.returncode == 0
+    except Exception as exc:
+        return f'{type(exc).__name__}: {exc}', False
+
+
 def fetch_fx_rate():
     try:
         result = subprocess.run(
@@ -1280,7 +1291,7 @@ def main(argv=None):
 
     # [1] Refresh prices
     print('\n[1/14] Refresh US prices')
-    us_out, us_ok = _run('scripts/data/analyze_us_stocks.py', ['--no-news'])
+    us_out, us_ok = _run_clawock('analyze-us', ['--no-news'])
     if not us_ok:
         issues.append(f'US refresh failed: {us_out[-200:]}')
         print(f'   ⚠️  {issues[-1]}')
@@ -1288,7 +1299,7 @@ def main(argv=None):
         print('   ✓ done')
 
     print('[2/14] Refresh HK prices')
-    hk_out, hk_ok = _run('scripts/data/analyze_hk_stocks.py', ['--no-news'])
+    hk_out, hk_ok = _run_clawock('analyze-hk', ['--no-news'])
     if not hk_ok:
         issues.append(f'HK refresh failed: {hk_out[-200:]}')
         print(f'   ⚠️  {issues[-1]}')
@@ -1779,7 +1790,7 @@ def main(argv=None):
     # Refreshed once per day at brief time; consumed by build_dashboard.
     print('[13/14] Fetch benchmark history')
     try:
-        bm_out, bm_ok = _run('scripts/data/fetch_benchmark_history.py', timeout=30)
+        bm_out, bm_ok = _run_clawock('benchmark', timeout=30)
         if not bm_ok:
             print(f'   ⚠ benchmark fetch failed: {bm_out[-150:]}')
             issues.append('benchmark history fetch failed')

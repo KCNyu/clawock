@@ -1,6 +1,6 @@
 ---
 name: hk-stock-analysis
-description: Workspace-aware Hong Kong stock analysis for kcn. Routes through scripts/data/analyze_hk_stocks.py (Tencent primary + Eastmoney full-batch independent cross-check/fallback → stooq → yfinance) for price/技术指标/news, layered with HK-specific concepts — 南向资金, HSTECH 方向, 杠杆 ETF 衰减, 老千股警惕, T+0 无涨跌幅. Use when user asks about a HK ticker (e.g. "分析 00100", "07226 怎么样", "恒科今天"), HK book performance, or HK sector view.
+description: Workspace-aware Hong Kong stock analysis for kcn. Routes through clawock analyze-hk (Tencent primary + Eastmoney full-batch independent cross-check/fallback → stooq → yfinance) for price/技术指标/news, layered with HK-specific concepts — 南向资金, HSTECH 方向, 杠杆 ETF 衰减, 老千股警惕, T+0 无涨跌幅. Use when user asks about a HK ticker (e.g. "分析 00100", "07226 怎么样", "恒科今天"), HK book performance, or HK sector view.
 triggers:
   - "分析 {5位港股代码}"
   - "港股 {ticker}"
@@ -27,9 +27,9 @@ In this order:
 
 ```bash
 # Full analysis: refreshes price + 恒指/恒科基准 + RSI/MA + Finnhub news + signal
-python3 /root/.openclaw/workspace/scripts/data/analyze_hk_stocks.py {TICKER}
-python3 /root/.openclaw/workspace/scripts/data/analyze_hk_stocks.py {TICKER} --no-news    # skip news
-python3 /root/.openclaw/workspace/scripts/data/analyze_hk_stocks.py --no-fetch            # use cached, analysis only
+/root/.local/bin/clawock analyze-hk {TICKER}
+/root/.local/bin/clawock analyze-hk {TICKER} --no-news    # skip news
+/root/.local/bin/clawock analyze-hk --no-fetch            # use cached, analysis only
 ```
 
 **HK fallback chain (inside script):**
@@ -51,13 +51,13 @@ python3 /root/.openclaw/workspace/scripts/data/analyze_hk_stocks.py --no-fetch  
 
 ### Mode 1 — Quick Read (most common)
 **When:** "07226 怎么样" / "00100 今天表现"
-1. Run `scripts/data/analyze_hk_stocks.py {TICKER} --no-news`
+1. Run `clawock analyze-hk {TICKER} --no-news`
 2. If in active book, pull cost/PnL from `portfolio.json`
 3. Output: price, today's move, 恒科/恒指 baseline for context, one-line verdict
 
 ### Mode 2 — Technical Read
 **When:** Trend / oversold / breakout questions
-1. Run `scripts/data/analyze_hk_stocks.py {TICKER} --no-news`
+1. Run `clawock analyze-hk {TICKER} --no-news`
 2. Output: trend, RSI-14, MA20/50 stance, support/resistance from recent action, 量价配合 if visible
 
 ### Mode 3 — Fundamental + Macro Read
@@ -86,7 +86,7 @@ python3 /root/.openclaw/workspace/scripts/data/analyze_hk_stocks.py --no-fetch  
 ```bash
 clawock intraday preflight --market hk
 ```
-跑 `scripts/data/analyze_hk_stocks.py --wechat --md-table` + 抽信号 + 异动，输出 `memory/.tmp/intraday-context-hk-latest.json`，并把**同一份 JSON** 打到 stdout（含 `context_id` —— Step 3 要原样回传）。
+跑 `clawock analyze-hk --wechat --md-table` + 抽信号 + 异动，输出 `memory/.tmp/intraday-context-hk-latest.json`，并把**同一份 JSON** 打到 stdout（含 `context_id` —— Step 3 要原样回传）。
 - `mover_thesis` — **只对本轮异动票**的 thesis 只读快照：`state`、`triggered`/`watch` 红线（含 severity 与 required_action）、下次 review trigger；最新一次 entry gate 判 `reject` 也会标出来。没有基线就是 `unknown`，不许靠记忆补。**这是归因语境不是催化剂**：红线解释「这个跌为什么要紧、当初说好要怎么做」，但能不能动手仍由 catalyst-gate 决定（软消息/情绪不构成主动操作依据）。
 - `mover_news` — **只对本轮异动票**、有限预算抓回来的「刚发生了什么」：`tier=primary` 是交易所/监管一手文件（港股=港交所公告，美股=SEC filing，带 `age_minutes`），`tier=supporting` 是券商研报/媒体/7×24 快讯。**只有 primary 才可能构成硬催化**（仍要过 catalyst-gate）；supporting 只能当色彩，不能作为主动操作依据。
   - `known_catalysts` 是当天 08:00 brief 已核过、且只按本轮异动票裁剪的结构化催化。它回答「此前已知什么」，`mover_news` 回答「这个分钟窗口新发生什么」；两者不能混为一谈，也不因此扩大新闻窗口。
@@ -158,7 +158,7 @@ postflight 现在把空输入/旧文件单独判成 `status: input_error`（不�
 ```bash
 clawock report preflight --market hk --phase {open|mid|pm|close}
 ```
-内部跑 `scripts/data/analyze_hk_stocks.py --wechat`，抽信号 (WATCH/STOP/TRIM 计数) + 异动 (≥3% 涨跌) + 恒指/恒科方向，写 context 文件，并把**同一份 JSON** 打到 stdout（含 `context_id`；末行是 `context_path:`）。若输出 `market_closed`，本回合到此结束。
+内部跑 `clawock analyze-hk --wechat`，抽信号 (WATCH/STOP/TRIM 计数) + 异动 (≥3% 涨跌) + 恒指/恒科方向，写 context 文件，并把**同一份 JSON** 打到 stdout（含 `context_id`；末行是 `context_path:`）。若输出 `market_closed`，本回合到此结束。
 
 #### Step 2: 只写分析散文
 
@@ -238,7 +238,7 @@ clawock report postflight --market hk --phase {phase} --context-id {Step 1 的 c
 
 港股情绪面跟美股不同 — 主战场是中文社区（雪球/富途牛牛/同花顺论坛/微博），不在 Reddit/X。源使用顺序：
 
-1. **Finnhub news（脚本带）** — `scripts/data/analyze_hk_stocks.py {TICKER}` 默认拉 Finnhub 7 天新闻。港股覆盖比美股稀疏，但能拿到主要英文媒体（Reuters / Bloomberg / SCMP）
+1. **Finnhub news（脚本带）** — `clawock analyze-hk {TICKER}` 默认拉 Finnhub 7 天新闻。港股覆盖比美股稀疏，但能拿到主要英文媒体（Reuters / Bloomberg / SCMP）
 2. **Tavily 中文搜索** — 主要的中文新闻聚合。⚠️ **Budget rule**(免费档 1000/月全局共享)：盘中每 30 分钟盯盘**默认不调**；仅**开盘/收盘报告**或盘中真事件(异常波动/停牌/财报预警/政策公告)才用，必带 `--bucket report`(开/收盘) 或 `--bucket intraday`(盘中事件)；额度尽时脚本 exit 0 返回 unavailable 别当报错：
    ```bash
    node /root/.openclaw/workspace/skills/tavily-search/scripts/search.mjs "{TICKER} 港股 最新" --topic news --days 3 --bucket report
@@ -295,7 +295,7 @@ Output:
 ## Examples
 
 **User:** "00100 怎么样"
-**Approach:** Mode 1 — `scripts/data/analyze_hk_stocks.py 00100 --no-news`, 注意 Tencent 是唯一源, 失败要明说; 输出价 + PnL + 一句话判断
+**Approach:** Mode 1 — `clawock analyze-hk 00100 --no-news`, 注意 Tencent 是唯一源, 失败要明说; 输出价 + PnL + 一句话判断
 
 **User:** "恒科今天什么情况"
 **Approach:** Mode 4 — 拉 ^HSTECH 走势, 加南向资金当日数据, 列出 03032/07226 等代表股表现, 一段大势判断

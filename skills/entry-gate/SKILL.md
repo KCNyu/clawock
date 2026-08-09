@@ -28,8 +28,8 @@ rescue a vetoed name.
 Use the workspace pipelines, never a web price:
 
 ```bash
-python3 scripts/data/analyze_us_stocks.py {TICKER}   # US
-python3 scripts/data/analyze_hk_stocks.py {TICKER}   # HK
+clawock analyze-us {TICKER}   # US
+clawock analyze-hk {TICKER}   # HK
 ```
 
 `quote.source_class` must be one of the pipeline names, or validation fails outright.

@@ -12,10 +12,10 @@ ROOT = Path(__file__).resolve().parents[1]
 DATA = ROOT / "scripts" / "data"
 sys.path.insert(0, str(DATA))
 
-import analyze_hk_stocks as hk  # noqa: E402
+from clawock import analyze_hk_stocks as hk  # noqa: E402
 from clawock import fetch_fx as fx  # noqa: E402
 import fetch_gold_dca as gold  # noqa: E402
-import fetch_us_stocks as us  # noqa: E402
+from clawock import fetch_us_stocks as us  # noqa: E402
 from clawock import portfolio_risk_metrics as risk  # noqa: E402
 
 

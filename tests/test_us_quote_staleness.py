@@ -32,7 +32,7 @@ import pytest
 WS = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(WS, "scripts", "data"))
 
-import fetch_us_stocks as F  # noqa: E402
+from clawock import fetch_us_stocks as F  # noqa: E402
 import preflight_integrity as pi  # noqa: E402
 from clawock import trading_calendar as tc  # noqa: E402
 
