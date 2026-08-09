@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "urn:clawock:schema:earnings-review:1",
   "title": "clawock primary-source earnings review artifact",
-  "description": "One reporting period per file under memory/earnings/<TICKER>/<period>.json. clawock.earnings_review is the enforcing validator; this document is the published shape.",
+  "description": "One reporting period per file under memory/earnings/<TICKER>/<period>.json. clawock.decision.earnings is the enforcing validator; this document is the published shape.",
   "type": "object",
   "additionalProperties": false,
   "required": [

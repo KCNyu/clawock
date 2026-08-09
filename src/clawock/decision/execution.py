@@ -7,7 +7,7 @@ Usage:
 """
 import argparse
 
-from clawock import decision_v2
+from clawock.decision import ledger as decision_v2
 
 
 def main(argv=None):

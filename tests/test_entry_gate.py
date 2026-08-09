@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from clawock import entry_gate as eg
+from clawock.decision import entry as eg
 
 
 ROOT = Path(__file__).resolve().parents[1]

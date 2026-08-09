@@ -1,6 +1,6 @@
 {
   "_doc": "Backtest figures that appear in prose without being asserted as this project's own result. Each entry needs a reason. An empty file is the healthy state — reach for this only when prose must quote a number in order to correct or retire it.",
-  "src/clawock/compute_regime.py": {
+  "src/clawock/decision/regime.py": {
     "values": [],
     "reason": "The superseded -95%/-44% framing is quoted here in order to correct it, and both figures still resolve to the hstech run card, so no exemption is needed yet."
   }

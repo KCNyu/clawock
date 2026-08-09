@@ -94,11 +94,11 @@ clawock 是**美股 + 港股 + 黄金定投**的实盘组合。工具包遵循�
 | `src/clawock/market_data/integrity.py` | bar/quote **判据唯一真源**:结构不可能(fatal) vs 可疑(flag,含 o==h==l==c 退化区间)、同源区间越界、gap-safe 收益(停牌不填 0) | 纯本地(无 I/O) | ✅ |
 
 | `src/clawock/evidence/research_provenance.py` | 研究报告 Decimal 计算、两源数字溯源与 fail-closed 准出（tolerance 上限 5%，算式异常也只输出结构化 fail） | 结构化 manifest + 本地确定性校验 | ✅ |
-| `src/clawock/thesis_registry.py` | 持久 thesis schema/validator、证据驱动 drift（红线触发/解除对称要证据）与 decision link 解析；`clawock thesis` 操作 | `memory/theses/*.json` + 本地确定性校验 | ✅ |
-| `src/clawock/earnings_review.py` | 一手财报复盘:来源分级、盈利质量数学、管理层承诺账本、provenance 准出与 thesis 证据交接；`clawock earnings` 操作 | `memory/earnings/*/*.json` + 本地确定性校验 | ✅ |
+| `src/clawock/decision/theses.py` | 持久 thesis schema/validator、证据驱动 drift（红线触发/解除对称要证据）与 decision link 解析；`clawock thesis` 操作 | `memory/theses/*.json` + 本地确定性校验 | ✅ |
+| `src/clawock/decision/earnings.py` | 一手财报复盘:来源分级、盈利质量数学、管理层承诺账本、provenance 准出与 thesis 证据交接；`clawock earnings` 操作 | `memory/earnings/*/*.json` + 本地确定性校验 | ✅ |
 | `workflow_health.py` | 排程 GitHub Actions 周度健康:连续失败计数 + **静默停跑**检测(节奏从 workflow 文件里读) | `gh run list` + `.github/workflows/*.yml` | ✅ |
 | `src/clawock/portfolio/instruments.py` | 工具标的**唯一真源**:杠杆倍数、underlying 看穿(`look_through`/`issuer_for` — 基金→发行人、指数基金→无发行人)、canonical bar manifest | `config/instruments.json` | ✅ |
-| `src/clawock/entry_gate.py` | 建仓前研究闸:信息分级与投资质量分离、确定性硬否决(行业例外写进配置)、pass/reject/gray 判定与深研路由；`clawock entry-gate` 操作 | `memory/entry-gates/*.json` + `config/entry-gate-vetoes.json` | ✅ |
+| `src/clawock/decision/entry.py` | 建仓前研究闸:信息分级与投资质量分离、确定性硬否决(行业例外写进配置)、pass/reject/gray 判定与深研路由；`clawock entry-gate` 操作 | `memory/entry-gates/*.json` + `config/entry-gate-vetoes.json` | ✅ |
 
 Portable producers and integrity rules are owned by
 `src/clawock/market_data/`. `scripts/data/` is only the remaining KCNyu
@@ -115,8 +115,8 @@ operations/instance inventory, not a default product-code bucket.
 | `backtest_us_leverage.py` | 美股 2x ETF regime 回测 | 日线模拟 | ✅ |
 | `backtest_combined_regime.py` | 全组合 regime vs buy&hold vs 全 1x（MA/vol 在各代理**原生交易日**上算，不用 union 日历填充值） | 因子代理历史 | ✅ |
 | `validate_regime_dial.py` | 杠杆刻度盘样本外验证：walk-forward + 环形位移置换检验 + 阈值敏感面；建模的是**生产 tier 映射**(1.0/0.5/0.0)而非 2x→cash | 腾讯 kline | ✅ |
-| `src/clawock/decision_v2.py` | 安装包拥有的 strategy episode 结算、coverage、严格前向分层 confidence 校准、方向命中审计 | workspace decisions ledger + canonical bars | ✅ |
-| `src/clawock/risk_discipline.py` | 持久 breach 账本、确认/限时 override、成交证据与同风险增仓冻结；`clawock risk` 操作 | guardrail + portfolio trades | ✅ |
+| `src/clawock/decision/ledger.py` | 安装包拥有的 strategy episode 结算、coverage、严格前向分层 confidence 校准、方向命中审计 | workspace decisions ledger + canonical bars | ✅ |
+| `src/clawock/decision/risk.py` | 持久 breach 账本、确认/限时 override、成交证据与同风险增仓冻结；`clawock risk` 操作 | guardrail + portfolio trades | ✅ |
 | `clawock quant-review` · `clawock t0-review` | 因子 / 牌面 edge 自检(T+1/T+5 命中率) | 本地留痕 | ✅ |
 | `clawock cross-factor` | 预注册 walk-forward + date×ticker 双向聚类 CI；存活偏差未消除即禁止入决策 | 本地留痕 + 调整后日线 | ✅ |
 | `clawock peer-residual` | leader 延续 / laggard 规避 / 均值回归分规则 prospective 聚类校准 | 本地留痕 + 人工 taxonomy | ✅ |

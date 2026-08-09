@@ -51,7 +51,8 @@ from datetime import datetime
 from pathlib import Path
 
 from clawock.workspace import workspace_root
-from clawock import plan_surface, trading_calendar
+from clawock import trading_calendar
+from clawock.decision import plans as plan_surface
 from clawock.evidence import research_surface
 from clawock.market_data import mover_evidence as mover_news
 from clawock.market_data import peer_scan
