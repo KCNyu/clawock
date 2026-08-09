@@ -52,10 +52,17 @@ def fetch_polygon_daily(ticker: str, days: int, api_key: str) -> List[Dict]:
     url = (
         f'https://api.polygon.io/v2/aggs/ticker/{ticker}'
         f'/range/1/day/{start.isoformat()}/{end.isoformat()}'
-        f'?adjusted=true&sort=asc&limit=400&apiKey={api_key}'
     )
     try:
-        r = requests.get(url, timeout=TIMEOUT)
+    # Credential goes in a header, never the URL: a query-string secret ends up
+    # in proxy logs, crash dumps and Referer, and taints every value derived from
+    # the response for any dataflow analysis reading this file.
+        r = requests.get(
+            url,
+            params={'adjusted': 'true', 'sort': 'asc', 'limit': 400},
+            headers={'Authorization': f'Bearer {api_key}'},
+            timeout=TIMEOUT,
+        )
         data = r.json()
         results = data.get('results') or []
         out = []
