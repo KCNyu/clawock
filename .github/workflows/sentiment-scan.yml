@@ -10,7 +10,7 @@ name: Sentiment Scan
 on:
   schedule:
     # dow 0-4 not 1-5: 21:30 UTC + 8h wraps to the next HKT day → 1-5 would fire Tue–Sat,
-    # missing Monday. Verify with: ./check_crons.sh --timeline
+    # missing Monday. Verify with: bash ops/host/check_crons.sh --timeline
     - cron: '30 21 * * 0-4'
   workflow_dispatch:
 
@@ -47,4 +47,4 @@ jobs:
         env:
           CLAWOCK_PUBLISH_SSH_KEY: ${{ secrets.CLAWOCK_PUBLISH_SSH_KEY }}
         run: |
-          bash scripts/data/gha_commit_push.sh "sentiment: daily Reddit + Google News scan $(date -u +%Y-%m-%d)" assets/data/sentiment.json
+          bash ops/publish/gha_commit_push.sh "sentiment: daily Reddit + Google News scan $(date -u +%Y-%m-%d)" assets/data/sentiment.json

@@ -15,10 +15,10 @@ Exit codes:
   2 — 只是 warn (delay 等)
 
 Usage:
-  python3 scripts/data/cron_health_check.py            # human report
-  python3 scripts/data/cron_health_check.py --json     # machine-readable
-  python3 scripts/data/cron_health_check.py --silent   # 仅 exit code
-  python3 scripts/data/cron_health_check.py --jobs-file config/cron-schedules.json
+  python3 ops/host/cron_health_check.py            # human report
+  python3 ops/host/cron_health_check.py --json     # machine-readable
+  python3 ops/host/cron_health_check.py --silent   # 仅 exit code
+  python3 ops/host/cron_health_check.py --jobs-file config/cron-schedules.json
 """
 import argparse
 import json
@@ -30,11 +30,10 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
-# The checkout root, so `clawock` resolves from the tree this file ships
-# in. Reached through the scripts/data/workspace shim until #267 step 3,
-# whose only remaining job was inserting this path as a side effect.
-sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
-sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
+_CHECKOUT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(_CHECKOUT))
+sys.path.insert(0, str(_CHECKOUT / "src"))
+sys.path.insert(0, str(_CHECKOUT / "instances" / "kcnyu" / "src"))
 from clawock.workspace import workspace_root  # noqa: E402
 from clawock.providers import openclaw  # noqa: E402
 
@@ -42,17 +41,13 @@ from clawock.providers import openclaw  # noqa: E402
 # is overridable, so resolving our own modules through WS would read them out of
 # someone else's data directory — or silently pick up whatever happens to be
 # there. Same expression WS is seeded from, kept separate on purpose (#269).
-_CHECKOUT = Path(__file__).resolve().parents[2]
-WS = workspace_root(Path(__file__).resolve().parents[2])
+WS = workspace_root(_CHECKOUT)
 # The checkout root, so `clawock` is importable regardless of where the WORKSPACE
 # points. WS can be redirected with CLAWOCK_WORKSPACE and is a data directory;
 # the package lives in the checkout. Inserting it here rather than inside the
 # function is what test_harness_import_independence requires — an import that
 # resolves only because some other module happened to widen sys.path first is a
 # side effect, not a dependency (#265).
-sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
-sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
-sys.path.insert(0, str(_CHECKOUT / 'scripts' / 'data'))
 import cron_token_audit  # noqa: E402
 
 HKT = ZoneInfo('Asia/Hong_Kong')
@@ -219,7 +214,7 @@ def commit_count_today(commit_pattern):
 def load_runtime_jobs(jobs_file=None):
     """Load cron jobs from an explicit tracked contract or the live CLI layer."""
     if jobs_file:
-        from cron_contract import effective_schedule, load_contract
+        from clawock_kcnyu.schedule import effective_schedule, load_contract
         data = load_contract(jobs_file)
         jobs = []
         for job in data['jobs']:
@@ -235,7 +230,7 @@ def load_runtime_jobs(jobs_file=None):
 
 
 def load_heartbeats(path=None):
-    """Load the host-local ledger when present, otherwise the tracked public copy."""
+    """Load the host-local ledger when present, otherwise the published public copy."""
     candidates = ([Path(path)] if path else [
         WS / 'memory' / '.tmp' / 'cron-heartbeats.json',
         WS / 'assets' / 'data' / 'cron-heartbeats.json',

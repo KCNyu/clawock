@@ -8,15 +8,14 @@ from zoneinfo import ZoneInfo
 
 
 ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT / 'scripts' / 'data'))
 sys.path.insert(0, str(ROOT / 'ops' / 'host'))
 
-import cron_contract
-import cron_heartbeat
+from clawock_kcnyu import schedule as cron_contract
+from clawock_kcnyu.automation import cron_heartbeat
 import sync_us_cron_dst
 
 SPEC = importlib.util.spec_from_file_location(
-    'cron_health_check', ROOT / 'scripts' / 'data' / 'cron_health_check.py'
+    'cron_health_check', ROOT / 'ops' / 'host' / 'cron_health_check.py'
 )
 cron_health = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(cron_health)
@@ -685,7 +684,7 @@ def test_intraday_payload_rejects_stale_restricted_tool_override():
 
 def test_every_twenty_minutes_timeline_label_is_not_every_hour():
     timeline_spec = importlib.util.spec_from_file_location(
-        'cron_timeline', ROOT / 'scripts' / 'data' / 'cron_timeline.py'
+        'cron_timeline', ROOT / 'ops' / 'host' / 'cron_timeline.py'
     )
     timeline = importlib.util.module_from_spec(timeline_spec)
     timeline_spec.loader.exec_module(timeline)

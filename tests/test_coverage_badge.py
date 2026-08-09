@@ -16,7 +16,7 @@ from workflow_contract_helpers import (
     assert_validator_step, step_block, step_run, steps, strip_hash_comments)
 
 ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT / 'scripts' / 'data'))
+sys.path.insert(0, str(ROOT / 'ops' / 'ci'))
 
 import coverage_badge  # noqa: E402
 from clawock.publish import artifacts as validate_sidecars  # noqa: E402
@@ -136,7 +136,7 @@ def test_undersized_report_is_rejected(tmp_path):
     report = _report(filler_statements=50, filler_pct=100.0)
     with pytest.raises(SystemExit) as excinfo:
         _run(tmp_path, report)
-    assert 'did not cover scripts/' in str(excinfo.value)
+    assert 'configured source tree was not covered' in str(excinfo.value)
 
 
 @pytest.mark.parametrize('content', ['', 'not json', '{}', '{"files": {}, "totals": {}}'])
@@ -201,7 +201,7 @@ def test_pr_run_measures_coverage_and_gates_on_it():
     floors = step_block(WORKFLOW, 'Coverage floors')
     assert 'continue-on-error' not in floors
     assert step_run(WORKFLOW, 'Coverage floors') == (
-        'python3 scripts/data/coverage_badge.py --report coverage-report.json --check-only')
+        'python3 ops/ci/coverage_badge.py --report coverage-report.json --check-only')
 
 
 def test_the_coverage_plugin_is_installed_where_it_is_used():
@@ -263,7 +263,7 @@ def test_publish_job_validates_then_commits_one_exact_path():
 
     commit_run = step_run(WORKFLOW, 'Commit')
     publish = [line.strip() for line in commit_run.splitlines()
-               if line.strip().startswith('bash scripts/data/gha_commit_push.sh')]
+               if line.strip().startswith('bash ops/publish/gha_commit_push.sh')]
     assert len(publish) == 1
     assert publish[0].endswith(f' {BADGE_PATH}')
     assert 'assets/' not in publish[0].removesuffix(BADGE_PATH), 'commit more than the badge'

@@ -7,25 +7,22 @@ concern: this only prints text (and optional --json) to stdout, so you can pipe
 it to X / Nostr / a copy-paste, manually or from a cron.
 
 Usage:
-    python3 scripts/data/rick_broadcast.py            # both languages
-    python3 scripts/data/rick_broadcast.py --lang en  # english only
-    python3 scripts/data/rick_broadcast.py --json     # machine-readable
+    python3 ops/growth/rick_broadcast.py            # both languages
+    python3 ops/growth/rick_broadcast.py --lang en  # english only
+    python3 ops/growth/rick_broadcast.py --json     # machine-readable
 """
 from __future__ import annotations
 import argparse
 import json
-import os
 import sys
 from pathlib import Path
 
 _CHECKOUT = Path(__file__).resolve().parents[2]
-ROOT = str(_CHECKOUT)
-sys.path.insert(0, os.path.join(ROOT, "scripts", "data"))
 sys.path.insert(0, str(_CHECKOUT))
-sys.path.insert(0, os.path.join(ROOT, "src"))
+sys.path.insert(0, str(_CHECKOUT / "src"))
 from clawock.decision import ledger as decision_v2  # noqa: E402
-QUANT = os.path.join(ROOT, "assets", "data", "quant_signal_review.json")
-T0 = os.path.join(ROOT, "assets", "data", "t0_setup_review.json")
+QUANT = _CHECKOUT / "assets" / "data" / "quant_signal_review.json"
+T0 = _CHECKOUT / "assets" / "data" / "t0_setup_review.json"
 REPO = "github.com/KCNyu/clawock"
 DASH = "kcnyu.github.io/clawock"   # live dashboard — the clickable landing (has the card + links back to the repo)
 

@@ -1,28 +1,24 @@
 #!/usr/bin/env python3
 """Local-to-public heartbeat ledger for intraday cron slots.
 
-Harness/watchdog processes only update the ignored local ledger. The existing
-single dashboard publisher copies it into a tracked public sidecar under the
-same lock, avoiding another independent git writer.
+Harness/watchdog processes only update the ignored local ledger. The single
+dashboard publisher adds its public sidecar to the same data-plane generation
+under the same lock, avoiding another independent git writer.
 """
 from __future__ import annotations
 
 import argparse
 import json
 import os
+import sys
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
-# The checkout root, so `clawock` resolves from the tree this file ships
-# in. Reached through the scripts/data/workspace shim until #267 step 3,
-# whose only remaining job was inserting this path as a side effect.
-import sys  # noqa: E402
-sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
-sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
-from clawock.workspace import workspace_root  # noqa: E402
+from clawock.workspace import workspace_root
+from clawock_kcnyu.automation import workflow_outcomes
 
-WS = workspace_root(Path(__file__).resolve().parents[2])
+WS = workspace_root(Path.cwd())
 LOCAL_PATH = WS / "memory" / ".tmp" / "cron-heartbeats.json"
 PUBLIC_PATH = WS / "assets" / "data" / "cron-heartbeats.json"
 HKT = ZoneInfo("Asia/Hong_Kong")
@@ -130,7 +126,6 @@ def record(market: str, state: str, *, at: datetime | None = None,
     # not let that write a second ledger in the real workspace.
     if LOCAL_PATH == WS / "memory" / ".tmp" / "cron-heartbeats.json":
         try:
-            import workflow_outcomes
             workflow_outcomes.record_from_heartbeat(current)
         except Exception as exc:
             print(f"warn: workflow outcome bridge failed: {exc}", file=sys.stderr)

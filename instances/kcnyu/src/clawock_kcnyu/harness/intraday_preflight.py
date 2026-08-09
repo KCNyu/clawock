@@ -47,7 +47,7 @@ TMP = WS / 'memory' / '.tmp'
 from ._harness_common import compute_context_id
 
 sys.path.insert(0, str(DATA_DIR))
-import cron_heartbeat  # noqa: E402
+from clawock_kcnyu.automation import cron_heartbeat  # noqa: E402
 
 
 def run_analyze(market):

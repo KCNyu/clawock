@@ -31,4 +31,4 @@ git -c user.name="$BOT_NAME" -c user.email="$BOT_EMAIL" \
 echo "$(date -Is) dreaming-commit: 已提交 $(git rev-parse --short HEAD)"
 
 # 走统一的 safe_push.sh(已带 rebase.autoStash,自己绕开宿主脏工作区);真冲突它 exit 2 留本地。
-exec bash "$WS/scripts/data/safe_push.sh"
+exec bash "$WS/ops/publish/safe_push.sh"

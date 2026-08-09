@@ -15,6 +15,7 @@
   "required_pages": [
     "index.html",
     "4fb2df1611ed42e5b67fd6171a237acb.txt",
+    "google7be5b41525cebe9d.html",
     "briefs.html",
     "evidence.html",
     "robots.txt",
@@ -32,6 +33,7 @@
   "artifact_include": [
     "index.html",
     "4fb2df1611ed42e5b67fd6171a237acb.txt",
+    "google7be5b41525cebe9d.html",
     "briefs.html",
     "evidence.html",
     "robots.txt",

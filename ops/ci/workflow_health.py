@@ -24,15 +24,13 @@ import sys
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
-# The checkout root, so `clawock` resolves from the tree this file ships
-# in. Reached through the scripts/data/workspace shim until #267 step 3,
-# whose only remaining job was inserting this path as a side effect.
-sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
-sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
+_CHECKOUT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(_CHECKOUT))
+sys.path.insert(0, str(_CHECKOUT / "src"))
 from clawock.workspace import workspace_root  # noqa: E402
 from clawock.providers import GitHubRuns, Run  # noqa: E402
 
-WS = workspace_root(Path(__file__).resolve().parents[2])
+WS = workspace_root(_CHECKOUT)
 WORKFLOW_DIR = WS / ".github" / "workflows"
 LOOKBACK_DAYS = 7
 # A schedule that fires at most weekly still has to fire inside two of its own

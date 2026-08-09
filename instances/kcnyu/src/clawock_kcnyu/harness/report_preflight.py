@@ -66,7 +66,7 @@ from ._harness_common import (  # noqa: F401 — re-exported for callers/tests
 )
 
 sys.path.insert(0, str(DATA_DIR))
-import workflow_outcomes  # noqa: E402
+from clawock_kcnyu.automation import workflow_outcomes  # noqa: E402
 
 
 def _market_closed_reason(market, phase):

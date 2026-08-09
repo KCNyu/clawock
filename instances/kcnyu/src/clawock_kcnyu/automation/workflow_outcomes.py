@@ -23,26 +23,20 @@ import argparse
 import fcntl
 import json
 import os
-import sys
 from contextlib import contextmanager
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
-# The checkout root, so `clawock` resolves from the tree this file ships
-# in. Reached through the scripts/data/workspace shim until #267 step 3,
-# whose only remaining job was inserting this path as a side effect.
-sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
-sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
-from clawock.workspace import workspace_root  # noqa: E402
-from clawock.providers import openclaw  # noqa: E402
+from clawock.providers import openclaw
+from clawock.workspace import workspace_root
+from clawock_kcnyu import schedule
 
 # Code lives in the checkout; only DATA lives in the workspace. `workspace_root`
 # is overridable, so resolving our own modules through WS would read them out of
 # someone else's data directory — or silently pick up whatever happens to be
 # there. Same expression WS is seeded from, kept separate on purpose (#269).
-_CHECKOUT = Path(__file__).resolve().parents[2]
-WS = workspace_root(Path(__file__).resolve().parents[2])
+WS = workspace_root(Path.cwd())
 LOCAL_PATH = WS / "memory" / ".tmp" / "workflow-outcomes.json"
 PUBLIC_PATH = WS / "assets" / "data" / "workflow-outcomes.json"
 LOCK_PATH = WS / "memory" / ".tmp" / "workflow-outcomes.lock"
@@ -92,20 +86,17 @@ def slot_for_job(job_name, at=None):
     correct across daylight/standard transitions.
     """
     at = _now(at)
-    sys.path.insert(0, str(_CHECKOUT / "scripts" / "data"))
-    from cron_contract import effective_schedule, load_contract
-
     expected = next(
-        (job for job in load_contract()["jobs"] if job["name"] == job_name),
+        (job for job in schedule.load_contract()["jobs"] if job["name"] == job_name),
         None,
     )
     if not expected:
         raise ValueError(f"job is absent from cron contract: {job_name}")
-    schedule = effective_schedule(expected, at)
-    expr = (schedule.get("expr") or "").split()
+    resolved = schedule.effective_schedule(expected, at)
+    expr = (resolved.get("expr") or "").split()
     if len(expr) != 5 or not expr[0].isdigit() or not expr[1].isdigit():
         raise ValueError(f"job does not have a single fixed slot: {job_name}")
-    tz = ZoneInfo(schedule.get("tz") or "Asia/Shanghai")
+    tz = ZoneInfo(resolved.get("tz") or "Asia/Shanghai")
     local = at.astimezone(tz)
     slot = local.replace(
         hour=int(expr[1]), minute=int(expr[0]), second=0, microsecond=0

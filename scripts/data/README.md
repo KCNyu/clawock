@@ -1,8 +1,8 @@
 <div align="center">
 
-# 📊 stock-data
+# Remaining migration inventory
 
-**clawock 的多市场行情数据工具包 — 美股 · 港股 · 黄金**
+**Internal repository jobs awaiting a terminal product or KCNyu-instance owner**
 
 *行情 · 基本面 · 资金面 · 消息面 · 宏观情绪 · 量化因子 · 汇率校验 · 回测自省*
 
@@ -12,7 +12,11 @@
 
 ## 定位
 
-clawock 是**美股 + 港股 + 黄金定投**的实盘组合。工具包遵循三条规则：
+本目录不是公共 API，也不是新的代码归属。OpenClaw 与人工操作只调用安装后的
+`clawock` / `clawock-kcnyu` 命令；host、publish、CI、growth wiring 只放到各自
+`ops/` 子目录。这里的剩余文件将在迁移到 package/instance 后删除，不保留旧路径 shim。
+
+剩余抓取与评估代码仍遵循三条规则：
 
 - **Provider-aware** — 优先使用有文档的公开端点；需要认证的来源遵守其认证和使用条款。
 - **多源降级** — 关键路径都是 provider chain，主源挂了自动落下一个，抓空保留旧值不整片覆盖。
@@ -96,7 +100,7 @@ clawock 是**美股 + 港股 + 黄金定投**的实盘组合。工具包遵循�
 | `src/clawock/evidence/research_provenance.py` | 研究报告 Decimal 计算、两源数字溯源与 fail-closed 准出（tolerance 上限 5%，算式异常也只输出结构化 fail） | 结构化 manifest + 本地确定性校验 | ✅ |
 | `src/clawock/decision/theses.py` | 持久 thesis schema/validator、证据驱动 drift（红线触发/解除对称要证据）与 decision link 解析；`clawock thesis` 操作 | `memory/theses/*.json` + 本地确定性校验 | ✅ |
 | `src/clawock/decision/earnings.py` | 一手财报复盘:来源分级、盈利质量数学、管理层承诺账本、provenance 准出与 thesis 证据交接；`clawock earnings` 操作 | `memory/earnings/*/*.json` + 本地确定性校验 | ✅ |
-| `workflow_health.py` | 排程 GitHub Actions 周度健康:连续失败计数 + **静默停跑**检测(节奏从 workflow 文件里读) | `gh run list` + `.github/workflows/*.yml` | ✅ |
+| `ops/ci/workflow_health.py` | 排程 GitHub Actions 周度健康:连续失败计数 + **静默停跑**检测(节奏从 workflow 文件里读) | `gh run list` + `.github/workflows/*.yml` | ✅ |
 | `src/clawock/portfolio/instruments.py` | 工具标的**唯一真源**:杠杆倍数、underlying 看穿(`look_through`/`issuer_for` — 基金→发行人、指数基金→无发行人)、canonical bar manifest | `config/instruments.json` | ✅ |
 | `src/clawock/decision/entry.py` | 建仓前研究闸:信息分级与投资质量分离、确定性硬否决(行业例外写进配置)、pass/reject/gray 判定与深研路由；`clawock entry-gate` 操作 | `memory/entry-gates/*.json` + `config/entry-gate-vetoes.json` | ✅ |
 

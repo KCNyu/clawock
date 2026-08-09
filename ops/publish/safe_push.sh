@@ -18,7 +18,7 @@ BRANCH="${2:-master}"
 # Identity selection (deploy key vs. whatever git is configured with) is shared
 # with the data-branch publisher, so it lives in one sourceable file rather than
 # being restated per publisher. It also owns wiping an ephemeral Actions key.
-# shellcheck source=scripts/data/publish_identity.sh
+# shellcheck source=ops/publish/publish_identity.sh
 . "$(dirname "${BASH_SOURCE[0]}")/publish_identity.sh"
 if [ -n "$PUBLISH_REMOTE" ]; then
   REMOTE="$PUBLISH_REMOTE"

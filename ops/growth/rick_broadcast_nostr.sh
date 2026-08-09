@@ -9,7 +9,8 @@ cd /root/.openclaw/workspace
 # cron runs with a minimal PATH that lacks nvm's node bin → `node: command not found`.
 # Detect the newest installed nvm node and prepend it (survives node version bumps).
 if ! command -v node >/dev/null 2>&1; then
-  NODE_BIN="$(ls -d /root/.nvm/versions/node/*/bin 2>/dev/null | sort -V | tail -1)"
+  NODE_BIN="$(find /root/.nvm/versions/node -mindepth 2 -maxdepth 2 \
+    -type d -name bin -print 2>/dev/null | sort -V | tail -1)"
   [[ -n "$NODE_BIN" ]] && export PATH="$NODE_BIN:$PATH"
 fi
 
@@ -19,7 +20,8 @@ if [[ ! -r "$KEYFILE" ]]; then
   echo "$(date -Is) ERROR: Nostr key not readable at $KEYFILE" >&2
   exit 1
 fi
-export NOSTR_PRIVATE_KEY="$(cat "$KEYFILE")"
+NOSTR_PRIVATE_KEY="$(cat "$KEYFILE")"
+export NOSTR_PRIVATE_KEY
 
 # Generate the post from live data, then sign + publish to public relays.
-python3 scripts/data/rick_broadcast.py --lang en | node scripts/data/nostr_publish.js
+python3 ops/growth/rick_broadcast.py --lang en | node ops/growth/nostr_publish.js

@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """Publish the current dashboard generation to the orphan data branch (#314).
 
-The four outputs `build_dashboard.py` writes are build products: nothing in the
-live loop reads them back, and they account for 71% of the commits on `master`.
-They belong on a branch that holds state rather than history.
+The dashboard outputs are build products: nothing in the live loop reads them
+back. They belong on a branch that holds the latest publication state rather
+than in source history.
 
 This is the instance wiring, not the mechanism — `clawock.publish.GitBranchStore`
 is the mechanism, and its default sibling `FilesystemStore` is what a third party
@@ -11,14 +11,12 @@ gets without configuring a remote. What lives here is the choice of *these four
 files, this branch, this repository*.
 
 Reads the outputs from the worktree exactly as they stand, so whatever the
-semantic diff decided to publish (including clock-only files it restored to their
-previous bytes) is what the data branch receives — byte-identical to what the
-same generation puts on `master`. That equality is the acceptance criterion while
-both destinations are written.
+semantic diff selected (including clock-only files restored to their previous
+bytes) is what the data branch receives as one generation.
 
 Usage:
-  python3 scripts/data/publish_data_branch.py                # publish HEAD-of-worktree
-  python3 scripts/data/publish_data_branch.py --branch other --remote origin
+  python3 ops/publish/publish_data_branch.py                # publish HEAD-of-worktree
+  python3 ops/publish/publish_data_branch.py --branch other --remote origin
 """
 from __future__ import annotations
 
@@ -28,18 +26,12 @@ import subprocess
 import sys
 from pathlib import Path
 
-# The checkout root, so `clawock` resolves from the tree this file ships
-# in. Reached through the scripts/data/workspace shim until #267 step 3,
-# whose only remaining job was inserting this path as a side effect.
-sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
-sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
+_CHECKOUT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(_CHECKOUT))
+sys.path.insert(0, str(_CHECKOUT / "src"))
 from clawock.workspace import workspace_root  # noqa: E402
 
-ROOT = workspace_root(Path(__file__).resolve().parents[2])
-# The checkout root, so `clawock` is importable regardless of where WS points
-# (#265, #313).
-sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
-sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
+ROOT = workspace_root(_CHECKOUT)
 
 from clawock.publish import GitBranchStore, GitHubDispatchDeployer  # noqa: E402
 from clawock.publish.outputs import output_paths  # noqa: E402

@@ -82,11 +82,9 @@ def _record_watchdog_outcome(event):
         if len(parts) != 2:
             return
         market, phase = parts
-        sys.path.insert(0, str(_CHECKOUT / 'scripts' / 'data'))
-        import workflow_outcomes
+        from clawock_kcnyu.automation import workflow_outcomes
         job = workflow_outcomes.job_for(market, phase)
-    sys.path.insert(0, str(_CHECKOUT / 'scripts' / 'data'))
-    import workflow_outcomes
+    from clawock_kcnyu.automation import workflow_outcomes
     action = event.get('action')
     if action == 'ok':
         status = 'not_required'

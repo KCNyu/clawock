@@ -8,8 +8,8 @@ import subprocess
 ROOT = Path(__file__).resolve().parents[1]
 WORKFLOWS = ROOT / ".github" / "workflows"
 PUBLISH_CALLS = (
-    "scripts/data/safe_push.sh",
-    "scripts/data/gha_commit_push.sh",
+    "ops/publish/safe_push.sh",
+    "ops/publish/gha_commit_push.sh",
 )
 SECRET_BINDING = (
     "CLAWOCK_PUBLISH_SSH_KEY: ${{ secrets.CLAWOCK_PUBLISH_SSH_KEY }}"
@@ -78,7 +78,7 @@ exit 1
         }
     )
     result = subprocess.run(
-        ["bash", str(ROOT / "scripts" / "data" / "safe_push.sh")],
+        ["bash", str(ROOT / "ops" / "publish" / "safe_push.sh")],
         cwd=ROOT,
         env=env,
         text=True,
@@ -96,7 +96,7 @@ exit 1
 
 
 def test_live_runtime_key_is_limited_to_live_checkout():
-    identity = (ROOT / "scripts" / "data" / "publish_identity.sh").read_text()
+    identity = (ROOT / "ops" / "publish" / "publish_identity.sh").read_text()
     assert '"/root/.openclaw/workspace"' in identity
     assert '"/root/.ssh/clawock_runtime_publish"' in identity
 
@@ -118,7 +118,7 @@ def test_a_checkout_that_is_not_the_live_workspace_gets_no_publish_identity(tmp_
     subprocess.run(["git", "-C", str(tmp_path), "init", "-q"], check=True)
     probe = subprocess.run(
         ["bash", "-c",
-         f". {ROOT / 'scripts' / 'data' / 'publish_identity.sh'}; "
+         f". {ROOT / 'ops' / 'publish' / 'publish_identity.sh'}; "
          'printf "%s|%s|%s" "$PUBLISH_SSH_KEY" "$PUBLISH_REMOTE" "${GIT_SSH_COMMAND:-}"'],
         cwd=tmp_path,
         env={k: v for k, v in os.environ.items() if k != "CLAWOCK_PUBLISH_SSH_KEY"},
@@ -231,7 +231,7 @@ def test_pre_push_does_not_apply_master_ledger_gates_to_data_plane(tmp_path):
 
 
 def test_data_plane_publisher_preserves_hook_stdout_and_git_stderr():
-    publisher = (ROOT / "scripts" / "data" / "publish_data_branch.py").read_text()
+    publisher = (ROOT / "ops" / "publish" / "publish_data_branch.py").read_text()
 
     assert "exc.stdout, exc.stderr" in publisher
     assert "[-2000:]" in (
@@ -244,13 +244,13 @@ def test_safe_push_refuses_the_money_file_when_the_checker_is_missing(tmp_path):
     """A missing package CLI cannot silently certify a changed money file."""
     repo = _ledger_repo(tmp_path)
     script = repo / "safe_push.sh"
-    script.write_text((ROOT / "scripts" / "data" / "safe_push.sh").read_text())
+    script.write_text((ROOT / "ops" / "publish" / "safe_push.sh").read_text())
     # safe_push.sh sources its sibling for identity selection, so a deployment
     # of it is both files. Not tolerating an absent one is deliberate: an
     # unreadable identity helper must fail here, not silently push under
     # whatever git happens to be configured with.
     (repo / "publish_identity.sh").write_text(
-        (ROOT / "scripts" / "data" / "publish_identity.sh").read_text())
+        (ROOT / "ops" / "publish" / "publish_identity.sh").read_text())
 
     result = subprocess.run(
         ["/bin/bash", str(script)], cwd=repo, capture_output=True,
@@ -265,9 +265,9 @@ def test_safe_push_refuses_the_money_file_when_the_checker_is_missing(tmp_path):
 def test_safe_push_runs_the_money_check_when_the_money_file_moves(tmp_path):
     repo = _ledger_repo(tmp_path)
     script = repo / "safe_push.sh"
-    script.write_text((ROOT / "scripts" / "data" / "safe_push.sh").read_text())
+    script.write_text((ROOT / "ops" / "publish" / "safe_push.sh").read_text())
     (repo / "publish_identity.sh").write_text(
-        (ROOT / "scripts" / "data" / "publish_identity.sh").read_text())
+        (ROOT / "ops" / "publish" / "publish_identity.sh").read_text())
     bin_dir = tmp_path / "bin"
     bin_dir.mkdir()
     marker = tmp_path / "integrity-invoked"

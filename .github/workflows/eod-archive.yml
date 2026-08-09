@@ -81,4 +81,4 @@ jobs:
             exit 0
           fi
           git commit -m "archive: EOD snapshot $(date -u +%Y-W%W)"
-          bash scripts/data/safe_push.sh
+          bash ops/publish/safe_push.sh

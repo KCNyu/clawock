@@ -85,4 +85,4 @@ jobs:
             exit 0
           fi
           git commit -m "docs: dashboard visual refresh $(date -u +%Y-%m-%d)"
-          bash scripts/data/safe_push.sh
+          bash ops/publish/safe_push.sh

@@ -57,6 +57,10 @@ DASHBOARD = ROOT / "assets" / "data" / "dashboard.json"
 sys.path.insert(0, str(ROOT / "src"))
 sys.path.insert(0, str(ROOT / "instances" / "kcnyu" / "src"))
 sys.path.insert(0, str(ROOT / "scripts" / "data"))
+sys.path.insert(0, str(ROOT / "ops" / "host"))
+sys.path.insert(0, str(ROOT / "ops" / "ci"))
+sys.path.insert(0, str(ROOT / "ops" / "growth"))
+sys.path.insert(0, str(ROOT / "ops" / "publish"))
 
 
 def _git_status(paths):

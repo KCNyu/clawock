@@ -27,6 +27,7 @@ WS = Path(__file__).resolve().parent.parent
 _REPO_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(_REPO_ROOT))
 sys.path.insert(0, str(_REPO_ROOT / "src"))
+sys.path.insert(0, str(_REPO_ROOT / "instances" / "kcnyu" / "src"))
 
 # Live-box paths for the memory-index check. Still deliberately absolute and not
 # derived from WS — the semantic index only ever covers the live runtime
@@ -85,9 +86,12 @@ def check_baseline_files(r):
 def check_scripts_compile(r):
     """All Python scripts compile."""
     failed = []
-    for pat in ['scripts/data/*.py',
-                'instances/kcnyu/src/clawock_kcnyu/harness/*.py']:
-        for f in glob.glob(str(WS / pat)):
+    for pat in [
+        'scripts/data/*.py',
+        'ops/**/*.py',
+        'instances/kcnyu/src/clawock_kcnyu/**/*.py',
+    ]:
+        for f in glob.glob(str(WS / pat), recursive=True):
             try:
                 rr = subprocess.run(['python3', '-m', 'py_compile', f],
                                    capture_output=True, text=True, timeout=10)
@@ -475,8 +479,7 @@ def check_cron_paths_exist(r):
         return
 
     try:
-        sys.path.insert(0, str(_REPO_ROOT / 'scripts' / 'data'))
-        from cron_contract import (  # type: ignore
+        from clawock_kcnyu.schedule import (  # type: ignore
             load_contract, next_us_dst_transition, us_season,
             validate_live_jobs, validate_watchdogs,
         )
@@ -522,7 +525,7 @@ def check_cron_paths_exist(r):
 def check_generated_cron_docs(r):
     """Generated schedule documentation must exactly match the contract."""
     result = subprocess.run(
-        ['python3', str(_REPO_ROOT / 'scripts' / 'data' / 'generate_cron_docs.py'), '--check'],
+        ['python3', str(_REPO_ROOT / 'ops' / 'host' / 'generate_cron_docs.py'), '--check'],
         capture_output=True, text=True, timeout=15, cwd=str(WS),
     )
     if result.returncode == 0:
