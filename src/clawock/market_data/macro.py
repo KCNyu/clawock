@@ -11,19 +11,15 @@ Sources (all free, no API key):
 
 Writes: assets/data/macro.json
 """
-import json
-import os
+import argparse
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
 import requests
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
-sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
-
-WS_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-OUT_FILE = os.path.join(WS_ROOT, 'assets', 'data', 'macro.json')
+from clawock.safe_io import safe_write_json
+from clawock.workspace import workspace_root
 
 UA = 'clawock-macro-scan/1.0 (github.com/KCNyu/clawock)'
 HEADERS = {'User-Agent': UA}
@@ -198,7 +194,16 @@ def fed_press_releases(days=7):
         return None
 
 
-def main():
+def main(argv=None):
+    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    parser.add_argument("--workspace", type=Path, default=Path.cwd())
+    parser.add_argument("--output", type=Path)
+    args = parser.parse_args(argv)
+    workspace = workspace_root(args.workspace)
+    output = args.output or workspace / "assets" / "data" / "macro.json"
+    if not output.is_absolute():
+        output = workspace / output
+
     out = {
         'generated_at': datetime.now(timezone.utc).isoformat(),
         'vix':            yahoo_quote('^VIX'),
@@ -221,11 +226,8 @@ def main():
         raw = out['treasury_10y']['price']
         out['treasury_10y']['yield_pct'] = round(raw / 10 if raw > 10 else raw, 3)
 
-    # Atomic write
-    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-    from clawock.safe_io import safe_write_json
-    os.makedirs(os.path.dirname(OUT_FILE), exist_ok=True)
-    safe_write_json(OUT_FILE, out)
+    output.parent.mkdir(parents=True, exist_ok=True)
+    safe_write_json(output, out)
 
     # Print summary
     print('=== macro snapshot ===')
@@ -243,7 +245,7 @@ def main():
             print(f'  {k:14s}  {v["yield_pct"]}%  ({v["change_pct"]:+.2f}%)')
         else:
             print(f'  {k:14s}  {v["price"]:>10}  ({v["change_pct"]:+.2f}%)')
-    print(f'\n✓ wrote {OUT_FILE} ({os.path.getsize(OUT_FILE):,} bytes)')
+    print(f'\n✓ wrote {output} ({output.stat().st_size:,} bytes)')
 
 
 if __name__ == '__main__':

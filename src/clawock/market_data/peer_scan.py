@@ -24,7 +24,7 @@ import sys
 from pathlib import Path
 
 from clawock.portfolio.instruments import get as get_instrument
-from clawock.suggest_peers import suggest_auto_peers
+from clawock.market_data.peer_discovery import suggest_auto_peers
 from clawock.workspace import workspace_root
 
 WS = workspace_root(Path.cwd())

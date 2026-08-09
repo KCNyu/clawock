@@ -357,32 +357,38 @@ def _packaged_utility(args) -> int:
     elif args.command == "t0-review":
         from clawock.t0_setup_review import main
     elif args.command == "cross-factor":
-        from clawock.cross_sectional_factor import main
+        from clawock.market_data.factors import main
     elif args.command == "peer-residual":
-        from clawock.peer_residual_engine import main
+        from clawock.market_data.peer_residuals import main
     elif args.command == "fetch-peers":
-        from clawock.fetch_peers import hard_exit, main
+        from clawock.market_data.peer_quotes import hard_exit, main
         hard_exit(main(args.utility_args))
     elif args.command == "filings":
-        from clawock.fetch_us_filings import main
+        from clawock.market_data.filings import main
     elif args.command == "fundamentals":
-        from clawock.fetch_fundamentals_em import main
+        from clawock.market_data.fundamentals import main
     elif args.command == "fundflow":
-        from clawock.fetch_fundflow_em import main
+        from clawock.market_data.fund_flows import main
     elif args.command == "em-news":
-        from clawock.fetch_em_news import main
+        from clawock.market_data.eastmoney_news import main
     elif args.command == "daily-bars":
-        from clawock.fetch_daily_bars import main
+        from clawock.market_data.bars import main
     elif args.command == "catalysts":
-        from clawock.fetch_catalysts import main
+        from clawock.market_data.calendar import main
     elif args.command == "us-quotes":
-        from clawock.fetch_us_stocks import main
+        from clawock.market_data.us_quotes import main
     elif args.command == "analyze-us":
-        from clawock.analyze_us_stocks import main
+        from clawock.market_data.us_analysis import main
     elif args.command == "analyze-hk":
-        from clawock.analyze_hk_stocks import main
+        from clawock.market_data.hk_analysis import main
     elif args.command == "benchmark":
-        from clawock.fetch_benchmark_history import main
+        from clawock.market_data.benchmarks import main
+    elif args.command == "macro":
+        from clawock.market_data.macro import main
+    elif args.command == "sentiment":
+        from clawock.market_data.sentiment import main
+    elif args.command == "mover-evidence":
+        from clawock.market_data.mover_evidence import main
     elif args.command == "integrity":
         from clawock.portfolio.integrity import main
     elif args.command == "validate-sidecar":
@@ -513,7 +519,8 @@ def main(argv=None) -> int:
         "cross-factor", "peer-residual", "fetch-peers", "filings",
         "fundamentals", "fundflow", "em-news",
         "daily-bars", "catalysts", "us-quotes", "analyze-us", "analyze-hk",
-        "benchmark", "integrity", "validate-sidecar", "mark-followed",
+        "benchmark", "macro", "sentiment", "mover-evidence", "integrity",
+        "validate-sidecar", "mark-followed",
         "audit-resettle", "evidence", "news-evidence",
     }
     if raw_argv and raw_argv[0] in packaged_utilities:
@@ -630,6 +637,9 @@ def main(argv=None) -> int:
         ("analyze-us", "refresh and analyze active US holdings"),
         ("analyze-hk", "refresh and analyze active HK holdings"),
         ("benchmark", "fetch SPY, HSI, and HSTECH daily benchmark history"),
+        ("macro", "fetch a portable macro and major-index snapshot"),
+        ("sentiment", "scan configured holdings across public sentiment sources"),
+        ("mover-evidence", "probe bounded filing and news evidence for movers"),
         ("integrity", "verify portfolio money and market-data invariants"),
         ("validate-sidecar", "validate a workflow-generated sidecar artifact"),
         ("mark-followed", "record execution ground truth in the decision ledger"),

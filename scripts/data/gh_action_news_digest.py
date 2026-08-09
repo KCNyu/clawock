@@ -27,7 +27,7 @@ sys.path.insert(0, str(_CHECKOUT))
 sys.path.insert(0, str(_CHECKOUT / "src"))
 from clawock.portfolio import instruments as instrument_registry  # noqa: E402
 from xiaomi_llm import chat
-from fetch_sentiment import fetch_google_news
+from clawock.market_data.sentiment import fetch_google_news
 
 
 def _fetch_finnhub(ticker, since, until, key):

@@ -9,23 +9,20 @@ Sources (all free, no API key):
 
 Writes: assets/data/sentiment.json
 """
+import argparse
 import json
-import os
 import re
 import sys
 import time
 import xml.etree.ElementTree as ET
 from datetime import datetime, timezone
 from pathlib import Path
-from urllib.parse import quote, urlparse
+from urllib.parse import quote
 
 import requests
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
-sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
-
-WS_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-OUT_FILE = os.path.join(WS_ROOT, 'assets', 'data', 'sentiment.json')
+from clawock.safe_io import safe_write_json
+from clawock.workspace import workspace_root
 
 UA = 'clawock-sentiment-scan/1.0 (github.com/KCNyu/clawock)'
 HEADERS = {'User-Agent': UA}
@@ -35,8 +32,8 @@ TIMEOUT = 10
 SOURCE_STATUS = {'reddit': 'failed', 'google_news': 'failed'}
 
 
-def load_tickers():
-    p = json.load(open(os.path.join(WS_ROOT, 'portfolio.json'), encoding='utf-8'))
+def load_tickers(workspace):
+    p = json.loads((workspace / "portfolio.json").read_text(encoding="utf-8"))
     out = []
     for region in ('us_stocks', 'hk_stocks'):
         for h in p['portfolios'].get(region, {}).get('holdings', []):
@@ -148,9 +145,18 @@ def scan_ticker(t):
     return result
 
 
-def main():
+def main(argv=None):
+    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    parser.add_argument("--workspace", type=Path, default=Path.cwd())
+    parser.add_argument("--output", type=Path)
+    args = parser.parse_args(argv)
+    workspace = workspace_root(args.workspace)
+    output = args.output or workspace / "assets" / "data" / "sentiment.json"
+    if not output.is_absolute():
+        output = workspace / output
+
     SOURCE_STATUS.update(reddit='failed', google_news='failed')
-    tickers = load_tickers()
+    tickers = load_tickers(workspace)
     print(f'Scanning {len(tickers)} active tickers …')
 
     out = {
@@ -164,12 +170,9 @@ def main():
         time.sleep(0.3)  # global rate-limit safety
     out['source_status'] = dict(SOURCE_STATUS)
 
-    os.makedirs(os.path.dirname(OUT_FILE), exist_ok=True)
-    # Atomic write
-    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-    from clawock.safe_io import safe_write_json
-    safe_write_json(OUT_FILE, out)
-    print(f'\n✓ wrote {OUT_FILE} ({len(out["tickers"])} tickers, {os.path.getsize(OUT_FILE):,} bytes)')
+    output.parent.mkdir(parents=True, exist_ok=True)
+    safe_write_json(output, out)
+    print(f'\n✓ wrote {output} ({len(out["tickers"])} tickers, {output.stat().st_size:,} bytes)')
 
 
 if __name__ == '__main__':

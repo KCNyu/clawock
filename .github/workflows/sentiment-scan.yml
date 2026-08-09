@@ -36,7 +36,7 @@ jobs:
       - run: pip install --quiet -e .
 
       - name: Scan sentiment (Reddit + Google News)
-        run: python3 scripts/data/fetch_sentiment.py
+        run: clawock sentiment --workspace .
 
       - name: Validate sentiment coverage
         run: clawock validate-sidecar sentiment

@@ -4,7 +4,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from clawock import known_catalysts as kc
+from clawock.market_data import known_catalysts as kc
 
 
 TODAY = "2026-08-06"

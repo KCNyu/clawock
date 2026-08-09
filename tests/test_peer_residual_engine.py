@@ -6,7 +6,7 @@ import pytest
 
 
 ROOT = Path(__file__).resolve().parents[1]
-from clawock import peer_residual_engine as peer
+from clawock.market_data import peer_residuals as peer
 
 
 def _bars(rate, count=80, volume=1000):

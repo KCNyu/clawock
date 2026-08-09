@@ -33,26 +33,15 @@ from __future__ import annotations
 import argparse
 import json
 import re
-import sys
 import time
 import urllib.parse
 import urllib.request
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
-# The checkout root, so `clawock` resolves from the tree this file ships
-# in. Reached through the scripts/data/workspace shim until #267 step 3,
-# whose only remaining job was inserting this path as a side effect.
-sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
-sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
 from clawock.workspace import workspace_root  # noqa: E402
 
-# Code lives in the checkout; only DATA lives in the workspace. `workspace_root`
-# is overridable, so resolving our own modules through WS would read them out of
-# someone else's data directory — or silently pick up whatever happens to be
-# there. Same expression WS is seeded from, kept separate on purpose (#269).
-_CHECKOUT = Path(__file__).resolve().parents[2]
-WS = workspace_root(Path(__file__).resolve().parents[2])
+WS = workspace_root(Path.cwd())
 
 HKT = timezone(timedelta(hours=8))
 MAX_MOVERS = 4
@@ -162,7 +151,7 @@ def _tencent_items(symbol, feed_type, tier, source_class, *, now, window, http):
 
 
 def _sec_items(ticker, *, now, window, http):
-    from clawock import fetch_us_filings  # noqa: PLC0415 — optional on the US leg
+    from clawock.market_data import filings as fetch_us_filings  # noqa: PLC0415
 
     cik = fetch_us_filings.lookup_cik(ticker)
     if not cik:
@@ -202,7 +191,7 @@ def _sec_items(ticker, *, now, window, http):
 def _market_flashes(names, *, now, window):
     """Market-wide 7x24 flashes, kept only when they name a holding."""
     try:
-        from clawock import fetch_em_news  # noqa: PLC0415
+        from clawock.market_data import eastmoney_news as fetch_em_news  # noqa: PLC0415
 
         rows = fetch_em_news.em_fast_news(limit=20) or []
     except Exception as exc:  # noqa: BLE001 — supporting colour, never fatal
@@ -488,4 +477,4 @@ def main(argv=None) -> int:
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    raise SystemExit(main())

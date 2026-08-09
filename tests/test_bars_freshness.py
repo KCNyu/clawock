@@ -144,7 +144,7 @@ def test_retirement_is_declared_never_inferred(tmp_path, monkeypatch):
 
 def test_no_active_instrument_is_declared_retired():
     """`retired` is a hand-pinned fact, never inferred; no live line may carry it."""
-    from clawock import fetch_daily_bars
+    from clawock.market_data import bars as fetch_daily_bars
     assert not any(m.get('retired') for m in fetch_daily_bars.MANIFEST.values()), \
         'an active instrument is declared retired'
 
@@ -154,7 +154,7 @@ def test_retirement_declaration_survives_an_empty_fetch(tmp_path, monkeypatch):
     returns — must still reach the bar JSON, which settlement reads. merge() writes it
     on a non-empty fetch; the empty-fetch path must sync it too, or a newly declared
     retirement is silently lost and the decision settles as bar_missing forever."""
-    from clawock import fetch_daily_bars as fdb
+    from clawock.market_data import bars as fdb
     # and the helper must flip an existing store's flag to match the manifest.
     monkeypatch.setattr(fdb, 'BARS_DIR', tmp_path)
     (tmp_path / 'FOO.json').write_text(json.dumps({'ticker': 'FOO', 'retired': False, 'bars': {}}))
@@ -168,7 +168,7 @@ def test_incremental_fetch_anchors_to_each_tickers_own_newest_bar(tmp_path, monk
     """A fixed window off today turns any outage longer than it into a permanent
     hole: the writer resumes, appends the tail, and the middle is never refetched
     while freshness — which only looks after the newest bar — reads as current."""
-    from clawock import fetch_daily_bars
+    from clawock.market_data import bars as fetch_daily_bars
     monkeypatch.setattr(fetch_daily_bars, 'BARS_DIR', tmp_path)
     monkeypatch.setattr(fetch_daily_bars, 'MANIFEST', {
         'FOO': {'leg': 'US', 'tencent': 'usFOO.OQ', 'em': '105.FOO',

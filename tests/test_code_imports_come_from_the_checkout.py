@@ -77,11 +77,14 @@ def test_the_two_roots_actually_diverge_under_the_override(tmp_path):
         "the override is not in effect, so nothing below proves anything")
 
     ran = subprocess.run(
-        [sys.executable, str(ROOT / "scripts" / "data" / "mover_news.py"), "--help"],
+        [sys.executable, "-c",
+         f"import sys; sys.path.insert(0, {str(ROOT / 'src')!r})\n"
+         "from clawock.cli import main\n"
+         "raise SystemExit(main(['mover-evidence', '--help']))\n"],
         capture_output=True, text=True, timeout=60, env=env, cwd=str(ROOT),
     )
     assert ran.returncode == 0, (
-        "a script could not even start against a code-less workspace:\n"
+        "the installed package command could not start against a code-less workspace:\n"
         f"{ran.stdout}\n{ran.stderr}")
 
 

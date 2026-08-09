@@ -23,7 +23,7 @@ import re
 import sys
 from typing import Dict, List, Optional
 
-from clawock._em_http import em_get
+from clawock.market_data.eastmoney_http import em_get
 
 SEARCH_URL = "https://searchapi.eastmoney.com/api/suggest/get"
 # 公开 token(满网皆是,非密钥); 若失效会自动回退到启发式

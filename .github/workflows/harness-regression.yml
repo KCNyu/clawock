@@ -183,7 +183,10 @@ jobs:
         run: |
           python3 -m pytest tests/ -q \
             --cov=scripts \
-            --cov=clawock.bar_checks \
+            --cov=clawock.market_data.integrity \
+            --cov=clawock.market_data.macro \
+            --cov=clawock.market_data.mover_evidence \
+            --cov=clawock.market_data.sentiment \
             --cov=clawock.brief_context \
             --cov=clawock.brief_decision_packet \
             --cov=clawock.evidence.build_evidence \

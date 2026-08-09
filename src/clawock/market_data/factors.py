@@ -261,7 +261,7 @@ def fetch_quality(config, as_of, enabled=True):
             }
             continue
         try:
-            from clawock.fetch_us_filings import get_company_facts
+            from clawock.market_data.filings import get_company_facts
             facts = get_company_facts(ticker)
             snapshot = (
                 quality_snapshot(facts, as_of) if facts

@@ -536,7 +536,7 @@ def test_system_check_watches_the_calendar_horizon():
 # --- earnings look-through: we hold the fund, the company reports -------------
 
 def test_catalyst_tickers_come_from_holdings_not_a_hand_synced_list():
-    from clawock import fetch_catalysts
+    from clawock.market_data import calendar as fetch_catalysts
 
     book = {"portfolios": {"us_stocks": {"holdings": [
         {"ticker": "MSFU", "shares": 20},     # 2x MSFT
@@ -554,7 +554,7 @@ def test_catalyst_tickers_come_from_holdings_not_a_hand_synced_list():
     ("CRCL", "CRCL"), ("SOXL", None), ("TQQQ", None), ("07226", None),
 ])
 def test_earnings_issuer_resolution(ticker, issuer):
-    from clawock import fetch_catalysts
+    from clawock.market_data import calendar as fetch_catalysts
 
     assert fetch_catalysts.earnings_issuer(ticker) == issuer
 
