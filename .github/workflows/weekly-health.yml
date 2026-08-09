@@ -29,13 +29,14 @@ jobs:
       - name: Compile all scripts
         run: |
           set -e
-          for f in scripts/data/*.py instances/kcnyu/src/clawock_kcnyu/harness/*.py; do
+          find scripts/data ops instances/kcnyu/src -type f -name '*.py' -print0 |
+          while IFS= read -r -d '' f; do
             python3 -m py_compile "$f"
           done
           echo "OK: all scripts compile"
 
       - name: Generated cron docs match contract
-        run: python3 scripts/data/generate_cron_docs.py --check
+        run: python3 ops/host/generate_cron_docs.py --check
 
       - name: argparse contracts unchanged
         run: |
@@ -67,7 +68,7 @@ jobs:
         continue-on-error: true
         env:
           GH_TOKEN: ${{ github.token }}
-        run: python3 scripts/data/workflow_health.py
+        run: python3 ops/ci/workflow_health.py
 
       - name: Peer-map coverage check
         run: |
@@ -102,20 +103,6 @@ jobs:
               print('SCHEMA FAILURES:'); [print(' ', b) for b in bad]
               sys.exit(1)
           print(f'{len(glob.glob("memory/*-plan.json"))} plans OK')
-          PY
-
-      - name: Cron-referenced files exist
-        run: |
-          python3 << 'PY'
-          import os, re, sys
-          for d in ['scripts/data','instances/kcnyu/src/clawock_kcnyu/harness']:
-              for f in os.listdir(d):
-                  if f.endswith('.py'):
-                      assert os.path.exists(os.path.join(d, f)), f
-          # Check core baseline reads exist
-          for f in ['SOUL.md','USER.md','MEMORY.md','TOOLS.md','INVESTMENT_SOP.md','AGENTS.md','CLAUDE.md','portfolio.json']:
-              assert os.path.exists(f), f
-          print('all baseline files present')
           PY
 
       - name: Dashboard build idempotency

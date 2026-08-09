@@ -93,7 +93,7 @@ if [ "$IRC" != "0" ]; then
   if [ "$IRC" = "2" ]; then
     echo "🚫 push blocked — portfolio.json fails a money-conservation check:"
     grep -E 'ERROR|❌|🔴' /tmp/clawock_integrity.out | head -12
-    echo "   run:  bash scripts/data/reconcile.sh   (recompute cash + realized, re-check)"
+    echo "   run:  clawock reconcile   (recompute derivations, then re-check)"
     echo "   then re-commit portfolio.json. Override (rare): git push --no-verify"
   else
     echo "🚫 push blocked — clawock integrity did not complete (exit $IRC):"

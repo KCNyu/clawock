@@ -7,7 +7,7 @@ name: Influence Radar (Trump / Musk / Serenity)
 #                                            GH Actions' 1–2h scheduled-cron delay)
 #   12:50 UTC Mon–Fri = 20:50 HKT Mon–Fri  → 10 min before US news digest / US open prep
 # First cron is dow 0-4 (21:40+8h wraps to next HKT day; 1-5 would miss Monday's brief).
-# Second cron does NOT wrap (12:50+8=20:50 same day) so it stays 1-5. ./check_crons.sh --timeline
+# Second cron does NOT wrap (12:50+8=20:50 same day) so it stays 1-5. bash ops/host/check_crons.sh --timeline
 on:
   schedule:
     - cron: '40 21 * * 0-4'
@@ -51,4 +51,4 @@ jobs:
         env:
           CLAWOCK_PUBLISH_SSH_KEY: ${{ secrets.CLAWOCK_PUBLISH_SSH_KEY }}
         run: |
-          bash scripts/data/gha_commit_push.sh "influence: Trump/Musk radar $(TZ=Asia/Hong_Kong date +%Y-%m-%d_%H:%M)" assets/data/influencer_feed.json
+          bash ops/publish/gha_commit_push.sh "influence: Trump/Musk radar $(TZ=Asia/Hong_Kong date +%Y-%m-%d_%H:%M)" assets/data/influencer_feed.json

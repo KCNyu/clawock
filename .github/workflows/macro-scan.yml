@@ -7,7 +7,7 @@ name: Macro Scan
 # 21:xx UTC gives a delay-absorbing buffer while still being after the US close even in
 # winter EST (16:00 EST = 21:00 UTC; summer EDT close = 20:00 UTC).
 # dow is 0-4 (NOT 1-5): cron is UTC and 21:45+8h wraps to the NEXT HKT day, so 1-5 would
-# fire Tue–Sat HKT and miss Monday. Verify any change with: ./check_crons.sh --timeline
+# fire Tue–Sat HKT and miss Monday. Verify any change with: bash ops/host/check_crons.sh --timeline
 # VIX / 10Y yield / DXY / Fear & Greed / major indices snapshot.
 # Free public APIs, no key. Writes assets/data/macro.json — consumed by brief preflight.
 on:
@@ -48,4 +48,4 @@ jobs:
         env:
           CLAWOCK_PUBLISH_SSH_KEY: ${{ secrets.CLAWOCK_PUBLISH_SSH_KEY }}
         run: |
-          bash scripts/data/gha_commit_push.sh "macro: daily snapshot $(date -u +%Y-%m-%d)" assets/data/macro.json
+          bash ops/publish/gha_commit_push.sh "macro: daily snapshot $(date -u +%Y-%m-%d)" assets/data/macro.json

@@ -18,20 +18,17 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Callable
 
-# The checkout root, so `clawock` resolves from the tree this file ships
-# in. Reached through the scripts/data/workspace shim until #267 step 3,
-# whose only remaining job was inserting this path as a side effect.
-sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
-sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
+_CHECKOUT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(_CHECKOUT))
+sys.path.insert(0, str(_CHECKOUT / "src"))
+sys.path.insert(0, str(_CHECKOUT / "instances" / "kcnyu" / "src"))
 from clawock.workspace import workspace_root  # noqa: E402
 
 # Code lives in the checkout; only DATA lives in the workspace. `workspace_root`
 # is overridable, so resolving our own modules through WS would read them out of
 # someone else's data directory — or silently pick up whatever happens to be
 # there. Same expression WS is seeded from, kept separate on purpose (#269).
-_CHECKOUT = Path(__file__).resolve().parents[2]
-WS = workspace_root(Path(__file__).resolve().parents[2])
-sys.path.insert(0, str(_CHECKOUT / "scripts" / "data"))
+WS = workspace_root(_CHECKOUT)
 # The runtime's cron command line and the strict read both live in the adapter
 # (#330 step 2). This file decides WHAT to change; how that reaches OpenClaw is
 # not its business, and spelling the argv out here was what made it one of the
@@ -40,10 +37,7 @@ sys.path.insert(0, str(_CHECKOUT / "scripts" / "data"))
 # The CHECKOUT root, not WS: `workspace_root` is overridable, so WS can be
 # someone else's data directory with no `clawock` package in it. The import has
 # to resolve against the tree this file ships in.
-sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
-sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
-
-from cron_contract import (  # noqa: E402
+from clawock_kcnyu.schedule import (  # noqa: E402
     effective_schedule,
     load_contract,
     render_payload_message,

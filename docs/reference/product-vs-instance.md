@@ -1,223 +1,75 @@
-# Product vs instance: what belongs in `src/clawock/`, what stays instance-owned
+# Repository ownership: product, instance, operations and state
 
-kcn's definition of done for this repository:
+The terminal shape is a portable `clawock` product plus a separately installed
+KCNyu live instance. Directory ownership is part of the product contract: no
+generic script or data bucket is an acceptable final home.
 
-> 一个标准的易迁移的，而不是寄生于 openclaw 上面的一个四不像
+## The deciding question
 
-That is a statement about *shape*, and shape is only real if a reviewer can apply
-it to a file they have not seen. This page is that rule, plus the classification
-of every module in `scripts/data/` against it (#331).
+Ask whether a third party using clawock with their own agent, book and deployment
+needs the behavior unchanged.
 
-It classifies before moving. The point is that the migration afterwards is
-mechanical and reviewable one file at a time, and that a new file has an obvious
-home instead of defaulting to `scripts/data/` because that is where things go.
-The same rule now covers all 11 modules in the separately packaged
-`instances/kcnyu/` adapter (#365).
+- **Yes: product.** Put it in a named domain under `src/clawock/` and expose it
+  through the installed `clawock` CLI or an importable package API.
+- **No, it is this investment desk's behavior: instance.** Put it in the
+  separately packaged `instances/kcnyu/src/clawock_kcnyu/` adapter.
+- **No, it wires a host, repository or delivery surface: operations.** Put it in
+  the specific `ops/` domain that owns that external side effect.
+- **It is generated or user-authored state:** keep it in the workspace data
+  paths; never ship it in either wheel.
 
-## The rule
+File size, language and test coverage do not decide ownership. Stable commands
+are APIs; historical Python or shell paths are not.
 
-Ask one question about a module:
+## Canonical owners
 
-> **Would someone running clawock against their own book need this, unchanged?**
-
-- **Yes → product.** It belongs in `src/clawock/`: importable, no assumption about
-  where the workspace is, no knowledge of which runtime or which repository it is
-  deployed into. Prices, ledger schema, risk math, validation gates, the decision
-  contract.
-- **No → instance.** It is kcn's desk: this portfolio's particular holdings, this
-  host's cron wiring, this repository's publishing identity, this deployment's
-  delivery channel. It stays in `scripts/`, and may assume anything it likes.
-
-Two clarifications that decide most of the hard cases:
-
-**A fetcher is product; a fetcher's *subject* is instance.** `clawock us-quotes`
-is product — any book with US equities needs multi-provider price fetching with
-the same staleness rules. `fetch_gold_dca.py` is instance: it exists because kcn
-holds 000217, and nobody else's book has that position by construction.
-
-**Knowing a runtime is instance, even when the code is generic.** Anything that
-spawns OpenClaw, writes its schedule, reads its state, or targets this
-repository's Pages/branches is instance no matter how cleanly it is written. That
-is the same boundary the runtime-coupling ratchet counts, and `src/clawock/providers/`
-is the one place allowed to cross it.
-
-## What this rule is not
-
-It is not "big files move, small files stay", and not "anything with a test is
-product". `build_dashboard.py` is 3,141 lines of product; `clawock mark-followed` is 44
-lines of product; `assemble_dashboard_gif.py` is 92 lines of instance.
-
-It is also not a promise that product code is *currently* importable from a
-foreign workspace. Several product modules still read `WS/config/` (#356). The
-classification says where a file belongs, not that it has arrived.
-
-## Classification
-
-The package now has a standard `src/clawock/` source boundary. The historical
-counts below classify the original `scripts/data/` migration inventory; they are
-not a claim that `scripts/` is an acceptable final product home.
-
-Historical classification counts: **product 60 · instance 27**. The two cron
-synchronizers now live in `ops/host/`; the table retains them to preserve the
-decision record while the rest of `scripts/data/` is migrated. Canonical
-instrument metadata now ships as `clawock.portfolio.instruments`; configured
-instruments remain workspace data and are not bundled in the wheel. The
-dependency-free `bar_checks`,
-`json_repair`, `safe_io`, and `trading_calendar` utilities have also moved into
-`src/clawock/`. The generation-bound brief context and typed decision packet now
-ship there too; tools never import executable Python from a user's workspace.
-The v2 decision ledger and settlement engine is now `clawock.decision.ledger`; its
-default data root is the caller's workspace, never the package installation path.
-Planning continuity, durable risk governance, dashboard output ownership,
-numeric research provenance, and backtest run cards also ship in `clawock`.
-The risk engine derives leverage pairs from the workspace instrument registry;
-the dashboard diff engine reads `config/dashboard-outputs.json`. Neither desk's
-tickers nor artifact paths are compiled into the public package.
-The entry gate, thesis registry, earnings ledger, research queue, and claim
-scanner now ship there as well. KCNyu's research cutover date, cadence and list
-of claim-bearing backtests remain workspace configuration.
-Realized P&L, snapshot attribution, aggregate rebuilding, cash derivation,
-shadow-book simulation, and their shared ledger arithmetic now ship in the
-package. KCNyu's decision-leg/book mapping, book names, cash-field bindings,
-market calendars, and per-book percentage precision remain in
-`config/portfolio-derivations.json`.
-Quant factors, leverage-regime calculation, T+0 setup grading and both
-forward-return review loops now ship in the package as `clawock quant`,
-`regime`, `t0`, `quant-review`, and `t0-review`. They discover holdings from
-the ledger and instrument registry rather than assuming KCNyu's book keys.
-East Money symbol resolution, HK/US fundamentals, fund flow and Chinese-news
-collection now ship as `clawock fundamentals`, `fundflow`, and `em-news`.
-The news collector discovers HK holdings from the selected workspace's ledger
-and registry rather than assuming a book named `hk_stocks`.
-The artifact-backed evidence page and expiring news graph now ship as
-`clawock evidence` and `clawock news-evidence`. `build_dashboard.py` remains in
-the repository boundary until its three explicit dependencies on the KCNyu
-adapter and operator-only `workflow_outcomes` are extracted; moving it first
-would make the wheel depend on instance code.
-
-The evidence slice is also the first migrated area placed in its terminal
-domain namespace rather than copied flat from `scripts/data`: provenance gates,
-research status, run cards, the evidence page and the news graph live under
-`src/clawock/evidence/`. Stable CLI command names are the public interface;
-historical Python module paths are not retained as package-root shims. The
-remaining flat package modules are transitional context, publishing, validation
-or adapter inventory; they are not the accepted terminal layout.
-
-The complete portable portfolio core now lives under `src/clawock/portfolio/`:
-instrument and book resolution, pure ledger math, realized and snapshot
-attribution, aggregate and cash reconstruction, FX, risk, integrity, and shadow
-simulation. Historical filenames such as `recompute_cash.py` and
-`portfolio_risk_metrics.py` are not retained as package-root aliases. Stable
-CLI commands remain unchanged, so runtimes depend on product capabilities
-rather than Python file layout.
-
-The portable market-data boundary now lives under `src/clawock/market_data/`.
-It owns provider transport and symbol resolution, canonical bars and integrity,
-US/HK quotes and analysis, filings, fundamentals, fund flows, benchmarks,
-catalyst calendars, macro/sentiment snapshots, bounded mover evidence, and
-peer/factor inputs. The historical package-root paths and the three remaining
-product scripts (`fetch_macro.py`, `fetch_sentiment.py`, `mover_news.py`) are
-gone; installed CLI commands and explicit package imports are the consumers.
-No package-root compatibility shim is shipped.
-
-The complete decision boundary now lives under `src/clawock/decision/`. It owns
-the action vocabulary, ledger and settlement lineage, execution ground truth,
-plan continuity, risk governance, thesis/entry/earnings lifecycle, typed brief
-packet, deterministic signals and regimes, and forward outcome review loops.
-Stable CLI commands are unchanged, while historical root module paths are absent
-from the wheel. Quant and T+0 modules live here because they produce and evaluate
-decision inputs; provider transport and raw/canonical market records remain in
-`market_data/`.
-
-### Product — the engine
-
-| Area | Modules |
+| Path | Owner |
 |---|---|
-| Ledger + decision contract | `clawock.decision.actions` `clawock.decision.ledger` `clawock.decision.packet` `clawock.decision.plans` `clawock mark-followed` `clawock audit-resettle` |
-| Portfolio + money integrity | `clawock.portfolio.instruments` `clawock.portfolio.books` `clawock aggregates` `clawock cash` `clawock realized` `clawock shadow` `clawock fx` `clawock portfolio-risk` `clawock integrity` |
-| Decision risk + governance | `clawock.decision.risk` `clawock.decision.theses` `clawock.decision.entry` `clawock.decision.earnings` `clawock.evidence.research_surface` |
-| Quant + outcome review | `clawock quant` `clawock regime` `clawock t0` `clawock quant-review` `clawock t0-review` `clawock cross-factor` `clawock peer-residual` `clawock.market_data.peer_scan` `clawock.market_data.peer_discovery` |
-| Evidence + provenance | `clawock news-evidence` `clawock.evidence.research_provenance` `clawock.evidence.claim_provenance` `clawock.evidence.run_card` `clawock evidence` |
-| Market data | `clawock fetch-peers` `clawock filings` `clawock fundamentals` `clawock fundflow` `clawock em-news` `clawock daily-bars` `clawock catalysts` `clawock us-quotes` `clawock analyze-us` `clawock analyze-hk` `clawock benchmark` `clawock sentiment` `clawock macro` `clawock mover-evidence` `clawock.market_data.eastmoney_http` |
-| Moved into product | `clawock.portfolio.instruments` `clawock.portfolio.books` `clawock.portfolio.math` `clawock.portfolio.realized` `clawock.portfolio.snapshots` `clawock.portfolio.aggregates` `clawock.portfolio.cash` `clawock.portfolio.shadow` `clawock.portfolio.fx` `clawock.portfolio.risk` `clawock.portfolio.integrity` `clawock.adapters.mobile` `clawock.market_data.integrity` `clawock.context.brief` `clawock.decision.packet` `clawock.decision.actions` `clawock.decision.ledger` `clawock.decision.plans` `clawock.decision.risk` `clawock.publish.outputs` `clawock.evidence.research_provenance` `clawock.evidence.run_card` `clawock.decision.entry` `clawock.decision.theses` `clawock.decision.earnings` `clawock.evidence.research_surface` `clawock.evidence.claim_provenance` `clawock.decision.signals` `clawock.decision.regime` `clawock.decision.setups` `clawock.decision.signal_review` `clawock.decision.setup_review` `clawock.market_data.factors` `clawock.market_data.peer_residuals` `clawock.market_data.peer_quotes` `clawock.market_data.filings` `clawock.market_data.eastmoney_symbols` `clawock.market_data.fundamentals` `clawock.market_data.fund_flows` `clawock.market_data.eastmoney_news` `clawock.market_data.bars` `clawock.market_data.calendar` `clawock.market_data.known_catalysts` `clawock.market_data.us_quotes` `clawock.market_data.us_analysis` `clawock.market_data.hk_analysis` `clawock.market_data.benchmarks` `clawock.publish.artifacts` `clawock.decision.execution` `clawock.decision.settlement` `clawock.evidence.build_evidence` `clawock.evidence.news_evidence_graph` `clawock.json_repair` `clawock.safe_io` `clawock.market_data.sessions` | Code and schemas ship in the wheel; each user's configuration and data stay in their workspace |
-| Gates + outputs | `clawock integrity` `clawock validate-sidecar` `dashboard_outputs` `build_dashboard` `workflow_outcomes` `workflow_health` `coverage_badge` `cron_contract` `cron_heartbeat` |
+| `src/clawock/decision/` | decision records, risk governance, theses, entry/earnings lifecycle, signals and outcome evaluation |
+| `src/clawock/portfolio/` | ledger math, reconciliation, FX, risk, integrity and shadow accounting |
+| `src/clawock/market_data/` | portable providers, canonical bars, sessions, quotes, filings and market context |
+| `src/clawock/evidence/` | provenance, run cards, research surface and public evidence generation |
+| `src/clawock/context/`, `harness/`, `publish/`, `workflows/`, `adapters/` | runtime-neutral contracts, artifact protocol and cross-runtime integration |
+| `instances/kcnyu/` | KCNyu schedule contract, harness phases, workflow outcomes, heartbeat and watchdog behavior |
+| `ops/host/` | this host's cron, scheduler inspection, session maintenance and launcher wiring |
+| `ops/publish/` | the only protected-branch and data-plane publisher implementation |
+| `ops/ci/` | coverage and scheduled-workflow health used by GitHub Actions |
+| `ops/growth/` | IndexNow, Nostr and project broadcast delivery |
+| `ops/pages/` | Pages source/artifact assembly from the published generation |
+| `site/` | static site and browser source |
+| `portfolio.json`, `assets/data/`, `memory/`, `logs/` | live instance and generated state; never wheel contents |
 
-### Instance — kcn's desk
+`ops/` may call installed product and instance commands. Product code must not
+import `ops/` or `clawock_kcnyu`. The public `clawock` wheel must not include or
+depend on the KCNyu wheel. `clawock-kcnyu` is repository-only and must never be
+published to PyPI.
 
-| Area | Modules | Why |
-|---|---|---|
-| This host's cron wiring | `sync_cron_payloads` `sync_us_cron_dst` `cron_runs` `cron_timeline` `cron_token_audit` `cron_health_check` `generate_cron_docs` `gc_sessions` `intraday_delta_gate` | Reads or writes OpenClaw's schedule and state |
-| This repo's publishing | `publish_data_branch` `indexnow_submit` `assemble_dashboard_gif` `rick_broadcast` | Targets this repository's branches, Pages and voice |
-| This repo's workflows | `gh_action_brief_fallback` `gh_action_news_digest` `gh_action_weekly_review` `xiaomi_llm` | Entry points for `.github/workflows/`, and the LLM client they use |
-| kcn's specific positions | `fetch_gold_dca` `update_gold_dca` `fetch_influencer_feed` | 000217; a feed chosen for this book's theses |
-| Claims about this book | `backtest_hstech_regime` `backtest_us_leverage` `backtest_combined_regime` `validate_regime_dial` | Validate kcn's dial against kcn's holdings |
-| This site's output contract | `config/dashboard-outputs.json` | Names this desk's generated artifacts, clock fields and linked generation group; the wheel only implements the configured diff algorithm |
-| This desk's research rollout | `config/research-governance.json` `config/claim-provenance.json` | Pins the gate cutover/cadence and the KCNyu backtest claim surfaces without compiling either into the wheel |
-| This desk's ledger bindings | `config/portfolio-derivations.json` | Pins decision legs, risk books, book names, cash fields, market calendars, and output precision while the wheel owns only the arithmetic |
+## OpenClaw compatibility surface
 
-### Contested — flagging rather than hiding
+OpenClaw requires selected Markdown and skill files at workspace-relative paths,
+so root `AGENTS.md`, `TOOLS.md`, `SOUL.md`, `IDENTITY.md`, `USER.md` and the
+main-session context files remain at the repository root. Location compatibility
+does not make old scripts APIs: those files instruct the runtime to use installed
+`clawock` / `clawock-kcnyu` commands and the named `ops/` entry points only.
 
-Three calls are genuinely arguable, and a reviewer may reasonably move them:
+## Remaining `scripts/data/` inventory
 
-- **`build_dashboard.py`** — filed as product because it aggregates any ledger,
-  but it also knows this site's tab structure and card set. If the renderer is
-  ever split from the aggregation, the aggregation is product and the rest is not.
-- **`fetch_influencer_feed.py`** — filed as instance because the figures tracked
-  were chosen for this book. The mechanism (scan a feed, score impact) is product.
-- **`cron_contract` / `cron_heartbeat`** — filed as product: they describe *a*
-  schedule contract, not OpenClaw's. Their callers are instance. If that ever
-  stops being true they move.
+This directory is a temporary migration surface, not an owner. Its remaining
+files already have terminal destinations:
 
-## `scripts/legacy/` — resolved
+- dashboard aggregation and portable backtest/evaluation logic → named product
+  domains under `src/clawock/`;
+- KCNyu gold, influencer, intraday gate and GitHub-hosted LLM automation → named
+  modules under `clawock_kcnyu`;
+- files with no consumer or completed one-off jobs → delete.
 
-#331 asks for this directory to be deleted or justified. Per file:
+Do not add new files there, create `ops/data`, or preserve old-path shims. A move
+is complete only after runtime commands, workflows, cron, docs and isolated-wheel
+verification all use the terminal owner.
 
-- **`backfill_t0_history.py` — deleted.** A one-off that seeded
-  `t0_setups_history.jsonl` from historical snapshots so `t0_setup_review` had
-  data immediately instead of waiting weeks of live accumulation. That job
-  completed; the history now accumulates on its own, and the module had **zero
-  references anywhere in the repository**.
-- **`backfill_snapshot_realized.py` — kept, justified.** A repair for historical
-  snapshots missing realized P&L. It stays because it is *destructive* — it
-  rewrites `memory/snapshots/` in place — and `tests/test_workspace_portability.py`
-  exists specifically to pin that it cannot aim at production when imported. That
-  guard is worth more than the disk space, and deleting the script would delete
-  the test's subject.
-- **`stock_analyzer.py` — kept, justified.** Superseded by `analyze_us_stocks` and
-  `analyze_hk_stocks`, and documented as superseded in `docs/reference/scripts.md`.
-  It is retained deliberately as reference material: MEMORY.md records that
-  retired scripts stay readable for their early fallback ordering and the reasons
-  they were replaced.
+## Publication boundary
 
-## `instances/kcnyu/` — the live desk adapter
-
-The portable lifecycle vocabulary and generation-pinned `ArtifactSet` live in
-`src/clawock/harness/`; `clawock brief|report|intraday` dispatch phases in-process
-through the `clawock.instance_phases` entry-point group. KCNyu's implementation
-lives in its own `clawock-kcnyu` distribution under `instances/kcnyu/`, so the
-public wheel neither imports nor ships it. The former `scripts/harness/` aliases
-were retired after every production and test caller moved to installed commands
-or explicit package imports.
-
-| Classification | Modules | Boundary |
-|---|---|---|
-| Mixed — product preflight plus instance I/O | `brief_preflight` `report_preflight` `intraday_preflight` | Context calculation and gates are product; live paths, refresh side effects and `.tmp` placement are instance adapter concerns |
-| Mixed — product validation plus instance publish/delivery | `brief_postflight` `report_postflight` `intraday_postflight` | Validation/assembly is product; git coordination, dashboard publication and channel delivery are instance capabilities |
-| Mixed shared implementation | `_harness_common` | Generation/validation helpers are product; this repository's publish and dashboard refresh path is instance |
-| Instance runtime supervision | `_watchdog_common` `brief_watchdog` `report_watchdog` `intraday_watchdog` | Reads runtime sessions/run history, mirrors this deployment's channels and applies this desk's retry policy |
-
-The separate distribution is a migration seam, not evidence that all code in it
-is instance-specific. Reusable investment preflight, validation,
-reconciliation, generation and postflight behavior belongs in `src/clawock/`;
-reusable OpenClaw behavior belongs behind a runtime adapter. Only KCNyu delivery
-targets, live schedules, repository publication and other desk bindings remain
-here. `clawock-kcnyu` is repository-only and must never be published to PyPI or
-pulled in by the portable package.
-
-## Note on the counts in #331
-
-The issue states 97 files and cites #269 as having 31 sites. Both have moved:
-`scripts/data/` holds **87** files as of this page, and #269's sites are **zero** —
-every code import now resolves from the checkout. The issue's fourth acceptance
-item ("the classification predicts #269's 31 sites") is therefore satisfied
-vacuously rather than by prediction, and is not evidence either way.
+The KCNyu harness may request a dashboard rebuild and publication, but the git
+identity, retry and data-plane mechanisms belong only to `ops/publish/`. The
+browser consumes the complete published generation; generated outputs are state,
+not source-package data and not independently staged by arbitrary callers.

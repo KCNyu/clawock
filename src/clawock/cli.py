@@ -391,6 +391,8 @@ def _packaged_utility(args) -> int:
         from clawock.market_data.mover_evidence import main
     elif args.command == "integrity":
         from clawock.portfolio.integrity import main
+    elif args.command == "reconcile":
+        from clawock.portfolio.reconcile import main
     elif args.command == "validate-sidecar":
         from clawock.publish.artifacts import main
     elif args.command == "mark-followed":
@@ -519,7 +521,7 @@ def main(argv=None) -> int:
         "cross-factor", "peer-residual", "fetch-peers", "filings",
         "fundamentals", "fundflow", "em-news",
         "daily-bars", "catalysts", "us-quotes", "analyze-us", "analyze-hk",
-        "benchmark", "macro", "sentiment", "mover-evidence", "integrity",
+        "benchmark", "macro", "sentiment", "mover-evidence", "integrity", "reconcile",
         "validate-sidecar", "mark-followed",
         "audit-resettle", "evidence", "news-evidence",
     }
@@ -641,6 +643,7 @@ def main(argv=None) -> int:
         ("sentiment", "scan configured holdings across public sentiment sources"),
         ("mover-evidence", "probe bounded filing and news evidence for movers"),
         ("integrity", "verify portfolio money and market-data invariants"),
+        ("reconcile", "recompute all portfolio derivations and verify integrity"),
         ("validate-sidecar", "validate a workflow-generated sidecar artifact"),
         ("mark-followed", "record execution ground truth in the decision ledger"),
         ("audit-resettle", "audit decision re-settlement without writing by default"),

@@ -2486,7 +2486,7 @@ def compute_workflow_outcomes():
     """Expose raw execution and final product status as separate dashboard data."""
     try:
         sys.path.insert(0, str(WS_ROOT / 'scripts' / 'data'))
-        import workflow_outcomes
+        from clawock_kcnyu.automation import workflow_outcomes
         return trim_workflow_outcomes(workflow_outcomes.summarize(reconcile=True))
     except Exception as e:
         print(f'  warn: workflow outcome summary failed: {e}', file=sys.stderr)

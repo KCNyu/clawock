@@ -42,7 +42,7 @@ commit_once() {
 
 commit_once || exit 0
 
-if bash scripts/data/safe_push.sh; then
+if bash ops/publish/safe_push.sh; then
   exit 0
 fi
 
@@ -61,4 +61,4 @@ for f in "${DATA_FILES[@]}"; do
   cp "$STASH_DIR/$f" "$f"
 done
 commit_once || exit 0   # origin already carries identical data → done
-bash scripts/data/safe_push.sh
+bash ops/publish/safe_push.sh

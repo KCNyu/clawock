@@ -6,11 +6,10 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT / "scripts" / "data"))
 sys.path.insert(0, str(ROOT / "ops" / "host"))
 sys.path.insert(0, str(ROOT))
 
-import cron_contract
+from clawock_kcnyu import schedule as cron_contract
 import sync_cron_payloads
 from clawock.providers.openclaw import OPENCLAW_BIN
 

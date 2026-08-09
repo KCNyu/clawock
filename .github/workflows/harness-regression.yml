@@ -183,6 +183,10 @@ jobs:
         run: |
           python3 -m pytest tests/ -q \
             --cov=scripts \
+            --cov=ops \
+            --cov=clawock_kcnyu.schedule \
+            --cov=clawock_kcnyu.automation.cron_heartbeat \
+            --cov=clawock_kcnyu.automation.workflow_outcomes \
             --cov=clawock.market_data.integrity \
             --cov=clawock.market_data.macro \
             --cov=clawock.market_data.mover_evidence \
@@ -220,7 +224,7 @@ jobs:
         # readout, this is the part that holds. Runs on PRs too (not just the
         # publish job) so a regression is caught before merge, not after.
         if: github.event_name != 'pull_request' || steps.changes.outputs.code == 'true'
-        run: python3 scripts/data/coverage_badge.py --report coverage-report.json --check-only
+        run: python3 ops/ci/coverage_badge.py --report coverage-report.json --check-only
 
       - name: Upload coverage report
         # The suite is measured once, here. publish-coverage consumes this artifact
@@ -236,7 +240,7 @@ jobs:
 
       - name: Generated cron docs match contract
         if: github.event_name != 'pull_request' || steps.changes.outputs.code == 'true'
-        run: python3 scripts/data/generate_cron_docs.py --check
+        run: python3 ops/host/generate_cron_docs.py --check
 
       - name: Backtest claims cite a run card that still matches
         # A stale citation is the failure that matters: it points at real
@@ -257,7 +261,8 @@ jobs:
         if: github.event_name != 'pull_request' || steps.changes.outputs.code == 'true'
         run: |
           set -e
-          for f in scripts/data/*.py instances/kcnyu/src/clawock_kcnyu/harness/*.py; do
+          find scripts/data ops instances/kcnyu/src -type f -name '*.py' -print0 |
+          while IFS= read -r -d '' f; do
             echo "syntax check: $f"
             python3 -m py_compile "$f"
           done
@@ -400,7 +405,7 @@ jobs:
           name: coverage-report
 
       - name: Coverage floors and badge payload
-        run: python3 scripts/data/coverage_badge.py --report coverage-report.json --out assets/data/coverage.json
+        run: python3 ops/ci/coverage_badge.py --report coverage-report.json --out assets/data/coverage.json
 
       - name: Validate coverage badge
         # shields.io renders this file verbatim; a malformed payload would show up
@@ -415,7 +420,7 @@ jobs:
         run: |
           set -euo pipefail
           pct=$(python3 -c "import json; print(json.load(open('assets/data/coverage.json'))['message'])")
-          bash scripts/data/gha_commit_push.sh "coverage: $pct at $(git rev-parse --short HEAD)" assets/data/coverage.json
+          bash ops/publish/gha_commit_push.sh "coverage: $pct at $(git rev-parse --short HEAD)" assets/data/coverage.json
 
   smoke-data-fetch:
     runs-on: ubuntu-latest

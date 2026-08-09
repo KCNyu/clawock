@@ -42,7 +42,7 @@ def workspace(tmp_path):
     # Every member of the published generation, read from the publisher rather
     # than restated — the set grew from four to six in #325, and a fixture that
     # named them would have silently tested a smaller generation.
-    sys.path.insert(0, str(ROOT / "scripts" / "data"))
+    sys.path.insert(0, str(ROOT / "ops" / "publish"))
     from publish_data_branch import DATA_PLANE_FILES
     for name in DATA_PLANE_FILES:
         target = work / name
@@ -82,7 +82,7 @@ def _fake_gh(tmp_path, *, exit_code=0):
 def _publish(workspace, bin_dir, *extra):
     env = {**os.environ, "PATH": f"{bin_dir}:{os.environ['PATH']}"}
     return subprocess.run(
-        [sys.executable, str(ROOT / "scripts/data/publish_data_branch.py"),
+        [sys.executable, str(ROOT / "ops/publish/publish_data_branch.py"),
          "--root", str(workspace), "--remote", "origin", *extra],
         cwd=workspace, env=env, capture_output=True, text=True)
 

@@ -8,7 +8,7 @@ from zoneinfo import ZoneInfo
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts" / "data"))
 
-import cron_heartbeat  # noqa: E402
+from clawock_kcnyu.automation import cron_heartbeat  # noqa: E402
 import intraday_delta_gate as gate  # noqa: E402
 
 

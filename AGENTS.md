@@ -46,7 +46,7 @@ After any of the following changes, run a git commit automatically — no need t
 | `portfolio.json` updated (price refresh / buy / sell) | `portfolio: <brief>` |
 | `memory/YYYY-MM-DD.md` created or updated | `memory: daily notes YYYY-MM-DD` |
 | Harness produced new `memory/{date}-pre-open.md` + `-plan.json` | `memory: daily deep brief <date>` (postflight auto-commits) |
-| Any dashboard output refreshed via `build_dashboard.py` | semantic changes to `dashboard.json` / `decision_audit.json` / `shadow_portfolio.json` are bundled with the relevant data commit |
+| KCNyu harness/publisher refreshed dashboard outputs | publish the complete semantic generation through the data plane; do not stage individual generated files ad hoc |
 | `assets/data/risk.json` refreshed via `clawock portfolio-risk` | bundled with brief commit |
 | `memory/decisions.jsonl` execution status marked via `clawock mark-followed` | `decisions: mark execution` |
 | Any script added or modified | `script: <what changed>` |
@@ -103,6 +103,11 @@ You wake up fresh each session. These files are your continuity:
 ## Tools & Skills
 
 Skills live under `skills/<name>/SKILL.md`. **Full routing + edge-cases → `TOOLS.md` § Skill 路由表.**
+
+Runtime commands come from the installed distributions: portable workflows and
+tools use `clawock`; this desk's harness/watchdogs/automation use `clawock-kcnyu`
+entry points. Host, publishing, CI and growth wiring lives under `ops/`. Never
+recover an old command by executing a root script or a file under `scripts/data/`.
 
 Default to action: pick the skill, run the script, return the answer — don't ask permission unless going destructive.
 

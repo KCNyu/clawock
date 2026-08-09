@@ -281,11 +281,11 @@ scheduled job; provider credentials and routing policy stay outside this public
 repository and can change without rewriting the workflow. No provider key is
 stored here.
 
-**Write reconciliation.** The dashboard-build outputs — `dashboard.json`, `decision_audit.json`, `shadow_portfolio.json` — are derived, while a cron daemon, off-host workflows, crontab publishers, and ad-hoc sessions can all update `master`. The rule: isolate scan-sidecar writers, and serialize dashboard builders that share a host.
+**Write reconciliation.** Dashboard outputs are one derived generation published on the data plane, while scan sidecars and other runtime state have their own producers. The rule: isolate scan-sidecar writers, serialize dashboard builders that share a host, and keep one publication implementation.
 
 - **The frontend reads scan sidecars directly.** Macro / sentiment / news / influencer feeds are fetched file-by-file at load, so a GitHub Action only ever commits its own disjoint sidecar — writers can't conflict, and a scan appears the instant its commit lands, with no rebuild.
-- **Dashboard builders share one lock and one contract.** On-host rebuilds serialize on a shared `flock`; every builder runs the same semantic-diff helper, so clock-only rewrites are restored and real changes to the three generated files are staged together.
-- **Everyone pushes through `safe_push.sh`** — rebase-retry, abort on a real conflict, and a committed conflict marker is rejected at the push hook so a broken `dashboard.json` can never reach Pages.
+- **Dashboard builders share one lock and one contract.** On-host rebuilds serialize on a shared `flock`; every builder runs the same semantic-diff helper, so clock-only rewrites are restored and the complete generation is published together to the data plane.
+- **Everyone pushes through `ops/publish/safe_push.sh`** — rebase-retry, abort on a real conflict, and a committed conflict marker is rejected at the push hook so a broken generation can never reach Pages.
 - **Portfolio numbers are gated at the door.** `portfolio.json` — the single source of truth — is written under an advisory `flock` with read-fresh-then-overlay and atomic replace. A pre-push hook blocks any push whose book fails a money-conservation identity (`TCV = Σ value`, `cash = baseline + trades + adjustments`, `cost = moving-weighted`), and those derivations are pinned by a `pytest` suite in CI.
 - **Schedules have a checked contract.** Runtime truth comes from the live cron list; a tracked config drives the generated schedule table, DST sync, payload/watchdog checks, and CI health.
 
@@ -301,7 +301,7 @@ stored here.
 | `src/clawock/` | Portable package, workflow contracts, schemas and CLI |
 | `instances/kcnyu/` | KCNyu-only adapter phases and watchdog implementation |
 | `site/` | Jekyll/dashboard source, browser code, SVGs, screenshots and social assets |
-| `ops/` | Pages assembly, host launchers, OpenClaw patching and system audit |
+| `ops/{host,publish,ci,growth,pages}/` | Explicit host, publication, CI, growth and Pages wiring; never a generic data bucket |
 | `docs/`, `tests/` | Product/runbook documentation and invariant checks |
 | root context files, `skills/`, `memory/` | OpenClaw compatibility surface; kept at runtime-required paths |
 | `portfolio.json`, `assets/data/` | Live ledger and generated publication state; never package contents |

@@ -41,7 +41,7 @@ WS = workspace_root(Path.cwd())
 _CHECKOUT = WS
 
 sys.path.insert(0, str(_CHECKOUT / 'scripts' / 'data'))
-import workflow_outcomes  # noqa: E402
+from clawock_kcnyu.automation import workflow_outcomes  # noqa: E402
 
 # Required concepts and the section labels the brief model may legitimately emit.
 # The canonical keys preserve the existing missing-section issue text.  The aliases

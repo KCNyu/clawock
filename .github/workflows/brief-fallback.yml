@@ -164,7 +164,7 @@ jobs:
           # updates opportunistically.
           if git fetch origin master -q && \
              [ -n "$(git rev-list FETCH_HEAD..HEAD 2>/dev/null)" ]; then
-            bash scripts/data/safe_push.sh
+            bash ops/publish/safe_push.sh
           else
             echo "nothing to push — HEAD not ahead of origin/master (or fetch failed)"
           fi

@@ -7,7 +7,7 @@ from types import SimpleNamespace
 from zoneinfo import ZoneInfo
 
 ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT / "scripts" / "data"))
+sys.path.insert(0, str(ROOT / "ops" / "host"))
 
 import cron_health_check  # noqa: E402
 

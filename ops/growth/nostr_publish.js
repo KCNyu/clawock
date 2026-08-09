@@ -7,7 +7,7 @@
  * nostr-tools (already vendored by the @openclaw/nostr plugin).
  *
  *   NOSTR_PRIVATE_KEY=<nsec|hex> node nostr_publish.js  <<< "post text"
- *   echo "..." | node scripts/data/nostr_publish.js --dry-run
+ *   echo "..." | node ops/growth/nostr_publish.js --dry-run
  *
  * Prints the author npub, event id, and an njump.me permalink.
  */

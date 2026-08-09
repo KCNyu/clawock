@@ -338,7 +338,7 @@ def _publish_generation(ws):
     """
     try:
         r = subprocess.run(
-            ['bash', str(ws / 'scripts' / 'data' / 'publish_generation.sh')],
+            ['bash', str(ws / 'ops' / 'publish' / 'publish_generation.sh')],
             capture_output=True, text=True, timeout=120, cwd=str(ws),
         )
     except Exception as e:                       # noqa: BLE001 - reported, not raised
@@ -387,7 +387,7 @@ def push_with_rebase_retry(remote='origin', branch='master', attempts=3):
     contract in safe_push.sh. `attempts` is kept for API compat (safe_push.sh has
     its own MAX_RETRIES=3).
     """
-    script = WS / 'scripts' / 'data' / 'safe_push.sh'
+    script = WS / 'ops' / 'publish' / 'safe_push.sh'
     try:
         r = subprocess.run(['bash', str(script), remote, branch],
                            capture_output=True, text=True, timeout=120, cwd=str(WS))

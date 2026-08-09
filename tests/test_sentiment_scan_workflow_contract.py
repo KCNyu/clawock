@@ -25,7 +25,7 @@ def test_sentiment_snapshot_requires_coverage_before_exact_publish():
 
     commit_run = _step_run('Commit')
     publish_lines = [line.strip() for line in commit_run.splitlines()
-                     if line.strip().startswith('bash scripts/data/gha_commit_push.sh')]
+                     if line.strip().startswith('bash ops/publish/gha_commit_push.sh')]
     assert len(publish_lines) == 1
     assert re.search(r'\sassets/data/sentiment\.json$', publish_lines[0])
     assert 'assets/data/' not in publish_lines[0].removesuffix('assets/data/sentiment.json')

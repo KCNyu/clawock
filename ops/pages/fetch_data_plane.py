@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Put the published generation where Jekyll will pick it up (#314).
 
-The four dashboard outputs are moving off `master` onto an orphan data branch,
-but the browser must keep fetching them from `assets/data/…` on the site. Jekyll
+The dashboard generation lives on an orphan data branch, while the browser
+keeps fetching it from `assets/data/…` on the site. Jekyll
 builds `_site` from the checkout, so the generation has to be in the checkout
 before `jekyll-build-pages` runs. This is the step that puts it there.
 
@@ -11,10 +11,9 @@ and this runs inside a checkout whose state other steps depend on. The files are
 read out of the fetched tree and written as one write set, the same way they were
 published.
 
-**Failure is loud on purpose.** While `master` still carries the same four files,
-a fetch that fell back to them would be invisible — and it would go on being
-invisible after they stop being tracked, at which point the site would quietly
-serve whatever generation the checkout happened to have. `prepare_pages_artifact`
+**Failure is loud on purpose.** Falling back to files from the source checkout
+would quietly freeze the site on whichever generation happened to be present.
+`prepare_pages_artifact`
 already refuses to build an artifact with pages missing; this refuses one built
 from a data plane it could not read.
 
@@ -30,12 +29,11 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-# The checkout root, spelled out rather than via ROOT: `clawock` is not installed
-# on the live host, so an import that resolves only because some other module
-# widened sys.path first is a side effect, not a dependency (#265).
-sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
-sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
-sys.path.insert(0, str(ROOT / "scripts" / "data"))
+# Source-tree execution must resolve both the product and the repository-owned
+# publisher without depending on whichever module a caller imported first.
+sys.path.insert(0, str(ROOT))
+sys.path.insert(0, str(ROOT / "src"))
+sys.path.insert(0, str(ROOT / "ops" / "publish"))
 
 from clawock.publish import GitBranchStore  # noqa: E402
 from publish_data_branch import DATA_BRANCH, DATA_PLANE_FILES  # noqa: E402

@@ -47,5 +47,5 @@ jobs:
           git add -- "$review_path"
           if ! git diff --cached --quiet; then
             git commit -m "memory: weekly review $(date -u +%Y-W%V)"
-            bash scripts/data/safe_push.sh
+            bash ops/publish/safe_push.sh
           fi

@@ -13,6 +13,7 @@ WORKFLOW = (ROOT / ".github/workflows/pages.yml").read_text()
 UI = (ROOT / "site/assets/js/dashboard.ui.js").read_text()
 INDEX = (ROOT / "site/index.html").read_text()
 INDEXNOW_KEY = "4fb2df1611ed42e5b67fd6171a237acb.txt"
+GOOGLE_VERIFICATION = "google7be5b41525cebe9d.html"
 
 
 def _sidecar_keys() -> set[str]:
@@ -130,7 +131,7 @@ def test_the_browser_reads_the_same_branch_and_files_the_publisher_writes():
     refreshing and every gate stays green."""
     import sys
 
-    sys.path.insert(0, str(ROOT / "scripts/data"))
+    sys.path.insert(0, str(ROOT / "ops/publish"))
     from publish_data_branch import DATA_BRANCH, DATA_PLANE_FILES
 
     origin = re.search(r'DATA_PLANE_ORIGIN\s*=\s*"([^"]+)"', UI).group(1)
@@ -150,7 +151,10 @@ def test_builder_stages_only_public_consumers(tmp_path):
     shutil.copytree(ROOT / "site/assets", site / "assets")
     shutil.copytree(ROOT / "assets/data", site / "assets/data")
     (site / "index.html").write_text("ok")
-    for path in ("briefs.html", "evidence.html", "robots.txt", "manifest.webmanifest", INDEXNOW_KEY):
+    for path in (
+        "briefs.html", "evidence.html", "robots.txt", "manifest.webmanifest",
+        INDEXNOW_KEY, GOOGLE_VERIFICATION,
+    ):
         (site / path).write_text("ok")
     (site / "sitemap.xml").write_text(
         '<?xml version="1.0" encoding="UTF-8"?>'
@@ -193,6 +197,7 @@ def test_builder_stages_only_public_consumers(tmp_path):
     ]
     assert sitemap_locs == ["https://kcnyu.github.io/clawock/"]
     assert (output / INDEXNOW_KEY).is_file()
+    assert (output / GOOGLE_VERIFICATION).is_file()
     assert (output / "assets/data/dashboard.json").is_file()
     assert (output / "assets/data/overview.json").is_file()
     assert (ROOT / "site/assets/dashboard.gif").stat().st_size == source_gif_size

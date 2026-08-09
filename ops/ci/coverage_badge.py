@@ -26,14 +26,12 @@ import sys
 from pathlib import Path
 
 
-# The checkout root, so `clawock` resolves from the tree this file ships
-# in. Reached through the scripts/data/workspace shim until #267 step 3,
-# whose only remaining job was inserting this path as a side effect.
-sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
-sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
+_CHECKOUT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(_CHECKOUT))
+sys.path.insert(0, str(_CHECKOUT / "src"))
 from clawock.workspace import workspace_root  # noqa: E402
 
-ROOT = workspace_root(Path(__file__).resolve().parents[2])
+ROOT = workspace_root(_CHECKOUT)
 
 # The settlement core: everything whose arithmetic can corrupt the public record.
 # Paths are repo-relative and must all be present in the report — see
@@ -53,7 +51,7 @@ CORE_MODULES = (
     'src/clawock/portfolio/realized.py',
     'src/clawock/portfolio/risk.py',
     'scripts/data/intraday_delta_gate.py',
-    'scripts/data/workflow_outcomes.py',
+    'instances/kcnyu/src/clawock_kcnyu/automation/workflow_outcomes.py',
     'src/clawock/safe_io.py',
     'src/clawock/market_data/sessions.py',
 )
@@ -112,7 +110,7 @@ def total_summary(report: dict) -> tuple[int, int, float]:
     if statements < MIN_STATEMENTS:
         raise SystemExit(
             f'coverage report only measured {statements} statements '
-            f'(expected >= {MIN_STATEMENTS}) — the run did not cover scripts/')
+            f'(expected >= {MIN_STATEMENTS}) — the configured source tree was not covered')
     return covered, statements, _percent(covered, statements)
 
 

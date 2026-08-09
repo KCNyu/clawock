@@ -1,7 +1,9 @@
-# BOOTSTRAP.md — openclaw injects this into every agent session
+# BOOTSTRAP.md — OpenClaw main-session bootstrap
 
-> openclaw 在 `agent:bootstrap` 事件时把本文件强制加进 prompt context，
-> 任何 LLM 进 session 前都会看到这些规则。**这是硬约束，不是建议。**
+> OpenClaw 主会话通过 `agent:bootstrap` 读取本文件。isolated cron 不读取
+> `BOOTSTRAP.md`，它会注入 `AGENTS.md` / `TOOLS.md` 等 allowlist 文件并由 cron
+> payload 指定 skill。两条路径都只使用安装后的 `clawock` 与 `clawock-kcnyu`
+> 入口。**这是硬约束，不是建议。**
 
 ---
 
@@ -15,8 +17,9 @@
    显式标 FX rate + source + timestamp。换算工具 `clawock fx --json`。
 3. **绝不**对 `00100 MINIMAX` 在 Tencent 失败时假装拿到数据 —
    它是唯一源，挂了必须明说 "实时价获取失败"。
-4. **绝不**绕过已安装的 `clawock analyze-us` / `clawock analyze-hk` 入口
-   （`/root/.openclaw/workspace/analyze_*.py`）— 全在 `scripts/data/` 下。
+4. **绝不**绕过已安装的 `clawock analyze-us` / `clawock analyze-hk` 入口。
+   portable 能力归 `clawock`，本实例 harness/automation 归 `clawock-kcnyu`；
+   不把仓库内部 Python 文件或旧脚本路径当运行接口。
 
 ### B. Harness 流程（cron 触发的所有股票 job）
 
@@ -82,7 +85,7 @@ context.json 的决策/自进化字段，**必须用上**：
 | Mode 6 报告 | 不写新文件；postflight 自动 commit portfolio.json + dashboard.json |
 | Mode 7 盯盘 | 写 `.tmp` context/insights/heartbeat；不提交 `portfolio.json`，dashboard 仅语义变化提交，heartbeat 每 slot 发布 |
 | 手动复盘 | `memory/{date}.md`（用户手写的，agent 别擅自填） |
-| 新仓位 / 加减仓 / 平仓 | 手工记录 `holdings[].trades[]`（`action/date/shares/price`，卖出另记 `realized_pnl`），同步 broker 真值叶子（`shares` / `cost_basis`；平仓行保留、`shares=0`），再跑 `bash scripts/data/reconcile.sh`；存取款另记 `cash_adjustments[]` |
+| 新仓位 / 加减仓 / 平仓 | 手工记录 `holdings[].trades[]`（`action/date/shares/price`，卖出另记 `realized_pnl`），同步 broker 真值叶子（`shares` / `cost_basis`；平仓行保留、`shares=0`），再跑 `clawock reconcile`；存取款另记 `cash_adjustments[]` |
 
 ---
 
@@ -107,4 +110,4 @@ Topic / chat 触发的 session：先读相关 memory/YYYY-MM-DD.md，再回答�
 
 ---
 
-_本文件由 openclaw `bootstrap-extra-files`/`BOOTSTRAP.md` 自动注入。改这里 = 改所有 session 的约束。_
+_本文件约束主会话；isolated cron 的同一运行边界由 `AGENTS.md`、`TOOLS.md`、payload 与对应 skill 共同约束。_

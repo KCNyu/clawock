@@ -6,11 +6,11 @@
 - 投资工作流：`INVESTMENT_SOP.md`
 - 当前持仓摘要：`memory/current-portfolio-summary.md`
 - 每日复盘/交易日志：`memory/YYYY-MM-DD.md`
-- 数据脚本（被 harness / 手动调用）：`scripts/data/`
-- Harness 入口（cron 调起）：安装后的 `clawock brief|report|intraday`；KCNyu 实现在独立 adapter `instances/kcnyu/`
-- 历史/参考脚本：`scripts/legacy/`
-- Dashboard 源入口：`site/index.html`（Pages 发布后仍是 `kcnyu.github.io/clawock/`）；`scripts/data/build_dashboard.py` 一次生成 `dashboard.json` + `decision_audit.json` + `shadow_portfolio.json`
-- 快速查看：`check_portfolio.sh`
+- 可移植工具与工作流：安装后的 `clawock`；源码归 `src/clawock/`
+- Harness 入口（cron 调起）：`clawock brief|report|intraday`；实现来自独立安装的 `clawock-kcnyu`（`instances/kcnyu/`）
+- Host / publish / CI / growth 运维：`ops/{host,publish,ci,growth}/`
+- `scripts/data/` 仅是尚待迁移的仓库内部 job，不是 OpenClaw 或人工调用接口
+- Dashboard 页面：`site/index.html`；完整 generation 由 KCNyu postflight 与 `ops/publish/publish_dashboard.sh` 刷新到 data plane
 
 ## 公共发布层（仓库 = `github.com/KCNyu/clawock`）
 
@@ -42,7 +42,7 @@
 
 **数据扫描 GH Action 不写 `assets/data/dashboard.json`**，只写各自 sidecar；dashboard
 只由 harness postflight（含远端 brief fallback 复用同一 postflight）和 host 上加锁的
-`publish_dashboard.sh` 发布。
+`ops/publish/publish_dashboard.sh` 发布。
 
 ## 推荐工作流
 
@@ -62,7 +62,8 @@ clawock analyze-hk   # 港股
 
 ### 3. 快速查看持仓
 ```bash
-bash check_portfolio.sh
+clawock analyze-hk
+clawock analyze-us
 ```
 
 ---
@@ -135,9 +136,9 @@ clawock us-quotes     # 仅刷美股价格
 
 ## 现有脚本梳理（精简索引 — 完整说明见 `docs/reference/scripts.md`）
 
-**数据抓取/分析**：`clawock us-quotes`(美股7路fallback,写回portfolio) · `clawock analyze-us`(刷价+RSI/MA+新闻+信号) · `clawock analyze-hk`(腾讯+东财双源对账→stooq/yf兜底) · `clawock benchmark`(SPY/HSI/HSTECH 日线) · `clawock fx`(USDHKD 3路,**book total 必先调**) · `clawock filings`(SEC EDGAR) · `clawock fundamentals`(东财中文基本面,**港股财报**)双保险 · `clawock catalysts`(14d催化→catalysts.json) · `fetch_influencer_feed.py`(Trump/Musk雷达→influencer_feed.json) · `clawock portfolio-risk`(β/Vol/DD/Sharpe→risk.json) · `clawock quant`(趋势/动量/RSI/z/ATR吊灯/vol-target→quant_signals.json+history.jsonl留痕,杠杆ETF按标的) · `clawock quant-review`(留痕vs前瞻收益→因子edge表,n<20不解锁,brief按edge取信)
+**数据抓取/分析**：`clawock us-quotes`(美股7路fallback,写回portfolio) · `clawock analyze-us`(刷价+RSI/MA+新闻+信号) · `clawock analyze-hk`(腾讯+东财双源对账→stooq/yf兜底) · `clawock benchmark`(SPY/HSI/HSTECH 日线) · `clawock fx`(USDHKD 3路,**book total 必先调**) · `clawock filings`(SEC EDGAR) · `clawock fundamentals`(东财中文基本面,**港股财报**)双保险 · `clawock catalysts`(14d催化→catalysts.json) · `influencer-scan.yml`(KCNyu 定时 Trump/Musk 雷达) · `clawock portfolio-risk`(β/Vol/DD/Sharpe→risk.json) · `clawock quant`(趋势/动量/RSI/z/ATR吊灯/vol-target→quant_signals.json+history.jsonl留痕,杠杆ETF按标的) · `clawock quant-review`(留痕vs前瞻收益→因子edge表,n<20不解锁,brief按edge取信)
 
-**研究生命周期（手动/事件驱动，产物即真源）**：`clawock entry-gate`(建仓前研究闸,信息分级≠投资质量,硬否决先于计分→`memory/entry-gates/`) · `clawock earnings`(一手财报复盘+管理层承诺账本,盈利质量由代码算→`memory/earnings/`) · `clawock thesis`(canonical thesis + 只认证据的 drift→`memory/theses/`) · `clawock provenance`(数字两源+Decimal 精算,准出闸) · `clawock research`(把上面三类 artifact 汇成待办队列;brief preflight 读它,`--check` 进 system_check 与 CI) · `cron_token_audit.py`(每 cron 最新一跑的 token 量 vs **同 provider** 滚动中位数,跨 provider 比是假的;只进 daily health 不告警不改 exit code) · `clawock plan-context`(08:00 简报还没成交的决策→report/intraday preflight 的 `plan_context`;真源是 `decisions.jsonl` 不是 plan 文件,因为执行状态只写回账本;永不抛异常) · `clawock mover-evidence`(盘中异动票的一手催化探针:SEC/港交所公告分钟级,券商研报与 7×24 只作 supporting;有预算上限、失败降级、不碰 Tavily;filing 三级分流 `config/filing-triage.json`、基金看穿到标的、美股停牌 feed)
+**研究生命周期（手动/事件驱动，产物即真源）**：`clawock entry-gate`(建仓前研究闸,信息分级≠投资质量,硬否决先于计分→`memory/entry-gates/`) · `clawock earnings`(一手财报复盘+管理层承诺账本,盈利质量由代码算→`memory/earnings/`) · `clawock thesis`(canonical thesis + 只认证据的 drift→`memory/theses/`) · `clawock provenance`(数字两源+Decimal 精算,准出闸) · `clawock research`(把上面三类 artifact 汇成待办队列;brief preflight 读它,`--check` 进 system_check 与 CI) · `ops/host/cron_token_audit.py`(每 cron 最新一跑的 token 量 vs **同 provider** 滚动中位数,跨 provider 比是假的;只进 daily health不告警不改 exit code) · `clawock plan-context`(08:00 简报还没成交的决策→report/intraday preflight 的 `plan_context`;真源是 `decisions.jsonl` 不是 plan 文件,因为执行状态只写回账本;永不抛异常) · `clawock mover-evidence`(盘中异动票的一手催化探针:SEC/港交所公告分钟级,券商研报与 7×24 只作 supporting;有预算上限、失败降级、不碰 Tavily;filing 三级分流 `config/filing-triage.json`、基金看穿到标的、美股停牌 feed)
 
 **Harness（三明治：preflight 确定性 → LLM 合成 → postflight 校验+commit）**
 - brief：`brief_preflight.py` / `brief_postflight.py`（写 `memory/{date}-pre-open.md` + `-plan.json`；postflight 自动跑 build_dashboard + push）
@@ -145,13 +146,13 @@ clawock us-quotes     # 仅刷美股价格
 - 盘中 Mode 7：`intraday_preflight.py --market {hk|us}` / `intraday_postflight.py …`（不提交 `portfolio.json`；dashboard 仅语义变化提交，逐 slot heartbeat 必发布）
 - 共通：preflight 出 `raw_wechat_block`(LLM **verbatim** 拷) + `anomalies`(必提≥1票) + `plan_context`(08:00 未成交决策,散文必须对账、股数照抄不许心算)；postflight 出 `wechat_prefix`；context 全落 `memory/.tmp/`(gitignore)
 
-**Dashboard/发布**：`build_dashboard.py`(聚合 portfolio+snapshots+plan+decisions.jsonl+risk+sidecar → `dashboard.json` + 决策审计/影子组合两个公开 sidecar；三类 postflight 都会自动调) · `clawock.publish.outputs`(统一 ownership + 语义 diff，忽略纯构建时间并给出精确 staging pathspec) · `safe_push.sh`(统一 push,rebase.autoStash 容脏树)
+**Dashboard/发布**：KCNyu 三类 postflight 自动刷新完整 generation；host 补发入口 `ops/publish/publish_dashboard.sh` · `clawock dashboard-outputs`(统一 ownership + 语义 diff，忽略纯构建时间并给出精确 staging pathspec) · `ops/publish/safe_push.sh`(唯一 push 路径,rebase.autoStash 容脏树)
 
 **LLM-free Telegram 兜底哨兵（系统 crontab，非 openclaw cron）**
 - report / brief / intraday postflight 主发 WeChat 并同步 Telegram；watchdog 读真实 delivery marker，只在 Telegram marker 缺失或失败时补投，不再猜 run summary、也不重发 WeChat。
 - `.tmp/*-sent-*.json` + slot key 做幂等，避免长 turn / cron retry 双发。
 
-**其它**：`clawock mark-followed`(标 `decisions.jsonl` 的 execution.status) · `clawock audit-resettle`(默认只审计结算变化，`--write` 才落账) · `clawock integrity`(资金/行情完整性闸) · `clawock validate-sidecar`(发布产物结构闸) · `clawock evidence`(由实测产物重建证据与反证页) · `clawock news-evidence`(公告/新闻/日历去重、到期与确认图) · `xiaomi_llm.py`(GH Action 直连 vendor，MiniMax→可选 Xiaomi fallback) · `gh_action_*.py` · `reconcile.sh`(手工记录 `holdings[].trades[]` 与 broker 真值叶子后，统一重算 aggregates/cash/realized 并过完整性闸)。**每脚本详细说明 + 已废弃 legacy → `docs/reference/scripts.md`**。
+**其它正式入口**：`clawock mark-followed`(标 `decisions.jsonl` 的 execution.status) · `clawock audit-resettle`(默认只审计结算变化，`--write` 才落账) · `clawock integrity`(资金/行情完整性闸) · `clawock validate-sidecar`(发布产物结构闸) · `clawock evidence`(由实测产物重建证据与反证页) · `clawock news-evidence`(公告/新闻/日历去重、到期与确认图) · `clawock reconcile`(手工记录 `holdings[].trades[]` 与 broker 真值叶子后，统一重算 aggregates/cash/realized 并过完整性闸)。远端 LLM 与 `gh_action_*` 文件只由 GitHub Actions workflow 调用，不是 OpenClaw 工具。**完整命令与内部 job 索引 → `docs/reference/scripts.md`**。
 
 ### Cron map
 
@@ -231,7 +232,7 @@ clawhub install <slug>
 ---
 
 ## 维护建议
-- 交易发生后：记录 `holdings[].trades[]` + broker 真值叶子，跑 `bash scripts/data/reconcile.sh`，再更新当天 `memory/YYYY-MM-DD.md`
+- 交易发生后：记录 `holdings[].trades[]` + broker 真值叶子，跑 `clawock reconcile`，再更新当天 `memory/YYYY-MM-DD.md`
 - 规则变化后：更新 `MEMORY.md`
 - 持仓结构明显变化后：更新 `memory/current-portfolio-summary.md`
 - 脚本数据源变化后：同步更新 `TOOLS.md` 与 `MEMORY.md`
