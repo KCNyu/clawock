@@ -11,6 +11,7 @@ installer: it produces a working launcher against any checkout, and the launcher
 points at the checkout rather than copying it, so a git fast-forward changes
 behaviour with no reinstall — which is what the live box needs.
 """
+import json
 import os
 import subprocess
 import sys
@@ -51,7 +52,6 @@ def test_the_launcher_points_at_the_checkout_rather_than_copying_it(installed_la
     body = target.read_text()
     assert str(ROOT) in body, "the launcher must name the checkout it serves"
     assert str(venv / "bin" / "clawock") in body
-    assert "CLAWOCK_INSTANCE=kcnyu" in body
 
 
 def test_the_installer_exposes_all_watchdogs_on_the_same_path(installed_launcher):
@@ -65,7 +65,6 @@ def test_the_installer_exposes_all_watchdogs_on_the_same_path(installed_launcher
         assert launcher.exists() and os.access(launcher, os.X_OK)
         body = launcher.read_text()
         assert str(venv / "bin" / name) in body
-        assert "CLAWOCK_WORKSPACE=" in body
 
 
 def test_the_installer_refuses_a_directory_that_is_not_a_checkout(tmp_path):
@@ -74,3 +73,35 @@ def test_the_installer_refuses_a_directory_that_is_not_a_checkout(tmp_path):
                           capture_output=True, text=True, timeout=60)
     assert done.returncode != 0, "installing against a non-checkout must fail loudly"
     assert "not a clawock checkout" in done.stderr
+
+
+def test_the_launcher_defaults_the_workspace_instead_of_forcing_it(installed_launcher,
+                                                                   tmp_path):
+    """A caller pointing the installed command at another book must be obeyed.
+
+    The generated launcher used `env CLAWOCK_WORKSPACE=<checkout>`, and `env`
+    wins over the caller's environment. So `CLAWOCK_WORKSPACE=/somewhere/else
+    clawock ...` silently ran against this desk's live ledger — and wrote to it.
+    That is the whole portability claim (#356) defeated by the only supported
+    install path (#364), with no error to notice.
+    """
+    target, _venv, _tmp = installed_launcher
+    book = tmp_path / "someone-elses-book"
+    (book / "memory").mkdir(parents=True)
+    (book / "portfolio.json").write_text(json.dumps({"portfolios": {
+        "us_stocks": {"currency": "USD", "holdings": []},
+        "hk_stocks": {"currency": "HKD", "holdings": []}}}), encoding="utf-8")
+
+    ran = subprocess.run([str(target), "doctor"], capture_output=True, text=True,
+                         timeout=90, cwd=str(tmp_path),
+                         env={**os.environ, "CLAWOCK_WORKSPACE": str(book)})
+    assert str(book) in ran.stdout, (
+        "the launcher overrode the caller's workspace:\n"
+        f"{ran.stdout}\n{ran.stderr}")
+
+    # And with nothing asked for, it still defaults to the checkout it serves.
+    fell_back = subprocess.run([str(target), "doctor"], capture_output=True, text=True,
+                               timeout=90, cwd=str(tmp_path),
+                               env={k: v for k, v in os.environ.items()
+                                    if k != "CLAWOCK_WORKSPACE"})
+    assert str(ROOT) in fell_back.stdout, fell_back.stdout + fell_back.stderr
