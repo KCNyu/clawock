@@ -371,6 +371,10 @@ def _packaged_utility(args) -> int:
         from clawock.fetch_fundflow_em import main
     elif args.command == "em-news":
         from clawock.fetch_em_news import main
+    elif args.command == "daily-bars":
+        from clawock.fetch_daily_bars import main
+    elif args.command == "catalysts":
+        from clawock.fetch_catalysts import main
     else:
         from clawock.claim_provenance import main
     return main(args.utility_args)
@@ -488,6 +492,7 @@ def main(argv=None) -> int:
         "quant", "regime", "t0", "quant-review", "t0-review",
         "cross-factor", "peer-residual", "fetch-peers", "filings",
         "fundamentals", "fundflow", "em-news",
+        "daily-bars", "catalysts",
     }
     if raw_argv and raw_argv[0] in packaged_utilities:
         return _packaged_utility(argparse.Namespace(
@@ -597,6 +602,8 @@ def main(argv=None) -> int:
         ("fundamentals", "fetch East Money HK/US statements and indicators"),
         ("fundflow", "fetch East Money HK/US daily capital flow"),
         ("em-news", "fetch Chinese news for active HK holdings"),
+        ("daily-bars", "maintain immutable canonical daily OHLC bars"),
+        ("catalysts", "fetch upcoming earnings and macro catalysts"),
     ):
         utility = sub.add_parser(name, help=help_text, add_help=False)
         utility.add_argument("utility_args", nargs=argparse.REMAINDER)

@@ -836,7 +836,7 @@ def refresh_daily_bars():
     The canonical bar store is what decision_v2 settles against, and settling only
     *reads* it — nothing in the ledger path ever fetches. The store was backfilled
     once (8aad505, every bar stamped 2026-07-15T23:39) and then had no writer at
-    all: no cron, no contract entry, no workflow called fetch_daily_bars.py. So each
+    all: no cron, no contract entry, no workflow called the daily-bar writer. So each
     new session was invisible to the ledger, its decisions stayed `pending`
     forever, and the dashboard kept refreshing around a win rate that could no
     longer move. This is that writer, and it has to run ahead of [10].
@@ -847,9 +847,9 @@ def refresh_daily_bars():
     settled against; fetch_daily_bars never overwrites one, so that surfaces as an
     issue for a human to resolve with --repair rather than being applied here.
     """
-    cmd = ['python3', str(WS / 'scripts' / 'data' / 'fetch_daily_bars.py')]
+    cmd = ['clawock', 'daily-bars']
     try:
-        r = subprocess.run(cmd, capture_output=True, text=True, timeout=300)
+        r = subprocess.run(cmd, cwd=WS, capture_output=True, text=True, timeout=300)
     except Exception as e:
         return {'ok': False, 'error': f'{type(e).__name__}: {e}'}
     out = (r.stdout or '') + (r.stderr or '')
@@ -1374,7 +1374,7 @@ def main(argv=None):
     if not bars.get('ok'):
         if bars.get('conflicts'):
             # Stored bars the ledger already settled against now disagree with the
-            # provider. Never auto-applied — see fetch_daily_bars.py --repair.
+            # provider. Never auto-applied — see `clawock daily-bars --repair`.
             print(f'   ⚠ {len(bars["conflicts"])} provider conflicts, nothing overwritten:')
             for c in bars['conflicts'][:5]:
                 print(f'     {c}')
@@ -1693,7 +1693,10 @@ def main(argv=None):
     print('[12/14] Fetch catalysts')
     catalysts = {}
     try:
-        cat_out, cat_ok = _run('scripts/data/fetch_catalysts.py', ['--json'], timeout=60)
+        result = subprocess.run(
+            ['clawock', 'catalysts', '--json'], cwd=WS,
+            capture_output=True, text=True, timeout=60)
+        cat_out, cat_ok = result.stdout, result.returncode == 0
         if not cat_ok:
             print(f'   ⚠ catalysts fetch failed: {cat_out[-150:]}')
             issues.append('catalysts fetch failed')

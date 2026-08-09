@@ -15,33 +15,30 @@ Sources:
 
 Writes:  assets/data/catalysts.json
 Modes:
-  python3 scripts/data/fetch_catalysts.py            # 14d window, write file + summary
-  python3 scripts/data/fetch_catalysts.py --json     # print final JSON to stdout (no file)
-  python3 scripts/data/fetch_catalysts.py --days 30  # custom lookback window
+  clawock catalysts            # 14d window, write file + summary
+  clawock catalysts --json     # print final JSON to stdout and write file
+  clawock catalysts --days 30  # custom window
 """
 import argparse
 import json
-import os
 import sys
 from datetime import datetime, timezone, timedelta, date
 from pathlib import Path
 
 import requests
 
-_CHECKOUT = Path(__file__).resolve().parents[2]
-sys.path.insert(0, str(_CHECKOUT))
-sys.path.insert(0, str(_CHECKOUT / "src"))
-from clawock import instrument_registry  # noqa: E402
-from clawock.instrument_registry import leveraged_symbols  # noqa: E402
+from clawock import instrument_registry
+from clawock.safe_io import safe_write_json
+from clawock.workspace import workspace_root
 
-WS_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-OUT_FILE = os.path.join(WS_ROOT, 'assets', 'data', 'catalysts.json')
-API_KEYS_FILE = os.path.join(WS_ROOT, '.api_keys')
+WS_ROOT = workspace_root(Path.cwd())
+OUT_FILE = WS_ROOT / 'assets' / 'data' / 'catalysts.json'
+API_KEYS_FILE = WS_ROOT / '.api_keys'
 # Dated company events no vendor supplies (Stock Connect effective dates, lockup
 # expiries, mainnet launches). Hand-maintained; see the file's own _meta.
-SCHEDULED_FILE = os.path.join(WS_ROOT, 'memory', 'scheduled_catalysts.json')
+SCHEDULED_FILE = WS_ROOT / 'memory' / 'scheduled_catalysts.json'
 
-UA = 'clawock-catalysts/1.0 (github.com/KCNyu/clawock)'
+UA = 'clawock-catalysts/0.1'
 HEADERS = {'User-Agent': UA}
 TIMEOUT = 10
 
@@ -50,9 +47,7 @@ TIMEOUT = 10
 # positions and, worse, dropped every leveraged ETF without substituting the
 # company whose earnings actually gaps it. Holding MSFU with MSFT's report date
 # missing is the failure this exists to prevent.
-LEVERAGED_ETFS = leveraged_symbols()
-FALLBACK_US_TICKERS = ['CRCL', 'RKLB']   # only if portfolio.json cannot be read
-PORTFOLIO_FILE = Path(__file__).resolve().parents[2] / 'portfolio.json'
+PORTFOLIO_FILE = WS_ROOT / 'portfolio.json'
 
 
 def earnings_issuer(ticker):
@@ -70,15 +65,17 @@ def us_earnings_tickers(portfolio=None):
         try:
             portfolio = json.loads(PORTFOLIO_FILE.read_text())
         except (OSError, ValueError):
-            return list(FALLBACK_US_TICKERS)
-    holdings = ((portfolio.get('portfolios') or {}).get('us_stocks') or {}).get('holdings') or []
+            return []
     out = []
-    for holding in holdings:
-        if (holding.get('shares') or 0) <= 0:
-            continue
-        issuer = earnings_issuer(holding.get('ticker'))
-        if issuer and issuer not in out:
-            out.append(issuer)
+    for book in (portfolio.get('portfolios') or {}).values():
+        for holding in (book or {}).get('holdings') or []:
+            ticker = holding.get('ticker')
+            meta = instrument_registry.get(ticker) or {}
+            if (holding.get('shares') or 0) <= 0 or meta.get('region') != 'US':
+                continue
+            issuer = earnings_issuer(ticker)
+            if issuer and issuer not in out:
+                out.append(issuer)
     return sorted(out)
 
 # 2026 FOMC meeting dates (rate-decision second day)
@@ -167,8 +164,6 @@ def fetch_earnings(window_start, window_end):
     errors = {}
     queried = []
     for ticker in us_earnings_tickers():
-        if ticker in LEVERAGED_ETFS:
-            continue  # a leveraged ETF reports nothing; look-through already ran
         queried.append(ticker)
         rows, err = fetch_earnings_for_ticker(ticker, window_start, window_end, api_key)
         if err:
@@ -433,12 +428,12 @@ def print_summary(out):
                 print(f'  {section}/{k}: {v}')
 
 
-def main():
+def main(argv=None):
     ap = argparse.ArgumentParser(description='Fetch upcoming catalysts (14d default)')
     ap.add_argument('--days', type=int, default=14, help='lookback window in days')
     ap.add_argument('--json', action='store_true',
                     help='print final JSON to stdout, do not write file')
-    args = ap.parse_args()
+    args = ap.parse_args(sys.argv[1:] if argv is None else argv)
 
     try:
         out = build_catalysts(args.days)
@@ -460,16 +455,13 @@ def main():
     # refresh assets/data/catalysts.json (build_dashboard embeds it). The old early
     # return on --json meant nothing in the daily pipeline ever rewrote the file →
     # the dashboard Catalysts card froze at whenever someone last ran it bare.
-    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-    from clawock.safe_io import safe_write_json
-    os.makedirs(os.path.dirname(OUT_FILE), exist_ok=True)
-    safe_write_json(OUT_FILE, out)
+    safe_write_json(str(OUT_FILE), out)
 
     if args.json:
         print(json.dumps(out, ensure_ascii=False, indent=2))
     else:
         print_summary(out)
-        print(f'\nwrote {OUT_FILE} ({os.path.getsize(OUT_FILE):,} bytes)')
+        print(f'\nwrote {OUT_FILE} ({OUT_FILE.stat().st_size:,} bytes)')
     return 0
 
 

@@ -182,7 +182,7 @@ def test_a_zero_or_missing_close_cannot_enter_the_return_series():
 # ── the flag has to reach the store, not just the checker ───────────────────
 
 def _bars_module(tmp_path, monkeypatch):
-    import fetch_daily_bars
+    from clawock import fetch_daily_bars
 
     monkeypatch.setattr(fetch_daily_bars, 'BARS_DIR', tmp_path)
     monkeypatch.setitem(
@@ -232,6 +232,12 @@ def test_every_declared_consumer_still_routes_through_the_shared_module():
         assert re.search(r'^from clawock import bar_checks', path.read_text(), re.M), (
             f'{name} no longer imports bar_checks — the shared contract has a '
             'hole exactly where it used to have three private ones')
+
+
+def test_packaged_daily_bar_store_uses_the_shared_contract():
+    from clawock import fetch_daily_bars
+
+    assert fetch_daily_bars.bar_checks is bar_checks
 
 
 def test_no_script_re_implements_the_degenerate_check_privately():
