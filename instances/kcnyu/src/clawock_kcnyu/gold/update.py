@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""update_gold_dca.py — 黄金定投对账：一行命令更新基线，自动累加随即归零重算。
+"""KCNyu 黄金定投对账：一行命令更新基线，自动累加随即归零重算。
 
-自动累加模式下(见 fetch_gold_dca.py)，每个 A 股交易日按当日净值自动 +200 估算。
+自动累加模式下(见 `clawock-kcnyu-gold-fetch`)，每个 A 股交易日按当日净值自动 +200 估算。
 日子久了 T+1 确认 / 跳过日会累积小偏差，所以每隔几周用真实账户数字对一次账：
 本脚本把 portfolio.json['gold_dca'] 的三个基线字段
   principal_invested / units_held / reconciled_date
@@ -9,10 +9,10 @@
 
 两种输入(二选一)：
   # A) 直接给本金 + 份额（账户里有确切份额时最准）
-  python3 scripts/data/update_gold_dca.py --principal 17299 --units 4854.55
+  clawock-kcnyu-gold-update --principal 17299 --units 4854.55
 
   # B) 像平时那样报「现值 + 盈亏」，份额用最新净值自动反推
-  python3 scripts/data/update_gold_dca.py --value 15470 --pnl -1829
+  clawock-kcnyu-gold-update --value 15470 --pnl -1829
   #    可加 --nav 3.1867 指定净值（默认拉最新）
 
 可选：
@@ -29,17 +29,16 @@ from datetime import datetime
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
-WS_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-sys.path.insert(0, os.path.join(WS_ROOT, 'scripts', 'data'))
-sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
-sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
-from clawock.safe_io import safe_write_json  # noqa: E402
+from clawock.safe_io import safe_write_json
+from clawock.workspace import workspace_root
+
+WS_ROOT = str(workspace_root(Path.cwd()))
 
 PORTFOLIO = os.path.join(WS_ROOT, 'portfolio.json')
 
 
 def latest_nav(code):
-    from fetch_gold_dca import fetch_nav_history
+    from clawock_kcnyu.gold.fetch import fetch_nav_history
     hist = fetch_nav_history(code, pages=1)
     return (hist[-1][0], hist[-1][1]) if hist else (None, None)
 
@@ -59,7 +58,7 @@ def main():
     pf = json.load(open(PORTFOLIO, encoding='utf-8'))
     g = pf.get('gold_dca')
     if not g:
-        print('FATAL: portfolio.json 无 gold_dca，先跑一次 fetch_gold_dca.py 初始化', file=sys.stderr)
+        print('FATAL: portfolio.json 无 gold_dca，先跑 clawock-kcnyu-gold-fetch 初始化', file=sys.stderr)
         return 1
 
     # ── 解析输入：A) principal+units  或  B) value+pnl(+nav) ──
@@ -102,11 +101,11 @@ def main():
 
     if not a.no_refresh:
         print('  刷新净值 + 重建 dashboard…')
-        subprocess.run([sys.executable, os.path.join(WS_ROOT, 'scripts/data/fetch_gold_dca.py')], check=False)
+        subprocess.run(['clawock-kcnyu-gold-fetch'], check=False)
         # Rebuilt so this host's copy is current; NOT staged. The four outputs
         # left the repository in #314 — the scheduled publisher puts them on the
         # data branch, at most 20 minutes behind this commit.
-        subprocess.run([sys.executable, os.path.join(WS_ROOT, 'scripts/data/build_dashboard.py')],
+        subprocess.run(['clawock', 'dashboard-build'],
                        check=False, stdout=subprocess.DEVNULL)
 
     if a.publish:

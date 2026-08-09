@@ -17,12 +17,8 @@ It is a session fixture now: requested by name, built once, at most one
 subprocess per session either way. The rebuild is load-bearing; only its
 residue is the problem.
 
-**The import path.** Remaining `scripts/data` modules still import some siblings
-by bare name, so that directory has to be on `sys.path` before collection imports
-anything. Roughly twenty test modules
-insert it at import time, which made a single-module run work or fail on
-alphabetical luck: `pytest tests/test_validate_sidecars.py` alone died in
-collection. Doing it here covers every module and every invocation.
+**The import path.** The public and KCNyu distributions are inserted before
+collection so a single test module never depends on editable-install state.
 
 The residue is not cosmetic. #295 was pushed carrying four regenerated
 artifacts because the suite had been run and `git add -A` swept them up; the
@@ -56,7 +52,6 @@ DASHBOARD = ROOT / "assets" / "data" / "dashboard.json"
 # import remaining operator scripts by bare name. See the module docstring.
 sys.path.insert(0, str(ROOT / "src"))
 sys.path.insert(0, str(ROOT / "instances" / "kcnyu" / "src"))
-sys.path.insert(0, str(ROOT / "scripts" / "data"))
 sys.path.insert(0, str(ROOT / "ops" / "host"))
 sys.path.insert(0, str(ROOT / "ops" / "ci"))
 sys.path.insert(0, str(ROOT / "ops" / "growth"))
@@ -109,6 +104,11 @@ def freshly_built_dashboard(publish_owned_artifacts_are_left_as_found):
     from the fixture is what makes each of them state the dependency instead of
     reaching for a module constant that may or may not be fresh.
     """
-    subprocess.run([sys.executable, "scripts/data/build_dashboard.py"],
-                   cwd=ROOT, check=True, capture_output=True)
+    # CLAWOCK_INSTANCE is how the live launcher runs it, and it is what selects
+    # the `clawock.dashboard_sections` provider. Without it the builder is
+    # correct but publishes a payload with no instance cards, so every reader
+    # here would be asserting against a shape production never has.
+    subprocess.run([sys.executable, "-m", "clawock.publish.dashboard"],
+                   cwd=ROOT, check=True, capture_output=True,
+                   env={**os.environ, "CLAWOCK_INSTANCE": "kcnyu"})
     return DASHBOARD

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-fetch_influencer_feed.py — market-moving statements from high-impact figures.
+KCNyu influence radar — market-moving statements from high-impact figures.
 
 Why: Trump / Musk statements move markets hours-to-days before they show up in
 the per-ticker news digest. kcn wants two things surfaced:
@@ -42,13 +42,11 @@ from pathlib import Path
 
 import requests
 
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
-sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
-from clawock.safe_io import safe_write_json  # noqa: E402
+from clawock.safe_io import safe_write_json
 from clawock.market_data.sentiment import fetch_google_news
+from clawock.workspace import workspace_root
 
-WS_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+WS_ROOT = str(workspace_root(Path.cwd()))
 OUT_FILE = os.path.join(WS_ROOT, 'assets', 'data', 'influencer_feed.json')
 
 UA = 'clawock-influencer-scan/1.0 (github.com/KCNyu/clawock)'
@@ -333,7 +331,7 @@ def llm_filter(candidates, held):
     if not (os.environ.get('MINIMAX_API_KEY') or os.environ.get('XIAOMI_API_KEY')):
         print('  ⚠️ no LLM provider key — skipping relevance filter (keyword-only)', file=sys.stderr)
         return {}
-    from xiaomi_llm import chat
+    from clawock_kcnyu.automation.llm import chat
     held_lines = '\n'.join(f"  - {h['ticker']} ({h['name']}, {h['region']})" for h in held)
     cand_lines = '\n'.join(
         f"[{i}] ({c['author']}) {c['text']}" for i, c in enumerate(candidates)

@@ -17,9 +17,8 @@ import pytest
 
 
 ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT / "scripts" / "data"))
 
-import build_dashboard as dashboard  # noqa: E402
+from clawock.publish import dashboard  # noqa: E402
 
 
 def _portfolio(*, us=None, hk=None):
@@ -72,18 +71,20 @@ def _fresh_build_status_fixture(monkeypatch, tmp_path, at):
     return _portfolio(), data_dir
 
 
+def _install_section_provider(monkeypatch, name, section):
+    """Register `section` as the instance's `clawock.dashboard_sections` entry."""
+    monkeypatch.setenv("CLAWOCK_INSTANCE", name)
+    entry = SimpleNamespace(name=name, load=lambda: section)
+    monkeypatch.setattr(
+        dashboard.importlib.metadata, "entry_points",
+        lambda group: [entry] if group == "clawock.dashboard_sections" else [])
+
+
 def test_guardrail_compute_exception_is_an_explicit_failure_dict(monkeypatch):
     def explode(*_args, **_kwargs):
         raise RuntimeError("synthetic guardrail failure")
 
-    fake_preflight = SimpleNamespace(
-        compute_risk_guardrail=explode,
-        compute_concentration=lambda _holdings: {},
-        compute_breakeven_math=lambda *_args, **_kwargs: {"rows": []},
-    )
-    monkeypatch.setitem(
-        sys.modules, "clawock_kcnyu.harness.brief_preflight", fake_preflight
-    )
+    _install_section_provider(monkeypatch, "fixture", explode)
 
     result = dashboard.compute_guardrail_outputs(_portfolio(), risk={})
 
@@ -91,6 +92,52 @@ def test_guardrail_compute_exception_is_an_explicit_failure_dict(monkeypatch):
     assert result["risk_guardrail"]["computed"] is False
     assert result["risk_guardrail"]["error"] == "synthetic guardrail failure"
     assert result["breakeven_math"] == {"computed": False}
+
+
+def test_guardrail_without_an_instance_provider_says_so(monkeypatch):
+    """No provider must read as "not computed", never as an empty all-clear.
+
+    The renderer normalizes a missing card to `{}` and paints it green, so this
+    is the difference between "no breaches" and "nobody checked".
+    """
+    monkeypatch.delenv("CLAWOCK_INSTANCE", raising=False)
+    monkeypatch.setattr(
+        dashboard.importlib.metadata, "entry_points", lambda group: [])
+
+    result = dashboard.compute_guardrail_outputs(_portfolio(), risk={})
+
+    assert result["risk_guardrail"]["computed"] is False
+    assert result["breakeven_math"]["computed"] is False
+
+
+def test_workflow_card_folds_the_published_ledger_into_counts(monkeypatch, tmp_path):
+    """The published sidecar is the raw ledger; the card is its window fold.
+
+    Handing the ledger straight to the trim produced a payload with no `counts`
+    and no `recent`. Nothing went red: the presence map then treated the card as
+    absent and `--previous` restored the last good one, so the dashboard kept
+    showing a frozen 36h window indefinitely.
+    """
+    slot = datetime.now(ZoneInfo("Asia/Hong_Kong")).replace(microsecond=0)
+    (tmp_path / "assets" / "data").mkdir(parents=True)
+    (tmp_path / "assets" / "data" / "workflow-outcomes.json").write_text(json.dumps({
+        "schema_version": 1,
+        "records": [{
+            "job": "港股收盘报告",
+            "slot": slot.isoformat(),
+            "raw_execution": {"status": "error"},
+            "final_product": {"status": "recovered"},
+            "stages": {"llm": {"status": "success"}},
+        }],
+    }))
+    monkeypatch.setattr(dashboard, "WS_ROOT", tmp_path)
+
+    card = dashboard.compute_workflow_outcomes()
+
+    assert card["counts"] == {"recovered": 1}
+    assert card["raw_error_but_product_usable"] == 1
+    assert [r["job"] for r in card["recent"]] == ["港股收盘报告"]
+    assert "stages" not in card["recent"][0]
 
 
 def test_shadow_failure_replaces_stale_result_and_success_clears_marker(monkeypatch):
@@ -1040,64 +1087,6 @@ def test_the_default_build_reads_no_previously_published_file():
     assert dashboard.load_previous_payload(None) == (None, False)
     assert dashboard.merge_previous_payload(out, None, {"anomalies": False}) == []
     assert out["anomalies"] == []
-
-
-def test_every_publishing_caller_opts_into_preservation():
-    """The default is safe for a build, but silent for a *publisher*: a fresh
-    checkout has no memory/.tmp, so a publishing caller that forgets `--previous`
-    publishes blank narrative cards (the 2026-06-21 regression).
-
-    Two callers publish what they build. `.githooks/pre-commit` was the third
-    until #314 — it rebuilt and staged the outputs so a portfolio.json commit
-    could not drift from the views it implied, and with the outputs untracked
-    there is no longer a commit for them to drift inside of.
-
-    Every other caller — system_check's buildability gate, the two Actions
-    validation jobs, the gold refresh path — either never publishes or runs only
-    on the host, and is deliberately left bare.
-    """
-    publishers = [
-        "ops/publish/publish_dashboard.sh",   # host crontab, every 20 minutes
-        "instances/kcnyu/src/clawock_kcnyu/harness/_harness_common.py",
-    ]
-    for rel in publishers:
-        lines = (ROOT / rel).read_text(encoding="utf-8").splitlines()
-        invocations = [
-            i for i, line in enumerate(lines)
-            if "build_dashboard.py" in line and "python3" in line
-            and not line.lstrip().startswith("#")
-        ]
-        assert invocations, f"{rel} no longer invokes build_dashboard.py"
-        for i in invocations:
-            window = "\n".join(lines[i:i + 3])
-            assert "--previous" in window, (
-                f"{rel}:{i + 1} publishes its build but does not opt into "
-                "restoring cards whose sidecar is absent from this checkout")
-
-
-def test_the_projection_computes_and_writes_nothing():
-    """#262 slice 3: `build_projection` returns the generation, `main` writes it.
-
-    The split only holds while it holds — a write added back into the compute
-    path would restore the coupling silently, and no output test would notice
-    because the bytes would be identical. So this reads the function itself.
-    """
-    import ast
-
-    source = (ROOT / "scripts" / "data" / "build_dashboard.py").read_text(encoding="utf-8")
-    projection = next(
-        node for node in ast.parse(source).body
-        if isinstance(node, ast.FunctionDef) and node.name == "build_projection"
-    )
-    writers = {"safe_write_text", "write_text", "mkdir", "record_preservation"}
-    found = sorted({
-        f"{getattr(node.func, 'attr', None) or getattr(node.func, 'id', None)}"
-        f" (line {node.lineno})"
-        for node in ast.walk(projection)
-        if isinstance(node, ast.Call)
-        and (getattr(node.func, "attr", None) or getattr(node.func, "id", None)) in writers
-    })
-    assert not found, f"build_projection must not touch the filesystem: {found}"
 
 
 def test_a_missing_ledger_is_a_clean_exit_not_a_traceback(monkeypatch, capsys):

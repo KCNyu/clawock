@@ -29,7 +29,7 @@ Entry pointer for Claude Code in kcn's investment workspace. Same workflow as `A
 | Portable workflows / market / portfolio tools | installed `clawock` CLI; source in `src/clawock/` |
 | Harness CLI / live adapter | `clawock brief\|report\|intraday`; installed from `instances/kcnyu/` as `clawock-kcnyu` |
 | Host / publish / CI / growth wiring | `ops/{host,publish,ci,growth}/` |
-| Transitional repository jobs | internal only; do not call `scripts/data/` as a runtime API |
+| Repository automation | installed `clawock-kcnyu-*` commands and named `ops/*` entry points |
 | Daily logs (template `_TEMPLATE.md`) | `memory/YYYY-MM-DD.md` |
 | Daily deep brief output | `memory/{date}-pre-open.md` + `memory/{date}-plan.json` |
 | Daily portfolio snapshots | `memory/snapshots/{date}.json` |

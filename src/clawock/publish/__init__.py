@@ -1,6 +1,6 @@
 """Where a generation of build outputs is stored — separately from how it is built.
 
-`build_dashboard.py` writes four files that are one logical generation (#308).
+`clawock dashboard-build` writes four files that are one logical generation (#308).
 Where that generation *went* was never a decision: it went into the worktree it
 was built in, and got committed, which is why 71% of the commits on `master`
 are `dashboard:` publishes (#314).

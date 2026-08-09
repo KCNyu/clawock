@@ -1,16 +1,15 @@
 #!/usr/bin/env python3
 """
-build_dashboard.py — aggregates portfolio.json + snapshots + plans into the
-public JSON state consumed by the static dashboard (index.html at the repo root,
-served by Jekyll Pages).
+Build the portable dashboard projection from a configured clawock workspace.
 
 Outputs: assets/data/overview.json, assets/data/dashboard.json,
          assets/data/decision_audit.json, assets/data/shadow_portfolio.json
 
-Run after each portfolio mutation (cron commit) so Pages stays fresh.
+Run ``clawock dashboard-build`` after each portfolio mutation.
 """
 import argparse
 import glob
+import importlib.metadata
 import json
 import math
 import os
@@ -27,23 +26,14 @@ from zoneinfo import ZoneInfo
 # rows in the equity curve before this filter was added).
 SNAPSHOT_FNAME_RE = re.compile(r'^\d{4}-\d{2}-\d{2}\.json$')
 
-# The checkout root, so `clawock` resolves from the tree this file ships
-# in. Reached through the scripts/data/workspace shim until #267 step 3,
-# whose only remaining job was inserting this path as a side effect.
-CHECKOUT_ROOT = Path(__file__).resolve().parents[2]
-sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
-sys.path.insert(0, str(CHECKOUT_ROOT / "src"))
-# Repository-only dashboard generation still consumes three generic calculations
-# from the transitional KCNyu package. Keep that dependency explicit until those
-# calculations move into core; never recover it through a source-tree alias.
-sys.path.insert(0, str(CHECKOUT_ROOT / "instances" / "kcnyu" / "src"))
-from clawock.workspace import workspace_root  # noqa: E402
-from clawock.portfolio import instruments as instrument_registry  # noqa: E402
-from clawock import json_repair  # noqa: E402
-from clawock.decision import ledger as decision_v2  # noqa: E402
-from clawock.publish import outputs as dashboard_outputs  # noqa: E402
+from clawock.workspace import workspace_root
+from clawock.portfolio import instruments as instrument_registry
+from clawock import json_repair
+from clawock.decision import ledger as decision_v2
+from clawock.publish import outputs as dashboard_outputs
+from clawock.publish import outcomes as dashboard_outcomes
 
-WS_ROOT = workspace_root(Path(__file__).resolve().parent.parent.parent)
+WS_ROOT = workspace_root(Path.cwd())
 OUT_DIR = WS_ROOT / 'assets' / 'data'
 OUT_FILE = OUT_DIR / 'dashboard.json'
 OVERVIEW_FILE = OUT_DIR / 'overview.json'
@@ -391,25 +381,17 @@ def compute_guardrail_outputs(portfolio, risk, lev_regime=None):
     renderer normalized it to ``{}`` and painted a green all-clear.
     """
     try:
-        from clawock_kcnyu.harness.brief_preflight import (
-            compute_breakeven_math, compute_concentration, compute_risk_guardrail,
-        )
-        us_book, hk_book = leg_books(portfolio)
-        hk_holdings = hk_book['holdings']
-        us_holdings = us_book['holdings']
-        guardrail = compute_risk_guardrail(
-            hk_holdings, us_holdings,
-            compute_concentration(hk_holdings), compute_concentration(us_holdings),
-            risk or {}, lev_regime=lev_regime)
-        breakeven = compute_breakeven_math(
-            hk_holdings, us_holdings, lev_regime=lev_regime)
-        # compute_risk_guardrail echoes its lev_regime input back out, so the dial
-        # would ship twice in one document (18KB each, byte-identical). The card
-        # reads the top-level copy; the guardrail only needs the tier it derived.
-        if isinstance(guardrail, dict) and isinstance(guardrail.get('lev_regime'), dict):
-            guardrail['lev_regime_tier'] = guardrail['lev_regime'].get('tier')
-            guardrail.pop('lev_regime')
-        return {'risk_guardrail': guardrail, 'breakeven_math': breakeven}
+        instance = os.environ.get('CLAWOCK_INSTANCE', '').strip()
+        providers = importlib.metadata.entry_points(
+            group='clawock.dashboard_sections')
+        provider = next(
+            (entry for entry in providers if entry.name == instance), None)
+        if provider is None:
+            return {
+                'risk_guardrail': {'computed': False, 'reason': 'no instance provider'},
+                'breakeven_math': {'computed': False, 'reason': 'no instance provider'},
+            }
+        return provider.load()(portfolio, risk or {}, lev_regime)
     except Exception as e:
         print(f'  warn: risk_guardrail compute fail: {e}', file=sys.stderr)
         return {
@@ -2400,7 +2382,6 @@ def compute_build_status(portfolio, data_dir, at=None):
     if now.tzinfo is None:
         now = now.astimezone()
     try:
-        sys.path.insert(0, str(WS_ROOT / 'scripts' / 'data'))
         from clawock.market_data import sessions as _tc
     except Exception:
         _tc = None
@@ -2483,11 +2464,20 @@ def compute_build_status(portfolio, data_dir, at=None):
 
 
 def compute_workflow_outcomes():
-    """Expose raw execution and final product status as separate dashboard data."""
+    """Read the instance-produced outcome sidecar without importing the instance.
+
+    The separately installed runtime adapter owns reconciliation and publication
+    of this ledger.  The public dashboard projection treats it like any other
+    optional workspace input, preserving the one-way package dependency.
+    """
     try:
-        sys.path.insert(0, str(WS_ROOT / 'scripts' / 'data'))
-        from clawock_kcnyu.automation import workflow_outcomes
-        return trim_workflow_outcomes(workflow_outcomes.summarize(reconcile=True))
+        payload = load_json(WS_ROOT / 'assets' / 'data' / 'workflow-outcomes.json')
+        # The published file is the ledger itself — `{records: [...]}` — because
+        # the adapter reads it back as its own fresh-checkout recovery source.
+        # The card wants the window fold of it, so do the fold here rather than
+        # trimming raw records into a payload with no `counts` and no `recent`.
+        return trim_workflow_outcomes(dashboard_outcomes.summarize_records(
+            (payload or {}).get('records', [])))
     except Exception as e:
         print(f'  warn: workflow outcome summary failed: {e}', file=sys.stderr)
         return None
@@ -2958,11 +2948,8 @@ def build_projection(previous_source=None, shadow_previous=None):
         _macro_path = WS_ROOT / 'assets' / 'data' / 'macro.json'
         _macro = json.loads(_macro_path.read_text()) if _macro_path.exists() else None
         if _macro:
-            _harness = WS_ROOT / 'scripts' / 'harness'
-            if str(_harness) not in sys.path:
-                sys.path.insert(0, str(_harness))
-            from clawock_kcnyu.harness.brief_preflight import _classify_regime
-            out['regime'] = _classify_regime(_macro)
+            from clawock.market_data.macro import classify_regime
+            out['regime'] = classify_regime(_macro)
     except Exception as e:
         print(f'  warn: regime classify failed: {e}', file=sys.stderr)
 
@@ -2973,7 +2960,7 @@ def build_projection(previous_source=None, shadow_previous=None):
     out['net_principal_return'] = compute_net_principal_return(portfolio, fx_rate)
 
     # 🥇 黄金定投卡（000217 华安黄金ETF联接C）— 独立成卡，CNY，不并入跨币种总额
-    # （见记忆 openclaw-fx-rule）。数据由 fetch_gold_dca.py 每日刷进 portfolio.json['gold_dca']，
+    # （见记忆 openclaw-fx-rule）。数据由 KCNyu gold automation 每日刷进 portfolio.json['gold_dca']，
     # 这里只做体积裁剪后透传。portfolio.json 已 commit，GHA fresh-checkout 也有，无 .tmp 依赖。
     _gold = portfolio.get('gold_dca')
     if _gold:

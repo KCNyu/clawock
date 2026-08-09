@@ -16,14 +16,14 @@ from pathlib import Path
 import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
-DATA = ROOT / "scripts" / "data"
+EVALUATION = ROOT / "src" / "clawock" / "evaluation"
 DECISION = ROOT / "src" / "clawock" / "decision"
 from clawock.evidence import run_card
 
 BACKTESTS = (
-    "backtest_hstech_regime.py",
-    "backtest_us_leverage.py",
-    "backtest_combined_regime.py",
+    "hstech_regime.py",
+    "us_leverage.py",
+    "combined_regime.py",
 )
 
 
@@ -98,7 +98,7 @@ def test_code_identity_travels_with_the_card():
 
 
 def test_a_missing_code_file_is_recorded_as_missing_not_silently_dropped():
-    card = _card(code_files=[DATA / "does_not_exist.py"])
+    card = _card(code_files=[EVALUATION / "does_not_exist.py"])
 
     assert card["code"] == [{"file": "does_not_exist.py", "digest": None}]
 
@@ -142,7 +142,7 @@ def test_every_backtest_records_a_run_card(script):
     """The whole defect was that the runs left nothing behind, so this is the
     load-bearing assertion. Checked through the AST rather than by searching the
     text, so a mention in a docstring cannot satisfy it."""
-    tree = ast.parse((DATA / script).read_text())
+    tree = ast.parse((EVALUATION / script).read_text())
 
     imports_it = any(
         (
@@ -172,7 +172,7 @@ def test_every_backtest_records_a_run_card(script):
 def test_each_backtest_hashes_the_code_its_result_depends_on(script):
     """A card that pins the inputs but not the code cannot tell you why two runs
     with the same reproduction key disagreed."""
-    tree = ast.parse((DATA / script).read_text())
+    tree = ast.parse((EVALUATION / script).read_text())
     code_file_values = [
         keyword.value
         for node in ast.walk(tree)

@@ -27,7 +27,30 @@ ROOT = Path(__file__).resolve().parents[1]
 PKG = ROOT / "src" / "clawock"
 
 
-def _first_party_imports(path: Path) -> set[str]:
+def _repo_top_level_names() -> set[str]:
+    """Every top-level module name this repository itself provides.
+
+    Derived rather than listed: "first party" means "ships in this checkout but
+    not in the wheel", so the set has to follow the tree. The previous version
+    subtracted a hand-written stdlib + third-party allowlist instead, which made
+    every newly used library look like an escape — a third-party import is a
+    dependency question, and the real wheel build in
+    `test_wheel_contains_the_package.py` is what answers it.
+    """
+    names = set()
+    for candidate in list(ROOT.iterdir()) + [
+            src for instance in (ROOT / "instances").glob("*")
+            for src in (instance / "src").glob("*")]:
+        if candidate.name.startswith(".") or candidate == PKG.parent:
+            continue
+        if candidate.is_dir() and any(candidate.glob("*.py")):
+            names.add(candidate.name)
+        elif candidate.suffix == ".py":
+            names.add(candidate.stem)
+    return names
+
+
+def _first_party_imports(path: Path, first_party: set[str]) -> set[str]:
     tree = ast.parse(path.read_text())
     names = set()
     for node in ast.walk(tree):
@@ -35,8 +58,8 @@ def _first_party_imports(path: Path) -> set[str]:
             names |= {alias.name.split(".")[0] for alias in node.names}
         elif isinstance(node, ast.ImportFrom) and node.module and node.level == 0:
             names.add(node.module.split(".")[0])
-    stdlib = set(sys.stdlib_module_names) | {"requests", "numpy", "PIL", "yfinance"}
-    return {name for name in names if name not in stdlib}
+    return {name for name in names
+            if name in first_party and name not in sys.stdlib_module_names}
 
 
 # Empty, and asserted empty rather than deleted: the one tracked escape was
@@ -50,10 +73,11 @@ KNOWN_ESCAPES: dict[str, set[str]] = {}
 
 def test_nothing_the_package_imports_lives_outside_it():
     escapes = {}
+    first_party = _repo_top_level_names()
     for path in sorted(PKG.rglob("*.py")):
         if "__pycache__" in path.parts:
             continue
-        for name in _first_party_imports(path):
+        for name in _first_party_imports(path, first_party):
             if name != "clawock":
                 escapes.setdefault(
                     path.relative_to(PKG).as_posix(), set()).add(name)

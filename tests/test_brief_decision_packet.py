@@ -7,7 +7,6 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT / "scripts" / "data"))
 
 from clawock.context import brief as brief_context
 from clawock.decision import packet as packet_mod
@@ -313,5 +312,4 @@ def test_pages_prefers_projection_and_keeps_a_backward_fallback():
     # Python source file in the KCNyu workspace.
     assert "decision_packet_summary" in skill
     assert "decision_packet_judgment_template" in skill
-    assert "scripts/data/brief_decision_packet.py" not in skill
     assert "禁止加入价格、RSI、MA" in skill

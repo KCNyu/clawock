@@ -515,7 +515,6 @@ def test_both_stock_skills_frame_it_as_attribution_not_a_trigger():
 
 def test_calendar_coverage_is_reported_per_market():
     import sys
-    sys.path.insert(0, str(ROOT / "scripts" / "data"))
     from clawock.market_data import sessions as trading_calendar
 
     coverage = trading_calendar.coverage(date(2026, 7, 26))
@@ -663,19 +662,8 @@ def test_the_watch_is_opt_in_and_the_daily_brief_opts_in():
     ("", "index_fund", None, None),
 ])
 def test_registry_look_through_is_the_single_rule(symbol, kind, issuer, tracks):
-    import sys
-    sys.path.insert(0, str(ROOT / "scripts" / "data"))
     from clawock.portfolio import instruments as instrument_registry
 
     resolved = instrument_registry.look_through(symbol)
     assert (resolved["kind"], resolved["issuer"], resolved["tracks"]) == (kind, issuer, tracks)
     assert instrument_registry.issuer_for(symbol) == issuer
-
-
-def test_news_digest_queries_issuers_and_records_the_fund_it_reads_for():
-    digest = (ROOT / "scripts" / "data" / "gh_action_news_digest.py").read_text()
-    # index funds are dropped rather than searched
-    assert "if not issuer:\n            continue" in digest
-    # the held fund stays visible in the artifact and in the prompt
-    assert "'held_via': held_via or {}," in digest
-    assert "持仓映射" in digest

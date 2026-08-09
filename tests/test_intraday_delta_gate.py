@@ -6,10 +6,8 @@ from zoneinfo import ZoneInfo
 
 
 ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT / "scripts" / "data"))
-
 from clawock_kcnyu.automation import cron_heartbeat  # noqa: E402
-import intraday_delta_gate as gate  # noqa: E402
+from clawock_kcnyu.harness import intraday_delta as gate  # noqa: E402
 
 
 def _portfolio(path):
@@ -84,7 +82,7 @@ def test_no_change_heartbeat_is_terminal(monkeypatch, tmp_path):
 def test_the_gate_is_no_longer_wired_in_front_of_the_cron():
     """Kept as a read-only diagnostic, removed as a pre-model gate (2026-07-27).
 
-    `python3 scripts/data/intraday_delta_gate.py --market hk` still prints the
+    `clawock-kcnyu-intraday-delta --market hk` still prints the
     current breach/price state, which is useful by hand. What is gone is its
     power to suppress a slot: no tracked trigger sources, and no job pinned to
     them. If this ever comes back, it comes back through the contract, not by

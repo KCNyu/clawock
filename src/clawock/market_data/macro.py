@@ -26,6 +26,46 @@ HEADERS = {'User-Agent': UA}
 TIMEOUT = 10
 
 
+def classify_regime(macro_snapshot):
+    """Derive a coarse risk-on/off label from a portable macro snapshot."""
+    if not macro_snapshot:
+        return None
+    score = 0
+    reasons = []
+    fear_greed = macro_snapshot.get('fear_greed') or {}
+    fear_greed_score = fear_greed.get('score')
+    if isinstance(fear_greed_score, (int, float)):
+        if fear_greed_score >= 60:
+            score += 1
+            reasons.append(f'F&G {fear_greed_score:.0f} greed')
+        elif fear_greed_score <= 40:
+            score -= 1
+            reasons.append(f'F&G {fear_greed_score:.0f} fear')
+    vix = (macro_snapshot.get('vix') or {}).get('price')
+    if isinstance(vix, (int, float)):
+        if vix < 18:
+            score += 1
+            reasons.append(f'VIX {vix:.0f} calm')
+        elif vix > 25:
+            score -= 1
+            reasons.append(f'VIX {vix:.0f} stress')
+    spx_change = (macro_snapshot.get('spx') or {}).get('change_pct')
+    nasdaq_change = (macro_snapshot.get('nasdaq') or {}).get('change_pct')
+    if isinstance(spx_change, (int, float)) and isinstance(
+        nasdaq_change, (int, float)
+    ):
+        if spx_change > 0 and nasdaq_change > 0:
+            score += 1
+            reasons.append('SPX+NDX 同向上行')
+        elif spx_change < 0 and nasdaq_change < 0:
+            score -= 1
+            reasons.append('SPX+NDX 同向下行')
+    if not reasons:
+        return None
+    label = 'risk_on' if score >= 2 else ('risk_off' if score <= -2 else 'neutral')
+    return {'label': label, 'score': score, 'reasons': reasons}
+
+
 def yahoo_quote(symbol):
     """Latest + previous close. Tries Stooq → Tencent gtimg → Yahoo (last resort).
 

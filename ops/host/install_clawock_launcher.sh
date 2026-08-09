@@ -34,7 +34,14 @@ for COMMAND in \
   clawock-kcnyu-report-watchdog \
   clawock-kcnyu-intraday-watchdog \
   clawock-kcnyu-cron-heartbeat \
-  clawock-kcnyu-workflow-outcomes
+  clawock-kcnyu-workflow-outcomes \
+  clawock-kcnyu-intraday-delta \
+  clawock-kcnyu-gold-fetch \
+  clawock-kcnyu-gold-update \
+  clawock-kcnyu-influencer-scan \
+  clawock-kcnyu-brief-fallback \
+  clawock-kcnyu-news-digest \
+  clawock-kcnyu-weekly-review
 do
   [ -x "$VENV/bin/$COMMAND" ] || { echo "missing installed command: $VENV/bin/$COMMAND" >&2; exit 1; }
   COMMAND_TARGET="$TARGET_DIR/$COMMAND"
@@ -47,4 +54,4 @@ LAUNCHER
   chmod +x "$COMMAND_TARGET"
 done
 
-echo "installed: clawock + 5 KCNyu runtime commands in $TARGET_DIR (workspace $CHECKOUT)"
+echo "installed: clawock + 12 KCNyu runtime commands in $TARGET_DIR (workspace $CHECKOUT)"

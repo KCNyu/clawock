@@ -6,8 +6,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def test_reflect_sidecar_compiles_backtest_from_the_same_decisions(monkeypatch):
-    sys.path.insert(0, str(ROOT / "scripts" / "data"))
-    import build_dashboard
+    from clawock.publish import dashboard as build_dashboard
 
     decisions = [{"decision_id": "d1"}]
     monkeypatch.setattr(

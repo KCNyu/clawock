@@ -88,7 +88,7 @@ Reading the market is most of what the LLM does, so the widest part of the syste
 | 7 · FX & integrity | 2 | Frankfurter · local invariants |
 | 8 · Backtest & calibration | 5 | local snapshots + canonical bars |
 
-The fetch layer degrades gracefully: every live Eastmoney call routes through **one throttled gateway**, critical paths (quotes, FX) use **multi-source fallback**, and an empty fetch **keeps the prior value** instead of overwriting a good series with a blank. Public sources include Tencent, stooq, yfinance, Frankfurter, SEC EDGAR, Finnhub, Nasdaq, Eastmoney, Polygon, Alpha Vantage, Reddit, and Google News — full per-endpoint catalog with per-host reachability in [`scripts/data/README.md`](scripts/data/README.md).
+The fetch layer degrades gracefully: every live Eastmoney call routes through **one throttled gateway**, critical paths (quotes, FX) use **multi-source fallback**, and an empty fetch **keeps the prior value** instead of overwriting a good series with a blank. Public sources include Tencent, stooq, yfinance, Frankfurter, SEC EDGAR, Finnhub, Nasdaq, Eastmoney, Polygon, Alpha Vantage, Reddit, and Google News — full command and provider catalog in [the tool reference](docs/reference/scripts.md).
 
 ### What each run actually receives
 
@@ -250,7 +250,7 @@ capabilities instead of pretending every foreign workspace is production-ready.
 - [**Live dashboard**](https://kcnyu.github.io/clawock/) — positions, risk, and the self-graded scorecard.
 - [**Daily briefs**](https://kcnyu.github.io/clawock/briefs.html) — the published morning reads.
 - [**Schedule**](docs/operations/cron-schedules.md) — the generated cron table.
-- [**Data scripts**](scripts/data/README.md) — the fetcher and compute catalog.
+- [**Tool reference**](docs/reference/scripts.md) — installed commands, providers, and generated artifacts.
 - [**Project docs**](docs/README.md) — operations, reference, legal notes, and archived designs.
 
 ### Research surfaces
@@ -305,7 +305,7 @@ stored here.
 | `docs/`, `tests/` | Product/runbook documentation and invariant checks |
 | root context files, `skills/`, `memory/` | OpenClaw compatibility surface; kept at runtime-required paths |
 | `portfolio.json`, `assets/data/` | Live ledger and generated publication state; never package contents |
-| `scripts/data/` | Remaining migration surface: repository jobs, not portable APIs |
+| `LICENSE`, `NOTICE`, `THIRD_PARTY_LICENSES/` | Standard legal/package entry points copied by Pages staging |
 
 </details>
 

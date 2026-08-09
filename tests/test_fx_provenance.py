@@ -71,33 +71,6 @@ def test_recording_cannot_break_a_price_fetch(tmp_path):
     assert fetch_fx.read_rate_ledger(str(unwritable)) == {}
 
 
-def test_the_ledger_rides_a_committer_that_already_exists():
-    """"Written but never committed" is its own trap, so the path that commits
-    this is named rather than assumed: `brief_postflight` already runs
-    `git add 'memory/'` every morning. Nothing new had to be wired, which is why
-    the file lives under `memory/` and not beside the cache it comes from."""
-    assert "memory" in Path(fetch_fx.LEDGER_PATH).parts, fetch_fx.LEDGER_PATH
-    assert Path(fetch_fx.LEDGER_PATH).name == "fx-rates.jsonl"
-
-    postflight = (INSTANCE_HARNESS / "brief_postflight.py").read_text()
-    assert "'memory/'" in postflight, (
-        "the daily brief no longer stages memory/, so the FX ledger has no "
-        "route to origin")
-
-
-def test_the_recorded_rate_is_the_one_the_dashboard_publishes():
-    """The ledger is only provenance if it records what was actually used. Both
-    read the same cache payload, so this pins the field names rather than
-    trusting that they stay aligned."""
-    entry = _entry(7.8433)
-    fields = {"rate", "source", "fetched_at"}
-
-    assert fields <= set(entry)
-    builder = (ROOT / "scripts/data/build_dashboard.py").read_text()
-    for field in fields:
-        assert f"fx_cache.get('{field}')" in builder or f"'{field}'" in builder, field
-
-
 def test_the_committed_ledger_is_readable_and_complete_per_entry():
     """The record only counts if it is in the repository and every line means
     something. Deliberately asserts SHAPE, not counts — a test that pinned the

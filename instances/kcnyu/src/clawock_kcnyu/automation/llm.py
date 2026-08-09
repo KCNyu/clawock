@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-xiaomi_llm.py — minimal Anthropic-Messages LLM client for GH Action workflows.
+Minimal Anthropic-Messages client for KCNyu GitHub Actions workflows.
 
 Primary: MiniMax M3. Fallback: Xiaomi MiMo v2.5-pro (only while its token-plan
 key still works — being retired 2026-06-16 as the plan expires; auto-skipped once
@@ -36,7 +36,7 @@ Notes:
 - ANTHROPIC_VERSION header pinned to 2023-06-01 (what both vendors accept).
 
 Usage:
-    from xiaomi_llm import chat
+    from clawock_kcnyu.automation.llm import chat
     reply = chat(system="...", user="...", max_tokens=32000)
 """
 import json

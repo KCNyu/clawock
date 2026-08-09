@@ -78,7 +78,7 @@ jobs:
         env:
           XIAOMI_API_KEY: ${{ secrets.XIAOMI_API_KEY }}
           MINIMAX_API_KEY: ${{ secrets.MINIMAX_API_KEY }}
-        run: python3 scripts/data/gh_action_brief_fallback.py
+        run: clawock-kcnyu-brief-fallback
 
       - name: Postflight validation
         if: steps.check.outputs.skip != 'true'

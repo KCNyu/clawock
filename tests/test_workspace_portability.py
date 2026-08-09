@@ -120,7 +120,7 @@ def test_the_money_clis_target_the_checkout_they_are_in(monkeypatch):
         " import backfill_snapshot_realized as bf;"
         "print(rr.PORTFOLIO_PATH); print(bf.SNAP_DIR);"
         "print(hasattr(sr, 'PORTFOLIO_PATH'))"
-    ) % (str(ROOT / "src"), str(ROOT / "scripts" / "legacy"))
+    ) % (str(ROOT / "src"), str(ROOT / "ops" / "host"))
     env = {k: v for k, v in os.environ.items() if k != workspace.ENV_VAR}
 
     done = subprocess.run([sys.executable, "-c", probe], cwd=str(ROOT), env=env,
