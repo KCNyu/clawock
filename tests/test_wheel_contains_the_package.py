@@ -199,3 +199,44 @@ def test_every_module_imports_from_a_non_editable_install(tmp_path):
     assert manifest["workflow"] == request["workflow"]
     assert {item["generation_id"] for item in receipt["artifacts"]} == {
         receipt["generation_id"]}
+
+
+def test_the_wheel_carries_the_metadata_pypi_indexes_on(tmp_path):
+    """A package with no classifiers or project URLs is unlisted on PyPI.
+
+    Cheap to lose and invisible locally: `pip install -e .` never renders a
+    project page, so metadata can rot for months while every install works. The
+    build here is the same one the release workflow ships.
+    """
+    import email
+    import tomllib
+
+    source = tmp_path / "src"
+    source.mkdir()
+    shutil.copytree(ROOT / "src" / "clawock", source / "src" / "clawock",
+                    ignore=shutil.ignore_patterns("__pycache__"))
+    for name in BUILD_INPUTS:
+        shutil.copy2(ROOT / name, source / name)
+    build = tmp_path / "wheel"
+    done = subprocess.run(
+        [sys.executable, "-m", "pip", "wheel", "--no-deps", "--no-cache-dir",
+         "-w", str(build), str(source)],
+        capture_output=True, text=True, timeout=300)
+    assert done.returncode == 0, done.stderr[-2000:]
+
+    wheel = next(build.glob("clawock-*.whl"))
+    with zipfile.ZipFile(wheel) as archive:
+        name = next(n for n in archive.namelist() if n.endswith(".dist-info/METADATA"))
+        metadata = email.message_from_bytes(archive.read(name))
+
+    declared = tomllib.load(open(ROOT / "pyproject.toml", "rb"))["project"]
+    assert metadata["Version"] == declared["version"]
+    assert metadata["License-File"] or metadata["License"], "no license in the wheel"
+    assert metadata.get_all("Classifier"), "no trove classifiers — unlisted on PyPI"
+    assert any(c.startswith("License :: ") for c in metadata.get_all("Classifier"))
+    # Every URL PyPI shows in the sidebar has to resolve to something real.
+    urls = dict(
+        entry.split(", ", 1) for entry in (metadata.get_all("Project-URL") or [])
+    )
+    assert {"Homepage", "Source", "Issues"} <= set(urls), urls
+    assert metadata["Description-Content-Type"], "README would render as plain text"
