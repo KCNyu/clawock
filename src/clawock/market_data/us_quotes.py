@@ -365,8 +365,13 @@ def get_finnhub_quote(ticker: str, api_key: str) -> Optional[Dict]:
     if not api_key:
         return None
     try:
+    # Credential goes in a header, never the URL: a query-string secret ends up
+    # in proxy logs, crash dumps and Referer, and taints every value derived from
+    # the response for any dataflow analysis reading this file.
         r = SESSION.get(
-            f"https://finnhub.io/api/v1/quote?symbol={ticker}&token={api_key}",
+            "https://finnhub.io/api/v1/quote",
+            params={'symbol': ticker},
+            headers={'X-Finnhub-Token': api_key},
             timeout=TIMEOUT,
         )
         d = r.json()
