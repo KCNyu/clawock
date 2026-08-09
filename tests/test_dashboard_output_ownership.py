@@ -9,7 +9,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 INSTANCE_HARNESS = ROOT / "instances" / "kcnyu" / "src" / "clawock_kcnyu" / "harness"
-from clawock import dashboard_outputs
+from clawock.publish import outputs as dashboard_outputs
 
 
 EXPECTED = {
@@ -184,7 +184,7 @@ def test_nothing_stages_the_outputs_into_a_commit_any_more():
     and asks a structural question: does this file both derive dashboard output
     paths and hand paths to `git add`?
     """
-    owner = "src/clawock/dashboard_outputs.py"
+    owner = "src/clawock/publish/outputs.py"
     derives = ("dashboard_output_changes", "semantic_changed_paths",
                "output_paths")
     offenders = []

@@ -7,7 +7,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from clawock import brief_context
+from clawock.context import brief as brief_context
 from clawock.decision import packet as brief_decision_packet
 from clawock.tools import BaseTool, ToolError
 

@@ -16,7 +16,7 @@ Two input modes:
 Validates (on the assembled message):
   1. ▎情绪面 / ▎技术面 / ▎操作建议 三段标记齐全
   2. 若 preflight needs_risk_section=true, 必须有 ▎风险提示 段
-  3. 总长度闸 clawock.validation.REPORT_CHAR_LIMITS（防复读死循环，不是写作目标；#334）
+  3. 总长度闸 clawock.harness.validation.REPORT_CHAR_LIMITS（防复读死循环，不是写作目标；#334）
   4. legacy only: 必须以 raw_wechat_block 开头（prose 模式由本脚本拼，无需校验）
   5. 如果 preflight 有 anomalies，报告必须提到至少一个 anomaly 票
   6. 没有"等待数据/数据待获取"等敷衍词
@@ -42,7 +42,7 @@ from datetime import datetime
 from pathlib import Path
 
 from clawock.workspace import workspace_root
-from clawock import trading_calendar
+from clawock.market_data import sessions as trading_calendar
 
 WS = workspace_root(Path.cwd())
 _CHECKOUT = WS
@@ -59,7 +59,7 @@ import workflow_outcomes  # noqa: E402
 # (CRITICAL_KEYWORDS, FORBIDDEN_PHRASES, REQUIRED_SECTIONS, _is_hard_char_limit)
 # retired with #267: nothing outside imported them through here, so they were an
 # indirection with no consumer.
-from clawock.report import (  # noqa: E402
+from clawock.harness.report import (  # noqa: E402
     MIN_REPORT_CHARS,
     _unusable_context,
     assemble_message,
@@ -83,7 +83,7 @@ def load_context(market, phase, date):
 
 
 
-from clawock.validation import (
+from clawock.harness.validation import (
     REPORT_CHAR_LIMITS as CHAR_LIMITS,
     advisory_prefix,
     categorize_issues,

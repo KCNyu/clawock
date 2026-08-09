@@ -30,7 +30,7 @@ def _extract_md_tables(text):
 def check_raw_tables_verbatim(text, raw_wechat_block):
     """Verify every markdown-table line in raw_wechat_block appears verbatim in text.
 
-    preflight builds the holdings table via clawock.mobile_table (7-col, known correct).
+    preflight builds the holdings table via clawock.adapters.mobile (7-col, known correct).
     LLMs sometimes paraphrase rows or drop a separator segment when "copying" —
     e.g. 5/21+ regression where header had 7 cols but separator only 6, breaking
     markdown renderers. Strict substring match catches that.

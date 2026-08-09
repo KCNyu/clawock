@@ -34,7 +34,7 @@ sys.path.insert(0, os.path.join(WS, "scripts", "data"))
 
 from clawock.market_data import us_quotes as F  # noqa: E402
 from clawock.portfolio import integrity as pi  # noqa: E402
-from clawock import trading_calendar as tc  # noqa: E402
+from clawock.market_data import sessions as tc  # noqa: E402
 
 
 # ── 1. the parser must not invent fields the payload does not have ───────────

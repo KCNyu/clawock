@@ -9,7 +9,7 @@ from pathlib import Path
 
 import pytest
 
-from clawock import validate_sidecars as validators
+from clawock.publish import artifacts as validators
 
 
 ROOT = Path(__file__).resolve().parents[1]

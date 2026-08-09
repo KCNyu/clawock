@@ -1,6 +1,6 @@
 {
-  "schema_version": 2,
   "runtime_contract": "openclaw-context-profiles-2026.7.1",
+  "schema_version": 2,
   "verified_against": "OpenClaw 2026.7.1 (2d2ddc4)",
   "source_symbols": [
     "loadWorkspaceBootstrapFiles",

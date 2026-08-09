@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Behavioral coverage gates for workflow-generated sidecar artifacts.
+"""Behavioral validation for workflow-generated publication artifacts.
 
 Run as ``clawock validate-sidecar <name>``.
 """

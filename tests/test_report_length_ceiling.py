@@ -15,7 +15,7 @@ import sys
 
 ROOT = Path(__file__).resolve().parents[1]
 from clawock_kcnyu.harness import _harness_common as common  # noqa: F401
-from clawock import validation  # noqa: E402
+from clawock.harness import validation  # noqa: E402
 from clawock_kcnyu.harness import intraday_postflight  # noqa: E402
 from clawock_kcnyu.harness import report_postflight as postflight  # noqa: E402
 

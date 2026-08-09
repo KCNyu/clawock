@@ -21,7 +21,7 @@ from zoneinfo import ZoneInfo
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
 from clawock.workspace import workspace_root  # noqa: E402
-from clawock import trading_calendar  # noqa: E402
+from clawock.market_data import sessions as trading_calendar  # noqa: E402
 from clawock.market_data import peer_quotes as fetch_peers  # noqa: E402
 
 # Code lives in the checkout; only DATA lives in the workspace. `workspace_root`

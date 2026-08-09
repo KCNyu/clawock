@@ -357,7 +357,7 @@ def test_length_ceiling_is_one_number_shared_by_the_live_payloads():
     what belongs here is that the tracked contract — which live payloads are
     checked against — moved with the code, and that the retired numbers can
     never reappear in a live payload."""
-    from clawock import validation
+    from clawock.harness import validation
 
     soft = validation.REPORT_CHAR_LIMITS['soft']
     hard = validation.REPORT_CHAR_LIMITS['hard']
