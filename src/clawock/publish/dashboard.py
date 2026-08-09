@@ -2709,6 +2709,13 @@ def build_projection(previous_source=None, shadow_previous=None):
     # file at all. Without a presence entry the card would publish empty and
     # `--previous` could not restore it — the 2026-06-21 shape. The recovery
     # mechanism exists for exactly this; it just never covered this key.
+    # Computed HERE, next to its presence test, and not 200 lines further down
+    # where it used to be: `merge_previous_payload` runs in between, so the
+    # restored card was overwritten by the empty computed one on exactly the
+    # fresh-checkout build this entry exists to protect. The payload still said
+    # `preserved: ['workflow_outcomes']`, which made the telemetry that decides
+    # whether the merge can be retired report a recovery that never happened.
+    out['workflow_outcomes'] = compute_workflow_outcomes()
     _presence['workflow_outcomes'] = bool(
         (out.get('workflow_outcomes') or {}).get('recent'))
 
@@ -2998,8 +3005,6 @@ def build_projection(previous_source=None, shadow_previous=None):
         # was present" from "the recovery file was not there" (#314).
         if _previous_missing:
             out['build_status']['previous_payload']['missing'] = True
-    out['workflow_outcomes'] = compute_workflow_outcomes()
-
     if brief_ctx_path:
         print(f'  brief-context source: {os.path.basename(brief_ctx_path)}')
 
