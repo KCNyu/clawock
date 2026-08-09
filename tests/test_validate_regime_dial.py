@@ -49,7 +49,7 @@ def _crash(n_up=300, n_down=300, step=0.01):
 def test_the_tier_mapping_matches_the_shipped_classifier(trend_on, vol_ok):
     """If compute_regime.classify changes and this does not, the validator
     silently starts validating a rule nobody ships."""
-    import compute_regime
+    from clawock import compute_regime
 
     close = 110.0 if trend_on else 90.0
     vol = 0.10 if vol_ok else 0.90
@@ -60,7 +60,7 @@ def test_the_tier_mapping_matches_the_shipped_classifier(trend_on, vol_ok):
 
 
 def test_the_production_constants_match_compute_regime():
-    import compute_regime
+    from clawock import compute_regime
 
     assert dial.PROD_MA == compute_regime.MA_WINDOW
     assert dial.PROD_VOL_CAP == compute_regime.VOL_CAP

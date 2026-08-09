@@ -346,6 +346,16 @@ def _packaged_utility(args) -> int:
         from clawock.fetch_fx import main
     elif args.command == "portfolio-risk":
         from clawock.portfolio_risk_metrics import main
+    elif args.command == "quant":
+        from clawock.compute_quant_signals import main
+    elif args.command == "regime":
+        from clawock.compute_regime import main
+    elif args.command == "t0":
+        from clawock.compute_t0_setups import main
+    elif args.command == "quant-review":
+        from clawock.quant_signal_review import main
+    elif args.command == "t0-review":
+        from clawock.t0_setup_review import main
     else:
         from clawock.claim_provenance import main
     return main(args.utility_args)
@@ -460,6 +470,7 @@ def main(argv=None) -> int:
         "entry-gate", "thesis", "earnings", "research", "claim-provenance",
         "realized",
         "aggregates", "cash", "shadow", "fx", "portfolio-risk",
+        "quant", "regime", "t0", "quant-review", "t0-review",
     }
     if raw_argv and raw_argv[0] in packaged_utilities:
         return _packaged_utility(argparse.Namespace(
@@ -557,6 +568,11 @@ def main(argv=None) -> int:
         ("shadow", "simulate followed decisions against buy and hold"),
         ("fx", "fetch or convert the canonical USD/HKD rate"),
         ("portfolio-risk", "compute portfolio beta, volatility, and tail risk"),
+        ("quant", "compute holding-level trend, momentum, and risk factors"),
+        ("regime", "compute the configured leverage-risk regime"),
+        ("t0", "grade intraday setup quality from existing market data"),
+        ("quant-review", "reconcile factor signals with forward returns"),
+        ("t0-review", "reconcile setup grades with next-session returns"),
     ):
         utility = sub.add_parser(name, help=help_text, add_help=False)
         utility.add_argument("utility_args", nargs=argparse.REMAINDER)

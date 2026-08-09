@@ -60,8 +60,8 @@ Tiers:
 
 Writes: assets/data/lev_regime.json   (merge-not-overwrite on empty fetch)
 Run:
-  python3 scripts/data/compute_regime.py
-  python3 scripts/data/compute_regime.py --dry-run
+  clawock regime
+  clawock regime --dry-run
 """
 import argparse
 import json
@@ -72,19 +72,11 @@ from pathlib import Path
 
 import requests
 
-# The checkout root, so `clawock` resolves from the tree this file ships
-# in. Reached through the scripts/data/workspace shim until #267 step 3,
-# whose only remaining job was inserting this path as a side effect.
-sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
-sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
-from clawock.workspace import workspace_root  # noqa: E402
+from clawock.instrument_registry import INSTRUMENTS
+from clawock.safe_io import safe_write_json
+from clawock.workspace import workspace_root
 
-# Code lives in the checkout; only DATA lives in the workspace. `workspace_root`
-# is overridable, so resolving our own modules through WS would read them out of
-# someone else's data directory — or silently pick up whatever happens to be
-# there. Same expression WS is seeded from, kept separate on purpose (#269).
-_CHECKOUT = Path(__file__).resolve().parents[2]
-WS = workspace_root(Path(__file__).resolve().parent.parent.parent)
+WS = workspace_root(Path.cwd())
 OUT_FILE = WS / 'assets' / 'data' / 'lev_regime.json'
 PORTFOLIO = WS / 'portfolio.json'
 TENCENT = 'https://web.ifzq.gtimg.cn/appstock/app/kline/kline'
@@ -95,9 +87,6 @@ UA = ('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 '
 MA_WINDOW = 200      # slower MA = fewer falling-knife re-entries (verified vs 100/150)
 VOL_WINDOW = 20
 VOL_CAP = 0.50       # HSTECH 20d annualised realised-vol ceiling for "vol-ok"
-
-sys.path.insert(0, str(_CHECKOUT / 'scripts' / 'data'))
-from clawock.instrument_registry import INSTRUMENTS  # noqa: E402
 
 # US 2x single-stock ETF → (underlying ticker, Tencent fqkline symbol). The US dial is
 # PER-NAME (each ETF tracks one stock) and — verified in backtest_us_leverage.py — must
@@ -117,13 +106,6 @@ US_2X_MAP = {
 US_VOL_HOT = 0.70    # single stocks run hot; only >70% annualised counts as "过热"
 SHORT_MA_WINDOW = 5  # 新上市杠杆名不足 200DMA 时的「右侧确认」短均线（仅趋势方向、非完整 regime）
 SHORT_MA_MIN = 5     # 短均线至少需要的 bar 数，再少则 unknown
-
-try:
-    from clawock.safe_io import safe_write_json
-except Exception:
-    def safe_write_json(path, data, indent=2):
-        Path(path).write_text(json.dumps(data, ensure_ascii=False, indent=indent))
-
 
 def fetch_hstech(start='2021-01-01', lim=2000):
     end = date.today().isoformat()
@@ -167,11 +149,20 @@ def _held_us_lev_etfs():
     """Held US 2x ETFs (shares>0) that we have an underlying mapping for."""
     try:
         port = json.loads(PORTFOLIO.read_text())
-        us = port['portfolios']['us_stocks']['holdings']
     except Exception:
         return []
-    return [h['ticker'] for h in us
-            if h.get('shares', 0) > 0 and h.get('ticker') in US_2X_MAP]
+    held = []
+    for book in (port.get('portfolios') or {}).values():
+        if not isinstance(book, dict):
+            continue
+        for holding in book.get('holdings', []):
+            ticker = holding.get('ticker')
+            meta = INSTRUMENTS.get(ticker, {})
+            if (holding.get('shares', 0) > 0
+                    and meta.get('region') == 'US'
+                    and ticker in US_2X_MAP):
+                held.append(ticker)
+    return held
 
 
 def compute_us():
@@ -304,10 +295,10 @@ def classify(close, ma, vol):
     return trend_on, vol_ok, tier, mult, label
 
 
-def main():
+def main(argv=None):
     ap = argparse.ArgumentParser()
     ap.add_argument('--dry-run', action='store_true')
-    args = ap.parse_args()
+    args = ap.parse_args(argv)
 
     data = fetch_hstech()
     if not data:

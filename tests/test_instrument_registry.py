@@ -8,13 +8,13 @@ WS = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(WS / "scripts" / "data"))
 
 import build_dashboard  # noqa: E402
-import compute_quant_signals  # noqa: E402
-import compute_regime  # noqa: E402
-import compute_t0_setups  # noqa: E402
 import fetch_daily_bars  # noqa: E402
 import fetch_us_stocks  # noqa: E402
 from clawock import instrument_registry  # noqa: E402
 from clawock import portfolio_risk_metrics  # noqa: E402
+from clawock import compute_quant_signals  # noqa: E402
+from clawock import compute_regime  # noqa: E402
+from clawock import compute_t0_setups  # noqa: E402
 import preflight_integrity  # noqa: E402
 from clawock_kcnyu.harness import brief_preflight  # noqa: E402
 import analyze_hk_stocks  # noqa: E402
