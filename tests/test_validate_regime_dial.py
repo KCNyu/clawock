@@ -21,7 +21,7 @@ ROOT = Path(__file__).resolve().parents[1]
 DATA = ROOT / "scripts" / "data"
 sys.path.insert(0, str(DATA))
 
-import validate_regime_dial as dial  # noqa: E402
+from clawock.evaluation import regime_validation as dial  # noqa: E402
 
 
 def _ramp(n, step=0.01, start=100.0):

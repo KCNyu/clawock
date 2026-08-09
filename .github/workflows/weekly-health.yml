@@ -29,7 +29,7 @@ jobs:
       - name: Compile all scripts
         run: |
           set -e
-          find scripts/data ops instances/kcnyu/src -type f -name '*.py' -print0 |
+          find src ops instances/kcnyu/src -type f -name '*.py' -print0 |
           while IFS= read -r -d '' f; do
             python3 -m py_compile "$f"
           done
@@ -54,7 +54,6 @@ jobs:
           # Sample HK quote (Tencent fallback) — skip if all 3 routes down (network policy)
           python3 -c "
           import sys
-          sys.path.insert(0, 'scripts/data')
           from analyze_hk_stocks import fetch_hk_quotes
           q = fetch_hk_quotes(['00700'])
           print('HK 00700 quote:', q.get('00700', {}).get('price'))
@@ -107,10 +106,10 @@ jobs:
 
       - name: Dashboard build idempotency
         run: |
-          python3 scripts/data/build_dashboard.py
+          clawock dashboard-build
           cp assets/data/dashboard.json /tmp/dash1.json
           sleep 1
-          python3 scripts/data/build_dashboard.py
+          clawock dashboard-build
           # Only wall-clock `generated_at` stamps should differ between two runs.
           # These live at the top level AND nested (e.g. build_status.generated_at,
           # added with the health card) — strip every `generated_at` recursively.

@@ -5,9 +5,8 @@ from pathlib import Path
 
 
 WS = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(WS / "scripts" / "data"))
 
-import build_dashboard  # noqa: E402
+from clawock.publish import dashboard as build_dashboard  # noqa: E402
 from clawock.market_data import bars as fetch_daily_bars
 from clawock.market_data import us_quotes as fetch_us_stocks  # noqa: E402
 from clawock.portfolio import instruments as instrument_registry  # noqa: E402

@@ -6,6 +6,8 @@ on:
     paths:
       - 'scripts/**'
       - 'src/**'
+      - 'instances/**'
+      - 'ops/**'
       - 'pyproject.toml'
       - 'tests/**'
       - 'assets/css/**'
@@ -182,11 +184,10 @@ jobs:
         if: github.event_name != 'pull_request' || steps.changes.outputs.code == 'true'
         run: |
           python3 -m pytest tests/ -q \
-            --cov=scripts \
+            --cov=clawock.publish.dashboard \
+            --cov=clawock.evaluation \
             --cov=ops \
-            --cov=clawock_kcnyu.schedule \
-            --cov=clawock_kcnyu.automation.cron_heartbeat \
-            --cov=clawock_kcnyu.automation.workflow_outcomes \
+            --cov=clawock_kcnyu \
             --cov=clawock.market_data.integrity \
             --cov=clawock.market_data.macro \
             --cov=clawock.market_data.mover_evidence \
@@ -261,7 +262,7 @@ jobs:
         if: github.event_name != 'pull_request' || steps.changes.outputs.code == 'true'
         run: |
           set -e
-          find scripts/data ops instances/kcnyu/src -type f -name '*.py' -print0 |
+          find src ops instances/kcnyu/src -type f -name '*.py' -print0 |
           while IFS= read -r -d '' f; do
             echo "syntax check: $f"
             python3 -m py_compile "$f"
@@ -358,7 +359,7 @@ jobs:
       - name: Rebuild dashboard.json and validate
         if: github.event_name != 'pull_request' || steps.changes.outputs.code == 'true'
         run: |
-          python3 scripts/data/build_dashboard.py
+          clawock dashboard-build
           clawock validate-sidecar dashboard
           python3 << 'PY'
           import json
@@ -372,8 +373,8 @@ jobs:
         if: github.event_name != 'pull_request' || steps.changes.outputs.code == 'true'
         run: |
           # confirm it runs idempotently
-          python3 scripts/data/build_dashboard.py
-          python3 scripts/data/build_dashboard.py
+          clawock dashboard-build
+          clawock dashboard-build
           echo "OK: build_dashboard idempotent"
 
   publish-coverage:

@@ -56,6 +56,7 @@ SNAPSHOT_DIR = WS / 'memory' / 'snapshots'
 
 sys.path.insert(0, str(_CHECKOUT / 'scripts' / 'data'))
 from clawock_kcnyu.automation import workflow_outcomes  # noqa: E402
+from clawock.market_data.macro import classify_regime as _classify_regime  # noqa: E402
 from clawock.portfolio.instruments import get as get_instrument  # noqa: E402
 from clawock.portfolio.instruments import compute_lookthrough_exposure  # noqa: E402
 from clawock.portfolio.instruments import one_x_swap_map  # noqa: E402
@@ -942,42 +943,6 @@ def bars_staleness():
                     'calendar_expired': expired,
                     'laggards': {t: d for t, d in sorted(per_ticker.items()) if d < newest}}
     return out
-
-
-def _classify_regime(macro_trim):
-    """Derive a coarse risk regime from the macro snapshot so the brief can make it
-    EXPLICIT and stop fighting the tape (2026-05-30). calibration shows hold=76% in
-    this regime — when risk_on, the default action should be HOLD and active cuts need
-    a hard negative catalyst. Uses what macro_trim has: VIX level, Fear&Greed score,
-    SPX/NDX 1-day direction. Returns {'label','score','reasons'} or None if too sparse."""
-    if not macro_trim:
-        return None
-    score = 0
-    reasons = []
-    fg = (macro_trim.get('fear_greed') or {})
-    fg_score = fg.get('score')
-    if isinstance(fg_score, (int, float)):
-        if fg_score >= 60:
-            score += 1; reasons.append(f'F&G {fg_score:.0f} greed')
-        elif fg_score <= 40:
-            score -= 1; reasons.append(f'F&G {fg_score:.0f} fear')
-    vix = (macro_trim.get('vix') or {}).get('price')
-    if isinstance(vix, (int, float)):
-        if vix < 18:
-            score += 1; reasons.append(f'VIX {vix:.0f} calm')
-        elif vix > 25:
-            score -= 1; reasons.append(f'VIX {vix:.0f} stress')
-    spx_c = (macro_trim.get('spx') or {}).get('change_pct')
-    ndx_c = (macro_trim.get('nasdaq') or {}).get('change_pct')
-    if isinstance(spx_c, (int, float)) and isinstance(ndx_c, (int, float)):
-        if spx_c > 0 and ndx_c > 0:
-            score += 1; reasons.append('SPX+NDX 同向上行')
-        elif spx_c < 0 and ndx_c < 0:
-            score -= 1; reasons.append('SPX+NDX 同向下行')
-    if not reasons:
-        return None
-    label = 'risk_on' if score >= 2 else ('risk_off' if score <= -2 else 'neutral')
-    return {'label': label, 'score': score, 'reasons': reasons}
 
 
 def _recent_price_moves(tickers, lookback_sessions=5):

@@ -6,10 +6,10 @@ comparable history, the promise ledger, and the provenance manifest behind every
 published number. Markdown write-ups are renderings of it, never the source.
 
 ```bash
-python3 scripts/data/earnings_review.py validate        memory/earnings/<TICKER>/<period>.json
-python3 scripts/data/earnings_review.py review          memory/earnings/<TICKER>/<period>.json
-python3 scripts/data/earnings_review.py thesis-evidence  memory/earnings/<TICKER>/<period>.json
-python3 scripts/data/earnings_review.py promises \
+clawock earnings validate        memory/earnings/<TICKER>/<period>.json
+clawock earnings review          memory/earnings/<TICKER>/<period>.json
+clawock earnings thesis-evidence memory/earnings/<TICKER>/<period>.json
+clawock earnings promises \
     memory/earnings/<TICKER>/<previous>.json memory/earnings/<TICKER>/<current>.json
 ```
 

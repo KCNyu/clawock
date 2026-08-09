@@ -6,7 +6,6 @@ from pathlib import Path
 from unittest import mock
 
 ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT / "scripts" / "data"))
 sys.path.insert(0, str(ROOT / "ops" / "growth"))
 from clawock.decision import ledger as dv2
 from clawock_kcnyu.harness.intraday_watchdog import deterministic_fallback as intraday_fallback

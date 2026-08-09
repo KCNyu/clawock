@@ -8,7 +8,7 @@
       "estimated": "derived from a stated rule (e.g. 'effective the second Monday after review') — usable, but say it is an estimate",
       "unconfirmed": "the event is real but no date is known yet; date MUST be null. Never fill a guess here."
     },
-    "consumed_by": "scripts/data/fetch_catalysts.py -> catalysts.json.scheduled_events -> brief context"
+    "consumed_by": "clawock catalysts -> catalysts.json.scheduled_events -> brief context"
   },
   "events": [
     {

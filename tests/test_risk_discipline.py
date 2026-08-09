@@ -5,7 +5,6 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT / "scripts" / "data"))
 from clawock.decision import ledger as decision_v2
 from clawock.decision import risk as discipline
 from clawock_kcnyu.harness import brief_postflight  # noqa: E402

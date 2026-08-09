@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-backtest_us_leverage.py — same regime backtest as HSTECH, but for kcn's US 2x
+US leverage evaluation — same regime backtest as HSTECH, but for kcn's US 2x
 single-stock ETFs: PLTU(2x PLTR), ROBN(2x HOOD), MSFU(2x MSFT).
 
 These ETFs are young (2023-24 launches) so we simulate the 2x daily-reset sleeve
@@ -11,46 +11,19 @@ Outputs:
   • a results table (totRet / CAGR / maxDD / worst-window / %inMkt / switches)
   • PNG charts → memory/.tmp/us_lev_*.png  (equity log + underwater drawdown + summary bars)
 
-Run: python3 scripts/data/backtest_us_leverage.py
+Run: clawock evaluate-us-leverage
 """
 import math
-import os
-import sys
 from datetime import date
 from pathlib import Path
 
 import requests
-import matplotlib
-matplotlib.use('Agg')
-import matplotlib.pyplot as plt
-import matplotlib.dates as mdates
-from matplotlib import font_manager
 
-# Register Noto Sans CJK so Chinese labels render (no tofu boxes). .ttc files hold
-# several faces — resolve the real family name matplotlib indexes it under.
-for _fp in ('/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc',
-            '/usr/share/fonts/truetype/noto/NotoSansCJK-Regular.ttc'):
-    if Path(_fp).exists():
-        try:
-            font_manager.fontManager.addfont(_fp)
-            plt.rcParams['font.family'] = font_manager.FontProperties(fname=_fp).get_name()
-            break
-        except Exception:
-            pass
-plt.rcParams['axes.unicode_minus'] = False
+from clawock.decision import regime as compute_regime
+from clawock.evidence import run_card
+from clawock.workspace import workspace_root
 
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-
-# The checkout root, so `clawock` resolves from the tree this file ships
-# in. Reached through the scripts/data/workspace shim until #267 step 3,
-# whose only remaining job was inserting this path as a side effect.
-sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
-sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
-from clawock.decision import regime as compute_regime  # noqa: E402
-from clawock.evidence import run_card  # noqa: E402  every backtest leaves evidence behind
-from clawock.workspace import workspace_root  # noqa: E402
-
-WS = workspace_root(Path(__file__).resolve().parent.parent.parent)
+WS = workspace_root(Path.cwd())
 OUT = WS / 'memory' / '.tmp'
 OUT.mkdir(parents=True, exist_ok=True)
 UA = ('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 '
@@ -61,6 +34,37 @@ NAMES = [('PLTU', 'PLTR', 'usPLTR.OQ'),
          ('ROBN', 'HOOD', 'usHOOD.OQ'),
          ('MSFU', 'MSFT', 'usMSFT.OQ')]
 MA_WIN, VOL_WIN, VOL_CAP = 200, 20, 0.80   # single stocks run hot → 80% vol band
+
+
+def _plotting():
+    """Import matplotlib at call time and return the two handles `main` draws with.
+
+    Deferred on purpose: charting is the `evaluation` extra, so a base install
+    of the wheel must be able to import this module. A module-level
+    `import matplotlib` makes the whole package un-importable for everyone who
+    did not ask for plots, which is the failure `test_wheel_contains_the_package`
+    exists to catch.
+    """
+    import matplotlib
+    matplotlib.use('Agg')
+    import matplotlib.dates as mdates
+    import matplotlib.pyplot as plt
+    from matplotlib import font_manager
+
+    # Register Noto Sans CJK so Chinese labels render (no tofu boxes). .ttc files
+    # hold several faces — resolve the real family name matplotlib indexes it under.
+    for path in ('/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc',
+                 '/usr/share/fonts/truetype/noto/NotoSansCJK-Regular.ttc'):
+        if Path(path).exists():
+            try:
+                font_manager.fontManager.addfont(path)
+                plt.rcParams['font.family'] = font_manager.FontProperties(
+                    fname=path).get_name()
+                break
+            except Exception:
+                pass
+    plt.rcParams['axes.unicode_minus'] = False
+    return plt, mdates
 
 
 def fetch(sym, cnt=1800):
@@ -136,6 +140,7 @@ LBL = {'bh1': '标的 1x 持有', 'bh2': '2x ETF 死扛', 'reg': 'Regime 2x', 'r
 
 
 def main():
+    plt, mdates = _plotting()
     plt.rcParams.update({'figure.facecolor': '#0f172a', 'axes.facecolor': '#0f172a',
                          'axes.edgecolor': '#334155', 'text.color': '#e2e8f0',
                          'axes.labelcolor': '#94a3b8', 'xtick.color': '#94a3b8',

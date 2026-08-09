@@ -10,7 +10,7 @@ in the wheel.
 That makes the skill the only machine-unreadable copy of the interface, forces
 the cron payload to know internal file layout, and leaves any non-OpenClaw
 runner to re-derive the protocol from prose — which is exactly why
-`gh_action_brief_fallback.py` cannot do the lazy queries and degrades to one
+The KCNyu brief-fallback command cannot do the lazy queries and degrades to one
 chat() call.
 
 The contract here is deliberately small, and modelled on what a function-calling

@@ -1,5 +1,5 @@
 """
-backfill_snapshot_realized.py — repair historical snapshots whose
+Host maintenance: repair historical snapshots whose
 `portfolios.{us,hk}_stocks.realized_pnl` drifted out of sync with the canonical
 portfolio.json trades[] ledger (the 2026-05-21 phantom-drawdown bug).
 
@@ -8,8 +8,8 @@ as the point-in-time value reflected in that snapshot's holdings (see
 clawock.portfolio.snapshots.realized_as_of), using portfolio.json as the source
 of truth.
 
-    python3 backfill_snapshot_realized.py --dry-run   # diff only
-    python3 backfill_snapshot_realized.py             # write in place
+    python3 ops/host/backfill_snapshot_realized.py --dry-run
+    python3 ops/host/backfill_snapshot_realized.py
 """
 import argparse
 import glob
@@ -19,20 +19,15 @@ import re
 import sys
 from pathlib import Path
 
-# The checkout root, so `clawock` resolves from the tree this file ships
-# in. Reached through the scripts/data/workspace shim until #267 step 3,
-# whose only remaining job was inserting this path as a side effect.
-sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
-sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
-from clawock.safe_io import safe_write_json  # noqa: E402
-from clawock.portfolio.snapshots import realized_as_of, snapshot_shares  # noqa: E402
-from clawock.workspace import workspace_root  # noqa: E402
+from clawock.safe_io import safe_write_json
+from clawock.portfolio.snapshots import realized_as_of, snapshot_shares
+from clawock.workspace import workspace_root
 
 # The workspace this file sits in, not the operator's. As an absolute live path
 # it made `--portfolio` default to the real ledger *and* pointed SNAP_DIR at the
 # real memory/snapshots/, so a backfill run from a review checkout rewrote
 # production snapshots in place.
-WS = str(workspace_root(Path(__file__).resolve().parents[2]))
+WS = str(workspace_root(Path.cwd()))
 SNAP_DIR = os.path.join(WS, 'memory', 'snapshots')
 DATE_RE = re.compile(r'^(\d{4}-\d{2}-\d{2})')
 

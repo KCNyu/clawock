@@ -2,9 +2,9 @@
   "schema_version": 1,
   "surfaces": [
     "src/clawock/decision/regime.py",
-    "scripts/data/validate_regime_dial.py",
-    "scripts/data/backtest_hstech_regime.py",
-    "scripts/data/backtest_us_leverage.py",
-    "scripts/data/backtest_combined_regime.py"
+    "src/clawock/evaluation/regime_validation.py",
+    "src/clawock/evaluation/hstech_regime.py",
+    "src/clawock/evaluation/us_leverage.py",
+    "src/clawock/evaluation/combined_regime.py"
   ]
 }

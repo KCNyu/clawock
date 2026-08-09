@@ -116,7 +116,7 @@ Red flags:
 `config/cron-schedules.json`（schedule + payload profile + delivery）；system crontab
 watchdog 和 EDT/EST 切换也由同一 contract 管：
 
-- Does it reference scripts that still exist? (e.g. removed `scripts/legacy/stock_analyzer.py` but cron still calls it)
+- Does it reference an installed command or named `ops/*` entry that still exists?
 - Does it reference dead APIs? (e.g. "优先东方财富" but Eastmoney is 502 from this server)
 - Does it hardcode tickers? (should read from `portfolio.json` dynamically)
 - Pattern to use: **script outputs data block → agent layers analysis on top** (情绪面/技术面/操作建议)

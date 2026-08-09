@@ -51,8 +51,7 @@ if [ -n "$PLAN_FILES" ]; then
   echo "  ▸ validating staged plan.json files…"
   python3 - "$PLAN_FILES" <<'PY' || exit 1
 import json, sys
-sys.path.insert(0, 'scripts/data')
-import decision_v2
+from clawock.decision import ledger as decision_v2
 files = sys.argv[1].split('\n') if len(sys.argv) > 1 else []
 bad = 0
 for f in files:

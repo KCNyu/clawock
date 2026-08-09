@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-gh_action_brief_fallback.py — called by .github/workflows/brief-fallback.yml.
+KCNyu off-host brief fallback, called by the repository workflow.
 
 Single-turn vendor call (MiniMax M3 primary, optional Xiaomi fallback) to generate
 today's brief if openclaw cron failed to produce one by the 08:25 HKT check. Reads
@@ -16,11 +16,8 @@ from copy import deepcopy
 from datetime import date
 from pathlib import Path
 
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
-sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
-from xiaomi_llm import chat
-from clawock.decision import ledger as decision_v2  # noqa: E402
+from clawock_kcnyu.automation.llm import chat
+from clawock.decision import ledger as decision_v2
 
 
 def split_brief_and_plan(out):

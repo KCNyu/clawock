@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""fetch_gold_dca.py — 黄金定投盯盘：每日刷 000217 净值 + 重算定投指标。
+"""KCNyu 黄金定投盯盘：每日刷 000217 净值 + 重算定投指标。
 
 标的：华安黄金ETF联接C (000217)，场外基金，一天一个净值（约 20:00–23:00 HKT 出）。
 跟踪同一份黄金 (母 ETF 518880)，但 C 类有自己的净值刻度 + 销售服务费拖累。
@@ -23,8 +23,8 @@
   - openclaw-fx-rule（人民币这笔独立成卡，不并入跨币种总额）
 
 用法：
-  python3 scripts/data/fetch_gold_dca.py            # 刷新并写回 portfolio.json
-  python3 scripts/data/fetch_gold_dca.py --dry-run  # 只打印，不写盘
+  clawock-kcnyu-gold-fetch            # 刷新并写回 portfolio.json
+  clawock-kcnyu-gold-fetch --dry-run  # 只打印，不写盘
 """
 import json
 import subprocess
@@ -36,12 +36,11 @@ from pathlib import Path
 
 GRAMS_PER_OZ = 31.1035  # 1 金衡盎司(troy oz) = 31.1035 克
 
-WS_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-sys.path.insert(0, os.path.join(WS_ROOT, 'scripts', 'data'))
-sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
-sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
-from clawock.safe_io import safe_write_json  # noqa: E402
-from clawock.market_data.eastmoney_http import em_get  # noqa: E402
+from clawock.safe_io import safe_write_json
+from clawock.market_data.eastmoney_http import em_get
+from clawock.workspace import workspace_root
+
+WS_ROOT = str(workspace_root(Path.cwd()))
 
 PORTFOLIO = os.path.join(WS_ROOT, 'portfolio.json')
 

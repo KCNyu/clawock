@@ -9,7 +9,6 @@ import pytest
 
 
 ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT / "scripts" / "data"))
 
 from clawock.context import brief as brief_context
 from clawock_kcnyu.harness import brief_postflight  # noqa: E402

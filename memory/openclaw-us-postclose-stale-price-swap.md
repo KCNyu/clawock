@@ -8,7 +8,7 @@ metadata:
 2026-05-29 实例：dashboard US 显示浮盈 +$291、当日 -$123，MSFU/PLTU 被记成大跌。
 真相是 US 当日大涨（MSFU +6.8% / PLTU +16.2% / ROBN +22.5%），正确总值 $3042.61、浮盈 +$414.31、当日 +$286.66。
 
-**根因**：`scripts/data/fetch_us_stocks.py` 在 20:01 ET 的 `closed` 段抓取时，撞上 Nasdaq
+**根因**：`clawock us-quotes` 的 Nasdaq closed-session provider 在 20:01 ET 抓取时，撞上
 对杠杆 ETF 的报价坑——`primaryData.lastSalePrice`(脚本的 `c`) 还停在**前一交易日旧价**，
 而 `summaryData.PreviousClose`(脚本的 `pc`) 字段反而装着**当日真实收盘**。脚本第 593-620 行
 信了 `c` 当现价、把真实收盘当成 prev_close，于是 `today_change=(c-pc)*shrs` 取了**反号**，
@@ -18,11 +18,11 @@ metadata:
 且 `data_source` 都是同一次 `... 20:01 ET` 的 closed fetch；snapshot 里某标的现价 == 前一日现价。
 
 **修复手法（已用，self-heal）**：
-1. 隔几小时后 Nasdaq API 会 settle，直接 `python3 scripts/data/fetch_us_stocks.py` 重抓即可恢复正确现价/总值（两源 Nasdaq+Polygon 一致）。
+1. 隔几小时后 Nasdaq API 会 settle，直接 `clawock us-quotes` 重抓即可恢复正确现价/总值（两源 Nasdaq+Polygon 一致）。
 2. 但盘后重抓时 Polygon prev-close 会取成**当日**收盘 → `today_change` collapse 成 0；
    需按 Nasdaq 官方 `netChange` 反推 prev_close 补回当日涨跌（per-share net × shares）。
-3. `refresh_today_snapshot()`（scripts/harness/_harness_common.py）刷当天 snapshot —— 注意
-   直接跑 `build_dashboard.py` **不会**刷 snapshot，必须先手动调它，否则 dashboard 仍用旧 snapshot。
+3. KCNyu postflight 的 installed snapshot refresh 刷当天 snapshot —— 注意
+   直接跑 `clawock dashboard-build` **不会**刷 snapshot，必须先手动调它，否则 dashboard 仍用旧 snapshot。
 4. 重建 dashboard + commit `portfolio.json` + `snapshots/{date}.json` + `dashboard.json` 推送。
 
 **根因硬化（已修，2026-05-29，commit c32e3a2）** `fetch_us_stocks.py`：

@@ -322,6 +322,8 @@ def _packaged_utility(args) -> int:
         from clawock.decision.risk import main
     elif args.command == "dashboard-outputs":
         from clawock.publish.outputs import main
+    elif args.command == "dashboard-build":
+        from clawock.publish.dashboard import main
     elif args.command == "run-card":
         from clawock.evidence.run_card import main
     elif args.command == "provenance":
@@ -403,6 +405,14 @@ def _packaged_utility(args) -> int:
         from clawock.evidence.build_evidence import main
     elif args.command == "news-evidence":
         from clawock.evidence.news_evidence_graph import main
+    elif args.command == "evaluate-combined-regime":
+        from clawock.evaluation.combined_regime import main
+    elif args.command == "evaluate-hstech-regime":
+        from clawock.evaluation.hstech_regime import main
+    elif args.command == "evaluate-us-leverage":
+        from clawock.evaluation.us_leverage import main
+    elif args.command == "validate-regime-dial":
+        from clawock.evaluation.regime_validation import main
     else:
         from clawock.evidence.claim_provenance import main
     return main(args.utility_args)
@@ -513,7 +523,7 @@ def _workflow(args) -> int:
 def main(argv=None) -> int:
     raw_argv = list(sys.argv[1:] if argv is None else argv)
     packaged_utilities = {
-        "plan-context", "risk", "dashboard-outputs", "run-card", "provenance",
+        "plan-context", "risk", "dashboard-outputs", "dashboard-build", "run-card", "provenance",
         "entry-gate", "thesis", "earnings", "research", "claim-provenance",
         "realized",
         "aggregates", "cash", "shadow", "fx", "portfolio-risk",
@@ -524,6 +534,8 @@ def main(argv=None) -> int:
         "benchmark", "macro", "sentiment", "mover-evidence", "integrity", "reconcile",
         "validate-sidecar", "mark-followed",
         "audit-resettle", "evidence", "news-evidence",
+        "evaluate-combined-regime", "evaluate-hstech-regime",
+        "evaluate-us-leverage", "validate-regime-dial",
     }
     if raw_argv and raw_argv[0] in packaged_utilities:
         return _packaged_utility(argparse.Namespace(
@@ -608,6 +620,7 @@ def main(argv=None) -> int:
         ("plan-context", "show still-open decisions for a downstream run"),
         ("risk", "maintain the durable risk-breach governance ledger"),
         ("dashboard-outputs", "compare one generated dashboard write set"),
+        ("dashboard-build", "build the configured workspace dashboard projection"),
         ("run-card", "inspect durable backtest evidence"),
         ("provenance", "verify numeric research provenance"),
         ("entry-gate", "validate or assess a pre-investment research gate"),
@@ -649,6 +662,10 @@ def main(argv=None) -> int:
         ("audit-resettle", "audit decision re-settlement without writing by default"),
         ("evidence", "rebuild the artifact-backed public evidence page"),
         ("news-evidence", "build the expiring news and filing evidence graph"),
+        ("evaluate-combined-regime", "backtest the combined configured regime dial"),
+        ("evaluate-hstech-regime", "backtest the HSTECH leverage regime"),
+        ("evaluate-us-leverage", "backtest US single-stock leverage regimes"),
+        ("validate-regime-dial", "walk-forward validate the production regime dial"),
     ):
         utility = sub.add_parser(name, help=help_text, add_help=False)
         utility.add_argument("utility_args", nargs=argparse.REMAINDER)

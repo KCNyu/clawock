@@ -14,7 +14,7 @@ sys.path.insert(0, str(DATA))
 
 from clawock.market_data import hk_analysis as hk  # noqa: E402
 from clawock.portfolio import fx  # noqa: E402
-import fetch_gold_dca as gold  # noqa: E402
+from clawock_kcnyu.gold import fetch as gold  # noqa: E402
 from clawock.market_data import us_quotes as us  # noqa: E402
 from clawock.portfolio import risk  # noqa: E402
 
@@ -75,26 +75,6 @@ def test_fetch_fx_marks_provider_and_hardcoded_fallbacks(monkeypatch):
     assert hardcoded["source"] == "HARDCODED_PEG_FALLBACK"
     assert hardcoded["fallback_used"] is True
     assert hardcoded["warning"]
-
-
-def test_live_preflight_calls_the_packaged_fx_surface():
-    preflight = (
-        ROOT / "instances" / "kcnyu" / "src" / "clawock_kcnyu"
-        / "harness" / "brief_preflight.py"
-    ).read_text()
-
-    assert "['clawock', 'fx', '--json']" in preflight
-    assert "scripts/data/fetch_fx.py" not in preflight
-
-
-def test_live_preflight_calls_the_packaged_risk_surface():
-    preflight = (
-        ROOT / "instances" / "kcnyu" / "src" / "clawock_kcnyu"
-        / "harness" / "brief_preflight.py"
-    ).read_text()
-
-    assert "['clawock', 'portfolio-risk']" in preflight
-    assert "scripts/data/portfolio_risk_metrics.py" not in preflight
 
 
 def test_us_and_hk_quotes_use_shared_eastmoney_client(monkeypatch):

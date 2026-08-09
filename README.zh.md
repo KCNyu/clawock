@@ -83,7 +83,7 @@ package 架构。
 | 7 · 汇率/校验 | 2 | Frankfurter · 本地不变量 |
 | 8 · 回测/自省 | 5 | 本地快照 + 基准行情 |
 
-抓取层优雅降级:所有现役东财调用统一走**一个节流网关**,关键路径(报价、汇率)用**多源兜底**,而一次抓空会**保留旧值**,不会用空白覆盖一条好序列。公开来源包括腾讯、stooq、yfinance、Frankfurter、SEC EDGAR、Finnhub、Nasdaq、东财、Polygon、Alpha Vantage、Reddit 与 Google News —— 逐端点目录与各 host 可达性见 [`scripts/data/README.md`](scripts/data/README.md)。
+抓取层优雅降级:所有现役东财调用统一走**一个节流网关**,关键路径(报价、汇率)用**多源兜底**,而一次抓空会**保留旧值**,不会用空白覆盖一条好序列。公开来源包括腾讯、stooq、yfinance、Frankfurter、SEC EDGAR、Finnhub、Nasdaq、东财、Polygon、Alpha Vantage、Reddit 与 Google News —— 完整命令、provider 与产物目录见[工具参考](docs/reference/scripts.md)。
 
 ### 每种运行实际拿到什么
 
@@ -241,7 +241,7 @@ adapter；其它 runner 可以消费同一套 context/tool 契约。live adapter
 - [**实时仪表盘**](https://kcnyu.github.io/clawock/) —— 持仓、风控,以及自评战绩。
 - [**每日简报**](https://kcnyu.github.io/clawock/briefs.html) —— 已发布的早读。
 - [**排程表**](docs/operations/cron-schedules.md) —— 生成的 cron 表。
-- [**数据脚本**](scripts/data/README.md) —— fetcher 与计算目录。
+- [**工具参考**](docs/reference/scripts.md) —— installed command、provider 与生成产物目录。
 - [**项目文档**](docs/README.md) —— 运维、参考、法律说明与历史设计。
 
 ### 研究入口
@@ -294,7 +294,7 @@ adapter；其它 runner 可以消费同一套 context/tool 契约。live adapter
 | `docs/`、`tests/` | 产品/运维文档与高价值不变量检查 |
 | 根 context 文件、`skills/`、`memory/` | OpenClaw 兼容面；保留在 runtime 要求的位置 |
 | `portfolio.json`、`assets/data/` | live 账本与生成发布状态；永不进入 package |
-| `scripts/data/` | 仍待迁移的仓库 job，不是可移植 API |
+| `LICENSE`、`NOTICE`、`THIRD_PARTY_LICENSES/` | 标准 legal/package 入口，由 Pages staging 复制 |
 
 </details>
 
