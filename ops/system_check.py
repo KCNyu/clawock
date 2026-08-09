@@ -83,11 +83,46 @@ def check_baseline_files(r):
         r.add('baseline files', OK, f'{len(required)} files present')
 
 
+def check_root_allowlist(r):
+    """Every tracked top-level path must have an explicit terminal owner."""
+    contract_path = WS / 'config' / 'root-allowlist.json'
+    try:
+        contract = json.loads(contract_path.read_text())
+        entries = contract['entries']
+        if contract.get('schema_version') != 1 or not isinstance(entries, dict):
+            raise ValueError('unsupported root allowlist schema')
+        tracked = subprocess.run(
+            ['git', 'ls-files', '-z'], cwd=str(WS), capture_output=True,
+            check=True, timeout=20,
+        ).stdout.decode().split('\0')
+        actual = {path.split('/', 1)[0] for path in tracked if path}
+    except Exception as exc:
+        r.add('root ownership', CRITICAL, f'cannot read root allowlist: {exc}')
+        return
+    unexplained = sorted(actual - set(entries))
+    missing = sorted(set(entries) - actual)
+    incomplete = sorted(
+        name for name, meta in entries.items()
+        if not isinstance(meta, dict) or not meta.get('owner') or not meta.get('consumer')
+    )
+    if unexplained or missing or incomplete:
+        detail = []
+        if unexplained:
+            detail.append('unexplained: ' + ', '.join(unexplained))
+        if missing:
+            detail.append('missing: ' + ', '.join(missing))
+        if incomplete:
+            detail.append('no owner/consumer: ' + ', '.join(incomplete))
+        r.add('root ownership', CRITICAL, '; '.join(detail))
+    else:
+        r.add('root ownership', OK, f'{len(actual)} tracked paths explicitly owned')
+
+
 def check_scripts_compile(r):
     """All Python scripts compile."""
     failed = []
     for pat in [
-        'scripts/data/*.py',
+        'src/clawock/**/*.py',
         'ops/**/*.py',
         'instances/kcnyu/src/clawock_kcnyu/**/*.py',
     ]:
@@ -182,7 +217,7 @@ def check_plan_json_schema(r):
 
 
 def check_dashboard_buildable(r):
-    """build_dashboard.py produces sub-200KB output.
+    """The installed dashboard builder produces sub-200KB output.
 
     Builds to a TEMP file (BUILD_DASHBOARD_OUT) — this is a verification, it
     must not mutate the published assets/data/dashboard.json. Before 2026-06-10
@@ -194,7 +229,7 @@ def check_dashboard_buildable(r):
     try:
         env = dict(os.environ, BUILD_DASHBOARD_OUT=str(out))
         rr = subprocess.run(
-            ['python3', str(_REPO_ROOT / 'scripts' / 'data' / 'build_dashboard.py')],
+            ['clawock', 'dashboard-build'],
             capture_output=True, text=True, timeout=30, cwd=str(WS), env=env,
         )
         if rr.returncode != 0:
@@ -695,7 +730,6 @@ def check_research_artifacts(r):
     schema broke, is an integrity failure. A due earnings review or an ungated
     position is the human's work queue, so it warns and never blocks a publish.
     """
-    sys.path.insert(0, str(_REPO_ROOT / 'scripts' / 'data'))
     try:
         from clawock.evidence import research_surface
         result = research_surface.check()
@@ -721,6 +755,7 @@ def main():
     # not put the old full-tree git-grep back into this latency-sensitive hook.
     checks = [
         check_baseline_files,
+        check_root_allowlist,
         check_scripts_compile,
         check_portfolio_schema,
         check_instrument_registry,

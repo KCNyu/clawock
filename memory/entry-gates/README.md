@@ -4,8 +4,8 @@ One assessment per file: `memory/entry-gates/<TICKER>-<YYYY-MM-DD>.json`. The fi
 is the record of why a name was or was not worth a deep-research run.
 
 ```bash
-python3 scripts/data/entry_gate.py validate memory/entry-gates/<TICKER>-<date>.json
-python3 scripts/data/entry_gate.py assess   memory/entry-gates/<TICKER>-<date>.json
+clawock entry-gate validate memory/entry-gates/<TICKER>-<date>.json
+clawock entry-gate assess   memory/entry-gates/<TICKER>-<date>.json
 ```
 
 Shape: `src/clawock/config/entry_gate.schema.json`. Hard vetoes and their encoded industry

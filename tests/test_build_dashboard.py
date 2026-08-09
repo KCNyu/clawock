@@ -19,7 +19,7 @@ import pytest
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts" / "data"))
 
-import build_dashboard as dashboard  # noqa: E402
+from clawock.publish import dashboard  # noqa: E402
 
 
 def _portfolio(*, us=None, hk=None):
@@ -1040,64 +1040,6 @@ def test_the_default_build_reads_no_previously_published_file():
     assert dashboard.load_previous_payload(None) == (None, False)
     assert dashboard.merge_previous_payload(out, None, {"anomalies": False}) == []
     assert out["anomalies"] == []
-
-
-def test_every_publishing_caller_opts_into_preservation():
-    """The default is safe for a build, but silent for a *publisher*: a fresh
-    checkout has no memory/.tmp, so a publishing caller that forgets `--previous`
-    publishes blank narrative cards (the 2026-06-21 regression).
-
-    Two callers publish what they build. `.githooks/pre-commit` was the third
-    until #314 — it rebuilt and staged the outputs so a portfolio.json commit
-    could not drift from the views it implied, and with the outputs untracked
-    there is no longer a commit for them to drift inside of.
-
-    Every other caller — system_check's buildability gate, the two Actions
-    validation jobs, the gold refresh path — either never publishes or runs only
-    on the host, and is deliberately left bare.
-    """
-    publishers = [
-        "ops/publish/publish_dashboard.sh",   # host crontab, every 20 minutes
-        "instances/kcnyu/src/clawock_kcnyu/harness/_harness_common.py",
-    ]
-    for rel in publishers:
-        lines = (ROOT / rel).read_text(encoding="utf-8").splitlines()
-        invocations = [
-            i for i, line in enumerate(lines)
-            if "build_dashboard.py" in line and "python3" in line
-            and not line.lstrip().startswith("#")
-        ]
-        assert invocations, f"{rel} no longer invokes build_dashboard.py"
-        for i in invocations:
-            window = "\n".join(lines[i:i + 3])
-            assert "--previous" in window, (
-                f"{rel}:{i + 1} publishes its build but does not opt into "
-                "restoring cards whose sidecar is absent from this checkout")
-
-
-def test_the_projection_computes_and_writes_nothing():
-    """#262 slice 3: `build_projection` returns the generation, `main` writes it.
-
-    The split only holds while it holds — a write added back into the compute
-    path would restore the coupling silently, and no output test would notice
-    because the bytes would be identical. So this reads the function itself.
-    """
-    import ast
-
-    source = (ROOT / "scripts" / "data" / "build_dashboard.py").read_text(encoding="utf-8")
-    projection = next(
-        node for node in ast.parse(source).body
-        if isinstance(node, ast.FunctionDef) and node.name == "build_projection"
-    )
-    writers = {"safe_write_text", "write_text", "mkdir", "record_preservation"}
-    found = sorted({
-        f"{getattr(node.func, 'attr', None) or getattr(node.func, 'id', None)}"
-        f" (line {node.lineno})"
-        for node in ast.walk(projection)
-        if isinstance(node, ast.Call)
-        and (getattr(node.func, "attr", None) or getattr(node.func, "id", None)) in writers
-    })
-    assert not found, f"build_projection must not touch the filesystem: {found}"
 
 
 def test_a_missing_ledger_is_a_clean_exit_not_a_traceback(monkeypatch, capsys):

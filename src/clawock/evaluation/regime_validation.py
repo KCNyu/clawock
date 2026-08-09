@@ -38,14 +38,13 @@ a 2x sleeve, so the thing being validated is the thing in production.
 This never writes to the live pipeline. It prints, and it leaves a run card.
 
 Run:
-  python3 scripts/data/validate_regime_dial.py
-  python3 scripts/data/validate_regime_dial.py --folds 4 --permutations 5000
+  clawock validate-regime-dial
+  clawock validate-regime-dial --folds 4 --permutations 5000
 """
 from __future__ import annotations
 
 import argparse
 import math
-import os
 import random
 import sys
 from datetime import date
@@ -53,18 +52,11 @@ from pathlib import Path
 
 import requests
 
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from clawock.decision import regime as compute_regime
+from clawock.evidence import run_card
+from clawock.workspace import workspace_root
 
-# The checkout root, so `clawock` resolves from the tree this file ships
-# in. Reached through the scripts/data/workspace shim until #267 step 3,
-# whose only remaining job was inserting this path as a side effect.
-sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
-sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
-from clawock.decision import regime as compute_regime  # noqa: E402
-from clawock.evidence import run_card  # noqa: E402
-from clawock.workspace import workspace_root  # noqa: E402
-
-WS = workspace_root(Path(__file__).resolve().parents[2])
+WS = workspace_root(Path.cwd())
 TENCENT = 'https://web.ifzq.gtimg.cn/appstock/app/kline/kline'
 
 # Production defaults, imported in spirit from compute_regime so the validated

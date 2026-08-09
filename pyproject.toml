@@ -23,6 +23,7 @@ dependencies = [
 [project.optional-dependencies]
 # Numeric work: risk metrics, correlation x-ray, regime validation.
 compute = ["numpy>=1.26"]
+evaluation = ["numpy>=1.26", "matplotlib>=3.8"]
 # Screenshot and social-card validation.
 imaging = ["Pillow>=10"]
 # Everything the test suite needs to *collect*, not just to pass.

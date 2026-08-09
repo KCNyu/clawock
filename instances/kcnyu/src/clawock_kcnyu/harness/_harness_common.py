@@ -250,7 +250,7 @@ def _record_dashboard_build(build_ok, publish_ok, output, ws=None):
 
 
 def rebuild_dashboard(ws=None):
-    """Re-run build_dashboard.py to refresh its four public dashboard outputs.
+    """Run the installed dashboard builder to refresh its four public outputs.
 
     Refreshes today's snapshot AND syncs GH Action-managed data files first, so
     the equity curve reflects latest portfolio state and the embedded sentiment/
@@ -290,13 +290,15 @@ def rebuild_dashboard(ws=None):
         # stop a publish, and build_dashboard reports it loudly either way (#315).
         previous = ws / '.data-plane.cache'
         subprocess.run(
-            ['python3', str(ws / 'scripts' / 'build' / 'fetch_data_plane.py'),
+            ['python3', str(ws / 'ops' / 'pages' / 'fetch_data_plane.py'),
              '--into', str(previous)],
             capture_output=True, text=True, timeout=60, cwd=str(ws), check=False,
         )
+        from clawock_kcnyu.automation import workflow_outcomes
+        workflow_outcomes.publish()
         r = subprocess.run(
             ['flock', DASHBOARD_PUBLISH_LOCK,
-             'python3', str(ws / 'scripts' / 'data' / 'build_dashboard.py'),
+             'clawock', 'dashboard-build',
              '--previous', str(previous / 'assets' / 'data' / 'dashboard.json')],
             capture_output=True, text=True, timeout=30, cwd=str(ws),
         )

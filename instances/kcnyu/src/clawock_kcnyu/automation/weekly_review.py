@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-gh_action_weekly_review.py — Sunday 22:00 HKT weekly portfolio review.
+KCNyu Sunday 22:00 HKT weekly portfolio review.
 
 Bundles past 7 days of plans / decision episodes / snapshots / current risk
 into a single prompt, calls MiniMax M3 (optional Xiaomi fallback), and writes
@@ -16,11 +16,8 @@ import sys
 from datetime import date, timedelta
 from pathlib import Path
 
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
-sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
-from xiaomi_llm import chat
-from clawock.decision import ledger as decision_v2  # noqa: E402
+from clawock_kcnyu.automation.llm import chat
+from clawock.decision import ledger as decision_v2
 
 
 def _load_json(path, kind, errors):

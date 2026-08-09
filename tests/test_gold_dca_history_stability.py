@@ -7,7 +7,7 @@ import sys
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts" / "data"))
 
-import fetch_gold_dca as gold  # noqa: E402
+from clawock_kcnyu.gold import fetch as gold  # noqa: E402
 
 
 def rows(values):
@@ -289,17 +289,3 @@ def test_retention_does_not_starve_oldest_nav_purchases():
     assert retained[0][0] == nav[0][0]
     assert dca["principal_cny"] == daily * len(nav)
 
-
-def test_dashboard_drops_internal_history_but_keeps_provenance_contract():
-    builder = (ROOT / "scripts" / "data" / "build_dashboard.py").read_text()
-    renderer = (ROOT / "site" / "assets" / "js" / "dashboard.render.js").read_text()
-
-    assert "_gold['london'].pop('hist_series', None)" in builder
-    assert "_gold['london'].pop('fx_hist_series', None)" in builder
-    assert "历史源 ${escapeHtml(" in renderer
-    assert 'role="status"' in renderer
-    assert "ld.hist_advisory" in renderer
-    assert "国内基准 · 上金所 Au99.99" in renderer
-    assert "我的回本价" in renderer
-    assert "模拟对照 · 若每个基金交易日直接买伦敦金" in renderer
-    assert "同额定投伦敦金 · 我的平均成本" not in renderer

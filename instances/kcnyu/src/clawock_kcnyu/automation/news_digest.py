@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-gh_action_news_digest.py — daily 21:00 HKT US news digest.
+KCNyu daily 21:00 HKT US news digest.
 
 Fetches news for active US holdings (past 48h), calls MiniMax M3 with an optional
 Xiaomi fallback to distill actionable bullets, and writes
@@ -21,12 +21,8 @@ from pathlib import Path
 
 import requests
 
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-_CHECKOUT = Path(__file__).resolve().parents[2]
-sys.path.insert(0, str(_CHECKOUT))
-sys.path.insert(0, str(_CHECKOUT / "src"))
-from clawock.portfolio import instruments as instrument_registry  # noqa: E402
-from xiaomi_llm import chat
+from clawock.portfolio import instruments as instrument_registry
+from clawock_kcnyu.automation.llm import chat
 from clawock.market_data.sentiment import fetch_google_news
 
 

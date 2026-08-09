@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-backtest_combined_regime.py — the WHOLE book (HK+US, current USD weights) with the
+Combined-book regime evaluation — the WHOLE book (HK+US, current USD weights) with the
 lev_regime dial applied, vs buy-and-hold, vs an all-1x (never-leveraged) reference.
 
 Each holding is mapped to a factor proxy we have multi-year history for (young names
@@ -16,12 +16,10 @@ Dial (matches production compute_regime):
   • 1x sleeves untouched.
 
 Outputs: results table + memory/.tmp/combined_*.png
-Run: python3 scripts/data/backtest_combined_regime.py
+Run: clawock evaluate-combined-regime
 """
 import json
 import math
-import os
-import sys
 from datetime import date
 from pathlib import Path
 
@@ -38,18 +36,11 @@ for _fp in ('/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc',):
         plt.rcParams['font.family'] = font_manager.FontProperties(fname=_fp).get_name()
 plt.rcParams['axes.unicode_minus'] = False
 
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from clawock.decision import regime as compute_regime
+from clawock.evidence import run_card
+from clawock.workspace import workspace_root
 
-# The checkout root, so `clawock` resolves from the tree this file ships
-# in. Reached through the scripts/data/workspace shim until #267 step 3,
-# whose only remaining job was inserting this path as a side effect.
-sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
-sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
-from clawock.decision import regime as compute_regime  # noqa: E402
-from clawock.evidence import run_card  # noqa: E402  every backtest leaves evidence behind
-from clawock.workspace import workspace_root  # noqa: E402
-
-WS = workspace_root(Path(__file__).resolve().parent.parent.parent)
+WS = workspace_root(Path.cwd())
 OUT = WS / 'memory' / '.tmp'
 OUT.mkdir(parents=True, exist_ok=True)
 UA = ('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 '

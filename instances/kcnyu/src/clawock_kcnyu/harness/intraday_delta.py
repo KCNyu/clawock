@@ -15,27 +15,14 @@ from datetime import datetime, timezone
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
-# The checkout root, so `clawock` resolves from the tree this file ships
-# in. Reached through the scripts/data/workspace shim until #267 step 3,
-# whose only remaining job was inserting this path as a side effect.
-sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
-sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
-from clawock.workspace import workspace_root  # noqa: E402
-from clawock.market_data import sessions as trading_calendar  # noqa: E402
-from clawock.market_data import peer_quotes as fetch_peers  # noqa: E402
+from clawock.workspace import workspace_root
+from clawock.market_data import sessions as trading_calendar
+from clawock.market_data import peer_quotes as fetch_peers
+from clawock_kcnyu.automation import cron_heartbeat
 
-# Code lives in the checkout; only DATA lives in the workspace. `workspace_root`
-# is overridable, so resolving our own modules through WS would read them out of
-# someone else's data directory — or silently pick up whatever happens to be
-# there. Same expression WS is seeded from, kept separate on purpose (#269).
-_CHECKOUT = Path(__file__).resolve().parents[2]
-WS = workspace_root(Path(__file__).resolve().parents[2])
+WS = workspace_root(Path.cwd())
 HKT = ZoneInfo("Asia/Hong_Kong")
 PORTFOLIO = WS / "portfolio.json"
-
-sys.path.insert(0, str(_CHECKOUT / "scripts" / "data"))
-from clawock_kcnyu.automation import cron_heartbeat  # noqa: E402
-
 
 def _load(path):
     try:

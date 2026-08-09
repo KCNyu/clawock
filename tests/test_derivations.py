@@ -22,7 +22,7 @@ sys.path.insert(0, os.path.join(WS, "scripts", "data"))
 from clawock.portfolio import integrity as pi  # noqa: E402
 from clawock.portfolio import realized as rr  # noqa: E402
 from clawock.portfolio import aggregates as ra  # noqa: E402
-import build_dashboard as bd  # noqa: E402
+from clawock.publish import dashboard as bd  # noqa: E402
 
 
 # ── derive_cash: baseline + trades cashflow after baseline + adjustments ──────

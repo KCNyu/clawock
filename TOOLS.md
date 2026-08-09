@@ -9,7 +9,7 @@
 - 可移植工具与工作流：安装后的 `clawock`；源码归 `src/clawock/`
 - Harness 入口（cron 调起）：`clawock brief|report|intraday`；实现来自独立安装的 `clawock-kcnyu`（`instances/kcnyu/`）
 - Host / publish / CI / growth 运维：`ops/{host,publish,ci,growth}/`
-- `scripts/data/` 仅是尚待迁移的仓库内部 job，不是 OpenClaw 或人工调用接口
+- 仓库已无 `scripts/data/` 运行入口；OpenClaw 不得恢复或猜测旧脚本路径
 - Dashboard 页面：`site/index.html`；完整 generation 由 KCNyu postflight 与 `ops/publish/publish_dashboard.sh` 刷新到 data plane
 
 ## 公共发布层（仓库 = `github.com/KCNyu/clawock`）

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-backtest_hstech_regime.py — verify the "regime de-risking" thesis on real data.
+HSTECH regime evaluation — verify the "regime de-risking" thesis on real data.
 
 Pulls 2021→now daily HSTECH (Hang Seng Tech) closes from Tencent kline and
 backtests whether a simple INDEX-level regime filter (200DMA trend + realized-vol
@@ -12,30 +12,21 @@ it prints a table so we can decide whether to wire the regime score into the
 risk guardrail (step A).
 
 Run:
-  python3 scripts/data/backtest_hstech_regime.py
-  python3 scripts/data/backtest_hstech_regime.py --ma 150 --vol-cap 0.45
+  clawock evaluate-hstech-regime
+  clawock evaluate-hstech-regime --ma 150 --vol-cap 0.45
 """
 import argparse
 import math
-import os
-import sys
 from datetime import date
 from pathlib import Path
 
 import requests
 
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from clawock.decision import regime as compute_regime
+from clawock.evidence import run_card
+from clawock.workspace import workspace_root
 
-# The checkout root, so `clawock` resolves from the tree this file ships
-# in. Reached through the scripts/data/workspace shim until #267 step 3,
-# whose only remaining job was inserting this path as a side effect.
-sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
-sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
-from clawock.decision import regime as compute_regime  # noqa: E402
-from clawock.evidence import run_card  # noqa: E402  every backtest leaves evidence behind
-from clawock.workspace import workspace_root  # noqa: E402
-
-WS = workspace_root(Path(__file__).resolve().parents[2])
+WS = workspace_root(Path.cwd())
 TENCENT = 'https://web.ifzq.gtimg.cn/appstock/app/kline/kline'
 
 

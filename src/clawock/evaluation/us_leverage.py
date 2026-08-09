@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-backtest_us_leverage.py — same regime backtest as HSTECH, but for kcn's US 2x
+US leverage evaluation — same regime backtest as HSTECH, but for kcn's US 2x
 single-stock ETFs: PLTU(2x PLTR), ROBN(2x HOOD), MSFU(2x MSFT).
 
 These ETFs are young (2023-24 launches) so we simulate the 2x daily-reset sleeve
@@ -11,11 +11,9 @@ Outputs:
   • a results table (totRet / CAGR / maxDD / worst-window / %inMkt / switches)
   • PNG charts → memory/.tmp/us_lev_*.png  (equity log + underwater drawdown + summary bars)
 
-Run: python3 scripts/data/backtest_us_leverage.py
+Run: clawock evaluate-us-leverage
 """
 import math
-import os
-import sys
 from datetime import date
 from pathlib import Path
 
@@ -39,18 +37,11 @@ for _fp in ('/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc',
             pass
 plt.rcParams['axes.unicode_minus'] = False
 
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from clawock.decision import regime as compute_regime
+from clawock.evidence import run_card
+from clawock.workspace import workspace_root
 
-# The checkout root, so `clawock` resolves from the tree this file ships
-# in. Reached through the scripts/data/workspace shim until #267 step 3,
-# whose only remaining job was inserting this path as a side effect.
-sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
-sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
-from clawock.decision import regime as compute_regime  # noqa: E402
-from clawock.evidence import run_card  # noqa: E402  every backtest leaves evidence behind
-from clawock.workspace import workspace_root  # noqa: E402
-
-WS = workspace_root(Path(__file__).resolve().parent.parent.parent)
+WS = workspace_root(Path.cwd())
 OUT = WS / 'memory' / '.tmp'
 OUT.mkdir(parents=True, exist_ok=True)
 UA = ('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 '

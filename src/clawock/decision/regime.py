@@ -2,7 +2,7 @@
 """
 compute_regime.py — the LEVERAGE DIAL (杠杆刻度盘).
 
-Verified in backtest_hstech_regime.py on 2021→now real HSTECH data: an index-level
+Verified by `clawock evaluate-hstech-regime` on 2021→now real HSTECH data: an index-level
 200DMA trend filter + 20d realized-vol band would have taken the 2021-22 crash
 drawdown on a 2x-HSTECH sleeve from -95% to 0% (fully de-risked through the crash),
 and de-levering on the same signal cut full-period maxDD from -95% → -44%.
@@ -20,7 +20,7 @@ mapping below: `amber` only halves the cap, and `red` needs trend-off AND
 vol-hot together. HSTECH's 20d vol sits under 50% through much of a slow
 decline, so the common crash state is amber — 1x on a 2x sleeve, not cash.
 
-`validate_regime_dial.py` models that shipped mapping and reports
+`clawock validate-regime-dial` models that shipped mapping and reports
 (run card `regime_dial_validation-20260802-896b2145`, 1370 bars,
 2021-01-04 → 2026-07-31):
 
@@ -43,7 +43,7 @@ rule that does not need a timing edge to be worth keeping. What is no longer
 defensible is the previous framing, in which a -95%→-44% figure from a
 different strategy read as evidence for this one.
 
-Re-derive: `python3 scripts/data/validate_regime_dial.py`.
+Re-derive: `clawock validate-regime-dial`.
 
 The single biggest lever was LEVERAGE (2x→1x→cash), not timing. So this module
 emits a leverage-cap MULTIPLIER that tightens the guardrail's leveraged-ETF leg cap
@@ -89,7 +89,7 @@ VOL_WINDOW = 20
 VOL_CAP = 0.50       # HSTECH 20d annualised realised-vol ceiling for "vol-ok"
 
 # US 2x single-stock ETF → (underlying ticker, Tencent fqkline symbol). The US dial is
-# PER-NAME (each ETF tracks one stock) and — verified in backtest_us_leverage.py — must
+# PER-NAME (each ETF tracks one stock) and — verified by `clawock evaluate-us-leverage` — must
 # be LIGHT on low-vol names (MSFT regime-filter whipsawed and hurt returns). So a US name
 # only triggers a forced CUT when its underlying is trend-off AND vol is hot (>70%);
 # trend-off-but-calm is a soft 'watch', not a cut.

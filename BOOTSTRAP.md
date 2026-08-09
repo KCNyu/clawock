@@ -95,7 +95,7 @@ context.json 的决策/自进化字段，**必须用上**：
 - 从 chat / Telegram 触发的 session 不要直接 `git push` — 先问用户。harness postflight 跑完会自动 push（带 rebase+retry），不用 LLM 操心
 - 绕过 `openclaw cron edit` / `ops/host/sync_us_cron_dst.py` 直接改 cron SQLite/旧 `jobs.json`；contract 改动必须重生成 `docs/operations/cron-schedules.md` 并跑 `ops/system_check.py`
 - 改 `~/.openclaw/openclaw.json` 不备份（先 `cp -p X X.bak.$(date +%Y%m%d-%H%M)`）— 自动化 LLM 也要遵守
-- 跑 `scripts/legacy/` 下任何脚本当主路径（仅供参考阅读）
+- 从 dated memory 恢复或重建已删除的 `scripts/` 路径
 - 在 group chat / WeChat 简报里加 emoji 烟花（标题 1 个 emoji 上限）
 
 ---

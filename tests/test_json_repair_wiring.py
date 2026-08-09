@@ -25,7 +25,7 @@ import pytest
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'scripts' / 'data'))
 
-import build_dashboard as dashboard  # noqa: E402
+from clawock.publish import dashboard  # noqa: E402
 import cron_health_check  # noqa: E402
 from clawock_kcnyu.harness import _harness_common  # noqa: E402
 

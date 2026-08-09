@@ -21,12 +21,22 @@ dependencies = [
 "kcnyu.intraday.preflight" = "clawock_kcnyu.harness.intraday_preflight:main"
 "kcnyu.intraday.postflight" = "clawock_kcnyu.harness.intraday_postflight:main"
 
+[project.entry-points."clawock.dashboard_sections"]
+kcnyu = "clawock_kcnyu.dashboard:guardrail_sections"
+
 [project.scripts]
 clawock-kcnyu-brief-watchdog = "clawock_kcnyu.harness.brief_watchdog:main"
 clawock-kcnyu-report-watchdog = "clawock_kcnyu.harness.report_watchdog:main"
 clawock-kcnyu-intraday-watchdog = "clawock_kcnyu.harness.intraday_watchdog:main"
 clawock-kcnyu-cron-heartbeat = "clawock_kcnyu.automation.cron_heartbeat:main"
 clawock-kcnyu-workflow-outcomes = "clawock_kcnyu.automation.workflow_outcomes:main"
+clawock-kcnyu-intraday-delta = "clawock_kcnyu.harness.intraday_delta:main"
+clawock-kcnyu-gold-fetch = "clawock_kcnyu.gold.fetch:main"
+clawock-kcnyu-gold-update = "clawock_kcnyu.gold.update:main"
+clawock-kcnyu-influencer-scan = "clawock_kcnyu.automation.influencer:main"
+clawock-kcnyu-brief-fallback = "clawock_kcnyu.automation.brief_fallback:main"
+clawock-kcnyu-news-digest = "clawock_kcnyu.automation.news_digest:main"
+clawock-kcnyu-weekly-review = "clawock_kcnyu.automation.weekly_review:main"
 
 [tool.setuptools]
 package-dir = {"" = "src"}

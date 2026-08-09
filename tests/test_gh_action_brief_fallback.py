@@ -6,7 +6,7 @@ import sys
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts" / "data"))
 
-import gh_action_brief_fallback as fallback  # noqa: E402
+from clawock_kcnyu.automation import brief_fallback as fallback  # noqa: E402
 
 
 def _context():

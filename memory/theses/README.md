@@ -8,13 +8,13 @@ review trigger.
 Validate a document:
 
 ```bash
-python3 scripts/data/thesis_registry.py validate memory/theses/<thesis-id>.json
+clawock thesis validate memory/theses/<thesis-id>.json
 ```
 
 Compare two versions:
 
 ```bash
-python3 scripts/data/thesis_registry.py drift old.json new.json
+clawock thesis drift old.json new.json
 ```
 
 Missing baselines stay `unknown`. A changed dimension requires a newly observed

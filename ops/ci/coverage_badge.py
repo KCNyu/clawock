@@ -50,7 +50,7 @@ CORE_MODULES = (
     'src/clawock/portfolio/aggregates.py',
     'src/clawock/portfolio/realized.py',
     'src/clawock/portfolio/risk.py',
-    'scripts/data/intraday_delta_gate.py',
+    'instances/kcnyu/src/clawock_kcnyu/harness/intraday_delta.py',
     'instances/kcnyu/src/clawock_kcnyu/automation/workflow_outcomes.py',
     'src/clawock/safe_io.py',
     'src/clawock/market_data/sessions.py',

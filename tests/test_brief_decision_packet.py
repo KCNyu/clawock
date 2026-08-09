@@ -313,5 +313,4 @@ def test_pages_prefers_projection_and_keeps_a_backward_fallback():
     # Python source file in the KCNyu workspace.
     assert "decision_packet_summary" in skill
     assert "decision_packet_judgment_template" in skill
-    assert "scripts/data/brief_decision_packet.py" not in skill
     assert "禁止加入价格、RSI、MA" in skill
