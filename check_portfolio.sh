@@ -3,5 +3,5 @@
 set -euo pipefail
 
 cd "$(dirname "$0")"
-python3 scripts/data/analyze_hk_stocks.py
-python3 scripts/data/analyze_us_stocks.py
+clawock analyze-hk
+clawock analyze-us

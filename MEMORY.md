@@ -26,7 +26,7 @@
 
 ### 1. 不用缓存价
 - **禁止用 portfolio.json 的 `current_price` 计算盈亏** — 那是上次更新的旧数据
-- 必须先跑 `scripts/data/analyze_{us,hk}_stocks.py`（fallback 链详情见 `TOOLS.md` § 数据源清单）
+- 必须先跑 `clawock analyze-us` / `clawock analyze-hk`（fallback 链详情见 `TOOLS.md` § 数据源清单）
 - 所有源均失败 → 明确说"数据获取失败，以下为旧数据"，**禁止静默使用**
 - 数据成功后 → 更新 `portfolio.json` + git commit
 - 教训：2026-05-11 用缓存价 RKLB 写成 $110 vs 实时 $118，盈利 +$790 错写成 +$550
@@ -53,7 +53,7 @@
 
 ## 脚本与降级 curl 的关系
 
-**默认走脚本**（`scripts/data/analyze_us_stocks.py` / `scripts/data/analyze_hk_stocks.py` / `scripts/data/fetch_us_stocks.py`），它们封装了 provider 顺序、URL pattern、Eastmoney 前缀、prev_close 独立链、各种字段污染兜底——这些是反复踩坑攒下来的，能用就别绕。
+**默认走脚本**（`clawock analyze-us` / `clawock analyze-hk` / `clawock us-quotes`），它们封装了 provider 顺序、URL pattern、Eastmoney 前缀、prev_close 独立链、各种字段污染兜底——这些是反复踩坑攒下来的，能用就别绕。
 
 **脚本不覆盖时可以 curl，但要先学再 curl：**
 - 场景：查非持仓 ticker / 指数成分 / 突发数据源切换 / 调试 fallback 某一路

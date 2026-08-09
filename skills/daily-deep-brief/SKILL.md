@@ -32,8 +32,8 @@ clawock brief preflight
 
 这一步内部做了：
 
-1. `scripts/data/analyze_us_stocks.py` — US 价格刷新（7-route fallback + RSI/MA）
-2. `scripts/data/analyze_hk_stocks.py` — HK 价格刷新（Tencent 主源 + Eastmoney 全量独立对账/兜底 → stooq → yfinance + 恒指 + 信号）
+1. `clawock analyze-us` — US 价格刷新（7-route fallback + RSI/MA）
+2. `clawock analyze-hk` — HK 价格刷新（Tencent 主源 + Eastmoney 全量独立对账/兜底 → stooq → yfinance + 恒指 + 信号）
 3. `clawock fx --json` — USDHKD 实时汇率（Frankfurter → exchangerate.host → Yahoo）
 4. `cp portfolio.json memory/snapshots/{date}.json` — 每日快照（longitudinal 基础设施）
    - **为什么**：`portfolio.json` 是滚动覆盖的 ground truth，每次刷价就丢前一刻状态。
@@ -570,7 +570,7 @@ calibration bundle 的 `decision_metrics` 是 v2 唯一口径：只结算**条�
 结构（**postflight 会校验这些段标记**，缺哪个 fail）：
 
 - `# Header`（regime US/HK 分开 + FX rate + book USD/HKD 双视角）
-- `## ▎仓位明细` —— HK + US 各一张 7 列 markdown 表 `代码 | 股 | 成本 | 现价 | 今日 | 浮% | 浮$`（与 Mode 6/7 cron 完全一致；数据从 core 的 `portfolio.portfolios.{hk,us}_stocks.holdings` 直接取，**只列 shares>0 的**。2026-05-21 起的 visual-width-aware 渲染推荐 import `scripts.data._wechat_table.render_holdings_table`，省得手算 CJK 对齐）
+- `## ▎仓位明细` —— HK + US 各一张 7 列 markdown 表 `代码 | 股 | 成本 | 现价 | 今日 | 浮% | 浮$`（与 Mode 6/7 cron 完全一致；数据从 core 的 `portfolio.portfolios.{hk,us}_stocks.holdings` 直接取，**只列 shares>0 的**。2026-05-21 起的 visual-width-aware 渲染推荐 import `clawock.mobile_table.render_holdings_table`，省得手算 CJK 对齐）
 - `## Retrospective`（来自 calibration bundle 的 retrospective）
 - `## Tier 1` 大表
 - `## Tier 2` Bull vs Bear

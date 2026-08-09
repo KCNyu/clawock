@@ -17,7 +17,7 @@ pytest.importorskip("requests")
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts" / "data"))
 
-import analyze_hk_stocks as hk  # noqa: E402
+from clawock import analyze_hk_stocks as hk  # noqa: E402
 
 
 @pytest.fixture(autouse=True)

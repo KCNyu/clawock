@@ -375,6 +375,14 @@ def _packaged_utility(args) -> int:
         from clawock.fetch_daily_bars import main
     elif args.command == "catalysts":
         from clawock.fetch_catalysts import main
+    elif args.command == "us-quotes":
+        from clawock.fetch_us_stocks import main
+    elif args.command == "analyze-us":
+        from clawock.analyze_us_stocks import main
+    elif args.command == "analyze-hk":
+        from clawock.analyze_hk_stocks import main
+    elif args.command == "benchmark":
+        from clawock.fetch_benchmark_history import main
     else:
         from clawock.claim_provenance import main
     return main(args.utility_args)
@@ -492,7 +500,8 @@ def main(argv=None) -> int:
         "quant", "regime", "t0", "quant-review", "t0-review",
         "cross-factor", "peer-residual", "fetch-peers", "filings",
         "fundamentals", "fundflow", "em-news",
-        "daily-bars", "catalysts",
+        "daily-bars", "catalysts", "us-quotes", "analyze-us", "analyze-hk",
+        "benchmark",
     }
     if raw_argv and raw_argv[0] in packaged_utilities:
         return _packaged_utility(argparse.Namespace(
@@ -604,6 +613,10 @@ def main(argv=None) -> int:
         ("em-news", "fetch Chinese news for active HK holdings"),
         ("daily-bars", "maintain immutable canonical daily OHLC bars"),
         ("catalysts", "fetch upcoming earnings and macro catalysts"),
+        ("us-quotes", "refresh US holdings through the provider fallback chain"),
+        ("analyze-us", "refresh and analyze active US holdings"),
+        ("analyze-hk", "refresh and analyze active HK holdings"),
+        ("benchmark", "fetch SPY, HSI, and HSTECH daily benchmark history"),
     ):
         utility = sub.add_parser(name, help=help_text, add_help=False)
         utility.add_argument("utility_args", nargs=argparse.REMAINDER)

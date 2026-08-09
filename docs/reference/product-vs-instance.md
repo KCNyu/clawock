@@ -30,7 +30,7 @@ Ask one question about a module:
 
 Two clarifications that decide most of the hard cases:
 
-**A fetcher is product; a fetcher's *subject* is instance.** `fetch_us_stocks.py`
+**A fetcher is product; a fetcher's *subject* is instance.** `clawock us-quotes`
 is product — any book with US equities needs multi-provider price fetching with
 the same staleness rules. `fetch_gold_dca.py` is instance: it exists because kcn
 holds 000217, and nobody else's book has that position by construction.
@@ -99,8 +99,8 @@ and registry rather than assuming a book named `hk_stocks`.
 | Risk + governance | `clawock portfolio-risk` `risk_discipline` `thesis_registry` `entry_gate` `earnings_review` `research_surface` |
 | Quant + research | `clawock quant` `clawock regime` `clawock t0` `clawock quant-review` `clawock t0-review` `clawock cross-factor` `clawock peer-residual` `peer_scan` `suggest_peers` |
 | Evidence + provenance | `news_evidence_graph` `research_provenance` `claim_provenance` `run_card` `build_evidence` |
-| Market data | `clawock fx` `clawock fetch-peers` `clawock filings` `clawock fundamentals` `clawock fundflow` `clawock em-news` `clawock daily-bars` `clawock catalysts` `clawock.known_catalysts` `fetch_us_stocks` `fetch_benchmark_history` `fetch_sentiment` `fetch_macro` `mover_news` `analyze_hk_stocks` `analyze_us_stocks` `_em_http` |
-| Moved into product | `clawock.instrument_registry` `clawock.bar_checks` `clawock.brief_context` `clawock.brief_decision_packet` `clawock.decision_contract` `clawock.decision_v2` `clawock.plan_surface` `clawock.risk_discipline` `clawock.dashboard_outputs` `clawock.research_provenance` `clawock.run_card` `clawock.entry_gate` `clawock.thesis_registry` `clawock.earnings_review` `clawock.research_surface` `clawock.claim_provenance` `clawock.recompute_realized` `clawock.snapshot_realized` `clawock.portfolio_math` `clawock.recompute_aggregates` `clawock.recompute_cash` `clawock.shadow_portfolio` `clawock.fetch_fx` `clawock.portfolio_risk_metrics` `clawock.compute_quant_signals` `clawock.compute_regime` `clawock.compute_t0_setups` `clawock.quant_signal_review` `clawock.t0_setup_review` `clawock.cross_sectional_factor` `clawock.peer_residual_engine` `clawock.fetch_peers` `clawock.fetch_us_filings` `clawock._em_symbols` `clawock.fetch_fundamentals_em` `clawock.fetch_fundflow_em` `clawock.fetch_em_news` `clawock.fetch_daily_bars` `clawock.fetch_catalysts` `clawock.known_catalysts` `clawock.json_repair` `clawock.safe_io` `clawock.trading_calendar` | Code and schemas ship in the wheel; each user's configuration and data stay in their workspace |
+| Market data | `clawock fx` `clawock fetch-peers` `clawock filings` `clawock fundamentals` `clawock fundflow` `clawock em-news` `clawock daily-bars` `clawock catalysts` `clawock us-quotes` `clawock analyze-us` `clawock analyze-hk` `clawock benchmark` `fetch_sentiment` `fetch_macro` `mover_news` `_em_http` |
+| Moved into product | `clawock.instrument_registry` `clawock.market_books` `clawock.mobile_table` `clawock.bar_checks` `clawock.brief_context` `clawock.brief_decision_packet` `clawock.decision_contract` `clawock.decision_v2` `clawock.plan_surface` `clawock.risk_discipline` `clawock.dashboard_outputs` `clawock.research_provenance` `clawock.run_card` `clawock.entry_gate` `clawock.thesis_registry` `clawock.earnings_review` `clawock.research_surface` `clawock.claim_provenance` `clawock.recompute_realized` `clawock.snapshot_realized` `clawock.portfolio_math` `clawock.recompute_aggregates` `clawock.recompute_cash` `clawock.shadow_portfolio` `clawock.fetch_fx` `clawock.portfolio_risk_metrics` `clawock.compute_quant_signals` `clawock.compute_regime` `clawock.compute_t0_setups` `clawock.quant_signal_review` `clawock.t0_setup_review` `clawock.cross_sectional_factor` `clawock.peer_residual_engine` `clawock.fetch_peers` `clawock.fetch_us_filings` `clawock._em_symbols` `clawock.fetch_fundamentals_em` `clawock.fetch_fundflow_em` `clawock.fetch_em_news` `clawock.fetch_daily_bars` `clawock.fetch_catalysts` `clawock.known_catalysts` `clawock.fetch_us_stocks` `clawock.analyze_us_stocks` `clawock.analyze_hk_stocks` `clawock.fetch_benchmark_history` `clawock.json_repair` `clawock.safe_io` `clawock.trading_calendar` | Code and schemas ship in the wheel; each user's configuration and data stay in their workspace |
 | Gates + outputs | `preflight_integrity` `validate_sidecars` `dashboard_outputs` `build_dashboard` `workflow_outcomes` `workflow_health` `coverage_badge` `cron_contract` `cron_heartbeat` |
 
 ### Instance — kcn's desk
@@ -110,7 +110,6 @@ and registry rather than assuming a book named `hk_stocks`.
 | This host's cron wiring | `sync_cron_payloads` `sync_us_cron_dst` `cron_runs` `cron_timeline` `cron_token_audit` `cron_health_check` `generate_cron_docs` `gc_sessions` `intraday_delta_gate` | Reads or writes OpenClaw's schedule and state |
 | This repo's publishing | `publish_data_branch` `indexnow_submit` `assemble_dashboard_gif` `rick_broadcast` | Targets this repository's branches, Pages and voice |
 | This repo's workflows | `gh_action_brief_fallback` `gh_action_news_digest` `gh_action_weekly_review` `xiaomi_llm` | Entry points for `.github/workflows/`, and the LLM client they use |
-| This deployment's channel | `_wechat_table` | WeChat is how kcn receives reports |
 | kcn's specific positions | `fetch_gold_dca` `update_gold_dca` `fetch_influencer_feed` | 000217; a feed chosen for this book's theses |
 | Claims about this book | `backtest_hstech_regime` `backtest_us_leverage` `backtest_combined_regime` `validate_regime_dial` | Validate kcn's dial against kcn's holdings |
 | This site's output contract | `config/dashboard-outputs.json` | Names this desk's generated artifacts, clock fields and linked generation group; the wheel only implements the configured diff algorithm |
@@ -119,7 +118,7 @@ and registry rather than assuming a book named `hk_stocks`.
 
 ### Contested — flagging rather than hiding
 
-Four calls are genuinely arguable, and a reviewer may reasonably move them:
+Three calls are genuinely arguable, and a reviewer may reasonably move them:
 
 - **`build_dashboard.py`** — filed as product because it aggregates any ledger,
   but it also knows this site's tab structure and card set. If the renderer is
@@ -129,8 +128,6 @@ Four calls are genuinely arguable, and a reviewer may reasonably move them:
 - **`cron_contract` / `cron_heartbeat`** — filed as product: they describe *a*
   schedule contract, not OpenClaw's. Their callers are instance. If that ever
   stops being true they move.
-- **`analyze_hk_stocks` / `analyze_us_stocks`** — product by the fetcher rule, but
-  both still read this portfolio's shape directly rather than taking a book.
 
 ## `scripts/legacy/` — resolved
 

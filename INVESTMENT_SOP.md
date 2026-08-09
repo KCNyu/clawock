@@ -30,9 +30,9 @@
    - 供应链卡点深挖 / AI半导体瓶颈选股 / "用 Serenity 的方式看 X" / thesis 压力测试 → `serenity-skill`（重、手动深挖，不进 cron）
    - cron 简报 → 对应 skill 的 Mode 6/7
 6. **跑脚本取最新价**（**绝不直接用 portfolio.json 缓存价**）：
-   - 美股：`python3 scripts/data/analyze_us_stocks.py [TICKER]`（7 路 fallback + RSI/MA/news/signal）
-   - 港股：`python3 scripts/data/analyze_hk_stocks.py [TICKER]`（Tencent 主源 + Eastmoney 全量独立对账/兜底 → stooq → yfinance）
-   - 仅刷价：`scripts/data/fetch_us_stocks.py`
+   - 美股：`clawock analyze-us [TICKER]`（7 路 fallback + RSI/MA/news/signal）
+   - 港股：`clawock analyze-hk [TICKER]`（Tencent 主源 + Eastmoney 全量独立对账/兜底 → stooq → yfinance）
+   - 仅刷价：`clawock us-quotes`
 7. 输出分析（按 skill 输出格式）
 8. 重要操作后：更新 `portfolio.json` + 当天 `memory/YYYY-MM-DD.md` + git commit（AGENTS.md 有 auto-commit 规则）
 

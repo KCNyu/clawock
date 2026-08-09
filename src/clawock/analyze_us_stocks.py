@@ -8,27 +8,22 @@ Steps:
   4. Generate per-holding signals + portfolio risk summary
 
 Usage:
-  python3 analyze_us_stocks.py             # full analysis
-  python3 analyze_us_stocks.py --no-fetch  # skip price refresh (use cached)
-  python3 analyze_us_stocks.py --no-news   # skip Finnhub news
+  clawock analyze-us             # full analysis
+  clawock analyze-us --no-fetch  # skip price refresh (use cached)
+  clawock analyze-us --no-news   # skip Finnhub news
 """
 
-import json, os, sys
+import json, sys
 from datetime import datetime, timezone, timedelta
-from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 import requests
 
-# ── imports from sibling script ─────────────────────────────────────────────
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-_CHECKOUT = Path(__file__).resolve().parents[2]
-sys.path.insert(0, str(_CHECKOUT))
-sys.path.insert(0, str(_CHECKOUT / "src"))
-from fetch_us_stocks import (
+from clawock.fetch_us_stocks import (
     update_us_portfolio, load_api_keys,
     PORTFOLIO_PATH, SESSION, TIMEOUT
 )
 from clawock.instrument_registry import get as get_instrument
+from clawock.market_books import region_book
 
 ET_TZ  = timezone(timedelta(hours=-4))
 HKT_TZ = timezone(timedelta(hours=8))
@@ -266,7 +261,7 @@ SIGNAL_COLOR = {
 
 
 def print_report(data: Dict, analyses: List[Dict]):
-    us    = data['portfolios']['us_stocks']
+    _, us = region_book(data, 'US')
     now   = datetime.now(ET_TZ)
     now_h = datetime.now(HKT_TZ)
 
@@ -365,7 +360,7 @@ def print_wechat_report(data: Dict, analyses: List[Dict], md_table: bool = False
     (mobile-aligned via :---: markers + padded cells). Used by intraday
     cron via `--md-table`; briefings keep the ASCII single-column form.
     """
-    us    = data['portfolios']['us_stocks']
+    _, us = region_book(data, 'US')
     now   = datetime.now(ET_TZ)
 
     tc   = us.get('total_cost', 0)
@@ -393,9 +388,9 @@ def print_wechat_report(data: Dict, analyses: List[Dict], md_table: bool = False
     # Holdings
     lines.append('')
     if md_table:
-        # 7-col visual-width-aligned markdown table — see _wechat_table.py.
+        # Seven-column visual-width-aligned markdown table.
         # Stays consistent line-width on mobile WeChat (no md render there).
-        from _wechat_table import render_holdings_table
+        from clawock.mobile_table import render_holdings_table
         rows = [{
             'code':      a['holding']['ticker'],
             'shares':    a['holding'].get('shares', 0),
@@ -464,11 +459,12 @@ def print_wechat_report(data: Dict, analyses: List[Dict], md_table: bool = False
 
 # ── main ─────────────────────────────────────────────────────────────────────
 
-def run_analysis(fetch: bool = True, include_news: bool = True):
-    no_fetch = '--no-fetch' in sys.argv
-    no_news  = '--no-news'  in sys.argv
-    wechat   = '--wechat'   in sys.argv
-    md_table = '--md-table' in sys.argv
+def run_analysis(fetch: bool = True, include_news: bool = True, argv=None):
+    argv = list(sys.argv[1:] if argv is None else argv)
+    no_fetch = '--no-fetch' in argv
+    no_news  = '--no-news'  in argv
+    wechat   = '--wechat'   in argv
+    md_table = '--md-table' in argv
     if not fetch:   no_fetch = True
     if not include_news: no_news = True
 
@@ -493,7 +489,7 @@ def run_analysis(fetch: bool = True, include_news: bool = True):
             data = json.load(f)
 
     keys    = load_api_keys()
-    us      = data['portfolios']['us_stocks']
+    _, us = region_book(data, 'US')
     active  = [h for h in us['holdings'] if h.get('shares', 0) > 0]
 
     _say(f"[ 2/3 ] 拉取技术指标 (Polygon RSI-14 / MA)...")
@@ -536,5 +532,10 @@ def run_analysis(fetch: bool = True, include_news: bool = True):
     return analyses
 
 
+def main(argv=None) -> int:
+    run_analysis(argv=argv)
+    return 0
+
+
 if __name__ == '__main__':
-    run_analysis()
+    raise SystemExit(main())

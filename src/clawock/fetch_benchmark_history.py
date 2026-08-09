@@ -21,13 +21,12 @@ Output: assets/data/benchmark.json
   }
 
 Run:
-  python3 scripts/data/fetch_benchmark_history.py            # write file
-  python3 scripts/data/fetch_benchmark_history.py --dry-run  # print, no write
-  python3 scripts/data/fetch_benchmark_history.py --days 90  # custom window
+  clawock benchmark            # write file
+  clawock benchmark --dry-run  # print, no write
+  clawock benchmark --days 90  # custom window
 """
 import argparse
 import json
-import os
 import sys
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -35,22 +34,14 @@ from typing import Dict, List
 
 import requests
 
-# The checkout root, so `clawock` resolves from the tree this file ships
-# in. Reached through the scripts/data/workspace shim until #267 step 3,
-# whose only remaining job was inserting this path as a side effect.
-sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
-sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
-from clawock.workspace import workspace_root  # noqa: E402
+from clawock.fetch_us_stocks import load_api_keys
+from clawock.safe_io import safe_write_json
+from clawock.workspace import workspace_root
 
-WS_ROOT = workspace_root(Path(__file__).resolve().parent.parent.parent)
+WS_ROOT = workspace_root(Path.cwd())
 OUT_FILE = WS_ROOT / 'assets' / 'data' / 'benchmark.json'
 TIMEOUT = 12
 DEFAULT_DAYS = 60
-
-sys.path.insert(0, str(WS_ROOT / 'scripts' / 'data'))
-from fetch_us_stocks import load_api_keys  # type: ignore
-from clawock.safe_io import safe_write_json
-
 
 def fetch_polygon_daily(ticker: str, days: int, api_key: str) -> List[Dict]:
     """Polygon aggregates: daily close for the last N calendar days."""
@@ -116,12 +107,12 @@ def fetch_tencent_hk_daily(sym: str, days: int) -> List[Dict]:
         return []
 
 
-def main():
+def main(argv=None) -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument('--days', type=int, default=DEFAULT_DAYS,
                         help='Calendar-day lookback window (default: 60)')
     parser.add_argument('--dry-run', action='store_true', help='Print, do not write file')
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
 
     keys = load_api_keys()
     series: Dict[str, List[Dict]] = {}
@@ -166,12 +157,13 @@ def main():
 
     if args.dry_run:
         print(json.dumps(out, indent=2)[:800])
-        return
+        return 0
 
     OUT_FILE.parent.mkdir(parents=True, exist_ok=True)
     safe_write_json(str(OUT_FILE), out)
     print(f'  ✅ Wrote {OUT_FILE} ({sum(len(s) for s in series.values())} total bars)')
+    return 0
 
 
 if __name__ == '__main__':
-    main()
+    raise SystemExit(main())
