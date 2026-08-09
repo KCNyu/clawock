@@ -85,14 +85,19 @@ fi
 # INSIDE that script's `git push` — so it inherits exactly the environment that
 # defeated it (a cron job's PATH=/usr/bin:/bin, where the installed console
 # script in ~/.local/bin is invisible). Two gates, one resolver.
+# Resolved relative to this hook, not to $WS: the resolver is tooling that ships
+# with the hook, the way safe_push.sh sources its own siblings. $WS is the book
+# under inspection and may be somebody else's — it is what gets *checked*, not
+# where the checker is found.
 IRC=0
-if [ ! -f "$WS/ops/publish/money_checker.sh" ]; then
+_MONEY_CHECKER="$(dirname "${BASH_SOURCE[0]}")/../ops/publish/money_checker.sh"
+if [ ! -f "$_MONEY_CHECKER" ]; then
   echo "🚫 push blocked — ops/publish/money_checker.sh is missing; the money"
   echo "   checker cannot be resolved. The book was not verified."
   exit 1
 fi
 # shellcheck source=ops/publish/money_checker.sh
-. "$WS/ops/publish/money_checker.sh"
+. "$_MONEY_CHECKER"
 run_money_check "$WS" >/tmp/clawock_integrity.out 2>&1 || IRC=$?
 if [ "$IRC" = 127 ]; then
   echo "🚫 push blocked — clawock is neither on PATH nor importable from"
