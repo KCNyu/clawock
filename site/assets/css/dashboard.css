@@ -78,8 +78,15 @@
       --focus: #0078C9;
       --shadow-topbar: 0 8px 24px rgba(18,33,48,.08);
     }
-    /* Preserve the quiet timestamp hierarchy without blending below WCAG AA. */
-    .asof-faded { color: #263848; }
+    /* Preserve the quiet timestamp hierarchy without blending below WCAG AA.
+       Written as `.muted.asof-faded` on purpose: every element carrying this
+       class also carries `.muted`, whose `color` rule is a single class too and
+       lives ~1600 lines further down, so on source order alone it won and this
+       declaration never applied. Measured on the live desktop page: #526170 at
+       .7 over white = 3.24:1, below AA. The intended #263848 at .7 gives
+       4.79:1. Raising specificity is what makes the fix take effect — the
+       colour was already right, it just never reached the element. */
+    .muted.asof-faded { color: #263848; }
   }
 
   .asof-faded { opacity: .7; }
