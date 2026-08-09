@@ -136,7 +136,7 @@ def test_undersized_report_is_rejected(tmp_path):
     report = _report(filler_statements=50, filler_pct=100.0)
     with pytest.raises(SystemExit) as excinfo:
         _run(tmp_path, report)
-    assert 'did not cover scripts/' in str(excinfo.value)
+    assert 'configured source tree was not covered' in str(excinfo.value)
 
 
 @pytest.mark.parametrize('content', ['', 'not json', '{}', '{"files": {}, "totals": {}}'])
