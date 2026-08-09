@@ -18,7 +18,7 @@ heavy enters an intraday path.
 | Should this thesis change? | on new evidence | `clawock thesis drift` after an earnings artifact or a red-line event | one agent turn |
 | Review a reported quarter | on the report | `earnings-review` skill, manual/event-driven | one deep turn + filings |
 | Screen a new name | before a research run | `entry-gate` skill, manual | one cheap turn |
-| Verify a published number | at release | `clawock.provenance` inside `clawock.earnings_review.release()` | local, deterministic |
+| Verify a published number | at release | `clawock.provenance` inside `clawock.decision.earnings.release()` | local, deterministic |
 
 ## Why the daily items are daily
 

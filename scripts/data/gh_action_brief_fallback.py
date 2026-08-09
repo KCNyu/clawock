@@ -20,7 +20,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
 from xiaomi_llm import chat
-from clawock import decision_v2  # noqa: E402
+from clawock.decision import ledger as decision_v2  # noqa: E402
 
 
 def split_brief_and_plan(out):

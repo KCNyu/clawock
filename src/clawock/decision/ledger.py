@@ -28,7 +28,7 @@ from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 
 from clawock import trading_calendar as _cal
-from clawock.decision_contract import (
+from clawock.decision.actions import (
     ACTIVE_ACTIONS,
     ADD_ACTIONS,
     PASSIVE_ACTIONS,

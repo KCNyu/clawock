@@ -10,7 +10,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts" / "data"))
 
 from clawock import brief_context
-from clawock import brief_decision_packet as packet_mod
+from clawock.decision import packet as packet_mod
 
 
 def _context():

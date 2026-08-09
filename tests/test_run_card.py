@@ -17,7 +17,7 @@ import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
 DATA = ROOT / "scripts" / "data"
-PACKAGE = ROOT / "src" / "clawock"
+DECISION = ROOT / "src" / "clawock" / "decision"
 from clawock.evidence import run_card
 
 BACKTESTS = (
@@ -90,10 +90,10 @@ def test_a_metric_change_alone_does_not_change_the_reproduction_key():
 
 
 def test_code_identity_travels_with_the_card():
-    card = _card(code_files=[PACKAGE / "compute_regime.py"])
+    card = _card(code_files=[DECISION / "regime.py"])
 
     entry = card["code"][0]
-    assert entry["file"] == "compute_regime.py"
+    assert entry["file"] == "regime.py"
     assert entry["digest"].startswith("sha256:")
 
 

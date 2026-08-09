@@ -7,13 +7,13 @@ from unittest import mock
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts" / "data"))
-from clawock import decision_v2 as dv2
+from clawock.decision import ledger as dv2
 from clawock_kcnyu.harness.intraday_watchdog import deterministic_fallback as intraday_fallback
 from clawock_kcnyu.harness.report_watchdog import deterministic_fallback as report_fallback
 
 
 def test_decision_engine_is_owned_by_the_product_package():
-    assert Path(dv2.__file__).relative_to(ROOT).as_posix() == "src/clawock/decision_v2.py"
+    assert Path(dv2.__file__).relative_to(ROOT).as_posix() == "src/clawock/decision/ledger.py"
     assert not (ROOT / "scripts" / "data" / "decision_v2.py").exists()
 
 

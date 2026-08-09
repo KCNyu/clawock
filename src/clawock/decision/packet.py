@@ -17,7 +17,7 @@ import math
 import os
 from pathlib import Path
 
-from clawock.decision_contract import ACTIVE_ACTIONS
+from clawock.decision.actions import ACTIVE_ACTIONS
 
 
 SCHEMA_VERSION = 1

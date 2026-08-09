@@ -12,9 +12,9 @@ from clawock.market_data import bars as fetch_daily_bars
 from clawock.market_data import us_quotes as fetch_us_stocks  # noqa: E402
 from clawock.portfolio import instruments as instrument_registry  # noqa: E402
 from clawock.portfolio import risk as portfolio_risk_metrics  # noqa: E402
-from clawock import compute_quant_signals  # noqa: E402
-from clawock import compute_regime  # noqa: E402
-from clawock import compute_t0_setups  # noqa: E402
+from clawock.decision import signals as compute_quant_signals  # noqa: E402
+from clawock.decision import regime as compute_regime  # noqa: E402
+from clawock.decision import setups as compute_t0_setups  # noqa: E402
 from clawock.portfolio import integrity as preflight_integrity  # noqa: E402
 from clawock_kcnyu.harness import brief_preflight  # noqa: E402
 from clawock.market_data import hk_analysis as analyze_hk_stocks  # noqa: E402
