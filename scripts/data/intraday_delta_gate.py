@@ -21,7 +21,7 @@ from zoneinfo import ZoneInfo
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
 from clawock.workspace import workspace_root  # noqa: E402
-from clawock import trading_calendar  # noqa: E402
+from clawock import fetch_peers, trading_calendar  # noqa: E402
 
 # Code lives in the checkout; only DATA lives in the workspace. `workspace_root`
 # is overridable, so resolving our own modules through WS would read them out of
@@ -34,7 +34,6 @@ PORTFOLIO = WS / "portfolio.json"
 
 sys.path.insert(0, str(_CHECKOUT / "scripts" / "data"))
 import cron_heartbeat  # noqa: E402
-import fetch_peers  # noqa: E402
 
 
 def _load(path):

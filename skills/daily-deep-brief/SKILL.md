@@ -40,7 +40,7 @@ clawock brief preflight
      有 snapshot 历史才能做 Rolling P&L 曲线 / Alpha vs benchmark / Drawdown 分析 / Position 变化追溯。
    - ⚠️ **不可补做** — 每过一天少一份永远拿不回来的数据。
 5. **HHI / Top2 集中度算法**（HK + US leg 分开）
-6. **SEC EDGAR fundamentals** — 从当天 `portfolio.json` 动态筛选 `shares > 0` 的 US 持仓；跳过 `is_leveraged_etf=true` 或被名称启发式识别为杠杆 ETF 的标的，其余单股逐一跑 `scripts/data/fetch_us_filings.py`
+6. **SEC EDGAR fundamentals** — 从当天 `portfolio.json` 动态筛选 `shares > 0` 的 US 持仓；跳过 `is_leveraged_etf=true` 或被名称启发式识别为杠杆 ETF 的标的，其余单股逐一跑 `clawock filings`
    - 杠杆 ETF 检测启发式（name 关键词）：'倍', 'Direxion', 'T-Rex', 'Defiance', 'ProShares',
      '2X Long', '3X Long', 'Daily Target'
    - 不在文档硬编码 ticker；实际名单以当天持仓和上述动态过滤结果为准

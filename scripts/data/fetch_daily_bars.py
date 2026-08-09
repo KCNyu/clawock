@@ -54,15 +54,13 @@ from datetime import date, datetime, timedelta
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from _em_http import em_get  # noqa: E402  统一请求节流出口
-
 # The checkout root, so `clawock` resolves from the tree this file ships
 # in. Reached through the scripts/data/workspace shim until #267 step 3,
 # whose only remaining job was inserting this path as a side effect.
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
 from clawock import bar_checks  # noqa: E402  shared contract
+from clawock._em_http import em_get  # noqa: E402  统一请求节流出口
 from clawock.workspace import workspace_root  # noqa: E402
 
 WS = workspace_root(Path(__file__).resolve().parents[2])

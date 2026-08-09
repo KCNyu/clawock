@@ -174,16 +174,14 @@ def test_sec_cik_is_not_double_prefixed(monkeypatch):
     """`lookup_cik` already returns `CIK##########`; prefixing again 404s."""
     seen = {}
 
-    class FakeFilings:
-        @staticmethod
-        def lookup_cik(ticker):
-            return "CIK0001045810"
+    from clawock import fetch_us_filings
 
-        @staticmethod
-        def _load_user_agent():
-            return "clawock test agent"
-
-    monkeypatch.setitem(__import__("sys").modules, "fetch_us_filings", FakeFilings)
+    monkeypatch.setattr(
+        fetch_us_filings, "lookup_cik", lambda ticker: "CIK0001045810"
+    )
+    monkeypatch.setattr(
+        fetch_us_filings, "_load_user_agent", lambda: "clawock test agent"
+    )
 
     def http(url, headers=None, timeout=None):
         seen["url"] = url

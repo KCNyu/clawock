@@ -49,7 +49,7 @@ clawock 是**美股 + 港股 + 黄金定投**的实盘组合。工具包遵循�
 
 | 端点 | 数据 | 源 | 可达 |
 |---|---|---|:---:|
-| `fetch_us_filings.py` | 10-K/10-Q 段落 · Form 4 内部人 · 13F 机构 · XBRL 关键财务 | SEC EDGAR | ✅ |
+| `clawock filings` | 10-K/10-Q 段落 · Form 4 内部人 · 13F 机构 · XBRL 关键财务 | SEC EDGAR | ✅ |
 | `fetch_fundamentals_em.py` | 美/港财报三表 + 关键指标(中文科目) | 东财 datacenter | ✅ |
 
 ## Layer 3 · 资金面 Capital Flow
@@ -74,7 +74,7 @@ clawock 是**美股 + 港股 + 黄金定投**的实盘组合。工具包遵循�
 | `fetch_macro.py` | VIX + 宏观情绪速读 | Yahoo v8 | ✅ |
 | `fetch_sentiment.py` | 活跃持仓社交情绪扫描 | Reddit WSB/stocks/investing | 🟡 |
 | `fetch_influencer_feed.py` | Trump / Musk 市场级言论 | TruthSocial feed / GNews | 🟡 |
-| `fetch_peers.py` | 同业股现价 + 5 日 P&L | 多源(同行情链) | ✅ |
+| `clawock fetch-peers` | 同业股现价 + 5 日 P&L | 多源(同行情链) | ✅ |
 
 ## Layer 6 · 量化与风险 Quant & Risk · 确定性计算 + 外部行情输入
 
@@ -83,8 +83,8 @@ clawock 是**美股 + 港股 + 黄金定投**的实盘组合。工具包遵循�
 | `clawock quant` | 双均线 / 动量 / RSI / ATR / vol-target(杠杆 ETF 按标的) | 派生 | ✅ |
 | `clawock regime` | 杠杆刻度盘: 200DMA 趋势 + 20d 波动带 | 派生 | ✅ |
 | `clawock t0` | T+0 牌面评级 + 追高检测 | 派生 | ✅ |
-| `cross_sectional_factor.py` | 同行/1x 标的行业中性排名、杠杆 decay 对比（激活闸前仅研究） | 腾讯 qfq + SEC XBRL | ✅ |
-| `peer_residual_engine.py` | 人工同行篮子等权/流动性权重残差、breadth/dispersion/leadership（HK 禁自动发现） | 腾讯 qfq + peer-map | ✅ |
+| `clawock cross-factor` | 同行/1x 标的行业中性排名、杠杆 decay 对比（激活闸前仅研究） | 腾讯 qfq + SEC XBRL | ✅ |
+| `clawock peer-residual` | 人工同行篮子等权/流动性权重残差、breadth/dispersion/leadership（HK 禁自动发现） | 腾讯 qfq + peer-map | ✅ |
 
 ## Layer 7 · 汇率/校验 FX & Integrity
 
@@ -113,8 +113,8 @@ clawock 是**美股 + 港股 + 黄金定投**的实盘组合。工具包遵循�
 | `src/clawock/decision_v2.py` | 安装包拥有的 strategy episode 结算、coverage、严格前向分层 confidence 校准、方向命中审计 | workspace decisions ledger + canonical bars | ✅ |
 | `src/clawock/risk_discipline.py` | 持久 breach 账本、确认/限时 override、成交证据与同风险增仓冻结；`clawock risk` 操作 | guardrail + portfolio trades | ✅ |
 | `clawock quant-review` · `clawock t0-review` | 因子 / 牌面 edge 自检(T+1/T+5 命中率) | 本地留痕 | ✅ |
-| `cross_sectional_factor.py` | 预注册 walk-forward + date×ticker 双向聚类 CI；存活偏差未消除即禁止入决策 | 本地留痕 + 调整后日线 | ✅ |
-| `peer_residual_engine.py` | leader 延续 / laggard 规避 / 均值回归分规则 prospective 聚类校准 | 本地留痕 + 人工 taxonomy | ✅ |
+| `clawock cross-factor` | 预注册 walk-forward + date×ticker 双向聚类 CI；存活偏差未消除即禁止入决策 | 本地留痕 + 调整后日线 | ✅ |
+| `clawock peer-residual` | leader 延续 / laggard 规避 / 均值回归分规则 prospective 聚类校准 | 本地留痕 + 人工 taxonomy | ✅ |
 | `news_evidence_graph.py` | 重复新闻衰减、事件到期与 catalyst actionable 权限审计 | 本地留痕 + 预注册 policy | ✅ |
 
 ---

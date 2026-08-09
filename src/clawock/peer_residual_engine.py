@@ -15,40 +15,26 @@ import copy
 import json
 import math
 import statistics
-import sys
 from datetime import date, datetime, timezone
 from pathlib import Path
 
-# The checkout root, so `clawock` resolves from the tree this file ships
-# in. Reached through the scripts/data/workspace shim until #267 step 3,
-# whose only remaining job was inserting this path as a side effect.
-sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
-sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
-from clawock.workspace import workspace_root  # noqa: E402
-
-# Code lives in the checkout; only DATA lives in the workspace. `workspace_root`
-# is overridable, so resolving our own modules through WS would read them out of
-# someone else's data directory — or silently pick up whatever happens to be
-# there. Same expression WS is seeded from, kept separate on purpose (#269).
-_CHECKOUT = Path(__file__).resolve().parents[2]
-WS = workspace_root(Path(__file__).resolve().parents[2])
-RULE_CONFIG = WS / 'config' / 'peer-residual-rules.json'
-FACTOR_CONFIG = WS / 'config' / 'factor-universe.json'
-PEER_MAP = WS / 'memory' / 'peer-map.json'
-OUT = WS / 'assets' / 'data' / 'peer_residual.json'
-HISTORY = WS / 'assets' / 'data' / 'peer_residual_history.jsonl'
-HORIZONS = (1, 5, 20)
-
-sys.path.insert(0, str(_CHECKOUT / 'scripts' / 'data'))
-from cross_sectional_factor import (  # noqa: E402
+from clawock.cross_sectional_factor import (
     _last_index,
     _liquidity,
     _return_at,
     clustered_mean_ci,
     fetch_universe,
 )
-from clawock.safe_io import safe_write_json, safe_write_text  # noqa: E402
+from clawock.safe_io import safe_write_json, safe_write_text
+from clawock.workspace import workspace_root
 
+WS = workspace_root(Path.cwd())
+RULE_CONFIG = WS / 'config' / 'peer-residual-rules.json'
+FACTOR_CONFIG = WS / 'config' / 'factor-universe.json'
+PEER_MAP = WS / 'memory' / 'peer-map.json'
+OUT = WS / 'assets' / 'data' / 'peer_residual.json'
+HISTORY = WS / 'assets' / 'data' / 'peer_residual_history.jsonl'
+HORIZONS = (1, 5, 20)
 
 def load_rule_config(path=RULE_CONFIG):
     config = json.loads(Path(path).read_text())

@@ -9,7 +9,7 @@ clawock contributors 修改；署名与许可证见仓库 NOTICE。所有东财�
   3) 单 Session 连接复用 —— 复用 TCP/TLS，减少连接开销。
 
 用法:
-    from _em_http import em_get
+    from clawock._em_http import em_get
     r = em_get(url, params={...}, label="datacenter")
     if r is None:            # 网络失败 / 重试耗尽 —— 调用方优雅降级 (返回 [] 等)
         ...

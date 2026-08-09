@@ -17,26 +17,16 @@ import json
 import math
 import random
 import statistics
-import sys
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import date, datetime, timezone
 from pathlib import Path
 
 import requests
 
-# The checkout root, so `clawock` resolves from the tree this file ships
-# in. Reached through the scripts/data/workspace shim until #267 step 3,
-# whose only remaining job was inserting this path as a side effect.
-sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
-sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
-from clawock.workspace import workspace_root  # noqa: E402
+from clawock.safe_io import safe_write_json, safe_write_text
+from clawock.workspace import workspace_root
 
-# Code lives in the checkout; only DATA lives in the workspace. `workspace_root`
-# is overridable, so resolving our own modules through WS would read them out of
-# someone else's data directory — or silently pick up whatever happens to be
-# there. Same expression WS is seeded from, kept separate on purpose (#269).
-_CHECKOUT = Path(__file__).resolve().parents[2]
-WS = workspace_root(Path(__file__).resolve().parents[2])
+WS = workspace_root(Path.cwd())
 CONFIG = WS / 'config' / 'factor-universe.json'
 OUT = WS / 'assets' / 'data' / 'cross_sectional_factor.json'
 HISTORY = WS / 'assets' / 'data' / 'cross_sectional_factor_history.jsonl'
@@ -55,10 +45,6 @@ RAW_FACTORS = (
     'drawdown_resilience', 'quality_profitability',
 )
 QUALITY_METHOD_VERSION = 2
-
-sys.path.insert(0, str(_CHECKOUT / 'scripts' / 'data'))
-from clawock.safe_io import safe_write_json, safe_write_text  # noqa: E402
-
 
 def load_config(path=CONFIG):
     config = json.loads(Path(path).read_text())
@@ -275,7 +261,7 @@ def fetch_quality(config, as_of, enabled=True):
             }
             continue
         try:
-            from fetch_us_filings import get_company_facts
+            from clawock.fetch_us_filings import get_company_facts
             facts = get_company_facts(ticker)
             snapshot = (
                 quality_snapshot(facts, as_of) if facts
