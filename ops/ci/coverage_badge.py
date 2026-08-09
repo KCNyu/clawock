@@ -110,7 +110,7 @@ def total_summary(report: dict) -> tuple[int, int, float]:
     if statements < MIN_STATEMENTS:
         raise SystemExit(
             f'coverage report only measured {statements} statements '
-            f'(expected >= {MIN_STATEMENTS}) — the run did not cover scripts/')
+            f'(expected >= {MIN_STATEMENTS}) — the configured source tree was not covered')
     return covered, statements, _percent(covered, statements)
 
 

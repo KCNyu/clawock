@@ -183,6 +183,10 @@ jobs:
         run: |
           python3 -m pytest tests/ -q \
             --cov=scripts \
+            --cov=ops \
+            --cov=clawock_kcnyu.schedule \
+            --cov=clawock_kcnyu.automation.cron_heartbeat \
+            --cov=clawock_kcnyu.automation.workflow_outcomes \
             --cov=clawock.market_data.integrity \
             --cov=clawock.market_data.macro \
             --cov=clawock.market_data.mover_evidence \
