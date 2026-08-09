@@ -60,7 +60,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 # whose only remaining job was inserting this path as a side effect.
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
-from clawock import run_card  # noqa: E402
+from clawock import compute_regime, run_card  # noqa: E402
 from clawock.workspace import workspace_root  # noqa: E402
 
 WS = workspace_root(Path(__file__).resolve().parents[2])
@@ -471,7 +471,7 @@ def main() -> int:
             metrics={'in_sample': in_sample, 'tier_distribution': tiers,
                      'walk_forward': wf, 'permutation': perm,
                      'sensitivity': surface},
-            code_files=[__file__, Path(__file__).with_name('compute_regime.py')],
+            code_files=[__file__, Path(compute_regime.__file__)],
             notes=['models the production tier mapping (green/amber/red -> '
                    '1.0/0.5/0.0) applied to a 2x sleeve, not 2x->cash'],
         )

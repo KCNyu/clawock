@@ -25,37 +25,17 @@ import sys
 from datetime import datetime
 from pathlib import Path
 
-# The checkout root, so `clawock` resolves from the tree this file ships
-# in. Reached through the scripts/data/workspace shim until #267 step 3,
-# whose only remaining job was inserting this path as a side effect.
-sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
-sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
-from clawock.workspace import workspace_root  # noqa: E402
+from clawock import trading_calendar as tc
+from clawock.instrument_registry import INSTRUMENTS
+from clawock.safe_io import safe_write_json
+from clawock.workspace import workspace_root
 
-# Code lives in the checkout; only DATA lives in the workspace. `workspace_root`
-# is overridable, so resolving our own modules through WS would read them out of
-# someone else's data directory — or silently pick up whatever happens to be
-# there. Same expression WS is seeded from, kept separate on purpose (#269).
-_CHECKOUT = Path(__file__).resolve().parents[2]
-WS = workspace_root(Path(__file__).resolve().parents[2])
+WS = workspace_root(Path.cwd())
 PORTFOLIO = WS / 'portfolio.json'
 QUANT = WS / 'assets' / 'data' / 'quant_signals.json'
 OUT = WS / 'assets' / 'data' / 't0_setups.json'
 HIST = WS / 'assets' / 'data' / 't0_setups_history.jsonl'
 HIST_MAX_LINES = 4000   # 盘中每 30min 一行，封顶约 1 年留痕
-
-sys.path.insert(0, str(_CHECKOUT / 'scripts' / 'data'))
-from clawock.instrument_registry import INSTRUMENTS  # noqa: E402
-
-try:
-    from clawock.safe_io import safe_write_json
-except Exception:
-    def safe_write_json(path, data, indent=2):
-        Path(path).write_text(json.dumps(data, ensure_ascii=False, indent=indent))
-try:
-    from clawock import trading_calendar as tc
-except Exception:
-    tc = None
 
 # 2x/3x 每日杠杆 ETF → (标的, 倍数)，由 canonical registry 生成。
 LEVERAGED = {
@@ -74,8 +54,9 @@ def _num(x):
         return None
 
 
-def _market_of(region):
-    return {'us_stocks': 'us', 'hk_stocks': 'hk'}.get(region)
+def _market_of(ticker):
+    region = (INSTRUMENTS.get(ticker) or {}).get('region')
+    return region.lower() if isinstance(region, str) else None
 
 
 def _tencent_code(ticker, market):
@@ -189,18 +170,20 @@ def compute(intraday=False):
 
     rows = {}
     market_closed = {}
-    for region, port in pf.get('portfolios', {}).items():
-        market = _market_of(region)
-        if market and tc is not None:
-            try:
-                market_closed[market] = tc.closed_reason(market) is not None
-            except Exception:
-                market_closed[market] = None
-        do_intraday = intraday and not market_closed.get(market, True)
+    for port in pf.get('portfolios', {}).values():
+        if not isinstance(port, dict):
+            continue
         for h in port.get('holdings', []):
             if (_num(h.get('shares')) or 0) <= 0:
                 continue
             t = h.get('ticker')
+            market = _market_of(t)
+            if market and market not in market_closed:
+                try:
+                    market_closed[market] = tc.closed_reason(market) is not None
+                except Exception:
+                    market_closed[market] = None
+            do_intraday = intraday and not market_closed.get(market, True)
             cur = _num(h.get('current_price'))
             qrow = quant.get(t, {})
             if qrow.get('status') not in (None, 'fresh'):

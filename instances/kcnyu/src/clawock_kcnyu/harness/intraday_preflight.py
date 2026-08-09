@@ -201,7 +201,7 @@ def main(argv=None):
     # 零额外请求（T0_INTRADAY 默认关）。失败不阻断盯盘。
     t0_setups = {}
     try:
-        subprocess.run(['python3', str(DATA_DIR / 'compute_t0_setups.py')],
+        subprocess.run(['clawock', 't0'],
                        capture_output=True, text=True, timeout=45, check=False)
         t0_path = WS / 'assets' / 'data' / 't0_setups.json'
         if t0_path.exists():

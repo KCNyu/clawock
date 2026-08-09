@@ -1459,7 +1459,7 @@ def main(argv=None):
     # [10b] Leverage dial — HSTECH 200DMA trend + 20d vol → leveraged-ETF cap multiplier
     lev_regime = None
     try:
-        subprocess.run(['python3', str(WS / 'scripts' / 'data' / 'compute_regime.py')],
+        subprocess.run(['clawock', 'regime'],
                        capture_output=True, text=True, timeout=60, check=False)
         lr_path = WS / 'assets' / 'data' / 'lev_regime.json'
         if lr_path.exists():
@@ -1472,7 +1472,7 @@ def main(argv=None):
     # LLM 技术面判断只准引用此表）。merge-not-overwrite，单只抓空保留旧值。
     quant_signals = {}
     try:
-        subprocess.run(['python3', str(WS / 'scripts' / 'data' / 'compute_quant_signals.py')],
+        subprocess.run(['clawock', 'quant'],
                        capture_output=True, text=True, timeout=120, check=False)
         qs_path = WS / 'assets' / 'data' / 'quant_signals.json'
         if qs_path.exists():
@@ -1491,7 +1491,7 @@ def main(argv=None):
     # hit_rate 决定，样本<20 不解锁）。纯本地文件运算。
     quant_review = {}
     try:
-        subprocess.run(['python3', str(WS / 'scripts' / 'data' / 'quant_signal_review.py')],
+        subprocess.run(['clawock', 'quant-review'],
                        capture_output=True, text=True, timeout=60, check=False)
         qr_path = WS / 'assets' / 'data' / 'quant_signal_review.json'
         if qr_path.exists():
@@ -1599,7 +1599,7 @@ def main(argv=None):
     # 紧跟 quant_signals 之后跑（依赖其 ATR 刷新）。
     t0_setups = {}
     try:
-        subprocess.run(['python3', str(WS / 'scripts' / 'data' / 'compute_t0_setups.py')],
+        subprocess.run(['clawock', 't0'],
                        capture_output=True, text=True, timeout=60, check=False)
         t0_path = WS / 'assets' / 'data' / 't0_setups.json'
         if t0_path.exists():
@@ -1614,7 +1614,7 @@ def main(argv=None):
     # 零网络：结算用历史留痕的 close，绝不每分钟抓价。
     t0_review = {}
     try:
-        subprocess.run(['python3', str(WS / 'scripts' / 'data' / 't0_setup_review.py')],
+        subprocess.run(['clawock', 't0-review'],
                        capture_output=True, text=True, timeout=60, check=False)
         tr_path = WS / 'assets' / 'data' / 't0_setup_review.json'
         if tr_path.exists():

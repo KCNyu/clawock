@@ -31,7 +31,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 # whose only remaining job was inserting this path as a side effect.
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
-from clawock import run_card  # noqa: E402  every backtest leaves evidence behind
+from clawock import compute_regime, run_card  # noqa: E402  every backtest leaves evidence behind
 from clawock.workspace import workspace_root  # noqa: E402
 
 WS = workspace_root(Path(__file__).resolve().parents[2])
@@ -188,7 +188,7 @@ def run(ma=200, vol_cap=0.50, vol_n=20):
             'digest': run_card.series_digest(data),
         }],
         metrics=measured,
-        code_files=[__file__, Path(__file__).with_name('compute_regime.py')],
+        code_files=[__file__, Path(compute_regime.__file__)],
         notes=['thresholds are calibrated on this same window; see #233'],
     )
     print(f'\nrun card: {card.relative_to(WS)}')

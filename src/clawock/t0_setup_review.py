@@ -39,31 +39,15 @@ def wilson_ci(hits, n, z=1.96):
     return [round(max(0.0, center - half), 3), round(min(1.0, center + half), 3)]
 
 
-# The checkout root, so `clawock` resolves from the tree this file ships
-# in. Reached through the scripts/data/workspace shim until #267 step 3,
-# whose only remaining job was inserting this path as a side effect.
-sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
-sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
-from clawock.workspace import workspace_root  # noqa: E402
+from clawock.safe_io import safe_write_json
+from clawock.workspace import workspace_root
 
-# Code lives in the checkout; only DATA lives in the workspace. `workspace_root`
-# is overridable, so resolving our own modules through WS would read them out of
-# someone else's data directory — or silently pick up whatever happens to be
-# there. Same expression WS is seeded from, kept separate on purpose (#269).
-_CHECKOUT = Path(__file__).resolve().parents[2]
-WS = workspace_root(Path(__file__).resolve().parents[2])
+WS = workspace_root(Path.cwd())
 HIST = WS / 'assets' / 'data' / 't0_setups_history.jsonl'
 OUT = WS / 'assets' / 'data' / 't0_setup_review.json'
 
 MIN_N = 20   # 牌面结论可被引用的最小样本量
 HORIZON = 1  # T+1：按「下一个有该标的留痕的交易日」结算
-
-sys.path.insert(0, str(_CHECKOUT / 'scripts' / 'data'))
-try:
-    from clawock.safe_io import safe_write_json
-except Exception:
-    def safe_write_json(path, data, indent=2):
-        Path(path).write_text(json.dumps(data, ensure_ascii=False, indent=indent))
 
 # 牌面 → (匹配函数, 预期方向 +1=次日涨算命中 / -1=次日跌算命中)
 GRADE_TESTS = {
@@ -96,7 +80,8 @@ def _load_days():
     return [{'as_of': d, 'rows': by_day[d]} for d in sorted(by_day)]
 
 
-def main():
+def main(argv=None):
+    del argv
     days = _load_days()
     if not days:
         out = {'as_of': date.today().isoformat(), 'days_logged': 0,

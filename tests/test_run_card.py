@@ -17,6 +17,7 @@ import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
 DATA = ROOT / "scripts" / "data"
+PACKAGE = ROOT / "src" / "clawock"
 from clawock import run_card
 
 BACKTESTS = (
@@ -89,7 +90,7 @@ def test_a_metric_change_alone_does_not_change_the_reproduction_key():
 
 
 def test_code_identity_travels_with_the_card():
-    card = _card(code_files=[DATA / "compute_regime.py"])
+    card = _card(code_files=[PACKAGE / "compute_regime.py"])
 
     entry = card["code"][0]
     assert entry["file"] == "compute_regime.py"
@@ -171,9 +172,26 @@ def test_every_backtest_records_a_run_card(script):
 def test_each_backtest_hashes_the_code_its_result_depends_on(script):
     """A card that pins the inputs but not the code cannot tell you why two runs
     with the same reproduction key disagreed."""
-    source = (DATA / script).read_text()
+    tree = ast.parse((DATA / script).read_text())
+    code_file_values = [
+        keyword.value
+        for node in ast.walk(tree)
+        if isinstance(node, ast.Call)
+        and isinstance(node.func, ast.Attribute)
+        and node.func.attr == "record"
+        for keyword in node.keywords
+        if keyword.arg == "code_files"
+    ]
+    hashes_production = any(
+        isinstance(node, ast.Attribute)
+        and node.attr == "__file__"
+        and isinstance(node.value, ast.Name)
+        and node.value.id == "compute_regime"
+        for value in code_file_values
+        for node in ast.walk(value)
+    )
 
-    assert "code_files=" in source, f"{script} records no code identity"
-    assert "compute_regime.py" in source, (
-        f"{script} does not hash compute_regime.py, whose thresholds it is "
-        "measuring")
+    assert code_file_values, f"{script} records no code identity"
+    assert hashes_production, (
+        f"{script} does not hash the packaged compute_regime module whose "
+        "thresholds it is measuring")
