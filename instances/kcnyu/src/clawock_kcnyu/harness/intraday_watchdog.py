@@ -173,6 +173,43 @@ def context_for_slot(path, job_name, slot):
     return context
 
 
+
+def attempt_still_running(context, last_run):
+    """Is a newer attempt in flight than the newest FINISHED run for this slot?
+
+    openclaw writes a run record only with `action: "finished"`, so an attempt
+    that is currently executing is invisible to `run_for_slot` — it returns the
+    newest *completed* run, which after a few retries can be an `error` from an
+    attempt that has already been superseded.
+
+    The preflight context is the signal that is already on disk. It is written
+    at the start of an attempt, so a context generated AFTER the newest finished
+    run ended means another attempt began after that run and has not finished.
+
+    2026-08-11 00:00 US is the case this exists for: attempts at 00:00, 00:01:55
+    and 00:03:30 all errored, the fourth started 00:07:14 and ran 275s, and the
+    watchdog judged at 00:10:44 on attempt 3's error. It sent the deterministic
+    fallback one second before postflight delivered the real report.
+
+    Deferring is safe in one direction only, and it is the right direction: a
+    genuinely dead slot writes no newer context, so a real miss still gets its
+    backstop. Sending for work that then succeeds is a duplicate, which is what
+    this whole gate ordering exists to prevent.
+    """
+    generated_at = (context or {}).get('generated_at')
+    finished_ms = (last_run or {}).get('ts')
+    if not generated_at or not isinstance(finished_ms, (int, float)):
+        return False
+    try:
+        started = datetime.fromisoformat(generated_at)
+    except (TypeError, ValueError):
+        return False
+    if started.tzinfo is None:
+        started = started.replace(tzinfo=HKT)
+    finished = datetime.fromtimestamp(finished_ms / 1000, HKT)
+    return started > finished
+
+
 def marker_covers_slot(marker, job_name, slot, raw_block_first, now_ms,
                        ctx_id=None, ctx_generated_at=None):
     """Whether postflight confirmed Telegram delivery for this exact slot.
@@ -276,6 +313,16 @@ def main():
              'expected_job': expected_job, 'expected_slot': expected_slot,
              'run_at': run_at})
         return 0
+    # --- In-flight gate: never judge a slot that has not finished -----------
+    if attempt_still_running(context, last):
+        log({'tag': tag, 'action': 'defer',
+             'reason': 'a newer attempt is still running — preflight context '
+                       'postdates the newest finished run',
+             'expected_job': expected_job, 'expected_slot': expected_slot,
+             'context_generated_at': context.get('generated_at'),
+             'last_finished_ms': last.get('ts')})
+        return 0
+
     raw_block = (context.get('raw_wechat_block') or '').strip()
     raw_block_first = raw_block.splitlines()[0] if raw_block else None
     loop_score, _ = transcript_loop_score(session_id)
