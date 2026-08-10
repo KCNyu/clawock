@@ -294,6 +294,66 @@ async function testEquityTouch(browser, base) {
   await context.close();
 }
 
+// `currentTab()` used to read pager.scrollLeft/clientWidth, which forces layout,
+// and the hero render loop calls it between renderers — right after each one's
+// DOM writes. That interleave cost 162ms of the 1,016ms spent in layout on a
+// mobile startup profile (#442). It now reads an index the scroll handler
+// already maintains every frame.
+//
+// The guard exists to stop a render in flight when the user navigates away, so
+// "it no longer forces layout" is only half of what has to hold: the cache must
+// also still tell the truth about where the pager is.
+async function testTabGuardWithoutForcedLayout(browser, base) {
+  const context = await browser.newContext({
+    viewport: { width: 412, height: 823 }, isMobile: true, hasTouch: true,
+  });
+  const page = await context.newPage();
+  await stubLiveOrigin(page);
+  await page.goto(base, { waitUntil: "networkidle" });
+  await waitForData(page);
+
+  // 1. A full hero render must not read the pager's geometry at all. Counting on
+  //    the element shadows the prototype getter, so this measures real accesses
+  //    rather than trusting the source.
+  const reads = await page.evaluate(async () => {
+    const pager = document.getElementById("pager");
+    const descriptor = Object.getOwnPropertyDescriptor(Element.prototype, "scrollLeft");
+    let count = 0;
+    Object.defineProperty(pager, "scrollLeft", {
+      configurable: true,
+      get() { count += 1; return descriptor.get.call(this); },
+    });
+    loadData(false);
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    delete pager.scrollLeft;
+    return count;
+  });
+  assert.equal(reads, 0,
+    `hero render forced ${reads} layout-inducing read(s) of pager.scrollLeft`);
+
+  // 2. The guard must observe a tab change immediately. This is stricter than
+  //    the geometry was: scrollTo is smooth, so scrollLeft kept reporting the
+  //    OLD tab for the length of the animation, and the render it was supposed
+  //    to abort carried on until the scroll caught up.
+  const afterGoTo = await page.evaluate(() => {
+    goToTab("risk");
+    return currentTab();
+  });
+  assert.equal(afterGoTo, "risk", "currentTab() did not follow goToTab synchronously");
+
+  // 3. And it must not drift from a scroll the code did not initiate — a real
+  //    swipe moves scrollLeft with no goToTab call anywhere.
+  await page.evaluate(() => {
+    const pager = document.getElementById("pager");
+    pager.scrollLeft = TAB_ORDER.indexOf("market") * pager.clientWidth;
+    pager.dispatchEvent(new Event("scroll"));
+  });
+  await page.waitForFunction(() => currentTab() === "market", null, { timeout: 4000 })
+    .catch(() => { throw new Error("currentTab() drifted from an uninstrumented scroll"); });
+
+  await context.close();
+}
+
 async function main() {
   const server = serveWorkspace();
   await new Promise(resolve => server.listen(0, "127.0.0.1", resolve));
@@ -306,6 +366,7 @@ async function main() {
     await testRuntime(browser, base);
     await testLiveDataOrigin(browser, base);
     await testEquityTouch(browser, base);
+    await testTabGuardWithoutForcedLayout(browser, base);
   } finally {
     await browser.close();
     await new Promise(resolve => server.close(resolve));
