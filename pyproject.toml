@@ -49,6 +49,10 @@ compute = ["numpy>=1.26"]
 evaluation = ["numpy>=1.26", "matplotlib>=3.8"]
 # Screenshot and social-card validation.
 imaging = ["Pillow>=10"]
+# Search Console visibility pull (ops/growth/crawl_visibility.py). Declared here
+# for the same reason as everything else in this table: a version pinned in a
+# workflow line is a second source of truth that drifts unseen.
+seo = ["google-auth>=2.30"]
 # Building and checking a distribution. Here rather than in the release workflow
 # for the same reason as everything else in this table: a version pinned in a
 # workflow line is a second source of truth that drifts unseen.

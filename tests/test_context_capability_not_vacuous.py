@@ -140,3 +140,50 @@ def test_the_live_machine_is_actually_being_checked():
             profiles[profile] = True
     assert profiles, 'no sessions at all — this assertion must not pass vacuously'
     assert all(profiles.values()), f'a profile stopped recording reports: {profiles}'
+
+
+def test_an_enabled_job_with_no_report_is_named(monkeypatch):
+    """#473: nine healthy cron reports averaged away a tenth enabled job that
+    produced none, so the gate read OK while a live job was unverifiable."""
+    import ops.system_check as sc
+
+    monkeypatch.setattr(
+        'clawock.providers.openclaw.cron_cli_json',
+        lambda argv: {'jobs': [{'id': 'a', 'name': 'Healthy', 'enabled': True},
+                               {'id': 'b', 'name': 'Dreaming', 'enabled': True}]})
+    missing = sc._cron_jobs_without_prompt_report({
+        'agent:main:cron:a:run:1': {'systemPromptReport': {}},
+    })
+    assert missing == ['Dreaming']
+
+
+def test_a_disabled_job_is_not_demanded(monkeypatch):
+    """Only what is scheduled has to be observable."""
+    import ops.system_check as sc
+
+    monkeypatch.setattr(
+        'clawock.providers.openclaw.cron_cli_json',
+        lambda argv: {'jobs': [{'id': 'b', 'name': 'Off', 'enabled': False}]})
+    assert sc._cron_jobs_without_prompt_report({}) == []
+
+
+def test_every_job_covered_reports_nothing(monkeypatch):
+    import ops.system_check as sc
+
+    monkeypatch.setattr(
+        'clawock.providers.openclaw.cron_cli_json',
+        lambda argv: {'jobs': [{'id': 'a', 'name': 'Healthy', 'enabled': True}]})
+    assert sc._cron_jobs_without_prompt_report({
+        'agent:main:cron:a:run:1': {'systemPromptReport': {}}}) == []
+
+
+def test_an_unreadable_schedule_does_not_invent_findings(monkeypatch):
+    """A schedule that cannot be read is not evidence either way, and this check
+    must not turn that into noise on a foreign host."""
+    import ops.system_check as sc
+
+    def boom(argv):
+        raise RuntimeError('no runtime here')
+
+    monkeypatch.setattr('clawock.providers.openclaw.cron_cli_json', boom)
+    assert sc._cron_jobs_without_prompt_report({}) == []

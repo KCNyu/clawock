@@ -62,6 +62,12 @@ def _run(system_check, monkeypatch, tmp_path, sessions):
         sessions_dir = store
 
     monkeypatch.setattr(system_check, "_OPENCLAW_PATHS", Paths)
+    # This fixture describes a world with these sessions and no schedule. Without
+    # saying so, the job-coverage check (#473) would read the real machine's cron
+    # list and report all eleven live jobs as uncovered by synthetic sessions —
+    # two different worlds compared against each other.
+    monkeypatch.setattr("clawock.providers.openclaw.cron_cli_json",
+                        lambda argv: {"jobs": []})
     result = system_check.Result()
     system_check.check_context_capability(result)
     return result.checks[0]

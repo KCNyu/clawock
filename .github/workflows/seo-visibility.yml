@@ -1,0 +1,62 @@
+name: SEO Visibility
+
+# Weekly Search Console pull, so "are we getting indexed yet" is a number in the
+# run log instead of a standing guess.
+#
+# On GitHub rather than the VPS because that is the standing rule for new
+# automation: the box already carries the market schedule, and a check whose
+# whole purpose is to survive and observe should not depend on the thing most
+# likely to be down. It was briefly a VPS crontab entry, which also managed to
+# reproduce both classic cron traps in one line — a bare `python3` that could not
+# import the package, and a relative path with no working directory.
+#
+# Mondays 06:30 UTC. Scheduled runs drift by hours on GitHub; for a weekly
+# reading of a number that moves over weeks, that is irrelevant.
+on:
+  schedule:
+    - cron: '30 6 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  measure:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
+      - name: Install
+        # The extra, not a hand-written package line — dependencies live in
+        # pyproject so a version cannot drift between here and there.
+        run: pip install --quiet -e '.[seo]'
+
+      - name: Query Search Console
+        env:
+          # Read-only on one property. Passed as a file path rather than parsed
+          # from the environment so the script has one credential interface,
+          # whichever host it runs on.
+          GSC_CREDENTIALS: ${{ secrets.GSC_CREDENTIALS }}
+        run: |
+          set -euo pipefail
+          if [ -z "${GSC_CREDENTIALS}" ]; then
+            echo "::error::GSC_CREDENTIALS is unset — this check cannot see, which is not a pass"
+            exit 1
+          fi
+          printf '%s' "$GSC_CREDENTIALS" > /tmp/gsc.json
+          # CLAWOCK_GSC_CREDENTIALS short-circuits the host-path default, so the
+          # script never needs the installed package just to find a file.
+          CLAWOCK_GSC_CREDENTIALS=/tmp/gsc.json \
+            python3 ops/growth/crawl_visibility.py | tee /tmp/report.txt
+          {
+            echo '### Search Console'
+            echo '```'
+            cat /tmp/report.txt
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+          rm -f /tmp/gsc.json
