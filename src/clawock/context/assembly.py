@@ -133,6 +133,38 @@ def assemble_explicit(workspace, documents) -> ContextBundle:
     return ContextBundle(tuple(selected))
 
 
+def audit_all(workspace) -> dict:
+    """Audit every context profile, and pass only if all of them pass.
+
+    `audit()` answers for one profile, which made the obvious command the unsafe
+    one: with no `--profile` it resolved to the manifest default — isolated-cron,
+    five bootstrap files — so emptying `MEMORY.md`, which only the seven-file
+    interactive profile requires, produced `ok: true` and exit 0. A required
+    context file could be gone with the audit that exists to notice it reporting
+    green (#380).
+
+    Auditing one profile is still the right operation when you mean one profile.
+    Defaulting to one profile was the bug.
+    """
+    root = Path(workspace).expanduser().resolve()
+    names = list(load_manifest()["profiles"])
+    profiles = {name: audit(root, profile=name) for name in names}
+    return {
+        "profiles": profiles,
+        "audited": names,
+        # A rollup so a caller does not have to walk every profile to find the
+        # one that failed; each entry names the profile it came from.
+        "missing": sorted(
+            f"{name}:{item}" for name, r in profiles.items() for item in r["missing"]),
+        "empty": sorted(
+            f"{name}:{item}" for name, r in profiles.items() for item in r["empty"]),
+        "missing_capabilities": sorted(
+            f"{name}:{item}"
+            for name, r in profiles.items() for item in r["missing_capabilities"]),
+        "ok": all(r["ok"] for r in profiles.values()),
+    }
+
+
 def audit(workspace, *, profile: str | None = None) -> dict:
     """Audit one OpenClaw context profile and its lazy capability roots."""
     root = Path(workspace).expanduser().resolve()
