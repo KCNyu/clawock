@@ -290,6 +290,7 @@ def _context(args) -> int:
         audit,
         compare_prompt_reports,
         load_prompt_report,
+        verify_prompt_report,
     )
 
     root = workspace_root(getattr(args, "workspace", None) or Path.cwd())
@@ -306,6 +307,13 @@ def _context(args) -> int:
                 load_prompt_report(
                     args.after, session_key=args.after_session_key
                 ),
+                profile=args.profile,
+            )
+            print(json.dumps(result, ensure_ascii=False, indent=2))
+            return 0 if result["ok"] else 1
+        if args.context_command == "verify":
+            result = verify_prompt_report(
+                load_prompt_report(args.report, session_key=args.session_key),
                 profile=args.profile,
             )
             print(json.dumps(result, ensure_ascii=False, indent=2))
@@ -675,6 +683,13 @@ def main(argv=None) -> int:
     context_compare.add_argument("--before-session-key")
     context_compare.add_argument("--after-session-key")
     context_compare.set_defaults(func=_context)
+    context_verify = context_sub.add_parser(
+        "verify",
+        help="check one OpenClaw system-prompt report against its profile")
+    context_verify.add_argument("--profile", required=True)
+    context_verify.add_argument("--report", type=Path, required=True)
+    context_verify.add_argument("--session-key")
+    context_verify.set_defaults(func=_context)
 
     workflow = sub.add_parser(
         "workflow", help="discover or install portable decision-workflow skills")
