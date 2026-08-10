@@ -1,6 +1,6 @@
 <div align="center">
 
-<h1><img src="site/assets/logo-lockup.svg" alt="clawock" height="48"></h1>
+<h1><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/logo-lockup.svg" alt="clawock" height="48"></h1>
 
 ### AI argues. Code settles. The losses stay on the page.
 
@@ -10,14 +10,14 @@ Install the decision intelligence behind this live Hong Kong + US desk into any 
 [![Tests](https://img.shields.io/github/actions/workflow/status/KCNyu/clawock/harness-regression.yml?label=TESTS&style=flat-square&logo=githubactions&logoColor=white&labelColor=252b35&color=738391)](https://github.com/KCNyu/clawock/actions/workflows/harness-regression.yml)
 [![Dashboard Data](https://img.shields.io/github/actions/workflow/status/KCNyu/clawock/dashboard-artifact-gate.yml?label=DATA&style=flat-square&logo=githubactions&logoColor=white&labelColor=252b35&color=738391)](https://github.com/KCNyu/clawock/actions/workflows/dashboard-artifact-gate.yml)
 [![Coverage](https://img.shields.io/endpoint?url=https%3A%2F%2Fkcnyu.github.io%2Fclawock%2Fassets%2Fdata%2Fcoverage.json&style=flat-square&logo=python&logoColor=white&labelColor=252b35)](https://github.com/KCNyu/clawock/actions/workflows/harness-regression.yml)
-[![License](https://img.shields.io/badge/LICENSE-MIT-aab5bf?style=flat-square&labelColor=252b35)](LICENSE)
+[![License](https://img.shields.io/badge/LICENSE-MIT-aab5bf?style=flat-square&labelColor=252b35)](https://github.com/KCNyu/clawock/blob/master/LICENSE)
 
-[**Live dashboard**](https://kcnyu.github.io/clawock/) &nbsp;·&nbsp; [**Daily briefs**](https://kcnyu.github.io/clawock/briefs.html) &nbsp;·&nbsp; [**Evidence**](https://kcnyu.github.io/clawock/evidence.html) &nbsp;·&nbsp; [**简体中文**](README.zh.md)
+[**Live dashboard**](https://kcnyu.github.io/clawock/) &nbsp;·&nbsp; [**Daily briefs**](https://kcnyu.github.io/clawock/briefs.html) &nbsp;·&nbsp; [**Evidence**](https://kcnyu.github.io/clawock/evidence.html) &nbsp;·&nbsp; [**简体中文**](https://github.com/KCNyu/clawock/blob/master/README.zh.md)
 
 <br>
 
 <a href="https://kcnyu.github.io/clawock/">
-  <img src="site/assets/social-card.png" alt="clawock — portable investment decision workflows for any external AI agent, proven on a live HK and US desk" width="820">
+  <img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/social-card.png" alt="clawock — portable investment decision workflows for any external AI agent, proven on a live HK and US desk" width="820">
 </a>
 
 <sub><i>“The market doesn't care how confident the model was.”</i></sub>
@@ -67,12 +67,12 @@ A multi-agent desk monitors a real brokerage account with separate Hong Kong and
 The product boundary is simple: the external agent reads and reasons; clawock
 owns the portable decision workflow and the deterministic truth around it.
 
-![clawock product architecture — external runtimes own models, conversation, memory and tools while the package supplies portable workflows, certified context, deterministic reconciliation, evaluation and bounded improvement](site/assets/product-architecture.svg)
+![clawock product architecture — external runtimes own models, conversation, memory and tools while the package supplies portable workflows, certified context, deterministic reconciliation, evaluation and bounded improvement](https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/product-architecture.svg)
 
 The KCNyu deployment then applies that product boundary to one live portfolio.
 This second diagram is the instance architecture, not the reusable package.
 
-![KCNyu live-instance architecture — Python builds reconciled market context, OpenClaw agents debate the trade, clawock contracts gate the decision, and a public scorecard closes the loop](site/assets/architecture.svg)
+![KCNyu live-instance architecture — Python builds reconciled market context, OpenClaw agents debate the trade, clawock contracts gate the decision, and a public scorecard closes the loop](https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/architecture.svg)
 
 Every trading day the system pulls fresh prices, FX, volatility, earnings and macro context plus news and social sentiment; hands that normalized context to a multi-agent debate; applies deterministic risk, schema, and ledger gates in Python; delivers a brief to WeChat; and updates the public dashboard.
 
@@ -91,7 +91,7 @@ Reading the market is most of what the LLM does, so the widest part of the syste
 | 7 · FX & integrity | 2 | Frankfurter · local invariants |
 | 8 · Backtest & calibration | 5 | local snapshots + canonical bars |
 
-The fetch layer degrades gracefully: every live Eastmoney call routes through **one throttled gateway**, critical paths (quotes, FX) use **multi-source fallback**, and an empty fetch **keeps the prior value** instead of overwriting a good series with a blank. Public sources include Tencent, stooq, yfinance, Frankfurter, SEC EDGAR, Finnhub, Nasdaq, Eastmoney, Polygon, Alpha Vantage, Reddit, and Google News — full command and provider catalog in [the tool reference](docs/reference/scripts.md).
+The fetch layer degrades gracefully: every live Eastmoney call routes through **one throttled gateway**, critical paths (quotes, FX) use **multi-source fallback**, and an empty fetch **keeps the prior value** instead of overwriting a good series with a blank. Public sources include Tencent, stooq, yfinance, Frankfurter, SEC EDGAR, Finnhub, Nasdaq, Eastmoney, Polygon, Alpha Vantage, Reddit, and Google News — full command and provider catalog in [the tool reference](https://github.com/KCNyu/clawock/blob/master/docs/reference/scripts.md).
 
 ### What each run actually receives
 
@@ -130,7 +130,7 @@ Analysis resolves into explicit, gated strategy decisions — and one stock can 
 
 The daily deep brief runs a structured **multi-agent debate**, adapted from [TradingAgents](https://github.com/TauricResearch/TradingAgents) for separate Hong Kong and US books. More agents isn't the point: the protocol **demands an opposing case**, and the Judge **attributes each resolution** to a named strategy frame.
 
-![clawock's multi-agent debate — one evidence pack feeds four analyst lenses; two researchers argue opposing bull and bear cases and record where they disagree; three risk voices and a judge name the strategy frame and resolve it into plan.json, which enters the next session's grading loop](site/assets/debate-flow.svg)
+![clawock's multi-agent debate — one evidence pack feeds four analyst lenses; two researchers argue opposing bull and bear cases and record where they disagree; three risk voices and a judge name the strategy frame and resolve it into plan.json, which enters the next session's grading loop](https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/debate-flow.svg)
 
 - **Analyst lenses.** Fundamental, technical, sentiment, and sector-rotation agents read the *same* context and merge into one table. Every claim must cite numeric context.
 - **Bull vs Bear.** Two researchers build opposing cases, each citing concrete analyst data points. The protocol asks them to **genuinely disagree on at least one position** and to record it, so unanimous agreement reads as a flag rather than evidence.
@@ -147,7 +147,7 @@ Every call is settled mechanically and published — wins, losses, and the cases
 
 The model submits decisions; it can never write or amend its own evaluation. That isolation stops the desk from grading itself — it does **not** make the market data or the metric definitions correct. **Treat the record as a diagnostic, not as proof of return.**
 
-<p align="center"><img src="site/assets/shadow-backtest.png" alt="cumulative episode win rate against a 50% directional-hit line" width="760"></p>
+<p align="center"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/shadow-backtest.png" alt="cumulative episode win rate against a 50% directional-hit line" width="760"></p>
 
 <sub>Cumulative episode win rate against a 50% directional-hit line — how often the direction was right, not what it earned. The buy-and-hold comparison is the shadow portfolio (in the details below and on Reflect); this is a different question. Refreshed weekly by GitHub Actions; live figures live on the <a href="https://kcnyu.github.io/clawock/">Reflect tab</a>.</sub>
 
@@ -215,7 +215,7 @@ around it  pre-brief macro / sentiment / event scans, then a pre-US-open news di
 weekly     archive, health, review, and visual-refresh jobs
 ```
 
-Hong Kong times run on HKT; US session times follow ET and their cron expressions shift automatically with New York DST. A holiday + weekend gate skips closed sessions. The exact generated table is in [docs/operations/cron-schedules.md](docs/operations/cron-schedules.md).
+Hong Kong times run on HKT; US session times follow ET and their cron expressions shift automatically with New York DST. A holiday + weekend gate skips closed sessions. The exact generated table is in [docs/operations/cron-schedules.md](https://github.com/KCNyu/clawock/blob/master/docs/operations/cron-schedules.md).
 
 ## Run it on your own book
 
@@ -252,26 +252,26 @@ capabilities instead of pretending every foreign workspace is production-ready.
 
 - [**Live dashboard**](https://kcnyu.github.io/clawock/) — positions, risk, and the self-graded scorecard.
 - [**Daily briefs**](https://kcnyu.github.io/clawock/briefs.html) — the published morning reads.
-- [**Schedule**](docs/operations/cron-schedules.md) — the generated cron table.
-- [**Tool reference**](docs/reference/scripts.md) — installed commands, providers, and generated artifacts.
-- [**Project docs**](docs/README.md) — operations, reference, legal notes, and archived designs.
+- [**Schedule**](https://github.com/KCNyu/clawock/blob/master/docs/operations/cron-schedules.md) — the generated cron table.
+- [**Tool reference**](https://github.com/KCNyu/clawock/blob/master/docs/reference/scripts.md) — installed commands, providers, and generated artifacts.
+- [**Project docs**](https://github.com/KCNyu/clawock/blob/master/docs/README.md) — operations, reference, legal notes, and archived designs.
 
 ### Research surfaces
 
 | Question | Entry point | Data/runtime contract | Reuse scope |
 |---|---|---|---|
-| Analyze a US company | [`us-stock-analysis`](skills/us-stock-analysis/SKILL.md) | Local quote fallback, SEC filings, fundamentals, news | Reusable with the clawock workspace |
-| Analyze a Hong Kong company | [`hk-stock-analysis`](skills/hk-stock-analysis/SKILL.md) | Tencent/Eastmoney quote checks, HK fundamentals, market context | Reusable with the clawock workspace |
-| Review the current portfolio | [`portfolio-risk-review`](skills/portfolio-risk-review/SKILL.md) for one pass; [`portfolio-swarm-review`](skills/portfolio-swarm-review/SKILL.md) for debate | `portfolio.json`, fresh quotes, risk and decision ledgers | Specific to the configured portfolio |
-| Stress-test a supply-chain thesis | [`serenity-skill`](skills/serenity-skill/SKILL.md) | Current public evidence plus its local scorecard | Reusable as a manual research framework |
-| Review a reported quarter and hold management to account | [`earnings-review`](skills/earnings-review/SKILL.md) | First-party filings/HKEX announcements, structured XBRL or Eastmoney verification, provenance gate | Reusable; artifacts live in `memory/earnings/` |
-| Decide whether a new name is worth researching | [`entry-gate`](skills/entry-gate/SKILL.md) | Workspace quote pipelines, instrument registry, evidence source grading, deterministic hard vetoes | Reusable; artifacts live in `memory/entry-gates/` |
+| Analyze a US company | [`us-stock-analysis`](https://github.com/KCNyu/clawock/blob/master/skills/us-stock-analysis/SKILL.md) | Local quote fallback, SEC filings, fundamentals, news | Reusable with the clawock workspace |
+| Analyze a Hong Kong company | [`hk-stock-analysis`](https://github.com/KCNyu/clawock/blob/master/skills/hk-stock-analysis/SKILL.md) | Tencent/Eastmoney quote checks, HK fundamentals, market context | Reusable with the clawock workspace |
+| Review the current portfolio | [`portfolio-risk-review`](https://github.com/KCNyu/clawock/blob/master/skills/portfolio-risk-review/SKILL.md) for one pass; [`portfolio-swarm-review`](https://github.com/KCNyu/clawock/blob/master/skills/portfolio-swarm-review/SKILL.md) for debate | `portfolio.json`, fresh quotes, risk and decision ledgers | Specific to the configured portfolio |
+| Stress-test a supply-chain thesis | [`serenity-skill`](https://github.com/KCNyu/clawock/blob/master/skills/serenity-skill/SKILL.md) | Current public evidence plus its local scorecard | Reusable as a manual research framework |
+| Review a reported quarter and hold management to account | [`earnings-review`](https://github.com/KCNyu/clawock/blob/master/skills/earnings-review/SKILL.md) | First-party filings/HKEX announcements, structured XBRL or Eastmoney verification, provenance gate | Reusable; artifacts live in `memory/earnings/` |
+| Decide whether a new name is worth researching | [`entry-gate`](https://github.com/KCNyu/clawock/blob/master/skills/entry-gate/SKILL.md) | Workspace quote pipelines, instrument registry, evidence source grading, deterministic hard vetoes | Reusable; artifacts live in `memory/entry-gates/` |
 
 These surfaces chain in one direction — entry gate, then first-party earnings evidence, then the canonical thesis and its evidence-only drift, then the existing decision, risk and settlement loop. Each step writes a versioned artifact the next one reads, so a later stage can never quietly re-derive an earlier one from prose.
 
 These are workspace-native research routes, not standalone one-command products. They expect clawock's scripts, data contracts, and memory/SOP files; the published portfolio and its operating history remain specific to this deployment.
 
-Built with [Claude Code](https://claude.com/claude-code), the [openclaw](https://openclaw.com) cron daemon, a static Jekyll + GitHub Pages frontend, and Python. Market, news, macro, and sentiment come from documented public sources with multi-source fallback; see [third-party data and service terms](docs/legal/third-party-data.md) before reusing any fetched content.
+Built with [Claude Code](https://claude.com/claude-code), the [openclaw](https://openclaw.com) cron daemon, a static Jekyll + GitHub Pages frontend, and Python. Market, news, macro, and sentiment come from documented public sources with multi-source fallback; see [third-party data and service terms](https://github.com/KCNyu/clawock/blob/master/docs/legal/third-party-data.md) before reusing any fetched content.
 
 <details>
 <summary><b>Under the hood</b> — models, write coordination, and integrity gates</summary>
@@ -318,12 +318,12 @@ stored here.
 
 This repository holds **real trading positions**. It is a personal record and portable workspace — **not investment advice, a recommendation, or a copy-trading system**. The desk analyzes and proposes; it does not place orders for you. No individual outcome is hand-picked — settlement rules and methodology changes are versioned in code — the active calls have yet to show an edge, and every number may be stale by the time you read it.
 
-Original code is under the [MIT License](LICENSE). Adapted third-party code keeps its own license and attribution in [NOTICE](NOTICE) and [`THIRD_PARTY_LICENSES/`](THIRD_PARTY_LICENSES/). Third-party market data, news, social posts, filings, trademarks, and API access are **not** relicensed by MIT — see [Third-party data and services](docs/legal/third-party-data.md).
+Original code is under the [MIT License](https://github.com/KCNyu/clawock/blob/master/LICENSE). Adapted third-party code keeps its own license and attribution in [NOTICE](https://github.com/KCNyu/clawock/blob/master/NOTICE) and [`THIRD_PARTY_LICENSES/`](https://github.com/KCNyu/clawock/tree/master/THIRD_PARTY_LICENSES). Third-party market data, news, social posts, filings, trademarks, and API access are **not** relicensed by MIT — see [Third-party data and services](https://github.com/KCNyu/clawock/blob/master/docs/legal/third-party-data.md).
 
 <div align="center">
 <br>
 
-**[Live dashboard](https://kcnyu.github.io/clawock/)** &nbsp;·&nbsp; **[Daily briefs](https://kcnyu.github.io/clawock/briefs.html)** &nbsp;·&nbsp; **[简体中文](README.zh.md)**
+**[Live dashboard](https://kcnyu.github.io/clawock/)** &nbsp;·&nbsp; **[Daily briefs](https://kcnyu.github.io/clawock/briefs.html)** &nbsp;·&nbsp; **[简体中文](https://github.com/KCNyu/clawock/blob/master/README.zh.md)**
 
 <sub>Built and maintained by <a href="https://github.com/KCNyu">Shengyu Li (kcn)</a> and Rick · 2026</sub>
 
