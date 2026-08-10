@@ -38,28 +38,39 @@ from clawock.workspace import workspace_root
 from clawock.market_data import sessions as trading_calendar
 from clawock.decision import plans as plan_surface
 from clawock.evidence import research_surface
+from clawock.cli import PACKAGED_UTILITIES
 from clawock.market_data import known_catalysts, mover_evidence as mover_news, peer_scan
 
 WS = workspace_root(Path.cwd())
-DATA_DIR = WS / 'scripts' / 'data'
 TMP = WS / 'memory' / '.tmp'
 
 from ._harness_common import compute_context_id
 
-sys.path.insert(0, str(DATA_DIR))
 from clawock_kcnyu.automation import cron_heartbeat  # noqa: E402
 
 
+# `scripts/data` was deleted in #429 and the analysis moved into the package in
+# #421, which added `clawock analyze-hk` / `analyze-us` but left these two callers
+# pointing at the old path. Both preflights then failed on every run while still
+# exiting 0, so the agent saw no error and went hunting through site-packages
+# instead of writing a report (#447).
+#
+# PACKAGED_UTILITIES is the CLI's own map and is already guarded by
+# test_harness_cli_contract, so resolving through it means these callers cannot
+# drift from the commands again. sys.executable rather than a bare name: this
+# runs under cron, whose PATH is /usr/bin:/bin (#438, #443).
 def run_analyze(market):
-    script = DATA_DIR / f'analyze_{market}_stocks.py'
+    module = PACKAGED_UTILITIES[f'analyze-{market}']
     try:
         r = subprocess.run(
-            ['python3', str(script), '--wechat', '--md-table'],
+            [sys.executable, '-m', module, '--wechat', '--md-table'],
             capture_output=True, text=True, timeout=120,
         )
         return r.returncode, r.stdout, r.stderr
+    except subprocess.TimeoutExpired:
+        return -1, '', f'{module} timeout (120s)'
     except Exception as e:
-        return -1, '', str(e)
+        return -1, '', f'{module} error: {e}'
 
 
 def parse_signals(stdout):
@@ -201,7 +212,11 @@ def main(argv=None):
     # 零额外请求（T0_INTRADAY 默认关）。失败不阻断盯盘。
     t0_setups = {}
     try:
-        subprocess.run(['clawock', 't0'],
+        # Same interpreter, not a bare name: under cron PATH is /usr/bin:/bin and
+        # the launcher lives in ~/.local/bin, so `clawock` does not resolve (#438,
+        # #443). Here the except swallows it, which is exactly how a dead call
+        # stays invisible.
+        subprocess.run([sys.executable, '-m', PACKAGED_UTILITIES['t0']],
                        capture_output=True, text=True, timeout=45, check=False)
         t0_path = WS / 'assets' / 'data' / 't0_setups.json'
         if t0_path.exists():
