@@ -15,7 +15,7 @@
 [**实时仪表盘**](https://kcnyu.github.io/clawock/) &nbsp;·&nbsp; [**每日简报**](https://kcnyu.github.io/clawock/briefs.html) &nbsp;·&nbsp; [**证据与反证**](https://kcnyu.github.io/clawock/evidence.html) &nbsp;·&nbsp; [**English**](README.md)
 
 ```bash
-pip install "clawock @ git+https://github.com/KCNyu/clawock.git"   # PyPI 待发布：#379
+pip install clawock
 clawock init ./my-decision --workflow investment-decision
 ```
 
@@ -216,12 +216,12 @@ package 架构。
 
 ## 在你自己的账本上跑
 
-package lifecycle 已经不再焊死在这个账户目录上。在
-[#379](https://github.com/KCNyu/clawock/issues/379) 完成 trusted publishing 前，
-请从 GitHub 安装当前 pre-release，不假装 PyPI 名称已经上线：
+package lifecycle 已经不再焊死在这个账户目录上。它通过 GitHub trusted publishing
+发布到 PyPI —— 没有 API token，且发布任务会先证明一个干净环境能装上这个 artifact
+并跑完一次完整运行，然后才上传：
 
 ```bash
-python -m pip install "clawock @ git+https://github.com/KCNyu/clawock.git"
+python -m pip install clawock
 clawock workflow install investment-decision --workspace ./my-decision
 clawock init ./my-decision --workflow investment-decision
 clawock run prepare --workspace ./my-decision
