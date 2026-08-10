@@ -6,6 +6,7 @@
     ".gitignore": {"owner": "repository configuration", "consumer": "git"},
     "AGENTS.md": {"owner": "runtime compatibility", "consumer": "OpenClaw and coding agents"},
     "BOOTSTRAP.md": {"owner": "runtime compatibility", "consumer": "OpenClaw bootstrap"},
+    "CHANGELOG.md": {"owner": "public package release notes", "consumer": "PyPI project links and GitHub"},
     "CLAUDE.md": {"owner": "runtime compatibility", "consumer": "Claude Code entry context"},
     "DREAMS.md": {"owner": "runtime compatibility", "consumer": "OpenClaw dreaming promotion"},
     "HEARTBEAT.md": {"owner": "runtime compatibility", "consumer": "OpenClaw heartbeat"},

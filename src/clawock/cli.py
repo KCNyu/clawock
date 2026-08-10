@@ -520,6 +520,22 @@ DOCSTRING_HELP_UTILITIES = frozenset({
     "fundflow", "quant", "quant-review", "t0", "t0-review", "us-quotes",
 })
 
+
+def _installed_version() -> str:
+    """What pip actually put on this machine, or a sentinel saying it did not.
+
+    A source tree that was never installed has no distribution metadata, and
+    inventing a number for it would be the drift this indirection exists to
+    avoid — so it says so instead.
+    """
+    from importlib.metadata import PackageNotFoundError, version
+
+    try:
+        return version("clawock")
+    except PackageNotFoundError:
+        return "0+unknown (running from an uninstalled source tree)"
+
+
 def main(argv=None) -> int:
     raw_argv = list(sys.argv[1:] if argv is None else argv)
     if raw_argv and raw_argv[0] in PACKAGED_UTILITIES:
@@ -528,6 +544,18 @@ def main(argv=None) -> int:
         ))
 
     parser = argparse.ArgumentParser(prog="clawock", description=__doc__)
+    # The first command anyone runs after `pip install`, and until now the one
+    # command that failed: argparse rejected `--version` as an unknown argument
+    # and answered with exit 2 plus the whole 50-subcommand usage block. Someone
+    # checking which artifact pip gave them got a wall of text and a failure.
+    #
+    # Read from installed distribution metadata rather than a literal, for the
+    # reason `tests/test_versions_agree.py` records: a restated number survives
+    # the bump that was supposed to change it, and the stale copy is the one the
+    # user is shown. `clawock.__version__` stays absent on purpose — that file
+    # explains why — so this reads the distribution directly.
+    parser.add_argument(
+        "--version", action="version", version=f"clawock {_installed_version()}")
     sub = parser.add_subparsers(dest="command", required=True)
 
     init = sub.add_parser("init", help="create a standalone clawock workspace")

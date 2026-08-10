@@ -38,6 +38,7 @@ index.
 ```bash
 # version lives in exactly one place
 sed -i 's/^version = .*/version = "0.2.0"/' pyproject.toml
+# then write the CHANGELOG.md entry for that version, in the same PR
 # ...open a PR, merge it, then tag the merge commit
 git tag v0.2.0 && git push origin v0.2.0
 ```
@@ -45,6 +46,12 @@ git tag v0.2.0 && git push origin v0.2.0
 The workflow refuses a tag that disagrees with `pyproject.toml`, because a
 mismatch publishes a version nobody asked for under a name the changelog already
 uses for something else.
+
+`tests/test_versions_agree.py` refuses a bump whose `CHANGELOG.md` entry is
+missing, which is why the entry belongs in the same PR as the bump. Writing it
+afterwards means the artifact is already on PyPI describing itself as something
+nobody wrote down, and a published version cannot be replaced — only superseded,
+which is what 0.1.1 cost.
 
 ## What the release job proves before it publishes
 
