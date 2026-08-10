@@ -49,6 +49,14 @@ fi
 PLAN_FILES=$(echo "$STAGED" | grep -E '^memory/.*-plan\.json$' || true)
 if [ -n "$PLAN_FILES" ]; then
   echo "  ▸ validating staged plan.json files…"
+  # The package sits behind a src/ boundary (#392), so a bare interpreter cannot
+  # import it and this block died silently the first weekday after that move:
+  # commits carrying a plan failed while `brief postflight` still reported
+  # `status: pass`, so a delivered card linked to a report that was never
+  # published (#445). The checkout being committed into is the right source —
+  # ahead of any installed wheel — because the hook has to validate the code in
+  # the tree, not whatever happens to be installed on the host.
+  PYTHONPATH="$WS/src${PYTHONPATH:+:$PYTHONPATH}" \
   python3 - "$PLAN_FILES" <<'PY' || exit 1
 import json, sys
 from clawock.decision import ledger as decision_v2
