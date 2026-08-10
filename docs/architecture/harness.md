@@ -87,9 +87,11 @@ have their own rules. `src/clawock/context/manifest.json` records each profile, 
 lazy skill/memory capability roots, conversation-history ownership and the rule
 that clawock never narrows OpenClaw's tools implicitly.
 
-`clawock context audit --profile <name>` fails visibly when an injected file is
-missing/empty or when moving `skills/`, `MEMORY.md` or `memory/` would silently
-remove catalog/search capability. This is broader than comparing prompt text:
+`clawock context audit` fails visibly when an injected file is missing/empty or
+when moving `skills/`, `MEMORY.md` or `memory/` would silently remove
+catalog/search capability. With no `--profile` it audits every profile and fails
+if any one of them does — a file that only the interactive profile requires is
+not covered by auditing isolated-cron alone. This is broader than comparing prompt text:
 the skills catalog contains metadata rather than skill bodies, memory search can
 remain available where `MEMORY.md` is not injected, and session history belongs
 to the runtime rather than the bootstrap bundle.
