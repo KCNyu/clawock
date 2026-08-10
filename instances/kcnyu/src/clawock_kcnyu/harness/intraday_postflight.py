@@ -243,6 +243,15 @@ def delivery_marker_payload(ctx, *, ts, sent_ok, tg_ok, first_line, market, out,
     `delivery_state` distinguishes a full report from the fail-closed data block
     (#135): both are real deliveries — the watchdog must not re-send either —
     but only one of them carried the model's prose.
+
+    `context_id` and `context_generated_at` name the preflight invocation this
+    body was built from. Without them the only link back to the delivered report
+    was its first line, which carries the generation minute — so when openclaw
+    auto-retried a run that had already delivered, the retry's preflight rewrote
+    the context, the first lines disagreed, and the watchdog mirrored a report kcn
+    already had (#458, 2026-08-10 HK 10:30 and 11:30). Mode 6's marker has carried
+    both fields since 2026-08-03; Mode 7's context always had them and threw them
+    away here.
     """
     heartbeat = ctx.get('heartbeat') or {}
     return {
@@ -253,6 +262,8 @@ def delivery_marker_payload(ctx, *, ts, sent_ok, tg_ok, first_line, market, out,
         'market': market,
         'job': heartbeat.get('job'),
         'slot': heartbeat.get('slot'),
+        'context_id': ctx.get('context_id'),
+        'context_generated_at': ctx.get('generated_at'),
         'delivery_state': delivery_state,
         'out': (out or '')[-200:],
     }

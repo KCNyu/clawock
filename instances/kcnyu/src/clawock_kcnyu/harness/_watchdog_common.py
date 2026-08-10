@@ -382,6 +382,37 @@ def last_report_text(session_id, first_line):
     return found
 
 
+def same_generation_window(marker, ctx_generated_at, *, window_s, backward_s):
+    """Was the delivered report built from THIS slot's data, a regeneration apart?
+
+    The preflight `context_id` is a per-invocation hash, so an openclaw auto-retry
+    (re-runs preflight, then hits postflight's idempotency lock and deliberately
+    does NOT rewrite the marker) guarantees the two ids differ — the one case an
+    id compare exists to survive. Comparing the source contexts' own timestamps
+    separates that from the failure the id compare was added for (2026-07-24
+    美股收盘报告 delivered 07/22 numbers): a retry regenerates minutes later, a
+    genuinely stale body is a whole slot, or a day, behind.
+
+    The window is asymmetric — a retry's context is always the NEWER one, so only
+    a small backward tolerance is allowed for clock and write ordering. Its size
+    belongs to the caller: report phases sit hours apart, Mode 7 slots 30 minutes,
+    and a window at or above the cadence would call the previous slot a retry.
+
+    Shared rather than copied on purpose. Mode 6 was fixed on 2026-08-03 and Mode
+    7 kept paying for the same bug until 2026-08-10 (#458) because the rule lived
+    in one file and the second mode never learned it.
+    """
+    marker_at = marker.get('context_generated_at')
+    if not marker_at or not ctx_generated_at:
+        return False
+    try:
+        delta = (datetime.fromisoformat(ctx_generated_at)
+                 - datetime.fromisoformat(marker_at)).total_seconds()
+    except (TypeError, ValueError):
+        return False
+    return -backward_s <= delta <= window_s
+
+
 def transcript_loop_score(session_id):
     """Max repeat-count of any 50-char window across all assistant text in the
     session transcript. A clean run scores ~1-2; the mimo repeat-loop failure

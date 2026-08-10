@@ -50,6 +50,7 @@ from pathlib import Path
 from ._watchdog_common import (
     WS, HKT, log, find_job_id, today_runs,
     transcript_loop_score, last_report_text, send_telegram, KCN_TELEGRAM,
+    same_generation_window,
 )
 
 LOOP_THRESHOLD = 5                 # transcript loop_score ≥ this ⇒ mimo repeat-loop ⇒ garbage
@@ -66,30 +67,16 @@ def deterministic_fallback(raw_block, tag, reason):
 
 
 def _same_generation_window(marker, ctx_generated_at):
-    """Was the delivered report built from THIS slot's data, a regeneration apart?
+    """This mode's window on the shared rule — see `same_generation_window`.
 
-    `context_id` is a per-preflight-invocation hash, so an openclaw auto-retry
-    (re-runs preflight, then hits postflight's idempotency lock and deliberately
-    does NOT rewrite the marker) guarantees the two ids differ — the one case the
-    id compare exists to survive. Both 2026-08-03 HK false backstops were exactly
-    that: delivered at 13:31 from a 13:30 context, watchdog at 13:42 reading the
-    retry's 13:32:59 context.
-
-    Comparing the source contexts' own timestamps separates that from the failure
-    the id compare was added for (2026-07-24 美股收盘报告 delivered 07/22 numbers):
-    a retry regenerates minutes later, a genuinely stale body is hours or days
-    behind. The window is asymmetric — a retry's context is always the NEWER one,
-    so only a small backward tolerance is allowed for clock/write ordering.
+    Both 2026-08-03 HK false backstops were exactly the retry case: delivered at
+    13:31 from a 13:30 context, watchdog at 13:42 reading the retry's 13:32:59
+    context. Report phases sit hours apart, so a 30-minute window cannot reach
+    the previous phase.
     """
-    marker_at = marker.get('context_generated_at')
-    if not marker_at or not ctx_generated_at:
-        return False
-    try:
-        delta = (datetime.fromisoformat(ctx_generated_at)
-                 - datetime.fromisoformat(marker_at)).total_seconds()
-    except (TypeError, ValueError):
-        return False
-    return -REGEN_BACKWARD_S <= delta <= REGEN_WINDOW_S
+    return same_generation_window(
+        marker, ctx_generated_at,
+        window_s=REGEN_WINDOW_S, backward_s=REGEN_BACKWARD_S)
 
 
 def slot_delivered(marker, ctx_id, raw_block_first, now_ms, ctx_generated_at=None):

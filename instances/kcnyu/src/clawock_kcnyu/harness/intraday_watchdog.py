@@ -69,6 +69,7 @@ from pathlib import Path
 from ._watchdog_common import (
     WS, HKT, log, find_job_id, today_runs, KCN_TELEGRAM,
     transcript_loop_score, last_report_text, send_telegram,
+    same_generation_window,
 )
 
 from clawock_kcnyu.automation import cron_heartbeat  # noqa: E402
@@ -77,6 +78,12 @@ LOOP_THRESHOLD = 5         # transcript loop_score ≥ this ⇒ mimo repeat-loop
 MARKER_FRESH_MS = 25 * 60 * 1000  # postflight send-marker older than this ⇒ treat as not-this-slot
 MARKER_FUTURE_SKEW_MS = 5 * 60 * 1000  # marker written just after the watchdog's clock read
 WATCHDOG_DELAY_MINUTES = 10
+# Slots are 30 minutes apart, so this window must stay well under that: at or
+# above the cadence it would read the previous slot's context as a retry of this
+# one. Observed retries regenerate within ~3 minutes (2026-08-10: 10:30:05 →
+# 10:32:57), so 10 gives room without reaching the neighbouring slot.
+REGEN_WINDOW_S = 10 * 60
+REGEN_BACKWARD_S = 60      # tolerance for a context timestamped just before the marker's
 
 
 def deterministic_fallback(raw_block, tag, reason):
@@ -87,12 +94,21 @@ def deterministic_fallback(raw_block, tag, reason):
 
 
 def deliver_fallback(raw_block, tag, reason, args, watchdog_now, flag,
-                     expected_job, expected_slot, run_at, extra=None):
+                     expected_job, expected_slot, run_at, extra=None,
+                     telegram_already_delivered=False):
     """Send the deterministic block and record the outcome — success OR failure.
 
     The failure branch records `watchdog_failed` deliberately: a fallback that
     could not be sent is the one state nobody downstream can infer, so it must
     leave the same kind of trace the mirror path already leaves.
+
+    `telegram_already_delivered` keeps that trace honest about the slot rather
+    than about the backstop. postflight records `telegram_sent=True` when its
+    cosend lands; a backstop that then fails to send has learned nothing about
+    that earlier send, so writing `telegram_sent=False` over it turns a delivered
+    slot into a missing one in the heartbeat (#458). The run still records
+    `watchdog_failed` either way — the failure is not being hidden, only kept
+    from contradicting a confirmed delivery.
     """
     body = deterministic_fallback(raw_block, tag, reason)
     tg_ok, tg_out = send_telegram(KCN_TELEGRAM, body, args.dry_run)
@@ -111,7 +127,8 @@ def deliver_fallback(raw_block, tag, reason, args, watchdog_now, flag,
             cron_heartbeat.record(
                 args.market, 'watchdog_failed', at=watchdog_now,
                 job_name=expected_job, slot=expected_slot,
-                watchdog_state='deterministic_fallback_failed', telegram_sent=False,
+                watchdog_state='deterministic_fallback_failed',
+                telegram_sent=bool(telegram_already_delivered),
             )
     print(json.dumps({'tag': tag, 'deterministic_fallback': tg_ok,
                       'dry_run': args.dry_run}, ensure_ascii=False))
@@ -156,12 +173,39 @@ def context_for_slot(path, job_name, slot):
     return context
 
 
-def marker_covers_slot(marker, job_name, slot, raw_block_first, now_ms):
-    """Whether postflight confirmed Telegram delivery for this exact slot."""
+def marker_covers_slot(marker, job_name, slot, raw_block_first, now_ms,
+                       ctx_id=None, ctx_generated_at=None):
+    """Whether postflight confirmed Telegram delivery for this exact slot.
+
+    Slot identity comes first and is never traded away: a marker for another
+    job or another slot is not evidence about this one, whatever its ids say.
+
+    Within the slot, identity prefers the preflight `context_id` (exact), then
+    the regeneration window when the ids differ because openclaw retried the run,
+    and only then the legacy first-line compare kept for markers written before
+    those fields existed.
+
+    The first-line compare cannot be the primary judge (#458): the block's first
+    line carries its generation minute, and a retry's preflight regenerates the
+    context while postflight's idempotency lock deliberately leaves the marker
+    alone — so the two disagree by construction on exactly the slots that WERE
+    delivered. On 2026-08-10 that mirrored the HK 10:30 and 11:30 reports back to
+    kcn as "undelivered".
+    """
     if not isinstance(marker, dict) or not marker.get('tg_ok'):
         return False
     if (marker.get('job'), marker.get('slot')) != (job_name, slot):
         return False
+    if marker.get('context_id') and ctx_id:
+        if marker['context_id'] == ctx_id:
+            return True
+        # Ids differ. That is the normal shape of a cron retry, not of a miss.
+        # Markers predating the field fall through to the legacy compare rather
+        # than to a false miss for the length of one deployment.
+        if marker.get('context_generated_at'):
+            return same_generation_window(
+                marker, ctx_generated_at,
+                window_s=REGEN_WINDOW_S, backward_s=REGEN_BACKWARD_S)
     ts = marker.get('ts')
     # Both bounds matter now that the marker is the primary judge: a wildly
     # future-dated ts (clock skew, corrupted or hand-edited marker) would
@@ -237,6 +281,24 @@ def main():
     loop_score, _ = transcript_loop_score(session_id)
     looped = loop_score >= LOOP_THRESHOLD
 
+    marker_path = WS / 'memory' / '.tmp' / f'intraday-sent-{args.market}.json'
+    marker = None
+    if marker_path.exists():
+        try:
+            marker = json.loads(marker_path.read_text())
+        except Exception:
+            marker = None
+    now_ms = int(watchdog_now.timestamp() * 1000)
+    # A confirmed Telegram send for this exact slot, whichever attempt made it.
+    # The evidence gate below can still decline to call the slot covered (stale
+    # generation, failed cosend), and the loop gate deliberately ignores it —
+    # this only records that a send was confirmed, so a backstop that could not
+    # be delivered cannot rewrite that fact into "never delivered" (#458).
+    # Read here rather than at the gate so both gates can carry it.
+    telegram_already_delivered = bool(
+        isinstance(marker, dict) and marker.get('tg_ok')
+        and (marker.get('job'), marker.get('slot')) == (expected_job, expected_slot))
+
     # --- Loop gate: a detected loop always reaches kcn, delivered or not ------
     # A confirmed marker does NOT suppress this. `tg_ok` only proves the send
     # subprocess exited 0 — it never inspects the body. postflight's length cap
@@ -249,7 +311,8 @@ def main():
         deliver_fallback(
             raw_block, tag, '循环', args, watchdog_now, flag,
             expected_job, expected_slot, run_at,
-            extra={'loop_score': loop_score, 'delivered_clean': None})
+            extra={'loop_score': loop_score, 'delivered_clean': None},
+            telegram_already_delivered=telegram_already_delivered)
         return 0
 
     # --- Delivery evidence gate: the postflight marker decides -----------------
@@ -259,18 +322,12 @@ def main():
     # miss. The marker is positive proof — postflight itself recorded tg_ok for
     # this exact job/slot/first_line within the freshness window — and positive
     # proof of delivery outranks any inference drawn from the run record.
-    marker_path = WS / 'memory' / '.tmp' / f'intraday-sent-{args.market}.json'
-    marker = None
-    if marker_path.exists():
-        try:
-            marker = json.loads(marker_path.read_text())
-        except Exception:
-            marker = None
-    now_ms = int(watchdog_now.timestamp() * 1000)
     # TG is covered iff postflight's cosend confirmably delivered this report to
-    # Telegram this exact slot (slot identity, freshness, first line, tg_ok=true).
+    # Telegram this exact slot (slot identity, context generation, tg_ok=true).
     if marker_covers_slot(
-            marker, expected_job, expected_slot, raw_block_first, now_ms):
+            marker, expected_job, expected_slot, raw_block_first, now_ms,
+            ctx_id=context.get('context_id'),
+            ctx_generated_at=context.get('generated_at')):
         cron_heartbeat.record(
             args.market, 'completed', at=watchdog_now,
             job_name=expected_job, slot=expected_slot,
@@ -305,7 +362,8 @@ def main():
         deliver_fallback(
             raw_block, tag, '未完成', args, watchdog_now, flag,
             expected_job, expected_slot, run_at,
-            extra={'loop_score': loop_score, 'delivered_clean': delivered_clean})
+            extra={'loop_score': loop_score, 'delivered_clean': delivered_clean},
+            telegram_already_delivered=telegram_already_delivered)
         return 0
 
     # --- Delivery backstop: Telegram only (no WeChat resend) ------------------
