@@ -1,8 +1,8 @@
 {
-  "as_of": "2026-08-09T13:15:25+08:00",
+  "as_of": "2026-08-10T08:44:42+08:00",
   "market_closed": {
     "us": true,
-    "hk": true
+    "hk": false
   },
   "intraday_enriched": false,
   "note": "牌面质量评级，非买卖信号。追高检测 = 当日高位+振幅耗尽时买入为低质。",

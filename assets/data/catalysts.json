@@ -1,8 +1,8 @@
 {
-  "generated_at": "2026-08-07T08:08:13.199014+08:00",
+  "generated_at": "2026-08-10T08:44:50.266219+08:00",
   "lookback_window_days": 14,
-  "window_start": "2026-08-07",
-  "window_end": "2026-08-21",
+  "window_start": "2026-08-10",
+  "window_end": "2026-08-24",
   "earnings_queried": [
     "CRCL",
     "MSFT",
@@ -27,11 +27,6 @@
   "fomc": [],
   "macro_events": [
     {
-      "date": "2026-08-07",
-      "type": "NFP",
-      "detail": "Jul jobs report (Non-Farm Payrolls); BLS 8:30 ET"
-    },
-    {
       "date": "2026-08-12",
       "type": "CPI",
       "detail": "Jul CPI release (BLS 8:30 ET)"
@@ -51,7 +46,7 @@
   "summary": {
     "earnings_count": 1,
     "fomc_in_window": 0,
-    "macro_count": 2,
+    "macro_count": 1,
     "scheduled_count": 1,
     "scheduled_undated": 1,
     "highest_impact_within_7d": "CPI 2026-08-12"

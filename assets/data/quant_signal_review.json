@@ -1,13 +1,13 @@
 {
-  "as_of": "2026-08-09",
-  "days_logged": 44,
+  "as_of": "2026-08-10",
+  "days_logged": 45,
   "unlock_rule": "cluster_ci_entirely_above_or_below_50pct",
   "factors": {
     "trend_on_follow": {
-      "n_events": 32,
-      "n_dates": 32,
+      "n_events": 33,
+      "n_dates": 33,
       "n_tickers": 1,
-      "hit_rate": 0.031,
+      "hit_rate": 0.03,
       "ci95": null,
       "ci_method": "date_ticker_two_way_cluster_bootstrap",
       "edge_significant": false,
@@ -17,13 +17,13 @@
       "note": "date/ticker 聚类不足，方向结论不入决策"
     },
     "trend_off_avoid": {
-      "n_events": 308,
-      "n_dates": 39,
+      "n_events": 314,
+      "n_dates": 40,
       "n_tickers": 10,
-      "hit_rate": 0.484,
+      "hit_rate": 0.478,
       "ci95": [
-        0.334,
-        0.622
+        0.338,
+        0.614
       ],
       "ci_method": "date_ticker_two_way_cluster_bootstrap",
       "edge_significant": false,
@@ -49,10 +49,10 @@
       "note": "聚类 CI 跨 50%，方向结论不入决策"
     },
     "rsi_overbought_fade": {
-      "n_events": 4,
-      "n_dates": 4,
+      "n_events": 5,
+      "n_dates": 5,
       "n_tickers": 2,
-      "hit_rate": 0.5,
+      "hit_rate": 0.4,
       "ci95": [
         0.0,
         1.0
@@ -81,13 +81,13 @@
       "note": "聚类 CI 跨 50%，方向结论不入决策"
     },
     "stop_breach_continue": {
-      "n_events": 262,
-      "n_dates": 39,
+      "n_events": 265,
+      "n_dates": 40,
       "n_tickers": 11,
-      "hit_rate": 0.504,
+      "hit_rate": 0.498,
       "ci95": [
-        0.341,
-        0.67
+        0.333,
+        0.661
       ],
       "ci_method": "date_ticker_two_way_cluster_bootstrap",
       "edge_significant": false,
@@ -97,6 +97,6 @@
       "note": "聚类 CI 跨 50%，方向结论不入决策"
     }
   },
-  "summary": "没有因子通过聚类 CI 50% 闸（44 天留痕）——结论未解锁",
+  "summary": "没有因子通过聚类 CI 50% 闸（45 天留痕）——结论未解锁",
   "discipline": "自迭代规则：公开 n_events/n_dates/n_tickers；date×ticker 双向聚类 CI 跨 50% 不入决策；只有反向 CI 整体低于 50% 才允许反向解读。driven_by=technical 的整体战绩以 dashboard 的实时 decision_metrics.by_driver.technical 为准，不使用固定百分比。"
 }

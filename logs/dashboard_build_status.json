@@ -1,7 +1,9 @@
 {
-  "checked_at": "2026-08-07T20:05:33Z",
+  "checked_at": "2026-08-10T01:00:26Z",
   "ok": true,
+  "build_ok": true,
+  "publish_ok": true,
   "warn_count": 0,
   "repair_count": 0,
-  "tail": "ce/assets/data/decision_audit.json (decision audit sidecar)\n✓ wrote /root/.openclaw/workspace/assets/data/shadow_portfolio.json (shadow portfolio sidecar, 模拟·非实盘)\n  US: 16 holdings, 7 active, value $2952\n  HK: 7 holdings, 5 active, value HK$72140\n  Snapshots: 63 embedded / 63 on disk\n  Plans: 5 embedded / 60 on disk\n  Snapshots: 63 | Plans: 5\n  FX USDHKD: 7.8446 (Frankfurter)\n\n  data-plane publish failed: ✗ data-plane: git failed: error: failed to push some refs to 'github.com:KCNyu/clawock.git'"
+  "tail": "  brief-context source: brief-context-2026-08-10.json\n✓ wrote /root/.openclaw/workspace/assets/data/overview.json (42,754 bytes)\n✓ wrote /root/.openclaw/workspace/assets/data/dashboard.json (148,273 bytes)\n✓ wrote /root/.openclaw/workspace/assets/data/decision_audit.json (decision audit sidecar)\n✓ wrote /root/.openclaw/workspace/assets/data/shadow_portfolio.json (shadow portfolio sidecar, 模拟·非实盘)\n  US: 16 holdings, 7 active, value $2952\n  HK: 7 holdings, 5 active, value HK$72092\n  Snapshots: 64 embedded / 64 on disk\n  Plans: 5 embedded / 61 on disk\n  Snapshots: 64 | Plans: 5\n  FX USDHKD: 7.8449 (Frankfurter)\n\n  ✓ data-plane: published 6 outputs as d40d053c9422 → git@github.com:KCNyu/clawock.git data-plane\n✓ data-plane: requested data-plane-published → KCNyu/clawock"
 }
