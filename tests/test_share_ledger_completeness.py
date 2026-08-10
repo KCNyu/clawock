@@ -276,6 +276,40 @@ def test_every_reconstructed_lot_is_re_derivable_from_the_rest_of_the_ledger():
     assert checked == 9, f'expected 9 reconstructed lots, found {checked}'
 
 
+def test_reconstructed_lots_precede_every_recorded_trade_in_the_whole_book():
+    """The date is the one field that was chosen rather than derived, and it is
+    only harmless while it sits before the entire ledger — not merely before its
+    own holding's first trade.
+
+    That distinction is not theoretical. The first backfill dated each lot one
+    day before *its own* first recorded trade, which put RKLB's at 2026-06-12 —
+    after the shadow portfolio's 2026-05-18 start. `reconstruct_initial_book`
+    reverses every trade on or after the start date to recover the seed, so it
+    read that lot as a purchase made during the simulation and removed 5 real
+    shares from the starting book, moving published seed cash by $355.
+
+    kcn held those shares before clawock existed. Any consumer that rewinds the
+    book to a date is entitled to assume a pre-ledger position was already held,
+    so the lots belong before every recorded trade there is.
+    """
+    from clawock.portfolio.integrity import PORTFOLIO
+
+    if not PORTFOLIO.exists():
+        pytest.skip('no live book in this checkout')
+    portfolios = json.loads(PORTFOLIO.read_text()).get('portfolios', {})
+    trades = [t for port in portfolios.values()
+              for h in (port.get('holdings') or [])
+              for t in (h.get('trades') or [])]
+
+    recorded = [t['date'] for t in trades if not t.get('reconstructed')]
+    reconstructed = [t['date'] for t in trades if t.get('reconstructed')]
+    assert recorded and reconstructed, 'this test must have both kinds to compare'
+    assert max(reconstructed) < min(recorded), (
+        f'a reconstructed lot is dated {max(reconstructed)}, on or after the '
+        f'earliest recorded trade {min(recorded)}; any consumer that rewinds the '
+        'book to a start date will treat it as an in-period purchase')
+
+
 def test_a_lot_pinned_only_by_cost_basis_is_not_marked_corroborated():
     """07226 has no sells, so its opening price comes from cost_basis alone and
     checking cost_basis against it would be circular. The flag that keeps
