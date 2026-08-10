@@ -110,6 +110,77 @@ def _discover_install_dir(binary: str, *, search_path: str | None = None) -> Pat
     return candidates[0] if candidates else None
 
 
+# Where a per-user launcher lives when it is not on the caller's PATH. A job
+# started from the user crontab runs with PATH=/usr/bin:/bin, and none of these
+# are on it — so `shutil.which` answering None does not mean "not installed", it
+# means "not on this PATH". Getting that wrong killed the delivery backstop:
+# 2026-08-10 10:40 and 11:40, two intraday slots failed, the watchdog detected
+# both correctly, and the deterministic fallback reported `openclaw is not
+# installed` instead of sending. Same shape as #438 (the money checker) and #444
+# (the gold refresh); this one was the safety net.
+_LAUNCHER_DIRS = (
+    "~/.local/share/pnpm",      # pnpm global launcher
+    "~/.local/bin",             # the clawock launcher's own directory
+    "/usr/local/bin",
+)
+
+
+def _search_dirs(env: Mapping[str, str]) -> list[Path]:
+    home = env.get("HOME")
+    dirs = []
+    for directory in _LAUNCHER_DIRS:
+        if directory.startswith("~"):
+            if not home:
+                continue
+            dirs.append(Path(home) / directory[2:])
+        else:
+            dirs.append(Path(directory))
+    # nvm keeps node under a per-version directory and puts it on PATH through
+    # a shell profile, which a cron job never sources. Newest version first.
+    if home:
+        dirs.extend(sorted((Path(home) / ".nvm" / "versions" / "node").glob("*/bin"),
+                           reverse=True))
+    return dirs
+
+
+def _resolve_binary(env: Mapping[str, str], name: str = "openclaw") -> str:
+    """The runtime launcher, found without depending on the caller's PATH."""
+    found = shutil.which(name, path=env.get("PATH"))
+    if found:
+        return found
+    for base in _search_dirs(env):
+        candidate = base / name
+        if candidate.is_file() and os.access(candidate, os.X_OK):
+            return str(candidate)
+    # Unchanged last resort: the bare name, so a genuinely absent runtime still
+    # reports "not installed" rather than a path that was never there.
+    return name
+
+
+def runtime_env(env: Mapping[str, str] | None = None) -> dict:
+    """Environment for spawning the runtime, with a PATH it can actually run on.
+
+    Resolving the launcher is not enough: the pnpm launcher is a shell script
+    whose last line is `exec node …`, so a bare cron PATH turns
+    `openclaw is not installed` into `exec: node: not found` — a different
+    message for the same undelivered report. Only missing directories that hold
+    a real executable are appended, and the caller's own PATH keeps priority so
+    an operator's choice still wins.
+    """
+    env = os.environ if env is None else env
+    resolved = dict(env)
+    existing = [p for p in (env.get("PATH") or "").split(os.pathsep) if p]
+    for base in _search_dirs(env):
+        entry = str(base)
+        if entry in existing or not base.is_dir():
+            continue
+        if any(item.is_file() and os.access(item, os.X_OK)
+               for item in base.iterdir()):
+            existing.append(entry)
+    resolved["PATH"] = os.pathsep.join(existing)
+    return resolved
+
+
 # Legacy import surface, now discovered instead of fixed to one pnpm store.
 INSTALL_DIR = _discover_install_dir(OPENCLAW_BIN)
 
@@ -121,8 +192,7 @@ def runtime_paths(environ: Mapping[str, str] | None = None) -> OpenClawPaths:
     as a compatibility fallback for existing operator scripts.
     """
     env = os.environ if environ is None else environ
-    binary = env.get("CLAWOCK_OPENCLAW_BIN") or shutil.which(
-        "openclaw", path=env.get("PATH")) or "openclaw"
+    binary = env.get("CLAWOCK_OPENCLAW_BIN") or _resolve_binary(env)
     home_override = env.get("CLAWOCK_OPENCLAW_HOME") or env.get("OPENCLAW_HOME")
     default_home = (Path(env["HOME"]) / ".openclaw"
                     if env.get("HOME") else DEFAULT_OPENCLAW_HOME)
@@ -151,7 +221,7 @@ def cron_cli_json(cli_args, *, binary: str | None = None,
     """
     selected_binary = binary or runtime_paths().binary
     run = runner or (lambda cmd: subprocess.run(
-        cmd, capture_output=True, text=True, timeout=timeout))
+        cmd, capture_output=True, text=True, timeout=timeout, env=runtime_env()))
     try:
         done = run([selected_binary, "cron", *cli_args])
         # Deliberately NOT gated on returncode: the original helper parsed
