@@ -9,6 +9,7 @@ from clawock.context.assembly import (
     compare_prompt_reports,
     load_manifest,
     profile_names,
+    verify_prompt_report,
 )
 
 
@@ -90,6 +91,114 @@ def test_prompt_report_comparison_catches_tool_capability_loss():
     result = compare_prompt_reports(report, narrowed, profile="isolated-cron")
     assert not result["ok"]
     assert not result["checks"]["tool_contracts"]
+
+
+def _report(profile_files, *, skills=("trading",), provider=None,
+            session_key=None, tools=("read", "memory_search")):
+    payload = {
+        "injectedWorkspaceFiles": [
+            {"name": name, "missing": False, "rawChars": 10,
+             "injectedChars": 10, "truncated": False}
+            for name in profile_files
+        ],
+        "skills": {
+            "hash": "skill-hash" if skills else "empty",
+            "entries": [{"name": name} for name in skills],
+        },
+        "tools": {"entries": [
+            {"name": name, "summaryHash": name, "schemaHash": f"{name}-1"}
+            for name in tools
+        ]},
+    }
+    if provider:
+        payload["provider"] = provider
+    if session_key:
+        payload["sessionKey"] = session_key
+    return payload
+
+
+def test_a_backend_that_delegates_skills_is_not_a_capability_regression():
+    """claude-cli receives the catalog as a plugin, so its report shows zero.
+
+    Comparing it against a system-prompt backend used to read as "the agent
+    lost 29 skills and 5 tools", which is a deliberate runtime rule, not a
+    regression. The pair must be rejected as uncomparable instead.
+    """
+    delegated = _report(
+        INTERACTIVE, skills=(), provider="claude-cli",
+        session_key="agent:main:openclaw-weixin:direct:peer@im.wechat",
+        tools=("memory_search",),
+    )
+    in_prompt = _report(
+        INTERACTIVE, provider="minimax", session_key="agent:main:main")
+
+    result = compare_prompt_reports(delegated, in_prompt, profile="interactive")
+
+    assert not result["ok"]
+    assert not result["comparable"]
+    assert not result["checks"]["backend_dialect"]
+    assert not result["checks"]["session_family"]
+    # The capability checks must abstain rather than blame the runtime rule.
+    assert result["checks"]["skills_catalog"] is None
+    assert result["checks"]["tool_contracts"] is None
+    assert result["unattributable"] == ["skills_catalog", "tool_contracts"]
+    assert result["before"]["skills_delivery"] == "runtime-plugin"
+    assert result["after"]["skills_delivery"] == "system-prompt"
+
+
+def test_two_accounts_on_one_backend_stay_comparable():
+    """Live cron alternates `minimax` and `minimax-2` with the same surface.
+
+    A gate keyed on the raw provider string would redden a schedule that is
+    working, so the dialect — not the account — decides comparability.
+    """
+    before = _report(CRON, provider="minimax",
+                     session_key="agent:main:cron:11111111-job-a")
+    after = _report(CRON, provider="minimax-2",
+                    session_key="agent:main:cron:22222222-job-b")
+
+    result = compare_prompt_reports(before, after, profile="isolated-cron")
+
+    assert result["comparable"]
+    assert result["ok"], result["checks"]
+    assert result["before"]["family"] == result["after"]["family"] == "cron"
+
+
+def test_verify_fails_a_session_that_silently_lost_its_skills():
+    """One report had nowhere to fail: audit sees the workspace, compare needs a pair."""
+    healthy = _report(INTERACTIVE, provider="minimax",
+                      session_key="agent:main:main")
+    assert verify_prompt_report(healthy, profile="interactive")["ok"]
+
+    stripped = _report(INTERACTIVE, skills=(), provider="minimax",
+                       session_key="agent:main:main")
+    result = verify_prompt_report(stripped, profile="interactive")
+    assert not result["ok"]
+    assert result["checks"]["skills_present"] is False
+    assert result["unverified"] == []
+
+    # The same empty catalog on a delegating backend is not evidence either way.
+    delegated = _report(INTERACTIVE, skills=(), provider="claude-cli",
+                        session_key="agent:main:openclaw-weixin:direct:peer")
+    delegated_result = verify_prompt_report(delegated, profile="interactive")
+    assert delegated_result["ok"]
+    assert delegated_result["checks"]["skills_present"] is None
+    assert delegated_result["unverified"] == ["skills_present"]
+
+
+def test_verify_fails_a_report_that_does_not_match_the_claimed_profile():
+    cron_run = _report(CRON, provider="minimax",
+                       session_key="agent:main:cron:33333333-job-c")
+    assert verify_prompt_report(cron_run, profile="isolated-cron")["ok"]
+
+    result = verify_prompt_report(cron_run, profile="interactive")
+    assert not result["ok"]
+    assert result["checks"]["bootstrap_files"] is False
+
+    truncated = _report(INTERACTIVE, provider="minimax",
+                        session_key="agent:main:main")
+    truncated["injectedWorkspaceFiles"][0]["truncated"] = True
+    assert not verify_prompt_report(truncated, profile="interactive")["ok"]
 
 
 # Named so the runtime does NOT resurrect them. The docs are only truthful while

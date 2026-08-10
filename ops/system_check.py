@@ -512,6 +512,68 @@ def check_decision_ledger(r):
         r.add('decisions.jsonl', OK, f'{len(rows)} decisions · {len({x.get("episode_id") for x in rows})} episodes')
 
 
+def check_context_capability(r):
+    """A run that came out with no skills or no tools has to fail somewhere.
+
+    `clawock context audit` answers a different question — it verifies the
+    workspace has the documents and capability roots — so a loss that happens
+    at *assembly* time leaves it green. That is the exact failure #380 exists to
+    prevent, and until this check existed nothing looked at a realized run.
+
+    Warning rather than critical on purpose: a narrowed context is visible in
+    the daily health output, but it says nothing about whether the book
+    reconciles, and this gate blocks pre-push.
+    """
+    from clawock.context.assembly import verify_prompt_report
+
+    store = _OPENCLAW_PATHS.sessions_dir / 'sessions.json'
+    if not store.exists():
+        r.add('context capability', OK, 'no runtime session store (skipped)')
+        return
+    try:
+        sessions = json.loads(store.read_text())
+    except Exception as e:
+        r.add('context capability', WARNING, f'session store unreadable: {e}')
+        return
+
+    newest = {}
+    for key, entry in (sessions or {}).items():
+        if not isinstance(entry, dict):
+            continue
+        report = entry.get('systemPromptReport')
+        if not isinstance(report, dict):
+            continue
+        profile = 'isolated-cron' if ':cron:' in key else 'interactive'
+        try:
+            stamp = int(entry.get('updatedAt') or entry.get('lastInteractionAt') or 0)
+        except (TypeError, ValueError):
+            stamp = 0
+        if stamp >= newest.get(profile, (-1,))[0]:
+            newest[profile] = (stamp, key, report)
+    if not newest:
+        r.add('context capability', OK, 'no prompt report recorded yet')
+        return
+
+    failures, checked = [], []
+    for profile, (_stamp, key, report) in sorted(newest.items()):
+        try:
+            result = verify_prompt_report(report, profile=profile)
+        except ValueError as e:
+            failures.append(f'{profile}: unreadable report ({e})')
+            continue
+        failed = [name for name, ok in result['checks'].items() if ok is False]
+        if failed:
+            failures.append(f'{profile} {key[-24:]}: {", ".join(failed)}')
+        else:
+            seen = result['observed']
+            checked.append(
+                f'{profile} {len(seen["files"])}f/{seen["skills"]}s/{seen["tools"]}t')
+    if failures:
+        r.add('context capability', WARNING, '; '.join(failures))
+    else:
+        r.add('context capability', OK, ' · '.join(checked))
+
+
 def check_cron_paths_exist(r):
     """Live cron schedules match the tracked contract and payload scripts exist.
 
@@ -794,6 +856,7 @@ def main():
         check_peer_map_coverage,
         check_openclaw_doctor,
         check_decision_ledger,
+        check_context_capability,
         check_cron_paths_exist,
         check_generated_cron_docs,
         check_research_artifacts,

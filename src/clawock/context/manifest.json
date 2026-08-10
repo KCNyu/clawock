@@ -1,12 +1,13 @@
 {
   "runtime_contract": "openclaw-context-profiles-2026.7.1",
-  "schema_version": 2,
+  "schema_version": 3,
   "verified_against": "OpenClaw 2026.7.1 (2d2ddc4)",
   "source_symbols": [
     "loadWorkspaceBootstrapFiles",
     "filterBootstrapFilesForSession",
     "applyContextModeFilter",
-    "buildSystemPromptReport"
+    "buildSystemPromptReport",
+    "prepareClaudeCliSkillsPlugin"
   ],
   "default_profile": "isolated-cron",
   "profiles": {
@@ -114,6 +115,15 @@
   "tools": {
     "ownership": "OpenClaw assembles schemas and enforces policy",
     "clawock_policy": "never narrow the runtime tool set implicitly"
+  },
+  "backends": {
+    "ownership": "OpenClaw decides how each model backend receives skills and tools",
+    "skills_delivery": {
+      "default": "system-prompt",
+      "runtime-plugin": ["claude-cli"]
+    },
+    "runtime_plugin_note": "A runtime-plugin backend receives the same resolved skill snapshot out of band (claude-cli gets a materialized --plugin-dir plugin) and drops the file/exec tools the CLI already owns. Its prompt report therefore shows an empty skills catalog and a narrower tool set with no capability lost, so those fields cannot be compared against a system-prompt backend.",
+    "channel_family": "the session-key segment after the agent id; jobs and peers inside one family share a tool dialect, and the message tool schema differs between families"
   },
   "memory_search": {
     "default_sources": ["memory"],
