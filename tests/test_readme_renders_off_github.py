@@ -18,6 +18,7 @@ this test is what remembers that.
 """
 import re
 from pathlib import Path
+from urllib.parse import urlparse
 
 import pytest
 
@@ -49,11 +50,16 @@ def test_the_readme_has_no_relative_references():
 
 def test_assets_point_at_raw_not_the_blob_viewer():
     """A `github.com/.../blob/...` URL serves an HTML page, so an <img> using one
-    shows nothing. Assets have to come from raw.githubusercontent."""
+    shows nothing. Assets have to come from raw.githubusercontent.
+
+    The host is parsed rather than substring-matched: `https://evil.example/
+    ?x=raw.githubusercontent.com` contains the string and is not the host, so a
+    substring check is both a weaker test and the pattern CodeQL flags.
+    """
     text = README.read_text()
     for target in _references(text):
         if target.endswith(ASSET_SUFFIXES) and target.startswith('http'):
-            assert 'raw.githubusercontent.com' in target, target
+            assert urlparse(target).hostname == 'raw.githubusercontent.com', target
 
 
 def test_the_readme_is_what_the_package_ships():
