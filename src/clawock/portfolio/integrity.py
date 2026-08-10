@@ -47,6 +47,12 @@ cost_basis/prev_close/trades[])复原，且都有一道闸守着。计算链：
                  → 同一 US session 落进两个 HK 日期快照（fd86a53）
   TRUE_PRINCIPAL true_principal（峰值净投入）≥ 当前净投入(cost−realized)   WARN
                  → 手填本金常量过期 → 「净本金回报率」分母失真而虚高
+  SHARE_LEDGER   trades[] 净股 == shares（账本能当股数账本重放）           WARN
+                 → 九只持仓建仓早于账本，replay 差一个常数且事后无从恢复；
+                   #455 的 realized_as_of 同日 tie-break 对着负余额永远为假，
+                   一笔真实清仓被丢出发布的权益曲线（那里钳零是打补丁）。
+                   判据是「缺失股数」不是「余额转负」：再卖一笔只让低点更深、
+                   改不了缺多少，而 07226 缺 5200 股却一次都没转负。
 
 用法：
   clawock integrity [portfolio.json]   # 默认 workspace 根 portfolio.json
@@ -158,6 +164,88 @@ def _prev_snapshot_cash(region, field):
         except Exception:
             continue
     return None
+
+
+# 账本不完整、已知且已签收的持仓：(区, ticker) → 缺失的建仓股数。
+# 这些仓位在「每笔交易都记进 trades[]」之前就已开仓，所以 trades[] replay 不回
+# 当前 shares。差额是常数、可复现，记在这里是为了**不让这张表悄悄变长**——
+# 补一笔 reconstructed 建仓会改动 money 文件，那是 kcn 的决定（#456 选项 2）。
+#
+# 记「缺失股数」而不是「余额转负的日期」，因为只有前者是稳定的：再卖一笔会让
+# 负值低点更深、却改不了缺了多少。也正因为如此，07226 才在这张表里——它 6200 股
+# 对着 +1000 的 trades，缺 5200 股建仓，但一次都没转负，用「转负」筛就永远看不见。
+KNOWN_INCOMPLETE_LEDGERS = {
+    ('us_stocks', 'TQQQ'): 8,
+    ('us_stocks', 'OKLO'): 2,
+    ('us_stocks', 'TCOM'): 5,
+    ('us_stocks', 'HOOD'): 5,
+    ('us_stocks', 'RKLB'): 5,
+    ('hk_stocks', '07709'): 600,
+    ('hk_stocks', '07747'): 200,
+    ('hk_stocks', '02208'): 600,
+    ('hk_stocks', '07226'): 5200,
+}
+SHARE_TOL = 1e-6
+
+
+def ledger_deficit(holding):
+    """当前 shares 与 trades[] replay 净股之差 —— 即「没记进账本的建仓股数」。
+
+    0 表示这份 trades[] 可以当股数账本重放；>0 表示缺买入；<0 表示多记了买入。
+    没有 trades[] 的持仓返回 0：它根本没有可重放的清单（建仓早于账本），
+    对它报警只会把真正的九个埋进噪音里。
+    """
+    trades = holding.get('trades') or []
+    if not trades:
+        return 0.0
+    _, net = _moving_avg_cost(trades)
+    return (_num(holding.get('shares')) or 0) - net
+
+
+def check_share_ledgers(portfolios):
+    """SHARE_LEDGER：trades[] 能不能当股数账本重放。
+
+    不影响钱：每笔卖出自带 realized_pnl，账面合计分毫不差，钱闸绿是对的。
+    代价是任何「按 trades[] 重放股数」的消费者都会拿到一个差了常数的结果，而且
+    那个常数事后无从恢复——#455 就是这么被咬的：realized_as_of 的同日 tie-break
+    问「快照是否已降到卖出后的余额」，对着 -5 的余额永远为假，于是一笔真实的清仓
+    被从发布出去的权益曲线里丢掉了。那里的钳零是正确的局部修法，但它是在给这条
+    缺陷打补丁。
+
+    WARN 而非 ERROR：钱是对的，拦发布会让一个不损坏数字的历史遗留问题挡住投递，
+    而这正是 detect-but-never-silence 反对的那种降级的镜像——要看得见，不要拦。
+
+    只报一件事：缺口没被签收。「名单活得比问题久」和「闸扫了 0 份账本」这两条
+    同样重要，但它们都不能做成运行时 finding——全现金 / 只有黄金的账本本来就没有
+    可重放的清单，合成 fixture 又常借用真 ticker，两者都会让这个码变成噪音，
+    而一个总在响的码等于没有码。它们改由 tests/test_share_ledger_completeness.py
+    对着**真账本**断言：九条每条都得还在、还带 trades[]、缺口还等于签收的数字。
+    """
+    findings = []
+    for region, port in (portfolios or {}).items():
+        if not isinstance(port, dict):
+            continue
+        for h in port.get('holdings', []) or []:
+            if not (h.get('trades') or []):
+                continue
+            ticker = h.get('ticker')
+            deficit = ledger_deficit(h)
+            known = KNOWN_INCOMPLETE_LEDGERS.get((region, ticker))
+            if abs(deficit) > SHARE_TOL:
+                if known is None:
+                    findings.append({
+                        'code': 'SHARE_LEDGER', 'level': 'WARN', 'region': region,
+                        'ticker': ticker,
+                        'msg': f'{ticker} shares={_num(h.get("shares")) or 0:.0f} 与 trades[] '
+                               f'净股差 {deficit:+.0f} 股；账本缺建仓、无法当股数账本重放'
+                               f'（新出现，不在 #456 已签收名单里）'})
+                elif abs(deficit - known) > SHARE_TOL:
+                    findings.append({
+                        'code': 'SHARE_LEDGER', 'level': 'WARN', 'region': region,
+                        'ticker': ticker,
+                        'msg': f'{ticker} 账本缺口从已签收的 {known:.0f} 变成 {deficit:.0f} 股；'
+                               f'又多了一笔没有对应买入的卖出'})
+    return findings
 
 
 def check(portfolio_path=PORTFOLIO):
@@ -442,6 +530,9 @@ def check(portfolio_path=PORTFOLIO):
                 add('GOLD_RECON', 'WARN',
                     f'gold_dca 手填隐含均价 {implied:.3f} 与 NAV {nav:.3f} 偏离 {implied / nav:.2f}×；'
                     f'疑 principal/units 填错或单位反', region='gold')
+
+    # SHARE_LEDGER：跨区一次算完（名单是按区+ticker 记的），所以放在区循环之外。
+    findings.extend(check_share_ledgers(P))
 
     errors = [f for f in findings if f['level'] == 'ERROR']
     warns = [f for f in findings if f['level'] == 'WARN']
