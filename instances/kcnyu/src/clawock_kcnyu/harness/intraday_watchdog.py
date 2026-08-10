@@ -71,7 +71,6 @@ from ._watchdog_common import (
     transcript_loop_score, last_report_text, send_telegram,
 )
 
-sys.path.insert(0, str(WS / 'scripts' / 'data'))
 from clawock_kcnyu.automation import cron_heartbeat  # noqa: E402
 
 LOOP_THRESHOLD = 5         # transcript loop_score ≥ this ⇒ mimo repeat-loop ⇒ garbage
