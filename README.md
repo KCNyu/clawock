@@ -14,11 +14,6 @@ Install the decision intelligence behind this live Hong Kong + US desk into any 
 
 [**Live dashboard**](https://kcnyu.github.io/clawock/) &nbsp;·&nbsp; [**Daily briefs**](https://kcnyu.github.io/clawock/briefs.html) &nbsp;·&nbsp; [**Evidence**](https://kcnyu.github.io/clawock/evidence.html) &nbsp;·&nbsp; [**简体中文**](README.zh.md)
 
-```bash
-pip install clawock
-clawock init ./my-decision --workflow investment-decision
-```
-
 <br>
 
 <a href="https://kcnyu.github.io/clawock/">
@@ -43,6 +38,9 @@ runtime owns the model call, conversation, memory, planning, tools, permissions,
 and credentials. clawock installs the reusable workflow that certifies evidence,
 forces an opposing case, validates money and FX, links outcomes, and keeps every
 improvement proposal reviewable and reversible.
+
+It installs from PyPI — `pip install clawock` — and
+[runs on your own book](#run-it-on-your-own-book) without this repository.
 
 This repository is also the first continuously running proof: a disciplined,
 self-grading AI investing experiment on a real Hong Kong + US portfolio — not a

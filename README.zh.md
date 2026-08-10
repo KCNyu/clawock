@@ -14,11 +14,6 @@
 
 [**实时仪表盘**](https://kcnyu.github.io/clawock/) &nbsp;·&nbsp; [**每日简报**](https://kcnyu.github.io/clawock/briefs.html) &nbsp;·&nbsp; [**证据与反证**](https://kcnyu.github.io/clawock/evidence.html) &nbsp;·&nbsp; [**English**](README.md)
 
-```bash
-pip install clawock
-clawock init ./my-decision --workflow investment-decision
-```
-
 <br>
 
 <a href="https://kcnyu.github.io/clawock/">
@@ -41,6 +36,9 @@ clawock 是一套**面向 Agent 的投资决策 workflow plugin kit，加上一�
 harness**。OpenClaw、Hermes、Claude Code、Codex 或其它外部 runtime 负责模型
 调用、对话、记忆、规划、工具、权限和凭证；clawock 安装可复用 workflow，负责
 认证证据、强制反方、校验资金和汇率、连接结果，并让每个改进提案可审、可回滚。
+
+它发布在 PyPI 上 —— `pip install clawock` —— 而且
+[在你自己的账本上跑](#在你自己的账本上跑)不需要这个仓库。
 
 这个仓库也是第一套持续运行的证明：一个真实港股 + 美股组合上的纪律化、公开、
 自评式 AI 投资实验 —— 不是一夜暴富的机器人，也不是跟单服务。
