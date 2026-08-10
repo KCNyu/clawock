@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-07T14:05:33.178369",
+  "generated_at": "2026-08-10T14:13:25.115645",
   "lookback_hours": 48,
   "tickers": [
     "CRCL",
@@ -23,241 +23,220 @@
       "MSFU"
     ]
   },
-  "digest_markdown": "### Top 5 移动信号\n- **RKLB (via RKLX 2x)**: 拿下 blockbuster U.S. Space Force 合约,股价单日跳涨。RKLX 2x 放大 contract catalyst,短期动量延续。\n- **PLTR (via PLTU 2x)**: Q2 营收 +93% YoY、47% GAAP margin、FY26 outlook 强,分析师给 $185-205;但 Cathie Wood 财报后立即减持 $17M。基本面 vs insider 卖出背离,PLTU 2x 双向放大波动。\n- **MSFT (via MSFU 2x)**: 印度 Hyderabad 开设第 4 个 Azure 数据中心区,属于 $20.5B 云/AI 投资承诺。MSFU 2x 放大 capex 扩张 + Big Tech AI 情绪回暖双重利好。\n- **SPCX (via SPCH 2x)**: SeekingAlpha 给 Buy 升级,Starlink 盈利 + AI 货币化 + $100B 流动性叙事;叠加 Nasdaq-100 纳入触发被动买盘。SPCH 2x 放大情绪波动。\n- **CRCL**: Q2 稳定,FY26 指引上调主要由 Arc token presale 推动;Needham PT $150→$127、HC Wainwright $115→$104,均维持 Buy;股价 -3%。直接持仓无杠杆缓冲。\n\n### Per-ticker 简报\n- **CRCL**: 指引依赖 Arc token presale(crypto beta),PT 集体下调 — 短期承压但评级未撤\n- **PLTR**: 财报质量顶级 + Wood 减持 — 信号分歧,等盘整确认方向\n- **RKLB**: Space Force 大单 = 实质 contract catalyst,优于同业情绪\n- **SPCX**: Buy 升级 + 指数被动资金流入 — 结构性买盘支撑\n- **MSFT**: India Azure 第 4 区落地 — 长期 capex,情绪面利好多于近端\n- **SKHY**: 与 Micron 估值差 + Nvidia HBM 合作 — AI 内存 rotation 候选\n\n### 风险 watch\n- **AI 债务消化**: Bloomberg 警示 BlackRock 为 Meta 数据中心融资遇冷,hyperscaler 举债节奏受质疑 — sector-wide 估值压力\n- **Burry/Eisman AI 空头共识**: 宏观尾部风险仍在,尤其压制 PLTR/SPCX/MSFT\n- **CRCL Arc token presale**: 指引核心驱动,若 crypto 回调将直接冲击\n- **SpaceX 911.5M 股 lockup 到期**(Aug 6): 影响 SPCX 情绪面与被动配置\n- **Cathie Wood 减持 PLTR**: 标志性多头离场信号",
+  "digest_markdown": "### Top 移动信号\n\n- **PLTR**: Q2 backlog $13.1B, revenue +93%, Seeking Alpha重申 Strong Buy → PLTU 2x放大看涨叙事,基本面催化剂已兑现\n- **CRCL**: 多头分析师上调目标价同时被分析师下调公允价值,内部人士连续减持($3.86M + Danita Ostling 20K股) → 估值争议+insider selling双重信号,持仓需谨慎\n- **SPCX**: IPO后零售首次净卖出(Vanda数据),但Musk放话Starlink年收入潜力$1T+ → SPCH 2x放大情绪反转风险,基本面叙事仍偏多\n- **MSFT**: Dan Ives称big tech Q2为AI货币化\"wow moment\",JPM上调S&P目标,AI capex被验证 → MSFU 2x放大AI龙头估值修复\n- **RKLB**: 过去一月跌36%但8月反弹,SpaceX超级财报日前零售情绪转暖 → RKLX 2x放大高波动,短期情绪驱动而非基本面\n\n### Per-ticker 简报\n\n- **CRCL**: 分析师公允价值被下调叠加USDC/Arc分歧 + 内部人密集减持 + 9月16日标记日历(疑似财报/锁定期) - 短期承压,关注9月节点\n- **PLTR**: Karp称Q2\"otherworldly\"表现,backlog创新高 - 基本面强势,技术面周涨幅显著\n- **RKLB**: 营收+63%创新高但股价月跌30%,呈现典型增长股估值压缩 → 后续合约中标为关键\n- **SPCX**: $119B Houston半导体超级工厂计划 + Starlink $1T年营收愿景 - 长期叙事强,但零售首次转卖需警惕\n- **MSFT**: Sovereign AI市场2040年预计$301.6B TAM + Big Tech AI货币化确认 - 长期增长锚定,但云收入集中度叙事(48%来自2家未盈利公司)是Azure潜在风险\n\n### 风险 watch\n\n- **CRCL insider selling**: 48h内2笔内部人减持,模式化信号\n- **Cloud AI集中度风险**: 48% Google Cloud收入来自2家未盈利公司叙事同样适用于Azure,需观察MSFT是否被点名\n- **RKLB 36%月跌幅**: 高波动+杠杆ETF RKLX双重放大,适合风控严格仓位\n- **SKHY**: 无相关催化剂,忽略\n\n(SKHY 无相关 ticker-specific 新闻)",
   "raw_news_counts": {
     "CRCL": 5,
     "PLTR": 5,
     "RKLB": 5,
     "SPCX": 5,
     "MSFT": 5,
-    "SKHY": 5
+    "SKHY": 2
   },
   "raw_news_evidence": {
     "CRCL": [
       {
-        "headline": "Circle's Q2: Arc Token Presale Lifts Guidance And Bridges The Crypto Downturn",
-        "datetime": 1786086600,
-        "source": "SeekingAlpha",
-        "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=b9544ba52b047b5d05047164de47415931708aa920d744f5d5aa4609f2ac54a4"
+        "headline": "Circle (CRCL) Stock Sees Fair Value Cut As Analysts Split On USDC And Arc",
+        "datetime": "Sat, 08 Aug 2026 20:11:36 GMT",
+        "source": "Yahoo Finance",
+        "origin": "gnews-rss",
+        "url": "https://news.google.com/rss/articles/CBMilwFBVV95cUxOejlHZ3ZINHdneWJZZ1JCcUZVZnFZSzN1Tm5ZTl92MkZOc28wQVh3bHhQclQyYVhJSDFzUjJHOEFqdFNCNU9oVjFEVnlDWUk0THlfMFZtTjZOQjBZQno3a2dBbE5vNFMwTjIxS0RiUkd0N2d3MzhaMldqTEZYdDg1WXBMWXdJQ09JMUtJbWlpVkttYTNEUDlj?oc=5"
       },
       {
-        "headline": "Circle Price Targets Cut by Two Analysts—Here's Why They Still Stay Bullish",
-        "datetime": 1786010497,
-        "source": "Benzinga",
-        "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=617a8338029ea310f576c2fd3497dc7f778edcd423c0735daf357def0675da34"
+        "headline": "CRCL, COIN Stocks Dip After Hot CPI Data Overshadows Analyst Price Target Hikes",
+        "datetime": "Sat, 08 Aug 2026 09:25:27 GMT",
+        "source": "Stocktwits",
+        "origin": "gnews-rss",
+        "url": "https://news.google.com/rss/articles/CBMi2gFBVV95cUxNTERlYWdqTFdVbmFIVDlpQi1JUUFBal9OUENSRnJEcl9GTnBoNFg2UWxNeC1WSERnLV93T0RmZnptajlZel9WU3FlbFgwUG5KTl85Z1BSaDZabS1VWXd2UzNNTHVPQ1RpejJoRDVfZVRxUi1uOTlBNUZPb3haNTdDUWlaRzg5QnRpODg0Rno2YnA1M3NBZWpJOWlpR2c0QldpSmF0SmZ1TkR4X3dFRUdybUhGYVJCb25Ta01xN0hZXzdsYTU2dzZUb2w4TTFFVld6c3pXNVlval9zQQ?oc=5"
       },
       {
-        "headline": "Stock Market Today: Dow Futures Gain, Nasdaq 100 Tumbles as Hormuz Deal Talks Progress—SpaceX, SanDisk, Applovin in Focus (UPDATED)",
-        "datetime": 1786005410,
-        "source": "Benzinga",
-        "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=e5aae8061ef3aaff8a95381dfe9c1d065098d0230261dfecf19ede1df51de880"
+        "headline": "Dear Circle Stock Fans, Mark Your Calendars for September 16",
+        "datetime": "Sun, 09 Aug 2026 19:30:02 GMT",
+        "source": "Barchart.com",
+        "origin": "gnews-rss",
+        "url": "https://news.google.com/rss/articles/CBMipgFBVV95cUxOcC1GanN1Mms5WkQ0TEpNQW1vdWs4cWwzYmc1UkJQZUNWbzdtSWFpTWNhUFp6Y2diYlk4Ti1qeHVBNk1tZThRTlFiLWVFR1hUUVdMUnQwcDlQaFFxMk9iZWMwMng1alMtc0t4ZHJNdDU4Smd0NDJoTWlBSmxKRnhIQnRhZ2Z1TE4ybEpnX0tjUTdrak1hOWdVVk1mc2V6V3pZM0R0c3pB?oc=5"
       },
       {
-        "headline": "HC Wainwright & Co. Maintains Buy on Circle Internet Group, Lowers Price Target to $104",
-        "datetime": 1785997611,
-        "source": "Benzinga",
-        "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=d7725e166855581856307acaed4a122f83fd642e2d8c21068c33aa58e728de62"
+        "headline": "Circle(CRCL.US) Officer Sells US$3.86 Million in Common Stock",
+        "datetime": "Fri, 07 Aug 2026 21:02:23 GMT",
+        "source": "Moomoo",
+        "origin": "gnews-rss",
+        "url": "https://news.google.com/rss/articles/CBMimwFBVV95cUxPQkZBLW9wcEJodnNscm5jaGxtNkF0U0w5NjVGUHUtRkhkLV8xQ0dZUFppYW8yVHI0Q2I2SkVjUUNKbnI2VkFRZEI1eE5zaGs4WHFkc0Z1X0lRX1FjYmFQSXFWdkYtbVV6TUxQSElHa1dsWTI4Y3FCNVBQU3hxc3M5OTd4NldIbklyb3psWDZaR0NmZEZZbDRlTmRHSQ?oc=5"
       },
       {
-        "headline": "Needham Maintains Buy on Circle Internet Group, Lowers Price Target to $127",
-        "datetime": 1785996486,
-        "source": "Benzinga",
-        "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=cb81c30efb3b875a5b117a43d6c4c221443803bcc9d2be56f84d27c31a1b6cb6"
+        "headline": "Danita Ostling Sells 20,000 Shares of Circle Internet Group (NYSE:CRCL) Stock",
+        "datetime": "Fri, 07 Aug 2026 23:51:12 GMT",
+        "source": "MarketBeat",
+        "origin": "gnews-rss",
+        "url": "https://news.google.com/rss/articles/CBMixgFBVV95cUxPMFJ4TC02VElpazM2blBpZGsxazI5U0J2Nk95a0NqRlZfTTM2b090bHZhWmdLNzRxcGJsNlo2N1k3X1VZXzZ1UDNOYUw1TTljSUVXaW1vVG5uT3VWRUF4UmpidkIwVURFVHBWX2ZzdXZXbmY0MnR5U1YwaVFvSmdsMlpPeFh6S2haOGJGNjhUWk81RUxxN2MwekZkMkdERk5zLV95SDREbmhVdDU1TTZrRXB3Y25YUmJ5NHd6dHVDVlAwdlpOSmc?oc=5"
       }
     ],
     "PLTR": [
       {
-        "headline": "Software Stocks Are a Hot Mess. So Is the Whole AI Trade.",
-        "datetime": 1786099920,
+        "headline": "Stocks Mostly Up Pre-Bell as Traders Assess Middle East Developments, Await Key Inflation Data",
+        "datetime": 1786362237,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=4ba04669d4804b864662aee49fadb9f4b6bce682fd865913b2d07ddcf52a1810"
+        "url": "https://finnhub.io/api/news?id=9273470f1c28199053583483cbf4314c9d12dcfb25852f4ee074e25f25140a9b"
       },
       {
-        "headline": "Steve Eisman Pushes Back on Michael Burry's Market Top Call: 'I Think It's Premature'",
-        "datetime": 1786095929,
-        "source": "Yahoo",
-        "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=8b6acbbb8e37c153e6a205b4ae67202579f5ec4ee7f332f883b12c9dfe2d06a8"
-      },
-      {
-        "headline": "Palantir: The AI Bottleneck Has Moved In Its Favor",
-        "datetime": 1786094203,
+        "headline": "Palantir: A $13.1 Billion Backlog And Investors Are Just Starting To Catch On",
+        "datetime": 1786350021,
         "source": "SeekingAlpha",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=8d1a8eab62b67de0735dfe31a815549672a7f3a6439f76febee1a6e7309008da"
+        "url": "https://finnhub.io/api/news?id=33973e1b9a2b96096ff706b82fc9129eb9d9e81e8c0252ab00ff4a232ff2ab9a"
       },
       {
-        "headline": "Cathie Wood sells $17 million of popular AI stock",
-        "datetime": 1786075598,
-        "source": "Yahoo",
+        "headline": "Software Had A Winning Week: 3 Stocks I'm Buying",
+        "datetime": 1786348800,
+        "source": "SeekingAlpha",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=ede36a9dd8497b23f87192486443f0addfa8a24e222f82e81a4609c479ed5dc6"
+        "url": "https://finnhub.io/api/news?id=6f8a43c423139d4aa5c5acb0b42021ea7c79f2a847a19d123f097e75c210c24a"
       },
       {
-        "headline": "Innodata Q2 Earnings Call Highlights",
-        "datetime": 1786071834,
+        "headline": "Why Palantir Stock Skyrocketed This Past Week",
+        "datetime": 1786335347,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=82ad20a023480b9ef6e3f07b278676653d32730c71f9b87dba842daa68229570"
+        "url": "https://finnhub.io/api/news?id=65447c5fba4dff974820b6107b86eb9c3a78fb4abe2e7252b174a42c141951c2"
+      },
+      {
+        "headline": "Vitalhub Q2 Earnings Call Highlights",
+        "datetime": 1786334572,
+        "source": "Yahoo",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=6541e7d8c7fe3cec2f4d78dfa5c90e946690bdcb04a9d236fd1eed5559f07d35"
       }
     ],
     "RKLB": [
       {
-        "headline": "ASTS Vs. RKLB: Which Space Stock Has More Upside Ahead Of Earnings?",
-        "datetime": 1786084013,
+        "headline": "Stocks Mostly Up Pre-Bell as Traders Assess Middle East Developments, Await Key Inflation Data",
+        "datetime": 1786362237,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=359a8a468a06ff1c650aec0fef8b9a31db28ba64685eed7adcfb6210aff08e31"
+        "url": "https://finnhub.io/api/news?id=9273470f1c28199053583483cbf4314c9d12dcfb25852f4ee074e25f25140a9b"
       },
       {
-        "headline": "Rocket Lab Corporation (RKLB) Ascends While Market Falls: Some Facts to Note",
-        "datetime": 1786054503,
+        "headline": "Peter Beck's Rocket Lab Fell 30% in a Month While Revenue Grew 63%",
+        "datetime": 1786361100,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=cf76c4a28b6f45f975574a87b2e61953ac013a81fac903b09f2995a5aee37afc"
+        "url": "https://finnhub.io/api/news?id=511ee12fc559875a463f826632b56e801b25bdb971af1f43bc742d0a67a0fcf7"
       },
       {
-        "headline": "Stock Market Today, Aug. 6: Space Exploration Technologies Rises Despite First Lockup Expiration",
-        "datetime": 1786053199,
+        "headline": "US Equity Investors to Focus on Inflation, Iran Geopolitics, Quarterly Earnings This Week",
+        "datetime": 1786358825,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=426bf961c0f22f48fd38a9983b29d7f724c31e0d5394171a1205a3d78fbc15ce"
+        "url": "https://finnhub.io/api/news?id=23890f89f9b88a4e64e41d1f06c973d69254beb8fc9fe6e7dcb5cb14ea62f444"
       },
       {
-        "headline": "Why Rocket Lab Stock Popped Today",
-        "datetime": 1786050813,
+        "headline": "Why Rocket Lab Stock Plummeted 36.1% Last Month But Is Soaring in August",
+        "datetime": 1786356542,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=a911f51530d78eac6ae6065e37cc7525927f3e5d9a5637c99a7d1888175ee173"
+        "url": "https://finnhub.io/api/news?id=d97386adaadb15a7e773548d01ee363c03c7635a710bd7d2025e2e3734e2e04d"
       },
       {
-        "headline": "Why AST SpaceMobile Stock Dropped More Than 33% In July",
-        "datetime": 1786049183,
+        "headline": "RKLB, ASTS Stocks Rise Premarket Ahead Of Mega Space Earnings Day: Retail Traders Optimistic After SpaceX’s Results",
+        "datetime": 1786349701,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=327f7db85fcc55bf473ac865e26b537ce0bd91f574f8c64959b6b089e665555a"
+        "url": "https://finnhub.io/api/news?id=7502e473a896d2d5a525f948d69ad6c73c21909fb9fa1aa180b1e77868762b3c"
       }
     ],
     "SPCX": [
       {
-        "headline": "Here Are Friday’s Top Wall Street Analyst Research Calls: Baker Hughes, Etsy, HubSpot, Instacart, JetBlue, Roku, SpaceX, Tower Semiconductor, Trade Desk, and More",
-        "datetime": 1786103484,
+        "headline": "SpaceX retail investors turn sellers for first time since IPO",
+        "datetime": 1786360180,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=075256e9cc081bcfbb1f491a3f178ac6e6ba8c327d6836f5dcd37267fb7c910a"
+        "url": "https://finnhub.io/api/news?id=d28a9b65cc5b7d8f80113b4cfaf9def0e711d18a7653f5604d67b9f870c21b6e"
       },
       {
-        "headline": "Millions of 401(k) Investors Own SpaceX Like It or Not. It’s Already Cost Them $1.4 Billion.",
-        "datetime": 1786102812,
+        "headline": "Elon Musk Plans to Spend $119 Billion to Construct the World’s Largest Building, Just Outside Houston",
+        "datetime": 1786358497,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=c6e90f554b32771a87c3a352f0b737ba71fc8479762f464cf8090286c74b3f13"
+        "url": "https://finnhub.io/api/news?id=77ef213bcf56053f800453d9053edbf50951309c99e066474edd991edfe30e1c"
       },
       {
-        "headline": "An Early Bet on SpaceX Led to a 30% Gain for This College Endowment",
-        "datetime": 1786101300,
+        "headline": "Airbnb CEO: Why AI is the best thing to happen to us",
+        "datetime": 1786356000,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=9375ea80002309a29a20d471731424a2e4ff967201a6e6a42c0b8d7f98c28380"
+        "url": "https://finnhub.io/api/news?id=c005ebb5e28e93e02bece76d0716840853d520f449164ea57d4a1cfb545f02ea"
       },
       {
-        "headline": "AI Debt Indigestion Forces Wall Street to Rethink Bond Sales",
-        "datetime": 1786096800,
+        "headline": "Starlink 'Unbelievable Juggernaut Cash Machine,' Says VC David Friedberg; SpaceX CEO Elon Musk Responds With $1 Trillion+ Annual Revenue Projection",
+        "datetime": 1786331407,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=c6e47cf7f7cfbde61b8e0078877c32146c6b8f3cfdc026c4a9ce571b12569e9b"
+        "url": "https://finnhub.io/api/news?id=d12d1885a0a3063bbe956ccb55513f28f2be38d7dc8a421137af06f9f57a3e6b"
       },
       {
-        "headline": "SpaceX Is Just Heating Up (Rating Upgrade)",
-        "datetime": 1786094589,
-        "source": "SeekingAlpha",
+        "headline": "Kevin O'Leary Sat Out SpaceX's IPO— Now He's Plotting His Entry as Elon Musk's Empire Takes Shape: 'As the Stock Settles... I'll Be Watching Closely...'",
+        "datetime": 1786294902,
+        "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=139b899d2b35a4ae5690ae90abcd4ba75e7a400610e36853b9bc3cf3ecfab889"
+        "url": "https://finnhub.io/api/news?id=e618867eec08a034f8aa3fbbbaf5551982df55ecb56081e9b8a959f0803cd6b3"
       }
     ],
     "MSFT": [
       {
-        "headline": "Microsoft opens fourth Azure data center region in India",
-        "datetime": 1786101133,
+        "headline": "48% of Google Cloud Revenue Next Year Could Come From Just 2 Companies That Have Still Never Turned a Profit",
+        "datetime": 1786362680,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=c9d59c1bf36ddaf617217540c7d77ad3df68b1ec344f3ba53ac71064b0669913"
+        "url": "https://finnhub.io/api/news?id=c4850ef1efb39f4b0971e18e6c4b001c66613a10f13b47d07a2080b23900b2a2"
       },
       {
-        "headline": "Big Tech Stocks Storm Back as AI Fears Fade and Euphoria Resumes",
-        "datetime": 1786098601,
+        "headline": "Dan Ives Says Big Tech Earnings Were The 'Wow Moment' For AI Monetization — 'It's All Starting To Come Together'",
+        "datetime": 1786358232,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=1b7221e0dd94f8062dba63201381fd4dc40e13af17bccf05ee5bf0aeea06f32f"
+        "url": "https://finnhub.io/api/news?id=9c1c8205490c74caf8fa2a8df573318f76a8fade3fbd3c8d815d08c2a5bfac0d"
       },
       {
-        "headline": "Why Is Rackspace Technology (RXT) Hiring A New AI Infrastructure Leader?",
-        "datetime": 1786097642,
+        "headline": "JPMorgan Strategists Raise S&P 500 Target as AI Capex Pays Off",
+        "datetime": 1786354100,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=60d2ca734f97d0e3234a6ea951287eb502d6910afe6b975f24b46decf1719d47"
+        "url": "https://finnhub.io/api/news?id=9b3b40e6c9c7f9bcbfb95bb22942c5e34ce410b02a047edf8656e7f2c4f3029b"
       },
       {
-        "headline": "Big Tech is borrowing its way through the AI boom: Chart of the Day",
-        "datetime": 1786096800,
+        "headline": "Why Is TSM Stock Rising Premarket?",
+        "datetime": 1786351788,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=28901c1286a03d569a4a65fefb832eeedb2b84ccdae084af064a8743efa656cb"
+        "url": "https://finnhub.io/api/news?id=bd94b5ad0b888efd62fb078b7d338e52c2dc8409a8fc693ab261e36cc440c5e1"
       },
       {
-        "headline": "AI Debt Indigestion Forces Wall Street to Rethink Bond Sales",
-        "datetime": 1786096800,
+        "headline": "Sovereign AI Infrastructure Market Till 2040 Now Available — Forecasts Growth from $24.8B to $301.6B, Profiles NVIDIA, Microsoft, AWS, and 15 Other Key Players",
+        "datetime": 1786349100,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=c6e47cf7f7cfbde61b8e0078877c32146c6b8f3cfdc026c4a9ce571b12569e9b"
+        "url": "https://finnhub.io/api/news?id=177397e685ed08ca73d685be4ee8dae0fefb21b442941597bcfd793be113f04e"
       }
     ],
     "SKHY": [
       {
-        "headline": "Sandisk: Memory Has Structurally Changed, The Sector Cannot Remain At 5x P/E",
-        "datetime": 1786096061,
+        "headline": "Nvidia's Stock Is Completely Mispriced",
+        "datetime": 1786267800,
         "source": "SeekingAlpha",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=5b1d6bcf45aacdf9260b5b13f1e7e96f3963b7e7e427820080700a9556d8ee21"
+        "url": "https://finnhub.io/api/news?id=10150c3778c3ceb36d996077b5bf2f37f04561ac6e668cd9596a2377a0befc64"
       },
       {
-        "headline": "SK hynix Vs. Micron: The Memory Trade Rotates Into The Valuation Gap",
-        "datetime": 1786045243,
+        "headline": "FOMO Vs. The Earnings Bar",
+        "datetime": 1786164600,
         "source": "SeekingAlpha",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=bf4aa082aa78d5a1347bf71aaed7739d0909b3233c5254cd45d088491f95cdf9"
-      },
-      {
-        "headline": "Final Call Before The AI Rally Leaves Without You",
-        "datetime": 1786023205,
-        "source": "SeekingAlpha",
-        "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=55f16fcb046031f7d8824a49ede41549266b9166ea62babf4df80b0e8935e1ab"
-      },
-      {
-        "headline": "World's Smartest Banker Warns Of Hidden Margin Debt; SanDisk, WDC Disappoint; SK Hynix's Flash Crash",
-        "datetime": 1786021906,
-        "source": "Benzinga",
-        "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=8ec1aaf9cb755fdc3de51308cf31a6770bbb893931a90490f327ec2dea027d9f"
-      },
-      {
-        "headline": "Nvidia Just Got 3 Game-Changing Updates",
-        "datetime": 1786018551,
-        "source": "SeekingAlpha",
-        "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=2440b5097d936bf55a10448d0aaad01c19e87324fec7935226d7d28f456135c3"
+        "url": "https://finnhub.io/api/news?id=e29d27473468d2f4c5f41a80fbebce1f54c42b02dd95d2452df29a6d7b935e75"
       }
     ]
   },
   "news_source_per_ticker": {
-    "CRCL": "finnhub",
+    "CRCL": "gnews-rss",
     "PLTR": "finnhub",
     "RKLB": "finnhub",
     "SPCX": "finnhub",
@@ -266,8 +245,8 @@
   },
   "source_status": {
     "CRCL": {
-      "finnhub": "success",
-      "google_news": "not_attempted"
+      "finnhub": "success_empty",
+      "google_news": "success"
     },
     "PLTR": {
       "finnhub": "success",
