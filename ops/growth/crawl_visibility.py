@@ -33,6 +33,15 @@ import sys
 import urllib.error
 import urllib.parse
 import urllib.request
+from pathlib import Path
+
+# Bootstrap before importing the package, the way every other ops entry point
+# does. Without it the import resolves only when the caller happens to supply
+# PYTHONPATH — which is exactly how the first cron line for this script failed
+# with ModuleNotFoundError under a bare `python3`.
+_CHECKOUT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(_CHECKOUT))
+sys.path.insert(0, str(_CHECKOUT / "src"))
 
 SITE = os.environ.get("CLAWOCK_SITE_URL", "https://kcnyu.github.io/clawock/")
 SCOPES = ["https://www.googleapis.com/auth/webmasters.readonly"]
