@@ -134,6 +134,52 @@ def test_per_run_context_layers_documented_in_both_languages():
         )
 
 
+def test_the_information_layer_table_adds_up_in_both_languages():
+    """The one structural number in the README that nothing was checking.
+
+    Everything else with a count behind it is pinned — the per-run block counts
+    read the preflights' own context dicts, the section and asset lists are
+    compared across languages. The information-layer table was prose: a headline
+    ("N fetch and compute modules across M layers") sitting above a table whose
+    rows carry the per-layer counts, in two languages, with nothing tying the
+    four numbers together. Editing one row and forgetting the headline is a
+    silent, plausible edit, and so is fixing it in one language only.
+
+    What this does NOT prove, stated so nobody reads more into a green: it does
+    not verify the modules exist or that the taxonomy still matches the package.
+    That mapping has no artifact behind it — the layers were drawn when these
+    were files under `scripts/data/`, which #429 deleted — so a test claiming to
+    check it would be encoding a guess as truth. This checks the four numbers
+    agree; grounding the taxonomy is separate work.
+    """
+    seen = {}
+    for md, name, pattern in (
+        (EN, "README.md", r"\*\*(\d+) fetch and compute modules across (\d+) layers\*\*"),
+        (ZH, "README.zh.md", r"\*\*(\d+) 层、(\d+) 个抓取与计算模块\*\*"),
+    ):
+        headline = re.search(pattern, md)
+        assert headline, f"{name}: the information-layer headline changed shape"
+        # ZH states layers first, EN states modules first.
+        modules, layers = (headline.group(1), headline.group(2))
+        if name.endswith("zh.md"):
+            layers, modules = modules, layers
+
+        rows = [ln for ln in md.splitlines() if re.match(r"^\| \d+ · ", ln)]
+        assert len(rows) == int(layers), (
+            f"{name}: headline says {layers} layers, table has {len(rows)} rows")
+
+        per_layer = [int(ln.split("|")[2].strip()) for ln in rows]
+        assert sum(per_layer) == int(modules), (
+            f"{name}: rows sum to {sum(per_layer)}, headline says {modules}")
+
+        seen[name] = per_layer
+
+    # The rows must also be the same rows in both languages, or the two READMEs
+    # describe different systems while each stays internally self-consistent.
+    assert seen["README.md"] == seen["README.zh.md"], (
+        f"layer counts differ between languages: {seen}")
+
+
 def test_explicit_h2_sequences():
     # Lock both languages' section order (and their 1:1 correspondence by position),
     # not just the count — so a section can't be added/reordered in one language only.

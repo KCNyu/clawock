@@ -65,6 +65,11 @@ Homepage = "https://github.com/KCNyu/clawock"
 Documentation = "https://kcnyu.github.io/clawock/"
 Source = "https://github.com/KCNyu/clawock"
 Issues = "https://github.com/KCNyu/clawock/issues"
+# PyPI renders project URLs as the sidebar of the project page, and a
+# `Changelog` key is the one downstream tooling looks for by name when it wants
+# to show a user what a pending upgrade contains. Without it, "what changed
+# between 0.1.0 and 0.1.1" had no answer anywhere a package consumer could see.
+Changelog = "https://github.com/KCNyu/clawock/blob/master/CHANGELOG.md"
 Evidence = "https://kcnyu.github.io/clawock/evidence.html"
 
 [project.scripts]
