@@ -211,12 +211,24 @@ def _sites_in(tree: ast.AST) -> list[int]:
     return sorted(set(found))
 
 
+# Where code lives. `scripts/**` was half of this list and #429 deleted it, so
+# that half walked zero files; `ops/` and `instances/` — where the deleted code
+# went — were never added, which is how `ops/pages/freshness.py` could default a
+# CLI flag to `/root/.openclaw/workspace` while the ratchet reported zero.
+CODE_ROOTS = ("src/clawock", "ops", "instances")
+
+
+def _modules():
+    for root in CODE_ROOTS:
+        for path in sorted((ROOT / root).rglob("*.py")):
+            if "__pycache__" not in path.parts:
+                yield path
+
+
 def coupling_sites() -> dict[str, list[int]]:
     """Files outside the adapter that invoke OpenClaw or read its state."""
     sites: dict[str, list[int]] = {}
-    for path in sorted(ROOT.glob("scripts/**/*.py")) + sorted(
-        ROOT.glob("src/clawock/**/*.py")
-    ):
+    for path in _modules():
         if ADAPTER in path.parents:
             continue
         try:
@@ -230,6 +242,15 @@ def coupling_sites() -> dict[str, list[int]]:
 
 
 def test_the_runtime_coupling_count_never_rises():
+    # Anti-vacuity: a count of zero is the goal here, so an empty scan and a
+    # decoupled tree produce the same number. That is how half of this scan
+    # could point at a deleted directory unnoticed.
+    modules = list(_modules())
+    assert len(modules) > 50, f"only {len(modules)} modules scanned — did a root move?"
+    assert any(path.name == "system_check.py" for path in modules), (
+        "system_check is the file this ratchet migrated last; if it is outside "
+        "the scan, the scan is not looking where the coupling was")
+
     sites = coupling_sites()
     total = sum(len(lines) for lines in sites.values())
 

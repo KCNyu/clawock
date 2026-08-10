@@ -38,6 +38,11 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 CHECKOUT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(CHECKOUT))
+sys.path.insert(0, str(CHECKOUT / "src"))
+
+from clawock.providers.openclaw import runtime_paths  # noqa: E402
+
 PAYLOAD = "assets/data/dashboard.json"
 DATA_PLANE_REF = "origin/data-plane"
 LIVE_URL = f"https://kcnyu.github.io/clawock/{PAYLOAD}"
@@ -276,8 +281,11 @@ def main(argv=None) -> int:
     parser = argparse.ArgumentParser(
         prog="python3 ops/pages/freshness.py",
         description="Trace one dashboard generation from producer to browser.")
-    parser.add_argument("--workspace", type=Path, default=Path("/root/.openclaw/workspace"),
-                        help="the producing workspace (default: the live host's)")
+    # From the adapter, not spelled out: this was the one remaining site outside
+    # `clawock.providers` that knew a host's runtime layout, and the ratchet that
+    # exists to count exactly that could not see it (it scanned `scripts/`).
+    parser.add_argument("--workspace", type=Path, default=runtime_paths().workspace,
+                        help="the producing workspace (default: this runtime's)")
     parser.add_argument("--json", action="store_true")
     args = parser.parse_args(argv)
 
