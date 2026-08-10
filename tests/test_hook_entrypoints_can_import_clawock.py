@@ -120,9 +120,12 @@ def test_an_invalid_plan_is_actually_rejected(repo_with_staged_plan):
 # instead of consulting an inventory.
 # ---------------------------------------------------------------------------
 
-_SPAWNS_PYTHON = re.compile(r"\bpython3?\b")
+_SPAWNS_PYTHON = re.compile(r"(?:^|[|;&(]|\s)(?:env\s+[^|;&]*)?python3?\b")
 _IMPORTS_CLAWOCK = re.compile(r"^\s*(?:from|import)\s+clawock\b", re.MULTILINE)
-_MAKES_IT_IMPORTABLE = re.compile(r"PYTHONPATH|python3?\s+-m\s+clawock|\bclawock\s")
+# Only the invocation itself counts. Matching anywhere in the file would let a
+# comment that merely mentions PYTHONPATH vouch for the command below it — the
+# mutation run proved that, by staying green with the fix removed.
+_MAKES_IT_IMPORTABLE = re.compile(r"PYTHONPATH|python3?\s+-m\s+clawock")
 
 
 def _shell_entry_points():
@@ -134,20 +137,60 @@ def _shell_entry_points():
                 text = path.read_text()
             except (UnicodeDecodeError, OSError):
                 continue
-            if not text.startswith("#!"):
-                continue
-            if "bash" not in text.splitlines()[0] and "sh" not in text.splitlines()[0]:
-                continue
-            yield path, text
+            first = text.splitlines()[0] if text else ""
+            if first.startswith("#!") and ("bash" in first or "sh" in first):
+                yield path, text
+
+
+def _python_spawns(text):
+    """Yield (invocation, body) pairs: the command line, and the code it runs.
+
+    Backslash continuations are folded first, so the environment prefix and the
+    `python3` it applies to stay one unit — that is precisely the relationship
+    being asserted, and a line-at-a-time scan would sever it.
+    """
+    folded = text.replace("\\\n", " ")
+    lines = folded.splitlines()
+    for i, line in enumerate(lines):
+        if line.lstrip().startswith("#") or not _SPAWNS_PYTHON.search(line):
+            continue
+        heredoc = re.search(r"<<-?'?([A-Za-z_][A-Za-z0-9_]*)'?", line)
+        if heredoc:
+            terminator = heredoc.group(1)
+            body = []
+            for follow in lines[i + 1:]:
+                if follow.strip() == terminator:
+                    break
+                body.append(follow)
+            yield line, "\n".join(body)
+        else:
+            yield line, line
 
 
 def test_no_shell_entry_point_spawns_a_python_that_cannot_import_clawock():
     offenders = []
     for path, text in _shell_entry_points():
-        if not (_SPAWNS_PYTHON.search(text) and _IMPORTS_CLAWOCK.search(text)):
-            continue
-        if not _MAKES_IT_IMPORTABLE.search(text):
-            offenders.append(path.relative_to(ROOT).as_posix())
+        for invocation, body in _python_spawns(text):
+            if not _IMPORTS_CLAWOCK.search(body):
+                continue
+            if not _MAKES_IT_IMPORTABLE.search(invocation):
+                offenders.append(f"{path.relative_to(ROOT).as_posix()}: {invocation.strip()[:70]}")
     assert not offenders, (
         "these spawn a Python that imports clawock without making the package "
         f"resolvable, so they are dead under cron's bare environment: {offenders}")
+
+
+def test_the_sweep_would_catch_the_regression_it_was_written_for(tmp_path):
+    """Guard the guard: the sweep above must reject the pre-fix hook.
+
+    Its first version passed on the broken file, because a nearby comment
+    containing the word `clawock` satisfied the check. A sweep that cannot fail
+    on the exact code that caused the incident is decoration.
+    """
+    broken = HOOK.read_text().replace('PYTHONPATH="$WS/src${PYTHONPATH:+:$PYTHONPATH}" ', "")
+    assert broken != HOOK.read_text(), "the fix is no longer shaped as expected"
+    flagged = [
+        inv for inv, body in _python_spawns(broken)
+        if _IMPORTS_CLAWOCK.search(body) and not _MAKES_IT_IMPORTABLE.search(inv)
+    ]
+    assert flagged, "the sweep does not flag the very hook this issue was filed for"
