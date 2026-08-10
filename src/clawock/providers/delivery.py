@@ -99,8 +99,11 @@ class OpenClawDelivery:
         self._runner = runner or self._run
 
     def _run(self, cmd):
+        # The runtime's own launcher needs `node` on PATH, so a job started from
+        # the user crontab cannot spawn it with the PATH it inherited.
+        from clawock.providers.openclaw import runtime_env
         done = subprocess.run(cmd, capture_output=True, text=True,
-                              timeout=self.timeout)
+                              timeout=self.timeout, env=runtime_env())
         return done.returncode, (done.stdout + done.stderr)
 
     def send(self, channel: str, target: str, message: str, *,
