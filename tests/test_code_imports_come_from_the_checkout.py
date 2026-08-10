@@ -26,10 +26,28 @@ MIGRATING_LAST: set[str] = set()
 
 _WS_IMPORT = re.compile(r"sys\.path\.insert\(\s*0\s*,\s*str\(\s*WS\s*/")
 
+# Where executable code lives now. This used to be `scripts/**/*.py`, and when
+# #429 deleted that directory the scan quietly became a walk over zero files —
+# the rule below stayed written down while nothing enforced it any more.
+CODE_ROOTS = ("src", "ops", "instances", "tests", ".githooks")
+
+
+def _modules():
+    for root in CODE_ROOTS:
+        for path in sorted((ROOT / root).rglob("*.py")):
+            if "__pycache__" in path.parts:
+                continue
+            yield path
+
 
 def test_no_module_resolves_code_through_the_workspace():
+    modules = list(_modules())
+    # Anti-vacuity: this assertion is the reason the check went unnoticed for a
+    # day. A scan that finds nothing passes exactly like a clean tree.
+    assert len(modules) > 50, f"only found {len(modules)} modules — did a root move?"
+
     offenders = []
-    for path in sorted(ROOT.glob("scripts/**/*.py")):
+    for path in modules:
         rel = path.relative_to(ROOT).as_posix()
         if rel in MIGRATING_LAST:
             continue
@@ -39,6 +57,35 @@ def test_no_module_resolves_code_through_the_workspace():
     assert not offenders, (
         "these put the WORKSPACE on sys.path to import our own modules, so a "
         f"CLAWOCK_WORKSPACE override resolves code out of the data dir: {offenders}")
+
+
+_SYS_PATH = re.compile(
+    r"sys\.path\.(?:insert\(\s*0\s*,\s*|append\(\s*)str\(\s*"
+    r"(WS|ROOT|_CHECKOUT|_REPO_ROOT)\s*((?:/\s*['\"][^'\"]+['\"]\s*)+)\)")
+
+
+def test_no_module_puts_a_directory_this_repository_lacks_on_sys_path():
+    """A path entry naming a deleted directory is inert, and that is the problem.
+
+    Python ignores a missing sys.path entry, so ten of these survived #429
+    pointing at `scripts/data` — resolving nothing, costing nothing, and making
+    `scripts/` look alive to whoever greps next. It cost real diagnostic time
+    during #447, where the question was precisely whether that path was gone.
+    """
+    offenders = []
+    for path in _modules():
+        source = path.read_text()
+        for lineno, line in enumerate(source.splitlines(), 1):
+            match = _SYS_PATH.search(line)
+            if not match:
+                continue
+            segments = re.findall(r"['\"]([^'\"]+)['\"]", match.group(2))
+            if not (ROOT.joinpath(*segments)).exists():
+                offenders.append(
+                    f"{path.relative_to(ROOT).as_posix()}:{lineno} → {'/'.join(segments)}")
+    assert not offenders, (
+        "these add a repository path that does not exist, so the import they "
+        f"guard is already resolving from somewhere else: {offenders}")
 
 
 def test_the_two_roots_actually_diverge_under_the_override(tmp_path):
@@ -110,7 +157,7 @@ def test_no_compatibility_shim_re_exports_the_package():
         "each call site, and reviving it would hide the second one again.")
 
     offenders = []
-    for path in sorted(ROOT.glob("scripts/**/*.py")):
+    for path in _modules():
         for lineno, line in enumerate(path.read_text().splitlines(), 1):
             stripped = line.strip()
             if stripped.startswith(("from workspace import", "import workspace")):

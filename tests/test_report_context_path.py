@@ -32,7 +32,7 @@ HARNESS = ROOT / 'instances' / 'kcnyu' / 'src' / 'clawock_kcnyu' / 'harness'
 
 def _load(name):
     """Import the separately packaged KCNyu adapter."""
-    for extra in (ROOT / 'scripts' / 'data', ROOT / 'instances' / 'kcnyu' / 'src'):
+    for extra in (ROOT / 'instances' / 'kcnyu' / 'src',):
         if str(extra) not in sys.path:
             sys.path.insert(0, str(extra))
     return importlib.import_module(f'clawock_kcnyu.harness.{name}')
