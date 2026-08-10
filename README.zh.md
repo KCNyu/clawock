@@ -14,6 +14,11 @@
 
 [**实时仪表盘**](https://kcnyu.github.io/clawock/) &nbsp;·&nbsp; [**每日简报**](https://kcnyu.github.io/clawock/briefs.html) &nbsp;·&nbsp; [**证据与反证**](https://kcnyu.github.io/clawock/evidence.html) &nbsp;·&nbsp; [**English**](README.md)
 
+```bash
+pip install "clawock @ git+https://github.com/KCNyu/clawock.git"   # PyPI 待发布：#379
+clawock init ./my-decision --workflow investment-decision
+```
+
 <br>
 
 <a href="https://kcnyu.github.io/clawock/">
