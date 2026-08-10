@@ -533,22 +533,40 @@ def check_context_capability(r):
         r.add('context capability', WARNING, f'session store unreadable: {e}')
         return
 
-    newest = {}
+    newest, profiles_seen = {}, set()
     for key, entry in (sessions or {}).items():
         if not isinstance(entry, dict):
             continue
+        profile = 'isolated-cron' if ':cron:' in key else 'interactive'
+        profiles_seen.add(profile)
         report = entry.get('systemPromptReport')
         if not isinstance(report, dict):
             continue
-        profile = 'isolated-cron' if ':cron:' in key else 'interactive'
         try:
             stamp = int(entry.get('updatedAt') or entry.get('lastInteractionAt') or 0)
         except (TypeError, ValueError):
             stamp = 0
         if stamp >= newest.get(profile, (-1,))[0]:
             newest[profile] = (stamp, key, report)
+
+    # "Nothing to check" and "the thing I check stopped being produced" are not
+    # the same answer, and merging them is how this gate would go quiet without
+    # going red — the exact silent capability loss #380 exists to prevent, and
+    # the same shape as #452/#453/#460.
+    #
+    # A workspace with no sessions at all is a foreign or fresh machine and has
+    # nothing to say. A profile that HAS sessions but carries no prompt report
+    # anywhere is different: the runtime used to record what this gate reads and
+    # has stopped, so every later run goes unverified behind a green check.
+    silent = sorted(profiles_seen - set(newest))
+    if silent:
+        r.add('context capability', WARNING,
+              f'{", ".join(silent)}: sessions exist but none carries a prompt '
+              f'report — the runtime stopped recording what this gate reads, so '
+              f'a narrowed context would now pass unseen')
+        return
     if not newest:
-        r.add('context capability', OK, 'no prompt report recorded yet')
+        r.add('context capability', OK, 'no sessions recorded yet')
         return
 
     failures, checked = [], []
