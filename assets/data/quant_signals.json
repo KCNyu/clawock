@@ -1,6 +1,6 @@
 {
-  "as_of": "2026-08-09",
-  "generated_at": "2026-08-09T05:15:24.159162+00:00",
+  "as_of": "2026-08-10",
+  "generated_at": "2026-08-10T00:44:30.741926+00:00",
   "sigma_target": 0.25,
   "max_stale_days": 7,
   "retired_retention_days": 7,

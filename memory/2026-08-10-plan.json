@@ -1,0 +1,820 @@
+{
+  "schema_version": 2,
+  "date": "2026-08-10",
+  "context_generation_id": "381525707adba21a",
+  "fx_rate_usdhkd": 7.8449,
+  "fx_source": "Frankfurter",
+  "regime": {
+    "us": "green",
+    "hk": "amber",
+    "macro": "risk_on"
+  },
+  "book": {
+    "usd_total_pnl": -5445.32,
+    "hkd_total_pnl": -42718.03,
+    "hk_leg_hkd": -33184.04,
+    "us_leg_usd": -1215.31,
+    "hk_leg_usd_equiv": -4229.71,
+    "us_leg_hkd_equiv": -9533.87,
+    "hk_leg_current_value": 72092.4,
+    "us_leg_current_value": 2952.06,
+    "hk_cash_hkd": 17597.0,
+    "us_cash_usd": 575.38
+  },
+  "concentration": {
+    "hk_hhi": 0.402,
+    "hk_top2_pct": 85.6,
+    "hk_verdict": "🔴 危险集中",
+    "us_hhi": 0.353,
+    "us_top2_pct": 69.1,
+    "us_verdict": "⚠️ 集中风险"
+  },
+  "breach_status": {
+    "open_count": 8,
+    "overridden_count": 0,
+    "oldest_open_days": 26,
+    "breaches": [
+      {
+        "breach_id": "risk-0a0af7ae3b3a",
+        "type": "hard_stop",
+        "ticker": "RKLX",
+        "age_days": 26,
+        "acknowledged": false
+      },
+      {
+        "breach_id": "risk-95ac7f6cd591",
+        "type": "hard_stop",
+        "ticker": "SPCH",
+        "age_days": 26,
+        "acknowledged": false
+      },
+      {
+        "breach_id": "risk-2a450e7c896e",
+        "type": "single_name",
+        "ticker": "00100",
+        "age_days": 26,
+        "acknowledged": false
+      },
+      {
+        "breach_id": "risk-56fb5eebe7cc",
+        "type": "factor_concentration",
+        "tickers": [
+          "00100",
+          "07226"
+        ],
+        "age_days": 26,
+        "acknowledged": false
+      },
+      {
+        "breach_id": "risk-da9861ae6562",
+        "type": "leveraged_exposure",
+        "ticker": "07226",
+        "age_days": 26,
+        "acknowledged": false
+      },
+      {
+        "breach_id": "risk-66a236e9b7e1",
+        "type": "single_name",
+        "ticker": "SPCH",
+        "age_days": 26,
+        "acknowledged": false
+      },
+      {
+        "breach_id": "risk-80e3b5a6819f",
+        "type": "leveraged_exposure",
+        "tickers": [
+          "PLTU",
+          "RKLX",
+          "SPCH",
+          "MSFU"
+        ],
+        "age_days": 26,
+        "acknowledged": false
+      },
+      {
+        "breach_id": "risk-66b800a6afe2",
+        "type": "beta",
+        "tickers": [
+          "PLTU",
+          "RKLX",
+          "SPCH",
+          "MSFU"
+        ],
+        "age_days": 26,
+        "acknowledged": false
+      }
+    ]
+  },
+  "decisions": [
+    {
+      "schema_version": 2,
+      "decision_id": "dec-3452434d6943",
+      "episode_id": "ep-20260731-rklx-cut",
+      "decision_group_id": "2026-08-10:RKLX",
+      "plan_date": "2026-08-10",
+      "created_at": "2026-08-10T08:00:00+08:00",
+      "ticker": "RKLX",
+      "name": "",
+      "leg": "US",
+      "strategy_id": "risk_rebalance",
+      "thesis_id": "rklx-hard-stop-cut-upgrade",
+      "action": "cut",
+      "condition": {
+        "type": "open",
+        "price": null,
+        "description": ""
+      },
+      "size": {
+        "shares": 10,
+        "pct": 100.0,
+        "note": ""
+      },
+      "confidence": 0.75,
+      "driven_by": "risk_rule",
+      "evidence_event_id": null,
+      "regime": "risk_on",
+      "rationale": "硬止损 -47.5% ≤ -18% (breach risk-0a0af7ae3b3a 26d unack) + lev_regime red (RKLB 20d 波动 96.7% > 70% cap). 1x swap 而非清仓: 敞口保留 + 停 decay, 政策执行不是择时. reflection 11 ep 0.36 win (持×4 胜0 + 清×7 胜4) 提示 持有是负 EV, swap 是政策+edge 同向. 8/10 amc Q2 财报 (rev est $235.97M, EPS est -$0.077) 前 swap 锁政策, 不论 beat/miss. required_reduction min_shares=10 min_value=261.1 USD 全 swap.",
+      "simulated_entry_price": 26.11,
+      "horizon_sessions": 1,
+      "override": {
+        "status": "none",
+        "reason": "",
+        "expires_on": null,
+        "revisit_condition": ""
+      },
+      "evaluation": {
+        "status": "pending",
+        "triggered": null,
+        "trigger_session": null,
+        "execution_price": null,
+        "underlying_return_t1_pct": null,
+        "benefit_t1_pct": null,
+        "benefit_t5_pct": null,
+        "outcome": "pending",
+        "capital": null
+      },
+      "execution": {
+        "status": "unknown",
+        "detected_at": null,
+        "source": null
+      },
+      "migration": {
+        "source": "plan_v1"
+      }
+    },
+    {
+      "schema_version": 2,
+      "decision_id": "dec-02ba0c3d3f28",
+      "episode_id": "ep-20260731-spch-cut",
+      "decision_group_id": "2026-08-10:SPCH",
+      "plan_date": "2026-08-10",
+      "created_at": "2026-08-10T08:00:00+08:00",
+      "ticker": "SPCH",
+      "name": "",
+      "leg": "US",
+      "strategy_id": "risk_rebalance",
+      "thesis_id": "spch-hard-stop-cut-upgrade",
+      "action": "cut",
+      "condition": {
+        "type": "open",
+        "price": null,
+        "description": ""
+      },
+      "size": {
+        "shares": 200,
+        "pct": 100.0,
+        "note": ""
+      },
+      "confidence": 0.78,
+      "driven_by": "risk_rule",
+      "evidence_event_id": null,
+      "regime": "risk_on",
+      "rationale": "3 breach 同触: 硬止损 -38.3% ≤ -18% (breach risk-95ac7f6cd591 26d) + single_name 56.1% > 35% (breach risk-66a236e9b7e1 26d) + US levered 86.3% > 50% (breach risk-80e3b5a6819f 26d). 1x swap (200 SPCH $1,656 → 同 notional SPCX) 一次性解 3 breach. user 8/7 01:34 HKT +20 摊本反映 无限子弹流, 但与 3 breach 同触发冲突, 必须 hard swap 全部. reflection 9 ep 0.67 win (清×7 胜5) 强 swap edge.",
+      "simulated_entry_price": 8.28,
+      "horizon_sessions": 1,
+      "override": {
+        "status": "none",
+        "reason": "",
+        "expires_on": null,
+        "revisit_condition": ""
+      },
+      "evaluation": {
+        "status": "pending",
+        "triggered": null,
+        "trigger_session": null,
+        "execution_price": null,
+        "underlying_return_t1_pct": null,
+        "benefit_t1_pct": null,
+        "benefit_t5_pct": null,
+        "outcome": "pending",
+        "capital": null
+      },
+      "execution": {
+        "status": "unknown",
+        "detected_at": null,
+        "source": null
+      },
+      "migration": {
+        "source": "plan_v1"
+      }
+    },
+    {
+      "schema_version": 2,
+      "decision_id": "dec-958895a16807",
+      "episode_id": "ep-20260731-07226-cut",
+      "decision_group_id": "2026-08-10:07226",
+      "plan_date": "2026-08-10",
+      "created_at": "2026-08-10T08:00:00+08:00",
+      "ticker": "07226",
+      "name": "",
+      "leg": "HK",
+      "strategy_id": "risk_rebalance",
+      "thesis_id": "07226-2x-1x-swap-v2",
+      "action": "cut",
+      "condition": {
+        "type": "open",
+        "price": null,
+        "description": ""
+      },
+      "size": {
+        "shares": 1200,
+        "pct": 19.0,
+        "note": ""
+      },
+      "confidence": 0.7,
+      "driven_by": "risk_rule",
+      "evidence_event_id": null,
+      "regime": "neutral",
+      "rationale": "HK 杠杆 31.3% > 25% cap (breach risk-da9861ae6562 26d, lev_regime amber ×0.5) + factor Top2 85.6% > 70% (breach risk-56fb5eebe7cc 26d). swap 1,200 股 07226 ($3.64 = 4,368 HKD = 19.4% 减仓) → 03033 1x 同 notional. HK 杠杆敞口降至 25% (cap 边界). reflection 14 ep 0.57 win (减×2 胜2 + 清×7 胜4) swap 是减仓变体, 历史 edge 成立. chop_drag 0.74%/月 + cross-market 弱相关 = 持有杠杆 = 收费 decay.",
+      "simulated_entry_price": 3.64,
+      "horizon_sessions": 1,
+      "override": {
+        "status": "none",
+        "reason": "",
+        "expires_on": null,
+        "revisit_condition": ""
+      },
+      "evaluation": {
+        "status": "pending",
+        "triggered": null,
+        "trigger_session": null,
+        "execution_price": null,
+        "underlying_return_t1_pct": null,
+        "benefit_t1_pct": null,
+        "benefit_t5_pct": null,
+        "outcome": "pending",
+        "capital": null
+      },
+      "execution": {
+        "status": "unknown",
+        "detected_at": null,
+        "source": null
+      },
+      "migration": {
+        "source": "plan_v1"
+      }
+    },
+    {
+      "schema_version": 2,
+      "decision_id": "dec-0c40b7f33363",
+      "episode_id": "ep-20260731-00100-trim",
+      "decision_group_id": "2026-08-10:00100",
+      "plan_date": "2026-08-10",
+      "created_at": "2026-08-10T08:00:00+08:00",
+      "ticker": "00100",
+      "name": "",
+      "leg": "HK",
+      "strategy_id": "risk_rebalance",
+      "thesis_id": "00100-single-name-cap-trim-v2",
+      "action": "trim_on_rebound",
+      "condition": {
+        "type": "price_above",
+        "price": 340.0,
+        "description": ""
+      },
+      "size": {
+        "shares": 50,
+        "pct": 42.0,
+        "note": ""
+      },
+      "confidence": 0.65,
+      "driven_by": "risk_rule",
+      "evidence_event_id": null,
+      "regime": "risk_on",
+      "rationale": "single_name 54.33% > 35% (breach risk-2a450e7c896e 26d) + factor Top2 85.6% > 70% (breach risk-56fb5eebe7cc 26d). breach action 要求 13,935.66 HKD 减仓, trim 50 @340 = 17,000 HKD (假设 filled at 340, 超 13.9K 最低). 8/7 +9.83% 1d 5d +32% EXTREME z+2.8σ + 入通三催化 price in = **trim 借反弹是 policy+edge 同向**. reflection 17 ep 0.59 win (减×9 胜7) trim 是有 edge 的. 但 trim 后 41% 仍 > 35% cap, 需后续 wave. Bull 反对一次性 60 股, Bear 反对 30 股过紧, Neutral 拍 50 @340 折中.",
+      "simulated_entry_price": 326.4,
+      "horizon_sessions": 1,
+      "override": {
+        "status": "none",
+        "reason": "",
+        "expires_on": null,
+        "revisit_condition": ""
+      },
+      "evaluation": {
+        "status": "pending",
+        "triggered": null,
+        "trigger_session": null,
+        "execution_price": null,
+        "underlying_return_t1_pct": null,
+        "benefit_t1_pct": null,
+        "benefit_t5_pct": null,
+        "outcome": "pending",
+        "capital": null
+      },
+      "execution": {
+        "status": "unknown",
+        "detected_at": null,
+        "source": null
+      },
+      "migration": {
+        "source": "plan_v1"
+      }
+    },
+    {
+      "schema_version": 2,
+      "decision_id": "dec-e6972dee1acc",
+      "episode_id": "ep-20260731-02208-hold",
+      "decision_group_id": "2026-08-10:02208",
+      "plan_date": "2026-08-10",
+      "created_at": "2026-08-10T08:00:00+08:00",
+      "ticker": "02208",
+      "name": "",
+      "leg": "HK",
+      "strategy_id": "core_position",
+      "thesis_id": "02208-wind-overseas-expansion-hold",
+      "action": "hold_and_watch",
+      "condition": {
+        "type": "manual",
+        "price": null,
+        "description": ""
+      },
+      "size": {
+        "shares": 0,
+        "pct": 0.0,
+        "note": ""
+      },
+      "confidence": 0.5,
+      "driven_by": "technical",
+      "evidence_event_id": null,
+      "regime": "risk_on",
+      "rationale": "1d +6.35% 8/7 跟 peer 01072 +1.65% 中位; z+2.1σ EXTREME 5d +11.3% overbought; **美银 H 持股 8/4 6.62%→4.75% 是 disconfirming 软情绪** (不翻 bucket). packet 限制 allowed=[hold_and_watch, watch]. reflection 15 ep **0.33 win 主动 call 多数没跑赢持有 → 持有是统计最优**.",
+      "simulated_entry_price": 11.55,
+      "horizon_sessions": 1,
+      "override": {
+        "status": "none",
+        "reason": "",
+        "expires_on": null,
+        "revisit_condition": ""
+      },
+      "evaluation": {
+        "status": "pending",
+        "triggered": null,
+        "trigger_session": null,
+        "execution_price": null,
+        "underlying_return_t1_pct": null,
+        "benefit_t1_pct": null,
+        "benefit_t5_pct": null,
+        "outcome": "pending",
+        "capital": null
+      },
+      "execution": {
+        "status": "unknown",
+        "detected_at": null,
+        "source": null
+      },
+      "migration": {
+        "source": "plan_v1"
+      }
+    },
+    {
+      "schema_version": 2,
+      "decision_id": "dec-48aac7438aa6",
+      "episode_id": "ep-20260731-03032-hold",
+      "decision_group_id": "2026-08-10:03032",
+      "plan_date": "2026-08-10",
+      "created_at": "2026-08-10T08:00:00+08:00",
+      "ticker": "03032",
+      "name": "",
+      "leg": "HK",
+      "strategy_id": "core_position",
+      "thesis_id": "03032-hstech-1x-hold",
+      "action": "hold_and_watch",
+      "condition": {
+        "type": "manual",
+        "price": null,
+        "description": ""
+      },
+      "size": {
+        "shares": 0,
+        "pct": 0.0,
+        "note": ""
+      },
+      "confidence": 0.5,
+      "driven_by": "technical",
+      "evidence_event_id": null,
+      "regime": "risk_on",
+      "rationale": "1d +0.50% 8/7 跟 HSTECH +0.34% 同步, 5d -0.3%. 1x ETF 跟 underlying 1:1, 不放大 risk. 03032 仓位太小 (970.4 HKD = 1.35% HK leg) 不值得 trim. reflection 12 ep 0.33 win 持有统计最优.",
+      "simulated_entry_price": 4.852,
+      "horizon_sessions": 1,
+      "override": {
+        "status": "none",
+        "reason": "",
+        "expires_on": null,
+        "revisit_condition": ""
+      },
+      "evaluation": {
+        "status": "pending",
+        "triggered": null,
+        "trigger_session": null,
+        "execution_price": null,
+        "underlying_return_t1_pct": null,
+        "benefit_t1_pct": null,
+        "benefit_t5_pct": null,
+        "outcome": "pending",
+        "capital": null
+      },
+      "execution": {
+        "status": "unknown",
+        "detected_at": null,
+        "source": null
+      },
+      "migration": {
+        "source": "plan_v1"
+      }
+    },
+    {
+      "schema_version": 2,
+      "decision_id": "dec-8af8b83c90fb",
+      "episode_id": "ep-20260731-03033-hold",
+      "decision_group_id": "2026-08-10:03033",
+      "plan_date": "2026-08-10",
+      "created_at": "2026-08-10T08:00:00+08:00",
+      "ticker": "03033",
+      "name": "",
+      "leg": "HK",
+      "strategy_id": "core_position",
+      "thesis_id": "03033-hstech-1x-hold",
+      "action": "hold_and_watch",
+      "condition": {
+        "type": "manual",
+        "price": null,
+        "description": ""
+      },
+      "size": {
+        "shares": 0,
+        "pct": 0.0,
+        "note": ""
+      },
+      "confidence": 0.5,
+      "driven_by": "technical",
+      "evidence_event_id": null,
+      "regime": "risk_on",
+      "rationale": "1d +0.68% 8/7 跟 HSTECH. 1x ETF 跟 underlying 1:1. 今日是 07226 swap inflow 接收方 (新增 ~953 股 03033, 实际成交按 swap 时 03033 价). reflection 12 ep 0.33 win.",
+      "simulated_entry_price": 4.766,
+      "horizon_sessions": 1,
+      "override": {
+        "status": "none",
+        "reason": "",
+        "expires_on": null,
+        "revisit_condition": ""
+      },
+      "evaluation": {
+        "status": "pending",
+        "triggered": null,
+        "trigger_session": null,
+        "execution_price": null,
+        "underlying_return_t1_pct": null,
+        "benefit_t1_pct": null,
+        "benefit_t5_pct": null,
+        "outcome": "pending",
+        "capital": null
+      },
+      "execution": {
+        "status": "unknown",
+        "detected_at": null,
+        "source": null
+      },
+      "migration": {
+        "source": "plan_v1"
+      }
+    },
+    {
+      "schema_version": 2,
+      "decision_id": "dec-2d18a674e58a",
+      "episode_id": "ep-20260731-crcl-hold",
+      "decision_group_id": "2026-08-10:CRCL",
+      "plan_date": "2026-08-10",
+      "created_at": "2026-08-10T08:00:00+08:00",
+      "ticker": "CRCL",
+      "name": "",
+      "leg": "US",
+      "strategy_id": "core_position",
+      "thesis_id": "crcl-stablecoin-mainnet-unlock-hold",
+      "action": "hold_and_watch",
+      "condition": {
+        "type": "manual",
+        "price": null,
+        "description": ""
+      },
+      "size": {
+        "shares": 0,
+        "pct": 0.0,
+        "note": ""
+      },
+      "confidence": 0.5,
+      "driven_by": "catalyst",
+      "evidence_event_id": "evt_acaeb15fd4f02379a3c0",
+      "regime": "risk_on",
+      "rationale": "8/5 bmo Q2 EPS $0.27 beat, rev $713M, USDC circulation $73.3B +19% YoY record $76.5B daily, Arc presale $242M, **9/16 mainnet 启动 (待确认日期)**. 1d +5.36% 8/7 反弹, 5d +11.6%. 软 disconfirming: Morgan Stanley 砍目标 $38 (软情绪不翻 bucket). reflection 14 ep 0.50 win 持有. evidence event 是 8/5 Q2 + Arc 启动, 真实非 actionable 但属同 ticker 真实事件, 被动档允许.",
+      "simulated_entry_price": 66.67,
+      "horizon_sessions": 1,
+      "override": {
+        "status": "none",
+        "reason": "",
+        "expires_on": null,
+        "revisit_condition": ""
+      },
+      "evaluation": {
+        "status": "pending",
+        "triggered": null,
+        "trigger_session": null,
+        "execution_price": null,
+        "underlying_return_t1_pct": null,
+        "benefit_t1_pct": null,
+        "benefit_t5_pct": null,
+        "outcome": "pending",
+        "capital": null
+      },
+      "execution": {
+        "status": "unknown",
+        "detected_at": null,
+        "source": null
+      },
+      "migration": {
+        "source": "plan_v1"
+      }
+    },
+    {
+      "schema_version": 2,
+      "decision_id": "dec-4d047f17f2f7",
+      "episode_id": "ep-307ccf70111d",
+      "decision_group_id": "2026-08-10:MSFU",
+      "plan_date": "2026-08-10",
+      "created_at": "2026-08-10T08:00:00+08:00",
+      "ticker": "MSFU",
+      "name": "",
+      "leg": "US",
+      "strategy_id": "core_position",
+      "thesis_id": "msfu-5d-extreme-overbought-hold",
+      "action": "hold_and_watch",
+      "condition": {
+        "type": "manual",
+        "price": null,
+        "description": ""
+      },
+      "size": {
+        "shares": 0,
+        "pct": 0.0,
+        "note": ""
+      },
+      "confidence": 0.5,
+      "driven_by": "technical",
+      "evidence_event_id": null,
+      "regime": "risk_on",
+      "rationale": "RSI 78.1 overbought + 5d +5.1% z+0.4σ + MSFT 8/7 -0.08% flat 跑输 peer ORCL +2.47% / META +0.37% / AAPL +0.29%. **关键: RKLX+SPCH swap 后 US 杠杆从 86.3% 降至 21.4% < 50% cap, 不必再 swap MSFU** (US levered breach risk-80e3b5a6819f 已 cover). reflection 19 ep 0.42 win, **清×7 胜2 反向证据**, 持有是统计最优. Bull 反对 swap, Bear 反对 hold, Neutral 拍 hold 等 8/12 CPI.",
+      "simulated_entry_price": 38.26,
+      "horizon_sessions": 1,
+      "override": {
+        "status": "none",
+        "reason": "",
+        "expires_on": null,
+        "revisit_condition": ""
+      },
+      "evaluation": {
+        "status": "pending",
+        "triggered": null,
+        "trigger_session": null,
+        "execution_price": null,
+        "underlying_return_t1_pct": null,
+        "benefit_t1_pct": null,
+        "benefit_t5_pct": null,
+        "outcome": "pending",
+        "capital": null
+      },
+      "execution": {
+        "status": "unknown",
+        "detected_at": null,
+        "source": null
+      },
+      "migration": {
+        "source": "plan_v1"
+      }
+    },
+    {
+      "schema_version": 2,
+      "decision_id": "dec-0779b0f354be",
+      "episode_id": "ep-057077657901",
+      "decision_group_id": "2026-08-10:PLTU",
+      "plan_date": "2026-08-10",
+      "created_at": "2026-08-10T08:00:00+08:00",
+      "ticker": "PLTU",
+      "name": "",
+      "leg": "US",
+      "strategy_id": "core_position",
+      "thesis_id": "pltu-1d-extreme-overbought-hold",
+      "action": "hold_and_watch",
+      "condition": {
+        "type": "manual",
+        "price": null,
+        "description": ""
+      },
+      "size": {
+        "shares": 0,
+        "pct": 0.0,
+        "note": ""
+      },
+      "confidence": 0.5,
+      "driven_by": "technical",
+      "evidence_event_id": null,
+      "regime": "risk_on",
+      "rationale": "RSI 72.8 + 5d +76.8% z+2.5σ EXTREME, PLTR 8/3 amc Q2 rev $1.935B +93% YoY + EPS $0.41 beat, 8/7 defense contract extension, 5d +39.78% 强 trend, 8/8 +3.78%. **RKLX+SPCH swap 后 US 杠杆 cover, 不必再 swap PLTU**. reflection 15 ep 0.47 win, **持×3 胜0 反向证据 + 减×2 胜2 (8/5 +7.59%) trim edge**, 但今日 RKLX+SPCH swap 已 cover US 杠杆, 不再 swap. Bull 反对 swap, Bear 反对 hold (z 极端), Neutral 拍 hold (cover + trend 强).",
+      "simulated_entry_price": 49.6,
+      "horizon_sessions": 1,
+      "override": {
+        "status": "none",
+        "reason": "",
+        "expires_on": null,
+        "revisit_condition": ""
+      },
+      "evaluation": {
+        "status": "pending",
+        "triggered": null,
+        "trigger_session": null,
+        "execution_price": null,
+        "underlying_return_t1_pct": null,
+        "benefit_t1_pct": null,
+        "benefit_t5_pct": null,
+        "outcome": "pending",
+        "capital": null
+      },
+      "execution": {
+        "status": "unknown",
+        "detected_at": null,
+        "source": null
+      },
+      "migration": {
+        "source": "plan_v1"
+      }
+    },
+    {
+      "schema_version": 2,
+      "decision_id": "dec-80709c5ada82",
+      "episode_id": "ep-20260731-skhy-hold",
+      "decision_group_id": "2026-08-10:SKHY",
+      "plan_date": "2026-08-10",
+      "created_at": "2026-08-10T08:00:00+08:00",
+      "ticker": "SKHY",
+      "name": "",
+      "leg": "US",
+      "strategy_id": "core_position",
+      "thesis_id": "skhy-hbm-ai-memory-hold",
+      "action": "hold_and_watch",
+      "condition": {
+        "type": "manual",
+        "price": null,
+        "description": ""
+      },
+      "size": {
+        "shares": 0,
+        "pct": 0.0,
+        "note": ""
+      },
+      "confidence": 0.45,
+      "driven_by": "technical",
+      "evidence_event_id": null,
+      "regime": "risk_on",
+      "rationale": "8/5 财报日 -13% (长协锁价低于市场预期 + DRAM 失第一 to 三星 39% 市占), 8/7 -3.92% 持续消化. 5d -0.4%, **NVDA peer +11.56% 5d (divergence -6.2pp 落后)**. **8/9 HBM 杀价新闻: SK HBM3E 低于对手向 NVDA 供应** = forward margin 收缩, 但 2027 HBM 产能全部售罄 forward catalyst. packet 限制 allowed=[hold_and_watch, watch]. reflection 6 ep 0.33 win 主动 call 负 → 持有.",
+      "simulated_entry_price": 137.91,
+      "horizon_sessions": 1,
+      "override": {
+        "status": "none",
+        "reason": "",
+        "expires_on": null,
+        "revisit_condition": ""
+      },
+      "evaluation": {
+        "status": "pending",
+        "triggered": null,
+        "trigger_session": null,
+        "execution_price": null,
+        "underlying_return_t1_pct": null,
+        "benefit_t1_pct": null,
+        "benefit_t5_pct": null,
+        "outcome": "pending",
+        "capital": null
+      },
+      "execution": {
+        "status": "unknown",
+        "detected_at": null,
+        "source": null
+      },
+      "migration": {
+        "source": "plan_v1"
+      }
+    },
+    {
+      "schema_version": 2,
+      "decision_id": "dec-5227ea7f77a2",
+      "episode_id": "ep-20260731-spcx-hold",
+      "decision_group_id": "2026-08-10:SPCX",
+      "plan_date": "2026-08-10",
+      "created_at": "2026-08-10T08:00:00+08:00",
+      "ticker": "SPCX",
+      "name": "",
+      "leg": "US",
+      "strategy_id": "core_position",
+      "thesis_id": "spcx-spacex-post-earnings-hold",
+      "action": "hold_and_watch",
+      "condition": {
+        "type": "manual",
+        "price": null,
+        "description": ""
+      },
+      "size": {
+        "shares": 0,
+        "pct": 0.0,
+        "note": ""
+      },
+      "confidence": 0.5,
+      "driven_by": "catalyst",
+      "evidence_event_id": "evt_4e4a0f3592858e9eb835",
+      "regime": "risk_on",
+      "rationale": "8/4 amc 上市后首份财报: rev $1.935B +93% YoY, 亏损好于预期. 1d +15.83% 8/7 强反弹, 5d +20.1%. **8/7 Musk endorse 'heated up' 评级上调 (rel 85 撞持仓)**. 8/8 lockup expiry 卖压释放. packet 限制 + SPCH swap inflow 接收方. reflection 8 ep 0.12 win 持有多数亏, 但 1x 持有 + 5d +20.1% 强 trend. evidence 是 8/7 Musk 评级上调, 真实非 actionable 但属同 ticker 真实事件.",
+      "simulated_entry_price": 133.11,
+      "horizon_sessions": 1,
+      "override": {
+        "status": "none",
+        "reason": "",
+        "expires_on": null,
+        "revisit_condition": ""
+      },
+      "evaluation": {
+        "status": "pending",
+        "triggered": null,
+        "trigger_session": null,
+        "execution_price": null,
+        "underlying_return_t1_pct": null,
+        "benefit_t1_pct": null,
+        "benefit_t5_pct": null,
+        "outcome": "pending",
+        "capital": null
+      },
+      "execution": {
+        "status": "unknown",
+        "detected_at": null,
+        "source": null
+      },
+      "migration": {
+        "source": "plan_v1"
+      }
+    }
+  ],
+  "watch_levels": {
+    "hstech_breakdown": 4800,
+    "spx_breakdown": 7600,
+    "vix_spike": 20,
+    "cpi_release_date": "2026-08-12",
+    "rklb_q2_date": "2026-08-10",
+    "book_force_derisk_usd": -300
+  },
+  "execution_priority": [
+    {
+      "order": 1,
+      "ticker": "RKLX",
+      "action": "swap 10→RKLB",
+      "deadline": "8/10 ET pre-market 22:00 限价",
+      "rationale": "硬止损 26d, 8/10 amc 财报前必 lock"
+    },
+    {
+      "order": 2,
+      "ticker": "SPCH",
+      "action": "swap 200→SPCX",
+      "deadline": "8/10 ET 09:30-09:35 限价",
+      "rationale": "3 breach 同触, 1x swap 一次性解"
+    },
+    {
+      "order": 3,
+      "ticker": "07226",
+      "action": "swap 1,200→03033",
+      "deadline": "8/10 HKT 09:30-09:45 限价",
+      "rationale": "HK 杠杆 31.3% > 25% cap 必须执行"
+    },
+    {
+      "order": 4,
+      "ticker": "00100",
+      "action": "trim 50 @≥340",
+      "deadline": "8/10 HKT 09:30-15:00 触发",
+      "rationale": "5d +32% z+2.8σ 给反弹空间, breach 26d"
+    }
+  ]
+}
