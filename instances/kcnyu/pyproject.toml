@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "clawock-kcnyu"
-version = "0.1.0"
+version = "0.1.1"
 description = "KCNyu live-desk adapter for the clawock decision-workflow harness"
 readme = "README.md"
 requires-python = ">=3.11"
