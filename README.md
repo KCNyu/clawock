@@ -14,6 +14,11 @@ Install the decision intelligence behind this live Hong Kong + US desk into any 
 
 [**Live dashboard**](https://kcnyu.github.io/clawock/) &nbsp;·&nbsp; [**Daily briefs**](https://kcnyu.github.io/clawock/briefs.html) &nbsp;·&nbsp; [**Evidence**](https://kcnyu.github.io/clawock/evidence.html) &nbsp;·&nbsp; [**简体中文**](README.zh.md)
 
+```bash
+pip install "clawock @ git+https://github.com/KCNyu/clawock.git"   # PyPI: #379
+clawock init ./my-decision --workflow investment-decision
+```
+
 <br>
 
 <a href="https://kcnyu.github.io/clawock/">
