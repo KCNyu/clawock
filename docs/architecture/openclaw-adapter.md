@@ -52,9 +52,11 @@ five-file cron bundle into normal chat.
 Audit the live workspace without invoking a model:
 
 ```bash
+# every profile; non-zero if any of them is missing a required file
+clawock context audit --workspace /path/to/workspace
+
+# or one profile at a time
 clawock context audit --workspace /path/to/workspace --profile interactive
-clawock context audit --workspace /path/to/workspace --profile isolated-cron
-clawock context audit --workspace /path/to/workspace --profile heartbeat-full
 ```
 
 ## OpenClaw cron is a separate runtime contract

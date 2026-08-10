@@ -288,6 +288,7 @@ def _context(args) -> int:
     from clawock.context.assembly import (
         assemble,
         audit,
+        audit_all,
         compare_prompt_reports,
         load_prompt_report,
         verify_prompt_report,
@@ -296,7 +297,10 @@ def _context(args) -> int:
     root = workspace_root(getattr(args, "workspace", None) or Path.cwd())
     try:
         if args.context_command == "audit":
-            result = audit(root, profile=args.profile)
+            # No --profile means every profile, not the manifest default: the
+            # obvious invocation has to be the safe one (#380).
+            result = (audit(root, profile=args.profile) if args.profile
+                      else audit_all(root))
             print(json.dumps(result, ensure_ascii=False, indent=2))
             return 0 if result["ok"] else 1
         if args.context_command == "compare":
@@ -659,11 +663,15 @@ def main(argv=None) -> int:
         "context", help="audit or assemble the agent context contract")
     context_sub = context.add_subparsers(dest="context_command", required=True)
     context_audit = context_sub.add_parser(
-        "audit", help="verify one OpenClaw context profile and capability roots")
+        "audit", help="verify the OpenClaw context profiles and capability roots")
     context_audit.add_argument("--workspace", type=Path, default=None)
     context_audit.add_argument(
-        "--profile", default="isolated-cron",
-        help="interactive, isolated-cron, heartbeat-full/light, bootstrap-pending or subagent",
+        # No default on purpose. It used to be "isolated-cron", so the bare
+        # command silently audited the five-file profile and reported ok while a
+        # file only the seven-file interactive profile requires was missing (#380).
+        "--profile", default=None,
+        help="audit one profile instead of all: interactive, isolated-cron, "
+             "heartbeat-full/light, bootstrap-pending or subagent",
     )
     context_audit.set_defaults(func=_context)
     context_assemble = context_sub.add_parser(
