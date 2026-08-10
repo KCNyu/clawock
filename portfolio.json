@@ -69,7 +69,7 @@
           "volume": 5773156,
           "trades": [
             {
-              "date": "2026-06-12",
+              "date": "2025-12-23",
               "action": "buy",
               "shares": 5,
               "price": 71.0,
@@ -79,7 +79,7 @@
                 "cost_basis"
               ],
               "corroborated": true,
-              "note": "建仓早于本账本(clawock 之前已持有)。股数=shares−已记净股;单价由realized_pnl/cost_basis反解,1 个约束最大残差 0.0000;日期为排序占位,早于首笔已记成交,不进现金对账窗口。"
+              "note": "建仓早于本账本(clawock 之前已持有)。股数=shares−已记净股;单价由realized_pnl/cost_basis反解,1 个约束最大残差 0.0000;日期为排序占位,早于**全账本**首笔已记成交(2025-12-24),因此不进现金对账窗口,也不会被任何以某个起始日回滚账本的消费者(shadow 种子重建)当成模拟期内的交易。"
             },
             {
               "date": "2026-06-13",
@@ -172,7 +172,7 @@
           "name": "Oklo Inc-A",
           "trades": [
             {
-              "date": "2026-04-21",
+              "date": "2025-12-23",
               "action": "buy",
               "shares": 2,
               "price": 62.83,
@@ -182,7 +182,7 @@
                 "cost_basis"
               ],
               "corroborated": true,
-              "note": "建仓早于本账本(clawock 之前已持有)。股数=shares−已记净股;单价由realized_pnl/cost_basis反解,1 个约束最大残差 0.0000;日期为排序占位,早于首笔已记成交,不进现金对账窗口。"
+              "note": "建仓早于本账本(clawock 之前已持有)。股数=shares−已记净股;单价由realized_pnl/cost_basis反解,1 个约束最大残差 0.0000;日期为排序占位,早于**全账本**首笔已记成交(2025-12-24),因此不进现金对账窗口,也不会被任何以某个起始日回滚账本的消费者(shadow 种子重建)当成模拟期内的交易。"
             },
             {
               "date": "2026-04-22",
@@ -249,7 +249,7 @@
           "name": "携程",
           "trades": [
             {
-              "date": "2026-04-21",
+              "date": "2025-12-23",
               "action": "buy",
               "shares": 5,
               "price": 52.74,
@@ -259,7 +259,7 @@
                 "cost_basis"
               ],
               "corroborated": true,
-              "note": "建仓早于本账本(clawock 之前已持有)。股数=shares−已记净股;单价由realized_pnl/cost_basis反解,1 个约束最大残差 0.0000;日期为排序占位,早于首笔已记成交,不进现金对账窗口。"
+              "note": "建仓早于本账本(clawock 之前已持有)。股数=shares−已记净股;单价由realized_pnl/cost_basis反解,1 个约束最大残差 0.0000;日期为排序占位,早于**全账本**首笔已记成交(2025-12-24),因此不进现金对账窗口,也不会被任何以某个起始日回滚账本的消费者(shadow 种子重建)当成模拟期内的交易。"
             },
             {
               "date": "2026-04-22",
@@ -290,7 +290,7 @@
           "today_change": 0.0,
           "trades": [
             {
-              "date": "2026-04-15",
+              "date": "2025-12-23",
               "action": "buy",
               "shares": 8,
               "price": 45.73,
@@ -300,7 +300,7 @@
                 "cost_basis"
               ],
               "corroborated": true,
-              "note": "建仓早于本账本(clawock 之前已持有)。股数=shares−已记净股;单价由realized_pnl/cost_basis反解,1 个约束最大残差 0.0000;日期为排序占位,早于首笔已记成交,不进现金对账窗口。"
+              "note": "建仓早于本账本(clawock 之前已持有)。股数=shares−已记净股;单价由realized_pnl/cost_basis反解,1 个约束最大残差 0.0000;日期为排序占位,早于**全账本**首笔已记成交(2025-12-24),因此不进现金对账窗口,也不会被任何以某个起始日回滚账本的消费者(shadow 种子重建)当成模拟期内的交易。"
             },
             {
               "date": "2026-04-16",
@@ -333,7 +333,7 @@
           "name": "Robinhood Markets Inc-A",
           "trades": [
             {
-              "date": "2026-04-21",
+              "date": "2025-12-23",
               "action": "buy",
               "shares": 5,
               "price": 73.5,
@@ -343,7 +343,7 @@
                 "cost_basis"
               ],
               "corroborated": true,
-              "note": "建仓早于本账本(clawock 之前已持有)。股数=shares−已记净股;单价由realized_pnl/cost_basis反解,1 个约束最大残差 0.0000;日期为排序占位,早于首笔已记成交,不进现金对账窗口。"
+              "note": "建仓早于本账本(clawock 之前已持有)。股数=shares−已记净股;单价由realized_pnl/cost_basis反解,1 个约束最大残差 0.0000;日期为排序占位,早于**全账本**首笔已记成交(2025-12-24),因此不进现金对账窗口,也不会被任何以某个起始日回滚账本的消费者(shadow 种子重建)当成模拟期内的交易。"
             },
             {
               "date": "2026-04-22",
@@ -1145,7 +1145,7 @@
           "volume": 889000,
           "trades": [
             {
-              "date": "2026-04-26",
+              "date": "2025-12-23",
               "action": "buy",
               "shares": 600,
               "price": 14.084,
@@ -1155,7 +1155,7 @@
                 "cost_basis"
               ],
               "corroborated": true,
-              "note": "建仓早于本账本(clawock 之前已持有)。股数=shares−已记净股;单价由realized_pnl/cost_basis反解,2 个约束最大残差 0.0000;日期为排序占位,早于首笔已记成交,不进现金对账窗口。"
+              "note": "建仓早于本账本(clawock 之前已持有)。股数=shares−已记净股;单价由realized_pnl/cost_basis反解,2 个约束最大残差 0.0000;日期为排序占位,早于**全账本**首笔已记成交(2025-12-24),因此不进现金对账窗口,也不会被任何以某个起始日回滚账本的消费者(shadow 种子重建)当成模拟期内的交易。"
             },
             {
               "date": "2026-04-27",
@@ -1206,7 +1206,7 @@
           "data_source": "Tencent Aug 10 16:00 HKT",
           "trades": [
             {
-              "date": "2026-03-23",
+              "date": "2025-12-23",
               "action": "buy",
               "shares": 5200,
               "price": 4.4973,
@@ -1215,7 +1215,7 @@
                 "cost_basis"
               ],
               "corroborated": false,
-              "note": "建仓早于本账本(clawock 之前已持有)。股数=shares−已记净股;单价由cost_basis反解,1 个约束最大残差 0.0000;日期为排序占位,早于首笔已记成交,不进现金对账窗口。"
+              "note": "建仓早于本账本(clawock 之前已持有)。股数=shares−已记净股;单价由cost_basis反解,1 个约束最大残差 0.0000;日期为排序占位,早于**全账本**首笔已记成交(2025-12-24),因此不进现金对账窗口,也不会被任何以某个起始日回滚账本的消费者(shadow 种子重建)当成模拟期内的交易。"
             },
             {
               "date": "2026-03-24",
@@ -1269,7 +1269,7 @@
           "note": "已清仓 - 历史 sells 保留用于 realized_pnl 汇总(trades 来自 5bb41ea^)",
           "trades": [
             {
-              "date": "2026-03-10",
+              "date": "2025-12-23",
               "action": "buy",
               "shares": 600,
               "price": 32.0401,
@@ -1279,7 +1279,7 @@
                 "cost_basis"
               ],
               "corroborated": true,
-              "note": "建仓早于本账本(clawock 之前已持有)。股数=shares−已记净股;单价由realized_pnl/cost_basis反解,9 个约束最大残差 0.0114;日期为排序占位,早于首笔已记成交,不进现金对账窗口。"
+              "note": "建仓早于本账本(clawock 之前已持有)。股数=shares−已记净股;单价由realized_pnl/cost_basis反解,9 个约束最大残差 0.0114;日期为排序占位,早于**全账本**首笔已记成交(2025-12-24),因此不进现金对账窗口,也不会被任何以某个起始日回滚账本的消费者(shadow 种子重建)当成模拟期内的交易。"
             },
             {
               "date": "2026-03-11",
@@ -1405,7 +1405,7 @@
           "note": "已清仓 - 历史 sells 保留用于 realized_pnl 汇总(trades 来自 5bb41ea^)",
           "trades": [
             {
-              "date": "2026-03-17",
+              "date": "2025-12-23",
               "action": "buy",
               "shares": 200,
               "price": 81.85,
@@ -1415,7 +1415,7 @@
                 "cost_basis"
               ],
               "corroborated": true,
-              "note": "建仓早于本账本(clawock 之前已持有)。股数=shares−已记净股;单价由realized_pnl/cost_basis反解,2 个约束最大残差 0.0000;日期为排序占位,早于首笔已记成交,不进现金对账窗口。"
+              "note": "建仓早于本账本(clawock 之前已持有)。股数=shares−已记净股;单价由realized_pnl/cost_basis反解,2 个约束最大残差 0.0000;日期为排序占位,早于**全账本**首笔已记成交(2025-12-24),因此不进现金对账窗口,也不会被任何以某个起始日回滚账本的消费者(shadow 种子重建)当成模拟期内的交易。"
             },
             {
               "date": "2026-03-18",
