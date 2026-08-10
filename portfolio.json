@@ -69,6 +69,19 @@
           "volume": 5773156,
           "trades": [
             {
+              "date": "2026-06-12",
+              "action": "buy",
+              "shares": 5,
+              "price": 71.0,
+              "reconstructed": true,
+              "derived_from": [
+                "realized_pnl",
+                "cost_basis"
+              ],
+              "corroborated": true,
+              "note": "建仓早于本账本(clawock 之前已持有)。股数=shares−已记净股;单价由realized_pnl/cost_basis反解,1 个约束最大残差 0.0000;日期为排序占位,早于首笔已记成交,不进现金对账窗口。"
+            },
+            {
               "date": "2026-06-13",
               "action": "sell",
               "shares": 5,
@@ -159,6 +172,19 @@
           "name": "Oklo Inc-A",
           "trades": [
             {
+              "date": "2026-04-21",
+              "action": "buy",
+              "shares": 2,
+              "price": 62.83,
+              "reconstructed": true,
+              "derived_from": [
+                "realized_pnl",
+                "cost_basis"
+              ],
+              "corroborated": true,
+              "note": "建仓早于本账本(clawock 之前已持有)。股数=shares−已记净股;单价由realized_pnl/cost_basis反解,1 个约束最大残差 0.0000;日期为排序占位,早于首笔已记成交,不进现金对账窗口。"
+            },
+            {
               "date": "2026-04-22",
               "action": "sell",
               "shares": 2,
@@ -223,6 +249,19 @@
           "name": "携程",
           "trades": [
             {
+              "date": "2026-04-21",
+              "action": "buy",
+              "shares": 5,
+              "price": 52.74,
+              "reconstructed": true,
+              "derived_from": [
+                "realized_pnl",
+                "cost_basis"
+              ],
+              "corroborated": true,
+              "note": "建仓早于本账本(clawock 之前已持有)。股数=shares−已记净股;单价由realized_pnl/cost_basis反解,1 个约束最大残差 0.0000;日期为排序占位,早于首笔已记成交,不进现金对账窗口。"
+            },
+            {
               "date": "2026-04-22",
               "action": "sell",
               "shares": 5,
@@ -250,6 +289,19 @@
           "pnl_abs": 0.0,
           "today_change": 0.0,
           "trades": [
+            {
+              "date": "2026-04-15",
+              "action": "buy",
+              "shares": 8,
+              "price": 45.73,
+              "reconstructed": true,
+              "derived_from": [
+                "realized_pnl",
+                "cost_basis"
+              ],
+              "corroborated": true,
+              "note": "建仓早于本账本(clawock 之前已持有)。股数=shares−已记净股;单价由realized_pnl/cost_basis反解,1 个约束最大残差 0.0000;日期为排序占位,早于首笔已记成交,不进现金对账窗口。"
+            },
             {
               "date": "2026-04-16",
               "action": "sell",
@@ -280,6 +332,19 @@
           "today_change": 0.0,
           "name": "Robinhood Markets Inc-A",
           "trades": [
+            {
+              "date": "2026-04-21",
+              "action": "buy",
+              "shares": 5,
+              "price": 73.5,
+              "reconstructed": true,
+              "derived_from": [
+                "realized_pnl",
+                "cost_basis"
+              ],
+              "corroborated": true,
+              "note": "建仓早于本账本(clawock 之前已持有)。股数=shares−已记净股;单价由realized_pnl/cost_basis反解,1 个约束最大残差 0.0000;日期为排序占位,早于首笔已记成交,不进现金对账窗口。"
+            },
             {
               "date": "2026-04-22",
               "action": "sell",
@@ -1080,6 +1145,19 @@
           "volume": 889000,
           "trades": [
             {
+              "date": "2026-04-26",
+              "action": "buy",
+              "shares": 600,
+              "price": 14.084,
+              "reconstructed": true,
+              "derived_from": [
+                "realized_pnl",
+                "cost_basis"
+              ],
+              "corroborated": true,
+              "note": "建仓早于本账本(clawock 之前已持有)。股数=shares−已记净股;单价由realized_pnl/cost_basis反解,2 个约束最大残差 0.0000;日期为排序占位,早于首笔已记成交,不进现金对账窗口。"
+            },
+            {
               "date": "2026-04-27",
               "action": "sell",
               "shares": 200,
@@ -1127,6 +1205,18 @@
           "pnl_percent": -14.19,
           "data_source": "Tencent Aug 10 16:00 HKT",
           "trades": [
+            {
+              "date": "2026-03-23",
+              "action": "buy",
+              "shares": 5200,
+              "price": 4.4973,
+              "reconstructed": true,
+              "derived_from": [
+                "cost_basis"
+              ],
+              "corroborated": false,
+              "note": "建仓早于本账本(clawock 之前已持有)。股数=shares−已记净股;单价由cost_basis反解,1 个约束最大残差 0.0000;日期为排序占位,早于首笔已记成交,不进现金对账窗口。"
+            },
             {
               "date": "2026-03-24",
               "action": "buy",
@@ -1178,6 +1268,19 @@
           "cost_basis": 29.5347875,
           "note": "已清仓 - 历史 sells 保留用于 realized_pnl 汇总(trades 来自 5bb41ea^)",
           "trades": [
+            {
+              "date": "2026-03-10",
+              "action": "buy",
+              "shares": 600,
+              "price": 32.0401,
+              "reconstructed": true,
+              "derived_from": [
+                "realized_pnl",
+                "cost_basis"
+              ],
+              "corroborated": true,
+              "note": "建仓早于本账本(clawock 之前已持有)。股数=shares−已记净股;单价由realized_pnl/cost_basis反解,9 个约束最大残差 0.0114;日期为排序占位,早于首笔已记成交,不进现金对账窗口。"
+            },
             {
               "date": "2026-03-11",
               "action": "buy",
@@ -1301,6 +1404,19 @@
           "cost_basis": 81.85,
           "note": "已清仓 - 历史 sells 保留用于 realized_pnl 汇总(trades 来自 5bb41ea^)",
           "trades": [
+            {
+              "date": "2026-03-17",
+              "action": "buy",
+              "shares": 200,
+              "price": 81.85,
+              "reconstructed": true,
+              "derived_from": [
+                "realized_pnl",
+                "cost_basis"
+              ],
+              "corroborated": true,
+              "note": "建仓早于本账本(clawock 之前已持有)。股数=shares−已记净股;单价由realized_pnl/cost_basis反解,2 个约束最大残差 0.0000;日期为排序占位,早于首笔已记成交,不进现金对账窗口。"
+            },
             {
               "date": "2026-03-18",
               "action": "sell",

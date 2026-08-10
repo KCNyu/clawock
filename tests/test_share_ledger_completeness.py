@@ -30,6 +30,52 @@ from clawock.portfolio.integrity import (
 )
 
 
+def _replay_residuals(rest, quantity, price, cost_basis):
+    """How badly an opening lot of (quantity @ price) contradicts what IS recorded.
+
+    Deliberately a second implementation rather than a call into the package: it
+    re-derives the stored price from the rest of the ledger, so a bug in the
+    production moving-average would have to be reproduced here identically to
+    hide. Same reason the money gate recomputes rather than trusts.
+    """
+    order = [{'date': '0000-00-00', 'action': 'buy',
+              'shares': quantity, 'price': price}]
+    order += sorted(rest, key=lambda t: t.get('date', ''))
+    shares = 0.0
+    cost = 0.0
+    errors = []
+    for trade in order:
+        qty = float(trade.get('shares') or 0)
+        px = float(trade.get('price') or 0)
+        if trade.get('action') == 'buy':
+            shares += qty
+            cost += qty * px
+            continue
+        average = cost / shares if shares else 0.0
+        if trade.get('realized_pnl') is not None:
+            errors.append(qty * (px - average) - float(trade['realized_pnl']))
+        cost -= qty * average
+        shares -= qty
+    final = cost / shares if shares else None
+    if final is not None and cost_basis:
+        errors.append(final - cost_basis)
+    return errors
+
+
+def _solve_opening_price(rest, quantity, cost_basis, shares_now):
+    low, high = 0.0, 500.0
+    def total(price):
+        return sum(e * e for e in _replay_residuals(rest, quantity, price, cost_basis))
+    for _ in range(400):
+        left = low + (high - low) / 3
+        right = high - (high - low) / 3
+        if total(left) < total(right):
+            high = right
+        else:
+            low = left
+    return (low + high) / 2
+
+
 def _holding(ticker, shares, trades):
     return {'ticker': ticker, 'shares': shares, 'trades': trades}
 
@@ -74,16 +120,26 @@ def test_a_ledger_that_never_goes_negative_is_still_caught():
     assert _codes(findings, 'SHARE_LEDGER'), 'an unrecorded opening lot must be reported'
 
 
-def test_a_known_incomplete_ledger_is_not_reported_again():
-    holdings = [_holding('TQQQ', 0, [_sell('2026-04-16', 8)])]
+def test_a_signed_off_deficit_is_not_reported_again(monkeypatch):
+    """The suppression mechanism, exercised against a patched list rather than
+    the live one — which is empty now that #456 was fixed by backfill instead of
+    by exemption. Testing it through real data would make this test pass or fail
+    on today's book instead of on the behaviour."""
+    monkeypatch.setattr(
+        'clawock.portfolio.integrity.KNOWN_INCOMPLETE_LEDGERS',
+        {('us_stocks', 'ZZZZ'): 8})
+    holdings = [_holding('ZZZZ', 0, [_sell('2026-04-16', 8)])]
     findings = check_share_ledgers({'us_stocks': {'holdings': holdings}})
     assert not _codes(findings, 'SHARE_LEDGER')
 
 
-def test_a_known_ledger_that_drifts_further_is_reported():
-    """The allowlist forgives one recorded deficit, not any deficit on that
-    ticker: a NEW unmatched sell is a new data-entry error."""
-    holdings = [_holding('TQQQ', 0, [_sell('2026-04-16', 8), _sell('2026-05-20', 3)])]
+def test_a_signed_off_ledger_that_drifts_further_is_reported(monkeypatch):
+    """The list forgives one recorded deficit, not any deficit on that ticker:
+    a NEW unmatched sell is a new data-entry error."""
+    monkeypatch.setattr(
+        'clawock.portfolio.integrity.KNOWN_INCOMPLETE_LEDGERS',
+        {('us_stocks', 'ZZZZ'): 8})
+    holdings = [_holding('ZZZZ', 0, [_sell('2026-04-16', 8), _sell('2026-05-20', 3)])]
     findings = check_share_ledgers({'us_stocks': {'holdings': holdings}})
     found = _codes(findings, 'SHARE_LEDGER')
     assert found, 'a deepened deficit is not the deficit that was signed off'
@@ -91,11 +147,7 @@ def test_a_known_ledger_that_drifts_further_is_reported():
 
 
 def test_a_repaired_ledger_is_silent_at_runtime():
-    """A backfilled ledger produces no finding — and the demand that its
-    allowlist entry then be *removed* is made against the real book in
-    `test_the_check_actually_replays_nine_real_ledgers`, not here. A runtime
-    code for it would fire on every synthetic fixture that borrows a real
-    ticker, and a code that always fires is a code nobody reads."""
+    """What the nine look like now: replays clean, says nothing."""
     holdings = [_holding('TQQQ', 8, [_buy('2026-01-05', 8), _sell('2026-04-16', 8),
                                      _buy('2026-04-17', 8)])]
     assert check_share_ledgers({'us_stocks': {'holdings': holdings}}) == []
@@ -153,36 +205,130 @@ def test_the_gate_is_actually_wired_into_the_published_check(tmp_path):
     assert report['ok'], 'the money is right — this finding must not block publishing'
 
 
-def test_the_check_actually_replays_nine_real_ledgers():
-    """The anti-vacuous assertion, and it lives here on purpose.
+def test_the_check_actually_replays_the_real_book():
+    """The anti-vacuous assertion, and with the allowlist empty it is now the
+    ONLY thing proving this gate is still alive.
 
     A discovery-style gate that finds nothing because it looked at nothing
-    reports success forever (#452, #453). But "scanned zero" cannot be a runtime
-    finding: an all-cash or gold-only book legitimately has no trade list to
-    replay, and firing there would train everyone to ignore the code.
+    reports success forever (#452, #453). "Scanned zero" cannot be a runtime
+    finding — an all-cash or gold-only book legitimately has no trade list to
+    replay — so the claim is made here, against the real book.
 
-    So the claim is checked against the real book instead, where it is falsifiable
-    without being noisy: each of the nine must still be present, still carry a
-    trades list, and still reproduce its recorded deficit. Rename the `trades`
-    key or move holdings and this fails — which is the exact rot that would
-    otherwise leave the gate scanning nothing and reporting clean.
+    Delete this test and the gate reports clean for the rest of time.
     """
     from clawock.portfolio.integrity import PORTFOLIO
 
     if not PORTFOLIO.exists():
         pytest.skip('no live book in this checkout')
     portfolios = json.loads(PORTFOLIO.read_text()).get('portfolios', {})
-    by_key = {(region, h.get('ticker')): h
-              for region, port in portfolios.items()
-              for h in (port.get('holdings') or [])}
+    scanned = [h for port in portfolios.values()
+               for h in (port.get('holdings') or []) if h.get('trades')]
 
-    assert len(KNOWN_INCOMPLETE_LEDGERS) == 9
-    assert ('hk_stocks', '07226') in KNOWN_INCOMPLETE_LEDGERS, (
-        'the one the negative-balance framing missed')
+    assert len(scanned) >= 15, (
+        f'only {len(scanned)} ledgers carry trades[] — the gate is scanning almost '
+        'nothing, which is how it goes quiet without going red')
+    assert not check_share_ledgers(portfolios), 'the live book must replay clean'
+    for holding in scanned:
+        assert ledger_deficit(holding) == 0, holding.get('ticker')
 
-    for key, deficit in KNOWN_INCOMPLETE_LEDGERS.items():
-        holding = by_key.get(key)
-        assert holding is not None, f'{key} left the book without leaving the list'
-        assert holding.get('trades'), f'{key} no longer carries a replayable list'
-        assert ledger_deficit(holding) == deficit, (
-            f'{key} deficit moved; the signed-off number is stale')
+
+def test_the_allowlist_is_empty_and_that_is_the_success_state():
+    """#456 closed by backfill, not by exemption. A non-empty list means a tenth
+    incomplete ledger appeared and someone signed it off instead of fixing it —
+    which is a decision that should be visible in a diff."""
+    assert KNOWN_INCOMPLETE_LEDGERS == {}
+
+
+def test_every_reconstructed_lot_is_re_derivable_from_the_rest_of_the_ledger():
+    """The reconstructed opening lots are the one place in the book where a
+    number was computed rather than recorded, so the computation is re-run here
+    on every CI run instead of being trusted because a commit message said so.
+
+    For each lot: drop it, solve for the opening price that reproduces every
+    OTHER recorded number in that holding — each sell's own realized_pnl, and
+    the holding's cost_basis — and require the stored price back. A hand-edited
+    price, or a later trade that contradicts it, fails this.
+    """
+    from clawock.portfolio.integrity import PORTFOLIO
+
+    if not PORTFOLIO.exists():
+        pytest.skip('no live book in this checkout')
+    portfolios = json.loads(PORTFOLIO.read_text()).get('portfolios', {})
+
+    checked = 0
+    for port in portfolios.values():
+        for holding in port.get('holdings') or []:
+            trades = holding.get('trades') or []
+            lots = [t for t in trades if t.get('reconstructed')]
+            if not lots:
+                continue
+            assert len(lots) == 1, 'one opening lot per holding'
+            lot = lots[0]
+            rest = [t for t in trades if not t.get('reconstructed')]
+            solved = _solve_opening_price(
+                rest, float(lot['shares']), float(holding.get('cost_basis') or 0),
+                float(holding.get('shares') or 0))
+            assert abs(solved - float(lot['price'])) < 0.01, (
+                f"{holding.get('ticker')}: stored {lot['price']}, "
+                f"re-derived {solved:.4f}")
+            checked += 1
+
+    assert checked == 9, f'expected 9 reconstructed lots, found {checked}'
+
+
+def test_a_lot_pinned_only_by_cost_basis_is_not_marked_corroborated():
+    """07226 has no sells, so its opening price comes from cost_basis alone and
+    checking cost_basis against it would be circular. The flag that keeps
+    COST_BASIS honest has to actually be set on that holding and not on the
+    others."""
+    from clawock.portfolio.integrity import PORTFOLIO
+
+    if not PORTFOLIO.exists():
+        pytest.skip('no live book in this checkout')
+    portfolios = json.loads(PORTFOLIO.read_text()).get('portfolios', {})
+    flags = {}
+    for port in portfolios.values():
+        for holding in port.get('holdings') or []:
+            for t in holding.get('trades') or []:
+                if t.get('reconstructed'):
+                    flags[holding['ticker']] = t.get('corroborated')
+
+    assert flags.get('07226') is False, (
+        'the one lot with no independent source must not claim corroboration')
+    assert all(v is True for k, v in flags.items() if k != '07226'), flags
+
+
+def test_cost_basis_declines_to_judge_an_uncorroborated_reconstruction():
+    """The gate must skip exactly the circular case — and must NOT skip a
+    holding whose reconstruction was pinned by independent realized_pnl."""
+    from clawock.portfolio.integrity import check
+
+    def book(corroborated, cost_basis):
+        return {'portfolios': {'hk_stocks': {
+            'currency': 'HKD',
+            'holdings': [{
+                'ticker': 'X', 'shares': 200, 'cost_basis': cost_basis,
+                'trades': [
+                    {'date': '2026-01-01', 'action': 'buy', 'shares': 200,
+                     'price': 10.0, 'reconstructed': True,
+                     'corroborated': corroborated},
+                ],
+            }],
+        }}}
+
+    import tempfile
+    from pathlib import Path as _P
+
+    def findings(corroborated, cost_basis):
+        with tempfile.TemporaryDirectory() as d:
+            p = _P(d) / 'portfolio.json'
+            p.write_text(json.dumps(book(corroborated, cost_basis)))
+            return [f['code'] for f in check(p)['findings']]
+
+    # cost_basis wildly disagrees with the replay (10.0)
+    assert 'COST_BASIS' in findings(True, 99.0), (
+        'a corroborated reconstruction must still be checked'
+    )
+    assert 'COST_BASIS' not in findings(False, 99.0), (
+        'an uncorroborated reconstruction must not be judged against itself'
+    )

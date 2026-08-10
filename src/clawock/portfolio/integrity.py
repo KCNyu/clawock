@@ -167,24 +167,20 @@ def _prev_snapshot_cash(region, field):
 
 
 # 账本不完整、已知且已签收的持仓：(区, ticker) → 缺失的建仓股数。
-# 这些仓位在「每笔交易都记进 trades[]」之前就已开仓，所以 trades[] replay 不回
-# 当前 shares。差额是常数、可复现，记在这里是为了**不让这张表悄悄变长**——
-# 补一笔 reconstructed 建仓会改动 money 文件，那是 kcn 的决定（#456 选项 2）。
 #
-# 记「缺失股数」而不是「余额转负的日期」，因为只有前者是稳定的：再卖一笔会让
-# 负值低点更深、却改不了缺了多少。也正因为如此，07226 才在这张表里——它 6200 股
-# 对着 +1000 的 trades，缺 5200 股建仓，但一次都没转负，用「转负」筛就永远看不见。
-KNOWN_INCOMPLETE_LEDGERS = {
-    ('us_stocks', 'TQQQ'): 8,
-    ('us_stocks', 'OKLO'): 2,
-    ('us_stocks', 'TCOM'): 5,
-    ('us_stocks', 'HOOD'): 5,
-    ('us_stocks', 'RKLB'): 5,
-    ('hk_stocks', '07709'): 600,
-    ('hk_stocks', '07747'): 200,
-    ('hk_stocks', '02208'): 600,
-    ('hk_stocks', '07226'): 5200,
-}
+# **现在是空的，而且这是这张表的成功状态，不是它失效了。** 九只(#456)在 2026-08-10
+# 补上了 reconstructed 建仓分录：kcn 在 clawock 之前就持有它们，所以缺的不是漏记，
+# 是账本本身从半路开始。补完九只全部 replay 归零，名单随之清空。
+#
+# 留着这个机制而不是删掉：它现在守的是「不许再出现第十只」。空表让这道闸变得
+# 什么都扫不出来，所以反空转的责任全部压在
+# tests/test_share_ledger_completeness.py 对真账本的断言上——那里要求扫到的账本
+# 数量不为零、且每一份都能重放。表空了以后，那个断言才是唯一还在证明这道闸活着的
+# 东西，删了它这道闸就会永远报绿。
+#
+# 判据仍然记「缺失股数」而不是「余额转负的日期」：只有前者稳定，再卖一笔会让负值
+# 低点更深却改不了缺多少。当初 07226 缺 5200 股却一次都没转负，用「转负」筛就看不见。
+KNOWN_INCOMPLETE_LEDGERS = {}
 SHARE_TOL = 1e-6
 
 
@@ -385,8 +381,19 @@ def check(portfolio_path=PORTFOLIO):
 
             # COST_BASIS：仅当 trades 账本完整(净股==当前 shares)时才校验，
             # 半账本(只记近期 T+0、缺建仓买入)净股对不上 → cost_basis 是手填的、跳过
+            #
+            # 重建建仓分录(#456)让九只的净股重新对上，于是这道闸开始校验它们。
+            # 对其中八只这是真校验：开仓价是从**每笔卖出自己记的 realized_pnl**
+            # 反解的，与 cost_basis 相互独立，两者吻合才有那个价。
+            # 07226 一笔卖出都没有，开仓价只能从 cost_basis 本身反解 —— 再拿这道闸
+            # 去校验 cost_basis 就是循环论证，会把一次诚实的「无法校验」变成一次
+            # 自己构造出来的「已核对」，比原来的跳过更坏。
+            # 所以判据不是「有没有重建分录」，而是「那笔重建有没有独立佐证」。
             trades = h.get('trades') or []
-            if trades and cost is not None and sh:
+            uncorroborated = any(
+                tr.get('reconstructed') and not tr.get('corroborated')
+                for tr in trades)
+            if trades and cost is not None and sh and not uncorroborated:
                 mavg, net = _moving_avg_cost(trades)
                 if mavg is not None and abs(net - sh) < 1e-6 and cost > 0:
                     if abs(mavg - cost) / cost > 0.005:   # 偏离 >0.5%
