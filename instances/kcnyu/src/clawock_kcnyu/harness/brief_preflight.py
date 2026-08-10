@@ -54,7 +54,6 @@ _CHECKOUT = WS
 TMP_DIR = WS / 'memory' / '.tmp'
 SNAPSHOT_DIR = WS / 'memory' / 'snapshots'
 
-sys.path.insert(0, str(_CHECKOUT / 'scripts' / 'data'))
 from clawock_kcnyu.automation import workflow_outcomes  # noqa: E402
 from clawock.market_data.macro import classify_regime as _classify_regime  # noqa: E402
 from clawock.portfolio.instruments import get as get_instrument  # noqa: E402

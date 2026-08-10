@@ -48,7 +48,6 @@ WS = workspace_root(Path.cwd())
 _CHECKOUT = WS
 TMP = WS / 'memory' / '.tmp'
 
-sys.path.insert(0, str(_CHECKOUT / 'scripts' / 'data'))
 from clawock_kcnyu.automation import workflow_outcomes  # noqa: E402
 
 # The deterministic report core moved into the installed package so `clawock
