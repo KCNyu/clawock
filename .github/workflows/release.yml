@@ -52,33 +52,12 @@ jobs:
       - name: Isolated install completes one real run
         # The acceptance for #379, executed against the artifact about to ship
         # rather than the source tree: a clean environment, no checkout, no
-        # OpenClaw, no KCNyu workspace. `env -i` is the point — it proves the
-        # package is not reading a variable this runner happens to export.
-        run: |
-          set -euo pipefail
-          python -m venv /tmp/isolated
-          # Not a dependency list: this installs the artifact under test.
-          /tmp/isolated/bin/pip install --quiet dist/*.whl
-          mkdir -p /tmp/newuser && cd /tmp/newuser
-          env -i PATH=/usr/bin:/bin HOME=/tmp /tmp/isolated/bin/clawock init book
-          cd book
-          mkdir -p .clawock/work
-          env -i PATH=/usr/bin:/bin HOME=/tmp CLAWOCK_WORKSPACE="$PWD" \
-            /tmp/isolated/bin/clawock run prepare > .clawock/work/request.json
-          echo '{"answer":"smoke"}' > .clawock/work/answer.json
-          env -i PATH=/usr/bin:/bin HOME=/tmp CLAWOCK_WORKSPACE="$PWD" \
-            /tmp/isolated/bin/clawock run publish \
-              --request .clawock/work/request.json \
-              --artifact answer=.clawock/work/answer.json > receipt.json
-          python - <<'PY'
-          import json
-          receipt = json.load(open('receipt.json'))
-          assert receipt['status'] == 'published', receipt
-          assert len(receipt['generation_id']) == 32, receipt
-          names = {artifact['name'] for artifact in receipt['artifacts']}
-          assert {'answer', 'manifest.json'} <= names, names
-          print('isolated run published', receipt['run_id'])
-          PY
+        # OpenClaw, no KCNyu workspace.
+        #
+        # The steps live in examples/minimal-run/run.sh rather than here so that
+        # what CI proves and what a reader can run are one file. Inline, this was
+        # a proof only GitHub could execute.
+        run: examples/minimal-run/run.sh dist/*.whl
 
       - uses: actions/upload-artifact@v5
         with:
