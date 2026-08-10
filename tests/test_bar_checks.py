@@ -15,8 +15,6 @@ from pathlib import Path
 import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
-DATA = ROOT / 'scripts' / 'data'
-sys.path.insert(0, str(DATA))
 
 from clawock.market_data import integrity as bar_checks  # noqa: E402
 
@@ -236,9 +234,25 @@ def test_no_script_re_implements_the_degenerate_check_privately():
     # A chained `a == b == c == d` is the shape of a hand-rolled degenerate-range
     # test. Matched through the AST, not the text: the prose in these files
     # legitimately quotes `o == h == l == c` when explaining the bug it caused.
+    # Scanned from where the code lives now. This used to glob `scripts/data`,
+    # which #429 deleted, so it walked zero files and passed for that reason;
+    # and it excluded `bar_checks.py` by name, which is the module that has
+    # since become `clawock.market_data.integrity`. Both halves are now derived
+    # rather than spelled, so a move cannot silently retire the check.
+    canonical = Path(bar_checks.__file__).resolve()
+    modules = [
+        path for root in ('src', 'ops', 'instances')
+        for path in sorted((ROOT / root).rglob('*.py'))
+        if '__pycache__' not in path.parts
+    ]
+    assert len(modules) > 50, f'only {len(modules)} modules scanned — did a root move?'
+    assert canonical in {p.resolve() for p in modules}, (
+        f'{canonical} is outside the scanned roots, so the one implementation '
+        'this test permits is not the one it is looking at')
+
     offenders = []
-    for path in sorted(DATA.glob('*.py')):
-        if path.name == 'bar_checks.py':
+    for path in modules:
+        if path.resolve() == canonical:
             continue
         try:
             tree = ast.parse(path.read_text())
@@ -248,7 +262,7 @@ def test_no_script_re_implements_the_degenerate_check_privately():
             if not isinstance(node, ast.Compare) or len(node.ops) < 3:
                 continue
             if all(isinstance(op, ast.Eq) for op in node.ops):
-                offenders.append(f'{path.name}:{node.lineno}')
+                offenders.append(f'{path.relative_to(ROOT)}:{node.lineno}')
 
     assert not offenders, (
         'private degenerate-range check(s) outside bar_checks.py:\n'

@@ -40,7 +40,6 @@ from clawock.decision import risk as risk_discipline
 WS = workspace_root(Path.cwd())
 _CHECKOUT = WS
 
-sys.path.insert(0, str(_CHECKOUT / 'scripts' / 'data'))
 from clawock_kcnyu.automation import workflow_outcomes  # noqa: E402
 
 # Required concepts and the section labels the brief model may legitimately emit.

@@ -67,7 +67,6 @@ WS = workspace_root(Path.cwd())
 _CHECKOUT = WS
 TMP = WS / 'memory' / '.tmp'
 
-sys.path.insert(0, str(_CHECKOUT / 'scripts' / 'data'))
 from clawock_kcnyu.automation import cron_heartbeat  # noqa: E402
 
 # A report file older than this is assumed to be a previous slot's leftover. Kept

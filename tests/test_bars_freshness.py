@@ -16,7 +16,6 @@ from datetime import date
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT / 'scripts' / 'data'))
 
 from clawock_kcnyu.harness import brief_preflight
 from clawock.market_data import sessions as trading_calendar

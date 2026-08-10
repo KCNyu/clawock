@@ -16,7 +16,6 @@ from clawock.workspace import workspace_root
 
 WS = workspace_root(Path.cwd())
 _CHECKOUT = WS
-sys.path.insert(0, str(_CHECKOUT / 'scripts' / 'data'))
 
 # Single-publisher mutex for all dashboard build outputs (Option 1, 2026-07-04).
 # Shared by the host harness rebuild and publish_dashboard.sh crontab so the two
@@ -413,6 +412,5 @@ def safe_write_text(path, text):
 
     Keeps each postflight on the package-owned atomic-write implementation.
     """
-    sys.path.insert(0, str(_CHECKOUT / 'scripts' / 'data'))
     from clawock.safe_io import safe_write_text as _swt
     _swt(str(path), text)

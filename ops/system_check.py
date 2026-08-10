@@ -203,7 +203,6 @@ def check_portfolio_schema(r):
 
 def check_instrument_registry(r):
     """Canonical metadata must cover every active holding."""
-    sys.path.insert(0, str(_REPO_ROOT / 'scripts' / 'data'))
     try:
         from clawock.portfolio import instruments as instrument_registry
         portfolio = json.loads((WS / 'portfolio.json').read_text())
@@ -230,7 +229,6 @@ def check_plan_json_schema(r):
         r.add('plan.json schema', OK, '0 plans yet')
         return
     bad = []
-    sys.path.insert(0, str(_REPO_ROOT / 'scripts' / 'data'))
     from clawock.decision import ledger as decision_v2
     for p in plans:
         try:
@@ -493,7 +491,6 @@ def check_decision_ledger(r):
         r.add('decisions.jsonl', OK, 'no ledger yet (first runs)')
         return
     try:
-        sys.path.insert(0, str(_REPO_ROOT / 'scripts' / 'data'))
         from clawock.decision import ledger as decision_v2
         rows = decision_v2.load_decisions(p)
     except Exception as e:
@@ -670,7 +667,6 @@ def check_trading_calendar_horizon(r):
     holiday into a session. The table cannot be auto-generated (HK dates are
     gazetted, US ones move), so the only safe mechanism is a loud deadline.
     """
-    sys.path.insert(0, str(_REPO_ROOT / 'scripts' / 'data'))
     try:
         from clawock.market_data import sessions as trading_calendar
         coverage = trading_calendar.coverage()

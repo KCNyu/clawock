@@ -18,7 +18,6 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT / 'scripts' / 'data'))
 
 SENT_AT = datetime(2026, 8, 3, 13, 31, 24)
 NOW_MS = int(datetime(2026, 8, 3, 13, 42).timestamp() * 1000)

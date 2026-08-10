@@ -7,7 +7,6 @@ from zoneinfo import ZoneInfo
 
 HKT = ZoneInfo('Asia/Hong_Kong')
 ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT / 'scripts' / 'data'))
 
 
 def _ms(at):
