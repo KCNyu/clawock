@@ -80,4 +80,10 @@ def test_all_public_shells_use_the_vector_mark():
     assert 'class="brand-mark" src="assets/logo-mark.svg"' in index
     assert "/assets/logo-mark.svg" in layout
     assert "/assets/icons/app-icon.svg" in layout
-    assert readmes.count('src="site/assets/logo-lockup.svg"') == 2
+    # Both READMEs must show the vector lockup rather than a raster. Matched on
+    # the asset, not on the exact string: README.md is the packaged PyPI
+    # description and had to go absolute (relative paths do not resolve there),
+    # while README.zh.md is GitHub-only and stays relative. Pinning the literal
+    # `src="site/..."` would have made this test enforce the broken form.
+    assert readmes.count('site/assets/logo-lockup.svg"') == 2
+    assert 'logo-lockup.png' not in readmes
