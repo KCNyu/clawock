@@ -23,6 +23,7 @@
 import argparse
 import json
 import os
+import shutil
 import subprocess
 import sys
 from datetime import datetime
@@ -35,6 +36,30 @@ from clawock.workspace import workspace_root
 WS_ROOT = str(workspace_root(Path.cwd()))
 
 PORTFOLIO = os.path.join(WS_ROOT, 'portfolio.json')
+
+
+def _console(name):
+    """Locate a console script without trusting the caller's PATH.
+
+    Both of the commands below used to be spawned by bare name with
+    `check=False`, so under the user crontab's PATH=/usr/bin:/bin they raised
+    FileNotFoundError and were swallowed: the refresh silently did not happen
+    and the run still reported success. That is the quiet cousin of the bug
+    that blocked the 03:20 dreaming push, and quiet is worse.
+
+    The console scripts are installed beside the interpreter running this
+    module, so that directory is the reliable answer when PATH has nothing —
+    but only when this really is the environment they were installed into. Run
+    under the system interpreter it resolves to /usr/bin, where nothing lives,
+    so the candidate is checked before it is trusted and the bare name is
+    returned otherwise: an unresolvable command should fail with the message
+    everyone recognises rather than with a path this function invented.
+    """
+    found = shutil.which(name)
+    if found:
+        return found
+    beside = Path(sys.executable).parent / name
+    return str(beside) if beside.exists() else name
 
 
 def latest_nav(code):
@@ -101,11 +126,11 @@ def main():
 
     if not a.no_refresh:
         print('  刷新净值 + 重建 dashboard…')
-        subprocess.run(['clawock-kcnyu-gold-fetch'], check=False)
+        subprocess.run([_console('clawock-kcnyu-gold-fetch')], check=False)
         # Rebuilt so this host's copy is current; NOT staged. The four outputs
         # left the repository in #314 — the scheduled publisher puts them on the
         # data branch, at most 20 minutes behind this commit.
-        subprocess.run(['clawock', 'dashboard-build'],
+        subprocess.run([_console('clawock'), 'dashboard-build'],
                        check=False, stdout=subprocess.DEVNULL)
 
     if a.publish:
