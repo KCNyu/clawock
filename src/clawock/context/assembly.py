@@ -193,6 +193,41 @@ def load_prompt_report(path, *, session_key: str | None = None) -> dict:
     )
 
 
+def skills_delivery(provider: str | None) -> str:
+    """How a model backend receives the skills catalog.
+
+    OpenClaw does not put the catalog in the system prompt for every backend.
+    A CLI backend that owns its own skill loader is handed the same resolved
+    snapshot out of band, so its prompt report shows zero skills while the
+    session still carries all of them.
+    """
+    backends = load_manifest()["backends"]["skills_delivery"]
+    normalized = (provider or "").strip().lower()
+    for mode, providers in backends.items():
+        if mode == "default":
+            continue
+        if normalized in providers:
+            return mode
+    return backends["default"]
+
+
+def session_family(session_key: str | None) -> str | None:
+    """The dialect a session key belongs to, ignoring the job or peer id.
+
+    ``agent:main:cron:<job-uuid>`` is ``cron`` for every job because the
+    projection is job-independent; ``agent:main:openclaw-weixin:direct:<peer>``
+    is ``openclaw-weixin`` because the message tool schema is channel-sensitive.
+    A named one-off session is its own family: two differently named sessions on
+    the same backend were observed with different tool sets.
+    """
+    if not isinstance(session_key, str) or not session_key.strip():
+        return None
+    parts = [part for part in session_key.split(":") if part]
+    if len(parts) < 3 or parts[0] != "agent":
+        return session_key.strip()
+    return parts[2]
+
+
 def _prompt_report_projection(report: Mapping[str, Any]) -> dict:
     injected = report.get("injectedWorkspaceFiles")
     skills = report.get("skills")
@@ -222,11 +257,16 @@ def _prompt_report_projection(report: Mapping[str, Any]) -> dict:
         for item in tool_entries
         if isinstance(item, dict) and isinstance(item.get("name"), str)
     }
+    provider = report.get("provider")
+    provider = provider.strip() if isinstance(provider, str) and provider.strip() else None
     return {
         "files": files,
         "skill_names": skill_names,
         "skills_hash": skills.get("hash"),
         "tool_contracts": tool_contracts,
+        "provider": provider,
+        "skills_delivery": skills_delivery(provider),
+        "family": session_family(report.get("sessionKey")),
     }
 
 
@@ -246,29 +286,94 @@ def compare_prompt_reports(
             and not any(item.get("missing") or item.get("truncated") for item in projected["files"])
         )
 
+    same_backend = baseline["skills_delivery"] == candidate["skills_delivery"]
+    same_family = baseline["family"] == candidate["family"]
+    comparable = same_backend and same_family
     checks = {
         "before_profile": files_ok(baseline),
         "after_profile": files_ok(candidate),
         "workspace_files": baseline["files"] == candidate["files"],
-        "skills_catalog": (
+        "backend_dialect": same_backend,
+        "session_family": same_family,
+        # A capability diff is only attributable to a code change when both
+        # sides speak the same backend and session dialect. Reporting these as
+        # regressions across dialects would blame a deliberate runtime rule.
+        "skills_catalog": None if not comparable else (
             baseline["skill_names"] == candidate["skill_names"]
             and baseline["skills_hash"] == candidate["skills_hash"]
         ),
-        "tool_contracts": baseline["tool_contracts"] == candidate["tool_contracts"],
+        "tool_contracts": None if not comparable else (
+            baseline["tool_contracts"] == candidate["tool_contracts"]
+        ),
+    }
+
+    def side(projected):
+        return {
+            "files": [item["name"] for item in projected["files"]],
+            "skills": len(projected["skill_names"]),
+            "tools": len(projected["tool_contracts"]),
+            "provider": projected["provider"],
+            "skills_delivery": projected["skills_delivery"],
+            "family": projected["family"],
+        }
+
+    return {
+        "runtime_contract": manifest["runtime_contract"],
+        "profile": profile,
+        "comparable": comparable,
+        "unattributable": (
+            [] if comparable else ["skills_catalog", "tool_contracts"]
+        ),
+        "checks": checks,
+        "before": side(baseline),
+        "after": side(candidate),
+        "ok": all(value is True for value in checks.values()),
+    }
+
+
+def verify_prompt_report(report: Mapping[str, Any], *, profile: str) -> dict:
+    """Check one realized session against the profile it claims to be.
+
+    ``compare_prompt_reports`` needs a pair, and ``audit`` only sees the
+    workspace, so a single run that came out with no skills or a narrowed tool
+    set had nowhere to fail. Backend dialect decides what is checkable: a
+    runtime-plugin backend legitimately reports an empty catalog, so that check
+    is reported as unverified rather than passed.
+    """
+    manifest = load_manifest()
+    _, contract = _profile(manifest, profile)
+    projected = _prompt_report_projection(report)
+    expected_files = contract["bootstrap"]
+    delivery = projected["skills_delivery"]
+    checks: dict[str, bool | None] = {
+        "bootstrap_files": (
+            [item["name"] for item in projected["files"]] == expected_files
+        ),
+        "no_missing_document": not any(
+            item.get("missing") for item in projected["files"]
+        ),
+        "no_truncation": not any(
+            item.get("truncated") for item in projected["files"]
+        ),
+        "tools_present": bool(projected["tool_contracts"]),
+        "skills_present": (
+            None if delivery != "system-prompt" else bool(projected["skill_names"])
+        ),
     }
     return {
         "runtime_contract": manifest["runtime_contract"],
         "profile": profile,
+        "provider": projected["provider"],
+        "skills_delivery": delivery,
+        "family": projected["family"],
+        "unverified": [
+            name for name, value in checks.items() if value is None
+        ],
         "checks": checks,
-        "before": {
-            "files": [item["name"] for item in baseline["files"]],
-            "skills": len(baseline["skill_names"]),
-            "tools": len(baseline["tool_contracts"]),
+        "observed": {
+            "files": [item["name"] for item in projected["files"]],
+            "skills": len(projected["skill_names"]),
+            "tools": len(projected["tool_contracts"]),
         },
-        "after": {
-            "files": [item["name"] for item in candidate["files"]],
-            "skills": len(candidate["skill_names"]),
-            "tools": len(candidate["tool_contracts"]),
-        },
-        "ok": all(checks.values()),
+        "ok": all(value for value in checks.values() if value is not None),
     }
