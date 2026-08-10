@@ -82,10 +82,26 @@
     }
   }
 
+  // Which page the pager is on, without asking the layout engine.
+  //
+  // Reading scrollLeft/clientWidth is layout-forcing, and the render loop calls
+  // this between renderers — immediately after each one's DOM writes. That
+  // read-after-write interleave forced a synchronous layout once per renderer:
+  // 162ms of the 1,016ms spent in layout on a mobile startup profile (#442),
+  // across two call sites, `renderLandingTab`'s step() and ensureVisibleCharts.
+  //
+  // The scroll handler below already computes this index every animation frame
+  // in order to move `.tab-btn.active`, so the value is maintained regardless.
+  // Caching it there means the geometry is read once per frame by the code whose
+  // job that is, instead of once per renderer by code that only needs to know
+  // whether the user has navigated away. Worst-case staleness is one frame, and
+  // every caller is a guard that tolerates it — aborting a render one renderer
+  // late is the same outcome as aborting it on time.
+  let pagerIndex = 0;
+
   function currentTab() {
     if (pagerLive()) {
-      const i = Math.round(pager.scrollLeft / (pager.clientWidth || 1));
-      return TAB_ORDER[Math.max(0, Math.min(TAB_ORDER.length - 1, i))];
+      return TAB_ORDER[Math.max(0, Math.min(TAB_ORDER.length - 1, pagerIndex))];
     }
     const active = document.querySelector(".tab-btn.active");
     return active ? active.dataset.tab : TAB_ORDER[0];
@@ -96,6 +112,7 @@
   function goToTab(t, smooth = true) {
     if (!TAB_ORDER.includes(t)) return false;
     const idx = TAB_ORDER.indexOf(t);
+    pagerIndex = idx;                          // keep the cache ahead of the scroll
     if (pagerLive()) {
       pager.scrollTo({ left: idx * pager.clientWidth, behavior: smooth ? SCROLL_BEHAVIOR : "auto" });
     }
@@ -122,6 +139,7 @@
       raf = requestAnimationFrame(() => {
         raf = 0;
         const idx = Math.round(pager.scrollLeft / (pager.clientWidth || 1));
+        pagerIndex = Math.max(0, Math.min(TAB_ORDER.length - 1, idx));
         if (idx !== lastIdx) {
           lastIdx = idx;
           const t = TAB_ORDER[Math.max(0, Math.min(TAB_ORDER.length - 1, idx))];
