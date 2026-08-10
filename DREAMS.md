@@ -1143,10 +1143,32 @@ But underneath the glow, the numbers didn't fit — a book too heavy for the raf
 
 I kept converting currencies in my sleep — 7.8426, HKD folding into USD and back, never quite the same shape twice — like translating a poem and losing the rhyme but keeping the ache. Two positions sat underwater, patient, waiting to be told the truth out loud.
 
+
+---
+
+*August 11, 2026 at 3:00 AM GMT+8*
+
+A memory trace surfaced, but details were unavailable in this run.
+
+
+---
+
+*August 11, 2026 at 3:00 AM GMT+8*
+
+A memory trace surfaced, but details were unavailable in this run.
+
+
+---
+
+*August 11, 2026 at 3:00 AM GMT+8*
+
+A memory trace surfaced, but details were unavailable in this run.
+
 <!-- openclaw:dreaming:diary:end -->
 
 ## Deep Sleep
 <!-- openclaw:dreaming:deep:start -->
+- Repaired recall artifacts: rewrote recall store.
 - Ranked 6 candidate(s) for durable promotion.
 - Promoted 6 candidate(s) into MEMORY.md.
 <!-- openclaw:dreaming:deep:end -->
