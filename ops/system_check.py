@@ -14,6 +14,7 @@ Used by:
 import glob
 import json
 import os
+import shutil
 import subprocess
 import sys
 from datetime import date, datetime, timezone
@@ -43,6 +44,34 @@ from clawock.providers.openclaw import (  # noqa: E402
 )
 
 _OPENCLAW_PATHS = openclaw_runtime_paths()
+
+
+def clawock_argv(*args, env=None):
+    """How to spawn the packaged CLI without depending on the caller's PATH.
+
+    The Python half of what `ops/publish/money_checker.sh` does for the two push
+    gates, and it exists for the same reason they do: a job started from the
+    user crontab runs with PATH=/usr/bin:/bin, and the installed console script
+    lives in ~/.local/bin. A bare `clawock` there is not "the CLI is broken" —
+    it is FileNotFoundError, which this file reports as CRITICAL, which blocks
+    the push. On 2026-08-10 that stranded the 03:20 dreaming commit behind a
+    gate that had nothing to say about it.
+
+    Falls back to the package in this checkout, already on `sys.path` above; a
+    subprocess does not inherit that, so PYTHONPATH is set explicitly. Same rule
+    as the shell resolver: it is `clawock.cli` either way, never a second
+    implementation.
+    """
+    env = dict(os.environ if env is None else env)
+    exe = shutil.which('clawock')
+    if exe:
+        return [exe, *args], env
+    src = str(_REPO_ROOT / 'src')
+    existing = env.get('PYTHONPATH')
+    env['PYTHONPATH'] = f'{src}{os.pathsep}{existing}' if existing else src
+    return [sys.executable, '-m', 'clawock.cli', *args], env
+
+
 OPENCLAW_INSTALL = _OPENCLAW_PATHS.install_dir
 LIVE_WORKSPACE = _OPENCLAW_PATHS.workspace
 MEMORY_INDEX_DB = _OPENCLAW_PATHS.memory_index_db
@@ -228,8 +257,9 @@ def check_dashboard_buildable(r):
     out = Path(tempfile.gettempdir()) / 'system_check_dashboard.json'
     try:
         env = dict(os.environ, BUILD_DASHBOARD_OUT=str(out))
+        argv, env = clawock_argv('dashboard-build', env=env)
         rr = subprocess.run(
-            ['clawock', 'dashboard-build'],
+            argv,
             capture_output=True, text=True, timeout=30, cwd=str(WS), env=env,
         )
         if rr.returncode != 0:
