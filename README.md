@@ -15,7 +15,7 @@ Install the decision intelligence behind this live Hong Kong + US desk into any 
 [**Live dashboard**](https://kcnyu.github.io/clawock/) &nbsp;·&nbsp; [**Daily briefs**](https://kcnyu.github.io/clawock/briefs.html) &nbsp;·&nbsp; [**Evidence**](https://kcnyu.github.io/clawock/evidence.html) &nbsp;·&nbsp; [**简体中文**](README.zh.md)
 
 ```bash
-pip install "clawock @ git+https://github.com/KCNyu/clawock.git"   # PyPI: #379
+pip install clawock
 clawock init ./my-decision --workflow investment-decision
 ```
 
@@ -221,13 +221,13 @@ Hong Kong times run on HKT; US session times follow ET and their cron expression
 
 ## Run it on your own book
 
-The package lifecycle is no longer welded to this account's directory. Until
-the trusted-publishing release in [#379](https://github.com/KCNyu/clawock/issues/379)
-lands, install the current pre-release from GitHub rather than assuming the PyPI
-name is live:
+The package lifecycle is no longer welded to this account's directory. It is
+published to PyPI through GitHub trusted publishing — no API token, and the
+release job proves a clean environment can install the exact artifact and finish
+a run before it uploads:
 
 ```bash
-python -m pip install "clawock @ git+https://github.com/KCNyu/clawock.git"
+python -m pip install clawock
 clawock workflow install investment-decision --workspace ./my-decision
 clawock init ./my-decision --workflow investment-decision
 clawock run prepare --workspace ./my-decision
