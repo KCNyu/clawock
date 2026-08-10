@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-10T14:08:15.158358+00:00",
+  "generated_at": "2026-08-10T22:09:52.163863+00:00",
   "lookback_hours": 48,
   "sources": {
     "trump": "trumpstruth.org/feed (primary)",
@@ -13,84 +13,32 @@
   },
   "llm_filtered": true,
   "counts": {
-    "total": 8,
-    "held_hits": 1,
+    "total": 10,
+    "held_hits": 0,
     "new_ideas": 0,
-    "sector_hits": 5
+    "sector_hits": 6
   },
   "items": [
     {
       "author": "Musk",
-      "text": "Elon Musk’s ambitious AI plans for SpaceX should be taken seriously, thanks to Microsoft, these analysts say",
+      "text": "SpaceX Stock Has Plunged 34%. Elon Musk's \"Secret Master Plan\" Points to What Could Come Next.",
       "url": "",
-      "published": "Mon, 10 Aug 2026 09:26:00 GMT",
+      "published": "Mon, 10 Aug 2026 16:40:00 GMT",
       "origin": "gnews-rss",
-      "source": "MarketWatch",
-      "tickers": [
-        "MSFT"
-      ],
-      "held": [
-        "MSFU"
-      ],
-      "new_ideas": [
-        "MSFT"
-      ],
+      "source": "Yahoo Finance",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
       "sectors": [
-        "AI",
         "航天"
       ],
       "sector_holdings": [
         "SPCH",
         "SPCX"
       ],
-      "stance": "endorsement",
-      "relevance": 82,
-      "summary_cn": "分析师认为应认真看待马斯克为SpaceX规划的AI野心（得益于微软支持），直接利好MSFT，间接利好SpaceX相关持仓。"
-    },
-    {
-      "author": "Musk",
-      "text": "Musk's Tesla-Starlink Tweet Makes SpaceX-Tesla Merger Inevitable",
-      "url": "",
-      "published": "Mon, 10 Aug 2026 05:08:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Torque News",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "电动车",
-        "并购"
-      ],
-      "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "endorsement",
-      "relevance": 72,
-      "summary_cn": "马斯克一条Tesla-Starlink相关推文引发SpaceX与Tesla合并猜测，强化SpaceX相关持仓预期。"
-    },
-    {
-      "author": "Musk",
-      "text": "‘Pure insanity’—Elon Musk details SpaceX’s plan to turn the moon into its newest manufacturing site",
-      "url": "",
-      "published": "Thu, 06 Aug 2026 17:36:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Fortune",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "月球制造"
-      ],
-      "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "endorsement",
-      "relevance": 65,
-      "summary_cn": "马斯克详述SpaceX将月球打造为最新制造基地的计划，进一步强化SpaceX持仓的长期叙事。"
+      "stance": "neutral",
+      "relevance": 75,
+      "summary_cn": "媒体：SpaceX 股价已跌34%，Musk所谓'秘密大师计划'或为下一步催化剂——对 SPCX/SPCH 持仓直接相关。"
     },
     {
       "author": "Musk",
@@ -103,78 +51,136 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "航天",
-        "私募/未上市"
-      ],
-      "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "neutral",
-      "relevance": 58,
-      "summary_cn": "报道聚焦SpaceX早期投资人面临持有期延长与估值不确定的困境，间接影响SPCX/SPCH情绪面。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk Plans to Spend $119 Billion to Construct the World’s Largest Building, Just Outside Houston",
-      "url": "",
-      "published": "Mon, 10 Aug 2026 10:41:37 GMT",
-      "origin": "gnews-rss",
-      "source": "Yahoo Finance",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "建筑/基建",
         "航天"
       ],
       "sector_holdings": [
         "SPCH",
         "SPCX"
       ],
-      "stance": "endorsement",
-      "relevance": 52,
-      "summary_cn": "马斯克计划耗资1190亿美元在休斯顿郊外建造全球最大建筑，利好基建/航天主题，间接关联SpaceX持仓。"
+      "stance": "neutral",
+      "relevance": 72,
+      "summary_cn": "媒体：卖SpaceX估值故事容易，留住它才难——提示二级估值压力，SPCX/SPCH 持仓须关注。"
     },
     {
       "author": "Musk",
-      "text": "Elon Musk Says This Is One of the Biggest Challenges for Public Companies",
+      "text": "SpaceX Windfall Leads Ontario Teachers’ to 9.5% First-Half Gain",
       "url": "",
-      "published": "Mon, 10 Aug 2026 13:07:43 GMT",
+      "published": "Mon, 10 Aug 2026 16:41:07 GMT",
       "origin": "gnews-rss",
-      "source": "The Motley Fool",
+      "source": "bloomberg.com",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "公司治理/科技"
+        "航天"
       ],
       "sector_holdings": [
-        "MSFU",
-        "SKHY"
+        "SPCH",
+        "SPCX"
       ],
-      "stance": "neutral",
-      "relevance": 48,
-      "summary_cn": "马斯克谈论上市公司面临的重大挑战之一（疑似指向治理/产能瓶颈），无具体标的但涉及科技板块。"
+      "stance": "endorse",
+      "relevance": 68,
+      "summary_cn": "安大略教师养老金因 SpaceX 头寸上半年获9.5%收益，反映 SpaceX 二级估值仍提供强回报，间接利好 SPCX/SPCH。"
     },
     {
       "author": "Musk",
-      "text": "What to know about Elon Musk's potential $10B Tesla solar facility in Fort Bend",
+      "text": "SpaceX to invest $16.8B on first phase of Terafab project",
       "url": "",
-      "published": "Fri, 07 Aug 2026 21:17:39 GMT",
+      "published": "Mon, 10 Aug 2026 15:54:34 GMT",
       "origin": "gnews-rss",
-      "source": "Houston Chronicle",
+      "source": "Manufacturing Dive",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "太阳能",
-        "电动车"
+        "航天"
+      ],
+      "sector_holdings": [
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "endorse",
+      "relevance": 65,
+      "summary_cn": "SpaceX 宣布首期$168亿投资 Terafab 项目，重资本开支强化 SPCX/SPCH 估值想象空间。"
+    },
+    {
+      "author": "Musk",
+      "text": "Musk’s planned $16.8 billion factory is five times bigger than the world’s current largest building",
+      "url": "",
+      "published": "Mon, 10 Aug 2026 20:20:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Fortune",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天"
+      ],
+      "sector_holdings": [
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "endorse",
+      "relevance": 60,
+      "summary_cn": "Musk 旗下$168亿工厂（Terafab）为现世界最大建筑5倍，凸显 SpaceX 巨额资本开支利好 SPCX/SPCH 持仓。"
+    },
+    {
+      "author": "Musk",
+      "text": "SpaceX plan for vast rocket launch site on Louisiana coast sparks backlash",
+      "url": "",
+      "published": "Mon, 10 Aug 2026 14:00:00 GMT",
+      "origin": "gnews-rss",
+      "source": "The Guardian",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天"
+      ],
+      "sector_holdings": [
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "neutral",
+      "relevance": 55,
+      "summary_cn": "SpaceX 在路易斯安那海岸建大型发射场遭当地反对，扩张执行存不确定性，SPCX/SPCH 间接关注。"
+    },
+    {
+      "author": "Musk",
+      "text": "Tesla Debuts Starlink On Cybercab as Elon Musk Eyes Industry Adoption",
+      "url": "",
+      "published": "Mon, 10 Aug 2026 21:08:09 GMT",
+      "origin": "gnews-rss",
+      "source": "PCMag",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "电动车",
+        "卫星互联网"
       ],
       "sector_holdings": [],
-      "stance": "endorsement",
+      "stance": "endorse",
+      "relevance": 60,
+      "summary_cn": "Tesla 在 Cybercab 上首发 Starlink 连接，Musk 推动行业采用，Tesla-Starlink 协同利好整体叙事。"
+    },
+    {
+      "author": "Trump",
+      "text": "Jobless Claims Remain Below 200,000 For Third Straight Week—First Time in 57 Years: https://www.breitbart.com/economy/2026/08/06/jobless-claims-remain-below-200000-for-third-straight-week-for-first-time-in-57-years/",
+      "url": "https://trumpstruth.org/statuses/40684",
+      "published": "2026-08-09T02:20:41+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "宏观经济",
+        "就业"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
       "relevance": 55,
-      "summary_cn": "马斯克旗下Tesla计划在Fort Bend建设约100亿美元的太阳能设施，利好太阳能/特斯拉主题（kcn无直接持仓）。"
+      "summary_cn": "Trump 转发57年来首次连续三周初请失业金低于20万的强劲就业数据，宏观利好美股大盘情绪。"
     },
     {
       "author": "Musk",
@@ -182,95 +188,60 @@
       "url": "",
       "published": "Thu, 06 Aug 2026 22:19:52 GMT",
       "origin": "gnews-rss",
-      "source": "CNBC",
+      "source": "cnbc.com",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "政府效率/财政"
+        "政府效率",
+        "财政"
       ],
       "sector_holdings": [],
       "stance": "attack",
+      "relevance": 52,
+      "summary_cn": "GAO 报告称 Musk 的 DOGE 夸大了$1100亿联邦节省数据，Musk 形象与政府效率叙事受质疑，宏观层面弱负面。"
+    },
+    {
+      "author": "Trump",
+      "text": "Trump's Vegas Visit Hammers Tax Wins: https://townhall.com/news/cameron-arcand/2026/08/05/trumps-vegas-hit-hammers-tax-wins-n2680764",
+      "url": "https://trumpstruth.org/statuses/40683",
+      "published": "2026-08-09T02:20:58+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "税改"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
       "relevance": 50,
-      "summary_cn": "GAO报告指出马斯克旗下DOGE所宣称的1100亿美元联邦节省存在夸大，对其公信力形成抨击。"
+      "summary_cn": "Trump 宣传其 Vegas 行程强调税改成就是政绩亮点，宏观利好市场情绪但未点名具体标的。"
     }
   ],
-  "held_hits": [
+  "held_hits": [],
+  "new_ideas": [],
+  "sector_hits": [
     {
       "author": "Musk",
-      "text": "Elon Musk’s ambitious AI plans for SpaceX should be taken seriously, thanks to Microsoft, these analysts say",
+      "text": "SpaceX Stock Has Plunged 34%. Elon Musk's \"Secret Master Plan\" Points to What Could Come Next.",
       "url": "",
-      "published": "Mon, 10 Aug 2026 09:26:00 GMT",
+      "published": "Mon, 10 Aug 2026 16:40:00 GMT",
       "origin": "gnews-rss",
-      "source": "MarketWatch",
-      "tickers": [
-        "MSFT"
-      ],
-      "held": [
-        "MSFU"
-      ],
-      "new_ideas": [
-        "MSFT"
-      ],
+      "source": "Yahoo Finance",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
       "sectors": [
-        "AI",
         "航天"
       ],
       "sector_holdings": [
         "SPCH",
         "SPCX"
       ],
-      "stance": "endorsement",
-      "relevance": 82,
-      "summary_cn": "分析师认为应认真看待马斯克为SpaceX规划的AI野心（得益于微软支持），直接利好MSFT，间接利好SpaceX相关持仓。"
-    }
-  ],
-  "new_ideas": [],
-  "sector_hits": [
-    {
-      "author": "Musk",
-      "text": "Musk's Tesla-Starlink Tweet Makes SpaceX-Tesla Merger Inevitable",
-      "url": "",
-      "published": "Mon, 10 Aug 2026 05:08:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Torque News",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "电动车",
-        "并购"
-      ],
-      "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "endorsement",
-      "relevance": 72,
-      "summary_cn": "马斯克一条Tesla-Starlink相关推文引发SpaceX与Tesla合并猜测，强化SpaceX相关持仓预期。"
-    },
-    {
-      "author": "Musk",
-      "text": "‘Pure insanity’—Elon Musk details SpaceX’s plan to turn the moon into its newest manufacturing site",
-      "url": "",
-      "published": "Thu, 06 Aug 2026 17:36:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Fortune",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "月球制造"
-      ],
-      "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "endorsement",
-      "relevance": 65,
-      "summary_cn": "马斯克详述SpaceX将月球打造为最新制造基地的计划，进一步强化SpaceX持仓的长期叙事。"
+      "stance": "neutral",
+      "relevance": 75,
+      "summary_cn": "媒体：SpaceX 股价已跌34%，Musk所谓'秘密大师计划'或为下一步催化剂——对 SPCX/SPCH 持仓直接相关。"
     },
     {
       "author": "Musk",
@@ -283,59 +254,99 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "航天",
-        "私募/未上市"
-      ],
-      "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "neutral",
-      "relevance": 58,
-      "summary_cn": "报道聚焦SpaceX早期投资人面临持有期延长与估值不确定的困境，间接影响SPCX/SPCH情绪面。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk Plans to Spend $119 Billion to Construct the World’s Largest Building, Just Outside Houston",
-      "url": "",
-      "published": "Mon, 10 Aug 2026 10:41:37 GMT",
-      "origin": "gnews-rss",
-      "source": "Yahoo Finance",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "建筑/基建",
         "航天"
       ],
       "sector_holdings": [
         "SPCH",
         "SPCX"
       ],
-      "stance": "endorsement",
-      "relevance": 52,
-      "summary_cn": "马斯克计划耗资1190亿美元在休斯顿郊外建造全球最大建筑，利好基建/航天主题，间接关联SpaceX持仓。"
+      "stance": "neutral",
+      "relevance": 72,
+      "summary_cn": "媒体：卖SpaceX估值故事容易，留住它才难——提示二级估值压力，SPCX/SPCH 持仓须关注。"
     },
     {
       "author": "Musk",
-      "text": "Elon Musk Says This Is One of the Biggest Challenges for Public Companies",
+      "text": "SpaceX Windfall Leads Ontario Teachers’ to 9.5% First-Half Gain",
       "url": "",
-      "published": "Mon, 10 Aug 2026 13:07:43 GMT",
+      "published": "Mon, 10 Aug 2026 16:41:07 GMT",
       "origin": "gnews-rss",
-      "source": "The Motley Fool",
+      "source": "bloomberg.com",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "公司治理/科技"
+        "航天"
       ],
       "sector_holdings": [
-        "MSFU",
-        "SKHY"
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "endorse",
+      "relevance": 68,
+      "summary_cn": "安大略教师养老金因 SpaceX 头寸上半年获9.5%收益，反映 SpaceX 二级估值仍提供强回报，间接利好 SPCX/SPCH。"
+    },
+    {
+      "author": "Musk",
+      "text": "SpaceX to invest $16.8B on first phase of Terafab project",
+      "url": "",
+      "published": "Mon, 10 Aug 2026 15:54:34 GMT",
+      "origin": "gnews-rss",
+      "source": "Manufacturing Dive",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天"
+      ],
+      "sector_holdings": [
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "endorse",
+      "relevance": 65,
+      "summary_cn": "SpaceX 宣布首期$168亿投资 Terafab 项目，重资本开支强化 SPCX/SPCH 估值想象空间。"
+    },
+    {
+      "author": "Musk",
+      "text": "Musk’s planned $16.8 billion factory is five times bigger than the world’s current largest building",
+      "url": "",
+      "published": "Mon, 10 Aug 2026 20:20:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Fortune",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天"
+      ],
+      "sector_holdings": [
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "endorse",
+      "relevance": 60,
+      "summary_cn": "Musk 旗下$168亿工厂（Terafab）为现世界最大建筑5倍，凸显 SpaceX 巨额资本开支利好 SPCX/SPCH 持仓。"
+    },
+    {
+      "author": "Musk",
+      "text": "SpaceX plan for vast rocket launch site on Louisiana coast sparks backlash",
+      "url": "",
+      "published": "Mon, 10 Aug 2026 14:00:00 GMT",
+      "origin": "gnews-rss",
+      "source": "The Guardian",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天"
+      ],
+      "sector_holdings": [
+        "SPCH",
+        "SPCX"
       ],
       "stance": "neutral",
-      "relevance": 48,
-      "summary_cn": "马斯克谈论上市公司面临的重大挑战之一（疑似指向治理/产能瓶颈），无具体标的但涉及科技板块。"
+      "relevance": 55,
+      "summary_cn": "SpaceX 在路易斯安那海岸建大型发射场遭当地反对，扩张执行存不确定性，SPCX/SPCH 间接关注。"
     }
   ]
 }
