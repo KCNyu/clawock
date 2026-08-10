@@ -19,9 +19,16 @@ import re
 import sys
 from pathlib import Path
 
-from clawock.safe_io import safe_write_json
-from clawock.portfolio.snapshots import realized_as_of, snapshot_shares
-from clawock.workspace import workspace_root
+# Every other ops entry point does this, and this one is documented above as
+# `python3 ops/host/...`, which is system python — not the venv the package is
+# installed into. Without it the command in the docstring is a ModuleNotFoundError.
+_CHECKOUT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(_CHECKOUT))
+sys.path.insert(0, str(_CHECKOUT / "src"))
+
+from clawock.safe_io import safe_write_json  # noqa: E402
+from clawock.portfolio.snapshots import realized_as_of, snapshot_shares  # noqa: E402
+from clawock.workspace import workspace_root  # noqa: E402
 
 # The workspace this file sits in, not the operator's. As an absolute live path
 # it made `--portfolio` default to the real ledger *and* pointed SNAP_DIR at the

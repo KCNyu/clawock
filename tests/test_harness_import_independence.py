@@ -1,24 +1,25 @@
-"""A module that imports `clawock` must put the checkout on the path itself.
+"""A script run by path must put the checkout on `sys.path` itself.
 
-`clawock` is not installed on the live host. Modules under `scripts/` reach it
-only because something inserted the repository root into `sys.path` first. Two of
-the three live importers did that explicitly; `_watchdog_common` inherited it as a
-side effect of importing the `scripts/data/workspace.py` shim, which inserts the
-root for its own 53 consumers.
+The original subject was `scripts/`, where nothing was installed and the live
+watchdogs reached `clawock` only through a shim's side effect. #429 deleted that
+directory and this scan went with it — it kept globbing `scripts/**/*.py` and
+walking zero files, which passes exactly like a clean tree.
 
-That is a live hazard and a migration blocker at the same time. `_watchdog_common`
-is imported by 15 modules including all three watchdogs, driven by 28 crontab
-entries; if the shim's insert goes away — which is exactly what retiring the shim
-means — every watchdog fails at *import* time. The backstop that exists to notice
-a missing report goes missing first, and the crontab entry logs a traceback into
-watchdog.cron.log.
+The rule did not disappear with the directory; its population moved. `clawock` is
+installed now (#364), but into a venv, and every `ops/` entry point documents
+itself as `python3 ops/<...>.py` — system python, which has no such install. On
+2026-08-10 `ops/host/backfill_snapshot_realized.py` was the one module that had
+lost its two bootstrap lines in the move, so the command printed in its own
+docstring raised ModuleNotFoundError. That is the third time this same file has
+had this defect (it was also broken by the move into `scripts/legacy`, fixed in
+#290), which is why the check is a discovery over the directory rather than a
+list of known entry points.
 
-Why this is a source-shape test and not an "import it in a subprocess" test: CI
-installs the package (`pip install -e '.[test]'`), so the repository root is on
-`sys.path` there no matter what any module does. A runtime import test would pass
-in CI while the live host — the only environment without the install — is the one
-at risk. It would look like coverage and protect nothing. The defect is visible in
-the source, so the test reads the source.
+Why a source-shape test and not "import it in a subprocess": CI installs the
+package, so the import succeeds there no matter what the module does. A runtime
+test would pass in CI while the environment actually at risk — an operator's
+plain `python3` — is the one it cannot see. The defect is visible in the source,
+so the test reads the source.
 
 Mutation check: deleting either insert turns this red, and so does resolving the
 insert from `WS` (the workspace, which CLAWOCK_WORKSPACE may point elsewhere)
@@ -37,7 +38,15 @@ ROOT = Path(__file__).resolve().parents[1]
 # market data, not our package. Naming a form here does not weaken the check —
 # the `"/" in arg` guard below still rejects `_CHECKOUT / 'scripts' / 'data'`,
 # which is a directory below the root and does not make `clawock` importable.
-CHECKOUT_ROOT_FORMS = ("parents[2]", "_REPO_ROOT", "_CHECKOUT")
+# Substrings on purpose: `ROOT` also covers `_REPO_ROOT`, `CHECKOUT` also
+# covers `_CHECKOUT`. Matching the exact private spellings is how a rename
+# turns a live guard into a silent pass.
+CHECKOUT_ROOT_FORMS = ("parents[2]", "ROOT", "CHECKOUT")
+
+# Scripts an operator runs by path. Package modules are imported through an
+# installed distribution and must NOT bootstrap themselves — requiring it there
+# would be the opposite rule.
+ENTRY_POINTS = ROOT / "ops"
 
 
 def _inserts_checkout_root(node: ast.Call, source: str) -> bool:
@@ -58,8 +67,13 @@ def _inserts_checkout_root(node: ast.Call, source: str) -> bool:
 
 
 def test_clawock_importers_do_not_inherit_their_sys_path():
+    scripts = [p for p in sorted(ENTRY_POINTS.rglob("*.py"))
+               if "__pycache__" not in p.parts]
+    # Anti-vacuity: an empty scan is how this stopped working in the first place.
+    assert len(scripts) > 10, f"only {len(scripts)} entry points found — did ops/ move?"
+
     offenders = []
-    for path in sorted(ROOT.glob("scripts/**/*.py")):
+    for path in scripts:
         source = path.read_text()
         if "clawock" not in source:
             continue
