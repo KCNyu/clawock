@@ -482,13 +482,21 @@ def test_cost_basis_exact_half_percent_passes_and_just_over_fails(run_check):
     _assert_only(run_check(over), "COST_BASIS", "ERROR", "trades 移动加权")
 
 
-def test_cost_basis_skips_incomplete_trade_ledger_without_false_positive(run_check):
+def test_cost_basis_skips_incomplete_trade_ledger_but_share_ledger_reports_it(run_check):
+    """COST_BASIS must stay silent on a half ledger — its moving average cannot
+    be verified against a list that is missing the opening buy, and raising an
+    ERROR there would fail the book for something it cannot know.
+
+    SHARE_LEDGER is the other half of that trade-off (#456): the same input is
+    exactly what it exists to report, so silence here is now proven to be
+    COST_BASIS declining to judge, not the incompleteness going unseen.
+    """
     data = _portfolio_data()
     h = _port(data)["holdings"][0]
     h["trades"] = [
         {"date": "2026-07-01", "action": "buy", "shares": 2, "price": 1}
     ]
-    _assert_clean(run_check(data))
+    _assert_only(run_check(data), "SHARE_LEDGER", "WARN", "无法当股数账本重放")
 
 
 # Cross-field, freshness, principal, and cash gates ----------------------------
