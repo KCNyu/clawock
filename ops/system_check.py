@@ -509,6 +509,41 @@ def check_decision_ledger(r):
         r.add('decisions.jsonl', OK, f'{len(rows)} decisions · {len({x.get("episode_id") for x in rows})} episodes')
 
 
+def _cron_jobs_without_prompt_report(sessions):
+    """Enabled cron jobs whose newest session carries no `systemPromptReport`.
+
+    The gate below verifies the newest session per *profile*, which is the right
+    question for "is context still being assembled correctly" and the wrong one
+    for "is every job covered". On 2026-08-11 ten market jobs reported a uniform
+    5 files / 29 skills / 34 tools while `Memory Dreaming Promotion` produced no
+    report at all, and the profile-level check averaged it away.
+
+    Returns names rather than a count, and returns empty when the job list
+    cannot be read — an unreadable schedule is not evidence that every job is
+    covered, but it is also not this check's failure to report.
+    """
+    try:
+        from clawock.providers.openclaw import cron_cli_json
+
+        listing = cron_cli_json(['list', '--json']) or {}
+    except Exception:
+        return []
+
+    reported = {
+        key.split(':cron:', 1)[1].split(':')[0]
+        for key, entry in (sessions or {}).items()
+        if ':cron:' in key and isinstance(entry, dict)
+        and isinstance(entry.get('systemPromptReport'), dict)
+    }
+    missing = []
+    for job in listing.get('jobs', []) or []:
+        if not job.get('enabled'):
+            continue
+        if str(job.get('id')) not in reported:
+            missing.append(str(job.get('name') or job.get('id'))[:28])
+    return sorted(missing)
+
+
 def check_context_capability(r):
     """A run that came out with no skills or no tools has to fail somewhere.
 
@@ -558,6 +593,18 @@ def check_context_capability(r):
     # nothing to say. A profile that HAS sessions but carries no prompt report
     # anywhere is different: the runtime used to record what this gate reads and
     # has stopped, so every later run goes unverified behind a green check.
+    # Coverage is counted against the jobs that are actually scheduled, not
+    # against whatever sessions happen to exist. Nine healthy cron reports
+    # otherwise average away a tenth enabled job that produces none — the gate
+    # reads OK while one live job is unverifiable (#473). Names, not a count, so
+    # the finding says which job to go look at.
+    unreported_jobs = _cron_jobs_without_prompt_report(sessions)
+    if unreported_jobs:
+        r.add('context capability', WARNING,
+              f'{len(unreported_jobs)} enabled cron job(s) produce no prompt '
+              f'report, so this gate cannot see them: '
+              f'{", ".join(unreported_jobs)}')
+
     silent = sorted(profiles_seen - set(newest))
     if silent:
         r.add('context capability', WARNING,
