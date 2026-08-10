@@ -16,6 +16,9 @@ The same-day share check uses the running balance *after* the sell, so a sell is
 only counted once the holding has actually been drawn down to (or below) it. The
 strict date-`<` branch handles later sell→rebuy cycles without false negatives.
 """
+from datetime import date as _date
+
+
 def _ledger_sells(holdings):
     """Per-ticker chronological sells, each tagged with its post-sell balance.
 
@@ -50,21 +53,60 @@ def _ledger_sells(holdings):
     return by_ticker
 
 
-def realized_as_of(holdings, snap_date, snap_shares):
+def session_date(market, day):
+    """The trading session a fill belongs to, given the date it was recorded.
+
+    A ledger date is the operator's calendar date. A US session in Hong Kong
+    time runs 21:30 to 04:00, so a fill reported at 01:08 HKT on a Saturday
+    belongs to *Friday's* session and is stamped with Saturday's date. Comparing
+    that raw date against a snapshot named for the session drops the fill from
+    the very session that contains it.
+
+    Only non-session dates move, and only when the calendar covers that year —
+    a real session date, an unknown market, or a year the holiday tables do not
+    reach is returned unchanged rather than guessed at.
+    """
+    if not market or not isinstance(day, str) or len(day) != 10:
+        return day
+    from clawock.market_data.sessions import (
+        MARKET_TZ, covered_years, is_trading_day, previous_trading_day,
+    )
+    if market not in MARKET_TZ:
+        return day
+    try:
+        parsed = _date.fromisoformat(day)
+    except ValueError:
+        return day
+    if parsed.year not in covered_years(market) or is_trading_day(market, parsed):
+        return day
+    return previous_trading_day(market, parsed).isoformat()
+
+
+def realized_as_of(holdings, snap_date, snap_shares, *, market=None):
     """Cumulative realized + chronological note reflected in a snapshot.
 
     holdings    — canonical portfolio.json region holdings (the ledger).
     snap_date   — 'YYYY-MM-DD' of the snapshot.
     snap_shares — {ticker: shares} recorded in that snapshot (0 if absent).
+    market      — calendar to resolve fill dates against ('us'/'hk'). Omitted
+                  means the raw ledger dates are compared, which is only right
+                  for a market whose session cannot cross a date boundary in the
+                  operator's timezone.
     """
     by_ticker = _ledger_sells(holdings)
     reflected = []
     for ticker, sells in by_ticker.items():
         held = snap_shares.get(ticker, 0) or 0
         for s in sells:
-            if s['date'] < snap_date or (
-                s['date'] == snap_date and held <= s['post_bal']
-            ):
+            when = session_date(market, s['date'])
+            # A negative post-sell balance means this holding's trade list is
+            # missing a buy (RKLB records a 5-share sell with no buy beside it),
+            # so the level is offset by a constant nobody can recover. Shares
+            # cannot be negative, so the drawn-down test is read at zero rather
+            # than against an impossible balance — which would otherwise drop a
+            # real, fully-closed sell from the session that contains it.
+            drawn_down = max(s['post_bal'], 0)
+            if when < snap_date or (when == snap_date and held <= drawn_down):
                 reflected.append(s)
 
     reflected.sort(key=lambda x: (x['date'], x['ticker']))

@@ -645,7 +645,8 @@ def load_snapshots():
                 if not region_pf:
                     continue
                 true_real, _ = realized_as_of(
-                    ledger.get(leg.bucket, []), date, snapshot_shares(region_pf))
+                    ledger.get(leg.bucket, []), date, snapshot_shares(region_pf),
+                    market=leg.key)
                 if abs(true_real - (reals[leg.key] or 0)) > 0.005:
                     reals[leg.key] = true_real
         row = {'date': date, 'file': fname}

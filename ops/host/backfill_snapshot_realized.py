@@ -64,7 +64,12 @@ def main():
             if not rpf:
                 continue
             shares = snapshot_shares(rpf)
-            new_total, new_note = realized_as_of(ledger_holdings, date, shares)
+            # The market whose calendar dates these fills: without it a US fill
+            # reported at 01:08 HKT on a Saturday reads as belonging to the next
+            # session, and this tool would rewrite a correct snapshot.
+            new_total, new_note = realized_as_of(
+                ledger_holdings, date, shares,
+                market=region[:-len('_stocks')] if region.endswith('_stocks') else region)
             old_total = rpf.get('realized_pnl')
             if old_total is None or abs(float(old_total) - new_total) > 0.005:
                 print(f'{date} {region}: {old_total} -> {new_total}  (Δ {new_total - (old_total or 0):+.2f})')
