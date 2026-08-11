@@ -157,3 +157,33 @@ def test_delivery_rewire_preserves_the_ok_contract_callers_depend_on():
         result = OpenClawDelivery(
             runner=lambda cmd, c=code: (c, '{"ok":1}')).send("wechat", "kcn", "hi")
         assert (result.status != "failed") is expected_ok, result
+
+
+def test_running_a_cron_job_reports_instead_of_raising():
+    """`run_cron_job` is a watchdog's recovery lever, so it answers `(ok, tail)`
+    like every other adapter call: a scheduler that is down must read as "not
+    queued", never as an exception inside a crontab entry (#493)."""
+    from types import SimpleNamespace
+
+    from clawock.providers.openclaw import run_cron_job
+
+    calls = []
+
+    def queued(cmd):
+        calls.append(cmd)
+        return SimpleNamespace(returncode=0, stdout="queued run 42", stderr="")
+
+    ok, tail = run_cron_job("job-1", binary="/opt/openclaw", runner=queued)
+    assert ok and "queued run 42" in tail
+    assert calls == [["/opt/openclaw", "cron", "run", "job-1"]]
+
+    ok, tail = run_cron_job(
+        "job-1", runner=lambda _cmd: SimpleNamespace(
+            returncode=1, stdout="", stderr="gateway unreachable"))
+    assert not ok and "gateway unreachable" in tail
+
+    def explode(_cmd):
+        raise TimeoutError("no gateway")
+
+    ok, tail = run_cron_job("job-1", runner=explode)
+    assert not ok and "TimeoutError" in tail
