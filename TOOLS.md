@@ -111,7 +111,7 @@ clawock us-quotes     # 仅刷美股价格
 - fallback：Frankfurter → exchangerate.host → Yahoo HKD=X；4h 本地缓存
 
 ### 美股基本面 / SEC filings
-`clawock filings {TICKER}` — SEC EDGAR 免费无 key：10-K/10-Q/8-K、`--financials`(XBRL 13项)、`--form4`(insider)、`--13f`、`--json`。速率 8/sec；非美股票返回 "CIK not found"；**纯基本面补充，不替代 `clawock us-quotes` 抓价**。完整参数表+注意事项 → `docs/reference/scripts.md`。
+`clawock filings {TICKER}` — SEC EDGAR 免费无 key：10-K/10-Q/8-K、`--financials`(XBRL 13项)、`--form4`(insider)、`--13f`、`--json`。速率 8/sec；非美股票返回 "CIK not found"；**纯基本面补充，不替代 `clawock us-quotes` 抓价**。完整参数表+注意事项 → `docs/reference/commands.md`。
 
 ### 港股/美股基本面(中文) — 东财 datacenter
 `clawock fundamentals {CODE}` — 无 key，**填港股财报空白**：`--indicators`(GMAININDICATOR ROE/EPS/毛利率/资产负债率，美+港) / `--statements income|balance|cashflow`(中文科目行) / `--json`。美股数字以 SEC 为准、此为中文速查。datacenter-web+searchapi 子域实测稳；**资金流 `clawock fundflow`(push2his)本机 IP 被封暂不可用**。
@@ -134,7 +134,7 @@ clawock us-quotes     # 仅刷美股价格
 
 ---
 
-## 现有脚本梳理（精简索引 — 完整说明见 `docs/reference/scripts.md`）
+## 现有脚本梳理（精简索引 — 完整说明见 `docs/reference/commands.md`）
 
 **数据抓取/分析**：`clawock us-quotes`(美股7路fallback,写回portfolio) · `clawock analyze-us`(刷价+RSI/MA+新闻+信号) · `clawock analyze-hk`(腾讯+东财双源对账→stooq/yf兜底) · `clawock benchmark`(SPY/HSI/HSTECH 日线) · `clawock fx`(USDHKD 3路,**book total 必先调**) · `clawock filings`(SEC EDGAR) · `clawock fundamentals`(东财中文基本面,**港股财报**)双保险 · `clawock catalysts`(14d催化→catalysts.json) · `influencer-scan.yml`(KCNyu 定时 Trump/Musk 雷达) · `clawock portfolio-risk`(β/Vol/DD/Sharpe→risk.json) · `clawock quant`(趋势/动量/RSI/z/ATR吊灯/vol-target→quant_signals.json+history.jsonl留痕,杠杆ETF按标的) · `clawock quant-review`(留痕vs前瞻收益→因子edge表,n<20不解锁,brief按edge取信)
 
@@ -153,7 +153,7 @@ clawock us-quotes     # 仅刷美股价格
 - report / brief / intraday postflight 主发 WeChat 并同步 Telegram；watchdog 读真实 delivery marker，只在 Telegram marker 缺失或失败时补投，不再猜 run summary、也不重发 WeChat。
 - `.tmp/*-sent-*.json` + slot key 做幂等，避免长 turn / cron retry 双发。
 
-**其它正式入口**：`clawock mark-followed`(标 `decisions.jsonl` 的 execution.status) · `clawock audit-resettle`(默认只审计结算变化，`--write` 才落账) · `clawock integrity`(资金/行情完整性闸) · `clawock validate-sidecar`(发布产物结构闸) · `clawock evidence`(由实测产物重建证据与反证页) · `clawock news-evidence`(公告/新闻/日历去重、到期与确认图) · `clawock reconcile`(手工记录 `holdings[].trades[]` 与 broker 真值叶子后，统一重算 aggregates/cash/realized 并过完整性闸)。远端 LLM 自动化装成 `clawock-kcnyu-news-digest` / `-weekly-review` / `-influencer-scan` / `-brief-fallback`，只由 GitHub Actions workflow 调用，不是 OpenClaw 工具。**完整命令与内部 job 索引 → `docs/reference/scripts.md`**。
+**其它正式入口**：`clawock mark-followed`(标 `decisions.jsonl` 的 execution.status) · `clawock audit-resettle`(默认只审计结算变化，`--write` 才落账) · `clawock integrity`(资金/行情完整性闸) · `clawock validate-sidecar`(发布产物结构闸) · `clawock evidence`(由实测产物重建证据与反证页) · `clawock news-evidence`(公告/新闻/日历去重、到期与确认图) · `clawock reconcile`(手工记录 `holdings[].trades[]` 与 broker 真值叶子后，统一重算 aggregates/cash/realized 并过完整性闸)。远端 LLM 自动化装成 `clawock-kcnyu-news-digest` / `-weekly-review` / `-influencer-scan` / `-brief-fallback`，只由 GitHub Actions workflow 调用，不是 OpenClaw 工具。**完整命令与内部 job 索引 → `docs/reference/commands.md`**。
 
 ### Cron map
 

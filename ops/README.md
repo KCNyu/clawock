@@ -7,7 +7,7 @@ renamed `scripts/data` bucket:
 - `host/` — this machine's cron, scheduler inspection, session maintenance and
   installed launcher wiring.
 - `publish/` — the only git/data-plane publication path.
-- `ci/` — coverage and scheduled-workflow health used by GitHub Actions.
+- `ci/` — coverage, scheduled-workflow health and the generated command catalog.
 - `growth/` — IndexNow, Nostr and project broadcast delivery.
 - `pages/` — read the published generation and stage the public Pages allowlist.
 - `system_check.py` — audit the KCNyu live workspace before publication.
