@@ -47,6 +47,11 @@ The workflow refuses a tag that disagrees with `pyproject.toml`, because a
 mismatch publishes a version nobody asked for under a name the changelog already
 uses for something else.
 
+After real PyPI publication succeeds, the same workflow creates the matching
+GitHub Release, attaches the verified sdist/wheel and renders only that version's
+`CHANGELOG.md` section plus its versioned PyPI link. TestPyPI dispatches do not
+create a public GitHub Release, and a failed PyPI upload cannot leave one behind.
+
 `tests/test_versions_agree.py` refuses a bump whose `CHANGELOG.md` entry is
 missing, which is why the entry belongs in the same PR as the bump. Writing it
 afterwards means the artifact is already on PyPI describing itself as something
@@ -57,6 +62,8 @@ which is what 0.1.1 cost.
 
 - `twine check` on both the sdist and the wheel.
 - The tag matches the packaged version.
+- The matching changelog section exists exactly once and becomes the GitHub
+  Release notes; the built sdist/wheel are attached only after PyPI succeeds.
 - A clean virtualenv installs the wheel and completes one real run —
   `clawock init` → `clawock run prepare` → `clawock run publish` — under
   `env -i`, with no checkout, no OpenClaw, no KCNyu workspace and no inherited

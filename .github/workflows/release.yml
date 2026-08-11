@@ -84,3 +84,35 @@ jobs:
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           repository-url: ${{ inputs.repository == 'testpypi' && 'https://test.pypi.org/legacy/' || '' }}
+
+  github-release:
+    # A GitHub Release is a public claim that the version exists. Create it only
+    # for a real version tag, and only after PyPI accepted that exact artifact.
+    # TestPyPI workflow_dispatch runs have a branch ref and deliberately skip it.
+    needs: publish
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/download-artifact@v6
+        with:
+          name: distributions
+          path: dist/
+
+      - name: Render the public-package changelog section
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          python3 ops/publish/release_notes.py "$version" --output /tmp/release-notes.md
+
+      - name: Publish GitHub Release with the verified distributions
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" dist/* \
+            --verify-tag \
+            --title "clawock $GITHUB_REF_NAME" \
+            --notes-file /tmp/release-notes.md
