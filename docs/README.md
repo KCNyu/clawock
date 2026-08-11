@@ -26,7 +26,7 @@ belongs here.
 
 ## Reference
 
-- [`scripts.md`](reference/scripts.md) — detailed script and harness catalog.
+- [`commands.md`](reference/commands.md) — the generated command inventory plus the hand-written harness detail.
 
 ## Legal
 
