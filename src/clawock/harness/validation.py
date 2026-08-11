@@ -88,6 +88,24 @@ _CURRENCY_CLAIM = re.compile(
 # Checked against 23 real sent reports: that one character was every false
 # positive. `~` is what the observed defect ("+0.3~-0.4%") actually used.
 _RANGE = re.compile(rf'({_NUM})\s*(?:~|～|—|–|到|至)\s*({_NUM})\s*%')
+_UNIT_NUM = r'[+-]?\d[\d,]*(?:\.\d+)?'
+_UNIT_CLAIMS = {
+    'percent': re.compile(rf'({_UNIT_NUM})\s*[%％]'),
+    'pp': re.compile(rf'({_UNIT_NUM})\s*(?:pp\b|个百分点|百分点)', re.IGNORECASE),
+    'multiple': re.compile(rf'({_UNIT_NUM})\s*(?:[xX×](?![A-Za-z])|倍)'),
+    'sigma': re.compile(rf'({_UNIT_NUM})\s*(?:σ|sigma\b)', re.IGNORECASE),
+}
+_UNIT_LABELS = {'percent': '%', 'pp': 'pp', 'multiple': 'x', 'sigma': 'σ'}
+_UNIT_KEY_HINTS = {
+    'percent': re.compile(r'(?:^|_)(?:pct|percent|percentage)(?:_|$)'),
+    'pp': re.compile(r'(?:^|_)(?:pp|percentage_points?)(?:_|$)'),
+    'multiple': re.compile(r'(?:^|_)(?:multiple|multiplier|leverage|leverage_ratio)(?:_|$)'),
+    'sigma': re.compile(r'(?:^|_)(?:sigma|z_?score\d*)(?:_|$)'),
+}
+# A hypothetical percentage is not a claim about current evidence. Keep the
+# long-standing low-noise boundary: "若再跌 2%" may be scenario prose, while an
+# asserted "今日 -2%" must quote the context.
+_HYPOTHETICAL = re.compile(r'(?:若|如果|假如|一旦|假设|情景|scenario|\bif\b)', re.IGNORECASE)
 MAX_NUMERIC_SAMPLES = 4
 # Only book-scale currency figures are checked. US price talk is conventionally
 # written with the symbol — "跌破 $65，下一支撑 $60" is a level, not a claim about
@@ -139,8 +157,49 @@ def _context_numbers(ctx):
     return seen
 
 
+def _context_unit_numbers(ctx):
+    """Numbers with the market unit the context actually attaches to them.
+
+    A flat number set lets an unrelated ``2.3%`` authorize an invented
+    ``2.3x``. Strings carry their units explicitly; numeric JSON fields carry a
+    unit only when their key names it (``move_pct``, ``gap_pp``, ``zscore20``).
+    """
+    seen = {unit: set() for unit in _UNIT_CLAIMS}
+
+    def add(unit, value):
+        number = _as_number(value)
+        if number is not None:
+            seen[unit].add(round(abs(number), 4))
+
+    def walk(node, key=''):
+        if isinstance(node, dict):
+            for child_key, value in node.items():
+                walk(value, str(child_key).lower())
+        elif isinstance(node, (list, tuple)):
+            for value in node:
+                walk(value, key)
+        elif isinstance(node, bool):
+            return
+        elif isinstance(node, (int, float)):
+            for unit, hint in _UNIT_KEY_HINTS.items():
+                if hint.search(key):
+                    add(unit, node)
+        elif isinstance(node, str):
+            for unit, pattern in _UNIT_CLAIMS.items():
+                for raw in pattern.findall(node):
+                    add(unit, raw)
+
+    walk(ctx)
+    return seen
+
+
+def _is_hypothetical_percent(text, start):
+    clause_start = max(text.rfind(mark, 0, start) for mark in '\n。！？；;') + 1
+    return bool(_HYPOTHETICAL.search(text[max(clause_start, start - 16):start]))
+
+
 def check_numeric_claims(text, ctx):
-    """Flag share/currency magnitudes the context never states, and impossible
+    """Flag unit-bearing magnitudes the context never states, and impossible
     percentage ranges.
 
     Returns at most ONE issue on purpose. Every postflight turns a small number of
@@ -150,6 +209,7 @@ def check_numeric_claims(text, ctx):
     strictly worse failure. One aggregated line keeps the gate advisory.
     """
     known = _context_numbers(ctx)
+    known_by_unit = _context_unit_numbers(ctx)
     unverified = []
 
     def check(value, label):
@@ -165,6 +225,18 @@ def check_numeric_claims(text, ctx):
         amount = _as_number(raw, magnitude)
         if amount is not None and abs(amount) >= MIN_CHECKED_AMOUNT:
             check(amount, f'{raw}{magnitude or ""}')
+
+    for unit, pattern in _UNIT_CLAIMS.items():
+        for match in pattern.finditer(text):
+            if unit == 'percent' and _is_hypothetical_percent(text, match.start()):
+                continue
+            raw = match.group(1)
+            value = _as_number(raw)
+            if value is None or round(abs(value), 4) in known_by_unit[unit]:
+                continue
+            label = f'{raw}{_UNIT_LABELS[unit]}'
+            if label not in unverified:
+                unverified.append(label)
 
     impossible = [
         f'{lo}~{hi}%' for lo, hi in _RANGE.findall(text)

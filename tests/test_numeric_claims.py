@@ -12,6 +12,7 @@ kind of green.
 """
 from __future__ import annotations
 
+import importlib
 import sys
 from pathlib import Path
 
@@ -19,7 +20,7 @@ import pytest
 
 
 WS = Path(__file__).resolve().parents[1]
-HARNESS = str(WS / "scripts" / "harness")
+INSTANCE_SRC = str(WS / "instances" / "kcnyu" / "src")
 
 # The 09:30 港股开盘报告 context, reduced to the fields prose quotes from.
 CTX = {
@@ -37,8 +38,8 @@ CTX = {
 
 @pytest.fixture(scope="module")
 def hc():
-    if HARNESS not in sys.path:
-        sys.path.insert(0, HARNESS)
+    if INSTANCE_SRC not in sys.path:
+        sys.path.insert(0, INSTANCE_SRC)
     return pytest.importorskip("clawock.harness.validation")
 
 
@@ -81,8 +82,9 @@ def test_prices_without_a_unit_are_not_policed(hc):
     assert hc.check_numeric_claims("07226 若跌破 4.00 支撑位考虑减仓。", CTX) == []
 
 
-def test_a_well_formed_range_is_not_flagged(hc):
-    assert hc.check_numeric_claims("同业今日在 0.2~0.5% 之间。", CTX) == []
+def test_a_well_formed_range_still_requires_context_provenance(hc):
+    issue = hc.check_numeric_claims("同业今日在 0.2~0.5% 之间。", CTX)
+    assert issue and "context 里没有的数字" in issue[0]
 
 
 def test_gate_emits_at_most_one_issue(hc):
@@ -106,9 +108,9 @@ def test_gate_cannot_turn_a_delivered_report_into_a_blocked_one(hc, module_name)
     `fail` — not delivered — while the same two without it were `warn`. An
     advisory line must never be able to cost kcn a report.
     """
-    if HARNESS not in sys.path:
-        sys.path.insert(0, HARNESS)
-    post = pytest.importorskip(module_name)
+    if INSTANCE_SRC not in sys.path:
+        sys.path.insert(0, INSTANCE_SRC)
+    post = importlib.import_module(f'clawock_kcnyu.harness.{module_name}')
     gate = _gate_issue(hc)
     soft = "报告长度 3200 字 > 3000 软上限 (warn)"
     thin = '"▎我的看法" 段仅 40 字，太敷衍'
@@ -119,9 +121,9 @@ def test_gate_cannot_turn_a_delivered_report_into_a_blocked_one(hc, module_name)
 
 
 def test_advisory_never_masks_a_real_failure(hc):
-    if HARNESS not in sys.path:
-        sys.path.insert(0, HARNESS)
-    post = pytest.importorskip("intraday_postflight")
+    if INSTANCE_SRC not in sys.path:
+        sys.path.insert(0, INSTANCE_SRC)
+    post = importlib.import_module('clawock_kcnyu.harness.intraday_postflight')
     # A critical issue must still fail with the advisory line alongside it.
     assert post.categorize(['缺段标记 "▎我的看法"', _gate_issue(hc)]) == "fail"
     # And a genuine over-budget pile must still fail.
@@ -144,9 +146,9 @@ def test_known_blind_spot_a_real_number_on_the_wrong_subject(hc):
 
 @pytest.mark.parametrize("module_name", ["report_postflight", "intraday_postflight"])
 def test_both_postflights_run_the_gate(module_name):
-    if HARNESS not in sys.path:
-        sys.path.insert(0, HARNESS)
-    module = pytest.importorskip(module_name)
+    if INSTANCE_SRC not in sys.path:
+        sys.path.insert(0, INSTANCE_SRC)
+    module = importlib.import_module(f'clawock_kcnyu.harness.{module_name}')
     prose = (
         "🇭🇰 港股盯盘 | 07/27 09:33 HKT\n▎我的看法\n"
         "恒指 25,031、恒科 4,654，07226 现价 3.34 是纪律 swap 标的，今日不追高；"
@@ -187,11 +189,35 @@ def test_a_numeric_ticker_followed_by_a_negative_percent_is_not_a_range(hc):
     07226 to 3.5 and was every single false positive the gate produced. The
     observed real defect used `~` ("+0.3~-0.4%"), which still trips.
     """
-    assert hc.check_numeric_claims("07226 -3.5% 领跌，03032 -2.0%。", CTX) == []
-    assert hc.check_numeric_claims("恒科 -2.04% → 2x 的 07226 放大到 -3.9%。", CTX) == []
+    ctx = dict(CTX, exact_unit_literals=["-3.5%", "-2.0%", "-2.04%", "2x", "-3.9%"])
+    assert hc.check_numeric_claims("07226 -3.5% 领跌，03032 -2.0%。", ctx) == []
+    assert hc.check_numeric_claims("恒科 -2.04% → 2x 的 07226 放大到 -3.9%。", ctx) == []
     assert hc.check_numeric_claims("两支 ETF 同步 +0.3~-0.4%。", CTX)
 
 
 def test_a_backwards_range_is_still_caught(hc):
     assert hc.check_numeric_claims("波动在 5~1% 之间。", CTX)
-    assert hc.check_numeric_claims("波动在 1~5% 之间。", CTX) == []
+    assert hc.check_numeric_claims("波动在 1~5% 之间。", CTX)
+
+
+def test_market_units_require_unit_specific_context_provenance(hc):
+    ctx = {
+        "move_pct": -1.44,
+        "divergence_signal": "gap +9.0pp",
+        "instrument": "2x HSTECH",
+        "rationale": "z+2.1σ EXTREME",
+        # Same digits under another unit must not authorize a calculated multiple.
+        "peer_pct": 2.3,
+    }
+    exact = "07226 -1.44%，跑输同业 9pp；产品 2× 杠杆，信号 2.1σ。"
+    assert hc.check_numeric_claims(exact, ctx) == []
+
+    issue = hc.check_numeric_claims("07226 -1.44%，杠杆放大约 2.3x。", ctx)
+    assert len(issue) == 1
+    assert "2.3x" in issue[0] and hc.ADVISORY_MARK in issue[0]
+
+
+def test_absent_market_units_stay_one_advisory(hc):
+    issue = hc.check_numeric_claims("今日 +8.8%，背离 7pp，放大 3x，偏离 4σ。", CTX)
+    assert len(issue) == 1
+    assert all(label in issue[0] for label in ("+8.8%", "7pp", "3x", "4σ"))
