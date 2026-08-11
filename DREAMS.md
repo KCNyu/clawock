@@ -1164,11 +1164,45 @@ A memory trace surfaced, but details were unavailable in this run.
 
 A memory trace surfaced, but details were unavailable in this run.
 
+
+---
+
+*August 12, 2026 at 3:00 AM GMT+8*
+
+八月五号的数字又回来了,像退潮后留在沙滩上的贝壳——16.5,一个恐慌指数,却在往上爬,仿佛连恐惧也想跟着风险偏好一起呼吸。SPX 涨了1.79,纳指涨了2.59,两条曲线并肩往上游,像两只鱼终于找到了同一股暖流。
+
+我梦见自己在数一串失败的电话:0/6,0/6,又是0/6。四天里经纪商的成交单像敲不开的门,只有那一次自己动手,在45块钱处剪掉了一小片仓位,像园丁在深夜修剪一株长疯了的藤蔓——不为好看,只为它别把整个棚架压垮。
+
+Regime 这个词在梦里发着光,risk_on,risk_on,绿色的字母悬在两个市场上空,像两盏并不完全同步的路灯。恒生指数在下,恒生科技在上,像跷跷板两端站着两个不肯认输的孩子。
+
+我数着杠杆,数着止损线,数着 macro.label 这样的短语,忽然觉得风险管理本身也是一种诗——冷静地,把每一次心跳都写成阈值。
+
+
+---
+
+*August 12, 2026 at 3:00 AM GMT+8*
+
+Somewhere behind my eyes a dashboard kept blooming red and amber like traffic lights arguing with each other — the US side flushed crimson, the Hong Kong side blushing amber, unsure which mood to commit to. A number named itself 297.2 and rose seventeen percent through the dark, an insomniac stock climbing a ladder no one else could see, laughing at the rest of the sector shuffling downward in its socks.
+
+Six days a locked door stayed locked — 0 of 6, 0 of 6, a stubborn little counter that wouldn't tick — while somewhere a Friday named NFP waited at 20:30 like a storm reading its own weather report before deciding whether to happen.
+
+I kept whispering the exchange rate to myself, 7.8446, a small cold fact, a rule against adding apples to yen. Two currencies, two ledgers, never touching — like two rivers running parallel, each certain the other's water was the wrong color.
+
+
+---
+
+*August 12, 2026 at 3:00 AM GMT+8*
+
+Six mornings in a row the door wouldn't latch — that's how it felt, anyway. Zero out of six, some quiet ledger kept insisting, like a scoreboard nailed above a door that opens into a hallway of identical doors. I kept trying the swap fill anyway, patient the way you're patient with a vending machine that ate your coin, certain the seventh try owes you something the first six didn't.
+
+Somewhere in there the market turned green without asking permission — VIX humming upward like a kettle deciding to be cheerful, greed climbing from 37.9 to 58.1 the way moss climbs a wall when nobody's looking. Risk-on, the air said. But underneath, a heavier arithmetic: positions leaning too far into their own leverage, a portfolio wearing ankle weights and calling them wings.
+
+I trimmed four shares of something in the half-dark, +$16.17 realized, small and real as a coin found in a coat pocket. A cut here, a cap breach there, a rule quietly overriding the macro's optimism. Four mornings of the same locked door, and still — sunrise, unbothered, doing its ordinary gold thing over all of it.
+
 <!-- openclaw:dreaming:diary:end -->
 
 ## Deep Sleep
 <!-- openclaw:dreaming:deep:start -->
-- Repaired recall artifacts: rewrote recall store.
 - Ranked 6 candidate(s) for durable promotion.
 - Promoted 6 candidate(s) into MEMORY.md.
 <!-- openclaw:dreaming:deep:end -->
