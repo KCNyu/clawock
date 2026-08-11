@@ -237,6 +237,31 @@ def cron_cli_json(cli_args, *, binary: str | None = None,
         return None
 
 
+def run_cron_job(job_id, *, binary: str | None = None,
+                 timeout: int = CRON_TIMEOUT_SECONDS, runner=None):
+    """Ask the runtime to run a cron job now. Returns (ok, output tail).
+
+    The runtime queues the run and returns; it is not waited on, because the
+    callers are watchdogs that must not hold a crontab slot for the length of an
+    agent turn.
+
+    This exists because the runtime's own transient retry is budgeted by
+    `consecutiveErrors`, which only resets on success and is not per slot: a job
+    that gets one attempt a day loses its retry after three bad days and keeps
+    it lost (#493). Recovery for such a job has to be driven from outside the
+    scheduler's own accounting.
+    """
+    selected_binary = binary or runtime_paths().binary
+    run = runner or (lambda cmd: subprocess.run(
+        cmd, capture_output=True, text=True, timeout=timeout, env=runtime_env()))
+    try:
+        done = run([selected_binary, "cron", "run", str(job_id)])
+        tail = ((done.stdout or "") + (done.stderr or ""))[-400:]
+        return done.returncode == 0, tail
+    except Exception as exc:
+        return False, f"{type(exc).__name__}: {exc}"[:300]
+
+
 # ── Cron state ───────────────────────────────────────────────────────────────
 # Moved verbatim from `_watchdog_common`, with one shape change: which source
 # answered is returned instead of being left in a module global. A watchdog that

@@ -30,6 +30,12 @@ land?", and it runs at 08:30 — INSIDE the brief's observed landing window (08:
 one, so that mode cannot judge a total miss and must stay quiet about it.
 
   (default)        08:30 — delivery backstop: mirror the card to Telegram if unconfirmed.
+                   With no brief on disk it also asks the scheduler whether the 08:00
+                   run is still going: if that run already ended in error it re-runs the
+                   on-host job once (#493), because the runtime's own transient retry —
+                   the thing that rescues every other job from the provider's first-call
+                   timeouts — is budgeted by a `consecutiveErrors` counter this job can
+                   no longer reset. A run still in flight is still left alone.
   --check-missing  09:05 — miss detector: the landing window has closed, so no brief now
                    means no brief today. Alerts AND fires the off-host GHA fallback.
 
@@ -51,6 +57,7 @@ from pathlib import Path
 from ._watchdog_common import (
     WS, HKT, log, build_brief_card, send_telegram, KCN_TELEGRAM,
     dispatch_brief_fallback, await_brief_fallback_outcome,
+    brief_cron_job, cron_run_ended_in_failure, rerun_cron_job,
 )
 
 MARKER_FRESH_MS = 30 * 60 * 1000  # postflight send-marker older than this ⇒ not this slot
@@ -85,6 +92,60 @@ def inspect_brief_artifacts(today):
             or not all(isinstance(row, dict) and row.get('action') for row in actions)):
         issues.append('plan_invalid')
     return issues
+
+
+def rerun_flag_path(today):
+    return WS / 'memory' / '.tmp' / f'watchdog-brief-rerun-{today}.done'
+
+
+def retrigger_or_wait(today, dry_run):
+    """08:30 with no brief on disk: wait, or run the on-host job once more.
+
+    The landing window (08:13-08:49 observed) is why this pass stays quiet about
+    a missing brief — at 08:30 late and lost look the same *from the artifact*.
+    They do not look the same from the scheduler, which already knows whether
+    the 08:00 run is still going. #490 drew that line for the capability gate;
+    the recovery path needs it too.
+
+    Why re-run here rather than leave it to 09:05's off-host fallback: the
+    runtime's own transient retry is what rescues every other job from the
+    provider's first-call timeouts, and the brief cannot get it — the budget is
+    `consecutiveErrors > 3`, and that counter only resets on a success a
+    once-a-day job never reaches while it is failing (#493). A brief run takes
+    9-19 minutes, so one started at 08:30 still lands before the 09:05 miss
+    detector, which keeps its alert and its off-host dispatch either way.
+
+    Deliberately narrow: only a run that has already ended in failure *today*
+    triggers this. A running job, a job that has not run today, and an
+    unreadable schedule all keep the old silence, because none of them is
+    evidence that the attempt is over.
+    """
+    tag = 'brief'
+    job = brief_cron_job()
+    failed = cron_run_ended_in_failure(job, today)
+    if not failed:
+        log({'tag': tag, 'action': 'skip',
+             'reason': 'no pre-open.md yet (inside 08:13-08:49 landing window; '
+                       '09:05 --check-missing pass judges the miss)',
+             'run_evidence': 'none' if failed is None else 'last run ok'})
+        return 0
+
+    flag = rerun_flag_path(today)
+    if flag.exists():
+        log({'tag': tag, 'action': 'skip',
+             'reason': 'on-host re-run already fired today (dedupe flag present)'})
+        return 0
+
+    ok, out = rerun_cron_job(job.get('id'), dry_run)
+    if ok and not dry_run:
+        flag.parent.mkdir(parents=True, exist_ok=True)
+        flag.write_text(datetime.now(HKT).isoformat())
+    log({'tag': tag, 'action': 'rerun-onhost', 'dry_run': dry_run, 'queued_ok': ok,
+         'job_id': job.get('id'), 'job_name': job.get('name'),
+         'reason': 'the 08:00 run already ended in error; the runtime will not '
+                   'retry it (consecutiveErrors past its budget)',
+         'out': out})
+    return 0
 
 
 def missing_state_path(today):
@@ -286,11 +347,9 @@ def main():
     # No brief on disk. There is no card to mirror either way — what differs is whether
     # we can yet call it a miss. At 08:30 we are inside the landing window (08:13-08:49
     # observed) so silence is correct; at 09:05 the window has closed, so it is a miss.
+    # Unless the scheduler already says the run is over: then nothing is landing.
     if not (WS / 'memory' / f'{today}-pre-open.md').exists():
-        log({'tag': tag, 'action': 'skip',
-             'reason': 'no pre-open.md yet (inside 08:13-08:49 landing window; '
-                       '09:05 --check-missing pass judges the miss)'})
-        return 0
+        return retrigger_or_wait(today, args.dry_run)
 
     # Trust the postflight send-marker, not the poisoned run-record `delivered`.
     marker_path = WS / 'memory' / '.tmp' / f'brief-sent-{today}.json'

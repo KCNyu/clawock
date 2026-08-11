@@ -15,6 +15,10 @@ otherwise, so a release cannot ship an entry that was never written.
 
 ## [Unreleased]
 
+### Added
+
+- `clawock.providers.openclaw.run_cron_job(job_id)` asks the runtime to run a scheduled job now, reporting `(ok, output)` like the rest of the adapter instead of raising. It exists because the runtime's transient retry is budgeted by a `consecutiveErrors` counter that only resets on success, so a job scheduled once a day loses its retry after three bad days and needs recovery driven from outside the scheduler (#493).
+
 ### Changed
 
 - The command catalog the README links moved to `docs/reference/commands.md` — named after the deleted `scripts/` directory before — and its inventory is now generated from the installed-command registries instead of being hand-maintained, so it lists every command the two distributions install (#489). The old path stays as a pointer because published releases link it.
