@@ -50,7 +50,7 @@ from pathlib import Path
 
 from ._watchdog_common import (
     WS, HKT, log, build_brief_card, send_telegram, KCN_TELEGRAM,
-    dispatch_brief_fallback,
+    dispatch_brief_fallback, await_brief_fallback_outcome,
 )
 
 MARKER_FRESH_MS = 30 * 60 * 1000  # postflight send-marker older than this ⇒ not this slot
@@ -182,7 +182,7 @@ def alert_brief_missing(today, dry_run, issues=None):
     alert = (
         f'🔴 盘前深度简报产物不完整 — {today}\n\n'
         f'09:05 检查结果：\n{issue_text}\n\n'
-        + ('✅ 已自动 dispatch off-host 兜底 (brief-fallback.yml)，约 5-10 分钟落盘并 push。\n'
+        + ('🔄 已 dispatch off-host 兜底 (brief-fallback.yml)，正在等待运行结果，稍后另发一条。\n'
            if dispatched else
            '⚠️ 自动 dispatch 兜底失败，需要手动：gh workflow run brief-fallback.yml\n'
            '（10:00 HKT 前有效，之后 workflow 会判定过期跳过）\n')
@@ -213,11 +213,56 @@ def alert_brief_missing(today, dry_run, issues=None):
     if tg_ok and not dry_run:
         flag.parent.mkdir(parents=True, exist_ok=True)
         flag.write_text(datetime.now(HKT).isoformat())
+
+    # The miss alert above is deliberately sent before the run finishes, so kcn learns
+    # at 09:05 that 08:00 missed. Only now do we find out whether the recovery actually
+    # worked — reporting that is the whole point (2026-08-11: dispatch accepted, run
+    # failed 8min later, and the last thing kcn heard was a green check).
+    outcome, outcome_detail = 'not-dispatched', ''
+    if dispatched:
+        outcome, outcome_detail = await_brief_fallback_outcome(
+            state.get('dispatch_attempted_at') or datetime.now(HKT).isoformat(),
+            dry_run)
+        state['fallback_outcome'] = outcome
+        state['fallback_outcome_detail'] = outcome_detail
+        if not dry_run:
+            write_missing_state(today, state)
+        follow_up = _fallback_outcome_message(today, outcome, outcome_detail)
+        try:
+            follow_ok, follow_out = send_telegram(KCN_TELEGRAM, follow_up, dry_run)
+        except Exception as e:
+            follow_ok, follow_out = False, f'{type(e).__name__}: {e}'[:300]
+        log({'tag': 'brief', 'action': 'fallback-outcome', 'dry_run': dry_run,
+             'outcome': outcome, 'detail': outcome_detail,
+             'sent_ok': follow_ok, 'target': KCN_TELEGRAM, 'out': follow_out})
+
     print(json.dumps({'tag': 'brief', 'reason': 'brief artifacts incomplete',
                       'issues': issues,
                       'dispatched_fallback': dispatched, 'alerted_telegram': tg_ok,
+                      'fallback_outcome': outcome,
                       'dry_run': dry_run}, ensure_ascii=False))
     return 0
+
+
+def _fallback_outcome_message(today, outcome, detail):
+    """Telegram follow-up naming what the off-host fallback actually did.
+
+    Only 'success' claims the brief exists, and it says so because the run concluded
+    success — every other state is reported as unresolved with the manual next step."""
+    if outcome == 'success':
+        return (f'✅ off-host 兜底已完成 — {today}\n\n'
+                f'{detail}\n\n'
+                f'pre-open.md + plan.json 已由 workflow 生成并 push。')
+    if outcome == 'failure':
+        return (f'🔴 off-host 兜底失败 — {today}\n\n'
+                f'{detail}\n\n'
+                f'今天两条路径都没产出简报，没有自动补救了。\n'
+                f'手动：gh run rerun <id> 或 gh workflow run brief-fallback.yml'
+                f'（10:00 HKT 前有效）')
+    return (f'⚠️ off-host 兜底结果未确认 — {today}\n\n'
+            f'{detail}\n\n'
+            f'注意：这不代表成功。请查 '
+            f'gh run list --workflow=brief-fallback.yml')
 
 
 def main():

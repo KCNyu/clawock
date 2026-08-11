@@ -11,6 +11,16 @@ from clawock_kcnyu.harness import brief_watchdog as watchdog  # noqa: E402
 TODAY = "2026-07-17"
 
 
+def _stub_outcome(monkeypatch, outcome="success", detail="https://example/run/1"):
+    """Neutralise the post-dispatch poll. Tests that care assert on it explicitly.
+
+    Without this the alert path would shell out to `gh` from the test suite."""
+    monkeypatch.setattr(
+        watchdog, "await_brief_fallback_outcome",
+        lambda _since, _dry_run: (outcome, detail),
+    )
+
+
 def _write_brief(ws):
     path = ws / "memory" / f"{TODAY}-pre-open.md"
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -61,11 +71,13 @@ def test_missing_alert_dispatches_only_once_after_success(tmp_path, monkeypatch)
     monkeypatch.setattr(watchdog, "dispatch_brief_fallback", dispatch)
     monkeypatch.setattr(watchdog, "send_telegram", send)
     monkeypatch.setattr(watchdog, "log", lambda _event: None)
+    _stub_outcome(monkeypatch)
 
     issues = ["plan_missing"]
     assert watchdog.alert_brief_missing(TODAY, False, issues) == 0
     assert watchdog.alert_brief_missing(TODAY, False, issues) == 0
-    assert calls == {"dispatch": 1, "send": 1}
+    # 2 sends on the first pass: the 09:05 miss alert, then the outcome follow-up.
+    assert calls == {"dispatch": 1, "send": 2}
 
 
 def test_dispatch_state_is_persisted_before_notification_and_timeout_is_retried(
@@ -90,10 +102,11 @@ def test_dispatch_state_is_persisted_before_notification_and_timeout_is_retried(
     monkeypatch.setattr(watchdog, "dispatch_brief_fallback", dispatch)
     monkeypatch.setattr(watchdog, "send_telegram", send)
     monkeypatch.setattr(watchdog, "log", lambda _event: None)
+    _stub_outcome(monkeypatch)
 
     assert watchdog.alert_brief_missing(TODAY, False, ["brief_missing"]) == 0
     state = json.loads(watchdog.missing_state_path(TODAY).read_text())
-    assert calls == {"dispatch": 1, "send": 2}
+    assert calls == {"dispatch": 1, "send": 3}
     assert state["notification_attempts"] == 2
     assert state["notification_succeeded"] is True
     assert "telegram delivered" in state["notification_out"]
@@ -114,9 +127,10 @@ def test_failed_notification_can_retry_later_without_redispatch(tmp_path, monkey
     monkeypatch.setattr(watchdog, "dispatch_brief_fallback", dispatch)
     monkeypatch.setattr(watchdog, "send_telegram", send_fails)
     monkeypatch.setattr(watchdog, "log", lambda _event: None)
+    _stub_outcome(monkeypatch)
 
     assert watchdog.alert_brief_missing(TODAY, False, ["plan_missing"]) == 0
-    assert calls == {"dispatch": 1, "send": 2}
+    assert calls == {"dispatch": 1, "send": 3}
     state = json.loads(watchdog.missing_state_path(TODAY).read_text())
     assert state["fallback_dispatch_succeeded"] is True
     assert state["notification_succeeded"] is False
@@ -126,7 +140,7 @@ def test_failed_notification_can_retry_later_without_redispatch(tmp_path, monkey
         lambda *_args: calls.__setitem__("send", calls["send"] + 1) or (True, "ok"),
     )
     assert watchdog.alert_brief_missing(TODAY, False, ["plan_missing"]) == 0
-    assert calls == {"dispatch": 1, "send": 3}
+    assert calls == {"dispatch": 1, "send": 5}
     state = json.loads(watchdog.missing_state_path(TODAY).read_text())
     assert state["notification_attempts"] == 3
     assert state["notification_succeeded"] is True
@@ -141,6 +155,7 @@ def test_dry_run_does_not_poison_recovery_state_or_dedupe(tmp_path, monkeypatch)
         watchdog, "send_telegram", lambda *_args: (True, "dry telegram")
     )
     monkeypatch.setattr(watchdog, "log", lambda _event: None)
+    _stub_outcome(monkeypatch, "pending", "(dry-run) outcome polling skipped")
 
     assert watchdog.alert_brief_missing(TODAY, True, ["brief_missing"]) == 0
     assert not watchdog.missing_state_path(TODAY).exists()
@@ -169,9 +184,83 @@ def test_corrupt_state_suppresses_duplicate_dispatch_but_still_notifies(
         lambda *_args: calls.__setitem__("send", calls["send"] + 1) or (True, "ok"),
     )
     monkeypatch.setattr(watchdog, "log", lambda _event: None)
+    _stub_outcome(monkeypatch)
 
+    # dispatched is False here, so there is no run to poll and no follow-up.
     assert watchdog.alert_brief_missing(TODAY, False, ["brief_missing"]) == 0
     assert calls == {"dispatch": 0, "send": 1}
     state = json.loads(path.read_text())
     assert state["fallback_dispatch_attempted"] is True
     assert "state_error" in state
+
+
+def _run_alert_capturing_messages(monkeypatch, tmp_path, outcome, detail):
+    monkeypatch.setattr(watchdog, "WS", tmp_path)
+    messages = []
+    monkeypatch.setattr(
+        watchdog, "dispatch_brief_fallback", lambda _dry_run: (True, "queued")
+    )
+    monkeypatch.setattr(
+        watchdog, "send_telegram",
+        lambda _target, message, _dry_run: (messages.append(message), (True, "ok"))[1],
+    )
+    monkeypatch.setattr(watchdog, "log", lambda _event: None)
+    _stub_outcome(monkeypatch, outcome, detail)
+    assert watchdog.alert_brief_missing(TODAY, False, ["brief_missing"]) == 0
+    return messages
+
+
+def test_a_failed_fallback_run_is_reported_as_failed_not_as_dispatched_ok(
+    tmp_path, monkeypatch
+):
+    """2026-08-11 regression: dispatch succeeded, the run failed 8 min later, and the
+    only thing kcn was told was a green check. The follow-up must name the failure."""
+    messages = _run_alert_capturing_messages(
+        monkeypatch, tmp_path, "failure",
+        "failure https://gh/run/1 plan.json v2 validation failed",
+    )
+
+    assert len(messages) == 2
+    first, follow_up = messages
+    # The 09:05 alert may say a dispatch happened, but must not claim it will land.
+    assert "落盘并 push" not in first
+    assert "🔴 off-host 兜底失败" in follow_up
+    assert "plan.json v2 validation failed" in follow_up
+    assert "✅" not in follow_up
+
+
+def test_unfinished_fallback_run_is_reported_as_unverified_never_as_success(
+    tmp_path, monkeypatch
+):
+    messages = _run_alert_capturing_messages(
+        monkeypatch, tmp_path, "pending", "still in_progress after 15min: https://gh/2"
+    )
+
+    follow_up = messages[-1]
+    assert "未确认" in follow_up
+    assert "这不代表成功" in follow_up
+    assert "✅" not in follow_up
+
+
+def test_successful_fallback_run_is_the_only_case_that_claims_the_brief_exists(
+    tmp_path, monkeypatch
+):
+    messages = _run_alert_capturing_messages(
+        monkeypatch, tmp_path, "success", "https://gh/run/3"
+    )
+
+    follow_up = messages[-1]
+    assert follow_up.startswith("✅ off-host 兜底已完成")
+    assert "https://gh/run/3" in follow_up
+
+
+def test_outcome_is_persisted_so_a_later_pass_can_see_what_happened(
+    tmp_path, monkeypatch
+):
+    _run_alert_capturing_messages(
+        monkeypatch, tmp_path, "failure", "failure https://gh/run/4"
+    )
+
+    state = json.loads(watchdog.missing_state_path(TODAY).read_text())
+    assert state["fallback_outcome"] == "failure"
+    assert "https://gh/run/4" in state["fallback_outcome_detail"]
