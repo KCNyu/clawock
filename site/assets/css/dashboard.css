@@ -177,8 +177,12 @@
        feedback onto the icon so it does not disappear with the text. */
     .refresh-btn { padding: 0; justify-content: center; }
     .refresh-btn .lbl { display: none; }
-    .refresh-btn.ok-flash .ic, .refresh-btn.fresh-flash .ic { font-size: 0; }
-    .refresh-btn.ok-flash .ic::after,
+    /* Only the "a new generation landed" outcome becomes a check — that is the
+       one whose label carries one ("已更新 ✓" vs "已是最新"). "Nothing new"
+       keeps the ↻ and says so with the green rim. Two outcomes have to differ
+       by shape; if they differed only by border colour, colour would be the
+       sole carrier of the difference. */
+    .refresh-btn.fresh-flash .ic { font-size: 0; }
     .refresh-btn.fresh-flash .ic::after { content: "✓"; font-size: 15px; }
   }
   .topbar-actions { display: inline-flex; align-items: center; gap: 8px; }

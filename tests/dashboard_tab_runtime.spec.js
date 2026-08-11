@@ -418,6 +418,33 @@ async function testTopbarFitsWhenRefreshLabelSwaps(browser, base) {
     "desktop refresh button lost its text label");
   await desktop.close();
 
+  // Hiding the label costs the phone layout the one thing the label carried:
+  // that "已更新 ✓" and "已是最新" are different answers. Whatever replaces it
+  // has to keep them apart by shape, not by border colour alone.
+  const feedback = await browser.newPage({ viewport: { width: 390, height: 800 } });
+  await stubLiveOrigin(feedback);
+  await feedback.goto(base, { waitUntil: "networkidle" });
+  await waitForData(feedback);
+  const marks = await feedback.evaluate(() => {
+    const btn = document.getElementById("refresh-btn");
+    const ic = btn.querySelector(".ic");
+    const visibleMark = state => {
+      btn.classList.remove("ok-flash", "fresh-flash");
+      if (state) btn.classList.add(state);
+      // A zeroed font size means the element's own text is gone and whatever
+      // ::after draws is what the user actually sees.
+      return getComputedStyle(ic).fontSize === "0px"
+        ? getComputedStyle(ic, "::after").content
+        : ic.textContent;
+    };
+    return { idle: visibleMark(null), ok: visibleMark("ok-flash"), fresh: visibleMark("fresh-flash") };
+  });
+  assert(marks.ok !== marks.fresh,
+    `both refresh outcomes draw the same mark (${marks.ok}) below 560px`);
+  assert(marks.fresh !== marks.idle,
+    "a new generation left the refresh icon unchanged below 560px");
+  await feedback.close();
+
   // Hiding the label below 560px means today's two strings can no longer be
   // squeezed hard enough to break — which would leave the button's own
   // single-line guarantee untested until someone widens that breakpoint or adds
