@@ -354,6 +354,116 @@ async function testTabGuardWithoutForcedLayout(browser, base) {
   await context.close();
 }
 
+// The refresh button swaps its label to a CJK string ("已是最新" / "已更新 ✓") for
+// 1.8s after a click. CJK has a line-break opportunity between every character,
+// so a shrinkable flex item breaks it one glyph per line: the 36px pill became
+// an 82px-tall column, and the topbar it overflowed painted the brand on top of
+// the nav links. Both states are geometry, so measure them rather than grep the
+// stylesheet for the properties that happen to fix them today.
+async function testTopbarFitsWhenRefreshLabelSwaps(browser, base) {
+  // 360px is the narrowest width the wordmark is promised in full. 320px is
+  // past that: there the brand may reach its ellipsis, but it still may not be
+  // painted over the links — an un-clipped h1 in a shrunk flex item overlaps
+  // them instead of getting narrower.
+  const phones = [{ width: 320, mayTruncate: true }, { width: 360 },
+                  { width: 390 }, { width: 412 }];
+  for (const { width, mayTruncate } of phones) {
+    const context = await browser.newContext({
+      viewport: { width, height: 800 }, isMobile: true, hasTouch: true,
+    });
+    const page = await context.newPage();
+    await stubLiveOrigin(page);
+    await page.goto(base, { waitUntil: "networkidle" });
+    await waitForData(page);
+
+    const idleHeight = (await page.locator("#refresh-btn").boundingBox()).height;
+    await page.click("#refresh-btn");
+    await page.waitForFunction(
+      () => document.querySelector("#refresh-btn .lbl").textContent !== "Refresh",
+      null, { timeout: 5000 },
+    ).catch(() => { throw new Error(`refresh at ${width}px never reported back`); });
+
+    const box = await page.evaluate(() => {
+      const rect = el => el.getBoundingClientRect();
+      const btn = document.getElementById("refresh-btn");
+      const h1 = document.querySelector(".brand h1");
+      const link = document.querySelector(".topbar-actions .nav-link");
+      const row = document.querySelector(".topbar-row");
+      return {
+        label: btn.querySelector(".lbl").textContent,
+        height: rect(btn).height,
+        gap: rect(link).left - rect(h1).right,
+        clipped: h1.scrollWidth > h1.clientWidth + 0.5,
+        overflow: row.scrollWidth - row.clientWidth,
+      };
+    });
+    assert(box.label !== "Refresh", `label did not swap at ${width}px`);
+    assert(box.height <= idleHeight + 1,
+      `refresh button grew to ${box.height}px showing "${box.label}" at ${width}px`);
+    assert(box.gap >= 0,
+      `brand overlaps the nav links by ${-box.gap}px at ${width}px`);
+    assert(mayTruncate || !box.clipped, `brand wordmark is truncated at ${width}px`);
+    assert(box.overflow <= 0, `topbar row overflows by ${box.overflow}px at ${width}px`);
+    await context.close();
+  }
+
+  // The narrow layout drops the label to keep the row inside its width. That
+  // must stay a narrow-viewport concession: on a desktop the button keeps its
+  // text, and the feedback is the text.
+  const desktop = await browser.newPage({ viewport: { width: 1280, height: 900 } });
+  await stubLiveOrigin(desktop);
+  await desktop.goto(base, { waitUntil: "networkidle" });
+  await waitForData(desktop);
+  assert(await desktop.locator("#refresh-btn .lbl").isVisible(),
+    "desktop refresh button lost its text label");
+  await desktop.close();
+
+  // Hiding the label costs the phone layout the one thing the label carried:
+  // that "已更新 ✓" and "已是最新" are different answers. Whatever replaces it
+  // has to keep them apart by shape, not by border colour alone.
+  const feedback = await browser.newPage({ viewport: { width: 390, height: 800 } });
+  await stubLiveOrigin(feedback);
+  await feedback.goto(base, { waitUntil: "networkidle" });
+  await waitForData(feedback);
+  const marks = await feedback.evaluate(() => {
+    const btn = document.getElementById("refresh-btn");
+    const ic = btn.querySelector(".ic");
+    const visibleMark = state => {
+      btn.classList.remove("ok-flash", "fresh-flash");
+      if (state) btn.classList.add(state);
+      // A zeroed font size means the element's own text is gone and whatever
+      // ::after draws is what the user actually sees.
+      return getComputedStyle(ic).fontSize === "0px"
+        ? getComputedStyle(ic, "::after").content
+        : ic.textContent;
+    };
+    return { idle: visibleMark(null), ok: visibleMark("ok-flash"), fresh: visibleMark("fresh-flash") };
+  });
+  assert(marks.ok !== marks.fresh,
+    `both refresh outcomes draw the same mark (${marks.ok}) below 560px`);
+  assert(marks.fresh !== marks.idle,
+    "a new generation left the refresh icon unchanged below 560px");
+  await feedback.close();
+
+  // Hiding the label below 560px means today's two strings can no longer be
+  // squeezed hard enough to break — which would leave the button's own
+  // single-line guarantee untested until someone widens that breakpoint or adds
+  // a fourth nav link. Feed it a label long enough to put the row over budget:
+  // the button may become wide, it may not become tall.
+  const stress = await browser.newPage({ viewport: { width: 600, height: 900 } });
+  await stubLiveOrigin(stress);
+  await stress.goto(base, { waitUntil: "networkidle" });
+  await waitForData(stress);
+  const grew = await stress.evaluate(() => {
+    const btn = document.getElementById("refresh-btn");
+    const before = btn.getBoundingClientRect().height;
+    btn.querySelector(".lbl").textContent = "已是最新的一份生成数据";
+    return btn.getBoundingClientRect().height - before;
+  });
+  assert(grew <= 1, `refresh button wrapped its label onto ${grew}px of extra lines`);
+  await stress.close();
+}
+
 async function main() {
   const server = serveWorkspace();
   await new Promise(resolve => server.listen(0, "127.0.0.1", resolve));
@@ -367,6 +477,7 @@ async function main() {
     await testLiveDataOrigin(browser, base);
     await testEquityTouch(browser, base);
     await testTabGuardWithoutForcedLayout(browser, base);
+    await testTopbarFitsWhenRefreshLabelSwaps(browser, base);
   } finally {
     await browser.close();
     await new Promise(resolve => server.close(resolve));
