@@ -157,6 +157,55 @@ def test_an_enabled_job_with_no_report_is_named(monkeypatch):
     assert missing == ['Dreaming']
 
 
+def test_a_provider_failed_run_is_not_mislabeled_as_capability_loss(monkeypatch):
+    """#490: a response-header timeout replaces the job session with an entry
+    that has no report. The scheduler already says the run failed; blaming
+    context assembly as well makes the capability warning cry wolf."""
+    import ops.system_check as sc
+
+    monkeypatch.setattr(
+        'clawock.providers.openclaw.cron_cli_json',
+        lambda argv: {'jobs': [{
+            'id': 'a', 'name': 'Provider timeout', 'enabled': True,
+            'state': {'lastStatus': 'error'},
+        }]})
+    assert sc._cron_jobs_without_prompt_report({
+        'agent:main:cron:a': {'updatedAt': 20},
+    }) == []
+
+
+def test_a_successful_job_without_a_report_is_still_named(monkeypatch):
+    """A successful run had a chance to assemble context. No report after that
+    remains the capability gap this gate exists to expose."""
+    import ops.system_check as sc
+
+    monkeypatch.setattr(
+        'clawock.providers.openclaw.cron_cli_json',
+        lambda argv: {'jobs': [{
+            'id': 'a', 'name': 'Dreaming', 'enabled': True,
+            'state': {'lastStatus': 'ok'},
+        }]})
+    assert sc._cron_jobs_without_prompt_report({
+        'agent:main:cron:a': {'updatedAt': 20},
+    }) == ['Dreaming']
+
+
+def test_a_running_job_waits_for_its_report(monkeypatch):
+    """The runtime replaces the per-job session at run start and attaches the
+    report later. That bounded in-flight window is not evidence of loss."""
+    import ops.system_check as sc
+
+    monkeypatch.setattr(
+        'clawock.providers.openclaw.cron_cli_json',
+        lambda argv: {'jobs': [{
+            'id': 'a', 'name': 'In flight', 'enabled': True,
+            'state': {'runningAtMs': 1786429918631, 'lastStatus': 'error'},
+        }]})
+    assert sc._cron_jobs_without_prompt_report({
+        'agent:main:cron:a': {'updatedAt': 20},
+    }) == []
+
+
 def test_a_disabled_job_is_not_demanded(monkeypatch):
     """Only what is scheduled has to be observable."""
     import ops.system_check as sc
