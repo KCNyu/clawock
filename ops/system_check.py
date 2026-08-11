@@ -518,6 +518,12 @@ def _cron_jobs_without_prompt_report(sessions):
     5 files / 29 skills / 34 tools while `Memory Dreaming Promotion` produced no
     report at all, and the profile-level check averaged it away.
 
+    A per-job session entry is replaced when a run starts, before the runtime
+    attaches its prompt report. It also stays report-less when the provider
+    fails before responding. Both states are explicit in the authoritative cron
+    listing; neither is evidence of capability loss. Successful jobs, jobs with
+    no history, and jobs with an unknown outcome still have to be named.
+
     Returns names rather than a count, and returns empty when the job list
     cannot be read — an unreadable schedule is not evidence that every job is
     covered, but it is also not this check's failure to report.
@@ -539,8 +545,18 @@ def _cron_jobs_without_prompt_report(sessions):
     for job in listing.get('jobs', []) or []:
         if not job.get('enabled'):
             continue
-        if str(job.get('id')) not in reported:
-            missing.append(str(job.get('name') or job.get('id'))[:28])
+        if str(job.get('id')) in reported:
+            continue
+        state = job.get('state') if isinstance(job.get('state'), dict) else {}
+        if job.get('status') == 'running' or state.get('runningAtMs') is not None:
+            continue
+        last_status = str(
+            state.get('lastStatus') or state.get('lastRunStatus') or '').lower()
+        if last_status in {
+                'error', 'failed', 'failure', 'timeout', 'timed_out',
+                'cancelled', 'canceled', 'skipped'}:
+            continue
+        missing.append(str(job.get('name') or job.get('id'))[:28])
     return sorted(missing)
 
 
