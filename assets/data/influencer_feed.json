@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-10T22:09:52.163863+00:00",
+  "generated_at": "2026-08-11T14:08:08.235662+00:00",
   "lookback_hours": 48,
   "sources": {
     "trump": "trumpstruth.org/feed (primary)",
@@ -15,72 +15,177 @@
   "counts": {
     "total": 10,
     "held_hits": 0,
-    "new_ideas": 0,
-    "sector_hits": 6
+    "new_ideas": 5,
+    "sector_hits": 3
   },
   "items": [
     {
       "author": "Musk",
-      "text": "SpaceX Stock Has Plunged 34%. Elon Musk's \"Secret Master Plan\" Points to What Could Come Next.",
+      "text": "See How a Tesla-SpaceX Merger Gives Musk a Shortcut to His $1 Trillion Payday",
       "url": "",
-      "published": "Mon, 10 Aug 2026 16:40:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Yahoo Finance",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天"
-      ],
-      "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "neutral",
-      "relevance": 75,
-      "summary_cn": "媒体：SpaceX 股价已跌34%，Musk所谓'秘密大师计划'或为下一步催化剂——对 SPCX/SPCH 持仓直接相关。"
-    },
-    {
-      "author": "Musk",
-      "text": "Selling the Dream of SpaceX Was the Easy Part. Now Elon Musk Has to Hang On.",
-      "url": "",
-      "published": "Sun, 09 Aug 2026 00:00:00 GMT",
+      "published": "Tue, 11 Aug 2026 01:00:00 GMT",
       "origin": "gnews-rss",
       "source": "WSJ",
-      "tickers": [],
+      "tickers": [
+        "TSLA"
+      ],
       "held": [],
-      "new_ideas": [],
+      "new_ideas": [
+        "TSLA"
+      ],
       "sectors": [
-        "航天"
+        "电动车",
+        "航天/卫星"
       ],
       "sector_holdings": [
         "SPCH",
         "SPCX"
       ],
       "stance": "neutral",
-      "relevance": 72,
-      "summary_cn": "媒体：卖SpaceX估值故事容易，留住它才难——提示二级估值压力，SPCX/SPCH 持仓须关注。"
+      "relevance": 78,
+      "summary_cn": "媒体讨论Tesla-SpaceX合并如何助Musk迈向1万亿美元薪酬包，若合并成行将直接重估kcn持有的SpaceX相关仓位。"
     },
     {
       "author": "Musk",
-      "text": "SpaceX Windfall Leads Ontario Teachers’ to 9.5% First-Half Gain",
+      "text": "Tesla shows first Cybercab with built-in Starlink. Elon Musk explains why it needs one.",
       "url": "",
-      "published": "Mon, 10 Aug 2026 16:41:07 GMT",
+      "published": "Tue, 11 Aug 2026 09:02:30 GMT",
       "origin": "gnews-rss",
-      "source": "bloomberg.com",
-      "tickers": [],
+      "source": "Mashable",
+      "tickers": [
+        "TSLA"
+      ],
       "held": [],
-      "new_ideas": [],
+      "new_ideas": [
+        "TSLA"
+      ],
       "sectors": [
-        "航天"
+        "电动车",
+        "航天/卫星",
+        "通信"
       ],
       "sector_holdings": [
         "SPCH",
         "SPCX"
       ],
       "stance": "endorse",
-      "relevance": 68,
-      "summary_cn": "安大略教师养老金因 SpaceX 头寸上半年获9.5%收益，反映 SpaceX 二级估值仍提供强回报，间接利好 SPCX/SPCH。"
+      "relevance": 72,
+      "summary_cn": "Tesla展示首款内置Starlink的Cybercab，Musk解释为何需要星链，间接利好SpaceX/Starlink生态。"
+    },
+    {
+      "author": "Musk",
+      "text": "In Texas, Elon Musk's empire could soon add a $10 billion Tesla solar plant",
+      "url": "",
+      "published": "Tue, 11 Aug 2026 10:15:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Yahoo Finance",
+      "tickers": [
+        "TSLA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "TSLA"
+      ],
+      "sectors": [
+        "太阳能/能源",
+        "电动车"
+      ],
+      "sector_holdings": [
+        "02208"
+      ],
+      "stance": "neutral",
+      "relevance": 70,
+      "summary_cn": "Tesla在德州拟建$10B太阳能工厂，扩张能源版图，间接利好新能源/光伏产业链（如金风科技等清洁能源标的）。"
+    },
+    {
+      "author": "Musk",
+      "text": "When One Man Controls the Stack: Is Musk Building a Private Technology Monopoly?",
+      "url": "",
+      "published": "Tue, 11 Aug 2026 13:03:42 GMT",
+      "origin": "gnews-rss",
+      "source": "EVWORLD.COM",
+      "tickers": [
+        "TSLA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "TSLA"
+      ],
+      "sectors": [
+        "科技/AI",
+        "电动车",
+        "航天",
+        "社交媒体"
+      ],
+      "sector_holdings": [
+        "MSFU",
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "attack",
+      "relevance": 65,
+      "summary_cn": "媒体质疑Musk一人控制技术栈、构建私人科技垄断的监管/反垄断风险，对Tesla及SpaceX估值有潜在阴影。"
+    },
+    {
+      "author": "Trump",
+      "text": "Chandler Hall, representing, on Television, the foolish Center for American Lack of Progress, stated that adding the National Guard to Cities, including our now Great Again, Washington, D.C., had “NO impact on Crime.” How crazy is that. Hall was met with furious dissent. The report is just another Radical Left SCAM, as are the people who fund this gaggle of Lunatics, including George Soros, Bill and Melinda Gates, Google, Apple, Visa, Goldman Sachs, Citigroup, WellsFargo, Bank of America, Walmart, Toyota, T-Mobile, and NBC Universal. Foreign support includes the Embassy of Japan, the Korea Fou",
+      "url": "https://trumpstruth.org/statuses/40727",
+      "published": "2026-08-11T02:31:44+00:00",
+      "origin": "truthsocial",
+      "tickers": [
+        "GOOGL",
+        "AAPL",
+        "V",
+        "GS",
+        "C",
+        "WFC",
+        "BAC",
+        "WMT",
+        "TM",
+        "TMUS"
+      ],
+      "held": [],
+      "new_ideas": [
+        "AAPL",
+        "BAC",
+        "C",
+        "GOOGL",
+        "GS",
+        "TM",
+        "TMUS",
+        "V",
+        "WFC",
+        "WMT"
+      ],
+      "sectors": [
+        "政治/社会"
+      ],
+      "sector_holdings": [],
+      "stance": "attack",
+      "relevance": 50,
+      "summary_cn": "Trump抨击Center for American Lack of Progress及资助方，含Google、Apple、Visa、Goldman Sachs、Citigroup、Wells Fargo、Bank of America、Walmart、Toyota、T-Mobile、NBC Universal等大企业，纯政治口水，无直接市场含义。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk’s Net Worth Tops $800 Billion Again As SpaceX Shares Spike 11%",
+      "url": "",
+      "published": "Fri, 07 Aug 2026 17:43:31 GMT",
+      "origin": "gnews-rss",
+      "source": "forbes.com",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天/卫星",
+        "科技"
+      ],
+      "sector_holdings": [
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "endorse",
+      "relevance": 90,
+      "summary_cn": "Musk净资产再破$8000亿，因SpaceX股价单日涨11%，直接利好kcn持有的SPCX与SPCH（SpaceX 2x杠杆ETF）。"
     },
     {
       "author": "Musk",
@@ -93,15 +198,16 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "航天"
+        "航天/卫星",
+        "AI/半导体制造"
       ],
       "sector_holdings": [
         "SPCH",
         "SPCX"
       ],
       "stance": "endorse",
-      "relevance": 65,
-      "summary_cn": "SpaceX 宣布首期$168亿投资 Terafab 项目，重资本开支强化 SPCX/SPCH 估值想象空间。"
+      "relevance": 88,
+      "summary_cn": "SpaceX宣布$16.8B投资Terafab一期项目，是当前最大制造设施5倍，直接利好kcn持有的SPCX/SPCH（SpaceX敞口）。"
     },
     {
       "author": "Musk",
@@ -114,27 +220,7 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "航天"
-      ],
-      "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "endorse",
-      "relevance": 60,
-      "summary_cn": "Musk 旗下$168亿工厂（Terafab）为现世界最大建筑5倍，凸显 SpaceX 巨额资本开支利好 SPCX/SPCH 持仓。"
-    },
-    {
-      "author": "Musk",
-      "text": "SpaceX plan for vast rocket launch site on Louisiana coast sparks backlash",
-      "url": "",
-      "published": "Mon, 10 Aug 2026 14:00:00 GMT",
-      "origin": "gnews-rss",
-      "source": "The Guardian",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
+        "电动车/制造",
         "航天"
       ],
       "sector_holdings": [
@@ -142,45 +228,27 @@
         "SPCX"
       ],
       "stance": "neutral",
-      "relevance": 55,
-      "summary_cn": "SpaceX 在路易斯安那海岸建大型发射场遭当地反对，扩张执行存不确定性，SPCX/SPCH 间接关注。"
-    },
-    {
-      "author": "Musk",
-      "text": "Tesla Debuts Starlink On Cybercab as Elon Musk Eyes Industry Adoption",
-      "url": "",
-      "published": "Mon, 10 Aug 2026 21:08:09 GMT",
-      "origin": "gnews-rss",
-      "source": "PCMag",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "电动车",
-        "卫星互联网"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 60,
-      "summary_cn": "Tesla 在 Cybercab 上首发 Starlink 连接，Musk 推动行业采用，Tesla-Starlink 协同利好整体叙事。"
+      "relevance": 68,
+      "summary_cn": "Musk规划$16.8B工厂为现全球最大建筑5倍规模，Musk帝国资本开支叙事，间接利好SpaceX估值预期。"
     },
     {
       "author": "Trump",
-      "text": "Jobless Claims Remain Below 200,000 For Third Straight Week—First Time in 57 Years: https://www.breitbart.com/economy/2026/08/06/jobless-claims-remain-below-200000-for-third-straight-week-for-first-time-in-57-years/",
-      "url": "https://trumpstruth.org/statuses/40684",
-      "published": "2026-08-09T02:20:41+00:00",
+      "text": "I see that Representatives of the Islamic Republic of Iran are asking for compensation for the damage done to them during the last five month Military Conflict (started because, THEY WILL NOT HAVE A NUCLEAR WEAPON), even though it was never mentioned in any of our negotiations or meetings! But it is an interesting idea because now I am likewise demanding compensation from Iran, for all of the people that they have killed and gravely wounded with their roadside bombs and many conflicts, for which they are famous, as led initially by General Soleimani, including the families of those killed on t",
+      "url": "https://trumpstruth.org/statuses/40702",
+      "published": "2026-08-10T16:31:58+00:00",
       "origin": "truthsocial",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "宏观经济",
-        "就业"
+        "地缘政治/中东",
+        "国防",
+        "能源"
       ],
       "sector_holdings": [],
-      "stance": "endorse",
+      "stance": "attack",
       "relevance": 55,
-      "summary_cn": "Trump 转发57年来首次连续三周初请失业金低于20万的强劲就业数据，宏观利好美股大盘情绪。"
+      "summary_cn": "Trump就伊朗核冲突反向索赔，与伊朗对抗升级信号，对中东局势/油价/国防板块有间接影响。"
     },
     {
       "author": "Musk",
@@ -188,102 +256,191 @@
       "url": "",
       "published": "Thu, 06 Aug 2026 22:19:52 GMT",
       "origin": "gnews-rss",
-      "source": "cnbc.com",
+      "source": "CNBC",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "政府效率",
-        "财政"
+        "政治/DOGE",
+        "政府效率"
       ],
       "sector_holdings": [],
       "stance": "attack",
-      "relevance": 52,
-      "summary_cn": "GAO 报告称 Musk 的 DOGE 夸大了$1100亿联邦节省数据，Musk 形象与政府效率叙事受质疑，宏观层面弱负面。"
-    },
-    {
-      "author": "Trump",
-      "text": "Trump's Vegas Visit Hammers Tax Wins: https://townhall.com/news/cameron-arcand/2026/08/05/trumps-vegas-hit-hammers-tax-wins-n2680764",
-      "url": "https://trumpstruth.org/statuses/40683",
-      "published": "2026-08-09T02:20:58+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "税改"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
       "relevance": 50,
-      "summary_cn": "Trump 宣传其 Vegas 行程强调税改成就是政绩亮点，宏观利好市场情绪但未点名具体标的。"
+      "summary_cn": "GAO报告认定Musk旗下DOGE虚报$110B联邦节省，监管/可信度风险，可能影响政府合同及Musk系估值。"
     }
   ],
   "held_hits": [],
-  "new_ideas": [],
-  "sector_hits": [
+  "new_ideas": [
     {
       "author": "Musk",
-      "text": "SpaceX Stock Has Plunged 34%. Elon Musk's \"Secret Master Plan\" Points to What Could Come Next.",
+      "text": "See How a Tesla-SpaceX Merger Gives Musk a Shortcut to His $1 Trillion Payday",
       "url": "",
-      "published": "Mon, 10 Aug 2026 16:40:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Yahoo Finance",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天"
-      ],
-      "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "neutral",
-      "relevance": 75,
-      "summary_cn": "媒体：SpaceX 股价已跌34%，Musk所谓'秘密大师计划'或为下一步催化剂——对 SPCX/SPCH 持仓直接相关。"
-    },
-    {
-      "author": "Musk",
-      "text": "Selling the Dream of SpaceX Was the Easy Part. Now Elon Musk Has to Hang On.",
-      "url": "",
-      "published": "Sun, 09 Aug 2026 00:00:00 GMT",
+      "published": "Tue, 11 Aug 2026 01:00:00 GMT",
       "origin": "gnews-rss",
       "source": "WSJ",
-      "tickers": [],
+      "tickers": [
+        "TSLA"
+      ],
       "held": [],
-      "new_ideas": [],
+      "new_ideas": [
+        "TSLA"
+      ],
       "sectors": [
-        "航天"
+        "电动车",
+        "航天/卫星"
       ],
       "sector_holdings": [
         "SPCH",
         "SPCX"
       ],
       "stance": "neutral",
-      "relevance": 72,
-      "summary_cn": "媒体：卖SpaceX估值故事容易，留住它才难——提示二级估值压力，SPCX/SPCH 持仓须关注。"
+      "relevance": 78,
+      "summary_cn": "媒体讨论Tesla-SpaceX合并如何助Musk迈向1万亿美元薪酬包，若合并成行将直接重估kcn持有的SpaceX相关仓位。"
     },
     {
       "author": "Musk",
-      "text": "SpaceX Windfall Leads Ontario Teachers’ to 9.5% First-Half Gain",
+      "text": "Tesla shows first Cybercab with built-in Starlink. Elon Musk explains why it needs one.",
       "url": "",
-      "published": "Mon, 10 Aug 2026 16:41:07 GMT",
+      "published": "Tue, 11 Aug 2026 09:02:30 GMT",
       "origin": "gnews-rss",
-      "source": "bloomberg.com",
-      "tickers": [],
+      "source": "Mashable",
+      "tickers": [
+        "TSLA"
+      ],
       "held": [],
-      "new_ideas": [],
+      "new_ideas": [
+        "TSLA"
+      ],
       "sectors": [
-        "航天"
+        "电动车",
+        "航天/卫星",
+        "通信"
       ],
       "sector_holdings": [
         "SPCH",
         "SPCX"
       ],
       "stance": "endorse",
-      "relevance": 68,
-      "summary_cn": "安大略教师养老金因 SpaceX 头寸上半年获9.5%收益，反映 SpaceX 二级估值仍提供强回报，间接利好 SPCX/SPCH。"
+      "relevance": 72,
+      "summary_cn": "Tesla展示首款内置Starlink的Cybercab，Musk解释为何需要星链，间接利好SpaceX/Starlink生态。"
+    },
+    {
+      "author": "Musk",
+      "text": "In Texas, Elon Musk's empire could soon add a $10 billion Tesla solar plant",
+      "url": "",
+      "published": "Tue, 11 Aug 2026 10:15:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Yahoo Finance",
+      "tickers": [
+        "TSLA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "TSLA"
+      ],
+      "sectors": [
+        "太阳能/能源",
+        "电动车"
+      ],
+      "sector_holdings": [
+        "02208"
+      ],
+      "stance": "neutral",
+      "relevance": 70,
+      "summary_cn": "Tesla在德州拟建$10B太阳能工厂，扩张能源版图，间接利好新能源/光伏产业链（如金风科技等清洁能源标的）。"
+    },
+    {
+      "author": "Musk",
+      "text": "When One Man Controls the Stack: Is Musk Building a Private Technology Monopoly?",
+      "url": "",
+      "published": "Tue, 11 Aug 2026 13:03:42 GMT",
+      "origin": "gnews-rss",
+      "source": "EVWORLD.COM",
+      "tickers": [
+        "TSLA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "TSLA"
+      ],
+      "sectors": [
+        "科技/AI",
+        "电动车",
+        "航天",
+        "社交媒体"
+      ],
+      "sector_holdings": [
+        "MSFU",
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "attack",
+      "relevance": 65,
+      "summary_cn": "媒体质疑Musk一人控制技术栈、构建私人科技垄断的监管/反垄断风险，对Tesla及SpaceX估值有潜在阴影。"
+    },
+    {
+      "author": "Trump",
+      "text": "Chandler Hall, representing, on Television, the foolish Center for American Lack of Progress, stated that adding the National Guard to Cities, including our now Great Again, Washington, D.C., had “NO impact on Crime.” How crazy is that. Hall was met with furious dissent. The report is just another Radical Left SCAM, as are the people who fund this gaggle of Lunatics, including George Soros, Bill and Melinda Gates, Google, Apple, Visa, Goldman Sachs, Citigroup, WellsFargo, Bank of America, Walmart, Toyota, T-Mobile, and NBC Universal. Foreign support includes the Embassy of Japan, the Korea Fou",
+      "url": "https://trumpstruth.org/statuses/40727",
+      "published": "2026-08-11T02:31:44+00:00",
+      "origin": "truthsocial",
+      "tickers": [
+        "GOOGL",
+        "AAPL",
+        "V",
+        "GS",
+        "C",
+        "WFC",
+        "BAC",
+        "WMT",
+        "TM",
+        "TMUS"
+      ],
+      "held": [],
+      "new_ideas": [
+        "AAPL",
+        "BAC",
+        "C",
+        "GOOGL",
+        "GS",
+        "TM",
+        "TMUS",
+        "V",
+        "WFC",
+        "WMT"
+      ],
+      "sectors": [
+        "政治/社会"
+      ],
+      "sector_holdings": [],
+      "stance": "attack",
+      "relevance": 50,
+      "summary_cn": "Trump抨击Center for American Lack of Progress及资助方，含Google、Apple、Visa、Goldman Sachs、Citigroup、Wells Fargo、Bank of America、Walmart、Toyota、T-Mobile、NBC Universal等大企业，纯政治口水，无直接市场含义。"
+    }
+  ],
+  "sector_hits": [
+    {
+      "author": "Musk",
+      "text": "Elon Musk’s Net Worth Tops $800 Billion Again As SpaceX Shares Spike 11%",
+      "url": "",
+      "published": "Fri, 07 Aug 2026 17:43:31 GMT",
+      "origin": "gnews-rss",
+      "source": "forbes.com",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天/卫星",
+        "科技"
+      ],
+      "sector_holdings": [
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "endorse",
+      "relevance": 90,
+      "summary_cn": "Musk净资产再破$8000亿，因SpaceX股价单日涨11%，直接利好kcn持有的SPCX与SPCH（SpaceX 2x杠杆ETF）。"
     },
     {
       "author": "Musk",
@@ -296,15 +453,16 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "航天"
+        "航天/卫星",
+        "AI/半导体制造"
       ],
       "sector_holdings": [
         "SPCH",
         "SPCX"
       ],
       "stance": "endorse",
-      "relevance": 65,
-      "summary_cn": "SpaceX 宣布首期$168亿投资 Terafab 项目，重资本开支强化 SPCX/SPCH 估值想象空间。"
+      "relevance": 88,
+      "summary_cn": "SpaceX宣布$16.8B投资Terafab一期项目，是当前最大制造设施5倍，直接利好kcn持有的SPCX/SPCH（SpaceX敞口）。"
     },
     {
       "author": "Musk",
@@ -317,27 +475,7 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "航天"
-      ],
-      "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "endorse",
-      "relevance": 60,
-      "summary_cn": "Musk 旗下$168亿工厂（Terafab）为现世界最大建筑5倍，凸显 SpaceX 巨额资本开支利好 SPCX/SPCH 持仓。"
-    },
-    {
-      "author": "Musk",
-      "text": "SpaceX plan for vast rocket launch site on Louisiana coast sparks backlash",
-      "url": "",
-      "published": "Mon, 10 Aug 2026 14:00:00 GMT",
-      "origin": "gnews-rss",
-      "source": "The Guardian",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
+        "电动车/制造",
         "航天"
       ],
       "sector_holdings": [
@@ -345,8 +483,8 @@
         "SPCX"
       ],
       "stance": "neutral",
-      "relevance": 55,
-      "summary_cn": "SpaceX 在路易斯安那海岸建大型发射场遭当地反对，扩张执行存不确定性，SPCX/SPCH 间接关注。"
+      "relevance": 68,
+      "summary_cn": "Musk规划$16.8B工厂为现全球最大建筑5倍规模，Musk帝国资本开支叙事，间接利好SpaceX估值预期。"
     }
   ]
 }
