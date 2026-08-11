@@ -1,81 +1,65 @@
 {
-  "generated_at": "2026-08-10T22:19:03.811172+00:00",
+  "generated_at": "2026-08-11T22:24:09.334127+00:00",
   "vix": {
     "symbol": "^VIX",
-    "price": 15.46,
-    "prev": 14.9,
-    "change_pct": 3.76,
-    "as_of": 1786392901,
+    "price": 15.28,
+    "prev": 15.46,
+    "change_pct": -1.16,
+    "as_of": 1786479301,
     "source": "yahoo"
   },
   "treasury_10y": {
     "symbol": "^TNX",
-    "price": 4.699,
-    "prev": 4.66,
-    "change_pct": 0.84,
-    "as_of": 1786388392,
+    "price": 4.684,
+    "prev": 4.699,
+    "change_pct": -0.32,
+    "as_of": 1786474794,
     "source": "yahoo",
-    "yield_pct": 4.699
+    "yield_pct": 4.684
   },
   "dxy": {
     "symbol": "DX-Y.NYB",
-    "price": 99.807,
-    "prev": 99.539,
-    "change_pct": 0.27,
-    "as_of": 1786399498,
+    "price": 99.812,
+    "prev": 99.811,
+    "change_pct": 0.0,
+    "as_of": 1786485897,
     "source": "yahoo"
   },
   "fear_greed": {
-    "score": 64.4,
+    "score": 60.8,
     "rating": "greed",
-    "prev_close": 63.7,
-    "prev_1_week": 50.7,
-    "as_of": "2026-08-10T22:02:08+00:00"
+    "prev_close": 64.4,
+    "prev_1_week": 60.0,
+    "as_of": "2026-08-11T22:04:26+00:00"
   },
   "hsi": {
     "symbol": "^HSI",
-    "price": 25937.49,
-    "prev": 25668.03,
-    "change_pct": 1.05,
+    "price": 25652.82,
+    "prev": 25937.49,
+    "change_pct": -1.1,
     "source": "tencent"
   },
   "hstech": {
     "symbol": "^HSTECH",
-    "price": 4919.46,
-    "prev": 4858.29,
-    "change_pct": 1.26,
+    "price": 4824.42,
+    "prev": 4919.46,
+    "change_pct": -1.93,
     "source": "tencent"
   },
   "spx": {
     "symbol": "^GSPC",
-    "price": 7753.11,
-    "prev": 7757.64,
-    "change_pct": -0.06,
-    "as_of": 1786394316,
+    "price": 7728.2,
+    "prev": 7753.11,
+    "change_pct": -0.32,
+    "as_of": 1786480445,
     "source": "yahoo"
   },
   "nasdaq": {
     "symbol": "^IXIC",
-    "price": 26605.36,
-    "prev": 26690.62,
-    "change_pct": -0.32,
+    "price": 26445.45,
+    "prev": 26605.36,
+    "change_pct": -0.6,
     "source": "tencent"
   },
-  "fed_press": [
-    {
-      "date": "2026-08-04",
-      "title": "Federal Reserve Board announces approval of the application by Coastal Bend Bancshares, Inc.",
-      "url": "https://www.federalreserve.gov/newsevents/pressreleases/orders20260804c.htm"
-    },
-    {
-      "date": "2026-08-04",
-      "title": "Federal Reserve Board announces approval of the application by FS Bancorp, Inc.",
-      "url": "https://www.federalreserve.gov/newsevents/pressreleases/orders20260804b.htm"
-    },
-    {
-      "date": "2026-08-04",
-      "title": "Federal Reserve Board announces approval of the application by Banco Santander, S.A. and Santander Holdings USA, Inc.",
-      "url": "https://www.federalreserve.gov/newsevents/pressreleases/orders20260804a.htm"
-    }
-  ]
+  "fed_press": []
 }
