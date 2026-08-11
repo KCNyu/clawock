@@ -4,21 +4,33 @@ This repository is two things at once, and which one you are touching decides
 whether a patch can be merged at all. Read that split first; it is the whole
 policy.
 
-## The product is open. The live book is not.
+## The product takes patches. The live book does not.
 
-- **Product — patches welcome.** The portable package under `src/clawock/`, its
-  tests under `tests/`, the CLI, the workflow packs under `skills/`, the docs,
-  and the operations code under `ops/`. These are what `pip install clawock`
-  gives someone with their own agent, their own broker and their own deployment.
-  Bugs here affect every user, and a fix is a real contribution.
+- **Product — patches welcome.** The portable package under `src/clawock/`
+  (including the workflow packs it ships in `src/clawock/workflows/packs/`), its
+  tests under `tests/`, and the documentation. This is what `pip install
+  clawock` gives someone with their own agent, their own broker and their own
+  deployment — the wheel contains `src/clawock/` and nothing else — so a bug
+  here affects every user, and a fix is a real contribution.
 
-- **Instance — not a contribution surface.** `portfolio.json`, `memory/`,
-  `assets/data/`, `logs/`, the published site data, and
-  `instances/kcnyu/` are one investment desk's live state and its adapter. They
-  are written continuously by scheduled automation through protected paths and
-  deploy keys, and they record real positions. A pull request that edits
-  generated data or the KCNyu instance will be closed — not because the work is
-  unwelcome, but because merging it would rewrite a live ledger.
+- **Repository operations — patches welcome, with a caveat.** `ops/`,
+  `.github/workflows/` and `.githooks/` are not part of the published package;
+  they wire this repository, its CI and this host. Fixes are useful, but some of
+  these paths hold credentials or publish to protected branches, so expect them
+  to be reviewed on what they could do rather than on what they are meant to do.
+
+- **The live book — not an editable surface.** `portfolio.json`, `memory/`,
+  `assets/data/`, `logs/` and the published site data are one desk's real
+  positions and the artifacts generated from them, rewritten continuously by
+  scheduled automation through protected paths and deploy keys. They are public
+  to read and to check — that is the point of the scorecard — but a pull request
+  that edits them will be closed, because merging it would amend a live ledger.
+
+- **`instances/kcnyu/` — source, but one desk's behavior.** It is ordinary
+  version-controlled code changed through normal PRs, not generated state. It
+  encodes this desk's schedule, thresholds and delivery, so a change there needs
+  the maintainer to want it. If the same fix can live in `src/clawock/`, that is
+  where it belongs.
 
 `docs/reference/product-vs-instance.md` states the ownership rule per directory.
 The deciding question there is the same one to ask before opening a PR: *would a
@@ -45,7 +57,7 @@ open an issue at all — see [`SECURITY.md`](SECURITY.md).
 ```bash
 git clone https://github.com/KCNyu/clawock
 cd clawock
-pip install -e .
+pip install -e '.[test]'   # the extra carries what the suite needs to *collect*
 pytest -q
 ```
 

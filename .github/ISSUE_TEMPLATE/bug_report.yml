@@ -34,7 +34,7 @@ body:
     attributes:
       label: clawock version
       description: Output of `clawock --version`. If you are running from a source checkout, say so and give the commit.
-      placeholder: "clawock 0.1.1"
+      placeholder: "clawock X.Y.Z"
     validations:
       required: true
   - type: input

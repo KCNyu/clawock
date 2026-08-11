@@ -5,7 +5,7 @@ contact_links:
     about: Private disclosure, read only by the maintainer. Never use a public issue for this.
   - name: What can be contributed, and what cannot
     url: https://github.com/KCNyu/clawock/blob/master/.github/CONTRIBUTING.md
-    about: The package is open to patches; the live book is generated state and is not a contribution surface.
+    about: The package takes patches; the live book is generated state and is not an editable surface.
   - name: Live dashboard and public scorecard
     url: https://kcnyu.github.io/clawock/
-    about: The published instance — every graded call, including the ungradeable ones.
+    about: The published instance — every call, including the ones that could not be graded.

@@ -31,13 +31,15 @@ It is a release because `README.md` is shipped verbatim as the PyPI
   moved every module it counted. The catalog is now
   `config/information-layers.json`: every packaged command sits in exactly one
   layer or on an exclusion list with the reason it is not information
-  collection, and the tables in both READMEs are checked against it. Re-derived
-  from the package, the count is 38, and two layer names that no longer
-  described their members were corrected. ([#476])
+  collection, and the tables in both READMEs are checked against it. The
+  partition covers both distributions' command registries, so nothing counted
+  can be typed by hand. Re-derived, the count is 39, and two layer names that no
+  longer described their members were corrected. ([#476])
 
 ### Added
 
-- `SECURITY.md` naming GitHub private vulnerability reporting, a
+- `SECURITY.md` naming GitHub private vulnerability reporting — now enabled on
+  the repository, so the channel it points at exists — a
   `CONTRIBUTING.md` stating which parts of the repository can accept a patch
   (the package can; the live book cannot), and a bug-report issue template.
   Installable packages need a disclosure channel; a repository someone only

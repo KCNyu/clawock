@@ -49,6 +49,7 @@ correct and only has to stay on the list that says why.
 """
 import ast
 import re
+import subprocess
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -438,26 +439,35 @@ HOST_OWNED_SHELL = {
            "key kept outside the repository"),
 }
 
-# `.githooks/` has no `.sh` suffix and `examples/` is the wheel proof — a
-# host path in either would be a real defect, so both are in the walk even
-# though nothing in them is expected to match.
-SHELL_ROOTS = ("ops", "instances", ".githooks", "examples")
-
-
 def _shell_files():
-    for root in SHELL_ROOTS:
-        for path in sorted((ROOT / root).rglob("*")):
-            if not path.is_file():
-                continue
-            if path.suffix == ".sh":
-                yield path
-                continue
-            try:
-                first = path.open(encoding="utf-8", errors="ignore").readline()
-            except OSError:
-                continue
-            if first.startswith("#!") and "sh" in first:
-                yield path
+    """Every tracked shell file in the repository, found rather than listed.
+
+    A hand-listed set of roots is the same defect one level up: the Python scan
+    listed `scripts/**` and walked zero files after #429 deleted it, while
+    `ops/` — where the code went — was never added. A new `skills/x/live.sh` or
+    `.github/scripts/deploy.sh` would be invisible to a root list while every
+    anti-vacuity assertion below stayed green. `git ls-files` is also the right
+    boundary for a different reason: an untracked script on this host is not
+    something the repository claims anything about.
+
+    Recognised by suffix or by shebang, because `.githooks/pre-commit` has no
+    suffix and is exactly where this family of defect has shipped before (#445).
+    """
+    listing = subprocess.run(["git", "ls-files", "-z"], cwd=ROOT,
+                             capture_output=True, text=True, check=True)
+    for name in sorted(filter(None, listing.stdout.split("\0"))):
+        path = ROOT / name
+        if not path.is_file():
+            continue
+        if path.suffix == ".sh":
+            yield path
+            continue
+        try:
+            first = path.open(encoding="utf-8", errors="ignore").readline()
+        except OSError:
+            continue
+        if first.startswith("#!") and "sh" in first:
+            yield path
 
 
 def _strip_comment(line: str) -> str:
@@ -482,6 +492,13 @@ def _strip_comment(line: str) -> str:
 
 _SHELL_TOKEN = re.compile(r"[^\s\"'=:;()<>&|`,\[\]{}]+")
 
+# `OC=.openclaw` then `WS=/root/$OC/workspace` is the cheapest way past a
+# token-by-token path matcher, and it is one line of ordinary shell. Requiring
+# whitespace before the name keeps `--source=openclaw` — the multi-source label
+# the Python classifier deliberately does not count — out of it.
+_RUNTIME_ASSIGNMENT = re.compile(
+    rf"""(?:^|\s)[A-Za-z_][A-Za-z0-9_]*=["']?\.?{RUNTIME}(?:["']?(?:\s|$|/))""")
+
 
 def runtime_paths_in_shell(text: str) -> list[int]:
     """Line numbers where a shell script spells out one of the runtime's paths.
@@ -491,11 +508,20 @@ def runtime_paths_in_shell(text: str) -> list[int]:
     private file, never a bare mention. `[openclaw-patches]` is a log prefix and
     `openclaw core` in a sentence is prose; `/root/.openclaw/workspace` and
     `node_modules/openclaw` are layout.
+
+    The limit, stated rather than left for someone to find: this reads literal
+    text. A path assembled from a variable the script never spells out — one
+    exported by a caller, or read from a config file — is not caught, and the
+    honest reason to accept that is the same one the Python side accepts for a
+    flagless argv vector: the alternative punishes the parameterised form, which
+    is the form we want. What it does catch is the one-line version, where the
+    runtime's own directory name is assigned to a variable.
     """
     found = []
     for number, raw in enumerate(text.splitlines(), start=1):
         code = _strip_comment(raw)
-        if any(_is_runtime_path(token) for token in _SHELL_TOKEN.findall(code)):
+        if (any(_is_runtime_path(token) for token in _SHELL_TOKEN.findall(code))
+                or _RUNTIME_ASSIGNMENT.search(code)):
             found.append(number)
     return found
 
@@ -513,12 +539,19 @@ def test_only_the_documented_shell_entry_points_name_this_host():
     # Anti-vacuity, the same failure mode as above: an empty walk and a clean
     # repository both produce "nothing outside the allowlist".
     files = list(_shell_files())
-    assert len(files) > 10, f"only {len(files)} shell files walked — did a root move?"
+    assert len(files) > 10, f"only {len(files)} shell files walked — did the walk break?"
+    walked = {path.relative_to(ROOT).as_posix() for path in files}
     for expected in (".githooks/pre-commit", "ops/publish/safe_push.sh",
                      "examples/minimal-run/run.sh"):
-        assert any(path.relative_to(ROOT).as_posix() == expected for path in files), (
+        assert expected in walked, (
             f"{expected} is outside the shell walk; the walk is not looking "
             "where host paths could be written")
+    # And the walk must not be scoped to the directories that happen to have a
+    # script today: the roots it would have listed are not the whole repository.
+    assert any(not name.startswith(("ops/", "instances/", ".githooks/"))
+               for name in walked), (
+        "every shell file found is under an ops-shaped path; if the discovery "
+        "silently narrowed, a new script elsewhere would never be seen")
 
     sites = host_naming_shell()
     detail = "\n".join(f"  {name}: lines {lines}" for name, lines in sorted(sites.items()))
@@ -563,3 +596,11 @@ def test_a_shell_comment_is_not_coupling_and_an_assignment_is():
     assert runtime_paths_in_shell('printf "%s\\n" "${name#openclaw-}"\n') == [], (
         "a parameter expansion is not a path, and the comment stripper must not "
         "cut it either")
+    # The one-line way around a token matcher, and the label that must not be
+    # mistaken for it.
+    assert runtime_paths_in_shell("OC=.openclaw\nWS=/root/$OC/workspace\n") == [1], (
+        "assigning the runtime's own directory name is naming the host; the "
+        "composed line after it is not separately visible, which is the "
+        "documented limit")
+    assert runtime_paths_in_shell("exec cron_timeline --source=openclaw --json\n") == [], (
+        "--source openclaw|gha|crontab is the multi-source design, not coupling")
