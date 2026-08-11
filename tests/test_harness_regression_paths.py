@@ -7,6 +7,8 @@ later (thesis and earnings schemas, evidence policies, peer rules) silently fell
 outside the gate — a config-only PR reported green in seconds without running the
 tests that read that config. These assertions keep the directory-wide form.
 """
+import subprocess
+from fnmatch import fnmatch
 from pathlib import Path
 
 from workflow_contract_helpers import case_patterns, push_paths
@@ -40,8 +42,27 @@ def test_every_shipped_config_file_matches_the_gate():
     assert all(name.startswith("config/") for name in CONFIG_FILES)
 
 
-def test_scripts_and_tests_stay_gated():
-    for pattern in ("scripts/*", "tests/*"):
+def test_code_and_tests_stay_gated():
+    # `scripts/` was retired in #429; its code lives under src/, ops/ and
+    # instances/, which carry their own entries here.
+    assert not (ROOT / "scripts").exists()
+    for pattern in ("src/*", "tests/*"):
         assert pattern in case_patterns(WORKFLOW_PATH)
-    for pattern in ("scripts/**", "tests/**"):
+    for pattern in ("src/**", "ops/**", "instances/**", "tests/**"):
         assert pattern in push_paths(WORKFLOW_PATH)
+
+
+def test_no_push_path_matches_nothing_in_the_checkout():
+    # A path that matches no file is not a gate. #399 moved the dashboard under
+    # `site/` and left `assets/css/**`, `assets/js/**` and `index.html` behind:
+    # they kept passing review because they read correctly, while every
+    # stylesheet and script edit stopped triggering the workflow at all.
+    tracked = subprocess.run(
+        ["git", "ls-files"], cwd=ROOT, capture_output=True, text=True, check=True,
+    ).stdout.split()
+    assert tracked, "empty checkout would make this assertion vacuous"
+    dead = [
+        pattern for pattern in push_paths(WORKFLOW_PATH)
+        if not any(fnmatch(name, pattern.replace("**", "*")) for name in tracked)
+    ]
+    assert dead == [], f"path filter matches no tracked file: {dead}"
