@@ -19,13 +19,19 @@ Nothing yet.
 
 ## [0.1.2] — 2026-08-11
 
-Documentation and repository policy only; no behavior in the package changed.
-It is a release because `README.md` is shipped verbatim as the PyPI
-`long_description`, and a published page cannot be re-rendered — the same reason
-0.1.1 existed.
+Mostly documentation and repository policy. It is a release because `README.md`
+is shipped verbatim as the PyPI `long_description`, and a published page cannot
+be re-rendered — the same reason 0.1.1 existed.
 
 ### Fixed
 
+- The numeric provenance advisory now recognises `%`, `pp`, `x`/`×` and `σ`, and
+  matches context per unit rather than against one flat set of numbers, so a
+  figure like `2.3x` is no longer waved through by a match on an unrelated
+  quantity. The intraday insights sidecar is normalised before publication:
+  model-owned narrative is kept, the `generated_at` stamp is the harness's own
+  UTC clock, and a missing or malformed sidecar stays warn-only so report
+  delivery is not held hostage to it. ([#485])
 - The README's widest claim about the system — "26 fetch and compute modules
   across 8 layers" — had no artifact behind it and had survived #429, which
   moved every module it counted. The catalog is now
@@ -80,6 +86,7 @@ environment — and completes one full run. ([#436], [#379])
 [#468]: https://github.com/KCNyu/clawock/pull/468
 [#469]: https://github.com/KCNyu/clawock/pull/469
 [#476]: https://github.com/KCNyu/clawock/issues/476
+[#485]: https://github.com/KCNyu/clawock/pull/485
 [#477]: https://github.com/KCNyu/clawock/issues/477
 [#478]: https://github.com/KCNyu/clawock/issues/478
 [Unreleased]: https://github.com/KCNyu/clawock/compare/v0.1.2...HEAD
