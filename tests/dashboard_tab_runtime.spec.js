@@ -464,6 +464,50 @@ async function testTopbarFitsWhenRefreshLabelSwaps(browser, base) {
   await stress.close();
 }
 
+// The header is full-bleed by design — background, shadow and rule cross the
+// whole viewport — but everything it holds belongs to the same column as the
+// cards. `main` stops at 1600px; the header's padding did not, so past that
+// width the wordmark and the tab strip kept walking outward while the content
+// stood still (172px of drift at 1920, 492px at 2560).
+async function testHeaderSharesTheContentColumn(browser, base) {
+  for (const width of [1280, 1920, 2560]) {
+    const page = await browser.newPage({ viewport: { width, height: 900 } });
+    await stubLiveOrigin(page);
+    await page.goto(base, { waitUntil: "networkidle" });
+    await waitForData(page);
+    const m = await page.evaluate(() => {
+      const box = el => el.getBoundingClientRect();
+      const main = document.querySelector("main");
+      const style = getComputedStyle(main);
+      const tabs = document.querySelector(".tabs");
+      const topbar = document.querySelector(".topbar");
+      const tabsRule = parseFloat(getComputedStyle(tabs).borderBottomWidth) || 0;
+      return {
+        columnLeft: box(main).left + parseFloat(style.paddingLeft),
+        columnRight: box(main).right - parseFloat(style.paddingRight),
+        brandLeft: box(document.querySelector(".brand-mark")).left,
+        tabLeft: box(document.querySelector(".tab-btn")).left,
+        refreshRight: box(document.getElementById("refresh-btn")).right,
+        // A rule that stops at the column edge, one pixel above the header's
+        // own full-bleed rule, draws a visible step where they part company.
+        doubledRule: tabsRule > 0 &&
+          box(topbar).bottom - box(tabs).bottom <= 2 &&
+          box(tabs).width < box(topbar).width,
+      };
+    });
+    const off = (a, b) => Math.abs(a - b);
+    assert(off(m.brandLeft, m.columnLeft) <= 1,
+      `wordmark is ${off(m.brandLeft, m.columnLeft)}px off the content column at ${width}px`);
+    assert(off(m.tabLeft, m.columnLeft) <= 1,
+      `tab strip is ${off(m.tabLeft, m.columnLeft)}px off the content column at ${width}px`);
+    assert(off(m.refreshRight, m.columnRight) <= 1,
+      `refresh button is ${off(m.refreshRight, m.columnRight)}px off the column's right edge at ${width}px`);
+    assert(!m.doubledRule,
+      `a column-width rule sits on the header's full-bleed rule at ${width}px`);
+    await page.close();
+  }
+}
+
 async function main() {
   const server = serveWorkspace();
   await new Promise(resolve => server.listen(0, "127.0.0.1", resolve));
@@ -478,6 +522,7 @@ async function main() {
     await testEquityTouch(browser, base);
     await testTabGuardWithoutForcedLayout(browser, base);
     await testTopbarFitsWhenRefreshLabelSwaps(browser, base);
+    await testHeaderSharesTheContentColumn(browser, base);
   } finally {
     await browser.close();
     await new Promise(resolve => server.close(resolve));
