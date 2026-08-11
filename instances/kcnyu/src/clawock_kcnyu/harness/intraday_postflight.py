@@ -39,7 +39,7 @@ the existing single publisher exposes without introducing another git writer.
 import argparse
 import json
 import sys
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 
 from clawock.harness.validation import (
@@ -62,6 +62,7 @@ from ._watchdog_common import resolve_wechat_target, send_wechat, cosend_telegra
 
 from clawock.workspace import workspace_root
 from clawock.market_data import sessions as trading_calendar
+from clawock.safe_io import safe_write_json
 
 WS = workspace_root(Path.cwd())
 _CHECKOUT = WS
@@ -139,6 +140,32 @@ def input_error(market, err):
     }
     print(json.dumps(result, ensure_ascii=False, indent=2))
     return 2
+
+
+def normalize_intraday_insights(path, generated_at=None):
+    """Replace model metadata with the current harness generation timestamp.
+
+    The model owns narrative only. Malformed/missing sidecars are dashboard
+    degradation, never a reason to suppress the deterministic market report.
+    """
+    if not path.exists():
+        return False
+    try:
+        payload = json.loads(path.read_text())
+        if not isinstance(payload, dict):
+            raise ValueError('top-level JSON must be an object')
+        canonical = {
+            'generated_at': generated_at or datetime.now(timezone.utc).isoformat(
+                timespec='seconds').replace('+00:00', 'Z'),
+            'status_banner': payload.get('status_banner'),
+            'movers': payload.get('movers'),
+        }
+        safe_write_json(str(path), canonical)
+        return True
+    except Exception as exc:
+        print(f'warn: {path.name} 解析/规范化失败 — dashboard status_banner 将忽略: '
+              f'{exc}', file=sys.stderr)
+        return False
 
 
 def assemble_message(ctx, prose):
@@ -374,10 +401,15 @@ def main(argv=None):
     # dropped Step 2.5 and nothing noticed for 6 days. A missing narrative
     # sidecar must never block/clutter the report (kcn: no per-cron alerts),
     # but it should leave a visible trace in the cron run log + result JSON.
-    insights_path = TMP / f'intraday-insights-{datetime.now().strftime("%Y-%m-%d")}.json'
-    insights_written = insights_path.exists()
+    sidecar_date = ctx.get('date')
+    try:
+        datetime.strptime(str(sidecar_date), '%Y-%m-%d')
+    except (TypeError, ValueError):
+        sidecar_date = datetime.now().strftime('%Y-%m-%d')
+    insights_path = TMP / f'intraday-insights-{sidecar_date}.json'
+    insights_written = normalize_intraday_insights(insights_path)
     if not insights_written:
-        print(f'warn: {insights_path.name} 未写 — dashboard status_banner 将过期隐藏 '
+        print(f'warn: {insights_path.name} 缺失或不可用 — dashboard status_banner 将过期隐藏 '
               f'(SKILL Mode 7 Step 2.5 / cron payload Step 2.5)', file=sys.stderr)
 
     # The banner counts and lists ESCALATING issues only; advisory findings get

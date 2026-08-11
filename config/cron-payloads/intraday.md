@@ -24,8 +24,9 @@ clawock intraday preflight --market {{market}}
 **Step 2.5 - 状态横幅 sidecar（dashboard 顶部横幅 + Movers 归因，别跳过）**
 写 `memory/.tmp/intraday-insights-{今天YYYY-MM-DD}.json`（完整规范见 `skills/_shared/intraday-status-sidecar.md`）：
 ```json
-{"generated_at": "<ISO8601 UTC>", "status_banner": "≤50字：regime+今日盈亏主来源+最该盯的一件事", "movers": {"代码": "≤40字归因+操作含义"}}
+{"status_banner": "≤50字：regime+今日盈亏主来源+最该盯的一件事", "movers": {"代码": "≤40字归因+操作含义"}}
 ```
+- 模型只写 `status_banner` / `movers`；`generated_at` 由 postflight harness 写入真实 UTC，禁止自行生成时间。
 - `movers` 覆盖 context 里 anomalies/today_movers 的每个票；杠杆 ETF 点明"杠杆放大"
 - 只用 context 真实数字，不确定催化就写"无明确个股催化，纯 beta"，不编造
 - 只输出文本，绝不写任何 key；写完再走 Step 3

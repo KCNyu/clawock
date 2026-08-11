@@ -194,6 +194,46 @@ def test_main_delivers_block_plus_prose_on_the_happy_path(run_main, sent):
         assert line in body
 
 
+def test_main_replaces_model_authored_future_sidecar_time(
+    run_main, sent, tmp_path
+):
+    """The 2026-08-11 trajectory wrote local 10:02 with a UTC offset (+8h).
+    Postflight must persist the prose but never that model-authored clock."""
+    path = tmp_path / 'intraday-insights-2026-08-11.json'
+    future = '2026-08-11T10:02:00+00:00'
+    path.write_text(json.dumps({
+        'generated_at': future,
+        'status_banner': 'low 12% 区间底，先观察',
+        'movers': {'02208': '无明确个股催化，观望'},
+        'model_metadata': 'must not survive',
+    }, ensure_ascii=False))
+
+    rc, out = run_main(
+        PROSE, context_id='abc123def456',
+        ctx=_ctx(date='2026-08-11', generated_at='2026-08-11T10:01:59'),
+    )
+
+    persisted = json.loads(path.read_text())
+    assert rc == 0 and out['insights_sidecar'] is True
+    assert persisted['generated_at'] != future
+    assert persisted['generated_at'].endswith('Z')
+    assert set(persisted) == {'generated_at', 'status_banner', 'movers'}
+    assert persisted['status_banner'] == 'low 12% 区间底，先观察'
+    assert '▎我的看法' in sent['messages'][0]
+
+
+def test_malformed_sidecar_never_suppresses_delivery(run_main, sent, tmp_path):
+    path = tmp_path / 'intraday-insights-2026-08-11.json'
+    path.write_text('{"status_banner":')
+
+    rc, out = run_main(
+        PROSE, context_id='abc123def456', ctx=_ctx(date='2026-08-11'))
+
+    assert rc == 0 and out['status'] == 'pass'
+    assert out['insights_sidecar'] is False
+    assert '▎我的看法' in sent['messages'][0]
+
+
 def test_publish_failure_is_loud_after_report_delivery(
     run_main, sent, pf, monkeypatch
 ):
