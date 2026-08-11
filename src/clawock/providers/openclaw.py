@@ -247,8 +247,9 @@ def run_cron_job(job_id, *, binary: str | None = None,
 
     This exists because the runtime's own transient retry is budgeted by
     `consecutiveErrors`, which only resets on success and is not per slot: a job
-    that gets one attempt a day loses its retry after three bad days and keeps
-    it lost (#493). Recovery for such a job has to be driven from outside the
+    that gets one attempt a day loses its retry after `cron.retry.maxAttempts`
+    bad days (5 on the live host, 3 by runtime default) and keeps it lost
+    (#493). Recovery for such a job has to be driven from outside the
     scheduler's own accounting.
     """
     selected_binary = binary or runtime_paths().binary

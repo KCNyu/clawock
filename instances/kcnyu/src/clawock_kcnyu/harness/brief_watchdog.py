@@ -110,8 +110,9 @@ def retrigger_or_wait(today, dry_run):
     Why re-run here rather than leave it to 09:05's off-host fallback: the
     runtime's own transient retry is what rescues every other job from the
     provider's first-call timeouts, and the brief cannot get it — the budget is
-    `consecutiveErrors > 3`, and that counter only resets on a success a
-    once-a-day job never reaches while it is failing (#493). A brief run takes
+    `consecutiveErrors > cron.retry.maxAttempts` (5 on this host), and that
+    counter only resets on a success a once-a-day job never reaches while it is
+    failing (#493). A brief run takes
     9-19 minutes, so one started at 08:30 still lands before the 09:05 miss
     detector, which keeps its alert and its off-host dispatch either way.
 

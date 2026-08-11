@@ -4,8 +4,9 @@ On 2026-08-11 there was no brief at all. The 08:00 run died on a MiniMax
 response-header timeout — the same first-call timeout that hit nine other jobs
 that morning, all of which the runtime retried minutes later and all of which
 then succeeded. The brief did not get that retry: the runtime stops retrying at
-`consecutiveErrors > 3`, and that counter only resets on a success, which a job
-with one attempt a day never reaches while it is failing. It stood at 8 (#493).
+`consecutiveErrors > cron.retry.maxAttempts` — 5 in this host's config, 3 by
+runtime default — and that counter only resets on a success, which a job with
+one attempt a day never reaches while it is failing. It stood at 8 (#493).
 
 Meanwhile the 08:30 watchdog logged `skip`, reasoning from the absence of a file
 that the brief might still be landing — 29 minutes after the run it was waiting
