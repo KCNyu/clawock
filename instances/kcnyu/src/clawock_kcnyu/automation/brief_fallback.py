@@ -19,6 +19,13 @@ from pathlib import Path
 from clawock_kcnyu.automation.llm import chat
 from clawock.decision import ledger as decision_v2
 
+# Output budget for the single-turn brief. Thinking is enabled, and _call_provider
+# takes its reasoning budget out of this same allowance, so the usable prose budget is
+# BRIEF_MAX_TOKENS minus up to 16000. Sized against the real artifact: briefs run ~33KB
+# (~20K tokens) plus the trailing plan.json block, so this leaves roughly 4x headroom
+# and stays well under MiniMax M3's 131072 cap. See the call site for why 32000 failed.
+BRIEF_MAX_TOKENS = 96000
+
 
 def split_brief_and_plan(out):
     """(markdown, plan_json_str) from the model output.
@@ -270,10 +277,20 @@ def main():
         f"格式: 1) 完整 brief markdown (按 SKILL); 2) 末尾 ```json``` plan.json. 直接出 brief, 不要客套."
     )
 
-    # Use full mimo-v2.5-pro cap (32K) + thinking enabled for brief depth.
+    # BRIEF_MAX_TOKENS, not 32000: that old number was mimo-v2.5-pro's cap, left behind
+    # when MiniMax M3 became primary on 2026-06-16 (M3 maxOutput is 131072, and chat()
+    # now clamps per provider, so a budget above mimo's cap no longer breaks the Xiaomi
+    # fallback). 32000 was not merely conservative, it was fatal: chat() leaves thinking
+    # enabled, so _call_provider spends min(max_tokens-1024, 16000) of the SAME output
+    # budget on reasoning — half of it — leaving ~16K for prose. The brief runs ~33KB.
+    # On 2026-08-11 that produced `102644 in / 32000 out (stop=max_tokens)`: the markdown
+    # was truncated mid-body, the trailing ```json``` plan block was never emitted, and
+    # validation correctly refused to write anything. Net effect: the only automatic
+    # recovery path could not physically emit a complete brief.
     # timeout=900: the full-context brief prefills ~116KB and thinks before emitting
     # ~20K tokens; the 180s default timed out 3x on 2026-07-16 and killed the run.
-    out = chat(system=system, user=user, max_tokens=32000, temperature=0.6, timeout=900)
+    out = chat(system=system, user=user, max_tokens=BRIEF_MAX_TOKENS,
+               temperature=0.6, timeout=900)
 
     # Split markdown + plan.json (see split_brief_and_plan for the tolerance rules).
     md_part, json_part = split_brief_and_plan(out)

@@ -19,6 +19,7 @@ session transcript. transcript_loop_score detects that directly and cleanly
 import json
 import subprocess
 import sys
+import time
 from collections import Counter
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
@@ -288,6 +289,118 @@ def dispatch_brief_fallback(dry_run=False):
         return r.returncode == 0, (r.stdout + r.stderr)[-400:]
     except Exception as e:
         return False, str(e)[:300]
+
+
+BRIEF_FALLBACK_WORKFLOW = 'brief-fallback.yml'
+# 09:05 dispatch + this budget must finish before 10:00 HKT, after which
+# brief-fallback.yml refuses to build a pre-open brief anyway. Observed runtime is
+# ~5-8 min (2026-08-11: 8m01s), so 15 min covers a slow run without risking the
+# hard cutoff, and a timeout here is reported as 'pending', never as success.
+BRIEF_FALLBACK_POLL_BUDGET_S = 15 * 60
+BRIEF_FALLBACK_POLL_INTERVAL_S = 30
+
+
+def _parse_iso(value):
+    """Timezone-aware datetime from an ISO-8601 string, or None.
+
+    Both offset forms have to normalise to the same instant: the dispatch timestamp is
+    written in HKT (`...T09:05:04+08:00`) while GitHub reports `createdAt` in UTC
+    (`...T01:05:04Z`). Comparing those as strings ranks the UTC one earlier and drops
+    the very run we just dispatched, which would make every outcome 'unknown'."""
+    if not value:
+        return None
+    try:
+        return datetime.fromisoformat(str(value).replace('Z', '+00:00'))
+    except ValueError:
+        return None
+
+
+def _gh_json(args, timeout=60):
+    """Run a `gh` command expecting JSON on stdout. Returns parsed JSON or None."""
+    try:
+        r = subprocess.run(['gh'] + args, capture_output=True, text=True,
+                           timeout=timeout, cwd=str(WS))
+    except Exception:
+        return None
+    if r.returncode != 0:
+        return None
+    try:
+        return json.loads(r.stdout)
+    except Exception:
+        return None
+
+
+def await_brief_fallback_outcome(since_iso, dry_run=False,
+                                 budget_s=BRIEF_FALLBACK_POLL_BUDGET_S,
+                                 interval_s=BRIEF_FALLBACK_POLL_INTERVAL_S,
+                                 sleep=time.sleep, now=None):
+    """Block until the dispatched brief-fallback run finishes. Returns (state, detail).
+
+    state is one of 'success' | 'failure' | 'pending' | 'unknown'.
+
+    Why this exists (2026-08-11): `dispatch_brief_fallback` returns the exit status of
+    `gh workflow run`, i.e. "the dispatch was accepted" — and the 09:05 alert used that
+    to tell kcn "✅ 已 dispatch ... 约 5-10 分钟落盘并 push". That day the dispatch was
+    accepted and the run failed 8 minutes later (the model hit max_tokens, so plan.json
+    never validated and nothing was written). Both the on-box 08:00 path and the only
+    automatic recovery path were dead, and the last signal kcn received was a green
+    check. Detecting a miss and then reporting a fabricated success is worse than not
+    detecting it, so the miss alert now reports what the run actually did.
+
+    Never returns 'success' on a timeout or on any lookup failure: an unverified run is
+    'pending'/'unknown', which the alert renders as "outcome unverified", not as done."""
+    now = now or (lambda: datetime.now(HKT))
+    if dry_run:
+        return 'pending', '(dry-run) outcome polling skipped'
+
+    deadline = now().timestamp() + budget_s
+    # A dispatch we cannot date cannot be used to reject stale runs, so fall back to
+    # "any run" rather than silently discarding every candidate.
+    since = _parse_iso(since_iso)
+    run = None
+    while True:
+        runs = _gh_json(['run', 'list', '--workflow', BRIEF_FALLBACK_WORKFLOW,
+                         '--event', 'workflow_dispatch', '--limit', '5',
+                         '--json', 'databaseId,status,conclusion,url,createdAt'])
+        if runs:
+            # Only consider runs created at/after our dispatch, so a stale earlier
+            # run can never be mistaken for this one's outcome. Compared as instants:
+            # the two sides arrive in different timezones (see _parse_iso).
+            dated = [(r, _parse_iso(r.get('createdAt'))) for r in runs]
+            fresh = [(r, t) for r, t in dated
+                     if t is not None and (since is None or t >= since)]
+            if fresh:
+                run = max(fresh, key=lambda rt: rt[1])[0]
+        if run and run.get('status') == 'completed':
+            conclusion = run.get('conclusion') or 'unknown'
+            url = run.get('url') or ''
+            if conclusion == 'success':
+                return 'success', url
+            return 'failure', f'{conclusion} {url} {_gh_run_failure_detail(run)}'.strip()
+        if now().timestamp() + interval_s > deadline:
+            if run:
+                return 'pending', (f'still {run.get("status") or "unknown"} after '
+                                   f'{budget_s // 60}min: {run.get("url") or ""}')
+            return 'unknown', f'no workflow_dispatch run found within {budget_s // 60}min'
+        sleep(interval_s)
+
+
+def _gh_run_failure_detail(run, max_len=300):
+    """Best-effort one-line reason a fallback run failed; '' when unavailable."""
+    run_id = run.get('databaseId')
+    if not run_id:
+        return ''
+    try:
+        r = subprocess.run(['gh', 'run', 'view', str(run_id), '--log-failed'],
+                           capture_output=True, text=True, timeout=120, cwd=str(WS))
+    except Exception:
+        return ''
+    if r.returncode != 0:
+        return ''
+    # Keep the last real output lines; the failing step's error is at the tail.
+    lines = [ln.split('\t')[-1].strip() for ln in r.stdout.splitlines() if ln.strip()]
+    lines = [ln for ln in lines if not ln.startswith('##[group]')]
+    return ' / '.join(lines[-3:])[:max_len]
 
 
 def cosend_telegram(message, tag, dry_run=False):

@@ -53,6 +53,7 @@ DEFAULT_MODEL = 'mimo-v2.5-pro'
 MINIMAX_BASE = 'https://api.minimaxi.com/anthropic'
 MINIMAX_MODEL = 'MiniMax-M3'
 MINIMAX_MAX_TOKENS = 131072  # M3 maxOutput
+XIAOMI_MAX_TOKENS = 32000  # mimo-v2.5-pro maxOutput — far below M3's
 ANTHROPIC_VERSION = '2023-06-01'
 TIMEOUT = 180  # 3 min per call
 MAX_RETRIES = 3
@@ -236,7 +237,8 @@ def chat(system: str = '', user: str = '', messages: list = None,
     if fallback and xiaomi_key:
         try:
             return _call_provider('xiaomi', base_url, xiaomi_key, model, messages,
-                                  max_tokens, temperature, json_response, thinking,
+                                  min(max_tokens, XIAOMI_MAX_TOKENS),
+                                  temperature, json_response, thinking,
                                   timeout)
         except Exception as e:
             errors.append(f'xiaomi[{e}]')
