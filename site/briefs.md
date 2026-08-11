@@ -75,5 +75,5 @@ Self-learning loop 用，给次日 retrospective 算 trigger / P&L / confidence 
 
 ## 📚 Reference
 
-- [README](README.html) — 项目总览 + 架构 + cron map
+- [README](https://github.com/KCNyu/clawock#readme) — 项目总览 + 架构 + cron map
 - [Dashboard](./) — 实时持仓 + 集中度 + retrospective
