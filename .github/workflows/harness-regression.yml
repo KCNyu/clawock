@@ -4,15 +4,16 @@ on:
   push:
     branches: [master]
     paths:
-      - 'scripts/**'
       - 'src/**'
       - 'instances/**'
       - 'ops/**'
       - 'pyproject.toml'
       - 'tests/**'
-      - 'assets/css/**'
-      - 'assets/js/**'
-      - 'index.html'
+      # The dashboard moved under site/ in #399; these globs kept the
+      # pre-move paths and stopped matching anything.
+      - 'site/assets/css/**'
+      - 'site/assets/js/**'
+      - 'site/index.html'
       - 'portfolio.json'
       - 'memory/**-plan.json'
       # Research artifacts are validated by the suite below, so a
@@ -124,14 +125,14 @@ jobs:
           while IFS= read -r f; do
             [ -n "$f" ] || continue
             case "$f" in
-              scripts/*|src/*|tests/*|pyproject.toml|portfolio.json|memory/*-plan.json|memory/theses/*|memory/earnings/*|memory/entry-gates/*|assets/data/overview.json|assets/data/dashboard.json|config/*|docs/operations/cron-schedules.md|.github/workflows/*)
+              src/*|tests/*|pyproject.toml|portfolio.json|memory/*-plan.json|memory/theses/*|memory/earnings/*|memory/entry-gates/*|assets/data/overview.json|assets/data/dashboard.json|config/*|docs/operations/cron-schedules.md|.github/workflows/*)
                 code=true
                 break
                 ;;
             esac
           done <<< "$changed"
           ui=false
-          if grep -Eq '^(assets/(css|js)/|index\.html$|tests/dashboard_tab_runtime\.spec\.js$)' <<< "$changed"; then
+          if grep -Eq '^(site/assets/(css|js)/|site/index\.html$|tests/dashboard_tab_runtime\.spec\.js$)' <<< "$changed"; then
             ui=true
             code=true
           fi

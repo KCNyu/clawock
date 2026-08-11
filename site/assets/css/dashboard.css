@@ -139,6 +139,9 @@
   }
   .brand h1 {
     margin: 0; font-size: 20px; font-weight: 700; letter-spacing: -0.01em;
+    /* `.brand` may shrink (min-width: 0), and an un-clipped h1 then paints on
+       top of the nav links instead of getting narrower. Truncate instead. */
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
   .brand .updated {
     font-size: 11px; color: var(--text-dim);
@@ -155,6 +158,11 @@
     font-size: 14px; cursor: pointer;
     display: inline-flex; align-items: center; gap: 4px;
     transition: background 0.15s, color 0.15s, border-color 0.3s;
+    /* The click-feedback labels are CJK, which — unlike "Refresh" — has a break
+       opportunity between every character. Without these two the button is a
+       shrinkable flex item and "已是最新" stacks one glyph per line, turning the
+       pill into an 82px-tall column. */
+    flex: 0 0 auto; white-space: nowrap;
   }
   .refresh-btn:active { background: var(--card-2); }
   .refresh-btn.is-loading .ic { animation: spin 0.8s linear infinite; }
@@ -162,6 +170,21 @@
   .refresh-btn.fresh-flash { border-color: var(--accent); color: var(--accent); }
   .refresh-btn[disabled] { opacity: 0.6; cursor: not-allowed; }
   @keyframes spin { to { transform: rotate(360deg); } }
+  @media (max-width: 560px) {
+    /* Three nav links plus a labelled button overflow the row, and the overflow
+       lands on the brand. The label is the compressible part: collapse to the
+       icon-only 36px target `min-width` already sizes for, and move the click
+       feedback onto the icon so it does not disappear with the text. */
+    .refresh-btn { padding: 0; justify-content: center; }
+    .refresh-btn .lbl { display: none; }
+    /* Only the "a new generation landed" outcome becomes a check — that is the
+       one whose label carries one ("已更新 ✓" vs "已是最新"). "Nothing new"
+       keeps the ↻ and says so with the green rim. Two outcomes have to differ
+       by shape; if they differed only by border colour, colour would be the
+       sole carrier of the difference. */
+    .refresh-btn.fresh-flash .ic { font-size: 0; }
+    .refresh-btn.fresh-flash .ic::after { content: "✓"; font-size: 15px; }
+  }
   .topbar-actions { display: inline-flex; align-items: center; gap: 8px; }
   .nav-link {
     color: var(--text-dim); text-decoration: none; font-size: 13px;
@@ -170,6 +193,12 @@
   .nav-link:hover { color: var(--text); background: var(--card-2); }
   @media (max-width: 480px) {
     .nav-link { padding: var(--space-2); font-size: 12px; }
+  }
+  @media (max-width: 400px) {
+    /* Last few pixels at 360–390: tighten the row rather than let the brand
+       hit its ellipsis. Nav-link padding stays put — it is the tap target. */
+    .topbar-actions { gap: 4px; }
+    .brand h1 { font-size: 18px; }
   }
 
   .tabs {
