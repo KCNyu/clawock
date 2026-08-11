@@ -1,9 +1,9 @@
 {
-  "checked_at": "2026-08-10T20:03:37Z",
+  "checked_at": "2026-08-11T01:34:39Z",
   "ok": true,
   "build_ok": true,
   "publish_ok": true,
   "warn_count": 0,
   "repair_count": 0,
-  "tail": "  brief-context source: brief-context-2026-08-10.json\n✓ wrote /root/.openclaw/workspace/assets/data/overview.json (45,261 bytes)\n✓ wrote /root/.openclaw/workspace/assets/data/dashboard.json (152,712 bytes)\n✓ wrote /root/.openclaw/workspace/assets/data/decision_audit.json (decision audit sidecar)\n✓ wrote /root/.openclaw/workspace/assets/data/shadow_portfolio.json (shadow portfolio sidecar, 模拟·非实盘)\n  US: 16 holdings, 7 active, value $3088\n  HK: 7 holdings, 5 active, value HK$72175\n  Snapshots: 65 embedded / 65 on disk\n  Plans: 5 embedded / 61 on disk\n  Snapshots: 65 | Plans: 5\n  FX USDHKD: 7.8449 (Frankfurter)\n\n  ✓ data-plane: published 6 outputs as 636047077596 → git@github.com:KCNyu/clawock.git data-plane\n✓ data-plane: requested data-plane-published → KCNyu/clawock"
+  "tail": "  brief-context source: brief-context-2026-08-11.json\n✓ wrote /root/.openclaw/workspace/assets/data/overview.json (45,216 bytes)\n✓ wrote /root/.openclaw/workspace/assets/data/dashboard.json (153,414 bytes)\n✓ wrote /root/.openclaw/workspace/assets/data/decision_audit.json (decision audit sidecar)\n✓ wrote /root/.openclaw/workspace/assets/data/shadow_portfolio.json (shadow portfolio sidecar, 模拟·非实盘)\n  US: 16 holdings, 7 active, value $3096\n  HK: 7 holdings, 5 active, value HK$72544\n  Snapshots: 65 embedded / 65 on disk\n  Plans: 5 embedded / 61 on disk\n  Snapshots: 65 | Plans: 5\n  FX USDHKD: 7.8449 (Frankfurter)\n\n  ✓ data-plane: published 6 outputs as 738982806e96 → git@github.com:KCNyu/clawock.git data-plane\n✓ data-plane: requested data-plane-published → KCNyu/clawock"
 }
