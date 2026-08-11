@@ -15,7 +15,9 @@ otherwise, so a release cannot ship an entry that was never written.
 
 ## [Unreleased]
 
-Nothing yet.
+### Changed
+
+- The command catalog the README links moved to `docs/reference/commands.md` — named after the deleted `scripts/` directory before — and its inventory is now generated from the installed-command registries instead of being hand-maintained, so it lists every command the two distributions install (#489). The old path stays as a pointer because published releases link it.
 
 ## [0.1.2] — 2026-08-11
 

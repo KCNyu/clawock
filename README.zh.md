@@ -86,7 +86,7 @@ package 架构。
 | 7 · 账本/汇率校验 | 6 | Frankfurter · 对账账本 · 本地不变量 |
 | 8 · 回测/自省 | 6 | 本地快照 + 基准行情 |
 
-抓取层优雅降级:所有现役东财调用统一走**一个节流网关**,关键路径(报价、汇率)用**多源兜底**,而一次抓空会**保留旧值**,不会用空白覆盖一条好序列。公开来源包括腾讯、stooq、yfinance、Frankfurter、SEC EDGAR、Finnhub、Nasdaq、东财、Polygon、Alpha Vantage、Reddit 与 Google News —— 完整命令、provider 与产物目录见[工具参考](docs/reference/scripts.md)。哪个模块属于哪一层本身也是一份产物 —— [`config/information-layers.json`](config/information-layers.json),每条打包命令要么进某一层,要么带着「为什么它不算收集」的理由列在排除表里 —— 上面那张表由 CI 对着它核,模块搬了家,数字不会还留在原地。
+抓取层优雅降级:所有现役东财调用统一走**一个节流网关**,关键路径(报价、汇率)用**多源兜底**,而一次抓空会**保留旧值**,不会用空白覆盖一条好序列。公开来源包括腾讯、stooq、yfinance、Frankfurter、SEC EDGAR、Finnhub、Nasdaq、东财、Polygon、Alpha Vantage、Reddit 与 Google News —— 完整命令、provider 与产物目录见[命令参考](docs/reference/commands.md),它的清单和上面这张表核对的是同两份 registry,由生成器产出。哪个模块属于哪一层本身也是一份产物 —— [`config/information-layers.json`](config/information-layers.json),每条打包命令要么进某一层,要么带着「为什么它不算收集」的理由列在排除表里 —— 上面那张表由 CI 对着它核,模块搬了家,数字不会还留在原地。
 
 ### 每种运行实际拿到什么
 
@@ -244,7 +244,7 @@ adapter；其它 runner 可以消费同一套 context/tool 契约。live adapter
 - [**实时仪表盘**](https://kcnyu.github.io/clawock/) —— 持仓、风控,以及自评战绩。
 - [**每日简报**](https://kcnyu.github.io/clawock/briefs.html) —— 已发布的早读。
 - [**排程表**](docs/operations/cron-schedules.md) —— 生成的 cron 表。
-- [**工具参考**](docs/reference/scripts.md) —— installed command、provider 与生成产物目录。
+- [**命令参考**](docs/reference/commands.md) —— 全部 installed command（清单由 registry 生成）+ 手写的 provider 与 harness 细节。
 - [**项目文档**](docs/README.md) —— 运维、参考、法律说明与历史设计。
 
 ### 研究入口
