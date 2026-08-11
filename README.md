@@ -78,11 +78,11 @@ Every trading day the system pulls fresh prices, FX, volatility, earnings and ma
 
 ## The information layer
 
-Reading the market is most of what the LLM does, so the widest part of the system is data collection. The repository catalogs **38 fetch and compute modules across 8 layers**, with **bilingual Hong Kong + US coverage** — live quotes, SEC + Eastmoney filings, capital flow, earnings calendars, macro (VIX / DXY / 10Y), Reddit and news sentiment, and market-moving social feeds. Each brief consumes the subset relevant to that market and session. Collection stays broad; the decision layer stays constrained.
+Reading the market is most of what the LLM does, so the widest part of the system is data collection. The repository catalogs **39 fetch and compute modules across 8 layers**, with **bilingual Hong Kong + US coverage** — live quotes, SEC + Eastmoney filings, capital flow, earnings calendars, macro (VIX / DXY / 10Y), Reddit and news sentiment, and market-moving social feeds. Each brief consumes the subset relevant to that market and session. Collection stays broad; the decision layer stays constrained.
 
 | Layer | Modules | Primary sources |
 |---|:---:|---|
-| 1 · Market | 6 | Tencent · Yahoo · Eastmoney · Polygon |
+| 1 · Market | 7 | Tencent · Yahoo · Eastmoney · Polygon |
 | 2 · Fundamentals & filings | 3 | SEC EDGAR · Eastmoney datacenter · HKEX |
 | 3 · Capital flow | 1 | Eastmoney push2his |
 | 4 · News & catalysts (bilingual) | 5 | Eastmoney · Finnhub · Google News · exchange filings |
