@@ -264,6 +264,71 @@ def send_telegram(target, message, dry_run):
     return result.status != 'failed', result.detail
 
 
+BRIEF_CONTRACT_MODE = 'daily-deep-brief'
+# The runtime marks a run failed with these; anything else (including a missing
+# status) is not evidence that the attempt is over.
+FAILED_RUN_STATUSES = {'error', 'failed', 'failure', 'timeout', 'timed_out',
+                       'cancelled', 'canceled'}
+
+
+def brief_cron_job():
+    """The live cron job for the daily deep brief, or None if it cannot be read.
+
+    Identified through `config/cron-schedules.json` — the contract already names
+    exactly one `daily-deep-brief` job — rather than by a string typed here, so
+    renaming the job in the contract cannot leave a watchdog looking for a job
+    that no longer exists.
+    """
+    try:
+        from clawock_kcnyu.schedule import load_contract
+
+        names = {job.get('name') for job in load_contract().get('jobs', [])
+                 if job.get('mode') == BRIEF_CONTRACT_MODE}
+    except Exception:
+        return None
+    if not names:
+        return None
+    listing = _cron_cli_json(['list', '--json'])
+    if not isinstance(listing, dict):
+        return None
+    for job in listing.get('jobs') or []:
+        if job.get('name') in names:
+            return job
+    return None
+
+
+def cron_run_ended_in_failure(job, today, now=None):
+    """Did this job's latest run already end in failure, today?
+
+    Three answers, not two. `None` means no evidence — an unreadable job, a job
+    still running, or one whose last run was another day — and a watchdog must
+    not act on it, because absence of a report is what #490 showed gets
+    misread as a failure.
+    """
+    if not isinstance(job, dict):
+        return None
+    state = job.get('state') if isinstance(job.get('state'), dict) else {}
+    if job.get('status') == 'running' or state.get('runningAtMs') is not None:
+        return None
+    last_status = str(state.get('lastStatus') or state.get('lastRunStatus') or '').lower()
+    last_run_at = state.get('lastRunAtMs')
+    if not isinstance(last_run_at, (int, float)):
+        return None
+    ran_on = datetime.fromtimestamp(last_run_at / 1000, HKT).strftime('%Y-%m-%d')
+    if ran_on != today:
+        return None
+    if last_status in FAILED_RUN_STATUSES:
+        return True
+    return False if last_status else None
+
+
+def rerun_cron_job(job_id, dry_run=False):
+    """Queue one more run of an on-host cron job. Returns (ok, tail)."""
+    if dry_run:
+        return True, f'(dry-run) openclaw cron run {job_id}'
+    return _openclaw.run_cron_job(job_id)
+
+
 def dispatch_brief_fallback(dry_run=False):
     """Fire .github/workflows/brief-fallback.yml on demand. Returns (ok, tail_of_output).
 
