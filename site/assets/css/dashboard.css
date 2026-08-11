@@ -225,10 +225,25 @@
 
   /* Desktop tab bar — a real underline nav, not the mobile edge-fade scroller. */
   @media (min-width: 1024px) {
+    /* The header is full-bleed — its background, shadow and rule span the
+       viewport — but what it holds belongs to the same column as the cards.
+       `main` is `max-width: 1600px` centred with 28px of padding, so past
+       1600px the header kept walking outward while the content stopped: at
+       1920px the wordmark sat 172px left of the first card and Refresh 144px
+       past its right edge. Move the inline padding off the full-bleed element
+       and onto the two rows, so they resolve to main's own content box. */
+    .topbar { padding-inline: 0; }
+    .topbar-row, .tabs {
+      max-width: 1600px; margin-inline: auto; padding-inline: 28px;
+    }
     .tabs {
       gap: 2px; margin-top: 14px; overflow: visible;
       -webkit-mask-image: none; mask-image: none;
-      border-bottom: 1px solid var(--border);
+      /* No rule of its own: it sat 1px above the header's own full-bleed
+         border, which was invisible while both spanned the viewport. Once the
+         strip is column-width, the doubled pixel shows as a step at the column
+         edge. The header's border is the rule; the active indicator lands on
+         it either way. */
     }
     .tab-btn {
       padding: 10px 18px; min-height: 40px; font-size: 13.5px; font-weight: 550;
