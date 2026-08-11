@@ -35,8 +35,21 @@ classifier now asks what the site *does*:
 Prose is none of those. An error message, a result label, a docstring and a
 `--source` choice all stay uncounted, which is what keeps the ratchet from
 rewarding the deletion of an explanation.
+
+Python is not the whole repository
+----------------------------------
+The count below walks `*.py`. Shell is code too, and `ops/` ships entry points
+that name this host on purpose. A number that reads as "the repository" while
+measuring only half of it is the same failure as the scan roots that pointed at
+a deleted directory (#452/#453) — so the shell half is enumerated too, at the
+bottom of this file, against a per-file allowlist with a reason each. The two
+checks answer different questions: Python must reach the runtime through the
+adapter (target zero), while a host-owned shell script naming the host is
+correct and only has to stay on the list that says why.
 """
 import ast
+import re
+import subprocess
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -65,7 +78,9 @@ RUNTIME = "openclaw"
 #
 # 6 → 1 when system_check moved behind the adapter; 1 → 0 when the remaining
 # operator-owned session collector started asking the same adapter for runtime
-# paths. Zero means no code outside the provider knows a host-specific layout.
+# paths. Zero means no *Python* module outside the provider knows a host-specific
+# layout. It does not mean nothing in the repository names the host: six shell
+# entry points do, deliberately, and they are pinned by HOST_OWNED_SHELL below.
 BASELINE = 0
 
 DELIBERATE_EXCLUSIONS = {}
@@ -384,3 +399,208 @@ def test_the_adapter_is_exempt_because_that_is_what_an_adapter_is_for():
     assert not [name for name in sites if name.startswith("src/clawock/providers/")]
     # And the adapter must actually exist, or the exemption is hiding nothing.
     assert (ADAPTER / "delivery.py").exists()
+
+
+# ---------------------------------------------------------------------------
+# The shell half (#478)
+# ---------------------------------------------------------------------------
+#
+# `docs/reference/product-vs-instance.md` says `ops/host/` owns "this host's
+# cron, scheduler inspection, session maintenance and launcher wiring" and
+# `ops/publish/` is the only publisher implementation. Naming this host is what
+# those files are for, so raising the Python baseline for them would punish
+# files that are already where they belong.
+#
+# What is not fine is the claim being wider than the scan. So: enumerate every
+# shell entry point that names the runtime and require the set to equal this
+# allowlist, with a reason per file. Same shape as DELIBERATE_EXCLUSIONS, and
+# for the same purpose — a documented floor that cannot quietly become false.
+# A new publisher script hardcoding the live path is then a red, and the day one
+# of these is parameterised its entry has to go, so the list cannot outlive its
+# reason.
+HOST_OWNED_SHELL = {
+    "ops/publish/publish_dashboard.sh": (
+        1, "the host publisher: WS is this machine's live checkout, which is "
+           "what ops/publish/ is defined to own"),
+    "ops/publish/publish_identity.sh": (
+        1, "refuses the runtime's commit identity outside the live checkout — "
+           "the path is the safety check, not a dependency"),
+    "ops/host/commit_dreaming.sh": (
+        1, "backstop commit for a cron owned by OpenClaw core; it has no "
+           "meaning off this host"),
+    "ops/host/gold_dca_refresh.sh": (
+        1, "host cron wrapper around the installed CLI, run from the live "
+           "checkout"),
+    "ops/host/reapply_openclaw_patches.sh": (
+        2, "patches the runtime's own pnpm install after an upgrade: the "
+           "install directory and the patch root are the subject of the script"),
+    "ops/growth/rick_broadcast_nostr.sh": (
+        2, "host broadcast wrapper: the live checkout it runs in and the Nostr "
+           "key kept outside the repository"),
+}
+
+def _shell_files():
+    """Every tracked shell file in the repository, found rather than listed.
+
+    A hand-listed set of roots is the same defect one level up: the Python scan
+    listed `scripts/**` and walked zero files after #429 deleted it, while
+    `ops/` — where the code went — was never added. A new `skills/x/live.sh` or
+    `.github/scripts/deploy.sh` would be invisible to a root list while every
+    anti-vacuity assertion below stayed green. `git ls-files` is also the right
+    boundary for a different reason: an untracked script on this host is not
+    something the repository claims anything about.
+
+    Recognised by suffix or by shebang, because `.githooks/pre-commit` has no
+    suffix and is exactly where this family of defect has shipped before (#445).
+    """
+    listing = subprocess.run(["git", "ls-files", "-z"], cwd=ROOT,
+                             capture_output=True, text=True, check=True)
+    for name in sorted(filter(None, listing.stdout.split("\0"))):
+        path = ROOT / name
+        if not path.is_file():
+            continue
+        if path.suffix == ".sh":
+            yield path
+            continue
+        try:
+            first = path.open(encoding="utf-8", errors="ignore").readline()
+        except OSError:
+            continue
+        if first.startswith("#!") and "sh" in first:
+            yield path
+
+
+def _strip_comment(line: str) -> str:
+    """Drop a shell comment, quote-aware.
+
+    Prose about the runtime is not a call to it — the Python classifier's whole
+    lesson — and `safe_push.sh` explains the host's rebuild race in a comment
+    while touching none of its paths. A naive `split('#')` would also cut
+    `${x#prefix}` and a `#` inside a quoted string, so track the quotes.
+    """
+    quote = ""
+    for index, char in enumerate(line):
+        if quote:
+            if char == quote:
+                quote = ""
+        elif char in "\"'":
+            quote = char
+        elif char == "#" and (index == 0 or line[index - 1].isspace()):
+            return line[:index]
+    return line
+
+
+_SHELL_TOKEN = re.compile(r"[^\s\"'=:;()<>&|`,\[\]{}]+")
+
+# `OC=.openclaw` then `WS=/root/$OC/workspace` is the cheapest way past a
+# token-by-token path matcher, and it is one line of ordinary shell. Requiring
+# whitespace before the name keeps `--source=openclaw` — the multi-source label
+# the Python classifier deliberately does not count — out of it.
+_RUNTIME_ASSIGNMENT = re.compile(
+    rf"""(?:^|\s)[A-Za-z_][A-Za-z0-9_]*=["']?\.?{RUNTIME}(?:["']?(?:\s|$|/))""")
+
+
+def runtime_paths_in_shell(text: str) -> list[int]:
+    """Line numbers where a shell script spells out one of the runtime's paths.
+
+    Reuses `_is_runtime_path`, so both halves of this file agree on what counts
+    as naming the host: a path segment that *is* the runtime's directory or its
+    private file, never a bare mention. `[openclaw-patches]` is a log prefix and
+    `openclaw core` in a sentence is prose; `/root/.openclaw/workspace` and
+    `node_modules/openclaw` are layout.
+
+    The limit, stated rather than left for someone to find: this reads literal
+    text. A path assembled from a variable the script never spells out — one
+    exported by a caller, or read from a config file — is not caught, and the
+    honest reason to accept that is the same one the Python side accepts for a
+    flagless argv vector: the alternative punishes the parameterised form, which
+    is the form we want. What it does catch is the one-line version, where the
+    runtime's own directory name is assigned to a variable.
+    """
+    found = []
+    for number, raw in enumerate(text.splitlines(), start=1):
+        code = _strip_comment(raw)
+        if (any(_is_runtime_path(token) for token in _SHELL_TOKEN.findall(code))
+                or _RUNTIME_ASSIGNMENT.search(code)):
+            found.append(number)
+    return found
+
+
+def host_naming_shell() -> dict[str, list[int]]:
+    sites = {}
+    for path in _shell_files():
+        found = runtime_paths_in_shell(path.read_text(encoding="utf-8", errors="ignore"))
+        if found:
+            sites[path.relative_to(ROOT).as_posix()] = found
+    return sites
+
+
+def test_only_the_documented_shell_entry_points_name_this_host():
+    # Anti-vacuity, the same failure mode as above: an empty walk and a clean
+    # repository both produce "nothing outside the allowlist".
+    files = list(_shell_files())
+    assert len(files) > 10, f"only {len(files)} shell files walked — did the walk break?"
+    walked = {path.relative_to(ROOT).as_posix() for path in files}
+    for expected in (".githooks/pre-commit", "ops/publish/safe_push.sh",
+                     "examples/minimal-run/run.sh"):
+        assert expected in walked, (
+            f"{expected} is outside the shell walk; the walk is not looking "
+            "where host paths could be written")
+    # And the walk must not be scoped to the directories that happen to have a
+    # script today: the roots it would have listed are not the whole repository.
+    assert any(not name.startswith(("ops/", "instances/", ".githooks/"))
+               for name in walked), (
+        "every shell file found is under an ops-shaped path; if the discovery "
+        "silently narrowed, a new script elsewhere would never be seen")
+
+    sites = host_naming_shell()
+    detail = "\n".join(f"  {name}: lines {lines}" for name, lines in sorted(sites.items()))
+
+    unlisted = sorted(set(sites) - set(HOST_OWNED_SHELL))
+    assert not unlisted, (
+        "these shell scripts name this host's runtime layout and are not on the "
+        f"allowlist:\n{detail}\n\nIf the script legitimately owns a host side "
+        "effect, add it to HOST_OWNED_SHELL with the reason. Otherwise take the "
+        "path from the environment or the adapter.")
+
+    for name, (count, reason) in HOST_OWNED_SHELL.items():
+        actual = sites.get(name, [])
+        assert len(actual) == count, (
+            f"{name} is documented as naming the host {count} time(s) — "
+            f"{reason} — but now names it {len(actual)} time(s) (lines {actual}). "
+            "If it was parameterised, delete the entry; the list must not "
+            "outlive the reason it exists.")
+
+
+def test_a_shell_comment_is_not_coupling_and_an_assignment_is():
+    """Both directions, so neither drifts — the Python classifier shipped
+    backwards on exactly this and made deleting an explanation the cheapest way
+    to go green."""
+    prose = (
+        "# 背景: dreaming 是 openclaw core 内置 cron\n"
+        "# dirty with OTHER in-flight files (host openclaw rebuilding dashboard.json)\n"
+        'echo "[openclaw-patches] marker ok: $label"\n'
+        'echo "run openclaw doctor --fix" >&2\n'
+    )
+    layout = (
+        'WS="/root/.openclaw/workspace"\n'
+        "KEYFILE=/root/.openclaw/nostr-rick.key\n"
+        'OCLAW_REAL="$(realpath /root/.local/share/pnpm/global/5/node_modules/openclaw)"\n'
+        "DB=/root/.openclaw/state/openclaw.sqlite  # the runtime's private state\n"
+    )
+
+    assert runtime_paths_in_shell(prose) == [], (
+        "a comment and a log prefix are not the host's layout")
+    assert runtime_paths_in_shell(layout) == [1, 2, 3, 4], (
+        "an assigned runtime path is the coupling, one per line")
+    assert runtime_paths_in_shell('printf "%s\\n" "${name#openclaw-}"\n') == [], (
+        "a parameter expansion is not a path, and the comment stripper must not "
+        "cut it either")
+    # The one-line way around a token matcher, and the label that must not be
+    # mistaken for it.
+    assert runtime_paths_in_shell("OC=.openclaw\nWS=/root/$OC/workspace\n") == [1], (
+        "assigning the runtime's own directory name is naming the host; the "
+        "composed line after it is not separately visible, which is the "
+        "documented limit")
+    assert runtime_paths_in_shell("exec cron_timeline --source=openclaw --json\n") == [], (
+        "--source openclaw|gha|crontab is the multi-source design, not coupling")

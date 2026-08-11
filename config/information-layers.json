@@ -1,0 +1,352 @@
+{
+  "schema_version": 1,
+  "description": "The information layer, as an artifact rather than a number someone typed. Every command both distributions install appears exactly once: inside a layer, or in `excluded` with the reason it is not information collection. The README tables in both languages are checked against these counts by tests/test_information_layer_taxonomy.py; the taxonomy previously survived #429 moving every module it counted, because nothing tied the two together.",
+  "inclusion_rule": "A module is in the information layer if it acquires data from outside the repository, or computes a deterministic measure over market, book or strategy history. Everything else is excluded and listed with its reason: publishing an artifact, recording or gating a decision, relaying one that was already made, carrying operator input, and the delivery, scheduling and watchdog machinery around a run. Being read by a scheduled run is not the test — the brief reads its own work queue too — and neither is running on a schedule: the regime evaluations are manual and are measurements all the same.",
+  "layers": [
+    {
+      "id": 1,
+      "name": {
+        "en": "Market",
+        "zh": "行情"
+      },
+      "sources": {
+        "en": "Tencent · Yahoo · Eastmoney · Polygon",
+        "zh": "腾讯 · Yahoo · 东财 · Polygon"
+      },
+      "modules": [
+        {
+          "command": "analyze-hk",
+          "note": "HK holdings: Tencent + Eastmoney dual-source reconciliation, stooq/yfinance fallback"
+        },
+        {
+          "command": "analyze-us",
+          "note": "US holdings: price refresh plus RSI/MA and news-derived signals"
+        },
+        {
+          "command": "us-quotes",
+          "note": "multi-provider US quote fetcher, seven-route fallback"
+        },
+        {
+          "command": "fetch-peers",
+          "note": "current price and 5-day P&L for peer tickers"
+        },
+        {
+          "command": "daily-bars",
+          "note": "canonical unadjusted daily OHLC store the ledger settles against"
+        },
+        {
+          "command": "benchmark",
+          "note": "SPY / HSI / HSTECH daily-close history for the equity-curve overlay"
+        },
+        {
+          "command": "clawock-kcnyu-gold-fetch",
+          "distribution": "clawock-kcnyu",
+          "note": "daily NAV for the 000217 gold DCA position from the Eastmoney fund API"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "name": {
+        "en": "Fundamentals & filings",
+        "zh": "基本面/申报"
+      },
+      "sources": {
+        "en": "SEC EDGAR · Eastmoney datacenter · HKEX",
+        "zh": "SEC EDGAR · 东财 datacenter · 港交所"
+      },
+      "modules": [
+        {
+          "command": "filings",
+          "note": "10-K/10-Q/8-K, XBRL concepts, Form 4, 13F-HR"
+        },
+        {
+          "command": "fundamentals",
+          "note": "Eastmoney datacenter fundamentals for US and HK names"
+        },
+        {
+          "command": "earnings",
+          "note": "primary-source earnings review and earnings-quality math"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "name": {
+        "en": "Capital flow",
+        "zh": "资金面"
+      },
+      "sources": {
+        "en": "Eastmoney push2his",
+        "zh": "东财 push2his"
+      },
+      "modules": [
+        {
+          "command": "fundflow",
+          "note": "daily fund-flow series for US and HK names"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "name": {
+        "en": "News & catalysts (bilingual)",
+        "zh": "消息面与催化剂(双语)"
+      },
+      "sources": {
+        "en": "Eastmoney · Finnhub · Google News · exchange filings",
+        "zh": "东财 · Finnhub · Google News · 交易所公告"
+      },
+      "modules": [
+        {
+          "command": "em-news",
+          "note": "Chinese-language Eastmoney news for active HK holdings"
+        },
+        {
+          "command": "catalysts",
+          "note": "next 14 days of earnings, FOMC and macro events"
+        },
+        {
+          "command": "mover-evidence",
+          "note": "filing-first catalyst probe, fired only for names that already moved"
+        },
+        {
+          "command": "news-evidence",
+          "note": "deduplicates news and filings into an expiring evidence graph with confirmation gates"
+        },
+        {
+          "command": "clawock-kcnyu-news-digest",
+          "distribution": "clawock-kcnyu",
+          "note": "US 21:00 digest; Finnhub with a Google News RSS fallback per ticker"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "name": {
+        "en": "Macro & sentiment",
+        "zh": "宏观/情绪"
+      },
+      "sources": {
+        "en": "Yahoo · Reddit · CNN · social feeds",
+        "zh": "Yahoo · Reddit · CNN · 社交 feed"
+      },
+      "modules": [
+        {
+          "command": "macro",
+          "note": "VIX, 10Y, DXY, Fear & Greed, Federal Reserve releases"
+        },
+        {
+          "command": "sentiment",
+          "note": "Reddit, Google News and Yahoo RSS scan per active holding"
+        },
+        {
+          "command": "clawock-kcnyu-influencer-scan",
+          "distribution": "clawock-kcnyu",
+          "note": "market-moving statements from high-impact figures, read from primary feeds"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "name": {
+        "en": "Quant & risk",
+        "zh": "量化与风险"
+      },
+      "sources": {
+        "en": "deterministic math over price history",
+        "zh": "对价格历史做确定性计算"
+      },
+      "modules": [
+        {
+          "command": "quant",
+          "note": "standard factor layer over held names, zero LLM opinion"
+        },
+        {
+          "command": "quant-review",
+          "note": "measures each factor's own hit rate before it may be quoted"
+        },
+        {
+          "command": "cross-factor",
+          "note": "point-in-time, sector-neutral cross-sectional ranking over a curated universe"
+        },
+        {
+          "command": "peer-residual",
+          "note": "curated-peer residual alpha, leadership and diffusion"
+        },
+        {
+          "command": "t0",
+          "note": "T+0 setup grading — card quality, not a buy signal"
+        },
+        {
+          "command": "t0-review",
+          "note": "edge self-check that decides whether the grading may be used"
+        },
+        {
+          "command": "portfolio-risk",
+          "note": "beta, volatility, drawdown and concentration per book"
+        },
+        {
+          "command": "regime",
+          "note": "the leverage dial: 200-day trend × volatility"
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "name": {
+        "en": "Book & FX integrity",
+        "zh": "账本/汇率校验"
+      },
+      "sources": {
+        "en": "Frankfurter · the reconciliation ledger · local invariants",
+        "zh": "Frankfurter · 对账账本 · 本地不变量"
+      },
+      "modules": [
+        {
+          "command": "fx",
+          "note": "USDHKD with three-route fallback; HK and US totals may not be summed without it"
+        },
+        {
+          "command": "integrity",
+          "note": "the data-health gate that turns past numeric bugs into an automatic door"
+        },
+        {
+          "command": "reconcile",
+          "note": "recompute every derived money field, then run the integrity gate"
+        },
+        {
+          "command": "aggregates",
+          "note": "rebuild each derived portfolio field from ledger leaves"
+        },
+        {
+          "command": "cash",
+          "note": "derive each book's cash from its reconciliation ledger"
+        },
+        {
+          "command": "realized",
+          "note": "single source of truth for realized P&L, summed from trades"
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "name": {
+        "en": "Backtest & calibration",
+        "zh": "回测/自省"
+      },
+      "sources": {
+        "en": "local snapshots + canonical bars",
+        "zh": "本地快照 + 基准行情"
+      },
+      "modules": [
+        {
+          "command": "evaluate-hstech-regime",
+          "note": "the regime de-risking thesis, tested on real HSTECH data"
+        },
+        {
+          "command": "evaluate-us-leverage",
+          "note": "the same regime backtest for the US 2x sleeve"
+        },
+        {
+          "command": "evaluate-combined-regime",
+          "note": "the whole book at current USD weights"
+        },
+        {
+          "command": "validate-regime-dial",
+          "note": "out-of-sample and circular-shift null for the dial's timing"
+        },
+        {
+          "command": "shadow",
+          "note": "replays triggered calls against buy-and-hold to measure simulated timing alpha"
+        },
+        {
+          "command": "audit-resettle",
+          "note": "dry-run bar-based re-settle that reports every verdict it would change"
+        }
+      ]
+    }
+  ],
+  "excluded": {
+    "dashboard-build": {
+      "reason": "publishes the dashboard projection from data the layers already produced"
+    },
+    "dashboard-outputs": {
+      "reason": "publication ownership and semantic diffs for generated write sets"
+    },
+    "validate-sidecar": {
+      "reason": "behavioral validation of a publication artifact"
+    },
+    "evidence": {
+      "reason": "renders the public evidence page from artifacts; it collects nothing"
+    },
+    "run-card": {
+      "reason": "records that a backtest ran and against what — provenance, not a measurement"
+    },
+    "claim-provenance": {
+      "reason": "gate: a quoted backtest number must still be in the card it cites"
+    },
+    "provenance": {
+      "reason": "gate: a published research figure needs two independent sources"
+    },
+    "mark-followed": {
+      "reason": "writes execution ground truth into the decision ledger"
+    },
+    "risk": {
+      "reason": "durable governance ledger for breaches — a record of decisions, not an input to one"
+    },
+    "thesis": {
+      "reason": "registry the model writes and reads back; its content is authored, not fetched"
+    },
+    "entry-gate": {
+      "reason": "pre-investment gate applied to a candidate, after the information exists"
+    },
+    "plan-context": {
+      "reason": "relays what the 08:00 brief already decided to the crons that run after it"
+    },
+    "research": {
+      "reason": "the brief does read it, but as a work queue — reviews due, overdue promises, ungated positions — not as a measurement of the market or the book"
+    },
+    "clawock-kcnyu-gold-update": {
+      "reason": "operator command that amends the gold DCA baseline; it carries human input into the book rather than measuring it",
+      "distribution": "clawock-kcnyu"
+    },
+    "clawock-kcnyu-weekly-review": {
+      "reason": "assembles a weekly review artifact out of records the layers already produced",
+      "distribution": "clawock-kcnyu"
+    },
+    "clawock-kcnyu-workflow-outcomes": {
+      "reason": "durable per-slot outcome state for the harness; operational, not market or book",
+      "distribution": "clawock-kcnyu"
+    },
+    "clawock-kcnyu-cron-heartbeat": {
+      "reason": "publishes the intraday heartbeat ledger — liveness, not evidence",
+      "distribution": "clawock-kcnyu"
+    },
+    "clawock-kcnyu-brief-fallback": {
+      "reason": "off-host delivery path for the brief when the runtime cannot produce it",
+      "distribution": "clawock-kcnyu"
+    },
+    "clawock-kcnyu-intraday-delta": {
+      "reason": "pre-model trigger state: it decides whether a run happens, and the scheduler is its only reader",
+      "distribution": "clawock-kcnyu"
+    },
+    "clawock-kcnyu-brief-watchdog": {
+      "reason": "delivery watchdog for the 08:00 brief: it checks that a run produced and sent something",
+      "distribution": "clawock-kcnyu"
+    },
+    "clawock-kcnyu-report-watchdog": {
+      "reason": "delivery watchdog for the session reports, on the same footing",
+      "distribution": "clawock-kcnyu"
+    },
+    "clawock-kcnyu-intraday-watchdog": {
+      "reason": "delivery watchdog for the intraday slots, on the same footing",
+      "distribution": "clawock-kcnyu"
+    }
+  },
+  "registries": {
+    "clawock": "clawock.cli.PACKAGED_UTILITIES — the packaged utility commands the public CLI dispatches on.",
+    "clawock-kcnyu": "[project.scripts] in instances/kcnyu/pyproject.toml — the instance distribution's console scripts.",
+    "not_classified": "The instance's other entry-point groups: `clawock.instance_phases` (kcnyu brief/report/intraday preflight and postflight) and `clawock.dashboard_sections`. The phases are the *consumers* of this layer — they assemble blocks from the modules below and hand them to the model — and the dashboard sections render what was already produced. Counting either would count the reader as one of the things read."
+  }
+}
