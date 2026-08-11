@@ -147,10 +147,14 @@ def test_the_information_layer_table_adds_up_in_both_languages():
 
     What this does NOT prove, stated so nobody reads more into a green: it does
     not verify the modules exist or that the taxonomy still matches the package.
-    That mapping has no artifact behind it — the layers were drawn when these
-    were files under `scripts/data/`, which #429 deleted — so a test claiming to
-    check it would be encoding a guess as truth. This checks the four numbers
-    agree; grounding the taxonomy is separate work.
+    When this was written that mapping had no artifact behind it — the layers
+    were drawn when these were files under `scripts/data/`, which #429 deleted —
+    so a test claiming to check it would have been encoding a guess as truth.
+    `config/information-layers.json` is now that artifact and
+    `tests/test_information_layer_taxonomy.py` grounds the rows against it
+    (#476). This one still only checks that the four numbers agree; the two are
+    kept separate so the internal-consistency check survives if the taxonomy is
+    ever reshaped.
     """
     seen = {}
     for md, name, pattern in (

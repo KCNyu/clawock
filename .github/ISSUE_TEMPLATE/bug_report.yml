@@ -1,0 +1,56 @@
+name: Bug report
+description: Something in the clawock package or its tooling does not do what it says.
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        For a suspected **vulnerability**, stop here and use
+        [private vulnerability reporting](https://github.com/KCNyu/clawock/security/advisories/new)
+        instead. Never paste an API key, token or credential into an issue.
+
+        Wrong numbers in the *published* portfolio, briefs or scorecard are
+        generated output of one live instance. They are still worth reporting —
+        just say which artifact and which figure.
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: The command or code you ran, and what it did.
+      placeholder: |
+        $ clawock integrity
+        ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected instead
+      description: And where that expectation comes from — a docstring, the README, a CLI help text.
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: clawock version
+      description: Output of `clawock --version`. If you are running from a source checkout, say so and give the commit.
+      placeholder: "clawock 0.1.1"
+    validations:
+      required: true
+  - type: input
+    id: python
+    attributes:
+      label: Python version and OS
+      placeholder: "Python 3.12.3, Ubuntu 24.04"
+    validations:
+      required: false
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence
+      description: |
+        Traceback, failing output, or the artifact and field that disagree. If the
+        failure is a number, please include both numbers and where each came from.
+      render: text
+    validations:
+      required: false

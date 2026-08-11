@@ -17,6 +17,35 @@ otherwise, so a release cannot ship an entry that was never written.
 
 Nothing yet.
 
+## [0.1.2] — 2026-08-11
+
+Documentation and repository policy only; no behavior in the package changed.
+It is a release because `README.md` is shipped verbatim as the PyPI
+`long_description`, and a published page cannot be re-rendered — the same reason
+0.1.1 existed.
+
+### Fixed
+
+- The README's widest claim about the system — "26 fetch and compute modules
+  across 8 layers" — had no artifact behind it and had survived #429, which
+  moved every module it counted. The catalog is now
+  `config/information-layers.json`: every packaged command sits in exactly one
+  layer or on an exclusion list with the reason it is not information
+  collection, and the tables in both READMEs are checked against it. Re-derived
+  from the package, the count is 38, and two layer names that no longer
+  described their members were corrected. ([#476])
+
+### Added
+
+- `SECURITY.md` naming GitHub private vulnerability reporting, a
+  `CONTRIBUTING.md` stating which parts of the repository can accept a patch
+  (the package can; the live book cannot), and a bug-report issue template.
+  Installable packages need a disclosure channel; a repository someone only
+  reads does not. ([#477])
+- The runtime-coupling ratchet now also enumerates shell entry points naming the
+  live host, against a per-file allowlist with a reason each. Its Python count
+  stays 0, and the claim now states what it covers. ([#478])
+
 ## [0.1.1] — 2026-08-10
 
 ### Fixed
@@ -48,6 +77,10 @@ environment — and completes one full run. ([#436], [#379])
 [#436]: https://github.com/KCNyu/clawock/pull/436
 [#468]: https://github.com/KCNyu/clawock/pull/468
 [#469]: https://github.com/KCNyu/clawock/pull/469
-[Unreleased]: https://github.com/KCNyu/clawock/compare/v0.1.1...HEAD
+[#476]: https://github.com/KCNyu/clawock/issues/476
+[#477]: https://github.com/KCNyu/clawock/issues/477
+[#478]: https://github.com/KCNyu/clawock/issues/478
+[Unreleased]: https://github.com/KCNyu/clawock/compare/v0.1.2...HEAD
+[0.1.2]: https://github.com/KCNyu/clawock/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/KCNyu/clawock/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/KCNyu/clawock/releases/tag/v0.1.0

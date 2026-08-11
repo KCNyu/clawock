@@ -10,4 +10,10 @@
 
 - [ ] Required GitHub Actions checks pass
 - [ ] No secrets, scratch files, or unrelated generated data are included
-- [ ] The non-authoring agent posted `AI-REVIEW: PASS` and owns the merge
+- [ ] A test fails without this change (behavior changes only)
+- [ ] Someone other than the author reviewed it, and the author is not merging it
+
+<!-- Agents: the review stays in the interactive handoff. Both agents
+     authenticate as `KCNyu`, so a posted review reads as kcn talking to
+     themself — see AGENTS.md § Interactive Codex/Claude PR workflow. -->
+

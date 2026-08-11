@@ -73,20 +73,20 @@ package 架构。
 
 ## 信息层
 
-读市场是 LLM 干的大部分活,所以整套系统最宽的一环是数据收集。仓库编录了 **8 层、26 个抓取与计算模块**,**港股与美股双语覆盖** —— 实时报价、SEC + 东财申报、资金流、财报日历、宏观(VIX / DXY / 10Y)、Reddit 与新闻情绪,以及能撬动行情的社交 feed。每份简报只取与该市场、该 session 相关的子集。信息收集保持宽,决策层保持窄。
+读市场是 LLM 干的大部分活,所以整套系统最宽的一环是数据收集。仓库编录了 **8 层、38 个抓取与计算模块**,**港股与美股双语覆盖** —— 实时报价、SEC + 东财申报、资金流、财报日历、宏观(VIX / DXY / 10Y)、Reddit 与新闻情绪,以及能撬动行情的社交 feed。每份简报只取与该市场、该 session 相关的子集。信息收集保持宽,决策层保持窄。
 
 | 层 | 模块 | 主要来源 |
 |---|:---:|---|
-| 1 · 行情 | 5 | 腾讯 · Yahoo · 东财 |
-| 2 · 基本面/申报 | 2 | SEC EDGAR · 东财 datacenter |
+| 1 · 行情 | 6 | 腾讯 · Yahoo · 东财 · Polygon |
+| 2 · 基本面/申报 | 3 | SEC EDGAR · 东财 datacenter · 港交所 |
 | 3 · 资金面 | 1 | 东财 push2his |
-| 4 · 消息面(双语) | 3 | 东财 · Finnhub · Google News |
-| 5 · 宏观/情绪 | 4 | Yahoo · Reddit · 社交 feed |
-| 6 · 量化与风险 | 4 | 对价格历史做确定性计算 |
-| 7 · 汇率/校验 | 2 | Frankfurter · 本地不变量 |
-| 8 · 回测/自省 | 5 | 本地快照 + 基准行情 |
+| 4 · 消息面与催化剂(双语) | 5 | 东财 · Finnhub · Google News · 交易所公告 |
+| 5 · 宏观/情绪 | 3 | Yahoo · Reddit · CNN · 社交 feed |
+| 6 · 量化与风险 | 8 | 对价格历史做确定性计算 |
+| 7 · 账本/汇率校验 | 6 | Frankfurter · 对账账本 · 本地不变量 |
+| 8 · 回测/自省 | 6 | 本地快照 + 基准行情 |
 
-抓取层优雅降级:所有现役东财调用统一走**一个节流网关**,关键路径(报价、汇率)用**多源兜底**,而一次抓空会**保留旧值**,不会用空白覆盖一条好序列。公开来源包括腾讯、stooq、yfinance、Frankfurter、SEC EDGAR、Finnhub、Nasdaq、东财、Polygon、Alpha Vantage、Reddit 与 Google News —— 完整命令、provider 与产物目录见[工具参考](docs/reference/scripts.md)。
+抓取层优雅降级:所有现役东财调用统一走**一个节流网关**,关键路径(报价、汇率)用**多源兜底**,而一次抓空会**保留旧值**,不会用空白覆盖一条好序列。公开来源包括腾讯、stooq、yfinance、Frankfurter、SEC EDGAR、Finnhub、Nasdaq、东财、Polygon、Alpha Vantage、Reddit 与 Google News —— 完整命令、provider 与产物目录见[工具参考](docs/reference/scripts.md)。哪个模块属于哪一层本身也是一份产物 —— [`config/information-layers.json`](config/information-layers.json),每条打包命令要么进某一层,要么带着「为什么它不算收集」的理由列在排除表里 —— 上面那张表由 CI 对着它核,模块搬了家,数字不会还留在原地。
 
 ### 每种运行实际拿到什么
 
