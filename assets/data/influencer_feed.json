@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-11T14:08:08.235662+00:00",
+  "generated_at": "2026-08-11T22:21:41.933526+00:00",
   "lookback_hours": 48,
   "sources": {
     "trump": "trumpstruth.org/feed (primary)",
@@ -15,17 +15,17 @@
   "counts": {
     "total": 10,
     "held_hits": 0,
-    "new_ideas": 5,
-    "sector_hits": 3
+    "new_ideas": 3,
+    "sector_hits": 5
   },
   "items": [
     {
       "author": "Musk",
-      "text": "See How a Tesla-SpaceX Merger Gives Musk a Shortcut to His $1 Trillion Payday",
+      "text": "Tesla shows first Cybercab with built-in Starlink. Elon Musk explains why it needs one.",
       "url": "",
-      "published": "Tue, 11 Aug 2026 01:00:00 GMT",
+      "published": "Tue, 11 Aug 2026 19:42:55 GMT",
       "origin": "gnews-rss",
-      "source": "WSJ",
+      "source": "Mashable",
       "tickers": [
         "TSLA"
       ],
@@ -41,17 +41,17 @@
         "SPCH",
         "SPCX"
       ],
-      "stance": "neutral",
-      "relevance": 78,
-      "summary_cn": "媒体讨论Tesla-SpaceX合并如何助Musk迈向1万亿美元薪酬包，若合并成行将直接重估kcn持有的SpaceX相关仓位。"
+      "stance": "endorse",
+      "relevance": 70,
+      "summary_cn": "Tesla Cybercab内置Starlink——SpaceX与Tesla业务协同叙事，强化SpaceX估值故事，间接利好kcn持有的SpaceX相关标的。"
     },
     {
       "author": "Musk",
-      "text": "Tesla shows first Cybercab with built-in Starlink. Elon Musk explains why it needs one.",
+      "text": "See How a Tesla-SpaceX Merger Gives Musk a Shortcut to His $1 Trillion Payday",
       "url": "",
-      "published": "Tue, 11 Aug 2026 09:02:30 GMT",
+      "published": "Tue, 11 Aug 2026 01:00:00 GMT",
       "origin": "gnews-rss",
-      "source": "Mashable",
+      "source": "WSJ",
       "tickers": [
         "TSLA"
       ],
@@ -60,71 +60,16 @@
         "TSLA"
       ],
       "sectors": [
-        "电动车",
-        "航天/卫星",
-        "通信"
+        "航天",
+        "电动车"
       ],
       "sector_holdings": [
         "SPCH",
         "SPCX"
       ],
       "stance": "endorse",
-      "relevance": 72,
-      "summary_cn": "Tesla展示首款内置Starlink的Cybercab，Musk解释为何需要星链，间接利好SpaceX/Starlink生态。"
-    },
-    {
-      "author": "Musk",
-      "text": "In Texas, Elon Musk's empire could soon add a $10 billion Tesla solar plant",
-      "url": "",
-      "published": "Tue, 11 Aug 2026 10:15:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Yahoo Finance",
-      "tickers": [
-        "TSLA"
-      ],
-      "held": [],
-      "new_ideas": [
-        "TSLA"
-      ],
-      "sectors": [
-        "太阳能/能源",
-        "电动车"
-      ],
-      "sector_holdings": [
-        "02208"
-      ],
-      "stance": "neutral",
-      "relevance": 70,
-      "summary_cn": "Tesla在德州拟建$10B太阳能工厂，扩张能源版图，间接利好新能源/光伏产业链（如金风科技等清洁能源标的）。"
-    },
-    {
-      "author": "Musk",
-      "text": "When One Man Controls the Stack: Is Musk Building a Private Technology Monopoly?",
-      "url": "",
-      "published": "Tue, 11 Aug 2026 13:03:42 GMT",
-      "origin": "gnews-rss",
-      "source": "EVWORLD.COM",
-      "tickers": [
-        "TSLA"
-      ],
-      "held": [],
-      "new_ideas": [
-        "TSLA"
-      ],
-      "sectors": [
-        "科技/AI",
-        "电动车",
-        "航天",
-        "社交媒体"
-      ],
-      "sector_holdings": [
-        "MSFU",
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "attack",
-      "relevance": 65,
-      "summary_cn": "媒体质疑Musk一人控制技术栈、构建私人科技垄断的监管/反垄断风险，对Tesla及SpaceX估值有潜在阴影。"
+      "relevance": 68,
+      "summary_cn": "报道Tesla-SpaceX合并可加速Musk万亿薪酬方案——两公司合并/协同主题持续发酵，间接利好kcn持有的SpaceX。"
     },
     {
       "author": "Trump",
@@ -142,13 +87,15 @@
         "BAC",
         "WMT",
         "TM",
-        "TMUS"
+        "TMUS",
+        "CMCSA"
       ],
       "held": [],
       "new_ideas": [
         "AAPL",
         "BAC",
         "C",
+        "CMCSA",
         "GOOGL",
         "GS",
         "TM",
@@ -158,78 +105,119 @@
         "WMT"
       ],
       "sectors": [
-        "政治/社会"
+        "政治捐款",
+        "公共安全"
       ],
       "sector_holdings": [],
       "stance": "attack",
-      "relevance": 50,
-      "summary_cn": "Trump抨击Center for American Lack of Progress及资助方，含Google、Apple、Visa、Goldman Sachs、Citigroup、Wells Fargo、Bank of America、Walmart、Toyota、T-Mobile、NBC Universal等大企业，纯政治口水，无直接市场含义。"
+      "relevance": 55,
+      "summary_cn": "Trump抨击CAP并点名Google/Apple/Visa/GS/Citi/Wells Fargo/BAC/Walmart/Toyota/T-Mobile/NBC等为该智库提供资金——带有政治敌意标签，可能影响被点名公司ESG/声誉风险。"
     },
     {
       "author": "Musk",
-      "text": "Elon Musk’s Net Worth Tops $800 Billion Again As SpaceX Shares Spike 11%",
+      "text": "What to know about Elon Musk's massive $16.8 billion chip factory - ABC News",
       "url": "",
-      "published": "Fri, 07 Aug 2026 17:43:31 GMT",
+      "published": "Tue, 11 Aug 2026 20:31:33 GMT",
       "origin": "gnews-rss",
-      "source": "forbes.com",
+      "source": "ABC News - Breaking News, Latest News and Videos",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "航天/卫星",
-        "科技"
+        "半导体",
+        "AI"
+      ],
+      "sector_holdings": [
+        "SKHY"
+      ],
+      "stance": "endorse",
+      "relevance": 72,
+      "summary_cn": "Musk旗下$168亿芯片工厂相关报道，AI算力基建主题利好半导体供应链，间接利好kcn持有的SK海力士。"
+    },
+    {
+      "author": "Musk",
+      "text": "Vietnam’s VinSpace Signs Deal With Elon Musk’s SpaceX to Launch Satellites in 2027",
+      "url": "",
+      "published": "Tue, 11 Aug 2026 14:54:25 GMT",
+      "origin": "gnews-rss",
+      "source": "Broadband Breakfast",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天/卫星"
       ],
       "sector_holdings": [
         "SPCH",
         "SPCX"
       ],
       "stance": "endorse",
-      "relevance": 90,
-      "summary_cn": "Musk净资产再破$8000亿，因SpaceX股价单日涨11%，直接利好kcn持有的SPCX与SPCH（SpaceX 2x杠杆ETF）。"
+      "relevance": 72,
+      "summary_cn": "越南VinSpace与SpaceX签2027年发射协议——SpaceX商业发射订单持续扩张，强化基本面叙事，利好kcn持有的SpaceX相关标的。"
     },
     {
       "author": "Musk",
-      "text": "SpaceX to invest $16.8B on first phase of Terafab project",
+      "text": "Elon Musk’s SpaceX considering a multi-billion-dollar buyout of Israeli AI startup",
       "url": "",
-      "published": "Mon, 10 Aug 2026 15:54:34 GMT",
+      "published": "Tue, 11 Aug 2026 19:53:21 GMT",
       "origin": "gnews-rss",
-      "source": "Manufacturing Dive",
+      "source": "thejc.com",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "航天/卫星",
-        "AI/半导体制造"
-      ],
-      "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "endorse",
-      "relevance": 88,
-      "summary_cn": "SpaceX宣布$16.8B投资Terafab一期项目，是当前最大制造设施5倍，直接利好kcn持有的SPCX/SPCH（SpaceX敞口）。"
-    },
-    {
-      "author": "Musk",
-      "text": "Musk’s planned $16.8 billion factory is five times bigger than the world’s current largest building",
-      "url": "",
-      "published": "Mon, 10 Aug 2026 20:20:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Fortune",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "电动车/制造",
+        "AI",
         "航天"
       ],
       "sector_holdings": [
         "SPCH",
         "SPCX"
       ],
-      "stance": "neutral",
-      "relevance": 68,
-      "summary_cn": "Musk规划$16.8B工厂为现全球最大建筑5倍规模，Musk帝国资本开支叙事，间接利好SpaceX估值预期。"
+      "stance": "endorse",
+      "relevance": 70,
+      "summary_cn": "报道SpaceX考虑数十亿美元收购以色列AI初创公司——SpaceX向AI领域扩张，估值故事再添砝码，利好kcn持有的SpaceX相关标的。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk's Net Worth Rebounds on SpaceX Bounce — Now Nearly 800,000x the Average American",
+      "url": "",
+      "published": "Tue, 11 Aug 2026 19:38:29 GMT",
+      "origin": "gnews-rss",
+      "source": "Benzinga",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天"
+      ],
+      "sector_holdings": [
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "endorse",
+      "relevance": 65,
+      "summary_cn": "Musk净资产因SpaceX估值反弹接近普通美国人80万倍——SpaceX二级市场估值走强信号，利好kcn持有的SPCX/SPCH。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk’s mobile moonshot still needs grounding",
+      "url": "",
+      "published": "Tue, 11 Aug 2026 17:19:20 GMT",
+      "origin": "gnews-rss",
+      "source": "Fierce Network",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "电信/卫星互联网"
+      ],
+      "sector_holdings": [
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "attack",
+      "relevance": 62,
+      "summary_cn": "Musk手机项目仍需落地相关报道——Starlink直连手机业务进展受质疑，可能短期压制SpaceX/卫星互联网主题情绪。"
     },
     {
       "author": "Trump",
@@ -241,44 +229,42 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "地缘政治/中东",
         "国防",
+        "地缘政治",
         "能源"
       ],
       "sector_holdings": [],
-      "stance": "attack",
-      "relevance": 55,
-      "summary_cn": "Trump就伊朗核冲突反向索赔，与伊朗对抗升级信号，对中东局势/油价/国防板块有间接影响。"
+      "stance": "neutral",
+      "relevance": 52,
+      "summary_cn": "Trump就伊朗战争赔偿问题互怼，暗示中东紧张局势延续——影响国防/能源板块情绪与油价预期。"
     },
     {
-      "author": "Musk",
-      "text": "GAO finds Elon Musk's DOGE inflated claims of $110 billion in savings for federal government",
-      "url": "",
-      "published": "Thu, 06 Aug 2026 22:19:52 GMT",
-      "origin": "gnews-rss",
-      "source": "CNBC",
+      "author": "Trump",
+      "text": "The NYC Pied-a-Terre Tax is costing New York City and State a fortune in that the money, eventually to be gotten, is very little compared to to the TAXES PAID by the tens of thousands of people who are fleeing the City, never to return. Florida, Texas, and numerous other States, are making an absolute fortune! This dangerous political “experiment” in New York will destroy what was once a great City and State. It is pure Amateur Hour, and it’s hard, as President of the United States of America, to sit back and watch it happen, especially to a place I once loved. Financial, and then Social, RUIN",
+      "url": "https://trumpstruth.org/statuses/40731",
+      "published": "2026-08-11T15:38:30+00:00",
+      "origin": "truthsocial",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "政治/DOGE",
-        "政府效率"
+        "房地产税"
       ],
       "sector_holdings": [],
       "stance": "attack",
       "relevance": 50,
-      "summary_cn": "GAO报告认定Musk旗下DOGE虚报$110B联邦节省，监管/可信度风险，可能影响政府合同及Musk系估值。"
+      "summary_cn": "Trump抨击纽约市pied-à-terre税导致人口与税收外流，吹捧佛州/德州受益——间接影响州际资金流与房地产板块情绪。"
     }
   ],
   "held_hits": [],
   "new_ideas": [
     {
       "author": "Musk",
-      "text": "See How a Tesla-SpaceX Merger Gives Musk a Shortcut to His $1 Trillion Payday",
+      "text": "Tesla shows first Cybercab with built-in Starlink. Elon Musk explains why it needs one.",
       "url": "",
-      "published": "Tue, 11 Aug 2026 01:00:00 GMT",
+      "published": "Tue, 11 Aug 2026 19:42:55 GMT",
       "origin": "gnews-rss",
-      "source": "WSJ",
+      "source": "Mashable",
       "tickers": [
         "TSLA"
       ],
@@ -294,17 +280,17 @@
         "SPCH",
         "SPCX"
       ],
-      "stance": "neutral",
-      "relevance": 78,
-      "summary_cn": "媒体讨论Tesla-SpaceX合并如何助Musk迈向1万亿美元薪酬包，若合并成行将直接重估kcn持有的SpaceX相关仓位。"
+      "stance": "endorse",
+      "relevance": 70,
+      "summary_cn": "Tesla Cybercab内置Starlink——SpaceX与Tesla业务协同叙事，强化SpaceX估值故事，间接利好kcn持有的SpaceX相关标的。"
     },
     {
       "author": "Musk",
-      "text": "Tesla shows first Cybercab with built-in Starlink. Elon Musk explains why it needs one.",
+      "text": "See How a Tesla-SpaceX Merger Gives Musk a Shortcut to His $1 Trillion Payday",
       "url": "",
-      "published": "Tue, 11 Aug 2026 09:02:30 GMT",
+      "published": "Tue, 11 Aug 2026 01:00:00 GMT",
       "origin": "gnews-rss",
-      "source": "Mashable",
+      "source": "WSJ",
       "tickers": [
         "TSLA"
       ],
@@ -313,71 +299,16 @@
         "TSLA"
       ],
       "sectors": [
-        "电动车",
-        "航天/卫星",
-        "通信"
+        "航天",
+        "电动车"
       ],
       "sector_holdings": [
         "SPCH",
         "SPCX"
       ],
       "stance": "endorse",
-      "relevance": 72,
-      "summary_cn": "Tesla展示首款内置Starlink的Cybercab，Musk解释为何需要星链，间接利好SpaceX/Starlink生态。"
-    },
-    {
-      "author": "Musk",
-      "text": "In Texas, Elon Musk's empire could soon add a $10 billion Tesla solar plant",
-      "url": "",
-      "published": "Tue, 11 Aug 2026 10:15:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Yahoo Finance",
-      "tickers": [
-        "TSLA"
-      ],
-      "held": [],
-      "new_ideas": [
-        "TSLA"
-      ],
-      "sectors": [
-        "太阳能/能源",
-        "电动车"
-      ],
-      "sector_holdings": [
-        "02208"
-      ],
-      "stance": "neutral",
-      "relevance": 70,
-      "summary_cn": "Tesla在德州拟建$10B太阳能工厂，扩张能源版图，间接利好新能源/光伏产业链（如金风科技等清洁能源标的）。"
-    },
-    {
-      "author": "Musk",
-      "text": "When One Man Controls the Stack: Is Musk Building a Private Technology Monopoly?",
-      "url": "",
-      "published": "Tue, 11 Aug 2026 13:03:42 GMT",
-      "origin": "gnews-rss",
-      "source": "EVWORLD.COM",
-      "tickers": [
-        "TSLA"
-      ],
-      "held": [],
-      "new_ideas": [
-        "TSLA"
-      ],
-      "sectors": [
-        "科技/AI",
-        "电动车",
-        "航天",
-        "社交媒体"
-      ],
-      "sector_holdings": [
-        "MSFU",
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "attack",
-      "relevance": 65,
-      "summary_cn": "媒体质疑Musk一人控制技术栈、构建私人科技垄断的监管/反垄断风险，对Tesla及SpaceX估值有潜在阴影。"
+      "relevance": 68,
+      "summary_cn": "报道Tesla-SpaceX合并可加速Musk万亿薪酬方案——两公司合并/协同主题持续发酵，间接利好kcn持有的SpaceX。"
     },
     {
       "author": "Trump",
@@ -395,13 +326,15 @@
         "BAC",
         "WMT",
         "TM",
-        "TMUS"
+        "TMUS",
+        "CMCSA"
       ],
       "held": [],
       "new_ideas": [
         "AAPL",
         "BAC",
         "C",
+        "CMCSA",
         "GOOGL",
         "GS",
         "TM",
@@ -411,80 +344,121 @@
         "WMT"
       ],
       "sectors": [
-        "政治/社会"
+        "政治捐款",
+        "公共安全"
       ],
       "sector_holdings": [],
       "stance": "attack",
-      "relevance": 50,
-      "summary_cn": "Trump抨击Center for American Lack of Progress及资助方，含Google、Apple、Visa、Goldman Sachs、Citigroup、Wells Fargo、Bank of America、Walmart、Toyota、T-Mobile、NBC Universal等大企业，纯政治口水，无直接市场含义。"
+      "relevance": 55,
+      "summary_cn": "Trump抨击CAP并点名Google/Apple/Visa/GS/Citi/Wells Fargo/BAC/Walmart/Toyota/T-Mobile/NBC等为该智库提供资金——带有政治敌意标签，可能影响被点名公司ESG/声誉风险。"
     }
   ],
   "sector_hits": [
     {
       "author": "Musk",
-      "text": "Elon Musk’s Net Worth Tops $800 Billion Again As SpaceX Shares Spike 11%",
+      "text": "What to know about Elon Musk's massive $16.8 billion chip factory - ABC News",
       "url": "",
-      "published": "Fri, 07 Aug 2026 17:43:31 GMT",
+      "published": "Tue, 11 Aug 2026 20:31:33 GMT",
       "origin": "gnews-rss",
-      "source": "forbes.com",
+      "source": "ABC News - Breaking News, Latest News and Videos",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "航天/卫星",
-        "科技"
+        "半导体",
+        "AI"
+      ],
+      "sector_holdings": [
+        "SKHY"
+      ],
+      "stance": "endorse",
+      "relevance": 72,
+      "summary_cn": "Musk旗下$168亿芯片工厂相关报道，AI算力基建主题利好半导体供应链，间接利好kcn持有的SK海力士。"
+    },
+    {
+      "author": "Musk",
+      "text": "Vietnam’s VinSpace Signs Deal With Elon Musk’s SpaceX to Launch Satellites in 2027",
+      "url": "",
+      "published": "Tue, 11 Aug 2026 14:54:25 GMT",
+      "origin": "gnews-rss",
+      "source": "Broadband Breakfast",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天/卫星"
       ],
       "sector_holdings": [
         "SPCH",
         "SPCX"
       ],
       "stance": "endorse",
-      "relevance": 90,
-      "summary_cn": "Musk净资产再破$8000亿，因SpaceX股价单日涨11%，直接利好kcn持有的SPCX与SPCH（SpaceX 2x杠杆ETF）。"
+      "relevance": 72,
+      "summary_cn": "越南VinSpace与SpaceX签2027年发射协议——SpaceX商业发射订单持续扩张，强化基本面叙事，利好kcn持有的SpaceX相关标的。"
     },
     {
       "author": "Musk",
-      "text": "SpaceX to invest $16.8B on first phase of Terafab project",
+      "text": "Elon Musk’s SpaceX considering a multi-billion-dollar buyout of Israeli AI startup",
       "url": "",
-      "published": "Mon, 10 Aug 2026 15:54:34 GMT",
+      "published": "Tue, 11 Aug 2026 19:53:21 GMT",
       "origin": "gnews-rss",
-      "source": "Manufacturing Dive",
+      "source": "thejc.com",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "航天/卫星",
-        "AI/半导体制造"
-      ],
-      "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "endorse",
-      "relevance": 88,
-      "summary_cn": "SpaceX宣布$16.8B投资Terafab一期项目，是当前最大制造设施5倍，直接利好kcn持有的SPCX/SPCH（SpaceX敞口）。"
-    },
-    {
-      "author": "Musk",
-      "text": "Musk’s planned $16.8 billion factory is five times bigger than the world’s current largest building",
-      "url": "",
-      "published": "Mon, 10 Aug 2026 20:20:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Fortune",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "电动车/制造",
+        "AI",
         "航天"
       ],
       "sector_holdings": [
         "SPCH",
         "SPCX"
       ],
-      "stance": "neutral",
-      "relevance": 68,
-      "summary_cn": "Musk规划$16.8B工厂为现全球最大建筑5倍规模，Musk帝国资本开支叙事，间接利好SpaceX估值预期。"
+      "stance": "endorse",
+      "relevance": 70,
+      "summary_cn": "报道SpaceX考虑数十亿美元收购以色列AI初创公司——SpaceX向AI领域扩张，估值故事再添砝码，利好kcn持有的SpaceX相关标的。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk's Net Worth Rebounds on SpaceX Bounce — Now Nearly 800,000x the Average American",
+      "url": "",
+      "published": "Tue, 11 Aug 2026 19:38:29 GMT",
+      "origin": "gnews-rss",
+      "source": "Benzinga",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天"
+      ],
+      "sector_holdings": [
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "endorse",
+      "relevance": 65,
+      "summary_cn": "Musk净资产因SpaceX估值反弹接近普通美国人80万倍——SpaceX二级市场估值走强信号，利好kcn持有的SPCX/SPCH。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk’s mobile moonshot still needs grounding",
+      "url": "",
+      "published": "Tue, 11 Aug 2026 17:19:20 GMT",
+      "origin": "gnews-rss",
+      "source": "Fierce Network",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "电信/卫星互联网"
+      ],
+      "sector_holdings": [
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "attack",
+      "relevance": 62,
+      "summary_cn": "Musk手机项目仍需落地相关报道——Starlink直连手机业务进展受质疑，可能短期压制SpaceX/卫星互联网主题情绪。"
     }
   ]
 }
