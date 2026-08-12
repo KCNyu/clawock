@@ -263,6 +263,10 @@
         {
           "command": "audit-resettle",
           "note": "dry-run bar-based re-settle that reports every verdict it would change"
+        },
+        {
+          "command": "evaluate-add-alpha",
+          "note": "point-in-time diagnostic replay of price-relative and information interaction adds"
         }
       ]
     }

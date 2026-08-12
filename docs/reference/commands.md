@@ -25,7 +25,7 @@ title: clawock · command reference
 
 ## Installed commands / 已安装命令
 
-**61 commands** are installed: 49 from `clawock` and 12 from `clawock-kcnyu`. 39 of them collect or compute information and appear under the layer they feed; the remaining 22 publish, gate, record or schedule, and are listed with the reason they are not collection.
+**62 commands** are installed: 50 from `clawock` and 12 from `clawock-kcnyu`. 40 of them collect or compute information and appear under the layer they feed; the remaining 22 publish, gate, record or schedule, and are listed with the reason they are not collection.
 
 本节由生成器从两份 registry 与 `config/information-layers.json` 推导，不手写；新增或删除一条命令，这张表自己会变。
 
@@ -123,6 +123,7 @@ Sources: local snapshots + canonical bars
 | `clawock validate-regime-dial` | `clawock.evaluation.regime_validation` | out-of-sample and circular-shift null for the dial's timing |
 | `clawock shadow` | `clawock.portfolio.shadow` | replays triggered calls against buy-and-hold to measure simulated timing alpha |
 | `clawock audit-resettle` | `clawock.decision.settlement` | dry-run bar-based re-settle that reports every verdict it would change |
+| `clawock evaluate-add-alpha` | `clawock.evaluation.add_alpha_walkforward` | point-in-time diagnostic replay of low-frequency price-relative × information adds; reuses production authority and fill rules |
 
 ### Not information collection / 不属于信息收集
 

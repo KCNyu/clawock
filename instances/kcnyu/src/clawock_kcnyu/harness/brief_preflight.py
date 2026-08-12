@@ -96,13 +96,12 @@ def _run_clawock(command, args=None, timeout=120):
 
 
 def _technical_setup_usage():
-    """Count only broker-observed technical add tranches."""
+    """Count every broker-observed setup tranche, regardless of alpha driver."""
     usage = {}
     for row in decision_v2.load_decisions():
         setup_id = row.get('technical_setup_id')
         campaign_id = row.get('technical_campaign_id')
         if (row.get('action') not in decision_v2.ADD_ACTIONS
-                or row.get('driven_by') != 'technical'
                 or not setup_id or not campaign_id
                 or (row.get('execution') or {}).get('status') != 'followed'):
             continue
@@ -765,7 +764,13 @@ def _detect_followed(row, min_window_days=None):
         # One definition, in decision_v2: _exec_rate needs the identical rule to
         # separate "not verifiable yet" from "never will be", and a second copy
         # here would drift without anything failing.
-        min_window_days = decision_v2.verification_window_days(bucket)
+        condition = row.get('condition') or {}
+        min_window_days = decision_v2.verification_window_days(
+            bucket,
+            plan_date=plan_date,
+            leg=row.get('leg'),
+            valid_for_sessions=condition.get('valid_for_sessions'),
+        )
 
     # Day BEFORE plan_date (last commit before plan was created)
     try:
@@ -903,8 +908,11 @@ def compute_decision_metrics():
             continue
         if (d.get('evaluation') or {}).get('triggered') is not True:
             continue
-        legacy_view = {'plan_date': d.get('plan_date'), 'ticker': d.get('ticker'),
-                       'bucket': d.get('action')}
+        legacy_view = {
+            'plan_date': d.get('plan_date'), 'ticker': d.get('ticker'),
+            'bucket': d.get('action'), 'leg': d.get('leg'),
+            'condition': d.get('condition') or {},
+        }
         verdict = _detect_followed(legacy_view)
         if verdict in ('true', 'false'):
             d['execution'] = {'status': 'followed' if verdict == 'true' else 'not_followed',
@@ -1577,8 +1585,13 @@ def main(argv=None):
                 for h in book.get('holdings', [])
                 if h.get('shares', 0) > 0
             }
+            signal_names = {
+                str((get_instrument(ticker) or {}).get('signal_symbol') or '')
+                for ticker in held
+            }
             held_rows = {
-                ticker: row for ticker, row in rankings.items() if ticker in held
+                ticker: row for ticker, row in rankings.items()
+                if ticker in held or ticker in signal_names
             }
             leaders = sorted(
                 rankings.items(),
@@ -1628,6 +1641,10 @@ def main(argv=None):
                 for h in book.get('holdings', [])
                 if h.get('shares', 0) > 0
             }
+            signal_names = {
+                str((get_instrument(ticker) or {}).get('signal_symbol') or '')
+                for ticker in held
+            }
             peer_residual_ctx = {
                 'as_of': peer_residual.get('as_of'),
                 'taxonomy': peer_residual.get('taxonomy'),
@@ -1635,7 +1652,7 @@ def main(argv=None):
                 'rule_activation': peer_residual.get('rule_activation'),
                 'held': {
                     ticker: row for ticker, row in peer_live.items()
-                    if ticker in held
+                    if ticker in held or ticker in signal_names
                 },
             }
             active_peer_rules = [

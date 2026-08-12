@@ -84,10 +84,14 @@ def parse_bars(payload, symbol):
     out = []
     for row in rows:
         try:
+            open_ = float(row[1])
             close = float(row[2])
+            high = float(row[3])
+            low = float(row[4])
             volume = float(row[5]) if len(row) > 5 and row[5] not in ('', None) else None
-            if close > 0:
-                out.append({'date': str(row[0])[:10], 'close': close,
+            if min(open_, close, high, low) > 0:
+                out.append({'date': str(row[0])[:10], 'open': open_,
+                            'close': close, 'high': high, 'low': low,
                             'volume': volume})
         except (TypeError, ValueError, IndexError):
             continue
@@ -373,6 +377,12 @@ def _centered_ranks(values):
     return ranks
 
 
+def _percentile_ranks(values):
+    """Average-tie ranks on [0, 1], independent within each market."""
+    centered = _centered_ranks(values)
+    return {ticker: value + 0.5 for ticker, value in centered.items()}
+
+
 def rank_snapshot(config, fetched, as_of, quality=None, region=None):
     quality = quality or {}
     specs = [row for row in config['symbols']
@@ -490,6 +500,23 @@ def rank_snapshot(config, fetched, as_of, quality=None, region=None):
         for field in ('mom_1m', 'mom_3m', 'mom_6m', *RAW_FACTORS):
             if isinstance(row.get(field), float):
                 row[field] = round(row[field], 6)
+
+    # Portfolio construction consumes a rank, not an arbitrary score cutoff.
+    # Keep US and HK separate: the two markets do not share a session, peer
+    # distribution, liquidity scale, or investible universe.  A sector with
+    # only two near-identical ETFs is also made explicit so it cannot create a
+    # spurious extreme rank merely because one of the pair is slightly ahead.
+    for region in sorted({row['region'] for row in raw.values()}):
+        values = {
+            ticker: row['composite_score']
+            for ticker, row in raw.items()
+            if row['region'] == region
+            and isinstance(row.get('composite_score'), (int, float))
+        }
+        for ticker, percentile in _percentile_ranks(values).items():
+            raw[ticker]['market_percentile'] = round(percentile, 4)
+    for ticker, row in raw.items():
+        row['sector_universe_size'] = len(by_sector.get(row['sector']) or [])
     return raw
 
 
@@ -792,6 +819,8 @@ def _history_snapshot(as_of, rows, registered_at):
                 'feature_as_of': row['feature_as_of'],
                 'close': row['close'],
                 'composite_score': row['composite_score'],
+                'market_percentile': row.get('market_percentile'),
+                'sector_universe_size': row.get('sector_universe_size'),
                 'factor_coverage_pct': row['factor_coverage_pct'],
             }
             for ticker, row in rows.items()
