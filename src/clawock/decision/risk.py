@@ -459,7 +459,10 @@ def validate_exposure_increases(
             continue
         blockers = []
         for breach in open_records:
-            if breach.get("leg") not in (None, leg):
+            # BOOK is the cross-market correlation scope. It applies only to
+            # target_tickers inside that measured cluster, not indiscriminately
+            # to every add on either leg.
+            if breach.get("leg") not in (None, "BOOK", leg):
                 continue
             kind = breach.get("type")
             source = str(breach.get("ticker") or "")
@@ -476,7 +479,7 @@ def validate_exposure_increases(
             }
             if kind == "hard_stop" and ticker in same_factor:
                 blockers.append(breach)
-            elif kind == "factor_concentration":
+            elif kind == "factor_concentration" and ticker in reduction_sources:
                 blockers.append(breach)
             elif kind in {"leveraged_exposure", "beta"} \
                     and ticker in (same_risk_sleeve or leveraged_tickers):

@@ -27,10 +27,18 @@ def _context():
                     }]
                 },
                 "hk_stocks": {
+                    "cash_hkd": 2000,
                     "holdings": [{
                         "ticker": "00100", "name": "Example HK", "shares": 100,
+                        "lot_size": 20, "current_value": 1100,
                         "cost_basis": 10, "current_price": 11,
                         "pnl_percent": 10, "today_change_pct": 2,
+                        "data_source": "fixture",
+                    }, {
+                        "ticker": "HK2", "name": "Other HK", "shares": 100,
+                        "lot_size": 20, "current_value": 1100,
+                        "cost_basis": 10, "current_price": 11,
+                        "pnl_percent": 10, "today_change_pct": 0,
                         "data_source": "fixture",
                     }]
                 },
@@ -75,6 +83,14 @@ def _context():
                     "trend_on": True, "rsi14": 55,
                     "dist_ma200_pct": 8, "pct_52w_range": 70,
                     "stop_distance_pct": 5, "tag": "趋势ON",
+                    "technical_setups": [{
+                        "setup_id": "trend_pullback", "label": "趋势回踩",
+                        "campaign_id": "trend_pullback:2026-07-28",
+                        "entry_type": "price_above", "entry_price": 11,
+                        "invalidation_price": 9.5, "max_tranches": 2,
+                        "tranche_pct_of_position": 0.1,
+                        "detail": "reclaim",
+                    }],
                 },
             }
         },
@@ -122,6 +138,13 @@ def _context():
             }]
         },
         "integrity": {"ok": True, "error_count": 0, "warn_count": 0},
+        "thesis_registry": {
+            "status": "ready",
+            "theses": {"00100": {
+                "status": "resolved", "thesis_id": "thesis-hk",
+                "state": "intact", "checked_at": "2026-07-28T00:00:00Z",
+            }},
+        },
     }
 
 
@@ -159,6 +182,10 @@ def test_compiler_owns_proxy_join_risk_status_and_action_bounds():
     assert hk["status"]["label"] == "趋势ON"
     assert "cut" in hk["constraints"]["allowed_actions"]
     assert hk["constraints"]["actionable_evidence_ids"] == ["evt_good"]
+    assert hk["execution"]["lot_size"] == 20
+    assert hk["constraints"]["min_tranche_shares"] == 20
+    assert hk["constraints"]["max_add_shares"] % 20 == 0
+    assert "add_only_on_trigger" in hk["constraints"]["allowed_actions"]
     assert len(packet_mod._compact(packet).encode()) < packet_mod.MAX_PACKET_BYTES
     assert len(
         json.dumps(packet_mod.summary_view(packet), ensure_ascii=False).encode()
@@ -251,6 +278,170 @@ def test_plan_is_constrained_by_harness_actions_evidence_and_inventory():
     issues = packet_mod.validate_plan_constraints(bad, packet)
     assert any("allowed_actions" in issue for issue in issues)
     assert any("evidence gate" in issue for issue in issues)
+
+
+def test_technical_add_requires_approved_trigger_and_hk_board_lot():
+    packet = _compiled()
+    good = {"decisions": [{
+        "ticker": "00100", "strategy_id": "tactical_entry",
+        "action": "add_only_on_trigger", "driven_by": "technical",
+        "evidence_event_id": None,
+        "condition": {"type": "price_above", "price": 11},
+        "technical_setup_id": "trend_pullback",
+        "technical_campaign_id": "trend_pullback:2026-07-28",
+        "invalidation_price": 9.5,
+        "tranche_number": 1,
+        "size": {"shares": 20},
+    }]}
+    assert packet_mod.validate_plan_constraints(good, packet) == []
+
+    odd_lot = json.loads(json.dumps(good))
+    odd_lot["decisions"][0]["size"]["shares"] = 21
+    issues = packet_mod.validate_plan_constraints(odd_lot, packet)
+    assert any("board-lot multiple" in issue for issue in issues)
+
+    invented = json.loads(json.dumps(good))
+    invented["decisions"][0]["condition"]["price"] = 10.5
+    issues = packet_mod.validate_plan_constraints(invented, packet)
+    assert any("approved technical setup" in issue for issue in issues)
+
+
+def test_leveraged_or_broken_thesis_never_gets_add_authority():
+    context = _context()
+    context["quant_signals"]["rows"]["BASE"]["technical_setups"] = [{
+        "setup_id": "confirmed_breakout", "label": "breakout",
+        "entry_type": "price_above", "entry_price": 12,
+        "invalidation_price": 10, "max_tranches": 2,
+        "tranche_pct_of_position": 0.1, "detail": "breakout",
+    }]
+    context["thesis_registry"]["theses"]["00100"]["state"] = "broken"
+    packet = packet_mod.compile_packet(
+        context, brief_context.compute_generation_id(context)
+    )
+
+    assert not any(
+        action.startswith("add_")
+        for action in packet["tickers"]["LEVX"]["constraints"]["allowed_actions"]
+    )
+
+
+def test_unknown_registry_leveraged_name_is_blocked_without_a_risk_breach():
+    context = _context()
+    context["risk_guardrail"]["hard_stop_watch"] = []
+    context["quant_signals"]["rows"]["BASE"]["technical_setups"] = [{
+        "setup_id": "confirmed_breakout", "label": "breakout",
+        "entry_type": "price_above", "entry_price": 12,
+        "invalidation_price": 10, "max_tranches": 2,
+        "tranche_pct_of_position": 0.1, "detail": "breakout",
+    }]
+
+    packet = packet_mod.compile_packet(
+        context, brief_context.compute_generation_id(context)
+    )
+
+    assert "leveraged_daily_reset" in packet["tickers"]["LEVX"]["execution"]["blockers"]
+    assert not any(
+        action.startswith("add_")
+        for action in packet["tickers"]["LEVX"]["constraints"]["allowed_actions"]
+    )
+
+
+def test_book_cluster_blocks_adds_only_for_its_target_members():
+    context = _context()
+    context["risk_guardrail"]["breaches"] = [{
+        "type": "factor_concentration", "leg": "BOOK", "severity": "high",
+        "detail": "measured cluster", "action": "reduce cluster",
+        "required_reduction": {"target_tickers": ["00100"]},
+    }]
+
+    packet = packet_mod.compile_packet(
+        context, brief_context.compute_generation_id(context)
+    )
+
+    assert "add_only_on_trigger" not in (
+        packet["tickers"]["00100"]["constraints"]["allowed_actions"]
+    )
+    assert packet["tickers"]["HK2"]["risk"] == []
+
+
+def test_open_add_order_blocks_duplicate_tranche():
+    context = _context()
+    context["open_decisions"] = {"open": [{
+        "ticker": "00100", "action": "add_only_on_trigger",
+        "execution_status": "unknown",
+    }]}
+
+    packet = packet_mod.compile_packet(
+        context, brief_context.compute_generation_id(context)
+    )
+    hk = packet["tickers"]["00100"]
+
+    assert "open_add_order" in hk["execution"]["blockers"]
+    assert "add_only_on_trigger" not in hk["constraints"]["allowed_actions"]
+
+
+def test_open_add_ledger_error_blocks_every_new_tranche():
+    context = _context()
+    context["open_decisions"] = {
+        "open_add_tickers": [],
+        "open_add_gate_error": "OSError: ledger unreadable",
+    }
+
+    packet = packet_mod.compile_packet(
+        context, brief_context.compute_generation_id(context)
+    )
+
+    assert "open_add_order" in packet["tickers"]["00100"]["execution"]["blockers"]
+    assert "add_only_on_trigger" not in (
+        packet["tickers"]["00100"]["constraints"]["allowed_actions"]
+    )
+
+
+def test_completed_tranches_exhaust_setup_authority():
+    context = _context()
+    context["technical_setup_usage"] = {
+        "00100": {"trend_pullback:2026-07-28": 2}
+    }
+
+    packet = packet_mod.compile_packet(
+        context, brief_context.compute_generation_id(context)
+    )
+    setup = packet["tickers"]["00100"]["technical"]["setups"][0]
+
+    assert setup["remaining_tranches"] == 0
+    assert setup["next_tranche_number"] is None
+    assert "add_only_on_trigger" not in (
+        packet["tickers"]["00100"]["constraints"]["allowed_actions"]
+    )
+    assert not any(
+        action.startswith("add_")
+        for action in packet["tickers"]["00100"]["constraints"]["allowed_actions"]
+    )
+
+
+def test_add_room_solves_the_post_trade_60_percent_boundary():
+    context = _context()
+    hk_book = context["portfolio"]["portfolios"]["hk_stocks"]
+    hk_book["cash_hkd"] = 10_000
+    hk_book["holdings"][0].update(
+        shares=100, current_price=5, current_value=500, lot_size=20,
+    )
+    hk_book["holdings"][1].update(
+        shares=100, current_price=5, current_value=500, lot_size=20,
+    )
+
+    packet = packet_mod.compile_packet(
+        context, brief_context.compute_generation_id(context)
+    )
+    execution = packet["tickers"]["00100"]["execution"]
+
+    # (500 + 250) / (1_000 + 250) == 60%; cash is only an affordability cap.
+    assert execution["max_add_shares"] == 40  # one more 20-share lot would exceed 60%
+    assert (500 + execution["max_add_value"]) / (
+        1_000 + execution["max_add_value"]
+    ) < 0.60
+    next_lot_value = execution["max_add_value"] + 20 * 5
+    assert (500 + next_lot_value) / (1_000 + next_lot_value) > 0.60
 
 
 def _catalyst(action, evidence_id, ticker="00100"):

@@ -16,6 +16,7 @@ In this order:
 4. `/root/.openclaw/workspace/INVESTMENT_SOP.md`
 5. Recent daily memory files when recent trades affect interpretation
 6. `/root/.openclaw/workspace/TOOLS.md` for data chain detail
+7. `../daily-deep-brief/references/technical-playbooks.md` before any add / average-down synthesis
 
 ## Fresh data rule
 
@@ -137,7 +138,7 @@ Each item: ticker + concrete reason + concrete trigger/level if applicable.
 
 Not every signal source has earned the right to drive a decision. Read the current v2 ledger metrics (`decision_metrics.by_driver`, `by_strategy`, and `by_condition`) and compare `n_episodes`, average benefit, and date-cluster CI. Never copy a point-in-time rate from an old report. If n is small or the CI crosses zero, call it directional evidence only. Hard catalysts may drive an event/tactical decision; soft sentiment only nudges confidence. Policy-based deleveraging is a separate `risk_rebalance` decision with `driven_by=risk_rule`, not a claim of timing edge.
 
-For active-call sizing, the authored confidence is an audit field, not a win probability. Match the proposed `action + driver + condition + regime` against `decision_metrics.hierarchical_calibration.current_group_calibrators`. A missing exact row, `abstain=true`, or `edge_supported=false` means the signal contributes zero incremental size; otherwise multiply proposed signal size by `signal_size_multiplier` and show the calibrated probability, CI, and resolved hierarchy level. The table carries only `evidence_sufficient=true` rows — groups without enough evidence are omitted rather than shipped as full abstaining rows, and are counted in `current_group_calibrators_omitted` / `omitted_abstain_reasons`. A short table means thin evidence, not missing data. This never cancels a mandatory `risk_rebalance + risk_rule` hard-cap action, because that is policy rather than a timing forecast.
+For active-call sizing, the authored confidence is an audit field, not a win probability. Match the proposed `action + driver + condition + regime` against `decision_metrics.hierarchical_calibration.current_group_calibrators`. A missing exact row or `abstain=true` normally contributes zero incremental size. The sole cold-start exception is one packet-approved technical setup tranche at exactly `min_tranche_shares`, with thesis/risk/lot gates passing and `remaining_tranches > 0`; this creates prospective evidence and may not be scaled up or repeated while open. `edge_supported=false` after sufficient evidence disables that exception. Otherwise multiply proposed signal size by `signal_size_multiplier` and show the calibrated probability, CI and resolved hierarchy level. The table carries only `evidence_sufficient=true` rows; omitted counts live in `current_group_calibrators_omitted` / `omitted_abstain_reasons`. This never cancels a mandatory `risk_rebalance + risk_rule` hard-cap action, because that is policy rather than timing alpha.
 
 ### Position / leverage hard caps (REQUIRED — overrides signal logic AND regime)
 
@@ -145,13 +146,14 @@ The drawdown was a **construction** problem (US β≈4.4, 73% leveraged ETFs, HK
 
 | Cap | Threshold | If breached |
 |---|---|---|
-| Single name (within a leg) | **≤35%** | Trim the name back to ≤35% |
-| Single factor (Top2 proxy) | **≤70%** | Cut the largest into strength; don't swap within the same factor |
+| Non-leveraged single core | **35–60% review; ≤60% mandatory** | Review thesis in band; trim only above 60% |
+| Leveraged single name | **≤35%** | Swap/reduce the leveraged leg |
+| Measured correlated cluster | **≤70%** with ≥80% book coverage | Reduce the cluster, leveraged member first; one-name clusters do not count |
 | Leveraged ETFs (per leg) | **≤50%** | Trim leverage to ≤50% |
 | US β vs S&P | **≤3.0** | De-lever (cut leveraged ETFs first, not the high-conviction single) |
 | Single leveraged ETF stop | **−18% vs cost** | Hard stop → swap 2x→1x same factor (keep exposure, stop decay) |
 
-Rules: every breach **must** produce a concrete action in Judge synthesis (no "watch"). Tag these `driven_by=risk_rule` (disciplinary rebalancing, not news). This is the **one exemption from a trending-up/risk-on HOLD default** — in a melt-up you trim leverage *into* strength, not after the drawdown. De-lever by cutting leveraged ETFs (the β source), never by gutting a high-conviction single's thesis. Leveraged-leg directives use the **2x→1x same-factor swap** (not liquidation) per `brief_preflight.LEV_1X_SWAP`; 1x→2x re-entry only on 🧭 regime green. These caps mirror `brief_preflight.compute_risk_guardrail` / the brief's 「🚦 仓位/杠杆硬闸」 — keep thresholds in sync.
+Rules: every breach **must** produce a concrete action in Judge synthesis (no "watch"). A 35–60% non-leveraged review-band row is advisory, not a breach, and must not be converted into a trim merely for diversification. Tag true breaches `driven_by=risk_rule` (disciplinary rebalancing, not news). This is the **one exemption from a trending-up/risk-on HOLD default** — in a melt-up you trim leverage *into* strength, not after the drawdown. De-lever by cutting leveraged ETFs (the β source), never by gutting a high-conviction single's thesis. Leveraged-leg directives use the **2x→1x same-factor swap** (not liquidation) per `brief_preflight.LEV_1X_SWAP`; 1x→2x re-entry only on 🧭 regime green. These caps mirror `brief_preflight.compute_risk_guardrail` / the brief's 「🚦 仓位/杠杆硬闸」 — keep thresholds in sync.
 
 Read `risk_discipline.records` alongside the detector output and report each open breach's stable ID, age, acknowledgement and execution-evidence state. A plan-local override has no authority; only a durable, reasoned, unexpired override does. While a critical/high record remains open, do not recommend adding the same name, leveraged sleeve or factor. Exits remain legal, as does a same-plan 2×→1× pair whose factor-adjusted exposure decreases.
 

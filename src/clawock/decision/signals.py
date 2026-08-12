@@ -126,6 +126,11 @@ def compute_signals(bars):
         return None
     c = closes[-1]
     ma20, ma50, ma200 = _ma(closes, 20), _ma(closes, 50), _ma(closes, 200)
+    prior_20d_high = max(b['high'] for b in bars[-21:-1]) if len(bars) >= 21 else None
+    prior_20d_low = min(b['low'] for b in bars[-21:-1]) if len(bars) >= 21 else None
+    prior_5d_high = max(b['high'] for b in bars[-6:-1]) if len(bars) >= 6 else None
+    prior_5d_low = min(b['low'] for b in bars[-6:-1]) if len(bars) >= 6 else None
+    prev_close = closes[-2] if len(closes) >= 2 else None
     # 均值回归：20d 布林 z 分数
     z = None
     if ma20 and len(closes) >= 20:
@@ -153,8 +158,12 @@ def compute_signals(bars):
     trend_on = bool(ma200 and ma50 and c > ma200 and ma50 > ma200)
     sig = {
         'close': c,
+        'prev_close': prev_close,
+        'ma20': round(ma20, 3) if ma20 else None,
         'ma50': round(ma50, 3) if ma50 else None,
         'ma200': round(ma200, 3) if ma200 else None,
+        'prior_20d_high': round(prior_20d_high, 3) if prior_20d_high else None,
+        'prior_20d_low': round(prior_20d_low, 3) if prior_20d_low else None,
         'dist_ma200_pct': round((c / ma200 - 1) * 100, 1) if ma200 else None,
         'golden_cross': (ma50 > ma200) if (ma50 and ma200) else None,
         'trend_on': trend_on if ma200 else None,
@@ -172,6 +181,72 @@ def compute_signals(bars):
         'pct_52w_range': round((c - lo52) / (hi52 - lo52) * 100, 1) if hi52 > lo52 else None,
         'bars': len(closes),
     }
+    # Deterministic setup candidates.  These are entry *conditions*, not alpha
+    # claims: the prospective decision ledger still measures whether they work.
+    # Publishing them is necessary for exploration — a gate that permits no
+    # technical add can never collect evidence about technical adds.
+    stop_intact = stop_dist is not None and stop_dist >= 0
+    setups = []
+    # Trend pullback: require an actual recent touch of MA20 and a close back
+    # above it. Merely being somewhere between MA50 and MA20 is not a reclaim.
+    touched_ma20 = ma20 is not None and bars[-1]['low'] <= ma20
+    if (
+        trend_on and ma20 and ma50 and atr and stop_intact
+        and touched_ma20 and c >= ma20 and c <= ma20 + atr * 0.75
+        and c > bars[-1]['open'] and c > prev_close
+    ):
+        setups.append({
+            'setup_id': 'trend_pullback',
+            'label': '趋势回踩',
+            'entry_type': 'price_above',
+            'entry_price': round(c, 3),
+            'invalidation_price': round(max(chandelier or 0, ma50 - atr), 3),
+            'max_tranches': 2,
+            'tranche_pct_of_position': 0.10,
+            'detail': '多头排列中当日触及并收复 MA20，阳线且高于前收；只分两批加',
+        })
+    if (
+        trend_on and prior_20d_high and c > prior_20d_high and stop_intact
+        and (_ret(closes, 21) or 0) > 0
+    ):
+        setups.append({
+            'setup_id': 'confirmed_breakout',
+            'label': '20日突破确认',
+            'entry_type': 'price_above',
+            'entry_price': round(prior_20d_high, 3),
+            'invalidation_price': round(max(ma20 or 0, chandelier or 0), 3),
+            'max_tranches': 2,
+            'tranche_pct_of_position': 0.10,
+            'detail': '趋势 ON 且收盘突破此前 20 日高，回落跌回 MA20/吊灯线则失效',
+        })
+    rsi = sig.get('rsi14')
+    # Mean-reversion add is a two-step pattern: the previous close was weak, and
+    # today's bar reclaims the previous day's high. A loss or one green close by
+    # itself is deliberately insufficient.
+    prev_rsi = _rsi14(closes[:-1])
+    prev_ma20 = _ma(closes[:-1], 20)
+    prev_z = None
+    if prev_ma20 and len(closes) >= 21:
+        prev_window = closes[-21:-1]
+        prev_sd = math.sqrt(sum((x - prev_ma20) ** 2 for x in prev_window) / 20)
+        prev_z = (prev_close - prev_ma20) / prev_sd if prev_sd else None
+    if (
+        prev_rsi is not None and prev_rsi <= 35
+        and prev_z is not None and prev_z <= -1
+        and c > bars[-2]['high'] and c > bars[-1]['open']
+        and prior_5d_low and c > prior_5d_low
+    ):
+        setups.append({
+            'setup_id': 'oversold_reclaim',
+            'label': '超卖收复',
+            'entry_type': 'price_above',
+            'entry_price': round(c, 3),
+            'invalidation_price': round(prior_5d_low, 3),
+            'max_tranches': 1,
+            'tranche_pct_of_position': 0.05,
+            'detail': '前一日 RSI≤35 且 z≤-1，今日收复前高；只加一小批，跌破此前5日低点失效',
+        })
+    sig['technical_setups'] = setups
     # 一行人话标签（仍是规则拼的，不是 LLM）
     tags = []
     tags.append('趋势ON' if trend_on else '趋势OFF')
@@ -258,6 +333,20 @@ def _missing_row(detail, reason, last_good_as_of=None):
     return row
 
 
+def _carry_setup_campaigns(sig, previous, row_as_of):
+    """Keep a campaign id while a setup remains continuously present."""
+    prior = {
+        row.get('setup_id'): row.get('campaign_id')
+        for row in (previous or {}).get('technical_setups') or []
+        if row.get('setup_id') and row.get('campaign_id')
+    }
+    for setup in sig.get('technical_setups') or []:
+        setup_id = setup.get('setup_id')
+        setup['campaign_id'] = (
+            prior.get(setup_id) or f'{setup_id}:{row_as_of.isoformat()}'
+        )
+
+
 def refresh_rows(previous, universe, *, run_date=None, previous_as_of=None,
                  expected_sessions=None, fetcher=fetch_bars):
     """Refresh current rows, make failures visible, and age out retired rows."""
@@ -279,10 +368,18 @@ def refresh_rows(previous, universe, *, run_date=None, previous_as_of=None,
             old_as_of = previous_as_of
         last_good_as_of = old_as_of or old.get('last_good_as_of')
         bars = fetcher(detail['code'])
+        expected = expected_sessions.get(detail['region'])
+        # Some providers publish a moving daily candle before the exchange has
+        # closed. It is not a completed session and must not create a setup.
+        if expected:
+            bars = [
+                bar for bar in bars
+                if (_as_date(bar.get('date')) is not None
+                    and _as_date(bar.get('date')) <= expected)
+            ]
         sig = compute_signals(bars) if bars else None
         if sig is not None:
             row_as_of = _as_date(bars[-1].get('date'))
-            expected = expected_sessions.get(detail['region'])
             age_days = (run_date - row_as_of).days if row_as_of else None
             if row_as_of is None:
                 rows[label] = _missing_row(
@@ -295,6 +392,7 @@ def refresh_rows(previous, universe, *, run_date=None, previous_as_of=None,
                     row_as_of.isoformat(),
                 )
                 continue
+            _carry_setup_campaigns(sig, old, row_as_of)
             sig.update({
                 'code': detail['code'],
                 'source_holdings': sorted(detail['source_holdings']),

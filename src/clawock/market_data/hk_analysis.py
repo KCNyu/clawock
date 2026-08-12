@@ -82,10 +82,17 @@ def _parse_gtimg(text: str) -> Optional[Dict]:
         # day_high/day_low/day_open 永远是旧交易日残留值（2026-05-29 审计发现）
         hi    = float(parts[33]) if len(parts) > 34 and parts[33] else None
         lo    = float(parts[34]) if len(parts) > 34 and parts[34] else None
+        # HKEX orders trade in issuer-defined board lots. Tencent field 60 is
+        # the current board-lot size. Keep it with the quote so a refresh also
+        # refreshes the execution unit used by the decision packet.
+        lot_size = int(float(parts[60])) if len(parts) > 60 and parts[60] else None
+        if lot_size is not None and lot_size <= 0:
+            lot_size = None
         return {
             'name': parts[1],
             'c': price, 'pc': pc, 'o': op,
             'h': hi, 'l': lo,
+            'lot_size': lot_size,
             'dp': _pct(price, pc),
         }
     except Exception:
@@ -421,6 +428,10 @@ def update_hk_portfolio(dry_run: bool = False) -> Dict:
         h['today_change']     = round((c - pc) * shrs, 2)
         h['stock_name']       = q.get('name', h.get('stock_name', code))
         h['data_source']      = f"{q.get('_src', 'Tencent')} {now_hkt.strftime('%b %d %H:%M HKT')}"
+        # Fallback sources do not consistently expose board lots. Preserve a
+        # prior verified lot when absent, but never invent a one-share HK lot.
+        if q.get('lot_size'):
+            h['lot_size'] = int(q['lot_size'])
 
         # 日内区间 — 仅当本次行情带 open/high/low 时覆盖，避免旧交易日残留值
         # （Tencent 主源有；stooq/yfinance fallback 没有则保持上次真值不写脏数据）

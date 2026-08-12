@@ -54,6 +54,10 @@ clawock brief preflight
 
 ### Step 2: 只读 decision packet summary（唯一常驻输入）
 
+当 packet 某票出现 `technical.setups` 并考虑加仓时，先读
+[`references/technical-playbooks.md`](references/technical-playbooks.md)。只允许使用该
+reference 的三种 staged setup；具体触发、失效、手数和上限仍以本次 packet 为准。
+
 ```bash
 /root/.local/bin/clawock tool decision_packet_summary \
   --workspace /root/.openclaw/workspace \
@@ -251,9 +255,9 @@ manifest 若出现 `extras`，表示新 feature 被隔离而没有偷长常驻 c
 
 原始 `confidence` 只保留为作者当时判断的审计字段，不能直接当胜率或仓位倍数。主动 call 必须在 `context.decision_metrics.hierarchical_calibration.current_group_calibrators` 中匹配 `action + driver + condition + regime`；该表由严格按 `plan_date` 前向、同日整体延后更新的 beta-binomial 校准器产生，稀疏小组会收缩到更宽层级。
 
-- `abstain=true`：历史证据不足，`signal_size_multiplier=0`，不得因该信号扩仓；可以降级为 hold/watch。
-- 找不到完全匹配行：按 abstain 处理，不得自行拿相邻小组的点估计冒充。**该表只装 `evidence_sufficient=true` 的行**（证据不足的整批省略，避免每轮重发一张全是 abstain 的后验表）；省略了多少、分别因为什么，看同级的 `current_group_calibrator_count` / `current_group_calibrators_omitted` / `omitted_abstain_reasons`。表变短说明证据变薄，不是数据丢了。
-- `edge_supported=false`：证据可能够，但 95% 下界未过 50%，同样不得用它扩大主动仓位。
+- `abstain=true`：历史证据不足，`signal_size_multiplier=0`。一般信号不得扩仓；唯一的冷启动例外是 packet 批准、thesis gate 通过且仍有 `remaining_tranches` 的技术 setup，可做 **一个 `min_tranche_shares` 探索批次**来积累前瞻样本，不能放大到 `suggested/max`，也不能连开第二批。
+- 找不到完全匹配行：按 abstain 处理，不得自行拿相邻小组的点估计冒充。**该表只装 `evidence_sufficient=true` 的行**（证据不足的整批省略，避免每轮重发一张全是 abstain 的后验表）；省略了多少、分别因为什么，看同级的 `current_group_calibrator_count` / `current_group_calibrators_omitted` / `omitted_abstain_reasons`。表变短说明证据变薄，不是数据丢了。上述最小探索批次是为了打破“没有样本所以永远不能产生样本”的闭环，不是把缺证据说成有 edge。
+- `edge_supported=false`：证据已够但 95% 下界未过 50%，不得再用冷启动例外，也不得用它扩大主动仓位。
 - 只有 `edge_supported=true` 才能把原拟主动股数乘以 `signal_size_multiplier`；报告同时公开 calibrated probability、CI 和 resolved level。
 - 组合硬闸的 `risk_rebalance + risk_rule` 是政策执行，不是预测；即使校准器 abstain，也必须执行硬闸要求的降集中/降杠杆动作，禁止拿“无择时 edge”否决风控。
 
@@ -277,7 +281,7 @@ Bull/Bear 是决策框架的一部分，不能因升级账本而删除：
 preflight 已算好,直接读 `context.risk_guardrail`:
 - `breaches[]` — 每条 = 一个超限的硬闸(single_name / factor_concentration / leveraged_exposure / beta),带 `detail` + 现成 `action`(含具体减仓金额)。
 - `hard_stop_watch[]` — 杠杆 ETF 浮亏跌破 −18% 的硬止损触发。
-- `directive` — 本次总指令;`caps` — 当前阈值(单名 35% / Top2 70% / 杠杆 ETF 50% / US β 3.0 / 杠杆止损 −18%)。
+- `directive` — 本次总指令；`caps` — 当前阈值（非杠杆单名 35–60% review、>60% mandatory；杠杆单名 35%；实测多票相关 cluster 70% 且覆盖≥80%；杠杆 ETF 腿 50%；US β 3.0；杠杆止损 −18%）。Top2 仅展示，不再冒充同因子。
 - `context.risk_discipline.records[]` — 同一 breach 的持久状态：`breach_id`、严重度、`age_days`、首次/最后变化、required reduction、acknowledgement、限时 override、execution evidence。每日重新生成的 plan 不是状态账本。
 
 硬性规则:
@@ -664,7 +668,7 @@ postflight 严格 schema 校验：
 - `strategy_id` ∈ {`core_position`, `risk_rebalance`, `intraday_t`, `event_trade`, `tactical_entry`}；迁移历史才允许 `legacy_unknown`
 - `context_generation_id`：必填，逐字符照抄本次 `manifest.generation_id`；postflight 会递归检查 plan 内所有 `*generation_id`，跨代引用直接 fail。
 - 每条 `action` 必须出现在该 ticker packet 的 `constraints.allowed_actions`；卖出股数不得超过 `max_sell_shares`，catalyst 只能引用 `actionable_evidence_ids`。postflight 会二次校验，模型不能扩大边界。
-- `action` ∈ {`cut`, `trim_on_rebound`, `hold_and_watch`, `t_only`, `add_only_on_trigger`, `watch`}
+- `action` ∈ {`cut`, `trim_on_rebound`, `hold_and_watch`, `t_only`, `add_only_on_trigger`, `add_on_breakout`, `watch`}
 - `condition.type` ∈ {`open`, `price_above`, `price_below`, `index_breakdown`, `event`, `manual`}
 - `driven_by` ∈ {`technical`, `catalyst`, `sentiment`, `influencer`, `macro`, `peer`, `risk_rule`}（每个 decision 必填）
 - `evidence_event_id`：`driven_by=catalyst` 时必填，分两档 —— **主动** call（`cut`/`trim_on_rebound`/`t_only`/`add_only_on_trigger`/`add_on_breakout`）必须精确匹配 `context.news_evidence_graph.events` 中同 ticker 且 `actionable_escalation=true` 的事件（不许拿未升级事件去交易）；**被动** `hold_and_watch`/`watch` 只要求匹配同 ticker 的**真实**事件，不要求 `actionable_escalation=true`（「昨天出了财报所以我盯着」是正当归因）。`driven_by` 不是 `catalyst` 的 decision 填 `null`。
@@ -672,6 +676,7 @@ postflight 严格 schema 校验：
 - `regime` ∈ {`risk_on`, `neutral`, `risk_off`}（每个 decision 必填；按本报告已判定的当前 regime 留痕，迁移旧数据才允许 `unknown`）
 - `confidence` ∈ [0.0, 1.0]
 - `size.shares`（整数，**主动 call（`cut`/`trim_on_rebound`/`t_only`/`add_only_on_trigger`/`add_on_breakout`）必填**；`hold_and_watch`/`watch` 不需要)：股数是这条 call 日后唯一能被折算成钱的凭据。面板上那条金额曲线已撤（见上条铁律），但**重建一套可信对照账本必须有股数，当天没填就永远补不回来**。宁可给保守估数也别留空。填**你真的会动的股数**,不是仓位上限。
+- 技术 add 还必须逐字填写 packet setup 的 `technical_setup_id`、`technical_campaign_id`、`invalidation_price` 与 `tranche_number=next_tranche_number`。港股 `size.shares` 必须为 `lot_size` 的整手倍数；美股当前只支持整数股。已有 open add 或 `remaining_tranches=0` 时不得重复开单。
 - `contested` ∈ {`true`, `false`}（每个 decision 必填）：Tier 2 的 Bull 与 Bear 是否真的在该策略上分歧。
 - `thesis_invalidation`（string，主动 cut/trim/add 必填；hold 选填）：**借鉴 UZI-Skill 的 thesis-tracking**——这个仓位的论点**会被什么具体催化推翻**？把 catalyst-gate(cut #1)落地成「论点+失效条件」：你只在这个**失效催化真的发生**时动手，而不是技术面波动。例：「crypto rev 环比转正则停止减仓」。这逼着每个主动 call 绑定一个可被证伪的硬催化，而非"看着toppy"。
 - `thesis_id` 必须沿用 `context.thesis_registry.theses.<ticker>.thesis_id`（resolved 时）；registry 为 `unknown` 时保留已有 decision ID，不得新造一个“看起来像历史”的 canonical thesis。`context.retrospective.decisions[].thesis_ref` 是只读解析结果。

@@ -40,6 +40,7 @@ EXEC_MODE_CHARS = 240
 # `clawock mark-followed` has already recorded what happened, so re-proposing the action
 # would be arguing with the ledger.
 OPEN_EXECUTION = "unknown"
+ADD_ACTIONS = {"add_only_on_trigger", "add_on_breakout"}
 
 
 def _trim(text, limit):
@@ -64,6 +65,23 @@ def _load_ledger(path):
         except json.JSONDecodeError:
             continue
     return rows
+
+
+def _open_add_tickers(path):
+    """Read the full ledger strictly for the duplicate-add safety consumer."""
+    if not path.exists():
+        return []
+    tickers = set()
+    for line_no, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
+        if not line.strip():
+            continue
+        try:
+            row = json.loads(line)
+        except json.JSONDecodeError as exc:
+            raise ValueError(f"decision ledger line {line_no} is unreadable") from exc
+        if _is_open(row) and row.get("action") in ADD_ACTIONS:
+            tickers.add(str(row.get("ticker") or ""))
+    return sorted(ticker for ticker in tickers if ticker)
 
 
 def _is_open(row):
@@ -124,11 +142,19 @@ def open_decisions_context(*, leg=None, today=None, ledger=None, memory_dir=None
         memory = Path(memory_dir) if memory_dir else MEMORY
         today = today or datetime.now().strftime("%Y-%m-%d")
 
+        try:
+            open_add_tickers = _open_add_tickers(ledger_path)
+            open_add_gate_error = None
+        except Exception as exc:  # noqa: BLE001 — safety gate degrades closed
+            open_add_tickers = []
+            open_add_gate_error = f"{type(exc).__name__}: {exc}"[:200]
+
         rows = [row for row in _load_ledger(ledger_path) if _is_open(row)]
         if leg:
             rows = [row for row in rows if str(row.get("leg", "")).upper() == leg.upper()]
         if not rows:
-            return {}
+            return ({"open_add_tickers": [], "open_add_gate_error": open_add_gate_error}
+                    if open_add_gate_error else {})
 
         # Today's plan first, then the oldest carried-over orders: a swap hanging
         # since Friday is more urgent than one written this morning, but the
@@ -147,7 +173,11 @@ def open_decisions_context(*, leg=None, today=None, ledger=None, memory_dir=None
             "plan_date":    today,
             "open":         [_entry(row) for row in selected],
             "carried_over": len(carried),
+            # Unlike `open`, this safety projection is never truncated.
+            "open_add_tickers": open_add_tickers,
         }
+        if open_add_gate_error:
+            context["open_add_gate_error"] = open_add_gate_error
         if len(rows) > MAX_DECISIONS:
             context["truncated"] = len(rows) - MAX_DECISIONS
         exec_mode = _plan_extras(today, memory)
@@ -161,7 +191,9 @@ def open_decisions_context(*, leg=None, today=None, ledger=None, memory_dir=None
         # prose accordingly. That is exactly the #119 defect coming back with no
         # signal: on 2026-07-27 the 09:30 report advised waiting for a pullback
         # while the day's plan held the same position as a risk_rule swap.
-        return {"error": f"{type(exc).__name__}: {exc}"[:200]}
+        message = f"{type(exc).__name__}: {exc}"[:200]
+        return {"error": message, "open_add_tickers": [],
+                "open_add_gate_error": message}
 
 
 def main(argv=None):

@@ -43,6 +43,7 @@ from clawock.market_data import sessions as trading_calendar
 from clawock.context import brief as brief_context
 from clawock.decision import ledger as decision_v2
 from clawock.decision import packet as brief_decision_packet
+from clawock.decision import plans as decision_plans
 from clawock.decision import risk as risk_discipline
 from clawock.decision import theses as thesis_registry
 from clawock.evidence import research_surface
@@ -57,6 +58,7 @@ SNAPSHOT_DIR = WS / 'memory' / 'snapshots'
 from clawock_kcnyu.automation import workflow_outcomes  # noqa: E402
 from clawock.market_data.macro import classify_regime as _classify_regime  # noqa: E402
 from clawock.portfolio.instruments import get as get_instrument  # noqa: E402
+from clawock.portfolio.instruments import is_leveraged_holding  # noqa: E402
 from clawock.portfolio.instruments import compute_lookthrough_exposure  # noqa: E402
 from clawock.portfolio.instruments import one_x_swap_map  # noqa: E402
 
@@ -93,6 +95,23 @@ def _run_clawock(command, args=None, timeout=120):
         return f'{type(exc).__name__}: {exc}', False
 
 
+def _technical_setup_usage():
+    """Count only broker-observed technical add tranches."""
+    usage = {}
+    for row in decision_v2.load_decisions():
+        setup_id = row.get('technical_setup_id')
+        campaign_id = row.get('technical_campaign_id')
+        if (row.get('action') not in decision_v2.ADD_ACTIONS
+                or row.get('driven_by') != 'technical'
+                or not setup_id or not campaign_id
+                or (row.get('execution') or {}).get('status') != 'followed'):
+            continue
+        ticker = str(row.get('ticker') or '')
+        by_setup = usage.setdefault(ticker, {})
+        by_setup[campaign_id] = by_setup.get(campaign_id, 0) + 1
+    return usage
+
+
 def fetch_fx_rate():
     try:
         result = subprocess.run(
@@ -109,21 +128,9 @@ def fetch_fx_rate():
         return {'rate': 7.80, 'source': 'PARSE_FAILED', 'error': out[-300:]}
 
 
-_LEVERAGED_KEYWORDS = ('倍', 'Direxion', 'T-Rex', 'Defiance', 'ProShares',
-                       '2X Long', '3X Long', '2x Long', '3x Long', 'Daily Target',
-                       # HK leveraged/inverse products: 「XL二/XL三」= L×2/×3, 「两倍」
-                       'XL二', 'XL三', 'XL两', '两倍')
-
-
 def _is_leveraged_etf(holding):
-    """Use canonical leverage metadata; retain an unknown-name fallback."""
-    if holding.get('is_leveraged_etf') is True:
-        return True
-    meta = get_instrument(holding.get('ticker'))
-    if meta is not None:
-        return meta['leverage_multiple'] > 1
-    name = holding.get('name', '')
-    return any(kw in name for kw in _LEVERAGED_KEYWORDS)
+    """Compatibility alias for the product-owned conservative classifier."""
+    return is_leveraged_holding(holding)
 
 
 def collect_us_fundamentals(portfolio):
@@ -200,8 +207,14 @@ def compute_concentration(holdings):
 # on. The trims are driven_by=risk_rule (disciplinary rebalancing), which the
 # 证伪 rule explicitly exempts from the risk_on HOLD default.
 GUARDRAIL_CAPS = {
-    'single_name_pct':   35,    # any one name within a leg
-    'top2_factor_pct':   70,    # Top2 as single-factor proxy
+    # A concentrated non-leveraged core is a review item from 35%, not a forced
+    # sale. Only >60% is mandatory. Leveraged single names remain on the strict
+    # 35% construction cap because daily reset makes concentration nonlinear.
+    'single_name_review_pct': 35,
+    'single_name_mandatory_pct': 60,
+    'leveraged_single_name_pct': 35,
+    'correlated_cluster_pct': 70,
+    'correlation_min_coverage_pct': 80,
     'lev_etf_leg_pct':   50,    # leveraged ETFs as % of a leg
     'us_beta_max':       3.0,   # US β vs S&P 500
     'lev_etf_stop_pct': -18,    # hard-stop line for one leveraged ETF (vs cost)
@@ -227,7 +240,8 @@ def _holding_pnl_pct(h):
     return None if not cost else round((cur - cost) / cost * 100, 1)
 
 
-def compute_risk_guardrail(hk_holdings, us_holdings, hk_conc, us_conc, risk, lev_regime=None):
+def compute_risk_guardrail(hk_holdings, us_holdings, hk_conc, us_conc, risk,
+                           lev_regime=None):
     """Pure function of current state → concrete, capped trim/cut directives.
     The brief LLM must emit a disciplinary action for EVERY breach (not optional).
 
@@ -236,7 +250,7 @@ def compute_risk_guardrail(hk_holdings, us_holdings, hk_conc, us_conc, risk, lev
     its multiplier (green 1.0 / amber 0.5 / red 0.0). Backtest-verified: the lever
     that mattered in the 2021-22 crash was leverage (2x→1x→cash), not timing."""
     caps = GUARDRAIL_CAPS
-    breaches, hard_stops = [], []
+    breaches, hard_stops, reviews = [], [], []
     # Leveraged-ETF leg cap is tightened PER LEG: the HK leg by the HSTECH dial
     # (lev_regime top-level / hk), the US leg by its own per-name dial (not HSTECH).
     hk_mult = 1.0
@@ -251,43 +265,51 @@ def compute_risk_guardrail(hk_holdings, us_holdings, hk_conc, us_conc, risk, lev
         ccy   = 'HKD' if leg == 'HK' else 'USD'
         ws    = conc['weights']
 
-        # single-name cap
+        # Single-name policy: concentration is allowed for a high-conviction
+        # non-leveraged core. 35-60% is visible review state, not a mandatory
+        # trim; >60% is the hard construction boundary. A leveraged single name
+        # retains the strict 35% cap.
         for w in ws:
-            if w['weight_pct'] > caps['single_name_pct'] and total:
-                trim_val = round(w['value'] - caps['single_name_pct'] / 100 * total, 2)
+            holding = next((h for h in hold if h.get('ticker') == w['ticker']), {})
+            leveraged = _is_leveraged_etf(holding)
+            mandatory_cap = (
+                caps['leveraged_single_name_pct'] if leveraged
+                else caps['single_name_mandatory_pct']
+            )
+            if w['weight_pct'] > mandatory_cap and total:
+                # Selling changes both the position and the leg denominator.
+                # Solve (value - sell) / (total - sell) <= target rather than
+                # subtracting the current excess from an unchanged denominator.
+                target = mandatory_cap / 100
+                trim_val = round(
+                    (w['value'] - target * total) / (1 - target), 2
+                )
                 breaches.append({
                     'type': 'single_name', 'leg': leg, 'ticker': w['ticker'],
-                    'severity': 'high' if w['weight_pct'] > caps['single_name_pct'] + 15 else 'medium',
-                    'detail': f"{w['ticker']} = {w['weight_pct']}% of {leg} (cap {caps['single_name_pct']}%)",
-                    'action': (f"纪律性 trim {w['ticker']} → ≤{caps['single_name_pct']}% "
+                    'severity': 'high',
+                    'detail': (f"{w['ticker']} = {w['weight_pct']}% of {leg} "
+                               f"(mandatory cap {mandatory_cap}%; "
+                               f"{'2x/3x' if leveraged else 'non-leveraged core'})"),
+                    'action': (f"纪律性 trim {w['ticker']} → ≤{mandatory_cap}% "
                                f"(减约 {trim_val} {ccy}，借反弹分批、勿在新低日一次砍)"),
                     'required_reduction': {
                         'kind': 'market_value',
                         'minimum_value': trim_val,
                         'currency': ccy,
-                        'target_pct': caps['single_name_pct'],
+                        'target_pct': mandatory_cap,
                         'target_tickers': [w['ticker']],
                     },
                 })
-
-        # single-factor proxy = Top2
-        if conc.get('top2_pct', 0) > caps['top2_factor_pct']:
-            top2 = ws[:2]
-            factor_trim = max(0, round(
-                sum(w['value'] for w in top2)
-                - caps['top2_factor_pct'] / 100 * total, 2))
-            breaches.append({
-                'type': 'factor_concentration', 'leg': leg, 'ticker': None, 'severity': 'high',
-                'detail': f"{leg} Top2 = {conc['top2_pct']}% (cap {caps['top2_factor_pct']}%) — 名义多只实为单因子",
-                'action': f"把 {leg} Top2 降到 ≤{caps['top2_factor_pct']}%：借强减最大那只，别在同因子内换票",
-                'required_reduction': {
-                    'kind': 'factor_market_value',
-                    'minimum_value': factor_trim,
-                    'currency': ccy,
-                    'target_pct': caps['top2_factor_pct'],
-                    'target_tickers': [w['ticker'] for w in top2],
-                },
-            })
+            elif (not leveraged
+                  and w['weight_pct'] > caps['single_name_review_pct']):
+                reviews.append({
+                    'type': 'single_name_review', 'leg': leg,
+                    'ticker': w['ticker'], 'severity': 'advisory',
+                    'detail': (f"{w['ticker']} = {w['weight_pct']}% of {leg}; "
+                               f"inside the {caps['single_name_review_pct']}-"
+                               f"{caps['single_name_mandatory_pct']}% concentrated-core "
+                               "review band, no mandatory trim"),
+                })
 
         # leveraged-ETF leg exposure — use the name heuristic, not the unreliable
         # is_leveraged_etf flag (which concentration weights mirror and is often unset)
@@ -393,6 +415,58 @@ def compute_risk_guardrail(hk_holdings, us_holdings, hk_conc, us_conc, risk, lev
                     },
                 })
 
+    # Measured correlation clusters replace the old Top2 proxy. The x-ray is
+    # cross-market/USD weighted, so evaluate once at book level. A one-name
+    # cluster is simply a concentrated name and must never be called a factor.
+    correlation = (risk or {}).get('correlation') or {}
+    coverage = correlation.get('covered_weight_pct')
+    fx_hkd_to_usd = float(
+        ((risk or {}).get('meta') or {}).get('fx_hkd_to_usd_used') or 0
+    )
+    book_value_usd = sum(
+        float(w.get('current_value') or 0)
+        * (1.0 if leg == 'US' else fx_hkd_to_usd)
+        for leg, holdings in (('HK', hk_holdings), ('US', us_holdings))
+        for w in holdings if w.get('shares', 0) > 0
+    )
+    if (not correlation.get('reason') and isinstance(coverage, (int, float))
+            and coverage >= caps['correlation_min_coverage_pct']
+            and book_value_usd > 0
+            and (not hk_holdings or fx_hkd_to_usd > 0)):
+        for cluster in correlation.get('clusters') or []:
+            tickers = [str(t) for t in cluster.get('tickers') or []]
+            if len(tickers) < 2:
+                continue
+            cluster_value_usd = sum(
+                float(w.get('current_value') or 0)
+                * (1.0 if leg == 'US' else fx_hkd_to_usd)
+                for leg, holdings in (('HK', hk_holdings), ('US', us_holdings))
+                for w in holdings if str(w.get('ticker')) in tickers
+            )
+            weight_pct = cluster_value_usd / book_value_usd * 100
+            if weight_pct <= caps['correlated_cluster_pct']:
+                continue
+            target = caps['correlated_cluster_pct'] / 100
+            factor_trim = max(0, round(
+                (cluster_value_usd - target * book_value_usd) / (1 - target), 2
+            ))
+            breaches.append({
+                'type': 'factor_concentration', 'leg': 'BOOK', 'ticker': None,
+                'severity': 'high',
+                'detail': (f"Measured cluster {tickers} = {weight_pct:.2f}% of book "
+                           f"(cap {caps['correlated_cluster_pct']}%, "
+                           f"|rho|≥{correlation.get('cluster_rho')})"),
+                'action': (f"把相关集群 {', '.join(tickers)} 降到 "
+                           f"≤{caps['correlated_cluster_pct']}%，优先降其中杠杆腿"),
+                'required_reduction': {
+                    'kind': 'factor_market_value',
+                    'minimum_value': factor_trim,
+                    'currency': 'USD',
+                    'target_pct': caps['correlated_cluster_pct'],
+                    'target_tickers': tickers,
+                },
+            })
+
     # portfolio-level β from risk.json
     us_risk = risk.get('us') or {}
     us_beta = us_risk.get('beta_spx')
@@ -429,6 +503,7 @@ def compute_risk_guardrail(hk_holdings, us_holdings, hk_conc, us_conc, risk, lev
                     "US=各标的自身收复 200日线且波动<70%。green 之前不加任何 2x。")
 
     return {'caps': caps, 'breaches': breaches, 'hard_stop_watch': hard_stops,
+            'concentration_reviews': reviews,
             'breach_count': n, 'directive': directive, 'reentry_rule': reentry_rule,
             'lev_regime': lev_regime, 'eff_lev_caps': eff_caps}
 
@@ -1843,6 +1918,8 @@ def main(argv=None):
         'catalysts':     catalysts,
         'news_evidence_graph': news_evidence_ctx,
         'thesis_registry': thesis_registry_ctx,
+        'open_decisions': decision_plans.open_decisions_context(today=today),
+        'technical_setup_usage': _technical_setup_usage(),
         'research_surface': research_surface_ctx,
         'macro':         macro_trim,
         'sentiment':     sentiment_trim,
