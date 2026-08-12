@@ -139,3 +139,47 @@ def test_missing_marker_does_not_invent_top_level_as_last_good_date():
 
     assert rows["LIVE"]["status"] == "missing"
     assert rows["LIVE"]["last_good_as_of"] is None
+
+
+def test_unfinished_provider_candle_is_not_used_as_a_completed_signal():
+    completed = bars("2026-07-24")
+    unfinished = {
+        "date": "2026-07-25", "open": 999.0, "close": 999.0,
+        "high": 999.0, "low": 999.0,
+    }
+    rows = quant.refresh_rows(
+        {}, [detail()], run_date=date(2026, 7, 25),
+        expected_sessions={"US": date(2026, 7, 24)},
+        fetcher=lambda _code: completed + [unfinished],
+    )
+
+    assert rows["LIVE"]["row_as_of"] == "2026-07-24"
+    assert rows["LIVE"]["close"] == completed[-1]["close"]
+
+
+def test_setup_campaign_persists_only_while_setup_is_continuously_present(monkeypatch):
+    sequence = [
+        {"technical_setups": [{"setup_id": "trend_pullback"}]},
+        {"technical_setups": [{"setup_id": "trend_pullback"}]},
+        {"technical_setups": []},
+        {"technical_setups": [{"setup_id": "trend_pullback"}]},
+    ]
+    monkeypatch.setattr(quant, "compute_signals", lambda _bars: sequence.pop(0))
+    previous = {}
+    campaigns = []
+    for day in (24, 25, 26, 27):
+        iso = f"2026-07-{day}"
+        previous = quant.refresh_rows(
+            previous, [detail()], run_date=date(2026, 7, day),
+            expected_sessions={"US": date(2026, 7, day)},
+            fetcher=lambda _code, day=iso: bars(day),
+        )
+        setups = previous["LIVE"]["technical_setups"]
+        campaigns.append(setups[0]["campaign_id"] if setups else None)
+
+    assert campaigns == [
+        "trend_pullback:2026-07-24",
+        "trend_pullback:2026-07-24",
+        None,
+        "trend_pullback:2026-07-27",
+    ]

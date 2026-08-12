@@ -77,8 +77,24 @@ def test_parse_gtimg_hk_quote_uses_definitional_price_and_day_range_fields():
         "o": 503.5,
         "h": 512.0,
         "l": 499.5,
+        "lot_size": None,
         "dp": 1.5,
     }
+
+
+def test_parse_gtimg_carries_hk_board_lot_from_field_60():
+    fields = [""] * 78
+    fields[1] = "MINIMAX-W"
+    fields[3] = "357.4"
+    fields[4] = "328.0"
+    fields[5] = "337.8"
+    fields[33] = "364.6"
+    fields[34] = "333.0"
+    fields[60] = "20"
+
+    parsed = hk._parse_gtimg('v_hk00100="' + "~".join(fields) + '";')
+
+    assert parsed["lot_size"] == 20
 
 
 @pytest.mark.parametrize(

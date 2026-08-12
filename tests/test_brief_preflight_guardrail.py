@@ -85,38 +85,65 @@ def _only_breach(result, expected_type):
 
 def test_guardrail_cap_definitions_are_locked(preflight):
     assert preflight.GUARDRAIL_CAPS == {
-        "single_name_pct": 35,
-        "top2_factor_pct": 70,
+        "single_name_review_pct": 35,
+        "single_name_mandatory_pct": 60,
+        "leveraged_single_name_pct": 35,
+        "correlated_cluster_pct": 70,
+        "correlation_min_coverage_pct": 80,
         "lev_etf_leg_pct": 50,
         "us_beta_max": 3.0,
         "lev_etf_stop_pct": -18,
     }
 
 
-def test_single_name_above_35_percent_emits_one_medium_hk_trim(preflight):
+def test_technical_setup_usage_counts_only_broker_followed_tranches(preflight, monkeypatch):
+    rows = []
+    for status in ("followed", "unknown", "not_followed"):
+        rows.append({
+            "ticker": "00100", "action": "add_only_on_trigger",
+            "driven_by": "technical", "technical_setup_id": "trend_pullback",
+            "technical_campaign_id": "trend_pullback:2026-08-12",
+            "execution": {"status": status},
+        })
+    monkeypatch.setattr(preflight.decision_v2, "load_decisions", lambda: rows)
+
+    assert preflight._technical_setup_usage() == {
+        "00100": {"trend_pullback:2026-08-12": 1}
+    }
+
+
+def test_nonleveraged_single_name_45_percent_is_review_not_forced_trim(preflight):
     result = _evaluate(preflight, hk=[
-        _holding("BIG", 36),
-        _holding("MID", 34),
-        _holding("SMALL", 30),
+        _holding("BIG", 45),
+        _holding("MID", 30),
+        _holding("SMALL", 25),
+    ])
+
+    assert result["breaches"] == []
+    assert result["breach_count"] == 0
+    assert result["concentration_reviews"][0]["ticker"] == "BIG"
+
+
+def test_nonleveraged_single_name_above_60_percent_is_mandatory_trim(preflight):
+    result = _evaluate(preflight, hk=[
+        _holding("BIG", 61), _holding("MID", 20), _holding("SMALL", 19),
     ])
 
     breach = _only_breach(result, "single_name")
-    assert breach["leg"] == "HK"
-    assert breach["ticker"] == "BIG"
-    assert breach["severity"] == "medium"
     assert "trim BIG" in breach["action"]
-    assert "≤35%" in breach["action"]
-    assert "1.0 HKD" in breach["action"]
+    assert "≤60%" in breach["action"]
     assert breach["required_reduction"] == {
         "kind": "market_value",
-        "minimum_value": 1.0,
+        # (61 - 2.5) / (100 - 2.5) == 60%; a simple 1-unit subtraction
+        # would leave 60/99 > 60% and fail its own instruction.
+        "minimum_value": 2.5,
         "currency": "HKD",
-        "target_pct": 35,
+        "target_pct": 60,
         "target_tickers": ["BIG"],
     }
 
 
-def test_single_name_exactly_35_percent_is_compliant_because_operator_is_strict_gt(preflight):
+def test_single_name_exactly_35_percent_is_compliant(preflight):
     result = _evaluate(preflight, hk=[
         _holding("A", 35),
         _holding("B", 35),
@@ -127,32 +154,48 @@ def test_single_name_exactly_35_percent_is_compliant_because_operator_is_strict_
     assert result["breach_count"] == 0
 
 
-def test_top2_above_70_percent_emits_one_high_factor_breach(preflight):
-    holdings = [_holding("A", 35), _holding("B", 35), _holding("C", 30)]
-    concentration = preflight.compute_concentration(holdings)
-    # Isolate this independently evaluated rule. With both caps at their actual
-    # values, any naturally computed Top2 >70 also implies a >35 single name.
-    concentration["top2_pct"] = 70.1
-
-    result = _evaluate(preflight, hk=holdings, hk_conc=concentration)
+def test_measured_multi_name_cluster_above_70_percent_is_factor_breach(preflight):
+    holdings = [_holding("A", 40), _holding("B", 31), _holding("C", 29)]
+    risk = {"correlation": {
+        "covered_weight_pct": 100, "cluster_rho": 0.8,
+        "clusters": [{"tickers": ["A", "B"], "weight_pct": 71}],
+    }, "meta": {"fx_hkd_to_usd_used": 0.125}}
+    result = _evaluate(preflight, us=holdings, risk=risk)
 
     breach = _only_breach(result, "factor_concentration")
-    assert breach["leg"] == "HK"
+    assert breach["leg"] == "BOOK"
     assert breach["ticker"] is None
     assert breach["severity"] == "high"
-    assert "Top2" in breach["action"]
+    assert "A, B" in breach["action"]
     assert "≤70%" in breach["action"]
 
 
-def test_top2_exactly_70_percent_is_compliant_because_operator_is_strict_gt(preflight):
-    result = _evaluate(preflight, hk=[
-        _holding("A", 35),
-        _holding("B", 35),
-        _holding("C", 30),
-    ])
+def test_single_name_cluster_never_becomes_factor_breach(preflight):
+    risk = {"correlation": {
+        "covered_weight_pct": 100, "cluster_rho": 0.8,
+        "clusters": [{"tickers": ["A"], "weight_pct": 80}],
+    }}
+    result = _evaluate(preflight, us=[
+        _holding("A", 60), _holding("B", 25), _holding("C", 15),
+    ], risk=risk)
 
     assert result["breaches"] == []
     assert result["breach_count"] == 0
+
+
+def test_correlation_cluster_is_advisory_when_coverage_is_thin(preflight):
+    risk = {"correlation": {
+        "covered_weight_pct": 79.9, "cluster_rho": 0.8,
+        "clusters": [{"tickers": ["A", "B"], "weight_pct": 80}],
+    }}
+    result = _evaluate(preflight, us=[
+        _holding("A", 45), _holding("B", 35), _holding("C", 20),
+    ], risk=risk)
+
+    assert not any(
+        breach["type"] == "factor_concentration"
+        for breach in result["breaches"]
+    )
 
 
 def test_leveraged_sleeve_above_50_percent_emits_one_high_us_swap(preflight):

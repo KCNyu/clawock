@@ -18,6 +18,7 @@ import os
 from pathlib import Path
 
 from clawock.decision.actions import ACTIVE_ACTIONS
+from clawock.portfolio.instruments import get as get_instrument
 
 
 SCHEMA_VERSION = 1
@@ -112,6 +113,27 @@ def _technical(row: dict, source_ticker: str, proxy: bool) -> dict:
         else "unknown"
     )
     stop_distance = _number(row.get("stop_distance_pct"), 1)
+    setups = []
+    if fresh:
+        for setup in row.get("technical_setups") or []:
+            entry = _number(setup.get("entry_price"), 4)
+            invalidation = _number(setup.get("invalidation_price"), 4)
+            if (not setup.get("setup_id") or entry is None
+                    or invalidation is None or invalidation >= entry):
+                continue
+            setups.append({
+                "setup_id": str(setup["setup_id"]),
+                "campaign_id": str(setup.get("campaign_id") or setup["setup_id"]),
+                "label": str(setup.get("label") or setup["setup_id"]),
+                "entry_type": setup.get("entry_type"),
+                "entry_price": entry,
+                "invalidation_price": invalidation,
+                "max_tranches": int(setup.get("max_tranches") or 1),
+                "tranche_pct_of_position": _number(
+                    setup.get("tranche_pct_of_position"), 4
+                ),
+                "detail": str(setup.get("detail") or "")[:300],
+            })
     return {
         "source_ticker": source_ticker,
         "is_proxy": bool(proxy),
@@ -133,7 +155,114 @@ def _technical(row: dict, source_ticker: str, proxy: bool) -> dict:
             else "intact" if stop_distance is not None
             else "unknown"
         ),
+        "setups": setups,
         "usable": bool(row) and fresh,
+    }
+
+
+def _apply_setup_usage(technical: dict, usage: dict) -> dict:
+    for setup in technical.get("setups") or []:
+        used = int(usage.get(setup.get("campaign_id")) or 0)
+        maximum = int(setup.get("max_tranches") or 1)
+        setup["used_tranches"] = used
+        setup["remaining_tranches"] = max(0, maximum - used)
+        setup["next_tranche_number"] = used + 1 if used < maximum else None
+    return technical
+
+
+def _thesis_view(context: dict, ticker: str) -> dict:
+    row = (((context.get("thesis_registry") or {}).get("theses") or {})
+           .get(ticker) or {"status": "unknown"})
+    return {
+        "status": row.get("status") or "unknown",
+        "thesis_id": row.get("thesis_id"),
+        "state": row.get("state") or "unknown",
+        "checked_at": row.get("checked_at"),
+    }
+
+
+def _execution_view(holding: dict, leg: str, capital: float, cash: float,
+                    technical: dict, thesis: dict, leveraged: bool,
+                    open_add: bool = False) -> dict:
+    price = _number(holding.get("current_price"), 4)
+    shares = int(_number(holding.get("shares"), 0) or 0)
+    current_value = _number(holding.get("current_value"), 2)
+    if current_value is None and price is not None:
+        current_value = price * shares
+
+    # The current brokerage ledger is integer-share only in the US. HK requires
+    # the live board lot fetched with the quote; missing lot metadata blocks an
+    # add rather than silently treating one share as one lot.
+    raw_lot = holding.get("lot_size") if leg == "HK" else 1
+    try:
+        lot = int(raw_lot) if raw_lot is not None else None
+    except (TypeError, ValueError):
+        lot = None
+    if lot is not None and lot <= 0:
+        lot = None
+
+    target_max_pct = 60.0
+    target_fraction = target_max_pct / 100
+    # Solve (position + add) / (invested_book + add) <= target. Cash is an
+    # affordability bound, not denominator camouflage.
+    room_value = max(
+        0.0,
+        (target_fraction * capital - (current_value or 0))
+        / (1 - target_fraction),
+    )
+    max_value = min(max(cash, 0.0), room_value)
+    max_add_shares = (
+        int(max_value // (price * lot)) * lot
+        if price and lot else 0
+    )
+    setup_pcts = [
+        row.get("tranche_pct_of_position")
+        for row in technical.get("setups") or []
+        if row.get("tranche_pct_of_position")
+    ]
+    tranche_pct = min(setup_pcts) if setup_pcts else 0.05
+    desired = max(1, int(shares * tranche_pct))
+    suggested = (
+        max(lot, (desired // lot) * lot) if lot else 0
+    )
+    suggested = min(suggested, max_add_shares)
+
+    thesis_state = thesis.get("state") or "unknown"
+    if thesis_state in {"broken", "damaged", "weakening"}:
+        thesis_gate = "blocked"
+        max_add_shares = suggested = 0
+    elif thesis_state == "intact":
+        thesis_gate = "intact"
+    else:
+        # No canonical thesis is not treated as intact. It may gather one small
+        # prospective sample, but cannot pyramid multiple tranches.
+        thesis_gate = "exploration_only"
+        max_add_shares = min(max_add_shares, suggested)
+
+    blockers = []
+    if leveraged:
+        blockers.append("leveraged_daily_reset")
+    if open_add:
+        blockers.append("open_add_order")
+    if leg == "HK" and lot is None:
+        blockers.append("board_lot_missing")
+    if not technical.get("setups"):
+        blockers.append("no_approved_setup")
+    if not price:
+        blockers.append("price_missing")
+    if max_add_shares <= 0:
+        blockers.append("no_cash_or_target_room")
+    return {
+        "order_unit": "board_lot" if leg == "HK" else "integer_share",
+        "lot_size": lot,
+        "fractional_shares_supported": False,
+        "min_tranche_shares": lot,
+        "suggested_tranche_shares": suggested,
+        "max_add_shares": max_add_shares,
+        "max_add_value": round(max_add_shares * price, 2) if price else 0,
+        "target_max_pct": target_max_pct,
+        "thesis_gate": thesis_gate,
+        "blockers": sorted(set(blockers)),
     }
 
 
@@ -217,7 +346,10 @@ def _risk_map(context: dict, active: set[str]) -> dict[str, list[dict]]:
         for ticker in sorted(targets & active):
             out[ticker].append({
                 "kind": "breach",
-                "scope": "ticker" if row.get("ticker") else "candidate",
+                # A portfolio breach still names the tickers whose exposure must
+                # fall. Those members cannot add while the same breach is open;
+                # unrelated names are not frozen.
+                "scope": "ticker",
                 "breach_id": row.get("breach_id"),
                 "type": row.get("type"),
                 "severity": row.get("severity") or "high",
@@ -271,9 +403,10 @@ def _status(technical: dict, risks: list[dict]) -> dict:
     return {"rank": 5, "label": "数据不足", "state": "neutral"}
 
 
-def _constraints(shares: int, risks: list[dict], actionable_ids: list[str]) -> dict:
+def _constraints(shares: int, risks: list[dict], actionable_ids: list[str],
+                 technical: dict, execution: dict) -> dict:
     hard_stop = any(row.get("kind") == "hard_stop" for row in risks)
-    direct_risk = any(row.get("scope") == "ticker" for row in risks)
+    direct_risk = bool(risks)
     if hard_stop:
         allowed = ["cut"]
         forced = ["cut"]
@@ -288,14 +421,34 @@ def _constraints(shares: int, risks: list[dict], actionable_ids: list[str]) -> d
     if actionable_ids and not risks:
         allowed += [
             "trim_on_rebound", "cut", "t_only",
-            "add_only_on_trigger", "add_on_breakout",
         ]
+    setup_ids = [
+        row.get("setup_id") for row in technical.get("setups") or []
+        if (row.get("remaining_tranches") or 0) > 0
+    ]
+    can_add = (
+        not risks
+        and not execution.get("blockers")
+        and execution.get("thesis_gate") in {"intact", "exploration_only"}
+        and (execution.get("max_add_shares") or 0) > 0
+        and bool(setup_ids)
+    )
+    if can_add:
+        allowed += ["add_only_on_trigger"]
+        if "confirmed_breakout" in setup_ids:
+            allowed += ["add_on_breakout"]
     return {
-        "allowed_actions": allowed,
+        "allowed_actions": list(dict.fromkeys(allowed)),
         "forced_action_one_of": forced,
         "max_sell_shares": shares,
         "active_action_requires_evidence": True,
         "actionable_evidence_ids": actionable_ids,
+        "technical_setup_ids": setup_ids,
+        "max_add_shares": execution.get("max_add_shares", 0),
+        "max_add_value": execution.get("max_add_value", 0),
+        "target_max_pct": execution.get("target_max_pct"),
+        "min_tranche_shares": execution.get("min_tranche_shares"),
+        "lot_size": execution.get("lot_size"),
     }
 
 
@@ -311,17 +464,44 @@ def compile_packet(context: dict, generation_id: str | None = None) -> dict:
     proxies = _proxy_map(context)
     holdings = list(_active_holdings(context))
     active = {str(holding.get("ticker")) for _, holding in holdings}
+    # Do not emit another tranche while an earlier add is still open in the
+    # authoritative ledger. This is the daily equivalent of an exchange open-
+    # order check and prevents repeated briefs from stacking the same setup.
+    open_adds = {
+        str(row.get("ticker") or "")
+        for row in (context.get("open_decisions") or {}).get("open") or []
+        if row.get("action") in {"add_only_on_trigger", "add_on_breakout"}
+        and row.get("execution_status") == "unknown"
+    }
+    setup_usage = context.get("technical_setup_usage") or {}
     risks = _risk_map(context, active)
     tickers = {}
+    portfolios = (context.get("portfolio") or {}).get("portfolios") or {}
+    invested = {
+        "HK": sum(
+            float(h.get("current_value") or 0)
+            for h in (portfolios.get("hk_stocks") or {}).get("holdings") or []
+            if (_number(h.get("shares")) or 0) > 0
+        ),
+        "US": sum(
+            float(h.get("current_value") or 0)
+            for h in (portfolios.get("us_stocks") or {}).get("holdings") or []
+            if (_number(h.get("shares")) or 0) > 0
+        ),
+    }
+    cash = {
+        "HK": float((portfolios.get("hk_stocks") or {}).get("cash_hkd") or 0),
+        "US": float((portfolios.get("us_stocks") or {}).get("cash_usd") or 0),
+    }
 
     for leg, holding in holdings:
         ticker = str(holding.get("ticker"))
         source_ticker = ticker if ticker in quant_rows else proxies.get(ticker, ticker)
-        technical = _technical(
+        technical = _apply_setup_usage(_technical(
             quant_rows.get(source_ticker) or {},
             source_ticker,
             source_ticker != ticker,
-        )
+        ), setup_usage.get(ticker) or {})
         matching_events = [
             _event_view(event) for event in events
             if str(event.get("ticker") or event.get("reported_ticker") or "")
@@ -333,6 +513,13 @@ def compile_packet(context: dict, generation_id: str | None = None) -> dict:
         ]
         shares = int(_number(holding.get("shares"), 0) or 0)
         ticker_risks = risks.get(ticker) or []
+        thesis = _thesis_view(context, ticker)
+        instrument = get_instrument(ticker) or {}
+        leveraged = float(instrument.get("leverage_multiple") or 1) > 1
+        execution = _execution_view(
+            holding, leg, invested[leg], cash[leg], technical, thesis, leveraged,
+            open_add=ticker in open_adds,
+        )
         tickers[ticker] = {
             "ticker": ticker,
             "name": holding.get("name") or holding.get("stock_name") or "",
@@ -348,6 +535,8 @@ def compile_packet(context: dict, generation_id: str | None = None) -> dict:
                 "data_source": holding.get("data_source"),
             },
             "technical": technical,
+            "thesis": thesis,
+            "execution": execution,
             "quant": {
                 "factor": _factor_view(cross_rows.get(source_ticker) or cross_rows.get(ticker)),
                 "peer_residual": _peer_view(peer_rows.get(source_ticker) or peer_rows.get(ticker)),
@@ -366,7 +555,9 @@ def compile_packet(context: dict, generation_id: str | None = None) -> dict:
             "evidence": matching_events,
             "risk": ticker_risks,
             "status": _status(technical, ticker_risks),
-            "constraints": _constraints(shares, ticker_risks, actionable_ids),
+            "constraints": _constraints(
+                shares, ticker_risks, actionable_ids, technical, execution
+            ),
         }
 
     packet = {
@@ -433,8 +624,10 @@ def summary_view(packet: dict) -> dict:
                 "technical": {
                     key: (row.get("technical") or {}).get(key)
                     for key in ("source_ticker", "is_proxy", "as_of", "tag", "trend",
-                                "rsi_state", "stop_state", "usable")
+                                "rsi_state", "stop_state", "setups", "usable")
                 },
+                "thesis": row.get("thesis"),
+                "execution": row.get("execution"),
                 "quant_usable": {
                     "factor": ((row.get("quant") or {}).get("factor") or {})
                     .get("usable_for_decisions"),
@@ -596,6 +789,45 @@ def validate_plan_constraints(plan: dict, packet: dict) -> list[str]:
             and shares > max_sell
         ):
             issues.append(f"{tag}: size.shares {shares:g} exceeds holding {max_sell:g}")
+        if action in {"add_only_on_trigger", "add_on_breakout"}:
+            max_add = _number(constraints.get("max_add_shares"), 0) or 0
+            lot = _number(constraints.get("lot_size"), 0)
+            if shares is None or shares <= 0:
+                issues.append(f"{tag}: add requires positive integer size.shares")
+            elif shares > max_add:
+                issues.append(
+                    f"{tag}: size.shares {shares:g} exceeds max_add_shares {max_add:g}"
+                )
+            elif int(shares) != shares:
+                issues.append(f"{tag}: fractional shares are not supported")
+            elif lot and int(shares) % int(lot) != 0:
+                issues.append(
+                    f"{tag}: size.shares {shares:g} is not a board-lot multiple of {lot:g}"
+                )
+
+            condition = decision.get("condition") or {}
+            price = _number(condition.get("price"), 4)
+            setups = (row.get("technical") or {}).get("setups") or []
+            approved = [
+                setup for setup in setups
+                if setup.get("setup_id") == decision.get("technical_setup_id")
+                and setup.get("campaign_id") == decision.get("technical_campaign_id")
+                and setup.get("setup_id") in (constraints.get("technical_setup_ids") or [])
+                and setup.get("entry_type") == condition.get("type")
+                and _number(setup.get("entry_price"), 4) == price
+                and _number(setup.get("invalidation_price"), 4)
+                    == _number(decision.get("invalidation_price"), 4)
+                and setup.get("next_tranche_number") == decision.get("tranche_number")
+            ]
+            if action == "add_on_breakout":
+                approved = [
+                    setup for setup in approved
+                    if setup.get("setup_id") == "confirmed_breakout"
+                ]
+            if not approved:
+                issues.append(
+                    f"{tag}: add condition does not match an approved technical setup"
+                )
     return issues
 
 

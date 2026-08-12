@@ -84,6 +84,10 @@ def test_quant_universe_uses_canonical_underlyings_and_venue_suffixes():
     assert by_label["RKLB"][0] == "usRKLB.OQ"
     assert by_label["SPCX"][0] == "usSPCX.OQ"
     assert by_label["MSFT"][0] == "usMSFT.OQ"
+    # Tradable 1x ETFs need their own price scale for an executable setup.
+    assert by_label["03032"][0] == "hk03032"
+    assert by_label["03033"][0] == "hk03033"
+    # The leveraged 07226 still looks through to the index and cannot add.
     assert by_label["HSTECH"][0] == "hkHSTECH"
     assert "SPCH" not in by_label
     assert "RKLX" not in by_label

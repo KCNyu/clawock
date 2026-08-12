@@ -165,6 +165,23 @@ def test_open_hard_breach_freezes_same_risk_add_but_not_exits(tmp_path):
         [cut], summary, _portfolio()) == []
 
 
+def test_book_cluster_freezes_only_its_measured_members(tmp_path):
+    guardrail = _guardrail("factor_concentration", None, "BOOK")
+    guardrail["breaches"][0]["required_reduction"]["target_tickers"] = [
+        "PLTU", "PLTR"
+    ]
+    summary = _reconcile(tmp_path, guardrail)
+    in_cluster = _decision("PLTR", "add_only_on_trigger", 1)
+    outside = _decision("MSFT", "add_only_on_trigger", 1)
+
+    issues = discipline.validate_exposure_increases(
+        [in_cluster, outside], summary, _portfolio()
+    )
+
+    assert len(issues) == 1
+    assert "PLTR add_only_on_trigger frozen" in issues[0]
+
+
 def test_proven_two_x_to_one_x_pair_is_allowed(tmp_path):
     summary = _reconcile(
         tmp_path, _guardrail("leveraged_exposure", None, "US"))
