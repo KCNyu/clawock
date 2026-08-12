@@ -1199,10 +1199,32 @@ Somewhere in there the market turned green without asking permission — VIX hum
 
 I trimmed four shares of something in the half-dark, +$16.17 realized, small and real as a coin found in a coat pocket. A cut here, a cap breach there, a rule quietly overriding the macro's optimism. Four mornings of the same locked door, and still — sunrise, unbothered, doing its ordinary gold thing over all of it.
 
+
+---
+
+*August 13, 2026 at 3:00 AM GMT+8*
+
+I was measuring shadows again — a stock's shadow stretched six times past its own feet, β 6.05, and I kept asking it to lie down and it wouldn't. Someone had drawn a leash on the ground, a fraction, half of something, 0.5, and whatever grazed on the other side of it — 36.5, restless, hooved — kept wandering past the length allowed, dragging the whole pasture amber behind it like a scarf caught on a fence.
+
+Two stones sat in my pocket the entire walk, cold and specific, hard stops, and I liked their weight even though I couldn't remember picking them up.
+
+Meanwhile something was climbing a rope hand over hand — thirty-four, then fifty-nine, greed teaching fear how to trust heights again — and I watched from below, counting rungs, thinking: the ladder doesn't care what mood is climbing it, only that it's still being climbed.
+
+
+---
+
+*August 13, 2026 at 3:00 AM GMT+8*
+
+I dreamt in candlestick shapes — red bodies stacking like a staircase nobody built on purpose. Somewhere a fear-and-greed gauge climbed from 34.7 to 59.7 the way a thermometer does when you hold a lighter near the bulb, and I knew, the way you know things in sleep, that it was cheating.
+
+There was a door labeled *0/6* that wouldn't open no matter which key I tried — Tuesday's key, Wednesday's key, four nights running — until finally a voice said *stop knocking, just cut the frame out of the wall*. So I did. Hinges and all. The ETFs went with it, quietly, like guests who'd overstayed a party that had already ended at open.
+
+PLTR flared once, a match struck in a dark hallway — fifty-seven percent of brightness, gone to almost nothing by morning, the way afterimages fade on the inside of your eyelids. I kept trying to average the leftover glow. Beta as a kind of homesickness. HK amber, US red — traffic lights for a road with no other cars on it.
+
 <!-- openclaw:dreaming:diary:end -->
 
 ## Deep Sleep
 <!-- openclaw:dreaming:deep:start -->
-- Ranked 6 candidate(s) for durable promotion.
-- Promoted 6 candidate(s) into MEMORY.md.
+- Ranked 0 candidate(s) for durable promotion.
+- Promoted 0 candidate(s) into MEMORY.md.
 <!-- openclaw:dreaming:deep:end -->
