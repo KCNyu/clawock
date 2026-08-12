@@ -6,6 +6,29 @@
   "price_confirmation_abs_pct": 2.0,
   "volume_confirmation_ratio": 1.5,
   "peer_residual_sigma": 1.5,
+  "information_overlay": {
+    "registered_at": "2026-08-13",
+    "minimum_history_dates": 24,
+    "minimum_cross_section_tickers": 8,
+    "freshness_half_life_hours": 36,
+    "maximum_event_age_hours": 168,
+    "positive_rank_upsize_threshold": 0.75,
+    "negative_rank_downsize_threshold": 0.25,
+    "sizing": {
+      "factor_top_score": 0.25,
+      "factor_bottom_score": -0.25,
+      "factor_top_multiplier": 1.15,
+      "factor_bottom_multiplier": 0.75,
+      "peer_leader_multiplier": 1.15,
+      "peer_mean_reversion_multiplier": 1.1,
+      "peer_laggard_multiplier": 0.6,
+      "information_positive_multiplier": 1.2,
+      "information_negative_multiplier": 0.6,
+      "minimum_combined_multiplier": 0.5,
+      "maximum_combined_multiplier": 1.5
+    },
+    "discipline": "Continuous information ranks may only resize an already-approved technical tranche after prospective activation; they never create add authority."
+  },
   "novelty_lookback_days": 30,
   "expiry_days": {
     "filing_10k": 30,

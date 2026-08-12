@@ -13,7 +13,9 @@ Writes:
 import argparse
 import hashlib
 import json
+import math
 import re
+import statistics
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 from urllib.parse import urlparse
@@ -27,6 +29,7 @@ FACTOR_CONFIG = WS / 'config' / 'factor-universe.json'
 EM_NEWS = WS / 'assets' / 'data' / 'em_news.json'
 US_NEWS = WS / 'assets' / 'data' / 'us_news_digest.json'
 SENTIMENT = WS / 'assets' / 'data' / 'sentiment.json'
+INFLUENCER = WS / 'assets' / 'data' / 'influencer_feed.json'
 CATALYSTS = WS / 'assets' / 'data' / 'catalysts.json'
 PEER_RESIDUAL = WS / 'assets' / 'data' / 'peer_residual.json'
 CROSS_FACTOR = WS / 'assets' / 'data' / 'cross_sectional_factor.json'
@@ -75,7 +78,7 @@ def load_policy(path=POLICY):
     return policy
 
 
-def normalize_timestamp(value, fallback=None):
+def normalize_timestamp(value, fallback=None, naive_timezone=timezone.utc):
     """Return UTC ISO timestamp plus input precision."""
     if isinstance(value, (int, float)) and value > 0:
         return {
@@ -91,7 +94,7 @@ def normalize_timestamp(value, fallback=None):
             parsed = datetime.fromisoformat(candidate)
             precision = 'date' if len(text) == 10 else 'minute'
             if parsed.tzinfo is None:
-                parsed = parsed.replace(tzinfo=timezone.utc)
+                parsed = parsed.replace(tzinfo=naive_timezone)
             return {'iso': parsed.astimezone(timezone.utc).isoformat(),
                     'precision': precision}
         except ValueError:
@@ -99,12 +102,19 @@ def normalize_timestamp(value, fallback=None):
         for fmt in ('%Y/%m/%d %H:%M', '%Y-%m-%d %H:%M',
                     '%a, %d %b %Y %H:%M:%S %Z'):
             try:
-                parsed = datetime.strptime(text, fmt).replace(tzinfo=timezone.utc)
-                return {'iso': parsed.isoformat(), 'precision': 'minute'}
+                parsed = datetime.strptime(text, fmt).replace(
+                    tzinfo=naive_timezone
+                )
+                return {
+                    'iso': parsed.astimezone(timezone.utc).isoformat(),
+                    'precision': 'minute',
+                }
             except ValueError:
                 continue
     if fallback:
-        return normalize_timestamp(fallback)
+        return normalize_timestamp(
+            fallback, naive_timezone=naive_timezone
+        )
     return {'iso': None, 'precision': 'unknown'}
 
 
@@ -248,7 +258,17 @@ def source_type(origin='', source='', url='', title=''):
 def make_event(policy, *, ticker, title, published_at, origin,
                source='', url='', event_type=None, event_time=None,
                reported_ticker=None, metadata=None):
-    published = normalize_timestamp(published_at)
+    # Eastmoney emits timezone-naive China timestamps. Treating those as UTC
+    # moves the evidence eight hours into the future and corrupts both cutoff
+    # and decay. Other current producers either include an offset/RFC zone or
+    # use UTC; keep their existing interpretation.
+    source_timezone = (
+        timezone(timedelta(hours=8))
+        if str(origin or '').startswith('eastmoney') else timezone.utc
+    )
+    published = normalize_timestamp(
+        published_at, naive_timezone=source_timezone
+    )
     event_ts = normalize_timestamp(event_time) if event_time else published
     kind = classify_event(title, event_type)
     src_type = source_type(origin, source, url, title)
@@ -384,6 +404,48 @@ def collect_sentiment_news_events(policy, underlying):
                     source=item.get('source') or 'Google News',
                     url=item.get('url') or '',
                 ))
+    return events
+
+
+def collect_influencer_events(policy, underlying):
+    """Import named-ticker statements; sector inference never becomes a node.
+
+    The influencer producer explicitly separates direct ticker extraction from
+    broad sector matches. Only the former is attributable enough for an alpha
+    feature. `relevance` and stance are preserved as metadata, while the source
+    tier keeps secondary Musk coverage weak and direct Trump/Substack URLs
+    auditable rather than promoting every mention to primary evidence.
+    """
+    payload = _load(INFLUENCER)
+    events = []
+    seen = set()
+    for item in payload.get('items') or []:
+        title = item.get('text') or item.get('summary_cn')
+        for reported in item.get('tickers') or []:
+            ticker = underlying.get(reported, reported)
+            key = (ticker, title, item.get('published'))
+            if not ticker or key in seen:
+                continue
+            seen.add(key)
+            events.append(make_event(
+                policy,
+                ticker=ticker,
+                reported_ticker=reported,
+                title=title,
+                published_at=(
+                    item.get('published') or payload.get('generated_at')
+                ),
+                origin=item.get('origin') or 'llm_digest_legacy',
+                source=item.get('source') or item.get('author') or '',
+                url=item.get('url') or '',
+                metadata={
+                    'channel': 'influencer_feed',
+                    'author': item.get('author'),
+                    'stance': item.get('stance'),
+                    'relevance': item.get('relevance'),
+                    'direct_ticker_only': True,
+                },
+            ))
     return events
 
 
@@ -834,6 +896,202 @@ def gate_events(policy, events):
     return events
 
 
+def _event_information_component(event, now, overlay_policy):
+    """Signed, decayed information magnitude; polarity alone is never enough."""
+    published = (event.get('publication_time') or {}).get('iso')
+    try:
+        observed = datetime.fromisoformat(published)
+        if observed.tzinfo is None:
+            observed = observed.replace(tzinfo=timezone.utc)
+        # The snapshot is point-in-time. A timestamp after its cutoff is not
+        # "maximally fresh"; it is unavailable information and must be absent.
+        if observed > now:
+            return None
+        age_hours = (now - observed).total_seconds() / 3600
+    except Exception:
+        return None
+    if age_hours > overlay_policy['maximum_event_age_hours']:
+        return None
+    direction = {'positive': 1, 'negative': -1}.get(
+        event.get('impact_direction'), 0
+    )
+    if not direction or event.get('ticker') == 'MARKET':
+        return None
+    novelty = float(event.get('novelty_score') or 0)
+    reliability = float(event.get('source_reliability') or 0)
+    sources = max(1, int(event.get('corroborating_source_count') or 1))
+    corroboration = min(1.0, 0.5 + 0.25 * (sources - 1))
+    freshness = math.exp(
+        -math.log(2) * age_hours
+        / float(overlay_policy['freshness_half_life_hours'])
+    )
+    confirmation = event.get('confirmation') or {}
+    # An aligned move is evidence the event is real but also that part of it has
+    # already reached price. Preserve the signal while reducing unpriced room.
+    price_nonreaction = 0.6 if confirmation.get('price_aligned') else 1.0
+    magnitude = novelty * reliability * corroboration * freshness * price_nonreaction
+    return {
+        'event_id': event.get('event_id'),
+        'published_at': published,
+        'direction': direction,
+        'novelty': round(novelty, 4),
+        'reliability': round(reliability, 4),
+        'corroborating_sources': sources,
+        'freshness': round(freshness, 4),
+        'price_nonreaction': price_nonreaction,
+        'signed_score': round(direction * magnitude, 6),
+    }
+
+
+def _history_information_rows(history, overlay_policy):
+    rows = []
+    for snapshot in history:
+        as_of = str(snapshot.get('as_of') or '')[:10]
+        by_ticker = {}
+        for event in snapshot.get('events') or []:
+            score = event.get('information_signed_score')
+            ticker = str(event.get('ticker') or '')
+            if ticker and isinstance(score, (int, float)):
+                by_ticker[ticker] = by_ticker.get(ticker, 0.0) + float(score)
+        for ticker, score in by_ticker.items():
+            rows.append({'as_of': as_of, 'ticker': ticker, 'score': score})
+    return rows
+
+
+def _history_information_dates(history):
+    """Registered point-in-time snapshots, including days with zero signal."""
+    return sorted({
+        str(snapshot.get('as_of') or '')[:10]
+        for snapshot in history
+        if snapshot.get('information_overlay_schema_version') == 1
+        and snapshot.get('as_of')
+    })
+
+
+def build_information_overlay(policy, events, history, now):
+    """Ticker surprise and cross-sectional rank from already-collected evidence."""
+    overlay_policy = policy['information_overlay']
+    components = {}
+    covered_tickers = set()
+    for event in events:
+        ticker = str(event.get('ticker') or '')
+        published = (event.get('publication_time') or {}).get('iso')
+        try:
+            observable = datetime.fromisoformat(published)
+            if observable.tzinfo is None:
+                observable = observable.replace(tzinfo=timezone.utc)
+        except Exception:
+            observable = None
+        if ticker and ticker != 'MARKET' and observable and observable <= now:
+            covered_tickers.add(ticker)
+        component = _event_information_component(event, now, overlay_policy)
+        if component is None:
+            continue
+        event['information_signed_score'] = component['signed_score']
+        components.setdefault(ticker, []).append(component)
+
+    historical = _history_information_rows(history, overlay_policy)
+    history_dates = _history_information_dates(history)
+    # Cross-sectional coverage is the names the current source snapshots can
+    # observe, not only names whose headline classifier emitted a direction.
+    # A covered name with no qualifying event is a real zero signal. Dropping
+    # those names makes activation depend on how excitable today's headlines
+    # are and can leave a well-covered universe permanently warming up.
+    eligible_tickers = sorted(covered_tickers)
+    activation_checks = {
+        'history_dates': {
+            'actual': len(history_dates),
+            'required': overlay_policy['minimum_history_dates'],
+            'pass': len(history_dates) >= overlay_policy['minimum_history_dates'],
+        },
+        'cross_section_tickers': {
+            'actual': len(eligible_tickers),
+            'required': overlay_policy['minimum_cross_section_tickers'],
+            'pass': len(eligible_tickers) >= overlay_policy['minimum_cross_section_tickers'],
+        },
+    }
+    active = all(check['pass'] for check in activation_checks.values())
+
+    raw = {
+        ticker: sum(row['signed_score'] for row in components.get(ticker, []))
+        for ticker in eligible_tickers
+    }
+    # Mid-rank ties. Ticker spelling must never decide which equal-score name
+    # lands above an activation threshold.
+    ranks = {}
+    ordered_scores = sorted(raw.values())
+    for ticker, score in raw.items():
+        positions = [
+            index for index, value in enumerate(ordered_scores)
+            if value == score
+        ]
+        ranks[ticker] = (
+            statistics.fmean(index + 0.5 for index in positions)
+            / len(ordered_scores)
+        )
+    ticker_rows = {}
+    for ticker in eligible_tickers:
+        by_day = {
+            row['as_of']: row['score']
+            for row in historical if row['ticker'] == ticker
+        }
+        # No qualifying event on a registered day is a real zero observation,
+        # not missing data. Event-day-only baselines overstate normal intensity.
+        own = [by_day.get(day, 0.0) for day in history_dates]
+        mean = statistics.fmean(own) if own else None
+        stdev = statistics.pstdev(own) if len(own) >= 2 else None
+        surprise = (
+            (raw[ticker] - mean) / stdev
+            if mean is not None and stdev and stdev > 0 else None
+        )
+        ticker_rows[ticker] = {
+            'ticker': ticker,
+            'as_of': now.isoformat(),
+            'signed_score': round(raw[ticker], 6),
+            'cross_section_rank': round(ranks[ticker], 4),
+            'own_history_dates': len(history_dates),
+            'own_surprise_z': round(surprise, 4) if surprise is not None else None,
+            'event_count': len(components.get(ticker, [])),
+            'sizing_tilt': (
+                'positive'
+                if (active
+                    and ranks[ticker] >= overlay_policy['positive_rank_upsize_threshold']
+                    and raw[ticker] > 0)
+                else 'negative'
+                if (active and (
+                    ranks[ticker] <= overlay_policy['negative_rank_downsize_threshold']
+                    or raw[ticker] < 0
+                ))
+                else 'neutral' if active else 'inactive'
+            ),
+            'event_components': sorted(
+                components.get(ticker, []),
+                key=lambda row: row['published_at'], reverse=True
+            )[:8],
+            'status': 'active' if active else 'warming_up',
+            'usable_for_decisions': active,
+        }
+    return {
+        'schema_version': 1,
+        'as_of': now.isoformat(),
+        'registered_at': overlay_policy['registered_at'],
+        'status': 'active' if active else 'warming_up',
+        'usable_for_decisions': active,
+        'activation': {
+            'checks': activation_checks,
+            'blockers': [name for name, check in activation_checks.items()
+                         if not check['pass']],
+            'discipline': overlay_policy['discipline'],
+        },
+        'sizing_thresholds': {
+            'positive_rank': overlay_policy['positive_rank_upsize_threshold'],
+            'negative_rank': overlay_policy['negative_rank_downsize_threshold'],
+        },
+        'sizing_policy': overlay_policy['sizing'],
+        'tickers': ticker_rows,
+    }
+
+
 def tavily_queue(policy, events):
     queue = []
     for event in events:
@@ -902,6 +1160,7 @@ def update_history(as_of, events):
     ]
     snapshots.append({
         'as_of': as_of,
+        'information_overlay_schema_version': 1,
         'events': [
             {
                 'event_id': event['event_id'],
@@ -917,6 +1176,7 @@ def update_history(as_of, events):
                 'published_at': event['publication_time'].get('iso'),
                 'status': event['status'],
                 'actionable_escalation': event['actionable_escalation'],
+                'information_signed_score': event.get('information_signed_score'),
             }
             for event in events
         ],
@@ -955,6 +1215,7 @@ def main(argv=None):
         *collect_em_events(policy, underlying),
         *collect_us_news_events(policy, underlying),
         *collect_sentiment_news_events(policy, underlying),
+        *collect_influencer_events(policy, underlying),
         *collect_catalyst_events(policy, underlying),
     ]
     events = deduplicate_events(events)
@@ -968,6 +1229,9 @@ def main(argv=None):
         _load(CROSS_FACTOR),
     )
     events = gate_events(policy, events)
+    information_overlay = build_information_overlay(
+        policy, events, history, now
+    )
     queue = tavily_queue(policy, events)
     update_history(now.date().isoformat(), events)
     out = {
@@ -975,6 +1239,7 @@ def main(argv=None):
         'generated_at': now.isoformat(),
         'as_of': now.date().isoformat(),
         'events': events,
+        'information_overlay': information_overlay,
         'actionable_events': [
             event['event_id'] for event in events
             if event['actionable_escalation']
@@ -986,6 +1251,7 @@ def main(argv=None):
             'eastmoney': 'loaded' if EM_NEWS.exists() else 'missing',
             'us_news_digest': 'loaded' if US_NEWS.exists() else 'missing',
             'sentiment_news': 'loaded' if SENTIMENT.exists() else 'missing',
+            'influencer_feed': 'loaded' if INFLUENCER.exists() else 'missing',
             'catalysts': 'loaded' if CATALYSTS.exists() else 'missing',
             'peer_residual': 'loaded' if PEER_RESIDUAL.exists() else 'missing',
         },
@@ -1000,6 +1266,7 @@ def main(argv=None):
             'actionable_escalations': sum(
                 event['actionable_escalation'] for event in events
             ),
+            'information_overlay_status': information_overlay['status'],
             'tavily_resolution_queue': len(queue),
         },
         'policy': {

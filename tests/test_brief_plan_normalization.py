@@ -57,6 +57,32 @@ def test_machine_owned_fields_are_normalized_before_validation(tmp_path):
     assert brief_postflight.validate_plan_json(path) == []
 
 
+def test_packet_provenance_overwrites_authored_claim(tmp_path):
+    path = _write_authored_plan(tmp_path, _authored_decision(
+        signal_provenance={"information": {"signed_score": 999}},
+    ))
+    packet = {
+        "_meta": {"generation_id": "gen-real"},
+        "generated_at": "2026-07-30T08:00:00+08:00",
+        "tickers": {"AAA": {
+            "information": {"signed_score": -0.2},
+            "quant": {"factor": {}, "peer_residual": {}},
+            "execution": {"information_overlay": {
+                "sizing_multiplier": 0.6,
+                "contributors": ["information_negative_or_low_rank"],
+            }},
+            "constraints": {"max_add_shares": 0, "position_room_shares": 0},
+        }},
+    }
+
+    assert brief_postflight.normalize_plan_json(
+        path, tmp_path / "decisions.jsonl", decision_packet=packet
+    ) == []
+    provenance = json.loads(path.read_text())["decisions"][0]["signal_provenance"]
+    assert provenance["context_generation_id"] == "gen-real"
+    assert provenance["information"]["signed_score"] == -0.2
+
+
 def test_semantic_authoring_error_is_not_rewritten_into_a_valid_default(tmp_path):
     path = _write_authored_plan(
         tmp_path,

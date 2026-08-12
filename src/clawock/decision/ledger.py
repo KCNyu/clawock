@@ -44,7 +44,7 @@ SNAP_DIR = WS / "memory" / "snapshots"
 
 SCHEMA_VERSION = 2
 # Bumped when the meaning of an evaluation changes, so a stale row is identifiable.
-EVAL_SCHEMA_VERSION = 3
+EVAL_SCHEMA_VERSION = 4
 # Snapshots and plan_dates are both named on the HK calendar day; comparing them
 # against a UTC "today" slips a day for the eight hours after HK midnight.
 HKT = timezone(timedelta(hours=8))
@@ -183,6 +183,9 @@ def legacy_action_to_decision(action: dict, plan_date: str, ordinal: int = 0) ->
         # Additive contract marker: pre-2026-08 plans remain valid/readable, while
         # every newly normalized plan is subject to the technical trace rules.
         "technical_trace_version": 1,
+        # Written by postflight from the generation-pinned decision packet.
+        # A model-authored value is replaced before validation and ledger upsert.
+        "signal_provenance": action.get("signal_provenance"),
         "simulated_entry_price": _float(action.get("simulated_entry_price")),
         "horizon_sessions": int(action.get("horizon_sessions") or 1),
         "override": action.get("override") or {
@@ -701,8 +704,10 @@ def settle_decisions(decisions: list[dict], now_date: str | None = None) -> int:
         # Wipe derived fields so a stale value can never survive a rule change.
         for k in ("triggered", "trigger_session", "execution_price", "capital", "status",
                   "outcome", "underlying_return_t1_pct", "benefit_t1_pct", "benefit_t5_pct",
+                  "benefit_t20_pct",
                   "fill_reason", "fill_assumed", "fill_model", "session_reason",
                   "not_evaluable_reason", "mark_t1_session", "mark_t5_session",
+                  "mark_t20_session",
                   "evaluation_mode", "reference_price", "reference_reason",
                   "condition_role", "pending_reason", "mark_horizon",
                   "evaluation_schema_version"):
@@ -772,9 +777,9 @@ def settle_decisions(decisions: list[dict], now_date: str | None = None) -> int:
                        "not_evaluable_reason": fill_reason})
         else:
             entry = fill
-            marks = next_sessions(leg, sess, 5)
-            b1 = b5 = u1 = None
-            m1 = m5 = None
+            marks = next_sessions(leg, sess, 20)
+            b1 = b5 = b20 = u1 = None
+            m1 = m5 = m20 = None
             reason = None
             if marks:
                 m1 = marks[0]
@@ -797,14 +802,21 @@ def settle_decisions(decisions: list[dict], now_date: str | None = None) -> int:
                 nb5 = bar(ticker, m5)
                 if nb5 is not None and m5 < today:
                     _, b5 = _benefit(d.get("action"), entry, nb5["close"])
+            if len(marks) >= 20:
+                m20 = marks[19]
+                nb20 = bar(ticker, m20)
+                if nb20 is not None and m20 < today:
+                    _, b20 = _benefit(d.get("action"), entry, nb20["close"])
             ev.update({
                 "status": "settled" if b1 is not None else "pending",
                 "outcome": _outcome(b1),
                 "underlying_return_t1_pct": u1,
                 "benefit_t1_pct": b1,
                 "benefit_t5_pct": b5,
+                "benefit_t20_pct": b20,
                 "mark_t1_session": m1 if b1 is not None else None,
                 "mark_t5_session": m5 if b5 is not None else None,
+                "mark_t20_session": m20 if b20 is not None else None,
                 "mark_horizon": "open_of_session_to_close_of_next_session",
             })
             if b1 is None and reason:
@@ -1755,6 +1767,94 @@ def compute_metrics(decisions: list[dict], window_days: int = 30) -> dict:
                     }))}
 
     coverage_active = _coverage([d for d in in_window if d.get("action") in ACTIVE_ACTIONS])
+
+    def _prospective_overlay_metrics(rows: list[dict]) -> dict:
+        """Forward attribution from immutable, decision-time signal snapshots.
+
+        This is intentionally per decision rather than episode elected/averaged:
+        every tactical tranche has its own packet, multiplier and forward path.
+        Date-cluster intervals keep a busy news day from pretending to be many
+        independent samples. Empty cohorts are evidence of warm-up, not success.
+        """
+        eligible = [
+            row for row in rows
+            if row.get("strategy_id") == "tactical_entry"
+            and row.get("action") in ADD_ACTIONS
+            and isinstance(row.get("signal_provenance"), dict)
+            and (row.get("signal_provenance") or {}).get("schema_version") == 1
+        ]
+
+        def cohort(row):
+            sizing = ((row.get("signal_provenance") or {}).get("sizing") or {})
+            contributors = sizing.get("contributors") or []
+            if contributors:
+                return "setup_plus_information"
+            if sizing.get("sizing_active"):
+                return "overlay_active_neutral"
+            return "setup_only"
+
+        def bucket(group: list[dict], key: str) -> dict:
+            values = [
+                _float((row.get("evaluation") or {}).get(key))
+                for row in group
+            ]
+            values = [value for value in values if value is not None]
+            return {
+                "n_decisions": len(group),
+                "n_settled": len(values),
+                "n_dates": len({
+                    row.get("plan_date") for row in group
+                    if _float((row.get("evaluation") or {}).get(key)) is not None
+                }),
+                "win_rate": (
+                    round(sum(value > 0 for value in values) / len(values), 4)
+                    if values else None
+                ),
+                "avg_benefit_pct": (
+                    round(statistics.fmean(values), 4) if values else None
+                ),
+                "cluster_ci95": _cluster_ci(
+                    group,
+                    lambda row: _float((row.get("evaluation") or {}).get(key)),
+                ),
+            }
+
+        by_cohort = defaultdict(list)
+        by_contributor = defaultdict(list)
+        for row in eligible:
+            by_cohort[cohort(row)].append(row)
+            sizing = ((row.get("signal_provenance") or {}).get("sizing") or {})
+            for contributor in sizing.get("contributors") or []:
+                by_contributor[str(contributor)].append(row)
+        horizons = {}
+        for horizon, key in (
+            ("t1", "benefit_t1_pct"),
+            ("t5", "benefit_t5_pct"),
+            ("t20", "benefit_t20_pct"),
+        ):
+            horizons[horizon] = {
+                "cohorts": {
+                    name: bucket(by_cohort.get(name, []), key)
+                    for name in (
+                        "setup_only", "overlay_active_neutral",
+                        "setup_plus_information",
+                    )
+                },
+                "contributors": {
+                    name: bucket(group, key)
+                    for name, group in sorted(by_contributor.items())
+                },
+            }
+        return {
+            "status": "collecting" if eligible else "warming_up",
+            "n_eligible_decisions": len(eligible),
+            "method": (
+                "prospective tactical-entry decisions only; immutable packet-time "
+                "snapshots; date-cluster CI; no retrospective reconstruction"
+            ),
+            "horizons": horizons,
+        }
+
     return {
         "schema_version": SCHEMA_VERSION,
         "method": "episode-level; triggered-only; date-cluster bootstrap; capital-weighted where size exists",
@@ -1794,6 +1894,7 @@ def compute_metrics(decisions: list[dict], window_days: int = 30) -> dict:
         "by_technical_setup": _breakdown(
             reps, lambda r: r.get("technical_setup_id"), "benefit_t1_pct"
         ),
+        "information_overlay": _prospective_overlay_metrics(in_window),
         "execution": dict(execution),
         "active_overrides": len(overrides),
     }

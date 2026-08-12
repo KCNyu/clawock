@@ -83,6 +83,40 @@ def test_metrics_attribute_settled_technical_adds_to_the_named_setup():
     assert metrics["by_technical_setup"]["trend_pullback"]["avg_benefit_pct"] == 2.5
 
 
+def test_metrics_attribute_packet_time_overlay_at_three_horizons():
+    base = decision(
+        "2026-07-01", strategy="tactical_entry",
+        action="add_only_on_trigger", benefit=1.0,
+    )
+    base["technical_setup_id"] = "trend_pullback"
+    base["signal_provenance"] = {
+        "schema_version": 1,
+        "sizing": {"sizing_active": False, "contributors": []},
+    }
+    base["evaluation"]["benefit_t20_pct"] = 3.0
+    informed = copy.deepcopy(base)
+    informed["decision_id"] = "dec-informed"
+    informed["episode_id"] = "ep-informed"
+    informed["ticker"] = "BBB"
+    informed["signal_provenance"]["sizing"] = {
+        "sizing_active": True,
+        "sizing_multiplier": 1.2,
+        "contributors": ["information_positive_surprise"],
+    }
+    informed["evaluation"].update(
+        benefit_t1_pct=2.0, benefit_t5_pct=4.0, benefit_t20_pct=8.0,
+    )
+
+    overlay = dv2.compute_metrics(
+        [base, informed], window_days=365
+    )["information_overlay"]
+
+    assert overlay["n_eligible_decisions"] == 2
+    assert overlay["horizons"]["t1"]["cohorts"]["setup_only"]["n_settled"] == 1
+    assert overlay["horizons"]["t5"]["cohorts"]["setup_plus_information"]["avg_benefit_pct"] == 4.0
+    assert overlay["horizons"]["t20"]["contributors"]["information_positive_surprise"]["avg_benefit_pct"] == 8.0
+
+
 def decision(day, ticker="AAA", strategy="core_position", action="hold_and_watch",
              benefit=1.0, triggered=True, capital=100.0):
     d = dv2.legacy_action_to_decision({

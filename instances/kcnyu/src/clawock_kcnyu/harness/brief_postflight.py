@@ -206,7 +206,8 @@ class _InMemoryPlanPath:
         return str(self._path)
 
 
-def normalize_plan_json(path, ledger_path=None, *, write=True, return_plan=False):
+def normalize_plan_json(path, ledger_path=None, *, decision_packet=None,
+                        write=True, return_plan=False):
     """Fill only machine-owned v2 fields before validation.
 
     ``normalize_authored_plan`` also canonicalizes legacy/default values.  Never
@@ -245,6 +246,10 @@ def normalize_plan_json(path, ledger_path=None, *, write=True, return_plan=False
             authored,
             ledger_path or (WS / 'memory' / 'decisions.jsonl'),
         )
+        if decision_packet:
+            normalized = brief_decision_packet.bind_plan_provenance(
+                normalized, decision_packet
+            )
         if write and normalized != authored:
             path.write_text(
                 json.dumps(normalized, ensure_ascii=False, indent=2) + '\n'
@@ -676,6 +681,7 @@ def main(argv=None):
     issues += readability_issues(readability)
     normalization_issues, normalized_plan = normalize_plan_json(
         plan_path,
+        decision_packet=decision_packet,
         write=not args.dry_run,
         return_plan=True,
     )
