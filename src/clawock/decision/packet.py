@@ -18,7 +18,7 @@ import os
 from pathlib import Path
 
 from clawock.decision.actions import ACTIVE_ACTIONS
-from clawock.portfolio.instruments import get as get_instrument
+from clawock.portfolio.instruments import is_leveraged_holding
 
 
 SCHEMA_VERSION = 1
@@ -467,12 +467,22 @@ def compile_packet(context: dict, generation_id: str | None = None) -> dict:
     # Do not emit another tranche while an earlier add is still open in the
     # authoritative ledger. This is the daily equivalent of an exchange open-
     # order check and prevents repeated briefs from stacking the same setup.
-    open_adds = {
-        str(row.get("ticker") or "")
-        for row in (context.get("open_decisions") or {}).get("open") or []
-        if row.get("action") in {"add_only_on_trigger", "add_on_breakout"}
-        and row.get("execution_status") == "unknown"
-    }
+    open_surface = context.get("open_decisions") or {}
+    if "open_add_tickers" in open_surface:
+        open_adds = {str(ticker) for ticker in open_surface["open_add_tickers"]}
+        open_add_gate_error = bool(open_surface.get("open_add_gate_error"))
+    else:
+        # Backward-compatible input for external runtimes. A generic surface
+        # error/truncation cannot prove that no add is open, so fail closed.
+        open_adds = {
+            str(row.get("ticker") or "")
+            for row in open_surface.get("open") or []
+            if row.get("action") in {"add_only_on_trigger", "add_on_breakout"}
+            and row.get("execution_status") == "unknown"
+        }
+        open_add_gate_error = bool(
+            open_surface.get("error") or open_surface.get("truncated")
+        )
     setup_usage = context.get("technical_setup_usage") or {}
     risks = _risk_map(context, active)
     tickers = {}
@@ -514,11 +524,10 @@ def compile_packet(context: dict, generation_id: str | None = None) -> dict:
         shares = int(_number(holding.get("shares"), 0) or 0)
         ticker_risks = risks.get(ticker) or []
         thesis = _thesis_view(context, ticker)
-        instrument = get_instrument(ticker) or {}
-        leveraged = float(instrument.get("leverage_multiple") or 1) > 1
+        leveraged = is_leveraged_holding(holding)
         execution = _execution_view(
             holding, leg, invested[leg], cash[leg], technical, thesis, leveraged,
-            open_add=ticker in open_adds,
+            open_add=open_add_gate_error or ticker in open_adds,
         )
         tickers[ticker] = {
             "ticker": ticker,

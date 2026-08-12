@@ -227,6 +227,32 @@ def is_leveraged(symbol: str) -> bool:
     return bool(meta and meta["leverage_multiple"] > 1)
 
 
+_LEVERAGED_NAME_MARKERS = (
+    "倍", "direxion", "t-rex", "defiance", "proshares",
+    "2x long", "3x long", "daily target", "xl二", "xl三", "xl两", "两倍",
+)
+
+
+def is_leveraged_holding(holding: dict) -> bool:
+    """Classify a live holding conservatively when registry coverage lags.
+
+    Registered metadata remains authoritative. The explicit holding flag and
+    name fallback cover a newly listed leveraged product before its registry PR
+    lands, so a safety consumer never silently treats an unknown 2x/3x name as 1x.
+    """
+    if holding.get("is_leveraged_etf") is True:
+        return True
+    symbol = str(holding.get("ticker") or "")
+    meta = get(symbol)
+    if meta is not None:
+        return float(meta.get("leverage_multiple") or 1) > 1
+    name = str(holding.get("name") or holding.get("stock_name") or "").casefold()
+    return (
+        any(marker.casefold() in name for marker in _LEVERAGED_NAME_MARKERS)
+        or re.search(r"(?<!\w)[23]\s*[x×](?!\w)", name) is not None
+    )
+
+
 def look_through(symbol: str, *, max_hops: int = 3) -> dict:
     """Resolve a holding to the issuer whose news, filings and earnings move it.
 

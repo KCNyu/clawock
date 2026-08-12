@@ -58,6 +58,7 @@ SNAPSHOT_DIR = WS / 'memory' / 'snapshots'
 from clawock_kcnyu.automation import workflow_outcomes  # noqa: E402
 from clawock.market_data.macro import classify_regime as _classify_regime  # noqa: E402
 from clawock.portfolio.instruments import get as get_instrument  # noqa: E402
+from clawock.portfolio.instruments import is_leveraged_holding  # noqa: E402
 from clawock.portfolio.instruments import compute_lookthrough_exposure  # noqa: E402
 from clawock.portfolio.instruments import one_x_swap_map  # noqa: E402
 
@@ -127,21 +128,9 @@ def fetch_fx_rate():
         return {'rate': 7.80, 'source': 'PARSE_FAILED', 'error': out[-300:]}
 
 
-_LEVERAGED_KEYWORDS = ('倍', 'Direxion', 'T-Rex', 'Defiance', 'ProShares',
-                       '2X Long', '3X Long', '2x Long', '3x Long', 'Daily Target',
-                       # HK leveraged/inverse products: 「XL二/XL三」= L×2/×3, 「两倍」
-                       'XL二', 'XL三', 'XL两', '两倍')
-
-
 def _is_leveraged_etf(holding):
-    """Use canonical leverage metadata; retain an unknown-name fallback."""
-    if holding.get('is_leveraged_etf') is True:
-        return True
-    meta = get_instrument(holding.get('ticker'))
-    if meta is not None:
-        return meta['leverage_multiple'] > 1
-    name = holding.get('name', '')
-    return any(kw in name for kw in _LEVERAGED_KEYWORDS)
+    """Compatibility alias for the product-owned conservative classifier."""
+    return is_leveraged_holding(holding)
 
 
 def collect_us_fundamentals(portfolio):

@@ -325,6 +325,27 @@ def test_leveraged_or_broken_thesis_never_gets_add_authority():
     )
 
 
+def test_unknown_registry_leveraged_name_is_blocked_without_a_risk_breach():
+    context = _context()
+    context["risk_guardrail"]["hard_stop_watch"] = []
+    context["quant_signals"]["rows"]["BASE"]["technical_setups"] = [{
+        "setup_id": "confirmed_breakout", "label": "breakout",
+        "entry_type": "price_above", "entry_price": 12,
+        "invalidation_price": 10, "max_tranches": 2,
+        "tranche_pct_of_position": 0.1, "detail": "breakout",
+    }]
+
+    packet = packet_mod.compile_packet(
+        context, brief_context.compute_generation_id(context)
+    )
+
+    assert "leveraged_daily_reset" in packet["tickers"]["LEVX"]["execution"]["blockers"]
+    assert not any(
+        action.startswith("add_")
+        for action in packet["tickers"]["LEVX"]["constraints"]["allowed_actions"]
+    )
+
+
 def test_book_cluster_blocks_adds_only_for_its_target_members():
     context = _context()
     context["risk_guardrail"]["breaches"] = [{
@@ -357,6 +378,23 @@ def test_open_add_order_blocks_duplicate_tranche():
 
     assert "open_add_order" in hk["execution"]["blockers"]
     assert "add_only_on_trigger" not in hk["constraints"]["allowed_actions"]
+
+
+def test_open_add_ledger_error_blocks_every_new_tranche():
+    context = _context()
+    context["open_decisions"] = {
+        "open_add_tickers": [],
+        "open_add_gate_error": "OSError: ledger unreadable",
+    }
+
+    packet = packet_mod.compile_packet(
+        context, brief_context.compute_generation_id(context)
+    )
+
+    assert "open_add_order" in packet["tickers"]["00100"]["execution"]["blockers"]
+    assert "add_only_on_trigger" not in (
+        packet["tickers"]["00100"]["constraints"]["allowed_actions"]
+    )
 
 
 def test_completed_tranches_exhaust_setup_authority():
