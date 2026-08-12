@@ -180,6 +180,9 @@ def legacy_action_to_decision(action: dict, plan_date: str, ordinal: int = 0) ->
         "technical_campaign_id": action.get("technical_campaign_id"),
         "invalidation_price": _float(action.get("invalidation_price")),
         "tranche_number": _int(action.get("tranche_number")),
+        # Additive contract marker: pre-2026-08 plans remain valid/readable, while
+        # every newly normalized plan is subject to the technical trace rules.
+        "technical_trace_version": 1,
         "simulated_entry_price": _float(action.get("simulated_entry_price")),
         "horizon_sessions": int(action.get("horizon_sessions") or 1),
         "override": action.get("override") or {
@@ -276,9 +279,13 @@ def validate_decision(d: dict) -> list[str]:
         errors.append("evidence_event_id must be null or an evt_ id")
     setup_id = d.get("technical_setup_id")
     campaign_id = d.get("technical_campaign_id")
+    trace_version = d.get("technical_trace_version")
+    if trace_version not in (None, 1):
+        errors.append("technical_trace_version must be 1 when present")
     if setup_id is not None and (not isinstance(setup_id, str) or not setup_id):
         errors.append("technical_setup_id must be null or non-empty text")
-    if d.get("action") in ADD_ACTIONS and d.get("driven_by") == "technical":
+    if (trace_version == 1 and d.get("action") in ADD_ACTIONS
+            and d.get("driven_by") == "technical"):
         if not setup_id:
             errors.append("technical add requires technical_setup_id")
         if not isinstance(campaign_id, str) or not campaign_id:

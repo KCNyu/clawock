@@ -56,6 +56,20 @@ def test_technical_add_without_setup_trace_is_invalid():
     assert "technical add requires tranche_number >= 1" in issues
 
 
+def test_legacy_technical_add_remains_readable_without_new_trace_contract():
+    row = dv2.legacy_action_to_decision({
+        "ticker": "AAA", "strategy_id": "tactical_entry",
+        "action": "add_only_on_trigger",
+        "condition": {"type": "price_above", "price": 10},
+        "size": {"shares": 1}, "confidence": 0.6,
+        "driven_by": "technical",
+    }, "2026-07-01")
+    row["episode_id"] = "ep-test"
+    row.pop("technical_trace_version")
+
+    assert dv2.validate_decision(row) == []
+
+
 def test_metrics_attribute_settled_technical_adds_to_the_named_setup():
     row = decision(
         "2026-07-01", strategy="tactical_entry",
