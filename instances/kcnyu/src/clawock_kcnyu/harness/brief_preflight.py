@@ -1808,6 +1808,7 @@ def main(argv=None):
                     for event in current_events[:40]
                 ],
                 'actionable_events': graph.get('actionable_events') or [],
+                'information_overlay': graph.get('information_overlay') or {},
                 'tavily_resolution_queue': (
                     graph.get('tavily_resolution_queue') or []
                 ),

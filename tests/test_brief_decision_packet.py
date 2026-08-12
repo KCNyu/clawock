@@ -436,12 +436,62 @@ def test_add_room_solves_the_post_trade_60_percent_boundary():
     execution = packet["tickers"]["00100"]["execution"]
 
     # (500 + 250) / (1_000 + 250) == 60%; cash is only an affordability cap.
-    assert execution["max_add_shares"] == 40  # one more 20-share lot would exceed 60%
-    assert (500 + execution["max_add_value"]) / (
-        1_000 + execution["max_add_value"]
+    # Concentration room and one-tranche authority are distinct. The setup only
+    # authorizes 10% of the existing 100 shares = one 20-share board lot.
+    assert execution["position_room_shares"] == 40
+    assert execution["max_add_shares"] == 20
+    assert execution["max_tranche_shares"] == 20
+    assert (500 + execution["position_room_value"]) / (
+        1_000 + execution["position_room_value"]
     ) < 0.60
-    next_lot_value = execution["max_add_value"] + 20 * 5
+    next_lot_value = execution["position_room_value"] + 20 * 5
     assert (500 + next_lot_value) / (1_000 + next_lot_value) > 0.60
+
+
+def test_inactive_and_active_information_only_resize_existing_authority():
+    context = _context()
+    base = packet_mod.compile_packet(
+        context, brief_context.compute_generation_id(context)
+    )["tickers"]["00100"]
+    assert base["execution"]["information_overlay"]["sizing_multiplier"] == 1
+
+    context["news_evidence_graph"]["information_overlay"] = {
+        "as_of": "2026-07-28T08:00:00+08:00",
+        "status": "active", "usable_for_decisions": True,
+        "activation": {"blockers": []},
+        "tickers": {"00100": {
+            "status": "active", "usable_for_decisions": True,
+            "signed_score": 0.4, "cross_section_rank": 0.9,
+            "sizing_tilt": "positive", "event_count": 2,
+        }},
+    }
+    active = packet_mod.compile_packet(
+        context, brief_context.compute_generation_id(context)
+    )["tickers"]["00100"]
+    assert active["execution"]["information_overlay"]["sizing_multiplier"] == 1.2
+    assert active["constraints"]["max_add_shares"] <= active["constraints"]["position_room_shares"]
+
+    # Removing the setup removes action authority even though information stays high.
+    context["quant_signals"]["rows"]["00100"]["technical_setups"] = []
+    no_setup = packet_mod.compile_packet(
+        context, brief_context.compute_generation_id(context)
+    )["tickers"]["00100"]
+    assert "add_only_on_trigger" not in no_setup["constraints"]["allowed_actions"]
+
+
+def test_plan_provenance_is_replaced_from_generation_bound_packet():
+    packet = _compiled()
+    plan = {"decisions": [{
+        "ticker": "00100",
+        "signal_provenance": {"information": {"signed_score": 999}},
+    }]}
+
+    bound = packet_mod.bind_plan_provenance(plan, packet)
+
+    provenance = bound["decisions"][0]["signal_provenance"]
+    assert provenance["context_generation_id"] == packet["_meta"]["generation_id"]
+    assert provenance["information"] == packet["tickers"]["00100"]["information"]
+    assert provenance["information"].get("signed_score") != 999
 
 
 def _catalyst(action, evidence_id, ticker="00100"):

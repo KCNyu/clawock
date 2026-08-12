@@ -65,6 +65,83 @@ def test_normalize_timestamp_and_event_id_include_event_time():
     assert first['event_id'] != second['event_id']
 
 
+def test_eastmoney_naive_timestamp_is_hkt_and_future_event_is_excluded():
+    event = graph.make_event(
+        POLICY, ticker='00100', title='获批新合同',
+        published_at='2026-07-26 08:00', origin='eastmoney-search',
+    )
+    event['novelty_score'] = 1.0
+    # 08:00 HKT is midnight UTC, so it is already observable at 00:30 UTC.
+    component = graph._event_information_component(
+        event, datetime(2026, 7, 26, 0, 30, tzinfo=timezone.utc),
+        POLICY['information_overlay'],
+    )
+    assert event['publication_time']['iso'] == '2026-07-26T00:00:00+00:00'
+    assert component is not None
+
+    event['publication_time']['iso'] = '2026-07-26T01:00:00+00:00'
+    assert graph._event_information_component(
+        event, datetime(2026, 7, 26, 0, 30, tzinfo=timezone.utc),
+        POLICY['information_overlay'],
+    ) is None
+
+
+def test_information_history_counts_registered_zero_signal_days():
+    history = [{
+        'as_of': f'2026-07-{day:02d}',
+        'information_overlay_schema_version': 1,
+        'events': ([{'ticker': 'ABC', 'information_signed_score': 1.0}]
+                   if day == 1 else []),
+    } for day in range(1, 4)]
+    event = _event(title='ABC receives approval and raises guidance')
+    event.update(novelty_score=1.0, corroborating_source_count=1)
+    overlay = graph.build_information_overlay(POLICY, [event], history, NOW)
+
+    assert overlay['activation']['checks']['history_dates']['actual'] == 3
+    assert overlay['tickers']['ABC']['own_history_dates'] == 3
+
+
+def test_information_cross_section_uses_midrank_for_ties():
+    first = _event(
+        title='ABC receives approval', ticker='ABC',
+        published_at=NOW.isoformat(),
+    )
+    second = _event(
+        title='XYZ receives approval', ticker='XYZ',
+        published_at=NOW.isoformat(),
+    )
+    for event in (first, second):
+        event.update(novelty_score=1.0, corroborating_source_count=1)
+
+    overlay = graph.build_information_overlay(
+        POLICY, [first, second], [], NOW
+    )
+
+    assert overlay['tickers']['ABC']['cross_section_rank'] == 0.5
+    assert overlay['tickers']['XYZ']['cross_section_rank'] == 0.5
+
+
+def test_covered_name_without_direction_is_a_zero_not_missing():
+    directed = _event(
+        title='ABC receives approval', ticker='ABC',
+        published_at=NOW.isoformat(),
+    )
+    directed.update(novelty_score=1.0, corroborating_source_count=1)
+    neutral = _event(
+        title='XYZ publishes a general corporate update', ticker='XYZ',
+        published_at=NOW.isoformat(),
+    )
+    neutral.update(novelty_score=1.0, corroborating_source_count=1)
+
+    overlay = graph.build_information_overlay(
+        POLICY, [directed, neutral], [], NOW
+    )
+
+    assert overlay['activation']['checks']['cross_section_tickers']['actual'] == 2
+    assert overlay['tickers']['XYZ']['signed_score'] == 0
+    assert overlay['tickers']['XYZ']['event_count'] == 0
+
+
 def test_source_type_rejects_sec_domain_substring_spoofing():
     assert graph.source_type(
         origin='gnews-rss',
@@ -91,6 +168,34 @@ def test_deduplicate_prefers_primary_source_and_keeps_corroboration():
     assert result[0]['source_type'] == 'sec_filing'
     assert result[0]['duplicate_event_ids'] == [weak['event_id']]
     assert result[0]['corroborating_source_count'] == 2
+
+
+def test_influencer_import_uses_direct_tickers_not_sector_inference(
+    tmp_path, monkeypatch
+):
+    feed = tmp_path / 'influencer_feed.json'
+    feed.write_text(json.dumps({
+        'generated_at': NOW.isoformat(),
+        'items': [{
+            'author': 'Musk',
+            'text': 'Tesla contract award expands capacity',
+            'published': NOW.isoformat(),
+            'origin': 'gnews-rss',
+            'source': 'Reuters',
+            'url': 'https://reuters.com/example',
+            'tickers': ['TSLA'],
+            'sector_holdings': ['PLTU'],
+            'stance': 'endorse',
+            'relevance': 80,
+        }],
+    }))
+    monkeypatch.setattr(graph, 'INFLUENCER', feed)
+
+    events = graph.collect_influencer_events(POLICY, {})
+
+    assert [event['ticker'] for event in events] == ['TSLA']
+    assert events[0]['metadata']['channel'] == 'influencer_feed'
+    assert events[0]['metadata']['direct_ticker_only'] is True
 
 
 def test_deduplicate_collapses_paraphrased_event_summaries():
