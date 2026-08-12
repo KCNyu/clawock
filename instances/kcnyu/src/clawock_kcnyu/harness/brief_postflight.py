@@ -282,13 +282,22 @@ def validate_plan_json(path, context=None, decision_packet=None):
     ]
     for i, d in enumerate(decisions):
         tag = f'plan.json decision[{i}] ({d.get("ticker", "?")}/{d.get("strategy_id", "?")})'
-        # Active timing calls need a hard catalyst. Deterministic risk-rebalance is
-        # the explicit exception: it is policy execution, not discretionary alpha.
+        # Active timing calls need either a hard catalyst or a harness-approved
+        # technical tactical-entry setup. The packet validator above owns the
+        # exact setup/trigger/size/lot match; free-text technical calls still fail.
+        technical_entry = (
+            d.get('strategy_id') == 'tactical_entry'
+            and d.get('driven_by') == 'technical'
+            and d.get('action') in {'add_only_on_trigger', 'add_on_breakout'}
+            and decision_packet is not None
+        )
         if (d.get('action') in decision_v2.ACTIVE_ACTIONS
                 and d.get('strategy_id') != 'risk_rebalance'
-                and d.get('driven_by') != 'catalyst'):
+                and d.get('driven_by') != 'catalyst'
+                and not technical_entry):
             issues.append(f'{tag}: catalyst-gate — 主动 {d.get("action")} 必须 driven_by=catalyst；'
-                          'risk_rebalance 才允许 risk_rule/technical')
+                          '只有 packet 批准的 tactical_entry 技术 setup 或 '
+                          'risk_rebalance 可例外')
 
         # When the deterministic evidence graph is present, "catalyst" is no
         # longer a free-text escape hatch. An active discretionary call must cite
@@ -347,8 +356,11 @@ def validate_plan_json(path, context=None, decision_packet=None):
                 issues.append(f'仓位硬闸未处理: {b["type"]} {tk} ({b["detail"]}) — '
                               f'plan 里 {tk} 没有 trim/cut 动作（SKILL 要求每条 breach 出对应动作）')
             elif not tk and leg and leg not in trim_legs:
+                targets = set((b.get('required_reduction') or {}).get('target_tickers') or [])
+                if leg == 'BOOK' and targets & trim_tickers:
+                    continue
                 issues.append(f'仓位硬闸未处理: {b["type"]}/{leg} ({b["detail"]}) — '
-                              f'plan 里 {leg} leg 没有任何 trim/cut 动作')
+                              f'plan 里没有任何目标 ticker 的 trim/cut 动作')
         for s in gr.get('hard_stop_watch', []):
             if s.get('breach_id') in durable_overrides:
                 continue

@@ -103,6 +103,56 @@ def test_harness_constraint_still_fails_after_normalization(tmp_path):
     assert brief_postflight.categorize(issues) == "fail"
 
 
+def test_packet_approved_technical_tactical_add_passes_postflight(tmp_path):
+    decision = _authored_decision(
+        ticker="00100", strategy_id="tactical_entry",
+        action="add_only_on_trigger", driven_by="technical",
+        condition={"type": "price_above", "price": 11, "description": "reclaim"},
+        size={"shares": 20, "pct": None, "note": "one board lot"},
+        technical_setup_id="trend_pullback",
+        technical_campaign_id="trend_pullback:2026-07-30",
+        invalidation_price=9.5, tranche_number=1,
+    )
+    path = _write_authored_plan(tmp_path, decision)
+    packet = {"tickers": {"00100": {
+        "technical": {"setups": [{
+            "setup_id": "trend_pullback",
+            "campaign_id": "trend_pullback:2026-07-30",
+            "entry_type": "price_above", "entry_price": 11,
+            "invalidation_price": 9.5, "next_tranche_number": 1,
+        }]},
+        "constraints": {
+            "allowed_actions": ["add_only_on_trigger"],
+            "technical_setup_ids": ["trend_pullback"],
+            "actionable_evidence_ids": [], "max_sell_shares": 100,
+            "max_add_shares": 40, "lot_size": 20,
+        },
+    }}}
+
+    assert brief_postflight.normalize_plan_json(
+        path, tmp_path / "decisions.jsonl"
+    ) == []
+    assert brief_postflight.validate_plan_json(
+        path, decision_packet=packet
+    ) == []
+
+
+def test_free_text_technical_add_without_packet_is_rejected(tmp_path):
+    path = _write_authored_plan(tmp_path, _authored_decision(
+        strategy_id="tactical_entry", action="add_only_on_trigger",
+        driven_by="technical", technical_setup_id="trend_pullback",
+        technical_campaign_id="trend_pullback:2026-07-30",
+        invalidation_price=9.5, tranche_number=1,
+    ))
+    assert brief_postflight.normalize_plan_json(
+        path, tmp_path / "decisions.jsonl"
+    ) == []
+
+    issues = brief_postflight.validate_plan_json(path)
+
+    assert any("catalyst-gate" in issue for issue in issues)
+
+
 def test_normalization_failure_is_fail_closed(tmp_path, monkeypatch):
     path = _write_authored_plan(tmp_path, _authored_decision())
 

@@ -182,6 +182,18 @@ def test_context_is_bounded(ps, ledger, call):
     assert ctx["truncated"] == 20 - ps.MAX_DECISIONS
 
 
+def test_duplicate_add_safety_view_is_not_truncated(ps, ledger, call):
+    rows = [decision(decision_id=f"d{i}", ticker=f"T{i}") for i in range(20)]
+    rows[-1] = decision(
+        decision_id="open-add", ticker="ADD", action="add_only_on_trigger"
+    )
+
+    ctx = call(ledger(rows))
+
+    assert len(ctx["open"]) == ps.MAX_DECISIONS
+    assert ctx["open_add_tickers"] == ["ADD"]
+
+
 def test_rationale_is_trimmed(ledger, call):
     ctx = call(ledger([decision(rationale="很长的理由 " * 200)]))
     assert len(ctx["open"][0]["rationale"]) <= 181

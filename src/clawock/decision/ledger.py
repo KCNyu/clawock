@@ -176,6 +176,13 @@ def legacy_action_to_decision(action: dict, plan_date: str, ordinal: int = 0) ->
         "evidence_event_id": action.get("evidence_event_id"),
         "regime": action.get("regime") if action.get("regime") in REGIMES else "unknown",
         "rationale": action.get("rationale") or "",
+        "technical_setup_id": action.get("technical_setup_id"),
+        "technical_campaign_id": action.get("technical_campaign_id"),
+        "invalidation_price": _float(action.get("invalidation_price")),
+        "tranche_number": _int(action.get("tranche_number")),
+        # Additive contract marker: pre-2026-08 plans remain valid/readable, while
+        # every newly normalized plan is subject to the technical trace rules.
+        "technical_trace_version": 1,
         "simulated_entry_price": _float(action.get("simulated_entry_price")),
         "horizon_sessions": int(action.get("horizon_sessions") or 1),
         "override": action.get("override") or {
@@ -270,6 +277,23 @@ def validate_decision(d: dict) -> list[str]:
             and (not isinstance(evidence_event_id, str)
                  or not evidence_event_id.startswith("evt_"))):
         errors.append("evidence_event_id must be null or an evt_ id")
+    setup_id = d.get("technical_setup_id")
+    campaign_id = d.get("technical_campaign_id")
+    trace_version = d.get("technical_trace_version")
+    if trace_version not in (None, 1):
+        errors.append("technical_trace_version must be 1 when present")
+    if setup_id is not None and (not isinstance(setup_id, str) or not setup_id):
+        errors.append("technical_setup_id must be null or non-empty text")
+    if (trace_version == 1 and d.get("action") in ADD_ACTIONS
+            and d.get("driven_by") == "technical"):
+        if not setup_id:
+            errors.append("technical add requires technical_setup_id")
+        if not isinstance(campaign_id, str) or not campaign_id:
+            errors.append("technical add requires technical_campaign_id")
+        if _float(d.get("invalidation_price")) is None:
+            errors.append("technical add requires invalidation_price")
+        if (_int(d.get("tranche_number")) or 0) < 1:
+            errors.append("technical add requires tranche_number >= 1")
     if d.get("regime", "unknown") not in REGIMES:
         errors.append(f"bad regime {d.get('regime')!r}")
     override = d.get("override") or {}
@@ -1767,6 +1791,9 @@ def compute_metrics(decisions: list[dict], window_days: int = 30) -> dict:
         "by_strategy": _breakdown(reps, lambda r: r.get("strategy_id"), "benefit_t1_pct"),
         "by_driver": _breakdown(reps, lambda r: r.get("driven_by"), "benefit_t1_pct"),
         "by_condition": _breakdown(reps, lambda r: (r.get("condition") or {}).get("type"), "benefit_t1_pct"),
+        "by_technical_setup": _breakdown(
+            reps, lambda r: r.get("technical_setup_id"), "benefit_t1_pct"
+        ),
         "execution": dict(execution),
         "active_overrides": len(overrides),
     }

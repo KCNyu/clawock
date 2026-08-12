@@ -17,6 +17,72 @@ def test_decision_engine_is_owned_by_the_product_package():
     assert not (ROOT / "scripts" / "data" / "decision_v2.py").exists()
 
 
+def test_technical_add_trace_fields_survive_normalization_and_validate():
+    row = dv2.legacy_action_to_decision({
+        "ticker": "AAA", "strategy_id": "tactical_entry",
+        "action": "add_only_on_trigger",
+        "condition": {"type": "price_above", "price": 10},
+        "size": {"shares": 1}, "confidence": 0.6,
+        "driven_by": "technical",
+        "technical_setup_id": "trend_pullback",
+        "technical_campaign_id": "trend_pullback:2026-07-01",
+        "invalidation_price": 9,
+        "tranche_number": 1,
+    }, "2026-07-01")
+    row["episode_id"] = "ep-test"
+
+    assert row["technical_setup_id"] == "trend_pullback"
+    assert row["technical_campaign_id"] == "trend_pullback:2026-07-01"
+    assert row["invalidation_price"] == 9
+    assert row["tranche_number"] == 1
+    assert dv2.validate_decision(row) == []
+
+
+def test_technical_add_without_setup_trace_is_invalid():
+    row = dv2.legacy_action_to_decision({
+        "ticker": "AAA", "strategy_id": "tactical_entry",
+        "action": "add_only_on_trigger",
+        "condition": {"type": "price_above", "price": 10},
+        "size": {"shares": 1}, "confidence": 0.6,
+        "driven_by": "technical",
+    }, "2026-07-01")
+    row["episode_id"] = "ep-test"
+
+    issues = dv2.validate_decision(row)
+
+    assert "technical add requires technical_setup_id" in issues
+    assert "technical add requires technical_campaign_id" in issues
+    assert "technical add requires invalidation_price" in issues
+    assert "technical add requires tranche_number >= 1" in issues
+
+
+def test_legacy_technical_add_remains_readable_without_new_trace_contract():
+    row = dv2.legacy_action_to_decision({
+        "ticker": "AAA", "strategy_id": "tactical_entry",
+        "action": "add_only_on_trigger",
+        "condition": {"type": "price_above", "price": 10},
+        "size": {"shares": 1}, "confidence": 0.6,
+        "driven_by": "technical",
+    }, "2026-07-01")
+    row["episode_id"] = "ep-test"
+    row.pop("technical_trace_version")
+
+    assert dv2.validate_decision(row) == []
+
+
+def test_metrics_attribute_settled_technical_adds_to_the_named_setup():
+    row = decision(
+        "2026-07-01", strategy="tactical_entry",
+        action="add_only_on_trigger", benefit=2.5,
+    )
+    row["technical_setup_id"] = "trend_pullback"
+
+    metrics = dv2.compute_metrics([row], window_days=365)
+
+    assert metrics["by_technical_setup"]["trend_pullback"]["n_episodes"] == 1
+    assert metrics["by_technical_setup"]["trend_pullback"]["avg_benefit_pct"] == 2.5
+
+
 def decision(day, ticker="AAA", strategy="core_position", action="hold_and_watch",
              benefit=1.0, triggered=True, capital=100.0):
     d = dv2.legacy_action_to_decision({

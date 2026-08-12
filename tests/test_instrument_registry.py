@@ -81,9 +81,24 @@ def test_all_consumer_maps_derive_the_missing_audit_symbols_from_registry():
 def test_quant_universe_uses_canonical_underlyings_and_venue_suffixes():
     universe = compute_quant_signals._universe()
     by_label = {label: (code, note) for label, code, note in universe}
-    assert by_label["RKLB"][0] == "usRKLB.OQ"
-    assert by_label["SPCX"][0] == "usSPCX.OQ"
-    assert by_label["MSFT"][0] == "usMSFT.OQ"
+    portfolio = _portfolio()
+    active = {
+        str(holding["ticker"])
+        for book in portfolio["portfolios"].values()
+        for holding in book.get("holdings", [])
+        if holding.get("shares", 0) > 0
+    }
+    expected_labels = {
+        instrument_registry.require(ticker).get("signal_symbol") or ticker
+        for ticker in active
+    }
+    assert set(by_label) == expected_labels
+    for label, (code, _note) in by_label.items():
+        assert code == instrument_registry.require(label)["tencent_symbol"]
+    # Tradable 1x ETFs need their own price scale for an executable setup.
+    assert instrument_registry.require("03032")["signal_symbol"] == "03032"
+    assert instrument_registry.require("03033")["signal_symbol"] == "03033"
+    # The leveraged 07226 still looks through to the index and cannot add.
     assert by_label["HSTECH"][0] == "hkHSTECH"
     assert "SPCH" not in by_label
     assert "RKLX" not in by_label

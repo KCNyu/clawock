@@ -14,8 +14,9 @@ In this order:
 2. `/root/.openclaw/workspace/portfolio.json` — authoritative holdings
 3. `/root/.openclaw/workspace/memory/current-portfolio-summary.md` — active ticker list (also lists exited names so you know what NOT to analyze)
 4. `/root/.openclaw/workspace/memory/theses/*.json` — canonical thesis state when present
-5. Recent `memory/YYYY-MM-DD.md` entries when recent trades matter
-6. `/root/.openclaw/workspace/TOOLS.md` — data chain reference if anything fails
+5. `../daily-deep-brief/references/technical-playbooks.md` — read before any add / average-down plan
+6. Recent `memory/YYYY-MM-DD.md` entries when recent trades matter
+7. `/root/.openclaw/workspace/TOOLS.md` — data chain reference if anything fails
 
 The thesis registry is read-only during a portfolio review. Missing files mean
 `unknown`, not permission to reconstruct a baseline from prior prose. Price moves
@@ -87,6 +88,11 @@ Sort positions into:
 - **Trim on rebound** — thesis weakening but not broken; wait for strength
 - **T-only** — don't add, exit on bounces, no overnight conviction
 - **Add only on trigger** — define the trigger explicitly (price, MA cross, earnings, policy)
+
+Keep `core_position`, `tactical_entry`, and `risk_rebalance` separate. A concentrated
+non-leveraged core may remain held while one packet-approved tactical tranche is added;
+loss alone never qualifies. For HK, state board lots and use whole-lot multiples; missing
+`lot_size` blocks an add. For US, use integer shares under the current ledger contract.
 
 ## Output structure
 

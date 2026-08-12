@@ -78,7 +78,7 @@ EWMA_LAMBDA = 0.94
 # correlation number can never be acted on with a thinner sample than a beta.
 # `CLUSTER_RHO` is the level at which two names stop being separate bets;
 # `CLUSTER_WEIGHT_ALERT_PCT` reuses the existing declared appetite for
-# single-factor exposure (brief_preflight's `top2_factor_pct` cap) rather than
+# single-factor exposure (the legacy brief used a `top2_factor_pct` proxy) rather than
 # inventing a second, unexplained threshold.
 MIN_CORR_SESSIONS = 20
 # Correlation deserves a longer sample than the 30-day risk window, and
@@ -743,9 +743,9 @@ def compute_bucket(holdings: list, bench_series, label: str, sleep_between: floa
 def correlation_xray(holdings_by_leg, series_by_leg, fx_hkd_to_usd):
     """Measure how many *bets* the book holds, not how many tickers.
 
-    Concentration here has always been weight-only: HHI and Top2 over dollar
-    weights, with `top2_factor_pct` standing in as a proxy for "these are one
-    factor". That proxy fails in both directions. Two names that are the same
+    Concentration used to be weight-only: HHI and Top2 over dollar weights, with
+    a `top2_factor_pct` proxy standing in for "these are one factor". That proxy
+    failed in both directions. Two names that are the same
     bet — a 2x ETF and its 1x underlying, or the 07226 / 03033 / 00100 HSTECH
     cluster — look diversified the moment a third name pushes them out of the
     Top 2, and two genuinely unrelated leaders trip the cap for no reason. The
