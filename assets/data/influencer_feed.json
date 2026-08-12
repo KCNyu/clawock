@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-11T22:21:41.933526+00:00",
+  "generated_at": "2026-08-12T14:08:51.980987+00:00",
   "lookback_hours": 48,
   "sources": {
     "trump": "trumpstruth.org/feed (primary)",
@@ -16,16 +16,16 @@
     "total": 10,
     "held_hits": 0,
     "new_ideas": 3,
-    "sector_hits": 5
+    "sector_hits": 4
   },
   "items": [
     {
       "author": "Musk",
-      "text": "Tesla shows first Cybercab with built-in Starlink. Elon Musk explains why it needs one.",
+      "text": "Wall Street’s Favorite Tesla Rumor Could Unlock $824 Billion Pay Day For Elon Musk",
       "url": "",
-      "published": "Tue, 11 Aug 2026 19:42:55 GMT",
+      "published": "Wed, 12 Aug 2026 11:13:19 GMT",
       "origin": "gnews-rss",
-      "source": "Mashable",
+      "source": "finance.yahoo.com",
       "tickers": [
         "TSLA"
       ],
@@ -35,15 +35,12 @@
       ],
       "sectors": [
         "电动车",
-        "航天/卫星"
+        "AI"
       ],
-      "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
+      "sector_holdings": [],
       "stance": "endorse",
-      "relevance": 70,
-      "summary_cn": "Tesla Cybercab内置Starlink——SpaceX与Tesla业务协同叙事，强化SpaceX估值故事，间接利好kcn持有的SpaceX相关标的。"
+      "relevance": 60,
+      "summary_cn": "华尔街看好 Musk 因传闻解锁 8240 亿美元薪酬包，间接利好像 Tesla。"
     },
     {
       "author": "Musk",
@@ -51,7 +48,7 @@
       "url": "",
       "published": "Tue, 11 Aug 2026 01:00:00 GMT",
       "origin": "gnews-rss",
-      "source": "WSJ",
+      "source": "wsj.com",
       "tickers": [
         "TSLA"
       ],
@@ -60,16 +57,16 @@
         "TSLA"
       ],
       "sectors": [
-        "航天",
-        "电动车"
+        "电动车",
+        "航天"
       ],
       "sector_holdings": [
         "SPCH",
         "SPCX"
       ],
-      "stance": "endorse",
-      "relevance": 68,
-      "summary_cn": "报道Tesla-SpaceX合并可加速Musk万亿薪酬方案——两公司合并/协同主题持续发酵，间接利好kcn持有的SpaceX。"
+      "stance": "neutral",
+      "relevance": 60,
+      "summary_cn": "市场猜测 Tesla-SpaceX 合并可能性，作为 Musk 万亿薪酬的捷径；KCN 未持 TSLA，但已通过 SPCX/SPCH 持有 SpaceX 敞口。"
     },
     {
       "author": "Trump",
@@ -87,15 +84,13 @@
         "BAC",
         "WMT",
         "TM",
-        "TMUS",
-        "CMCSA"
+        "TMUS"
       ],
       "held": [],
       "new_ideas": [
         "AAPL",
         "BAC",
         "C",
-        "CMCSA",
         "GOOGL",
         "GS",
         "TM",
@@ -105,13 +100,102 @@
         "WMT"
       ],
       "sectors": [
-        "政治捐款",
-        "公共安全"
+        "银行/金融",
+        "科技",
+        "零售",
+        "汽车"
       ],
       "sector_holdings": [],
       "stance": "attack",
       "relevance": 55,
-      "summary_cn": "Trump抨击CAP并点名Google/Apple/Visa/GS/Citi/Wells Fargo/BAC/Walmart/Toyota/T-Mobile/NBC等为该智库提供资金——带有政治敌意标签，可能影响被点名公司ESG/声誉风险。"
+      "summary_cn": "Trump 抨击 CAP 报告及资助方（含 Google、Apple、Visa、Goldman、Citi、Wells Fargo、BoA、Walmart、Toyota、T-Mobile、NBC Universal 等）。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk: Our AI revenue will exceed all other SpaceX revenue probably in September",
+      "url": "",
+      "published": "Wed, 12 Aug 2026 13:50:10 GMT",
+      "origin": "gnews-rss",
+      "source": "CNBC",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "AI",
+        "航天"
+      ],
+      "sector_holdings": [
+        "MSFU",
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "endorse",
+      "relevance": 82,
+      "summary_cn": "Musk 称 SpaceX 的 AI 收入可能在 9 月超过其他所有业务总和，AI 板块利好信号，关联 KCN 的 SPCX/SPCH/MSFU。"
+    },
+    {
+      "author": "Musk",
+      "text": "SpaceX could make $500 billion in 2028, Elon Musk says (video)",
+      "url": "",
+      "published": "Tue, 11 Aug 2026 23:42:48 GMT",
+      "origin": "gnews-rss",
+      "source": "Space",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天"
+      ],
+      "sector_holdings": [
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "endorse",
+      "relevance": 80,
+      "summary_cn": "Musk 称 SpaceX 2028 年或年入 5000 亿美元，对未上市 SpaceX 极度乐观，间接利好 KCN 持有的 SPCX、SPCH 两倍杠杆 ETF。"
+    },
+    {
+      "author": "Musk",
+      "text": "Vietnam’s VinSpace Signs Deal With Elon Musk’s SpaceX to Launch Satellites in 2027",
+      "url": "",
+      "published": "Tue, 11 Aug 2026 23:24:31 GMT",
+      "origin": "gnews-rss",
+      "source": "Broadband Breakfast",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "商业航天"
+      ],
+      "sector_holdings": [
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "neutral",
+      "relevance": 72,
+      "summary_cn": "越南 VinSpace 与 SpaceX 签订 2027 年卫星发射协议，强化 SpaceX 商业发射垄断地位，利好 KCN 持有的 SPCX/SPCH。"
+    },
+    {
+      "author": "Musk",
+      "text": "The SpaceX Sham",
+      "url": "",
+      "published": "Tue, 11 Aug 2026 14:49:26 GMT",
+      "origin": "gnews-rss",
+      "source": "Dissent Magazine",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天"
+      ],
+      "sector_holdings": [
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "attack",
+      "relevance": 60,
+      "summary_cn": "报道为 'SpaceX Sham'（骗局），对未上市 SpaceX 的负面/质疑声音，间接影响 KCN 持有的 SPCX/SPCH 杠杆敞口。"
     },
     {
       "author": "Musk",
@@ -124,100 +208,13 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "半导体",
-        "AI"
+        "AI/半导体",
+        "芯片制造"
       ],
-      "sector_holdings": [
-        "SKHY"
-      ],
-      "stance": "endorse",
-      "relevance": 72,
-      "summary_cn": "Musk旗下$168亿芯片工厂相关报道，AI算力基建主题利好半导体供应链，间接利好kcn持有的SK海力士。"
-    },
-    {
-      "author": "Musk",
-      "text": "Vietnam’s VinSpace Signs Deal With Elon Musk’s SpaceX to Launch Satellites in 2027",
-      "url": "",
-      "published": "Tue, 11 Aug 2026 14:54:25 GMT",
-      "origin": "gnews-rss",
-      "source": "Broadband Breakfast",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天/卫星"
-      ],
-      "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "endorse",
-      "relevance": 72,
-      "summary_cn": "越南VinSpace与SpaceX签2027年发射协议——SpaceX商业发射订单持续扩张，强化基本面叙事，利好kcn持有的SpaceX相关标的。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk’s SpaceX considering a multi-billion-dollar buyout of Israeli AI startup",
-      "url": "",
-      "published": "Tue, 11 Aug 2026 19:53:21 GMT",
-      "origin": "gnews-rss",
-      "source": "thejc.com",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "AI",
-        "航天"
-      ],
-      "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "endorse",
+      "sector_holdings": [],
+      "stance": "neutral",
       "relevance": 70,
-      "summary_cn": "报道SpaceX考虑数十亿美元收购以色列AI初创公司——SpaceX向AI领域扩张，估值故事再添砝码，利好kcn持有的SpaceX相关标的。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk's Net Worth Rebounds on SpaceX Bounce — Now Nearly 800,000x the Average American",
-      "url": "",
-      "published": "Tue, 11 Aug 2026 19:38:29 GMT",
-      "origin": "gnews-rss",
-      "source": "Benzinga",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天"
-      ],
-      "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "endorse",
-      "relevance": 65,
-      "summary_cn": "Musk净资产因SpaceX估值反弹接近普通美国人80万倍——SpaceX二级市场估值走强信号，利好kcn持有的SPCX/SPCH。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk’s mobile moonshot still needs grounding",
-      "url": "",
-      "published": "Tue, 11 Aug 2026 17:19:20 GMT",
-      "origin": "gnews-rss",
-      "source": "Fierce Network",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "电信/卫星互联网"
-      ],
-      "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "attack",
-      "relevance": 62,
-      "summary_cn": "Musk手机项目仍需落地相关报道——Starlink直连手机业务进展受质疑，可能短期压制SpaceX/卫星互联网主题情绪。"
+      "summary_cn": "Musk 砸 168 亿美元建芯片工厂，关注 AI/半导体供应链动向（具体晶圆厂选址/代工方未在标题中点名）。"
     },
     {
       "author": "Trump",
@@ -229,14 +226,13 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "国防",
-        "地缘政治",
-        "能源"
+        "地缘政治/能源/军工",
+        "原油"
       ],
       "sector_holdings": [],
       "stance": "neutral",
-      "relevance": 52,
-      "summary_cn": "Trump就伊朗战争赔偿问题互怼，暗示中东紧张局势延续——影响国防/能源板块情绪与油价预期。"
+      "relevance": 55,
+      "summary_cn": "Trump 称伊朗就军事冲突求赔偿，他反向要求伊朗为相关伤亡赔偿，地缘紧张或影响油价。"
     },
     {
       "author": "Trump",
@@ -248,23 +244,23 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "房地产税"
+        "房地产/区域经济"
       ],
       "sector_holdings": [],
-      "stance": "attack",
-      "relevance": 50,
-      "summary_cn": "Trump抨击纽约市pied-à-terre税导致人口与税收外流，吹捧佛州/德州受益——间接影响州际资金流与房地产板块情绪。"
+      "stance": "neutral",
+      "relevance": 45,
+      "summary_cn": "Trump 抨击纽约市 pied-à-terre 税，认为正逼走富裕居民，资本流向佛州、德州等州。"
     }
   ],
   "held_hits": [],
   "new_ideas": [
     {
       "author": "Musk",
-      "text": "Tesla shows first Cybercab with built-in Starlink. Elon Musk explains why it needs one.",
+      "text": "Wall Street’s Favorite Tesla Rumor Could Unlock $824 Billion Pay Day For Elon Musk",
       "url": "",
-      "published": "Tue, 11 Aug 2026 19:42:55 GMT",
+      "published": "Wed, 12 Aug 2026 11:13:19 GMT",
       "origin": "gnews-rss",
-      "source": "Mashable",
+      "source": "finance.yahoo.com",
       "tickers": [
         "TSLA"
       ],
@@ -274,15 +270,12 @@
       ],
       "sectors": [
         "电动车",
-        "航天/卫星"
+        "AI"
       ],
-      "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
+      "sector_holdings": [],
       "stance": "endorse",
-      "relevance": 70,
-      "summary_cn": "Tesla Cybercab内置Starlink——SpaceX与Tesla业务协同叙事，强化SpaceX估值故事，间接利好kcn持有的SpaceX相关标的。"
+      "relevance": 60,
+      "summary_cn": "华尔街看好 Musk 因传闻解锁 8240 亿美元薪酬包，间接利好像 Tesla。"
     },
     {
       "author": "Musk",
@@ -290,7 +283,7 @@
       "url": "",
       "published": "Tue, 11 Aug 2026 01:00:00 GMT",
       "origin": "gnews-rss",
-      "source": "WSJ",
+      "source": "wsj.com",
       "tickers": [
         "TSLA"
       ],
@@ -299,16 +292,16 @@
         "TSLA"
       ],
       "sectors": [
-        "航天",
-        "电动车"
+        "电动车",
+        "航天"
       ],
       "sector_holdings": [
         "SPCH",
         "SPCX"
       ],
-      "stance": "endorse",
-      "relevance": 68,
-      "summary_cn": "报道Tesla-SpaceX合并可加速Musk万亿薪酬方案——两公司合并/协同主题持续发酵，间接利好kcn持有的SpaceX。"
+      "stance": "neutral",
+      "relevance": 60,
+      "summary_cn": "市场猜测 Tesla-SpaceX 合并可能性，作为 Musk 万亿薪酬的捷径；KCN 未持 TSLA，但已通过 SPCX/SPCH 持有 SpaceX 敞口。"
     },
     {
       "author": "Trump",
@@ -326,15 +319,13 @@
         "BAC",
         "WMT",
         "TM",
-        "TMUS",
-        "CMCSA"
+        "TMUS"
       ],
       "held": [],
       "new_ideas": [
         "AAPL",
         "BAC",
         "C",
-        "CMCSA",
         "GOOGL",
         "GS",
         "TM",
@@ -344,65 +335,25 @@
         "WMT"
       ],
       "sectors": [
-        "政治捐款",
-        "公共安全"
+        "银行/金融",
+        "科技",
+        "零售",
+        "汽车"
       ],
       "sector_holdings": [],
       "stance": "attack",
       "relevance": 55,
-      "summary_cn": "Trump抨击CAP并点名Google/Apple/Visa/GS/Citi/Wells Fargo/BAC/Walmart/Toyota/T-Mobile/NBC等为该智库提供资金——带有政治敌意标签，可能影响被点名公司ESG/声誉风险。"
+      "summary_cn": "Trump 抨击 CAP 报告及资助方（含 Google、Apple、Visa、Goldman、Citi、Wells Fargo、BoA、Walmart、Toyota、T-Mobile、NBC Universal 等）。"
     }
   ],
   "sector_hits": [
     {
       "author": "Musk",
-      "text": "What to know about Elon Musk's massive $16.8 billion chip factory - ABC News",
+      "text": "Elon Musk: Our AI revenue will exceed all other SpaceX revenue probably in September",
       "url": "",
-      "published": "Tue, 11 Aug 2026 20:31:33 GMT",
+      "published": "Wed, 12 Aug 2026 13:50:10 GMT",
       "origin": "gnews-rss",
-      "source": "ABC News - Breaking News, Latest News and Videos",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "半导体",
-        "AI"
-      ],
-      "sector_holdings": [
-        "SKHY"
-      ],
-      "stance": "endorse",
-      "relevance": 72,
-      "summary_cn": "Musk旗下$168亿芯片工厂相关报道，AI算力基建主题利好半导体供应链，间接利好kcn持有的SK海力士。"
-    },
-    {
-      "author": "Musk",
-      "text": "Vietnam’s VinSpace Signs Deal With Elon Musk’s SpaceX to Launch Satellites in 2027",
-      "url": "",
-      "published": "Tue, 11 Aug 2026 14:54:25 GMT",
-      "origin": "gnews-rss",
-      "source": "Broadband Breakfast",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天/卫星"
-      ],
-      "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "endorse",
-      "relevance": 72,
-      "summary_cn": "越南VinSpace与SpaceX签2027年发射协议——SpaceX商业发射订单持续扩张，强化基本面叙事，利好kcn持有的SpaceX相关标的。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk’s SpaceX considering a multi-billion-dollar buyout of Israeli AI startup",
-      "url": "",
-      "published": "Tue, 11 Aug 2026 19:53:21 GMT",
-      "origin": "gnews-rss",
-      "source": "thejc.com",
+      "source": "CNBC",
       "tickers": [],
       "held": [],
       "new_ideas": [],
@@ -411,20 +362,21 @@
         "航天"
       ],
       "sector_holdings": [
+        "MSFU",
         "SPCH",
         "SPCX"
       ],
       "stance": "endorse",
-      "relevance": 70,
-      "summary_cn": "报道SpaceX考虑数十亿美元收购以色列AI初创公司——SpaceX向AI领域扩张，估值故事再添砝码，利好kcn持有的SpaceX相关标的。"
+      "relevance": 82,
+      "summary_cn": "Musk 称 SpaceX 的 AI 收入可能在 9 月超过其他所有业务总和，AI 板块利好信号，关联 KCN 的 SPCX/SPCH/MSFU。"
     },
     {
       "author": "Musk",
-      "text": "Elon Musk's Net Worth Rebounds on SpaceX Bounce — Now Nearly 800,000x the Average American",
+      "text": "SpaceX could make $500 billion in 2028, Elon Musk says (video)",
       "url": "",
-      "published": "Tue, 11 Aug 2026 19:38:29 GMT",
+      "published": "Tue, 11 Aug 2026 23:42:48 GMT",
       "origin": "gnews-rss",
-      "source": "Benzinga",
+      "source": "Space",
       "tickers": [],
       "held": [],
       "new_ideas": [],
@@ -436,29 +388,51 @@
         "SPCX"
       ],
       "stance": "endorse",
-      "relevance": 65,
-      "summary_cn": "Musk净资产因SpaceX估值反弹接近普通美国人80万倍——SpaceX二级市场估值走强信号，利好kcn持有的SPCX/SPCH。"
+      "relevance": 80,
+      "summary_cn": "Musk 称 SpaceX 2028 年或年入 5000 亿美元，对未上市 SpaceX 极度乐观，间接利好 KCN 持有的 SPCX、SPCH 两倍杠杆 ETF。"
     },
     {
       "author": "Musk",
-      "text": "Elon Musk’s mobile moonshot still needs grounding",
+      "text": "Vietnam’s VinSpace Signs Deal With Elon Musk’s SpaceX to Launch Satellites in 2027",
       "url": "",
-      "published": "Tue, 11 Aug 2026 17:19:20 GMT",
+      "published": "Tue, 11 Aug 2026 23:24:31 GMT",
       "origin": "gnews-rss",
-      "source": "Fierce Network",
+      "source": "Broadband Breakfast",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "电信/卫星互联网"
+        "航天",
+        "商业航天"
+      ],
+      "sector_holdings": [
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "neutral",
+      "relevance": 72,
+      "summary_cn": "越南 VinSpace 与 SpaceX 签订 2027 年卫星发射协议，强化 SpaceX 商业发射垄断地位，利好 KCN 持有的 SPCX/SPCH。"
+    },
+    {
+      "author": "Musk",
+      "text": "The SpaceX Sham",
+      "url": "",
+      "published": "Tue, 11 Aug 2026 14:49:26 GMT",
+      "origin": "gnews-rss",
+      "source": "Dissent Magazine",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天"
       ],
       "sector_holdings": [
         "SPCH",
         "SPCX"
       ],
       "stance": "attack",
-      "relevance": 62,
-      "summary_cn": "Musk手机项目仍需落地相关报道——Starlink直连手机业务进展受质疑，可能短期压制SpaceX/卫星互联网主题情绪。"
+      "relevance": 60,
+      "summary_cn": "报道为 'SpaceX Sham'（骗局），对未上市 SpaceX 的负面/质疑声音，间接影响 KCN 持有的 SPCX/SPCH 杠杆敞口。"
     }
   ]
 }
