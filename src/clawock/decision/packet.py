@@ -11,6 +11,7 @@ a compact contract:
 from __future__ import annotations
 
 import argparse
+import copy
 import hashlib
 import json
 import math
@@ -183,6 +184,7 @@ def _thesis_view(context: dict, ticker: str) -> dict:
 
 def _execution_view(holding: dict, leg: str, capital: float, cash: float,
                     technical: dict, thesis: dict, leveraged: bool,
+                    overlay: dict | None = None,
                     open_add: bool = False) -> dict:
     price = _number(holding.get("current_price"), 4)
     shares = int(_number(holding.get("shares"), 0) or 0)
@@ -211,7 +213,7 @@ def _execution_view(holding: dict, leg: str, capital: float, cash: float,
         / (1 - target_fraction),
     )
     max_value = min(max(cash, 0.0), room_value)
-    max_add_shares = (
+    position_room_shares = (
         int(max_value // (price * lot)) * lot
         if price and lot else 0
     )
@@ -221,23 +223,26 @@ def _execution_view(holding: dict, leg: str, capital: float, cash: float,
         if row.get("tranche_pct_of_position")
     ]
     tranche_pct = min(setup_pcts) if setup_pcts else 0.05
-    desired = max(1, int(shares * tranche_pct))
+    overlay = overlay or {}
+    sizing_multiplier = float(overlay.get("sizing_multiplier") or 1.0)
+    desired = max(1, int(shares * tranche_pct * sizing_multiplier))
     suggested = (
         max(lot, (desired // lot) * lot) if lot else 0
     )
-    suggested = min(suggested, max_add_shares)
+    suggested = min(suggested, position_room_shares)
+    max_tranche_shares = suggested
 
     thesis_state = thesis.get("state") or "unknown"
     if thesis_state in {"broken", "damaged", "weakening"}:
         thesis_gate = "blocked"
-        max_add_shares = suggested = 0
+        max_tranche_shares = suggested = 0
     elif thesis_state == "intact":
         thesis_gate = "intact"
     else:
         # No canonical thesis is not treated as intact. It may gather one small
         # prospective sample, but cannot pyramid multiple tranches.
         thesis_gate = "exploration_only"
-        max_add_shares = min(max_add_shares, suggested)
+        max_tranche_shares = min(max_tranche_shares, suggested)
 
     blockers = []
     if leveraged:
@@ -250,7 +255,7 @@ def _execution_view(holding: dict, leg: str, capital: float, cash: float,
         blockers.append("no_approved_setup")
     if not price:
         blockers.append("price_missing")
-    if max_add_shares <= 0:
+    if max_tranche_shares <= 0:
         blockers.append("no_cash_or_target_room")
     return {
         "order_unit": "board_lot" if leg == "HK" else "integer_share",
@@ -258,10 +263,19 @@ def _execution_view(holding: dict, leg: str, capital: float, cash: float,
         "fractional_shares_supported": False,
         "min_tranche_shares": lot,
         "suggested_tranche_shares": suggested,
-        "max_add_shares": max_add_shares,
-        "max_add_value": round(max_add_shares * price, 2) if price else 0,
+        "max_tranche_shares": max_tranche_shares,
+        # max_add_* is the authority for this decision, while position_room_*
+        # only records the wider concentration/cash envelope.  Conflating the
+        # two lets an authored plan spend every future tranche at once.
+        "max_add_shares": max_tranche_shares,
+        "position_room_shares": position_room_shares,
+        "max_add_value": round(max_tranche_shares * price, 2) if price else 0,
+        "position_room_value": (
+            round(position_room_shares * price, 2) if price else 0
+        ),
         "target_max_pct": target_max_pct,
         "thesis_gate": thesis_gate,
+        "information_overlay": overlay,
         "blockers": sorted(set(blockers)),
     }
 
@@ -289,7 +303,75 @@ def _peer_view(row: dict) -> dict:
         "residual_20d": _number(row.get("residual_blend_20d"), 4),
         "leadership_persistence": row.get("leadership_persistence"),
         "laggard_persistence": row.get("laggard_persistence"),
+        "usable_rules": list(row.get("usable_rules") or []),
         "usable_for_decisions": bool(row.get("usable_for_decisions")),
+    }
+
+
+def _information_view(graph: dict, ticker: str, source_ticker: str) -> dict:
+    overlay = graph.get("information_overlay") or {}
+    rows = overlay.get("tickers") or {}
+    row = rows.get(source_ticker) or rows.get(ticker) or {}
+    return {
+        "as_of": row.get("as_of") or overlay.get("as_of"),
+        "source_ticker": source_ticker,
+        "status": row.get("status") or overlay.get("status") or "missing",
+        "signed_score": _number(row.get("signed_score"), 6),
+        "cross_section_rank": _number(row.get("cross_section_rank"), 4),
+        "own_surprise_z": _number(row.get("own_surprise_z"), 4),
+        "event_count": int(row.get("event_count") or 0),
+        "sizing_tilt": row.get("sizing_tilt") or "inactive",
+        "usable_for_decisions": bool(
+            overlay.get("usable_for_decisions")
+            and row.get("usable_for_decisions")
+        ),
+        "activation_blockers": list(
+            ((overlay.get("activation") or {}).get("blockers") or [])
+        ),
+    }
+
+
+def _information_sizing_overlay(info: dict, factor: dict, peer: dict,
+                                policy: dict) -> dict:
+    multiplier = 1.0
+    contributors = []
+    if factor.get("usable_for_decisions"):
+        score = factor.get("composite_score")
+        if score is not None and score >= policy.get("factor_top_score", 0.25):
+            multiplier *= policy.get("factor_top_multiplier", 1.15)
+            contributors.append("factor_top")
+        elif score is not None and score <= policy.get("factor_bottom_score", -0.25):
+            multiplier *= policy.get("factor_bottom_multiplier", 0.75)
+            contributors.append("factor_bottom")
+    if peer.get("usable_for_decisions"):
+        rules = set(peer.get("usable_rules") or [])
+        if "laggard_avoidance" in rules:
+            multiplier *= policy.get("peer_laggard_multiplier", 0.6)
+            contributors.append("peer_laggard")
+        elif "leader_continuation" in rules:
+            multiplier *= policy.get("peer_leader_multiplier", 1.15)
+            contributors.append("peer_leader")
+        elif "mean_reversion" in rules:
+            multiplier *= policy.get("peer_mean_reversion_multiplier", 1.1)
+            contributors.append("peer_mean_reversion")
+    if info.get("usable_for_decisions"):
+        if info.get("sizing_tilt") == "positive":
+            multiplier *= policy.get("information_positive_multiplier", 1.2)
+            contributors.append("information_positive_surprise")
+        elif info.get("sizing_tilt") == "negative":
+            multiplier *= policy.get("information_negative_multiplier", 0.6)
+            contributors.append("information_negative_or_low_rank")
+    active = any(
+        row.get("usable_for_decisions") for row in (info, factor, peer)
+    )
+    return {
+        "sizing_active": active,
+        "sizing_multiplier": round(min(
+            policy.get("maximum_combined_multiplier", 1.5),
+            max(policy.get("minimum_combined_multiplier", 0.5), multiplier),
+        ), 4),
+        "contributors": contributors,
+        "discipline": "resizes an approved technical tranche; never creates add authority",
     }
 
 
@@ -445,6 +527,7 @@ def _constraints(shares: int, risks: list[dict], actionable_ids: list[str],
         "actionable_evidence_ids": actionable_ids,
         "technical_setup_ids": setup_ids,
         "max_add_shares": execution.get("max_add_shares", 0),
+        "position_room_shares": execution.get("position_room_shares", 0),
         "max_add_value": execution.get("max_add_value", 0),
         "target_max_pct": execution.get("target_max_pct"),
         "min_tranche_shares": execution.get("min_tranche_shares"),
@@ -461,6 +544,7 @@ def compile_packet(context: dict, generation_id: str | None = None) -> dict:
     peer_rows = (context.get("peer_residual") or {}).get("held") or {}
     sentiment_rows = (context.get("sentiment") or {}).get("tickers") or []
     events = (context.get("news_evidence_graph") or {}).get("events") or []
+    evidence_graph = context.get("news_evidence_graph") or {}
     proxies = _proxy_map(context)
     holdings = list(_active_holdings(context))
     active = {str(holding.get("ticker")) for _, holding in holdings}
@@ -524,9 +608,26 @@ def compile_packet(context: dict, generation_id: str | None = None) -> dict:
         shares = int(_number(holding.get("shares"), 0) or 0)
         ticker_risks = risks.get(ticker) or []
         thesis = _thesis_view(context, ticker)
+        factor_view = _factor_view(
+            cross_rows.get(source_ticker) or cross_rows.get(ticker)
+        )
+        peer_view = _peer_view(
+            peer_rows.get(source_ticker) or peer_rows.get(ticker)
+        )
+        information_view = _information_view(
+            evidence_graph, ticker, source_ticker
+        )
+        sizing_policy = (
+            (evidence_graph.get("information_overlay") or {})
+            .get("sizing_policy") or {}
+        )
+        sizing_overlay = _information_sizing_overlay(
+            information_view, factor_view, peer_view, sizing_policy
+        )
         leveraged = is_leveraged_holding(holding)
         execution = _execution_view(
             holding, leg, invested[leg], cash[leg], technical, thesis, leveraged,
+            overlay=sizing_overlay,
             open_add=open_add_gate_error or ticker in open_adds,
         )
         tickers[ticker] = {
@@ -547,8 +648,8 @@ def compile_packet(context: dict, generation_id: str | None = None) -> dict:
             "thesis": thesis,
             "execution": execution,
             "quant": {
-                "factor": _factor_view(cross_rows.get(source_ticker) or cross_rows.get(ticker)),
-                "peer_residual": _peer_view(peer_rows.get(source_ticker) or peer_rows.get(ticker)),
+                "factor": factor_view,
+                "peer_residual": peer_view,
                 "activation": {
                     "factor": bool(
                         ((context.get("cross_sectional_factor") or {}).get("activation") or {})
@@ -561,6 +662,7 @@ def compile_packet(context: dict, generation_id: str | None = None) -> dict:
                 },
             },
             "sentiment": _sentiment_view(sentiment_rows, ticker, source_ticker),
+            "information": information_view,
             "evidence": matching_events,
             "risk": ticker_risks,
             "status": _status(technical, ticker_risks),
@@ -616,6 +718,48 @@ def compile_packet(context: dict, generation_id: str | None = None) -> dict:
     if size > MAX_PACKET_BYTES:
         raise ValueError(f"decision packet exceeds {MAX_PACKET_BYTES} bytes: {size}")
     return packet
+
+
+def _decision_provenance(packet: dict, ticker: str) -> dict | None:
+    """Machine-owned point-in-time signal state for one ledger decision."""
+    row = (packet.get("tickers") or {}).get(str(ticker))
+    if not row:
+        return None
+    execution = row.get("execution") or {}
+    quant = row.get("quant") or {}
+    return {
+        "schema_version": 1,
+        "context_generation_id": (packet.get("_meta") or {}).get("generation_id"),
+        "observed_at": packet.get("generated_at"),
+        "information": copy.deepcopy(row.get("information") or {}),
+        "factor": copy.deepcopy(quant.get("factor") or {}),
+        "peer_residual": copy.deepcopy(quant.get("peer_residual") or {}),
+        "sizing": copy.deepcopy(execution.get("information_overlay") or {}),
+        "authority": {
+            "max_add_shares": (row.get("constraints") or {}).get("max_add_shares"),
+            "position_room_shares": (
+                row.get("constraints") or {}
+            ).get("position_room_shares"),
+            "lot_size": (row.get("constraints") or {}).get("lot_size"),
+        },
+    }
+
+
+def bind_plan_provenance(plan: dict, packet: dict) -> dict:
+    """Replace any model-supplied signal claims with packet-owned snapshots.
+
+    The packet is hash-bound to the preflight generation.  Persisting this copy
+    is what makes later T+1/T+5/T+20 attribution use the facts visible at the
+    decision, rather than today's revised news/factor files.
+    """
+    bound = copy.deepcopy(plan)
+    for decision in bound.get("decisions") or []:
+        provenance = _decision_provenance(packet, decision.get("ticker"))
+        if provenance is not None:
+            decision["signal_provenance"] = provenance
+        else:
+            decision.pop("signal_provenance", None)
+    return bound
 
 
 def summary_view(packet: dict) -> dict:
@@ -803,15 +947,15 @@ def validate_plan_constraints(plan: dict, packet: dict) -> list[str]:
             lot = _number(constraints.get("lot_size"), 0)
             if shares is None or shares <= 0:
                 issues.append(f"{tag}: add requires positive integer size.shares")
-            elif shares > max_add:
-                issues.append(
-                    f"{tag}: size.shares {shares:g} exceeds max_add_shares {max_add:g}"
-                )
             elif int(shares) != shares:
                 issues.append(f"{tag}: fractional shares are not supported")
             elif lot and int(shares) % int(lot) != 0:
                 issues.append(
                     f"{tag}: size.shares {shares:g} is not a board-lot multiple of {lot:g}"
+                )
+            elif shares > max_add:
+                issues.append(
+                    f"{tag}: size.shares {shares:g} exceeds max_add_shares {max_add:g}"
                 )
 
             condition = decision.get("condition") or {}
