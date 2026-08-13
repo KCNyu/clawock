@@ -13,7 +13,10 @@ import time
 import urllib.parse
 import urllib.request
 from datetime import datetime, timedelta, timezone
+from pathlib import Path
 from zoneinfo import ZoneInfo
+
+from clawock.safe_io import safe_write_json
 
 
 HKT = timezone(timedelta(hours=8))
@@ -23,6 +26,7 @@ TENCENT_NEWS = "https://web.ifzq.gtimg.cn/appstock/news/info/search"
 TENCENT_FILINGS_TYPE = 0
 NASDAQ_FILINGS = "https://api.nasdaq.com/api/company/{issuer}/sec-filings"
 UA = "Mozilla/5.0 (clawock primary disclosure provider)"
+CACHE_SCHEMA_VERSION = 1
 
 
 def _http_json(url: str, *, headers=None, timeout=PER_REQUEST_TIMEOUT_S):
@@ -276,3 +280,78 @@ def probe(issuers, *, market: str, now=None, window_minutes: int,
     if skipped:
         payload["not_chased"] = skipped
     return payload
+
+
+def probe_cached(issuers, *, market: str, now=None, window_minutes: int,
+                 budget_s: float, max_issuers: int, cache_path,
+                 cache_ttl_seconds: int = 300, **kwargs) -> dict:
+    """A short retry cache with explicit collection provenance.
+
+    The normal 30-minute cadence always outlives the cache.  Its purpose is to
+    collapse an auto-retry or concurrent duplicate fetch, not to turn an old
+    filing response into a fresh source check.
+    """
+    now = now or datetime.now(timezone.utc)
+    now = now if now.tzinfo else now.replace(tzinfo=timezone.utc)
+    path = Path(cache_path)
+    signature = {
+        "market": market,
+        "issuers": list(dict.fromkeys(str(value) for value in (issuers or []) if value)),
+        "window_minutes": int(window_minutes),
+        "budget_s": float(budget_s),
+        "max_issuers": int(max_issuers),
+    }
+    # Policy-like scalar options can affect provider results and therefore the
+    # cache identity.  Runtime injection hooks (http/clock) are deliberately
+    # excluded: callables are neither stable nor JSON-serializable.
+    probe_options = {
+        key: value for key, value in sorted(kwargs.items())
+        if isinstance(value, (str, int, float, bool, type(None)))
+    }
+    if probe_options:
+        signature["probe_options"] = probe_options
+    try:
+        cached = json.loads(path.read_text()) if path.exists() else {}
+        fetched_at = datetime.fromisoformat(
+            str(cached.get("fetched_at") or "").replace("Z", "+00:00")
+        )
+        age_seconds = max(0, int((now - fetched_at).total_seconds()))
+        payload = cached.get("payload")
+        if (cached.get("schema_version") == CACHE_SCHEMA_VERSION
+                and cached.get("signature") == signature
+                and isinstance(payload, dict)
+                and age_seconds <= cache_ttl_seconds):
+            result = json.loads(json.dumps(payload))
+            result["collection"] = {
+                "cache_hit": True,
+                "fetched_at": fetched_at.isoformat(),
+                "age_seconds": age_seconds,
+                "ttl_seconds": cache_ttl_seconds,
+            }
+            return result
+    except (OSError, ValueError, TypeError, json.JSONDecodeError):
+        pass
+
+    result = probe(
+        signature["issuers"], market=market, now=now,
+        window_minutes=window_minutes, budget_s=budget_s,
+        max_issuers=max_issuers, **kwargs,
+    )
+    result["collection"] = {
+        "cache_hit": False,
+        "fetched_at": now.isoformat(),
+        "age_seconds": 0,
+        "ttl_seconds": cache_ttl_seconds,
+    }
+    try:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        safe_write_json(str(path), {
+            "schema_version": CACHE_SCHEMA_VERSION,
+            "signature": signature,
+            "fetched_at": now.isoformat(),
+            "payload": {key: value for key, value in result.items() if key != "collection"},
+        })
+    except OSError:
+        # Cache loss costs requests, never evidence.
+        result["collection"]["write_error"] = True
+    return result

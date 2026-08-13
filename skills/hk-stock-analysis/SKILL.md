@@ -99,6 +99,8 @@ clawock intraday preflight --market hk
   - `halts`（仅美股，每 slot 一次共享请求）：持仓或其标的被停牌时给出 `reason_code`（LULD 的 `LUDP` 最常打到 2x ETF）与复牌时间；港股停牌走公告（已在 triage 里判 interrupt）。
 关键字段：`should_alert` (bool) + `alert_reasons` (异动票/STOP 计数等)。另有 `peer_scan`（本腿持仓的板块+同业涨跌，已排序）和 `plan_context`（08:00 简报为本腿定下、尚未成交的决策）。
 
+若 `delivery_mode=unchanged_receipt`：和上一次实际送达相比，风险档位、异动档位、盘中 setup、未成交计划和一级披露均无语义变化。**不要生成散文、不要写 prose/sidecar**，直接运行 `clawock intraday postflight --market hk --context-id {context_id}`。harness 会发送带行情覆盖和一级源检查状态的一行回执；每档仍然可见，不是跳过。成功后输出 `wechat_prefix` + `raw_wechat_block` 并结束。下面 Step 2–2.5 只适用于 `delivery_mode=full_delta`。
+
 #### Step 2: 只写 `▎我的看法` 散文（数据块归 harness）
 - ❌ **不要抄 `raw_wechat_block`，不要重画那张表** —— postflight 在发送时自己把它拼在你的散文前面。
   你抄一遍只会引入排版误差：2026-07-28 00:30 就因为一格多打了一个空格，整段分析被丢掉只发了数据块。

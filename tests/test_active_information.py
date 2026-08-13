@@ -1,5 +1,5 @@
 """High-cost invariants for the information-first intraday lane."""
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from urllib.parse import urlsplit
 
@@ -119,6 +119,82 @@ def test_primary_candidate_wakes_the_intraday_alert_without_a_price_anomaly():
 
     assert alert is True
     assert reasons == ["主动一级信息: 00100"]
+
+
+def test_changed_primary_rows_expand_while_existing_rows_stay_compact():
+    active = {
+        "candidates": [
+            {"event_id": "old", "issuer": "RKLB", "disposition": "wait",
+             "category": "results", "direction": "unknown", "detail": "8-K"},
+            {"event_id": "new", "issuer": "CRCL", "disposition": "candidate",
+             "category": "profit_revision", "direction": "positive",
+             "detail": "raised guidance"},
+        ],
+    }
+
+    text = intraday_preflight.append_active_information_section(
+        "BLOCK", active, event_ids={"new"},
+    )
+
+    assert "CRCL" in text
+    assert "raised guidance" in text
+    assert "RKLB[等待]" in text
+    assert "详因沿用，不重复展开" in text
+    assert "8-K" not in text
+
+
+def test_provider_cache_is_short_lived_and_carries_provenance(tmp_path):
+    calls = []
+
+    def http(url, **_kwargs):
+        calls.append(url)
+        return {"data": {"data": []}}
+
+    cache = tmp_path / "primary.json"
+    first = primary_disclosures.probe_cached(
+        ["00100"], market="hk", now=NOW, window_minutes=240,
+        budget_s=20, max_issuers=1, cache_path=cache, cache_ttl_seconds=300,
+        http=http,
+    )
+    second = primary_disclosures.probe_cached(
+        ["00100"], market="hk", now=NOW + timedelta(minutes=2),
+        window_minutes=240, budget_s=20, max_issuers=1,
+        cache_path=cache, cache_ttl_seconds=300, http=http,
+    )
+    third = primary_disclosures.probe_cached(
+        ["00100"], market="hk", now=NOW + timedelta(minutes=6),
+        window_minutes=240, budget_s=20, max_issuers=1,
+        cache_path=cache, cache_ttl_seconds=300, http=http,
+    )
+
+    assert len(calls) == 2
+    assert first["collection"]["cache_hit"] is False
+    assert second["collection"] == {
+        "cache_hit": True,
+        "fetched_at": NOW.isoformat(),
+        "age_seconds": 120,
+        "ttl_seconds": 300,
+    }
+    assert third["collection"]["cache_hit"] is False
+
+
+def test_provider_cache_separates_result_affecting_budget(tmp_path):
+    calls = []
+
+    def http(url, **_kwargs):
+        calls.append(url)
+        return {"data": {"data": []}}
+
+    cache = tmp_path / "primary.json"
+    common = dict(
+        issuers=["00100"], market="hk", now=NOW, window_minutes=240,
+        max_issuers=1, cache_path=cache, cache_ttl_seconds=300, http=http,
+    )
+    primary_disclosures.probe_cached(budget_s=20, **common)
+    second = primary_disclosures.probe_cached(budget_s=10, **common)
+
+    assert len(calls) == 2
+    assert second["collection"]["cache_hit"] is False
 
 
 def test_sec_403_falls_back_to_healthy_nasdaq_primary_mirror(monkeypatch):
