@@ -74,8 +74,26 @@ def run_analyze(market):
         return -1, '', f'{module} error: {e}'
 
 
+SIGNAL_LEVELS = ('ALERT', 'WATCH', 'STOP', 'TRIM')
+
+
+def signal_ticker(line, level):
+    """The ticker a signal line is about, or None.
+
+    The renderer writes `✋ STOP? 02208 金风科技 | …`, so the code is the token
+    after the level word. Reading it here, once, beats every consumer matching
+    the display text: a substring test lets a one-letter US ticker match any
+    word on the line, and a bare figure in the P&L cell read as a code.
+    """
+    tokens = (line or '').split()
+    for i, token in enumerate(tokens):
+        if level in token.upper():
+            return tokens[i + 1] if i + 1 < len(tokens) else None
+    return None
+
+
 def parse_signals(stdout):
-    counts = {'watch': 0, 'stop': 0, 'trim': 0}
+    counts = {level.lower(): 0 for level in SIGNAL_LEVELS}
     in_signals = False
     signals_detail = []
     for line in stdout.splitlines():
@@ -88,15 +106,16 @@ def parse_signals(stdout):
                 break
             if not s:
                 continue
-            if 'WATCH' in s:
-                counts['watch'] += 1
-                signals_detail.append({'level': 'WATCH', 'line': s})
-            elif 'STOP' in s:
-                counts['stop'] += 1
-                signals_detail.append({'level': 'STOP', 'line': s})
-            elif 'TRIM' in s:
-                counts['trim'] += 1
-                signals_detail.append({'level': 'TRIM', 'line': s})
+            # ALERT is the most severe line the renderer emits (a -8% day) and
+            # it was in none of these counts — so the one level that outranks
+            # STOP was invisible to every consumer, including the entry/risk
+            # contradiction check below.
+            for level in SIGNAL_LEVELS:
+                if level in s.upper():
+                    counts[level.lower()] += 1
+                    signals_detail.append({'level': level, 'line': s,
+                                           'ticker': signal_ticker(s, level)})
+                    break
     return counts, signals_detail
 
 
@@ -131,15 +150,9 @@ def setup_conflicts(setups, signals_detail):
     they saw first. The entry row is not suppressed (the condition is a fact),
     it is marked (so is the risk).
     """
-    # Whole tokens, not substrings. The signal line is `✋ STOP? 02208 金风科技
-    # | …`, so the ticker is always its own word — while a substring test would
-    # let a one-letter US ticker match any word on the line, and would read a
-    # bare number in the P&L as a code.
-    flagged = set()
-    for item in (signals_detail or []):
-        if str(item.get('level', '')).upper() not in CONFLICTING_LEVELS:
-            continue
-        flagged.update(re.split(r'[\s|]+', item.get('line') or ''))
+    flagged = {item.get('ticker') for item in (signals_detail or [])
+               if str(item.get('level', '')).upper() in CONFLICTING_LEVELS}
+    flagged.discard(None)
     conflicted = set()
     for row in (setups or {}).get('rows') or []:
         for ticker in row.get('holdings') or [row.get('label')]:
@@ -155,10 +168,12 @@ def append_setup_section(block, setups, signals_detail=None):
     checks the report against this string, and every slot without a setup is a
     slot whose push must look exactly as it did before.
 
-    The heading carries the caveat rather than the rows, because the caveat is
-    the same for all of them and a per-row hedge is what gets skimmed past: this
-    bar has not closed, so these are conditions that would hold *if it closed
-    here*, not entries that triggered.
+    Every row repeats 未收盘 rather than leaning on the heading. The heading is
+    not protected by anything: postflight's verbatim check only covers the block
+    first line and its markdown tables, so in legacy mode a report that dropped
+    the heading and kept `20日突破确认 | 入场 …` would pass — and a provisional
+    condition would have been published as an entry that fired. The caveat has
+    to live on the line it qualifies.
     """
     rows = (setups or {}).get('rows') or []
     if not rows:
@@ -167,7 +182,8 @@ def append_setup_section(block, setups, signals_detail=None):
     lines = ['', '⚡ 盘中 setup（未收盘 · 若收在此位则成立，不是已触发）']
     for row in rows[:MAX_SETUP_LINES]:
         entry, invalid = row.get('entry_price'), row.get('invalidation_price')
-        bits = [f"  ◆ {row.get('label')} {row.get('label_zh') or row.get('setup_id')}"]
+        bits = [f"  ◆ [未收盘] {row.get('label')} "
+                f"{row.get('label_zh') or row.get('setup_id')}"]
         if entry is not None:
             bits.append(f"入场 {entry:g}")
         if invalid is not None:
@@ -306,17 +322,22 @@ def main(argv=None):
     except Exception:
         pass
 
-    total_signals = signals['watch'] + signals['stop'] + signals['trim']
-    should_alert = (len(anomalies) > 0) or (total_signals >= 2) or (signals['stop'] > 0)
+    total_signals = sum(signals[level.lower()] for level in SIGNAL_LEVELS)
+    severe = signals['stop'] + signals['alert']
+    should_alert = (len(anomalies) > 0) or (total_signals >= 2) or (severe > 0)
 
     alert_reasons = []
     if anomalies:
         tickers = ', '.join(f"{a['ticker']} ({a['move_pct']:+.1f}%)" for a in anomalies)
         alert_reasons.append(f'异动: {tickers}')
+    if signals['alert'] > 0:
+        alert_reasons.append(f'ALERT 信号 ×{signals["alert"]}')
     if signals['stop'] > 0:
         alert_reasons.append(f'STOP 信号 ×{signals["stop"]}')
     if total_signals >= 2:
-        alert_reasons.append(f'多重信号 (W{signals["watch"]} S{signals["stop"]} T{signals["trim"]})')
+        alert_reasons.append(
+            f'多重信号 (A{signals["alert"]} W{signals["watch"]} '
+            f'S{signals["stop"]} T{signals["trim"]})')
 
     # Thesis/red-line state for the names this slot already flagged. Local JSON
     # only, scoped to movers, and attribution context — never an action trigger

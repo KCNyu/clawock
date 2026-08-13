@@ -479,6 +479,15 @@ def provisional_setups(universe=None, *, region=None, fetch=None):
         except Exception as exc:  # noqa: BLE001 — one bad symbol must not blank the rest
             errors.append({'label': label, 'error': f'{type(exc).__name__}: {exc}'[:200]})
             continue
+        if sig is None:
+            # `fetch_bars` returns [] on a failed request rather than raising,
+            # and `compute_signals` answers None below 30 bars — so the ordinary
+            # production failure arrives as a value, not an exception, and an
+            # unguarded `.get` here would escape the loop and take every row
+            # already collected with it.
+            errors.append({'label': label,
+                           'error': f'no_bars' if not bars else f'insufficient_bars({len(bars)})'})
+            continue
         for setup in sig.get('technical_setups') or []:
             rows.append({
                 'label': label,

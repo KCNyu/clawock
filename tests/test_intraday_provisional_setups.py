@@ -144,7 +144,8 @@ def test_the_collector_never_raises(monkeypatch):
 
 # ── the two layers can disagree ──────────────────────────────────────────────
 
-STOP_SIGNAL = [{'level': 'STOP', 'line': '✋ STOP? 02208 金风科技 | 今日-0.6% 浮-24.7%'}]
+STOP_SIGNAL = [{'level': 'STOP', 'ticker': '02208',
+                'line': '✋ STOP? 02208 金风科技 | 今日-0.6% 浮-24.7%'}]
 
 
 def _setup_row(label='02208', holdings=('02208',)):
@@ -174,7 +175,7 @@ def test_a_clean_ticker_carries_no_warning():
 
 def test_a_proxy_row_is_matched_by_its_holdings_not_its_signal_symbol():
     """HSTECH is the signal symbol for 03032/03033 — the risk line names the holding."""
-    signals = [{'level': 'STOP', 'line': '✋ STOP? 03033 恒科ETF | 浮-8.7%'}]
+    signals = [{'level': 'STOP', 'ticker': '03033', 'line': '✋ STOP? 03033 恒科ETF | 浮-8.7%'}]
 
     text = P.append_setup_section(BLOCK, _setup_row('HSTECH', ('03032', '03033')), signals)
 
@@ -184,7 +185,7 @@ def test_a_proxy_row_is_matched_by_its_holdings_not_its_signal_symbol():
 
 def test_a_watch_signal_is_not_treated_as_a_contradiction():
     """WATCH is a -5% day, not a position-level stop; it does not veto an entry."""
-    watch = [{'level': 'WATCH', 'line': '△ WATCH 02208 金风科技 | 今日-5.2%'}]
+    watch = [{'level': 'WATCH', 'ticker': '02208', 'line': '△ WATCH 02208 金风科技 | 今日-5.2%'}]
 
     assert '同票有风险信号' not in P.append_setup_section(BLOCK, _setup_row(), watch)
 
@@ -195,19 +196,82 @@ def test_missing_signal_detail_is_not_an_error():
         assert '20日突破确认' in text, signals
 
 
-def test_a_ticker_is_matched_as_a_whole_token_not_a_substring():
-    """A substring test lets a short US ticker match any word on the line.
+ANALYZE_BLOCK = """⚠️ 信号
+  ✋ STOP? SPCX 商业航天 | 今日-9.0% 浮-20.2%
+  ⚠️ ALERT 02208 金风科技 | 今日-8.4% 浮-24.7%
+  △ WATCH 03033 恒科ETF | 今日-5.1%
+📉 亏损持仓 5/5"""
 
-    `F` would be flagged by every signal line that contains an F anywhere, and a
-    numeric HK code could be matched by a figure in the P&L cell.
+
+def test_the_ticker_comes_from_the_parser_not_from_matching_display_text():
+    """`SPC` is a substring of the flagged `SPCX` and is not the ticker."""
+    _, detail = P.parse_signals(ANALYZE_BLOCK)
+
+    assert '同票有风险信号' not in P.append_setup_section(
+        BLOCK, _setup_row('SPC', ('SPC',)), detail)
+    assert '同票有风险信号(SPCX)' in P.append_setup_section(
+        BLOCK, _setup_row('SPCX', ('SPCX',)), detail)
+
+
+def test_the_most_severe_line_reaches_the_contradiction_check():
+    """⚠️ ALERT (a -8% day) outranks STOP and was in none of the counts.
+
+    A name crashing 8% while deeply underwater could therefore have shown an
+    entry row with no risk annotation at all — the one case where the two
+    layers disagreeing matters most.
     """
-    signals = [{'level': 'STOP', 'line': '✋ STOP? SPCX 商业航天 | 今日-9.0% 浮-20.2%'}]
+    counts, detail = P.parse_signals(ANALYZE_BLOCK)
 
-    # 'F' appears inside nothing on that line as a word; a substring test would
-    # not fire here either, so use the case that actually distinguishes them:
-    # 'SPC' is a substring of 'SPCX' but is not the ticker.
-    text = P.append_setup_section(BLOCK, _setup_row('SPC', ('SPC',)), signals)
-    assert '同票有风险信号' not in text
+    assert counts['alert'] == 1
+    assert [d['ticker'] for d in detail] == ['SPCX', '02208', '03033']
+    text = P.append_setup_section(BLOCK, _setup_row('02208', ('02208',)), detail)
+    assert '同票有风险信号(02208)' in text
 
-    exact = P.append_setup_section(BLOCK, _setup_row('SPCX', ('SPCX',)), signals)
-    assert '同票有风险信号(SPCX)' in exact
+
+# ── the failure that actually happens in production ──────────────────────────
+
+def test_an_empty_bar_list_is_reported_not_raised():
+    """`fetch_bars` returns [] on a failed request — it does not raise.
+
+    The first version only tested an exception, which is the shape production
+    never produces: `compute_signals` answers None below 30 bars, and an
+    unguarded `.get` escaped the loop and took every row already collected with
+    it — the exact opposite of the per-symbol isolation claimed above.
+    """
+    out = S.provisional_setups(_universe(), fetch=lambda code, cnt: [])
+
+    assert out['rows'] == []
+    assert out['errors'] == [{'label': '02208', 'error': 'no_bars'}]
+
+
+def test_too_few_bars_is_reported_with_the_count():
+    short = _flat(29, 10.0)
+
+    out = S.provisional_setups(_universe(), fetch=lambda code, cnt: short)
+
+    assert out['errors'] == [{'label': '02208', 'error': 'insufficient_bars(29)'}]
+
+
+def test_an_empty_feed_for_one_symbol_keeps_the_rows_already_collected():
+    universe = _universe('02208') + _universe('03033')
+    bars = _breakout_series()
+
+    out = S.provisional_setups(
+        universe, fetch=lambda code, cnt: [] if code == 'hk03033' else bars)
+
+    assert [row['label'] for row in out['rows']] == ['02208']
+    assert [err['label'] for err in out['errors']] == ['03033']
+
+
+def test_every_row_repeats_the_caveat_so_the_heading_is_not_load_bearing():
+    """Nothing validates the heading.
+
+    Postflight's verbatim check covers the block's first line and its markdown
+    tables; the setup section is neither. In legacy mode a report that dropped
+    the heading and kept `20日突破确认 | 入场 …` would pass every gate, and a
+    provisional condition would ship as an entry that fired.
+    """
+    text = P.append_setup_section(BLOCK, _setup_row(), None)
+
+    body = [line for line in text.splitlines() if '◆' in line]
+    assert body and all('未收盘' in line for line in body)
