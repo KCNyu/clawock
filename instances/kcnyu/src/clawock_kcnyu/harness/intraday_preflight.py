@@ -37,6 +37,7 @@ from pathlib import Path
 from clawock.workspace import workspace_root
 from clawock.market_data import sessions as trading_calendar
 from clawock.decision import plans as plan_surface
+from clawock.decision import signals as quant_signals
 from clawock.evidence import research_surface
 from clawock.cli import PACKAGED_UTILITIES
 from clawock.market_data import known_catalysts, mover_evidence as mover_news, peer_scan
@@ -73,8 +74,33 @@ def run_analyze(market):
         return -1, '', f'{module} error: {e}'
 
 
+SIGNAL_LEVELS = ('ALERT', 'WATCH', 'STOP', 'TRIM')
+
+
+def read_signal_line(line):
+    """`(level, ticker)` for a rendered signal line, or `(None, None)`.
+
+    The renderer writes `✋ STOP? 02208 金风科技 | …` — marker, level, code. The
+    level must therefore *be* one of the first two tokens, not appear inside
+    one: `WATCHDOG` contains WATCH and a substring test reads that line as a
+    signal, then publishes the following word as its ticker. Letters only, so
+    `✋STOP?` and `STOP?` both normalise to STOP however the emoji lands.
+
+    Reading the code here, once, is also what keeps consumers from matching the
+    display text — a substring test lets a one-letter US ticker match any word
+    on the line, and reads a bare figure in the P&L cell as a code.
+    """
+    tokens = (line or '').split()
+    for index, token in enumerate(tokens[:2]):
+        word = re.sub(r'[^A-Z]', '', token.upper())
+        if word in SIGNAL_LEVELS:
+            ticker = tokens[index + 1] if index + 1 < len(tokens) else None
+            return word, ticker
+    return None, None
+
+
 def parse_signals(stdout):
-    counts = {'watch': 0, 'stop': 0, 'trim': 0}
+    counts = {level.lower(): 0 for level in SIGNAL_LEVELS}
     in_signals = False
     signals_detail = []
     for line in stdout.splitlines():
@@ -87,16 +113,123 @@ def parse_signals(stdout):
                 break
             if not s:
                 continue
-            if 'WATCH' in s:
-                counts['watch'] += 1
-                signals_detail.append({'level': 'WATCH', 'line': s})
-            elif 'STOP' in s:
-                counts['stop'] += 1
-                signals_detail.append({'level': 'STOP', 'line': s})
-            elif 'TRIM' in s:
-                counts['trim'] += 1
-                signals_detail.append({'level': 'TRIM', 'line': s})
+            # ALERT is the most severe line the renderer emits (a -8% day) and
+            # it was in none of these counts — so the one level that outranks
+            # STOP was invisible to every consumer, including the entry/risk
+            # contradiction check below.
+            level, ticker = read_signal_line(s)
+            if level:
+                counts[level.lower()] += 1
+                signals_detail.append({'level': level, 'line': s, 'ticker': ticker})
     return counts, signals_detail
+
+
+def decide_alert(signals, anomalies):
+    """`(should_alert, reasons)` for this slot.
+
+    Extracted from `main` so the rule can be asserted rather than read: ALERT
+    joining STOP as a severity that alone justifies waking kcn is a change to
+    what 18 slots a day do, and it was previously only visible by running the
+    whole preflight.
+
+    ALERT does not in practice add wake-ups — the renderer only emits it on a
+    -8% day, which the ≥3% anomaly rule already caught — but it must not be the
+    one severity that a slot could see and stay quiet about.
+    """
+    total = sum(signals[level.lower()] for level in SIGNAL_LEVELS)
+    severe = signals['stop'] + signals['alert']
+    should_alert = bool(anomalies) or total >= 2 or severe > 0
+
+    reasons = []
+    if anomalies:
+        tickers = ', '.join(f"{a['ticker']} ({a['move_pct']:+.1f}%)" for a in anomalies)
+        reasons.append(f'异动: {tickers}')
+    if signals['alert'] > 0:
+        reasons.append(f'ALERT 信号 ×{signals["alert"]}')
+    if signals['stop'] > 0:
+        reasons.append(f'STOP 信号 ×{signals["stop"]}')
+    if total >= 2:
+        reasons.append(f'多重信号 (A{signals["alert"]} W{signals["watch"]} '
+                       f'S{signals["stop"]} T{signals["trim"]})')
+    return should_alert, reasons
+
+
+MAX_SETUP_LINES = 6
+
+
+def collect_provisional_setups(market):
+    """This leg's entry rules re-run on the open bar. Never raises.
+
+    Bounded to the leg being reported: a 港股 slot has no use for a US breakout
+    it cannot act on for another nine hours.
+    """
+    try:
+        return quant_signals.provisional_setups(
+            region='HK' if market == 'hk' else 'US')
+    except Exception as exc:  # noqa: BLE001 — a quote feed must never red the cron
+        return {'rows': [], 'confirmed_at_close': False,
+                'errors': [{'label': None,
+                            'error': f'{type(exc).__name__}: {exc}'[:200]}]}
+
+
+CONFLICTING_LEVELS = ('STOP', 'ALERT')
+
+
+def setup_conflicts(setups, signals_detail):
+    """Tickers that have an entry condition and a risk signal in the same push.
+
+    An entry rule reads the price series; the risk line reads the position. They
+    can and do disagree — 02208 can reclaim its 20-day high while sitting at
+    -24% and flagged ✋ STOP?. Sending both without a word is how a push
+    contradicts itself, and the reader resolves it by picking whichever line
+    they saw first. The entry row is not suppressed (the condition is a fact),
+    it is marked (so is the risk).
+    """
+    flagged = {item.get('ticker') for item in (signals_detail or [])
+               if str(item.get('level', '')).upper() in CONFLICTING_LEVELS}
+    flagged.discard(None)
+    conflicted = set()
+    for row in (setups or {}).get('rows') or []:
+        for ticker in row.get('holdings') or [row.get('label')]:
+            if ticker and ticker in flagged:
+                conflicted.add(ticker)
+    return sorted(conflicted)
+
+
+def append_setup_section(block, setups, signals_detail=None):
+    """Render provisional setups under the block, or return it untouched.
+
+    Untouched is the common case and it has to stay byte-identical: postflight
+    checks the report against this string, and every slot without a setup is a
+    slot whose push must look exactly as it did before.
+
+    Every row repeats 未收盘 rather than leaning on the heading. The heading is
+    not protected by anything: postflight's verbatim check only covers the block
+    first line and its markdown tables, so in legacy mode a report that dropped
+    the heading and kept `20日突破确认 | 入场 …` would pass — and a provisional
+    condition would have been published as an entry that fired. The caveat has
+    to live on the line it qualifies.
+    """
+    rows = (setups or {}).get('rows') or []
+    if not rows:
+        return block
+    conflicts = set(setup_conflicts(setups, signals_detail))
+    lines = ['', '⚡ 盘中 setup（未收盘 · 若收在此位则成立，不是已触发）']
+    for row in rows[:MAX_SETUP_LINES]:
+        entry, invalid = row.get('entry_price'), row.get('invalidation_price')
+        bits = [f"  ◆ [未收盘] {row.get('label')} "
+                f"{row.get('label_zh') or row.get('setup_id')}"]
+        if entry is not None:
+            bits.append(f"入场 {entry:g}")
+        if invalid is not None:
+            bits.append(f"失效 {invalid:g}")
+        held = [t for t in (row.get('holdings') or []) if t in conflicts]
+        if held:
+            bits.append(f"⚠️ 同票有风险信号({'/'.join(held)})")
+        lines.append(' | '.join(bits))
+    if len(rows) > MAX_SETUP_LINES:
+        lines.append(f'  …另有 {len(rows) - MAX_SETUP_LINES} 条')
+    return block + '\n' + '\n'.join(lines)
 
 
 def parse_anomalies(stdout):
@@ -224,17 +357,7 @@ def main(argv=None):
     except Exception:
         pass
 
-    total_signals = signals['watch'] + signals['stop'] + signals['trim']
-    should_alert = (len(anomalies) > 0) or (total_signals >= 2) or (signals['stop'] > 0)
-
-    alert_reasons = []
-    if anomalies:
-        tickers = ', '.join(f"{a['ticker']} ({a['move_pct']:+.1f}%)" for a in anomalies)
-        alert_reasons.append(f'异动: {tickers}')
-    if signals['stop'] > 0:
-        alert_reasons.append(f'STOP 信号 ×{signals["stop"]}')
-    if total_signals >= 2:
-        alert_reasons.append(f'多重信号 (W{signals["watch"]} S{signals["stop"]} T{signals["trim"]})')
+    should_alert, alert_reasons = decide_alert(signals, anomalies)
 
     # Thesis/red-line state for the names this slot already flagged. Local JSON
     # only, scoped to movers, and attribution context — never an action trigger
@@ -267,13 +390,20 @@ def main(argv=None):
         [a['ticker'] for a in anomalies], today=now.strftime('%Y-%m-%d'),
     )
 
+    # The same entry rules the 08:00 brief runs, re-evaluated on the open bar.
+    # Rendered into the block rather than left in JSON alone: a field nothing
+    # prints is a detector that has been silenced (#515).
+    live_setups = collect_provisional_setups(args.market)
+    raw_block = append_setup_section(stdout.strip(), live_setups, signals_detail)
+
     result = {
         'status':           'ok',
         'market':           args.market,
         'date':             now.strftime('%Y-%m-%d'),
         'time':             now.strftime('%H:%M'),
         'generated_at':     now.isoformat(timespec='seconds'),
-        'raw_wechat_block': stdout.strip(),
+        'raw_wechat_block': raw_block,
+        'provisional_setups': live_setups,
         'signal_count':     signals,
         'signals_detail':   signals_detail,
         'anomalies':        anomalies,
