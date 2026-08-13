@@ -1,35 +1,21 @@
 {
-  "generated_at": "2026-08-10T08:44:50.266219+08:00",
+  "generated_at": "2026-08-13T21:34:40.508274+08:00",
   "lookback_window_days": 14,
-  "window_start": "2026-08-10",
-  "window_end": "2026-08-24",
+  "window_start": "2026-08-13",
+  "window_end": "2026-08-27",
   "earnings_queried": [
     "CRCL",
-    "MSFT",
-    "PLTR",
     "RKLB",
     "SKHY",
     "SPCX"
   ],
-  "earnings": [
-    {
-      "ticker": "RKLB",
-      "name": "RKLB",
-      "date": "2026-08-10",
-      "time": "amc",
-      "eps_estimate": -0.0765,
-      "eps_actual": null,
-      "revenue_estimate_m": 235.97,
-      "quarter": 2,
-      "year": 2026
-    }
-  ],
+  "earnings": [],
   "fomc": [],
   "macro_events": [
     {
-      "date": "2026-08-12",
-      "type": "CPI",
-      "detail": "Jul CPI release (BLS 8:30 ET)"
+      "date": "2026-08-27",
+      "type": "GDP",
+      "detail": "Q2 2026 GDP 2nd estimate"
     }
   ],
   "scheduled_events": [
@@ -44,11 +30,11 @@
     }
   ],
   "summary": {
-    "earnings_count": 1,
+    "earnings_count": 0,
     "fomc_in_window": 0,
     "macro_count": 1,
     "scheduled_count": 1,
     "scheduled_undated": 1,
-    "highest_impact_within_7d": "CPI 2026-08-12"
+    "highest_impact_within_7d": null
   }
 }

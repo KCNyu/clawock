@@ -1,58 +1,43 @@
 {
-  "generated_at": "2026-08-10T00:44:27.803746+00:00",
-  "as_of": "2026-08-07",
+  "generated_at": "2026-08-13T13:34:19.415325+00:00",
+  "as_of": "2026-08-13",
   "index": "HSTECH",
   "source": "tencent",
-  "bars": 1375,
-  "close": 4858.29,
+  "bars": 1379,
+  "close": 4792.39,
   "ma_window": 200,
-  "ma": 5214.31,
-  "dist_ma_pct": -6.8,
+  "ma": 5192.06,
+  "dist_ma_pct": -7.7,
   "vol_window": 20,
-  "vol_annualized": 0.2979,
+  "vol_annualized": 0.2987,
   "vol_cap": 0.5,
   "trend_on": false,
   "vol_ok": true,
   "tier": "amber",
   "lev_cap_mult": 0.5,
   "label": "趋势OFF：杠杆敞口上限砍半",
-  "rationale": "HSTECH 4858 低于 200日线 5214 (-6.8%)；20日波动 30% < 50% 上限。→ HK 杠杆ETF腿上限 ×0.5（amber）",
+  "rationale": "HSTECH 4792 低于 200日线 5192 (-7.7%)；20日波动 30% < 50% 上限。→ HK 杠杆ETF腿上限 ×0.5（amber）",
   "hk": {
     "tier": "amber",
     "lev_cap_mult": 0.5,
     "label": "趋势OFF：杠杆敞口上限砍半",
-    "close": 4858.29,
-    "ma": 5214.31,
-    "dist_ma_pct": -6.8,
-    "vol_annualized": 0.2979,
+    "close": 4792.39,
+    "ma": 5192.06,
+    "dist_ma_pct": -7.7,
+    "vol_annualized": 0.2987,
     "trend_on": false,
     "vol_ok": true
   },
   "us": {
     "names": [
       {
-        "etf": "PLTU",
-        "underlying": "PLTR",
-        "close": 172.01,
-        "ma": 152.28,
-        "ma_window": 200,
-        "dist_ma_pct": 13.0,
-        "vol_annualized": 1.1932,
-        "vol_n_returns": 20,
-        "vol_hot_cap": 0.7,
-        "trend_on": true,
-        "vol_hot": true,
-        "state": "ok",
-        "regime_basis": "ma_200_and_20d_realized_vol"
-      },
-      {
         "etf": "RKLX",
         "underlying": "RKLB",
-        "close": 82.83,
-        "ma": 77.98,
+        "close": 80.94,
+        "ma": 78.32,
         "ma_window": 200,
-        "dist_ma_pct": 6.2,
-        "vol_annualized": 0.9673,
+        "dist_ma_pct": 3.3,
+        "vol_annualized": 0.8281,
         "vol_n_returns": 20,
         "vol_hot_cap": 0.7,
         "trend_on": true,
@@ -63,30 +48,15 @@
       {
         "etf": "SPCH",
         "underlying": "SPCX",
-        "close": 133.11,
-        "ma": 119.23,
+        "close": 143.97,
+        "ma": 139.05,
         "ma_window": 5,
-        "dist_ma_pct": 11.6,
+        "dist_ma_pct": 3.5,
         "vol_annualized": null,
         "trend_on": true,
         "state": "ok",
         "regime_basis": "short_ma_5",
-        "note": "SPCX 新上市仅 39 bars，不足 200DMA → 用 5日均线做右侧确认（非完整 regime）。趋势确认(>短均)→可持杠杆"
-      },
-      {
-        "etf": "MSFU",
-        "underlying": "MSFT",
-        "close": 499.99,
-        "ma": 433.08,
-        "ma_window": 200,
-        "dist_ma_pct": 15.5,
-        "vol_annualized": 0.6118,
-        "vol_n_returns": 20,
-        "vol_hot_cap": 0.7,
-        "trend_on": true,
-        "vol_hot": false,
-        "state": "ok",
-        "regime_basis": "ma_200_and_20d_realized_vol"
+        "note": "SPCX 新上市仅 43 bars，不足 200DMA → 用 5日均线做右侧确认（非完整 regime）。趋势确认(>短均)→可持杠杆"
       }
     ],
     "tier": "green",
@@ -97,30 +67,6 @@
   },
   "regime_history": {
     "hk": {
-      "2025-12-24": {
-        "trend_on": false,
-        "dist_ma_pct": -1.4,
-        "mom_pct": -1.5,
-        "regime3": "chop"
-      },
-      "2025-12-29": {
-        "trend_on": false,
-        "dist_ma_pct": -1.7,
-        "mom_pct": -0.9,
-        "regime3": "chop"
-      },
-      "2025-12-30": {
-        "trend_on": true,
-        "dist_ma_pct": 0.1,
-        "mom_pct": -1.1,
-        "regime3": "chop"
-      },
-      "2025-12-31": {
-        "trend_on": false,
-        "dist_ma_pct": -1.0,
-        "mom_pct": 0.3,
-        "regime3": "chop"
-      },
       "2026-01-02": {
         "trend_on": true,
         "dist_ma_pct": 2.9,
@@ -996,39 +942,33 @@
         "dist_ma_pct": -6.8,
         "mom_pct": 4.9,
         "regime3": "bull"
+      },
+      "2026-08-10": {
+        "trend_on": false,
+        "dist_ma_pct": -5.6,
+        "mom_pct": 4.6,
+        "regime3": "bull"
+      },
+      "2026-08-11": {
+        "trend_on": false,
+        "dist_ma_pct": -7.3,
+        "mom_pct": 2.0,
+        "regime3": "chop"
+      },
+      "2026-08-12": {
+        "trend_on": false,
+        "dist_ma_pct": -8.1,
+        "mom_pct": -1.8,
+        "regime3": "chop"
+      },
+      "2026-08-13": {
+        "trend_on": false,
+        "dist_ma_pct": -7.7,
+        "mom_pct": -0.2,
+        "regime3": "chop"
       }
     },
     "us": {
-      "2026-06-23": {
-        "trend_on": null,
-        "dist_ma_pct": null,
-        "mom_pct": -0.8,
-        "regime3": "chop"
-      },
-      "2026-06-24": {
-        "trend_on": null,
-        "dist_ma_pct": null,
-        "mom_pct": -0.5,
-        "regime3": "chop"
-      },
-      "2026-06-25": {
-        "trend_on": null,
-        "dist_ma_pct": null,
-        "mom_pct": 1.2,
-        "regime3": "chop"
-      },
-      "2026-06-26": {
-        "trend_on": null,
-        "dist_ma_pct": null,
-        "mom_pct": -1.2,
-        "regime3": "chop"
-      },
-      "2026-06-29": {
-        "trend_on": null,
-        "dist_ma_pct": null,
-        "mom_pct": -0.1,
-        "regime3": "chop"
-      },
       "2026-06-30": {
         "trend_on": null,
         "dist_ma_pct": null,
@@ -1184,6 +1124,30 @@
         "dist_ma_pct": null,
         "mom_pct": 3.0,
         "regime3": "chop"
+      },
+      "2026-08-06": {
+        "trend_on": null,
+        "dist_ma_pct": null,
+        "mom_pct": 4.1,
+        "regime3": "bull"
+      },
+      "2026-08-07": {
+        "trend_on": null,
+        "dist_ma_pct": null,
+        "mom_pct": 4.6,
+        "regime3": "bull"
+      },
+      "2026-08-10": {
+        "trend_on": null,
+        "dist_ma_pct": null,
+        "mom_pct": 4.6,
+        "regime3": "bull"
+      },
+      "2026-08-11": {
+        "trend_on": null,
+        "dist_ma_pct": null,
+        "mom_pct": 4.0,
+        "regime3": "bull"
       }
     },
     "meta": {

@@ -1,62 +1,62 @@
 {
-  "as_of": "2026-08-10",
-  "days_logged": 71,
+  "as_of": "2026-08-13",
+  "days_logged": 74,
   "min_n": 20,
   "horizon": 1,
   "grades": {
     "chase_low_quality": {
       "label": "🔴 追高低质",
-      "n": 143,
-      "hit_rate": 0.483,
+      "n": 150,
+      "hit_rate": 0.513,
       "ci95": [
-        0.402,
-        0.564
+        0.434,
+        0.592
       ],
       "edge_significant": false,
       "sample_sufficient": true,
       "edge_supported": false,
       "reverse_edge_supported": false,
       "decision_direction": null,
-      "avg_dir_fwd_pct": 0.66,
+      "avg_dir_fwd_pct": 0.61,
       "usable": false,
       "note": "Wilson CI 跨 50%，正向 edge 未获支持"
     },
     "elevated": {
       "label": "🟡 偏高位",
-      "n": 64,
-      "hit_rate": 0.531,
+      "n": 68,
+      "hit_rate": 0.515,
       "ci95": [
-        0.411,
-        0.648
+        0.398,
+        0.629
       ],
       "edge_significant": false,
       "sample_sufficient": true,
       "edge_supported": false,
       "reverse_edge_supported": false,
       "decision_direction": null,
-      "avg_dir_fwd_pct": 0.32,
+      "avg_dir_fwd_pct": 0.11,
       "usable": false,
       "note": "Wilson CI 跨 50%，正向 edge 未获支持"
     },
     "oversold_low": {
       "label": "🟡 低位/超卖",
-      "n": 234,
-      "hit_rate": 0.44,
+      "n": 240,
+      "hit_rate": 0.446,
       "ci95": [
-        0.378,
-        0.504
+        0.384,
+        0.509
       ],
       "edge_significant": false,
       "sample_sufficient": true,
       "edge_supported": false,
       "reverse_edge_supported": false,
       "decision_direction": null,
-      "avg_dir_fwd_pct": -0.27,
+      "avg_dir_fwd_pct": -0.22,
       "usable": false,
       "note": "Wilson CI 跨 50%，正向 edge 未获支持"
     }
   },
-  "summary": "没有牌面同时通过样本与正向 edge 闸（71 交易日留痕）——结论未解锁",
+  "summary": "没有牌面同时通过样本与正向 edge 闸（74 交易日留痕）——结论未解锁",
   "unlock_rule": "sample_sufficient AND Wilson_ci95_lower>50pct",
   "discipline": "自迭代：usable 需要样本量与正向 Wilson edge 同时成立；样本够多但方向错误也只展示不下结论；「命中」= 评级方向警示被次日价格证实（追高→跌 / 超卖→涨），不是「能赚钱」。"
 }

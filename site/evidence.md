@@ -27,15 +27,15 @@ description: 我们测了什么、什么没通过。全部数字从产物读取�
 
 ## 量化因子 edge
 
-**判定：⚪ 尚不可判** · 样本：留痕 45 天 · 来源：`assets/data/quant_signal_review.json`
+**判定：⚪ 尚不可判** · 样本：留痕 47 天 · 来源：`assets/data/quant_signal_review.json`
 
 | | |
 |---|---|
-| `rsi_overbought_fade` | 命中率 40.0% · CI95 [0.0%, 100.0%] · n=5（5 日 × 2 标的）· ⚪ CI 跨 50%，锁定 |
+| `rsi_overbought_fade` | 命中率 28.6% · CI95 [0.0%, 100.0%] · n=7（6 日 × 3 标的）· ⚪ CI 跨 50%，锁定 |
 | `rsi_oversold_bounce` | 命中率 64.3% · CI95 [33.3%, 100.0%] · n=28（18 日 × 8 标的）· ⚪ CI 跨 50%，锁定 |
-| `stop_breach_continue` | 命中率 49.8% · CI95 [33.3%, 66.1%] · n=265（40 日 × 11 标的）· ⚪ CI 跨 50%，锁定 |
-| `trend_off_avoid` | 命中率 47.8% · CI95 [33.8%, 61.4%] · n=314（40 日 × 10 标的）· ⚪ CI 跨 50%，锁定 |
-| `trend_on_follow` | 命中率 3.0% · CI95 — · n=33（33 日 × 1 标的）· ⚪ 样本只覆盖单一簇，算不出聚类 CI —— 无法解读 |
+| `stop_breach_continue` | 命中率 48.9% · CI95 [32.3%, 65.8%] · n=270（42 日 × 11 标的）· ⚪ CI 跨 50%，锁定 |
+| `trend_off_avoid` | 命中率 46.9% · CI95 [33.3%, 59.2%] · n=324（42 日 × 10 标的）· ⚪ CI 跨 50%，锁定 |
+| `trend_on_follow` | 命中率 5.7% · CI95 — · n=35（35 日 × 1 标的）· ⚪ 样本只覆盖单一簇，算不出聚类 CI —— 无法解读 |
 | `zscore_extreme_revert` | 命中率 80.0% · CI95 [0.0%, 100.0%] · n=10（6 日 × 6 标的）· ⚪ CI 跨 50%，锁定 |
 
 > 解锁规则是 `cluster_ci_entirely_above_or_below_50pct`：置信区间必须整体落在 50% 一侧。目前 0/6 个因子达标。**CI 跨 50% 是「样本还不够」，不是「因子无效」**——两者的处置相同（不入决策），结论不同。
@@ -50,7 +50,7 @@ description: 我们测了什么、什么没通过。全部数字从产物读取�
 | `prospective_tickers` | 0 / 需要 12 · ⚪ 未达标 |
 | `prospective_sectors` | 0 / 需要 3 · ⚪ 未达标 |
 | `price_coverage` | 1.0 / 需要 0.8 · ✅ |
-| `quality_coverage` | 0.6052631578947368 / 需要 0.6 · ✅ |
+| `quality_coverage` | 0.0 / 需要 0.6 · ⚪ 未达标 |
 | `clustered_edge` | None / 需要 CI lower > 0.0 · ⚪ 未达标 |
 | `membership_history` | False / 需要 True · ⚪ 未达标 |
 | `corporate_actions` | Tencent qfq forward-adjusted daily bars / 需要 adjusted · ✅ |
@@ -77,4 +77,4 @@ description: 我们测了什么、什么没通过。全部数字从产物读取�
 
 ---
 
-<sub>由 `clawock evidence` 生成于 2026-08-13T16:01:09+08:00。数字全部读自产物；改动结论请改产物，不要改这一页。</sub>
+<sub>由 `clawock evidence` 生成于 2026-08-13T21:31:31+08:00。数字全部读自产物；改动结论请改产物，不要改这一页。</sub>
