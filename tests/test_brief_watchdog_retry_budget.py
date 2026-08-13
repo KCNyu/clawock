@@ -134,6 +134,32 @@ def test_an_unreadable_job_says_nothing_about_the_budget(monkeypatch, tmp_path):
     assert "重试预算" not in text
 
 
+def test_a_broken_budget_lookup_never_costs_the_alert(monkeypatch, tmp_path):
+    """Reading the budget goes through the gateway — the thing that may be down.
+
+    This alert is the last notification that reaches a human on a morning with
+    no brief. Losing it to an exception raised while collecting an extra line
+    about *why* would be strictly worse than sending the line-less alert.
+    """
+    def explode():
+        raise RuntimeError("gateway unreachable")
+
+    monkeypatch.setattr(watchdog, "brief_cron_job", explode)
+    sent = []
+    monkeypatch.setattr(watchdog, "WS", tmp_path)
+    monkeypatch.setattr(watchdog, "dispatch_brief_fallback", lambda _dry: (True, "ok"))
+    monkeypatch.setattr(watchdog, "send_telegram",
+                        lambda _to, message, _dry: (sent.append(message), (True, "ok"))[1])
+    monkeypatch.setattr(watchdog, "await_brief_fallback_outcome",
+                        lambda _since, _dry, **_kw: ("success", "https://example/run/1"))
+    monkeypatch.setattr(watchdog, "log", lambda _event: None)
+
+    assert watchdog.alert_brief_missing(TODAY, False, ["brief_missing"]) == 0
+
+    assert sent and "盘前深度简报产物不完整" in sent[0]
+    assert "重试预算" not in sent[0]
+
+
 def test_an_unknown_budget_says_nothing_about_the_budget(monkeypatch, tmp_path):
     monkeypatch.setattr(watchdog, "cron_retry_budget",
                         lambda _job: provider.CronRetryBudget(None, 5, None))

@@ -218,11 +218,20 @@ def retry_budget_note():
     Silent unless the budget is *provably* exhausted: an unreadable job or a
     healthy budget both leave the alert exactly as it was, because a miss has
     other causes and a guess here would send kcn after the wrong one.
+
+    Reading the budget means a `cron list` round trip through the gateway, which
+    is exactly the component a bad morning may have taken down. Nothing it can
+    do may cost the alert: an exception here would swallow the one notification
+    that reaches a human. It also runs after the off-host dispatch, so a slow
+    gateway cannot push that past brief-fallback.yml's 10:00 HKT cutoff.
     """
-    job = brief_cron_job()
-    if not isinstance(job, dict):
+    try:
+        job = brief_cron_job()
+        if not isinstance(job, dict):
+            return ''
+        budget = cron_retry_budget(job)
+    except Exception:
         return ''
-    budget = cron_retry_budget(job)
     if not budget.exhausted:
         return ''
     remedy = (
