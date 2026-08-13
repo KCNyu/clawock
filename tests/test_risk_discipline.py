@@ -7,7 +7,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 from clawock.decision import ledger as decision_v2
 from clawock.decision import risk as discipline
-from clawock_kcnyu.harness import brief_postflight  # noqa: E402
+from clawock.harness import brief_postflight  # noqa: E402
 
 
 def _guardrail(kind="hard_stop", ticker="PLTU", leg="US"):

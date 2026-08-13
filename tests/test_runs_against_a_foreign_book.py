@@ -33,8 +33,8 @@ PHASES = tuple(
 
 
 def _source_install_env(**extra):
-    """Mirror CI's editable product + adapter install for subprocess probes."""
-    roots = [str(ROOT / "src"), str(ROOT / "instances" / "kcnyu" / "src")]
+    """Mirror CI's editable product install for subprocess probes."""
+    roots = [str(ROOT / "src")]
     if os.environ.get("PYTHONPATH"):
         roots.append(os.environ["PYTHONPATH"])
     return dict(os.environ, PYTHONPATH=os.pathsep.join(roots), **extra)
@@ -54,8 +54,8 @@ def foreign_book(tmp_path):
 
 
 @pytest.mark.parametrize(("mode", "phase"), PHASES)
-def test_installed_phase_entrypoints_start_against_the_instance_workspace(mode, phase):
-    """Production phase commands resolve the repository-only adapter by entry point."""
+def test_installed_phase_entrypoints_start_against_the_profile_workspace(mode, phase):
+    """Production phase commands resolve package lifecycle through the profile."""
     done = subprocess.run(
         [sys.executable, "-m", "clawock", mode, phase, "--help"],
         capture_output=True, text=True, timeout=90, cwd=str(ROOT),
@@ -71,7 +71,7 @@ def test_public_cli_stays_usable_from_a_foreign_book(foreign_book):
         [sys.executable, "-m", "clawock", "workflow", "list"],
         capture_output=True, text=True, timeout=60, cwd=str(foreign_book),
         env={k: v for k, v in _source_install_env().items()
-             if k not in {"CLAWOCK_INSTANCE", "CLAWOCK_WORKSPACE"}},
+             if k not in {"CLAWOCK_PROFILE", "CLAWOCK_WORKSPACE"}},
     )
     assert done.returncode == 0, done.stderr
     assert "investment-decision" in done.stdout

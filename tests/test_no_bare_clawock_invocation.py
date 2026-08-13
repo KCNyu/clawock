@@ -29,7 +29,7 @@ ROOT = Path(__file__).resolve().parents[1]
 # The host-operations surface: what the *user crontab* and the git hooks launch,
 # which is where PATH=/usr/bin:/bin actually applies.
 #
-# `instances/kcnyu/.../harness/` is deliberately out of scope, and not by
+# Package lifecycle modules are deliberately out of scope, and not by
 # oversight: it is reached through `clawock brief|report|intraday`, which is what
 # the OpenClaw payloads literally invoke. If that code is running at all, the
 # name already resolved — the runtime's own environment is the proof. Widening

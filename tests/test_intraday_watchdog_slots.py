@@ -18,7 +18,7 @@ def _run(at, **extra):
 
 
 def test_watchdog_target_owns_the_slot_ten_minutes_earlier():
-    from clawock_kcnyu.harness import intraday_watchdog as watchdog
+    from clawock.harness import intraday_watchdog as watchdog
 
     now = datetime(2026, 7, 25, 0, 10, tzinfo=HKT)
     wall, job, slot = watchdog.watchdog_target('us', now)
@@ -40,7 +40,7 @@ def test_hk_watchdog_runs_after_the_observed_long_turn_window():
 
 
 def test_run_for_slot_rejects_the_latest_completed_prior_slot():
-    from clawock_kcnyu.harness import intraday_watchdog as watchdog
+    from clawock.harness import intraday_watchdog as watchdog
 
     prior = _run(datetime(2026, 7, 24, 10, 0, tzinfo=HKT))
     expected = _run(datetime(2026, 7, 24, 10, 30, tzinfo=HKT))
@@ -53,7 +53,7 @@ def test_run_for_slot_rejects_the_latest_completed_prior_slot():
 
 
 def test_context_and_delivery_marker_must_match_the_exact_slot(tmp_path):
-    from clawock_kcnyu.harness import intraday_watchdog as watchdog
+    from clawock.harness import intraday_watchdog as watchdog
 
     current_slot = '2026-07-24T10:30:00+08:00'
     path = tmp_path / 'context.json'
@@ -72,7 +72,7 @@ def test_context_and_delivery_marker_must_match_the_exact_slot(tmp_path):
 
 
 def test_postflight_delivery_marker_carries_preflight_slot_identity():
-    from clawock_kcnyu.harness import intraday_postflight as postflight
+    from clawock.harness import intraday_postflight as postflight
 
     marker = postflight.delivery_marker_payload(
         {
@@ -95,7 +95,7 @@ def test_postflight_delivery_marker_carries_preflight_slot_identity():
 
 def test_main_does_not_assess_a_prior_completed_run(
         tmp_path, monkeypatch):
-    from clawock_kcnyu.harness import intraday_watchdog as watchdog
+    from clawock.harness import intraday_watchdog as watchdog
 
     now = datetime(2026, 7, 24, 10, 40, tzinfo=HKT)
     prior = _run(
@@ -132,7 +132,7 @@ def test_main_does_not_assess_a_prior_completed_run(
 
 def test_main_rejects_mismatched_context_and_uses_wall_clock_for_heartbeat(
         tmp_path, monkeypatch):
-    from clawock_kcnyu.harness import intraday_watchdog as watchdog
+    from clawock.harness import intraday_watchdog as watchdog
 
     now = datetime(2026, 7, 24, 10, 40, tzinfo=HKT)
     run = _run(datetime(2026, 7, 24, 10, 30, tzinfo=HKT))
@@ -177,7 +177,7 @@ HEADING = '🇭🇰 港股盯盘 | 07/29 10:32 HKT'
 
 def _wire_watchdog(monkeypatch, tmp_path, *, run, now, marker, loop_score=1):
     """Set up main() against a tmp workspace; returns (sends, heartbeats, events)."""
-    from clawock_kcnyu.harness import intraday_watchdog as watchdog
+    from clawock.harness import intraday_watchdog as watchdog
 
     context_dir = tmp_path / 'memory' / '.tmp'
     context_dir.mkdir(parents=True, exist_ok=True)
@@ -315,7 +315,7 @@ def test_an_absurdly_future_marker_cannot_suppress_the_backstop(
 def test_a_fallback_that_could_not_be_sent_records_a_failure(
         tmp_path, monkeypatch):
     """The one state nobody downstream can infer must leave its own trace."""
-    from clawock_kcnyu.harness import intraday_watchdog as watchdog_mod
+    from clawock.harness import intraday_watchdog as watchdog_mod
 
     now = datetime(2026, 7, 29, 10, 40, tzinfo=HKT)
     run = _run(datetime(2026, 7, 29, 10, 30, tzinfo=HKT),

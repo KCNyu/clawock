@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "description": "The information layer, as an artifact rather than a number someone typed. Every command both distributions install appears exactly once: inside a layer, or in `excluded` with the reason it is not information collection. The README tables in both languages are checked against these counts by tests/test_information_layer_taxonomy.py; the taxonomy previously survived #429 moving every module it counted, because nothing tied the two together.",
+  "description": "The information layer, as an artifact rather than a number someone typed. Every command exposed by the single clawock distribution appears exactly once: inside a layer, or in `excluded` with the reason it is not information collection. The README tables in both languages are checked against these counts by tests/test_information_layer_taxonomy.py; the taxonomy previously survived #429 moving every module it counted, because nothing tied the two together.",
   "inclusion_rule": "A module is in the information layer if it acquires data from outside the repository, or computes a deterministic measure over market, book or strategy history. Everything else is excluded and listed with its reason: publishing an artifact, recording or gating a decision, relaying one that was already made, carrying operator input, and the delivery, scheduling and watchdog machinery around a run. Being read by a scheduled run is not the test — the brief reads its own work queue too — and neither is running on a schedule: the regime evaluations are manual and are measurements all the same.",
   "layers": [
     {
@@ -39,8 +39,8 @@
           "note": "SPY / HSI / HSTECH daily-close history for the equity-curve overlay"
         },
         {
-          "command": "clawock-kcnyu-gold-fetch",
-          "distribution": "clawock-kcnyu",
+          "command": "clawock-gold-fetch",
+          "registry": "standalone",
           "note": "daily NAV for the 000217 gold DCA position from the Eastmoney fund API"
         }
       ]
@@ -115,8 +115,8 @@
           "note": "deduplicates news and filings into an expiring evidence graph with confirmation gates"
         },
         {
-          "command": "clawock-kcnyu-news-digest",
-          "distribution": "clawock-kcnyu",
+          "command": "clawock-news-digest",
+          "registry": "standalone",
           "note": "US 21:00 digest; Finnhub with a Google News RSS fallback per ticker"
         }
       ]
@@ -141,8 +141,8 @@
           "note": "Reddit, Google News and Yahoo RSS scan per active holding"
         },
         {
-          "command": "clawock-kcnyu-influencer-scan",
-          "distribution": "clawock-kcnyu",
+          "command": "clawock-influencer-scan",
+          "registry": "standalone",
           "note": "market-moving statements from high-impact figures, read from primary feeds"
         }
       ]
@@ -311,46 +311,46 @@
     "research": {
       "reason": "the brief does read it, but as a work queue — reviews due, overdue promises, ungated positions — not as a measurement of the market or the book"
     },
-    "clawock-kcnyu-gold-update": {
+    "clawock-gold-update": {
       "reason": "operator command that amends the gold DCA baseline; it carries human input into the book rather than measuring it",
-      "distribution": "clawock-kcnyu"
+      "registry": "standalone"
     },
-    "clawock-kcnyu-weekly-review": {
+    "clawock-weekly-review": {
       "reason": "assembles a weekly review artifact out of records the layers already produced",
-      "distribution": "clawock-kcnyu"
+      "registry": "standalone"
     },
-    "clawock-kcnyu-workflow-outcomes": {
+    "clawock-workflow-outcomes": {
       "reason": "durable per-slot outcome state for the harness; operational, not market or book",
-      "distribution": "clawock-kcnyu"
+      "registry": "standalone"
     },
-    "clawock-kcnyu-cron-heartbeat": {
+    "clawock-cron-heartbeat": {
       "reason": "publishes the intraday heartbeat ledger — liveness, not evidence",
-      "distribution": "clawock-kcnyu"
+      "registry": "standalone"
     },
-    "clawock-kcnyu-brief-fallback": {
+    "clawock-brief-fallback": {
       "reason": "off-host delivery path for the brief when the runtime cannot produce it",
-      "distribution": "clawock-kcnyu"
+      "registry": "standalone"
     },
-    "clawock-kcnyu-intraday-delta": {
+    "clawock-intraday-delta": {
       "reason": "pre-model trigger state: it decides whether a run happens, and the scheduler is its only reader",
-      "distribution": "clawock-kcnyu"
+      "registry": "standalone"
     },
-    "clawock-kcnyu-brief-watchdog": {
+    "clawock-brief-watchdog": {
       "reason": "delivery watchdog for the 08:00 brief: it checks that a run produced and sent something",
-      "distribution": "clawock-kcnyu"
+      "registry": "standalone"
     },
-    "clawock-kcnyu-report-watchdog": {
+    "clawock-report-watchdog": {
       "reason": "delivery watchdog for the session reports, on the same footing",
-      "distribution": "clawock-kcnyu"
+      "registry": "standalone"
     },
-    "clawock-kcnyu-intraday-watchdog": {
+    "clawock-intraday-watchdog": {
       "reason": "delivery watchdog for the intraday slots, on the same footing",
-      "distribution": "clawock-kcnyu"
+      "registry": "standalone"
     }
   },
   "registries": {
-    "clawock": "clawock.cli.PACKAGED_UTILITIES — the packaged utility commands the public CLI dispatches on.",
-    "clawock-kcnyu": "[project.scripts] in instances/kcnyu/pyproject.toml — the instance distribution's console scripts.",
-    "not_classified": "The instance's other entry-point groups: `clawock.instance_phases` (kcnyu brief/report/intraday preflight and postflight) and `clawock.dashboard_sections`. The phases are the *consumers* of this layer — they assemble blocks from the modules below and hand them to the model — and the dashboard sections render what was already produced. Counting either would count the reader as one of the things read."
+    "clawock": "clawock.cli.PACKAGED_UTILITIES — subcommands dispatched by the public CLI.",
+    "standalone": "Additional console commands in the root pyproject.toml [project.scripts]; this is a second command surface of the same clawock distribution, not a second owner or package.",
+    "not_classified": "The package-owned lifecycle phase registry in clawock.harness.runner is excluded because phases consume and assemble the information layers; counting them would count the reader as one of the things read."
   }
 }

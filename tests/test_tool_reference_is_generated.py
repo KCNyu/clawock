@@ -3,13 +3,13 @@
 `docs/reference/commands.md` was hand-maintained, so a command could be added,
 renamed or removed without it noticing, and the README linked it as the full
 command and provider catalog anyway (#489). Its inventory is now rendered by
-`ops/ci/generate_tool_reference.py` from the two script registries and the
+`ops/ci/generate_tool_reference.py` from the distribution's two command registries and the
 classification in `config/information-layers.json`.
 
 These tests check the three properties that make that worth anything:
 
 1. the committed document is what the generator produces right now;
-2. every command either distribution installs is in it, once, read back out of
+2. every command either registry exposes is in it, once, read back out of
    the markdown rather than out of the renderer;
 3. the generator fails on a command it cannot classify instead of quietly
    shipping a catalog that omits it.
@@ -36,7 +36,7 @@ sys.path.insert(0, str(ROOT / "ops" / "ci"))
 from generate_tool_reference import (  # noqa: E402
     BEGIN,
     END,
-    INSTANCE,
+    SCRIPTS,
     PUBLIC,
     build,
     registries,
@@ -57,10 +57,10 @@ def _commands_in(markdown):
 
 
 def _key(invocation):
-    """`clawock foo` → (clawock, foo); `clawock-kcnyu-foo` → (clawock-kcnyu, ...)."""
+    """`clawock foo` and standalone `clawock-foo` command identities."""
     if invocation.startswith("clawock "):
         return (PUBLIC, invocation.split(" ", 1)[1])
-    return (INSTANCE, invocation)
+    return (SCRIPTS, invocation)
 
 
 def test_the_committed_inventory_is_what_the_generator_produces():
@@ -80,16 +80,16 @@ def test_every_installed_command_is_named_exactly_once():
     """
     available = registries()
     assert len(available[PUBLIC]) > 40, "the public registry shrank — check the parse"
-    assert len(available[INSTANCE]) > 8, "the instance registry shrank — check the parse"
+    assert len(available[SCRIPTS]) > 8, "the script registry shrank — check the parse"
 
     named = [_key(invocation) for invocation in _commands_in(DOCUMENT.read_text())]
 
     duplicates = {key for key in named if named.count(key) > 1}
     assert not duplicates, f"listed twice in the catalog: {sorted(duplicates)}"
 
-    installed = {(distribution, command)
-                 for distribution, registry in available.items()
-                 for command in registry}
+    installed = {(registry_name, command)
+                 for registry_name, commands in available.items()
+                 for command in commands}
     assert set(named) == installed, (
         "the catalog and the installation disagree: "
         f"missing {sorted(installed - set(named))}, "
@@ -101,8 +101,8 @@ def test_the_document_names_the_module_behind_each_command():
     block = _generated_block(DOCUMENT.read_text())
     available = registries()
 
-    for distribution, registry in available.items():
-        for command, target in registry.items():
+    for registry_name, commands in available.items():
+        for command, target in commands.items():
             module = target.split(":")[0]
             assert f"| `{module}` |" in block, (
                 f"{command} is listed without the module it dispatches to")

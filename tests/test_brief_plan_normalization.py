@@ -8,7 +8,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-from clawock_kcnyu.harness import brief_postflight  # noqa: E402
+from clawock.harness import brief_postflight  # noqa: E402
 
 
 def _authored_decision(**updates):

@@ -37,7 +37,7 @@ def _marker(context_id, generated_at, **extra):
 
 
 def test_retry_regenerated_context_still_counts_as_delivered():
-    from clawock_kcnyu.harness import report_watchdog as watchdog
+    from clawock.harness import report_watchdog as watchdog
 
     # The retry's preflight rebuilt the context 2m35s after the delivered one.
     marker = _marker('af4310c68bbf', datetime(2026, 8, 3, 13, 30, 24))
@@ -52,7 +52,7 @@ def test_retry_regenerated_context_still_counts_as_delivered():
 
 
 def test_stale_body_behind_a_fresh_marker_still_gets_a_backstop():
-    from clawock_kcnyu.harness import report_watchdog as watchdog
+    from clawock.harness import report_watchdog as watchdog
 
     # 2026-07-24 shape: the marker was written today, but the report it sent was
     # built from a context two days old. That must remain a miss.
@@ -67,7 +67,7 @@ def test_stale_body_behind_a_fresh_marker_still_gets_a_backstop():
 
 
 def test_context_older_than_the_delivered_one_is_not_a_retry():
-    from clawock_kcnyu.harness import report_watchdog as watchdog
+    from clawock.harness import report_watchdog as watchdog
 
     # A retry always regenerates FORWARD. A context materially older than the
     # delivered generation means the watchdog is reading someone else's file,
@@ -83,7 +83,7 @@ def test_context_older_than_the_delivered_one_is_not_a_retry():
 
 def test_postflight_records_the_source_context_timestamp(tmp_path, monkeypatch):
     """Without this field on the marker the window above can never engage."""
-    from clawock_kcnyu.harness import report_postflight as postflight
+    from clawock.harness import report_postflight as postflight
 
     monkeypatch.setattr(postflight, 'TMP', tmp_path)
     monkeypatch.setattr(postflight, 'resolve_wechat_target',

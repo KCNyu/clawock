@@ -8,8 +8,8 @@ from unittest import mock
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "ops" / "growth"))
 from clawock.decision import ledger as dv2
-from clawock_kcnyu.harness.intraday_watchdog import deterministic_fallback as intraday_fallback
-from clawock_kcnyu.harness.report_watchdog import deterministic_fallback as report_fallback
+from clawock.harness.intraday_watchdog import deterministic_fallback as intraday_fallback
+from clawock.harness.report_watchdog import deterministic_fallback as report_fallback
 
 
 def test_decision_engine_is_owned_by_the_product_package():
@@ -799,7 +799,7 @@ class ExecutionCoverageTests(unittest.TestCase):
         wrong field, got the wrong window for every passive row and produced a
         plausible answer that was off by six points.
         """
-        from clawock_kcnyu.harness import brief_preflight
+        from clawock.harness import brief_preflight
 
         row = {"plan_date": (date.today() - timedelta(days=10)).isoformat(),
                "ticker": "AAA", "bucket": "cut"}

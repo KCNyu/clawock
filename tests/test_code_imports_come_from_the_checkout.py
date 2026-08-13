@@ -29,7 +29,7 @@ _WS_IMPORT = re.compile(r"sys\.path\.insert\(\s*0\s*,\s*str\(\s*WS\s*/")
 # Where executable code lives now. This used to be `scripts/**/*.py`, and when
 # #429 deleted that directory the scan quietly became a walk over zero files —
 # the rule below stayed written down while nothing enforced it any more.
-CODE_ROOTS = ("src", "ops", "instances", "tests", ".githooks")
+CODE_ROOTS = ("src", "ops", "tests", ".githooks")
 
 
 def _modules():

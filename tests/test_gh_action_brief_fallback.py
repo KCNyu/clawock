@@ -5,7 +5,7 @@ import sys
 
 ROOT = Path(__file__).resolve().parents[1]
 
-from clawock_kcnyu.automation import brief_fallback as fallback  # noqa: E402
+from clawock.automation import brief_fallback as fallback  # noqa: E402
 
 
 def _context():

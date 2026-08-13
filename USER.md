@@ -43,5 +43,5 @@ The more you know, the better you can help. But remember — you're learning abo
 
 - 不要建议立保证金 / 借钱加杠杆 —— 现金管理偏稳，杠杆敞口已经在杠杆 ETF 里
 - 不要每次都重复"高风险请注意"之类的免责
-- 不要从 dated memory 恢复已删除脚本；只用 installed `clawock` / `clawock-kcnyu` 与 named `ops/*` 入口
+- 不要从 dated memory 恢复已删除脚本；只用 installed `clawock` 与 named `ops/*` 入口
 - 不要在 group chat / 微信简报里加 emoji 烟花 —— 标题用 1 个 emoji，正文克制

@@ -20,14 +20,11 @@ Run: python3 -m pytest tests/test_brief_data_ownership.py -q
 """
 import re
 import subprocess
-import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-INSTANCE_HARNESS = ROOT / 'instances' / 'kcnyu' / 'src' / 'clawock_kcnyu' / 'harness'
-sys.path.insert(0, str(ROOT / 'instances' / 'kcnyu' / 'src'))
-
-from clawock_kcnyu.harness import _harness_common
+INSTANCE_HARNESS = ROOT / 'src' / 'clawock' / 'harness'
+from clawock.harness import _harness_common
 
 PREFLIGHT = (INSTANCE_HARNESS / 'brief_preflight.py').read_text()
 POSTFLIGHT = (INSTANCE_HARNESS / 'brief_postflight.py').read_text()

@@ -4,17 +4,17 @@
   "locale": "en-US",
   "timezone": "UTC",
   "markets": {
-    "paper": {
+    "hk": {
       "timezone": "UTC",
-      "label": "Paper market",
-      "analysis_command": "analyze-paper",
+      "label": "Example HK market",
+      "analysis_command": "analyze-hk",
       "skill": null
     }
   },
   "workflows": {
     "intraday": {
       "enabled": true,
-      "markets": ["paper"],
+      "markets": ["hk"],
       "policy": "intraday",
       "template": "intraday"
     }

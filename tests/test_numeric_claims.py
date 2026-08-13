@@ -13,15 +13,12 @@ kind of green.
 from __future__ import annotations
 
 import importlib
-import sys
 from pathlib import Path
 
 import pytest
 
 
 WS = Path(__file__).resolve().parents[1]
-INSTANCE_SRC = str(WS / "instances" / "kcnyu" / "src")
-
 # The 09:30 港股开盘报告 context, reduced to the fields prose quotes from.
 CTX = {
     "raw_wechat_block": (
@@ -38,8 +35,6 @@ CTX = {
 
 @pytest.fixture(scope="module")
 def hc():
-    if INSTANCE_SRC not in sys.path:
-        sys.path.insert(0, INSTANCE_SRC)
     return pytest.importorskip("clawock.harness.validation")
 
 
@@ -108,9 +103,7 @@ def test_gate_cannot_turn_a_delivered_report_into_a_blocked_one(hc, module_name)
     `fail` — not delivered — while the same two without it were `warn`. An
     advisory line must never be able to cost kcn a report.
     """
-    if INSTANCE_SRC not in sys.path:
-        sys.path.insert(0, INSTANCE_SRC)
-    post = importlib.import_module(f'clawock_kcnyu.harness.{module_name}')
+    post = importlib.import_module(f'clawock.harness.{module_name}')
     gate = _gate_issue(hc)
     soft = "报告长度 3200 字 > 3000 软上限 (warn)"
     thin = '"▎我的看法" 段仅 40 字，太敷衍'
@@ -121,9 +114,7 @@ def test_gate_cannot_turn_a_delivered_report_into_a_blocked_one(hc, module_name)
 
 
 def test_advisory_never_masks_a_real_failure(hc):
-    if INSTANCE_SRC not in sys.path:
-        sys.path.insert(0, INSTANCE_SRC)
-    post = importlib.import_module('clawock_kcnyu.harness.intraday_postflight')
+    post = importlib.import_module('clawock.harness.intraday_postflight')
     # A critical issue must still fail with the advisory line alongside it.
     assert post.categorize(['缺段标记 "▎我的看法"', _gate_issue(hc)]) == "fail"
     # And a genuine over-budget pile must still fail.
@@ -146,9 +137,7 @@ def test_known_blind_spot_a_real_number_on_the_wrong_subject(hc):
 
 @pytest.mark.parametrize("module_name", ["report_postflight", "intraday_postflight"])
 def test_both_postflights_run_the_gate(module_name):
-    if INSTANCE_SRC not in sys.path:
-        sys.path.insert(0, INSTANCE_SRC)
-    module = importlib.import_module(f'clawock_kcnyu.harness.{module_name}')
+    module = importlib.import_module(f'clawock.harness.{module_name}')
     prose = (
         "🇭🇰 港股盯盘 | 07/27 09:33 HKT\n▎我的看法\n"
         "恒指 25,031、恒科 4,654，07226 现价 3.34 是纪律 swap 标的，今日不追高；"

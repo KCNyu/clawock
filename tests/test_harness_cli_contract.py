@@ -50,7 +50,7 @@ def test_profile_selects_phase_and_scopes_runtime_environment(monkeypatch, tmp_p
     import clawock.harness.runner as runner
 
     seen = {}
-    def adapter(argv):
+    def phase(argv):
         seen.update(
             workspace=os.environ.get("CLAWOCK_WORKSPACE"),
             profile=os.environ.get("CLAWOCK_PROFILE"),
@@ -58,17 +58,8 @@ def test_profile_selects_phase_and_scopes_runtime_environment(monkeypatch, tmp_p
         )
         return 0
 
-    class FakeEntryPoint:
-        @staticmethod
-        def load():
-            return adapter
-
-    class FakeEntryPoints:
-        @staticmethod
-        def select(*, group, name):
-            assert group == runner.ENTRYPOINT_GROUP
-            assert name == "fixture.brief.preflight"
-            return (FakeEntryPoint(),)
+    class Module:
+        main = staticmethod(phase)
 
     profile = tmp_path / "config/profiles/fixture/profile.json"
     profile.parent.mkdir(parents=True)
@@ -88,8 +79,7 @@ def test_profile_selects_phase_and_scopes_runtime_environment(monkeypatch, tmp_p
         "templates": {},
         "delivery": {"provider": "filesystem", "targets": {}},
     }))
-    monkeypatch.setattr(runner, "entry_points", lambda: FakeEntryPoints())
-    monkeypatch.setenv("CLAWOCK_INSTANCE", "wrong-owner")
+    monkeypatch.setattr(runner, "import_module", lambda name: Module)
     monkeypatch.delenv("CLAWOCK_WORKSPACE", raising=False)
     monkeypatch.delenv("CLAWOCK_PROFILE", raising=False)
     assert runner.run_phase(

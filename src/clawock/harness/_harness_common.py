@@ -293,7 +293,7 @@ def rebuild_dashboard(ws=None):
              '--into', str(previous)],
             capture_output=True, text=True, timeout=60, cwd=str(ws), check=False,
         )
-        from clawock_kcnyu.automation import workflow_outcomes
+        from clawock.automation import workflow_outcomes
         workflow_outcomes.publish()
         r = subprocess.run(
             ['flock', DASHBOARD_PUBLISH_LOCK,

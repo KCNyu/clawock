@@ -331,7 +331,7 @@ def llm_filter(candidates, held):
     if not (os.environ.get('MINIMAX_API_KEY') or os.environ.get('XIAOMI_API_KEY')):
         print('  ⚠️ no LLM provider key — skipping relevance filter (keyword-only)', file=sys.stderr)
         return {}
-    from clawock_kcnyu.automation.llm import chat
+    from clawock.automation.llm import chat
     held_lines = '\n'.join(f"  - {h['ticker']} ({h['name']}, {h['region']})" for h in held)
     cand_lines = '\n'.join(
         f"[{i}] ({c['author']}) {c['text']}" for i, c in enumerate(candidates)

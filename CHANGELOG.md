@@ -5,7 +5,7 @@ What changed between the versions of the `clawock` distribution on PyPI.
 Only the public package is released, so only changes a package consumer can
 observe are listed here. The live KCNyu desk changes many times a day and its
 record is the commit history, the dashboard and the evidence page — not this
-file. `clawock-kcnyu` is never published; it appears below only where a release
+file. Historical repository-only adapters appear below only where a release
 step touched it.
 
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
@@ -21,7 +21,12 @@ otherwise, so a release cannot ship an entry that was never written.
 
 ### Changed
 
-- The command catalog the README links moved to `docs/reference/commands.md` — named after the deleted `scripts/` directory before — and its inventory is now generated from the installed-command registries instead of being hand-maintained, so it lists every command the two distributions install (#489). The old path stays as a pointer because published releases link it.
+- Harness phases, strategies, scheduling, watchdogs, automation and providers
+  now have one executable owner: the root `clawock` distribution. KCNyu is a
+  declarative profile plus workspace resources/state; the repository-only
+  `clawock-kcnyu` distribution, entry-point bridge and `CLAWOCK_INSTANCE`
+  selector are removed (#536, #537, #538, #539).
+- The command catalog the README links moved to `docs/reference/commands.md` — named after the deleted `scripts/` directory before — and its inventory is now generated from the distribution's CLI and standalone-command registries instead of being hand-maintained, so it lists every installed command (#489). The old path stays as a pointer because published releases link it.
 
 ## [0.1.2] — 2026-08-11
 

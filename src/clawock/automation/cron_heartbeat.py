@@ -16,7 +16,7 @@ from pathlib import Path
 from zoneinfo import ZoneInfo
 
 from clawock.workspace import workspace_root
-from clawock_kcnyu.automation import workflow_outcomes
+from clawock.automation import workflow_outcomes
 
 WS = workspace_root(Path.cwd())
 LOCAL_PATH = WS / "memory" / ".tmp" / "cron-heartbeats.json"

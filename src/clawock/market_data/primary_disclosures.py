@@ -2,8 +2,8 @@
 
 This module owns source access and normalization only.  It does not resolve a
 portfolio, classify an event as a trading candidate, inspect price reaction,
-size exposure, persist cursors or alert a user.  Those are downstream policy
-and instance concerns.
+size exposure, persist cursors or alert a user. Those are downstream strategy,
+lifecycle and provider concerns.
 """
 from __future__ import annotations
 

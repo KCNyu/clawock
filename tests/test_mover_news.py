@@ -489,7 +489,7 @@ def test_mover_attribution_has_room_under_the_ceiling():
     why this test existed. #334 lifted the ceiling to 5,000/6,000 and removed the
     pre-write target, so the worst case now clears it with room to spare — the
     remaining risk is the opposite one, a ceiling quietly lowered back onto it."""
-    from clawock_kcnyu.harness import report_postflight
+    from clawock.harness import report_postflight
 
     worst_case_measured = 2_898
     assert report_postflight.CHAR_LIMITS["soft"] > worst_case_measured

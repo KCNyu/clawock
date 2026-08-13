@@ -15,7 +15,7 @@ from clawock.evidence import research_surface as rs
 
 
 ROOT = Path(__file__).resolve().parents[1]
-INSTANCE_HARNESS = ROOT / "instances" / "kcnyu" / "src" / "clawock_kcnyu" / "harness"
+INSTANCE_HARNESS = ROOT / 'src' / 'clawock' / 'harness'
 EARNINGS_FIXTURE = ROOT / "tests" / "fixtures" / "earnings" / "us-ustest-fy2026q1.json"
 GATE_FIXTURE = ROOT / "tests" / "fixtures" / "entry-gates" / "ustest-2026-07-20.json"
 NOW = datetime(2026, 7, 26, tzinfo=timezone.utc)
