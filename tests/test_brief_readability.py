@@ -4,7 +4,7 @@ import sys
 
 
 ROOT = Path(__file__).resolve().parents[1]
-from clawock_kcnyu.harness import brief_postflight as postflight  # noqa: E402
+from clawock.harness import brief_postflight as postflight  # noqa: E402
 
 
 def _write_size(path: Path, size: int) -> Path:

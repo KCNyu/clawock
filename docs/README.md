@@ -2,7 +2,7 @@
 
 The repository root is reserved for files with a real discovery or runtime
 contract: GitHub/Python metadata, OpenClaw bootstrap context, and the live
-instance ledgers. Static website source lives in `site/`; Pages combines it with
+workspace ledgers. Static website source lives in `site/`; Pages combines it with
 public runtime outputs through `ops/pages/stage_site.py`. General documentation
 belongs here.
 
@@ -10,7 +10,7 @@ belongs here.
 
 - [`data-plane.md`](architecture/data-plane.md) — why the live JSON snapshot is
   separate from Pages, what GitHub officially supports, and the replacement bar.
-- [`harness.md`](architecture/harness.md) — package/instance/runtime boundaries,
+- [`harness.md`](architecture/harness.md) — package/profile/runtime boundaries,
   CLI lifecycle, context injection contract, and generation-pinned artifacts.
 
 ## Operations

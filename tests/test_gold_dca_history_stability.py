@@ -6,7 +6,7 @@ import sys
 
 ROOT = Path(__file__).resolve().parents[1]
 
-from clawock_kcnyu.gold import fetch as gold  # noqa: E402
+from clawock.market_data.gold import fetch as gold  # noqa: E402
 
 
 def rows(values):

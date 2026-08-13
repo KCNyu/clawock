@@ -2,7 +2,7 @@
 
 > OpenClaw 主会话通过 `agent:bootstrap` 读取本文件。isolated cron 不读取
 > `BOOTSTRAP.md`，它会注入 `AGENTS.md` / `TOOLS.md` 等 allowlist 文件并由 cron
-> payload 指定 skill。两条路径都只使用安装后的 `clawock` 与 `clawock-kcnyu`
+> payload 指定 skill。两条路径都只使用安装后的 `clawock`
 > 入口。**这是硬约束，不是建议。**
 
 ---
@@ -18,7 +18,7 @@
 3. **绝不**对 `00100 MINIMAX` 在 Tencent 失败时假装拿到数据 —
    它是唯一源，挂了必须明说 "实时价获取失败"。
 4. **绝不**绕过已安装的 `clawock analyze-us` / `clawock analyze-hk` 入口。
-   portable 能力归 `clawock`，本实例 harness/automation 归 `clawock-kcnyu`；
+   harness/automation/策略归 `clawock`，本实例只提供声明式 profile 与数据；
    不把仓库内部 Python 文件或旧脚本路径当运行接口。
 
 ### B. Harness 流程（cron 触发的所有股票 job）

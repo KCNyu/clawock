@@ -113,9 +113,9 @@ def test_per_run_context_layers_documented_in_both_languages():
     root = Path(__file__).resolve().parents[1]
     counts = {}
     for name, path in (
-        ("brief", "instances/kcnyu/src/clawock_kcnyu/harness/brief_preflight.py"),
-        ("report", "instances/kcnyu/src/clawock_kcnyu/harness/report_preflight.py"),
-        ("intraday", "instances/kcnyu/src/clawock_kcnyu/harness/intraday_preflight.py"),
+        ("brief", "src/clawock/harness/brief_preflight.py"),
+        ("report", "src/clawock/harness/report_preflight.py"),
+        ("intraday", "src/clawock/harness/intraday_preflight.py"),
     ):
         source = (root / path).read_text()
         block = re.search(r"\n    (?:context|result) = \{(.*?)\n    \}", source, re.S)

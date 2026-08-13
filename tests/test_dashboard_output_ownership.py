@@ -8,7 +8,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-INSTANCE_HARNESS = ROOT / "instances" / "kcnyu" / "src" / "clawock_kcnyu" / "harness"
+INSTANCE_HARNESS = ROOT / 'src' / 'clawock' / 'harness'
 from clawock.publish import outputs as dashboard_outputs
 
 
@@ -219,9 +219,9 @@ def test_the_publish_path_for_the_outputs_is_the_data_branch_alone():
     """
     publisher = (ROOT / "ops/publish/publish_data_branch.py").read_text()
     assert "output_paths" in publisher
-    for rel in ("instances/kcnyu/src/clawock_kcnyu/harness/brief_postflight.py",
-                "instances/kcnyu/src/clawock_kcnyu/harness/report_postflight.py",
-                "instances/kcnyu/src/clawock_kcnyu/harness/intraday_postflight.py"):
+    for rel in ("src/clawock/harness/brief_postflight.py",
+                "src/clawock/harness/report_postflight.py",
+                "src/clawock/harness/intraday_postflight.py"):
         text = (ROOT / rel).read_text()
         assert "dashboard_output_changes" not in text, (
             f"{rel} still derives dashboard output paths; its only former use "

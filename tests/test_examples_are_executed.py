@@ -54,7 +54,7 @@ def test_the_example_does_not_reach_back_into_the_repository():
     """It proves the package works *without* this checkout, so referring to the
     source tree would make the proof circular."""
     script = EXAMPLE.read_text()
-    for forbidden in ('src/clawock', 'instances/', 'PYTHONPATH', 'pip install -e',
+    for forbidden in ('src/clawock', 'PYTHONPATH', 'pip install -e',
                       'git clone', '/root/'):
         assert forbidden not in script, f'{forbidden!r} makes the proof circular'
 

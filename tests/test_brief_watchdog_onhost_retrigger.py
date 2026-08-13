@@ -22,8 +22,8 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-from clawock_kcnyu.harness import brief_watchdog as watchdog  # noqa: E402
-from clawock_kcnyu.harness import _watchdog_common as common  # noqa: E402
+from clawock.harness import brief_watchdog as watchdog  # noqa: E402
+from clawock.harness import _watchdog_common as common  # noqa: E402
 
 HKT = timezone(timedelta(hours=8))
 TODAY = "2026-08-11"

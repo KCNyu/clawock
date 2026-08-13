@@ -101,12 +101,9 @@ def test_clawock_importers_do_not_inherit_their_sys_path():
     )
 
 
-def test_installed_instance_adapter_never_imports_product_from_the_checkout():
-    """The adapter may still reach workspace-owned data modules during the next
-    migration slice; product code must already come from its declared wheel
-    dependency, never from a repository-relative `src/` insertion.
-    """
-    root = ROOT / "instances" / "kcnyu" / "src" / "clawock_kcnyu"
+def test_installed_package_never_imports_itself_from_the_checkout():
+    """Package modules resolve siblings normally, never through source hacks."""
+    root = ROOT / "src" / "clawock"
     offenders = []
     for path in sorted(root.rglob("*.py")):
         source = path.read_text()
@@ -114,4 +111,4 @@ def test_installed_instance_adapter_never_imports_product_from_the_checkout():
             ' / "src"' in source or " / 'src'" in source
         ):
             offenders.append(str(path.relative_to(ROOT)))
-    assert not offenders, f"adapter reaches product source by checkout path: {offenders}"
+    assert not offenders, f"package reaches itself by checkout path: {offenders}"

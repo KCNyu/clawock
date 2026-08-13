@@ -66,8 +66,8 @@ fi
 # memory/.tmp sidecar is missing (#262 slice 2 made workspace-only the default).
 # On this host the sidecars are present, so it is a no-op — it is here so a
 # degraded run publishes the last good cards instead of blanking them.
-/root/.local/bin/clawock-kcnyu-cron-heartbeat --publish
-/root/.local/bin/clawock-kcnyu-workflow-outcomes --publish
+/root/.local/bin/clawock-cron-heartbeat --publish
+/root/.local/bin/clawock-workflow-outcomes --publish
 /root/.local/bin/clawock dashboard-build --previous "$PREVIOUS_DIR/assets/data/dashboard.json"
 
 # build_dashboard writes four public files. The shared ownership helper compares

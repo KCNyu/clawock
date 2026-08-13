@@ -7,7 +7,7 @@ allowance, so only ~16K remained for prose against a ~33KB brief. The run ended
 """
 import json
 
-from clawock_kcnyu.automation import brief_fallback, llm
+from clawock.automation import brief_fallback, llm
 
 
 # The largest published pre-open.md observed to date, in bytes. Mostly CJK, which

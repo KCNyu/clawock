@@ -11,7 +11,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'ops' / 'host'))
 
 from clawock import scheduling as cron_contract
-from clawock_kcnyu.automation import cron_heartbeat
+from clawock.automation import cron_heartbeat
 import sync_us_cron_dst
 
 SPEC = importlib.util.spec_from_file_location(
@@ -217,7 +217,7 @@ def test_crontab_apply_preserves_every_unmanaged_line(monkeypatch):
         'line_index': 1,
         'to': {
             'expr': '30 8 * * 1-5',
-            'command': '/root/.local/bin/clawock-kcnyu-brief-watchdog',
+            'command': '/root/.local/bin/clawock-brief-watchdog',
         },
     }])
 
@@ -225,7 +225,7 @@ def test_crontab_apply_preserves_every_unmanaged_line(monkeypatch):
     assert captured['argv'] == ['crontab', '-']
     assert captured['input'] == (
         '# managed and unrelated host jobs\n'
-        '30 8 * * 1-5 /root/.local/bin/clawock-kcnyu-brief-watchdog\n'
+        '30 8 * * 1-5 /root/.local/bin/clawock-brief-watchdog\n'
         '0,20,40 * * * * /bin/bash /srv/publisher.sh\n'
     )
 
@@ -340,7 +340,7 @@ def test_heartbeat_health_graces_the_current_running_slot():
 
 
 def test_intraday_hard_length_limit_is_a_failure():
-    from clawock_kcnyu.harness import intraday_postflight
+    from clawock.harness import intraday_postflight
 
     assert intraday_postflight.categorize(
         ['报告长度 3501 字 > 3500 上限']
@@ -377,7 +377,7 @@ def test_intraday_empty_input_is_an_input_error_not_a_content_failure(monkeypatc
     wrong" issues, hiding the real cause (missing plumbing). Empty input must be
     reported as its own class, and must never reach content validation."""
     import io
-    from clawock_kcnyu.harness import intraday_postflight
+    from clawock.harness import intraday_postflight
 
     monkeypatch.setattr(sys, 'stdin', io.StringIO(''))
     text, err = intraday_postflight.read_report_text('hk', None)
@@ -394,7 +394,7 @@ def test_intraday_stale_report_file_is_refused(tmp_path):
     report — the failure mode --text-file would otherwise introduce."""
     import os
 
-    from clawock_kcnyu.harness import intraday_postflight
+    from clawock.harness import intraday_postflight
 
     report = tmp_path / 'intraday-report-hk.md'
     report.write_text('🇭🇰 港股盯盘 | 07/23 10:03 HKT\n▎我的看法\n' + 'x' * 80)
@@ -420,7 +420,7 @@ def test_intraday_main_stops_on_empty_input_and_blames_the_context_slot(monkeypa
     successful retry marks 10:00 completed."""
     import io
 
-    from clawock_kcnyu.harness import intraday_postflight
+    from clawock.harness import intraday_postflight
 
     recorded = {}
     monkeypatch.setattr(sys, 'stdin', io.StringIO(''))

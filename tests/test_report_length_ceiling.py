@@ -14,10 +14,10 @@ from pathlib import Path
 import sys
 
 ROOT = Path(__file__).resolve().parents[1]
-from clawock_kcnyu.harness import _harness_common as common  # noqa: F401
+from clawock.harness import _harness_common as common  # noqa: F401
 from clawock.harness import validation  # noqa: E402
-from clawock_kcnyu.harness import intraday_postflight  # noqa: E402
-from clawock_kcnyu.harness import report_postflight as postflight  # noqa: E402
+from clawock.harness import intraday_postflight  # noqa: E402
+from clawock.harness import report_postflight as postflight  # noqa: E402
 
 
 def test_every_mode_reads_one_definition_of_the_ceiling():

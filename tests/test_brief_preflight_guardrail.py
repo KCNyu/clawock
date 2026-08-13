@@ -18,7 +18,7 @@ import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
 PRODUCTION_MODULE = (
-    ROOT / "instances" / "kcnyu" / "src" / "clawock_kcnyu" / "harness" /
+    ROOT / 'src' / 'clawock' / 'harness' /
     "brief_preflight.py"
 )
 
@@ -31,9 +31,9 @@ def preflight():
     sys.path.insert(0, data_path)
     try:
         if module_path.resolve() == PRODUCTION_MODULE.resolve():
-            return importlib.import_module("clawock_kcnyu.harness.brief_preflight")
+            return importlib.import_module("clawock.harness.brief_preflight")
         spec = importlib.util.spec_from_file_location(
-            "clawock_kcnyu.harness._brief_preflight_guardrail_under_test",
+            "clawock.harness._brief_preflight_guardrail_under_test",
             module_path,
         )
         if spec is None or spec.loader is None:

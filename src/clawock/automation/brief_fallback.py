@@ -16,7 +16,7 @@ from copy import deepcopy
 from datetime import date
 from pathlib import Path
 
-from clawock_kcnyu.automation.llm import chat
+from clawock.automation.llm import chat
 from clawock.decision import ledger as decision_v2
 
 # Output budget for the single-turn brief. Thinking is enabled, and _call_provider

@@ -25,14 +25,14 @@ jobs:
         with:
           python-version: '3.11'
 
-      - run: pip install --quiet -e . -e ./instances/kcnyu
+      - run: pip install --quiet -e .
 
       - name: Fetch news + LLM distill
         env:
           FINNHUB_API_KEY: ${{ secrets.FINNHUB_API_KEY }}
           XIAOMI_API_KEY: ${{ secrets.XIAOMI_API_KEY }}
           MINIMAX_API_KEY: ${{ secrets.MINIMAX_API_KEY }}
-        run: clawock-kcnyu-news-digest
+        run: clawock-news-digest
 
       - name: Validate generated digest
         run: clawock validate-sidecar news-digest

@@ -70,9 +70,9 @@ owns the portable decision workflow and the deterministic truth around it.
 ![clawock product architecture — external runtimes own models, conversation, memory and tools while the package supplies portable workflows, certified context, deterministic reconciliation, evaluation and bounded improvement](https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/product-architecture.svg)
 
 The KCNyu deployment then applies that product boundary to one live portfolio.
-This second diagram is the instance architecture, not the reusable package.
+This second diagram is the deployed KCNyu desk, not the reusable package boundary.
 
-![KCNyu live-instance architecture — Python builds reconciled market context, OpenClaw agents debate the trade, clawock contracts gate the decision, and a public scorecard closes the loop](https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/architecture.svg)
+![KCNyu live-desk architecture — Python builds reconciled market context, OpenClaw agents debate the trade, clawock contracts gate the decision, and a public scorecard closes the loop](https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/architecture.svg)
 
 Every trading day the system pulls fresh prices, FX, volatility, earnings and macro context plus news and social sentiment; hands that normalized context to a multi-agent debate; applies deterministic risk, schema, and ledger gates in Python; delivers a brief to WeChat; and updates the public dashboard.
 
@@ -250,12 +250,13 @@ and `CLAWOCK_WORKSPACE` still inspect or point at an operational book. They name
 missing capabilities instead of pretending every foreign workspace is ready to
 run this live desk.
 
-The package owns the lifecycle contracts, generation-pinned artifacts, context
-assembly, validation and CLI. It does not reimplement an agent loop: OpenClaw is
-the unattended runtime adapter used by this instance today, while another runner
-can consume the same context/tool contracts. The live adapter still assumes this
-desk's two books, registry and schedules; `doctor` and `context audit` state those
-capabilities instead of pretending every foreign workspace is production-ready.
+The package owns lifecycle implementation, strategies, scheduling, watchdogs,
+generation-pinned artifacts, context assembly, validation and CLI. It does not
+reimplement an agent loop: OpenClaw is the unattended runtime used by this desk
+today, while another runner can consume the same context/tool contracts. The
+`kcnyu` profile and workspace declare this desk's books, resources and schedules;
+`doctor` and `context audit` state those capabilities instead of pretending every
+foreign workspace is production-ready.
 
 ## Explore the system
 
@@ -310,8 +311,8 @@ stored here.
 
 | Path | Owner |
 |---|---|
-| `src/clawock/` | Portable package, workflow contracts, schemas and CLI |
-| `instances/kcnyu/` | KCNyu-only adapter phases and watchdog implementation |
+| `src/clawock/` | Complete product: harness, strategies, scheduling, providers, workflows, schemas and CLI |
+| `config/profiles/` | Declarative desk profiles; values and resource references only |
 | `site/` | Jekyll/dashboard source, browser code, SVGs, screenshots and social assets |
 | `ops/{host,publish,ci,growth,pages}/` | Explicit host, publication, CI, growth and Pages wiring; never a generic data bucket |
 | `docs/`, `tests/` | Product/runbook documentation and invariant checks |

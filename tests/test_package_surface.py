@@ -38,9 +38,7 @@ def _repo_top_level_names() -> set[str]:
     `test_wheel_contains_the_package.py` is what answers it.
     """
     names = set()
-    for candidate in list(ROOT.iterdir()) + [
-            src for instance in (ROOT / "instances").glob("*")
-            for src in (instance / "src").glob("*")]:
+    for candidate in ROOT.iterdir():
         if candidate.name.startswith(".") or candidate == PKG.parent:
             continue
         if candidate.is_dir() and any(candidate.glob("*.py")):
@@ -102,24 +100,16 @@ def test_the_entry_point_is_inside_the_package():
 
 
 def test_information_strategy_has_one_product_owner():
-    """Keep provider → strategy → instance as an executable ownership rule.
+    """Keep provider → strategy → lifecycle as an executable ownership rule.
 
     This is intentionally one structural backstop, not a test per implementation
     detail.  The expensive regression is putting the algorithm back in the live
     adapter or coupling it to mover attribution's private protocol.
     """
     strategy = PKG / "decision" / "active_information.py"
-    instance_copy = (
-        ROOT / "instances" / "kcnyu" / "src" / "clawock_kcnyu"
-        / "active_information.py"
-    )
-    phase = (
-        ROOT / "instances" / "kcnyu" / "src" / "clawock_kcnyu"
-        / "harness" / "intraday_preflight.py"
-    )
+    phase = PKG / "harness" / "intraday_preflight.py"
 
     assert strategy.is_file(), "the reusable information strategy belongs in clawock"
-    assert not instance_copy.exists(), "instances are bindings, not a second strategy package"
 
     tree = ast.parse(strategy.read_text())
     imports = set()
@@ -128,7 +118,6 @@ def test_information_strategy_has_one_product_owner():
             imports.update(alias.name for alias in node.names)
         elif isinstance(node, ast.ImportFrom) and node.module:
             imports.update(f"{node.module}.{alias.name}" for alias in node.names)
-    assert not any(name.startswith("clawock_kcnyu") for name in imports)
     assert "clawock.market_data.mover_evidence" not in imports
     assert "clawock.market_data.primary_disclosures" in imports, (
         "the strategy should consume the public primary-disclosure provider")
@@ -151,4 +140,4 @@ def test_information_strategy_has_one_product_owner():
         if isinstance(node, ast.ImportFrom) and node.module
     }
     assert "clawock.decision" in phase_imports, (
-        "the instance phase must bind the product strategy, not reimplement it")
+        "the lifecycle phase must bind the product strategy, not reimplement it")

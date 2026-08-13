@@ -35,7 +35,7 @@ NOW_MS = int(1786584800 * 1000)
 
 
 def _common():
-    from clawock_kcnyu.harness import _watchdog_common
+    from clawock.harness import _watchdog_common
     return _watchdog_common
 
 
@@ -134,7 +134,7 @@ def test_report_deliver_flips_the_claim_before_it_sends(tmp_path, monkeypatch):
     """The ordering IS the fix. `mark_send_started` after the send would leave the
     same window the marker already leaves, and every unit test above would still
     pass — so the order is pinned against the real deliver path."""
-    from clawock_kcnyu.harness import report_postflight as rp
+    from clawock.harness import report_postflight as rp
     c = _common()
 
     claim = tmp_path / 'hk-open.claim'
@@ -171,7 +171,7 @@ def _deliver(rp, monkeypatch, tmp_path, claim, send_result):
 def test_a_completed_send_releases_the_claim(tmp_path, monkeypatch):
     """After a send finishes, the marker owns idempotency. A claim left behind
     would go on refusing senders that the marker itself does not refuse."""
-    from clawock_kcnyu.harness import report_postflight as rp
+    from clawock.harness import report_postflight as rp
     claim = tmp_path / 'hk-open.claim'
     _common().claim_send(claim, now_ms=NOW_MS)
 
@@ -184,7 +184,7 @@ def test_a_failed_send_releases_the_claim_so_the_next_slot_is_not_muted(tmp_path
     """The one that bites: a send that FAILED writes a marker with
     sent_ok/tg_ok false, so `already_delivered` correctly lets the next slot
     through — and the claim must not be what stops it instead."""
-    from clawock_kcnyu.harness import report_postflight as rp
+    from clawock.harness import report_postflight as rp
     c = _common()
     claim = tmp_path / 'hk-open.claim'
     c.claim_send(claim, now_ms=NOW_MS)

@@ -48,7 +48,7 @@ WS = workspace_root(Path.cwd())
 _CHECKOUT = WS
 TMP = WS / 'memory' / '.tmp'
 
-from clawock_kcnyu.automation import workflow_outcomes  # noqa: E402
+from clawock.automation import workflow_outcomes  # noqa: E402
 
 # The deterministic report core moved into the installed package so `clawock
 # report` can run it without a repository checkout. Re-exported here so this

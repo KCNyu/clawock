@@ -14,7 +14,7 @@ sys.path.insert(0, str(DATA))
 
 from clawock.market_data import hk_analysis as hk  # noqa: E402
 from clawock.portfolio import fx  # noqa: E402
-from clawock_kcnyu.gold import fetch as gold  # noqa: E402
+from clawock.market_data.gold import fetch as gold  # noqa: E402
 from clawock.market_data import us_quotes as us  # noqa: E402
 from clawock.portfolio import risk  # noqa: E402
 

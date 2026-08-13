@@ -36,7 +36,7 @@ Notes:
 - ANTHROPIC_VERSION header pinned to 2023-06-01 (what both vendors accept).
 
 Usage:
-    from clawock_kcnyu.automation.llm import chat
+    from clawock.automation.llm import chat
     reply = chat(system="...", user="...", max_tokens=32000)
 """
 import json

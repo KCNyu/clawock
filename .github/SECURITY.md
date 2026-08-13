@@ -17,8 +17,7 @@ there is no response-time commitment, and none should be inferred from this file
 
 ## What is in scope
 
-- The published package `clawock` (`src/clawock/`) and the instance distribution
-  `clawock-kcnyu` (`instances/kcnyu/`).
+- The published package `clawock` (`src/clawock/`) and its declarative profiles.
 - Repository operations that hold credentials or write to protected paths:
   `ops/publish/`, `.github/workflows/`, `.githooks/`.
 - Anything that could let a third party publish to this repository, its Pages

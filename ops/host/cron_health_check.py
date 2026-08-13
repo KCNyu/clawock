@@ -33,7 +33,6 @@ from zoneinfo import ZoneInfo
 _CHECKOUT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(_CHECKOUT))
 sys.path.insert(0, str(_CHECKOUT / "src"))
-sys.path.insert(0, str(_CHECKOUT / "instances" / "kcnyu" / "src"))
 from clawock.workspace import workspace_root  # noqa: E402
 from clawock.providers import openclaw  # noqa: E402
 

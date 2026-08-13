@@ -26,7 +26,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 from clawock.publish import dashboard  # noqa: E402
 import cron_health_check  # noqa: E402
-from clawock_kcnyu.harness import _harness_common  # noqa: E402
+from clawock.harness import _harness_common  # noqa: E402
 
 
 BROKEN = ('{\n  "behavioral_review": [{"tag": "bias", "text": "chased"}],\n'

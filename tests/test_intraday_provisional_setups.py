@@ -18,7 +18,7 @@ from zoneinfo import ZoneInfo
 
 ROOT = Path(__file__).resolve().parents[1]
 from clawock.decision import signals as S  # noqa: E402
-from clawock_kcnyu.harness import intraday_preflight as P  # noqa: E402
+from clawock.harness import intraday_preflight as P  # noqa: E402
 
 
 def _flat(n, price):

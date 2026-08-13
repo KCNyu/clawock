@@ -22,7 +22,7 @@ from pathlib import Path
 import requests
 
 from clawock.portfolio import instruments as instrument_registry
-from clawock_kcnyu.automation.llm import chat
+from clawock.automation.llm import chat
 from clawock.market_data.sentiment import fetch_google_news
 
 

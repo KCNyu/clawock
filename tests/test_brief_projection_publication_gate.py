@@ -5,7 +5,7 @@ import json
 import sys
 from datetime import datetime
 
-from clawock_kcnyu.harness import brief_postflight as postflight
+from clawock.harness import brief_postflight as postflight
 
 
 def _run_postflight(tmp_path, monkeypatch, capsys, *, projection_error=None):

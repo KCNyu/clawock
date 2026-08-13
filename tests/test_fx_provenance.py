@@ -10,7 +10,7 @@ import json
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-INSTANCE_HARNESS = ROOT / "instances" / "kcnyu" / "src" / "clawock_kcnyu" / "harness"
+INSTANCE_HARNESS = ROOT / 'src' / 'clawock' / 'harness'
 from clawock.portfolio import fx as fetch_fx
 
 

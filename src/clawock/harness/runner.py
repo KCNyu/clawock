@@ -1,15 +1,9 @@
-"""In-process dispatch while lifecycle implementations migrate into core.
-
-Profiles are declarative and selected explicitly. The entry-point lookup below
-is a temporary compatibility bridge for phases not yet moved into the root
-wheel; it keys that bridge from the profile id rather than treating a Python
-distribution as the source of instance identity.
-"""
+"""In-process dispatch to lifecycle implementations owned by clawock."""
 from __future__ import annotations
 
 import os
 from contextlib import contextmanager
-from importlib.metadata import entry_points
+from importlib import import_module
 from pathlib import Path
 
 from clawock.config.profiles import ENV_VAR as PROFILE_ENV_VAR
@@ -18,7 +12,14 @@ from clawock.config.profiles import load_profile
 from .model import RunRequest
 
 
-ENTRYPOINT_GROUP = "clawock.instance_phases"
+PHASE_MODULES = {
+    ("brief", "preflight"): "clawock.harness.brief_preflight",
+    ("brief", "postflight"): "clawock.harness.brief_postflight",
+    ("report", "preflight"): "clawock.harness.report_preflight",
+    ("report", "postflight"): "clawock.harness.report_postflight",
+    ("intraday", "preflight"): "clawock.harness.intraday_preflight",
+    ("intraday", "postflight"): "clawock.harness.intraday_postflight",
+}
 
 
 class AdapterUnavailable(RuntimeError):
@@ -27,7 +28,7 @@ class AdapterUnavailable(RuntimeError):
 
 @contextmanager
 def _phase_env(path: Path, profile_path: Path | None):
-    """Expose the request to legacy adapters that resolve workspace on import."""
+    """Scope workspace and profile for modules that resolve resources on import."""
     updates = {"CLAWOCK_WORKSPACE": str(path.expanduser().resolve())}
     if profile_path is not None:
         updates[PROFILE_ENV_VAR] = str(profile_path)
@@ -45,9 +46,7 @@ def _phase_env(path: Path, profile_path: Path | None):
 
 def run_phase(workflow: str, phase: str, argv=(), *, workspace=None, profile=None) -> int:
     root = Path(workspace or os.environ.get("CLAWOCK_WORKSPACE") or Path.cwd())
-    selected_profile = None
-    if profile is not None or os.environ.get(PROFILE_ENV_VAR):
-        selected_profile = load_profile(root, profile)
+    selected_profile = load_profile(root, profile)
     request = RunRequest(
         workflow=workflow,
         phase=phase,
@@ -55,24 +54,17 @@ def run_phase(workflow: str, phase: str, argv=(), *, workspace=None, profile=Non
         profile=selected_profile.profile_id if selected_profile else None,
         argv=tuple(argv),
     )
-    # CLAWOCK_INSTANCE remains only until #539 deletes compatibility entry points.
-    instance = os.environ.get("CLAWOCK_INSTANCE", "").strip()
-    instance = request.profile or instance
-    if not instance:
+    configured = selected_profile.workflows.get(workflow)
+    if configured is None or not configured.enabled:
         raise AdapterUnavailable(
-            f"{workflow} {phase} needs a profile; pass --profile or set "
-            f"{PROFILE_ENV_VAR}"
+            f"profile {selected_profile.profile_id!r} does not enable {workflow}"
         )
-    name = f"{instance}.{request.workflow}.{request.phase}"
-    matches = tuple(entry_points().select(group=ENTRYPOINT_GROUP, name=name))
-    if len(matches) != 1:
-        raise AdapterUnavailable(
-            f"{workflow} {phase} needs exactly one installed '{instance}' "
-            f"adapter entry point; found {len(matches)} for {name}"
-        )
+    module_name = PHASE_MODULES.get((request.workflow, request.phase))
+    if module_name is None:
+        raise AdapterUnavailable(f"unsupported lifecycle phase: {workflow} {phase}")
     with _phase_env(
         request.workspace,
-        selected_profile.path if selected_profile is not None else None,
+        selected_profile.path,
     ):
-        function = matches[0].load()
+        function = import_module(module_name).main
         return int(function(list(request.argv)) or 0)

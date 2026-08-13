@@ -51,7 +51,6 @@ DASHBOARD = ROOT / "assets" / "data" / "dashboard.json"
 # Import time, not fixture time: collection imports the test modules, which
 # import remaining operator scripts by bare name. See the module docstring.
 sys.path.insert(0, str(ROOT / "src"))
-sys.path.insert(0, str(ROOT / "instances" / "kcnyu" / "src"))
 sys.path.insert(0, str(ROOT / "ops" / "host"))
 sys.path.insert(0, str(ROOT / "ops" / "ci"))
 sys.path.insert(0, str(ROOT / "ops" / "growth"))
@@ -104,11 +103,10 @@ def freshly_built_dashboard(publish_owned_artifacts_are_left_as_found):
     from the fixture is what makes each of them state the dependency instead of
     reaching for a module constant that may or may not be fresh.
     """
-    # CLAWOCK_INSTANCE is how the live launcher runs it, and it is what selects
-    # the `clawock.dashboard_sections` provider. Without it the builder is
-    # correct but publishes a payload with no instance cards, so every reader
-    # here would be asserting against a shape production never has.
+    # Run through the source tree explicitly; CI installs first, but a focused
+    # local invocation should exercise the same package without editable state.
     subprocess.run([sys.executable, "-m", "clawock.publish.dashboard"],
                    cwd=ROOT, check=True, capture_output=True,
-                   env={**os.environ, "CLAWOCK_INSTANCE": "kcnyu"})
+                   env={**os.environ, "CLAWOCK_PROFILE": "kcnyu",
+                        "PYTHONPATH": str(ROOT / "src")})
     return DASHBOARD

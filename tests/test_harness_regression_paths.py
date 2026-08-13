@@ -43,12 +43,12 @@ def test_every_shipped_config_file_matches_the_gate():
 
 
 def test_code_and_tests_stay_gated():
-    # `scripts/` was retired in #429; its code lives under src/, ops/ and
-    # instances/, which carry their own entries here.
+    # `scripts/` was retired in #429 and the Python instance distribution was
+    # retired in #539; executable code now lives under src/ and ops/.
     assert not (ROOT / "scripts").exists()
     for pattern in ("src/*", "tests/*"):
         assert pattern in case_patterns(WORKFLOW_PATH)
-    for pattern in ("src/**", "ops/**", "instances/**", "tests/**"):
+    for pattern in ("src/**", "ops/**", "tests/**"):
         assert pattern in push_paths(WORKFLOW_PATH)
 
 

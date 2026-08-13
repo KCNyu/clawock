@@ -9,7 +9,6 @@ Run ``clawock dashboard-build`` after each portfolio mutation.
 """
 import argparse
 import glob
-import importlib.metadata
 import json
 import math
 import os
@@ -373,6 +372,30 @@ def serialize_dashboard_payload(value):
     return json.dumps(value, ensure_ascii=False, separators=(',', ':'))
 
 
+def _guardrail_sections(portfolio, risk, lev_regime=None):
+    from clawock.harness.brief_preflight import (
+        compute_breakeven_math,
+        compute_concentration,
+        compute_risk_guardrail,
+    )
+
+    us_book = portfolio['portfolios']['us_stocks']
+    hk_book = portfolio['portfolios']['hk_stocks']
+    hk_holdings = hk_book['holdings']
+    us_holdings = us_book['holdings']
+    guardrail = compute_risk_guardrail(
+        hk_holdings, us_holdings,
+        compute_concentration(hk_holdings), compute_concentration(us_holdings),
+        risk or {}, lev_regime=lev_regime,
+    )
+    breakeven = compute_breakeven_math(
+        hk_holdings, us_holdings, lev_regime=lev_regime)
+    if isinstance(guardrail, dict) and isinstance(guardrail.get('lev_regime'), dict):
+        guardrail['lev_regime_tier'] = guardrail['lev_regime'].get('tier')
+        guardrail.pop('lev_regime')
+    return {'risk_guardrail': guardrail, 'breakeven_math': breakeven}
+
+
 def compute_guardrail_outputs(portfolio, risk, lev_regime=None):
     """Compute the two live risk cards without ever failing the dashboard build.
 
@@ -381,17 +404,7 @@ def compute_guardrail_outputs(portfolio, risk, lev_regime=None):
     renderer normalized it to ``{}`` and painted a green all-clear.
     """
     try:
-        instance = os.environ.get('CLAWOCK_INSTANCE', '').strip()
-        providers = importlib.metadata.entry_points(
-            group='clawock.dashboard_sections')
-        provider = next(
-            (entry for entry in providers if entry.name == instance), None)
-        if provider is None:
-            return {
-                'risk_guardrail': {'computed': False, 'reason': 'no instance provider'},
-                'breakeven_math': {'computed': False, 'reason': 'no instance provider'},
-            }
-        return provider.load()(portfolio, risk or {}, lev_regime)
+        return _guardrail_sections(portfolio, risk, lev_regime)
     except Exception as e:
         print(f'  warn: risk_guardrail compute fail: {e}', file=sys.stderr)
         return {
@@ -2463,11 +2476,11 @@ def compute_build_status(portfolio, data_dir, at=None):
 
 
 def compute_workflow_outcomes():
-    """Read the instance-produced outcome sidecar without importing the instance.
+    """Read and summarize the package-produced outcome sidecar.
 
-    The separately installed runtime adapter owns reconciliation and publication
-    of this ledger.  The public dashboard projection treats it like any other
-    optional workspace input, preserving the one-way package dependency.
+    The dashboard projection treats the ledger like any other optional
+    workspace input; generated state remains outside the wheel even though its
+    lifecycle implementation belongs to the package.
     """
     try:
         payload = load_json(WS_ROOT / 'assets' / 'data' / 'workflow-outcomes.json')

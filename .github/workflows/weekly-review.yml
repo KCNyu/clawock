@@ -26,13 +26,13 @@ jobs:
         with:
           python-version: '3.11'
 
-      - run: pip install --quiet -e . -e ./instances/kcnyu
+      - run: pip install --quiet -e .
 
       - name: Run weekly review
         env:
           XIAOMI_API_KEY: ${{ secrets.XIAOMI_API_KEY }}
           MINIMAX_API_KEY: ${{ secrets.MINIMAX_API_KEY }}
-        run: clawock-kcnyu-weekly-review
+        run: clawock-weekly-review
 
       - name: Validate generated review
         run: clawock validate-sidecar weekly-review

@@ -74,15 +74,13 @@ def test_every_module_imports_from_a_non_editable_install(tmp_path):
     wheels = list(build.glob("clawock-*.whl"))
     assert len(wheels) == 1, f"expected one wheel, got {wheels}"
 
-    # The public product and this repository's live desk are separate install
-    # surfaces. CI installs both to prove the live integration, but publishing
-    # `clawock` must never smuggle the KCNyu adapter in as code or a dependency.
+    # The public product contains the complete executable lifecycle. Profiles
+    # and workspace state must not become Python packages or dependencies.
     with zipfile.ZipFile(wheels[0]) as archive:
         names = archive.namelist()
         metadata_name = next(name for name in names if name.endswith(".dist-info/METADATA"))
         metadata = archive.read(metadata_name).decode()
-    assert not any(name.startswith("clawock_kcnyu/") for name in names)
-    assert "clawock-kcnyu" not in metadata.lower()
+    assert "instance_phases" not in metadata.lower()
 
     site = tmp_path / "site"
     done = subprocess.run(

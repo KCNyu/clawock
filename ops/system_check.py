@@ -28,7 +28,6 @@ WS = Path(__file__).resolve().parent.parent
 _REPO_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(_REPO_ROOT))
 sys.path.insert(0, str(_REPO_ROOT / "src"))
-sys.path.insert(0, str(_REPO_ROOT / "instances" / "kcnyu" / "src"))
 
 # Live-box paths for the memory-index check. Still deliberately absolute and not
 # derived from WS — the semantic index only ever covers the live runtime
@@ -153,7 +152,6 @@ def check_scripts_compile(r):
     for pat in [
         'src/clawock/**/*.py',
         'ops/**/*.py',
-        'instances/kcnyu/src/clawock_kcnyu/**/*.py',
     ]:
         for f in glob.glob(str(WS / pat), recursive=True):
             try:

@@ -241,7 +241,7 @@ def test_no_script_re_implements_the_degenerate_check_privately():
     # rather than spelled, so a move cannot silently retire the check.
     canonical = Path(bar_checks.__file__).resolve()
     modules = [
-        path for root in ('src', 'ops', 'instances')
+        path for root in ('src', 'ops')
         for path in sorted((ROOT / root).rglob('*.py'))
         if '__pycache__' not in path.parts
     ]

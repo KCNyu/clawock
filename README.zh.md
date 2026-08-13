@@ -67,7 +67,7 @@ harness**。OpenClaw、Hermes、Claude Code、Codex 或其它外部 runtime 负�
 KCNyu 部署再把这个产品边界用于一个真实组合。下面第二张是实例架构，不是可复用
 package 架构。
 
-![KCNyu live-instance 架构 —— Python 构建对账后的市场上下文，OpenClaw Agent 辩论交易，clawock 契约把关决策，公开战绩闭环](site/assets/architecture.svg)
+![KCNyu live desk 架构 —— Python 构建对账后的市场上下文，OpenClaw Agent 辩论交易，clawock 契约把关决策，公开战绩闭环](site/assets/architecture.svg)
 
 每个交易日,系统拉取最新价格、汇率、波动率、财报与宏观上下文,以及新闻与社交情绪;把这份归一化的上下文交给多 Agent 辩论;在 Python 里施加确定性的风控、schema 与账本闸门;把简报送到微信;并更新公开仪表盘。
 
@@ -242,11 +242,11 @@ KCNyu compatibility surface 仍由 `clawock doctor`、`clawock context audit` �
 `CLAWOCK_WORKSPACE` 检查或指向实际账本。它们会直说缺什么，不假装任意外来
 workspace 都能直接运行这套 live desk。
 
-包本身拥有 lifecycle 契约、generation-pinned artifacts、上下文组装、校验与
-CLI，但不会另写一套 Agent loop。这个实例今天用 OpenClaw 作为无人值守 runtime
-adapter；其它 runner 可以消费同一套 context/tool 契约。live adapter 仍假设这张
-桌子的两个账本、registry 和 schedules；`doctor` 与 `context audit` 会如实说明能力，
-不会假装任意外来 workspace 已可直接上生产。
+包本身拥有 lifecycle 实现、策略、排程、watchdog、generation-pinned artifacts、
+上下文组装、校验与 CLI，但不会另写一套 Agent loop。这张桌子今天用 OpenClaw
+作为无人值守 runtime；其它 runner 可以消费同一套 context/tool 契约。`kcnyu`
+profile 与 workspace 声明账本、资源和 schedules；`doctor` 与 `context audit`
+会如实说明能力，不会假装任意外来 workspace 已可直接上生产。
 
 ## 逛一逛这套系统
 
@@ -300,7 +300,7 @@ adapter；其它 runner 可以消费同一套 context/tool 契约。live adapter
 | 路径 | 所有权 |
 |---|---|
 | `src/clawock/` | 可移植 package、workflow 契约、schema 与 CLI |
-| `instances/kcnyu/` | 只属于 KCNyu 的 adapter phase 与 watchdog 实现 |
+| `config/profiles/` | 只含数值和资源引用的声明式 desk profile |
 | `site/` | Jekyll/dashboard 源码、浏览器代码、SVG、截图与 social 资产 |
 | `ops/{host,publish,ci,growth,pages}/` | 明确归属的 host、发布、CI、增长与 Pages wiring；不允许通用 data 桶 |
 | `docs/`、`tests/` | 产品/运维文档与高价值不变量检查 |

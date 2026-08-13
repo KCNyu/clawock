@@ -74,6 +74,18 @@ Evidence = "https://kcnyu.github.io/clawock/evidence.html"
 
 [project.scripts]
 clawock = "clawock.cli:main"
+clawock-brief-watchdog = "clawock.harness.brief_watchdog:main"
+clawock-report-watchdog = "clawock.harness.report_watchdog:main"
+clawock-intraday-watchdog = "clawock.harness.intraday_watchdog:main"
+clawock-cron-heartbeat = "clawock.automation.cron_heartbeat:main"
+clawock-workflow-outcomes = "clawock.automation.workflow_outcomes:main"
+clawock-intraday-delta = "clawock.harness.intraday_delta:main"
+clawock-gold-fetch = "clawock.market_data.gold.fetch:main"
+clawock-gold-update = "clawock.market_data.gold.update:main"
+clawock-influencer-scan = "clawock.automation.influencer:main"
+clawock-brief-fallback = "clawock.automation.brief_fallback:main"
+clawock-news-digest = "clawock.automation.news_digest:main"
+clawock-weekly-review = "clawock.automation.weekly_review:main"
 
 [tool.setuptools]
 package-dir = {"" = "src"}

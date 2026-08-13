@@ -34,13 +34,13 @@ jobs:
         with:
           python-version: '3.11'
 
-      - run: pip install --quiet -e . -e ./instances/kcnyu
+      - run: pip install --quiet -e .
 
       - name: Fetch Trump/Musk + LLM relevance filter
         env:
           XIAOMI_API_KEY: ${{ secrets.XIAOMI_API_KEY }}
           MINIMAX_API_KEY: ${{ secrets.MINIMAX_API_KEY }}
-        run: clawock-kcnyu-influencer-scan
+        run: clawock-influencer-scan
 
       - name: Validate influencer coverage
         run: clawock validate-sidecar influencer

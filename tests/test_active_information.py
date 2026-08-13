@@ -6,7 +6,7 @@ from urllib.parse import urlsplit
 from clawock.decision import active_information as ai
 from clawock.market_data import primary_disclosures
 from clawock.portfolio import instruments
-from clawock_kcnyu.harness import intraday_preflight
+from clawock.harness import intraday_preflight
 
 
 NOW = datetime(2026, 8, 13, 6, 0, tzinfo=timezone.utc)

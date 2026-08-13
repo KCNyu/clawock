@@ -24,7 +24,7 @@ INTERACTIVE = [*CRON, "HEARTBEAT.md", "MEMORY.md"]
 
 @pytest.fixture(scope="module")
 def system_check():
-    for path in (ROOT, ROOT / "src", ROOT / "instances" / "kcnyu" / "src"):
+    for path in (ROOT, ROOT / "src"):
         if str(path) not in sys.path:
             sys.path.insert(0, str(path))
     spec = importlib.util.spec_from_file_location(
