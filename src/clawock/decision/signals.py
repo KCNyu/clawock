@@ -448,6 +448,56 @@ def refresh_rows(previous, universe, *, run_date=None, previous_as_of=None,
     return rows
 
 
+def provisional_setups(universe=None, *, region=None, fetch=None):
+    """The same setup rules, evaluated against the still-open session's bar.
+
+    The daily pipeline runs these rules once, at 08:00, on completed bars — so a
+    reclaim of MA20 at 11:00 or a 20-day breakout at 14:30 is a fact the
+    decision surface does not learn until the next morning. Every one of these
+    signals is currently a day late (#515). This re-runs the *identical* rules
+    (`compute_signals`, no thresholds touched, no rules added) against a bar
+    that includes the live session.
+
+    That bar has not closed, and two of the three rules are statements about a
+    close. So every row is returned as provisional — `confirmed_at_close` is
+    False and the wording callers must use is "if it closes here", never "it
+    triggered". A provisional row is a reason to look, not an entry.
+
+    Fail-soft as a *value*: a ticker whose bars cannot be fetched is reported in
+    `errors`, never silently dropped, because a quote feed that stopped
+    answering looks exactly like a day with no setups (#136).
+    """
+    rows, errors = [], []
+    fetcher = fetch or fetch_bars
+    for detail in (universe if universe is not None else _universe_details()):
+        if region and detail.get('region') != region:
+            continue
+        label = detail.get('label')
+        try:
+            bars = fetcher(detail['code'], 400)
+            sig = compute_signals(bars)
+        except Exception as exc:  # noqa: BLE001 — one bad symbol must not blank the rest
+            errors.append({'label': label, 'error': f'{type(exc).__name__}: {exc}'[:200]})
+            continue
+        for setup in sig.get('technical_setups') or []:
+            rows.append({
+                'label': label,
+                'holdings': list(detail.get('source_holdings') or []),
+                'setup_id': setup.get('setup_id'),
+                'label_zh': setup.get('label'),
+                'entry_price': setup.get('entry_price'),
+                'invalidation_price': setup.get('invalidation_price'),
+                'detail': setup.get('detail'),
+                # The whole point of the field: this was computed on an open bar.
+                'confirmed_at_close': False,
+                'last_price': sig.get('close'),
+            })
+    out = {'rows': rows, 'confirmed_at_close': False}
+    if errors:
+        out['errors'] = errors
+    return out
+
+
 def main(argv=None):
     del argv
     prev = {}

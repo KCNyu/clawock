@@ -37,6 +37,7 @@ from pathlib import Path
 from clawock.workspace import workspace_root
 from clawock.market_data import sessions as trading_calendar
 from clawock.decision import plans as plan_surface
+from clawock.decision import signals as quant_signals
 from clawock.evidence import research_surface
 from clawock.cli import PACKAGED_UTILITIES
 from clawock.market_data import known_catalysts, mover_evidence as mover_news, peer_scan
@@ -97,6 +98,80 @@ def parse_signals(stdout):
                 counts['trim'] += 1
                 signals_detail.append({'level': 'TRIM', 'line': s})
     return counts, signals_detail
+
+
+MAX_SETUP_LINES = 6
+
+
+def collect_provisional_setups(market):
+    """This leg's entry rules re-run on the open bar. Never raises.
+
+    Bounded to the leg being reported: a 港股 slot has no use for a US breakout
+    it cannot act on for another nine hours.
+    """
+    try:
+        return quant_signals.provisional_setups(
+            region='HK' if market == 'hk' else 'US')
+    except Exception as exc:  # noqa: BLE001 — a quote feed must never red the cron
+        return {'rows': [], 'confirmed_at_close': False,
+                'errors': [{'label': None,
+                            'error': f'{type(exc).__name__}: {exc}'[:200]}]}
+
+
+CONFLICTING_LEVELS = ('STOP', 'ALERT')
+
+
+def setup_conflicts(setups, signals_detail):
+    """Tickers that have an entry condition and a risk signal in the same push.
+
+    An entry rule reads the price series; the risk line reads the position. They
+    can and do disagree — 02208 can reclaim its 20-day high while sitting at
+    -24% and flagged ✋ STOP?. Sending both without a word is how a push
+    contradicts itself, and the reader resolves it by picking whichever line
+    they saw first. The entry row is not suppressed (the condition is a fact),
+    it is marked (so is the risk).
+    """
+    flagged = [item for item in (signals_detail or [])
+               if str(item.get('level', '')).upper() in CONFLICTING_LEVELS]
+    conflicted = set()
+    for row in (setups or {}).get('rows') or []:
+        for ticker in row.get('holdings') or [row.get('label')]:
+            if any(ticker and ticker in item.get('line', '') for item in flagged):
+                conflicted.add(ticker)
+    return sorted(conflicted)
+
+
+def append_setup_section(block, setups, signals_detail=None):
+    """Render provisional setups under the block, or return it untouched.
+
+    Untouched is the common case and it has to stay byte-identical: postflight
+    checks the report against this string, and every slot without a setup is a
+    slot whose push must look exactly as it did before.
+
+    The heading carries the caveat rather than the rows, because the caveat is
+    the same for all of them and a per-row hedge is what gets skimmed past: this
+    bar has not closed, so these are conditions that would hold *if it closed
+    here*, not entries that triggered.
+    """
+    rows = (setups or {}).get('rows') or []
+    if not rows:
+        return block
+    conflicts = set(setup_conflicts(setups, signals_detail))
+    lines = ['', '⚡ 盘中 setup（未收盘 · 若收在此位则成立，不是已触发）']
+    for row in rows[:MAX_SETUP_LINES]:
+        entry, invalid = row.get('entry_price'), row.get('invalidation_price')
+        bits = [f"  ◆ {row.get('label')} {row.get('label_zh') or row.get('setup_id')}"]
+        if entry is not None:
+            bits.append(f"入场 {entry:g}")
+        if invalid is not None:
+            bits.append(f"失效 {invalid:g}")
+        held = [t for t in (row.get('holdings') or []) if t in conflicts]
+        if held:
+            bits.append(f"⚠️ 同票有风险信号({'/'.join(held)})")
+        lines.append(' | '.join(bits))
+    if len(rows) > MAX_SETUP_LINES:
+        lines.append(f'  …另有 {len(rows) - MAX_SETUP_LINES} 条')
+    return block + '\n' + '\n'.join(lines)
 
 
 def parse_anomalies(stdout):
@@ -267,13 +342,20 @@ def main(argv=None):
         [a['ticker'] for a in anomalies], today=now.strftime('%Y-%m-%d'),
     )
 
+    # The same entry rules the 08:00 brief runs, re-evaluated on the open bar.
+    # Rendered into the block rather than left in JSON alone: a field nothing
+    # prints is a detector that has been silenced (#515).
+    live_setups = collect_provisional_setups(args.market)
+    raw_block = append_setup_section(stdout.strip(), live_setups, signals_detail)
+
     result = {
         'status':           'ok',
         'market':           args.market,
         'date':             now.strftime('%Y-%m-%d'),
         'time':             now.strftime('%H:%M'),
         'generated_at':     now.isoformat(timespec='seconds'),
-        'raw_wechat_block': stdout.strip(),
+        'raw_wechat_block': raw_block,
+        'provisional_setups': live_setups,
         'signal_count':     signals,
         'signals_detail':   signals_detail,
         'anomalies':        anomalies,
