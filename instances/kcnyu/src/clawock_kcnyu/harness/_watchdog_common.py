@@ -273,21 +273,24 @@ FAILED_RUN_STATUSES = {'error', 'failed', 'failure', 'timeout', 'timed_out',
                        'cancelled', 'canceled'}
 
 
-def brief_cron_job():
-    """The live cron job for the daily deep brief, or None if it cannot be read.
+def _brief_job_names():
+    """Names the contract gives the daily deep brief, or an empty set.
 
-    Identified through `config/cron-schedules.json` — the contract already names
-    exactly one `daily-deep-brief` job — rather than by a string typed here, so
-    renaming the job in the contract cannot leave a watchdog looking for a job
-    that no longer exists.
+    The contract already names exactly one `daily-deep-brief` job, so renaming
+    it there cannot leave a watchdog looking for a job that no longer exists.
     """
     try:
         from clawock_kcnyu.schedule import load_contract
 
-        names = {job.get('name') for job in load_contract().get('jobs', [])
-                 if job.get('mode') == BRIEF_CONTRACT_MODE}
+        return {job.get('name') for job in load_contract().get('jobs', [])
+                if job.get('mode') == BRIEF_CONTRACT_MODE}
     except Exception:
-        return None
+        return set()
+
+
+def brief_cron_job():
+    """The live cron job for the daily deep brief, or None if it cannot be read."""
+    names = _brief_job_names()
     if not names:
         return None
     listing = _cron_cli_json(['list', '--json'])
@@ -295,6 +298,25 @@ def brief_cron_job():
         return None
     for job in listing.get('jobs') or []:
         if job.get('name') in names:
+            return job
+    return None
+
+
+def brief_cron_job_state():
+    """Same job, read straight from the runtime's state DB instead of the CLI.
+
+    The CLI round-trips through the gateway, which on a bad morning is a
+    component that may be hung — and its 120s subprocess timeout would then be
+    120s of a caller holding still. SQLite is a local read-only file open with
+    its own 5s timeout, it is authoritative for exactly the runtime state this
+    is wanted for (`consecutiveErrors`), and it answers whether or not the
+    gateway is alive.
+    """
+    names = _brief_job_names()
+    if not names:
+        return None
+    for job in _openclaw.read_jobs('sqlite').entries:
+        if isinstance(job, dict) and job.get('name') in names:
             return job
     return None
 
@@ -329,6 +351,16 @@ def rerun_cron_job(job_id, dry_run=False):
     if dry_run:
         return True, f'(dry-run) openclaw cron run {job_id}'
     return _openclaw.run_cron_job(job_id)
+
+
+def cron_retry_budget(job):
+    """Has this job run out of runtime retries? See providers.openclaw."""
+    return _openclaw.cron_retry_budget(job)
+
+
+# Raising `cron.retry.maxAttempts` past this is rejected by the runtime's config
+# schema, so it bounds what the operator can do about an exhausted budget.
+CRON_MAX_ALLOWED_ATTEMPTS = _openclaw.RUNTIME_MAX_ALLOWED_ATTEMPTS
 
 
 def dispatch_brief_fallback(dry_run=False):
