@@ -97,7 +97,10 @@ _UNIT_CLAIMS = {
 }
 _UNIT_LABELS = {'percent': '%', 'pp': 'pp', 'multiple': 'x', 'sigma': 'σ'}
 _UNIT_KEY_HINTS = {
-    'percent': re.compile(r'(?:^|_)(?:pct|percent|percentage)(?:_|$)'),
+    # ``range_pos`` is the T+0 strategy's 0–100 intraday range percentile.
+    # It is rendered and discussed with ``%`` even though its established JSON
+    # key predates the otherwise-consistent ``*_pct`` naming convention.
+    'percent': re.compile(r'(?:^|_)(?:pct|percent|percentage|range_pos)(?:_|$)'),
     'pp': re.compile(r'(?:^|_)(?:pp|percentage_points?)(?:_|$)'),
     'multiple': re.compile(r'(?:^|_)(?:multiple|multiplier|leverage|leverage_ratio)(?:_|$)'),
     'sigma': re.compile(r'(?:^|_)(?:sigma|z_?score\d*)(?:_|$)'),

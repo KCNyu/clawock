@@ -217,6 +217,15 @@ def test_market_units_require_unit_specific_context_provenance(hc):
     assert "2.3x" in issue[0] and hc.ADVISORY_MARK in issue[0]
 
 
+def test_range_pos_is_percent_specific_context(hc):
+    ctx = {"t0_setups": {"rows": {"SKHY": {"range_pos": 86.5}}}}
+
+    assert hc.check_numeric_claims("SKHY range_pos 86.5%，追高低质。", ctx) == []
+    issue = hc.check_numeric_claims("SKHY range_pos 86.6%，追高低质。", ctx)
+    assert len(issue) == 1
+    assert "86.6%" in issue[0] and hc.ADVISORY_MARK in issue[0]
+
+
 def test_absent_market_units_stay_one_advisory(hc):
     issue = hc.check_numeric_claims("今日 +8.8%，背离 7pp，放大 3x，偏离 4σ。", CTX)
     assert len(issue) == 1
