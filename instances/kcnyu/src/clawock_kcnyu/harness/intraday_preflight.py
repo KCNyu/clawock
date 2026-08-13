@@ -131,12 +131,19 @@ def setup_conflicts(setups, signals_detail):
     they saw first. The entry row is not suppressed (the condition is a fact),
     it is marked (so is the risk).
     """
-    flagged = [item for item in (signals_detail or [])
-               if str(item.get('level', '')).upper() in CONFLICTING_LEVELS]
+    # Whole tokens, not substrings. The signal line is `✋ STOP? 02208 金风科技
+    # | …`, so the ticker is always its own word — while a substring test would
+    # let a one-letter US ticker match any word on the line, and would read a
+    # bare number in the P&L as a code.
+    flagged = set()
+    for item in (signals_detail or []):
+        if str(item.get('level', '')).upper() not in CONFLICTING_LEVELS:
+            continue
+        flagged.update(re.split(r'[\s|]+', item.get('line') or ''))
     conflicted = set()
     for row in (setups or {}).get('rows') or []:
         for ticker in row.get('holdings') or [row.get('label')]:
-            if any(ticker and ticker in item.get('line', '') for item in flagged):
+            if ticker and ticker in flagged:
                 conflicted.add(ticker)
     return sorted(conflicted)
 

@@ -193,3 +193,21 @@ def test_missing_signal_detail_is_not_an_error():
     for signals in (None, [], [{'line': 'malformed'}], [{'level': None}]):
         text = P.append_setup_section(BLOCK, _setup_row(), signals)
         assert '20日突破确认' in text, signals
+
+
+def test_a_ticker_is_matched_as_a_whole_token_not_a_substring():
+    """A substring test lets a short US ticker match any word on the line.
+
+    `F` would be flagged by every signal line that contains an F anywhere, and a
+    numeric HK code could be matched by a figure in the P&L cell.
+    """
+    signals = [{'level': 'STOP', 'line': '✋ STOP? SPCX 商业航天 | 今日-9.0% 浮-20.2%'}]
+
+    # 'F' appears inside nothing on that line as a word; a substring test would
+    # not fire here either, so use the case that actually distinguishes them:
+    # 'SPC' is a substring of 'SPCX' but is not the ticker.
+    text = P.append_setup_section(BLOCK, _setup_row('SPC', ('SPC',)), signals)
+    assert '同票有风险信号' not in text
+
+    exact = P.append_setup_section(BLOCK, _setup_row('SPCX', ('SPCX',)), signals)
+    assert '同票有风险信号(SPCX)' in exact
