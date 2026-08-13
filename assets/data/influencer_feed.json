@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-12T22:21:12.322744+00:00",
+  "generated_at": "2026-08-13T14:10:25.710507+00:00",
   "lookback_hours": 48,
   "sources": {
     "trump": "trumpstruth.org/feed (primary)",
@@ -11,286 +11,124 @@
     "musk": "success",
     "serenity": "failed"
   },
-  "llm_filtered": false,
+  "llm_filtered": true,
   "counts": {
-    "total": 40,
-    "held_hits": 0,
+    "total": 10,
+    "held_hits": 5,
     "new_ideas": 0,
-    "sector_hits": 0
+    "sector_hits": 1
   },
   "items": [
     {
-      "author": "Trump",
-      "text": "Senator Ashley Moody is doing a tremendous job representing the incredible people of Florida, a State I love, and WON BIG, in 2016, 2020, and 2024!   A fifth generation Floridian, Ashley served as State Attorney General for six years prior to becoming a very distinguished and well respected U.S. Senator. Ashley is working tirelessly to Grow our Economy, Cut Taxes and Regulations, Promote MADE IN THE U.S.A., Champion American Energy DOMINANCE, Keep our Border SECURE, Stop Migrant Crime, Murderers, and other Criminals from illegally entering our Country, Strengthen our Great Military/Veterans, a",
-      "url": "https://trumpstruth.org/statuses/40769",
-      "published": "2026-08-12T22:08:33+00:00",
-      "origin": "truthsocial",
+      "author": "Musk",
+      "text": "Elon Musk: SpaceX’s AI Revenue Will Surpass Its Entire Space Business “Next Month”",
+      "url": "",
+      "published": "Wed, 12 Aug 2026 17:54:07 GMT",
+      "origin": "gnews-rss",
+      "source": "Yahoo Finance",
       "tickers": [],
-      "held": [],
+      "held": [
+        "SPCH",
+        "SPCX"
+      ],
       "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
+      "sectors": [
+        "AI",
+        "航天"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 90,
+      "summary_cn": "Musk放话：SpaceX的AI营收下月将超过其整个航天业务，重大看多信号，直接利好kcn SPCX/SPCH。"
     },
     {
-      "author": "Trump",
-      "text": "Highly Respected Congressman Byron Donalds is running for Governor of Florida, a State that I love, and WON BIG, in 2016, 2020, and 2024.   I know Byron well, have seen him tested at the highest and most difficult levels, and he is a TOTAL WINNER! Byron has a great wife, Erika, and three beautiful sons. They are very proud of him! As Governor, Byron will have a BIG Voice, and work closely with me to advance our America First Agenda. He will fight tirelessly to help Keep our Border SECURE, Stop Migrant Crime, Strengthen our Military, Protect our Veterans, Advance American Energy DOMINANCE, Cut ",
-      "url": "https://trumpstruth.org/statuses/40770",
-      "published": "2026-08-12T22:08:17+00:00",
-      "origin": "truthsocial",
+      "author": "Musk",
+      "text": "SpaceX could make $500 billion in 2028, Elon Musk says (video)",
+      "url": "",
+      "published": "Tue, 11 Aug 2026 23:42:48 GMT",
+      "origin": "gnews-rss",
+      "source": "Space",
       "tickers": [],
-      "held": [],
+      "held": [
+        "SPCH",
+        "SPCX"
+      ],
       "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
+      "sectors": [
+        "航天",
+        "AI"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 88,
+      "summary_cn": "Musk称SpaceX到2028年可能做到5000亿美元营收，宏大叙事利好kcn SPCX/SPCH持仓估值。"
     },
     {
-      "author": "Trump",
-      "text": "Florida Attorney General James Uthmeier is doing a GREAT job for the Sunshine State, which I won BIG in 2016, 2020, and 2024.   James is an America First Warrior, who is a true champion for “MAGA.” He is THE MAN behind ALLIGATOR ALCATRAZ, and argued strongly at the United States Supreme Court in defense of my Executive Power to fire Deep State bureaucrats. Under James’ fearless leadership, over 1,000 CRIMINAL PEDOPHILES have been arrested, missing children have been SAVED, and our Great Members of Law Enforcement have been empowered to do their jobs and, KEEP FLORIDA SAFE. In his next term, Ja",
-      "url": "https://trumpstruth.org/statuses/40771",
-      "published": "2026-08-12T22:08:01+00:00",
-      "origin": "truthsocial",
+      "author": "Musk",
+      "text": "See How a Tesla-SpaceX Merger Gives Musk a Shortcut to His $1 Trillion Payday",
+      "url": "",
+      "published": "Tue, 11 Aug 2026 01:00:00 GMT",
+      "origin": "gnews-rss",
+      "source": "WSJ",
       "tickers": [],
-      "held": [],
+      "held": [
+        "SPCH",
+        "SPCX"
+      ],
       "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
+      "sectors": [
+        "航天",
+        "AI",
+        "企业并购"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 88,
+      "summary_cn": "媒体分析Tesla-SpaceX潜在合并将为Musk带来1万亿美元薪酬捷径，若合并落地将极大重估SPCX/SPCH。"
     },
     {
-      "author": "Trump",
-      "text": "Wilton Simpson is the strong and highly popular Agriculture Commissioner for Florida, my “Home” State, which I love and won SIX times, including with 6.1 Million Votes in 2024, the most in History (BY FAR)!   Wilton is a Fifth Generation Floridian, lifelong Egg Farmer, successful Businessman, former President of the State Senate, and now, as Agriculture Commissioner, has served the Sunshine State during a career “loaded up” with accolades and wins. A true America First Patriot, who has been with us from the very beginning, Wilton is an incredibly effective Voice for Florida Agriculture, and ou",
-      "url": "https://trumpstruth.org/statuses/40772",
-      "published": "2026-08-12T22:07:47+00:00",
-      "origin": "truthsocial",
+      "author": "Musk",
+      "text": "SpaceX stock surges as Elon Musk introduces new xAI model Grok 4.6",
+      "url": "",
+      "published": "Thu, 13 Aug 2026 11:19:36 GMT",
+      "origin": "gnews-rss",
+      "source": "Fox Business",
       "tickers": [],
-      "held": [],
+      "held": [
+        "SPCH",
+        "SPCX"
+      ],
       "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
+      "sectors": [
+        "AI",
+        "航天"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 85,
+      "summary_cn": "Musk发布xAI新模型Grok 4.6，SpaceX股价应声飙升，强化AI+航天双叙事，利好kcn SPCX/SPCH持仓。"
     },
     {
-      "author": "Trump",
-      "text": "Congressman Jimmy Patronis is a MAGA Warrior who is doing a fantastic job representing Florida’s 1st Congressional District!   A Fourth Generation Floridian from the beautiful Panhandle, and owner of an iconic seafood restaurant, Jimmy served as the Chief Financial Officer for the Great State of Florida for seven years, prior to becoming a very distinguished Congressman. In the U.S. House of Representatives, Jimmy is fighting tirelessly to Grow our Economy, Cut Taxes and Regulations, Promote MADE IN THE U.S.A., Unleash American Energy DOMINANCE, Keep our Border SECURE, Stop Migrant Crime, Stre",
-      "url": "https://trumpstruth.org/statuses/40773",
-      "published": "2026-08-12T22:07:26+00:00",
-      "origin": "truthsocial",
+      "author": "Musk",
+      "text": "SpaceX Jumps On New Grok Model; Musk Comments",
+      "url": "",
+      "published": "Thu, 13 Aug 2026 13:34:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Investor's Business Daily",
       "tickers": [],
-      "held": [],
+      "held": [
+        "SPCH",
+        "SPCX"
+      ],
       "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
-    },
-    {
-      "author": "Trump",
-      "text": "Congresswoman Kat Cammack is doing a fantastic job representing the wonderful people of Florida’s 3rd Congressional District!   In Congress, Kat is working tirelessly to Grow our Economy, Cut Taxes, Promote MADE IN THE U.S.A., Support our Amazing Farmers and Ranchers, Unleash American Energy DOMINANCE, Keep our Border SECURE, Champion our Military/Veterans, and Protect our always under siege Second Amendment.   Kat Cammack has my Complete and Total Endorsement for Re-Election! Early Voting is underway NOW, and Election Day is August 18th. GET OUT AND VOTE FOR KAT — SHE WILL NEVER LET YOU DOWN!",
-      "url": "https://trumpstruth.org/statuses/40774",
-      "published": "2026-08-12T22:07:10+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
-    },
-    {
-      "author": "Trump",
-      "text": "Congressman Aaron Bean is a Tremendous Champion for Florida’s 4th Congressional District!   As a Member of the POWERFUL Ways & Means Committee, Aaron knows the America First Policies required to Create GREAT Jobs, Cut Taxes and Regulations, Advance MADE IN THE U.S.A., Unleash American Energy DOMINANCE, and Champion our Nation’s Golden Age. He is also fighting tirelessly to Keep our Border SECURE, Stop Migrant Crime, Ensure LAW AND ORDER, Strengthen our Brave Military/Veterans, and Defend our always under siege Second Amendment.   Aaron Bean has my Complete and Total Endorsement for Re-Election",
-      "url": "https://trumpstruth.org/statuses/40775",
-      "published": "2026-08-12T22:06:57+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
-    },
-    {
-      "author": "Trump",
-      "text": "Congressman John Rutherford is an incredible Representative for the wonderful People of Florida’s 5th Congressional District!   As the former Sheriff of Duval County, and now, as a Highly Respected U.S. Congressman, John strongly supports our incredible Law Enforcement, Military, and Veterans, and knows the Wisdom and Courage it takes to Ensure LAW AND ORDER. In Congress, he is fighting tirelessly to Keep our Border SECURE, Stop Migrant Crime, Grow our Economy, Cut Taxes and Regulations, Promote MADE IN THE U.S.A., Unleash American Energy DOMINANCE, Safeguard our Elections, and Protect our alw",
-      "url": "https://trumpstruth.org/statuses/40776",
-      "published": "2026-08-12T22:06:39+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
-    },
-    {
-      "author": "Trump",
-      "text": "Congressman Randy Fine is a MAGA Warrior who is doing a fantastic job representing Florida’s 6th Congressional District!   A Harvard Educated and Successful Businessman, Randy was a Highly Respected State Legislator, prior to becoming a distinguished U.S. Congressman. He loves the Great People of the Sunshine State, which I won THREE TIMES in 2016, 2020, and 2024! In Congress, Randy is fighting tirelessly to Grow our Economy, Cut Taxes and Regulations, Promote MADE IN THE U.S.A., Unleash American Energy DOMINANCE, Keep our Border SECURE, Stop Migrant Crime, Champion our Military/Veterans, Defe",
-      "url": "https://trumpstruth.org/statuses/40777",
-      "published": "2026-08-12T22:06:21+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
-    },
-    {
-      "author": "Trump",
-      "text": "Congressman Mike Haridopolos is an America First Patriot who is doing a fantastic job representing Florida’s 8th Congressional District!   A former Teacher, successful Businessman, and now, as U.S. Congressman, Mike has strongly served his Community with a career “loaded up” with accolades and wins. In Congress, he is fighting tirelessly to Grow our Economy, Cut Taxes and Regulations, Promote MADE IN THE U.S.A., Unleash American Energy DOMINANCE, Keep our now Border SECURE, Stop Migrant Crime, Strengthen our Military/Veterans, and Defend our always under siege Second Amendment.   Mike Haridopo",
-      "url": "https://trumpstruth.org/statuses/40778",
-      "published": "2026-08-12T22:06:05+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
-    },
-    {
-      "author": "Trump",
-      "text": "Congressman Gus Bilirakis is a Tremendous Champion for Florida’s 12th Congressional District!   As a Senior Member of the POWERFUL House Energy and Commerce Committee, Gus is working tirelessly to Unleash American Energy DOMINANCE, Create GREAT Jobs, Cut Taxes and Regulations, Promote MADE IN THE U.S.A., and Champion our Nation’s Golden Age. In Congress, Gus is also fighting tirelessly to Keep our Border SECURE, Stop Migrant Crime, Ensure LAW AND ORDER, Support our Brave Military/Veterans, and Protect our always under siege Second Amendment.   Gus Bilirakis has my Complete and Total Endorsemen",
-      "url": "https://trumpstruth.org/statuses/40779",
-      "published": "2026-08-12T22:05:49+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
-    },
-    {
-      "author": "Trump",
-      "text": "Congresswoman Anna Paulina Luna is an America First Patriot and Tremendous Champion for the wonderful people of Florida's 13th Congressional District!   A true MAGA Warrior, Anna is working tirelessly to Grow our Economy, Cut Taxes and Regulations, Promote MADE IN THE U.S.A., Unleash American Energy DOMINANCE, Keep our Border SECURE, Stop Migrant Crime, Support our incredible Military/Veterans, Defend our always under siege Second Amendment, and Ensure PEACE THROUGH STRENGTH.   Anna Paulina Luna is a very good friend, fighter, and WINNER, and has my Complete and Total Endorsement for Re-Electi",
-      "url": "https://trumpstruth.org/statuses/40780",
-      "published": "2026-08-12T22:05:21+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
-    },
-    {
-      "author": "Trump",
-      "text": "Congresswoman Laurel Lee is an incredible Representative of Florida’s 15th Congressional District!   Laurel served as Florida’s Secretary of State for three years, and delivered strong results for families, and businesses. In Congress, Laurel is fighting tirelessly to Grow our Economy, Cut Taxes and Regulations, Promote MADE IN THE U.S.A., Unleash American Energy DOMINANCE, Keep our Border SECURE, Champion Innovation, Strengthen our Great Military/Veterans, and Protect our always under siege Second Amendment.   Laurel Lee has my Complete and Total Endorsement for Re-Election! Early Voting is u",
-      "url": "https://trumpstruth.org/statuses/40781",
-      "published": "2026-08-12T22:05:03+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
-    },
-    {
-      "author": "Trump",
-      "text": "It is my Great Honor to endorse America First Patriot, Sydney Gruters, the wife of our GREAT Chairman of the Republican National Committee, Joe Gruters, who is running to represent the Wonderful People of Florida's 16th Congressional District!   A Highly Successful Civic Leader and Public Servant, Sydney has dedicated her life to serving her Community, and she and her family are fierce advocates for our Movement to, MAKE AMERICA GREAT AGAIN! As your next Congresswoman, Sydney will fight tirelessly to Grow our Economy, Cut Taxes and Regulations, Promote MADE IN THE U.S.A., Unleash American Ener",
-      "url": "https://trumpstruth.org/statuses/40766",
-      "published": "2026-08-12T22:04:48+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
-    },
-    {
-      "author": "Trump",
-      "text": "Greg Steube is a tremendous Representative for the Great People of Florida’s 17th Congressional District!   A Former Captain of the U.S. Army JAG Corps, Greg knows the Wisdom and Courage that is required to Defend our Country, Support our Incredible Military/Veterans, and Champion PEACE THROUGH STRENGTH. In Congress, Greg is working hard to Keep our Border SECURE, Stop Migrant Crime, Ensure LAW AND ORDER, Grow our Economy, Cut Taxes and Regulations, Promote MADE IN THE U.S.A., Champion Small Business, Unleash American Energy DOMINANCE, and Defend our always under siege Second Amendment.   Greg",
-      "url": "https://trumpstruth.org/statuses/40767",
-      "published": "2026-08-12T22:04:32+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
-    },
-    {
-      "author": "Trump",
-      "text": "Scott Franklin is a fantastic Representative for the Great People of Florida’s 18th Congressional District!   A U.S. Naval Academy Graduate and retired Navy Commander, Scott knows the Wisdom and Courage that is required to Defend our Country, Support our incredible Military/Veterans, and Ensure PEACE THROUGH STRENGTH. In Congress, Scott is working hard to Keep our Border SECURE, Stop Migrant Crime, Ensure LAW AND ORDER, Grow our Economy, Cut Taxes and Regulations, Promote MADE IN THE U.S.A., Unleash American Energy DOMINANCE, and Protect our always under siege Second Amendment.   Scott Frankli",
-      "url": "https://trumpstruth.org/statuses/40760",
-      "published": "2026-08-12T22:04:09+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
-    },
-    {
-      "author": "Trump",
-      "text": "Congressman Brian Mast is a MAGA Warrior and Fantastic Advocate for Florida’s 21st Congressional District!   As the Chairman of my WINNING 2024 Campaign’s Veterans for Trump Coalition, Brian is a true American Hero and Patriot. He knows the Wisdom and Courage required to Defend our Country, Support our Brave Military/Veterans, and Ensure PEACE THROUGH STRENGTH. In Congress, he is fighting hard to Grow the Economy, Cut Taxes and Regulations, Promote MADE IN THE U.S.A., Unleash American Energy DOMINANCE, Keep our Border SECURE, Ensure PEACE THROUGH STRENGTH, and Protect our always under siege Se",
-      "url": "https://trumpstruth.org/statuses/40761",
-      "published": "2026-08-12T22:03:52+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
-    },
-    {
-      "author": "Trump",
-      "text": "Congressman Mario Diaz-Balart is doing an incredible job representing Florida’s 26th Congressional District!   A Proven Leader, Mario served his Community as a Highly Respected State Legislator and Civic Leader, prior to becoming a very distinguished Congressman. In Congress, he is fighting tirelessly to Grow our Economy, Cut Taxes and Regulations, Promote MADE IN THE U.S.A., Unleash American Energy DOMINANCE, Keep our Border SECURE, Stop Migrant Crime, Ensure PEACE THROUGH STRENGTH, Champion our Military/Veterans, and Defend our always under siege Second Amendment.   Mario Diaz-Balart has my ",
-      "url": "https://trumpstruth.org/statuses/40762",
-      "published": "2026-08-12T22:03:36+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
-    },
-    {
-      "author": "Trump",
-      "text": "Congresswoman María Elvira Salazar is doing a truly fantastic job representing the wonderful people of Florida’s 27th Congressional District!   A former News Anchor and Political Reporter, María knows the Wisdom and Courage required to confront the Corrupt Fake News, which seeks to divide and destroy our Great Country. In Congress, María is working hard to Grow our Economy, Cut Taxes and Regulations, Promote MADE IN THE U.S.A., Unleash American Energy DOMINANCE, Keep our Border SECURE, Stop Migrant Crime, Support our Brave Military/Veterans, and Defend our always under siege Second Amendment. ",
-      "url": "https://trumpstruth.org/statuses/40763",
-      "published": "2026-08-12T22:02:54+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
-    },
-    {
-      "author": "Trump",
-      "text": "Congressman Carlos Gimenez is doing a fantastic job representing Florida’s 28th Congressional District!   A Highly Respected Firefighter, Civic Leader, and Mayor of Miami-Dade County, prior to becoming a distinguished Congressman, Carlos has dedicated his life to serving his Community. In Congress, he is working hard to Grow our Economy, Cut Taxes and Regulations, Unleash American Energy DOMINANCE, Promote MADE IN THE U.S.A., Keep our Border SECURE, Stop Migrant Crime, Strengthen our Military/Veterans, Ensure LAW AND ORDER, and Protect our always under siege Second Amendment.   Carlos Gimenez ",
-      "url": "https://trumpstruth.org/statuses/40764",
-      "published": "2026-08-12T22:02:39+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
-    },
-    {
-      "author": "Trump",
-      "text": "It is my Great Honor to endorse America First Patriot, Jon Maples, who is running to represent the fantastic people of Florida’s 87th State House District!   Jon is a very successful Businessman and Civic Leader, who is known and loved, and also endorsed by so many of my Palm Beach County friends, including by Great State Representative “MAGA” Meg Weinberger. As your next State Representative, Jon will fight tirelessly to Grow the Economy, Cut Taxes and Regulations, Promote MADE IN THE U.S.A., Stop Migrant Crime, Advance Election Integrity, Support our Military, Veterans, and Law Enforcement, ",
-      "url": "https://trumpstruth.org/statuses/40765",
-      "published": "2026-08-12T22:02:20+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
+      "sectors": [
+        "AI",
+        "航天"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 82,
+      "summary_cn": "SpaceX股价因Musk推介新Grok模型跳涨，直接利好kcn持有的SPCX及2x杠杆SPCH。"
     },
     {
       "author": "Trump",
@@ -301,35 +139,72 @@
       "tickers": [],
       "held": [],
       "new_ideas": [],
+      "sectors": [
+        "能源/石油",
+        "国防军工",
+        "中东地缘政治"
+      ],
+      "sector_holdings": [
+        "02208"
+      ],
       "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
+      "relevance": 58,
+      "summary_cn": "Trump声称美国完全控制霍尔木兹海峡、维持海军封锁，称伊朗无还手之力，地缘紧张利好能源/国防主题。"
     },
     {
-      "author": "Trump",
-      "text": "Trey Gowdy wrote a GREAT new book, “THE SOUND OF REGRET,” which is flying off the shelves. Trey is a great writer (New York Times Bestselling Author!), among many other things. GET HIS BOOK N0W, he never disappoints! President DJT",
-      "url": "https://trumpstruth.org/statuses/40757",
-      "published": "2026-08-12T14:00:58+00:00",
-      "origin": "truthsocial",
+      "author": "Musk",
+      "text": "Elon Musk’s DOGE Promised Savings, But It’s Cost Us a Fortune",
+      "url": "",
+      "published": "Thu, 13 Aug 2026 11:57:19 GMT",
+      "origin": "gnews-rss",
+      "source": "Mother Jones",
       "tickers": [],
       "held": [],
       "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
+      "sectors": [
+        "政府效率/财政"
+      ],
+      "sector_holdings": [],
+      "stance": "attack",
+      "relevance": 52,
+      "summary_cn": "媒体批评Musk的DOGE项目'省下的钱远不及付出的代价'，对其政府效率改革成效的负面报道。"
     },
     {
-      "author": "Trump",
-      "text": "A GREAT new book out by Todd Starnes called, “The Golden Age: How Trump Saved America.” Everyone is raving about it! https://a.co/d/01AHD479",
-      "url": "https://trumpstruth.org/statuses/40733",
-      "published": "2026-08-11T19:04:47+00:00",
-      "origin": "truthsocial",
+      "author": "Musk",
+      "text": "Tesla reveals solar plans that could advance Elon Musk's push to outpace US panel capacity",
+      "url": "",
+      "published": "Thu, 13 Aug 2026 07:11:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Business Insider",
       "tickers": [],
       "held": [],
       "new_ideas": [],
+      "sectors": [
+        "太阳能/清洁能源",
+        "电动车"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 52,
+      "summary_cn": "Tesla披露太阳能新规划，Musk欲推动超越美国现有光伏产能，利好太阳能产业链但未点名上市公司。"
+    },
+    {
+      "author": "Musk",
+      "text": "EXCLUSIVE: S&P 500 CEO pay jumps to record as Musk-inspired compensation plans spread",
+      "url": "",
+      "published": "Thu, 13 Aug 2026 14:05:43 GMT",
+      "origin": "gnews-rss",
+      "source": "Reuters",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "CEO薪酬/公司治理"
+      ],
+      "sector_holdings": [],
       "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
+      "relevance": 50,
+      "summary_cn": "Musk式薪酬方案在全美扩散，S&P 500 CEO薪酬创纪录，间接反映其对市场治理范式的影响力。"
     },
     {
       "author": "Trump",
@@ -340,77 +215,150 @@
       "tickers": [],
       "held": [],
       "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
-    },
-    {
-      "author": "Trump",
-      "text": "Mike Lindell deserves a BIG WIN IN MINNESOTA today. Nobody has worked harder, and given up so much, in fighting for free and fair Elections. Go out, NOW, and VOTE for Mike Lindell for Governor. He will not let you down. Thank you! President DJT",
-      "url": "https://trumpstruth.org/statuses/40730",
-      "published": "2026-08-11T14:10:37+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
-    },
-    {
-      "author": "Trump",
-      "text": "Chandler Hall, representing, on Television, the foolish Center for American Lack of Progress, stated that adding the National Guard to Cities, including our now Great Again, Washington, D.C., had “NO impact on Crime.” How crazy is that. Hall was met with furious dissent. The report is just another Radical Left SCAM, as are the people who fund this gaggle of Lunatics, including George Soros, Bill and Melinda Gates, Google, Apple, Visa, Goldman Sachs, Citigroup, WellsFargo, Bank of America, Walmart, Toyota, T-Mobile, and NBC Universal. Foreign support includes the Embassy of Japan, the Korea Fou",
-      "url": "https://trumpstruth.org/statuses/40727",
-      "published": "2026-08-11T02:31:44+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
-    },
-    {
-      "author": "Trump",
-      "text": "FIFA would be making a terrible mistake if, for any reason, they even considered replacing President Gianni Infantino. He is fantastic, having just presided over the most successful World Cup, by four times, ever presented. If he is gone, it will never be as successful or profitable again! Thank you for your attention to this matter. President DJT",
-      "url": "https://trumpstruth.org/statuses/40725",
-      "published": "2026-08-11T01:31:23+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
-    },
-    {
-      "author": "Trump",
-      "text": "It was my Honor to welcome now Senator Darline Graham Nordone (The sister of the Late, Great Lindsey Graham!), from the Wonderful State of South Carolina, into the Oval Office. We have known each other for a long time — She is a spectacular person, and a true American Patriot. Lindsey was one of the greatest people and Senators I have ever known, and his sister shares his deep love of our Country, and the State of South Carolina. During her visit, I asked Darline, for the Good of our Nation, to run for the U.S. Senate in the Special Republican Primary on Tuesday, August 11, 2026. She accepted,",
-      "url": "https://trumpstruth.org/statuses/40713",
-      "published": "2026-08-10T23:10:54+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
-    },
-    {
-      "author": "Trump",
-      "text": "Congressman Barry Moore, an America First Patriot who has been with me from the very beginning (He was the first Elected Official in the Country to Endorse me!), is running for the United States Senate in Alabama, a place I love and WON BIG in 2016, 2020, and 2024, getting the Highest Vote in that Great State’s History.   A very successful Businessman, Civic Leader, and Highly Respected State Legislator prior to becoming a distinguished Congressman, Barry has dedicated his life to serving his Community. As your next Senator, Barry will continue to fight tirelessly to Grow our Economy, Cut Taxe",
-      "url": "https://trumpstruth.org/statuses/40714",
-      "published": "2026-08-10T23:09:01+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
+      "sectors": [
+        "房地产/税收政策"
+      ],
+      "sector_holdings": [],
+      "stance": "attack",
+      "relevance": 50,
+      "summary_cn": "Trump抨击纽约市'度假屋税'(Pied-a-Terre Tax)导致人口和税收外流至佛州、德州等，影射纽约财政/社会走向毁灭。"
     }
   ],
-  "held_hits": [],
+  "held_hits": [
+    {
+      "author": "Musk",
+      "text": "Elon Musk: SpaceX’s AI Revenue Will Surpass Its Entire Space Business “Next Month”",
+      "url": "",
+      "published": "Wed, 12 Aug 2026 17:54:07 GMT",
+      "origin": "gnews-rss",
+      "source": "Yahoo Finance",
+      "tickers": [],
+      "held": [
+        "SPCH",
+        "SPCX"
+      ],
+      "new_ideas": [],
+      "sectors": [
+        "AI",
+        "航天"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 90,
+      "summary_cn": "Musk放话：SpaceX的AI营收下月将超过其整个航天业务，重大看多信号，直接利好kcn SPCX/SPCH。"
+    },
+    {
+      "author": "Musk",
+      "text": "SpaceX could make $500 billion in 2028, Elon Musk says (video)",
+      "url": "",
+      "published": "Tue, 11 Aug 2026 23:42:48 GMT",
+      "origin": "gnews-rss",
+      "source": "Space",
+      "tickers": [],
+      "held": [
+        "SPCH",
+        "SPCX"
+      ],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "AI"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 88,
+      "summary_cn": "Musk称SpaceX到2028年可能做到5000亿美元营收，宏大叙事利好kcn SPCX/SPCH持仓估值。"
+    },
+    {
+      "author": "Musk",
+      "text": "See How a Tesla-SpaceX Merger Gives Musk a Shortcut to His $1 Trillion Payday",
+      "url": "",
+      "published": "Tue, 11 Aug 2026 01:00:00 GMT",
+      "origin": "gnews-rss",
+      "source": "WSJ",
+      "tickers": [],
+      "held": [
+        "SPCH",
+        "SPCX"
+      ],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "AI",
+        "企业并购"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 88,
+      "summary_cn": "媒体分析Tesla-SpaceX潜在合并将为Musk带来1万亿美元薪酬捷径，若合并落地将极大重估SPCX/SPCH。"
+    },
+    {
+      "author": "Musk",
+      "text": "SpaceX stock surges as Elon Musk introduces new xAI model Grok 4.6",
+      "url": "",
+      "published": "Thu, 13 Aug 2026 11:19:36 GMT",
+      "origin": "gnews-rss",
+      "source": "Fox Business",
+      "tickers": [],
+      "held": [
+        "SPCH",
+        "SPCX"
+      ],
+      "new_ideas": [],
+      "sectors": [
+        "AI",
+        "航天"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 85,
+      "summary_cn": "Musk发布xAI新模型Grok 4.6，SpaceX股价应声飙升，强化AI+航天双叙事，利好kcn SPCX/SPCH持仓。"
+    },
+    {
+      "author": "Musk",
+      "text": "SpaceX Jumps On New Grok Model; Musk Comments",
+      "url": "",
+      "published": "Thu, 13 Aug 2026 13:34:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Investor's Business Daily",
+      "tickers": [],
+      "held": [
+        "SPCH",
+        "SPCX"
+      ],
+      "new_ideas": [],
+      "sectors": [
+        "AI",
+        "航天"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 82,
+      "summary_cn": "SpaceX股价因Musk推介新Grok模型跳涨，直接利好kcn持有的SPCX及2x杠杆SPCH。"
+    }
+  ],
   "new_ideas": [],
-  "sector_hits": []
+  "sector_hits": [
+    {
+      "author": "Trump",
+      "text": "The U.S.A. has total control over the Strait of Hormuz. I THINK WE WILL KEEP IT! Our Naval Blockade is being called, by everyone, “A WALL OF STEEL,” and there is nothing Iran can do about it. They have no Navy, they have no Air Force, their remaining soldiers are unpaid, the IRGC is decimated and fleeing, and their “Leadership” is uncertain, at best! They have No Money - Their country is “shot.” All they have is FAKE NEWS and 300% INFLATION, and getting worse! Iran is all talk and no action, the Bully of the Middle East No Longer. Praise be to Allah! President DONALD J. TRUMP",
+      "url": "https://trumpstruth.org/statuses/40758",
+      "published": "2026-08-12T14:31:09+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "能源/石油",
+        "国防军工",
+        "中东地缘政治"
+      ],
+      "sector_holdings": [
+        "02208"
+      ],
+      "stance": "neutral",
+      "relevance": 58,
+      "summary_cn": "Trump声称美国完全控制霍尔木兹海峡、维持海军封锁，称伊朗无还手之力，地缘紧张利好能源/国防主题。"
+    }
+  ]
 }
