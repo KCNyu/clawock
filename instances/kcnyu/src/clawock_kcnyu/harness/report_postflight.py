@@ -98,7 +98,10 @@ from ._harness_common import (  # noqa: E402
     rebuild_dashboard,
     snapshot_date_for_now,
 )
-from ._watchdog_common import resolve_wechat_target, send_wechat, cosend_telegram, already_delivered  # noqa: E402
+from ._watchdog_common import (  # noqa: E402
+    resolve_wechat_target, send_wechat, cosend_telegram, already_delivered,
+    claim_send, mark_send_started, release_claim, log,
+)
 
 
 def read_prose_text(market, phase, text_file):
@@ -170,7 +173,7 @@ def claim_upgrade(market, phase, date):
 
 
 def deliver_wechat(market, phase, date, wechat_prefix, text, delivery_state='delivered',
-                   context_id=None, context_generated_at=None):
+                   context_id=None, context_generated_at=None, claim_path=None):
     """Primary WeChat send for staged reports — fresh-token `openclaw message send`,
     decoupled from the cron's announce.
 
@@ -197,6 +200,11 @@ def deliver_wechat(market, phase, date, wechat_prefix, text, delivery_state='del
     message = (wechat_prefix + text).strip()
     body_lines = text.strip().splitlines()
     sent_first = body_lines[0].strip() if body_lines else ''
+    # Flip the claim to "in flight" BEFORE the send, so a process killed between
+    # here and the marker write (the 2026-08-13 duplicate, #508) is readable as
+    # "may already have reached WeChat" by whoever claims next.
+    if claim_path is not None:
+        mark_send_started(claim_path)
     try:
         channel, to, account = resolve_wechat_target(market)
         sent_ok, out = send_wechat(channel, to, account, message, dry_run=False)
@@ -236,6 +244,11 @@ def deliver_wechat(market, phase, date, wechat_prefix, text, delivery_state='del
         }, ensure_ascii=False))
     except Exception as e:
         print(f'warn: report send marker write failed: {e}', file=sys.stderr)
+    # This send ran to completion, so the marker now owns the idempotency question
+    # and the claim has nothing left to arbitrate. Releasing it keeps "a claim
+    # exists" meaning "a sender died holding it".
+    if claim_path is not None:
+        release_claim(claim_path)
     if not sent_ok:
         print(f'warn: WeChat send failed (watchdog will retry): {(out or "")[:200]}', file=sys.stderr)
     return sent_ok, out
@@ -476,21 +489,50 @@ def main(argv=None):
     # fail-closed data block, and this run has a report that actually validates.
     # claim_upgrade() makes it exactly one. Everything else — a second failure, a
     # retry of an already-good send — stays blocked.
+    upgrading = False
     if blocked and delivery_state == 'delivered' and _marker_state(report_marker) == 'failed':
         if claim_upgrade(args.market, args.phase, today):
             print(f'upgrade: {args.market}-{args.phase} superseding the fail-closed '
                   f'data block with the validated report', file=sys.stderr)
             blocked = False
+            upgrading = True
 
+    send_claim = 'not-required'
     if blocked:
         print(f'idempotency: {args.market}-{args.phase} already delivered today — skip re-send',
               file=sys.stderr)
         wechat_sent = True
-    else:
+    elif upgrading:
+        # The upgrade is the one re-send this slot is allowed, and `claim_upgrade`
+        # is already an O_EXCL one-shot — so it needs no send claim on top. Asking
+        # for one would in fact deny it: the fail-closed send that ran first left
+        # its own claim behind, and the upgrade would read that as a sender still
+        # in flight and skip the corrected report (caught by
+        # test_a_failed_slot_can_be_superseded_once_then_locks).
+        send_claim = 'upgrade'
         wechat_sent, _ = deliver_wechat(args.market, args.phase, today, wechat_prefix, body,
                                         delivery_state=delivery_state,
                                         context_id=ctx.get('context_id'),
                                         context_generated_at=ctx.get('generated_at'))
+    else:
+        # The marker only proves a send that FINISHED. A concurrent postflight
+        # that is still mid-send leaves no marker at all, so the claim is what
+        # keeps the second one quiet (#508).
+        claim_path = TMP / f'report-send-{args.market}-{args.phase}-{today}.claim'
+        won, send_claim = claim_send(claim_path)
+        if not won:
+            print(f'concurrency: {args.market}-{args.phase} send is already claimed '
+                  f'({send_claim}) — not sending a second copy; the watchdog owns this '
+                  f'slot if the first one did not land', file=sys.stderr)
+            log({'tag': f'{args.market}-{args.phase}', 'action': 'send-claim-declined',
+                 'reason': send_claim})
+            wechat_sent = False
+        else:
+            wechat_sent, _ = deliver_wechat(args.market, args.phase, today, wechat_prefix, body,
+                                            delivery_state=delivery_state,
+                                            context_id=ctx.get('context_id'),
+                                            context_generated_at=ctx.get('generated_at'),
+                                            claim_path=claim_path)
 
     commit_ok, commit_msg = maybe_commit(status, ctx['commit_msg'])
     data_plane_status = classify_data_plane(commit_ok, commit_msg)
@@ -504,6 +546,9 @@ def main(argv=None):
         'issues':        issues,
         'wechat_prefix': wechat_prefix,
         'wechat_sent':   wechat_sent,
+        # So a re-run that correctly declined to double-send says so in its own
+        # output instead of looking like a send failure to whoever reads Step 4.
+        'send_claim':    send_claim,
         'delivered':     'data-block only (prose rejected)' if status == 'fail' else 'full report',
         'commit_ok':     commit_ok,
         'commit_msg':    commit_msg,
