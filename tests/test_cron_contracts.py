@@ -10,7 +10,7 @@ from zoneinfo import ZoneInfo
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'ops' / 'host'))
 
-from clawock_kcnyu import schedule as cron_contract
+from clawock import scheduling as cron_contract
 from clawock_kcnyu.automation import cron_heartbeat
 import sync_us_cron_dst
 

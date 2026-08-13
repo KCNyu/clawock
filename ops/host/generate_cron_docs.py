@@ -9,9 +9,8 @@ from pathlib import Path
 _CHECKOUT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(_CHECKOUT))
 sys.path.insert(0, str(_CHECKOUT / "src"))
-sys.path.insert(0, str(_CHECKOUT / "instances" / "kcnyu" / "src"))
 from clawock.workspace import workspace_root  # noqa: E402
-from clawock_kcnyu.schedule import load_contract  # noqa: E402
+from clawock.scheduling import load_contract  # noqa: E402
 
 WS = workspace_root(_CHECKOUT)
 OUTPUT = WS / "docs" / "operations" / "cron-schedules.md"

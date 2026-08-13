@@ -214,7 +214,7 @@ def commit_count_today(commit_pattern):
 def load_runtime_jobs(jobs_file=None):
     """Load cron jobs from an explicit tracked contract or the live CLI layer."""
     if jobs_file:
-        from clawock_kcnyu.schedule import effective_schedule, load_contract
+        from clawock.scheduling import effective_schedule, load_contract
         data = load_contract(jobs_file)
         jobs = []
         for job in data['jobs']:

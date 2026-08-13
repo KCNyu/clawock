@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "id": "minimal",
+  "locale": "en-US",
+  "timezone": "UTC",
+  "markets": {
+    "paper": {
+      "timezone": "UTC",
+      "label": "Paper market",
+      "analysis_command": "analyze-paper",
+      "skill": null
+    }
+  },
+  "workflows": {
+    "intraday": {
+      "enabled": true,
+      "markets": ["paper"],
+      "policy": "intraday",
+      "template": "intraday"
+    }
+  },
+  "resources": {
+    "portfolio": "portfolio.json",
+    "instruments": "config/instruments.json",
+    "schedule_contract": "config/schedule.json"
+  },
+  "policies": {
+    "intraday": {
+      "max_setup_lines": 3,
+      "quote_fresh_minutes": 10
+    }
+  },
+  "templates": {
+    "intraday": "config/intraday.md"
+  },
+  "delivery": {
+    "provider": "filesystem",
+    "targets": {
+      "primary": {"source": "disabled"}
+    }
+  }
+}

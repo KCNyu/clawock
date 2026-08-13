@@ -684,7 +684,7 @@ def check_cron_paths_exist(r):
         return
 
     try:
-        from clawock_kcnyu.schedule import (  # type: ignore
+        from clawock.scheduling import (  # type: ignore
             load_contract, next_us_dst_transition, us_season,
             validate_live_jobs, validate_watchdogs,
         )

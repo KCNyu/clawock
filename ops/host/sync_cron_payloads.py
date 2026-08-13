@@ -21,7 +21,6 @@ from typing import Callable
 _CHECKOUT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(_CHECKOUT))
 sys.path.insert(0, str(_CHECKOUT / "src"))
-sys.path.insert(0, str(_CHECKOUT / "instances" / "kcnyu" / "src"))
 from clawock.workspace import workspace_root  # noqa: E402
 
 # Code lives in the checkout; only DATA lives in the workspace. `workspace_root`
@@ -37,7 +36,7 @@ WS = workspace_root(_CHECKOUT)
 # The CHECKOUT root, not WS: `workspace_root` is overridable, so WS can be
 # someone else's data directory with no `clawock` package in it. The import has
 # to resolve against the tree this file ships in.
-from clawock_kcnyu.schedule import (  # noqa: E402
+from clawock.scheduling import (  # noqa: E402
     effective_schedule,
     load_contract,
     render_payload_message,

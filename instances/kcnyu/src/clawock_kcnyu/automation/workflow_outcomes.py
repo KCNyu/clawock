@@ -31,7 +31,7 @@ from zoneinfo import ZoneInfo
 from clawock.providers import openclaw
 from clawock.publish.outcomes import summarize_records
 from clawock.workspace import workspace_root
-from clawock_kcnyu import schedule
+from clawock import scheduling as schedule
 
 # Code lives in the checkout; only DATA lives in the workspace. `workspace_root`
 # is overridable, so resolving our own modules through WS would read them out of

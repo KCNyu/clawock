@@ -404,7 +404,7 @@ def _brief_job_names():
     it there cannot leave a watchdog looking for a job that no longer exists.
     """
     try:
-        from clawock_kcnyu.schedule import load_contract
+        from clawock.scheduling import load_contract
 
         return {job.get('name') for job in load_contract().get('jobs', [])
                 if job.get('mode') == BRIEF_CONTRACT_MODE}
