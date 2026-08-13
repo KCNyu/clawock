@@ -6,7 +6,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 
-from clawock_kcnyu.automation import workflow_outcomes as outcomes  # noqa: E402
+from clawock.automation import workflow_outcomes as outcomes  # noqa: E402
 
 
 # Every write prunes the ledger against KEEP_HOURS, so a slot literal is only

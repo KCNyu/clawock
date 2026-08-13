@@ -26,9 +26,9 @@ policy.
   to read and to check — that is the point of the scorecard — but a pull request
   that edits them will be closed, because merging it would amend a live ledger.
 
-- **`instances/kcnyu/` — source, but one desk's behavior.** It is ordinary
-  version-controlled code changed through normal PRs, not generated state. It
-  encodes this desk's schedule, thresholds and delivery, so a change there needs
+- **`config/profiles/` — declarative desk configuration.** It is
+  version-controlled configuration changed through normal PRs, not generated
+  state. It encodes this desk's schedule, thresholds and delivery, so a change needs
   the maintainer to want it. If the same fix can live in `src/clawock/`, that is
   where it belongs.
 

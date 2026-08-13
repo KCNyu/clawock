@@ -4,8 +4,8 @@
 An agent-native plugin kit backed by a verifiable execution harness. Existing
 external agents call ``clawock run`` to certify inputs and validate/publish their
 artifacts; the model, conversation, memory, skills and tool loop stay external.
-Separately installed live adapters may expose compatibility phase commands while
-their instance code is migrated.
+The package owns lifecycle phases and selects their values/resources through a
+declarative profile.
 """
 from __future__ import annotations
 

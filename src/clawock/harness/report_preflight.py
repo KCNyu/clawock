@@ -65,7 +65,7 @@ from ._harness_common import (  # noqa: F401 — re-exported for callers/tests
     compute_context_id,
 )
 
-from clawock_kcnyu.automation import workflow_outcomes  # noqa: E402
+from clawock.automation import workflow_outcomes  # noqa: E402
 
 
 def _market_closed_reason(market, phase):

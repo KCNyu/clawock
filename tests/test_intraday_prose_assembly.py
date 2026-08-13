@@ -21,9 +21,9 @@ Every test drives real functions; nothing asserts on prompt text.
 from __future__ import annotations
 
 import importlib
+import sys
 import io
 import json
-import sys
 from contextlib import redirect_stdout
 from pathlib import Path
 
@@ -31,7 +31,7 @@ import pytest
 
 
 ROOT = Path(__file__).resolve().parents[1]
-HARNESS = ROOT / 'instances' / 'kcnyu' / 'src' / 'clawock_kcnyu' / 'harness'
+HARNESS = ROOT / 'src' / 'clawock' / 'harness'
 
 # The real 2026-07-28 00:30 block, trimmed to the rows that matter.
 BLOCK = ('🇺🇸 美股盯盘 | 07/27 12:30 ET\n\n'
@@ -50,10 +50,7 @@ PROSE = ('▎我的看法\n'
 
 
 def _load(name):
-    for extra in (ROOT / 'instances' / 'kcnyu' / 'src',):
-        if str(extra) not in sys.path:
-            sys.path.insert(0, str(extra))
-    return importlib.import_module(f'clawock_kcnyu.harness.{name}')
+    return importlib.import_module(f'clawock.harness.{name}')
 
 
 @pytest.fixture

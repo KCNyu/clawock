@@ -6,8 +6,8 @@ from datetime import datetime, timedelta, timezone
 
 import pytest
 
-from clawock_kcnyu.automation import influencer as fetch_influencer_feed
-from clawock_kcnyu.automation import news_digest as gh_action_news_digest
+from clawock.automation import influencer as fetch_influencer_feed
+from clawock.automation import news_digest as gh_action_news_digest
 from clawock.publish import artifacts as validate_sidecars
 from clawock.market_data import sentiment as fetch_sentiment
 

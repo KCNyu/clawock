@@ -24,12 +24,12 @@ jobs:
         with:
           python-version: '3.11'
 
-      - run: pip install --quiet -e . -e ./instances/kcnyu
+      - run: pip install --quiet -e .
 
       - name: Compile all scripts
         run: |
           set -e
-          find src ops instances/kcnyu/src -type f -name '*.py' -print0 |
+          find src ops -type f -name '*.py' -print0 |
           while IFS= read -r -d '' f; do
             python3 -m py_compile "$f"
           done
@@ -41,10 +41,10 @@ jobs:
       - name: argparse contracts unchanged
         run: |
           set -e
-          CLAWOCK_INSTANCE=kcnyu clawock report preflight --help > /dev/null
-          CLAWOCK_INSTANCE=kcnyu clawock report postflight --help > /dev/null
-          CLAWOCK_INSTANCE=kcnyu clawock intraday preflight --help > /dev/null
-          CLAWOCK_INSTANCE=kcnyu clawock intraday postflight --help > /dev/null
+          CLAWOCK_PROFILE=kcnyu clawock report preflight --help > /dev/null
+          CLAWOCK_PROFILE=kcnyu clawock report postflight --help > /dev/null
+          CLAWOCK_PROFILE=kcnyu clawock intraday preflight --help > /dev/null
+          CLAWOCK_PROFILE=kcnyu clawock intraday postflight --help > /dev/null
 
       - name: Public data sources reachable
         continue-on-error: true

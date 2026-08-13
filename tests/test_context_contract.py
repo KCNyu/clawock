@@ -1,4 +1,5 @@
 """Pin OpenClaw's distinct context profiles and lazy capabilities (#380)."""
+import os
 from pathlib import Path
 
 import pytest
@@ -283,8 +284,11 @@ def test_every_command_the_injected_context_names_exists():
 
     from clawock.cli import PACKAGED_UTILITIES
 
-    usage = subprocess.run([sys.executable, "-m", "clawock", "--help"], cwd=ROOT,
-                           capture_output=True, text=True, timeout=60).stdout
+    usage = subprocess.run(
+        [sys.executable, "-m", "clawock", "--help"], cwd=ROOT,
+        capture_output=True, text=True, timeout=60,
+        env={**os.environ, "PYTHONPATH": str(ROOT / "src")},
+    ).stdout
     choices = re.search(r"\{([a-z0-9,-]+)\}", usage)
     accepted = set(PACKAGED_UTILITIES) | set(choices.group(1).split(",") if choices else [])
     assert "brief" in accepted and "dashboard-build" in accepted, usage[:400]
@@ -295,7 +299,7 @@ def test_every_command_the_injected_context_names_exists():
         for command in sorted(set(re.findall(r"`clawock ([a-z][a-z0-9-]+)", body))):
             if command not in accepted:
                 unknown.append(f"{name}: clawock {command}")
-        for command in sorted(set(re.findall(r"`(clawock-kcnyu-[a-z-]+)", body))):
+        for command in sorted(set(re.findall(r"`(clawock-[a-z-]+)", body))):
             if command not in installed:
                 unknown.append(f"{name}: {command}")
     assert not unknown, ("injected context names commands that do not exist:\n"

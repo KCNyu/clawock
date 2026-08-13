@@ -5,7 +5,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-from clawock_kcnyu.harness import brief_postflight
+from clawock.harness import brief_postflight
 
 
 CHINESE_LOCALIZED_BRIEF = """\

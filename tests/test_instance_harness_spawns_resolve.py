@@ -24,7 +24,7 @@ import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-HARNESS = ROOT / "instances" / "kcnyu" / "src" / "clawock_kcnyu" / "harness"
+HARNESS = ROOT / 'src' / 'clawock' / 'harness'
 
 def _harness_modules():
     return sorted(p for p in HARNESS.glob("*.py") if p.name != "__init__.py")

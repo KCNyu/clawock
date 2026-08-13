@@ -8,7 +8,7 @@ quickstart opens with the install line — so the package's first impression was
 a failure and a wall of text.
 
 Two properties, because fixing only the first is how the old
-`clawock_kcnyu.__version__ = "0.1.0"` literal got shipped reporting the previous
+An old adapter-local `__version__ = "0.1.0"` literal shipped the previous
 release (`tests/test_versions_agree.py`):
 
 1. the flag exists and exits 0;

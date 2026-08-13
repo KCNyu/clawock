@@ -16,7 +16,7 @@ import sys
 from datetime import date, timedelta
 from pathlib import Path
 
-from clawock_kcnyu.automation.llm import chat
+from clawock.automation.llm import chat
 from clawock.decision import ledger as decision_v2
 
 

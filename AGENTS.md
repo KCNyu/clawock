@@ -50,7 +50,7 @@ After any of the following changes, run a git commit automatically — no need t
 | KCNyu harness/publisher refreshed dashboard outputs | publish the complete semantic generation through the data plane; do not stage individual generated files ad hoc |
 | `assets/data/risk.json` refreshed via `clawock portfolio-risk` | bundled with brief commit |
 | `memory/decisions.jsonl` execution status marked via `clawock mark-followed` | `decisions: mark execution` |
-| Package, instance or `ops/` code changed | `refactor:`/`fix:`/`feat: <what changed>` (via PR, never direct) |
+| Package, profile or `ops/` code changed | `refactor:`/`fix:`/`feat: <what changed>` (via PR, never direct) |
 | Workspace docs changed (SOUL/AGENTS/TOOLS/USER/CLAUDE/README) | `docs: <what changed>` |
 
 Message style: `<type>: <concise description>`, Chinese is fine.
@@ -111,7 +111,7 @@ You wake up fresh each session. These files are your continuity:
 Skills live under `skills/<name>/SKILL.md`. **Full routing + edge-cases → `TOOLS.md` § Skill 路由表.**
 
 Runtime commands come from the installed distributions: portable workflows and
-tools use `clawock`; this desk's harness/watchdogs/automation use `clawock-kcnyu`
+tools, harness, watchdogs and automation all use the installed `clawock` distribution
 entry points. Host, publishing, CI and growth wiring lives under `ops/`. Never
 recover an old command by executing a root script or a file under `scripts/data/`.
 

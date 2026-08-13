@@ -20,15 +20,16 @@ execution/outcome → bounded, reviewable improvement proposal.
 | Layer | Owns | Current location |
 |---|---|---|
 | Plugin/harness core | portable skills/workflows, generation-pinned artifact contract, validation/reconciliation, context assembly, tool schemas, evaluation contracts | `src/clawock/` + portable skill/workflow packages (in progress) |
-| Instance | portfolio data, schedules, deployment overrides, selected skills/persona, delivery targets, dashboard skin | root data + `config/` + `skills/` |
+| Profile | portfolio data, schedules, policy values, selected skills/persona, delivery targets and presentation resources | root data + `config/profiles/` + referenced resources |
 | Runtime adapters | conversations, scheduling, delivery, run history | OpenClaw today; provider interfaces in `src/clawock/providers/` |
-| Live desk adapter | market refresh, `.tmp` artifact placement, git coordination, publication/watchdogs | separately installable `instances/kcnyu/` distribution |
+| Lifecycle runtime | market refresh, `.tmp` artifacts, publication, heartbeats and watchdogs | `src/clawock/{harness,automation}/` in the root wheel |
 
 Reusable investment strategies remain product code under `src/clawock/decision/`,
-even when the first consumer is the live KCNyu desk. The live adapter binds those
-strategies into phases and delivery; it is not a second strategy package. The
-full provider → strategy → instance ownership rule is documented in
-[`product-vs-instance.md`](../reference/product-vs-instance.md#evidence-strategy-and-instance-rule).
+even when the first consumer is the live KCNyu desk. Package lifecycle modules
+bind those strategies into phases and provider-backed delivery; profiles only
+select values and resources. The full provider → strategy → lifecycle rule is
+documented in
+[`product-profile-operations.md`](../reference/product-profile-operations.md#evidence-strategy-and-profile-rule).
 
 The public CLI is the stable driver boundary:
 
@@ -77,11 +78,9 @@ The shipped parameters govern evidence/provenance strictness only; they do not
 add or tune factors, catalysts, signals, entries, exits or portfolio rules. The
 calling runtime's existing investment strategy remains the decision source.
 
-The live workflow phase commands discover KCNyu's separately installed
-`clawock-kcnyu` distribution through standard Python entry points. The portable
-wheel contains neither that implementation nor portfolio data. The former
-`scripts/harness/` launchers were removed after OpenClaw phases and host
-watchdogs completed their installed-command cutover.
+The live workflow phase commands dispatch directly to package-owned lifecycle
+modules selected by a declarative profile. The wheel contains the complete
+implementation but no user's portfolio or generated state.
 
 ## Context contract
 
@@ -146,5 +145,5 @@ investment-decision/
 `workflow.json` is the machine-readable discovery and parameter contract;
 `SKILL.md` follows the open [Agent Skills specification](https://agentskills.io/specification)
 and is the runtime-facing procedure; references and assets are loaded
-progressively. Python validators remain package code so neither a runtime nor an
-instance can silently edit financial or provenance invariants by changing prose.
+progressively. Python validators remain package code so neither a runtime nor a
+profile can silently edit financial or provenance invariants by changing prose.

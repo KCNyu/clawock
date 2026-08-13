@@ -49,8 +49,8 @@ TMP = WS / 'memory' / '.tmp'
 
 from ._harness_common import compute_context_id
 
-from clawock_kcnyu.automation import cron_heartbeat  # noqa: E402
-from clawock_kcnyu.harness import intraday_delta  # noqa: E402
+from clawock.automation import cron_heartbeat  # noqa: E402
+from clawock.harness import intraday_delta  # noqa: E402
 
 
 # `scripts/data` was deleted in #429 and the analysis moved into the package in

@@ -20,7 +20,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 from clawock.providers import openclaw as provider  # noqa: E402
-from clawock_kcnyu.harness import brief_watchdog as watchdog  # noqa: E402
+from clawock.harness import brief_watchdog as watchdog  # noqa: E402
 
 TODAY = "2026-08-13"
 

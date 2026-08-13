@@ -5,7 +5,6 @@ on:
     branches: [master]
     paths:
       - 'src/**'
-      - 'instances/**'
       - 'ops/**'
       - 'pyproject.toml'
       - 'tests/**'
@@ -179,7 +178,7 @@ jobs:
         # Pillow: validate_sidecars now fully-decodes screenshots/GIF (finding #12);
         # the real asset checks run in screenshot-refresh.yml (which has Pillow) but
         # the unit tests here exercise the same validators, so pytest needs it too.
-        run: pip install --quiet -e '.[test]' -e ./instances/kcnyu
+        run: pip install --quiet -e '.[test]'
 
       - name: Unit tests — money-integrity derivations
         if: github.event_name != 'pull_request' || steps.changes.outputs.code == 'true'
@@ -187,8 +186,9 @@ jobs:
           python3 -m pytest tests/ -q \
             --cov=clawock.publish.dashboard \
             --cov=clawock.evaluation \
+            --cov=clawock.harness \
+            --cov=clawock.automation \
             --cov=ops \
-            --cov=clawock_kcnyu \
             --cov=clawock.market_data.integrity \
             --cov=clawock.market_data.macro \
             --cov=clawock.market_data.mover_evidence \
@@ -263,7 +263,7 @@ jobs:
         if: github.event_name != 'pull_request' || steps.changes.outputs.code == 'true'
         run: |
           set -e
-          find src ops instances/kcnyu/src -type f -name '*.py' -print0 |
+          find src ops -type f -name '*.py' -print0 |
           while IFS= read -r -d '' f; do
             echo "syntax check: $f"
             python3 -m py_compile "$f"
@@ -284,7 +284,7 @@ jobs:
           for cli in report_preflight report_postflight \
                      intraday_preflight intraday_postflight \
                      brief_preflight brief_postflight; do
-            timeout 30 env CLAWOCK_INSTANCE=kcnyu clawock "${cli%%_*}" "${cli##*_}" --help > /dev/null \
+            timeout 30 env CLAWOCK_PROFILE=kcnyu clawock "${cli%%_*}" "${cli##*_}" --help > /dev/null \
               || { echo "::error::$cli.py --help did not exit 0 within 30s"; exit 1; }
           done
           echo "OK: all argparse parsers loadable"

@@ -2,10 +2,10 @@ import json
 from copy import deepcopy
 from datetime import datetime, timedelta, timezone
 
-from clawock_kcnyu.automation import news_digest as gh_action_news_digest
+from clawock.automation import news_digest as gh_action_news_digest
 from clawock.evidence import news_evidence_graph as graph
 from clawock.publish import artifacts as validate_sidecars
-from clawock_kcnyu.harness import brief_postflight
+from clawock.harness import brief_postflight
 
 
 POLICY = graph.load_policy()

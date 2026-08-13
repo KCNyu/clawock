@@ -227,10 +227,10 @@ def _sites_in(tree: ast.AST) -> list[int]:
 
 
 # Where code lives. `scripts/**` was half of this list and #429 deleted it, so
-# that half walked zero files; `ops/` and `instances/` — where the deleted code
-# went — were never added, which is how `ops/pages/freshness.py` could default a
-# CLI flag to `/root/.openclaw/workspace` while the ratchet reported zero.
-CODE_ROOTS = ("src/clawock", "ops", "instances")
+# that half walked zero files; `ops/` — where host wiring moved — was never
+# added, which is how `ops/pages/freshness.py` could default a CLI flag to
+# `/root/.openclaw/workspace` while the ratchet reported zero.
+CODE_ROOTS = ("src/clawock", "ops")
 
 
 def _modules():
@@ -405,7 +405,7 @@ def test_the_adapter_is_exempt_because_that_is_what_an_adapter_is_for():
 # The shell half (#478)
 # ---------------------------------------------------------------------------
 #
-# `docs/reference/product-vs-instance.md` says `ops/host/` owns "this host's
+# `docs/reference/product-profile-operations.md` says `ops/host/` owns "this host's
 # cron, scheduler inspection, session maintenance and launcher wiring" and
 # `ops/publish/` is the only publisher implementation. Naming this host is what
 # those files are for, so raising the Python baseline for them would punish
@@ -548,7 +548,7 @@ def test_only_the_documented_shell_entry_points_name_this_host():
             "where host paths could be written")
     # And the walk must not be scoped to the directories that happen to have a
     # script today: the roots it would have listed are not the whole repository.
-    assert any(not name.startswith(("ops/", "instances/", ".githooks/"))
+    assert any(not name.startswith(("ops/", ".githooks/"))
                for name in walked), (
         "every shell file found is under an ops-shaped path; if the discovery "
         "silently narrowed, a new script elsewhere would never be seen")

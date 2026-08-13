@@ -23,8 +23,8 @@
   - openclaw-fx-rule（人民币这笔独立成卡，不并入跨币种总额）
 
 用法：
-  clawock-kcnyu-gold-fetch            # 刷新并写回 portfolio.json
-  clawock-kcnyu-gold-fetch --dry-run  # 只打印，不写盘
+  clawock-gold-fetch            # 刷新并写回 portfolio.json
+  clawock-gold-fetch --dry-run  # 只打印，不写盘
 """
 import json
 import subprocess

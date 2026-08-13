@@ -17,7 +17,7 @@ other is not a fix.
 """
 from datetime import datetime, timedelta, timezone
 
-from clawock_kcnyu.harness import _watchdog_common as common
+from clawock.harness import _watchdog_common as common
 
 
 SINCE = "2026-08-11T01:05:00Z"

@@ -71,20 +71,11 @@ def _fresh_build_status_fixture(monkeypatch, tmp_path, at):
     return _portfolio(), data_dir
 
 
-def _install_section_provider(monkeypatch, name, section):
-    """Register `section` as the instance's `clawock.dashboard_sections` entry."""
-    monkeypatch.setenv("CLAWOCK_INSTANCE", name)
-    entry = SimpleNamespace(name=name, load=lambda: section)
-    monkeypatch.setattr(
-        dashboard.importlib.metadata, "entry_points",
-        lambda group: [entry] if group == "clawock.dashboard_sections" else [])
-
-
 def test_guardrail_compute_exception_is_an_explicit_failure_dict(monkeypatch):
     def explode(*_args, **_kwargs):
         raise RuntimeError("synthetic guardrail failure")
 
-    _install_section_provider(monkeypatch, "fixture", explode)
+    monkeypatch.setattr(dashboard, "_guardrail_sections", explode)
 
     result = dashboard.compute_guardrail_outputs(_portfolio(), risk={})
 
@@ -94,20 +85,11 @@ def test_guardrail_compute_exception_is_an_explicit_failure_dict(monkeypatch):
     assert result["breakeven_math"] == {"computed": False}
 
 
-def test_guardrail_without_an_instance_provider_says_so(monkeypatch):
-    """No provider must read as "not computed", never as an empty all-clear.
-
-    The renderer normalizes a missing card to `{}` and paints it green, so this
-    is the difference between "no breaches" and "nobody checked".
-    """
-    monkeypatch.delenv("CLAWOCK_INSTANCE", raising=False)
-    monkeypatch.setattr(
-        dashboard.importlib.metadata, "entry_points", lambda group: [])
-
+def test_guardrail_is_computed_without_an_instance_provider():
     result = dashboard.compute_guardrail_outputs(_portfolio(), risk={})
 
-    assert result["risk_guardrail"]["computed"] is False
-    assert result["breakeven_math"]["computed"] is False
+    assert result["risk_guardrail"]["breach_count"] == 0
+    assert result["breakeven_math"]["rows"] == []
 
 
 def test_workflow_card_folds_the_published_ledger_into_counts(monkeypatch, tmp_path):

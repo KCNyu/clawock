@@ -3,11 +3,12 @@
 
 The document the README calls "the full command and provider catalog" was
 hand-maintained, so nothing noticed when a command was added, renamed or
-removed (#489). The inventory half of it is now derived from the same two
-registries `config/information-layers.json` partitions:
+removed (#489). The inventory half is now derived from the two command
+registries in the single `clawock` distribution that
+`config/information-layers.json` partitions:
 
 - `clawock.cli.PACKAGED_UTILITIES` — the public CLI's own dispatch table;
-- `[project.scripts]` in `instances/kcnyu/pyproject.toml`.
+- `[project.scripts]` in the root `pyproject.toml`.
 
 Both are read from source rather than imported, so the generator works in a
 checkout where nothing is installed — the case that hid a missing subpackage
@@ -17,7 +18,7 @@ The taxonomy supplies the classification and the one-line note; the registries
 supply the inventory and the module each command resolves to. Neither half can
 be typed here: a command that is in a registry and in no layer or exclusion
 list makes this generator fail rather than emit a catalog that silently omits
-it, and a taxonomy entry naming a command neither distribution installs fails
+it, and a taxonomy entry naming a command neither registry exposes fails
 the same way.
 
 Only the block between the two markers is generated. Everything else in the
@@ -36,10 +37,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 OUTPUT = ROOT / "docs" / "reference" / "commands.md"
 CONFIG = ROOT / "config" / "information-layers.json"
-INSTANCE_ROOT = ROOT / "instances" / "kcnyu"
-
 PUBLIC = "clawock"
-INSTANCE = "clawock-kcnyu"
+SCRIPTS = "standalone"
 
 BEGIN = "<!-- BEGIN GENERATED INVENTORY -->"
 END = "<!-- END GENERATED INVENTORY -->"
@@ -55,19 +54,23 @@ def packaged_utilities(root: Path = ROOT) -> dict:
     raise SystemExit("PACKAGED_UTILITIES is no longer a literal in clawock/cli.py")
 
 
-def instance_scripts(root: Path = ROOT) -> dict:
-    """The instance distribution's console scripts, as declared for install."""
-    data = tomllib.loads((root / "instances" / "kcnyu" / "pyproject.toml").read_text())
-    return data["project"]["scripts"]
+def installed_scripts(root: Path = ROOT) -> dict:
+    """Standalone console scripts declared by the clawock distribution."""
+    data = tomllib.loads((root / "pyproject.toml").read_text())
+    return {
+        command: target
+        for command, target in data["project"]["scripts"].items()
+        if command != "clawock"
+    }
 
 
 def registries(root: Path = ROOT) -> dict:
-    return {PUBLIC: packaged_utilities(root), INSTANCE: instance_scripts(root)}
+    return {PUBLIC: packaged_utilities(root), SCRIPTS: installed_scripts(root)}
 
 
-def _invocation(distribution: str, command: str) -> str:
+def _invocation(registry: str, command: str) -> str:
     """How an operator actually types it."""
-    return f"`{command}`" if distribution == INSTANCE else f"`clawock {command}`"
+    return f"`{command}`" if registry == SCRIPTS else f"`clawock {command}`"
 
 
 def _module(target: str) -> str:
@@ -93,20 +96,20 @@ def _classify(config: dict, available: dict) -> tuple[list, list]:
     for layer in config["layers"]:
         rows = []
         for module in layer["modules"]:
-            distribution = module.get("distribution", PUBLIC)
-            key = (distribution, module["command"])
+            registry = module.get("registry", PUBLIC)
+            key = (registry, module["command"])
             rows.append((key, module.get("note", "")))
             seen.add(key)
         layers.append((layer, rows))
 
     for command, spec in config["excluded"].items():
-        key = (spec.get("distribution", PUBLIC), command)
+        key = (spec.get("registry", PUBLIC), command)
         excluded.append((key, spec.get("reason", "")))
         seen.add(key)
 
-    declared = {(distribution, command)
-                for distribution, registry in available.items()
-                for command in registry}
+    declared = {(registry_name, command)
+                for registry_name, commands in available.items()
+                for command in commands}
 
     missing = sorted(declared - seen)
     if missing:
@@ -118,18 +121,18 @@ def _classify(config: dict, available: dict) -> tuple[list, list]:
     unknown = sorted(seen - declared)
     if unknown:
         raise SystemExit(
-            f"config/information-layers.json names command(s) neither "
-            f"distribution installs: {unknown}")
+            f"config/information-layers.json names command(s) no registry "
+            f"exposes: {unknown}")
 
     return layers, excluded
 
 
 def _table(rows, available, note_header: str) -> list[str]:
     lines = [f"| Command | Module | {note_header} |", "|---|---|---|"]
-    for (distribution, command), note in rows:
-        target = available[distribution][command]
+    for (registry, command), note in rows:
+        target = available[registry][command]
         lines.append(
-            f"| {_invocation(distribution, command)} | {_module(target)} | "
+            f"| {_invocation(registry, command)} | {_module(target)} | "
             f"{_cell(note)} |")
     return lines
 
@@ -147,8 +150,9 @@ def render(config: dict, available: dict) -> str:
         "",
         "## Installed commands / 已安装命令",
         "",
-        f"**{total} commands** are installed: {len(available[PUBLIC])} from "
-        f"`{PUBLIC}` and {len(available[INSTANCE])} from `{INSTANCE}`. "
+        f"**{total} commands** are installed by the single `{PUBLIC}` distribution: "
+        f"{len(available[PUBLIC])} CLI subcommands and "
+        f"{len(available[SCRIPTS])} standalone scripts. "
         f"{counted} of them collect or compute information and appear under the "
         f"layer they feed; the remaining {len(excluded)} publish, gate, record "
         "or schedule, and are listed with the reason they are not collection.",

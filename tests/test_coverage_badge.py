@@ -28,7 +28,7 @@ BADGE_PATH = 'assets/data/coverage.json'
 # Where each distribution's importable root sits in the checkout, so a dotted
 # `--cov=` target can be compared against the repo-relative paths the floors
 # name. Order does not matter: a target resolves under exactly one of them.
-_IMPORT_ROOTS = ('src/', 'instances/kcnyu/src/', '')
+_IMPORT_ROOTS = ('src/', '')
 
 
 def _is_measured(module: str, run: str) -> bool:

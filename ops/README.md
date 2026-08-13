@@ -13,10 +13,10 @@ renamed `scripts/data` bucket:
 - `system_check.py` — audit the KCNyu live workspace before publication.
 
 Dependency direction is one-way: operations may call the installed `clawock`
-product and `clawock-kcnyu` instance adapter. Product code never imports
-`ops/`; instance code delegates publication to `ops/publish/` but does not own
-its implementation. Portable workflow semantics belong in `src/clawock/`, and
-KCNyu schedule/harness behavior belongs in `instances/kcnyu/`.
+product with declarative profiles. Product code never imports `ops/`; the
+package lifecycle may request publication but `ops/publish/` owns its repository
+implementation. Workflow, strategy, schedule and harness behavior belong in
+the root wheel; KCNyu supplies configuration and state.
 
 Do not add `ops/data`, generic helpers, market logic, or generated state here.
-Choose an existing owner or create a named product/instance domain instead.
+Choose an existing owner or create a named product domain instead.

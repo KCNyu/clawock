@@ -8,7 +8,7 @@ title: clawock · moved to the command reference
 This page was named after `scripts/`, a directory [#429](https://github.com/KCNyu/clawock/issues/429)
 deleted. Its content now lives in
 [`docs/reference/commands.md`](commands.md), where the command inventory is
-generated from the two script registries instead of being hand-maintained
+generated from the `clawock` distribution's two command registries instead of being hand-maintained
 ([#489](https://github.com/KCNyu/clawock/issues/489)).
 
 The old path is kept because already-published PyPI releases link to it and a

@@ -11,7 +11,7 @@ import pytest
 ROOT = Path(__file__).resolve().parents[1]
 
 from clawock.context import brief as brief_context
-from clawock_kcnyu.harness import brief_postflight  # noqa: E402
+from clawock.harness import brief_postflight  # noqa: E402
 
 
 def test_context_protocol_implementation_is_owned_by_the_product():

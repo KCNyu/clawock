@@ -18,7 +18,7 @@ ROOT = Path(__file__).resolve().parents[1]
 # Directories whose contents are hand-written source. Generated trees
 # (assets/data, memory) are deliberately not here: some of what they hold is
 # meant to be ignored.
-SOURCE_TREES = ("src", "instances", "site", "ops", "scripts", "tests", ".github")
+SOURCE_TREES = ("src", "site", "ops", "scripts", "tests", ".github")
 
 
 def test_no_hand_written_source_file_is_gitignored():

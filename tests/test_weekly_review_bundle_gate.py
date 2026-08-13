@@ -6,7 +6,7 @@ from datetime import date
 
 import pytest
 
-from clawock_kcnyu.automation import weekly_review as weekly
+from clawock.automation import weekly_review as weekly
 
 
 def _plan(day, fx=7.8, decisions=None):

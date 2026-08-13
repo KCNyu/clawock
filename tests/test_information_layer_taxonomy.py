@@ -7,8 +7,8 @@ taxonomy had no artifact behind it: the layers were drawn when these were files
 under `scripts/data/`, and #429 deleted that directory without the count moving
 (#476).
 
-`config/information-layers.json` is that artifact. Every command either
-distribution installs appears in it exactly once — inside a layer, or in
+`config/information-layers.json` is that artifact. Every command the single
+distribution exposes through either registry appears in it exactly once — inside a layer, or in
 `excluded` with the reason it is not information collection — so adding a
 command forces a classification instead of silently diluting a number. This file
 checks three things the parity test cannot:
@@ -44,8 +44,7 @@ EN = (ROOT / "README.md").read_text()
 ZH = (ROOT / "README.zh.md").read_text()
 
 PUBLIC = "clawock"
-INSTANCE = "clawock-kcnyu"
-INSTANCE_ROOT = ROOT / "instances" / "kcnyu"
+SCRIPTS = "standalone"
 
 
 def _packaged_utilities():
@@ -63,19 +62,19 @@ def _packaged_utilities():
     raise AssertionError("PACKAGED_UTILITIES is no longer a literal in clawock/cli.py")
 
 
-def _instance_scripts():
-    """The instance distribution's console scripts, as declared for install."""
-    data = tomllib.loads((INSTANCE_ROOT / "pyproject.toml").read_text())
-    return data["project"]["scripts"]
+def _installed_scripts():
+    data = tomllib.loads((ROOT / "pyproject.toml").read_text())
+    return {key: value for key, value in data["project"]["scripts"].items()
+            if key != "clawock"}
 
 
 def _registries():
-    return {PUBLIC: _packaged_utilities(), INSTANCE: _instance_scripts()}
+    return {PUBLIC: _packaged_utilities(), SCRIPTS: _installed_scripts()}
 
 
 def _key(entry):
-    """(distribution, command) — the identity a counted entry must have."""
-    return (entry.get("distribution", PUBLIC), entry["command"])
+    """(registry, command) — the identity a counted entry must have."""
+    return (entry.get("registry", PUBLIC), entry["command"])
 
 
 def _entries():
@@ -89,28 +88,29 @@ def _counted_keys():
 
 
 def _excluded_keys():
-    return [(spec.get("distribution", PUBLIC), command)
+    return [(spec.get("registry", PUBLIC), command)
             for command, spec in CONFIG["excluded"].items()]
 
 
 def test_every_installed_command_is_classified_exactly_once():
     """The property that makes the count self-maintaining.
 
-    A new command in either distribution cannot be added without deciding
+    A new command in either registry cannot be added without deciding
     whether it collects information, and a deleted one cannot leave a stale row
     behind. Without this the config is just a second place to type a number.
     """
     registries = _registries()
     assert len(registries[PUBLIC]) > 40, "the public CLI registry shrank — check the parse"
-    assert len(registries[INSTANCE]) > 8, "the instance registry shrank — check the parse"
+    assert len(registries[SCRIPTS]) > 8, "the script registry shrank — check the parse"
 
     classified = _counted_keys() + _excluded_keys()
 
     duplicates = {key for key in classified if classified.count(key) > 1}
     assert not duplicates, f"classified in two places at once: {sorted(duplicates)}"
 
-    declared = {(dist, command) for dist, registry in registries.items()
-                for command in registry}
+    declared = {(registry_name, command)
+                for registry_name, commands in registries.items()
+                for command in commands}
 
     missing = sorted(declared - set(classified))
     assert not missing, (
@@ -120,8 +120,8 @@ def test_every_installed_command_is_classified_exactly_once():
 
     unknown = sorted(set(classified) - declared)
     assert not unknown, (
-        f"config/information-layers.json names command(s) neither distribution "
-        f"installs: {unknown}")
+        f"config/information-layers.json names command(s) no registry exposes: "
+        f"{unknown}")
 
 
 def test_the_harness_phases_are_out_of_scope_on_purpose_and_not_by_omission():
@@ -132,21 +132,13 @@ def test_the_harness_phases_are_out_of_scope_on_purpose_and_not_by_omission():
     defensible line only while it is a stated one — and only while the phases
     are really in a different registry, not quietly missing from both.
     """
-    data = tomllib.loads((INSTANCE_ROOT / "pyproject.toml").read_text())
-    groups = data["project"]["entry-points"]
     assert "not_classified" in CONFIG["registries"], (
         "the skipped registries must be named in the artifact, not just here")
     note = CONFIG["registries"]["not_classified"]
-
-    scripts = set(_instance_scripts())
-    for group, members in groups.items():
-        assert members, f"{group} is empty; the exemption hides nothing"
-        assert group in note, (
-            f"{group} is an entry-point group the partition does not cover and "
-            "the artifact does not mention; name it and say why, or classify it")
-        assert not (set(members) & scripts), (
-            f"a {group} member is also a console script; it would fall outside "
-            "both the partition and this exemption")
+    from clawock.harness.runner import PHASE_MODULES
+    assert len(PHASE_MODULES) == 6, "the lifecycle registry shrank"
+    assert "phase" in note.lower() or "lifecycle" in note.lower(), (
+        "the lifecycle registry is excluded but the artifact does not say so")
 
 
 def test_every_module_in_the_taxonomy_resolves():
@@ -156,14 +148,11 @@ def test_every_module_in_the_taxonomy_resolves():
     registries = _registries()
 
     for layer, module in _entries():
-        distribution, command = _key(module)
+        registry_name, command = _key(module)
         where = f"layer {layer['id']} · {layer['name']['en']}"
-        target = registries[distribution][command]
-        if distribution == PUBLIC:
-            path = ROOT / "src" / Path(target.replace(".", "/")).with_suffix(".py")
-        else:
-            dotted = target.split(":")[0]
-            path = INSTANCE_ROOT / "src" / Path(dotted.replace(".", "/")).with_suffix(".py")
+        target = registries[registry_name][command]
+        dotted = target.split(":")[0]
+        path = ROOT / "src" / Path(dotted.replace(".", "/")).with_suffix(".py")
         assert path.exists(), f"{where}: {command} → {target} is gone"
         assert module.get("note"), f"{where}: {command} has no note saying what it does"
 
@@ -173,8 +162,8 @@ def test_the_packaged_modules_are_importable_from_the_package():
     from the wheel's `packages` list is exactly how `clawock.providers` shipped
     unimportable (#270), so resolve through the import system too."""
     registry = _packaged_utilities()
-    dotted = [registry[command] for distribution, command in _counted_keys()
-              if distribution == PUBLIC]
+    dotted = [registry[command] for registry_name, command in _counted_keys()
+              if registry_name == PUBLIC]
 
     if importlib.util.find_spec(PUBLIC) is None:
         pytest.skip("clawock is not installed in this environment")
@@ -242,7 +231,7 @@ def test_the_exclusions_carry_a_reason_rather_than_a_bare_name():
             f"{command}: '{spec['reason']}' does not say why it is not "
             "information collection")
     assert CONFIG["inclusion_rule"].strip(), "the boundary must be stated, not implied"
-    for name in (PUBLIC, INSTANCE):
+    for name in (PUBLIC, SCRIPTS):
         assert name in CONFIG["registries"], (
             f"{name}'s registry must be named in the artifact, so a reader can "
             "check the partition covers what they think it covers")

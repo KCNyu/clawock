@@ -4,7 +4,7 @@
 externally-managed (PEP 668), and --break-system-packages on the machine that
 runs the money pipeline trades a tidy install for a risk to the interpreter
 every cron depends on. So the entry point is a generated launcher — instance, by
-docs/reference/product-vs-instance.md.
+docs/reference/product-profile-operations.md.
 
 What that must not become is host state nobody can rebuild. This pins the
 installer: it produces a working launcher against any checkout, and the launcher
@@ -57,9 +57,9 @@ def test_the_launcher_points_at_the_checkout_rather_than_copying_it(installed_la
 def test_the_installer_exposes_all_watchdogs_on_the_same_path(installed_launcher):
     target, venv, _tmp_path = installed_launcher
     for name in (
-        "clawock-kcnyu-brief-watchdog",
-        "clawock-kcnyu-report-watchdog",
-        "clawock-kcnyu-intraday-watchdog",
+        "clawock-brief-watchdog",
+        "clawock-report-watchdog",
+        "clawock-intraday-watchdog",
     ):
         launcher = target.parent / name
         assert launcher.exists() and os.access(launcher, os.X_OK)

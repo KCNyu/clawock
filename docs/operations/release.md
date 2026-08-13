@@ -1,9 +1,8 @@
 # Releasing `clawock` to PyPI
 
-Only the runtime-neutral `clawock` distribution is ever published.
-`clawock-kcnyu` is this repository's live-instance adapter: it may be installed
-locally and in CI, but it must never reach an index, be pulled in by the public
-package, or appear in a quickstart an ordinary user follows.
+Only the `clawock` distribution is published. It owns lifecycle, strategies,
+scheduling, watchdogs and provider integrations. Declarative profiles and live
+workspace data are inputs to that distribution, never packages of their own.
 
 ## One-time setup (kcn, on the PyPI side)
 
