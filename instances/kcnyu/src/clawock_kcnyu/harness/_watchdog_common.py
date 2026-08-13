@@ -609,6 +609,27 @@ def claim_send(claim_path, *, stale_after_ms=SEND_CLAIM_STALE_MS, now_ms=None):
     return True, 'took-over-claim-of-holder-that-never-sent'
 
 
+def release_claim(claim_path):
+    """Drop the claim once this slot's send has run to completion (marker written).
+
+    Without this the claim outlives the process that finished normally, and a
+    LATER slot can be refused by it. Concretely: an intraday send that failed
+    leaves a marker with sent_ok=false/tg_ok=false, so `already_delivered`
+    correctly does not block the next slot — but a surviving claim carrying
+    `send_started_at` would, and the next slot would go out as nothing at all.
+
+    After release, "a claim exists" means exactly "a sender died holding it",
+    which is the only case the claim is meant to arbitrate. The marker, not the
+    claim, is what keeps a completed send from being repeated.
+    """
+    try:
+        Path(claim_path).unlink()
+    except FileNotFoundError:
+        pass
+    except OSError as e:
+        print(f'warn: send claim release failed: {e}', file=sys.stderr)
+
+
 def mark_send_started(claim_path):
     """Record that the send is now in flight, so a claim left behind by a killed
     process is readable as "may already have reached WeChat" rather than "never

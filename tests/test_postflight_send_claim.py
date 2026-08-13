@@ -159,6 +159,44 @@ def test_report_deliver_flips_the_claim_before_it_sends(tmp_path, monkeypatch):
     )
 
 
+def _deliver(rp, monkeypatch, tmp_path, claim, send_result):
+    monkeypatch.setattr(rp, 'TMP', tmp_path)
+    monkeypatch.setattr(rp, 'resolve_wechat_target', lambda market: ('ch', 'to', 'acct'))
+    monkeypatch.setattr(rp, 'send_wechat',
+                        lambda channel, to, account, message, dry_run: send_result)
+    monkeypatch.setattr(rp, 'cosend_telegram', lambda message, tag: (True, ''))
+    return rp.deliver_wechat('hk', 'open', '2026-08-13', '', 'body', claim_path=claim)
+
+
+def test_a_completed_send_releases_the_claim(tmp_path, monkeypatch):
+    """After a send finishes, the marker owns idempotency. A claim left behind
+    would go on refusing senders that the marker itself does not refuse."""
+    from clawock_kcnyu.harness import report_postflight as rp
+    claim = tmp_path / 'hk-open.claim'
+    _common().claim_send(claim, now_ms=NOW_MS)
+
+    _deliver(rp, monkeypatch, tmp_path, claim, (True, 'openclaw-weixin:stub'))
+
+    assert not claim.exists()
+
+
+def test_a_failed_send_releases_the_claim_so_the_next_slot_is_not_muted(tmp_path, monkeypatch):
+    """The one that bites: a send that FAILED writes a marker with
+    sent_ok/tg_ok false, so `already_delivered` correctly lets the next slot
+    through — and the claim must not be what stops it instead."""
+    from clawock_kcnyu.harness import report_postflight as rp
+    c = _common()
+    claim = tmp_path / 'hk-open.claim'
+    c.claim_send(claim, now_ms=NOW_MS)
+
+    _deliver(rp, monkeypatch, tmp_path, claim, (False, 'wechat exploded'))
+
+    assert not claim.exists()
+    won, reason = c.claim_send(claim, now_ms=NOW_MS + 5 * 60 * 1000)
+    assert won is True, 'the next slot must still be able to send'
+    assert reason == 'claimed'
+
+
 def test_mark_send_started_flips_a_claim_to_mid_send(tmp_path):
     c = _common()
     claim = tmp_path / 'hk-open.claim'

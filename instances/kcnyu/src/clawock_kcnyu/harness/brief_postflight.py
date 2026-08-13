@@ -463,7 +463,7 @@ from ._harness_common import (  # noqa: E402
 )
 from ._watchdog_common import (  # noqa: E402
     resolve_wechat_target, send_wechat, build_brief_card, cosend_telegram, already_delivered,
-    claim_send, mark_send_started, log,
+    claim_send, mark_send_started, release_claim, log,
 )
 
 
@@ -838,6 +838,10 @@ def main(argv=None):
                     }, ensure_ascii=False))
                 except Exception as e:
                     print(f'warn: brief-sent marker write failed: {e}', file=sys.stderr)
+            # Completed send: the marker owns idempotency from here. A dry run
+            # took no claim, so there is nothing to release.
+            if not args.dry_run:
+                release_claim(claim_path)
             if not wechat_sent:
                 print(f'warn: WeChat send failed (watchdog will retry): {str(send_out)[:200]}',
                       file=sys.stderr)

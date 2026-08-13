@@ -100,7 +100,7 @@ from ._harness_common import (  # noqa: E402
 )
 from ._watchdog_common import (  # noqa: E402
     resolve_wechat_target, send_wechat, cosend_telegram, already_delivered,
-    claim_send, mark_send_started, log,
+    claim_send, mark_send_started, release_claim, log,
 )
 
 
@@ -244,6 +244,11 @@ def deliver_wechat(market, phase, date, wechat_prefix, text, delivery_state='del
         }, ensure_ascii=False))
     except Exception as e:
         print(f'warn: report send marker write failed: {e}', file=sys.stderr)
+    # This send ran to completion, so the marker now owns the idempotency question
+    # and the claim has nothing left to arbitrate. Releasing it keeps "a claim
+    # exists" meaning "a sender died holding it".
+    if claim_path is not None:
+        release_claim(claim_path)
     if not sent_ok:
         print(f'warn: WeChat send failed (watchdog will retry): {(out or "")[:200]}', file=sys.stderr)
     return sent_ok, out

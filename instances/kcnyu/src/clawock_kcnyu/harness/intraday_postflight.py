@@ -60,7 +60,7 @@ from ._harness_common import (  # noqa: E402
 )
 from ._watchdog_common import (  # noqa: E402
     resolve_wechat_target, send_wechat, cosend_telegram, already_delivered,
-    claim_send, mark_send_started, log,
+    claim_send, mark_send_started, release_claim, log,
 )
 
 from clawock.workspace import workspace_root
@@ -516,6 +516,10 @@ def main(argv=None):
                     ), ensure_ascii=False))
                 except Exception as e:
                     print(f'warn: marker write failed: {e}', file=sys.stderr)
+                # Completed send: the marker owns idempotency from here, and a
+                # claim left behind would refuse the NEXT slot (whose marker
+                # correctly does not block it when this one failed to send).
+                release_claim(claim_path)
                 if not wechat_sent:
                     print(f'warn: WeChat send failed (watchdog will retry): {send_out[:200]}',
                           file=sys.stderr)
