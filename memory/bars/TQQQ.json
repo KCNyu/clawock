@@ -619,6 +619,33 @@
    "source": "tencent",
    "adjustment": "raw",
    "fetched_at": "2026-08-10T08:44:17+08:00"
+  },
+  "2026-08-10": {
+   "open": 74.27,
+   "high": 74.98,
+   "low": 73.64,
+   "close": 73.8,
+   "source": "tencent",
+   "adjustment": "raw",
+   "fetched_at": "2026-08-11T08:01:25+08:00"
+  },
+  "2026-08-11": {
+   "open": 74.54,
+   "high": 74.54,
+   "low": 72.24,
+   "close": 73.06,
+   "source": "tencent",
+   "adjustment": "raw",
+   "fetched_at": "2026-08-13T08:01:25+08:00"
+  },
+  "2026-08-12": {
+   "open": 75.62,
+   "high": 75.69,
+   "low": 74.38,
+   "close": 74.6,
+   "source": "tencent",
+   "adjustment": "raw",
+   "fetched_at": "2026-08-13T08:01:25+08:00"
   }
  }
 }
