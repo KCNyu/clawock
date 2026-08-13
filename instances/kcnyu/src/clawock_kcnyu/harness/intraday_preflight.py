@@ -77,19 +77,26 @@ def run_analyze(market):
 SIGNAL_LEVELS = ('ALERT', 'WATCH', 'STOP', 'TRIM')
 
 
-def signal_ticker(line, level):
-    """The ticker a signal line is about, or None.
+def read_signal_line(line):
+    """`(level, ticker)` for a rendered signal line, or `(None, None)`.
 
-    The renderer writes `✋ STOP? 02208 金风科技 | …`, so the code is the token
-    after the level word. Reading it here, once, beats every consumer matching
-    the display text: a substring test lets a one-letter US ticker match any
-    word on the line, and a bare figure in the P&L cell read as a code.
+    The renderer writes `✋ STOP? 02208 金风科技 | …` — marker, level, code. The
+    level must therefore *be* one of the first two tokens, not appear inside
+    one: `WATCHDOG` contains WATCH and a substring test reads that line as a
+    signal, then publishes the following word as its ticker. Letters only, so
+    `✋STOP?` and `STOP?` both normalise to STOP however the emoji lands.
+
+    Reading the code here, once, is also what keeps consumers from matching the
+    display text — a substring test lets a one-letter US ticker match any word
+    on the line, and reads a bare figure in the P&L cell as a code.
     """
     tokens = (line or '').split()
-    for i, token in enumerate(tokens):
-        if level in token.upper():
-            return tokens[i + 1] if i + 1 < len(tokens) else None
-    return None
+    for index, token in enumerate(tokens[:2]):
+        word = re.sub(r'[^A-Z]', '', token.upper())
+        if word in SIGNAL_LEVELS:
+            ticker = tokens[index + 1] if index + 1 < len(tokens) else None
+            return word, ticker
+    return None, None
 
 
 def parse_signals(stdout):
@@ -110,13 +117,41 @@ def parse_signals(stdout):
             # it was in none of these counts — so the one level that outranks
             # STOP was invisible to every consumer, including the entry/risk
             # contradiction check below.
-            for level in SIGNAL_LEVELS:
-                if level in s.upper():
-                    counts[level.lower()] += 1
-                    signals_detail.append({'level': level, 'line': s,
-                                           'ticker': signal_ticker(s, level)})
-                    break
+            level, ticker = read_signal_line(s)
+            if level:
+                counts[level.lower()] += 1
+                signals_detail.append({'level': level, 'line': s, 'ticker': ticker})
     return counts, signals_detail
+
+
+def decide_alert(signals, anomalies):
+    """`(should_alert, reasons)` for this slot.
+
+    Extracted from `main` so the rule can be asserted rather than read: ALERT
+    joining STOP as a severity that alone justifies waking kcn is a change to
+    what 18 slots a day do, and it was previously only visible by running the
+    whole preflight.
+
+    ALERT does not in practice add wake-ups — the renderer only emits it on a
+    -8% day, which the ≥3% anomaly rule already caught — but it must not be the
+    one severity that a slot could see and stay quiet about.
+    """
+    total = sum(signals[level.lower()] for level in SIGNAL_LEVELS)
+    severe = signals['stop'] + signals['alert']
+    should_alert = bool(anomalies) or total >= 2 or severe > 0
+
+    reasons = []
+    if anomalies:
+        tickers = ', '.join(f"{a['ticker']} ({a['move_pct']:+.1f}%)" for a in anomalies)
+        reasons.append(f'异动: {tickers}')
+    if signals['alert'] > 0:
+        reasons.append(f'ALERT 信号 ×{signals["alert"]}')
+    if signals['stop'] > 0:
+        reasons.append(f'STOP 信号 ×{signals["stop"]}')
+    if total >= 2:
+        reasons.append(f'多重信号 (A{signals["alert"]} W{signals["watch"]} '
+                       f'S{signals["stop"]} T{signals["trim"]})')
+    return should_alert, reasons
 
 
 MAX_SETUP_LINES = 6
@@ -322,22 +357,7 @@ def main(argv=None):
     except Exception:
         pass
 
-    total_signals = sum(signals[level.lower()] for level in SIGNAL_LEVELS)
-    severe = signals['stop'] + signals['alert']
-    should_alert = (len(anomalies) > 0) or (total_signals >= 2) or (severe > 0)
-
-    alert_reasons = []
-    if anomalies:
-        tickers = ', '.join(f"{a['ticker']} ({a['move_pct']:+.1f}%)" for a in anomalies)
-        alert_reasons.append(f'异动: {tickers}')
-    if signals['alert'] > 0:
-        alert_reasons.append(f'ALERT 信号 ×{signals["alert"]}')
-    if signals['stop'] > 0:
-        alert_reasons.append(f'STOP 信号 ×{signals["stop"]}')
-    if total_signals >= 2:
-        alert_reasons.append(
-            f'多重信号 (A{signals["alert"]} W{signals["watch"]} '
-            f'S{signals["stop"]} T{signals["trim"]})')
+    should_alert, alert_reasons = decide_alert(signals, anomalies)
 
     # Thesis/red-line state for the names this slot already flagged. Local JSON
     # only, scoped to movers, and attribution context — never an action trigger

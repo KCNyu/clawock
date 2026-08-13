@@ -275,3 +275,57 @@ def test_every_row_repeats_the_caveat_so_the_heading_is_not_load_bearing():
 
     body = [line for line in text.splitlines() if '◆' in line]
     assert body and all('未收盘' in line for line in body)
+
+
+def test_the_level_comes_from_the_marker_not_from_anywhere_on_the_line():
+    """A holding called WATCH must not turn a TRIM row into a WATCH row.
+
+    Nothing held today is named after a level word, which is exactly why this
+    would fail quietly the first time one is.
+    """
+    counts, detail = P.parse_signals(
+        '⚠️ 信号\n  ▽ TRIM WATCH 某基金 | 浮+52%\n  ✋STOP? ALERT 某票 | 浮-21%\n📉 末尾')
+
+    assert [d['level'] for d in detail] == ['TRIM', 'STOP']
+    assert [d['ticker'] for d in detail] == ['WATCH', 'ALERT']
+    assert counts['trim'] == 1 and counts['stop'] == 1
+    assert counts['watch'] == 0 and counts['alert'] == 0
+
+
+def test_a_level_word_further_along_the_line_is_not_a_signal():
+    """The level lives in the marker, so only the marker may be read.
+
+    A line inside the 信号 block that carries no marker but happens to contain a
+    level word — a company name, a note — would otherwise be counted as a
+    signal, and the token after it published as that signal's ticker.
+    """
+    counts, detail = P.parse_signals(
+        '⚠️ 信号\n  持仓说明 WATCHDOG 覆盖 5/5\n  某段自由文本\n📉 末尾')
+
+    assert detail == [] and sum(counts.values()) == 0
+
+
+def _counts(**kw):
+    return {level.lower(): kw.get(level.lower(), 0) for level in P.SIGNAL_LEVELS}
+
+
+def test_a_lone_alert_wakes_the_slot_and_says_so():
+    """ALERT outranks STOP in the renderer; it may not be the quiet severity."""
+    should_alert, reasons = P.decide_alert(_counts(alert=1), [])
+
+    assert should_alert is True
+    assert any('ALERT 信号 ×1' == r for r in reasons)
+
+
+def test_a_lone_trim_or_watch_does_not_wake_the_slot():
+    for counts in (_counts(trim=1), _counts(watch=1)):
+        should_alert, reasons = P.decide_alert(counts, [])
+        assert should_alert is False, counts
+        assert reasons == [], counts
+
+
+def test_two_mild_signals_still_wake_it_and_the_tally_names_every_level():
+    should_alert, reasons = P.decide_alert(_counts(watch=1, trim=1), [])
+
+    assert should_alert is True
+    assert '多重信号 (A0 W1 S0 T1)' in reasons
