@@ -87,7 +87,7 @@ In this order:
 clawock intraday preflight --market hk
 ```
 跑 `clawock analyze-hk --wechat --md-table` + 抽信号 + 异动，输出 `memory/.tmp/intraday-context-hk-latest.json`，并把**同一份 JSON** 打到 stdout（含 `context_id` —— Step 3 要原样回传）。
-- `active_information_candidates` — **不等价格先异动**，每个 slot 主动扫持仓运营公司的一手港交所公告；基金/指数不伪装成发行人，杠杆底层按发行人去重。`candidate` 是正向明确披露且日内尚未充分反应，`wait` 是方向未提取/股价已反应/价格缺失，`reject` 是不利披露下拒绝加仓；三者都不是下单授权。港股未验证探索最多显示 portfolio 中已核过的 **一手 board lot**，缺 lot 就只留候选，绝不假定 1 股是一手。
+- `active_information_candidates` — 框架已完成一手披露扫描、底层去重、`candidate|wait|reject` 与探索上限计算；这里只消费结构化结果，不在 skill 里重算阈值、方向或股数。三态都不是下单授权。
 - `mover_thesis` — **只对本轮异动票**的 thesis 只读快照：`state`、`triggered`/`watch` 红线（含 severity 与 required_action）、下次 review trigger；最新一次 entry gate 判 `reject` 也会标出来。没有基线就是 `unknown`，不许靠记忆补。**这是归因语境不是催化剂**：红线解释「这个跌为什么要紧、当初说好要怎么做」，但能不能动手仍由 catalyst-gate 决定（软消息/情绪不构成主动操作依据）。
 - `mover_news` — **只对本轮异动票**、有限预算抓回来的「刚发生了什么」：`tier=primary` 是交易所/监管一手文件（港股=港交所公告，美股=SEC filing，带 `age_minutes`），`tier=supporting` 是券商研报/媒体/7×24 快讯。**只有 primary 才可能构成硬催化**（仍要过 catalyst-gate）；supporting 只能当色彩，不能作为主动操作依据。
   - `known_catalysts` 是当天 08:00 brief 已核过、且只按本轮异动票裁剪的结构化催化。它回答「此前已知什么」，`mover_news` 回答「这个分钟窗口新发生什么」；两者不能混为一谈，也不因此扩大新闻窗口。

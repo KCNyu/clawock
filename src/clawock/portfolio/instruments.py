@@ -211,8 +211,8 @@ def validate_active_holdings(
 INSTRUMENTS = load_registry(missing_ok=True)
 
 
-def get(symbol: str) -> dict | None:
-    return INSTRUMENTS.get(symbol)
+def get(symbol: str, *, registry: dict[str, dict] | None = None) -> dict | None:
+    return (INSTRUMENTS if registry is None else registry).get(symbol)
 
 
 def require(symbol: str) -> dict:
@@ -233,7 +233,9 @@ _LEVERAGED_NAME_MARKERS = (
 )
 
 
-def is_leveraged_holding(holding: dict) -> bool:
+def is_leveraged_holding(
+    holding: dict, *, registry: dict[str, dict] | None = None
+) -> bool:
     """Classify a live holding conservatively when registry coverage lags.
 
     Registered metadata remains authoritative. The explicit holding flag and
@@ -243,7 +245,7 @@ def is_leveraged_holding(holding: dict) -> bool:
     if holding.get("is_leveraged_etf") is True:
         return True
     symbol = str(holding.get("ticker") or "")
-    meta = get(symbol)
+    meta = get(symbol, registry=registry)
     if meta is not None:
         return float(meta.get("leverage_multiple") or 1) > 1
     name = str(holding.get("name") or holding.get("stock_name") or "").casefold()
@@ -253,7 +255,10 @@ def is_leveraged_holding(holding: dict) -> bool:
     )
 
 
-def look_through(symbol: str, *, max_hops: int = 3) -> dict:
+def look_through(
+    symbol: str, *, max_hops: int = 3,
+    registry: dict[str, dict] | None = None,
+) -> dict:
     """Resolve a holding to the issuer whose news, filings and earnings move it.
 
     A 2x single-stock ETF publishes nothing of its own: PLTU is moved by PLTR,
@@ -274,7 +279,7 @@ def look_through(symbol: str, *, max_hops: int = 3) -> dict:
     if not current:
         return {"kind": "index_fund", "issuer": None, "tracks": None, "chain": chain}
     for _ in range(max_hops):
-        meta = get(current) or {}
+        meta = get(current, registry=registry) or {}
         underlying = meta.get("underlying")
         if not underlying or underlying in chain:
             break
@@ -282,7 +287,7 @@ def look_through(symbol: str, *, max_hops: int = 3) -> dict:
         current = str(underlying)
     if not chain:
         return {"kind": "issuer", "issuer": str(symbol), "tracks": None, "chain": chain}
-    final = get(current)
+    final = get(current, registry=registry)
     no_issuer = (
         final is None                       # a label like NASDAQ_100, not a security
         or final.get("venue") == "INDEX"    # an index

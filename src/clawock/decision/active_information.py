@@ -1,44 +1,91 @@
-"""KCNyu information-first intraday candidates from primary disclosures.
+"""Reusable information-first strategy for primary disclosures.
 
-This is instance policy, not portable clawock core: it knows the KCNyu live book,
-the one-lot/one-share exploration preference and the held proxy universe.  Core
-provides bounded disclosure evidence and instrument primitives; this adapter
-chooses what to scan and how to surface a candidate.
+The strategy accepts a generic portfolio, instrument registry, explicit policy
+and workspace.  It owns discovery scope, signal state, exploration sizing and
+event deduplication; it does not know a live instance, runtime, delivery target
+or prose renderer.
 """
 from __future__ import annotations
 
 import hashlib
 import json
+from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
-from clawock.market_data import mover_evidence, peer_quotes
-from clawock.portfolio import instruments
+from clawock.decision import information_signals
+from clawock.market_data import peer_quotes, primary_disclosures
+from clawock.portfolio import instruments as default_instruments
 from clawock.safe_io import safe_write_json
-from clawock.workspace import workspace_root
 
 
-WS = workspace_root(Path.cwd())
-PORTFOLIO = WS / "portfolio.json"
-SEEN_DIR = WS / "memory" / ".tmp"
-MAX_ACTIVE_ISSUERS = 4
-HOT_REACTION_PCT = 3.0
-CONTRADICTED_REACTION_PCT = -2.0
-POSITIVE_TERMS = (
-    "盈喜", "盈利预喜", "正面盈利", "上调指引", "提高指引", "raise guidance",
-    "raised guidance", "record revenue", "beats expectations", "股份回购",
-    "购回股份", "buyback", "repurchase", "中标", "获得订单", "contract award",
-    "awarded contract", "获批", "获得批准", "approved", "regulatory approval",
+@dataclass(frozen=True)
+class ActiveInformationPolicy:
+    max_active_issuers: int
+    window_minutes: int
+    budget_s: float
+    hk_exploration_lots: int
+    us_exploration_shares: int
+    signal: information_signals.InformationPolicy
+
+
+DEFAULT_POLICY = ActiveInformationPolicy(
+    max_active_issuers=4,
+    window_minutes=240,
+    budget_s=20,
+    hk_exploration_lots=1,
+    us_exploration_shares=1,
+    signal=information_signals.InformationPolicy(
+        positive_markers=(
+            "盈喜", "盈利预喜", "正面盈利", "上调指引", "提高指引", "raise guidance",
+            "raised guidance", "record revenue", "beats expectations", "股份回购",
+            "购回股份", "buyback", "repurchase", "中标", "获得订单", "contract award",
+            "awarded contract", "获批", "获得批准", "approved", "regulatory approval",
+        ),
+        negative_markers=(
+            "盈利警告", "盈警", "下调指引", "cut guidance", "lowered guidance",
+            "配售", "供股", "发行新股", "可转换债券", "先旧后新", "offering",
+            "prospectus supplement", "at-the-market", "424b", "s-1", "s-3",
+            "late filing", "nt 10-",
+            "loss of customer", "default", "recall", "调查", "诉讼",
+        ),
+        eligible_markers=(
+            "8-k", "6-k", "10-q", "10-k", "20-f", "annual report", "quarterly report",
+            "results of operations", "sc 13d", "sc to", "425", "defm14a", "merger",
+            "内幕消息", "须予公布的交易",
+            "非常重大", "收购", "要约", "合并", "出售股权", "重大资产", "业绩公告",
+            "中期业绩", "年度业绩", "季度业绩", "未经审核", "停牌", "短暂停止买卖",
+            "复牌", "恢复买卖",
+        ),
+        ignored_markers=(
+            "翌日披露报表", "月报表", "证券变动月报表", "下一营业日披露报表",
+            "法律意见书", "律师事务所关于", "form 3", "form 4", "form 5",
+            "statement of changes in beneficial ownership", "schedule 13g",
+            "notice of proposed sale",
+        ),
+        categories=(
+            ("dilution", ("配售", "供股", "发行新股", "可转换债券", "先旧后新",
+                          "offering", "prospectus supplement", "at-the-market", "424b",
+                          "s-1", "s-3")),
+            ("filing_delay", ("late filing", "nt 10-")),
+            ("profit_revision", ("盈利警告", "盈警", "盈喜", "盈利预喜", "上调指引",
+                                 "raise guidance", "raised guidance")),
+            ("capital_return", ("股份回购", "购回股份", "buyback", "repurchase")),
+            ("ownership", ("13d",)),
+            ("results", ("10-q", "10-k", "20-f", "annual report", "quarterly report",
+                         "results of operations", "业绩公告", "中期业绩", "年度业绩", "季度业绩")),
+            ("corporate_action", ("merger", "sc to", "425", "defm14a", "收购", "要约",
+                                  "合并", "出售股权", "重大资产")),
+            ("inside_information", ("内幕消息", "须予公布的交易", "非常重大")),
+            ("trading_status", ("停牌", "短暂停止买卖", "复牌", "恢复买卖")),
+        ),
+        hot_reaction_pct=3.0,
+        contradicted_reaction_pct=-2.0,
+    ),
 )
-NEGATIVE_TERMS = (
-    "盈利警告", "盈警", "下调指引", "cut guidance", "lowered guidance",
-    "配售", "供股", "发行新股", "可转换债券", "先旧后新", "offering",
-    "prospectus supplement", "at-the-market", "late filing", "nt 10-",
-    "loss of customer", "default", "recall", "调查", "诉讼",
-)
 
 
-def _load_portfolio(path=PORTFOLIO):
+def _load_portfolio(path):
     try:
         doc = json.loads(Path(path).read_text())
         return doc if isinstance(doc, dict) else {}
@@ -46,7 +93,7 @@ def _load_portfolio(path=PORTFOLIO):
         return {}
 
 
-def active_issuer_scope(portfolio: dict, market: str) -> list[dict]:
+def active_issuer_scope(portfolio: dict, market: str, *, registry) -> list[dict]:
     """Deduplicated reporting issuers behind active holdings for one market."""
     leg = "hk_stocks" if market == "hk" else "us_stocks"
     holdings = ((portfolio.get("portfolios") or {}).get(leg) or {}).get("holdings") or []
@@ -55,7 +102,7 @@ def active_issuer_scope(portfolio: dict, market: str) -> list[dict]:
         if not isinstance(holding, dict) or (holding.get("shares") or 0) <= 0:
             continue
         ticker = str(holding.get("ticker") or "")
-        target = instruments.look_through(ticker)
+        target = default_instruments.look_through(ticker, registry=registry)
         issuer = target.get("issuer")
         if not issuer:
             continue
@@ -64,7 +111,7 @@ def active_issuer_scope(portfolio: dict, market: str) -> list[dict]:
             "proxy_holdings": [], "leveraged_only": True, "board_lot": None,
         })
         row["holdings"].append(ticker)
-        leveraged = instruments.is_leveraged_holding(holding)
+        leveraged = default_instruments.is_leveraged_holding(holding, registry=registry)
         if ticker == issuer:
             row["direct_holdings"].append(ticker)
             if not leveraged:
@@ -85,86 +132,29 @@ def _event_id(issuer: str, item: dict) -> str:
     if item.get("accession"):
         return f"sec:{item['accession']}"
     raw = "|".join(str(value or "") for value in (
-        issuer, item.get("published_at"), item.get("url"), item.get("raw_title") or item.get("title")
+        issuer, item.get("published_at"), item.get("source_url"), item.get("title")
     ))
     return "primary:" + hashlib.sha256(raw.encode()).hexdigest()[:20]
 
 
-def extract_expectation(item: dict) -> dict:
-    """Classify only language attributable to the primary item itself."""
-    title = str(item.get("raw_title") or item.get("title") or "")
-    folded = title.casefold()
-    negative = next((term for term in NEGATIVE_TERMS if term.casefold() in folded), None)
-    positive = next((term for term in POSITIVE_TERMS if term.casefold() in folded), None)
-    rule = str(item.get("triage_rule") or "")
-    if negative:
-        direction = "negative"
-        marker = negative
-    elif positive:
-        direction = "positive"
-        marker = positive
-    elif rule in {"us-offering", "us-late-filing", "hk-equity-raise", "hk-profit-alert"}:
-        # hk-profit-alert combines 盈喜 and 盈警, so only explicit terms above may
-        # resolve it.  The other three rule ids are directionally unambiguous.
-        if rule == "hk-profit-alert":
-            direction, marker = "unknown", None
-        else:
-            direction, marker = "negative", rule
-    else:
-        direction, marker = "unknown", None
-    category = {
-        "us-offering": "dilution", "hk-equity-raise": "dilution",
-        "us-late-filing": "filing_delay", "hk-profit-alert": "profit_revision",
-        "hk-buyback-programme": "capital_return", "us-13d-activist": "ownership",
-        "us-8k": "material_event", "us-periodic": "results",
-        "hk-results": "results", "hk-mna": "corporate_action",
-        "us-mna": "corporate_action", "hk-inside-information": "inside_information",
-    }.get(rule, "material_disclosure")
-    return {
-        "direction": direction,
-        "category": category,
-        "detail": title,
-        "explicit_marker": marker,
-        "detail_status": "explicit" if direction != "unknown" else "needs_detail_extraction",
-    }
-
-
-def _disposition(direction: str, reaction, *, leveraged_only=False) -> tuple[str, list[str]]:
-    blockers = ["candidate_is_not_order_authority"]
-    if direction == "negative":
-        return "reject", blockers + ["adverse_primary_disclosure"]
-    if direction != "positive":
-        return "wait", blockers + ["needs_detail_extraction"]
-    if not isinstance(reaction, (int, float)):
-        # Do not erase the event merely because price coverage failed.  It stays a
-        # candidate hint, but exploration remains blocked below.
-        blockers.append("price_reaction_unavailable")
-        if leveraged_only:
-            blockers.append("leveraged_holding_cannot_take_unvalidated_exploration")
-        return "candidate", blockers
-    if reaction >= HOT_REACTION_PCT:
-        return "wait", blockers + ["price_already_reacted"]
-    if reaction <= CONTRADICTED_REACTION_PCT:
-        return "wait", blockers + ["tape_contradicts_positive_event"]
-    if leveraged_only:
-        blockers.append("leveraged_holding_cannot_take_unvalidated_exploration")
-    return "candidate", blockers
-
-
-def _exploration_hint(scope: dict, market: str, disposition: str, reaction) -> dict | None:
-    if disposition != "candidate" or not isinstance(reaction, (int, float)):
+def _exploration_hint(scope: dict, market: str, disposition: str, reaction,
+                      *, registry, policy) -> dict | None:
+    if (disposition != "candidate" or not isinstance(reaction, (int, float))
+            or scope.get("leveraged_only")):
         return None
     issuer = scope["issuer"]
-    meta = instruments.get(issuer) or {}
+    meta = default_instruments.get(issuer, registry=registry) or {}
     if float(meta.get("leverage_multiple") or 1) > 1:
         return None
     if market == "hk":
         lot = scope.get("board_lot")
         if not isinstance(lot, int) or lot <= 0:
             return None
-        shares, unit = lot, "one_board_lot"
+        shares = lot * int(policy.hk_exploration_lots)
+        unit = "one_board_lot" if policy.hk_exploration_lots == 1 else "board_lots"
     else:
-        shares, unit = 1, "one_share"
+        shares = int(policy.us_exploration_shares)
+        unit = "one_share" if shares == 1 else "shares"
     return {
         "ticker": issuer, "shares": shares, "unit": unit,
         "status": "unvalidated_exploration_hint",
@@ -173,15 +163,21 @@ def _exploration_hint(scope: dict, market: str, disposition: str, reaction) -> d
     }
 
 
-def scan(portfolio: dict | None, *, market: str, now=None, http=None,
-         quote_fetcher=peer_quotes.fetch_all) -> dict:
+def scan(portfolio: dict | None, *, market: str, policy=DEFAULT_POLICY, now=None, http=None,
+         quote_fetcher=peer_quotes.fetch_all, disclosure_probe=primary_disclosures.probe,
+         registry) -> dict:
     """Scan the bounded live issuer set before any price-anomaly filter."""
     now = now or datetime.now(timezone.utc)
-    scope = active_issuer_scope(portfolio or {}, market)
-    chased, skipped = scope[:MAX_ACTIVE_ISSUERS], scope[MAX_ACTIVE_ISSUERS:]
+    scope = active_issuer_scope(
+        portfolio or {}, market, registry=registry,
+    )
+    chased = scope[:policy.max_active_issuers]
+    skipped = scope[policy.max_active_issuers:]
     issuers = [row["issuer"] for row in chased]
-    evidence = mover_evidence.probe(
-        issuers, market=market, now=now, http=http, primary_only=True,
+    evidence = disclosure_probe(
+        issuers, market=market, now=now, http=http,
+        window_minutes=policy.window_minutes, budget_s=policy.budget_s,
+        max_issuers=policy.max_active_issuers,
     ) if issuers else {}
     try:
         quotes = quote_fetcher(
@@ -195,22 +191,24 @@ def scan(portfolio: dict | None, *, market: str, now=None, http=None,
     status_by_issuer = {}
     for target in chased:
         issuer = target["issuer"]
-        entry = ((evidence.get("tickers") or {}).get(issuer) or {})
+        entry = ((evidence.get("issuers") or {}).get(issuer) or {})
         status_by_issuer[issuer] = entry.get("status") or "not_checked"
         quote = quotes.get(issuer) or {}
         reaction = quote.get("pct_1d") if not quote.get("stale_quote") else None
-        primary_interrupts = [
-            item for item in (entry.get("items") or [])
-            if item.get("tier") == mover_evidence.PRIMARY
-            and item.get("signal") == mover_evidence.INTERRUPT
-        ]
-        for item in primary_interrupts:
-            expectation = extract_expectation(item)
-            disposition, blockers = _disposition(
-                expectation["direction"], reaction,
-                leveraged_only=bool(target.get("leveraged_only")),
+        for item in (entry.get("events") or []):
+            if item.get("evidence_tier") != "primary":
+                continue
+            signal = information_signals.evaluate(item, reaction, policy.signal)
+            if signal is None:
+                continue
+            disposition = signal["disposition"]
+            blockers = list(signal["blockers"])
+            if target.get("leveraged_only"):
+                blockers.append("leveraged_holding_cannot_take_unvalidated_exploration")
+            hint = _exploration_hint(
+                target, market, disposition, reaction,
+                registry=registry, policy=policy,
             )
-            hint = _exploration_hint(target, market, disposition, reaction)
             if disposition == "candidate" and hint is None:
                 if market == "hk":
                     blockers.append("verified_board_lot_unavailable")
@@ -219,7 +217,7 @@ def scan(portfolio: dict | None, *, market: str, now=None, http=None,
             published = item.get("published_at")
             try:
                 expires = datetime.fromisoformat(str(published).replace("Z", "+00:00")) + timedelta(
-                    minutes=mover_evidence.WINDOW_MINUTES
+                    minutes=policy.window_minutes
                 )
                 expires_at = expires.isoformat()
             except (TypeError, ValueError):
@@ -230,30 +228,16 @@ def scan(portfolio: dict | None, *, market: str, now=None, http=None,
                 "held_via": target["holdings"],
                 "published_at": published,
                 "expires_at": expires_at,
-                "source_url": item.get("url"),
+                "source_url": item.get("source_url"),
                 "source_class": item.get("source_class"),
                 "source_quality": "primary",
-                **expectation,
+                **{key: value for key, value in signal.items()
+                   if key not in {"disposition", "blockers"}},
                 "session_reaction_pct": reaction,
                 "reaction_source": quote.get("source"),
                 "disposition": disposition,
                 "blockers": sorted(set(blockers)),
                 "exploration_hint": hint,
-                "falsifier": (
-                    "price rejects the disclosure or a later primary filing reverses the detail"
-                    if expectation["direction"] == "positive" else
-                    "a later primary filing resolves or reverses the adverse/unknown detail"
-                ),
-                "next_evidence": (
-                    "independent support plus non-overheated price confirmation"
-                    if expectation["detail_status"] == "explicit" else
-                    "extract the attributable filing detail before any directional action"
-                ),
-                "judge_contract": {
-                    "allowed": ["candidate", "wait", "reject"],
-                    "may_upgrade": False,
-                    "precomputed": disposition,
-                },
             })
     rows.sort(key=lambda row: (row.get("published_at") or "", row["issuer"]), reverse=True)
     return {
@@ -277,9 +261,16 @@ def scan(portfolio: dict | None, *, market: str, now=None, http=None,
     }
 
 
-def scan_workspace(market: str, **kwargs) -> dict:
-    result = scan(_load_portfolio(), market=market, **kwargs)
-    path = SEEN_DIR / f"active-information-seen-{market}.json"
+def scan_workspace(workspace, market: str, *, policy=DEFAULT_POLICY, **kwargs) -> dict:
+    workspace = Path(workspace)
+    registry = default_instruments.load_registry(
+        workspace / "config" / "instruments.json", missing_ok=True,
+    )
+    result = scan(
+        _load_portfolio(workspace / "portfolio.json"), market=market,
+        policy=policy, registry=registry, **kwargs,
+    )
+    path = workspace / "memory" / ".tmp" / f"active-information-seen-{market}.json"
     try:
         seen_doc = json.loads(path.read_text()) if path.exists() else {}
         seen = seen_doc.get("events") if isinstance(seen_doc, dict) else {}

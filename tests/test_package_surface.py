@@ -99,3 +99,56 @@ def test_the_entry_point_is_inside_the_package():
     assert module.split(".")[0] == PKG.name, (
         f"entry point {module} is not inside the package directory {PKG.name}")
     assert (PKG / "__init__.py").exists(), "clawock must be a real package"
+
+
+def test_information_strategy_has_one_product_owner():
+    """Keep provider → strategy → instance as an executable ownership rule.
+
+    This is intentionally one structural backstop, not a test per implementation
+    detail.  The expensive regression is putting the algorithm back in the live
+    adapter or coupling it to mover attribution's private protocol.
+    """
+    strategy = PKG / "decision" / "active_information.py"
+    instance_copy = (
+        ROOT / "instances" / "kcnyu" / "src" / "clawock_kcnyu"
+        / "active_information.py"
+    )
+    phase = (
+        ROOT / "instances" / "kcnyu" / "src" / "clawock_kcnyu"
+        / "harness" / "intraday_preflight.py"
+    )
+
+    assert strategy.is_file(), "the reusable information strategy belongs in clawock"
+    assert not instance_copy.exists(), "instances are bindings, not a second strategy package"
+
+    tree = ast.parse(strategy.read_text())
+    imports = set()
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Import):
+            imports.update(alias.name for alias in node.names)
+        elif isinstance(node, ast.ImportFrom) and node.module:
+            imports.update(f"{node.module}.{alias.name}" for alias in node.names)
+    assert not any(name.startswith("clawock_kcnyu") for name in imports)
+    assert "clawock.market_data.mover_evidence" not in imports
+    assert "clawock.market_data.primary_disclosures" in imports, (
+        "the strategy should consume the public primary-disclosure provider")
+    private_contracts = {"triage_rule", "WINDOW_MINUTES", "INTERRUPT", "PRIMARY"}
+    referenced = {
+        node.id for node in ast.walk(tree) if isinstance(node, ast.Name)
+    } | {
+        node.attr for node in ast.walk(tree) if isinstance(node, ast.Attribute)
+    } | {
+        node.value for node in ast.walk(tree)
+        if isinstance(node, ast.Constant) and isinstance(node.value, str)
+    }
+    assert not (private_contracts & referenced), (
+        "strategy depends on mover attribution's private protocol: "
+        f"{sorted(private_contracts & referenced)}")
+
+    phase_imports = {
+        node.module
+        for node in ast.walk(ast.parse(phase.read_text()))
+        if isinstance(node, ast.ImportFrom) and node.module
+    }
+    assert "clawock.decision" in phase_imports, (
+        "the instance phase must bind the product strategy, not reimplement it")

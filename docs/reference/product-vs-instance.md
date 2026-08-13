@@ -21,6 +21,40 @@ needs the behavior unchanged.
 File size, language and test coverage do not decide ownership. Stable commands
 are APIs; historical Python or shell paths are not.
 
+## Evidence, strategy and instance rule
+
+Investment strategy is a product capability, not an instance implementation.
+Use this dependency direction for every new signal or strategy:
+
+```text
+market_data provider DTO -> decision strategy -> instance phase/render/delivery
+```
+
+- A provider fetches and normalizes attributable evidence and reports source
+  degradation. It does not read a portfolio, choose an action, inspect reaction
+  thresholds, size exposure, persist strategy state or alert a user.
+- A strategy under `src/clawock/decision/` owns the reusable algorithm: portfolio
+  scope, instrument look-through, signal state, risk/exploration contract and
+  its bounded state. It accepts a generic workspace/book and explicit policy;
+  it does not know KCNyu, OpenClaw, a delivery target or prose layout.
+- An instance is a thin binding for phase wiring, deployment-only overrides,
+  presentation and delivery. Do not move an algorithm into `instances/` merely
+  because one live desk consumes it first.
+- Consumers depend on public DTO/functions, never another feature's private
+  constants, config rule IDs or module globals. For example, an information-first
+  strategy must consume a primary-disclosure DTO rather than the internal
+  `interrupt` classification of mover attribution.
+- Resolve workspace paths when the phase is called. Import-time paths and default
+  arguments derived from them bind a long-lived process to whichever workspace
+  imported the module first.
+- Skills explain how to consume the structured result. They must not redefine
+  thresholds, sizing or state transitions already owned by Python policy.
+
+The placement test is therefore not “does this mention a portfolio?” A portable
+strategy is expected to operate on a caller's portfolio. The test is “would a
+different clawock user need this algorithm unchanged?” If yes, it belongs in
+the product; only the live deployment binding belongs in the instance.
+
 ## Canonical owners
 
 | Path | Owner |

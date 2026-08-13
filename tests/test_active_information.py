@@ -1,11 +1,15 @@
 """High-cost invariants for the information-first intraday lane."""
 from datetime import datetime, timezone
+from pathlib import Path
 
-from clawock_kcnyu import active_information as ai
+from clawock.decision import active_information as ai
+from clawock.portfolio import instruments
 from clawock_kcnyu.harness import intraday_preflight
 
 
 NOW = datetime(2026, 8, 13, 6, 0, tzinfo=timezone.utc)
+ROOT = Path(__file__).resolve().parents[1]
+REGISTRY = instruments.load_registry(ROOT / "config" / "instruments.json")
 
 
 def portfolio(hk=None, us=None):
@@ -20,8 +24,8 @@ def portfolio(hk=None, us=None):
 def probe_with(item, status="found"):
     def probe(issuers, **_kwargs):
         return {
-            "tickers": {
-                issuer: {"status": status, "items": [dict(item)] if item else []}
+            "issuers": {
+                issuer: {"status": status, "events": [dict(item)] if item else []}
                 for issuer in issuers
             }
         }
@@ -31,24 +35,20 @@ def probe_with(item, status="found"):
 POSITIVE = {
     "published_at": "2026-08-13T05:45:00+00:00",
     "title": "正面盈利预告及股份回购计划",
-    "raw_title": "正面盈利预告及股份回购计划",
-    "tier": "primary",
+    "source_url": "https://example.test/announcement",
     "source_class": "exchange_filing",
-    "signal": "interrupt",
-    "triage_rule": "hk-profit-alert",
-    "url": "https://example.test/announcement",
+    "evidence_tier": "primary",
 }
 
 
 def test_positive_primary_event_becomes_one_board_lot_candidate_before_a_large_move(monkeypatch):
-    monkeypatch.setattr(ai.mover_evidence, "probe", probe_with(POSITIVE))
     book = portfolio(hk=[
         {"ticker": "00100", "shares": 120, "lot_size": 20},
     ])
 
     result = ai.scan(
-        book, market="hk", now=NOW,
-        quote_fetcher=lambda *_args, **_kwargs: {
+        book, market="hk", now=NOW, registry=REGISTRY,
+        disclosure_probe=probe_with(POSITIVE), quote_fetcher=lambda *_args, **_kwargs: {
             "00100": {"price": 400, "pct_1d": 0.8, "source": "tencent"}
         },
     )
@@ -69,18 +69,16 @@ def test_proxy_and_underlying_are_one_issuer_and_hot_tape_is_wait(monkeypatch):
         "title": "Raised guidance after record revenue",
         "raw_title": "Raised guidance after record revenue",
         "source_class": "sec_filing",
-        "triage_rule": "us-8k",
         "accession": "0001-26-000001",
     }
-    monkeypatch.setattr(ai.mover_evidence, "probe", probe_with(us_item))
     book = portfolio(us=[
         {"ticker": "SPCX", "shares": 1},
         {"ticker": "SPCH", "shares": 240},
     ])
 
     result = ai.scan(
-        book, market="us", now=NOW,
-        quote_fetcher=lambda *_args, **_kwargs: {
+        book, market="us", now=NOW, registry=REGISTRY,
+        disclosure_probe=probe_with(us_item), quote_fetcher=lambda *_args, **_kwargs: {
             "SPCX": {"price": 150, "pct_1d": 5.2, "source": "tencent"}
         },
     )
@@ -96,14 +94,13 @@ def test_proxy_and_underlying_are_one_issuer_and_hot_tape_is_wait(monkeypatch):
 def test_supporting_item_cannot_create_a_candidate(monkeypatch):
     supporting = {
         **POSITIVE,
-        "tier": "supporting",
+        "evidence_tier": "supporting",
         "source_class": "broker_or_media",
     }
-    monkeypatch.setattr(ai.mover_evidence, "probe", probe_with(supporting))
-
     result = ai.scan(
         portfolio(us=[{"ticker": "CRCL", "shares": 2}]),
-        market="us", now=NOW,
+        market="us", now=NOW, registry=REGISTRY,
+        disclosure_probe=probe_with(supporting),
         quote_fetcher=lambda *_args, **_kwargs: {
             "CRCL": {"price": 75, "pct_1d": 0.2, "source": "tencent"}
         },
