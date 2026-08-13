@@ -19,7 +19,6 @@ from pathlib import Path
 _CHECKOUT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(_CHECKOUT))
 sys.path.insert(0, str(_CHECKOUT / "src"))
-sys.path.insert(0, str(_CHECKOUT / "instances" / "kcnyu" / "src"))
 from clawock.workspace import workspace_root  # noqa: E402
 
 # Code lives in the checkout; only DATA lives in the workspace. `workspace_root`
@@ -27,7 +26,7 @@ from clawock.workspace import workspace_root  # noqa: E402
 # someone else's data directory — or silently pick up whatever happens to be
 # there. Same expression WS is seeded from, kept separate on purpose (#269).
 WS = workspace_root(_CHECKOUT)
-from clawock_kcnyu.schedule import (  # noqa: E402
+from clawock.scheduling import (  # noqa: E402
     effective_schedule,
     load_contract,
     next_us_dst_transition,

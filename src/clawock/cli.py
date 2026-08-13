@@ -235,10 +235,29 @@ def _harness(args, workflow=None) -> int:
         forwarded.append("--dry-run")
     try:
         return run_phase(workflow, phase, forwarded,
-                         workspace=getattr(args, "workspace", None))
-    except AdapterUnavailable as exc:
+                         workspace=getattr(args, "workspace", None),
+                         profile=getattr(args, "runtime_profile", None))
+    except (AdapterUnavailable, ValueError) as exc:
         print(str(exc), file=sys.stderr)
         return 1
+
+
+def _profile(args) -> int:
+    """Validate and describe the selected declarative product profile."""
+    from clawock.config.profiles import describe_profile, load_profile
+
+    root = Path(args.workspace or Path.cwd()).expanduser().resolve()
+    try:
+        profile = load_profile(root, args.profile)
+        payload = describe_profile(profile)
+        payload["resolved_resources"] = {
+            key: str(profile.resource_path(key)) for key in profile.resources
+        }
+    except ValueError as exc:
+        print(str(exc), file=sys.stderr)
+        return 1
+    print(json.dumps(payload, ensure_ascii=False, indent=2))
+    return 0
 
 
 def _tool(args) -> int:
@@ -595,6 +614,12 @@ def main(argv=None) -> int:
     calendar.add_argument("--quiet", action="store_true")
     calendar.set_defaults(func=_calendar)
 
+    profile = sub.add_parser(
+        "profile", help="validate and describe a declarative runtime profile")
+    profile.add_argument("profile", help="profile id or workspace-relative JSON path")
+    profile.add_argument("--workspace", type=Path, default=None)
+    profile.set_defaults(func=_profile)
+
     report = sub.add_parser(
         "report", help="assemble and validate a market report from a context file")
     report.add_argument("harness_phase", nargs="?", choices=("preflight", "postflight"),
@@ -610,6 +635,9 @@ def main(argv=None) -> int:
     report.add_argument("--context-id")
     report.add_argument("--text-file", type=Path)
     report.add_argument("--workspace", type=Path, default=None)
+    report.add_argument(
+        "--profile", dest="runtime_profile",
+        help="declarative product profile id or workspace-relative JSON path")
     report.set_defaults(func=_report)
 
     for workflow in ("brief", "intraday"):
@@ -620,6 +648,9 @@ def main(argv=None) -> int:
         harness.add_argument("--text-file", type=Path)
         harness.add_argument("--dry-run", action="store_true")
         harness.add_argument("--workspace", type=Path, default=None)
+        harness.add_argument(
+            "--profile", dest="runtime_profile",
+            help="declarative product profile id or workspace-relative JSON path")
         harness.set_defaults(func=_harness)
 
     tool = sub.add_parser(

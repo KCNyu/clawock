@@ -17,6 +17,7 @@ class RunRequest:
     phase: str
     workspace: Path
     argv: tuple[str, ...] = ()
+    profile: str | None = None
 
     def __post_init__(self):
         if self.workflow not in WORKFLOWS:
