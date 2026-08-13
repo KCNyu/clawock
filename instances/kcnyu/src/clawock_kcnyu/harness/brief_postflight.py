@@ -508,7 +508,7 @@ def log_decisions(today):
     print(f'  decisions.jsonl: +{inserted}, updated {updated}, settled {settled} ({len(ledger)} total)')
 
 
-def write_publish_gate(status, today):
+def write_publish_gate(status, today, *, reason=None):
     """Machine-readable publish gate the off-host fallback workflow reads before it
     commits. The fallback runs on a fresh GH-Action checkout where a broad
     `git add … && commit && push` is its own committer and cannot see maybe_commit's
@@ -518,6 +518,8 @@ def write_publish_gate(status, today):
     do-not-publish, so only an explicit publish_ok=true releases a commit."""
     gate = {'today': today, 'status': status, 'publish_ok': status != 'fail',
             'written_at': datetime.now().isoformat()}
+    if reason:
+        gate['reason'] = reason
     p = WS / 'logs' / 'brief_postflight_status.json'
     p.parent.mkdir(parents=True, exist_ok=True)
     p.write_text(json.dumps(gate, ensure_ascii=False) + '\n')
@@ -714,10 +716,12 @@ def main(argv=None):
         issue_count=len(issues),
         readability=readability,
     )
-    # Emit the cross-process publish gate BEFORE anything else can raise, so the
-    # off-host workflow's committer has an explicit verdict (and a crash leaves no
-    # file → fail-closed).
-    write_publish_gate(status, today)
+    # Emit a CLOSED cross-process gate before anything else can raise.  A valid
+    # brief is not yet a publishable generation: the deterministic Pages
+    # projection below is part of that generation too.  Releasing pass/warn here
+    # let a projection exception preserve yesterday's sidecar while the fallback
+    # workflow committed everything else and reported green (#520).
+    write_publish_gate('fail', today, reason='pending_pages_projection')
 
     # Pages consumes a versioned projection, not the model's raw files.  Missing
     # or invalid prose is isolated: deterministic technical/risk rows still
@@ -740,6 +744,22 @@ def main(argv=None):
             projection_issues = [str(exc)]
             print(f'warn: brief Pages projection failed: {exc}', file=sys.stderr)
 
+    projection_ready = (
+        args.dry_run
+        or status == 'fail'
+        or projection_status in {'valid', 'missing', 'invalid'}
+    )
+    publication_status = status if projection_ready else 'fail'
+    # This is the only release of the off-host committer.  Judgment validity is
+    # deliberately not required: missing/invalid prose still writes a complete
+    # deterministic projection.  A writer exception or absent decision packet is
+    # different — no current generation was produced.
+    write_publish_gate(
+        publication_status,
+        today,
+        reason=None if projection_ready else 'pages_projection_failed',
+    )
+
     if status == 'pass':
         wechat_prefix = ''
     elif status == 'warn':
@@ -753,8 +773,11 @@ def main(argv=None):
                          + ('\n- ...' if len(issues) > 5 else '')
                          + '\n\n')
 
-    commit_ok, commit_msg = maybe_commit(status, today, dry_run=args.dry_run)
-    if status in ('pass', 'warn') and not args.dry_run:
+    commit_ok, commit_msg = maybe_commit(
+        publication_status, today, dry_run=args.dry_run
+    )
+    if (status in ('pass', 'warn') and projection_ready
+            and not args.dry_run):
         data_plane_status = dashboard_publication_state(WS)
     else:
         data_plane_status = 'skipped'
@@ -857,6 +880,7 @@ def main(argv=None):
         'data_plane_status': data_plane_status,
         'projection_status': projection_status,
         'projection_issues': projection_issues,
+        'publication_ready': projection_ready,
         'readability': readability,
         'files_checked': {
             'pre_open_md':  str(md_path),
@@ -869,9 +893,11 @@ def main(argv=None):
         job_name,
         'postflight',
         ('success'
-         if status == 'pass' and data_plane_status in {'published', 'skipped'}
+         if (status == 'pass' and projection_ready
+             and data_plane_status in {'published', 'skipped'})
          else ('warning'
-               if status == 'warn' and data_plane_status in {'published', 'skipped'}
+               if (status == 'warn' and projection_ready
+                   and data_plane_status in {'published', 'skipped'})
                else 'failed')),
         slot=slot,
         dry_run=args.dry_run,
@@ -890,7 +916,7 @@ def main(argv=None):
     )
     print(json.dumps(result, ensure_ascii=False, indent=2))
     if (not args.dry_run and status in ('pass', 'warn')
-            and data_plane_status != 'published'):
+            and (not projection_ready or data_plane_status != 'published')):
         return 2
     return 0 if status == 'pass' else (1 if status == 'warn' else 2)
 
