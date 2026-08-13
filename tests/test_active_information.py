@@ -1,6 +1,7 @@
 """High-cost invariants for the information-first intraday lane."""
 from datetime import datetime, timezone
 from pathlib import Path
+from urllib.parse import urlsplit
 
 from clawock.decision import active_information as ai
 from clawock.market_data import primary_disclosures
@@ -126,9 +127,10 @@ def test_sec_403_falls_back_to_healthy_nasdaq_primary_mirror(monkeypatch):
     )
 
     def http(url, **_kwargs):
-        if "data.sec.gov" in url:
+        host = urlsplit(url).hostname
+        if host == "data.sec.gov":
             raise RuntimeError("SEC 403")
-        if "api.nasdaq.com" in url:
+        if host == "api.nasdaq.com":
             return {"data": {"rows": [{
                 "companyName": "Circle Internet Group Inc.",
                 "formType": "8-K", "filed": "08/13/2026",
