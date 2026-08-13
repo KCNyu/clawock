@@ -72,6 +72,7 @@ _CHECKOUT = WS
 TMP = WS / 'memory' / '.tmp'
 
 from clawock_kcnyu.automation import cron_heartbeat  # noqa: E402
+from clawock_kcnyu.harness import intraday_delta  # noqa: E402
 
 # A report file older than this is assumed to be a previous slot's leftover. Kept
 # below the 30min slot cadence (and aligned with the already_delivered window) so a
@@ -359,10 +360,6 @@ def main(argv=None):
         print(json.dumps(result, ensure_ascii=False, indent=2))
         return 0
 
-    text, in_err = read_report_text(args.market, args.text_file)
-    if in_err:
-        return input_error(args.market, in_err)
-
     ctx, err = load_context(args.market)
     if ctx is None:
         cron_heartbeat.record(
@@ -376,6 +373,16 @@ def main(argv=None):
         print(json.dumps(result, ensure_ascii=False, indent=2))
         return 2
 
+    receipt_only = ctx.get('delivery_mode') == 'unchanged_receipt'
+    if receipt_only:
+        # No model prose exists on this path.  Requiring a dummy text file would
+        # turn the cheapest healthy slot back into tool churn and stale-file risk.
+        text, in_err = (ctx.get('raw_wechat_block') or '').strip(), None
+    else:
+        text, in_err = read_report_text(args.market, args.text_file)
+    if in_err:
+        return input_error(args.market, in_err)
+
     prose_only = args.context_id is not None
 
     # ── Generation gate (prose mode only) ────────────────────────────────────
@@ -384,19 +391,25 @@ def main(argv=None):
     # preflight a second time mid-turn. Assembling fresh numbers under stale
     # prose would produce an internally contradictory check-in that LOOKS clean,
     # so refuse to assemble and fall through to the data-block-only path.
-    stale_generation = prose_only and args.context_id != ctx.get('context_id')
+    stale_generation = (
+        prose_only and not receipt_only
+        and args.context_id != ctx.get('context_id')
+    )
 
     # Keep the model's own text for the content rules; assemble the delivered
     # body separately, so the prepended block never satisfies a rule on the
     # model's behalf.
     model_text = text if prose_only else None
-    if prose_only and not stale_generation:
+    if receipt_only and not stale_generation:
+        text = (ctx.get('raw_wechat_block') or '').strip()
+    elif prose_only and not stale_generation:
         text = assemble_message(ctx, text)
 
     issues = ([f'context_id 不匹配: 模型基于 {args.context_id}，当前 context 是 '
                f'{ctx.get("context_id")} — 散文与数据不同代，拒绝拼装']
               if stale_generation
-              else validate(text, ctx, prose_only=prose_only, model_text=model_text))
+              else ([] if receipt_only else validate(
+                  text, ctx, prose_only=prose_only, model_text=model_text)))
     status = 'fail' if stale_generation else categorize(issues)
 
     # Step 2.5 sidecar liveness (warn-only, stderr — NOT in the WeChat report):
@@ -410,8 +423,10 @@ def main(argv=None):
     except (TypeError, ValueError):
         sidecar_date = datetime.now().strftime('%Y-%m-%d')
     insights_path = TMP / f'intraday-insights-{sidecar_date}.json'
-    insights_written = normalize_intraday_insights(insights_path)
-    if not insights_written:
+    # A receipt has no new model judgement.  Re-normalizing yesterday's file
+    # would stamp old prose with the current UTC time and make it look fresh.
+    insights_written = False if receipt_only else normalize_intraday_insights(insights_path)
+    if not insights_written and not receipt_only:
         print(f'warn: {insights_path.name} 缺失或不可用 — dashboard status_banner 将过期隐藏 '
               f'(SKILL Mode 7 Step 2.5 / cron payload Step 2.5)', file=sys.stderr)
 
@@ -445,6 +460,7 @@ def main(argv=None):
     # the report already went out on the prior attempt — skip the re-send. Intraday's
     # marker is per-market, so use a 20min window (< the 30min slot cadence, > the
     # few-min retry gap) to tell a retry from the next legit slot. See already_delivered.
+    delivered_this_run = False
     if already_delivered(marker, within_ms=20 * 60 * 1000):
         print('idempotency: intraday already delivered this slot — skip re-send', file=sys.stderr)
         try:
@@ -500,6 +516,7 @@ def main(argv=None):
                 # intraday_watchdog now uses (no more WeChat resend), so it needs to
                 # know if TG already got this.
                 tg_ok, _tg_out = cosend_telegram(message, f'intraday-{args.market}')
+                delivered_this_run = bool(wechat_sent or tg_ok)
                 # Only the process that actually sent may write the marker. A
                 # declined claim writing one would tell intraday_watchdog this
                 # slot was handled while nothing went out (#508).
@@ -524,6 +541,16 @@ def main(argv=None):
                     print(f'warn: WeChat send failed (watchdog will retry): {send_out[:200]}',
                           file=sys.stderr)
 
+    # A failed generation delivers the deterministic block so the slot remains
+    # visible, but it has not delivered the intended semantic report.  Keep the
+    # old cursor so the next slot retries the full delta instead of collapsing
+    # it into an unchanged receipt.
+    if delivered_this_run and status != 'fail':
+        try:
+            intraday_delta.persist_delivered_state(WS, ctx)
+        except OSError as exc:
+            print(f'warn: intraday delivered-state write failed: {exc}', file=sys.stderr)
+
     raw_block = (ctx.get('raw_wechat_block', '') or '').strip()
     data_plane_ready = ctx.get('status') == 'ok' and bool(raw_block)
     if data_plane_ready:
@@ -534,7 +561,8 @@ def main(argv=None):
     result = {
         'status':        status,
         'market':        args.market,
-        'mode':          'prose' if prose_only else 'legacy',
+        'mode':          ('unchanged_receipt' if receipt_only else
+                          ('prose' if prose_only else 'legacy')),
         'time':          datetime.now().strftime('%H:%M'),
         'issues':        issues,
         'wechat_prefix': wechat_prefix,

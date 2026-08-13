@@ -100,6 +100,8 @@ clawock intraday preflight --market us
   - 基金看穿：2x 单票 ETF 查的是**它跟踪的公司**（`target.kind=look_through`，如 PLTU→PLTR）；指数/板块基金没有发行人，直接标 `index_fund_no_issuer`，不会假装「公司没公告」。
   - `halts`（仅美股，每 slot 一次共享请求）：持仓或其标的被停牌时给出 `reason_code`（LULD 的 `LUDP` 最常打到 2x ETF）与复牌时间；港股停牌走公告（已在 triage 里判 interrupt）。
 
+若 `delivery_mode=unchanged_receipt`：和上一次实际送达相比，风险档位、异动档位、盘中 setup、未成交计划和一级披露均无语义变化。**不要生成散文、不要写 prose/sidecar**，直接运行 `clawock intraday postflight --market us --context-id {context_id}`。harness 会发送带行情覆盖和一级源检查状态的一行回执；每档仍然可见，不是跳过。成功后输出 `wechat_prefix` + `raw_wechat_block` 并结束。下面 Step 2–2.5 只适用于 `delivery_mode=full_delta`。
+
 #### Step 2: 只写 `▎我的看法` 散文（数据块归 harness）
 - ❌ **不要抄 `raw_wechat_block`，不要重画那张表** —— postflight 在发送时自己把它拼在你的散文前面。
   你抄一遍只会引入排版误差：2026-07-28 00:30 就因为一格多打了一个空格，整段分析被丢掉只发了数据块。

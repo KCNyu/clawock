@@ -262,6 +262,7 @@ def scan(portfolio: dict | None, *, market: str, policy=DEFAULT_POLICY, now=None
         "skipped_scope": [row["issuer"] for row in skipped],
         "issuer_status": status_by_issuer,
         "issuer_source_health": source_health_by_issuer,
+        "collection": evidence.get("collection") or {},
         "candidates": rows,
         "candidate_count": sum(row["disposition"] == "candidate" for row in rows),
         "wait_count": sum(row["disposition"] == "wait" for row in rows),
@@ -285,6 +286,16 @@ def scan_workspace(workspace, market: str, *, policy=DEFAULT_POLICY, **kwargs) -
     registry = default_instruments.load_registry(
         workspace / "config" / "instruments.json", missing_ok=True,
     )
+    if "disclosure_probe" not in kwargs:
+        cache_path = workspace / ".cache" / f"primary-disclosures-{market}.json"
+
+        def cached_probe(issuers, **probe_kwargs):
+            return primary_disclosures.probe_cached(
+                issuers, cache_path=cache_path, cache_ttl_seconds=300,
+                **probe_kwargs,
+            )
+
+        kwargs["disclosure_probe"] = cached_probe
     result = scan(
         _load_portfolio(workspace / "portfolio.json"), market=market,
         policy=policy, registry=registry, **kwargs,

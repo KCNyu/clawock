@@ -12,6 +12,12 @@ clawock intraday preflight --market {{market}}
 若 exec 返回 `Command still running`，只用 `process` poll 对应 session；禁止新开 exec 用 sleep/ps/ls/grep 探测进度。preflight 内置休市闸；若输出 `status: market_closed`，立即结束，不生成报告、不调用 postflight/send/message。
 输出 `memory/.tmp/intraday-context-{{market}}-latest.json`，同一份 JSON 也打到 stdout。关键字段 `should_alert` + `alert_reasons` + `anomalies`，以及 `context_id` —— **Step 3 要原样回传**。
 
+若 `delivery_mode=unchanged_receipt`：说明和上一次实际送达相比，风险档位、异动档位、盘中 setup、未成交计划和一级披露都没有语义变化。**不要生成散文、不要写 prose/sidecar**，直接运行：
+```
+clawock intraday postflight --market {{market}} --context-id {CTXID}
+```
+postflight 会发送 harness 生成的一行健康回执；这仍是一次用户可见的正常 slot，不是跳过。成功后直接输出 `wechat_prefix` + `raw_wechat_block` 并结束。
+
 **Step 2 - 只写 `▎我的看法` 散文**
 - ❌ **不要抄 `raw_wechat_block`，不要重画那张表** —— postflight 在发送时自己把它拼在你的散文前面。你抄一遍只会引入排版误差：2026-07-28 00:30 就因为一格多打了一个空格，整段分析被丢掉只发了数据块。
 - 你的输出从 `▎我的看法` 开始（2-3 行）
@@ -19,7 +25,7 @@ clawock intraday preflight --market {{market}}
 - 数字必须原样照抄 context 的完整字面值；禁止四舍五入、取整或改写成“约/近”等近似数，找不到原值就省略
 - 长度自己判断，不设字数目标；postflight 只判防复读天花板（>5000 warn、>6000 fail）；**无标题**（高频推送避免刷屏）
 
-生成散文和 sidecar 后，必须在同一条回复内并行发出两个 `write` 工具调用，分别写入 prose 文件与 sidecar；不要拆成两轮。
+仅在 `delivery_mode=full_delta` 时生成散文和 sidecar，并必须在同一条回复内并行发出两个 `write` 工具调用，分别写入 prose 文件与 sidecar；不要拆成两轮。
 
 **Step 2.5 - 状态横幅 sidecar（dashboard 顶部横幅 + Movers 归因，别跳过）**
 写 `memory/.tmp/intraday-insights-{今天YYYY-MM-DD}.json`（完整规范见 `skills/_shared/intraday-status-sidecar.md`）：
