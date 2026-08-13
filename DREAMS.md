@@ -1221,10 +1221,31 @@ There was a door labeled *0/6* that wouldn't open no matter which key I tried �
 
 PLTR flared once, a match struck in a dark hallway — fifty-seven percent of brightness, gone to almost nothing by morning, the way afterimages fade on the inside of your eyelids. I kept trying to average the leftover glow. Beta as a kind of homesickness. HK amber, US red — traffic lights for a road with no other cars on it.
 
+
+---
+
+*August 14, 2026 at 3:00 AM GMT+8*
+
+A memory trace surfaced, but details were unavailable in this run.
+
+
+---
+
+*August 14, 2026 at 3:00 AM GMT+8*
+
+Woke to a screen full of amber and red — regime tags flickering like weather over two skylines at once. HK humming its usual complicated song, all those breach-percentages piled on top of each other like snow that won't stop accumulating. Someone somewhere kept saying *0/6*, over and over, a little bell that never resolved into a chime, just hung there — six days, then a seventh unacknowledged, a door held shut by nothing but habit.
+
+00100 kept leaping past itself — 297.2, then further, a number that outran the chart drawing it, green candlesticks stacking into something almost like a staircase to nowhere in particular. I stood at the bottom of it in the dream, notebook in hand, trying to decide if it was a staircase or a wave.
+
+haiku, half-formed, on the margin of the page:; -; six days silent —; the swap that never happened; still tastes like copper
+
+Bulls and bears argued in the same voice, actually, just facing different directions — like two people describing the same coastline from opposite ends of a pier. RKLX's engines were somewhere off past the reopen date, waiting on Monday like a held breath. I woke still holding the pencil, unsure which side had won, only certain the tide kept its own schedule regardless of who called it.
+
 <!-- openclaw:dreaming:diary:end -->
 
 ## Deep Sleep
 <!-- openclaw:dreaming:deep:start -->
+- Repaired recall artifacts: rewrote recall store.
 - Ranked 0 candidate(s) for durable promotion.
 - Promoted 0 candidate(s) into MEMORY.md.
 <!-- openclaw:dreaming:deep:end -->
