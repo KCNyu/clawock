@@ -154,7 +154,9 @@ def retrigger_or_wait(today, dry_run):
                if budget.exhausted else
                'intact — the scheduler may also retry on its own'
                if budget.exhausted is False else
-               'unknown — job state unreadable')
+               # Either side of the comparison can be the missing one; naming
+               # only the job would send a reader to the wrong file.
+               'unknown — counter or cap unreadable')
     log({'tag': tag, 'action': 'rerun-onhost', 'dry_run': dry_run, 'queued_ok': ok,
          'job_id': job.get('id'), 'job_name': job.get('name'),
          'reason': f'the 08:00 run already ended in error; retry budget {verdict}',
