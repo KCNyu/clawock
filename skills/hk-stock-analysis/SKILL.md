@@ -87,6 +87,7 @@ In this order:
 clawock intraday preflight --market hk
 ```
 跑 `clawock analyze-hk --wechat --md-table` + 抽信号 + 异动，输出 `memory/.tmp/intraday-context-hk-latest.json`，并把**同一份 JSON** 打到 stdout（含 `context_id` —— Step 3 要原样回传）。
+- `active_information_candidates` — **不等价格先异动**，每个 slot 主动扫持仓运营公司的一手港交所公告；基金/指数不伪装成发行人，杠杆底层按发行人去重。`candidate` 是正向明确披露且日内尚未充分反应，`wait` 是方向未提取/股价已反应/价格缺失，`reject` 是不利披露下拒绝加仓；三者都不是下单授权。港股未验证探索最多显示 portfolio 中已核过的 **一手 board lot**，缺 lot 就只留候选，绝不假定 1 股是一手。
 - `mover_thesis` — **只对本轮异动票**的 thesis 只读快照：`state`、`triggered`/`watch` 红线（含 severity 与 required_action）、下次 review trigger；最新一次 entry gate 判 `reject` 也会标出来。没有基线就是 `unknown`，不许靠记忆补。**这是归因语境不是催化剂**：红线解释「这个跌为什么要紧、当初说好要怎么做」，但能不能动手仍由 catalyst-gate 决定（软消息/情绪不构成主动操作依据）。
 - `mover_news` — **只对本轮异动票**、有限预算抓回来的「刚发生了什么」：`tier=primary` 是交易所/监管一手文件（港股=港交所公告，美股=SEC filing，带 `age_minutes`），`tier=supporting` 是券商研报/媒体/7×24 快讯。**只有 primary 才可能构成硬催化**（仍要过 catalyst-gate）；supporting 只能当色彩，不能作为主动操作依据。
   - `known_catalysts` 是当天 08:00 brief 已核过、且只按本轮异动票裁剪的结构化催化。它回答「此前已知什么」，`mover_news` 回答「这个分钟窗口新发生什么」；两者不能混为一谈，也不因此扩大新闻窗口。
@@ -103,7 +104,8 @@ clawock intraday preflight --market hk
   你抄一遍只会引入排版误差：2026-07-28 00:30 就因为一格多打了一个空格，整段分析被丢掉只发了数据块。
   数据块里的市值/持仓表/亏损持仓行**已经在消息里了**，你的输出从 `▎我的看法` 开始。
 - 你交付的就是这一段：**至少 60 字（postflight 软下限），目标 2-3 行**
-  - 若 `should_alert=true`，**必须**提到 `anomalies` 里至少一个票
+  - 若 `anomalies` 非空，**必须**提其中至少一个票；主动一级信息本身也会令 `should_alert=true`，此时不能虚构一个价格异动。
+  - `active_information_candidates.candidates` 非空时，至少写最相关一条：Bull 只陈述一手细节及预期传导，Bear 检查是否已 price-in/方向是否仍未知，Judge 照抄 harness 的 `candidate|wait|reject`、falsifier 与 next evidence；只能降级，不能自行补方向、价格、股数或授权。`degraded_issuers` 必须说“一级源降级”，不能说“没有消息”。
   - **异动归因（`should_alert=true` 时必写，占 1 行）**：从 `mover_news.tickers[票].items` 里挑 **`signal=interrupt`** 的第一条，写成
     「{票} {幅度}% ← {标题要点}（{age_minutes} 分钟前 / {source_class}）」。多只异动票就各写一行，最多 3 行。
     - `halts` 里有这只票 → **先写停牌**（`reason_code` + 复牌时间），它比任何标题都能解释一次跳动。
