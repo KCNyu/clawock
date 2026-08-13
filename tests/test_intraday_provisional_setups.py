@@ -106,6 +106,37 @@ def test_a_slot_without_setups_leaves_the_block_byte_identical():
         assert P.append_setup_section(BLOCK, setups) == BLOCK, setups
 
 
+def test_unchanged_slot_is_visible_but_does_not_repeat_the_full_table():
+    receipt = P.render_unchanged_receipt(
+        "us", "🇺🇸 美股盯盘 | 08/13 13:30 ET\n| CRCL | 2 | 87 | 71 |",
+        {"priced": 5, "active": 5},
+        {"collection": {"cache_hit": False, "fetched_at": "2026-08-13T17:30:00+00:00"},
+         "degraded_issuers": [], "partially_degraded_issuers": ["RKLB"]},
+    )
+
+    assert receipt.startswith("🇺🇸 美股盯盘 | 08/13 13:30 ET")
+    assert "本轮无新的加仓/减仓条件" in receipt
+    assert "5/5 行情已刷新" in receipt
+    assert "一级信息刚检查" in receipt
+    assert "RKLB" in receipt
+    assert "| CRCL |" not in receipt
+
+
+def test_receipt_quote_coverage_does_not_call_a_missing_row_priced(tmp_path):
+    portfolio = tmp_path / 'portfolio.json'
+    portfolio.write_text('{"portfolios":{"us_stocks":{"holdings":['
+                         '{"ticker":"CRCL","shares":2},'
+                         '{"ticker":"RKLB","shares":1}]}}}')
+
+    coverage = P.quote_coverage(
+        '| 代码 | 股 | 成本 | 现价 | 今日 | 浮% | 浮$ |\n'
+        '| CRCL | 2 | 87 | 71 | +1% | -2% | -3 |',
+        'us', portfolio,
+    )
+
+    assert coverage == {'priced': 1, 'active': 2}
+
+
 def test_the_heading_says_it_has_not_closed():
     rows = {'rows': [{'label': '02208', 'label_zh': '20日突破确认',
                       'setup_id': 'confirmed_breakout',

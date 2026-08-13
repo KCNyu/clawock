@@ -91,3 +91,61 @@ def test_the_gate_is_no_longer_wired_in_front_of_the_cron():
     assert not (ROOT / "config" / "cron-triggers").exists()
     contract = json.loads((ROOT / "config" / "cron-schedules.json").read_text())
     assert "trigger" not in contract["payload_profiles"]["intraday"]
+
+
+def test_semantic_delta_ignores_small_quote_churn_but_sees_real_state_changes():
+    previous = {
+        "session": "us:2026-08-13",
+        "breaches": [{"ticker": "SPCH", "kind": "move", "level": "high",
+                      "direction": "down"}],
+        "setups": [], "plans": [], "primary_events": {},
+        "primary_source_health": {"degraded": ["RKLB"], "partial": []},
+    }
+    current = json.loads(json.dumps(previous))
+
+    quiet = gate.compare_semantic_states(current, previous)
+    assert quiet["changed"] is False
+
+    current["primary_events"]["filing-1"] = {
+        "issuer": "RKLB", "disposition": "reject", "blockers": ["adverse"]
+    }
+    changed = gate.compare_semantic_states(current, previous)
+    assert changed["changed"] is True
+    assert changed["changed_event_ids"] == ["filing-1"]
+    assert "primary_events" in changed["components"]
+
+
+def test_delivery_state_advances_only_when_postflight_persists_it(tmp_path):
+    ctx = {
+        "market": "hk", "semantic_state": {"session": "hk:2026-08-14"},
+        "heartbeat": {"slot": "2026-08-14T10:00:00+08:00"},
+    }
+    path = gate.delivered_state_path(tmp_path, "hk")
+
+    assert gate.load_delivered_state(tmp_path, "hk") == {}
+    gate.persist_delivered_state(tmp_path, ctx)
+
+    assert path.exists()
+    assert gate.load_delivered_state(tmp_path, "hk")["state"] == ctx["semantic_state"]
+
+
+def test_material_move_buckets_ignore_churn_but_surface_real_repricing():
+    def state(move):
+        return gate.semantic_state(
+            "us", "2026-08-13", signals_detail=[],
+            anomalies=[{"ticker": "SPCH", "move_pct": move}], setups={},
+            plans={}, active_information={},
+        )
+
+    assert gate.compare_semantic_states(state(18.8), state(18.5))["changed"] is False
+    assert gate.compare_semantic_states(state(8.1), state(7.8))["changed"] is True
+    assert gate.compare_semantic_states(state(23.3), state(11.6))["changed"] is True
+
+
+def test_us_session_does_not_reset_at_hong_kong_midnight():
+    before = datetime(2026, 8, 13, 23, 30, tzinfo=ZoneInfo("Asia/Hong_Kong"))
+    after = datetime(2026, 8, 14, 0, 30, tzinfo=ZoneInfo("Asia/Hong_Kong"))
+
+    assert gate.market_session_date("us", before) == "2026-08-13"
+    assert gate.market_session_date("us", after) == "2026-08-13"
+    assert gate.market_session_date("hk", after) == "2026-08-14"

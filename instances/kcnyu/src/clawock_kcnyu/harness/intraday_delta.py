@@ -19,10 +19,124 @@ from clawock.workspace import workspace_root
 from clawock.market_data import sessions as trading_calendar
 from clawock.market_data import peer_quotes as fetch_peers
 from clawock_kcnyu.automation import cron_heartbeat
+from clawock.safe_io import safe_write_json
 
 WS = workspace_root(Path.cwd())
 HKT = ZoneInfo("Asia/Hong_Kong")
+ET = ZoneInfo("America/New_York")
 PORTFOLIO = WS / "portfolio.json"
+
+
+def delivered_state_path(workspace, market):
+    return Path(workspace) / "memory" / ".tmp" / f"intraday-delivered-state-{market}.json"
+
+
+def load_delivered_state(workspace, market):
+    return _load(delivered_state_path(workspace, market))
+
+
+def persist_delivered_state(workspace, ctx):
+    """Advance the comparison cursor only after a real channel delivery."""
+    market = ctx.get("market")
+    state = ctx.get("semantic_state")
+    if market not in {"hk", "us"} or not isinstance(state, dict):
+        return False
+    path = delivered_state_path(workspace, market)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    safe_write_json(str(path), {
+        "schema_version": 1,
+        "market": market,
+        "slot": (ctx.get("heartbeat") or {}).get("slot"),
+        "context_id": ctx.get("context_id"),
+        "state": state,
+    })
+    return True
+
+
+def semantic_state(market, session_date, *, signals_detail, anomalies, setups,
+                   plans, active_information):
+    """Normalize a slot to decision-relevant state, excluding quote churn."""
+    breaches = []
+    for row in signals_detail or []:
+        ticker, level = row.get("ticker"), row.get("level")
+        if ticker and level:
+            breaches.append({"ticker": ticker, "kind": "signal", "level": level})
+    for row in anomalies or []:
+        move = row.get("move_pct")
+        if row.get("ticker") and isinstance(move, (int, float)):
+            magnitude = abs(move)
+            if magnitude >= 12:
+                move_level = "dislocation"
+            elif magnitude >= 8:
+                move_level = "extreme"
+            elif magnitude >= 5:
+                move_level = "high"
+            else:
+                move_level = "medium"
+            breaches.append({
+                "ticker": row["ticker"], "kind": "move",
+                "level": move_level,
+                "direction": "up" if move > 0 else "down",
+            })
+    setup_rows = [{
+        "label": row.get("label"), "setup_id": row.get("setup_id"),
+        "holdings": sorted(row.get("holdings") or []),
+    } for row in ((setups or {}).get("rows") or [])]
+    plan_rows = [{
+        key: row.get(key) for key in (
+            "decision_id", "ticker", "action", "condition", "shares", "pct",
+            "execution_status",
+        )
+    } for row in ((plans or {}).get("open") or [])]
+    event_rows = {}
+    for row in ((active_information or {}).get("candidates") or []):
+        if not row.get("event_id"):
+            continue
+        event_rows[row["event_id"]] = {
+            "issuer": row.get("issuer"), "disposition": row.get("disposition"),
+            "direction": row.get("direction"), "category": row.get("category"),
+            "blockers": sorted(row.get("blockers") or []),
+        }
+    return {
+        "session": f"{market}:{session_date}",
+        "breaches": sorted(breaches, key=lambda row: json.dumps(row, sort_keys=True)),
+        "setups": sorted(setup_rows, key=lambda row: json.dumps(row, sort_keys=True)),
+        "plans": sorted(plan_rows, key=lambda row: json.dumps(row, sort_keys=True)),
+        "primary_events": event_rows,
+        "primary_source_health": {
+            "degraded": sorted((active_information or {}).get("degraded_issuers") or []),
+            "partial": sorted(
+                (active_information or {}).get("partially_degraded_issuers") or []
+            ),
+        },
+    }
+
+
+def compare_semantic_states(current, previous):
+    previous = previous if isinstance(previous, dict) else {}
+    keys = ("session", "breaches", "setups", "plans", "primary_events",
+            "primary_source_health")
+    components = [key for key in keys if current.get(key) != previous.get(key)]
+    old_events = previous.get("primary_events") or {}
+    new_events = current.get("primary_events") or {}
+    changed_ids = sorted(
+        event_id for event_id, row in new_events.items()
+        if old_events.get(event_id) != row
+    )
+    return {
+        "changed": bool(components),
+        "components": components,
+        "changed_event_ids": changed_ids,
+        "removed_event_ids": sorted(set(old_events) - set(new_events)),
+    }
+
+
+def market_session_date(market, at):
+    """Trading-session date, not the host date that rolls mid-US-session."""
+    if at.tzinfo is None:
+        at = at.replace(tzinfo=HKT)
+    zone = ET if market == "us" else HKT
+    return at.astimezone(zone).date().isoformat()
 
 def _load(path):
     try:

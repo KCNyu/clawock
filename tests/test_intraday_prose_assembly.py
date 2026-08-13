@@ -146,6 +146,7 @@ def sent(pf, tmp_path, monkeypatch):
     """Capture what would go to WeChat/Telegram instead of sending it."""
     box = {'messages': []}
     monkeypatch.setattr(pf, 'TMP', tmp_path)
+    monkeypatch.setattr(pf, 'WS', tmp_path)
     monkeypatch.setattr(pf, 'resolve_wechat_target', lambda m: ('weixin', 'kcn', 'acct'))
     monkeypatch.setattr(pf, 'cosend_telegram', lambda *a, **k: (True, 'ok'))
 
@@ -192,6 +193,79 @@ def test_main_delivers_block_plus_prose_on_the_happy_path(run_main, sent):
     assert '▎我的看法' in body
     for line in BLOCK.splitlines():
         assert line in body
+
+
+def test_main_sends_only_the_deterministic_receipt_for_an_unchanged_slot(
+    run_main, sent, tmp_path
+):
+    receipt = "🇺🇸 美股盯盘 | 08/13 13:30 ET\n✓ 本轮无新的加仓/减仓条件；5/5 行情已刷新。"
+    ctx = _ctx(
+        raw_wechat_block=receipt,
+        delivery_mode="unchanged_receipt",
+        should_alert=False,
+        semantic_state={"session": "us:2026-08-13", "breaches": []},
+    )
+
+    rc, out = run_main(PROSE, context_id="abc123def456", ctx=ctx)
+
+    assert rc == 0
+    assert sent["messages"] == [receipt]
+    persisted = json.loads((
+        tmp_path / "memory" / ".tmp" / "intraday-delivered-state-us.json"
+    ).read_text())
+    assert persisted["state"] == ctx["semantic_state"]
+
+
+def test_unchanged_receipt_needs_no_dummy_prose_file(pf, sent, monkeypatch, tmp_path):
+    receipt = "🇺🇸 美股盯盘 | 08/13 13:30 ET\n✓ 本轮无新的加仓/减仓条件；5/5 行情已刷新。"
+    ctx = _ctx(
+        raw_wechat_block=receipt, delivery_mode="unchanged_receipt",
+        should_alert=False, semantic_state={"session": "us:2026-08-13"},
+    )
+    (tmp_path / "intraday-context-us-latest.json").write_text(json.dumps(ctx))
+    monkeypatch.setattr(pf, "TMP", tmp_path)
+    monkeypatch.setattr(pf, "WS", tmp_path)
+    monkeypatch.setattr(pf.trading_calendar, "closed_reason", lambda _m: None)
+    monkeypatch.setattr(pf.cron_heartbeat, "record", lambda *a, **k: None)
+    monkeypatch.setattr(pf, "publish_data_plane", lambda _m: ("current", False))
+    monkeypatch.setattr(sys, "argv", [
+        "intraday_postflight.py", "--market", "us", "--context-id", ctx["context_id"],
+    ])
+    output = io.StringIO()
+
+    with redirect_stdout(output):
+        rc = pf.main()
+
+    assert rc == 0
+    assert sent["messages"] == [receipt]
+
+
+def test_unchanged_receipt_does_not_refresh_an_old_dashboard_narrative(
+    pf, sent, monkeypatch, tmp_path
+):
+    receipt = "🇺🇸 美股盯盘 | 08/13 13:30 ET\n✓ 本轮无新的加仓/减仓条件。"
+    ctx = _ctx(
+        date="2026-07-28", raw_wechat_block=receipt,
+        delivery_mode="unchanged_receipt", should_alert=False,
+        semantic_state={"session": "us:2026-07-28"},
+    )
+    (tmp_path / "intraday-context-us-latest.json").write_text(json.dumps(ctx))
+    sidecar = tmp_path / "intraday-insights-2026-07-28.json"
+    old = {"generated_at": "2026-07-28T10:00:00Z", "status_banner": "old", "movers": {}}
+    sidecar.write_text(json.dumps(old))
+    monkeypatch.setattr(pf, "TMP", tmp_path)
+    monkeypatch.setattr(pf, "WS", tmp_path)
+    monkeypatch.setattr(pf.trading_calendar, "closed_reason", lambda _m: None)
+    monkeypatch.setattr(pf.cron_heartbeat, "record", lambda *a, **k: None)
+    monkeypatch.setattr(pf, "publish_data_plane", lambda _m: ("current", False))
+    monkeypatch.setattr(sys, "argv", [
+        "intraday_postflight.py", "--market", "us", "--context-id", ctx["context_id"],
+    ])
+
+    with redirect_stdout(io.StringIO()):
+        assert pf.main() == 0
+
+    assert json.loads(sidecar.read_text()) == old
 
 
 def test_main_replaces_model_authored_future_sidecar_time(

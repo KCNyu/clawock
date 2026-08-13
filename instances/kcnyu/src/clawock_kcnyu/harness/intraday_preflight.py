@@ -49,6 +49,7 @@ TMP = WS / 'memory' / '.tmp'
 from ._harness_common import compute_context_id
 
 from clawock_kcnyu.automation import cron_heartbeat  # noqa: E402
+from clawock_kcnyu.harness import intraday_delta  # noqa: E402
 
 
 # `scripts/data` was deleted in #429 and the analysis moved into the package in
@@ -233,11 +234,13 @@ def append_setup_section(block, setups, signals_detail=None):
     return block + '\n' + '\n'.join(lines)
 
 
-def append_active_information_section(block, active):
+def append_active_information_section(block, active, *, event_ids=None, show_health=True):
     """Make information-first candidates visible without relying on model prose."""
     rows = (active or {}).get('candidates') or []
-    degraded = (active or {}).get('degraded_issuers') or []
-    partial = (active or {}).get('partially_degraded_issuers') or []
+    if event_ids is not None:
+        rows = [row for row in rows if row.get('event_id') in event_ids]
+    degraded = ((active or {}).get('degraded_issuers') or []) if show_health else []
+    partial = ((active or {}).get('partially_degraded_issuers') or []) if show_health else []
     if not rows and not degraded and not partial:
         return block
     lines = ['', '🛰️ 主动一级信息（候选≠下单）']
@@ -264,6 +267,43 @@ def append_active_information_section(block, active):
             f"  △ SEC直连降级、镜像已检查：{','.join(partial)}"
         )
     return block + '\n' + '\n'.join(lines)
+
+
+def quote_coverage(block, market, portfolio_path=None):
+    priced = 0
+    for line in (block or '').splitlines():
+        cells = [cell.strip() for cell in line.strip().strip('|').split('|')]
+        if (line.strip().startswith('|') and len(cells) >= 7
+                and cells[0] != '代码' and not cells[0].startswith(':')):
+            priced += 1
+    total = priced
+    try:
+        portfolio = json.loads(Path(portfolio_path or (WS / 'portfolio.json')).read_text())
+        leg = 'hk_stocks' if market == 'hk' else 'us_stocks'
+        total = sum(
+            1 for row in portfolio.get('portfolios', {}).get(leg, {}).get('holdings', [])
+            if (row.get('shares') or 0) > 0
+        )
+    except (OSError, json.JSONDecodeError, TypeError):
+        pass
+    return {'priced': priced, 'active': total}
+
+
+def render_unchanged_receipt(market, block, coverage, active):
+    first = ((block or '').strip().splitlines() or [
+        '🇭🇰 港股盯盘' if market == 'hk' else '🇺🇸 美股盯盘'
+    ])[0]
+    priced, total = coverage.get('priced', 0), coverage.get('active', 0)
+    collection = (active or {}).get('collection') or {}
+    source = '一级信息缓存复核' if collection.get('cache_hit') else '一级信息刚检查'
+    lines = [first, f'✓ 本轮无新的加仓/减仓条件；{priced}/{total} 行情已刷新；{source}。']
+    degraded = (active or {}).get('degraded_issuers') or []
+    partial = (active or {}).get('partially_degraded_issuers') or []
+    if degraded:
+        lines.append(f"⚠️ 一级源降级：{','.join(degraded)}（不是无消息）")
+    if partial:
+        lines.append(f"△ 一级源部分降级、镜像已检查：{','.join(partial)}")
+    return '\n'.join(lines)
 
 
 def apply_active_information_alert(should_alert, reasons, active):
@@ -458,8 +498,33 @@ def main(argv=None):
     # Rendered into the block rather than left in JSON alone: a field nothing
     # prints is a detector that has been silenced (#515).
     live_setups = collect_provisional_setups(args.market)
-    raw_block = append_setup_section(stdout.strip(), live_setups, signals_detail)
-    raw_block = append_active_information_section(raw_block, active_information_ctx)
+    coverage = quote_coverage(stdout, args.market)
+    semantic_state = intraday_delta.semantic_state(
+        args.market, intraday_delta.market_session_date(args.market, now),
+        signals_detail=signals_detail,
+        anomalies=anomalies, setups=live_setups, plans=plan_ctx,
+        active_information=active_information_ctx,
+    )
+    prior_doc = intraday_delta.load_delivered_state(WS, args.market)
+    prior_state = prior_doc.get('state') if isinstance(prior_doc, dict) else {}
+    semantic_delta = intraday_delta.compare_semantic_states(semantic_state, prior_state)
+    unchanged = bool(prior_state) and not semantic_delta['changed']
+    if unchanged:
+        raw_block = render_unchanged_receipt(
+            args.market, stdout.strip(), coverage, active_information_ctx,
+        )
+        delivery_mode = 'unchanged_receipt'
+        # Persistent thresholds explain the stored state; they do not turn the
+        # receipt back into another full alert.
+        should_alert, alert_reasons = False, []
+    else:
+        raw_block = append_setup_section(stdout.strip(), live_setups, signals_detail)
+        raw_block = append_active_information_section(
+            raw_block, active_information_ctx,
+            event_ids=set(semantic_delta['changed_event_ids']),
+            show_health='primary_source_health' in semantic_delta['components'],
+        )
+        delivery_mode = 'full_delta'
 
     result = {
         'status':           'ok',
@@ -468,6 +533,10 @@ def main(argv=None):
         'time':             now.strftime('%H:%M'),
         'generated_at':     now.isoformat(timespec='seconds'),
         'raw_wechat_block': raw_block,
+        'delivery_mode': delivery_mode,
+        'semantic_state': semantic_state,
+        'semantic_delta': semantic_delta,
+        'quote_coverage': coverage,
         'provisional_setups': live_setups,
         'signal_count':     signals,
         'signals_detail':   signals_detail,
