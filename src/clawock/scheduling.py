@@ -42,7 +42,7 @@ def _contract_path(path: str | Path | None, workspace: str | Path | None,
 def load_contract(path: str | Path | None = None, *, workspace: str | Path | None = None,
                   profile: str | Path | None = None) -> ScheduleContract:
     contract_path, root = _contract_path(path, workspace, profile)
-    data = json.loads(contract_path.read_text())
+    data = ScheduleContract(json.loads(contract_path.read_text()), workspace=root)
     if data.get("schema_version") != 2:
         raise ValueError("cron contract schema_version must be 2")
     jobs = data.get("jobs")
@@ -119,7 +119,7 @@ def load_contract(path: str | Path | None = None, *, workspace: str | Path | Non
     sync = data.get("dst_sync") or {}
     if not sync.get("schedule") or not isinstance(sync.get("command"), str):
         raise ValueError("dst_sync schedule and command are required")
-    return ScheduleContract(data, workspace=root)
+    return data
 
 
 def us_season(at: datetime | None = None) -> str:
