@@ -201,7 +201,13 @@ def _attention_snapshot(snapshot, overlay_policy):
             payload, cutoff, overlay_policy
         )
         if attention:
-            scores[ticker] += attention["attention_value"]
+            # The comparable value, not attention_value: this score is the
+            # numerator of an acceleration ratio whose baseline is rebuilt
+            # from the same corroboration-less snapshots. Identical today
+            # because the payload above pins one source, but reading the
+            # weighted field would silently reintroduce the asymmetry the
+            # moment replay learns real corroboration counts.
+            scores[ticker] += attention["baseline_comparable_value"]
             source_types[ticker].add(attention["source_type"])
             attention_components[ticker].append(attention)
         signed_value = _number(event.get("information_signed_score"))
