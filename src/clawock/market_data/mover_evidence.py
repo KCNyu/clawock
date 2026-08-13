@@ -40,6 +40,7 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 from clawock.workspace import workspace_root  # noqa: E402
+from clawock.market_data import primary_disclosures
 
 WS = workspace_root(Path.cwd())
 
@@ -61,10 +62,8 @@ PER_REQUEST_TIMEOUT_S = 5
 TOTAL_BUDGET_S = 20
 UA = "Mozilla/5.0 (clawock intraday catalyst probe)"
 TENCENT_NEWS = "https://web.ifzq.gtimg.cn/appstock/news/info/search"
-SEC_SUBMISSIONS = "https://data.sec.gov/submissions/CIK{cik}.json"
-# Tencent type=0 is the exchange/regulator filing feed (HKEX announcements for HK,
-# SEC forms for US), timestamped to the second. type=1 is broker research and media.
-TENCENT_FILINGS_TYPE = 0
+# Tencent type=1 is broker research and media. Primary exchange/regulator
+# collection lives behind primary_disclosures instead of this consumer.
 TENCENT_NEWS_TYPE = 1
 PRIMARY = "primary"
 SUPPORTING = "supporting"
@@ -107,22 +106,9 @@ def _parse_tencent_time(value):
         return None
 
 
-def _parse_sec_time(value):
-    try:
-        return datetime.fromisoformat(str(value).replace("Z", "+00:00")).astimezone(timezone.utc)
-    except (TypeError, ValueError):
-        return None
-
-
 def tencent_symbol(ticker: str, market: str) -> str | None:
     """Map a workspace ticker onto the Tencent symbol space."""
-    ticker = str(ticker or "").strip()
-    if not ticker:
-        return None
-    if market == "hk":
-        digits = ticker.split(".")[0].zfill(5)
-        return f"hk{digits}" if digits.isdigit() else None
-    return f"us{ticker.upper()}"
+    return primary_disclosures.tencent_symbol(ticker, market)
 
 
 def _tencent_items(symbol, feed_type, tier, source_class, *, now, window, http):
@@ -151,56 +137,28 @@ def _tencent_items(symbol, feed_type, tier, source_class, *, now, window, http):
 
 
 def _sec_items(ticker, *, now, window, http):
-    from clawock.market_data import filings as fetch_us_filings  # noqa: PLC0415
-
-    cik = fetch_us_filings.lookup_cik(ticker)
-    if not cik:
-        return [], f"no CIK for {ticker}"
-    # lookup_cik already returns the `CIK##########` form; prepending our own
-    # prefix produced `CIKCIK…` and a silent 404 on every US mover.
-    digits = re.sub(r"\D", "", str(cik))
-    payload = http(
-        SEC_SUBMISSIONS.format(cik=digits.zfill(10)),
-        headers={"User-Agent": fetch_us_filings._load_user_agent()},
+    events, note = primary_disclosures.fetch_sec(
+        ticker, now=now, window_minutes=window, http=http,
     )
-    recent = ((payload or {}).get("filings") or {}).get("recent") or {}
-    forms = recent.get("form") or []
-    accepted = recent.get("acceptanceDateTime") or []
-    docs = recent.get("primaryDocDescription") or []
-    accessions = recent.get("accessionNumber") or []
-    primary_docs = recent.get("primaryDocument") or []
-    filing_items = recent.get("items") or []
-    items = []
-    for index, form in enumerate(forms):
-        when = _parse_sec_time(accepted[index] if index < len(accepted) else None)
-        if when is None:
-            continue
-        age = _age_minutes(when, now)
-        if age < 0 or age > window:
-            continue
-        description = docs[index] if index < len(docs) else ""
-        accession = accessions[index] if index < len(accessions) else ""
-        primary_doc = primary_docs[index] if index < len(primary_docs) else ""
-        filed_items_text = filing_items[index] if index < len(filing_items) else ""
-        archive_url = None
-        if accession and primary_doc:
-            archive_url = (
-                "https://www.sec.gov/Archives/edgar/data/"
-                f"{int(digits)}/{str(accession).replace('-', '')}/{primary_doc}"
-            )
-        items.append({
-            "published_at": when.isoformat(),
-            "age_minutes": age,
-            "title": _truncate(f"{form} {description}".strip()),
-            "raw_title": f"{form} {description}".strip(),
-            "tier": PRIMARY,
-            "source_class": "sec_filing",
-            "url": archive_url,
-            "accession": accession or None,
-            "form": str(form or "") or None,
-            "filing_items": str(filed_items_text or "") or None,
-        })
-    return items, None
+    return [_as_mover_item(event) for event in events], note
+
+
+def _as_mover_item(event):
+    title = str(event.get("title") or "")
+    return {
+        **event,
+        "title": _truncate(title),
+        "raw_title": title,
+        "tier": PRIMARY,
+        "url": event.get("source_url"),
+    }
+
+
+def _exchange_items(symbol, *, now, window, http):
+    events, note = primary_disclosures.fetch_exchange(
+        symbol, now=now, window_minutes=window, http=http,
+    )
+    return [_as_mover_item(event) for event in events], note
 
 
 def _market_flashes(names, *, now, window):
@@ -361,8 +319,7 @@ def halts(symbols, *, now, window, http_text=None) -> dict:
 
 
 def probe(movers, *, market, now=None, window_minutes=WINDOW_MINUTES,
-          budget_s=TOTAL_BUDGET_S, http=None, http_text=None, clock=None,
-          primary_only=False) -> dict:
+          budget_s=TOTAL_BUDGET_S, http=None, http_text=None, clock=None) -> dict:
     """Catalyst evidence for the flagged tickers. Never raises."""
     tickers = [str(t) for t in (movers or []) if t]
     if not tickers:
@@ -394,17 +351,14 @@ def probe(movers, *, market, now=None, window_minutes=WINDOW_MINUTES,
         calls = (
             ("sec", (lambda t=issuer: _sec_items(t, now=now, window=window_minutes, http=http))
              if market == "us" else None),
-            ("filings", (lambda s=symbol: (_tencent_items(
-                s, TENCENT_FILINGS_TYPE, PRIMARY, "exchange_filing",
-                now=now, window=window_minutes, http=http), None)) if symbol else None),
+            ("filings", (lambda s=symbol: _exchange_items(
+                s, now=now, window=window_minutes, http=http)) if symbol else None),
             ("research", (lambda s=symbol: (_tencent_items(
                 s, TENCENT_NEWS_TYPE, SUPPORTING, "broker_or_media",
                 now=now, window=window_minutes, http=http), None)) if symbol else None),
         )
         for label, call in calls:
             if call is None:
-                continue
-            if primary_only and label == "research":
                 continue
             if (label == "filings" and market == "us"
                     and any(row["source_class"] == "sec_filing" for row in entry["items"])):
@@ -457,12 +411,9 @@ def probe(movers, *, market, now=None, window_minutes=WINDOW_MINUTES,
         entry["target"] = target
         results[ticker] = entry
 
-    if primary_only:
-        flashes, flash_note = [], None
-    else:
-        flashes, flash_note = _market_flashes(
-            [name for name in names.values() if name], now=now, window=window_minutes
-        )
+    flashes, flash_note = _market_flashes(
+        [name for name in names.values() if name], now=now, window=window_minutes
+    )
     halt_symbols = []
     if market == "us":
         # A halt is a low-probability event for large caps, so this is not worth a

@@ -41,6 +41,7 @@ from clawock.decision import signals as quant_signals
 from clawock.evidence import research_surface
 from clawock.cli import PACKAGED_UTILITIES
 from clawock.market_data import known_catalysts, mover_evidence as mover_news, peer_scan
+from clawock.decision import active_information
 
 WS = workspace_root(Path.cwd())
 TMP = WS / 'memory' / '.tmp'
@@ -48,7 +49,6 @@ TMP = WS / 'memory' / '.tmp'
 from ._harness_common import compute_context_id
 
 from clawock_kcnyu.automation import cron_heartbeat  # noqa: E402
-from clawock_kcnyu import active_information  # noqa: E402
 
 
 # `scripts/data` was deleted in #429 and the analysis moved into the package in
@@ -406,7 +406,7 @@ def main(argv=None):
     # anomaly.  This is the active counterpart to mover_news below, which still
     # answers the separate question "what explains an already-large move?".
     try:
-        active_information_ctx = active_information.scan_workspace(args.market)
+        active_information_ctx = active_information.scan_workspace(WS, args.market)
     except Exception as exc:  # noqa: BLE001 — a filing source must not red a slot
         active_information_ctx = {
             'schema_version': 1, 'market': args.market, 'candidates': [],

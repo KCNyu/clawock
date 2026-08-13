@@ -20,9 +20,15 @@ execution/outcome → bounded, reviewable improvement proposal.
 | Layer | Owns | Current location |
 |---|---|---|
 | Plugin/harness core | portable skills/workflows, generation-pinned artifact contract, validation/reconciliation, context assembly, tool schemas, evaluation contracts | `src/clawock/` + portable skill/workflow packages (in progress) |
-| Instance | portfolio, schedules, selected skills/persona, delivery targets, dashboard skin | root data + `config/` + `skills/` |
+| Instance | portfolio data, schedules, deployment overrides, selected skills/persona, delivery targets, dashboard skin | root data + `config/` + `skills/` |
 | Runtime adapters | conversations, scheduling, delivery, run history | OpenClaw today; provider interfaces in `src/clawock/providers/` |
 | Live desk adapter | market refresh, `.tmp` artifact placement, git coordination, publication/watchdogs | separately installable `instances/kcnyu/` distribution |
+
+Reusable investment strategies remain product code under `src/clawock/decision/`,
+even when the first consumer is the live KCNyu desk. The live adapter binds those
+strategies into phases and delivery; it is not a second strategy package. The
+full provider → strategy → instance ownership rule is documented in
+[`product-vs-instance.md`](../reference/product-vs-instance.md#evidence-strategy-and-instance-rule).
 
 The public CLI is the stable driver boundary:
 
