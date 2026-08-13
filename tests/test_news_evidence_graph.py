@@ -177,6 +177,54 @@ def test_attention_requires_own_history_acceleration_not_just_headline_count():
     assert 0.9 < row['attention_acceleration'] < 1.25
 
 
+def test_attention_acceleration_weights_live_and_baseline_identically():
+    """Corroboration must reach the rank but never the acceleration gate.
+
+    ``update_history`` does not persist ``corroborating_source_count``, so a
+    historical baseline can only ever be rebuilt at the one-source floor.
+    Scoring the live side at full corroboration against that floor moved
+    acceleration in one direction only — upward, always — on the gate that
+    authorises capital.
+    """
+    old = _event(
+        title='ABC general corporate update', ticker='ABC',
+        published_at='2026-07-25T08:00:00+00:00',
+    )
+    old.update(novelty_score=1.0, corroborating_source_count=1)
+    history = [{
+        'as_of': '2026-07-25',
+        'observed_at': old['publication_time']['iso'],
+        'information_overlay_schema_version': 1,
+        'events': [{
+            'event_id': old['event_id'], 'ticker': 'ABC',
+            'published_at': old['publication_time']['iso'],
+            'novelty_score': 1.0, 'source_reliability': 0.99,
+            'source_type': 'sec_filing',
+        }],
+    }]
+
+    def row_for(sources):
+        current = _event(
+            title='ABC another corporate update', ticker='ABC',
+            published_at=NOW.isoformat(),
+        )
+        current.update(novelty_score=1.0, corroborating_source_count=sources)
+        overlay = graph.build_information_overlay(
+            POLICY, [current], history, NOW
+        )
+        return overlay['tickers']['ABC']
+
+    single = row_for(1)
+    corroborated = row_for(3)
+
+    # Corroboration is real information and still separates the two names in
+    # the cross-sectional attention score that feeds attention_rank.
+    assert corroborated['attention_score'] > single['attention_score']
+    # But it must not move a ratio whose denominator cannot see it.
+    assert (corroborated['attention_acceleration']
+            == single['attention_acceleration'])
+
+
 def test_source_type_rejects_sec_domain_substring_spoofing():
     assert graph.source_type(
         origin='gnews-rss',
