@@ -1,65 +1,71 @@
 {
-  "generated_at": "2026-08-12T22:23:37.695854+00:00",
+  "generated_at": "2026-08-13T22:23:50.344413+00:00",
   "vix": {
     "symbol": "^VIX",
-    "price": 14.55,
-    "prev": 15.28,
-    "change_pct": -4.78,
-    "as_of": 1786565701,
+    "price": 14.63,
+    "prev": 14.55,
+    "change_pct": 0.55,
+    "as_of": 1786652101,
     "source": "yahoo"
   },
   "treasury_10y": {
     "symbol": "^TNX",
-    "price": 4.682,
-    "prev": 4.684,
-    "change_pct": -0.04,
-    "as_of": 1786561194,
+    "price": 4.641,
+    "prev": 4.682,
+    "change_pct": -0.88,
+    "as_of": 1786647595,
     "source": "yahoo",
-    "yield_pct": 4.682
+    "yield_pct": 4.641
   },
   "dxy": {
     "symbol": "DX-Y.NYB",
-    "price": 99.985,
-    "prev": 99.828,
-    "change_pct": 0.16,
-    "as_of": 1786572299,
+    "price": 99.949,
+    "prev": 100.014,
+    "change_pct": -0.06,
+    "as_of": 1786658699,
     "source": "yahoo"
   },
   "fear_greed": {
-    "score": 62.1,
+    "score": 66.1,
     "rating": "greed",
-    "prev_close": 60.8,
-    "prev_1_week": 59.8,
-    "as_of": "2026-08-12T22:06:15+00:00"
+    "prev_close": 62.1,
+    "prev_1_week": 58.9,
+    "as_of": "2026-08-13T22:06:21+00:00"
   },
   "hsi": {
     "symbol": "^HSI",
-    "price": 25440.17,
-    "prev": 25652.82,
-    "change_pct": -0.83,
+    "price": 25396.51,
+    "prev": 25440.17,
+    "change_pct": -0.17,
     "source": "tencent"
   },
   "hstech": {
     "symbol": "^HSTECH",
-    "price": 4776.44,
-    "prev": 4824.42,
-    "change_pct": -0.99,
+    "price": 4792.39,
+    "prev": 4776.44,
+    "change_pct": 0.33,
     "source": "tencent"
   },
   "spx": {
     "symbol": "^GSPC",
-    "price": 7748.5,
-    "prev": 7728.2,
-    "change_pct": 0.26,
-    "as_of": 1786567013,
+    "price": 7798.99,
+    "prev": 7748.5,
+    "change_pct": 0.65,
+    "as_of": 1786653303,
     "source": "yahoo"
   },
   "nasdaq": {
     "symbol": "^IXIC",
-    "price": 26588.49,
-    "prev": 26445.45,
-    "change_pct": 0.54,
+    "price": 26803.03,
+    "prev": 26588.49,
+    "change_pct": 0.81,
     "source": "tencent"
   },
-  "fed_press": []
+  "fed_press": [
+    {
+      "date": "2026-08-13",
+      "title": "Federal Reserve Board issues enforcement action with former employee of Regions Bank",
+      "url": "https://www.federalreserve.gov/newsevents/pressreleases/enforcement20260813a.htm"
+    }
+  ]
 }
