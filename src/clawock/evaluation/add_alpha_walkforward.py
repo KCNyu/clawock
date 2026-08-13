@@ -17,9 +17,9 @@ from collections import defaultdict
 from datetime import datetime, timezone
 from pathlib import Path
 
-from clawock.decision import add_alpha, signals
+from clawock.decision import add_alpha, early_trend, signals
 from clawock.evidence import news_evidence_graph, run_card
-from clawock.market_data import factors
+from clawock.market_data import factors, peer_residuals
 from clawock.workspace import workspace_root
 
 
@@ -30,6 +30,7 @@ NEWS_POLICY = WS / "config" / "news-evidence-policy.json"
 FACTOR_HISTORY = WS / "assets" / "data" / "cross_sectional_factor_history.jsonl"
 PEER_HISTORY = WS / "assets" / "data" / "peer_residual_history.jsonl"
 NEWS_HISTORY = WS / "assets" / "data" / "news_evidence_history.jsonl"
+PEER_MAP = WS / "memory" / "peer-map.json"
 HORIZONS = (1, 5, 20)
 VARIANTS = ("setup_only", "price_relative", "information", "interaction")
 
@@ -82,8 +83,12 @@ def _technical_at(bars, signal_date):
         "close": row.get("close"),
         "prior_5d_high": row.get("prior_5d_high"),
         "prior_5d_low": row.get("prior_5d_low"),
+        "prior_20d_high": row.get("prior_20d_high"),
         "chandelier_stop": row.get("chandelier_stop"),
         "ma20": row.get("ma20"),
+        "zscore20": row.get("zscore20"),
+        "usable": True,
+        "as_of": signal_date,
     }
 
 
@@ -118,6 +123,30 @@ def _forward_return(bars, entry_session, entry_price, horizon):
     if index is None or index + horizon >= len(bars) or not entry_price:
         return None
     return bars[index + horizon]["close"] / entry_price - 1
+
+
+def _close_forward_return(bars, signal_date, horizon):
+    """Signal after session close; first measurable horizon is a later close."""
+    index = next(
+        (i for i, row in enumerate(bars) if row.get("date") == signal_date), None
+    )
+    if index is None or index + horizon >= len(bars):
+        return None
+    entry = _number(bars[index].get("close"))
+    future = _number(bars[index + horizon].get("close"))
+    return future / entry - 1 if entry and future is not None else None
+
+
+def _events_at(snapshot, ticker):
+    return [
+        {
+            "event_id": event.get("event_id"),
+            "source_type": event.get("source_type"),
+            "direction": event.get("impact_direction"),
+        }
+        for event in snapshot.get("events") or []
+        if str(event.get("ticker") or "") == ticker
+    ]
 
 
 def _cluster_ci(rows, field, samples=1000):
@@ -320,6 +349,18 @@ def evaluate(config, policy, news_policy, fetched, factor_history, peer_history,
         specs,
         prior=float(policy.get("attention_score_prior") or 0.1),
     )
+    news_snapshots = {
+        str(snapshot.get("as_of") or "")[:10]: snapshot
+        for snapshot in news_history
+    }
+    taxonomy, _ = peer_residuals.build_taxonomy(config, _json(PEER_MAP))
+    canonical_taxonomy = {
+        row["signal_ticker"]: row
+        for _, row in peer_residuals._canonical_taxonomy_items(taxonomy)
+    }
+    peer_weight_cap = float(
+        _json(peer_residuals.RULE_CONFIG)["basket_weight_cap"]
+    )
     peers = {
         str(snapshot.get("as_of") or "")[:10]: snapshot.get("rows") or {}
         for snapshot in peer_history
@@ -330,6 +371,22 @@ def evaluate(config, policy, news_policy, fetched, factor_history, peer_history,
     }
     coverage = {"factor_dates": 0, "information_dates": len(news), "overlap_dates": 0}
     authority_counts = {"none": 0, "exploration": 0, "validated": 0}
+    early_observations = {
+        market: {
+            state: {horizon: [] for horizon in (1, 5)}
+            for state in ("observed", "information_confirmed", "exploration_ready")
+        }
+        for market in ("us", "hk")
+    }
+    early_coverage = {
+        "eligible_signal_dates": 0,
+        "peer_metrics_evaluated": 0,
+        "observed_candidates": 0,
+        "information_confirmed": 0,
+        "exploration_ready": 0,
+        "missing_taxonomy": 0,
+    }
+    seen_early = set()
     for snapshot in factor_history:
         snapshot_date = str(snapshot.get("as_of") or "")[:10]
         if not snapshot_date:
@@ -397,6 +454,67 @@ def evaluate(config, policy, news_policy, fetched, factor_history, peer_history,
                             "return": value,
                             "fill_reason": fill["fill_reason"],
                         })
+        # Early lane is evaluated independently of the mature setup/fill lane.
+        # One row per economic exposure (never both SPCX and SPCH), using only
+        # bars and information snapshots available at the signal-date close.
+        for ticker, taxonomy_row in canonical_taxonomy.items():
+            spec = specs.get(ticker)
+            bars = (fetched.get(ticker) or {}).get("bars") or []
+            if not spec or not bars:
+                continue
+            signal_date = str(
+                ((snapshot.get("rows") or {}).get(ticker) or {}).get("feature_as_of")
+                or snapshot_date
+            )[:10]
+            observation_key = (ticker, signal_date)
+            if observation_key in seen_early:
+                continue
+            seen_early.add(observation_key)
+            technical = _technical_at(bars, signal_date)
+            if not technical:
+                continue
+            early_coverage["eligible_signal_dates"] += 1
+            peer_metrics = peer_residuals.metrics_at(
+                taxonomy_row, fetched, signal_date,
+                peer_weight_cap,
+            )
+            if not peer_metrics:
+                continue
+            early_coverage["peer_metrics_evaluated"] += 1
+            peer_view = {
+                "residual_5d": peer_metrics.get("residual_blend_5d"),
+                "dispersion_5d": peer_metrics.get("peer_dispersion_5d"),
+                "available_peer_count": peer_metrics.get("available_peer_count"),
+            }
+            info = ((news.get(signal_date) or {}).get("rows") or {}).get(ticker) or {}
+            candidate = early_trend.classify(
+                technical, peer_view, info,
+                _events_at(news_snapshots.get(signal_date) or {}, ticker),
+                leveraged=False, policy=policy, market=spec["region"],
+            )
+            if not candidate["observed"]:
+                continue
+            early_coverage["observed_candidates"] += 1
+            info_confirmed = "point_in_time_information" in candidate["evidence_families"]
+            early_coverage["information_confirmed"] += int(info_confirmed)
+            early_coverage["exploration_ready"] += int(candidate["exploration_ready"])
+            states = ["observed"]
+            if info_confirmed:
+                states.append("information_confirmed")
+            if candidate["exploration_ready"]:
+                states.append("exploration_ready")
+            for horizon in (1, 5):
+                value = _close_forward_return(bars, signal_date, horizon)
+                if value is None:
+                    continue
+                for state in states:
+                    early_observations[spec["region"]][state][horizon].append({
+                        "date": signal_date,
+                        "ticker": ticker,
+                        "return": value,
+                        "state": candidate["state"],
+                        "has_primary": bool(candidate["primary_event_ids"]),
+                    })
     for market in observations.values():
         for horizon in HORIZONS:
             baseline_by_date = defaultdict(list)
@@ -421,6 +539,16 @@ def evaluate(config, policy, news_policy, fetched, factor_history, peer_history,
         }
         for market, variants in observations.items()
     }
+    metrics["early_trend"] = {
+        market: {
+            state: {
+                f"t{horizon}": _summary(rows)
+                for horizon, rows in horizons.items()
+            }
+            for state, horizons in states.items()
+        }
+        for market, states in early_observations.items()
+    }
     metrics["coverage"] = {
         **coverage,
         "authority_classifications": authority_counts,
@@ -431,6 +559,12 @@ def evaluate(config, policy, news_policy, fetched, factor_history, peer_history,
         ),
         "parameter_fit": "none_pre_registered_policy",
         "claim": "diagnostic_not_validated_alpha",
+        "early_trend": {
+            **early_coverage,
+            "entry": "signal_session_close_for_measurement_only",
+            "lookahead": "features_recomputed_at_each_snapshot_date; future closes used only for outcomes",
+            "history_limit": "registered histories currently cover about 14 dates",
+        },
     }
     return metrics
 
@@ -442,7 +576,11 @@ def main(argv=None):
     config = _json(FACTOR_CONFIG)
     policy = _json(ALPHA_POLICY)
     news_policy = _json(NEWS_POLICY)
-    fetched = factors.fetch_universe(config)
+    # The early residual needs every curated peer, including names outside the
+    # factor universe. Fetch the expanded taxonomy once; factor snapshots still
+    # determine which economic exposures enter the replay.
+    _, fetch_config = peer_residuals.build_taxonomy(config, _json(PEER_MAP))
+    fetched = factors.fetch_universe(fetch_config)
     histories = (_jsonl(FACTOR_HISTORY), _jsonl(PEER_HISTORY), _jsonl(NEWS_HISTORY))
     metrics = evaluate(config, policy, news_policy, fetched, *histories)
     card_path = None
@@ -480,18 +618,21 @@ def main(argv=None):
                 "entry": "production alpha_confirmation; next session; invalidation first; gap aware",
                 "confirmation_window_sessions": policy["confirmation_window_sessions"],
                 "variants": list(VARIANTS),
+                "early_variants": ["observed", "information_confirmed", "exploration_ready"],
                 "policy_version": add_alpha.POLICY_VERSION,
                 "parameter_fit": "none; pre-registered thresholds",
             },
             inputs=inputs,
             metrics=metrics,
-            code_files=[Path(__file__), Path(add_alpha.__file__)],
+            code_files=[Path(__file__), Path(add_alpha.__file__), Path(early_trend.__file__)],
             notes=[
                 "US and HK are ranked and evaluated separately.",
                 "Production classify_authority and confirmation primitives are reused directly.",
                 "Current-universe factor history is survivorship-limited and cannot validate authority.",
                 "Legacy information replay seeds diagnostics only; prospective activation remains warming_up.",
                 "Same-day entry/invalidation ambiguity is invalidated, never assumed filled.",
+                "Early candidates are one row per underlying and use signal-date-close features with T+1/T+5 future closes only as outcomes.",
+                "The early history is small; every result remains collecting/diagnostic, never validated alpha.",
             ],
         )
     print(json.dumps({"metrics": metrics, "run_card": str(card_path) if card_path else None}, ensure_ascii=False, indent=2))

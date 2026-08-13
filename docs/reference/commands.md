@@ -123,7 +123,7 @@ Sources: local snapshots + canonical bars
 | `clawock validate-regime-dial` | `clawock.evaluation.regime_validation` | out-of-sample and circular-shift null for the dial's timing |
 | `clawock shadow` | `clawock.portfolio.shadow` | replays triggered calls against buy-and-hold to measure simulated timing alpha |
 | `clawock audit-resettle` | `clawock.decision.settlement` | dry-run bar-based re-settle that reports every verdict it would change |
-| `clawock evaluate-add-alpha` | `clawock.evaluation.add_alpha_walkforward` | point-in-time diagnostic replay of price-relative and information interaction adds |
+| `clawock evaluate-add-alpha` | `clawock.evaluation.add_alpha_walkforward` | point-in-time diagnostic replay of mature interaction adds plus underlying-deduplicated short-history breakout candidates (T+1/T+5) |
 
 ### Not information collection / 不属于信息收集
 

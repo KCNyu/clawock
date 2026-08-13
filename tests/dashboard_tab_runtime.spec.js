@@ -214,6 +214,8 @@ async function testCurrentHoldingsOwnDecisionMatrixMembership(browser, base) {
     payload.add_campaign = {
       status: "current", packet_generated_at: "2026-08-13T08:00:00+08:00",
       diagnostics: { held_names: active.length, authority_candidate_count: 0,
+        observed_candidate_count: 2, observed_idea_count: 1,
+        early_exploration_ready_count: 0, early_exploration_ready_idea_count: 0,
         tier_counts: { validated: 0, exploration: 0, none: active.length } },
       candidates: [
         { ticker: active[0].ticker, leg: "US", state: "insufficient_evidence",
@@ -221,6 +223,7 @@ async function testCurrentHoldingsOwnDecisionMatrixMembership(browser, base) {
           ["independent_evidence_families"], execution_blockers: [],
           target_tranche_level: 0, max_add_shares: 0 },
         { ticker: active[1].ticker, leg: "HK", state: "waiting_timing",
+          source_ticker: active[1].ticker, is_proxy: false,
           tier: "exploration", evidence_families:
           ["price_relative", "point_in_time_information"],
           sources: ["factor", "information"], authority_blockers: [],
@@ -230,11 +233,18 @@ async function testCurrentHoldingsOwnDecisionMatrixMembership(browser, base) {
         factor_dates: 11, information_dates: 12, overlap_dates: 10,
         prospective_information_dates: 0,
         authority_classifications: { none: 186, exploration: 6, validated: 0 },
+        early_trend: { observed_candidates: 2, information_confirmed: 1,
+          exploration_ready: 0 },
       }, markets: {
         us: { t1: { n: 4, mean_return: .03, hit_rate: 1 },
           t5: { n: 0, status: "collecting" }, t20: { n: 0, status: "collecting" } },
         hk: { t1: { n: 2, mean_return: .01, hit_rate: .5 },
           t5: { n: 0, status: "collecting" }, t20: { n: 0, status: "collecting" } },
+      }, early_trend: {
+        us: { observed: { t1: { n: 1, mean_return: .02, hit_rate: 1 },
+          t5: { n: 1, mean_return: .05, hit_rate: 1 } } },
+        hk: { observed: { t1: { n: 1, mean_return: -.01, hit_rate: 0 },
+          t5: { n: 0, status: "collecting" } } },
       }},
     };
     await route.fulfill({ status: 200, contentType: "application/json",
@@ -258,6 +268,10 @@ async function testCurrentHoldingsOwnDecisionMatrixMembership(browser, base) {
     "campaign did not keep markets separate");
   assert.match(await page.locator("#add-campaign-card").innerText(), /collecting · n=0/,
     "zero sample was rendered as performance instead of collecting");
+  assert.match(await page.locator("#add-campaign-card").innerText(), /early candidate replay/,
+    "early candidate evidence stayed hidden from the rendered campaign");
+  assert.match(await page.locator("#add-campaign-card").innerText(), /early ideas 1/,
+    "underlying-deduplicated early idea count was not rendered");
 
   await page.click('.tab-btn[data-tab="reflect"]');
   await waitForTab(page, "reflect");

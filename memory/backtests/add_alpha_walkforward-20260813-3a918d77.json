@@ -1,0 +1,852 @@
+{
+  "schema_version": 1,
+  "run_id": "add_alpha_walkforward-20260813-3a918d77",
+  "backtest": "add_alpha_walkforward",
+  "generated_at": "2026-08-13T14:21:11+00:00",
+  "git_commit": "5c8bdce8",
+  "reproduction_key": "sha256:3a918d77d204699a",
+  "params": {
+    "horizons": [
+      1,
+      5,
+      20
+    ],
+    "entry": "production alpha_confirmation; next session; invalidation first; gap aware",
+    "confirmation_window_sessions": 5,
+    "variants": [
+      "setup_only",
+      "price_relative",
+      "information",
+      "interaction"
+    ],
+    "early_variants": [
+      "observed",
+      "information_confirmed",
+      "exploration_ready"
+    ],
+    "policy_version": 2,
+    "parameter_fit": "none; pre-registered thresholds"
+  },
+  "inputs": [
+    {
+      "symbol": "cross_sectional_factor_history.jsonl",
+      "source": "registered factor snapshots",
+      "bars": 14,
+      "first_session": "2026-07-24",
+      "last_session": "2026-08-13",
+      "digest": "sha256:e18ee56962f65502"
+    },
+    {
+      "symbol": "peer_residual_history.jsonl",
+      "source": "registered peer-residual snapshots",
+      "bars": 14,
+      "first_session": "2026-07-24",
+      "last_session": "2026-08-13",
+      "digest": "sha256:276944722f4d206b"
+    },
+    {
+      "symbol": "news_evidence_history.jsonl",
+      "source": "point-in-time news evidence snapshots",
+      "bars": 14,
+      "first_session": "2026-07-26",
+      "last_session": "2026-08-13",
+      "digest": "sha256:c9a73c79f8d6d201"
+    },
+    {
+      "symbol": "00100",
+      "source": "Tencent qfq daily OHLC",
+      "bars": 145,
+      "first_session": "2026-01-09",
+      "last_session": "2026-08-13",
+      "digest": "sha256:77280508ed148d71"
+    },
+    {
+      "symbol": "02513",
+      "source": "Tencent qfq daily OHLC",
+      "bars": 146,
+      "first_session": "2026-01-08",
+      "last_session": "2026-08-13",
+      "digest": "sha256:ba78af2e3d853d22"
+    },
+    {
+      "symbol": "01384",
+      "source": "Tencent qfq daily OHLC",
+      "bars": 194,
+      "first_session": "2025-10-28",
+      "last_session": "2026-08-13",
+      "digest": "sha256:92ddb50d9e360c50"
+    },
+    {
+      "symbol": "09678",
+      "source": "Tencent qfq daily OHLC",
+      "bars": 277,
+      "first_session": "2025-06-30",
+      "last_session": "2026-08-13",
+      "digest": "sha256:5756f58b66b4e9a6"
+    },
+    {
+      "symbol": "06682",
+      "source": "Tencent qfq daily OHLC",
+      "bars": 420,
+      "first_session": "2024-11-26",
+      "last_session": "2026-08-13",
+      "digest": "sha256:d23c7e79432c9bbd"
+    },
+    {
+      "symbol": "00020",
+      "source": "Tencent qfq daily OHLC",
+      "bars": 420,
+      "first_session": "2024-11-26",
+      "last_session": "2026-08-13",
+      "digest": "sha256:e05aa573cf0fd7a6"
+    },
+    {
+      "symbol": "02208",
+      "source": "Tencent qfq daily OHLC",
+      "bars": 420,
+      "first_session": "2024-11-26",
+      "last_session": "2026-08-13",
+      "digest": "sha256:c90e15548754bf11"
+    },
+    {
+      "symbol": "00916",
+      "source": "Tencent qfq daily OHLC",
+      "bars": 420,
+      "first_session": "2024-11-26",
+      "last_session": "2026-08-13",
+      "digest": "sha256:ee7531db0747fb1a"
+    },
+    {
+      "symbol": "01798",
+      "source": "Tencent qfq daily OHLC",
+      "bars": 420,
+      "first_session": "2024-11-26",
+      "last_session": "2026-08-13",
+      "digest": "sha256:51421dfe476d8488"
+    },
+    {
+      "symbol": "00956",
+      "source": "Tencent qfq daily OHLC",
+      "bars": 420,
+      "first_session": "2024-11-26",
+      "last_session": "2026-08-13",
+      "digest": "sha256:287a309c6c7cae83"
+    },
+    {
+      "symbol": "01072",
+      "source": "Tencent qfq daily OHLC",
+      "bars": 420,
+      "first_session": "2024-11-26",
+      "last_session": "2026-08-13",
+      "digest": "sha256:674d0bd4aa15f78b"
+    },
+    {
+      "symbol": "03032",
+      "source": "Tencent qfq daily OHLC",
+      "bars": 420,
+      "first_session": "2024-11-26",
+      "last_session": "2026-08-13",
+      "digest": "sha256:ea31ee1636d7c07c"
+    },
+    {
+      "symbol": "03033",
+      "source": "Tencent qfq daily OHLC",
+      "bars": 420,
+      "first_session": "2024-11-26",
+      "last_session": "2026-08-13",
+      "digest": "sha256:745e09da5d69c15c"
+    },
+    {
+      "symbol": "RKLB",
+      "source": "Tencent qfq daily OHLC",
+      "bars": 421,
+      "first_session": "2024-12-06",
+      "last_session": "2026-08-13",
+      "digest": "sha256:c5f32f99ffb96231"
+    },
+    {
+      "symbol": "ASTS",
+      "source": "Tencent qfq daily OHLC",
+      "bars": 421,
+      "first_session": "2024-12-06",
+      "last_session": "2026-08-13",
+      "digest": "sha256:a47d4cff7b7dd837"
+    },
+    {
+      "symbol": "BKSY",
+      "source": "Tencent qfq daily OHLC",
+      "bars": 421,
+      "first_session": "2024-12-06",
+      "last_session": "2026-08-13",
+      "digest": "sha256:3b116cecd026324a"
+    },
+    {
+      "symbol": "IRDM",
+      "source": "Tencent qfq daily OHLC",
+      "bars": 421,
+      "first_session": "2024-12-06",
+      "last_session": "2026-08-13",
+      "digest": "sha256:deb90c876df79f03"
+    },
+    {
+      "symbol": "LMT",
+      "source": "Tencent qfq daily OHLC",
+      "bars": 421,
+      "first_session": "2024-12-06",
+      "last_session": "2026-08-13",
+      "digest": "sha256:c46dccb946812dfd"
+    },
+    {
+      "symbol": "SPCX",
+      "source": "Tencent qfq daily OHLC",
+      "bars": 43,
+      "first_session": "2026-06-12",
+      "last_session": "2026-08-13",
+      "digest": "sha256:a9e0c70646de9a91"
+    },
+    {
+      "symbol": "CRCL",
+      "source": "Tencent qfq daily OHLC",
+      "bars": 299,
+      "first_session": "2025-06-05",
+      "last_session": "2026-08-13",
+      "digest": "sha256:e85d7391a637344e"
+    },
+    {
+      "symbol": "COIN",
+      "source": "Tencent qfq daily OHLC",
+      "bars": 421,
+      "first_session": "2024-12-06",
+      "last_session": "2026-08-13",
+      "digest": "sha256:ff4be92ec788f6a1"
+    },
+    {
+      "symbol": "HOOD",
+      "source": "Tencent qfq daily OHLC",
+      "bars": 421,
+      "first_session": "2024-12-06",
+      "last_session": "2026-08-13",
+      "digest": "sha256:df217fb51b180c45"
+    },
+    {
+      "symbol": "PYPL",
+      "source": "Tencent qfq daily OHLC",
+      "bars": 421,
+      "first_session": "2024-12-06",
+      "last_session": "2026-08-13",
+      "digest": "sha256:a43acc11b7c55c24"
+    },
+    {
+      "symbol": "XYZ",
+      "source": "Tencent qfq daily OHLC",
+      "bars": 421,
+      "first_session": "2024-12-06",
+      "last_session": "2026-08-13",
+      "digest": "sha256:4199949e383cb077"
+    },
+    {
+      "symbol": "PLTR",
+      "source": "Tencent qfq daily OHLC",
+      "bars": 421,
+      "first_session": "2024-12-06",
+      "last_session": "2026-08-13",
+      "digest": "sha256:a045aa9028b0c3cb"
+    },
+    {
+      "symbol": "SNOW",
+      "source": "Tencent qfq daily OHLC",
+      "bars": 421,
+      "first_session": "2024-12-06",
+      "last_session": "2026-08-13",
+      "digest": "sha256:4e53e3ecfa597075"
+    },
+    {
+      "symbol": "DDOG",
+      "source": "Tencent qfq daily OHLC",
+      "bars": 421,
+      "first_session": "2024-12-06",
+      "last_session": "2026-08-13",
+      "digest": "sha256:069492da4aa674ee"
+    },
+    {
+      "symbol": "NET",
+      "source": "Tencent qfq daily OHLC",
+      "bars": 421,
+      "first_session": "2024-12-06",
+      "last_session": "2026-08-13",
+      "digest": "sha256:c4a8fd4e5badb71d"
+    },
+    {
+      "symbol": "MSFT",
+      "source": "Tencent qfq daily OHLC",
+      "bars": 421,
+      "first_session": "2024-12-06",
+      "last_session": "2026-08-13",
+      "digest": "sha256:0e48c7e7cd22dd8a"
+    },
+    {
+      "symbol": "GOOGL",
+      "source": "Tencent qfq daily OHLC",
+      "bars": 421,
+      "first_session": "2024-12-06",
+      "last_session": "2026-08-13",
+      "digest": "sha256:d2eb155bed8e5231"
+    },
+    {
+      "symbol": "AAPL",
+      "source": "Tencent qfq daily OHLC",
+      "bars": 421,
+      "first_session": "2024-12-06",
+      "last_session": "2026-08-13",
+      "digest": "sha256:78a4d289e9444215"
+    },
+    {
+      "symbol": "META",
+      "source": "Tencent qfq daily OHLC",
+      "bars": 421,
+      "first_session": "2024-12-06",
+      "last_session": "2026-08-13",
+      "digest": "sha256:7cf5a64a067bcc5b"
+    },
+    {
+      "symbol": "ORCL",
+      "source": "Tencent qfq daily OHLC",
+      "bars": 421,
+      "first_session": "2024-12-06",
+      "last_session": "2026-08-13",
+      "digest": "sha256:a163403bbbb34e42"
+    },
+    {
+      "symbol": "SKHY",
+      "source": "Tencent qfq daily OHLC",
+      "bars": 25,
+      "first_session": "2026-07-10",
+      "last_session": "2026-08-13",
+      "digest": "sha256:e96f476792296b36"
+    },
+    {
+      "symbol": "MU",
+      "source": "Tencent qfq daily OHLC",
+      "bars": 421,
+      "first_session": "2024-12-06",
+      "last_session": "2026-08-13",
+      "digest": "sha256:f28c056788110657"
+    },
+    {
+      "symbol": "WDC",
+      "source": "Tencent qfq daily OHLC",
+      "bars": 421,
+      "first_session": "2024-12-06",
+      "last_session": "2026-08-13",
+      "digest": "sha256:0e63e69cccff2d65"
+    },
+    {
+      "symbol": "STX",
+      "source": "Tencent qfq daily OHLC",
+      "bars": 421,
+      "first_session": "2024-12-06",
+      "last_session": "2026-08-13",
+      "digest": "sha256:e6c93159b5637df5"
+    },
+    {
+      "symbol": "NVDA",
+      "source": "Tencent qfq daily OHLC",
+      "bars": 421,
+      "first_session": "2024-12-06",
+      "last_session": "2026-08-13",
+      "digest": "sha256:a441a8c1c70e6093"
+    }
+  ],
+  "code": [
+    {
+      "file": "add_alpha_walkforward.py",
+      "digest": "sha256:d02acb8d6f56e065"
+    },
+    {
+      "file": "add_alpha.py",
+      "digest": "sha256:fc196042266437f3"
+    },
+    {
+      "file": "early_trend.py",
+      "digest": "sha256:cffd27223c1a71ef"
+    }
+  ],
+  "metrics": {
+    "us": {
+      "setup_only": {
+        "t1": {
+          "n": 134,
+          "n_dates": 12,
+          "n_tickers": 21,
+          "mean_return": 0.011768,
+          "hit_rate": 0.5821,
+          "mean_excess_vs_same_date_setup": -0.0,
+          "excess_date_cluster_ci95": [
+            -0.0,
+            0.0
+          ],
+          "status": "diagnostic"
+        },
+        "t5": {
+          "n": 84,
+          "n_dates": 9,
+          "n_tickers": 20,
+          "mean_return": 0.037762,
+          "hit_rate": 0.7619,
+          "mean_excess_vs_same_date_setup": 0.0,
+          "excess_date_cluster_ci95": [
+            -0.0,
+            0.0
+          ],
+          "status": "diagnostic"
+        },
+        "t20": {
+          "n": 0,
+          "n_dates": 0,
+          "n_tickers": 0,
+          "mean_return": null,
+          "hit_rate": null,
+          "mean_excess_vs_same_date_setup": null,
+          "excess_date_cluster_ci95": null,
+          "status": "collecting"
+        }
+      },
+      "price_relative": {
+        "t1": {
+          "n": 51,
+          "n_dates": 12,
+          "n_tickers": 8,
+          "mean_return": 0.004549,
+          "hit_rate": 0.6078,
+          "mean_excess_vs_same_date_setup": -0.009858,
+          "excess_date_cluster_ci95": [
+            -0.019412,
+            -0.001208
+          ],
+          "status": "diagnostic"
+        },
+        "t5": {
+          "n": 37,
+          "n_dates": 9,
+          "n_tickers": 8,
+          "mean_return": 0.002896,
+          "hit_rate": 0.7027,
+          "mean_excess_vs_same_date_setup": -0.033508,
+          "excess_date_cluster_ci95": [
+            -0.045806,
+            -0.019439
+          ],
+          "status": "diagnostic"
+        },
+        "t20": {
+          "n": 0,
+          "n_dates": 0,
+          "n_tickers": 0,
+          "mean_return": null,
+          "hit_rate": null,
+          "mean_excess_vs_same_date_setup": null,
+          "excess_date_cluster_ci95": null,
+          "status": "collecting"
+        }
+      },
+      "information": {
+        "t1": {
+          "n": 15,
+          "n_dates": 9,
+          "n_tickers": 5,
+          "mean_return": 0.029605,
+          "hit_rate": 0.8667,
+          "mean_excess_vs_same_date_setup": 0.015326,
+          "excess_date_cluster_ci95": [
+            0.00124,
+            0.027445
+          ],
+          "status": "collecting"
+        },
+        "t5": {
+          "n": 9,
+          "n_dates": 6,
+          "n_tickers": 3,
+          "mean_return": 0.083284,
+          "hit_rate": 0.8889,
+          "mean_excess_vs_same_date_setup": 0.044706,
+          "excess_date_cluster_ci95": [
+            0.005849,
+            0.084999
+          ],
+          "status": "collecting"
+        },
+        "t20": {
+          "n": 0,
+          "n_dates": 0,
+          "n_tickers": 0,
+          "mean_return": null,
+          "hit_rate": null,
+          "mean_excess_vs_same_date_setup": null,
+          "excess_date_cluster_ci95": null,
+          "status": "collecting"
+        }
+      },
+      "interaction": {
+        "t1": {
+          "n": 4,
+          "n_dates": 4,
+          "n_tickers": 1,
+          "mean_return": 0.031052,
+          "hit_rate": 1.0,
+          "mean_excess_vs_same_date_setup": 0.013244,
+          "excess_date_cluster_ci95": [
+            -0.021929,
+            0.055877
+          ],
+          "status": "collecting"
+        },
+        "t5": {
+          "n": 4,
+          "n_dates": 4,
+          "n_tickers": 1,
+          "mean_return": 0.041296,
+          "hit_rate": 0.75,
+          "mean_excess_vs_same_date_setup": -0.002233,
+          "excess_date_cluster_ci95": [
+            -0.04664,
+            0.05479
+          ],
+          "status": "collecting"
+        },
+        "t20": {
+          "n": 0,
+          "n_dates": 0,
+          "n_tickers": 0,
+          "mean_return": null,
+          "hit_rate": null,
+          "mean_excess_vs_same_date_setup": null,
+          "excess_date_cluster_ci95": null,
+          "status": "collecting"
+        }
+      }
+    },
+    "hk": {
+      "setup_only": {
+        "t1": {
+          "n": 71,
+          "n_dates": 12,
+          "n_tickers": 12,
+          "mean_return": 0.003334,
+          "hit_rate": 0.493,
+          "mean_excess_vs_same_date_setup": 0.0,
+          "excess_date_cluster_ci95": [
+            -0.0,
+            0.0
+          ],
+          "status": "diagnostic"
+        },
+        "t5": {
+          "n": 54,
+          "n_dates": 9,
+          "n_tickers": 12,
+          "mean_return": 0.034444,
+          "hit_rate": 0.463,
+          "mean_excess_vs_same_date_setup": 0.0,
+          "excess_date_cluster_ci95": [
+            -0.0,
+            0.0
+          ],
+          "status": "diagnostic"
+        },
+        "t20": {
+          "n": 0,
+          "n_dates": 0,
+          "n_tickers": 0,
+          "mean_return": null,
+          "hit_rate": null,
+          "mean_excess_vs_same_date_setup": null,
+          "excess_date_cluster_ci95": null,
+          "status": "collecting"
+        }
+      },
+      "price_relative": {
+        "t1": {
+          "n": 23,
+          "n_dates": 11,
+          "n_tickers": 7,
+          "mean_return": -0.004846,
+          "hit_rate": 0.3913,
+          "mean_excess_vs_same_date_setup": -0.006961,
+          "excess_date_cluster_ci95": [
+            -0.014335,
+            0.000754
+          ],
+          "status": "diagnostic"
+        },
+        "t5": {
+          "n": 18,
+          "n_dates": 9,
+          "n_tickers": 5,
+          "mean_return": -0.029271,
+          "hit_rate": 0.2222,
+          "mean_excess_vs_same_date_setup": -0.071017,
+          "excess_date_cluster_ci95": [
+            -0.088914,
+            -0.053324
+          ],
+          "status": "collecting"
+        },
+        "t20": {
+          "n": 0,
+          "n_dates": 0,
+          "n_tickers": 0,
+          "mean_return": null,
+          "hit_rate": null,
+          "mean_excess_vs_same_date_setup": null,
+          "excess_date_cluster_ci95": null,
+          "status": "collecting"
+        }
+      },
+      "information": {
+        "t1": {
+          "n": 13,
+          "n_dates": 9,
+          "n_tickers": 4,
+          "mean_return": 0.014106,
+          "hit_rate": 0.6154,
+          "mean_excess_vs_same_date_setup": 0.008654,
+          "excess_date_cluster_ci95": [
+            -0.002739,
+            0.024894
+          ],
+          "status": "collecting"
+        },
+        "t5": {
+          "n": 10,
+          "n_dates": 7,
+          "n_tickers": 4,
+          "mean_return": 0.071718,
+          "hit_rate": 0.5,
+          "mean_excess_vs_same_date_setup": 0.036004,
+          "excess_date_cluster_ci95": [
+            -0.037736,
+            0.128427
+          ],
+          "status": "collecting"
+        },
+        "t20": {
+          "n": 0,
+          "n_dates": 0,
+          "n_tickers": 0,
+          "mean_return": null,
+          "hit_rate": null,
+          "mean_excess_vs_same_date_setup": null,
+          "excess_date_cluster_ci95": null,
+          "status": "collecting"
+        }
+      },
+      "interaction": {
+        "t1": {
+          "n": 2,
+          "n_dates": 2,
+          "n_tickers": 2,
+          "mean_return": 0.017743,
+          "hit_rate": 0.5,
+          "mean_excess_vs_same_date_setup": 0.039444,
+          "excess_date_cluster_ci95": null,
+          "status": "collecting"
+        },
+        "t5": {
+          "n": 1,
+          "n_dates": 1,
+          "n_tickers": 1,
+          "mean_return": -0.010252,
+          "hit_rate": 0.0,
+          "mean_excess_vs_same_date_setup": -0.079643,
+          "excess_date_cluster_ci95": null,
+          "status": "collecting"
+        },
+        "t20": {
+          "n": 0,
+          "n_dates": 0,
+          "n_tickers": 0,
+          "mean_return": null,
+          "hit_rate": null,
+          "mean_excess_vs_same_date_setup": null,
+          "excess_date_cluster_ci95": null,
+          "status": "collecting"
+        }
+      }
+    },
+    "early_trend": {
+      "us": {
+        "observed": {
+          "t1": {
+            "n": 8,
+            "n_dates": 7,
+            "n_tickers": 3,
+            "mean_return": 0.005129,
+            "hit_rate": 0.5,
+            "mean_excess_vs_same_date_setup": null,
+            "excess_date_cluster_ci95": null,
+            "status": "collecting"
+          },
+          "t5": {
+            "n": 5,
+            "n_dates": 4,
+            "n_tickers": 2,
+            "mean_return": 0.063911,
+            "hit_rate": 1.0,
+            "mean_excess_vs_same_date_setup": null,
+            "excess_date_cluster_ci95": null,
+            "status": "collecting"
+          }
+        },
+        "information_confirmed": {
+          "t1": {
+            "n": 4,
+            "n_dates": 3,
+            "n_tickers": 2,
+            "mean_return": 0.010668,
+            "hit_rate": 0.5,
+            "mean_excess_vs_same_date_setup": null,
+            "excess_date_cluster_ci95": null,
+            "status": "collecting"
+          },
+          "t5": {
+            "n": 4,
+            "n_dates": 3,
+            "n_tickers": 2,
+            "mean_return": 0.070451,
+            "hit_rate": 1.0,
+            "mean_excess_vs_same_date_setup": null,
+            "excess_date_cluster_ci95": null,
+            "status": "collecting"
+          }
+        },
+        "exploration_ready": {
+          "t1": {
+            "n": 0,
+            "n_dates": 0,
+            "n_tickers": 0,
+            "mean_return": null,
+            "hit_rate": null,
+            "mean_excess_vs_same_date_setup": null,
+            "excess_date_cluster_ci95": null,
+            "status": "collecting"
+          },
+          "t5": {
+            "n": 0,
+            "n_dates": 0,
+            "n_tickers": 0,
+            "mean_return": null,
+            "hit_rate": null,
+            "mean_excess_vs_same_date_setup": null,
+            "excess_date_cluster_ci95": null,
+            "status": "collecting"
+          }
+        }
+      },
+      "hk": {
+        "observed": {
+          "t1": {
+            "n": 2,
+            "n_dates": 1,
+            "n_tickers": 2,
+            "mean_return": -0.023876,
+            "hit_rate": 0.0,
+            "mean_excess_vs_same_date_setup": null,
+            "excess_date_cluster_ci95": null,
+            "status": "collecting"
+          },
+          "t5": {
+            "n": 0,
+            "n_dates": 0,
+            "n_tickers": 0,
+            "mean_return": null,
+            "hit_rate": null,
+            "mean_excess_vs_same_date_setup": null,
+            "excess_date_cluster_ci95": null,
+            "status": "collecting"
+          }
+        },
+        "information_confirmed": {
+          "t1": {
+            "n": 1,
+            "n_dates": 1,
+            "n_tickers": 1,
+            "mean_return": -0.012255,
+            "hit_rate": 0.0,
+            "mean_excess_vs_same_date_setup": null,
+            "excess_date_cluster_ci95": null,
+            "status": "collecting"
+          },
+          "t5": {
+            "n": 0,
+            "n_dates": 0,
+            "n_tickers": 0,
+            "mean_return": null,
+            "hit_rate": null,
+            "mean_excess_vs_same_date_setup": null,
+            "excess_date_cluster_ci95": null,
+            "status": "collecting"
+          }
+        },
+        "exploration_ready": {
+          "t1": {
+            "n": 0,
+            "n_dates": 0,
+            "n_tickers": 0,
+            "mean_return": null,
+            "hit_rate": null,
+            "mean_excess_vs_same_date_setup": null,
+            "excess_date_cluster_ci95": null,
+            "status": "collecting"
+          },
+          "t5": {
+            "n": 0,
+            "n_dates": 0,
+            "n_tickers": 0,
+            "mean_return": null,
+            "hit_rate": null,
+            "mean_excess_vs_same_date_setup": null,
+            "excess_date_cluster_ci95": null,
+            "status": "collecting"
+          }
+        }
+      }
+    },
+    "coverage": {
+      "factor_dates": 14,
+      "information_dates": 14,
+      "overlap_dates": 12,
+      "authority_classifications": {
+        "none": 217,
+        "exploration": 7,
+        "validated": 0
+      },
+      "information_grade": "retrospective_point_in_time_replay_only",
+      "factor_grade": "retrospective_current_universe_survivorship_limited",
+      "prospective_information_dates": 1,
+      "parameter_fit": "none_pre_registered_policy",
+      "claim": "diagnostic_not_validated_alpha",
+      "early_trend": {
+        "eligible_signal_dates": 139,
+        "peer_metrics_evaluated": 139,
+        "observed_candidates": 11,
+        "information_confirmed": 6,
+        "exploration_ready": 0,
+        "missing_taxonomy": 0,
+        "entry": "signal_session_close_for_measurement_only",
+        "lookahead": "features_recomputed_at_each_snapshot_date; future closes used only for outcomes",
+        "history_limit": "registered histories currently cover about 14 dates"
+      }
+    }
+  },
+  "notes": [
+    "US and HK are ranked and evaluated separately.",
+    "Production classify_authority and confirmation primitives are reused directly.",
+    "Current-universe factor history is survivorship-limited and cannot validate authority.",
+    "Legacy information replay seeds diagnostics only; prospective activation remains warming_up.",
+    "Same-day entry/invalidation ambiguity is invalidated, never assumed filled.",
+    "Early candidates are one row per underlying and use signal-date-close features with T+1/T+5 future closes only as outcomes.",
+    "The early history is small; every result remains collecting/diagnostic, never validated alpha."
+  ],
+  "data_boundary": "derived metrics and source names only; no raw vendor bars"
+}

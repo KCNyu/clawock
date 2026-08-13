@@ -807,7 +807,7 @@ def main(argv=None):
         except Exception:
             pass
     elif status in ('pass', 'warn'):
-        card = build_brief_card(today)
+        card = build_brief_card(today, decision_packet=decision_packet)
         message = (wechat_prefix + card).strip()
         first_line = card.strip().splitlines()[0] if card.strip() else ''
         # Take the send right before sending, not after (#508). The marker below
